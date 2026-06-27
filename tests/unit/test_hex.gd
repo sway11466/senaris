@@ -66,3 +66,23 @@ func test_offset_axial_round_trip() -> void:
 
 func test_origin_maps_to_zero_pixel() -> void:
 	assert_eq(Hex.to_pixel(Vector2i(0, 0), 32.0), Vector2.ZERO)
+
+func test_flood_open_equals_within_range() -> void:
+	# 障害なしなら到達集合は within_range と一致する。
+	var always := func(_h: Vector2i) -> bool: return true
+	for n in range(0, 4):
+		var reach := Hex.flood_reach(Vector2i(0, 0), n, always)
+		assert_eq(reach.size(), Hex.within_range(Vector2i(0, 0), n).size(), "n=%d の到達数" % n)
+
+func test_flood_includes_start() -> void:
+	var none := func(_h: Vector2i) -> bool: return false
+	var reach := Hex.flood_reach(Vector2i(2, -1), 3, none)
+	assert_eq(reach, [Vector2i(2, -1)], "全方向ブロックでも start は含む")
+
+func test_flood_respects_walls() -> void:
+	# q == 1 の列を壁にすると、原点からは q<=0 側にしか出られない。
+	var passable := func(h: Vector2i) -> bool: return h.x != 1
+	var reach := Hex.flood_reach(Vector2i(0, 0), 5, passable)
+	for h in reach:
+		assert_ne(h.x, 1, "壁の列には入らない")
+	assert_true(reach.has(Vector2i(-1, 0)), "壁の手前側へは到達できる")

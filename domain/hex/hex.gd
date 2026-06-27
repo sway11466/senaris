@@ -98,3 +98,30 @@ static func axial_to_offset(hex: Vector2i) -> Vector2i:
 	var col := hex.x
 	var row := hex.y + int((hex.x - (hex.x & 1)) / 2)
 	return Vector2i(col, row)
+
+# --- 探索 ---
+
+## start から max_steps 歩で到達できるヘックス一覧（start 含む）。
+## passable: Callable(Vector2i) -> bool。各ステップ一律コスト1の BFS。
+## 純ロジック: 通行判定は呼び出し側から関数で渡す（マップ/地形に非依存）。
+static func flood_reach(start: Vector2i, max_steps: int, passable: Callable) -> Array[Vector2i]:
+	var dist := {start: 0}
+	var frontier: Array[Vector2i] = [start]
+	var head := 0
+	while head < frontier.size():
+		var current: Vector2i = frontier[head]
+		head += 1
+		var d: int = dist[current]
+		if d >= max_steps:
+			continue
+		for n in neighbors(current):
+			if dist.has(n):
+				continue
+			if not passable.call(n):
+				continue
+			dist[n] = d + 1
+			frontier.append(n)
+	var result: Array[Vector2i] = []
+	for k in dist:
+		result.append(k)
+	return result
