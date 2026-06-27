@@ -126,7 +126,9 @@ func _remove_unit(unit_id: int) -> void:
 			_units.remove_at(i)
 			return
 
-# --- 勝敗 ---
+# --- 勝敗（自軍＝team 0 視点。暫定: 拠点占領勝利・ターン制限は未実装） ---
+
+enum { ONGOING, PLAYER_WIN, PLAYER_LOSS }
 
 func team_unit_count(team: int) -> int:
 	var n := 0
@@ -135,18 +137,16 @@ func team_unit_count(team: int) -> int:
 			n += 1
 	return n
 
-## 勝者の陣営。決着していなければ -1（2チーム前提）。
-func winner() -> int:
-	var t0 := team_unit_count(0)
-	var t1 := team_unit_count(1)
-	if t0 > 0 and t1 == 0:
-		return 0
-	if t1 > 0 and t0 == 0:
-		return 1
-	return -1
+## 決着結果。自軍全滅は負け（相討ち全滅も負け＝自軍が消えていれば敗北を優先）。
+func outcome() -> int:
+	if team_unit_count(0) == 0:
+		return PLAYER_LOSS
+	if team_unit_count(1) == 0:
+		return PLAYER_WIN
+	return ONGOING
 
 func is_over() -> bool:
-	return winner() != -1
+	return outcome() != ONGOING
 
 # --- 手番 ---
 

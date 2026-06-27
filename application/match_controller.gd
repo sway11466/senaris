@@ -10,7 +10,7 @@ signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
-signal battle_finished(winner: int)
+signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
 
 var state: BattleState
 var _finished := false
@@ -57,7 +57,7 @@ func end_turn() -> void:
 func _check_finished() -> void:
 	if not _finished and state.is_over():
 		_finished = true
-		battle_finished.emit(state.winner())
+		battle_finished.emit(state.outcome())
 
 ## 表示用の問い合わせ（状態は変えない）。
 func reachable_for(unit_id: int) -> Array[Vector2i]:

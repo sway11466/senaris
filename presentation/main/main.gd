@@ -31,6 +31,11 @@ func _update_turn_label(team: int, turn_number: int) -> void:
 	var who := "自軍" if team == 0 else "敵軍"
 	$Title.text = "Senaris — Turn %d / %s（Enter で手番終了）" % [turn_number, who]
 
-func _on_battle_finished(winner: int) -> void:
-	var who := "自軍" if winner == 0 else "敵軍"
-	$Title.text = "Senaris — %s の勝利！" % who
+func _on_battle_finished(outcome: int) -> void:
+	var text := "決着"
+	match outcome:
+		BattleState.PLAYER_WIN:
+			text = "自軍の勝利！"
+		BattleState.PLAYER_LOSS:
+			text = "自軍の敗北…"
+	$Title.text = "Senaris — %s" % text
