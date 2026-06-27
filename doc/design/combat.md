@@ -3,7 +3,7 @@
 ターン制ヘックス戦術シミュレーション（ファンタジー）の戦闘解決の設計メモ。
 ゲームシステムの核はネクタリス（Military Madness）を踏襲しつつ、表現はオリジナルに置き換える方針。
 
-> 関連: ユニット性能は [units.md](units.md)／マップ・占領は [map.md](map.md)／セーブは [save.md](save.md)／世界観は [../world.md](../world.md)。コンセプト上の位置づけは [../concepts.md](../concepts.md)。
+> 関連: ユニット性能は [units.md](units.md)／マップ・占領は [map.md](map.md)／セーブは [../gamesystem/save.md](../gamesystem/save.md)／世界観は [../world.md](../world.md)。コンセプト上の位置づけは [../concepts.md](../concepts.md)。
 
 ---
 
