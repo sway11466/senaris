@@ -132,7 +132,7 @@ func _draw_unit(u: Unit) -> void:
 	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
 	if state.is_done(u.id):
 		col = col.darkened(0.45)  # 行動終了は暗く
-	if Surround.is_surrounded(state, u):  # 包囲中（攻防 ×0.5）を明示
+	if Surround.factor(state, u) < 1.0:  # 包囲中（攻防に係数<1.0）を明示
 		draw_arc(center, hex_size * 0.86, 0.0, TAU, 24, COLOR_SURROUNDED, 2.5)
 	draw_circle(center, hex_size * 0.55, col)
 	if u.id == _selected_id:

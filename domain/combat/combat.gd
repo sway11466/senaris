@@ -11,9 +11,9 @@ class_name Combat
 const K := 1.0  ## 殺傷力（全体の削り量。チューニング用）
 const P := 2.0  ## 決定力（戦力差の効き。互角は常に0.5、差だけ鋭くなる）
 
-## 包囲補正係数（被包囲で 0.5、それ以外 1.0）。攻防の両方に乗る。
+## 包囲補正係数（段階式・1.0＝影響なし）。攻防の両方に乗る。詳細は Surround。
 static func surround_factor(state: BattleState, u: Unit) -> float:
-	return 0.5 if Surround.is_surrounded(state, u) else 1.0
+	return Surround.factor(state, u)
 
 ## 実効攻撃力。TODO: × 経験 × 地形(攻) ＋ 支援(攻)
 static func effective_attack(state: BattleState, u: Unit) -> float:
