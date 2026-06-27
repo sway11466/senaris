@@ -1,6 +1,6 @@
 extends RefCounted
 class_name Combat
-## 戦闘解決（純ロジック・決定的＝乱数なし）。詳細 → doc/design/combat.md
+## 戦闘解決（純ロジック・決定的＝乱数なし）。詳細 → doc/gdd/combat.md
 ##
 ## 実効攻撃力 A ＝ 兵数 × ユニット攻撃力 × 経験 × 包囲 × 地形(攻) ＋ 支援(攻)
 ## 実効防御力 D ＝ 兵数 × ユニット防御力 × 経験 × 包囲 × 地形(防) ＋ 支援(防)

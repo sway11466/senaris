@@ -2,7 +2,7 @@ extends RefCounted
 class_name BattleState
 ## 戦闘全体の状態 ＝ 中断セーブの本体（唯一の真実）。
 ## Godot ノード非依存（extends RefCounted）。見た目の状態はここに含めない。
-## 詳細 → doc/design/architecture.md, doc/gamesystem/save.md
+## 詳細 → doc/tech/architecture.md, doc/tech/gamesystem.md
 
 var cols: int  ## 矩形フィールドの幅（offset col 数）
 var rows: int  ## 矩形フィールドの高さ（offset row 数）

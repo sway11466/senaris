@@ -1,6 +1,6 @@
 extends RefCounted
 class_name Surround
-## 包囲判定（純ロジック）。詳細 → doc/design/combat.md
+## 包囲判定（純ロジック）。詳細 → doc/gdd/combat.md
 ##
 ## ユニットの周囲6ヘックスがすべて「敵に占有 ＋ または敵のZOC下（敵に隣接）」なら包囲。
 ## 包囲された側は攻撃力・防御力がともに ×0.5（combat.gd で適用）。

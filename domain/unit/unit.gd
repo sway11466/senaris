@@ -2,7 +2,7 @@ extends RefCounted
 class_name Unit
 ## 盤上のユニット1体（＝小隊）の状態。純データ・ノード非依存。
 ## 見た目は持たない（描画は presentation 側が team/pos から決める）。
-## 詳細 → doc/design/combat.md
+## 詳細 → doc/gdd/combat.md
 
 var id: int            ## 一意なID
 var team: int          ## 陣営（0=自軍, 1=敵軍 ...）
