@@ -20,7 +20,9 @@
 ## ゲームシステム — `gamesystem/`
 
 - [gamesystem/save.md](gamesystem/save.md) — セーブ仕様
+- [gamesystem/monetization.md](gamesystem/monetization.md) — 体験版/製品版・DLC・有料データ保護
 
 ## 意思決定記録 — `adr/`
 
 - [adr/ADR-0001-adopt-godot.md](adr/ADR-0001-adopt-godot.md) — ゲームエンジンに Godot 4 を採用
+- [adr/ADR-0002-paid-data-protection.md](adr/ADR-0002-paid-data-protection.md) — 有料データの保護（署名＋pck 暗号化）

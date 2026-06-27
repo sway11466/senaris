@@ -27,6 +27,7 @@
 | 拠点・占領・ステージ | [doc/design/map.md](doc/design/map.md) |
 | アーキテクチャ | [doc/design/architecture.md](doc/design/architecture.md) |
 | セーブ仕様 | [doc/gamesystem/save.md](doc/gamesystem/save.md) |
+| マネタイズ・データ保護 | [doc/gamesystem/monetization.md](doc/gamesystem/monetization.md) |
 | 世界観 | [doc/world.md](doc/world.md) |
 | アート準備 | [doc/art.md](doc/art.md) |
 | 命名の決定 | [doc/naming_decision_senaris.md](doc/naming_decision_senaris.md) |
