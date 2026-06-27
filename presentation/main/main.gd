@@ -1,6 +1,20 @@
 extends Node2D
-## 起動確認用の最小シーン。
-## Presentation 層のエントリポイント。状態は持たず、将来 application/match_controller.gd へ委譲する。
+## Presentation 層のエントリポイント。
+## 戦闘状態(BattleState)と進行役(MatchController)を組み立て、盤(HexBoard)に渡す。
+## 配置などはデモ用の仮。将来はステージデータ(data/)から構築する。
 
 func _ready() -> void:
 	print("Senaris booted.")
+
+	var state := BattleState.new(12, 8)
+	state.add_unit(Unit.new(1, 0, Hex.offset_to_axial(3, 3), 4))
+	state.add_unit(Unit.new(2, 0, Hex.offset_to_axial(4, 5), 3))
+	state.add_unit(Unit.new(3, 1, Hex.offset_to_axial(8, 2), 4))
+	state.add_unit(Unit.new(4, 1, Hex.offset_to_axial(7, 5), 3))
+
+	var controller := MatchController.new()
+	controller.name = "MatchController"
+	controller.setup(state)
+	add_child(controller)
+
+	$HexBoard.bind(state, controller)

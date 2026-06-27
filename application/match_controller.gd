@@ -1,9 +1,30 @@
 extends Node
 class_name MatchController
 ## ゲーム進行のまとめ役（Application 層）。
-## Presentation からコマンドを受け、domain を呼び、結果をシグナルで上へ返す。
-## 状態の真実は domain/battle_state.gd に置き、ここは進行管理のみ。
+## Presentation からコマンドを受け、domain(BattleState) を呼び、結果をシグナルで上へ返す。
+## 状態の真実は BattleState に置き、ここは進行管理のみ。
 
-# 上り: 純データのシグナルで Presentation に通知する（例）。
-# signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i)
-# signal combat_resolved(result: Dictionary)
+## 上り: 純データのシグナルで Presentation に通知する。
+signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i)
+signal move_rejected(unit_id: int, to: Vector2i)
+
+var state: BattleState
+
+func setup(p_state: BattleState) -> void:
+	state = p_state
+
+## 下りコマンドの処理。成功すれば状態を更新し unit_moved を発行。
+func execute(cmd: MoveCommand) -> bool:
+	var u := state.unit_by_id(cmd.unit_id)
+	if u == null:
+		return false
+	var from := u.pos
+	if state.move_unit(cmd.unit_id, cmd.to):
+		unit_moved.emit(cmd.unit_id, from, cmd.to)
+		return true
+	move_rejected.emit(cmd.unit_id, cmd.to)
+	return false
+
+## 表示用の問い合わせ（状態は変えない）。
+func reachable_for(unit_id: int) -> Array[Vector2i]:
+	return state.reachable(unit_id)
