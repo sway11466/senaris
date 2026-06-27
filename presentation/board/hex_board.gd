@@ -24,6 +24,7 @@ func bind(p_state: BattleState, p_controller: MatchController) -> void:
 	state = p_state
 	controller = p_controller
 	controller.unit_moved.connect(_on_unit_moved)
+	controller.turn_changed.connect(_on_turn_changed)
 	queue_redraw()
 
 func _process(_delta: float) -> void:
@@ -39,6 +40,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_click(_hex_at_mouse())
+	elif event.is_action_pressed("ui_accept"):  # Enter / Space で手番終了
+		_deselect()
+		controller.end_turn()
 
 func _on_click(hex: Vector2i) -> void:
 	var clicked := state.unit_at(hex)
@@ -46,8 +50,8 @@ func _on_click(hex: Vector2i) -> void:
 	if _selected_id != -1 and clicked == null and _reachable.has(hex):
 		controller.execute(MoveCommand.new(_selected_id, hex))
 		return
-	# ユニットをクリック → 選択。空白をクリック → 選択解除。
-	if clicked != null:
+	# 現手番の未行動ユニットをクリック → 選択。それ以外 → 選択解除。
+	if clicked != null and state.can_select(clicked.id):
 		_select(clicked.id)
 	else:
 		_deselect()
@@ -64,12 +68,12 @@ func _deselect() -> void:
 	_reachable.clear()
 	queue_redraw()
 
-func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
-	# 動いたのが選択中ユニットなら到達範囲を取り直す。
-	if unit_id == _selected_id:
-		_select(_selected_id)
-	else:
-		queue_redraw()
+func _on_unit_moved(_unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
+	# 移動したユニットは行動済み。選択を解いて再描画する。
+	_deselect()
+
+func _on_turn_changed(_team: int, _turn_number: int) -> void:
+	_deselect()
 
 func _hex_at_mouse() -> Vector2i:
 	return Hex.from_pixel(get_local_mouse_position() - board_origin, hex_size)
@@ -96,7 +100,10 @@ func _draw_tile(hex: Vector2i) -> void:
 
 func _draw_unit(u: Unit) -> void:
 	var center := board_origin + Hex.to_pixel(u.pos, hex_size)
-	draw_circle(center, hex_size * 0.55, TEAM_COLORS[u.team % TEAM_COLORS.size()])
+	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
+	if state.has_moved(u.id):
+		col = col.darkened(0.45)  # 行動済みは暗く
+	draw_circle(center, hex_size * 0.55, col)
 	if u.id == _selected_id:
 		draw_arc(center, hex_size * 0.7, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)
 

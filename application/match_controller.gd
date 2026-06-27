@@ -7,6 +7,7 @@ class_name MatchController
 ## 上り: 純データのシグナルで Presentation に通知する。
 signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i)
 signal move_rejected(unit_id: int, to: Vector2i)
+signal turn_changed(team: int, turn_number: int)
 
 var state: BattleState
 
@@ -24,6 +25,11 @@ func execute(cmd: MoveCommand) -> bool:
 		return true
 	move_rejected.emit(cmd.unit_id, cmd.to)
 	return false
+
+## 手番を終了して次の陣営へ渡す。
+func end_turn() -> void:
+	state.end_turn()
+	turn_changed.emit(state.current_team, state.turn_number)
 
 ## 表示用の問い合わせ（状態は変えない）。
 func reachable_for(unit_id: int) -> Array[Vector2i]:

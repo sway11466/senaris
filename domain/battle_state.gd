@@ -7,7 +7,11 @@ class_name BattleState
 var cols: int  ## 矩形フィールドの幅（offset col 数）
 var rows: int  ## 矩形フィールドの高さ（offset row 数）
 
+var current_team: int = 0  ## 現在の手番の陣営
+var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
+
 var _units: Array[Unit] = []
+var _moved := {}  # unit_id -> true（このターンに移動済み）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -45,15 +49,39 @@ func reachable(unit_id: int) -> Array[Vector2i]:
 		return in_field(h) and unit_at(h) == null
 	return Hex.flood_reach(u.pos, u.move, passable)
 
-## unit_id を to へ動かせるか（空きマスかつ移動範囲内）。
+## unit_id を to へ動かせるか（空きマスかつ移動範囲内）。地形のみの判定で手番は見ない。
 func can_move(unit_id: int, to: Vector2i) -> bool:
 	if unit_at(to) != null:
 		return false
 	return reachable(unit_id).has(to)
 
-## 妥当なら移動を適用して true。不正なら何もせず false。
+## 妥当なら移動を適用して true。手番違い・行動済み・不正先なら false。
 func move_unit(unit_id: int, to: Vector2i) -> bool:
+	if not can_select(unit_id):
+		return false
 	if not can_move(unit_id, to):
 		return false
 	unit_by_id(unit_id).pos = to
+	_moved[unit_id] = true
 	return true
+
+# --- 手番 ---
+
+## この陣営/ユニットが現在の手番か。
+func is_current_unit(u: Unit) -> bool:
+	return u != null and u.team == current_team
+
+## このターンに行動済みか。
+func has_moved(unit_id: int) -> bool:
+	return _moved.has(unit_id)
+
+## 選択して動かせる状態か（現手番・未行動）。
+func can_select(unit_id: int) -> bool:
+	return is_current_unit(unit_by_id(unit_id)) and not has_moved(unit_id)
+
+## 手番を次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
+func end_turn() -> void:
+	_moved.clear()
+	current_team = 1 - current_team
+	if current_team == 0:
+		turn_number += 1
