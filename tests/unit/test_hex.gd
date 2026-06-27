@@ -1,0 +1,51 @@
+extends GutTest
+## domain/hex/hex.gd の単体テスト。
+
+func test_neighbors_count() -> void:
+	assert_eq(Hex.neighbors(Vector2i(0, 0)).size(), 6, "6近傍が返る")
+
+func test_neighbor_is_distance_one() -> void:
+	var c := Vector2i(2, -1)
+	for dir in 6:
+		assert_eq(Hex.distance(c, Hex.neighbor(c, dir)), 1, "隣は距離1")
+
+func test_distance_self_is_zero() -> void:
+	assert_eq(Hex.distance(Vector2i(3, -2), Vector2i(3, -2)), 0)
+
+func test_distance_symmetric() -> void:
+	var a := Vector2i(0, 0)
+	var b := Vector2i(2, -1)
+	assert_eq(Hex.distance(a, b), Hex.distance(b, a))
+
+func test_distance_known_values() -> void:
+	assert_eq(Hex.distance(Vector2i(0, 0), Vector2i(3, 0)), 3)
+	assert_eq(Hex.distance(Vector2i(0, 0), Vector2i(0, 3)), 3)
+	assert_eq(Hex.distance(Vector2i(0, 0), Vector2i(-1, -1)), 2)
+
+func test_direction_wraps() -> void:
+	assert_eq(Hex.direction(6), Hex.direction(0), "6は0に折り返す")
+	assert_eq(Hex.direction(-1), Hex.direction(5))
+
+func test_within_range_counts() -> void:
+	# 距離 n 以内のヘックス数は 1 + 3n(n+1)。
+	assert_eq(Hex.within_range(Vector2i(0, 0), 0).size(), 1)
+	assert_eq(Hex.within_range(Vector2i(0, 0), 1).size(), 7)
+	assert_eq(Hex.within_range(Vector2i(0, 0), 2).size(), 19)
+
+func test_within_range_all_within_distance() -> void:
+	var c := Vector2i(1, 1)
+	for h in Hex.within_range(c, 3):
+		assert_lte(Hex.distance(c, h), 3, "範囲内は距離3以下")
+
+func test_ring_zero_is_center() -> void:
+	var r := Hex.ring(Vector2i(5, 5), 0)
+	assert_eq(r.size(), 1)
+	assert_eq(r[0], Vector2i(5, 5))
+
+func test_ring_size_and_distance() -> void:
+	var c := Vector2i(0, 0)
+	for radius in range(1, 4):
+		var r := Hex.ring(c, radius)
+		assert_eq(r.size(), 6 * radius, "リングのヘックス数は 6*radius")
+		for h in r:
+			assert_eq(Hex.distance(c, h), radius, "リング上は距離=radius")
