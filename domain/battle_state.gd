@@ -99,8 +99,8 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	var a := unit_by_id(attacker_id)
 	var t := unit_by_id(target_id)
 	# 同時攻撃: 戦闘前の兵数で双方の損害を確定させてから適用（決定的）。
-	var dmg_to_target := Combat.casualties(a, t)
-	var dmg_to_attacker := Combat.casualties(t, a)  # 反撃: tの攻撃力 vs aの防御力
+	var dmg_to_target := Combat.casualties(self, a, t)
+	var dmg_to_attacker := Combat.casualties(self, t, a)  # 反撃: tの攻撃力 vs aの防御力
 	t.troops -= dmg_to_target
 	a.troops -= dmg_to_attacker
 	var target_killed := t.troops <= 0

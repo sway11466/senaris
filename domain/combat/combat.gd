@@ -11,18 +11,22 @@ class_name Combat
 const K := 1.0  ## 殺傷力（全体の削り量。チューニング用）
 const P := 2.0  ## 決定力（戦力差の効き。互角は常に0.5、差だけ鋭くなる）
 
-## 実効攻撃力。TODO: × 経験 × 包囲 × 地形(攻) ＋ 支援(攻)
-static func effective_attack(u: Unit) -> float:
-	return float(u.troops) * float(u.unit_attack)
+## 包囲補正係数（被包囲で 0.5、それ以外 1.0）。攻防の両方に乗る。
+static func surround_factor(state: BattleState, u: Unit) -> float:
+	return 0.5 if Surround.is_surrounded(state, u) else 1.0
 
-## 実効防御力。TODO: × 経験 × 包囲 × 地形(防) ＋ 支援(防)
-static func effective_defense(u: Unit) -> float:
-	return float(u.troops) * float(u.unit_defense)
+## 実効攻撃力。TODO: × 経験 × 地形(攻) ＋ 支援(攻)
+static func effective_attack(state: BattleState, u: Unit) -> float:
+	return float(u.troops) * float(u.unit_attack) * surround_factor(state, u)
+
+## 実効防御力。TODO: × 経験 × 地形(防) ＋ 支援(防)
+static func effective_defense(state: BattleState, u: Unit) -> float:
+	return float(u.troops) * float(u.unit_defense) * surround_factor(state, u)
 
 ## attacker が defender に与える失う兵数（0〜defender.troops）。
-static func casualties(attacker: Unit, defender: Unit) -> int:
-	var a := effective_attack(attacker)
-	var d := effective_defense(defender)
+static func casualties(state: BattleState, attacker: Unit, defender: Unit) -> int:
+	var a := effective_attack(state, attacker)
+	var d := effective_defense(state, defender)
 	if a <= 0.0:
 		return 0
 	var ap := pow(a, P)

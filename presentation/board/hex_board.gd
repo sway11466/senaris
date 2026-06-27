@@ -12,6 +12,7 @@ const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
 const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
 const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
+const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 
 var state: BattleState
@@ -131,6 +132,8 @@ func _draw_unit(u: Unit) -> void:
 	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
 	if state.is_done(u.id):
 		col = col.darkened(0.45)  # 行動終了は暗く
+	if Surround.is_surrounded(state, u):  # 包囲中（攻防 ×0.5）を明示
+		draw_arc(center, hex_size * 0.86, 0.0, TAU, 24, COLOR_SURROUNDED, 2.5)
 	draw_circle(center, hex_size * 0.55, col)
 	if u.id == _selected_id:
 		draw_arc(center, hex_size * 0.70, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)

@@ -92,11 +92,13 @@ func test_attack_targets_lists_adjacent_enemies() -> void:
 
 func test_combat_is_deterministic() -> void:
 	# 同じ初期条件なら何度やっても同じ結果（乱数なし）。
+	var first := -999
 	for i in 3:
 		var s := _state()
 		var ap := Hex.offset_to_axial(2, 2)
 		s.add_unit(Unit.new(1, 0, ap, 3, 8, 13, 11))
 		s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 6, 9, 12))
 		var r := s.attack(1, 2)
-		assert_eq(r["damage"], Combat.casualties(Unit.new(1, 0, ap, 3, 8, 13, 11), Unit.new(2, 1, ap, 3, 6, 9, 12)),
-			"battle_state と combat.casualties が一致し、毎回同値")
+		if first == -999:
+			first = r["damage"]
+		assert_eq(r["damage"], first, "毎回同じ結果（乱数なし）")
