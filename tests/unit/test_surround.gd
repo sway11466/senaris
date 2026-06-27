@@ -48,15 +48,5 @@ func test_edge_is_weaker() -> void:
 			id += 1
 	assert_almost_eq(Surround.factor(s, s.unit_by_id(1)), 0.70, 0.001, "隅は2マスしか覆えず 0.70")
 
-func test_surround_affects_combat() -> void:
-	# 対角2体で包囲された防御側は ×0.5 → 被ダメ増・反撃減。
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var c := Hex.offset_to_axial(4, 4)
-	s.add_unit(Unit.new(1, 0, c, 3, 8, 10, 10))                  # 防御側（包囲される）
-	s.add_unit(Unit.new(2, 1, Hex.neighbor(c, 0), 3, 8, 10, 10))  # 攻撃側
-	s.add_unit(Unit.new(3, 1, Hex.neighbor(c, 3), 3, 8, 10, 10))  # 包囲の頭数（対角）
-	assert_almost_eq(Surround.factor(s, s.unit_by_id(1)), 0.50, 0.001)
-	var r := s.attack(2, 1)
-	assert_eq(r["damage"], 6, "包囲(×0.5)で被ダメ増 4→6")
-	assert_eq(r["retaliation"], 2, "包囲側の反撃減 4→2（攻撃側は隣接1体で包囲不成立）")
+# 注: 「対角2体で包囲して攻撃」は包囲と支援が同時に効く（側面ユニットは攻撃支援者でもある）。
+# その複合ケースの戦闘結果は test_support.gd で検証する。
