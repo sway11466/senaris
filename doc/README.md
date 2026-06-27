@@ -6,21 +6,21 @@
 
 - [concepts.md](concepts.md) — プロダクトコンセプト（何を・なぜ・面白さの核）
 - [project-overview.md](project-overview.md) — 目的・ロードマップ・配布計画・進め方の制約
-- [world.md](world.md) — 世界観・設定
+- [monetization.md](monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
 - [art.md](art.md) — 画像／アート準備
 - [naming_decision_senaris.md](naming_decision_senaris.md) — タイトル名「Senaris」の決定
 
-## 設計 — `design/`
+## ゲームデザイン — `gdd/`
 
-- [design/architecture.md](design/architecture.md) — レイヤー／モジュール構成・依存ルール
-- [design/combat.md](design/combat.md) — 戦闘解決（補正チェーン・陣形）
-- [design/units.md](design/units.md) — ユニット性能設計・対応表
-- [design/map.md](design/map.md) — 拠点・占領・ステージ
+- [gdd/combat.md](gdd/combat.md) — 戦闘解決（補正チェーン・陣形）
+- [gdd/units.md](gdd/units.md) — ユニット性能設計・対応表
+- [gdd/map.md](gdd/map.md) — 拠点・占領・ステージ
+- [gdd/world.md](gdd/world.md) — 世界観・設定
 
-## ゲームシステム
+## 技術設計 — `tech/`（Technical Design Document）
 
-- [gamesystem.md](gamesystem.md) — ゲームシステム仕様（セーブ ほか）
-- [monetization.md](monetization.md) — 体験版/製品版・DLC・有料データ保護
+- [tech/architecture.md](tech/architecture.md) — レイヤー／モジュール構成・依存ルール
+- [tech/gamesystem.md](tech/gamesystem.md) — ゲームシステム仕様（セーブ ほか）
 
 ## 意思決定記録 — `adr/`
 

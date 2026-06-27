@@ -11,7 +11,7 @@
 ## 技術スタック
 
 - **エンジン**: Godot 4（GDScript・型付き / 2D）。テストは GUT。
-- **レイヤー**: `presentation → application → domain → data` の一方向依存。`domain` / `data` は Godot ノード非依存（純ロジック）。詳細 → [doc/design/architecture.md](doc/design/architecture.md)
+- **レイヤー**: `presentation → application → domain → data` の一方向依存。`domain` / `data` は Godot ノード非依存（純ロジック）。詳細 → [doc/tech/architecture.md](doc/tech/architecture.md)
 - **配布**: まず Steam（PC）。モバイルは後回し。
 
 ## ドキュメント
@@ -22,13 +22,13 @@
 |---|---|
 | コンセプト | [doc/concepts.md](doc/concepts.md) |
 | 運用・ロードマップ | [doc/project-overview.md](doc/project-overview.md) |
-| 戦闘（補正チェーン・陣形） | [doc/design/combat.md](doc/design/combat.md) |
-| ユニット性能・対応表 | [doc/design/units.md](doc/design/units.md) |
-| 拠点・占領・ステージ | [doc/design/map.md](doc/design/map.md) |
-| アーキテクチャ | [doc/design/architecture.md](doc/design/architecture.md) |
-| セーブ仕様 | [doc/gamesystem.md](doc/gamesystem.md) |
+| 戦闘（補正チェーン・陣形） | [doc/gdd/combat.md](doc/gdd/combat.md) |
+| ユニット性能・対応表 | [doc/gdd/units.md](doc/gdd/units.md) |
+| 拠点・占領・ステージ | [doc/gdd/map.md](doc/gdd/map.md) |
+| 世界観 | [doc/gdd/world.md](doc/gdd/world.md) |
+| アーキテクチャ | [doc/tech/architecture.md](doc/tech/architecture.md) |
+| セーブ仕様 | [doc/tech/gamesystem.md](doc/tech/gamesystem.md) |
 | マネタイズ・データ保護 | [doc/monetization.md](doc/monetization.md) |
-| 世界観 | [doc/world.md](doc/world.md) |
 | アート準備 | [doc/art.md](doc/art.md) |
 | 命名の決定 | [doc/naming_decision_senaris.md](doc/naming_decision_senaris.md) |
 | 意思決定記録 | [doc/adr/](doc/adr/) |

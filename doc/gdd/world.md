@@ -2,7 +2,7 @@
 
 Senaris の世界観メモ。現状ほぼ未確定で、決まっているのは陣営の色付けのみ。
 
-> コンセプト上の位置づけは [concepts.md](concepts.md)。ユニットの陣営別ネーミングは [design/units.md](design/units.md) を参照。
+> コンセプト上の位置づけは [../concepts.md](../concepts.md)。ユニットの陣営別ネーミングは [units.md](units.md) を参照。
 
 ---
 
