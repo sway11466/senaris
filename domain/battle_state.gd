@@ -11,7 +11,8 @@ var current_team: int = 0  ## 現在の手番の陣営
 var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 
 var _units: Array[Unit] = []
-var _moved := {}  # unit_id -> true（このターンに移動済み）
+var _moved := {}     # unit_id -> true（このターンに移動済み）
+var _attacked := {}  # unit_id -> true（このターンに攻撃済み）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -55,9 +56,9 @@ func can_move(unit_id: int, to: Vector2i) -> bool:
 		return false
 	return reachable(unit_id).has(to)
 
-## 妥当なら移動を適用して true。手番違い・行動済み・不正先なら false。
+## 妥当なら移動を適用して true。手番違い・移動済/攻撃済・不正先なら false。
 func move_unit(unit_id: int, to: Vector2i) -> bool:
-	if not can_select(unit_id):
+	if not _can_act_move(unit_id):
 		return false
 	if not can_move(unit_id, to):
 		return false
@@ -65,23 +66,82 @@ func move_unit(unit_id: int, to: Vector2i) -> bool:
 	_moved[unit_id] = true
 	return true
 
+func _can_act_move(unit_id: int) -> bool:
+	return is_current_unit(unit_by_id(unit_id)) and not has_moved(unit_id) and not has_attacked(unit_id)
+
+# --- 攻撃 ---
+
+## attacker が target を攻撃できるか（現手番・未攻撃・隣接する敵）。
+func can_attack(attacker_id: int, target_id: int) -> bool:
+	var a := unit_by_id(attacker_id)
+	var t := unit_by_id(target_id)
+	if a == null or t == null:
+		return false
+	if not is_current_unit(a) or has_attacked(attacker_id):
+		return false
+	if t.team == a.team:
+		return false
+	return Hex.distance(a.pos, t.pos) == 1
+
+## attacker が今攻撃できる敵ユニットIDの一覧。
+func attack_targets(attacker_id: int) -> Array[int]:
+	var ids: Array[int] = []
+	for u in _units:
+		if can_attack(attacker_id, u.id):
+			ids.append(u.id)
+	return ids
+
+## 攻撃を解決。成功なら {damage, killed, target_hp}、不正なら空 Dictionary。
+func attack(attacker_id: int, target_id: int) -> Dictionary:
+	if not can_attack(attacker_id, target_id):
+		return {}
+	var a := unit_by_id(attacker_id)
+	var t := unit_by_id(target_id)
+	var dmg := Combat.resolve_damage(a, t)
+	t.hp -= dmg
+	var killed := t.hp <= 0
+	if killed:
+		_remove_unit(target_id)
+	_moved[attacker_id] = true
+	_attacked[attacker_id] = true
+	return {"damage": dmg, "killed": killed, "target_hp": maxi(t.hp, 0)}
+
+func _remove_unit(unit_id: int) -> void:
+	for i in _units.size():
+		if _units[i].id == unit_id:
+			_units.remove_at(i)
+			return
+
 # --- 手番 ---
 
 ## この陣営/ユニットが現在の手番か。
 func is_current_unit(u: Unit) -> bool:
 	return u != null and u.team == current_team
 
-## このターンに行動済みか。
+## このターンに移動済みか。
 func has_moved(unit_id: int) -> bool:
 	return _moved.has(unit_id)
 
-## 選択して動かせる状態か（現手番・未行動）。
+## このターンに攻撃済みか。
+func has_attacked(unit_id: int) -> bool:
+	return _attacked.has(unit_id)
+
+## このターンの行動を使い切ったか（攻撃済み、または移動済みで攻撃対象なし）。
+func is_done(unit_id: int) -> bool:
+	if has_attacked(unit_id):
+		return true
+	if has_moved(unit_id) and attack_targets(unit_id).is_empty():
+		return true
+	return false
+
+## 選択して操作できる状態か（現手番・まだ行動が残っている）。
 func can_select(unit_id: int) -> bool:
-	return is_current_unit(unit_by_id(unit_id)) and not has_moved(unit_id)
+	return is_current_unit(unit_by_id(unit_id)) and not is_done(unit_id)
 
 ## 手番を次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
 func end_turn() -> void:
 	_moved.clear()
+	_attacked.clear()
 	current_team = 1 - current_team
 	if current_team == 0:
 		turn_number += 1

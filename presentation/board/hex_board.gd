@@ -1,8 +1,8 @@
 extends Node2D
 class_name HexBoard
 ## ヘックス盤面とユニットの描画・入力。flat-top。
-## Presentation 層: 状態(BattleState)は読むだけ。変更は MoveCommand を controller に渡し、
-## 結果は controller のシグナル(unit_moved)を受けて再描画する（直接 state を書き換えない）。
+## Presentation 層: 状態(BattleState)は読むだけ。変更はコマンドを controller に渡し、
+## 結果はシグナル(unit_moved/unit_attacked/turn_changed)を受けて再描画する。
 
 @export var hex_size: float = 36.0
 @export var board_origin: Vector2 = Vector2(120, 100)
@@ -11,6 +11,7 @@ const COLOR_LINE := Color(0.78, 0.83, 0.90, 1.0)
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
 const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
+const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 
 var state: BattleState
@@ -19,11 +20,13 @@ var controller: MatchController
 var _hover := Vector2i(-9999, -9999)
 var _selected_id := -1
 var _reachable := {}  # Vector2i -> true
+var _targets := {}    # Vector2i -> target_id（攻撃可能な敵の位置）
 
 func bind(p_state: BattleState, p_controller: MatchController) -> void:
 	state = p_state
 	controller = p_controller
 	controller.unit_moved.connect(_on_unit_moved)
+	controller.unit_attacked.connect(_on_unit_attacked)
 	controller.turn_changed.connect(_on_turn_changed)
 	queue_redraw()
 
@@ -45,12 +48,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		controller.end_turn()
 
 func _on_click(hex: Vector2i) -> void:
+	if _selected_id != -1:
+		# 攻撃可能な敵をクリック → 攻撃。
+		if _targets.has(hex):
+			controller.execute_attack(AttackCommand.new(_selected_id, _targets[hex]))
+			return
+		# 空きの到達マスをクリック → 移動。
+		if state.unit_at(hex) == null and _reachable.has(hex):
+			controller.execute(MoveCommand.new(_selected_id, hex))
+			return
+	# 現手番で操作可能なユニットをクリック → 選択。それ以外 → 選択解除。
 	var clicked := state.unit_at(hex)
-	# 選択中のユニットがいて、空きの到達マスをクリック → 移動コマンドを投げる。
-	if _selected_id != -1 and clicked == null and _reachable.has(hex):
-		controller.execute(MoveCommand.new(_selected_id, hex))
-		return
-	# 現手番の未行動ユニットをクリック → 選択。それ以外 → 選択解除。
 	if clicked != null and state.can_select(clicked.id):
 		_select(clicked.id)
 	else:
@@ -59,18 +67,32 @@ func _on_click(hex: Vector2i) -> void:
 func _select(id: int) -> void:
 	_selected_id = id
 	_reachable.clear()
-	for h in controller.reachable_for(id):
-		_reachable[h] = true
+	_targets.clear()
+	if not state.has_moved(id):  # まだ動いていなければ移動範囲を出す
+		for h in controller.reachable_for(id):
+			_reachable[h] = true
+	for tid in controller.attack_targets_for(id):
+		_targets[state.unit_by_id(tid).pos] = tid
 	queue_redraw()
 
 func _deselect() -> void:
 	_selected_id = -1
 	_reachable.clear()
+	_targets.clear()
 	queue_redraw()
 
-func _on_unit_moved(_unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
-	# 移動したユニットは行動済み。選択を解いて再描画する。
-	_deselect()
+func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
+	# 移動後も攻撃が残っていれば選択を維持（移動→攻撃の流れ）。使い切ったら解除。
+	if unit_id == _selected_id:
+		if state.is_done(unit_id):
+			_deselect()
+		else:
+			_select(unit_id)
+	else:
+		queue_redraw()
+
+func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed: bool) -> void:
+	_deselect()  # 攻撃したユニットは行動終了
 
 func _on_turn_changed(_team: int, _turn_number: int) -> void:
 	_deselect()
@@ -101,11 +123,22 @@ func _draw_tile(hex: Vector2i) -> void:
 func _draw_unit(u: Unit) -> void:
 	var center := board_origin + Hex.to_pixel(u.pos, hex_size)
 	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
-	if state.has_moved(u.id):
-		col = col.darkened(0.45)  # 行動済みは暗く
+	if state.is_done(u.id):
+		col = col.darkened(0.45)  # 行動終了は暗く
 	draw_circle(center, hex_size * 0.55, col)
 	if u.id == _selected_id:
-		draw_arc(center, hex_size * 0.7, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)
+		draw_arc(center, hex_size * 0.70, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)
+	if _targets.has(u.pos):
+		draw_arc(center, hex_size * 0.72, 0.0, TAU, 32, COLOR_ATTACK_RING, 3.0)
+	_draw_hp_bar(u, center)
+
+func _draw_hp_bar(u: Unit, center: Vector2) -> void:
+	var w := hex_size
+	var h := 5.0
+	var top_left := center + Vector2(-w * 0.5, -hex_size * 0.78 - h)
+	draw_rect(Rect2(top_left, Vector2(w, h)), Color(0, 0, 0, 0.6))
+	var ratio := clampf(float(u.hp) / float(u.max_hp), 0.0, 1.0)
+	draw_rect(Rect2(top_left, Vector2(w * ratio, h)), Color(0.30, 0.90, 0.40))
 
 func _corners(center: Vector2) -> PackedVector2Array:
 	var pts := PackedVector2Array()
