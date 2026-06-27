@@ -17,10 +17,10 @@
 - [design/units.md](design/units.md) — ユニット性能設計・対応表
 - [design/map.md](design/map.md) — 拠点・占領・ステージ
 
-## ゲームシステム — `gamesystem/`
+## ゲームシステム
 
-- [gamesystem/save.md](gamesystem/save.md) — セーブ仕様
-- [gamesystem/monetization.md](gamesystem/monetization.md) — 体験版/製品版・DLC・有料データ保護
+- [gamesystem.md](gamesystem.md) — ゲームシステム仕様（セーブ ほか）
+- [monetization.md](monetization.md) — 体験版/製品版・DLC・有料データ保護
 
 ## 意思決定記録 — `adr/`
 
