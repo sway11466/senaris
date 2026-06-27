@@ -91,20 +91,34 @@ func attack_targets(attacker_id: int) -> Array[int]:
 			ids.append(u.id)
 	return ids
 
-## 攻撃を解決。成功なら {damage, killed, target_hp}、不正なら空 Dictionary。
+## 攻撃を解決。両軍同時攻撃（防御側は反撃する）。
+## 成功なら {damage, killed, retaliation, attacker_killed, target_hp, attacker_hp}、不正なら空。
 func attack(attacker_id: int, target_id: int) -> Dictionary:
 	if not can_attack(attacker_id, target_id):
 		return {}
 	var a := unit_by_id(attacker_id)
 	var t := unit_by_id(target_id)
-	var dmg := Combat.resolve_damage(a, t)
-	t.hp -= dmg
-	var killed := t.hp <= 0
-	if killed:
+	# 同時攻撃: 撃破による消滅の前に両者のダメージを確定させる。
+	var dmg_to_target := Combat.resolve_damage(a, t)
+	var dmg_to_attacker := Combat.resolve_damage(t, a)
+	t.hp -= dmg_to_target
+	a.hp -= dmg_to_attacker
+	var target_killed := t.hp <= 0
+	var attacker_killed := a.hp <= 0
+	if target_killed:
 		_remove_unit(target_id)
+	if attacker_killed:
+		_remove_unit(attacker_id)
 	_moved[attacker_id] = true
 	_attacked[attacker_id] = true
-	return {"damage": dmg, "killed": killed, "target_hp": maxi(t.hp, 0)}
+	return {
+		"damage": dmg_to_target,
+		"killed": target_killed,
+		"retaliation": dmg_to_attacker,
+		"attacker_killed": attacker_killed,
+		"target_hp": maxi(t.hp, 0),
+		"attacker_hp": maxi(a.hp, 0),
+	}
 
 func _remove_unit(unit_id: int) -> void:
 	for i in _units.size():

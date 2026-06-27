@@ -36,6 +36,8 @@ func execute_attack(cmd: AttackCommand) -> bool:
 	unit_attacked.emit(cmd.attacker_id, cmd.target_id, result["damage"], result["killed"])
 	if result["killed"]:
 		unit_died.emit(cmd.target_id)
+	if result["attacker_killed"]:  # 反撃で攻撃側も倒れうる
+		unit_died.emit(cmd.attacker_id)
 	return true
 
 ## 手番を終了して次の陣営へ渡す。

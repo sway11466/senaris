@@ -4,16 +4,17 @@ extends GutTest
 func _state() -> BattleState:
 	return BattleState.new(8, 8)
 
-func test_attack_damages_adjacent_enemy() -> void:
+func test_attack_is_simultaneous() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
-	s.add_unit(Unit.new(1, 0, ap, 3, 10, 4))
-	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 10, 4))
+	s.add_unit(Unit.new(1, 0, ap, 3, 10, 4))      # 攻撃側 威力4
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 10, 3))  # 防御側 威力3
 	var r := s.attack(1, 2)
 	assert_false(r.is_empty(), "隣接敵を攻撃できる")
-	assert_eq(r["damage"], 4)
-	assert_eq(s.unit_by_id(2).hp, 6, "威力ぶんHPが減る")
-	assert_true(s.has_attacked(1), "攻撃済みになる")
+	assert_eq(r["damage"], 4, "防御側へのダメージ")
+	assert_eq(r["retaliation"], 3, "攻撃側への反撃ダメージ")
+	assert_eq(s.unit_by_id(2).hp, 6, "防御側は威力4ぶん減る")
+	assert_eq(s.unit_by_id(1).hp, 7, "攻撃側も反撃で威力3ぶん減る")
 	assert_true(s.is_done(1), "攻撃したら行動終了")
 
 func test_attack_kills_and_removes() -> void:
@@ -24,8 +25,19 @@ func test_attack_kills_and_removes() -> void:
 	s.add_unit(Unit.new(2, 1, tp, 3, 10, 4))
 	var r := s.attack(1, 2)
 	assert_true(r["killed"], "致死ダメージで撃破")
+	assert_false(r["attacker_killed"], "攻撃側は反撃を耐える")
 	assert_null(s.unit_by_id(2), "倒した敵は盤から消える")
 	assert_null(s.unit_at(tp), "そのマスは空く")
+
+func test_simultaneous_mutual_kill() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, ap, 3, 10, 50))
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 10, 50))
+	var r := s.attack(1, 2)
+	assert_true(r["killed"] and r["attacker_killed"], "相討ちで両者撃破")
+	assert_null(s.unit_by_id(1))
+	assert_null(s.unit_by_id(2))
 
 func test_attack_requires_adjacent_enemy() -> void:
 	var s := _state()
