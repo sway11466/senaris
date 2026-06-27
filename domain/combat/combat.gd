@@ -54,6 +54,4 @@ static func casualties(state: BattleState, attacker: Unit, defender: Unit) -> in
 	var ap := pow(a, P)
 	var frac := ap / (ap + pow(d, P))
 	var loss := int(round(K * float(defender.troops) * frac))
-	if loss < 1 and a >= d:  # 膠着回避（暫定）: 攻撃力が相手以上なら最低1
-		loss = 1
 	return clampi(loss, 0, defender.troops)
