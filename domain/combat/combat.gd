@@ -11,7 +11,7 @@ class_name Combat
 const K := 1.0  ## 殺傷力（全体の削り量。チューニング用）
 const P := 2.0  ## 決定力（戦力差の効き。互角は常に0.5、差だけ鋭くなる）
 
-const SUPPORT_RATE := 0.5        ## 支援は味方の素ステータスの50%
+const SUPPORT_RATE := 0.25       ## 支援は味方の素ステータスの25%
 const DEFENSE_SUPPORT_CAP := 2.0 ## 支援後の防御は支援前の2倍まで
 
 ## 包囲補正係数（段階式・1.0＝影響なし）。攻防の両方に乗る。詳細は Surround。

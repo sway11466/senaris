@@ -16,16 +16,16 @@ func test_one_enemy_no_surround() -> void:
 	assert_eq(_factor_with([0]), 1.0, "隣接1体ではゲート未達で包囲不成立")
 
 func test_two_adjacent_pair() -> void:
-	assert_almost_eq(_factor_with([0, 1]), 0.60, 0.001, "隣り合う2体（占有2/ZOC2）→ 0.60")
+	assert_almost_eq(_factor_with([0, 1]), 0.76, 0.001, "隣り合う2体（占有2/ZOC2）→ 0.76")
 
 func test_two_one_gap() -> void:
-	assert_almost_eq(_factor_with([0, 2]), 0.55, 0.001, "1つ飛び2体（占有2/ZOC3）→ 0.55")
+	assert_almost_eq(_factor_with([0, 2]), 0.72, 0.001, "1つ飛び2体（占有2/ZOC3）→ 0.72")
 
 func test_two_opposite() -> void:
-	assert_almost_eq(_factor_with([0, 3]), 0.50, 0.001, "対角2体（占有2/ZOC4）→ 0.50")
+	assert_almost_eq(_factor_with([0, 3]), 0.68, 0.001, "対角2体（占有2/ZOC4）→ 0.68")
 
-func test_full_occupation_hits_floor() -> void:
-	assert_almost_eq(_factor_with([0, 1, 2, 3, 4, 5]), 0.10, 0.001, "全占有 → 下限0.10")
+func test_full_occupation() -> void:
+	assert_almost_eq(_factor_with([0, 1, 2, 3, 4, 5]), 0.52, 0.001, "全占有（占有6）→ 0.52（下限0.10には未達）")
 
 func test_allies_do_not_count() -> void:
 	var s := BattleState.new(8, 8)
@@ -46,7 +46,7 @@ func test_edge_is_weaker() -> void:
 		if s.in_field(h):
 			s.add_unit(Unit.new(id, 1, h, 3))
 			id += 1
-	assert_almost_eq(Surround.factor(s, s.unit_by_id(1)), 0.70, 0.001, "隅は2マスしか覆えず 0.70")
+	assert_almost_eq(Surround.factor(s, s.unit_by_id(1)), 0.84, 0.001, "隅は2マスしか覆えず 0.84（中央の対角0.68より弱い）")
 
 # 注: 「対角2体で包囲して攻撃」は包囲と支援が同時に効く（側面ユニットは攻撃支援者でもある）。
 # その複合ケースの戦闘結果は test_support.gd で検証する。
