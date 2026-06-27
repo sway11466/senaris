@@ -126,6 +126,28 @@ func _remove_unit(unit_id: int) -> void:
 			_units.remove_at(i)
 			return
 
+# --- 勝敗 ---
+
+func team_unit_count(team: int) -> int:
+	var n := 0
+	for u in _units:
+		if u.team == team:
+			n += 1
+	return n
+
+## 勝者の陣営。決着していなければ -1（2チーム前提）。
+func winner() -> int:
+	var t0 := team_unit_count(0)
+	var t1 := team_unit_count(1)
+	if t0 > 0 and t1 == 0:
+		return 0
+	if t1 > 0 and t0 == 0:
+		return 1
+	return -1
+
+func is_over() -> bool:
+	return winner() != -1
+
 # --- 手番 ---
 
 ## この陣営/ユニットが現在の手番か。

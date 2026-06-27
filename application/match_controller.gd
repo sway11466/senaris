@@ -10,14 +10,18 @@ signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
+signal battle_finished(winner: int)
 
 var state: BattleState
+var _finished := false
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
 
 ## 下りコマンドの処理。成功すれば状態を更新し unit_moved を発行。
 func execute(cmd: MoveCommand) -> bool:
+	if _finished:
+		return false
 	var u := state.unit_by_id(cmd.unit_id)
 	if u == null:
 		return false
@@ -30,6 +34,8 @@ func execute(cmd: MoveCommand) -> bool:
 
 ## 下り: 攻撃コマンドの処理。成功すれば unit_attacked（撃破時は unit_died）を発行。
 func execute_attack(cmd: AttackCommand) -> bool:
+	if _finished:
+		return false
 	var result := state.attack(cmd.attacker_id, cmd.target_id)
 	if result.is_empty():
 		return false
@@ -38,12 +44,20 @@ func execute_attack(cmd: AttackCommand) -> bool:
 		unit_died.emit(cmd.target_id)
 	if result["attacker_killed"]:  # 反撃で攻撃側も倒れうる
 		unit_died.emit(cmd.attacker_id)
+	_check_finished()
 	return true
 
 ## 手番を終了して次の陣営へ渡す。
 func end_turn() -> void:
+	if _finished:
+		return
 	state.end_turn()
 	turn_changed.emit(state.current_team, state.turn_number)
+
+func _check_finished() -> void:
+	if not _finished and state.is_over():
+		_finished = true
+		battle_finished.emit(state.winner())
 
 ## 表示用の問い合わせ（状態は変えない）。
 func reachable_for(unit_id: int) -> Array[Vector2i]:

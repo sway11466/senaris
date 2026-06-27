@@ -21,6 +21,7 @@ var _hover := Vector2i(-9999, -9999)
 var _selected_id := -1
 var _reachable := {}  # Vector2i -> true
 var _targets := {}    # Vector2i -> target_id（攻撃可能な敵の位置）
+var _locked := false  # 決着・AI手番中は入力を受けない
 
 func bind(p_state: BattleState, p_controller: MatchController) -> void:
 	state = p_state
@@ -28,6 +29,7 @@ func bind(p_state: BattleState, p_controller: MatchController) -> void:
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
 	controller.turn_changed.connect(_on_turn_changed)
+	controller.battle_finished.connect(_on_battle_finished)
 	queue_redraw()
 
 func _process(_delta: float) -> void:
@@ -39,7 +41,7 @@ func _process(_delta: float) -> void:
 		queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if state == null:
+	if state == null or _locked:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_click(_hex_at_mouse())
@@ -95,6 +97,10 @@ func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed
 	_deselect()  # 攻撃したユニットは行動終了
 
 func _on_turn_changed(_team: int, _turn_number: int) -> void:
+	_deselect()
+
+func _on_battle_finished(_winner: int) -> void:
+	_locked = true
 	_deselect()
 
 func _hex_at_mouse() -> Vector2i:

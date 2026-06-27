@@ -21,6 +21,7 @@ func _ready() -> void:
 	$HexBoard.bind(state, controller)
 
 	controller.turn_changed.connect(_on_turn_changed)
+	controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
@@ -29,3 +30,7 @@ func _on_turn_changed(team: int, turn_number: int) -> void:
 func _update_turn_label(team: int, turn_number: int) -> void:
 	var who := "自軍" if team == 0 else "敵軍"
 	$Title.text = "Senaris — Turn %d / %s（Enter で手番終了）" % [turn_number, who]
+
+func _on_battle_finished(winner: int) -> void:
+	var who := "自軍" if winner == 0 else "敵軍"
+	$Title.text = "Senaris — %s の勝利！" % who
