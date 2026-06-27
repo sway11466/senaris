@@ -7,7 +7,6 @@
 - [concepts.md](concepts.md) — プロダクトコンセプト（何を・なぜ・面白さの核）
 - [project-overview.md](project-overview.md) — 目的・ロードマップ・配布計画・進め方の制約
 - [monetization.md](monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
-- [art.md](art.md) — 画像／アート準備
 - [naming_decision_senaris.md](naming_decision_senaris.md) — タイトル名「Senaris」の決定
 
 ## ゲームデザイン — `gdd/`
@@ -21,6 +20,10 @@
 
 - [tech/architecture.md](tech/architecture.md) — レイヤー／モジュール構成・依存ルール
 - [tech/gamesystem.md](tech/gamesystem.md) — ゲームシステム仕様（セーブ ほか）
+
+## アート — `art/`（Art Bible）
+
+- [art/overview.md](art/overview.md) — 画像／アート準備
 
 ## 意思決定記録 — `adr/`
 
