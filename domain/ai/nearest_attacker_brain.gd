@@ -21,11 +21,11 @@ func next_action(state: BattleState, team: int) -> AiAction:
 
 func _weakest(state: BattleState, ids: Array[int]) -> int:
 	var best := ids[0]
-	var best_hp := state.unit_by_id(best).hp
+	var best_troops := state.unit_by_id(best).troops
 	for id in ids:
-		var hp := state.unit_by_id(id).hp
-		if hp < best_hp:
-			best_hp = hp
+		var troops := state.unit_by_id(id).troops
+		if troops < best_troops:
+			best_troops = troops
 			best = id
 	return best
 

@@ -136,14 +136,15 @@ func _draw_unit(u: Unit) -> void:
 		draw_arc(center, hex_size * 0.70, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)
 	if _targets.has(u.pos):
 		draw_arc(center, hex_size * 0.72, 0.0, TAU, 32, COLOR_ATTACK_RING, 3.0)
-	_draw_hp_bar(u, center)
+	_draw_troops_bar(u, center)
 
-func _draw_hp_bar(u: Unit, center: Vector2) -> void:
+func _draw_troops_bar(u: Unit, center: Vector2) -> void:
+	# 兵数バー（残存兵数 / 満員）。
 	var w := hex_size
 	var h := 5.0
 	var top_left := center + Vector2(-w * 0.5, -hex_size * 0.78 - h)
 	draw_rect(Rect2(top_left, Vector2(w, h)), Color(0, 0, 0, 0.6))
-	var ratio := clampf(float(u.hp) / float(u.max_hp), 0.0, 1.0)
+	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
 	draw_rect(Rect2(top_left, Vector2(w * ratio, h)), Color(0.30, 0.90, 0.40))
 
 func _corners(center: Vector2) -> PackedVector2Array:

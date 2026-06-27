@@ -7,11 +7,11 @@ func _ready() -> void:
 	print("Senaris booted.")
 
 	var state := BattleState.new(12, 8)
-	# デモ配置（仮）: id, team, 位置(offset), 移動力, HP, 威力
-	state.add_unit(Unit.new(1, 0, Hex.offset_to_axial(3, 3), 4, 12, 5))
-	state.add_unit(Unit.new(2, 0, Hex.offset_to_axial(3, 5), 3, 14, 3))
-	state.add_unit(Unit.new(3, 1, Hex.offset_to_axial(7, 3), 4, 12, 5))
-	state.add_unit(Unit.new(4, 1, Hex.offset_to_axial(7, 5), 3, 14, 3))
+	# デモ配置（仮）: id, team, 位置(offset), 移動力, 兵数, ユニット攻撃力, ユニット防御力
+	state.add_unit(Unit.new(1, 0, Hex.offset_to_axial(3, 3), 4, 8, 12, 10))  # 攻め寄り
+	state.add_unit(Unit.new(2, 0, Hex.offset_to_axial(3, 5), 3, 8, 8, 14))   # 守り寄り
+	state.add_unit(Unit.new(3, 1, Hex.offset_to_axial(7, 3), 4, 8, 10, 10))
+	state.add_unit(Unit.new(4, 1, Hex.offset_to_axial(7, 5), 3, 8, 10, 10))
 
 	var controller := MatchController.new()
 	controller.name = "MatchController"

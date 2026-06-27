@@ -25,20 +25,20 @@ func test_attacks_adjacent_enemy() -> void:
 	var s := BattleState.new(8, 8)
 	s.current_team = 1
 	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(Unit.new(10, 1, ep, 3, 10, 4))                 # AIユニット
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3, 10, 4))  # 隣接する自軍
+	s.add_unit(Unit.new(10, 1, ep, 3))                  # AIユニット
+	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3))  # 隣接する自軍
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣接敵がいれば攻撃を選ぶ")
 	assert_eq(a.target_id, 1)
 
 func test_moves_closer_when_far() -> void:
-	var s := BattleState.new(12, 1)
+	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var ai_pos := Hex.offset_to_axial(0, 0)
-	var enemy_pos := Hex.offset_to_axial(10, 0)
-	s.add_unit(Unit.new(10, 1, ai_pos, 3, 10, 4))
-	s.add_unit(Unit.new(1, 0, enemy_pos, 3, 10, 4))
+	var ai_pos := Hex.offset_to_axial(0, 1)
+	var enemy_pos := Hex.offset_to_axial(10, 1)
+	s.add_unit(Unit.new(10, 1, ai_pos, 3))
+	s.add_unit(Unit.new(1, 0, enemy_pos, 3))
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "遠ければ近づく")
@@ -48,27 +48,27 @@ func test_focuses_weakest_adjacent() -> void:
 	var s := BattleState.new(8, 8)
 	s.current_team = 1
 	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(Unit.new(10, 1, ep, 3, 10, 4))
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3, 10, 4))  # HP10
-	s.add_unit(Unit.new(2, 0, Hex.neighbor(ep, 2), 3, 3, 4))   # HP3（弱い）
+	s.add_unit(Unit.new(10, 1, ep, 3))
+	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3, 8))   # 兵数8
+	s.add_unit(Unit.new(2, 0, Hex.neighbor(ep, 2), 3, 3))   # 兵数3（弱い）
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, 2, "最もHPの低い敵を狙う")
+	assert_eq(a.target_id, 2, "最も兵数の少ない敵を狙う")
 
 func test_no_action_without_enemies() -> void:
 	var s := BattleState.new(8, 8)
 	s.current_team = 1
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(3, 3), 3, 10, 4))
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(3, 3), 3))
 	assert_null(_brain.next_action(s, 1), "敵がいなければ何もしない")
 
 func test_full_turn_engages_and_damages() -> void:
-	# 数ヘックス離れた敵へ寄って殴り切る一連の流れ。
-	var s := BattleState.new(12, 1)
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(0, 0), 4, 10, 4))   # AI 移動力4
-	var enemy_pos := Hex.offset_to_axial(5, 0)
-	s.add_unit(Unit.new(1, 0, enemy_pos, 3, 10, 1))
+	# 数ヘックス離れた敵へ寄って殴る一連の流れ。AIは強くて落ちない設定。
+	var s := BattleState.new(12, 3)
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(0, 1), 4, 8, 20, 20))  # AI 移動力4・強い
+	var enemy_pos := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(1, 0, enemy_pos, 3, 8, 1, 10))                    # 反撃は微弱
 	_run_turn(s, 1)
 	var ai := s.unit_by_id(10)
-	assert_not_null(ai, "AIユニットは生存（敵の威力1なので）")
+	assert_not_null(ai, "AIユニットは生存（敵の反撃が微弱なので）")
 	assert_eq(Hex.distance(ai.pos, enemy_pos), 1, "敵に隣接するまで前進する")
-	assert_lt(s.unit_by_id(1).hp, 10, "前進後に攻撃してダメージを与える")
+	assert_lt(s.unit_by_id(1).troops, 8, "前進後に攻撃して兵数を削る")
