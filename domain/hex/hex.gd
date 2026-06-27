@@ -53,3 +53,48 @@ static func ring(center: Vector2i, radius: int) -> Array[Vector2i]:
 			result.append(hex)
 			hex = neighbor(hex, i)
 	return result
+
+# --- レイアウト（flat-top）。描画に渡す純粋な座標変換。size = ヘックスの中心〜頂点 ---
+
+const SQRT3 := 1.7320508075688772
+
+## axial 座標 → ピクセル中心座標。
+static func to_pixel(hex: Vector2i, size: float) -> Vector2:
+	var x := size * 1.5 * hex.x
+	var y := size * SQRT3 * (hex.y + hex.x / 2.0)
+	return Vector2(x, y)
+
+## ピクセル座標 → 最も近い axial 座標。
+static func from_pixel(p: Vector2, size: float) -> Vector2i:
+	var qf := (2.0 / 3.0 * p.x) / size
+	var rf := (-1.0 / 3.0 * p.x + SQRT3 / 3.0 * p.y) / size
+	return axial_round(qf, rf)
+
+## 小数の axial を最も近い整数 axial へ丸める（cube 丸め）。
+static func axial_round(qf: float, rf: float) -> Vector2i:
+	var sf := -qf - rf
+	var q := roundi(qf)
+	var r := roundi(rf)
+	var s := roundi(sf)
+	var dq := absf(q - qf)
+	var dr := absf(r - rf)
+	var ds := absf(s - sf)
+	if dq > dr and dq > ds:
+		q = -r - s
+	elif dr > ds:
+		r = -q - s
+	return Vector2i(q, r)
+
+# --- 矩形マップ用の offset(col,row) ↔ axial 変換（flat-top / odd-q） ---
+
+## offset(col, row) → axial。矩形フィールドを敷くのに使う。
+static func offset_to_axial(col: int, row: int) -> Vector2i:
+	var q := col
+	var r := row - int((col - (col & 1)) / 2)
+	return Vector2i(q, r)
+
+## axial → offset(col, row)。
+static func axial_to_offset(hex: Vector2i) -> Vector2i:
+	var col := hex.x
+	var row := hex.y + int((hex.x - (hex.x & 1)) / 2)
+	return Vector2i(col, row)

@@ -49,3 +49,20 @@ func test_ring_size_and_distance() -> void:
 		assert_eq(r.size(), 6 * radius, "リングのヘックス数は 6*radius")
 		for h in r:
 			assert_eq(Hex.distance(c, h), radius, "リング上は距離=radius")
+
+func test_pixel_round_trip() -> void:
+	# axial → pixel → axial が同値に戻る。
+	var size := 32.0
+	for q in range(-4, 5):
+		for r in range(-4, 5):
+			var h := Vector2i(q, r)
+			assert_eq(Hex.from_pixel(Hex.to_pixel(h, size), size), h, "round-trip %s" % h)
+
+func test_offset_axial_round_trip() -> void:
+	for col in range(0, 12):
+		for row in range(0, 8):
+			var axial := Hex.offset_to_axial(col, row)
+			assert_eq(Hex.axial_to_offset(axial), Vector2i(col, row), "offset round-trip (%d,%d)" % [col, row])
+
+func test_origin_maps_to_zero_pixel() -> void:
+	assert_eq(Hex.to_pixel(Vector2i(0, 0), 32.0), Vector2.ZERO)
