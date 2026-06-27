@@ -15,8 +15,17 @@ signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LO
 var state: BattleState
 var _finished := false
 
+## AI設定（ステージごとに差し替え可能）。ai_brain が null の陣営は手動操作（ホットシート）。
+var ai_team := 1
+var ai_brain: AiBrain = null
+var ai_delay := 0.35  # AIの各手を見せるための間（秒）
+
 func setup(p_state: BattleState) -> void:
 	state = p_state
+
+## 現在の手番が AI に委ねられているか（presentation の入力ロック判定に使う）。
+func is_ai_turn() -> bool:
+	return ai_brain != null and state.current_team == ai_team
 
 ## 下りコマンドの処理。成功すれば状態を更新し unit_moved を発行。
 func execute(cmd: MoveCommand) -> bool:
@@ -47,12 +56,33 @@ func execute_attack(cmd: AttackCommand) -> bool:
 	_check_finished()
 	return true
 
-## 手番を終了して次の陣営へ渡す。
+## 手番を終了して次の陣営へ渡す。AIの手番に入ったら自動で思考を回す。
 func end_turn() -> void:
 	if _finished:
 		return
 	state.end_turn()
 	turn_changed.emit(state.current_team, state.turn_number)
+	if is_ai_turn():
+		run_ai_turn()  # async（fire-and-forget）
+
+## AIの手番を実行。next_action が尽きるまで1手ずつ実行し、最後に手番を返す。
+func run_ai_turn() -> void:
+	while not _finished:
+		var action := ai_brain.next_action(state, state.current_team)
+		if action == null:
+			break
+		_apply_ai_action(action)
+		if is_inside_tree():  # 各手の間を置いて見せる
+			await get_tree().create_timer(ai_delay).timeout
+	if not _finished:
+		end_turn()
+
+func _apply_ai_action(action: AiAction) -> void:
+	match action.kind:
+		AiAction.Kind.MOVE:
+			execute(MoveCommand.new(action.unit_id, action.to))
+		AiAction.Kind.ATTACK:
+			execute_attack(AttackCommand.new(action.unit_id, action.target_id))
 
 func _check_finished() -> void:
 	if not _finished and state.is_over():

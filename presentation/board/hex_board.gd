@@ -41,7 +41,7 @@ func _process(_delta: float) -> void:
 		queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if state == null or _locked:
+	if state == null or _locked or controller.is_ai_turn():
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_click(_hex_at_mouse())

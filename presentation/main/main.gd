@@ -16,6 +16,9 @@ func _ready() -> void:
 	var controller := MatchController.new()
 	controller.name = "MatchController"
 	controller.setup(state)
+	# 敵軍(team 1)を最小AIに任せる。ステージ仕様が決まれば brain を差し替える。
+	controller.ai_team = 1
+	controller.ai_brain = NearestAttackerBrain.new()
 	add_child(controller)
 
 	$HexBoard.bind(state, controller)
