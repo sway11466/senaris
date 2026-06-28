@@ -1,4 +1,5 @@
-move_type,plain,plateau,forest
-移動タイプ,平地,台地,森
-ground,1,2,2
-flight,1,1,1
+move_type,name,plain,road,plateau,forest,bush,fence,trap,mountain,cliff,rampart,river,sea,corridor,wall
+移動タイプ,表示名,平地,道,台地,森,茂み,柵,罠,山,崖,城壁,川,海,通路,壁
+ground,歩行,1,1,1,2,2,3,3,3,x,x,3,x,1,x
+flight,飛行,1,1,1,1,1,1,1,1,1,1,1,1,1,x
+,森歩行,1,1,1,1,1,3,3,4,x,x,3,x,1,x

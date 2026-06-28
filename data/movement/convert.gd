@@ -19,7 +19,7 @@ func _convert_movement() -> void:
 		var id := String(r["move_type"])
 		var costs := {}
 		for key in r:
-			if key != "move_type":
+			if key != "move_type" and key != "name":  # 識別列は地形コストではない
 				costs[key] = r[key]  # int か "x"
 		types[id] = costs
 	Csv.write_json("res://data/movement/movement.json", { "movement_types": types })

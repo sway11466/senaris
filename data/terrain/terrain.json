@@ -2,24 +2,129 @@
 	"terrains": [
 		{
 			"atk": 1.0,
+			"char": "L",
+			"def": 0.8,
+			"id": "road",
+			"image": "road.png",
+			"memo": "",
+			"name": "道"
+		},
+		{
+			"atk": 1.0,
 			"char": ".",
 			"def": 1.0,
 			"id": "plain",
-			"image": "plain.png"
+			"image": "plain.png",
+			"memo": "",
+			"name": "平地"
+		},
+		{
+			"atk": 1.0,
+			"char": "+",
+			"def": 1.5,
+			"id": "fence",
+			"image": "fence.png",
+			"memo": "移動コスト高め",
+			"name": "柵"
+		},
+		{
+			"atk": 1.5,
+			"char": "T",
+			"def": 1.0,
+			"id": "trap",
+			"image": "trap.png",
+			"memo": "移動コスト高め",
+			"name": "罠"
+		},
+		{
+			"atk": 1.0,
+			"char": "W",
+			"def": 1.0,
+			"id": "rampart",
+			"image": "rampart.png",
+			"memo": "飛行ユニット以外は移動コストが極めて高く、ほぼ移動不可",
+			"name": "城壁"
 		},
 		{
 			"atk": 1.15,
 			"char": "P",
 			"def": 1.15,
 			"id": "plateau",
-			"image": "plateau.png"
+			"image": "plateau.png",
+			"memo": "",
+			"name": "台地"
 		},
 		{
 			"atk": 1.0,
 			"char": "F",
-			"def": 1.3,
+			"def": 1.2,
 			"id": "forest",
-			"image": "forest.png"
+			"image": "forest.png",
+			"memo": "",
+			"name": "森"
+		},
+		{
+			"atk": 1.2,
+			"char": "*",
+			"def": 1.0,
+			"id": "bush",
+			"image": "bush.png",
+			"memo": "",
+			"name": "茂み"
+		},
+		{
+			"atk": 0.6,
+			"char": "M",
+			"def": 0.6,
+			"id": "mountain",
+			"image": "mountain.png",
+			"memo": "移動コスト高め",
+			"name": "山"
+		},
+		{
+			"atk": 1.0,
+			"char": "C",
+			"def": 1.0,
+			"id": "cliff",
+			"image": "cliff.png",
+			"memo": "飛行ユニット以外は移動コストが極めて高く、ほぼ移動不可",
+			"name": "崖"
+		},
+		{
+			"atk": 0.8,
+			"char": "R",
+			"def": 0.8,
+			"id": "river",
+			"image": "river.png",
+			"memo": "",
+			"name": "川"
+		},
+		{
+			"atk": 1.0,
+			"char": "S",
+			"def": 1.0,
+			"id": "sea",
+			"image": "sea.png",
+			"memo": "飛行ユニット以外は移動コストが極めて高く、ほぼ移動不可",
+			"name": "海"
+		},
+		{
+			"atk": 1.0,
+			"char": "_",
+			"def": 1.0,
+			"id": "corridor",
+			"image": "corridor.png",
+			"memo": "",
+			"name": "通路"
+		},
+		{
+			"atk": 1.0,
+			"char": "#",
+			"def": 1.0,
+			"id": "wall",
+			"image": "wall.png",
+			"memo": "ダンジョン内想定なので全ユニット移動不可",
+			"name": "壁"
 		}
 	]
 }

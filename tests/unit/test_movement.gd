@@ -2,11 +2,12 @@ extends GutTest
 ## 移動システム（Movement 表 ＋ コスト付き reachable）のテスト。
 
 func test_movement_table_loads() -> void:
+	# 既定の移動表が読めること＋安定な構造のみ検証（個別コストはCSVでチューニングされ変動する）。
 	var t := Movement.load_default()
 	assert_true(t.has("ground"), "ground 移動タイプがある")
-	assert_eq(Movement.cost(t, "ground", "plain"), 1, "地上・平地=1")
-	assert_eq(Movement.cost(t, "ground", "plateau"), 2, "地上・台地=2")
-	assert_eq(Movement.cost(t, "flight", "plateau"), 1, "飛行・台地=1")
+	assert_true(t.has("flight"), "flight 移動タイプがある")
+	assert_eq(Movement.cost(t, "ground", "plain"), 1, "平地=1（基準）")
+	assert_eq(Movement.cost(t, "ground", "wall"), Movement.IMPASSABLE, "壁は進入不可")
 
 func test_cost_impassable_and_default() -> void:
 	var t := { "ground": { "plain": 1, "plateau": "x" } }
