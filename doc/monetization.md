@@ -162,4 +162,4 @@ Steam 一本なら **Steam 内蔵の所有権チェックで足りる（SaaS 不
   - 有料／無料データの境界
   - アビリティ ID 設計
   - 所有権チェックの `infrastructure/platform/` 隔離（`owns()→bool`）＋論理 ID/product ID マッピング
-- **配信はまず 1 チャネル（Steam）で出す**。マルチストア配線を先に作り込まない（[ADR-0001](adr/ADR-0001-adopt-godot.md)・[project-overview.md](project-overview.md) の「モバイルは後回し」と一致）。継ぎ目さえ切れていれば追加は後から足し算で済む。
+- **配信はまず 1 チャネル（Steam）で出す**。マルチストア配線を先に作り込まない（[ADR-0001](adr/ADR-0001-adopt-godot.md) の「モバイルは後回し」と一致）。継ぎ目さえ切れていれば追加は後から足し算で済む。

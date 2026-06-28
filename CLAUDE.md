@@ -21,7 +21,7 @@
 | 分類 | ファイル |
 |---|---|
 | コンセプト | [doc/concepts.md](doc/concepts.md) |
-| 運用・ロードマップ | [doc/project-overview.md](doc/project-overview.md) |
+| バックログ | [doc/backlog.md](doc/backlog.md) |
 | 戦闘（補正チェーン・陣形） | [doc/gdd/combat.md](doc/gdd/combat.md) |
 | ユニット性能・対応表 | [doc/gdd/units.md](doc/gdd/units.md) |
 | 移動（移動タイプ・地形コスト） | [doc/gdd/movement.md](doc/gdd/movement.md) |

@@ -5,7 +5,7 @@
 ## 全体
 
 - [concepts.md](concepts.md) — プロダクトコンセプト（何を・なぜ・面白さの核）
-- [project-overview.md](project-overview.md) — 目的・ロードマップ・配布計画・進め方の制約
+- [backlog.md](backlog.md) — 「必要になったら着手」する作業の置き場
 - [monetization.md](monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
 - [naming_decision_senaris.md](naming_decision_senaris.md) — タイトル名「Senaris」の決定
 
