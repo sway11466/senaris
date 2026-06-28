@@ -1,0 +1,15 @@
+{
+  "theme": "standard",
+  "types": [
+    { "id": "cleric",  "role": "infantry", "atk_ground": 10, "atk_air": 10, "defense": 4,  "move": 3, "move_type": "ground", "range": 1, "can_capture": true,  "max_troops": 8,
+      "names": { "ally": ["クレリック"],  "enemy": ["ゴブリン"] } },
+    { "id": "priest",  "role": "infantry", "atk_ground": 40, "atk_air": 10, "defense": 10, "move": 2, "move_type": "ground", "range": 1, "can_capture": false, "max_troops": 8,
+      "names": { "ally": ["プリースト"], "enemy": ["ホブゴブリン"] } },
+    { "id": "monk",    "role": "infantry", "atk_ground": 10, "atk_air": 10, "defense": 8,  "move": 9, "move_type": "ground", "range": 1, "can_capture": false, "max_troops": 8,
+      "names": { "ally": ["モンク"],     "enemy": ["コボルト"] } },
+    { "id": "bishop",  "role": "infantry", "atk_ground": 10, "atk_air": 10, "defense": 40, "move": 3, "move_type": "ground", "range": 1, "can_capture": true,  "max_troops": 8,
+      "names": { "ally": ["ビショップ"], "enemy": ["ノーム"] } },
+    { "id": "paladin", "role": "infantry", "atk_ground": 50, "atk_air": 50, "defense": 40, "move": 5, "move_type": "ground", "range": 1, "can_capture": true,  "max_troops": 8,
+      "names": { "ally": ["パラディン"], "enemy": ["ゴブリンロード"] } }
+  ]
+}

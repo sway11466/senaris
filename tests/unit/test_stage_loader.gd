@@ -45,6 +45,37 @@ func test_build_unit_fields_and_defaults() -> void:
 	assert_eq(u2.unit_attack, 10, "atk 省略は10")
 	assert_eq(u2.level, 1, "level 省略は1")
 
+func test_build_resolves_type_from_catalog() -> void:
+	var catalog := {
+		"cleric": UnitType.from_dict({
+			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
+		}),
+	}
+	var data := { "cols": 6, "rows": 4, "units": [
+		{ "type": "cleric", "team": 0, "col": 1, "row": 1 },
+	] }
+	var s := StageLoader.build(data, catalog)
+	var u := s.unit_by_id(1)
+	assert_eq(u.unit_attack, 10, "atk_ground → unit_attack")
+	assert_eq(u.unit_defense, 4, "defense → unit_defense")
+	assert_eq(u.troops, 8, "max_troops → troops")
+	assert_eq(u.move, 3, "move は種別から")
+
+func test_type_fields_can_be_overridden() -> void:
+	var catalog := {
+		"cleric": UnitType.from_dict({
+			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
+		}),
+	}
+	var data := { "cols": 6, "rows": 4, "units": [
+		{ "type": "cleric", "team": 0, "col": 1, "row": 1, "troops": 5, "level": 2 },
+	] }
+	var s := StageLoader.build(data, catalog)
+	var u := s.unit_by_id(1)
+	assert_eq(u.troops, 5, "troops を上書き")
+	assert_eq(u.level, 2, "level を上書き")
+	assert_eq(u.unit_attack, 10, "上書きしない項目は種別のまま")
+
 func test_load_demo_file() -> void:
 	var s := StageLoader.load_file("res://data/stages/demo/demo.json")
 	assert_not_null(s, "demo.json が読める")
