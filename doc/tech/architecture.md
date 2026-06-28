@@ -55,10 +55,11 @@ res://
 │   └── match_controller.gd
 ├── presentation/      # ここだけノード/シーン
 │   ├── board/  units/  ui/  effects/
-├── data/
-│   ├── schema/        # Resourceクラス定義(UnitData等・純データ)
-│   ├── units/ formations/ terrain/ themes/   # .tres実体
-│   └── import/        # CSV→.tres変換スクリプト＋CSV原本
+├── data/              # 機能フォルダ: 型定義＋データ＋ローダーを同居（型とデータはセット）
+│   ├── units/         # 型(unit_type.gd/unit_skin.gd)＋データ(*.json)＋ローダー(*_catalog.gd)
+│   ├── stages/        # ステージ定義(json)
+│   ├── formations/ terrain/ themes/   # 同様に機能ごとに同居
+│   └── import/        # CSV→.tres変換スクリプト＋CSV原本(将来)
 ├── infrastructure/
 │   ├── save/          # 直列化(進捗＋中断)
 │   └── platform/      # Steam連携
@@ -76,7 +77,8 @@ res://
 
 ### それを守る具体規約
 
-1. `domain/` と `data/schema/` のファイルは `extends Node` 禁止。`extends Resource` か `extends RefCounted` のみ。← 最も効くチェック
+1. `domain/` と `data/` の型定義（`*_type.gd` 等）は `extends Node` 禁止。`extends Resource` か `extends RefCounted` のみ。← 最も効くチェック
+   - 型定義は専用の `schema/` に集約せず、各機能フォルダにデータと同居させる（型とデータはセット）。【更新: 旧 data/schema/ を廃止】
 2. `domain/` から `$`・`get_node`・`Input.`・シーン読み込みを呼ばない
 3. Presentationは状態を直接書き換えない。下りは「コマンド」をApplicationに投げ、上りはApplicationの「シグナル」を受けて描くだけ
 4. セーブ対象は `battle_state.gd` に集約。見た目の状態はセーブに含めず、状態から再構築する
