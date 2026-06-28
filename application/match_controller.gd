@@ -8,6 +8,7 @@ class_name MatchController
 signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i)
 signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
+signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
@@ -55,6 +56,21 @@ func execute_attack(cmd: AttackCommand) -> bool:
 		unit_died.emit(cmd.attacker_id)
 	_check_finished()
 	return true
+
+## 下り: 出撃コマンドの処理。成功すれば garrison から盤へ駒を出し unit_deployed を発行。
+func execute_deploy(cmd: DeployCommand) -> bool:
+	if _finished:
+		return false
+	var to := cmd.to
+	if state.deploy(cmd.base_hex, cmd.garrison_index, to):
+		var u := state.unit_at(to)
+		unit_deployed.emit(u.id if u != null else -1, cmd.base_hex, to)
+		return true
+	return false
+
+## 表示用: base_hex の拠点から出撃できる空きhex一覧（状態は変えない）。
+func deploy_cells_for(base_hex: Vector2i) -> Array[Vector2i]:
+	return state.deploy_cells(base_hex)
 
 ## 手番を終了して次の陣営へ渡す。AIの手番に入ったら自動で思考を回す。
 func end_turn() -> void:

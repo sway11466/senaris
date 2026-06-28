@@ -10,10 +10,12 @@ class_name HexBoard
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 1.0)
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
 const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
+const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動の緑と区別）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
 const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
 const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
+const COLOR_BASE_NEUTRAL := Color(0.80, 0.80, 0.80)  # 未占領拠点の縁取り
 
 const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
@@ -22,10 +24,14 @@ var controller: MatchController
 var _terrain_tex := {}    # terrain_id(String) -> Texture2D（Terrain カタログから読み込み）
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }（名前プレースホルダ用）
 
+const INVALID_HEX := Vector2i(-9999, -9999)
+
 var _hover := Vector2i(-9999, -9999)
 var _selected_id := -1
 var _reachable := {}  # Vector2i -> true
 var _targets := {}    # Vector2i -> target_id（攻撃可能な敵の位置）
+var _deploy_base := INVALID_HEX  # 出撃モード中の拠点（右クリックで入る）
+var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false  # 決着・AI手番中は入力を受けない
 
 func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}) -> void:
@@ -36,6 +42,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 		_terrain_tex[id] = load(Terrain.image_path(id))
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
+	controller.unit_deployed.connect(_on_unit_deployed)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
 	queue_redraw()
@@ -53,11 +60,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_click(_hex_at_mouse())
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		_on_right_click(_hex_at_mouse())  # 自軍拠点 → 出撃モード
 	elif event.is_action_pressed("ui_accept"):  # Enter / Space で手番終了
 		_deselect()
 		controller.end_turn()
 
 func _on_click(hex: Vector2i) -> void:
+	# 出撃モード中: 出撃先候補をクリック → 出撃。それ以外のクリックは出撃モードを抜けて通常処理。
+	if _deploy_base != INVALID_HEX:
+		if _deploy_cells.has(hex):
+			controller.execute_deploy(DeployCommand.new(_deploy_base, 0, hex))
+			return
+		_clear_deploy()
 	if _selected_id != -1:
 		# 攻撃可能な敵をクリック → 攻撃。
 		if _targets.has(hex):
@@ -73,6 +88,26 @@ func _on_click(hex: Vector2i) -> void:
 		_select(clicked.id)
 	else:
 		_deselect()
+
+## 自軍が占領済みで控えのある拠点を右クリック → 出撃モード（出撃先候補をハイライト）。
+func _on_right_click(hex: Vector2i) -> void:
+	var b := state.base_at(hex)
+	if b != null and b.team == state.current_team:
+		var cells := controller.deploy_cells_for(hex)
+		if not cells.is_empty():
+			_deselect()
+			_deploy_base = hex
+			_deploy_cells.clear()
+			for c in cells:
+				_deploy_cells[c] = true
+			queue_redraw()
+			return
+	_clear_deploy()
+
+func _clear_deploy() -> void:
+	_deploy_base = INVALID_HEX
+	_deploy_cells.clear()
+	queue_redraw()
 
 func _select(id: int) -> void:
 	_selected_id = id
@@ -104,12 +139,26 @@ func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
 func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed: bool) -> void:
 	_deselect()  # 攻撃したユニットは行動終了
 
+func _on_unit_deployed(_unit_id: int, base_hex: Vector2i, _to: Vector2i) -> void:
+	# 控えと出撃先が残っていれば出撃モードを継続（候補を更新）、尽きたら解除。
+	var cells := controller.deploy_cells_for(base_hex)
+	if cells.is_empty():
+		_clear_deploy()
+		return
+	_deploy_base = base_hex
+	_deploy_cells.clear()
+	for c in cells:
+		_deploy_cells[c] = true
+	queue_redraw()
+
 func _on_turn_changed(_team: int, _turn_number: int) -> void:
 	_deselect()
+	_clear_deploy()
 
 func _on_battle_finished(_winner: int) -> void:
 	_locked = true
 	_deselect()
+	_clear_deploy()
 
 func _hex_at_mouse() -> Vector2i:
 	return Hex.from_pixel(get_local_mouse_position() - board_origin, hex_size)
@@ -120,8 +169,27 @@ func _draw() -> void:
 	for col in state.cols:
 		for row in state.rows:
 			_draw_tile(Hex.offset_to_axial(col, row))
+	for b in state.bases():
+		_draw_base(b)
 	for u in state.units():
 		_draw_unit(u)
+
+## 拠点の所属（縁取りの色）と控え数（garrison）を描く。地形タイルの上・ユニットの下。
+func _draw_base(b: Base) -> void:
+	var center := board_origin + Hex.to_pixel(b.hex, hex_size)
+	var col := COLOR_BASE_NEUTRAL
+	if b.team >= 0:
+		col = TEAM_COLORS[b.team % TEAM_COLORS.size()]
+	# 所属を示す六角の縁取り（地形タイルの淵に沿わせる）。
+	var ring := _corners(center)
+	ring.append(ring[0])
+	draw_polyline(ring, col, 3.0, true)
+	# 控え数（出撃できる人数）を左上に小さく。
+	if not b.garrison.is_empty():
+		var font := ThemeDB.fallback_font
+		var fs := int(hex_size * 0.42)
+		var pos := center + Vector2(-hex_size * 0.5, -hex_size * 0.30)
+		draw_string(font, pos, "+%d" % b.garrison.size(), HORIZONTAL_ALIGNMENT_LEFT, hex_size, fs, col)
 
 func _draw_tile(hex: Vector2i) -> void:
 	var center := board_origin + Hex.to_pixel(hex, hex_size)
@@ -129,6 +197,8 @@ func _draw_tile(hex: Vector2i) -> void:
 	_draw_terrain(hex, center)  # 地形タイル（一番下）
 	if _reachable.has(hex):
 		draw_colored_polygon(pts, COLOR_REACH)
+	if _deploy_cells.has(hex):
+		draw_colored_polygon(pts, COLOR_DEPLOY)
 	if hex == _hover:
 		draw_colored_polygon(pts, COLOR_HOVER)
 	var outline := pts.duplicate()
