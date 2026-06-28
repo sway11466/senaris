@@ -18,9 +18,9 @@ func test_build_skips_idless() -> void:
 	assert_eq(cat.size(), 1)
 	assert_true(cat.has("b"))
 
-func test_load_standard_roster() -> void:
-	var cat := UnitCatalog.load_standard()
-	assert_true(cat.has("cleric"), "標準ロスターに cleric")
+func test_load_default_roster() -> void:
+	var cat := UnitCatalog.load_default()
+	assert_true(cat.has("cleric"), "既定ロスターに cleric")
 	var c: UnitType = cat["cleric"]
 	assert_eq(c.atk_ground, 10)
 	assert_eq(c.defense, 4)

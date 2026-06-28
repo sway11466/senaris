@@ -84,10 +84,10 @@
 **性能と見た目を分離する**（アーキの「ステータスは原型に1回、名前・スプライトは上書きレイヤー」）。
 
 - **性能 ＝ `UnitType`**（`data/schema/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
-  - ロスター表 `data/units/standard.json`（テーマ0）。`UnitCatalog`（`data/unit_catalog.gd`）が `id → UnitType`。
+  - 種別表 `data/units/unit_type.json`（テーマ非依存の原型ロスター）。`UnitCatalog`（`data/unit_catalog.gd`）が `id → UnitType`。
   - 箱だけ先に用意（実装は将来）: `atk_air`・`attack_range`(>1=間接)・`move_type`。現状の戦闘は `atk_ground`＝攻撃・`defense`＝防御のみ使う。
 - **見た目＋識別 ＝ `UnitSkin`**（`data/schema/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
-  - スキン表 `data/skins/standard.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`data/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。
+  - スキン表 `data/units/skins.json`（性能とは別ファイル＝上書きレイヤー。スキンは“何のスキンか”の配下に置く）。`SkinCatalog`（`data/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。テーマが増えたら `data/units/skins/<テーマ>.json` に割ってよい。
   - **同性能・別名**（ゴブリン↔守護像）は enemy 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚側が決める**（ユニットデータは冒険譚/テーマ名を持たない＝責務分離）。引きは `SkinCatalog.skin(catalog, type_id, team, index)`。
   - 画像スロットと未用意時のプレースホルダは [../art/overview.md](../art/overview.md) 参照。
 - **ステージは種別を名前参照**: `{ "type": "cleric", "team": 0, "col": 3, "row": 3 }`（`level`/`troops` 等は任意で上書き）。`StageLoader` が `UnitCatalog` 経由で解決し、`Unit.type_id` に保持（描画でスキンを引く／将来の占領＝寝返りに使う）。

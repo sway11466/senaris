@@ -6,7 +6,7 @@ class_name UnitCatalog
 ## ステータスはテーマ非依存（標準ロスター＝テーマ0が唯一の出どころ）。
 ## テーマはユニットの「名前」だけを切り替える（UnitType.names）。
 
-const STANDARD_PATH := "res://data/units/standard.json"
+const UNIT_TYPE_PATH := "res://data/units/unit_type.json"
 
 ## ロスター辞書（{ "types": [ {...}, ... ] }）から { id: UnitType } を作る。
 static func build(data: Dictionary) -> Dictionary:
@@ -34,6 +34,6 @@ static func load_file(path: String) -> Dictionary:
 		return {}
 	return build(data)
 
-## 標準ロスター（テーマ0）を読み込む。
-static func load_standard() -> Dictionary:
-	return load_file(STANDARD_PATH)
+## 既定のユニット種別表（unit_type.json）を読み込む。テーマ非依存の原型ロスター。
+static func load_default() -> Dictionary:
+	return load_file(UNIT_TYPE_PATH)

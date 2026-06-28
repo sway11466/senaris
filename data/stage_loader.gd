@@ -37,7 +37,7 @@ static func load_file(path: String) -> BattleState:
 	if typeof(data) != TYPE_DICTIONARY:
 		push_error("StageLoader: JSON が不正: %s" % path)
 		return null
-	return build(data, UnitCatalog.load_standard())
+	return build(data, UnitCatalog.load_default())
 
 ## 地形グリッド（文字列の配列）を盤に反映。row=行index, col=文字index → offset(col,row)。
 static func _apply_terrain(state: BattleState, grid: Variant) -> void:
