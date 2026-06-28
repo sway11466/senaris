@@ -1,6 +1,0 @@
-id,role,atk_ground,atk_air,defense,move,move_type,range,can_capture,max_troops
-cleric,infantry,10,10,4,3,ground,1,true,8
-priest,infantry,40,10,10,2,ground,1,false,8
-monk,infantry,10,10,8,9,ground,1,false,8
-bishop,infantry,10,10,40,3,ground,1,true,8
-paladin,infantry,50,50,40,5,ground,1,true,8

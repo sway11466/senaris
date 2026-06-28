@@ -56,10 +56,9 @@ res://
 ├── presentation/      # ここだけノード/シーン
 │   ├── board/  units/  ui/  effects/
 ├── data/              # 機能フォルダ: 型定義＋データ＋ローダーを同居（型とデータはセット）
-│   ├── units/         # 型(unit_type.gd/unit_skin.gd)＋データ(*.json)＋ローダー(*_catalog.gd)
+│   ├── units/         # 型(*.gd)＋ローダー(*_catalog.gd)＋正本CSV(*.csv)＋生成JSON(*.json)＋変換(convert.gd)
 │   ├── stages/        # ステージ定義(json)
-│   ├── formations/ terrain/ themes/   # 同様に機能ごとに同居
-│   └── import/        # CSV→.tres変換スクリプト＋CSV原本(将来)
+│   └── formations/ terrain/ themes/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
 ├── infrastructure/
 │   ├── save/          # 直列化(進捗＋中断)
 │   └── platform/      # Steam連携

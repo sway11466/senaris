@@ -1,4 +1,5 @@
 type_id,side,name
+種別ID,陣営,表示名
 cleric,ally,クレリック
 cleric,enemy,ゴブリン
 priest,ally,プリースト
