@@ -90,6 +90,64 @@ func test_attack_targets_lists_adjacent_enemies() -> void:
 	assert_eq(ids.size(), 2, "隣接する敵2体だけが対象")
 	assert_true(ids.has(2) and ids.has(3))
 
+func test_experience_boosts_attack_and_defense() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	# 攻撃側 Lv6（×1.40）、防御側 Lv1（補正なし）
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10, 6))
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10, 1))
+	var r := s.attack(1, 2)
+	assert_eq(r["damage"], 5, "Lv6攻撃(×1.40)で互角時の4より多く削る")
+	assert_eq(r["retaliation"], 3, "Lv6で防御も上がり被反撃は4より少ない")
+
+func test_experience_gained_on_survived_fight() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))               # Lv1
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
+	s.attack(1, 2)
+	assert_eq(s.unit_by_id(1).level, 2, "戦って生き残った攻撃側は+1でLv2")
+	assert_eq(s.unit_by_id(2).level, 2, "反撃した近接防御側も+1でLv2")
+
+func test_experience_bonus_on_kill() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 100, 10))             # Lv1
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 2, 1, 1))
+	s.attack(1, 2)
+	assert_eq(s.unit_by_id(1).level, 3, "参加+1・撃破+1でLv1→Lv3")
+
+func test_experience_caps_at_max_level() -> void:
+	var u := Unit.new(1, 0, Vector2i.ZERO, 3)
+	u.level = 7
+	u.add_experience(5)
+	assert_eq(u.level, Unit.MAX_LEVEL, "Lv8で頭打ち")
+
+func test_terrain_defaults_to_plains() -> void:
+	var s := _state()
+	assert_eq(s.terrain_at(Vector2i(3, 3)), Terrain.PLAINS, "未設定ヘックスは平地")
+
+func test_terrain_plateau_boosts_attacker() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	s.set_terrain(ap, Terrain.PLATEAU)                          # 攻撃側を台地に
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 平地
+	var r := s.attack(1, 2)
+	assert_eq(r["damage"], 5, "台地の攻撃側(×1.15)は互角時の4より多く削る")
+	assert_eq(r["retaliation"], 3, "台地は防御も+15%で被反撃が4より軽い")
+
+func test_terrain_plateau_boosts_defender() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var dp := Hex.neighbor(ap, 0)
+	s.set_terrain(dp, Terrain.PLATEAU)                          # 防御側を台地に
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))               # 平地
+	s.add_unit(Unit.new(2, 1, dp, 3, 8, 10, 10))
+	var r := s.attack(1, 2)
+	assert_eq(r["damage"], 3, "台地の防御側(×1.15)は4より受けにくい")
+	assert_eq(r["retaliation"], 5, "台地は攻撃も+15%で反撃が4より重い")
+
 func test_combat_is_deterministic() -> void:
 	# 同じ初期条件なら何度やっても同じ結果（乱数なし）。
 	var first := -999

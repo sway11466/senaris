@@ -13,6 +13,7 @@ var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 var _units: Array[Unit] = []
 var _moved := {}     # unit_id -> true（このターンに移動済み）
 var _attacked := {}  # unit_id -> true（このターンに攻撃済み）
+var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -35,6 +36,14 @@ func unit_at(hex: Vector2i) -> Unit:
 		if u.pos == hex:
 			return u
 	return null
+
+## hex の地形タイプ（未設定は平地）。
+func terrain_at(hex: Vector2i) -> int:
+	return _terrain.get(hex, Terrain.PLAINS)
+
+## hex に地形を設定する。
+func set_terrain(hex: Vector2i, terrain_id: int) -> void:
+	_terrain[hex] = terrain_id
 
 ## hex が矩形フィールド内か。
 func in_field(hex: Vector2i) -> bool:
@@ -105,6 +114,11 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	a.troops -= dmg_to_attacker
 	var target_killed := t.troops <= 0
 	var attacker_killed := a.troops <= 0
+	# 経験値: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
+	# 防御側は反撃が成立したときだけ+1（近接は必ず反撃する→+1）。
+	# ※将来 間接攻撃／対空なしで反撃不成立なら、防御側はここで+0にする。
+	a.add_experience(1 + (1 if target_killed else 0))
+	t.add_experience(1 + (1 if attacker_killed else 0))
 	if target_killed:
 		_remove_unit(target_id)
 	if attacker_killed:
