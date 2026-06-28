@@ -69,5 +69,6 @@ static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary
 		var lv := int(u.get("level", 1))
 		var unit := Unit.new(int(u.get("id", auto_id)), int(u["team"]), pos, mv, tp, atk, dfn, lv, type_id)
 		unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
+		unit.attack_range = int(u.get("range", t.attack_range if t != null else 1))
 		state.add_unit(unit)
 		auto_id += 1

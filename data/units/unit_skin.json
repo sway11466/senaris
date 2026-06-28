@@ -1,5 +1,21 @@
 {
 	"skins": {
+		"archer": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "アーチャー"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "リザードマン"
+				}
+			]
+		},
 		"birdman": {
 			"ally": [
 				{

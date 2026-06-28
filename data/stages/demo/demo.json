@@ -16,6 +16,7 @@
     { "type": "priest", "team": 0, "col": 3, "row": 3 },
     { "type": "bishop", "team": 0, "col": 3, "row": 5 },
     { "type": "birdman", "team": 0, "col": 2, "row": 4 },
+    { "type": "archer", "team": 0, "col": 4, "row": 4 },
     { "type": "cleric", "team": 1, "col": 7, "row": 3 },
     { "type": "cleric", "team": 1, "col": 7, "row": 5 }
   ]

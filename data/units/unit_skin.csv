@@ -10,5 +10,7 @@ bishop,ally,ビショップ
 bishop,enemy,ノーム
 paladin,ally,パラディン
 paladin,enemy,ゴブリンロード
+archer,ally,アーチャー
+archer,enemy,リザードマン
 birdman,ally,バードマン
 birdman,enemy,ハーピー

@@ -148,6 +148,43 @@ func test_terrain_plateau_boosts_defender() -> void:
 	assert_eq(r["damage"], 3, "台地の防御側(×1.15)は4より受けにくい")
 	assert_eq(r["retaliation"], 5, "台地は攻撃も+15%で反撃が4より重い")
 
+func test_indirect_no_retaliation() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	a.attack_range = 2                                          # 間接（射程2）
+	s.add_unit(a)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))  # 距離2
+	var r := s.attack(1, 2)
+	assert_true(r["damage"] > 0, "間接でも相手は削れる")
+	assert_eq(r["retaliation"], 0, "間接攻撃は反撃を受けない")
+	assert_eq(s.unit_by_id(1).troops, 8, "攻撃側は無傷")
+
+func test_indirect_defender_gains_no_exp() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	a.attack_range = 2
+	s.add_unit(a)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))
+	s.attack(1, 2)
+	assert_eq(s.unit_by_id(1).level, 2, "間接の攻撃側は+1（Lv2）")
+	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は+0（Lv1のまま）")
+
+func test_can_attack_at_range() -> void:
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	a.attack_range = 2
+	s.add_unit(a)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))  # 距離2
+	assert_true(s.can_attack(1, 2), "射程2なら距離2の敵を撃てる")
+	# 近接(射程1)では距離2は撃てない
+	var s2 := _state()
+	s2.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
+	s2.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))
+	assert_false(s2.can_attack(1, 2), "近接は距離2を撃てない")
+
 func test_combat_is_deterministic() -> void:
 	# 同じ初期条件なら何度やっても同じ結果（乱数なし）。
 	var first := -999

@@ -17,6 +17,7 @@ var unit_defense: int  ## ユニット防御力（兵1体あたり。原典 BuD 
 var level: int         ## 経験値＝レベル（1〜MAX_LEVEL）。初期Lv1＝補正なし。詳細 → combat.md
 var type_id: String    ## 種別ID（UnitType/スキンの参照キー。空＝未指定）。描画・占領で使う
 var move_type: String  ## 移動タイプ（movement表のキー。空＝未指定→全地形コスト1の従来挙動）
+var attack_range: int = 1  ## 射程（1=近接・反撃あり／≥2=間接・反撃なし）。UnitType から設定
 
 func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 		p_troops: int = 8, p_unit_attack: int = 10, p_unit_defense: int = 10,

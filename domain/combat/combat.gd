@@ -26,18 +26,22 @@ static func surround_factor(state: BattleState, u: Unit) -> float:
 static func experience_factor(u: Unit) -> float:
 	return float(EXPERIENCE[clampi(u.level, 1, Unit.MAX_LEVEL) - 1])
 
-## u が enemy を攻撃するときの実効攻撃力。地形(攻) ＝ u の足元の地形係数。
-## 支援(攻) ＝ enemy に隣接する u の味方からの加算（地形・経験は乗らない素の値）。
-static func effective_attack(state: BattleState, u: Unit, enemy: Unit) -> float:
-	var terrain := Terrain.attack_factor(state.terrain_at(u.pos))
-	var base := float(u.troops) * float(u.unit_attack) * experience_factor(u) * surround_factor(state, u) * terrain
+## u が enemy を攻撃するときの実効攻撃力。地形(攻)・経験は常に乗る。
+## melee=true のときだけ 包囲（乗算）と 支援(攻)（加算）が乗る。間接攻撃(melee=false)には乗らない。
+static func effective_attack(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
+	var base := float(u.troops) * float(u.unit_attack) * experience_factor(u) * Terrain.attack_factor(state.terrain_at(u.pos))
+	if not melee:
+		return base
+	base *= surround_factor(state, u)
 	return base + _support(state, u, enemy, true)
 
-## u が enemy に攻撃されるときの実効防御力。地形(防) ＝ u の足元の地形係数。
-## 支援(防) ＝ enemy に隣接する u の味方からの加算。支援後は支援前の2倍が上限。
-static func effective_defense(state: BattleState, u: Unit, enemy: Unit) -> float:
-	var terrain := Terrain.defense_factor(state.terrain_at(u.pos))
-	var base := float(u.troops) * float(u.unit_defense) * experience_factor(u) * surround_factor(state, u) * terrain
+## u が enemy に攻撃されるときの実効防御力。地形(防)・経験は常に乗る。
+## melee=true のときだけ 包囲（乗算）と 支援(防)（加算・支援後は2倍上限）が乗る。
+static func effective_defense(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
+	var base := float(u.troops) * float(u.unit_defense) * experience_factor(u) * Terrain.defense_factor(state.terrain_at(u.pos))
+	if not melee:
+		return base
+	base *= surround_factor(state, u)
 	var supported := base + _support(state, u, enemy, false)
 	return minf(supported, base * DEFENSE_SUPPORT_CAP)
 
@@ -55,10 +59,10 @@ static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) 
 		total += float(ally.troops) * float(stat) * SUPPORT_RATE
 	return total
 
-## attacker が defender に与える失う兵数（0〜defender.troops）。
-static func casualties(state: BattleState, attacker: Unit, defender: Unit) -> int:
-	var a := effective_attack(state, attacker, defender)
-	var d := effective_defense(state, defender, attacker)
+## attacker が defender に与える失う兵数（0〜defender.troops）。melee=false で間接（包囲・支援なし）。
+static func casualties(state: BattleState, attacker: Unit, defender: Unit, melee := true) -> int:
+	var a := effective_attack(state, attacker, defender, melee)
+	var d := effective_defense(state, defender, attacker, melee)
 	if a <= 0.0:
 		return 0
 	var ap := pow(a, P)
