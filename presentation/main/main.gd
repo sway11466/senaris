@@ -13,6 +13,10 @@ func _ready() -> void:
 	state.add_unit(Unit.new(3, 1, Hex.offset_to_axial(7, 3), 4, 8, 10, 10))
 	state.add_unit(Unit.new(4, 1, Hex.offset_to_axial(7, 5), 3, 8, 10, 10))
 
+	# デモ地形（仮）: 盤中央に台地の塊。乗ると攻防+15%。将来はステージデータ(data/)から。
+	for cell in [Vector2i(5, 3), Vector2i(5, 4), Vector2i(6, 4), Vector2i(5, 5)]:
+		state.set_terrain(Hex.offset_to_axial(cell.x, cell.y), Terrain.PLATEAU)
+
 	var controller := MatchController.new()
 	controller.name = "MatchController"
 	controller.setup(state)

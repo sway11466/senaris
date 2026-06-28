@@ -15,8 +15,15 @@ const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
 const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 
+## 地形タイプ → タイル画像。アート確定後は PNG を差し替えるだけ（ここは不変）。
+const TERRAIN_TEX := {
+	Terrain.PLAINS: "res://assets/terrain/plains.png",
+	Terrain.PLATEAU: "res://assets/terrain/plateau.png",
+}
+
 var state: BattleState
 var controller: MatchController
+var _terrain_tex := {}  # terrain_id -> Texture2D
 
 var _hover := Vector2i(-9999, -9999)
 var _selected_id := -1
@@ -27,6 +34,8 @@ var _locked := false  # 決着・AI手番中は入力を受けない
 func bind(p_state: BattleState, p_controller: MatchController) -> void:
 	state = p_state
 	controller = p_controller
+	for id in TERRAIN_TEX:
+		_terrain_tex[id] = load(TERRAIN_TEX[id])
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
 	controller.turn_changed.connect(_on_turn_changed)
@@ -119,6 +128,7 @@ func _draw() -> void:
 func _draw_tile(hex: Vector2i) -> void:
 	var center := board_origin + Hex.to_pixel(hex, hex_size)
 	var pts := _corners(center)
+	_draw_terrain(hex, center)  # 地形タイル（一番下）
 	if _reachable.has(hex):
 		draw_colored_polygon(pts, COLOR_REACH)
 	if hex == _hover:
@@ -126,6 +136,15 @@ func _draw_tile(hex: Vector2i) -> void:
 	var outline := pts.duplicate()
 	outline.append(pts[0])
 	draw_polyline(outline, COLOR_LINE, 1.5, true)
+
+## hex の地形タイル画像を、ヘックス寸法にフィットさせて描く。
+func _draw_terrain(hex: Vector2i, center: Vector2) -> void:
+	var tex: Texture2D = _terrain_tex.get(state.terrain_at(hex))
+	if tex == null:
+		return
+	var w := hex_size * 2.0          # 頂点〜頂点
+	var h := hex_size * Hex.SQRT3     # 上下の平辺間
+	draw_texture_rect(tex, Rect2(center - Vector2(w, h) * 0.5, Vector2(w, h)), false)
 
 func _draw_unit(u: Unit) -> void:
 	var center := board_origin + Hex.to_pixel(u.pos, hex_size)
