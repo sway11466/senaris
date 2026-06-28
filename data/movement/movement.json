@@ -1,10 +1,12 @@
 {
 	"movement_types": {
 		"flight": {
+			"forest": 1,
 			"plain": 1,
 			"plateau": 1
 		},
 		"ground": {
+			"forest": 2,
 			"plain": 1,
 			"plateau": 2
 		}

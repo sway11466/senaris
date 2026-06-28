@@ -19,9 +19,9 @@ func test_build_reads_size_terrain_units() -> void:
 	assert_eq(s.cols, 6)
 	assert_eq(s.rows, 4)
 	# 地形: P が台地、それ以外は平地
-	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 1)), Terrain.PLATEAU, "(2,1)は台地")
-	assert_eq(s.terrain_at(Hex.offset_to_axial(3, 1)), Terrain.PLATEAU, "(3,1)は台地")
-	assert_eq(s.terrain_at(Hex.offset_to_axial(0, 0)), Terrain.PLAINS, "未指定は平地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 1)), "plateau", "(2,1)は台地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(3, 1)), "plateau", "(3,1)は台地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(0, 0)), "plain", "未指定は平地")
 	# ユニット
 	assert_eq(s.units().size(), 2)
 
@@ -83,5 +83,5 @@ func test_load_demo_file() -> void:
 	assert_eq(s.cols, 12)
 	assert_eq(s.rows, 8)
 	assert_eq(s.units().size(), 5, "デモは5体（歩兵4＋飛行バードマン）")
-	assert_eq(s.terrain_at(Hex.offset_to_axial(5, 4)), Terrain.PLATEAU, "中央に台地")
-	assert_eq(s.terrain_at(Hex.offset_to_axial(6, 4)), Terrain.PLATEAU)
+	assert_eq(s.terrain_at(Hex.offset_to_axial(5, 4)), "plateau", "中央に台地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(6, 4)), "plateau")

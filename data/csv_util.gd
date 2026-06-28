@@ -29,7 +29,7 @@ static func _is_blank(line: PackedStringArray) -> bool:
 			return false
 	return true
 
-## 文字列を int / bool / string に推論。
+## 文字列を int / float / bool / string に推論（int 優先＝"8"は8、"1.0"は1.0）。
 static func typed(s: String) -> Variant:
 	if s == "true":
 		return true
@@ -37,6 +37,8 @@ static func typed(s: String) -> Variant:
 		return false
 	if s.is_valid_int():
 		return int(s)
+	if s.is_valid_float():
+		return float(s)
 	return s
 
 static func write_json(path: String, data: Variant) -> void:

@@ -125,12 +125,12 @@ func test_experience_caps_at_max_level() -> void:
 
 func test_terrain_defaults_to_plains() -> void:
 	var s := _state()
-	assert_eq(s.terrain_at(Vector2i(3, 3)), Terrain.PLAINS, "未設定ヘックスは平地")
+	assert_eq(s.terrain_at(Vector2i(3, 3)), "plain", "未設定ヘックスは平地")
 
 func test_terrain_plateau_boosts_attacker() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
-	s.set_terrain(ap, Terrain.PLATEAU)                          # 攻撃側を台地に
+	s.set_terrain(ap, "plateau")                          # 攻撃側を台地に
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 平地
 	var r := s.attack(1, 2)
@@ -141,7 +141,7 @@ func test_terrain_plateau_boosts_defender() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	var dp := Hex.neighbor(ap, 0)
-	s.set_terrain(dp, Terrain.PLATEAU)                          # 防御側を台地に
+	s.set_terrain(dp, "plateau")                          # 防御側を台地に
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))               # 平地
 	s.add_unit(Unit.new(2, 1, dp, 3, 8, 10, 10))
 	var r := s.attack(1, 2)

@@ -5,16 +5,10 @@ class_name StageLoader
 ## 詳細 → doc/tech/architecture.md, doc/gdd/map.md
 ##
 ## マップは「ASCII地形グリッド＋ユニット配置リスト」で記述する（data/stages/*.json）。
-## terrain は1行＝盤の1列ぶんの文字絵。文字→地形の対応は TERRAIN_CHARS。
+## terrain は1行＝盤の1列ぶんの文字絵。文字→地形の対応は Terrain（terrain.csv の char 列）。
 ##
 ## build(dict) はファイルIOを伴わず辞書から組み立てる（テスト対象）。
 ## load_file(path) はファイルを読んで build に渡す薄いラッパ。
-
-## 地形グリッドの文字 → 地形タイプ。未定義文字は平地として扱う。
-const TERRAIN_CHARS := {
-	".": Terrain.PLAINS,
-	"P": Terrain.PLATEAU,
-}
 
 ## ステージ辞書から BattleState を組み立てる。
 ## 期待キー: cols, rows, terrain(配列の文字列), units(配列の辞書)。
@@ -49,9 +43,8 @@ static func _apply_terrain(state: BattleState, grid: Variant) -> void:
 	for row in grid.size():
 		var line := String(grid[row])
 		for col in line.length():
-			var ch := line[col]
-			var tid: int = TERRAIN_CHARS.get(ch, Terrain.PLAINS)
-			if tid != Terrain.PLAINS:  # 平地は既定なので明示設定不要
+			var tid := Terrain.char_to_id(line[col])
+			if tid != Terrain.DEFAULT_ID:  # 既定地形は明示設定不要
 				state.set_terrain(Hex.offset_to_axial(col, row), tid)
 
 ## ユニット配置リストを盤に追加。id 省略時は出現順に1始まりで採番。

@@ -15,17 +15,11 @@ const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
 const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 
-## 地形タイプ → タイル画像。アート確定後は PNG を差し替えるだけ（ここは不変）。
-const TERRAIN_TEX := {
-	Terrain.PLAINS: "res://assets/terrain/plains.png",
-	Terrain.PLATEAU: "res://assets/terrain/plateau.png",
-}
-
 const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
 var state: BattleState
 var controller: MatchController
-var _terrain_tex := {}    # terrain_id -> Texture2D
+var _terrain_tex := {}    # terrain_id(String) -> Texture2D（Terrain カタログから読み込み）
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }（名前プレースホルダ用）
 
 var _hover := Vector2i(-9999, -9999)
@@ -38,8 +32,8 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	for id in TERRAIN_TEX:
-		_terrain_tex[id] = load(TERRAIN_TEX[id])
+	for id in Terrain.all_ids():
+		_terrain_tex[id] = load(Terrain.image_path(id))
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
 	controller.turn_changed.connect(_on_turn_changed)

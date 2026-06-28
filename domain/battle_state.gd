@@ -38,12 +38,12 @@ func unit_at(hex: Vector2i) -> Unit:
 			return u
 	return null
 
-## hex の地形タイプ（未設定は平地）。
-func terrain_at(hex: Vector2i) -> int:
-	return _terrain.get(hex, Terrain.PLAINS)
+## hex の地形id（未設定は既定地形 "plain"）。
+func terrain_at(hex: Vector2i) -> String:
+	return _terrain.get(hex, Terrain.DEFAULT_ID)
 
 ## hex に地形を設定する。
-func set_terrain(hex: Vector2i, terrain_id: int) -> void:
+func set_terrain(hex: Vector2i, terrain_id: String) -> void:
 	_terrain[hex] = terrain_id
 
 ## 移動コスト表を設定する（move_type -> {地形名: コスト}）。
@@ -67,7 +67,7 @@ func reachable(unit_id: int) -> Array[Vector2i]:
 func _enter_cost(hex: Vector2i, u: Unit) -> int:
 	if not in_field(hex) or unit_at(hex) != null:
 		return Movement.IMPASSABLE
-	return Movement.cost(_movement, u.move_type, Terrain.name_of(terrain_at(hex)))
+	return Movement.cost(_movement, u.move_type, terrain_at(hex))
 
 ## hex が u から見た敵ZOC内か（敵ユニットに隣接しているか）。ZOCに入ると移動が止まる。
 func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:

@@ -32,7 +32,7 @@ func test_reachable_terrain_cost_shrinks_range() -> void:
 	u.move_type = "ground"
 	s.add_unit(u)
 	var plateau_hex := Hex.neighbor(ap, 0)
-	s.set_terrain(plateau_hex, Terrain.PLATEAU)
+	s.set_terrain(plateau_hex, "plateau")
 	var reach := s.reachable(1)
 	assert_false(reach.has(plateau_hex), "move1ではコスト2の台地に届かない")
 	assert_true(reach.has(Hex.neighbor(ap, 2)), "コスト1の平地隣には届く")
@@ -45,7 +45,7 @@ func test_reachable_impassable_blocks() -> void:
 	u.move_type = "ground"
 	s.add_unit(u)
 	var wall := Hex.neighbor(ap, 0)
-	s.set_terrain(wall, Terrain.PLATEAU)  # 進入不可
+	s.set_terrain(wall, "plateau")  # 進入不可
 	var reach := s.reachable(1)
 	assert_false(reach.has(wall), "進入不可の台地には入れない")
 
@@ -99,6 +99,6 @@ func test_flight_ignores_climb() -> void:
 	u.move_type = "flight"
 	s.add_unit(u)
 	var plateau_hex := Hex.neighbor(ap, 0)
-	s.set_terrain(plateau_hex, Terrain.PLATEAU)
+	s.set_terrain(plateau_hex, "plateau")
 	var reach := s.reachable(1)
 	assert_true(reach.has(plateau_hex), "飛行は台地コスト1なので隣の台地に届く")
