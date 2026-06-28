@@ -1,8 +1,8 @@
 id,atk_ground,atk_air,defense,move,move_type,range,move_after_attack,can_capture,max_troops,category,memo
 種別ID,対地,対空,防御,移動,移動タイプ,射程,攻撃後移動,占領可,満員兵数,兵種,備考
-cleric,10,10,4,3,ground,1,false,true,8,占領兵,参考：ムンクス
-priest,40,10,10,2,ground,1,false,true,8,占領兵,参考：ダーベック
-monk,10,10,8,9,ground,1,false,true,8,占領兵,参考：ドレイパー
+cleric,15,10,20,3,ground,1,false,true,8,占領兵,参考：ムンクス
+priest,40,10,20,2,ground,1,false,true,8,占領兵,参考：ダーベック
+monk,10,10,10,9,ground,1,false,true,8,占領兵,参考：ドレイパー
 bishop,10,10,40,3,ground,1,false,true,8,占領兵,
 paladin,50,50,40,5,ground,1,false,true,8,占領兵,
 hunter,30,65,30,6,ground,1,false,false,8,弓兵,参考：シーカー
