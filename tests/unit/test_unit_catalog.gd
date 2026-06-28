@@ -25,5 +25,4 @@ func test_load_standard_roster() -> void:
 	assert_eq(c.atk_ground, 10)
 	assert_eq(c.defense, 4)
 	assert_true(c.can_capture)
-	assert_eq(c.display_name(0), "クレリック")
-	assert_eq(c.display_name(1), "ゴブリン", "敵名はミラー")
+	assert_eq(c.max_troops, 8)

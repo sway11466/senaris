@@ -56,6 +56,7 @@ func test_build_resolves_type_from_catalog() -> void:
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
+	assert_eq(u.type_id, "cleric", "type_id を保持")
 	assert_eq(u.unit_attack, 10, "atk_ground → unit_attack")
 	assert_eq(u.unit_defense, 4, "defense → unit_defense")
 	assert_eq(u.troops, 8, "max_troops → troops")

@@ -21,9 +21,12 @@ const TERRAIN_TEX := {
 	Terrain.PLATEAU: "res://assets/terrain/plateau.png",
 }
 
+const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
+
 var state: BattleState
 var controller: MatchController
-var _terrain_tex := {}  # terrain_id -> Texture2D
+var _terrain_tex := {}    # terrain_id -> Texture2D
+var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }（名前プレースホルダ用）
 
 var _hover := Vector2i(-9999, -9999)
 var _selected_id := -1
@@ -31,9 +34,10 @@ var _reachable := {}  # Vector2i -> true
 var _targets := {}    # Vector2i -> target_id（攻撃可能な敵の位置）
 var _locked := false  # 決着・AI手番中は入力を受けない
 
-func bind(p_state: BattleState, p_controller: MatchController) -> void:
+func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}) -> void:
 	state = p_state
 	controller = p_controller
+	_skin_catalog = p_skin_catalog
 	for id in TERRAIN_TEX:
 		_terrain_tex[id] = load(TERRAIN_TEX[id])
 	controller.unit_moved.connect(_on_unit_moved)
@@ -154,11 +158,24 @@ func _draw_unit(u: Unit) -> void:
 	if Surround.factor(state, u) < 1.0:  # 包囲中（攻防に係数<1.0）を明示
 		draw_arc(center, hex_size * 0.86, 0.0, TAU, 24, COLOR_SURROUNDED, 2.5)
 	draw_circle(center, hex_size * 0.55, col)
+	_draw_unit_label(u, center)
 	if u.id == _selected_id:
 		draw_arc(center, hex_size * 0.70, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)
 	if _targets.has(u.pos):
 		draw_arc(center, hex_size * 0.72, 0.0, TAU, 32, COLOR_ATTACK_RING, 3.0)
 	_draw_troops_bar(u, center)
+
+## ユニットのマップ表示プレースホルダ（スキン名の先頭2文字）。画像が来たら差し替え予定。
+func _draw_unit_label(u: Unit, center: Vector2) -> void:
+	var s: UnitSkin = SkinCatalog.skin(_skin_catalog, u.type_id, u.team)
+	var label := s.map_label() if s != null else u.type_id.substr(0, 2)
+	if label.is_empty():
+		return
+	var font := ThemeDB.fallback_font
+	var fs := int(hex_size * 0.5)
+	var w := hex_size * 1.6
+	var pos := center + Vector2(-w * 0.5, fs * 0.36)  # ざっくり中央寄せ
+	draw_string(font, pos, label, HORIZONTAL_ALIGNMENT_CENTER, w, fs, COLOR_UNIT_LABEL)
 
 func _draw_troops_bar(u: Unit, center: Vector2) -> void:
 	# 兵数バー（残存兵数 / 満員）。

@@ -1,0 +1,25 @@
+{
+  "theme": "standard",
+  "skins": {
+    "cleric": {
+      "ally":  [ { "name": "クレリック", "description": "", "images": {} } ],
+      "enemy": [ { "name": "ゴブリン",   "description": "", "images": {} } ]
+    },
+    "priest": {
+      "ally":  [ { "name": "プリースト",   "description": "", "images": {} } ],
+      "enemy": [ { "name": "ホブゴブリン", "description": "", "images": {} } ]
+    },
+    "monk": {
+      "ally":  [ { "name": "モンク",   "description": "", "images": {} } ],
+      "enemy": [ { "name": "コボルト", "description": "", "images": {} } ]
+    },
+    "bishop": {
+      "ally":  [ { "name": "ビショップ", "description": "", "images": {} } ],
+      "enemy": [ { "name": "ノーム",     "description": "", "images": {} } ]
+    },
+    "paladin": {
+      "ally":  [ { "name": "パラディン",     "description": "", "images": {} } ],
+      "enemy": [ { "name": "ゴブリンロード", "description": "", "images": {} } ]
+    }
+  }
+}

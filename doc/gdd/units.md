@@ -81,14 +81,19 @@
 
 ## データ構成（実装）
 
-- **ユニット種別 ＝ `UnitType`**（`data/schema/unit_type.gd`）。ステータス1セット＋テーマ別名。
-- **ロスター表 ＝ `data/units/standard.json`**（テーマ0／標準）。`UnitCatalog`（`data/unit_catalog.gd`）が `id → UnitType` に組み立てる。
-- **名前は陣営ごとの「エイリアス配列」**: `names = { "ally": [名前...], "enemy": [名前...] }`（先頭が既定・同性能の別名）。同ステータスで別名を並べておくだけで、**どのエイリアスを使うかは冒険譚側が決める**（ユニットデータは冒険譚/テーマ名を持たない＝責務分離）。引きは `display_name(team, index)`（範囲外は先頭→id でフォールバック）。冒険譚→エイリアスの割当規約は将来設計。
-- **ステージは種別を名前参照**: `{ "type": "cleric", "team": 0, "col": 3, "row": 3 }`（`level`/`troops` 等は任意で上書き）。`StageLoader` が `UnitCatalog` 経由で解決。
-- **箱だけ先に用意（実装は将来）**: `atk_air`（対空）・`attack_range`（>1=間接）・`move_type`（地上/空中…）。現状の戦闘は `atk_ground`＝攻撃・`defense`＝防御のみ使う。
-- 現状の実装ロスターは歩兵5種（cleric/priest/monk/bishop/paladin）。残りは順次。
+**性能と見た目を分離する**（アーキの「ステータスは原型に1回、名前・スプライトは上書きレイヤー」）。
+
+- **性能 ＝ `UnitType`**（`data/schema/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
+  - ロスター表 `data/units/standard.json`（テーマ0）。`UnitCatalog`（`data/unit_catalog.gd`）が `id → UnitType`。
+  - 箱だけ先に用意（実装は将来）: `atk_air`・`attack_range`(>1=間接)・`move_type`。現状の戦闘は `atk_ground`＝攻撃・`defense`＝防御のみ使う。
+- **見た目＋識別 ＝ `UnitSkin`**（`data/schema/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
+  - スキン表 `data/skins/standard.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`data/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。
+  - **同性能・別名**（ゴブリン↔守護像）は enemy 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚側が決める**（ユニットデータは冒険譚/テーマ名を持たない＝責務分離）。引きは `SkinCatalog.skin(catalog, type_id, team, index)`。
+  - 画像スロットと未用意時のプレースホルダは [../art/overview.md](../art/overview.md) 参照。
+- **ステージは種別を名前参照**: `{ "type": "cleric", "team": 0, "col": 3, "row": 3 }`（`level`/`troops` 等は任意で上書き）。`StageLoader` が `UnitCatalog` 経由で解決し、`Unit.type_id` に保持（描画でスキンを引く／将来の占領＝寝返りに使う）。
+- 現状の実装ロスター/スキンは歩兵5種（cleric/priest/monk/bishop/paladin）。残りは順次。
 - 【将来】移動タイプ＝地形移動コスト・地形適性（例: 森を低コストで抜ける）はマップの地形テーブルとセットで別途設計。
-- 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン（[../tech/architecture.md](../tech/architecture.md)）。当面は JSON ロスターで回す。
+- 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン（[../tech/architecture.md](../tech/architecture.md)）。当面は JSON で回す。
 
 ## 未決事項（このドキュメントの範囲）
 

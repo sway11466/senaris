@@ -15,10 +15,11 @@ var max_troops: int    ## 満員時の兵数
 var unit_attack: int   ## ユニット攻撃力（兵1体あたり。原典 BuA 相当）
 var unit_defense: int  ## ユニット防御力（兵1体あたり。原典 BuD 相当）
 var level: int         ## 経験値＝レベル（1〜MAX_LEVEL）。初期Lv1＝補正なし。詳細 → combat.md
+var type_id: String    ## 種別ID（UnitType/スキンの参照キー。空＝未指定）。描画・占領で使う
 
 func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 		p_troops: int = 8, p_unit_attack: int = 10, p_unit_defense: int = 10,
-		p_level: int = 1) -> void:
+		p_level: int = 1, p_type_id: String = "") -> void:
 	id = p_id
 	team = p_team
 	pos = p_pos
@@ -28,6 +29,7 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 	unit_attack = p_unit_attack
 	unit_defense = p_unit_defense
 	level = clampi(p_level, 1, MAX_LEVEL)
+	type_id = p_type_id
 
 ## 経験値（＝レベル）を加算。1〜MAX_LEVEL にクランプ。詳細 → combat.md
 func add_experience(n: int) -> void:

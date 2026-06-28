@@ -17,7 +17,8 @@ func _ready() -> void:
 	controller.ai_brain = NearestAttackerBrain.new()
 	add_child(controller)
 
-	$HexBoard.bind(state, controller)
+	# スキン表（名前・画像）を渡す。画像未用意のうちは名前プレースホルダで描く。
+	$HexBoard.bind(state, controller, SkinCatalog.load_standard())
 
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
