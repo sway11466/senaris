@@ -10,7 +10,6 @@ class_name UnitType
 ## 現状の戦闘は対地(atk_ground)＝攻撃、defense＝防御のみ使う。
 
 var id: String           ## 種別ID（ステージ/カタログ/スキンの参照キー）
-var role: String         ## 種類（歩兵/戦車/航空…）
 var atk_ground: int      ## 対地攻撃（— は 0）
 var atk_air: int         ## 対空攻撃（— は 0）。※将来
 var defense: int         ## 防御
@@ -25,7 +24,6 @@ var max_troops: int      ## 満員兵数
 static func from_dict(d: Dictionary) -> UnitType:
 	var t := UnitType.new()
 	t.id = String(d.get("id", ""))
-	t.role = String(d.get("role", ""))
 	t.atk_ground = int(d.get("atk_ground", 0))
 	t.atk_air = int(d.get("atk_air", 0))
 	t.defense = int(d.get("defense", 0))

@@ -12,8 +12,7 @@
 			"move": 3,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 1,
-			"role": "infantry"
+			"range": 1
 		},
 		{
 			"atk_air": 10,
@@ -27,8 +26,7 @@
 			"move": 2,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 1,
-			"role": "infantry"
+			"range": 1
 		},
 		{
 			"atk_air": 10,
@@ -42,8 +40,7 @@
 			"move": 9,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 1,
-			"role": "infantry"
+			"range": 1
 		},
 		{
 			"atk_air": 10,
@@ -57,8 +54,7 @@
 			"move": 3,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 1,
-			"role": "infantry"
+			"range": 1
 		},
 		{
 			"atk_air": 50,
@@ -72,8 +68,7 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 1,
-			"role": "infantry"
+			"range": 1
 		},
 		{
 			"atk_air": 20,
@@ -87,8 +82,7 @@
 			"move": 10,
 			"move_after_attack": false,
 			"move_type": "flight",
-			"range": 1,
-			"role": "aerial"
+			"range": 1
 		},
 		{
 			"atk_air": 30,
@@ -102,8 +96,7 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 2,
-			"role": "ranged"
+			"range": 2
 		},
 		{
 			"atk_air": 10,
@@ -117,8 +110,7 @@
 			"move": 8,
 			"move_after_attack": true,
 			"move_type": "light_foot",
-			"range": 1,
-			"role": "buggy"
+			"range": 1
 		},
 		{
 			"atk_air": 0,
@@ -132,8 +124,7 @@
 			"move": 6,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 1,
-			"role": "armor"
+			"range": 1
 		},
 		{
 			"atk_air": 70,
@@ -147,8 +138,7 @@
 			"move": 11,
 			"move_after_attack": false,
 			"move_type": "flight",
-			"range": 1,
-			"role": "aerial"
+			"range": 1
 		}
 	]
 }

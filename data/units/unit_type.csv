@@ -1,13 +1,13 @@
-id,role,atk_ground,atk_air,defense,move,move_type,range,move_after_attack,can_capture,max_troops,category,memo
-種別ID,種類,対地,対空,防御,移動,移動タイプ,射程,攻撃後移動,占領可,満員兵数,兵種,備考
-cleric,infantry,10,10,4,3,ground,1,false,true,8,占領兵,参考：ムンクス
-priest,infantry,40,10,10,2,ground,1,false,true,8,占領兵,参考：ダーベック
-monk,infantry,10,10,8,9,ground,1,false,true,8,占領兵,参考：ドレイパー
-bishop,infantry,10,10,40,3,ground,1,false,true,8,占領兵,
-paladin,infantry,50,50,40,5,ground,1,false,true,8,占領兵,
-birdman,aerial,70,20,30,10,flight,1,false,false,8,飛行兵,参考：ジャビィ
-archer,ranged,30,30,30,5,ground,2,false,false,8,弓兵,参考：新規（アーチャー）
-thief,buggy,70,10,20,8,light_foot,1,true,false,8,軽車両,参考：ラビット/シーフ
-fighter,armor,50,0,40,6,ground,1,false,false,8,戦車,主役の近接前衛（対空なし＝飛行を攻撃できない）。units.md 対応表に準拠
-dragon,aerial,70,70,50,11,flight,1,false,false,8,飛行兵,ハンター枠の万能強ユニット（敵専用・占領不可）。units.md 対応表に準拠
-,,,,,,,,,,,,
+id,atk_ground,atk_air,defense,move,move_type,range,move_after_attack,can_capture,max_troops,category,memo
+種別ID,対地,対空,防御,移動,移動タイプ,射程,攻撃後移動,占領可,満員兵数,兵種,備考
+cleric,10,10,4,3,ground,1,false,true,8,占領兵,参考：ムンクス
+priest,40,10,10,2,ground,1,false,true,8,占領兵,参考：ダーベック
+monk,10,10,8,9,ground,1,false,true,8,占領兵,参考：ドレイパー
+bishop,10,10,40,3,ground,1,false,true,8,占領兵,
+paladin,50,50,40,5,ground,1,false,true,8,占領兵,
+birdman,70,20,30,10,flight,1,false,false,8,飛行兵,参考：ジャビィ
+archer,30,30,30,5,ground,2,false,false,8,弓兵,参考：新規（アーチャー）
+thief,70,10,20,8,light_foot,1,true,false,8,軽車両,参考：ラビット/シーフ
+fighter,50,0,40,6,ground,1,false,false,8,戦車,主役の近接前衛（対空なし＝飛行を攻撃できない）。units.md 対応表に準拠
+dragon,70,70,50,11,flight,1,false,false,8,飛行兵,ハンター枠の万能強ユニット（敵専用・占領不可）。units.md 対応表に準拠
+,,,,,,,,,,,

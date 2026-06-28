@@ -97,4 +97,4 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int) -> Unit:
 	unit.move_after_attack = bool(u.get("move_after_attack", t.move_after_attack if t != null else false))
 	unit.can_capture = bool(u.get("can_capture", t.can_capture if t != null else false))
 	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
-	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う（role には依存しない）
+	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う

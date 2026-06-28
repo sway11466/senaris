@@ -3,13 +3,12 @@ extends GutTest
 
 func test_from_dict_fields() -> void:
 	var t := UnitType.from_dict({
-		"id": "cleric", "role": "infantry",
+		"id": "cleric",
 		"atk_ground": 10, "atk_air": 10, "defense": 4,
 		"move": 3, "move_type": "ground", "range": 1,
 		"can_capture": true, "max_troops": 8,
 	})
 	assert_eq(t.id, "cleric")
-	assert_eq(t.role, "infantry")
 	assert_eq(t.atk_ground, 10)
 	assert_eq(t.atk_air, 10)
 	assert_eq(t.defense, 4)

@@ -63,7 +63,7 @@ func test_ground_with_antiair_retaliates_against_flyer() -> void:
 func test_loader_sets_aerial_and_atk_air_from_type() -> void:
 	var catalog := {
 		"dragon": UnitType.from_dict({
-			"id": "dragon", "role": "aerial", "atk_ground": 90, "atk_air": 60,
+			"id": "dragon", "atk_ground": 90, "atk_air": 60,
 			"defense": 70, "move": 6, "move_type": "flight", "max_troops": 8,
 		}),
 	}
