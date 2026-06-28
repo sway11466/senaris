@@ -1,0 +1,23 @@
+{
+  "name": "tutorial-st1",
+  "cols": 10,
+  "rows": 8,
+  "terrain": [
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
+  ],
+  "units": [
+    { "type": "fighter", "team": 0, "col": 1, "row": 3 },
+    { "type": "novice", "team": 0, "col": 1, "row": 1 },
+    { "type": "novice", "team": 0, "col": 1, "row": 5 },
+    { "type": "cleric", "team": 1, "col": 8, "row": 1 },
+    { "type": "cleric", "team": 1, "col": 8, "row": 3 },
+    { "type": "cleric", "team": 1, "col": 8, "row": 5 }
+  ]
+}

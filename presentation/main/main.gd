@@ -1,33 +1,42 @@
 extends Node2D
 ## Presentation 層のエントリポイント。
-## 戦闘状態(BattleState)と進行役(MatchController)を組み立て、盤(HexBoard)に渡す。
-## 配置などはデモ用の仮。将来はステージデータ(data/)から構築する。
+## ステージ(data/stages/*.json)を読み込み、進行役(MatchController)と盤(HexBoard)を組む。
+## load_stage(path) が本体＝将来は冒険譚の進行管理がこれを駆動する（再呼び出しで切替可）。
+## ステージ選択UIは presentation/dev/（デモ用・後で破棄可）。
+
+var _skins := {}
+var _controller: MatchController = null
 
 func _ready() -> void:
 	print("Senaris booted.")
-
-	# ステージデータ(data/stages/*.json)から盤面を構築。配置・地形はデータ側で編集する。
-	var state := StageLoader.load_file("res://data/stages/demo/demo.json")
-
-	var controller := MatchController.new()
-	controller.name = "MatchController"
-	controller.setup(state)
-	# 敵軍(team 1)を最小AIに任せる。ステージ仕様が決まれば brain を差し替える。
-	controller.ai_team = 1
-	controller.ai_brain = NearestAttackerBrain.new()
-	add_child(controller)
-
-	# スキン表（名前・画像）を渡す。画像未用意のうちは名前プレースホルダで描く。
-	var skins := SkinCatalog.load_standard()
-	$HexBoard.bind(state, controller, skins)
-
-	# 右側の情報パネルに選択ユニットを映す。攻撃時はその領域に戦闘結果を出す。
-	$InfoPanel.bind(state, skins)
+	_skins = SkinCatalog.load_standard()
+	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
-	controller.combat_resolved.connect($InfoPanel.show_combat)
+	load_stage("res://data/stages/demo/demo.json")
+	_install_dev_stage_selector()  # DEV: デモ用。製品化時はこの行と presentation/dev/ を削除
 
-	controller.turn_changed.connect(_on_turn_changed)
-	controller.battle_finished.connect(_on_battle_finished)
+## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
+func load_stage(path: String) -> void:
+	var state := StageLoader.load_file(path)
+	if state == null:
+		push_error("main: ステージを読めない: %s" % path)
+		return
+	if _controller != null:
+		_controller.free()  # 旧マッチを破棄（旧 controller のシグナル接続も消える）
+		_controller = null
+	_controller = MatchController.new()
+	_controller.name = "MatchController"
+	_controller.setup(state)
+	# 敵軍(team 1)を最小AIに任せる。ステージ仕様が決まれば brain を差し替える。
+	_controller.ai_team = 1
+	_controller.ai_brain = NearestAttackerBrain.new()
+	add_child(_controller)
+	$HexBoard.bind(state, _controller, _skins)
+	$InfoPanel.bind(state, _skins)
+	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
+	_controller.combat_resolved.connect($InfoPanel.show_combat)
+	_controller.turn_changed.connect(_on_turn_changed)
+	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
@@ -45,3 +54,29 @@ func _on_battle_finished(outcome: int) -> void:
 		BattleState.PLAYER_LOSS:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
+
+# --- DEV: デモ用ステージセレクタ（presentation/dev/）。製品ではこの関数ごと削除する。---
+func _install_dev_stage_selector() -> void:
+	var selector = preload("res://presentation/dev/stage_selector.gd").new()
+	add_child(selector)
+	selector.setup(_scan_stages())
+	selector.stage_selected.connect(load_stage)
+
+## data/stages/<冒険譚>/<ステージ>.json を走査して [{label, path}] を返す（デモ用）。
+func _scan_stages() -> Array:
+	var out: Array = []
+	var root := "res://data/stages"
+	var dir := DirAccess.open(root)
+	if dir == null:
+		return out
+	for campaign in dir.get_directories():
+		var sub := DirAccess.open("%s/%s" % [root, campaign])
+		if sub == null:
+			continue
+		for f in sub.get_files():
+			if f.ends_with(".json"):
+				out.append({
+					"label": "%s/%s" % [campaign, f.get_basename()],
+					"path": "%s/%s/%s" % [root, campaign, f],
+				})
+	return out

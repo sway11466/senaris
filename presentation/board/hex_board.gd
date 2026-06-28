@@ -41,14 +41,26 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	for id in Terrain.all_ids():
-		_terrain_tex[id] = load(Terrain.image_path(id))
+	if _terrain_tex.is_empty():  # タイル画像は1回だけ読む
+		for id in Terrain.all_ids():
+			_terrain_tex[id] = load(Terrain.image_path(id))
+	_reset_interaction()  # ステージ再ロードに備え、選択・出撃・ロック状態を初期化
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
 	controller.unit_deployed.connect(_on_unit_deployed)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
 	queue_redraw()
+
+## 選択・出撃モード・ロック・ホバーを初期状態へ（ステージ再ロード時に呼ぶ）。
+func _reset_interaction() -> void:
+	_selected_id = -1
+	_reachable.clear()
+	_targets.clear()
+	_deploy_base = INVALID_HEX
+	_deploy_cells.clear()
+	_locked = false
+	_hover = Vector2i(-9999, -9999)
 
 func _process(_delta: float) -> void:
 	if state == null:
