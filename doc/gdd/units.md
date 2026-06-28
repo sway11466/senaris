@@ -98,7 +98,7 @@
 
 ### 5. 現状と将来
 
-- 現状の実装ロスター/スキンは9種（cleric/priest/monk/bishop/paladin/archer/thief/birdman ＋ 敵専用 dragon）。残りは順次。
+- 現状の実装ロスター/スキンは10種（cleric/priest/monk/bishop/paladin/archer/thief/birdman/fighter ＋ 敵専用 dragon）。残りは順次。
 - `attack_range`(>1=間接)・`move_type`・`atk_air`(対地/対空) は実装済み。攻撃側は相手が飛行なら `atk_air`、地上なら `atk_ground` を使い、`atk_air=0` の駒は飛行を攻撃・反撃できない（→ [combat.md](combat.md)）。防御は単一値（`defense`）。
 - 【将来】移動タイプ＝地形移動コスト・地形適性（例: 森を低コストで抜ける）はマップの地形テーブルとセットで別途設計。
 - 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン（[../tech/architecture.md](../tech/architecture.md)）。当面は JSON で回す。
@@ -107,7 +107,7 @@
 
 ## 未決事項（このドキュメントの範囲）
 
-- [ ] ロスター全種の書き起こし（現状は9種）と、テーマ別名の拡充
+- [ ] ロスター全種の書き起こし（現状は10種）と、テーマ別名の拡充
 
 > 移動タイプ・地形コストの残作業は [movement.md](movement.md) の「未決・残作業」、役割の対応付けは上の対応表（決定済み）を参照。
 

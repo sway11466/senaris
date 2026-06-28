@@ -74,6 +74,22 @@
 				}
 			]
 		},
+		"fighter": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ファイター"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "オーク"
+				}
+			]
+		},
 		"monk": {
 			"ally": [
 				{

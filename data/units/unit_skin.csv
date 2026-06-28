@@ -16,4 +16,6 @@ thief,ally,シーフ
 thief,enemy,ヴァンパイア
 birdman,ally,バードマン
 birdman,enemy,ハーピー
+fighter,ally,ファイター
+fighter,enemy,オーク
 dragon,enemy,ドラゴン

@@ -121,6 +121,21 @@
 			"role": "buggy"
 		},
 		{
+			"atk_air": 0,
+			"atk_ground": 50,
+			"can_capture": false,
+			"category": "戦車",
+			"defense": 40,
+			"id": "fighter",
+			"max_troops": 8,
+			"memo": "主役の近接前衛（対空なし＝飛行を攻撃できない）。units.md 対応表に準拠",
+			"move": 6,
+			"move_after_attack": false,
+			"move_type": "ground",
+			"range": 1,
+			"role": "armor"
+		},
+		{
 			"atk_air": 70,
 			"atk_ground": 70,
 			"can_capture": false,
