@@ -1,5 +1,21 @@
 {
 	"movement_types": {
+		"fixed": {
+			"bush": 1,
+			"cliff": 1,
+			"corridor": 1,
+			"fence": "x",
+			"forest": 1,
+			"mountain": 1,
+			"plain": 1,
+			"plateau": 1,
+			"rampart": 1,
+			"river": "x",
+			"road": 1,
+			"sea": "x",
+			"trap": "x",
+			"wall": "x"
+		},
 		"flight": {
 			"bush": 1,
 			"cliff": 1,
@@ -16,6 +32,22 @@
 			"trap": 1,
 			"wall": "x"
 		},
+		"forest_walk": {
+			"bush": 1,
+			"cliff": "x",
+			"corridor": 1,
+			"fence": 3,
+			"forest": 1,
+			"mountain": 4,
+			"plain": 1,
+			"plateau": 1,
+			"rampart": "x",
+			"river": 3,
+			"road": 1,
+			"sea": "x",
+			"trap": 3,
+			"wall": "x"
+		},
 		"ground": {
 			"bush": 2,
 			"cliff": "x",
@@ -30,6 +62,22 @@
 			"road": 1,
 			"sea": "x",
 			"trap": 3,
+			"wall": "x"
+		},
+		"light_foot": {
+			"bush": 1,
+			"cliff": 4,
+			"corridor": 1,
+			"fence": 1,
+			"forest": 1,
+			"mountain": 2,
+			"plain": 1,
+			"plateau": 1,
+			"rampart": 4,
+			"river": 2,
+			"road": 1,
+			"sea": "x",
+			"trap": 1,
 			"wall": "x"
 		}
 	}
