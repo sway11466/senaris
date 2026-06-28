@@ -6,7 +6,7 @@ func _state() -> BattleState:
 
 func _flyer(id: int, team: int, pos: Vector2i, atk := 10, dfn := 10) -> Unit:
 	var u := Unit.new(id, team, pos, 3, 8, atk, dfn)
-	u.is_aerial = true
+	u.move_type = "flight"  # 飛行判定は move_type で行う
 	u.atk_air = atk
 	return u
 
@@ -72,6 +72,6 @@ func test_loader_sets_aerial_and_atk_air_from_type() -> void:
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
-	assert_true(u.is_aerial, "role=aerial → is_aerial")
+	assert_true(u.is_aerial(), "move_type=flight → is_aerial()")
 	assert_eq(u.atk_air, 60, "atk_air を種別から載せる")
 	assert_eq(u.unit_attack, 90, "対地は atk_ground")

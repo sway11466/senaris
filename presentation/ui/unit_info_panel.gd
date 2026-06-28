@@ -60,7 +60,7 @@ func _format(u: Unit) -> String:
 	lines.append("移動  %d (%s)   射程  %d" % [u.move, u.move_type, u.attack_range])
 
 	var traits: Array[String] = []
-	if u.is_aerial:
+	if u.is_aerial():
 		traits.append("飛行")
 	if u.can_capture:
 		traits.append("占領可")
