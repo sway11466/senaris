@@ -91,7 +91,9 @@
 - **配置方針**: ユニットの型・データ・ローダーは `data/units/` に同居（機能フォルダ）。型とデータをセットで扱う。
 - **正本はCSV（表計算で管理）**: フラット/グリッドな表は `data/import/*.csv` が正本（人間が表計算/VSCodeで編集）。`data/import/convert.gd`（headless）が **CSV → コード用JSON** を生成。
   - `data/import/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
-  - 表計算向き＝**ユニット性能・移動タイプ・エイリアス**の3表（いずれも1行=1レコードのフラット表）。ネストするスキン本体（画像等）や ステージ(json) は手書きのまま。
+  - `data/import/aliases.csv`（1行=1別名: type_id, side, name）→ `data/units/skins.json`。画像・説明は当面空で、必要時にCSVへ列追加。
+  - （将来）`data/import/movement.csv` → 移動タイプ×地形コスト表。
+  - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
   - 実行: `godot --headless --script res://data/import/convert.gd`
   - **同性能・別名**（ゴブリン↔守護像）は enemy 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚側が決める**（ユニットデータは冒険譚/テーマ名を持たない＝責務分離）。引きは `SkinCatalog.skin(catalog, type_id, team, index)`。
   - 画像スロットと未用意時のプレースホルダは [../art/overview.md](../art/overview.md) 参照。

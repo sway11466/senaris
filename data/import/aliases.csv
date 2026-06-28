@@ -1,0 +1,11 @@
+type_id,side,name
+cleric,ally,クレリック
+cleric,enemy,ゴブリン
+priest,ally,プリースト
+priest,enemy,ホブゴブリン
+monk,ally,モンク
+monk,enemy,コボルト
+bishop,ally,ビショップ
+bishop,enemy,ノーム
+paladin,ally,パラディン
+paladin,enemy,ゴブリンロード

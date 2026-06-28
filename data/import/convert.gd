@@ -7,13 +7,28 @@ extends SceneTree
 
 func _initialize() -> void:
 	_convert_unit_type()
-	# 今後: _convert_movement() / _convert_aliases() を足す
+	_convert_aliases()
+	# 今後: _convert_movement() を足す
 	quit()
 
 func _convert_unit_type() -> void:
 	var rows := _read_csv("res://data/import/unit_type.csv")
 	_write_json("res://data/units/unit_type.json", { "types": rows })
 	print("unit_type.json: %d types" % rows.size())
+
+## エイリアス表（1行=1別名: type_id, side, name）→ スキン表 skins.json。
+## 同じ (type_id, side) の行は出現順にエイリアス配列へ。description/images は空（後で拡張）。
+func _convert_aliases() -> void:
+	var rows := _read_csv("res://data/import/aliases.csv")
+	var skins := {}
+	for r in rows:
+		var tid := String(r["type_id"])
+		var side := String(r["side"])
+		if not skins.has(tid):
+			skins[tid] = { "ally": [], "enemy": [] }
+		skins[tid][side].append({ "name": String(r["name"]), "description": "", "images": {} })
+	_write_json("res://data/units/skins.json", { "skins": skins })
+	print("skins.json: %d types" % skins.size())
 
 ## CSV を読み、ヘッダをキーにした辞書の配列を返す。値は型推論（int/bool/string）。
 func _read_csv(path: String) -> Array:

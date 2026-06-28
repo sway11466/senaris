@@ -1,25 +1,84 @@
 {
-  "theme": "standard",
-  "skins": {
-    "cleric": {
-      "ally":  [ { "name": "クレリック", "description": "", "images": {} } ],
-      "enemy": [ { "name": "ゴブリン",   "description": "", "images": {} } ]
-    },
-    "priest": {
-      "ally":  [ { "name": "プリースト",   "description": "", "images": {} } ],
-      "enemy": [ { "name": "ホブゴブリン", "description": "", "images": {} } ]
-    },
-    "monk": {
-      "ally":  [ { "name": "モンク",   "description": "", "images": {} } ],
-      "enemy": [ { "name": "コボルト", "description": "", "images": {} } ]
-    },
-    "bishop": {
-      "ally":  [ { "name": "ビショップ", "description": "", "images": {} } ],
-      "enemy": [ { "name": "ノーム",     "description": "", "images": {} } ]
-    },
-    "paladin": {
-      "ally":  [ { "name": "パラディン",     "description": "", "images": {} } ],
-      "enemy": [ { "name": "ゴブリンロード", "description": "", "images": {} } ]
-    }
-  }
+	"skins": {
+		"bishop": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ビショップ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ノーム"
+				}
+			]
+		},
+		"cleric": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "クレリック"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ゴブリン"
+				}
+			]
+		},
+		"monk": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "モンク"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "コボルト"
+				}
+			]
+		},
+		"paladin": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "パラディン"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ゴブリンロード"
+				}
+			]
+		},
+		"priest": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "プリースト"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ホブゴブリン"
+				}
+			]
+		}
+	}
 }
