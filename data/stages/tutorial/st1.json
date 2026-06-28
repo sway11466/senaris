@@ -3,14 +3,14 @@
   "cols": 10,
   "rows": 8,
   "terrain": [
-    "M.FF..FF.M",
-    "F........F",
-    "..F....F..",
+    "MMMMMMMMMM",
+    "M......FFM",
+    "M.....FFFM",
+    "M.....FFFM",
+    "M.....FFFM",
+    "M......FFM",
     "M........M",
-    "..F....F..",
-    "F........F",
-    ".M......M.",
-    "M.FF..FF.M"
+    "MMMMMMMMMM"
   ],
   "units": [
     { "type": "fighter", "team": 0, "col": 1, "row": 3 },
