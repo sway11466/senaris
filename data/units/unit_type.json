@@ -116,7 +116,7 @@
 			"memo": "参考：ラビット/シーフ",
 			"move": 8,
 			"move_after_attack": true,
-			"move_type": "ground",
+			"move_type": "light_foot",
 			"range": 1,
 			"role": "buggy"
 		}
