@@ -64,6 +64,16 @@
 				}
 			]
 		},
+		"dragon": {
+			"ally": [],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ドラゴン"
+				}
+			]
+		},
 		"monk": {
 			"ally": [
 				{

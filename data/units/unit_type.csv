@@ -8,4 +8,5 @@ paladin,infantry,50,50,40,5,ground,1,false,true,8,占領兵,
 birdman,aerial,70,20,30,10,flight,1,false,false,8,飛行兵,参考：ジャビィ
 archer,ranged,30,30,30,5,ground,2,false,false,8,弓兵,参考：新規（アーチャー）
 thief,buggy,70,10,20,8,light_foot,1,true,false,8,軽車両,参考：ラビット/シーフ
+dragon,aerial,70,70,50,11,flight,1,false,false,8,飛行兵,ハンター枠の万能強ユニット（敵専用・占領不可）。units.md 対応表に準拠
 ,,,,,,,,,,,,

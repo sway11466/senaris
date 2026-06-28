@@ -29,7 +29,8 @@ static func experience_factor(u: Unit) -> float:
 ## u が enemy を攻撃するときの実効攻撃力。地形(攻)・経験は常に乗る。
 ## melee=true のときだけ 包囲（乗算）と 支援(攻)（加算）が乗る。間接攻撃(melee=false)には乗らない。
 static func effective_attack(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
-	var base := float(u.troops) * float(u.unit_attack) * experience_factor(u) * Terrain.attack_factor(state.terrain_at(u.pos))
+	# 相手が飛行なら対空、地上なら対地。対空0の駒が飛行を攻撃すると 0（＝当たらない）。
+	var base := float(u.troops) * float(u.attack_against(enemy)) * experience_factor(u) * Terrain.attack_factor(state.terrain_at(u.pos))
 	if not melee:
 		return base
 	base *= surround_factor(state, u)

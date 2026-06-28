@@ -96,4 +96,6 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int) -> Unit:
 	unit.attack_range = int(u.get("range", t.attack_range if t != null else 1))
 	unit.move_after_attack = bool(u.get("move_after_attack", t.move_after_attack if t != null else false))
 	unit.can_capture = bool(u.get("can_capture", t.can_capture if t != null else false))
+	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
+	unit.is_aerial = bool(u.get("aerial", (t.role == "aerial") if t != null else false))
 	return unit

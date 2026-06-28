@@ -55,10 +55,13 @@ func _format(u: Unit) -> String:
 	lines.append("")
 	lines.append("兵数  %d / %d" % [u.troops, u.max_troops])
 	lines.append("Lv    %d  (経験 ×%.2f)" % [u.level, exp])
-	lines.append("攻撃  %d    防御  %d" % [u.unit_attack, u.unit_defense])
+	var air_str := str(u.atk_air) if u.atk_air > 0 else "—"
+	lines.append("攻撃  対地%d / 対空%s    防御  %d" % [u.unit_attack, air_str, u.unit_defense])
 	lines.append("移動  %d (%s)   射程  %d" % [u.move, u.move_type, u.attack_range])
 
 	var traits: Array[String] = []
+	if u.is_aerial:
+		traits.append("飛行")
 	if u.can_capture:
 		traits.append("占領可")
 	if u.move_after_attack:

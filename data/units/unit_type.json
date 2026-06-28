@@ -119,6 +119,21 @@
 			"move_type": "light_foot",
 			"range": 1,
 			"role": "buggy"
+		},
+		{
+			"atk_air": 70,
+			"atk_ground": 70,
+			"can_capture": false,
+			"category": "飛行兵",
+			"defense": 50,
+			"id": "dragon",
+			"max_troops": 8,
+			"memo": "ハンター枠の万能強ユニット（敵専用・占領不可）。units.md 対応表に準拠",
+			"move": 11,
+			"move_after_attack": false,
+			"move_type": "flight",
+			"range": 1,
+			"role": "aerial"
 		}
 	]
 }

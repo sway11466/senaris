@@ -207,6 +207,8 @@ func can_attack(attacker_id: int, target_id: int) -> bool:
 		return false
 	if t.team == a.team:
 		return false
+	if a.attack_against(t) <= 0:
+		return false  # 対空0の駒は飛行を狙えない（攻撃力が無い相手は対象外）
 	return Hex.distance(a.pos, t.pos) <= a.attack_range  # 近接=1, 間接=射程内
 
 ## attacker が今攻撃できる敵ユニットIDの一覧。
@@ -225,17 +227,20 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	var a := unit_by_id(attacker_id)
 	var t := unit_by_id(target_id)
 	var melee := a.attack_range <= 1  # 近接なら反撃あり、間接なら反撃なし
+	# 反撃は「近接」かつ「防御側が攻撃側を攻撃できる」ときだけ成立。
+	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない（→被反撃なし・経験+0）。
+	var can_retaliate := melee and t.attack_against(a) > 0
 	# 同時攻撃: 戦闘前の兵数で双方の損害を確定させてから適用（決定的）。
 	var dmg_to_target := Combat.casualties(self, a, t, melee)
-	var dmg_to_attacker := Combat.casualties(self, t, a) if melee else 0  # 反撃は近接のみ
+	var dmg_to_attacker := Combat.casualties(self, t, a) if can_retaliate else 0
 	t.troops -= dmg_to_target
 	a.troops -= dmg_to_attacker
 	var target_killed := t.troops <= 0
 	var attacker_killed := a.troops <= 0
 	# 経験値: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
-	# 防御側は反撃が成立したときだけ+1（近接=+1、間接で撃たれた側=反撃なし→+0）。
+	# 防御側は反撃が成立したときだけ+1（間接で撃たれた側／対空なしで飛行に撃たれた側は+0）。
 	a.add_experience(1 + (1 if target_killed else 0))
-	if melee:
+	if can_retaliate:
 		t.add_experience(1 + (1 if attacker_killed else 0))
 	if target_killed:
 		_remove_unit(target_id)
