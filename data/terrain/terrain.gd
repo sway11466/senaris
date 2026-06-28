@@ -31,6 +31,11 @@ static func _ensure() -> void:
 		_defs[id] = t
 		_char_to_id[String(t.get("char", ""))] = id
 
+## 地形の表示名（terrain.csv の name 列。不明idは id をそのまま返す）。
+static func display_name(id: String) -> String:
+	_ensure()
+	return String(_defs.get(id, {}).get("name", id))
+
 ## 地形(攻)係数（不明idは1.0）。
 static func attack_factor(id: String) -> float:
 	_ensure()

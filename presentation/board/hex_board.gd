@@ -4,6 +4,9 @@ class_name HexBoard
 ## Presentation 層: 状態(BattleState)は読むだけ。変更はコマンドを controller に渡し、
 ## 結果はシグナル(unit_moved/unit_attacked/turn_changed)を受けて再描画する。
 
+## 選択中ユニットが変わったとき発行（id<0＝選択解除）。情報パネル等が購読する。
+signal selection_changed(unit_id: int)
+
 @export var hex_size: float = 36.0
 @export var board_origin: Vector2 = Vector2(120, 100)
 
@@ -118,12 +121,16 @@ func _select(id: int) -> void:
 			_reachable[h] = true
 	for tid in controller.attack_targets_for(id):
 		_targets[state.unit_by_id(tid).pos] = tid
+	selection_changed.emit(id)
 	queue_redraw()
 
 func _deselect() -> void:
+	var had := _selected_id
 	_selected_id = -1
 	_reachable.clear()
 	_targets.clear()
+	if had != -1:
+		selection_changed.emit(-1)
 	queue_redraw()
 
 func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i) -> void:

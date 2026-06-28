@@ -18,7 +18,12 @@ func _ready() -> void:
 	add_child(controller)
 
 	# スキン表（名前・画像）を渡す。画像未用意のうちは名前プレースホルダで描く。
-	$HexBoard.bind(state, controller, SkinCatalog.load_standard())
+	var skins := SkinCatalog.load_standard()
+	$HexBoard.bind(state, controller, skins)
+
+	# 右側の情報パネルに選択ユニットを映す。
+	$InfoPanel.bind(state, skins)
+	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
 
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
