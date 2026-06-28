@@ -75,8 +75,13 @@ func _scan_stages() -> Array:
 			continue
 		for f in sub.get_files():
 			if f.ends_with(".json"):
-				out.append({
-					"label": "%s/%s" % [campaign, f.get_basename()],
-					"path": "%s/%s/%s" % [root, campaign, f],
-				})
+				var path := "%s/%s/%s" % [root, campaign, f]
+				out.append({ "label": _stage_label(path, campaign, f), "path": path })
 	return out
+
+## ボタン表示名: ステージJSONの "name" を使う（無ければ <冒険譚>-<ファイル名>）。
+func _stage_label(path: String, campaign: String, filename: String) -> String:
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	if typeof(data) == TYPE_DICTIONARY and data.has("name"):
+		return String(data["name"])
+	return "%s-%s" % [campaign, filename.get_basename()]

@@ -18,6 +18,7 @@ func setup(stages: Array) -> void:
 	for s in stages:
 		var btn := Button.new()
 		btn.text = String(s["label"])
+		btn.focus_mode = Control.FOCUS_NONE  # フォーカスを取らない＝Enter(手番終了)で誤発火しない
 		btn.pressed.connect(_on_pressed.bind(String(s["path"])))
 		box.add_child(btn)
 
