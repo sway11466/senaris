@@ -26,23 +26,25 @@ static func surround_factor(state: BattleState, u: Unit) -> float:
 static func experience_factor(u: Unit) -> float:
 	return float(EXPERIENCE[clampi(u.level, 1, Unit.MAX_LEVEL) - 1])
 
-## u が enemy を攻撃するときの実効攻撃力。地形(攻)・経験は常に乗る。
-## melee=true のときだけ 包囲（乗算）と 支援(攻)（加算）が乗る。間接攻撃(melee=false)には乗らない。
+## u が enemy を攻撃するときの実効攻撃力。地形(攻)・経験・包囲は常に乗る。
+## 包囲は「囲まれたユニット自身の常時デバフ」＝近接/間接を問わない（囲まれた弓兵は射撃も弱る）。
+## 支援(攻)（加算）は melee のときだけ乗る（間接には乗らない）。
 static func effective_attack(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
 	# 相手が飛行なら対空、地上なら対地。対空0の駒が飛行を攻撃すると 0（＝当たらない）。
 	var base := float(u.troops) * float(u.attack_against(enemy)) * experience_factor(u) * Terrain.attack_factor(state.terrain_at(u.pos))
+	base *= surround_factor(state, u)  # 包囲は常時
 	if not melee:
-		return base
-	base *= surround_factor(state, u)
+		return base  # 間接は支援なし
 	return base + _support(state, u, enemy, true)
 
-## u が enemy に攻撃されるときの実効防御力。地形(防)・経験は常に乗る。
-## melee=true のときだけ 包囲（乗算）と 支援(防)（加算・支援後は2倍上限）が乗る。
+## u が enemy に攻撃されるときの実効防御力。地形(防)・経験・包囲は常に乗る。
+## 包囲が間接被弾にも効く＝「囲んで止めた敵を後ろから集中放火」が刺さる（囲まれた敵は間接でも脆い）。
+## 支援(防)（加算・支援後は2倍上限）は melee のときだけ乗る。
 static func effective_defense(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
 	var base := float(u.troops) * float(u.unit_defense) * experience_factor(u) * Terrain.defense_factor(state.terrain_at(u.pos))
+	base *= surround_factor(state, u)  # 包囲は常時（間接被弾でも脆くなる）
 	if not melee:
-		return base
-	base *= surround_factor(state, u)
+		return base  # 間接被弾は防御支援なし
 	var supported := base + _support(state, u, enemy, false)
 	return minf(supported, base * DEFENSE_SUPPORT_CAP)
 
