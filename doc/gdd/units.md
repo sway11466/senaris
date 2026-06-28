@@ -24,8 +24,6 @@
 
 ## データ構成（実装）
 
-**性能と見た目を分離する**（アーキの「ステータスは原型に1回、名前・スプライトは上書きレイヤー」）。観点ごとに以下。
-
 ### 1. 性能と見た目の分離
 
 - **性能 ＝ `UnitType`**（`data/units/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
@@ -37,7 +35,7 @@
 - ユニットの型・データ・ローダーは `data/units/` に同居（機能フォルダ）。型とデータをセットで扱う。
 - `UnitType`: 種別表 `data/units/unit_type.json`（テーマ非依存の原型ロスター）。`UnitCatalog`（`data/units/unit_catalog.gd`）が `id → UnitType`。
 - `UnitSkin`: スキン表 `data/units/unit_skin.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。テーマが増えたら `data/units/unit_skin/<テーマ>.json` に割ってよい。
-- 画像スロットと未用意時のプレースホルダは [../art/overview.md](../art/overview.md) 参照。
+- 画像スロットと未用意時のプレースホルダはアート準備で扱う。
 
 ### 3. CSV正本パイプライン
 
@@ -46,7 +44,7 @@
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
 - `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
 - `data/units/unit_skin.csv`（1行=1別名: type_id, side, name）→ `data/units/unit_skin.json`。画像・説明は当面空で、必要時にCSVへ列追加。
-- `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表 → [movement.md](movement.md)）。
+- `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 
 ### 4. ステージからの参照
@@ -56,18 +54,10 @@
 
 ### 5. 現状と将来
 
-- 現状の実装ロスター/スキンは10種（cleric/priest/monk/bishop/paladin/archer/thief/birdman/fighter ＋ 敵専用 dragon）。残りは順次。
-- `attack_range`(>1=間接)・`move_type`・`atk_air`(対地/対空) は実装済み。攻撃側は相手が飛行なら `atk_air`、地上なら `atk_ground` を使い、`atk_air=0` の駒は飛行を攻撃・反撃できない（→ [combat.md](combat.md)）。防御は単一値（`defense`）。
+- ロスター/スキンは対応表の全27種を CSV正本に用意済み。画像・説明は当面空（プレースホルダ）で順次。
+- `attack_range`(>1=間接)・`move_type`・`atk_air`(対地/対空) は実装済み。攻撃側は相手が飛行なら `atk_air`、地上なら `atk_ground` を使い、`atk_air=0` の駒は飛行を攻撃・反撃できない。防御は単一値（`defense`）。
 - 【将来】移動タイプ＝地形移動コスト・地形適性（例: 森を低コストで抜ける）はマップの地形テーブルとセットで別途設計。
-- 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン（[../tech/architecture.md](../tech/architecture.md)）。当面は JSON で回す。
-
----
-
-## 未決事項（このドキュメントの範囲）
-
-- [ ] ロスター全種の書き起こし（現状は10種）と、テーマ別名の拡充
-
-> 移動タイプ・地形コストの残作業は [movement.md](movement.md) の「未決・残作業」、役割の対応付けは上の対応表（決定済み）を参照。
+- 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン。当面は JSON で回す。
 
 ---
 
