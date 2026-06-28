@@ -5,9 +5,25 @@ priest,40,10,10,2,ground,1,false,true,8,占領兵,参考：ダーベック
 monk,10,10,8,9,ground,1,false,true,8,占領兵,参考：ドレイパー
 bishop,10,10,40,3,ground,1,false,true,8,占領兵,
 paladin,50,50,40,5,ground,1,false,true,8,占領兵,
+hunter,30,65,30,6,ground,1,false,false,8,弓兵,参考：シーカー
+elf,0,85,30,5,ground,5,false,false,8,弓兵,参考：ホークアイ
+archer,30,30,30,5,ground,2,false,false,8,弓兵,
+sniper,60,60,10,2,ground,4,false,false,8,弓兵,
+wizard,60,0,30,4,ground,4,false,false,8,魔法兵,参考：エストール
+witch,45,0,30,4,ground,5,false,false,8,魔法兵,参考：ナスホルン
+ballista,90,0,20,0,ground,6,false,false,8,魔法兵,参考：モノケロス
+thief,70,10,20,8,light_foot,1,true,false,8,斥候,参考：ラビット
+halfling,40,10,20,6,light_foot,2,true,false,8,斥候,参考：リンクス
+ninja,50,30,20,7,light_foot,1,true,false,8,斥候,
+dragon_knight,0,90,30,12,flight,1,false,false,8,飛行兵,参考：ファルコ
 birdman,70,20,30,10,flight,1,false,false,8,飛行兵,参考：ジャビィ
-archer,30,30,30,5,ground,2,false,false,8,弓兵,参考：新規（アーチャー）
-thief,70,10,20,8,light_foot,1,true,false,8,軽車両,参考：ラビット/シーフ
-fighter,50,0,40,6,ground,1,false,false,8,戦車,主役の近接前衛（対空なし＝飛行を攻撃できない）。units.md 対応表に準拠
-dragon,70,70,50,11,flight,1,false,false,8,飛行兵,ハンター枠の万能強ユニット（敵専用・占領不可）。units.md 対応表に準拠
-,,,,,,,,,,,
+dragon,70,70,50,11,flight,1,false,false,8,飛行兵,参考：ハンター
+fighter,50,0,40,6,ground,1,false,false,8,歩兵,
+mercenary,50,0,50,7,ground,1,false,false,8,歩兵,参考：スラッガー
+novice,45,0,30,5,ground,1,false,false,8,歩兵,参考：レネット
+samurai,70,0,50,4,ground,1,false,false,8,歩兵,参考：グリズリー
+knight,60,0,50,5,ground,1,false,false,8,歩兵,参考：モンスター
+dwarf,60,0,60,4,ground,1,false,false,8,歩兵,参考：アルマジロ
+sorcerer,90,40,80,2,ground,1,false,false,8,魔法兵,参考：ギガント
+wagon,10,10,10,6,ground,1,false,false,8,輸送,参考：ミュール
+airship,0,0,10,9,flight,1,false,false,8,輸送,参考：ペリカン

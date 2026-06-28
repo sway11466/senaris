@@ -1,5 +1,21 @@
 {
 	"skins": {
+		"airship": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "飛空艇"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ワイバーン"
+				}
+			]
+		},
 		"archer": {
 			"ally": [
 				{
@@ -13,6 +29,22 @@
 					"description": "",
 					"images": {},
 					"name": "リザードマン"
+				}
+			]
+		},
+		"ballista": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "バリスタ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "マンドラゴラ"
 				}
 			]
 		},
@@ -74,6 +106,54 @@
 				}
 			]
 		},
+		"dragon_knight": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ドラゴンナイト"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "グリフォン"
+				}
+			]
+		},
+		"dwarf": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ドワーフ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "トロール"
+				}
+			]
+		},
+		"elf": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "エルフ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ダークエルフ"
+				}
+			]
+		},
 		"fighter": {
 			"ally": [
 				{
@@ -90,6 +170,70 @@
 				}
 			]
 		},
+		"halfling": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ハーフリング"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "アラクネ"
+				}
+			]
+		},
+		"hunter": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ハンター"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ケンタウロス"
+				}
+			]
+		},
+		"knight": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ナイト"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ミノタウロス"
+				}
+			]
+		},
+		"mercenary": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "マーシナリー"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "バーサーカー"
+				}
+			]
+		},
 		"monk": {
 			"ally": [
 				{
@@ -103,6 +247,38 @@
 					"description": "",
 					"images": {},
 					"name": "コボルト"
+				}
+			]
+		},
+		"ninja": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ニンジャ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ワーウルフ"
+				}
+			]
+		},
+		"novice": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ノービス"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "スケルトン"
 				}
 			]
 		},
@@ -138,6 +314,54 @@
 				}
 			]
 		},
+		"samurai": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "サムライ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "オーガ"
+				}
+			]
+		},
+		"sniper": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "スナイパー"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "メデューサ"
+				}
+			]
+		},
+		"sorcerer": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ソーサラー"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ゴーレム"
+				}
+			]
+		},
 		"thief": {
 			"ally": [
 				{
@@ -151,6 +375,54 @@
 					"description": "",
 					"images": {},
 					"name": "ヴァンパイア"
+				}
+			]
+		},
+		"wagon": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "馬車"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "モンスターチャリオッツ"
+				}
+			]
+		},
+		"witch": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ウィッチ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "シャーマン"
+				}
+			]
+		},
+		"wizard": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ウィザード"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ネクロマンサー"
 				}
 			]
 		}
