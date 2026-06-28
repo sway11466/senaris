@@ -1,7 +1,8 @@
 extends RefCounted
 class_name StageLoader
-## ステージデータ（JSON）→ BattleState の組み立て（純ロジック・ノード非依存）。
-## 詳細 → doc/tech/architecture.md（data層）, doc/gdd/map.md
+## ステージデータ（JSON）→ BattleState の組み立て（マッチのセットアップ）。
+## data層(json/UnitCatalog)と domain(BattleState/Unit) の両方に依存するため application 層に置く。
+## 詳細 → doc/tech/architecture.md, doc/gdd/map.md
 ##
 ## マップは「ASCII地形グリッド＋ユニット配置リスト」で記述する（data/stages/*.json）。
 ## terrain は1行＝盤の1列ぶんの文字絵。文字→地形の対応は TERRAIN_CHARS。

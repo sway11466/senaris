@@ -31,7 +31,7 @@
 
 ## ステージデータの構成
 
-- ステージは JSON データで記述する（ASCII地形グリッド＋ユニット配置）。ローダーは `data/stage_loader.gd`（`StageLoader`）。詳細 → [../tech/architecture.md](../tech/architecture.md)。
+- ステージは JSON データで記述する（ASCII地形グリッド＋ユニット配置）。データは `data/`、それを盤面(BattleState)に組み立てるローダー `StageLoader` は `application/`（data＋domain の両方に依存するため）。詳細 → [../tech/architecture.md](../tech/architecture.md)。
 - **冒険譚（キャンペーン）ごとにフォルダ**で束ねる: `data/stages/<冒険譚>/<ステージ>.json`。
   - 1つの冒険譚＝数ステージ構成を想定し、その単位でフォルダに放り込む。
   - 例: 動作確認用のデモは `data/stages/demo/demo.json`。
