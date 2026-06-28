@@ -8,7 +8,7 @@
     "..FF........",
     ".....P......",
     ".....PP.....",
-    ".....P..OFF.",
+    ".O...P..OFF.",
     ".........F..",
     "............"
   ],
@@ -22,6 +22,7 @@
     { "type": "cleric", "team": 1, "col": 7, "row": 5 }
   ],
   "bases": [
-    { "col": 8, "row": 5, "team": 1, "garrison": [ { "type": "monk", "count": 2 } ] }
+    { "col": 8, "row": 5, "team": 1, "garrison": [ { "type": "monk", "count": 2 } ] },
+    { "col": 1, "row": 5, "team": -1, "garrison": [ { "type": "monk", "count": 2 } ] }
   ]
 }
