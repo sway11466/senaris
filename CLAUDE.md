@@ -30,7 +30,7 @@
 | 世界観 | [doc/gdd/world.md](doc/gdd/world.md) |
 | アーキテクチャ | [doc/tech/architecture.md](doc/tech/architecture.md) |
 | セーブ仕様 | [doc/tech/gamesystem.md](doc/tech/gamesystem.md) |
-| マネタイズ・データ保護 | [doc/monetization.md](doc/monetization.md) |
+| マネタイズ・データ保護 | [doc/sales/monetization.md](doc/sales/monetization.md) |
 | アート準備 | [doc/art/overview.md](doc/art/overview.md) |
-| 命名の決定 | [doc/naming_decision_senaris.md](doc/naming_decision_senaris.md) |
+| 命名の決定 | [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) |
 | 意思決定記録 | [doc/adr/](doc/adr/) |

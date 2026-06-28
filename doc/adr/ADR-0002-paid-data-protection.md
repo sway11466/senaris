@@ -93,7 +93,7 @@
 
 ## 補足
 
-- 詳細仕様・マネタイズ全体は [monetization.md](../monetization.md) を参照。
+- 詳細仕様・マネタイズ全体は [monetization.md](../sales/monetization.md) を参照。
 - 関連: セーブ仕様 [gamesystem.md](../tech/gamesystem.md)（セーブ改ざん検出も同じ署名／チェックサムの発想）。
 - 用語整理:
   - **署名（公開鍵暗号）** = 「正規かどうか」を判定。秘密鍵で署名し、公開鍵で検証。

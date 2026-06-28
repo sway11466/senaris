@@ -6,8 +6,6 @@
 
 - [concepts.md](concepts.md) — プロダクトコンセプト（何を・なぜ・面白さの核）
 - [backlog.md](backlog.md) — 「必要になったら着手」する作業の置き場
-- [monetization.md](monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
-- [naming_decision_senaris.md](naming_decision_senaris.md) — タイトル名「Senaris」の決定
 
 ## ゲームデザイン — `gdd/`
 
@@ -33,6 +31,11 @@
 ## アート — `art/`（Art Bible）
 
 - [art/overview.md](art/overview.md) — 画像／アート準備
+
+## 販売・ブランド — `sales/`
+
+- [sales/monetization.md](sales/monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
+- [sales/naming_decision_senaris.md](sales/naming_decision_senaris.md) — タイトル名「Senaris」の決定
 
 ## 意思決定記録 — `adr/`
 
