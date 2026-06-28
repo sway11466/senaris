@@ -6,16 +6,8 @@ extends Node2D
 func _ready() -> void:
 	print("Senaris booted.")
 
-	var state := BattleState.new(12, 8)
-	# デモ配置（仮）: id, team, 位置(offset), 移動力, 兵数, ユニット攻撃力, ユニット防御力
-	state.add_unit(Unit.new(1, 0, Hex.offset_to_axial(3, 3), 4, 8, 12, 10))  # 攻め寄り
-	state.add_unit(Unit.new(2, 0, Hex.offset_to_axial(3, 5), 3, 8, 8, 14))   # 守り寄り
-	state.add_unit(Unit.new(3, 1, Hex.offset_to_axial(7, 3), 4, 8, 10, 10))
-	state.add_unit(Unit.new(4, 1, Hex.offset_to_axial(7, 5), 3, 8, 10, 10))
-
-	# デモ地形（仮）: 盤中央に台地の塊。乗ると攻防+15%。将来はステージデータ(data/)から。
-	for cell in [Vector2i(5, 3), Vector2i(5, 4), Vector2i(6, 4), Vector2i(5, 5)]:
-		state.set_terrain(Hex.offset_to_axial(cell.x, cell.y), Terrain.PLATEAU)
+	# ステージデータ(data/stages/*.json)から盤面を構築。配置・地形はデータ側で編集する。
+	var state := StageLoader.load_file("res://data/stages/demo.json")
 
 	var controller := MatchController.new()
 	controller.name = "MatchController"

@@ -1,0 +1,21 @@
+{
+  "name": "demo",
+  "cols": 12,
+  "rows": 8,
+  "terrain": [
+    "............",
+    "............",
+    "............",
+    ".....P......",
+    ".....PP.....",
+    ".....P......",
+    "............",
+    "............"
+  ],
+  "units": [
+    { "team": 0, "col": 3, "row": 3, "move": 4, "troops": 8, "atk": 12, "def": 10, "level": 1 },
+    { "team": 0, "col": 3, "row": 5, "move": 3, "troops": 8, "atk": 8,  "def": 14, "level": 1 },
+    { "team": 1, "col": 7, "row": 3, "move": 4, "troops": 8, "atk": 10, "def": 10, "level": 1 },
+    { "team": 1, "col": 7, "row": 5, "move": 3, "troops": 8, "atk": 10, "def": 10, "level": 1 }
+  ]
+}
