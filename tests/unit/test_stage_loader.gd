@@ -46,7 +46,7 @@ func test_build_unit_fields_and_defaults() -> void:
 	assert_eq(u2.level, 1, "level 省略は1")
 
 func test_load_demo_file() -> void:
-	var s := StageLoader.load_file("res://data/stages/demo.json")
+	var s := StageLoader.load_file("res://data/stages/demo/demo.json")
 	assert_not_null(s, "demo.json が読める")
 	assert_eq(s.cols, 12)
 	assert_eq(s.rows, 8)

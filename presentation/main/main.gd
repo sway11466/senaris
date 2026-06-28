@@ -7,7 +7,7 @@ func _ready() -> void:
 	print("Senaris booted.")
 
 	# ステージデータ(data/stages/*.json)から盤面を構築。配置・地形はデータ側で編集する。
-	var state := StageLoader.load_file("res://data/stages/demo.json")
+	var state := StageLoader.load_file("res://data/stages/demo/demo.json")
 
 	var controller := MatchController.new()
 	controller.name = "MatchController"
