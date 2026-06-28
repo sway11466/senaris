@@ -125,3 +125,36 @@ static func flood_reach(start: Vector2i, max_steps: int, passable: Callable) -> 
 	for k in dist:
 		result.append(k)
 	return result
+
+## start から予算 budget 以内で到達できるヘックス一覧（start 含む）。地形コスト対応版。
+## cost_fn: Callable(Vector2i) -> int。そのヘックスへの「進入コスト」を返す。負値＝進入不可。
+## ダイクストラ（コストは小さい正整数前提）。各ヘックスは最短コストが budget 以内なら到達可能。
+static func flood_reach_cost(start: Vector2i, budget: int, cost_fn: Callable) -> Array[Vector2i]:
+	var dist := {start: 0}
+	var done := {}
+	while true:
+		# 未確定のうち最小コストのヘックスを選ぶ
+		var cur := start
+		var best := 1 << 30
+		var found := false
+		for k in dist:
+			if not done.has(k) and int(dist[k]) < best:
+				best = int(dist[k])
+				cur = k
+				found = true
+		if not found:
+			break
+		done[cur] = true
+		for n in neighbors(cur):
+			if done.has(n):
+				continue
+			var c: int = cost_fn.call(n)
+			if c < 0:
+				continue  # 進入不可
+			var nd: int = int(dist[cur]) + c
+			if nd <= budget and (not dist.has(n) or nd < int(dist[n])):
+				dist[n] = nd
+	var reached: Array[Vector2i] = []
+	for k in dist:
+		reached.append(k)
+	return reached

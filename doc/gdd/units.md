@@ -93,7 +93,7 @@
   - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
   - `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
   - `data/units/aliases.csv`（1行=1別名: type_id, side, name）→ `data/units/skins.json`。画像・説明は当面空で、必要時にCSVへ列追加。
-  - （将来）`data/movement/movement.csv` → 移動タイプ×地形コスト表。
+  - `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表 → [movement.md](movement.md)）。
   - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
   - 実行: `godot --headless --script res://data/units/convert.gd`
   - **同性能・別名**（ゴブリン↔守護像）は enemy 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚側が決める**（ユニットデータは冒険譚/テーマ名を持たない＝責務分離）。引きは `SkinCatalog.skin(catalog, type_id, team, index)`。

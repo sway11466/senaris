@@ -38,7 +38,9 @@ static func load_file(path: String) -> BattleState:
 	if typeof(data) != TYPE_DICTIONARY:
 		push_error("StageLoader: JSON が不正: %s" % path)
 		return null
-	return build(data, UnitCatalog.load_default())
+	var state := build(data, UnitCatalog.load_default())
+	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
+	return state
 
 ## 地形グリッド（文字列の配列）を盤に反映。row=行index, col=文字index → offset(col,row)。
 static func _apply_terrain(state: BattleState, grid: Variant) -> void:
@@ -72,5 +74,7 @@ static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary
 		var atk := int(u.get("atk", t.atk_ground if t != null else 10))
 		var dfn := int(u.get("def", t.defense if t != null else 10))
 		var lv := int(u.get("level", 1))
-		state.add_unit(Unit.new(int(u.get("id", auto_id)), int(u["team"]), pos, mv, tp, atk, dfn, lv, type_id))
+		var unit := Unit.new(int(u.get("id", auto_id)), int(u["team"]), pos, mv, tp, atk, dfn, lv, type_id)
+		unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
+		state.add_unit(unit)
 		auto_id += 1

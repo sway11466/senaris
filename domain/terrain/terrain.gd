@@ -14,6 +14,16 @@ const FACTORS := {
 	PLATEAU: [1.15, 1.15],  ## 台地: 攻守ともに+15%（有利な高所）
 }
 
+## terrain_id -> 地形名（移動コスト表 movement.csv の列キーと一致させる）。
+const NAMES := {
+	PLAINS: "plain",
+	PLATEAU: "plateau",
+}
+
+## terrain_id の地形名（不明は "plain"）。
+static func name_of(terrain_id: int) -> String:
+	return NAMES.get(terrain_id, "plain")
+
 ## terrain_id の地形(攻)係数。
 static func attack_factor(terrain_id: int) -> float:
 	return float(FACTORS[terrain_id][0])

@@ -14,6 +14,7 @@ var _units: Array[Unit] = []
 var _moved := {}     # unit_id -> true（このターンに移動済み）
 var _attacked := {}  # unit_id -> true（このターンに攻撃済み）
 var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
+var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -45,19 +46,27 @@ func terrain_at(hex: Vector2i) -> int:
 func set_terrain(hex: Vector2i, terrain_id: int) -> void:
 	_terrain[hex] = terrain_id
 
+## 移動コスト表を設定する（move_type -> {地形名: コスト}）。
+func set_movement(table: Dictionary) -> void:
+	_movement = table
+
 ## hex が矩形フィールド内か。
 func in_field(hex: Vector2i) -> bool:
 	var off := Hex.axial_to_offset(hex)
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
 
-## unit_id が移動できるヘックス（起点を含む）。フィールド外と他ユニットは通行不可。
+## unit_id が移動できるヘックス（起点を含む）。盤外・他ユニットは進入不可、地形は移動コスト。
 func reachable(unit_id: int) -> Array[Vector2i]:
 	var u := unit_by_id(unit_id)
 	if u == null:
 		return []
-	var passable := func(h: Vector2i) -> bool:
-		return in_field(h) and unit_at(h) == null
-	return Hex.flood_reach(u.pos, u.move, passable)
+	return Hex.flood_reach_cost(u.pos, u.move, _enter_cost.bind(u))
+
+## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。それ以外は地形コスト。
+func _enter_cost(hex: Vector2i, u: Unit) -> int:
+	if not in_field(hex) or unit_at(hex) != null:
+		return Movement.IMPASSABLE
+	return Movement.cost(_movement, u.move_type, Terrain.name_of(terrain_at(hex)))
 
 ## unit_id を to へ動かせるか（空きマスかつ移動範囲内）。地形のみの判定で手番は見ない。
 func can_move(unit_id: int, to: Vector2i) -> bool:

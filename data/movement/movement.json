@@ -1,0 +1,12 @@
+{
+	"movement_types": {
+		"flight": {
+			"plain": 1,
+			"plateau": 1
+		},
+		"ground": {
+			"plain": 1,
+			"plateau": 2
+		}
+	}
+}

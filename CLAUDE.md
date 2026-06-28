@@ -24,6 +24,7 @@
 | 運用・ロードマップ | [doc/project-overview.md](doc/project-overview.md) |
 | 戦闘（補正チェーン・陣形） | [doc/gdd/combat.md](doc/gdd/combat.md) |
 | ユニット性能・対応表 | [doc/gdd/units.md](doc/gdd/units.md) |
+| 移動（移動タイプ・地形コスト） | [doc/gdd/movement.md](doc/gdd/movement.md) |
 | 拠点・占領・ステージ | [doc/gdd/map.md](doc/gdd/map.md) |
 | 世界観 | [doc/gdd/world.md](doc/gdd/world.md) |
 | アーキテクチャ | [doc/tech/architecture.md](doc/tech/architecture.md) |

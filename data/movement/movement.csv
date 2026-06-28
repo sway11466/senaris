@@ -1,0 +1,4 @@
+move_type,plain,plateau
+移動タイプ,平地,台地
+ground,1,2
+flight,1,1
