@@ -49,6 +49,48 @@ func test_reachable_impassable_blocks() -> void:
 	var reach := s.reachable(1)
 	assert_false(reach.has(wall), "進入不可の台地には入れない")
 
+func test_zoc_stops_movement() -> void:
+	# move2。p0→p1→p2 の直線で、p1 が敵ZOCなら p1で止まり p2に届かない。
+	var s := BattleState.new(8, 8)
+	var p0 := Hex.offset_to_axial(2, 3)
+	var p1 := Hex.neighbor(p0, 0)
+	var p2 := Hex.neighbor(p1, 0)
+	s.add_unit(Unit.new(1, 0, p0, 2))
+	s.add_unit(Unit.new(2, 1, p1 + Vector2i(1, -1), 3))  # p1 に隣接（p0 には非隣接）の敵
+	var reach := s.reachable(1)
+	assert_true(reach.has(p1), "敵ZOCのマスには入れる")
+	assert_false(reach.has(p2), "ZOCで停止＝その先へは進めない")
+
+func test_zoc_control_no_enemy() -> void:
+	var s := BattleState.new(8, 8)
+	var p0 := Hex.offset_to_axial(2, 3)
+	var p2 := Hex.neighbor(Hex.neighbor(p0, 0), 0)
+	s.add_unit(Unit.new(1, 0, p0, 2))
+	assert_true(s.reachable(1).has(p2), "敵が居なければ2歩先に届く（対照）")
+
+func test_zoc_applies_to_flight() -> void:
+	var s := BattleState.new(8, 8)
+	s.set_movement({ "flight": { "plain": 1, "plateau": 1 } })
+	var p0 := Hex.offset_to_axial(2, 3)
+	var p1 := Hex.neighbor(p0, 0)
+	var p2 := Hex.neighbor(p1, 0)
+	var u := Unit.new(1, 0, p0, 2)
+	u.move_type = "flight"
+	s.add_unit(u)
+	s.add_unit(Unit.new(2, 1, p1 + Vector2i(1, -1), 3))
+	var reach := s.reachable(1)
+	assert_true(reach.has(p1))
+	assert_false(reach.has(p2), "飛行もZOCで停止（移動タイプ非依存）")
+
+func test_can_leave_enemy_zoc() -> void:
+	# 起点が敵ZOC内でも動き出せる。
+	var s := BattleState.new(8, 8)
+	var p0 := Hex.offset_to_axial(3, 3)
+	s.add_unit(Unit.new(1, 0, p0, 2))
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(p0, 3), 3))  # 起点に隣接する敵
+	var away := Hex.neighbor(p0, 0)  # 敵の反対側（ZOC外）
+	assert_true(s.reachable(1).has(away), "ZOC内の起点からは動き出せる")
+
 func test_flight_ignores_climb() -> void:
 	var s := BattleState.new(8, 8)
 	s.set_movement({ "ground": { "plain": 1, "plateau": 2 }, "flight": { "plain": 1, "plateau": 1 } })

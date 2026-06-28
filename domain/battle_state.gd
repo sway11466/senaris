@@ -56,17 +56,26 @@ func in_field(hex: Vector2i) -> bool:
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
 
 ## unit_id が移動できるヘックス（起点を含む）。盤外・他ユニットは進入不可、地形は移動コスト。
+## 敵ZOC（敵に隣接するマス）に入ると停止＝その先へは進めない（飛行含む全移動タイプ）。
 func reachable(unit_id: int) -> Array[Vector2i]:
 	var u := unit_by_id(unit_id)
 	if u == null:
 		return []
-	return Hex.flood_reach_cost(u.pos, u.move, _enter_cost.bind(u))
+	return Hex.flood_reach_cost(u.pos, u.move, _enter_cost.bind(u), _in_enemy_zoc.bind(u))
 
 ## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。それ以外は地形コスト。
 func _enter_cost(hex: Vector2i, u: Unit) -> int:
 	if not in_field(hex) or unit_at(hex) != null:
 		return Movement.IMPASSABLE
 	return Movement.cost(_movement, u.move_type, Terrain.name_of(terrain_at(hex)))
+
+## hex が u から見た敵ZOC内か（敵ユニットに隣接しているか）。ZOCに入ると移動が止まる。
+func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:
+	for nb in Hex.neighbors(hex):
+		var occ := unit_at(nb)
+		if occ != null and occ.team != u.team:
+			return true
+	return false
 
 ## unit_id を to へ動かせるか（空きマスかつ移動範囲内）。地形のみの判定で手番は見ない。
 func can_move(unit_id: int, to: Vector2i) -> bool:
