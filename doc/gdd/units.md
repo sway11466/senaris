@@ -87,12 +87,12 @@
   - 種別表 `data/units/unit_type.json`（テーマ非依存の原型ロスター）。`UnitCatalog`（`data/units/unit_catalog.gd`）が `id → UnitType`。
   - 箱だけ先に用意（実装は将来）: `atk_air`・`attack_range`(>1=間接)・`move_type`。現状の戦闘は `atk_ground`＝攻撃・`defense`＝防御のみ使う。
 - **見た目＋識別 ＝ `UnitSkin`**（`data/units/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
-  - スキン表 `data/units/skins.json`（性能とは別ファイル＝上書きレイヤー。スキンは“何のスキンか”の配下に置く）。`SkinCatalog`（`data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。テーマが増えたら `data/units/skins/<テーマ>.json` に割ってよい。
+  - スキン表 `data/units/unit_skin.json`（性能とは別ファイル＝上書きレイヤー。スキンは“何のスキンか”の配下に置く）。`SkinCatalog`（`data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。テーマが増えたら `data/units/unit_skin/<テーマ>.json` に割ってよい。
 - **配置方針**: ユニットの型・データ・ローダーは `data/units/` に同居（機能フォルダ）。型とデータをセットで扱う。
 - **正本はCSV（表計算で管理）**: フラット/グリッドな表は CSV が正本（人間が表計算/VSCodeで編集）。CSV正本・生成JSON・変換ツールは**機能フォルダに同居**（`data/units/` にまるっと）。`data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。
   - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
   - `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
-  - `data/units/aliases.csv`（1行=1別名: type_id, side, name）→ `data/units/skins.json`。画像・説明は当面空で、必要時にCSVへ列追加。
+  - `data/units/unit_skin.csv`（1行=1別名: type_id, side, name）→ `data/units/unit_skin.json`。画像・説明は当面空で、必要時にCSVへ列追加。
   - `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表 → [movement.md](movement.md)）。
   - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
   - 実行: `godot --headless --script res://data/units/convert.gd`

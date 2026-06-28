@@ -8,7 +8,7 @@ const Csv = preload("res://data/csv_util.gd")
 
 func _initialize() -> void:
 	_convert_unit_type()
-	_convert_aliases()
+	_convert_unit_skin()
 	quit()
 
 ## ユニット性能表 → unit_type.json（{ "types": [...] }）。
@@ -17,10 +17,10 @@ func _convert_unit_type() -> void:
 	Csv.write_json("res://data/units/unit_type.json", { "types": rows })
 	print("unit_type.json: %d types" % rows.size())
 
-## エイリアス表（1行=1別名: type_id, side, name）→ スキン表 skins.json。
+## スキン表（1行=1別名: type_id, side, name）→ unit_skin.json。
 ## 同じ (type_id, side) の行は出現順にエイリアス配列へ。description/images は空（後で拡張）。
-func _convert_aliases() -> void:
-	var rows := Csv.read_table("res://data/units/aliases.csv")
+func _convert_unit_skin() -> void:
+	var rows := Csv.read_table("res://data/units/unit_skin.csv")
 	var skins := {}
 	for r in rows:
 		var tid := String(r["type_id"])
@@ -28,5 +28,5 @@ func _convert_aliases() -> void:
 		if not skins.has(tid):
 			skins[tid] = { "ally": [], "enemy": [] }
 		skins[tid][side].append({ "name": String(r["name"]), "description": "", "images": {} })
-	Csv.write_json("res://data/units/skins.json", { "skins": skins })
-	print("skins.json: %d types" % skins.size())
+	Csv.write_json("res://data/units/unit_skin.json", { "skins": skins })
+	print("unit_skin.json: %d types" % skins.size())

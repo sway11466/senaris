@@ -3,11 +3,11 @@ class_name SkinCatalog
 ## スキン表(JSON) → { type_id: { "ally": [UnitSkin], "enemy": [UnitSkin] } }。
 ## 純ロジック・テスト対象。詳細 → doc/gdd/units.md
 ##
-## スキンは性能(UnitType)とは別ファイル(data/units/skins.json)で持つ＝名前/画像の上書きレイヤー。
+## スキンは性能(UnitType)とは別ファイル(data/units/unit_skin.json)で持つ＝名前/画像の上書きレイヤー。
 ## テーマを増やす＝スキン表を足すだけ（原型の性能には触らない）。
-## ※将来テーマが増えたら data/units/skins/<テーマ>.json のように割ってもよい。
+## ※将来テーマが増えたら data/units/unit_skin/<テーマ>.json のように割ってもよい。
 
-const STANDARD_PATH := "res://data/units/skins.json"
+const UNIT_SKIN_PATH := "res://data/units/unit_skin.json"
 
 ## スキン表辞書（{ "skins": { type_id: { ally:[...], enemy:[...] } } }）を組み立てる。
 static func build(data: Dictionary) -> Dictionary:
@@ -42,9 +42,9 @@ static func load_file(path: String) -> Dictionary:
 		return {}
 	return build(data)
 
-## 標準テーマ（テーマ0）のスキン表。
+## 既定のスキン表（unit_skin.json）。
 static func load_standard() -> Dictionary:
-	return load_file(STANDARD_PATH)
+	return load_file(UNIT_SKIN_PATH)
 
 ## type_id・陣営(0=味方/1=敵)・index からスキンを引く。無ければ null。
 ## 範囲外 index は先頭にフォールバック。
