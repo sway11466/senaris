@@ -17,6 +17,7 @@ var _attacked := {}    # unit_id -> true（このターンに攻撃済み）
 var _spent := {}       # unit_id -> int（このターンに使った移動コスト。move と比較）
 var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
+var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -38,6 +39,21 @@ func unit_at(hex: Vector2i) -> Unit:
 	for u in _units:
 		if u.pos == hex:
 			return u
+	return null
+
+# --- 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md ---
+
+func add_base(base: Base) -> void:
+	_bases.append(base)
+
+func bases() -> Array[Base]:
+	return _bases
+
+## hex にある拠点（無ければ null）。
+func base_at(hex: Vector2i) -> Base:
+	for b in _bases:
+		if b.hex == hex:
+			return b
 	return null
 
 ## hex の地形id（未設定は既定地形 "plain"）。
@@ -111,7 +127,16 @@ func move_unit(unit_id: int, to: Vector2i) -> bool:
 		_post_moved[unit_id] = true
 	else:
 		_moved[unit_id] = true
+	_try_capture(u)  # 占領可ユニットが敵/中立拠点に入ったら即占領
 	return true
+
+## u が今いる拠点を占領できるなら所属を u の陣営へ移す（占領＝即時・進入した瞬間）。
+func _try_capture(u: Unit) -> void:
+	if not u.can_capture:
+		return
+	var b := base_at(u.pos)
+	if b != null and b.team != u.team:
+		b.team = u.team
 
 ## いま移動できるか（手番・移動権・残り予算）。
 ## 攻撃前: 通常移動を未使用なら可。攻撃後: 再移動可ユニットが再移動を未使用なら可。
@@ -128,6 +153,47 @@ func _can_act_move(unit_id: int) -> bool:
 ## いま移動できるか（公開）。盤の移動範囲表示などに使う。
 func can_still_move(unit_id: int) -> bool:
 	return _can_act_move(unit_id)
+
+# --- 出撃（ネクタリス方式・占領済み拠点から1歩で出す） ---
+
+## base_hex の拠点から出撃できる空きhex（拠点に隣接・盤内・空き）。出撃先候補の表示に使う。
+func deploy_cells(base_hex: Vector2i) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	var b := base_at(base_hex)
+	if b == null or b.team != current_team or b.garrison.is_empty():
+		return cells
+	for nb in Hex.neighbors(base_hex):
+		if in_field(nb) and unit_at(nb) == null:
+			cells.append(nb)
+	return cells
+
+## いま出撃させられるか（自軍拠点・控えあり・出せる空きあり）。
+func can_deploy(base_hex: Vector2i) -> bool:
+	return not deploy_cells(base_hex).is_empty()
+
+## 拠点の garrison[index] を隣接空き to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
+## 成否を返す。手番違い・非占領・索引外・隣接でない・占有マスなら false。
+func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
+	var b := base_at(base_hex)
+	if b == null or b.team != current_team:
+		return false
+	if garrison_index < 0 or garrison_index >= b.garrison.size():
+		return false
+	if not in_field(to_hex) or unit_at(to_hex) != null:
+		return false
+	if Hex.distance(base_hex, to_hex) != 1:
+		return false
+	var u: Unit = b.garrison[garrison_index]
+	b.garrison.remove_at(garrison_index)
+	u.team = current_team
+	u.pos = to_hex
+	_units.append(u)
+	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃もこれ以上しない）。
+	_moved[u.id] = true
+	_post_moved[u.id] = true
+	_attacked[u.id] = true
+	_spent[u.id] = u.move
+	return true
 
 # --- 攻撃 ---
 
@@ -238,6 +304,7 @@ func can_select(unit_id: int) -> bool:
 	return is_current_unit(unit_by_id(unit_id)) and not is_done(unit_id)
 
 ## 手番を次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
+## 手番開始時に、自軍拠点に乗っている自軍ユニットを兵数 max まで回復（休憩）。
 func end_turn() -> void:
 	_moved.clear()
 	_post_moved.clear()
@@ -246,3 +313,13 @@ func end_turn() -> void:
 	current_team = 1 - current_team
 	if current_team == 0:
 		turn_number += 1
+	_heal_on_bases()
+
+## 手番が始まる陣営のユニットのうち、自軍所属の拠点hexに乗っているものを満員へ回復（兵数のみ）。
+func _heal_on_bases() -> void:
+	for u in _units:
+		if u.team != current_team:
+			continue
+		var b := base_at(u.pos)
+		if b != null and b.team == u.team:
+			u.troops = u.max_troops

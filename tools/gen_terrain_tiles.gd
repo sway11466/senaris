@@ -30,6 +30,7 @@ func _initialize() -> void:
 	_generate("res://assets/terrain/sea.png", Color.html("#6FA6CE"))        # 海: 濃い青
 	_generate("res://assets/terrain/corridor.png", Color.html("#CFC8B8"))   # 通路: 明るい石床
 	_generate("res://assets/terrain/wall.png", Color.html("#5F584F"))       # 壁: 暗いダンジョン石
+	_generate("res://assets/terrain/fort.png", Color.html("#C7B27A"))       # 砦: 拠点の石・金茶
 	print("terrain tiles generated.")
 	quit()
 

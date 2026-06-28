@@ -77,6 +77,38 @@ func test_type_fields_can_be_overridden() -> void:
 	assert_eq(u.level, 2, "level を上書き")
 	assert_eq(u.unit_attack, 10, "上書きしない項目は種別のまま")
 
+func test_build_bases_with_garrison() -> void:
+	var catalog := {
+		"novice": UnitType.from_dict({
+			"id": "novice", "atk_ground": 45, "defense": 30, "move": 5, "max_troops": 8,
+		}),
+		"cleric": UnitType.from_dict({
+			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
+			"can_capture": true,
+		}),
+	}
+	var data := {
+		"cols": 8, "rows": 6,
+		"units": [
+			{ "type": "cleric", "team": 0, "col": 1, "row": 1 },
+		],
+		"bases": [
+			{ "col": 4, "row": 3, "team": 1, "garrison": [ { "type": "novice", "count": 2 } ] },
+		],
+	}
+	var s := StageLoader.build(data, catalog)
+	# 占領フラグが種別から載る
+	assert_true(s.unit_by_id(1).can_capture, "cleric は can_capture")
+	# 拠点が組み上がる
+	var b := s.base_at(Hex.offset_to_axial(4, 3))
+	assert_not_null(b, "bases から拠点が立つ")
+	assert_eq(b.team, 1, "初期所属は敵")
+	assert_eq(b.garrison.size(), 2, "garrison は count ぶん展開される")
+	assert_eq(b.garrison[0].unit_attack, 45, "garrison も種別ステータスを引く")
+	assert_eq(b.garrison[0].troops, 8, "garrison 既定は満員")
+	# garrison の id は盤上ユニットと衝突しない採番
+	assert_ne(b.garrison[0].id, s.unit_by_id(1).id)
+
 func test_load_demo_file() -> void:
 	var s := StageLoader.load_file("res://data/stages/demo/demo.json")
 	assert_not_null(s, "demo.json が読める")
