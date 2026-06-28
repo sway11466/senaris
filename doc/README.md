@@ -13,8 +13,16 @@
 
 - [gdd/combat.md](gdd/combat.md) — 戦闘解決（補正チェーン・陣形）
 - [gdd/units.md](gdd/units.md) — ユニット性能設計・対応表
-- [gdd/map.md](gdd/map.md) — 拠点・占領・ステージ
+- [gdd/movement.md](gdd/movement.md) — 移動タイプ・地形コスト・reachable
+- [gdd/map.md](gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル
 - [gdd/world.md](gdd/world.md) — 世界観・設定
+
+## 冒険譚（キャンペーン） — `campaign/`
+
+共通の制作方針は [campaign/authoring.md](campaign/authoring.md)。各冒険譚は `gdd/` の仕様を土台にし、関係する箇所だけ本文でリンクする。
+
+- [campaign/authoring.md](campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
+- [campaign/tutorial.md](campaign/tutorial.md) — チュートリアル「ゴブリンの襲撃」（仮）骨子・全6ステージ
 
 ## 技術設計 — `tech/`（Technical Design Document）
 
