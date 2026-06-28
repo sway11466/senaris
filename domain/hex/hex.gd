@@ -132,6 +132,14 @@ static func flood_reach(start: Vector2i, max_steps: int, passable: Callable) -> 
 ##   終端（ZOC停止など）。start には適用しない（起点からは必ず動き出せる）。
 ## ダイクストラ（コストは小さい正整数前提）。各ヘックスは最短コストが budget 以内なら到達可能。
 static func flood_reach_cost(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := Callable()) -> Array[Vector2i]:
+	var reached: Array[Vector2i] = []
+	for k in flood_reach_cost_map(start, budget, cost_fn, stop_fn):
+		reached.append(k)
+	return reached
+
+## flood_reach_cost の {ヘックス: 最短コスト} 版（start 含む・start のコストは0）。
+## 移動予算の消費計算（到達コスト）に使う。
+static func flood_reach_cost_map(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := Callable()) -> Dictionary:
 	var dist := {start: 0}
 	var done := {}
 	while true:
@@ -159,7 +167,4 @@ static func flood_reach_cost(start: Vector2i, budget: int, cost_fn: Callable, st
 			var nd: int = int(dist[cur]) + c
 			if nd <= budget and (not dist.has(n) or nd < int(dist[n])):
 				dist[n] = nd
-	var reached: Array[Vector2i] = []
-	for k in dist:
-		reached.append(k)
-	return reached
+	return dist

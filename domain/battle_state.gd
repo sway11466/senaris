@@ -11,8 +11,10 @@ var current_team: int = 0  ## 現在の手番の陣営
 var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 
 var _units: Array[Unit] = []
-var _moved := {}     # unit_id -> true（このターンに移動済み）
-var _attacked := {}  # unit_id -> true（このターンに攻撃済み）
+var _moved := {}       # unit_id -> true（攻撃前の移動を1回使った）
+var _post_moved := {}  # unit_id -> true（攻撃後の再移動を1回使った）
+var _attacked := {}    # unit_id -> true（このターンに攻撃済み）
+var _spent := {}       # unit_id -> int（このターンに使った移動コスト。move と比較）
 var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
 
@@ -55,13 +57,21 @@ func in_field(hex: Vector2i) -> bool:
 	var off := Hex.axial_to_offset(hex)
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
 
-## unit_id が移動できるヘックス（起点を含む）。盤外・他ユニットは進入不可、地形は移動コスト。
+## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・他ユニットは進入不可、地形はコスト。
 ## 敵ZOC（敵に隣接するマス）に入ると停止＝その先へは進めない（飛行含む全移動タイプ）。
 func reachable(unit_id: int) -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for h in _reach_map(unit_id):
+		result.append(h)
+	return result
+
+## reachable の {ヘックス: 到達コスト} 版（残り移動力で計算）。移動コスト消費に使う。
+func _reach_map(unit_id: int) -> Dictionary:
 	var u := unit_by_id(unit_id)
 	if u == null:
-		return []
-	return Hex.flood_reach_cost(u.pos, u.move, _enter_cost.bind(u), _in_enemy_zoc.bind(u))
+		return {}
+	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
+	return Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _in_enemy_zoc.bind(u))
 
 ## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。それ以外は地形コスト。
 func _enter_cost(hex: Vector2i, u: Unit) -> int:
@@ -77,24 +87,47 @@ func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:
 			return true
 	return false
 
-## unit_id を to へ動かせるか（空きマスかつ移動範囲内）。地形のみの判定で手番は見ない。
+## unit_id を to へ動かせるか（空きマスかつ残り移動範囲内）。地形のみの判定で手番は見ない。
 func can_move(unit_id: int, to: Vector2i) -> bool:
 	if unit_at(to) != null:
 		return false
-	return reachable(unit_id).has(to)
+	var u := unit_by_id(unit_id)
+	if u == null or to == u.pos:
+		return false
+	return _reach_map(unit_id).has(to)
 
-## 妥当なら移動を適用して true。手番違い・移動済/攻撃済・不正先なら false。
+## 妥当なら移動を適用して true。手番違い・移動権なし・不正先なら false。移動コストを予算から消費。
 func move_unit(unit_id: int, to: Vector2i) -> bool:
 	if not _can_act_move(unit_id):
 		return false
-	if not can_move(unit_id, to):
+	var rm := _reach_map(unit_id)
+	var u := unit_by_id(unit_id)
+	if unit_at(to) != null or to == u.pos or not rm.has(to):
 		return false
-	unit_by_id(unit_id).pos = to
-	_moved[unit_id] = true
+	u.pos = to
+	_spent[unit_id] = int(_spent.get(unit_id, 0)) + int(rm[to])
+	# 攻撃前なら通常移動、攻撃後なら再移動として消費（どちらも1回）。
+	if has_attacked(unit_id):
+		_post_moved[unit_id] = true
+	else:
+		_moved[unit_id] = true
 	return true
 
+## いま移動できるか（手番・移動権・残り予算）。
+## 攻撃前: 通常移動を未使用なら可。攻撃後: 再移動可ユニットが再移動を未使用なら可。
 func _can_act_move(unit_id: int) -> bool:
-	return is_current_unit(unit_by_id(unit_id)) and not has_moved(unit_id) and not has_attacked(unit_id)
+	var u := unit_by_id(unit_id)
+	if not is_current_unit(u):
+		return false
+	if int(_spent.get(unit_id, 0)) >= u.move:
+		return false  # 予算切れ
+	if has_attacked(unit_id):
+		return u.move_after_attack and not _post_moved.has(unit_id)
+	return not _moved.has(unit_id)
+
+## いま移動できるか（公開）。盤の移動範囲表示などに使う。
+func can_still_move(unit_id: int) -> bool:
+	return _can_act_move(unit_id)
 
 # --- 攻撃 ---
 
@@ -142,8 +175,7 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 		_remove_unit(target_id)
 	if attacker_killed:
 		_remove_unit(attacker_id)
-	_moved[attacker_id] = true
-	_attacked[attacker_id] = true
+	_attacked[attacker_id] = true  # 移動可否は move_after_attack で判定（再移動）
 	return {
 		"damage": dmg_to_target,
 		"killed": target_killed,
@@ -187,7 +219,7 @@ func is_over() -> bool:
 func is_current_unit(u: Unit) -> bool:
 	return u != null and u.team == current_team
 
-## このターンに移動済みか。
+## このターンに（攻撃前の）移動を使ったか。
 func has_moved(unit_id: int) -> bool:
 	return _moved.has(unit_id)
 
@@ -195,13 +227,11 @@ func has_moved(unit_id: int) -> bool:
 func has_attacked(unit_id: int) -> bool:
 	return _attacked.has(unit_id)
 
-## このターンの行動を使い切ったか（攻撃済み、または移動済みで攻撃対象なし）。
+## このターンの行動を使い切ったか（もう移動も攻撃もできない）。
 func is_done(unit_id: int) -> bool:
-	if has_attacked(unit_id):
-		return true
-	if has_moved(unit_id) and attack_targets(unit_id).is_empty():
-		return true
-	return false
+	var can_atk := not has_attacked(unit_id) and not attack_targets(unit_id).is_empty()
+	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
+	return not can_atk and not can_mv
 
 ## 選択して操作できる状態か（現手番・まだ行動が残っている）。
 func can_select(unit_id: int) -> bool:
@@ -210,7 +240,9 @@ func can_select(unit_id: int) -> bool:
 ## 手番を次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
 func end_turn() -> void:
 	_moved.clear()
+	_post_moved.clear()
 	_attacked.clear()
+	_spent.clear()
 	current_team = 1 - current_team
 	if current_team == 0:
 		turn_number += 1

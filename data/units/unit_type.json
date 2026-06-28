@@ -10,6 +10,7 @@
 			"max_troops": 8,
 			"memo": "参考：ムンクス",
 			"move": 3,
+			"move_after_attack": false,
 			"move_type": "ground",
 			"range": 1,
 			"role": "infantry"
@@ -24,6 +25,7 @@
 			"max_troops": 8,
 			"memo": "参考：ダーベック",
 			"move": 2,
+			"move_after_attack": false,
 			"move_type": "ground",
 			"range": 1,
 			"role": "infantry"
@@ -38,6 +40,7 @@
 			"max_troops": 8,
 			"memo": "参考：ドレイパー",
 			"move": 9,
+			"move_after_attack": false,
 			"move_type": "ground",
 			"range": 1,
 			"role": "infantry"
@@ -52,6 +55,7 @@
 			"max_troops": 8,
 			"memo": "",
 			"move": 3,
+			"move_after_attack": false,
 			"move_type": "ground",
 			"range": 1,
 			"role": "infantry"
@@ -66,6 +70,7 @@
 			"max_troops": 8,
 			"memo": "",
 			"move": 5,
+			"move_after_attack": false,
 			"move_type": "ground",
 			"range": 1,
 			"role": "infantry"
@@ -80,6 +85,7 @@
 			"max_troops": 8,
 			"memo": "参考：ジャビィ",
 			"move": 10,
+			"move_after_attack": false,
 			"move_type": "flight",
 			"range": 1,
 			"role": "aerial"
@@ -94,9 +100,25 @@
 			"max_troops": 8,
 			"memo": "参考：新規（アーチャー）",
 			"move": 5,
+			"move_after_attack": false,
 			"move_type": "ground",
 			"range": 2,
 			"role": "ranged"
+		},
+		{
+			"atk_air": 10,
+			"atk_ground": 70,
+			"can_capture": false,
+			"category": "軽車両",
+			"defense": 20,
+			"id": "thief",
+			"max_troops": 8,
+			"memo": "参考：ラビット/シーフ",
+			"move": 8,
+			"move_after_attack": true,
+			"move_type": "ground",
+			"range": 1,
+			"role": "buggy"
 		}
 	]
 }

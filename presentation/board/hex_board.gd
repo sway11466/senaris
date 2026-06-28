@@ -78,7 +78,7 @@ func _select(id: int) -> void:
 	_selected_id = id
 	_reachable.clear()
 	_targets.clear()
-	if not state.has_moved(id):  # まだ動いていなければ移動範囲を出す
+	if state.can_still_move(id):  # まだ動けるなら（残り移動力ぶん）移動範囲を出す
 		for h in controller.reachable_for(id):
 			_reachable[h] = true
 	for tid in controller.attack_targets_for(id):

@@ -16,7 +16,8 @@ var atk_air: int         ## 対空攻撃（— は 0）。※将来
 var defense: int         ## 防御
 var move: int            ## 移動力
 var move_type: String    ## 移動タイプ（"ground"/"air"…）。※実装は将来
-var attack_range: int    ## 射程。1=近接、>1=間接。※間接は将来
+var attack_range: int    ## 射程。1=近接、>1=間接
+var move_after_attack: bool  ## 攻撃後に再移動できるか（ヒット&アウェイ）
 var can_capture: bool    ## 占領可否
 var max_troops: int      ## 満員兵数
 
@@ -31,6 +32,7 @@ static func from_dict(d: Dictionary) -> UnitType:
 	t.move = int(d.get("move", 0))
 	t.move_type = String(d.get("move_type", "ground"))
 	t.attack_range = int(d.get("range", 1))
+	t.move_after_attack = bool(d.get("move_after_attack", false))
 	t.can_capture = bool(d.get("can_capture", false))
 	t.max_troops = int(d.get("max_troops", 8))
 	return t

@@ -12,5 +12,7 @@ paladin,ally,パラディン
 paladin,enemy,ゴブリンロード
 archer,ally,アーチャー
 archer,enemy,リザードマン
+thief,ally,シーフ
+thief,enemy,ヴァンパイア
 birdman,ally,バードマン
 birdman,enemy,ハーピー

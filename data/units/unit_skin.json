@@ -111,6 +111,22 @@
 					"name": "ホブゴブリン"
 				}
 			]
+		},
+		"thief": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "シーフ"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ヴァンパイア"
+				}
+			]
 		}
 	}
 }
