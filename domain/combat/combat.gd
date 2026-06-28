@@ -26,27 +26,51 @@ static func surround_factor(state: BattleState, u: Unit) -> float:
 static func experience_factor(u: Unit) -> float:
 	return float(EXPERIENCE[clampi(u.level, 1, Unit.MAX_LEVEL) - 1])
 
-## u が enemy を攻撃するときの実効攻撃力。地形(攻)・経験・包囲は常に乗る。
-## 包囲は「囲まれたユニット自身の常時デバフ」＝近接/間接を問わない（囲まれた弓兵は射撃も弱る）。
-## 支援(攻)（加算）は melee のときだけ乗る（間接には乗らない）。
-static func effective_attack(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
-	# 相手が飛行なら対空、地上なら対地。対空0の駒が飛行を攻撃すると 0（＝当たらない）。
-	var base := float(u.troops) * float(u.attack_against(enemy)) * experience_factor(u) * Terrain.attack_factor(state.terrain_at(u.pos))
-	base *= surround_factor(state, u)  # 包囲は常時
-	if not melee:
-		return base  # 間接は支援なし
-	return base + _support(state, u, enemy, true)
+## 実効攻撃力の内訳（dict）。**式の本体はここだけ**＝total を各係数から組み立てる。
+## 表示も戦闘解決もこの内訳から導くので、画面の数字と実処理が必ず一致する。
+## 相手が飛行なら対空、地上なら対地（attack_against）。対空0で飛行を狙うと stat=0＝total0。
+## 包囲は常時（囲まれた側は近接/間接問わず弱る）。支援(攻・加算)は melee のときだけ。
+static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
+	var b := {
+		"kind": "attack",
+		"vs_aerial": enemy.is_aerial(),
+		"troops": u.troops,
+		"stat": u.attack_against(enemy),
+		"experience": experience_factor(u),
+		"surround": surround_factor(state, u),
+		"terrain": Terrain.attack_factor(state.terrain_at(u.pos)),
+		"support": _support(state, u, enemy, true) if melee else 0.0,
+		"melee": melee,
+	}
+	b["total"] = float(b["troops"]) * float(b["stat"]) * float(b["experience"]) * float(b["surround"]) * float(b["terrain"]) + float(b["support"])
+	return b
 
-## u が enemy に攻撃されるときの実効防御力。地形(防)・経験・包囲は常に乗る。
-## 包囲が間接被弾にも効く＝「囲んで止めた敵を後ろから集中放火」が刺さる（囲まれた敵は間接でも脆い）。
-## 支援(防)（加算・支援後は2倍上限）は melee のときだけ乗る。
+## 実効防御力の内訳（dict）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
+static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
+	var support: float = _support(state, u, enemy, false) if melee else 0.0
+	var pre := float(u.troops) * float(u.unit_defense) * experience_factor(u) * surround_factor(state, u) * Terrain.defense_factor(state.terrain_at(u.pos))
+	var supported := pre + support
+	var total := minf(supported, pre * DEFENSE_SUPPORT_CAP)
+	return {
+		"kind": "defense",
+		"troops": u.troops,
+		"stat": u.unit_defense,
+		"experience": experience_factor(u),
+		"surround": surround_factor(state, u),
+		"terrain": Terrain.defense_factor(state.terrain_at(u.pos)),
+		"support": support,
+		"capped": supported > total,  # 支援2倍上限が効いたか
+		"melee": melee,
+		"total": total,
+	}
+
+## u が enemy を攻撃するときの実効攻撃力（内訳の total）。
+static func effective_attack(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
+	return attack_breakdown(state, u, enemy, melee)["total"]
+
+## u が enemy に攻撃されるときの実効防御力（内訳の total）。
 static func effective_defense(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
-	var base := float(u.troops) * float(u.unit_defense) * experience_factor(u) * Terrain.defense_factor(state.terrain_at(u.pos))
-	base *= surround_factor(state, u)  # 包囲は常時（間接被弾でも脆くなる）
-	if not melee:
-		return base  # 間接被弾は防御支援なし
-	var supported := base + _support(state, u, enemy, false)
-	return minf(supported, base * DEFENSE_SUPPORT_CAP)
+	return defense_breakdown(state, u, enemy, melee)["total"]
 
 ## u の味方（u自身を除く）で enemy に隣接しているものからの支援合計。
 ## is_attack=true で攻撃支援（味方のユニット攻撃力）、false で防御支援（味方のユニット防御力）。
@@ -62,13 +86,22 @@ static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) 
 		total += float(ally.troops) * float(stat) * SUPPORT_RATE
 	return total
 
-## attacker が defender に与える失う兵数（0〜defender.troops）。melee=false で間接（包囲・支援なし）。
+## 1回の打撃の解決（内訳つき・dict）。attacker→defender の実効攻防・割合・失う兵を**1か所で確定**。
+## 戦闘解決（兵数の適用）も画面表示も、この同じ dict を使う＝式を二重に持たない。
+## { attack:<攻撃側の内訳>, defense:<防御側の内訳>, fraction:割合, loss:失う兵数 }
+static func hit_detail(state: BattleState, attacker: Unit, defender: Unit, melee := true) -> Dictionary:
+	var atk := attack_breakdown(state, attacker, defender, melee)
+	var df := defense_breakdown(state, defender, attacker, melee)
+	var a: float = atk["total"]
+	var d: float = df["total"]
+	var fraction := 0.0
+	var loss := 0
+	if a > 0.0:
+		var ap := pow(a, P)
+		fraction = ap / (ap + pow(d, P))  # 割合＝攻²/(攻²+防²)。互角0.5、差で鋭く。
+		loss = clampi(int(round(K * float(defender.troops) * fraction)), 0, defender.troops)
+	return { "attack": atk, "defense": df, "fraction": fraction, "loss": loss }
+
+## attacker が defender に与える失う兵数（hit_detail の loss）。0〜defender.troops。
 static func casualties(state: BattleState, attacker: Unit, defender: Unit, melee := true) -> int:
-	var a := effective_attack(state, attacker, defender, melee)
-	var d := effective_defense(state, defender, attacker, melee)
-	if a <= 0.0:
-		return 0
-	var ap := pow(a, P)
-	var frac := ap / (ap + pow(d, P))
-	var loss := int(round(K * float(defender.troops) * frac))
-	return clampi(loss, 0, defender.troops)
+	return hit_detail(state, attacker, defender, melee)["loss"]

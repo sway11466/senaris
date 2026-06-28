@@ -94,3 +94,62 @@ func _action_state(u: Unit) -> String:
 	parts.append("移動可" if _state.can_still_move(u.id) else "移動済")
 	parts.append("攻撃可" if not _state.has_attacked(u.id) else "攻撃済")
 	return " / ".join(parts)
+
+# --- 戦闘結果ビュー（攻撃時に右パネルへ）。detail は BattleState.attack の "detail"。---
+# 攻防の導出と損害を、戦闘解決と同じ内訳(dict)からそのまま整形＝盤の数字と一致する。
+
+func show_combat(detail: Dictionary) -> void:
+	if detail == null or detail.is_empty():
+		return
+	_label.text = _format_combat(detail)
+
+func _format_combat(d: Dictionary) -> String:
+	var a: Dictionary = d["attacker"]
+	var t: Dictionary = d["defender"]
+	var fwd: Dictionary = d["to_defender"]
+	var ret: Variant = d["to_attacker"]  # null＝反撃なし
+	var an := _combatant_name(a)
+	var tn := _combatant_name(t)
+	var lines: Array[String] = []
+	lines.append("⚔ 戦闘結果")
+	lines.append("──────────────────────")
+	lines.append("%s Lv%d  →  %s Lv%d" % [an, a["level"], tn, t["level"]])
+	lines.append("  %s  %d/%d → %d/%d (%+d)" % [an, a["troops_before"], a["max"], a["troops_after"], a["max"], a["troops_after"] - a["troops_before"]])
+	lines.append("  %s  %d/%d → %d/%d (%+d)" % [tn, t["troops_before"], t["max"], t["troops_after"], t["max"], t["troops_after"] - t["troops_before"]])
+	lines.append("──────────────────────")
+	lines.append("▼ 攻撃 %s（%s）" % [an, Terrain.display_name(a["terrain"])])
+	lines.append(_chain(fwd["attack"]))
+	if ret != null:
+		lines.append(_chain(ret["defense"]))
+	lines.append("▼ 防御 %s（%s）" % [tn, Terrain.display_name(t["terrain"])])
+	lines.append(_chain(fwd["defense"]))
+	if ret != null:
+		lines.append(_chain(ret["attack"]))
+	lines.append("──────────────────────")
+	lines.append("▼ 損害  割合=攻²÷(攻²+防²)、失う兵=相手の現在兵×割合")
+	lines.append(_damage_line(an, tn, fwd, t["troops_before"]))
+	if ret != null:
+		lines.append(_damage_line(tn, an, ret, a["troops_before"]))
+	else:
+		lines.append("  %s → %s  反撃なし" % [tn, an])
+	return "\n".join(lines)
+
+func _combatant_name(snap: Dictionary) -> String:
+	var s: UnitSkin = SkinCatalog.skin(_skins, snap["type_id"], snap["team"])
+	return s.name if s != null else String(snap["type_id"])
+
+## 補正チェーン1行。breakdown は Combat.attack_breakdown / defense_breakdown。
+func _chain(b: Dictionary) -> String:
+	var is_atk: bool = b["kind"] == "attack"
+	var head := "攻" if is_atk else "防"
+	var stat_label := ("対空" if b.get("vs_aerial", false) else "対地") if is_atk else "防"
+	return "  %s %d = 兵%d × %s%d × 経験×%.2f × 包囲×%.2f × 地形×%.2f ＋支援%d" % [
+		head, roundi(b["total"]), b["troops"], stat_label, b["stat"],
+		b["experience"], b["surround"], b["terrain"], roundi(b["support"])]
+
+## 損害1行: 「攻撃側 → 受け手  攻A 対 防D → P% → 兵N×P% = 失う兵」。
+func _damage_line(from_name: String, to_name: String, hit: Dictionary, defender_troops: int) -> String:
+	var pct := int(round(hit["fraction"] * 100.0))
+	return "  %s → %s  攻%d 対 防%d → %d%% → 兵%d×%d%% = %d" % [
+		from_name, to_name, roundi(hit["attack"]["total"]), roundi(hit["defense"]["total"]),
+		pct, defender_troops, pct, hit["loss"]]

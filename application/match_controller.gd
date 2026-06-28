@@ -8,6 +8,7 @@ class_name MatchController
 signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i)
 signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
+signal combat_resolved(detail: Dictionary)  # 戦闘結果ビュー用の内訳（攻防の導出・損害）
 signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
@@ -54,6 +55,7 @@ func execute_attack(cmd: AttackCommand) -> bool:
 		unit_died.emit(cmd.target_id)
 	if result["attacker_killed"]:  # 反撃で攻撃側も倒れうる
 		unit_died.emit(cmd.attacker_id)
+	combat_resolved.emit(result["detail"])  # unit_attacked の後＝盤の選択解除より後に結果表示
 	_check_finished()
 	return true
 

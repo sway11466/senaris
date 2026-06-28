@@ -230,13 +230,20 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	# 反撃は「近接」かつ「防御側が攻撃側を攻撃できる」ときだけ成立。
 	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない（→被反撃なし・経験+0）。
 	var can_retaliate := melee and t.attack_against(a) > 0
-	# 同時攻撃: 戦闘前の兵数で双方の損害を確定させてから適用（決定的）。
-	var dmg_to_target := Combat.casualties(self, a, t, melee)
-	var dmg_to_attacker := Combat.casualties(self, t, a) if can_retaliate else 0
+	# 同時攻撃: 戦闘前の状態で内訳ごと確定してから適用（決定的）。表示はこの内訳をそのまま使う。
+	var fwd := Combat.hit_detail(self, a, t, melee)
+	var ret: Variant = Combat.hit_detail(self, t, a, melee) if can_retaliate else null
+	# 戦闘前スナップショット（撃破で盤から消えても結果表示できるよう値を固める）。
+	var a_snap := _unit_snapshot(a)
+	var t_snap := _unit_snapshot(t)
+	var dmg_to_target: int = fwd["loss"]
+	var dmg_to_attacker: int = (ret["loss"] if ret != null else 0)
 	t.troops -= dmg_to_target
 	a.troops -= dmg_to_attacker
 	var target_killed := t.troops <= 0
 	var attacker_killed := a.troops <= 0
+	a_snap["troops_after"] = maxi(a.troops, 0)
+	t_snap["troops_after"] = maxi(t.troops, 0)
 	# 経験値: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
 	# 防御側は反撃が成立したときだけ+1（間接で撃たれた側／対空なしで飛行に撃たれた側は+0）。
 	a.add_experience(1 + (1 if target_killed else 0))
@@ -254,6 +261,20 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 		"attacker_killed": attacker_killed,
 		"target_troops": maxi(t.troops, 0),
 		"attacker_troops": maxi(a.troops, 0),
+		"detail": {  # 戦闘結果ビュー用（式は Combat.hit_detail の1か所＝盤の兵数と一致）
+			"attacker": a_snap,
+			"defender": t_snap,
+			"to_defender": fwd,
+			"to_attacker": ret,
+			"melee": melee,
+		},
+	}
+
+## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
+func _unit_snapshot(u: Unit) -> Dictionary:
+	return {
+		"id": u.id, "type_id": u.type_id, "team": u.team, "level": u.level,
+		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos),
 	}
 
 func _remove_unit(unit_id: int) -> void:

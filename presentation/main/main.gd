@@ -21,9 +21,10 @@ func _ready() -> void:
 	var skins := SkinCatalog.load_standard()
 	$HexBoard.bind(state, controller, skins)
 
-	# 右側の情報パネルに選択ユニットを映す。
+	# 右側の情報パネルに選択ユニットを映す。攻撃時はその領域に戦闘結果を出す。
 	$InfoPanel.bind(state, skins)
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
+	controller.combat_resolved.connect($InfoPanel.show_combat)
 
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
