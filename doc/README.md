@@ -15,6 +15,7 @@
 - [gdd/units.md](gdd/units.md) — ユニット性能設計・対応表
 - [gdd/movement.md](gdd/movement.md) — 移動タイプ・地形コスト・reachable
 - [gdd/map.md](gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル
+- [gdd/ai.md](gdd/ai.md) — 敵AI（思考パターン＝軸の組み合わせ・部隊割り当て）
 - [gdd/world.md](gdd/world.md) — 世界観・設定
 
 ## 冒険譚（キャンペーン） — `campaign/`
