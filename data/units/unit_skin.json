@@ -1,5 +1,21 @@
 {
 	"skins": {
+		"birdman": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "バードマン"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ハーピー"
+				}
+			]
+		},
 		"bishop": {
 			"ally": [
 				{

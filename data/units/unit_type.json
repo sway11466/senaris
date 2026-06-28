@@ -69,6 +69,20 @@
 			"move_type": "ground",
 			"range": 1,
 			"role": "infantry"
+		},
+		{
+			"atk_air": 20,
+			"atk_ground": 70,
+			"can_capture": false,
+			"category": "航空",
+			"defense": 30,
+			"id": "birdman",
+			"max_troops": 8,
+			"memo": "参考：ジャビィ",
+			"move": 10,
+			"move_type": "flight",
+			"range": 1,
+			"role": "aerial"
 		}
 	]
 }

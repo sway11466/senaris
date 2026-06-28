@@ -82,6 +82,6 @@ func test_load_demo_file() -> void:
 	assert_not_null(s, "demo.json が読める")
 	assert_eq(s.cols, 12)
 	assert_eq(s.rows, 8)
-	assert_eq(s.units().size(), 4, "デモは4体")
+	assert_eq(s.units().size(), 5, "デモは5体（歩兵4＋飛行バードマン）")
 	assert_eq(s.terrain_at(Hex.offset_to_axial(5, 4)), Terrain.PLATEAU, "中央に台地")
 	assert_eq(s.terrain_at(Hex.offset_to_axial(6, 4)), Terrain.PLATEAU)
