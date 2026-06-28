@@ -18,7 +18,7 @@
 		{
 			"atk_air": 10,
 			"atk_ground": 40,
-			"can_capture": false,
+			"can_capture": true,
 			"category": "占領兵",
 			"defense": 10,
 			"id": "priest",
@@ -33,7 +33,7 @@
 		{
 			"atk_air": 10,
 			"atk_ground": 10,
-			"can_capture": false,
+			"can_capture": true,
 			"category": "占領兵",
 			"defense": 8,
 			"id": "monk",
