@@ -1,0 +1,4 @@
+label,engage,sight,retreat,attack,target,advance
+ラベル,起動,索敵半径,撤退閾値,攻撃条件,対象優先,前進
+charge,charge,-,0,always,near,max
+guard,sight|squad,3,0,always,near,max
