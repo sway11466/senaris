@@ -22,6 +22,7 @@
 
 ### データ
 
+- **配置は独立フォルダ `data/movement/`**。移動コストは「移動タイプ（ユニット属性）×地形（マップ属性）→コスト」の関係（行列）で、units にも terrain にも属さない独立概念のため。
 - 正本 `data/movement/movement.csv`（行=移動タイプ、列=地形コスト、2行ヘッダ）→ 生成 `data/movement/movement.json`（[[csv-data-pipeline]] と同じ仕組み）。
 - 地形名は `Terrain.NAMES`（`plain`/`plateau`…）と一致させる。
 - 現状の表（叩き台・要チューニング）:

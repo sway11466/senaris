@@ -1,5 +1,5 @@
-id,char,atk,def,color
-地形ID,文字,地形攻,地形防,色
-plain,.,1.0,1.0,#CCEBC7
-plateau,P,1.15,1.15,#EBDBB8
-forest,F,1.0,1.3,#8FBF8F
+id,char,atk,def,image
+地形ID,マップデータにおける識別文字,地形攻,地形防,画像ファイル
+plain,.,1.0,1.0,plain.png
+plateau,P,1.15,1.15,plateau.png
+forest,F,1.0,1.3,forest.png

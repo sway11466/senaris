@@ -46,9 +46,10 @@ static func char_to_id(ch: String) -> String:
 	_ensure()
 	return _char_to_id.get(ch, DEFAULT_ID)
 
-## タイル画像のパス（assets/terrain/<id>.png）。
+## タイル画像のパス。ファイル名は terrain.csv の image 列で管理（未指定は <id>.png）。
 static func image_path(id: String) -> String:
-	return "res://assets/terrain/%s.png" % id
+	_ensure()
+	return "res://assets/terrain/%s" % String(_defs.get(id, {}).get("image", id + ".png"))
 
 ## 定義済みの全地形id。
 static func all_ids() -> Array:

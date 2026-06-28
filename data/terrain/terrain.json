@@ -3,23 +3,23 @@
 		{
 			"atk": 1.0,
 			"char": ".",
-			"color": "#CCEBC7",
 			"def": 1.0,
-			"id": "plain"
+			"id": "plain",
+			"image": "plain.png"
 		},
 		{
 			"atk": 1.15,
 			"char": "P",
-			"color": "#EBDBB8",
 			"def": 1.15,
-			"id": "plateau"
+			"id": "plateau",
+			"image": "plateau.png"
 		},
 		{
 			"atk": 1.0,
 			"char": "F",
-			"color": "#8FBF8F",
 			"def": 1.3,
-			"id": "forest"
+			"id": "forest",
+			"image": "forest.png"
 		}
 	]
 }
