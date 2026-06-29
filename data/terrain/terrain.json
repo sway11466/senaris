@@ -6,7 +6,7 @@
 			"def": 0.8,
 			"id": "road",
 			"image": "road.png",
-			"memo": "",
+			"memo": "見通しが良く防御が低い",
 			"name": "道"
 		},
 		{
@@ -15,35 +15,8 @@
 			"def": 1.0,
 			"id": "plain",
 			"image": "plain.png",
-			"memo": "",
+			"memo": "特徴なし",
 			"name": "平地"
-		},
-		{
-			"atk": 1.0,
-			"char": "+",
-			"def": 1.5,
-			"id": "fence",
-			"image": "fence.png",
-			"memo": "移動コスト高め",
-			"name": "柵"
-		},
-		{
-			"atk": 1.5,
-			"char": "T",
-			"def": 1.0,
-			"id": "trap",
-			"image": "trap.png",
-			"memo": "移動コスト高め",
-			"name": "罠"
-		},
-		{
-			"atk": 1.0,
-			"char": "W",
-			"def": 1.0,
-			"id": "rampart",
-			"image": "rampart.png",
-			"memo": "飛行ユニット以外は移動コストが極めて高く、ほぼ移動不可",
-			"name": "城壁"
 		},
 		{
 			"atk": 1.15,
@@ -51,8 +24,17 @@
 			"def": 1.15,
 			"id": "plateau",
 			"image": "plateau.png",
-			"memo": "",
+			"memo": "攻防ともに少しアップ",
 			"name": "台地"
+		},
+		{
+			"atk": 1.0,
+			"char": "%",
+			"def": 1.0,
+			"id": "wasteland",
+			"image": "wasteland.png",
+			"memo": "移動コストやや高め",
+			"name": "荒地"
 		},
 		{
 			"atk": 1.0,
@@ -60,7 +42,7 @@
 			"def": 1.2,
 			"id": "forest",
 			"image": "forest.png",
-			"memo": "",
+			"memo": "防御有利、移動コストやや高め、専用通過ユニット有",
 			"name": "森"
 		},
 		{
@@ -69,7 +51,7 @@
 			"def": 1.0,
 			"id": "bush",
 			"image": "bush.png",
-			"memo": "",
+			"memo": "攻撃有利、移動コストやや高め、専用通過ユニット有",
 			"name": "茂み"
 		},
 		{
@@ -78,8 +60,35 @@
 			"def": 0.6,
 			"id": "mountain",
 			"image": "mountain.png",
-			"memo": "移動コスト高め",
+			"memo": "攻防不利、移動コスト高め、専用通過ユニット有",
 			"name": "山"
+		},
+		{
+			"atk": 1.0,
+			"char": "+",
+			"def": 1.5,
+			"id": "fence",
+			"image": "fence.png",
+			"memo": "防御特化、移動コスト高め",
+			"name": "柵"
+		},
+		{
+			"atk": 1.5,
+			"char": "T",
+			"def": 1.0,
+			"id": "trap",
+			"image": "trap.png",
+			"memo": "攻撃特化、移動コスト高め",
+			"name": "罠"
+		},
+		{
+			"atk": 1.0,
+			"char": "W",
+			"def": 1.0,
+			"id": "rampart",
+			"image": "rampart.png",
+			"memo": "飛行ユニットと斥候が移動可能",
+			"name": "城壁"
 		},
 		{
 			"atk": 1.0,
@@ -87,35 +96,8 @@
 			"def": 1.0,
 			"id": "cliff",
 			"image": "cliff.png",
-			"memo": "飛行ユニット以外は移動コストが極めて高く、ほぼ移動不可",
+			"memo": "飛行ユニットのみ移動可能",
 			"name": "崖"
-		},
-		{
-			"atk": 0.8,
-			"char": "R",
-			"def": 0.8,
-			"id": "river",
-			"image": "river.png",
-			"memo": "",
-			"name": "川"
-		},
-		{
-			"atk": 1.0,
-			"char": "S",
-			"def": 1.0,
-			"id": "sea",
-			"image": "sea.png",
-			"memo": "飛行ユニット以外は移動コストが極めて高く、ほぼ移動不可",
-			"name": "海"
-		},
-		{
-			"atk": 1.0,
-			"char": "_",
-			"def": 1.0,
-			"id": "corridor",
-			"image": "corridor.png",
-			"memo": "",
-			"name": "通路"
 		},
 		{
 			"atk": 1.0,
@@ -123,17 +105,17 @@
 			"def": 1.0,
 			"id": "wall",
 			"image": "wall.png",
-			"memo": "ダンジョン内想定なので全ユニット移動不可",
+			"memo": "全ユニット移動不可",
 			"name": "壁"
 		},
 		{
 			"atk": 1.0,
 			"char": "O",
-			"def": 1.5,
+			"def": 1.2,
 			"id": "fort",
 			"image": "fort.png",
-			"memo": "拠点（占領可・防御強）。占領/出撃/回復は別レイヤー",
-			"name": "砦"
+			"memo": "拠点想定で少し硬い",
+			"name": "拠点"
 		}
 	]
 }

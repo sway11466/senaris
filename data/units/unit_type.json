@@ -177,7 +177,7 @@
 			"memo": "参考：リンクス",
 			"move": 6,
 			"move_after_attack": true,
-			"move_type": "light_foot",
+			"move_type": "bush_walk",
 			"range": 2
 		},
 		{
