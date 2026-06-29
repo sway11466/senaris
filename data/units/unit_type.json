@@ -183,6 +183,20 @@
 			"range": 1
 		},
 		{
+			"atk_air": 10,
+			"atk_ground": 10,
+			"can_capture": false,
+			"category": "飛行兵",
+			"defense": 10,
+			"id": "pixie",
+			"max_troops": 8,
+			"memo": "",
+			"move": 5,
+			"move_after_attack": false,
+			"move_type": "flight",
+			"range": 1
+		},
+		{
 			"atk_air": 90,
 			"atk_ground": 0,
 			"can_capture": false,

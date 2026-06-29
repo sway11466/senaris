@@ -11,12 +11,16 @@ class_name UnitSkin
 ##   戦闘表示   = フルネーム
 ## images にパスを入れれば、描画側がそちらに切り替える（コードは不変）。
 
+var skin_id: String       ## スキンID（主キー。ステージはこれで見た目を指定）。skin→type は1:1
+var type_id: String       ## 紐づく性能(UnitType)のID
 var name: String          ## 表示名（例: クレリック / ゴブリン）
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
 var images: Dictionary     ## { "map": "res://...", "combat": "res://..." }（未設定は空＝プレースホルダ）
 
 static func from_dict(d: Dictionary) -> UnitSkin:
 	var s := UnitSkin.new()
+	s.skin_id = String(d.get("skin_id", ""))
+	s.type_id = String(d.get("type_id", ""))
 	s.name = String(d.get("name", ""))
 	s.description = String(d.get("description", ""))
 	s.images = d.get("images", {})

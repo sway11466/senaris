@@ -28,13 +28,14 @@
 
 - **性能 ＝ `UnitType`**（`data/units/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
 - **見た目＋識別 ＝ `UnitSkin`**（`data/units/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
-- **同性能・別名**（ゴブリン↔守護像）は enemy 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚側が決める**（ユニットデータは冒険譚/テーマ名を持たない＝責務分離）。引きは `SkinCatalog.skin(catalog, type_id, team, index)`。
+- **同性能・別名**（プリースト↔ホブゴブリン↔スケルトン）は、その性能の `enemy`/`ally` 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚（ステージ）側が決める**＝ユニットデータは冒険譚/テーマ名を持たない（責務分離）。
+- **`skin_id` が主キー**：各スキンは一意な `skin_id` を持ち、`skin_id → type` は1:1（スキンが決まれば性能も一意）。引きは `SkinCatalog.skin_by_id(catalog, skin_id)`／`type_of_skin(catalog, skin_id)`、描画は `resolve(catalog, skin_id, type_id, team)`（skin_id 優先・無ければ type_id+team の先頭へフォールバック）。従来の `skin(catalog, type_id, team, index)` も残置。
 
 ### 2. ファイル・フォルダ配置
 
 - ユニットの型・データ・ローダーは `data/units/` に同居（機能フォルダ）。型とデータをセットで扱う。
 - `UnitType`: 種別表 `data/units/unit_type.json`（テーマ非依存の原型ロスター）。`UnitCatalog`（`data/units/unit_catalog.gd`）が `id → UnitType`。
-- `UnitSkin`: スキン表 `data/units/unit_skin.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}`。テーマが増えたら `data/units/unit_skin/<テーマ>.json` に割ってよい。
+- `UnitSkin`: スキン表 `data/units/unit_skin.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}` ＋ `skin_id → UnitSkin` 索引を持つ。テーマが増えたら `data/units/unit_skin/<テーマ>.json` に割ってよい。
 - 画像スロットと未用意時のプレースホルダはアート準備で扱う。
 
 ### 3. CSV正本パイプライン
@@ -43,14 +44,15 @@
 - `data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --script res://data/units/convert.gd`
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
 - `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
-- `data/units/unit_skin.csv`（1行=1別名: type_id, side, name）→ `data/units/unit_skin.json`。画像・説明は当面空で、必要時にCSVへ列追加。
+- `data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id`**。`skin_id` が主キー）→ `data/units/unit_skin.json`。画像・説明は当面空で、必要時にCSVへ列追加。
 - `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 
 ### 4. ステージからの参照
 
-- **ステージは種別を名前参照**: `{ "type": "cleric", "team": 0, "col": 3, "row": 3 }`（`level`/`troops` 等は任意で上書き）。
-- `StageLoader` が `UnitCatalog` 経由で解決し、`Unit.type_id` に保持（描画でスキンを引く／将来の占領＝寝返りに使う）。
+- **ステージは見た目を `skin` で指定**: `{ "skin": "goblin", "team": 1, "col": 5, "row": 3 }`。`skin_id → type` は1:1なので、**性能(type)は自動で逆引き**される（`level`/`troops` 等は任意で上書き）。
+- **`type` 指定の後方互換**: `{ "type": "cleric", ... }` と書くと、**`skin_id == type_id` の同名スキン**（＝正規スキン。多くは味方ラベル）が選ばれる。テーマ別の敵などは `skin` で明示する（例: ゴブリンは `skin:"goblin"`）。
+- `StageLoader` が `SkinCatalog`（skin→type 逆引き）＋ `UnitCatalog`（type→性能）で解決し、`Unit.skin_id`/`Unit.type_id` に保持（描画でスキンを引く／占領＝寝返りに使う）。
 
 ### 5. 現状と将来
 

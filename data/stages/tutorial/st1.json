@@ -16,8 +16,8 @@
     { "type": "fighter", "team": 0, "col": 1, "row": 3 },
     { "type": "novice", "team": 0, "col": 1, "row": 1 },
     { "type": "novice", "team": 0, "col": 1, "row": 5 },
-    { "type": "cleric", "team": 1, "col": 10, "row": 1 },
-    { "type": "cleric", "team": 1, "col": 10, "row": 3 },
-    { "type": "cleric", "team": 1, "col": 10, "row": 5 }
+    { "skin": "goblin", "team": 1, "col": 10, "row": 1 },
+    { "skin": "goblin", "team": 1, "col": 10, "row": 3 },
+    { "skin": "goblin", "team": 1, "col": 10, "row": 5 }
   ]
 }

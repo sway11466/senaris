@@ -27,6 +27,9 @@ func _convert_unit_skin() -> void:
 		var side := String(r["side"])
 		if not skins.has(tid):
 			skins[tid] = { "ally": [], "enemy": [] }
-		skins[tid][side].append({ "name": String(r["name"]), "description": "", "images": {} })
+		skins[tid][side].append({
+			"skin_id": String(r.get("skin_id", "")), "type_id": tid,
+			"name": String(r["name"]), "description": "", "images": {},
+		})
 	Csv.write_json("res://data/units/unit_skin.json", { "skins": skins })
 	print("unit_skin.json: %d types" % skins.size())

@@ -5,7 +5,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "飛空艇"
+					"name": "飛空艇",
+					"skin_id": "airship",
+					"type_id": "airship"
 				}
 			],
 			"enemy": []
@@ -15,14 +17,25 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "アーチャー"
+					"name": "アーチャー",
+					"skin_id": "archer",
+					"type_id": "archer"
 				}
 			],
 			"enemy": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ゴブリンアーチャー"
+					"name": "ゴブリンアーチャー",
+					"skin_id": "goblin_archer",
+					"type_id": "archer"
+				},
+				{
+					"description": "",
+					"images": {},
+					"name": "スケルトンアーチャー",
+					"skin_id": "skeleton_archer",
+					"type_id": "archer"
 				}
 			]
 		},
@@ -31,7 +44,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "バリスタ"
+					"name": "バリスタ",
+					"skin_id": "ballista",
+					"type_id": "ballista"
 				}
 			],
 			"enemy": []
@@ -41,7 +56,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "バリケード"
+					"name": "バリケード",
+					"skin_id": "barricade",
+					"type_id": "barricade"
 				}
 			],
 			"enemy": []
@@ -51,7 +68,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "バードマン"
+					"name": "バードマン",
+					"skin_id": "birdman",
+					"type_id": "birdman"
 				}
 			],
 			"enemy": []
@@ -61,24 +80,38 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ビショップ"
-				}
-			],
-			"enemy": []
-		},
-		"cleric": {
-			"ally": [
-				{
-					"description": "",
-					"images": {},
-					"name": "クレリック"
+					"name": "ビショップ",
+					"skin_id": "bishop",
+					"type_id": "bishop"
 				}
 			],
 			"enemy": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ゴブリン"
+					"name": "ゾンビ",
+					"skin_id": "zombie",
+					"type_id": "bishop"
+				}
+			]
+		},
+		"cleric": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "クレリック",
+					"skin_id": "cleric",
+					"type_id": "cleric"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ゴブリン",
+					"skin_id": "goblin",
+					"type_id": "cleric"
 				}
 			]
 		},
@@ -88,7 +121,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ドラゴン"
+					"name": "ドラゴン",
+					"skin_id": "dragon",
+					"type_id": "dragon"
 				}
 			]
 		},
@@ -97,7 +132,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ドラゴンナイト"
+					"name": "ドラゴンナイト",
+					"skin_id": "dragon_knight",
+					"type_id": "dragon_knight"
 				}
 			],
 			"enemy": []
@@ -107,7 +144,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ドワーフ"
+					"name": "ドワーフ",
+					"skin_id": "dwarf",
+					"type_id": "dwarf"
 				}
 			],
 			"enemy": []
@@ -117,7 +156,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "エルフ"
+					"name": "エルフ",
+					"skin_id": "elf",
+					"type_id": "elf"
 				}
 			],
 			"enemy": []
@@ -127,17 +168,29 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ファイター"
+					"name": "ファイター",
+					"skin_id": "fighter",
+					"type_id": "fighter"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "グール",
+					"skin_id": "ghoul",
+					"type_id": "fighter"
+				}
+			]
 		},
 		"halfling": {
 			"ally": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ハーフリング"
+					"name": "ハーフリング",
+					"skin_id": "halfling",
+					"type_id": "halfling"
 				}
 			],
 			"enemy": []
@@ -147,7 +200,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ハンター"
+					"name": "ハンター",
+					"skin_id": "hunter",
+					"type_id": "hunter"
 				}
 			],
 			"enemy": []
@@ -157,7 +212,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ナイト"
+					"name": "ナイト",
+					"skin_id": "knight",
+					"type_id": "knight"
 				}
 			],
 			"enemy": []
@@ -167,7 +224,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "モンク"
+					"name": "モンク",
+					"skin_id": "monk",
+					"type_id": "monk"
 				}
 			],
 			"enemy": []
@@ -177,7 +236,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ニンジャ"
+					"name": "ニンジャ",
+					"skin_id": "ninja",
+					"type_id": "ninja"
 				}
 			],
 			"enemy": []
@@ -187,7 +248,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ノービス"
+					"name": "ノービス",
+					"skin_id": "novice",
+					"type_id": "novice"
 				}
 			],
 			"enemy": []
@@ -197,14 +260,38 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "パラディン"
+					"name": "パラディン",
+					"skin_id": "paladin",
+					"type_id": "paladin"
 				}
 			],
 			"enemy": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ゴブリンロード"
+					"name": "ゴブリンロード",
+					"skin_id": "goblin_lord",
+					"type_id": "paladin"
+				}
+			]
+		},
+		"pixie": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ピクシー",
+					"skin_id": "pixie",
+					"type_id": "pixie"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ゴースト",
+					"skin_id": "ghost",
+					"type_id": "pixie"
 				}
 			]
 		},
@@ -213,14 +300,25 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "プリースト"
+					"name": "プリースト",
+					"skin_id": "priest",
+					"type_id": "priest"
 				}
 			],
 			"enemy": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ホブゴブリン"
+					"name": "ホブゴブリン",
+					"skin_id": "hobgoblin",
+					"type_id": "priest"
+				},
+				{
+					"description": "",
+					"images": {},
+					"name": "スケルトン",
+					"skin_id": "skeleton",
+					"type_id": "priest"
 				}
 			]
 		},
@@ -229,7 +327,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "サムライ"
+					"name": "サムライ",
+					"skin_id": "samurai",
+					"type_id": "samurai"
 				}
 			],
 			"enemy": []
@@ -239,7 +339,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "スナイパー"
+					"name": "スナイパー",
+					"skin_id": "sniper",
+					"type_id": "sniper"
 				}
 			],
 			"enemy": []
@@ -249,7 +351,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ソーサラー"
+					"name": "ソーサラー",
+					"skin_id": "sorcerer",
+					"type_id": "sorcerer"
 				}
 			],
 			"enemy": []
@@ -259,7 +363,9 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "シーフ"
+					"name": "シーフ",
+					"skin_id": "thief",
+					"type_id": "thief"
 				}
 			],
 			"enemy": []
@@ -269,17 +375,29 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ヴァンガード"
+					"name": "ヴァンガード",
+					"skin_id": "vanguard",
+					"type_id": "vanguard"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "デュラハン",
+					"skin_id": "dullahan",
+					"type_id": "vanguard"
+				}
+			]
 		},
 		"wagon": {
 			"ally": [
 				{
 					"description": "",
 					"images": {},
-					"name": "馬車"
+					"name": "馬車",
+					"skin_id": "wagon",
+					"type_id": "wagon"
 				}
 			],
 			"enemy": []
@@ -289,17 +407,29 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "ウィッチ"
+					"name": "ウィッチ",
+					"skin_id": "witch",
+					"type_id": "witch"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ネクロマンサー",
+					"skin_id": "necromancer",
+					"type_id": "witch"
+				}
+			]
 		},
 		"wizard": {
 			"ally": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ウィザード"
+					"name": "ウィザード",
+					"skin_id": "wizard",
+					"type_id": "wizard"
 				}
 			],
 			"enemy": []

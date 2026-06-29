@@ -42,7 +42,7 @@ func clear() -> void:
 		_label.text = "ユニット未選択\n\n盤上のユニットを左クリックで選択"
 
 func _format(u: Unit) -> String:
-	var skin: UnitSkin = SkinCatalog.skin(_skins, u.type_id, u.team)
+	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)
 	var unit_name := skin.name if skin != null else u.type_id
 	var team_name := "自軍" if u.team == 0 else "敵軍"
 	var terr := _state.terrain_at(u.pos)
@@ -135,7 +135,7 @@ func _format_combat(d: Dictionary) -> String:
 	return "\n".join(lines)
 
 func _combatant_name(snap: Dictionary) -> String:
-	var s: UnitSkin = SkinCatalog.skin(_skins, snap["type_id"], snap["team"])
+	var s: UnitSkin = SkinCatalog.resolve(_skins, String(snap.get("skin_id", "")), snap["type_id"], snap["team"])
 	return s.name if s != null else String(snap["type_id"])
 
 ## 補正チェーン1行。breakdown は Combat.attack_breakdown / defense_breakdown。

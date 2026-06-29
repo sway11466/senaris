@@ -13,13 +13,13 @@ class_name StageLoader
 ## ステージ辞書から BattleState を組み立てる。
 ## 期待キー: cols, rows, terrain(配列の文字列), units(配列の辞書), bases(配列の辞書)。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）。
-static func build(data: Dictionary, catalog: Dictionary = {}) -> BattleState:
+static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}) -> BattleState:
 	var cols := int(data.get("cols", 12))
 	var rows := int(data.get("rows", 8))
 	var state := BattleState.new(cols, rows)
 	_apply_terrain(state, data.get("terrain", []))
-	var next_id := _apply_units(state, data.get("units", []), catalog)
-	_apply_bases(state, data.get("bases", []), catalog, next_id)
+	var next_id := _apply_units(state, data.get("units", []), catalog, skin_catalog)
+	_apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
@@ -33,7 +33,7 @@ static func load_file(path: String) -> BattleState:
 	if typeof(data) != TYPE_DICTIONARY:
 		push_error("StageLoader: JSON が不正: %s" % path)
 		return null
-	var state := build(data, UnitCatalog.load_default())
+	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard())
 	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
 	return state
 
@@ -51,19 +51,19 @@ static func _apply_terrain(state: BattleState, grid: Variant) -> void:
 ## ユニット配置リストを盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
 ## "type" があれば catalog からステータスを引き、個別キー(move/troops/atk/def/level)で上書きできる。
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
-static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary) -> int:
+static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, skin_catalog: Dictionary = {}) -> int:
 	if typeof(units) != TYPE_ARRAY:
 		return 1
 	var auto_id := 1
 	for u in units:
-		state.add_unit(_make_unit(u, catalog, int(u.get("id", auto_id))))
+		state.add_unit(_make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog))
 		auto_id += 1
 	return auto_id
 
 ## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・garrison(控えユニット)を持つ。
 ## garrison の各要素は { type, count } ＋ ユニット個別キー（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
-static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int) -> void:
+static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> void:
 	if typeof(bases) != TYPE_ARRAY:
 		return
 	var auto_id := start_id
@@ -72,15 +72,21 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 		var base := Base.new(hex, int(b.get("team", Base.NEUTRAL)))
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
-				base.garrison.append(_make_unit(g, catalog, auto_id))
+				base.garrison.append(_make_unit(g, catalog, auto_id, skin_catalog))
 				auto_id += 1
 		state.add_base(base)
 
 ## ユニット辞書 → Unit。"type" があれば catalog からステータスを引き、個別キーで上書き可。
 ## col/row 省略は (0,0)（garrison は出撃時に pos を決めるので無視される）。
-static func _make_unit(u: Dictionary, catalog: Dictionary, id: int) -> Unit:
+static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog: Dictionary = {}) -> Unit:
 	var pos := Hex.offset_to_axial(int(u.get("col", 0)), int(u.get("row", 0)))
+	# 見た目(skin)と性能(type)の解決。skin→type は1:1なので、どちらか一方の指定で両方決まる。
+	var skin_id := String(u.get("skin", ""))
 	var type_id := String(u.get("type", ""))
+	if skin_id == "" and type_id != "":
+		skin_id = type_id  # type 指定 → 同名スキンを使う
+	if type_id == "" and skin_id != "" and not skin_catalog.is_empty():
+		type_id = SkinCatalog.type_of_skin(skin_catalog, skin_id)  # skin 指定 → 性能を逆引き
 	var t: UnitType = null
 	if type_id != "":
 		t = catalog.get(type_id)
@@ -92,6 +98,7 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int) -> Unit:
 	var dfn := int(u.get("def", t.defense if t != null else 10))
 	var lv := int(u.get("level", 1))
 	var unit := Unit.new(id, int(u.get("team", 0)), pos, mv, tp, atk, dfn, lv, type_id)
+	unit.skin_id = skin_id
 	unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
 	unit.attack_range = int(u.get("range", t.attack_range if t != null else 1))
 	unit.move_after_attack = bool(u.get("move_after_attack", t.move_after_attack if t != null else false))

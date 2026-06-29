@@ -287,7 +287,7 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 ## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
 func _unit_snapshot(u: Unit) -> Dictionary:
 	return {
-		"id": u.id, "type_id": u.type_id, "team": u.team, "level": u.level,
+		"id": u.id, "type_id": u.type_id, "skin_id": u.skin_id, "team": u.team, "level": u.level,
 		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos),
 	}
 

@@ -24,3 +24,22 @@ func test_load_standard() -> void:
 	assert_eq(SkinCatalog.skin(cat, "cleric", 0).name, "クレリック")
 	assert_eq(SkinCatalog.skin(cat, "cleric", 1).name, "ゴブリン", "敵名はミラー")
 	assert_eq(SkinCatalog.skin(cat, "paladin", 1).name, "ゴブリンロード")
+
+func test_skin_by_id_and_resolve() -> void:
+	var cat := SkinCatalog.build({ "skins": {
+		"priest": {
+			"ally": [ { "skin_id": "priest", "type_id": "priest", "name": "プリースト" } ],
+			"enemy": [
+				{ "skin_id": "hobgoblin", "type_id": "priest", "name": "ホブゴブリン" },
+				{ "skin_id": "skeleton", "type_id": "priest", "name": "スケルトン" },
+			],
+		},
+	} })
+	# skin_id 直引き・type 逆引き
+	assert_eq(SkinCatalog.skin_by_id(cat, "skeleton").name, "スケルトン", "skin_id で引く")
+	assert_eq(SkinCatalog.type_of_skin(cat, "skeleton"), "priest", "skin_id → type_id")
+	assert_null(SkinCatalog.skin_by_id(cat, "unknown"), "未知 skin_id は null")
+	# resolve: skin_id 優先、無ければ type_id+team の先頭へフォールバック
+	assert_eq(SkinCatalog.resolve(cat, "skeleton", "priest", 1).name, "スケルトン", "skin_id 優先")
+	assert_eq(SkinCatalog.resolve(cat, "", "priest", 1).name, "ホブゴブリン", "skin無→enemy先頭")
+	assert_eq(SkinCatalog.resolve(cat, "", "priest", 0).name, "プリースト", "skin無→ally先頭")

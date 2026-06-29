@@ -117,3 +117,38 @@ func test_load_demo_file() -> void:
 	assert_true(s.units().size() >= 1, "ユニットが配置される（体数はデモ編集で変わるので下限のみ）")
 	assert_eq(s.terrain_at(Hex.offset_to_axial(5, 4)), "plateau", "中央に台地")
 	assert_eq(s.terrain_at(Hex.offset_to_axial(6, 4)), "plateau")
+
+func test_skin_field_resolves_type_and_keeps_skin_id() -> void:
+	var catalog := {
+		"cleric": UnitType.from_dict({
+			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
+		}),
+	}
+	var skin_catalog := SkinCatalog.build({ "skins": {
+		"cleric": {
+			"ally": [ { "skin_id": "cleric", "type_id": "cleric", "name": "クレリック" } ],
+			"enemy": [ { "skin_id": "goblin", "type_id": "cleric", "name": "ゴブリン" } ],
+		},
+	} })
+	var data := { "cols": 6, "rows": 4, "units": [
+		{ "skin": "goblin", "team": 1, "col": 1, "row": 1 },
+	] }
+	var s := StageLoader.build(data, catalog, skin_catalog)
+	var u := s.unit_by_id(1)
+	assert_eq(u.skin_id, "goblin", "skin_id を保持")
+	assert_eq(u.type_id, "cleric", "skin から type を逆引き")
+	assert_eq(u.unit_attack, 10, "逆引きした type の stats を引く")
+
+func test_type_field_sets_skin_id_to_same_name() -> void:
+	var catalog := {
+		"fighter": UnitType.from_dict({
+			"id": "fighter", "atk_ground": 50, "defense": 40, "move": 6, "max_troops": 8,
+		}),
+	}
+	var data := { "cols": 6, "rows": 4, "units": [
+		{ "type": "fighter", "team": 0, "col": 1, "row": 1 },
+	] }
+	var s := StageLoader.build(data, catalog)
+	var u := s.unit_by_id(1)
+	assert_eq(u.skin_id, "fighter", "type 指定 → 同名 skin_id")
+	assert_eq(u.type_id, "fighter", "type_id はそのまま")

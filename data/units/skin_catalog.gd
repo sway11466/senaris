@@ -8,19 +8,29 @@ class_name SkinCatalog
 ## ※将来テーマが増えたら data/units/unit_skin/<テーマ>.json のように割ってもよい。
 
 const UNIT_SKIN_PATH := "res://data/units/unit_skin.json"
+const BY_ID_KEY := "__by_id__"  ## skin_id 索引を入れる予約キー（type_id とは衝突しない）
 
 ## スキン表辞書（{ "skins": { type_id: { ally:[...], enemy:[...] } } }）を組み立てる。
+## 併せて skin_id → UnitSkin の索引を BY_ID_KEY に格納する（ステージは skin_id で見た目を引く）。
 static func build(data: Dictionary) -> Dictionary:
 	var out := {}
+	var by_id := {}
 	var skins: Variant = data.get("skins", {})
 	if typeof(skins) != TYPE_DICTIONARY:
+		out[BY_ID_KEY] = by_id
 		return out
 	for type_id in skins:
 		var sides: Dictionary = skins[type_id]
-		out[type_id] = {
-			"ally": _to_skins(sides.get("ally", [])),
-			"enemy": _to_skins(sides.get("enemy", [])),
-		}
+		var ally := _to_skins(sides.get("ally", []))
+		var enemy := _to_skins(sides.get("enemy", []))
+		out[type_id] = { "ally": ally, "enemy": enemy }
+		for s in ally:
+			if s.skin_id != "":
+				by_id[s.skin_id] = s
+		for s in enemy:
+			if s.skin_id != "":
+				by_id[s.skin_id] = s
+	out[BY_ID_KEY] = by_id
 	return out
 
 static func _to_skins(arr: Variant) -> Array:
@@ -58,3 +68,21 @@ static func skin(catalog: Dictionary, type_id: String, team: int, index: int = 0
 	if index < 0 or index >= list.size():
 		index = 0
 	return list[index]
+
+## skin_id からスキンを引く（主キー解決）。無ければ null。
+static func skin_by_id(catalog: Dictionary, skin_id: String) -> UnitSkin:
+	var by_id: Dictionary = catalog.get(BY_ID_KEY, {})
+	return by_id.get(skin_id, null)
+
+## skin_id に紐づく性能(UnitType)の type_id。無ければ ""。
+static func type_of_skin(catalog: Dictionary, skin_id: String) -> String:
+	var s := skin_by_id(catalog, skin_id)
+	return s.type_id if s != null else ""
+
+## ユニットの見た目を解決：skin_id を優先（あれば）、無ければ type_id+team の既定スキンへフォールバック。
+static func resolve(catalog: Dictionary, skin_id: String, type_id: String, team: int) -> UnitSkin:
+	if skin_id != "":
+		var s := skin_by_id(catalog, skin_id)
+		if s != null:
+			return s
+	return skin(catalog, type_id, team)

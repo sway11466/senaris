@@ -13,6 +13,7 @@ witch,45,0,30,4,ground,5,false,false,8,魔法兵,参考：ナスホルン
 thief,70,10,20,8,light_foot,1,true,false,8,斥候,参考：ラビット
 halfling,40,10,20,6,light_foot,2,true,false,8,斥候,参考：リンクス
 ninja,50,30,20,7,light_foot,1,true,false,8,斥候,
+pixie,10,10,10,5,flight,1,false,false,8,飛行兵,
 dragon_knight,0,90,30,12,flight,1,false,false,8,飛行兵,参考：ファルコ
 birdman,70,20,30,10,flight,1,false,false,8,飛行兵,参考：ジャビィ
 dragon,70,70,50,11,flight,1,false,false,8,飛行兵,参考：ハンター

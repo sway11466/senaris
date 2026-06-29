@@ -454,7 +454,7 @@ func _draw_unit(u: Unit) -> void:
 
 ## ユニットのマップ表示プレースホルダ（スキン名の先頭2文字）。画像が来たら差し替え予定。
 func _draw_unit_label(u: Unit, center: Vector2) -> void:
-	var s: UnitSkin = SkinCatalog.skin(_skin_catalog, u.type_id, u.team)
+	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
 	var label := s.map_label() if s != null else u.type_id.substr(0, 2)
 	if label.is_empty():
 		return
