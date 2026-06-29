@@ -44,7 +44,7 @@
 - `data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --script res://data/units/convert.gd`
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
 - `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
-- `data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id`**。`skin_id` が主キー）→ `data/units/unit_skin.json`。画像・説明は当面空で、必要時にCSVへ列追加。
+- `data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id, category`**。`skin_id` が主キー／`category`＝管理分類: 基準・ゴブリン・アンデッド・デモ、この順に整列。コード未使用の参考列）→ `data/units/unit_skin.json`。画像・説明は当面空で、必要時にCSVへ列追加。
 - `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 
