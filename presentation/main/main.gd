@@ -44,7 +44,7 @@ func _on_turn_changed(team: int, turn_number: int) -> void:
 
 func _update_turn_label(team: int, turn_number: int) -> void:
 	var who := "自軍" if team == 0 else "敵軍"
-	$Title.text = "Senaris — Turn %d / %s（Enter で手番終了）" % [turn_number, who]
+	$Title.text = "Senaris — Turn %d / %s（Enter=手番終了 / 2本指スクロール or 空き地ドラッグ=移動 ピンチ=ズーム F=全体）" % [turn_number, who]
 
 func _on_battle_finished(outcome: int) -> void:
 	var text := "決着"

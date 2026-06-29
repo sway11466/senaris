@@ -27,6 +27,7 @@
 | 移動（移動タイプ・地形コスト） | [doc/gdd/movement.md](doc/gdd/movement.md) |
 | 拠点・占領・ステージ | [doc/gdd/map.md](doc/gdd/map.md) |
 | 敵AI（思考パターン） | [doc/gdd/ai.md](doc/gdd/ai.md) |
+| UI/UX（操作モデル） | [doc/gdd/uiux.md](doc/gdd/uiux.md) |
 | 世界観 | [doc/gdd/world.md](doc/gdd/world.md) |
 | アーキテクチャ | [doc/tech/architecture.md](doc/tech/architecture.md) |
 | セーブ仕様 | [doc/tech/gamesystem.md](doc/tech/gamesystem.md) |

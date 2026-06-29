@@ -3,12 +3,30 @@ class_name HexBoard
 ## ヘックス盤面とユニットの描画・入力。flat-top。
 ## Presentation 層: 状態(BattleState)は読むだけ。変更はコマンドを controller に渡し、
 ## 結果はシグナル(unit_moved/unit_attacked/turn_changed)を受けて再描画する。
+##
+## カメラ操作（doc/gdd/uiux.md 準拠）:
+##   パン … 空き地から左ドラッグ（クリック/ドラッグはしきい値で判別。マウス・トラックパッド共通）。
+##   ズーム … ホイール / ピンチ（カーソルか2本指中心を基点）。F … 全体表示。
+##   ※Windows のトラックパッドは2本指スクロールがホイールと同一イベントのためズーム扱い（パンは左ドラッグで行う）。
+##   盤自身の Node2D 変換(position/scale)で実現するため、HUD(兄弟ノード)には影響しない。
+##   マウス判定は get_local_mouse_position() がノード変換を含むので、描画・入力側は変更不要。
 
 ## 選択中ユニットが変わったとき発行（id<0＝選択解除）。情報パネル等が購読する。
 signal selection_changed(unit_id: int)
 
 @export var hex_size: float = 36.0
 @export var board_origin: Vector2 = Vector2(120, 100)
+@export var min_zoom: float = 0.3
+@export var max_zoom: float = 2.5
+
+const ZOOM_STEP := 1.15
+const INFOPANEL_LEFT := 800.0    # InfoPanel の左端（main.tscn の offset_left と一致）
+const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
+const PAN_GESTURE_SPEED := 24.0  # パンジェスチャ(macOS等の2本指)の感度
+const PAN_WHEEL_STEP := 50.0     # 2本指スクロール1ノッチぶんのパン量(px)
+var _press_pos := Vector2.ZERO   # 左ボタン押下位置（クリック/ドラッグ判別の起点・スクリーン座標）
+var _press_on_empty := false     # 押下が空き地（ユニット無し）から始まったか＝パン許可
+var _dragging_pan := false       # 左ドラッグでパン中
 
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 1.0)
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
@@ -50,6 +68,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_deployed.connect(_on_unit_deployed)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
+	fit_to_view()  # 新ステージの全体が画面に収まるよう初期ズーム/位置を合わせる
 	queue_redraw()
 
 ## 選択・出撃モード・ロック・ホバーを初期状態へ（ステージ再ロード時に呼ぶ）。
@@ -60,6 +79,8 @@ func _reset_interaction() -> void:
 	_deploy_base = INVALID_HEX
 	_deploy_cells.clear()
 	_locked = false
+	_dragging_pan = false
+	_press_on_empty = false
 	_hover = Vector2i(-9999, -9999)
 
 func _process(_delta: float) -> void:
@@ -71,11 +92,32 @@ func _process(_delta: float) -> void:
 		queue_redraw()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if state == null or _locked or controller.is_ai_turn():
+	if state == null:
 		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_on_click(_hex_at_mouse())
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+	# --- カメラ（パン/ズーム/全体表示）。AI手番・決着後も見渡せるよう常時受ける。---
+	if _handle_camera_scroll(event):
+		return
+	# 左ボタン: 押下で起点を記録し、離した時にクリック/パンを判別（しきい値）。
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press_pos = get_viewport().get_mouse_position()
+			_press_on_empty = state.unit_at(_hex_at_mouse()) == null  # 空き地からのみパン
+			_dragging_pan = false
+		elif _dragging_pan:
+			_dragging_pan = false  # パンだった＝クリック扱いにしない
+		elif not _locked and not controller.is_ai_turn():
+			_on_click(_hex_at_mouse())  # ドラッグしていない＝クリック
+		return
+	if event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) and _press_on_empty:
+		if not _dragging_pan and _press_pos.distance_to(get_viewport().get_mouse_position()) > DRAG_THRESHOLD:
+			_dragging_pan = true
+		if _dragging_pan:
+			position += event.relative  # 空き地ドラッグ＝パン
+		return
+	# --- 盤操作（自手番のみ）---
+	if _locked or controller.is_ai_turn():
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		_on_right_click(_hex_at_mouse())  # 自軍拠点 → 出撃モード
 	elif event.is_action_pressed("ui_accept"):  # Enter / Space で手番終了
 		_deselect()
@@ -181,6 +223,80 @@ func _on_battle_finished(_winner: int) -> void:
 
 func _hex_at_mouse() -> Vector2i:
 	return Hex.from_pixel(get_local_mouse_position() - board_origin, hex_size)
+
+# --- カメラ（パン/ズーム/全体表示）。盤の Node2D 変換を直接動かす。HUD は兄弟なので無影響。---
+# 左ドラッグのパンは _unhandled_input 側でクリック判別と一体で扱う。ここはスクロール/ジェスチャ。
+
+## スクロール（2本指/ピンチ/ホイール）・全体表示を処理。消費したら true。
+## Windows のトラックパッドでは「ピンチ＝Ctrl＋ホイール」「2本指スクロール＝修飾なしホイール」で届く。
+## この Ctrl の有無で判別: 修飾なし＝パン、Ctrl付き＝ズーム（カーソル基点）。
+func _handle_camera_scroll(event: InputEvent) -> bool:
+	if event is InputEventMouseButton and event.pressed \
+			and event.button_index >= MOUSE_BUTTON_WHEEL_UP and event.button_index <= MOUSE_BUTTON_WHEEL_RIGHT:
+		if event.ctrl_pressed:  # ピンチ＝ズーム
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				_zoom_at_point(ZOOM_STEP, get_viewport().get_mouse_position())
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				_zoom_at_point(1.0 / ZOOM_STEP, get_viewport().get_mouse_position())
+		else:  # 2本指スクロール＝パン（上下左右）
+			match event.button_index:
+				MOUSE_BUTTON_WHEEL_UP: position.y += PAN_WHEEL_STEP
+				MOUSE_BUTTON_WHEEL_DOWN: position.y -= PAN_WHEEL_STEP
+				MOUSE_BUTTON_WHEEL_LEFT: position.x += PAN_WHEEL_STEP
+				MOUSE_BUTTON_WHEEL_RIGHT: position.x -= PAN_WHEEL_STEP
+		return true
+	if event is InputEventMagnifyGesture:  # macOS等のピンチ（Windowsでは通常来ない）
+		_zoom_at_point(event.factor, event.position)
+		return true
+	if event is InputEventPanGesture:  # macOS等の2本指パン（Windowsでは通常来ない）
+		position -= event.delta * PAN_GESTURE_SPEED
+		return true
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F:
+		fit_to_view()
+		return true
+	return false
+
+## pivot（親座標）を基点に拡大率を factor 倍する（pivot 下のワールド点を固定）。
+func _zoom_at_point(factor: float, pivot: Vector2) -> void:
+	var old := scale.x
+	var ns := clampf(old * factor, min_zoom, max_zoom)
+	if is_equal_approx(ns, old):
+		return
+	position = pivot - (pivot - position) * (ns / old)  # pivot 下の点を動かさないよう補正
+	scale = Vector2(ns, ns)
+
+## 盤全体が HUD を避けた表示領域に収まるよう scale/position を合わせる（読み込み時・F キー）。
+func fit_to_view() -> void:
+	if state == null:
+		return
+	var content := _content_bounds_local()
+	if content.size.x <= 0.0 or content.size.y <= 0.0:
+		return
+	var view := _view_rect()
+	var s := minf(view.size.x / content.size.x, view.size.y / content.size.y)
+	s = clampf(s, min_zoom, 1.0)  # 拡大は等倍まで（小マップを巨大化しない）
+	scale = Vector2(s, s)
+	position = view.get_center() - content.get_center() * s
+
+## 盤の描画範囲（ローカル座標・等倍）。全ヘックス中心の外接矩形を1ヘックスぶん広げて返す。
+func _content_bounds_local() -> Rect2:
+	var mn := Vector2(INF, INF)
+	var mx := Vector2(-INF, -INF)
+	for col in state.cols:
+		for row in state.rows:
+			var c := board_origin + Hex.to_pixel(Hex.offset_to_axial(col, row), hex_size)
+			mn.x = minf(mn.x, c.x); mn.y = minf(mn.y, c.y)
+			mx.x = maxf(mx.x, c.x); mx.y = maxf(mx.y, c.y)
+	var ext := Vector2(hex_size, hex_size * Hex.SQRT3 * 0.5)  # ヘックス半幅・半高
+	return Rect2(mn - ext, (mx - mn) + ext * 2.0)
+
+## 盤を表示してよい画面領域（HUD: 上の Title と右の InfoPanel を避ける）。
+func _view_rect() -> Rect2:
+	var vp := get_viewport_rect().size
+	var right := minf(vp.x, INFOPANEL_LEFT)
+	var margin := 16.0
+	var top := 64.0  # Title の下
+	return Rect2(margin, top, maxf(right - margin * 2.0, 1.0), maxf(vp.y - top - margin, 1.0))
 
 func _draw() -> void:
 	if state == null:

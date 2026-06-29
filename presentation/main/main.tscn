@@ -13,7 +13,7 @@ script = ExtResource("2")
 [node name="Title" type="Label" parent="."]
 offset_left = 16.0
 offset_top = 16.0
-offset_right = 336.0
+offset_right = 788.0
 offset_bottom = 56.0
 text = "Senaris — hex board"
 
