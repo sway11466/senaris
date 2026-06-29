@@ -55,6 +55,20 @@ var _deploy_base := INVALID_HEX  # 出撃モード中の拠点（右クリック
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false  # 決着・AI手番中は入力を受けない
 
+# コマンドメニュー（選択→移動先クリックで開く。移動は未確定＝キャンセルで戻せる）。
+var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
+var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
+var _menu: PopupMenu = null     # 攻撃/待機/キャンセル のポップアップ
+var _menu_handled := false      # 項目が選ばれたか（閉じただけ＝キャンセル判定用）
+enum { MENU_ATTACK, MENU_WAIT, MENU_CANCEL }
+const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
+
+func _ready() -> void:
+	_menu = PopupMenu.new()  # ユニットコマンドメニュー（盤の子。Windowなのでカメラ変換の影響を受けない）
+	add_child(_menu)
+	_menu.id_pressed.connect(_on_menu_id)
+	_menu.popup_hide.connect(_on_menu_closed)
+
 func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}) -> void:
 	state = p_state
 	controller = p_controller
@@ -79,6 +93,10 @@ func _reset_interaction() -> void:
 	_deploy_base = INVALID_HEX
 	_deploy_cells.clear()
 	_locked = false
+	_pending_to = INVALID_HEX
+	_choosing_target = false
+	if _menu != null and _menu.visible:
+		_menu.hide()
 	_dragging_pan = false
 	_press_on_empty = false
 	_hover = Vector2i(-9999, -9999)
@@ -119,6 +137,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		_on_right_click(_hex_at_mouse())  # 自軍拠点 → 出撃モード
+	elif event.is_action_pressed("ui_cancel"):  # Esc でキャンセル・戻る
+		_on_cancel()
 	elif event.is_action_pressed("ui_accept"):  # Enter / Space で手番終了
 		_deselect()
 		controller.end_turn()
@@ -130,14 +150,18 @@ func _on_click(hex: Vector2i) -> void:
 			controller.execute_deploy(DeployCommand.new(_deploy_base, 0, hex))
 			return
 		_clear_deploy()
-	if _selected_id != -1:
-		# 攻撃可能な敵をクリック → 攻撃。
+	# 攻撃対象クリック待ち（メニューで「攻撃」を選んだ後）: 対象なら攻撃、それ以外は中止。
+	if _choosing_target:
 		if _targets.has(hex):
 			controller.execute_attack(AttackCommand.new(_selected_id, _targets[hex]))
-			return
-		# 空きの到達マスをクリック → 移動。
-		if state.unit_at(hex) == null and _reachable.has(hex):
-			controller.execute(MoveCommand.new(_selected_id, hex))
+		else:
+			_deselect()
+		return
+	# 選択中に「自マス or 到達マス」をクリック → コマンドメニュー（移動は未確定のまま開く）。
+	if _selected_id != -1:
+		var sel := state.unit_by_id(_selected_id)
+		if sel != null and (hex == sel.pos or (state.unit_at(hex) == null and _reachable.has(hex))):
+			_open_command_menu(hex)
 			return
 	# 現手番で操作可能なユニットをクリック → 選択。それ以外 → 選択解除。
 	var clicked := state.unit_at(hex)
@@ -145,6 +169,70 @@ func _on_click(hex: Vector2i) -> void:
 		_select(clicked.id)
 	else:
 		_deselect()
+
+## 移動先（自マス含む）に対するコマンドメニューを開く。移動はまだ確定しない。
+func _open_command_menu(dest: Vector2i) -> void:
+	_pending_to = dest
+	var can_attack := not controller.attack_targets_from(_selected_id, dest).is_empty()
+	_menu.clear()
+	_menu.add_item("攻撃", MENU_ATTACK)
+	_menu.set_item_disabled(_menu.get_item_index(MENU_ATTACK), not can_attack)
+	_menu.add_item("待機", MENU_WAIT)
+	_menu.add_separator()
+	_menu.add_item("キャンセル", MENU_CANCEL)
+	_menu_handled = false
+	_menu.reset_size()
+	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)
+	_menu.popup()
+	queue_redraw()  # 移動先プレビューを描く
+
+func _on_menu_id(id: int) -> void:
+	_menu_handled = true
+	match id:
+		MENU_ATTACK:
+			_commit_pending_move()
+			_reachable.clear()
+			_targets.clear()
+			for tid in controller.attack_targets_for(_selected_id):  # 移動後の位置から狙える敵
+				var u := state.unit_by_id(tid)
+				if u != null:
+					_targets[u.pos] = tid
+			_choosing_target = true
+			queue_redraw()
+		MENU_WAIT:
+			_commit_pending_move()
+			controller.stand(_selected_id)  # 移動だけ／動かず＝この駒の行動を終了
+			_deselect()
+		MENU_CANCEL:
+			_pending_to = INVALID_HEX  # 移動は確定していないので選択状態へ戻すだけ
+			queue_redraw()
+
+## メニューが閉じた。id_pressed と popup_hide の発火順は環境差があるため、
+## 判定を1フレーム遅らせ、項目選択（_on_menu_id）が先に処理されるようにする。
+func _on_menu_closed() -> void:
+	call_deferred("_after_menu_closed")
+
+## 項目を選ばず閉じた（外側クリック / Esc）＝キャンセル扱いで選択状態へ戻す。
+func _after_menu_closed() -> void:
+	if not _menu_handled:
+		_pending_to = INVALID_HEX
+		queue_redraw()
+
+## 保留中の移動を確定（自マスのままなら移動しない）。
+func _commit_pending_move() -> void:
+	var sel := state.unit_by_id(_selected_id)
+	if sel != null and _pending_to != INVALID_HEX and _pending_to != sel.pos:
+		controller.execute(MoveCommand.new(_selected_id, _pending_to))
+	_pending_to = INVALID_HEX
+
+## Esc 等の「戻る」。メニュー→選択→出撃モードの順に1段ずつ解除。
+func _on_cancel() -> void:
+	if _menu.visible:
+		_menu.hide()  # popup_hide がキャンセル処理する
+	elif _choosing_target or _selected_id != -1:
+		_deselect()
+	elif _deploy_base != INVALID_HEX:
+		_clear_deploy()
 
 ## 自軍が占領済みで控えのある拠点を右クリック → 出撃モード（出撃先候補をハイライト）。
 func _on_right_click(hex: Vector2i) -> void:
@@ -168,34 +256,32 @@ func _clear_deploy() -> void:
 
 func _select(id: int) -> void:
 	_selected_id = id
+	_pending_to = INVALID_HEX
+	_choosing_target = false
 	_reachable.clear()
 	_targets.clear()
 	if state.can_still_move(id):  # まだ動けるなら（残り移動力ぶん）移動範囲を出す
 		for h in controller.reachable_for(id):
 			_reachable[h] = true
-	for tid in controller.attack_targets_for(id):
-		_targets[state.unit_by_id(tid).pos] = tid
-	selection_changed.emit(id)
+	selection_changed.emit(id)  # 攻撃対象はコマンドメニューの「攻撃」選択後に表示する
 	queue_redraw()
 
 func _deselect() -> void:
 	var had := _selected_id
 	_selected_id = -1
+	_pending_to = INVALID_HEX
+	_choosing_target = false
 	_reachable.clear()
 	_targets.clear()
+	if _menu != null and _menu.visible:
+		_menu.hide()
 	if had != -1:
 		selection_changed.emit(-1)
 	queue_redraw()
 
-func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
-	# 移動後も攻撃が残っていれば選択を維持（移動→攻撃の流れ）。使い切ったら解除。
-	if unit_id == _selected_id:
-		if state.is_done(unit_id):
-			_deselect()
-		else:
-			_select(unit_id)
-	else:
-		queue_redraw()
+func _on_unit_moved(_unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
+	# 移動はコマンドメニュー側が駆動するため、ここは再描画のみ（選択遷移は明示的に行う）。
+	queue_redraw()
 
 func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed: bool) -> void:
 	_deselect()  # 攻撃したユニットは行動終了
@@ -334,6 +420,8 @@ func _draw_tile(hex: Vector2i) -> void:
 		draw_colored_polygon(pts, COLOR_REACH)
 	if _deploy_cells.has(hex):
 		draw_colored_polygon(pts, COLOR_DEPLOY)
+	if hex == _pending_to:
+		draw_colored_polygon(pts, COLOR_PENDING)  # メニュー表示中の移動先プレビュー
 	if hex == _hover:
 		draw_colored_polygon(pts, COLOR_HOVER)
 	var outline := pts.duplicate()

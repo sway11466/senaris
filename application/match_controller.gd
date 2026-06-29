@@ -113,3 +113,13 @@ func reachable_for(unit_id: int) -> Array[Vector2i]:
 
 func attack_targets_for(unit_id: int) -> Array[int]:
 	return state.attack_targets(unit_id)
+
+## 表示用: from_hex に居ると仮定したときの攻撃対象（コマンドメニューの「攻撃」可否判定）。
+func attack_targets_from(unit_id: int, from_hex: Vector2i) -> Array[int]:
+	return state.attack_targets_from(unit_id, from_hex)
+
+## コマンドメニューの「待機」: そのユニットの行動をこのターン終了させる。
+func stand(unit_id: int) -> void:
+	if _finished:
+		return
+	state.set_done(unit_id)

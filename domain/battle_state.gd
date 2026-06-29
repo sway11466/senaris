@@ -14,6 +14,7 @@ var _units: Array[Unit] = []
 var _moved := {}       # unit_id -> true（攻撃前の移動を1回使った）
 var _post_moved := {}  # unit_id -> true（攻撃後の再移動を1回使った）
 var _attacked := {}    # unit_id -> true（このターンに攻撃済み）
+var _done := {}        # unit_id -> true（コマンドメニューの「待機」等で明示的に行動終了）
 var _spent := {}       # unit_id -> int（このターンに使った移動コスト。move と比較）
 var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
@@ -197,25 +198,38 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 
 # --- 攻撃 ---
 
-## attacker が target を攻撃できるか（現手番・未攻撃・隣接する敵）。
+## attacker が target を攻撃できるか（現手番・未攻撃・射程内の敵）。
 func can_attack(attacker_id: int, target_id: int) -> bool:
 	var a := unit_by_id(attacker_id)
-	var t := unit_by_id(target_id)
+	if a == null:
+		return false
+	return _can_attack_from(a, unit_by_id(target_id), a.pos)
+
+## from_hex に attacker が居ると仮定したときの攻撃可否。仮移動でメニューを出す（移動確定前）ために使う。
+func _can_attack_from(a: Unit, t: Unit, from_hex: Vector2i) -> bool:
 	if a == null or t == null:
 		return false
-	if not is_current_unit(a) or has_attacked(attacker_id):
+	if not is_current_unit(a) or has_attacked(a.id):
 		return false
 	if t.team == a.team:
 		return false
 	if a.attack_against(t) <= 0:
 		return false  # 対空0の駒は飛行を狙えない（攻撃力が無い相手は対象外）
-	return Hex.distance(a.pos, t.pos) <= a.attack_range  # 近接=1, 間接=射程内
+	return Hex.distance(from_hex, t.pos) <= a.attack_range  # 近接=1, 間接=射程内
 
-## attacker が今攻撃できる敵ユニットIDの一覧。
+## attacker が今いる位置から攻撃できる敵ユニットIDの一覧。
 func attack_targets(attacker_id: int) -> Array[int]:
+	var a := unit_by_id(attacker_id)
+	return attack_targets_from(attacker_id, a.pos) if a != null else []
+
+## from_hex に居ると仮定して攻撃できる敵ID一覧（移動を確定せずコマンドメニューを出すため）。
+func attack_targets_from(attacker_id: int, from_hex: Vector2i) -> Array[int]:
+	var a := unit_by_id(attacker_id)
 	var ids: Array[int] = []
+	if a == null:
+		return ids
 	for u in _units:
-		if can_attack(attacker_id, u.id):
+		if _can_attack_from(a, u, from_hex):
 			ids.append(u.id)
 	return ids
 
@@ -319,11 +333,17 @@ func has_moved(unit_id: int) -> bool:
 func has_attacked(unit_id: int) -> bool:
 	return _attacked.has(unit_id)
 
-## このターンの行動を使い切ったか（もう移動も攻撃もできない）。
+## このターンの行動を使い切ったか（もう移動も攻撃もできない／明示的に待機した）。
 func is_done(unit_id: int) -> bool:
+	if _done.has(unit_id):
+		return true  # 「待機」で行動終了済み
 	var can_atk := not has_attacked(unit_id) and not attack_targets(unit_id).is_empty()
 	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
 	return not can_atk and not can_mv
+
+## 明示的に行動終了させる（コマンドメニューの「待機」）。再選択・再行動を止める。
+func set_done(unit_id: int) -> void:
+	_done[unit_id] = true
 
 ## 選択して操作できる状態か（現手番・まだ行動が残っている）。
 func can_select(unit_id: int) -> bool:
@@ -335,6 +355,7 @@ func end_turn() -> void:
 	_moved.clear()
 	_post_moved.clear()
 	_attacked.clear()
+	_done.clear()
 	_spent.clear()
 	current_team = 1 - current_team
 	if current_team == 0:
