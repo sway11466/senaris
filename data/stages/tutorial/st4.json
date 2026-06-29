@@ -1,0 +1,34 @@
+{
+  "name": "tutorial-st4",
+  "cols": 14,
+  "rows": 8,
+  "terrain": [
+    "MMMMMMMMMMMMMM",
+    "M............M",
+    "M............M",
+    "M.....O......M",
+    "M............M",
+    "M............M",
+    "M............M",
+    "MMMMMMMMMMMMMM"
+  ],
+  "units": [
+    { "type": "fighter", "team": 0, "col": 2, "row": 3 },
+    { "type": "novice", "team": 0, "col": 2, "row": 2 },
+    { "type": "novice", "team": 0, "col": 2, "row": 4 },
+    { "type": "cleric", "team": 0, "col": 1, "row": 3 },
+
+    { "type": "priest", "team": 1, "col": 5, "row": 3 },
+    { "type": "cleric", "team": 1, "col": 6, "row": 2 },
+    { "type": "cleric", "team": 1, "col": 6, "row": 4 },
+
+    { "type": "priest", "team": 1, "col": 11, "row": 2 },
+    { "type": "priest", "team": 1, "col": 11, "row": 4 },
+    { "type": "priest", "team": 1, "col": 12, "row": 3 },
+    { "type": "cleric", "team": 1, "col": 10, "row": 3 },
+    { "type": "cleric", "team": 1, "col": 11, "row": 5 }
+  ],
+  "bases": [
+    { "col": 7, "row": 3, "team": -1, "garrison": [ { "type": "novice", "count": 2 } ] }
+  ]
+}

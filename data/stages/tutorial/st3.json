@@ -1,0 +1,28 @@
+{
+  "name": "tutorial-st3",
+  "cols": 14,
+  "rows": 8,
+  "terrain": [
+    "MMMMMMMCMMMMMM",
+    "M.....CC.....M",
+    "M.....CC.....M",
+    "M.....CC.....M",
+    "M............M",
+    "M.....CC.....M",
+    "M.....CC.....M",
+    "MMMMMMMCMMMMMM"
+  ],
+  "units": [
+    { "type": "fighter", "team": 0, "col": 4, "row": 4 },
+    { "type": "novice", "team": 0, "col": 4, "row": 3 },
+    { "type": "novice", "team": 0, "col": 4, "row": 5 },
+    { "type": "cleric", "team": 1, "col": 9, "row": 4 },
+    { "type": "cleric", "team": 1, "col": 10, "row": 4 },
+    { "type": "cleric", "team": 1, "col": 9, "row": 3 },
+    { "type": "cleric", "team": 1, "col": 10, "row": 3 },
+    { "type": "cleric", "team": 1, "col": 9, "row": 5 },
+    { "type": "cleric", "team": 1, "col": 10, "row": 5 },
+    { "type": "priest", "team": 1, "col": 12, "row": 3 },
+    { "type": "priest", "team": 1, "col": 12, "row": 4 }
+  ]
+}
