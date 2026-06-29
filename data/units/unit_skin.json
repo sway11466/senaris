@@ -8,13 +8,7 @@
 					"name": "飛空艇"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ワイバーン"
-				}
-			]
+			"enemy": []
 		},
 		"archer": {
 			"ally": [
@@ -28,7 +22,7 @@
 				{
 					"description": "",
 					"images": {},
-					"name": "リザードマン"
+					"name": "ゴブリンアーチャー"
 				}
 			]
 		},
@@ -40,13 +34,17 @@
 					"name": "バリスタ"
 				}
 			],
-			"enemy": [
+			"enemy": []
+		},
+		"barricade": {
+			"ally": [
 				{
 					"description": "",
 					"images": {},
-					"name": "マンドラゴラ"
+					"name": "バリケード"
 				}
-			]
+			],
+			"enemy": []
 		},
 		"birdman": {
 			"ally": [
@@ -56,13 +54,7 @@
 					"name": "バードマン"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ハーピー"
-				}
-			]
+			"enemy": []
 		},
 		"bishop": {
 			"ally": [
@@ -72,13 +64,7 @@
 					"name": "ビショップ"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ノーム"
-				}
-			]
+			"enemy": []
 		},
 		"cleric": {
 			"ally": [
@@ -114,13 +100,7 @@
 					"name": "ドラゴンナイト"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "グリフォン"
-				}
-			]
+			"enemy": []
 		},
 		"dwarf": {
 			"ally": [
@@ -130,13 +110,7 @@
 					"name": "ドワーフ"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "トロール"
-				}
-			]
+			"enemy": []
 		},
 		"elf": {
 			"ally": [
@@ -146,13 +120,7 @@
 					"name": "エルフ"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ダークエルフ"
-				}
-			]
+			"enemy": []
 		},
 		"fighter": {
 			"ally": [
@@ -162,13 +130,7 @@
 					"name": "ファイター"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "オーク"
-				}
-			]
+			"enemy": []
 		},
 		"halfling": {
 			"ally": [
@@ -178,13 +140,7 @@
 					"name": "ハーフリング"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "アラクネ"
-				}
-			]
+			"enemy": []
 		},
 		"hunter": {
 			"ally": [
@@ -194,13 +150,7 @@
 					"name": "ハンター"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ケンタウロス"
-				}
-			]
+			"enemy": []
 		},
 		"knight": {
 			"ally": [
@@ -210,29 +160,7 @@
 					"name": "ナイト"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ミノタウロス"
-				}
-			]
-		},
-		"mercenary": {
-			"ally": [
-				{
-					"description": "",
-					"images": {},
-					"name": "マーシナリー"
-				}
-			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "バーサーカー"
-				}
-			]
+			"enemy": []
 		},
 		"monk": {
 			"ally": [
@@ -242,13 +170,7 @@
 					"name": "モンク"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "コボルト"
-				}
-			]
+			"enemy": []
 		},
 		"ninja": {
 			"ally": [
@@ -258,13 +180,7 @@
 					"name": "ニンジャ"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ワーウルフ"
-				}
-			]
+			"enemy": []
 		},
 		"novice": {
 			"ally": [
@@ -274,13 +190,7 @@
 					"name": "ノービス"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "スケルトン"
-				}
-			]
+			"enemy": []
 		},
 		"paladin": {
 			"ally": [
@@ -322,13 +232,7 @@
 					"name": "サムライ"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "オーガ"
-				}
-			]
+			"enemy": []
 		},
 		"sniper": {
 			"ally": [
@@ -338,13 +242,7 @@
 					"name": "スナイパー"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "メデューサ"
-				}
-			]
+			"enemy": []
 		},
 		"sorcerer": {
 			"ally": [
@@ -354,13 +252,7 @@
 					"name": "ソーサラー"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ゴーレム"
-				}
-			]
+			"enemy": []
 		},
 		"thief": {
 			"ally": [
@@ -370,13 +262,17 @@
 					"name": "シーフ"
 				}
 			],
-			"enemy": [
+			"enemy": []
+		},
+		"vanguard": {
+			"ally": [
 				{
 					"description": "",
 					"images": {},
-					"name": "ヴァンパイア"
+					"name": "ヴァンガード"
 				}
-			]
+			],
+			"enemy": []
 		},
 		"wagon": {
 			"ally": [
@@ -386,13 +282,7 @@
 					"name": "馬車"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "モンスターチャリオッツ"
-				}
-			]
+			"enemy": []
 		},
 		"witch": {
 			"ally": [
@@ -402,13 +292,7 @@
 					"name": "ウィッチ"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "シャーマン"
-				}
-			]
+			"enemy": []
 		},
 		"wizard": {
 			"ally": [
@@ -418,13 +302,7 @@
 					"name": "ウィザード"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "ネクロマンサー"
-				}
-			]
+			"enemy": []
 		}
 	}
 }

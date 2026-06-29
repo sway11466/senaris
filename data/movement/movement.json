@@ -84,6 +84,23 @@
 			"sea": "x",
 			"trap": 1,
 			"wall": "x"
+		},
+		"mountain_walk": {
+			"bush": 2,
+			"cliff": "x",
+			"corridor": 1,
+			"fence": 3,
+			"forest": 2,
+			"fort": 1,
+			"mountain": 1,
+			"plain": 1,
+			"plateau": 1,
+			"rampart": "x",
+			"river": 3,
+			"road": 1,
+			"sea": "x",
+			"trap": 3,
+			"wall": "x"
 		}
 	}
 }
