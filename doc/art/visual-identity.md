@@ -12,7 +12,7 @@
 
 - 【確定】**絵は顧客獲得に全振り。** ゲームの本体は戦術パズルの面白さ。アートは獲得ROIが最大の場所に集中投下し、それ以外は機能的に済ませる（労力を盛らない）。
 - 【確定】**基調＝クリーン様式化・強シルエット・限定パレット**（"Into the Breach のファンタジー版"トーン）。**絵画調（オウガバトル的）は不採用**——緻密な絵は盤面縮小で潰れ、ゲーム構造（没個性・リスキン）とも噛まず、AI出自も目立ちやすいため。OBから借りるのは「渋い配色の大人っぽさ」だけ。
-- 【確定】**ツール＝Gemini Nano Banana（Google AI Studio・無料枠）。** 一貫性は**アンカー画像方式**で担保（渾身の1枚を作り、以降は参照画像として「same art style」で展開）。
+- 【確定】**ツール＝Gemini Nano Banana（Google AI Studio・無料枠）。** 一貫性は**共通STYLE文＋SUBJECTの言葉指定**で担保（**i2i／参照画像は使わない**）。渾身の1枚＝ファイターで STYLE 文を固め、以降は同じ STYLE 文に「same palette / same face as the fighter」等を書いて text から展開する。
 - 【指針】無料版でも商用利用は可（著作権補償は無し）。配信前に最新ToSと Steam の AI 開示を確認。生成物には SynthID 透かしが付く。
 
 ---
@@ -48,7 +48,7 @@
 
 | 兵種 | シルエット | 必ず付ける記号 |
 |---|---|---|
-| 歩兵 | 中肉・地に足 | 剣／槍＋盾 |
+| 歩兵 | 中肉・地に足 | 剣（小＝新兵／標準／大剣で段階）※**大盾**は壁役ナイトの専用記号 |
 | 占領兵（聖職） | ローブ・フード | 聖印＋杖（占領役） |
 | 弓兵 | 細身 | 弓＋矢筒 |
 | 魔法兵 | ローブ＋とんがり帽 | 杖／オーブ＋発光 |
@@ -76,11 +76,11 @@
 ### 歩兵（青＋鋼）
 | ユニット | 見分けの特徴 |
 |---|---|
-| ノービス | 若い・軽装・素の剣（新兵感） |
-| ファイター | 剣＋盾の標準（主役の基準形） |
-| ヴァンガード | 槍／ハルバード・前傾（移7・突撃役） |
+| ノービス | 若い・軽装・**小さめの剣**・盾なし（新兵感） |
+| ファイター | **片手剣・盾なし**の標準（主役の基準形） |
+| ヴァンガード | **両手の大剣**・一回り重装（移7・突撃役） |
 | サムライ | 東洋甲冑＋刀（攻特化70） |
-| ナイト | 重装甲＋大盾（防70＝壁・最も重いシルエット） |
+| ナイト | 重装甲＋**大盾（歩兵で唯一の盾持ち＝壁）**（防70・最も重いシルエット） |
 | ドワーフ | 低く頑強・髭・斧／槌（山歩き） |
 
 ### 弓兵（青＋緑の自然差し色）
@@ -163,7 +163,7 @@
 
 ## 6.5 確定プロンプト雛形（アンカー方式）
 
-`STYLE:` ブロックは**全ユニット共通で固定**、`SUBJECT:` ブロックだけ差し替える。渾身の1枚（ファイター）を確定させ、以降は Nano Banana にその画像を**参照させて**「same art style/palette/framing」で展開する。Nano Banana はタグ羅列より**自然文の描写**が効く。
+`STYLE:` ブロックは**全ユニット共通で固定**、`SUBJECT:` ブロックだけ差し替える。**i2i（参照画像）は使わず、同じ STYLE 文＋SUBJECT の言葉指定だけで一貫性を出す**。SUBJECT に「same steel-blue palette / same face style as the fighter」等を明記するのがコツ。Nano Banana はタグ羅列より**自然文の描写**が効く。
 
 STYLE（共通・固定）:
 ```
@@ -175,22 +175,53 @@ and a bit of personality. Simplified, bold, rounded chunky shapes. Charming
 and heroic — NOT moe, NOT a childish mascot; grounded in a mature, slightly
 muted, limited color palette. NOT bright saturated anime coloring, NOT
 painterly photorealism. Soft rim light, minimal fussy detail so the shape
-reads clearly even when shrunk very small. Symmetrical front-facing view (at
-most a very slight three-quarter), full body, standing in a neutral, balanced
-stance that does NOT commit to a left or right direction — weapon and shield
-held ready in front, not pointing off to one side. Centered, feet near the
+reads clearly even when shrunk very small. Strictly symmetrical, straight-on front
+view — the character faces the camera directly, shoulders square to the viewer
+(NO three-quarter turn, NO side view). Full body, standing in a neutral,
+evenly-weighted stance that does NOT commit to a left or right direction —
+weapon(s) held upright and ready in front, close to the body, not extended or
+pointing off to one side. Centered, feet near the
 lower third with a small soft ground shadow. Plain pure-white background
 (single flat color, for easy cutout). Square 1:1 composition.
 ```
 
-SUBJECT 例（ファイター）:
+SUBJECT 例（歩兵ライン＝ノービス／ファイター／ヴァンガード）:
+
+同一系統。**剣のサイズ＋装甲の重さ**で段階化し、**盾は持たせない**（大盾はナイト専用）。3体とも同じ STYLE 文＋各 SUBJECT を貼るだけ（**参照画像は使わない**）。系統感は SUBJECT 内の「same steel-blue palette / same face style as the fighter」で保つ。
+
+ファイター（アンカー・盾なし）:
 ```
-SUBJECT: A human front-line melee fighter, the militia captain and baseline
-hero. Steel-blue faction palette: steel plate armor with a blue tunic and
-cloth accents, silver metal, small gold trim. He holds a straight sword in one
-hand and a round shield in the other (sword + shield = infantry role).
-Confident, grounded, symmetrical stance, medium athletic build — heroic but a
-common soldier, not an ornate elite.
+SUBJECT: A human front-line melee fighter — the baseline hero and militia
+captain of the steel-blue infantry line. Steel-blue faction palette: steel
+plate armor with a blue tunic and cloth accents, silver metal, small gold trim.
+He holds a straight one-handed sword of ordinary size in one hand; the other
+hand is empty (an open or lightly clenched gauntlet) — NO shield. Confident,
+grounded, symmetrical stance, medium athletic build — heroic but a common
+soldier, not an ornate elite.
+```
+
+ノービス（小さめの剣・軽装・盾なし）:
+```
+SUBJECT: A young human recruit — the rookie of the SAME steel-blue infantry
+line as the fighter. A raw, eager young rookie with natural human
+skin (same skin tone as the fighter — NOT green skin). Light armor only, a leather
+jerkin with a few simple steel plates on shoulders and chest, a blue tunic and
+cloth accents, silver metal, little or no gold trim. He holds a small, plain
+short sword in one hand; the other hand is empty and open — no shield. Same
+face style and steel-blue palette as the fighter, but leaner, younger, smaller
+and a touch unsure — clearly the entry-level version of the same trooper.
+```
+
+ヴァンガード（大きめの剣＝両手大剣・重装・盾なし）:
+```
+SUBJECT: A human vanguard shock-trooper — the heavy assault upgrade of the
+SAME steel-blue infantry line as the fighter. Veteran and imposing:
+heavier and fuller steel plate armor than the fighter, a blue tabard/surcoat
+and cloth accents, silver metal with more prominent gold trim, a crested helm
+or a short cape. He wields a LARGE two-handed greatsword held upright and ready
+at the center, gripped in both hands — no shield. Same face style and
+steel-blue palette as the fighter, but bigger, tougher, more battle-hardened
+— clearly the elite assault version of the same trooper.
 ```
 
 - 敵・他ユニットは §2〜5 のルールで `SUBJECT:` を差し替える（味方＝青／ゴブリン＝緑＋モンスター姿／飛行＝浮遊 等）。
