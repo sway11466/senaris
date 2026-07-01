@@ -6,12 +6,15 @@ extends Node2D
 
 var _skins := {}
 var _controller: MatchController = null
+var _hud: Hud = null
+var _current_stage_path := ""
 
 func _ready() -> void:
 	print("Senaris booted.")
 	_skins = SkinCatalog.load_standard()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
+	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	load_stage("res://data/stages/demo/demo.json")
 	_install_dev_stage_selector()  # DEV: デモ用。製品化時はこの行と presentation/dev/ を削除
 
@@ -21,6 +24,7 @@ func load_stage(path: String) -> void:
 	if state == null:
 		push_error("main: ステージを読めない: %s" % path)
 		return
+	_current_stage_path = path  # システムメニューのリスタート用
 	if _controller != null:
 		_controller.free()  # 旧マッチを破棄（旧 controller のシグナル接続も消える）
 		_controller = null
@@ -38,9 +42,11 @@ func load_stage(path: String) -> void:
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
+	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_label(team, turn_number)
+	_hud.set_player_turn(team == 0)
 
 func _update_turn_label(team: int, turn_number: int) -> void:
 	var who := "自軍" if team == 0 else "敵軍"
@@ -54,6 +60,23 @@ func _on_battle_finished(outcome: int) -> void:
 		BattleState.PLAYER_LOSS:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
+	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
+
+# --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
+func _install_hud() -> void:
+	_hud = preload("res://presentation/ui/hud.gd").new()
+	add_child(_hud)
+	_hud.end_turn_requested.connect(_on_end_turn_requested)
+	_hud.restart_requested.connect(_on_restart_requested)
+	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
+
+func _on_end_turn_requested() -> void:
+	if _controller != null:
+		_controller.end_turn()
+
+func _on_restart_requested() -> void:
+	if not _current_stage_path.is_empty():
+		load_stage(_current_stage_path)
 
 # --- DEV: デモ用ステージセレクタ（presentation/dev/）。製品ではこの関数ごと削除する。---
 func _install_dev_stage_selector() -> void:

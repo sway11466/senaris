@@ -13,6 +13,8 @@ class_name HexBoard
 
 ## 選択中ユニットが変わったとき発行（id<0＝選択解除）。情報パネル等が購読する。
 signal selection_changed(unit_id: int)
+## 戻る対象が無い最上位で Esc を押したとき発行（HUD がシステムメニューを開く）。
+signal system_menu_requested
 
 @export var hex_size: float = 36.0
 @export var board_origin: Vector2 = Vector2(120, 100)
@@ -141,9 +143,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _locked or controller.is_ai_turn():
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		_on_cancel()  # 右クリック＝キャンセル・戻る（タッチは将来 長押し）
-	elif event.is_action_pressed("ui_cancel"):  # Esc でキャンセル・戻る
-		_on_cancel()
+		_on_cancel(false)  # 右クリック＝キャンセル・戻る（タッチは将来 長押し）
+	elif event.is_action_pressed("ui_cancel"):  # Esc でキャンセル・戻る（最上位でシステムメニュー）
+		_on_cancel(true)
 	elif event.is_action_pressed("ui_accept"):  # Enter / Space で手番終了
 		_deselect()
 		controller.end_turn()
@@ -244,14 +246,17 @@ func _commit_pending_move() -> void:
 		controller.execute(MoveCommand.new(_selected_id, _pending_to))
 	_pending_to = INVALID_HEX
 
-## Esc 等の「戻る」。メニュー→選択→出撃モードの順に1段ずつ解除。
-func _on_cancel() -> void:
+## 「戻る」。メニュー→選択→出撃モードの順に1段ずつ解除。
+## 戻る対象が無く from_esc なら最上位＝システムメニューを開く（右クリックでは開かない）。
+func _on_cancel(from_esc: bool) -> void:
 	if _menu.visible:
 		_menu.hide()  # popup_hide がキャンセル処理する
 	elif _choosing_target or _selected_id != -1:
 		_deselect()
 	elif _deploy_base != INVALID_HEX:
 		_clear_deploy()
+	elif from_esc:
+		system_menu_requested.emit()
 
 ## 自軍の出撃可能な拠点をクリック → 拠点メニュー（控えを1体ずつ並べる＋キャンセル）。
 func _open_base_menu(base_hex: Vector2i) -> void:
