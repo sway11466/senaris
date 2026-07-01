@@ -22,7 +22,8 @@
 |---|---|
 | コンセプト | [doc/concepts.md](doc/concepts.md) |
 | バックログ | [doc/backlog.md](doc/backlog.md) |
-| 戦闘（補正チェーン・陣形） | [doc/gdd/combat.md](doc/gdd/combat.md) |
+| 戦闘（補正チェーン・陣形スキル） | [doc/gdd/combat.md](doc/gdd/combat.md) |
+| 陣形スキル（レシピ表） | [doc/gdd/formations.md](doc/gdd/formations.md) |
 | ユニット性能・対応表 | [doc/gdd/units.md](doc/gdd/units.md) |
 | 移動（移動タイプ・地形コスト） | [doc/gdd/movement.md](doc/gdd/movement.md) |
 | 拠点・占領・ステージ | [doc/gdd/map.md](doc/gdd/map.md) |

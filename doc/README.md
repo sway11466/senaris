@@ -9,7 +9,8 @@
 
 ## ゲームデザイン — `gdd/`
 
-- [gdd/combat.md](gdd/combat.md) — 戦闘解決（補正チェーン・陣形）
+- [gdd/combat.md](gdd/combat.md) — 戦闘解決（補正チェーン・陣形スキル）
+- [gdd/formations.md](gdd/formations.md) — 陣形スキル（レシピ・カタログ）
 - [gdd/units.md](gdd/units.md) — ユニット性能設計・対応表
 - [gdd/movement.md](gdd/movement.md) — 移動タイプ・地形コスト・reachable
 - [gdd/map.md](gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル
@@ -23,7 +24,7 @@
 
 - [campaign/authoring.md](campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
 - [campaign/tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」（仮）骨子・全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
-- [campaign/tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッド・ラッシュ」（仮）骨子・全7ステージ（陣形・輸送・魔法兵／ボス＝ネクロマンサー）
+- [campaign/tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッド・ラッシュ」（仮）骨子・全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
 
 ## 技術設計 — `tech/`（Technical Design Document）
 

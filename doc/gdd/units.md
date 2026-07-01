@@ -66,7 +66,7 @@
 
 ## 関連ドキュメント
 
-- 戦闘解決（補正チェーン・陣形）: [combat.md](combat.md)
+- 戦闘解決（補正チェーン・陣形スキル）: [combat.md](combat.md)
 - 占領・拠点運用・テーマ別リスキン: [map.md](map.md)
 - 移動タイプ・地形コスト: [movement.md](movement.md)
 - アート準備（画像スロット・プレースホルダ）: [../art/overview.md](../art/overview.md)
