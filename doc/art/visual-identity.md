@@ -154,11 +154,46 @@
 | ② ゲーム用書き出し | **256px 四方（透過PNG）** | リポジトリに入れる。地形タイル（R=128＝256px相当）と画質を揃える |
 | ③ 実機表示 | 60〜180px | Godot が②を自動縮小 |
 
-- 【指針】生成は**単色 or 透過背景**（AIは完全透過が苦手＝「単色背景で生成→背景除去」を見込む）。正方形キャンバス・キャラはやや下寄り（足が下辺＝マスに立つ）。
+- 【確定】**造形（アンカーで確定）**：頭身は**約2.5〜3頭身**（頭・手大きめ＝愛嬌＋小サイズ可読性。moe／マスコットにはしない、渋い muted は維持）。**正面向き・左右非対称にしない中立ポーズ**（盤面に向きの概念が無く、向きを主張すると不自然／6方向で反転も無意味なため）。
+- 【確定】背景は**純白**（後で透過処理）。ただし**白系ユニット（聖職の白ローブ等）は輪郭が溶ける**ので薄グレー等に例外。正方形キャンバス・キャラはやや下寄り（足が下辺＝マスに立つ）。完全透過は狙わず「単色背景→背景除去」。
 - 【指針】**縮小して潰れない絵を狙う**：1024pxを必ず60〜72pxにプレビューし、役割が読めるか確認。読めなければ細部でなく形・シルエット・色を直す。
 - 【指針】「動いて見せる」は**絵を増やさず、コード側の移動tween＋簡単なエフェクト**で出す（歩行コマ＝複数枚はAI一貫性が悪く・物量も数倍なので作らない）。行動前後は当面 `map` 1枚＋グレー化（[overview.md](overview.md)）。
 
 ---
+
+## 6.5 確定プロンプト雛形（アンカー方式）
+
+`STYLE:` ブロックは**全ユニット共通で固定**、`SUBJECT:` ブロックだけ差し替える。渾身の1枚（ファイター）を確定させ、以降は Nano Banana にその画像を**参照させて**「same art style/palette/framing」で展開する。Nano Banana はタグ羅列より**自然文の描写**が効く。
+
+STYLE（共通・固定）:
+```
+STYLE: A single fantasy tactics-game unit piece, clean stylized vector-like
+illustration with bold flat cel-shading and a strong readable silhouette.
+Chunky, appealing, slightly super-deformed proportions — about 2.5 to 3 heads
+tall, with an oversized head and hands. Expressive face with large clear eyes
+and a bit of personality. Simplified, bold, rounded chunky shapes. Charming
+and heroic — NOT moe, NOT a childish mascot; grounded in a mature, slightly
+muted, limited color palette. NOT bright saturated anime coloring, NOT
+painterly photorealism. Soft rim light, minimal fussy detail so the shape
+reads clearly even when shrunk very small. Symmetrical front-facing view (at
+most a very slight three-quarter), full body, standing in a neutral, balanced
+stance that does NOT commit to a left or right direction — weapon and shield
+held ready in front, not pointing off to one side. Centered, feet near the
+lower third with a small soft ground shadow. Plain pure-white background
+(single flat color, for easy cutout). Square 1:1 composition.
+```
+
+SUBJECT 例（ファイター）:
+```
+SUBJECT: A human front-line melee fighter, the militia captain and baseline
+hero. Steel-blue faction palette: steel plate armor with a blue tunic and
+cloth accents, silver metal, small gold trim. He holds a straight sword in one
+hand and a round shield in the other (sword + shield = infantry role).
+Confident, grounded, symmetrical stance, medium athletic build — heroic but a
+common soldier, not an ornate elite.
+```
+
+- 敵・他ユニットは §2〜5 のルールで `SUBJECT:` を差し替える（味方＝青／ゴブリン＝緑＋モンスター姿／飛行＝浮遊 等）。
 
 ## 7. 縦スライス（最初の一手）
 
@@ -166,12 +201,14 @@
   - overview.md の「クレリック＋ドラゴン」例は撤回（**ドラゴンはチュートリアル本編に登場しない**／最初に動く画面と一致させ手戻りを無くす）。
   - tale1 の st1〜3・st5 は既存実装だけで作れる（占領・待機AI未実装の st4/6 を待たない）＝最速で絵入り画面に到達できる。
 - 手順：ファイター（アンカー）1枚を Nano Banana で詰める → それを参照にノービス／ゴブリンへ展開 → 「ファンタジーの味が自分に刺さるか」を判定。
+- 【暫定】**アンカー候補は生成済み**（正面・2.5〜3頭身・純白背景・鋼青・剣＋盾）。**最終確定は60px縮小テスト後**（§8 次アクション）。
 
 ---
 
 ## 8. 未決事項
 
-- [ ] 各陣営カラーの具体値（HEX）。アンカー1枚作成後に確定。
+- [ ] **（次アクション）ファイター・アンカーの60px縮小テスト**：白余白をクロップ→実寸ヘックス（72×62px）で「剣＋盾の前衛」と読めるか確認。潰れなければ正式にアンカー確定。読めなければ形・シルエット・色を直す。※クラウド環境ではチャット添付がファイル化されず処理不可だったため、**ローカルセッションで画像をファイルにして実施**する。
+- [ ] 各陣営カラーの具体値（HEX）。アンカー確定後、その画像から抽出して確定。
 - [ ] 敵スキン個別の姿（陣営ごとの機能サイン表現＝遠隔の武器など）。
 - [ ] 会話用クラスポートレート（`combat` 系・役職原型 8〜10枚）の着手判断。OBの渋い配色を借りるならここに限定。
 - [ ] 獲得用キービジュアル（tale1「隘路で少数 vs 群れ」／tale2「三重詠唱が屍の波を薙ぐ」＝機構が動く瞬間）。
