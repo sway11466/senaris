@@ -1,24 +1,25 @@
 {
   "name": "tutorial-st2",
-  "cols": 14,
-  "rows": 8,
+  "cols": 18,
+  "rows": 9,
   "terrain": [
-    "MMMMMMMMMMMMMM",
-    "M............M",
-    "M....PPP.....M",
-    "M....PPP.....M",
-    "M....PPP.....M",
-    "M....PPP.....M",
-    "M............M",
-    "MMMMMMMMMMMMMM"
+    "..................",
+    ".......PP.....FF..",
+    ".......PPP...FF...",
+    "........PPP.......",
+    "........PPP.......",
+    "........PPP.......",
+    "...FF....PPP......",
+    "..FF......PP......",
+    ".................."
   ],
   "units": [
-    { "type": "fighter", "team": 0, "col": 1, "row": 3 },
-    { "type": "novice", "team": 0, "col": 1, "row": 2 },
-    { "type": "novice", "team": 0, "col": 1, "row": 4 },
-    { "skin": "goblin", "team": 1, "col": 11, "row": 2 },
-    { "skin": "goblin", "team": 1, "col": 11, "row": 5 },
-    { "skin": "goblin", "team": 1, "col": 10, "row": 3 },
-    { "skin": "hobgoblin", "team": 1, "col": 11, "row": 4 }
+    { "type": "fighter", "team": 0, "col": 2, "row": 4 },
+    { "type": "novice", "team": 0, "col": 2, "row": 3 },
+    { "type": "novice", "team": 0, "col": 2, "row": 5 },
+    { "skin": "goblin", "team": 1, "col": 14, "row": 3 },
+    { "skin": "goblin", "team": 1, "col": 14, "row": 5 },
+    { "skin": "goblin", "team": 1, "col": 15, "row": 4 },
+    { "skin": "hobgoblin", "team": 1, "col": 14, "row": 4 }
   ]
 }
