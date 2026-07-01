@@ -159,6 +159,18 @@
 - 【指針】**縮小して潰れない絵を狙う**：1024pxを必ず60〜72pxにプレビューし、役割が読めるか確認。読めなければ細部でなく形・シルエット・色を直す。
 - 【指針】「動いて見せる」は**絵を増やさず、コード側の移動tween＋簡単なエフェクト**で出す（歩行コマ＝複数枚はAI一貫性が悪く・物量も数倍なので作らない）。行動前後は当面 `map` 1枚＋グレー化（[overview.md](overview.md)）。
 
+### 6.1 ファイルの保管・命名（3段階すべて git 管理）
+
+| 段階 | 置き場（`{skin_id}`＝unit_skin のID） | 例（ファイター） |
+|---|---|---|
+| ① AI生成直後（原寸・SynthID入り） | `art_src/units/{skin_id}/{skin_id}_01_raw.png` | `fighter_01_raw.png` |
+| ② トリミング＋透過（手動マスター・原寸） | `art_src/units/{skin_id}/{skin_id}_02_master.png` | `fighter_02_master.png` |
+| ③ ゲーム用（256四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
+
+- **③だけが `assets/`**（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
+- **①②は `art_src/`**（作業ソース）。`art_src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
+- ③の書き出しレシピ：②マスターから 白背景透過 → 余白トリム → 240pxに収めて256四方へ配置 → 64色パレット減。②未着手の間は①から暫定生成し、②が来たら同レシピで作り直す。
+
 ---
 
 ## 6.5 確定プロンプト雛形（アンカー方式）
