@@ -20,6 +20,10 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	_apply_terrain(state, data.get("terrain", []))
 	var next_id := _apply_units(state, data.get("units", []), catalog, skin_catalog)
 	_apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
+	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": 99 }]（ボスは units 側で id 明示）
+	var victory: Variant = data.get("victory", [])
+	if typeof(victory) == TYPE_ARRAY:
+		state.victory_conditions = victory
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。

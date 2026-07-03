@@ -20,6 +20,11 @@ var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
 var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md
 
+## 勝利条件リスト（OR＝どれか1つ満たせば勝利）。空＝殲滅のみ（従来挙動）。詳細 → doc/gdd/map.md（勝敗条件）
+## 要素は dict。現在対応: { "type": "defeat_unit", "unit_id": <int> } ＝ ボス撃破（id はステージJSONで明示採番）
+var victory_conditions: Array = []
+var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録。ボス撃破判定に使う）
+
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
 	rows = p_rows
@@ -291,13 +296,15 @@ func _unit_snapshot(u: Unit) -> Dictionary:
 		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos),
 	}
 
+## 撃破された駒を盤から除去し、撃破済みとして記録（勝利条件「ボス撃破」の判定材料）。
 func _remove_unit(unit_id: int) -> void:
+	_defeated[unit_id] = true
 	for i in _units.size():
 		if _units[i].id == unit_id:
 			_units.remove_at(i)
 			return
 
-# --- 勝敗（自軍＝team 0 視点。暫定: 拠点占領勝利・ターン制限は未実装） ---
+# --- 勝敗（自軍＝team 0 視点。拠点占領勝利・ターン制限は未実装） ---
 
 enum { ONGOING, PLAYER_WIN, PLAYER_LOSS }
 
@@ -309,12 +316,23 @@ func team_unit_count(team: int) -> int:
 	return n
 
 ## 決着結果。自軍全滅は負け（相討ち全滅も負け＝自軍が消えていれば敗北を優先）。
+## 殲滅勝ちは常に有効。加えて victory_conditions のいずれか（OR）を満たせば勝利。
 func outcome() -> int:
 	if team_unit_count(0) == 0:
 		return PLAYER_LOSS
 	if team_unit_count(1) == 0:
 		return PLAYER_WIN
+	for c in victory_conditions:
+		if _victory_met(c):
+			return PLAYER_WIN
 	return ONGOING
+
+## 勝利条件1件の判定。未知の type は満たさない扱い（前方互換）。
+func _victory_met(c: Dictionary) -> bool:
+	match String(c.get("type", "")):
+		"defeat_unit":  # ボス撃破＝指定IDの駒が撃破済み
+			return _defeated.has(int(c.get("unit_id", -1)))
+	return false
 
 func is_over() -> bool:
 	return outcome() != ONGOING
