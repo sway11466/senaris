@@ -14,6 +14,7 @@
 - [gdd/units.md](gdd/units.md) — ユニット性能設計・対応表
 - [gdd/movement.md](gdd/movement.md) — 移動タイプ・地形コスト・reachable
 - [gdd/map.md](gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル
+- [gdd/stage_select.md](gdd/stage_select.md) — ステージセレクト（カードUI・解放条件・クリア記録・冒険譚マニフェスト）
 - [gdd/ai.md](gdd/ai.md) — 敵AI（思考パターン＝軸の組み合わせ・部隊割り当て）
 - [gdd/uiux.md](gdd/uiux.md) — UI/UX 操作モデル（選択→移動→コマンド・デバイス別操作・カメラ）
 - [gdd/world.md](gdd/world.md) — 世界観・設定

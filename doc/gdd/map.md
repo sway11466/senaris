@@ -27,8 +27,8 @@
   - **殲滅は「盤上」で数える**：拠点の中の眠り駒（garrison）は盤上に居ない＝カウント外。ただし敵保持の拠点は出撃してくるので、盤を空に保つには実質その拠点の制圧が要る。
   - **相討ち全滅**は自軍が盤上から消えていれば敗北優先（暫定踏襲）。
 - **実装状況**: 敵全滅／自軍全滅は実装済み。**条件リスト化・ボス撃破・本拠地占領も実装済み**＝ステージJSONの `victory` 配列（OR評価）を `BattleState.victory_conditions` が判定。
-  - ボス撃破 `{ "type": "defeat_unit", "unit_id": N }`（ボスは units 側で `"id": N` を明示採番）。デモ: `data/stages/demo/boss.json`。
-  - 本拠地占領 `{ "type": "capture_hq" }`＝敵 native の `kind:"hq"` 拠点をすべて自軍が保持で勝利（`Base.kind`・`native_team` を追加。該当 hq が無ければ不成立＝空勝ち防止）。**自軍 native の hq を奪われたら敗北**（常時ルール・hq を置いたステージだけ効く。奪還で解消）。デモ: `data/stages/demo/hq.json`。占領は移動の瞬間に起きるため、決着チェックは移動直後にも走る（MatchController）。
+  - ボス撃破 `{ "type": "defeat_unit", "unit_id": N }`（ボスは units 側で `"id": N` を明示採番）。デバッグステージ: `data/stages/debug/boss.json`。
+  - 本拠地占領 `{ "type": "capture_hq" }`＝敵 native の `kind:"hq"` 拠点をすべて自軍が保持で勝利（`Base.kind`・`native_team` を追加。該当 hq が無ければ不成立＝空勝ち防止）。**自軍 native の hq を奪われたら敗北**（常時ルール・hq を置いたステージだけ効く。奪還で解消）。デバッグステージ: `data/stages/debug/hq.json`。占領は移動の瞬間に起きるため、決着チェックは移動直後にも走る（MatchController）。
   - 殲滅勝ち/全滅負けは条件リストと無関係に常時有効（相討ち・hq喪失は敗北優先）。**ターン制限・閉じ込め判定は未実装**。
 
 ---
@@ -92,8 +92,8 @@
 - ステージは JSON データで記述する（ASCII地形グリッド＋ユニット配置）。データは `data/`、それを盤面(BattleState)に組み立てるローダー `StageLoader` は `application/`（data＋domain の両方に依存するため）。詳細 → [../tech/architecture.md](../tech/architecture.md)。
 - **冒険譚（キャンペーン）ごとにフォルダ**で束ねる: `data/stages/<冒険譚>/<ステージ>.json`。
   - 1つの冒険譚＝数ステージ構成を想定し、その単位でフォルダに放り込む。
-  - 例: 動作確認用のデモは `data/stages/demo/demo.json`。
-- 【未決】冒険譚内のステージ順序・進行管理（マニフェスト等）、ステージ選択。当面は読込先を決め打ちで1枚。
+  - 例: 動作確認用のデバッグステージは `data/stages/debug/debug.json`。
+- 冒険譚内のステージ順序・進行管理（マニフェスト）・ステージ選択 → [stage_select.md](stage_select.md)。実装までは読込先を決め打ちで1枚。
 
 ### 戦力供給モデル（独立／継承）
 
