@@ -109,9 +109,9 @@ func test_build_bases_with_garrison() -> void:
 	# garrison の id は盤上ユニットと衝突しない採番
 	assert_ne(b.garrison[0].id, s.unit_by_id(1).id)
 
-func test_load_demo_file() -> void:
-	var s := StageLoader.load_file("res://data/stages/demo/demo.json")
-	assert_not_null(s, "demo.json が読める")
+func test_load_debug_file() -> void:
+	var s := StageLoader.load_file("res://data/stages/debug/debug.json")
+	assert_not_null(s, "debug.json が読める")
 	assert_eq(s.cols, 12)
 	assert_eq(s.rows, 8)
 	assert_true(s.units().size() >= 1, "ユニットが配置される（体数はデモ編集で変わるので下限のみ）")

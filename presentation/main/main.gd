@@ -17,7 +17,7 @@ func _ready() -> void:
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
-	load_stage("res://data/stages/demo/demo.json")
+	load_stage("res://data/stages/debug/debug.json")
 	_install_dev_stage_selector()  # DEV: デモ用。製品化時はこの行と presentation/dev/ を削除
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
