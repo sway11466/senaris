@@ -19,6 +19,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	var state := BattleState.new(cols, rows)
 	_apply_terrain(state, data.get("terrain", []))
 	var next_id := _apply_units(state, data.get("units", []), catalog, skin_catalog)
+	next_id = _apply_squads(state, data.get("squads", []), catalog, next_id, skin_catalog)
 	_apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": 99 }]（ボスは units 側で id 明示）
 	var victory: Variant = data.get("victory", [])
@@ -63,6 +64,27 @@ static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary
 	for u in units:
 		state.add_unit(_make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog))
 		auto_id += 1
+	return auto_id
+
+## 部隊(squad)リストを盤に追加。各部隊は { name, ai: プリセットラベル, ...上書き, units: [...] }。
+## units は通常のユニット記法（型/スキン/個別キー/id 明示）と同じで、採番も units 直書きから連続する。
+## 部隊メンバーは BattleState に「unit→部隊」の対応が登録され、AIが部隊のプリセットで振る舞う。
+static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
+	if typeof(squads) != TYPE_ARRAY:
+		return start_id
+	var auto_id := start_id
+	for sq in squads:
+		var squad := {}
+		for key in sq:
+			if key != "units":  # units 以外（name/ai/上書きパラメーター）が部隊定義
+				squad[key] = sq[key]
+		var idx: int = state.squads.size()
+		state.squads.append(squad)
+		for u in sq.get("units", []):
+			var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog)
+			state.add_unit(unit)
+			state.assign_squad(unit.id, idx)
+			auto_id += 1
 	return auto_id
 
 ## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。

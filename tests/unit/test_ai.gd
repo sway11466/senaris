@@ -170,6 +170,69 @@ func test_loader_wires_enemy_ai_label() -> void:
 	var s2 := StageLoader.build({ "cols": 6, "rows": 6 })
 	assert_eq(s2.enemy_ai, "", "未指定＝空（既定 charge）")
 
+# --- 部隊(squad)単位のAI割り当て ---
+
+const PRESETS := {
+	"charge": { "advance": "max" },
+	"raid": { "advance": "base" },
+}
+
+func test_loader_wires_squads() -> void:
+	var data := { "cols": 8, "rows": 8,
+		"units": [ { "team": 0, "col": 1, "row": 1 } ],
+		"squads": [
+			{ "name": "強襲", "ai": "raid",
+				"units": [ { "team": 1, "col": 5, "row": 5 }, { "team": 1, "col": 6, "row": 5 } ] },
+		],
+	}
+	var s := StageLoader.build(data)
+	assert_eq(s.units().size(), 3, "直書き1＋部隊2が盤に載る")
+	assert_eq(s.squads.size(), 1)
+	var sq2 := s.squad_of(2)  # 採番は直書きから連続（部隊の1体目=id2）
+	assert_eq(String(sq2.get("ai", "")), "raid", "部隊メンバーは部隊のラベルを持つ")
+	assert_eq(String(sq2.get("name", "")), "強襲")
+	assert_true(s.squad_of(1).is_empty(), "直書きユニットは部隊なし")
+
+func test_squad_units_follow_squad_preset() -> void:
+	# 同じ盤で、raid部隊のユニットは拠点へ・部隊外（既定charge）のユニットは敵へ向かう。
+	_brain.presets = PRESETS
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(10, 1, start, 3))                    # 部隊なし（既定=敵へ）
+	var raider := Unit.new(11, 1, Hex.offset_to_axial(5, 0), 3)
+	s.add_unit(raider)
+	s.squads.append({ "name": "強襲", "ai": "raid" })
+	s.assign_squad(11, 0)
+	var base_hex := Hex.offset_to_axial(11, 1)               # 右に拠点
+	s.add_base(Base.new(base_hex, 0))
+	var enemy_pos := Hex.offset_to_axial(0, 1)               # 左に敵
+	s.add_unit(Unit.new(1, 0, enemy_pos, 3))
+	# id順に手を返す: 最初は部隊なし(10)＝敵へ
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.unit_id, 10)
+	assert_lt(Hex.distance(a.to, enemy_pos), Hex.distance(start, enemy_pos), "部隊なしは敵へ")
+	assert_true(s.move_unit(10, a.to))
+	# 次はraid部隊(11)＝拠点へ
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.unit_id, 11)
+	assert_lt(Hex.distance(b.to, base_hex), Hex.distance(raider.pos, base_hex), "raid部隊は拠点へ")
+
+func test_squad_override_beats_preset() -> void:
+	# 部隊の上書き（advance）はプリセット値より優先される。
+	_brain.presets = PRESETS
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(10, 1, start, 3))
+	s.squads.append({ "name": "上書き", "ai": "charge", "advance": "base" })  # charge だが base に上書き
+	s.assign_squad(10, 0)
+	var base_hex := Hex.offset_to_axial(11, 1)
+	s.add_base(Base.new(base_hex, 0))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))
+	var a := _brain.next_action(s, 1)
+	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(start, base_hex), "上書き advance=base が効く")
+
 func test_advance_default_still_heads_to_enemy() -> void:
 	# 既定（advance_to_base=false）は従来どおり敵へ前進する（回帰）。
 	var s := BattleState.new(12, 3)

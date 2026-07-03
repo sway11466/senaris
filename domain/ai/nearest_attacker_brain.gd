@@ -8,7 +8,11 @@ class_name NearestAttackerBrain
 ## 前進オプション「拠点前進」: 攻撃も占領もできないターン、**全ユニット**が最寄りの
 ## 「占領できる拠点」へ向かう＝部隊ごと拠点攻略に向かう動き（占領できるのは占領可ユニットだけ。
 ## 護衛はそこで戦う）。拠点が無ければ従来どおり最寄りの敵へ。既定はOFF＝敵へ前進。
+## 部隊(squad)に属するユニットは、部隊のプリセット＋上書きがこの既定より優先される。
 var advance_to_base := false
+
+## AIプリセット表（label -> パラメーター辞書＝AiCatalog.load_default()）。部隊のラベル解決に使う。
+var presets := {}
 
 ## プリセット辞書（ai.csv の1行＝AiCatalog が返す値）から Brain を組み立てる。
 ## 現状使うのは advance のみ（"base"＝拠点前進）。engage/sight 等は待機AI実装時に配線する。
@@ -17,6 +21,14 @@ static func from_preset(p: Dictionary) -> NearestAttackerBrain:
 	var brain := NearestAttackerBrain.new()
 	brain.advance_to_base = String(p.get("advance", "max")) == "base"
 	return brain
+
+## u の前進が「拠点前進」か。部隊があれば 部隊の上書き > 部隊プリセット、無ければ Brain の既定。
+func _unit_advances_to_base(state: BattleState, u: Unit) -> bool:
+	var squad := state.squad_of(u.id)
+	if squad.is_empty():
+		return advance_to_base
+	var preset: Dictionary = presets.get(String(squad.get("ai", "")), {})
+	return String(squad.get("advance", preset.get("advance", "max"))) == "base"
 
 func next_action(state: BattleState, team: int) -> AiAction:
 	for u in state.units():
@@ -64,10 +76,10 @@ func _reachable_capture_hex(state: BattleState, u: Unit) -> Vector2i:
 			best = b.hex
 	return best
 
-## 攻撃できないターンの前進先。拠点前進オプションが有効なら全ユニットが最寄りの
+## 攻撃できないターンの前進先。拠点前進（部隊 or Brain既定で解決）なら最寄りの
 ## 占領できる拠点へ、それ以外は最寄りの敵へ距離が縮むヘックスへ（縮まないなら現在地）。
 func _advance_dest(state: BattleState, u: Unit) -> Vector2i:
-	if advance_to_base:
+	if _unit_advances_to_base(state, u):
 		var goal := _nearest_capture_base_hex(state, u)
 		if goal != u.pos:
 			return _step_toward(state, u, goal)

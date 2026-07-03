@@ -1,26 +1,32 @@
 {
   "name": "demo-hq",
-  "ai": "raid",
   "cols": 12,
   "rows": 7,
   "terrain": [
     "............",
     "............",
-    "CCCCCCCCC...",
-    "O...O.......",
-    "CCCCCCCCC...",
+    ".........O..",
+    "............",
+    "..O.........",
     "............",
     "............"
   ],
   "units": [
-    { "type": "cleric", "team": 0, "col": 2, "row": 3 },
-    { "type": "fighter", "team": 0, "col": 3, "row": 3 },
-
-    { "skin": "goblin", "team": 1, "col": 7, "row": 3 }
+    { "type": "cleric", "team": 0, "col": 3, "row": 3 },
+    { "type": "fighter", "team": 0, "col": 4, "row": 3 },
+    { "type": "novice", "team": 0, "col": 4, "row": 4 }
+  ],
+  "squads": [
+    { "name": "本拠地強襲", "ai": "raid",
+      "units": [
+        { "skin": "goblin", "team": 1, "col": 8, "row": 3 },
+        { "skin": "hobgoblin", "team": 1, "col": 7, "row": 1 },
+        { "skin": "hobgoblin", "team": 1, "col": 7, "row": 5 }
+      ] }
   ],
   "bases": [
-    { "col": 0, "row": 3, "team": 1, "kind": "hq" },
-    { "col": 4, "row": 3, "team": 0, "kind": "hq" }
+    { "col": 2, "row": 4, "team": 0, "kind": "hq" },
+    { "col": 9, "row": 2, "team": 1, "kind": "hq" }
   ],
   "victory": [
     { "type": "capture_hq" }

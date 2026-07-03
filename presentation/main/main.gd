@@ -33,9 +33,11 @@ func load_stage(path: String) -> void:
 	_controller = MatchController.new()
 	_controller.name = "MatchController"
 	_controller.setup(state)
-	# 敵軍(team 1)のAI: ステージ指定のプリセットラベル（未指定/未知＝既定 charge）で組む。
+	# 敵軍(team 1)のAI: 部隊(squad)はステージ定義のラベルで、部隊外はステージ既定ラベルで振る舞う。
 	_controller.ai_team = 1
-	_controller.ai_brain = NearestAttackerBrain.from_preset(_ai_presets.get(state.enemy_ai, {}))
+	var brain := NearestAttackerBrain.from_preset(_ai_presets.get(state.enemy_ai, {}))
+	brain.presets = _ai_presets  # 部隊のラベル解決用
+	_controller.ai_brain = brain
 	add_child(_controller)
 	$HexBoard.bind(state, _controller, _skins)
 	$InfoPanel.bind(state, _skins)
