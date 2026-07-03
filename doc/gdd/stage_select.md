@@ -113,7 +113,8 @@ domain（戦闘ロジック）には手を入れない。
 ## 実装状況（2026-07-04 時点）
 
 - **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／カード画面（[stage_select.gd](../../presentation/select/stage_select.gd)・起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
-- **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは確認ダイアログのみ（内容は未決事項参照）。dev用ステージセレクタ（presentation/dev/）は当面併存。
+- **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは確認ダイアログのみ（内容は未決事項参照）。
+- dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
 
 ## 未決事項
 

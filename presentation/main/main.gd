@@ -3,6 +3,7 @@ extends Node2D
 ## ステージ(data/stages/*.json)を読み込み、進行役(MatchController)と盤(HexBoard)を組む。
 ## load_stage(path) が本体＝ステージセレクト（presentation/select/）がこれを駆動する（再呼び出しで切替可）。
 ## 進行管理（解放判定・クリア記録）は application/campaign_progress.gd。仕様 → doc/gdd/stage_select.md
+## デバッグ用ステージは data/stages/debug/（campaign.json の debug:true 冒険譚としてセレクトに出る）。
 
 var _skins := {}
 var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label -> パラメーター辞書
@@ -23,7 +24,6 @@ func _ready() -> void:
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	load_stage("res://data/stages/debug/debug.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
-	_install_dev_stage_selector()  # DEV: デモ用。製品化時はこの行と presentation/dev/ を削除
 	_install_stage_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
@@ -104,37 +104,3 @@ func _on_stage_chosen(campaign_id: String, stage_id: String, path: String) -> vo
 	_current_stage_id = stage_id
 	load_stage(path)
 
-# --- DEV: デモ用ステージセレクタ（presentation/dev/）。製品ではこの関数ごと削除する。---
-func _install_dev_stage_selector() -> void:
-	var selector = preload("res://presentation/dev/stage_selector.gd").new()
-	add_child(selector)
-	selector.setup(_scan_stages())
-	# DEV読み込みは進行管理の外＝クリア記録を付けない
-	selector.stage_selected.connect(func(path: String) -> void:
-		_current_campaign_id = ""
-		_current_stage_id = ""
-		load_stage(path))
-
-## data/stages/<冒険譚>/<ステージ>.json を走査して [{label, path}] を返す（デモ用）。
-func _scan_stages() -> Array:
-	var out: Array = []
-	var root := "res://data/stages"
-	var dir := DirAccess.open(root)
-	if dir == null:
-		return out
-	for campaign in dir.get_directories():
-		var sub := DirAccess.open("%s/%s" % [root, campaign])
-		if sub == null:
-			continue
-		for f in sub.get_files():
-			if f.ends_with(".json") and f != "campaign.json":  # マニフェストはステージではない
-				var path := "%s/%s/%s" % [root, campaign, f]
-				out.append({ "label": _stage_label(path, campaign, f), "path": path })
-	return out
-
-## ボタン表示名: ステージJSONの "name" を使う（無ければ <冒険譚>-<ファイル名>）。
-func _stage_label(path: String, campaign: String, filename: String) -> String:
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if typeof(data) == TYPE_DICTIONARY and data.has("name"):
-		return String(data["name"])
-	return "%s-%s" % [campaign, filename.get_basename()]
