@@ -24,6 +24,7 @@ knight,ナイト,ally,knight,基準
 dwarf,ドワーフ,ally,dwarf,基準
 sorcerer,ソーサラー,ally,sorcerer,基準
 sniper,スナイパー,ally,sniper,基準
+warlord,ウォーロード,ally,warlord,基準
 wagon,馬車,ally,wagon,基準
 airship,飛空艇,ally,airship,基準
 barricade,バリケード,ally,barricade,基準
@@ -36,7 +37,7 @@ skeleton,スケルトン,enemy,priest,アンデッド
 zombie,ゾンビ,enemy,bishop,アンデッド
 skeleton_archer,スケルトンアーチャー,enemy,archer,アンデッド
 ghoul,グール,enemy,fighter,アンデッド
-dullahan,デュラハン,enemy,vanguard,アンデッド
+dullahan,デュラハン,enemy,warlord,アンデッド
 ghost,ゴースト,enemy,pixie,アンデッド
 necromancer,ネクロマンサー,enemy,witch,アンデッド
 dragon,ドラゴン,enemy,dragon,デモ
