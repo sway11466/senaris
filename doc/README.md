@@ -23,8 +23,8 @@
 共通の制作方針は [campaign/authoring.md](campaign/authoring.md)。各冒険譚は `gdd/` の仕様を土台にし、関係する箇所だけ本文でリンクする。
 
 - [campaign/authoring.md](campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
-- [campaign/tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」（仮）骨子・全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
-- [campaign/tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッド・ラッシュ」（仮）骨子・全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
+- [campaign/tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
+- [campaign/tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッドの群れ」全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
 
 ## 技術設計 — `tech/`（Technical Design Document）
 
