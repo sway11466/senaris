@@ -13,7 +13,7 @@ witch,30,30,0.5,30,4,ground,5,false,false,8,0,魔法兵,
 thief,70,10,0,20,8,light_foot,1,true,false,8,0,斥候,
 halfling,40,10,0,20,6,bush_walk,2,true,false,8,0,斥候,
 ninja,50,30,0,20,7,light_foot,1,true,false,8,0,斥候,
-pixie,10,10,0,10,5,flight,1,false,false,8,0,飛行兵,
+pixie,10,10,0.5,10,5,flight,1,false,false,8,0,飛行兵,
 dragon_knight,10,90,0,30,12,flight,1,false,false,8,0,飛行兵,
 birdman,70,20,0,30,10,flight,1,false,false,8,0,飛行兵,
 dragon,70,70,0,50,11,flight,1,false,false,8,0,飛行兵,敵のみの想定
