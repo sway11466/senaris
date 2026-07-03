@@ -233,6 +233,85 @@ func test_squad_override_beats_preset() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(start, base_hex), "上書き advance=base が効く")
 
+# --- 待機AI（guard）＝起動（engage）判定 ---
+
+const GUARD := { "engage": "sight|squad", "sight": 3, "advance": "max" }
+
+## guard部隊に属するAIユニットを1体足す（部隊は共有 index 0）。
+func _add_guard(s: BattleState, id: int, pos: Vector2i) -> void:
+	if s.squads.is_empty():
+		s.squads.append({ "name": "見張り", "ai": "guard" })
+	s.add_unit(Unit.new(id, 1, pos, 3))
+	s.assign_squad(id, 0)
+
+func test_guard_sleeps_when_enemy_far() -> void:
+	_brain.presets = { "guard": GUARD }
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))  # 距離8＝索敵3の外
+	assert_null(_brain.next_action(s, 1), "索敵外なら動かない（待機）")
+	assert_false(s.is_engaged(10), "未起動のまま")
+
+func test_guard_wakes_on_sight() -> void:
+	_brain.presets = { "guard": GUARD }
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(5, 1), 3))  # 距離3＝索敵内
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "索敵内に敵が入ったら起動して動く")
+	assert_true(s.is_engaged(10), "起動済みになる")
+
+func test_guard_squad_alarm_wakes_all() -> void:
+	# 一斉警戒: 1体が索敵で起動すると、索敵外の同部隊メンバーも起動する。
+	_brain.presets = { "guard": GUARD }
+	var s := BattleState.new(14, 3)
+	s.current_team = 1
+	_add_guard(s, 10, Hex.offset_to_axial(6, 1))   # 敵まで3＝起動する
+	_add_guard(s, 11, Hex.offset_to_axial(12, 1))  # 敵まで9＝索敵外だが部隊で起動
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(3, 1), 3, 8, 10, 40))
+	var moved := {}
+	var guard := 0
+	while guard < 20:
+		guard += 1
+		var a := _brain.next_action(s, 1)
+		if a == null:
+			break
+		moved[a.unit_id] = true
+		if a.kind == AiAction.Kind.MOVE:
+			s.move_unit(a.unit_id, a.to)
+		else:
+			s.attack(a.unit_id, a.target_id)
+	assert_true(moved.has(10), "索敵した本人が動く")
+	assert_true(moved.has(11), "索敵外の同部隊メンバーも一斉に動く")
+
+func test_guard_wakes_when_damaged() -> void:
+	# 被ダメ＝確定起動。撃たれた待機ユニットは次の手番から動く。
+	_brain.presets = { "guard": GUARD }
+	var s := BattleState.new(12, 3)
+	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
+	var sniper := Unit.new(1, 0, Hex.offset_to_axial(4, 1), 3, 8, 30, 10)  # 距離4=索敵外
+	sniper.attack_range = 4  # 索敵外から間接で撃つ
+	s.add_unit(sniper)
+	s.current_team = 0
+	s.attack(1, 10)
+	assert_true(s.is_engaged(10), "撃たれて起動")
+	s.current_team = 1
+	assert_not_null(_brain.next_action(s, 1), "起動済みなので動く")
+
+func test_guard_self_defense_when_adjacent() -> void:
+	# 索敵トリガー無し（squadのみ）でも、射程内に敵が来たら自衛で起動して殴る。
+	_brain.presets = { "guard": { "engage": "squad", "sight": 0, "advance": "max" } }
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var gp := Hex.offset_to_axial(8, 1)
+	_add_guard(s, 10, gp)
+	s.add_unit(Unit.new(1, 0, Hex.neighbor(gp, 3), 3))  # 隣接
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣で寝続けず自衛で攻撃")
+
 func test_advance_default_still_heads_to_enemy() -> void:
 	# 既定（advance_to_base=false）は従来どおり敵へ前進する（回帰）。
 	var s := BattleState.new(12, 3)

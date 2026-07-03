@@ -14,26 +14,83 @@ var advance_to_base := false
 ## AIプリセット表（label -> パラメーター辞書＝AiCatalog.load_default()）。部隊のラベル解決に使う。
 var presets := {}
 
+## 部隊に属さないユニットの既定プリセット（ステージ直下 "ai" のラベルぶん）。空＝charge相当。
+var default_preset := {}
+
 ## プリセット辞書（ai.csv の1行＝AiCatalog が返す値）から Brain を組み立てる。
-## 現状使うのは advance のみ（"base"＝拠点前進）。engage/sight 等は待機AI実装時に配線する。
+## 効く列: engage/sight（起動）・advance（前進）。retreat/attack/target は未配線（既定動作）。
 ## 空辞書・未知ラベル → 既定（charge 相当）。
 static func from_preset(p: Dictionary) -> NearestAttackerBrain:
 	var brain := NearestAttackerBrain.new()
+	brain.default_preset = p
 	brain.advance_to_base = String(p.get("advance", "max")) == "base"
 	return brain
 
-## u の前進が「拠点前進」か。部隊があれば 部隊の上書き > 部隊プリセット、無ければ Brain の既定。
-func _unit_advances_to_base(state: BattleState, u: Unit) -> bool:
+## u のAIパラメーターを解決: 部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ default。
+func _param(state: BattleState, u: Unit, key: String, default: Variant) -> Variant:
 	var squad := state.squad_of(u.id)
 	if squad.is_empty():
-		return advance_to_base
+		return default_preset.get(key, default)
 	var preset: Dictionary = presets.get(String(squad.get("ai", "")), {})
-	return String(squad.get("advance", preset.get("advance", "max"))) == "base"
+	return squad.get(key, preset.get(key, default))
+
+## u の前進が「拠点前進」か。部隊があれば 部隊の上書き > 部隊プリセット、無ければ Brain の既定。
+func _unit_advances_to_base(state: BattleState, u: Unit) -> bool:
+	if state.squad_of(u.id).is_empty():
+		return advance_to_base
+	return String(_param(state, u, "advance", "max")) == "base"
+
+# --- 起動（engage）＝待機AI。詳細 → doc/gdd/ai.md（思考の流れ 1.起動） ---
+
+## u が起動済みか判定し、起動条件を満たしたら起動済みにして true。
+## トリガー: charge=常時 / sight=索敵半径内に敵 / squad=部隊の誰かが起動（一斉警戒）
+##          / 被ダメ=確定（BattleState.attack が mark）/ 自衛=射程内に敵（隣で寝続けない）。
+## 一度起動したら戻らない（状態は BattleState 側に持つ＝セーブに乗る）。
+func _ensure_engaged(state: BattleState, u: Unit) -> bool:
+	if state.is_engaged(u.id):
+		return true
+	var tokens := String(_param(state, u, "engage", "charge")).split("|")
+	var engaged := "charge" in tokens
+	if not engaged and "sight" in tokens:
+		engaged = _enemy_within(state, u, _sight_of(state, u))
+	if not engaged and "squad" in tokens:
+		engaged = _squadmate_engaged(state, u)
+	if not engaged:
+		engaged = not state.attack_targets(u.id).is_empty()  # 自衛: 射程内に敵が来たら起きる
+	if engaged:
+		state.mark_engaged(u.id)
+	return engaged
+
+## u の索敵半径（sight）。"-"（トリガー不使用相当）や欠落は 0＝引っかからない。
+func _sight_of(state: BattleState, u: Unit) -> int:
+	var s: Variant = _param(state, u, "sight", 0)
+	return int(s) if typeof(s) == TYPE_INT or typeof(s) == TYPE_FLOAT else 0
+
+## u から距離 radius 以内に敵ユニットがいるか。
+func _enemy_within(state: BattleState, u: Unit, radius: int) -> bool:
+	if radius <= 0:
+		return false
+	for other in state.units():
+		if other.team != u.team and Hex.distance(u.pos, other.pos) <= radius:
+			return true
+	return false
+
+## u と同じ部隊の誰かが起動済みか（一斉警戒）。
+func _squadmate_engaged(state: BattleState, u: Unit) -> bool:
+	var idx := state.squad_index_of(u.id)
+	if idx < 0:
+		return false
+	for other in state.units():
+		if other.id != u.id and state.squad_index_of(other.id) == idx and state.is_engaged(other.id):
+			return true
+	return false
 
 func next_action(state: BattleState, team: int) -> AiAction:
 	for u in state.units():
 		if u.team != team or state.is_done(u.id):
 			continue
+		if not _ensure_engaged(state, u):
+			continue  # 未起動（待機AI）＝その場で待つ。起動条件は _ensure_engaged 参照
 		# 占領: 今ターンの移動範囲に自陣営以外の拠点があれば取りに行く（攻撃より優先）。
 		if u.can_capture and not state.has_moved(u.id):
 			var base_hex := _reachable_capture_hex(state, u)

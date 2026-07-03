@@ -39,10 +39,27 @@ func assign_squad(unit_id: int, squad_index: int) -> void:
 
 ## unit_id の所属部隊（dict）。部隊に属さなければ空 dict。
 func squad_of(unit_id: int) -> Dictionary:
+	var idx := squad_index_of(unit_id)
+	return squads[idx] if idx >= 0 else {}
+
+## unit_id の所属部隊 index（部隊に属さなければ -1）。一斉警戒（同部隊判定）に使う。
+func squad_index_of(unit_id: int) -> int:
 	var idx: Variant = _squad_of.get(unit_id)
 	if idx == null or int(idx) < 0 or int(idx) >= squads.size():
-		return {}
-	return squads[int(idx)]
+		return -1
+	return int(idx)
+
+# --- AI起動状態（待機AIの「起きた」フラグ）。詳細 → doc/gdd/ai.md ---
+
+var _engaged := {}  # unit_id -> true（待機AIが起動済み。一度起動したら戻らない）
+
+## unit_id を起動済みにする（AIの起動判定・被弾で立つ）。
+func mark_engaged(unit_id: int) -> void:
+	_engaged[unit_id] = true
+
+## unit_id が起動済みか。
+func is_engaged(unit_id: int) -> bool:
+	return _engaged.has(unit_id)
 var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録。ボス撃破判定に使う）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
@@ -293,6 +310,9 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	if attacker_killed:
 		_remove_unit(attacker_id)
 	_attacked[attacker_id] = true  # 移動可否は move_after_attack で判定（再移動）
+	# 被ダメは待機AIの確定起動トリガー（攻撃した側も当然起動済み）。詳細 → doc/gdd/ai.md
+	mark_engaged(attacker_id)
+	mark_engaged(target_id)
 	return {
 		"damage": dmg_to_target,
 		"killed": target_killed,
