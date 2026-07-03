@@ -69,7 +69,7 @@ locked    … それ以外
 
 ```json
 {
-  "id": "tutorial",
+  "id": "tutorial1-goblin-raid",
   "title": "ゴブリンの襲撃",
   "stages": [
     { "id": "st1", "file": "st1.json", "title": "はじめての戦い" },
