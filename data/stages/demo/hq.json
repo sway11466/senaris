@@ -1,0 +1,28 @@
+{
+  "name": "demo-hq",
+  "ai": "raid",
+  "cols": 12,
+  "rows": 7,
+  "terrain": [
+    "............",
+    "............",
+    "CCCCCCCCC...",
+    "O...O.......",
+    "CCCCCCCCC...",
+    "............",
+    "............"
+  ],
+  "units": [
+    { "type": "cleric", "team": 0, "col": 2, "row": 3 },
+    { "type": "fighter", "team": 0, "col": 3, "row": 3 },
+
+    { "skin": "goblin", "team": 1, "col": 7, "row": 3 }
+  ],
+  "bases": [
+    { "col": 0, "row": 3, "team": 1, "kind": "hq" },
+    { "col": 4, "row": 3, "team": 0, "kind": "hq" }
+  ],
+  "victory": [
+    { "type": "capture_hq" }
+  ]
+}

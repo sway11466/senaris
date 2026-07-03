@@ -24,6 +24,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
+	state.enemy_ai = String(data.get("ai", ""))  # 敵AIプリセットラベル（空＝既定 charge）
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
@@ -64,7 +65,7 @@ static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary
 		auto_id += 1
 	return auto_id
 
-## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・garrison(控えユニット)を持つ。
+## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。
 ## garrison の各要素は { type, count } ＋ ユニット個別キー（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
 static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> void:
@@ -73,7 +74,7 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 	var auto_id := start_id
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
-		var base := Base.new(hex, int(b.get("team", Base.NEUTRAL)))
+		var base := Base.new(hex, int(b.get("team", Base.NEUTRAL)), String(b.get("kind", "fort")))
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
 				base.garrison.append(_make_unit(g, catalog, auto_id, skin_catalog))

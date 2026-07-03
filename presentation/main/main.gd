@@ -5,6 +5,7 @@ extends Node2D
 ## ステージ選択UIは presentation/dev/（デモ用・後で破棄可）。
 
 var _skins := {}
+var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label -> パラメーター辞書
 var _controller: MatchController = null
 var _hud: Hud = null
 var _current_stage_path := ""
@@ -12,6 +13,7 @@ var _current_stage_path := ""
 func _ready() -> void:
 	print("Senaris booted.")
 	_skins = SkinCatalog.load_standard()
+	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
@@ -31,9 +33,9 @@ func load_stage(path: String) -> void:
 	_controller = MatchController.new()
 	_controller.name = "MatchController"
 	_controller.setup(state)
-	# 敵軍(team 1)を最小AIに任せる。ステージ仕様が決まれば brain を差し替える。
+	# 敵軍(team 1)のAI: ステージ指定のプリセットラベル（未指定/未知＝既定 charge）で組む。
 	_controller.ai_team = 1
-	_controller.ai_brain = NearestAttackerBrain.new()
+	_controller.ai_brain = NearestAttackerBrain.from_preset(_ai_presets.get(state.enemy_ai, {}))
 	add_child(_controller)
 	$HexBoard.bind(state, _controller, _skins)
 	$InfoPanel.bind(state, _skins)

@@ -39,6 +39,7 @@ func execute(cmd: MoveCommand) -> bool:
 	var from := u.pos
 	if state.move_unit(cmd.unit_id, cmd.to):
 		unit_moved.emit(cmd.unit_id, from, cmd.to)
+		_check_finished()  # 移動＝占領が起きうる（本拠地の占領/喪失はこの瞬間に決着する）
 		return true
 	move_rejected.emit(cmd.unit_id, cmd.to)
 	return false

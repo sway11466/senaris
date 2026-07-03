@@ -1,0 +1,31 @@
+{
+	"presets": {
+		"charge": {
+			"advance": "max",
+			"attack": "always",
+			"engage": "charge",
+			"name": "突撃",
+			"retreat": 0,
+			"sight": "-",
+			"target": "near"
+		},
+		"guard": {
+			"advance": "max",
+			"attack": "always",
+			"engage": "sight|squad",
+			"name": "待機",
+			"retreat": 0,
+			"sight": 3,
+			"target": "near"
+		},
+		"raid": {
+			"advance": "base",
+			"attack": "always",
+			"engage": "charge",
+			"name": "拠点攻略",
+			"retreat": 0,
+			"sight": "-",
+			"target": "near"
+		}
+	}
+}
