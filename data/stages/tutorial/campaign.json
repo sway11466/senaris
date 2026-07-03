@@ -1,0 +1,13 @@
+{
+  "id": "tutorial",
+  "title": "ゴブリンの襲撃",
+  "stages": [
+    { "id": "st1", "file": "st1.json", "title": "町外れの平原" },
+    { "id": "st2", "file": "st2.json", "title": "高所の敵陣",
+      "unlock": [ { "type": "cleared", "stage": "st1" } ] },
+    { "id": "st3", "file": "st3.json", "title": "狭路の包囲",
+      "unlock": [ { "type": "cleared", "stage": "st2" } ] },
+    { "id": "st4", "file": "st4.json", "title": "砦の解放",
+      "unlock": [ { "type": "cleared", "stage": "st3" } ] }
+  ]
+}

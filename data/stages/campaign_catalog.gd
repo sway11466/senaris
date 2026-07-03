@@ -1,0 +1,69 @@
+extends RefCounted
+class_name CampaignCatalog
+## 冒険譚マニフェスト(data/stages/<冒険譚>/campaign.json)の読み込み。詳細 → doc/gdd/stage_select.md
+## data層＝純データのみ（解放判定・クリア記録は application/campaign_progress.gd）。
+
+const STAGES_ROOT := "res://data/stages"
+
+## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
+## { id, title, debug, stages: [ { id, title, file, path, unlock: Array } ] }
+static func build(data: Dictionary, dir_path: String) -> Dictionary:
+	var id := String(data.get("id", ""))
+	var raw_stages: Variant = data.get("stages", [])
+	if id.is_empty() or typeof(raw_stages) != TYPE_ARRAY:
+		return {}
+	var stages: Array = []
+	for s in raw_stages:
+		if typeof(s) != TYPE_DICTIONARY:
+			continue
+		var sid := String(s.get("id", ""))
+		var file := String(s.get("file", ""))
+		if sid.is_empty() or file.is_empty():
+			continue
+		var unlock: Variant = s.get("unlock", [])
+		stages.append({
+			"id": sid,
+			"title": String(s.get("title", sid)),
+			"file": file,
+			"path": "%s/%s" % [dir_path, file],
+			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
+		})
+	return {
+		"id": id,
+		"title": String(data.get("title", id)),
+		"debug": bool(data.get("debug", false)),
+		"stages": stages,
+	}
+
+## 1つの campaign.json を読み込む。失敗時は {}。
+static func load_file(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		push_error("CampaignCatalog: 読み込めない/空: %s" % path)
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		push_error("CampaignCatalog: JSON が不正: %s" % path)
+		return {}
+	return build(data, path.get_base_dir())
+
+## data/stages/ 以下を走査して冒険譚リストを返す。
+## マニフェストの無いフォルダはセレクトに出さない。デバッグ冒険譚(debug:true)は末尾に寄せる。
+static func load_all(root: String = STAGES_ROOT) -> Array:
+	var normals: Array = []
+	var debugs: Array = []
+	var dir := DirAccess.open(root)
+	if dir == null:
+		return []
+	for sub in dir.get_directories():
+		var path := "%s/%s/campaign.json" % [root, sub]
+		if not FileAccess.file_exists(path):
+			continue
+		var c := load_file(path)
+		if c.is_empty():
+			continue
+		if c["debug"]:
+			debugs.append(c)
+		else:
+			normals.append(c)
+	return normals + debugs

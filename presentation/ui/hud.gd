@@ -7,13 +7,14 @@ class_name Hud
 ## 配置は「ビューポート寸法から絶対座標で左下に置く」方式（Node2D 下の Control でアンカーが
 ## 効かず見えなくなるのを避ける）。ウィンドウリサイズ時は size_changed で置き直す。
 
-signal end_turn_requested   # ターン終了ボタン
-signal restart_requested    # システムメニュー: リスタート（現ステージ再読込）
+signal end_turn_requested        # ターン終了ボタン
+signal restart_requested         # システムメニュー: リスタート（現ステージ再読込）
+signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 
 var _end_btn: Button
 var _gear: Button
 var _menu: PopupMenu
-enum { SYS_RESTART, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE }
+enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE }
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤のクリックを通す（ボタンだけ拾う）
@@ -34,6 +35,7 @@ func _ready() -> void:
 
 	_menu = PopupMenu.new()
 	_menu.add_item("リスタート", SYS_RESTART)
+	_menu.add_item("ステージセレクト", SYS_SELECT)
 	_menu.add_separator()
 	_menu.add_item("セーブ", SYS_SAVE)
 	_menu.add_item("ロード", SYS_LOAD)
@@ -69,5 +71,7 @@ func _on_sys_id(id: int) -> void:
 	match id:
 		SYS_RESTART:
 			restart_requested.emit()
+		SYS_SELECT:
+			stage_select_requested.emit()
 		SYS_CLOSE:
 			pass  # 閉じるだけ（popup は自動で閉じる）

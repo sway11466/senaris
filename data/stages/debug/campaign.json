@@ -1,0 +1,11 @@
+{
+  "id": "debug",
+  "title": "デバッグ",
+  "debug": true,
+  "stages": [
+    { "id": "debug", "file": "debug.json", "title": "基本動作" },
+    { "id": "boss", "file": "boss.json", "title": "ボス撃破" },
+    { "id": "hq", "file": "hq.json", "title": "本拠地占領（raid）" },
+    { "id": "guard", "file": "guard.json", "title": "待機AI（guard）" }
+  ]
+}

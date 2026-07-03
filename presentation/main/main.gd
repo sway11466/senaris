@@ -1,14 +1,18 @@
 extends Node2D
 ## Presentation 層のエントリポイント。
 ## ステージ(data/stages/*.json)を読み込み、進行役(MatchController)と盤(HexBoard)を組む。
-## load_stage(path) が本体＝将来は冒険譚の進行管理がこれを駆動する（再呼び出しで切替可）。
-## ステージ選択UIは presentation/dev/（デモ用・後で破棄可）。
+## load_stage(path) が本体＝ステージセレクト（presentation/select/）がこれを駆動する（再呼び出しで切替可）。
+## 進行管理（解放判定・クリア記録）は application/campaign_progress.gd。仕様 → doc/gdd/stage_select.md
 
 var _skins := {}
 var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label -> パラメーター辞書
 var _controller: MatchController = null
 var _hud: Hud = null
 var _current_stage_path := ""
+var _progress: CampaignProgress = null
+var _stage_select: StageSelect = null
+var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録用）
+var _current_stage_id := ""
 
 func _ready() -> void:
 	print("Senaris booted.")
@@ -17,8 +21,10 @@ func _ready() -> void:
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
-	load_stage("res://data/stages/debug/debug.json")
+	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
+	load_stage("res://data/stages/debug/debug.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_dev_stage_selector()  # DEV: デモ用。製品化時はこの行と presentation/dev/ を削除
+	_install_stage_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:
@@ -61,6 +67,8 @@ func _on_battle_finished(outcome: int) -> void:
 	match outcome:
 		BattleState.PLAYER_WIN:
 			text = "自軍の勝利！"
+			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
+				_progress.record_clear(_current_campaign_id, _current_stage_id)
 		BattleState.PLAYER_LOSS:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
@@ -82,12 +90,30 @@ func _on_restart_requested() -> void:
 	if not _current_stage_path.is_empty():
 		load_stage(_current_stage_path)
 
+# --- ステージセレクト（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
+func _install_stage_select() -> void:
+	_stage_select = preload("res://presentation/select/stage_select.gd").new()
+	add_child(_stage_select)
+	_stage_select.setup(_progress)
+	_stage_select.stage_chosen.connect(_on_stage_chosen)
+	_hud.stage_select_requested.connect(_stage_select.open)
+	_stage_select.open()
+
+func _on_stage_chosen(campaign_id: String, stage_id: String, path: String) -> void:
+	_current_campaign_id = campaign_id
+	_current_stage_id = stage_id
+	load_stage(path)
+
 # --- DEV: デモ用ステージセレクタ（presentation/dev/）。製品ではこの関数ごと削除する。---
 func _install_dev_stage_selector() -> void:
 	var selector = preload("res://presentation/dev/stage_selector.gd").new()
 	add_child(selector)
 	selector.setup(_scan_stages())
-	selector.stage_selected.connect(load_stage)
+	# DEV読み込みは進行管理の外＝クリア記録を付けない
+	selector.stage_selected.connect(func(path: String) -> void:
+		_current_campaign_id = ""
+		_current_stage_id = ""
+		load_stage(path))
 
 ## data/stages/<冒険譚>/<ステージ>.json を走査して [{label, path}] を返す（デモ用）。
 func _scan_stages() -> Array:
@@ -101,7 +127,7 @@ func _scan_stages() -> Array:
 		if sub == null:
 			continue
 		for f in sub.get_files():
-			if f.ends_with(".json"):
+			if f.ends_with(".json") and f != "campaign.json":  # マニフェストはステージではない
 				var path := "%s/%s/%s" % [root, campaign, f]
 				out.append({ "label": _stage_label(path, campaign, f), "path": path })
 	return out
