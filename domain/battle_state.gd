@@ -84,6 +84,80 @@ func unit_at(hex: Vector2i) -> Unit:
 			return u
 	return null
 
+# --- 輸送（積載・運搬）。詳細 → doc/gdd/movement.md ---
+
+var _passengers := {}  # transport_id -> Array[Unit]（搭乗中の駒。盤上には居ない＝殲滅カウント外）
+
+## transport_id に搭乗中の駒（無ければ空配列）。
+func passengers(transport_id: int) -> Array:
+	return _passengers.get(transport_id, [])
+
+## u が transport に乗れるか（同陣営・輸送どうし不可・capacity に空き）。
+func can_board(u: Unit, transport: Unit) -> bool:
+	if u == null or transport == null or not transport.is_transport():
+		return false
+	if u.is_transport() or u.team != transport.team:
+		return false
+	return passengers(transport.id).size() < transport.capacity
+
+## 駒を輸送へ直接積む（初期配置・乗車の内部処理。行動フラグは触らない）。
+func put_passenger(transport_id: int, u: Unit) -> void:
+	if not _passengers.has(transport_id):
+		var list: Array[Unit] = []
+		_passengers[transport_id] = list
+	_passengers[transport_id].append(u)
+
+## 降車先候補の {hex: コスト}。搭乗駒が「輸送の位置を起点に」自力で動ける空きhex（通常移動と同じ規則）。
+## 乗車したターン（行動済み）の駒は降りられない＝空。
+func _unload_map(transport_id: int, index: int) -> Dictionary:
+	var t := unit_by_id(transport_id)
+	var list := passengers(transport_id)
+	if t == null or index < 0 or index >= list.size():
+		return {}
+	var p: Unit = list[index]
+	if has_moved(p.id):
+		return {}  # 乗車したターンは行動完了＝降りられない（翌ターンから）
+	var m := Hex.flood_reach_cost_map(t.pos, p.move, _enter_cost.bind(p), _move_stop.bind(p))
+	var cells := {}
+	for h in m:
+		if h != t.pos and unit_at(h) == null:  # 起点（輸送のマス）と占有マスは降車先にしない
+			cells[h] = m[h]
+	return cells
+
+## 降車先候補（表示用）。
+func unload_cells(transport_id: int, index: int) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for h in _unload_map(transport_id, index):
+		cells.append(h)
+	return cells
+
+## 搭乗駒 index が from_hex に降りたと仮定したときの攻撃対象（降車確認メニューの「攻撃」可否）。
+func unload_attack_targets(transport_id: int, index: int, from_hex: Vector2i) -> Array[int]:
+	var list := passengers(transport_id)
+	var ids: Array[int] = []
+	if index < 0 or index >= list.size():
+		return ids
+	var p: Unit = list[index]
+	for u in _units:
+		if _can_attack_from(p, u, from_hex):
+			ids.append(u.id)
+	return ids
+
+## 搭乗駒 index を to へ降ろす。降車＝その駒の通常移動（コスト消費・以後攻撃は可能）。
+## 占領可ユニットが拠点hexへ降りれば即占領（移動と同じ扱い）。
+func unload(transport_id: int, index: int, to: Vector2i) -> bool:
+	var m := _unload_map(transport_id, index)
+	if not m.has(to):
+		return false
+	var p: Unit = passengers(transport_id)[index]
+	_passengers[transport_id].remove_at(index)
+	p.pos = to
+	_units.append(p)
+	_moved[p.id] = true
+	_spent[p.id] = int(m[to])
+	_try_capture(p)
+	return true
+
 # --- 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md ---
 
 func add_base(base: Base) -> void:
@@ -130,13 +204,23 @@ func _reach_map(unit_id: int) -> Dictionary:
 	if u == null:
 		return {}
 	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
-	return Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _in_enemy_zoc.bind(u))
+	return Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
 
-## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。それ以外は地形コスト。
+## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。
+## 例外: 乗れる味方輸送のマスへは進入できる（＝移動先に選ぶと乗車）。それ以外は地形コスト。
 func _enter_cost(hex: Vector2i, u: Unit) -> int:
-	if not in_field(hex) or unit_at(hex) != null:
+	if not in_field(hex):
+		return Movement.IMPASSABLE
+	var occ := unit_at(hex)
+	if occ != null and not can_board(u, occ):
 		return Movement.IMPASSABLE
 	return Movement.cost(_movement, u.move_type, terrain_at(hex))
+
+## hex で移動が止まるか（その先へ展開しない）。敵ZOC＝停止／輸送のマス＝乗車先なので通過不可。
+func _move_stop(hex: Vector2i, u: Unit) -> bool:
+	if unit_at(hex) != null:
+		return true  # 乗れる輸送のマス（終点としてのみ有効）
+	return _in_enemy_zoc(hex, u)
 
 ## hex が u から見た敵ZOC内か（敵ユニットに隣接しているか）。ZOCに入ると移動が止まる。
 func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:
@@ -156,13 +240,25 @@ func can_move(unit_id: int, to: Vector2i) -> bool:
 	return _reach_map(unit_id).has(to)
 
 ## 妥当なら移動を適用して true。手番違い・移動権なし・不正先なら false。移動コストを予算から消費。
+## 移動先が「乗れる味方輸送」のマスなら乗車＝盤から降りて搭乗し、その駒は行動完了になる。
 func move_unit(unit_id: int, to: Vector2i) -> bool:
 	if not _can_act_move(unit_id):
 		return false
 	var rm := _reach_map(unit_id)
 	var u := unit_by_id(unit_id)
-	if unit_at(to) != null or to == u.pos or not rm.has(to):
+	if to == u.pos or not rm.has(to):
 		return false
+	var occ := unit_at(to)
+	if occ != null:
+		if not can_board(u, occ):
+			return false
+		_take_off_board(unit_id)  # 乗車: 盤から外して輸送へ（撃破記録は付かない）
+		put_passenger(occ.id, u)
+		_moved[unit_id] = true    # 乗った駒は行動完了（doc/gdd/movement.md）
+		_post_moved[unit_id] = true
+		_attacked[unit_id] = true
+		_spent[unit_id] = u.move
+		return true
 	u.pos = to
 	_spent[unit_id] = int(_spent.get(unit_id, 0)) + int(rm[to])
 	# 攻撃前なら通常移動、攻撃後なら再移動として消費（どちらも1回）。
@@ -337,8 +433,16 @@ func _unit_snapshot(u: Unit) -> Dictionary:
 	}
 
 ## 撃破された駒を盤から除去し、撃破済みとして記録（勝利条件「ボス撃破」の判定材料）。
+## 輸送が撃破された場合、搭乗中の駒も失われる（ネクタリス準拠）。
 func _remove_unit(unit_id: int) -> void:
 	_defeated[unit_id] = true
+	for p in passengers(unit_id):
+		_defeated[p.id] = true  # 巻き添え（盤上には居ないのでリストから消すだけ）
+	_passengers.erase(unit_id)
+	_take_off_board(unit_id)
+
+## 駒を盤上リストから外す（撃破記録は付けない。乗車・撃破処理の内部用）。
+func _take_off_board(unit_id: int) -> void:
 	for i in _units.size():
 		if _units[i].id == unit_id:
 			_units.remove_at(i)
@@ -413,12 +517,23 @@ func has_attacked(unit_id: int) -> bool:
 	return _attacked.has(unit_id)
 
 ## このターンの行動を使い切ったか（もう移動も攻撃もできない／明示的に待機した）。
+## 降車は「搭乗駒の行動」＝輸送自身が行動完了（待機・攻撃済み）でも、降ろせる駒が居る限り
+## 選択可能にする（未行動の搭乗駒はいつでも降ろせる）。詳細 → doc/gdd/movement.md
 func is_done(unit_id: int) -> bool:
+	if _has_unloadable_passenger(unit_id):
+		return false  # 「待機」済みでも降車のために選択できる
 	if _done.has(unit_id):
 		return true  # 「待機」で行動終了済み
 	var can_atk := not has_attacked(unit_id) and not attack_targets(unit_id).is_empty()
 	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
 	return not can_atk and not can_mv
+
+## 降ろせる搭乗駒（このターン未行動）が居るか。
+func _has_unloadable_passenger(unit_id: int) -> bool:
+	for p in passengers(unit_id):
+		if not has_moved(p.id):
+			return true
+	return false
 
 ## 明示的に行動終了させる（コマンドメニューの「待機」）。再選択・再行動を止める。
 func set_done(unit_id: int) -> void:

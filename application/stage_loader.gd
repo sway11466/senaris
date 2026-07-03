@@ -62,7 +62,24 @@ static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary
 		return 1
 	var auto_id := 1
 	for u in units:
-		state.add_unit(_make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog))
+		var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog)
+		state.add_unit(unit)
+		auto_id += 1
+		auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
+	return auto_id
+
+## 輸送ユニットの初期搭乗（"passengers": [...]）。各要素は通常のユニット記法（col/row 不要）。
+static func _apply_initial_passengers(state: BattleState, transport: Unit, list: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
+	if typeof(list) != TYPE_ARRAY or list.is_empty():
+		return start_id
+	if not transport.is_transport():
+		push_warning("StageLoader: capacity 0 のユニットに passengers 指定: id=%d" % transport.id)
+		return start_id
+	var auto_id := start_id
+	for pd in list:
+		var p := _make_unit(pd, catalog, int(pd.get("id", auto_id)), skin_catalog)
+		p.team = transport.team  # 搭乗は同陣営のみ
+		state.put_passenger(transport.id, p)
 		auto_id += 1
 	return auto_id
 
@@ -85,6 +102,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 			state.add_unit(unit)
 			state.assign_squad(unit.id, idx)
 			auto_id += 1
+			auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
 	return auto_id
 
 ## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。
@@ -132,4 +150,5 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog
 	unit.can_capture = bool(u.get("can_capture", t.can_capture if t != null else false))
 	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
 	unit.pierce = float(u.get("pierce", t.pierce if t != null else 0.0))
+	unit.capacity = int(u.get("capacity", t.capacity if t != null else 0))
 	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う

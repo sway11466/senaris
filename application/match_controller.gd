@@ -10,6 +10,7 @@ signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
 signal combat_resolved(detail: Dictionary)  # 戦闘結果ビュー用の内訳（攻防の導出・損害）
 signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
+signal unit_unloaded(unit_id: int, transport_id: int, to: Vector2i)
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
@@ -74,6 +75,25 @@ func execute_deploy(cmd: DeployCommand) -> bool:
 ## 表示用: base_hex の拠点から出撃できる空きhex一覧（状態は変えない）。
 func deploy_cells_for(base_hex: Vector2i) -> Array[Vector2i]:
 	return state.deploy_cells(base_hex)
+
+## 下り: 降車コマンドの処理。成功すれば unit_unloaded を発行（降車＝占領が起きうるので決着チェック）。
+func execute_unload(cmd: UnloadCommand) -> bool:
+	if _finished:
+		return false
+	if state.unload(cmd.transport_id, cmd.index, cmd.to):
+		var u := state.unit_at(cmd.to)
+		unit_unloaded.emit(u.id if u != null else -1, cmd.transport_id, cmd.to)
+		_check_finished()
+		return true
+	return false
+
+## 表示用: 輸送 transport_id の搭乗駒 index の降車先候補（状態は変えない）。
+func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
+	return state.unload_cells(transport_id, index)
+
+## 表示用: 搭乗駒が from_hex に降りたと仮定したときの攻撃対象（降車確認メニュー用）。
+func unload_attack_targets_for(transport_id: int, index: int, from_hex: Vector2i) -> Array[int]:
+	return state.unload_attack_targets(transport_id, index, from_hex)
 
 ## 手番を終了して次の陣営へ渡す。AIの手番に入ったら自動で思考を回す。
 func end_turn() -> void:
