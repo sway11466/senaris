@@ -15,6 +15,7 @@ var max_troops: int    ## 満員時の兵数
 var unit_attack: int   ## ユニット攻撃力＝対地（兵1体あたり。原典 BuA 相当）
 var atk_air: int = 0   ## 対空攻撃力（0＝対空不可＝飛行ユニットを攻撃・反撃できない）。UnitType から設定
 var unit_defense: int  ## ユニット防御力（兵1体あたり。原典 BuD 相当。対地/対空で分けない単一値）
+var pierce: float = 0.0  ## 防御貫通率（攻撃時に相手の実効防御を pierce ぶん減らす。0=なし・0.5=半減）。UnitType から設定
 var level: int         ## 経験値＝レベル（1〜MAX_LEVEL）。初期Lv1＝補正なし。詳細 → combat.md
 var type_id: String    ## 種別ID（UnitType/スキンの参照キー。空＝未指定）。描画・占領で使う
 var skin_id: String = ""  ## スキンID（見た目の指定。空＝type_id+team の既定スキンで描画）。StageLoader が設定

@@ -3,10 +3,11 @@ class_name Combat
 ## 戦闘解決（純ロジック・決定的＝乱数なし）。詳細 → doc/gdd/combat.md
 ##
 ## 実効攻撃力 A ＝ 兵数 × ユニット攻撃力 × 経験 × 包囲 × 地形(攻) ＋ 支援(攻)
-## 実効防御力 D ＝ 兵数 × ユニット防御力 × 経験 × 包囲 × 地形(防) ＋ 支援(防)
+## 実効防御力 D ＝ ( 兵数 × ユニット防御力 × 経験 × 包囲 × 地形(防) ＋ 支援(防) ) ×(1 − 攻撃側pierce)
+##   ＝ 支援・2倍上限を適用した後に攻撃側の防御貫通を掛ける（魔法兵0.5＝防御半減／物理0＝据え置き）。
 ## 失う兵数 ＝ clamp( round( k × 相手兵数 × A^p/(A^p+D^p) ), 0, 相手兵数 )
 ##
-## 補正のうち 包囲・支援・経験・地形 は実装済み（地形は平地・台地の2種から順次追加）。
+## 補正のうち 包囲・支援・経験・地形・貫通(pierce) は実装済み（地形は平地・台地の2種から順次追加）。
 
 const K := 1.0  ## 殺傷力（全体の削り量。チューニング用）
 const P := 2.0  ## 決定力（戦力差の効き。互角は常に0.5、差だけ鋭くなる）
@@ -46,11 +47,14 @@ static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := 
 	return b
 
 ## 実効防御力の内訳（dict）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
+## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
+## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（combat.md【要判断】）。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
 	var support: float = _support(state, u, enemy, false) if melee else 0.0
 	var pre := float(u.troops) * float(u.unit_defense) * experience_factor(u) * surround_factor(state, u) * Terrain.defense_factor(state.terrain_at(u.pos))
 	var supported := pre + support
-	var total := minf(supported, pre * DEFENSE_SUPPORT_CAP)
+	var capped := minf(supported, pre * DEFENSE_SUPPORT_CAP)  # 支援は素の2倍まで
+	var pierce_factor := 1.0 - float(enemy.pierce)  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
 	return {
 		"kind": "defense",
 		"troops": u.troops,
@@ -59,9 +63,10 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 		"surround": surround_factor(state, u),
 		"terrain": Terrain.defense_factor(state.terrain_at(u.pos)),
 		"support": support,
-		"capped": supported > total,  # 支援2倍上限が効いたか
+		"capped": supported > capped,  # 支援2倍上限が効いたか（貫通適用前で判定）
+		"pierce": pierce_factor,       # 攻撃側の貫通後係数（内訳表示用）
 		"melee": melee,
-		"total": total,
+		"total": capped * pierce_factor,
 	}
 
 ## u が enemy を攻撃するときの実効攻撃力（内訳の total）。

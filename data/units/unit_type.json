@@ -1,7 +1,7 @@
 {
 	"types": [
 		{
-			"atk_air": 10,
+			"atk_air": 0,
 			"atk_ground": 15,
 			"can_capture": true,
 			"capacity": 0,
@@ -9,14 +9,15 @@
 			"defense": 20,
 			"id": "cleric",
 			"max_troops": 8,
-			"memo": "参考：ムンクス",
+			"memo": "",
 			"move": 3,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
-			"atk_air": 10,
+			"atk_air": 0,
 			"atk_ground": 40,
 			"can_capture": true,
 			"capacity": 0,
@@ -24,14 +25,15 @@
 			"defense": 20,
 			"id": "priest",
 			"max_troops": 8,
-			"memo": "参考：ダーベック",
+			"memo": "",
 			"move": 2,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
-			"atk_air": 10,
+			"atk_air": 0,
 			"atk_ground": 10,
 			"can_capture": true,
 			"capacity": 0,
@@ -39,14 +41,15 @@
 			"defense": 10,
 			"id": "monk",
 			"max_troops": 8,
-			"memo": "参考：ドレイパー",
+			"memo": "",
 			"move": 9,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
-			"atk_air": 10,
+			"atk_air": 0,
 			"atk_ground": 10,
 			"can_capture": true,
 			"capacity": 0,
@@ -58,10 +61,11 @@
 			"move": 3,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
-			"atk_air": 50,
+			"atk_air": 0,
 			"atk_ground": 50,
 			"can_capture": true,
 			"capacity": 0,
@@ -73,6 +77,7 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -88,10 +93,11 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 2
 		},
 		{
-			"atk_air": 65,
+			"atk_air": 55,
 			"atk_ground": 30,
 			"can_capture": false,
 			"capacity": 0,
@@ -103,51 +109,55 @@
 			"move": 6,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 3
 		},
 		{
-			"atk_air": 85,
-			"atk_ground": 0,
+			"atk_air": 80,
+			"atk_ground": 30,
 			"can_capture": false,
 			"capacity": 0,
 			"category": "弓兵",
-			"defense": 30,
+			"defense": 10,
 			"id": "elf",
 			"max_troops": 8,
 			"memo": "",
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "forest_walk",
+			"pierce": 0,
 			"range": 5
 		},
 		{
-			"atk_air": 0,
-			"atk_ground": 60,
+			"atk_air": 40,
+			"atk_ground": 40,
 			"can_capture": false,
 			"capacity": 0,
 			"category": "魔法兵",
 			"defense": 30,
 			"id": "wizard",
 			"max_troops": 8,
-			"memo": "参考：エストール",
+			"memo": "",
 			"move": 4,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0.5,
 			"range": 4
 		},
 		{
-			"atk_air": 0,
-			"atk_ground": 45,
+			"atk_air": 30,
+			"atk_ground": 30,
 			"can_capture": false,
 			"capacity": 0,
 			"category": "魔法兵",
 			"defense": 30,
 			"id": "witch",
 			"max_troops": 8,
-			"memo": "参考：ナスホルン",
+			"memo": "",
 			"move": 4,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0.5,
 			"range": 5
 		},
 		{
@@ -159,10 +169,11 @@
 			"defense": 20,
 			"id": "thief",
 			"max_troops": 8,
-			"memo": "参考：ラビット",
+			"memo": "",
 			"move": 8,
 			"move_after_attack": true,
 			"move_type": "light_foot",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -174,10 +185,11 @@
 			"defense": 20,
 			"id": "halfling",
 			"max_troops": 8,
-			"memo": "参考：リンクス",
+			"memo": "",
 			"move": 6,
 			"move_after_attack": true,
 			"move_type": "bush_walk",
+			"pierce": 0,
 			"range": 2
 		},
 		{
@@ -193,6 +205,7 @@
 			"move": 7,
 			"move_after_attack": true,
 			"move_type": "light_foot",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -208,21 +221,23 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "flight",
+			"pierce": 0,
 			"range": 1
 		},
 		{
 			"atk_air": 90,
-			"atk_ground": 0,
+			"atk_ground": 10,
 			"can_capture": false,
 			"capacity": 0,
 			"category": "飛行兵",
 			"defense": 30,
 			"id": "dragon_knight",
 			"max_troops": 8,
-			"memo": "参考：ファルコ",
+			"memo": "",
 			"move": 12,
 			"move_after_attack": false,
 			"move_type": "flight",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -234,10 +249,11 @@
 			"defense": 30,
 			"id": "birdman",
 			"max_troops": 8,
-			"memo": "参考：ジャビィ",
+			"memo": "",
 			"move": 10,
 			"move_after_attack": false,
 			"move_type": "flight",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -249,10 +265,11 @@
 			"defense": 50,
 			"id": "dragon",
 			"max_troops": 8,
-			"memo": "参考：ハンター",
+			"memo": "敵のみの想定",
 			"move": 11,
 			"move_after_attack": false,
 			"move_type": "flight",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -264,10 +281,11 @@
 			"defense": 30,
 			"id": "novice",
 			"max_troops": 8,
-			"memo": "参考：レネット",
+			"memo": "",
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -283,6 +301,7 @@
 			"move": 6,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -298,6 +317,7 @@
 			"move": 7,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -313,6 +333,7 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -328,6 +349,7 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -343,21 +365,7 @@
 			"move": 4,
 			"move_after_attack": false,
 			"move_type": "mountain_walk",
-			"range": 1
-		},
-		{
-			"atk_air": 40,
-			"atk_ground": 90,
-			"can_capture": false,
-			"capacity": 0,
-			"category": "精鋭",
-			"defense": 80,
-			"id": "sorcerer",
-			"max_troops": 8,
-			"memo": "参考：ギガント",
-			"move": 2,
-			"move_after_attack": false,
-			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -366,14 +374,31 @@
 			"can_capture": false,
 			"capacity": 0,
 			"category": "精鋭",
+			"defense": 80,
+			"id": "sorcerer",
+			"max_troops": 8,
+			"memo": "",
+			"move": 2,
+			"move_after_attack": false,
+			"move_type": "ground",
+			"pierce": 0.5,
+			"range": 1
+		},
+		{
+			"atk_air": 80,
+			"atk_ground": 80,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "精鋭",
 			"defense": 10,
 			"id": "sniper",
 			"max_troops": 8,
 			"memo": "",
-			"move": 3,
+			"move": 2,
 			"move_after_attack": false,
 			"move_type": "ground",
-			"range": 4
+			"pierce": 0,
+			"range": 5
 		},
 		{
 			"atk_air": 10,
@@ -384,25 +409,27 @@
 			"defense": 10,
 			"id": "wagon",
 			"max_troops": 8,
-			"memo": "参考：ミュール",
+			"memo": "",
 			"move": 6,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
-			"atk_air": 0,
-			"atk_ground": 0,
+			"atk_air": 10,
+			"atk_ground": 10,
 			"can_capture": false,
 			"capacity": 6,
 			"category": "輸送",
 			"defense": 10,
 			"id": "airship",
 			"max_troops": 8,
-			"memo": "参考：ペリカン",
+			"memo": "",
 			"move": 9,
 			"move_after_attack": false,
 			"move_type": "flight",
+			"pierce": 0,
 			"range": 1
 		},
 		{
@@ -418,10 +445,11 @@
 			"move": 0,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 1
 		},
 		{
-			"atk_air": 0,
+			"atk_air": 30,
 			"atk_ground": 90,
 			"can_capture": false,
 			"capacity": 0,
@@ -429,10 +457,11 @@
 			"defense": 20,
 			"id": "ballista",
 			"max_troops": 8,
-			"memo": "参考：モノケロス",
+			"memo": "",
 			"move": 0,
 			"move_after_attack": false,
 			"move_type": "ground",
+			"pierce": 0,
 			"range": 6
 		}
 	]
