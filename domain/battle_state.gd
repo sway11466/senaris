@@ -332,13 +332,22 @@ func deploy_cells(base_hex: Vector2i) -> Array[Vector2i]:
 func can_deploy(base_hex: Vector2i) -> bool:
 	return not deploy_cells(base_hex).is_empty()
 
+## garrison[index] を出撃させられるか（native ルール）。中立 native は誰の拠点からでも出せる（寝返り）。
+## 味方/敵 native の駒は「拠点の現所有者＝生来の陣営」のときだけ＝奪われた拠点の駒は閉じ込め。
+func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
+	var b := base_at(base_hex)
+	if b == null or index < 0 or index >= b.garrison.size():
+		return false
+	var u: Unit = b.garrison[index]
+	return u.native_team == Base.NEUTRAL or u.native_team == b.team
+
 ## 拠点の garrison[index] を隣接空き to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
-## 成否を返す。手番違い・非占領・索引外・隣接でない・占有マスなら false。
+## 成否を返す。手番違い・非占領・索引外・native不一致（閉じ込め）・隣接でない・占有マスなら false。
 func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	var b := base_at(base_hex)
 	if b == null or b.team != current_team:
 		return false
-	if garrison_index < 0 or garrison_index >= b.garrison.size():
+	if not can_deploy_garrison(base_hex, garrison_index):
 		return false
 	if not in_field(to_hex) or unit_at(to_hex) != null:
 		return false
@@ -346,7 +355,7 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 		return false
 	var u: Unit = b.garrison[garrison_index]
 	b.garrison.remove_at(garrison_index)
-	u.team = current_team
+	u.team = current_team  # 中立 native はここで寝返る（味方/敵 native は自陣営のまま＝値は変わらない）
 	u.pos = to_hex
 	_units.append(u)
 	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃もこれ以上しない）。
@@ -354,6 +363,27 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	_post_moved[u.id] = true
 	_attacked[u.id] = true
 	_spent[u.id] = u.move
+	return true
+
+## 自軍所有の拠点に「入る」（駐留）。拠点hexに立っている駒を garrison へ移す＝盤上から消える。
+## 中で手番開始ごとに回復（_heal_garrisons）。出るのは出撃（deploy）＝1歩・行動完了。
+## 盤上最後の1体は入れない（暫定＝盤上0で即敗北になるため。閉じ込め判定の実装時に見直す）。
+func can_enter_base(unit_id: int) -> bool:
+	var u := unit_by_id(unit_id)
+	if not is_current_unit(u):
+		return false
+	var b := base_at(u.pos)
+	if b == null or b.team != u.team:
+		return false
+	return team_unit_count(u.team) > 1
+
+func enter_base(unit_id: int) -> bool:
+	if not can_enter_base(unit_id):
+		return false
+	var u := unit_by_id(unit_id)
+	var b := base_at(u.pos)
+	_take_off_board(unit_id)
+	b.garrison.append(u)
 	return true
 
 # --- 攻撃 ---
@@ -566,7 +596,7 @@ func can_select(unit_id: int) -> bool:
 	return is_current_unit(unit_by_id(unit_id)) and not is_done(unit_id)
 
 ## 手番を次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
-## 手番開始時に、自軍拠点に乗っている自軍ユニットを兵数 max まで回復（休憩）。
+## 手番開始時に、拠点に駐留中（garrison）の駒を回復（休憩＝中に入るモデル）。
 func end_turn() -> void:
 	_moved.clear()
 	_post_moved.clear()
@@ -576,13 +606,17 @@ func end_turn() -> void:
 	current_team = 1 - current_team
 	if current_team == 0:
 		turn_number += 1
-	_heal_on_bases()
+	_heal_garrisons()
 
-## 手番が始まる陣営のユニットのうち、自軍所属の拠点hexに乗っているものを満員へ回復（兵数のみ）。
-func _heal_on_bases() -> void:
-	for u in _units:
-		if u.team != current_team:
+## 手番が始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
+## 回復できるのは native が自陣営/中立の拠点だけ＝奪った敵 native 拠点は出撃拠点にはなるが回復しない。
+## 閉じ込め駒（native≠所有者）も回復しない。hexの上に立っている駒は回復しない（中に入るモデル）。
+func _heal_garrisons() -> void:
+	for b in _bases:
+		if b.team != current_team:
 			continue
-		var b := base_at(u.pos)
-		if b != null and b.team == u.team:
-			u.troops = u.max_troops
+		if b.native_team != current_team and b.native_team != Base.NEUTRAL:
+			continue  # 敵 native の拠点では回復しない
+		for u in b.garrison:
+			if u.native_team == current_team or u.native_team == Base.NEUTRAL:
+				u.troops = u.max_troops

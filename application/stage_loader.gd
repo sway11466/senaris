@@ -79,6 +79,7 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 	for pd in list:
 		var p := _make_unit(pd, catalog, int(pd.get("id", auto_id)), skin_catalog)
 		p.team = transport.team  # 搭乗は同陣営のみ
+		p.native_team = int(pd.get("native", transport.team))
 		state.put_passenger(transport.id, p)
 		auto_id += 1
 	return auto_id
@@ -108,6 +109,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 ## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。
 ## garrison の各要素は { type, count } ＋ ユニット個別キー（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
+## garrison の生来陣営（native）は拠点の初期所属が既定（中立拠点の駒＝中立＝取った側に寝返る）。
 static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> void:
 	if typeof(bases) != TYPE_ARRAY:
 		return
@@ -117,7 +119,9 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 		var base := Base.new(hex, int(b.get("team", Base.NEUTRAL)), String(b.get("kind", "fort")))
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
-				base.garrison.append(_make_unit(g, catalog, auto_id, skin_catalog))
+				var gu := _make_unit(g, catalog, auto_id, skin_catalog)
+				gu.native_team = int(g.get("native", base.native_team))
+				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)
 
@@ -151,4 +155,5 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog
 	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
 	unit.pierce = float(u.get("pierce", t.pierce if t != null else 0.0))
 	unit.capacity = int(u.get("capacity", t.capacity if t != null else 0))
+	unit.native_team = int(u.get("native", unit.team))  # 生来の陣営（既定=初期team。garrison/搭乗は呼び出し側が上書き）
 	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う

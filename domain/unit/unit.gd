@@ -7,7 +7,9 @@ class_name Unit
 const MAX_LEVEL := 8   ## 経験値（＝レベル）の上限
 
 var id: int            ## 一意なID
-var team: int          ## 陣営（0=自軍, 1=敵軍 ...）
+var team: int          ## 陣営（0=自軍, 1=敵軍 ...）。中立garrisonの寝返り等で変わりうる
+var native_team: int   ## 生来の陣営（不変）。-1(Base.NEUTRAL)=中立＝占領した側に寝返る。
+                       ## 味方/敵 native の駒は寝返らない＝拠点を奪われると閉じ込め。詳細 → doc/gdd/map.md
 var pos: Vector2i      ## axial 座標
 var move: int          ## 移動力（ヘックス数）
 var troops: int        ## 兵数（1〜8）。残存兵数。0で消滅
@@ -43,6 +45,7 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 		p_level: int = 1, p_type_id: String = "") -> void:
 	id = p_id
 	team = p_team
+	native_team = p_team  # 既定は初期陣営（中立garrison等は生成側が上書き）
 	pos = p_pos
 	move = p_move
 	troops = p_troops

@@ -11,6 +11,7 @@ signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool
 signal combat_resolved(detail: Dictionary)  # 戦闘結果ビュー用の内訳（攻防の導出・損害）
 signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
 signal unit_unloaded(unit_id: int, transport_id: int, to: Vector2i)
+signal unit_entered_base(unit_id: int, base_hex: Vector2i)
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
@@ -94,6 +95,19 @@ func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
 ## 表示用: 搭乗駒が from_hex に降りたと仮定したときの攻撃対象（降車確認メニュー用）。
 func unload_attack_targets_for(transport_id: int, index: int, from_hex: Vector2i) -> Array[int]:
 	return state.unload_attack_targets(transport_id, index, from_hex)
+
+## 下り: 拠点に「入る」（駐留＝回復）。成功すれば unit_entered_base を発行。
+func enter_base(unit_id: int) -> bool:
+	if _finished:
+		return false
+	var u := state.unit_by_id(unit_id)
+	if u == null:
+		return false
+	var hex := u.pos
+	if state.enter_base(unit_id):
+		unit_entered_base.emit(unit_id, hex)
+		return true
+	return false
 
 ## 手番を終了して次の陣営へ渡す。AIの手番に入ったら自動で思考を回す。
 func end_turn() -> void:
