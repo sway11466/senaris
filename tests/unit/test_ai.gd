@@ -416,6 +416,22 @@ func test_squad_weak_preset_applies() -> void:
 	assert_eq(a.kind, AiAction.Kind.MOVE, "部隊経由でも獲物のみ＝前衛を殴らない")
 	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "獲物へ向かう")
 
+func test_weak_debug_stage_wires_squad() -> void:
+	# デバッグステージ weak.json: 部隊が weak を参照し、馬車が獲物（盤上最低防御）になっている。
+	var s := StageLoader.load_file("res://data/stages/debug/weak.json")
+	assert_not_null(s, "weak.json が読める")
+	assert_eq(s.squads.size(), 1)
+	assert_eq(String(s.squads[0].get("ai", "")), "weak", "部隊のAIラベル＝weak")
+	var wagon: Unit = null
+	var min_def := 1 << 30
+	for u in s.units():
+		if u.team == 0:
+			min_def = mini(min_def, u.unit_defense)
+			if u.type_id == "wagon":
+				wagon = u
+	assert_not_null(wagon, "馬車がいる")
+	assert_eq(wagon.unit_defense, min_def, "馬車が獲物（自軍最低防御）")
+
 func test_ai_catalog_has_weak_preset() -> void:
 	# 生成物 ai.json に weak（弱者狙い）が載っている（CSV→JSONパイプラインの配線確認）。
 	var presets := AiCatalog.load_default()
