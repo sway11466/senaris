@@ -50,12 +50,16 @@ if ($SkinIds.Count -eq 1 -and $SkinIds[0] -eq 'all') { $SkinIds = @($scale.Keys)
 foreach ($id in $SkinIds) {
   $sc = if ($scale.ContainsKey($id)) { $scale[$id] } else { 1.0 }
   $h  = [int][math]::Round($BaseHeight * $sc)
-  # source dir = source/<group>/<id> (faction subfolder); plain source/<id> also accepted
+  # source dir = the folder named <id> that actually holds the 02_master/01_raw.
+  # Checking file presence matters: a faction folder can share the skin's name
+  # (source/goblin/ vs skin goblin -> source/goblin/goblin/).
   $srcDir = Join-Path $srcRoot $id
-  if (-not (Test-Path $srcDir)) {
-    $hit = Get-ChildItem -Path $srcRoot -Directory -Recurse | Where-Object { $_.Name -eq $id } | Select-Object -First 1
-    if ($hit) { $srcDir = $hit.FullName }
-  }
+  $hit = Get-ChildItem -Path $srcRoot -Directory -Recurse |
+    Where-Object { $_.Name -eq $id -and (
+      (Test-Path (Join-Path $_.FullName "${id}_02_master.png")) -or
+      (Test-Path (Join-Path $_.FullName "${id}_01_raw.png"))) } |
+    Select-Object -First 1
+  if ($hit) { $srcDir = $hit.FullName }
   $master = Join-Path $srcDir "${id}_02_master.png"
   $raw    = Join-Path $srcDir "${id}_01_raw.png"
   $outDir = Join-Path $outRoot $id
