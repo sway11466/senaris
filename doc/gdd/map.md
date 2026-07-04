@@ -27,7 +27,7 @@
   - **殲滅は「盤上」で数える**：拠点の中の眠り駒（garrison）は盤上に居ない＝カウント外。ただし敵保持の拠点は出撃してくるので、盤を空に保つには実質その拠点の制圧が要る。
   - **相討ち全滅**は自軍が盤上から消えていれば敗北優先（暫定踏襲）。
 - **実装状況**: 敵全滅／自軍全滅は実装済み。**条件リスト化・ボス撃破・本拠地占領も実装済み**＝ステージJSONの `victory` 配列（OR評価）を `BattleState.victory_conditions` が判定。
-  - ボス撃破 `{ "type": "defeat_unit", "unit_id": N }`（ボスは units 側で `"id": N` を明示採番）。デバッグステージ: `data/stages/debug/boss.json`。
+  - ボス撃破 `{ "type": "defeat_unit", "unit_id": N }`（ボスは駒に `"id": N` を明示採番。enemy 部隊の `units[]` 内でよい）。デバッグステージ: `data/stages/debug/boss.json`。
   - 本拠地占領 `{ "type": "capture_hq" }`＝敵 native の `kind:"hq"` 拠点をすべて自軍が保持で勝利（`Base.kind`・`native_team` を追加。該当 hq が無ければ不成立＝空勝ち防止）。**自軍 native の hq を奪われたら敗北**（常時ルール・hq を置いたステージだけ効く。奪還で解消）。デバッグステージ: `data/stages/debug/hq.json`。占領は移動の瞬間に起きるため、決着チェックは移動直後にも走る（MatchController）。
   - 殲滅勝ち/全滅負けは条件リストと無関係に常時有効（相討ち・hq喪失は敗北優先）。**ターン制限・閉じ込め判定は未実装**。
 
@@ -100,19 +100,37 @@
   - 例: 動作確認用のデバッグステージは `data/stages/debug/debug.json`。
 - 冒険譚内のステージ順序・進行管理（マニフェスト）・ステージ選択 → [stage_select.md](stage_select.md)。実装までは読込先を決め打ちで1枚。
 
-### 陣営の表記（team / native）
+### 駒の配置（陣営セクション）
 
-- ステージJSONの陣営は**可読な文字列**で書く: **`"player"`（自軍）／`"enemy"`（敵）／`"neutral"`（中立）**。内部は int 規約（0/1/-1）で持つが、データ側では数値を書かない（`StageLoader` が文字列→int に変換）。
-- **`team`**: ユニット・拠点の所属。ユニット省略時は `player`、拠点省略時は `neutral`。
-- **`native`**: ユニットの生来の陣営（[出撃・寝返り](#出撃ネクタリス方式寝返り解放)を決める）。省略時は各文脈の既定（盤上ユニット＝自身の team、garrison＝拠点の初期所属、搭乗＝輸送と同陣営）。
+- 駒は**陣営ごとのセクション**に分けて書く。**このゲームは味方＝人間操作／敵＝AI操作が1:1**なので、陣営で構造を分ける（駒ごとの `team` は書かない＝セクションが陣営を決める）。
+  - **`player`**: 自軍の駒の配列。人間が操作する（AI/部隊は持たない）。
+  - **`enemy`**: 敵の**部隊(squad)の配列**。**敵は必ずどれかの部隊に属する**（バラ配置は無い）。各部隊は AI プリセット `ai` を持つ。ただの1波は名前なしの `{ "ai": "charge", "units": [...] }` でよい。
+- 各駒（`player[]` / `enemy[].units[]`）の記法は共通: `type`（性能）か `skin`（見た目・性能は逆引き）＋ `col`/`row`＋個別上書き（`move`/`troops`/`atk`/`def`/`level`/`range`…）＋任意 `id`（ボス指定など）。輸送は `passengers:[...]`。
+- **部隊(squad)** ＝ `{ "name"?: 表示名, "ai": プリセットラベル, ...上書き, "units": [...] }`。`ai` は [ai.md](ai.md) のプリセット（`charge`/`guard`/`raid`/`weak`…）。`guard` は `sight`（索敵半径）等を足せる。
 - 例:
   ```json
-  { "type": "fighter", "team": "player", "col": 2, "row": 5 }
-  { "skin": "goblin",  "team": "enemy",  "col": 9, "row": 5 }
-  { "col": 9, "row": 6, "team": "neutral",
-    "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
+  "player": [
+    { "type": "fighter", "col": 2, "row": 5 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [ { "skin": "goblin", "col": 9, "row": 5 } ] },
+    { "name": "奥の部屋", "ai": "guard", "sight": 3, "units": [ ... ] }
+  ]
   ```
-  ↑ 最後の例＝**中立拠点だが garrison は `native:"player"`** なので、敵に踏まれても寝返らず自軍の解放待ち（囚われの町人）。
+
+### 陣営の表記（拠点の team / native）
+
+- **拠点・native の陣営は可読な文字列**で書く: **`"player"`（自軍）／`"enemy"`（敵）／`"neutral"`（中立）**。内部は int 規約（0/1/-1）で持つが、データ側では数値を書かない（`StageLoader` が文字列→int に変換）。駒の陣営はセクションで決まる（上記）ので `team` は書かない。
+- **`bases[].team`**: 拠点の所属。省略時は `neutral`。
+- **`native`**: 駒の生来の陣営（[出撃・寝返り](#出撃ネクタリス方式寝返り解放)を決める）。省略時は各文脈の既定（盤上の駒＝自身のセクション陣営、garrison＝拠点の初期所属、搭乗＝輸送と同陣営）。
+- 例（拠点＋garrison）:
+  ```json
+  "bases": [
+    { "col": 9, "row": 6, "team": "neutral",
+      "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
+  ]
+  ```
+  ↑ **中立拠点だが garrison は `native:"player"`** なので、敵に踏まれても寝返らず自軍の解放待ち（囚われの町人）。
 
 ### 戦力供給モデル（独立／継承）
 

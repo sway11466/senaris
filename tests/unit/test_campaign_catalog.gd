@@ -12,7 +12,7 @@ func test_tutorial_manifest() -> void:
 	var c := CampaignCatalog.load_file("res://data/stages/tutorial1-goblin-raid/campaign.json")
 	assert_eq(c["id"], "tutorial1-goblin-raid")
 	assert_false(c["debug"], "debug 未指定は false")
-	assert_eq(c["stages"].size(), 5)
+	assert_eq(c["stages"].size(), 6)
 	assert_eq(c["stages"][0]["unlock"], [], "1面は無条件解放")
 	assert_eq(c["stages"][1]["unlock"][0]["type"], "cleared")
 	assert_eq(c["stages"][1]["unlock"][0]["stage"], "st1")

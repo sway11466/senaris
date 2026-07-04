@@ -11,18 +11,18 @@
     "..............",
     ".............."
   ],
-  "units": [
-    { "type": "wagon", "team": "player", "col": 2, "row": 3 },
-    { "type": "wizard", "team": "player", "col": 1, "row": 2 },
-    { "type": "witch", "team": "player", "col": 1, "row": 4 },
-    { "type": "fighter", "team": "player", "col": 2, "row": 2 }
+  "player": [
+    { "type": "wagon", "col": 2, "row": 3 },
+    { "type": "wizard", "col": 1, "row": 2 },
+    { "type": "witch", "col": 1, "row": 4 },
+    { "type": "fighter", "col": 2, "row": 2 }
   ],
-  "squads": [
+  "enemy": [
     { "name": "見張りのゴブリン", "ai": "guard",
       "units": [
-        { "skin": "goblin", "team": "enemy", "col": 10, "row": 2 },
-        { "skin": "goblin", "team": "enemy", "col": 10, "row": 4 },
-        { "skin": "goblin", "team": "enemy", "col": 11, "row": 3 }
+        { "skin": "goblin", "col": 10, "row": 2 },
+        { "skin": "goblin", "col": 10, "row": 4 },
+        { "skin": "goblin", "col": 11, "row": 3 }
       ] }
   ],
   "bases": [

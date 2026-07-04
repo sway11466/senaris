@@ -27,21 +27,23 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 	return default_team
 
 ## ステージ辞書から BattleState を組み立てる。
-## 期待キー: cols, rows, terrain(配列の文字列), units(配列の辞書), bases(配列の辞書)。
+## 期待キー: cols, rows, terrain(配列の文字列), player(駒の配列), enemy(squadの配列), bases(配列の辞書)。
+## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
+## enemy は squad の配列で、各 squad が AI プリセット(ai)を持つ（敵は必ず squad に属する）。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）。
 static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}) -> BattleState:
 	var cols := int(data.get("cols", 12))
 	var rows := int(data.get("rows", 8))
 	var state := BattleState.new(cols, rows)
 	_apply_terrain(state, data.get("terrain", []))
-	var next_id := _apply_units(state, data.get("units", []), catalog, skin_catalog)
-	next_id = _apply_squads(state, data.get("squads", []), catalog, next_id, skin_catalog)
+	var next_id := _apply_units(state, data.get("player", []), catalog, 0, skin_catalog)
+	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	_apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
-	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": 99 }]（ボスは units 側で id 明示）
+	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": 99 }]（ボスは squad 側で id 明示）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
-	state.enemy_ai = String(data.get("ai", ""))  # 敵AIプリセットラベル（空＝既定 charge）
+	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
@@ -70,15 +72,16 @@ static func _apply_terrain(state: BattleState, grid: Variant) -> void:
 			if tid != Terrain.DEFAULT_ID:  # 既定地形は明示設定不要
 				state.set_terrain(Hex.offset_to_axial(col, row), tid)
 
-## ユニット配置リストを盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
+## 駒配置リスト（player セクション）を盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
+## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引き、個別キー(move/troops/atk/def/level)で上書きできる。
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
-static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, skin_catalog: Dictionary = {}) -> int:
+static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(units) != TYPE_ARRAY:
 		return 1
 	var auto_id := 1
 	for u in units:
-		var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog)
+		var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), team, skin_catalog)
 		state.add_unit(unit)
 		auto_id += 1
 		auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
@@ -93,17 +96,16 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 		return start_id
 	var auto_id := start_id
 	for pd in list:
-		var p := _make_unit(pd, catalog, int(pd.get("id", auto_id)), skin_catalog)
-		p.team = transport.team  # 搭乗は同陣営のみ
-		p.native_team = _parse_team(pd.get("native"), transport.team)
+		var p := _make_unit(pd, catalog, int(pd.get("id", auto_id)), transport.team, skin_catalog)  # 搭乗は同陣営
 		state.put_passenger(transport.id, p)
 		auto_id += 1
 	return auto_id
 
-## 部隊(squad)リストを盤に追加。各部隊は { name, ai: プリセットラベル, ...上書き, units: [...] }。
-## units は通常のユニット記法（型/スキン/個別キー/id 明示）と同じで、採番も units 直書きから連続する。
+## enemy セクション（部隊(squad)の配列）を盤に追加。各部隊は { name?, ai: プリセットラベル, ...上書き, units: [...] }。
+## team は陣営（呼び出し側が固定＝敵=1）。敵は必ず squad に属する（バラ配置は無い）。
+## units は通常の駒記法（型/スキン/個別キー/id 明示）と同じで、採番も player の続きから連続する。
 ## 部隊メンバーは BattleState に「unit→部隊」の対応が登録され、AIが部隊のプリセットで振る舞う。
-static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
+static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictionary, team: int, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(squads) != TYPE_ARRAY:
 		return start_id
 	var auto_id := start_id
@@ -115,7 +117,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 		var idx: int = state.squads.size()
 		state.squads.append(squad)
 		for u in sq.get("units", []):
-			var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), skin_catalog)
+			var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), team, skin_catalog)
 			state.add_unit(unit)
 			state.assign_squad(unit.id, idx)
 			auto_id += 1
@@ -135,15 +137,16 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL), String(b.get("kind", "fort")))
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
-				var gu := _make_unit(g, catalog, auto_id, skin_catalog)
+				var gu := _make_unit(g, catalog, auto_id, 0, skin_catalog)  # team は出撃時に決まる（deploy で captor 陣営へ）
 				gu.native_team = _parse_team(g.get("native"), base.native_team)
 				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)
 
-## ユニット辞書 → Unit。"type" があれば catalog からステータスを引き、個別キーで上書き可。
+## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
+## "type" があれば catalog からステータスを引き、個別キーで上書き可。
 ## col/row 省略は (0,0)（garrison は出撃時に pos を決めるので無視される）。
-static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog: Dictionary = {}) -> Unit:
+static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, skin_catalog: Dictionary = {}) -> Unit:
 	var pos := Hex.offset_to_axial(int(u.get("col", 0)), int(u.get("row", 0)))
 	# 見た目(skin)と性能(type)の解決。skin→type は1:1なので、どちらか一方の指定で両方決まる。
 	var skin_id := String(u.get("skin", ""))
@@ -162,7 +165,7 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog
 	var atk := int(u.get("atk", t.atk_ground if t != null else 10))
 	var dfn := int(u.get("def", t.defense if t != null else 10))
 	var lv := int(u.get("level", 1))
-	var unit := Unit.new(id, _parse_team(u.get("team"), 0), pos, mv, tp, atk, dfn, lv, type_id)
+	var unit := Unit.new(id, team, pos, mv, tp, atk, dfn, lv, type_id)
 	unit.skin_id = skin_id
 	unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
 	unit.attack_range = int(u.get("range", t.attack_range if t != null else 1))

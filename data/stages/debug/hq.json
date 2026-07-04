@@ -11,17 +11,17 @@
     "............",
     "............"
   ],
-  "units": [
-    { "type": "cleric", "team": "player", "col": 3, "row": 3 },
-    { "type": "fighter", "team": "player", "col": 4, "row": 3 },
-    { "type": "novice", "team": "player", "col": 4, "row": 4 }
+  "player": [
+    { "type": "cleric", "col": 3, "row": 3 },
+    { "type": "fighter", "col": 4, "row": 3 },
+    { "type": "novice", "col": 4, "row": 4 }
   ],
-  "squads": [
+  "enemy": [
     { "name": "本拠地強襲", "ai": "raid",
       "units": [
-        { "skin": "goblin", "team": "enemy", "col": 8, "row": 3 },
-        { "skin": "hobgoblin", "team": "enemy", "col": 7, "row": 1 },
-        { "skin": "hobgoblin", "team": "enemy", "col": 7, "row": 5 }
+        { "skin": "goblin", "col": 8, "row": 3 },
+        { "skin": "hobgoblin", "col": 7, "row": 1 },
+        { "skin": "hobgoblin", "col": 7, "row": 5 }
       ] }
   ],
   "bases": [

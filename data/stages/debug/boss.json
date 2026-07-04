@@ -11,15 +11,18 @@
     "......F.....",
     "......F....."
   ],
-  "units": [
-    { "type": "fighter", "team": "player", "col": 1, "row": 2 },
-    { "type": "novice", "team": "player", "col": 1, "row": 3 },
-    { "type": "novice", "team": "player", "col": 1, "row": 4 },
-    { "type": "archer", "team": "player", "col": 0, "row": 3 },
-
-    { "id": 99, "skin": "goblin", "team": "enemy", "col": 4, "row": 3 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 8, "row": 2 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 8, "row": 4 }
+  "player": [
+    { "type": "fighter", "col": 1, "row": 2 },
+    { "type": "novice", "col": 1, "row": 3 },
+    { "type": "novice", "col": 1, "row": 4 },
+    { "type": "archer", "col": 0, "row": 3 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [
+      { "id": 99, "skin": "goblin", "col": 4, "row": 3 },
+      { "skin": "hobgoblin", "col": 8, "row": 2 },
+      { "skin": "hobgoblin", "col": 8, "row": 4 }
+    ] }
   ],
   "victory": [
     { "type": "defeat_unit", "unit_id": 99 }

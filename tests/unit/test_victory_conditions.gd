@@ -140,9 +140,11 @@ func test_loader_wires_base_kind_and_native() -> void:
 
 func test_loader_wires_victory_and_explicit_id() -> void:
 	var data := { "cols": 6, "rows": 6,
-		"units": [
-			{ "team": "player", "col": 1, "row": 1 },
-			{ "id": 99, "team": "enemy", "col": 4, "row": 4 },
+		"player": [
+			{ "col": 1, "row": 1 },
+		],
+		"enemy": [
+			{ "ai": "charge", "units": [ { "id": 99, "col": 4, "row": 4 } ] },
 		],
 		"victory": [ { "type": "defeat_unit", "unit_id": 99 } ],
 	}

@@ -179,14 +179,14 @@ const PRESETS := {
 
 func test_loader_wires_squads() -> void:
 	var data := { "cols": 8, "rows": 8,
-		"units": [ { "team": "player", "col": 1, "row": 1 } ],
-		"squads": [
+		"player": [ { "col": 1, "row": 1 } ],
+		"enemy": [
 			{ "name": "強襲", "ai": "raid",
-				"units": [ { "team": "enemy", "col": 5, "row": 5 }, { "team": "enemy", "col": 6, "row": 5 } ] },
+				"units": [ { "col": 5, "row": 5 }, { "col": 6, "row": 5 } ] },
 		],
 	}
 	var s := StageLoader.build(data)
-	assert_eq(s.units().size(), 3, "直書き1＋部隊2が盤に載る")
+	assert_eq(s.units().size(), 3, "player1＋部隊2が盤に載る")
 	assert_eq(s.squads.size(), 1)
 	var sq2 := s.squad_of(2)  # 採番は直書きから連続（部隊の1体目=id2）
 	assert_eq(String(sq2.get("ai", "")), "raid", "部隊メンバーは部隊のラベルを持つ")
@@ -420,8 +420,8 @@ func test_weak_debug_stage_wires_squad() -> void:
 	# デバッグステージ weak.json: 部隊が weak を参照し、馬車が獲物（盤上最低防御）になっている。
 	var s := StageLoader.load_file("res://data/stages/debug/weak.json")
 	assert_not_null(s, "weak.json が読める")
-	assert_eq(s.squads.size(), 1)
-	assert_eq(String(s.squads[0].get("ai", "")), "weak", "部隊のAIラベル＝weak")
+	assert_eq(s.squads.size(), 2, "弱者狙い squad ＋ 場外ゴブリンの charge squad")
+	assert_eq(String(s.squads[0].get("ai", "")), "weak", "先頭の部隊のAIラベル＝weak")
 	var wagon: Unit = null
 	var min_def := 1 << 30
 	for u in s.units():

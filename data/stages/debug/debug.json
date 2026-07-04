@@ -12,16 +12,20 @@
     ".........F..",
     "............"
   ],
-  "units": [
-    { "type": "fighter", "team": "player", "col": 3, "row": 4 },
-    { "type": "priest", "team": "player", "col": 3, "row": 3 },
-    { "type": "bishop", "team": "player", "col": 3, "row": 5 },
-    { "type": "birdman", "team": "player", "col": 2, "row": 4 },
-    { "type": "archer", "team": "player", "col": 4, "row": 4 },
-    { "type": "thief", "team": "player", "col": 2, "row": 6 },
-    { "skin": "goblin", "team": "enemy", "col": 7, "row": 3 },
-    { "skin": "goblin", "team": "enemy", "col": 7, "row": 5 },
-    { "skin": "dragon", "team": "enemy", "col": 9, "row": 2 }
+  "player": [
+    { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "priest", "col": 3, "row": 3 },
+    { "type": "bishop", "col": 3, "row": 5 },
+    { "type": "birdman", "col": 2, "row": 4 },
+    { "type": "archer", "col": 4, "row": 4 },
+    { "type": "thief", "col": 2, "row": 6 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [
+      { "skin": "goblin", "col": 7, "row": 3 },
+      { "skin": "goblin", "col": 7, "row": 5 },
+      { "skin": "dragon", "col": 9, "row": 2 }
+    ] }
   ],
   "bases": [
     { "col": 8, "row": 5, "team": "enemy", "garrison": [ { "type": "monk", "count": 2 } ] },

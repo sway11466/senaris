@@ -1,0 +1,45 @@
+{
+  "name": "tutorial-st6",
+  "cols": 30,
+  "rows": 10,
+  "terrain": [
+    "##############################",
+    "##############################",
+    "#...######.......####........#",
+    "#...######.......####........#",
+    "#............................#",
+    "#............................#",
+    "#...######.......####........#",
+    "#...######.......####........#",
+    "##############################",
+    "##############################"
+  ],
+  "player": [
+    { "type": "halfling", "col": 3, "row": 4 },
+    { "type": "fighter", "col": 2, "row": 4 },
+    { "type": "archer", "col": 2, "row": 3 },
+    { "type": "archer", "col": 2, "row": 5 },
+    { "type": "novice", "col": 1, "row": 3 },
+    { "type": "novice", "col": 1, "row": 4 },
+    { "type": "novice", "col": 1, "row": 5 },
+    { "type": "novice", "col": 3, "row": 5 }
+  ],
+  "enemy": [
+    { "name": "手前の部屋", "ai": "guard", "sight": 3,
+      "units": [
+        { "skin": "goblin", "col": 11, "row": 4 },
+        { "skin": "goblin", "col": 12, "row": 3 },
+        { "skin": "goblin", "col": 12, "row": 5 },
+        { "skin": "hobgoblin", "col": 13, "row": 4 },
+        { "skin": "goblin_archer", "col": 15, "row": 4 }
+      ] },
+    { "name": "奥の部屋", "ai": "guard", "sight": 3,
+      "units": [
+        { "skin": "goblin", "col": 22, "row": 4 },
+        { "skin": "goblin", "col": 23, "row": 3 },
+        { "skin": "goblin", "col": 23, "row": 5 },
+        { "skin": "hobgoblin", "col": 24, "row": 4 },
+        { "skin": "goblin_archer", "col": 26, "row": 4 }
+      ] }
+  ]
+}

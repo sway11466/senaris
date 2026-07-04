@@ -10,6 +10,8 @@
     { "id": "st4", "file": "st4.json", "title": "砦の解放",
       "unlock": [ { "type": "cleared", "stage": "st3" } ] },
     { "id": "st5", "file": "st5.json", "title": "巣穴への一本道",
-      "unlock": [ { "type": "cleared", "stage": "st4" } ] }
+      "unlock": [ { "type": "cleared", "stage": "st4" } ] },
+    { "id": "st6", "file": "st6.json", "title": "潜む群れ",
+      "unlock": [ { "type": "cleared", "stage": "st5" } ] }
   ]
 }

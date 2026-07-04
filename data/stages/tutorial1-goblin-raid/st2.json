@@ -13,13 +13,17 @@
     "..FF......PP......",
     ".................."
   ],
-  "units": [
-    { "type": "fighter", "team": "player", "col": 2, "row": 4 },
-    { "type": "novice", "team": "player", "col": 2, "row": 3 },
-    { "type": "novice", "team": "player", "col": 2, "row": 5 },
-    { "skin": "goblin", "team": "enemy", "col": 14, "row": 3 },
-    { "skin": "goblin", "team": "enemy", "col": 14, "row": 5 },
-    { "skin": "goblin", "team": "enemy", "col": 15, "row": 4 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 14, "row": 4 }
+  "player": [
+    { "type": "fighter", "col": 2, "row": 4 },
+    { "type": "novice", "col": 2, "row": 3 },
+    { "type": "novice", "col": 2, "row": 5 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [
+      { "skin": "goblin", "col": 14, "row": 3 },
+      { "skin": "goblin", "col": 14, "row": 5 },
+      { "skin": "goblin", "col": 15, "row": 4 },
+      { "skin": "hobgoblin", "col": 14, "row": 4 }
+    ] }
   ]
 }

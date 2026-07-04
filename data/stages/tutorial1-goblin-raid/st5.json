@@ -13,28 +13,31 @@
     "CC...CCCC...CCCC...CCC",
     "CCCCCCCCCCCCCCCCCCCCCC"
   ],
-  "units": [
-    { "type": "fighter", "team": "player", "col": 5, "row": 4 },
-    { "type": "novice", "team": "player", "col": 5, "row": 3 },
-    { "type": "novice", "team": "player", "col": 5, "row": 5 },
-    { "type": "novice", "team": "player", "col": 4, "row": 3 },
-    { "type": "novice", "team": "player", "col": 4, "row": 5 },
-    { "type": "archer", "team": "player", "col": 4, "row": 4 },
-    { "type": "archer", "team": "player", "col": 3, "row": 4 },
+  "player": [
+    { "type": "fighter", "col": 5, "row": 4 },
+    { "type": "novice", "col": 5, "row": 3 },
+    { "type": "novice", "col": 5, "row": 5 },
+    { "type": "novice", "col": 4, "row": 3 },
+    { "type": "novice", "col": 4, "row": 5 },
+    { "type": "archer", "col": 4, "row": 4 },
+    { "type": "archer", "col": 3, "row": 4 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [
+      { "skin": "goblin", "col": 9, "row": 4 },
+      { "skin": "goblin", "col": 10, "row": 4 },
+      { "skin": "hobgoblin", "col": 10, "row": 3 },
+      { "skin": "hobgoblin", "col": 10, "row": 5 },
 
-    { "skin": "goblin", "team": "enemy", "col": 9, "row": 4 },
-    { "skin": "goblin", "team": "enemy", "col": 10, "row": 4 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 10, "row": 3 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 10, "row": 5 },
+      { "skin": "goblin", "col": 14, "row": 4 },
+      { "skin": "goblin", "col": 15, "row": 4 },
+      { "skin": "hobgoblin", "col": 15, "row": 3 },
+      { "skin": "hobgoblin", "col": 15, "row": 5 },
 
-    { "skin": "goblin", "team": "enemy", "col": 14, "row": 4 },
-    { "skin": "goblin", "team": "enemy", "col": 15, "row": 4 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 15, "row": 3 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 15, "row": 5 },
-
-    { "skin": "goblin", "team": "enemy", "col": 19, "row": 4 },
-    { "skin": "goblin", "team": "enemy", "col": 20, "row": 4 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 20, "row": 3 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 20, "row": 5 }
+      { "skin": "goblin", "col": 19, "row": 4 },
+      { "skin": "goblin", "col": 20, "row": 4 },
+      { "skin": "hobgoblin", "col": 20, "row": 3 },
+      { "skin": "hobgoblin", "col": 20, "row": 5 }
+    ] }
   ]
 }

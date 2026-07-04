@@ -11,12 +11,15 @@
     "................",
     "................"
   ],
-  "units": [
-    { "type": "wagon", "team": "player", "col": 2, "row": 3 },
-    { "type": "cleric", "team": "player", "col": 1, "row": 3 },
-    { "type": "fighter", "team": "player", "col": 1, "row": 2 },
-
-    { "skin": "goblin", "team": "enemy", "col": 10, "row": 0 }
+  "player": [
+    { "type": "wagon", "col": 2, "row": 3 },
+    { "type": "cleric", "col": 1, "row": 3 },
+    { "type": "fighter", "col": 1, "row": 2 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [
+      { "skin": "goblin", "col": 10, "row": 0 }
+    ] }
   ],
   "bases": [
     { "col": 13, "row": 3, "team": "enemy", "kind": "hq" }
