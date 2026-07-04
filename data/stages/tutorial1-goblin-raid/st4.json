@@ -3,17 +3,17 @@
   "cols": 22,
   "rows": 11,
   "terrain": [
+    ".....CCCCCCCCCCCC.....",
+    "......CCCCCCCCC.......",
+    "......CCCCC...........",
+    "........CCC...........",
     "......................",
     "......................",
+    ".........O............",
     "......................",
-    "......................",
-    "......................",
-    "........O.............",
-    "......................",
-    "......................",
-    "......................",
-    "......................",
-    "......................"
+    "............FFFF......",
+    "............FFFF......",
+    "...........FFFFFFF...."
   ],
   "units": [
     { "type": "fighter", "team": "player", "col": 2, "row": 5 },
@@ -21,15 +21,15 @@
     { "type": "novice", "team": "player", "col": 2, "row": 6 },
     { "type": "cleric", "team": "player", "col": 1, "row": 5 },
 
-    { "skin": "hobgoblin", "team": "enemy", "col": 9, "row": 5 },
-    { "skin": "goblin", "team": "enemy", "col": 10, "row": 4 },
-    { "skin": "goblin", "team": "enemy", "col": 10, "row": 6 },
+    { "skin": "hobgoblin", "team": "enemy", "col": 14, "row": 5 },
+    { "skin": "goblin", "team": "enemy", "col": 15, "row": 4 },
+    { "skin": "goblin", "team": "enemy", "col": 15, "row": 5 },
 
     { "skin": "goblin", "team": "enemy", "col": 19, "row": 4 },
-    { "skin": "goblin", "team": "enemy", "col": 19, "row": 6 },
+    { "skin": "goblin", "team": "enemy", "col": 19, "row": 5 },
     { "skin": "hobgoblin", "team": "enemy", "col": 20, "row": 5 },
     { "skin": "hobgoblin", "team": "enemy", "col": 21, "row": 4 },
-    { "skin": "hobgoblin", "team": "enemy", "col": 21, "row": 6 }
+    { "skin": "hobgoblin", "team": "enemy", "col": 21, "row": 5 }
   ],
   "bases": [
     { "col": 9, "row": 6, "team": "neutral", "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
