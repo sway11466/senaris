@@ -6,7 +6,7 @@ class_name CampaignCatalog
 const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
-## { id, title, debug, stages: [ { id, title, file, path, unlock: Array } ] }
+## { id, title, debug, cover_path, stages: [ { id, title, file, path, unlock: Array } ] }
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	var id := String(data.get("id", ""))
 	var raw_stages: Variant = data.get("stages", [])
@@ -32,8 +32,15 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"id": id,
 		"title": String(data.get("title", id)),
 		"debug": bool(data.get("debug", false)),
+		"cover_path": _resolve_cover(id),
 		"stages": stages,
 	}
+
+## 扉絵を規約で自動解決：assets/campaign/{id}/{id}_cover.png があればそのパス、無ければ ""。
+## 絵を置くだけでセレクト画面がプレースホルダ→画像に切り替わる（skin 画像 autowire と同じ思想）。
+static func _resolve_cover(id: String) -> String:
+	var p := "res://assets/campaign/%s/%s_cover.png" % [id, id]
+	return p if ResourceLoader.exists(p) else ""
 
 ## 1つの campaign.json を読み込む。失敗時は {}。
 static func load_file(path: String) -> Dictionary:

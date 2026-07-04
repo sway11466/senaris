@@ -17,8 +17,9 @@ var _title: Label
 var _back: Button
 var _campaign_scroll: ScrollContainer  # 冒険譚ビュー（カード一覧）
 var _cards: HFlowContainer
-var _art: Control                      # ステージビュー左＝冒険譚の絵（プレースホルダ）
+var _art: Control                      # ステージビュー左＝冒険譚の絵（絵が無ければタイトルのプレースホルダ）
 var _art_label: Label
+var _art_texture: TextureRect          # 冒険譚の扉絵（cover_path があれば表示）
 var _stage_scroll: ScrollContainer     # ステージビュー右＝縦リスト
 var _stage_list: VBoxContainer
 var _briefing: ConfirmationDialog
@@ -73,13 +74,20 @@ func _ready() -> void:
 	_cards.add_theme_constant_override("v_separation", 12)
 	_campaign_scroll.add_child(_cards)
 
-	# --- ステージビュー左: 冒険譚の絵（絵ができるまではタイトルのプレースホルダ） ---
+	# --- ステージビュー左: 冒険譚の絵（cover_path があれば扉絵／無ければタイトルのプレースホルダ） ---
 	_art = ColorRect.new()
 	(_art as ColorRect).color = Color(0.15, 0.18, 0.24)
 	_art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_art.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_art.size_flags_stretch_ratio = 2.0  # 絵:リスト ≒ 2:1
+	_art.clip_contents = true  # 絵をパネル枠でトリミング
 	body.add_child(_art)
+
+	_art_texture = TextureRect.new()
+	_art_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_art_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_art_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED  # パネルを覆う（はみ出しは clip）
+	_art.add_child(_art_texture)
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -159,10 +167,19 @@ func _show_stages(campaign_id: String) -> void:
 	_campaign_scroll.visible = false
 	_art.visible = true
 	_stage_scroll.visible = true
-	_art_label.text = String(c["title"])  # 絵のプレースホルダ（実絵が来たら TextureRect に差し替え）
+	_set_cover(String(c.get("cover_path", "")), String(c["title"]))
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
 		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
+
+## 扉絵を表示。cover_path があれば絵＋ラベル非表示、無ければプレースホルダ（タイトル）へ。
+func _set_cover(cover_path: String, title: String) -> void:
+	var tex: Texture2D = null
+	if cover_path != "":
+		tex = load(cover_path) as Texture2D
+	_art_texture.texture = tex
+	_art_texture.visible = tex != null
+	_art_label.text = "" if tex != null else title
 
 func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 	var label := "%d. %s" % [number, s["title"]]
