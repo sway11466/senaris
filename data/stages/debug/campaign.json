@@ -9,6 +9,7 @@
     { "id": "guard", "file": "guard.json", "title": "待機AI（guard）" },
     { "id": "weak", "file": "weak.json", "title": "弱者狙いAI（weak）" },
     { "id": "transport", "file": "transport.json", "title": "輸送（乗車・運搬・降車）" },
-    { "id": "barricade", "file": "barricade.json", "title": "バリケード輸送（出撃→隣接乗降）" }
+    { "id": "barricade", "file": "barricade.json", "title": "バリケード輸送（出撃→隣接乗降）" },
+    { "id": "units", "file": "units.json", "title": "ユニット一覧（全スキン）" }
   ]
 }

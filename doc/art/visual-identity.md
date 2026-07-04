@@ -154,7 +154,7 @@
 | ② ゲーム用書き出し | **256px 四方（透過PNG）** | リポジトリに入れる。地形タイル（R=128＝256px相当）と画質を揃える |
 | ③ 実機表示 | 60〜180px | Godot が②を自動縮小 |
 
-- 【確定】**造形（アンカーで確定）**：頭身は**約2.5〜3頭身**（頭・手大きめ＝愛嬌＋小サイズ可読性。moe／マスコットにはしない、渋い muted は維持）。**正面向き・左右非対称にしない中立ポーズ**（盤面に向きの概念が無く、向きを主張すると不自然／6方向で反転も無意味なため）。
+- 【確定】**造形**：頭身は**約2〜2.5頭身**（強めのチビ体型＝頭・手大きめで小サイズ可読性を優先。武器・役割小物は太く大きめに保つ。moe／可愛すぎにはしない、渋い muted は維持）。**正面向き・左右非対称にしない中立ポーズ**（盤面に向きの概念が無く、向きを主張すると不自然／6方向で反転も無意味なため）。
 - 【確定】背景は**純白**（後で透過処理）。ただし**白系ユニット（聖職の白ローブ等）は輪郭が溶ける**ので薄グレー等に例外。正方形キャンバス・キャラはやや下寄り（足が下辺＝マスに立つ）。完全透過は狙わず「単色背景→背景除去」。
 - 【指針】**縮小して潰れない絵を狙う**：1024pxを必ず60〜72pxにプレビューし、役割が読めるか確認。読めなければ細部でなく形・シルエット・色を直す。
 - 【指針】「動いて見せる」は**絵を増やさず、コード側の移動tween＋簡単なエフェクト**で出す（歩行コマ＝複数枚はAI一貫性が悪く・物量も数倍なので作らない）。行動前後は当面 `map` 1枚＋グレー化（[overview.md](overview.md)）。
@@ -181,10 +181,13 @@ STYLE（共通・固定）:
 ```
 STYLE: A single fantasy tactics-game unit piece, clean stylized vector-like
 illustration with bold flat cel-shading and a strong readable silhouette.
-Chunky, appealing, slightly super-deformed proportions — about 2.5 to 3 heads
-tall, with an oversized head and hands. Expressive face with large clear eyes
-and a bit of personality. Simplified, bold, rounded chunky shapes. Charming
-and heroic — NOT moe, NOT a childish mascot; grounded in a mature, slightly
+Chunky, appealing, strong super-deformed / chibi proportions — about 2 to 2.5
+heads tall, with a very large oversized head, a small stubby body and short
+thick limbs; keep the weapon and role props chunky and bold so they still read
+clearly even at tiny sizes. Expressive face with large clear eyes and a calm,
+confident personality (not angry or grimacing). Simplified, bold, rounded
+chunky shapes. Charming and heroic with a bit of grit — a strong chibi build,
+but NOT moe and NOT overly cute; grounded in a mature, slightly
 muted, limited color palette. NOT bright saturated anime coloring, NOT
 painterly photorealism. Soft rim light, minimal fussy detail so the shape
 reads clearly even when shrunk very small. Strictly symmetrical, straight-on front
@@ -197,46 +200,12 @@ lower third with a small soft ground shadow. Plain pure-white background
 (single flat color, for easy cutout). Square 1:1 composition.
 ```
 
-SUBJECT 例（歩兵ライン＝ノービス／ファイター／ヴァンガード）:
+### SUBJECT（生成プロンプト本体）の置き場
 
-同一系統。**剣のサイズ＋装甲の重さ**で段階化し、**盾は持たせない**（大盾はナイト専用）。3体とも同じ STYLE 文＋各 SUBJECT を貼るだけ（**参照画像は使わない**）。系統感は SUBJECT 内の「same steel-blue palette / same face style as the fighter」で保つ。
+各ユニットの `SUBJECT:` は **raw と同じ `assets/units/source/{skin_id}/{skin_id}_prompt.txt`** に置く（共通の STYLE と作成ルールは本 doc が正本）。**生成時は STYLE を先頭に付け、続けて `{skin_id}_prompt.txt` を貼る**。参照画像（i2i）は使わない。
 
-ファイター（アンカー・盾なし）:
-```
-SUBJECT: A human front-line melee fighter — the baseline hero and militia
-captain of the steel-blue infantry line. Steel-blue faction palette: steel
-plate armor with a blue tunic and cloth accents, silver metal, small gold trim.
-He holds a straight one-handed sword of ordinary size in one hand; the other
-hand is empty (an open or lightly clenched gauntlet) — NO shield. Confident,
-grounded, symmetrical stance, medium athletic build — heroic but a common
-soldier, not an ornate elite.
-```
-
-ノービス（小さめの剣・軽装・盾なし）:
-```
-SUBJECT: A young human recruit — the rookie of the SAME steel-blue infantry
-line as the fighter. A raw, eager young rookie with natural human
-skin (same skin tone as the fighter — NOT green skin). Light armor only, a leather
-jerkin with a few simple steel plates on shoulders and chest, a blue tunic and
-cloth accents, silver metal, little or no gold trim. He holds a small, plain
-short sword in one hand; the other hand is empty and open — no shield. Same
-face style and steel-blue palette as the fighter, but leaner, younger, smaller
-and a touch unsure — clearly the entry-level version of the same trooper.
-```
-
-ヴァンガード（大きめの剣＝両手大剣・重装・盾なし）:
-```
-SUBJECT: A human vanguard shock-trooper — the heavy assault upgrade of the
-SAME steel-blue infantry line as the fighter. Veteran and imposing:
-heavier and fuller steel plate armor than the fighter, a blue tabard/surcoat
-and cloth accents, silver metal with more prominent gold trim, a crested helm
-or a short cape. He wields a LARGE two-handed greatsword held upright and ready
-at the center, gripped in both hands — no shield. Same face style and
-steel-blue palette as the fighter, but bigger, tougher, more battle-hardened
-— clearly the elite assault version of the same trooper.
-```
-
-- 敵・他ユニットは §2〜5 のルールで `SUBJECT:` を差し替える（味方＝青／ゴブリン＝緑＋モンスター姿／飛行＝浮遊 等）。
+- 歩兵ライン（ノービス／ファイター／ヴァンガード）は同一系統：**剣のサイズ＋装甲の重さ**で段階化し、**盾は持たせない**（大盾はナイト専用）。系統感は SUBJECT 内の「same steel-blue palette / same face style as the fighter」で保つ。
+- 敵・他ユニットは §2〜5 のルールで `SUBJECT:` を書く（味方＝青／ゴブリン＝緑＋モンスター姿／飛行＝浮遊 等）。
 
 ## 7. 縦スライス（最初の一手）
 
@@ -244,7 +213,7 @@ steel-blue palette as the fighter, but bigger, tougher, more battle-hardened
   - overview.md の「クレリック＋ドラゴン」例は撤回（**ドラゴンはチュートリアル本編に登場しない**／最初に動く画面と一致させ手戻りを無くす）。
   - 冒険譚1 の st1〜3・st5 は既存実装だけで作れる（占領・待機AI未実装の st4/6 を待たない）＝最速で絵入り画面に到達できる。
 - 手順：ファイター（アンカー）1枚を Nano Banana で詰める → それを参照にノービス／ゴブリンへ展開 → 「ファンタジーの味が自分に刺さるか」を判定。
-- 【暫定】**アンカー候補は生成済み**（正面・2.5〜3頭身・純白背景・鋼青・剣＋盾）。**最終確定は60px縮小テスト後**（§8 次アクション）。
+- 【暫定】**歩兵ライン（ノービス/ファイター/ヴァンガード）は生成済み**（正面・約2〜2.5頭身・純白背景・鋼青・片手剣中心／盾なし）。低頭身採用に伴い3体は新STYLEで再生成予定。
 
 ---
 
