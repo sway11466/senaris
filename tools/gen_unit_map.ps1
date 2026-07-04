@@ -5,10 +5,12 @@
 .DESCRIPTION
   Given one or more skin_ids, looks up map_scale in unit_skin.csv, sets the figure
   height = BaseHeight * map_scale, and writes a 256px square, transparent, 64-color
-  assets/units/<id>/<id>_map.png from source/<id>/<id>_02_master.png.
+  assets/units/<id>/<id>_map.png from source/<group>/<id>/<id>_02_master.png.
+  <group> is a faction folder (player, goblin, ...); the source dir is found by
+  searching source/ recursively for a folder named <id>.
   If the 02_master is missing it falls back to the 01_raw (white bg auto-keyed;
   fringe is meant to be cleaned by hand in the 02_master later).
-  Recipe of record: doc/art/visual-identity.md section 6.1. Requires ImageMagick (magick).
+  Recipe of record: doc/art/visual-identity.md section 5.1. Requires ImageMagick (magick).
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1 files.
 
 .EXAMPLE
@@ -48,8 +50,14 @@ if ($SkinIds.Count -eq 1 -and $SkinIds[0] -eq 'all') { $SkinIds = @($scale.Keys)
 foreach ($id in $SkinIds) {
   $sc = if ($scale.ContainsKey($id)) { $scale[$id] } else { 1.0 }
   $h  = [int][math]::Round($BaseHeight * $sc)
-  $master = Join-Path $srcRoot "$id\${id}_02_master.png"
-  $raw    = Join-Path $srcRoot "$id\${id}_01_raw.png"
+  # source dir = source/<group>/<id> (faction subfolder); plain source/<id> also accepted
+  $srcDir = Join-Path $srcRoot $id
+  if (-not (Test-Path $srcDir)) {
+    $hit = Get-ChildItem -Path $srcRoot -Directory -Recurse | Where-Object { $_.Name -eq $id } | Select-Object -First 1
+    if ($hit) { $srcDir = $hit.FullName }
+  }
+  $master = Join-Path $srcDir "${id}_02_master.png"
+  $raw    = Join-Path $srcDir "${id}_01_raw.png"
   $outDir = Join-Path $outRoot $id
   $out    = Join-Path $outDir "${id}_map.png"
   New-Item -ItemType Directory -Force -Path $outDir | Out-Null

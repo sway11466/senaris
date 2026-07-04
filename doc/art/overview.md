@@ -2,7 +2,7 @@
 
 ファンタジー・ヘックス戦術SLGの、ユニット等のグラフィック準備に関する検討メモ。
 
-> 色・形のルールと味方全28種の個体特徴・制作スペックは [visual-identity.md](visual-identity.md)（生成前に決める正本）。
+> 色・形のルールと制作スペックは [visual-identity.md](visual-identity.md)（生成前に決める正本）。陣営ごとの個体特徴は `assets/units/source/{group}/style.md`（味方28種＝[player/style.md](../../assets/units/source/player/style.md)）。
 
 凡例: 【確定】 【暫定】 【指針】 【未決】
 
