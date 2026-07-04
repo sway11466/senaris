@@ -22,7 +22,7 @@ func test_catalog_wires_capacity() -> void:
 
 func test_loader_wires_passengers() -> void:
 	var data := { "cols": 8, "rows": 8, "units": [
-		{ "type": "airship", "team": 0, "col": 1, "row": 1,
+		{ "type": "airship", "team": "player", "col": 1, "row": 1,
 			"passengers": [ { "type": "paladin" }, { "type": "novice" } ] },
 	] }
 	var s := StageLoader.build(data, UnitCatalog.load_default())

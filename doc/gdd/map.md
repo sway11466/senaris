@@ -100,6 +100,20 @@
   - 例: 動作確認用のデバッグステージは `data/stages/debug/debug.json`。
 - 冒険譚内のステージ順序・進行管理（マニフェスト）・ステージ選択 → [stage_select.md](stage_select.md)。実装までは読込先を決め打ちで1枚。
 
+### 陣営の表記（team / native）
+
+- ステージJSONの陣営は**可読な文字列**で書く: **`"player"`（自軍）／`"enemy"`（敵）／`"neutral"`（中立）**。内部は int 規約（0/1/-1）で持つが、データ側では数値を書かない（`StageLoader` が文字列→int に変換）。
+- **`team`**: ユニット・拠点の所属。ユニット省略時は `player`、拠点省略時は `neutral`。
+- **`native`**: ユニットの生来の陣営（[出撃・寝返り](#出撃ネクタリス方式寝返り解放)を決める）。省略時は各文脈の既定（盤上ユニット＝自身の team、garrison＝拠点の初期所属、搭乗＝輸送と同陣営）。
+- 例:
+  ```json
+  { "type": "fighter", "team": "player", "col": 2, "row": 5 }
+  { "skin": "goblin",  "team": "enemy",  "col": 9, "row": 5 }
+  { "col": 9, "row": 6, "team": "neutral",
+    "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
+  ```
+  ↑ 最後の例＝**中立拠点だが garrison は `native:"player"`** なので、敵に踏まれても寝返らず自軍の解放待ち（囚われの町人）。
+
 ### 戦力供給モデル（独立／継承）
 
 ステージがプレイヤー戦力をどう用意するかを、**ステージ（冒険譚）ごとに切り替えられる**ようにする。【方針確定】「与えられた戦力でやりくりする」（[combat.md](combat.md) 生産なし）の"与えられ方"を、シナリオに応じて変える仕組み。

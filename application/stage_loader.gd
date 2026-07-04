@@ -9,6 +9,22 @@ class_name StageLoader
 ##
 ## build(dict) はファイルIOを伴わず辞書から組み立てる（テスト対象）。
 ## load_file(path) はファイルを読んで build に渡す薄いラッパ。
+##
+## 陣営は JSON では可読な文字列で書く: "player"（自軍）/ "enemy"（敵）/ "neutral"（中立）。
+## 内部は int 規約（0=自軍 / 1=敵 / -1=中立）で持つため loader で文字列→int に変換する。
+
+## 陣営表記（ステージJSON）→ 内部 int（0=自軍 / 1=敵 / -1=中立=Base.NEUTRAL）。
+const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
+
+## 陣営値を int に解決する。キー省略（null）は default_team、未知の表記は警告して default_team。
+static func _parse_team(value: Variant, default_team: int) -> int:
+	if value == null:
+		return default_team
+	var key := String(value)
+	if TEAM_NAMES.has(key):
+		return TEAM_NAMES[key]
+	push_warning("StageLoader: 未知の陣営表記 '%s'（player/enemy/neutral のいずれか）＝既定を使用" % key)
+	return default_team
 
 ## ステージ辞書から BattleState を組み立てる。
 ## 期待キー: cols, rows, terrain(配列の文字列), units(配列の辞書), bases(配列の辞書)。
@@ -79,7 +95,7 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 	for pd in list:
 		var p := _make_unit(pd, catalog, int(pd.get("id", auto_id)), skin_catalog)
 		p.team = transport.team  # 搭乗は同陣営のみ
-		p.native_team = int(pd.get("native", transport.team))
+		p.native_team = _parse_team(pd.get("native"), transport.team)
 		state.put_passenger(transport.id, p)
 		auto_id += 1
 	return auto_id
@@ -116,11 +132,11 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 	var auto_id := start_id
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
-		var base := Base.new(hex, int(b.get("team", Base.NEUTRAL)), String(b.get("kind", "fort")))
+		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL), String(b.get("kind", "fort")))
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
 				var gu := _make_unit(g, catalog, auto_id, skin_catalog)
-				gu.native_team = int(g.get("native", base.native_team))
+				gu.native_team = _parse_team(g.get("native"), base.native_team)
 				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)
@@ -146,7 +162,7 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog
 	var atk := int(u.get("atk", t.atk_ground if t != null else 10))
 	var dfn := int(u.get("def", t.defense if t != null else 10))
 	var lv := int(u.get("level", 1))
-	var unit := Unit.new(id, int(u.get("team", 0)), pos, mv, tp, atk, dfn, lv, type_id)
+	var unit := Unit.new(id, _parse_team(u.get("team"), 0), pos, mv, tp, atk, dfn, lv, type_id)
 	unit.skin_id = skin_id
 	unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
 	unit.attack_range = int(u.get("range", t.attack_range if t != null else 1))
@@ -155,5 +171,5 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, skin_catalog
 	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
 	unit.pierce = float(u.get("pierce", t.pierce if t != null else 0.0))
 	unit.capacity = int(u.get("capacity", t.capacity if t != null else 0))
-	unit.native_team = int(u.get("native", unit.team))  # 生来の陣営（既定=初期team。garrison/搭乗は呼び出し側が上書き）
+	unit.native_team = _parse_team(u.get("native"), unit.team)  # 生来の陣営（既定=初期team。garrison/搭乗は呼び出し側が上書き）
 	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う

@@ -15,16 +15,16 @@
     "...CCCCCCCCCCC...."
   ],
   "units": [
-    { "type": "fighter", "team": 0, "col": 3, "row": 5 },
-    { "type": "novice", "team": 0, "col": 3, "row": 4 },
-    { "type": "novice", "team": 0, "col": 3, "row": 6 },
-    { "skin": "goblin", "team": 1, "col": 12, "row": 4 },
-    { "skin": "goblin", "team": 1, "col": 12, "row": 5 },
-    { "skin": "goblin", "team": 1, "col": 12, "row": 6 },
-    { "skin": "goblin", "team": 1, "col": 13, "row": 4 },
-    { "skin": "goblin", "team": 1, "col": 13, "row": 5 },
-    { "skin": "goblin", "team": 1, "col": 13, "row": 6 },
-    { "skin": "hobgoblin", "team": 1, "col": 15, "row": 4 },
-    { "skin": "hobgoblin", "team": 1, "col": 15, "row": 5 }
+    { "type": "fighter", "team": "player", "col": 3, "row": 5 },
+    { "type": "novice", "team": "player", "col": 3, "row": 4 },
+    { "type": "novice", "team": "player", "col": 3, "row": 6 },
+    { "skin": "goblin", "team": "enemy", "col": 12, "row": 4 },
+    { "skin": "goblin", "team": "enemy", "col": 12, "row": 5 },
+    { "skin": "goblin", "team": "enemy", "col": 12, "row": 6 },
+    { "skin": "goblin", "team": "enemy", "col": 13, "row": 4 },
+    { "skin": "goblin", "team": "enemy", "col": 13, "row": 5 },
+    { "skin": "goblin", "team": "enemy", "col": 13, "row": 6 },
+    { "skin": "hobgoblin", "team": "enemy", "col": 15, "row": 4 },
+    { "skin": "hobgoblin", "team": "enemy", "col": 15, "row": 5 }
   ]
 }

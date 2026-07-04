@@ -12,21 +12,21 @@
     "............."
   ],
   "units": [
-    { "type": "fighter", "team": 0, "col": 1, "row": 3 },
-    { "type": "novice", "team": 0, "col": 1, "row": 2 },
-    { "type": "novice", "team": 0, "col": 1, "row": 4 }
+    { "type": "fighter", "team": "player", "col": 1, "row": 3 },
+    { "type": "novice", "team": "player", "col": 1, "row": 2 },
+    { "type": "novice", "team": "player", "col": 1, "row": 4 }
   ],
   "squads": [
     { "name": "手前の見張り", "ai": "guard",
       "units": [
-        { "skin": "goblin", "team": 1, "col": 6, "row": 2 },
-        { "skin": "goblin", "team": 1, "col": 6, "row": 4 }
+        { "skin": "goblin", "team": "enemy", "col": 6, "row": 2 },
+        { "skin": "goblin", "team": "enemy", "col": 6, "row": 4 }
       ] },
     { "name": "奥の部屋", "ai": "guard",
       "units": [
-        { "skin": "hobgoblin", "team": 1, "col": 10, "row": 2 },
-        { "skin": "hobgoblin", "team": 1, "col": 10, "row": 4 },
-        { "skin": "goblin", "team": 1, "col": 11, "row": 3 }
+        { "skin": "hobgoblin", "team": "enemy", "col": 10, "row": 2 },
+        { "skin": "hobgoblin", "team": "enemy", "col": 10, "row": 4 },
+        { "skin": "goblin", "team": "enemy", "col": 11, "row": 3 }
       ] }
   ]
 }

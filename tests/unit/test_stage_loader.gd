@@ -11,8 +11,8 @@ func test_build_reads_size_terrain_units() -> void:
 			"......",
 		],
 		"units": [
-			{ "team": 0, "col": 1, "row": 2, "move": 4, "troops": 7, "atk": 12, "def": 10, "level": 3 },
-			{ "team": 1, "col": 4, "row": 1 },  # 省略値はデフォルト
+			{ "team": "player", "col": 1, "row": 2, "move": 4, "troops": 7, "atk": 12, "def": 10, "level": 3 },
+			{ "team": "enemy", "col": 4, "row": 1 },  # 省略値はデフォルト
 		],
 	}
 	var s := StageLoader.build(data)
@@ -29,8 +29,8 @@ func test_build_unit_fields_and_defaults() -> void:
 	var data := {
 		"cols": 6, "rows": 4,
 		"units": [
-			{ "team": 0, "col": 1, "row": 2, "move": 4, "troops": 7, "atk": 12, "def": 10, "level": 3 },
-			{ "team": 1, "col": 4, "row": 1 },
+			{ "team": "player", "col": 1, "row": 2, "move": 4, "troops": 7, "atk": 12, "def": 10, "level": 3 },
+			{ "team": "enemy", "col": 4, "row": 1 },
 		],
 	}
 	var s := StageLoader.build(data)
@@ -52,7 +52,7 @@ func test_build_resolves_type_from_catalog() -> void:
 		}),
 	}
 	var data := { "cols": 6, "rows": 4, "units": [
-		{ "type": "cleric", "team": 0, "col": 1, "row": 1 },
+		{ "type": "cleric", "team": "player", "col": 1, "row": 1 },
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
@@ -69,7 +69,7 @@ func test_type_fields_can_be_overridden() -> void:
 		}),
 	}
 	var data := { "cols": 6, "rows": 4, "units": [
-		{ "type": "cleric", "team": 0, "col": 1, "row": 1, "troops": 5, "level": 2 },
+		{ "type": "cleric", "team": "player", "col": 1, "row": 1, "troops": 5, "level": 2 },
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
@@ -90,10 +90,10 @@ func test_build_bases_with_garrison() -> void:
 	var data := {
 		"cols": 8, "rows": 6,
 		"units": [
-			{ "type": "cleric", "team": 0, "col": 1, "row": 1 },
+			{ "type": "cleric", "team": "player", "col": 1, "row": 1 },
 		],
 		"bases": [
-			{ "col": 4, "row": 3, "team": 1, "garrison": [ { "type": "novice", "count": 2 } ] },
+			{ "col": 4, "row": 3, "team": "enemy", "garrison": [ { "type": "novice", "count": 2 } ] },
 		],
 	}
 	var s := StageLoader.build(data, catalog)
@@ -108,6 +108,27 @@ func test_build_bases_with_garrison() -> void:
 	assert_eq(b.garrison[0].troops, 8, "garrison 既定は満員")
 	# garrison の id は盤上ユニットと衝突しない採番
 	assert_ne(b.garrison[0].id, s.unit_by_id(1).id)
+
+func test_team_names_resolve_to_internal_ints() -> void:
+	# JSON は player/enemy/neutral の可読表記で書き、loader が内部 int(0/1/-1) に変換する。
+	var data := {
+		"cols": 6, "rows": 6,
+		"units": [
+			{ "team": "player", "col": 1, "row": 1 },
+			{ "team": "enemy", "col": 4, "row": 4 },
+		],
+		"bases": [
+			{ "col": 2, "row": 2, "team": "neutral",
+				"garrison": [ { "count": 1, "native": "player" } ] },
+		],
+	}
+	var s := StageLoader.build(data)
+	assert_eq(s.unit_by_id(1).team, 0, "player → 0")
+	assert_eq(s.unit_by_id(2).team, 1, "enemy → 1")
+	var b := s.base_at(Hex.offset_to_axial(2, 2))
+	assert_eq(b.team, -1, "neutral → -1")
+	assert_eq(b.native_team, -1, "拠点 native も初期所属の中立")
+	assert_eq(b.garrison[0].native_team, 0, "garrison native=player → 0（中立拠点でも寝返らない）")
 
 func test_load_debug_file() -> void:
 	var s := StageLoader.load_file("res://data/stages/debug/debug.json")
@@ -131,7 +152,7 @@ func test_skin_field_resolves_type_and_keeps_skin_id() -> void:
 		},
 	} })
 	var data := { "cols": 6, "rows": 4, "units": [
-		{ "skin": "goblin", "team": 1, "col": 1, "row": 1 },
+		{ "skin": "goblin", "team": "enemy", "col": 1, "row": 1 },
 	] }
 	var s := StageLoader.build(data, catalog, skin_catalog)
 	var u := s.unit_by_id(1)
@@ -146,7 +167,7 @@ func test_type_field_sets_skin_id_to_same_name() -> void:
 		}),
 	}
 	var data := { "cols": 6, "rows": 4, "units": [
-		{ "type": "fighter", "team": 0, "col": 1, "row": 1 },
+		{ "type": "fighter", "team": "player", "col": 1, "row": 1 },
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)

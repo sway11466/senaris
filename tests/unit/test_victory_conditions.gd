@@ -128,8 +128,8 @@ func test_recapture_restores_native_and_clears_loss() -> void:
 func test_loader_wires_base_kind_and_native() -> void:
 	var data := { "cols": 6, "rows": 6,
 		"bases": [
-			{ "col": 4, "row": 4, "team": 1, "kind": "hq" },
-			{ "col": 1, "row": 1, "team": 0 },
+			{ "col": 4, "row": 4, "team": "enemy", "kind": "hq" },
+			{ "col": 1, "row": 1, "team": "player" },
 		],
 	}
 	var s := StageLoader.build(data)
@@ -141,8 +141,8 @@ func test_loader_wires_base_kind_and_native() -> void:
 func test_loader_wires_victory_and_explicit_id() -> void:
 	var data := { "cols": 6, "rows": 6,
 		"units": [
-			{ "team": 0, "col": 1, "row": 1 },
-			{ "id": 99, "team": 1, "col": 4, "row": 4 },
+			{ "team": "player", "col": 1, "row": 1 },
+			{ "id": 99, "team": "enemy", "col": 4, "row": 4 },
 		],
 		"victory": [ { "type": "defeat_unit", "unit_id": 99 } ],
 	}

@@ -14,12 +14,12 @@
     ".................."
   ],
   "units": [
-    { "type": "fighter", "team": 0, "col": 2, "row": 4 },
-    { "type": "novice", "team": 0, "col": 2, "row": 3 },
-    { "type": "novice", "team": 0, "col": 2, "row": 5 },
-    { "skin": "goblin", "team": 1, "col": 14, "row": 3 },
-    { "skin": "goblin", "team": 1, "col": 14, "row": 5 },
-    { "skin": "goblin", "team": 1, "col": 15, "row": 4 },
-    { "skin": "hobgoblin", "team": 1, "col": 14, "row": 4 }
+    { "type": "fighter", "team": "player", "col": 2, "row": 4 },
+    { "type": "novice", "team": "player", "col": 2, "row": 3 },
+    { "type": "novice", "team": "player", "col": 2, "row": 5 },
+    { "skin": "goblin", "team": "enemy", "col": 14, "row": 3 },
+    { "skin": "goblin", "team": "enemy", "col": 14, "row": 5 },
+    { "skin": "goblin", "team": "enemy", "col": 15, "row": 4 },
+    { "skin": "hobgoblin", "team": "enemy", "col": 14, "row": 4 }
   ]
 }

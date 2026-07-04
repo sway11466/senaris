@@ -68,7 +68,7 @@ func test_loader_sets_aerial_and_atk_air_from_type() -> void:
 		}),
 	}
 	var data := { "cols": 6, "rows": 6, "units": [
-		{ "type": "dragon", "team": 1, "col": 1, "row": 1 },
+		{ "type": "dragon", "team": "enemy", "col": 1, "row": 1 },
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)

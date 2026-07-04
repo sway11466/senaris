@@ -12,14 +12,14 @@
     "................"
   ],
   "units": [
-    { "type": "wagon", "team": 0, "col": 2, "row": 3 },
-    { "type": "cleric", "team": 0, "col": 1, "row": 3 },
-    { "type": "fighter", "team": 0, "col": 1, "row": 2 },
+    { "type": "wagon", "team": "player", "col": 2, "row": 3 },
+    { "type": "cleric", "team": "player", "col": 1, "row": 3 },
+    { "type": "fighter", "team": "player", "col": 1, "row": 2 },
 
-    { "skin": "goblin", "team": 1, "col": 10, "row": 0 }
+    { "skin": "goblin", "team": "enemy", "col": 10, "row": 0 }
   ],
   "bases": [
-    { "col": 13, "row": 3, "team": 1, "kind": "hq" }
+    { "col": 13, "row": 3, "team": "enemy", "kind": "hq" }
   ],
   "victory": [
     { "type": "capture_hq" }

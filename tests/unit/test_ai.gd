@@ -179,10 +179,10 @@ const PRESETS := {
 
 func test_loader_wires_squads() -> void:
 	var data := { "cols": 8, "rows": 8,
-		"units": [ { "team": 0, "col": 1, "row": 1 } ],
+		"units": [ { "team": "player", "col": 1, "row": 1 } ],
 		"squads": [
 			{ "name": "強襲", "ai": "raid",
-				"units": [ { "team": 1, "col": 5, "row": 5 }, { "team": 1, "col": 6, "row": 5 } ] },
+				"units": [ { "team": "enemy", "col": 5, "row": 5 }, { "team": "enemy", "col": 6, "row": 5 } ] },
 		],
 	}
 	var s := StageLoader.build(data)
