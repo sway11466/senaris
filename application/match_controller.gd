@@ -62,20 +62,24 @@ func execute_attack(cmd: AttackCommand) -> bool:
 	_check_finished()
 	return true
 
-## 下り: 出撃コマンドの処理。成功すれば garrison から盤へ駒を出し unit_deployed を発行。
+## 下り: 出撃コマンドの処理。成功すれば garrison から駒を出し unit_deployed を発行。
+## 出撃先が輸送のマスなら直接搭乗（盤上には出ない）＝unit_at では引けないため id は事前に取る。
 func execute_deploy(cmd: DeployCommand) -> bool:
 	if _finished:
 		return false
-	var to := cmd.to
-	if state.deploy(cmd.base_hex, cmd.garrison_index, to):
-		var u := state.unit_at(to)
-		unit_deployed.emit(u.id if u != null else -1, cmd.base_hex, to)
+	var b := state.base_at(cmd.base_hex)
+	var uid := -1
+	if b != null and cmd.garrison_index >= 0 and cmd.garrison_index < b.garrison.size():
+		uid = (b.garrison[cmd.garrison_index] as Unit).id
+	if state.deploy(cmd.base_hex, cmd.garrison_index, cmd.to):
+		unit_deployed.emit(uid, cmd.base_hex, cmd.to)
 		return true
 	return false
 
-## 表示用: base_hex の拠点から出撃できる空きhex一覧（状態は変えない）。
-func deploy_cells_for(base_hex: Vector2i) -> Array[Vector2i]:
-	return state.deploy_cells(base_hex)
+## 表示用: base_hex の拠点から出撃できるhex一覧（状態は変えない）。
+## garrison_index を渡すと、その駒が乗れる隣接輸送のマスも含む（省略時はいずれかの控えが乗れるもの）。
+func deploy_cells_for(base_hex: Vector2i, garrison_index := -1) -> Array[Vector2i]:
+	return state.deploy_cells(base_hex, garrison_index)
 
 ## 下り: 降車コマンドの処理。成功すれば unit_unloaded を発行（降車＝占領が起きうるので決着チェック）。
 func execute_unload(cmd: UnloadCommand) -> bool:

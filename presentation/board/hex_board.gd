@@ -439,9 +439,9 @@ func _open_base_menu(base_hex: Vector2i) -> void:
 	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)
 	_menu.popup()
 
-## 出撃モードに入り、出撃先候補（拠点の隣接空き）をハイライトする。
+## 出撃モードに入り、出撃先候補（拠点の隣接空き＋その駒が乗れる輸送のマス）をハイライトする。
 func _enter_deploy(base_hex: Vector2i) -> void:
-	var cells := controller.deploy_cells_for(base_hex)
+	var cells := controller.deploy_cells_for(base_hex, _deploy_index)
 	if cells.is_empty():
 		return
 	_deploy_base = base_hex

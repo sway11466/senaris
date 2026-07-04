@@ -317,18 +317,38 @@ func can_still_move(unit_id: int) -> bool:
 
 # --- 出撃（ネクタリス方式・占領済み拠点から1歩で出す） ---
 
-## base_hex の拠点から出撃できる空きhex（拠点に隣接・盤内・空き）。出撃先候補の表示に使う。
-func deploy_cells(base_hex: Vector2i) -> Array[Vector2i]:
+## base_hex の拠点から出撃できるhex（拠点に隣接・盤内の空き＋乗れる味方輸送のマス）。出撃先候補の表示に使う。
+## garrison_index を渡すとその駒が乗れる輸送だけ含める（省略＝控えのどれかが乗れる輸送を含める）。
+func deploy_cells(base_hex: Vector2i, garrison_index := -1) -> Array[Vector2i]:
 	var cells: Array[Vector2i] = []
 	var b := base_at(base_hex)
 	if b == null or b.team != current_team or b.garrison.is_empty():
 		return cells
 	for nb in Hex.neighbors(base_hex):
-		if in_field(nb) and unit_at(nb) == null:
+		if not in_field(nb):
+			continue
+		var occ := unit_at(nb)
+		if occ == null:
 			cells.append(nb)
+		elif _deploy_boardable(b, garrison_index, occ):
+			cells.append(nb)  # 出撃＝そのまま搭乗（隣接1マスの特例の拠点版）
 	return cells
 
-## いま出撃させられるか（自軍拠点・控えあり・出せる空きあり）。
+## 拠点 b の控え（index 指定 or いずれか）が輸送 occ に出撃で直接乗れるか。
+## can_board 相当だが、控えの team は出撃時に確定するため拠点の所属で判定する。
+func _deploy_boardable(b: Base, garrison_index: int, occ: Unit) -> bool:
+	if not occ.is_transport() or occ.team != b.team:
+		return false
+	if passengers(occ.id).size() >= occ.capacity:
+		return false
+	if garrison_index >= 0:
+		return garrison_index < b.garrison.size() and not (b.garrison[garrison_index] as Unit).is_transport()
+	for gu in b.garrison:
+		if not (gu as Unit).is_transport():
+			return true  # 輸送でない控えが1体でも居れば候補（輸送は輸送に乗れない）
+	return false
+
+## いま出撃させられるか（自軍拠点・控えあり・出せる先あり）。
 func can_deploy(base_hex: Vector2i) -> bool:
 	return not deploy_cells(base_hex).is_empty()
 
@@ -341,24 +361,31 @@ func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 	var u: Unit = b.garrison[index]
 	return u.native_team == Base.NEUTRAL or u.native_team == b.team
 
-## 拠点の garrison[index] を隣接空き to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
-## 成否を返す。手番違い・非占領・索引外・native不一致（閉じ込め）・隣接でない・占有マスなら false。
+## 拠点の garrison[index] を隣接 to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
+## to_hex が「乗れる味方輸送」のマスなら出撃＝そのまま搭乗（盤上には出ない）。
+## 成否を返す。手番違い・非占領・索引外・native不一致（閉じ込め）・隣接でない・乗れない占有マスなら false。
 func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	var b := base_at(base_hex)
 	if b == null or b.team != current_team:
 		return false
 	if not can_deploy_garrison(base_hex, garrison_index):
 		return false
-	if not in_field(to_hex) or unit_at(to_hex) != null:
+	if not in_field(to_hex):
 		return false
 	if Hex.distance(base_hex, to_hex) != 1:
+		return false
+	var occ := unit_at(to_hex)
+	if occ != null and not _deploy_boardable(b, garrison_index, occ):
 		return false
 	var u: Unit = b.garrison[garrison_index]
 	b.garrison.remove_at(garrison_index)
 	u.team = current_team  # 中立 native はここで寝返る（味方/敵 native は自陣営のまま＝値は変わらない）
-	u.pos = to_hex
-	_units.append(u)
-	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃もこれ以上しない）。
+	if occ != null:
+		put_passenger(occ.id, u)  # 出撃先が輸送＝直接乗車（盤上には出ない）
+	else:
+		u.pos = to_hex
+		_units.append(u)
+	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃も降車もこれ以上しない）。
 	_moved[u.id] = true
 	_post_moved[u.id] = true
 	_attacked[u.id] = true

@@ -238,6 +238,56 @@ func test_special_board_then_unload_same_turn_denied() -> void:
 	s.end_turn()
 	assert_false(s.unload_cells(1, 0).is_empty(), "翌ターンは降ろせる")
 
+# --- 出撃→直接乗車（拠点に隣接する輸送へ garrison から乗る。doc/gdd/movement.md） ---
+
+func test_deploy_onto_adjacent_transport_boards() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 0)
+	b.garrison.append(Unit.new(9, 0, Vector2i.ZERO, 0))  # 移動0のバリケード相当
+	s.add_base(b)
+	var wagon := _transport(1, 0, Hex.offset_to_axial(4, 3))
+	s.add_unit(wagon)
+	assert_true(s.deploy_cells(base_hex, 0).has(wagon.pos), "隣接する乗れる輸送のマスが出撃先に含まれる")
+	assert_true(s.deploy(base_hex, 0, wagon.pos), "輸送のマスへ出撃＝直接乗車")
+	assert_null(s.unit_by_id(9), "盤上には出ない")
+	assert_eq(s.passengers(1).size(), 1, "搭乗リストに載る")
+	assert_eq(b.garrison.size(), 0, "garrison から抜ける")
+	assert_true(s.unload_cells(1, 0).is_empty(), "出撃（乗車）したターンは降ろせない")
+	s.end_turn()
+	s.end_turn()
+	assert_false(s.unload_cells(1, 0).is_empty(), "翌ターンは降ろせる")
+
+func test_deploy_cells_exclude_enemy_or_full_transport() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 0)
+	b.garrison.append(Unit.new(9, 0, Vector2i.ZERO, 3))
+	s.add_base(b)
+	var enemy_wagon := _transport(1, 1, Hex.offset_to_axial(4, 3))
+	s.add_unit(enemy_wagon)
+	var full_wagon := _transport(2, 0, Hex.offset_to_axial(2, 3), 1)
+	s.put_passenger(2, Unit.new(8, 0, Vector2i.ZERO, 3))  # 満員
+	s.add_unit(full_wagon)
+	var cells := s.deploy_cells(base_hex, 0)
+	assert_false(cells.has(enemy_wagon.pos), "敵の輸送は出撃先にならない")
+	assert_false(cells.has(full_wagon.pos), "満員の輸送は出撃先にならない")
+	assert_false(s.deploy(base_hex, 0, enemy_wagon.pos), "敵の輸送へは出撃できない")
+	assert_false(s.deploy(base_hex, 0, full_wagon.pos), "満員の輸送へは出撃できない")
+
+func test_transport_garrison_cannot_deploy_onto_transport() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 0)
+	var garrison_wagon := _transport(9, 0, Vector2i.ZERO)
+	b.garrison.append(garrison_wagon)
+	s.add_base(b)
+	var wagon := _transport(1, 0, Hex.offset_to_axial(4, 3))
+	s.add_unit(wagon)
+	assert_false(s.deploy_cells(base_hex, 0).has(wagon.pos), "輸送の控えに輸送のマスは出ない")
+	assert_false(s.deploy(base_hex, 0, wagon.pos), "輸送は輸送に乗れない（出撃でも）")
+	assert_true(s.deploy(base_hex, 0, Hex.offset_to_axial(3, 2)), "空きマスへの出撃は通常どおり")
+
 # --- 輸送の撃破 ---
 
 func test_transport_death_kills_passengers() -> void:
