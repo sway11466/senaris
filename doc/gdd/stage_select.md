@@ -26,18 +26,21 @@
 ## 冒険譚カード
 
 - 中身: **冒険譚タイトル・進捗＝「クリア済み数 / 総ステージ数」**（例「3 / 7」）。全クリアでコンプリートバッジ（✓）。
+- **将来は冒険譚ごとの絵をカードに載せる**（カード上はトリミング表示でよい）。
 - 進捗はクリア記録から導出する（冒険譚側に保存しない）。
 
-## ステージカード
+## ステージ一覧（冒険譚選択後）
+
+**ステージはカードにしない**。絵は冒険譚単位で1枚だけ用意する方針＝ステージごとの絵は作らない。
+
+- レイアウト: **左＝選んだ冒険譚の絵を最大化表示**（カードで使った絵のノートリミング版。絵ができるまではプレースホルダ）／**右＝ステージの縦リスト**。
+- リスト行の中身: **ステージ番号・ステージ名・状態**。並び順はマニフェストの記述順（＝物語順）。
 
 | 状態 | 表示 |
 |---|---|
 | **未解放（locked）** | グレーアウト＋鍵アイコン。解放条件をテキストで示す（例「st2 クリアで解放」）。選択不可 |
 | **未クリア（unlocked）** | 通常表示。ここが「次にやるステージ」 |
 | **クリア済み（cleared）** | クリアバッジ（✓）。**常に選択可**＝再挑戦できる |
-
-- カードの中身: **ステージ番号・ステージ名・状態バッジ**。将来はサムネイル・クリア評価（ターン数など）を足せる余白を残す。
-- 並び順はマニフェストの記述順（＝物語順）。
 
 ---
 
@@ -112,7 +115,7 @@ domain（戦闘ロジック）には手を入れない。
 
 ## 実装状況（2026-07-04 時点）
 
-- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／カード画面（[stage_select.gd](../../presentation/select/stage_select.gd)・起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
+- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（[stage_select.gd](../../presentation/select/stage_select.gd)・冒険譚カード→左に冒険譚絵（プレースホルダ）＋右にステージ縦リスト。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
 - **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは確認ダイアログのみ（内容は未決事項参照）。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
 

@@ -29,7 +29,8 @@ func _press_card(index: int) -> void:
 
 func _walk_buttons(node: Node, out: Array[Node]) -> Array[Node]:
 	for c in node.get_children():
-		if c is Button and c.custom_minimum_size != Vector2.ZERO:  # カードだけ（戻る等を除く）
+		# 見えているカード/リスト行だけ（戻るボタン・非表示ビューの残骸を除く）
+		if c is Button and c.custom_minimum_size != Vector2.ZERO and c.is_visible_in_tree():
 			out.append(c)
 		_walk_buttons(c, out)
 	return out

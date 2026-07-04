@@ -1,18 +1,26 @@
 extends CanvasLayer
 class_name StageSelect
-## ステージセレクト画面（カード型UI）。仕様 → doc/gdd/stage_select.md
-## 冒険譚カード（進捗 n/m）→ ステージカード（locked/unlocked/cleared）→ ブリーフィング → 出撃。
+## ステージセレクト画面。仕様 → doc/gdd/stage_select.md
+## 冒険譚＝カード（進捗 n/m・将来は絵を載せる）→ 選ぶと左に冒険譚の絵（今はプレースホルダ）＋
+## 右にステージの縦リスト（locked/unlocked/cleared）→ ブリーフィング → 出撃。
+## ステージはカードにしない＝絵は冒険譚単位で1枚だけ用意する方針。
 ## 状態は持たず、表示のたびに CampaignProgress から導出して描く。
 ## デバッグ冒険譚はデバッグビルドのみ表示（OS.is_debug_build）。出撃はシグナルで main へ委ねる。
 
 signal stage_chosen(campaign_id: String, stage_id: String, path: String)
 
 const CARD_SIZE := Vector2(240, 120)
+const ROW_HEIGHT := 48.0
 
 var _progress: CampaignProgress
 var _title: Label
 var _back: Button
+var _campaign_scroll: ScrollContainer  # 冒険譚ビュー（カード一覧）
 var _cards: HFlowContainer
+var _art: Control                      # ステージビュー左＝冒険譚の絵（プレースホルダ）
+var _art_label: Label
+var _stage_scroll: ScrollContainer     # ステージビュー右＝縦リスト
+var _stage_list: VBoxContainer
 var _briefing: ConfirmationDialog
 var _pending := {}  # ブリーフィング表示中のステージ { campaign_id, stage_id, path }
 
@@ -47,15 +55,51 @@ func _ready() -> void:
 	_title.add_theme_font_size_override("font_size", 24)
 	header.add_child(_title)
 
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(scroll)
+	# 本文＝2ビューを重ねて visible で切り替える（冒険譚カード一覧 ／ 絵＋ステージリスト）
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 16)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(body)
+
+	# --- 冒険譚ビュー: カード一覧 ---
+	_campaign_scroll = ScrollContainer.new()
+	_campaign_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_campaign_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_child(_campaign_scroll)
 
 	_cards = HFlowContainer.new()
 	_cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_cards.add_theme_constant_override("h_separation", 12)
 	_cards.add_theme_constant_override("v_separation", 12)
-	scroll.add_child(_cards)
+	_campaign_scroll.add_child(_cards)
+
+	# --- ステージビュー左: 冒険譚の絵（絵ができるまではタイトルのプレースホルダ） ---
+	_art = ColorRect.new()
+	(_art as ColorRect).color = Color(0.15, 0.18, 0.24)
+	_art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_art.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_art.size_flags_stretch_ratio = 2.0  # 絵:リスト ≒ 2:1
+	body.add_child(_art)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_art.add_child(center)
+
+	_art_label = Label.new()
+	_art_label.add_theme_font_size_override("font_size", 32)
+	center.add_child(_art_label)
+
+	# --- ステージビュー右: ステージの縦リスト ---
+	_stage_scroll = ScrollContainer.new()
+	_stage_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_stage_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_stage_scroll.size_flags_stretch_ratio = 1.0
+	body.add_child(_stage_scroll)
+
+	_stage_list = VBoxContainer.new()
+	_stage_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_stage_list.add_theme_constant_override("separation", 8)
+	_stage_scroll.add_child(_stage_list)
 
 	_briefing = ConfirmationDialog.new()
 	_briefing.ok_button_text = "出撃"
@@ -75,12 +119,15 @@ func open() -> void:
 func close() -> void:
 	visible = false
 
-# --- 冒険譚一覧 ---
+# --- 冒険譚一覧（カード） ---
 
 func _show_campaigns() -> void:
 	_back.visible = false
 	_title.text = "冒険譚を選ぶ"
-	_clear_cards()
+	_campaign_scroll.visible = true
+	_art.visible = false
+	_stage_scroll.visible = false
+	_clear_children(_cards)
 	for c in _progress.campaigns(OS.is_debug_build()):
 		_cards.add_child(_campaign_card(c))
 
@@ -93,11 +140,15 @@ func _campaign_card(c: Dictionary) -> Button:
 		var done := _progress.cleared_count(String(c["id"]))
 		var badge := "  ✓" if (total > 0 and done >= total) else ""
 		text = "%s\n%d / %d%s" % [c["title"], done, total, badge]
-	var card := _card(text)
+	var card := Button.new()
+	card.text = text
+	card.custom_minimum_size = CARD_SIZE  # 将来ここに冒険譚の絵（トリミング表示）を載せる
+	card.focus_mode = Control.FOCUS_NONE
+	card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.pressed.connect(_show_stages.bind(String(c["id"])))
 	return card
 
-# --- ステージ一覧 ---
+# --- ステージ一覧（左＝冒険譚の絵／右＝縦リスト） ---
 
 func _show_stages(campaign_id: String) -> void:
 	var c := _progress.campaign(campaign_id)
@@ -105,24 +156,33 @@ func _show_stages(campaign_id: String) -> void:
 		return
 	_back.visible = true
 	_title.text = String(c["title"])
-	_clear_cards()
+	_campaign_scroll.visible = false
+	_art.visible = true
+	_stage_scroll.visible = true
+	_art_label.text = String(c["title"])  # 絵のプレースホルダ（実絵が来たら TextureRect に差し替え）
+	_clear_children(_stage_list)
 	for i in c["stages"].size():
-		_cards.add_child(_stage_card(campaign_id, c["stages"][i], i + 1))
+		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
 
-func _stage_card(campaign_id: String, s: Dictionary, number: int) -> Button:
+func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 	var label := "%d. %s" % [number, s["title"]]
-	var card: Button
+	var row := Button.new()
+	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	row.focus_mode = Control.FOCUS_NONE
+	row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	match _progress.stage_state(campaign_id, String(s["id"])):
 		CampaignProgress.CLEARED:
-			card = _card("%s\n✓ クリア済み" % label)
+			row.text = "✓ %s" % label
 		CampaignProgress.LOCKED:
-			card = _card("🔒 %s\n%s" % [label, _progress.unlock_text(campaign_id, String(s["id"]))])
-			card.disabled = true
+			row.text = "🔒 %s — %s" % [label, _progress.unlock_text(campaign_id, String(s["id"]))]
+			row.disabled = true
 		_:
-			card = _card(label)
-	if not card.disabled:
-		card.pressed.connect(_open_briefing.bind(campaign_id, s))
-	return card
+			row.text = label
+	if not row.disabled:
+		row.pressed.connect(_open_briefing.bind(campaign_id, s))
+	return row
 
 # --- ブリーフィング → 出撃 ---
 
@@ -145,16 +205,8 @@ func _on_sortie() -> void:
 
 # --- 部品 ---
 
-func _card(text: String) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = CARD_SIZE
-	b.focus_mode = Control.FOCUS_NONE  # Enter(手番終了)で誤発火しない
-	b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	return b
-
-func _clear_cards() -> void:
-	# カード自身の pressed 発行中に呼ばれる（＝即時 free は「locked object」エラー）ため遅延解放。
-	for child in _cards.get_children():
-		_cards.remove_child(child)
+func _clear_children(container: Node) -> void:
+	# ボタン自身の pressed 発行中に呼ばれる（＝即時 free は「locked object」エラー）ため遅延解放。
+	for child in container.get_children():
+		container.remove_child(child)
 		child.queue_free()
