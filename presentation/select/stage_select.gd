@@ -9,7 +9,8 @@ class_name StageSelect
 
 signal stage_chosen(campaign_id: String, stage_id: String, path: String)
 
-const CARD_SIZE := Vector2(240, 120)
+const CARD_SIZE := Vector2(340, 330)  # 絵(340x210)＋情報帯
+const CARD_ART_HEIGHT := 210.0        # 絵は黄金比 1.618:1（340x210）
 const ROW_HEIGHT := 48.0
 
 var _progress: CampaignProgress
@@ -139,22 +140,119 @@ func _show_campaigns() -> void:
 	for c in _progress.campaigns(OS.is_debug_build()):
 		_cards.add_child(_campaign_card(c))
 
+## 冒険譚カード＝絵（上）＋情報帯（下: タイトル／クリア数＋難易度星／タグ）。
+## クリック判定はカード全面の Button。中身は mouse_filter=IGNORE でクリックを Button へ透過。
 func _campaign_card(c: Dictionary) -> Button:
-	var text: String
-	if c["debug"]:
-		text = "%s\n（開発ビルド限定）" % c["title"]
-	else:
-		var total: int = c["stages"].size()
-		var done := _progress.cleared_count(String(c["id"]))
-		var badge := "  ✓" if (total > 0 and done >= total) else ""
-		text = "%s\n%d / %d%s" % [c["title"], done, total, badge]
 	var card := Button.new()
-	card.text = text
-	card.custom_minimum_size = CARD_SIZE  # 将来ここに冒険譚の絵（トリミング表示）を載せる
+	card.custom_minimum_size = CARD_SIZE
 	card.focus_mode = Control.FOCUS_NONE
-	card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	card.clip_contents = true
 	card.pressed.connect(_show_stages.bind(String(c["id"])))
+
+	var content := VBoxContainer.new()
+	content.set_anchors_preset(Control.PRESET_FULL_RECT)
+	content.add_theme_constant_override("separation", 0)
+
+	# 上: 絵（card 用クロップ優先／無ければ cover／どちらも無ければ暗色プレースホルダ）
+	var art_path := String(c.get("card_path", ""))
+	if art_path.is_empty():
+		art_path = String(c.get("cover_path", ""))
+	var art := TextureRect.new()
+	art.custom_minimum_size = Vector2(0.0, CARD_ART_HEIGHT)
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.clip_contents = true
+	if not art_path.is_empty():
+		art.texture = load(art_path) as Texture2D
+	content.add_child(art)
+
+	content.add_child(_card_info(c))
+	_ignore_mouse(content)  # 中身はクリックを透過（下の Button が受ける）
+	card.add_child(content)
 	return card
+
+## カード下部の情報帯。デバッグ冒険譚は開発ビルド注記のみ。
+func _card_info(c: Dictionary) -> Control:
+	var margin := MarginContainer.new()
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		margin.add_theme_constant_override(side, 10)
+
+	var info := VBoxContainer.new()
+	info.add_theme_constant_override("separation", 6)
+	margin.add_child(info)
+
+	var title := Label.new()
+	title.text = String(c["title"])
+	title.add_theme_font_size_override("font_size", 20)
+	info.add_child(title)
+
+	if c["debug"]:
+		var note := Label.new()
+		note.text = "（開発ビルド限定）"
+		note.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+		info.add_child(note)
+		return margin
+
+	# クリア数 ＋ 難易度星
+	var stats := HBoxContainer.new()
+	stats.add_theme_constant_override("separation", 12)
+	var total: int = c["stages"].size()
+	var done := _progress.cleared_count(String(c["id"]))
+	var count := Label.new()
+	count.text = "クリア %d / %d" % [done, total]
+	if total > 0 and done >= total:
+		count.text += " ✓"
+	stats.add_child(count)
+	var diff_label := Label.new()
+	diff_label.text = "難易度"
+	stats.add_child(diff_label)
+	stats.add_child(_make_stars(int(c.get("difficulty", 0))))
+	info.add_child(stats)
+
+	# タグ（チップ）
+	var tags: Array = c.get("tags", [])
+	if not tags.is_empty():
+		var chips := HFlowContainer.new()
+		chips.add_theme_constant_override("h_separation", 6)
+		chips.add_theme_constant_override("v_separation", 6)
+		for t in tags:
+			chips.add_child(_make_chip(String(t)))
+		info.add_child(chips)
+	return margin
+
+## 難易度を★（塗り）＋☆（空き）の5段階で表示。
+func _make_stars(difficulty: int) -> Label:
+	var n := clampi(difficulty, 0, 5)
+	var star := Label.new()
+	star.text = "★".repeat(n) + "☆".repeat(5 - n)
+	star.add_theme_color_override("font_color", Color(0.95, 0.8, 0.35))
+	return star
+
+## タグチップ＝角丸背景の小ラベル。
+func _make_chip(text: String) -> Control:
+	var chip := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.22, 0.26, 0.34)
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin(SIDE_LEFT, 8)
+	sb.set_content_margin(SIDE_RIGHT, 8)
+	sb.set_content_margin(SIDE_TOP, 2)
+	sb.set_content_margin(SIDE_BOTTOM, 2)
+	chip.add_theme_stylebox_override("panel", sb)
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
+	chip.add_child(label)
+	return chip
+
+## ノードと全子孫の mouse_filter を IGNORE にする（カード内容をクリック透過させる）。
+func _ignore_mouse(node: Node) -> void:
+	if node is Control:
+		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child in node.get_children():
+		_ignore_mouse(child)
 
 # --- ステージ一覧（左＝冒険譚の絵／右＝縦リスト） ---
 

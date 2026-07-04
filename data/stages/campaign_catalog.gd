@@ -6,7 +6,8 @@ class_name CampaignCatalog
 const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
-## { id, title, debug, cover_path, stages: [ { id, title, file, path, unlock: Array } ] }
+## { id, title, debug, difficulty, tags, cover_path, card_path,
+##   stages: [ { id, title, file, path, unlock: Array } ] }
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	var id := String(data.get("id", ""))
 	var raw_stages: Variant = data.get("stages", [])
@@ -32,14 +33,27 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"id": id,
 		"title": String(data.get("title", id)),
 		"debug": bool(data.get("debug", false)),
-		"cover_path": _resolve_cover(id),
+		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
+		"tags": _to_tags(data.get("tags", [])),
+		"cover_path": _resolve_art(id, "cover"),  # ステージ一覧の大パネル
+		"card_path": _resolve_art(id, "card"),    # 冒険譚カード（絵はカード用にクロップ）
 		"stages": stages,
 	}
 
-## 扉絵を規約で自動解決：assets/campaign/{id}/{id}_cover.png があればそのパス、無ければ ""。
+## タグ配列を文字列配列に正規化（非配列・非文字列は捨てる）。
+static func _to_tags(raw: Variant) -> Array:
+	var out: Array = []
+	if typeof(raw) == TYPE_ARRAY:
+		for t in raw:
+			var s := str(t).strip_edges()
+			if not s.is_empty():
+				out.append(s)
+	return out
+
+## 絵を規約で自動解決：assets/campaign/{id}/{id}_{kind}.png があればそのパス、無ければ ""。
 ## 絵を置くだけでセレクト画面がプレースホルダ→画像に切り替わる（skin 画像 autowire と同じ思想）。
-static func _resolve_cover(id: String) -> String:
-	var p := "res://assets/campaign/%s/%s_cover.png" % [id, id]
+static func _resolve_art(id: String, kind: String) -> String:
+	var p := "res://assets/campaign/%s/%s_%s.png" % [id, id, kind]
 	return p if ResourceLoader.exists(p) else ""
 
 ## 1つの campaign.json を読み込む。失敗時は {}。

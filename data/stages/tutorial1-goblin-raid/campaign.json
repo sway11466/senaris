@@ -1,6 +1,8 @@
 {
   "id": "tutorial1-goblin-raid",
   "title": "ゴブリンの襲撃",
+  "difficulty": 1,
+  "tags": [ "チュートリアル", "ゴブリン", "占領" ],
   "stages": [
     { "id": "st1", "file": "st1.json", "title": "町外れの平原" },
     { "id": "st2", "file": "st2.json", "title": "高所の敵陣",
