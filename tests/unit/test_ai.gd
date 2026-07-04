@@ -312,6 +312,118 @@ func test_guard_self_defense_when_adjacent() -> void:
 	assert_not_null(a)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣で寝続けず自衛で攻撃")
 
+# --- 弱者狙い（weak）＝ attack=prey / target=weak / advance=flank。詳細 → doc/gdd/ai.md ---
+
+const WEAK := { "engage": "charge", "attack": "prey", "target": "weak;near", "advance": "flank" }
+
+func test_weak_advances_toward_prey_not_nearest() -> void:
+	# 前進の目標＝獲物（盤上最低防御）。近い硬い敵ではなく、遠い脆い敵へ向かう。
+	var brain := NearestAttackerBrain.from_preset(WEAK)
+	var s := BattleState.new(13, 3)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(10, 1, start, 3))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 1), 3, 8, 10, 40))   # 近い・硬い（防40）
+	var frail_pos := Hex.offset_to_axial(11, 1)
+	s.add_unit(Unit.new(2, 0, frail_pos, 3, 8, 10, 10))                   # 遠い・脆い（防10）＝獲物
+	var a := brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "近い敵でなく獲物へ向かう")
+
+func test_prey_only_skips_tough_frontline() -> void:
+	# 攻撃条件「獲物のみ」: 硬い前衛が隣にいても殴らず、獲物へ前進を続ける。
+	var brain := NearestAttackerBrain.from_preset(WEAK)
+	var s := BattleState.new(13, 3)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(10, 1, start, 3))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 1), 3, 8, 10, 40))   # 隣接する硬い前衛（確殺不可）
+	var frail_pos := Hex.offset_to_axial(11, 1)
+	s.add_unit(Unit.new(2, 0, frail_pos, 3, 8, 10, 10))                   # 獲物
+	var a := brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "前衛と殴り合わず前進")
+	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "獲物への距離が縮む")
+
+func test_prey_only_still_takes_the_kill() -> void:
+	# 確殺なら獲物でなくても殴る（隣の瀕死を無視して歩かない）。
+	var brain := NearestAttackerBrain.from_preset(WEAK)
+	var s := BattleState.new(13, 3)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(10, 1, start, 3))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 1), 3, 1, 10, 30))   # 隣接・兵1＝確殺できる（獲物ではない）
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(11, 1), 3, 8, 10, 10))  # 獲物は遠く
+	var a := brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "確殺は据え膳＝殴る")
+	assert_eq(a.target_id, 1)
+
+func test_target_weak_picks_most_killable_in_range() -> void:
+	# 対象優先 weak: 兵数最小（既定）ではなく、攻撃後の残兵が最小の敵を選ぶ。
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	var ep := Hex.offset_to_axial(3, 3)
+	s.add_unit(Unit.new(10, 1, ep, 3))
+	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3, 3, 10, 50))   # 兵3・防50＝削れない
+	s.add_unit(Unit.new(2, 0, Hex.neighbor(ep, 2), 3, 4, 10, 5))    # 兵4・防5＝倒しきれる
+	var d := _brain.next_action(s, 1)
+	assert_eq(d.target_id, 1, "既定（兵数最小）は兵3を選ぶ")
+	var weak_brain := NearestAttackerBrain.from_preset({ "attack": "always", "target": "weak;near", "advance": "max" })
+	var a := weak_brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, 2, "weak は残兵最小（確殺）の兵4を選ぶ")
+
+func test_flank_slides_around_zoc() -> void:
+	# 回り込み: 前衛のZOC（隣接マス）に入らないマスを優先して獲物へ詰める。
+	var brain := NearestAttackerBrain.from_preset(WEAK)
+	var s := BattleState.new(13, 7)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(2, 3)
+	s.add_unit(Unit.new(10, 1, start, 3))
+	var wall_pos := Hex.offset_to_axial(5, 3)
+	s.add_unit(Unit.new(1, 0, wall_pos, 3, 8, 10, 40))                    # 進路上の前衛
+	var wagon_pos := Hex.offset_to_axial(8, 3)
+	s.add_unit(Unit.new(2, 0, wagon_pos, 3, 8, 10, 10))                   # 獲物（前衛の奥）
+	var a := brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(Hex.distance(a.to, wagon_pos), Hex.distance(start, wagon_pos), "獲物への距離が縮む")
+	assert_gt(Hex.distance(a.to, wall_pos), 1, "前衛のZOC（隣接マス）は避ける")
+
+func test_flank_falls_back_to_close_in_on_prey() -> void:
+	# 獲物への最終接近: 安全なマスでは縮まらない（獲物自身のZOC）ので、詰めて隣接する。
+	var brain := NearestAttackerBrain.from_preset(WEAK)
+	var s := BattleState.new(13, 3)
+	s.current_team = 1
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))
+	var wagon_pos := Hex.offset_to_axial(7, 1)
+	s.add_unit(Unit.new(2, 0, wagon_pos, 3, 8, 10, 10))                   # 獲物（距離2）
+	var a := brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_eq(Hex.distance(a.to, wagon_pos), 1, "フォールバックで獲物に隣接まで詰める")
+
+func test_squad_weak_preset_applies() -> void:
+	# 部隊の ai=weak でも同じ思考が効く（プリセット解決の配線）。
+	_brain.presets = { "weak": WEAK }
+	var s := BattleState.new(13, 3)
+	s.current_team = 1
+	var start := Hex.offset_to_axial(5, 1)
+	s.add_unit(Unit.new(10, 1, start, 3))
+	s.squads.append({ "name": "狩り", "ai": "weak" })
+	s.assign_squad(10, 0)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 1), 3, 8, 10, 40))   # 隣接する硬い前衛
+	var frail_pos := Hex.offset_to_axial(11, 1)
+	s.add_unit(Unit.new(2, 0, frail_pos, 3, 8, 10, 10))                   # 獲物
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "部隊経由でも獲物のみ＝前衛を殴らない")
+	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "獲物へ向かう")
+
+func test_ai_catalog_has_weak_preset() -> void:
+	# 生成物 ai.json に weak（弱者狙い）が載っている（CSV→JSONパイプラインの配線確認）。
+	var presets := AiCatalog.load_default()
+	assert_true(presets.has("weak"), "weak がある")
+	assert_eq(String(presets["weak"]["attack"]), "prey", "攻撃条件＝獲物のみ")
+	assert_eq(String(presets["weak"]["target"]), "weak;near", "対象優先＝弱者狙い")
+	assert_eq(String(presets["weak"]["advance"]), "flank", "前進＝回り込み")
+
 func test_advance_default_still_heads_to_enemy() -> void:
 	# 既定（advance_to_base=false）は従来どおり敵へ前進する（回帰）。
 	var s := BattleState.new(12, 3)

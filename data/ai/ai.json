@@ -26,6 +26,15 @@
 			"retreat": 0,
 			"sight": "-",
 			"target": "near"
+		},
+		"weak": {
+			"advance": "flank",
+			"attack": "prey",
+			"engage": "charge",
+			"name": "弱者狙い",
+			"retreat": 0,
+			"sight": "-",
+			"target": "weak;near"
 		}
 	}
 }

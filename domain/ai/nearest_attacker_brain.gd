@@ -18,8 +18,8 @@ var presets := {}
 var default_preset := {}
 
 ## プリセット辞書（ai.csv の1行＝AiCatalog が返す値）から Brain を組み立てる。
-## 効く列: engage/sight（起動）・advance（前進）。retreat/attack/target は未配線（既定動作）。
-## 空辞書・未知ラベル → 既定（charge 相当）。
+## 効く列: engage/sight（起動）・advance（前進。max/base/flank）・attack（prey のみ）・target（weak のみ）。
+## retreat は未配線（既定動作）。空辞書・未知ラベル → 既定（charge 相当）。
 static func from_preset(p: Dictionary) -> NearestAttackerBrain:
 	var brain := NearestAttackerBrain.new()
 	brain.default_preset = p
@@ -96,16 +96,89 @@ func next_action(state: BattleState, team: int) -> AiAction:
 			var base_hex := _reachable_capture_hex(state, u)
 			if base_hex != u.pos:
 				return AiAction.move_to(u.id, base_hex)
-		# 攻撃: 射程内の敵がいれば殴る。
+		# 攻撃: 射程内の敵がいれば殴る。獲物のみ(attack=prey)は獲物・確殺以外を素通しして前進を続ける。
 		var targets := state.attack_targets(u.id)
+		if _attack_prey_only(state, u):
+			targets = _prey_or_kill_targets(state, u, targets)
 		if not targets.is_empty():
-			return AiAction.attack(u.id, _weakest(state, targets))
+			return AiAction.attack(u.id, _pick_target(state, u, targets))
 		# 前進: まだ動いていなければ目標へ寄る。
 		if not state.has_moved(u.id):
 			var dest := _advance_dest(state, u)
 			if dest != u.pos:
 				return AiAction.move_to(u.id, dest)
 	return null
+
+# --- 弱者狙い（attack=prey / target=weak / advance=flank）。詳細 → doc/gdd/ai.md（弱者狙いの設計） ---
+
+## u の攻撃条件が「獲物のみ」(prey) か。attack 軸（"|"＝OR リスト）に prey を含むかで判定。
+func _attack_prey_only(state: BattleState, u: Unit) -> bool:
+	return "prey" in String(_param(state, u, "attack", "always")).split("|")
+
+## u の対象優先が「弱者狙い」(weak) か。target 軸（";"＝順序リスト）に weak を含むかで判定。
+func _targets_weak(state: BattleState, u: Unit) -> bool:
+	return "weak" in String(_param(state, u, "target", "near")).split(";")
+
+## u の前進が「回り込み」(flank) か。
+func _advance_is_flank(state: BattleState, u: Unit) -> bool:
+	return String(_param(state, u, "advance", "max")) == "flank"
+
+## 盤上の敵のうち最も低いユニット防御力（敵がいなければ -1）。獲物の判定基準。
+func _min_enemy_defense(state: BattleState, u: Unit) -> int:
+	var min_def := -1
+	for other in state.units():
+		if other.team != u.team and (min_def < 0 or other.unit_defense < min_def):
+			min_def = other.unit_defense
+	return min_def
+
+## 獲物＝盤上の敵のうちユニット防御力（素のステータス）が最も低いもの。兵数は見ない。
+## 同率は u から近い方 → id小。獲物が倒れたら次に低いものが自動的に次の獲物になる。
+func _prey_of(state: BattleState, u: Unit) -> Unit:
+	var min_def := _min_enemy_defense(state, u)
+	var best: Unit = null
+	var best_d := 1 << 30
+	for other in state.units():
+		if other.team == u.team or other.unit_defense != min_def:
+			continue
+		var d := Hex.distance(u.pos, other.pos)
+		if best == null or d < best_d or (d == best_d and other.id < best.id):
+			best = other
+			best_d = d
+	return best
+
+## 攻撃条件「獲物のみ」: 射程内のうち獲物（最低防御）と確殺（一撃で倒しきれる相手）だけ残す。
+## 与ダメは戦闘式で厳密計算（combat.md＝決定的）。
+func _prey_or_kill_targets(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
+	var min_def := _min_enemy_defense(state, u)
+	var melee := u.attack_range <= 1
+	var out: Array[int] = []
+	for id in ids:
+		var t := state.unit_by_id(id)
+		if t.unit_defense == min_def or Combat.casualties(state, u, t, melee) >= t.troops:
+			out.append(id)
+	return out
+
+## 射程内の攻撃対象を選ぶ。weak＝攻撃後の残兵最小（確殺を自然に最優先）、既定＝兵数最小。
+func _pick_target(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	if _targets_weak(state, u):
+		return _most_killable(state, u, ids)
+	return _weakest(state, ids)
+
+## 与ダメを戦闘式で厳密計算し、攻撃後の残兵が最小になる敵。同値は近い方 → id小。
+func _most_killable(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var melee := u.attack_range <= 1
+	var best := ids[0]
+	var best_left := 1 << 30
+	var best_d := 1 << 30
+	for id in ids:
+		var t := state.unit_by_id(id)
+		var left := t.troops - Combat.casualties(state, u, t, melee)
+		var d := Hex.distance(u.pos, t.pos)
+		if left < best_left or (left == best_left and (d < best_d or (d == best_d and id < best))):
+			best = id
+			best_left = left
+			best_d = d
+	return best
 
 func _weakest(state: BattleState, ids: Array[int]) -> int:
 	var best := ids[0]
@@ -134,16 +207,44 @@ func _reachable_capture_hex(state: BattleState, u: Unit) -> Vector2i:
 	return best
 
 ## 攻撃できないターンの前進先。拠点前進（部隊 or Brain既定で解決）なら最寄りの
-## 占領できる拠点へ、それ以外は最寄りの敵へ距離が縮むヘックスへ（縮まないなら現在地）。
+## 占領できる拠点へ。標的は target 軸で決まる（weak＝獲物、既定＝最寄りの敵）。
+## 詰め方は advance 軸で決まる（flank＝回り込み、既定＝距離が縮むヘックス。縮まないなら現在地）。
 func _advance_dest(state: BattleState, u: Unit) -> Vector2i:
 	if _unit_advances_to_base(state, u):
 		var goal := _nearest_capture_base_hex(state, u)
 		if goal != u.pos:
 			return _step_toward(state, u, goal)
-	var enemy := _nearest_enemy(state, u)
+	var enemy := _prey_of(state, u) if _targets_weak(state, u) else _nearest_enemy(state, u)
 	if enemy == null:
 		return u.pos
+	if _advance_is_flank(state, u):
+		return _flank_step(state, u, enemy.pos)
 	return _step_toward(state, u, enemy.pos)
+
+## 回り込み(advance=flank): 移動範囲のうち敵のZOC（敵に隣接するマス）に入らないマスを優先して
+## goal への距離を縮める＝前衛の正面を避けて横へ滑る。安全なマスで縮まらないときは通常の
+## 最大前進で詰める（獲物自身のZOCへの最終接近はこのフォールバックで成立）。
+func _flank_step(state: BattleState, u: Unit, goal: Vector2i) -> Vector2i:
+	var best := u.pos
+	var best_d := Hex.distance(u.pos, goal)
+	for h in state.reachable(u.id):
+		if _hex_in_enemy_zoc(state, u, h):
+			continue
+		var d := Hex.distance(h, goal)
+		if d < best_d:
+			best_d = d
+			best = h
+	if best != u.pos:
+		return best
+	return _step_toward(state, u, goal)
+
+## hex が u から見た敵のZOC内（敵ユニットに隣接）か。回り込みの「安全なマス」判定に使う。
+func _hex_in_enemy_zoc(state: BattleState, u: Unit, hex: Vector2i) -> bool:
+	for nb in Hex.neighbors(hex):
+		var occ := state.unit_at(nb)
+		if occ != null and occ.team != u.team:
+			return true
+	return false
 
 ## 盤上で最寄りの「占領できる拠点」のhex。無ければ現在地。
 func _nearest_capture_base_hex(state: BattleState, u: Unit) -> Vector2i:

@@ -1,0 +1,28 @@
+{
+  "name": "debug-weak",
+  "cols": 13,
+  "rows": 7,
+  "terrain": [
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    ".............",
+    "............."
+  ],
+  "units": [
+    { "type": "fighter", "team": 0, "col": 5, "row": 3 },
+    { "type": "witch", "team": 0, "col": 2, "row": 2 },
+    { "type": "wagon", "team": 0, "col": 1, "row": 4 },
+    { "skin": "ghoul", "team": 1, "col": 11, "row": 1 }
+  ],
+  "squads": [
+    { "name": "弱者狙い", "ai": "weak",
+      "units": [
+        { "skin": "skeleton", "team": 1, "col": 10, "row": 2 },
+        { "skin": "skeleton", "team": 1, "col": 10, "row": 4 },
+        { "skin": "zombie", "team": 1, "col": 11, "row": 3 }
+      ] }
+  ]
+}
