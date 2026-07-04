@@ -225,13 +225,27 @@ func _open_command_menu(dest: Vector2i) -> void:
 	if can_enter:
 		_menu.add_item("入る", MENU_ENTER)
 	# 輸送で搭乗駒がいれば「降車: 〈駒〉」を並べる（乗車したターンの駒は無効表示）。
+	# 駒自身の行動とは別グループなのでセパレーターで区切る。
 	var pas := state.passengers(_selected_id)
+	if not pas.is_empty():
+		_menu.add_separator()
 	for i in pas.size():
 		var pu: Unit = pas[i]
 		var sk := SkinCatalog.resolve(_skin_catalog, pu.skin_id, pu.type_id, pu.team)
 		_menu.add_item("降車: %s" % (sk.name if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
 		if state.has_moved(pu.id):  # 乗車したターンは行動完了＝降りられない
 			_menu.set_item_disabled(_menu.get_item_index(UNLOAD_ID_BASE + i), true)
+	# 移動先が自軍所有の拠点で控え（garrison）がいれば「出撃: 〈駒〉」を並べる＝拠点の操作。
+	# 上に駒が立っていても拠点の中の駒を出せる動線（出撃は garrison の行動＝降車と同じ扱い）。
+	if sel != null and base != null and base.team == sel.team and not base.garrison.is_empty():
+		_menu.add_separator()
+		var no_cells := controller.deploy_cells_for(dest).is_empty()
+		for i in base.garrison.size():
+			var gu: Unit = base.garrison[i]
+			var gsk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
+			_menu.add_item("出撃: %s" % (gsk.name if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
+			if no_cells or not state.can_deploy_garrison(dest, i):  # 出口なし／閉じ込め＝無効表示
+				_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)
 	_menu.add_separator()
 	_menu.add_item("キャンセル", MENU_CANCEL)
 	_menu_handled = false
@@ -250,9 +264,14 @@ func _on_menu_id(id: int) -> void:
 		_commit_pending_move()  # 保留中の移動があれば確定（移動してから降ろす）
 		_enter_unload(tid, id - UNLOAD_ID_BASE)
 		return
-	if id >= DEPLOY_ID_BASE:  # 拠点メニューの「出撃: 〈駒〉」（id に garrison index を埋め込み）
+	if id >= DEPLOY_ID_BASE:  # 「出撃: 〈駒〉」（id に garrison index を埋め込み）
 		_deploy_index = id - DEPLOY_ID_BASE
-		_enter_deploy(_menu_base)  # 出撃モードへ（候補マスをハイライト）
+		var from := _menu_base  # 拠点メニュー経由＝拠点そのもの
+		if from == INVALID_HEX:  # コマンドメニュー経由（拠点の上の駒／拠点へ移動中の駒）
+			from = _pending_to
+			_commit_pending_move()  # 保留中の移動があれば確定してから出す
+			_deselect()
+		_enter_deploy(from)  # 出撃モードへ（候補マスをハイライト）
 		return
 	match id:
 		MENU_ATTACK:
