@@ -11,16 +11,19 @@ func _initialize() -> void:
 	_convert_movement()
 	quit()
 
-## movement.csv → { "movement_types": { move_type: { 地形: コスト } } }。
+## movement.csv → { "movement_types": { move_type: { 地形: コスト } }, "move_type_names": { move_type: 表示名 } }。
+## コスト表は地形キーだけの純辞書に保ち（Movement.cost の走査を汚さない）、表示名は別辞書で持つ。
 func _convert_movement() -> void:
 	var rows := Csv.read_table("res://data/movement/movement.csv")
 	var types := {}
+	var names := {}
 	for r in rows:
 		var id := String(r["move_type"])
+		names[id] = String(r["name"])  # 表示名（歩行/飛行…）は別辞書へ
 		var costs := {}
 		for key in r:
 			if key != "move_type" and key != "name":  # 識別列は地形コストではない
 				costs[key] = r[key]  # int か "x"
 		types[id] = costs
-	Csv.write_json("res://data/movement/movement.json", { "movement_types": types })
+	Csv.write_json("res://data/movement/movement.json", { "movement_types": types, "move_type_names": names })
 	print("movement.json: %d move types" % types.size())

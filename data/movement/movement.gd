@@ -8,6 +8,9 @@ class_name Movement
 const MOVEMENT_PATH := "res://data/movement/movement.json"
 const IMPASSABLE := -1  ## 進入不可（reachable はこれを通行不能として扱う）
 
+static var _names := {}          # move_type -> 表示名（movement.csv の name 列）
+static var _names_loaded := false
+
 ## 表辞書（{ "movement_types": {...} }）→ { move_type: {地形:コスト} }。
 static func build(data: Dictionary) -> Dictionary:
 	var types: Variant = data.get("movement_types", {})
@@ -24,6 +27,25 @@ static func load_default() -> Dictionary:
 		push_error("Movement: JSON が不正: %s" % MOVEMENT_PATH)
 		return {}
 	return build(data)
+
+## move_type の表示名（movement.csv の name 列。不明idは id をそのまま返す）。
+## コスト表とは別に movement.json の move_type_names から遅延ロードする（Terrain.display_name と同じ流儀）。
+static func display_name(move_type: String) -> String:
+	_ensure_names()
+	return String(_names.get(move_type, move_type))
+
+static func _ensure_names() -> void:
+	if _names_loaded:
+		return
+	_names_loaded = true
+	var text := FileAccess.get_file_as_string(MOVEMENT_PATH)
+	if text.is_empty():
+		return
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) == TYPE_DICTIONARY:
+		var n: Variant = data.get("move_type_names", {})
+		if typeof(n) == TYPE_DICTIONARY:
+			_names = n
 
 ## move_type が terrain_name に入る進入コスト。"x" は IMPASSABLE。
 ## 表に無い組み合わせは既定コスト1（表が空＝全地形1＝従来の一律移動と等価）。

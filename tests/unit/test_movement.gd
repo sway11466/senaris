@@ -9,6 +9,12 @@ func test_movement_table_loads() -> void:
 	assert_eq(Movement.cost(t, "ground", "plain"), 1, "平地=1（基準）")
 	assert_eq(Movement.cost(t, "ground", "wall"), Movement.IMPASSABLE, "壁は進入不可")
 
+func test_move_type_display_name() -> void:
+	# 表示名（movement.csv の name 列）が movement.json 経由で引けること。
+	assert_eq(Movement.display_name("ground"), "歩行", "ground の表示名")
+	assert_eq(Movement.display_name("flight"), "飛行", "flight の表示名")
+	assert_eq(Movement.display_name("no_such_type"), "no_such_type", "不明idは id をそのまま返す")
+
 func test_cost_impassable_and_default() -> void:
 	var t := { "ground": { "plain": 1, "plateau": "x" } }
 	assert_eq(Movement.cost(t, "ground", "plateau"), Movement.IMPASSABLE, "x は進入不可")

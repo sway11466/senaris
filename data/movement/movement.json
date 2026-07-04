@@ -1,4 +1,13 @@
 {
+	"move_type_names": {
+		"bush_walk": "茂歩行",
+		"fixed": "固定",
+		"flight": "飛行",
+		"forest_walk": "森歩行",
+		"ground": "歩行",
+		"light_foot": "軽歩行",
+		"mountain_walk": "山歩行"
+	},
 	"movement_types": {
 		"bush_walk": {
 			"bush": 1,
