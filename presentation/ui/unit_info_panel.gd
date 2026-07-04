@@ -39,7 +39,44 @@ func show_unit(unit_id: int) -> void:
 
 func clear() -> void:
 	if _label != null:
-		_label.text = "ユニット未選択\n\n盤上のユニットを左クリックで選択"
+		_label.text = "ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認"
+
+## 空きマスの地形情報を表示（拠点なら控え＝garrison も一覧）。HexBoard.tile_inspected を受ける。
+func show_terrain(hex: Vector2i) -> void:
+	if _state == null:
+		clear()
+		return
+	_label.text = _format_terrain(hex)
+
+func _format_terrain(hex: Vector2i) -> String:
+	var terr := _state.terrain_at(hex)
+	var lines: Array[String] = []
+	lines.append("【地形】 %s" % Terrain.display_name(terr))
+	lines.append("")
+	lines.append("攻撃補正  ×%.2f" % Terrain.attack_factor(terr))
+	lines.append("防御補正  ×%.2f" % Terrain.defense_factor(terr))
+
+	var b := _state.base_at(hex)
+	if b != null:
+		lines.append("")
+		lines.append("──────────────────────")
+		var owner := "中立" if b.team < 0 else ("自軍" if b.team == 0 else "敵軍")
+		var kind_name := "本拠地" if b.is_hq() else "拠点"
+		lines.append("【%s】 所属:%s" % [kind_name, owner])
+		if b.garrison.is_empty():
+			lines.append("控え  なし")
+		else:
+			lines.append("控え  %d体" % b.garrison.size())
+			for gu in b.garrison:
+				lines.append("  ・%s" % _garrison_line(gu, b))
+	return "\n".join(lines)
+
+## 控え1体の1行表示（名前・兵数・レベル）。
+func _garrison_line(gu: Unit, b: Base) -> String:
+	var team_for_skin := gu.team if gu.team >= 0 else (b.team if b.team >= 0 else 0)
+	var sk := SkinCatalog.resolve(_skins, gu.skin_id, gu.type_id, team_for_skin)
+	var nm := sk.name if sk != null else gu.type_id
+	return "%s  兵%d/%d  Lv%d" % [nm, gu.troops, gu.max_troops, gu.level]
 
 func _format(u: Unit) -> String:
 	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)

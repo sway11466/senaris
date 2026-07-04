@@ -21,6 +21,7 @@ func _ready() -> void:
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
+	$HexBoard.tile_inspected.connect($InfoPanel.show_terrain)  # 空きマス選択→地形/拠点情報
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	load_stage("res://data/stages/debug/debug.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる

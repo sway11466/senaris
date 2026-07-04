@@ -13,6 +13,8 @@ class_name HexBoard
 
 ## 選択中ユニットが変わったとき発行（id<0＝選択解除）。情報パネル等が購読する。
 signal selection_changed(unit_id: int)
+## ユニットのいない空きマスをクリックしたとき発行（地形・拠点情報を右パネルに出す）。
+signal tile_inspected(hex: Vector2i)
 ## 戻る対象が無い最上位で Esc を押したとき発行（HUD がシステムメニューを開く）。
 signal system_menu_requested
 
@@ -45,6 +47,7 @@ const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 var state: BattleState
 var controller: MatchController
 var _terrain_tex := {}    # terrain_id(String) -> Texture2D（Terrain カタログから読み込み）
+var _unit_tex := {}       # 画像パス(String) -> Texture2D（スキンの map スプライト・キャッシュ）
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }（名前プレースホルダ用）
 
 const INVALID_HEX := Vector2i(-9999, -9999)
@@ -204,6 +207,8 @@ func _on_click(hex: Vector2i) -> void:
 		_open_base_menu(hex)
 		return
 	_deselect()
+	if state.unit_at(hex) == null:
+		tile_inspected.emit(hex)  # 空きマス＝地形（拠点なら控えも）を右パネルに表示
 
 ## 移動先（自マス含む）に対するコマンドメニューを開く。移動はまだ確定しない。
 func _open_command_menu(dest: Vector2i) -> void:
@@ -423,6 +428,7 @@ func _on_unit_unloaded(_unit_id: int, _transport_id: int, _to: Vector2i) -> void
 func _open_base_menu(base_hex: Vector2i) -> void:
 	_deselect()  # 選択状態は解いて拠点メニューへ移る
 	_menu_base = base_hex
+	tile_inspected.emit(base_hex)
 	_menu.clear()
 	var b := state.base_at(base_hex)
 	for i in b.garrison.size():  # 出撃させる駒を選ばせる（id に garrison index を埋め込む）
@@ -639,8 +645,12 @@ func _draw_unit(u: Unit) -> void:
 		col = col.darkened(0.45)  # 行動終了は暗く
 	if Surround.factor(state, u) < 1.0:  # 包囲中（攻防に係数<1.0）を明示
 		draw_arc(center, hex_size * 0.86, 0.0, TAU, 24, COLOR_SURROUNDED, 2.5)
-	draw_circle(center, hex_size * 0.55, col)
-	_draw_unit_label(u, center)
+	var tex := _unit_texture(u)
+	if tex != null:
+		_draw_unit_sprite(tex, center, state.is_done(u.id))
+	else:
+		draw_circle(center, hex_size * 0.55, col)
+		_draw_unit_label(u, center)
 	# 輸送の搭載数（乗っている駒の数）を左上に小さく（拠点の garrison 表示と同じ流儀）。
 	var pcount := state.passengers(u.id).size()
 	if pcount > 0:
@@ -653,6 +663,26 @@ func _draw_unit(u: Unit) -> void:
 	if _targets.has(u.pos):
 		draw_arc(center, hex_size * 0.72, 0.0, TAU, 32, COLOR_ATTACK_RING, 3.0)
 	_draw_troops_bar(u, center)
+
+## スキンの map 画像テクスチャ（キャッシュ）。未設定/未配置は null＝プレースホルダ描画。
+func _unit_texture(u: Unit) -> Texture2D:
+	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
+	if s == null:
+		return null
+	var p := s.image("map")
+	if p == "":
+		return null
+	if not _unit_tex.has(p):
+		_unit_tex[p] = load(p)
+	return _unit_tex[p]
+
+## map スプライト（256セル）を描く。足元をヘックス下辺付近に接地。行動終了は暗く。
+func _draw_unit_sprite(tex: Texture2D, center: Vector2, done: bool) -> void:
+	var s := hex_size * 2.5                       # セル画像の画面上サイズ（256px四方→この正方形）
+	var bottom_y := center.y + hex_size * 0.75    # セル下辺（＝足元）＝ヘックス下辺付近に接地
+	var rect := Rect2(center.x - s * 0.5, bottom_y - s, s, s)
+	var mod: Color = Color(0.55, 0.55, 0.55) if done else Color.WHITE
+	draw_texture_rect(tex, rect, false, mod)
 
 ## ユニットのマップ表示プレースホルダ（スキン名の先頭2文字）。画像が来たら差し替え予定。
 func _draw_unit_label(u: Unit, center: Vector2) -> void:
@@ -667,10 +697,10 @@ func _draw_unit_label(u: Unit, center: Vector2) -> void:
 	draw_string(font, pos, label, HORIZONTAL_ALIGNMENT_CENTER, w, fs, COLOR_UNIT_LABEL)
 
 func _draw_troops_bar(u: Unit, center: Vector2) -> void:
-	# 兵数バー（残存兵数 / 満員）。
+	# 兵数バー（残存兵数 / 満員）。駒の足元（ヘックス下辺付近）に置く。
 	var w := hex_size
 	var h := 5.0
-	var top_left := center + Vector2(-w * 0.5, -hex_size * 0.78 - h)
+	var top_left := Vector2(center.x - w * 0.5, center.y + hex_size * 0.72)
 	draw_rect(Rect2(top_left, Vector2(w, h)), Color(0, 0, 0, 0.6))
 	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
 	draw_rect(Rect2(top_left, Vector2(w * ratio, h)), Color(0.30, 0.90, 0.40))
