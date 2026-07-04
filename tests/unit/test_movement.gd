@@ -92,6 +92,31 @@ func test_can_leave_enemy_zoc() -> void:
 	var away := Hex.neighbor(p0, 0)  # 敵の反対側（ZOC外）
 	assert_true(s.reachable(1).has(away), "ZOC内の起点からは動き出せる")
 
+func test_pass_through_ally_but_cannot_stop() -> void:
+	# move2。p0→p1→p2 の直線で、p1 に味方がいる。p1(味方)は通過できるが停止不可、p2には届く。
+	var s := BattleState.new(8, 8)
+	var p0 := Hex.offset_to_axial(2, 3)
+	var p1 := Hex.neighbor(p0, 0)
+	var p2 := Hex.neighbor(p1, 0)
+	s.add_unit(Unit.new(1, 0, p0, 2))
+	s.add_unit(Unit.new(2, 0, p1, 1))  # p1 に味方（同陣営）
+	var reach := s.reachable(1)
+	assert_false(reach.has(p1), "味方のマスには停止できない（到達候補外）")
+	assert_true(reach.has(p2), "味方を通過してその先へ届く")
+	assert_false(s.can_move(1, p1), "味方のマスへは移動できない")
+
+func test_enemy_still_blocks_passage() -> void:
+	# 敵は従来どおり壁。p0→p1(敵)→p2 で p2 に届かない。
+	var s := BattleState.new(8, 8)
+	var p0 := Hex.offset_to_axial(2, 3)
+	var p1 := Hex.neighbor(p0, 0)
+	var p2 := Hex.neighbor(p1, 0)
+	s.add_unit(Unit.new(1, 0, p0, 2))
+	s.add_unit(Unit.new(2, 1, p1, 1))  # p1 に敵
+	var reach := s.reachable(1)
+	assert_false(reach.has(p1), "敵のマスには入れない")
+	assert_false(reach.has(p2), "敵は通過できない＝その先にも届かない")
+
 func test_flight_ignores_climb() -> void:
 	var s := BattleState.new(8, 8)
 	s.set_movement({ "ground": { "plain": 1, "plateau": 2 }, "flight": { "plain": 1, "plateau": 1 } })

@@ -198,7 +198,8 @@ func in_field(hex: Vector2i) -> bool:
 	var off := Hex.axial_to_offset(hex)
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
 
-## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・他ユニットは進入不可、地形はコスト。
+## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
+## 味方のマスは通過できるが停止できない（到達候補には含めない）。
 ## 敵ZOC（敵に隣接するマス）に入ると停止＝その先へは進めない（飛行含む全移動タイプ）。
 func reachable(unit_id: int) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
@@ -215,10 +216,16 @@ func _reach_map(unit_id: int) -> Dictionary:
 		return {}
 	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
 	var m := Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
+	# 味方のマスは通過できるが停止できない＝到達候補から除外（起点・乗れる輸送は残す）。
+	var result := {}
+	for h in m:
+		var occ := unit_at(h)
+		if h == u.pos or occ == null or can_board(u, occ):
+			result[h] = m[h]
 	for h in _adjacent_boardable(u):
-		if not m.has(h):
-			m[h] = 0  # コスト値は未使用（乗車は move_unit が予算を使い切る扱いにする）
-	return m
+		if not result.has(h):
+			result[h] = 0  # コスト値は未使用（乗車は move_unit が予算を使い切る扱いにする）
+	return result
 
 ## u に隣接する「乗れる輸送」のマス一覧（隣接1マスの特例の対象）。
 func _adjacent_boardable(u: Unit) -> Array[Vector2i]:
@@ -228,19 +235,22 @@ func _adjacent_boardable(u: Unit) -> Array[Vector2i]:
 			cells.append(nb)
 	return cells
 
-## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。
-## 例外: 乗れる味方輸送のマスへは進入できる（＝移動先に選ぶと乗車）。それ以外は地形コスト。
+## u が hex に進入するコスト。盤外・敵ユニットのマスは進入不可（Movement.IMPASSABLE）。
+## 味方のマスは通過できる（地形コスト）が停止はできない（到達候補からは _reach_map で除外）。
+## 乗れる味方輸送のマスへは進入できる（＝移動先に選ぶと乗車）。それ以外は地形コスト。
 func _enter_cost(hex: Vector2i, u: Unit) -> int:
 	if not in_field(hex):
 		return Movement.IMPASSABLE
 	var occ := unit_at(hex)
-	if occ != null and not can_board(u, occ):
-		return Movement.IMPASSABLE
+	if occ != null and occ.team != u.team:
+		return Movement.IMPASSABLE  # 敵の上は通れない（味方は通過可）
 	return Movement.cost(_movement, u.move_type, terrain_at(hex))
 
-## hex で移動が止まるか（その先へ展開しない）。敵ZOC＝停止／輸送のマス＝乗車先なので通過不可。
+## hex で移動が止まるか（その先へ展開しない）。敵ZOC＝停止／乗れる輸送＝乗車先なので通過不可。
+## 味方のマスでは止まらず先へ展開する（通過はできるが停止はできない＝到達候補にはならない）。
 func _move_stop(hex: Vector2i, u: Unit) -> bool:
-	if unit_at(hex) != null:
+	var occ := unit_at(hex)
+	if occ != null and can_board(u, occ):
 		return true  # 乗れる輸送のマス（終点としてのみ有効）
 	return _in_enemy_zoc(hex, u)
 
