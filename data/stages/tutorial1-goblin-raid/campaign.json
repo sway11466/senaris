@@ -8,6 +8,8 @@
     { "id": "st3", "file": "st3.json", "title": "狭路の包囲",
       "unlock": [ { "type": "cleared", "stage": "st2" } ] },
     { "id": "st4", "file": "st4.json", "title": "砦の解放",
-      "unlock": [ { "type": "cleared", "stage": "st3" } ] }
+      "unlock": [ { "type": "cleared", "stage": "st3" } ] },
+    { "id": "st5", "file": "st5.json", "title": "巣穴への一本道",
+      "unlock": [ { "type": "cleared", "stage": "st4" } ] }
   ]
 }
