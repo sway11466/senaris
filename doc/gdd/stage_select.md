@@ -25,15 +25,21 @@
 
 ## 冒険譚カード
 
-- 中身: **冒険譚タイトル・進捗＝「クリア済み数 / 総ステージ数」**（例「3 / 7」）。全クリアでコンプリートバッジ（✓）。
-- **将来は冒険譚ごとの絵をカードに載せる**（カード上はトリミング表示でよい）。
-- 進捗はクリア記録から導出する（冒険譚側に保存しない）。
+上に絵・下に情報帯の縦2段。カードは 340×330（絵 340×210＝黄金比 1.618:1、下に情報帯）。
+
+- 絵（上）: カード用クロップ `assets/campaign/{id}/{id}_card.png` を優先。無ければ扉絵 `{id}_cover.png` にフォールバック（`KEEP_ASPECT_COVERED`＋clip でトリミング表示）。どちらも無ければ暗色プレースホルダ。
+- 情報帯（下）: タイトル／「クリア n / m」（全クリアで ✓）＋難易度★5段階／タグチップ 3〜4個。
+- 進捗はクリア記録から導出する（冒険譚側に保存しない）。難易度・タグはマニフェスト（`campaign.json` の `difficulty` / `tags`）から。
+- クリック判定はカード全面の Button。中身は `mouse_filter=IGNORE` でクリックを Button へ透過する。
+- デバッグ冒険譚は絵・星・タグを出さず「（開発ビルド限定）」注記のみ。
+
+絵の管理（cover=大パネル用／card=カード用の二層）とクロップ方針・生成STYLEは [../art/visual-identity.md](../art/visual-identity.md) §5.3。
 
 ## ステージ一覧（冒険譚選択後）
 
 **ステージはカードにしない**。絵は冒険譚単位で1枚だけ用意する方針＝ステージごとの絵は作らない。
 
-- レイアウト: **左＝選んだ冒険譚の絵を最大化表示**（カードで使った絵のノートリミング版。絵ができるまではプレースホルダ）／**右＝ステージの縦リスト**。
+- レイアウト: **左＝選んだ冒険譚の扉絵を最大化表示**（`{id}_cover.png`。`KEEP_ASPECT_COVERED`＋clip でパネル枠にトリミング。絵が無ければタイトルのプレースホルダ）／**右＝ステージの縦リスト**。
 - リスト行の中身: **ステージ番号・ステージ名・状態**。並び順はマニフェストの記述順（＝物語順）。
 
 | 状態 | 表示 |
@@ -74,6 +80,8 @@ locked    … それ以外
 {
   "id": "tutorial1-goblin-raid",
   "title": "ゴブリンの襲撃",
+  "difficulty": 1,
+  "tags": [ "チュートリアル", "ゴブリン", "占領" ],
   "stages": [
     { "id": "st1", "file": "st1.json", "title": "はじめての戦い" },
     { "id": "st2", "file": "st2.json", "title": "森を抜けて",
@@ -84,6 +92,7 @@ locked    … それ以外
 
 - ステージ JSON 本体（盤面）には手を入れない。進行・表示のメタはマニフェスト側に寄せる。
 - ステージ選択画面は「`data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
+- カード表示用メタ（任意）: `difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`tags`（文字列配列／未指定は空）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
 
 ## デバッグステージ
 
@@ -113,9 +122,10 @@ domain（戦闘ロジック）には手を入れない。
 
 ---
 
-## 実装状況（2026-07-04 時点）
+## 実装状況（2026-07-05 時点）
 
-- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（[stage_select.gd](../../presentation/select/stage_select.gd)・冒険譚カード→左に冒険譚絵（プレースホルダ）＋右にステージ縦リスト。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
+- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・difficulty/tags/cover_path/card_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（[stage_select.gd](../../presentation/select/stage_select.gd)・冒険譚カード=絵＋情報帯（難易度星・タグ）→左に扉絵＋右にステージ縦リスト。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
+- **絵**: 冒険譚1の扉絵（cover）実装済み・カード用クロップ（card）は未配置で cover にフォールバック中。
 - **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは確認ダイアログのみ（内容は未決事項参照）。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
 
