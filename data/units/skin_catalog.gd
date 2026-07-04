@@ -37,8 +37,20 @@ static func _to_skins(arr: Variant) -> Array:
 	var list := []
 	if typeof(arr) == TYPE_ARRAY:
 		for d in arr:
-			list.append(UnitSkin.from_dict(d))
+			var s := UnitSkin.from_dict(d)
+			_autowire_images(s)
+			list.append(s)
 	return list
+
+## 画像を規約で自動解決：assets/units/{skin_id}/{skin_id}_map.png があれば images.map に入れる。
+## JSON に明示 images があればそちらを優先。アートを置くだけで盤がプレースホルダ→画像に切り替わる。
+static func _autowire_images(s: UnitSkin) -> void:
+	if s.skin_id == "":
+		return
+	if not s.images.has("map"):
+		var p := "res://assets/units/%s/%s_map.png" % [s.skin_id, s.skin_id]
+		if ResourceLoader.exists(p):
+			s.images["map"] = p
 
 ## res:// パスの JSON を読み込んで組み立てる。失敗時は空。
 static func load_file(path: String) -> Dictionary:

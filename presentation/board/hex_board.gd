@@ -593,8 +593,22 @@ func _draw() -> void:
 			_draw_tile(Hex.offset_to_axial(col, row))
 	for b in state.bases():
 		_draw_base(b)
-	for u in state.units():
+	for u in _units_in_draw_order():
 		_draw_unit(u)
+
+## 駒の重なり順：offset の row→col 昇順で描く＝row/col が大きい駒ほど後で描かれ手前に来る。
+## row（縦）が重なりを支配するので主キー、col は同 row 内のタイブレーク。
+## ドメインの _units は不変（描画用にコピーを並べ替えるだけ）。
+func _units_in_draw_order() -> Array:
+	var us := state.units().duplicate()
+	us.sort_custom(func(a: Unit, b: Unit) -> bool:
+		var oa := Hex.axial_to_offset(a.pos)
+		var ob := Hex.axial_to_offset(b.pos)
+		if oa.y != ob.y:
+			return oa.y < ob.y
+		return oa.x < ob.x
+	)
+	return us
 
 ## 拠点の所属（縁取りの色）と控え数（garrison）を描く。地形タイルの上・ユニットの下。
 func _draw_base(b: Base) -> void:
