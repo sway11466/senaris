@@ -38,6 +38,7 @@ const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動の緑と区別）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
 const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
+const COLOR_INSPECT_RING := Color(0.85, 0.90, 1.00)
 const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 const COLOR_BASE_NEUTRAL := Color(0.80, 0.80, 0.80)  # 未占領拠点の縁取り
@@ -54,6 +55,7 @@ const INVALID_HEX := Vector2i(-9999, -9999)
 
 var _hover := Vector2i(-9999, -9999)
 var _selected_id := -1
+var _inspected_id := -1  # 閲覧のみのユニット（敵など）。選択とは別＝移動範囲/コマンドは出さない
 var _reachable := {}  # Vector2i -> true
 var _targets := {}    # Vector2i -> target_id（攻撃可能な敵の位置）
 var _deploy_base := INVALID_HEX  # 出撃モード中の拠点（拠点メニューの「出撃」で入る）
@@ -105,6 +107,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 ## 選択・出撃モード・ロック・ホバーを初期状態へ（ステージ再ロード時に呼ぶ）。
 func _reset_interaction() -> void:
 	_selected_id = -1
+	_inspected_id = -1
 	_reachable.clear()
 	_targets.clear()
 	_deploy_base = INVALID_HEX
@@ -205,6 +208,9 @@ func _on_click(hex: Vector2i) -> void:
 	var b := state.base_at(hex)
 	if b != null and b.team == state.current_team and not controller.deploy_cells_for(hex).is_empty():
 		_open_base_menu(hex)
+		return
+	if clicked != null:
+		_inspect_unit(clicked.id)  # 操作対象外（敵など）→ 選択せずステータスのみ表示
 		return
 	_deselect()
 	if state.unit_at(hex) == null:
@@ -337,6 +343,10 @@ func _on_cancel(from_esc: bool) -> void:
 		_clear_unload()
 	elif _deploy_base != INVALID_HEX:
 		_clear_deploy()
+	elif _inspected_id != -1:
+		_inspected_id = -1
+		selection_changed.emit(-1)
+		queue_redraw()
 	elif from_esc:
 		system_menu_requested.emit()
 
@@ -463,6 +473,7 @@ func _clear_deploy() -> void:
 
 func _select(id: int) -> void:
 	_selected_id = id
+	_inspected_id = -1
 	_pending_to = INVALID_HEX
 	_choosing_target = false
 	_reachable.clear()
@@ -476,6 +487,7 @@ func _select(id: int) -> void:
 func _deselect() -> void:
 	var had := _selected_id
 	_selected_id = -1
+	_inspected_id = -1
 	_pending_to = INVALID_HEX
 	_choosing_target = false
 	_reachable.clear()
@@ -484,6 +496,17 @@ func _deselect() -> void:
 		_menu.hide()
 	if had != -1:
 		selection_changed.emit(-1)
+	queue_redraw()
+
+## 敵など操作できないユニットを閲覧（選択状態にはしない＝移動範囲・コマンドメニューは出さない）。
+func _inspect_unit(id: int) -> void:
+	_selected_id = -1
+	_pending_to = INVALID_HEX
+	_choosing_target = false
+	_reachable.clear()
+	_targets.clear()
+	_inspected_id = id
+	selection_changed.emit(id)
 	queue_redraw()
 
 func _on_unit_moved(_unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
@@ -674,6 +697,8 @@ func _draw_unit(u: Unit) -> void:
 		draw_string(pfont, ppos, "+%d" % pcount, HORIZONTAL_ALIGNMENT_LEFT, hex_size, pfs, COLOR_UNIT_LABEL)
 	if u.id == _selected_id:
 		draw_arc(center, hex_size * 0.70, 0.0, TAU, 32, COLOR_SELECT_RING, 3.0)
+	if u.id == _inspected_id:
+		draw_arc(center, hex_size * 0.70, 0.0, TAU, 32, COLOR_INSPECT_RING, 2.5)
 	if _targets.has(u.pos):
 		draw_arc(center, hex_size * 0.72, 0.0, TAU, 32, COLOR_ATTACK_RING, 3.0)
 	_draw_troops_bar(u, center)
