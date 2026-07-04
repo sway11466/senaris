@@ -186,7 +186,7 @@ away), and keep the bottom-right corner empty of anything important. Wide
 
 ## 参考資料
 
-- [assets/units/source/player/style.md](../../assets/units/source/player/style.md) — 味方陣営の見た目ルール（役割の記号・28種の個体特徴）
+- [assets/units/source/player/style.md](../../assets/units/source/player/style.md) — 味方陣営の見た目ルール（役割の記号・27種の個体特徴）
 - [overview.md](overview.md) — 画像スロット（`map`/`combat`）・プレースホルダ・制作手段（生成AI）
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [`../../data/units/unit_type.csv`](../../data/units/unit_type.csv) / [`../../data/units/unit_skin.csv`](../../data/units/unit_skin.csv) — ロスター正本

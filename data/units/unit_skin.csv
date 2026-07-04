@@ -2,7 +2,6 @@ skin_id,name,side,type_id,category,map_scale
 スキンID,表示名,陣営,種別ID,分類,描画倍率
 cleric,クレリック,ally,cleric,基準,1.0
 priest,プリースト,ally,priest,基準,1.0
-monk,モンク,ally,monk,基準,1.0
 bishop,ビショップ,ally,bishop,基準,1.0
 paladin,パラディン,ally,paladin,基準,1.05
 archer,アーチャー,ally,archer,基準,1.0

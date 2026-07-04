@@ -2,7 +2,6 @@ id,atk_ground,atk_air,pierce,defense,move,move_type,range,move_after_attack,can_
 種別ID,対地,対空,貫通率,防御,移動,移動タイプ,射程,攻撃後移動,占領可,満員兵数,搭乗数,兵種,備考
 cleric,15,0,0,20,3,ground,1,false,true,8,0,占領兵,
 priest,40,0,0,20,2,ground,1,false,true,8,0,占領兵,
-monk,10,0,0,10,9,ground,1,false,true,8,0,占領兵,
 bishop,10,0,0,40,3,ground,1,false,true,8,0,占領兵,
 paladin,50,0,0,40,5,ground,1,false,true,8,0,占領兵,
 archer,30,30,0,30,5,ground,2,false,false,8,0,弓兵,

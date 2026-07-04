@@ -20,7 +20,6 @@
   "player": [
     { "skin": "cleric",         "col": 1, "row": 1 },
     { "skin": "priest",         "col": 2, "row": 1 },
-    { "skin": "monk",           "col": 3, "row": 1 },
     { "skin": "bishop",         "col": 4, "row": 1 },
     { "skin": "paladin",        "col": 5, "row": 1 },
     { "skin": "archer",         "col": 6, "row": 1 },

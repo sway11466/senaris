@@ -219,18 +219,6 @@
 			],
 			"enemy": []
 		},
-		"monk": {
-			"ally": [
-				{
-					"description": "",
-					"images": {},
-					"name": "モンク",
-					"skin_id": "monk",
-					"type_id": "monk"
-				}
-			],
-			"enemy": []
-		},
 		"ninja": {
 			"ally": [
 				{

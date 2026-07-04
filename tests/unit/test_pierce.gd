@@ -75,7 +75,7 @@ func _from_type(cat: Dictionary, type_id: String, id: int, team: int, pos: Vecto
 func test_capture_units_cannot_target_flyer() -> void:
 	# 占領兵（パラディン含む）は atk_air=0 → 飛行を攻撃対象にできない。
 	var cat := UnitCatalog.load_default()
-	for tid in ["cleric", "priest", "monk", "bishop", "paladin"]:
+	for tid in ["cleric", "priest", "bishop", "paladin"]:
 		var s := _state()
 		var ap := Hex.offset_to_axial(2, 2)
 		s.add_unit(_from_type(cat, tid, 1, 0, ap))
