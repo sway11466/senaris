@@ -7,6 +7,7 @@
     { "id": "boss", "file": "boss.json", "title": "ボス撃破" },
     { "id": "hq", "file": "hq.json", "title": "本拠地占領（raid）" },
     { "id": "guard", "file": "guard.json", "title": "待機AI（guard）" },
-    { "id": "transport", "file": "transport.json", "title": "輸送（乗車・運搬・降車）" }
+    { "id": "transport", "file": "transport.json", "title": "輸送（乗車・運搬・降車）" },
+    { "id": "barricade", "file": "barricade.json", "title": "バリケード輸送（出撃→隣接乗降）" }
   ]
 }

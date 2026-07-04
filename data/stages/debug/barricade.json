@@ -1,0 +1,34 @@
+{
+  "name": "debug-barricade",
+  "cols": 14,
+  "rows": 7,
+  "terrain": [
+    "..............",
+    "..............",
+    "....C.........",
+    ".O..C.........",
+    "....C.........",
+    "..............",
+    ".............."
+  ],
+  "units": [
+    { "type": "wagon", "team": 0, "col": 2, "row": 3 },
+    { "type": "wizard", "team": 0, "col": 1, "row": 2 },
+    { "type": "witch", "team": 0, "col": 1, "row": 4 },
+    { "type": "fighter", "team": 0, "col": 2, "row": 2 }
+  ],
+  "squads": [
+    { "name": "見張りのゴブリン", "ai": "guard",
+      "units": [
+        { "skin": "goblin", "team": 1, "col": 10, "row": 2 },
+        { "skin": "goblin", "team": 1, "col": 10, "row": 4 },
+        { "skin": "goblin", "team": 1, "col": 11, "row": 3 }
+      ] }
+  ],
+  "bases": [
+    { "col": 1, "row": 3, "team": 0, "kind": "fort",
+      "garrison": [
+        { "type": "barricade", "count": 2 }
+      ] }
+  ]
+}
