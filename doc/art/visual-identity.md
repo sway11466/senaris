@@ -169,7 +169,18 @@
 
 - **③だけが `assets/`**（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
 - **①②は `assets/units/source/`**（作業ソース）。`assets/units/source/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
-- ③の書き出しレシピ：②マスターから 白背景透過 → 余白トリム → 240pxに収めて256四方へ配置 → 64色パレット減。②未着手の間は①から暫定生成し、②が来たら同レシピで作り直す。
+**手順（1体を追加するとき）:**
+
+1. AI生成 → `{skin_id}_01_raw.png` を `source/{skin_id}/` に保存（生成に使った SUBJECT は `{skin_id}_prompt.txt` に残す＝§6.5）。
+2. 手動でトリミング＋背景透過 → `{skin_id}_02_master.png`（同フォルダ）。
+3. ③を書き出す：
+   ```
+   powershell -File tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
+   ```
+   ②master と `unit_skin.csv` の `map_scale` から **「高さ＝200×倍率 → 256四方・透過・64色」** を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+4. Godot 再実行 → `SkinCatalog` が `assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
+
+- ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
 
 ---
 
