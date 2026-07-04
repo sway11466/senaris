@@ -173,6 +173,71 @@ func test_unload_allowed_after_transport_done() -> void:
 	assert_true(s.unload(1, 0, Hex.offset_to_axial(5, 2)), "降車できる")
 	assert_true(s.is_done(1), "降ろせる駒が尽きれば待機どおり行動終了")
 
+# --- 隣接1マスの特例（乗降は隣接なら移動力・地形コスト無関係。doc/gdd/movement.md） ---
+
+func test_move0_unit_boards_adjacent_transport() -> void:
+	var s := _state()
+	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
+	var barricade := Unit.new(2, 0, Hex.offset_to_axial(2, 3), 0)  # 移動0
+	s.add_unit(wagon)
+	s.add_unit(barricade)
+	var reach := s.reachable(2)
+	assert_true(reach.has(wagon.pos), "移動0でも隣接する輸送のマスは候補に入る")
+	assert_eq(reach.size(), 2, "盤上を歩けるようにはならない（自マス＋輸送のみ）")
+	assert_true(s.move_unit(2, wagon.pos), "移動0の駒が隣接輸送に乗れる")
+	assert_eq(s.passengers(1).size(), 1, "搭乗リストに載る")
+
+func test_move0_unit_cannot_board_distant_transport() -> void:
+	var s := _state()
+	s.add_unit(_transport(1, 0, Hex.offset_to_axial(4, 3)))  # 2マス先
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(2, 3), 0))
+	assert_false(s.move_unit(2, Hex.offset_to_axial(4, 3)), "特例は隣接1マスだけ＝離れた輸送には乗れない")
+
+func test_move0_passenger_unloads_to_adjacent() -> void:
+	var s := _state()
+	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
+	s.add_unit(wagon)
+	s.put_passenger(1, Unit.new(2, 0, Vector2i.ZERO, 0))  # 移動0（前ターンから搭乗）
+	var cells := s.unload_cells(1, 0)
+	assert_eq(cells.size(), 6, "移動0でも隣接6マスへ降ろせる")
+	var dest := Hex.offset_to_axial(3, 4)
+	assert_true(s.unload(1, 0, dest), "隣接マスへ降車できる")
+	assert_eq(s.unit_by_id(2).pos, dest, "盤上に配置される")
+
+func test_move1_unit_boards_transport_on_costly_terrain() -> void:
+	var s := _state()
+	var wagon_hex := Hex.offset_to_axial(3, 3)
+	s.set_terrain(wagon_hex, "mountain")  # ground の進入コスト3 ＞ 移動1
+	s.add_unit(_transport(1, 0, wagon_hex))
+	var rider := Unit.new(2, 0, Hex.offset_to_axial(2, 3), 1)
+	rider.move_type = "ground"
+	s.add_unit(rider)
+	assert_true(s.move_unit(2, wagon_hex), "高コスト地形上の輸送にも隣接からは乗れる")
+
+func test_special_unload_respects_impassable_terrain() -> void:
+	var s := _state()
+	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
+	s.add_unit(wagon)
+	var ground := Unit.new(2, 0, Vector2i.ZERO, 0)  # 移動0の地上駒
+	ground.move_type = "ground"
+	s.put_passenger(1, ground)
+	var cliff := Hex.offset_to_axial(3, 2)
+	s.set_terrain(cliff, "cliff")  # 地上は進入不可
+	var cells := s.unload_cells(1, 0)
+	assert_false(cells.has(cliff), "進入不可地形へは特例でも降ろせない")
+	assert_eq(cells.size(), 5, "残りの隣接5マスへは降ろせる")
+
+func test_special_board_then_unload_same_turn_denied() -> void:
+	var s := _state()
+	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
+	s.add_unit(wagon)
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(2, 3), 0))
+	s.move_unit(2, wagon.pos)  # 特例で乗車
+	assert_true(s.unload_cells(1, 0).is_empty(), "乗車したターンは降りられない（特例でも維持）")
+	s.end_turn()
+	s.end_turn()
+	assert_false(s.unload_cells(1, 0).is_empty(), "翌ターンは降ろせる")
+
 # --- 輸送の撃破 ---
 
 func test_transport_death_kills_passengers() -> void:

@@ -108,6 +108,8 @@ func put_passenger(transport_id: int, u: Unit) -> void:
 	_passengers[transport_id].append(u)
 
 ## 降車先候補の {hex: コスト}。搭乗駒が「輸送の位置を起点に」自力で動ける空きhex（通常移動と同じ規則）。
+## 隣接1マスの特例: 輸送に隣接する進入可能な空きマスは、移動力・地形コストに関係なく常に含める
+## （積み降ろしは人手＝移動0の駒も隣へ降ろせる）。進入不可地形（x）は特例でも不可。
 ## 乗車したターン（行動済み）の駒は降りられない＝空。
 func _unload_map(transport_id: int, index: int) -> Dictionary:
 	var t := unit_by_id(transport_id)
@@ -122,6 +124,12 @@ func _unload_map(transport_id: int, index: int) -> Dictionary:
 	for h in m:
 		if h != t.pos and unit_at(h) == null:  # 起点（輸送のマス）と占有マスは降車先にしない
 			cells[h] = m[h]
+	for nb in Hex.neighbors(t.pos):
+		if cells.has(nb) or unit_at(nb) != null:
+			continue
+		if _enter_cost(nb, p) == Movement.IMPASSABLE:
+			continue  # 盤外・進入不可地形（崖など）へは特例でも降ろせない
+		cells[nb] = p.move  # 特例の降車は移動予算を使い切る扱い
 	return cells
 
 ## 降車先候補（表示用）。
@@ -199,12 +207,26 @@ func reachable(unit_id: int) -> Array[Vector2i]:
 	return result
 
 ## reachable の {ヘックス: 到達コスト} 版（残り移動力で計算）。移動コスト消費に使う。
+## 隣接1マスの特例: 隣接する乗れる輸送のマスは、移動力・地形コストに関係なく常に含める
+## （積み降ろしは人手＝移動0の駒も隣の輸送には乗れる）。詳細 → doc/gdd/movement.md（輸送）
 func _reach_map(unit_id: int) -> Dictionary:
 	var u := unit_by_id(unit_id)
 	if u == null:
 		return {}
 	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
-	return Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
+	var m := Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
+	for h in _adjacent_boardable(u):
+		if not m.has(h):
+			m[h] = 0  # コスト値は未使用（乗車は move_unit が予算を使い切る扱いにする）
+	return m
+
+## u に隣接する「乗れる輸送」のマス一覧（隣接1マスの特例の対象）。
+func _adjacent_boardable(u: Unit) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for nb in Hex.neighbors(u.pos):
+		if in_field(nb) and can_board(u, unit_at(nb)):
+			cells.append(nb)
+	return cells
 
 ## u が hex に進入するコスト。盤外・占有は進入不可（Movement.IMPASSABLE）。
 ## 例外: 乗れる味方輸送のマスへは進入できる（＝移動先に選ぶと乗車）。それ以外は地形コスト。
@@ -283,8 +305,8 @@ func _can_act_move(unit_id: int) -> bool:
 	var u := unit_by_id(unit_id)
 	if not is_current_unit(u):
 		return false
-	if int(_spent.get(unit_id, 0)) >= u.move:
-		return false  # 予算切れ
+	if int(_spent.get(unit_id, 0)) >= u.move and _adjacent_boardable(u).is_empty():
+		return false  # 予算切れ（隣接に乗れる輸送があれば特例で乗車だけはできる）
 	if has_attacked(unit_id):
 		return u.move_after_attack and not _post_moved.has(unit_id)
 	return not _moved.has(unit_id)
