@@ -679,14 +679,29 @@ func _draw_tile(hex: Vector2i) -> void:
 	draw_polyline(outline, COLOR_LINE, 1.5, true)
 
 ## hex の地形タイル画像を、ヘックス寸法にフィットさせて描く。
+# 向きの無い自然地形＝ヘックスごとに回転(60°刻み)＋左右反転で見た目を散らす（1枚でも反復が目立たない）。
+# 道/砦/壁/柵/城壁/崖は向き・構造があるので対象外。フラットトップ六角は60°回転・左右反転で輪郭不変＝敷き詰めは崩れない。
+# 将来 terrain.csv にフラグ列を足せるが、それまでは presentation 側で保持（CSVは別途リファクタ中のため触らない）。
+const _ORIENTABLE_TERRAIN := ["plain", "forest", "mountain", "wasteland", "bush", "plateau"]
+
 func _draw_terrain(hex: Vector2i, center: Vector2) -> void:
-	var variants: Array = _terrain_tex.get(state.terrain_at(hex), [])
+	var tid: String = state.terrain_at(hex)
+	var variants: Array = _terrain_tex.get(tid, [])
 	if variants.is_empty():
 		return
 	var tex: Texture2D = variants[_terrain_variant(hex, variants.size())]
 	var w := hex_size * 2.0          # 頂点〜頂点
 	var h := hex_size * Hex.SQRT3     # 上下の平辺間
-	draw_texture_rect(tex, Rect2(center - Vector2(w, h) * 0.5, Vector2(w, h)), false)
+	if _ORIENTABLE_TERRAIN.has(tid):
+		# 向きは座標ハッシュから決定的に選ぶ（variant とは別シードで相関を避ける）＝盤は毎回同じ。
+		var o := absi(hash(Vector2i(hex.y, hex.x)))
+		var rot := float(o % 6) * (PI / 3.0)              # 0/60/120/180/240/300°
+		var flip := -1.0 if (o / 6) % 2 == 1 else 1.0     # 左右反転の有無
+		draw_set_transform(center, rot, Vector2(flip, 1.0))
+		draw_texture_rect(tex, Rect2(-Vector2(w, h) * 0.5, Vector2(w, h)), false)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)  # 変換を戻す
+	else:
+		draw_texture_rect(tex, Rect2(center - Vector2(w, h) * 0.5, Vector2(w, h)), false)
 
 ## 地形タイルを読む。基本 {name}.png に加え {name}_2.png, _3.png … があれば variant として集める
 ## （連番が途切れたら打ち切り）。同一地形の敷き詰めが単調に見えるのを、ヘックスごとの敷き分けで抑える。
