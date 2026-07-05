@@ -9,6 +9,7 @@ signal campaign_chosen(campaign_id: String)
 
 const POSTER_SIZE := Vector2(260, 380)  # 縦長の貼り紙
 const POSTER_ART_HEIGHT := 200.0
+const PIN_OVERHANG := 14.0  # 封蝋ピンが紙の上辺からはみ出す量（この分ポスター枠を上に広げる）
 
 var _progress: CampaignProgress
 var _posters: HFlowContainer
@@ -66,20 +67,23 @@ func refresh() -> void:
 		_posters.add_child(_poster(c))
 
 ## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。
+## 封蝋ピンは紙の上辺からはみ出すので、カードの子（clip対象）ではなく
+## ポスター土台（非clip）の直下に置く＝切れない。土台は上に PIN_OVERHANG ぶん広い。
 func _poster(c: Dictionary) -> Control:
-	# 封蝋のピンを紙からはみ出させて留めるため、ラッパーで上に余白を取る
-	var wrap := MarginContainer.new()
-	wrap.add_theme_constant_override("margin_top", 12)
+	var poster := Control.new()
+	poster.custom_minimum_size = POSTER_SIZE + Vector2(0.0, PIN_OVERHANG)
 
 	var card := Button.new()
+	card.position = Vector2(0.0, PIN_OVERHANG)  # ピンのはみ出しぶん下げる
 	card.custom_minimum_size = POSTER_SIZE
+	card.size = POSTER_SIZE
 	card.focus_mode = Control.FOCUS_NONE
 	card.clip_contents = true
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var bright := 1.06 if state == "hover" else 1.0
 		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(bright))
 	card.pressed.connect(_on_card_pressed.bind(String(c["id"])))
-	wrap.add_child(card)
+	poster.add_child(card)
 
 	var pad := MarginContainer.new()
 	pad.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -106,20 +110,20 @@ func _poster(c: Dictionary) -> Control:
 	_ignore_mouse(content)
 	pad.add_child(content)
 
-	# 封蝋のピン（紙の上辺中央・はみ出し配置）
-	var seal := TavernTheme.wax_seal()
-	seal.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	seal.position = Vector2(POSTER_SIZE.x / 2.0 - 13.0, -1.0)
-	card.add_child(seal)
-
-	# 全ステージ制覇なら「討伐済」の焼き印を斜めに押す
+	# 全ステージ制覇なら「討伐済」の焼き印を斜めに押す（card 内＝クリップ内でOK）
 	if not c["debug"]:
 		var total: int = c["stages"].size()
 		if total > 0 and _progress.cleared_count(String(c["id"])) >= total:
 			var stamp := TavernTheme.stamp("討伐済", TavernTheme.WAX, -12.0)
 			stamp.position = Vector2(POSTER_SIZE.x - 120.0, POSTER_ART_HEIGHT - 30.0)
 			card.add_child(stamp)
-	return wrap
+
+	# 封蝋のピン（紙の上辺中央・半分はみ出して留める。poster直下＝切れない）
+	var seal := TavernTheme.wax_seal()
+	var d: float = seal.custom_minimum_size.x
+	seal.position = Vector2((POSTER_SIZE.x - d) / 2.0, PIN_OVERHANG - d / 2.0)
+	poster.add_child(seal)
+	return poster
 
 func _on_card_pressed(campaign_id: String) -> void:
 	campaign_chosen.emit(campaign_id)
