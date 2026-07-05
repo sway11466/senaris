@@ -219,6 +219,18 @@
 			],
 			"enemy": []
 		},
+		"kunoichi": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "くノ一",
+					"skin_id": "kunoichi",
+					"type_id": "kunoichi"
+				}
+			],
+			"enemy": []
+		},
 		"ninja": {
 			"ally": [
 				{
@@ -368,15 +380,7 @@
 					"type_id": "vanguard"
 				}
 			],
-			"enemy": [
-				{
-					"description": "",
-					"images": {},
-					"name": "デュラハン",
-					"skin_id": "dullahan",
-					"type_id": "vanguard"
-				}
-			]
+			"enemy": []
 		},
 		"wagon": {
 			"ally": [
@@ -389,6 +393,26 @@
 				}
 			],
 			"enemy": []
+		},
+		"warlord": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "ウォーロード",
+					"skin_id": "warlord",
+					"type_id": "warlord"
+				}
+			],
+			"enemy": [
+				{
+					"description": "",
+					"images": {},
+					"name": "デュラハン",
+					"skin_id": "dullahan",
+					"type_id": "warlord"
+				}
+			]
 		},
 		"witch": {
 			"ally": [

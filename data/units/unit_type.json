@@ -193,6 +193,22 @@
 			"range": 1
 		},
 		{
+			"atk_air": 20,
+			"atk_ground": 30,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "斥候",
+			"defense": 20,
+			"id": "kunoichi",
+			"max_troops": 8,
+			"memo": "忍術（魔法攻撃・貫通0.5）",
+			"move": 7,
+			"move_after_attack": true,
+			"move_type": "light_foot",
+			"pierce": 0.5,
+			"range": 1
+		},
+		{
 			"atk_air": 10,
 			"atk_ground": 10,
 			"can_capture": false,
@@ -205,7 +221,7 @@
 			"move": 5,
 			"move_after_attack": false,
 			"move_type": "flight",
-			"pierce": 0,
+			"pierce": 0.5,
 			"range": 1
 		},
 		{
@@ -385,7 +401,23 @@
 			"range": 5
 		},
 		{
-			"atk_air": 10,
+			"atk_air": 0,
+			"atk_ground": 70,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "精鋭",
+			"defense": 70,
+			"id": "warlord",
+			"max_troops": 8,
+			"memo": "",
+			"move": 5,
+			"move_after_attack": false,
+			"move_type": "ground",
+			"pierce": 0,
+			"range": 1
+		},
+		{
+			"atk_air": 0,
 			"atk_ground": 10,
 			"can_capture": false,
 			"capacity": 4,
@@ -430,7 +462,7 @@
 			"move_after_attack": false,
 			"move_type": "ground",
 			"pierce": 0,
-			"range": 1
+			"range": 0
 		},
 		{
 			"atk_air": 30,
