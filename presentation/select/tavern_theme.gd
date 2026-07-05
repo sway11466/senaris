@@ -2,14 +2,14 @@ extends RefCounted
 class_name TavernTheme
 ## 酒場の依頼ボード風テーマの部品工場。方向性 → doc/gdd/stage_select.md
 ## 材質だけ画像・構造と光はコード（ハイブリッド）。テクスチャは autowire で差し込む：
-## assets/select/<name>.png が在れば使い、無ければプロシージャル（ベタ塗り）へフォールバック。
+## assets/menu/<name>.png が在れば使い、無ければプロシージャル（ベタ塗り）へフォールバック。
 ## ＝画像スロット制。絵を置くだけで格上げされ、セレクト画面側は無改修（UnitSkin と同思想）。
 ## 素材スロット: wall（木壁・タイル）／board（依頼ボード板）／parchment（貼り紙）／grunge（汚し）。
 ## 仕様（サイズ・シームレス条件・色味）→ doc/art/menu.md。
 
-const SLOT_DIR := "res://assets/select/"
+const SLOT_DIR := "res://assets/menu/"
 
-## 素材テクスチャを autowire で取得（assets/select/<name>.png）。無ければ null。
+## 素材テクスチャを autowire で取得（assets/menu/<name>.png）。無ければ null。
 static func _tex(name: String) -> Texture2D:
 	var p := "%s%s.png" % [SLOT_DIR, name]
 	return load(p) as Texture2D if ResourceLoader.exists(p) else null

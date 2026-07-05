@@ -15,7 +15,7 @@
 
 ## 2. スロット（autowire）
 
-`assets/select/{name}.png` を規約で自動解決する（[tavern_theme.gd](../../presentation/select/tavern_theme.gd) の `_tex`）。置けば材質に、無ければコードのプロシージャル／ベタ塗りへフォールバック＝ドロップイン（コード不変）。ユニットの skin 画像 autowire と同じ思想。
+`assets/menu/{name}.png` を規約で自動解決する（[tavern_theme.gd](../../presentation/select/tavern_theme.gd) の `_tex`）。置けば材質に、無ければコードのプロシージャル／ベタ塗りへフォールバック＝ドロップイン（コード不変）。ユニットの skin 画像 autowire と同じ思想。
 
 | name | 用途 | 敷き方 | 縁（ナインパッチ） | 未配置時のフォールバック |
 |---|---|---|---|---|
@@ -54,9 +54,9 @@ SUBJECT は材質ごとに差し替える（叩き台）:
 
 | 段階 | 置き場 | 例 |
 |---|---|---|
-| ① AI生成（原寸・作業） | `assets/select/source/{name}/` に任意名で複数 | `source/wall/wall_a.png` |
-| SUBJECT | `assets/select/source/{name}/{name}_prompt.txt` | `source/wall/wall_prompt.txt` |
-| ② ゲーム用（正・autowire） | `assets/select/{name}.png` | `wall.png` / `board.png` / `parchment.png` / `grunge.png` |
+| ① AI生成（原寸・作業） | `assets/menu/source/{name}/` に任意名で複数 | `source/wall/wall_a.png` |
+| SUBJECT | `assets/menu/source/{name}/{name}_prompt.txt` | `source/wall/wall_prompt.txt` |
+| ② ゲーム用（正・autowire） | `assets/menu/{name}.png` | `wall.png` / `board.png` / `parchment.png` / `grunge.png` |
 
 - ②を置けば `tavern_theme.gd` が規約で拾う。`source/` は `.gdignore` で Godot 非インポート。
 - タイル材（`wall` / `grunge`）は Godot のインポート設定で Repeat を Enabled にする（継ぎ目タイルに必須）。上下左右がつながるシームレス画像で作る。
