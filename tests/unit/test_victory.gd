@@ -113,6 +113,15 @@ func test_win_takes_priority_over_turn_limit() -> void:
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))  # 自軍のみ＝敵は盤上0・復帰手段なし
 	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "殲滅勝ちは時間切れより優先")
 
+func test_turnlimit_debug_stage_loads() -> void:
+	# デバッグステージ turnlimit.json: 敵味方1体・敵は待機(guard)・リミット10。
+	var s := StageLoader.load_file("res://data/stages/debug/turnlimit.json")
+	assert_not_null(s, "turnlimit.json が読める")
+	assert_eq(s.turn_limit, 10, "リミット10")
+	assert_eq(s.team_unit_count(0), 1, "自軍1体")
+	assert_eq(s.team_unit_count(1), 1, "敵1体")
+	assert_eq(String(s.squads[0].get("ai", "")), "guard", "敵は待機(guard)")
+
 func test_build_wires_turn_limit() -> void:
 	var s := StageLoader.build({ "cols": 6, "rows": 6, "turn_limit": 25 })
 	assert_eq(s.turn_limit, 25, "ステージの turn_limit が載る")
