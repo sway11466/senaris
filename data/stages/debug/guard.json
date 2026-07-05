@@ -1,4 +1,5 @@
 {
+  "turn_limit": 30,
   "name": "debug-guard",
   "cols": 13,
   "rows": 7,

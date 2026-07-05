@@ -78,3 +78,43 @@ func test_no_win_while_enemy_reinforcement_remains() -> void:
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 6), 3))  # 自軍は盤上に健在
 	assert_eq(s.team_unit_count(1), 0, "敵は盤上0")
 	assert_eq(s.outcome(), BattleState.ONGOING, "敵に復帰手段があれば勝ちきれない")
+
+# --- ターン制限（超過＝時間切れ敗北・引き分けなし）。doc/gdd/map.md ---
+
+func _both_present(s: BattleState) -> void:
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3))
+
+func test_no_loss_at_turn_limit() -> void:
+	var s := BattleState.new(8, 8)
+	s.turn_limit = 30
+	s.turn_number = 30
+	_both_present(s)
+	assert_eq(s.outcome(), BattleState.ONGOING, "上限ちょうど（30手番目）はまだ継続")
+
+func test_loss_when_turn_limit_exceeded() -> void:
+	var s := BattleState.new(8, 8)
+	s.turn_limit = 30
+	s.turn_number = 31
+	_both_present(s)
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "上限を超えたら時間切れ敗北")
+
+func test_turn_limit_zero_is_unlimited() -> void:
+	var s := BattleState.new(8, 8)  # turn_limit 既定0
+	s.turn_number = 999
+	_both_present(s)
+	assert_eq(s.outcome(), BattleState.ONGOING, "0＝無制限（時間切れにならない）")
+
+func test_win_takes_priority_over_turn_limit() -> void:
+	# 上限超過でも、勝利条件（ここでは敵殲滅）を満たしていれば勝ち＝時間切れ敗北より優先。
+	var s := BattleState.new(8, 8)
+	s.turn_limit = 30
+	s.turn_number = 31
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))  # 自軍のみ＝敵は盤上0・復帰手段なし
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "殲滅勝ちは時間切れより優先")
+
+func test_build_wires_turn_limit() -> void:
+	var s := StageLoader.build({ "cols": 6, "rows": 6, "turn_limit": 25 })
+	assert_eq(s.turn_limit, 25, "ステージの turn_limit が載る")
+	var s2 := StageLoader.build({ "cols": 6, "rows": 6 })
+	assert_eq(s2.turn_limit, 0, "build は未指定を素通し（0）。実ファイルの必須チェックは load_file 側")

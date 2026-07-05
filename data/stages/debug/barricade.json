@@ -1,4 +1,5 @@
 {
+  "turn_limit": 30,
   "name": "debug-barricade",
   "cols": 14,
   "rows": 7,

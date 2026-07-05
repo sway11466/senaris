@@ -1,4 +1,5 @@
 {
+  "turn_limit": 30,
   "name": "units",
   "cols": 10,
   "rows": 13,

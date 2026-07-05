@@ -1,4 +1,5 @@
 {
+  "turn_limit": 30,
   "name": "debug-transport",
   "cols": 16,
   "rows": 7,

@@ -9,6 +9,7 @@ var rows: int  ## 矩形フィールドの高さ（offset row 数）
 
 var current_team: int = 0  ## 現在の手番の陣営
 var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
+var turn_limit: int = 0    ## ターン上限（超過でプレイヤー敗北・引き分けなし）。0＝無制限。実ステージJSONでは必須指定。詳細 → doc/gdd/map.md
 
 var _units: Array[Unit] = []
 var _moved := {}       # unit_id -> true（攻撃前の移動を1回使った）
@@ -549,7 +550,7 @@ func _take_off_board(unit_id: int) -> void:
 			_units.remove_at(i)
 			return
 
-# --- 勝敗（自軍＝team 0 視点。ターン制限は未実装） ---
+# --- 勝敗（自軍＝team 0 視点） ---
 
 enum { ONGOING, PLAYER_WIN, PLAYER_LOSS }
 
@@ -596,6 +597,8 @@ func outcome() -> int:
 	for c in victory_conditions:
 		if _victory_met(c):
 			return PLAYER_WIN
+	if turn_limit > 0 and turn_number > turn_limit:
+		return PLAYER_LOSS  # ターン制限超過＝時間切れ敗北（引き分けなし）。詳細 → doc/gdd/map.md
 	return ONGOING
 
 ## 自軍 native の本拠地（hq）が敵の手に落ちているか。hq が無いステージでは常に false。

@@ -119,7 +119,8 @@ func end_turn() -> void:
 		return
 	state.end_turn()
 	turn_changed.emit(state.current_team, state.turn_number)
-	if is_ai_turn():
+	_check_finished()  # ターン跨ぎで決着が付くことがある（ターン制限＝時間切れ敗北）
+	if not _finished and is_ai_turn():
 		run_ai_turn()  # async（fire-and-forget）
 
 ## AIの手番を実行。next_action が尽きるまで1手ずつ実行し、最後に手番を返す。

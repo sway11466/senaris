@@ -47,6 +47,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
 	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
+	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
@@ -60,6 +61,8 @@ static func load_file(path: String) -> BattleState:
 	if typeof(data) != TYPE_DICTIONARY:
 		push_error("StageLoader: JSON が不正: %s" % path)
 		return null
+	if not data.has("turn_limit") or int(data.get("turn_limit", 0)) <= 0:
+		push_error("StageLoader: turn_limit（>0）は必須です（指定なし＝データのバグ）: %s" % path)  # doc/gdd/map.md
 	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard())
 	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
 	return state

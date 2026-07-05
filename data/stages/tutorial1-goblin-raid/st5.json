@@ -1,4 +1,5 @@
 {
+  "turn_limit": 30,
   "name": "tutorial-st5",
   "cols": 22,
   "rows": 9,

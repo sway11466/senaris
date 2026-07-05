@@ -1,4 +1,5 @@
 {
+  "turn_limit": 30,
   "name": "debug-hq",
   "cols": 12,
   "rows": 7,
