@@ -454,6 +454,119 @@ func test_ai_catalog_has_weak_preset() -> void:
 	assert_eq(String(presets["weak"]["target"]), "weak;near", "対象優先＝弱者狙い")
 	assert_eq(String(presets["weak"]["advance"]), "flank", "前進＝回り込み")
 
+# --- 拠点出撃（deploy）＝ AI所有拠点から控えを出す。詳細 → doc/gdd/ai.md §7 ---
+
+const DEPLOY_PRESETS := {
+	"charge": { "engage": "charge" },
+	"guard": { "engage": "sight", "sight": 3 },
+}
+
+## team1所有の拠点＋garrison（native=enemy＝出せる）＋squad を積んで返す。
+func _add_enemy_base(s: BattleState, base_hex: Vector2i, ai: String, count := 2) -> Base:
+	var b := Base.new(base_hex, 1)  # team1 所有
+	b.squad_index = s.squads.size()
+	s.squads.append({ "ai": ai })
+	for i in count:
+		var g := Unit.new(1000 + i, 0, base_hex, 3)  # team は出撃時に確定
+		g.native_team = 1  # native=enemy＝所有者と一致＝出せる
+		b.garrison.append(g)
+	s.add_base(b)
+	return b
+
+func test_base_charge_deploys_immediately() -> void:
+	_brain.presets = DEPLOY_PRESETS
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	var base_hex := Hex.offset_to_axial(3, 3)
+	_add_enemy_base(s, base_hex, "charge")
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))  # 敵（出す先の基準）
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a)
+	assert_eq(a.kind, AiAction.Kind.DEPLOY, "charge拠点は即出撃")
+	assert_eq(a.base_hex, base_hex, "出撃元＝この拠点")
+	assert_eq(Hex.distance(a.to, base_hex), 1, "隣接マスへ出す")
+
+func test_base_guard_waits_until_enemy_in_sight() -> void:
+	_brain.presets = DEPLOY_PRESETS
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var base_hex := Hex.offset_to_axial(3, 1)
+	_add_enemy_base(s, base_hex, "guard")  # sight 3
+	var enemy := Unit.new(1, 0, Hex.offset_to_axial(12, 1), 3)  # 遠い＝索敵外
+	s.add_unit(enemy)
+	assert_null(_brain.next_action(s, 1), "索敵外なら出さない（潜伏）")
+	enemy.pos = Hex.offset_to_axial(5, 1)  # 拠点から距離2＝索敵内
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "索敵内に敵が来たら出す")
+	assert_eq(a.kind, AiAction.Kind.DEPLOY)
+
+func test_base_without_ai_does_not_deploy() -> void:
+	# opt-in: ai 未指定（squad_index=-1）の拠点は自動出撃しない。
+	_brain.presets = DEPLOY_PRESETS
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 1)  # ai なし
+	var g := Unit.new(1000, 0, base_hex, 3)
+	g.native_team = 1
+	b.garrison.append(g)
+	s.add_base(b)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))
+	assert_null(_brain.next_action(s, 1), "ai未指定の拠点は湧かない")
+
+func test_base_does_not_deploy_locked_garrison() -> void:
+	# 奪われた敵拠点の閉じ込め＝native≠所有者の控えは出せない。
+	_brain.presets = DEPLOY_PRESETS
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 1)
+	b.squad_index = s.squads.size()
+	s.squads.append({ "ai": "charge" })
+	var g := Unit.new(1000, 0, base_hex, 3)
+	g.native_team = 0  # native=player＝奪われて閉じ込め
+	b.garrison.append(g)
+	s.add_base(b)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))
+	assert_null(_brain.next_action(s, 1), "閉じ込めの控えは出さない")
+
+func test_base_deploys_all_and_assigns_squad() -> void:
+	# 手番を回すと出せるだけ出し、出した駒は拠点の squad に属する。
+	_brain.presets = DEPLOY_PRESETS
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := _add_enemy_base(s, base_hex, "charge", 3)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))  # 敵
+	var guard := 0
+	while guard < 50:
+		guard += 1
+		var a := _brain.next_action(s, 1)
+		if a == null:
+			break
+		if a.kind == AiAction.Kind.DEPLOY:
+			assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AI出撃は妥当")
+		elif a.kind == AiAction.Kind.MOVE:
+			s.move_unit(a.unit_id, a.to)
+		else:
+			s.attack(a.unit_id, a.target_id)
+	assert_eq(b.garrison.size(), 0, "空き隣接がある盤なら3体とも出撃")
+	var deployed := s.units().filter(func(u: Unit) -> bool: return u.team == 1)
+	assert_eq(deployed.size(), 3, "3体が盤上に出た")
+	for u in deployed:
+		assert_eq(s.squad_index_of(u.id), b.squad_index, "出した駒は拠点squadに属する")
+
+func test_spawn_debug_stage_wires_base_squad() -> void:
+	# デバッグステージ spawn.json: 敵拠点に ai=charge の squad が紐づき、控えが出せる（native=enemy）。
+	var s := StageLoader.load_file("res://data/stages/debug/spawn.json")
+	assert_not_null(s, "spawn.json が読める")
+	var b := s.base_at(Hex.offset_to_axial(8, 3))
+	assert_not_null(b, "敵拠点がある")
+	assert_true(b.squad_index >= 0, "拠点に ai squad が紐づく")
+	assert_eq(String(s.squads[b.squad_index].get("ai", "")), "charge", "拠点squadのAI＝charge")
+	assert_eq(b.garrison.size(), 4, "goblin×4 が控え")
+	assert_true(s.can_deploy_garrison(b.hex, 0), "native=enemy＝敵所有拠点から出せる")
+
 func test_advance_default_still_heads_to_enemy() -> void:
 	# 既定（advance_to_base=false）は従来どおり敵へ前進する（回帰）。
 	var s := BattleState.new(12, 3)

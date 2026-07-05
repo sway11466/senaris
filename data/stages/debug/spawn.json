@@ -1,0 +1,23 @@
+{
+  "name": "debug-spawn",
+  "cols": 10,
+  "rows": 7,
+  "terrain": [
+    "..........",
+    "..........",
+    "..........",
+    "........O.",
+    "..........",
+    "..........",
+    ".........."
+  ],
+  "player": [
+    { "type": "fighter", "col": 2, "row": 3 },
+    { "type": "cleric", "col": 2, "row": 4 }
+  ],
+  "enemy": [],
+  "bases": [
+    { "col": 8, "row": 3, "team": "enemy", "ai": "charge",
+      "garrison": [ { "skin": "goblin", "count": 4 } ] }
+  ]
+}

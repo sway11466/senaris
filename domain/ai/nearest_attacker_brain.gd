@@ -117,6 +117,13 @@ func next_action(state: BattleState, team: int) -> AiAction:
 			var dest := _advance_dest(state, u)
 			if dest != u.pos:
 				return AiAction.move_to(u.id, dest)
+	# 拠点出撃(deploy): 盤上ユニットを捌いた後、AI所有の拠点から起動成立時に出せるだけ出す（1手ずつ）。ai.md §7
+	for b in state.bases():
+		if b.team != team:
+			continue
+		var deploy_action := _try_deploy(state, b)
+		if deploy_action != null:
+			return deploy_action
 	return null
 
 # --- 弱者狙い（attack=prey / target=weak / advance=flank）。詳細 → doc/gdd/ai.md（弱者狙いの設計） ---
@@ -290,4 +297,75 @@ func _nearest_enemy(state: BattleState, u: Unit) -> Unit:
 		if d < best_d:
 			best_d = d
 			best = other
+	return best
+
+# --- 拠点出撃（deploy）。詳細 → doc/gdd/ai.md §7 拠点出撃 ---
+
+## 拠点 b から出せる控えが1体でもあれば、その出撃1手を返す（起動条件を満たすときのみ）。無ければ null。
+## run_ai_turn が next_action を尽きるまで回すので、この1手ずつ返しが「出せるだけ出す」になる。
+func _try_deploy(state: BattleState, b: Base) -> AiAction:
+	if b.squad_index < 0:
+		return null  # ai 未指定の拠点はAI出撃しない（opt-in）。ai.md §7
+	if not _base_engaged(state, b):
+		return null
+	for i in b.garrison.size():
+		if not state.can_deploy_garrison(b.hex, i):
+			continue  # 閉じ込め（native≠所有者）＝出せない
+		var cells := state.deploy_cells(b.hex, i)
+		if cells.is_empty():
+			continue  # 空き隣接なし＝今は出せない
+		return AiAction.deploy(b.hex, i, _best_deploy_cell(state, b, cells))
+	return null
+
+## 拠点の起動判定＝ユニットの engage を拠点hex基準で再利用（charge＝常時／sight＝索敵内に敵）。
+func _base_engaged(state: BattleState, b: Base) -> bool:
+	var tokens := String(_base_param(state, b, "engage", "charge")).split("|")
+	if "charge" in tokens:
+		return true
+	if "sight" in tokens:
+		var s: Variant = _base_param(state, b, "sight", 0)
+		var radius := int(s) if typeof(s) == TYPE_INT or typeof(s) == TYPE_FLOAT else 0
+		return _enemy_within_hex(state, b.hex, b.team, radius)
+	return false
+
+## 拠点のAIパラメーター解決: 拠点squadの上書き ＞ そのプリセット ＞ default。squad未設定は default。
+func _base_param(state: BattleState, b: Base, key: String, default: Variant) -> Variant:
+	if b.squad_index < 0 or b.squad_index >= state.squads.size():
+		return default
+	var squad: Dictionary = state.squads[b.squad_index]
+	var preset: Dictionary = presets.get(String(squad.get("ai", "")), {})
+	return squad.get(key, preset.get(key, default))
+
+## hex から距離 radius 以内に team 以外のユニットがいるか（拠点の索敵起動用）。
+func _enemy_within_hex(state: BattleState, hex: Vector2i, team: int, radius: int) -> bool:
+	if radius <= 0:
+		return false
+	for other in state.units():
+		if other.team != team and Hex.distance(hex, other.pos) <= radius:
+			return true
+	return false
+
+## 出撃先候補のうち、最寄り敵に一番近いマス（敵がいなければ先頭）。
+func _best_deploy_cell(state: BattleState, b: Base, cells: Array[Vector2i]) -> Vector2i:
+	var goal := _nearest_enemy_pos(state, b.hex, b.team)
+	var best := cells[0]
+	var best_d := 1 << 30
+	for c in cells:
+		var d := Hex.distance(c, goal)
+		if d < best_d:
+			best_d = d
+			best = c
+	return best
+
+## from_hex に最も近い team 以外のユニットの位置（いなければ from_hex）。
+func _nearest_enemy_pos(state: BattleState, from_hex: Vector2i, team: int) -> Vector2i:
+	var best := from_hex
+	var best_d := 1 << 30
+	for other in state.units():
+		if other.team == team:
+			continue
+		var d := Hex.distance(from_hex, other.pos)
+		if d < best_d:
+			best_d = d
+			best = other.pos
 	return best

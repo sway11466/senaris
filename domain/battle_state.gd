@@ -395,6 +395,8 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	else:
 		u.pos = to_hex
 		_units.append(u)
+	if b.squad_index >= 0:
+		assign_squad(u.id, b.squad_index)  # 拠点=squad の駒として振る舞う（敵AIの拠点出撃。ai.md §7）
 	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃も降車もこれ以上しない）。
 	_moved[u.id] = true
 	_post_moved[u.id] = true

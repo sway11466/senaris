@@ -140,6 +140,8 @@ func _apply_ai_action(action: AiAction) -> void:
 			execute(MoveCommand.new(action.unit_id, action.to))
 		AiAction.Kind.ATTACK:
 			execute_attack(AttackCommand.new(action.unit_id, action.target_id))
+		AiAction.Kind.DEPLOY:
+			execute_deploy(DeployCommand.new(action.base_hex, action.garrison_index, action.to))
 
 func _check_finished() -> void:
 	if not _finished and state.is_over():

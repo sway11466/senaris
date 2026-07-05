@@ -162,6 +162,13 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
 		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL), String(b.get("kind", "fort")))
+		if b.has("ai"):  # 拠点=1squad（garrison を出す preset）。ai 未指定の拠点はAI出撃しない。ai.md §7
+			var squad := {}
+			for key in b:
+				if not (key in ["col", "row", "team", "kind", "garrison", "native"]):
+					squad[key] = b[key]  # ai＋上書き（sight/engage/…）だけを部隊定義に
+			base.squad_index = state.squads.size()
+			state.squads.append(squad)
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
 				var gu := _make_unit(g, catalog, auto_id, 0, skin_catalog)  # team は出撃時に決まる（deploy で captor 陣営へ）
