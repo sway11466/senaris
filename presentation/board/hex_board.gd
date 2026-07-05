@@ -128,6 +128,10 @@ func _reset_interaction() -> void:
 	_press_on_empty = false
 	_hover = Vector2i(-9999, -9999)
 
+## 会話中など盤の操作を一時ロックする（カメラ操作は可）。presentation の会話フローが使う。
+func set_input_locked(v: bool) -> void:
+	_locked = v
+
 func _process(_delta: float) -> void:
 	if state == null:
 		return

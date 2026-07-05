@@ -1,0 +1,31 @@
+{
+  "turn_limit": 30,
+  "name": "debug-talk",
+  "cols": 8,
+  "rows": 5,
+  "terrain": [
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
+  ],
+  "player": [
+    { "type": "fighter", "col": 2, "row": 2 }
+  ],
+  "enemy": [
+    { "ai": "charge", "units": [ { "skin": "goblin", "col": 4, "row": 2 } ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.cap.name",    "skin": "fighter", "text": "talk.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice",  "text": "talk.intro.2" },
+      { "speaker": "char.cap.name",    "skin": "fighter", "text": "talk.intro.3" },
+      { "speaker": "char.rookie.name", "skin": "novice",  "text": "talk.intro.4" }
+    ],
+    "outro": [
+      { "speaker": "char.cap.name",    "skin": "fighter", "text": "talk.outro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice",  "text": "talk.outro.2" }
+    ]
+  }
+}

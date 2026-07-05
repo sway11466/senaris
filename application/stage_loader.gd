@@ -102,6 +102,30 @@ static func load_terrain_skins(path: String) -> Dictionary:
 		return {}
 	return parse_terrain_skins(data)
 
+## 会話（シナリオ）：ステージ辞書の "dialogue"（{ intro:[...], outro:[...] }）を取り出す。
+## presentation 専用（案P と同じ＝BattleState には入れない）。各行 { speaker, skin, text }。
+## text/speaker は翻訳キー＝表示時に tr() で解決する（i18n。正本 data/i18n/dialogue.csv）。詳細 → doc/campaign/authoring.md
+static func parse_dialogue(data: Dictionary) -> Dictionary:
+	var out := { "intro": [], "outro": [] }
+	var dlg: Variant = data.get("dialogue", {})
+	if typeof(dlg) != TYPE_DICTIONARY:
+		return out
+	for phase in ["intro", "outro"]:
+		var lines: Variant = dlg.get(phase, [])
+		if typeof(lines) == TYPE_ARRAY:
+			out[phase] = lines
+	return out
+
+## res:// パスの JSON から dialogue を読む（load_file と対＝会話を presentation へ渡すため）。
+static func load_dialogue(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return { "intro": [], "outro": [] }
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return { "intro": [], "outro": [] }
+	return parse_dialogue(data)
+
 ## 駒配置リスト（player セクション）を盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引き、個別キー(move/troops/atk/def/level)で上書きできる。

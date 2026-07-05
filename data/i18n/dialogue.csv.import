@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cr3iqn4qa22x"
+
+[deps]
+
+files=["res://data/i18n/dialogue.ja.translation", "res://data/i18n/dialogue.en.translation"]
+
+source_file="res://data/i18n/dialogue.csv"
+dest_files=["res://data/i18n/dialogue.ja.translation", "res://data/i18n/dialogue.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

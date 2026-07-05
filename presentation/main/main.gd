@@ -14,6 +14,9 @@ var _progress: CampaignProgress = null
 var _select: SelectScreen = null
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録用）
 var _current_stage_id := ""
+var _conversation: ConversationPanel = null
+var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
+var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
 
 func _ready() -> void:
 	print("Senaris booted.")
@@ -23,6 +26,7 @@ func _ready() -> void:
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
 	$HexBoard.tile_inspected.connect($InfoPanel.show_terrain)  # 空きマス選択→地形/拠点情報
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
+	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	load_stage("res://data/stages/debug/debug.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
@@ -34,6 +38,7 @@ func load_stage(path: String) -> void:
 		push_error("main: ステージを読めない: %s" % path)
 		return
 	_current_stage_path = path  # システムメニューのリスタート用
+	_dialogue = StageLoader.load_dialogue(path)  # 会話（intro/outro）を presentation へ（案P）
 	if _controller != null:
 		_controller.free()  # 旧マッチを破棄（旧 controller のシグナル接続も消える）
 		_controller = null
@@ -54,6 +59,7 @@ func load_stage(path: String) -> void:
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
+	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_label(team, turn_number)
@@ -74,6 +80,41 @@ func _on_battle_finished(outcome: int) -> void:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
+	if outcome == BattleState.PLAYER_WIN and not _dialogue.get("outro", []).is_empty():
+		_conversation_phase = "outro"
+		_conversation.start(_dialogue["outro"], "閉じる")  # 勝利後の会話（読了/スキップでセレクトへ）
+
+# --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
+func _install_conversation() -> void:
+	_conversation = preload("res://presentation/ui/conversation_panel.gd").new()
+	_conversation.offset_left = 800  # 右エリア（InfoPanel と同じ列・少し縦長）
+	_conversation.offset_top = 60
+	_conversation.offset_right = 1264
+	_conversation.offset_bottom = 700
+	_conversation.bind(_skins)
+	_conversation.closed.connect(_on_conversation_closed)
+	add_child(_conversation)
+
+## intro 会話があれば、盤操作をロックして先に流す（無ければ即戦闘）。
+func _maybe_start_intro() -> void:
+	if _dialogue.get("intro", []).is_empty():
+		return
+	_conversation_phase = "intro"
+	$HexBoard.set_input_locked(true)
+	_hud.set_player_turn(false)
+	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
+
+## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
+func _on_conversation_closed() -> void:
+	match _conversation_phase:
+		"intro":
+			_conversation_phase = ""
+			$HexBoard.set_input_locked(false)
+			if _controller != null:
+				_hud.set_player_turn(_controller.state.current_team == 0)
+		"outro":
+			_conversation_phase = ""
+			_select.open()
 
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
 func _install_hud() -> void:

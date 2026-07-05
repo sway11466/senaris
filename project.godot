@@ -27,6 +27,11 @@ project/assembly_name="Senaris"
 
 enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://data/i18n/dialogue.ja.translation", "res://data/i18n/dialogue.en.translation")
+locale/fallback="ja"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
