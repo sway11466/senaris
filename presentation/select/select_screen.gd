@@ -11,10 +11,7 @@ var _stage_select: StageSelect
 
 func _ready() -> void:
 	layer = 10  # 盤・HUD より手前（全画面で覆う）
-	var bg := ColorRect.new()
-	bg.color = Color(0.09, 0.10, 0.13)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(bg)
+	add_child(TavernTheme.wall_background())  # 酒場の木の壁（両画面共通の背景）
 
 	_campaign_select = CampaignSelect.new()
 	_campaign_select.set_anchors_preset(Control.PRESET_FULL_RECT)

@@ -1,17 +1,17 @@
 extends Control
 class_name CampaignSelect
-## キャンペーン選択画面。仕様 → doc/gdd/stage_select.md
-## カード一覧＝絵（上）＋情報帯（下: タイトル／クリア数＋難易度星／タグ）。
+## キャンペーン選択画面＝酒場の依頼ボード。方向性 → doc/gdd/stage_select.md
+## 木のボードに、冒険譚を縦長の依頼書（羊皮紙ポスター）としてピン留め表示する。
 ## 状態は持たず、refresh() のたびに CampaignProgress から導出して描く。
 ## デバッグ冒険譚はデバッグビルドのみ表示（OS.is_debug_build）。選択はシグナルで SelectScreen へ委ねる。
 
 signal campaign_chosen(campaign_id: String)
 
-const CARD_SIZE := Vector2(340, 330)  # 絵(340x210)＋情報帯
-const CARD_ART_HEIGHT := 210.0        # 絵は黄金比 1.618:1（340x210）
+const POSTER_SIZE := Vector2(260, 380)  # 縦長の貼り紙
+const POSTER_ART_HEIGHT := 200.0
 
 var _progress: CampaignProgress
-var _cards: HFlowContainer
+var _posters: HFlowContainer
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -19,147 +19,166 @@ func _ready() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
-		margin.add_theme_constant_override(side, 24)
+		margin.add_theme_constant_override(side, 28)
 	add_child(margin)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 16)
+	vbox.alignment = BoxContainer.ALIGNMENT_BEGIN
 	margin.add_child(vbox)
 
-	var title := Label.new()
-	title.text = "冒険譚を選ぶ"
-	title.add_theme_font_size_override("font_size", 24)
-	vbox.add_child(title)
+	# 見出し＝木の看板プレート
+	var plaque := PanelContainer.new()
+	plaque.add_theme_stylebox_override("panel", TavernTheme.plaque_stylebox())
+	plaque.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var plaque_label := Label.new()
+	plaque_label.text = "― 酒場の依頼ボード ―"
+	plaque_label.add_theme_font_size_override("font_size", 24)
+	plaque_label.add_theme_color_override("font_color", Color(0.90, 0.82, 0.62))
+	plaque.add_child(plaque_label)
+	vbox.add_child(plaque)
+
+	# ボード本体（木板）＝貼り紙を貼る面
+	var board := PanelContainer.new()
+	board.add_theme_stylebox_override("panel", TavernTheme.board_stylebox())
+	board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	board.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_child(board)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(scroll)
+	board.add_child(scroll)
 
-	_cards = HFlowContainer.new()
-	_cards.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_cards.add_theme_constant_override("h_separation", 12)
-	_cards.add_theme_constant_override("v_separation", 12)
-	scroll.add_child(_cards)
+	_posters = HFlowContainer.new()
+	_posters.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_posters.add_theme_constant_override("h_separation", 20)
+	_posters.add_theme_constant_override("v_separation", 20)
+	scroll.add_child(_posters)
 
 func setup(progress: CampaignProgress) -> void:
 	_progress = progress
 
-## カード一覧を作り直す（クリア数などを都度導出するため表示ごとに呼ぶ）。
+## 貼り紙一覧を作り直す（クリア数などを都度導出するため表示ごとに呼ぶ）。
 func refresh() -> void:
-	_clear_children(_cards)
+	_clear_children(_posters)
 	for c in _progress.campaigns(OS.is_debug_build()):
-		_cards.add_child(_campaign_card(c))
+		_posters.add_child(_poster(c))
 
-## 冒険譚カード＝絵（上）＋情報帯（下）。
-## クリック判定はカード全面の Button。中身は mouse_filter=IGNORE でクリックを Button へ透過。
-func _campaign_card(c: Dictionary) -> Button:
+## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。
+func _poster(c: Dictionary) -> Control:
+	# 封蝋のピンを紙からはみ出させて留めるため、ラッパーで上に余白を取る
+	var wrap := MarginContainer.new()
+	wrap.add_theme_constant_override("margin_top", 12)
+
 	var card := Button.new()
-	card.custom_minimum_size = CARD_SIZE
+	card.custom_minimum_size = POSTER_SIZE
 	card.focus_mode = Control.FOCUS_NONE
 	card.clip_contents = true
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var bright := 1.06 if state == "hover" else 1.0
+		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(bright))
 	card.pressed.connect(_on_card_pressed.bind(String(c["id"])))
+	wrap.add_child(card)
+
+	var pad := MarginContainer.new()
+	pad.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		pad.add_theme_constant_override(side, 12)
+	card.add_child(pad)
 
 	var content := VBoxContainer.new()
-	content.set_anchors_preset(Control.PRESET_FULL_RECT)
-	content.add_theme_constant_override("separation", 0)
+	content.add_theme_constant_override("separation", 8)
 
-	# 上: 絵（card 用クロップ優先／無ければ cover／どちらも無ければ暗色プレースホルダ）
-	var art_path := String(c.get("card_path", ""))
-	if art_path.is_empty():
-		art_path = String(c.get("cover_path", ""))
+	# 上: カバー絵（card 用クロップ優先／無ければ cover／どちらも無ければ暗色プレースホルダ）
 	var art := TextureRect.new()
-	art.custom_minimum_size = Vector2(0.0, CARD_ART_HEIGHT)
+	art.custom_minimum_size = Vector2(0.0, POSTER_ART_HEIGHT)
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
+	var art_path := String(c.get("card_path", ""))
+	if art_path.is_empty():
+		art_path = String(c.get("cover_path", ""))
 	if not art_path.is_empty():
 		art.texture = load(art_path) as Texture2D
 	content.add_child(art)
+	content.add_child(_poster_info(c))
+	_ignore_mouse(content)
+	pad.add_child(content)
 
-	content.add_child(_card_info(c))
-	_ignore_mouse(content)  # 中身はクリックを透過（下の Button が受ける）
-	card.add_child(content)
-	return card
+	# 封蝋のピン（紙の上辺中央・はみ出し配置）
+	var seal := TavernTheme.wax_seal()
+	seal.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	seal.position = Vector2(POSTER_SIZE.x / 2.0 - 13.0, -1.0)
+	card.add_child(seal)
+
+	# 全ステージ制覇なら「討伐済」の焼き印を斜めに押す
+	if not c["debug"]:
+		var total: int = c["stages"].size()
+		if total > 0 and _progress.cleared_count(String(c["id"])) >= total:
+			var stamp := TavernTheme.stamp("討伐済", TavernTheme.WAX, -12.0)
+			stamp.position = Vector2(POSTER_SIZE.x - 120.0, POSTER_ART_HEIGHT - 30.0)
+			card.add_child(stamp)
+	return wrap
 
 func _on_card_pressed(campaign_id: String) -> void:
 	campaign_chosen.emit(campaign_id)
 
-## カード下部の情報帯。デバッグ冒険譚は開発ビルド注記のみ。
-func _card_info(c: Dictionary) -> Control:
-	var margin := MarginContainer.new()
-	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
-		margin.add_theme_constant_override(side, 10)
-
+## 貼り紙下部の情報（タイトル／クリア数／危険度／タグ）。デバッグ冒険譚は注記のみ。
+func _poster_info(c: Dictionary) -> Control:
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 6)
-	margin.add_child(info)
 
 	var title := Label.new()
 	title.text = String(c["title"])
 	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", TavernTheme.INK)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_child(title)
 
 	if c["debug"]:
 		var note := Label.new()
 		note.text = "（開発ビルド限定）"
-		note.add_theme_color_override("font_color", Color(0.7, 0.7, 0.75))
+		note.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 		info.add_child(note)
-		return margin
+		return info
 
-	# クリア数 ＋ 難易度星
-	var stats := HBoxContainer.new()
-	stats.add_theme_constant_override("separation", 12)
+	# クリア数
 	var total: int = c["stages"].size()
 	var done := _progress.cleared_count(String(c["id"]))
 	var count := Label.new()
-	count.text = "クリア %d / %d" % [done, total]
-	if total > 0 and done >= total:
-		count.text += " ✓"
-	stats.add_child(count)
-	var diff_label := Label.new()
-	diff_label.text = "難易度"
-	stats.add_child(diff_label)
-	stats.add_child(_make_stars(int(c.get("difficulty", 0))))
-	info.add_child(stats)
+	count.text = "討伐 %d / %d 節" % [done, total]
+	count.add_theme_color_override("font_color", TavernTheme.INK)
+	info.add_child(count)
 
-	# タグ（チップ）
+	# 危険度（焼き印風の★）
+	var danger := HBoxContainer.new()
+	danger.add_theme_constant_override("separation", 6)
+	var danger_label := Label.new()
+	danger_label.text = "危険度"
+	danger_label.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+	danger.add_child(danger_label)
+	danger.add_child(_make_stars(int(c.get("difficulty", 0))))
+	info.add_child(danger)
+
+	# タグ（蝋のキーワード印）
 	var tags: Array = c.get("tags", [])
 	if not tags.is_empty():
 		var chips := HFlowContainer.new()
 		chips.add_theme_constant_override("h_separation", 6)
 		chips.add_theme_constant_override("v_separation", 6)
 		for t in tags:
-			chips.add_child(_make_chip(String(t)))
+			chips.add_child(TavernTheme.tag_chip(String(t)))
 		info.add_child(chips)
-	return margin
+	return info
 
-## 難易度を★（塗り）＋☆（空き）の5段階で表示。
+## 危険度を★（塗り）＋☆（空き）の5段階で表示（焼き印の茶色）。
 func _make_stars(difficulty: int) -> Label:
 	var n := clampi(difficulty, 0, 5)
 	var star := Label.new()
 	star.text = "★".repeat(n) + "☆".repeat(5 - n)
-	star.add_theme_color_override("font_color", Color(0.95, 0.8, 0.35))
+	star.add_theme_color_override("font_color", TavernTheme.BRAND)
 	return star
-
-## タグチップ＝角丸背景の小ラベル。
-func _make_chip(text: String) -> Control:
-	var chip := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.22, 0.26, 0.34)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin(SIDE_LEFT, 8)
-	sb.set_content_margin(SIDE_RIGHT, 8)
-	sb.set_content_margin(SIDE_TOP, 2)
-	sb.set_content_margin(SIDE_BOTTOM, 2)
-	chip.add_theme_stylebox_override("panel", sb)
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", 13)
-	label.add_theme_color_override("font_color", Color(0.85, 0.88, 0.95))
-	chip.add_child(label)
-	return chip
 
 ## ノードと全子孫の mouse_filter を IGNORE にする（カード内容をクリック透過させる）。
 func _ignore_mouse(node: Node) -> void:
