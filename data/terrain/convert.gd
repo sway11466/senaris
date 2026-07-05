@@ -42,6 +42,7 @@ func _convert_skin(rows: Array, type_ids: Array) -> void:
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
 	problems += Csv.invalid_values(rows, "terrain_type", type_ids, "skin_id")  # terrain_type に無い性能への参照切れ
+	problems += Csv.invalid_values(rows, "orientable", ["true", "false"], "skin_id")  # bool以外（打ち間違い→黙って true 化）を弾く
 	# 各 terrain_type に少なくとも1枚のスキン（＝描画のフォールバック先）があること。
 	var covered := Csv.value_set(rows, "terrain_type")
 	for tid in type_ids:
