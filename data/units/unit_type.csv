@@ -23,6 +23,7 @@ vanguard,50,0,0,50,7,ground,1,false,false,8,0,歩兵,
 samurai,70,0,0,50,5,ground,1,false,false,8,0,歩兵,
 knight,50,0,0,70,5,ground,1,false,false,8,0,歩兵,
 dwarf,60,0,0,60,4,mountain_walk,1,false,false,8,0,歩兵,
+magic_knight,40,0,0.5,40,6,ground,1,false,false,8,0,歩兵,魔法剣（貫通0.5・対空不可）。絵＝女性
 sorcerer,60,60,0.5,80,2,ground,1,false,false,8,0,精鋭,
 sniper,80,80,0,10,2,ground,5,false,false,8,0,精鋭,
 warlord,70,0,0,70,5,ground,1,false,false,8,0,精鋭,

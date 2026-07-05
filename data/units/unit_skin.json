@@ -231,6 +231,18 @@
 			],
 			"enemy": []
 		},
+		"magic_knight": {
+			"ally": [
+				{
+					"description": "",
+					"images": {},
+					"name": "マジックナイト",
+					"skin_id": "magic_knight",
+					"type_id": "magic_knight"
+				}
+			],
+			"enemy": []
+		},
 		"ninja": {
 			"ally": [
 				{

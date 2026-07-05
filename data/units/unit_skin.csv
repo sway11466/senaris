@@ -22,6 +22,7 @@ vanguard,ヴァンガード,ally,vanguard,基準,1.0
 samurai,サムライ,ally,samurai,基準,1.0
 knight,ナイト,ally,knight,基準,1.05
 dwarf,ドワーフ,ally,dwarf,基準,0.8
+magic_knight,マジックナイト,ally,magic_knight,基準,1.0
 sorcerer,ソーサラー,ally,sorcerer,基準,1.15
 sniper,スナイパー,ally,sniper,基準,1.0
 warlord,ウォーロード,ally,warlord,基準,1.1
