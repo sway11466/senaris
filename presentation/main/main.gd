@@ -46,7 +46,7 @@ func load_stage(path: String) -> void:
 	brain.presets = _ai_presets  # 部隊のラベル解決用
 	_controller.ai_brain = brain
 	add_child(_controller)
-	$HexBoard.bind(state, _controller, _skins)
+	$HexBoard.bind(state, _controller, _skins, StageLoader.load_terrain_skins(path))  # 見た目差分(座標→skin)は presentation へ（案P）
 	$InfoPanel.bind(state, _skins)
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($InfoPanel.show_combat)

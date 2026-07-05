@@ -48,7 +48,8 @@ const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
 var state: BattleState
 var controller: MatchController
-var _terrain_tex := {}    # terrain_id(String) -> Array[Texture2D]（基本＋連番 variant。ヘックスごとに敷き分け）
+var _terrain_tex := {}    # skin_id(String) -> Array[Texture2D]（基本＋連番 variant。ヘックスごとに敷き分け）
+var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。未収録セルは type 既定スキン＝案P）
 var _unit_tex := {}       # 画像パス(String) -> Texture2D（スキンの map スプライト・キャッシュ）
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }（名前プレースホルダ用）
 
@@ -88,13 +89,11 @@ func _ready() -> void:
 	_menu.id_pressed.connect(_on_menu_id)
 	_menu.popup_hide.connect(_on_menu_closed)
 
-func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}) -> void:
+func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}) -> void:
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	if _terrain_tex.is_empty():  # タイル画像は1回だけ読む
-		for id in Terrain.all_ids():
-			_terrain_tex[id] = _load_terrain_variants(Terrain.image_path(id))
+	_terrain_skins = p_terrain_skins  # 見た目差分（座標→skin_id）。タイル画像は _draw_terrain で skin ごとに遅延ロード
 	_reset_interaction()  # ステージ再ロードに備え、選択・出撃・ロック状態を初期化
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -681,18 +680,22 @@ func _draw_tile(hex: Vector2i) -> void:
 ## hex の地形タイル画像を、ヘックス寸法にフィットさせて描く。
 # 向きの無い自然地形＝ヘックスごとに回転(60°刻み)＋左右反転で見た目を散らす（1枚でも反復が目立たない）。
 # 道/砦/壁/柵/城壁/崖は向き・構造があるので対象外。フラットトップ六角は60°回転・左右反転で輪郭不変＝敷き詰めは崩れない。
-# 将来 terrain.csv にフラグ列を足せるが、それまでは presentation 側で保持（CSVは別途リファクタ中のため触らない）。
-const _ORIENTABLE_TERRAIN := ["plain", "forest", "mountain", "wasteland", "bush", "plateau"]
-
 func _draw_terrain(hex: Vector2i, center: Vector2) -> void:
+	# 性能は type、見た目は skin（案P）。セルの skin 差分が無ければ type の既定スキンにフォールバック。
 	var tid: String = state.terrain_at(hex)
-	var variants: Array = _terrain_tex.get(tid, [])
+	var skin := TerrainSkinCatalog.resolve(_terrain_skins.get(hex, ""), tid)
+	if skin == null:
+		return
+	var variants: Array = _terrain_tex.get(skin.skin_id, [])
+	if variants.is_empty() and not _terrain_tex.has(skin.skin_id):
+		variants = _load_terrain_variants(skin.image_path())  # skin ごとに1回だけ読む
+		_terrain_tex[skin.skin_id] = variants
 	if variants.is_empty():
 		return
 	var tex: Texture2D = variants[_terrain_variant(hex, variants.size())]
 	var w := hex_size * 2.0          # 頂点〜頂点
 	var h := hex_size * Hex.SQRT3     # 上下の平辺間
-	if _ORIENTABLE_TERRAIN.has(tid):
+	if skin.orientable:
 		# 向きは座標ハッシュから決定的に選ぶ（variant とは別シードで相関を避ける）＝盤は毎回同じ。
 		var o := absi(hash(Vector2i(hex.y, hex.x)))
 		var rot := float(o % 6) * (PI / 3.0)              # 0/60/120/180/240/300°

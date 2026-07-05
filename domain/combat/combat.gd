@@ -39,7 +39,7 @@ static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := 
 		"stat": u.attack_against(enemy),
 		"experience": experience_factor(u),
 		"surround": surround_factor(state, u),
-		"terrain": Terrain.attack_factor(state.terrain_at(u.pos)),
+		"terrain": TerrainType.attack_factor(state.terrain_at(u.pos)),
 		"support": _support(state, u, enemy, true) if melee else 0.0,
 		"melee": melee,
 	}
@@ -51,7 +51,7 @@ static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := 
 ## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（combat.md【要判断】）。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
 	var support: float = _support(state, u, enemy, false) if melee else 0.0
-	var pre := float(u.troops) * float(u.unit_defense) * experience_factor(u) * surround_factor(state, u) * Terrain.defense_factor(state.terrain_at(u.pos))
+	var pre := float(u.troops) * float(u.unit_defense) * experience_factor(u) * surround_factor(state, u) * TerrainType.defense_factor(state.terrain_at(u.pos))
 	var supported := pre + support
 	var capped := minf(supported, pre * DEFENSE_SUPPORT_CAP)  # 支援は素の2倍まで
 	var pierce_factor := 1.0 - float(enemy.pierce)  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
@@ -61,7 +61,7 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 		"stat": u.unit_defense,
 		"experience": experience_factor(u),
 		"surround": surround_factor(state, u),
-		"terrain": Terrain.defense_factor(state.terrain_at(u.pos)),
+		"terrain": TerrainType.defense_factor(state.terrain_at(u.pos)),
 		"support": support,
 		"capped": supported > capped,  # 支援2倍上限が効いたか（貫通適用前で判定）
 		"pierce": pierce_factor,       # 攻撃側の貫通後係数（内訳表示用）

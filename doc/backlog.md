@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=3 / refactoring=3
+次回採番: bug=1 / feature=3 / refactoring=4
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -24,6 +24,7 @@
 
 - 背景：ステージの盤面を、マウスでヘックスを塗って `data/stages/*.json` に保存するエディタ。`presentation/board/hex_board.gd` が既に「マウス位置→ヘックス」判定（`from_pixel`／ホバー／クリック）を持つので、塗りモードと保存機能を足すだけで作れる。現状は小マップを JSON 直書きで回している。
 - 対応：`hex_board.gd` の既存判定を土台に、(1) 地形を選んでヘックスを塗るモード、(2) `data/stages/*.json` への保存、を足す。代替として外部の Tiled（ヘックス対応・JSON 書き出し）も選択肢。
+- 2レイヤーを塗る想定（refactoring-2 と対）：性能レイヤー＝terrain_type（ASCII `terrain` グリッド）／見た目レイヤー＝terrain_skin（`terrain_skins` の座標→skin_id 差分列挙）。見た目レイヤーの skin_id は一意文字列で、人間は生JSONを読まずツール経由で塗るため ASCII 1文字表記の限界を受けない（分割の動機そのもの）。未指定セルは type 既定スキンにフォールバック。
 - 該当：`presentation/board/hex_board.gd`（既存のヘックス判定）・`data/stages/*.json`（出力先）。着手の引き金＝大きいマップをテキスト手書きするのが辛くなったら。
 
 ### feature-2
@@ -50,9 +51,22 @@
 
 **地形も性能と見た目を分離（terrain_type / terrain_skin）**（優先度：中）
 
-- 背景：ユニットは性能(`UnitType`)と見た目(`UnitSkin`)を分離済み（[units.md](gdd/units.md) §1・skin_id 方式）。地形は今 `data/terrain/terrain.csv` 1枚に性能(char・atk・def・移動コスト連携)と見た目(name・image)が同居。同じ性能に別の見た目を貼りたい（例：平地→草地/砂地/雪原、洞窟の床）・冒険譚やテーマで地形をリスキンしたい（[architecture.md](tech/architecture.md) の Data「地形・テーマ」）需要があり、分離したい。
-- 対応：`terrain_type.csv`（性能＝id・char・atk・def・通過/占領可否・移動タイプ連携）と `terrain_skin.csv`（見た目＝skin_id・terrain_type・表示名・画像ベース・テーマ・変種）に分割。ステージの地形grid は char→terrain_type、見た目はテーマ/campaign で解決（`SkinCatalog` 相当の TerrainSkinCatalog）。ユニットの skin_id 方式・画像 autowire・`convert.gd`(CSV→JSON) を踏襲。タイルの変種/回転/反転の敷き分けは既に `hex_board` にあるので、skin 側が変種パスを持てば乗る。
-- 該当：`data/terrain/terrain.csv`（→分割）・`data/terrain/terrain.gd`・`data/terrain/convert.gd`・`presentation/board/hex_board.gd`（`_load_terrain_variants` の解決を skin 経由へ）・`assets/terrain/`。参考モデル＝[units.md](gdd/units.md) §1。着手の注意＝terrain.csv/convert は他作業と競合しやすいので、進行中の CSV 系リファクタ完了後に着手する。
+- 背景：ユニットは性能(`UnitType`)と見た目(`UnitSkin`)を分離済み（[units.md](gdd/units.md) §1・skin_id 方式）。地形は今 `data/terrain/terrain.csv` 1枚に性能(char・atk・def・移動コスト連携)と見た目(name・image)が同居。動機は主にテーマ差し替えではなく、地形が増えると ASCII マップ表記（1文字）が破綻すること。一般SLGは見た目マップと性能マップを分けて作り、skin は一意idでツール(マップエディタ)から扱う。
+- 方針（オーナー確定）：
+  - skin→type は 1:1（ユニット同型）。各 type に既定スキン（`skin_id == type`）を1枚持つ。
+  - 見た目はマップ全体テーマではなく、ステージJSONの `terrain_skins`＝座標→skin_id の差分列挙。未指定セルは type の既定スキンにフォールバック（暫定）。
+  - ランタイムは案P：skin は presentation のみ。`BattleState` は skin を持たず、純ロジック（combat/surround/movement/AI）は skin ブラインドのまま。skin の定義カタログは静的（`TerrainSkinCatalog`）、セル→skin 差分マップは `hex_board` が保持（StageLoader がパースして main→board へ渡す）。
+  - 画像は autowire（`assets/terrain/{skin_id}.png` フラット＋変種 `_2`/`_3`）でCSVにパスを書かない。回転/反転可否（orientable）は skin データへ（hex_board の `_ORIENTABLE_TERRAIN` ハードコード撤去）。
+- 対応：`terrain.csv`→`terrain_type.csv`（性能＝id・char・atk・def）＋`terrain_skin.csv`（見た目＝skin_id・terrain_type・name・orientable）に分割。class `Terrain`→`TerrainType`。`convert.gd` が terrain_type.json＋terrain_skin.json を生成＋検証（skin_id 一意・terrain_type 参照整合・各 type に既定スキン）。`data/movement/convert.gd` の terrain.csv 参照を terrain_type.csv に更新（放置すると movement 全コスト列が弾かれる）。
+- 該当：`data/terrain/`（csv/gd/json/convert）・`data/movement/convert.gd`・`domain/combat/combat.gd`・`domain/battle_state.gd`・`application/stage_loader.gd`・`presentation/board/hex_board.gd`・`presentation/ui/unit_info_panel.gd`・`tests/unit/test_data_integrity.gd`＋新規テスト。参考モデル＝[units.md](gdd/units.md) §1。
+
+### refactoring-3
+
+**ユニットも skin を純ロジックから切り離す（案P 化）**（優先度：低）
+
+- 背景：地形は refactoring-2 で見た目(skin)を domain から完全に外した（案P＝skin は presentation のみ・`BattleState` は skin を持たない）。一方ユニットは domain の `Unit.skin_id` に skin を同乗させている（`battle_state.gd` のセーブ列にも乗る）。純ロジック（combat/surround/movement/AI）は skin_id を読まない不変条件は満たしているが、地形と方針が揃っていない。
+- 対応：ユニットの skin 解決も presentation 側に寄せられるか検討する（`Unit` から `skin_id` を外し、描画は `unit_id → skin_id` の対応を presentation で持つ）。占領＝寝返り（team 反転時のスキン再解決）とセーブ（skin をどこに永続化するか）が論点＝地形セルは静的なので単純だったが、ユニットは移動・寝返り・直列化があるため単純移設にはならない。方針だけ先に決め、実装は影響範囲を見てから。
+- 該当：`domain/unit/unit.gd`（`skin_id`）・`domain/battle_state.gd`（シリアライズ列）・`application/stage_loader.gd`（skin 解決）・`presentation/`（skin の持ち場所）。参考＝refactoring-2 の案P。
 
 ## parking lot
 

@@ -29,7 +29,7 @@ static func load_default() -> Dictionary:
 	return build(data)
 
 ## move_type の表示名（movement.csv の name 列。不明idは id をそのまま返す）。
-## コスト表とは別に movement.json の move_type_names から遅延ロードする（Terrain.display_name と同じ流儀）。
+## コスト表とは別に movement.json の move_type_names から遅延ロードする（TerrainType と同じ流儀）。
 static func display_name(move_type: String) -> String:
 	_ensure_names()
 	return String(_names.get(move_type, move_type))

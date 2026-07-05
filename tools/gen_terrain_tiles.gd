@@ -5,9 +5,9 @@ extends SceneTree
 ##
 ## 実行: godot --headless --script res://tools/gen_terrain_tiles.gd
 ##
-## placeholder の色は「生成時に1回その場で決める」だけのもの＝terrain.csv には持たない。
+## placeholder の色は「生成時に1回その場で決める」だけのもの＝CSV には持たない。
 ## 地形を足したら、ここに1行（ファイル名＋色）足して実行。アート確定後は同名PNGを差し替え。
-## 出力ファイル名は terrain.csv の image 列と合わせること（盤は Terrain.image_path で引く）。
+## 出力ファイル名は skin_id と合わせること（盤は TerrainSkin.image_path＝assets/terrain/{skin_id}.png で引く）。
 
 const SQRT3 := 1.7320508075688772
 const R := 128.0          ## 中心〜頂点（px）。表示時は盤側で hex_size にスケール。

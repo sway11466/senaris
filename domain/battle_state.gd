@@ -183,7 +183,7 @@ func base_at(hex: Vector2i) -> Base:
 
 ## hex の地形id（未設定は既定地形 "plain"）。
 func terrain_at(hex: Vector2i) -> String:
-	return _terrain.get(hex, Terrain.DEFAULT_ID)
+	return _terrain.get(hex, TerrainType.DEFAULT_ID)
 
 ## hex に地形を設定する。
 func set_terrain(hex: Vector2i, terrain_id: String) -> void:

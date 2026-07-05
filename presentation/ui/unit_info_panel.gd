@@ -51,10 +51,10 @@ func show_terrain(hex: Vector2i) -> void:
 func _format_terrain(hex: Vector2i) -> String:
 	var terr := _state.terrain_at(hex)
 	var lines: Array[String] = []
-	lines.append("【地形】 %s" % Terrain.display_name(terr))
+	lines.append("【地形】 %s" % TerrainSkinCatalog.display_name(terr))
 	lines.append("")
-	lines.append("攻撃補正  ×%.2f" % Terrain.attack_factor(terr))
-	lines.append("防御補正  ×%.2f" % Terrain.defense_factor(terr))
+	lines.append("攻撃補正  ×%.2f" % TerrainType.attack_factor(terr))
+	lines.append("防御補正  ×%.2f" % TerrainType.defense_factor(terr))
 
 	var b := _state.base_at(hex)
 	if b != null:
@@ -110,7 +110,7 @@ func _format(u: Unit) -> String:
 
 	lines.append("")
 	lines.append("地形  %s (攻×%.2f / 防×%.2f)" % [
-		Terrain.display_name(terr), Terrain.attack_factor(terr), Terrain.defense_factor(terr)])
+		TerrainSkinCatalog.display_name(terr), TerrainType.attack_factor(terr), TerrainType.defense_factor(terr)])
 	if surround < 1.0:
 		lines.append("包囲  ×%.2f（弱体化中）" % surround)
 
@@ -154,11 +154,11 @@ func _format_combat(d: Dictionary) -> String:
 	lines.append("  %s  %d/%d → %d/%d (%+d)" % [an, a["troops_before"], a["max"], a["troops_after"], a["max"], a["troops_after"] - a["troops_before"]])
 	lines.append("  %s  %d/%d → %d/%d (%+d)" % [tn, t["troops_before"], t["max"], t["troops_after"], t["max"], t["troops_after"] - t["troops_before"]])
 	lines.append("──────────────────────")
-	lines.append("▼ 攻撃 %s（%s）" % [an, Terrain.display_name(a["terrain"])])
+	lines.append("▼ 攻撃 %s（%s）" % [an, TerrainSkinCatalog.display_name(a["terrain"])])
 	lines.append(_chain(fwd["attack"]))
 	if ret != null:
 		lines.append(_chain(ret["defense"]))
-	lines.append("▼ 防御 %s（%s）" % [tn, Terrain.display_name(t["terrain"])])
+	lines.append("▼ 防御 %s（%s）" % [tn, TerrainSkinCatalog.display_name(t["terrain"])])
 	lines.append(_chain(fwd["defense"]))
 	if ret != null:
 		lines.append(_chain(ret["attack"]))

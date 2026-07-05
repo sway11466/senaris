@@ -25,7 +25,7 @@ func test_skin_type_ids_exist_in_unit_types() -> void:
 func test_movement_table_covers_all_terrain() -> void:
 	# movement は完全表＝各 move_type が全地形のコストを持つ（新地形の入れ忘れ→黙ってコスト1 を封じる）。
 	var move := Movement.load_default()
-	var terrains := Terrain.all_ids()
+	var terrains := TerrainType.all_ids()
 	assert_gt(terrains.size(), 0, "地形が読める")
 	for mt in move:
 		var costs: Dictionary = move[mt]

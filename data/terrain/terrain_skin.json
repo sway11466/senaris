@@ -1,0 +1,95 @@
+{
+	"skins": [
+		{
+			"memo": "既定スキン",
+			"name": "道",
+			"orientable": false,
+			"skin_id": "road",
+			"terrain_type": "road"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "平地",
+			"orientable": true,
+			"skin_id": "plain",
+			"terrain_type": "plain"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "台地",
+			"orientable": true,
+			"skin_id": "plateau",
+			"terrain_type": "plateau"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "荒地",
+			"orientable": true,
+			"skin_id": "wasteland",
+			"terrain_type": "wasteland"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "森",
+			"orientable": true,
+			"skin_id": "forest",
+			"terrain_type": "forest"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "茂み",
+			"orientable": true,
+			"skin_id": "bush",
+			"terrain_type": "bush"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "山",
+			"orientable": true,
+			"skin_id": "mountain",
+			"terrain_type": "mountain"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "柵",
+			"orientable": false,
+			"skin_id": "fence",
+			"terrain_type": "fence"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "罠",
+			"orientable": false,
+			"skin_id": "trap",
+			"terrain_type": "trap"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "城壁",
+			"orientable": false,
+			"skin_id": "rampart",
+			"terrain_type": "rampart"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "崖",
+			"orientable": false,
+			"skin_id": "cliff",
+			"terrain_type": "cliff"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "壁",
+			"orientable": false,
+			"skin_id": "wall",
+			"terrain_type": "wall"
+		},
+		{
+			"memo": "既定スキン",
+			"name": "拠点",
+			"orientable": false,
+			"skin_id": "fort",
+			"terrain_type": "fort"
+		}
+	]
+}

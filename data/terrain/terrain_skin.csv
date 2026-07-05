@@ -1,0 +1,15 @@
+skin_id,terrain_type,name,orientable,memo
+スキンID,地形タイプ,表示名,向き変化,備考
+road,road,道,false,既定スキン
+plain,plain,平地,true,既定スキン
+plateau,plateau,台地,true,既定スキン
+wasteland,wasteland,荒地,true,既定スキン
+forest,forest,森,true,既定スキン
+bush,bush,茂み,true,既定スキン
+mountain,mountain,山,true,既定スキン
+fence,fence,柵,false,既定スキン
+trap,trap,罠,false,既定スキン
+rampart,rampart,城壁,false,既定スキン
+cliff,cliff,崖,false,既定スキン
+wall,wall,壁,false,既定スキン
+fort,fort,拠点,false,既定スキン

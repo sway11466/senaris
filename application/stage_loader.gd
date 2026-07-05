@@ -5,7 +5,10 @@ class_name StageLoader
 ## 詳細 → doc/tech/architecture.md, doc/gdd/map.md
 ##
 ## マップは「ASCII地形グリッド＋ユニット配置リスト」で記述する（data/stages/*.json）。
-## terrain は1行＝盤の1列ぶんの文字絵。文字→地形の対応は Terrain（terrain.csv の char 列）。
+## terrain は1行＝盤の1列ぶんの文字絵。文字→地形の対応は TerrainType（terrain_type.csv の char 列）。
+## 見た目(skin)は性能とは別レイヤー＝ステージJSON の terrain_skins（座標→skin_id 差分列挙）。
+## skin は presentation 専用（案P）＝ここでは BattleState に入れず、parse_terrain_skins/load_terrain_skins で
+## 別途 {Vector2i: skin_id} として取り出し、main→hex_board へ渡す（domain は skin を知らない）。
 ##
 ## build(dict) はファイルIOを伴わず辞書から組み立てる（テスト対象）。
 ## load_file(path) はファイルを読んで build に渡す薄いラッパ。
@@ -68,9 +71,33 @@ static func _apply_terrain(state: BattleState, grid: Variant) -> void:
 	for row in grid.size():
 		var line := String(grid[row])
 		for col in line.length():
-			var tid := Terrain.char_to_id(line[col])
-			if tid != Terrain.DEFAULT_ID:  # 既定地形は明示設定不要
+			var tid := TerrainType.char_to_id(line[col])
+			if tid != TerrainType.DEFAULT_ID:  # 既定地形は明示設定不要
 				state.set_terrain(Hex.offset_to_axial(col, row), tid)
+
+## 見た目レイヤー：ステージ辞書の "terrain_skins"（[{col,row,skin}]）→ { Vector2i: skin_id }。
+## skin は presentation 専用（案P）＝BattleState には入れない。載らないセルは呼び出し側で type 既定にフォールバック。
+static func parse_terrain_skins(data: Dictionary) -> Dictionary:
+	var out := {}
+	var list: Variant = data.get("terrain_skins", [])
+	if typeof(list) != TYPE_ARRAY:
+		return out
+	for e in list:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var hex := Hex.offset_to_axial(int(e.get("col", 0)), int(e.get("row", 0)))
+		out[hex] = String(e.get("skin", ""))
+	return out
+
+## res:// パスの JSON から terrain_skins を読む（load_file と対＝skin を presentation へ渡すため）。
+static func load_terrain_skins(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return {}
+	return parse_terrain_skins(data)
 
 ## 駒配置リスト（player セクション）を盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。

@@ -17,7 +17,7 @@ func _initialize() -> void:
 ## コスト表は地形キーだけの純辞書に保ち（Movement.cost の走査を汚さない）、表示名は別辞書で持つ。
 func _convert_movement() -> void:
 	var rows := Csv.read_table("res://data/movement/movement.csv")
-	var terrain_ids := Csv.value_set(Csv.read_table("res://data/terrain/terrain.csv"), "id")
+	var terrain_ids := Csv.value_set(Csv.read_table("res://data/terrain/terrain_type.csv"), "id")
 	var problems := Csv.missing_required(rows, REQUIRED, "move_type")
 	for v in Csv.duplicates(rows, "move_type"):
 		problems.append("move_type が重複: '%s'" % v)
