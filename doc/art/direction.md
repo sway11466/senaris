@@ -5,6 +5,7 @@
 - ユニット → [units.md](units.md)
 - 地形タイル → [terrain.md](terrain.md)
 - 扉絵・キービジュアル → [keyvisual.md](keyvisual.md)
+- メニュー画面（セレクト画面の木壁・ボード・羊皮紙・汚し） → [menu.md](menu.md)
 
 凡例: 【暫定】 【指針】 【未決】（ラベルなし＝決定事項。ただし決定は覆りうる）
 

@@ -1,9 +1,18 @@
 extends RefCounted
 class_name TavernTheme
 ## 酒場の依頼ボード風テーマの部品工場。方向性 → doc/gdd/stage_select.md
-## 本番アート差し替え前のプロシージャル・プレースホルダ（木壁・木板・羊皮紙・封蝋・焼き印）。
-## 画像アセットに依存しない＝ColorRect/StyleBox/グラデ/記号で"それっぽさ"を出す。
-## 本番はここが返す部品を画像ベースに差し替えればセレクト画面側は無改修。
+## 材質だけ画像・構造と光はコード（ハイブリッド）。テクスチャは autowire で差し込む：
+## assets/select/<name>.png が在れば使い、無ければプロシージャル（ベタ塗り）へフォールバック。
+## ＝画像スロット制。絵を置くだけで格上げされ、セレクト画面側は無改修（UnitSkin と同思想）。
+## 素材スロット: wall（木壁・タイル）／board（依頼ボード板）／parchment（貼り紙）／grunge（汚し）。
+## 仕様（サイズ・シームレス条件・色味）→ doc/art/menu.md。
+
+const SLOT_DIR := "res://assets/select/"
+
+## 素材テクスチャを autowire で取得（assets/select/<name>.png）。無ければ null。
+static func _tex(name: String) -> Texture2D:
+	var p := "%s%s.png" % [SLOT_DIR, name]
+	return load(p) as Texture2D if ResourceLoader.exists(p) else null
 
 # --- 色（暖色の木＋クリーム羊皮紙＋蝋の赤＋焼き印の茶） ---
 const WOOD_BASE := Color(0.22, 0.14, 0.09)
@@ -24,10 +33,33 @@ static func wall_background() -> Control:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var planks := _Planks.new()
-	planks.set_anchors_preset(Control.PRESET_FULL_RECT)
-	planks.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.add_child(planks)
+	# 木壁の材質: wall.png があればタイル敷き、無ければプロシージャルな板（_Planks）
+	var wall_tex := _tex("wall")
+	if wall_tex != null:
+		var wall := TextureRect.new()
+		wall.texture = wall_tex
+		wall.stretch_mode = TextureRect.STRETCH_TILE
+		wall.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		wall.set_anchors_preset(Control.PRESET_FULL_RECT)
+		wall.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(wall)
+	else:
+		var planks := _Planks.new()
+		planks.set_anchors_preset(Control.PRESET_FULL_RECT)
+		planks.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(planks)
+
+	# 汚し/スレのオーバーレイ（grunge.png があれば壁の上に薄く重ねる＝経年感）
+	var grunge_tex := _tex("grunge")
+	if grunge_tex != null:
+		var grunge := TextureRect.new()
+		grunge.texture = grunge_tex
+		grunge.stretch_mode = TextureRect.STRETCH_TILE
+		grunge.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		grunge.set_anchors_preset(Control.PRESET_FULL_RECT)
+		grunge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		grunge.modulate = Color(1.0, 1.0, 1.0, 0.5)  # 透過PNG前提でさらに薄く
+		root.add_child(grunge)
 
 	# 上中央の暖色グロー（ランタン）＝加算合成でふわっと明るく
 	var glow := TextureRect.new()
@@ -68,8 +100,11 @@ static func _radial(inner: Color, outer: Color) -> GradientTexture2D:
 
 # --- StyleBox 部品 ---
 
-## 依頼ボード本体（木板＋太い枠＋影）。
-static func board_stylebox() -> StyleBoxFlat:
+## 依頼ボード本体（木板＋太い枠＋影）。board.png があればテクスチャ、無ければベタ塗り。
+static func board_stylebox() -> StyleBox:
+	var tex := _tex("board")
+	if tex != null:
+		return _texture_box(tex, 16, 20)  # 縁16px＝枠、内側余白20px
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = BOARD_WOOD
 	sb.set_border_width_all(12)
@@ -80,8 +115,14 @@ static func board_stylebox() -> StyleBoxFlat:
 	sb.set_content_margin_all(20)
 	return sb
 
-## 羊皮紙の貼り紙（クリーム地＋薄縁＋落ち影）。ボタンの各状態に流用する。
-static func parchment_stylebox(bright := 1.0) -> StyleBoxFlat:
+## 羊皮紙の貼り紙。parchment.png があればテクスチャ、無ければクリーム地＋薄縁＋落ち影。
+## ボタンの各状態に流用する（bright で hover を少し明るく）。
+static func parchment_stylebox(bright := 1.0) -> StyleBox:
+	var tex := _tex("parchment")
+	if tex != null:
+		var sbt := _texture_box(tex, 8, 0)
+		sbt.modulate_color = Color(bright, bright, bright, 1.0)
+		return sbt
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = PARCHMENT * Color(bright, bright, bright, 1.0)
 	sb.set_border_width_all(2)
@@ -91,6 +132,17 @@ static func parchment_stylebox(bright := 1.0) -> StyleBoxFlat:
 	sb.shadow_size = 8
 	sb.shadow_offset = Vector2(3, 5)
 	sb.set_content_margin_all(0)
+	return sb
+
+## ナインパッチのテクスチャ StyleBox（縁は固定・中央はタイルで伸ばす＝素材が歪まない）。
+static func _texture_box(tex: Texture2D, edge: int, content: int) -> StyleBoxTexture:
+	var sb := StyleBoxTexture.new()
+	sb.texture = tex
+	for side in [SIDE_LEFT, SIDE_TOP, SIDE_RIGHT, SIDE_BOTTOM]:
+		sb.set_texture_margin(side, edge)
+	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE
+	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE
+	sb.set_content_margin_all(content)
 	return sb
 
 ## 小さな木の看板（見出し用プレート）。
