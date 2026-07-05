@@ -10,6 +10,7 @@
     { "id": "weak", "file": "weak.json", "title": "弱者狙いAI（weak）" },
     { "id": "transport", "file": "transport.json", "title": "輸送（乗車・運搬・降車）" },
     { "id": "barricade", "file": "barricade.json", "title": "バリケード輸送（出撃→隣接乗降）" },
+    { "id": "siege", "file": "siege.json", "title": "閉じ込め判定（案B・籠城/湧き）" },
     { "id": "units", "file": "units.json", "title": "ユニット一覧（全スキン）" }
   ]
 }

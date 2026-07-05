@@ -1,0 +1,29 @@
+{
+  "name": "debug-siege",
+  "cols": 10,
+  "rows": 7,
+  "terrain": [
+    "..........",
+    "..........",
+    "..........",
+    ".O......O.",
+    "..........",
+    "..........",
+    ".........."
+  ],
+  "player": [
+    { "type": "fighter", "col": 3, "row": 3 },
+    { "type": "cleric", "col": 3, "row": 4 }
+  ],
+  "enemy": [
+    { "name": "湧き拠点もち", "ai": "guard", "sight": 2,
+      "units": [
+        { "skin": "goblin", "col": 6, "row": 2 },
+        { "skin": "goblin", "col": 6, "row": 4 }
+      ] }
+  ],
+  "bases": [
+    { "col": 1, "row": 3, "team": "player", "garrison": [ { "type": "novice", "count": 1 } ] },
+    { "col": 8, "row": 3, "team": "enemy", "garrison": [ { "skin": "goblin", "count": 1 } ] }
+  ]
+}
