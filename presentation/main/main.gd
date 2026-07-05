@@ -11,7 +11,7 @@ var _controller: MatchController = null
 var _hud: Hud = null
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
-var _stage_select: StageSelect = null
+var _select: SelectScreen = null
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録用）
 var _current_stage_id := ""
 
@@ -25,7 +25,7 @@ func _ready() -> void:
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	load_stage("res://data/stages/debug/debug.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
-	_install_stage_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
+	_install_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:
@@ -91,14 +91,14 @@ func _on_restart_requested() -> void:
 	if not _current_stage_path.is_empty():
 		load_stage(_current_stage_path)
 
-# --- ステージセレクト（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
-func _install_stage_select() -> void:
-	_stage_select = preload("res://presentation/select/stage_select.gd").new()
-	add_child(_stage_select)
-	_stage_select.setup(_progress)
-	_stage_select.stage_chosen.connect(_on_stage_chosen)
-	_hud.stage_select_requested.connect(_stage_select.open)
-	_stage_select.open()
+# --- セレクト画面（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
+func _install_select() -> void:
+	_select = preload("res://presentation/select/select_screen.gd").new()
+	add_child(_select)
+	_select.setup(_progress)
+	_select.stage_chosen.connect(_on_stage_chosen)
+	_hud.stage_select_requested.connect(_select.open)
+	_select.open()
 
 func _on_stage_chosen(campaign_id: String, stage_id: String, path: String) -> void:
 	_current_campaign_id = campaign_id
