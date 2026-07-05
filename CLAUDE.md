@@ -16,23 +16,46 @@
 
 ## ドキュメント
 
-索引は [doc/README.md](doc/README.md)。主要ファイル:
+### 全体
 
-| 分類 | ファイル |
-|---|---|
-| コンセプト | [doc/concepts.md](doc/concepts.md) |
-| バックログ | [doc/backlog.md](doc/backlog.md) |
-| 戦闘（補正チェーン・陣形スキル） | [doc/gdd/combat.md](doc/gdd/combat.md) |
-| 陣形スキル（レシピ表） | [doc/gdd/formations.md](doc/gdd/formations.md) |
-| ユニット性能・対応表 | [doc/gdd/units.md](doc/gdd/units.md) |
-| 移動（移動タイプ・地形コスト） | [doc/gdd/movement.md](doc/gdd/movement.md) |
-| 拠点・占領・ステージ | [doc/gdd/map.md](doc/gdd/map.md) |
-| 敵AI（思考パターン） | [doc/gdd/ai.md](doc/gdd/ai.md) |
-| UI/UX（操作モデル） | [doc/gdd/uiux.md](doc/gdd/uiux.md) |
-| 世界観 | [doc/gdd/world.md](doc/gdd/world.md) |
-| アーキテクチャ | [doc/tech/architecture.md](doc/tech/architecture.md) |
-| セーブ仕様 | [doc/tech/gamesystem.md](doc/tech/gamesystem.md) |
-| マネタイズ・データ保護 | [doc/sales/monetization.md](doc/sales/monetization.md) |
-| アート準備 | [doc/art/overview.md](doc/art/overview.md) |
-| 命名の決定 | [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) |
-| 意思決定記録 | [doc/adr/](doc/adr/) |
+- [doc/concepts.md](doc/concepts.md) — プロダクトコンセプト（何を・なぜ・面白さの核）
+- [doc/backlog.md](doc/backlog.md) — 「必要になったら着手」する作業の置き場
+
+### ゲームデザイン — `gdd/`
+
+- [doc/gdd/combat.md](doc/gdd/combat.md) — 戦闘解決（補正チェーン・陣形スキル）
+- [doc/gdd/formations.md](doc/gdd/formations.md) — 陣形スキル（レシピ・カタログ）
+- [doc/gdd/units.md](doc/gdd/units.md) — ユニット性能設計・対応表
+- [doc/gdd/movement.md](doc/gdd/movement.md) — 移動タイプ・地形コスト・reachable
+- [doc/gdd/map.md](doc/gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル
+- [doc/gdd/stage_select.md](doc/gdd/stage_select.md) — ステージセレクト（カードUI・解放条件・クリア記録・冒険譚マニフェスト）
+- [doc/gdd/ai.md](doc/gdd/ai.md) — 敵AI（思考パターン＝軸の組み合わせ・部隊割り当て）
+- [doc/gdd/uiux.md](doc/gdd/uiux.md) — UI/UX 操作モデル（選択→移動→コマンド・デバイス別操作・カメラ）
+- [doc/gdd/world.md](doc/gdd/world.md) — 世界観・設定
+
+### 冒険譚（キャンペーン） — `campaign/`
+
+共通の制作方針は [doc/campaign/authoring.md](doc/campaign/authoring.md)。各冒険譚は `gdd/` の仕様を土台にし、関係する箇所だけ本文でリンクする。
+
+- [doc/campaign/authoring.md](doc/campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
+- [doc/campaign/tutorial1-goblin-raid.md](doc/campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
+- [doc/campaign/tutorial2-undead-rush.md](doc/campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッドの群れ」全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
+
+### 技術設計 — `tech/`（Technical Design Document）
+
+- [doc/tech/architecture.md](doc/tech/architecture.md) — レイヤー／モジュール構成・依存ルール
+- [doc/tech/gamesystem.md](doc/tech/gamesystem.md) — ゲームシステム仕様（セーブ ほか）
+
+### アート — `art/`（Art Bible）
+
+- [doc/art/overview.md](doc/art/overview.md) — 画像／アート準備
+
+### 販売・ブランド — `sales/`
+
+- [doc/sales/monetization.md](doc/sales/monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
+- [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) — タイトル名「Senaris」の決定
+
+### 意思決定記録 — `adr/`
+
+- [doc/adr/ADR-0001-adopt-godot.md](doc/adr/ADR-0001-adopt-godot.md) — ゲームエンジンに Godot 4 を採用
+- [doc/adr/ADR-0002-paid-data-protection.md](doc/adr/ADR-0002-paid-data-protection.md) — 有料データの保護（署名＋pck 暗号化）
