@@ -26,6 +26,21 @@ func test_all_manifest_stage_files_exist() -> void:
 		for s in c["stages"]:
 			assert_true(FileAccess.file_exists(s["path"]), "実在する: %s" % s["path"])
 
+func test_all_unlock_refs_resolve() -> void:
+	# 実データ: unlock の参照先 stage がすべて同じ冒険譚に実在する（打ち間違い・消し忘れの dangling 検出）。
+	for c in CampaignCatalog.load_all():
+		var ids := {}
+		for s in c["stages"]:
+			ids[s["id"]] = true
+		for s in c["stages"]:
+			for cond in s["unlock"]:
+				if typeof(cond) != TYPE_DICTIONARY:
+					continue
+				var ref := String(cond.get("stage", ""))
+				if ref.is_empty():
+					continue  # stage を参照しない条件（entitlement 等）
+				assert_true(ids.has(ref), "%s/%s の unlock 参照 '%s' が実在" % [c["id"], s["id"], ref])
+
 func test_build_rejects_broken() -> void:
 	assert_eq(CampaignCatalog.build({}, "x"), {}, "id 無しは不正")
 	assert_eq(CampaignCatalog.build({ "id": "a", "stages": "oops" }, "x"), {}, "stages が配列でないのは不正")

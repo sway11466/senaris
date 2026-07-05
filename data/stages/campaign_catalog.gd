@@ -12,14 +12,17 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	var id := String(data.get("id", ""))
 	var raw_stages: Variant = data.get("stages", [])
 	if id.is_empty() or typeof(raw_stages) != TYPE_ARRAY:
+		push_warning("CampaignCatalog: マニフェストが不正でスキップ（id 空 or stages が非配列）: %s" % dir_path)
 		return {}
 	var stages: Array = []
 	for s in raw_stages:
 		if typeof(s) != TYPE_DICTIONARY:
+			push_warning("CampaignCatalog[%s]: stage エントリが辞書でない＝スキップ" % id)
 			continue
 		var sid := String(s.get("id", ""))
 		var file := String(s.get("file", ""))
 		if sid.is_empty() or file.is_empty():
+			push_warning("CampaignCatalog[%s]: stage の id/file が空＝スキップ（id='%s' file='%s'）" % [id, sid, file])
 			continue
 		var unlock: Variant = s.get("unlock", [])
 		stages.append({
@@ -29,6 +32,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 			"path": "%s/%s" % [dir_path, file],
 			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
 		})
+	_warn_dangling_unlock(id, stages)
 	return {
 		"id": id,
 		"title": String(data.get("title", id)),
@@ -39,6 +43,23 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"card_path": _resolve_art(id, "card"),    # 冒険譚カード（絵はカード用にクロップ）
 		"stages": stages,
 	}
+
+## unlock の解放条件が指す stage が同じ冒険譚に実在するか検証し、dangling を警告。
+## 打ち間違い・ステージ消し忘れで「永久に解放されないステージ」が黙って生まれるのを防ぐ。
+## stage を参照しない条件（entitlement 等＝"stage" キー無し）は対象外。
+static func _warn_dangling_unlock(campaign_id: String, stages: Array) -> void:
+	var ids := {}
+	for s in stages:
+		ids[s["id"]] = true
+	for s in stages:
+		for cond in s["unlock"]:
+			if typeof(cond) != TYPE_DICTIONARY:
+				continue
+			var ref := String(cond.get("stage", ""))
+			if ref.is_empty():
+				continue
+			if not ids.has(ref):
+				push_warning("CampaignCatalog[%s]: stage '%s' の unlock が未定義の stage '%s' を参照" % [campaign_id, s["id"], ref])
 
 ## タグ配列を文字列配列に正規化（非配列・非文字列は捨てる）。
 static func _to_tags(raw: Variant) -> Array:

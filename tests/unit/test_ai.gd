@@ -432,6 +432,20 @@ func test_weak_debug_stage_wires_squad() -> void:
 	assert_not_null(wagon, "馬車がいる")
 	assert_eq(wagon.unit_defense, min_def, "馬車が獲物（自軍最低防御）")
 
+func test_ai_presets_have_all_axes() -> void:
+	# 全軸そろい検証: どのプリセットも6軸を非空で持つ（ai.csv 省略不可ポリシー・doc/gdd/ai.md）。
+	# `-`（該当なし）も値として埋まっている＝非空。欠け/空は convert.gd が生成時に弾く前提の回帰網。
+	var axes := ["engage", "sight", "retreat", "attack", "target", "advance"]
+	var presets := AiCatalog.load_default()
+	assert_gt(presets.size(), 0, "プリセットが1つ以上ある")
+	for label in presets:
+		var p: Dictionary = presets[label]
+		for axis in axes:
+			assert_true(p.has(axis), "%s に軸 '%s' がある" % [label, axis])
+			var v: Variant = p.get(axis)  # 数値セルは int で来る＝非空。空判定は文字列セルにだけ効かせる
+			var empty: bool = v == null or (typeof(v) == TYPE_STRING and v.strip_edges().is_empty())
+			assert_false(empty, "%s.%s が非空" % [label, axis])
+
 func test_ai_catalog_has_weak_preset() -> void:
 	# 生成物 ai.json に weak（弱者狙い）が載っている（CSV→JSONパイプラインの配線確認）。
 	var presets := AiCatalog.load_default()
