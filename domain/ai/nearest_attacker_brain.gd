@@ -14,8 +14,16 @@ var advance_to_base := false
 ## AIプリセット表（label -> パラメーター辞書＝AiCatalog.load_default()）。部隊のラベル解決に使う。
 var presets := {}
 
-## 部隊に属さないユニットの既定プリセット（ステージ直下 "ai" のラベルぶん）。空＝charge相当。
+## 部隊に属さないユニットの既定プリセット（ステージ直下 "ai" のラベルぶん）。空＝DEFAULT_PRESET（charge相当）。
 var default_preset := {}
+
+## 全軸の既定値＝「素の charge AI」。プリセット/上書きにその軸が無いときの唯一のフォールバック。
+## 以前は各所に散っていた既定リテラル（"max"/"charge"/"always"/…）をここへ集約＝ドリフト源を撤去（doc/gdd/ai.md）。
+## ai.csv 由来のプリセットは全軸そろい（生成時に検証済み）なので実データでは使われない＝テスト等の部分プリセット用の保険。
+const DEFAULT_PRESET := {
+	"engage": "charge", "sight": 0, "retreat": 0,
+	"attack": "always", "target": "near", "advance": "max",
+}
 
 ## プリセット辞書（ai.csv の1行＝AiCatalog が返す値）から Brain を組み立てる。
 ## 効く列: engage/sight（起動）・advance（前進。max/base/flank）・attack（prey のみ）・target（weak のみ）。
@@ -23,22 +31,24 @@ var default_preset := {}
 static func from_preset(p: Dictionary) -> NearestAttackerBrain:
 	var brain := NearestAttackerBrain.new()
 	brain.default_preset = p
-	brain.advance_to_base = String(p.get("advance", "max")) == "base"
+	brain.advance_to_base = String(p.get("advance", DEFAULT_PRESET["advance"])) == "base"
 	return brain
 
-## u のAIパラメーターを解決: 部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ default。
-func _param(state: BattleState, u: Unit, key: String, default: Variant) -> Variant:
+## u のAIパラメーターを解決: 部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ DEFAULT_PRESET。
+## 最終フォールバックは単一の DEFAULT_PRESET のみ（呼び出し側に既定リテラルを散らさない）。
+func _param(state: BattleState, u: Unit, key: String) -> Variant:
+	var fallback: Variant = DEFAULT_PRESET.get(key)
 	var squad := state.squad_of(u.id)
 	if squad.is_empty():
-		return default_preset.get(key, default)
+		return default_preset.get(key, fallback)
 	var preset: Dictionary = presets.get(String(squad.get("ai", "")), {})
-	return squad.get(key, preset.get(key, default))
+	return squad.get(key, preset.get(key, fallback))
 
 ## u の前進が「拠点前進」か。部隊があれば 部隊の上書き > 部隊プリセット、無ければ Brain の既定。
 func _unit_advances_to_base(state: BattleState, u: Unit) -> bool:
 	if state.squad_of(u.id).is_empty():
 		return advance_to_base
-	return String(_param(state, u, "advance", "max")) == "base"
+	return String(_param(state, u, "advance")) == "base"
 
 # --- 起動（engage）＝待機AI。詳細 → doc/gdd/ai.md（思考の流れ 1.起動） ---
 
@@ -49,7 +59,7 @@ func _unit_advances_to_base(state: BattleState, u: Unit) -> bool:
 func _ensure_engaged(state: BattleState, u: Unit) -> bool:
 	if state.is_engaged(u.id):
 		return true
-	var tokens := String(_param(state, u, "engage", "charge")).split("|")
+	var tokens := String(_param(state, u, "engage")).split("|")
 	var engaged := "charge" in tokens
 	if not engaged and "sight" in tokens:
 		engaged = _enemy_within(state, u, _sight_of(state, u))
@@ -63,7 +73,7 @@ func _ensure_engaged(state: BattleState, u: Unit) -> bool:
 
 ## u の索敵半径（sight）。"-"（トリガー不使用相当）や欠落は 0＝引っかからない。
 func _sight_of(state: BattleState, u: Unit) -> int:
-	var s: Variant = _param(state, u, "sight", 0)
+	var s: Variant = _param(state, u, "sight")
 	return int(s) if typeof(s) == TYPE_INT or typeof(s) == TYPE_FLOAT else 0
 
 ## u から距離 radius 以内に敵ユニットがいるか。
@@ -113,15 +123,15 @@ func next_action(state: BattleState, team: int) -> AiAction:
 
 ## u の攻撃条件が「獲物のみ」(prey) か。attack 軸（"|"＝OR リスト）に prey を含むかで判定。
 func _attack_prey_only(state: BattleState, u: Unit) -> bool:
-	return "prey" in String(_param(state, u, "attack", "always")).split("|")
+	return "prey" in String(_param(state, u, "attack")).split("|")
 
 ## u の対象優先が「弱者狙い」(weak) か。target 軸（";"＝順序リスト）に weak を含むかで判定。
 func _targets_weak(state: BattleState, u: Unit) -> bool:
-	return "weak" in String(_param(state, u, "target", "near")).split(";")
+	return "weak" in String(_param(state, u, "target")).split(";")
 
 ## u の前進が「回り込み」(flank) か。
 func _advance_is_flank(state: BattleState, u: Unit) -> bool:
-	return String(_param(state, u, "advance", "max")) == "flank"
+	return String(_param(state, u, "advance")) == "flank"
 
 ## 盤上の敵のうち最も低いユニット防御力（敵がいなければ -1）。獲物の判定基準。
 func _min_enemy_defense(state: BattleState, u: Unit) -> int:
