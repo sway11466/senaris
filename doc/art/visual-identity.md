@@ -172,6 +172,13 @@ away), and keep the bottom-right corner empty of anything important. Wide
 - ②は `assets/campaign/{campaign_id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`source/` は `.gdignore` で Godot 非インポート。
 - クロップは右を落とす（透かしが右下・主題は中央〜左に寄せる構図ルールと一致）。1枚を大パネル＝クロップ後の全体、カード＝横帯クロップで使い回す。
 
+## 5.4 地形タイル（盤面）
+
+- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd)）が terrain_id ごとに1枚を各ヘックスに敷く。置き場は `assets/terrain/{name}.png`（terrain.csv の image 列）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
+- 現状は「1地形1枚・接地による遷移なし」。各ヘックスが地形の自己完結アイコン（Into the Breach 系）。
+- 反復対策＝バリアント敷き分け（実装済み）: 同名連番 `{name}_2.png` `{name}_3.png` … を置くと、hex_board が存在する分を集め、ヘックス座標から決定的に敷き分ける（ちらつかない）。連番が無ければ従来どおり1枚。terrain.csv/JSON は変更不要のドロップイン。
+- 将来: マップの美しさのため、隣接地形に合わせた「縁フリンジ」方式（境界の辺にだけ縁パーツを重ねる2パス目）へ段階的に移行する。ベースタイルを枠内で自己完結する絵にしておけば、フリンジは純粋な追加（縁パーツ＋描画パス＋地形の優先順位表）で足せる＝手戻りなし。フル遷移（Wangタイル・組合せ爆発）は不採用。
+
 ---
 
 ## 6. 未決事項

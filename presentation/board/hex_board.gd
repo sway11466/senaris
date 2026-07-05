@@ -48,7 +48,7 @@ const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
 var state: BattleState
 var controller: MatchController
-var _terrain_tex := {}    # terrain_id(String) -> Texture2D（Terrain カタログから読み込み）
+var _terrain_tex := {}    # terrain_id(String) -> Array[Texture2D]（基本＋連番 variant。ヘックスごとに敷き分け）
 var _unit_tex := {}       # 画像パス(String) -> Texture2D（スキンの map スプライト・キャッシュ）
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }（名前プレースホルダ用）
 
@@ -94,7 +94,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	_skin_catalog = p_skin_catalog
 	if _terrain_tex.is_empty():  # タイル画像は1回だけ読む
 		for id in Terrain.all_ids():
-			_terrain_tex[id] = load(Terrain.image_path(id))
+			_terrain_tex[id] = _load_terrain_variants(Terrain.image_path(id))
 	_reset_interaction()  # ステージ再ロードに備え、選択・出撃・ロック状態を初期化
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -680,12 +680,39 @@ func _draw_tile(hex: Vector2i) -> void:
 
 ## hex の地形タイル画像を、ヘックス寸法にフィットさせて描く。
 func _draw_terrain(hex: Vector2i, center: Vector2) -> void:
-	var tex: Texture2D = _terrain_tex.get(state.terrain_at(hex))
-	if tex == null:
+	var variants: Array = _terrain_tex.get(state.terrain_at(hex), [])
+	if variants.is_empty():
 		return
+	var tex: Texture2D = variants[_terrain_variant(hex, variants.size())]
 	var w := hex_size * 2.0          # 頂点〜頂点
 	var h := hex_size * Hex.SQRT3     # 上下の平辺間
 	draw_texture_rect(tex, Rect2(center - Vector2(w, h) * 0.5, Vector2(w, h)), false)
+
+## 地形タイルを読む。基本 {name}.png に加え {name}_2.png, _3.png … があれば variant として集める
+## （連番が途切れたら打ち切り）。同一地形の敷き詰めが単調に見えるのを、ヘックスごとの敷き分けで抑える。
+## 将来の縁フリンジ（隣接地形に合わせた遷移）は、このベースタイルの上に別パスで足す想定＝手戻りなし。
+func _load_terrain_variants(base_path: String) -> Array:
+	var texs: Array = []
+	var base := load(base_path) as Texture2D
+	if base != null:
+		texs.append(base)
+	var stem := base_path.trim_suffix(".png")
+	var n := 2
+	while true:
+		var p := "%s_%d.png" % [stem, n]
+		if not ResourceLoader.exists(p):
+			break
+		var t := load(p) as Texture2D
+		if t != null:
+			texs.append(t)
+		n += 1
+	return texs
+
+## ヘックス座標から決定的に variant を選ぶ（毎フレーム同じ＝ちらつかない・盤の再描画でも不変）。
+func _terrain_variant(hex: Vector2i, count: int) -> int:
+	if count <= 1:
+		return 0
+	return absi(hash(hex)) % count
 
 func _draw_unit(u: Unit) -> void:
 	var center := board_origin + Hex.to_pixel(u.pos, hex_size)
