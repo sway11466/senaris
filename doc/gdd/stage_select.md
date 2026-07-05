@@ -33,7 +33,7 @@
 - クリック判定はカード全面の Button。中身は `mouse_filter=IGNORE` でクリックを Button へ透過する。
 - デバッグ冒険譚は絵・星・タグを出さず「（開発ビルド限定）」注記のみ。
 
-絵の管理（cover=大パネル用／card=カード用の二層）とクロップ方針・生成STYLEは [../art/visual-identity.md](../art/visual-identity.md) §5.3。
+絵の管理（cover=大パネル用／card=カード用の二層）とクロップ方針・生成STYLEは [../art/keyvisual.md](../art/keyvisual.md)。
 
 ## ステージ一覧（冒険譚選択後）
 

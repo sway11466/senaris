@@ -1,0 +1,131 @@
+# ユニットの見た目方針
+
+盤上のユニット画像を生成する前に決めておく設計。全陣営に共通するトーン・配色・制作メソッドは [direction.md](direction.md) が正本。本ファイルはユニット固有：全ユニット共通ルール・陣営ごとのルール・制作スペック（サイズ・命名・STYLE・SUBJECT雛形）。陣営ごとの個体特徴は各陣営フォルダの `assets/units/source/{group}/style.md`（§2）。
+
+凡例: 【暫定】 【指針】 【未決】（ラベルなし＝決定事項。ただし決定は覆りうる）
+
+---
+
+## 1. 全ユニット共通ルール
+
+- 飛行は全陣営で「浮いて見える」を必須（足元に影＋宙に浮く姿勢）。
+  - 理由：飛行は `atk_air>0` の駒でしか攻撃・反撃できず（[../gdd/combat.md](../gdd/combat.md)）、読み違えると1ターン丸損する罰の重い機構。武器表現は自由でも、浮遊だけはどの陣営でも揃える。
+- 【指針】「動いて見せる」は絵を増やさず、コード側の移動tween＋簡単なエフェクトで出す（歩行コマ＝複数枚はAI一貫性が悪く・物量も数倍なので作らない）。行動前後は当面 `map` 1枚＋グレー化（画像スロット → [overview.md](overview.md)）。
+- 造形・サイズ・背景などの制作仕様は §3、プロンプト雛形（共通STYLE）は §3.2。
+
+---
+
+## 2. 陣営ごとのルール
+
+各陣営の見た目ルール（役割ごとの記号・ユニット個体の特徴）は、その陣営のソースフォルダ直下の `style.md` が正本：`assets/units/source/{group}/style.md`
+
+- 味方: [player/style.md](../../assets/units/source/player/style.md)
+- 敵陣営は着手時に作成（例: ゴブリン → `source/goblin/style.md`）。
+
+敵陣営に共通する方針：
+
+- 味方の形ルールをそのまま流用しない。性能（type）は味方から借りているだけで、見た目は別物。姿＝そのモンスター自身とし、味方の職業記号（聖印・魔術帽・ローブ等）は持ち込まない。
+  - 例：ゴブリンは cleric 性能（弱い・占領可）を借りるが、見た目は下っ端ゴブリン雑兵であって聖職者ではない。
+- 機能サインは陣営ごとに自由。ただしその陣営の中（カテゴリ内）では一貫させる。
+  - 敵の遠隔役は弓とは限らない（投げ槍・呪詛・火球等でよい）。ゴブリン＝弓／アンデッド＝骨槍や呪弾／汎用の敵＝火球、のように陣営ごとに変えてよいが、同じ陣営の遠隔役どうしは揃える。
+  - 根拠：各冒険譚は基本1陣営ずつ相手にする（[../campaign/tutorial1-goblin-raid.md](../campaign/tutorial1-goblin-raid.md)＝ゴブリン、[../campaign/tutorial2-undead-rush.md](../campaign/tutorial2-undead-rush.md)＝アンデッド）ので、プレイヤーは1陣営の見た目だけ覚えればよく、陣営横断の統一は不要。射程・挙動はゲーム側（射程表示・情報パネル）でも伝わる。
+- キャスティングは元々モンスターの自然な姿に合う性能が選ばれている（goblin=cleric→下っ端、hobgoblin=priest→巨漢、goblin_lord=paladin→ボス、skeleton=priest→骨戦士、zombie=bishop→硬い屍、necromancer=witch→術者ボス）。聖職記号なしでも役割は成立する。
+
+---
+
+## 3. 制作スペック（サイズ・ワークフロー）
+
+盤面の実寸（[../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd) `hex_size=36`、フラットトップ）：
+
+- 1マス＝約 72px（横）× 62px（縦）（標準ズーム）。ズーム 0.3〜2.5 倍で最大約180pxまで拡大。
+
+| 段階 | サイズ | 用途 |
+|---|---|---|
+| ① AI生成（マスター） | 約1024px | 原本。別保管（キービジュアル等に再利用） |
+| ② ゲーム用書き出し | 256px 四方（透過PNG） | リポジトリに入れる。地形タイル（R=128＝256px相当）と画質を揃える |
+| ③ 実機表示 | 60〜180px | Godot が②を自動縮小 |
+
+- 造形：頭身は約2〜2.5頭身（強めのチビ体型＝頭・手大きめで小サイズ可読性を優先。武器・役割小物は太く大きめに保つ。moe／可愛すぎにはしない、渋い muted は維持）。正面向き・左右非対称にしない中立ポーズ（盤面に向きの概念が無く、向きを主張すると不自然／6方向で反転も無意味なため）。
+- 背景は純白（後で透過処理）。ただし白系ユニット（聖職の白ローブ等）は輪郭が溶けるので薄グレー等に例外。正方形キャンバス・キャラはやや下寄り（足が下辺＝マスに立つ）。完全透過は狙わず「単色背景→背景除去」。
+- 【指針】縮小して潰れない絵を狙う：1024pxを必ず60〜72pxにプレビューし、役割が読めるか確認。読めなければ細部でなく形・シルエット・色を直す。
+
+### 3.1 ファイルの保管・命名（3段階すべて git 管理）
+
+| 段階 | 置き場（`{skin_id}`＝unit_skin のID・`{group}`＝陣営フォルダ） | 例（ファイター） |
+|---|---|---|
+| ① AI生成直後（原寸・SynthID入り） | `assets/units/source/{group}/{skin_id}/{skin_id}_01_raw.png` | `source/player/fighter/fighter_01_raw.png` |
+| ② トリミング＋透過（手動マスター・原寸） | `assets/units/source/{group}/{skin_id}/{skin_id}_02_master.png` | `source/player/fighter/fighter_02_master.png` |
+| ③ ゲーム用（256四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
+
+- `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `source/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
+- ③だけが `assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
+- ①②は `assets/units/source/`（作業ソース）。`assets/units/source/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
+
+手順（1体を追加するとき）:
+
+1. AI生成 → `{skin_id}_01_raw.png` を `source/{group}/{skin_id}/` に保存（生成に使った SUBJECT は `{skin_id}_prompt.txt` に残す＝§3.2）。
+2. 手動でトリミング＋背景透過 → `{skin_id}_02_master.png`（同フォルダ）。
+3. ③を書き出す：
+   ```
+   powershell -File tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
+   ```
+   ②master と `unit_skin.csv` の `map_scale` から「高さ＝200×倍率 → 256四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+4. Godot 再実行 → `SkinCatalog` が `assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
+
+- ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
+
+### 3.2 確定プロンプト雛形（アンカー方式）
+
+アンカー方式の考え方は [direction.md](direction.md) §3。`STYLE:` ブロックは全ユニット共通で固定、`SUBJECT:` ブロックだけ差し替える。i2i（参照画像）は使わず、同じ STYLE 文＋SUBJECT の言葉指定だけで一貫性を出す。SUBJECT に「same steel-blue palette / same face style as the fighter」等を明記するのがコツ。Nano Banana はタグ羅列より自然文の描写が効く。
+
+STYLE（共通・固定）:
+```
+STYLE: A single fantasy tactics-game unit piece, clean stylized vector-like
+illustration with bold flat cel-shading and a strong readable silhouette.
+Chunky, appealing, strong super-deformed / chibi proportions — about 2 to 2.5
+heads tall, with a very large oversized head, a small stubby body and short
+thick limbs; keep the weapon and role props chunky and bold so they still read
+clearly even at tiny sizes. Expressive face with large clear eyes and a calm,
+confident personality (not angry or grimacing). Simplified, bold, rounded
+chunky shapes. Charming and heroic with a bit of grit — a strong chibi build,
+but NOT moe and NOT overly cute; grounded in a mature, slightly
+muted, limited color palette. NOT bright saturated anime coloring, NOT
+painterly photorealism. Soft rim light, minimal fussy detail so the shape
+reads clearly even when shrunk very small. Strictly symmetrical, straight-on front
+view — the character faces the camera directly, shoulders square to the viewer
+(NO three-quarter turn, NO side view). Full body, standing in a neutral,
+evenly-weighted stance that does NOT commit to a left or right direction —
+weapon(s) held upright and ready in front, close to the body, not extended or
+pointing off to one side. Centered, feet near the
+lower third with a small soft ground shadow. Plain pure-white background
+(single flat color, for easy cutout). Square 1:1 composition.
+```
+
+SUBJECT（生成プロンプト本体）の置き場：
+
+各ユニットの `SUBJECT:` は raw と同じ `assets/units/source/{group}/{skin_id}/{skin_id}_prompt.txt` に置く（共通の STYLE と作成ルールは本 doc が正本）。生成時は STYLE を先頭に付け、続けて `{skin_id}_prompt.txt` を貼る。参照画像（i2i）は使わない。
+
+- SUBJECT は §2（陣営色・共通ルール・各陣営 `style.md`）と [direction.md](direction.md) §2 のルールに沿って書く。
+- 歩兵ライン（ノービス／ファイター／ヴァンガード）は同一系統：剣のサイズ＋装甲の重さで段階化し、盾は持たせない（大盾はナイト専用）。系統感は SUBJECT 内の「same steel-blue palette / same face style as the fighter」で保つ。
+
+---
+
+## 4. 未決事項
+
+- [ ] （次アクション）ファイター・アンカーの60px縮小テスト：白余白をクロップ→実寸ヘックス（72×62px）で「剣＋盾の前衛」と読めるか確認。潰れなければ正式にアンカー確定。読めなければ形・シルエット・色を直す。※クラウド環境ではチャット添付がファイル化されず処理不可だったため、ローカルセッションで画像をファイルにして実施する。
+- [ ] 敵スキン個別の姿（陣営ごとの機能サイン表現＝遠隔の武器など）＝各陣営の `style.md` として着手時に作成。
+- [ ] 会話用クラスポートレート（`combat` 系・役職原型 8〜10枚）の着手判断。
+- [ ] 移動tween／攻撃エフェクト（コード側＝絵を増やさず動きを出す手段）の実装可否。
+
+---
+
+## 参考資料
+
+- [direction.md](direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
+- [assets/units/source/player/style.md](../../assets/units/source/player/style.md) — 味方陣営の見た目ルール（役割の記号・27種の個体特徴）
+- [overview.md](overview.md) — 画像スロット（`map`/`combat`）・プレースホルダ
+- [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
+- [../gdd/combat.md](../gdd/combat.md) — 対空機構（飛行の浮遊必須ルールの根拠）
+- [../campaign/tutorial1-goblin-raid.md](../campaign/tutorial1-goblin-raid.md) / [../campaign/tutorial2-undead-rush.md](../campaign/tutorial2-undead-rush.md) — 各陣営（§2 の根拠）
+- [../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd) — 盤面実寸（`hex_size=36`）
+- [`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1) — ③ゲーム用画像の書き出しツール

@@ -10,7 +10,7 @@
   searching source/ recursively for a folder named <id>.
   If the 02_master is missing it falls back to the 01_raw (white bg auto-keyed;
   fringe is meant to be cleaned by hand in the 02_master later).
-  Recipe of record: doc/art/visual-identity.md section 5.1. Requires ImageMagick (magick).
+  Recipe of record: doc/art/units.md section 3.1. Requires ImageMagick (magick).
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1 files.
 
 .EXAMPLE

@@ -48,7 +48,11 @@
 
 ### アート — `art/`（Art Bible）
 
-- [doc/art/overview.md](doc/art/overview.md) — 画像／アート準備
+- [doc/art/direction.md](doc/art/direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
+- [doc/art/units.md](doc/art/units.md) — ユニットの見た目方針（共通ルール・陣営ごと・制作スペック・STYLE）
+- [doc/art/terrain.md](doc/art/terrain.md) — 地形タイルの方針（TERRAIN STYLE・切り抜き・反復対策）
+- [doc/art/keyvisual.md](doc/art/keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・透かし対策）
+- [doc/art/overview.md](doc/art/overview.md) — 画像スロット仕様（`map`/`combat`）
 
 ### 販売・ブランド — `sales/`
 

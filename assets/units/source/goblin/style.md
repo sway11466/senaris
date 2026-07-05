@@ -1,8 +1,8 @@
 # ゴブリン陣営（goblin）ユニットの見た目ルール
 
-ゴブリン陣営のスキンを生成するときの正本。全陣営共通のルール（基本方針・陣営カラー・飛行の浮遊必須・制作スペック・STYLE文）と敵陣営の共通方針（姿＝モンスター自身・職業記号は持ち込まない）は [doc/art/visual-identity.md](../../../../doc/art/visual-identity.md) を先に読む。
+ゴブリン陣営のスキンを生成するときの正本。全陣営共通のルール（絵柄・陣営カラー＝[doc/art/direction.md](../../../../doc/art/direction.md)／飛行の浮遊必須・制作スペック・STYLE文と敵陣営の共通方針＝[doc/art/units.md](../../../../doc/art/units.md)）を先に読む。
 
-- 基調色＝緑（オリーブ〜病んだ緑）。茶の粗末な革＋錆びた鉄クズ。低く歪な体型（visual-identity §2）。装備は「拾い物・粗製」で味方の正規軍と対比させる。明るい漫画的な緑にしない（muted 維持）。
+- 基調色＝緑（オリーブ〜病んだ緑）。茶の粗末な革＋錆びた鉄クズ。低く歪な体型（direction §2）。装備は「拾い物・粗製」で味方の正規軍と対比させる。明るい漫画的な緑にしない（muted 維持）。
 - 陣営内アンカー＝ゴブリン（雑兵）。他の個体は SUBJECT に「same sickly olive-green skin / same crude leather-and-rust gear as the goblin grunt」等を書いて展開する。
 - 機能サイン：遠隔役＝弓（この陣営の遠隔はすべて弓で揃える）。
 - 各ユニットの生成 SUBJECT は同フォルダの `{skin_id}/{skin_id}_prompt.txt`。

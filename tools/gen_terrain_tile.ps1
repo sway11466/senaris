@@ -10,7 +10,7 @@
   <name>_3.png ... for the rest (the board picks a variant per hex; see
   presentation/board/hex_board.gd _load_terrain_variants). Drop-in: terrain.csv
   / JSON are NOT touched. Placeholder recipe of record: tools/gen_terrain_tiles.gd;
-  art spec: doc/art/visual-identity.md section 5.4. Requires ImageMagick (magick).
+  art spec: doc/art/terrain.md. Requires ImageMagick (magick).
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1.
 
 .EXAMPLE
