@@ -42,11 +42,7 @@ big focal object. Keep large-scale contrast LOW so it tiles without an obvious
 repeat.
 ```
 
-SUBJECT は材質ごとに差し替える（叩き台）:
-- `wall` … dark warm wooden planks running vertically, subtle grain, worn scuffs and small stains scattered unevenly; edges seamless so it tiles.
-- `board` … a heavy wooden notice board panel with a carved darker frame around a ~16px border; center is worn plank wood.
-- `parchment` … an aged cream parchment sheet, faint mottling, slightly darkened and frayed edges (~8px), no writing.
-- `grunge` … scattered dark scratches, scuffs and grime on transparent background; sparse and uneven, mostly empty.
+SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu/source/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。透かし除去・低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
 
 ## 4. 保管・命名（二層）
 
