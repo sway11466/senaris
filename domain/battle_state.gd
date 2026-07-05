@@ -404,15 +404,25 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 
 ## 自軍所有の拠点に「入る」（駐留）。拠点hexに立っている駒を garrison へ移す＝盤上から消える。
 ## 中で手番開始ごとに回復（_heal_garrisons）。出るのは出撃（deploy）＝1歩・行動完了。
-## 盤上最後の1体は入れない（暫定＝盤上0で即敗北になるため。閉じ込め判定の実装時に見直す）。
 func can_enter_base(unit_id: int) -> bool:
+	var u := unit_by_id(unit_id)
+	return u != null and can_enter_base_at(unit_id, u.pos)
+
+## dest_hex（自軍拠点）へ移動して「入る」が許されるか。メニュー表示は移動前に先読みするため、
+## 現在位置ではなく移動先を仮定して判定する（実行時は dest_hex＝現在位置で同じ規則になる）。
+## 案B: 盤上最後の1体でも、入った直後に復帰手段が残るなら入れる（即敗北を防ぐ）。
+func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
 	var u := unit_by_id(unit_id)
 	if not is_current_unit(u):
 		return false
-	var b := base_at(u.pos)
+	var b := base_at(dest_hex)
 	if b == null or b.team != u.team:
 		return false
-	return team_unit_count(u.team) > 1
+	if team_unit_count(u.team) > 1:
+		return true  # 入っても盤上に他の駒が残る
+	# 盤上最後の1体：入った駒自身が b の出せる控えになる＝b に空き隣接があれば復帰可。
+	# 他拠点で既に復帰可能でもよい（＝入った瞬間に「盤上0かつ復帰なし」の敗北にならない）。
+	return _base_has_open_neighbor(b) or _has_reinforcement(u.team)
 
 func enter_base(unit_id: int) -> bool:
 	if not can_enter_base(unit_id):
@@ -537,7 +547,7 @@ func _take_off_board(unit_id: int) -> void:
 			_units.remove_at(i)
 			return
 
-# --- 勝敗（自軍＝team 0 視点。拠点占領勝利・ターン制限は未実装） ---
+# --- 勝敗（自軍＝team 0 視点。ターン制限は未実装） ---
 
 enum { ONGOING, PLAYER_WIN, PLAYER_LOSS }
 
@@ -548,14 +558,38 @@ func team_unit_count(team: int) -> int:
 			n += 1
 	return n
 
-## 決着結果。敗北を優先（自軍全滅／自軍本拠地の喪失）。相討ち全滅も負け。
-## 勝利は 殲滅（常に有効）＋ victory_conditions のいずれか（OR）。
+## team が「復帰手段」を持つか＝所有拠点に、実際に盤上へ出せる控えが1体でもいる（案B）。
+## 盤上0でもこれが真なら、その陣営はまだ消滅していない＝敗北/勝利にしない。
+func _has_reinforcement(team: int) -> bool:
+	for b in _bases:
+		if b.team == team and _base_has_deployable_garrison(b) and _base_has_open_neighbor(b):
+			return true
+	return false
+
+## 拠点 b の控えに、native ルールで出撃できる駒が1体でもいるか（中立、または所有者と同 native）。
+func _base_has_deployable_garrison(b: Base) -> bool:
+	for gu in b.garrison:
+		var u := gu as Unit
+		if u.native_team == Base.NEUTRAL or u.native_team == b.team:
+			return true
+	return false
+
+## 拠点 b の周囲に、盤上へ出せる空きマスが1つでもあるか（＝盤上復帰の余地）。
+## 盤上0の判定用なので味方輸送は考慮不要（盤上に味方が居ない＝味方輸送も盤上に無い）。
+func _base_has_open_neighbor(b: Base) -> bool:
+	for nb in Hex.neighbors(b.hex):
+		if in_field(nb) and unit_at(nb) == null:
+			return true
+	return false
+
+## 決着結果。敗北を優先（自軍消滅／自軍本拠地の喪失）。相討ち消滅も負け。
+## 消滅＝盤上0 かつ 復帰手段なし（案B）。勝利は 殲滅（常に有効）＋ victory_conditions のいずれか（OR）。
 func outcome() -> int:
-	if team_unit_count(0) == 0:
+	if team_unit_count(0) == 0 and not _has_reinforcement(0):
 		return PLAYER_LOSS
 	if _own_hq_lost():
 		return PLAYER_LOSS  # 味方本拠地を奪われたら敗北（hq を置いたステージだけ効く）
-	if team_unit_count(1) == 0:
+	if team_unit_count(1) == 0 and not _has_reinforcement(1):
 		return PLAYER_WIN
 	for c in victory_conditions:
 		if _victory_met(c):

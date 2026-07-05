@@ -229,9 +229,9 @@ func _open_command_menu(dest: Vector2i) -> void:
 	var sel := state.unit_by_id(_selected_id)
 	var base := state.base_at(dest)
 	var will_capture := sel != null and sel.can_capture and base != null and base.team != sel.team
-	# 自軍所有の拠点が移動先なら「入る」（駐留＝回復）を出す。盤上最後の1体は入れない（暫定）。
-	var can_enter := sel != null and base != null and base.team == sel.team \
-			and state.team_unit_count(sel.team) > 1
+	# 自軍所有の拠点が移動先なら「入る」（駐留＝回復）を出す。可否は domain に一本化（案B）＝
+	# 盤上最後の1体でも、入った直後に復帰手段が残るなら入れる。
+	var can_enter := state.can_enter_base_at(_selected_id, dest)
 	_menu.clear()
 	_menu.add_item("攻撃", MENU_ATTACK)
 	_menu.set_item_disabled(_menu.get_item_index(MENU_ATTACK), not can_attack)

@@ -153,13 +153,27 @@ func test_cannot_enter_enemy_base_or_off_base() -> void:
 	assert_false(s.enter_base(1), "敵所属の拠点には入れない")
 	assert_false(s.enter_base(2), "拠点の無いマスでは入れない")
 
-func test_last_unit_cannot_enter_base() -> void:
-	# 暫定ルール: 盤上最後の1体は入れない（盤上0＝即敗北になるため。閉じ込め判定の実装で見直す）。
+func test_last_unit_can_enter_if_reinforcement() -> void:
+	# 案B: 盤上最後の1体でも、入った直後に復帰手段が残る（拠点に空き隣接がある）なら入れる。
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 0))
 	s.add_unit(Unit.new(1, 0, base_hex, 3))
-	assert_false(s.enter_base(1), "盤上最後の1体は入れない")
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))  # 敵は盤上に健在
+	assert_true(s.can_enter_base(1), "最後の1体でも復帰余地があれば入れる")
+	assert_true(s.enter_base(1), "実際に入れる")
+	assert_false(s.is_over(), "盤上0でも復帰手段が残るので敗北にならない")
+
+func test_last_unit_cannot_enter_when_blockaded() -> void:
+	# 案B: 入ると即「盤上0かつ復帰なし」になる場合は入れない（即敗北の footgun 防止）。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 0))
+	s.add_unit(Unit.new(1, 0, base_hex, 3))
+	for i in 6:
+		s.add_unit(Unit.new(100 + i, 1, Hex.neighbor(base_hex, i), 3))  # 全周を敵で封鎖
+	assert_false(s.can_enter_base(1), "全周封鎖では最後の1体は入れない（入れば即敗北）")
+	assert_false(s.enter_base(1), "enter_base も拒否される")
 
 func test_no_heal_in_captured_enemy_native_base() -> void:
 	# 奪った敵 native の拠点は出撃拠点にはなるが回復しない。
