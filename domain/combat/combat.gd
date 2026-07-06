@@ -25,47 +25,75 @@ static func surround_factor(state: BattleState, u: Unit) -> float:
 
 ## u の経験（レベル）補正倍率。攻撃力・防御力の両方に乗る。Lv1＝×1.0。
 static func experience_factor(u: Unit) -> float:
-	return float(EXPERIENCE[clampi(u.level, 1, Unit.MAX_LEVEL) - 1])
+	return experience_at(u.level)
+
+## level（1〜MAX_LEVEL）→ 経験補正倍率。Unit を介さず level 値から直接引く（明示計算・ツール用）。
+static func experience_at(level: int) -> float:
+	return float(EXPERIENCE[clampi(level, 1, Unit.MAX_LEVEL) - 1])
 
 ## 実効攻撃力の内訳（dict）。**式の本体はここだけ**＝total を各係数から組み立てる。
 ## 表示も戦闘解決もこの内訳から導くので、画面の数字と実処理が必ず一致する。
 ## 相手が飛行なら対空、地上なら対地（attack_against）。対空0で飛行を狙うと stat=0＝total0。
 ## 包囲は常時（囲まれた側は近接/間接問わず弱る）。支援(攻・加算)は melee のときだけ。
 static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
+	var b := attack_breakdown_from(
+		u.troops,
+		u.attack_against(enemy),
+		experience_factor(u),
+		surround_factor(state, u),
+		TerrainType.attack_factor(state.terrain_at(u.pos)),
+		_support(state, u, enemy, true) if melee else 0.0)
+	b["vs_aerial"] = enemy.is_aerial()
+	b["melee"] = melee
+	return b
+
+## 明示係数から実効攻撃力の内訳を組む（式の本体）。盤ベースの attack_breakdown も
+## 開発ツール（tools/combat_sim）も、攻撃力の total 計算はここに集約する＝式を二重に持たない。
+static func attack_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float) -> Dictionary:
 	var b := {
 		"kind": "attack",
-		"vs_aerial": enemy.is_aerial(),
-		"troops": u.troops,
-		"stat": u.attack_against(enemy),
-		"experience": experience_factor(u),
-		"surround": surround_factor(state, u),
-		"terrain": TerrainType.attack_factor(state.terrain_at(u.pos)),
-		"support": _support(state, u, enemy, true) if melee else 0.0,
-		"melee": melee,
+		"troops": troops,
+		"stat": stat,
+		"experience": experience,
+		"surround": surround,
+		"terrain": terrain,
+		"support": support,
 	}
-	b["total"] = float(b["troops"]) * float(b["stat"]) * float(b["experience"]) * float(b["surround"]) * float(b["terrain"]) + float(b["support"])
+	b["total"] = float(troops) * float(stat) * experience * surround * terrain + support
 	return b
 
 ## 実効防御力の内訳（dict）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
 ## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
 ## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（combat.md【要判断】）。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
-	var support: float = _support(state, u, enemy, false) if melee else 0.0
-	var pre := float(u.troops) * float(u.unit_defense) * experience_factor(u) * surround_factor(state, u) * TerrainType.defense_factor(state.terrain_at(u.pos))
+	var b := defense_breakdown_from(
+		u.troops,
+		u.unit_defense,
+		experience_factor(u),
+		surround_factor(state, u),
+		TerrainType.defense_factor(state.terrain_at(u.pos)),
+		_support(state, u, enemy, false) if melee else 0.0,
+		float(enemy.pierce))
+	b["melee"] = melee
+	return b
+
+## 明示係数から実効防御力の内訳を組む（式の本体）。支援後に2倍上限、最後に攻撃側の貫通を掛ける。
+## 盤ベースの defense_breakdown も開発ツールも、防御力の total 計算はここに集約する。
+static func defense_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float, pierce: float) -> Dictionary:
+	var pre := float(troops) * float(stat) * experience * surround * terrain
 	var supported := pre + support
 	var capped := minf(supported, pre * DEFENSE_SUPPORT_CAP)  # 支援は素の2倍まで
-	var pierce_factor := 1.0 - float(enemy.pierce)  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
+	var pierce_factor := 1.0 - pierce  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
 	return {
 		"kind": "defense",
-		"troops": u.troops,
-		"stat": u.unit_defense,
-		"experience": experience_factor(u),
-		"surround": surround_factor(state, u),
-		"terrain": TerrainType.defense_factor(state.terrain_at(u.pos)),
+		"troops": troops,
+		"stat": stat,
+		"experience": experience,
+		"surround": surround,
+		"terrain": terrain,
 		"support": support,
 		"capped": supported > capped,  # 支援2倍上限が効いたか（貫通適用前で判定）
 		"pierce": pierce_factor,       # 攻撃側の貫通後係数（内訳表示用）
-		"melee": melee,
 		"total": capped * pierce_factor,
 	}
 
@@ -97,6 +125,11 @@ static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) 
 static func hit_detail(state: BattleState, attacker: Unit, defender: Unit, melee := true) -> Dictionary:
 	var atk := attack_breakdown(state, attacker, defender, melee)
 	var df := defense_breakdown(state, defender, attacker, melee)
+	return hit_from_breakdowns(atk, df, defender.troops)
+
+## 攻撃側の内訳・防御側の内訳・防御側の兵数から、割合と失う兵を確定する（式の本体）。
+## fraction/loss はここ1か所だけ。盤の戦闘解決も開発ツールもこれを通す＝画面と実処理が一致する。
+static func hit_from_breakdowns(atk: Dictionary, df: Dictionary, defender_troops: int) -> Dictionary:
 	var a: float = atk["total"]
 	var d: float = df["total"]
 	var fraction := 0.0
@@ -104,7 +137,7 @@ static func hit_detail(state: BattleState, attacker: Unit, defender: Unit, melee
 	if a > 0.0:
 		var ap := pow(a, P)
 		fraction = ap / (ap + pow(d, P))  # 割合＝攻²/(攻²+防²)。互角0.5、差で鋭く。
-		loss = clampi(int(round(K * float(defender.troops) * fraction)), 0, defender.troops)
+		loss = clampi(int(round(K * float(defender_troops) * fraction)), 0, defender_troops)
 	return { "attack": atk, "defense": df, "fraction": fraction, "loss": loss }
 
 ## attacker が defender に与える失う兵数（hit_detail の loss）。0〜defender.troops。

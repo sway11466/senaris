@@ -27,6 +27,11 @@ static func factor(state: BattleState, unit: Unit) -> float:
 				n_occ += 1
 			1:
 				n_zoc += 1
+	return factor_from_counts(n_occ, n_zoc)
+
+## 占有数・ZOC数から包囲係数を出す（段階式の本体）。盤ベースの factor() も
+## 開発ツール（tools/combat_sim）も、係数計算はここに集約する＝式を二重に持たない。
+static func factor_from_counts(n_occ: int, n_zoc: int) -> float:
 	if n_occ < GATE:
 		return 1.0  # 包囲不成立
 	return clampf(1.0 - (P_OCC * n_occ + P_ZOC * n_zoc), FLOOR, 1.0)
