@@ -55,6 +55,11 @@ func _ready() -> void:
 	_next_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_next_btn.pressed.connect(_on_next)
 	bar.add_child(_next_btn)
+
+	var panel_bg := StyleBoxFlat.new()  # 不透明背景＝下の InfoPanel を透かさない
+	panel_bg.bg_color = Color(0.11, 0.13, 0.17)
+	panel_bg.set_corner_radius_all(6)
+	add_theme_stylebox_override("panel", panel_bg)
 	hide()
 
 ## スキン表を渡す（main から1回）。

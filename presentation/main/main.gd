@@ -82,15 +82,16 @@ func _on_battle_finished(outcome: int) -> void:
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
 	if outcome == BattleState.PLAYER_WIN and not _dialogue.get("outro", []).is_empty():
 		_conversation_phase = "outro"
+		$InfoPanel.hide()
 		_conversation.start(_dialogue["outro"], "閉じる")  # 勝利後の会話（読了/スキップでセレクトへ）
 
 # --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
 func _install_conversation() -> void:
 	_conversation = preload("res://presentation/ui/conversation_panel.gd").new()
-	_conversation.offset_left = 800  # 右エリア（InfoPanel と同じ列・少し縦長）
-	_conversation.offset_top = 60
+	_conversation.offset_left = 800  # InfoPanel と同じ箱に重ねる（会話中は InfoPanel を隠す）
+	_conversation.offset_top = 96
 	_conversation.offset_right = 1264
-	_conversation.offset_bottom = 700
+	_conversation.offset_bottom = 628
 	_conversation.bind(_skins)
 	_conversation.closed.connect(_on_conversation_closed)
 	add_child(_conversation)
@@ -101,11 +102,13 @@ func _maybe_start_intro() -> void:
 		return
 	_conversation_phase = "intro"
 	$HexBoard.set_input_locked(true)
+	$InfoPanel.hide()  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
 
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:
+	$InfoPanel.show()  # 会話が終わったら情報パネルを戻す
 	match _conversation_phase:
 		"intro":
 			_conversation_phase = ""
