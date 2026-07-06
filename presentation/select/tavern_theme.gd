@@ -104,7 +104,16 @@ static func _radial(inner: Color, outer: Color) -> GradientTexture2D:
 static func board_stylebox() -> StyleBox:
 	var tex := _tex("board")
 	if tex != null:
-		return _texture_box(tex, 16, 20)  # 縁16px＝枠、内側余白20px
+		var sb := _texture_box(tex, 80, 96)  # 内側余白96px（貼り紙を枠に被せない）。縁は下で四辺個別に上書き
+		# 一様なまっすぐ枠なので、辺はタイルでなく素直に引き伸ばす（節が無いので伸びても崩れない）。
+		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		# 彫り枠の内側境界＝board.png 実測（内側コーナー (82,76)-(1325,689) / 画像1408x768）。四辺の固定幅。
+		sb.set_texture_margin(SIDE_LEFT, 82)
+		sb.set_texture_margin(SIDE_TOP, 76)
+		sb.set_texture_margin(SIDE_RIGHT, 83)
+		sb.set_texture_margin(SIDE_BOTTOM, 79)
+		return sb
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = BOARD_WOOD
 	sb.set_border_width_all(12)

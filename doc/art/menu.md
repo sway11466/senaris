@@ -20,11 +20,12 @@
 | name | 用途 | 敷き方 | 縁（ナインパッチ） | 未配置時のフォールバック |
 |---|---|---|---|---|
 | `wall` | 酒場の壁（両画面共通の背景） | タイル（シームレス・上下左右つながる） | — | プロシージャルな縦板（`_Planks`） |
-| `board` | 依頼ボード板（貼り紙を貼る面） | ナインパッチ（縁固定・中央タイル） | 16px（彫り枠を縁に描く） | ベタ塗り木色＋枠＋影 |
+| `board` | 依頼ボード板（貼り紙を貼る面） | ナインパッチ（縁固定・辺は引き伸ばし） | 四辺約80px（実測 L82/T76/R83/B79） | ベタ塗り木色＋枠＋影 |
 | `parchment` | 貼り紙（冒険譚ポスターの地） | ナインパッチ（縁固定・中央タイル） | 8px（傷んだ縁を残す） | クリーム地＋薄縁＋落ち影 |
 | `grunge` | 汚し/スレ（壁の上に薄く重ねる） | タイル・半透明PNG | — | なし（重ねない） |
 
-- ナインパッチ縁幅（board=16 / parchment=8）は tavern_theme.gd の実装値と一致させる。変えるならコード側も合わせる。
+- ナインパッチ縁幅（board=四辺約80px / parchment=8）は tavern_theme.gd の実装値と一致させる（画像の彫り枠の内側境界を実測した px。四辺個別。絵を差し替えたら測り直す）。変えるならコード側も合わせる。
+- ナインパッチ材の枠は「まっすぐ・一定・節なし」に描くこと（辺は引き伸ばされる＝節やコブがあると伸びて崩れる。飾りは四隅だけ）。board は辺を STRETCH（タイルでなく引き伸ばし）で敷く。
 - `grunge` はコードで modulate α0.5 まで薄める（PNG 自体も透過前提）。壁の上・UI の下に敷く。
 
 ## 3. 生成方式（MATERIAL STYLE）
@@ -42,7 +43,9 @@ big focal object. Keep large-scale contrast LOW so it tiles without an obvious
 repeat.
 ```
 
-SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu/source/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。透かし除去・低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
+SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu/source/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
+
+透かし（生成サービスが付ける sparkle マーク）はプロンプトで禁止しない。"watermark" の語は生成エラーを誘発し、否定形で書いても消えない（サービスが必ず付与する）＝後処理（Photopea 等）で master 化のときに除去する。
 
 ## 4. 保管・命名（二層）
 
