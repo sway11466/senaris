@@ -79,9 +79,10 @@ func _poster(c: Dictionary) -> Control:
 	card.size = POSTER_SIZE
 	card.focus_mode = Control.FOCUS_NONE
 	card.clip_contents = true
+	var paper_seed := hash(String(c["id"]))  # カードごとに羊皮紙の変種を固定（状態間で同一＝hoverで紙が変わらない）
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var bright := 1.06 if state == "hover" else 1.0
-		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(bright))
+		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(paper_seed, bright))
 	card.pressed.connect(_on_card_pressed.bind(String(c["id"])))
 	poster.add_child(card)
 

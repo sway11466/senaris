@@ -124,11 +124,35 @@ static func board_stylebox() -> StyleBox:
 	sb.set_content_margin_all(20)
 	return sb
 
-## 羊皮紙の貼り紙。parchment.png があればテクスチャ、無ければクリーム地＋薄縁＋落ち影。
-## ボタンの各状態に流用する（bright で hover を少し明るく）。
-static func parchment_stylebox(bright := 1.0) -> StyleBox:
-	var tex := _tex("parchment")
-	if tex != null:
+## 羊皮紙テクスチャの変種一覧（parchment.png＋parchment_2.png/_3.png…を連番プローブ・1回だけ読む）。
+## カードごとに違う紙を敷いて「全部同じ貼り紙」を避ける。ポスターは固定サイズなので伸縮の心配はない。
+static var _parchment_cache: Array = []
+static var _parchment_loaded := false
+static func _parchment_texs() -> Array:
+	if _parchment_loaded:
+		return _parchment_cache
+	_parchment_loaded = true
+	var texs: Array = []
+	var base := "%sparchment.png" % SLOT_DIR
+	if ResourceLoader.exists(base):
+		texs.append(load(base))
+	var n := 2
+	while true:
+		var p := "%sparchment_%d.png" % [SLOT_DIR, n]
+		if not ResourceLoader.exists(p):
+			break
+		texs.append(load(p))
+		n += 1
+	_parchment_cache = texs
+	return texs
+
+## 羊皮紙の貼り紙。parchment.png（＋parchment_2/_3…）があればテクスチャ、無ければクリーム地＋薄縁＋落ち影。
+## seed でカードごとに紙の変種を決定的に選ぶ（冒険譚idのhash等を渡す＝同じカードは常に同じ紙／隣とは違う紙）。
+## ボタンの各状態に流用する（同じ seed を渡すこと＝hover で紙が変わらない。bright で hover を少し明るく）。
+static func parchment_stylebox(seed := 0, bright := 1.0) -> StyleBox:
+	var texs := _parchment_texs()
+	if not texs.is_empty():
+		var tex: Texture2D = texs[absi(seed) % texs.size()]
 		var sbt := _texture_box(tex, 8, 0)
 		sbt.modulate_color = Color(bright, bright, bright, 1.0)
 		return sbt
