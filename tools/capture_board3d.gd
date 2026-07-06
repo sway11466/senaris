@@ -140,10 +140,10 @@ func _add_unit(u, wpos: Vector3, skins: Dictionary) -> void:
 		return
 	var spr := Sprite3D.new()
 	spr.texture = tex
-	spr.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y  # 縦は立てたまま、横だけカメラへ向ける
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 常にカメラへ正対＝全身の立ち姿のまま（俯瞰でも潰れない）
 	spr.shaded = false
 	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 透過はカット（半透明ソート回避で常に手前/奥が正しい）
 	spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル
-	var world_h := tex.get_height() * spr.pixel_size
-	spr.position = wpos + Vector3(0, world_h * 0.5, 0)  # 足を地面(y=0)へ接地
+	spr.offset = Vector2(0, tex.get_height() * 0.5)     # 絵を上へ寄せ、ノード原点＝足元に（回転軸を足に）
+	spr.position = wpos + Vector3(0, 0.02, 0)           # 足を地面へ接地（微上げでZファイト回避）
 	add_child(spr)
