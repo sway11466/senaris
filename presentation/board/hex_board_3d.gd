@@ -16,6 +16,7 @@ signal tile_inspected(hex: Vector2i)
 signal system_menu_requested
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
+const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ。2D版の接地(0.75)と同じ狙い
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
 const CAM_FOV := 42.0
 const MIN_DIST := 5.0            # ズーム＝カメラ距離の範囲
@@ -798,7 +799,7 @@ func _sync_units() -> void:
 			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
 			spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル（2D版と同比率）
 			spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
-			spr.position = wpos + Vector3(0, 0.02, 0)
+			spr.position = wpos + Vector3(0, 0.02, SPRITE_FOOT_Z)  # 足元は下辺寄り＝マスの中に立って見える
 			if done:
 				spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
 			_units_root.add_child(spr)
