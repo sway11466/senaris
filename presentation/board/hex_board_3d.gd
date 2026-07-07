@@ -33,10 +33,13 @@ const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動の緑と区別）
 const COLOR_ENEMY_REACH := Color(0.95, 0.35, 0.30, 0.22)  # 敵の移動（脅威）範囲
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
-# M1はリングの代わりにマス塗りで選択/閲覧/攻撃対象を示す（リングはM2）。
-const COLOR_SELECT_FILL := Color(1.00, 0.85, 0.25, 0.35)
-const COLOR_INSPECT_FILL := Color(0.85, 0.90, 1.00, 0.30)
-const COLOR_TARGET_FILL := Color(0.95, 0.25, 0.25, 0.40)
+const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
+const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
+const COLOR_INSPECT_RING := Color(0.85, 0.90, 1.00)
+const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
+const COLOR_BASE_NEUTRAL := Color(0.80, 0.80, 0.80)  # 未占領拠点の縁取り
+const COLOR_TROOPS_BG := Color(0, 0, 0, 0.6)
+const COLOR_TROOPS_FILL := Color(0.30, 0.90, 0.40)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
@@ -59,13 +62,17 @@ var _dragging_pan := false       # 左ドラッグでパン中
 
 # --- シーン構造（_ready で組む）---
 var _tiles_root: Node3D    # 地形タイル＋グリッド線＋下地（bind ごとに作り直し）
+var _bases_root: Node3D    # 拠点の縁取り・控え数（占領で変わるのでイベントごとに作り直し）
 var _units_root: Node3D    # ユニット（イベントごとに作り直し）
 var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ごとに作り直し）
 var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル用・UVは外接矩形）
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
+var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
+var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
 var _terrain_mat := {}    # Texture2D -> StandardMaterial3D（タイル材質キャッシュ）
+var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
 
 # --- インタラクション状態（2D版から移植）---
 var _hover := INVALID_HEX
@@ -115,11 +122,13 @@ func _ready() -> void:
 	# 共有メッシュとコンテナ。
 	_hex_mesh = _make_hex_mesh()
 	_overlay_mesh = _make_hex_mesh()
+	_hexring_mesh = _make_hexring_mesh()
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
 	_disc_mesh.bottom_radius = TILE * 0.55
 	_disc_mesh.height = 0.06
 	_tiles_root = Node3D.new(); add_child(_tiles_root)
+	_bases_root = Node3D.new(); add_child(_bases_root)
 	_units_root = Node3D.new(); add_child(_units_root)
 	_overlay_root = Node3D.new(); add_child(_overlay_root)
 	# コマンドメニュー（Window なのでカメラ変換の影響を受けない）。
@@ -704,8 +713,28 @@ func _on_battle_finished(_winner: int) -> void:
 
 ## 盤の見た目を状態から作り直す（2D版の queue_redraw 相当）。
 func _sync() -> void:
+	_sync_bases()
 	_sync_units()
 	_sync_overlay()
+
+## 拠点の所属（六角の縁取り）と控え数。占領で変わるためイベントごとに作り直す。
+func _sync_bases() -> void:
+	_clear_children(_bases_root)
+	if state == null:
+		return
+	for b in state.bases():
+		var col := COLOR_BASE_NEUTRAL
+		if b.team >= 0:
+			col = TEAM_COLORS[b.team % TEAM_COLORS.size()]
+		var mi := MeshInstance3D.new()
+		mi.mesh = _hexring_mesh
+		mi.material_override = _overlay_material(col)
+		var p := Hex.to_pixel(b.hex, TILE)
+		mi.position = Vector3(p.x, 0.015, p.y)
+		_bases_root.add_child(mi)
+		# 控え数（出撃できる人数）を左上に小さく（2D版と同じ流儀）。
+		if not b.garrison.is_empty():
+			_add_count_label("+%d" % b.garrison.size(), Vector3(p.x, 0.0, p.y), col, _bases_root)
 
 ## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
 func _build_tiles() -> void:
@@ -809,6 +838,15 @@ func _sync_units() -> void:
 			_units_root.add_child(spr)
 		else:
 			_add_unit_placeholder(u, wpos, done)
+		# 包囲中（攻防に係数<1.0）を明示（2D版の橙アーク相当）。
+		if Surround.factor(state, u) < 1.0:
+			_add_ring(wpos, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, _units_root)
+		# 兵数バー（残存兵数/満員）。駒の足元に置く。
+		_add_troops_bar(u, wpos)
+		# 輸送の搭載数を左上に小さく（拠点の garrison 表示と同じ流儀）。
+		var pcount := state.passengers(u.id).size()
+		if pcount > 0:
+			_add_count_label("+%d" % pcount, wpos, COLOR_UNIT_LABEL, _units_root)
 
 ## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル。2D版の円＋文字と同義）。
 func _add_unit_placeholder(u: Unit, wpos: Vector3, done: bool) -> void:
@@ -854,14 +892,17 @@ func _sync_overlay() -> void:
 		_add_cell(_pending_to, COLOR_PENDING, 0.03)
 	if _unload_to != INVALID_HEX:
 		_add_cell(_unload_to, COLOR_PENDING, 0.03)
-	for pos in _targets:
-		_add_cell(pos, COLOR_TARGET_FILL, 0.03)
+	for pos in _targets:  # 攻撃可能な敵＝赤リング（2D版と同じ）
+		var tp := Hex.to_pixel(pos, TILE)
+		_add_ring(Vector3(tp.x, 0.0, tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
 	var sel := state.unit_by_id(_selected_id) if _selected_id != -1 else null
 	if sel != null:
-		_add_cell(sel.pos, COLOR_SELECT_FILL, 0.035)
+		var sp := Hex.to_pixel(sel.pos, TILE)
+		_add_ring(Vector3(sp.x, 0.0, sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
 	var ins := state.unit_by_id(_inspected_id) if _inspected_id != -1 else null
 	if ins != null:
-		_add_cell(ins.pos, COLOR_INSPECT_FILL, 0.035)
+		var ip := Hex.to_pixel(ins.pos, TILE)
+		_add_ring(Vector3(ip.x, 0.0, ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
 	if _hover != INVALID_HEX and _on_board(_hover):
 		_add_cell(_hover, COLOR_HOVER, 0.04)
 
@@ -872,6 +913,112 @@ func _add_cell(hex: Vector2i, color: Color, y: float) -> void:
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, y, p.y)
 	_overlay_root.add_child(mi)
+
+# --- 兵数バー・ラベル・リングのヘルパー ---
+
+## 兵数バー（背景＋残存率ぶんの緑）。ビルボードの小さなクアッド2枚を足元に置く。
+func _add_troops_bar(u: Unit, wpos: Vector3) -> void:
+	var w := TILE * 1.0
+	var h := TILE * 0.13
+	var base_pos := wpos + Vector3(0, 0.10, SPRITE_FOOT_Z + 0.15)  # 立ち絵より手前＝隠れない
+	var bg := MeshInstance3D.new()
+	var bgq := QuadMesh.new()
+	bgq.size = Vector2(w, h)
+	bg.mesh = bgq
+	bg.material_override = _bill_material(COLOR_TROOPS_BG)
+	bg.position = base_pos
+	_units_root.add_child(bg)
+	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
+	if ratio <= 0.0:
+		return
+	var fill := MeshInstance3D.new()
+	var fq := QuadMesh.new()
+	fq.size = Vector2(w * ratio, h * 0.8)
+	fq.center_offset = Vector3(-w * (1.0 - ratio) * 0.5, 0.0, 0.0)  # 左詰め（ビルボードでも左端固定）
+	fill.mesh = fq
+	fill.material_override = _bill_material(COLOR_TROOPS_FILL)
+	fill.position = base_pos + Vector3(0, 0, 0.01)
+	_units_root.add_child(fill)
+
+## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。マス左上に置く（2D版と同じ流儀）。
+## root＝追加先（拠点は _bases_root・ユニットは _units_root。別コンテナなのはクリア周期が違うため）。
+func _add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -> void:
+	var l := Label3D.new()
+	l.text = text
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.font_size = 48
+	l.pixel_size = 0.01
+	l.modulate = color
+	l.outline_size = 16  # 淡い地形の上でも読めるように
+	l.position = wpos + Vector3(-TILE * 0.5, 0.55, -TILE * 0.15)
+	root.add_child(l)
+
+## 地面に寝かせた円環（選択/攻撃/閲覧/包囲リング）。radius|width でメッシュをキャッシュ。
+func _add_ring(wpos: Vector3, radius: float, width: float, color: Color, y: float, root: Node3D) -> void:
+	var key := "%.3f|%.3f" % [radius, width]
+	if not _ring_mesh.has(key):
+		_ring_mesh[key] = _make_ring_mesh(radius, width)
+	var mi := MeshInstance3D.new()
+	mi.mesh = _ring_mesh[key]
+	mi.material_override = _overlay_material(color)
+	mi.position = Vector3(wpos.x, y, wpos.z)
+	root.add_child(mi)
+
+## 床(XZ)の円環メッシュ（32分割の帯）。
+func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 32
+	var r0 := radius - width * 0.5
+	var r1 := radius + width * 0.5
+	for i in n:
+		var a0 := TAU * float(i) / float(n)
+		var a1 := TAU * float(i + 1) / float(n)
+		var o0 := Vector3(cos(a0) * r1, 0.0, sin(a0) * r1)
+		var o1 := Vector3(cos(a1) * r1, 0.0, sin(a1) * r1)
+		var i0 := Vector3(cos(a0) * r0, 0.0, sin(a0) * r0)
+		var i1 := Vector3(cos(a1) * r0, 0.0, sin(a1) * r0)
+		st.set_normal(Vector3.UP); st.add_vertex(o0)
+		st.set_normal(Vector3.UP); st.add_vertex(o1)
+		st.set_normal(Vector3.UP); st.add_vertex(i0)
+		st.set_normal(Vector3.UP); st.add_vertex(i1)
+		st.set_normal(Vector3.UP); st.add_vertex(i0)
+		st.set_normal(Vector3.UP); st.add_vertex(o1)
+	return st.commit()
+
+## 拠点の縁取り＝六角の枠メッシュ（タイルの淵に沿う帯）。
+func _make_hexring_mesh() -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var r_out := TILE * 0.98
+	var r_in := TILE * 0.88
+	for i in 6:
+		var a0 := deg_to_rad(60.0 * i)
+		var a1 := deg_to_rad(60.0 * (i + 1))
+		var o0 := Vector3(cos(a0) * r_out, 0.0, sin(a0) * r_out)
+		var o1 := Vector3(cos(a1) * r_out, 0.0, sin(a1) * r_out)
+		var i0 := Vector3(cos(a0) * r_in, 0.0, sin(a0) * r_in)
+		var i1 := Vector3(cos(a1) * r_in, 0.0, sin(a1) * r_in)
+		st.set_normal(Vector3.UP); st.add_vertex(o0)
+		st.set_normal(Vector3.UP); st.add_vertex(o1)
+		st.set_normal(Vector3.UP); st.add_vertex(i0)
+		st.set_normal(Vector3.UP); st.add_vertex(i1)
+		st.set_normal(Vector3.UP); st.add_vertex(i0)
+		st.set_normal(Vector3.UP); st.add_vertex(o1)
+	return st.commit()
+
+## ビルボード材質（兵数バー用・アンライト・半透明可）。色ごとにキャッシュ。
+func _bill_material(color: Color) -> StandardMaterial3D:
+	if _bill_mat.has(color):
+		return _bill_mat[color]
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.billboard_keep_scale = true
+	_bill_mat[color] = m
+	return m
 
 # --- メッシュ・材質・テクスチャのヘルパー ---
 
