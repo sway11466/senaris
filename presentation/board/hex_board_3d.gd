@@ -17,6 +17,9 @@ signal system_menu_requested
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ。2D版の接地(0.75)と同じ狙い
+const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
+const COLOR_SKIRT := Color(0.30, 0.24, 0.18)   # 側面＝土の断面
+const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
 const CAM_FOV := 42.0
 const MIN_DIST := 5.0            # ズーム＝カメラ距離の範囲
@@ -68,6 +71,7 @@ var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ご
 var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル用・UVは外接矩形）
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
+var _shadow_mesh: ArrayMesh       # 足元のブロブシャドウ（楕円）
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
 var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
@@ -123,6 +127,7 @@ func _ready() -> void:
 	_hex_mesh = _make_hex_mesh()
 	_overlay_mesh = _make_hex_mesh()
 	_hexring_mesh = _make_hexring_mesh()
+	_shadow_mesh = _make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
 	_disc_mesh.bottom_radius = TILE * 0.55
@@ -744,6 +749,7 @@ func _build_tiles() -> void:
 			var hex := Hex.offset_to_axial(col, row)
 			_add_tile(hex)
 	_add_grid()
+	_add_skirt()
 	_add_ground()
 
 func _add_tile(hex: Vector2i) -> void:
@@ -793,7 +799,45 @@ func _add_grid() -> void:
 	mi.material_override = m
 	_tiles_root.add_child(mi)
 
-## 盤の下地（虚空に浮かないための大きな平面）。
+## 盤外周の側面（スカート）。盤外に接する辺だけ下へ伸ばし、ジオラマの「島」に見せる。
+## 全外周を1メッシュにまとめる（アンライトなので法線は不問）。
+func _add_skirt() -> void:
+	# 辺 i（コーナー i→i+1・辺中点の方位 60i+30°）に対応する隣接方向（フラットトップ axial）。
+	var dirs: Array[Vector2i] = [
+		Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 1),
+		Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
+	]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for col in state.cols:
+		for row in state.rows:
+			var hex := Hex.offset_to_axial(col, row)
+			var p := Hex.to_pixel(hex, TILE)
+			for i in 6:
+				if _on_board(hex + dirs[i]):
+					continue  # 隣にタイルがある辺は側面不要
+				var a0 := deg_to_rad(60.0 * i)
+				var a1 := deg_to_rad(60.0 * (i + 1))
+				var c0 := Vector3(p.x + cos(a0) * TILE, 0.0, p.y + sin(a0) * TILE)
+				var c1 := Vector3(p.x + cos(a1) * TILE, 0.0, p.y + sin(a1) * TILE)
+				var d0 := c0 + Vector3(0, -SKIRT_DEPTH, 0)
+				var d1 := c1 + Vector3(0, -SKIRT_DEPTH, 0)
+				st.set_normal(Vector3.UP); st.add_vertex(c0)
+				st.set_normal(Vector3.UP); st.add_vertex(c1)
+				st.set_normal(Vector3.UP); st.add_vertex(d0)
+				st.set_normal(Vector3.UP); st.add_vertex(d1)
+				st.set_normal(Vector3.UP); st.add_vertex(d0)
+				st.set_normal(Vector3.UP); st.add_vertex(c1)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = COLOR_SKIRT
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 三角形の向きを気にしない（内外どちらからも見える）
+	mi.material_override = m
+	_tiles_root.add_child(mi)
+
+## 盤の下地（虚空に浮かないための大きな平面）。スカートの下端より深くに置き、盤を「島」として浮かせる。
 func _add_ground() -> void:
 	var mn := Vector2(INF, INF)
 	var mx := Vector2(-INF, -INF)
@@ -809,9 +853,9 @@ func _add_ground() -> void:
 	mi.mesh = pm
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = Color(0.36, 0.40, 0.27)
+	m.albedo_color = Color(0.22, 0.24, 0.18)  # 盤より暗く＝盤が浮き立つ
 	mi.material_override = m
-	mi.position = Vector3(c.x, -0.02, c.y)
+	mi.position = Vector3(c.x, -SKIRT_DEPTH - 0.35, c.y)
 	_tiles_root.add_child(mi)
 
 ## 全ユニットの見た目を作り直す（数十体規模なので毎イベント作り直しで十分軽い）。
@@ -836,6 +880,12 @@ func _sync_units() -> void:
 			if done:
 				spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
 			_units_root.add_child(spr)
+			# 足元のブロブシャドウ（接地感）。範囲塗りの上・リングの下の高さ。
+			var sh := MeshInstance3D.new()
+			sh.mesh = _shadow_mesh
+			sh.material_override = _overlay_material(COLOR_SHADOW)
+			sh.position = wpos + Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
+			_units_root.add_child(sh)
 		else:
 			_add_unit_placeholder(u, wpos, done)
 		# 包囲中（攻防に係数<1.0）を明示（2D版の橙アーク相当）。
@@ -984,6 +1034,19 @@ func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
 		st.set_normal(Vector3.UP); st.add_vertex(i1)
 		st.set_normal(Vector3.UP); st.add_vertex(i0)
 		st.set_normal(Vector3.UP); st.add_vertex(o1)
+	return st.commit()
+
+## 床(XZ)の楕円メッシュ（ブロブシャドウ用。z_ratio でつぶす）。
+func _make_disc_mesh(radius: float, z_ratio: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 24
+	for i in n:
+		var a0 := TAU * float(i) / float(n)
+		var a1 := TAU * float(i + 1) / float(n)
+		st.set_normal(Vector3.UP); st.add_vertex(Vector3.ZERO)
+		st.set_normal(Vector3.UP); st.add_vertex(Vector3(cos(a0) * radius, 0.0, sin(a0) * radius * z_ratio))
+		st.set_normal(Vector3.UP); st.add_vertex(Vector3(cos(a1) * radius, 0.0, sin(a1) * radius * z_ratio))
 	return st.commit()
 
 ## 拠点の縁取り＝六角の枠メッシュ（タイルの淵に沿う帯）。
