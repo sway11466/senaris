@@ -223,17 +223,21 @@ func _unhandled_input(event: InputEvent) -> void:
 func _handle_camera_scroll(event: InputEvent) -> bool:
 	if event is InputEventMouseButton and event.pressed \
 			and event.button_index >= MOUSE_BUTTON_WHEEL_UP and event.button_index <= MOUSE_BUTTON_WHEEL_RIGHT:
+		# トラックパッドは1ノッチ未満の量を factor(小数)付きのイベント連打で送ってくる。
+		# 固定量×連打だと敏感すぎるため factor に比例させる（マウスホイールは factor=1 相当）。
+		var f: float = event.factor if event.factor > 0.0 else 1.0
 		if event.ctrl_pressed:  # ピンチ＝ズーム
 			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-				_zoom_at_point(ZOOM_STEP, get_viewport().get_mouse_position())
+				_zoom_at_point(pow(ZOOM_STEP, f), get_viewport().get_mouse_position())
 			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				_zoom_at_point(1.0 / ZOOM_STEP, get_viewport().get_mouse_position())
+				_zoom_at_point(pow(1.0 / ZOOM_STEP, f), get_viewport().get_mouse_position())
 		else:  # 2本指スクロール＝パン（上下左右）
+			var step := PAN_WHEEL_STEP * f
 			match event.button_index:
-				MOUSE_BUTTON_WHEEL_UP: _pan_by(Vector2(0, PAN_WHEEL_STEP))
-				MOUSE_BUTTON_WHEEL_DOWN: _pan_by(Vector2(0, -PAN_WHEEL_STEP))
-				MOUSE_BUTTON_WHEEL_LEFT: _pan_by(Vector2(PAN_WHEEL_STEP, 0))
-				MOUSE_BUTTON_WHEEL_RIGHT: _pan_by(Vector2(-PAN_WHEEL_STEP, 0))
+				MOUSE_BUTTON_WHEEL_UP: _pan_by(Vector2(0, step))
+				MOUSE_BUTTON_WHEEL_DOWN: _pan_by(Vector2(0, -step))
+				MOUSE_BUTTON_WHEEL_LEFT: _pan_by(Vector2(step, 0))
+				MOUSE_BUTTON_WHEEL_RIGHT: _pan_by(Vector2(-step, 0))
 		return true
 	if event is InputEventMagnifyGesture:
 		_zoom_at_point(event.factor, event.position)
