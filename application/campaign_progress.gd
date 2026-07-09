@@ -90,6 +90,18 @@ func record_clear(campaign_id: String, stage_id: String) -> void:
 		return
 	_store.mark_cleared(campaign_id, stage_id)
 
+## マニフェスト順で stage_id の直後のステージを返す（無ければ {}）。クリア後の自動遷移に使う。
+## 解放状態は見ない＝呼び出し側が stage_state で判定する（LOCKED なら進まない等）。
+func next_stage(campaign_id: String, stage_id: String) -> Dictionary:
+	var c := campaign(campaign_id)
+	if c.is_empty():
+		return {}
+	var stages: Array = c["stages"]
+	for i in stages.size():
+		if stages[i]["id"] == stage_id:
+			return stages[i + 1] if i + 1 < stages.size() else {}
+	return {}
+
 func _find_stage(c: Dictionary, stage_id: String) -> Dictionary:
 	if c.is_empty():
 		return {}

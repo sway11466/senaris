@@ -80,10 +80,15 @@ func _on_battle_finished(outcome: int) -> void:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
-	if outcome == BattleState.PLAYER_WIN and not _dialogue.get("outro", []).is_empty():
-		_conversation_phase = "outro"
-		$InfoPanel.hide()
-		_conversation.start(_dialogue["outro"], "閉じる")  # 勝利後の会話（読了/スキップでセレクトへ）
+	if outcome == BattleState.PLAYER_WIN:
+		if not _dialogue.get("outro", []).is_empty():
+			_conversation_phase = "outro"
+			$InfoPanel.hide()
+			$HexBoard.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
+			var label := "次のステージへ ▶" if not _next_playable_stage().is_empty() else "閉じる"
+			_conversation.start(_dialogue["outro"], label)  # 読了/スキップで次ステージ or セレクトへ
+		else:
+			_advance_or_select()  # 会話なし＝すぐ次へ（テンポ優先）
 
 # --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
 func _install_conversation() -> void:
@@ -109,15 +114,37 @@ func _maybe_start_intro() -> void:
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:
 	$InfoPanel.show()  # 会話が終わったら情報パネルを戻す
+	$HexBoard.set_input_locked(false)  # 盤の凍結を解除（intro/outro 共通）
 	match _conversation_phase:
 		"intro":
 			_conversation_phase = ""
-			$HexBoard.set_input_locked(false)
 			if _controller != null:
 				_hud.set_player_turn(_controller.state.current_team == 0)
 		"outro":
 			_conversation_phase = ""
-			_select.open()
+			_advance_or_select()  # 次ステージがあれば進む・無ければセレクト
+
+## クリア後の遷移先：非デバッグ冒険譚で解放済みの次ステージがあれば進む（テンポ優先）。無ければセレクト。
+## controller を作り直す load_stage は決着シグナルの処理中に呼ばれうるので call_deferred で安全に。
+func _advance_or_select() -> void:
+	var nxt := _next_playable_stage()
+	if nxt.is_empty():
+		_select.open()
+		return
+	_current_stage_id = nxt["id"]  # 冒険譚は同じまま＝次ステージのクリア記録が正しく付く
+	call_deferred("load_stage", String(nxt["path"]))
+
+## 自動で進める「次ステージ」（非デバッグ冒険譚・マニフェスト順で直後・LOCKEDでない）。無ければ {}。
+func _next_playable_stage() -> Dictionary:
+	if _current_campaign_id.is_empty():
+		return {}
+	var c := _progress.campaign(_current_campaign_id)
+	if c.is_empty() or c.get("debug", false):
+		return {}  # デバッグ冒険譚は自動遷移しない（単体検証の邪魔になる）
+	var nxt := _progress.next_stage(_current_campaign_id, _current_stage_id)
+	if nxt.is_empty() or _progress.stage_state(_current_campaign_id, String(nxt["id"])) == CampaignProgress.LOCKED:
+		return {}
+	return nxt
 
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
 func _install_hud() -> void:

@@ -72,6 +72,18 @@ func test_unlock_text_uses_stage_title() -> void:
 	var p := _progress()
 	assert_eq(p.unlock_text("camp", "st2"), "「一」クリアで解放")
 
+func test_next_stage_returns_following_entry() -> void:
+	var p := _progress()
+	assert_eq(String(p.next_stage("camp", "st1").get("id", "")), "st2", "順で直後を返す")
+	assert_eq(String(p.next_stage("camp", "st2").get("id", "")), "st3")
+	assert_eq(String(p.next_stage("camp", "st1").get("path", "")), "res://x/st2.json", "path も持つ")
+
+func test_next_stage_empty_at_last_or_unknown() -> void:
+	var p := _progress()
+	assert_true(p.next_stage("camp", "st3").is_empty(), "最終ステージの次は無い")
+	assert_true(p.next_stage("camp", "nope").is_empty(), "未知ステージは空")
+	assert_true(p.next_stage("nope", "st1").is_empty(), "未知冒険譚は空")
+
 func test_unknown_ids_are_safe() -> void:
 	var p := _progress()
 	assert_eq(p.stage_state("nope", "st1"), CampaignProgress.LOCKED)
