@@ -18,4 +18,4 @@
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
 - [units.md](units.md) — ユニットの見た目方針（画像スロットの参照元）
-- `assets/units/source/{group}/style.md` — 陣営ごとの個体特徴（味方27種＝[player/style.md](../../assets/units/source/player/style.md)）
+- `assets/units-src/{group}/style.md` — 陣営ごとの個体特徴（味方27種＝[player/style.md](../../assets/units-src/player/style.md)）

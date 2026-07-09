@@ -5,9 +5,9 @@
 .DESCRIPTION
   Given one or more skin_ids, looks up map_scale in unit_skin.csv, sets the figure
   height = BaseHeight * map_scale, and writes a 256px square, transparent, 64-color
-  assets/units/<id>/<id>_map.png from source/<group>/<id>/<id>_02_master.png.
+  assets/units/<id>/<id>_map.png from units-src/<group>/<id>/<id>_02_master.png.
   <group> is a faction folder (player, goblin, ...); the source dir is found by
-  searching source/ recursively for a folder named <id>.
+  searching assets/units-src/ recursively for a folder named <id>.
   If the 02_master is missing it falls back to the 01_raw (white bg auto-keyed;
   fringe is meant to be cleaned by hand in the 02_master later).
   Recipe of record: doc/art/units.md section 3.1. Requires ImageMagick (magick).
@@ -32,7 +32,7 @@ if ($SkinIds.Count -eq 0) { throw "usage: gen_unit_map.ps1 <skin_id> [<skin_id> 
 $here = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
 $repo = Split-Path -Parent $here                  # parent of tools/ = repo root
 $csv     = Join-Path $repo 'data\units\unit_skin.csv'
-$srcRoot = Join-Path $repo 'assets\units\source'
+$srcRoot = Join-Path $repo 'assets\units-src'
 $outRoot = Join-Path $repo 'assets\units'
 
 if (-not (Get-Command magick -ErrorAction SilentlyContinue)) {

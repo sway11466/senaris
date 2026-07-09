@@ -1,6 +1,6 @@
 # ユニットの見た目方針
 
-盤上のユニット画像を生成する前に決めておく設計。全陣営に共通するトーン・配色・制作メソッドは [direction.md](direction.md) が正本。本ファイルはユニット固有：全ユニット共通ルール・陣営ごとのルール・制作スペック（サイズ・命名・STYLE・SUBJECT雛形）。陣営ごとの個体特徴は各陣営フォルダの `assets/units/source/{group}/style.md`（§2）。
+盤上のユニット画像を生成する前に決めておく設計。全陣営に共通するトーン・配色・制作メソッドは [direction.md](direction.md) が正本。本ファイルはユニット固有：全ユニット共通ルール・陣営ごとのルール・制作スペック（サイズ・命名・STYLE・SUBJECT雛形）。陣営ごとの個体特徴は各陣営フォルダの `assets/units-src/{group}/style.md`（§2）。
 
 凡例: 【暫定】 【指針】 【未決】（ラベルなし＝決定事項。ただし決定は覆りうる）
 
@@ -17,9 +17,9 @@
 
 ## 2. 陣営ごとのルール
 
-各陣営の見た目ルール（役割ごとの記号・ユニット個体の特徴）は、その陣営のソースフォルダ直下の `style.md` が正本：`assets/units/source/{group}/style.md`
+各陣営の見た目ルール（役割ごとの記号・ユニット個体の特徴）は、その陣営のソースフォルダ直下の `style.md` が正本：`assets/units-src/{group}/style.md`
 
-- 味方: [player/style.md](../../assets/units/source/player/style.md)
+- 味方: [player/style.md](../../assets/units-src/player/style.md)
 - 敵陣営は着手時に作成（例: ゴブリン → `source/goblin/style.md`）。
 
 敵陣営に共通する方針：
@@ -53,13 +53,13 @@
 
 | 段階 | 置き場（`{skin_id}`＝unit_skin のID・`{group}`＝陣営フォルダ） | 例（ファイター） |
 |---|---|---|
-| ① AI生成直後（原寸・SynthID入り） | `assets/units/source/{group}/{skin_id}/{skin_id}_01_raw.png` | `source/player/fighter/fighter_01_raw.png` |
-| ② トリミング＋透過（手動マスター・原寸） | `assets/units/source/{group}/{skin_id}/{skin_id}_02_master.png` | `source/player/fighter/fighter_02_master.png` |
+| ① AI生成直後（原寸・SynthID入り） | `assets/units-src/{group}/{skin_id}/{skin_id}_01_raw.png` | `units-src/player/fighter/fighter_01_raw.png` |
+| ② トリミング＋透過（手動マスター・原寸） | `assets/units-src/{group}/{skin_id}/{skin_id}_02_master.png` | `units-src/player/fighter/fighter_02_master.png` |
 | ③ ゲーム用（256四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
 
-- `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `source/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
+- `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `units-src/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
 - ③だけが `assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
-- ①②は `assets/units/source/`（作業ソース）。`assets/units/source/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
+- ①②は `assets/units-src/`（作業ソース）。`assets/units-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
 
 手順（1体を追加するとき）:
 
@@ -103,7 +103,7 @@ lower third with a small soft ground shadow. Plain pure-white background
 
 SUBJECT（生成プロンプト本体）の置き場：
 
-各ユニットの `SUBJECT:` は raw と同じ `assets/units/source/{group}/{skin_id}/{skin_id}_prompt.txt` に置く（共通の STYLE と作成ルールは本 doc が正本）。生成時は STYLE を先頭に付け、続けて `{skin_id}_prompt.txt` を貼る。参照画像（i2i）は使わない。
+各ユニットの `SUBJECT:` は raw と同じ `assets/units-src/{group}/{skin_id}/{skin_id}_prompt.txt` に置く（共通の STYLE と作成ルールは本 doc が正本）。生成時は STYLE を先頭に付け、続けて `{skin_id}_prompt.txt` を貼る。参照画像（i2i）は使わない。
 
 - SUBJECT は §2（陣営色・共通ルール・各陣営 `style.md`）と [direction.md](direction.md) §2 のルールに沿って書く。
 - 歩兵ライン（ノービス／ファイター／ヴァンガード）は同一系統：剣のサイズ＋装甲の重さで段階化し、盾は持たせない（大盾はナイト専用）。系統感は SUBJECT 内の「same steel-blue palette / same face style as the fighter」で保つ。
@@ -122,7 +122,7 @@ SUBJECT（生成プロンプト本体）の置き場：
 ## 参考資料
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
-- [assets/units/source/player/style.md](../../assets/units/source/player/style.md) — 味方陣営の見た目ルール（役割の記号・27種の個体特徴）
+- [assets/units-src/player/style.md](../../assets/units-src/player/style.md) — 味方陣営の見た目ルール（役割の記号・27種の個体特徴）
 - [overview.md](overview.md) — 画像スロット（`map`/`combat`）・プレースホルダ
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [../gdd/combat.md](../gdd/combat.md) — 対空機構（飛行の浮遊必須ルールの根拠）
