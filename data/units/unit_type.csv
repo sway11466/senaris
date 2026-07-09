@@ -1,9 +1,9 @@
 id,atk_ground,atk_air,pierce,defense,move,move_type,range,move_after_attack,can_capture,max_troops,capacity,category,memo
 種別ID,対地,対空,貫通率,防御,移動,移動タイプ,射程,攻撃後移動,占領可,満員兵数,搭乗数,兵種,備考
-cleric,15,0,0,20,3,ground,1,false,true,8,0,占領兵,
+cleric,20,0,0,20,3,ground,1,false,true,8,0,占領兵,
 priest,40,0,0,20,2,ground,1,false,true,8,0,占領兵,
-bishop,10,0,0,40,3,ground,1,false,true,8,0,占領兵,
-paladin,50,0,0,40,5,ground,1,false,true,8,0,占領兵,
+bishop,20,0,0,40,2,ground,1,false,true,8,0,占領兵,
+paladin,50,0,0,50,5,ground,1,false,true,8,0,占領兵,
 archer,30,30,0,30,5,ground,2,false,false,8,0,弓兵,
 hunter,30,55,0,30,6,ground,3,false,false,8,0,弓兵,
 elf,30,80,0,10,5,forest_walk,5,false,false,8,0,弓兵,
@@ -19,7 +19,7 @@ birdman,70,20,0,30,10,flight,1,false,false,8,0,飛行兵,
 dragon,70,70,0,50,11,flight,1,false,false,8,0,飛行兵,敵のみの想定
 novice,45,0,0,30,5,ground,1,false,false,8,0,歩兵,
 fighter,50,0,0,40,6,ground,1,false,false,8,0,歩兵,
-vanguard,50,0,0,50,7,ground,1,false,false,8,0,歩兵,
+vanguard,55,0,0,50,6,ground,1,false,false,8,0,歩兵,
 samurai,70,0,0,50,5,ground,1,false,false,8,0,歩兵,
 knight,50,0,0,70,5,ground,1,false,false,8,0,歩兵,
 dwarf,60,0,0,60,4,mountain_walk,1,false,false,8,0,歩兵,

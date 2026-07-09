@@ -2,7 +2,7 @@
 	"types": [
 		{
 			"atk_air": 0,
-			"atk_ground": 15,
+			"atk_ground": 20,
 			"can_capture": true,
 			"capacity": 0,
 			"category": "占領兵",
@@ -34,7 +34,7 @@
 		},
 		{
 			"atk_air": 0,
-			"atk_ground": 10,
+			"atk_ground": 20,
 			"can_capture": true,
 			"capacity": 0,
 			"category": "占領兵",
@@ -42,7 +42,7 @@
 			"id": "bishop",
 			"max_troops": 8,
 			"memo": "",
-			"move": 3,
+			"move": 2,
 			"move_after_attack": false,
 			"move_type": "ground",
 			"pierce": 0,
@@ -54,7 +54,7 @@
 			"can_capture": true,
 			"capacity": 0,
 			"category": "占領兵",
-			"defense": 40,
+			"defense": 50,
 			"id": "paladin",
 			"max_troops": 8,
 			"memo": "",
@@ -306,7 +306,7 @@
 		},
 		{
 			"atk_air": 0,
-			"atk_ground": 50,
+			"atk_ground": 55,
 			"can_capture": false,
 			"capacity": 0,
 			"category": "歩兵",
@@ -314,7 +314,7 @@
 			"id": "vanguard",
 			"max_troops": 8,
 			"memo": "",
-			"move": 7,
+			"move": 6,
 			"move_after_attack": false,
 			"move_type": "ground",
 			"pierce": 0,
