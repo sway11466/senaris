@@ -45,11 +45,11 @@ away), and keep the bottom-right corner empty of anything important. Wide
 
 | 段階 | 置き場（`{campaign_id}`＝data/stages のフォルダ名） | 例 |
 |---|---|---|
-| ① AI生成直後（原寸・透かし入り） | `assets/campaign/source/{campaign_id}/{campaign_id}_01_raw.png` | `source/tutorial1-goblin-raid/tutorial1-goblin-raid_01_raw.png` |
-| SUBJECT | `assets/campaign/source/{campaign_id}/cover_prompt.txt` | 同上フォルダ |
+| ① AI生成直後（原寸・透かし入り） | `assets/campaign-src/{campaign_id}/{campaign_id}_01_raw.png` | `campaign-src/tutorial1-goblin-raid/tutorial1-goblin-raid_01_raw.png` |
+| SUBJECT | `assets/campaign-src/{campaign_id}/cover_prompt.txt` | 同上フォルダ |
 | ② ゲーム用（右15%クロップで透かし除去） | `assets/campaign/{campaign_id}/{campaign_id}_cover.png` | `tutorial1-goblin-raid_cover.png` |
 
-- ②は `assets/campaign/{campaign_id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`source/` は `.gdignore` で Godot 非インポート。
+- ②は `assets/campaign/{campaign_id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
 - クロップは右を落とす（透かしが右下・主題は中央〜左に寄せる構図ルールと一致）。1枚を大パネル＝クロップ後の全体、カード＝横帯クロップで使い回す。
 
 ---

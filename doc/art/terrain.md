@@ -38,11 +38,11 @@ visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
 
 | 段階 | 置き場（`{name}`＝terrain.csv の id） | 例（平地） |
 |---|---|---|
-| ① AI生成（正方・原寸） | `assets/terrain/source/{name}/` に任意名で複数 | `source/plain/plain_a.png` |
-| SUBJECT | `assets/terrain/source/{name}/{name}_prompt.txt` | `source/plain/plain_prompt.txt` |
+| ① AI生成（正方・原寸） | `assets/terrain-src/{name}/` に任意名で複数 | `terrain-src/plain/plain_a.png` |
+| SUBJECT | `assets/terrain-src/{name}/{name}_prompt.txt` | `terrain-src/plain/plain_prompt.txt` |
 | ② ゲーム用（ヘックス切り抜き・256×222・角透過） | `assets/terrain/{name}.png`（＋連番 `{name}_2.png` …） | `plain.png` / `plain_2.png` |
 
-- ②は正方の生成物を [`../../tools/gen_terrain_tile.ps1`](../../tools/gen_terrain_tile.ps1) でヘックス切り抜き＝`powershell -File tools\gen_terrain_tile.ps1 {name} <src1> <src2> …`（1枚目→`{name}.png`、以降→`_2`,`_3`）。`source/` は `.gdignore` で Godot 非インポート。
+- ②は正方の生成物を [`../../tools/gen_terrain_tile.ps1`](../../tools/gen_terrain_tile.ps1) でヘックス切り抜き＝`powershell -File tools\gen_terrain_tile.ps1 {name} <src1> <src2> …`（1枚目→`{name}.png`、以降→`_2`,`_3`）。`terrain-src/` は `.gdignore` で Godot 非インポート。
 - 【指針】平地・森・山など向きの無い地形は、将来ヘックスごとの60°回転で反復をさらに消せる（回転可否は道・砦・壁・柵を除外＝要フラグ。terrain.csv に列追加で対応）。
 
 ---

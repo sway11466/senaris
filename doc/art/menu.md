@@ -44,7 +44,7 @@ big focal object. Keep large-scale contrast LOW so it tiles without an obvious
 repeat.
 ```
 
-SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu/source/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
+SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu-src/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
 
 透かし（生成サービスが付ける sparkle マーク）はプロンプトで禁止しない。"watermark" の語は生成エラーを誘発し、否定形で書いても消えない（サービスが必ず付与する）＝後処理（Photopea 等）で master 化のときに除去する。
 
@@ -54,8 +54,8 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 
 | 段階 | 置き場 | 例 |
 |---|---|---|
-| ① AI生成（原寸・作業） | `assets/menu/source/{name}/` に任意名で複数 | `source/wall/wall_a.png` |
-| SUBJECT | `assets/menu/source/{name}/{name}_prompt.txt` | `source/wall/wall_prompt.txt` |
+| ① AI生成（原寸・作業） | `assets/menu-src/{name}/` に任意名で複数 | `menu-src/wall/wall_a.png` |
+| SUBJECT | `assets/menu-src/{name}/{name}_prompt.txt` | `menu-src/wall/wall_prompt.txt` |
 | ② ゲーム用（正・autowire） | `assets/menu/{name}.png` | `wall.png` / `board.png` / `parchment.png` / `grunge.png` |
 
 - ②を置けば `tavern_theme.gd` が規約で拾う。`source/` は `.gdignore` で Godot 非インポート。
