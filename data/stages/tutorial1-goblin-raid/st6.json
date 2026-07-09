@@ -42,5 +42,21 @@
         { "skin": "hobgoblin", "col": 24, "row": 4 },
         { "skin": "goblin_archer", "col": 26, "row": 4 }
       ] }
-  ]
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st6.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.intro.2" },
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st6.intro.3" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st6.intro.4" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st6.intro.5" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.intro.6" }
+    ],
+    "outro": [
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.outro.1" },
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st6.outro.2" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st6.outro.3" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.outro.4" }
+    ]
+  }
 }

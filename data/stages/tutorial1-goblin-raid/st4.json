@@ -37,5 +37,21 @@
   ],
   "bases": [
     { "col": 9, "row": 6, "team": "neutral", "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
-  ]
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st4.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st4.intro.2" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.intro.3" },
+      { "speaker": "char.cleric.name", "skin": "cleric",   "text": "t1.st4.intro.4" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.intro.5" }
+    ],
+    "outro": [
+      { "speaker": "char.cleric.name", "skin": "cleric",   "text": "t1.st4.outro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st4.outro.2" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.outro.3" },
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st4.outro.4" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.outro.5" }
+    ]
+  }
 }

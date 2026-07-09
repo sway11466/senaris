@@ -31,5 +31,21 @@
       { "skin": "hobgoblin", "col": 15, "row": 4 },
       { "skin": "hobgoblin", "col": 15, "row": 5 }
     ] }
-  ]
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st3.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st3.intro.2" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st3.intro.3" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st3.intro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st3.intro.5" }
+    ],
+    "outro": [
+      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st3.outro.1" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st3.outro.2" },
+      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st3.outro.3" },
+      { "speaker": "char.cleric.name", "skin": "cleric",   "text": "t1.st3.outro.4" },
+      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st3.outro.5" }
+    ]
+  }
 }
