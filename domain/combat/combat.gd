@@ -107,7 +107,7 @@ static func effective_defense(state: BattleState, u: Unit, enemy: Unit, melee :=
 
 ## u の味方（u自身を除く）で enemy に隣接しているものからの支援合計。
 ## is_attack=true で攻撃支援（味方のユニット攻撃力）、false で防御支援（味方のユニット防御力）。
-## 支援量は味方の素の値（兵数 × ステータス × 0.5）。経験・包囲などの補正は含めない。
+## 支援量は味方の素の値（兵数 × ステータス × SUPPORT_RATE＝0.25）。経験・包囲などの補正は含めない。
 static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) -> float:
 	var total := 0.0
 	for ally in state.units():

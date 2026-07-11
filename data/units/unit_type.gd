@@ -15,7 +15,7 @@ var atk_air: int         ## 対空攻撃（0＝対空不可＝飛行を攻撃・
 var pierce: float        ## 防御貫通率（攻撃時に相手の実効防御を pierce ぶん減らす。0=なし・0.5=半減）
 var defense: int         ## 防御
 var move: int            ## 移動力
-var move_type: String    ## 移動タイプ（"ground"/"air"…）。※実装は将来
+var move_type: String    ## 移動タイプ（movement表のキー。"ground"/"flight"…）
 var attack_range: int    ## 射程。1=近接、>1=間接
 var move_after_attack: bool  ## 攻撃後に再移動できるか（ヒット&アウェイ）
 var can_capture: bool    ## 占領可否

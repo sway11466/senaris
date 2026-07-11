@@ -81,7 +81,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 
 段階実装の方針:
 
-- **フェーズ1（実装済み）— カメラ操作** （[../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd)）
+- **フェーズ1（実装済み）— カメラ操作** （[../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）
   - パン＝**2本指スクロール**、または**空き地から左ドラッグ**（左ドラッグはクリック／ドラッグをしきい値 `DRAG_THRESHOLD` で判別。ユニット上からのドラッグはパンしない）。
   - ズーム＝**ピンチ**（カーソル基点）。全体表示＝**F**。読み込み時に自動フィット。
   - **Windows トラックパッドのイベント実測（Godot 4.7）**: ピンチ＝`Ctrl＋ホイール`、2本指スクロール＝`修飾なしホイール`（縦=WHEEL_UP/DOWN・横=WHEEL_LEFT/RIGHT）で届く。**Ctrl の有無で判別**し、修飾なし＝パン／Ctrl付き＝ズームに割り当てている（ブラウザの zoom と同じ流儀）。

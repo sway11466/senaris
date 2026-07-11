@@ -88,7 +88,7 @@
   - `charge`＝出せるなら即（突撃）／`sight:N`＝拠点から距離N内に敵が来たら開始（待機・潜伏）。
 - 起動したら、**出撃条件を満たす限り“出せるだけ”出す**（そのターンに空き隣接が埋まる／garrison が尽きるまで＝1ターンの実質上限は空き隣接の数）。出す先は最寄り敵に近い空きマスから。出した駒はそのターン行動完了で、**次から拠点の preset で戦う**（＝拠点は1つの squad）。
 - **全体の上限**は garrison の頭数（敵AIは「入る」を使わない＝補充されない）。
-- 実装状況: **未実装**（engage 判定を拠点基準へ再利用＋`AiAction` に deploy を足すのがこれから）。
+- 実装状況: **実装済み**（`NearestAttackerBrain._try_deploy`＋`BattleState.deploy`/`can_deploy_garrison`／`AiAction.deploy`。engage 判定を拠点基準へ再利用。デバッグ: `data/stages/debug/spawn.json`・テスト `tests/unit/test_ai.gd`）。
 
 ---
 
