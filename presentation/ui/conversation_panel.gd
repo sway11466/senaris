@@ -9,12 +9,12 @@ class_name ConversationPanel
 
 signal closed  # 会話終了（読了 or スキップ）。呼び出し側が次（戦闘/セレクト）へ進む。
 
-const FACE_SIZE := 112   # 顔（絵）の幅。高さは絵の縦横比で伸びる（縦長可）
+const FACE_SCALE := 0.33   # キャラ絵の表示倍率。全キャラ共通の固定比＝相対サイズ（大型は大きい）を維持
 const COLOR_BUBBLE_L := Color(0.22, 0.25, 0.31)  # 左（相手側）の吹き出し
 const COLOR_BUBBLE_R := Color(0.17, 0.33, 0.29)  # 右の吹き出し（色で左右を区別）
 const COLOR_FACE_BG := Color(0.28, 0.32, 0.40)
 const COLOR_NAME := Color(0.75, 0.82, 0.92)
-const BUBBLE_RATIO := 4.0   # 吹き出しと余白の幅比（顔が大きい分、吹き出しを広めに）
+const BUBBLE_RATIO := 6.0   # 吹き出しと余白の幅比（余白を詰めて吹き出しを広めに）
 
 var _skins := {}
 var _lines: Array = []
@@ -37,7 +37,7 @@ func _ready() -> void:
 	add_child(_scroll)
 	_messages = VBoxContainer.new()
 	_messages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_messages.add_theme_constant_override("separation", 8)
+	_messages.add_theme_constant_override("separation", 4)
 	_scroll.add_child(_messages)
 
 	var bar := HBoxContainer.new()
@@ -107,8 +107,9 @@ func _add_message(line: Dictionary, index: int) -> void:
 	var right := index % 2 == 1
 	var row := HBoxContainer.new()  # 行に背景は付けず、セリフだけを吹き出しで囲む
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_theme_constant_override("separation", 6)
+	row.add_theme_constant_override("separation", 0)  # 顔の透過余白＋しっぽで間が取れるので0
 	var face := _make_face(String(line.get("skin", "")))
+	var tail := _make_tail(right)  # 吹き出しのしっぽ（顔の側を指す三角）
 	var bubble := _make_bubble(line, right)  # 丸角バルーン
 	bubble.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bubble.size_flags_stretch_ratio = BUBBLE_RATIO
@@ -118,12 +119,27 @@ func _add_message(line: Dictionary, index: int) -> void:
 	if right:
 		row.add_child(gap)
 		row.add_child(bubble)
+		row.add_child(tail)
 		row.add_child(face)
 	else:
 		row.add_child(face)
+		row.add_child(tail)
 		row.add_child(bubble)
 		row.add_child(gap)
 	_messages.add_child(row)
+
+## 吹き出しのしっぽ（三角）。バルーンの顔側の縁に付け、顔の方向を指す。色はバルーンと同じ。
+## MarginContainer の上マージンで少し下げる（名前の下＝本文あたりに付く）。
+func _make_tail(right: bool) -> Control:
+	var mc := MarginContainer.new()
+	mc.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	mc.add_theme_constant_override("margin_top", 18)
+	var t := _Tail.new()
+	t.color = COLOR_BUBBLE_R if right else COLOR_BUBBLE_L
+	t.points_left = not right  # 左話者＝顔が左＝左向き
+	t.custom_minimum_size = Vector2(10, 22)
+	mc.add_child(t)
+	return mc
 
 ## ふきだし＝丸角バルーン（話者名＋セリフ）。翻訳キーは tr() で解決。左右で色を変える。
 func _make_bubble(line: Dictionary, right: bool) -> Control:
@@ -131,7 +147,7 @@ func _make_bubble(line: Dictionary, right: bool) -> Control:
 	var st := StyleBoxFlat.new()
 	st.bg_color = COLOR_BUBBLE_R if right else COLOR_BUBBLE_L
 	st.set_corner_radius_all(12)  # 丸角＝吹き出しらしさ
-	st.set_content_margin_all(10)
+	st.set_content_margin_all(8)
 	balloon.add_theme_stylebox_override("panel", st)
 	var vb := VBoxContainer.new()
 	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -150,24 +166,36 @@ func _make_bubble(line: Dictionary, right: bool) -> Control:
 	balloon.add_child(vb)
 	return balloon
 
-## 顔＝キャラの絵（portrait 優先／無ければ map スプライトを流用）を背景枠なしで大きく載せる。
-## 幅=FACE_SIZE 固定、高さは絵の縦横比で伸びる（縦長可）。透過はそのまま活きる（座布団なし）。
-## 絵が無い時だけ、名前2文字の小さなプレースホルダ枠を出す。上寄せ固定＝行が高くても伸びない。
+## 顔＝キャラの絵（portrait 優先／無ければ map スプライトを流用）。
+## レイアウトは「基準枠」＝左右 FACE_INSET_X を詰めた中央ぶんの場所だけ取り、絵は 256 全体を描く。
+## 通常キャラは枠外が透過で違和感なし／大型キャラは体が枠外（吹き出し側）へはみ出して見える。
+## 背景枠なし・上寄せ固定＝行が高くても伸びない。絵が無い時だけ名前2文字のプレースホルダ枠を出す。
 func _make_face(skin_id: String) -> Control:
 	var sk := SkinCatalog.skin_by_id(_skins, skin_id)
 	var path := _face_image(sk)
 	if path != "":
+		var src := load(path) as Texture2D
+		var full := src.get_size()
+		var bbox := Rect2(Vector2.ZERO, full)  # キャラ実体（非透過部分）の外接矩形
+		var img := src.get_image()
+		if img != null:
+			var used := img.get_used_rect()
+			if used.size.x > 0 and used.size.y > 0:
+				bbox = Rect2(used.position, used.size)
+		var atlas := AtlasTexture.new()  # 実体の外接矩形だけ表示＝周囲の透明余白を除く（キャラは1pxも切らない）
+		atlas.atlas = src
+		atlas.region = bbox
 		var tex := TextureRect.new()
-		tex.texture = load(path)
-		tex.custom_minimum_size = Vector2(FACE_SIZE, FACE_SIZE)  # 大きめの正方枠（背景なし＝透過そのまま）
+		tex.texture = atlas
+		tex.custom_minimum_size = bbox.size * FACE_SCALE  # 固定倍率＝相対サイズ維持・左右の隙間なし
 		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED  # 縦横比を保って枠内に収める（クリップしない）
+		tex.stretch_mode = TextureRect.STRETCH_SCALE
 		tex.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		tex.size_flags_vertical = Control.SIZE_SHRINK_BEGIN  # 上寄せ・行が高くても伸びない
 		return tex
 	# プレースホルダ（絵が無い時だけ）: 小さな色枠＋名前2文字
 	var box := Panel.new()
-	box.custom_minimum_size = Vector2(FACE_SIZE, FACE_SIZE)
+	box.custom_minimum_size = Vector2(64, 64)
 	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var st := StyleBoxFlat.new()
 	st.bg_color = COLOR_FACE_BG
@@ -190,3 +218,21 @@ func _face_image(sk: UnitSkin) -> String:
 		if p != "" and ResourceLoader.exists(p):
 			return p
 	return ""
+
+## 吹き出しのしっぽ＝小さな三角。points_left で向き（顔の側）を変える。バルーンと同色。
+class _Tail extends Control:
+	var color := Color.WHITE
+	var points_left := true
+
+	func _init() -> void:
+		resized.connect(queue_redraw)  # コンテナにサイズを与えられたら描き直す
+
+	func _draw() -> void:
+		var w := size.x
+		var h := size.y
+		var pts: PackedVector2Array
+		if points_left:  # 頂点が左（顔が左）、底辺が右＝バルーン側
+			pts = PackedVector2Array([Vector2(w, 0), Vector2(0, h * 0.5), Vector2(w, h)])
+		else:            # 頂点が右（顔が右）
+			pts = PackedVector2Array([Vector2(0, 0), Vector2(w, h * 0.5), Vector2(0, h)])
+		draw_colored_polygon(pts, color)
