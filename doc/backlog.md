@@ -47,19 +47,6 @@
 - 対応：残す（＝使い所のガイドラインを決める）か、削る（＝type 追加で表現に統一）かを決める。決めるまで実ステージでは使わない。
 - 該当：`application/stage_loader.gd`（`_make_unit` の `u.get("atk", ...)` 系）・`data/stages/*.json`（利用箇所は現状なし）。
 
-### refactoring-2
-
-**地形も性能と見た目を分離（terrain_type / terrain_skin）**（優先度：中）
-
-- 背景：ユニットは性能(`UnitType`)と見た目(`UnitSkin`)を分離済み（[units.md](gdd/units.md) §1・skin_id 方式）。地形は今 `data/terrain/terrain.csv` 1枚に性能(char・atk・def・移動コスト連携)と見た目(name・image)が同居。動機は主にテーマ差し替えではなく、地形が増えると ASCII マップ表記（1文字）が破綻すること。一般SLGは見た目マップと性能マップを分けて作り、skin は一意idでツール(マップエディタ)から扱う。
-- 方針（オーナー確定）：
-  - skin→type は 1:1（ユニット同型）。各 type に既定スキン（`skin_id == type`）を1枚持つ。
-  - 見た目はマップ全体テーマではなく、ステージJSONの `terrain_skins`＝座標→skin_id の差分列挙。未指定セルは type の既定スキンにフォールバック（暫定）。
-  - ランタイムは案P：skin は presentation のみ。`BattleState` は skin を持たず、純ロジック（combat/surround/movement/AI）は skin ブラインドのまま。skin の定義カタログは静的（`TerrainSkinCatalog`）、セル→skin 差分マップは `hex_board` が保持（StageLoader がパースして main→board へ渡す）。
-  - 画像は autowire（`assets/terrain/{skin_id}.png` フラット＋変種 `_2`/`_3`）でCSVにパスを書かない。回転/反転可否（orientable）は skin データへ（hex_board の `_ORIENTABLE_TERRAIN` ハードコード撤去）。
-- 対応：`terrain.csv`→`terrain_type.csv`（性能＝id・char・atk・def）＋`terrain_skin.csv`（見た目＝skin_id・terrain_type・name・orientable）に分割。class `Terrain`→`TerrainType`。`convert.gd` が terrain_type.json＋terrain_skin.json を生成＋検証（skin_id 一意・terrain_type 参照整合・各 type に既定スキン）。`data/movement/convert.gd` の terrain.csv 参照を terrain_type.csv に更新（放置すると movement 全コスト列が弾かれる）。
-- 該当：`data/terrain/`（csv/gd/json/convert）・`data/movement/convert.gd`・`domain/combat/combat.gd`・`domain/battle_state.gd`・`application/stage_loader.gd`・`presentation/board/hex_board.gd`・`presentation/ui/unit_info_panel.gd`・`tests/unit/test_data_integrity.gd`＋新規テスト。参考モデル＝[units.md](gdd/units.md) §1。
-
 ### refactoring-3
 
 **ユニットも skin を純ロジックから切り離す（案P 化）**（優先度：低）
