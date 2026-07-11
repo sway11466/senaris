@@ -1,7 +1,7 @@
 extends RefCounted
 class_name Unit
 ## 盤上のユニット1体（＝小隊）の状態。純データ・ノード非依存。
-## 見た目は持たない（描画は presentation 側が team/pos から決める）。
+## skin_id だけは presentation 専用の同乗データ（純ロジック＝combat/surround/movement/AI は読まない）。
 ## 詳細 → doc/gdd/combat.md
 
 const MAX_LEVEL := 8   ## 経験値（＝レベル）の上限

@@ -47,14 +47,6 @@
 - 対応：残す（＝使い所のガイドラインを決める）か、削る（＝type 追加で表現に統一）かを決める。決めるまで実ステージでは使わない。
 - 該当：`application/stage_loader.gd`（`_make_unit` の `u.get("atk", ...)` 系）・`data/stages/*.json`（利用箇所は現状なし）。
 
-### refactoring-3
-
-**ユニットも skin を純ロジックから切り離す（案P 化）**（優先度：低）
-
-- 背景：地形は refactoring-2 で見た目(skin)を domain から完全に外した（案P＝skin は presentation のみ・`BattleState` は skin を持たない）。一方ユニットは domain の `Unit.skin_id` に skin を同乗させている（`battle_state.gd` のセーブ列にも乗る）。純ロジック（combat/surround/movement/AI）は skin_id を読まない不変条件は満たしているが、地形と方針が揃っていない。
-- 対応：ユニットの skin 解決も presentation 側に寄せられるか検討する（`Unit` から `skin_id` を外し、描画は `unit_id → skin_id` の対応を presentation で持つ）。占領＝寝返り（team 反転時のスキン再解決）とセーブ（skin をどこに永続化するか）が論点＝地形セルは静的なので単純だったが、ユニットは移動・寝返り・直列化があるため単純移設にはならない。方針だけ先に決め、実装は影響範囲を見てから。
-- 該当：`domain/unit/unit.gd`（`skin_id`）・`domain/battle_state.gd`（シリアライズ列）・`application/stage_loader.gd`（skin 解決）・`presentation/`（skin の持ち場所）。参考＝refactoring-2 の案P。
-
 ## parking lot
 
 後回し・いつかやる候補の置き場（特定の作業に紐付かない将来アイデア）。着手が決まった段で機能追加・リファクタリングへ引き上げる。
