@@ -17,7 +17,7 @@ var _art: ColorRect                    # 左＝冒険譚の絵（絵が無けれ
 var _art_label: Label
 var _art_texture: TextureRect          # 冒険譚の扉絵（cover_path があれば表示）
 var _stage_list: VBoxContainer         # 右＝縦リスト
-var _briefing: ConfirmationDialog
+var _briefing: QuestSheet
 var _pending := {}  # ブリーフィング表示中のステージ { campaign_id, stage_id, path }
 
 func _ready() -> void:
@@ -87,9 +87,7 @@ func _ready() -> void:
 	_stage_list.add_theme_constant_override("separation", 8)
 	stage_scroll.add_child(_stage_list)
 
-	_briefing = ConfirmationDialog.new()
-	_briefing.ok_button_text = "出撃"
-	_briefing.cancel_button_text = "戻る"
+	_briefing = QuestSheet.new()
 	_briefing.confirmed.connect(_on_sortie)
 	add_child(_briefing)
 
@@ -144,9 +142,7 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 		"stage_id": String(s["id"]),
 		"path": String(s["path"]),
 	}
-	_briefing.title = String(s["title"])
-	_briefing.dialog_text = "「%s」に出撃しますか？" % s["title"]
-	_briefing.popup_centered()
+	_briefing.open(String(s["title"]))
 
 func _on_sortie() -> void:
 	if _pending.is_empty():

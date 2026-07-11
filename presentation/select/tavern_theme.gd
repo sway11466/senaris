@@ -167,6 +167,22 @@ static func parchment_stylebox(seed := 0, bright := 1.0) -> StyleBox:
 	sb.set_content_margin_all(0)
 	return sb
 
+## 依頼書（出撃確認ダイアログの紙）。parchment_sheet.png があればテクスチャ、無ければクリーム地。
+## テクスチャは QuestSheet.SHEET_SIZE と同寸で焼く（中央タイルが1:1）→ doc/art/menu.md
+static func sheet_stylebox() -> StyleBox:
+	var tex := _tex("parchment_sheet")
+	if tex != null:
+		return _texture_box(tex, 8, 0)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = PARCHMENT
+	sb.set_border_width_all(2)
+	sb.border_color = PARCHMENT_EDGE
+	sb.set_corner_radius_all(3)
+	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
+	sb.shadow_size = 12
+	sb.shadow_offset = Vector2(4, 6)
+	return sb
+
 ## ナインパッチのテクスチャ StyleBox（縁は固定・中央はタイルで伸ばす＝素材が歪まない）。
 static func _texture_box(tex: Texture2D, edge: int, content: int) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()
@@ -189,6 +205,60 @@ static func plaque_stylebox() -> StyleBoxFlat:
 	sb.set_content_margin(SIDE_RIGHT, 18)
 	sb.set_content_margin(SIDE_TOP, 6)
 	sb.set_content_margin(SIDE_BOTTOM, 6)
+	return sb
+
+## 封蝋色の主ボタン（依頼書の「出撃」など）。
+static func wax_button(text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(140, 44)
+	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_color_override("font_color", Color(0.96, 0.90, 0.76))
+	b.add_theme_color_override("font_hover_color", Color(1.0, 0.96, 0.85))
+	b.add_theme_color_override("font_pressed_color", Color(0.90, 0.82, 0.68))
+	b.add_theme_stylebox_override("normal", _wax_box(WAX))
+	b.add_theme_stylebox_override("hover", _wax_box(WAX.lightened(0.12)))
+	b.add_theme_stylebox_override("pressed", _wax_box(WAX.darkened(0.2)))
+	return b
+
+static func _wax_box(bg: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0.34, 0.06, 0.05)
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin(SIDE_LEFT, 24)
+	sb.set_content_margin(SIDE_RIGHT, 24)
+	sb.set_content_margin(SIDE_TOP, 8)
+	sb.set_content_margin(SIDE_BOTTOM, 8)
+	return sb
+
+## 控えめなインク縁ボタン（依頼書の「戻る」など・羊皮紙の上に置く）。
+static func ink_button(text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(140, 44)
+	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_color_override("font_color", INK)
+	b.add_theme_color_override("font_hover_color", INK)
+	b.add_theme_color_override("font_pressed_color", INK_SOFT)
+	b.add_theme_stylebox_override("normal", _ink_box(Color(INK, 0.0)))
+	b.add_theme_stylebox_override("hover", _ink_box(Color(INK, 0.08)))
+	b.add_theme_stylebox_override("pressed", _ink_box(Color(INK, 0.15)))
+	return b
+
+static func _ink_box(bg: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.set_border_width_all(2)
+	sb.border_color = INK_SOFT
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin(SIDE_LEFT, 24)
+	sb.set_content_margin(SIDE_RIGHT, 24)
+	sb.set_content_margin(SIDE_TOP, 8)
+	sb.set_content_margin(SIDE_BOTTOM, 8)
 	return sb
 
 # --- 装飾パーツ ---
