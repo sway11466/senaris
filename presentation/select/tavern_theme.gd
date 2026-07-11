@@ -183,6 +183,36 @@ static func sheet_stylebox() -> StyleBox:
 	sb.shadow_offset = Vector2(4, 6)
 	return sb
 
+## 常設パネル（戦闘画面の右情報エリアなど）＝暗い木の看板。
+## 材質ルール: 羊皮紙＝手渡される紙（ダイアログ・依頼書）／木＝常設の面（ボード・パネル）。
+## wall.png を暗めに沈めてタイル敷き、無ければベタ塗り木色へフォールバック。
+static func signboard_stylebox() -> StyleBox:
+	var tex := _tex("wall")
+	if tex != null:
+		var sb := StyleBoxTexture.new()
+		sb.texture = tex
+		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE
+		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE
+		sb.modulate_color = Color(0.62, 0.58, 0.55)  # 盤面より一段暗く沈める
+		return sb
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.16, 0.11, 0.07)
+	sb.set_corner_radius_all(6)
+	return sb
+
+## 看板の彫り枠（パネルの最前面に重ねる縁だけの飾り・クリック透過）。
+static func signboard_frame() -> Control:
+	var frame := Panel.new()
+	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.draw_center = false
+	sb.set_border_width_all(4)
+	sb.border_color = BOARD_FRAME
+	sb.set_corner_radius_all(6)
+	frame.add_theme_stylebox_override("panel", sb)
+	return frame
+
 ## ナインパッチのテクスチャ StyleBox（縁は固定・中央はタイルで伸ばす＝素材が歪まない）。
 static func _texture_box(tex: Texture2D, edge: int, content: int) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()

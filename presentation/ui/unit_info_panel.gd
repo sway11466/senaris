@@ -9,6 +9,9 @@ var _skins := {}        # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 var _label: Label
 
 func _ready() -> void:
+	# 暗い木の看板（材質ルール: 木＝常設の面。TavernTheme 参照）
+	add_theme_stylebox_override("panel", TavernTheme.signboard_stylebox())
+	add_child(TavernTheme.signboard_frame())
 	_label = Label.new()
 	_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_label.offset_left = 16

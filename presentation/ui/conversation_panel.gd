@@ -58,10 +58,9 @@ func _ready() -> void:
 	_next_btn.pressed.connect(_on_next)
 	bar.add_child(_next_btn)
 
-	var panel_bg := StyleBoxFlat.new()  # 不透明背景＝下の InfoPanel を透かさない
-	panel_bg.bg_color = Color(0.11, 0.13, 0.17)
-	panel_bg.set_corner_radius_all(6)
-	add_theme_stylebox_override("panel", panel_bg)
+	# 暗い木の看板（不透明＝下の InfoPanel を透かさない。材質ルールは TavernTheme 参照）
+	add_theme_stylebox_override("panel", TavernTheme.signboard_stylebox())
+	add_child(TavernTheme.signboard_frame())
 	hide()
 
 ## スキン表を渡す（main から1回）。
