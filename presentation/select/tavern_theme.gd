@@ -264,6 +264,50 @@ static func _wax_box(bg: Color) -> StyleBoxFlat:
 	sb.set_content_margin(SIDE_BOTTOM, 8)
 	return sb
 
+## 木の板ボタン（看板・HUD用）。plank.png があれば1枚板、無ければベタ塗り木色。
+## ナインパッチ縁幅（L6/T5/R6/B5）は plank.png（256x96）のベベル実測
+## ＝master（1376x768・L31/T41/R39/B39）を縮小した値。絵を差し替えたら測り直す。
+static func wood_button(text: String) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.focus_mode = Control.FOCUS_NONE
+	b.add_theme_color_override("font_color", Color(0.90, 0.82, 0.62))
+	b.add_theme_color_override("font_hover_color", Color(0.98, 0.92, 0.74))
+	b.add_theme_color_override("font_pressed_color", Color(0.80, 0.72, 0.54))
+	b.add_theme_stylebox_override("normal", _plank_box(1.0))
+	b.add_theme_stylebox_override("hover", _plank_box(1.12))
+	b.add_theme_stylebox_override("pressed", _plank_box(0.85))
+	return b
+
+static func _plank_box(bright: float) -> StyleBox:
+	var tex := _tex("plank")
+	if tex != null:
+		var sb := StyleBoxTexture.new()
+		sb.texture = tex
+		sb.set_texture_margin(SIDE_LEFT, 6)
+		sb.set_texture_margin(SIDE_TOP, 5)
+		sb.set_texture_margin(SIDE_RIGHT, 6)
+		sb.set_texture_margin(SIDE_BOTTOM, 5)
+		# ベベルはまっすぐ・低コントラストの木目なので、辺も中央も素直に引き伸ばす
+		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		sb.modulate_color = Color(bright, bright, bright, 1.0)
+		sb.set_content_margin(SIDE_LEFT, 16)
+		sb.set_content_margin(SIDE_RIGHT, 16)
+		sb.set_content_margin(SIDE_TOP, 6)
+		sb.set_content_margin(SIDE_BOTTOM, 6)
+		return sb
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.24, 0.16, 0.10) * Color(bright, bright, bright, 1.0)
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0.13, 0.08, 0.05)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin(SIDE_LEFT, 16)
+	sb.set_content_margin(SIDE_RIGHT, 16)
+	sb.set_content_margin(SIDE_TOP, 6)
+	sb.set_content_margin(SIDE_BOTTOM, 6)
+	return sb
+
 ## 控えめなインク縁ボタン（依頼書の「戻る」など・羊皮紙の上に置く）。
 static func ink_button(text: String) -> Button:
 	var b := Button.new()

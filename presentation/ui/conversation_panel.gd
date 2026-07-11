@@ -48,12 +48,10 @@ func _ready() -> void:
 	bar.offset_bottom = -10
 	bar.add_theme_constant_override("separation", 8)
 	add_child(bar)
-	_skip_btn = Button.new()
-	_skip_btn.text = "会話をスキップ"
+	_skip_btn = TavernTheme.wood_button("会話をスキップ")
 	_skip_btn.pressed.connect(_on_skip)
 	bar.add_child(_skip_btn)
-	_next_btn = Button.new()
-	_next_btn.text = "次へ ▶"
+	_next_btn = TavernTheme.wood_button("次へ ▶")
 	_next_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_next_btn.pressed.connect(_on_next)
 	bar.add_child(_next_btn)
