@@ -6,7 +6,10 @@ extends Control
 ## 個別上書きキー（move/troops/atk 等）は編集しない方針（ステージは type/skin の素の性能で組む）。
 ## 製品には含めない（tools/ は export プリセットの除外対象にする）。
 
+const CsvUtil := preload("res://data/csv_util.gd")  # skin の分類（category）は CSV の参考列＝JSONに無いので直接読む
+
 const STAGES_DIR := "res://data/stages"
+const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
 const MODE_LABELS := { "select": "選択", "terrain": "地形", "player": "自軍", "enemy": "敵", "base": "拠点" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
 const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
@@ -17,15 +20,19 @@ var _mode := "terrain"
 
 # カタログ（表示順は定義ファイル順）
 var _terrains: Array = []    # [{ id, char, memo }]
-var _unit_types: Array = []  # [type_id]
-var _skins: Array = []       # [{ skin_id, type_id }]
+var _unit_types: Array = []  # [{ id, category }]
+var _categories: Array = []  # 分類（category）の一覧（出現順）
+var _skins: Array = []           # [{ skin_id, type_id, category }]（CSV順＝分類ごとに整列済み）
+var _skin_categories: Array = [] # 敵パレット用の分類一覧（基準を除く・出現順）
 var _ai_presets: Array = []  # [label]
 var _ai_names := {}          # label -> 表示名
 
 # パレット選択状態
 var _sel_terrain := 0
-var _sel_type := 0
-var _sel_skin := 0
+var _sel_category := ""  # 自軍パレットの分類絞り込み（空=すべて）
+var _sel_type_id := ""   # 配置する自軍ユニットの type_id
+var _sel_skin_id := ""       # 配置する敵ユニットの skin_id
+var _sel_skin_category := "" # 敵パレットの分類絞り込み（空=すべて）
 var _sel_squad := 0
 var _base_team := "enemy"
 var _base_kind := "fort"
@@ -68,12 +75,19 @@ func _load_catalogs() -> void:
 		_terrains.append({ "id": String(t["id"]), "char": String(t.get("char", "?")), "memo": String(t.get("memo", "")) })
 	var ut: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/units/unit_type.json"))
 	for t in ut.get("types", []):
-		_unit_types.append(String(t["id"]))
-	var us: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/units/unit_skin.json"))
-	for type_id in us.get("skins", {}):
-		for side in ["ally", "enemy"]:
-			for s in us["skins"][type_id].get(side, []):
-				_skins.append({ "skin_id": String(s.get("skin_id", "")), "type_id": String(type_id) })
+		var cat := String(t.get("category", ""))
+		_unit_types.append({ "id": String(t["id"]), "category": cat })
+		if cat != "" and not _categories.has(cat):
+			_categories.append(cat)
+	if not _unit_types.is_empty():
+		_sel_type_id = String(_unit_types[0]["id"])
+	for r in CsvUtil.read_table("res://data/units/unit_skin.csv"):
+		var cat := String(r.get("category", ""))
+		_skins.append({ "skin_id": String(r["skin_id"]), "type_id": String(r["type_id"]), "category": cat })
+		if cat != "" and cat != STANDARD_CATEGORY and not _skin_categories.has(cat):
+			_skin_categories.append(cat)
+		if _sel_skin_id == "" and cat != STANDARD_CATEGORY:
+			_sel_skin_id = String(r["skin_id"])  # 敵パレットの初期値＝基準以外の先頭
 	var ai := AiCatalog.load_default()
 	for label in ai:
 		_ai_presets.append(String(label))
@@ -284,11 +298,23 @@ func _set_mode(mode: String) -> void:
 			_mode_box.add_child(list)
 		"player":
 			_add_hint(_mode_box, "左クリック＝配置 / 右クリック＝駒を削除")
+			# 分類（category）で絞ってから種別を選ぶ
+			_mode_box.add_child(_labeled_option("分類", [""] + _categories, ["すべて"] + _categories, _sel_category,
+				func(k: String) -> void:
+					_sel_category = k
+					_set_mode("player")))
+			var ids := []
+			for t in _unit_types:
+				if _sel_category == "" or String(t["category"]) == _sel_category:
+					ids.append(String(t["id"]))
+			if not ids.has(_sel_type_id) and not ids.is_empty():
+				_sel_type_id = String(ids[0])  # 絞り込みで外れたら先頭にフォールバック
 			var ob := OptionButton.new()
-			for id in _unit_types:
-				ob.add_item(id)
-			ob.select(_sel_type)
-			ob.item_selected.connect(func(i: int) -> void: _sel_type = i)
+			for i in ids.size():
+				ob.add_item(ids[i])
+				if String(ids[i]) == _sel_type_id:
+					ob.select(i)
+			ob.item_selected.connect(func(i: int) -> void: _sel_type_id = String(ids[i]))
 			_mode_box.add_child(ob)
 		"enemy":
 			_build_enemy_palette()
@@ -389,12 +415,29 @@ func _build_enemy_palette() -> void:
 	var ai_opts := _ai_options(false)
 	_mode_box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(sq.get("ai", "")),
 		func(k: String) -> void: sq["ai"] = k))
-	# 配置するスキン
+	# 配置するスキン：分類で絞ってから選ぶ（基準＝味方専用スキンは出さない）
+	_mode_box.add_child(_labeled_option("分類", [""] + _skin_categories, ["すべて"] + _skin_categories, _sel_skin_category,
+		func(k: String) -> void:
+			_sel_skin_category = k
+			_set_mode("enemy")))
+	var pool := []
+	for s in _skins:
+		if String(s["category"]) == STANDARD_CATEGORY:
+			continue
+		if _sel_skin_category != "" and String(s["category"]) != _sel_skin_category:
+			continue
+		pool.append(s)
+	var pool_ids := []
+	for s in pool:
+		pool_ids.append(String(s["skin_id"]))
+	if not pool_ids.has(_sel_skin_id) and not pool_ids.is_empty():
+		_sel_skin_id = String(pool_ids[0])  # 絞り込みで外れたら先頭にフォールバック
 	var skin_ob := OptionButton.new()
-	for i in _skins.size():
-		skin_ob.add_item("%s（%s）" % [_skins[i]["skin_id"], _skins[i]["type_id"]])
-	skin_ob.select(_sel_skin)
-	skin_ob.item_selected.connect(func(i: int) -> void: _sel_skin = i)
+	for i in pool.size():
+		skin_ob.add_item("%s（%s）" % [pool[i]["skin_id"], pool[i]["type_id"]])
+		if String(pool[i]["skin_id"]) == _sel_skin_id:
+			skin_ob.select(i)
+	skin_ob.item_selected.connect(func(i: int) -> void: _sel_skin_id = String(pool_ids[i]))
 	_mode_box.add_child(skin_ob)
 
 
@@ -407,7 +450,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 			_paint(col, row, button)
 		"player":
 			if button == MOUSE_BUTTON_LEFT:
-				if _doc.add_player(_unit_types[_sel_type], col, row):
+				if _doc.add_player(_sel_type_id, col, row):
 					_board.refresh()
 				else:
 					_say("そのマスには既に駒があります。")
@@ -419,7 +462,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 				if _doc.data["enemy"].is_empty():
 					_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
 					_set_mode("enemy")
-				if _doc.add_enemy(_sel_squad, _skins[_sel_skin]["skin_id"], col, row):
+				if _doc.add_enemy(_sel_squad, _sel_skin_id, col, row):
 					_board.refresh()
 				else:
 					_say("そのマスには既に駒があります。")
