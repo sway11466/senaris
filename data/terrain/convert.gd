@@ -18,26 +18,36 @@ func _initialize() -> void:
 	var type_rows := Csv.read_table("res://data/terrain/terrain_type.csv")
 	var skin_rows := Csv.read_table("res://data/terrain/terrain_skin.csv")
 	var type_ids := Csv.value_set(type_rows, "id")
-	_convert_type(type_rows)
-	_convert_skin(skin_rows, type_ids)
+
+	var t := build_type(type_rows)
+	if t["json"] == null:
+		_report("terrain_type.csv", t["problems"])
+	else:
+		Csv.write_json("res://data/terrain/terrain_type.json", t["json"])
+		print("terrain_type.json: %d terrains" % type_rows.size())
+
+	var s := build_skin(skin_rows, type_ids)
+	if s["json"] == null:
+		_report("terrain_skin.csv", s["problems"])
+	else:
+		Csv.write_json("res://data/terrain/terrain_skin.json", s["json"])
+		print("terrain_skin.json: %d skins" % skin_rows.size())
 	quit()
 
-## 性能表 → terrain_type.json（{ "terrains": [...] }）。id/char 重複・必須列を検証。
-func _convert_type(rows: Array) -> void:
+## 性能表 → { problems, json }。json は { "terrains": rows } 形。id/char 重複・必須列を検証。純関数。
+static func build_type(rows: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, TYPE_REQUIRED, "id")
 	for v in Csv.duplicates(rows, "id"):
 		problems.append("id が重複: '%s'（後勝ち上書きになる）" % v)
 	for v in Csv.duplicates(rows, "char"):
 		problems.append("char が重複: '%s'（マップ文字→地形の衝突）" % v)
-	if problems.is_empty():
-		Csv.write_json("res://data/terrain/terrain_type.json", { "terrains": rows })
-		print("terrain_type.json: %d terrains" % rows.size())
-	else:
-		_report("terrain_type.csv", problems)
+	if not problems.is_empty():
+		return { "problems": problems, "json": null }
+	return { "problems": problems, "json": { "terrains": rows } }
 
-## スキン表 → terrain_skin.json（{ "skins": [...] }）。skin_id 一意・terrain_type 参照整合・
-## 各 type に既定スキン（skin が1枚以上）があるかを検証。
-func _convert_skin(rows: Array, type_ids: Array) -> void:
+## スキン表 → { problems, json }。json は { "skins": rows } 形。純関数。
+## skin_id 一意・terrain_type 参照整合・orientable の bool・各 type に既定スキン（1枚以上）を検証。
+static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
@@ -48,11 +58,9 @@ func _convert_skin(rows: Array, type_ids: Array) -> void:
 	for tid in type_ids:
 		if not (tid in covered):
 			problems.append("terrain_type '%s' にスキンが1枚も無い（描画フォールバック先が無い）" % tid)
-	if problems.is_empty():
-		Csv.write_json("res://data/terrain/terrain_skin.json", { "skins": rows })
-		print("terrain_skin.json: %d skins" % rows.size())
-	else:
-		_report("terrain_skin.csv", problems)
+	if not problems.is_empty():
+		return { "problems": problems, "json": null }
+	return { "problems": problems, "json": { "skins": rows } }
 
 func _report(name: String, problems: Array) -> void:
 	for p in problems:

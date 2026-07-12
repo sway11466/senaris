@@ -109,7 +109,7 @@ CSV正本からデータを生成するツールは複数ある（`data/*/conver
 
 - 検出対象: 列の過不足／必須列の空セル／ドメイン外の値（未知ラベル・型不一致・範囲外）。
 - 欠損・不正はデータのバグとして扱い、開発時に落とす（`push_error`／`assert`／GUT 失敗）。生成時（convert 実行）・読込時（`*_catalog`）・テストのいずれかで必ず検出し、プレイヤーに届く経路では出さない。export 版で消える `assert` は runtime 保険として低コスト。
-- 現状の不足: `csv_util.read_table` は列不足の行を黙ってスキップし、スキーマ検証を持たない。ここの検出化＋各 convert への必須列チェック追加が整備タスク。最初の適用例は AIプリセットの全軸そろい検証（doc/gdd/ai.md「既定と省略のポリシー」）。
+- 実装状況: `csv_util.read_table` は列不足の行を `push_error` 付きでスキップする（黙って消さない）。スキーマ検証は `csv_util` の純関数（`missing_required` / `duplicates` / `invalid_values` / `value_set`）が担い、各 convert が必須列・重複・enum/参照整合を検証して、違反が1件でもあれば JSON を書かずに中止する。
 
 ### セーブ 【確定】
 - 進捗セーブ（マップ単位）＋中断セーブ（Domain状態を丸ごと直列化）の二本立て

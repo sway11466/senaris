@@ -10,24 +10,30 @@ const Csv = preload("res://data/csv_util.gd")
 const REQUIRED := ["move_type", "name"]
 
 func _initialize() -> void:
-	_convert_movement()
-	quit()
-
-## movement.csv → { "movement_types": { move_type: { 地形: コスト } }, "move_type_names": { move_type: 表示名 } }。
-## コスト表は地形キーだけの純辞書に保ち（Movement.cost の走査を汚さない）、表示名は別辞書で持つ。
-func _convert_movement() -> void:
 	var rows := Csv.read_table("res://data/movement/movement.csv")
 	var terrain_ids := Csv.value_set(Csv.read_table("res://data/terrain/terrain_type.csv"), "id")
+	var result := build(rows, terrain_ids)
+	if result["json"] == null:
+		for p in result["problems"]:
+			push_error("movement.csv: %s" % p)
+		push_error("movement.csv: 検証エラー %d 件。movement.json は更新しない（CSVを直して再実行）" % result["problems"].size())
+	else:
+		Csv.write_json("res://data/movement/movement.json", result["json"])
+		print("movement.json: %d move types" % result["json"]["movement_types"].size())
+	quit()
+
+## movement.csv 行 → { problems, json }。純関数＝IOなし・テスト容易。
+## json は { "movement_types": { move_type: { 地形: コスト } }, "move_type_names": { move_type: 表示名 } }。
+## コスト表は地形キーだけの純辞書に保ち（Movement.cost の走査を汚さない）、表示名は別辞書で持つ。
+## 必須列・move_type重複・列の過不足（完全表）・コスト値（int/x）を検証。問題があれば json は null。
+static func build(rows: Array, terrain_ids: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, REQUIRED, "move_type")
 	for v in Csv.duplicates(rows, "move_type"):
 		problems.append("move_type が重複: '%s'" % v)
 	problems += _check_terrain_columns(rows, terrain_ids)
 	problems += _check_costs(rows, terrain_ids)
 	if not problems.is_empty():
-		for p in problems:
-			push_error("movement.csv: %s" % p)
-		push_error("movement.csv: 検証エラー %d 件。movement.json は更新しない（CSVを直して再実行）" % problems.size())
-		return
+		return { "problems": problems, "json": null }
 
 	var types := {}
 	var names := {}
@@ -39,12 +45,11 @@ func _convert_movement() -> void:
 			if key != "move_type" and key != "name":  # 識別列は地形コストではない
 				costs[key] = r[key]  # int か "x"
 		types[id] = costs
-	Csv.write_json("res://data/movement/movement.json", { "movement_types": types, "move_type_names": names })
-	print("movement.json: %d move types" % types.size())
+	return { "problems": problems, "json": { "movement_types": types, "move_type_names": names } }
 
 ## コスト列（move_type/name 以外）が terrain の id と過不足なく一致するか（完全表の担保）。
 ## 「terrain に無い列」「terrain にあるのに列が無い（新地形の入れ忘れ＝黙ってコスト1になる罠）」を両方拾う。
-func _check_terrain_columns(rows: Array, terrain_ids: Array) -> Array:
+static func _check_terrain_columns(rows: Array, terrain_ids: Array) -> Array:
 	if rows.is_empty():
 		return ["行が無い（空表）"]
 	var cols := {}
@@ -61,7 +66,7 @@ func _check_terrain_columns(rows: Array, terrain_ids: Array) -> Array:
 	return problems
 
 ## 各コストセルが int か "x"（進入不可）のみか。空セル・"y" などの誤記を拾う。
-func _check_costs(rows: Array, terrain_ids: Array) -> Array:
+static func _check_costs(rows: Array, terrain_ids: Array) -> Array:
 	var problems: Array = []
 	for r in rows:
 		var mt := str(r.get("move_type", ""))

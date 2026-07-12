@@ -1,8 +1,15 @@
 extends GutTest
-## data/csv_util.gd の検証ロジック（missing_required）のテスト。
-## read_table のファイルIOは対象外（純関数の検証だけを見る）。
+## data/csv_util.gd のテスト。検証の純関数（missing_required ほか）に加え、
+## read_table（2行ヘッダ・空行/列不足スキップ）と typed（型推論）も固定する。
 
 const Csv = preload("res://data/csv_util.gd")
+
+## read_table 用の一時CSV置き場（テストごとに書いて after_each で消す）。
+const TMP := "user://test_csv_util_tmp.csv"
+
+func after_each() -> void:
+	if FileAccess.file_exists(TMP):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(TMP))
 
 func test_all_required_present_passes() -> void:
 	var rows := [ { "label": "a", "engage": "charge", "sight": "-", "retreat": 0 } ]
@@ -85,3 +92,62 @@ func test_value_set_dedupes_and_skips_empty() -> void:
 	var s := Csv.value_set(rows, "id")
 	assert_eq(s.size(), 2, "a,b の2種（重複・空を除く）")
 	assert_true("a" in s and "b" in s)
+
+# --- typed（型推論） ---
+
+func test_typed_int() -> void:
+	assert_eq(Csv.typed("8"), 8)
+	assert_typeof(Csv.typed("8"), TYPE_INT)
+
+func test_typed_float() -> void:
+	assert_eq(Csv.typed("1.0"), 1.0)
+	assert_typeof(Csv.typed("1.0"), TYPE_FLOAT)
+
+func test_typed_bool() -> void:
+	assert_eq(Csv.typed("true"), true)
+	assert_eq(Csv.typed("false"), false)
+	assert_typeof(Csv.typed("true"), TYPE_BOOL)
+
+func test_typed_string_passthrough() -> void:
+	# `-`（該当なし）や "x"（進入不可）は文字列のまま。空文字も string。
+	assert_eq(Csv.typed("-"), "-")
+	assert_eq(Csv.typed("x"), "x")
+	assert_eq(Csv.typed(""), "")
+	assert_typeof(Csv.typed("-"), TYPE_STRING)
+
+# --- read_table（一時CSVを書いて読む） ---
+
+func _read(text: String) -> Array:
+	var f := FileAccess.open(TMP, FileAccess.WRITE)
+	f.store_string(text)
+	f.close()
+	return Csv.read_table(TMP)
+
+func test_read_table_first_row_keys_second_row_skipped() -> void:
+	var rows := _read("id,atk\nＩＤ,攻撃\nknight,8\n")
+	assert_eq(rows.size(), 1, "2行目(日本語ラベル)はデータ行にならない")
+	assert_eq(rows[0].get("id"), "knight")
+	assert_eq(rows[0].get("atk"), 8)
+
+func test_read_table_types_values() -> void:
+	var rows := _read("id,atk,speed,fly,memo\nID,攻,速,飛,備\nknight,8,1.5,true,-\n")
+	assert_typeof(rows[0]["atk"], TYPE_INT)
+	assert_eq(rows[0]["speed"], 1.5)
+	assert_eq(rows[0]["fly"], true)
+	assert_eq(rows[0]["memo"], "-")
+
+func test_read_table_skips_blank_rows_silently() -> void:
+	# 末尾改行・スペーサ行（空白やカンマだけ）は黙って飛ばす。
+	var rows := _read("id,atk\nID,攻\n\nknight,8\n , \n\n")
+	assert_eq(rows.size(), 1, "データ行は knight の1行だけ")
+
+func test_read_table_skips_short_rows_and_keeps_rest() -> void:
+	# 列不足の行はスキップし、必ず push_error で知らせる（旧実装の無言スキップへの退行防止）。他の行は生きる。
+	var rows := _read("id,atk\nID,攻\nknight,8\nbroken\narcher,6\n")
+	assert_eq(rows.size(), 2, "列不足の行だけ落ち、前後の行は残る")
+	assert_eq(rows[1]["id"], "archer")
+	assert_push_error("列不足")
+
+func test_read_table_missing_file_returns_empty() -> void:
+	assert_eq(Csv.read_table("user://no_such_file.csv").size(), 0, "開けないファイルは空配列")
+	assert_push_error("開けない")
