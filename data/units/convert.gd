@@ -48,8 +48,10 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "types": rows } }
 
-## スキン表（1行=1別名: skin_id, side, type_id, name）→ { problems, json }。純関数。
+## スキン表（1行=1別名: skin_id, side, type_id, name, category）→ { problems, json }。純関数。
 ## 同じ (type_id, side) の行は出現順にエイリアス配列へ。description/images は空（後で拡張）。
+## category は管理分類（基準/ゴブリン/…）＝参考データとして JSON にも持つ。
+## skin は見た目レイヤー（案P）＝category をゲームロジックから参照しないこと（ツール・図鑑用）。
 ## side enum・skin_id重複・type_id参照・必須列を検証。problems があれば json は null。
 static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
@@ -67,7 +69,8 @@ static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 			skins[tid] = { "ally": [], "enemy": [] }
 		skins[tid][side].append({
 			"skin_id": str(r.get("skin_id", "")), "type_id": tid,
-			"name": str(r["name"]), "description": "", "images": {},
+			"name": str(r["name"]), "category": str(r.get("category", "")),
+			"description": "", "images": {},
 		})
 	return { "problems": problems, "json": { "skins": skins } }
 

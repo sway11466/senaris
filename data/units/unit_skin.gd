@@ -14,6 +14,7 @@ class_name UnitSkin
 var skin_id: String       ## スキンID（主キー。ステージはこれで見た目を指定）。skin→type は1:1
 var type_id: String       ## 紐づく性能(UnitType)のID
 var name: String          ## 表示名（例: クレリック / ゴブリン）
+var category: String      ## 管理分類（基準/ゴブリン/アンデッド…）。参考データ＝ゲームロジックで参照しない（ツール・図鑑用）
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
 var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
 
@@ -22,6 +23,7 @@ static func from_dict(d: Dictionary) -> UnitSkin:
 	s.skin_id = String(d.get("skin_id", ""))
 	s.type_id = String(d.get("type_id", ""))
 	s.name = String(d.get("name", ""))
+	s.category = String(d.get("category", ""))
 	s.description = String(d.get("description", ""))
 	s.images = d.get("images", {})
 	return s

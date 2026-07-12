@@ -3,6 +3,7 @@
 		"airship": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "飛空艇",
@@ -15,6 +16,7 @@
 		"archer": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "アーチャー",
@@ -24,6 +26,7 @@
 			],
 			"enemy": [
 				{
+					"category": "ゴブリン",
 					"description": "",
 					"images": {},
 					"name": "ゴブリンアーチャー",
@@ -31,6 +34,7 @@
 					"type_id": "archer"
 				},
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "スケルトンアーチャー",
@@ -42,6 +46,7 @@
 		"ballista": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "バリスタ",
@@ -54,6 +59,7 @@
 		"barricade": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "バリケード",
@@ -66,6 +72,7 @@
 		"birdman": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "バードマン",
@@ -78,6 +85,7 @@
 		"bishop": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ビショップ",
@@ -87,6 +95,7 @@
 			],
 			"enemy": [
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "ゾンビ",
@@ -98,6 +107,7 @@
 		"cleric": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "クレリック",
@@ -107,6 +117,7 @@
 			],
 			"enemy": [
 				{
+					"category": "ゴブリン",
 					"description": "",
 					"images": {},
 					"name": "ゴブリン",
@@ -119,6 +130,7 @@
 			"ally": [],
 			"enemy": [
 				{
+					"category": "デモ",
 					"description": "",
 					"images": {},
 					"name": "ドラゴン",
@@ -130,6 +142,7 @@
 		"dragon_knight": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ドラゴンナイト",
@@ -142,6 +155,7 @@
 		"dwarf": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ドワーフ",
@@ -154,6 +168,7 @@
 		"elf": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "エルフ",
@@ -166,6 +181,7 @@
 		"fighter": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ファイター",
@@ -175,6 +191,7 @@
 			],
 			"enemy": [
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "グール",
@@ -186,6 +203,7 @@
 		"halfling": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ハーフリング",
@@ -198,6 +216,7 @@
 		"hunter": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ハンター",
@@ -210,6 +229,7 @@
 		"knight": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ナイト",
@@ -222,6 +242,7 @@
 		"kunoichi": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "くノ一",
@@ -234,6 +255,7 @@
 		"magic_knight": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "マジックナイト",
@@ -246,6 +268,7 @@
 		"ninja": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ニンジャ",
@@ -258,6 +281,7 @@
 		"novice": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ノービス",
@@ -270,6 +294,7 @@
 		"paladin": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "パラディン",
@@ -279,6 +304,7 @@
 			],
 			"enemy": [
 				{
+					"category": "ゴブリン",
 					"description": "",
 					"images": {},
 					"name": "ゴブリンロード",
@@ -290,6 +316,7 @@
 		"pixie": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ピクシー",
@@ -299,6 +326,7 @@
 			],
 			"enemy": [
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "ゴースト",
@@ -310,6 +338,7 @@
 		"priest": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "プリースト",
@@ -319,6 +348,7 @@
 			],
 			"enemy": [
 				{
+					"category": "ゴブリン",
 					"description": "",
 					"images": {},
 					"name": "ホブゴブリン",
@@ -326,6 +356,7 @@
 					"type_id": "priest"
 				},
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "スケルトン",
@@ -337,6 +368,7 @@
 		"samurai": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "サムライ",
@@ -349,6 +381,7 @@
 		"sniper": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "スナイパー",
@@ -361,6 +394,7 @@
 		"sorcerer": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ソーサラー",
@@ -373,6 +407,7 @@
 		"thief": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "シーフ",
@@ -385,6 +420,7 @@
 		"vanguard": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ヴァンガード",
@@ -397,6 +433,7 @@
 		"wagon": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "馬車",
@@ -409,6 +446,7 @@
 		"warlord": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ウォーロード",
@@ -418,6 +456,7 @@
 			],
 			"enemy": [
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "デュラハン",
@@ -429,6 +468,7 @@
 		"witch": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ウィッチ",
@@ -438,6 +478,7 @@
 			],
 			"enemy": [
 				{
+					"category": "アンデッド",
 					"description": "",
 					"images": {},
 					"name": "ネクロマンサー",
@@ -449,6 +490,7 @@
 		"wizard": {
 			"ally": [
 				{
+					"category": "基準",
 					"description": "",
 					"images": {},
 					"name": "ウィザード",

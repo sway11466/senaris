@@ -60,6 +60,15 @@ func test_unit_skin_valid_builds_json() -> void:
 	assert_eq(r["json"]["skins"]["knight"]["ally"].size(), 1)
 	assert_eq(r["json"]["skins"]["knight"]["enemy"].size(), 1)
 
+func test_unit_skin_category_flows_into_json() -> void:
+	# category は参考データとして JSON に乗る（任意列＝無ければ空文字）。ロジックでは使わない前提。
+	var with_cat := _valid_skin_row("kn_a", "knight", "ally")
+	with_cat["category"] = "基準"
+	var r := Units.build_unit_skin([with_cat, _valid_skin_row("kn_e", "knight", "enemy")], ["knight"])
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["category"], "基準")
+	assert_eq(r["json"]["skins"]["knight"]["enemy"][0]["category"], "", "category 無し＝空文字")
+
+
 func test_unit_skin_each_required_column_pins_json_null() -> void:
 	for col in Units.SKIN_REQUIRED:
 		var row := _valid_skin_row("kn_a", "knight", "ally")
