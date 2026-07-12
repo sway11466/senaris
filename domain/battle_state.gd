@@ -527,6 +527,37 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 		},
 	}
 
+## 陣形スキルを解決して盤に適用する。option＝Formation.available_for の1要素。
+## target＝着弾中心（buff では無視）。参加ユニットは行動完了。詳細 → doc/gdd/formations.md
+## 成功なら {recipe, results:[{target_id, loss, killed, detail}...]}、不正（手番違い・行動済み・射程外）なら空。
+func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
+	# 妥当性: 参加者が現手番・未行動・生存していること、target が射程内であること。
+	for pid in option["participants"]:
+		var p := unit_by_id(int(pid))
+		if p == null or p.team != current_team or is_done(int(pid)):
+			return {}
+	if not Formation.can_target(self, option, target):
+		return {}
+	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
+	var pv := Formation.preview(self, option, target)
+	var results: Array = []
+	for hit in pv["hits"]:
+		var victim := unit_by_id(int(hit["target_id"]))
+		if victim == null:
+			continue
+		var loss := int(hit["loss"])
+		victim.troops -= loss
+		var killed := victim.troops <= 0
+		mark_engaged(victim.id)  # 被弾＝起動トリガー（待機AIが立つ）
+		if killed:
+			_remove_unit(victim.id)
+		results.append({"target_id": victim.id, "loss": loss, "killed": killed, "detail": hit})
+	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）。
+	for pid in option["participants"]:
+		set_done(int(pid))
+		mark_engaged(int(pid))
+	return {"recipe": option["recipe"], "results": results}
+
 ## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
 func _unit_snapshot(u: Unit) -> Dictionary:
 	return {
