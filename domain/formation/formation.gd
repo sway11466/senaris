@@ -11,7 +11,8 @@ class_name Formation
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
 ## - 威力＝参加者の実効攻撃力の合算（各自の兵数×攻撃力×経験×包囲×地形）。間接扱い＝melee=false で支援は乗らない。
 ## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(leader)の性質を使う（①魔法兵0.5／③聖職0）。
-## - 対象は敵のみ（味方は巻き込まない）。参加者は経験値+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
+## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし発動者自身は除外（詠唱の源＝自傷しない）。
+## - 参加者は経験値+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
 
 ## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
 ## leader_types＝発動者になれる type ／ member_types＝残りの参加者の type。
@@ -79,16 +80,16 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 ## 対象ごとの hit 内訳（Combat.hit_from_breakdowns 形式＋target_id）を返す。適用は resolve_formation。
 static func preview(state: BattleState, option: Dictionary, target: Vector2i) -> Dictionary:
 	var hits: Array = []
-	var team := _leader_team(state, option)
+	var participants: Array = option["participants"]
 	match String(option["effect"]):
 		"area":
 			for hx in Hex.within_range(target, int(option["radius"])):
 				var victim := state.unit_at(hx)
-				if victim != null and victim.team != team:
+				if victim != null and not (victim.id in participants):
 					hits.append(_formation_hit(state, option, victim))
 		"single":
 			var victim := state.unit_at(target)
-			if victim != null and victim.team != team:
+			if victim != null and not (victim.id in participants):
 				hits.append(_formation_hit(state, option, victim))
 	return {"recipe": option["recipe"], "hits": hits}
 
@@ -159,7 +160,3 @@ static func _formation_hit(state: BattleState, option: Dictionary, victim: Unit)
 	var hit := Combat.hit_from_breakdowns(synth_atk, df, victim.troops)
 	hit["target_id"] = victim.id
 	return hit
-
-static func _leader_team(state: BattleState, option: Dictionary) -> int:
-	var leader := state.unit_by_id(int(option["leader_id"]))
-	return leader.team if leader != null else -99

@@ -94,13 +94,13 @@ func test_resolve_marks_participants_done() -> void:
 	s.resolve_formation(opt, f["enemy_hex"])
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
-func test_area_hits_enemies_not_allies() -> void:
-	# 着弾中心の7hexに居る敵は当たり、味方は当たらない。
+func test_area_hits_allies_too() -> void:
+	# フレンドリーファイア: 着弾中心の7hexに居る敵も味方も当たる（発動者3体は除外）。
 	var f := _trinity_state()
 	var s: BattleState = f["s"]
 	var center: Vector2i = f["enemy_hex"]
 	var enemy2 := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 20)  # 面内の別の敵
-	var ally := Unit.new(11, 0, Hex.neighbor(center, 3), 3, 8, 10, 20)    # 面内の味方
+	var ally := Unit.new(11, 0, Hex.neighbor(center, 3), 3, 8, 10, 20)    # 面内の味方（非参加）
 	s.add_unit(enemy2)
 	s.add_unit(ally)
 	var ally_before := ally.troops
@@ -110,8 +110,25 @@ func test_area_hits_enemies_not_allies() -> void:
 	for r in res["results"]:
 		hit_ids.append(int(r["target_id"]))
 	assert_true(9 in hit_ids and 10 in hit_ids, "面内の敵2体に着弾")
-	assert_false(11 in hit_ids, "面内の味方には着弾しない")
-	assert_eq(ally.troops, ally_before, "味方の兵数は不変")
+	assert_true(11 in hit_ids, "面内の味方も巻き込む")
+	assert_lt(ally.troops, ally_before, "味方の兵数も減る")
+
+func test_area_excludes_participants() -> void:
+	# 発動者3体が着弾範囲に入っても自傷しない（詠唱の源）。leader を中心に撃つ。
+	var f := _trinity_state()
+	var s: BattleState = f["s"]
+	var leader: Unit = f["leader"]
+	var w2_before := s.unit_by_id(2).troops
+	var enemy := Unit.new(12, 1, Hex.neighbor(leader.pos, 2), 3, 8, 10, 20)  # leader隣接の敵
+	s.add_unit(enemy)
+	var opt: Dictionary = Formation.available_for(s, leader)[0]
+	var res := s.resolve_formation(opt, leader.pos)  # 中心＝leader＝面に発動者3体が入る
+	var hit_ids: Array = []
+	for r in res["results"]:
+		hit_ids.append(int(r["target_id"]))
+	assert_true(12 in hit_ids, "面内の敵には当たる")
+	assert_false(1 in hit_ids or 2 in hit_ids or 3 in hit_ids, "発動者3体は着弾対象から除外")
+	assert_eq(s.unit_by_id(2).troops, w2_before, "発動者の兵数は不変")
 
 func test_resolve_out_of_range_fails() -> void:
 	var f := _trinity_state()
