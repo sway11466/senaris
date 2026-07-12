@@ -6,7 +6,7 @@ extends Control
 ## 個別上書きキー（move/troops/atk 等）は編集しない方針（ステージは type/skin の素の性能で組む）。
 ## 製品には含めない（tools/ は export プリセットの除外対象にする）。
 
-const CsvUtil := preload("res://data/csv_util.gd")  # skin の分類（category）は CSV の参考列＝JSONに無いので直接読む
+const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを読む（分類ごとに整列済み＝パレットの並びが素直）
 
 const STAGES_DIR := "res://data/stages"
 const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
@@ -98,10 +98,14 @@ func _load_catalogs() -> void:
 
 
 func _build_ui() -> void:
+	var outer := MarginContainer.new()
+	outer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for s in ["left", "top", "right", "bottom"]:
+		outer.add_theme_constant_override("margin_" + s, 10)
+	add_child(outer)
 	var root := VBoxContainer.new()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_theme_constant_override("separation", 6)
-	add_child(root)
+	outer.add_child(root)
 
 	# ツールバー
 	var bar := HBoxContainer.new()
@@ -141,20 +145,28 @@ func _build_ui() -> void:
 	main.add_child(scroll)
 	_board = MapEditorBoard.new()
 	_board.doc = _doc
+	_board.scroll = scroll  # 中ボタンドラッグのパン先
 	_board.cell_pressed.connect(_on_cell_pressed)
 	_board.cell_dragged.connect(_on_cell_dragged)
 	_board.cell_released.connect(_on_cell_released)
+	_board.zoom_requested.connect(func(step: int) -> void: zoom.value += step * zoom.step)
 	scroll.add_child(_board)
 	_board.refresh()
 
 	var panel_scroll := ScrollContainer.new()
-	panel_scroll.custom_minimum_size = Vector2(340, 0)
+	panel_scroll.custom_minimum_size = Vector2(360, 0)
 	panel_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	main.add_child(panel_scroll)
+	var panel_margin := MarginContainer.new()
+	panel_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel_margin.add_theme_constant_override("margin_left", 8)
+	panel_margin.add_theme_constant_override("margin_right", 14)  # 縦スクロールバーと入力欄の間の余白
+	panel_margin.add_theme_constant_override("margin_bottom", 12)
+	panel_scroll.add_child(panel_margin)
 	var panel := VBoxContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.add_theme_constant_override("separation", 6)
-	panel_scroll.add_child(panel)
+	panel_margin.add_child(panel)
 
 	# ステージ情報
 	_add_heading(panel, "ステージ情報")

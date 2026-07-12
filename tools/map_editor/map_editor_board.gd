@@ -7,6 +7,7 @@ class_name MapEditorBoard
 signal cell_pressed(col: int, row: int, button: int)
 signal cell_dragged(col: int, row: int, button: int)
 signal cell_released(col: int, row: int, button: int)
+signal zoom_requested(step: int)  ## Ctrl＋ホイール（+1=拡大 / -1=縮小）
 
 const SQRT3 := 1.7320508075688772
 const MARGIN := 22.0  ## 盤の余白（列/行番号の表示領域を兼ねる）
@@ -34,6 +35,7 @@ const TEAM_COLORS := {
 }
 
 var doc: MapEditorDoc
+var scroll: ScrollContainer  ## 中ボタンドラッグでパンする先（親のスクロール。main が設定）
 var hex_size := 26.0:
 	set(v):
 		hex_size = v
@@ -43,6 +45,7 @@ var selected := Vector2i(-1, -1)
 
 var _drag_button := -1
 var _last_cell := Vector2i(-1, -1)
+var _panning := false
 
 
 func _ready() -> void:
@@ -79,6 +82,23 @@ func cell_at(p: Vector2) -> Vector2i:
 
 func _gui_input(event: InputEvent) -> void:
 	if doc == null:
+		return
+	# パン＝中ボタンドラッグ / ズーム＝Ctrl＋ホイール。素のホイール/トラックパッドのスクロールは
+	# accept せず ScrollContainer に流す（＝通常のスクロールでも盤を動かせる）。
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_MIDDLE:
+		_panning = event.pressed
+		accept_event()
+		return
+	if event is InputEventMouseButton and event.pressed and event.ctrl_pressed \
+			and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		zoom_requested.emit(1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -1)
+		accept_event()
+		return
+	if event is InputEventMouseMotion and _panning:
+		if scroll != null:
+			scroll.scroll_horizontal -= int(event.relative.x)
+			scroll.scroll_vertical -= int(event.relative.y)
+		accept_event()
 		return
 	if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
 		var cell := cell_at(event.position)
