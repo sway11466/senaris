@@ -28,10 +28,10 @@
 上に絵・下に情報帯の縦2段。カードは 340×330（絵 340×210＝黄金比 1.618:1、下に情報帯）。
 
 - 絵（上）: カード用クロップ `assets/campaign/{id}/{id}_card.png` を優先。無ければ扉絵 `{id}_cover.png` にフォールバック（`KEEP_ASPECT_COVERED`＋clip でトリミング表示）。どちらも無ければ暗色プレースホルダ。
-- 情報帯（下）: タイトル／「クリア n / m」（全クリアで ✓）＋難易度★5段階／タグチップ 3〜4個。
-- 進捗はクリア記録から導出する（冒険譚側に保存しない）。難易度・タグはマニフェスト（`campaign.json` の `difficulty` / `tags`）から。
+- 情報帯（下）: タイトル／難易度★5段階／説明文（3〜4行・自動折り返し＝依頼の紹介）。ステージ数・タグは出さない（進捗はステージ一覧の役目・全クリアは焼き印で伝わる）。
+- 難易度はマニフェスト（`campaign.json` の `difficulty`）から。タイトル・説明文は翻訳キー（i18n・後述）を `tr()` で解決。
 - クリック判定はカード全面の Button。中身は `mouse_filter=IGNORE` でクリックを Button へ透過する。
-- デバッグ冒険譚は絵・星・タグを出さず「（開発ビルド限定）」注記のみ。
+- デバッグ冒険譚は絵・星・説明を出さず「（開発ビルド限定）」注記のみ。
 
 絵の管理（cover=大パネル用／card=カード用の二層）とクロップ方針・生成STYLEは [../art/keyvisual.md](../art/keyvisual.md)。
 
@@ -56,7 +56,7 @@
 
 - 方式は材質だけ画像・構造と光はコードのハイブリッド。木壁・ボード板・羊皮紙・汚しはテクスチャ、枠線・ランタン光・ビネット・封蝋ピン・焼き印スタンプはコードで載せる。画面まるごと1枚の背景にはしない（ボード寸法・ポスター枚数が動くため材質だけ焼く）。
 - テクスチャは autowire スロット（`assets/menu/{wall,board,parchment,grunge}.png`）。置けば材質に、無ければプロシージャル／ベタ塗りへフォールバック＝コード不変。実装は [../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd)。
-- 既存データをテーマ化（新データ不要）＝クリア済み→「討伐済」スタンプ／難易度→危険度★（焼き印）／タグ→蝋のキーワード印。
+- 既存データをテーマ化＝クリア済み→「討伐済」スタンプ／難易度→危険度★（焼き印）。
 - 材質テクスチャの生成仕様（サイズ・シームレス条件・ナインパッチ縁幅・色味・インポート設定）→ [../art/menu.md](../art/menu.md)。
 
 ## 難易度帯ボード（tier カルーセル）
@@ -108,21 +108,32 @@ locked    … それ以外
 ```json
 {
   "id": "tutorial1-goblin-raid",
-  "title": "ゴブリンの襲撃",
+  "title": "t1.title",
+  "desc": "t1.desc",
   "tier": "tutorial",
   "difficulty": 1,
-  "tags": [ "チュートリアル", "ゴブリン", "占領" ],
   "stages": [
-    { "id": "st1", "file": "st1.json", "title": "はじめての戦い" },
-    { "id": "st2", "file": "st2.json", "title": "森を抜けて",
+    { "id": "st1", "file": "st1.json", "title": "t1.st1.title" },
+    { "id": "st2", "file": "st2.json", "title": "t1.st2.title",
       "unlock": [ { "type": "cleared", "stage": "st1" } ] }
   ]
 }
 ```
 
+- `title`・`desc`・stage の `title` は生テキストでなく翻訳キー（i18n・後述）。表示側が `tr()` で解決する（debug 冒険譚の生テキストは `tr()` 素通しで従来どおり出る）。
 - ステージ JSON 本体（盤面）には手を入れない。進行・表示のメタはマニフェスト側に寄せる。
 - ステージ選択画面は「`data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
-- カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`tags`（文字列配列／未指定は空）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
+- カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`desc`（説明文の翻訳キー／未指定は空＝説明なし）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
+
+## 多言語化（i18n）
+
+冒険譚名・説明・ステージ名は生テキストを持たず翻訳キーで管理する。会話（dialogue）と同じ CSV→`.translation` パイプライン（`csv_translation` インポータ）に乗せる。
+
+- 正本: `data/i18n/campaigns.csv`（`keys,ja,en` の3列）。ドメイン別に会話（`dialogue.csv`）と分ける。
+- キー規約: キャンペーンの短コード接頭辞（例 `t1`）＝会話キーと揃える。`t1.title`／`t1.desc`／`t1.stN.title`。
+- 生成物（Godot インポートが作る・git 追跡・手編集しない）: `campaigns.ja/en.translation`＋`campaigns.csv.import`。`project.godot` の `locale/translations` に登録。
+- キーは `.translation` 横断でグローバル＝CSV を分けても `tr()` は同じに解決する。CSV を足したら [test_i18n_translation.gd](../../tests/unit/test_i18n_translation.gd)（正本↔生成物の整合＝翻訳コミット漏れガード）の対象にも足す。
+- 生成物の仕組み・importer=keep の罠は CSV データパイプラインの方針に従う。
 
 ## デバッグステージ
 
@@ -154,7 +165,7 @@ domain（戦闘ロジック）には手を入れない。
 
 ## 実装状況（2026-07-05 時点）
 
-- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・difficulty/tags/cover_path/card_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
+- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
 - **難易度帯ボード**: tier カルーセル実装済み（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）実装済み・カード用クロップ（card）は未配置で cover にフォールバック中。
 - **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは羊皮紙の依頼書ダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）で出撃確認まで＝中身（勝利条件・推奨戦力など）は未決事項参照。
