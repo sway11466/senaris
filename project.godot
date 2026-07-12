@@ -1,7 +1,7 @@
 ; Engine configuration file.
-; Senaris — Godot 4.7 (GDScript / 2D)
+; Senaris — Godot 4.7 (GDScript / 2D UI＋3D盤 ハイブリッド)
 ; レイヤー依存: presentation → application → domain → data
-; 詳細 → doc/design/architecture.md
+; 詳細 → doc/tech/architecture.md
 
 config_version=5
 
