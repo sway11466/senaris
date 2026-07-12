@@ -22,10 +22,10 @@
 
 **マップペインタ（自前の地形エディタ）**（優先度：低）
 
-- 背景：ステージの盤面を、マウスでヘックスを塗って `data/stages/*.json` に保存するエディタ。`presentation/board/hex_board.gd` が既に「マウス位置→ヘックス」判定（`from_pixel`／ホバー／クリック）を持つので、塗りモードと保存機能を足すだけで作れる。現状は小マップを JSON 直書きで回している。
-- 対応：`hex_board.gd` の既存判定を土台に、(1) 地形を選んでヘックスを塗るモード、(2) `data/stages/*.json` への保存、を足す。代替として外部の Tiled（ヘックス対応・JSON 書き出し）も選択肢。
+- 背景：ステージの盤面を、マウスでヘックスを塗って `data/stages/*.json` に保存するエディタ。`presentation/board/hex_board_3d.gd` が既に「マウス位置→ヘックス」判定（`_hex_at_mouse`＝地面平面へレイキャスト→`Hex.from_pixel`。ホバー／クリック）を持つので、塗りモードと保存機能を足すだけで作れる。現状は小マップを JSON 直書きで回している。
+- 対応：`hex_board_3d.gd` の既存判定を土台に、(1) 地形を選んでヘックスを塗るモード、(2) `data/stages/*.json` への保存、を足す。代替として外部の Tiled（ヘックス対応・JSON 書き出し）も選択肢。
 - 2レイヤーを塗る想定（refactoring-2 と対）：性能レイヤー＝terrain_type（ASCII `terrain` グリッド）／見た目レイヤー＝terrain_skin（`terrain_skins` の座標→skin_id 差分列挙）。見た目レイヤーの skin_id は一意文字列で、人間は生JSONを読まずツール経由で塗るため ASCII 1文字表記の限界を受けない（分割の動機そのもの）。未指定セルは type 既定スキンにフォールバック。
-- 該当：`presentation/board/hex_board.gd`（既存のヘックス判定）・`data/stages/*.json`（出力先）。着手の引き金＝大きいマップをテキスト手書きするのが辛くなったら。
+- 該当：`presentation/board/hex_board_3d.gd`（既存のヘックス判定）・`data/stages/*.json`（出力先）。着手の引き金＝大きいマップをテキスト手書きするのが辛くなったら。
 
 ### feature-2
 

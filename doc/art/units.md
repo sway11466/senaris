@@ -35,9 +35,9 @@
 
 ## 3. 制作スペック（サイズ・ワークフロー）
 
-盤面の実寸（[../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd) `hex_size=36`、フラットトップ）：
+盤面（[../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）はフラットトップ六角の3D（タイルは `TILE=1.0` ワールド単位）。2D時代の `hex_size=36`（px）は撤去済み：
 
-- 1マス＝約 72px（横）× 62px（縦）（標準ズーム）。ズーム 0.3〜2.5 倍で最大約180pxまで拡大。
+- 制作は地形タイル（256×222px＝R=128）と解像度を揃えるのが基準。実機の1マス表示pxはカメラのズーム依存で固定値は無い。【要実測】3D盤での標準ズームの表示pxは未計測（下表・下記プレビュー目安の px は 2D時代の値＝要見直し）。
 
 | 段階 | サイズ | 用途 |
 |---|---|---|
@@ -127,5 +127,5 @@ SUBJECT（生成プロンプト本体）の置き場：
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [../gdd/combat.md](../gdd/combat.md) — 対空機構（飛行の浮遊必須ルールの根拠）
 - [../campaign/tutorial1-goblin-raid.md](../campaign/tutorial1-goblin-raid.md) / [../campaign/tutorial2-undead-rush.md](../campaign/tutorial2-undead-rush.md) — 各陣営（§2 の根拠）
-- [../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd) — 盤面実寸（`hex_size=36`）
+- [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) — 盤面（3D・タイル敷き。`TILE=1.0` ワールド単位）
 - [`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1) — ③ゲーム用画像の書き出しツール

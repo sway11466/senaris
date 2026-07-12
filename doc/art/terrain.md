@@ -8,7 +8,7 @@
 
 ## 1. 形状・敷き方
 
-- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd)）が terrain_id ごとに1枚を各ヘックスに敷く。置き場は `assets/terrain/{name}.png`（terrain.csv の image 列）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
+- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）が terrain_id ごとに1枚を各ヘックスに敷く（3D盤でも同じPNGをヘックスメッシュに貼る＝この寸法は現行）。置き場は `assets/terrain/{name}.png`（terrain.csv の image 列）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
 - 現状は「1地形1枚・接地による遷移なし」。各ヘックスが地形の自己完結アイコン（Into the Breach 系）。
 - 反復対策＝バリアント敷き分け（実装済み）: 同名連番 `{name}_2.png` `{name}_3.png` … を置くと、hex_board が存在する分を集め、ヘックス座標から決定的に敷き分ける（ちらつかない）。連番が無ければ従来どおり1枚。terrain.csv/JSON は変更不要のドロップイン。
 - 将来: マップの美しさのため、隣接地形に合わせた「縁フリンジ」方式（境界の辺にだけ縁パーツを重ねる2パス目）へ段階的に移行する。ベースタイルを枠内で自己完結する絵にしておけば、フリンジは純粋な追加（縁パーツ＋描画パス＋地形の優先順位表）で足せる＝手戻りなし。フル遷移（Wangタイル・組合せ爆発）は不採用。
@@ -52,6 +52,6 @@ visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
 - [direction.md](direction.md) — アートの全体方針（絵柄・共通メソッド）
 - [units.md](units.md) — ユニットの見た目方針（人物 STYLE・二層保管の原型）
 - [../gdd/movement.md](../gdd/movement.md) — 移動タイプ・地形コスト
-- [../../presentation/board/hex_board.gd](../../presentation/board/hex_board.gd) — 盤面（タイル敷き・バリアント敷き分け）
+- [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) — 盤面（タイル敷き・バリアント敷き分け）
 - [`../../tools/gen_terrain_tile.ps1`](../../tools/gen_terrain_tile.ps1) — ②ヘックス切り抜きツール
 - [../../tools/gen_terrain_tiles.gd](../../tools/gen_terrain_tiles.gd) — プレースホルダ生成
