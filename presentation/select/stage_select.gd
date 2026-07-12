@@ -99,8 +99,8 @@ func show_campaign(campaign_id: String) -> void:
 	var c := _progress.campaign(campaign_id)
 	if c.is_empty():
 		return
-	_title.text = String(c["title"])
-	_set_cover(String(c.get("cover_path", "")), String(c["title"]))
+	_title.text = tr(String(c["title"]))  # title は翻訳キー（i18n）。生テキストでも tr() は素通し
+	_set_cover(String(c.get("cover_path", "")), tr(String(c["title"])))
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
 		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
@@ -115,7 +115,7 @@ func _set_cover(cover_path: String, title: String) -> void:
 	_art_label.text = "" if tex != null else title
 
 func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
-	var label := "%d. %s" % [number, s["title"]]
+	var label := "%d. %s" % [number, tr(String(s["title"]))]  # stage.title は翻訳キー（i18n）
 	var row := Button.new()
 	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -142,7 +142,7 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 		"stage_id": String(s["id"]),
 		"path": String(s["path"]),
 	}
-	_briefing.open(String(s["title"]))
+	_briefing.open(tr(String(s["title"])))
 
 func _on_sortie() -> void:
 	if _pending.is_empty():

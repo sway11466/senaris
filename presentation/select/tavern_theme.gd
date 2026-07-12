@@ -376,27 +376,6 @@ static func stamp(text: String, color: Color, tilt := -7.0) -> Control:
 	p.rotation_degrees = tilt
 	return p
 
-## タグの蝋チップ（羊皮紙になじむ茶系）。
-static func tag_chip(text: String) -> Control:
-	var chip := PanelContainer.new()
-	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.42, 0.30, 0.16, 0.35)
-	sb.set_border_width_all(1)
-	sb.border_color = Color(0.42, 0.30, 0.16, 0.7)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin(SIDE_LEFT, 8)
-	sb.set_content_margin(SIDE_RIGHT, 8)
-	sb.set_content_margin(SIDE_TOP, 2)
-	sb.set_content_margin(SIDE_BOTTOM, 2)
-	chip.add_theme_stylebox_override("panel", sb)
-	var label := Label.new()
-	label.text = text
-	label.add_theme_font_size_override("font_size", 13)
-	label.add_theme_color_override("font_color", INK)
-	chip.add_child(label)
-	return chip
-
 ## 木の板を縦の板材＋継ぎ目で描く内部クラス（プロシージャル木壁）。
 class _Planks extends Control:
 	const PLANK_W := 196.0

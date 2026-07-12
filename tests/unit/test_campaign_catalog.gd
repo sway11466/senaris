@@ -13,7 +13,10 @@ func test_tutorial_manifest() -> void:
 	assert_eq(c["id"], "tutorial1-goblin-raid")
 	assert_false(c["debug"], "debug 未指定は false")
 	assert_eq(c["difficulty"], 1, "星レーティング")
-	assert_eq(c["tags"], ["チュートリアル", "ゴブリン", "占領"], "タグ")
+	assert_eq(c["tier"], "tutorial", "所属ボード")
+	assert_eq(c["title"], "t1.title", "title は翻訳キー")
+	assert_eq(c["desc"], "t1.desc", "desc は翻訳キー")
+	assert_eq(c["stages"][0]["title"], "t1.st1.title", "stage.title も翻訳キー")
 	assert_eq(c["stages"].size(), 7)
 	assert_eq(c["stages"][0]["unlock"], [], "1面は無条件解放")
 	assert_eq(c["stages"][1]["unlock"][0]["type"], "cleared")
@@ -45,19 +48,15 @@ func test_build_rejects_broken() -> void:
 	assert_eq(CampaignCatalog.build({}, "x"), {}, "id 無しは不正")
 	assert_eq(CampaignCatalog.build({ "id": "a", "stages": "oops" }, "x"), {}, "stages が配列でないのは不正")
 
-func test_build_defaults_difficulty_and_tags() -> void:
+func test_build_defaults_difficulty_and_desc() -> void:
 	var c := CampaignCatalog.build({ "id": "a", "stages": [] }, "res://x")
 	assert_eq(c["difficulty"], 0, "difficulty 未指定は 0")
-	assert_eq(c["tags"], [], "tags 未指定は空配列")
+	assert_eq(c["desc"], "", "desc 未指定は空文字")
+	assert_eq(c["tier"], "rookie", "tier 未指定は rookie")
 
-func test_build_clamps_difficulty_and_cleans_tags() -> void:
-	var c := CampaignCatalog.build({
-		"id": "a", "stages": [],
-		"difficulty": 9,
-		"tags": [ "  隘路  ", "", "対空なし", 123 ],
-	}, "res://x")
+func test_build_clamps_difficulty() -> void:
+	var c := CampaignCatalog.build({ "id": "a", "stages": [], "difficulty": 9 }, "res://x")
 	assert_eq(c["difficulty"], 5, "0〜5 にクランプ")
-	assert_eq(c["tags"], ["隘路", "対空なし", "123"], "空は除外・前後空白は除去")
 
 func test_build_skips_broken_stage_entries() -> void:
 	var c := CampaignCatalog.build({

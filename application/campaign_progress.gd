@@ -73,7 +73,8 @@ func unlock_text(campaign_id: String, stage_id: String) -> String:
 		match String(cond.get("type", "")):
 			"cleared":
 				var ref := _find_stage(c, String(cond.get("stage", "")))
-				var title: String = ref.get("title", String(cond.get("stage", "")))
+				# title は翻訳キー（i18n）。TranslationServer で解決（生テキストは素通し）
+				var title := String(TranslationServer.translate(ref.get("title", String(cond.get("stage", "")))))
 				parts.append("「%s」クリアで解放" % title)
 			"entitlement":
 				parts.append("追加コンテンツ")

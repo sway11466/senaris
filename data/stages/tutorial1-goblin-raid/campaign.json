@@ -1,22 +1,22 @@
 {
   "id": "tutorial1-goblin-raid",
-  "title": "ゴブリンの襲撃",
+  "title": "t1.title",
+  "desc": "t1.desc",
   "tier": "tutorial",
   "difficulty": 1,
-  "tags": [ "チュートリアル", "ゴブリン", "占領" ],
   "stages": [
-    { "id": "st1", "file": "st1.json", "title": "町外れの平原" },
-    { "id": "st2", "file": "st2.json", "title": "高所の敵陣",
+    { "id": "st1", "file": "st1.json", "title": "t1.st1.title" },
+    { "id": "st2", "file": "st2.json", "title": "t1.st2.title",
       "unlock": [ { "type": "cleared", "stage": "st1" } ] },
-    { "id": "st3", "file": "st3.json", "title": "狭路の包囲",
+    { "id": "st3", "file": "st3.json", "title": "t1.st3.title",
       "unlock": [ { "type": "cleared", "stage": "st2" } ] },
-    { "id": "st4", "file": "st4.json", "title": "砦の解放",
+    { "id": "st4", "file": "st4.json", "title": "t1.st4.title",
       "unlock": [ { "type": "cleared", "stage": "st3" } ] },
-    { "id": "st5", "file": "st5.json", "title": "巣穴への一本道",
+    { "id": "st5", "file": "st5.json", "title": "t1.st5.title",
       "unlock": [ { "type": "cleared", "stage": "st4" } ] },
-    { "id": "st6", "file": "st6.json", "title": "潜む群れ",
+    { "id": "st6", "file": "st6.json", "title": "t1.st6.title",
       "unlock": [ { "type": "cleared", "stage": "st5" } ] },
-    { "id": "st7", "file": "st7.json", "title": "最奥の主",
+    { "id": "st7", "file": "st7.json", "title": "t1.st7.title",
       "unlock": [ { "type": "cleared", "stage": "st6" } ] }
   ]
 }

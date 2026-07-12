@@ -300,13 +300,14 @@ func _poster(c: Dictionary) -> Control:
 func _on_card_pressed(campaign_id: String) -> void:
 	campaign_chosen.emit(campaign_id)
 
-## 貼り紙下部の情報（タイトル／クリア数／危険度／タグ）。デバッグ冒険譚は注記のみ。
+## 貼り紙下部の情報（タイトル／危険度／説明文）。デバッグ冒険譚は注記のみ。
+## title/desc は翻訳キー＝tr() で解決（生テキストでも tr() は素通し）。
 func _poster_info(c: Dictionary) -> Control:
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 6)
 
 	var title := Label.new()
-	title.text = String(c["title"])
+	title.text = tr(String(c["title"]))
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", TavernTheme.INK)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -319,14 +320,6 @@ func _poster_info(c: Dictionary) -> Control:
 		info.add_child(note)
 		return info
 
-	# クリア数
-	var total: int = c["stages"].size()
-	var done := _progress.cleared_count(String(c["id"]))
-	var count := Label.new()
-	count.text = "討伐 %d / %d 節" % [done, total]
-	count.add_theme_color_override("font_color", TavernTheme.INK)
-	info.add_child(count)
-
 	# 危険度（焼き印風の★）
 	var danger := HBoxContainer.new()
 	danger.add_theme_constant_override("separation", 6)
@@ -337,15 +330,15 @@ func _poster_info(c: Dictionary) -> Control:
 	danger.add_child(_make_stars(int(c.get("difficulty", 0))))
 	info.add_child(danger)
 
-	# タグ（蝋のキーワード印）
-	var tags: Array = c.get("tags", [])
-	if not tags.is_empty():
-		var chips := HFlowContainer.new()
-		chips.add_theme_constant_override("h_separation", 6)
-		chips.add_theme_constant_override("v_separation", 6)
-		for t in tags:
-			chips.add_child(TavernTheme.tag_chip(String(t)))
-		info.add_child(chips)
+	# 説明文（依頼の紹介・3〜4行に自動折り返し）
+	var desc_key := String(c.get("desc", ""))
+	if not desc_key.is_empty():
+		var desc := Label.new()
+		desc.text = tr(desc_key)
+		desc.add_theme_font_size_override("font_size", 14)
+		desc.add_theme_color_override("font_color", TavernTheme.INK)
+		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.add_child(desc)
 	return info
 
 ## 危険度を★（塗り）＋☆（空き）の5段階で表示（焼き印の茶色）。

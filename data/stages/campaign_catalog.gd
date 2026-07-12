@@ -6,7 +6,8 @@ class_name CampaignCatalog
 const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
-## { id, title, debug, difficulty, tags, cover_path, card_path,
+## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
+## { id, title, desc, debug, difficulty, tier, cover_path, card_path,
 ##   stages: [ { id, title, file, path, unlock: Array } ] }
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	var id := String(data.get("id", ""))
@@ -35,12 +36,11 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	_warn_dangling_unlock(id, stages)
 	return {
 		"id": id,
-		"title": String(data.get("title", id)),
+		"title": String(data.get("title", id)),  # 翻訳キー（表示側で tr()）。debug 等は生テキストでも tr() は素通し
+		"desc": String(data.get("desc", "")),     # 翻訳キー（貼り紙の説明文）。未指定は空＝説明なし
 		"debug": bool(data.get("debug", false)),
 		"tier": String(data.get("tier", "rookie")),  # 所属ボード（tutorial/rookie/adept/veteran）。未指定は rookie
-
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
-		"tags": _to_tags(data.get("tags", [])),
 		"cover_path": _resolve_art(id, "cover"),  # ステージ一覧の大パネル
 		"card_path": _resolve_art(id, "card"),    # 冒険譚カード（絵はカード用にクロップ）
 		"stages": stages,
@@ -62,16 +62,6 @@ static func _warn_dangling_unlock(campaign_id: String, stages: Array) -> void:
 				continue
 			if not ids.has(ref):
 				push_warning("CampaignCatalog[%s]: stage '%s' の unlock が未定義の stage '%s' を参照" % [campaign_id, s["id"], ref])
-
-## タグ配列を文字列配列に正規化（非配列・非文字列は捨てる）。
-static func _to_tags(raw: Variant) -> Array:
-	var out: Array = []
-	if typeof(raw) == TYPE_ARRAY:
-		for t in raw:
-			var s := str(t).strip_edges()
-			if not s.is_empty():
-				out.append(s)
-	return out
 
 ## 絵を規約で自動解決：assets/campaign/{id}/{id}_{kind}.png があればそのパス、無ければ ""。
 ## 絵を置くだけでセレクト画面がプレースホルダ→画像に切り替わる（skin 画像 autowire と同じ思想）。
