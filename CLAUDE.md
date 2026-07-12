@@ -10,7 +10,7 @@
 
 ## 技術スタック
 
-- **エンジン**: Godot 4（GDScript・型付き / 2D）。テストは GUT。
+- **エンジン**: Godot 4（GDScript・型付き）。盤は3Dハイブリッド描画＝2Dアセット流用（[doc/adr/ADR-0003-board-3d-hybrid.md](doc/adr/ADR-0003-board-3d-hybrid.md)）。テストは GUT。
 - **レイヤー**: `presentation → application → domain → data` の一方向依存。`domain` / `data` は Godot ノード非依存（純ロジック）。詳細 → [doc/tech/architecture.md](doc/tech/architecture.md)
 - **配布**: まず Steam（PC）。モバイルは後回し。
 
@@ -63,3 +63,4 @@
 
 - [doc/adr/ADR-0001-adopt-godot.md](doc/adr/ADR-0001-adopt-godot.md) — ゲームエンジンに Godot 4 を採用
 - [doc/adr/ADR-0002-paid-data-protection.md](doc/adr/ADR-0002-paid-data-protection.md) — 有料データの保護（署名＋pck 暗号化）
+- [doc/adr/ADR-0003-board-3d-hybrid.md](doc/adr/ADR-0003-board-3d-hybrid.md) — 盤面の描画を3Dハイブリッド（傾けたカメラ＋2Dアセット）に

@@ -4,7 +4,7 @@
 
 - ジャンル: ヘックス制ターン戦術 SLG（生産なし・戦力固定）
 - 舞台: 剣と魔法のファンタジー
-- 技術 / 配布: Godot 4（2D）／まず Steam（PC）
+- 技術 / 配布: Godot 4（盤は3Dハイブリッド描画・アセットは2D）／まず Steam（PC）
 - タイトル: senarius（6つ一組）＝包囲の隣接6ヘックス。
 - 影響を受けたゲーム: Nectaris（Military Madness）系。IP・権利の方針は [sales/monetization.md](sales/monetization.md) を参照。
 
