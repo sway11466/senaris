@@ -1,0 +1,34 @@
+# debug-combat（デバッグ：戦闘補正）の冒険譚カード用プロンプト＝完全版（STYLE込み・自己完結）。
+# このデバッグカードだけは共通 ILLUST STYLE（2〜2.5頭身・NOT moe）から意図的に外す
+# ＝可愛い＋色気のモチベ絵。よって STYLE を含む完全版をここに置き、貼るのはこの1ファイルで済む。
+# 生成後: 透かし（右下の sparkle）だけ局所的に消す（右端の帯クロップはしない＝全面を活かす）
+#   → assets/campaign/debug-combat/debug-combat_cover*.png（連番＝表示ごとにランダム）。
+# 意味付け: ビキニアーマー＝防御は紙なのに成立する＝戦闘補正のネタ／剣先の光＝補正が乗った瞬間。
+
+STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game, in
+the same clean stylized cel-shading as the game's unit pieces: bold readable
+shapes, mature and slightly muted limited color palette; NOT bright saturated
+anime coloring, NOT painterly photorealism. For THIS card the character is a
+cute, shapely heroine about 4.5 to 5 heads tall (a little deformed / stylized,
+cuter than realistic), with a rounder soft face, large expressive eyes, a small
+nose, and a charming spirited expression — appealing and kawaii but still cool,
+NOT scary, NOT grim. Full illustrated scene: dynamic composition, expressive
+action pose, painted battlefield background, dramatic cinematic lighting. NO
+text, NO title, NO logo, NO border, NO vignette. Composition: the scene fills
+the WHOLE frame edge to edge as one continuous battlefield with the heroine
+roughly centered; do NOT darken, fade, tint, or wall off any part of the frame —
+no shadow band, no vertical divider, no reserved strip on any side. Even, full-
+bleed illustration. Wide 4:3 composition.
+
+SUBJECT: A cute and confident young woman warrior in the thick of battle. She
+ALWAYS wears skimpy, revealing fantasy bikini armor: a small metal bikini top
+and a brief armored loincloth or micro-skirt, leaving her midriff and waist,
+shoulders, arms, and most of her legs bare — lots of exposed skin, only small
+armor pieces (a pauldron, gauntlets, greaves). Toned, shapely figure. Mid-swing
+with a blade or spear in a dynamic battle stance; a lively determined expression
+(a small confident smile, not a snarl). The weapon's edge catches a bright rim
+of magical light to show a combat bonus landing. A goblin foe reels on the left;
+muted battlefield terrain and distant crowd on the right. Sexy and alluring yet
+cute and playful — tasteful pin-up, NOT explicit, NOT nude. Keep the revealing
+bikini armor and bare skin fixed every time; only vary her hair color and style,
+the armor's color and metal finish, her weapon, and her pose.
