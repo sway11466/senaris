@@ -1,0 +1,32 @@
+# debug-misc（デバッグ：その他）カード用プロンプト＝シーン2（完全版・自己完結）。
+# 1枚目 debug-misc_cover_prompt.txt（看板娘・トレイ運び）は固定のまま。これは別シーンの追加。
+# 両シーンとも同じ連番 cover プール（debug-misc_cover*.png）に入れる＝表示ごとに混ざってランダム。
+# 生成後: 透かし（右下の sparkle）だけ局所的に消す（右端の帯クロップはしない＝全面を活かす）。
+# 意味付け: その他＝雑多・会話／酒場。今回はカウンターで色っぽく一杯やる看板娘。
+
+STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game, in
+the same clean stylized cel-shading as the game's unit pieces: bold readable
+shapes, mature and slightly muted limited color palette; NOT bright saturated
+anime coloring, NOT painterly photorealism. For THIS card the character is a
+cute, shapely heroine about 4.5 to 5 heads tall (a little deformed / stylized,
+cuter than realistic), with a rounder soft face, large expressive eyes, a small
+nose, and a charming spirited expression — appealing and kawaii but still cool,
+NOT scary, NOT grim. Full illustrated scene: dynamic composition, expressive
+pose, a fully painted environment background, dramatic cinematic lighting. NO
+text, NO title, NO logo, NO border, NO vignette. Composition: the scene fills
+the WHOLE frame edge to edge as one continuous environment with the heroine
+roughly centered; do NOT darken, fade, tint, or wall off any part of the frame —
+no shadow band, no vertical divider, no reserved strip on any side. Even, full-
+bleed illustration. Wide 4:3 composition.
+
+SUBJECT: A cute, shapely young woman relaxing at a fantasy tavern counter,
+drinking in a sultry, alluring way — leaning on the bar or perched on a stool,
+tipping a big frothy mug or a goblet of wine to her lips, one eye winking or
+half-lidded, flushed cheeks and a coy inviting smile. She ALWAYS wears a skimpy,
+revealing outfit — a low-cut laced corset / bodice with a deep plunging
+neckline, bare shoulders and midriff, a short skirt and thigh-high stockings —
+lots of exposed skin. Warm candle-lit wooden tavern interior behind her: bottles
+and mugs lined on the bar, a few patrons, a hearth glow. Sexy and seductive yet
+cute and playful — tasteful pin-up, NOT explicit, NOT nude. Keep the revealing
+outfit and the tavern-counter-drinking setting fixed every time; only vary her
+hair color and style, the outfit colors, the drink, and her pose.

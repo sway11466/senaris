@@ -1,0 +1,35 @@
+# debug-ai（デバッグ：敵AI）の冒険譚カード用プロンプト＝完全版（STYLE込み・自己完結）。
+# このデバッグカードだけは共通 ILLUST STYLE（2〜2.5頭身・NOT moe）から意図的に外す
+# ＝可愛い＋色気のモチベ絵。よって STYLE を含む完全版をここに置き、貼るのはこの1ファイルで済む。
+# 生成後: 透かし（右下の sparkle）だけ局所的に消す（右端の帯クロップはしない＝全面を活かす）
+#   → assets/campaign/debug-ai/debug-ai_cover*.png（連番＝表示ごとにランダム）。
+# 意味付け: 敵AI＝敵を操る「思考」／黒幕。魔女が手下（ゴブリン・アンデッド）を魔法の糸で操る＝AIが敵を動かす。
+
+STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game, in
+the same clean stylized cel-shading as the game's unit pieces: bold readable
+shapes, mature and slightly muted limited color palette; NOT bright saturated
+anime coloring, NOT painterly photorealism. For THIS card the character is a
+cute, shapely heroine about 4.5 to 5 heads tall (a little deformed / stylized,
+cuter than realistic), with a rounder soft face, large expressive eyes, a small
+nose, and a charming spirited expression — appealing and kawaii but still cool,
+NOT scary, NOT grim. Full illustrated scene: dynamic composition, expressive
+pose, painted battlefield background, dramatic cinematic lighting. NO text, NO
+title, NO logo, NO border, NO vignette. Composition: the scene fills the WHOLE
+frame edge to edge as one continuous battlefield with the heroine roughly
+centered; do NOT darken, fade, tint, or wall off any part of the frame — no
+shadow band, no vertical divider, no reserved strip on any side. Even, full-
+bleed illustration. Wide 4:3 composition.
+
+SUBJECT: An alluring young witch — the dark mind pulling the strings of the
+enemy horde. She stands confidently on a gloomy battlefield, one hand raised
+mid-cast, commanding her monster minions; faint glowing magical threads and
+glowing eyes on the nearby goblins or undead show they move at her will (this is
+the "AI" controlling them). She ALWAYS wears a skimpy, revealing witch outfit: a
+slinky black-and-violet dress with a plunging neckline and a high thigh slit (or
+a bare midriff), thigh-high stockings or boots, and a witch hat — lots of
+exposed skin, elegant and dangerous. Shapely figure, a sly confident smirk.
+Muted dark-violet magical glow against the grim palette. Sexy and alluring yet
+cute and playful — tasteful pin-up, NOT explicit, NOT nude. Keep the revealing
+witch outfit, the witch hat, and the mind-control magic fixed every time; only
+vary her hair color and style, the outfit's color accents, her pose, and which
+monsters she commands (goblins / undead / beasts).

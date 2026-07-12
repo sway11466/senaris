@@ -1,0 +1,37 @@
+# debug-skins（デバッグ：スキン）の冒険譚カード用プロンプト＝完全版（STYLE込み・自己完結）。
+# このデバッグカードだけは共通 ILLUST STYLE（2〜2.5頭身・NOT moe）から意図的に外す
+# ＝可愛い＋色気のモチベ絵。よって STYLE を含む完全版をここに置き、貼るのはこの1ファイルで済む。
+# 生成後: 透かし（右下の sparkle）だけ局所的に消す（右端の帯クロップはしない＝全面を活かす）
+#   → assets/campaign/debug-skins/debug-skins_cover*.png（連番＝表示ごとにランダム）。
+# 意味付け: スキン＝見た目の着せ替え。踊り子＋背後に複数衣装の見本＝多数の見た目から差し替える、のメタ。
+# 注: 「楽屋で着替え中」だと生成フィルタに脱衣文脈と読まれ拒否される。ステージで踊る（＝着ている）
+#     ＋衣装は壁に飾って見せる、に変更して回避（意味は維持）。
+
+STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game, in
+the same clean stylized cel-shading as the game's unit pieces: bold readable
+shapes, mature and slightly muted limited color palette; NOT bright saturated
+anime coloring, NOT painterly photorealism. For THIS card the character is a
+cute, shapely heroine about 4.5 to 5 heads tall (a little deformed / stylized,
+cuter than realistic), with a rounder soft face, large expressive eyes, a small
+nose, and a charming spirited expression — appealing and kawaii but still cool,
+NOT scary, NOT grim. Full illustrated scene: dynamic composition, expressive
+pose, a fully painted environment background, dramatic cinematic lighting. NO
+text, NO title, NO logo, NO border, NO vignette. Composition: the scene fills
+the WHOLE frame edge to edge as one continuous environment with the heroine
+roughly centered; do NOT darken, fade, tint, or wall off any part of the frame —
+no shadow band, no vertical divider, no reserved strip on any side. Even, full-
+bleed illustration. Wide 4:3 composition.
+
+SUBJECT: A cute, shapely young dancer performing on a warm-lit stage, fully
+dressed and mid-dance in a lively confident pose (twirling, arms raised, veils
+flowing). She wears a colorful, revealing dance costume — a jeweled bedlah bra
+top and a flowing harem skirt with a high slit, sheer veils and bangles — bare
+midriff, shoulders and legs, lots of exposed skin. Behind her, several DIFFERENT
+complete outfits and armor sets are displayed on the wall on stands and
+mannequins (elegant dresses, shining plate armor, mage robes) beside a large
+framed mirror — a showcase of the many "skins" to pick from. Cheerful with a
+playful wink. Warm theatrical stage lighting. Sexy and alluring yet cute and
+playful — tasteful pin-up, NOT explicit, NOT nude. Keep the revealing dance
+costume (worn, performing) and the wall of many displayed costumes fixed every
+time; only vary her hair color and style, the costume colors, the displayed
+outfits, and her pose.
