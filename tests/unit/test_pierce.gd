@@ -19,6 +19,7 @@ func test_pierce_halves_effective_defense() -> void:
 	s.add_unit(zombie)
 	var df := Combat.defense_breakdown(s, zombie, mage)  # 防御側=zombie / 攻撃側=mage
 	assert_almost_eq(float(df["pierce"]), 0.5, 0.001, "貫通後係数0.5（内訳dict）")
+	assert_false(bool(df["capped"]), "支援なし＝2倍上限は効かない（capped=false）")
 	assert_almost_eq(float(df["total"]), 8.0 * 40.0 * 0.5, 0.01, "実効防御が半減（兵8×防40×0.5＝160）")
 
 func test_pierce_increases_damage_vs_high_defense() -> void:
@@ -45,6 +46,21 @@ func test_no_pierce_is_regression() -> void:
 	var df := Combat.defense_breakdown(s, foe, atk)
 	assert_almost_eq(float(df["pierce"]), 1.0, 0.001, "貫通なし＝係数1.0")
 	assert_almost_eq(float(df["total"]), 8.0 * 40.0, 0.01, "pierce0は実効防御そのまま（320）")
+
+func test_pierce_applies_after_support_cap() -> void:
+	# 判定順の固定: D = min(支援後, 素×2) × (1−pierce)＝2倍上限→貫通の順。
+	# 素防80＋支援100=180 → 上限160 → ×0.5=80。順序が逆（貫通→上限判定）だと
+	# 180×0.5=90 が上限160未満で cap が効かず 90 になるため、入れ替え退行を検出できる。
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var atk := Unit.new(1, 1, ap, 3, 8, 10, 10)
+	atk.pierce = 0.5
+	s.add_unit(atk)
+	s.add_unit(Unit.new(2, 0, Hex.neighbor(ap, 0), 3, 8, 10, 10))    # 防御側: 素防 8×10=80
+	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 2), 3, 8, 0, 50))     # 味方: 支援 8×50×0.25=100
+	var df := Combat.defense_breakdown(s, s.unit_by_id(2), atk)
+	assert_true(bool(df["capped"]), "支援(+100)で2倍上限(80→160)が効く")
+	assert_almost_eq(float(df["total"]), 80.0, 0.01, "min(180,160)×0.5＝80（上限→貫通の順）")
 
 func test_pierce_reflected_in_attack_detail() -> void:
 	# 実際の攻撃でも、防御内訳(detail)に貫通係数が出て損害に効く（表示と実処理の一致）。

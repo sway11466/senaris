@@ -64,7 +64,7 @@ static func attack_breakdown_from(troops: int, stat: int, experience: float, sur
 
 ## 実効防御力の内訳（dict）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
 ## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
-## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（combat.md【要判断】）。
+## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（test_pierce.gd で固定）。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
 	var b := defense_breakdown_from(
 		u.troops,
