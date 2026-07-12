@@ -11,7 +11,7 @@ class_name Formation
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
 ## - 威力＝参加者の実効攻撃力の合算（各自の兵数×攻撃力×経験×包囲×地形）。間接扱い＝melee=false で支援は乗らない。
 ## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(leader)の性質を使う（①魔法兵0.5／③聖職0）。
-## - 対象は敵のみ（味方は巻き込まない）。参加者の経験値加算は当面なし。
+## - 対象は敵のみ（味方は巻き込まない）。参加者は経験値+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
 
 ## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
 ## leader_types＝発動者になれる type ／ member_types＝残りの参加者の type。

@@ -120,6 +120,37 @@ func test_resolve_out_of_range_fails() -> void:
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 全参加者から射程5超
 	assert_true(s.resolve_formation(opt, far).is_empty(), "射程外は不成立（空dict）")
 
+func test_participants_gain_experience() -> void:
+	# 撃破なし＝発動で全員+1（Lv1→Lv2）。硬い敵で一撃では死なせない。
+	var f := _trinity_state(100)
+	var s: BattleState = f["s"]
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	s.resolve_formation(opt, f["enemy_hex"])
+	assert_not_null(s.unit_by_id(9), "硬い敵は生存（非撃破ケースの前提）")
+	for pid in [1, 2, 3]:
+		assert_eq(s.unit_by_id(pid).level, 2, "参加者%d は発動で経験+1" % pid)
+
+func test_empty_cast_grants_no_experience() -> void:
+	# 面に敵が1体も居ない空撃ちは経験0（ただし参加者は行動完了）。
+	var f := _trinity_state()
+	var s: BattleState = f["s"]
+	var empty := Hex.offset_to_axial(3, 3) + Hex.direction(3) * 2  # 射程内・面に駒なし
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	var res := s.resolve_formation(opt, empty)
+	assert_eq((res["results"] as Array).size(), 0, "空撃ち＝着弾なし")
+	for pid in [1, 2, 3]:
+		assert_eq(s.unit_by_id(pid).level, 1, "空撃ちは経験0（Lv1のまま）")
+	assert_true(s.is_done(1), "空撃ちでも行動完了")
+
+func test_kill_grants_extra_experience() -> void:
+	# 撃破が1体でもあれば +2（Lv1→Lv3）。
+	var f := _trinity_state(1)  # 低防御＝撃破される
+	var s: BattleState = f["s"]
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	s.resolve_formation(opt, f["enemy_hex"])
+	for pid in [1, 2, 3]:
+		assert_eq(s.unit_by_id(pid).level, 3, "撃破時は参加者%d が経験+2" % pid)
+
 func test_resolve_kills_when_lethal() -> void:
 	# 防御が薄い敵は撃破され盤から消える。
 	var f := _trinity_state(1)  # 低防御

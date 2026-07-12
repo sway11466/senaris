@@ -552,8 +552,21 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		if killed:
 			_remove_unit(victim.id)
 		results.append({"target_id": victim.id, "loss": loss, "killed": killed, "detail": hit})
-	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）。
+	# 経験値: attack と同じ「戦ったら+1・倒したらさらに+1」を陣形1発の単位で（面で複数撃破でも+2止まり）。
+	# 対象に1体も当たらなかった空撃ちは0（戦っていない＝経験を稼げない）。
+	var any_killed := false
+	for r in results:
+		if bool(r["killed"]):
+			any_killed = true
+			break
+	var exp_gain := 0
+	if not results.is_empty():
+		exp_gain = 1 + (1 if any_killed else 0)
+	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）＋経験値加算。
 	for pid in option["participants"]:
+		var p := unit_by_id(int(pid))
+		if p != null:
+			p.add_experience(exp_gain)
 		set_done(int(pid))
 		mark_engaged(int(pid))
 	return {"recipe": option["recipe"], "results": results}
