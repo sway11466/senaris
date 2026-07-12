@@ -100,7 +100,7 @@ func show_campaign(campaign_id: String) -> void:
 	if c.is_empty():
 		return
 	_title.text = tr(String(c["title"]))  # title は翻訳キー（i18n）。生テキストでも tr() は素通し
-	_set_cover(String(c.get("cover_path", "")), tr(String(c["title"])))
+	_set_cover(_pick_variant(c.get("cover_paths", [])), tr(String(c["title"])))  # 連番なら表示ごとに1枚
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
 		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
@@ -155,3 +155,9 @@ func _clear_children(container: Node) -> void:
 	for child in container.get_children():
 		container.remove_child(child)
 		child.queue_free()
+
+## 連番バリアントから1枚選ぶ（表示ごと＝呼ぶたび randi）。空なら ""。1枚なら常にそれ。
+func _pick_variant(paths: Array) -> String:
+	if paths.is_empty():
+		return ""
+	return String(paths[randi() % paths.size()])

@@ -7,8 +7,9 @@ const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
-## { id, title, desc, debug, difficulty, tier, cover_path, card_path,
+## { id, title, desc, debug, difficulty, tier, cover_paths, card_paths,
 ##   stages: [ { id, title, file, path, unlock: Array } ] }
+## cover_paths/card_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	var id := String(data.get("id", ""))
 	var raw_stages: Variant = data.get("stages", [])
@@ -41,8 +42,8 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"debug": bool(data.get("debug", false)),
 		"tier": String(data.get("tier", "rookie")),  # 所属ボード（tutorial/rookie/adept/veteran）。未指定は rookie
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
-		"cover_path": _resolve_art(id, "cover"),  # ステージ一覧の大パネル
-		"card_path": _resolve_art(id, "card"),    # 冒険譚カード（絵はカード用にクロップ）
+		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル（連番バリアント）
+		"card_paths": _resolve_art_variants(id, "card"),    # 冒険譚カード（絵はカード用にクロップ・連番バリアント）
 		"stages": stages,
 	}
 
@@ -63,11 +64,22 @@ static func _warn_dangling_unlock(campaign_id: String, stages: Array) -> void:
 			if not ids.has(ref):
 				push_warning("CampaignCatalog[%s]: stage '%s' の unlock が未定義の stage '%s' を参照" % [campaign_id, s["id"], ref])
 
-## 絵を規約で自動解決：assets/campaign/{id}/{id}_{kind}.png があればそのパス、無ければ ""。
-## 絵を置くだけでセレクト画面がプレースホルダ→画像に切り替わる（skin 画像 autowire と同じ思想）。
-static func _resolve_art(id: String, kind: String) -> String:
-	var p := "res://assets/campaign/%s/%s_%s.png" % [id, id, kind]
-	return p if ResourceLoader.exists(p) else ""
+## 絵を規約で自動解決＝連番バリアントを集める：{id}_{kind}.png（＋_2/_3…）の在るものを順に。
+## 1枚だけなら従来どおり固定、複数置けば表示側がランダムに1枚選ぶ（羊皮紙・地形の連番と同思想）。
+## 絵を置くだけでプレースホルダ→画像に切り替わる（skin 画像 autowire と同じ思想）。
+static func _resolve_art_variants(id: String, kind: String) -> Array:
+	var out: Array = []
+	var base := "res://assets/campaign/%s/%s_%s.png" % [id, id, kind]
+	if ResourceLoader.exists(base):
+		out.append(base)
+	var n := 2
+	while true:
+		var p := "res://assets/campaign/%s/%s_%s_%d.png" % [id, id, kind, n]
+		if not ResourceLoader.exists(p):
+			break
+		out.append(p)
+		n += 1
+	return out
 
 ## 1つの campaign.json を読み込む。失敗時は {}。
 static func load_file(path: String) -> Dictionary:

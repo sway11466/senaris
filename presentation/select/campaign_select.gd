@@ -272,9 +272,11 @@ func _poster(c: Dictionary) -> Control:
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
-	var art_path := String(c.get("card_path", ""))
-	if art_path.is_empty():
-		art_path = String(c.get("cover_path", ""))
+	# カード絵＝card 優先／無ければ cover。連番バリアントから表示ごとに1枚選ぶ（複数置けばランダム）。
+	var art_paths: Array = c.get("card_paths", [])
+	if art_paths.is_empty():
+		art_paths = c.get("cover_paths", [])
+	var art_path := _pick_variant(art_paths)
 	if not art_path.is_empty():
 		art.texture = load(art_path) as Texture2D
 	content.add_child(art)
@@ -299,6 +301,12 @@ func _poster(c: Dictionary) -> Control:
 
 func _on_card_pressed(campaign_id: String) -> void:
 	campaign_chosen.emit(campaign_id)
+
+## 連番バリアントから1枚選ぶ（表示ごと＝呼ぶたび randi）。空なら ""。1枚なら常にそれ。
+func _pick_variant(paths: Array) -> String:
+	if paths.is_empty():
+		return ""
+	return String(paths[randi() % paths.size()])
 
 ## 貼り紙下部の情報（タイトル／危険度／説明文）。デバッグ冒険譚は注記のみ。
 ## title/desc は翻訳キー＝tr() で解決（生テキストでも tr() は素通し）。

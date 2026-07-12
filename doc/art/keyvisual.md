@@ -43,13 +43,15 @@ away), and keep the bottom-right corner empty of anything important. Wide
 
 ユニット（[units.md](units.md) §3.1）と同じ「source＝作業／直下＝ゲームが読む正」の二層：
 
-| 段階 | 置き場（`{campaign_id}`＝data/stages のフォルダ名） | 例 |
+| 段階 | 置き場（`{id}`＝data/stages のフォルダ名＝冒険譚id） | 例 |
 |---|---|---|
-| ① AI生成直後（原寸・透かし入り） | `assets/campaign-src/{campaign_id}/{campaign_id}_01_raw.png` | `campaign-src/tutorial1-goblin-raid/tutorial1-goblin-raid_01_raw.png` |
-| SUBJECT | `assets/campaign-src/{campaign_id}/cover_prompt.txt` | 同上フォルダ |
-| ② ゲーム用（右15%クロップで透かし除去） | `assets/campaign/{campaign_id}/{campaign_id}_cover.png` | `tutorial1-goblin-raid_cover.png` |
+| ① AI生成直後（原寸・透かし入り） | `assets/campaign-src/{id}/{id}_a_01_raw.png`（変種 a/b/c・master は `_a_02_master.png`） | `campaign-src/tutorial1-goblin-raid/tutorial1-goblin-raid_a_01_raw.png` |
+| SUBJECT | `assets/campaign-src/{id}/{id}_cover_prompt.txt` | 同上フォルダ |
+| ② ゲーム用（右15%クロップで透かし除去） | `assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial1-goblin-raid_cover.png` |
 
-- ②は `assets/campaign/{campaign_id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
+- 命名は他系統と揃える: slot（`_cover`/`_card`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_a_NN_raw/master` は羊皮紙流。
+- ②は `assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
+- 連番変種（`{id}_cover_2.png` …）を複数置くと、表示ごとにランダムで1枚選ぶ（[campaign_catalog.gd](../../data/stages/campaign_catalog.gd) `_resolve_art_variants`／地形・羊皮紙と同思想）。1枚だけなら固定。
 - クロップは右を落とす（透かしが右下・主題は中央〜左に寄せる構図ルールと一致）。1枚を大パネル＝クロップ後の全体、カード＝横帯クロップで使い回す。
 
 ---
