@@ -37,9 +37,11 @@
 
 共通の制作方針は [doc/campaign/authoring.md](doc/campaign/authoring.md)。各冒険譚は `gdd/` の仕様を土台にし、関係する箇所だけ本文でリンクする。
 
+- [doc/campaign/roadmap.md](doc/campaign/roadmap.md) — キャンペーン全体の難易度帯・制作状況（一覧・入口）
 - [doc/campaign/authoring.md](doc/campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
 - [doc/campaign/tutorial1-goblin-raid.md](doc/campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
 - [doc/campaign/tutorial2-undead-rush.md](doc/campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッドの群れ」全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
+- [doc/campaign/tutorial3-dragon-hunt.md](doc/campaign/tutorial3-dragon-hunt.md) — チュートリアル３「竜狩り」（飛行・対空／継承carryover／中立拠点／回復拠点・泉／ボス＝ドラゴン）
 
 ### 技術設計 — `tech/`（Technical Design Document）
 
