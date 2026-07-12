@@ -18,7 +18,7 @@ func test_parse_dialogue_absent_is_empty() -> void:
 	assert_true(d["intro"].is_empty() and d["outro"].is_empty(), "dialogue 無しは空の intro/outro")
 
 func test_load_dialogue_talk_stage() -> void:
-	var d := StageLoader.load_dialogue("res://data/stages/debug/talk.json")
+	var d := StageLoader.load_dialogue("res://data/stages/debug-misc/talk.json")
 	assert_eq(d["intro"].size(), 4, "talk.json の intro は4行")
 	assert_eq(d["outro"].size(), 2, "talk.json の outro は2行")
 

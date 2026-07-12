@@ -1,0 +1,10 @@
+{
+  "id": "debug-victory",
+  "title": "デバッグ：勝利条件",
+  "debug": true,
+  "stages": [
+    { "id": "boss", "file": "boss.json", "title": "ボス撃破" },
+    { "id": "hq", "file": "hq.json", "title": "本拠地占領（raid）" },
+    { "id": "turnlimit", "file": "turnlimit.json", "title": "ターン制限（10で時間切れ敗北）" }
+  ]
+}

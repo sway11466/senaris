@@ -7,7 +7,7 @@ extends Node3D
 func _ready() -> void:
 	get_window().size = Vector2i(1280, 720)
 	var out := "board3d.png"
-	var path := "res://data/stages/debug/debug.json"
+	var path := "res://data/stages/_boot/underlay.json"
 	var uargs := OS.get_cmdline_user_args()
 	if uargs.size() > 0:
 		out = uargs[0]

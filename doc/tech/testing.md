@@ -41,6 +41,7 @@ godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutco
 
 - `tests/unit/` — 31本。domain（combat / pierce / support / surround / air_combat / movement / hex / ai / formation / capture / transport / turn / victory / battle_state）・data（data_integrity / csv_util / 各カタログ / unit_type / skin 系 / i18n / dialogue）・application（command_actions / stage_loader / campaign_progress / campaign_catalog）・infrastructure（progress_store）。
 - `tests/manual/` — 使い捨てスクリプト置き場（セレクト画面のヘッドレス再現・スクショ）。自動実行の対象外。
+- 手動での機能確認は機能別のデバッグステージ（`data/stages/debug-*/`）を使う。カテゴリ内訳・未実装TODO → [debug-stages.md](debug-stages.md)。
 
 ## 既知の穴
 

@@ -69,7 +69,7 @@
 
 - [ ] 地形のデータ化（移動コスト列の拡張＝森・山・水辺…）と、地形タイプごとのコスト確定。
 - [ ] 移動タイプの拡充（騎乗・水棲・特殊パターン）。
-- [x] 輸送の実装（搭乗状態・board/unload・capacity 配線）。輸送自身の戦闘＝データ駆動（CSVの攻撃値どおり）で確定。検証: `data/stages/debug/transport.json`。
+- [x] 輸送の実装（搭乗状態・board/unload・capacity 配線）。輸送自身の戦闘＝データ駆動（CSVの攻撃値どおり）で確定。検証: `data/stages/debug-mapops/transport.json`。
 - [ ] 敵AIの乗降（輸送を使う敵）。
 - [x] 隣接1マスの特例（上記）の実装：乗車＝`reachable` に隣接する乗車可能な輸送のマスを常に含める／降車＝`_unload_map` に隣接の進入可能マスを合流。
 

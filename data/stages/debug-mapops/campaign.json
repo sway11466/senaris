@@ -1,0 +1,11 @@
+{
+  "id": "debug-mapops",
+  "title": "デバッグ：マップ操作",
+  "debug": true,
+  "stages": [
+    { "id": "siege", "file": "siege.json", "title": "閉じ込め判定（案B・籠城/湧き）" },
+    { "id": "formation", "file": "formation.json", "title": "陣形スキル（①三重詠唱）" },
+    { "id": "transport", "file": "transport.json", "title": "輸送（乗車・運搬・降車）" },
+    { "id": "barricade", "file": "barricade.json", "title": "バリケード輸送（出撃→隣接乗降）" }
+  ]
+}

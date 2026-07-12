@@ -1,0 +1,8 @@
+{
+  "id": "debug-skins",
+  "title": "デバッグ：スキン",
+  "debug": true,
+  "stages": [
+    { "id": "units", "file": "units.json", "title": "ユニット一覧（全スキン）" }
+  ]
+}

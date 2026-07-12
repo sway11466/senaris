@@ -28,8 +28,8 @@
   - **相討ち全滅**は自軍が盤上から消えていれば敗北優先（暫定踏襲）。
   - この「盤上＋復帰手段」で勝敗を見る方式を案Bと呼ぶ。副作用として、盤上0でも控えを出さず引き籠ると膠着しうるため、ターン制限で決着させる（＝時間切れ敗北。実装済み・下記）。
 - **実装状況**: 敵全滅／自軍全滅は実装済み。**条件リスト化・ボス撃破・本拠地占領も実装済み**＝ステージJSONの `victory` 配列（OR評価）を `BattleState.victory_conditions` が判定。
-  - ボス撃破 `{ "type": "defeat_unit", "unit_id": N }`（ボスは駒に `"id": N` を明示採番。enemy 部隊の `units[]` 内でよい）。デバッグステージ: `data/stages/debug/boss.json`。
-  - 本拠地占領 `{ "type": "capture_hq" }`＝敵 native の `kind:"hq"` 拠点をすべて自軍が保持で勝利（`Base.kind`・`native_team` を追加。該当 hq が無ければ不成立＝空勝ち防止）。**自軍 native の hq を奪われたら敗北**（常時ルール・hq を置いたステージだけ効く。奪還で解消）。デバッグステージ: `data/stages/debug/hq.json`。占領は移動の瞬間に起きるため、決着チェックは移動直後にも走る（MatchController）。
+  - ボス撃破 `{ "type": "defeat_unit", "unit_id": N }`（ボスは駒に `"id": N` を明示採番。enemy 部隊の `units[]` 内でよい）。デバッグステージ: `data/stages/debug-victory/boss.json`。
+  - 本拠地占領 `{ "type": "capture_hq" }`＝敵 native の `kind:"hq"` 拠点をすべて自軍が保持で勝利（`Base.kind`・`native_team` を追加。該当 hq が無ければ不成立＝空勝ち防止）。**自軍 native の hq を奪われたら敗北**（常時ルール・hq を置いたステージだけ効く。奪還で解消）。デバッグステージ: `data/stages/debug-victory/hq.json`。占領は移動の瞬間に起きるため、決着チェックは移動直後にも走る（MatchController）。
   - 殲滅勝ち/全滅負けは条件リストと無関係に常時有効（相討ち・hq喪失は敗北優先）。**閉じ込め判定（案B）は実装済み**＝消滅を「盤上0 かつ 復帰手段なし」で判定（`_has_reinforcement`）。
   - **ターン制限も実装済み**＝ステージJSONの `turn_limit`（1手番＝両陣営1巡）。`turn_number > turn_limit` で**時間切れ敗北**（引き分けなし・勝利条件を満たしていればそちらが優先）。**実ステージJSONでは必須**（`load_file` が未指定/0以下を push_error＝データのバグ扱い）。既存ステージは一律 30。`build` は未指定を素通し（0＝無制限。合成テスト用）。決着チェックは `MatchController.end_turn` でも走る（ターン跨ぎで発火）。
 
@@ -98,7 +98,7 @@
 - ステージは JSON データで記述する（ASCII地形グリッド＋ユニット配置）。データは `data/`、それを盤面(BattleState)に組み立てるローダー `StageLoader` は `application/`（data＋domain の両方に依存するため）。詳細 → [../tech/architecture.md](../tech/architecture.md)。
 - **冒険譚（キャンペーン）ごとにフォルダ**で束ねる: `data/stages/<冒険譚>/<ステージ>.json`。
   - 1つの冒険譚＝数ステージ構成を想定し、その単位でフォルダに放り込む。
-  - 例: 動作確認用のデバッグステージは `data/stages/debug/debug.json`。
+  - 例: 動作確認用のデバッグステージは機能別フォルダ `data/stages/debug-*/`（一覧 → [../tech/debug-stages.md](../tech/debug-stages.md)）。
 - 冒険譚内のステージ順序・進行管理（マニフェスト）・ステージ選択 → [stage_select.md](stage_select.md)。実装までは読込先を決め打ちで1枚。
 
 ### 駒の配置（陣営セクション）

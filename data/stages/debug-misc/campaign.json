@@ -1,0 +1,8 @@
+{
+  "id": "debug-misc",
+  "title": "デバッグ：その他",
+  "debug": true,
+  "stages": [
+    { "id": "talk", "file": "talk.json", "title": "会話シーン（前後・チャット風）" }
+  ]
+}

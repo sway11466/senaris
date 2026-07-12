@@ -418,7 +418,7 @@ func test_squad_weak_preset_applies() -> void:
 
 func test_weak_debug_stage_wires_squad() -> void:
 	# デバッグステージ weak.json: 部隊が weak を参照し、馬車が獲物（盤上最低防御）になっている。
-	var s := StageLoader.load_file("res://data/stages/debug/weak.json")
+	var s := StageLoader.load_file("res://data/stages/debug-ai/weak.json")
 	assert_not_null(s, "weak.json が読める")
 	assert_eq(s.squads.size(), 2, "弱者狙い squad ＋ 場外ゴブリンの charge squad")
 	assert_eq(String(s.squads[0].get("ai", "")), "weak", "先頭の部隊のAIラベル＝weak")
@@ -558,7 +558,7 @@ func test_base_deploys_all_and_assigns_squad() -> void:
 
 func test_spawn_debug_stage_wires_base_squad() -> void:
 	# デバッグステージ spawn.json: 敵拠点に ai=charge の squad が紐づき、控えが出せる（native=enemy）。
-	var s := StageLoader.load_file("res://data/stages/debug/spawn.json")
+	var s := StageLoader.load_file("res://data/stages/debug-ai/spawn.json")
 	assert_not_null(s, "spawn.json が読める")
 	var b := s.base_at(Hex.offset_to_axial(8, 3))
 	assert_not_null(b, "敵拠点がある")

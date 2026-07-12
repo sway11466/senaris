@@ -1,12 +1,25 @@
 extends GutTest
 ## CampaignCatalog（冒険譚マニフェスト読み込み）のテスト。仕様 → doc/gdd/stage_select.md
 
-func test_load_all_puts_debug_last() -> void:
+func test_load_all_groups_debug_last() -> void:
+	# デバッグ冒険譚（機能別に6分割）は本編の後ろへまとめて寄る。仕様 → doc/tech/debug-stages.md
 	var all := CampaignCatalog.load_all()
 	assert_true(all.size() >= 2, "tutorial と debug がある")
-	var last: Dictionary = all[all.size() - 1]
-	assert_true(last["debug"], "デバッグ冒険譚は末尾")
-	assert_eq(last["id"], "debug")
+	# 一度 debug が現れたら以降はすべて debug（本編→デバッグの順で切れ目がある）。
+	var seen_debug := false
+	for c in all:
+		if c["debug"]:
+			seen_debug = true
+		else:
+			assert_false(seen_debug, "本編の冒険譚がデバッグ群より後ろに来ない: %s" % c["id"])
+	assert_true(all[all.size() - 1]["debug"], "末尾はデバッグ冒険譚")
+	# 6つの機能別デバッグ冒険譚がすべて存在する。
+	var debug_ids := {}
+	for c in all:
+		if c["debug"]:
+			debug_ids[c["id"]] = true
+	for want in ["debug-combat", "debug-ai", "debug-victory", "debug-mapops", "debug-skins", "debug-misc"]:
+		assert_true(debug_ids.has(want), "デバッグ冒険譚が存在: %s" % want)
 
 func test_tutorial_manifest() -> void:
 	var c := CampaignCatalog.load_file("res://data/stages/tutorial1-goblin-raid/campaign.json")

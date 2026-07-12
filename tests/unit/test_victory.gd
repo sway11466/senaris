@@ -115,7 +115,7 @@ func test_win_takes_priority_over_turn_limit() -> void:
 
 func test_turnlimit_debug_stage_loads() -> void:
 	# デバッグステージ turnlimit.json: 敵味方1体・敵は待機(guard)・リミット10。
-	var s := StageLoader.load_file("res://data/stages/debug/turnlimit.json")
+	var s := StageLoader.load_file("res://data/stages/debug-victory/turnlimit.json")
 	assert_not_null(s, "turnlimit.json が読める")
 	assert_eq(s.turn_limit, 10, "リミット10")
 	assert_eq(s.team_unit_count(0), 1, "自軍1体")

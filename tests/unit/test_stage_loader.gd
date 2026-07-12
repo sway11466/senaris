@@ -136,13 +136,14 @@ func test_team_names_resolve_to_internal_ints() -> void:
 	assert_eq(b.native_team, -1, "拠点 native も初期所属の中立")
 	assert_eq(b.garrison[0].native_team, 0, "garrison native=player → 0（中立拠点でも寝返らない）")
 
-func test_load_debug_file() -> void:
-	var s := StageLoader.load_file("res://data/stages/debug/debug.json")
-	assert_not_null(s, "debug.json が読める")
+func test_load_boot_underlay() -> void:
+	# 起動時の下敷き（セレクトの裏に出る空盤）。ユニット0・地形のみで実読み込みできる。
+	var s := StageLoader.load_file("res://data/stages/_boot/underlay.json")
+	assert_not_null(s, "_boot/underlay.json が読める")
 	assert_eq(s.cols, 12)
 	assert_eq(s.rows, 8)
-	assert_true(s.units().size() >= 1, "ユニットが配置される（体数はデモ編集で変わるので下限のみ）")
-	assert_eq(s.terrain_at(Hex.offset_to_axial(5, 4)), "plateau", "中央に台地")
+	assert_eq(s.units().size(), 0, "下敷きは空盤（駒なし）")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(5, 4)), "plateau", "台地の見本")
 	assert_eq(s.terrain_at(Hex.offset_to_axial(6, 4)), "plateau")
 
 func test_all_campaign_stages_load() -> void:

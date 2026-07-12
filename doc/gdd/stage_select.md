@@ -137,7 +137,7 @@ locked    … それ以外
 
 ## デバッグステージ
 
-- `data/stages/debug/` の各マップ（boss / hq / guard …）を **「デバッグ」冒険譚**としてそのまま載せる（debug に `campaign.json` を置き `"debug": true` を付ける）。
+- デバッグ用マップは機能別に6つの **デバッグ冒険譚** へ分ける（`data/stages/debug-combat` / `-ai` / `-victory` / `-mapops` / `-skins` / `-misc`）。各フォルダに `campaign.json`（`"debug": true`）を置く。カテゴリ別の内訳・未実装TODO → [../tech/debug-stages.md](../tech/debug-stages.md)。
 - `debug: true` の冒険譚は **デバッグビルドのみ表示**（Godot の `OS.is_debug_build()`）。リリースエクスポートでは自動的に消える。
 - デバッグステージは**常時解放・クリア記録なし**（進行に混ぜない）。
 
