@@ -14,6 +14,7 @@
     { "id": "spawn", "file": "spawn.json", "title": "敵拠点の出撃（charge湧き）" },
     { "id": "turnlimit", "file": "turnlimit.json", "title": "ターン制限（10で時間切れ敗北）" },
     { "id": "talk", "file": "talk.json", "title": "会話シーン（前後・チャット風）" },
-    { "id": "units", "file": "units.json", "title": "ユニット一覧（全スキン）" }
+    { "id": "units", "file": "units.json", "title": "ユニット一覧（全スキン）" },
+    { "id": "formation", "file": "formation.json", "title": "陣形スキル（①三重詠唱）" }
   ]
 }
