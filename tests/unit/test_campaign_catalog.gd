@@ -14,7 +14,7 @@ func test_tutorial_manifest() -> void:
 	assert_false(c["debug"], "debug 未指定は false")
 	assert_eq(c["difficulty"], 1, "星レーティング")
 	assert_eq(c["tags"], ["チュートリアル", "ゴブリン", "占領"], "タグ")
-	assert_eq(c["stages"].size(), 6)
+	assert_eq(c["stages"].size(), 7)
 	assert_eq(c["stages"][0]["unlock"], [], "1面は無条件解放")
 	assert_eq(c["stages"][1]["unlock"][0]["type"], "cleared")
 	assert_eq(c["stages"][1]["unlock"][0]["stage"], "st1")

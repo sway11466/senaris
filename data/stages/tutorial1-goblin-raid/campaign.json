@@ -1,6 +1,7 @@
 {
   "id": "tutorial1-goblin-raid",
   "title": "ゴブリンの襲撃",
+  "tier": "tutorial",
   "difficulty": 1,
   "tags": [ "チュートリアル", "ゴブリン", "占領" ],
   "stages": [
@@ -14,6 +15,8 @@
     { "id": "st5", "file": "st5.json", "title": "巣穴への一本道",
       "unlock": [ { "type": "cleared", "stage": "st4" } ] },
     { "id": "st6", "file": "st6.json", "title": "潜む群れ",
-      "unlock": [ { "type": "cleared", "stage": "st5" } ] }
+      "unlock": [ { "type": "cleared", "stage": "st5" } ] },
+    { "id": "st7", "file": "st7.json", "title": "最奥の主",
+      "unlock": [ { "type": "cleared", "stage": "st6" } ] }
   ]
 }

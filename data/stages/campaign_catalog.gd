@@ -37,6 +37,8 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"id": id,
 		"title": String(data.get("title", id)),
 		"debug": bool(data.get("debug", false)),
+		"tier": String(data.get("tier", "rookie")),  # 所属ボード（tutorial/rookie/adept/veteran）。未指定は rookie
+
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
 		"tags": _to_tags(data.get("tags", [])),
 		"cover_path": _resolve_art(id, "cover"),  # ステージ一覧の大パネル
