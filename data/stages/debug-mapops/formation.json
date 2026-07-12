@@ -23,12 +23,20 @@
     { "type": "priest", "col": 4, "row": 6 }
   ],
   "enemy": [
-    { "name": "群れ", "ai": "charge",
+    { "name": "群れ（近・射程内）", "ai": "charge",
       "units": [
         { "skin": "goblin", "col": 8, "row": 2 },
         { "skin": "goblin", "col": 8, "row": 3 },
         { "skin": "hobgoblin", "col": 9, "row": 2 },
         { "skin": "hobgoblin", "col": 9, "row": 3 }
+      ] },
+    { "name": "群れ（遠・射程外＝生き残る）", "ai": "charge",
+      "units": [
+        { "skin": "goblin", "col": 12, "row": 1 },
+        { "skin": "goblin", "col": 12, "row": 6 },
+        { "skin": "hobgoblin", "col": 13, "row": 2 },
+        { "skin": "hobgoblin", "col": 13, "row": 5 },
+        { "skin": "hobgoblin", "col": 13, "row": 3 }
       ] }
   ],
   "bases": []
