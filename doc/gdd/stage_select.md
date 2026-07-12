@@ -59,6 +59,26 @@
 - 既存データをテーマ化（新データ不要）＝クリア済み→「討伐済」スタンプ／難易度→危険度★（焼き印）／タグ→蝋のキーワード印。
 - 材質テクスチャの生成仕様（サイズ・シームレス条件・ナインパッチ縁幅・色味・インポート設定）→ [../art/menu.md](../art/menu.md)。
 
+## 難易度帯ボード（tier カルーセル）
+
+冒険譚は難易度帯（tier）ごとのボードに分かれ、◁▷ で1枚ずつ繰るカルーセルで見せる。壁に難易度別の依頼ボードが何枚か貼ってある、という見立て。
+
+帯は4つ。ボード名は英語固定（雰囲気優先・多言語化しない）:
+
+| tier | ボード名 | 位置づけ |
+|---|---|---|
+| tutorial | Tutorial | 操作を覚える導入 |
+| rookie | Rookie | 駆け出し |
+| adept | Adept | 中堅 |
+| veteran | Veteran | ベテラン |
+
+- 難易度★はそのボードの中での相対難易度。tier が粗い難易度・★が細かい難易度＝「Rookie の★4」で一組。★を帯の文脈から切り離してフラットに並べない限り混乱しない（Tutorial★5 と Veteran★1 の絶対比較はプレイヤーがしない比較）。
+- 各冒険譚の所属帯は `campaign.json` の `tier`（未指定は rookie）。帯の一覧（4つ）はコード側の定数で固定＝内容でなく構造。
+- 空の帯も常に表示（準備中の注記）＝カルーセルで巡れて今後の見通しが見える。ボード自体の解放条件はなし（全帯いつでも閲覧可・中身のステージ解放は従来どおり）。
+- Debug ボードはデバッグビルドのみ・先頭（Tutorial の左）に置く。初期表示は最初の実 tier（Tutorial）。
+- ボード名は上梁に手書き風フォント（RockSalt・英語）で載せる。
+- 材質の棲み分け: 酒場の物（ボード・貼り紙・封蝋）はリアル系テクスチャ、カルーセルのUI（◁▷矢印・現在地ドット）はユーザー視点＝あえて無機質なグレーで描く。→ [../art/menu.md](../art/menu.md)
+
 ## 状態モデル
 
 ステージの状態は保存しない。**クリア記録（セーブ）＋解放条件（データ）から毎回導出**する:
@@ -89,6 +109,7 @@ locked    … それ以外
 {
   "id": "tutorial1-goblin-raid",
   "title": "ゴブリンの襲撃",
+  "tier": "tutorial",
   "difficulty": 1,
   "tags": [ "チュートリアル", "ゴブリン", "占領" ],
   "stages": [
@@ -101,7 +122,7 @@ locked    … それ以外
 
 - ステージ JSON 本体（盤面）には手を入れない。進行・表示のメタはマニフェスト側に寄せる。
 - ステージ選択画面は「`data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
-- カード表示用メタ（任意）: `difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`tags`（文字列配列／未指定は空）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
+- カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`tags`（文字列配列／未指定は空）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
 
 ## デバッグステージ
 
@@ -134,8 +155,9 @@ domain（戦闘ロジック）には手を入れない。
 ## 実装状況（2026-07-05 時点）
 
 - **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・difficulty/tags/cover_path/card_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
+- **難易度帯ボード**: tier カルーセル実装済み（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）実装済み・カード用クロップ（card）は未配置で cover にフォールバック中。
-- **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは確認ダイアログのみ（内容は未決事項参照）。
+- **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは羊皮紙の依頼書ダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）で出撃確認まで＝中身（勝利条件・推奨戦力など）は未決事項参照。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
 
 ## 未決事項
