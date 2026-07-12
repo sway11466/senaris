@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=10 / refactoring=5
+次回採番: bug=1 / feature=11 / refactoring=5
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -90,6 +90,14 @@
 - 背景：システムメニューに枠はあるが無効表示（[uiux.md](gdd/uiux.md) §フェーズ3・[gamesystem.md](tech/gamesystem.md) がセーブ仕様の正本）。盤の状態を永続化・復元する機能が未実装。feature-5（戦力供給の持ち越し）とステージ間状態の永続化で論点が絡む。
 - 対応：`gamesystem.md` のセーブ仕様に沿って `BattleState` の直列化＋ファイル保存/読込を実装し、HUD の無効項目を有効化。
 - 該当：`domain/battle_state.gd`（直列化）・`presentation/ui/hud.gd`（項目有効化）・`application/`（保存/読込の配線）・`doc/tech/gamesystem.md`。
+
+### feature-10
+
+**製品ビルドから開発用アセットを除外（ツール・デバッグステージ）**（優先度：低）
+
+- 背景：`tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）とデバッグ用ステージ（`data/stages/debug*/`）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。
+- 対応：export preset を作る段で、非公開フィルタ（除外パターン）に `tools/` とデバッグステージのパスを加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
+- 該当：`export_presets.cfg`（新規）・`tools/`・`data/stages/debug*/`・ステージ一覧の参照箇所。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
 
 ## リファクタリング
 
