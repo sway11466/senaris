@@ -1,5 +1,5 @@
 extends Control
-## 戦闘計算シミュレータ（開発ツール）。tools/combat_sim.tscn を Godot エディタで F6（指定シーンを実行）。
+## 戦闘計算シミュレータ（開発ツール）。tools/combat_sim/combat_sim.tscn を Godot エディタで F6（指定シーンを実行）。
 ##
 ## 式は本体（Combat / Surround / TerrainType）をそのまま呼ぶ＝画面の数字＝実戦の数字。
 ## 盤を作らず包囲・支援を「値」で指定するため、Combat/Surround の *_from 系（明示係数版）を使う。
