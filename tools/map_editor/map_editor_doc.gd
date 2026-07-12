@@ -1,6 +1,6 @@
 extends RefCounted
 class_name MapEditorDoc
-## マップエディタ（tools/map_editor.tscn）のドキュメントモデル。
+## マップエディタ（tools/map_editor/map_editor.tscn）のドキュメントモデル。
 ## stage.json の辞書をそのまま正本として持ち、編集操作とテキスト入出力（読込/保存）を提供する。
 ## 編集対象外のキー（dialogue / terrain_skins / 未知キー）は読み込んだまま温存して書き戻す。
 ## 純ロジック（Godotノード非依存）＝テスト対象（tests/unit/test_map_editor_doc.gd）。

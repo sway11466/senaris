@@ -1,5 +1,5 @@
 extends GutTest
-## MapEditorDoc（tools/map_editor_doc.gd）のテスト。
+## MapEditorDoc（tools/map_editor/map_editor_doc.gd）のテスト。
 ## マップエディタの入出力＝「読み込んだ stage.json を編集しても、会話などの非編集キーを失わず、
 ## StageLoader が読める JSON を書き出せる」ことを守る。
 

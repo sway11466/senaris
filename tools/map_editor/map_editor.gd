@@ -1,5 +1,5 @@
 extends Control
-## マップエディタ（開発ツール）。tools/map_editor.tscn を Godot エディタで F6（指定シーンを実行）。
+## マップエディタ（開発ツール）。tools/map_editor/map_editor.tscn を Godot エディタで F6（指定シーンを実行）。
 ##
 ## stage.json の項目を編集する（戦闘前後の会話 dialogue は対象外＝読み込んだまま温存して保存）。
 ## terrain_skins・未知キーも同様に温存。スキーマの解釈は StageLoader に合わせる。
