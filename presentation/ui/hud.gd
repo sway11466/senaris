@@ -19,16 +19,13 @@ enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE }
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤のクリックを通す（ボタンだけ拾う）
 
-	_gear = Button.new()
-	_gear.text = "⚙ メニュー"
-	_gear.focus_mode = Control.FOCUS_NONE  # フォーカスを取らない＝Enter(手番終了)で誤発火しない
+	# wood_button は focus_mode=NONE 済み（＝Enter(手番終了)で誤発火しない）
+	_gear = TavernTheme.wood_button("⚙ メニュー")
 	_gear.size = Vector2(110, 40)
 	_gear.pressed.connect(open_system_menu)
 	add_child(_gear)
 
-	_end_btn = Button.new()
-	_end_btn.text = "ターン終了"
-	_end_btn.focus_mode = Control.FOCUS_NONE
+	_end_btn = TavernTheme.wood_button("ターン終了")
 	_end_btn.size = Vector2(140, 40)
 	_end_btn.pressed.connect(func() -> void: end_turn_requested.emit())
 	add_child(_end_btn)
@@ -55,7 +52,7 @@ func _reposition() -> void:
 	var vp := get_viewport_rect().size
 	var y := vp.y - 52.0
 	_gear.position = Vector2(16.0, y)
-	_end_btn.position = Vector2(134.0, y)  # 歯車(幅110)の右に隙間8
+	_end_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
 
 ## ターン終了ボタンの有効/無効（自手番のみ有効・AI手番/決着後は無効）。
 func set_player_turn(enabled: bool) -> void:

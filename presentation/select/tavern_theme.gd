@@ -274,9 +274,11 @@ static func wood_button(text: String) -> Button:
 	b.add_theme_color_override("font_color", Color(0.90, 0.82, 0.62))
 	b.add_theme_color_override("font_hover_color", Color(0.98, 0.92, 0.74))
 	b.add_theme_color_override("font_pressed_color", Color(0.80, 0.72, 0.54))
+	b.add_theme_color_override("font_disabled_color", Color(0.55, 0.50, 0.42))
 	b.add_theme_stylebox_override("normal", _plank_box(1.0))
 	b.add_theme_stylebox_override("hover", _plank_box(1.12))
 	b.add_theme_stylebox_override("pressed", _plank_box(0.85))
+	b.add_theme_stylebox_override("disabled", _plank_box(0.65))
 	return b
 
 static func _plank_box(bright: float) -> StyleBox:
