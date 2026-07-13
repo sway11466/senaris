@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=12 / refactoring=5
+次回採番: bug=1 / feature=13 / refactoring=5
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -98,6 +98,14 @@
 - 背景：`tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）とデバッグ用ステージ（`data/stages/debug*/`）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。
 - 対応：export preset を作る段で、非公開フィルタ（除外パターン）に `tools/` とデバッグステージのパスを加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
 - 該当：`export_presets.cfg`（新規）・`tools/`・`data/stages/debug*/`・ステージ一覧の参照箇所。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
+
+### feature-12
+
+**表示名・UI文言の i18n キー化移行**（優先度：高）
+
+- 背景：多言語対応の方針は [i18n.md](tech/i18n.md) で確定（海外販売必須のため ja+en）。会話・冒険譚名は翻訳キー化済みだが、(1) ユニット・地形・移動タイプの表示名がデータCSVの `name` 列（日本語直書き）のまま情報パネル等に表示され、(2) HUD・情報パネル・勝敗表示など GDScript 直書きの UI 文言が `tr()` を通っていない。この2系統は現状英語にできない。
+- 対応：(1) `data/i18n/units.csv` を新設し、規約キー（`unit.{skin_id}.name`・`terrain.{skin_id}.name`・`movement.{id}.name`）で表示名を解決。`UnitSkin`/`TerrainSkin`/`Movement` の表示名参照を `tr()` 経由に差し替え、データCSVの `name` 列は開発用メモに降格。(2) `data/i18n/ui.csv` を新設し、presentation の直書き文言（`ui.*` キー）を一括キー化。test_i18n_translation の検出範囲に新CSVを加える。
+- 該当：`data/i18n/`（units.csv・ui.csv 新規）・`data/units/unit_skin.gd`・`data/terrain/terrain_skin.gd`・`data/movement/movement.gd`・`presentation/ui/`（hud・unit_info_panel ほか）・`project.godot`（translation 登録）・`tests/unit/test_i18n_translation.gd`・`doc/tech/i18n.md`。
 
 ## リファクタリング
 

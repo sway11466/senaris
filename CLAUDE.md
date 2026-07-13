@@ -48,6 +48,7 @@
 - [doc/tech/architecture.md](doc/tech/architecture.md) — レイヤー／モジュール構成・依存ルール
 - [doc/tech/gamesystem.md](doc/tech/gamesystem.md) — ゲームシステム仕様（セーブ ほか）
 - [doc/tech/testing.md](doc/tech/testing.md) — テスト方針（目的・レイヤー別の線引き・運用・実行方法）
+- [doc/tech/i18n.md](doc/tech/i18n.md) — 多言語対応（対応言語・翻訳CSV運用・キー命名・表示名の扱い）
 - [doc/tech/debug-stages.md](doc/tech/debug-stages.md) — デバッグステージ一覧（機能別6カテゴリ・既存/未実装TODO）
 
 ### アート — `art/`（Art Bible）
