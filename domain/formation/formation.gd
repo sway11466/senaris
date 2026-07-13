@@ -9,7 +9,7 @@ class_name Formation
 ## 効果解決は B(single)/C(buff) で解禁する（IMPLEMENTED_EFFECTS でメニュー提示を絞る）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
-## - 威力＝参加者の実効攻撃力の合算（各自の兵数×攻撃力×経験×包囲×地形）。間接扱い＝melee=false で支援は乗らない。
+## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×経験×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
 ## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(leader)の性質を使う（①魔法兵0.5／③聖職0）。
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし発動者自身は除外（詠唱の源＝自傷しない）。
 ## - 参加者は経験値+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
@@ -144,17 +144,15 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		"radius": int(r.get("radius", 0)),
 	}
 
-## victim 1体への陣形ダメージ内訳（合算攻撃力・間接扱い）。非破壊。
+## victim 1体への陣形ダメージ内訳（発動者1体の実効攻撃力・間接扱い）。非破壊。
+## 威力＝発動者(leader)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。
+## 面の広さ（最大7hex）そのものが強み。合算は割合式が飽和してオーバーキルのため見送り（旧feature-11）。
+## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
 static func _formation_hit(state: BattleState, option: Dictionary, victim: Unit) -> Dictionary:
 	var leader := state.unit_by_id(int(option["leader_id"]))
-	var atk_total := 0.0
-	for pid in option["participants"]:
-		var p := state.unit_by_id(int(pid))
-		if p == null:
-			continue
-		# 間接扱い＝melee=false（支援は乗らない）。各参加者の実効攻撃力を合算。
-		atk_total += float(Combat.attack_breakdown(state, p, victim, false)["total"])
-	var synth_atk := {"kind": "attack", "total": atk_total}
+	# 間接扱い＝melee=false（支援は乗らない）。発動者の実効攻撃力（兵数×攻撃力×経験×包囲×地形）。
+	var atk := float(Combat.attack_breakdown(state, leader, victim, false)["total"])
+	var synth_atk := {"kind": "attack", "total": atk}
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。
 	var df := Combat.defense_breakdown(state, victim, leader, false)
 	var hit := Combat.hit_from_breakdowns(synth_atk, df, victim.troops)

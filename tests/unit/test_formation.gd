@@ -71,20 +71,21 @@ func test_single_effect_not_offered_in_slice_a() -> void:
 
 # --- 威力・適用 ---
 
-func test_resolve_sums_effective_attack() -> void:
-	# 面ダメージ＝参加3体の実効攻撃力の合算（同一wizard×3）。合算値での hit と一致する。
-	var f := _trinity_state()
+func test_resolve_uses_leader_attack() -> void:
+	# 面ダメージ＝発動者1体の実効攻撃力（合算しない）。単体の hit と一致する。
+	var f := _trinity_state(100)  # 硬い敵＝非撃破で損害が兵数上限に張り付かない範囲
 	var s: BattleState = f["s"]
 	var enemy: Unit = f["enemy"]
-	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var one := float(Combat.attack_breakdown(s, f["leader"], enemy, false)["total"])
-	var synth := {"kind": "attack", "total": one * 3.0}
-	var df := Combat.defense_breakdown(s, enemy, f["leader"], false)
-	var expect := int(Combat.hit_from_breakdowns(synth, df, enemy.troops)["loss"])
+	var leader: Unit = f["leader"]
+	var opt: Dictionary = Formation.available_for(s, leader)[0]
+	var single := {"kind": "attack", "total": float(Combat.attack_breakdown(s, leader, enemy, false)["total"])}
+	var df := Combat.defense_breakdown(s, enemy, leader, false)
+	var expect := int(Combat.hit_from_breakdowns(single, df, enemy.troops)["loss"])
 	var before := enemy.troops
 	var res := s.resolve_formation(opt, f["enemy_hex"])
 	assert_eq((res["results"] as Array).size(), 1, "敵1体に着弾")
-	assert_eq(int(res["results"][0]["loss"]), expect, "合算攻撃力での損害と一致")
+	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
+	assert_eq(int(res["results"][0]["loss"]), expect, "発動者1体の実効攻撃力での損害と一致（合算しない）")
 	assert_eq(enemy.troops, before - expect, "敵の兵数が損害ぶん減る")
 
 func test_resolve_marks_participants_done() -> void:
