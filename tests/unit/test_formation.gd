@@ -57,17 +57,87 @@ func test_done_member_excluded() -> void:
 	f["s"].set_done(2)  # member を行動済みに
 	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 0, "行動済みメンバーは三角形に数えない")
 
-func test_single_effect_not_offered_in_slice_a() -> void:
-	# ③神の裁き（effect=single）は paladin+聖職2で三角形でも、スライスAでは提示しない。
+func test_buff_effect_not_offered_yet() -> void:
+	# ②ホーリーアリア（effect=buff）は占領兵5体隣接でも、スライスC までは提示しない。
 	var s := _state()
-	var c := Hex.offset_to_axial(4, 4)
+	var c := Hex.offset_to_axial(3, 3)
+	var clerics: Array[Unit] = []
+	for i in 5:  # leader＋隣接クラスタ（一列）
+		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
+		s.add_unit(u)
+		clerics.append(u)
+	assert_eq(Formation.available_for(s, clerics[0]).size(), 0, "buff 効果は IMPLEMENTED_EFFECTS 外＝未提示")
+
+# ③神の裁きの成立盤：paladin＋聖職2の三角形＋射程内(距離 enemy_dist)の敵1体。leader=paladin(id1)。
+func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
 	var tri := _triangle(c)
 	var pal := Unit.new(1, 0, tri[0], 3, 8, 50, 50, 1, "paladin")
 	var c1 := Unit.new(2, 0, tri[1], 3, 8, 20, 20, 1, "cleric")
 	var c2 := Unit.new(3, 0, tri[2], 3, 8, 20, 20, 1, "priest")
-	for u in [pal, c1, c2]:
+	var enemy_hex := c + Hex.direction(0) * enemy_dist
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
+	for u in [pal, c1, c2, enemy]:
 		s.add_unit(u)
-	assert_eq(Formation.available_for(s, pal).size(), 0, "single 効果は IMPLEMENTED_EFFECTS 外＝未提示")
+	return {"s": s, "leader": pal, "enemy": enemy, "enemy_hex": enemy_hex}
+
+func test_divine_judgment_offered() -> void:
+	var f := _judgment_state()
+	var opts := Formation.available_for(f["s"], f["leader"])
+	assert_eq(opts.size(), 1, "神の裁きが検出される")
+	var o: Dictionary = opts[0]
+	assert_eq(String(o["recipe"]), "divine_judgment", "レシピは divine_judgment")
+	assert_eq(String(o["effect"]), "single", "単体効果")
+	assert_eq(int(o["range"]), 10, "射程10")
+
+func test_divine_judgment_leader_must_be_paladin() -> void:
+	# 聖職を選んでも神の裁きは出ない（発動者はパラディンのみ）。
+	var f := _judgment_state()
+	var cleric: Unit = f["s"].unit_by_id(2)
+	assert_eq(Formation.available_for(f["s"], cleric).size(), 0, "発動者がパラディンでなければ未提示")
+
+func test_single_hits_only_target_hex() -> void:
+	# 単体＝狙ったヘックスの敵だけ。隣の敵には及ばない（radius 0）。
+	var f := _judgment_state()
+	var s: BattleState = f["s"]
+	var center: Vector2i = f["enemy_hex"]
+	var enemy2 := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 20)
+	s.add_unit(enemy2)
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	var res := s.resolve_formation(opt, center)
+	var ids: Array = []
+	for r in res["results"]:
+		ids.append(int(r["target_id"]))
+	assert_true(9 in ids, "狙ったヘックスの敵に着弾")
+	assert_false(10 in ids, "単体＝隣の敵には及ばない")
+
+func test_single_uses_leader_attack() -> void:
+	var f := _judgment_state(100)  # 硬い敵で非撃破
+	var s: BattleState = f["s"]
+	var enemy: Unit = f["enemy"]
+	var leader: Unit = f["leader"]
+	var opt: Dictionary = Formation.available_for(s, leader)[0]
+	var single := {"kind": "attack", "total": float(Combat.attack_breakdown(s, leader, enemy, false)["total"])}
+	var df := Combat.defense_breakdown(s, enemy, leader, false)
+	var expect := int(Combat.hit_from_breakdowns(single, df, enemy.troops)["loss"])
+	var res := s.resolve_formation(opt, f["enemy_hex"])
+	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
+	assert_eq(int(res["results"][0]["loss"]), expect, "発動者(パラディン)の実効攻撃力での損害")
+
+func test_single_out_of_range_fails() -> void:
+	var s := BattleState.new(20, 8)
+	var c := Hex.offset_to_axial(2, 3)
+	var tri := _triangle(c)
+	var pal := Unit.new(1, 0, tri[0], 3, 8, 50, 50, 1, "paladin")
+	var c1 := Unit.new(2, 0, tri[1], 3, 8, 20, 20, 1, "cleric")
+	var c2 := Unit.new(3, 0, tri[2], 3, 8, 20, 20, 1, "priest")
+	var far_hex := c + Hex.direction(0) * 11  # 射程10超
+	var enemy := Unit.new(9, 1, far_hex, 3, 8, 10, 20)
+	for u in [pal, c1, c2, enemy]:
+		s.add_unit(u)
+	var opt: Dictionary = Formation.available_for(s, pal)[0]
+	assert_true(s.resolve_formation(opt, far_hex).is_empty(), "射程外は不成立（空dict）")
 
 # --- 威力・適用 ---
 

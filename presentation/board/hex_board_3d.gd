@@ -540,8 +540,10 @@ func _enter_formation(option: Dictionary) -> void:
 	_sync_overlay()
 
 ## option の着弾可能hex（発動条件の射程内・盤上）。range_from="any"なら参加者のどれかから。
+## single（単体狙撃）は射程内の「参加者以外のユニットが居るhex」だけ選べる＝空撃ちさせない。
+## area（面）は射程内ならどこでも指定できる（地面に撃てる）。
 func _formation_target_cells(option: Dictionary) -> Array:
-	var cells := {}
+	var in_range := {}
 	var rng := int(option["range"])
 	var origins: Array[Vector2i] = []
 	if String(option["range_from"]) == "any":
@@ -556,7 +558,15 @@ func _formation_target_cells(option: Dictionary) -> Array:
 	for o in origins:
 		for h in Hex.within_range(o, rng):
 			if _on_board(h):
-				cells[h] = true
+				in_range[h] = true
+	if String(option["effect"]) != "single":
+		return in_range.keys()
+	var cells := {}
+	var participants: Array = option["participants"]
+	for h in in_range:
+		var u := state.unit_at(h)
+		if u != null and not (u.id in participants):
+			cells[h] = true
 	return cells.keys()
 
 ## 陣形スキルが解決した＝盤を更新して選択解除（発動ユニットは行動完了）。

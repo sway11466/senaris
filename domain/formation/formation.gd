@@ -5,8 +5,8 @@ class_name Formation
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
-## スライスA: フレームワーク＋①三重詠唱（effect="area"）。②③はレシピ定義のみで、
-## 効果解決は B(single)/C(buff) で解禁する（IMPLEMENTED_EFFECTS でメニュー提示を絞る）。
+## スライスA+B: ①三重詠唱（effect="area"）＋③神の裁き（effect="single"）。②ホーリーアリア(buff)は
+## レシピ定義のみで、効果解決は C で解禁する（IMPLEMENTED_EFFECTS でメニュー提示を絞る）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
 ## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×経験×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
@@ -53,8 +53,8 @@ const RECIPES := {
 	},
 }
 
-## スライスAで適用まで実装済みの効果。未対応はメニューに出さない（B/Cで解禁）。
-const IMPLEMENTED_EFFECTS := ["area"]
+## 適用まで実装済みの効果。未対応はメニューに出さない（②buff は C で解禁）。
+const IMPLEMENTED_EFFECTS := ["area", "single"]
 
 ## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
 ## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
