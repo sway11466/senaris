@@ -124,7 +124,8 @@ func _on_conversation_closed() -> void:
 			_conversation_phase = ""
 			_advance_or_select()  # 次ステージがあれば進む・無ければセレクト
 
-## クリア後の遷移先：非デバッグ冒険譚で解放済みの次ステージがあれば進む（テンポ優先）。無ければセレクト。
+## クリア後の遷移先：次に遊べるステージがあれば進む（テンポ優先）。無ければセレクト。
+## 判断は application（CampaignProgress.next_playable_stage）＝ここは画面の切り替えだけ。
 ## controller を作り直す load_stage は決着シグナルの処理中に呼ばれうるので call_deferred で安全に。
 func _advance_or_select() -> void:
 	var nxt := _next_playable_stage()
@@ -134,17 +135,8 @@ func _advance_or_select() -> void:
 	_current_stage_id = nxt["id"]  # 冒険譚は同じまま＝次ステージのクリア記録が正しく付く
 	call_deferred("load_stage", String(nxt["path"]))
 
-## 自動で進める「次ステージ」（非デバッグ冒険譚・マニフェスト順で直後・LOCKEDでない）。無ければ {}。
 func _next_playable_stage() -> Dictionary:
-	if _current_campaign_id.is_empty():
-		return {}
-	var c := _progress.campaign(_current_campaign_id)
-	if c.is_empty() or c.get("debug", false):
-		return {}  # デバッグ冒険譚は自動遷移しない（単体検証の邪魔になる）
-	var nxt := _progress.next_stage(_current_campaign_id, _current_stage_id)
-	if nxt.is_empty() or _progress.stage_state(_current_campaign_id, String(nxt["id"])) == CampaignProgress.LOCKED:
-		return {}
-	return nxt
+	return _progress.next_playable_stage(_current_campaign_id, _current_stage_id)
 
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
 func _install_hud() -> void:

@@ -45,5 +45,4 @@ godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutco
 
 ## 既知の穴
 
-- 戦闘後フロー（クリア→会話→次ステージ自動遷移、`presentation/main/main.gd`）は presentation に閉じており自動テストが無い。進行判定の移せる部分を application へ下ろせばテスト可能になる。
 - CI は未整備＝手元の headless 実行のみ。導入する場合は上記コマンドをそのまま乗せる。

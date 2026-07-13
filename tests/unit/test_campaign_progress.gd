@@ -84,6 +84,34 @@ func test_next_stage_empty_at_last_or_unknown() -> void:
 	assert_true(p.next_stage("camp", "nope").is_empty(), "未知ステージは空")
 	assert_true(p.next_stage("nope", "st1").is_empty(), "未知冒険譚は空")
 
+func test_next_playable_stage_advances_when_unlocked() -> void:
+	var p := _progress()
+	p.record_clear("camp", "st1")
+	assert_eq(String(p.next_playable_stage("camp", "st1").get("id", "")), "st2",
+		"マニフェスト順で直後・解放済みなら進む")
+
+func test_next_playable_stage_stops_at_locked() -> void:
+	var p := _progress()
+	assert_true(p.next_playable_stage("camp", "st1").is_empty(),
+		"直後(st2)が locked（st1 未クリア）なら止まる")
+	p.record_clear("camp", "st1")
+	p.record_clear("camp", "st2")
+	assert_true(p.next_playable_stage("camp", "st2").is_empty(),
+		"st3 は entitlement 未充足で locked＝止まる")
+
+func test_next_playable_stage_empty_at_last_stage() -> void:
+	var p := _progress()
+	assert_true(p.next_playable_stage("camp", "st3").is_empty(), "最終ステージの次は無い＝セレクトへ")
+
+func test_next_playable_stage_skips_debug_campaign() -> void:
+	var p := _progress()
+	assert_true(p.next_playable_stage("dbg", "d1").is_empty(), "デバッグ冒険譚は自動遷移しない")
+
+func test_next_playable_stage_unknown_campaign_is_empty() -> void:
+	var p := _progress()
+	assert_true(p.next_playable_stage("", "st1").is_empty(), "セレクト非経由（冒険譚ID空）は遷移しない")
+	assert_true(p.next_playable_stage("nope", "st1").is_empty())
+
 func test_unlock_text_joins_entitlement_condition() -> void:
 	var p := _progress()
 	assert_eq(p.unlock_text("camp", "st3"), "「二」クリアで解放・追加コンテンツ",

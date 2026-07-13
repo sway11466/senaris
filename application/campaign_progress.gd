@@ -103,6 +103,18 @@ func next_stage(campaign_id: String, stage_id: String) -> Dictionary:
 			return stages[i + 1] if i + 1 < stages.size() else {}
 	return {}
 
+## クリア後に自動で進める「次ステージ」を返す（無ければ {}）。仕様 → doc/gdd/stage_select.md 戦闘後フロー
+## 非デバッグ冒険譚・マニフェスト順で直後・locked でない、をすべて満たすときだけ返す。
+## {} は「セレクトへ戻る」の意味＝デバッグ冒険譚・最終ステージ・次が locked・未知の冒険譚で止まる。
+func next_playable_stage(campaign_id: String, stage_id: String) -> Dictionary:
+	var c := campaign(campaign_id)
+	if c.is_empty() or c["debug"]:
+		return {}
+	var nxt := next_stage(campaign_id, stage_id)
+	if nxt.is_empty() or stage_state(campaign_id, String(nxt["id"])) == LOCKED:
+		return {}
+	return nxt
+
 func _find_stage(c: Dictionary, stage_id: String) -> Dictionary:
 	if c.is_empty():
 		return {}

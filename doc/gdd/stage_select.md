@@ -23,6 +23,26 @@
 - 冒険譚を選ぶ → その中の**プレイするステージを選ぶ**。クリア済みステージは**すべて選び直せる**（再挑戦）＋次の未クリアステージ（解放済み）が選べる。
 - ステージカードを選ぶ → **ステージ詳細（ブリーフィング）** を表示 → 「出撃」で開始。誤タップでいきなり戦闘に入らないよう、開始前にワンクッション置く。
 
+## 戦闘後フロー
+
+戦闘の決着（battle_finished）からの遷移。判断（次に遊べるステージの決定）は application（[campaign_progress.gd](../../application/campaign_progress.gd) の `next_playable_stage`）、画面の切り替えは presentation（[main.gd](../../presentation/main/main.gd)）が担う。
+
+```
+勝利 → クリア記録 → outro 会話（あれば） → 次ステージへ自動遷移
+                                        └ 次が無ければセレクトへ戻る
+敗北 → その場で停止（リスタート／セレクトはシステムメニューから）
+```
+
+- 勝利時、セレクト経由で開始したステージならクリアを記録する（デバッグ冒険譚は記録しない）。
+- outro 会話があれば盤の操作をロックして流し、読了かスキップで遷移判定へ進む。進むボタンのラベルは次ステージがあれば「次のステージへ ▶」、無ければ「閉じる」。会話が無ければ即判定（テンポ優先）。
+- 自動遷移の条件（すべて満たすとき、同じ冒険譚のマニフェスト順で直後のステージを読み込む）:
+  - セレクト経由で開始している
+  - デバッグ冒険譚でない（単体検証の邪魔になるため自動遷移しない）
+  - マニフェスト順で直後のステージが存在する（最終ステージでない）
+  - そのステージが locked でない（entitlement 等で止まりうる）
+- 満たさない場合はステージセレクトへ戻る。
+- 敗北時は遷移しない。ターン終了を無効化して盤面を残す。再挑戦はシステムメニューのリスタート、離脱は同メニューのステージセレクトで行う。
+
 ## 冒険譚カード
 
 上に絵・下に情報帯の縦2段。カードは 340×330（絵 340×210＝黄金比 1.618:1、下に情報帯）。
@@ -165,7 +185,7 @@ domain（戦闘ロジック）には手を入れない。
 
 ## 実装状況（2026-07-05 時点）
 
-- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録（main）。
+- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）。
 - **難易度帯ボード**: tier カルーセル実装済み（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）実装済み・カード用クロップ（card）は未配置で cover にフォールバック中。
 - **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは羊皮紙の依頼書ダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）で出撃確認まで＝中身（勝利条件・推奨戦力など）は未決事項参照。
