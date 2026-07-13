@@ -100,6 +100,9 @@
   - 1つの冒険譚＝数ステージ構成を想定し、その単位でフォルダに放り込む。
   - 例: 動作確認用のデバッグステージは機能別フォルダ `data/stages/debug-*/`（一覧 → [../tech/debug-stages.md](../tech/debug-stages.md)）。
 - 冒険譚内のステージ順序・進行管理（マニフェスト）・ステージ選択 → [stage_select.md](stage_select.md)。実装までは読込先を決め打ちで1枚。
+- 演出・見た目のキー（presentation 専用＝BattleState には入らない）:
+  - `dialogue`: 戦闘前後の会話 `{ "intro": [...], "outro": [...] }`・各行 `{speaker, skin, text}`・テキストは翻訳キー。仕様 → [../campaign/authoring.md](../campaign/authoring.md)
+  - `terrain_skins`: 地形の見た目差分（座標→skin_id の列挙。未指定セルは type の既定スキン）。性能の `terrain` グリッドとは別レイヤー
 
 ### 駒の配置（陣営セクション）
 

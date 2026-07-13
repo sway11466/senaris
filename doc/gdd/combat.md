@@ -233,3 +233,4 @@ D'_y ＝ D_y × (1 − pierce_x)
 - [world.md](world.md) — 世界観
 - [../tech/architecture.md](../tech/architecture.md) — レイヤー構成・戦闘の決定性とセーブの前提
 - [../tech/gamesystem.md](../tech/gamesystem.md) — セーブ仕様
+- [../../tools/combat_sim/combat_sim.gd](../../tools/combat_sim/combat_sim.gd) — 戦闘計算シミュレータ（開発ツール）。`combat_sim.tscn` をエディタで F6 実行。式は本体の Combat をそのまま呼ぶ＝画面の数字＝実戦の数字
