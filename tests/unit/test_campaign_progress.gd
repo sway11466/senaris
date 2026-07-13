@@ -84,6 +84,28 @@ func test_next_stage_empty_at_last_or_unknown() -> void:
 	assert_true(p.next_stage("camp", "nope").is_empty(), "未知ステージは空")
 	assert_true(p.next_stage("nope", "st1").is_empty(), "未知冒険譚は空")
 
+func test_unlock_text_joins_entitlement_condition() -> void:
+	var p := _progress()
+	assert_eq(p.unlock_text("camp", "st3"), "「二」クリアで解放・追加コンテンツ",
+		"entitlement は「追加コンテンツ」、複数条件は「・」で連結")
+
+func test_unlock_text_unknown_stage_is_empty() -> void:
+	var p := _progress()
+	assert_eq(p.unlock_text("camp", "nope"), "")
+	assert_eq(p.unlock_text("nope", "st1"), "")
+
+func test_cleared_count_debug_campaign_is_zero() -> void:
+	# デバッグ冒険譚の記録がファイルに紛れ込んでいても進捗には数えない
+	ProgressStore.new(PATH).mark_cleared("dbg", "d1")
+	assert_eq(_progress().cleared_count("dbg"), 0)
+
+func test_cleared_count_ignores_orphan_records() -> void:
+	# マニフェストから消えたステージの記録（孤児レコード）は n/m に数えない
+	var store := ProgressStore.new(PATH)
+	store.mark_cleared("camp", "ghost")
+	store.mark_cleared("camp", "st1")
+	assert_eq(_progress().cleared_count("camp"), 1, "数えるのは st1 だけ")
+
 func test_unknown_ids_are_safe() -> void:
 	var p := _progress()
 	assert_eq(p.stage_state("nope", "st1"), CampaignProgress.LOCKED)

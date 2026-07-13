@@ -1,6 +1,16 @@
 extends GutTest
 ## StageLoader（ステージJSON → BattleState）のテスト。
 
+const TMP_PATH := "user://test_stage_tmp.json"
+
+func after_each() -> void:
+	if FileAccess.file_exists(TMP_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(TMP_PATH))
+
+func _write_stage(text: String) -> void:
+	var f := FileAccess.open(TMP_PATH, FileAccess.WRITE)
+	f.store_string(text)
+
 func test_build_reads_size_terrain_units() -> void:
 	var data := {
 		"cols": 6, "rows": 4,
@@ -175,6 +185,88 @@ func test_skin_field_resolves_type_and_keeps_skin_id() -> void:
 	assert_eq(u.skin_id, "goblin", "skin_id を保持")
 	assert_eq(u.type_id, "cleric", "skin から type を逆引き")
 	assert_eq(u.unit_attack, 10, "逆引きした type の stats を引く")
+
+func test_load_file_missing_returns_null() -> void:
+	assert_null(StageLoader.load_file("user://no_such_stage.json"))
+	assert_push_error("読み込めない")
+
+func test_load_file_empty_returns_null() -> void:
+	_write_stage("")
+	assert_null(StageLoader.load_file(TMP_PATH))
+	assert_push_error("読み込めない")
+
+func test_load_file_non_dict_json_returns_null() -> void:
+	_write_stage("[1, 2, 3]")  # 正しいJSONだが dict でない
+	assert_null(StageLoader.load_file(TMP_PATH))
+	assert_push_error("JSON が不正")
+
+func test_load_file_missing_turn_limit_errors_but_builds() -> void:
+	# turn_limit 欠損はデータのバグとして push_error するが、build は続行して state を返す（現仕様）
+	_write_stage(JSON.stringify({ "cols": 4, "rows": 3, "player": [ { "col": 0, "row": 0 } ] }))
+	var s := StageLoader.load_file(TMP_PATH)
+	assert_push_error("turn_limit")
+	assert_not_null(s, "エラーは出すが読み込みは成立する")
+	assert_eq(s.turn_limit, 0, "欠損は 0（無制限）のまま")
+	assert_eq(s.units().size(), 1)
+
+func test_load_file_non_positive_turn_limit_errors_but_builds() -> void:
+	_write_stage(JSON.stringify({ "cols": 4, "rows": 3, "turn_limit": 0,
+		"player": [ { "col": 0, "row": 0 } ] }))
+	var s := StageLoader.load_file(TMP_PATH)
+	assert_push_error("turn_limit")
+	assert_not_null(s, "0 以下でもエラーを出しつつ state を返す")
+	assert_eq(s.turn_limit, 0)
+
+func test_unknown_type_warns_and_falls_back_to_defaults() -> void:
+	var data := { "cols": 4, "rows": 3, "player": [ { "type": "nope", "col": 1, "row": 1 } ] }
+	var s := StageLoader.build(data)  # catalog に無い種別＝クラッシュせず素の値
+	assert_push_warning("未知のユニット種別")
+	var u := s.unit_by_id(1)
+	assert_eq(u.type_id, "nope", "type_id は書かれたまま保持")
+	assert_eq(u.move, 3, "素の既定 move")
+	assert_eq(u.troops, 8, "素の既定 troops")
+	assert_eq(u.unit_attack, 10, "素の既定 atk")
+	assert_eq(u.unit_defense, 10, "素の既定 def")
+	assert_eq(u.attack_range, 1, "素の既定 range")
+
+func test_type_wires_all_combat_fields_from_catalog() -> void:
+	var catalog := {
+		"wyvern": UnitType.from_dict({
+			"id": "wyvern", "atk_ground": 30, "atk_air": 25, "pierce": 0.5,
+			"defense": 20, "move": 6, "move_type": "flight", "range": 2,
+			"move_after_attack": true, "max_troops": 8, "capacity": 4,
+		}),
+	}
+	var data := { "cols": 6, "rows": 4, "player": [
+		{ "type": "wyvern", "col": 1, "row": 1 },
+	] }
+	var u := StageLoader.build(data, catalog).unit_by_id(1)
+	assert_eq(u.move_type, "flight", "move_type が種別から載る")
+	assert_eq(u.attack_range, 2, "attack_range が種別から載る")
+	assert_eq(u.move_after_attack, true, "move_after_attack が種別から載る")
+	assert_eq(u.atk_air, 25, "atk_air が種別から載る")
+	assert_eq(u.pierce, 0.5, "pierce が種別から載る")
+	assert_eq(u.capacity, 4, "capacity が種別から載る")
+
+func test_type_combat_fields_can_be_overridden_per_unit() -> void:
+	var catalog := {
+		"wyvern": UnitType.from_dict({
+			"id": "wyvern", "atk_ground": 30, "atk_air": 25, "pierce": 0.5,
+			"defense": 20, "move": 6, "move_type": "flight", "range": 2,
+			"move_after_attack": true, "max_troops": 8, "capacity": 4,
+		}),
+	}
+	var data := { "cols": 6, "rows": 4, "player": [
+		{ "type": "wyvern", "col": 1, "row": 1, "move_type": "ground", "range": 1,
+			"move_after_attack": false, "atk_air": 0, "pierce": 0.0, "capacity": 0 },
+	] }
+	var u := StageLoader.build(data, catalog).unit_by_id(1)
+	assert_eq(u.move_type, "ground", "move_type を個別キーで上書き")
+	assert_eq(u.attack_range, 1, "range を上書き")
+	assert_eq(u.move_after_attack, false, "move_after_attack を上書き")
+	assert_eq(u.atk_air, 0, "atk_air を上書き")
+	assert_eq(u.pierce, 0.0, "pierce を上書き")
+	assert_eq(u.capacity, 0, "capacity を上書き")
 
 func test_type_field_sets_skin_id_to_same_name() -> void:
 	var catalog := {

@@ -42,7 +42,8 @@ func _load() -> void:
 			continue
 		var entry := {}
 		for s in stages:
-			if stages[s] == true:
+			# bool 以外の値と == 比較すると実行時エラーになるため型を先に見る（手編集・破損対策）
+			if stages[s] is bool and stages[s]:
 				entry[String(s)] = true
 		if not entry.is_empty():
 			_cleared[String(c)] = entry

@@ -38,3 +38,40 @@ func test_wrong_version_falls_back_to_fresh() -> void:
 	f.store_string(JSON.stringify({ "version": 999, "cleared": { "tutorial": { "st1": true } } }))
 	f = null
 	assert_false(ProgressStore.new(PATH).is_cleared("tutorial", "st1"), "未知バージョンは読まない")
+
+func test_missing_version_key_falls_back_to_fresh() -> void:
+	# version キーそのものが無い（不一致とは別分岐＝get の既定値 0 で弾く）
+	_write(JSON.stringify({ "cleared": { "tutorial": { "st1": true } } }))
+	assert_false(ProgressStore.new(PATH).is_cleared("tutorial", "st1"), "version 欠損は新規扱い")
+
+func test_cleared_not_dict_loads_empty() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION, "cleared": "oops" }))
+	var store := ProgressStore.new(PATH)  # クラッシュせず空で読む
+	assert_false(store.is_cleared("tutorial", "st1"))
+
+func test_cleared_key_missing_loads_empty() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION }))
+	var store := ProgressStore.new(PATH)  # クラッシュせず空で読む
+	assert_false(store.is_cleared("tutorial", "st1"))
+
+func test_non_dict_campaign_entry_is_skipped() -> void:
+	# 冒険譚エントリが dict でない → その冒険譚だけスキップし、他は生きる
+	_write(JSON.stringify({ "version": ProgressStore.VERSION,
+		"cleared": { "tutorial": "broken", "other": { "st1": true } } }))
+	var store := ProgressStore.new(PATH)
+	assert_false(store.is_cleared("tutorial", "st1"), "壊れたエントリは読まない")
+	assert_true(store.is_cleared("other", "st1"), "正常なエントリは残る")
+
+func test_non_true_stage_values_are_dropped() -> void:
+	# true 以外のステージ値（false・文字列・数値）はクリア扱いにせず、実行時エラーにもならない
+	_write(JSON.stringify({ "version": ProgressStore.VERSION,
+		"cleared": { "tutorial": { "st1": false, "st2": "yes", "st3": 1 } } }))
+	var store := ProgressStore.new(PATH)
+	assert_false(store.is_cleared("tutorial", "st1"))
+	assert_false(store.is_cleared("tutorial", "st2"), "文字列はクリア扱いしない")
+	assert_false(store.is_cleared("tutorial", "st3"), "数値はクリア扱いしない")
+	assert_false(store._cleared.has("tutorial"), "全滅した冒険譚の空エントリは積まない")
+
+func _write(text: String) -> void:
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(text)
