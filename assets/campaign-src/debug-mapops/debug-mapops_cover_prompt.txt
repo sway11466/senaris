@@ -1,0 +1,37 @@
+# debug-mapops（デバッグ：マップ操作）の冒険譚カード用プロンプト＝完全版（STYLE込み・自己完結）。
+# このデバッグカードだけは共通 ILLUST STYLE（2〜2.5頭身・NOT moe）から意図的に外す
+# ＝可愛い＋色気のモチベ絵。よって STYLE を含む完全版をここに置き、貼るのはこの1ファイルで済む。
+# 生成後: 透かし（右下の sparkle）だけ局所的に消す（右端の帯クロップはしない＝全面を活かす）
+#   → assets/campaign/debug-mapops/debug-mapops_cover*.png（連番＝表示ごとにランダム）。
+# 意味付け: マップ操作＝輸送・陣形・移動＝盤上でコマを動かすこと。ヘックス地図で駒を動かす女軍師のメタ。
+
+STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game, in
+the same clean stylized cel-shading as the game's unit pieces: bold readable
+shapes, mature and slightly muted limited color palette; NOT bright saturated
+anime coloring, NOT painterly photorealism. For THIS card the character is a
+cute, shapely heroine about 4.5 to 5 heads tall (a little deformed / stylized,
+cuter than realistic), with a rounder soft face, large expressive eyes, a small
+nose, and a charming spirited expression — appealing and kawaii but still cool,
+NOT scary, NOT grim. Full illustrated scene: dynamic composition, expressive
+pose, a fully painted environment background, dramatic cinematic lighting. NO
+text, NO title, NO logo, NO border, NO vignette. Composition: the scene fills
+the WHOLE frame edge to edge as one continuous environment with the heroine
+roughly centered; do NOT darken, fade, tint, or wall off any part of the frame —
+no shadow band, no vertical divider, no reserved strip on any side. Even, full-
+bleed illustration. Wide 4:3 composition.
+
+SUBJECT: A cute, shapely young war-strategist (軍師) leaning over a large
+HEX-GRID war map table, moving carved unit figurines across the hex tiles with
+her fingers or a slender pointer, planning the operation with a clever confident
+smirk. She ALWAYS wears an elegant, revealing white-and-gold Grecian goddess-style
+gown by design — a flowing one-shoulder white chiffon dress with a gold waist
+harness/belt, a small chest keyhole cutout, a very high thigh slit with trailing
+drape panels, and gold gladiator-strap sandals — bare shoulder and arm, a peek of
+midriff, and a long bare leg through the slit; lots of exposed skin. Warm
+candle-lit command tent / war room behind her: the big hex map strewn with unit
+figurines and little banners, rolled scrolls, a lantern, hanging maps. Sexy and
+alluring yet cute and playful — tasteful pin-up, NOT explicit, NOT nude. Keep the
+revealing white-and-gold goddess gown and the
+leaning-over-a-hex-war-map-moving-figurines setting fixed every time; only vary
+her hair color and style, the gold/white accent tones, her pose, and the
+map/room details.
