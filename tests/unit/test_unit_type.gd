@@ -22,6 +22,28 @@ func test_from_dict_defaults() -> void:
 	var t := UnitType.from_dict({ "id": "mystery" })
 	assert_eq(t.atk_ground, 0)
 	assert_eq(t.move_type, "ground", "move_type 既定は ground")
+	assert_eq(t.min_range, 1, "min_range 既定は 1（近接可）")
 	assert_eq(t.attack_range, 1, "range 既定は 1（近接）")
 	assert_false(t.can_capture)
 	assert_eq(t.max_troops, 8)
+
+func test_parse_range_single_is_melee() -> void:
+	assert_eq(UnitType.parse_range(1), Vector2i(1, 1), "1＝近接(1,1)")
+	assert_eq(UnitType.parse_range("1"), Vector2i(1, 1), "文字列 '1' も同じ")
+
+func test_parse_range_single_number_is_max_with_min1() -> void:
+	# 後方互換: 単数 N は下限1・上限N（旧CSVの 2/3/5 がそのまま動く）。
+	assert_eq(UnitType.parse_range(3), Vector2i(1, 3))
+	assert_eq(UnitType.parse_range("2"), Vector2i(1, 2))
+
+func test_parse_range_span() -> void:
+	assert_eq(UnitType.parse_range("1-2"), Vector2i(1, 2), "弓（射程1-2）")
+	assert_eq(UnitType.parse_range("3-5"), Vector2i(3, 5), "砲兵の死角（射程3-5）")
+
+func test_parse_range_invalid_defaults_to_melee() -> void:
+	assert_eq(UnitType.parse_range(""), Vector2i(1, 1), "空は近接(1,1)")
+
+func test_from_dict_parses_range_span() -> void:
+	var t := UnitType.from_dict({ "id": "cat", "range": "3-5" })
+	assert_eq(t.min_range, 3, "レンジ表記の下限を min_range に")
+	assert_eq(t.attack_range, 5, "レンジ表記の上限を attack_range に")

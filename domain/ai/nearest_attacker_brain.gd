@@ -167,10 +167,10 @@ func _prey_of(state: BattleState, u: Unit) -> Unit:
 ## 与ダメは戦闘式で厳密計算（combat.md＝決定的）。
 func _prey_or_kill_targets(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
 	var min_def := _min_enemy_defense(state, u)
-	var melee := u.attack_range <= 1
 	var out: Array[int] = []
 	for id in ids:
 		var t := state.unit_by_id(id)
+		var melee := Hex.distance(u.pos, t.pos) <= 1  # 距離1なら近接＝支援が乗る（解決式と一致）
 		if t.unit_defense == min_def or Combat.casualties(state, u, t, melee) >= t.troops:
 			out.append(id)
 	return out
@@ -183,12 +183,12 @@ func _pick_target(state: BattleState, u: Unit, ids: Array[int]) -> int:
 
 ## 与ダメを戦闘式で厳密計算し、攻撃後の残兵が最小になる敵。同値は近い方 → id小。
 func _most_killable(state: BattleState, u: Unit, ids: Array[int]) -> int:
-	var melee := u.attack_range <= 1
 	var best := ids[0]
 	var best_left := 1 << 30
 	var best_d := 1 << 30
 	for id in ids:
 		var t := state.unit_by_id(id)
+		var melee := Hex.distance(u.pos, t.pos) <= 1  # 距離1なら近接＝支援が乗る（解決式と一致）
 		var left := t.troops - Combat.casualties(state, u, t, melee)
 		var d := Hex.distance(u.pos, t.pos)
 		if left < best_left or (left == best_left and (d < best_d or (d == best_d and id < best))):

@@ -97,7 +97,8 @@ func _format(u: Unit) -> String:
 	lines.append("Lv    %d  (経験 ×%.2f)" % [u.level, exp])
 	var air_str := str(u.atk_air) if u.atk_air > 0 else "—"
 	lines.append("攻撃  対地%d / 対空%s    防御  %d" % [u.unit_attack, air_str, u.unit_defense])
-	lines.append("移動  %d (%s)   射程  %d" % [u.move, Movement.display_name(u.move_type), u.attack_range])
+	var range_str := str(u.attack_range) if u.min_range == u.attack_range else "%d-%d" % [u.min_range, u.attack_range]
+	lines.append("移動  %d (%s)   射程  %s" % [u.move, Movement.display_name(u.move_type), range_str])
 
 	var traits: Array[String] = []
 	if u.is_aerial():
@@ -107,7 +108,9 @@ func _format(u: Unit) -> String:
 	if u.move_after_attack:
 		traits.append("攻撃後移動")
 	if u.attack_range >= 2:
-		traits.append("間接(反撃なし)")
+		traits.append("遠隔(距離2+は反撃なし)")
+	if u.min_range >= 2:
+		traits.append("近接不可(懐に死角)")
 	if not traits.is_empty():
 		lines.append("特性  %s" % ", ".join(traits))
 

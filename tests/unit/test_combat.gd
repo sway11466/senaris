@@ -204,6 +204,53 @@ func test_can_attack_at_range() -> void:
 	s2.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))
 	assert_false(s2.can_attack(1, 2), "近接は距離2を撃てない")
 
+func test_ranged_unit_meleeing_at_distance1_is_melee() -> void:
+	# 射程1-2の弓が隣接(距離1)で殴った一撃は近接扱い＝反撃を受け、双方が経験を積む。
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	a.min_range = 1
+	a.attack_range = 2                                          # 弓（射程1-2）
+	s.add_unit(a)
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 距離1
+	var r := s.attack(1, 2)
+	assert_eq(r["retaliation"], 4, "距離1で殴った弓は近接扱い＝反撃4を受ける")
+	assert_eq(s.unit_by_id(1).level, 2, "近接した攻撃側は+1")
+	assert_eq(s.unit_by_id(2).level, 2, "反撃した近接防御側も+1")
+
+func test_min_range_dead_zone_cannot_hit_adjacent() -> void:
+	# min_range≥2 の砲兵は懐に死角＝隣接(距離1)を撃てない。距離2なら撃てる。
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	a.min_range = 2
+	a.attack_range = 3                                          # 砲兵（射程2-3）
+	s.add_unit(a)
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 距離1＝死角
+	assert_false(s.can_attack(1, 2), "min_range2は隣接(距離1)を撃てない")
+	assert_true(s.attack(1, 2).is_empty(), "死角の敵への攻撃は不成立")
+	var s2 := _state()
+	var b := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	b.min_range = 2
+	b.attack_range = 3
+	s2.add_unit(b)
+	s2.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))  # 距離2
+	assert_true(s2.can_attack(1, 2), "距離2は射程内で撃てる")
+
+func test_min_range_defender_cannot_retaliate_in_melee() -> void:
+	# 砲兵(min_range≥2)は懐に入られると距離1に反撃できない＝被弾一方・経験+0。
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))                  # 近接の攻撃側(team0)
+	var d := Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10)     # 砲兵の防御側(team1)
+	d.min_range = 2
+	d.attack_range = 3
+	s.add_unit(d)
+	var r := s.attack(1, 2)
+	assert_true(r["damage"] > 0, "攻撃側は当てる")
+	assert_eq(r["retaliation"], 0, "懐に死角の砲兵は距離1に反撃できない")
+	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は経験+0")
+
 func test_combat_is_deterministic() -> void:
 	# 同じ初期条件なら何度やっても同じ結果（乱数なし）。
 	var first := -999

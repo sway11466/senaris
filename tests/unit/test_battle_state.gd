@@ -13,6 +13,15 @@ func test_add_and_query() -> void:
 	assert_null(s.unit_at(Hex.offset_to_axial(0, 0)), "空きマスは null")
 	assert_null(s.unit_by_id(999), "未知IDは null")
 
+func test_can_reach_respects_min_and_max() -> void:
+	var u := Unit.new(1, 0, Vector2i.ZERO, 3)
+	u.min_range = 2
+	u.attack_range = 3                                          # 砲兵（射程2-3）
+	assert_false(u.can_reach(1), "下限未満(距離1＝死角)は狙えない")
+	assert_true(u.can_reach(2), "下限ちょうどは狙える")
+	assert_true(u.can_reach(3), "上限ちょうどは狙える")
+	assert_false(u.can_reach(4), "上限超は狙えない")
+
 func test_reachable_includes_start_excludes_occupied() -> void:
 	var s := _state()
 	var a := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 2)

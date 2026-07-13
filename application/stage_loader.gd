@@ -229,7 +229,13 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, s
 	var unit := Unit.new(id, team, pos, mv, tp, atk, dfn, lv, type_id)
 	unit.skin_id = skin_id
 	unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
-	unit.attack_range = int(u.get("range", t.attack_range if t != null else 1))
+	if u.has("range"):  # ステージ側の上書きも "3-5" レンジ表記を解く
+		var r := UnitType.parse_range(u["range"])
+		unit.min_range = r.x
+		unit.attack_range = r.y
+	elif t != null:
+		unit.min_range = t.min_range
+		unit.attack_range = t.attack_range
 	unit.move_after_attack = bool(u.get("move_after_attack", t.move_after_attack if t != null else false))
 	unit.can_capture = bool(u.get("can_capture", t.can_capture if t != null else false))
 	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))

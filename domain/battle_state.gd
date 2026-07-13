@@ -455,7 +455,7 @@ func _can_attack_from(a: Unit, t: Unit, from_hex: Vector2i) -> bool:
 		return false
 	if a.attack_against(t) <= 0:
 		return false  # 対空0の駒は飛行を狙えない（攻撃力が無い相手は対象外）
-	return Hex.distance(from_hex, t.pos) <= a.attack_range  # 近接=1, 間接=射程内
+	return a.can_reach(Hex.distance(from_hex, t.pos))  # 下限min_range〜上限attack_range
 
 ## attacker が今いる位置から攻撃できる敵ユニットIDの一覧。
 func attack_targets(attacker_id: int) -> Array[int]:
@@ -480,10 +480,10 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 		return {}
 	var a := unit_by_id(attacker_id)
 	var t := unit_by_id(target_id)
-	var melee := a.attack_range <= 1  # 近接なら反撃あり、間接なら反撃なし
-	# 反撃は「近接」かつ「防御側が攻撃側を攻撃できる」ときだけ成立。
-	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない（→被反撃なし・経験+0）。
-	var can_retaliate := melee and t.attack_against(a) > 0
+	var melee := Hex.distance(a.pos, t.pos) <= 1  # 距離1の攻撃＝近接（反撃あり）、距離≥2＝遠隔（反撃なし）
+	# 反撃は「近接（距離1）」かつ「防御側が距離1を狙えて、攻撃側を攻撃できる」ときだけ成立。
+	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない／砲兵(min_range≥2)は懐の敵に反撃できない（→被反撃なし・経験+0）。
+	var can_retaliate := melee and t.can_reach(1) and t.attack_against(a) > 0
 	# 同時攻撃: 戦闘前の状態で内訳ごと確定してから適用（決定的）。表示はこの内訳をそのまま使う。
 	var fwd := Combat.hit_detail(self, a, t, melee)
 	var ret: Variant = Combat.hit_detail(self, t, a, melee) if can_retaliate else null
