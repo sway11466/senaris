@@ -37,12 +37,12 @@ godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutco
 - 単一ファイルだけ回す場合は `-gtest=res://tests/unit/test_xxx.gd` を足す。
 - GUT のバージョンは Godot 本体に追従が必要（起動時に非互換警告が出たら推奨版へ上げる）。
 
+## CI
+
+GitHub Actions（`.github/workflows/tests.yml`）が main への push と pull request で全テストを実行する。ubuntu-latest に Godot 4.7-stable（Linux headless）を導入し、`--import` のあと上記コマンドを回す。テスト失敗は GUT の exit code で赤になる。class_name 未インポート等の早期終了は exit 0 になるため、ログの「All tests passed」検査で偽グリーンを防ぐ。
+
 ## 現状の構成（2026-07 時点）
 
 - `tests/unit/` — 31本。domain（combat / pierce / support / surround / air_combat / movement / hex / ai / formation / capture / transport / turn / victory / battle_state）・data（data_integrity / csv_util / 各カタログ / unit_type / skin 系 / i18n / dialogue）・application（command_actions / stage_loader / campaign_progress / campaign_catalog）・infrastructure（progress_store）。
 - `tests/manual/` — 使い捨てスクリプト置き場（セレクト画面のヘッドレス再現・スクショ）。自動実行の対象外。
 - 手動での機能確認は機能別のデバッグステージ（`data/stages/debug-*/`）を使う。カテゴリ内訳・未実装TODO → [debug-stages.md](debug-stages.md)。
-
-## 既知の穴
-
-- CI は未整備＝手元の headless 実行のみ。導入する場合は上記コマンドをそのまま乗せる。

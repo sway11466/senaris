@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  gut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.7-stable (Linux headless)
+        run: |
+          curl -fsSL -o godot.zip https://github.com/godotengine/godot-builds/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          sudo mv Godot_v4.7-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Import project
+        run: godot --headless --path . --import
+
+      # GUT はテスト失敗時に非0で終了するが、class_name 未インポート等の
+      # 早期終了は exit 0 になるため、ログの成功マーカーも検査する
+      - name: Run GUT
+        shell: bash
+        run: |
+          godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json 2>&1 | tee gut_output.log
+          grep -q "All tests passed" gut_output.log
