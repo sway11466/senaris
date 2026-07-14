@@ -20,7 +20,12 @@
     { "type": "fighter", "col": 7, "row": 3 },
     { "type": "paladin", "col": 3, "row": 6 },
     { "type": "cleric", "col": 4, "row": 7 },
-    { "type": "priest", "col": 4, "row": 6 }
+    { "type": "priest", "col": 4, "row": 6 },
+    { "type": "cleric", "col": 1, "row": 1 },
+    { "type": "cleric", "col": 1, "row": 2 },
+    { "type": "cleric", "col": 1, "row": 3 },
+    { "type": "priest", "col": 1, "row": 4 },
+    { "type": "cleric", "col": 1, "row": 5 }
   ],
   "enemy": [
     { "name": "群れ（近・射程内）", "ai": "charge",

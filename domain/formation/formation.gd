@@ -5,8 +5,8 @@ class_name Formation
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
-## スライスA+B: ①三重詠唱（effect="area"）＋③神の裁き（effect="single"）。②ホーリーアリア(buff)は
-## レシピ定義のみで、効果解決は C で解禁する（IMPLEMENTED_EFFECTS でメニュー提示を絞る）。
+## ①三重詠唱(area)＋③神の裁き(single)＝ダメージ系／②ホーリーアリア(buff)＝状態補正（乗算・全体・持続）。
+## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
 ## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×経験×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
@@ -53,8 +53,8 @@ const RECIPES := {
 	},
 }
 
-## 適用まで実装済みの効果。未対応はメニューに出さない（②buff は C で解禁）。
-const IMPLEMENTED_EFFECTS := ["area", "single"]
+## 適用まで実装済みの効果。未対応はメニューに出さない。
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff"]
 
 ## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
 ## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
@@ -73,7 +73,13 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 				for members in _triangle_sets(state, unit, r):
 					out.append(_option(rid, r, [unit, members[0], members[1]]))
 			"cluster":
-				pass  # スライスC
+				var members := _cluster(state, unit, r)
+				if not members.is_empty():
+					var ordered: Array = [unit]  # 発動者を先頭に（leader_id 用）
+					for m in members:
+						if m.id != unit.id:
+							ordered.append(m)
+					out.append(_option(rid, r, ordered))
 	return out
 
 ## target を着弾中心としたときの効果プレビュー（純ロジック・非破壊）。
@@ -126,13 +132,32 @@ static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary) -> A
 				sets.append([cand[i], cand[j]])
 	return sets
 
+## leader を含む member_type の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
+## ②ホーリーアリア＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
+static func _cluster(state: BattleState, leader: Unit, r: Dictionary) -> Array:
+	var seen := {leader.id: leader}
+	var frontier: Array[Unit] = [leader]
+	while not frontier.is_empty():
+		var cur: Unit = frontier.pop_back()
+		for u in state.units():
+			if seen.has(u.id) or u.team != leader.team or state.is_done(u.id):
+				continue
+			if not (u.type_id in r["member_types"]):
+				continue
+			if Hex.distance(u.pos, cur.pos) == 1:
+				seen[u.id] = u
+				frontier.append(u)
+	if seen.size() < int(r["count"]):
+		return []
+	return seen.values()
+
 ## 参加ユニット配列（先頭＝発動者）から選択肢 dict を組む。
 static func _option(rid: String, r: Dictionary, participants: Array) -> Dictionary:
 	var ids: Array[int] = []
 	for u in participants:
 		ids.append(u.id)
 	var effect := String(r["effect"])
-	return {
+	var opt := {
 		"recipe": rid,
 		"name": String(r["name"]),
 		"leader_id": participants[0].id,
@@ -143,6 +168,11 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		"range_from": String(r.get("range_from", "leader")),
 		"radius": int(r.get("radius", 0)),
 	}
+	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
+		opt["buff_mult"] = float(r.get("buff_mult", 1.0))
+		opt["buff_target"] = String(r.get("buff_target", "both"))
+		opt["duration_turns"] = int(r.get("duration_turns", 1))
+	return opt
 
 ## victim 1体への陣形ダメージ内訳（発動者1体の実効攻撃力・間接扱い）。非破壊。
 ## 威力＝発動者(leader)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。

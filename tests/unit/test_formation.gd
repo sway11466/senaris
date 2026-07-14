@@ -57,16 +57,52 @@ func test_done_member_excluded() -> void:
 	f["s"].set_done(2)  # member を行動済みに
 	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 0, "行動済みメンバーは三角形に数えない")
 
-func test_buff_effect_not_offered_yet() -> void:
-	# ②ホーリーアリア（effect=buff）は占領兵5体隣接でも、スライスC までは提示しない。
+# ②ホーリーアリアの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
+func _aria_state() -> Dictionary:
 	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var clerics: Array[Unit] = []
-	for i in 5:  # leader＋隣接クラスタ（一列）
+	var c := Hex.offset_to_axial(2, 3)
+	var clerics: Array = []
+	for i in 5:
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		s.add_unit(u)
 		clerics.append(u)
-	assert_eq(Formation.available_for(s, clerics[0]).size(), 0, "buff 効果は IMPLEMENTED_EFFECTS 外＝未提示")
+	var ally := Unit.new(10, 0, Hex.offset_to_axial(2, 6), 3, 8, 40, 40, 1, "fighter")  # 全体バフ確認用
+	var foe := Unit.new(11, 1, Hex.neighbor(ally.pos, 0), 3, 8, 30, 30)
+	s.add_unit(ally)
+	s.add_unit(foe)
+	return {"s": s, "leader": clerics[0], "ally": ally, "foe": foe}
+
+func test_holy_aria_offered_with_five_clustered() -> void:
+	var f := _aria_state()
+	var opts := Formation.available_for(f["s"], f["leader"])
+	assert_eq(opts.size(), 1, "占領兵5体クラスタでホーリーアリア")
+	var o: Dictionary = opts[0]
+	assert_eq(String(o["recipe"]), "holy_aria", "レシピは holy_aria")
+	assert_eq(String(o["effect"]), "buff", "バフ効果")
+	assert_false(bool(o["needs_target"]), "バフは対象指定不要")
+
+func test_holy_aria_needs_five() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var leader: Unit = null
+	for i in 4:  # 4体だけ＝不成立
+		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
+		s.add_unit(u)
+		if i == 0:
+			leader = u
+	assert_eq(Formation.available_for(s, leader).size(), 0, "4体では不成立")
+
+func test_holy_aria_buffs_whole_team() -> void:
+	var f := _aria_state()
+	var s: BattleState = f["s"]
+	var ally: Unit = f["ally"]
+	var foe: Unit = f["foe"]
+	var before := Combat.effective_attack(s, ally, foe, true)
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	var res := s.resolve_formation(opt, Vector2i(-9999, -9999))
+	assert_false(res.is_empty(), "対象なしでも発動成功")
+	assert_almost_eq(Combat.effective_attack(s, ally, foe, true), before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
+	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
 # ③神の裁きの成立盤：paladin＋聖職2の三角形＋射程内(距離 enemy_dist)の敵1体。leader=paladin(id1)。
 func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:

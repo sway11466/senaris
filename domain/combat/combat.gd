@@ -36,20 +36,22 @@ static func experience_at(level: int) -> float:
 ## 相手が飛行なら対空、地上なら対地（attack_against）。対空0で飛行を狙うと stat=0＝total0。
 ## 包囲は常時（囲まれた側は近接/間接問わず弱る）。支援(攻・加算)は melee のときだけ。
 static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
+	var sf := state.status_aggregate(u, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := attack_breakdown_from(
 		u.troops,
 		u.attack_against(enemy),
 		experience_factor(u),
 		surround_factor(state, u),
 		TerrainType.attack_factor(state.terrain_at(u.pos)),
-		_support(state, u, enemy, true) if melee else 0.0)
+		_support(state, u, enemy, true) if melee else 0.0,
+		float(sf["mul"]), float(sf["add"]))
 	b["vs_aerial"] = enemy.is_aerial()
 	b["melee"] = melee
 	return b
 
 ## 明示係数から実効攻撃力の内訳を組む（式の本体）。盤ベースの attack_breakdown も
 ## 開発ツール（tools/combat_sim）も、攻撃力の total 計算はここに集約する＝式を二重に持たない。
-static func attack_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float) -> Dictionary:
+static func attack_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
 	var b := {
 		"kind": "attack",
 		"troops": troops,
@@ -58,14 +60,17 @@ static func attack_breakdown_from(troops: int, stat: int, experience: float, sur
 		"surround": surround,
 		"terrain": terrain,
 		"support": support,
+		"status_mul": status_mul,
+		"status_add": status_add,
 	}
-	b["total"] = float(troops) * float(stat) * experience * surround * terrain + support
+	b["total"] = float(troops) * float(stat) * experience * surround * terrain * status_mul + support + status_add
 	return b
 
 ## 実効防御力の内訳（dict）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
 ## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
 ## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（test_pierce.gd で固定）。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
+	var sf := state.status_aggregate(u, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := defense_breakdown_from(
 		u.troops,
 		u.unit_defense,
@@ -73,15 +78,16 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 		surround_factor(state, u),
 		TerrainType.defense_factor(state.terrain_at(u.pos)),
 		_support(state, u, enemy, false) if melee else 0.0,
-		float(enemy.pierce))
+		float(enemy.pierce),
+		float(sf["mul"]), float(sf["add"]))
 	b["melee"] = melee
 	return b
 
 ## 明示係数から実効防御力の内訳を組む（式の本体）。支援後に2倍上限、最後に攻撃側の貫通を掛ける。
 ## 盤ベースの defense_breakdown も開発ツールも、防御力の total 計算はここに集約する。
-static func defense_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float, pierce: float) -> Dictionary:
-	var pre := float(troops) * float(stat) * experience * surround * terrain
-	var supported := pre + support
+static func defense_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float, pierce: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
+	var pre := float(troops) * float(stat) * experience * surround * terrain * status_mul
+	var supported := pre + support + status_add  # 加算群（支援・状態add）は素の2倍上限の対象
 	var capped := minf(supported, pre * DEFENSE_SUPPORT_CAP)  # 支援は素の2倍まで
 	var pierce_factor := 1.0 - pierce  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
 	return {
@@ -92,6 +98,8 @@ static func defense_breakdown_from(troops: int, stat: int, experience: float, su
 		"surround": surround,
 		"terrain": terrain,
 		"support": support,
+		"status_mul": status_mul,
+		"status_add": status_add,
 		"capped": supported > capped,  # 支援2倍上限が効いたか（貫通適用前で判定）
 		"pierce": pierce_factor,       # 攻撃側の貫通後係数（内訳表示用）
 		"total": capped * pierce_factor,

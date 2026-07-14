@@ -528,7 +528,11 @@ func _on_menu_id(id: int) -> void:
 			_deselect()
 
 ## 陣形スキルの着弾中心クリック待ちモードに入る。射程内hexをハイライトする。
+## 対象を取らないバフ系（②）は即発動（クリック待ちに入らない）。
 func _enter_formation(option: Dictionary) -> void:
+	if not bool(option["needs_target"]):
+		controller.execute_formation(FormationCommand.new(option, INVALID_HEX))
+		return
 	_commit_pending_move()  # 自マスなので実質no-op（保険）
 	_reachable.clear()
 	_targets.clear()

@@ -61,6 +61,32 @@ func mark_engaged(unit_id: int) -> void:
 ## unit_id が起動済みか。
 func is_engaged(unit_id: int) -> bool:
 	return _engaged.has(unit_id)
+# --- 状態補正（バフ/デバフ・持続）。詳細 → doc/gdd/combat.md「状態補正」 ---
+
+var _status_mods: Array = []  # エントリ配列 {scope,op,target,value,owner_team,remaining,...}。中断セーブに乗る
+
+## 状態補正エントリを積む（陣形バフ等）。
+func add_status_mod(entry: Dictionary) -> void:
+	_status_mods.append(entry)
+
+## unit の target（"attack"/"defense"）に効く状態補正の合成 { mul, add }。combat が実効ステに反映。
+func status_aggregate(unit: Unit, target: String) -> Dictionary:
+	return StatusMod.aggregate(_status_mods, unit, target)
+
+## 手番開始時に、始まった陣営の持続を1減らして満了を掃除する（end_turn から呼ぶ）。
+## remaining は「残り自軍ターン数」＝発動陣営のターンが始まるたびに減る（跨いだ敵ターンでは減らない）。
+func _expire_status_mods() -> void:
+	var kept: Array = []
+	for m in _status_mods:
+		if int(m.get("owner_team", -1)) == current_team:
+			var rem := int(m.get("remaining", 0)) - 1
+			m["remaining"] = rem
+			if rem > 0:
+				kept.append(m)
+		else:
+			kept.append(m)
+	_status_mods = kept
+
 var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録。ボス撃破判定に使う）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
@@ -538,6 +564,9 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			return {}
 	if not Formation.can_target(self, option, target):
 		return {}
+	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
+	if String(option["effect"]) == "buff":
+		add_status_mod(_buff_entry(option))
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(self, option, target)
 	var results: Array = []
@@ -570,6 +599,18 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		set_done(int(pid))
 		mark_engaged(int(pid))
 	return {"recipe": option["recipe"], "results": results}
+
+## 陣形バフ（②ホーリーアリア）の状態補正エントリを組む。発動陣営（現手番）に効く乗算。
+func _buff_entry(option: Dictionary) -> Dictionary:
+	return {
+		"scope": "team",
+		"team": current_team,
+		"owner_team": current_team,
+		"op": "mul",
+		"target": String(option.get("buff_target", "both")),
+		"value": float(option.get("buff_mult", 1.0)),
+		"remaining": int(option.get("duration_turns", 1)),
+	}
 
 ## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
 func _unit_snapshot(u: Unit) -> Dictionary:
@@ -726,6 +767,7 @@ func end_turn() -> void:
 	current_team = 1 - current_team
 	if current_team == 0:
 		turn_number += 1
+	_expire_status_mods()  # 始まった陣営の持続バフ/デバフを1減らして満了を掃除
 	_heal_garrisons()
 
 ## 手番が始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
