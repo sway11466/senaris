@@ -60,6 +60,7 @@
 - `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `units-src/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
 - ③だけが `assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
 - ①②は `assets/units-src/`（作業ソース）。`assets/units-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
+- 透かし: 共通ルールの `_02_dew`（[direction.md](direction.md) §3）はユニットでは②のトリミング＝透過に内包（透過切り抜きで sparkle も落ちる）ため専用 dew ファイルは作らず `_01_raw`→`_02_master` の2段のまま。番号は `_02_master` を維持（`gen_unit_map.ps1` が参照）。
 
 手順（1体を追加するとき）:
 

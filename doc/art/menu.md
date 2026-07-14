@@ -50,7 +50,7 @@ repeat.
 
 SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu-src/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
 
-透かし（生成サービスが付ける sparkle マーク）はプロンプトで禁止しない。"watermark" の語は生成エラーを誘発し、否定形で書いても消えない（サービスが必ず付与する）＝後処理（Photopea 等）で master 化のときに除去する。
+透かし（生成サービスが付ける sparkle マーク）はプロンプトで禁止しない。"watermark" の語は生成エラーを誘発し、否定形で書いても消えない（サービスが必ず付与する）＝共通ルールの `_02_dew`（透かし除去ツール）で消し、必要なら手動 master で整える（[direction.md](direction.md) §3）。
 
 ## 4. 保管・命名（二層）
 
