@@ -10,6 +10,11 @@ build/
 *.pck
 *.zip
 
+# Python (uv env for image-processing scripts)
+.venv/
+__pycache__/
+*.pyc
+
 # OS / editor
 .DS_Store
 Thumbs.db
