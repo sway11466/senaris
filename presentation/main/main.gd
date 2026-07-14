@@ -15,6 +15,7 @@ var _select: SelectScreen = null
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録用）
 var _current_stage_id := ""
 var _conversation: ConversationPanel = null
+var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
 
@@ -25,6 +26,9 @@ func _ready() -> void:
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
 	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
 	$HexBoard.tile_inspected.connect($InfoPanel.show_terrain)  # 空きマス選択→地形/拠点情報
+	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
+	_combat_scene.bind(_skins)
+	add_child(_combat_scene)
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
@@ -55,6 +59,7 @@ func load_stage(path: String) -> void:
 	$InfoPanel.bind(state, _skins)
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($InfoPanel.show_combat)
+	_controller.combat_resolved.connect(_combat_scene.play)  # 演出シーン（結果＝シーン／根拠＝右パネル）
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)

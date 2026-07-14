@@ -48,7 +48,7 @@ static func _to_skins(arr: Variant) -> Array:
 static func _autowire_images(s: UnitSkin) -> void:
 	if s.skin_id == "":
 		return
-	for slot in ["map", "portrait"]:
+	for slot in ["map", "combat", "portrait"]:
 		if not s.images.has(slot):
 			var p := "res://assets/units/%s/%s_%s.png" % [s.skin_id, s.skin_id, slot]
 			if ResourceLoader.exists(p):
