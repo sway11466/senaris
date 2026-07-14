@@ -119,7 +119,9 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 透過切り抜き（map と同じ「単色背景→背景除去」）。背景は演出側が地形ごとに敷くのでキャラのみ。
 - 特別ユニット：英雄を別に1枚（combat_hero）。演出は英雄1体＋残りを base の combat で埋める（例：兵数5＝英雄1＋従者4）。敵側のボス系で使うことが多い。
 - 攻撃エフェクト：ユニットごと1枚（combat_effect）。相手の隊列上に重ねて出す（斬撃＝被弾側／魔法＝着弾側）。
-- パイプライン・命名は §3.1 と同じ（raw→dew→master）。スロットは `{skin_id}_combat.png` ／英雄 `{skin_id}_combat_hero.png` ／攻撃エフェクト `{skin_id}_combat_effect.png`。
+- 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
+  - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_02_master.png`（透過トリムで透かしも落ちる＝dew 内包・raw→master の2段）。SUBJECT は `{skin_id}_combat_prompt.txt`。英雄／エフェクトは `_combat_hero_`／`_combat_effect_` で同様。
+  - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_hero.png`／`_combat_effect.png`）。master をトリム→長辺512pxに縮小・透過維持で書き出す（256四方・減色はしない＝combat は演出側が KEEP_ASPECT で縮小表示）。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
 - 生成順：combat は map と同じ生成セッションで一緒に出す（全スロットを一度に）。text アンカーだけでは既存キャラは再現できず、別セッションでは同一キャラにならないため（i2i は使わない方針＝[direction.md](direction.md) §3）。既存ユニットに後から足す場合は、そのユニットを map から作り直す。
 
 ---
