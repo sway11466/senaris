@@ -22,7 +22,21 @@ uv run --no-project ".claude/skills/nanobanana-dewatermark-file/scripts/dewaterm
 ```
 
 - `<input>` — path to the image to clean.
-- `[output]` — optional; defaults to `<input_stem>_clean.png` beside the input.
+- `[output]` — path for the cleaned image. Optional at the CLI level; if omitted the
+  script writes `<input_stem>_clean.png` beside the input.
+
+### Output path — ASK when the user didn't give one
+
+When this skill runs **through Claude** (not a raw terminal call), do not silently use the
+default output name. Behaviour:
+
+- If the user specified a destination, pass it as the 2nd argument and proceed.
+- If the user did NOT specify where to save the result, **ask them first** — confirm the
+  destination before running. Offer sensible options they can pick from:
+  `<input_stem>_clean.png` beside the input (the default), a path they type, or overwriting
+  the original. Only run after the destination is settled.
+
+(Direct terminal use keeps the convenience default when the 2nd argument is omitted.)
 
 The script prints where it placed the mark and the match score, e.g.
 `[detected @ 1080,776 score=0.94] in.png -> in_clean.png`.
