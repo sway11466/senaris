@@ -43,10 +43,10 @@ func _show_campaigns() -> void:
 	_campaign_select.visible = true
 	_campaign_select.refresh()
 
-func _on_campaign_chosen(campaign_id: String) -> void:
+func _on_campaign_chosen(campaign_id: String, variant: int = -1) -> void:
 	_campaign_select.visible = false
 	_stage_select.visible = true
-	_stage_select.show_campaign(campaign_id)
+	_stage_select.show_campaign(campaign_id, variant)  # variant＝カードで表示中の絵に固定（<0 はランダム）
 
 func _on_stage_chosen(campaign_id: String, stage_id: String, path: String) -> void:
 	stage_chosen.emit(campaign_id, stage_id, path)

@@ -6,7 +6,7 @@ class_name CampaignSelect
 ## 状態は持たず、refresh() のたびに CampaignProgress から導出して描く。空のボードは出さない。
 ## デバッグ冒険譚はデバッグビルドのみ「Debug」ボードにまとめる。選択はシグナルで SelectScreen へ委ねる。
 
-signal campaign_chosen(campaign_id: String)
+signal campaign_chosen(campaign_id: String, variant: int)  # variant＝カードで表示中の連番index（stage側で同じ絵に固定）
 
 const POSTER_SIZE := Vector2(300, 440)  # 縦長の貼り紙
 const POSTER_ART_HEIGHT := 230.0
@@ -31,6 +31,7 @@ var _progress: CampaignProgress
 var _boards: Array = []   # [{ name:String, campaigns:Array }]（tier順・Debugは先頭）
 var _idx := 0
 var _positioned := false  # 初回だけ初期ボード（＝最初の実tier）に合わせる。以後はユーザーの繰り位置を保つ
+var _variant_by_id := {}   # campaign_id → カードで選んだ連番index。board→stage で同じ絵を出すため保持
 
 var _posters: HFlowContainer
 var _board_name: Label
@@ -273,12 +274,14 @@ func _poster(c: Dictionary) -> Control:
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
 	# カード絵＝card 優先／無ければ cover。連番バリアントから表示ごとに1枚選ぶ（複数置けばランダム）。
+	# 選んだ index を覚えておき、stage 側へ渡して同じ絵に固定する（board→stage で変わらない）。
 	var art_paths: Array = c.get("card_paths", [])
 	if art_paths.is_empty():
 		art_paths = c.get("cover_paths", [])
-	var art_path := _pick_variant(art_paths)
-	if not art_path.is_empty():
-		art.texture = load(art_path) as Texture2D
+	var art_idx := _pick_index(art_paths)
+	_variant_by_id[String(c["id"])] = art_idx
+	if art_idx >= 0:
+		art.texture = load(String(art_paths[art_idx])) as Texture2D
 	content.add_child(art)
 	content.add_child(_poster_info(c))
 	_ignore_mouse(content)
@@ -300,13 +303,13 @@ func _poster(c: Dictionary) -> Control:
 	return poster
 
 func _on_card_pressed(campaign_id: String) -> void:
-	campaign_chosen.emit(campaign_id)
+	campaign_chosen.emit(campaign_id, int(_variant_by_id.get(campaign_id, -1)))
 
-## 連番バリアントから1枚選ぶ（表示ごと＝呼ぶたび randi）。空なら ""。1枚なら常にそれ。
-func _pick_variant(paths: Array) -> String:
+## 連番バリアントの index を1つ選ぶ（表示ごと＝呼ぶたび randi）。空なら -1。
+func _pick_index(paths: Array) -> int:
 	if paths.is_empty():
-		return ""
-	return String(paths[randi() % paths.size()])
+		return -1
+	return randi() % paths.size()
 
 ## 貼り紙下部の情報（タイトル／危険度／説明文）。デバッグ冒険譚は注記のみ。
 ## title/desc は翻訳キー＝tr() で解決（生テキストでも tr() は素通し）。

@@ -95,12 +95,13 @@ func setup(progress: CampaignProgress) -> void:
 	_progress = progress
 
 ## 指定した冒険譚のステージ一覧を表示する（SelectScreen から呼ばれる）。
-func show_campaign(campaign_id: String) -> void:
+func show_campaign(campaign_id: String, variant: int = -1) -> void:
 	var c := _progress.campaign(campaign_id)
 	if c.is_empty():
 		return
 	_title.text = tr(String(c["title"]))  # title は翻訳キー（i18n）。生テキストでも tr() は素通し
-	_set_cover(_pick_variant(c.get("cover_paths", [])), tr(String(c["title"])))  # 連番なら表示ごとに1枚
+	# variant>=0 ならボードで表示中の絵に固定（board→stage で絵が変わらない）。<0 は表示ごとにランダム。
+	_set_cover(_variant_at(c.get("cover_paths", []), variant), tr(String(c["title"])))
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
 		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
@@ -156,8 +157,9 @@ func _clear_children(container: Node) -> void:
 		container.remove_child(child)
 		child.queue_free()
 
-## 連番バリアントから1枚選ぶ（表示ごと＝呼ぶたび randi）。空なら ""。1枚なら常にそれ。
-func _pick_variant(paths: Array) -> String:
+## 連番バリアントから1枚選ぶ。idx>=0 ならその index に固定（範囲外は畳む）、idx<0 は表示ごとに randi。空なら ""。
+func _variant_at(paths: Array, idx: int) -> String:
 	if paths.is_empty():
 		return ""
-	return String(paths[randi() % paths.size()])
+	var i := (idx % paths.size()) if idx >= 0 else (randi() % paths.size())
+	return String(paths[i])
