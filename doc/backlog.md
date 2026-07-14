@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=13 / refactoring=5
+次回採番: bug=1 / feature=15 / refactoring=5
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -34,14 +34,6 @@
 - 背景：AI思考の6軸のうち retreat（撤退閾値＝兵数がこの値を下回ったら退く／ただし自軍拠点が無ければ退かない。[ai.md](gdd/ai.md)「3. 撤退」）は、ai.csv に列・既定（`0`＝退かない）があり `DEFAULT_PRESET` にも入っているが、`nearest_attacker_brain` がこの値を読んでいない＝**未配線**で、現状は常に退かない。既定値の設計は済んでおり、残るのは挙動の実装のみ。
 - 対応：`nearest_attacker_brain` に撤退判定を足す（`_param(state, u, "retreat")` を読み、兵数 < 閾値 かつ自軍拠点あり のとき退く＝拠点方向へ後退／交戦回避）。部隊ごとの上書きは既存の `_param` 解決でそのまま効く。実装後に ai.md の「retreat は未配線」記述を更新。
 - 該当：`domain/ai/nearest_attacker_brain.gd`・`tests/unit/test_ai.gd`（テスト追加）・`doc/gdd/ai.md`（記述更新）。ai.csv は列既存のため変更不要。
-
-### feature-3
-
-**陣形スキル（システム＋レシピ）**（優先度：高）
-
-- 背景：コンセプトの目玉。特定配置（編成レシピ）が揃うと発動する能動アクション（参加ユニットは行動完了・効果は間接扱い）。[combat.md](gdd/combat.md) §2・[formations.md](gdd/formations.md) に仕様があるが完全未実装＝`domain/formation/` は空（`.gdkeep` のみ）。発動コマンドも無い。レシピ3種（①三重詠唱＝ウィザード/ウィッチ3体・三角形／②聖なる加護＝占領兵5体隣接・全体バフ×1.3／③神の裁き＝パラディン＋占領兵2体・射程10単体）すべて未実装。
-- 対応：`domain/formation/` に配置判定（三角形・隣接数）と発動解決を新設。②が要求する「ターンをまたぐ全体バフの持続」は現状 `BattleState` に無いのでバフ状態管理も要る。発動コマンドを `application/commands/` に足し、`hex_board_3d.gd` のコマンドメニューに項目を出す（uiux.md §フェーズ2「当面出さない＝ドメイン未実装」の解除）。
-- 該当：`domain/formation/`（新規）・`domain/battle_state.gd`（バフ持続）・`application/commands/`（発動）・`presentation/board/hex_board_3d.gd`（メニュー項目）・`doc/gdd/combat.md` §2・`doc/gdd/formations.md`・`doc/gdd/uiux.md`。
 
 ### feature-4
 
@@ -106,6 +98,22 @@
 - 背景：多言語対応の方針は [i18n.md](tech/i18n.md) で確定（海外販売必須のため ja+en）。会話・冒険譚名は翻訳キー化済みだが、(1) ユニット・地形・移動タイプの表示名がデータCSVの `name` 列（日本語直書き）のまま情報パネル等に表示され、(2) HUD・情報パネル・勝敗表示など GDScript 直書きの UI 文言が `tr()` を通っていない。この2系統は現状英語にできない。
 - 対応：(1) `data/i18n/units.csv` を新設し、規約キー（`unit.{skin_id}.name`・`terrain.{skin_id}.name`・`movement.{id}.name`）で表示名を解決。`UnitSkin`/`TerrainSkin`/`Movement` の表示名参照を `tr()` 経由に差し替え、データCSVの `name` 列は開発用メモに降格。(2) `data/i18n/ui.csv` を新設し、presentation の直書き文言（`ui.*` キー）を一括キー化。test_i18n_translation の検出範囲に新CSVを加える。
 - 該当：`data/i18n/`（units.csv・ui.csv 新規）・`data/units/unit_skin.gd`・`data/terrain/terrain_skin.gd`・`data/movement/movement.gd`・`presentation/ui/`（hud・unit_info_panel ほか）・`project.godot`（translation 登録）・`tests/unit/test_i18n_translation.gd`・`doc/tech/i18n.md`。
+
+### feature-13
+
+**entitlement（DLC所有）判定によるステージ解放**（優先度：低）
+
+- 背景：ステージセレクトの解放は現状「クリア連鎖」だけで、有料DLC（冒険譚）の所有チェック（entitlement）が未配線＝販売時に「持っていれば解放」を判定できない（[stage_select.md](gdd/stage_select.md)）。Steam DLC 連携が前提。
+- 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線（それまではローカルで常時充足扱い等の切替）。
+- 該当：`application/campaign_progress.gd`・`presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝配布ビルド（parking lot「Steam 配布の段取り」と連動）。
+
+### feature-14
+
+**themed 拠点（教会・魔法ギルド・墓地・回復の泉）**（優先度：中）
+
+- 背景：拠点地形は汎用 `fort` のみで、冒険譚2・3 が要求する見た目・名前つきの拠点（墓地＝湧き元／泉＝回復 等）が無い。機構的には fort＋garrison で「湧き元」「占領で停止」は成立するが、テーマ別の見た目・名前と、回復の泉のような特殊効果が未整備。
+- 対応：拠点に skin（見た目・名前）レイヤーを持たせる（terrain_skin と同方式）か、拠点種別を足す。回復の泉など特殊効果が要るものは効果を設計。まずは見た目・名前から。
+- 該当：`data/terrain/`（拠点スキン）・`domain/capture/`・`presentation/board/hex_board_3d.gd`・`doc/gdd/map.md`。着手の引き金＝冒険譚2/3 のステージ制作時。
 
 ## リファクタリング
 
