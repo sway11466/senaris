@@ -389,7 +389,16 @@
 					"type_id": "sniper"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "アンデッド",
+					"description": "",
+					"images": {},
+					"name": "ネクロマンサー",
+					"skin_id": "necromancer",
+					"type_id": "sniper"
+				}
+			]
 		},
 		"sorcerer": {
 			"ally": [
@@ -476,16 +485,7 @@
 					"type_id": "witch"
 				}
 			],
-			"enemy": [
-				{
-					"category": "アンデッド",
-					"description": "",
-					"images": {},
-					"name": "ネクロマンサー",
-					"skin_id": "necromancer",
-					"type_id": "witch"
-				}
-			]
+			"enemy": []
 		},
 		"wizard": {
 			"ally": [
