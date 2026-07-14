@@ -5,6 +5,8 @@ class_name CombatScene
 ## シェイク＋フラッシュ＋損害数を出す。図は当面 map 画像を流用（正面向き・ミラー無し）。
 ## 状態は持たず play(detail) のたびに detail から導出して描く。detail は BattleState.attack の "detail"。
 
+signal finished  # 演出が閉じた（自動クローズ or クリック）。AI手番のテンポ制御が待つ。
+
 const POS := [  # 3-2-3 隊列テンプレ（x:奥0→前1／y:上0→下1）。slot1=後列中央。combat_scene.md
 	Vector2(0.18, 0.55), Vector2(0.15, 0.30), Vector2(0.15, 0.80),
 	Vector2(0.50, 0.40), Vector2(0.50, 0.66),
@@ -267,11 +269,14 @@ func _on_root_input(e: InputEvent) -> void:
 		_dismiss()  # クリックで即スキップ
 
 func _dismiss() -> void:
+	if not visible:
+		return  # 二重クローズ（クリック＋自動）で finished を重ねない
 	_gen += 1  # 進行中の自動クローズを無効化
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	_inner.position = Vector2.ZERO
 	visible = false
+	finished.emit()
 
 func _clear(node: Node) -> void:
 	for c in node.get_children():

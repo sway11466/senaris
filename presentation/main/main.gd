@@ -60,11 +60,17 @@ func load_stage(path: String) -> void:
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($InfoPanel.show_combat)
 	_controller.combat_resolved.connect(_combat_scene.play)  # 演出シーン（結果＝シーン／根拠＝右パネル）
+	_controller.combat_pace = _await_combat_view  # AI手番は演出の完了を待ってから次へ
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す
+
+## AI手番のテンポ制御（controller.combat_pace）：戦闘演出が出ていれば閉じるまで待つ。
+func _await_combat_view() -> void:
+	if _combat_scene != null and _combat_scene.visible:
+		await _combat_scene.finished
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_label(team, turn_number)

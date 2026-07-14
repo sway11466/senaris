@@ -24,6 +24,7 @@ var _finished := false
 var ai_team := 1
 var ai_brain: AiBrain = null
 var ai_delay := 0.35  # AIの各手を見せるための間（秒）
+var combat_pace := Callable()  # AI手番で戦闘演出の完了を待つフック（presentation が注入）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
@@ -144,20 +145,25 @@ func run_ai_turn() -> void:
 		var action := ai_brain.next_action(state, state.current_team)
 		if action == null:
 			break
-		_apply_ai_action(action)
-		if is_inside_tree():  # 各手の間を置いて見せる
+		var shown_combat := _apply_ai_action(action)
+		# 攻撃なら演出の完了を待つ＝盤に戻ってから次の手へ（プレイヤーが流れを追える）。
+		if shown_combat and not _finished and combat_pace.is_valid():
+			await combat_pace.call()
+		if is_inside_tree() and not _finished:  # 各手の間を置いて見せる
 			await get_tree().create_timer(ai_delay).timeout
 	if not _finished:
 		end_turn()
 
-func _apply_ai_action(action: AiAction) -> void:
+## 1手を適用する。戦闘演出が出た（＝攻撃が成立した）なら true。
+func _apply_ai_action(action: AiAction) -> bool:
 	match action.kind:
 		AiAction.Kind.MOVE:
 			execute(MoveCommand.new(action.unit_id, action.to))
 		AiAction.Kind.ATTACK:
-			execute_attack(AttackCommand.new(action.unit_id, action.target_id))
+			return execute_attack(AttackCommand.new(action.unit_id, action.target_id))
 		AiAction.Kind.DEPLOY:
 			execute_deploy(DeployCommand.new(action.base_hex, action.garrison_index, action.to))
+	return false
 
 func _check_finished() -> void:
 	if not _finished and state.is_over():
