@@ -186,9 +186,14 @@ func _chain(b: Dictionary) -> String:
 	var is_atk: bool = b["kind"] == "attack"
 	var head := "攻" if is_atk else "防"
 	var stat_label := ("対空" if b.get("vs_aerial", false) else "対地") if is_atk else "防"
-	return "  %s %d = 兵%d × %s%d × 経験×%.2f × 包囲×%.2f × 地形×%.2f ＋支援%d" % [
+	# 状態補正（バフ/デバフ）は効いているときだけ式に出す（既定 mul=1.0・add=0 なら非表示）。
+	var smul: float = b.get("status_mul", 1.0)
+	var sadd: float = b.get("status_add", 0.0)
+	var smul_str := " × 状態×%.2f" % smul if not is_equal_approx(smul, 1.0) else ""
+	var sadd_str := " ＋状態%d" % roundi(sadd) if not is_zero_approx(sadd) else ""
+	return "  %s %d = 兵%d × %s%d × 経験×%.2f × 包囲×%.2f × 地形×%.2f%s ＋支援%d%s" % [
 		head, roundi(b["total"]), b["troops"], stat_label, b["stat"],
-		b["experience"], b["surround"], b["terrain"], roundi(b["support"])]
+		b["experience"], b["surround"], b["terrain"], smul_str, roundi(b["support"]), sadd_str]
 
 ## 損害1行: 「攻撃側 → 受け手  攻A 対 防D → P% → 兵N×P% = 失う兵」。
 func _damage_line(from_name: String, to_name: String, hit: Dictionary, defender_troops: int) -> String:
