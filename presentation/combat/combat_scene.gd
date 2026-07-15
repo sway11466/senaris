@@ -22,6 +22,9 @@ const TERRAIN_COLOR := {
 	"fort": Color(0.54, 0.57, 0.62),
 }
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
+const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（秒）
+const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
+const FIG_H := 0.34   # 立ち絵の高さ（窓内寸の高さに対する比・前列で最大）
 
 var _skins := {}
 var _root: Control        # 全画面の入力キャッチ（モーダル）
@@ -121,16 +124,24 @@ func play(detail: Dictionary) -> void:
 
 	var def_dmg := int(t["troops_before"]) - int(t["troops_after"])
 	var atk_dmg := int(a["troops_before"]) - int(a["troops_after"])
-	_shake()
-	_strike_side(def_side, def_dmg, int(t["troops_after"]), R if def_side == "R" else L)
+	var def_comb: Dictionary = R if def_side == "R" else L
+	var atk_comb: Dictionary = L if atk_side == "L" else R
+	var def_after := int(t["troops_after"])
+	var atk_after := int(a["troops_after"])
 
+	# ため：まず隊列を見せてから斬りかかる（突入直後に即着弾しない）。
 	_tween = create_tween()
+	_tween.tween_interval(LEAD_IN)
+	_tween.tween_callback(func() -> void:
+		if gen == _gen:
+			_shake()
+			_strike_side(def_side, def_dmg, def_after, def_comb))
 	if counter:
-		_tween.tween_interval(0.18)
+		_tween.tween_interval(COUNTER_GAP)
 		_tween.tween_callback(func() -> void:
 			if gen == _gen:
 				_shake()
-				_strike_side(atk_side, atk_dmg, int(a["troops_after"]), L if atk_side == "L" else R))
+				_strike_side(atk_side, atk_dmg, atk_after, atk_comb))
 	_tween.tween_interval(0.7)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
@@ -163,7 +174,7 @@ func _render_side(side: String, comb: Dictionary, count: int) -> void:
 
 func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2D, team: int, comb: Dictionary) -> void:
 	var vp := _size()
-	var w := vp.y * 0.20 * s
+	var w := vp.y * FIG_H * s
 	if tex != null:
 		var tr := TextureRect.new()
 		tr.texture = tex
