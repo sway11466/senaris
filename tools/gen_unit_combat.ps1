@@ -4,7 +4,7 @@
 
 .DESCRIPTION
   For one or more skin_ids (or 'all'), reads the combat-slot masters
-  units-src/<group>/<id>/<id>_<slot>_02_master.png (slot = combat, combat_hero,
+  units-src/<group>/<id>/<id>_<slot>_03_master.png (slot = combat, combat_hero,
   combat_effect) and writes assets/units/<id>/<id>_<slot>.png: trim transparent
   margins, downscale so the long side is <= 512px (never upscale), alpha kept.
   No 256 canvas and no color reduction (unlike the map slot) -- the combat scene
@@ -39,7 +39,7 @@ if (-not (Get-Command magick -ErrorAction SilentlyContinue)) {
 
 if ($SkinIds.Count -eq 1 -and $SkinIds[0] -eq 'all') {
   $SkinIds = Get-ChildItem -Path $srcRoot -Directory -Recurse |
-    Where-Object { Get-ChildItem $_.FullName -Filter "*_combat*_02_master.png" -ErrorAction SilentlyContinue } |
+    Where-Object { Get-ChildItem $_.FullName -Filter "*_combat*_master.png" -ErrorAction SilentlyContinue } |
     ForEach-Object { $_.Name } | Sort-Object -Unique
 }
 
@@ -47,13 +47,15 @@ foreach ($id in $SkinIds) {
   # source dir = the folder named <id> that holds a combat master.
   $srcDir = Join-Path $srcRoot $id
   $hit = Get-ChildItem -Path $srcRoot -Directory -Recurse |
-    Where-Object { $_.Name -eq $id -and (Get-ChildItem $_.FullName -Filter "*_combat*_02_master.png" -ErrorAction SilentlyContinue) } |
+    Where-Object { $_.Name -eq $id -and (Get-ChildItem $_.FullName -Filter "*_combat*_master.png" -ErrorAction SilentlyContinue) } |
     Select-Object -First 1
   if ($hit) { $srcDir = $hit.FullName }
   $outDir = Join-Path $outRoot $id
   $any = $false
   foreach ($slot in $Slots) {
-    $master = Join-Path $srcDir "${id}_${slot}_02_master.png"
+    # master = hand-final. Named _03_master (skip dew but keep master=03). Fall back to _02_master.
+    $master = Join-Path $srcDir "${id}_${slot}_03_master.png"
+    if (-not (Test-Path $master)) { $master = Join-Path $srcDir "${id}_${slot}_02_master.png" }
     if (-not (Test-Path $master)) { continue }
     New-Item -ItemType Directory -Force -Path $outDir | Out-Null
     $out = Join-Path $outDir "${id}_${slot}.png"
@@ -62,5 +64,5 @@ foreach ($id in $SkinIds) {
     Write-Output ("{0,-16} {1,-14} -> assets/units/{2}/{2}_{1}.png ({3}KB)" -f $id, $slot, $id, $kb)
     $any = $true
   }
-  if (-not $any) { Write-Warning "${id}: no combat master (${id}_combat_02_master.png ...) -> skipped" }
+  if (-not $any) { Write-Warning "${id}: no combat master (${id}_combat_03_master.png ...) -> skipped" }
 }

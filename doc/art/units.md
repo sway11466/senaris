@@ -120,9 +120,29 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 特別ユニット：英雄を別に1枚（combat_hero）。演出は英雄1体＋残りを base の combat で埋める（例：兵数5＝英雄1＋従者4）。敵側のボス系で使うことが多い。
 - 攻撃エフェクト：ユニットごと1枚（combat_effect）。相手の隊列上に重ねて出す（斬撃＝被弾側／魔法＝着弾側）。
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
-  - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_02_master.png`（透過トリムで透かしも落ちる＝dew 内包・raw→master の2段）。SUBJECT は `{skin_id}_combat_prompt.txt`。英雄／エフェクトは `_combat_hero_`／`_combat_effect_` で同様。
+  - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。英雄／エフェクトは `_combat_hero_`／`_combat_effect_` で同様。
   - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_hero.png`／`_combat_effect.png`）。master をトリム→長辺512pxに縮小・透過維持で書き出す（256四方・減色はしない＝combat は演出側が KEEP_ASPECT で縮小表示）。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
 - 生成順：combat は map と同じ生成セッションで一緒に出す（全スロットを一度に）。text アンカーだけでは既存キャラは再現できず、別セッションでは同一キャラにならないため（i2i は使わない方針＝[direction.md](direction.md) §3）。既存ユニットに後から足す場合は、そのユニットを map から作り直す。
+
+combat STYLE（共通・固定。§3.2 の map STYLE と対で使う。この STYLE を先頭に付け、続けて `{skin_id}_combat_prompt.txt` の SUBJECT を貼る）:
+```
+STYLE: A single fantasy tactics-game battle piece of ONE unit, drawn in the
+SAME character style, palette and face as the game's board unit pieces: clean
+stylized vector-like illustration, bold flat cel-shading, chunky appealing
+super-deformed / chibi proportions about 2 to 2.5 heads tall with a large head
+and short thick limbs, expressive calm-confident face, mature slightly muted
+limited color palette (NOT bright saturated anime, NOT painterly photorealism),
+soft rim light, minimal fussy detail so it still reads when small. Unlike the
+board piece, this is a dynamic BATTLE-READY action pose seen from a slight high
+three-quarter overhead angle, as if looking down onto the battlefield. The
+character is turned to face toward the RIGHT edge of the frame (advancing on the
+enemy), weapon raised or mid-strike, weight forward, full body with both feet
+visible. Exactly ONE character, no crowd, no companions. Plain pure-white
+background (single flat color, for easy cutout), NO ground, NO scenery, NO text
+or logo. Square 1:1 composition.
+```
+- 向きは陣営で焼き込む：味方は上の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語だけ替える。それ以外は共通。
+- SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
 ---
 
