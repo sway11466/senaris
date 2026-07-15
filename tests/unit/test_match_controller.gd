@@ -79,7 +79,8 @@ func test_finished_latch_blocks_all_commands() -> void:
 	assert_signal_emit_count(mc, "turn_changed", 2, "決着後の end_turn は手番を回さない")
 	assert_signal_emit_count(mc, "battle_finished", 1, "battle_finished は二重発行されない")
 	for sig in ["unit_moved", "move_rejected", "unit_attacked", "combat_resolved",
-			"formation_resolved", "unit_deployed", "unit_unloaded", "unit_entered_base", "unit_died"]:
+			"formation_resolved", "unit_deployed", "unit_unloaded", "unit_entered_base",
+			"unit_stood", "unit_died"]:
 		assert_signal_not_emitted(mc, sig, "決着後は %s が出ない" % sig)
 
 # --- battle_finished の単発性（決着契機ごと） ---
@@ -388,3 +389,24 @@ func test_execute_deploy_invalid_fails_without_signal() -> void:
 	assert_false(mc.execute_deploy(DeployCommand.new(b.hex, 5, Hex.neighbor(b.hex, 0))), "garrison_index 範囲外は false")
 	assert_false(mc.execute_deploy(DeployCommand.new(Hex.offset_to_axial(2, 2), 0, Hex.offset_to_axial(2, 3))), "拠点の無い hex は false")
 	assert_signal_not_emitted(mc, "unit_deployed")
+
+# --- stand（unit_stood） ---
+
+func test_stand_emits_unit_stood() -> void:
+	# 盤は動かない＝盤側は unit_stood でしか行動終了（暗くする）を知れない。
+	var s := BattleState.new(12, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))
+	var mc := _mc(s)
+	assert_false(s.is_done(1), "前提: まだ行動できる")
+	mc.stand(1)
+	assert_true(s.is_done(1), "待機で行動終了が付く")
+	assert_signal_emitted_with_parameters(mc, "unit_stood", [1])
+
+func test_stand_unknown_unit_does_nothing() -> void:
+	var s := BattleState.new(12, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))
+	var mc := _mc(s)
+	mc.stand(99)  # 盤に居ない id＝行動終了させる対象が無い
+	assert_signal_not_emitted(mc, "unit_stood")

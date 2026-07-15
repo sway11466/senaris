@@ -173,6 +173,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_deployed.connect(_on_unit_deployed)
 	controller.unit_unloaded.connect(_on_unit_unloaded)
 	controller.unit_entered_base.connect(func(_id: int, _hex: Vector2i) -> void: _sync())
+	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
 	_build_tiles()
@@ -687,8 +688,7 @@ func _handle_unload_menu(id: int) -> void:
 		MENU_WAIT:
 			var pid: int = state.passengers(_unload_transport)[_unload_index].id
 			if controller.execute_unload(UnloadCommand.new(_unload_transport, _unload_index, dest)):
-				controller.stand(pid)
-				_sync()
+				controller.stand(pid)  # unit_stood → _sync（降車なので待つ移動アニメは無い）
 		MENU_CANCEL:
 			_clear_unload()
 
@@ -845,6 +845,13 @@ func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed
 
 func _on_unit_deployed(_unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> void:
 	_clear_deploy()
+	_sync()
+
+## 「待機」＝駒は動かないが行動終了の見た目（暗く）へ変える。
+## 移動を伴う待機では直前に移動アニメが走っている＝_sync_units はそれを畳むため、
+## 歩き切るのを待ってから作り直す（待たないと駒が移動先へ飛ぶ）。
+func _on_unit_stood(_unit_id: int) -> void:
+	await await_move_animation()
 	_sync()
 
 func _on_turn_changed(_team: int, _turn_number: int) -> void:
