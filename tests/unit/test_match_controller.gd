@@ -161,8 +161,25 @@ func test_execute_move_emits_unit_moved() -> void:
 	var to := Hex.neighbor(from, 0)
 	var mc := _mc(s)
 	assert_true(mc.execute(MoveCommand.new(1, to)))
-	assert_signal_emitted_with_parameters(mc, "unit_moved", [1, from, to])
+	assert_signal_emitted_with_parameters(mc, "unit_moved", [1, from, to, [from, to] as Array[Vector2i]])
 	assert_signal_not_emitted(mc, "move_rejected")
+
+func test_execute_move_carries_path_of_multi_hex_move() -> void:
+	# 経路は移動「前」に引く＝移動後の位置からでは復元できないため（アニメ用）。
+	var s := BattleState.new(8, 8)
+	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3)
+	s.add_unit(u)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	var from := u.pos
+	var to := Hex.neighbor(Hex.neighbor(from, 0), 0)  # 2マス先
+	var mc := _mc(s)
+	watch_signals(mc)
+	assert_true(mc.execute(MoveCommand.new(1, to)))
+	var params: Array = get_signal_parameters(mc, "unit_moved", 0)
+	var path: Array = params[3]
+	assert_eq(path.size(), 3, "2歩ぶんの経路（起点＋2マス）が載る")
+	assert_eq(path.front(), from, "経路は移動前の位置で始まる")
+	assert_eq(path.back(), to, "経路は移動先で終わる")
 
 func test_execute_move_failure_emits_move_rejected() -> void:
 	var s := BattleState.new(8, 8)
@@ -295,10 +312,39 @@ func test_end_turn_runs_ai_and_returns_turn() -> void:
 	brain.queue.append(AiAction.move_to(2, dest))
 	mc.ai_brain = brain
 	mc.end_turn()  # → 敵手番 → AIが1手指して手番を返す
-	assert_signal_emitted_with_parameters(mc, "unit_moved", [2, from, dest])
+	assert_signal_emitted_with_parameters(mc, "unit_moved", [2, from, dest, [from, dest] as Array[Vector2i]])
 	assert_eq(s.current_team, 0, "AIが指し終えたら手番が自軍へ戻る")
 	assert_eq(s.turn_number, 2, "1巡してターンが進む")
 	assert_signal_emit_count(mc, "turn_changed", 2, "自軍→敵軍→自軍で2回")
+
+func test_ai_turn_waits_for_move_animation() -> void:
+	# 移動アニメの完了を待たないと、次の手が重なって流れを追えない（combat_pace と同じ狙い）。
+	var s := BattleState.new(8, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	var e := Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3)
+	s.add_unit(e)
+	var mc := _mc(s)
+	var waits := [0]
+	mc.move_pace = func() -> void: waits[0] += 1
+	var brain := QueueBrain.new()
+	brain.queue.append(AiAction.move_to(2, Hex.neighbor(e.pos, 0)))
+	mc.ai_brain = brain
+	mc.end_turn()
+	assert_eq(waits[0], 1, "AIの手ごとに移動アニメの完了を待つ")
+	assert_eq(s.current_team, 0, "待ちフックがあっても手番は返る（固まらない）")
+
+func test_ai_turn_without_move_pace_still_completes() -> void:
+	# フック未注入（テスト・ヘッドレス）でも AI手番が回り切ること＝待ちは任意。
+	var s := BattleState.new(8, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	var e := Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3)
+	s.add_unit(e)
+	var mc := _mc(s)
+	var brain := QueueBrain.new()
+	brain.queue.append(AiAction.move_to(2, Hex.neighbor(e.pos, 0)))
+	mc.ai_brain = brain
+	mc.end_turn()
+	assert_eq(s.current_team, 0, "move_pace 未設定でも手番が返る")
 
 # --- execute_deploy（uid の事前取得） ---
 

@@ -140,7 +140,19 @@ static func flood_reach_cost(start: Vector2i, budget: int, cost_fn: Callable, st
 ## flood_reach_cost の {ヘックス: 最短コスト} 版（start 含む・start のコストは0）。
 ## 移動予算の消費計算（到達コスト）に使う。
 static func flood_reach_cost_map(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := Callable()) -> Dictionary:
+	return _flood(start, budget, cost_fn, stop_fn)[0]
+
+## flood_reach_cost_map の経路つき版＝{ヘックス: 直前のヘックス}（start は始点なので載らない）。
+## 到達ヘックスから prev をたどると start までの経路になる。
+## コスト表からの逆算では代用できない: stop_fn の終端（ZOC等）は「入れるが、そこから先へは進めない」
+## ため、コストの辻褄が合う隣接マスが経由地とは限らない。展開した枝をその場で記録する。
+static func flood_reach_prev_map(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := Callable()) -> Dictionary:
+	return _flood(start, budget, cost_fn, stop_fn)[1]
+
+## ダイクストラ本体。[{ヘックス: 最短コスト}, {ヘックス: 直前のヘックス}] を返す。
+static func _flood(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := Callable()) -> Array[Dictionary]:
 	var dist := {start: 0}
+	var prev := {}
 	var done := {}
 	while true:
 		# 未確定のうち最小コストのヘックスを選ぶ
@@ -167,4 +179,5 @@ static func flood_reach_cost_map(start: Vector2i, budget: int, cost_fn: Callable
 			var nd: int = int(dist[cur]) + c
 			if nd <= budget and (not dist.has(n) or nd < int(dist[n])):
 				dist[n] = nd
-	return dist
+				prev[n] = cur  # cur は確定済み＝終端でない（＝実際にここを経由できる）
+	return [dist, prev]

@@ -234,6 +234,29 @@ func reachable(unit_id: int) -> Array[Vector2i]:
 		result.append(h)
 	return result
 
+## unit_id が to へ移動するときに通るヘックス列（起点 u.pos で始まり to で終わる）。
+## 移動できない to には空配列。盤の状態は変えない（見た目＝移動アニメの経路に使う）。
+## move_unit より前に呼ぶこと: 移動後は u.pos と _spent が変わり、同じ経路は復元できない。
+func path_to(unit_id: int, to: Vector2i) -> Array[Vector2i]:
+	var u := unit_by_id(unit_id)
+	if u == null or to == u.pos or not _reach_map(unit_id).has(to):
+		return []
+	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
+	var prev := Hex.flood_reach_prev_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
+	if not prev.has(to):
+		# 隣接1マスの特例（乗れる輸送）は探索の外＝経路を持たない。隣接なので直進で足りる。
+		var direct: Array[Vector2i] = []
+		if Hex.distance(u.pos, to) == 1:
+			direct = [u.pos, to]
+		return direct
+	var path: Array[Vector2i] = [to]
+	var cur := to
+	while cur != u.pos:
+		cur = prev[cur]  # prev は確定済みノードだけを指す＝閉路にならず必ず start へ着く
+		path.append(cur)
+	path.reverse()
+	return path
+
 ## reachable の {ヘックス: 到達コスト} 版（残り移動力で計算）。移動コスト消費に使う。
 ## 隣接1マスの特例: 隣接する乗れる輸送のマスは、移動力・地形コストに関係なく常に含める
 ## （積み降ろしは人手＝移動0の駒も隣の輸送には乗れる）。詳細 → doc/gdd/movement.md（輸送）

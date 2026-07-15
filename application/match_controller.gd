@@ -5,7 +5,9 @@ class_name MatchController
 ## 状態の真実は BattleState に置き、ここは進行管理のみ。
 
 ## 上り: 純データのシグナルで Presentation に通知する。
-signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i)
+## path は from→to の通過ヘックス列（両端含む）＝移動アニメの経路。
+## 経路を引けなかった場合は空＝受け手は瞬間移動にフォールバックする（盤の状態には影響しない）。
+signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i, path: Array[Vector2i])
 signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
 signal combat_resolved(detail: Dictionary)  # 戦闘結果ビュー用の内訳（攻防の導出・損害）
@@ -25,6 +27,7 @@ var ai_team := 1
 var ai_brain: AiBrain = null
 var ai_delay := 0.35  # AIの各手を見せるための間（秒）
 var combat_pace := Callable()  # AI手番で戦闘演出の完了を待つフック（presentation が注入）。空なら待たない
+var move_pace := Callable()    # AI手番で移動アニメの完了を待つフック（同上）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
@@ -34,6 +37,7 @@ func is_ai_turn() -> bool:
 	return ai_brain != null and state.current_team == ai_team
 
 ## 下りコマンドの処理。成功すれば状態を更新し unit_moved を発行。
+## 経路は move_unit より前に引く（移動後は位置と消費が変わり、同じ経路を復元できない）。
 func execute(cmd: MoveCommand) -> bool:
 	if _finished:
 		return false
@@ -41,8 +45,9 @@ func execute(cmd: MoveCommand) -> bool:
 	if u == null:
 		return false
 	var from := u.pos
+	var path := state.path_to(cmd.unit_id, cmd.to)
 	if state.move_unit(cmd.unit_id, cmd.to):
-		unit_moved.emit(cmd.unit_id, from, cmd.to)
+		unit_moved.emit(cmd.unit_id, from, cmd.to, path)
 		_check_finished()  # 移動＝占領が起きうる（本拠地の占領/喪失はこの瞬間に決着する）
 		return true
 	move_rejected.emit(cmd.unit_id, cmd.to)
@@ -146,6 +151,10 @@ func run_ai_turn() -> void:
 		if action == null:
 			break
 		var shown_combat := _apply_ai_action(action)
+		# 移動アニメの完了を待つ＝駒が歩き切ってから次の手へ（手が重ならず追える）。
+		# アニメが無ければ即戻る。攻撃より先＝移動→攻撃の順に見せる。
+		if not _finished and move_pace.is_valid():
+			await move_pace.call()
 		# 攻撃なら演出の完了を待つ＝盤に戻ってから次の手へ（プレイヤーが流れを追える）。
 		if shown_combat and not _finished and combat_pace.is_valid():
 			await combat_pace.call()

@@ -14,8 +14,14 @@ signal selection_changed(unit_id: int)
 signal tile_inspected(hex: Vector2i)
 ## 戻る対象が無い最上位で Esc を押したとき発行（HUD がシステムメニューを開く）。
 signal system_menu_requested
+## 移動アニメが終わった（歩き切った・割り込みでスナップした のどちらも）。
+## AI手番のテンポ制御に使う（main が controller.move_pace へ注入）。待ち手を取り残さないため
+## 中断でも必ず発行する。
+signal move_animation_finished
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
+const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
+const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ。2D版の接地(0.75)と同じ狙い
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
@@ -93,6 +99,8 @@ var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AI手番中は入力を受けない（カメラは見られる）
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
+var _unit_nodes := {}    # unit_id -> Node3D（そのユニットの見た目一式の親。_sync_units が作り直す）
+var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の _sync_units で必ず畳む）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
 var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
@@ -785,8 +793,51 @@ func _inspect_unit(id: int) -> void:
 	selection_changed.emit(id)
 	_sync_overlay()
 
-func _on_unit_moved(_unit_id: int, _from: Vector2i, _to: Vector2i) -> void:
-	_sync()
+func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i, path: Array[Vector2i]) -> void:
+	_sync()  # 盤は真実（＝移動先）で作り直す
+	_animate_move(unit_id, path)
+
+## 移動した駒を経路の起点へ戻し、マスを1つずつ辿らせる（見た目だけ後追い）。
+## 盤の状態は既に移動先で確定しているので、アニメが途中で切れても嘘にはならない
+## ＝別イベントの _sync_units がノードごと作り直し、駒は真実の位置にスナップする
+## （戦闘演出と同じ「状態は即確定・見た目は後追い」の流儀）。
+func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
+	var node: Node3D = _unit_nodes.get(unit_id)
+	# 経路なし＝アニメできない（乗車で盤から消えた／隣接特例の外）→ 従来どおり瞬間移動。
+	if node == null or path.size() < 2:
+		move_animation_finished.emit()
+		return
+	var steps := path.size() - 1
+	var per_hex := minf(MOVE_ANIM_SEC_PER_HEX, MOVE_ANIM_MAX_SEC / float(steps))
+	node.position = _hex_world(path[0])
+	var t := create_tween()  # 既定は等速（TRANS_LINEAR）＝マスを一定の速さで歩く
+	for i in range(1, path.size()):
+		t.tween_property(node, "position", _hex_world(path[i]), per_hex)
+	t.finished.connect(func() -> void:
+		if _move_tween == t:
+			_move_tween = null
+		move_animation_finished.emit())
+	_move_tween = t
+
+## ヘックスの中心（ユニットの親ノードを置くワールド座標）。
+func _hex_world(hex: Vector2i) -> Vector3:
+	var p := Hex.to_pixel(hex, TILE)
+	return Vector3(p.x, 0.0, p.y)
+
+## 進行中の移動アニメを畳む。待っている側（AI手番）を取り残さないため完了を必ず知らせる。
+func _kill_move_tween() -> void:
+	if _move_tween == null:
+		return
+	var t := _move_tween
+	_move_tween = null
+	if t.is_valid():
+		t.kill()
+	move_animation_finished.emit()
+
+## AI手番のテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。
+func await_move_animation() -> void:
+	if _move_tween != null and _move_tween.is_valid() and _move_tween.is_running():
+		await move_animation_finished
 
 func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed: bool) -> void:
 	_deselect()  # 攻撃したユニットは行動終了
@@ -995,13 +1046,20 @@ func _add_ground() -> void:
 	_tiles_root.add_child(mi)
 
 ## 全ユニットの見た目を作り直す（数十体規模なので毎イベント作り直しで十分軽い）。
+## 1体＝1つの親ノード（_unit_nodes に id で登録）。立ち絵・影・兵数バー・リングはすべてその子＝
+## 親を動かせば一式が付いてくる（移動アニメ）。子の位置は親からの相対で置く。
 func _sync_units() -> void:
+	_kill_move_tween()  # 作り直す＝アニメ中のノードは消える。先に畳んで真実の位置から始める
 	_clear_children(_units_root)
+	_unit_nodes.clear()
 	if state == null:
 		return
 	for u in state.units():
 		var p := Hex.to_pixel(u.pos, TILE)
-		var wpos := Vector3(p.x, 0.0, p.y)
+		var root := Node3D.new()
+		root.position = Vector3(p.x, 0.0, p.y)
+		_units_root.add_child(root)
+		_unit_nodes[u.id] = root
 		var done := state.is_done(u.id)
 		var tex := _unit_texture(u)
 		if tex != null:
@@ -1012,30 +1070,31 @@ func _sync_units() -> void:
 			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
 			spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル（2D版と同比率）
 			spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
-			spr.position = wpos + Vector3(0, 0.02, SPRITE_FOOT_Z)  # 足元は下辺寄り＝マスの中に立って見える
+			spr.position = Vector3(0, 0.02, SPRITE_FOOT_Z)    # 足元は下辺寄り＝マスの中に立って見える
 			if done:
 				spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
-			_units_root.add_child(spr)
+			root.add_child(spr)
 			# 足元のブロブシャドウ（接地感）。範囲塗りの上・リングの下の高さ。
 			var sh := MeshInstance3D.new()
 			sh.mesh = _shadow_mesh
 			sh.material_override = _overlay_material(COLOR_SHADOW)
-			sh.position = wpos + Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
-			_units_root.add_child(sh)
+			sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
+			root.add_child(sh)
 		else:
-			_add_unit_placeholder(u, wpos, done)
+			_add_unit_placeholder(u, done, root)
 		# 包囲中（攻防に係数<1.0）を明示（2D版の橙アーク相当）。
 		if Surround.factor(state, u) < 1.0:
-			_add_ring(wpos, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, _units_root)
+			_add_ring(Vector3.ZERO, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, root)
 		# 兵数バー（残存兵数/満員）。駒の足元に置く。
-		_add_troops_bar(u, wpos)
+		_add_troops_bar(u, root)
 		# 輸送の搭載数を左上に小さく（拠点の garrison 表示と同じ流儀）。
 		var pcount := state.passengers(u.id).size()
 		if pcount > 0:
-			_add_count_label("+%d" % pcount, wpos, COLOR_UNIT_LABEL, _units_root)
+			_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
 
 ## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル。2D版の円＋文字と同義）。
-func _add_unit_placeholder(u: Unit, wpos: Vector3, done: bool) -> void:
+## root＝そのユニットの親ノード（位置は相対）。
+func _add_unit_placeholder(u: Unit, done: bool, root: Node3D) -> void:
 	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
 	if done:
 		col = col.darkened(0.45)
@@ -1045,8 +1104,8 @@ func _add_unit_placeholder(u: Unit, wpos: Vector3, done: bool) -> void:
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.albedo_color = col
 	mi.material_override = m
-	mi.position = wpos + Vector3(0, 0.05, 0)
-	_units_root.add_child(mi)
+	mi.position = Vector3(0, 0.05, 0)
+	root.add_child(mi)
 	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
 	var label := s.map_label() if s != null else u.type_id.substr(0, 2)
 	if label.is_empty():
@@ -1057,8 +1116,8 @@ func _add_unit_placeholder(u: Unit, wpos: Vector3, done: bool) -> void:
 	l.font_size = 64
 	l.pixel_size = 0.01
 	l.modulate = COLOR_UNIT_LABEL
-	l.position = wpos + Vector3(0, 0.6, 0)
-	_units_root.add_child(l)
+	l.position = Vector3(0, 0.6, 0)
+	root.add_child(l)
 
 ## オーバーレイ（範囲・候補・プレビュー・選択・攻撃対象・ホバー）を作り直す。
 ## 種類ごとに高さをずらして重なりのZファイトを避ける。
@@ -1108,17 +1167,18 @@ func _add_cell(hex: Vector2i, color: Color, y: float) -> void:
 # --- 兵数バー・ラベル・リングのヘルパー ---
 
 ## 兵数バー（背景＋残存率ぶんの緑）。ビルボードの小さなクアッド2枚を足元に置く。
-func _add_troops_bar(u: Unit, wpos: Vector3) -> void:
+## root＝そのユニットの親ノード（位置は相対）。
+func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	var w := TILE * 1.0
 	var h := TILE * 0.13
-	var base_pos := wpos + Vector3(0, 0.10, SPRITE_FOOT_Z + 0.15)  # 立ち絵より手前＝隠れない
+	var base_pos := Vector3(0, 0.10, SPRITE_FOOT_Z + 0.15)  # 立ち絵より手前＝隠れない
 	var bg := MeshInstance3D.new()
 	var bgq := QuadMesh.new()
 	bgq.size = Vector2(w, h)
 	bg.mesh = bgq
 	bg.material_override = _bill_material(COLOR_TROOPS_BG)
 	bg.position = base_pos
-	_units_root.add_child(bg)
+	root.add_child(bg)
 	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
 	if ratio <= 0.0:
 		return
@@ -1129,7 +1189,7 @@ func _add_troops_bar(u: Unit, wpos: Vector3) -> void:
 	fill.mesh = fq
 	fill.material_override = _bill_material(COLOR_TROOPS_FILL)
 	fill.position = base_pos + Vector3(0, 0, 0.01)
-	_units_root.add_child(fill)
+	root.add_child(fill)
 
 ## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。マス左上に置く（2D版と同じ流儀）。
 ## root＝追加先（拠点は _bases_root・ユニットは _units_root。別コンテナなのはクリア周期が違うため）。
