@@ -45,7 +45,7 @@ visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
 - ②は正方の生成物を [`../../tools/gen_terrain_tile.ps1`](../../tools/gen_terrain_tile.ps1) でヘックス切り抜き＝`powershell -File tools\gen_terrain_tile.ps1 {name} <src1> <src2> …`（1枚目→`{name}.png`、以降→`_2`,`_3`）。`terrain-src/` は `.gdignore` で Godot 非インポート。
 - 【指針】平地・森・山など向きの無い地形は、将来ヘックスごとの60°回転で反復をさらに消せる（回転可否は道・砦・壁・柵を除外＝要フラグ。terrain.csv に列追加で対応）。
 - 面で覆う地形（平地・森）は一面テクスチャで作る（森で検証済み）。切り口は密な柄に紛れ、隣接ヘックスがひとつながりの地帯に見える。「ヘックス内に収まる塊＋周囲に地面」のアイコン方式は、塊が円形だと盤上で水玉に見えるため不採用。基準色は SUBJECT に HEX 指定で固定し、地面が覗く地形は平地の基準色（#B4C6A0）を使って地続きに見せる。
-- 生成サービスの sparkle 透かしは右下コーナー付近に付く＝ヘックス切り抜きの四隅落ちで自然に消えるため、地形は専用の `_02_dew` 工程が不要＝ `_01_raw`→`_02_master` でよい（[direction.md](direction.md) §3・切り抜き後に四隅残留だけ目視確認する）。
+- 生成サービスの sparkle 透かしは右下コーナー付近に付く＝ヘックス切り抜きの四隅落ちで自然に消えるため、地形は専用の `_02_dew` 工程が不要＝ `_01_raw`→`_03_master` でよい（[direction.md](direction.md) §3・切り抜き後に四隅残留だけ目視確認する）。
 
 ---
 

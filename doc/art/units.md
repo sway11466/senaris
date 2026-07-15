@@ -54,18 +54,18 @@
 | 段階 | 置き場（`{skin_id}`＝unit_skin のID・`{group}`＝陣営フォルダ） | 例（ファイター） |
 |---|---|---|
 | ① AI生成直後（原寸・SynthID入り） | `assets/units-src/{group}/{skin_id}/{skin_id}_01_raw.png` | `units-src/player/fighter/fighter_01_raw.png` |
-| ② トリミング＋透過（手動マスター・原寸） | `assets/units-src/{group}/{skin_id}/{skin_id}_02_master.png` | `units-src/player/fighter/fighter_02_master.png` |
+| ② トリミング＋透過（手動マスター・原寸） | `assets/units-src/{group}/{skin_id}/{skin_id}_03_master.png` | `units-src/player/fighter/fighter_03_master.png` |
 | ③ ゲーム用（256四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
 
 - `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `units-src/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
 - ③だけが `assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
 - ①②は `assets/units-src/`（作業ソース）。`assets/units-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
-- 透かし: 共通ルールの `_02_dew`（[direction.md](direction.md) §3）はユニットでは②のトリミング＝透過に内包（透過切り抜きで sparkle も落ちる）ため専用 dew ファイルは作らず `_01_raw`→`_02_master` の2段のまま。番号は `_02_master` を維持（`gen_unit_map.ps1` が参照）。
+- 透かし: 共通ルールの `_02_dew`（[direction.md](direction.md) §3）はユニットでは②のトリミング＝透過で一緒に落ちる（透過切り抜きで sparkle も消える）ため専用 dew ファイルは作らず `_01_raw`→`_03_master` の2段。番号は master=03 で固定＝02 が無い＝dew を通していない、と読める（`gen_unit_map.ps1` は `_03_master` を読み、旧 `_02_master` もフォールバックで拾う）。
 
 手順（1体を追加するとき）:
 
 1. AI生成 → `{skin_id}_01_raw.png` を `source/{group}/{skin_id}/` に保存（生成に使った SUBJECT は `{skin_id}_prompt.txt` に残す＝§3.2）。
-2. 手動でトリミング＋背景透過 → `{skin_id}_02_master.png`（同フォルダ）。
+2. 手動でトリミング＋背景透過 → `{skin_id}_03_master.png`（同フォルダ）。
 3. ③を書き出す：
    ```
    powershell -File tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン

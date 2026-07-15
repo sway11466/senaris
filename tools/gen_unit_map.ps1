@@ -5,11 +5,14 @@
 .DESCRIPTION
   Given one or more skin_ids, looks up map_scale in unit_skin.csv, sets the figure
   height = BaseHeight * map_scale, and writes a 256px square, transparent, 64-color
-  assets/units/<id>/<id>_map.png from units-src/<group>/<id>/<id>_02_master.png.
+  assets/units/<id>/<id>_map.png from units-src/<group>/<id>/<id>_03_master.png.
   <group> is a faction folder (player, goblin, ...); the source dir is found by
   searching assets/units-src/ recursively for a folder named <id>.
-  If the 02_master is missing it falls back to the 01_raw (white bg auto-keyed;
-  fringe is meant to be cleaned by hand in the 02_master later).
+  The hand master is _03_master (dew/02 is skipped for units: the transparent trim
+  drops the watermark anyway, but the number stays master=03). _02_master is still
+  read as a fallback for not-yet-renamed sources.
+  If no master is present it falls back to the 01_raw (white bg auto-keyed;
+  fringe is meant to be cleaned by hand in the master later).
   Recipe of record: doc/art/units.md section 3.1. Requires ImageMagick (magick).
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1 files.
 
@@ -50,34 +53,38 @@ if ($SkinIds.Count -eq 1 -and $SkinIds[0] -eq 'all') { $SkinIds = @($scale.Keys)
 foreach ($id in $SkinIds) {
   $sc = if ($scale.ContainsKey($id)) { $scale[$id] } else { 1.0 }
   $h  = [int][math]::Round($BaseHeight * $sc)
-  # source dir = the folder named <id> that actually holds the 02_master/01_raw.
+  # source dir = the folder named <id> that actually holds the master/01_raw.
   # Checking file presence matters: a faction folder can share the skin's name
   # (source/goblin/ vs skin goblin -> source/goblin/goblin/).
   $srcDir = Join-Path $srcRoot $id
   $hit = Get-ChildItem -Path $srcRoot -Directory -Recurse |
     Where-Object { $_.Name -eq $id -and (
+      (Test-Path (Join-Path $_.FullName "${id}_03_master.png")) -or
       (Test-Path (Join-Path $_.FullName "${id}_02_master.png")) -or
       (Test-Path (Join-Path $_.FullName "${id}_01_raw.png"))) } |
     Select-Object -First 1
   if ($hit) { $srcDir = $hit.FullName }
-  $master = Join-Path $srcDir "${id}_02_master.png"
+  # master = _03_master; fall back to the old _02_master name if not renamed yet.
+  $master = Join-Path $srcDir "${id}_03_master.png"
+  if (-not (Test-Path $master)) { $master = Join-Path $srcDir "${id}_02_master.png" }
   $raw    = Join-Path $srcDir "${id}_01_raw.png"
   $outDir = Join-Path $outRoot $id
   $out    = Join-Path $outDir "${id}_map.png"
   New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
   if (Test-Path $master) {
-    # 02_master is already transparent: trim -> scale -> 256 square -> reduce colors
+    # the master is already transparent: trim -> scale -> 256 square -> reduce colors
     magick $master -trim +repage -resize "x$h" -background none -gravity south -extent "${Canvas}x${Canvas}" -colors $Colors -dither None $out
     $srcKind = 'master'
   }
   elseif (Test-Path $raw) {
     # 01_raw is white-bg: key out the background via border floodfill, then same steps (provisional)
+    # (only used when no master exists yet)
     magick $raw -fuzz 6% -trim +repage -alpha set -bordercolor white -border 1 -fuzz 14% -fill none -draw "alpha 0,0 floodfill" -shave 1x1 -resize "x$h" -background none -gravity south -extent "${Canvas}x${Canvas}" -colors $Colors -dither None $out
     $srcKind = 'raw(provisional)'
   }
   else {
-    Write-Warning "${id}: no source (${id}_02_master.png / ${id}_01_raw.png) -> skipped"
+    Write-Warning "${id}: no source (${id}_03_master.png / ${id}_01_raw.png) -> skipped"
     continue
   }
   $kb = [int]((Get-Item $out).Length / 1KB)
