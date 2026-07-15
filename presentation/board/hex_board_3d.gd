@@ -172,7 +172,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.formation_resolved.connect(_on_formation_resolved)
 	controller.unit_deployed.connect(_on_unit_deployed)
 	controller.unit_unloaded.connect(_on_unit_unloaded)
-	controller.unit_entered_base.connect(func(_id: int, _hex: Vector2i) -> void: _sync())
+	controller.unit_entered_base.connect(_on_unit_entered_base)
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
@@ -851,6 +851,11 @@ func _on_unit_deployed(_unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> voi
 ## 移動を伴う待機では直前に移動アニメが走っている＝_sync_units はそれを畳むため、
 ## 歩き切るのを待ってから作り直す（待たないと駒が移動先へ飛ぶ）。
 func _on_unit_stood(_unit_id: int) -> void:
+	await await_move_animation()
+	_sync()
+
+## 「入る」＝駒は拠点の中へ消える。待つ理由は待機と同じ（歩いてから入る）。
+func _on_unit_entered_base(_unit_id: int, _base_hex: Vector2i) -> void:
 	await await_move_animation()
 	_sync()
 
