@@ -1,12 +1,10 @@
 extends Node3D
 class_name HexBoard3D
-## ヘックス盤面の3D表示（3Dハイブリッド実験・M1）。
-## 傾けた Camera3D＋床に寝かせたヘックスタイル（地形テクスチャ流用）＋完全ビルボードの
-## Sprite3D（ユニット立ち絵流用）。公開API・シグナルは2D版 hex_board.gd と同一＝
-## main.tscn のノード差し替えだけで使える。
-## インタラクション（選択→移動→コマンド・出撃・降車・乗車）は2D版から移植。
-## 3D化したのは 描画 / picking（マウスレイ∩盤平面 y=0）/ カメラ（俯角固定リグ）のみ。
-## M1の未実装（M2予定）: 兵数バー・+N・選択/攻撃/包囲リング（暫定でマス塗り）・拠点の縁取り。
+## ヘックス盤面の3D表示（3Dハイブリッド）。傾けた Camera3D＋床に寝かせたヘックスタイル
+## （地形テクスチャ流用）＋完全ビルボードの Sprite3D（ユニット立ち絵流用）。
+## 3D なのは 描画 / picking（マウスレイ∩盤平面 y=0）/ カメラ（俯角固定リグ）で、
+## インタラクション（選択→移動→コマンド・出撃・降車・乗車）は盤が状態として持つ。
+## 方針 → doc/adr/ADR-0003-board-3d-hybrid.md
 
 ## 選択中ユニットが変わったとき発行（id<0＝選択解除）。情報パネル等が購読する。
 signal selection_changed(unit_id: int)
@@ -22,7 +20,7 @@ signal move_animation_finished
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
 const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
-const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ。2D版の接地(0.75)と同じ狙い
+const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
@@ -88,7 +86,7 @@ var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキ
 var _avg_color := {}      # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
 var _skirt_tex: ImageTexture  # スカートの粒状ノイズ（べた塗り回避。_ready で1回生成）
 
-# --- インタラクション状態（2D版から移植）---
+# --- インタラクション状態 ---
 var _hover := INVALID_HEX
 var _selected_id := -1
 var _inspected_id := -1  # 閲覧のみのユニット（敵など）。選択とは別＝移動範囲/コマンドは出さない
@@ -219,7 +217,7 @@ func _process(_delta: float) -> void:
 		_sync_overlay()
 
 # =========================================================================
-# 入力（2D版から移植。パン/ズームだけ3Dカメラ流儀）
+# 入力（パン/ズームは3Dカメラ流儀）
 # =========================================================================
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -259,7 +257,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		controller.end_turn()
 
 ## スクロール（2本指/ピンチ/ホイール）・全体表示を処理。消費したら true。
-## Ctrl の有無で判別: 修飾なし＝パン、Ctrl付き＝ズーム（カーソル基点）。2D版と同じ操作系。
+## Ctrl の有無で判別: 修飾なし＝パン、Ctrl付き＝ズーム（カーソル基点）。
 func _handle_camera_scroll(event: InputEvent) -> bool:
 	if event is InputEventMouseButton and event.pressed \
 			and event.button_index >= MOUSE_BUTTON_WHEEL_UP and event.button_index <= MOUSE_BUTTON_WHEEL_RIGHT:
@@ -303,7 +301,7 @@ func _update_camera() -> void:
 func _world_per_pixel() -> float:
 	return 2.0 * _cam_dist * tan(deg_to_rad(CAM_FOV) * 0.5) / get_viewport().get_visible_rect().size.y
 
-## マウス移動(px)ぶん盤が指に追随するよう注視点を動かす（2D版のパンと同じ操作感）。
+## マウス移動(px)ぶん盤が指に追随するよう注視点を動かす。
 ## 画面の縦は俯角で奥行きが sin(pitch) に縮むぶん割り戻す。
 func _pan_by(px: Vector2) -> void:
 	var wpp := _world_per_pixel()
@@ -311,7 +309,7 @@ func _pan_by(px: Vector2) -> void:
 	_cam_target.z -= px.y * wpp / sin(deg_to_rad(CAM_PITCH_DEG))
 	_update_camera()
 
-## screen の直下の盤上の点を固定したままズーム（＝カーソル基点。2D版 _zoom_at_point と同義）。
+## screen の直下の盤上の点を固定したままズーム（＝カーソル基点）。
 func _zoom_at_point(factor: float, screen: Vector2) -> void:
 	var nd := clampf(_cam_dist / factor, MIN_DIST, MAX_DIST)  # ズームイン＝距離を縮める
 	if is_equal_approx(nd, _cam_dist):
@@ -381,7 +379,7 @@ func _on_board(hex: Vector2i) -> bool:
 	return o.x >= 0 and o.x < state.cols and o.y >= 0 and o.y < state.rows
 
 # =========================================================================
-# クリック→選択→移動→コマンドメニュー（2D版から移植。描画呼び出しのみ _sync に置換）
+# クリック→選択→移動→コマンドメニュー
 # =========================================================================
 
 func _on_click(hex: Vector2i) -> void:
@@ -875,7 +873,7 @@ func _on_battle_finished(_winner: int) -> void:
 # 3D描画（タイル＝床のヘックスメッシュ / 駒＝ビルボード / オーバーレイ＝半透明マス）
 # =========================================================================
 
-## 盤の見た目を状態から作り直す（2D版の queue_redraw 相当）。
+## 盤の見た目を状態から作り直す。
 func _sync() -> void:
 	_sync_bases()
 	_sync_units()
@@ -896,7 +894,7 @@ func _sync_bases() -> void:
 		var p := Hex.to_pixel(b.hex, TILE)
 		mi.position = Vector3(p.x, 0.015, p.y)
 		_bases_root.add_child(mi)
-		# 控え数（出撃できる人数）を左上に小さく（2D版と同じ流儀）。
+		# 控え数（出撃できる人数）を左上に小さく。
 		if not b.garrison.is_empty():
 			_add_count_label("+%d" % b.garrison.size(), Vector3(p.x, 0.0, p.y), col, _bases_root)
 
@@ -959,14 +957,14 @@ func _add_tile(hex: Vector2i) -> void:
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, 0.0, p.y)
 	if skin != null and skin.orientable:
-		# 向きは座標ハッシュから決定的に選ぶ（2D版と同じ流儀）＝盤は毎回同じ。
+		# 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ。
 		var o := absi(hash(Vector2i(hex.y, hex.x)))
 		mi.rotation.y = float(o % 6) * (PI / 3.0)
 		if (o / 6) % 2 == 1:
 			mi.scale = Vector3(-1.0, 1.0, 1.0)  # 左右反転（cull無効なので裏面でも描ける）
 	_tiles_root.add_child(mi)
 
-## ヘックスの輪郭線（セルの読み取り用・2D版の draw_polyline 相当）。全マスまとめて1メッシュ。
+## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
 func _add_grid() -> void:
 	var im := ImmediateMesh.new()
 	im.surface_begin(Mesh.PRIMITIVE_LINES)
@@ -1080,7 +1078,7 @@ func _sync_units() -> void:
 			spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 常にカメラへ正対＝立ち姿のまま
 			spr.shaded = false
 			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
-			spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル（2D版と同比率）
+			spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル
 			spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
 			spr.position = Vector3(0, 0.02, SPRITE_FOOT_Z)    # 足元は下辺寄り＝マスの中に立って見える
 			if done:
@@ -1094,7 +1092,7 @@ func _sync_units() -> void:
 			root.add_child(sh)
 		else:
 			_add_unit_placeholder(u, done, root)
-		# 包囲中（攻防に係数<1.0）を明示（2D版の橙アーク相当）。
+		# 包囲中（攻防に係数<1.0）を明示。
 		if Surround.factor(state, u) < 1.0:
 			_add_ring(Vector3.ZERO, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, root)
 		# 兵数バー（残存兵数/満員）。駒の足元に置く。
@@ -1104,7 +1102,7 @@ func _sync_units() -> void:
 		if pcount > 0:
 			_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
 
-## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル。2D版の円＋文字と同義）。
+## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル）。
 ## root＝そのユニットの親ノード（位置は相対）。
 func _add_unit_placeholder(u: Unit, done: bool, root: Node3D) -> void:
 	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
@@ -1149,7 +1147,7 @@ func _sync_overlay() -> void:
 		_add_cell(_pending_to, COLOR_PENDING, 0.03)
 	if _unload_to != INVALID_HEX:
 		_add_cell(_unload_to, COLOR_PENDING, 0.03)
-	for pos in _targets:  # 攻撃可能な敵＝赤リング（2D版と同じ）
+	for pos in _targets:  # 攻撃可能な敵＝赤リング
 		var tp := Hex.to_pixel(pos, TILE)
 		_add_ring(Vector3(tp.x, 0.0, tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
@@ -1203,7 +1201,7 @@ func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	fill.position = base_pos + Vector3(0, 0, 0.01)
 	root.add_child(fill)
 
-## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。マス左上に置く（2D版と同じ流儀）。
+## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。マス左上に置く。
 ## root＝追加先（拠点は _bases_root・ユニットは _units_root。別コンテナなのはクリア周期が違うため）。
 func _add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -> void:
 	var l := Label3D.new()
@@ -1359,7 +1357,7 @@ func _unit_texture(u: Unit) -> Texture2D:
 		_unit_tex[p] = load(p)
 	return _unit_tex[p]
 
-## 地形タイルを読む。基本 {name}.png ＋連番 variant（2D版と同一ロジック）。
+## 地形タイルを読む。基本 {name}.png ＋連番 variant。
 func _load_terrain_variants(base_path: String) -> Array:
 	var texs: Array = []
 	var base := load(base_path) as Texture2D
