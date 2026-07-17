@@ -153,7 +153,10 @@ POSE (channel): A calm, grounded channelling pose — standing composed with bot
 ```
 POSE (ranged): A poised shooting stance — bow drawn to the cheek (or crossbow/gun leveled), aiming toward the enemy on the right, weight balanced and steady, focused down the shot; not lunging into melee.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ・魔法兵）＝`channel`／遠隔（弓・砲兵）＝`ranged`。
+```
+POSE (rally): A commanding rally pose — the weapon (or holy symbol) thrust high overhead, chest out, standing tall and heroic to inspire the charge, leading toward the enemy on the right; not mid-strike, not lunging.
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ・魔法兵）＝`channel`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
