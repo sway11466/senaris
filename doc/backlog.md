@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=17 / refactoring=5
+次回採番: bug=1 / feature=18 / refactoring=5
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -130,6 +130,14 @@
 - 背景：アニメ速度の設定（高速／標準／オフ）は SLG では定番の期待値だが、設定画面そのものが未実装（[uiux.md](gdd/uiux.md) システムメニュー）。また出撃・降車は経路を持たないため駒がポップして現れる（アニメ対象外）。
 - 対応：設定画面を作る段で、移動アニメの速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）を設定値から引く。出撃・降車は拠点／輸送から目的マスへの1歩スライドで見せられる（経路探索は不要）。
 - 該当：`presentation/board/hex_board_3d.gd`・設定の永続化（feature-9 のセーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき。
+
+### feature-17
+
+**会話シーン中は盤を引っ込めて会話に注視させる**（優先度：中）
+
+- 背景：ステージ前後の会話（intro/outro）中、盤の入力は凍結されている（`hex_board_3d.set_input_locked`＝`_frozen`）が、見た目は通常の盤のまま＝操作できそうに見えて戸惑う。いま会話が主役だと画面が伝えていない。
+- 対応：会話中は盤を後景に落とす。候補＝盤全体に暗幕オーバーレイ／ユニットのグレーアウト（行動終了と同じ `modulate` を流用できるが、意味が衝突しないか注意）／彩度を落とす。入力凍結のフラグ（`_frozen`）が既に会話中を表しているので、見せ方をそこに紐付ければ導線は足りている。オーナーの希望は「会話シーンに注視できること」で、手段は要検討。
+- 該当：`presentation/board/hex_board_3d.gd`（`set_input_locked`／`_frozen`・盤の描画）・`presentation/main/main.gd`（`_maybe_start_intro`／`_on_conversation_closed`）・`presentation/ui/conversation_panel.gd`・`doc/gdd/uiux.md`。着手＝feature-15（カメラ追従）の次。
 
 ## リファクタリング
 
