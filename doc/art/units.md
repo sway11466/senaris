@@ -139,8 +139,8 @@ piece, this is seen from a slight high three-quarter overhead angle, as if
 looking down onto the battlefield, and the character is turned to face toward
 the RIGHT edge of the frame (facing the enemy line). Full body with both feet
 visible. Exactly ONE character, no crowd, no companions. Plain pure-white
-background (single flat color, for easy cutout), NO ground, NO scenery, NO text
-or logo. Square 1:1 composition.
+background (single flat color, for easy cutout), NO ground, NO ground shadow or
+drop shadow under the feet, NO scenery, NO text or logo. Square 1:1 composition.
 ```
 
 POSE カタログ（役割で選ぶ。増やしてよい）:
