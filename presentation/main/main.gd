@@ -15,6 +15,7 @@ var _select: SelectScreen = null
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録用）
 var _current_stage_id := ""
 var _conversation: ConversationPanel = null
+var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネルより後ろ・盤より前）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
@@ -98,6 +99,7 @@ func _on_battle_finished(outcome: int) -> void:
 			_conversation_phase = "outro"
 			$InfoPanel.hide()
 			$HexBoard.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
+			_set_scrim(true)  # 盤を沈めて会話に注視させる
 			var label := "次のステージへ ▶" if not _next_playable_stage().is_empty() else "閉じる"
 			_conversation.start(_dialogue["outro"], label)  # 読了/スキップで次ステージ or セレクトへ
 		else:
@@ -105,6 +107,20 @@ func _on_battle_finished(outcome: int) -> void:
 
 # --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
 func _install_conversation() -> void:
+	# 暗幕は会話パネルより先に add＝パネルの後ろ（下）・盤や HUD の前（前面）に来る。
+	# Node2D の子の Control はアンカーで自動リサイズされない（親にサイズが無い）ため、
+	# ビューポート全体を size で明示し、リサイズに追従させる（Title/InfoPanel と同じ事情）。
+	_scrim = ColorRect.new()
+	_scrim.color = Color(0.0, 0.0, 0.0, 0.5)  # 暗さの度合い（叩き台。実機で調整）
+	_scrim.position = Vector2.ZERO
+	_scrim.size = get_viewport().get_visible_rect().size
+	_scrim.mouse_filter = Control.MOUSE_FILTER_STOP  # 会話中は盤エリアのクリックを吸う（入力ガードの二重化）
+	_scrim.modulate.a = 0.0
+	_scrim.hide()
+	add_child(_scrim)
+	get_viewport().size_changed.connect(func() -> void:
+		if _scrim != null:
+			_scrim.size = get_viewport().get_visible_rect().size)
 	_conversation = preload("res://presentation/ui/conversation_panel.gd").new()
 	_conversation.offset_left = 800  # InfoPanel と同じ箱に重ねる（会話中は InfoPanel を隠す）
 	_conversation.offset_top = 96
@@ -114,12 +130,25 @@ func _install_conversation() -> void:
 	_conversation.closed.connect(_on_conversation_closed)
 	add_child(_conversation)
 
+## 会話中の暗幕をフェードで出し入れする（唐突に暗くしない）。off はフェード後に隠して
+## クリックを吸わないよう戻す。intro/outro の開始で on、会話終了で off。
+func _set_scrim(on: bool) -> void:
+	if _scrim == null:
+		return
+	if on:
+		_scrim.show()
+	var tw := create_tween()
+	tw.tween_property(_scrim, "modulate:a", 1.0 if on else 0.0, 0.2)
+	if not on:
+		tw.tween_callback(_scrim.hide)
+
 ## intro 会話があれば、盤操作をロックして先に流す（無ければ即戦闘）。
 func _maybe_start_intro() -> void:
 	if _dialogue.get("intro", []).is_empty():
 		return
 	_conversation_phase = "intro"
 	$HexBoard.set_input_locked(true)
+	_set_scrim(true)  # 盤を沈めて会話に注視させる
 	$InfoPanel.hide()  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
@@ -128,6 +157,7 @@ func _maybe_start_intro() -> void:
 func _on_conversation_closed() -> void:
 	$InfoPanel.show()  # 会話が終わったら情報パネルを戻す
 	$HexBoard.set_input_locked(false)  # 盤の凍結を解除（intro/outro 共通）
+	_set_scrim(false)  # 暗幕を戻す（盤が主役に戻る）
 	match _conversation_phase:
 		"intro":
 			_conversation_phase = ""

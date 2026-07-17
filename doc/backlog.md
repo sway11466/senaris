@@ -123,14 +123,6 @@
 - 対応：(1) 設定画面を作る段で、移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）とカメラ追従（`FOCUS_PAN_SEC`）を設定値から引く。(2) 敵手番のスキップ（キー／ボタンで残りを一気に最終状態へ）。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
 - 該当：`presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`application/match_controller.gd`（手番のテンポ・スキップ）・設定の永続化（feature-9 のセーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき／敵手番が長く感じ始めたら。
 
-### feature-17
-
-**会話シーン中は盤を引っ込めて会話に注視させる**（優先度：中）
-
-- 背景：ステージ前後の会話（intro/outro）中、盤の入力は凍結されている（`hex_board_3d.set_input_locked`＝`_frozen`）が、見た目は通常の盤のまま＝操作できそうに見えて戸惑う。いま会話が主役だと画面が伝えていない。
-- 対応：会話中は盤を後景に落とす。候補＝盤全体に暗幕オーバーレイ／ユニットのグレーアウト（行動終了と同じ `modulate` を流用できるが、意味が衝突しないか注意）／彩度を落とす。入力凍結のフラグ（`_frozen`）が既に会話中を表しているので、見せ方をそこに紐付ければ導線は足りている。オーナーの希望は「会話シーンに注視できること」で、手段は要検討。
-- 該当：`presentation/board/hex_board_3d.gd`（`set_input_locked`／`_frozen`・盤の描画）・`presentation/main/main.gd`（`_maybe_start_intro`／`_on_conversation_closed`）・`presentation/ui/conversation_panel.gd`・`doc/gdd/uiux.md`。着手＝feature-15（カメラ追従）の次。
-
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
