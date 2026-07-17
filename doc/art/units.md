@@ -124,25 +124,35 @@ SUBJECT（生成プロンプト本体）の置き場：
   - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_hero.png`／`_combat_effect.png`）。master をトリム→長辺512pxに縮小・透過維持で書き出す（256四方・減色はしない＝combat は演出側が KEEP_ASPECT で縮小表示）。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
 - 生成順：combat は map と同じ生成セッションで一緒に出す（全スロットを一度に）。text アンカーだけでは既存キャラは再現できず、別セッションでは同一キャラにならないため（i2i は使わない方針＝[direction.md](direction.md) §3）。既存ユニットに後から足す場合は、そのユニットを map から作り直す。
 
-combat STYLE（共通・固定。§3.2 の map STYLE と対で使う。この STYLE を先頭に付け、続けて `{skin_id}_combat_prompt.txt` の SUBJECT を貼る）:
+生成は3ブロックを順に貼る：STYLE（共通・固定・ポーズ非依存）＋ POSE（下のカタログから役割で選ぶ）＋ SUBJECT（ユニット別）。POSE と SUBJECT は `{skin_id}_combat_prompt.txt` に一緒に置く（先頭に POSE 行 → SUBJECT）。STYLE は本 doc が正本。
+
+STYLE（共通・固定・ポーズ非依存）:
 ```
 STYLE: A single fantasy tactics-game battle piece of ONE unit, drawn in the
 SAME character style, palette and face as the game's board unit pieces: clean
 stylized vector-like illustration, bold flat cel-shading, chunky appealing
 super-deformed / chibi proportions about 2 to 2.5 heads tall with a large head
-and short thick limbs, expressive calm-confident face, mature slightly muted
-limited color palette (NOT bright saturated anime, NOT painterly photorealism),
-soft rim light, minimal fussy detail so it still reads when small. Unlike the
-board piece, this is a dynamic BATTLE-READY action pose seen from a slight high
-three-quarter overhead angle, as if looking down onto the battlefield. The
-character is turned to face toward the RIGHT edge of the frame (advancing on the
-enemy), weapon raised or mid-strike, weight forward, full body with both feet
+and short thick limbs, expressive calm face, mature slightly muted limited color
+palette (NOT bright saturated anime, NOT painterly photorealism), soft rim
+light, minimal fussy detail so it still reads when small. Unlike the board
+piece, this is seen from a slight high three-quarter overhead angle, as if
+looking down onto the battlefield, and the character is turned to face toward
+the RIGHT edge of the frame (facing the enemy line). Full body with both feet
 visible. Exactly ONE character, no crowd, no companions. Plain pure-white
 background (single flat color, for easy cutout), NO ground, NO scenery, NO text
 or logo. Square 1:1 composition.
 ```
-- 向きは陣営で焼き込む：味方は上の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語だけ替える。それ以外は共通。
-- SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
+
+POSE カタログ（役割で選ぶ。増やしてよい）:
+```
+POSE (melee): A dynamic battle-ready action pose — weapon raised or mid-strike, weight forward, leaning into the blow as the character presses toward the enemy on the right.
+```
+```
+POSE (channel): A calm, grounded channelling pose — standing composed with both feet planted, focused on working a spell or blessing rather than striking; not lunging, not advancing.
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ・魔法兵）＝`channel`。遠隔（弓・砲）は必要になったら `ranged` 等を追加。
+- 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
+- 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
 ---
 
