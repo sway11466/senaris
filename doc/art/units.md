@@ -150,7 +150,10 @@ POSE (melee): A dynamic battle-ready action pose — weapon raised or mid-strike
 ```
 POSE (channel): A calm, grounded channelling pose — standing composed with both feet planted, focused on working a spell or blessing rather than striking; not lunging, not advancing.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ・魔法兵）＝`channel`。遠隔（弓・砲）は必要になったら `ranged` 等を追加。
+```
+POSE (ranged): A poised shooting stance — bow drawn to the cheek (or crossbow/gun leveled), aiming toward the enemy on the right, weight balanced and steady, focused down the shot; not lunging into melee.
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ・魔法兵）＝`channel`／遠隔（弓・砲兵）＝`ranged`。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
