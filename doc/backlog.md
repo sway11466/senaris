@@ -20,12 +20,11 @@
 
 ### feature-1
 
-**マップペインタ（自前の地形エディタ）**（優先度：低）
+**マップエディタに見た目レイヤー（terrain_skin）塗りを追加**（優先度：低）
 
-- 背景：ステージの盤面を、マウスでヘックスを塗って `data/stages/*.json` に保存するエディタ。`presentation/board/hex_board_3d.gd` が既に「マウス位置→ヘックス」判定（`_hex_at_mouse`＝地面平面へレイキャスト→`Hex.from_pixel`。ホバー／クリック）を持つので、塗りモードと保存機能を足すだけで作れる。現状は小マップを JSON 直書きで回している。
-- 対応：`hex_board_3d.gd` の既存判定を土台に、(1) 地形を選んでヘックスを塗るモード、(2) `data/stages/*.json` への保存、を足す。代替として外部の Tiled（ヘックス対応・JSON 書き出し）も選択肢。
-- 2レイヤーを塗る想定（refactoring-2 と対）：性能レイヤー＝terrain_type（ASCII `terrain` グリッド）／見た目レイヤー＝terrain_skin（`terrain_skins` の座標→skin_id 差分列挙）。見た目レイヤーの skin_id は一意文字列で、人間は生JSONを読まずツール経由で塗るため ASCII 1文字表記の限界を受けない（分割の動機そのもの）。未指定セルは type 既定スキンにフォールバック。
-- 該当：`presentation/board/hex_board_3d.gd`（既存のヘックス判定）・`data/stages/*.json`（出力先）。着手の引き金＝大きいマップをテキスト手書きするのが辛くなったら。
+- 背景：マップエディタ（`tools/map_editor/`）は地形（terrain_type）塗り・駒/拠点配置・部隊/AI割り当て・garrison・ボス指定→勝利条件・盤サイズ変更・JSON入出力（dialogue/terrain_skins/未知キーは温存）まで実装済み。残るのは見た目レイヤー＝terrain_skin を塗る手段で、現状は `terrain_skins` を読み込んで温存するだけでエディタから塗れない（`map_editor_doc.gd` の「編集対象外」）。
+- 対応：エディタに skin 塗りモードを足す。skin パレット（正本CSVの skin 一覧）から選んでヘックスを塗り、`terrain_skins` の座標→skin_id 差分列挙に書き出す。未指定セルは type 既定スキンにフォールバック（既存の解釈どおり）。skin_id は一意文字列で ASCII 1文字表記の限界を受けない。
+- 該当：`tools/map_editor/map_editor.gd`（塗りモード追加）・`tools/map_editor/map_editor_doc.gd`（terrain_skins の読み書き操作）・`tests/unit/test_map_editor_doc.gd`。着手の引き金＝スキンで盤の見た目を作り込みたくなったら。
 
 ### feature-2
 
@@ -103,7 +102,7 @@
 
 **entitlement（DLC所有）判定によるステージ解放**（優先度：低）
 
-- 背景：ステージセレクトの解放は現状「クリア連鎖」だけで、有料DLC（冒険譚）の所有チェック（entitlement）が未配線＝販売時に「持っていれば解放」を判定できない（[stage_select.md](gdd/stage_select.md)）。Steam DLC 連携が前提。
+- 背景：ステージセレクトの解放は現状「クリア連鎖」だけで、有料DLC（冒険譚）の所有チェック（entitlement）が未配線＝販売時に「持っていれば解放」を判定できない（[stage_select.md](gdd/stage_select.md)）。Steam DLC 連携が前提。解放ゲート `_is_satisfied` は `cleared` のみ対応で、entitlement を含む未知条件は locked 扱い。表示側の `unlock_text` には entitlement 条件を「追加コンテンツ」と示す分岐が既にあるが、実際の充足判定の口が無い。
 - 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線（それまではローカルで常時充足扱い等の切替）。
 - 該当：`application/campaign_progress.gd`・`presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝配布ビルド（parking lot「Steam 配布の段取り」と連動）。
 
