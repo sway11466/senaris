@@ -20,6 +20,9 @@ signal move_animation_finished
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
 const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
+const FOCUS_PAN_SEC := 0.25          # AI手番のカメラ追従＝1回のパンにかける秒数（なめらかに）
+const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝可視域の内側マージン(px)。この内なら動かさない
+const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
@@ -99,6 +102,7 @@ var _locked := false     # 決着・AI手番中は入力を受けない（カメ
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
 var _unit_nodes := {}    # unit_id -> Node3D（そのユニットの見た目一式の親。_sync_units が作り直す）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の _sync_units で必ず畳む）
+var _cam_tween: Tween = null   # 進行中のカメラ追従パン（同時に1本＝新しい追従で差し替える）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
 var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
@@ -350,6 +354,58 @@ func fit_to_view() -> void:
 	var dx_px := vp.x * 0.5 - (16.0 + vis_w * 0.5)
 	var dy_px := vp.y * 0.5 - (64.0 + vis_h * 0.5)
 	_cam_target = Vector3(c.x + dx_px * wpp, 0.0, c.y + dy_px * wpp / sp)
+	_update_camera()
+
+## AI手番で「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
+## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵手番のカメラ」）。
+## ただし: すでに安全域(可視域の内側)に見えていれば動かさない＝近くの敵が続くとき無駄に揺らさない。
+## 外／端にいるときだけ、その主体が安全域に入る最小限だけ なめらかにパンする。ズーム(距離)は変えない。
+func focus_camera_on(hex: Vector2i) -> void:
+	if state == null:
+		return
+	var w := _hex_world(hex)
+	if _cam.is_position_behind(w):
+		return  # 主体がカメラ背後（通常起きない）＝寄せようがない
+	var sp := _cam.unproject_position(w)
+	var vp := get_viewport().get_visible_rect().size
+	# 安全域＝可視域（右の InfoPanel・上の Title を除く）の、さらに内側 FOCUS_MARGIN。
+	var left := 16.0 + FOCUS_MARGIN
+	var right := INFOPANEL_LEFT - 16.0 - FOCUS_MARGIN
+	var top := 96.0 + FOCUS_MARGIN
+	var bottom := vp.y - FOCUS_MARGIN
+	# はみ出し量(px)。判定の縁は [left,right]/[top,bottom]（内側なら 0＝動かさない＝デッドゾーン）。
+	# 動かすときの目標は縁より FOCUS_PULL_IN 内側＝一度入れたら次はデッドゾーン内で安定（揺れない）。
+	var dx := 0.0
+	if sp.x < left:
+		dx = sp.x - (left + FOCUS_PULL_IN)
+	elif sp.x > right:
+		dx = sp.x - (right - FOCUS_PULL_IN)
+	var dy := 0.0
+	if sp.y < top:
+		dy = sp.y - (top + FOCUS_PULL_IN)
+	elif sp.y > bottom:
+		dy = sp.y - (bottom - FOCUS_PULL_IN)
+	if is_zero_approx(dx) and is_zero_approx(dy):
+		return  # 見えている＝カメラは動かさない
+	# はみ出しぶんだけ注視点をずらす（画面の縦は俯角で奥行きが縮むぶん割り戻す・_pan_by と同じ換算）。
+	var wpp := _world_per_pixel()
+	var dest := _cam_target
+	dest.x += dx * wpp
+	dest.z += dy * wpp / sin(deg_to_rad(CAM_PITCH_DEG))
+	await _pan_target_to(dest)
+
+## 注視点を dest へ Tween でなめらかに移す（追従用）。完了まで待てる。
+func _pan_target_to(dest: Vector3) -> void:
+	if _cam_tween != null and _cam_tween.is_valid():
+		_cam_tween.kill()  # 前の追従が残っていれば差し替える（同時に1本）
+	var t := create_tween()
+	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.tween_method(_set_cam_target, _cam_target, dest, FOCUS_PAN_SEC)
+	_cam_tween = t
+	await t.finished
+
+func _set_cam_target(p: Vector3) -> void:
+	_cam_target = p
 	_update_camera()
 
 # =========================================================================

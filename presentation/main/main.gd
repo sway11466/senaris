@@ -62,6 +62,7 @@ func load_stage(path: String) -> void:
 	_controller.combat_resolved.connect(_combat_scene.play)  # 演出シーン（結果＝シーン／根拠＝右パネル）
 	_controller.combat_pace = _await_combat_view  # AI手番は演出の完了を待ってから次へ
 	_controller.move_pace = $HexBoard.await_move_animation  # 同上＝移動アニメも歩き切るまで待つ
+	_controller.focus_pace = $HexBoard.focus_camera_on  # AI手番は次の主体をカメラに収めてから見せる
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
