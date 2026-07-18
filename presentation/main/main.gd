@@ -18,6 +18,7 @@ var _current_stage_id := ""
 var _conversation: ConversationPanel = null
 var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネルより後ろ・盤より前）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
+var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
 
@@ -31,6 +32,8 @@ func _ready() -> void:
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
 	_combat_scene.bind(_skins)
 	add_child(_combat_scene)
+	_victory_screen = VictoryScreen.new()  # キャンペーン完走の勝利イラスト（永続）
+	add_child(_victory_screen)
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
@@ -182,14 +185,37 @@ func _on_conversation_closed() -> void:
 ## controller を作り直す load_stage は決着シグナルの処理中に呼ばれうるので call_deferred で安全に。
 func _advance_or_select() -> void:
 	var nxt := _next_playable_stage()
-	if nxt.is_empty():
-		_select.open()
+	if not nxt.is_empty():
+		_current_stage_id = nxt["id"]  # 冒険譚は同じまま＝次ステージのクリア記録が正しく付く
+		call_deferred("load_stage", String(nxt["path"]))
 		return
-	_current_stage_id = nxt["id"]  # 冒険譚は同じまま＝次ステージのクリア記録が正しく付く
-	call_deferred("load_stage", String(nxt["path"]))
+	# 次が無い＝セレクトへ戻る。ただしキャンペーン完走（最終ステージ勝利）なら勝利イラストを1枚挟む。
+	if _should_show_victory():
+		_victory_screen.finished.connect(_select.open, CONNECT_ONE_SHOT)
+		_victory_screen.play(_victory_path())
+	else:
+		_select.open()
 
 func _next_playable_stage() -> Dictionary:
 	return _progress.next_playable_stage(_current_campaign_id, _current_stage_id)
+
+## いまクリアしたのがキャンペーン完走（＝非デバッグ冒険譚の最終ステージ）で、勝利イラストが在るか。
+## 最終判定は素の next_stage（マニフェスト順で次が無い）を使う＝next_playable は locked でも空になり不可。
+func _should_show_victory() -> bool:
+	if _current_campaign_id.is_empty():
+		return false
+	var c := _progress.campaign(_current_campaign_id)
+	if c.is_empty() or c["debug"]:
+		return false
+	if not _progress.next_stage(_current_campaign_id, _current_stage_id).is_empty():
+		return false  # まだ最終ステージではない
+	return not _victory_path().is_empty()
+
+## 現冒険譚の勝利イラストのパス（連番バリアントがあればランダムに1枚・無ければ ""）。
+func _victory_path() -> String:
+	var c := _progress.campaign(_current_campaign_id)
+	var paths: Array = c.get("victory_paths", [])
+	return String(paths[randi() % paths.size()]) if not paths.is_empty() else ""
 
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
 func _install_hud() -> void:
