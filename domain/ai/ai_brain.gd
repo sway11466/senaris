@@ -11,3 +11,8 @@ class_name AiBrain
 ## team の手番で行う次の行動を1つ返す。もう行動が無ければ null。
 func next_action(_state: BattleState, _team: int) -> AiAction:
 	return null
+
+## unit の検知半径（索敵範囲の可視化用）。「まだ寝ていて sight で起きる待機ユニット」なら索敵半径、
+## それ以外（起動済み・sight トリガー無し・AI対象外）は 0（＝検知域を描かない）。既定は 0。
+func detection_radius(_state: BattleState, _unit: Unit) -> int:
+	return 0

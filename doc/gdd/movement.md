@@ -76,7 +76,8 @@
 - 効くのはユニットの索敵起動と拠点の索敵起動（garrison 出撃トリガー）。自衛（射程内で起きる）・間接攻撃は視線非依存（据え置き）。
 - 決定的（`Hex.line` は端点を微小オフセットして一意化）＝中断セーブ/リプレイに影響なし。`sight_cost` 表は静的コンフィグ＝セーブに含めず復元後に再適用する（movement 表と同じ流儀）。
 - `sight` 値はデータで調整（森が2ぶん実効索敵が縮む前提で見直す）。
-- 実装: `TerrainType.sight_cost`／`BattleState.set_sight_cost`/`sight_reaches`/`visible_hexes`／`Hex.line`／`nearest_attacker_brain._enemy_within`・`_enemy_within_hex`。テスト: `tests/unit/test_sight.gd`・`test_hex.gd`・`test_ai.gd`。索敵範囲の可視化（外周を赤線）は presentation。
+- 実装: `TerrainType.sight_cost`／`BattleState.set_sight_cost`/`sight_reaches`/`visible_hexes`／`Hex.line`／`nearest_attacker_brain._enemy_within`・`_enemy_within_hex`。テスト: `tests/unit/test_sight.gd`・`test_hex.gd`・`test_ai.gd`。
+- 可視化（実装済み）: 待機中の見張り（sight で起きる・未起動）を選ぶと、検知域（`visible_hexes`）の外周を赤線でなぞる（塗らない＝移動範囲と紛れない・壁の影/森のへこみがそのまま輪郭に出る）。起動済み・突撃には出さない。`NearestAttackerBrain.detection_radius`→`MatchController.detection_radius`→`hex_board_3d._add_sight_boundary`。デバッグ: `data/stages/debug-ai/sight.json`。
 
 ## 関連ドキュメント
 

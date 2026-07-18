@@ -277,6 +277,21 @@ func test_guard_does_not_wake_through_wall() -> void:
 	assert_null(_brain.next_action(s, 1), "壁の裏の敵には反応しない（待機のまま）")
 	assert_false(s.is_engaged(10), "未起動のまま")
 
+func test_detection_radius_for_sleeping_sight_guard() -> void:
+	# 検知域の可視化用：寝ている sight 見張りは sight 半径、起動後は0。
+	_brain.presets = { "guard": GUARD }
+	var s := BattleState.new(12, 3)
+	_add_guard(s, 10, Hex.offset_to_axial(6, 1))
+	assert_eq(_brain.detection_radius(s, s.unit_by_id(10)), 3, "寝ている見張り＝sight半径3")
+	s.mark_engaged(10)
+	assert_eq(_brain.detection_radius(s, s.unit_by_id(10)), 0, "起動済みは0（もう寝ていない）")
+
+func test_detection_radius_zero_for_charge() -> void:
+	# charge（常時起動・sight トリガー無し）は検知域を出さない。
+	var s := BattleState.new(6, 3)
+	s.add_unit(Unit.new(1, 1, Hex.offset_to_axial(3, 1), 3))  # 部隊なし＝既定 charge
+	assert_eq(_brain.detection_radius(s, s.unit_by_id(1)), 0, "突撃は検知域なし")
+
 func test_guard_squad_alarm_wakes_all() -> void:
 	# 一斉警戒: 1体が索敵で起動すると、索敵外の同部隊メンバーも起動する。
 	_brain.presets = { "guard": GUARD }

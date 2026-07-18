@@ -42,6 +42,7 @@ const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
 const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動の緑と区別）
 const COLOR_ENEMY_REACH := Color(0.95, 0.35, 0.30, 0.22)  # 敵の移動（脅威）範囲
+const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周線（赤）＝待機中の見張りの視界。塗らず境界だけ
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
@@ -1219,6 +1220,11 @@ func _sync_overlay() -> void:
 	if ins != null:
 		var ip := Hex.to_pixel(ins.pos, TILE)
 		_add_ring(Vector3(ip.x, 0.0, ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
+		# 待機中の見張り（sight で起きる・未起動）を選んだら、検知域の外周を赤線でなぞる。
+		if controller != null:
+			var det: int = controller.detection_radius(ins)
+			if det > 0:
+				_add_sight_boundary(state.visible_hexes(ins.pos, det))
 	if _hover != INVALID_HEX and _on_board(_hover):
 		_add_cell(_hover, COLOR_HOVER, 0.04)
 
@@ -1228,6 +1234,36 @@ func _add_cell(hex: Vector2i, color: Color, y: float) -> void:
 	mi.material_override = _overlay_material(color)
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, y, p.y)
+	_overlay_root.add_child(mi)
+
+## 辺 i（コーナー i→i+1）に対応する隣接方向（フラットトップ axial・_add_skirt と同じ対応）。
+const _EDGE_DIRS: Array[Vector2i] = [
+	Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 1),
+	Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
+]
+
+## 検知域（visible な hex 集合）の外周だけを赤線でなぞる（塗らない＝移動範囲と紛れない）。
+## 各 hex の6辺のうち、隣が visible でない辺だけを線に足す＝壁の影・森のへこみがそのまま輪郭に出る。
+func _add_sight_boundary(visible: Dictionary) -> void:
+	var im := ImmediateMesh.new()
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	for hex in visible:
+		var p := Hex.to_pixel(hex, TILE)
+		for i in 6:
+			if visible.has(hex + _EDGE_DIRS[i]):
+				continue  # 内側の辺は描かない（外周だけ）
+			var a0 := deg_to_rad(60.0 * i)
+			var a1 := deg_to_rad(60.0 * (i + 1))
+			im.surface_add_vertex(Vector3(p.x + cos(a0) * TILE, 0.05, p.y + sin(a0) * TILE))
+			im.surface_add_vertex(Vector3(p.x + cos(a1) * TILE, 0.05, p.y + sin(a1) * TILE))
+	im.surface_end()
+	var mi := MeshInstance3D.new()
+	mi.mesh = im
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = COLOR_SIGHT_EDGE
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mi.material_override = m
 	_overlay_root.add_child(mi)
 
 # --- 兵数バー・ラベル・リングのヘルパー ---

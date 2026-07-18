@@ -38,6 +38,10 @@ func setup(p_state: BattleState) -> void:
 func is_ai_turn() -> bool:
 	return ai_brain != null and state.current_team == ai_team
 
+## 索敵範囲の可視化用：unit の検知半径（待機中の見張りなら sight 半径・他は0）。AI無しの陣営は0。
+func detection_radius(unit: Unit) -> int:
+	return ai_brain.detection_radius(state, unit) if ai_brain != null else 0
+
 ## 下りコマンドの処理。成功すれば状態を更新し unit_moved を発行。
 ## 経路は move_unit より前に引く（移動後は位置と消費が変わり、同じ経路を復元できない）。
 func execute(cmd: MoveCommand) -> bool:

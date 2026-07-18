@@ -76,6 +76,15 @@ func _sight_of(state: BattleState, u: Unit) -> int:
 	var s: Variant = _param(state, u, "sight")
 	return int(s) if typeof(s) == TYPE_INT or typeof(s) == TYPE_FLOAT else 0
 
+## unit の検知半径（索敵範囲の可視化用）。まだ寝ていて sight で起きる待機ユニットなら sight 半径、
+## それ以外（起動済み・sight トリガー無し）は 0。表示側はこれ>0のときだけ検知域を描く。詳細 → doc/gdd/movement.md（視線）
+func detection_radius(state: BattleState, unit: Unit) -> int:
+	if unit == null or state.is_engaged(unit.id):
+		return 0
+	if not ("sight" in String(_param(state, unit, "engage")).split("|")):
+		return 0
+	return _sight_of(state, unit)
+
 ## u から索敵 radius 以内（＝視線が通り累積視線コスト ≤ radius）に敵ユニットがいるか。
 ## 壁の裏・遠い森ごしは遮蔽/減衰で届かない（全地形コスト1なら距離判定に一致）。詳細 → doc/gdd/movement.md（視線）
 func _enemy_within(state: BattleState, u: Unit, radius: int) -> bool:
