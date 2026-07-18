@@ -7,10 +7,9 @@ class_name CombatScene
 
 signal finished  # 演出が閉じた（自動クローズ or クリック）。AI手番のテンポ制御が待つ。
 
-const POS := [  # 3-2-3 隊列テンプレ（x:奥0→前1／y:上0→下1）。slot1=後列中央。combat_scene.md
-	Vector2(0.18, 0.55), Vector2(0.15, 0.30), Vector2(0.15, 0.80),
-	Vector2(0.50, 0.40), Vector2(0.50, 0.66),
-	Vector2(0.85, 0.30), Vector2(0.85, 0.55), Vector2(0.85, 0.80),
+const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1）。並び順=重心から近い順で兵数少でも中央に寄る。combat_scene.md
+	Vector2(0.45, 0.36), Vector2(0.55, 0.68), Vector2(0.23, 0.52), Vector2(0.77, 0.52),
+	Vector2(0.66, 0.20), Vector2(0.34, 0.84), Vector2(0.12, 0.20), Vector2(0.88, 0.84),
 ]
 const TERRAIN_COLOR := {
 	"plain": Color(0.56, 0.71, 0.42), "forest": Color(0.30, 0.49, 0.28),
@@ -24,7 +23,8 @@ const TERRAIN_COLOR := {
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
 const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（秒）
 const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
-const FIG_H := 0.34   # 立ち絵の高さ（窓内寸の高さに対する比・前列で最大）
+const FIG_H := 0.34   # 立ち絵の高さ（窓内寸の高さに対する比）
+const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
 
 var _skins := {}
 var _root: Control        # 全画面の入力キャッチ（モーダル）
@@ -164,9 +164,9 @@ func _render_side(side: String, comb: Dictionary, count: int) -> void:
 	var figs := []
 	for i in count:
 		var p: Vector2 = POS[i]
-		var s := 0.65 + 0.35 * p.x
+		var s := FIG_SCALE
 		var cx := (vp.x * 0.06 + p.x * vp.x * 0.36) if side == "L" else (vp.x * 0.94 - p.x * vp.x * 0.36)
-		var feet := vp.y * 0.30 + p.y * vp.y * 0.42 + p.x * vp.y * 0.16
+		var feet := vp.y * 0.38 + p.y * vp.y * 0.42 + p.x * vp.y * 0.16
 		figs.append({ "cx": cx, "feet": feet, "s": s })
 	figs.sort_custom(func(u, v): return u["feet"] < v["feet"])  # 手前（下）を後に＝前面
 	for f in figs:
