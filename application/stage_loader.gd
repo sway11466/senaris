@@ -47,14 +47,17 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 ## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
 ## enemy は squad の配列で、各 squad が AI プリセット(ai)を持つ（敵は必ず squad に属する）。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）。
-static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}) -> BattleState:
+## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝前ステージの生存者）。
+## roster:carryover のステージで carryover_slots の位置に順に嵌める（案A）。fresh では未使用。
+static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}, carried: Array = []) -> BattleState:
 	var cols := int(data.get("cols", 12))
 	var rows := int(data.get("rows", 8))
 	var state := BattleState.new(cols, rows)
 	_apply_terrain(state, data.get("terrain", []))
 	var next_id := _apply_units(state, data.get("player", []), catalog, 0, skin_catalog)
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
-	_apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
+	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
+	_apply_carryover(state, data.get("carryover_slots", []), carried, catalog, next_id)
 	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": 99 }]（ボスは squad 側で id 明示）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
@@ -196,9 +199,9 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 ## garrison の各要素は { type, count } ＋ ユニット個別キー（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
 ## garrison の生来陣営（native）は拠点の初期所属が既定（中立拠点の駒＝中立＝取った側に寝返る）。
-static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> void:
+static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(bases) != TYPE_ARRAY:
-		return
+		return start_id
 	var auto_id := start_id
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
@@ -217,6 +220,36 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)
+	return auto_id  # garrison も id を消費するので次の採番を継ぐ（継承ユニットの配置に使う）
+
+## 継承ユニット（carried＝Unit.to_dict() の配列）を carryover_slots の位置に順に嵌める（案A）。詳細 → doc/gdd/map.md
+## slots は [{col,row}]（位置だけ）。carried[i] を slots[i] に、スナップショット順で配置する（team=自軍）。
+## 性能は type から再構築（Unit.from_dict）。継承ユニットが多くスロットが足りなければ余剰は出撃せず警告、
+## 少なければ余ったスロットは空のまま（前ステージで失った＝穴が開く）。carried 空（fresh）なら何もしない。
+static func _apply_carryover(state: BattleState, slots: Variant, carried: Array, catalog: Dictionary, start_id: int) -> int:
+	if typeof(slots) != TYPE_ARRAY or carried.is_empty():
+		return start_id
+	var auto_id := start_id
+	var n := mini(slots.size(), carried.size())
+	for i in n:
+		if typeof(slots[i]) != TYPE_DICTIONARY or typeof(carried[i]) != TYPE_DICTIONARY:
+			continue
+		var slot: Dictionary = slots[i]
+		var snap: Dictionary = carried[i]
+		var type_id := String(snap.get("type", ""))
+		var t: UnitType = catalog.get(type_id)
+		if t == null and type_id != "":
+			push_warning("StageLoader: 継承ユニットの未知 type '%s'＝既定性能で配置" % type_id)
+		var unit := Unit.from_dict(snap, t)
+		unit.id = auto_id
+		unit.team = 0          # 継承は自軍
+		unit.native_team = 0
+		unit.pos = Hex.offset_to_axial(int(slot.get("col", 0)), int(slot.get("row", 0)))
+		state.add_unit(unit)
+		auto_id += 1
+	if carried.size() > slots.size():
+		push_warning("StageLoader: 継承 %d 体に対しスロット %d 個＝%d 体は今回出撃しない" % [carried.size(), slots.size(), carried.size() - slots.size()])
+	return auto_id
 
 ## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
 ## "type" があれば catalog からステータスを引き、個別キーで上書き可。

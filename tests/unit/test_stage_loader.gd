@@ -104,6 +104,78 @@ func test_type_fields_can_be_overridden() -> void:
 	assert_eq(u.level, 2, "level を上書き")
 	assert_eq(u.unit_attack, 10, "上書きしない項目は種別のまま")
 
+func _carry_catalog() -> Dictionary:
+	return {
+		"archer": UnitType.from_dict({ "id": "archer", "atk_ground": 8, "defense": 5, "move": 4, "range": "1-2", "max_troops": 8 }),
+		"knight": UnitType.from_dict({ "id": "knight", "atk_ground": 12, "defense": 8, "move": 3, "max_troops": 8 }),
+		"recruit": UnitType.from_dict({ "id": "recruit", "atk_ground": 6, "defense": 4, "move": 3, "max_troops": 8 }),
+	}
+
+func test_carryover_places_survivors_into_slots_in_order() -> void:
+	# 継承ユニットを carryover_slots に順に嵌める（案A）。成長・損耗は保ち、性能は type から再構築。
+	var carried := [
+		{ "type": "archer", "skin": "archer", "level": 3, "troops": 6, "max_troops": 8 },
+		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8 },
+	]
+	var data := { "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+		{ "col": 1, "row": 2 }, { "col": 1, "row": 3 },
+	] }
+	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
+	assert_eq(s.units().size(), 2, "継承2体が配置される")
+	var a := s.unit_at(Hex.offset_to_axial(1, 2))
+	assert_not_null(a, "slot[0] に継承[0]")
+	assert_eq(a.type_id, "archer")
+	assert_eq(a.level, 3, "経験を保つ")
+	assert_eq(a.troops, 6, "損耗を保つ")
+	assert_eq(a.team, 0, "継承は自軍")
+	assert_eq(a.unit_attack, 8, "性能は type から再構築")
+	assert_eq(a.attack_range, 2, "射程も type から")
+	var k := s.unit_at(Hex.offset_to_axial(1, 3))
+	assert_eq(k.type_id, "knight")
+	assert_eq(k.troops, 4, "2体目も順どおり")
+
+func test_carryover_coexists_with_fresh_reinforcements() -> void:
+	# 継承ユニット＋新米（player 増援）が共存し、id が衝突しない。
+	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8 }]
+	var data := { "cols": 8, "rows": 6, "roster": "carryover",
+		"carryover_slots": [{ "col": 1, "row": 1 }],
+		"player": [{ "type": "recruit", "col": 5, "row": 4 }] }
+	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
+	assert_eq(s.units().size(), 2, "継承1＋新米1")
+	var ids := {}
+	for u in s.units():
+		ids[u.id] = true
+	assert_eq(ids.size(), 2, "id が衝突しない")
+	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).type_id, "recruit", "新米は player 記法どおり満員")
+	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).troops, 8)
+	assert_eq(s.unit_at(Hex.offset_to_axial(1, 1)).troops, 5, "継承は損耗を保つ")
+
+func test_carryover_fewer_survivors_leaves_slots_empty() -> void:
+	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 8, "max_troops": 8 }]
+	var data := { "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+		{ "col": 1, "row": 1 }, { "col": 1, "row": 2 }, { "col": 1, "row": 3 },
+	] }
+	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
+	assert_eq(s.units().size(), 1, "生存者ぶんだけ配置＝余ったスロットは空")
+
+func test_carryover_more_survivors_than_slots_drops_extra() -> void:
+	var carried := [
+		{ "type": "archer", "skin": "archer", "level": 1, "troops": 8, "max_troops": 8 },
+		{ "type": "knight", "skin": "knight", "level": 1, "troops": 8, "max_troops": 8 },
+		{ "type": "recruit", "skin": "recruit", "level": 1, "troops": 8, "max_troops": 8 },
+	]
+	var data := { "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+		{ "col": 1, "row": 1 },
+	] }
+	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
+	assert_eq(s.units().size(), 1, "スロットぶんだけ配置＝余剰は出撃しない")
+
+func test_no_carried_units_ignores_slots() -> void:
+	# fresh（継承なし）＝carried 空ならスロットがあっても何も置かない。
+	var data := { "cols": 8, "rows": 6, "carryover_slots": [{ "col": 1, "row": 1 }] }
+	var s := StageLoader.build(data, _carry_catalog(), {}, [])
+	assert_eq(s.units().size(), 0, "carried 空なら継承配置なし")
+
 func test_build_bases_with_garrison() -> void:
 	var catalog := {
 		"novice": UnitType.from_dict({
