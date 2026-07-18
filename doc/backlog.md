@@ -50,6 +50,10 @@
 - 対応：ステージJSONに `roster` を足し、`StageLoader` が解釈。carryover 時は前ステージ終了時の生存ユニット（type・level・残兵）を引き継いで配置する受け渡し口を用意。セーブ／ロード（feature-9）と持ち越し状態の永続化で論点が絡む。
 - 対応（セレクトでの可視化）：fresh か carryover かは戦い方を変える（carryover は主力を死なせられない＝温存プレイ／fresh は使い切ってよい）ため、挑む前に分かるようにする。知らずに連戦の初戦で主力を失う理不尽を避ける。carryover は単体ステージの属性というより連続するステージのつながりなので、ステージ一覧で carryover が繋がる区間をグループ化して見せる（酒場ボードのメタファなら「同じ依頼の続き物＝節が鎖でつながる」）＋区間の入口に「ここから戦力を持ち越す連戦」の印。冒険譚カード（上位）に出すのは冒険譚まるごとが連戦のときだけで足りる（roster はステージ単位＝冒険譚内で fresh/carryover が混在しうる）。
 - 該当：`application/stage_loader.gd`・`presentation/main/main.gd`（ステージ間の受け渡し）・`presentation/select/stage_select.gd`（連戦区間の可視化）・`doc/gdd/map.md`・`doc/gdd/stage_select.md`。
+- ロードマップ（feature-9 と共有・carryover 先／中断セーブ後）：土台は `Unit` 直列化で、本項（持ち越し）と feature-9（中断）が共有する。前提＝戦闘に乱数なし＝中断セーブはシード不要で状態だけで完全再現／性能はデータ駆動でスナップショットは `type_id`・`skin_id`・`level`・`troops`・`max_troops` だけ持てば足りる（他は type から `UnitCatalog` で再構築＝数値を焼かない）／`ProgressStore`（素JSON＋`user://`）が雛形・`garrison`/`deploy` 機構は既存（案Bはそのまま乗る）。
+  1. Unit 直列化：`Unit.to_dict`/`from_dict`（上記5フィールド＋復元は catalog）＋テスト。以降すべての土台（規模：小）。
+  2. carryover 本体：(2a) `StageLoader` が `roster:"fresh"|"carryover"` を読む／(2b) 戦力スナップショットの保存・読出（`RosterStore`・ProgressStore の隣）／(2c) 継承スロット配置（案A＝配置スロットに順に嵌める）／(2d) ステージ間受け渡し（勝利→生存抽出→保存／次ステージ→読出→配置）。ここで tutorial3 が生存戦力で繋がる＝連戦が動く（規模：小〜中）。
+  3. 見せ方：tutorial3 データ（各話 `roster:carryover`＋継承スロット＋新規勧誘）／セレクトの連戦区間可視化（規模：中）。中断セーブ（BattleState 全状態）は feature-9。
 
 ### feature-6
 
@@ -80,7 +84,8 @@
 **セーブ／ロード**（優先度：中）
 
 - 背景：システムメニューに枠はあるが無効表示（[uiux.md](gdd/uiux.md) §フェーズ3・[gamesystem.md](tech/gamesystem.md) がセーブ仕様の正本）。盤の状態を永続化・復元する機能が未実装。feature-5（戦力供給の持ち越し）とステージ間状態の永続化で論点が絡む。
-- 対応：`gamesystem.md` のセーブ仕様に沿って `BattleState` の直列化＋ファイル保存/読込を実装し、HUD の無効項目を有効化。
+- 対応：`gamesystem.md` のセーブ仕様に沿って `BattleState` の直列化＋ファイル保存/読込を実装し、HUD の無効項目を有効化。`Unit` 直列化を再利用し、順は BattleState 全状態の直列化（ラウンドトリップテスト）→ HUD 有効化・`user://save.json` → 複数スロットUI → ターン毎オートセーブ（中断の応用）。
+- 実装順：feature-5 の「ロードマップ」に集約（`Unit` 直列化を共有土台とし、carryover を先・中断セーブ＝本項を後）。
 - 該当：`domain/battle_state.gd`（直列化）・`presentation/ui/hud.gd`（項目有効化）・`application/`（保存/読込の配線）・`doc/tech/gamesystem.md`。
 
 ### feature-10
