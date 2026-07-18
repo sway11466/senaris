@@ -28,10 +28,14 @@ func _process(_delta: float) -> bool:
 		30:
 			_save("character.png")
 			_t.call("_show_terrain")
+			_t.call("_set_pattern", "horizontal")
 		65:
-			_save("terrain_variation.png")
-			_t.call("_set_terr_sub", "boundary")
+			_save("terrain_horizontal.png")
+			_t.call("_set_pattern", "diagonal")
 		100:
-			_save("terrain_boundary.png")
+			_save("terrain_diagonal.png")
+			_t.call("_set_pattern", "island")
+		135:
+			_save("terrain_island.png")
 			return true
 	return false

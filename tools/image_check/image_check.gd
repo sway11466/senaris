@@ -28,10 +28,10 @@ var _type_cat := {}          # type_id -> 役割カテゴリ（兵種）
 var _selected := {}          # id -> bool（チェック状態）
 
 var _terrains := []
-var _terr_sub := "variation"
-var _terr_one := "plain"
-var _terr_a := "plain"
-var _terr_b := "forest"
+var _terr_pattern := "fill"  # fill(塗りつぶし)/horizontal/vertical/diagonal/island
+var _ta := "plain"           # 分割の A（塗りつぶしの単一地形もこれ）
+var _tb := "forest"          # 分割の B
+var _tc := "mountain"        # 分割の C
 
 var _toolbar: HBoxContainer
 var _ctrlbar: HBoxContainer
@@ -155,6 +155,15 @@ func _scan_terrains() -> void:
 		seen[base] = true
 	_terrains = seen.keys()
 	_terrains.sort()
+	if not _terrains.is_empty():  # A/B/C の初期値（無ければ在るもので埋める）
+		_ta = _default_terr("plain", 0)
+		_tb = _default_terr("forest", 1)
+		_tc = _default_terr("mountain", 2)
+
+func _default_terr(want: String, idx: int) -> String:
+	if _terrains.has(want):
+		return want
+	return String(_terrains[min(idx, _terrains.size() - 1)])
 
 # --- UI 骨組み ---
 
@@ -367,16 +376,21 @@ func _show_terrain() -> void:
 
 func _build_terrain_ctrlbar() -> void:
 	_clear(_ctrlbar)
-	_add_button(_ctrlbar, "変種", func(): _set_terr_sub("variation"))
-	_add_button(_ctrlbar, "境界", func(): _set_terr_sub("boundary"))
-	if _terr_sub == "variation":
-		_ctrlbar.add_child(_terrain_picker("地形", _terr_one, func(t): _terr_one = t; _rebuild_terrain()))
-	else:
-		_ctrlbar.add_child(_terrain_picker("A", _terr_a, func(t): _terr_a = t; _rebuild_terrain()))
-		_ctrlbar.add_child(_terrain_picker("B", _terr_b, func(t): _terr_b = t; _rebuild_terrain()))
+	_add_button(_ctrlbar, "塗りつぶし", func(): _set_pattern("fill"))
+	_add_button(_ctrlbar, "水平分割", func(): _set_pattern("horizontal"))
+	_add_button(_ctrlbar, "垂直分割", func(): _set_pattern("vertical"))
+	_add_button(_ctrlbar, "斜め分割", func(): _set_pattern("diagonal"))
+	_add_button(_ctrlbar, "アイランド", func(): _set_pattern("island"))
+	_ctrlbar.add_child(VSeparator.new())
+	if _terr_pattern == "fill":
+		_ctrlbar.add_child(_terrain_picker("地形", _ta, func(t): _ta = t; _rebuild_terrain()))
+	else:  # 分割系は3地形（A=1つ目/B/C の順に敷く）
+		_ctrlbar.add_child(_terrain_picker("A", _ta, func(t): _ta = t; _rebuild_terrain()))
+		_ctrlbar.add_child(_terrain_picker("B", _tb, func(t): _tb = t; _rebuild_terrain()))
+		_ctrlbar.add_child(_terrain_picker("C", _tc, func(t): _tc = t; _rebuild_terrain()))
 
-func _set_terr_sub(s: String) -> void:
-	_terr_sub = s
+func _set_pattern(p: String) -> void:
+	_terr_pattern = p
 	_build_terrain_ctrlbar()
 	_rebuild_terrain()
 
@@ -401,7 +415,7 @@ func _rebuild_terrain() -> void:
 	var state := BattleState.new(cols, rows)
 	for col in cols:
 		for row in rows:
-			state.set_terrain(Hex.offset_to_axial(col, row), _terrain_for(col, cols))
+			state.set_terrain(Hex.offset_to_axial(col, row), _terrain_for(col, row, cols, rows))
 	var ctrl := MatchController.new()
 	ctrl.name = "MC"
 	ctrl.setup(state)
@@ -412,10 +426,26 @@ func _rebuild_terrain() -> void:
 	board.bind(state, ctrl, {}, {})
 	_board = board
 
-func _terrain_for(col: int, cols: int) -> String:
-	if _terr_sub == "variation":
-		return _terr_one
-	return _terr_a if col < cols / 2 else _terr_b
+## 各 hex の terrain_id をパターンで決める。分割系は A/B/C を3帯に敷く。
+func _terrain_for(col: int, row: int, cols: int, rows: int) -> String:
+	match _terr_pattern:
+		"vertical":
+			return _band3(col, cols)          # 縦3列
+		"horizontal":
+			return _band3(row, rows)          # 横3帯
+		"diagonal":
+			return _band3(col + row, cols + rows - 1)  # 斜め3帯
+		"island":                             # 同心円: 中心=C, 中間=B, 外=A
+			var dx := absf(col - (cols - 1) / 2.0) / (cols / 2.0)
+			var dy := absf(row - (rows - 1) / 2.0) / (rows / 2.0)
+			var r := maxf(dx, dy)
+			return _tc if r < 0.34 else (_tb if r < 0.67 else _ta)
+		_:
+			return _ta                        # fill（塗りつぶし）
+
+func _band3(v: int, span: int) -> String:
+	var b := clampi(int(float(v) * 3.0 / float(max(span, 1))), 0, 2)
+	return [_ta, _tb, _tc][b]
 
 # --- テスト補助（ハーネスから選択を指定する）---
 func preselect(ids: Array) -> void:
