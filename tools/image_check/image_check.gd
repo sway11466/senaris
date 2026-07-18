@@ -1,37 +1,48 @@
 extends Control
 class_name ImageCheckTool
 ## 画像確認ツール（開発用・ゲーム本体非依存）。複数画像を並べて見比べる。
-## - キャラクターモード: 行=ユニット／列=[map|combat]。横で服装(map↔combat)、縦で頭身を比較。
+## - キャラクターモード: 陣営タブ×役割カテゴリでユニットをチェック選択し、選んだ分を横一列に
+##   同じ高さ・足元下揃えで並べる。ドラッグできる水平線を置いて頭身を比較する。
 ## - 地形モード: 実ヘックス盤に合成地形を敷いて、境界（別地形の継ぎ目）と変種（同一地形の反復）を見る。
 ## 実行: godot --path . res://tools/image_check/image_check.tscn（エディタで開いて再生でも可）。
 
 const UNITS_DIR := "res://assets/units"
 const SRC_ROOT := "res://assets/units-src"
 const TERRAIN_DIR := "res://assets/terrain"
-const CSV_PATH := "res://data/units/unit_skin.csv"
-const ROW_H := 150.0        # 各絵の表示高さ（全ユニット共通＝頭身比較の基準）
-const LABEL_W := 130.0      # 行頭のユニット名の幅
+const SKIN_CSV := "res://data/units/unit_skin.csv"
+const TYPE_CSV := "res://data/units/unit_type.csv"
+const PIC_H := 300.0        # 立ち絵の表示高さ（全ユニット共通＝頭身比較の基準）
+const LABEL_H := 22.0
 const BG := Color(0.20, 0.22, 0.25)
+const CAT_ORDER := ["歩兵", "占領兵", "弓兵", "魔法兵", "斥候", "飛行兵", "精鋭", "輸送", "兵器"]
 
 var _mode := "character"
-var _filter := "all"
-var _units: Array = []       # [{id, faction, map, combat}]（map/combat はパス or ""）
-var _side := {}              # skin_id -> "ally"/"enemy"（CSV フォールバック用）
-var _filters: Array = []     # 出現した faction 一覧（ボタン生成用）
+var _img_kind := "map"       # 表示する画像（map / combat）
+var _units := {}             # id -> {id, faction, category, name, map, combat}
+var _order := []             # 表示順（faction→category→id）
+var _factions := []          # 出現 faction（player 先頭）
+var _side := {}              # skin_id -> ally/enemy
+var _skin_type := {}         # skin_id -> type_id
+var _skin_name := {}         # skin_id -> 表示名
+var _type_cat := {}          # type_id -> 役割カテゴリ（兵種）
+var _selected := {}          # id -> bool（チェック状態）
 
-var _terrains: Array = []    # 基本 terrain_id 一覧
-var _terr_sub := "variation" # "variation"（変種）/"boundary"（境界）
+var _terrains := []
+var _terr_sub := "variation"
 var _terr_one := "plain"
 var _terr_a := "plain"
 var _terr_b := "forest"
 
 var _toolbar: HBoxContainer
-var _filterbar: HBoxContainer
-var _scroll: ScrollContainer
-var _body: VBoxContainer
+var _ctrlbar: HBoxContainer
+var _char_box: HBoxContainer
+var _sel_tabs: TabContainer
+var _disp: Control
+var _units_row: HBoxContainer
+var _rulers: Array = []
 var _board_box: SubViewportContainer
 var _board_vp: SubViewport
-var _board: Node = null  # 現在の HexBoard3D（SubViewport のサイズ確定時に再フィットする）
+var _board: Node = null
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -40,7 +51,7 @@ func _ready() -> void:
 	bg.color = BG
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
-	_load_side()
+	_load_csvs()
 	_scan_units()
 	_scan_terrains()
 	_build_chrome()
@@ -48,50 +59,67 @@ func _ready() -> void:
 
 # --- データ収集 ---
 
-func _load_side() -> void:
-	var f := FileAccess.open(CSV_PATH, FileAccess.READ)
+func _load_csvs() -> void:
+	_read_csv(SKIN_CSV, func(c):
+		if c.size() >= 5:
+			_side[c[0]] = c[2]
+			_skin_type[c[0]] = c[3]
+			_skin_name[c[0]] = c[1])
+	_read_csv(TYPE_CSV, func(c):
+		if c.size() >= 13:
+			_type_cat[c[0]] = c[12])
+
+func _read_csv(path: String, on_row: Callable) -> void:
+	var f := FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		return
-	var first := true
+	var n := 0
 	while not f.eof_reached():
-		var cols := f.get_csv_line()
-		if cols.size() < 3:
+		var c := f.get_csv_line()
+		n += 1
+		if n <= 2 or c.size() < 1 or c[0].is_empty():  # 1=英語ヘッダ / 2=日本語ヘッダ
 			continue
-		if first:  # 1行目=英語ヘッダ
-			first = false
-			continue
-		if cols[0] == "スキンID" or cols[0].is_empty():  # 2行目=日本語ヘッダ等
-			continue
-		_side[cols[0]] = cols[2]
+		on_row.call(c)
 
-## assets/units/* を走査し、各ユニットの map/combat 画像（tight な -src master 優先）と faction を決める。
 func _scan_units() -> void:
 	var groups := _src_groups()
 	var d := DirAccess.open(UNITS_DIR)
 	if d == null:
 		return
-	var seen := {}
+	var facs := {}
 	for id in d.get_directories():
-		var faction := _faction_of(id, groups)
-		var m := _resolve_image(id, "", groups)         # {id}_03_master → {id}_map.png
-		var c := _resolve_image(id, "_combat", groups)  # {id}_combat_03_master → {id}_combat.png
+		var m := _resolve_image(id, "", groups)
+		var c := _resolve_image(id, "_combat", groups)
 		if m == "" and c == "":
 			continue
-		_units.append({ "id": id, "faction": faction, "map": m, "combat": c })
-		seen[faction] = true
-	_units.sort_custom(func(a, b):  # 味方(player)を先頭、その後は faction 名→id 順
-		var ra := 0 if a["faction"] == "player" else 1
-		var rb := 0 if b["faction"] == "player" else 1
-		if ra != rb:
-			return ra < rb
-		if a["faction"] != b["faction"]:
-			return a["faction"] < b["faction"]
-		return a["id"] < b["id"])
-	_filters = seen.keys()
-	_filters.sort()
-	if _filters.has("player"):  # 味方フィルタを先頭に
-		_filters.erase("player")
-		_filters.push_front("player")
+		var faction := _faction_of(id, groups)
+		var cat := String(_type_cat.get(_skin_type.get(id, ""), "その他"))
+		_units[id] = { "id": id, "faction": faction, "category": cat,
+			"name": String(_skin_name.get(id, id)), "map": m, "combat": c }
+		facs[faction] = true
+	_factions = facs.keys()
+	_factions.sort()
+	if _factions.has("player"):
+		_factions.erase("player")
+		_factions.push_front("player")
+	# 表示順: faction（player先頭）→カテゴリ順→id
+	_order = _units.keys()
+	_order.sort_custom(func(a, b):
+		var ua = _units[a]
+		var ub = _units[b]
+		var fa := _factions.find(ua["faction"])
+		var fb := _factions.find(ub["faction"])
+		if fa != fb:
+			return fa < fb
+		var ca := _cat_rank(ua["category"])
+		var cb := _cat_rank(ub["category"])
+		if ca != cb:
+			return ca < cb
+		return a < b)
+
+func _cat_rank(cat: String) -> int:
+	var i := CAT_ORDER.find(cat)
+	return i if i >= 0 else CAT_ORDER.size()
 
 func _src_groups() -> Array:
 	var d := DirAccess.open(SRC_ROOT)
@@ -101,11 +129,9 @@ func _faction_of(id: String, groups: Array) -> String:
 	for g in groups:
 		if DirAccess.dir_exists_absolute("%s/%s/%s" % [SRC_ROOT, g, id]):
 			return g
-	# -src が無ければ CSV の陣営でフォールバック（ally→player 扱い）
 	var side := String(_side.get(id, "other"))
 	return "player" if side == "ally" else side
 
-## tight な -src master（{id}{kind}_03_master.png）を優先、無ければゲーム用 png。kind="" or "_combat"。
 func _resolve_image(id: String, kind: String, groups: Array) -> String:
 	for g in groups:
 		var p := "%s/%s/%s/%s%s_03_master.png" % [SRC_ROOT, g, id, id, kind]
@@ -114,7 +140,6 @@ func _resolve_image(id: String, kind: String, groups: Array) -> String:
 	var game := "%s/%s/%s%s.png" % [UNITS_DIR, id, id, ("_map" if kind == "" else "_combat")]
 	return game if ResourceLoader.exists(game) else ""
 
-## assets/terrain/ から基本 terrain_id を集める（末尾 _<数字> の変種は畳む）。
 func _scan_terrains() -> void:
 	var d := DirAccess.open(TERRAIN_DIR)
 	if d == null:
@@ -130,11 +155,6 @@ func _scan_terrains() -> void:
 		seen[base] = true
 	_terrains = seen.keys()
 	_terrains.sort()
-	if _terrains.has("plain"):
-		_terr_one = "plain"
-		_terr_a = "plain"
-	if _terrains.has("forest"):
-		_terr_b = "forest"
 
 # --- UI 骨組み ---
 
@@ -145,36 +165,53 @@ func _build_chrome() -> void:
 	add_child(root)
 
 	_toolbar = HBoxContainer.new()
-	_toolbar.add_theme_constant_override("separation", 8)
 	root.add_child(_toolbar)
 	_add_button(_toolbar, "キャラクター", func(): _show_character())
 	_add_button(_toolbar, "地形", func(): _show_terrain())
 
-	_filterbar = HBoxContainer.new()
-	_filterbar.add_theme_constant_override("separation", 6)
-	root.add_child(_filterbar)
+	_ctrlbar = HBoxContainer.new()
+	_ctrlbar.add_theme_constant_override("separation", 6)
+	root.add_child(_ctrlbar)
 
-	# キャラ用スクロール
-	_scroll = ScrollContainer.new()
-	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.add_child(_scroll)
-	_body = VBoxContainer.new()
-	_body.add_theme_constant_override("separation", 4)
-	_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_scroll.add_child(_body)
+	# キャラ: 左=選択タブ / 右=表示エリア
+	_char_box = HBoxContainer.new()
+	_char_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_char_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_char_box.add_theme_constant_override("separation", 8)
+	root.add_child(_char_box)
+	_sel_tabs = TabContainer.new()
+	_sel_tabs.custom_minimum_size = Vector2(300, 0)
+	_sel_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_char_box.add_child(_sel_tabs)
+	_disp = Control.new()
+	_disp.clip_contents = true
+	_disp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_disp.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_char_box.add_child(_disp)
+	var scroll := ScrollContainer.new()  # 横スクロール（縦は出さない）。下端に固定＝足元を揃える
+	scroll.anchor_left = 0.0
+	scroll.anchor_right = 1.0
+	scroll.anchor_top = 1.0
+	scroll.anchor_bottom = 1.0
+	scroll.offset_left = 0
+	scroll.offset_right = 0
+	scroll.offset_top = -(PIC_H + LABEL_H + 20)
+	scroll.offset_bottom = 0
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_disp.add_child(scroll)
+	_units_row = HBoxContainer.new()
+	_units_row.add_theme_constant_override("separation", 12)
+	scroll.add_child(_units_row)
 
-	# 地形用 SubViewport（実3D盤・入力は取らず表示専用）
+	# 地形: SubViewport
 	_board_box = SubViewportContainer.new()
 	_board_box.stretch = true
 	_board_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_board_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	root.add_child(_board_box)
 	_board_vp = SubViewport.new()
-	_board_vp.handle_input_locally = false  # 表示専用（盤入力を拾わない）
-	_board_vp.transparent_bg = false
+	_board_vp.handle_input_locally = false
 	_board_box.add_child(_board_vp)
-	# SubViewport のサイズが確定/変化したら盤を再フィット（表示直後は未確定でフレーミングを外すため）。
 	_board_vp.size_changed.connect(func():
 		if _board != null and is_instance_valid(_board):
 			_board.fit_to_view())
@@ -196,100 +233,151 @@ func _clear(node: Node) -> void:
 func _show_character() -> void:
 	_mode = "character"
 	_board_box.hide()
-	_scroll.show()
-	_build_char_filterbar()
-	_rebuild_character()
+	_char_box.show()
+	_build_char_ctrlbar()
+	_build_sel_tabs()
+	_rebuild_display()
 
-func _build_char_filterbar() -> void:
-	_clear(_filterbar)
-	_add_button(_filterbar, "すべて", func(): _set_filter("all"))
-	for fac in _filters:
-		var f: String = fac
-		_add_button(_filterbar, f, func(): _set_filter(f))
+func _build_char_ctrlbar() -> void:
+	_clear(_ctrlbar)
+	_add_button(_ctrlbar, "map", func(): _set_kind("map"))
+	_add_button(_ctrlbar, "combat", func(): _set_kind("combat"))
+	var sep := VSeparator.new()
+	_ctrlbar.add_child(sep)
+	_add_button(_ctrlbar, "水平線を追加", func(): _add_ruler(_disp.size.y * 0.45))
+	_add_button(_ctrlbar, "線を消す", func(): _clear_rulers())
+	_add_button(_ctrlbar, "選択解除", func(): _clear_selection())
 
-func _set_filter(f: String) -> void:
-	_filter = f
-	_rebuild_character()
+func _set_kind(k: String) -> void:
+	_img_kind = k
+	_rebuild_display()
 
-func _rebuild_character() -> void:
-	_clear(_body)
-	_body.add_child(_row_labels(["ユニット", "map", "combat"]))
-	for u in _units:
-		if _filter != "all" and u["faction"] != _filter:
+## 選択タブ: 陣営ごとにタブ、中身は役割カテゴリ見出し＋チェックボックス。
+func _build_sel_tabs() -> void:
+	_clear(_sel_tabs)
+	for fac in _factions:
+		var scroll := ScrollContainer.new()
+		scroll.name = fac
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		var vb := VBoxContainer.new()
+		vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		scroll.add_child(vb)
+		var cur_cat := ""
+		for id in _order:
+			var u = _units[id]
+			if u["faction"] != fac:
+				continue
+			if u["category"] != cur_cat:
+				cur_cat = u["category"]
+				var head := Label.new()
+				head.text = "― %s ―" % cur_cat
+				head.modulate = Color(0.7, 0.85, 1.0)
+				vb.add_child(head)
+			var cb := CheckBox.new()
+			cb.text = "%s (%s)" % [u["name"], id]
+			cb.button_pressed = _selected.get(id, false)
+			cb.toggled.connect(func(on): _selected[id] = on; _rebuild_display())
+			vb.add_child(cb)
+		_sel_tabs.add_child(scroll)
+		_sel_tabs.set_tab_title(_sel_tabs.get_tab_count() - 1, fac)
+
+func _clear_selection() -> void:
+	_selected.clear()
+	_build_sel_tabs()
+	_rebuild_display()
+
+## 選択されたユニットを横一列に（同高・足元下揃え）。並べ替えは _order 準拠。
+func _rebuild_display() -> void:
+	_clear(_units_row)
+	for id in _order:
+		if not _selected.get(id, false):
 			continue
-		_body.add_child(_unit_row(u))
+		_units_row.add_child(_unit_column(_units[id]))
 
-func _row_labels(texts: Array) -> HBoxContainer:
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 10)
+func _unit_column(u: Dictionary) -> Control:
+	var col := VBoxContainer.new()  # ラベル＋立ち絵。バンドは表示エリア下端に固定＝足元が揃う。
 	var lbl := Label.new()
-	lbl.text = texts[0]
-	lbl.custom_minimum_size = Vector2(LABEL_W, 0)
-	h.add_child(lbl)
-	for i in range(1, texts.size()):
-		var l := Label.new()
-		l.text = texts[i]
-		l.custom_minimum_size = Vector2(ROW_H, 0)
-		h.add_child(l)
-	return h
+	lbl.text = u["id"]
+	lbl.custom_minimum_size = Vector2(0, LABEL_H)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(lbl)
+	col.add_child(_pic(String(u[_img_kind])))
+	return col
 
-func _unit_row(u: Dictionary) -> HBoxContainer:
-	var h := HBoxContainer.new()
-	h.add_theme_constant_override("separation", 10)
-	h.custom_minimum_size = Vector2(0, ROW_H)
-	var name_lbl := Label.new()
-	name_lbl.text = "%s\n(%s)" % [u["id"], u["faction"]]
-	name_lbl.custom_minimum_size = Vector2(LABEL_W, 0)
-	name_lbl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	h.add_child(name_lbl)
-	h.add_child(_pic(u["map"]))
-	h.add_child(_pic(u["combat"]))
-	return h
-
-## 画像1枚を高さ ROW_H・アスペクト維持・下揃え（足元ベースライン）で作る。無ければ欠落プレースホルダ。
 func _pic(path: String) -> Control:
 	if path == "" or not ResourceLoader.exists(path):
 		var ph := Label.new()
-		ph.text = "—"
-		ph.custom_minimum_size = Vector2(ROW_H, ROW_H)
-		ph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ph.text = "—（%s なし）" % _img_kind
+		ph.custom_minimum_size = Vector2(PIC_H * 0.6, PIC_H)
 		ph.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		ph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		ph.modulate = Color(1, 1, 1, 0.35)
 		return ph
 	var tex := load(path) as Texture2D
 	var ts := tex.get_size()
-	var w: float = ROW_H * (ts.x / ts.y) if ts.y > 0 else ROW_H
+	var w: float = PIC_H * (ts.x / ts.y) if ts.y > 0 else PIC_H
 	var tr := TextureRect.new()
 	tr.texture = tex
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tr.custom_minimum_size = Vector2(w, ROW_H)
-	tr.size_flags_vertical = Control.SIZE_SHRINK_END  # 下揃え＝足元を揃える
+	tr.custom_minimum_size = Vector2(w, PIC_H)
 	tr.tooltip_text = path
 	return tr
 
-# --- 地形モード（実ヘックス盤） ---
+# --- 頭身比較の水平線（ドラッグで上下）---
+
+func _add_ruler(y: float) -> void:
+	var ln := Control.new()  # アンカーは付けず手動サイズ（幅=表示エリア幅）＝設定時の警告を避ける
+	ln.size = Vector2(_disp.size.x, 14)
+	ln.position = Vector2(0, clampf(y, 0, _disp.size.y))
+	ln.mouse_filter = Control.MOUSE_FILTER_STOP
+	ln.mouse_default_cursor_shape = Control.CURSOR_VSIZE
+	var bar := ColorRect.new()
+	bar.color = Color(1.0, 0.35, 0.35, 0.9)
+	bar.anchor_right = 1.0
+	bar.offset_top = 6
+	bar.offset_bottom = 8
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ln.add_child(bar)
+	var knob := ColorRect.new()  # 左端のつまみ
+	knob.color = Color(1.0, 0.35, 0.35, 1.0)
+	knob.size = Vector2(14, 14)
+	knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ln.add_child(knob)
+	ln.gui_input.connect(func(e):
+		if e is InputEventMouseMotion and (e.button_mask & MOUSE_BUTTON_MASK_LEFT):
+			ln.position.y = clampf(ln.position.y + e.relative.y, 0, _disp.size.y - 14))
+	_disp.add_child(ln)
+	_rulers.append(ln)
+
+func _clear_rulers() -> void:
+	for ln in _rulers:
+		if is_instance_valid(ln):
+			ln.queue_free()
+	_rulers.clear()
+
+# --- 地形モード（実ヘックス盤）---
 
 func _show_terrain() -> void:
 	_mode = "terrain"
-	_scroll.hide()
+	_char_box.hide()
 	_board_box.show()
-	_build_terrain_filterbar()
+	_build_terrain_ctrlbar()
 	_rebuild_terrain()
 
-func _build_terrain_filterbar() -> void:
-	_clear(_filterbar)
-	_add_button(_filterbar, "変種", func(): _set_terr_sub("variation"))
-	_add_button(_filterbar, "境界", func(): _set_terr_sub("boundary"))
+func _build_terrain_ctrlbar() -> void:
+	_clear(_ctrlbar)
+	_add_button(_ctrlbar, "変種", func(): _set_terr_sub("variation"))
+	_add_button(_ctrlbar, "境界", func(): _set_terr_sub("boundary"))
 	if _terr_sub == "variation":
-		_filterbar.add_child(_terrain_picker("地形", _terr_one, func(t): _terr_one = t; _rebuild_terrain()))
+		_ctrlbar.add_child(_terrain_picker("地形", _terr_one, func(t): _terr_one = t; _rebuild_terrain()))
 	else:
-		_filterbar.add_child(_terrain_picker("A", _terr_a, func(t): _terr_a = t; _rebuild_terrain()))
-		_filterbar.add_child(_terrain_picker("B", _terr_b, func(t): _terr_b = t; _rebuild_terrain()))
+		_ctrlbar.add_child(_terrain_picker("A", _terr_a, func(t): _terr_a = t; _rebuild_terrain()))
+		_ctrlbar.add_child(_terrain_picker("B", _terr_b, func(t): _terr_b = t; _rebuild_terrain()))
 
 func _set_terr_sub(s: String) -> void:
 	_terr_sub = s
-	_build_terrain_filterbar()
+	_build_terrain_ctrlbar()
 	_rebuild_terrain()
 
 func _terrain_picker(label: String, current: String, on_pick: Callable) -> HBoxContainer:
@@ -306,7 +394,6 @@ func _terrain_picker(label: String, current: String, on_pick: Callable) -> HBoxC
 	h.add_child(opt)
 	return h
 
-## 合成 BattleState を組んで実3D盤に敷き、SubViewport に描く。呼ぶたびに盤を作り直す。
 func _rebuild_terrain() -> void:
 	_clear(_board_vp)
 	var cols := 9
@@ -322,11 +409,17 @@ func _rebuild_terrain() -> void:
 	_board_vp.add_child(ctrl)
 	var board: HexBoard3D = preload("res://presentation/board/hex_board_3d.gd").new()
 	_board_vp.add_child(board)
-	board.bind(state, ctrl, {}, {})  # ユニット無し・地形は既定skin（変種は盤が hex 位置で自動分配）
-	_board = board  # size_changed 時の再フィット対象
+	board.bind(state, ctrl, {}, {})
+	_board = board
 
-## 各 hex の terrain_id。変種＝全面1地形／境界＝左半分A・右半分B（縦の継ぎ目）。
 func _terrain_for(col: int, cols: int) -> String:
 	if _terr_sub == "variation":
 		return _terr_one
 	return _terr_a if col < cols / 2 else _terr_b
+
+# --- テスト補助（ハーネスから選択を指定する）---
+func preselect(ids: Array) -> void:
+	for id in ids:
+		_selected[id] = true
+	_build_sel_tabs()
+	_rebuild_display()
