@@ -112,3 +112,23 @@ static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	unit.max_troops = max_troops
 	unit.skin_id = String(data.get("skin", type_id))
 	return unit
+
+## 中断セーブ用の直列化＝スナップショット(to_dict)に盤情報（id/team/native/位置）を足したもの。
+## 位置は axial 座標を q/r として直に持つ。詳細 → doc/tech/gamesystem.md
+func to_full_dict() -> Dictionary:
+	var d := to_dict()
+	d["id"] = id
+	d["team"] = team
+	d["native"] = native_team
+	d["q"] = pos.x
+	d["r"] = pos.y
+	return d
+
+## to_full_dict からの復元。性能は t（UnitType）から再構築し、盤情報を戻す。
+static func from_full_dict(data: Dictionary, t: UnitType = null) -> Unit:
+	var unit := from_dict(data, t)
+	unit.id = int(data.get("id", 0))
+	unit.team = int(data.get("team", 0))
+	unit.native_team = int(data.get("native", unit.team))
+	unit.pos = Vector2i(int(data.get("q", 0)), int(data.get("r", 0)))
+	return unit

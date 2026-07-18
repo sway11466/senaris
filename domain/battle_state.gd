@@ -806,3 +806,106 @@ func _heal_garrisons() -> void:
 		for u in b.garrison:
 			if u.native_team == current_team or u.native_team == Base.NEUTRAL:
 				u.troops = u.max_troops
+
+# --- 中断セーブ（状態の丸ごと直列化）。バージョン枠・ファイルIOは infrastructure/save 側。詳細 → doc/tech/gamesystem.md ---
+
+## 盤の状態をすべて素データ（JSON化可能）に直列化する。見た目・movement 表（静的コンフィグ）は含めない
+## ＝復元後に呼び出し側が set_movement(Movement.load_default()) を再適用する（load_file と同じ流儀）。
+func to_dict() -> Dictionary:
+	var units_out: Array = []
+	for u in _units:
+		units_out.append(u.to_full_dict())
+	var terrain_out: Array = []
+	for h in _terrain:
+		terrain_out.append({ "q": h.x, "r": h.y, "t": _terrain[h] })
+	var bases_out: Array = []
+	for b in _bases:
+		bases_out.append(b.to_dict())
+	var pass_out := {}
+	for tid in _passengers:
+		var arr: Array = []
+		for p in _passengers[tid]:
+			arr.append(p.to_full_dict())
+		pass_out[str(tid)] = arr
+	return {
+		"cols": cols, "rows": rows,
+		"current_team": current_team, "turn_number": turn_number,
+		"turn_limit": turn_limit, "roster": roster, "enemy_ai": enemy_ai,
+		"units": units_out,
+		"terrain": terrain_out,
+		"bases": bases_out,
+		"victory_conditions": victory_conditions,
+		"squads": squads,
+		"status_mods": _status_mods,
+		"passengers": pass_out,
+		"moved": _moved.keys(), "post_moved": _post_moved.keys(),
+		"attacked": _attacked.keys(), "done": _done.keys(),
+		"engaged": _engaged.keys(), "defeated": _defeated.keys(),
+		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
+	}
+
+## to_dict からの復元。ユニット/拠点の性能は catalog（{id: UnitType}）から再構築する。
+## movement 表は復元しない＝呼び出し側が set_movement で再適用する（doc の "見た目・コンフィグはセーブに含めない"）。
+static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState:
+	var s := BattleState.new(int(data.get("cols", 12)), int(data.get("rows", 8)))
+	s.current_team = int(data.get("current_team", 0))
+	s.turn_number = int(data.get("turn_number", 1))
+	s.turn_limit = int(data.get("turn_limit", 0))
+	s.roster = String(data.get("roster", "fresh"))
+	s.enemy_ai = String(data.get("enemy_ai", ""))
+	for ud in data.get("units", []):
+		if typeof(ud) == TYPE_DICTIONARY:
+			s._units.append(Unit.from_full_dict(ud, catalog.get(String(ud.get("type", "")))))
+	for td in data.get("terrain", []):
+		if typeof(td) == TYPE_DICTIONARY:
+			s._terrain[Vector2i(int(td.get("q", 0)), int(td.get("r", 0)))] = String(td.get("t", ""))
+	for bd in data.get("bases", []):
+		if typeof(bd) == TYPE_DICTIONARY:
+			s._bases.append(Base.from_dict(bd, catalog))
+	var vc: Variant = data.get("victory_conditions", [])
+	s.victory_conditions = vc if typeof(vc) == TYPE_ARRAY else []
+	var sq: Variant = data.get("squads", [])
+	s.squads = sq if typeof(sq) == TYPE_ARRAY else []
+	var sm: Variant = data.get("status_mods", [])
+	s._status_mods = sm if typeof(sm) == TYPE_ARRAY else []
+	for tid in _as_dict(data.get("passengers", {})):
+		var arr: Array[Unit] = []
+		for pd in data["passengers"][tid]:
+			if typeof(pd) == TYPE_DICTIONARY:
+				arr.append(Unit.from_full_dict(pd, catalog.get(String(pd.get("type", "")))))
+		s._passengers[int(tid)] = arr
+	s._moved = _ids_to_set(data.get("moved", []))
+	s._post_moved = _ids_to_set(data.get("post_moved", []))
+	s._attacked = _ids_to_set(data.get("attacked", []))
+	s._done = _ids_to_set(data.get("done", []))
+	s._engaged = _ids_to_set(data.get("engaged", []))
+	s._defeated = _ids_to_set(data.get("defeated", []))
+	s._spent = _str_keyed_to_int(data.get("spent", {}))
+	s._squad_of = _str_keyed_to_int(data.get("squad_of", {}))
+	return s
+
+## int キーの dict → 文字列キーの dict（JSON はキーを文字列化するので保存時に明示変換）。
+static func _int_keyed_to_str(d: Dictionary) -> Dictionary:
+	var out := {}
+	for k in d:
+		out[str(k)] = d[k]
+	return out
+
+## 文字列キー（JSON復元後）の dict → int キー・int 値の dict（_spent / _squad_of 用）。
+static func _str_keyed_to_int(src: Variant) -> Dictionary:
+	var out := {}
+	if typeof(src) == TYPE_DICTIONARY:
+		for k in src:
+			out[int(k)] = int(src[k])
+	return out
+
+## id の配列 → { id(int): true } の集合 dict（_moved 等の行動フラグ復元）。
+static func _ids_to_set(src: Variant) -> Dictionary:
+	var out := {}
+	if typeof(src) == TYPE_ARRAY:
+		for id in src:
+			out[int(id)] = true
+	return out
+
+static func _as_dict(v: Variant) -> Dictionary:
+	return v if typeof(v) == TYPE_DICTIONARY else {}

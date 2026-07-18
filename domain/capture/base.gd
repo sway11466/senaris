@@ -26,3 +26,24 @@ func _init(p_hex: Vector2i, p_team: int = NEUTRAL, p_kind: String = "fort") -> v
 ## 本拠地（hq）か。
 func is_hq() -> bool:
 	return kind == "hq"
+
+## 中断セーブ用の直列化。位置は axial(q,r)。garrison は出撃待ちユニットの full 直列化。詳細 → doc/tech/gamesystem.md
+func to_dict() -> Dictionary:
+	var g: Array = []
+	for u in garrison:
+		g.append(u.to_full_dict())
+	return {
+		"q": hex.x, "r": hex.y,
+		"team": team, "native": native_team, "kind": kind,
+		"squad_index": squad_index, "garrison": g,
+	}
+
+## to_dict からの復元。garrison ユニットの性能は catalog（{id: UnitType}）から再構築する。
+static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> Base:
+	var b := Base.new(Vector2i(int(data.get("q", 0)), int(data.get("r", 0))), int(data.get("team", NEUTRAL)), String(data.get("kind", "fort")))
+	b.native_team = int(data.get("native", b.team))
+	b.squad_index = int(data.get("squad_index", -1))
+	for gd in data.get("garrison", []):
+		if typeof(gd) == TYPE_DICTIONARY:
+			b.garrison.append(Unit.from_full_dict(gd, catalog.get(String(gd.get("type", "")))))
+	return b
