@@ -88,6 +88,7 @@
 - 対応：`gamesystem.md` のセーブ仕様に沿って `BattleState` の直列化＋ファイル保存/読込を実装し、HUD の無効項目を有効化。`Unit` 直列化を再利用し、順は BattleState 全状態の直列化（ラウンドトリップテスト）→ HUD 有効化・`user://save.json` → 複数スロットUI → ターン毎オートセーブ（中断の応用）。
 - 実装順：feature-5 の「ロードマップ」に集約（`Unit` 直列化を共有土台とし、carryover を先・中断セーブ＝本項を後）。
 - 該当：`domain/battle_state.gd`（直列化）・`presentation/ui/hud.gd`（項目有効化）・`application/`（保存/読込の配線）・`doc/tech/gamesystem.md`。
+- 進捗（2026-07-18）：中断セーブの単枠クイックセーブ/ロードまで実装＝`BattleState.to_dict/from_dict`（全状態・盤情報つき `Unit.to_full_dict`／`Base.to_dict` 再利用）／`SaveStore`（`user://save.json`・version＋破損フォールバック）／HUD の「セーブ」有効化・「ロード」を保存有無で切替／main は `_install_state` を新規開始と復元で共有（復元は intro なし・movement 再適用）。直列化と SaveStore は round-trip テスト済み（`test_battle_state_serialization`・`test_save_store`）。残り＝複数スロットUI（4c）／ターン毎オートセーブ（Phase 5）。main/hud の live 配線（セーブ→ロードで盤が戻る）の実機確認は保留。
 
 ### feature-10
 
