@@ -64,3 +64,51 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 ## 経験値（＝レベル）を加算。1〜MAX_LEVEL にクランプ。詳細 → combat.md
 func add_experience(n: int) -> void:
 	level = clampi(level + n, 1, MAX_LEVEL)
+
+## 種別(UnitType)の性能をこの駒に写す（type が唯一の出どころ＝数値を焼かない）。
+## 成長・損耗（level/troops）と盤依存の状態（id/team/pos）は触らない＝呼び出し側の管轄。
+## max_troops は type の満員値にするので、損耗を保つ用途では呼び出し後に上書きする。
+## 注: StageLoader._make_unit は個別キー上書きを挟む別経路で、将来この写しへ寄せられる（refactoring-1）。
+func apply_type(t: UnitType) -> void:
+	move = t.move
+	move_type = t.move_type
+	unit_attack = t.atk_ground
+	atk_air = t.atk_air
+	unit_defense = t.defense
+	pierce = t.pierce
+	min_range = t.min_range
+	attack_range = t.attack_range
+	move_after_attack = t.move_after_attack
+	can_capture = t.can_capture
+	capacity = t.capacity
+	max_troops = t.max_troops
+
+## 直列化（セーブの土台）。素性・成長・損耗だけを出す＝type/skin/level/troops/max_troops。
+## 性能値（攻防・射程…）は type から再構築するので焼かない。盤依存の状態（id/team/pos/行動済み）も持たない
+## ＝戦力スナップショット（継承）はこれそのもの、中断セーブはこれに盤情報を足す。詳細 → doc/tech/gamesystem.md
+func to_dict() -> Dictionary:
+	return {
+		"type": type_id,
+		"skin": skin_id,
+		"level": level,
+		"troops": troops,
+		"max_troops": max_troops,
+	}
+
+## 直列化から駒を復元。性能は t（type_id で解決した UnitType）から再構築する。
+## t 省略/未解決なら既定性能（move3/atk10/def10）で復元＝データ欠損に耐える（catalog 解決は呼び出し側）。
+## id/team/pos は placeholder（0/0/ZERO）＝配置する側（次ステージ or 中断復元）が決める。
+static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
+	var type_id := String(data.get("type", ""))
+	var level := int(data.get("level", 1))
+	var max_troops := int(data.get("max_troops", 8))
+	var troops := int(data.get("troops", max_troops))
+	var unit := Unit.new(0, 0, Vector2i.ZERO, 3, troops, 10, 10, level, type_id)
+	if t != null:
+		unit.apply_type(t)
+	else:
+		push_warning("Unit.from_dict: type '%s' 未解決＝既定性能で復元" % type_id)
+	unit.troops = troops        # apply_type が max_troops を type 既定に戻すので損耗を再適用
+	unit.max_troops = max_troops
+	unit.skin_id = String(data.get("skin", type_id))
+	return unit
