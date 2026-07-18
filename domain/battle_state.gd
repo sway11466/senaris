@@ -10,6 +10,7 @@ var rows: int  ## 矩形フィールドの高さ（offset row 数）
 var current_team: int = 0  ## 現在の手番の陣営
 var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 var turn_limit: int = 0    ## ターン上限（超過でプレイヤー敗北・引き分けなし）。0＝無制限。実ステージJSONでは必須指定。詳細 → doc/gdd/map.md
+var roster: String = "fresh"  ## 戦力供給モデル（"fresh"=独立/"carryover"=継承）。ステージJSONの roster から。継承ステージ間の受け渡しに使う。詳細 → doc/gdd/map.md
 
 var _units: Array[Unit] = []
 var _moved := {}       # unit_id -> true（攻撃前の移動を1回使った）

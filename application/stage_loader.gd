@@ -19,6 +19,19 @@ class_name StageLoader
 ## 陣営表記（ステージJSON）→ 内部 int（0=自軍 / 1=敵 / -1=中立=Base.NEUTRAL）。
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
+## 戦力供給モデル（ステージJSON "roster"）の許容値。既定は fresh（独立）。詳細 → doc/gdd/map.md
+const ROSTER_MODES := ["fresh", "carryover"]
+
+## roster 値を検証して返す。省略（null）・未知の表記は "fresh"（独立＝前ステージを引き継がない）。
+static func _parse_roster(value: Variant) -> String:
+	if value == null:
+		return "fresh"
+	var key := String(value)
+	if key in ROSTER_MODES:
+		return key
+	push_warning("StageLoader: 未知の roster '%s'（fresh/carryover のいずれか）＝fresh を使用" % key)
+	return "fresh"
+
 ## 陣営値を int に解決する。キー省略（null）は default_team、未知の表記は警告して default_team。
 static func _parse_team(value: Variant, default_team: int) -> int:
 	if value == null:
@@ -48,6 +61,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 		state.victory_conditions = victory
 	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
+	state.roster = _parse_roster(data.get("roster"))  # fresh（既定）/carryover。継承の受け渡しは Phase 2d で配線
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。

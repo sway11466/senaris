@@ -59,6 +59,19 @@ func test_build_unit_fields_and_defaults() -> void:
 	assert_eq(u2.unit_attack, 10, "atk 省略は10")
 	assert_eq(u2.level, 1, "level 省略は1")
 
+func test_roster_defaults_to_fresh() -> void:
+	# roster 省略＝独立（fresh）＝前ステージを引き継がない（1話完結の既定）。詳細 → doc/gdd/map.md
+	var s := StageLoader.build({ "cols": 4, "rows": 4 })
+	assert_eq(s.roster, "fresh", "roster 省略は fresh")
+
+func test_roster_reads_carryover() -> void:
+	var s := StageLoader.build({ "cols": 4, "rows": 4, "roster": "carryover" })
+	assert_eq(s.roster, "carryover", "roster:carryover を読む＝継承ステージ")
+
+func test_roster_unknown_falls_back_to_fresh() -> void:
+	var s := StageLoader.build({ "cols": 4, "rows": 4, "roster": "bogus" })
+	assert_eq(s.roster, "fresh", "未知の roster は fresh にフォールバック")
+
 func test_build_resolves_type_from_catalog() -> void:
 	var catalog := {
 		"cleric": UnitType.from_dict({
