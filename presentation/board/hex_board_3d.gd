@@ -43,6 +43,7 @@ const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動の緑と区別）
 const COLOR_ENEMY_REACH := Color(0.95, 0.35, 0.30, 0.22)  # 敵の移動（脅威）範囲
 const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周線（赤）＝待機中の見張りの視界。塗らず境界だけ
+const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
@@ -1242,11 +1243,13 @@ const _EDGE_DIRS: Array[Vector2i] = [
 	Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
 ]
 
-## 検知域（visible な hex 集合）の外周だけを赤線でなぞる（塗らない＝移動範囲と紛れない）。
-## 各 hex の6辺のうち、隣が visible でない辺だけを線に足す＝壁の影・森のへこみがそのまま輪郭に出る。
+## 検知域（visible な hex 集合）の外周だけを赤い太線でなぞる（塗らない＝移動範囲と紛れない）。
+## 各 hex の6辺のうち、隣が visible でない辺だけを描く＝壁の影・森のへこみがそのまま輪郭に出る。
+## 3D の線は太さが効かない（GPU依存）ので、各辺を幅つきの帯（三角形2枚）で描いて太さを持たせる。
 func _add_sight_boundary(visible: Dictionary) -> void:
 	var im := ImmediateMesh.new()
-	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	var hw := TILE * SIGHT_EDGE_WIDTH * 0.5  # 帯の半幅
 	for hex in visible:
 		var p := Hex.to_pixel(hex, TILE)
 		for i in 6:
@@ -1254,17 +1257,35 @@ func _add_sight_boundary(visible: Dictionary) -> void:
 				continue  # 内側の辺は描かない（外周だけ）
 			var a0 := deg_to_rad(60.0 * i)
 			var a1 := deg_to_rad(60.0 * (i + 1))
-			im.surface_add_vertex(Vector3(p.x + cos(a0) * TILE, 0.05, p.y + sin(a0) * TILE))
-			im.surface_add_vertex(Vector3(p.x + cos(a1) * TILE, 0.05, p.y + sin(a1) * TILE))
+			var v0 := Vector3(p.x + cos(a0) * TILE, 0.05, p.y + sin(a0) * TILE)
+			var v1 := Vector3(p.x + cos(a1) * TILE, 0.05, p.y + sin(a1) * TILE)
+			_add_thick_edge(im, v0, v1, hw)
 	im.surface_end()
 	var mi := MeshInstance3D.new()
 	mi.mesh = im
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.albedo_color = COLOR_SIGHT_EDGE
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 上から見て裏面でも描く
 	mi.material_override = m
 	_overlay_root.add_child(mi)
+
+## v0→v1 の辺を幅 2*hw の帯（三角形2枚）にして im に足す。端を hw ぶん伸ばして角の隙間を埋める。
+func _add_thick_edge(im: ImmediateMesh, v0: Vector3, v1: Vector3, hw: float) -> void:
+	var d := v1 - v0
+	var l := d.length()
+	if l < 0.00001:
+		return
+	d /= l
+	var perp := Vector3(-d.z, 0.0, d.x) * hw
+	var e0 := v0 - d * hw  # 角で隣の帯と重ねて隙間を消す
+	var e1 := v1 + d * hw
+	var a := e0 + perp
+	var b := e0 - perp
+	var c := e1 + perp
+	var e := e1 - perp
+	im.surface_add_vertex(a); im.surface_add_vertex(c); im.surface_add_vertex(b)
+	im.surface_add_vertex(b); im.surface_add_vertex(c); im.surface_add_vertex(e)
 
 # --- 兵数バー・ラベル・リングのヘルパー ---
 
