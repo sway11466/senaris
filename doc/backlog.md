@@ -48,7 +48,8 @@
 
 - 背景：キャンペーンの背骨。前ステージの生存ユニット（経験Lv・残兵）を次ステージへ持ち越す供給モデル（[map.md](gdd/map.md) §戦力供給・未決）。ステージに `roster:"fresh"|"carryover"` を宣言する想定だが、`StageLoader` が `roster` キーを読まず、持ち越しロジックも無い（全ステージ fresh 相当）。
 - 対応：ステージJSONに `roster` を足し、`StageLoader` が解釈。carryover 時は前ステージ終了時の生存ユニット（type・level・残兵）を引き継いで配置する受け渡し口を用意。セーブ／ロード（feature-9）と持ち越し状態の永続化で論点が絡む。
-- 該当：`application/stage_loader.gd`・`presentation/main/main.gd`（ステージ間の受け渡し）・`doc/gdd/map.md`。
+- 対応（セレクトでの可視化）：fresh か carryover かは戦い方を変える（carryover は主力を死なせられない＝温存プレイ／fresh は使い切ってよい）ため、挑む前に分かるようにする。知らずに連戦の初戦で主力を失う理不尽を避ける。carryover は単体ステージの属性というより連続するステージのつながりなので、ステージ一覧で carryover が繋がる区間をグループ化して見せる（酒場ボードのメタファなら「同じ依頼の続き物＝節が鎖でつながる」）＋区間の入口に「ここから戦力を持ち越す連戦」の印。冒険譚カード（上位）に出すのは冒険譚まるごとが連戦のときだけで足りる（roster はステージ単位＝冒険譚内で fresh/carryover が混在しうる）。
+- 該当：`application/stage_loader.gd`・`presentation/main/main.gd`（ステージ間の受け渡し）・`presentation/select/stage_select.gd`（連戦区間の可視化）・`doc/gdd/map.md`・`doc/gdd/stage_select.md`。
 
 ### feature-6
 

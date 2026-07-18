@@ -111,8 +111,9 @@ CSV正本からデータを生成するツールは複数ある（`data/*/conver
 - 欠損・不正はデータのバグとして扱い、開発時に落とす（`push_error`／`assert`／GUT 失敗）。生成時（convert 実行）・読込時（`*_catalog`）・テストのいずれかで必ず検出し、プレイヤーに届く経路では出さない。export 版で消える `assert` は runtime 保険として低コスト。
 - 実装状況: `csv_util.read_table` は列不足の行を `push_error` 付きでスキップする（黙って消さない）。スキーマ検証は `csv_util` の純関数（`missing_required` / `duplicates` / `invalid_values` / `value_set`）が担い、各 convert が必須列・重複・enum/参照整合を検証して、違反が1件でもあれば JSON を書かずに中止する。
 
-### セーブ 【確定】
-- 進捗セーブ（マップ単位）＋中断セーブ（Domain状態を丸ごと直列化）の二本立て
+### セーブ
+- 三層＝進捗（マップ単位）／戦力スナップショット（継承ユニットのリスト・ステージ間）／中断（Domain状態を丸ごと直列化）。仕様は [gamesystem.md](gamesystem.md) セーブ
+- 下2層は `Unit` の直列化を共有する＝戦力スナップショット（continuity/carryover）を先に作ると中断セーブの土台になる
 - ターン毎オートセーブは中断セーブの応用として後から派生可能
 
 ---
