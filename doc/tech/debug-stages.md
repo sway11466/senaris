@@ -31,7 +31,7 @@
 
 | ステージ | ファイル | 状態 |
 | --- | --- | --- |
-| 待機AI（guard） | `debug-ai/guard.json` | 実装済み |
+| 待機・索敵（guard＋視線） | `debug-ai/sight.json` | 実装済み |
 | 弱者狙いAI（weak） | `debug-ai/weak.json` | 実装済み |
 | 敵拠点の出撃（charge湧き） | `debug-ai/spawn.json` | 実装済み |
 

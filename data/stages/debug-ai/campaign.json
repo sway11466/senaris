@@ -3,7 +3,7 @@
   "title": "デバッグ：敵AI",
   "debug": true,
   "stages": [
-    { "id": "guard", "file": "guard.json", "title": "待機AI（guard）" },
+    { "id": "sight", "file": "sight.json", "title": "待機・索敵（視線＝壁の影・森の減衰）" },
     { "id": "weak", "file": "weak.json", "title": "弱者狙いAI（weak）" },
     { "id": "spawn", "file": "spawn.json", "title": "敵拠点の出撃（charge湧き）" }
   ]

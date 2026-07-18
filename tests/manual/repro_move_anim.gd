@@ -19,7 +19,7 @@ func _process(_delta: float) -> bool:
 	_frames += 1
 	if _frames == 10:
 		_main._select.close()
-		_main.load_stage("res://data/stages/debug-ai/guard.json")
+		_main.load_stage("res://data/stages/debug-ai/sight.json")
 	if _frames == 20:
 		_start_move()
 	if _frames > 20 and _uid >= 0:

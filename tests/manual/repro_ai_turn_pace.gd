@@ -15,7 +15,7 @@ func _process(_delta: float) -> bool:
 	_frames += 1
 	if _frames == 10:
 		_main._select.close()
-		_main.load_stage("res://data/stages/debug-ai/guard.json")
+		_main.load_stage("res://data/stages/debug-ai/sight.json")
 	if _frames == 20:
 		_ctrl = _main.get_node("HexBoard").controller
 		print("move_pace 注入済み: ", _ctrl.move_pace.is_valid())

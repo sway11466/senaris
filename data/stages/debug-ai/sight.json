@@ -1,0 +1,37 @@
+{
+  "turn_limit": 30,
+  "name": "debug-sight",
+  "cols": 13,
+  "rows": 11,
+  "terrain": [
+    ".............",
+    ".............",
+    "........#....",
+    "...F....#....",
+    "...F....#....",
+    "...F....#....",
+    "........#....",
+    ".............",
+    ".............",
+    ".............",
+    "............."
+  ],
+  "player": [
+    { "type": "fighter", "col": 1, "row": 4 },
+    { "type": "novice", "col": 1, "row": 3 },
+    { "type": "novice", "col": 1, "row": 5 },
+    { "type": "thief", "col": 11, "row": 4 }
+  ],
+  "enemy": [
+    { "name": "見張り（壁と森）", "ai": "guard", "sight": 5,
+      "units": [
+        { "skin": "goblin", "col": 6, "row": 4 },
+        { "skin": "goblin", "col": 6, "row": 5 }
+      ] },
+    { "name": "見張り（開地・一斉警戒）", "ai": "guard", "sight": 4,
+      "units": [
+        { "skin": "goblin", "col": 6, "row": 9 },
+        { "skin": "hobgoblin", "col": 7, "row": 9 }
+      ] }
+  ]
+}
