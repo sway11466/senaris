@@ -52,6 +52,16 @@ func test_visible_hexes_excludes_shadow_behind_wall() -> void:
 	assert_false(vis.has(Vector2i(3, 0)), "壁の真後ろは影＝不可視")
 	assert_false(vis.has(Vector2i(2, 0)), "壁自身は不可視（遮蔽コスト）")
 
+func test_grazing_wall_corner_has_no_hole() -> void:
+	# 壁の角をかすめる位置が「1マスだけ穴」にならない（±両側判定の回帰）。真後ろの遮断は維持。
+	var s := _state(13, 11)
+	for row in range(2, 7):  # col8 rows2-6 を壁に
+		s.set_terrain(Hex.offset_to_axial(8, row), "wall")
+	var g := Hex.offset_to_axial(6, 4)
+	assert_true(s.sight_reaches(g, Hex.offset_to_axial(8, 1), 5), "壁の角の上(8,1)は見える（穴でない）")
+	assert_true(s.sight_reaches(g, Hex.offset_to_axial(8, 0), 5), "その先(8,0)も見える")
+	assert_false(s.sight_reaches(g, Hex.offset_to_axial(9, 4), 9), "壁の真後ろは遮断のまま")
+
 func test_visible_hexes_within_board_only() -> void:
 	var s := _state(3, 3)
 	var vis := s.visible_hexes(Vector2i(0, 0), 5)

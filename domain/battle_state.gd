@@ -239,17 +239,19 @@ func sight_cost_at(hex: Vector2i) -> int:
 	return int(_sight_cost.get(terrain_at(hex), 1))
 
 ## from から to へ視線が通り、累積視線コストが budget 以内か（起動 sight の判定に使う）。
-## from→to のヘックス直線を辿り、各マス（from を除き to を含む）の視線コストを積算し、
-## 途中で budget を超えたら遮られる（＝壁の裏には届かない・森ごしは減衰）。
-## 全地形コスト1なら「累積＝ヘックス距離」＝純距離の索敵に一致（既存挙動を壊さない）。
+## 壁の角をかすめる線は1本だと角を拾って穴が開くので、±両側にずらした2本を試し、安い方で判定する。
+## 真後ろの壁は両側とも貫く＝遮断が残る／角かすめは片側が通る＝穴が消える。
+## 各マス（from を除き to を含む）の視線コストを積算。全地形コスト1なら「累積＝ヘックス距離」＝純距離の索敵に一致。
 func sight_reaches(from: Vector2i, to: Vector2i, budget: int) -> bool:
+	return mini(_sight_line_cost(from, to, 1.0), _sight_line_cost(from, to, -1.0)) <= budget
+
+## from→to の直線（bias でずらした1本）の視線コスト積算（from を除き to を含む）。
+func _sight_line_cost(from: Vector2i, to: Vector2i, bias: float) -> int:
 	var acc := 0
-	var path := Hex.line(from, to)
+	var path := Hex.line(from, to, bias)
 	for i in range(1, path.size()):
 		acc += sight_cost_at(path[i])
-		if acc > budget:
-			return false
-	return true
+	return acc
 
 ## from から budget 以内で視認できる盤内ヘックスの集合（from 含む）。索敵範囲の可視化に使う。
 ## 全コスト≥1 前提で距離 budget 以内を候補にし、視線が通るものだけ残す（壁は影を作る・森は範囲が縮む）。
