@@ -1,0 +1,50 @@
+{
+  "turn_limit": 30,
+  "name": "tutorial2-st1",
+  "cols": 16,
+  "rows": 9,
+  "terrain": [
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................"
+  ],
+  "player": [
+    { "type": "knight",  "col": 2, "row": 3 },
+    { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "priest",  "col": 2, "row": 5 },
+    { "type": "wizard",  "col": 2, "row": 4 },
+    { "type": "witch",   "col": 3, "row": 5 }
+  ],
+  "enemy": [
+    { "name": "屍の群れ", "ai": "charge", "units": [
+      { "skin": "skeleton", "col": 12, "row": 2 },
+      { "skin": "skeleton", "col": 12, "row": 3 },
+      { "skin": "skeleton", "col": 12, "row": 5 },
+      { "skin": "skeleton", "col": 12, "row": 6 },
+      { "skin": "zombie",   "col": 13, "row": 2 },
+      { "skin": "zombie",   "col": 13, "row": 3 },
+      { "skin": "zombie",   "col": 13, "row": 5 },
+      { "skin": "zombie",   "col": 13, "row": 6 }
+    ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st1.intro.1" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st1.intro.2" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st1.intro.3" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st1.intro.4" }
+    ],
+    "outro": [
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st1.outro.1" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st1.outro.2" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st1.outro.3" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st1.outro.4" }
+    ]
+  }
+}

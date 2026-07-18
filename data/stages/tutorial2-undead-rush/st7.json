@@ -1,0 +1,86 @@
+{
+  "turn_limit": 50,
+  "name": "tutorial2-st7",
+  "cols": 28,
+  "rows": 11,
+  "terrain": [
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "...............C.........C..",
+    "..............OC........OC..",
+    "...............C.........C..",
+    "............................",
+    "............................",
+    "............................",
+    "............................"
+  ],
+  "player": [
+    { "type": "barricade", "col": 0, "row": 3 },
+    { "type": "barricade", "col": 0, "row": 4 },
+    { "type": "barricade", "col": 0, "row": 5 },
+    { "type": "barricade", "col": 0, "row": 6 },
+    { "type": "knight",  "col": 1, "row": 3 },
+    { "type": "knight",  "col": 1, "row": 5 },
+    { "type": "knight",  "col": 1, "row": 7 },
+    { "type": "fighter", "col": 2, "row": 3 },
+    { "type": "fighter", "col": 2, "row": 5 },
+    { "type": "fighter", "col": 2, "row": 7 },
+    { "type": "wagon",   "col": 1, "row": 4 },
+    { "type": "airship", "col": 1, "row": 9, "passengers": [ { "type": "paladin" } ] },
+    { "type": "cleric",  "col": 2, "row": 4 },
+    { "type": "cleric",  "col": 2, "row": 6 },
+    { "type": "priest",  "col": 3, "row": 4 },
+    { "type": "priest",  "col": 3, "row": 6 },
+    { "type": "bishop",  "col": 3, "row": 3 },
+    { "type": "bishop",  "col": 3, "row": 7 },
+    { "type": "wizard",  "col": 4, "row": 3 },
+    { "type": "wizard",  "col": 4, "row": 7 },
+    { "type": "witch",   "col": 4, "row": 4 },
+    { "type": "witch",   "col": 4, "row": 6 }
+  ],
+  "enemy": [
+    { "name": "元凶", "ai": "guard", "sight": 4, "units": [
+      { "skin": "necromancer", "col": 26, "row": 5, "id": 999 }
+    ] },
+    { "name": "屍の海", "ai": "charge", "units": [
+      { "skin": "ghoul", "col": 8, "row": 3 }, { "skin": "ghoul", "col": 8, "row": 4 },
+      { "skin": "ghoul", "col": 8, "row": 5 }, { "skin": "ghoul", "col": 8, "row": 6 },
+      { "skin": "ghoul", "col": 8, "row": 7 }, { "skin": "ghoul", "col": 9, "row": 3 },
+      { "skin": "ghoul", "col": 9, "row": 4 }, { "skin": "ghoul", "col": 9, "row": 5 },
+      { "skin": "ghoul", "col": 9, "row": 6 }, { "skin": "ghoul", "col": 9, "row": 7 },
+      { "skin": "skeleton_archer", "col": 10, "row": 3 }, { "skin": "skeleton_archer", "col": 10, "row": 4 },
+      { "skin": "skeleton_archer", "col": 10, "row": 5 }, { "skin": "skeleton_archer", "col": 10, "row": 6 },
+      { "skin": "skeleton_archer", "col": 10, "row": 7 }, { "skin": "skeleton_archer", "col": 11, "row": 3 },
+      { "skin": "skeleton_archer", "col": 11, "row": 4 }, { "skin": "skeleton_archer", "col": 11, "row": 5 },
+      { "skin": "skeleton_archer", "col": 11, "row": 6 }, { "skin": "skeleton_archer", "col": 11, "row": 7 }
+    ] }
+  ],
+  "bases": [
+    { "col": 14, "row": 5, "team": "enemy", "ai": "charge",
+      "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] },
+    { "col": 24, "row": 5, "team": "enemy", "ai": "charge",
+      "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "unit_id": 999 }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st7.intro.1" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st7.intro.2" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st7.intro.3" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st7.intro.4" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st7.intro.5" }
+    ],
+    "outro": [
+      { "speaker": "char.paladin.name", "skin": "paladin", "text": "t2.st7.outro.1" },
+      { "speaker": "char.witch.name",   "skin": "witch",   "text": "t2.st7.outro.2" },
+      { "speaker": "char.mage.name",    "skin": "wizard",  "text": "t2.st7.outro.3" },
+      { "speaker": "char.paladin.name", "skin": "paladin", "text": "t2.st7.outro.4" },
+      { "speaker": "char.knight.name",  "skin": "knight",  "text": "t2.st7.outro.5" },
+      { "speaker": "char.priest.name",  "skin": "priest",  "text": "t2.st7.outro.6" }
+    ]
+  }
+}

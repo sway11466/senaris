@@ -1,0 +1,68 @@
+{
+  "turn_limit": 40,
+  "name": "tutorial2-st5",
+  "cols": 20,
+  "rows": 11,
+  "terrain": [
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "....................",
+    "...................."
+  ],
+  "player": [
+    { "type": "knight",  "col": 1, "row": 4 },
+    { "type": "knight",  "col": 1, "row": 6 },
+    { "type": "fighter", "col": 2, "row": 4 },
+    { "type": "fighter", "col": 2, "row": 6 },
+    { "type": "priest",  "col": 1, "row": 5 },
+    { "type": "priest",  "col": 2, "row": 5 },
+    { "type": "cleric",  "col": 1, "row": 3 },
+    { "type": "cleric",  "col": 1, "row": 7 },
+    { "type": "bishop",  "col": 2, "row": 3 },
+    { "type": "wizard",  "col": 3, "row": 3 },
+    { "type": "wizard",  "col": 3, "row": 7 },
+    { "type": "witch",   "col": 2, "row": 7 },
+    { "type": "wagon",   "col": 3, "row": 5 },
+    { "type": "barricade", "col": 4, "row": 3 },
+    { "type": "barricade", "col": 4, "row": 4 },
+    { "type": "barricade", "col": 4, "row": 6 },
+    { "type": "barricade", "col": 4, "row": 7 }
+  ],
+  "enemy": [
+    { "name": "死霊の群れ", "ai": "charge", "units": [
+      { "skin": "ghoul", "col": 12, "row": 3 }, { "skin": "ghoul", "col": 12, "row": 4 },
+      { "skin": "ghoul", "col": 12, "row": 5 }, { "skin": "ghoul", "col": 12, "row": 6 },
+      { "skin": "ghoul", "col": 12, "row": 7 }, { "skin": "ghoul", "col": 13, "row": 4 },
+      { "skin": "ghoul", "col": 13, "row": 5 }, { "skin": "ghoul", "col": 13, "row": 6 },
+      { "skin": "ghoul", "col": 14, "row": 4 }, { "skin": "ghoul", "col": 14, "row": 5 }
+    ] },
+    { "name": "掠め取り", "ai": "weak", "units": [
+      { "skin": "skeleton", "col": 16, "row": 4 }, { "skin": "skeleton", "col": 16, "row": 6 },
+      { "skin": "zombie", "col": 17, "row": 4 }, { "skin": "zombie", "col": 17, "row": 6 },
+      { "skin": "skeleton_archer", "col": 18, "row": 4 }, { "skin": "skeleton_archer", "col": 18, "row": 6 }
+    ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st5.intro.1" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st5.intro.2" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st5.intro.3" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st5.intro.4" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st5.intro.5" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st5.intro.6" }
+    ],
+    "outro": [
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st5.outro.1" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st5.outro.2" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st5.outro.3" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st5.outro.4" }
+    ]
+  }
+}

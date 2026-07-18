@@ -1,0 +1,65 @@
+{
+  "turn_limit": 40,
+  "name": "tutorial2-st3",
+  "cols": 28,
+  "rows": 9,
+  "terrain": [
+    "############################",
+    "############################",
+    "############################",
+    "#..........#...............#",
+    "#..........................#",
+    "#..........#...............#",
+    "############################",
+    "############################",
+    "############################"
+  ],
+  "player": [
+    { "type": "knight",  "col": 4, "row": 4 },
+    { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "priest",  "col": 2, "row": 4 },
+    { "type": "wizard",  "col": 2, "row": 3 },
+    { "type": "wizard",  "col": 3, "row": 3 },
+    { "type": "witch",   "col": 2, "row": 5 },
+    { "type": "wagon",   "col": 4, "row": 5 },
+    { "type": "barricade", "col": 11, "row": 4 },
+    { "type": "barricade", "col": 10, "row": 4 }
+  ],
+  "enemy": [
+    { "name": "第一波", "ai": "charge", "units": [
+      { "skin": "skeleton", "col": 13, "row": 3 }, { "skin": "skeleton", "col": 13, "row": 4 },
+      { "skin": "skeleton", "col": 13, "row": 5 }, { "skin": "skeleton", "col": 14, "row": 3 },
+      { "skin": "zombie", "col": 14, "row": 4 }, { "skin": "zombie", "col": 14, "row": 5 },
+      { "skin": "zombie", "col": 15, "row": 3 }, { "skin": "zombie", "col": 15, "row": 4 },
+      { "skin": "skeleton_archer", "col": 15, "row": 5 }, { "skin": "skeleton_archer", "col": 16, "row": 4 }
+    ] },
+    { "name": "第二波", "ai": "charge", "units": [
+      { "skin": "skeleton", "col": 17, "row": 3 }, { "skin": "skeleton", "col": 17, "row": 4 },
+      { "skin": "skeleton", "col": 17, "row": 5 }, { "skin": "skeleton", "col": 18, "row": 3 },
+      { "skin": "zombie", "col": 18, "row": 4 }, { "skin": "zombie", "col": 18, "row": 5 },
+      { "skin": "zombie", "col": 19, "row": 3 }, { "skin": "zombie", "col": 19, "row": 4 },
+      { "skin": "skeleton_archer", "col": 19, "row": 5 }, { "skin": "skeleton_archer", "col": 20, "row": 4 }
+    ] },
+    { "name": "第三波", "ai": "charge", "units": [
+      { "skin": "skeleton", "col": 21, "row": 3 }, { "skin": "skeleton", "col": 21, "row": 4 },
+      { "skin": "skeleton", "col": 21, "row": 5 }, { "skin": "skeleton", "col": 22, "row": 3 },
+      { "skin": "zombie", "col": 22, "row": 4 }, { "skin": "zombie", "col": 22, "row": 5 },
+      { "skin": "zombie", "col": 23, "row": 3 }, { "skin": "zombie", "col": 23, "row": 4 },
+      { "skin": "skeleton_archer", "col": 23, "row": 5 }, { "skin": "skeleton_archer", "col": 24, "row": 4 }
+    ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st3.intro.1" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st3.intro.2" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st3.intro.3" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st3.intro.4" }
+    ],
+    "outro": [
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st3.outro.1" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st3.outro.2" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st3.outro.3" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st3.outro.4" }
+    ]
+  }
+}

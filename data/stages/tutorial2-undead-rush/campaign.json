@@ -1,0 +1,22 @@
+{
+  "id": "tutorial2-undead-rush",
+  "title": "t2.title",
+  "desc": "t2.desc",
+  "tier": "tutorial",
+  "difficulty": 2,
+  "stages": [
+    { "id": "st1", "file": "st1.json", "title": "t2.st1.title" },
+    { "id": "st2", "file": "st2.json", "title": "t2.st2.title",
+      "unlock": [ { "type": "cleared", "stage": "st1" } ] },
+    { "id": "st3", "file": "st3.json", "title": "t2.st3.title",
+      "unlock": [ { "type": "cleared", "stage": "st2" } ] },
+    { "id": "st4", "file": "st4.json", "title": "t2.st4.title",
+      "unlock": [ { "type": "cleared", "stage": "st3" } ] },
+    { "id": "st5", "file": "st5.json", "title": "t2.st5.title",
+      "unlock": [ { "type": "cleared", "stage": "st4" } ] },
+    { "id": "st6", "file": "st6.json", "title": "t2.st6.title",
+      "unlock": [ { "type": "cleared", "stage": "st5" } ] },
+    { "id": "st7", "file": "st7.json", "title": "t2.st7.title",
+      "unlock": [ { "type": "cleared", "stage": "st6" } ] }
+  ]
+}

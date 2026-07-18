@@ -1,0 +1,61 @@
+{
+  "turn_limit": 30,
+  "name": "tutorial2-st2",
+  "cols": 24,
+  "rows": 9,
+  "terrain": [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................"
+  ],
+  "player": [
+    { "type": "knight",  "col": 1, "row": 4 },
+    { "type": "fighter", "col": 2, "row": 4 },
+    { "type": "priest",  "col": 1, "row": 5 },
+    { "type": "wizard",  "col": 1, "row": 3 },
+    { "type": "witch",   "col": 2, "row": 5 },
+    { "type": "wagon",   "col": 2, "row": 3 }
+  ],
+  "enemy": [
+    { "name": "先遣", "ai": "charge", "units": [
+      { "skin": "skeleton", "col": 8, "row": 3 },
+      { "skin": "zombie",   "col": 8, "row": 5 }
+    ] },
+    { "name": "墓場の群れ", "ai": "raid", "units": [
+      { "skin": "skeleton", "col": 19, "row": 3 },
+      { "skin": "skeleton", "col": 19, "row": 4 },
+      { "skin": "skeleton", "col": 19, "row": 5 },
+      { "skin": "skeleton", "col": 20, "row": 3 },
+      { "skin": "zombie",   "col": 20, "row": 4 },
+      { "skin": "zombie",   "col": 20, "row": 5 },
+      { "skin": "zombie",   "col": 21, "row": 3 },
+      { "skin": "zombie",   "col": 21, "row": 4 },
+      { "skin": "skeleton_archer", "col": 21, "row": 5 },
+      { "skin": "skeleton_archer", "col": 22, "row": 4 }
+    ] }
+  ],
+  "bases": [
+    { "col": 12, "row": 4, "team": "player", "kind": "hq",
+      "garrison": [ { "type": "novice", "count": 2 } ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st2.intro.1" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st2.intro.2" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st2.intro.3" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st2.intro.4" }
+    ],
+    "outro": [
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st2.outro.1" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st2.outro.2" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st2.outro.3" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st2.outro.4" }
+    ]
+  }
+}
