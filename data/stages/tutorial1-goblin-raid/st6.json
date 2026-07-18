@@ -6,57 +6,60 @@
   "terrain": [
     "##############################",
     "##############################",
-    "#...######.......####........#",
-    "#...######.......####........#",
+    "#...######........####.......#",
+    "#...######........####.......#",
     "#............................#",
     "#............................#",
-    "#...######.......####........#",
-    "#...######.......####........#",
+    "#...######........####.......#",
+    "#...######........####.......#",
     "##############################",
     "##############################"
   ],
   "player": [
-    { "type": "halfling", "col": 3, "row": 4 },
-    { "type": "fighter", "col": 2, "row": 4 },
-    { "type": "archer", "col": 2, "row": 3 },
-    { "type": "archer", "col": 2, "row": 5 },
-    { "type": "novice", "col": 1, "row": 3 },
-    { "type": "novice", "col": 1, "row": 4 },
-    { "type": "novice", "col": 1, "row": 5 },
-    { "type": "novice", "col": 3, "row": 5 }
+    { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "halfling", "col": 3, "row": 5 },
+    { "type": "novice", "col": 2, "row": 4 },
+    { "type": "novice", "col": 2, "row": 5 },
+    { "type": "novice", "col": 2, "row": 6 },
+    { "type": "novice", "col": 3, "row": 3 },
+    { "type": "archer", "col": 1, "row": 4 },
+    { "type": "archer", "col": 1, "row": 5 }
   ],
   "enemy": [
     { "name": "手前の部屋", "ai": "guard", "sight": 3,
       "units": [
-        { "skin": "goblin", "col": 11, "row": 4 },
-        { "skin": "goblin", "col": 12, "row": 3 },
-        { "skin": "goblin", "col": 12, "row": 5 },
-        { "skin": "hobgoblin", "col": 13, "row": 4 },
-        { "skin": "goblin_archer", "col": 15, "row": 4 }
+        { "skin": "goblin", "col": 13, "row": 3 },
+        { "skin": "goblin", "col": 13, "row": 5 },
+        { "skin": "goblin", "col": 17, "row": 4 },
+        { "skin": "hobgoblin", "col": 15, "row": 4 },
+        { "skin": "goblin_archer", "col": 16, "row": 6 }
       ] },
     { "name": "奥の部屋", "ai": "guard", "sight": 3,
       "units": [
-        { "skin": "goblin", "col": 22, "row": 4 },
-        { "skin": "goblin", "col": 23, "row": 3 },
-        { "skin": "goblin", "col": 23, "row": 5 },
-        { "skin": "hobgoblin", "col": 24, "row": 4 },
-        { "skin": "goblin_archer", "col": 26, "row": 4 }
+        { "skin": "hobgoblin", "col": 25, "row": 3 },
+        { "skin": "hobgoblin", "col": 25, "row": 4 },
+        { "skin": "hobgoblin", "col": 25, "row": 5 },
+        { "skin": "goblin", "col": 26, "row": 4 },
+        { "skin": "goblin", "col": 26, "row": 5 },
+        { "skin": "goblin_archer", "col": 27, "row": 3 },
+        { "skin": "goblin_archer", "col": 27, "row": 4 },
+        { "skin": "goblin_archer", "col": 27, "row": 5 }
       ] }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st6.intro.1" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.intro.2" },
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st6.intro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st6.intro.4" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st6.intro.5" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.intro.6" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.intro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st6.intro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st6.intro.5" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.intro.6" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.outro.1" },
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st6.outro.2" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st6.outro.3" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st6.outro.4" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.outro.1" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.outro.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st6.outro.3" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.outro.4" }
     ]
   }
 }

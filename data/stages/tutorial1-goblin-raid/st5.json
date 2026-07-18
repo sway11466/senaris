@@ -5,13 +5,13 @@
   "rows": 9,
   "terrain": [
     "CCCCCCCCCCCCCCCCCCCCCC",
-    "CCC...CCCC...CCCC...CC",
+    "CCC...CCCC...CCCCCCCCC",
+    "..................CCCC",
     "......................",
     "......................",
-    "......................",
-    "......................",
-    "......................",
-    "CC...CCCC...CCCC...CCC",
+    "...................C.C",
+    ".................CCCCC",
+    "CC...CCCC...CCCCCCCCCC",
     "CCCCCCCCCCCCCCCCCCCCCC"
   ],
   "player": [
@@ -24,37 +24,36 @@
     { "type": "archer", "col": 3, "row": 4 }
   ],
   "enemy": [
-    { "ai": "charge", "units": [
-      { "skin": "goblin", "col": 9, "row": 4 },
-      { "skin": "goblin", "col": 10, "row": 4 },
-      { "skin": "hobgoblin", "col": 10, "row": 3 },
-      { "skin": "hobgoblin", "col": 10, "row": 5 },
-
-      { "skin": "goblin", "col": 14, "row": 4 },
-      { "skin": "goblin", "col": 15, "row": 4 },
-      { "skin": "hobgoblin", "col": 15, "row": 3 },
-      { "skin": "hobgoblin", "col": 15, "row": 5 },
-
-      { "skin": "goblin", "col": 19, "row": 4 },
-      { "skin": "goblin", "col": 20, "row": 4 },
-      { "skin": "hobgoblin", "col": 20, "row": 3 },
-      { "skin": "hobgoblin", "col": 20, "row": 5 }
-    ] }
+    { "ai": "charge",
+      "units": [
+        { "skin": "goblin", "col": 9, "row": 4 },
+        { "skin": "goblin", "col": 10, "row": 4 },
+        { "skin": "hobgoblin", "col": 10, "row": 3 },
+        { "skin": "hobgoblin", "col": 10, "row": 5 },
+        { "skin": "goblin", "col": 14, "row": 4 },
+        { "skin": "goblin", "col": 15, "row": 4 },
+        { "skin": "hobgoblin", "col": 15, "row": 3 },
+        { "skin": "hobgoblin", "col": 15, "row": 5 },
+        { "skin": "goblin", "col": 19, "row": 4 },
+        { "skin": "goblin", "col": 20, "row": 4 },
+        { "skin": "hobgoblin", "col": 20, "row": 3 },
+        { "skin": "hobgoblin", "col": 20, "row": 5 }
+      ] }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st5.intro.1" },
-      { "speaker": "char.archer.name", "skin": "archer",   "text": "t1.st5.intro.2" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st5.intro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st5.intro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st5.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st5.intro.1" },
+      { "speaker": "char.archer.name", "skin": "archer", "text": "t1.st5.intro.2" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.intro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.intro.5" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st5.outro.1" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st5.outro.2" },
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st5.outro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st5.outro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st5.outro.5" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.outro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st5.outro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.outro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.outro.5" }
     ]
   }
 }

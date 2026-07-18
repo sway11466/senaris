@@ -4,15 +4,15 @@
   "cols": 18,
   "rows": 9,
   "terrain": [
-    "..................",
-    ".......PP.....FF..",
-    ".......PPP...FF...",
+    ".....PPPP.........",
+    "......PPP.....FF..",
+    ".......PPP...FFFF.",
     "........PPP.......",
     "........PPP.......",
     "........PPP.......",
     "...FF....PPP......",
-    "..FF......PP......",
-    ".................."
+    "..FFF....PPP......",
+    ".........PPPP....."
   ],
   "player": [
     { "type": "fighter", "col": 2, "row": 4 },
@@ -20,27 +20,29 @@
     { "type": "novice", "col": 2, "row": 5 }
   ],
   "enemy": [
-    { "ai": "charge", "units": [
-      { "skin": "goblin", "col": 14, "row": 3 },
-      { "skin": "goblin", "col": 14, "row": 5 },
-      { "skin": "goblin", "col": 15, "row": 4 },
-      { "skin": "hobgoblin", "col": 14, "row": 4 }
-    ] }
+    { "ai": "charge",
+      "units": [
+        { "skin": "goblin", "col": 14, "row": 3 },
+        { "skin": "goblin", "col": 14, "row": 5 },
+        { "skin": "goblin", "col": 15, "row": 4 },
+        { "skin": "hobgoblin", "col": 14, "row": 4 },
+        { "skin": "hobgoblin", "col": 15, "row": 3 }
+      ] }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st2.intro.1" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st2.intro.2" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st2.intro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st2.intro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st2.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st2.intro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st2.intro.2" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st2.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st2.intro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st2.intro.5" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st2.outro.1" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st2.outro.2" },
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st2.outro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st2.outro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st2.outro.5" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st2.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st2.outro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st2.outro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st2.outro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st2.outro.5" }
     ]
   }
 }

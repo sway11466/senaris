@@ -4,13 +4,13 @@
   "cols": 14,
   "rows": 8,
   "terrain": [
-    "..............",
-    "............F.",
-    "...........FFF",
-    "............FF",
-    "...........FFF",
-    "............FF",
     ".............F",
+    "............FF",
+    "...........FFF",
+    "...........FFF",
+    "..........FFFF",
+    "............FF",
+    "............FF",
     ".............."
   ],
   "player": [
@@ -19,25 +19,26 @@
     { "type": "novice", "col": 1, "row": 5 }
   ],
   "enemy": [
-    { "ai": "charge", "units": [
-      { "skin": "goblin", "col": 10, "row": 1 },
-      { "skin": "goblin", "col": 10, "row": 3 },
-      { "skin": "goblin", "col": 10, "row": 5 }
-    ] }
+    { "ai": "charge",
+      "units": [
+        { "skin": "goblin", "col": 10, "row": 1 },
+        { "skin": "goblin", "col": 10, "row": 3 },
+        { "skin": "goblin", "col": 10, "row": 5 }
+      ] }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st1.intro.1" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st1.intro.2" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st1.intro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st1.intro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st1.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st1.intro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.intro.2" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st1.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.intro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st1.intro.5" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st1.outro.1" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st1.outro.2" },
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st1.outro.3" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st1.outro.4" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st1.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.outro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st1.outro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.outro.4" }
     ]
   }
 }
