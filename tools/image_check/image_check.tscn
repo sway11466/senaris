@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/image_check/image_check.gd" id="1_img"]
+
+[node name="ImageCheck" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+script = ExtResource("1_img")
