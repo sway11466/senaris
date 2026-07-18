@@ -54,6 +54,7 @@
   1. Unit 直列化：`Unit.to_dict`/`from_dict`（上記5フィールド＋復元は catalog）＋テスト。以降すべての土台（規模：小）。
   2. carryover 本体：(2a) `StageLoader` が `roster:"fresh"|"carryover"` を読む／(2b) 戦力スナップショットの保存・読出（`RosterStore`・ProgressStore の隣）／(2c) 継承スロット配置（案A＝配置スロットに順に嵌める）／(2d) ステージ間受け渡し（勝利→生存抽出→保存／次ステージ→読出→配置）。ここで tutorial3 が生存戦力で繋がる＝連戦が動く（規模：小〜中）。
   3. 見せ方：tutorial3 データ（各話 `roster:carryover`＋継承スロット＋新規勧誘）／セレクトの連戦区間可視化（規模：中）。中断セーブ（BattleState 全状態）は feature-9。
+- 進捗（2026-07-18）：Phase 1〜2 実装＋テスト済み＝`Unit.to_dict/from_dict`／`StageLoader` の `roster` 解釈・`_apply_carryover`・`survivors_snapshot`／`RosterStore`（`user://roster.json`）／main の勝利フック（生存保存）・開始フック（継承読込）。ロジック経路は統合テスト `tests/unit/test_carryover_flow.gd` で担保（勝利→保存→継承・リトライは前勝利の戦力）。残り＝Phase 3（tutorial3 実データ＋セレクト可視化）。main の live 配線の実機確認は、最初の carryover ステージ（tutorial3 か debug 連戦）を組んだ時に行う＝それまで保留。
 
 ### feature-6
 
