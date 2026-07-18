@@ -226,6 +226,40 @@ func in_field(hex: Vector2i) -> bool:
 	var off := Hex.axial_to_offset(hex)
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
 
+# --- 視線（索敵の遮蔽・減衰）。詳細 → doc/gdd/movement.md（視線）, doc/gdd/ai.md（起動） ---
+
+var _sight_cost := {}  # 地形id -> 視線コスト（空＝全地形1＝純距離の索敵と一致）。TerrainType から注入
+
+## 視線コスト表を注入する（movement 表と同型＝domain を data 非依存に保つ）。
+func set_sight_cost(table: Dictionary) -> void:
+	_sight_cost = table
+
+## hex の視線コスト（未登録は1＝開地相当）。壁など `x` は TerrainType.SIGHT_OPAQUE の大きな値。
+func sight_cost_at(hex: Vector2i) -> int:
+	return int(_sight_cost.get(terrain_at(hex), 1))
+
+## from から to へ視線が通り、累積視線コストが budget 以内か（起動 sight の判定に使う）。
+## from→to のヘックス直線を辿り、各マス（from を除き to を含む）の視線コストを積算し、
+## 途中で budget を超えたら遮られる（＝壁の裏には届かない・森ごしは減衰）。
+## 全地形コスト1なら「累積＝ヘックス距離」＝純距離の索敵に一致（既存挙動を壊さない）。
+func sight_reaches(from: Vector2i, to: Vector2i, budget: int) -> bool:
+	var acc := 0
+	var path := Hex.line(from, to)
+	for i in range(1, path.size()):
+		acc += sight_cost_at(path[i])
+		if acc > budget:
+			return false
+	return true
+
+## from から budget 以内で視認できる盤内ヘックスの集合（from 含む）。索敵範囲の可視化に使う。
+## 全コスト≥1 前提で距離 budget 以内を候補にし、視線が通るものだけ残す（壁は影を作る・森は範囲が縮む）。
+func visible_hexes(from: Vector2i, budget: int) -> Dictionary:
+	var out := { from: true }
+	for h in Hex.within_range(from, budget):
+		if in_field(h) and sight_reaches(from, h, budget):
+			out[h] = true
+	return out
+
 ## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
 ## 味方のマスは通過できるが停止できない（到達候補には含めない）。
 ## 敵ZOC（敵に隣接するマス）に入ると停止＝その先へは進めない（飛行含む全移動タイプ）。

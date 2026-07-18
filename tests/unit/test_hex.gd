@@ -26,6 +26,34 @@ func test_direction_wraps() -> void:
 	assert_eq(Hex.direction(6), Hex.direction(0), "6は0に折り返す")
 	assert_eq(Hex.direction(-1), Hex.direction(5))
 
+func test_line_same_hex_is_single() -> void:
+	assert_eq(Hex.line(Vector2i(2, -1), Vector2i(2, -1)), [Vector2i(2, -1)] as Array[Vector2i])
+
+func test_line_length_is_distance_plus_one() -> void:
+	var a := Vector2i(0, 0)
+	var b := Vector2i(3, -1)
+	assert_eq(Hex.line(a, b).size(), Hex.distance(a, b) + 1, "両端含めて距離+1個")
+
+func test_line_endpoints_and_contiguity() -> void:
+	var a := Vector2i(0, 0)
+	var b := Vector2i(4, -2)
+	var path := Hex.line(a, b)
+	assert_eq(path[0], a, "始点")
+	assert_eq(path[-1], b, "終点")
+	for i in range(1, path.size()):
+		assert_eq(Hex.distance(path[i - 1], path[i]), 1, "隣接して繋がる")
+
+func test_line_straight_row() -> void:
+	# q 方向にまっすぐ＝各マスが q+1
+	var path := Hex.line(Vector2i(0, 0), Vector2i(3, 0))
+	assert_eq(path, [Vector2i(0, 0), Vector2i(1, 0), Vector2i(2, 0), Vector2i(3, 0)] as Array[Vector2i])
+
+func test_line_deterministic() -> void:
+	# 際どい線でも毎回同じ（決定的＝セーブ/リプレイに安全）
+	var a := Vector2i(0, 0)
+	var b := Vector2i(2, 1)
+	assert_eq(Hex.line(a, b), Hex.line(a, b))
+
 func test_within_range_counts() -> void:
 	# 距離 n 以内のヘックス数は 1 + 3n(n+1)。
 	assert_eq(Hex.within_range(Vector2i(0, 0), 0).size(), 1)

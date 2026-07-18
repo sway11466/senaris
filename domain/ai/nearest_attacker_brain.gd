@@ -76,12 +76,13 @@ func _sight_of(state: BattleState, u: Unit) -> int:
 	var s: Variant = _param(state, u, "sight")
 	return int(s) if typeof(s) == TYPE_INT or typeof(s) == TYPE_FLOAT else 0
 
-## u から距離 radius 以内に敵ユニットがいるか。
+## u から索敵 radius 以内（＝視線が通り累積視線コスト ≤ radius）に敵ユニットがいるか。
+## 壁の裏・遠い森ごしは遮蔽/減衰で届かない（全地形コスト1なら距離判定に一致）。詳細 → doc/gdd/movement.md（視線）
 func _enemy_within(state: BattleState, u: Unit, radius: int) -> bool:
 	if radius <= 0:
 		return false
 	for other in state.units():
-		if other.team != u.team and Hex.distance(u.pos, other.pos) <= radius:
+		if other.team != u.team and state.sight_reaches(u.pos, other.pos, radius):
 			return true
 	return false
 
@@ -336,12 +337,12 @@ func _base_param(state: BattleState, b: Base, key: String, default: Variant) -> 
 	var preset: Dictionary = presets.get(String(squad.get("ai", "")), {})
 	return squad.get(key, preset.get(key, default))
 
-## hex から距離 radius 以内に team 以外のユニットがいるか（拠点の索敵起動用）。
+## hex から索敵 radius 以内（視線が通り累積視線コスト ≤ radius）に team 以外のユニットがいるか（拠点の索敵起動用）。
 func _enemy_within_hex(state: BattleState, hex: Vector2i, team: int, radius: int) -> bool:
 	if radius <= 0:
 		return false
 	for other in state.units():
-		if other.team != team and Hex.distance(hex, other.pos) <= radius:
+		if other.team != team and state.sight_reaches(hex, other.pos, radius):
 			return true
 	return false
 

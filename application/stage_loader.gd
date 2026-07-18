@@ -83,6 +83,7 @@ static func load_file(path: String, carried: Array = []) -> BattleState:
 		push_error("StageLoader: turn_limit（>0）は必須です（指定なし＝データのバグ）: %s" % path)  # doc/gdd/map.md
 	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
 	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
+	state.set_sight_cost(TerrainType.sight_cost_table())  # 地形ごとの視線コスト（索敵の遮蔽・減衰）を有効化
 	return state
 
 ## carryover 保存用：state の生存自軍（team 0・盤上の駒）の直列化リストを返す。

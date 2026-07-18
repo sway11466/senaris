@@ -263,6 +263,20 @@ func test_guard_wakes_on_sight() -> void:
 	assert_not_null(a, "索敵内に敵が入ったら起動して動く")
 	assert_true(s.is_engaged(10), "起動済みになる")
 
+func test_guard_does_not_wake_through_wall() -> void:
+	# 壁で視線が遮られると、索敵距離内でも待機AIは起きない（壁の裏には反応しない）。詳細 → doc/gdd/movement.md（視線）
+	_brain.presets = { "guard": GUARD }
+	var s := BattleState.new(12, 3)
+	s.set_sight_cost({ "plain": 1, "wall": 1 << 20 })
+	s.current_team = 1
+	for row in 3:  # 5列目と8列目の間を壁で全高に塞ぐ（視線は必ず壁を通る）
+		s.set_terrain(Hex.offset_to_axial(6, row), "wall")
+		s.set_terrain(Hex.offset_to_axial(7, row), "wall")
+	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(5, 1), 3))  # 距離3＝索敵内だが壁の裏
+	assert_null(_brain.next_action(s, 1), "壁の裏の敵には反応しない（待機のまま）")
+	assert_false(s.is_engaged(10), "未起動のまま")
+
 func test_guard_squad_alarm_wakes_all() -> void:
 	# 一斉警戒: 1体が索敵で起動すると、索敵外の同部隊メンバーも起動する。
 	_brain.presets = { "guard": GUARD }

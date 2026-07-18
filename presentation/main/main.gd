@@ -265,6 +265,7 @@ func _on_load_requested() -> void:
 		return
 	var state := BattleState.from_dict(data["state"], UnitCatalog.load_default())
 	state.set_movement(Movement.load_default())  # 静的コンフィグ＝セーブに含めず復元後に再適用（load_file と同じ）
+	state.set_sight_cost(TerrainType.sight_cost_table())  # 視線コストも静的コンフィグ＝復元後に再適用
 	var meta: Dictionary = data.get("meta", {})
 	_current_campaign_id = String(meta.get("campaign_id", ""))
 	_current_stage_id = String(meta.get("stage_id", ""))

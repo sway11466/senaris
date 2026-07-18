@@ -54,6 +54,22 @@ static func ring(center: Vector2i, radius: int) -> Array[Vector2i]:
 			hex = neighbor(hex, i)
 	return result
 
+## a→b を結ぶヘックス直線（両端を含む・距離+1 個）。視線判定のレイキャストに使う。
+## cube 座標で線形補間して丸める（redblobgames "Hex line drawing"）。端点を同量だけ微小オフセットして
+## 境界ちょうどを通る際どい線を一意に倒す（決定的＝セーブ/リプレイに影響なし）。
+static func line(a: Vector2i, b: Vector2i) -> Array[Vector2i]:
+	var result: Array[Vector2i] = [a]
+	var n := distance(a, b)
+	if n == 0:
+		return result
+	const EPS := 1e-6  # a・b を同方向に同量ずらす＝線の向きは不変・境界の曖昧さだけ解消
+	for i in range(1, n + 1):
+		var t := float(i) / n
+		var qf := (a.x + EPS) + ((b.x + EPS) - (a.x + EPS)) * t
+		var rf := (a.y + EPS) + ((b.y + EPS) - (a.y + EPS)) * t
+		result.append(axial_round(qf, rf))
+	return result
+
 # --- レイアウト（flat-top）。描画に渡す純粋な座標変換。size = ヘックスの中心〜頂点 ---
 
 const SQRT3 := 1.7320508075688772
