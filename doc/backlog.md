@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=18 / refactoring=5
+次回採番: bug=1 / feature=18 / refactoring=8
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -150,6 +150,30 @@
 - 背景：対応する味方がいないユニット（ドラゴン等）は解放対象＝garrison にできないルール（[map.md](gdd/map.md) 出撃・未決）。現状 `StageLoader._apply_bases` は garrison の type/native 整合を検証せず、任意 type を積めてしまう＝ステージ作成時のミスを検出できない。
 - 対応：garrison 生成時に「その native で解放できる type か」を検証し、不整合は生成時警告で弾く（CSV→データ生成のバリデーション方針の一適用）。ルールの線引き（どの type が garrison 不可か）を先に決める。
 - 該当：`application/stage_loader.gd`（`_apply_bases`）・`doc/gdd/map.md`。
+
+### refactoring-5
+
+**hex_board_3d の段階分割（メッシュ生成→カメラ→インタラクション再評価）**（優先度：中）
+
+- 背景：`presentation/board/hex_board_3d.gd` はプロダクト最大の約1500行で、(a) カメラリグ＋picking、(b) 選択→移動→コマンドメニューのインタラクション状態機械（約480行・コマンド追加のたび成長する中心）、(c) 盤の3D描画同期、(d) メッシュ/材質生成ヘルパーの4責務が同居している。ただし一括分割は危険：(b) と (c) はオーバーレイ状態（`_reachable`/`_targets`/`_formation_cells` 等）を共有する密結合で、素朴に切るとシグナルの往復や状態の二重持ちを生む。外側の疎な責務から段階的に剥がす。
+- 対応：(1) メッシュ/材質生成（`_make_*` 系・材質/テクスチャキャッシュ）を `board_mesh_factory.gd` へ抽出（純関数中心・最小リスク）。(2) カメラ数学（リグ・パン/ズーム/fit/追従 Tween・picking）を `board_camera_rig.gd` へ抽出。入力イベントの受け口（`_unhandled_input`）は盤に1本のまま残してリグへ委譲＝イベント処理順の罠を避ける。`fit_to_view` の state 直読みはやめ、盤の外接矩形を引数で渡す。(3) 約1100行へ減った状態でインタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を先に定義してから。より小さい代替として PopupMenu の組み立てだけの抽出（メニュービルダー）も可。
+- 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`（新規）・`presentation/board/board_camera_rig.gd`（新規）。挙動を変えないリファクタリングのため各段で実機確認（tests/manual の流儀）。
+
+### refactoring-6
+
+**BattleState から視線（索敵）ロジックを Sight ヘルパーへ抽出**（優先度：低）
+
+- 背景：`domain/battle_state.gd`（約950行）の状態集中は中断セーブの正本という設計意図どおりだが、視線判定（`sight_reaches`/`visible_hexes`/`_sight_line_cost`）は状態を読むだけの規則計算で、Combat/Formation/StatusMod/Surround と同じ「static ヘルパーが state を引数に取る」既存パターンに乗る。索敵は AI 起動と検知域可視化の両方から使われ拡張が続いており、今後も伸びる見込み。なお直列化（to_dict/from_dict）と輸送（_unload_map 系）の抽出は検討の末に見送り＝前者はフィールド追加時の2ファイル同時編集がセーブ漏れの温床になり、後者は移動コスト・行動フラグと密結合で切り口が汚い。
+- 対応：`domain/sight.gd`（static）へ移し、BattleState には委譲の薄い口を残すか呼び出し側（brain・presentation）を直呼びに更新する。`_sight_cost` 表は state が持ち続ける（セーブ・set_sight_cost 注入との整合）。着手は進行中の索敵作業が落ち着いてから。
+- 該当：`domain/battle_state.gd`・`domain/sight.gd`（新規）・`tests/unit/test_sight.gd`・`domain/ai/nearest_attacker_brain.gd`・`presentation/board/hex_board_3d.gd`。
+
+### refactoring-7
+
+**BattleState から勝敗判定を Victory ヘルパーへ抽出**（優先度：低）
+
+- 背景：勝敗判定（`outcome`/`_victory_met`/`_has_reinforcement` ほか約80行）は読み取り専用のクエリで、勝利条件タイプ（defeat_unit/capture_hq）はキャンペーン制作で増える見込み。増えるたび BattleState が太る。
+- 対応：`domain/victory.gd`（static・Sight と同パターン）へ抽出。復帰手段（案B）の判定は `can_enter_base_at` とも共有しているため、共有部の置き場所を抽出時に決める。着手の引き金＝勝利条件タイプを次に追加するとき。
+- 該当：`domain/battle_state.gd`・`domain/victory.gd`（新規）・`tests/unit/`。
 
 ## parking lot
 
