@@ -11,8 +11,9 @@ var _controller: MatchController = null
 var _hud: Hud = null
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
+var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _select: SelectScreen = null
-var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録用）
+var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録・carryover のキー用）
 var _current_stage_id := ""
 var _conversation: ConversationPanel = null
 var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネルより後ろ・盤より前）
@@ -33,12 +34,17 @@ func _ready() -> void:
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
+	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:
-	var state := StageLoader.load_file(path)
+	# carryover: 冒険譚に持ち越し戦力があれば渡す。fresh ステージ（carryover_slots 無し）では無視される。
+	var carried: Array = []
+	if _roster_store != null and not _current_campaign_id.is_empty():
+		carried = _roster_store.load_roster(_current_campaign_id)
+	var state := StageLoader.load_file(path, carried)
 	if state == null:
 		push_error("main: ステージを読めない: %s" % path)
 		return
@@ -90,6 +96,10 @@ func _on_battle_finished(outcome: int) -> void:
 			text = "自軍の勝利！"
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
 				_progress.record_clear(_current_campaign_id, _current_stage_id)
+				# carryover: 勝利時に生存自軍を保存＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
+				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/map.md
+				if _roster_store != null and _controller != null:
+					_roster_store.save_roster(_current_campaign_id, StageLoader.survivors_snapshot(_controller.state))
 		BattleState.PLAYER_LOSS:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text

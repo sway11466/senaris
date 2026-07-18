@@ -176,6 +176,33 @@ func test_no_carried_units_ignores_slots() -> void:
 	var s := StageLoader.build(data, _carry_catalog(), {}, [])
 	assert_eq(s.units().size(), 0, "carried 空なら継承配置なし")
 
+func test_survivors_snapshot_returns_player_only() -> void:
+	# 継承保存用＝生存自軍(team 0)の直列化だけ返す（敵は含めない）。
+	var data := { "cols": 6, "rows": 4,
+		"player": [{ "type": "archer", "col": 1, "row": 1 }, { "type": "knight", "col": 2, "row": 1 }],
+		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1 }] }] }
+	var s := StageLoader.build(data, _carry_catalog())
+	var snaps := StageLoader.survivors_snapshot(s)
+	assert_eq(snaps.size(), 2, "自軍2体のみ")
+	var types := [snaps[0]["type"], snaps[1]["type"]]
+	assert_true("archer" in types and "knight" in types, "自軍の type を含む")
+	assert_false("recruit" in types, "敵(team 1)は含めない")
+
+func test_load_file_places_carried_units() -> void:
+	# load_file(path, carried) で継承ユニットが carryover_slots に嵌る（main の受け渡し経路）。
+	_write_stage(JSON.stringify({
+		"cols": 8, "rows": 6, "turn_limit": 20, "roster": "carryover",
+		"carryover_slots": [{ "col": 1, "row": 1 }],
+	}))
+	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8 }]
+	var s := StageLoader.load_file(TMP_PATH, carried)
+	assert_not_null(s)
+	var u := s.unit_at(Hex.offset_to_axial(1, 1))
+	assert_not_null(u, "carried が load_file 経由で配置される")
+	assert_eq(u.type_id, "knight")
+	assert_eq(u.level, 4, "経験を保つ")
+	assert_eq(u.troops, 3, "損耗を保つ")
+
 func test_build_bases_with_garrison() -> void:
 	var catalog := {
 		"novice": UnitType.from_dict({

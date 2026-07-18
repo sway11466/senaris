@@ -64,12 +64,13 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 		state.victory_conditions = victory
 	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
-	state.roster = _parse_roster(data.get("roster"))  # fresh（既定）/carryover。継承の受け渡しは Phase 2d で配線
+	state.roster = _parse_roster(data.get("roster"))  # fresh（既定）/carryover。受け渡しは main が RosterStore 経由で配線
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
 ## ユニット種別は標準ロスター(UnitCatalog)で解決する。
-static func load_file(path: String) -> BattleState:
+## carried = 継承ユニットの直列化リスト（roster:carryover のステージで carryover_slots に嵌める）。fresh では無視される。
+static func load_file(path: String, carried: Array = []) -> BattleState:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
 		push_error("StageLoader: 読み込めない/空: %s" % path)
@@ -80,9 +81,19 @@ static func load_file(path: String) -> BattleState:
 		return null
 	if not data.has("turn_limit") or int(data.get("turn_limit", 0)) <= 0:
 		push_error("StageLoader: turn_limit（>0）は必須です（指定なし＝データのバグ）: %s" % path)  # doc/gdd/map.md
-	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard())
+	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
 	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
 	return state
+
+## carryover 保存用：state の生存自軍（team 0・盤上の駒）の直列化リストを返す。
+## 撃破された駒は BattleState から除去済みなので units() 生存者そのもの。次ステージの carried に渡す。
+## 当面の制限＝輸送機に搭乗中の駒（_passengers）は含めない。詳細 → doc/gdd/map.md / doc/tech/gamesystem.md
+static func survivors_snapshot(state: BattleState) -> Array:
+	var out: Array = []
+	for u in state.units():
+		if u.team == 0:
+			out.append(u.to_dict())
+	return out
 
 ## 地形グリッド（文字列の配列）を盤に反映。row=行index, col=文字index → offset(col,row)。
 static func _apply_terrain(state: BattleState, grid: Variant) -> void:
