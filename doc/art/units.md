@@ -162,9 +162,13 @@ POSE (ranged): A poised shooting stance — bow drawn to the cheek (or crossbow/
 POSE (rally): A commanding rally pose — the weapon (or holy symbol) thrust high overhead, chest out, standing tall and heroic to inspire the charge, leading toward the enemy on the right; not mid-strike, not lunging.
 ```
 ```
+```
 POSE (guard): A braced shield-guard stance — a large shield raised high and presented forward toward the enemy on the right as the main action (partly covering the body, peering over its rim), weight low and firmly planted, holding the line rather than advancing; not lunging, not mid-strike. For wall/tank units.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ・魔法兵）＝`channel`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`。
+```
+POSE (cast): An offensive spellcasting stance — the staff (or magic focus) leveled/thrust toward the enemy on the right in a casting gesture, the body turned to the side, feet planted, focused and channeling an attack spell; not lunging into melee. For offensive mages. Keep the piece opaque＝発光・オーラ・光線を出さない（切り抜きが荒れるため。発光の役割記号は map 側で担保）。
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
