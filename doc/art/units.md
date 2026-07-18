@@ -136,8 +136,12 @@ and short thick limbs, expressive calm face, mature slightly muted limited color
 palette (NOT bright saturated anime, NOT painterly photorealism), soft rim
 light, minimal fussy detail so it still reads when small. Unlike the board
 piece, this is seen from a slight high three-quarter overhead angle, as if
-looking down onto the battlefield, and the character is turned to face toward
-the RIGHT edge of the frame (facing the enemy line). Full body with both feet
+looking down onto the battlefield. IMPORTANT — VIEWING ANGLE: draw the character
+in a THREE-QUARTER, near side-on view, the whole body clearly TURNED to face the
+RIGHT edge of the frame (facing the enemy line) — head, shoulders and hips all
+rotated toward that side, chest NOT square to the viewer, weight leaning that
+way. This is emphatically NOT a straight-on, front-facing, symmetrical standing
+pose; he faces and moves toward the enemy at the side. Full body with both feet
 visible. Exactly ONE character, no crowd, no companions. Plain pure-white
 background (single flat color, for easy cutout), NO ground, NO ground shadow or
 drop shadow under the feet, NO scenery, NO text or logo. Square 1:1 composition.
