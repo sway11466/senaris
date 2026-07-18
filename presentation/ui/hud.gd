@@ -10,6 +10,8 @@ class_name Hud
 signal end_turn_requested        # ターン終了ボタン
 signal restart_requested         # システムメニュー: リスタート（現ステージ再読込）
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
+signal save_requested            # システムメニュー: 中断セーブ
+signal load_requested            # システムメニュー: 中断セーブから再開
 
 var _end_btn: Button
 var _gear: Button
@@ -37,8 +39,8 @@ func _ready() -> void:
 	_menu.add_item("セーブ", SYS_SAVE)
 	_menu.add_item("ロード", SYS_LOAD)
 	_menu.add_item("設定", SYS_SETTINGS)
-	for id in [SYS_SAVE, SYS_LOAD, SYS_SETTINGS]:  # 今後のフェーズで実装（今は無効表示）
-		_menu.set_item_disabled(_menu.get_item_index(id), true)
+	_menu.set_item_disabled(_menu.get_item_index(SYS_SETTINGS), true)  # 設定は今後のフェーズ（今は無効表示）
+	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), true)  # ロードは中断セーブが在るときだけ有効（main が切替）
 	_menu.add_separator()
 	_menu.add_item("閉じる", SYS_CLOSE)
 	_menu.id_pressed.connect(_on_sys_id)
@@ -58,6 +60,10 @@ func _reposition() -> void:
 func set_player_turn(enabled: bool) -> void:
 	_end_btn.disabled = not enabled
 
+## 「ロード」項目の有効/無効（中断セーブが在るときだけ有効）。main が保存有無で切り替える。
+func set_load_available(available: bool) -> void:
+	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), not available)
+
 ## システムメニューを開く（歯車ボタン／盤の最上位 Esc から）。
 func open_system_menu() -> void:
 	_menu.reset_size()
@@ -70,5 +76,9 @@ func _on_sys_id(id: int) -> void:
 			restart_requested.emit()
 		SYS_SELECT:
 			stage_select_requested.emit()
+		SYS_SAVE:
+			save_requested.emit()
+		SYS_LOAD:
+			load_requested.emit()
 		SYS_CLOSE:
 			pass  # 閉じるだけ（popup は自動で閉じる）

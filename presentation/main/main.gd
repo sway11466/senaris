@@ -12,6 +12,7 @@ var _hud: Hud = null
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
+var _save_store: SaveStore = null  # 中断セーブ（盤の状態まるごと・1枠）。user://save.json
 var _select: SelectScreen = null
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録・carryover のキー用）
 var _current_stage_id := ""
@@ -38,6 +39,8 @@ func _ready() -> void:
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
+	_save_store = SaveStore.new()  # 中断セーブ（user://save.json）
+	_hud.set_load_available(_save_store.has_save())  # 起動時に中断セーブが在ればロードを有効化
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
 
@@ -51,6 +54,12 @@ func load_stage(path: String) -> void:
 	if state == null:
 		push_error("main: ステージを読めない: %s" % path)
 		return
+	_install_state(state, path)
+	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す（新規開始のみ）
+
+## 与えられた BattleState を盤・進行役に据える（新規ロードと中断セーブ復元で共有）。
+## intro 会話の再生は含めない＝新規開始（load_stage）だけが呼ぶ。詳細 → doc/tech/gamesystem.md
+func _install_state(state: BattleState, path: String) -> void:
 	_current_stage_path = path  # システムメニューのリスタート用
 	_dialogue = StageLoader.load_dialogue(path)  # 会話（intro/outro）を presentation へ（案P）
 	if _controller != null:
@@ -77,7 +86,6 @@ func load_stage(path: String) -> void:
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
-	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す
 
 ## AI手番のテンポ制御（controller.combat_pace）：戦闘演出が出ていれば閉じるまで待つ。
 func _await_combat_view() -> void:
@@ -223,6 +231,8 @@ func _install_hud() -> void:
 	add_child(_hud)
 	_hud.end_turn_requested.connect(_on_end_turn_requested)
 	_hud.restart_requested.connect(_on_restart_requested)
+	_hud.save_requested.connect(_on_save_requested)
+	_hud.load_requested.connect(_on_load_requested)
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 
 func _on_end_turn_requested() -> void:
@@ -232,6 +242,33 @@ func _on_end_turn_requested() -> void:
 func _on_restart_requested() -> void:
 	if not _current_stage_path.is_empty():
 		load_stage(_current_stage_path)
+
+## 中断セーブ：現在の盤の状態まるごとを保存する（1枠・上書き）。文脈メタ（冒険譚/ステージ）も添える。
+## 状態が真実なので手番・位置・損耗・行動フラグごと再現できる（BattleState.to_dict）。詳細 → doc/tech/gamesystem.md
+func _on_save_requested() -> void:
+	if _save_store == null or _controller == null:
+		return
+	var meta := {
+		"campaign_id": _current_campaign_id, "stage_id": _current_stage_id,
+		"stage_path": _current_stage_path,
+	}
+	_save_store.save(_controller.state.to_dict(), meta)
+	_hud.set_load_available(true)  # 以後ロード可能に
+	$Title.text = "Senaris — セーブしました"
+
+## 中断セーブから再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
+func _on_load_requested() -> void:
+	if _save_store == null:
+		return
+	var data := _save_store.load()
+	if data.is_empty():
+		return
+	var state := BattleState.from_dict(data["state"], UnitCatalog.load_default())
+	state.set_movement(Movement.load_default())  # 静的コンフィグ＝セーブに含めず復元後に再適用（load_file と同じ）
+	var meta: Dictionary = data.get("meta", {})
+	_current_campaign_id = String(meta.get("campaign_id", ""))
+	_current_stage_id = String(meta.get("stage_id", ""))
+	_install_state(state, String(meta.get("stage_path", "")))  # 盤・進行役を保存状態で据える（intro なし）
 
 # --- セレクト画面（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
 func _install_select() -> void:
