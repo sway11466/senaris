@@ -5,91 +5,104 @@
 			"char": "L",
 			"def": 0.8,
 			"id": "road",
-			"memo": "見通しが良く防御が低い"
+			"memo": "見通しが良く防御が低い",
+			"sight_cost": 1
 		},
 		{
 			"atk": 1.0,
 			"char": ".",
 			"def": 1.0,
 			"id": "plain",
-			"memo": "特徴なし"
+			"memo": "特徴なし",
+			"sight_cost": 1
 		},
 		{
 			"atk": 1.15,
 			"char": "P",
 			"def": 1.15,
 			"id": "plateau",
-			"memo": "攻防ともに少しアップ"
+			"memo": "攻防ともに少しアップ",
+			"sight_cost": 1
 		},
 		{
 			"atk": 1.0,
 			"char": "%",
 			"def": 1.0,
 			"id": "wasteland",
-			"memo": "移動コストやや高め"
+			"memo": "移動コストやや高め",
+			"sight_cost": 1
 		},
 		{
 			"atk": 1.0,
 			"char": "F",
 			"def": 1.2,
 			"id": "forest",
-			"memo": "防御有利、移動コストやや高め、専用通過ユニット有"
+			"memo": "防御有利、移動コストやや高め、専用通過ユニット有",
+			"sight_cost": 2
 		},
 		{
 			"atk": 1.2,
 			"char": "*",
 			"def": 1.0,
 			"id": "bush",
-			"memo": "攻撃有利、移動コストやや高め、専用通過ユニット有"
+			"memo": "攻撃有利、移動コストやや高め、専用通過ユニット有",
+			"sight_cost": 2
 		},
 		{
 			"atk": 0.6,
 			"char": "M",
 			"def": 0.6,
 			"id": "mountain",
-			"memo": "攻防不利、移動コスト高め、専用通過ユニット有"
+			"memo": "攻防不利、移動コスト高め、専用通過ユニット有",
+			"sight_cost": 3
 		},
 		{
 			"atk": 1.0,
 			"char": "+",
 			"def": 1.5,
 			"id": "fence",
-			"memo": "防御特化、移動コスト高め"
+			"memo": "防御特化、移動コスト高め",
+			"sight_cost": 2
 		},
 		{
 			"atk": 1.5,
 			"char": "T",
 			"def": 1.0,
 			"id": "trap",
-			"memo": "攻撃特化、移動コスト高め"
+			"memo": "攻撃特化、移動コスト高め",
+			"sight_cost": 1
 		},
 		{
 			"atk": 1.0,
 			"char": "W",
 			"def": 1.0,
 			"id": "rampart",
-			"memo": "飛行ユニットと斥候が移動可能"
+			"memo": "飛行ユニットと斥候が移動可能",
+			"sight_cost": 3
 		},
 		{
 			"atk": 1.0,
 			"char": "C",
 			"def": 1.0,
 			"id": "cliff",
-			"memo": "飛行ユニットのみ移動可能"
+			"memo": "飛行ユニットのみ移動可能",
+			"sight_cost": 3
 		},
 		{
 			"atk": 1.0,
 			"char": "#",
 			"def": 1.0,
 			"id": "wall",
-			"memo": "全ユニット移動不可"
+			"memo": "全ユニット移動不可",
+			"sight_cost": "x"
 		},
 		{
 			"atk": 1.0,
 			"char": "O",
 			"def": 1.2,
 			"id": "fort",
-			"memo": "拠点想定で少し硬い"
+			"memo": "拠点想定で少し硬い",
+			"sight_cost": 1
 		}
 	]
 }

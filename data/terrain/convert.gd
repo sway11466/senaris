@@ -10,7 +10,7 @@ extends SceneTree
 const Csv = preload("res://data/csv_util.gd")
 
 ## 性能で必ず要る列（memo は任意）。name/image は skin へ分離済み。
-const TYPE_REQUIRED := ["id", "char", "atk", "def"]
+const TYPE_REQUIRED := ["id", "char", "atk", "def", "sight_cost"]
 ## スキンで必ず要る列（memo は任意）。
 const SKIN_REQUIRED := ["skin_id", "terrain_type", "name"]
 
@@ -41,9 +41,21 @@ static func build_type(rows: Array) -> Dictionary:
 		problems.append("id が重複: '%s'（後勝ち上書きになる）" % v)
 	for v in Csv.duplicates(rows, "char"):
 		problems.append("char が重複: '%s'（マップ文字→地形の衝突）" % v)
+	problems += _invalid_sight_cost(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "terrains": rows } }
+
+## sight_cost 列は「0以上の整数」または `x`（完全遮蔽）だけ許す。視線減衰＝レイキャストの積算コスト。詳細 → doc/gdd/movement.md
+static func _invalid_sight_cost(rows: Array) -> Array:
+	var problems: Array = []
+	for i in rows.size():
+		var r: Dictionary = rows[i]
+		var v: Variant = r.get("sight_cost")
+		var ok: bool = (typeof(v) == TYPE_INT and int(v) >= 0) or (typeof(v) == TYPE_STRING and String(v).strip_edges() == "x")
+		if not ok:
+			problems.append("行[%s] の sight_cost が不正 '%s'（0以上の整数か 'x'）" % [str(r.get("id", i)), str(v)])
+	return problems
 
 ## スキン表 → { problems, json }。json は { "skins": rows } 形。純関数。
 ## skin_id 一意・terrain_type 参照整合・orientable の bool・各 type に既定スキン（1枚以上）を検証。

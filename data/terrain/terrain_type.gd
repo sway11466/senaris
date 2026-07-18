@@ -10,6 +10,8 @@ class_name TerrainType
 
 const PATH := "res://data/terrain/terrain_type.json"
 const DEFAULT_ID := "plain"  ## 未設定マスの既定地形
+const SIGHT_OPAQUE := 1 << 20  ## `x`（完全遮蔽）の視線コスト＝どんな sight でも越えられない大きな値
+const SIGHT_DEFAULT := 1       ## 未定義地形の視線コスト（＝開地・距離1相当）
 
 static var _defs := {}         # id -> { atk, def, char }
 static var _char_to_id := {}   # ASCII文字 -> id
@@ -41,6 +43,23 @@ static func attack_factor(id: String) -> float:
 static func defense_factor(id: String) -> float:
 	_ensure()
 	return float(_defs.get(id, {}).get("def", 1.0))
+
+## 地形の視線コスト（索敵レイキャストの積算コスト）。`x`＝完全遮蔽＝SIGHT_OPAQUE。
+## 全地形1なら「累積コスト＝ヘックス距離」＝純距離の索敵に一致。詳細 → doc/gdd/movement.md（視線）
+static func sight_cost(id: String) -> int:
+	_ensure()
+	var v: Variant = _defs.get(id, {}).get("sight_cost", SIGHT_DEFAULT)
+	if typeof(v) == TYPE_STRING:
+		return SIGHT_OPAQUE if String(v).strip_edges() == "x" else SIGHT_DEFAULT
+	return int(v)
+
+## { 地形id: 視線コスト } の表（BattleState への注入用＝domain を data 非依存に保つ。movement 表と同型）。
+static func sight_cost_table() -> Dictionary:
+	_ensure()
+	var out := {}
+	for id in _defs:
+		out[id] = sight_cost(id)
+	return out
 
 ## ステージのASCII文字 → 地形id（未定義文字は既定地形）。
 static func char_to_id(ch: String) -> String:

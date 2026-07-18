@@ -120,8 +120,9 @@ func test_ai_empty_label_blocks() -> void:
 
 func test_terrain_type_valid_builds_json() -> void:
 	var rows := [
-		{ "id": "plain", "char": ".", "atk": 0, "def": 0 },
-		{ "id": "forest", "char": "F", "atk": 0, "def": 2 },
+		{ "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 },
+		{ "id": "forest", "char": "F", "atk": 0, "def": 2, "sight_cost": 2 },
+		{ "id": "wall", "char": "#", "atk": 0, "def": 0, "sight_cost": "x" },  # x＝完全遮蔽も有効
 	]
 	var r := Terrain.build_type(rows)
 	assert_eq(r["problems"].size(), 0)
@@ -129,17 +130,37 @@ func test_terrain_type_valid_builds_json() -> void:
 
 func test_terrain_type_each_required_column_pins_json_null() -> void:
 	for col in Terrain.TYPE_REQUIRED:
-		var row := { "id": "plain", "char": ".", "atk": 0, "def": 0 }
+		var row := { "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 }
 		row.erase(col)
 		var r := Terrain.build_type([row])
 		assert_null(r["json"], "'%s' 欠落で json=null" % col)
 
 func test_terrain_type_duplicate_char_blocks() -> void:
 	var rows := [
-		{ "id": "plain", "char": ".", "atk": 0, "def": 0 },
-		{ "id": "road", "char": ".", "atk": 0, "def": 0 },  # char 衝突
+		{ "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 },
+		{ "id": "road", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 },  # char 衝突
 	]
 	assert_null(Terrain.build_type(rows)["json"], "char 重複で json=null")
+
+func test_terrain_type_invalid_sight_cost_blocks() -> void:
+	# sight_cost は 0以上の整数か 'x' だけ許す（負数・小数・他文字列は弾く）。
+	for bad in [-1, 1.5, "y", "opaque"]:
+		var rows := [{ "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": bad }]
+		assert_null(Terrain.build_type(rows)["json"], "sight_cost=%s で json=null" % str(bad))
+	# 0 と 'x' は有効
+	assert_eq(Terrain.build_type([{ "id": "a", "char": "a", "atk": 0, "def": 0, "sight_cost": 0 }])["problems"].size(), 0, "0 は有効")
+	assert_eq(Terrain.build_type([{ "id": "b", "char": "b", "atk": 0, "def": 0, "sight_cost": "x" }])["problems"].size(), 0, "'x' は有効")
+
+# --- terrain: TerrainType.sight_cost（実データ）---
+
+func test_terrain_sight_cost_from_real_data() -> void:
+	assert_eq(TerrainType.sight_cost("plain"), 1, "開地=1")
+	assert_eq(TerrainType.sight_cost("forest"), 2, "森=2（減衰）")
+	assert_eq(TerrainType.sight_cost("mountain"), 3, "山=3")
+	assert_eq(TerrainType.sight_cost("wall"), TerrainType.SIGHT_OPAQUE, "壁=完全遮蔽")
+	assert_eq(TerrainType.sight_cost("nonexistent"), TerrainType.SIGHT_DEFAULT, "未定義=既定1")
+	var table := TerrainType.sight_cost_table()
+	assert_eq(int(table.get("forest", 0)), 2, "注入テーブルにも反映")
 
 # --- terrain: build_skin ---
 
