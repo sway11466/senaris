@@ -64,6 +64,7 @@
 ### サウンド — `audio/`（Audio Bible）
 
 - [doc/audio/bgm.md](doc/audio/bgm.md) — BGM（制作方針＝二段構え・MuseScore・トラックライブラリ＝ムード別に使い回し・管理運用＝autowire／ステージJSON指定・状態切替・権利台帳）
+- [doc/audio/tracks.md](doc/audio/tracks.md) — トラック設計ノート（各曲の狙い・音楽的設計・参考にした語法・調整の勘所）
 
 ### 販売・ブランド — `sales/`
 
