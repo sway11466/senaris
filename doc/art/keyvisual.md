@@ -43,13 +43,14 @@ around it. Wide 4:3 composition.
 
 | 段階 | 置き場（`{id}`＝data/stages のフォルダ名＝冒険譚id） | 例 |
 |---|---|---|
-| ① AI生成直後（原寸・透かし入り） | `assets/campaign-src/{id}/{id}_a_01_raw.png`（変種 a/b/c…） | `campaign-src/tutorial1-goblin-raid/tutorial1-goblin-raid_a_01_raw.png` |
-| ② 透かし除去（ツール自動・原寸） | `assets/campaign-src/{id}/{id}_a_02_dew.png` | 同上フォルダ |
-| ③ 手動調整マスター（任意・原寸） | `assets/campaign-src/{id}/{id}_a_03_master.png` | 同上フォルダ |
+| ① AI生成直後（原寸・透かし入り） | `assets/campaign-src/{id}/{id}_01_raw.png` | `campaign-src/tutorial2-undead-rush/tutorial2-undead-rush_01_raw.png` |
+| ② 透かし除去（ツール自動・原寸） | `assets/campaign-src/{id}/{id}_02_dew.png` | 同上フォルダ |
+| ③ 手動調整マスター（任意・原寸） | `assets/campaign-src/{id}/{id}_03_master.png` | 同上フォルダ |
 | SUBJECT | `assets/campaign-src/{id}/{id}_cover_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用（`_03_master`＞`_02_dew` を cp・比率調整は不要） | `assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial1-goblin-raid_cover.png` |
+| ④ ゲーム用（`_03_master`＞`_02_dew` を cp・比率調整は不要） | `assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial2-undead-rush_cover.png` |
 
-- 命名は他系統と揃える: slot（`_cover`/`_card`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_a_NN_raw/dew/master` は羊皮紙流。
+- 変種letter：1枚だけなら **付けない**（上表＝既定）。複数の cover 変種を出して表示ごとにランダムに1枚選ばせたいときだけ `_a`/`_b`/`_c`…（例: `{id}_a_01_raw.png`）を付ける（[campaign_catalog.gd](../../data/stages/campaign_catalog.gd) の連番 `{id}_cover_2.png` はゲーム用側の変種）。チュートリアル1の cover は歴史的経緯で `_a` 付き。
+- 命名は他系統と揃える: slot（`_cover`/`_card`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_NN_raw/dew/master`（複数変種時は `_a_NN…`）は羊皮紙流。
 - ②は `assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
 - 連番変種（`{id}_cover_2.png` …）を複数置くと、表示ごとにランダムで1枚選ぶ（[campaign_catalog.gd](../../data/stages/campaign_catalog.gd) `_resolve_art_variants`／地形・羊皮紙と同思想）。1枚だけなら固定。
 - cover の元は `_03_master` があればそれ、無ければ `_02_dew`（[direction.md](direction.md) §3）。1枚を大パネル＝全体、カード＝横帯として使い回す（比率はエンジンが合わせる）。
