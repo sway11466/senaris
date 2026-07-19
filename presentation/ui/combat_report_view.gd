@@ -124,15 +124,9 @@ func _rebuild_summary() -> void:
 	_add_row(_base_atk_text(L["atk"]), "攻撃", _base_atk_text(R["atk"]))
 	_add_row(_base_def_text(L["def"]), "防御", _base_def_text(R["def"]))
 	_add_row(_terrain_text(ls), "地形", _terrain_text(rs))
-	# ここから下は効いているときだけの行（両側とも素通しなら出さない＝サマリーを薄めない）
-	var lsur := _surround_of(L)
-	var rsur := _surround_of(R)
-	if not (is_equal_approx(lsur, 1.0) and is_equal_approx(rsur, 1.0)):
-		_add_row(_factor_text(lsur), "包囲", _factor_text(rsur))
-	var lsup := _support_text(L)
-	var rsup := _support_text(R)
-	if lsup != NONE or rsup != NONE:
-		_add_row(lsup, "支援", rsup)
+	# 包囲・支援は常設行＝行の有無で「効いたか」を探させない。効いていなければ — 表示。
+	_add_row(_factor_text(_surround_of(L)), "包囲", _factor_text(_surround_of(R)))
+	_add_row(_support_text(L), "支援", _support_text(R))
 	_add_status_rows(ls, rs)
 
 ## バフ行（両側の statuses を行単位でペアにする。数が違う側は空欄）。
@@ -233,7 +227,7 @@ func _surround_of(side: Dictionary) -> float:
 func _factor_text(f: float) -> String:
 	return "×%.2f" % f if not is_equal_approx(f, 1.0) else NONE
 
-## 支援（攻/防の加算ペア）。両方 0 なら NONE ＝行ごと省略の判定に使う。
+## 支援（攻/防の加算ペア）。両方 0 なら NONE（行は常設＝効果なしの表示）。
 func _support_text(side: Dictionary) -> String:
 	var atk: Dictionary = side["atk"]
 	var def: Dictionary = side["def"]
