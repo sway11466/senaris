@@ -144,10 +144,10 @@ func _install_conversation() -> void:
 		if _scrim != null:
 			_scrim.size = get_viewport().get_visible_rect().size)
 	_conversation = preload("res://presentation/ui/conversation_panel.gd").new()
-	_conversation.offset_left = 800  # InfoPanel と同じ箱に重ねる（会話中は InfoPanel を隠す）
-	_conversation.offset_top = 96
-	_conversation.offset_right = 1264
-	_conversation.offset_bottom = 628
+	_conversation.offset_left = UiLayout.RIGHT_BOX.position.x  # InfoPanel と同じ箱に重ねる（会話中は InfoPanel を隠す）
+	_conversation.offset_top = UiLayout.RIGHT_BOX.position.y
+	_conversation.offset_right = UiLayout.RIGHT_BOX.end.x
+	_conversation.offset_bottom = UiLayout.RIGHT_BOX.end.y
 	_conversation.bind(_skins)
 	_conversation.closed.connect(_on_conversation_closed)
 	add_child(_conversation)

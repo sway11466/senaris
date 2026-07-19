@@ -3,6 +3,8 @@ class_name CombatScene
 ## 戦闘演出シーン（第一版）。仕様 → doc/tech/combat_scene.md
 ## MatchController.combat_resolved(detail) を受け、プレイヤー左／敵右で隊列を並べ、
 ## シェイク＋フラッシュ＋損害数を出す。図は当面 map 画像を流用（正面向き・ミラー無し）。
+## 窓と暗幕は盤エリア（UiLayout.board_area）だけを覆う＝右の InfoPanel は隠さず、
+## 補正チェーンなどの詳細内訳を演出と同時に読めるようにする（演出=結果／右パネル=根拠）。
 ## 状態は持たず play(detail) のたびに detail から導出して描く。detail は BattleState.attack の "detail"。
 
 signal finished  # 演出が閉じた（自動クローズ or クリック）。AI手番のテンポ制御が待つ。
@@ -23,7 +25,7 @@ const TERRAIN_COLOR := {
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
 const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（秒）
 const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
-const FIG_H := 0.34   # 立ち絵の高さ（窓内寸の高さに対する比）
+const FIG_H := 0.30   # 立ち絵の高さ（窓内寸の高さに対する比）。盤エリア窓化で横が詰まるぶん少し小さく（実機で調整）
 const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
 
 var _skins := {}
@@ -48,12 +50,11 @@ func _build() -> void:
 	layer = 50  # 盤・HUD より前面
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_root.mouse_filter = Control.MOUSE_FILTER_STOP  # 表示中は盤入力を食う（モーダル）
+	_root.mouse_filter = Control.MOUSE_FILTER_STOP  # 表示中は全画面で入力を食う＝どこをクリックしてもスキップ（右パネルは見えるが操作は吸う）
 	_root.gui_input.connect(_on_root_input)
 	add_child(_root)
 	_backdrop = ColorRect.new()
-	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_backdrop.color = Color(0, 0, 0, 0.45)  # 盤を薄暗く
+	_backdrop.color = Color(0, 0, 0, 0.45)  # 盤を薄暗く（覆うのは盤エリアのみ。矩形は _layout が決める）
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_backdrop)
 	_panel = Panel.new()  # 中央のモーダル窓
@@ -82,15 +83,19 @@ func _build() -> void:
 	_inner.add_child(_fx)
 	visible = false
 
-## 窓を画面中央に配置し、内寸 _area を確定する（play のたびに再計算）。
+## 窓を盤エリア（右の情報ボックスを除く）の中央に配置し、内寸 _area を確定する（play のたびに再計算）。
+## 暗幕も同じ盤エリアに絞る＝右の InfoPanel が覆われず、詳細内訳を演出中に読める。
 func _layout() -> void:
 	var vp := Vector2(1152, 648)
 	var v := get_viewport()
 	if v != null:
 		vp = v.get_visible_rect().size
-	_area = Vector2(min(vp.x * 0.82, 980.0), min(vp.y * 0.60, 560.0))
+	var board := UiLayout.board_area(vp)
+	_backdrop.position = board.position
+	_backdrop.size = board.size
+	_area = Vector2(min(board.size.x * 0.90, 740.0), min(board.size.y * 0.62, 520.0))
 	_panel.size = _area
-	_panel.position = ((vp - _area) * 0.5).round()
+	_panel.position = (board.position + (board.size - _area) * 0.5).round()
 
 func bind(skins: Dictionary) -> void:
 	_skins = skins
