@@ -63,7 +63,7 @@
 
 ### サウンド — `audio/`（Audio Bible）
 
-- [doc/audio/bgm.md](doc/audio/bgm.md) — BGM（制作方針＝二段構え・MuseScore・データ形式・管理運用＝トラックID autowire／ステージJSON指定・状態切替・権利台帳）
+- [doc/audio/bgm.md](doc/audio/bgm.md) — BGM（制作方針＝二段構え・MuseScore・トラックライブラリ＝ムード別に使い回し・管理運用＝autowire／ステージJSON指定・状態切替・権利台帳）
 
 ### 販売・ブランド — `sales/`
 
