@@ -89,7 +89,7 @@ func _build_side(parent: HBoxContainer, head_text: String, atk_default: int, def
 	inputs["attack"] = _add_spin(grid, "ユニット攻撃力", 0, 999, 1, atk_default)
 	inputs["defense"] = _add_spin(grid, "ユニット防御力", 0, 999, 1, def_default)
 	inputs["pierce"] = _add_spin(grid, "貫通 (0〜1)", 0.0, 1.0, 0.05, 0.0)
-	inputs["level"] = _add_spin(grid, "経験Lv", 1, 8, 1, 1)
+	inputs["level"] = _add_spin(grid, "経験Lv", 1, Unit.MAX_LEVEL, 1, 1)
 	inputs["terrain"] = _add_terrain(grid, "地形")
 	inputs["occ"] = _add_spin(grid, "包囲: 隣接敵(占有)", 0, 6, 1, 0)
 	inputs["zoc"] = _add_spin(grid, "包囲: ZOC数", 0, 6, 1, 0)

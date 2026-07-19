@@ -28,7 +28,7 @@ func test_from_matches_board_plain() -> void:
 	assert_eq(sim["loss"], board["loss"], "失う兵が一致")
 
 func test_from_matches_board_with_terrain_and_level() -> void:
-	# 台地(攻防×1.15)・攻撃側Lv6(×1.40)を絡める。
+	# 台地(攻防×1.15)・攻撃側Lv6(＋1%/Lv＝×1.05)を絡める。
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	s.set_terrain(ap, "plateau")

@@ -4,7 +4,7 @@ class_name Unit
 ## skin_id だけは presentation 専用の同乗データ（純ロジック＝combat/surround/movement/AI は読まない）。
 ## 詳細 → doc/gdd/combat.md
 
-const MAX_LEVEL := 8   ## 経験値（＝レベル）の上限
+const MAX_LEVEL := 99  ## 経験値（＝レベル）の上限
 
 var id: int            ## 一意なID
 var team: int          ## 陣営（0=自軍, 1=敵軍 ...）。中立garrisonの寝返り等で変わりうる
