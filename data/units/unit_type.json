@@ -113,6 +113,22 @@
 			"range": "1-5"
 		},
 		{
+			"atk_air": 20,
+			"atk_ground": 20,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "弓兵",
+			"defense": 20,
+			"id": "slinger",
+			"max_troops": 8,
+			"memo": "弓兵の下位（低スペック弓・ゴブリン/スケルトンアーチャーに使用）",
+			"move": 3,
+			"move_after_attack": false,
+			"move_type": "ground",
+			"pierce": 0,
+			"range": "1-2"
+		},
+		{
 			"atk_air": 40,
 			"atk_ground": 40,
 			"can_capture": false,

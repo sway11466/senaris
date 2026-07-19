@@ -7,6 +7,7 @@ paladin,50,0,0,50,5,ground,1,false,true,8,0,占領兵,
 archer,30,30,0,30,5,ground,1-2,false,false,8,0,弓兵,
 hunter,30,55,0,30,6,ground,1-3,false,false,8,0,弓兵,
 elf,30,80,0,10,5,forest_walk,1-5,false,false,8,0,弓兵,
+slinger,20,20,0,20,3,ground,1-2,false,false,8,0,弓兵,弓兵の下位（低スペック弓・ゴブリン/スケルトンアーチャーに使用）
 wizard,40,40,0.5,30,4,ground,2-4,false,false,8,0,魔法兵,
 witch,30,30,0.5,30,4,ground,2-5,false,false,8,0,魔法兵,
 thief,70,10,0,20,8,light_foot,1,true,false,8,0,斥候,

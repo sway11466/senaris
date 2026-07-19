@@ -7,6 +7,7 @@ paladin,パラディン,ally,paladin,基準,1.05
 archer,アーチャー,ally,archer,基準,1.0
 hunter,ハンター,ally,hunter,基準,1.05
 elf,エルフ,ally,elf,基準,1.0
+slinger,スリンガー,ally,slinger,基準,1.0
 wizard,ウィザード,ally,wizard,基準,1.0
 witch,ウィッチ,ally,witch,基準,1.0
 thief,シーフ,ally,thief,基準,1.0
@@ -32,11 +33,11 @@ barricade,バリケード,ally,barricade,基準,0.85
 ballista,バリスタ,ally,ballista,基準,1.2
 goblin,ゴブリン,enemy,cleric,ゴブリン,0.8
 hobgoblin,ホブゴブリン,enemy,priest,ゴブリン,1.1
-goblin_archer,ゴブリンアーチャー,enemy,archer,ゴブリン,0.8
+goblin_archer,ゴブリンアーチャー,enemy,slinger,ゴブリン,0.8
 goblin_lord,ゴブリンロード,enemy,paladin,ゴブリン,1.0
 skeleton,スケルトン,enemy,priest,アンデッド,1.0
 zombie,ゾンビ,enemy,bishop,アンデッド,1.0
-skeleton_archer,スケルトンアーチャー,enemy,archer,アンデッド,1.0
+skeleton_archer,スケルトンアーチャー,enemy,slinger,アンデッド,1.0
 ghoul,グール,enemy,fighter,アンデッド,1.05
 dullahan,デュラハン,enemy,warlord,アンデッド,1.1
 ghost,ゴースト,enemy,pixie,アンデッド,0.9

@@ -24,24 +24,7 @@
 					"type_id": "archer"
 				}
 			],
-			"enemy": [
-				{
-					"category": "ゴブリン",
-					"description": "",
-					"images": {},
-					"name": "ゴブリンアーチャー",
-					"skin_id": "goblin_archer",
-					"type_id": "archer"
-				},
-				{
-					"category": "アンデッド",
-					"description": "",
-					"images": {},
-					"name": "スケルトンアーチャー",
-					"skin_id": "skeleton_archer",
-					"type_id": "archer"
-				}
-			]
+			"enemy": []
 		},
 		"ballista": {
 			"ally": [
@@ -377,6 +360,36 @@
 				}
 			],
 			"enemy": []
+		},
+		"slinger": {
+			"ally": [
+				{
+					"category": "基準",
+					"description": "",
+					"images": {},
+					"name": "スリンガー",
+					"skin_id": "slinger",
+					"type_id": "slinger"
+				}
+			],
+			"enemy": [
+				{
+					"category": "ゴブリン",
+					"description": "",
+					"images": {},
+					"name": "ゴブリンアーチャー",
+					"skin_id": "goblin_archer",
+					"type_id": "slinger"
+				},
+				{
+					"category": "アンデッド",
+					"description": "",
+					"images": {},
+					"name": "スケルトンアーチャー",
+					"skin_id": "skeleton_archer",
+					"type_id": "slinger"
+				}
+			]
 		},
 		"sniper": {
 			"ally": [
