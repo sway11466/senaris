@@ -10,7 +10,10 @@ const VALUE_COLOR := Color(0.96, 0.93, 0.86)
 const LABEL_COLOR := Color(0.72, 0.64, 0.50)
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
 const NONE := "—"
-const FIG_SIZE := 72.0
+const FIG_SIZE := 96.0        # ユニットの絵の一辺
+const VALUE_MIN_W := 170.0    # 値セルの最低幅＝伸長フラグと二段構えで看板幅を使い切る
+const MID_MIN_W := 48.0       # 中央の行ラベル列の最低幅
+const TAB_MIN_W := 120.0      # タブ1枚の最低幅
 
 var _skins := {}
 var _detail := {}
@@ -19,17 +22,19 @@ var _summary: GridContainer
 var _detail_label: Label
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var v := VBoxContainer.new()
-	v.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(v)
+	# アンカーは add_child 後に明示設定（親 Panel の看板幅いっぱいに広げる）
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	v.offset_left = 12
 	v.offset_top = 10
 	v.offset_right = -12
 	v.offset_bottom = -10
 	v.add_theme_constant_override("separation", 8)
-	add_child(v)
 	# タブ（トグル＋グループ＝押し込まれた板が選択中）。戦闘のたびにサマリーへ戻す。
 	var tabs := HBoxContainer.new()
+	tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tabs.add_theme_constant_override("separation", 6)
 	v.add_child(tabs)
 	var group := ButtonGroup.new()
@@ -39,11 +44,13 @@ func _ready() -> void:
 		b.button_group = group
 		b.add_theme_font_size_override("font_size", 14)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.custom_minimum_size = Vector2(TAB_MIN_W, 0)
 		b.pressed.connect(_show_tab.bind(t[0]))
 		tabs.add_child(b)
 		_tabs[t[0]] = b
 	_summary = GridContainer.new()
 	_summary.columns = 3
+	_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_summary.add_theme_constant_override("h_separation", 8)
 	_summary.add_theme_constant_override("v_separation", 4)
 	v.add_child(_summary)
@@ -152,7 +159,8 @@ func _value_label(text: String) -> Label:
 	l.text = text
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 13)
+	l.custom_minimum_size = Vector2(VALUE_MIN_W, 0)
+	l.add_theme_font_size_override("font_size", 14)
 	l.add_theme_color_override("font_color", VALUE_COLOR)
 	return l
 
@@ -160,7 +168,7 @@ func _mid_label(text: String) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.custom_minimum_size = Vector2(44, 0)
+	l.custom_minimum_size = Vector2(MID_MIN_W, 0)
 	l.add_theme_font_size_override("font_size", 12)
 	l.add_theme_color_override("font_color", LABEL_COLOR)
 	return l
