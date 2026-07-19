@@ -49,12 +49,14 @@ func _build() -> void:
 		return
 	layer = 50  # 盤・HUD より前面
 	_root = Control.new()
-	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_root.mouse_filter = Control.MOUSE_FILTER_STOP  # 表示中は全画面で入力を食う＝どこをクリックしてもスキップ（右パネルは見えるが操作は吸う）
+	# 入力キャッチも盤エリアだけ（矩形は _layout が決める）＝右の戦闘レポートのタブは演出中も押せる。
+	# 盤エリア内のクリック＝スキップ。
+	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.gui_input.connect(_on_root_input)
 	add_child(_root)
 	_backdrop = ColorRect.new()
-	_backdrop.color = Color(0, 0, 0, 0.45)  # 盤を薄暗く（覆うのは盤エリアのみ。矩形は _layout が決める）
+	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)  # _root（＝盤エリア）いっぱいに敷く
+	_backdrop.color = Color(0, 0, 0, 0.45)  # 盤を薄暗く
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_backdrop)
 	_panel = Panel.new()  # 中央のモーダル窓
@@ -91,11 +93,11 @@ func _layout() -> void:
 	if v != null:
 		vp = v.get_visible_rect().size
 	var board := UiLayout.board_area(vp)
-	_backdrop.position = board.position
-	_backdrop.size = board.size
+	_root.position = board.position
+	_root.size = board.size  # 暗幕は FULL_RECT アンカーで _root に追従する
 	_area = Vector2(min(board.size.x * 0.90, 740.0), min(board.size.y * 0.62, 520.0))
 	_panel.size = _area
-	_panel.position = (board.position + (board.size - _area) * 0.5).round()
+	_panel.position = ((board.size - _area) * 0.5).round()
 
 func bind(skins: Dictionary) -> void:
 	_skins = skins

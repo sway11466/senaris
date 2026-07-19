@@ -7,6 +7,7 @@ class_name UnitInfoPanel
 var _state: BattleState
 var _skins := {}        # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 var _label: Label
+var _report: CombatReportView  # 戦闘レポート（サマリー/詳細タブ）。戦闘時だけ _label と入れ替えて表示
 
 func _ready() -> void:
 	# 暗い木の看板（材質ルール: 木＝常設の面。TavernTheme 参照）
@@ -21,12 +22,16 @@ func _ready() -> void:
 	_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_label)
+	_report = CombatReportView.new()
+	_report.hide()
+	add_child(_report)
 	clear()
 
 ## 状態とスキン表を渡す（main から1回）。
 func bind(state: BattleState, skin_catalog: Dictionary) -> void:
 	_state = state
 	_skins = skin_catalog
+	_report.bind(skin_catalog)
 	clear()
 
 ## 選択変更を受けて表示を更新（id<0 で未選択）。
@@ -38,18 +43,26 @@ func show_unit(unit_id: int) -> void:
 	if u == null:
 		clear()
 		return
-	_label.text = _format(u)
+	_show_text(_format(u))
 
 func clear() -> void:
-	if _label != null:
-		_label.text = "ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認"
+	_show_text("ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認")
 
 ## 空きマスの地形情報を表示（拠点なら控え＝garrison も一覧）。HexBoard.tile_inspected を受ける。
 func show_terrain(hex: Vector2i) -> void:
 	if _state == null:
 		clear()
 		return
-	_label.text = _format_terrain(hex)
+	_show_text(_format_terrain(hex))
+
+## テキスト表示に戻す（戦闘レポートが出ていれば引っ込める）。
+func _show_text(text: String) -> void:
+	if _label == null:
+		return
+	if _report != null:
+		_report.hide()
+	_label.text = text
+	_label.show()
 
 func _format_terrain(hex: Vector2i) -> String:
 	var terr := _state.terrain_at(hex)
@@ -139,65 +152,12 @@ func _action_state(u: Unit) -> String:
 	return " / ".join(parts)
 
 # --- 戦闘結果ビュー（攻撃時に右パネルへ）。detail は BattleState.attack の "detail"。---
-# 攻防の導出と損害を、戦闘解決と同じ内訳(dict)からそのまま整形＝盤の数字と一致する。
+# 表示は CombatReportView（サマリー/攻撃側/守備側の3タブ）へ委譲。
+# 式の整形も同ビューに集約している＝盤の数字と一致する根拠は combat_report_view.gd 参照。
 
 func show_combat(detail: Dictionary) -> void:
 	if detail == null or detail.is_empty():
 		return
-	_label.text = _format_combat(detail)
-
-func _format_combat(d: Dictionary) -> String:
-	var a: Dictionary = d["attacker"]
-	var t: Dictionary = d["defender"]
-	var fwd: Dictionary = d["to_defender"]
-	var ret: Variant = d["to_attacker"]  # null＝反撃なし
-	var an := _combatant_name(a)
-	var tn := _combatant_name(t)
-	var lines: Array[String] = []
-	lines.append("⚔ 戦闘結果")
-	lines.append("──────────────────────")
-	lines.append("%s Lv%d  →  %s Lv%d" % [an, a["level"], tn, t["level"]])
-	lines.append("  %s  %d/%d → %d/%d (%+d)" % [an, a["troops_before"], a["max"], a["troops_after"], a["max"], a["troops_after"] - a["troops_before"]])
-	lines.append("  %s  %d/%d → %d/%d (%+d)" % [tn, t["troops_before"], t["max"], t["troops_after"], t["max"], t["troops_after"] - t["troops_before"]])
-	lines.append("──────────────────────")
-	lines.append("▼ 攻撃 %s（%s）" % [an, TerrainSkinCatalog.display_name(a["terrain"])])
-	lines.append(_chain(fwd["attack"]))
-	if ret != null:
-		lines.append(_chain(ret["defense"]))
-	lines.append("▼ 防御 %s（%s）" % [tn, TerrainSkinCatalog.display_name(t["terrain"])])
-	lines.append(_chain(fwd["defense"]))
-	if ret != null:
-		lines.append(_chain(ret["attack"]))
-	lines.append("──────────────────────")
-	lines.append("▼ 損害  割合=攻²÷(攻²+防²)、失う兵=相手の現在兵×割合")
-	lines.append(_damage_line(an, tn, fwd, t["troops_before"]))
-	if ret != null:
-		lines.append(_damage_line(tn, an, ret, a["troops_before"]))
-	else:
-		lines.append("  %s → %s  反撃なし" % [tn, an])
-	return "\n".join(lines)
-
-func _combatant_name(snap: Dictionary) -> String:
-	var s: UnitSkin = SkinCatalog.resolve(_skins, String(snap.get("skin_id", "")), snap["type_id"], snap["team"])
-	return s.name if s != null else String(snap["type_id"])
-
-## 補正チェーン1行。breakdown は Combat.attack_breakdown / defense_breakdown。
-func _chain(b: Dictionary) -> String:
-	var is_atk: bool = b["kind"] == "attack"
-	var head := "攻" if is_atk else "防"
-	var stat_label := ("対空" if b.get("vs_aerial", false) else "対地") if is_atk else "防"
-	# 状態補正（バフ/デバフ）は効いているときだけ式に出す（既定 mul=1.0・add=0 なら非表示）。
-	var smul: float = b.get("status_mul", 1.0)
-	var sadd: float = b.get("status_add", 0.0)
-	var smul_str := " × 状態×%.2f" % smul if not is_equal_approx(smul, 1.0) else ""
-	var sadd_str := " ＋状態%d" % roundi(sadd) if not is_zero_approx(sadd) else ""
-	return "  %s %d = 兵%d × %s%d × 経験×%.2f × 包囲×%.2f × 地形×%.2f%s ＋支援%d%s" % [
-		head, roundi(b["total"]), b["troops"], stat_label, b["stat"],
-		b["experience"], b["surround"], b["terrain"], smul_str, roundi(b["support"]), sadd_str]
-
-## 損害1行: 「攻撃側 → 受け手  攻A 対 防D → P% → 兵N×P% = 失う兵」。
-func _damage_line(from_name: String, to_name: String, hit: Dictionary, defender_troops: int) -> String:
-	var pct := int(round(hit["fraction"] * 100.0))
-	return "  %s → %s  攻%d 対 防%d → %d%% → 兵%d×%d%% = %d" % [
-		from_name, to_name, roundi(hit["attack"]["total"]), roundi(hit["defense"]["total"]),
-		pct, defender_troops, pct, hit["loss"]]
+	_label.hide()
+	_report.show()
+	_report.show_report(detail)
