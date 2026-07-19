@@ -61,6 +61,10 @@
 - [doc/art/menu.md](doc/art/menu.md) — メニュー画面の材質（木壁・依頼ボード・羊皮紙・ナインパッチ）
 - [doc/art/overview.md](doc/art/overview.md) — 画像スロット仕様（`map`/`combat`）
 
+### サウンド — `audio/`（Audio Bible）
+
+- [doc/audio/bgm.md](doc/audio/bgm.md) — BGM（制作方針＝二段構え・MuseScore・データ形式・Godot組込＝ループ・権利台帳）
+
 ### 販売・ブランド — `sales/`
 
 - [doc/sales/monetization.md](doc/sales/monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
