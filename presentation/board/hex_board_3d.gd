@@ -25,6 +25,7 @@ const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝
 const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
+const ELEVATION := { "plateau": 0.18 }  # 地形別の見た目の高さ（ワールド単位・TILE=1）。既定0。段差辺には側面スカートが付く。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
@@ -414,22 +415,36 @@ func _set_cam_target(p: Vector3) -> void:
 # picking（マウスレイ ∩ 盤平面 y=0。物理・コリジョン不要）
 # =========================================================================
 
-## screen 直下の盤平面(y=0)上の点。交差しない（水平線より上）なら Vector3.INF。
-func _plane_point_at(screen: Vector2) -> Vector3:
+## screen 直下・高さ y の水平面上の点。交差しない（水平線より上）なら Vector3.INF。
+func _plane_point_at_y(screen: Vector2, y: float) -> Vector3:
 	var o := _cam.project_ray_origin(screen)
 	var d := _cam.project_ray_normal(screen)
 	if absf(d.y) < 1e-6:
 		return Vector3.INF
-	var t := -o.y / d.y
+	var t := (y - o.y) / d.y
 	if t < 0.0:
 		return Vector3.INF
 	return o + d * t
 
+## screen 直下の盤平面(y=0)上の点。カメラパン等が使う。
+func _plane_point_at(screen: Vector2) -> Vector3:
+	return _plane_point_at_y(screen, 0.0)
+
+## screen 直下のヘックス。標高対応＝高い標高の平面から順に判定し、実際にその高さのタイルを指す
+## 最初の hex を返す（上のタイルが下を隠す）。どの標高にも当たらなければ y=0 の素の hex。
 func _hex_at_mouse() -> Vector2i:
-	var p := _plane_point_at(get_viewport().get_mouse_position())
-	if not p.is_finite():
+	var screen := get_viewport().get_mouse_position()
+	for e in _elev_levels():
+		var p := _plane_point_at_y(screen, e)
+		if not p.is_finite():
+			continue
+		var hex := Hex.from_pixel(Vector2(p.x, p.z), TILE)
+		if _on_board(hex) and is_equal_approx(_elev(hex), e):
+			return hex
+	var p0 := _plane_point_at_y(screen, 0.0)
+	if not p0.is_finite():
 		return INVALID_HEX
-	return Hex.from_pixel(Vector2(p.x, p.z), TILE)
+	return Hex.from_pixel(Vector2(p0.x, p0.z), TILE)
 
 ## hex が盤の中か（ホバー表示は盤上だけ）。
 func _on_board(hex: Vector2i) -> bool:
@@ -875,10 +890,26 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 		move_animation_finished.emit())
 	_move_tween = t
 
-## ヘックスの中心（ユニットの親ノードを置くワールド座標）。
+## ヘックスの中心（ユニットの親ノードを置くワールド座標）。地形の標高ぶん持ち上げる。
 func _hex_world(hex: Vector2i) -> Vector3:
 	var p := Hex.to_pixel(hex, TILE)
-	return Vector3(p.x, 0.0, p.y)
+	return Vector3(p.x, _elev(hex), p.y)
+
+## そのヘックスの見た目の標高（地形別・既定0）。ピッキング/配置/スカートで使う。
+func _elev(hex: Vector2i) -> float:
+	if state == null:
+		return 0.0
+	return float(ELEVATION.get(state.terrain_at(hex), 0.0))
+
+## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
+func _elev_levels() -> Array:
+	var s := { 0.0: true }
+	for v in ELEVATION.values():
+		s[float(v)] = true
+	var arr := s.keys()
+	arr.sort()
+	arr.reverse()
+	return arr
 
 ## 進行中の移動アニメを畳む。待っている側（AI手番）を取り残さないため完了を必ず知らせる。
 func _kill_move_tween() -> void:
@@ -950,11 +981,12 @@ func _sync_bases() -> void:
 		mi.mesh = _hexring_mesh
 		mi.material_override = _overlay_material(col)
 		var p := Hex.to_pixel(b.hex, TILE)
-		mi.position = Vector3(p.x, 0.015, p.y)
+		var by := _elev(b.hex)
+		mi.position = Vector3(p.x, by + 0.015, p.y)
 		_bases_root.add_child(mi)
 		# 控え数（出撃できる人数）を左上に小さく。
 		if not b.garrison.is_empty():
-			_add_count_label("+%d" % b.garrison.size(), Vector3(p.x, 0.0, p.y), col, _bases_root)
+			_add_count_label("+%d" % b.garrison.size(), Vector3(p.x, by, p.y), col, _bases_root)
 
 ## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
 func _build_tiles() -> void:
@@ -1013,7 +1045,7 @@ func _add_tile(hex: Vector2i) -> void:
 	mi.mesh = _hex_mesh
 	mi.material_override = _terrain_material(tex)
 	var p := Hex.to_pixel(hex, TILE)
-	mi.position = Vector3(p.x, 0.0, p.y)
+	mi.position = Vector3(p.x, _elev(hex), p.y)
 	if skin != null and skin.orientable:
 		# 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ。
 		var o := absi(hash(Vector2i(hex.y, hex.x)))
@@ -1028,12 +1060,14 @@ func _add_grid() -> void:
 	im.surface_begin(Mesh.PRIMITIVE_LINES)
 	for col in state.cols:
 		for row in state.rows:
-			var p := Hex.to_pixel(Hex.offset_to_axial(col, row), TILE)
+			var hex := Hex.offset_to_axial(col, row)
+			var p := Hex.to_pixel(hex, TILE)
+			var gy := _elev(hex) + 0.01
 			for i in 6:
 				var a0 := deg_to_rad(60.0 * i)
 				var a1 := deg_to_rad(60.0 * (i + 1))
-				im.surface_add_vertex(Vector3(p.x + cos(a0) * TILE, 0.01, p.y + sin(a0) * TILE))
-				im.surface_add_vertex(Vector3(p.x + cos(a1) * TILE, 0.01, p.y + sin(a1) * TILE))
+				im.surface_add_vertex(Vector3(p.x + cos(a0) * TILE, gy, p.y + sin(a0) * TILE))
+				im.surface_add_vertex(Vector3(p.x + cos(a1) * TILE, gy, p.y + sin(a1) * TILE))
 	im.surface_end()
 	var mi := MeshInstance3D.new()
 	mi.mesh = im
@@ -1064,15 +1098,22 @@ func _add_skirt() -> void:
 			var base := _tile_avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
 			var top_c := base.darkened(SKIRT_DARKEN - 0.20)
 			var bot_c := base.darkened(SKIRT_DARKEN + 0.20)
+			var top := _elev(hex)
 			for i in 6:
-				if _on_board(hex + dirs[i]):
-					continue  # 隣にタイルがある辺は側面不要
+				var nb := hex + dirs[i]
+				var bottom: float
+				if not _on_board(nb):
+					bottom = -SKIRT_DEPTH         # 盤外＝ジオラマの縁（島の厚み）
+				elif _elev(nb) < top - 0.001:
+					bottom = _elev(nb)            # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）
+				else:
+					continue                      # 同高 or 高い隣にはスカート不要
 				var a0 := deg_to_rad(60.0 * i)
 				var a1 := deg_to_rad(60.0 * (i + 1))
-				var c0 := Vector3(p.x + cos(a0) * TILE, 0.0, p.y + sin(a0) * TILE)
-				var c1 := Vector3(p.x + cos(a1) * TILE, 0.0, p.y + sin(a1) * TILE)
-				var d0 := c0 + Vector3(0, -SKIRT_DEPTH, 0)
-				var d1 := c1 + Vector3(0, -SKIRT_DEPTH, 0)
+				var c0 := Vector3(p.x + cos(a0) * TILE, top, p.y + sin(a0) * TILE)
+				var c1 := Vector3(p.x + cos(a1) * TILE, top, p.y + sin(a1) * TILE)
+				var d0 := Vector3(c0.x, bottom, c0.z)
+				var d1 := Vector3(c1.x, bottom, c1.z)
 				# UVのuはコーナーのワールド座標から取る＝隣り合う辺と連続（継ぎ目が出ない）。
 				var u0 := (c0.x * 0.31 + c0.z * 0.53) * 0.8
 				var u1 := (c1.x * 0.31 + c1.z * 0.53) * 0.8
@@ -1125,7 +1166,7 @@ func _sync_units() -> void:
 	for u in state.units():
 		var p := Hex.to_pixel(u.pos, TILE)
 		var root := Node3D.new()
-		root.position = Vector3(p.x, 0.0, p.y)
+		root.position = Vector3(p.x, _elev(u.pos), p.y)
 		_units_root.add_child(root)
 		_unit_nodes[u.id] = root
 		var done := state.is_done(u.id)
@@ -1207,7 +1248,7 @@ func _sync_overlay() -> void:
 		_add_cell(_unload_to, COLOR_PENDING, 0.03)
 	for pos in _targets:  # 攻撃可能な敵＝赤リング
 		var tp := Hex.to_pixel(pos, TILE)
-		_add_ring(Vector3(tp.x, 0.0, tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
+		_add_ring(Vector3(tp.x, _elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
@@ -1216,11 +1257,11 @@ func _sync_overlay() -> void:
 	var sel := state.unit_by_id(_selected_id) if _selected_id != -1 else null
 	if sel != null:
 		var sp := Hex.to_pixel(sel.pos, TILE)
-		_add_ring(Vector3(sp.x, 0.0, sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
+		_add_ring(Vector3(sp.x, _elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
 	var ins := state.unit_by_id(_inspected_id) if _inspected_id != -1 else null
 	if ins != null:
 		var ip := Hex.to_pixel(ins.pos, TILE)
-		_add_ring(Vector3(ip.x, 0.0, ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
+		_add_ring(Vector3(ip.x, _elev(ins.pos), ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
 		# 待機中の見張り（sight で起きる・未起動）を選んだら、検知域の外周を赤線でなぞる。
 		if controller != null:
 			var det: int = controller.detection_radius(ins)
@@ -1234,7 +1275,7 @@ func _add_cell(hex: Vector2i, color: Color, y: float) -> void:
 	mi.mesh = _overlay_mesh
 	mi.material_override = _overlay_material(color)
 	var p := Hex.to_pixel(hex, TILE)
-	mi.position = Vector3(p.x, y, p.y)
+	mi.position = Vector3(p.x, _elev(hex) + y, p.y)
 	_overlay_root.add_child(mi)
 
 ## 辺 i（コーナー i→i+1）に対応する隣接方向（フラットトップ axial・_add_skirt と同じ対応）。
@@ -1252,13 +1293,14 @@ func _add_sight_boundary(visible: Dictionary) -> void:
 	var hw := TILE * SIGHT_EDGE_WIDTH * 0.5  # 帯の半幅
 	for hex in visible:
 		var p := Hex.to_pixel(hex, TILE)
+		var sy := _elev(hex) + 0.05
 		for i in 6:
 			if visible.has(hex + _EDGE_DIRS[i]):
 				continue  # 内側の辺は描かない（外周だけ）
 			var a0 := deg_to_rad(60.0 * i)
 			var a1 := deg_to_rad(60.0 * (i + 1))
-			var v0 := Vector3(p.x + cos(a0) * TILE, 0.05, p.y + sin(a0) * TILE)
-			var v1 := Vector3(p.x + cos(a1) * TILE, 0.05, p.y + sin(a1) * TILE)
+			var v0 := Vector3(p.x + cos(a0) * TILE, sy, p.y + sin(a0) * TILE)
+			var v1 := Vector3(p.x + cos(a1) * TILE, sy, p.y + sin(a1) * TILE)
 			_add_thick_edge(im, v0, v1, hw)
 	im.surface_end()
 	var mi := MeshInstance3D.new()
