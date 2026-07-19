@@ -34,6 +34,7 @@ BGM の制作方針と組込の運用。**費用をかけない**前提で、限
 
 - **原本 `.mscz` が正**。`.ogg` は書き出し（生成物）だが、絵の PNG（`-src` からの生成物）と同じく**コミットする**（置くだけで鳴る運用のため）。
 - **`.ogg` の中身は Ogg Vorbis 必須（罠）**: `.ogg` はコンテナ名で、中身が **Opus** のファイルも同じ拡張子を名乗る。Godot 4 が読めるのは **Vorbis のみ**（Opus はインポートで `valid=false`）。書き出し・変換ツールによっては Opus を吐くので、投入前に `head -c 64 x.ogg | strings` で `vorbis`（OK）/`OpusHead`（NG）を確認する。NG なら MuseScore から WAV を書き出し直し `ffmpeg -i in.wav -c:a libvorbis -q:a 6 out.ogg` で変換（Opus からの再エンコードは劣化が重なるため WAV 経由推奨）。
+- **書き出しの基準値**: WAV（中間素材）＝ **44100 Hz／16bit PCM／ステレオ**（Godot の既定ミックスレートが 44100 Hz のため合わせる。48kHz は実行時リサンプルになるだけで利点なし）。OGG Vorbis（最終）＝ **44100 Hz／`-q:a 6`（≈192kbps）**。MuseScore のエクスポート設定ではサンプルレート 44100 Hz を選択、ビット深度は既定の 16bit のままでよい。
 - 他所からメロディをもらう時は **MusicXML か MIDI** で受け取り、MuseScore で開いて直す。MIDI→楽譜変換はリズム解釈がずれることがあるので取り込み後に手直し前提。
 
 ## 制作ワークフロー
