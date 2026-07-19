@@ -59,6 +59,52 @@ func test_no_mods_is_regression() -> void:
 	assert_almost_eq(float(a["mul"]), 1.0, 0.001, "既定 mul=1.0")
 	assert_almost_eq(float(a["add"]), 0.0, 0.001, "既定 add=0")
 
+# --- 表示用一覧（applied / snapshot statuses） ---
+
+func test_applied_returns_only_applying_entries() -> void:
+	var ally := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3, 8, 30, 30)
+	var foe := Unit.new(2, 1, Hex.offset_to_axial(5, 2), 3, 8, 30, 30)
+	var mods := [
+		{"scope": "team", "team": 0, "op": "mul", "target": "both", "value": 1.3, "name": "ホーリーアリア"},
+		{"scope": "unit", "unit_id": 2, "op": "add", "target": "attack", "value": 10},
+	]
+	var ally_list := StatusMod.applied(mods, ally)
+	assert_eq(ally_list.size(), 1, "味方に効くエントリだけ返る")
+	assert_eq(String(ally_list[0]["name"]), "ホーリーアリア", "表示名を保持する")
+	var foe_list := StatusMod.applied(mods, foe)
+	assert_eq(foe_list.size(), 1, "個別(unit_id=2)エントリだけ効く")
+	assert_eq(String(foe_list[0].get("op", "")), "add", "team0 のバフは敵に効かない")
+
+func test_combat_detail_snapshot_includes_statuses() -> void:
+	# 戦闘結果 detail のスナップショットに、その時点で効いていた状態補正一覧が同梱される（戦闘レポート用）。
+	var s := _state()
+	var ap := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 30, 30))
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 30, 30))
+	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "remaining": 2, "name": "ホーリーアリア"})
+	var d: Dictionary = s.attack(1, 2)["detail"]
+	var a_statuses: Array = d["attacker"]["statuses"]
+	assert_eq(a_statuses.size(), 1, "攻撃側(team0)にバフ1件")
+	assert_eq(String(a_statuses[0]["name"]), "ホーリーアリア", "表示名まで届く")
+	assert_eq((d["defender"]["statuses"] as Array).size(), 0, "防御側(team1)には効いていない")
+
+func test_formation_buff_entry_carries_recipe_name() -> void:
+	# resolve_formation の buff 経路で、エントリに陣形レシピの表示名が焼き込まれる。
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var members: Array[Unit] = []
+	for i in 5:  # ホーリーアリア＝聖職5体の隣接クラスタ
+		var u := Unit.new(10 + i, 0, Hex.offset_to_axial(3 + i, 3), 3, 8, 10, 10, 1, "cleric")
+		s.add_unit(u)
+		members.append(u)
+	var options := Formation.available_for(s, members[0])
+	assert_gt(options.size(), 0, "ホーリーアリアが成立している前提")
+	assert_true(s.resolve_formation(options[0], c).size() > 0, "発動成功")
+	var lead := members[0]
+	var applied := StatusMod.applied(s._status_mods, lead)
+	assert_eq(applied.size(), 1, "バフエントリが積まれる")
+	assert_eq(String(applied[0]["name"]), "ホーリーアリア", "レシピ表示名が入る")
+
 # --- 持続満了 ---
 
 func test_duration_expires_after_two_self_turns() -> void:

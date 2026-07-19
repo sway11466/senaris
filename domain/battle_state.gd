@@ -670,13 +670,16 @@ func _buff_entry(option: Dictionary) -> Dictionary:
 		"target": String(option.get("buff_target", "both")),
 		"value": float(option.get("buff_mult", 1.0)),
 		"remaining": int(option.get("duration_turns", 1)),
+		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
 	}
 
 ## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
+## statuses＝この時点で効いている状態補正エントリの一覧（戦闘レポートのバフ表示用）。
 func _unit_snapshot(u: Unit) -> Dictionary:
 	return {
 		"id": u.id, "type_id": u.type_id, "skin_id": u.skin_id, "team": u.team, "level": u.level,
 		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos),
+		"statuses": StatusMod.applied(_status_mods, u),
 	}
 
 ## 撃破された駒を盤から除去し、撃破済みとして記録（勝利条件「ボス撃破」の判定材料）。
