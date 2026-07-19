@@ -32,7 +32,7 @@ BGM の制作方針と組込の運用。**費用をかけない**前提で、限
 | MIDI | `.mid` | 演奏データ | フリー MIDI や生成物の取り込み・プレビュー |
 | Ogg Vorbis | `.ogg` | 最終成果物 | Godot に載せる。原本から作り直せる生成物 |
 
-- **原本 `.mscz` が正**。`.ogg` は書き出しなので git 管理は任意（生成物）。
+- **原本 `.mscz` が正**。`.ogg` は書き出し（生成物）だが、絵の PNG（`-src` からの生成物）と同じく**コミットする**（置くだけで鳴る運用のため）。
 - 他所からメロディをもらう時は **MusicXML か MIDI** で受け取り、MuseScore で開いて直す。MIDI→楽譜変換はリズム解釈がずれることがあるので取り込み後に手直し前提。
 
 ## 制作ワークフロー
@@ -70,11 +70,55 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 
 > 「戦闘曲」を独立トラックとしては持たない。緊張感は**ステージ曲の出し分け＋下記の状態切り替え**で作る。個々の戦闘は SFX（[../tech/combat_scene.md](../tech/combat_scene.md) の演出）で示す。
 
+## 管理・運用（ディレクトリ・トラックID・ステージ指定）
+
+絵の管理（[../art/overview.md](../art/overview.md)、`assets/units/` ＋ `assets/units-src/`、autowire）と同じ思想で揃える。
+
+### ディレクトリ — `xxx` / `xxx-src` の対
+
+```
+assets/
+  bgm/                  ← ゲーム用 .ogg（Godot が読む）
+    map_calm.ogg
+    map_crisis.ogg
+  bgm-src/              ← 制作元
+    map_calm/
+      map_calm.mscz     ← 編曲の正
+      map_calm.musicxml ← 受け渡し用（任意）
+    credits.md          ← 権利・ライセンス台帳（曲単位）
+```
+
+- 絵の「PNG＝`units/`、PSD・指示書＝`units-src/`」と同型。効果音を作る時は `assets/sfx/`＋`assets/sfx-src/` を並べる。
+- 台帳は素材の隣（`units-src/{group}/style.md` と同じパターン）。
+
+### トラックID — 規約 autowire
+
+- 曲は**トラックID**（`map_calm` / `boss` / `title` / `victory` …）で扱い、`assets/bgm/{track_id}.ogg` を規約で解決する（skin の画像 autowire と同型）。
+- ファイルが**あれば**鳴る。**なければ無音＋開発ログ1行**（絵のプレースホルダの音版。ゲームは止めない）。曲が完成したら `.ogg` を置くだけで鳴り出す＝コード・データ変更なし。
+
+### ステージ単位の指定 — ステージJSONの `bgm` 欄
+
+```json
+{ "name": "tutorial-st1",
+  "bgm": { "main": "map_calm", "crisis": "map_crisis" } }
+```
+
+- スロット制：`main`（必須）＋ `crisis`（任意＝状態切替用。未指定なら切替イベントが来ても曲は変わらない）。将来 `intro` 等もスロット追加で対応。
+- **フォールバック連鎖**：ステージの `bgm` → `campaign.json` の既定 → 全体既定。全ステージに書かなくても冒険譚単位の指定で済む。
+
+### レイヤー配置
+
+| レイヤー | 責務 |
+|---|---|
+| `data` | トラックカタログ（ID→パス解決・autowire）。純ロジック |
+| `application` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定。`crisis` フラグ管理もここ |
+| `presentation` | `BgmPlayer`（AudioStreamPlayer×2 のクロスフェード）。ID を受けて鳴らすだけ |
+
 ## Godot 組込
 
 - 形式は **`.ogg`**（軽量・ループ設定しやすい）。`AudioStreamOggVorbis` で読み、`AudioStreamPlayer` で再生。
-- ループは Ogg 側 or インポート設定の **`loop` / `loop_offset`** で管理。ステージ中ずっと流れる曲はループ必須。
-- レイヤー上、音の再生制御は presentation 寄り。曲の選択ルール（場面→曲）が要るなら application に薄く持たせ、`domain`/`data` は音に依存させない（[../tech/architecture.md](../tech/architecture.md)）。
+- ループは Ogg 側 or インポート設定の **`loop` / `loop_offset`** で管理（`.import` に乗る＝絵と同じ管理感覚）。ステージ中ずっと流れる曲はループ必須。
+- レイヤー上、音の再生制御は presentation 寄り。曲の選択ルール（場面→曲）は application に薄く持たせ、`domain`/`data` は音に依存させない（[../tech/architecture.md](../tech/architecture.md)）。
 
 ## ループ設計の注意
 
@@ -97,7 +141,7 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 
 ## 権利・ライセンス台帳
 
-商用（Steam）前提。使った素材は**必ず台帳に記録**する。有料データ保護の方針（[../adr/ADR-0002-paid-data-protection.md](../adr/ADR-0002-paid-data-protection.md)）とは別に、**こちらは「他者の権利を侵さない」ための管理**。
+商用（Steam）前提。使った素材は**必ず台帳（`assets/bgm-src/credits.md`）に記録**する。有料データ保護の方針（[../adr/ADR-0002-paid-data-protection.md](../adr/ADR-0002-paid-data-protection.md)）とは別に、**こちらは「他者の権利を侵さない」ための管理**。
 
 記録項目（曲ごと）:
 
@@ -115,4 +159,5 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 
 - **マップ曲**: たたき台 v3 あり（32小節・ニ長調／フルート＋グロッケン＋弦アルペジオ＋ティンパニ、`.musicxml`／`.mid`）。シンバルのスウェル追加・MuseScore での仕上げ・`.ogg` 化は今後。
 - 曲を追加したら本ドキュメントの曲リストと権利台帳を更新する。
-- 台帳の実体（CSV 等）が必要になったら置き場所を決める（`data/` 配下 or 本ドキュメント内表）。→ 必要になってから（[../backlog.md](../backlog.md) 方式）。
+- 台帳の実体は **`assets/bgm-src/credits.md`**（最初の曲を入れる時に作成）。
+- 管理・運用（`assets/bgm/`・トラックID autowire・ステージJSON `bgm` 欄）の**実装は未着手**。着手はオーナー許可後。
