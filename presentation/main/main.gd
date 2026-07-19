@@ -21,6 +21,8 @@ var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネ
 var _scrim_tween: Tween = null  # 進行中のフェード。次のフェード開始時に kill する（off の hide が on を消す競合対策）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
+var _bgm: BgmPlayer = null  # BGM の再生（永続・クロスフェード）。曲の決定は _bgm_director
+var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/冒険譚/既定のフォールバック連鎖
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
 
@@ -36,6 +38,7 @@ func _ready() -> void:
 	add_child(_combat_scene)
 	_victory_screen = VictoryScreen.new()  # キャンペーン完走の勝利イラスト（永続）
 	add_child(_victory_screen)
+	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
@@ -87,6 +90,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
+	_start_stage_bgm(path)  # ステージ単位でBGMを張り替える（新規ロード・中断セーブ復元で共通）
 
 ## AI手番のテンポ制御（controller.combat_pace）：戦闘演出が出ていれば閉じるまで待つ。
 func _await_combat_view() -> void:
@@ -230,6 +234,29 @@ func _victory_path() -> String:
 	var paths: Array = c.get("victory_paths", [])
 	return String(paths[randi() % paths.size()]) if not paths.is_empty() else ""
 
+# --- BGM（決定＝application/BgmDirector・再生＝presentation/ui/bgm_player.gd）。詳細 → doc/audio/bgm.md ---
+func _install_bgm() -> void:
+	_bgm_director = BgmDirector.new()
+	_bgm = BgmPlayer.new()
+	_bgm.name = "BgmPlayer"
+	add_child(_bgm)
+
+## ステージのBGMを張り替える。曲はステージJSONの bgm → 冒険譚の既定 → 全体既定の順で決まる。
+## 同じ曲を指すステージが続けば鳴りっぱなし（頭出しに戻らない）＝BgmPlayer 側で吸収。
+func _start_stage_bgm(path: String) -> void:
+	if _bgm == null:
+		return
+	_bgm_director.begin_stage(StageLoader.load_bgm(path), _campaign_bgm())
+	_bgm.play(_bgm_director.track_id())
+
+## 現冒険譚の既定BGM（campaign.json の bgm 欄）。セレクト外（デバッグ直起動など）では空。
+func _campaign_bgm() -> Dictionary:
+	if _progress == null or _current_campaign_id.is_empty():
+		return {}
+	var c := _progress.campaign(_current_campaign_id)
+	var bgm: Variant = c.get("bgm", {})
+	return bgm if typeof(bgm) == TYPE_DICTIONARY else {}
+
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
 func _install_hud() -> void:
 	_hud = preload("res://presentation/ui/hud.gd").new()
@@ -282,8 +309,14 @@ func _install_select() -> void:
 	add_child(_select)
 	_select.setup(_progress)
 	_select.stage_chosen.connect(_on_stage_chosen)
+	_select.opened.connect(_on_select_opened)  # ステージ外に戻ったらメニュー曲へ
 	_hud.stage_select_requested.connect(_select.open)
 	_select.open()
+
+## セレクトを開いた＝ステージ外の場面。盤（下敷き）は残るがBGMはメニュー曲に戻す。
+func _on_select_opened() -> void:
+	if _bgm != null:
+		_bgm.play(BgmDirector.MENU_TRACK)
 
 func _on_stage_chosen(campaign_id: String, stage_id: String, path: String) -> void:
 	_current_campaign_id = campaign_id

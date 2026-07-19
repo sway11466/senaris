@@ -40,9 +40,20 @@ BGM の制作方針と組込の運用。**費用をかけない**前提で、限
 ```
 入手（PD楽譜 .musicxml / フリー .mid）
   → 編曲（MuseScore、原本 .mscz で保存）
-  → 書き出し（.ogg）
-  → Godot 組込（AudioStream 登録・ループ設定）
+  → 書き出し（.wav＝可逆。assets/bgm-src/ に置く）
+  → 変換（ffmpeg で Ogg Vorbis → assets/bgm/{track_id}.ogg）
+  → Godot 組込（.import に loop=true）
 ```
+
+MuseScore から直接 `.ogg` を書き出さない。書き出し設定によっては **Ogg Opus** になり Godot が読めないため、`.wav` で出して ffmpeg で Vorbis に固定する。
+
+```
+ffmpeg -i assets/bgm-src/{track_id}.wav -c:a libvorbis -q:a 5 assets/bgm/{track_id}.ogg
+```
+
+`-q:a 5` は約 130〜160kbps（BGM ならこれで十分）。変換後は `ffprobe` で `codec_name=vorbis` を確認する。
+
+`.import` の `loop` はインポート後に手で `true` へ直し、`.godot/imported/` の生成物を消して再インポートすると確実に反映される。中間生成物（`.wav`）と MuseScore のバックアップ（`.mscbackup/`）はコミットしない。
 
 ## ベースメロディの入手（作曲しない前提の要）
 
@@ -61,6 +72,7 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 
 | 用途 | 雰囲気（狙い） | 主楽器の目安 | ループ |
 |---|---|---|---|
+| メニュー | 酒場の依頼ボード。落ち着いて選べる | フルート／弦 | ○ |
 | タイトル | 作品の顔。メインテーマ | オーケストラ | ○ |
 | ステージ（通常） | おおらか・爽やか・広がり（FF系の悠久感） | フルート／弦 | ○ |
 | ステージ（緊張・ボス） | 威圧・盛り上がり（メインテーマの編成違いで可） | 金管＋弦／打楽器 | ○ |
@@ -79,12 +91,12 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 ```
 assets/
   bgm/                  ← ゲーム用 .ogg（Godot が読む）
-    map_calm.ogg
-    map_crisis.ogg
-  bgm-src/              ← 制作元
-    map_calm/
-      map_calm.mscz     ← 編曲の正
-      map_calm.musicxml ← 受け渡し用（任意）
+    menu.ogg
+    menu.ogg.import     ← ループ設定（loop=true）。生成物だがコミットする
+  bgm-src/              ← 制作元（.gdignore を置いて Godot のスキャン対象外にする）
+    .gdignore
+    menu.mscz           ← 編曲の正
+    menu.wav            ← 書き出し中間物（コミットしない）
     credits.md          ← 権利・ライセンス台帳（曲単位）
 ```
 
@@ -108,15 +120,20 @@ assets/
 
 ### レイヤー配置
 
-| レイヤー | 責務 |
-|---|---|
-| `data` | トラックカタログ（ID→パス解決・autowire）。純ロジック |
-| `application` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定。`crisis` フラグ管理もここ |
-| `presentation` | `BgmPlayer`（AudioStreamPlayer×2 のクロスフェード）。ID を受けて鳴らすだけ |
+| レイヤー | 実体 | 責務 |
+|---|---|---|
+| `data` | `data/audio/bgm_catalog.gd` | トラックカタログ（ID→パス解決・autowire）と `bgm` 欄の読み取り。純ロジック |
+| `application` | `application/bgm_director.gd` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定（フォールバック連鎖）。`crisis` フラグ管理もここ |
+| `presentation` | `presentation/ui/bgm_player.gd` | `AudioStreamPlayer`×2 のクロスフェード。ID を受けて鳴らすだけ |
+
+ステージJSON の `bgm` 欄は `StageLoader.parse_bgm` / `load_bgm`（会話・skin と同じく `BattleState` には入れない）、冒険譚既定は `CampaignCatalog` が `bgm` キーとして持つ。`main`（`presentation/main/main.gd`）が両者を `BgmDirector` に渡し、決まったIDを `BgmPlayer` に流す。
+
+場面の切り替わりは2箇所だけ。ステージ開始（`_install_state`＝新規ロードと中断セーブ復元で共通）と、セレクトを開いたとき（`SelectScreen.opened` → メニュー曲）。同じトラックIDを指す遷移では鳴り続ける（頭出しに戻らない）。
 
 ## Godot 組込
 
 - 形式は **`.ogg`**（軽量・ループ設定しやすい）。`AudioStreamOggVorbis` で読み、`AudioStreamPlayer` で再生。
+- 中身は **Ogg Vorbis 限定**。同じ `.ogg` 拡張子でも **Ogg Opus は Godot が読めない**（インポートが `valid=false` になる）。書き出し時にコーデックを確認する。
 - ループは Ogg 側 or インポート設定の **`loop` / `loop_offset`** で管理（`.import` に乗る＝絵と同じ管理感覚）。ステージ中ずっと流れる曲はループ必須。
 - レイヤー上、音の再生制御は presentation 寄り。曲の選択ルール（場面→曲）は application に薄く持たせ、`domain`/`data` は音に依存させない（[../tech/architecture.md](../tech/architecture.md)）。
 
@@ -157,7 +174,6 @@ assets/
 
 ## 現状 / TODO
 
-- **マップ曲**: たたき台 v3 あり（32小節・ニ長調／フルート＋グロッケン＋弦アルペジオ＋ティンパニ、`.musicxml`／`.mid`）。シンバルのスウェル追加・MuseScore での仕上げ・`.ogg` 化は今後。
 - 曲を追加したら本ドキュメントの曲リストと権利台帳を更新する。
 - 台帳の実体は **`assets/bgm-src/credits.md`**（最初の曲を入れる時に作成）。
-- 管理・運用（`assets/bgm/`・トラックID autowire・ステージJSON `bgm` 欄）の**実装は未着手**。着手はオーナー許可後。
+- **メニュー曲**（`menu`）: 投入済み（79.8秒・ループ）。他の曲が揃っていない間は無音＋ログ1行で進む（autowire）。

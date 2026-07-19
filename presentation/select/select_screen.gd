@@ -5,6 +5,8 @@ class_name SelectScreen
 ## 背景と画面遷移・シグナル中継だけを担い、各画面の中身は持たない。出撃はシグナルで main へ委ねる。
 
 signal stage_chosen(campaign_id: String, stage_id: String, path: String)
+## セレクトを開いた（＝ステージ外の場面に戻った）。main が BGM をメニュー曲に戻すのに使う。
+signal opened
 
 var _campaign_select: CampaignSelect
 var _stage_select: StageSelect
@@ -34,6 +36,7 @@ func setup(progress: CampaignProgress) -> void:
 func open() -> void:
 	visible = true
 	_show_campaigns()
+	opened.emit()
 
 func close() -> void:
 	visible = false

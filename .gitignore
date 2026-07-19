@@ -10,6 +10,10 @@ build/
 *.pck
 *.zip
 
+# BGM の中間生成物（.mscz から作り直せる）。ゲーム用の .ogg は assets/bgm/ にコミットする
+assets/bgm-src/**/*.wav
+assets/bgm-src/**/.mscbackup/
+
 # Python (uv env for image-processing scripts)
 .venv/
 __pycache__/

@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "boot_underlay",
+  "bgm": { "main": "menu" },
   "cols": 12,
   "rows": 8,
   "terrain": [

@@ -155,6 +155,22 @@ static func load_dialogue(path: String) -> Dictionary:
 		return { "intro": [], "outro": [] }
 	return parse_dialogue(data)
 
+## BGM：ステージ辞書の "bgm"（{ main, crisis }）を取り出す。値はトラックID（assets/bgm/{id}.ogg）。
+## 会話(skin)と同じく presentation/application 側の関心＝BattleState には入れない。
+## 空スロットの穴埋め（冒険譚既定・全体既定）は application/bgm_director.gd。詳細 → doc/audio/bgm.md
+static func parse_bgm(data: Dictionary) -> Dictionary:
+	return BgmCatalog.parse_slots(data.get("bgm", {}))
+
+## res:// パスの JSON から bgm を読む（load_file と対＝曲の決定を BgmDirector へ渡すため）。
+static func load_bgm(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return {}
+	return parse_bgm(data)
+
 ## 駒配置リスト（player セクション）を盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引き、個別キー(move/troops/atk/def/level)で上書きできる。

@@ -7,7 +7,7 @@ const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
-## { id, title, desc, debug, difficulty, tier, cover_paths, card_paths, victory_paths,
+## { id, title, desc, debug, difficulty, tier, bgm, cover_paths, card_paths, victory_paths,
 ##   stages: [ { id, title, file, path, unlock: Array } ] }
 ## cover_paths/card_paths/victory_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
@@ -42,6 +42,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"debug": bool(data.get("debug", false)),
 		"tier": String(data.get("tier", "rookie")),  # 所属ボード（tutorial/rookie/adept/veteran）。未指定は rookie
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
+		"bgm": BgmCatalog.parse_slots(data.get("bgm", {})),  # 冒険譚既定のBGM（ステージ指定が無いとき）。doc/audio/bgm.md
 		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル（連番バリアント）
 		"card_paths": _resolve_art_variants(id, "card"),    # 冒険譚カード（絵はカード用にクロップ・連番バリアント）
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
