@@ -1,5 +1,5 @@
 extends SceneTree
-## 【使い捨て】画像確認ツールを実描画してスクショ確認（キャラ横一列＋水平線／地形変種／地形境界）。
+## 【使い捨て】画像確認ツール地形モードで plateau を敷き詰めた見え方を確認。
 ## 実行: godot --path . -s res://tests/manual/shot_image_check.gd （headless 不可）
 
 const DIR := "user://shot_imgcheck/"
@@ -22,20 +22,11 @@ func _process(_delta: float) -> bool:
 	_frames += 1
 	match _frames:
 		5:
-			_t.call("preselect", ["novice", "fighter", "knight", "priest", "wizard", "archer"])
-		20:
-			_t.call("_add_ruler", 150.0)
-		30:
-			_save("character.png")
 			_t.call("_show_terrain")
-			_t.call("_set_pattern", "horizontal")
-		65:
-			_save("terrain_horizontal.png")
-			_t.call("_set_pattern", "diagonal")
-		100:
-			_save("terrain_diagonal.png")
-			_t.call("_set_pattern", "island")
-		135:
-			_save("terrain_island.png")
+			_t.set("_terr_pattern", "fill")
+			_t.set("_ta", "plateau")
+			_t.call("_rebuild_terrain")
+		45:
+			_save("terrain_plateau_fill.png")
 			return true
 	return false
