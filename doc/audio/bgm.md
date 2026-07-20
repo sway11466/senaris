@@ -43,57 +43,58 @@ BGM の制作方針と組込の運用。**費用をかけない**前提で、限
 入手（PD楽譜 .musicxml / フリー .mid / AI支援のたたき台）
   → 編曲（MuseScore、原本 .mscz で保存）
   → 書き出し（.wav＝可逆。44100Hz / 16bit / ステレオ）
-  → トリム（ループ長ちょうどに切る＝末尾の残響しっぽを落とす）
+  → ループ加工（ループ長で切り、切った残響を先頭に足す＝1コマンド）
   → 変換（ffmpeg で Ogg Vorbis → assets/bgm/{track_id}.ogg）
   → Godot 組込（.import に loop=true）
 ```
 
 MuseScore から直接 `.ogg` を書き出さない。書き出し設定によっては **Ogg Opus** になり Godot が読めないため、`.wav` で出して ffmpeg で Vorbis に固定する。
 
-### トリム（ループ曲のみ）
+### ループ加工（ループ曲のみ）
 
-MuseScore の書き出しは末尾に残響のしっぽが付くので、**ループ長ちょうど**に切る。切らないと1周ごとに無音の間が入る。
+MuseScore の書き出しは末尾に残響のしっぽが付く。これを**ループ長ちょうどに切る**（切らないと1周ごとに無音の間が入る）と同時に、**切り落とした残響を先頭に足し込む**。
 
-```
-duration = 小節数 × 1小節の拍数 × 60 ÷ テンポ(♩)
-```
-
-例: `menu` は 32小節・4/4・♩=100 → 32 × 4 × 60 ÷ 100 = **76.800秒**。
-
-先頭に無音があればそれも落としてからトリムする（`silencedetect` / `volumedetect` で確認）。スティンガー（`victory` / `defeat`）はループしないのでトリム不要＝末尾の残響は残す。
-
-```
-ffmpeg -i in.wav -t <ループ長> trimmed.wav
-ffmpeg -i trimmed.wav -c:a libvorbis -q:a 6 assets/bgm/{track_id}.ogg
-```
-
-`-q:a 6` は約 160kbps。変換後は `ffprobe` で `codec_name=vorbis` を確認する（`OpusHead` なら失敗）。
-
-`.import` の `loop` はインポート後に手で `true` へ直し、`.godot/imported/` の生成物を消して再インポートすると確実に反映される。中間生成物（`.wav`）と MuseScore のバックアップ（`.mscbackup/`）はコミットしない。
-
-### 継ぎ目の残響（ラップアラウンド加算）
-
-ループ長で切ると、切断点にまだ残響が残っている曲は継ぎ目で不連続が知覚される。理想的なループ音声は「1周ぶんの音」＋「前の周から染み出す残響」の重ね合わせなので、**捨てた末尾の残響を先頭に足し込めば**再現できる。
+足し込むのは、理想的なループ音声が「1周ぶんの音」＋「前の周から染み出す残響」の重ね合わせだから。切り捨てると継ぎ目で不連続が知覚される。
 
 ```
 loop(t) = s(t) + s(t+L)   … t < 残響長（L＝ループ長）
         = s(t)            … それ以降
 ```
 
-`s(t+L)` はトリムで切り落とした末尾そのもの。再書き出しは不要で、既存の WAV だけで完結する。
+ループ長は楽譜から求める。
+
+```
+L = 小節数 × 1小節の拍数 × 60 ÷ テンポ(♩)
+```
+
+例: `menu` は 32小節・4/4・♩=100 → 32 × 4 × 60 ÷ 100 = **76.800秒**。
+
+トリムと加算は1コマンドで済む（`atrim` が切り出しを兼ねる）。
 
 ```
 ffmpeg -i in.wav -i in.wav -filter_complex \
-  "[0]atrim=0:<ループ長>,asetpts=PTS-STARTPTS[body];\
-   [1]atrim=<ループ長>,asetpts=PTS-STARTPTS,apad=whole_dur=<ループ長>[tail];\
-   [body][tail]amix=inputs=2:normalize=0:duration=first[out]" -map "[out]" wrapped.wav
+  "[0]atrim=0:<L>,asetpts=PTS-STARTPTS[body];\
+   [1]atrim=<L>,asetpts=PTS-STARTPTS,apad=whole_dur=<L>[tail];\
+   [body][tail]amix=inputs=2:normalize=0:duration=first[out]" -map "[out]" looped.wav
+
+ffmpeg -i looped.wav -c:a libvorbis -q:a 6 assets/bgm/{track_id}.ogg
 ```
 
-`normalize=0` は必須（省略すると音量が半分になる）。加算後に `volumedetect` でピークを確認し、元と変わっていなければクリップしていない。
+`normalize=0` は必須（省略すると音量が半分になる）。`-q:a 6` は約 160kbps。
 
-適用条件は **残響長 < ループ長**。`menu` は残響約3秒に対しループ76.8秒で余裕がある。残響がループ長に近い曲では足し込む項が1つでは足りないので、その場合は MuseScore で64小節（2周）に複製して書き出し、`[1周の長さ, 2周の長さ]` の区間を切り出す（`menu` なら 76.800〜153.600秒）。結果は同じだが再書き出しが要る。
+確認すること。
 
-いずれの方式でも、**曲の頭に「前周の残響」が入る**（初回再生時は本来存在しない音）。`menu` では -22dB 相当で、実聴で違和感なしと確認済み。
+- 先頭に無音があれば加工前に落とす（`silencedetect` / `volumedetect`）
+- 加工後のピークが元と変わっていない（＝加算でクリップしていない）
+- 変換後に `ffprobe` で `codec_name=vorbis`（`OpusHead` なら失敗）
+
+スティンガー（`victory` / `defeat`）はループしないので加工不要＝末尾の残響は残す。
+
+適用条件は **残響長 < ループ長**。`menu` は残響約3秒に対しループ76.8秒で余裕がある。残響がループ長に近い曲では足し込む項が1つでは足りないので、その場合は MuseScore で64小節（2周）に複製して書き出し、`[L, 2L]` の区間を切り出す（`menu` なら 76.800〜153.600秒）。結果は同じだが再書き出しが要る。
+
+副作用として、**曲の頭に「前周の残響」が入る**（初回再生時は本来存在しない音）。`menu` では -22dB 相当で、継ぎ目・頭とも実聴で違和感なしを確認済み。
+
+`.import` の `loop` はインポート後に手で `true` へ直し、`.godot/imported/` の生成物を消して再インポートすると確実に反映される。中間生成物（`.wav`）と MuseScore のバックアップ（`.mscbackup/`）はコミットしない。
 
 ## ベースメロディの入手（作曲しない前提の要）
 
@@ -149,10 +150,9 @@ assets/
     menu.ogg.import     ← ループ設定（loop=true）。生成物だがコミットする
   bgm-src/              ← 制作元（.gdignore を置いて Godot のスキャン対象外にする）
     .gdignore
-    menu/               ← 曲ごとに track_id のフォルダ
-      menu.mscz         ← 編曲の正（必須）
-      menu.musicxml     ← 受け渡し・たたき台（任意）
-      menu.wav          ← 書き出し中間物（コミットしない＝.mscz から再生成できる）
+    menu.mscz           ← 編曲の正（必須）。track_id 名でフラットに置く
+    menu.musicxml       ← 受け渡し・たたき台（任意）
+    menu.wav            ← 書き出し中間物（コミットしない＝.mscz から再生成できる）
     credits.md          ← 権利・ライセンス台帳（曲単位）
 ```
 
