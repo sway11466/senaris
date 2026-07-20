@@ -6,6 +6,7 @@ class_name BgmPlayer
 ## 曲が未配置なら無音＋ログ1行で進む（ゲームは止めない）。.ogg を置けば次の切替から鳴り出す。
 ## ループは Godot のインポート設定（.import の loop）で持つ＝ここでは扱わない。
 
+const BUS := "Music"       ## 効果音と別に絞れるようにする（default_bus_layout.tres）
 const FADE_SEC := 1.0      ## クロスフェード時間。まずは単純な2曲クロスフェードで十分（doc/audio/bgm.md）
 const SILENCE_DB := -60.0  ## 実質無音。0.0 が通常音量
 
@@ -17,6 +18,7 @@ var _tween: Tween = null
 func _ready() -> void:
 	for _i in 2:
 		var p := AudioStreamPlayer.new()
+		p.bus = BUS
 		p.volume_db = SILENCE_DB
 		add_child(p)
 		_players.append(p)

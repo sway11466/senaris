@@ -23,6 +23,7 @@ var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
 var _bgm: BgmPlayer = null  # BGM の再生（永続・クロスフェード）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/冒険譚/既定のフォールバック連鎖
+var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
 
@@ -39,6 +40,7 @@ func _ready() -> void:
 	_victory_screen = VictoryScreen.new()  # キャンペーン完走の勝利イラスト（永続）
 	add_child(_victory_screen)
 	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
+	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
@@ -240,6 +242,14 @@ func _install_bgm() -> void:
 	_bgm = BgmPlayer.new()
 	_bgm.name = "BgmPlayer"
 	add_child(_bgm)
+
+# --- SFX（対応表＝data/audio/sfx_catalog.gd・再生＝presentation/ui/sfx_player.gd）。詳細 → doc/audio/sfx.md ---
+## 効果音は盤・セレクトの各所から細かく鳴らすため、実体だけここで持ち、
+## 呼び出しは SfxPlayer.play_event(発火点ID) で行う（参照を各画面へ配らない）。
+func _install_sfx() -> void:
+	_sfx = SfxPlayer.new()
+	_sfx.name = "SfxPlayer"
+	add_child(_sfx)
 
 ## ステージのBGMを張り替える。曲はステージJSONの bgm → 冒険譚の既定 → 全体既定の順で決まる。
 ## 同じ曲を指すステージが続けば鳴りっぱなし（頭出しに戻らない）＝BgmPlayer 側で吸収。

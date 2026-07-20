@@ -1,0 +1,25 @@
+[gd_resource type="AudioBusLayout" format=3]
+
+; 音量バス。曲と効果音を別々に絞れるようにする（設定画面の音量スライダーの受け皿）。
+; 素材そのものの音量は tools/gen_sfx.ps1 が -3 dBFS に揃える＝ここは場面ごとのバランス調整用。
+; 仕様 → doc/audio/sfx.md「同時再生の扱い」
+
+[resource]
+bus/0/name = &"Master"
+bus/0/solo = false
+bus/0/mute = false
+bus/0/bypass_fx = false
+bus/0/volume_db = 0.0
+bus/0/send = &""
+bus/1/name = &"Music"
+bus/1/solo = false
+bus/1/mute = false
+bus/1/bypass_fx = false
+bus/1/volume_db = 0.0
+bus/1/send = &"Master"
+bus/2/name = &"SFX"
+bus/2/solo = false
+bus/2/mute = false
+bus/2/bypass_fx = false
+bus/2/volume_db = 0.0
+bus/2/send = &"Master"

@@ -561,6 +561,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 
 func _on_menu_id(id: int) -> void:
 	_menu_handled = true
+	SfxPlayer.play_event("map_confirm" if id != MENU_CANCEL else "map_cancel")
 	if _unload_to != INVALID_HEX:
 		_handle_unload_menu(id)
 		return
@@ -678,6 +679,7 @@ func _commit_pending_move() -> void:
 
 ## 「戻る」。メニュー→選択→出撃モードの順に1段ずつ解除。
 func _on_cancel(from_esc: bool) -> void:
+	SfxPlayer.play_event("map_cancel")
 	if _menu.visible:
 		_menu.hide()
 	elif _choosing_formation or _choosing_target or _selected_id != -1:
@@ -812,6 +814,7 @@ func _clear_deploy() -> void:
 	_sync_overlay()
 
 func _select(id: int) -> void:
+	SfxPlayer.play_event("map_select")
 	_selected_id = id
 	_inspected_id = -1
 	_inspect_reach.clear()

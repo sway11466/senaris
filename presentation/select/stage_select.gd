@@ -40,7 +40,9 @@ func _ready() -> void:
 	var back := Button.new()
 	back.text = "← 冒険譚"
 	back.focus_mode = Control.FOCUS_NONE
-	back.pressed.connect(func() -> void: back_requested.emit())
+	back.pressed.connect(func() -> void:
+		SfxPlayer.play_event("menu_back")
+		back_requested.emit())
 	header.add_child(back)
 
 	_title = Label.new()
@@ -138,6 +140,7 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 # --- ブリーフィング → 出撃 ---
 
 func _open_briefing(campaign_id: String, s: Dictionary) -> void:
+	SfxPlayer.play_event("menu_stage")
 	_pending = {
 		"campaign_id": campaign_id,
 		"stage_id": String(s["id"]),

@@ -303,6 +303,7 @@ func _poster(c: Dictionary) -> Control:
 	return poster
 
 func _on_card_pressed(campaign_id: String) -> void:
+	SfxPlayer.play_event("menu_campaign")
 	campaign_chosen.emit(campaign_id, int(_variant_by_id.get(campaign_id, -1)))
 
 ## 連番バリアントの index を1つ選ぶ（表示ごと＝呼ぶたび randi）。空なら -1。
