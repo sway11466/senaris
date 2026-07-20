@@ -42,4 +42,5 @@ ghoul,グール,enemy,fighter,アンデッド,1.05
 dullahan,デュラハン,enemy,warlord,アンデッド,1.1
 ghost,ゴースト,enemy,pixie,アンデッド,0.9
 necromancer,ネクロマンサー,enemy,sniper,アンデッド,1.05
-dragon,ドラゴン,enemy,dragon,デモ,1.4
+harpy,ハーピー,enemy,harpy,魔獣,0.9
+dragon,レッドドラゴン,enemy,dragon,魔獣,1.4

@@ -113,10 +113,10 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "デモ",
+					"category": "魔獣",
 					"description": "",
 					"images": {},
-					"name": "ドラゴン",
+					"name": "レッドドラゴン",
 					"skin_id": "dragon",
 					"type_id": "dragon"
 				}
@@ -195,6 +195,19 @@
 				}
 			],
 			"enemy": []
+		},
+		"harpy": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "ハーピー",
+					"skin_id": "harpy",
+					"type_id": "harpy"
+				}
+			]
 		},
 		"hunter": {
 			"ally": [
