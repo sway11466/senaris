@@ -466,7 +466,7 @@
 		},
 		{
 			"atk_air": 0,
-			"atk_ground": 10,
+			"atk_ground": 0,
 			"can_capture": false,
 			"capacity": 4,
 			"category": "輸送",
