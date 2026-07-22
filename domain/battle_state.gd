@@ -196,6 +196,9 @@ func unload(transport_id: int, index: int, to: Vector2i) -> bool:
 
 # --- 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md ---
 
+## 占領成功で占領兵が得る経験（＝レベル）。占領兵は戦闘機会が少ないぶんを1回で補う。詳細 → doc/gdd/combat.md
+const CAPTURE_EXPERIENCE := 10
+
 func add_base(base: Base) -> void:
 	_bases.append(base)
 
@@ -395,6 +398,7 @@ func _try_capture(u: Unit) -> void:
 	var b := base_at(u.pos)
 	if b != null and b.team != u.team:
 		b.team = u.team
+		u.add_experience(CAPTURE_EXPERIENCE)
 
 ## いま移動できるか（手番・移動権・残り予算）。
 ## 攻撃前: 通常移動を未使用なら可。攻撃後: 再移動可ユニットが再移動を未使用なら可。

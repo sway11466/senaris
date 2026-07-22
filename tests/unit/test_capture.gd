@@ -37,6 +37,38 @@ func test_capture_neutral_base() -> void:
 	assert_true(s.move_unit(1, base_hex))
 	assert_eq(s.base_at(base_hex).team, 0, "中立拠点は占領可ユニットで自軍化")
 
+func test_capture_grants_experience() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 1))
+	var u := Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3)
+	u.can_capture = true
+	s.add_unit(u)
+	assert_eq(u.level, 1, "初期Lv1")
+	assert_true(s.move_unit(1, base_hex))
+	assert_eq(u.level, 1 + BattleState.CAPTURE_EXPERIENCE, "占領で経験+10")
+
+func test_entering_own_base_grants_no_experience() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 0))  # はじめから自軍所属
+	var u := Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3)
+	u.can_capture = true
+	s.add_unit(u)
+	assert_true(s.move_unit(1, base_hex))
+	assert_eq(u.level, 1, "所属が変わらなければ経験は入らない")
+
+func test_capture_experience_clamps_at_max_level() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 1))
+	var u := Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3)
+	u.can_capture = true
+	u.level = Unit.MAX_LEVEL - 2
+	s.add_unit(u)
+	assert_true(s.move_unit(1, base_hex))
+	assert_eq(u.level, Unit.MAX_LEVEL, "上限を超えない")
+
 # --- 出撃（ネクタリス方式・1歩・行動完了） ---
 
 func _captured_base_with_garrison(s: BattleState, base_hex: Vector2i, n: int) -> Base:
