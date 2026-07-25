@@ -25,7 +25,11 @@ const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝
 const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
-const ELEVATION := { "plateau": 0.18 }  # 地形別の見た目の高さ（ワールド単位・TILE=1）。既定0。段差辺には側面スカートが付く。
+const ELEVATION := { "plateau": 0.18, "forest": 0.18 }  # 地形別の見た目の高さ（ワールド単位・TILE=1）。既定0。段差辺には側面スカートが付く。
+## 立ち絵だけタイル上面より沈める量＝植生の厚み。タイルは持ち上がるが駒は「登らず」足元が隠れる。
+## ELEVATION と同値にすると足元がまわりの地面と同じ高さ＝背丈は平地の駒と揃ったまま、沈めたぶんだけ隠れる。
+## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
+const SPRITE_SINK := { "forest": 0.18 }
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
@@ -904,6 +908,12 @@ func _elev(hex: Vector2i) -> float:
 		return 0.0
 	return float(ELEVATION.get(state.terrain_at(hex), 0.0))
 
+## 立ち絵をタイル上面より沈める量（植生の厚み・既定0）。足元が下草・樹冠に隠れる量。
+func _sprite_sink(hex: Vector2i) -> float:
+	if state == null:
+		return 0.0
+	return float(SPRITE_SINK.get(state.terrain_at(hex), 0.0))
+
 ## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
 func _elev_levels() -> Array:
 	var s := { 0.0: true }
@@ -1182,7 +1192,8 @@ func _sync_units() -> void:
 			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
 			spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル
 			spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
-			spr.position = Vector3(0, 0.02, SPRITE_FOOT_Z)    # 足元は下辺寄り＝マスの中に立って見える
+			# 足元は下辺寄り＝マスの中に立って見える。植生地形はそのぶん沈めて足元を隠す。
+			spr.position = Vector3(0, 0.02 - _sprite_sink(u.pos), SPRITE_FOOT_Z)
 			if done:
 				spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
 			root.add_child(spr)
