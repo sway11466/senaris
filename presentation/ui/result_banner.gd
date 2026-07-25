@@ -12,10 +12,11 @@ class_name ResultBanner
 signal stamped   ## 印が落ちた瞬間（main がスティンガーを鳴らす合図＝演出と音を揃える）
 signal finished  ## 入力で閉じた（main が outro会話／次ステージへ進む）
 
-const SHEET := Vector2(520, 340)           ## 羊皮紙の大きさ
+const SHEET := Vector2(540, 390)           ## 羊皮紙の大きさ（丸印が収まる高さを確保）
 const INK_WIN := Color(0.56, 0.13, 0.11)   ## 封蝋の赤（TavernTheme.WAX と同じインク）
 const INK_LOSS := Color(0.26, 0.24, 0.25)  ## 灰墨（敗北は色で沈める＝派手にしない）
-const STAMP_FONT := 120                    ## 印の字の大きさ（紙の 7 割強を覆う）
+const STAMP_FONT := 116                    ## 印の字の上限（短い語ならこの大きさまで＝WIN 等）
+const STAMP_MAX_D := 340.0                 ## 丸印の直径の上限。語が長ければ字を縮めて収める（i18n 対策）
 const SCRIM_A := 0.55                      ## 盤を沈める暗幕の濃さ
 const SHEET_IN := 0.22                     ## 紙が浮かび上がる
 const STAMP_WAIT := 0.30                   ## 紙が出てから印が落ちるまでの溜め
@@ -83,7 +84,7 @@ func play(title: String, stamp_text: String, win: bool, rows: Array) -> void:
 	_sheet.modulate.a = 0.0
 	_sheet.scale = Vector2(0.97, 0.97)
 	_sheet.pivot_offset = SHEET / 2.0
-	_stamp = TavernTheme.stamp(stamp_text, INK_WIN if win else INK_LOSS, -9.0, STAMP_FONT)
+	_stamp = TavernTheme.stamp(stamp_text, INK_WIN if win else INK_LOSS, -9.0, STAMP_FONT, 0.66, STAMP_MAX_D)
 	_stamp.position = (SHEET - _stamp.size) / 2.0  # 紙の中央に重ねる（下の字は隙間から読める）
 	_stamp.scale = Vector2(1.9, 1.9)               # 上から降ってくる
 	_stamp.modulate.a = 0.0

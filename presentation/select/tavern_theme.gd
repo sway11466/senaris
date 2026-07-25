@@ -354,50 +354,91 @@ static func wax_seal(diameter := 26.0) -> Control:
 	seal.add_theme_stylebox_override("panel", sb)
 	return seal
 
-## ゴム印スタンプ（討伐済／勝利・敗北など）。傾けて叩きつけた風＝二重枠＋太らせた字。
+const STAMP_FONT_PATH := "res://assets/fonts/RockSalt-Regular.ttf"  ## 印・ボード名の手書き風書体
+static var _stamp_font: Font = null
+
+## 印の書体＝ボード名と同じ手書き風（RockSalt）。ボードに並ぶ文字と同じ手で書かれた感じにする。
+## ラテン文字のみのフォントなので、収録外の字（日本語など）は既定フォントへ落とす（fallbacks）
+## ＝翻訳で豆腐にならない。印の文言は短い語を選ぶこと（丸印は語が長いと字が縮む）。
+static func stamp_font() -> Font:
+	if _stamp_font != null:
+		return _stamp_font
+	var f := load(STAMP_FONT_PATH) as FontFile
+	if f == null:
+		return ThemeDB.fallback_font
+	f.fallbacks = [ThemeDB.fallback_font]
+	_stamp_font = f
+	return _stamp_font
+
+## ゴム印スタンプ（DONE／VICTORY・DEFEAT など）。傾けて叩きつけた風＝二重の丸枠＋太らせた字。
+## 丸は認印の形＝酒場で押される判子らしさが出る（角印より柔らかく、傾きも自然に見える）。
 ## インクは半透明で乗せる＝実際の印影と同じく、線の隙間から下地の字が読める（紙を覆っても潰さない）。
-## 大きさは font_size で決まり、枠の太さ・余白も比例する。箱は文字から自動算出するが、
-## 呼び出し側が size/custom_minimum_size を広げれば枠もそこまで広がる（_Stamp が矩形いっぱいに描く）。
+## 大きさは font_size で決まり、枠の太さ・余白も比例する。箱は文字から自動算出して正方形にするが、
+## 呼び出し側が size/custom_minimum_size を広げれば円もそこまで大きくなる（短辺に内接して描く）。
 ## 回転・拡縮の軸は中心（叩きつけアニメで中心から落ちる）。
 ## ink_alpha は下地に応じて選ぶ：紙の字に重ねるなら薄く（既定 0.66＝字が透ける）、
 ## 絵の上に押すなら濃く（0.9 前後＝絵に負けない）。実測で詰めた値。
-static func stamp(text: String, color: Color, tilt := -7.0, font_size := 44, ink_alpha := 0.66) -> Control:
+## max_diameter > 0 なら円がそこに収まるまで字を縮める。丸印は直径が文字の長さで決まるので、
+## 語が伸びても箱を割らないための歯止め（翻訳で "VICTORY"→"SIEG"/"勝利" と長さが変わる）。
+## font は既定フォント以外を使いたいとき（null＝既定）。
+static func stamp(text: String, color: Color, tilt := -7.0, font_size := 44, ink_alpha := 0.66, max_diameter := 0.0, font: Font = null) -> Control:
+	var f: Font = font if font != null else stamp_font()
+	var fs := font_size
+	if max_diameter > 0.0:
+		while fs > 8 and _stamp_metrics(f, text, fs)["d"] > max_diameter:
+			fs -= 2
+	var m := _stamp_metrics(f, text, fs)
 	var s := _Stamp.new()
 	s.text = text
 	s.ink = Color(color.r, color.g, color.b, ink_alpha)
-	s.font_size = font_size
+	s.font_size = fs
+	s.font = f
+	s.ring_w = m["w"]
 	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var ts := ThemeDB.fallback_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-	var box := Vector2(ts.x + font_size * 1.2, font_size * 1.8)
+	var box := Vector2(m["d"], m["d"])
 	s.custom_minimum_size = box
 	s.size = box
 	s.pivot_offset = box / 2.0
 	s.rotation_degrees = tilt
 	return s
 
-## ゴム印の描画（二重枠＋太字）。枠は自分の矩形いっぱい＝箱を広げれば印も大きくなる。
+## 丸印の寸法：直径 d と枠の太さ w。
+## 文字は内枠に触ってはいけないので、文字の外接円（横幅と高さの両方を見る）から内半径を決め、
+## 枠の太さは直径に比例させる＝長い語で字が縮んでも枠は細らない（枠の迫力を保つ）。
+static func _stamp_metrics(font: Font, text: String, font_size: int) -> Dictionary:
+	var ts := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var half_w := ts.x * 0.5 + font_size * 0.18  # 文字幅の半分＋左右の余白
+	# 高さは行送りではなく大文字の高さで見る。行送りで採ると（手書き書体は特に行間が広い）
+	# 円が無駄に膨らみ、上限に当たって字だけ小さくなる＝中身が空いた輪に見える。
+	var half_h := font_size * 0.36
+	var r_text := maxf(sqrt(half_w * half_w + half_h * half_h), font_size * 0.7)
+	var w := maxf(2.0, r_text * 0.09)
+	# 内枠（外周から 1.7w 内側）が文字の外接円のさらに外に来るよう余白 1.2w を足す。
+	# 足さないと内枠の半径が文字の外接円と一致し、字が枠に必ず触る。
+	return { "d": 2.0 * (r_text + w * 3.4), "w": w }
+
+## ゴム印の描画（二重の丸枠＋太字）。円は箱の短辺に内接＝箱を広げれば印も大きくなる。
 ## 既定フォントに太字が無いので、輪郭を膨らませて（draw_string_outline）字を太らせる。
 class _Stamp extends Control:
 	var text := ""
 	var ink := Color.WHITE
 	var font_size := 44
+	var font: Font = null
+	var ring_w := 0.0  # 外枠の太さ（stamp() が直径から決める。0＝字の大きさから導く）
 
 	func _draw() -> void:
-		var w := maxf(2.0, font_size * 0.11)  # 外枠の太さ（字の太さと釣り合わせる）
-		var outer := Rect2(Vector2(w, w) * 0.5, size - Vector2(w, w))
-		draw_polyline(_loop(outer), ink, w, true)
-		var gap := w * 1.7  # 二重枠の内側（ゴム印の縁取り）
-		draw_polyline(_loop(Rect2(outer.position + Vector2(gap, gap), outer.size - Vector2(gap, gap) * 2.0)), ink, maxf(1.0, w * 0.38), true)
-		var font := ThemeDB.fallback_font
+		var w := ring_w if ring_w > 0.0 else maxf(2.0, font_size * 0.11)
+		var center := size / 2.0
+		var outer_r := minf(size.x, size.y) * 0.5 - w * 0.5
+		draw_arc(center, outer_r, 0.0, TAU, 72, ink, w, true)
+		draw_arc(center, outer_r - w * 1.7, 0.0, TAU, 72, ink, maxf(1.0, w * 0.38), true)  # 内側の細枠
+		if font == null:
+			font = ThemeDB.fallback_font
 		var ts := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 		var pos := Vector2((size.x - ts.x) * 0.5, (size.y + font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5)
 		var ci := get_canvas_item()
 		font.draw_string_outline(ci, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, int(maxf(1.0, font_size * 0.05)), ink)
 		font.draw_string(ci, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, ink)
-
-	## 矩形を1周する折れ線（draw_polyline はアンチエイリアスが効く＝傾けても縁が汚れない）。
-	func _loop(r: Rect2) -> PackedVector2Array:
-		return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y), r.position])
 
 ## 木の板を縦の板材＋継ぎ目で描く内部クラス（プロシージャル木壁）。
 class _Planks extends Control:

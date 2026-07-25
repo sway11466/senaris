@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=19 / refactoring=8
+次回採番: bug=1 / feature=20 / refactoring=8
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -140,6 +140,15 @@
 - 置き場所：carryover の保存・読出は現在 presentation の `main.gd`（保存 :120／読出 :54-59）に直書きで、application に差配役がない。名簿の更新規則はゲームルールなので application に薄いサービスを新設し、main はそれを呼ぶだけにする（`CampaignProgress` の隣）。
 - 該当：`domain/unit/unit.gd`・`domain/battle_state.gd`（帰属ゲート）・`application/stage_loader.gd`（`_apply_carryover`・`parse_dialogue`）・`application/`（名簿サービス新規）・`presentation/main/main.gd`（呼び出しの差し替え）・`infrastructure/save/roster_store.gd`・`tests/unit/`（`test_capture`・`test_carryover_flow`・`test_dialogue` ほか）・`doc/gdd/map.md`・`doc/campaign/authoring.md`・`doc/tech/gamesystem.md`。
 - 前提：冒険譚3のステージデータ制作より先に済ませる（`actor` はステージJSONの書式に関わるため、後回しにすると書き直しになる）。
+
+### feature-19
+
+**戦果票の評価ランク（S/A/B/C）**（優先度：中）
+
+- 背景：決着の戦果票（[uiux.md](gdd/uiux.md) §決着の演出・`presentation/ui/result_banner.gd`）は ターン数／生存／撃破 の3行を出すところまで実装済み。ジャンルの定番である**評価ランク**（Advance Wars の S/A/B/C 型）が無い。ランクは「同じ勝ちでも上手い勝ちがある」を一目で示す指標で、再挑戦の動機になる（速攻を狙う・主力を死なせない）。実装より**評価式の設計**が本体で、ステージごとの妥当な閾値決めはバランス調整＝ステージが揃ってからでないと決められないため後回しにした。
+- 対応：評価式を決めてから実装する。(1) 指標の選定＝ターン数（速さ）・損害（生存率）・撃破率あたりの合成。(2) 閾値の持ち方＝ステージJSONに `rank` として書く（ステージごとに適正ターン数が違う）か、`turn_limit` からの相対で自動算出するか。データに書くならステージ数ぶんの調整作業が要るので、まずは相対算出で始めるのが軽い。(3) 表示＝戦果票の3行の下にランクを大きく出す（`_fill` に行を足すだけの構造にしてある）。印とは別要素なので、印の下に重ねない位置を選ぶ。
+- 該当：`presentation/ui/result_banner.gd`（`_fill` にランク行）・`presentation/main/main.gd`（`_result_rows` の隣に評価の算出）・評価式の置き場所は `application/`（ゲームルール＝presentation に式を持たせない）・`data/stages/*.json`（閾値をデータに置く場合）・`doc/gdd/uiux.md`。着手の引き金＝ステージが揃ってバランス調整に入るとき。
+- 関連：撃破数の集計は現状 presentation 側で「開始時の敵数 − 残存」で採っており、拠点の控え（garrison）が出撃してから倒された分を数え落とす（`main._result_rows` のコメント）。ランクの入力に撃破を使うなら、先に `domain` 側で撃破を正確に数える必要がある。
 
 ## リファクタリング
 

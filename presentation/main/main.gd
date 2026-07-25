@@ -155,7 +155,8 @@ func _show_result(outcome: int) -> void:
 	if _bgm != null:
 		var track := "victory" if win else "defeat"
 		_result.stamped.connect(func() -> void: _bgm.play_stinger(track), CONNECT_ONE_SHOT)
-	_result.play(_stage_title(), "勝利" if win else "敗北", win, _result_rows())
+	# 印の文言は英語（酒場ボードの表記に揃える）。丸印は語が長いと字が縮むので短い語を選ぶ。
+	_result.play(_stage_title(), "VICTORY" if win else "DEFEAT", win, _result_rows())
 	await _result.finished
 
 ## ステージ開始時の兵力を控える（戦果票の分母）。盤上の駒だけを数える＝拠点の控え(garrison)は含めない。
