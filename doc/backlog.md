@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=18 / refactoring=8
+次回採番: bug=1 / feature=19 / refactoring=8
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -130,6 +130,16 @@
 - 背景：敵の全行動を見せる（移動アニメ＋カメラ追従）ぶん、敵が多い手番は総時間が伸びる。アニメ速度の設定（高速／標準／オフ）と敵手番のスキップは SLG の定番だが、設定画面もスキップ導線も未実装（[uiux.md](gdd/uiux.md) システムメニュー・敵手番のカメラ）。また演出には未対応の隙間がいくつかある。
 - 対応：(1) 設定画面を作る段で、移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）とカメラ追従（`FOCUS_PAN_SEC`）を設定値から引く。(2) 敵手番のスキップ（キー／ボタンで残りを一気に最終状態へ）。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
 - 該当：`presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`application/match_controller.gd`（手番のテンポ・スキップ）・設定の永続化（feature-9 のセーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき／敵手番が長く感じ始めたら。
+
+### feature-18
+
+**名簿（パーティ）・帰属の確定・会話の分岐**（優先度：高）
+
+- 背景：冒険譚3が初の carryover 型で、中立拠点の勧誘によって仲間が増減する。現状の持ち越しは「盤上の生存者リスト」で、(1) 兵力ゼロで撃破された仲間は消える＝離脱として会話に出せない、(2) 中立から解放した駒は `native` が中立のままなので、拠点を奪われると敵が出撃させられる＝寝返る（仕様は捕虜）、(3) `Unit` がキャラの同一性を持たず同 type が複数いると区別できない、(4) 会話に条件分岐が無く仲間の有無を反映できない。設計は [map.md](gdd/map.md)（帰属・名簿・actor）と [authoring.md](campaign/authoring.md)（会話の分岐）に記載。
+- 対応：(a) `Unit.recruited_team`（帰属先。既定＝`native_team`、中立駒の出撃時に出した側で確定・以後不変）を追加し、`can_deploy_garrison`／`_base_has_deployable_garrison`／`_heal_garrisons` の native 判定を帰属で見るよう差し替え。(b) `Unit.actor`（冒険譚をまたいで一意な永続キャラ識別子）を追加し `to_dict`/`from_dict` に載せる。(c) 持ち越しを名簿へ意味変え＝クリア時に前名簿と突き合わせ、欠けた `actor` を `troops:0` で残し、帰属が自軍の `actor` 駒を加える。配置は `troops > 0` の者だけ。(d) `_apply_carryover` を順詰めから `actor` 指名＋残り順詰めへ。(e) `parse_dialogue` に `when`（`joined:<actor>` / 否定）の評価を足す。
+- 置き場所：carryover の保存・読出は現在 presentation の `main.gd`（保存 :120／読出 :54-59）に直書きで、application に差配役がない。名簿の更新規則はゲームルールなので application に薄いサービスを新設し、main はそれを呼ぶだけにする（`CampaignProgress` の隣）。
+- 該当：`domain/unit/unit.gd`・`domain/battle_state.gd`（帰属ゲート）・`application/stage_loader.gd`（`_apply_carryover`・`parse_dialogue`）・`application/`（名簿サービス新規）・`presentation/main/main.gd`（呼び出しの差し替え）・`infrastructure/save/roster_store.gd`・`tests/unit/`（`test_capture`・`test_carryover_flow`・`test_dialogue` ほか）・`doc/gdd/map.md`・`doc/campaign/authoring.md`・`doc/tech/gamesystem.md`。
+- 前提：冒険譚3のステージデータ制作より先に済ませる（`actor` はステージJSONの書式に関わるため、後回しにすると書き直しになる）。
 
 ## リファクタリング
 
