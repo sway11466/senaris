@@ -354,27 +354,50 @@ static func wax_seal(diameter := 26.0) -> Control:
 	seal.add_theme_stylebox_override("panel", sb)
 	return seal
 
-## 焼き印スタンプ（討伐済／危険度など）。傾けて押した風。
-static func stamp(text: String, color: Color, tilt := -7.0) -> Control:
-	var p := PanelContainer.new()
-	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(color.r, color.g, color.b, 0.12)
-	sb.set_border_width_all(2)
-	sb.border_color = color
-	sb.set_corner_radius_all(4)
-	sb.set_content_margin(SIDE_LEFT, 8)
-	sb.set_content_margin(SIDE_RIGHT, 8)
-	sb.set_content_margin(SIDE_TOP, 2)
-	sb.set_content_margin(SIDE_BOTTOM, 2)
-	p.add_theme_stylebox_override("panel", sb)
-	var l := Label.new()
-	l.text = text
-	l.add_theme_color_override("font_color", color)
-	l.add_theme_font_size_override("font_size", 18)
-	p.add_child(l)
-	p.rotation_degrees = tilt
-	return p
+## ゴム印スタンプ（討伐済／勝利・敗北など）。傾けて叩きつけた風＝二重枠＋太らせた字。
+## インクは半透明で乗せる＝実際の印影と同じく、線の隙間から下地の字が読める（紙を覆っても潰さない）。
+## 大きさは font_size で決まり、枠の太さ・余白も比例する。箱は文字から自動算出するが、
+## 呼び出し側が size/custom_minimum_size を広げれば枠もそこまで広がる（_Stamp が矩形いっぱいに描く）。
+## 回転・拡縮の軸は中心（叩きつけアニメで中心から落ちる）。
+## ink_alpha は下地に応じて選ぶ：紙の字に重ねるなら薄く（既定 0.66＝字が透ける）、
+## 絵の上に押すなら濃く（0.9 前後＝絵に負けない）。実測で詰めた値。
+static func stamp(text: String, color: Color, tilt := -7.0, font_size := 44, ink_alpha := 0.66) -> Control:
+	var s := _Stamp.new()
+	s.text = text
+	s.ink = Color(color.r, color.g, color.b, ink_alpha)
+	s.font_size = font_size
+	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ts := ThemeDB.fallback_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+	var box := Vector2(ts.x + font_size * 1.2, font_size * 1.8)
+	s.custom_minimum_size = box
+	s.size = box
+	s.pivot_offset = box / 2.0
+	s.rotation_degrees = tilt
+	return s
+
+## ゴム印の描画（二重枠＋太字）。枠は自分の矩形いっぱい＝箱を広げれば印も大きくなる。
+## 既定フォントに太字が無いので、輪郭を膨らませて（draw_string_outline）字を太らせる。
+class _Stamp extends Control:
+	var text := ""
+	var ink := Color.WHITE
+	var font_size := 44
+
+	func _draw() -> void:
+		var w := maxf(2.0, font_size * 0.11)  # 外枠の太さ（字の太さと釣り合わせる）
+		var outer := Rect2(Vector2(w, w) * 0.5, size - Vector2(w, w))
+		draw_polyline(_loop(outer), ink, w, true)
+		var gap := w * 1.7  # 二重枠の内側（ゴム印の縁取り）
+		draw_polyline(_loop(Rect2(outer.position + Vector2(gap, gap), outer.size - Vector2(gap, gap) * 2.0)), ink, maxf(1.0, w * 0.38), true)
+		var font := ThemeDB.fallback_font
+		var ts := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		var pos := Vector2((size.x - ts.x) * 0.5, (size.y + font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5)
+		var ci := get_canvas_item()
+		font.draw_string_outline(ci, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, int(maxf(1.0, font_size * 0.05)), ink)
+		font.draw_string(ci, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, ink)
+
+	## 矩形を1周する折れ線（draw_polyline はアンチエイリアスが効く＝傾けても縁が汚れない）。
+	func _loop(r: Rect2) -> PackedVector2Array:
+		return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y), r.position])
 
 ## 木の板を縦の板材＋継ぎ目で描く内部クラス（プロシージャル木壁）。
 class _Planks extends Control:

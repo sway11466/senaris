@@ -291,8 +291,9 @@ func _poster(c: Dictionary) -> Control:
 	if not c["debug"]:
 		var total: int = c["stages"].size()
 		if total > 0 and _progress.cleared_count(String(c["id"])) >= total:
-			var stamp := TavernTheme.stamp("討伐済", TavernTheme.WAX, -12.0)
-			stamp.position = Vector2(POSTER_SIZE.x - 120.0, POSTER_ART_HEIGHT - 30.0)
+			# 絵の下半分に大きく押す（小さいと制覇の達成感が出ない）。中央揃え＝どの絵でも同じ位置。
+			var stamp := TavernTheme.stamp("討伐済", TavernTheme.WAX, -12.0, 46, 0.9)  # 絵の上＝濃く押す
+			stamp.position = Vector2((POSTER_SIZE.x - stamp.size.x) * 0.5, POSTER_ART_HEIGHT - stamp.size.y - 18.0)
 			card.add_child(stamp)
 
 	# 封蝋のピン（紙の上辺中央・半分はみ出して留める。poster直下＝切れない）

@@ -21,6 +21,9 @@ var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネ
 var _scrim_tween: Tween = null  # 進行中のフェード。次のフェード開始時に kill する（off の hide が on を消す競合対策）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
+var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
+var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
+var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の基準）
 var _bgm: BgmPlayer = null  # BGM の再生（永続・クロスフェード）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/冒険譚/既定のフォールバック連鎖
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
@@ -39,6 +42,9 @@ func _ready() -> void:
 	add_child(_combat_scene)
 	_victory_screen = VictoryScreen.new()  # キャンペーン完走の勝利イラスト（永続）
 	add_child(_victory_screen)
+	_result = ResultBanner.new()  # 決着の戦果票（永続）。load_stage より前に用意
+	_result.name = "ResultBanner"
+	add_child(_result)
 	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
@@ -92,6 +98,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.battle_finished.connect(_on_battle_finished)
 	_update_turn_label(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
+	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
 	_start_stage_bgm(path)  # ステージ単位でBGMを張り替える（新規ロード・中断セーブ復元で共通）
 
 ## AI手番のテンポ制御（controller.combat_pace）：戦闘演出が出ていれば閉じるまで待つ。
@@ -122,11 +129,10 @@ func _on_battle_finished(outcome: int) -> void:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
-	if _bgm != null:  # 勝敗スティンガーを1回鳴らす（ステージ曲は素早く下げる）。曲が無ければ無音
-		if outcome == BattleState.PLAYER_WIN:
-			_bgm.play_stinger("victory")
-		elif outcome == BattleState.PLAYER_LOSS:
-			_bgm.play_stinger("defeat")
+	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
+	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
+	await _await_combat_view()
+	await _show_result(outcome)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
 			_conversation_phase = "outro"
@@ -137,6 +143,59 @@ func _on_battle_finished(outcome: int) -> void:
 			_conversation.start(_dialogue["outro"], label)  # 読了/スキップで次ステージ or セレクトへ
 		else:
 			_advance_or_select()  # 会話なし＝すぐ次へ（テンポ優先）
+
+# --- 決着の戦果票（羊皮紙＋ゴム印）。presentation/ui/result_banner.gd ---
+
+## 戦果票を出し、プレイヤーが閉じるまで待つ。印が落ちた瞬間に勝敗スティンガーを鳴らす
+## （演出と音を揃える）。曲が未配置でも無音で進む＝演出だけは出る。
+func _show_result(outcome: int) -> void:
+	if _result == null or _controller == null:
+		return
+	var win := outcome == BattleState.PLAYER_WIN
+	if _bgm != null:
+		var track := "victory" if win else "defeat"
+		_result.stamped.connect(func() -> void: _bgm.play_stinger(track), CONNECT_ONE_SHOT)
+	_result.play(_stage_title(), "勝利" if win else "敗北", win, _result_rows())
+	await _result.finished
+
+## ステージ開始時の兵力を控える（戦果票の分母）。盤上の駒だけを数える＝拠点の控え(garrison)は含めない。
+func _count_start_forces(state: BattleState) -> void:
+	_start_ally = 0
+	_start_enemy = 0
+	for u in state.units():
+		if u.team == 0:
+			_start_ally += 1
+		elif u.team == 1:
+			_start_enemy += 1
+
+## 戦果の行（ターン数・生存・撃破）。集計は presentation 側＝domain に戦績を持たせない。
+## 撃破は「開始時の敵数 − 残っている敵数」。控えが出撃してから倒された分は数え落とす
+## （開始時に盤上に居ない）＝多く見せる側には振れない。厳密に採るなら domain 側で撃破を数える。
+func _result_rows() -> Array:
+	var st := _controller.state
+	var alive_ally := 0
+	var alive_enemy := 0
+	for u in st.units():
+		if u.team == 0:
+			alive_ally += 1
+		elif u.team == 1:
+			alive_enemy += 1
+	var turns := "%d / %d" % [st.turn_number, st.turn_limit] if st.turn_limit > 0 else str(st.turn_number)
+	return [
+		["ターン", turns],
+		["生存", "%d / %d" % [alive_ally, _start_ally]],
+		["撃破", str(maxi(_start_enemy - alive_enemy, 0))],
+	]
+
+## 戦果票の見出し＝ステージ名（冒険譚マニフェストの翻訳キーを解決）。
+## セレクト外（デバッグの直起動など）はステージJSONのファイル名で代用する。
+func _stage_title() -> String:
+	if _progress != null and not _current_campaign_id.is_empty():
+		var c := _progress.campaign(_current_campaign_id)
+		for s in c.get("stages", []):
+			if String(s.get("id", "")) == _current_stage_id:
+				return tr(String(s.get("title", "")))
+	return _current_stage_path.get_file().get_basename()
 
 # --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
 func _install_conversation() -> void:
