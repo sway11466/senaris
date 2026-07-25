@@ -122,6 +122,11 @@ func _on_battle_finished(outcome: int) -> void:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
+	if _bgm != null:  # 勝敗スティンガーを1回鳴らす（ステージ曲は素早く下げる）。曲が無ければ無音
+		if outcome == BattleState.PLAYER_WIN:
+			_bgm.play_stinger("victory")
+		elif outcome == BattleState.PLAYER_LOSS:
+			_bgm.play_stinger("defeat")
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
 			_conversation_phase = "outro"

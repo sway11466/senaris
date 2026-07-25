@@ -8,6 +8,7 @@ class_name BgmPlayer
 
 const BUS := "Music"       ## 効果音と別に絞れるようにする（default_bus_layout.tres）
 const FADE_SEC := 1.0      ## クロスフェード時間。まずは単純な2曲クロスフェードで十分（doc/audio/bgm.md）
+const DUCK_SEC := 0.3      ## スティンガー時に現曲を素早く下げる時間（ファンファーレの頭に被せない）
 const SILENCE_DB := -60.0  ## 実質無音。0.0 が通常音量
 
 var _players: Array[AudioStreamPlayer] = []
@@ -30,18 +31,39 @@ func play(track_id: String) -> void:
 	if track_id == _current_track:
 		return
 	_current_track = track_id
+	_fade_to(_load(track_id))
+
+## スティンガー（勝利/敗北など loop=false の一発曲）を鳴らす。現在のステージ曲は素早く下げ、
+## スティンガーはフェードインせず頭から出す＝ファンファーレの立ち上がりを殺さない。
+## 鳴り終えても曲は戻さない（次のステージ開始 or セレクトで play() が張り替える）。
+func play_stinger(track_id: String) -> void:
+	_current_track = track_id
+	var stream := _load(track_id)
+	if _tween != null and _tween.is_valid():
+		_tween.kill()
+	var outgoing := _players[_active]
+	if stream != null:
+		_active = 1 - _active  # 裏を表にする（現曲は素早く下げるだけ＝鳴らしたまま）
+		var incoming := _players[_active]
+		incoming.stream = stream
+		incoming.volume_db = 0.0  # フェードインしない（頭のアタックを出す）
+		incoming.play()
+	_tween = create_tween()
+	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, DUCK_SEC)
+	_tween.tween_callback(outgoing.stop)
+
+## トラックIDの AudioStream を読む。未配置・読めない時は null（呼び出し側は無音で進む）。
+## Godot が扱えるのは Ogg Vorbis＝Opus や壊れた ogg は import が通らず null になる。
+func _load(track_id: String) -> AudioStream:
 	var path := BgmCatalog.path_of(track_id)
 	if path.is_empty():
 		if not track_id.is_empty():
 			print("BgmPlayer: 曲が未配置＝無音で進行: %s（%s/%s.ogg）" % [track_id, BgmCatalog.BGM_ROOT, track_id])
-		_fade_to(null)
-		return
-	# 置いてあっても読めないことがある（Godot が扱えるのは Ogg Vorbis＝Opus や壊れた ogg は import が通らない）。
-	# その場合も無音で進む＝曲の差し替え作業中にゲームが落ちない。
+		return null
 	var stream := ResourceLoader.load(path) as AudioStream
 	if stream == null:
 		print("BgmPlayer: 曲を読めない＝無音で進行: %s（Ogg Vorbis か確認）" % path)
-	_fade_to(stream)
+	return stream
 
 ## 曲を止める（無音へフェード）。
 func stop() -> void:
