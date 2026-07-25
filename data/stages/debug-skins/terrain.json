@@ -1,0 +1,37 @@
+{
+  "turn_limit": 99,
+  "name": "debug-terrain",
+  "cols": 14,
+  "rows": 11,
+  "terrain": [
+    "..............",
+    ".LLL.PPP.%%%..",
+    ".LLL.PPP.%%%..",
+    "..L...P...%...",
+    "..............",
+    "..............",
+    ".FFF.***.MMM..",
+    ".FFF.***.MMM..",
+    "..F...*...M...",
+    "..............",
+    ".............."
+  ],
+  "player": [
+    { "type": "thief", "col": 0, "row": 3 },
+    { "type": "thief", "col": 0, "row": 4 },
+    { "type": "thief", "col": 0, "row": 5 },
+    { "type": "thief", "col": 0, "row": 6 },
+    { "type": "thief", "col": 0, "row": 7 }
+  ],
+  "enemy": [
+    { "name": "案山子（待機・索敵0）", "ai": "guard", "sight": 0,
+      "units": [
+        { "type": "novice", "skin": "goblin", "col": 2,  "row": 2 },
+        { "type": "novice", "skin": "goblin", "col": 6,  "row": 2 },
+        { "type": "novice", "skin": "goblin", "col": 10, "row": 2 },
+        { "type": "novice", "skin": "goblin", "col": 2,  "row": 7 },
+        { "type": "novice", "skin": "goblin", "col": 6,  "row": 7 },
+        { "type": "novice", "skin": "goblin", "col": 10, "row": 7 }
+      ] }
+  ]
+}
