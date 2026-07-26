@@ -6,9 +6,15 @@
   For one or more skin_ids (or 'all'), reads the combat-slot masters
   units-src/<group>/<id>/<id>_<slot>_03_master.png (slot = combat, combat_hero,
   combat_effect) and writes assets/units/<id>/<id>_<slot>.png: trim transparent
-  margins, downscale so the long side is <= 512px (never upscale), alpha kept.
-  No 256 canvas and no color reduction (unlike the map slot) -- the combat scene
-  scales with KEEP_ASPECT. <group> is a faction folder; the source dir is found by
+  margins, set the figure height = BaseHeight * combat_scale (unit_skin.csv), then
+  bottom-align it on a fixed 512 square transparent canvas. Alpha kept, no color
+  reduction (unlike the map slot).
+  The fixed canvas is what carries the relative sizes: the combat scene draws every
+  unit into the same square with KEEP_ASPECT and puts the canvas bottom on the feet
+  line, so a small unit stays small only if the padding is baked in. Trimming alone
+  (the old recipe) made every unit fill the frame at the same size.
+  Very wide figures are bounded by the canvas width too, so they shrink instead of
+  being clipped. <group> is a faction folder; the source dir is found by
   searching assets/units-src/ recursively for a folder named <id>.
   Only slots whose master exists are written. Recipe of record: doc/art/units.md 3.3.
   Requires ImageMagick (magick). NOTE: keep this file ASCII-only (PowerShell 5.1).
@@ -23,15 +29,24 @@ param(
   [string[]]$SkinIds        # one or more skin_ids, or 'all'.
 )
 $ErrorActionPreference = 'Stop'
-$LongSide = 512             # output long-side cap (px). Only downscales.
+$Canvas     = 512   # output canvas (square)
+$BaseHeight = 384   # figure height (px) at combat_scale=1.0. Baseline = fighter.
+                    # Kept at 0.75 * Canvas so the largest scale in the sheet (1.3) still fits.
 $Slots    = @('combat', 'combat_hero', 'combat_effect')
 $SkinIds = @($SkinIds)
 if ($SkinIds.Count -eq 0) { throw "usage: gen_unit_combat.ps1 <skin_id> [<skin_id> ...] | all" }
 
 $here = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Definition }
 $repo = Split-Path -Parent $here
+$csv     = Join-Path $repo 'data\units\unit_skin.csv'
 $srcRoot = Join-Path $repo 'assets\units-src'
 $outRoot = Join-Path $repo 'assets\units'
+
+# Read combat_scale. Row 1 = english keys (Import-Csv header); row 2 = JP labels, dropped by the numeric filter.
+$scale = @{}
+foreach ($r in (Import-Csv -Path $csv -Encoding UTF8)) {
+  if ($r.combat_scale -match '^[0-9.]+$') { $scale[$r.skin_id] = [double]$r.combat_scale }
+}
 
 if (-not (Get-Command magick -ErrorAction SilentlyContinue)) {
   throw "ImageMagick (magick) not found. Install: winget install ImageMagick.ImageMagick"
@@ -44,6 +59,8 @@ if ($SkinIds.Count -eq 1 -and $SkinIds[0] -eq 'all') {
 }
 
 foreach ($id in $SkinIds) {
+  $sc = if ($scale.ContainsKey($id)) { $scale[$id] } else { 1.0 }
+  $h  = [int][math]::Round($BaseHeight * $sc)
   # source dir = the folder named <id> that holds a combat master.
   $srcDir = Join-Path $srcRoot $id
   $hit = Get-ChildItem -Path $srcRoot -Directory -Recurse |
@@ -59,9 +76,10 @@ foreach ($id in $SkinIds) {
     if (-not (Test-Path $master)) { continue }
     New-Item -ItemType Directory -Force -Path $outDir | Out-Null
     $out = Join-Path $outDir "${id}_${slot}.png"
-    magick $master -trim +repage -background none -resize "${LongSide}x${LongSide}>" $out
+    # trim -> height = Base * scale (width bounded by the canvas) -> bottom-align on the square canvas
+    magick $master -trim +repage -resize "${Canvas}x${h}" -background none -gravity south -extent "${Canvas}x${Canvas}" $out
     $kb = [int]((Get-Item $out).Length / 1KB)
-    Write-Output ("{0,-16} {1,-14} -> assets/units/{2}/{2}_{1}.png ({3}KB)" -f $id, $slot, $id, $kb)
+    Write-Output ("{0,-16} {1,-14} x{2,-5} -> assets/units/{3}/{3}_{1}.png ({4}KB)" -f $id, $slot, $sc, $id, $kb)
     $any = $true
   }
   if (-not $any) { Write-Warning "${id}: no combat master (${id}_combat_03_master.png ...) -> skipped" }

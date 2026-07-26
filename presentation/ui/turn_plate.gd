@@ -11,8 +11,8 @@ const CENTER_H := 44.0
 const GAP := 8.0
 const TOP := 12.0        # 画面上端からの余白
 const DIM := Color(0.62, 0.62, 0.62)  # 非活性側の暗さ（活性側は縁の色でも分かるので、絵が潰れない程度に留める）
-const BUST_TOP := 0.08   # 立ち絵のどこから切るか（高さ比）＝頭の上に少し余白を残す
-const BUST_SIZE := 0.58  # 切り出す正方形の一辺（幅比）＝頭と肩が入る大きさ
+const BUST_RATIO := 0.62   # 胸像の一辺＝図の高さに対する比（頭と肩が入る大きさ）
+const BUST_MARGIN := 0.06  # 図の頭上に残す余白（一辺に対する比）
 
 var _ally: Panel
 var _enemy: Panel
@@ -96,6 +96,9 @@ func set_turn(team: int, turn_number: int, turn_limit: int) -> void:
 	_enemy_ring.visible = not player
 
 ## 立ち絵（map スロット）の頭〜肩を切り出した胸像。skin/画像が無ければ null。
+## 切り出しはキャンバスの固定位置ではなく、非透過部分の外接矩形を基準にする。map 画像は
+## map_scale が焼き込まれていて（小さい駒ほど下寄りに小さく描かれる）、固定位置だと頭が外れるため。
+## 会話パネルの顔絵と同じ考え方（presentation/ui/conversation_panel.gd）。
 func _bust(skin_catalog: Dictionary, skin_id: String) -> Texture2D:
 	if skin_id.is_empty():
 		return null
@@ -108,12 +111,21 @@ func _bust(skin_catalog: Dictionary, skin_id: String) -> Texture2D:
 	var tex: Texture2D = load(path)
 	if tex == null:
 		return null
-	var w := float(tex.get_width())
-	var h := float(tex.get_height())
-	var side := w * BUST_SIZE
+	var figure := Rect2(Vector2.ZERO, tex.get_size())
+	var img := tex.get_image()
+	if img != null:
+		var used := img.get_used_rect()
+		if used.size.x > 0 and used.size.y > 0:
+			figure = Rect2(used.position, used.size)
+	var side := figure.size.y * BUST_RATIO
+	var x := figure.position.x + (figure.size.x - side) * 0.5  # 図の左右中央
+	var y := figure.position.y - side * BUST_MARGIN            # 頭の少し上から
 	var at := AtlasTexture.new()
 	at.atlas = tex
-	at.region = Rect2((w - side) * 0.5, h * BUST_TOP, side, side)
+	at.region = Rect2(
+		clampf(x, 0.0, maxf(0.0, tex.get_width() - side)),
+		clampf(y, 0.0, maxf(0.0, tex.get_height() - side)),
+		side, side)
 	return at
 
 ## 盤エリア（右の情報ボックスを除いた領域）の上端中央へ置き直す。リサイズでも呼ばれる。

@@ -121,7 +121,9 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 攻撃エフェクト：ユニットごと1枚（combat_effect）。相手の隊列上に重ねて出す（斬撃＝被弾側／魔法＝着弾側）。
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
   - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。英雄／エフェクトは `_combat_hero_`／`_combat_effect_` で同様。
-  - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_hero.png`／`_combat_effect.png`）。master をトリム→長辺512pxに縮小・透過維持で書き出す（256四方・減色はしない＝combat は演出側が KEEP_ASPECT で縮小表示）。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
+  - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_hero.png`／`_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 512四方・下端揃え・透過」で書き出す（減色はしない）。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
+  - 倍率は `unit_skin.csv` の `combat_scale`（map の `map_scale` と対。今は同値だが、盤と戦闘で詰め方を変えられるよう列を分けてある）。相対サイズを担保しているのは固定キャンバスのほうで、演出側は全ユニットを同じ正方形に KEEP_ASPECT で描き、キャンバス下端を足元線に合わせる。トリムだけで書き出すと、どの駒も枠いっぱいに描かれて大小の差が消える。
+  - 横に広い駒はキャンバス幅にも収める＝はみ出す代わりに縮む。
 - 生成順：combat は map と同じ生成セッションで一緒に出す（全スロットを一度に）。text アンカーだけでは既存キャラは再現できず、別セッションでは同一キャラにならないため（i2i は使わない方針＝[direction.md](direction.md) §3）。既存ユニットに後から足す場合は、そのユニットを map から作り直す。
 
 生成は3ブロックを順に貼る：STYLE（共通・固定・ポーズ非依存）＋ POSE（下のカタログから役割で選ぶ）＋ SUBJECT（ユニット別）。POSE と SUBJECT は `{skin_id}_combat_prompt.txt` に一緒に置く（先頭に POSE 行 → SUBJECT）。STYLE は本 doc が正本。
