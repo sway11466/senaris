@@ -133,6 +133,7 @@ locked    … それ以外
   "desc": "t1.desc",
   "tier": "tutorial",
   "difficulty": 1,
+  "emblem": { "ally": "cleric", "enemy": "goblin" },
   "stages": [
     { "id": "st1", "file": "st1.json", "title": "t1.st1.title" },
     { "id": "st2", "file": "st2.json", "title": "t1.st2.title",
@@ -144,6 +145,7 @@ locked    … それ以外
 - `title`・`desc`・stage の `title` は生テキストでなく翻訳キー（i18n・後述）。表示側が `tr()` で解決する（debug 冒険譚の生テキストは `tr()` 素通しで従来どおり出る）。
 - ステージ JSON 本体（盤面）には手を入れない。進行・表示のメタはマニフェスト側に寄せる。
 - ステージ選択画面は「`data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
+- 戦闘画面用メタ（任意）: `emblem`（手番板の左右に出す代表ユニットの skin_id を `{ "ally": …, "enemy": … }` で指定）。未指定なら手番板は左右の枠を出さず、ターン数だけを見せる（→ [uiux.md](uiux.md)）。
 - カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`desc`（説明文の翻訳キー／未指定は空＝説明なし）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
 
 ## 多言語化（i18n）
