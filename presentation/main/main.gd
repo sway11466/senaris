@@ -25,7 +25,7 @@ var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利�
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
 var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の基準）
-var _bgm: BgmPlayer = null  # BGM の再生（永続・クロスフェード）。曲の決定は _bgm_director
+var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/冒険譚/既定のフォールバック連鎖
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
@@ -106,7 +106,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_update_turn_plate(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
-	_start_stage_bgm(path)  # ステージ単位でBGMを張り替える（新規ロード・中断セーブ復元で共通）
+	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
 
 ## AI手番のテンポ制御（controller.combat_pace）：戦闘演出が出ていれば閉じるまで待つ。
 func _await_combat_view() -> void:
@@ -327,6 +327,15 @@ func _install_sfx() -> void:
 	_sfx = SfxPlayer.new()
 	_sfx.name = "SfxPlayer"
 	add_child(_sfx)
+
+## 盤が1枚描き切ってからステージのBGMを始める。_install_state の中で鳴らすと、残りの盤生成と
+## 初回描画のぶん（実測 0.1〜0.3秒）だけ曲が先行し、盤が出る前に曲の頭が流れてしまう。
+## 待っている間に別ステージへ切り替わったら捨てる（連戦は call_deferred で load_stage が重なる）。
+func _start_stage_bgm_when_drawn(path: String) -> void:
+	await RenderingServer.frame_post_draw
+	if _current_stage_path != path:
+		return
+	_start_stage_bgm(path)
 
 ## ステージのBGMを張り替える。曲はステージJSONの bgm → 冒険譚の既定 → 全体既定の順で決まる。
 ## 同じ曲を指すステージが続けば鳴りっぱなし（頭出しに戻らない）＝BgmPlayer 側で吸収。

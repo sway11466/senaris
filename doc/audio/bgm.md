@@ -159,11 +159,17 @@ assets/
 |---|---|---|
 | `data` | `data/audio/bgm_catalog.gd` | トラックカタログ（ID→パス解決・autowire）と `bgm` 欄の読み取り。純ロジック |
 | `application` | `application/bgm_director.gd` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定（フォールバック連鎖）。`crisis` フラグ管理もここ |
-| `presentation` | `presentation/ui/bgm_player.gd` | `AudioStreamPlayer`×2 のクロスフェード。ID を受けて鳴らすだけ |
+| `presentation` | `presentation/ui/bgm_player.gd` | `AudioStreamPlayer`×2 の入れ替え。ID を受けて鳴らすだけ |
 
 ステージJSON の `bgm` 欄は `StageLoader.parse_bgm` / `load_bgm`（会話・skin と同じく `BattleState` には入れない）、冒険譚既定は `CampaignCatalog` が `bgm` キーとして持つ。`main`（`presentation/main/main.gd`）が両者を `BgmDirector` に渡し、決まったIDを `BgmPlayer` に流す。
 
 場面の切り替わりは2箇所だけ。ステージ開始（`_install_state`＝新規ロードと中断セーブ復元で共通）と、セレクトを開いたとき（`SelectScreen.opened` → メニュー曲）。同じトラックIDを指す遷移では鳴り続ける（頭出しに戻らない）。
+
+### 曲の出し入れ — 旧曲はフェードアウト・新曲は頭出し
+
+新曲はフェードインさせず素の音量で頭から鳴らす。旧曲だけ 1 秒でフェードアウトする。フェードインを掛けると曲の入りが聞こえないまま過ぎるため（-60dB から 1 秒で上げると 0.5 秒地点でまだ -30dB）。スティンガーの頭を殺さない扱いと同じ理由。
+
+ステージ曲は盤が1枚描き切ってから始める（`main._start_stage_bgm_when_drawn`）。`_install_state` の中で鳴らすと、残りの盤生成と初回描画のぶん（実測 0.1〜0.3 秒）だけ曲が盤より先行する。
 
 ## Godot 組込
 
@@ -175,7 +181,7 @@ assets/
 
 特定の状況で曲を切り替えられる。例: **敵が必殺技を使ったら危機BGMに変わり、以後クリア／敗北まで戻らない**。
 
-- **方式**: まずは**2曲をクロスフェード**する単純切り替えで十分（1〜2秒）。音楽的にきっちり繋ぎたければ Godot 4 の **`AudioStreamInteractive`**（クリップ＋遷移ルール。次の小節頭で切替）を使う。レイヤー加算（`AudioStreamSynchronized`）は素材コストが高いので後回し。
+- **方式**: まずは**旧曲のフェードアウト＋新曲の頭出し**（§曲の出し入れ）で十分。音楽的にきっちり繋ぎたければ Godot 4 の **`AudioStreamInteractive`**（クリップ＋遷移ルール。次の小節頭で切替）を使う。レイヤー加算（`AudioStreamSynchronized`）は素材コストが高いので後回し。
 - **「永続」＝状態フラグ1個**: ステージ状態に `crisis: bool` を持ち、一度立てたら戻さない（曲がパタパタ切り替わる事故を防ぐ）。ステージ開始でリセット。
 - **責務分担**は §レイヤー配置のとおり。`domain` は「敵が必殺技を使った」という事実をシグナルで出すだけ（音を知らない）。
 - **危機BGMの用意**: ライブラリの **`crisis`**（警報型）を全ステージ共通で使う。ステージ固有の色が欲しくなったら、通常曲の短調化派生（同じ `.mscz` から）で亜種を足してもよい。ループ点整備は通常曲・危機曲の両方に必要。

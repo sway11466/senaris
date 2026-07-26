@@ -1,13 +1,13 @@
 extends Node
 class_name BgmPlayer
-## BGM の再生（AudioStreamPlayer×2 のクロスフェード）。presentation＝トラックIDを受けて鳴らすだけ。
+## BGM の再生（AudioStreamPlayer×2 の入れ替え）。presentation＝トラックIDを受けて鳴らすだけ。
 ## 曲の選択ルール（場面→曲）は application/bgm_director.gd に置く。詳細 → doc/audio/bgm.md
 ##
 ## 曲が未配置なら無音＋ログ1行で進む（ゲームは止めない）。.ogg を置けば次の切替から鳴り出す。
 ## ループは Godot のインポート設定（.import の loop）で持つ＝ここでは扱わない。
 
 const BUS := "Music"       ## 効果音と別に絞れるようにする（default_bus_layout.tres）
-const FADE_SEC := 1.0      ## クロスフェード時間。まずは単純な2曲クロスフェードで十分（doc/audio/bgm.md）
+const FADE_OUT_SEC := 1.0  ## 旧曲を落とす時間。新曲はフェードインしない＝頭のアタックを殺さない
 const DUCK_SEC := 0.3      ## スティンガー時に現曲を素早く下げる時間（ファンファーレの頭に被せない）
 const SILENCE_DB := -60.0  ## 実質無音。0.0 が通常音量
 
@@ -73,7 +73,10 @@ func stop() -> void:
 func current_track() -> String:
 	return _current_track
 
-## 表と裏を入れ替えてクロスフェードする。stream が null なら現在の曲を落とすだけ。
+## 表と裏を入れ替える。旧曲はフェードアウトさせ、新曲はフェードインせず頭から鳴らす。
+## 新曲を -60dB から上げていくと（1秒フェードだと 0.5秒地点でまだ -30dB）曲の入りが
+## 聞こえないまま過ぎる＝スティンガーと同じ理由で、頭は素の音量で出す。
+## stream が null なら現在の曲を落とすだけ。
 func _fade_to(stream: AudioStream) -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()  # 前のフェードが生きたままだと音量の取り合いになる（会話の暗幕と同じ事情）
@@ -82,10 +85,8 @@ func _fade_to(stream: AudioStream) -> void:
 		_active = 1 - _active  # 裏を表にする（旧曲は鳴らしたままフェードアウトさせる）
 		var incoming := _players[_active]
 		incoming.stream = stream
-		incoming.volume_db = SILENCE_DB
+		incoming.volume_db = 0.0
 		incoming.play()
-	_tween = create_tween().set_parallel(true)
-	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, FADE_SEC)
-	if stream != null:
-		_tween.tween_property(_players[_active], "volume_db", 0.0, FADE_SEC)
-	_tween.chain().tween_callback(outgoing.stop)  # 消えてから止める（裏を空けて次の切替に備える）
+	_tween = create_tween()
+	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, FADE_OUT_SEC)
+	_tween.tween_callback(outgoing.stop)  # 消えてから止める（裏を空けて次の切替に備える）
