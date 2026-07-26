@@ -1,6 +1,7 @@
 {
   "turn_limit": 40,
   "name": "tutorial-st7",
+  "bgm": { "main": "dungeon" },
   "cols": 30,
   "rows": 11,
   "terrain": [
