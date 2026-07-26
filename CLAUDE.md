@@ -7,6 +7,7 @@
 - **実装着手はオーナーの明示的な許可後。** 設計・ドキュメント作業は随時OK。
 - **git 操作は都度許可を取る。**
 - ブランチは **main**（master は使わない）。
+- **仕様駆動（spec-anchored）で進める。** doc が現時点の仕様、実装はこれに従う。ただし面白さが上位で、仕様が面白さに反すれば仕様を変える。詳細 → [doc/tech/development.md](doc/tech/development.md)
 
 ## 技術スタック
 
@@ -45,6 +46,7 @@
 
 ### 技術設計 — `tech/`（Technical Design Document）
 
+- [doc/tech/development.md](doc/tech/development.md) — 開発の進め方（仕様駆動・何が錨か・変更の順序・ドリフト検出）
 - [doc/tech/architecture.md](doc/tech/architecture.md) — レイヤー／モジュール構成・依存ルール
 - [doc/tech/gamesystem.md](doc/tech/gamesystem.md) — ゲームシステム仕様（セーブ ほか）
 - [doc/tech/combat_scene.md](doc/tech/combat_scene.md) — 戦闘演出シーン（左右固定・兵数→隊列・シェイク/フラッシュ/攻撃エフェクト）
