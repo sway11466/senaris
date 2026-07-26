@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st3",
+  "bgm": { "main": "raid" },
   "cols": 18,
   "rows": 10,
   "terrain": [

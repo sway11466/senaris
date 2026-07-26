@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st1",
+  "bgm": { "main": "journey" },
   "cols": 14,
   "rows": 8,
   "terrain": [
