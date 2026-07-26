@@ -56,13 +56,17 @@ func _ready() -> void:
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
 
+## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
+## ステージ配置（carryover_slots）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/map.md
+func _load_roster() -> Array:
+	if _roster_store == null or _current_campaign_id.is_empty():
+		return []
+	return _roster_store.load_roster(_current_campaign_id)
+
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:
-	# carryover: 冒険譚に持ち越し戦力があれば渡す。fresh ステージ（carryover_slots 無し）では無視される。
-	var carried: Array = []
-	if _roster_store != null and not _current_campaign_id.is_empty():
-		carried = _roster_store.load_roster(_current_campaign_id)
-	var state := StageLoader.load_file(path, carried)
+	# carryover: 冒険譚の名簿があれば渡す。fresh ステージ（carryover_slots 無し）では無視される。
+	var state := StageLoader.load_file(path, _load_roster())
 	if state == null:
 		push_error("main: ステージを読めない: %s" % path)
 		return
@@ -73,7 +77,7 @@ func load_stage(path: String) -> void:
 ## intro 会話の再生は含めない＝新規開始（load_stage）だけが呼ぶ。詳細 → doc/tech/gamesystem.md
 func _install_state(state: BattleState, path: String) -> void:
 	_current_stage_path = path  # システムメニューのリスタート用
-	_dialogue = StageLoader.load_dialogue(path)  # 会話（intro/outro）を presentation へ（案P）
+	_dialogue = StageLoader.load_dialogue(path, _load_roster())  # 会話（intro/outro）を presentation へ（案P・名簿で when を評価）
 	if _controller != null:
 		_controller.free()  # 旧マッチを破棄（旧 controller のシグナル接続も消える）
 		_controller = null
@@ -121,10 +125,11 @@ func _on_battle_finished(outcome: int) -> void:
 			text = "自軍の勝利！"
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
 				_progress.record_clear(_current_campaign_id, _current_stage_id)
-				# carryover: 勝利時に生存自軍を保存＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
+				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
 				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/map.md
 				if _roster_store != null and _controller != null:
-					_roster_store.save_roster(_current_campaign_id, StageLoader.survivors_snapshot(_controller.state))
+					var updated := RosterService.update_after_clear(_load_roster(), _controller.state)
+					_roster_store.save_roster(_current_campaign_id, updated)
 		BattleState.PLAYER_LOSS:
 			text = "自軍の敗北…"
 	$Title.text = "Senaris — %s" % text

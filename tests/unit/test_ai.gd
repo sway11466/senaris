@@ -497,7 +497,7 @@ func _add_enemy_base(s: BattleState, base_hex: Vector2i, ai: String, count := 2)
 	s.squads.append({ "ai": ai })
 	for i in count:
 		var g := Unit.new(1000 + i, 0, base_hex, 3)  # team は出撃時に確定
-		g.native_team = 1  # native=enemy＝所有者と一致＝出せる
+		g.set_native_team(1)  # native/帰属=enemy＝所有者と一致＝出せる
 		b.garrison.append(g)
 	s.add_base(b)
 	return b
@@ -537,7 +537,7 @@ func test_base_without_ai_does_not_deploy() -> void:
 	var base_hex := Hex.offset_to_axial(3, 3)
 	var b := Base.new(base_hex, 1)  # ai なし
 	var g := Unit.new(1000, 0, base_hex, 3)
-	g.native_team = 1
+	g.set_native_team(1)
 	b.garrison.append(g)
 	s.add_base(b)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))
@@ -553,7 +553,7 @@ func test_base_does_not_deploy_locked_garrison() -> void:
 	b.squad_index = s.squads.size()
 	s.squads.append({ "ai": "charge" })
 	var g := Unit.new(1000, 0, base_hex, 3)
-	g.native_team = 0  # native=player＝奪われて閉じ込め
+	g.set_native_team(0)  # native/帰属=player＝奪われて閉じ込め
 	b.garrison.append(g)
 	s.add_base(b)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))

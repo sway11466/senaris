@@ -453,14 +453,15 @@ func _deploy_boardable(b: Base, garrison_index: int, occ: Unit) -> bool:
 func can_deploy(base_hex: Vector2i) -> bool:
 	return not deploy_cells(base_hex).is_empty()
 
-## garrison[index] を出撃させられるか（native ルール）。中立 native は誰の拠点からでも出せる（寝返り）。
-## 味方/敵 native の駒は「拠点の現所有者＝生来の陣営」のときだけ＝奪われた拠点の駒は閉じ込め。
+## garrison[index] を出撃させられるか（帰属ルール）。帰属未確定（中立でまだ解放されていない）は
+## 誰の拠点からでも出せる＝出した側の戦力になる。確定済みは「拠点の現所有者＝帰属先」のときだけ
+## ＝奪われた拠点の駒は閉じ込め（一度解放した駒は奪われても寝返らない）。詳細 → doc/gdd/map.md
 func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 	var b := base_at(base_hex)
 	if b == null or index < 0 or index >= b.garrison.size():
 		return false
 	var u: Unit = b.garrison[index]
-	return u.native_team == Base.NEUTRAL or u.native_team == b.team
+	return u.is_unclaimed() or u.recruited_team == b.team
 
 ## 拠点の garrison[index] を隣接 to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
 ## to_hex が「乗れる味方輸送」のマスなら出撃＝そのまま搭乗（盤上には出ない）。
@@ -480,7 +481,9 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 		return false
 	var u: Unit = b.garrison[garrison_index]
 	b.garrison.remove_at(garrison_index)
-	u.team = current_team  # 中立 native はここで寝返る（味方/敵 native は自陣営のまま＝値は変わらない）
+	u.team = current_team
+	if u.is_unclaimed():
+		u.recruited_team = current_team  # 解放＝帰属確定。以後は拠点を奪われても寝返らず捕虜になる
 	if occ != null:
 		put_passenger(occ.id, u)  # 出撃先が輸送＝直接乗車（盤上には出ない）
 	else:
@@ -721,11 +724,11 @@ func _has_reinforcement(team: int) -> bool:
 			return true
 	return false
 
-## 拠点 b の控えに、native ルールで出撃できる駒が1体でもいるか（中立、または所有者と同 native）。
+## 拠点 b の控えに、帰属ルールで出撃できる駒が1体でもいるか（未確定、または所有者と同じ帰属先）。
 func _base_has_deployable_garrison(b: Base) -> bool:
 	for gu in b.garrison:
 		var u := gu as Unit
-		if u.native_team == Base.NEUTRAL or u.native_team == b.team:
+		if u.is_unclaimed() or u.recruited_team == b.team:
 			return true
 	return false
 
@@ -839,7 +842,7 @@ func end_turn() -> void:
 
 ## 手番が始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
 ## 回復できるのは native が自陣営/中立の拠点だけ＝奪った敵 native 拠点は出撃拠点にはなるが回復しない。
-## 閉じ込め駒（native≠所有者）も回復しない。hexの上に立っている駒は回復しない（中に入るモデル）。
+## 閉じ込め駒（帰属先≠所有者）も回復しない。hexの上に立っている駒は回復しない（中に入るモデル）。
 func _heal_garrisons() -> void:
 	for b in _bases:
 		if b.team != current_team:
@@ -847,7 +850,7 @@ func _heal_garrisons() -> void:
 		if b.native_team != current_team and b.native_team != Base.NEUTRAL:
 			continue  # 敵 native の拠点では回復しない
 		for u in b.garrison:
-			if u.native_team == current_team or u.native_team == Base.NEUTRAL:
+			if u.recruited_team == current_team or u.is_unclaimed():
 				u.troops = u.max_troops
 
 # --- 中断セーブ（状態の丸ごと直列化）。バージョン枠・ファイルIOは infrastructure/save 側。詳細 → doc/tech/gamesystem.md ---

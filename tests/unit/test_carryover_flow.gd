@@ -25,9 +25,9 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 	var cat := _catalog()
 	# --- S1 を組む（自軍2体）。
 	var s1 := StageLoader.build({ "cols": 8, "rows": 6, "player": [
-		{ "type": "archer", "col": 0, "row": 0 },
-		{ "type": "knight", "col": 1, "row": 0 },
-	] }, cat)
+		{ "type": "archer", "col": 0, "row": 0, "actor": "c.archer" },
+		{ "type": "knight", "col": 1, "row": 0, "actor": "c.knight" },
+	] }, cat)  # 名簿に載るのは actor を持つ駒だけ
 	# --- 戦闘の結果を模す：archer が損耗（troops 8→4・経験 +2）。
 	var archer := s1.unit_by_id(1)
 	archer.troops = 4
@@ -35,7 +35,7 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 
 	# --- main の勝利フック相当：生存自軍を保存。
 	var store := RosterStore.new(PATH)
-	store.save_roster("camp", StageLoader.survivors_snapshot(s1))
+	store.save_roster("camp", RosterService.update_after_clear([], s1))
 
 	# --- main のステージ開始フック相当：別インスタンスで読み直し、S2(carryover)に渡す。
 	var carried := RosterStore.new(PATH).load_roster("camp")
@@ -58,11 +58,11 @@ func test_retry_uses_previous_win_snapshot_not_current_run() -> void:
 	# 保存は勝利時のみ＝S2で負けて作り直しても、S2開始時の carried は「S1勝利時の戦力」で不変。
 	var cat := _catalog()
 	var s1 := StageLoader.build({ "cols": 8, "rows": 6, "player": [
-		{ "type": "knight", "col": 0, "row": 0 },
+		{ "type": "knight", "col": 0, "row": 0, "actor": "c.knight" },
 	] }, cat)
 	s1.unit_by_id(1).troops = 5  # S1 を 兵5 で勝ち抜けた
 	var store := RosterStore.new(PATH)
-	store.save_roster("camp", StageLoader.survivors_snapshot(s1))
+	store.save_roster("camp", RosterService.update_after_clear([], s1))
 
 	# S2 開始（1回目）＝兵5を継承。
 	var carried1 := RosterStore.new(PATH).load_roster("camp")

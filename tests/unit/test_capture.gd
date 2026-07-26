@@ -245,12 +245,13 @@ func test_neutral_garrison_defects_to_captor() -> void:
 	var base_hex := Hex.offset_to_axial(4, 4)
 	var b := Base.new(base_hex, Base.NEUTRAL)  # 中立拠点
 	var villager := Unit.new(10, Base.NEUTRAL, Vector2i.ZERO, 3)
-	villager.native_team = Base.NEUTRAL
+	villager.set_native_team(Base.NEUTRAL)
 	b.garrison.append(villager)
 	s.add_base(b)
 	b.team = 0  # 自軍が占領
 	s.current_team = 0
-	assert_true(s.can_deploy_garrison(base_hex, 0), "中立 native は取った側が出せる")
+	assert_true(s.can_deploy_garrison(base_hex, 0), "帰属未確定なら取った側が出せる")
 	assert_true(s.deploy(base_hex, 0, Hex.neighbor(base_hex, 0)))
 	assert_eq(s.unit_by_id(10).team, 0, "出撃で自軍に寝返る")
 	assert_eq(s.unit_by_id(10).native_team, Base.NEUTRAL, "native は不変")
+	assert_eq(s.unit_by_id(10).recruited_team, 0, "帰属が自軍で確定する")

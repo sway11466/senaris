@@ -86,16 +86,6 @@ static func load_file(path: String, carried: Array = []) -> BattleState:
 	state.set_sight_cost(TerrainType.sight_cost_table())  # 地形ごとの視線コスト（索敵の遮蔽・減衰）を有効化
 	return state
 
-## carryover 保存用：state の生存自軍（team 0・盤上の駒）の直列化リストを返す。
-## 撃破された駒は BattleState から除去済みなので units() 生存者そのもの。次ステージの carried に渡す。
-## 当面の制限＝輸送機に搭乗中の駒（_passengers）は含めない。詳細 → doc/gdd/map.md / doc/tech/gamesystem.md
-static func survivors_snapshot(state: BattleState) -> Array:
-	var out: Array = []
-	for u in state.units():
-		if u.team == 0:
-			out.append(u.to_dict())
-	return out
-
 ## 地形グリッド（文字列の配列）を盤に反映。row=行index, col=文字index → offset(col,row)。
 static func _apply_terrain(state: BattleState, grid: Variant) -> void:
 	if typeof(grid) != TYPE_ARRAY:
@@ -132,28 +122,65 @@ static func load_terrain_skins(path: String) -> Dictionary:
 	return parse_terrain_skins(data)
 
 ## 会話（シナリオ）：ステージ辞書の "dialogue"（{ intro:[...], outro:[...] }）を取り出す。
-## presentation 専用（案P と同じ＝BattleState には入れない）。各行 { speaker, skin, text }。
-## text/speaker は翻訳キー＝表示時に tr() で解決する（i18n。正本 data/i18n/dialogue.csv）。詳細 → doc/campaign/authoring.md
-static func parse_dialogue(data: Dictionary) -> Dictionary:
+## presentation 専用（案P と同じ＝BattleState には入れない）。各行 { speaker, skin, text } ＋任意 when。
+## text/speaker は翻訳キー＝表示時に tr() で解決する（i18n。正本 data/i18n/dialogue.csv）。
+## roster（名簿＝Unit.to_dict() の配列）を渡すと when 条件を評価して行を絞る。詳細 → doc/campaign/authoring.md
+static func parse_dialogue(data: Dictionary, roster: Array = []) -> Dictionary:
 	var out := { "intro": [], "outro": [] }
 	var dlg: Variant = data.get("dialogue", {})
 	if typeof(dlg) != TYPE_DICTIONARY:
 		return out
+	var joined := _roster_actors(roster)
 	for phase in ["intro", "outro"]:
 		var lines: Variant = dlg.get(phase, [])
-		if typeof(lines) == TYPE_ARRAY:
-			out[phase] = lines
+		if typeof(lines) != TYPE_ARRAY:
+			continue
+		var kept: Array = []
+		for line in lines:
+			if typeof(line) != TYPE_DICTIONARY or _when_holds(line.get("when"), joined):
+				kept.append(line)
+		out[phase] = kept
 	return out
 
+## 名簿に在籍している actor の集合（兵力ゼロの離脱者も在籍＝会話には出る）。
+static func _roster_actors(roster: Array) -> Dictionary:
+	var set := {}
+	for e in roster:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var a := String(e.get("actor", ""))
+		if a != "":
+			set[a] = true
+	return set
+
+## 会話行の when 条件が成り立つか。未指定（null）は常に真＝条件のない行は必ず出る。
+## 対応する表記は "joined:<actor>"（在籍）と、先頭 "!" による否定。未知の表記は真（行を落とさない）。
+static func _when_holds(cond: Variant, joined: Dictionary) -> bool:
+	if cond == null:
+		return true
+	var s := String(cond).strip_edges()
+	if s == "":
+		return true
+	var negate := s.begins_with("!")
+	if negate:
+		s = s.substr(1).strip_edges()
+	if not s.begins_with("joined:"):
+		push_warning("StageLoader: 未知の会話条件 '%s'＝この行は常に表示" % cond)
+		return true
+	var actor := s.substr("joined:".length()).strip_edges()
+	var has: bool = joined.has(actor)
+	return not has if negate else has
+
 ## res:// パスの JSON から dialogue を読む（load_file と対＝会話を presentation へ渡すため）。
-static func load_dialogue(path: String) -> Dictionary:
+## roster を渡すと when 条件で行を絞る（省略＝条件つきの行は在籍なしとして扱われる）。
+static func load_dialogue(path: String, roster: Array = []) -> Dictionary:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
 		return { "intro": [], "outro": [] }
 	var data: Variant = JSON.parse_string(text)
 	if typeof(data) != TYPE_DICTIONARY:
 		return { "intro": [], "outro": [] }
-	return parse_dialogue(data)
+	return parse_dialogue(data, roster)
 
 ## BGM：ステージ辞書の "bgm"（{ main, crisis }）を取り出す。値はトラックID（assets/bgm/{id}.ogg）。
 ## 会話(skin)と同じく presentation/application 側の関心＝BattleState には入れない。
@@ -244,39 +271,79 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 		for g in b.get("garrison", []):
 			for _i in maxi(int(g.get("count", 1)), 1):
 				var gu := _make_unit(g, catalog, auto_id, 0, skin_catalog)  # team は出撃時に決まる（deploy で captor 陣営へ）
-				gu.native_team = _parse_team(g.get("native"), base.native_team)
+				gu.set_native_team(_parse_team(g.get("native"), base.native_team))  # 帰属先も揃う（中立＝未確定）
 				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)
 	return auto_id  # garrison も id を消費するので次の採番を継ぐ（継承ユニットの配置に使う）
 
-## 継承ユニット（carried＝Unit.to_dict() の配列）を carryover_slots の位置に順に嵌める（案A）。詳細 → doc/gdd/map.md
-## slots は [{col,row}]（位置だけ）。carried[i] を slots[i] に、スナップショット順で配置する（team=自軍）。
-## 性能は type から再構築（Unit.from_dict）。継承ユニットが多くスロットが足りなければ余剰は出撃せず警告、
-## 少なければ余ったスロットは空のまま（前ステージで失った＝穴が開く）。carried 空（fresh）なら何もしない。
+## 継承ユニット（carried＝名簿＝Unit.to_dict() の配列）を carryover_slots に嵌める。詳細 → doc/gdd/map.md
+## slots は [{col,row, actor?}]。actor を書いたスロットはその仲間を名指しで置き、指名のないスロットに
+## 残りを名簿順で詰める。名指しの相手が名簿に居なければ（未加入）そのスロットは空のまま＝作者の配置が崩れない。
+## 盤に出すのは troops > 0 の者だけ＝兵力ゼロの離脱者は名簿に在籍したまま出撃しない（会話には出る）。
+## 性能は type から再構築（Unit.from_dict）。出撃できる者がスロット数を超えれば余剰は出撃せず警告。
 static func _apply_carryover(state: BattleState, slots: Variant, carried: Array, catalog: Dictionary, start_id: int) -> int:
 	if typeof(slots) != TYPE_ARRAY or carried.is_empty():
 		return start_id
-	var auto_id := start_id
-	var n := mini(slots.size(), carried.size())
-	for i in n:
-		if typeof(slots[i]) != TYPE_DICTIONARY or typeof(carried[i]) != TYPE_DICTIONARY:
+	# 出撃できるのは在籍者のうち兵力が残っている者だけ（名簿順を保つ）
+	var deployable: Array = []
+	for e in carried:
+		if typeof(e) == TYPE_DICTIONARY and int(e.get("troops", 0)) > 0:
+			deployable.append(e)
+	var used := {}  # deployable の index -> true（名指しで消費済み）
+	var by_actor := {}  # actor -> deployable の index（先勝ち＝名簿順で最初の1体）
+	for i in deployable.size():
+		var a := String((deployable[i] as Dictionary).get("actor", ""))
+		if a != "" and not by_actor.has(a):
+			by_actor[a] = i
+	# 第1巡: actor 指名のスロットを埋める（該当者が居なければ空のまま）
+	var assigned := {}  # slot index -> deployable index
+	for si in slots.size():
+		if typeof(slots[si]) != TYPE_DICTIONARY:
 			continue
-		var slot: Dictionary = slots[i]
-		var snap: Dictionary = carried[i]
+		var want := String((slots[si] as Dictionary).get("actor", ""))
+		if want == "":
+			continue
+		if by_actor.has(want):
+			assigned[si] = by_actor[want]
+			used[by_actor[want]] = true
+		else:
+			assigned[si] = -1  # 未加入＝このスロットは他の駒に回さず空けておく
+	# 第2巡: 指名のないスロットへ残りを名簿順で詰める
+	var rest: Array = []
+	for i in deployable.size():
+		if not used.has(i):
+			rest.append(i)
+	var next_rest := 0
+	for si in slots.size():
+		if assigned.has(si) or typeof(slots[si]) != TYPE_DICTIONARY:
+			continue
+		if next_rest >= rest.size():
+			break
+		assigned[si] = rest[next_rest]
+		next_rest += 1
+	# 配置
+	var auto_id := start_id
+	for si in slots.size():
+		var di: int = assigned.get(si, -1)
+		if di < 0:
+			continue
+		var slot: Dictionary = slots[si]
+		var snap: Dictionary = deployable[di]
 		var type_id := String(snap.get("type", ""))
 		var t: UnitType = catalog.get(type_id)
 		if t == null and type_id != "":
 			push_warning("StageLoader: 継承ユニットの未知 type '%s'＝既定性能で配置" % type_id)
 		var unit := Unit.from_dict(snap, t)
 		unit.id = auto_id
-		unit.team = 0          # 継承は自軍
-		unit.native_team = 0
+		unit.team = 0  # 継承は自軍
+		unit.set_native_team(0)  # 帰属は確定済み（名簿に載っている＝仲間）
 		unit.pos = Hex.offset_to_axial(int(slot.get("col", 0)), int(slot.get("row", 0)))
 		state.add_unit(unit)
 		auto_id += 1
-	if carried.size() > slots.size():
-		push_warning("StageLoader: 継承 %d 体に対しスロット %d 個＝%d 体は今回出撃しない" % [carried.size(), slots.size(), carried.size() - slots.size()])
+	var left := rest.size() - next_rest
+	if left > 0:
+		push_warning("StageLoader: 出撃できる継承 %d 体に対しスロットが足りず %d 体は今回出撃しない" % [deployable.size(), left])
 	return auto_id
 
 ## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
@@ -316,5 +383,6 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, s
 	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
 	unit.pierce = float(u.get("pierce", t.pierce if t != null else 0.0))
 	unit.capacity = int(u.get("capacity", t.capacity if t != null else 0))
-	unit.native_team = _parse_team(u.get("native"), unit.team)  # 生来の陣営（既定=初期team。garrison/搭乗は呼び出し側が上書き）
+	unit.set_native_team(_parse_team(u.get("native"), unit.team))  # 生来の陣営＋帰属先（既定=初期team。garrison は呼び出し側が上書き）
+	unit.actor = String(u.get("actor", ""))  # 名前つきの駒（名簿・会話分岐の同一性）。詳細 → doc/gdd/map.md
 	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う

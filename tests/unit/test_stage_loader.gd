@@ -176,13 +176,14 @@ func test_no_carried_units_ignores_slots() -> void:
 	var s := StageLoader.build(data, _carry_catalog(), {}, [])
 	assert_eq(s.units().size(), 0, "carried 空なら継承配置なし")
 
-func test_survivors_snapshot_returns_player_only() -> void:
-	# 継承保存用＝生存自軍(team 0)の直列化だけ返す（敵は含めない）。
+func test_roster_collect_returns_player_only() -> void:
+	# 名簿の収集＝自軍に帰属する名前つきの駒だけ返す（敵は含めない）。
 	var data := { "cols": 6, "rows": 4,
-		"player": [{ "type": "archer", "col": 1, "row": 1 }, { "type": "knight", "col": 2, "row": 1 }],
-		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1 }] }] }
+		"player": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer" },
+			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight" }],
+		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1, "actor": "c.foe" }] }] }
 	var s := StageLoader.build(data, _carry_catalog())
-	var snaps := StageLoader.survivors_snapshot(s)
+	var snaps := RosterService.collect(s)
 	assert_eq(snaps.size(), 2, "自軍2体のみ")
 	var types := [snaps[0]["type"], snaps[1]["type"]]
 	assert_true("archer" in types and "knight" in types, "自軍の type を含む")

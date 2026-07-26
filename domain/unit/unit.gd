@@ -5,11 +5,17 @@ class_name Unit
 ## 詳細 → doc/gdd/combat.md
 
 const MAX_LEVEL := 99  ## 経験値（＝レベル）の上限
+const NEUTRAL_TEAM := -1  ## 中立（＝帰属未確定）。Base.NEUTRAL と同値（Base を参照すると循環するため別に置く）
 
 var id: int            ## 一意なID
 var team: int          ## 陣営（0=自軍, 1=敵軍 ...）。中立garrisonの寝返り等で変わりうる
-var native_team: int   ## 生来の陣営（不変）。-1(Base.NEUTRAL)=中立＝占領した側に寝返る。
-                       ## 味方/敵 native の駒は寝返らない＝拠点を奪われると閉じ込め。詳細 → doc/gdd/map.md
+var native_team: int   ## 生来の陣営（不変）。-1(Base.NEUTRAL)=中立＝まだ帰属が決まっていない。
+                       ## 本拠地判定にも使う値なので、解放や占領では動かさない。詳細 → doc/gdd/map.md
+var recruited_team: int  ## 帰属先＝どちらの戦力として世に出たか。既定は native_team と同じ。
+                       ## 中立 native の駒が解放（出撃）された瞬間に出した側で確定し、以後は不変
+                       ## ＝拠点ごと奪われても寝返らず捕虜になる。出撃・回復の可否はこの値で見る。
+var actor: String = ""   ## 永続キャラ識別子（冒険譚をまたいで一意。例 "t3.elf"）。空＝名前のない雑兵。
+                       ## 名簿の同一性・carryover_slots の名指し配置・会話の分岐がこの値を見る
 var pos: Vector2i      ## axial 座標
 var move: int          ## 移動力（ヘックス数）
 var troops: int        ## 兵数（1〜8）。残存兵数。0で消滅
@@ -52,6 +58,7 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 	id = p_id
 	team = p_team
 	native_team = p_team  # 既定は初期陣営（中立garrison等は生成側が上書き）
+	recruited_team = p_team  # 帰属先は native に追従（native を変えたら set_native_team で揃える）
 	pos = p_pos
 	move = p_move
 	troops = p_troops
@@ -64,6 +71,16 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 ## 経験値（＝レベル）を加算。1〜MAX_LEVEL にクランプ。詳細 → combat.md
 func add_experience(n: int) -> void:
 	level = clampi(level + n, 1, MAX_LEVEL)
+
+## 生来の陣営を設定する。帰属先も同じ値に揃える（生成時＝まだ解放されていない状態のため）。
+## 解放後の帰属確定は BattleState.deploy が行う（そちらは native を触らない）。
+func set_native_team(t: int) -> void:
+	native_team = t
+	recruited_team = t
+
+## 帰属が未確定か（中立のまま、まだどちらにも解放されていない）。
+func is_unclaimed() -> bool:
+	return recruited_team == NEUTRAL_TEAM
 
 ## 種別(UnitType)の性能をこの駒に写す（type が唯一の出どころ＝数値を焼かない）。
 ## 成長・損耗（level/troops）と盤依存の状態（id/team/pos）は触らない＝呼び出し側の管轄。
@@ -87,13 +104,16 @@ func apply_type(t: UnitType) -> void:
 ## 性能値（攻防・射程…）は type から再構築するので焼かない。盤依存の状態（id/team/pos/行動済み）も持たない
 ## ＝戦力スナップショット（継承）はこれそのもの、中断セーブはこれに盤情報を足す。詳細 → doc/tech/gamesystem.md
 func to_dict() -> Dictionary:
-	return {
+	var d := {
 		"type": type_id,
 		"skin": skin_id,
 		"level": level,
 		"troops": troops,
 		"max_troops": max_troops,
 	}
+	if actor != "":
+		d["actor"] = actor  # 名前のない駒では出さない（名簿の対象外＝キーを増やさない）
+	return d
 
 ## 直列化から駒を復元。性能は t（type_id で解決した UnitType）から再構築する。
 ## t 省略/未解決なら既定性能（move3/atk10/def10）で復元＝データ欠損に耐える（catalog 解決は呼び出し側）。
@@ -111,6 +131,7 @@ static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	unit.troops = troops        # apply_type が max_troops を type 既定に戻すので損耗を再適用
 	unit.max_troops = max_troops
 	unit.skin_id = String(data.get("skin", type_id))
+	unit.actor = String(data.get("actor", ""))
 	return unit
 
 ## 中断セーブ用の直列化＝スナップショット(to_dict)に盤情報（id/team/native/位置）を足したもの。
@@ -120,6 +141,7 @@ func to_full_dict() -> Dictionary:
 	d["id"] = id
 	d["team"] = team
 	d["native"] = native_team
+	d["recruited"] = recruited_team
 	d["q"] = pos.x
 	d["r"] = pos.y
 	return d
@@ -129,6 +151,7 @@ static func from_full_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	var unit := from_dict(data, t)
 	unit.id = int(data.get("id", 0))
 	unit.team = int(data.get("team", 0))
-	unit.native_team = int(data.get("native", unit.team))
+	unit.set_native_team(int(data.get("native", unit.team)))
+	unit.recruited_team = int(data.get("recruited", unit.native_team))  # 旧セーブは native と同値で復元
 	unit.pos = Vector2i(int(data.get("q", 0)), int(data.get("r", 0)))
 	return unit
