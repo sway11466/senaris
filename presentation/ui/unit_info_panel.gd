@@ -8,6 +8,7 @@ var _state: BattleState
 var _skins := {}        # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 var _label: Label
 var _report: CombatReportView  # 戦闘レポート（サマリー/詳細タブ）。戦闘時だけ _label と入れ替えて表示
+var _notify_token := 0  # 一時通知の世代。待っている間に別の表示へ変わったら戻さないための印
 
 func _ready() -> void:
 	# 暗い木の看板（材質ルール: 木＝常設の面。TavernTheme 参照）
@@ -46,7 +47,17 @@ func show_unit(unit_id: int) -> void:
 	_show_text(_format(u))
 
 func clear() -> void:
-	_show_text("ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認")
+	_show_text("ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認\n\n［操作］\nEnter＝手番終了\n2本指スクロール／空き地ドラッグ＝移動\nピンチ＝ズーム\nF＝全体表示")
+
+## 一時的な通知（セーブ完了など）。数秒だけ出して未選択表示へ戻す。
+## 上端の情報バーを廃した代わりの置き場（doc/gdd/uiux.md「手番表示」）。
+func notify(text: String, seconds := 2.5) -> void:
+	_show_text(text)
+	var token := _notify_token + 1
+	_notify_token = token
+	await get_tree().create_timer(seconds).timeout
+	if _notify_token == token and is_inside_tree():
+		clear()  # 後から別の表示に切り替わっていれば（token 不一致）何もしない
 
 ## 空きマスの地形情報を表示（拠点なら控え＝garrison も一覧）。HexBoard.tile_inspected を受ける。
 func show_terrain(hex: Vector2i) -> void:

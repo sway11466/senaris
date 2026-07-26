@@ -333,7 +333,7 @@ func _zoom_at_point(factor: float, screen: Vector2) -> void:
 		_cam_target += Vector3(before.x - after.x, 0.0, before.z - after.z)
 		_update_camera()
 
-## 盤全体が HUD を避けた表示領域（上の Title・右の InfoPanel を除く）に収まるよう距離と注視点を合わせる。
+## 盤全体が HUD を避けた表示領域（上の手番板・右の InfoPanel を除く）に収まるよう距離と注視点を合わせる。
 func fit_to_view() -> void:
 	if state == null:
 		return
@@ -352,7 +352,7 @@ func fit_to_view() -> void:
 	var tanf := tan(deg_to_rad(CAM_FOV) * 0.5)
 	var sp := sin(deg_to_rad(CAM_PITCH_DEG))
 	var vis_w := minf(vp.x, INFOPANEL_LEFT) - 32.0   # 可視域（右の InfoPanel・左右マージンを除く）
-	var vis_h := vp.y - 96.0                          # 上の Title 下から下端まで
+	var vis_h := vp.y - 96.0                          # 上の手番板の下から下端まで
 	var d_h := half.x / (tanf * vis_w / vp.y)         # 横に収まる距離
 	var d_v := half.y * sp / (tanf * vis_h / vp.y)    # 縦（奥行きは俯角で縮む）に収まる距離
 	_cam_dist = clampf(maxf(d_h, d_v) * 1.05, MIN_DIST, MAX_DIST)
@@ -375,7 +375,7 @@ func focus_camera_on(hex: Vector2i) -> void:
 		return  # 主体がカメラ背後（通常起きない）＝寄せようがない
 	var sp := _cam.unproject_position(w)
 	var vp := get_viewport().get_visible_rect().size
-	# 安全域＝可視域（右の InfoPanel・上の Title を除く）の、さらに内側 FOCUS_MARGIN。
+	# 安全域＝可視域（右の InfoPanel・上の手番板を除く）の、さらに内側 FOCUS_MARGIN。
 	var left := 16.0 + FOCUS_MARGIN
 	var right := INFOPANEL_LEFT - 16.0 - FOCUS_MARGIN
 	var top := 96.0 + FOCUS_MARGIN

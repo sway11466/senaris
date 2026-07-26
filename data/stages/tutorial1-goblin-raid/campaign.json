@@ -4,6 +4,7 @@
   "desc": "t1.desc",
   "tier": "tutorial",
   "difficulty": 1,
+  "emblem": { "ally": "fighter", "enemy": "goblin" },
   "stages": [
     { "id": "st1", "file": "st1.json", "title": "t1.st1.title" },
     { "id": "st2", "file": "st2.json", "title": "t1.st2.title",

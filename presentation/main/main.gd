@@ -9,6 +9,7 @@ var _skins := {}
 var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label -> パラメーター辞書
 var _controller: MatchController = null
 var _hud: Hud = null
+var _turn_plate: TurnPlate = null  # 手番板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
@@ -48,6 +49,7 @@ func _ready() -> void:
 	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
+	_install_turn_plate()  # 永続の手番板（盤エリア上端中央）。load_stage が手番・代表ユニットを流し込む
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
@@ -100,7 +102,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AI手番は次の主体をカメラに収めてから見せる
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
-	_update_turn_label(state.current_team, state.turn_number)
+	_apply_emblem()  # 手番板の左右（冒険譚の代表ユニット）。ステージが変われば差し替わる
+	_update_turn_plate(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
 	_start_stage_bgm(path)  # ステージ単位でBGMを張り替える（新規ロード・中断セーブ復元で共通）
@@ -111,18 +114,25 @@ func _await_combat_view() -> void:
 		await _combat_scene.finished
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
-	_update_turn_label(team, turn_number)
+	_update_turn_plate(team, turn_number)
 	_hud.set_player_turn(team == 0)
 
-func _update_turn_label(team: int, turn_number: int) -> void:
-	var who := "自軍" if team == 0 else "敵軍"
-	$Title.text = "Senaris — Turn %d / %s（Enter=手番終了 / 2本指スクロール or 空き地ドラッグ=移動 ピンチ=ズーム F=全体）" % [turn_number, who]
+func _update_turn_plate(team: int, turn_number: int) -> void:
+	var limit := _controller.state.turn_limit if _controller != null else 0
+	_turn_plate.set_turn(team, turn_number, limit)
 
+## 手番板の左右に出す代表ユニット（冒険譚マニフェストの emblem）。
+## セレクトを経ないステージ（デバッグ直起動・起動時の下敷き）は指定が無い＝枠を出さない。
+func _apply_emblem() -> void:
+	var emblem := {}
+	if _progress != null and not _current_campaign_id.is_empty():
+		emblem = _progress.campaign(_current_campaign_id).get("emblem", {})
+	_turn_plate.set_emblem(_skins, String(emblem.get("ally", "")), String(emblem.get("enemy", "")))
+
+## 決着の告知は戦果票（ResultBanner）が担う＝ここでは記録と後続の演出だけ進める。
 func _on_battle_finished(outcome: int) -> void:
-	var text := "決着"
 	match outcome:
 		BattleState.PLAYER_WIN:
-			text = "自軍の勝利！"
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
 				_progress.record_clear(_current_campaign_id, _current_stage_id)
 				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
@@ -130,9 +140,6 @@ func _on_battle_finished(outcome: int) -> void:
 				if _roster_store != null and _controller != null:
 					var updated := RosterService.update_after_clear(_load_roster(), _controller.state)
 					_roster_store.save_roster(_current_campaign_id, updated)
-		BattleState.PLAYER_LOSS:
-			text = "自軍の敗北…"
-	$Title.text = "Senaris — %s" % text
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
 	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
@@ -207,7 +214,7 @@ func _stage_title() -> String:
 func _install_conversation() -> void:
 	# 暗幕は会話パネルより先に add＝パネルの後ろ（下）・盤や HUD の前（前面）に来る。
 	# Node2D の子の Control はアンカーで自動リサイズされない（親にサイズが無い）ため、
-	# ビューポート全体を size で明示し、リサイズに追従させる（Title/InfoPanel と同じ事情）。
+	# ビューポート全体を size で明示し、リサイズに追従させる（InfoPanel と同じ事情）。
 	_scrim = ColorRect.new()
 	_scrim.color = Color(0.0, 0.0, 0.0, 0.5)  # 暗さの度合い（叩き台。実機で調整）
 	_scrim.position = Vector2.ZERO
@@ -347,6 +354,12 @@ func _install_hud() -> void:
 	_hud.load_requested.connect(_on_load_requested)
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 
+# --- 手番板（盤エリア上端中央）。presentation/ui/turn_plate.gd。仕様 → doc/gdd/uiux.md ---
+func _install_turn_plate() -> void:
+	_turn_plate = TurnPlate.new()
+	_turn_plate.name = "TurnPlate"
+	add_child(_turn_plate)
+
 func _on_end_turn_requested() -> void:
 	if _controller != null:
 		_controller.end_turn()
@@ -366,7 +379,7 @@ func _on_save_requested() -> void:
 	}
 	_save_store.save(_controller.state.to_dict(), meta)
 	_hud.set_load_available(true)  # 以後ロード可能に
-	$Title.text = "Senaris — セーブしました"
+	$InfoPanel.notify("セーブしました")  # 一時通知は右パネルへ（上端の情報バーは廃止）
 
 ## 中断セーブから再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
 func _on_load_requested() -> void:
