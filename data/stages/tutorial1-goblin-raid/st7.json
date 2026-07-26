@@ -18,7 +18,7 @@
     "##############################"
   ],
   "player": [
-    { "type": "thief", "col": 3, "row": 5 },
+    { "type": "halfling", "col": 3, "row": 5 },
     { "type": "fighter", "col": 3, "row": 4 },
     { "type": "novice", "col": 3, "row": 7 },
     { "type": "novice", "col": 3, "row": 3 },
