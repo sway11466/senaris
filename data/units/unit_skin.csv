@@ -42,5 +42,13 @@ ghoul,グール,enemy,fighter,アンデッド,1.05,1.05
 dullahan,デュラハン,enemy,warlord,アンデッド,1.1,1.1
 ghost,ゴースト,enemy,pixie,アンデッド,0.9,0.9
 necromancer,ネクロマンサー,enemy,sniper,アンデッド,1.05,1.05
+orc,オーク,enemy,fighter,魔獣,1.05,1.05
+griffon,グリフォン,enemy,birdman,魔獣,1.15,1.15
+chimera,キメラ,enemy,warlord,魔獣,1.2,1.2
 harpy,ハーピー,enemy,harpy,魔獣,0.9,0.9
+treant,トレント,enemy,knight,魔獣,1.3,1.3
+dire_wolf,ダイアウルフ,enemy,thief,魔獣,1.0,1.0
+mandragora,マンドラゴラ,enemy,witch,魔獣,0.9,0.9
 dragon,レッドドラゴン,enemy,dragon,魔獣,1.4,1.4
+rogue,ローグ,enemy,cleric,ローグ一味,1.0,1.0
+rogue_boss,首領,enemy,paladin,ローグ一味,1.05,1.05

@@ -63,7 +63,16 @@
 					"type_id": "birdman"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "グリフォン",
+					"skin_id": "griffon",
+					"type_id": "birdman"
+				}
+			]
 		},
 		"bishop": {
 			"ally": [
@@ -105,6 +114,14 @@
 					"images": {},
 					"name": "ゴブリン",
 					"skin_id": "goblin",
+					"type_id": "cleric"
+				},
+				{
+					"category": "ローグ一味",
+					"description": "",
+					"images": {},
+					"name": "ローグ",
+					"skin_id": "rogue",
 					"type_id": "cleric"
 				}
 			]
@@ -180,6 +197,14 @@
 					"name": "グール",
 					"skin_id": "ghoul",
 					"type_id": "fighter"
+				},
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "オーク",
+					"skin_id": "orc",
+					"type_id": "fighter"
 				}
 			]
 		},
@@ -233,7 +258,16 @@
 					"type_id": "knight"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "トレント",
+					"skin_id": "treant",
+					"type_id": "knight"
+				}
+			]
 		},
 		"kunoichi": {
 			"ally": [
@@ -305,6 +339,14 @@
 					"images": {},
 					"name": "ゴブリンロード",
 					"skin_id": "goblin_lord",
+					"type_id": "paladin"
+				},
+				{
+					"category": "ローグ一味",
+					"description": "",
+					"images": {},
+					"name": "首領",
+					"skin_id": "rogue_boss",
 					"type_id": "paladin"
 				}
 			]
@@ -450,7 +492,16 @@
 					"type_id": "thief"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "ダイアウルフ",
+					"skin_id": "dire_wolf",
+					"type_id": "thief"
+				}
+			]
 		},
 		"vanguard": {
 			"ally": [
@@ -497,6 +548,14 @@
 					"name": "デュラハン",
 					"skin_id": "dullahan",
 					"type_id": "warlord"
+				},
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "キメラ",
+					"skin_id": "chimera",
+					"type_id": "warlord"
 				}
 			]
 		},
@@ -511,7 +570,16 @@
 					"type_id": "witch"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "マンドラゴラ",
+					"skin_id": "mandragora",
+					"type_id": "witch"
+				}
+			]
 		},
 		"wizard": {
 			"ally": [
