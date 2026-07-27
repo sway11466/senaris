@@ -319,7 +319,16 @@
 					"type_id": "novice"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "ダイアウルフ",
+					"skin_id": "dire_wolf",
+					"type_id": "novice"
+				}
+			]
 		},
 		"paladin": {
 			"ally": [
@@ -443,6 +452,14 @@
 					"name": "スケルトンアーチャー",
 					"skin_id": "skeleton_archer",
 					"type_id": "slinger"
+				},
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "マタンゴ",
+					"skin_id": "matango",
+					"type_id": "slinger"
 				}
 			]
 		},
@@ -492,16 +509,7 @@
 					"type_id": "thief"
 				}
 			],
-			"enemy": [
-				{
-					"category": "魔獣",
-					"description": "",
-					"images": {},
-					"name": "ダイアウルフ",
-					"skin_id": "dire_wolf",
-					"type_id": "thief"
-				}
-			]
+			"enemy": []
 		},
 		"vanguard": {
 			"ally": [
@@ -514,7 +522,16 @@
 					"type_id": "vanguard"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "オークリーダー",
+					"skin_id": "orc_leader",
+					"type_id": "vanguard"
+				}
+			]
 		},
 		"wagon": {
 			"ally": [
