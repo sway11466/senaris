@@ -45,7 +45,7 @@
 台本の行に条件 `when` を付けて出し入れする。
 
 ```json
-{ "speaker": "...", "skin": "elf", "text": "t3.st5.elf.01", "when": "joined:t3.elf" }
+{ "speaker": "...", "skin": "elf", "text": "t3.st5.elf.01", "when": "joined:elf" }
 ```
 
 - 粒度は行単位。条件は `joined:<actor>`（在籍）と、その否定 `!joined:<actor>`。
