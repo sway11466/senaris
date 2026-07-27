@@ -83,7 +83,29 @@ func _reveal_next() -> void:
 	_add_message(_lines[_shown], _shown)
 	_shown += 1
 	_next_btn.text = _finish_label if _shown >= _lines.size() else "次へ ▶"
-	_scroll.set_deferred("scroll_vertical", 1 << 30)  # レイアウト確定後に最下部へクランプ
+	_scroll_to_last()
+
+## 追加した行が見えるところまでスクロールする。
+## 追加直後は行の高さがまだ決まっておらず（Container の再整列は次のレイアウトパス）、その時点の
+## scroll_vertical は古い最大値にクランプされる＝新しい行が画面外に取り残される。高さが確定するのを
+## 待ってから寄せる。1画面に収まらない長い行は上端を合わせる＝頭から読める。
+func _scroll_to_last() -> void:
+	var count := _messages.get_child_count()
+	if count == 0:
+		return
+	var row := _messages.get_child(count - 1) as Control
+	await get_tree().process_frame
+	await get_tree().process_frame  # 1回では ScrollContainer の最大値がまだ古く、代入がクランプされる
+	if not is_instance_valid(_scroll) or not is_instance_valid(row):
+		return
+	var view := _scroll.size.y
+	var top := row.position.y
+	var bottom := top + row.size.y
+	var cur := float(_scroll.scroll_vertical)
+	if bottom > cur + view:
+		_scroll.scroll_vertical = int(minf(top, bottom - view))
+	elif top < cur:  # 上へスクロールして読み返していた場合も追いつかせる
+		_scroll.scroll_vertical = int(top)
 
 func _on_next() -> void:
 	if _shown >= _lines.size():
