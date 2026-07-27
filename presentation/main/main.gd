@@ -165,8 +165,11 @@ func _show_result(outcome: int) -> void:
 		return
 	var win := outcome == BattleState.PLAYER_WIN
 	if _bgm != null:
+		# 勝利は余韻曲へ繋ぐ＝ファンファーレ（約10秒）が終わった後、outro 会話を読む間が無音にならない。
+		# 敗北は繋がない（会話が無く、すぐ再挑戦かセレクトへ行くので、読ませる時間が無い）。
 		var track := "victory" if win else "defeat"
-		_result.stamped.connect(func() -> void: _bgm.play_stinger(track), CONNECT_ONE_SHOT)
+		var follow := BgmDirector.AFTERGLOW_TRACK if win else ""
+		_result.stamped.connect(func() -> void: _bgm.play_stinger(track, follow), CONNECT_ONE_SHOT)
 	# 印の文言は英語（酒場ボードの表記に揃える）。丸印は語が長いと字が縮むので短い語を選ぶ。
 	_result.play(_stage_title(), "VICTORY" if win else "DEFEAT", win, _result_rows())
 	await _result.finished

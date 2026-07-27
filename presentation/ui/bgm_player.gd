@@ -35,10 +35,16 @@ func play(track_id: String) -> void:
 
 ## スティンガー（勝利/敗北など loop=false の一発曲）を鳴らす。現在のステージ曲は素早く下げ、
 ## スティンガーはフェードインせず頭から出す＝ファンファーレの立ち上がりを殺さない。
-## 鳴り終えても曲は戻さない（次のステージ開始 or セレクトで play() が張り替える）。
-func play_stinger(track_id: String) -> void:
+##
+## follow_track_id を渡すと、鳴り終わってからその曲へ移る。一発曲は十数秒で終わるので、
+## その後も画面が続く場面（勝利→outro 会話）では無音が居座る。省略すれば鳴り終えても無音のまま
+## （次のステージ開始 or セレクトで play() が張り替える）。
+func play_stinger(track_id: String, follow_track_id: String = "") -> void:
 	_current_track = track_id
 	var stream := _load(track_id)
+	if stream == null and not follow_track_id.is_empty():
+		play(follow_track_id)  # スティンガーが未配置＝鳴り終わりを待つものが無い。直ちに続きへ
+		return
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	var outgoing := _players[_active]
@@ -48,9 +54,18 @@ func play_stinger(track_id: String) -> void:
 		incoming.stream = stream
 		incoming.volume_db = 0.0  # フェードインしない（頭のアタックを出す）
 		incoming.play()
+		if not follow_track_id.is_empty():
+			incoming.finished.connect(_follow_stinger.bind(track_id, follow_track_id), CONNECT_ONE_SHOT)
 	_tween = create_tween()
 	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, DUCK_SEC)
 	_tween.tween_callback(outgoing.stop)
+
+## スティンガーが鳴り終わった＝続きの曲へ移る。待っている間に別の曲へ切り替わっていたら何もしない
+## （会話を読み飛ばして次ステージが始まった後に、終わったスティンガーが割り込むのを防ぐ）。
+func _follow_stinger(stinger_id: String, follow_track_id: String) -> void:
+	if _current_track != stinger_id:
+		return
+	play(follow_track_id)
 
 ## トラックIDの AudioStream を読む。未配置・読めない時は null（呼び出し側は無音で進む）。
 ## Godot が扱えるのは Ogg Vorbis＝Opus や壊れた ogg は import が通らず null になる。
