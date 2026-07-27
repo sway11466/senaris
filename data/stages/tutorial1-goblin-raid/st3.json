@@ -1,20 +1,19 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st3",
-  "bgm": { "main": "raid" },
   "cols": 18,
   "rows": 10,
   "terrain": [
-    ".....CCCCCCCCC....",
-    "..FF..CCCCCCC.....",
-    ".FFF...CCCCC......",
-    ".FF.....CCCC......",
+    "FFFFFCCCCCCCCCFFFF",
+    "FFFFFFCCCCCCCFFFFF",
+    "FFFFFFFCCCCCFFF...",
+    "FFF.F.FFCCCCF.....",
     "........CCC.......",
     "..................",
-    ".......CCCCC....FF",
-    ".....CCCCCCC...FFF",
-    ".....CCCCCCC...FF.",
-    "...CCCCCCCCCCC...."
+    ".......CCCCC......",
+    ".....CCCCCCC.FFFFF",
+    ".....CCCCCCCFFFFFF",
+    "...CCCCCCCCCCCFFFF"
   ],
   "player": [
     { "type": "fighter", "col": 1, "row": 6 },
@@ -39,8 +38,9 @@
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st3.intro.1" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st3.intro.2" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st3.intro.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st3.intro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st3.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st3.intro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st3.intro.5" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st3.intro.6" }
     ],
     "outro": [
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st3.outro.1" },
@@ -49,5 +49,6 @@
       { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st3.outro.4" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st3.outro.5" }
     ]
-  }
+  },
+  "bgm": { "main": "raid" }
 }
