@@ -1,0 +1,28 @@
+STYLE: A side-on wall-face texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary and scatter
+the rock RANDOMLY and UNEVENLY — never a repeated motif, never the same shape
+twice, never in rows or a regular grid. Avoid large, high-contrast patches (they
+repeat visibly when tiled); keep large-scale color even and low-contrast.
+Square 1:1.
+
+SUBJECT: The raw ROCK FACE of a wall of solid stone, seen face-on. The face is
+made entirely of broken rock: chunky irregular blocks of stone of many different
+sizes, packed tightly against each other with no gaps of anything else, each
+with blunt facets and rounded worn edges, some jutting forward and some set
+back. Deep narrow crevices between the blocks fall into shadow. Dark cold
+grey-brown stone, base color around #5F584F, with the stone itself varying
+subtly from block to block. Blocks read slightly taller than wide so the face
+has a faint downward grain. Lit dimly from above: the upper facets catch a
+little light, the undercuts stay dark. Raw, heavy, geological. NO tool marks,
+NO pick or chisel gouges, NO scratches, NO carved shapes. NO vegetation of any
+kind — NO grass, NO moss, NO lichen, NO plants, NO soil, NO puddles, NO snow.
+NO objects of any kind — NO torches, NO bones, NO ore, NO crystals, NO props.
+Natural broken rock, NOT masonry — NO stacked bricks, NO mortar lines, NO worked
+edges. This is only the flat rock face — NO top surface, NO floor, NO arch, NO
+opening, NO cast shadow onto anything else.

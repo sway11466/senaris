@@ -67,6 +67,7 @@ var state: BattleState
 var controller: MatchController
 var _terrain_tex := {}    # skin_id(String) -> Array[Texture2D]（基本＋連番 variant）
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分）
+var _side_tex := {}           # skin_id -> Texture2D|null（側面画像。置いていなければ null）
 var _elev_cache := {}         # Vector2i -> float（スキン解決の結果。_build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）。同上
 var _unit_tex := {}       # 画像パス(String) -> Texture2D
@@ -909,6 +910,17 @@ func _skin_at(hex: Vector2i) -> TerrainSkin:
 		return null
 	return TerrainSkinCatalog.resolve(_terrain_skins.get(hex, ""), state.terrain_at(hex))
 
+## スキンの側面画像（置いてあれば）。無ければ null＝既定の粒ノイズ＋断面色。スキン単位でキャッシュ。
+func _side_texture(skin: TerrainSkin) -> Texture2D:
+	if skin == null:
+		return null
+	if _side_tex.has(skin.skin_id):
+		return _side_tex[skin.skin_id]
+	var p := skin.side_image_path()
+	var tex := load(p) as Texture2D if ResourceLoader.exists(p) else null
+	_side_tex[skin.skin_id] = tex
+	return tex
+
 ## そのヘックスの見た目の標高（スキン別・既定0）。ピッキング/配置/スカートで使う。
 ## 毎フレームのピッキングから何度も引かれるので、盤を組み直すまでキャッシュする。
 func _elev(hex: Vector2i) -> float:
@@ -1085,12 +1097,16 @@ func _add_tile(hex: Vector2i) -> void:
 	_tiles_root.add_child(mi)
 
 ## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
+## スキンが grid=false のマスは引かない＝駒が入れない地形が枠で刻まれず、一つの塊として読める。
 func _add_grid() -> void:
 	var im := ImmediateMesh.new()
 	im.surface_begin(Mesh.PRIMITIVE_LINES)
 	for col in state.cols:
 		for row in state.rows:
 			var hex := Hex.offset_to_axial(col, row)
+			var skin := _skin_at(hex)
+			if skin != null and not skin.grid:
+				continue
 			var p := Hex.to_pixel(hex, TILE)
 			var gy := _elev(hex) + 0.01
 			for i in 6:
@@ -1109,25 +1125,38 @@ func _add_grid() -> void:
 	_tiles_root.add_child(mi)
 
 ## 盤外周の側面（スカート）。盤外に接する辺だけ下へ伸ばし、ジオラマの「島」に見せる。
-## 全外周を1メッシュにまとめる（アンライトなので法線は不問）。
+## 側面画像（assets/terrain/{skin_id}_side.png）を持つスキンは、その画像を貼った別メッシュにまとめる。
+## 画像ごとにマテリアルが要るので、テクスチャ単位でメッシュを分ける（アンライトなので法線は不問）。
 func _add_skirt() -> void:
 	# 辺 i（コーナー i→i+1・辺中点の方位 60i+30°）に対応する隣接方向（フラットトップ axial）。
 	var dirs: Array[Vector2i] = [
 		Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 1),
 		Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
 	]
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var tools := {}  # Texture2D|null -> SurfaceTool（null＝既定の粒ノイズ＋断面色）
 	for col in state.cols:
 		for row in state.rows:
 			var hex := Hex.offset_to_axial(col, row)
 			var p := Hex.to_pixel(hex, TILE)
-			# 断面色＝そのタイルの平均色（草の下は緑土・砂の下は砂色＝地続きに見える）。
-			# べた塗り回避: 上端は明るめ→下端ほど暗い頂点グラデ＋粒状ノイズテクスチャを重ねる。
-			var tex := _tile_texture(hex)
-			var base := _tile_avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
-			var top_c := base.darkened(SKIRT_DARKEN - 0.20)
-			var bot_c := base.darkened(SKIRT_DARKEN + 0.20)
+			var side := _side_texture(_skin_at(hex))
+			var top_c: Color
+			var bot_c: Color
+			if side != null:
+				# 側面画像はそれ自体が岩肌＝タイルの平均色で染めない。上端→下端の減光だけ掛ける。
+				top_c = Color(1, 1, 1)
+				bot_c = Color(0.8, 0.8, 0.8)
+			else:
+				# 断面色＝そのタイルの平均色（草の下は緑土・砂の下は砂色＝地続きに見える）。
+				# べた塗り回避: 上端は明るめ→下端ほど暗い頂点グラデ＋粒状ノイズテクスチャを重ねる。
+				var tex := _tile_texture(hex)
+				var base := _tile_avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
+				top_c = base.darkened(SKIRT_DARKEN - 0.20)
+				bot_c = base.darkened(SKIRT_DARKEN + 0.20)
+			var st: SurfaceTool = tools.get(side)
+			if st == null:
+				st = SurfaceTool.new()
+				st.begin(Mesh.PRIMITIVE_TRIANGLES)
+				tools[side] = st
 			var top := _elev(hex)
 			for i in 6:
 				var nb := hex + dirs[i]
@@ -1153,15 +1182,16 @@ func _add_skirt() -> void:
 				st.set_color(bot_c); st.set_uv(Vector2(u1, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d1)
 				st.set_color(bot_c); st.set_uv(Vector2(u0, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d0)
 				st.set_color(top_c); st.set_uv(Vector2(u1, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c1)
-	var mi := MeshInstance3D.new()
-	mi.mesh = st.commit()
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.vertex_color_use_as_albedo = true  # タイルごとの断面色（頂点カラー）×ノイズの積
-	m.albedo_texture = _skirt_tex
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 三角形の向きを気にしない（内外どちらからも見える）
-	mi.material_override = m
-	_tiles_root.add_child(mi)
+	for side in tools:
+		var mi := MeshInstance3D.new()
+		mi.mesh = tools[side].commit()
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.vertex_color_use_as_albedo = true  # 断面色/減光（頂点カラー）× テクスチャの積
+		m.albedo_texture = side if side != null else _skirt_tex
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 三角形の向きを気にしない（内外どちらからも見える）
+		mi.material_override = m
+		_tiles_root.add_child(mi)
 
 ## 盤の下地（虚空に浮かないための大きな平面）。スカートの下端より深くに置き、盤を「島」として浮かせる。
 func _add_ground() -> void:

@@ -2,6 +2,7 @@
 	"skins": [
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "道",
 			"orientable": false,
@@ -11,6 +12,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "平地",
 			"orientable": true,
@@ -20,6 +22,7 @@
 		},
 		{
 			"elevation": 0.18,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "台地",
 			"orientable": true,
@@ -29,6 +32,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "荒地",
 			"orientable": true,
@@ -38,6 +42,7 @@
 		},
 		{
 			"elevation": 0.18,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "森",
 			"orientable": true,
@@ -47,6 +52,7 @@
 		},
 		{
 			"elevation": 0.12,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "茂み",
 			"orientable": true,
@@ -56,6 +62,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "山",
 			"orientable": true,
@@ -65,6 +72,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "柵",
 			"orientable": false,
@@ -74,6 +82,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "罠",
 			"orientable": false,
@@ -83,6 +92,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "城壁",
 			"orientable": false,
@@ -92,6 +102,7 @@
 		},
 		{
 			"elevation": 0.36,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "崖",
 			"orientable": false,
@@ -100,8 +111,9 @@
 			"terrain_type": "cliff"
 		},
 		{
-			"elevation": 0,
-			"memo": "既定スキン",
+			"elevation": 0.54,
+			"grid": false,
+			"memo": "既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる",
 			"name": "壁",
 			"orientable": false,
 			"skin_id": "wall",
@@ -110,6 +122,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "人が積んだ石壁（ダンジョンの掘った岩とは別系統）",
 			"name": "石積みの壁",
 			"orientable": false,
@@ -119,6 +132,7 @@
 		},
 		{
 			"elevation": 0,
+			"grid": true,
 			"memo": "既定スキン",
 			"name": "拠点",
 			"orientable": false,

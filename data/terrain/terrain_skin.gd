@@ -16,6 +16,7 @@ var name: String           ## 表示名（例: 平地 / 雪原）
 var orientable: bool       ## 座標ハッシュで回転60°×左右反転してよいか（向きの無い自然地形＝true）
 var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
 var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
+var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
 
 static func from_dict(d: Dictionary) -> TerrainSkin:
 	var s := TerrainSkin.new()
@@ -25,8 +26,14 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.orientable = bool(d.get("orientable", false))
 	s.elevation = float(d.get("elevation", 0.0))
 	s.sprite_sink = float(d.get("sprite_sink", 0.0))
+	s.grid = bool(d.get("grid", true))
 	return s
 
 ## タイル画像（基本）のパス。ファイル名は skin_id 規約（変種 _2/_3 は描画側が連番で拾う）。
 func image_path() -> String:
 	return "res://assets/terrain/%s.png" % skin_id
+
+## 側面（スカート）画像のパス。置いてあれば段差の側面に貼られ、無ければ既定の粒ノイズ＋断面色になる。
+## 横は隣の辺へ連続するので左右シームレス必須。縦は高さ全体に1回だけ張られる（elevation で伸縮する）。
+func side_image_path() -> String:
+	return "res://assets/terrain/%s_side.png" % skin_id

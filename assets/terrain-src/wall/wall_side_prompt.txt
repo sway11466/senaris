@@ -1,0 +1,31 @@
+STYLE: A side-on wall-face texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary the rock
+RANDOMLY and UNEVENLY — never a repeated motif, never the same shape twice,
+never in rows or a regular grid. Avoid large, high-contrast patches (they repeat
+visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The raw ROCK FACE where a passage has broken through a single mass of
+solid stone, seen face-on. This is ONE CONTINUOUS BODY OF ROCK, never an
+assembly of pieces: the surface swells forward and sinks back in broad uneven
+lobes, and irregular fracture lines wander and branch across it, dividing
+nothing — the rock runs on unbroken underneath them. Where slabs have sheared
+away the face is left with shallow shelves and blunt overhangs, dark undercuts
+beneath them, and rough conchoidal scars in between. The relief is subtly
+VERTICAL: the lobes and fractures run more downward than sideways, as if the
+rock split under its own weight. Dark cold grey-brown stone, base color around
+#5F584F, its tone shifting gradually across the face. Lit dimly from above:
+upward-facing shelves catch a little light, undercuts stay dark. Raw, heavy,
+geological. CRITICAL: NO separate stones, NO cobbles, NO boulders set side by
+side, NO joints or gaps between pieces, NO stones packed into a matrix — nothing
+that reads as built or assembled. NOT masonry — NO stacked bricks, NO mortar
+lines, NO worked edges. NO tool marks, NO pick or chisel gouges, NO scratches,
+NO carved shapes. NO vegetation of any kind — NO grass, NO moss, NO lichen, NO
+plants, NO soil, NO puddles, NO snow. NO objects of any kind — NO torches, NO
+bones, NO ore, NO crystals, NO props. This is only the flat rock face — NO top
+surface, NO floor, NO arch, NO opening, NO cast shadow onto anything else.
