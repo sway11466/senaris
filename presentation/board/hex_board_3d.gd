@@ -25,12 +25,10 @@ const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝
 const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
-const ELEVATION := { "cliff": 0.36, "plateau": 0.18, "forest": 0.18, "bush": 0.12 }  # 地形別の見た目の高さ（ワールド単位・TILE=1）。既定0。段差辺には側面スカートが付く。
-## 崖は台地より高い＝「登れる高台」と「登れない絶壁」を高さの序列で見せる（性能は TerrainType のまま・見た目だけ）。
-## 立ち絵だけタイル上面より沈める量＝植生の厚み。タイルは持ち上がるが駒は「登らず」足元が隠れる。
-## ELEVATION と同値にすると足元がまわりの地面と同じ高さ＝背丈は平地の駒と揃ったまま、沈めたぶんだけ隠れる。
+## 見た目の高さ（elevation）と立ち絵の沈み（sprite_sink）はスキン側のデータ＝terrain_skin.csv。
+## 高さは段差辺に側面スカートを生やす（崖は台地より高い＝登れる高台と登れない絶壁を序列で見せる）。
 ## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
-const SPRITE_SINK := { "forest": 0.18, "bush": 0.12 }
+## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
@@ -69,6 +67,8 @@ var state: BattleState
 var controller: MatchController
 var _terrain_tex := {}    # skin_id(String) -> Array[Texture2D]（基本＋連番 variant）
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分）
+var _elev_cache := {}         # Vector2i -> float（スキン解決の結果。_build_tiles で捨てる）
+var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）。同上
 var _unit_tex := {}       # 画像パス(String) -> Texture2D
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 
@@ -903,26 +903,41 @@ func _hex_world(hex: Vector2i) -> Vector3:
 	var p := Hex.to_pixel(hex, TILE)
 	return Vector3(p.x, _elev(hex), p.y)
 
-## そのヘックスの見た目の標高（地形別・既定0）。ピッキング/配置/スカートで使う。
-func _elev(hex: Vector2i) -> float:
+## そのヘックスの見た目のスキン（ステージの差分指定を優先・無ければ地形の既定）。無ければ null。
+func _skin_at(hex: Vector2i) -> TerrainSkin:
 	if state == null:
-		return 0.0
-	return float(ELEVATION.get(state.terrain_at(hex), 0.0))
+		return null
+	return TerrainSkinCatalog.resolve(_terrain_skins.get(hex, ""), state.terrain_at(hex))
+
+## そのヘックスの見た目の標高（スキン別・既定0）。ピッキング/配置/スカートで使う。
+## 毎フレームのピッキングから何度も引かれるので、盤を組み直すまでキャッシュする。
+func _elev(hex: Vector2i) -> float:
+	if _elev_cache.has(hex):
+		return _elev_cache[hex]
+	var skin := _skin_at(hex)
+	var e: float = skin.elevation if skin != null else 0.0
+	_elev_cache[hex] = e
+	return e
 
 ## 立ち絵をタイル上面より沈める量（植生の厚み・既定0）。足元が下草・樹冠に隠れる量。
 func _sprite_sink(hex: Vector2i) -> float:
-	if state == null:
-		return 0.0
-	return float(SPRITE_SINK.get(state.terrain_at(hex), 0.0))
+	var skin := _skin_at(hex)
+	return skin.sprite_sink if skin != null else 0.0
 
 ## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
+## スキンはセルごとに違いうるので、定数表ではなく実際に敷かれた高さから集める。
 func _elev_levels() -> Array:
+	if not _elev_levels_cache.is_empty():
+		return _elev_levels_cache
 	var s := { 0.0: true }
-	for v in ELEVATION.values():
-		s[float(v)] = true
+	if state != null:
+		for col in state.cols:
+			for row in state.rows:
+				s[_elev(Hex.offset_to_axial(col, row))] = true
 	var arr := s.keys()
 	arr.sort()
 	arr.reverse()
+	_elev_levels_cache = arr
 	return arr
 
 ## 進行中の移動アニメを畳む。待っている側（AI手番）を取り残さないため完了を必ず知らせる。
@@ -1005,6 +1020,8 @@ func _sync_bases() -> void:
 ## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
 func _build_tiles() -> void:
 	_clear_children(_tiles_root)
+	_elev_cache.clear()          # スキン解決のキャッシュはステージごとに捨てる
+	_elev_levels_cache.clear()
 	for col in state.cols:
 		for row in state.rows:
 			var hex := Hex.offset_to_axial(col, row)
@@ -1015,8 +1032,7 @@ func _build_tiles() -> void:
 
 ## hex の地形タイルのテクスチャ（skin 解決＋variant 敷き分け＋キャッシュ）。無ければ null。
 func _tile_texture(hex: Vector2i) -> Texture2D:
-	var tid: String = state.terrain_at(hex)
-	var skin := TerrainSkinCatalog.resolve(_terrain_skins.get(hex, ""), tid)
+	var skin := _skin_at(hex)
 	if skin == null:
 		return null
 	var variants: Array = _terrain_tex.get(skin.skin_id, [])
@@ -1054,7 +1070,7 @@ func _add_tile(hex: Vector2i) -> void:
 	var tex := _tile_texture(hex)
 	if tex == null:
 		return
-	var skin := TerrainSkinCatalog.resolve(_terrain_skins.get(hex, ""), state.terrain_at(hex))
+	var skin := _skin_at(hex)
 	var mi := MeshInstance3D.new()
 	mi.mesh = _hex_mesh
 	mi.material_override = _terrain_material(tex)

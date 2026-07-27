@@ -14,6 +14,8 @@ var skin_id: String        ## スキンID（主キー。ステージはこれで
 var terrain_type: String   ## 紐づく性能(TerrainType)のid
 var name: String           ## 表示名（例: 平地 / 雪原）
 var orientable: bool       ## 座標ハッシュで回転60°×左右反転してよいか（向きの無い自然地形＝true）
+var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
+var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
 
 static func from_dict(d: Dictionary) -> TerrainSkin:
 	var s := TerrainSkin.new()
@@ -21,6 +23,8 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.terrain_type = String(d.get("terrain_type", ""))
 	s.name = String(d.get("name", ""))
 	s.orientable = bool(d.get("orientable", false))
+	s.elevation = float(d.get("elevation", 0.0))
+	s.sprite_sink = float(d.get("sprite_sink", 0.0))
 	return s
 
 ## タイル画像（基本）のパス。ファイル名は skin_id 規約（変種 _2/_3 は描画側が連番で拾う）。

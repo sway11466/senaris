@@ -65,6 +65,8 @@ static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 		problems.append("skin_id が重複: '%s'" % v)
 	problems += Csv.invalid_values(rows, "terrain_type", type_ids, "skin_id")  # terrain_type に無い性能への参照切れ
 	problems += Csv.invalid_values(rows, "orientable", ["true", "false"], "skin_id")  # bool以外（打ち間違い→黙って true 化）を弾く
+	problems += _invalid_amount(rows, "elevation")   # 打ち間違いが「高さ0」に化けて黙って平らになるのを防ぐ
+	problems += _invalid_amount(rows, "sprite_sink")
 	# 各 terrain_type に少なくとも1枚のスキン（＝描画のフォールバック先）があること。
 	var covered := Csv.value_set(rows, "terrain_type")
 	for tid in type_ids:
@@ -73,6 +75,17 @@ static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "skins": rows } }
+
+## 見た目の量（elevation / sprite_sink）は「0以上の数値」だけ許す。文字列が混じると float() で 0 に化けて黙って平らになる。
+static func _invalid_amount(rows: Array, col: String) -> Array:
+	var problems: Array = []
+	for i in rows.size():
+		var r: Dictionary = rows[i]
+		var v: Variant = r.get(col)
+		var ok: bool = (typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT) and float(v) >= 0.0
+		if not ok:
+			problems.append("行[%s] の %s が不正 '%s'（0以上の数値）" % [str(r.get("skin_id", i)), col, str(v)])
+	return problems
 
 func _report(name: String, problems: Array) -> void:
 	for p in problems:
