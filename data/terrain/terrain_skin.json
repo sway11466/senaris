@@ -111,7 +111,7 @@
 			"terrain_type": "cliff"
 		},
 		{
-			"elevation": 0.54,
+			"elevation": 0.7,
 			"grid": false,
 			"memo": "既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる",
 			"name": "壁",
