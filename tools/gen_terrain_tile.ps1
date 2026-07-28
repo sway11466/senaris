@@ -20,6 +20,7 @@
 param(
   [Parameter(Mandatory = $true)]
   [string]$Name,                                  # terrain id / file stem, e.g. 'plain'
+  [switch]$Upright,                               # pre-stretch for the camera pitch (see $Stretch)
   [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
   [string[]]$Sources                              # one or more source images (variant order)
 )
@@ -27,6 +28,11 @@ $ErrorActionPreference = 'Stop'
 $W = 256                # tile width  = 2R
 $H = 222               # tile height = ceil(sqrt3 * R), R=128
 $Colors = 64           # palette reduction (match unit tiles)
+# The board camera looks down at CAM_PITCH_DEG=52 (presentation/board/hex_board_3d.gd), so a tile
+# lying on the ground is squashed to sin(52)=0.788 of its height on screen. -Upright pre-stretches
+# the art vertically by 1/sin(52) so it appears in its drawn proportions. Use it for art with a
+# known shape (buildings); natural textures have no correct proportion and do not need it.
+$Stretch = [int][math]::Round($H / [math]::Sin(52 * [math]::PI / 180))
 
 if (-not (Get-Command magick -ErrorAction SilentlyContinue)) {
   throw "ImageMagick (magick) not found. Install: winget install ImageMagick.ImageMagick"
@@ -46,8 +52,12 @@ foreach ($src in $Sources) {
   $i++
   $suffix = if ($i -eq 1) { "" } else { "_$i" }
   $out = Join-Path $outDir ("{0}{1}.png" -f $Name, $suffix)
-  # cover-resize -> center-crop -> hex alpha mask (DstIn) -> reduce colors
-  magick $src -resize "${W}x${H}^" -gravity center -extent "${W}x${H}" `
+  # cover-resize -> center-crop -> [-Upright: stretch tall, crop back] -> hex alpha mask -> colors
+  $pre = @('-resize', "${W}x${H}^", '-gravity', 'center', '-extent', "${W}x${H}")
+  if ($Upright) {
+    $pre += @('-resize', "${W}x${Stretch}!", '-gravity', 'center', '-extent', "${W}x${H}")
+  }
+  magick $src @pre `
     "(" -size "${W}x${H}" xc:none -fill white -draw $hex ")" `
     -alpha set -compose DstIn -composite -colors $Colors -dither None $out
   $kb = [int]((Get-Item $out).Length / 1KB)
