@@ -1,21 +1,20 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st4",
-  "bgm": { "main": "raid" },
   "cols": 22,
   "rows": 11,
   "terrain": [
-    ".....CCCCCCCCCCCC.....",
-    "......CCCCCCCCC.......",
-    "......CCCCC...........",
-    "........CCC...........",
-    "......................",
-    "......................",
+    "FFPPPCCCCCCCCCCCCPPFFF",
+    "FFFPPPCCCCCCCCCPPFFFFF",
+    "FFFFPPCCCCCPPPPPP...FF",
+    "F.F.FPPPCCCPP.........",
+    "......P.PPPP..........",
+    "..........P...........",
     ".........O............",
-    "......................",
-    "............FFFF......",
-    "............FFFF......",
-    "...........FFFFFFF...."
+    ".......F.........F....",
+    ".....FFFFF.FFFFFFFF...",
+    "....FFFFFFFFFFFFFFFF..",
+    "...FFFFFFFFFFFFFFFFFFF"
   ],
   "player": [
     { "type": "fighter", "col": 2, "row": 5 },
@@ -24,35 +23,37 @@
     { "type": "cleric", "col": 1, "row": 5 }
   ],
   "enemy": [
-    { "ai": "charge", "units": [
-      { "skin": "hobgoblin", "col": 14, "row": 5 },
-      { "skin": "goblin", "col": 15, "row": 4 },
-      { "skin": "goblin", "col": 15, "row": 5 },
-
-      { "skin": "goblin", "col": 19, "row": 4 },
-      { "skin": "goblin", "col": 19, "row": 5 },
-      { "skin": "hobgoblin", "col": 20, "row": 5 },
-      { "skin": "hobgoblin", "col": 21, "row": 4 },
-      { "skin": "hobgoblin", "col": 21, "row": 5 }
-    ] }
+    { "ai": "charge",
+      "units": [
+        { "skin": "goblin", "col": 15, "row": 4 },
+        { "skin": "hobgoblin", "col": 21, "row": 4 },
+        { "skin": "goblin", "col": 15, "row": 6 },
+        { "skin": "hobgoblin", "col": 17, "row": 5 },
+        { "skin": "goblin", "col": 19, "row": 7 },
+        { "skin": "goblin", "col": 19, "row": 3 },
+        { "skin": "hobgoblin", "col": 21, "row": 7 },
+        { "skin": "hobgoblin", "col": 20, "row": 6 }
+      ] }
   ],
   "bases": [
-    { "col": 9, "row": 6, "team": "neutral", "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
+    { "col": 9, "row": 6, "team": "neutral",
+      "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st4.intro.1" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st4.intro.2" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.intro.3" },
-      { "speaker": "char.cleric.name", "skin": "cleric",   "text": "t1.st4.intro.4" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st4.intro.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.intro.3" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.intro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.intro.5" }
     ],
     "outro": [
-      { "speaker": "char.cleric.name", "skin": "cleric",   "text": "t1.st4.outro.1" },
-      { "speaker": "char.rookie.name", "skin": "novice",   "text": "t1.st4.outro.2" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.outro.3" },
-      { "speaker": "char.scout.name",  "skin": "halfling", "text": "t1.st4.outro.4" },
-      { "speaker": "char.cap.name",    "skin": "fighter",  "text": "t1.st4.outro.5" }
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.outro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st4.outro.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.outro.3" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.outro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.outro.5" }
     ]
-  }
+  },
+  "bgm": { "main": "raid" }
 }
