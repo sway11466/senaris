@@ -1,7 +1,6 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st6",
-  "bgm": { "main": "dungeon" },
   "cols": 30,
   "rows": 10,
   "terrain": [
@@ -10,7 +9,7 @@
     "#...######........####.......#",
     "#...######........####.......#",
     "#............................#",
-    "#............................#",
+    ".............................#",
     "#...######........####.......#",
     "#...######........####.......#",
     "##############################",
@@ -52,6 +51,8 @@
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.intro.1" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.intro.2" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.intro.3" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.intro.7" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.intro.8" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st6.intro.4" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st6.intro.5" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.intro.6" }
@@ -62,5 +63,6 @@
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st6.outro.3" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st6.outro.4" }
     ]
-  }
+  },
+  "bgm": { "main": "dungeon" }
 }
