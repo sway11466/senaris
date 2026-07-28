@@ -650,13 +650,20 @@ func _formation_target_cells(option: Dictionary) -> Array:
 		for h in Hex.within_range(o, rng):
 			if _on_board(h):
 				in_range[h] = true
-	if String(option["effect"]) != "single":
+	# エンチャント（対象1体のバフ）は味方の居るhexだけ＝自分自身も選べる。
+	var buff_unit := String(option.get("buff_scope", "")) == "unit"
+	if String(option["effect"]) != "single" and not buff_unit:
 		return in_range.keys()
 	var cells := {}
 	var participants: Array = option["participants"]
 	for h in in_range:
 		var u := state.unit_at(h)
-		if u != null and not (u.id in participants):
+		if u == null:
+			continue
+		if buff_unit:
+			if u.team == state.current_team:
+				cells[h] = true
+		elif not (u.id in participants):
 			cells[h] = true
 	return cells.keys()
 

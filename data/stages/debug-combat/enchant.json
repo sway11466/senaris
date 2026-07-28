@@ -1,0 +1,33 @@
+{
+  "turn_limit": 99,
+  "name": "debug-enchant",
+  "cols": 12,
+  "rows": 9,
+  "terrain": [
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
+  ],
+  "player": [
+    { "type": "pixie",   "skin": "pixie",   "col": 1, "row": 3 },
+    { "type": "pixie",   "skin": "pixie",   "col": 1, "row": 5 },
+    { "type": "fighter", "skin": "fighter", "col": 2, "row": 3 },
+    { "type": "fighter", "skin": "fighter", "col": 2, "row": 5 },
+    { "type": "archer",  "skin": "archer",  "col": 2, "row": 4 },
+    { "type": "knight",  "skin": "knight",  "col": 0, "row": 4 }
+  ],
+  "enemy": [
+    { "name": "案山子（待機・索敵0）", "ai": "guard", "sight": 0,
+      "units": [
+        { "type": "novice",  "skin": "goblin",    "col": 8, "row": 3 },
+        { "type": "novice",  "skin": "goblin",    "col": 8, "row": 5 },
+        { "type": "fighter", "skin": "hobgoblin", "col": 9, "row": 4 }
+      ] }
+  ]
+}

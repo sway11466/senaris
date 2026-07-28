@@ -134,8 +134,8 @@ func _add_status_rows(ls: Dictionary, rs: Dictionary) -> void:
 	var lst: Array = ls.get("statuses", [])
 	var rst: Array = rs.get("statuses", [])
 	for i in maxi(lst.size(), rst.size()):
-		var lt: String = _status_text(lst[i]) if i < lst.size() else ""
-		var rt: String = _status_text(rst[i]) if i < rst.size() else ""
+		var lt: String = _status_text(lst[i], int(ls.get("troops_before", 0))) if i < lst.size() else ""
+		var rt: String = _status_text(rst[i], int(rs.get("troops_before", 0))) if i < rst.size() else ""
 		_add_row(lt, "バフ" if i == 0 else "", rt)
 
 func _add_row(lt: String, label: String, rt: String) -> void:
@@ -237,16 +237,20 @@ func _support_text(side: Dictionary) -> String:
 		return NONE
 	return "%s/%s" % [("+%d" % sa) if sa != 0 else NONE, ("+%d" % sd) if sd != 0 else NONE]
 
-## バフ1件の表記（例: ホーリーアリア ×1.30/×1.30）。target で攻/防の効き先を描き分ける。
-func _status_text(m: Dictionary) -> String:
+## バフ1件の表記（例: ホーリーアリア ×1.30/×1.30、妖精の粉 +80/+80）。
+## target で攻/防の効き先を描き分ける。troops＝この戦闘時点の兵数（残兵数ぶんの加算に要る）。
+func _status_text(m: Dictionary, troops := 0) -> String:
 	var nm := String(m.get("name", ""))
 	if nm.is_empty():
 		nm = "補正"
 	var eff: String
-	if String(m.get("op", "mul")) == "mul":
-		eff = "×%.2f" % float(m.get("value", 1.0))
-	else:
-		eff = "%+d" % roundi(float(m.get("value", 0.0)))
+	match String(m.get("op", "mul")):
+		"mul":
+			eff = "×%.2f" % float(m.get("value", 1.0))
+		"add_per_troop":
+			eff = "%+d" % roundi(float(m.get("value", 0.0)) * float(troops))
+		_:
+			eff = "%+d" % roundi(float(m.get("value", 0.0)))
 	var t := String(m.get("target", "both"))
 	var atk_part := eff if t != "defense" else NONE
 	var def_part := eff if t != "attack" else NONE

@@ -633,7 +633,7 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		return {}
 	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
-		add_status_mod(_buff_entry(option))
+		add_status_mod(_buff_entry(option, target))
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(self, option, target)
 	var results: Array = []
@@ -667,18 +667,26 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		mark_engaged(int(pid))
 	return {"recipe": option["recipe"], "results": results}
 
-## 陣形バフ（②ホーリーアリア）の状態補正エントリを組む。発動陣営（現手番）に効く乗算。
-func _buff_entry(option: Dictionary) -> Dictionary:
-	return {
-		"scope": "team",
-		"team": current_team,
+## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
+## （エンチャント＝buff_scope "unit"・target のhexに居る味方）の両方を作る。
+## 詳細 → doc/gdd/formations.md, doc/gdd/enchants.md
+func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
+	var e := {
 		"owner_team": current_team,
-		"op": "mul",
+		"op": String(option.get("buff_op", "mul")),
 		"target": String(option.get("buff_target", "both")),
-		"value": float(option.get("buff_mult", 1.0)),
+		"value": float(option.get("buff_value", 1.0)),
 		"remaining": int(option.get("duration_turns", 1)),
 		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
 	}
+	if String(option.get("buff_scope", "team")) == "unit":
+		var u := unit_at(target)  # can_target が味方の存在を保証済み
+		e["scope"] = "unit"
+		e["unit_id"] = u.id if u != null else -1
+	else:
+		e["scope"] = "team"
+		e["team"] = current_team
+	return e
 
 ## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
 ## statuses＝この時点で効いている状態補正エントリの一覧（戦闘レポートのバフ表示用）。

@@ -2,5 +2,7 @@
   "id": "debug-combat",
   "title": "デバッグ：戦闘補正",
   "debug": true,
-  "stages": []
+  "stages": [
+    { "id": "enchant", "file": "enchant.json", "title": "エンチャント（妖精の粉）" }
+  ]
 }

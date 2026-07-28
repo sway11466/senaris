@@ -48,8 +48,26 @@ const RECIPES := {
 		"shape": "cluster",
 		"count": 5,
 		"effect": "buff",
-		"buff_mult": 1.3,
+		"buff_op": "mul",
+		"buff_value": 1.3,
 		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ラウンド。詳細 → doc/gdd/formations.md
+	},
+	# エンチャント＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
+	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/enchants.md
+	"pixie_dust": {
+		"name": "妖精の粉",
+		"leader_types": ["pixie"],
+		"member_types": [],
+		"shape": "solo",
+		"count": 1,
+		"effect": "buff",
+		"buff_scope": "unit",
+		"buff_op": "add_per_troop",  # 実効攻防に 10×残兵数 を加算（補正は乗らない）
+		"buff_value": 10.0,
+		"buff_target": "both",
+		"duration_turns": 1,
+		"range": 1,  # 自分(0)＋隣接(1)
+		"range_from": "leader",
 	},
 }
 
@@ -72,6 +90,8 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 			"triangle":
 				for members in _triangle_sets(state, unit, r):
 					out.append(_option(rid, r, [unit, members[0], members[1]]))
+			"solo":
+				out.append(_option(rid, r, [unit]))  # エンチャント＝発動者だけで成立
 			"cluster":
 				var members := _cluster(state, unit, r)
 				if not members.is_empty():
@@ -104,14 +124,23 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 	if not bool(option["needs_target"]):
 		return true
 	var rng := int(option["range"])
+	var leader := state.unit_by_id(int(option["leader_id"]))
+	var within := false
 	if String(option["range_from"]) == "any":
 		for pid in option["participants"]:
 			var p := state.unit_by_id(int(pid))
 			if p != null and Hex.distance(p.pos, target) <= rng:
-				return true
+				within = true
+				break
+	else:
+		within = leader != null and Hex.distance(leader.pos, target) <= rng
+	if not within:
 		return false
-	var leader := state.unit_by_id(int(option["leader_id"]))
-	return leader != null and Hex.distance(leader.pos, target) <= rng
+	# 対象1体のバフ（エンチャント）は味方の居るhexだけ＝空撃ちさせない。発動者自身も選べる。
+	if String(option.get("buff_scope", "")) == "unit":
+		var u := state.unit_at(target)
+		return u != null and leader != null and u.team == leader.team
+	return true
 
 # --- 内部 ---
 
@@ -157,19 +186,23 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 	for u in participants:
 		ids.append(u.id)
 	var effect := String(r["effect"])
+	var buff_scope := String(r.get("buff_scope", "team"))
 	var opt := {
 		"recipe": rid,
 		"name": String(r["name"]),
 		"leader_id": participants[0].id,
 		"participants": ids,
 		"effect": effect,
-		"needs_target": effect in ["area", "single"],
+		# 対象1体のバフ（エンチャント）は掛ける相手を選ぶ＝陣営全体バフと違って対象指定が要る。
+		"needs_target": effect in ["area", "single"] or buff_scope == "unit",
 		"range": int(r.get("range", 0)),
 		"range_from": String(r.get("range_from", "leader")),
 		"radius": int(r.get("radius", 0)),
 	}
 	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
-		opt["buff_mult"] = float(r.get("buff_mult", 1.0))
+		opt["buff_scope"] = buff_scope
+		opt["buff_op"] = String(r.get("buff_op", "mul"))
+		opt["buff_value"] = float(r.get("buff_value", 1.0))
 		opt["buff_target"] = String(r.get("buff_target", "both"))
 		opt["duration_turns"] = int(r.get("duration_turns", 1))
 	return opt

@@ -7,7 +7,8 @@ class_name StatusMod
 ##   scope: "team" | "unit"（将来 "tile"/"area"）… どのユニットに効くか
 ##   team:  int（scope=="team" のとき対象陣営）
 ##   unit_id: int（scope=="unit" のとき対象ユニット）
-##   op: "mul" | "add" … 乗算（実効ステータスに係数）／加算（支援と同じ位置）
+##   op: "mul" | "add" | "add_per_troop" … 乗算（実効ステータスに係数）／加算（支援と同じ位置）／
+##       残兵数ぶんの加算（value × 対象の残兵数。損耗すればボーナスも減る＝群れ全体に掛かる魔法）
 ##   target: "attack" | "defense" | "both"
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
 ##   owner_team / remaining: 持続管理（残り自軍ターン数。BattleState.end_turn が減算）
@@ -24,10 +25,13 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 		var t := String(m.get("target", "both"))
 		if t != "both" and t != target:
 			continue
-		if String(m.get("op", "mul")) == "mul":
-			mul *= float(m.get("value", 1.0))
-		else:
-			add += float(m.get("value", 0.0))
+		match String(m.get("op", "mul")):
+			"mul":
+				mul *= float(m.get("value", 1.0))
+			"add_per_troop":
+				add += float(m.get("value", 0.0)) * float(unit.troops)
+			_:
+				add += float(m.get("value", 0.0))
 	return {"mul": mul, "add": add}
 
 ## mods のうち unit に効いているエントリをそのまま返す（表示用）。
