@@ -78,13 +78,20 @@ const IMPLEMENTED_EFFECTS := ["area", "single", "buff"]
 ## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
 static func available_for(state: BattleState, unit: Unit) -> Array:
 	var out: Array = []
-	if unit == null or state.is_done(unit.id):
+	if unit == null:
 		return out
 	for rid in RECIPES:
 		var r: Dictionary = RECIPES[rid]
 		if not (r["effect"] in IMPLEMENTED_EFFECTS):
 			continue
 		if not (unit.type_id in r["leader_types"]):
+			continue
+		# 陣形は「まだ何も終えていない」＝盤の行動終了判定に従う。エンチャントは移動後でも
+		# 撃てるので、行動を使い切ったか（待機・攻撃済み）だけを見る。
+		if String(r["shape"]) == "solo":
+			if not state.has_action_left(unit.id):
+				continue
+		elif state.is_done(unit.id):
 			continue
 		match String(r["shape"]):
 			"triangle":
@@ -193,6 +200,11 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		"leader_id": participants[0].id,
 		"participants": ids,
 		"effect": effect,
+		# エンチャント（単独発動）と陣形スキル（複数人）の区別。表示ラベルと、移動後に撃てるかを分ける。
+		"kind": "enchant" if String(r["shape"]) == "solo" else "formation",
+		# 陣形は配置そのものがレシピなので移動したら成立が変わる＝自マスでしか撃てない。
+		# エンチャントは他の参加者が要らないので、移動してから撃ってよい。詳細 → doc/gdd/enchants.md
+		"after_move": String(r["shape"]) == "solo",
 		# 対象1体のバフ（エンチャント）は掛ける相手を選ぶ＝陣営全体バフと違って対象指定が要る。
 		"needs_target": effect in ["area", "single"] or buff_scope == "unit",
 		"range": int(r.get("range", 0)),

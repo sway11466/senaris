@@ -74,6 +74,10 @@ func add_status_mod(entry: Dictionary) -> void:
 func status_aggregate(unit: Unit, target: String) -> Dictionary:
 	return StatusMod.aggregate(_status_mods, unit, target)
 
+## unit にいま効いている状態補正エントリの一覧（表示用・読み取り専用）。情報パネルが使う。
+func status_mods_for(unit: Unit) -> Array:
+	return StatusMod.applied(_status_mods, unit)
+
 ## 手番開始時に、始まった陣営の持続を1減らして満了を掃除する（end_turn から呼ぶ）。
 ## remaining は「残り自軍ターン数」＝発動陣営のターンが始まるたびに減る（跨いだ敵ターンでは減らない）。
 func _expire_status_mods() -> void:
@@ -625,9 +629,14 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 ## 成功なら {recipe, results:[{target_id, loss, killed, detail}...]}、不正（手番違い・行動済み・射程外）なら空。
 func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	# 妥当性: 参加者が現手番・未行動・生存していること、target が射程内であること。
+	# 移動後でも撃てるレシピ（エンチャント）は「行動を使い切っていないか」で見る。
+	# 陣形は従来どおり盤の行動終了判定に従う（配置が変わる＝動いたら成立しない）。
+	var after_move := bool(option.get("after_move", false))
 	for pid in option["participants"]:
 		var p := unit_by_id(int(pid))
-		if p == null or p.team != current_team or is_done(int(pid)):
+		if p == null or p.team != current_team:
+			return {}
+		if not (has_action_left(int(pid)) if after_move else not is_done(int(pid))):
 			return {}
 	if not Formation.can_target(self, option, target):
 		return {}
@@ -818,6 +827,12 @@ func is_done(unit_id: int) -> bool:
 	var can_atk := not has_attacked(unit_id) and not attack_targets(unit_id).is_empty()
 	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
 	return not can_atk and not can_mv
+
+## この手番の行動をまだ使っていないか（「待機」で終えておらず、攻撃もしていない）。
+## is_done と違い「行ける先が無い／撃てる相手が居ない」を終了扱いにしない。移動してから
+## 撃てるエンチャントは、移動後この判定で発動可否を決める。詳細 → doc/gdd/enchants.md
+func has_action_left(unit_id: int) -> bool:
+	return not _done.has(unit_id) and not has_attacked(unit_id)
 
 ## 降ろせる搭乗駒（このターン未行動）が居るか。
 func _has_unloadable_passenger(unit_id: int) -> bool:
