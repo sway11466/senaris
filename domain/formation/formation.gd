@@ -62,8 +62,10 @@ const RECIPES := {
 		"count": 1,
 		"effect": "buff",
 		"buff_scope": "unit",
-		"buff_op": "add_per_troop",  # 実効攻防に 10×残兵数 を加算（補正は乗らない）
-		"buff_value": 10.0,
+		"buff_op": "add",  # 実効攻防への加算（経験・包囲・地形の補正は乗らない）
+		# 発動したピクシー1兵あたりの加算量。発動時の残兵数を掛けた値を焼き込む＝以後ピクシーが
+		# 損耗しても倒されても、掛かった補正は変わらない。詳細 → doc/gdd/enchants.md
+		"buff_value_per_troop": 10.0,
 		"buff_target": "both",
 		"duration_turns": 1,
 		"range": 1,  # 自分(0)＋隣接(1)
@@ -215,6 +217,7 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		opt["buff_scope"] = buff_scope
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
 		opt["buff_value"] = float(r.get("buff_value", 1.0))
+		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))
 		opt["buff_target"] = String(r.get("buff_target", "both"))
 		opt["duration_turns"] = int(r.get("duration_turns", 1))
 	return opt

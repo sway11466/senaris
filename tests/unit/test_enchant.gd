@@ -124,16 +124,28 @@ func test_self_target() -> void:
 
 # --- 残兵数への追随・重ねがけ・持続 ---
 
-func test_bonus_follows_current_troops() -> void:
+## 強さを決めるのは掛ける側（ピクシー）の残兵数。掛けられる側の兵数は関係しない。
+func test_bonus_scales_with_caster_troops() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
+	var pixie: Unit = f["pixie"]
 	var near: Unit = f["near"]
+	pixie.troops = 4  # 損耗したピクシーが撒く粉は薄い
+	near.troops = 2   # 掛けられる側の兵数は効果に影響しない
 	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "発動成功")
-	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "満員8体なら +80")
-	near.troops = 4  # 損耗
-	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 40.0, 0.001,
-		"4体まで減れば +40＝残兵数に追随する")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 40.0, 0.001, "ピクシー4体なら +40")
 	assert_almost_eq(float(s.status_aggregate(near, "defense")["add"]), 40.0, 0.001, "防御側も同じ")
+
+## 値は発動時に確定する＝掛けた後にピクシーが削られても倒されても変わらない。
+func test_bonus_fixed_at_cast() -> void:
+	var f := _dust_state()
+	var s: BattleState = f["s"]
+	var pixie: Unit = f["pixie"]
+	var near: Unit = f["near"]
+	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "満員8体で発動")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "+80")
+	pixie.troops = 2  # 発動後に損耗
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "掛けた後は動かない")
 
 func test_stacking_adds_up() -> void:
 	var f := _dust_state()

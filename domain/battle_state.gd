@@ -680,11 +680,18 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 ## （エンチャント＝buff_scope "unit"・target のhexに居る味方）の両方を作る。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/enchants.md
 func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
+	# 発動者の兵1人あたりで効くレシピ（妖精の粉）は、発動時の残兵数を掛けて値を焼き込む。
+	# 以後は発動者と切り離される＝ピクシーが損耗しても倒されても補正は変わらない。
+	var value := float(option.get("buff_value", 1.0))
+	var per_troop := float(option.get("buff_value_per_troop", 0.0))
+	if per_troop > 0.0:
+		var caster := unit_by_id(int(option.get("leader_id", -1)))
+		value = per_troop * float(caster.troops if caster != null else 0)
 	var e := {
 		"owner_team": current_team,
 		"op": String(option.get("buff_op", "mul")),
 		"target": String(option.get("buff_target", "both")),
-		"value": float(option.get("buff_value", 1.0)),
+		"value": value,
 		"remaining": int(option.get("duration_turns", 1)),
 		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
 	}
