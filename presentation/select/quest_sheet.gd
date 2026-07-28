@@ -78,7 +78,7 @@ func _ready() -> void:
 	buttons.add_child(sortie)
 
 	var back := TavernTheme.ink_button("戻る")
-	back.pressed.connect(close)
+	back.pressed.connect(_cancel)
 	buttons.add_child(back)
 
 func open(stage_title: String) -> void:
@@ -88,6 +88,12 @@ func open(stage_title: String) -> void:
 func close() -> void:
 	visible = false
 
+## 取り消して閉じる（戻るボタン・幕クリック・Esc の共通入口）。開くときに音が鳴るので、
+## 閉じるときも鳴らないと非対称になる。出撃は確定音が鳴るので、こちらは通さない。
+func _cancel() -> void:
+	SfxPlayer.play_event("menu_back")
+	close()
+
 func _on_sortie_pressed() -> void:
 	close()
 	confirmed.emit()
@@ -95,9 +101,9 @@ func _on_sortie_pressed() -> void:
 func _on_dim_input(event: InputEvent) -> void:
 	var mb := event as InputEventMouseButton
 	if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
-		close()
+		_cancel()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("ui_cancel"):
-		close()
+		_cancel()
 		get_viewport().set_input_as_handled()
