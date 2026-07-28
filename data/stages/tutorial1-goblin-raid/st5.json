@@ -1,19 +1,18 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st5",
-  "bgm": { "main": "raid" },
   "cols": 22,
   "rows": 9,
   "terrain": [
     "CCCCCCCCCCCCCCCCCCCCCC",
-    "CCC...CCCC...CCCCCCCCC",
-    "..................CCCC",
-    "......................",
-    "......................",
-    "...................C.C",
-    ".................CCCCC",
-    "CC...CCCC...CCCCCCCCCC",
-    "CCCCCCCCCCCCCCCCCCCCCC"
+    "PPPFFFPPPPFFFPPPPPCCCC",
+    "....F.....F.F.....PPPP",
+    ".F.F...F...F.F...F....",
+    ".FFF..FFF..FFF..FFF...",
+    "...................P.P",
+    "...F.....FFF...P.PPCPC",
+    "CCFFFCPPPFFFPPPCPCCCCC",
+    "CCCCCCCCCCFCCCCCCCCCCC"
   ],
   "player": [
     { "type": "fighter", "col": 5, "row": 4 },
@@ -28,17 +27,18 @@
     { "ai": "charge",
       "units": [
         { "skin": "goblin", "col": 9, "row": 4 },
-        { "skin": "goblin", "col": 10, "row": 4 },
         { "skin": "hobgoblin", "col": 10, "row": 3 },
         { "skin": "hobgoblin", "col": 10, "row": 5 },
         { "skin": "goblin", "col": 14, "row": 4 },
         { "skin": "goblin", "col": 15, "row": 4 },
-        { "skin": "hobgoblin", "col": 15, "row": 3 },
-        { "skin": "hobgoblin", "col": 15, "row": 5 },
-        { "skin": "goblin", "col": 19, "row": 4 },
-        { "skin": "goblin", "col": 20, "row": 4 },
         { "skin": "hobgoblin", "col": 20, "row": 3 },
-        { "skin": "hobgoblin", "col": 20, "row": 5 }
+        { "skin": "hobgoblin", "col": 20, "row": 5 },
+        { "skin": "goblin", "col": 9, "row": 3 },
+        { "skin": "hobgoblin", "col": 15, "row": 2 },
+        { "skin": "hobgoblin", "col": 14, "row": 6 },
+        { "skin": "goblin", "col": 21, "row": 3 },
+        { "skin": "goblin", "col": 12, "row": 4 },
+        { "skin": "goblin", "col": 18, "row": 4 }
       ] }
   ],
   "dialogue": {
@@ -56,5 +56,6 @@
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.outro.4" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.outro.5" }
     ]
-  }
+  },
+  "bgm": { "main": "raid" }
 }
