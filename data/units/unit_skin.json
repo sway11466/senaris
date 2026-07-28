@@ -282,6 +282,28 @@
 			],
 			"enemy": []
 		},
+		"mage": {
+			"ally": [
+				{
+					"category": "基準",
+					"description": "",
+					"images": {},
+					"name": "メイジ",
+					"skin_id": "mage",
+					"type_id": "mage"
+				}
+			],
+			"enemy": [
+				{
+					"category": "魔獣",
+					"description": "",
+					"images": {},
+					"name": "オークメイジ",
+					"skin_id": "orc_mage",
+					"type_id": "mage"
+				}
+			]
+		},
 		"magic_knight": {
 			"ally": [
 				{

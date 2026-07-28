@@ -8,6 +8,7 @@ slinger,20,20,0,20,3,ground,1-2,false,false,8,0,弓兵,弓兵の下位（低ス�
 archer,30,30,0,30,5,ground,1-2,false,false,8,0,弓兵,
 hunter,30,55,0,30,6,ground,1-3,false,false,8,0,弓兵,
 elf,30,80,0,10,5,forest_walk,1-5,false,false,8,0,弓兵,
+mage,20,20,0.5,20,3,ground,2-3,false,false,8,0,魔法兵,魔法兵の見習い（短射程・低火力。貫通0.5 は魔法兵共通）
 wizard,40,40,0.5,30,4,ground,2-4,false,false,8,0,魔法兵,
 witch,30,30,0.5,30,4,ground,2-5,false,false,8,0,魔法兵,
 thief,70,10,0,20,8,light_foot,1,true,false,8,0,斥候,

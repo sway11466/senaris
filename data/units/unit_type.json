@@ -129,6 +129,22 @@
 			"range": "1-5"
 		},
 		{
+			"atk_air": 20,
+			"atk_ground": 20,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "魔法兵",
+			"defense": 20,
+			"id": "mage",
+			"max_troops": 8,
+			"memo": "魔法兵の見習い（短射程・低火力。貫通0.5 は魔法兵共通）",
+			"move": 3,
+			"move_after_attack": false,
+			"move_type": "ground",
+			"pierce": 0.5,
+			"range": "2-3"
+		},
+		{
 			"atk_air": 40,
 			"atk_ground": 40,
 			"can_capture": false,

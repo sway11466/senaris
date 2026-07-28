@@ -8,6 +8,7 @@ archer,アーチャー,ally,archer,基準,1.0,1.0
 hunter,ハンター,ally,hunter,基準,1.05,1.05
 elf,エルフ,ally,elf,基準,1.0,1.0
 slinger,スリンガー,ally,slinger,基準,1.0,1.0
+mage,メイジ,ally,mage,基準,0.95,0.95
 wizard,ウィザード,ally,wizard,基準,1.0,1.0
 witch,ウィッチ,ally,witch,基準,1.0,1.0
 thief,シーフ,ally,thief,基準,1.0,1.0
@@ -44,6 +45,7 @@ ghost,ゴースト,enemy,pixie,アンデッド,0.9,0.9
 necromancer,ネクロマンサー,enemy,sniper,アンデッド,1.05,1.05
 orc,オーク,enemy,fighter,魔獣,1.05,1.05
 orc_leader,オークリーダー,enemy,vanguard,魔獣,1.15,1.15
+orc_mage,オークメイジ,enemy,mage,魔獣,1.0,1.0
 griffon,グリフォン,enemy,birdman,魔獣,1.15,1.15
 chimera,キメラ,enemy,warlord,魔獣,1.2,1.2
 harpy,ハーピー,enemy,harpy,魔獣,0.9,0.9

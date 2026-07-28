@@ -170,7 +170,7 @@ POSE (guard): A braced shield-guard stance — a large shield raised high and pr
 ```
 POSE (cast): An offensive spellcasting stance — the staff (or magic focus) leveled/thrust toward the enemy on the right in a casting gesture, the body turned to the side, feet planted, focused and channeling an attack spell; not lunging into melee. For offensive mages. 水晶/オーブは map と同じ「やんわり青白い封じ込めの発光」まで可（統一感のため）。ただし強い発光・光線・オーラ・パーティクルは出さない（背景へ光が漏れて切り抜きが荒れるため）。
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`。
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
@@ -187,7 +187,7 @@ POSE (cast): An offensive spellcasting stance — the staff (or magic focus) lev
 ## 参考資料
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
-- [assets/units-src/player/style.md](../../assets/units-src/player/style.md) — 味方陣営の見た目ルール（役割の記号・27種の個体特徴）
+- [assets/units-src/player/style.md](../../assets/units-src/player/style.md) — 味方陣営の見た目ルール（役割の記号・個体特徴）
 - [overview.md](overview.md) — 画像スロット（`map`/`combat`）・プレースホルダ
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [../gdd/combat.md](../gdd/combat.md) — 対空機構（飛行の浮遊必須ルールの根拠）
