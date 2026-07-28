@@ -1,19 +1,18 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st2",
-  "bgm": { "main": "journey" },
   "cols": 18,
   "rows": 9,
   "terrain": [
-    ".....PPPP.........",
-    "......PPP.....FF..",
-    ".......PPP...FFFF.",
+    "....PPPPPPP.FFFFFF",
+    "......PPPP...FFFFF",
+    ".......PPP...FFFFF",
+    "........PPP.....FF",
     "........PPP.......",
     "........PPP.......",
-    "........PPP.......",
-    "...FF....PPP......",
-    "..FFF....PPP......",
-    ".........PPPP....."
+    "...FFF.F.PPP......",
+    ".FFFFFFFFPPPPP....",
+    "FFFFFFFFFPPPPPPP.."
   ],
   "player": [
     { "type": "fighter", "col": 2, "row": 4 },
@@ -23,11 +22,11 @@
   "enemy": [
     { "ai": "charge",
       "units": [
-        { "skin": "goblin", "col": 14, "row": 3 },
-        { "skin": "goblin", "col": 14, "row": 5 },
-        { "skin": "goblin", "col": 15, "row": 4 },
-        { "skin": "hobgoblin", "col": 14, "row": 4 },
-        { "skin": "hobgoblin", "col": 15, "row": 3 }
+        { "skin": "goblin", "col": 14, "row": 2 },
+        { "skin": "goblin", "col": 14, "row": 6 },
+        { "skin": "goblin", "col": 14, "row": 4 },
+        { "skin": "hobgoblin", "col": 16, "row": 3 },
+        { "skin": "hobgoblin", "col": 16, "row": 5 }
       ] }
   ],
   "dialogue": {
@@ -48,5 +47,6 @@
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st2.outro.5" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st2.outro.6" }
     ]
-  }
+  },
+  "bgm": { "main": "journey" }
 }
