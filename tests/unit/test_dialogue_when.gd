@@ -41,6 +41,7 @@ func test_unknown_condition_keeps_the_line() -> void:
 		{ "speaker": "s", "skin": "k", "text": "keep.me", "when": "cleared:st1" },
 	] } }
 	var d := StageLoader.parse_dialogue(data)
+	assert_push_warning("未知の会話条件")
 	assert_eq(_texts(d["intro"]), ["keep.me"], "未知の条件は行を落とさない")
 
 func test_blank_condition_is_always_true() -> void:

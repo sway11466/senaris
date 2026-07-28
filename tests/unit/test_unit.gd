@@ -57,6 +57,7 @@ func test_from_dict_without_type_uses_defaults() -> void:
 	# catalog 未解決（未知 type）でも既定性能で復元＝データ欠損に耐える。
 	var d := { "type": "mystery", "skin": "mystery", "level": 2, "troops": 3, "max_troops": 8 }
 	var u := Unit.from_dict(d)
+	assert_push_warning("未解決＝既定性能で復元")
 	assert_eq(u.type_id, "mystery")
 	assert_eq(u.level, 2)
 	assert_eq(u.troops, 3)

@@ -29,6 +29,7 @@ func test_garbage_file_falls_back_to_fresh() -> void:
 	f.store_string("これはJSONではない{{{")
 	f = null
 	var store := ProgressStore.new(PATH)  # クラッシュせず新規扱い
+	assert_push_warning("進捗ファイルが不正")
 	assert_false(store.is_cleared("tutorial", "st1"))
 	store.mark_cleared("tutorial", "st1")
 	assert_true(ProgressStore.new(PATH).is_cleared("tutorial", "st1"), "上書き保存で復旧する")
@@ -38,11 +39,13 @@ func test_wrong_version_falls_back_to_fresh() -> void:
 	f.store_string(JSON.stringify({ "version": 999, "cleared": { "tutorial": { "st1": true } } }))
 	f = null
 	assert_false(ProgressStore.new(PATH).is_cleared("tutorial", "st1"), "未知バージョンは読まない")
+	assert_push_warning("進捗ファイルが不正")
 
 func test_missing_version_key_falls_back_to_fresh() -> void:
 	# version キーそのものが無い（不一致とは別分岐＝get の既定値 0 で弾く）
 	_write(JSON.stringify({ "cleared": { "tutorial": { "st1": true } } }))
 	assert_false(ProgressStore.new(PATH).is_cleared("tutorial", "st1"), "version 欠損は新規扱い")
+	assert_push_warning("進捗ファイルが不正")
 
 func test_cleared_not_dict_loads_empty() -> void:
 	_write(JSON.stringify({ "version": ProgressStore.VERSION, "cleared": "oops" }))

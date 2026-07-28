@@ -15,6 +15,7 @@ func test_build_skips_idless() -> void:
 		{ "atk_ground": 5 },          # id 無し → スキップ
 		{ "id": "b", "atk_ground": 7 },
 	] })
+	assert_push_warning("id 無しの種別をスキップ")
 	assert_eq(cat.size(), 1)
 	assert_true(cat.has("b"))
 

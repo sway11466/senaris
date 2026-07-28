@@ -68,16 +68,19 @@ func test_garbage_file_falls_back_to_none() -> void:
 	_write("これはJSONではない{{{")
 	var store := SaveStore.new(PATH)  # クラッシュせず「セーブ無し」
 	assert_false(store.has_save())
+	assert_push_warning("中断セーブが不正")  # 読むのは has_save の中＝コンストラクタでは出ない
 	store.save({ "cols": 4 }, {})
 	assert_true(SaveStore.new(PATH).has_save(), "上書き保存で復旧")
 
 func test_wrong_version_falls_back_to_none() -> void:
 	_write(JSON.stringify({ "version": 999, "meta": {}, "state": { "cols": 4 } }))
 	assert_false(SaveStore.new(PATH).has_save(), "未知バージョンは読まない")
+	assert_push_warning("中断セーブが不正")
 
 func test_missing_version_falls_back_to_none() -> void:
 	_write(JSON.stringify({ "meta": {}, "state": { "cols": 4 } }))
 	assert_false(SaveStore.new(PATH).has_save(), "version 欠損は無効")
+	assert_push_warning("中断セーブが不正")
 
 func test_missing_state_is_invalid() -> void:
 	_write(JSON.stringify({ "version": SaveStore.VERSION, "meta": { "stage_id": "a" } }))

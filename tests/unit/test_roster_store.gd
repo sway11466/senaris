@@ -35,6 +35,7 @@ func test_save_persists_across_instances() -> void:
 	# JSON 経由で数値は float 化するが、実パイプラインは Unit.from_dict が int に戻す＝そこで一致する
 	assert_eq(Unit.from_dict(loaded[0]).to_dict(), snap[0])
 	assert_eq(Unit.from_dict(loaded[1]).to_dict(), snap[1])
+	assert_push_warning_count(2, "type 未解決の復元＝既定性能で復元する警告（catalog 解決は呼び出し側）")
 	assert_false(reloaded.has_roster("other"), "冒険譚IDで区別する")
 
 func test_roundtrips_unit_snapshots() -> void:
@@ -48,6 +49,7 @@ func test_roundtrips_unit_snapshots() -> void:
 	# JSON 経由の float 化を Unit.from_dict が吸収して元の snapshot に戻る（Phase 2d で使う経路）。
 	assert_eq(Unit.from_dict(loaded[0]).to_dict(), u1.to_dict())
 	assert_eq(Unit.from_dict(loaded[1]).to_dict(), u2.to_dict())
+	assert_push_warning_count(2, "type 未解決の復元＝既定性能で復元する警告（catalog 解決は呼び出し側）")
 
 func test_clear_removes_snapshot() -> void:
 	var store := RosterStore.new(PATH)
@@ -67,6 +69,7 @@ func test_load_returns_copy_not_internal() -> void:
 func test_garbage_file_falls_back_to_empty() -> void:
 	_write("これはJSONではない{{{")
 	var store := RosterStore.new(PATH)  # クラッシュせず空扱い
+	assert_push_warning("スナップショットが不正")
 	assert_false(store.has_roster("tutorial3"))
 	store.save_roster("tutorial3", [{ "type": "archer", "level": 1, "troops": 8, "max_troops": 8 }])
 	assert_true(RosterStore.new(PATH).has_roster("tutorial3"), "上書き保存で復旧する")
@@ -74,10 +77,12 @@ func test_garbage_file_falls_back_to_empty() -> void:
 func test_wrong_version_falls_back_to_empty() -> void:
 	_write(JSON.stringify({ "version": 999, "rosters": { "tutorial3": [{ "type": "archer" }] } }))
 	assert_false(RosterStore.new(PATH).has_roster("tutorial3"), "未知バージョンは読まない")
+	assert_push_warning("スナップショットが不正")
 
 func test_missing_version_falls_back_to_empty() -> void:
 	_write(JSON.stringify({ "rosters": { "tutorial3": [{ "type": "archer" }] } }))
 	assert_false(RosterStore.new(PATH).has_roster("tutorial3"), "version 欠損は空扱い")
+	assert_push_warning("スナップショットが不正")
 
 func test_rosters_not_dict_loads_empty() -> void:
 	_write(JSON.stringify({ "version": RosterStore.VERSION, "rosters": "oops" }))

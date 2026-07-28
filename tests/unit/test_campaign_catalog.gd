@@ -59,7 +59,9 @@ func test_all_unlock_refs_resolve() -> void:
 
 func test_build_rejects_broken() -> void:
 	assert_eq(CampaignCatalog.build({}, "x"), {}, "id 無しは不正")
+	assert_push_warning("マニフェストが不正")
 	assert_eq(CampaignCatalog.build({ "id": "a", "stages": "oops" }, "x"), {}, "stages が配列でないのは不正")
+	assert_push_warning("マニフェストが不正")
 
 func test_build_defaults_difficulty_and_desc() -> void:
 	var c := CampaignCatalog.build({ "id": "a", "stages": [] }, "res://x")
@@ -80,5 +82,7 @@ func test_build_skips_broken_stage_entries() -> void:
 			"garbage",
 		],
 	}, "res://x")
+	assert_push_warning("stage の id/file が空")
+	assert_push_warning("stage エントリが辞書でない")
 	assert_eq(c["stages"].size(), 1, "壊れたエントリはスキップ")
 	assert_eq(c["stages"][0]["title"], "s1", "title 未指定は id で代用")

@@ -70,6 +70,7 @@ func test_roster_reads_carryover() -> void:
 
 func test_roster_unknown_falls_back_to_fresh() -> void:
 	var s := StageLoader.build({ "cols": 4, "rows": 4, "roster": "bogus" })
+	assert_push_warning("未知の roster")
 	assert_eq(s.roster, "fresh", "未知の roster は fresh にフォールバック")
 
 func test_build_resolves_type_from_catalog() -> void:
@@ -168,6 +169,7 @@ func test_carryover_more_survivors_than_slots_drops_extra() -> void:
 		{ "col": 1, "row": 1 },
 	] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
+	assert_push_warning("スロットが足りず")
 	assert_eq(s.units().size(), 1, "スロットぶんだけ配置＝余剰は出撃しない")
 
 func test_no_carried_units_ignores_slots() -> void:

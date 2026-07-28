@@ -24,6 +24,7 @@
 - バグ修正は再現テストを先に書き、落ちることを確認してから直す。
 - 触って調整中の領域（AIの手触り・カメラ等）はテスト後追いでよい。仕様が固まった時点でテストに固定する。
 - 全件グリーンを保つ。落ちたテストの放置や skip での恒久回避はしない。
+- テストが製品コードの `push_error` / `push_warning` を誘発するときは `assert_push_error` / `assert_push_warning`（同一文言が複数なら `assert_push_warning_count`）で宣言する。宣言のない WARNING/ERROR がログに出ない状態を保つと、出た1行がそのまま異常の合図になる。push_error は GUT が未宣言だとテストを落とす（`failure_error_types` の既定）が、push_warning は落ちないので書き忘れに注意。
 
 ## 実行方法
 
