@@ -1477,7 +1477,12 @@ func _add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -
 	l.pixel_size = 0.01
 	l.modulate = color
 	l.outline_size = 16  # 淡い地形の上でも読めるように
-	l.position = wpos + Vector3(-TILE * 0.5, 0.55, -TILE * 0.15)
+	# 重なり順は 縁取りリング → タイルの絵 → この数字。リングもリング状の半透明なので、
+	# 深度だけに任せると数字がリングの下に潜る。深度判定を切り、最後に描かせて最前面に固定する。
+	l.no_depth_test = true
+	l.render_priority = 2
+	l.outline_render_priority = 1
+	l.position = wpos + Vector3(-TILE * 0.55, 0.8, -TILE * 0.3)
 	root.add_child(l)
 
 ## 地面に寝かせた円環（選択/攻撃/閲覧/包囲リング）。radius|width でメッシュをキャッシュ。
@@ -1541,12 +1546,14 @@ func _make_disc_mesh(radius: float, z_ratio: float) -> ArrayMesh:
 		st.set_normal(Vector3.UP); st.add_vertex(Vector3(cos(a1) * radius, 0.0, sin(a1) * radius * z_ratio))
 	return st.commit()
 
-## 拠点の縁取り＝六角の枠メッシュ（タイルの淵に沿う帯）。
+## 拠点の縁取り＝六角の枠メッシュ（タイルの外側に張り出す帯）。
+## 内側へ食い込ませるとタイルの絵を隠す（町スキンは六角いっぱいに描かれている）。
+## 帯をヘックスの外へ出し、隣のタイルの上に乗せることで、絵を欠かさず所属を示す。
 func _make_hexring_mesh() -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var r_out := TILE * 0.98
-	var r_in := TILE * 0.88
+	var r_out := TILE * 1.10
+	var r_in := TILE * 1.00
 	for i in 6:
 		var a0 := deg_to_rad(60.0 * i)
 		var a1 := deg_to_rad(60.0 * (i + 1))

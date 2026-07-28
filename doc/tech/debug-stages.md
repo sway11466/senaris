@@ -63,14 +63,13 @@
 
 | ステージ | ファイル | 状態 |
 | --- | --- | --- |
-| 閉じ込め判定（案B・籠城/湧き） | `debug-mapops/siege.json` | 実装済み |
+| 閉じ込め判定（案B・籠城/湧き）・中立の寝返り・拠点スキンの所有色 | `debug-mapops/siege.json` | 実装済み |
 | 陣形スキル（①三重詠唱） | `debug-mapops/formation.json` | 実装済み |
 | 輸送（乗車・運搬・降車） | `debug-mapops/transport.json` | 実装済み |
 | バリケード輸送（出撃→隣接乗降） | `debug-mapops/barricade.json` | 実装済み |
 
 あるべき（TODO）:
 - [ ] 拠点＝占領・出撃・回復の3機能を素直に1枚で
-- [ ] 中立拠点の寝返り（取った側へ garrison が付く）
 - [ ] 陣形②③（聖なる加護・神の裁き）
 - [ ] 飛空艇（飛行輸送）・初期搭乗
 
