@@ -49,7 +49,7 @@ const RECIPES := {
 		"count": 5,
 		"effect": "buff",
 		"buff_mult": 1.3,
-		"duration_turns": 2,
+		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ラウンド。詳細 → doc/gdd/formations.md
 	},
 }
 

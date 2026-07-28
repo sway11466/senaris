@@ -104,6 +104,20 @@ func test_holy_aria_buffs_whole_team() -> void:
 	assert_almost_eq(Combat.effective_attack(s, ally, foe, true), before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
 	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
+## ホーリーアリアの持続＝1ラウンド（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/formations.md
+func test_holy_aria_lasts_one_round() -> void:
+	var f := _aria_state()
+	var s: BattleState = f["s"]
+	var ally: Unit = f["ally"]
+	var foe: Unit = f["foe"]
+	var before := Combat.effective_attack(s, ally, foe, true)
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	assert_false(s.resolve_formation(opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
+	s.end_turn()  # 敵ターンへ
+	assert_almost_eq(Combat.effective_attack(s, ally, foe, true), before * 1.3, 1.0, "敵ターン中はまだ効く")
+	s.end_turn()  # 次の自軍ターンへ＝ここで満了
+	assert_almost_eq(Combat.effective_attack(s, ally, foe, true), before, 1.0, "次の自軍ターン開始で切れる")
+
 # ③神の裁きの成立盤：paladin＋聖職2の三角形＋射程内(距離 enemy_dist)の敵1体。leader=paladin(id1)。
 func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 	var s := _state()
