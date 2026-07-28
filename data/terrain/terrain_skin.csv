@@ -14,3 +14,4 @@ cliff,cliff,崖,false,0.36,0,true,既定スキン
 wall,wall,壁,false,0.70,0,false,既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
 wall_stone1,wall,石積みの壁,false,0,0,true,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 fort,fort,拠点,false,0,0,true,既定スキン
+fort_town1,fort,町,false,0,0,true,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）

@@ -39,6 +39,9 @@
     { "col": 9, "row": 6, "team": "neutral",
       "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
   ],
+  "terrain_skins": [
+    { "col": 9, "row": 6, "skin": "fort_town1" }
+  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.intro.1" },

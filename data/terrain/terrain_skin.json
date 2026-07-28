@@ -139,6 +139,16 @@
 			"skin_id": "fort",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
+		},
+		{
+			"elevation": 0,
+			"grid": true,
+			"memo": "石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "町",
+			"orientable": false,
+			"skin_id": "fort_town1",
+			"sprite_sink": 0,
+			"terrain_type": "fort"
 		}
 	]
 }

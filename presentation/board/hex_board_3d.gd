@@ -68,6 +68,7 @@ var controller: MatchController
 var _terrain_tex := {}    # skin_id(String) -> Array[Texture2D]（基本＋連番 variant）
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分）
 var _side_tex := {}           # skin_id -> Texture2D|null（側面画像。置いていなければ null）
+var _tile_nodes := {}         # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _elev_cache := {}         # Vector2i -> float（スキン解決の結果。_build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）。同上
 var _unit_tex := {}       # 画像パス(String) -> Texture2D
@@ -549,14 +550,19 @@ func _open_command_menu(dest: Vector2i) -> void:
 			_menu.add_item("出撃: %s" % (gsk.name if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
 			if no_cells or not state.can_deploy_garrison(dest, i):
 				_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)
-	# 陣形スキル: 移動しない（自マスで開いた）ときだけ提示＝現在の配置で成立するレシピ。
+	# 陣形スキルは自マスで開いたときだけ＝配置そのものがレシピなので、移動すると成立が変わる。
 	_formation_opts = []
-	if sel != null and dest == sel.pos:
-		_formation_opts = Formation.available_for(state, sel)
+	if sel != null:
+		for o in Formation.available_for(state, sel):
+			# エンチャントは単独で成立する＝移動先で開いたメニューにも出す（after_move）。
+			if dest == sel.pos or bool(o.get("after_move", false)):
+				_formation_opts.append(o)
 		if not _formation_opts.is_empty():
 			_menu.add_separator()
 			for i in _formation_opts.size():
-				_menu.add_item("陣形: %s" % String(_formation_opts[i]["name"]), FORMATION_ID_BASE + i)
+				var o: Dictionary = _formation_opts[i]
+				var label := "エンチャント" if String(o.get("kind", "")) == "enchant" else "陣形"
+				_menu.add_item("%s: %s" % [label, String(o["name"])], FORMATION_ID_BASE + i)
 	_menu.add_separator()
 	_menu.add_item("キャンセル", MENU_CANCEL)
 	_menu_handled = false
@@ -572,7 +578,11 @@ func _on_menu_id(id: int) -> void:
 		_handle_unload_menu(id)
 		return
 	if id >= FORMATION_ID_BASE:  # 300以上＝UNLOAD/DEPLOYより先に判定（範囲が重ならないよう最上位）
-		_enter_formation(_formation_opts[id - FORMATION_ID_BASE])
+		var opt: Dictionary = _formation_opts[id - FORMATION_ID_BASE]
+		# 移動後のエンチャントは、先に移動を確定してから対象を選ぶ（隣接判定を移動先で行う）。
+		# 自マスで開いた場合（陣形スキル）は保留移動が無いので素通り。
+		_commit_pending_move()
+		_enter_formation(opt)
 		return
 	if id >= UNLOAD_ID_BASE:
 		var tid := _selected_id
@@ -1021,6 +1031,7 @@ func _sync_bases() -> void:
 	_clear_children(_bases_root)
 	if state == null:
 		return
+	_refresh_base_tiles()
 	for b in state.bases():
 		var col := COLOR_BASE_NEUTRAL
 		if b.team >= 0:
@@ -1039,6 +1050,7 @@ func _sync_bases() -> void:
 ## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
 func _build_tiles() -> void:
 	_clear_children(_tiles_root)
+	_tile_nodes.clear()          # 破棄したノードを指したままにしない
 	_elev_cache.clear()          # スキン解決のキャッシュはステージごとに捨てる
 	_elev_levels_cache.clear()
 	for col in state.cols:
@@ -1054,13 +1066,43 @@ func _tile_texture(hex: Vector2i) -> Texture2D:
 	var skin := _skin_at(hex)
 	if skin == null:
 		return null
-	var variants: Array = _terrain_tex.get(skin.skin_id, [])
-	if variants.is_empty() and not _terrain_tex.has(skin.skin_id):
-		variants = _load_terrain_variants(skin.image_path())
-		_terrain_tex[skin.skin_id] = variants
+	var path := _tile_image_path(skin, hex)
+	var variants: Array = _terrain_tex.get(path, [])
+	if variants.is_empty() and not _terrain_tex.has(path):
+		variants = _load_terrain_variants(path)
+		_terrain_tex[path] = variants
 	if variants.is_empty():
 		return null
 	return variants[_terrain_variant(hex, variants.size())]
+
+## そのヘックスに敷く画像の基準パス。占領されている拠点は、所有チーム別の絵があればそれを使う。
+## assets/terrain/{skin_id}_team{N}.png を置けば切り替わり、置かなければ中立の絵のまま（コード不変）。
+func _tile_image_path(skin: TerrainSkin, hex: Vector2i) -> String:
+	var team := _base_team_at(hex)
+	if team >= 0:
+		var p := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
+		if ResourceLoader.exists(p):
+			return p
+	return skin.image_path()
+
+## そのヘックスにある拠点の所属チーム。拠点でない/中立なら -1。拠点は数個なので線形で足りる。
+func _base_team_at(hex: Vector2i) -> int:
+	if state == null:
+		return -1
+	for b in state.bases():
+		if b.hex == hex:
+			return b.team
+	return -1
+
+## 拠点タイルを現在の所有チームの絵に貼り替える。占領で色が変わるので _sync_bases から毎回呼ぶ。
+func _refresh_base_tiles() -> void:
+	for b in state.bases():
+		var mi: MeshInstance3D = _tile_nodes.get(b.hex)
+		if mi == null:
+			continue
+		var tex := _tile_texture(b.hex)
+		if tex != null:
+			mi.material_override = _terrain_material(tex)
 
 ## タイルの平均色（中央付近を5点サンプル・透過は除外）。スカートの断面色に使う。
 func _tile_avg_color(tex: Texture2D) -> Color:
@@ -1101,6 +1143,7 @@ func _add_tile(hex: Vector2i) -> void:
 		mi.rotation.y = float(o % 6) * (PI / 3.0)
 		if (o / 6) % 2 == 1:
 			mi.scale = Vector3(-1.0, 1.0, 1.0)  # 左右反転（cull無効なので裏面でも描ける）
+	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
 	_tiles_root.add_child(mi)
 
 ## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
