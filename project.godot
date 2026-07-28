@@ -1,7 +1,10 @@
 ; Engine configuration file.
-; Senaris — Godot 4.7 (GDScript / 2D UI＋3D盤 ハイブリッド)
-; レイヤー依存: presentation → application → domain → data
-; 詳細 → doc/tech/architecture.md
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
