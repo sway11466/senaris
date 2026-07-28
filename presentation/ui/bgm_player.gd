@@ -9,6 +9,7 @@ class_name BgmPlayer
 const BUS := "Music"       ## 効果音と別に絞れるようにする（default_bus_layout.tres）
 const FADE_OUT_SEC := 1.0  ## 旧曲を落とす時間。新曲はフェードインしない＝頭のアタックを殺さない
 const DUCK_SEC := 0.3      ## スティンガー時に現曲を素早く下げる時間（ファンファーレの頭に被せない）
+const FOLLOW_FADE_SEC := 2.0  ## スティンガーの後に続く曲だけはフェードインする（下記 _follow_stinger）
 const SILENCE_DB := -60.0  ## 実質無音。0.0 が通常音量
 
 var _players: Array[AudioStreamPlayer] = []
@@ -27,11 +28,13 @@ func _ready() -> void:
 ## トラックIDの曲へ切り替える。同じ曲なら何もしない＝場面をまたいでも鳴り続ける
 ## （セレクト→下敷きステージのように、同じ曲を指す画面遷移で頭出しに戻らない）。
 ## 空文字は「曲なし」＝現在の曲をフェードアウトして無音にする。
-func play(track_id: String) -> void:
+## fade_in_sec は既定 0＝頭から素の音量（曲の入りを聞かせる）。無音から静かに立ち上げたい
+## 場面だけ秒数を渡す。
+func play(track_id: String, fade_in_sec: float = 0.0) -> void:
 	if track_id == _current_track:
 		return
 	_current_track = track_id
-	_fade_to(_load(track_id))
+	_fade_to(_load(track_id), fade_in_sec)
 
 ## スティンガー（勝利/敗北など loop=false の一発曲）を鳴らす。現在のステージ曲は素早く下げ、
 ## スティンガーはフェードインせず頭から出す＝ファンファーレの立ち上がりを殺さない。
@@ -62,10 +65,13 @@ func play_stinger(track_id: String, follow_track_id: String = "") -> void:
 
 ## スティンガーが鳴り終わった＝続きの曲へ移る。待っている間に別の曲へ切り替わっていたら何もしない
 ## （会話を読み飛ばして次ステージが始まった後に、終わったスティンガーが割り込むのを防ぐ）。
+##
+## ここだけフェードインする。曲の切り替えと違って前の音が既に鳴り止んでいるので、
+## 素の音量で入ると無音から音が生えたように聞こえる。
 func _follow_stinger(stinger_id: String, follow_track_id: String) -> void:
 	if _current_track != stinger_id:
 		return
-	play(follow_track_id)
+	play(follow_track_id, FOLLOW_FADE_SEC)
 
 ## トラックIDの AudioStream を読む。未配置・読めない時は null（呼び出し側は無音で進む）。
 ## Godot が扱えるのは Ogg Vorbis＝Opus や壊れた ogg は import が通らず null になる。
@@ -88,11 +94,12 @@ func stop() -> void:
 func current_track() -> String:
 	return _current_track
 
-## 表と裏を入れ替える。旧曲はフェードアウトさせ、新曲はフェードインせず頭から鳴らす。
+## 表と裏を入れ替える。旧曲はフェードアウトさせ、新曲は既定ではフェードインせず頭から鳴らす。
 ## 新曲を -60dB から上げていくと（1秒フェードだと 0.5秒地点でまだ -30dB）曲の入りが
 ## 聞こえないまま過ぎる＝スティンガーと同じ理由で、頭は素の音量で出す。
+## fade_in_sec > 0 のときだけ無音から立ち上げる（前が鳴り止んでいて、素の音量だと唐突な場面）。
 ## stream が null なら現在の曲を落とすだけ。
-func _fade_to(stream: AudioStream) -> void:
+func _fade_to(stream: AudioStream, fade_in_sec: float = 0.0) -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()  # 前のフェードが生きたままだと音量の取り合いになる（会話の暗幕と同じ事情）
 	var outgoing := _players[_active]
@@ -100,8 +107,10 @@ func _fade_to(stream: AudioStream) -> void:
 		_active = 1 - _active  # 裏を表にする（旧曲は鳴らしたままフェードアウトさせる）
 		var incoming := _players[_active]
 		incoming.stream = stream
-		incoming.volume_db = 0.0
+		incoming.volume_db = SILENCE_DB if fade_in_sec > 0.0 else 0.0
 		incoming.play()
-	_tween = create_tween()
+	_tween = create_tween().set_parallel(true)
 	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, FADE_OUT_SEC)
-	_tween.tween_callback(outgoing.stop)  # 消えてから止める（裏を空けて次の切替に備える）
+	if stream != null and fade_in_sec > 0.0:
+		_tween.tween_property(_players[_active], "volume_db", 0.0, fade_in_sec)
+	_tween.chain().tween_callback(outgoing.stop)  # 消えてから止める（裏を空けて次の切替に備える）
