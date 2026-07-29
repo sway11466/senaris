@@ -211,10 +211,12 @@ assets/
 
 現状はすべて自作アレンジなのでクレジット表記の義務は無い。第三者の素材を使うことになったら、表記が必要なものは指定文をそのまま Steam ページとゲーム内クレジットに載せる（自己流に変えない）。
 
-## 現状 / TODO
+## 現状
 
-- **たたき台あり（8曲・`.musicxml`／`.mid`）**: `forest`（旧 crisis v1 の転用）／ `ruins` ／ `graveyard` ／ `temple` ／ `ritual` ／ `boss` ／ `boss2` ／ `crisis`（v2・警報型）＝各32小節。いずれも MuseScore での仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化は今後。ライブラリ表の未着手は `title` のみ（menu と共用するかは検討中）。
+- **たたき台あり（8曲・`.musicxml`／`.mid`）**: `forest`（旧 crisis v1 の転用）／ `ruins` ／ `graveyard` ／ `temple` ／ `ritual` ／ `boss` ／ `boss2` ／ `crisis`（v2・警報型）＝各32小節。
 - 曲を追加したら本ドキュメントのライブラリ表と台帳（`assets/bgm-src/credits.md`）を更新する。
 - **投入済み（7曲）**: `menu`（76.800秒）／ `journey`（71.111秒）／ `raid`（60.952秒）／ `dungeon`（96.000秒）／ `afterglow`（41.739秒）＝いずれもループ長ちょうど・ラップアラウンド加算あり。`victory`（10.3秒）／ `defeat`（14.4秒）＝スティンガー（ループなし）。曲が未配置のステージは無音＋ログ1行で進む（autowire）。
 - **スティンガーの鳴らし方**: `main._on_battle_finished` が決着時に `BgmPlayer.play_stinger` で一発再生（ステージ曲を素早く下げ、フェードインなしで頭から出す）。戦果票の印が落ちる瞬間に合わせる（[../gdd/uiux.md](../gdd/uiux.md) §決着の演出）。勝利は鳴り終わってから `afterglow` へ繋ぐ＝ファンファーレは約10秒で終わるのに outro 会話はその後も続くため、繋がないと無音が居座る。敗北は繋がない（会話が無く、すぐ再挑戦かセレクトへ行く）。連結は待っている間に別の曲へ切り替わっていたら捨てる（会話を読み飛ばして次ステージが始まった後に割り込まない）。
-- **全体既定は `map_calm`**（`BgmDirector.DEFAULT_STAGE_TRACK`）で、この ID の曲は無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる。チュートリアル1は全ステージに `bgm` を書いたので現在は該当なし。既定を投入済みの曲に変えるか、`campaign.json` に既定を書くかは要判断。
+- **全体既定は `map_calm`**（`BgmDirector.DEFAULT_STAGE_TRACK`）で、この ID の曲は無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる。チュートリアル1は全ステージに `bgm` を書いたので現在は該当なし。
+
+未完了の作業（たたき台の仕上げ・title 曲・全体既定の決定）は [backlog.md](../backlog.md)（feature-21）を参照。

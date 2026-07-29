@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=21 / refactoring=8
+次回採番: bug=1 / feature=23 / refactoring=8
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -158,6 +158,22 @@
 - 背景：仕様駆動（spec-anchored・[development.md](tech/development.md)）で進めるが、doc（gdd/tech/campaign）とコードの一致を機械的に検証する手段が無く、現状は目視頼み。自動テストが守るのはコード同士と CSV正本↔生成物の整合まで（[testing.md](tech/testing.md)）で、doc の記述が実装とずれても誰も気づかない。doc が嘘を含むと、以後の設計判断とAIの参照がまとめて汚染される＝doc 量が増えるほど被害が効く。
 - 対応：このゲーム専用のスキルを作り、doc と該当コードを AI に突き合わせさせて食い違いを報告させる。CI/CD には組み込まず、任意のタイミングで手動起動して報告を読む運用（単独開発＋探索の多い進め方にマージゲートは合わない）。設計の本体は対象範囲の与え方＝doc の章と該当コードの対応をどう持つか（各 doc に参照先を書く／スキル側に対応表を持つ／全文突き合わせ）、報告の粒度、誤検知の抑え方。全 doc を一度に見るより、gdd の1ファイルと対応する domain/ を突き合わせる最小構成から始めるのが軽い。
 - 該当：`.claude/skills/`（新規スキル）・`doc/tech/development.md`（運用の記述）。突き合わせ対象＝`doc/gdd/`・`doc/tech/`・`doc/campaign/` と `domain/`・`application/`・`data/`。着手の引き金＝doc とコードのズレで手戻りが出たとき、または doc 量が目視で追えなくなったとき。
+
+### feature-21
+
+**BGM のたたき台仕上げと拡充**（優先度：低）
+
+- 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台8曲（`.musicxml`／`.mid`）が MuseScore での仕上げ待ち。ライブラリ表のうち `title` が未着手。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
+- 対応：(1) たたき台8曲（`forest`／`ruins`／`graveyard`／`temple`／`ritual`／`boss`／`boss2`／`crisis`）の MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。(2) `title` 曲の制作（`menu` と共用するか検討含む）。(3) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
+- 該当：`assets/bgm-src/`・`assets/bgm/`・`presentation/audio/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
+
+### feature-22
+
+**戦闘演出シーンの未決仕様確定**（優先度：低）
+
+- 背景：戦闘演出シーンの設計は [combat_scene.md](tech/combat_scene.md) で左右固定・隊列・エフェクトまで確定済み。実装着手に必要な3点の数値／仕様が未確定。
+- 対応：(1) 隊列スロットの実px（シーン解像度・立ち絵サイズ確定後）とアニメのタイミング値を決める。(2) `combat_bg` の作画スペック（画角・解像度）と「拠点戦」共通背景の内容を決める。(3) 演出速度設定のUI配置（システムメニュー／オプション）を決める。確定したら combat_scene.md に反映。
+- 該当：`doc/tech/combat_scene.md`（確定後に反映）・`presentation/combat/`（実装時）。着手の引き金＝戦闘演出シーンの実装に入るとき。
 
 ## リファクタリング
 
