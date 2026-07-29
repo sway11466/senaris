@@ -162,6 +162,88 @@ func test_terrain_skins_are_emitted_sorted_row_major() -> void:
 	assert_eq(out["terrain_skins"].size(), 2)
 
 
+func test_fill_paints_connected_region_and_returns_count() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)  # 全マス平地・スキン指定なし＝ひと続き
+	assert_eq(doc.fill_terrain(0, 0, "F", "forest"), 12)
+	assert_eq(doc.terrain_char(3, 2), "F")
+	assert_eq(doc.terrain_skin(3, 2), "forest")
+
+
+func test_fill_does_not_leak_across_a_different_skin() -> void:
+	# 同じ平地でも skin が違えば別の見た目＝別領域。壁になって塗りが漏れない。
+	var doc := MapEditorDoc.new_stage(3, 3)
+	for row in 3:
+		doc.set_terrain_skin(1, row, "plain_cave1")  # 中央の列で盤を左右に分断
+	assert_eq(doc.fill_terrain(0, 0, ".", "wasteland"), 3, "左の列だけ")
+	assert_eq(doc.terrain_skin(1, 0), "plain_cave1", "境界のマスは塗られない")
+	assert_eq(doc.terrain_skin(2, 0), "", "向こう側にも渡らない")
+
+
+func test_fill_from_a_skinned_region_takes_only_that_region() -> void:
+	# 逆向き：スキン側から塗ると、既定スキンの領域には広がらない。
+	var doc := MapEditorDoc.new_stage(3, 3)
+	for row in 3:
+		doc.set_terrain_skin(1, row, "plain_cave1")
+	assert_eq(doc.fill_terrain(1, 1, "#", "wall_stone1"), 3)
+	assert_eq(doc.terrain_char(1, 1), "#")
+	assert_eq(doc.terrain_char(0, 1), ".", "既定スキンの隣は据え置き")
+
+
+func test_fill_at_board_edge_stays_inside() -> void:
+	# 端のマスから塗っても盤外を辿らない（連結判定が範囲外へ出ない）。
+	var doc := MapEditorDoc.new_stage(3, 2)
+	assert_eq(doc.fill_terrain(0, 0, "F", ""), 6, "隅から全面＝盤内の6マスだけ")
+	assert_eq(doc.fill_terrain(2, 1, ".", "cave"), 6, "反対の隅からも同じ")
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(out["terrain"].size(), 2)
+	assert_eq(out["terrain_skins"].size(), 6, "盤内のマスだけが差分になる")
+	for line in out["terrain"]:
+		assert_eq(String(line).length(), 3)
+
+
+func test_connected_cells_outside_board_is_empty() -> void:
+	var doc := MapEditorDoc.new_stage(3, 2)
+	assert_eq(doc.connected_cells(9, 9).size(), 0)
+	assert_eq(doc.connected_cells(-1, 0).size(), 0)
+
+
+func test_fill_output_keeps_write_format() -> void:
+	var doc := MapEditorDoc.new_stage(3, 2)
+	doc.fill_terrain(0, 0, ".", "plain_cave1")
+	var text := doc.to_text()
+	assert_string_contains(text, "{ \"col\": 0, \"row\": 0, \"skin\": \"plain_cave1\" }")
+	assert_lt(text.find("\"col\": 0, \"row\": 0"), text.find("\"col\": 0, \"row\": 1"), "row→col 並び")
+
+
+func test_undo_restores_terrain_and_skins() -> void:
+	var doc := MapEditorDoc.new_stage(3, 2)
+	doc.set_terrain_skin(0, 0, "plain_cave1")
+	doc.push_terrain_undo()
+	doc.fill_terrain(1, 0, "F", "forest")
+	assert_true(doc.can_undo_terrain())
+	assert_true(doc.undo_terrain())
+	assert_eq(doc.terrain_char(1, 0), ".")
+	assert_eq(doc.terrain_skin(0, 0), "plain_cave1", "操作前の差分は残る")
+	assert_eq(doc.terrain_skin(1, 0), "", "操作で足した差分は消える")
+	assert_false(doc.can_undo_terrain(), "戻せるのは直前の1操作だけ")
+	assert_false(doc.undo_terrain())
+
+
+func test_undo_erases_terrain_skins_key_when_it_did_not_exist() -> void:
+	var doc := MapEditorDoc.new_stage(3, 2)
+	doc.push_terrain_undo()
+	doc.fill_terrain(0, 0, ".", "plain_cave1")
+	assert_true(doc.undo_terrain())
+	assert_false(JSON.parse_string(doc.to_text()).has("terrain_skins"))
+
+
+func test_resize_drops_terrain_undo() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.push_terrain_undo()
+	doc.resize(4, 3)
+	assert_false(doc.can_undo_terrain(), "旧サイズには戻せない")
+
+
 func test_roundtrip_keeps_terrain_skins_including_unknown_keys() -> void:
 	var src := "{ \"turn_limit\": 30, \"cols\": 4, \"rows\": 3, \"terrain_skins\": [" \
 		+ " { \"col\": 1, \"row\": 0, \"skin\": \"fort_town1\", \"memo\": \"手書き\" } ] }"

@@ -11,6 +11,7 @@ const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを
 const STAGES_DIR := "res://data/stages"
 const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
 const MODE_LABELS := { "select": "選択", "terrain": "地形", "player": "自軍", "enemy": "敵", "base": "拠点" }
+const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
 const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
 
@@ -33,6 +34,7 @@ var _ai_names := {}          # label -> 表示名
 var _sel_terrain := 0
 var _sel_terrain_category := ""  # 地形パレットの分類（空=基本＝地形タイプ一覧 / それ以外=その type のスキン一覧）
 var _sel_terrain_skin := ""      # 塗る見た目スキンの skin_id（分類が「基本」以外のとき有効）
+var _paint_tool := "pen"         # 塗り方（pen=1マスずつ / fill=連結領域をまとめて）
 var _sel_category := ""  # 自軍パレットの分類絞り込み（空=すべて）
 var _sel_type_id := ""   # 配置する自軍ユニットの type_id
 var _sel_skin_id := ""       # 配置する敵ユニットの skin_id
@@ -71,6 +73,14 @@ func _ready() -> void:
 	_sync_fields()
 	_set_mode("terrain")
 	_refresh_victory()
+
+
+## Ctrl+Z ＝直前の地形操作の取り消し（入力欄にフォーカスがあるときは、そちらの取り消しが優先）。
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo \
+			and event.ctrl_pressed and event.keycode == KEY_Z:
+		_undo_terrain()
+		accept_event()
 
 
 func _load_catalogs() -> void:
@@ -131,6 +141,7 @@ func _build_ui() -> void:
 	_add_button(bar, "開く", func() -> void: _open_dialog.popup_centered(Vector2i(900, 600)))
 	_add_button(bar, "保存", _on_save)
 	_add_button(bar, "名前を付けて保存", func() -> void: _save_dialog.popup_centered(Vector2i(900, 600)))
+	_add_button(bar, "地形を元に戻す (Ctrl+Z)", _undo_terrain)
 	_path_label = Label.new()
 	_path_label.text = "（未保存の新規ステージ）"
 	_path_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -388,7 +399,15 @@ func _ai_options(with_none: bool) -> Array:
 
 ## 地形パレット。分類「基本」＝地形タイプ一覧（性能）／それ以外＝その地形の見た目バリエーション一覧。
 func _build_terrain_palette() -> void:
-	_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
+	_mode_box.add_child(_labeled_option("塗り方", TOOL_LABELS.keys(), TOOL_LABELS.values(), _paint_tool,
+		func(k: String) -> void:
+			_paint_tool = k
+			_set_mode("terrain")))
+	if _paint_tool == "fill":
+		_add_hint(_mode_box, "左クリック＝地続きをまとめて塗る / 右クリック＝地続きを平地に戻す。\n"
+			+ "範囲は「いまの見た目が同じ」マス（地形＋スキンの両方が一致）。誤爆は Ctrl+Z で戻せる。")
+	else:
+		_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
 	var cat_keys := [""]
 	var cat_names := ["基本（地形タイプ）"]
 	for t in _terrains:
@@ -533,7 +552,11 @@ func _build_enemy_palette() -> void:
 func _on_cell_pressed(col: int, row: int, button: int) -> void:
 	match _mode:
 		"terrain":
-			_paint(col, row, button)
+			_doc.push_terrain_undo()  # 1手＝押してから離すまで（ドラッグの一筆もまとめて戻せる）
+			if _paint_tool == "fill":
+				_fill(col, row, button)
+			else:
+				_paint(col, row, button)
 		"player":
 			if button == MOUSE_BUTTON_LEFT:
 				if _doc.add_player(_sel_type_id, col, row):
@@ -572,7 +595,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 
 
 func _on_cell_dragged(col: int, row: int, button: int) -> void:
-	if _mode == "terrain":
+	if _mode == "terrain" and _paint_tool == "pen":
 		_paint(col, row, button)
 
 
@@ -590,20 +613,40 @@ func _on_cell_released(col: int, row: int, _button: int) -> void:
 	_press_cell = Vector2i(-1, -1)
 
 
-## 地形を塗る。性能（terrain の文字）と見た目（terrain_skins の差分）を同時に決める。
+## いま塗る内容 [地形の文字, skin_id]。右クリックは既定地形＋差分なしに戻す。
 ## 既定スキンは差分に書かない＝未指定セルは type の既定へフォールバックする既存の解釈のまま。
-func _paint(col: int, row: int, button: int) -> void:
+func _brush(button: int) -> Array:
 	if button == MOUSE_BUTTON_RIGHT:
-		_doc.set_terrain_char(col, row, MapEditorDoc.DEFAULT_CHAR)
-		_doc.set_terrain_skin(col, row, "")
-	elif _sel_terrain_category == "":
-		_doc.set_terrain_char(col, row, String(_terrains[_sel_terrain]["char"]))
-		_doc.set_terrain_skin(col, row, "")
-	else:
-		_doc.set_terrain_char(col, row, _char_of_type(_sel_terrain_category))
-		var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
-		_doc.set_terrain_skin(col, row, "" if _sel_terrain_skin == default_id else _sel_terrain_skin)
+		return [MapEditorDoc.DEFAULT_CHAR, ""]
+	if _sel_terrain_category == "":
+		return [String(_terrains[_sel_terrain]["char"]), ""]
+	var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
+	return [_char_of_type(_sel_terrain_category),
+		"" if _sel_terrain_skin == default_id else _sel_terrain_skin]
+
+
+## 地形を1マス塗る。性能（terrain の文字）と見た目（terrain_skins の差分）を同時に決める。
+func _paint(col: int, row: int, button: int) -> void:
+	var brush := _brush(button)
+	_doc.set_terrain_char(col, row, String(brush[0]))
+	_doc.set_terrain_skin(col, row, String(brush[1]))
 	_board.queue_redraw()
+
+
+## 地続き（いまの見た目が同じマス）をまとめて塗る。
+func _fill(col: int, row: int, button: int) -> void:
+	var brush := _brush(button)
+	var n := _doc.fill_terrain(col, row, String(brush[0]), String(brush[1]))
+	_board.queue_redraw()
+	_say("%d マスを塗りました（Ctrl+Z で戻せます）。" % n)
+
+
+func _undo_terrain() -> void:
+	if _doc.undo_terrain():
+		_board.refresh()
+		_say("直前の地形操作を取り消しました。")
+	else:
+		_say("取り消せる地形操作がありません（戻せるのは直前の1操作だけ）。")
 
 
 # --- 選択モードのインスペクタ ---

@@ -19,6 +19,7 @@ const ENTITY_KEY_ORDER := ["id", "name", "ai", "speaker", "type", "skin", "text"
 
 var data: Dictionary = {}
 var _keys_in_source := {}  ## 読み込んだファイルに元からあったキー（空でも書き戻すための記録）
+var _terrain_undo := {}    ## 直前の地形操作より前の状態（terrain / terrain_skins）。空＝戻せない
 
 
 ## 新規ステージ（平地のみ・駒なし）。
@@ -89,6 +90,78 @@ func set_terrain_char(col: int, row: int, ch: String) -> void:
 	lines[row] = line.substr(0, col) + ch + line.substr(col + 1)
 
 
+# --- ベタ塗り（連結領域） ---
+
+
+## クリックしたマスと地続きのマスを返す。同じ見た目＝地形の文字と skin_id の両方が一致するマス
+## だけを辿る（同じ平地でも既定スキンと plain_cave1 は別領域）。隣接は六方向（Hex と同じ定義）。
+func connected_cells(col: int, row: int) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if col < 0 or col >= cols() or row < 0 or row >= rows():
+		return out
+	var skins := terrain_skin_map()
+	var target_char := terrain_char(col, row)
+	var target_skin := String(skins.get(Vector2i(col, row), ""))
+	var start := Vector2i(col, row)
+	var seen := { start: true }
+	var stack: Array[Vector2i] = [start]
+	while not stack.is_empty():
+		var cell: Vector2i = stack.pop_back()
+		out.append(cell)
+		for dir in 6:
+			var n := Hex.axial_to_offset(Hex.neighbor(Hex.offset_to_axial(cell.x, cell.y), dir))
+			if n.x < 0 or n.x >= cols() or n.y < 0 or n.y >= rows():
+				continue  # 盤外へは広げない
+			if seen.has(n):
+				continue
+			if terrain_char(n.x, n.y) != target_char:
+				continue
+			if String(skins.get(n, "")) != target_skin:
+				continue
+			seen[n] = true
+			stack.append(n)
+	return out
+
+
+## 連結領域をまとめて塗る（性能＝地形の文字、見た目＝skin_id。"" は差分なし＝type の既定）。
+## 塗ったマス数を返す。
+func fill_terrain(col: int, row: int, ch: String, skin_id: String) -> int:
+	var cells := connected_cells(col, row)
+	for cell in cells:
+		set_terrain_char(cell.x, cell.y, ch)
+		set_terrain_skin(cell.x, cell.y, skin_id)
+	return cells.size()
+
+
+# --- 地形の取り消し（直前の1操作だけ） ---
+
+
+## 地形を書き換える直前に呼ぶ（1手だけ保持＝古いスナップショットは捨てる）。
+func push_terrain_undo() -> void:
+	var skins: Variant = data.get("terrain_skins")
+	_terrain_undo = {
+		"terrain": data["terrain"].duplicate(true),
+		"terrain_skins": skins.duplicate(true) if typeof(skins) == TYPE_ARRAY else null,
+	}
+
+
+func can_undo_terrain() -> bool:
+	return not _terrain_undo.is_empty()
+
+
+## 直前の地形操作を取り消す。戻せるものが無ければ false。
+func undo_terrain() -> bool:
+	if _terrain_undo.is_empty():
+		return false
+	data["terrain"] = _terrain_undo["terrain"]
+	if typeof(_terrain_undo["terrain_skins"]) == TYPE_ARRAY:
+		data["terrain_skins"] = _terrain_undo["terrain_skins"]
+	else:
+		data.erase("terrain_skins")  # 操作前は差分自体が無かった＝キーごと消す
+	_terrain_undo = {}
+	return true
+
+
 # --- 見た目レイヤー（terrain_skins＝座標→skin_id の差分列挙。未指定セルは type の既定スキン） ---
 
 
@@ -148,6 +221,7 @@ func resize(new_cols: int, new_rows: int) -> int:
 	data["cols"] = new_cols
 	data["rows"] = new_rows
 	_normalize_terrain()
+	_terrain_undo = {}  # 旧サイズのスナップショットは戻せない（盤とズレる）
 	var dropped := 0
 	dropped += _drop_out_of_range(data["player"])
 	for sq in data["enemy"]:
