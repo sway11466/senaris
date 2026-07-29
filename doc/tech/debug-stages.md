@@ -44,7 +44,7 @@
 
 | ステージ | ファイル | 状態 |
 | --- | --- | --- |
-| 閉じ込め判定（案B・籠城/湧き）・中立の寝返り・拠点スキンの所有色 | `debug-mapops/siege.json` | 実装済み |
+| 拠点と勝敗（消滅判定・寝返り・閉じ込め・スキンの所有色） | `debug-mapops/base.json` | 実装済み |
 | 陣形スキル（①三重詠唱） | `debug-mapops/formation.json` | 実装済み |
 | 輸送（乗車・運搬・降車） | `debug-mapops/transport.json` | 実装済み |
 | バリケード輸送（出撃→隣接乗降） | `debug-mapops/barricade.json` | 実装済み |

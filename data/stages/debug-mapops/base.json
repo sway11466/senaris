@@ -1,0 +1,52 @@
+{
+  "turn_limit": 30,
+  "name": "debug-base",
+  "cols": 16,
+  "rows": 7,
+  "terrain": [
+    "................",
+    "................",
+    "................",
+    ".O......O.......",
+    "................",
+    "....O...........",
+    "................"
+  ],
+  "player": [
+    { "type": "fighter", "col": 3, "row": 3 },
+    { "type": "cleric", "col": 3, "row": 4 }
+  ],
+  "enemy": [
+    { "name": "湧き拠点もち", "ai": "guard", "sight": 2,
+      "units": [
+        { "skin": "goblin", "col": 6, "row": 2 },
+        { "skin": "goblin", "col": 6, "row": 4 }
+      ] },
+    { "name": "拠点攻略隊", "ai": "raid",
+      "units": [
+        { "skin": "goblin", "col": 14, "row": 2 },
+        { "skin": "goblin", "col": 15, "row": 3 },
+        { "skin": "goblin", "col": 14, "row": 5 }
+      ] }
+  ],
+  "bases": [
+    { "col": 1, "row": 3, "team": "player", "garrison": [ { "type": "novice", "count": 1 } ] },
+    { "col": 8, "row": 3, "team": "enemy", "garrison": [ { "skin": "goblin", "count": 1 } ] },
+    { "col": 4, "row": 5, "team": "neutral", "garrison": [ { "type": "novice", "count": 2 } ] }
+  ],
+  "terrain_skins": [
+    { "col": 1, "row": 3, "skin": "fort_town1" },
+    { "col": 8, "row": 3, "skin": "fort_town1" },
+    { "col": 4, "row": 5, "skin": "fort_town1" }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "dbg.base.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "dbg.base.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "dbg.base.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "dbg.base.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "dbg.base.5" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "dbg.base.6" }
+    ]
+  }
+}
