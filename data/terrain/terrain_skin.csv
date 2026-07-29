@@ -2,6 +2,7 @@ skin_id,terrain_type,name,orientable,elevation,sprite_sink,grid,memo
 スキンID,地形タイプ,表示名,向き変化,見た目の高さ,立ち絵の沈み,グリッド線,備考
 road,road,道,false,0,0,true,既定スキン
 plain,plain,平地,true,0,0,true,既定スキン
+plain_cave1,plain,洞窟の床,true,0,0,true,ダンジョンの踏み固めた土の床（性能は平地のまま）
 plateau,plateau,台地,true,0.18,0,true,既定スキン
 wasteland,wasteland,荒地,true,0,0,true,既定スキン
 forest,forest,森,true,0.18,0.18,true,既定スキン

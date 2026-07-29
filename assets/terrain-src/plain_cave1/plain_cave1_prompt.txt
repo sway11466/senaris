@@ -1,0 +1,13 @@
+SUBJECT: The packed dirt FLOOR of a passage dug through rock, seen straight from
+directly overhead. Dry trodden earth, base color around #8A7C6A — use this exact
+base and keep it consistent across all variants. The ground is fine and mostly
+smooth, with grit, small rock chips and a few flat pebbles pressed flush into
+it, scattered randomly and unevenly — a few loose clusters here, bare empty gaps
+there, never in rows. Faint hairline cracks in the packed earth here and there.
+Indoors and lightless — NO grass, NO moss, NO lichen, NO plants, NO soil mounds,
+NO puddles, NO snow. NO objects of any kind — NO bones, NO torches, NO ore, NO
+crystals, NO props. NO worked stone — NO flagstones, NO tiles, NO bricks, NO
+mortar lines. This floor covers most of the board, so keep it especially even
+and low-contrast: no large dark or light patches, no path worn across it, no
+single big feature. This is only the flat floor — NO walls, NO edges, NO
+drop-off, NO cast shadow in the tile.

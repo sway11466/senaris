@@ -21,6 +21,16 @@
 			"terrain_type": "plain"
 		},
 		{
+			"elevation": 0,
+			"grid": true,
+			"memo": "ダンジョンの踏み固めた土の床（性能は平地のまま）",
+			"name": "洞窟の床",
+			"orientable": true,
+			"skin_id": "plain_cave1",
+			"sprite_sink": 0,
+			"terrain_type": "plain"
+		},
+		{
 			"elevation": 0.18,
 			"grid": true,
 			"memo": "既定スキン",
