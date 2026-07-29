@@ -30,3 +30,16 @@ func test_load_default_roster() -> void:
 	assert_eq(c.max_troops, 8)
 	assert_gt(c.atk_ground, 0, "ステータスが読めている（値はバランス調整で変わりうる）")
 	assert_gt(c.defense, 0)
+
+func test_build_categories_keeps_only_filled_rows() -> void:
+	var cats := UnitCatalog.build_categories({ "types": [
+		{ "id": "a", "category": "歩兵" },
+		{ "id": "b", "category": "" },   # 空欄 → 落とす
+		{ "category": "弓兵" },          # id 無し → 落とす
+	] })
+	assert_eq(cats, { "a": "歩兵" })
+
+func test_display_category_falls_back_to_empty() -> void:
+	# 兵種名は表示専用（unit_type.csv の category 列）。未知idは空＝行ごと出さない。
+	assert_ne(UnitCatalog.display_category("fighter"), "", "既定ロスターの fighter に兵種名がある")
+	assert_eq(UnitCatalog.display_category("no_such_type"), "")

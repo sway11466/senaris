@@ -37,3 +37,33 @@ static func load_file(path: String) -> Dictionary:
 ## 既定のユニット種別表（unit_type.json）を読み込む。テーマ非依存の原型ロスター。
 static func load_default() -> Dictionary:
 	return load_file(UNIT_TYPE_PATH)
+
+static var _categories := {}      # type_id -> 兵種名（unit_type.csv の category 列）
+static var _categories_loaded := false
+
+## 種別IDの兵種名（歩兵・弓兵・占領兵…）。表示専用＝ゲームロジックから参照しない。
+## 不明id・空欄は ""。ロスター本体とは別に遅延ロードする（Movement.display_name と同じ流儀）。
+static func display_category(type_id: String) -> String:
+	if not _categories_loaded:
+		_categories_loaded = true
+		var text := FileAccess.get_file_as_string(UNIT_TYPE_PATH)
+		if not text.is_empty():
+			var data: Variant = JSON.parse_string(text)
+			if typeof(data) == TYPE_DICTIONARY:
+				_categories = build_categories(data)
+	return String(_categories.get(type_id, ""))
+
+## ロスター辞書 → { id: 兵種名 }。category 列が無い/空の種別は落とす。純関数＝IOなし。
+static func build_categories(data: Dictionary) -> Dictionary:
+	var out := {}
+	var types: Variant = data.get("types", [])
+	if typeof(types) != TYPE_ARRAY:
+		return out
+	for d in types:
+		if typeof(d) != TYPE_DICTIONARY:
+			continue
+		var id := String(d.get("id", ""))
+		var cat := String(d.get("category", ""))
+		if id != "" and cat != "":
+			out[id] = cat
+	return out

@@ -115,7 +115,10 @@ func _format(u: Unit) -> String:
 
 	var lines: Array[String] = []
 	lines.append("【%s】 %s" % [unit_name, team_name])
-	lines.append("種別: %s" % u.type_id)
+	if u.team == 0:  # 敵はリスキン元（種別）が透けるので出さない
+		var category := UnitCatalog.display_category(u.type_id)
+		if category != "":
+			lines.append("兵種  %s" % category)
 	lines.append("")
 	lines.append("兵数  %d / %d" % [u.troops, u.max_troops])
 	lines.append("Lv    %d  (経験 ×%.2f)" % [u.level, exp])
