@@ -29,6 +29,7 @@ var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]�
 var _default_skin_by_type := {}      # terrain_type -> 既定スキンの skin_id（TerrainSkinCatalog と同じ規則）
 var _ai_presets: Array = []  # [label]
 var _ai_names := {}          # label -> 表示名
+var _ai_params := {}         # label -> プリセット辞書（ai.csv の1行。sight の既定値を引く）
 
 # パレット選択状態
 var _sel_terrain := 0
@@ -118,6 +119,7 @@ func _load_catalogs() -> void:
 	for label in ai:
 		_ai_presets.append(String(label))
 		_ai_names[label] = String(ai[label].get("name", label))
+		_ai_params[String(label)] = ai[label]
 
 
 # --- UI構築 ---
@@ -470,6 +472,45 @@ func _char_of_type(type_id: String) -> String:
 	return MapEditorDoc.DEFAULT_CHAR
 
 
+## AIプリセットが索敵で起動するか（engage に sight トークン）。いまの ai.csv では guard だけ。
+func _preset_uses_sight(ai_label: String) -> bool:
+	var preset: Dictionary = _ai_params.get(ai_label, {})
+	return "sight" in String(preset.get("engage", "")).split("|")
+
+
+## 部隊/拠点の sight 上書き行。索敵で起動するプリセットのときだけ出す。
+## sight 以外の軸は出さない：新しいふるまいは ai.csv にラベルを足して表現する
+## （AIは「プリセット＝CSV／割り当て＝ステージ」の2層。詳細 → doc/gdd/ai.md データ構成）。
+func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> void:
+	if not _preset_uses_sight(ai_label):
+		if target.erase("sight"):  # 見えない上書きを残さない（索敵で起きないAIに変えたら消す）
+			_say("%s は索敵で起動しないため、sight の上書きを外しました。" % ai_label)
+		return
+	var preset: Dictionary = _ai_params.get(ai_label, {})
+	var preset_sight := int(preset.get("sight", 0)) if typeof(preset.get("sight")) != TYPE_STRING else 0
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var check := CheckBox.new()
+	check.text = "sight"
+	check.button_pressed = target.has("sight")
+	check.tooltip_text = "索敵の広さ（視線コストの積算予算）。外すとプリセット既定を継承する。"
+	row.add_child(check)
+	var spin := _make_spin(0, 20, float(int(target.get("sight", preset_sight))))
+	spin.custom_minimum_size = Vector2(70, 0)
+	spin.editable = check.button_pressed
+	row.add_child(spin)
+	_add_label(row, "（既定 %d）" % preset_sight)
+	check.toggled.connect(func(on: bool) -> void:
+		spin.editable = on
+		if on:
+			target["sight"] = int(spin.value)
+		else:
+			target.erase("sight"))
+	spin.value_changed.connect(func(v: float) -> void:
+		if check.button_pressed:
+			target["sight"] = int(v))
+
+
 func _build_enemy_palette() -> void:
 	_add_hint(_mode_box, "左クリック＝選択中の部隊に配置 / 右クリック＝駒を削除")
 	var squads: Array = _doc.data["enemy"]
@@ -516,10 +557,13 @@ func _build_enemy_palette() -> void:
 		else:
 			sq["name"] = t)
 	name_row.add_child(name_edit)
-	# AIプリセット
+	# AIプリセット（索敵で起きるプリセットのときだけ sight を上書きできる）
 	var ai_opts := _ai_options(false)
 	_mode_box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(sq.get("ai", "")),
-		func(k: String) -> void: sq["ai"] = k))
+		func(k: String) -> void:
+			sq["ai"] = k
+			_set_mode("enemy")))
+	_add_sight_row(_mode_box, sq, String(sq.get("ai", "")))
 	# 配置するスキン：分類で絞ってから選ぶ（基準＝味方専用スキンは出さない）
 	_mode_box.add_child(_labeled_option("分類", [""] + _skin_categories, ["すべて"] + _skin_categories, _sel_skin_category,
 		func(k: String) -> void:
@@ -714,7 +758,9 @@ func _inspect_base(hit: Dictionary) -> void:
 			if k == "":
 				b.erase("ai")
 			else:
-				b["ai"] = k))
+				b["ai"] = k
+			_show_inspection(int(b["col"]), int(b["row"]))))  # sight 行の出し入れ
+	_add_sight_row(_inspector, b, String(b.get("ai", "")))
 	# 控え（garrison）
 	_add_label(_inspector, "控え（garrison）")
 	if typeof(b.get("garrison")) != TYPE_ARRAY:
