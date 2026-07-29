@@ -288,14 +288,12 @@ func _poster(c: Dictionary) -> Control:
 	pad.add_child(content)
 
 	# 全ステージ制覇なら「討伐済」の焼き印を斜めに押す（card 内＝クリップ内でOK）
-	if not c["debug"]:
-		var total: int = c["stages"].size()
-		if total > 0 and _progress.cleared_count(String(c["id"])) >= total:
-			# 絵の下半分に大きく押す（小さいと制覇の達成感が出ない）。中央揃え＝どの絵でも同じ位置。
-			# 文言は依頼の内容に依らない事務的な語（討伐に限らない）。表記はボード名と同じ英語。
-			var stamp := TavernTheme.stamp("DONE", TavernTheme.WAX, -12.0, 54, 1.0, 180.0)  # 絵の上＝不透明（透かすと字が絵に負ける）
-			stamp.position = Vector2((POSTER_SIZE.x - stamp.size.x) * 0.5, POSTER_ART_HEIGHT - stamp.size.y - 18.0)
-			card.add_child(stamp)
+	if _progress.is_all_cleared(String(c["id"])):
+		# 絵の下半分に大きく押す（小さいと制覇の達成感が出ない）。中央揃え＝どの絵でも同じ位置。
+		# 文言は依頼の内容に依らない事務的な語（討伐に限らない）。表記はボード名と同じ英語。
+		var stamp := TavernTheme.stamp("DONE", TavernTheme.WAX, -12.0, 54, 1.0, 180.0)  # 絵の上＝不透明（透かすと字が絵に負ける）
+		stamp.position = Vector2((POSTER_SIZE.x - stamp.size.x) * 0.5, POSTER_ART_HEIGHT - stamp.size.y - 18.0)
+		card.add_child(stamp)
 
 	# 封蝋のピン（紙の上辺中央・半分はみ出して留める。poster直下＝切れない）
 	var seal := TavernTheme.wax_seal()

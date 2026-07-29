@@ -42,6 +42,14 @@ func cleared_count(campaign_id: String) -> int:
 			n += 1
 	return n
 
+## 冒険譚を全クリアしたか（カードの「DONE」焼き印・ステージ一覧の扉絵差し替えの条件）。
+## デバッグ冒険譚とステージ0本は false＝制覇の概念を持たせない。
+func is_all_cleared(campaign_id: String) -> bool:
+	var c := campaign(campaign_id)
+	if c.is_empty() or c["debug"] or c["stages"].is_empty():
+		return false
+	return cleared_count(campaign_id) >= c["stages"].size()
+
 ## ステージの状態（locked / unlocked / cleared）を導出する。
 ## デバッグ冒険譚は常時 unlocked（クリア記録も付けない）。
 func stage_state(campaign_id: String, stage_id: String) -> String:

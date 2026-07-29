@@ -140,3 +140,19 @@ func test_unknown_ids_are_safe() -> void:
 	assert_eq(p.stage_state("camp", "nope"), CampaignProgress.LOCKED)
 	p.record_clear("camp", "nope")  # 未知ステージは記録しない（クラッシュもしない）
 	assert_eq(p.cleared_count("camp"), 0)
+
+## 全クリア判定（カードの DONE 焼き印・ステージ一覧の扉絵差し替えの条件）。
+func test_is_all_cleared_needs_every_stage() -> void:
+	var p := _progress()
+	assert_false(p.is_all_cleared("camp"), "未着手")
+	p.record_clear("camp", "st1")
+	p.record_clear("camp", "st2")
+	assert_false(p.is_all_cleared("camp"), "1本残っていれば false")
+	p.record_clear("camp", "st3")
+	assert_true(p.is_all_cleared("camp"), "全ステージで true")
+
+func test_is_all_cleared_excludes_debug_and_unknown() -> void:
+	var p := _progress()
+	p.record_clear("dbg", "d1")  # デバッグ冒険譚は記録しない＝制覇にもならない
+	assert_false(p.is_all_cleared("dbg"), "デバッグ冒険譚は対象外")
+	assert_false(p.is_all_cleared("no_such"), "未知のIDは false")

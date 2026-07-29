@@ -103,7 +103,14 @@ func show_campaign(campaign_id: String, variant: int = -1) -> void:
 		return
 	_title.text = tr(String(c["title"]))  # title は翻訳キー（i18n）。生テキストでも tr() は素通し
 	# variant>=0 ならボードで表示中の絵に固定（board→stage で絵が変わらない）。<0 は表示ごとにランダム。
-	_set_cover(_variant_at(c.get("cover_paths", []), variant), tr(String(c["title"])))
+	# 全クリア済み（カードに DONE が押されている状態）なら扉絵を勝利絵に差し替える＝踏破後の姿。
+	# 勝利絵を持たない冒険譚は従来の cover のまま。カード側の絵は変えない（同じ章と分かるように）。
+	var art_paths: Array = c.get("cover_paths", [])
+	if _progress.is_all_cleared(campaign_id):
+		var victory: Array = c.get("victory_paths", [])
+		if not victory.is_empty():
+			art_paths = victory
+	_set_cover(_variant_at(art_paths, variant), tr(String(c["title"])))
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
 		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
