@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=28 / refactoring=8
+次回採番: bug=1 / feature=28 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -264,6 +264,21 @@
 - 背景：勝敗判定（`outcome`/`_victory_met`/`_has_reinforcement` ほか約80行）は読み取り専用のクエリで、勝利条件タイプ（defeat_unit/capture_hq）はキャンペーン制作で増える見込み。増えるたび BattleState が太る。
 - 対応：`domain/victory.gd`（static・Sight と同パターン）へ抽出。復帰手段（案B）の判定は `can_enter_base_at` とも共有しているため、共有部の置き場所を抽出時に決める。着手の引き金＝勝利条件タイプを次に追加するとき。
 - 該当：`domain/battle_state.gd`・`domain/victory.gd`（新規）・`tests/unit/`。
+
+### refactoring-8
+
+**デッドコードの整理（未接続シグナル・テスト専用関数）**（優先度：低）
+
+- 背景：コード全体を走査し、本番コードから参照されていないシグナル・関数を検出した。未参照の .gd ファイルや未使用の定数は無い。デッドコードは2種類：(1) 発火するが誰も接続していないシグナル、(2) テストからしか呼ばれない public 関数。後者は「テスト容易性のために残す」か「本番と同じ経路でテストすべき」かの判断を含む。
+- 対応：項目ごとに削除・接続・残置を判断する。
+  - シグナル（2件）: `MatchController.move_rejected`・`unit_died`＝発火するが presentation が未接続。SFX／視覚フィードバックに使うなら接続、不要なら削除。
+  - BgmDirector（2件）: `enter_crisis()`・`in_crisis()`＝危機BGM切替。実装済みだがゲームに未配線。配線するなら feature、しないなら削除。
+  - BattleState（2件）: `can_move()`・`can_deploy()`＝テスト用クエリ。本体は別経路で判定。テスト容易性のために残すか、テストを本番経路に寄せて削除。
+  - Combat（2件）: `effective_attack()`・`effective_defense()`＝breakdown のラッパー。テスト専用。
+  - Hex（2件）: `ring()`・`flood_reach()`＝本番は `within_range`・`flood_reach_cost_map` を使用。
+  - TerrainSkinCatalog（1件）: `for_type()`＝`resolve()` と重複。
+  - Store 系（3件）: `RosterStore.has_roster()`・`clear_roster()`、`SaveStore.clear()`＝テスト専用のクリーンアップ。
+- 該当：`application/match_controller.gd`・`application/bgm_director.gd`・`domain/battle_state.gd`・`domain/combat/combat.gd`・`domain/hex/hex.gd`・`data/terrain/terrain_skin_catalog.gd`・`infrastructure/save/roster_store.gd`・`infrastructure/save/save_store.gd`。
 
 ## parking lot
 
