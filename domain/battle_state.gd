@@ -78,6 +78,14 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
+## 陣営全体に効いていて盤の見た目（fx）を宣言している補正の名前。無ければ空文字。
+## 盤全体のエフェクト（ホーリーアリアの加護の光）を出すかの判定に presentation が使う。
+func team_aura_fx() -> String:
+	for m in _status_mods:
+		if String(m.get("scope", "")) == "team" and not String(m.get("fx", "")).is_empty():
+			return String(m.get("fx", ""))
+	return ""
+
 ## 手番開始時に、始まった陣営の持続を1減らして満了を掃除する（end_turn から呼ぶ）。
 ## remaining は「残り自軍ターン数」＝発動陣営のターンが始まるたびに減る（跨いだ敵ターンでは減らない）。
 func _expire_status_mods() -> void:

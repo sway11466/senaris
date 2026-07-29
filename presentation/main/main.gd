@@ -10,6 +10,7 @@ var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label ->
 var _controller: MatchController = null
 var _hud: Hud = null
 var _turn_plate: TurnPlate = null  # 手番板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
+var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
@@ -50,6 +51,7 @@ func _ready() -> void:
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_turn_plate()  # 永続の手番板（盤エリア上端中央）。load_stage が手番・代表ユニットを流し込む
+	_install_aura()  # 永続の加護の光（盤エリア外周）。陣営全体バフが効いている間だけ出す
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
@@ -102,9 +104,11 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AI手番は次の主体をカメラに収めてから見せる
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
+	_controller.formation_resolved.connect(func(_r: Dictionary) -> void: _update_aura())
 	_apply_emblem()  # 手番板の左右（冒険譚の代表ユニット）。ステージが変われば差し替わる
 	_update_turn_plate(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
+	_update_aura()  # 加護の光（中断セーブ復元で効果が残っていることがある）
 	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
 
@@ -116,6 +120,7 @@ func _await_combat_view() -> void:
 func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_plate(team, turn_number)
 	_hud.set_player_turn(team == 0)
+	_update_aura()  # 手番開始で持続が減る＝ここで切れることがある
 
 func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0
@@ -371,6 +376,27 @@ func _install_turn_plate() -> void:
 	_turn_plate = TurnPlate.new()
 	_turn_plate.name = "TurnPlate"
 	add_child(_turn_plate)
+
+## 加護の光（盤エリア外周）。盤より前・情報パネルより後ろに置く＝文字を明るくしない。
+## HexBoard は Node3D（3Dは常に2Dの後ろ）なので、2Dの並びで InfoPanel より前に入れればよい。
+func _install_aura() -> void:
+	_aura = AuraOverlay.new()
+	_aura.name = "AuraOverlay"
+	add_child(_aura)
+	move_child(_aura, 0)
+	get_viewport().size_changed.connect(func() -> void:
+		if _aura != null and _aura.visible:
+			_aura.fit_to(get_viewport().get_visible_rect().size))
+
+## 陣営全体バフ（ホーリーアリア）が効いている間だけ加護の光を出す。
+## 手番の切り替わりで満了するので、turn_changed と陣形の解決で見直す。
+func _update_aura() -> void:
+	if _aura == null or _controller == null:
+		return
+	if _controller.state.team_aura_fx().is_empty():
+		_aura.stop()
+	else:
+		_aura.play(AuraOverlay.HOLY_COLOR, get_viewport().get_visible_rect().size)
 
 func _on_end_turn_requested() -> void:
 	if _controller != null:
