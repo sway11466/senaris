@@ -123,6 +123,61 @@ func test_resize_drops_out_of_range_entities() -> void:
 	assert_eq(doc.data["player"].size(), 1)  # 範囲内は残る
 
 
+# --- 見た目レイヤー（terrain_skins） ---
+
+
+func test_terrain_skin_set_overwrite_and_clear() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_terrain_skin(2, 1, "wall_stone1")
+	assert_eq(doc.terrain_skin(2, 1), "wall_stone1")
+	doc.set_terrain_skin(2, 1, "wall")
+	assert_eq(doc.data["terrain_skins"].size(), 1, "同じマスは上書き＝重複を作らない")
+	assert_eq(doc.terrain_skin(2, 1), "wall")
+	doc.set_terrain_skin(2, 1, "")
+	assert_eq(doc.terrain_skin(2, 1), "", "空文字は指定の削除＝type の既定に戻る")
+	assert_eq(doc.data["terrain_skins"].size(), 0)
+
+
+func test_terrain_skin_ignores_out_of_board_and_stays_unset() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_terrain_skin(9, 9, "wall_stone1")
+	assert_eq(doc.terrain_skin(9, 9), "")
+	assert_false(JSON.parse_string(doc.to_text()).has("terrain_skins"), "空なら書き出さない")
+
+
+func test_terrain_skin_map_for_board() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_terrain_skin(1, 2, "fort_town1")
+	assert_eq(doc.terrain_skin_map(), { Vector2i(1, 2): "fort_town1" })
+
+
+func test_terrain_skins_are_emitted_sorted_row_major() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_terrain_skin(3, 2, "wall_stone1")
+	doc.set_terrain_skin(1, 0, "fort_town1")
+	var text := doc.to_text()
+	assert_string_contains(text, "{ \"col\": 1, \"row\": 0, \"skin\": \"fort_town1\" }")  # 手書きのキー順
+	assert_lt(text.find("\"row\": 0"), text.find("\"row\": 2"), "row→col の順に並べる")
+	var out: Dictionary = JSON.parse_string(text)
+	assert_eq(out["terrain_skins"].size(), 2)
+
+
+func test_roundtrip_keeps_terrain_skins_including_unknown_keys() -> void:
+	var src := "{ \"turn_limit\": 30, \"cols\": 4, \"rows\": 3, \"terrain_skins\": [" \
+		+ " { \"col\": 1, \"row\": 0, \"skin\": \"fort_town1\", \"memo\": \"手書き\" } ] }"
+	var out: Dictionary = JSON.parse_string(MapEditorDoc.from_text(src).to_text())
+	assert_eq_deep(out["terrain_skins"], JSON.parse_string(src)["terrain_skins"])
+
+
+func test_resize_drops_out_of_range_terrain_skins() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.set_terrain_skin(5, 3, "wall_stone1")
+	doc.set_terrain_skin(1, 1, "fort_town1")
+	assert_eq(doc.resize(4, 4), 1)
+	assert_eq(doc.terrain_skin(5, 3), "")
+	assert_eq(doc.terrain_skin(1, 1), "fort_town1")
+
+
 # --- 駒・拠点の操作 ---
 
 

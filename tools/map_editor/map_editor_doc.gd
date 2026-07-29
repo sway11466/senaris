@@ -2,7 +2,7 @@ extends RefCounted
 class_name MapEditorDoc
 ## マップエディタ（tools/map_editor/map_editor.tscn）のドキュメントモデル。
 ## stage.json の辞書をそのまま正本として持ち、編集操作とテキスト入出力（読込/保存）を提供する。
-## 編集対象外のキー（dialogue / terrain_skins / 未知キー）は読み込んだまま温存して書き戻す。
+## 編集対象外のキー（dialogue / 未知キー）は読み込んだまま温存して書き戻す。
 ## 純ロジック（Godotノード非依存）＝テスト対象（tests/unit/test_map_editor_doc.gd）。
 ## スキーマの解釈は StageLoader（application/stage_loader.gd）に合わせる。
 
@@ -89,7 +89,61 @@ func set_terrain_char(col: int, row: int, ch: String) -> void:
 	lines[row] = line.substr(0, col) + ch + line.substr(col + 1)
 
 
-## 盤サイズ変更。範囲外になった駒・拠点は削除し、その数を返す。
+# --- 見た目レイヤー（terrain_skins＝座標→skin_id の差分列挙。未指定セルは type の既定スキン） ---
+
+
+## セルの skin_id。指定が無ければ ""（＝type の既定スキン）。
+func terrain_skin(col: int, row: int) -> String:
+	for e in _skin_entries():
+		if int(e.get("col", -1)) == col and int(e.get("row", -1)) == row:
+			return String(e.get("skin", ""))
+	return ""
+
+
+## 座標→skin_id の辞書（盤の描画用。1回の描画で引き直さないためのまとめ取り）。
+func terrain_skin_map() -> Dictionary:
+	var out := {}
+	for e in _skin_entries():
+		out[Vector2i(int(e.get("col", -1)), int(e.get("row", -1)))] = String(e.get("skin", ""))
+	return out
+
+
+## セルの skin_id を設定する。"" は指定の削除＝type の既定スキンに戻す。
+func set_terrain_skin(col: int, row: int, skin_id: String) -> void:
+	if col < 0 or col >= cols() or row < 0 or row >= rows():
+		return
+	if typeof(data.get("terrain_skins")) != TYPE_ARRAY:
+		if skin_id == "":
+			return
+		data["terrain_skins"] = []  # 追加するときだけキーを作る（読むだけで生やさない）
+	var list: Array = data["terrain_skins"]  # 実体を直接いじる（_skin_entries は複製＝削除が効かない）
+	for i in list.size():
+		var e: Variant = list[i]
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		if int(e.get("col", -1)) == col and int(e.get("row", -1)) == row:
+			if skin_id == "":
+				list.remove_at(i)
+			else:
+				e["skin"] = skin_id
+			return
+	if skin_id != "":
+		list.append({ "col": col, "row": row, "skin": skin_id })
+
+
+## terrain_skins の要素（辞書のみ）。キーが無い/不正なら空配列。
+func _skin_entries() -> Array:
+	var v: Variant = data.get("terrain_skins", [])
+	if typeof(v) != TYPE_ARRAY:
+		return []
+	var out := []
+	for e in v:
+		if typeof(e) == TYPE_DICTIONARY:
+			out.append(e)
+	return out
+
+
+## 盤サイズ変更。範囲外になった駒・拠点・skin 指定は削除し、その数を返す。
 func resize(new_cols: int, new_rows: int) -> int:
 	data["cols"] = new_cols
 	data["rows"] = new_rows
@@ -99,6 +153,8 @@ func resize(new_cols: int, new_rows: int) -> int:
 	for sq in data["enemy"]:
 		dropped += _drop_out_of_range(sq.get("units", []))
 	dropped += _drop_out_of_range(data["bases"])
+	if typeof(data.get("terrain_skins")) == TYPE_ARRAY:
+		dropped += _drop_out_of_range(data["terrain_skins"])
 	return dropped
 
 
@@ -320,7 +376,7 @@ func to_text() -> String:
 	return "{\n" + ",\n".join(parts) + "\n}\n"
 
 
-## トップレベル値。terrain だけ「文字列を1行ずつ」の特別扱い。
+## トップレベル値。terrain（文字列を1行ずつ）と terrain_skins（1件1行）だけ特別扱い。
 func _emit_top(key: String, v: Variant) -> String:
 	if key == "terrain" and typeof(v) == TYPE_ARRAY:
 		if v.is_empty():
@@ -329,7 +385,34 @@ func _emit_top(key: String, v: Variant) -> String:
 		for line in v:
 			lines.append("    " + JSON.stringify(String(line)))
 		return "[\n" + ",\n".join(lines) + "\n  ]"
+	if key == "terrain_skins" and typeof(v) == TYPE_ARRAY and not v.is_empty():
+		return _emit_terrain_skins(v)
 	return _emit(v, 2)
+
+
+## terrain_skins：1件1行・キーは col, row, skin の順（手書きの既存ステージに合わせる）。
+## 並びは row→col ＝ terrain グリッドと同じ順にして、diff で盤と突き合わせられるようにする。
+func _emit_terrain_skins(v: Array) -> String:
+	var entries := []
+	for e in v:
+		if typeof(e) != TYPE_DICTIONARY:
+			return _emit(v, 2)  # 想定外の中身は汎用整形に任せる（内容を落とさない）
+		entries.append(e)
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if int(a.get("row", 0)) != int(b.get("row", 0)):
+			return int(a.get("row", 0)) < int(b.get("row", 0))
+		return int(a.get("col", 0)) < int(b.get("col", 0)))
+	var lines: Array[String] = []
+	for e in entries:
+		var parts: Array[String] = []
+		for k in ["col", "row", "skin"]:
+			if e.has(k):
+				parts.append("%s: %s" % [JSON.stringify(k), _scalar(e[k])])
+		for k in e:  # 未知キーは後ろに温存
+			if not (String(k) in ["col", "row", "skin"]):
+				parts.append("%s: %s" % [JSON.stringify(String(k)), _emit(e[k], 4)])
+		lines.append("    { " + ", ".join(parts) + " }")
+	return "[\n" + ",\n".join(lines) + "\n  ]"
 
 
 ## 汎用の値→テキスト。ind は現在のインデント（スペース数）。

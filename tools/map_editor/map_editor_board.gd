@@ -142,7 +142,8 @@ func _draw() -> void:
 		var c := cell_center(0, row)
 		draw_string(font, Vector2(1.0, c.y + 4.0), str(row),
 			HORIZONTAL_ALIGNMENT_LEFT, MARGIN - 2.0, 10, Color(1, 1, 1, 0.45))
-	# 地形
+	# 地形（見た目スキン指定のあるマスは skin_id も併記）
+	var skins := doc.terrain_skin_map()
 	for row in doc.rows():
 		for col in doc.cols():
 			var center := cell_center(col, row)
@@ -157,6 +158,11 @@ func _draw() -> void:
 				draw_string(font, center + Vector2(-hex_size, hex_size * -0.35),
 					ch, HORIZONTAL_ALIGNMENT_CENTER, hex_size * 2.0,
 					maxi(8, int(hex_size * 0.42)), Color(0, 0, 0, 0.55))
+			var skin := String(skins.get(Vector2i(col, row), ""))
+			if skin != "":
+				draw_string(font, center + Vector2(-hex_size, hex_size * 0.1),
+					skin.substr(0, 10), HORIZONTAL_ALIGNMENT_CENTER, hex_size * 2.0,
+					maxi(7, int(hex_size * 0.26)), Color(0.06, 0.16, 0.45, 0.9))
 	# 拠点（リング＋種別＋控え数）
 	for b in doc.data["bases"]:
 		var center := cell_center(int(b.get("col", 0)), int(b.get("row", 0)))

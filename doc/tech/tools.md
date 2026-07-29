@@ -12,7 +12,7 @@
 |---|---|---|---|
 | `sound_check` | BGMと効果音を組み合わせて鳴らす。曲の音量差・ループの継ぎ目・効果音の被りを聴く | `godot --path . res://tools/sound_check/sound_check.tscn` | [../audio/bgm.md](../audio/bgm.md) ／ [../audio/sfx.md](../audio/sfx.md) |
 | `image_check` | 画像を並べて見比べる。ユニットの頭身と、地形タイルの継ぎ目・反復 | `godot --path . res://tools/image_check/image_check.tscn` | [../art/units.md](../art/units.md) ／ [../art/terrain.md](../art/terrain.md) |
-| `map_editor` | ステージJSONを盤面で編集する（地形・ユニット・拠点）。会話と未知キーは温存 | `godot --path . res://tools/map_editor/map_editor.tscn` | [../gdd/map.md](../gdd/map.md) |
+| `map_editor` | ステージJSONを盤面で編集する（地形・見た目スキン・ユニット・拠点）。会話と未知キーは温存 | `godot --path . res://tools/map_editor/map_editor.tscn` | [../gdd/map.md](../gdd/map.md) |
 | `combat_sim` | 戦闘計算シミュレータ。式は本体を呼ぶ＝画面の数字が実戦の数字 | `godot --path . res://tools/combat_sim/combat_sim.tscn` | [../gdd/combat.md](../gdd/combat.md) |
 | `capture_board3d` | 盤だけをステージ単体で表示してPNG保存する（セレクト・HUD・会話を挟まない） | `godot --path . res://tools/capture_board3d.tscn -- <出力PNG> [ステージjsonのres://パス]` | [../adr/ADR-0003-board-3d-hybrid.md](../adr/ADR-0003-board-3d-hybrid.md) |
 

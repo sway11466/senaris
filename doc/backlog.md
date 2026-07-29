@@ -18,14 +18,6 @@
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
 
-### feature-1
-
-**マップエディタに見た目レイヤー（terrain_skin）塗りを追加**（優先度：低）
-
-- 背景：マップエディタ（`tools/map_editor/`）は地形（terrain_type）塗り・駒/拠点配置・部隊/AI割り当て・garrison・ボス指定→勝利条件・盤サイズ変更・JSON入出力（dialogue/terrain_skins/未知キーは温存）まで実装済み。残るのは見た目レイヤー＝terrain_skin を塗る手段で、現状は `terrain_skins` を読み込んで温存するだけでエディタから塗れない（`map_editor_doc.gd` の「編集対象外」）。
-- 対応：エディタに skin 塗りモードを足す。skin パレット（正本CSVの skin 一覧）から選んでヘックスを塗り、`terrain_skins` の座標→skin_id 差分列挙に書き出す。未指定セルは type 既定スキンにフォールバック（既存の解釈どおり）。skin_id は一意文字列で ASCII 1文字表記の限界を受けない。
-- 該当：`tools/map_editor/map_editor.gd`（塗りモード追加）・`tools/map_editor/map_editor_doc.gd`（terrain_skins の読み書き操作）・`tests/unit/test_map_editor_doc.gd`。着手の引き金＝スキンで盤の見た目を作り込みたくなったら。
-
 ### feature-2
 
 **敵AI: retreat（撤退）軸の配線**（優先度：低）

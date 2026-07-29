@@ -2,7 +2,7 @@ extends Control
 ## マップエディタ（開発ツール）。tools/map_editor/map_editor.tscn を Godot エディタで F6（指定シーンを実行）。
 ##
 ## stage.json の項目を編集する（戦闘前後の会話 dialogue は対象外＝読み込んだまま温存して保存）。
-## terrain_skins・未知キーも同様に温存。スキーマの解釈は StageLoader に合わせる。
+## 未知キーも同様に温存。スキーマの解釈は StageLoader に合わせる。
 ## 個別上書きキー（move/troops/atk 等）は編集しない方針（ステージは type/skin の素の性能で組む）。
 ## 製品には含めない（tools/ は export プリセットの除外対象にする）。
 
@@ -24,11 +24,15 @@ var _unit_types: Array = []  # [{ id, category }]
 var _categories: Array = []  # 分類（category）の一覧（出現順）
 var _skins: Array = []           # [{ skin_id, type_id, category }]（CSV順＝分類ごとに整列済み）
 var _skin_categories: Array = [] # 敵パレット用の分類一覧（基準を除く・出現順）
+var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]（CSV順）
+var _default_skin_by_type := {}      # terrain_type -> 既定スキンの skin_id（TerrainSkinCatalog と同じ規則）
 var _ai_presets: Array = []  # [label]
 var _ai_names := {}          # label -> 表示名
 
 # パレット選択状態
 var _sel_terrain := 0
+var _sel_terrain_category := ""  # 地形パレットの分類（空=基本＝地形タイプ一覧 / それ以外=その type のスキン一覧）
+var _sel_terrain_skin := ""      # 塗る見た目スキンの skin_id（分類が「基本」以外のとき有効）
 var _sel_category := ""  # 自軍パレットの分類絞り込み（空=すべて）
 var _sel_type_id := ""   # 配置する自軍ユニットの type_id
 var _sel_skin_id := ""       # 配置する敵ユニットの skin_id
@@ -88,6 +92,18 @@ func _load_catalogs() -> void:
 			_skin_categories.append(cat)
 		if _sel_skin_id == "" and cat != STANDARD_CATEGORY:
 			_sel_skin_id = String(r["skin_id"])  # 敵パレットの初期値＝基準以外の先頭
+	for r in CsvUtil.read_table("res://data/terrain/terrain_skin.csv"):
+		var sid := String(r.get("skin_id", ""))
+		var type_id := String(r.get("terrain_type", ""))
+		if sid == "" or type_id == "":
+			continue
+		_terrain_skins.append({
+			"skin_id": sid, "terrain_type": type_id,
+			"name": String(r.get("name", sid)), "memo": String(r.get("memo", "")),
+		})
+		# 既定スキン＝skin_id == terrain_type を優先。無ければその type の最初の行（TerrainSkinCatalog と同じ）
+		if not _default_skin_by_type.has(type_id) or sid == type_id:
+			_default_skin_by_type[type_id] = sid
 	var ai := AiCatalog.load_default()
 	for label in ai:
 		_ai_presets.append(String(label))
@@ -300,14 +316,7 @@ func _set_mode(mode: String) -> void:
 			_inspector.add_theme_constant_override("separation", 6)
 			_mode_box.add_child(_inspector)
 		"terrain":
-			_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
-			var list := ItemList.new()
-			list.custom_minimum_size = Vector2(0, 320)
-			for t in _terrains:
-				list.add_item("%s  %s — %s" % [t["char"], t["id"], t["memo"]])
-			list.select(_sel_terrain)
-			list.item_selected.connect(func(i: int) -> void: _sel_terrain = i)
-			_mode_box.add_child(list)
+			_build_terrain_palette()
 		"player":
 			_add_hint(_mode_box, "左クリック＝配置 / 右クリック＝駒を削除")
 			# 分類（category）で絞ってから種別を選ぶ
@@ -375,6 +384,71 @@ func _ai_options(with_none: bool) -> Array:
 		keys.append(k)
 		displays.append("%s（%s）" % [k, _ai_names[k]])
 	return [keys, displays]
+
+
+## 地形パレット。分類「基本」＝地形タイプ一覧（性能）／それ以外＝その地形の見た目バリエーション一覧。
+func _build_terrain_palette() -> void:
+	_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
+	var cat_keys := [""]
+	var cat_names := ["基本（地形タイプ）"]
+	for t in _terrains:
+		cat_keys.append(String(t["id"]))
+		cat_names.append("%s（%s）" % [_type_display(String(t["id"])), t["id"]])
+	_mode_box.add_child(_labeled_option("分類", cat_keys, cat_names, _sel_terrain_category,
+		func(k: String) -> void:
+			_sel_terrain_category = k
+			_sel_terrain_skin = String(_default_skin_by_type.get(k, ""))  # 分類を変えたら既定スキンから
+			_set_mode("terrain")))
+	var list := ItemList.new()
+	list.custom_minimum_size = Vector2(0, 320)
+	if _sel_terrain_category == "":
+		for t in _terrains:
+			list.add_item("%s  %s — %s" % [t["char"], t["id"], t["memo"]])
+		if _sel_terrain < _terrains.size():
+			list.select(_sel_terrain)
+		list.item_selected.connect(func(i: int) -> void: _sel_terrain = i)
+		_mode_box.add_child(list)
+		return
+	# 見た目バリエーション：既定スキンを選べば「差分なし＝type の既定」に戻せる
+	var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
+	var pool := []
+	for s in _terrain_skins:
+		if String(s["terrain_type"]) == _sel_terrain_category:
+			pool.append(s)
+	if pool.is_empty():
+		_add_hint(_mode_box, "この地形に登録されたスキンはありません（塗ると既定の見た目になります）。")
+		_sel_terrain_skin = ""
+		return
+	var ids := []
+	for s in pool:
+		ids.append(String(s["skin_id"]))
+	if not ids.has(_sel_terrain_skin):
+		_sel_terrain_skin = default_id if ids.has(default_id) else String(ids[0])
+	for i in pool.size():
+		var s: Dictionary = pool[i]
+		var mark := "（既定）" if String(s["skin_id"]) == default_id else ""
+		list.add_item("%s%s — %s" % [s["name"], mark, s["skin_id"]])
+		list.set_item_tooltip(i, String(s["memo"]))
+		if String(s["skin_id"]) == _sel_terrain_skin:
+			list.select(i)
+	list.item_selected.connect(func(i: int) -> void: _sel_terrain_skin = String(ids[i]))
+	_mode_box.add_child(list)
+
+
+## 地形タイプの表示名（既定スキンの name。未登録の type は id をそのまま）。
+func _type_display(type_id: String) -> String:
+	for s in _terrain_skins:
+		if String(s["skin_id"]) == String(_default_skin_by_type.get(type_id, "")):
+			return String(s["name"])
+	return type_id
+
+
+## 地形タイプの ASCII 1文字（terrain グリッド用）。未知なら既定地形。
+func _char_of_type(type_id: String) -> String:
+	for t in _terrains:
+		if String(t["id"]) == type_id:
+			return String(t["char"])
+	return MapEditorDoc.DEFAULT_CHAR
 
 
 func _build_enemy_palette() -> void:
@@ -516,9 +590,19 @@ func _on_cell_released(col: int, row: int, _button: int) -> void:
 	_press_cell = Vector2i(-1, -1)
 
 
+## 地形を塗る。性能（terrain の文字）と見た目（terrain_skins の差分）を同時に決める。
+## 既定スキンは差分に書かない＝未指定セルは type の既定へフォールバックする既存の解釈のまま。
 func _paint(col: int, row: int, button: int) -> void:
-	var ch := MapEditorDoc.DEFAULT_CHAR if button == MOUSE_BUTTON_RIGHT else String(_terrains[_sel_terrain]["char"])
-	_doc.set_terrain_char(col, row, ch)
+	if button == MOUSE_BUTTON_RIGHT:
+		_doc.set_terrain_char(col, row, MapEditorDoc.DEFAULT_CHAR)
+		_doc.set_terrain_skin(col, row, "")
+	elif _sel_terrain_category == "":
+		_doc.set_terrain_char(col, row, String(_terrains[_sel_terrain]["char"]))
+		_doc.set_terrain_skin(col, row, "")
+	else:
+		_doc.set_terrain_char(col, row, _char_of_type(_sel_terrain_category))
+		var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
+		_doc.set_terrain_skin(col, row, "" if _sel_terrain_skin == default_id else _sel_terrain_skin)
 	_board.queue_redraw()
 
 
@@ -532,6 +616,8 @@ func _show_inspection(col: int, row: int) -> void:
 		c.queue_free()
 	var tid := TerrainType.char_to_id(_doc.terrain_char(col, row))
 	_add_label(_inspector, "マス (%d, %d)  地形: %s" % [col, row, tid])
+	var skin := _doc.terrain_skin(col, row)
+	_add_label(_inspector, "見た目: %s" % [skin if skin != "" else "%s（既定）" % _default_skin_by_type.get(tid, tid)])
 	var uh := _doc.unit_at(col, row)
 	if not uh.is_empty():
 		_inspect_unit(uh)
@@ -696,7 +782,7 @@ func _on_resize() -> void:
 	_board.selected = Vector2i(-1, -1)
 	_board.refresh()
 	_say("サイズを %d×%d にしました。" % [_doc.cols(), _doc.rows()]
-		+ ("範囲外の駒/拠点を %d 件削除しました。" % dropped if dropped > 0 else ""))
+		+ ("範囲外の駒/拠点/スキン指定を %d 件削除しました。" % dropped if dropped > 0 else ""))
 
 
 func _on_save() -> void:
