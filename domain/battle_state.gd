@@ -694,6 +694,7 @@ func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 		"value": value,
 		"remaining": int(option.get("duration_turns", 1)),
 		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
+		"fx": String(option.get("buff_fx", "")),  # 盤の見た目（presentation が読む。空＝見た目なし）
 	}
 	if String(option.get("buff_scope", "team")) == "unit":
 		var u := unit_at(target)  # can_target が味方の存在を保証済み

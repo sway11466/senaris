@@ -31,6 +31,11 @@ const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の�
 ## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
+const COLOR_ENCHANT_GLOW := Color(0.85, 1.00, 0.55)  # エンチャント中の足元の光（黄緑）
+const ENCHANT_GLOW_RADIUS := TILE * 0.72   # 光の広がり（ヘックスに収まる大きさ）
+const ENCHANT_GLOW_MIN := 0.35             # 明滅の下限アルファ
+const ENCHANT_GLOW_MAX := 0.85             # 同・上限
+const ENCHANT_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
 const CAM_FOV := 42.0
 const MIN_DIST := 5.0            # ズーム＝カメラ距離の範囲
@@ -91,6 +96,8 @@ var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル�
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
 var _shadow_mesh: ArrayMesh       # 足元のブロブシャドウ（楕円）
+var _glow_mesh: ArrayMesh         # エンチャント中の足元の光（楕円・影より一回り大きい）
+var _glow_mat: StandardMaterial3D # 同・材質（加算合成）。明滅は _process が alpha を書き換える
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
 var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
@@ -158,6 +165,8 @@ func _ready() -> void:
 	_overlay_mesh = _make_hex_mesh()
 	_hexring_mesh = _make_hexring_mesh()
 	_shadow_mesh = _make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
+	_glow_mesh = _make_glow_mesh(ENCHANT_GLOW_RADIUS, 0.5)
+	_glow_mat = _make_glow_material()
 	_skirt_tex = _make_skirt_texture()
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
@@ -223,6 +232,11 @@ func set_input_locked(v: bool) -> void:
 	_frozen = v
 
 func _process(_delta: float) -> void:
+	# 足元の光の明滅。位相は絶対時刻から出す＝_sync_units でノードを作り直しても途切れない。
+	if _glow_mat != null:
+		var t := float(Time.get_ticks_msec()) * 0.001 / ENCHANT_GLOW_CYCLE
+		var w := 0.5 - 0.5 * cos(t * TAU)  # 0..1 のなめらかな往復
+		_glow_mat.albedo_color.a = lerpf(ENCHANT_GLOW_MIN, ENCHANT_GLOW_MAX, w)
 	if state == null:
 		return
 	var h := _hex_at_mouse()
@@ -1300,6 +1314,7 @@ func _sync_units() -> void:
 			sh.material_override = _overlay_material(COLOR_SHADOW)
 			sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
 			root.add_child(sh)
+			_add_enchant_glow(u, root)
 		else:
 			_add_unit_placeholder(u, done, root)
 		# 包囲中（攻防に係数<1.0）を明示。
@@ -1311,6 +1326,22 @@ func _sync_units() -> void:
 		var pcount := state.passengers(u.id).size()
 		if pcount > 0:
 			_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
+
+## エンチャントが効いている駒の足元を光らせる。見た目を宣言した補正（fx）が1つでも
+## 効いていれば出す＝陣営全体バフ（ホーリーアリア等）では光らない。詳細 → doc/gdd/enchants.md
+func _add_enchant_glow(u: Unit, root: Node3D) -> void:
+	var lit := false
+	for m in state.status_mods_for(u):
+		if not String(m.get("fx", "")).is_empty():
+			lit = true
+			break
+	if not lit:
+		return
+	var g := MeshInstance3D.new()
+	g.mesh = _glow_mesh
+	g.material_override = _glow_mat  # 共有＝全員が同じ位相で明滅する
+	g.position = Vector3(0, 0.034, SPRITE_FOOT_Z + 0.08)  # 影の上（影の黒に打ち消されない高さ）
+	root.add_child(g)
 
 ## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル）。
 ## root＝そのユニットの親ノード（位置は相対）。
@@ -1520,6 +1551,34 @@ func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
 
 ## スカート用の粒状ノイズ（グレースケール・シームレス）。頂点カラーに乗算されて土の質感になる。
 ## 変化幅は控えめ（0.78〜1.0倍）＝べた塗り感だけ消し、色は頂点グラデに任せる。
+## エンチャント中の足元の光の材質（加算合成・中心が濃く外へ消える）。
+## 明滅は共有の1材質を _process が書き換える＝掛かっている駒が同じ位相で光る。
+func _make_glow_material() -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = COLOR_ENCHANT_GLOW
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD  # 地形の上に載せる＝暗くしない
+	m.vertex_color_use_as_albedo = true  # 中心→外周のアルファ落ちは頂点カラーで作る
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return m
+
+## 足元の光の円盤。中心が不透明・外周が透明の頂点カラーを持つ（_make_disc_mesh は UV も
+## 頂点カラーも持たないので、テクスチャを貼っても一様に透明になる＝こちらを使う）。
+func _make_glow_mesh(radius: float, z_ratio: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 32
+	for i in n:
+		var a0 := TAU * float(i) / float(n)
+		var a1 := TAU * float(i + 1) / float(n)
+		st.set_color(Color(1, 1, 1, 1)); st.set_normal(Vector3.UP); st.add_vertex(Vector3.ZERO)
+		st.set_color(Color(1, 1, 1, 0)); st.set_normal(Vector3.UP)
+		st.add_vertex(Vector3(cos(a0) * radius, 0.0, sin(a0) * radius * z_ratio))
+		st.set_color(Color(1, 1, 1, 0)); st.set_normal(Vector3.UP)
+		st.add_vertex(Vector3(cos(a1) * radius, 0.0, sin(a1) * radius * z_ratio))
+	return st.commit()
+
 func _make_skirt_texture() -> ImageTexture:
 	var fn := FastNoiseLite.new()
 	fn.seed = 7  # 決定的（毎回同じ見た目）

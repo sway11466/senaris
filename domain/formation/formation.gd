@@ -67,6 +67,7 @@ const RECIPES := {
 		# 損耗しても倒されても、掛かった補正は変わらない。詳細 → doc/gdd/enchants.md
 		"buff_value_per_troop": 10.0,
 		"buff_target": "both",
+		"buff_fx": "dust",  # 盤の見た目（掛かっている駒の足元を光らせる）。空＝見た目なし
 		"duration_turns": 1,
 		"range": 1,  # 自分(0)＋隣接(1)
 		"range_from": "leader",
@@ -218,6 +219,7 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
 		opt["buff_value"] = float(r.get("buff_value", 1.0))
 		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))
+		opt["buff_fx"] = String(r.get("buff_fx", ""))
 		opt["buff_target"] = String(r.get("buff_target", "both"))
 		opt["duration_turns"] = int(r.get("duration_turns", 1))
 	return opt
