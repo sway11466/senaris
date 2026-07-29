@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=23 / refactoring=8
+次回採番: bug=1 / feature=26 / refactoring=8
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -174,6 +174,30 @@
 - 背景：戦闘演出シーンの設計は [combat_scene.md](tech/combat_scene.md) で左右固定・隊列・エフェクトまで確定済み。実装着手に必要な3点の数値／仕様が未確定。
 - 対応：(1) 隊列スロットの実px（シーン解像度・立ち絵サイズ確定後）とアニメのタイミング値を決める。(2) `combat_bg` の作画スペック（画角・解像度）と「拠点戦」共通背景の内容を決める。(3) 演出速度設定のUI配置（システムメニュー／オプション）を決める。確定したら combat_scene.md に反映。
 - 該当：`doc/tech/combat_scene.md`（確定後に反映）・`presentation/combat/`（実装時）。着手の引き金＝戦闘演出シーンの実装に入るとき。
+
+### feature-23
+
+**戦闘の決定性（乱数の有無）の確定**（優先度：中）
+
+- 背景：[architecture.md](tech/architecture.md) の未決・保留。戦闘が決定的（乱数なし）か確率的（乱数あり）かの設計判断。中断セーブの正確さと将来のリプレイに影響する＝乱数があるならシード／状態もセーブ対象になる。[combat.md](gdd/combat.md) は決定的を前提に書かれている（「中断セーブはシード不要・リプレイ完全一致・AI先読みも正確」）。
+- 対応：決定的で確定するか、確率要素を入れるかを決める。確定したら architecture.md の未決を閉じ、関連する doc（combat.md・gamesystem.md）との整合を確認。
+- 該当：`doc/tech/architecture.md`・`doc/gdd/combat.md`・`doc/tech/gamesystem.md`。
+
+### feature-24
+
+**獲得用キービジュアルの制作**（優先度：低）
+
+- 背景：[keyvisual.md](art/keyvisual.md) の未決事項。冒険譚クリア時に表示する獲得イラストが未制作。扉絵・カード用とは別で、「機構が動く瞬間」を描く。
+- 対応：冒険譚1「細道で少数 vs 群れ」／冒険譚2「三重詠唱が屍の波を薙ぐ」のキービジュアルを制作。作画方針は keyvisual.md（ILLUST STYLE・透かし対策）に従う。
+- 該当：`assets/`（画像）・`data/stages/*/campaign.json`（`victory_path`）・`doc/art/keyvisual.md`。着手の引き金＝冒険譚の仕上げに入るとき。
+
+### feature-25
+
+**ステージセレクトの設計未確定事項**（優先度：中）
+
+- 背景：[stage_select.md](gdd/stage_select.md) の設計の未確定。ステージセレクト画面の2つの設計論点が決まっていない。
+- 対応：(1) ステージ詳細（ブリーフィング）に何を出すか決める（勝利条件・推奨戦力・シナリオ導入など。羊皮紙の依頼書ダイアログ `quest_sheet.gd` が器）。(2) クリア評価（ターン数・ランク）を記録するか決める（feature-19「戦果票の評価ランク」と関連＝ランクを出すなら記録も要る）。確定したら stage_select.md に反映。
+- 該当：`doc/gdd/stage_select.md`（確定後に反映）・`presentation/select/quest_sheet.gd`（ブリーフィング実装時）・`application/campaign_progress.gd`（記録時）。
 
 ## リファクタリング
 
