@@ -247,14 +247,6 @@
 - 対応：(1) メッシュ/材質生成（`_make_*` 系・材質/テクスチャキャッシュ）を `board_mesh_factory.gd` へ抽出（純関数中心・最小リスク）。(2) カメラ数学（リグ・パン/ズーム/fit/追従 Tween・picking）を `board_camera_rig.gd` へ抽出。入力イベントの受け口（`_unhandled_input`）は盤に1本のまま残してリグへ委譲＝イベント処理順の罠を避ける。`fit_to_view` の state 直読みはやめ、盤の外接矩形を引数で渡す。(3) 約1100行へ減った状態でインタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を先に定義してから。より小さい代替として PopupMenu の組み立てだけの抽出（メニュービルダー）も可。
 - 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`（新規）・`presentation/board/board_camera_rig.gd`（新規）。挙動を変えないリファクタリングのため各段で実機確認（tests/manual の流儀）。
 
-### refactoring-6
-
-**BattleState から視線（索敵）ロジックを Sight ヘルパーへ抽出**（優先度：低）
-
-- 背景：`domain/battle_state.gd`（約950行）の状態集中は中断セーブの正本という設計意図どおりだが、視線判定（`sight_reaches`/`visible_hexes`/`_sight_line_cost`）は状態を読むだけの規則計算で、Combat/Formation/StatusMod/Surround と同じ「static ヘルパーが state を引数に取る」既存パターンに乗る。索敵は AI 起動と検知域可視化の両方から使われ拡張が続いており、今後も伸びる見込み。なお直列化（to_dict/from_dict）と輸送（_unload_map 系）の抽出は検討の末に見送り＝前者はフィールド追加時の2ファイル同時編集がセーブ漏れの温床になり、後者は移動コスト・行動フラグと密結合で切り口が汚い。
-- 対応：`domain/sight.gd`（static）へ移し、BattleState には委譲の薄い口を残すか呼び出し側（brain・presentation）を直呼びに更新する。`_sight_cost` 表は state が持ち続ける（セーブ・set_sight_cost 注入との整合）。着手は進行中の索敵作業が落ち着いてから。
-- 該当：`domain/battle_state.gd`・`domain/sight.gd`（新規）・`tests/unit/test_sight.gd`・`domain/ai/nearest_attacker_brain.gd`・`presentation/board/hex_board_3d.gd`。
-
 ### refactoring-8
 
 **デッドコードの整理（未接続シグナル・テスト専用関数）**（優先度：低）

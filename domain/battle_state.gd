@@ -253,29 +253,12 @@ func set_sight_cost(table: Dictionary) -> void:
 func sight_cost_at(hex: Vector2i) -> int:
 	return int(_sight_cost.get(terrain_at(hex), 1))
 
-## from から to へ視線が通り、累積視線コストが budget 以内か（起動 sight の判定に使う）。
-## 壁の角をかすめる線は1本だと角を拾って穴が開くので、±両側にずらした2本を試し、安い方で判定する。
-## 真後ろの壁は両側とも貫く＝遮断が残る／角かすめは片側が通る＝穴が消える。
-## 各マス（from を除き to を含む）の視線コストを積算。全地形コスト1なら「累積＝ヘックス距離」＝純距離の索敵に一致。
+## 視線の規則計算は Sight（static ヘルパー）が持つ＝ここは表の持ち主として口だけ残す。
 func sight_reaches(from: Vector2i, to: Vector2i, budget: int) -> bool:
-	return mini(_sight_line_cost(from, to, 1.0), _sight_line_cost(from, to, -1.0)) <= budget
+	return Sight.reaches(self, from, to, budget)
 
-## from→to の直線（bias でずらした1本）の視線コスト積算（from を除き to を含む）。
-func _sight_line_cost(from: Vector2i, to: Vector2i, bias: float) -> int:
-	var acc := 0
-	var path := Hex.line(from, to, bias)
-	for i in range(1, path.size()):
-		acc += sight_cost_at(path[i])
-	return acc
-
-## from から budget 以内で視認できる盤内ヘックスの集合（from 含む）。索敵範囲の可視化に使う。
-## 全コスト≥1 前提で距離 budget 以内を候補にし、視線が通るものだけ残す（壁は影を作る・森は範囲が縮む）。
 func visible_hexes(from: Vector2i, budget: int) -> Dictionary:
-	var out := { from: true }
-	for h in Hex.within_range(from, budget):
-		if in_field(h) and sight_reaches(from, h, budget):
-			out[h] = true
-	return out
+	return Sight.visible_hexes(self, from, budget)
 
 ## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
 ## 味方のマスは通過できるが停止できない（到達候補には含めない）。
