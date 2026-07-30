@@ -14,11 +14,13 @@
 
 ### bug-1
 
-**gen_unit_map.ps1 の図がキャンバスをはみ出す（倍率1.3のユニット）**（優先度：低）
+**gen_unit_map.ps1 が大型ユニットの図を黙って切り落とす**（優先度：低）
 
-- 背景：`tools/gen_unit_map.ps1` は 256四方のキャンバス（`$Canvas`）に BaseHeight 200 を基準として図を配置するが、`unit_skin.csv` の `map_scale` が 1.3 のユニット（airship・dragon_knight・treant）では図が 260px になり 4px はみ出す。3体とも map 画像がまだ無いため表面化していない。
-- 対応：BaseHeight を 192 に下げるか、Canvas を広げるかを決めて反映する。BaseHeight を下げると倍率1.0のユニットの見た目も一段小さくなるため、既存の map 画像を作り直すかどうかも併せて決める。絵を作る前に決着させる（作った後だと全再生成になる）。
-- 該当：`tools/gen_unit_map.ps1`（`$BaseHeight`／`$Canvas`）・`data/units/unit_skin.csv`（`map_scale`）・`doc/art/units.md`（制作スペックの数値）。着手の引き金＝倍率1.3のユニットの map 画像を作るとき。
+- 背景：`tools/gen_unit_map.ps1` は図の高さを BaseHeight 200 × `map_scale` にし、`-gravity south -extent 256x256` で 256四方に収める。この `-extent` は足りなければ余白を足し、はみ出せば切り落とす＝倍率が 1.28（256/200）を超えると上端が黙って欠ける。該当は dragon（1.4＝280px・上24px 欠け）と airship／dragon_knight／treant（1.3＝260px・上4px 欠け）。4体とも master がまだ無いため表面化していない。既存 master での実測では、h=280 で出力の内容が 165x256 に収まり、頭頂部（王冠）が切れることを確認済み。
+- 併発：横幅は制御していない（`-resize "x<高さ>"` は高さ指定のみ）ため、横長の被写体は倍率に関係なく左右が切れる。h=280 なら幅が 256 を超える＝アスペクト比 0.91 より横長で欠ける。翼を広げた竜・飛空艇はここに当たる可能性が高い。
+- 対応：BaseHeight を 192 に下げるか、Canvas を広げるかを決めて反映する。BaseHeight を下げると倍率1.0のユニットの見た目も一段小さくなるため、既存の map 画像を作り直すかどうかも併せて決める。横幅は `-resize "256x<高さ>"`（内接）に変えれば切れなくなるが、そのぶん横長ユニットの背が低くなる＝盤上の見た目の大小関係が変わるので、これも決めてから。絵を作る前に決着させる（作った後だと全再生成になる）。
+- 検出できていない理由：はみ出しても magick はエラーにならず、黙って切って正常終了する。生成ログにも出ない。
+- 該当：`tools/gen_unit_map.ps1`（`$BaseHeight`／`$Canvas`／`-resize`）・`data/units/unit_skin.csv`（`map_scale`）・`doc/art/units.md`（制作スペックの数値）。着手の引き金＝dragon／airship／dragon_knight／treant の map 画像を作るとき（冒険譚2 st7 の飛空艇・冒険譚3 のトレントと竜が該当）。
 
 ## 機能追加
 
