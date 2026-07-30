@@ -41,6 +41,12 @@ func test_not_offered_by_other_types() -> void:
 			found = true
 	assert_false(found, "ピクシー以外は撃てない")
 
+## 発動者の照合もスキンID（→ doc/gdd/enchants.md 共通ルール）。性能が pixie でも別スキンなら撃てない。
+func test_not_offered_by_other_skin() -> void:
+	var f := _dust_state()
+	f["pixie"].skin_id = "harpy"
+	assert_true(_dust_option(f).is_empty(), "pixie 性能でも別スキンなら撃てない")
+
 func test_target_self_and_adjacent_ally_only() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]

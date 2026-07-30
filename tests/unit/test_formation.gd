@@ -92,6 +92,28 @@ func test_holy_aria_needs_five() -> void:
 			leader = u
 	assert_eq(Formation.available_for(s, leader).size(), 0, "4体では不成立")
 
+## レシピの照合はスキンID。性能(type)が cleric でも見た目がゴブリンなら聖歌隊にならない。
+## 詳細 → doc/gdd/formations.md 共通ルール
+func test_recipe_matches_by_skin_not_type() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var leader: Unit = null
+	for i in 5:
+		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
+		u.skin_id = "goblin"  # cleric 性能のゴブリン（unit_skin.json の実在スキン）
+		s.add_unit(u)
+		if i == 0:
+			leader = u
+	assert_eq(Formation.available_for(s, leader).size(), 0, "スキンが違えばホーリーアリアは成立しない")
+
+## スキンID明示でも成立する（skin_id 未指定＝type_id へフォールバックは _aria_state 側で担保）。
+func test_recipe_matches_with_explicit_skin() -> void:
+	var f := _aria_state()
+	for u in f["s"].units():
+		if u.type_id == "cleric":
+			u.skin_id = "cleric"
+	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 1, "基準スキン指定でも成立")
+
 func test_holy_aria_buffs_whole_team() -> void:
 	var f := _aria_state()
 	var s: BattleState = f["s"]

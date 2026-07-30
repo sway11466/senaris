@@ -1,7 +1,8 @@
 extends RefCounted
 class_name Unit
 ## 盤上のユニット1体（＝小隊）の状態。純データ・ノード非依存。
-## skin_id だけは presentation 専用の同乗データ（純ロジック＝combat/surround/movement/AI は読まない）。
+## skin_id は主に描画のための同乗データ（combat/surround/movement/AI は読まない）。
+## 例外は Formation＝陣形／エンチャントの成立条件だけは「見た目が同じか」で決めるため skin_id を見る。
 ## 詳細 → doc/gdd/combat.md
 
 const MAX_LEVEL := 99  ## 経験値（＝レベル）の上限
@@ -26,7 +27,8 @@ var unit_defense: int  ## ユニット防御力（兵1体あたり。原典 BuD 
 var pierce: float = 0.0  ## 防御貫通率（攻撃時に相手の実効防御を pierce ぶん減らす。0=なし・0.5=半減）。UnitType から設定
 var level: int         ## 経験値＝レベル（1〜MAX_LEVEL）。初期Lv1＝補正なし。詳細 → combat.md
 var type_id: String    ## 種別ID（UnitType/スキンの参照キー。空＝未指定）。描画・占領で使う
-var skin_id: String = ""  ## スキンID（見た目の指定。空＝type_id+team の既定スキンで描画）。StageLoader が設定
+var skin_id: String = ""  ## スキンID（見た目の指定。空＝type_id+team の既定スキンで描画）。StageLoader が設定。
+                       ## 陣形／エンチャントの成立条件もこの値で照合する（空なら type_id）。詳細 → doc/gdd/formations.md
 var move_type: String  ## 移動タイプ（movement表のキー。空＝未指定→全地形コスト1の従来挙動）
 var min_range: int = 1  ## 最短射程（下限）。≥2＝懐に死角（砲兵など近接不可）。UnitType から設定
 var attack_range: int = 1  ## 最大射程（上限）。1=近接、≥2=遠隔可。距離1の攻撃は近接扱い（反撃あり）。UnitType から設定

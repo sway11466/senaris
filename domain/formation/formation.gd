@@ -15,15 +15,16 @@ class_name Formation
 ## - 参加者は経験値+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
 
 ## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
-## leader_types＝発動者になれる type ／ member_types＝残りの参加者の type。
+## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
+## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
 ## shape: "triangle"（count 体が相互隣接）／"cluster"（count 体以上の隣接クラスタ）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 const RECIPES := {
 	"trinity": {
 		"name": "三重詠唱",
-		"leader_types": ["wizard", "witch"],
-		"member_types": ["wizard", "witch"],
+		"leader_skins": ["wizard", "witch"],
+		"member_skins": ["wizard", "witch"],
 		"shape": "triangle",
 		"count": 3,
 		"effect": "area",
@@ -33,8 +34,8 @@ const RECIPES := {
 	},
 	"divine_judgment": {
 		"name": "神の裁き",
-		"leader_types": ["paladin"],
-		"member_types": ["cleric", "priest", "bishop"],
+		"leader_skins": ["paladin"],
+		"member_skins": ["cleric", "priest", "bishop"],
 		"shape": "triangle",
 		"count": 3,
 		"effect": "single",
@@ -43,8 +44,8 @@ const RECIPES := {
 	},
 	"holy_aria": {
 		"name": "ホーリーアリア",
-		"leader_types": ["cleric", "priest", "bishop"],
-		"member_types": ["cleric", "priest", "bishop"],
+		"leader_skins": ["cleric", "priest", "bishop"],
+		"member_skins": ["cleric", "priest", "bishop"],
 		"shape": "cluster",
 		"count": 5,
 		"effect": "buff",
@@ -57,8 +58,8 @@ const RECIPES := {
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/enchants.md
 	"pixie_dust": {
 		"name": "妖精の粉",
-		"leader_types": ["pixie"],
-		"member_types": [],
+		"leader_skins": ["pixie"],
+		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
 		"effect": "buff",
@@ -88,7 +89,7 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 		var r: Dictionary = RECIPES[rid]
 		if not (r["effect"] in IMPLEMENTED_EFFECTS):
 			continue
-		if not (unit.type_id in r["leader_types"]):
+		if not _matches(unit, r["leader_skins"]):
 			continue
 		# 陣形は「まだ何も終えていない」＝盤の行動終了判定に従う。エンチャントは移動後でも
 		# 撃てるので、行動を使い切ったか（待機・攻撃済み）だけを見る。
@@ -155,13 +156,20 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 
 # --- 内部 ---
 
-## leader に隣接する member_type の候補（同陣営・未行動）から、互いに隣接する2体組を全列挙。
+## unit がレシピの候補スキン列に当てはまるか。照合は skin_id、未指定なら type_id へフォールバック。
+## 見た目が違えば別ユニット＝種別が同じでもゴブリンでホーリーアリアは成立しない。
+## 詳細 → doc/gdd/formations.md
+static func _matches(unit: Unit, skins: Array) -> bool:
+	var key := unit.skin_id if unit.skin_id != "" else unit.type_id
+	return key in skins
+
+## leader に隣接する member_skins の候補（同陣営・未行動）から、互いに隣接する2体組を全列挙。
 static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
 		if u.id == leader.id or u.team != leader.team or state.is_done(u.id):
 			continue
-		if not (u.type_id in r["member_types"]):
+		if not _matches(u, r["member_skins"]):
 			continue
 		if Hex.distance(u.pos, leader.pos) == 1:
 			cand.append(u)
@@ -172,7 +180,7 @@ static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary) -> A
 				sets.append([cand[i], cand[j]])
 	return sets
 
-## leader を含む member_type の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
+## leader を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
 ## ②ホーリーアリア＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
 static func _cluster(state: BattleState, leader: Unit, r: Dictionary) -> Array:
 	var seen := {leader.id: leader}
@@ -182,7 +190,7 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary) -> Array:
 		for u in state.units():
 			if seen.has(u.id) or u.team != leader.team or state.is_done(u.id):
 				continue
-			if not (u.type_id in r["member_types"]):
+			if not _matches(u, r["member_skins"]):
 				continue
 			if Hex.distance(u.pos, cur.pos) == 1:
 				seen[u.id] = u
