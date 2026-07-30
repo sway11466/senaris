@@ -15,8 +15,8 @@
 
 | 冒険譚 | 難易度 | シナリオ | データ |
 |---|---|---|---|
-| [ゴブリンの襲撃](tutorial1-goblin-raid.md) | ★☆☆☆☆ | 完了 | 作業中（st1〜6実装・st7未） |
-| [アンデッドの群れ](tutorial2-undead-rush.md) | ★★☆☆☆ | 完了 | 未着手 |
+| [ゴブリンの襲撃](tutorial1-goblin-raid.md) | ★☆☆☆☆ | 完了 | 完了（st1〜7） |
+| [アンデッドの群れ](tutorial2-undead-rush.md) | ★★☆☆☆ | 完了 | 完了（st1〜7） |
 | [竜狩り](tutorial3-dragon-hunt.md) | ★★★☆☆ | ドラフト（骨子＋casting） | 未着手 |
 
 ## かけだし向け
