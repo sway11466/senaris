@@ -53,7 +53,7 @@
 
 ### 4. ステージからの参照
 
-- **ステージは見た目を `skin` で指定**: `{ "skin": "goblin", "col": 5, "row": 3 }`（陣営は `player`/`enemy` セクションで決まるので `team` は書かない）。`skin_id → type` は1:1なので、**性能(type)は自動で逆引き**される（`level`/`troops` 等は任意で上書き）。
+- **ステージは見た目を `skin` で指定**: `{ "skin": "goblin", "col": 5, "row": 3 }`（陣営は `player`/`enemy` セクションで決まるので `team` は書かない）。`skin_id → type` は1:1なので、**性能(type)は自動で逆引き**される（駒に書ける任意項目は個体の状態＝`level`/`troops` だけ。性能は上書きできない）。
 - **`type` 指定の後方互換**: `{ "type": "cleric", ... }` と書くと、**`skin_id == type_id` の同名スキン**（＝正規スキン。多くは味方ラベル）が選ばれる。テーマ別の敵などは `skin` で明示する（例: ゴブリンは `skin:"goblin"`）。
 - `StageLoader` が `SkinCatalog`（skin→type 逆引き）＋ `UnitCatalog`（type→性能）で解決し、`Unit.skin_id`/`Unit.type_id` に保持（描画でスキンを引く／占領＝寝返りに使う）。
 

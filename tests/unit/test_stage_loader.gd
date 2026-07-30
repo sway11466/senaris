@@ -21,7 +21,7 @@ func test_build_reads_size_terrain_units() -> void:
 			"......",
 		],
 		"player": [
-			{ "col": 1, "row": 2, "move": 4, "troops": 7, "atk": 12, "def": 10, "level": 3 },
+			{ "col": 1, "row": 2, "troops": 7, "level": 3 },
 		],
 		"enemy": [
 			{ "ai": "charge", "units": [ { "col": 4, "row": 1 } ] },  # 省略値はデフォルト
@@ -41,7 +41,7 @@ func test_build_unit_fields_and_defaults() -> void:
 	var data := {
 		"cols": 6, "rows": 4,
 		"player": [
-			{ "col": 1, "row": 2, "move": 4, "troops": 7, "atk": 12, "def": 10, "level": 3 },
+			{ "col": 1, "row": 2, "troops": 7, "level": 3 },
 		],
 		"enemy": [
 			{ "ai": "charge", "units": [ { "col": 4, "row": 1 } ] },
@@ -52,12 +52,12 @@ func test_build_unit_fields_and_defaults() -> void:
 	assert_eq(u.team, 0)
 	assert_eq(u.pos, Hex.offset_to_axial(1, 2))
 	assert_eq(u.troops, 7)
-	assert_eq(u.unit_attack, 12)
 	assert_eq(u.level, 3)
 	var u2 := s.unit_by_id(2)
-	assert_eq(u2.troops, 8, "troops 省略は8")
-	assert_eq(u2.unit_attack, 10, "atk 省略は10")
+	assert_eq(u2.troops, 8, "troops 省略は満員")
 	assert_eq(u2.level, 1, "level 省略は1")
+	assert_eq(u2.unit_attack, 10, "type 無しは素の既定（atk10）")
+	assert_eq(u2.move, 3, "type 無しは素の既定（move3）")
 
 func test_roster_defaults_to_fresh() -> void:
 	# roster 省略＝独立（fresh）＝前ステージを引き継がない（1話完結の既定）。詳細 → doc/gdd/map.md
@@ -90,7 +90,8 @@ func test_build_resolves_type_from_catalog() -> void:
 	assert_eq(u.troops, 8, "max_troops → troops")
 	assert_eq(u.move, 3, "move は種別から")
 
-func test_type_fields_can_be_overridden() -> void:
+## 駒が書けるのは個体の状態（troops/level）だけ。性能は type が唯一の出どころ。詳細 → doc/gdd/map.md
+func test_unit_dict_carries_state_only() -> void:
 	var catalog := {
 		"cleric": UnitType.from_dict({
 			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
@@ -101,9 +102,37 @@ func test_type_fields_can_be_overridden() -> void:
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
-	assert_eq(u.troops, 5, "troops を上書き")
-	assert_eq(u.level, 2, "level を上書き")
-	assert_eq(u.unit_attack, 10, "上書きしない項目は種別のまま")
+	assert_eq(u.troops, 5, "troops＝損耗は駒が指定できる")
+	assert_eq(u.level, 2, "level＝成長は駒が指定できる")
+	assert_eq(u.max_troops, 8, "満員値は type のまま＝損耗しても回復は type の上限まで戻る")
+	assert_eq(u.unit_attack, 10, "性能は種別のまま")
+
+## 旧仕様の性能上書きキーは読まない（ステージに数値が散らないための線引き）。詳細 → doc/gdd/map.md
+func test_stage_cannot_override_type_stats() -> void:
+	var catalog := {
+		"cleric": UnitType.from_dict({
+			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
+			"range": "1-2", "capacity": 4, "atk_air": 7, "pierce": 0.5,
+			"move_type": "flight", "move_after_attack": true, "can_capture": true,
+		}),
+	}
+	var data := { "cols": 6, "rows": 4, "player": [
+		{ "type": "cleric", "col": 1, "row": 1,
+			"atk": 99, "def": 99, "move": 99, "range": 1, "capacity": 0, "atk_air": 0,
+			"pierce": 0.0, "move_type": "ground", "move_after_attack": false, "can_capture": false },
+	] }
+	var s := StageLoader.build(data, catalog)
+	var u := s.unit_by_id(1)
+	assert_eq(u.unit_attack, 10, "atk は無視")
+	assert_eq(u.unit_defense, 4, "def は無視")
+	assert_eq(u.move, 3, "move は無視")
+	assert_eq(u.attack_range, 2, "range は無視")
+	assert_eq(u.capacity, 4, "capacity は無視")
+	assert_eq(u.atk_air, 7, "atk_air は無視")
+	assert_eq(u.pierce, 0.5, "pierce は無視")
+	assert_eq(u.move_type, "flight", "move_type は無視")
+	assert_true(u.move_after_attack, "move_after_attack は無視")
+	assert_true(u.can_capture, "can_capture は無視")
 
 func _carry_catalog() -> Dictionary:
 	return {
@@ -362,26 +391,6 @@ func test_type_wires_all_combat_fields_from_catalog() -> void:
 	assert_eq(u.atk_air, 25, "atk_air が種別から載る")
 	assert_eq(u.pierce, 0.5, "pierce が種別から載る")
 	assert_eq(u.capacity, 4, "capacity が種別から載る")
-
-func test_type_combat_fields_can_be_overridden_per_unit() -> void:
-	var catalog := {
-		"wyvern": UnitType.from_dict({
-			"id": "wyvern", "atk_ground": 30, "atk_air": 25, "pierce": 0.5,
-			"defense": 20, "move": 6, "move_type": "flight", "range": 2,
-			"move_after_attack": true, "max_troops": 8, "capacity": 4,
-		}),
-	}
-	var data := { "cols": 6, "rows": 4, "player": [
-		{ "type": "wyvern", "col": 1, "row": 1, "move_type": "ground", "range": 1,
-			"move_after_attack": false, "atk_air": 0, "pierce": 0.0, "capacity": 0 },
-	] }
-	var u := StageLoader.build(data, catalog).unit_by_id(1)
-	assert_eq(u.move_type, "ground", "move_type を個別キーで上書き")
-	assert_eq(u.attack_range, 1, "range を上書き")
-	assert_eq(u.move_after_attack, false, "move_after_attack を上書き")
-	assert_eq(u.atk_air, 0, "atk_air を上書き")
-	assert_eq(u.pierce, 0.0, "pierce を上書き")
-	assert_eq(u.capacity, 0, "capacity を上書き")
 
 func test_type_field_sets_skin_id_to_same_name() -> void:
 	var catalog := {
