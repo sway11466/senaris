@@ -36,11 +36,15 @@ func _build() -> void:
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_backdrop)
 	_pic = TextureRect.new()
-	_pic.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED  # 全体を見せる（端を切らない）
+	# 収める寸法は _fit_pic が自分で計算する（KEEP_ASPECT_CENTERED に任せない）＝
+	# 絵の実寸が矩形と一致し、縁取りを絵の縁にぴったり合わせられる。
+	_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE  # 元画像より小さくできるように
+	_pic.stretch_mode = TextureRect.STRETCH_SCALE
 	_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_pic)
+	# 縁取りは右の会話パネルと同じ彫り枠を流用する（新しい見た目を発明しない）。
+	# 絵の子にする＝FULL_RECT アンカーで絵の寸法にそのまま追従する。
+	_pic.add_child(TavernTheme.signboard_frame())
 	var v := get_viewport()
 	if v != null:
 		v.size_changed.connect(func() -> void:
@@ -86,7 +90,20 @@ func _layout() -> void:
 		vp = v.get_visible_rect().size
 	var r := Rect2(Vector2.ZERO, vp) if _modal else UiLayout.board_area(vp).grow(-BOARD_MARGIN)
 	_root.position = r.position
-	_root.size = r.size  # 黒帯・イラストは FULL_RECT アンカーで _root に追従する
+	_root.size = r.size  # 黒帯は FULL_RECT アンカーで _root に追従する
+	_fit_pic()
+
+## 絵を表示域にアスペクト維持で収める（端は切らない）。位置・寸法を自分で持つので、
+## 絵の子に付けた彫り枠がそのまま絵の縁を囲む。
+func _fit_pic() -> void:
+	if _pic.texture == null:
+		return
+	var ts := _pic.texture.get_size()
+	if ts.x <= 0.0 or ts.y <= 0.0:
+		return
+	var s := minf(_root.size.x / ts.x, _root.size.y / ts.y)
+	_pic.size = (ts * s).round()
+	_pic.position = ((_root.size - _pic.size) * 0.5).round()
 
 func _on_input(e: InputEvent) -> void:
 	if not _modal:
