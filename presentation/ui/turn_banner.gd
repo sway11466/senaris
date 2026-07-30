@@ -1,19 +1,18 @@
 extends Control
 class_name TurnBanner
-## 手番の切り替わりを見せる横帯（presentation）。画面中央へ左右から差し込み、少し留めて消える。
-## 手番板（turn_plate.gd）は状態の常時表示なので、切り替わりの瞬間はこちらが担う。
-## とくに敵が1手も動かない手番は、これが無いと1フレームも見えずに手番が戻ってくる。
+## ターンの切り替わりを見せる横帯（presentation）。画面中央へ左右から差し込み、少し留めて消える。
+## ターン板（turn_plate.gd）は状態の常時表示なので、切り替わりの瞬間はこちらが担う。
+## とくに敵が1手も動かないターンは、これが無いと1フレームも見えずにターンが戻ってくる。
 ## 立ち絵は冒険譚の emblem（combat スロット優先）。状態は持たず main から play() で流し込む。
-## 仕様 → doc/gdd/uiux.md（手番の切り替わり）
+## 仕様 → doc/gdd/uiux.md（ターンの切り替わり）
 
-## 出し入れが終わった（留めも含めて完了）。敵手番はこれを待ってから最初の行動に入る。
+## 出し入れが終わった（留めも含めて完了）。敵ターンはこれを待ってから最初の行動に入る。
 signal finished
 
 const BAND_H := 120.0     # 帯の高さ
 const SLIDE_SEC := 0.18   # 差し込み／引き上げの秒数（片道）
 const HOLD_SEC := 0.34    # 留める秒数。SLIDE*2+HOLD = 0.7 秒（仕様）
 const ART_H := 168.0      # 立ち絵の高さ（帯より大きく＝上下にはみ出させる）
-const ART_INSET := 56.0   # 立ち絵を帯の端からどれだけ内側に置くか
 const LABEL_SIZE := 40
 
 var _band_ally: Panel      # 左から差し込む半分
@@ -21,11 +20,12 @@ var _band_enemy: Panel     # 右から差し込む半分
 var _label: Label
 var _art: TextureRect
 var _tween: Tween = null
-var _skippable := false    # 自分の手番＝クリック／キーで即座に消せる
+var _skippable := false    # 自分のターン＝クリック／キーで即座に消せる
+var _art_left := true      # 立ち絵を文字の左に出すか（自軍＝左／敵軍＝右）
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤の入力を邪魔しない（自分の手番は操作を受け付ける）
+	# 親が Node2D（main）なのでアンカーは効かない＝矩形は _layout で明示的に置く（ターン板と同じ）。
+	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤の入力を邪魔しない（自分のターンは操作を受け付ける）
 	visible = false
 	_build()
 	get_viewport().size_changed.connect(_layout)
@@ -51,10 +51,11 @@ func _build() -> void:
 	_label.add_theme_constant_override("outline_size", 8)
 	add_child(_label)
 
-## 手番バナーを出す。team=0 味方（青）／1 敵（赤）。skippable＝クリック等で消せるか（自分の手番）。
+## ターンバナーを出す。team=0 味方（青）／1 敵（赤）。skippable＝クリック等で消せるか（自分のターン）。
 ## skin_catalog と emblem_skin が揃っていれば立ち絵を重ねる（combat → map → 絵なし）。
 func play(team: int, text: String, skin_catalog: Dictionary, emblem_skin: String, skippable: bool) -> void:
 	_skippable = skippable
+	_art_left = team == 0  # 自軍は文字の左・敵軍は右（盤の左右と同じ並び）
 	_label.text = text
 	var col: Color = HexBoard3D.TEAM_COLORS[team % HexBoard3D.TEAM_COLORS.size()]
 	_band_ally.add_theme_stylebox_override("panel", _band_style(col, false))
@@ -65,7 +66,7 @@ func play(team: int, text: String, skin_catalog: Dictionary, emblem_skin: String
 	_layout()
 	_animate()
 
-## 出ている途中でも即座に閉じる（自分の手番のみ）。finished は必ず1回出す。
+## 出ている途中でも即座に閉じる（自分のターンのみ）。finished は必ず1回出す。
 func skip() -> void:
 	if not visible or not _skippable:
 		return
@@ -79,8 +80,12 @@ func dismiss() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible or not _skippable:
 		return
-	var pressed := (event is InputEventMouseButton and event.pressed) \
-		or (event is InputEventKey and event.pressed)
+	# InputEvent 基底に pressed は無いので、型を絞ってから読む（Variant だと推論できない）。
+	var pressed := false
+	if event is InputEventMouseButton:
+		pressed = (event as InputEventMouseButton).pressed
+	elif event is InputEventKey:
+		pressed = (event as InputEventKey).pressed
 	if pressed:
 		_close()
 
@@ -94,32 +99,33 @@ func _close() -> void:
 func _animate() -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
-	var w := size.x
-	var y := (size.y - BAND_H) * 0.5
+	var vp := get_viewport().get_visible_rect().size
+	var w := vp.x
+	var y := (vp.y - BAND_H) * 0.5
 	var half := w * 0.5
 	_band_ally.position = Vector2(-half, y)          # 画面外（左）から
 	_band_enemy.position = Vector2(w, y)             # 画面外（右）から
 	_label.modulate.a = 0.0
 	_art.modulate.a = 0.0
+	# 差し込み → 留め → 引き の3段。並行にするものは parallel() で明示し、段の区切りは chain()。
+	# set_parallel(true) を段の頭で使うと「留め」と「引き」が並行に走る（ホールドが飛ぶ）。
 	_tween = create_tween()
-	_tween.set_parallel(true)
 	_tween.tween_property(_band_ally, "position:x", 0.0, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_tween.tween_property(_band_enemy, "position:x", half, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_tween.tween_property(_label, "modulate:a", 1.0, SLIDE_SEC)
-	_tween.tween_property(_art, "modulate:a", 1.0, SLIDE_SEC)
-	_tween.set_parallel(false)
-	_tween.tween_interval(HOLD_SEC)
-	_tween.set_parallel(true)
-	_tween.tween_property(_band_ally, "position:x", -half, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	_tween.tween_property(_band_enemy, "position:x", w, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	_tween.tween_property(_label, "modulate:a", 0.0, SLIDE_SEC)
-	_tween.tween_property(_art, "modulate:a", 0.0, SLIDE_SEC)
+	_tween.parallel().tween_property(_band_enemy, "position:x", half, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_tween.parallel().tween_property(_label, "modulate:a", 1.0, SLIDE_SEC)
+	_tween.parallel().tween_property(_art, "modulate:a", 1.0, SLIDE_SEC)
+	_tween.chain().tween_interval(HOLD_SEC)
+	_tween.chain().tween_property(_band_ally, "position:x", -half, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_tween.parallel().tween_property(_band_enemy, "position:x", w, SLIDE_SEC).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_tween.parallel().tween_property(_label, "modulate:a", 0.0, SLIDE_SEC)
+	_tween.parallel().tween_property(_art, "modulate:a", 0.0, SLIDE_SEC)
 	_tween.chain().tween_callback(_close)
 
 func _layout() -> void:
 	if not visible:
 		return
 	var vp := get_viewport().get_visible_rect().size
+	position = Vector2.ZERO
 	size = vp
 	var y := (vp.y - BAND_H) * 0.5
 	var half := vp.x * 0.5
@@ -131,8 +137,18 @@ func _layout() -> void:
 		var t := _art.texture.get_size()
 		var w := ART_H * (t.x / maxf(1.0, t.y))
 		_art.size = Vector2(w, ART_H)
-		# 立ち絵は帯の端寄り＝文字と重ねない。足元を帯の下辺に合わせる（上へはみ出させる）。
-		_art.position = Vector2(ART_INSET, y + BAND_H - ART_H)
+		# 立ち絵は「文字の端」と「画面の端」のちょうど中間に置く（自軍は左側・敵軍は右側）。
+		# 足元は帯の下辺に合わせ、上へはみ出させる。
+		var text_w := _text_width()
+		var cx := (vp.x - text_w) * 0.25 if _art_left else vp.x - (vp.x - text_w) * 0.25
+		_art.position = Vector2(cx - w * 0.5, y + BAND_H - ART_H)
+
+## 中央寄せしたラベルの実際の文字幅（画面幅ではなく文字そのものの幅）。
+func _text_width() -> float:
+	var font := _label.get_theme_font("font")
+	if font == null:
+		return 0.0
+	return font.get_string_size(_label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
 
 ## 帯の見た目。中央（文字の後ろ）を濃く、外側へ向けて薄く抜く＝画面を塞がずに視線を集める。
 func _band_style(col: Color, mirrored: bool) -> StyleBoxFlat:
@@ -150,7 +166,7 @@ func _band_style(col: Color, mirrored: bool) -> StyleBoxFlat:
 
 ## emblem の立ち絵。combat スロット優先・無ければ map・どちらも無ければ null（絵なしで帯だけ出す）。
 ## 立ち絵はキャンバスに余白を焼き込んである（下寄せ・上に透明）ので、非透過部分を切り出してから使う。
-## 固定位置で切ると図が下に沈む。手番板の胸像と同じ考え方（turn_plate.gd の _bust）。
+## 固定位置で切ると図が下に沈む。ターン板の胸像と同じ考え方（turn_plate.gd の _bust）。
 func _figure(skin_catalog: Dictionary, skin_id: String) -> Texture2D:
 	if skin_id.is_empty() or skin_catalog.is_empty():
 		return null
