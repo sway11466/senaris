@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=1 / feature=28 / refactoring=9
+次回採番: bug=2 / feature=30 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -12,7 +12,13 @@
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
 
-（現在、判明済みの不具合はなし）
+### bug-1
+
+**gen_unit_map.ps1 の図がキャンバスをはみ出す（倍率1.3のユニット）**（優先度：低）
+
+- 背景：`tools/gen_unit_map.ps1` は 256四方のキャンバス（`$Canvas`）に BaseHeight 200 を基準として図を配置するが、`unit_skin.csv` の `map_scale` が 1.3 のユニット（airship・dragon_knight・treant）では図が 260px になり 4px はみ出す。3体とも map 画像がまだ無いため表面化していない。
+- 対応：BaseHeight を 192 に下げるか、Canvas を広げるかを決めて反映する。BaseHeight を下げると倍率1.0のユニットの見た目も一段小さくなるため、既存の map 画像を作り直すかどうかも併せて決める。絵を作る前に決着させる（作った後だと全再生成になる）。
+- 該当：`tools/gen_unit_map.ps1`（`$BaseHeight`／`$Canvas`）・`data/units/unit_skin.csv`（`map_scale`）・`doc/art/units.md`（制作スペックの数値）。着手の引き金＝倍率1.3のユニットの map 画像を作るとき。
 
 ## 機能追加
 
@@ -213,6 +219,22 @@
 - 対応：(1) 商標クリアランス＝第9類・第41類で US(USPTO)／EU(EUIPO)／日本(J-PlatPat) の各DBを正式確認。(2) `senaris.com` ドメイン取得（`.com` を主軸に）。(3) SNSハンドル確保（X／Bluesky／Discord 等）。(4) Steam アプリ名予約（Steamworks 登録時・Steam Direct $100）。確定したら naming_decision_senaris.md のステータスを更新。
 - 該当：`doc/sales/naming_decision_senaris.md`。着手の引き金＝配布が見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
+### feature-28
+
+**エンチャント第2弾（貫通追加・再行動）**（優先度：中）
+
+- 背景：エンチャントの器（単独発動・味方1体へ状態補正・移動後発動）は①妖精の粉で実装済み（[enchants.md](gdd/enchants.md)）。カタログを増やす段で、次に入れる2つの方向まで決まっている＝(1) 貫通追加＝対象の攻撃に貫通率を乗せる、(2) 再行動＝行動を終えた味方をもう一度動かす。どちらもレシピは未設計（発動者・値・持続・射程が未定）でカタログにも載っていない。
+- 対応：(1) 貫通追加は既存の状態補正で足りるか要確認＝`StatusMod` は攻防への add/mul は持つが、貫通率（`Unit.pierce`）に効く経路が無いため、補正チェーンに貫通の口を足すかどうかから決める。(2) 再行動は「1ターンに各ユニット1回まで」の縛りを入れる方針まで決定済み（無制限だと1体を延々動かせて崩壊する）。縛りの持ち場は駒側のフラグ＝`BattleState` に再行動回数を持たせ、中断セーブの直列化にも載せる。レシピが固まったら enchants.md のカタログへ②③として追記する。
+- 該当：`domain/formation/formation.gd`（RECIPES）・`domain/battle_state.gd`（再行動フラグ・直列化）・`domain/status/status_mod.gd`／`domain/combat/combat.gd`（貫通の口）・`tests/unit/test_enchant.gd`・`doc/gdd/enchants.md`。
+
+### feature-29
+
+**敵AIの陣形スキル／エンチャント使用**（優先度：中）
+
+- 背景：陣形スキルとエンチャントは当面プレイヤー専用で、敵AIは移動・攻撃・占領しかしない（[formations.md](gdd/formations.md) 実装方針・[enchants.md](gdd/enchants.md) 共通ルール）。看板機能を敵が使わないと、プレイヤーだけが持つ特権のままになる。成立条件はスキンID照合になった（未指定は種別へフォールバック）ので、敵側スキンをレシピに書けば成立させられる＝データ面の下地はできている。残るのはAIの思考。
+- 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) `nearest_attacker_brain` に発動判断を足す＝成立している選択肢を `Formation.available_for` で採り、撃つ価値（面に入る敵の数・バフの効き）で評価して選ぶ。思考軸として ai.csv に列を足すか、部隊単位の指定にするかを先に決める（[ai.md](gdd/ai.md) の「ロジック＝コード／組合せ＝データ」に従う）。feature-4（思考軸の残り値の配線）の隣。
+- 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`data/ai/ai.csv`（軸を足す場合）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`／`doc/gdd/enchants.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
+
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
@@ -276,4 +298,5 @@
 
 後回し・いつかやる候補の置き場（特定の作業に紐付かない将来アイデア）。着手が決まった段で機能追加・リファクタリングへ引き上げる。
 
+- 茂み（bush）の沈め量の詰め：立ち絵を沈める量（`terrain_skin.csv` の `sprite_sink`）を 0.12 で仮置きしている。茂みの絵そのものが仮のため、いま詰めても絵の差し替えでやり直しになる。本番の茂みタイルができたら実機で見て決める（→ [terrain.md](art/terrain.md)）。
 - Steam 配布の段取り（費用・スケジュール）：まず Steam（PC）で出す。**Steam Direct** $100/タイトル（売上 $1,000 で返金）・ストアページは公開の 2 週間以上前から表示可・登録〜審査〜公開で約 30 日。**GodotSteam** アドオンは必要になった段階で導入。配布費用・税・所有権チェックの設計は [monetization.md](sales/monetization.md) が正本。着手は配布できるビルドが見えてきたら逆算して。
