@@ -7,7 +7,7 @@ class_name BattleState
 var cols: int  ## 矩形フィールドの幅（offset col 数）
 var rows: int  ## 矩形フィールドの高さ（offset row 数）
 
-var current_team: int = 0  ## 現在の手番の陣営
+var current_team: int = 0  ## 現在のターンの陣営
 var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 var turn_limit: int = 0    ## ターン上限（超過でプレイヤー敗北・引き分けなし）。0＝無制限。実ステージJSONでは必須指定。詳細 → doc/gdd/map.md
 var roster: String = "fresh"  ## 戦力供給モデル（"fresh"=独立/"carryover"=継承）。ステージJSONの roster から。継承ステージ間の受け渡しに使う。詳細 → doc/gdd/map.md
@@ -86,7 +86,7 @@ func team_aura_fx() -> String:
 			return String(m.get("fx", ""))
 	return ""
 
-## 手番開始時に、始まった陣営の持続を1減らして満了を掃除する（end_turn から呼ぶ）。
+## ターン開始時に、始まった陣営の持続を1減らして満了を掃除する（end_turn から呼ぶ）。
 ## remaining は「残り自軍ターン数」＝発動陣営のターンが始まるたびに減る（跨いだ敵ターンでは減らない）。
 func _expire_status_mods() -> void:
 	var kept: Array = []
@@ -347,7 +347,7 @@ func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:
 			return true
 	return false
 
-## unit_id を to へ動かせるか（空きマスかつ残り移動範囲内）。地形のみの判定で手番は見ない。
+## unit_id を to へ動かせるか（空きマスかつ残り移動範囲内）。地形のみの判定でターンは見ない。
 func can_move(unit_id: int, to: Vector2i) -> bool:
 	if unit_at(to) != null:
 		return false
@@ -356,7 +356,7 @@ func can_move(unit_id: int, to: Vector2i) -> bool:
 		return false
 	return _reach_map(unit_id).has(to)
 
-## 妥当なら移動を適用して true。手番違い・移動権なし・不正先なら false。移動コストを予算から消費。
+## 妥当なら移動を適用して true。ターン違い・移動権なし・不正先なら false。移動コストを予算から消費。
 ## 移動先が「乗れる味方輸送」のマスなら乗車＝盤から降りて搭乗し、その駒は行動完了になる。
 func move_unit(unit_id: int, to: Vector2i) -> bool:
 	if not _can_act_move(unit_id):
@@ -395,7 +395,7 @@ func _try_capture(u: Unit) -> void:
 		b.team = u.team
 		u.add_experience(CAPTURE_EXPERIENCE)
 
-## いま移動できるか（手番・移動権・残り予算）。
+## いま移動できるか（ターン・移動権・残り予算）。
 ## 攻撃前: 通常移動を未使用なら可。攻撃後: 再移動可ユニットが再移動を未使用なら可。
 func _can_act_move(unit_id: int) -> bool:
 	var u := unit_by_id(unit_id)
@@ -460,7 +460,7 @@ func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 
 ## 拠点の garrison[index] を隣接 to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
 ## to_hex が「乗れる味方輸送」のマスなら出撃＝そのまま搭乗（盤上には出ない）。
-## 成否を返す。手番違い・非占領・索引外・native不一致（閉じ込め）・隣接でない・乗れない占有マスなら false。
+## 成否を返す。ターン違い・非占領・索引外・native不一致（閉じ込め）・隣接でない・乗れない占有マスなら false。
 func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	var b := base_at(base_hex)
 	if b == null or b.team != current_team:
@@ -494,7 +494,7 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	return true
 
 ## 自軍所有の拠点に「入る」（駐留）。拠点hexに立っている駒を garrison へ移す＝盤上から消える。
-## 中で手番開始ごとに回復（_heal_garrisons）。出るのは出撃（deploy）＝1歩・行動完了。
+## 中でターン開始ごとに回復（_heal_garrisons）。出るのは出撃（deploy）＝1歩・行動完了。
 func can_enter_base(unit_id: int) -> bool:
 	var u := unit_by_id(unit_id)
 	return u != null and can_enter_base_at(unit_id, u.pos)
@@ -526,7 +526,7 @@ func enter_base(unit_id: int) -> bool:
 
 # --- 攻撃 ---
 
-## attacker が target を攻撃できるか（現手番・未攻撃・射程内の敵）。
+## attacker が target を攻撃できるか（現ターン・未攻撃・射程内の敵）。
 func can_attack(attacker_id: int, target_id: int) -> bool:
 	var a := unit_by_id(attacker_id)
 	if a == null:
@@ -617,9 +617,9 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 
 ## 陣形スキルを解決して盤に適用する。option＝Formation.available_for の1要素。
 ## target＝着弾中心（buff では無視）。参加ユニットは行動完了。詳細 → doc/gdd/formations.md
-## 成功なら {recipe, results:[{target_id, loss, killed, detail}...]}、不正（手番違い・行動済み・射程外）なら空。
+## 成功なら {recipe, results:[{target_id, loss, killed, detail}...]}、不正（ターン違い・行動済み・射程外）なら空。
 func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
-	# 妥当性: 参加者が現手番・未行動・生存していること、target が射程内であること。
+	# 妥当性: 参加者が現ターン・未行動・生存していること、target が射程内であること。
 	# 移動後でも撃てるレシピ（エンチャント）は「行動を使い切っていないか」で見る。
 	# 陣形は従来どおり盤の行動終了判定に従う（配置が変わる＝動いたら成立しない）。
 	var after_move := bool(option.get("after_move", false))
@@ -777,9 +777,9 @@ func outcome() -> int:
 func is_over() -> bool:
 	return Victory.is_over(self)
 
-# --- 手番 ---
+# --- ターン ---
 
-## この陣営/ユニットが現在の手番か。
+## この陣営/ユニットが現在のターンか。
 func is_current_unit(u: Unit) -> bool:
 	return u != null and u.team == current_team
 
@@ -803,7 +803,7 @@ func is_done(unit_id: int) -> bool:
 	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
 	return not can_atk and not can_mv
 
-## この手番の行動をまだ使っていないか（「待機」で終えておらず、攻撃もしていない）。
+## このターンの行動をまだ使っていないか（「待機」で終えておらず、攻撃もしていない）。
 ## is_done と違い「行ける先が無い／撃てる相手が居ない」を終了扱いにしない。移動してから
 ## 撃てるエンチャントは、移動後この判定で発動可否を決める。詳細 → doc/gdd/enchants.md
 func has_action_left(unit_id: int) -> bool:
@@ -820,12 +820,12 @@ func _has_unloadable_passenger(unit_id: int) -> bool:
 func set_done(unit_id: int) -> void:
 	_done[unit_id] = true
 
-## 選択して操作できる状態か（現手番・まだ行動が残っている）。
+## 選択して操作できる状態か（現ターン・まだ行動が残っている）。
 func can_select(unit_id: int) -> bool:
 	return is_current_unit(unit_by_id(unit_id)) and not is_done(unit_id)
 
-## 手番を次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
-## 手番開始時に、拠点に駐留中（garrison）の駒を回復（休憩＝中に入るモデル）。
+## ターンを次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
+## ターン開始時に、拠点に駐留中（garrison）の駒を回復（休憩＝中に入るモデル）。
 func end_turn() -> void:
 	_moved.clear()
 	_post_moved.clear()
@@ -838,7 +838,7 @@ func end_turn() -> void:
 	_expire_status_mods()  # 始まった陣営の持続バフ/デバフを1減らして満了を掃除
 	_heal_garrisons()
 
-## 手番が始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
+## ターンが始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
 ## 回復できるのは native が自陣営/中立の拠点だけ＝奪った敵 native 拠点は出撃拠点にはなるが回復しない。
 ## 閉じ込め駒（帰属先≠所有者）も回復しない。hexの上に立っている駒は回復しない（中に入るモデル）。
 func _heal_garrisons() -> void:

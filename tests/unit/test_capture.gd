@@ -149,7 +149,7 @@ func test_empty_base_capture_is_noop() -> void:
 # --- 回復（休憩＝拠点の中に入るモデル） ---
 
 func test_enter_own_base_and_heal() -> void:
-	# 自軍拠点に「入る」＝garrison になり盤上から消える。手番開始で満員へ回復（経験Lvは据え置き）。
+	# 自軍拠点に「入る」＝garrison になり盤上から消える。ターン開始で満員へ回復（経験Lvは据え置き）。
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 0))
@@ -162,9 +162,9 @@ func test_enter_own_base_and_heal() -> void:
 	assert_null(s.unit_by_id(1), "駐留中は盤上に居ない")
 	assert_eq(s.base_at(base_hex).garrison.size(), 1, "garrison に載る")
 	s.end_turn()
-	s.end_turn()  # 自軍手番開始 → 駐留駒が回復
+	s.end_turn()  # 自軍ターン開始 → 駐留駒が回復
 	var healed: Unit = s.base_at(base_hex).garrison[0]
-	assert_eq(healed.troops, 8, "駐留中は手番開始時に満員へ回復")
+	assert_eq(healed.troops, 8, "駐留中はターン開始時に満員へ回復")
 	assert_eq(healed.level, 4, "経験Lvは据え置き")
 
 func test_standing_on_base_no_longer_heals() -> void:
@@ -174,7 +174,7 @@ func test_standing_on_base_no_longer_heals() -> void:
 	s.add_base(Base.new(base_hex, 1))
 	var u := Unit.new(1, 1, base_hex, 3); u.troops = 3
 	s.add_unit(u)
-	s.end_turn()  # team1 手番開始
+	s.end_turn()  # team1 ターン開始
 	assert_eq(s.unit_by_id(1).troops, 3, "上に立っているだけでは回復しない（中に入るモデル）")
 
 func test_cannot_enter_enemy_base_or_off_base() -> void:

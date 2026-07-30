@@ -7,7 +7,7 @@ class_name CombatScene
 ## 補正チェーンなどの詳細内訳を演出と同時に読めるようにする（演出=結果／右パネル=根拠）。
 ## 状態は持たず play(detail) のたびに detail から導出して描く。detail は BattleState.attack の "detail"。
 
-signal finished  # 演出が閉じた（自動クローズ or クリック）。AI手番のテンポ制御が待つ。
+signal finished  # 演出が閉じた（自動クローズ or クリック）。AIターンのテンポ制御が待つ。
 
 const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1）。並び順=重心から近い順で兵数少でも中央に寄る。combat_scene.md
 	Vector2(0.45, 0.36), Vector2(0.55, 0.68), Vector2(0.23, 0.52), Vector2(0.77, 0.52),

@@ -42,7 +42,7 @@ func test_deploy_fixes_allegiance_to_the_liberator() -> void:
 	assert_eq(elf.recruited_team, 0, "帰属が自軍で確定する")
 	assert_eq(elf.native_team, Base.NEUTRAL, "native は初期状態のまま動かさない")
 
-## 自軍の手番に戻す（敵手番を1つ挟む）。行動済みフラグが一掃される。
+## 自軍のターンに戻す（敵ターンを1つ挟む）。行動済みフラグが一掃される。
 func _next_own_turn(s: BattleState) -> void:
 	s.end_turn()
 	s.end_turn()

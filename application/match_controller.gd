@@ -27,15 +27,15 @@ var _finished := false
 var ai_team := 1
 var ai_brain: AiBrain = null
 var ai_delay := 0.35  # AIの各手を見せるための間（秒）
-var combat_pace := Callable()  # AI手番で戦闘演出の完了を待つフック（presentation が注入）。空なら待たない
-var move_pace := Callable()    # AI手番で移動アニメの完了を待つフック（同上）。空なら待たない
-var focus_pace := Callable()   # AI手番で次の行動主体(hex)をカメラに収めるフック（同上）。空なら何もしない
-var turn_start_pace := Callable()  # AI手番の頭で一拍置くフック（同上・手番バナー）。空なら待たない
+var combat_pace := Callable()  # AIターンで戦闘演出の完了を待つフック（presentation が注入）。空なら待たない
+var move_pace := Callable()    # AIターンで移動アニメの完了を待つフック（同上）。空なら待たない
+var focus_pace := Callable()   # AIターンで次の行動主体(hex)をカメラに収めるフック（同上）。空なら何もしない
+var turn_start_pace := Callable()  # AIターンの頭で一拍置くフック（同上・ターンバナー）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
 
-## 現在の手番が AI に委ねられているか（presentation の入力ロック判定に使う）。
+## 現在のターンが AI に委ねられているか（presentation の入力ロック判定に使う）。
 func is_ai_turn() -> bool:
 	return ai_brain != null and state.current_team == ai_team
 
@@ -141,7 +141,7 @@ func enter_base(unit_id: int) -> bool:
 		return true
 	return false
 
-## 手番を終了して次の陣営へ渡す。AIの手番に入ったら自動で思考を回す。
+## ターンを終了して次の陣営へ渡す。AIのターンに入ったら自動で思考を回す。
 func end_turn() -> void:
 	if _finished:
 		return
@@ -151,10 +151,10 @@ func end_turn() -> void:
 	if not _finished and is_ai_turn():
 		run_ai_turn()  # async（fire-and-forget）
 
-## AIの手番を実行。next_action が尽きるまで1手ずつ実行し、最後に手番を返す。
+## AIのターンを実行。next_action が尽きるまで1手ずつ実行し、最後にターンを返す。
 func run_ai_turn() -> void:
-	# 手番の頭で一拍置く（手番バナーの表示ぶん）。1手も動かない手番でもここは通るので、
-	# 敵の手番が1フレームも見えずに戻る事態を防ぐ。詳細 → doc/gdd/uiux.md
+	# ターンの頭で一拍置く（ターンバナーの表示ぶん）。1手も動かないターンでもここは通るので、
+	# 敵のターンが1フレームも見えずに戻る事態を防ぐ。詳細 → doc/gdd/uiux.md
 	if not _finished and turn_start_pace.is_valid():
 		await turn_start_pace.call()
 	while not _finished:

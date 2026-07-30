@@ -43,15 +43,15 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"tier": String(data.get("tier", "rookie")),  # 所属ボード（tutorial/rookie/adept/veteran）。未指定は rookie
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
 		"bgm": BgmCatalog.parse_slots(data.get("bgm", {})),  # 冒険譚既定のBGM（ステージ指定が無いとき）。doc/audio/bgm.md
-		"emblem": _parse_emblem(data.get("emblem", {})),  # 手番板の左右に出す代表ユニット（skin_id）。未指定は空＝枠を出さない
+		"emblem": _parse_emblem(data.get("emblem", {})),  # ターン板の左右に出す代表ユニット（skin_id）。未指定は空＝枠を出さない
 		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル（連番バリアント）
 		"card_paths": _resolve_art_variants(id, "card"),    # 冒険譚カード（絵はカード用にクロップ・連番バリアント）
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
 		"stages": stages,
 	}
 
-## emblem（手番板の代表ユニット）を { ally, enemy } の skin_id へ正規化。空文字・非辞書は落とす。
-## 仕様 → doc/gdd/stage_select.md（冒険譚マニフェスト）・doc/gdd/uiux.md（手番表示）
+## emblem（ターン板の代表ユニット）を { ally, enemy } の skin_id へ正規化。空文字・非辞書は落とす。
+## 仕様 → doc/gdd/stage_select.md（冒険譚マニフェスト）・doc/gdd/uiux.md（ターン表示）
 static func _parse_emblem(raw: Variant) -> Dictionary:
 	if typeof(raw) != TYPE_DICTIONARY:
 		return {}

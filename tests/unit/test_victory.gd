@@ -90,7 +90,7 @@ func test_no_loss_at_turn_limit() -> void:
 	s.turn_limit = 30
 	s.turn_number = 30
 	_both_present(s)
-	assert_eq(s.outcome(), BattleState.ONGOING, "上限ちょうど（30手番目）はまだ継続")
+	assert_eq(s.outcome(), BattleState.ONGOING, "上限ちょうど（30ターン目）はまだ継続")
 
 func test_loss_when_turn_limit_exceeded() -> void:
 	var s := BattleState.new(8, 8)

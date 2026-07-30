@@ -47,10 +47,10 @@ func show_unit(unit_id: int) -> void:
 	_show_text(_format(u))
 
 func clear() -> void:
-	_show_text("ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認\n\n［操作］\nEnter＝手番終了\n2本指スクロール／空き地ドラッグ＝移動\nピンチ＝ズーム\nF＝全体表示")
+	_show_text("ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認\n\n［操作］\nEnter＝ターン終了\n2本指スクロール／空き地ドラッグ＝移動\nピンチ＝ズーム\nF＝全体表示")
 
 ## 一時的な通知（セーブ完了など）。数秒だけ出して未選択表示へ戻す。
-## 上端の情報バーを廃した代わりの置き場（doc/gdd/uiux.md「手番表示」）。
+## 上端の情報バーを廃した代わりの置き場（doc/gdd/uiux.md「ターン表示」）。
 func notify(text: String, seconds := 2.5) -> void:
 	_show_text(text)
 	var token := _notify_token + 1

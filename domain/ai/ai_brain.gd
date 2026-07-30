@@ -8,7 +8,7 @@ class_name AiBrain
 ## 将来の高度AI（マップ全体を見てユニットごとに動かし方を変える）も
 ## 同じ next_action 内で全盤面を評価すればよい。
 
-## team の手番で行う次の行動を1つ返す。もう行動が無ければ null。
+## team のターンで行う次の行動を1つ返す。もう行動が無ければ null。
 func next_action(_state: BattleState, _team: int) -> AiAction:
 	return null
 

@@ -114,7 +114,7 @@ func test_duration_expires_after_two_self_turns() -> void:
 	s.add_unit(u)
 	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "remaining": 2})
 	assert_almost_eq(float(s.status_aggregate(u, "attack")["mul"]), 1.3, 0.001, "発動ターン: 有効")
-	s.end_turn()  # 0→1（敵ターン開始・owner≠現手番で減らない）
+	s.end_turn()  # 0→1（敵ターン開始・owner≠現ターンで減らない）
 	assert_almost_eq(float(s.status_aggregate(u, "attack")["mul"]), 1.3, 0.001, "敵ターン: 有効のまま")
 	s.end_turn()  # 1→0（次の自軍ターン開始・remaining 2→1）
 	assert_almost_eq(float(s.status_aggregate(u, "attack")["mul"]), 1.3, 0.001, "次の自軍ターン: まだ有効")

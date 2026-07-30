@@ -6,7 +6,7 @@ var _brain: NearestAttackerBrain
 func before_each() -> void:
 	_brain = NearestAttackerBrain.new()
 
-# 指定 team の手番として、行動が尽きるまで AI を実際に適用する（安全のため上限付き）。
+# 指定 team のターンとして、行動が尽きるまで AI を実際に適用する（安全のため上限付き）。
 func _run_turn(state: BattleState, team: int) -> void:
 	state.current_team = team
 	var guard := 0
@@ -19,7 +19,7 @@ func _run_turn(state: BattleState, team: int) -> void:
 			assert_true(state.move_unit(a.unit_id, a.to), "AIの移動は妥当であるべき")
 		else:
 			assert_false(state.attack(a.unit_id, a.target_id).is_empty(), "AIの攻撃は妥当であるべき")
-	fail_test("AIの手番が終了しなかった（無限ループの疑い）")
+	fail_test("AIのターンが終了しなかった（無限ループの疑い）")
 
 func test_attacks_adjacent_enemy() -> void:
 	var s := BattleState.new(8, 8)
@@ -114,14 +114,14 @@ func test_capturer_ignores_own_base() -> void:
 	assert_null(_brain.next_action(s, 1), "自陣営の拠点しか無ければ動かない")
 
 func test_full_turn_capture_flips_base() -> void:
-	# 実際に手番を回すと、拠点へ進入して所属が変わる（自動占領）。
+	# 実際にターンを回すと、拠点へ進入して所属が変わる（自動占領）。
 	var s := BattleState.new(8, 8)
 	var base_hex := Hex.offset_to_axial(3, 5)
 	s.add_unit(_capturer(10, 1, Hex.offset_to_axial(3, 3)))
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(7, 7), 3))  # 遠くの自軍（起動のため）
 	s.add_base(Base.new(base_hex, 0))
 	_run_turn(s, 1)
-	assert_eq(s.base_at(base_hex).team, 1, "手番の中で拠点を占領して所属が変わる")
+	assert_eq(s.base_at(base_hex).team, 1, "ターンの中で拠点を占領して所属が変わる")
 
 func test_advance_to_base_option_steps_toward_base() -> void:
 	# 拠点前進オプション: 届かない拠点でも、敵ではなく拠点の方へ前進する。
@@ -316,7 +316,7 @@ func test_guard_squad_alarm_wakes_all() -> void:
 	assert_true(moved.has(11), "索敵外の同部隊メンバーも一斉に動く")
 
 func test_guard_wakes_when_damaged() -> void:
-	# 被ダメ＝確定起動。撃たれた待機ユニットは次の手番から動く。
+	# 被ダメ＝確定起動。撃たれた待機ユニットは次のターンから動く。
 	_brain.presets = { "guard": GUARD }
 	var s := BattleState.new(12, 3)
 	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
@@ -560,7 +560,7 @@ func test_base_does_not_deploy_locked_garrison() -> void:
 	assert_null(_brain.next_action(s, 1), "閉じ込めの控えは出さない")
 
 func test_base_deploys_all_and_assigns_squad() -> void:
-	# 手番を回すと出せるだけ出し、出した駒は拠点の squad に属する。
+	# ターンを回すと出せるだけ出し、出した駒は拠点の squad に属する。
 	_brain.presets = DEPLOY_PRESETS
 	var s := BattleState.new(8, 8)
 	s.current_team = 1

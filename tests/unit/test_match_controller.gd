@@ -4,7 +4,7 @@ extends GutTest
 ## 戦闘式・占領などの状態遷移そのものは domain 側のテストに任せ、ここではシグナルに絞る。
 ## 詳細 → doc/tech/testing.md, doc/tech/architecture.md
 
-## 手を積んでおくと1手ずつ返すスタブAI（尽きたら null＝手番を返す）。
+## 手を積んでおくと1手ずつ返すスタブAI（尽きたら null＝ターンを返す）。
 class QueueBrain extends AiBrain:
 	var queue: Array = []
 	func next_action(_state: BattleState, _team: int) -> AiAction:
@@ -76,7 +76,7 @@ func test_finished_latch_blocks_all_commands() -> void:
 	mc.stand(1)
 	assert_true(s.can_select(1), "決着後の待機は no-op（行動終了が付かない）")
 	mc.end_turn()
-	assert_signal_emit_count(mc, "turn_changed", 2, "決着後の end_turn は手番を回さない")
+	assert_signal_emit_count(mc, "turn_changed", 2, "決着後の end_turn はターンを回さない")
 	assert_signal_emit_count(mc, "battle_finished", 1, "battle_finished は二重発行されない")
 	for sig in ["unit_moved", "move_rejected", "unit_attacked", "combat_resolved",
 			"formation_resolved", "unit_deployed", "unit_unloaded", "unit_entered_base",
@@ -274,7 +274,7 @@ func test_execute_formation_invalid_fails_without_signals() -> void:
 	assert_signal_not_emitted(mc, "formation_resolved")
 	assert_signal_not_emitted(mc, "unit_died")
 
-# --- end_turn / is_ai_turn / AI手番 ---
+# --- end_turn / is_ai_turn / AIターン ---
 
 func test_end_turn_emits_turn_changed() -> void:
 	var s := BattleState.new(8, 8)
@@ -292,16 +292,16 @@ func test_is_ai_turn() -> void:
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
 	var mc := _mc(s)
-	assert_false(mc.is_ai_turn(), "brain 無しは自軍手番で false")
+	assert_false(mc.is_ai_turn(), "brain 無しは自軍ターンで false")
 	s.current_team = 1
-	assert_false(mc.is_ai_turn(), "brain 無しは敵手番でも false（ホットシート）")
+	assert_false(mc.is_ai_turn(), "brain 無しは敵ターンでも false（ホットシート）")
 	mc.ai_brain = AiBrain.new()
-	assert_true(mc.is_ai_turn(), "brain あり＋敵手番（ai_team）は true")
+	assert_true(mc.is_ai_turn(), "brain あり＋敵ターン（ai_team）は true")
 	s.current_team = 0
-	assert_false(mc.is_ai_turn(), "brain ありでも自軍手番は false")
+	assert_false(mc.is_ai_turn(), "brain ありでも自軍ターンは false")
 
 func test_end_turn_runs_ai_and_returns_turn() -> void:
-	# ツリー外＝is_inside_tree() が false で await を踏まないため、AI手番は同期で回り切る。
+	# ツリー外＝is_inside_tree() が false で await を踏まないため、AIターンは同期で回り切る。
 	var s := BattleState.new(8, 8)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
 	var e := Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3)
@@ -312,9 +312,9 @@ func test_end_turn_runs_ai_and_returns_turn() -> void:
 	var brain := QueueBrain.new()
 	brain.queue.append(AiAction.move_to(2, dest))
 	mc.ai_brain = brain
-	mc.end_turn()  # → 敵手番 → AIが1手指して手番を返す
+	mc.end_turn()  # → 敵ターン → AIが1手指してターンを返す
 	assert_signal_emitted_with_parameters(mc, "unit_moved", [2, from, dest, [from, dest] as Array[Vector2i]])
-	assert_eq(s.current_team, 0, "AIが指し終えたら手番が自軍へ戻る")
+	assert_eq(s.current_team, 0, "AIが指し終えたらターンが自軍へ戻る")
 	assert_eq(s.turn_number, 2, "1巡してターンが進む")
 	assert_signal_emit_count(mc, "turn_changed", 2, "自軍→敵軍→自軍で2回")
 
@@ -332,10 +332,10 @@ func test_ai_turn_waits_for_move_animation() -> void:
 	mc.ai_brain = brain
 	mc.end_turn()
 	assert_eq(waits[0], 1, "AIの手ごとに移動アニメの完了を待つ")
-	assert_eq(s.current_team, 0, "待ちフックがあっても手番は返る（固まらない）")
+	assert_eq(s.current_team, 0, "待ちフックがあってもターンは返る（固まらない）")
 
 func test_ai_turn_without_move_pace_still_completes() -> void:
-	# フック未注入（テスト・ヘッドレス）でも AI手番が回り切ること＝待ちは任意。
+	# フック未注入（テスト・ヘッドレス）でも AIターンが回り切ること＝待ちは任意。
 	var s := BattleState.new(8, 8)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
 	var e := Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3)
@@ -345,7 +345,7 @@ func test_ai_turn_without_move_pace_still_completes() -> void:
 	brain.queue.append(AiAction.move_to(2, Hex.neighbor(e.pos, 0)))
 	mc.ai_brain = brain
 	mc.end_turn()
-	assert_eq(s.current_team, 0, "move_pace 未設定でも手番が返る")
+	assert_eq(s.current_team, 0, "move_pace 未設定でもターンが返る")
 
 func test_ai_turn_focuses_each_action_before_applying() -> void:
 	# 行動を見せる前にカメラ用フックへ「見るべき hex」を渡す＝主体はまだ動いていない位置。

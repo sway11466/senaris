@@ -89,7 +89,7 @@ func test_boarded_this_turn_cannot_unload() -> void:
 	s.move_unit(2, wagon.pos)
 	assert_true(s.unload_cells(1, 0).is_empty(), "乗車したターンは降りられない")
 	s.end_turn()
-	s.end_turn()  # 自軍手番に戻る＝行動フラグが流れる
+	s.end_turn()  # 自軍ターンに戻る＝行動フラグが流れる
 	assert_false(s.unload_cells(1, 0).is_empty(), "翌ターンは降りられる")
 
 func test_unload_respects_move_type_and_occupancy() -> void:

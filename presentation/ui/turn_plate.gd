@@ -1,9 +1,9 @@
 extends Control
 class_name TurnPlate
-## 手番表示の板（presentation）。盤エリアの上端中央に置き、[味方][turn n / limit][敵] を横に並べる。
-## 手番側の枠を活性化する（非活性は暗く落とし、活性は陣営色の縁）。状態は持たず main から set_* で流し込む。
+## ターン表示の板（presentation）。盤エリアの上端中央に置き、[味方][turn n / limit][敵] を横に並べる。
+## ターン側の枠を活性化する（非活性は暗く落とし、活性は陣営色の縁）。状態は持たず main から set_* で流し込む。
 ## 左右の絵は冒険譚マニフェストの emblem（skin_id）。未指定なら枠を出さず中央だけ見せる。
-## 仕様 → doc/gdd/uiux.md（手番表示）
+## 仕様 → doc/gdd/uiux.md（ターン表示）
 
 const FRAME := 64.0      # 左右の枠（正方形）
 const CENTER_W := 168.0  # 中央のターン数の札
@@ -86,7 +86,7 @@ func set_emblem(skin_catalog: Dictionary, ally_id: String, enemy_id: String) -> 
 	_enemy.visible = _has_emblem
 	_layout()
 
-## 手番と経過ターンを反映。turn_limit が 0（無制限）なら上限は出さない。
+## ターンと経過ターンを反映。turn_limit が 0（無制限）なら上限は出さない。
 func set_turn(team: int, turn_number: int, turn_limit: int) -> void:
 	_label.text = "turn %d / %d" % [turn_number, turn_limit] if turn_limit > 0 else "turn %d" % turn_number
 	var player := team == 0

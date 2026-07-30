@@ -13,14 +13,14 @@ signal tile_inspected(hex: Vector2i)
 ## 戻る対象が無い最上位で Esc を押したとき発行（HUD がシステムメニューを開く）。
 signal system_menu_requested
 ## 移動アニメが終わった（歩き切った・割り込みでスナップした のどちらも）。
-## AI手番のテンポ制御に使う（main が controller.move_pace へ注入）。待ち手を取り残さないため
+## AIターンのテンポ制御に使う（main が controller.move_pace へ注入）。待ち手を取り残さないため
 ## 中断でも必ず発行する。
 signal move_animation_finished
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
 const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
-const FOCUS_PAN_SEC := 0.25          # AI手番のカメラ追従＝1回のパンにかける秒数（なめらかに）
+const FOCUS_PAN_SEC := 0.25          # AIターンのカメラ追従＝1回のパンにかける秒数（なめらかに）
 const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝可視域の内側マージン(px)。この内なら動かさない
 const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
@@ -120,7 +120,7 @@ var _inspect_reach := {} # Vector2i -> true（閲覧中の敵ユニットの移�
 var _targets := {}       # Vector2i -> target_id（攻撃可能な敵の位置）
 var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
-var _locked := false     # 決着・AI手番中は入力を受けない（カメラは見られる）
+var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
 var _unit_nodes := {}    # unit_id -> Node3D（そのユニットの見た目一式の親。_sync_units が作り直す）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の _sync_units で必ず畳む）
@@ -264,7 +264,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _frozen:
 		return  # 会話中＝盤の入力を全て止める（スクロールを会話エリアだけに閉じる）
-	# --- カメラ（パン/ズーム/全体表示）。AI手番・決着後も見渡せるよう常時受ける。---
+	# --- カメラ（パン/ズーム/全体表示）。AIターン・決着後も見渡せるよう常時受ける。---
 	if _handle_camera_scroll(event):
 		return
 	# 左ボタン: 押下で起点を記録し、離した時にクリック/パンを判別（しきい値）。
@@ -284,7 +284,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _dragging_pan:
 			_pan_by(event.relative)  # 空き地ドラッグ＝パン
 		return
-	# --- 盤操作（自手番のみ）---
+	# --- 盤操作（自ターンのみ）---
 	if _locked or controller.is_ai_turn():
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
@@ -361,7 +361,7 @@ func _zoom_at_point(factor: float, screen: Vector2) -> void:
 		_cam_target += Vector3(before.x - after.x, 0.0, before.z - after.z)
 		_update_camera()
 
-## 盤全体が HUD を避けた表示領域（上の手番板・右の InfoPanel を除く）に収まるよう距離と注視点を合わせる。
+## 盤全体が HUD を避けた表示領域（上のターン板・右の InfoPanel を除く）に収まるよう距離と注視点を合わせる。
 func fit_to_view() -> void:
 	if state == null:
 		return
@@ -380,7 +380,7 @@ func fit_to_view() -> void:
 	var tanf := tan(deg_to_rad(CAM_FOV) * 0.5)
 	var sp := sin(deg_to_rad(CAM_PITCH_DEG))
 	var vis_w := minf(vp.x, INFOPANEL_LEFT) - 32.0   # 可視域（右の InfoPanel・左右マージンを除く）
-	var vis_h := vp.y - 96.0                          # 上の手番板の下から下端まで
+	var vis_h := vp.y - 96.0                          # 上のターン板の下から下端まで
 	var d_h := half.x / (tanf * vis_w / vp.y)         # 横に収まる距離
 	var d_v := half.y * sp / (tanf * vis_h / vp.y)    # 縦（奥行きは俯角で縮む）に収まる距離
 	_cam_dist = clampf(maxf(d_h, d_v) * 1.05, MIN_DIST, MAX_DIST)
@@ -391,8 +391,8 @@ func fit_to_view() -> void:
 	_cam_target = Vector3(c.x + dx_px * wpp, 0.0, c.y + dy_px * wpp / sp)
 	_update_camera()
 
-## AI手番で「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
-## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵手番のカメラ」）。
+## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
+## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
 ## ただし: すでに安全域(可視域の内側)に見えていれば動かさない＝近くの敵が続くとき無駄に揺らさない。
 ## 外／端にいるときだけ、その主体が安全域に入る最小限だけ なめらかにパンする。ズーム(距離)は変えない。
 func focus_camera_on(hex: Vector2i) -> void:
@@ -403,7 +403,7 @@ func focus_camera_on(hex: Vector2i) -> void:
 		return  # 主体がカメラ背後（通常起きない）＝寄せようがない
 	var sp := _cam.unproject_position(w)
 	var vp := get_viewport().get_visible_rect().size
-	# 安全域＝可視域（右の InfoPanel・上の手番板を除く）の、さらに内側 FOCUS_MARGIN。
+	# 安全域＝可視域（右の InfoPanel・上のターン板を除く）の、さらに内側 FOCUS_MARGIN。
 	var left := 16.0 + FOCUS_MARGIN
 	var right := INFOPANEL_LEFT - 16.0 - FOCUS_MARGIN
 	var top := 96.0 + FOCUS_MARGIN
@@ -525,7 +525,7 @@ func _on_click(hex: Vector2i) -> void:
 		if sel != null and occ != null and _reachable.has(hex) and state.can_board(sel, occ):
 			_open_board_menu(hex)
 			return
-	# 現手番で操作可能なユニットをクリック → 選択。
+	# 現ターンで操作可能なユニットをクリック → 選択。
 	var clicked := state.unit_at(hex)
 	if clicked != null and state.can_select(clicked.id):
 		_select(clicked.id)
@@ -994,7 +994,7 @@ func _elev_levels() -> Array:
 	_elev_levels_cache = arr
 	return arr
 
-## 進行中の移動アニメを畳む。待っている側（AI手番）を取り残さないため完了を必ず知らせる。
+## 進行中の移動アニメを畳む。待っている側（AIターン）を取り残さないため完了を必ず知らせる。
 func _kill_move_tween() -> void:
 	if _move_tween == null:
 		return
@@ -1004,7 +1004,7 @@ func _kill_move_tween() -> void:
 		t.kill()
 	move_animation_finished.emit()
 
-## AI手番のテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。
+## AIターンのテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。
 func await_move_animation() -> void:
 	if _move_tween != null and _move_tween.is_valid() and _move_tween.is_running():
 		await move_animation_finished

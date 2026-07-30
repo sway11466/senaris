@@ -48,5 +48,5 @@ func test_done_flag_cleared_next_turn() -> void:
 	s.set_done(1)
 	s.end_turn()  # → 敵軍
 	s.end_turn()  # → 自軍へ戻る
-	assert_false(s.is_done(1), "次の自軍手番では待機が解除される")
+	assert_false(s.is_done(1), "次の自軍ターンでは待機が解除される")
 	assert_true(s.can_select(1), "再び選択可")

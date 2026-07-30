@@ -105,7 +105,7 @@ func test_losing_own_hq_is_defeat() -> void:
 	var raider := Unit.new(2, 1, Hex.neighbor(hq_hex, 0), 3)
 	raider.can_capture = true
 	s.add_unit(raider)
-	s.current_team = 1  # 敵手番
+	s.current_team = 1  # 敵ターン
 	assert_true(s.move_unit(2, hq_hex), "敵の占領役が自軍hqへ進入")
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "本拠地を奪われて敗北")
 

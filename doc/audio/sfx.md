@@ -229,7 +229,7 @@ BGM（[bgm.md](bgm.md)）と同じ責務分担に揃える。音の再生は pre
 
 - バス構成は `Master → Music / SFX`（`default_bus_layout.tres`）。`BgmPlayer` は Music、`SfxPlayer` は SFX へ送る。素材の音量は書き出し時に揃えてあるので、ここは場面ごとのバランスと設定画面の音量スライダーの受け皿になる。
 - 同一 `sfx_id` が極短時間に連続した場合は間引く。`ui_hover` はホバーと文字送りの両方で鳴るため、ここが効く。
-- 1手番に複数の戦闘が連続する場合（[../tech/combat_scene.md](../tech/combat_scene.md) のキュー処理）は、演出の短縮に合わせて音も減らす。演出オフの設定でも決着の音は残す。
+- 1ターンに複数の戦闘が連続する場合（[../tech/combat_scene.md](../tech/combat_scene.md) のキュー処理）は、演出の短縮に合わせて音も減らす。演出オフの設定でも決着の音は残す。
 
 BGM に重ねたときの被り具合は `sound_check` で確かめる（[../tech/tools.md](../tech/tools.md)）。素材と発火点の両方を鳴らせて、素材が未配置の発火点も一覧で分かる。
 

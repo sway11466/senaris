@@ -68,7 +68,7 @@ func test_cannot_attack_off_turn() -> void:
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
-	assert_true(s.attack(2, 1).is_empty(), "手番外の陣営は攻撃できない")
+	assert_true(s.attack(2, 1).is_empty(), "ターン外の陣営は攻撃できない")
 
 func test_cannot_attack_twice() -> void:
 	var s := _state()

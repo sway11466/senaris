@@ -40,7 +40,7 @@ func test_flyer_hits_ground_no_retaliation_when_no_antiair() -> void:
 	ground.atk_air = 0                                                # 対空なし
 	s.add_unit(flyer)
 	s.add_unit(ground)
-	s.current_team = 1  # 飛行側(team1)の手番
+	s.current_team = 1  # 飛行側(team1)のターン
 	var r := s.attack(1, 2)
 	assert_gt(r["damage"], 0, "飛行は地上を攻撃できる（対地で）")
 	assert_eq(r["retaliation"], 0, "対空0の地上は反撃できない")

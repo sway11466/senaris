@@ -44,7 +44,7 @@ func test_roundtrips_real_battle_state() -> void:
 
 	var got := SaveStore.new(PATH).load()
 	var s2 := BattleState.from_dict(got["state"], cat)
-	assert_eq(s2.current_team, 1, "手番を復元")
+	assert_eq(s2.current_team, 1, "ターンを復元")
 	assert_eq(s2.turn_number, 4)
 	assert_eq(s2.unit_by_id(1).troops, 3, "損耗を復元")
 	assert_eq(String(got["meta"]["stage_path"]), "res://data/stages/x.json", "再開に使うステージパス")

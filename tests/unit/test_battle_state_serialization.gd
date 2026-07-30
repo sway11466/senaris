@@ -22,7 +22,7 @@ func _rich_state() -> BattleState:
 		"victory": [{ "type": "defeat_unit", "unit_id": 99 }],
 	}
 	var s := StageLoader.build(data, _cat())
-	# 進行中の状態を模す：手番・行動フラグ・損耗・状態補正・撃破記録を仕込む。
+	# 進行中の状態を模す：ターン・行動フラグ・損耗・状態補正・撃破記録を仕込む。
 	s.current_team = 1
 	s.turn_number = 3
 	s.unit_by_id(1).troops = 5      # archer 損耗
@@ -48,7 +48,7 @@ func test_scalars_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
 	assert_eq(s2.cols, 8)
 	assert_eq(s2.rows, 6)
-	assert_eq(s2.current_team, 1, "手番の陣営")
+	assert_eq(s2.current_team, 1, "ターンの陣営")
 	assert_eq(s2.turn_number, 3)
 	assert_eq(s2.turn_limit, 15)
 	assert_eq(s2.roster, "carryover")
