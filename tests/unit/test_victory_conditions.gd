@@ -155,3 +155,25 @@ func test_loader_wires_victory_and_explicit_id() -> void:
 func test_loader_defaults_to_empty_conditions() -> void:
 	var s := StageLoader.build({ "cols": 6, "rows": 6 })
 	assert_true(s.victory_conditions.is_empty(), "victory 未指定＝空リスト（殲滅のみ＝従来挙動）")
+
+# --- Victory ヘルパー（BattleState.outcome の実体） ---
+
+func test_victory_helper_matches_state_query() -> void:
+	# state 側は委譲の薄い口＝どちらから聞いても同じ答えになる。
+	var s := _boss_state()
+	assert_eq(Victory.outcome(s), s.outcome(), "継続中は一致")
+	assert_false(Victory.is_over(s), "継続中は決着していない")
+	s.attack(1, BOSS_ID)
+	assert_eq(Victory.outcome(s), BattleState.PLAYER_WIN, "ボス撃破で勝利")
+	assert_eq(Victory.outcome(s), s.outcome(), "決着後も一致")
+	assert_true(Victory.is_over(s))
+
+func test_victory_helper_judges_single_condition() -> void:
+	# 勝利条件1件の判定は condition_met＝タイプを足すときの入口。
+	var s := _boss_state()
+	var boss := { "type": "defeat_unit", "unit_id": BOSS_ID }
+	assert_false(Victory.condition_met(s, boss), "ボスが生きていれば不成立")
+	s.attack(1, BOSS_ID)
+	assert_true(Victory.condition_met(s, boss), "撃破済みなら成立")
+	assert_false(Victory.condition_met(s, { "type": "no_such_type" }), "未知の type は満たさない")
+	assert_true(s.is_defeated(BOSS_ID), "撃破の記録は state 側の口から引ける")

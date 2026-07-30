@@ -67,3 +67,24 @@ func test_visible_hexes_within_board_only() -> void:
 	var vis := s.visible_hexes(Vector2i(0, 0), 5)
 	for h in vis:
 		assert_true(s.in_field(h), "盤外は含めない")
+
+# --- Sight ヘルパー（BattleState.sight_reaches の実体） ---
+
+func test_sight_helper_matches_state_query() -> void:
+	# state 側は委譲の薄い口＝どちらから聞いても同じ答えになる。表は state が持ち続ける。
+	var s := _state(8, 4)
+	s.set_terrain(Vector2i(1, 0), "forest")
+	assert_eq(Sight.reaches(s, Vector2i(0, 0), Vector2i(2, 0), 3),
+		s.sight_reaches(Vector2i(0, 0), Vector2i(2, 0), 3), "森ごし・届く側で一致")
+	assert_eq(Sight.reaches(s, Vector2i(0, 0), Vector2i(2, 0), 2),
+		s.sight_reaches(Vector2i(0, 0), Vector2i(2, 0), 2), "届かない側でも一致")
+	assert_eq(Sight.visible_hexes(s, Vector2i(0, 0), 3).size(),
+		s.visible_hexes(Vector2i(0, 0), 3).size(), "可視集合も一致")
+
+func test_sight_helper_reads_injected_cost_table() -> void:
+	# 表を差し替えると規則側の答えも変わる＝Sight は state の表を読んでいる（焼き込んでいない）。
+	var s := BattleState.new(8, 4)
+	s.set_terrain(Vector2i(1, 0), "forest")
+	assert_true(Sight.reaches(s, Vector2i(0, 0), Vector2i(2, 0), 2), "表なし＝全地形1＝距離2で届く")
+	s.set_sight_cost(COST)
+	assert_false(Sight.reaches(s, Vector2i(0, 0), Vector2i(2, 0), 2), "森(2)を注入すると同じ経路で届かない")

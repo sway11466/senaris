@@ -253,29 +253,12 @@ func set_sight_cost(table: Dictionary) -> void:
 func sight_cost_at(hex: Vector2i) -> int:
 	return int(_sight_cost.get(terrain_at(hex), 1))
 
-## from から to へ視線が通り、累積視線コストが budget 以内か（起動 sight の判定に使う）。
-## 壁の角をかすめる線は1本だと角を拾って穴が開くので、±両側にずらした2本を試し、安い方で判定する。
-## 真後ろの壁は両側とも貫く＝遮断が残る／角かすめは片側が通る＝穴が消える。
-## 各マス（from を除き to を含む）の視線コストを積算。全地形コスト1なら「累積＝ヘックス距離」＝純距離の索敵に一致。
+## 視線の規則計算は Sight（static ヘルパー）が持つ＝ここは表の持ち主として口だけ残す。
 func sight_reaches(from: Vector2i, to: Vector2i, budget: int) -> bool:
-	return mini(_sight_line_cost(from, to, 1.0), _sight_line_cost(from, to, -1.0)) <= budget
+	return Sight.reaches(self, from, to, budget)
 
-## from→to の直線（bias でずらした1本）の視線コスト積算（from を除き to を含む）。
-func _sight_line_cost(from: Vector2i, to: Vector2i, bias: float) -> int:
-	var acc := 0
-	var path := Hex.line(from, to, bias)
-	for i in range(1, path.size()):
-		acc += sight_cost_at(path[i])
-	return acc
-
-## from から budget 以内で視認できる盤内ヘックスの集合（from 含む）。索敵範囲の可視化に使う。
-## 全コスト≥1 前提で距離 budget 以内を候補にし、視線が通るものだけ残す（壁は影を作る・森は範囲が縮む）。
 func visible_hexes(from: Vector2i, budget: int) -> Dictionary:
-	var out := { from: true }
-	for h in Hex.within_range(from, budget):
-		if in_field(h) and sight_reaches(from, h, budget):
-			out[h] = true
-	return out
+	return Sight.visible_hexes(self, from, budget)
 
 ## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
 ## 味方のマスは通過できるが停止できない（到達候補には含めない）。
@@ -530,7 +513,7 @@ func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
 		return true  # 入っても盤上に他の駒が残る
 	# 盤上最後の1体：入った駒自身が b の出せる控えになる＝b に空き隣接があれば復帰可。
 	# 他拠点で既に復帰可能でもよい（＝入った瞬間に「盤上0かつ復帰なし」の敗北にならない）。
-	return _base_has_open_neighbor(b) or _has_reinforcement(u.team)
+	return _base_has_open_neighbor(b) or has_reinforcement(u.team)
 
 func enter_base(unit_id: int) -> bool:
 	if not can_enter_base(unit_id):
@@ -751,7 +734,8 @@ func team_unit_count(team: int) -> int:
 
 ## team が「復帰手段」を持つか＝所有拠点に、実際に盤上へ出せる控えが1体でもいる（案B）。
 ## 盤上0でもこれが真なら、その陣営はまだ消滅していない＝敗北/勝利にしない。
-func _has_reinforcement(team: int) -> bool:
+## 勝敗判定（Victory）と駐留の可否（can_enter_base_at）の両方が使う＝state 側に置く。
+func has_reinforcement(team: int) -> bool:
 	for b in _bases:
 		if b.team == team and _base_has_deployable_garrison(b) and _base_has_open_neighbor(b):
 			return true
@@ -773,50 +757,16 @@ func _base_has_open_neighbor(b: Base) -> bool:
 			return true
 	return false
 
-## 決着結果。敗北を優先（自軍消滅／自軍本拠地の喪失）。相討ち消滅も負け。
-## 消滅＝盤上0 かつ 復帰手段なし（案B）。勝利は 殲滅（常に有効）＋ victory_conditions のいずれか（OR）。
+## 撃破済みの駒か（ボス撃破の勝利条件が見る記録）。盤から消えた駒は unit_by_id では引けない。
+func is_defeated(unit_id: int) -> bool:
+	return _defeated.has(unit_id)
+
+## 決着結果。判定規則は Victory（static ヘルパー）が持つ＝勝利条件タイプが増えても state は太らない。
 func outcome() -> int:
-	if team_unit_count(0) == 0 and not _has_reinforcement(0):
-		return PLAYER_LOSS
-	if _own_hq_lost():
-		return PLAYER_LOSS  # 味方本拠地を奪われたら敗北（hq を置いたステージだけ効く）
-	if team_unit_count(1) == 0 and not _has_reinforcement(1):
-		return PLAYER_WIN
-	for c in victory_conditions:
-		if _victory_met(c):
-			return PLAYER_WIN
-	if turn_limit > 0 and turn_number > turn_limit:
-		return PLAYER_LOSS  # ターン制限超過＝時間切れ敗北（引き分けなし）。詳細 → doc/gdd/map.md
-	return ONGOING
-
-## 自軍 native の本拠地（hq）が敵の手に落ちているか。hq が無いステージでは常に false。
-func _own_hq_lost() -> bool:
-	for b in _bases:
-		if b.is_hq() and b.native_team == 0 and b.team != 0:
-			return true
-	return false
-
-## 勝利条件1件の判定。未知の type は満たさない扱い（前方互換）。
-func _victory_met(c: Dictionary) -> bool:
-	match String(c.get("type", "")):
-		"defeat_unit":  # ボス撃破＝指定IDの駒が撃破済み
-			return _defeated.has(int(c.get("unit_id", -1)))
-		"capture_hq":   # 本拠地占領＝敵 native の hq をすべて自軍が保持（hq が無ければ不成立）
-			return _enemy_hq_all_captured()
-	return false
-
-## 敵 native の本拠地（hq）がすべて自軍所属になっているか。該当 hq が1つも無ければ false（空勝ち防止）。
-func _enemy_hq_all_captured() -> bool:
-	var found := false
-	for b in _bases:
-		if b.is_hq() and b.native_team == 1:
-			found = true
-			if b.team != 0:
-				return false
-	return found
+	return Victory.outcome(self)
 
 func is_over() -> bool:
-	return outcome() != ONGOING
+	return Victory.is_over(self)
 
 # --- 手番 ---
 
