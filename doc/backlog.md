@@ -239,14 +239,6 @@
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
 
-### refactoring-4
-
-**garrison の native 整合バリデーション（ドラゴン除外）**（優先度：低）
-
-- 背景：対応する味方がいないユニット（ドラゴン等）は解放対象＝garrison にできないルール（[map.md](gdd/map.md) 出撃・未決）。現状 `StageLoader._apply_bases` は garrison の type/native 整合を検証せず、任意 type を積めてしまう＝ステージ作成時のミスを検出できない。
-- 対応：garrison 生成時に「その native で解放できる type か」を検証し、不整合は生成時警告で弾く（CSV→データ生成のバリデーション方針の一適用）。ルールの線引き（どの type が garrison 不可か）を先に決める。
-- 該当：`application/stage_loader.gd`（`_apply_bases`）・`doc/gdd/map.md`。
-
 ### refactoring-5
 
 **hex_board_3d の段階分割（メッシュ生成→カメラ→インタラクション再評価）**（優先度：中）
