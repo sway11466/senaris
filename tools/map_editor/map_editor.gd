@@ -3,7 +3,7 @@ extends Control
 ##
 ## stage.json の項目を編集する（戦闘前後の会話 dialogue は対象外＝読み込んだまま温存して保存）。
 ## terrain_skins・未知キーも同様に温存。スキーマの解釈は StageLoader に合わせる。
-## 個別上書きキー（move/troops/atk 等）は編集しない方針（ステージは type/skin の素の性能で組む）。
+## 性能はステージから上書きできない（type が唯一の出どころ）＝駒は type/skin と位置で組む。
 ## 製品には含めない（tools/ は export プリセットの除外対象にする）。
 
 const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを読む（分類ごとに整列済み＝パレットの並びが素直）

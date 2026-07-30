@@ -85,7 +85,7 @@ func is_unclaimed() -> bool:
 ## 種別(UnitType)の性能をこの駒に写す（type が唯一の出どころ＝数値を焼かない）。
 ## 成長・損耗（level/troops）と盤依存の状態（id/team/pos）は触らない＝呼び出し側の管轄。
 ## max_troops は type の満員値にするので、損耗を保つ用途では呼び出し後に上書きする。
-## 注: StageLoader._make_unit は個別キー上書きを挟む別経路で、将来この写しへ寄せられる（refactoring-1）。
+## ステージ読み込み（StageLoader._make_unit）・セーブ復元（from_dict）とも、性能はこの写しだけで決まる。
 func apply_type(t: UnitType) -> void:
 	move = t.move
 	move_type = t.move_type

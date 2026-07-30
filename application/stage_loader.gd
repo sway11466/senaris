@@ -46,7 +46,7 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 ## 期待キー: cols, rows, terrain(配列の文字列), player(駒の配列), enemy(squadの配列), bases(配列の辞書)。
 ## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
 ## enemy は squad の配列で、各 squad が AI プリセット(ai)を持つ（敵は必ず squad に属する）。
-## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）。
+## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）＝性能の唯一の出どころ。
 ## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝前ステージの生存者）。
 ## roster:carryover のステージで carryover_slots の位置に順に嵌める（案A）。fresh では未使用。
 static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}, carried: Array = []) -> BattleState:
@@ -200,7 +200,7 @@ static func load_bgm(path: String) -> Dictionary:
 
 ## 駒配置リスト（player セクション）を盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
-## "type" があれば catalog からステータスを引き、個別キー(move/troops/atk/def/level)で上書きできる。
+## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
 static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(units) != TYPE_ARRAY:
@@ -229,7 +229,7 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 
 ## enemy セクション（部隊(squad)の配列）を盤に追加。各部隊は { name?, ai: プリセットラベル, ...上書き, units: [...] }。
 ## team は陣営（呼び出し側が固定＝敵=1）。敵は必ず squad に属する（バラ配置は無い）。
-## units は通常の駒記法（型/スキン/個別キー/id 明示）と同じで、採番も player の続きから連続する。
+## units は通常の駒記法（型/スキン/troops・level/id 明示）と同じで、採番も player の続きから連続する。
 ## 部隊メンバーは BattleState に「unit→部隊」の対応が登録され、AIが部隊のプリセットで振る舞う。
 static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictionary, team: int, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(squads) != TYPE_ARRAY:
@@ -251,7 +251,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 	return auto_id
 
 ## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。
-## garrison の各要素は { type, count } ＋ ユニット個別キー（troops 省略＝満員 / level 省略＝1）。
+## garrison の各要素は { type, count } ＋ 個体の状態（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
 ## garrison の生来陣営（native）は拠点の初期所属が既定（中立拠点の駒＝中立＝取った側に寝返る）。
 static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
@@ -347,7 +347,8 @@ static func _apply_carryover(state: BattleState, slots: Variant, carried: Array,
 	return auto_id
 
 ## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
-## "type" があれば catalog からステータスを引き、個別キーで上書き可。
+## 性能（攻撃/防御/移動/射程…）は type が唯一の出どころ＝ステージ側から上書きできない。
+## 駒が書けるのは個体の状態だけ: "troops"（損耗・省略＝満員）と "level"（成長・省略＝1）。
 ## col/row 省略は (0,0)（garrison は出撃時に pos を決めるので無視される）。
 static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, skin_catalog: Dictionary = {}) -> Unit:
 	var pos := Hex.offset_to_axial(int(u.get("col", 0)), int(u.get("row", 0)))
@@ -363,26 +364,13 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, s
 		t = catalog.get(type_id)
 		if t == null:
 			push_warning("StageLoader: 未知のユニット種別: %s" % type_id)
-	var mv := int(u.get("move", t.move if t != null else 3))
-	var tp := int(u.get("troops", t.max_troops if t != null else 8))
-	var atk := int(u.get("atk", t.atk_ground if t != null else 10))
-	var dfn := int(u.get("def", t.defense if t != null else 10))
-	var lv := int(u.get("level", 1))
-	var unit := Unit.new(id, team, pos, mv, tp, atk, dfn, lv, type_id)
+	# 未知 type の保険として無難な既定で作り、type があれば性能を丸ごと写す（数値を焼かない）。
+	var unit := Unit.new(id, team, pos, 3, 8, 10, 10, int(u.get("level", 1)), type_id)
+	unit.move_type = "ground"
+	if t != null:
+		unit.apply_type(t)
+	unit.troops = int(u.get("troops", unit.max_troops))  # 損耗（省略＝満員）。満員値は type のまま＝回復は type の上限まで戻る
 	unit.skin_id = skin_id
-	unit.move_type = String(u.get("move_type", t.move_type if t != null else "ground"))
-	if u.has("range"):  # ステージ側の上書きも "3-5" レンジ表記を解く
-		var r := UnitType.parse_range(u["range"])
-		unit.min_range = r.x
-		unit.attack_range = r.y
-	elif t != null:
-		unit.min_range = t.min_range
-		unit.attack_range = t.attack_range
-	unit.move_after_attack = bool(u.get("move_after_attack", t.move_after_attack if t != null else false))
-	unit.can_capture = bool(u.get("can_capture", t.can_capture if t != null else false))
-	unit.atk_air = int(u.get("atk_air", t.atk_air if t != null else 0))
-	unit.pierce = float(u.get("pierce", t.pierce if t != null else 0.0))
-	unit.capacity = int(u.get("capacity", t.capacity if t != null else 0))
 	unit.set_native_team(_parse_team(u.get("native"), unit.team))  # 生来の陣営＋帰属先（既定=初期team。garrison は呼び出し側が上書き）
 	unit.actor = String(u.get("actor", ""))  # 名前つきの駒（名簿・会話分岐の同一性）。詳細 → doc/gdd/map.md
 	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う
