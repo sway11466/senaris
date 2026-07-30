@@ -23,6 +23,7 @@ var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネ
 var _scrim_tween: Tween = null  # 進行中のフェード。次のフェード開始時に kill する（off の hide が on を消す競合対策）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
+var _victory_overlay := false  # 完走イラストを outro 会話に重ねて出した＝会話後に全画面で出し直さない印
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
 var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の基準）
@@ -81,6 +82,7 @@ func load_stage(path: String) -> void:
 ## intro 会話の再生は含めない＝新規開始（load_stage）だけが呼ぶ。詳細 → doc/tech/gamesystem.md
 func _install_state(state: BattleState, path: String) -> void:
 	_current_stage_path = path  # システムメニューのリスタート用
+	_victory_overlay = false  # 前ステージの完走演出を持ち越さない
 	_dialogue = StageLoader.load_dialogue(path, _load_roster())  # 会話（intro/outro）を presentation へ（案P・名簿で when を評価）
 	if _controller != null:
 		_controller.free()  # 旧マッチを破棄（旧 controller のシグナル接続も消える）
@@ -156,6 +158,11 @@ func _on_battle_finished(outcome: int) -> void:
 			$InfoPanel.hide()
 			$HexBoard.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
 			_set_scrim(true)  # 盤を沈めて会話に注視させる
+			# 冒険譚を完走した回だけ、盤の代わりに勝利イラストを敷いて outro を読ませる
+			# （絵を見せ終えてから会話、ではなく絵の前で会話＝フィナーレを一続きにする）。
+			if _should_show_victory():
+				_victory_overlay = true
+				_victory_screen.play_over_board(_victory_path())
 			var label := "次のステージへ ▶" if not _next_playable_stage().is_empty() else "閉じる"
 			_conversation.start(_dialogue["outro"], label)  # 読了/スキップで次ステージ or セレクトへ
 		else:
@@ -282,6 +289,8 @@ func _on_conversation_closed() -> void:
 				_hud.set_player_turn(_controller.state.current_team == 0)
 		"outro":
 			_conversation_phase = ""
+			if _victory_overlay:
+				_victory_screen.dismiss()  # 絵は会話と一緒に退く（全画面では出し直さない）
 			_advance_or_select()  # 次ステージがあれば進む・無ければセレクト
 
 ## クリア後の遷移先：次に遊べるステージがあれば進む（テンポ優先）。無ければセレクト。
@@ -306,6 +315,8 @@ func _next_playable_stage() -> Dictionary:
 ## いまクリアしたのがキャンペーン完走（＝非デバッグ冒険譚の最終ステージ）で、勝利イラストが在るか。
 ## 最終判定は素の next_stage（マニフェスト順で次が無い）を使う＝next_playable は locked でも空になり不可。
 func _should_show_victory() -> bool:
+	if _victory_overlay:
+		return false  # outro 会話に重ねて出し切った＝会話後に全画面で出し直さない
 	if _current_campaign_id.is_empty():
 		return false
 	var c := _progress.campaign(_current_campaign_id)

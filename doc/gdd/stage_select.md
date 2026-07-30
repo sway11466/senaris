@@ -28,9 +28,9 @@
 戦闘の決着（battle_finished）からの遷移。判断（次に遊べるステージの決定）は application（[campaign_progress.gd](../../application/campaign_progress.gd) の `next_playable_stage`）、画面の切り替えは presentation（[main.gd](../../presentation/main/main.gd)）が担う。
 
 ```
-勝利 → クリア記録 → outro 会話（あれば） → 次ステージへ自動遷移
-                                        └ 次が無い ┬ 完走(最終勝利)＆勝利絵あり → 勝利イラスト → セレクトへ
-                                                   └ それ以外 → セレクトへ戻る
+勝利 → クリア記録 → outro 会話（あれば・完走＆勝利絵ありなら盤に勝利イラストを敷いた前で読む）
+                    → 次ステージへ自動遷移
+                    └ 次が無い → セレクトへ戻る（完走＆勝利絵ありで outro が無い場合だけ全画面の勝利イラストを挟む）
 敗北 → その場で停止（リスタート／セレクトはシステムメニューから）
 ```
 
@@ -41,7 +41,8 @@
   - デバッグ冒険譚でない（単体検証の邪魔になるため自動遷移しない）
   - マニフェスト順で直後のステージが存在する（最終ステージでない）
   - そのステージが locked でない（entitlement 等で止まりうる）
-- 満たさない場合はステージセレクトへ戻る。ただし「キャンペーン完走」＝非デバッグ冒険譚の最終ステージ（マニフェスト順で次が無い）を勝利し、その冒険譚に勝利イラスト（`victory` スロット）が在るときは、セレクトへ戻る前に全画面の勝利イラストを1枚挟む（クリック/キーで閉じてセレクトへ）。完走判定は素の `next_stage` が空か（`next_playable_stage` は locked でも空になり最終判定に使えない）。勝利絵の無い冒険譚は従来どおり素通り。演出は [victory_screen.gd](../../presentation/victory/victory_screen.gd)、絵の方針・命名は [../art/keyvisual.md](../art/keyvisual.md)。
+- 満たさない場合はステージセレクトへ戻る。
+- 「キャンペーン完走」＝非デバッグ冒険譚の最終ステージ（マニフェスト順で次が無い）を勝利し、その冒険譚に勝利イラスト（`victory` スロット）が在るときは勝利イラストを出す。出す場所は outro 会話と同時で、盤エリア（右の会話パネルを除いた領域）に敷く＝絵の前で最後の会話をさせる。会話を読み切ると絵も一緒に退いてセレクトへ戻る。絵はクリックでは閉じない（進行役は会話）。outro 会話が無い冒険譚では従来どおり全画面で1枚挟む（クリック/キーで閉じてセレクトへ）。完走判定は素の `next_stage` が空か（`next_playable_stage` は locked でも空になり最終判定に使えない）。勝利絵の無い冒険譚は素通り。演出は [victory_screen.gd](../../presentation/victory/victory_screen.gd)、絵の方針・命名は [../art/keyvisual.md](../art/keyvisual.md)。
 - 敗北時は遷移しない。ターン終了を無効化して盤面を残す。再挑戦はシステムメニューのリスタート、離脱は同メニューのステージセレクトで行う。
 
 ## 冒険譚カード
@@ -146,7 +147,7 @@ locked    … それ以外
 - `title`・`desc`・stage の `title` は生テキストでなく翻訳キー（i18n・後述）。表示側が `tr()` で解決する（debug 冒険譚の生テキストは `tr()` 素通しで従来どおり出る）。
 - ステージ JSON 本体（盤面）には手を入れない。進行・表示のメタはマニフェスト側に寄せる。
 - ステージ選択画面は「`data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
-- 戦闘画面用メタ（任意）: `emblem`（手番板の左右に出す代表ユニットの skin_id を `{ "ally": …, "enemy": … }` で指定）。未指定なら手番板は左右の枠を出さず、ターン数だけを見せる（→ [uiux.md](uiux.md)）。
+- 戦闘画面用メタ: `emblem`（代表ユニットの skin_id を `{ "ally": …, "enemy": … }` で指定）。手番板の左右の枠と、手番切り替わりのバナーの立ち絵に使う（→ [uiux.md](uiux.md)）。冒険譚では必須（デバッグ用は省略してよい）。未指定でも壊れず、手番板は左右の枠を出さずターン数だけ・バナーは絵なしで出る。
 - カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`desc`（説明文の翻訳キー／未指定は空＝説明なし）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
 
 ## 多言語化（i18n）
@@ -189,7 +190,7 @@ domain（戦闘ロジック）には手を入れない。
 
 ## 実装状況（2026-07-05 時点）
 
-- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../presentation/victory/victory_screen.gd)・最終ステージ勝利で全画面表示）。
+- **実装済み**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../presentation/victory/victory_screen.gd)・最終ステージ勝利で outro 会話に重ねて盤エリアに表示、outro が無ければ全画面）。
 - **難易度帯ボード**: tier カルーセル実装済み（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）実装済み・カード用クロップ（card）は未配置で cover にフォールバック中。
 - **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは羊皮紙の依頼書ダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）で出撃確認まで＝中身（勝利条件・推奨戦力など）は未決事項参照。
