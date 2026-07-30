@@ -184,7 +184,14 @@ POSE (guard): A braced shield-guard stance — a large shield raised high and pr
 ```
 POSE (cast): An offensive spellcasting stance — the staff (or magic focus) leveled/thrust toward the enemy on the right in a casting gesture, the body turned to the side, feet planted, focused and channeling an attack spell; not lunging into melee. For offensive mages. 水晶/オーブは map と同じ「やんわり青白い封じ込めの発光」まで可（統一感のため）。ただし強い発光・光線・オーラ・パーティクルは出さない（背景へ光が漏れて切り抜きが荒れるため）。
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`。
+```
+POSE (unarmed): A lunging bare-handed attack — both arms (or claws) thrust out at full reach toward the enemy on the right, the body leaning heavily into the reach, weight forward, closing the distance with nothing but its hands; no weapon anywhere in the pose. For units that carry no weapon.
+```
+```
+POSE (drift): A floating attack pose — the body hovers clear of the ground with no weight on any foot, drifting toward the enemy on the right with both hands (or the weapon) reaching ahead, the trailing hem or tail streaming out behind. For flying units.
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`。
+- 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
