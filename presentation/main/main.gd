@@ -10,6 +10,8 @@ var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label ->
 var _controller: MatchController = null
 var _hud: Hud = null
 var _turn_plate: TurnPlate = null  # 手番板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
+var _turn_banner: TurnBanner = null  # 手番の切り替わりを見せる横帯（永続・画面中央）。同上
+const TURN_BANNER_GAP := 0.3  # 敵手番でバナーが引けてから最初の行動までの間（秒）
 var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
@@ -52,6 +54,7 @@ func _ready() -> void:
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_turn_plate()  # 永続の手番板（盤エリア上端中央）。load_stage が手番・代表ユニットを流し込む
+	_install_turn_banner()  # 永続の手番バナー（画面中央・手番が移った瞬間だけ出る）
 	_install_aura()  # 永続の加護の光（盤エリア外周）。陣営全体バフが効いている間だけ出す
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
@@ -104,6 +107,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.combat_pace = _await_combat_view  # AI手番は演出の完了を待ってから次へ
 	_controller.move_pace = $HexBoard.await_move_animation  # 同上＝移動アニメも歩き切るまで待つ
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AI手番は次の主体をカメラに収めてから見せる
+	_controller.turn_start_pace = _await_turn_banner  # 敵手番は頭の一拍（バナー）を見せてから動く
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
 	_controller.formation_resolved.connect(func(_r: Dictionary) -> void: _update_aura())
@@ -123,21 +127,45 @@ func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_plate(team, turn_number)
 	_hud.set_player_turn(team == 0)
 	_update_aura()  # 手番開始で持続が減る＝ここで切れることがある
+	_show_turn_banner(team)
+
+## 手番の切り替わりを見せる横帯。自分の手番は操作を受け付けたまま（クリック等で即消し）、
+## 敵の手番は turn_start_pace で待たせる＝1手も動かない手番でも見える。仕様 → doc/gdd/uiux.md
+func _show_turn_banner(team: int) -> void:
+	if _turn_banner == null:
+		return
+	var ally := team == 0
+	var skin := String(_emblem().get("ally" if ally else "enemy", ""))
+	# 文言は当面直書き（UI文言のキー化は backlog feature-12 で一括）。
+	_turn_banner.play(team, "自軍の手番" if ally else "敵軍の手番", _skins, skin, ally)
+
+## 敵手番の頭で待つフック（controller に注入）。バナーが引き終わってから少し置いて最初の行動へ。
+func _await_turn_banner() -> void:
+	if _turn_banner != null and _turn_banner.visible:
+		await _turn_banner.finished
+	if is_inside_tree():
+		await get_tree().create_timer(TURN_BANNER_GAP).timeout
 
 func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0
 	_turn_plate.set_turn(team, turn_number, limit)
 
-## 手番板の左右に出す代表ユニット（冒険譚マニフェストの emblem）。
-## セレクトを経ないステージ（デバッグ直起動・起動時の下敷き）は指定が無い＝枠を出さない。
+## 冒険譚マニフェストの emblem（代表ユニットの skin_id）。手番板とバナーが使う。
+## セレクトを経ないステージ（デバッグ直起動・起動時の下敷き）は指定が無い＝空辞書。
+func _emblem() -> Dictionary:
+	if _progress == null or _current_campaign_id.is_empty():
+		return {}
+	return _progress.campaign(_current_campaign_id).get("emblem", {})
+
+## 手番板の左右に出す代表ユニット。指定が無ければ枠を出さない。
 func _apply_emblem() -> void:
-	var emblem := {}
-	if _progress != null and not _current_campaign_id.is_empty():
-		emblem = _progress.campaign(_current_campaign_id).get("emblem", {})
+	var emblem := _emblem()
 	_turn_plate.set_emblem(_skins, String(emblem.get("ally", "")), String(emblem.get("enemy", "")))
 
 ## 決着の告知は戦果票（ResultBanner）が担う＝ここでは記録と後続の演出だけ進める。
 func _on_battle_finished(outcome: int) -> void:
+	if _turn_banner != null:
+		_turn_banner.dismiss()  # ターン制限切れは手番の切り替わりと同時＝戦果票と重ねない
 	match outcome:
 		BattleState.PLAYER_WIN:
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
@@ -380,6 +408,7 @@ func _install_hud() -> void:
 	_hud.restart_requested.connect(_on_restart_requested)
 	_hud.save_requested.connect(_on_save_requested)
 	_hud.load_requested.connect(_on_load_requested)
+	_hud.wipe_enemies_requested.connect(_on_wipe_enemies_requested)  # デバッグ項目（製品ビルドでは出ない）
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 
 # --- 手番板（盤エリア上端中央）。presentation/ui/turn_plate.gd。仕様 → doc/gdd/uiux.md ---
@@ -387,6 +416,12 @@ func _install_turn_plate() -> void:
 	_turn_plate = TurnPlate.new()
 	_turn_plate.name = "TurnPlate"
 	add_child(_turn_plate)
+
+## 手番の切り替わりを見せる横帯。presentation/ui/turn_banner.gd。仕様 → doc/gdd/uiux.md
+func _install_turn_banner() -> void:
+	_turn_banner = TurnBanner.new()
+	_turn_banner.name = "TurnBanner"
+	add_child(_turn_banner)
 
 ## 加護の光（盤エリア外周）。盤より前・情報パネルより後ろに置く＝文字を明るくしない。
 ## HexBoard は Node3D（3Dは常に2Dの後ろ）なので、2Dの並びで InfoPanel より前に入れればよい。
@@ -416,6 +451,14 @@ func _on_end_turn_requested() -> void:
 func _on_restart_requested() -> void:
 	if not _current_stage_path.is_empty():
 		load_stage(_current_stage_path)
+
+## デバッグメニュー「敵を殲滅」。controller はステージごとに作り直すので、押された時点の
+## controller へ流す（結線の張り替えをしない）。決着後・盤なしでは controller 側が弾く。
+func _on_wipe_enemies_requested() -> void:
+	if _controller == null:
+		return
+	_controller.wipe_enemies()
+	$HexBoard.refresh()  # 盤は攻撃イベントで作り直す作り＝殲滅はそれを経ないので明示的に更新する
 
 ## 中断セーブ：現在の盤の状態まるごとを保存する（1枠・上書き）。文脈メタ（冒険譚/ステージ）も添える。
 ## 状態が真実なので手番・位置・損耗・行動フラグごと再現できる（BattleState.to_dict）。詳細 → doc/tech/gamesystem.md

@@ -30,6 +30,7 @@ var ai_delay := 0.35  # AIの各手を見せるための間（秒）
 var combat_pace := Callable()  # AI手番で戦闘演出の完了を待つフック（presentation が注入）。空なら待たない
 var move_pace := Callable()    # AI手番で移動アニメの完了を待つフック（同上）。空なら待たない
 var focus_pace := Callable()   # AI手番で次の行動主体(hex)をカメラに収めるフック（同上）。空なら何もしない
+var turn_start_pace := Callable()  # AI手番の頭で一拍置くフック（同上・手番バナー）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
@@ -152,6 +153,10 @@ func end_turn() -> void:
 
 ## AIの手番を実行。next_action が尽きるまで1手ずつ実行し、最後に手番を返す。
 func run_ai_turn() -> void:
+	# 手番の頭で一拍置く（手番バナーの表示ぶん）。1手も動かない手番でもここは通るので、
+	# 敵の手番が1フレームも見えずに戻る事態を防ぐ。詳細 → doc/gdd/uiux.md
+	if not _finished and turn_start_pace.is_valid():
+		await turn_start_pace.call()
 	while not _finished:
 		var action := ai_brain.next_action(state, state.current_team)
 		if action == null:
@@ -218,3 +223,16 @@ func stand(unit_id: int) -> void:
 		return
 	state.set_done(unit_id)
 	unit_stood.emit(unit_id)
+
+## デバッグ: 盤上の敵駒（team 1）を全て除去する。決着は既存の判定に委ねる＝殲滅で勝利になる
+## ステージならそのまま通常の勝利フロー（戦果票→outro→完走イラスト）へ流れる。敵拠点に控えが
+## 残るステージでは勝利にならない（盤上0体かつ復帰手段なしが勝利条件）。詳細 → doc/gdd/uiux.md
+func wipe_enemies() -> void:
+	if _finished:
+		return
+	for u in state.units().duplicate():  # 除去で盤上リストが縮む＝複製を回す
+		if u.team != 1:
+			continue
+		if state.remove_unit(u.id):
+			unit_died.emit(u.id)  # 撃破と同じ経路で盤から駒を消す
+	_check_finished()

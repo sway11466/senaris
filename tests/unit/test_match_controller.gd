@@ -438,3 +438,35 @@ func test_stand_unknown_unit_does_nothing() -> void:
 	var mc := _mc(s)
 	mc.stand(99)  # 盤に居ない id＝行動終了させる対象が無い
 	assert_signal_not_emitted(mc, "unit_stood")
+
+# --- wipe_enemies（デバッグメニュー「敵を殲滅」）。仕様 → doc/gdd/uiux.md ---
+
+func test_wipe_enemies_kills_all_enemies_and_finishes() -> void:
+	var s := BattleState.new(12, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))
+	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(9, 6), 3))
+	var mc := _mc(s)
+	mc.wipe_enemies()
+	assert_eq(s.team_unit_count(1), 0, "敵は盤上から消える")
+	assert_eq(s.team_unit_count(0), 1, "自軍は触らない")
+	assert_signal_emitted_with_parameters(mc, "unit_died", [2], 0)  # 第4引数＝発行の何回目か
+	assert_signal_emitted_with_parameters(mc, "unit_died", [3], 1)
+	assert_signal_emit_count(mc, "unit_died", 2, "敵1体ずつ unit_died が出る（盤の駒を消す経路）")
+	assert_signal_emit_count(mc, "battle_finished", 1, "殲滅で決着が1回")
+	assert_signal_emitted_with_parameters(mc, "battle_finished", [BattleState.PLAYER_WIN])
+	mc.wipe_enemies()
+	assert_signal_emit_count(mc, "battle_finished", 1, "決着後の再実行は no-op")
+
+func test_wipe_enemies_leaves_ongoing_when_garrison_remains() -> void:
+	# 敵拠点に控えが残るステージでは殲滅しても勝利にならない（盤上0体かつ復帰手段なしが勝利条件）。
+	var s := BattleState.new(12, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))
+	var b := Base.new(Hex.offset_to_axial(8, 3), 1)
+	b.garrison.append(Unit.new(4, 1, Vector2i.ZERO, 3))
+	s.add_base(b)
+	var mc := _mc(s)
+	mc.wipe_enemies()
+	assert_eq(s.team_unit_count(1), 0, "盤上の敵は消える")
+	assert_signal_not_emitted(mc, "battle_finished", "控えが出撃できる＝まだ決着しない")

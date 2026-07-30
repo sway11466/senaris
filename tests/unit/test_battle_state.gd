@@ -86,3 +86,20 @@ func test_move_rejects_occupied_and_out_of_range() -> void:
 	assert_false(s.move_unit(1, occupied), "他ユニットの上には移動不可")
 	assert_false(s.move_unit(1, Hex.offset_to_axial(5, 5)), "移動力を超える先は不可")
 	assert_eq(s.unit_by_id(1).pos, start, "不正な移動では動かない")
+
+func test_remove_unit_takes_off_board_and_records_defeat() -> void:
+	var s := _state()
+	var pos := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 1, pos, 3))
+	assert_true(s.remove_unit(1), "盤上の駒は除去できる")
+	assert_null(s.unit_by_id(1), "盤上リストから消える")
+	assert_null(s.unit_at(pos), "座標からも引けない")
+	assert_eq(s.team_unit_count(1), 0, "陣営の頭数が減る（殲滅＝勝利判定の材料）")
+	assert_true(s.is_defeated(1), "撃破として記録される（ボス撃破の勝利条件に効く）")
+
+func test_remove_unit_unknown_or_twice_is_false() -> void:
+	var s := _state()
+	s.add_unit(Unit.new(1, 1, Hex.offset_to_axial(2, 2), 3))
+	assert_false(s.remove_unit(99), "盤に居ない id は false")
+	assert_true(s.remove_unit(1))
+	assert_false(s.remove_unit(1), "二度目は false（既に盤に居ない）")

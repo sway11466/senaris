@@ -761,6 +761,15 @@ func _base_has_open_neighbor(b: Base) -> bool:
 func is_defeated(unit_id: int) -> bool:
 	return _defeated.has(unit_id)
 
+## 駒を1体、戦闘を経ずに盤から除去する（撃破扱い＝ボス撃破の勝利条件にも効く）。
+## 戦闘の結果ではない除去の入口＝デバッグメニューの「敵を殲滅」が使う。詳細 → doc/gdd/uiux.md
+## 盤に居ない駒（既に撃破・搭乗中）を指したら false。
+func remove_unit(unit_id: int) -> bool:
+	if unit_by_id(unit_id) == null:
+		return false
+	_remove_unit(unit_id)
+	return true
+
 ## 決着結果。判定規則は Victory（static ヘルパー）が持つ＝勝利条件タイプが増えても state は太らない。
 func outcome() -> int:
 	return Victory.outcome(self)

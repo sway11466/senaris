@@ -12,11 +12,12 @@ signal restart_requested         # システムメニュー: リスタート（�
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 signal save_requested            # システムメニュー: 中断セーブ
 signal load_requested            # システムメニュー: 中断セーブから再開
+signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲滅（デバッグビルドのみ出る項目）
 
 var _end_btn: Button
 var _gear: Button
 var _menu: PopupMenu
-enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE }
+enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE }
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤のクリックを通す（ボタンだけ拾う）
@@ -43,6 +44,10 @@ func _ready() -> void:
 	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), true)  # ロードは中断セーブが在るときだけ有効（main が切替）
 	_menu.add_separator()
 	_menu.add_item("閉じる", SYS_CLOSE)
+	# デバッグ区画は末尾＝製品ビルドには出ない（デバッグ冒険譚の表示と同じゲート）。仕様 → doc/gdd/uiux.md
+	if OS.is_debug_build():
+		_menu.add_separator("デバッグ")
+		_menu.add_item("敵を殲滅", DBG_WIPE)
 	_menu.id_pressed.connect(_on_sys_id)
 	add_child(_menu)
 
@@ -82,3 +87,5 @@ func _on_sys_id(id: int) -> void:
 			load_requested.emit()
 		SYS_CLOSE:
 			pass  # 閉じるだけ（popup は自動で閉じる）
+		DBG_WIPE:
+			wipe_enemies_requested.emit()  # 確認は挟まない（デバッグビルド限定の項目）

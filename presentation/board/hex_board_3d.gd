@@ -236,6 +236,12 @@ func _reset_interaction() -> void:
 func set_input_locked(v: bool) -> void:
 	_frozen = v
 
+## 盤の見た目を今の状態から作り直す（外からの強制更新）。
+## 通常の更新は controller のイベント（移動・攻撃・出撃…）で走るので、それを経ない状態変更＝
+## デバッグメニューの「敵を殲滅」だけがこれを呼ぶ。仕様 → doc/gdd/uiux.md
+func refresh() -> void:
+	_sync()
+
 func _process(_delta: float) -> void:
 	# 足元の光の明滅。位相は絶対時刻から出す＝_sync_units でノードを作り直しても途切れない。
 	if _glow_mat != null:
