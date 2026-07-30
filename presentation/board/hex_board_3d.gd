@@ -24,6 +24,11 @@ const FOCUS_PAN_SEC := 0.25          # AI手番のカメラ追従＝1回のパ�
 const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝可視域の内側マージン(px)。この内なら動かさない
 const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
+## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。絵そのものではなくキャンバスを基準に
+## するのは、大小関係を余白として焼き込んでいるため（小さい駒＝同じ枠で絵が小さい）。
+## tools/gen_unit_map.ps1 の $Canvas / $BaseHeight と対で決まる＝どちらか変えたら両方直す。
+## 384 / 200 × 1.95タイル ＝ 3.75（倍率1.0の駒が約1.95タイルの背丈になる）。
+const UNIT_CANVAS_TILES := 3.75
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
 ## 見た目の高さ（elevation）と立ち絵の沈み（sprite_sink）はスキン側のデータ＝terrain_skin.csv。
 ## 高さは段差辺に側面スカートを生やす（崖は台地より高い＝登れる高台と登れない絶壁を序列で見せる）。
@@ -1301,7 +1306,7 @@ func _sync_units() -> void:
 			spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 常にカメラへ正対＝立ち姿のまま
 			spr.shaded = false
 			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
-			spr.pixel_size = (2.5 * TILE) / float(tex.get_height())  # 高さ ~2.5 タイル
+			spr.pixel_size = (UNIT_CANVAS_TILES * TILE) / float(tex.get_height())
 			spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
 			# 足元は下辺寄り＝マスの中に立って見える。植生地形はそのぶん沈めて足元を隠す。
 			spr.position = Vector3(0, 0.02 - _sprite_sink(u.pos), SPRITE_FOOT_Z)

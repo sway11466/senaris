@@ -42,7 +42,7 @@
 | 段階 | サイズ | 用途 |
 |---|---|---|
 | ① AI生成（マスター） | 約1024px | 原本。別保管（キービジュアル等に再利用） |
-| ② ゲーム用書き出し | 256px 四方（透過PNG） | リポジトリに入れる。地形タイル（R=128＝256px相当）と画質を揃える |
+| ② ゲーム用書き出し | 384px 四方（透過PNG）・絵の高さ＝200×`map_scale` | リポジトリに入れる。絵の実寸は地形タイル（R=128＝256px相当）と揃う。枠が絵より大きいのは下記「キャンバスが大きさの基準」 |
 | ③ 実機表示 | 約30〜75px（720p・オートフィット。ズームで拡大） | Godot が②を自動縮小 |
 
 - 造形：頭身は約2〜2.5頭身（強めのチビ体型＝頭・手大きめで小サイズ可読性を優先。武器・役割小物は太く大きめに保つ。moe／可愛すぎにはしない、渋い muted は維持）。正面向き・左右非対称にしない中立ポーズ（盤面に向きの概念が無く、向きを主張すると不自然／6方向で反転も無意味なため）。
@@ -55,7 +55,7 @@
 |---|---|---|
 | ① AI生成直後（原寸・SynthID入り） | `assets/units-src/{group}/{skin_id}/{skin_id}_01_raw.png` | `units-src/player/fighter/fighter_01_raw.png` |
 | ② トリミング＋透過（手動マスター・原寸） | `assets/units-src/{group}/{skin_id}/{skin_id}_03_master.png` | `units-src/player/fighter/fighter_03_master.png` |
-| ③ ゲーム用（256四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
+| ③ ゲーム用（384四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
 
 - `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `units-src/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
 - ③だけが `assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
@@ -70,10 +70,22 @@
    ```
    powershell -File tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
    ```
-   ②master と `unit_skin.csv` の `map_scale` から「高さ＝200×倍率 → 256四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+   ②master と `unit_skin.csv` の `map_scale` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
 4. Godot 再実行 → `SkinCatalog` が `assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
 
 - ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
+
+#### キャンバスが大きさの基準
+
+盤は「絵の高さ」ではなく「PNGのキャンバス高さ」を一定のタイル数に対応させて描く（`hex_board_3d.gd` の `UNIT_CANVAS_TILES`）。大小関係はキャンバスに焼き込んだ余白で表しており、たとえばハーフリング（倍率0.7）は 384 の枠の中で絵が 140px しかないから小さく見える。したがって次の3つが守られていないと大小関係が壊れる。
+
+- キャンバスは全ユニットで同じ値にする。ユニットごとに変えない
+- 余白を切り詰めた画像を手で置かない（トリムすると全員が同じ背丈になる）
+- `$Canvas` を変えたら、全ユニットを `all` で作り直し、`UNIT_CANVAS_TILES` を同じ比率で直す
+
+キャンバス 384・BaseHeight 200 は倍率 1.92 まで収まる（現在の最大はレッドドラゴンの 1.4）。超えると `-extent` が黙って上端を切り落とすため、ツール側で切れを検出して警告を出す。横幅は上限を設けていないので、翼を広げた竜のような横長の絵は倍率と無関係に左右が切れうる（そのときも警告が出る）。
+
+戦闘立ち絵（3.3）は別のキャンバス（512・BaseHeight 384＝倍率 1.333 まで）で、レッドドラゴンの 1.4 は収まらない。戦闘シーンの枠取りと併せて決める（backlog feature-22）。
 
 ### 3.2 確定プロンプト雛形（アンカー方式）
 

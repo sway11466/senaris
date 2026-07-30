@@ -22,7 +22,7 @@
 
 | ツール | 何をする道具か | 起動 | 詳細 |
 |---|---|---|---|
-| `gen_unit_map.ps1` | ユニットの master から map 画像（256四方・透過・64色）を書き出す | `powershell -File tools\gen_unit_map.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
+| `gen_unit_map.ps1` | ユニットの master から map 画像（384四方・透過・64色）を書き出す | `powershell -File tools\gen_unit_map.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_unit_combat.ps1` | ユニットの master から combat 立ち絵（512四方・下端揃え・透過）を書き出す | `powershell -File tools\gen_unit_combat.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_terrain_tile.ps1` | 元絵をフラットトップのヘックスに切り抜いて地形タイルにする（2枚目以降は variant） | `powershell -File tools\gen_terrain_tile.ps1 <name> <src1> <src2> …` | [../art/terrain.md](../art/terrain.md) |
 | `gen_sfx.ps1` | MuseScore の .wav から効果音 .ogg を作る（無音トリム・ピーク -3dBFS 揃え・変換） | `powershell -File tools\gen_sfx.ps1 <sfx_id> …` | [../audio/sfx.md](../audio/sfx.md) |

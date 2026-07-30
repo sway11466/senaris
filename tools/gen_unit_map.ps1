@@ -28,7 +28,11 @@ param(
 $ErrorActionPreference = 'Stop'
 $BaseHeight = 200   # figure height (px) at map_scale=1.0. Baseline = fighter.
 $Colors     = 64    # palette reduction color count
-$Canvas     = 256   # output canvas (square)
+$Canvas     = 384   # output canvas (square). Carries the relative sizes: the board maps the
+                    # CANVAS height (not the figure) to a fixed number of tiles, so this must be
+                    # the same for every unit and large enough for the biggest map_scale.
+                    # 384 / 200 = max scale 1.92 (dragon is 1.4). Changing it means regenerating
+                    # every unit AND rescaling the board constant in hex_board_3d.gd (see 3.1).
 $SkinIds = @($SkinIds)
 if ($SkinIds.Count -eq 0) { throw "usage: gen_unit_map.ps1 <skin_id> [<skin_id> ...] | all" }
 
@@ -86,6 +90,15 @@ foreach ($id in $SkinIds) {
   else {
     Write-Warning "${id}: no source (${id}_03_master.png / ${id}_01_raw.png) -> skipped"
     continue
+  }
+  # -extent crops silently when the figure does not fit, so verify what actually landed.
+  # The figure must keep its full height; touching the canvas width means the sides were cut.
+  $bb = (magick $out -trim +repage -format "%wx%h" info:) -split 'x'
+  if ([int]$bb[1] -lt $h) {
+    Write-Warning "${id}: cropped vertically (wanted ${h}px, kept $($bb[1])px). Raise `$Canvas or lower map_scale."
+  }
+  if ([int]$bb[0] -ge $Canvas) {
+    Write-Warning "${id}: cropped horizontally (figure fills the ${Canvas}px width). Raise `$Canvas or lower map_scale."
   }
   $kb = [int]((Get-Item $out).Length / 1KB)
   Write-Output ("{0,-16} scale={1,-4} H={2,-4} src={3,-16} -> assets/units/{4}/{4}_map.png ({5}KB)" -f $id, $sc, $h, $srcKind, $id, $kb)

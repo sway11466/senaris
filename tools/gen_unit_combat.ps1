@@ -31,7 +31,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $Canvas     = 512   # output canvas (square)
 $BaseHeight = 384   # figure height (px) at combat_scale=1.0. Baseline = fighter.
-                    # Kept at 0.75 * Canvas so the largest scale in the sheet (1.3) still fits.
+                    # 0.75 * Canvas = max scale 1.333. NOTE: dragon is 1.4 and does NOT fit -> its
+                    # top gets cropped (the warning below catches it). Deciding the combat canvas
+                    # belongs with the combat-scene framing work (backlog feature-22).
 $Slots    = @('combat', 'combat_hero', 'combat_effect')
 $SkinIds = @($SkinIds)
 if ($SkinIds.Count -eq 0) { throw "usage: gen_unit_combat.ps1 <skin_id> [<skin_id> ...] | all" }
@@ -78,6 +80,11 @@ foreach ($id in $SkinIds) {
     $out = Join-Path $outDir "${id}_${slot}.png"
     # trim -> height = Base * scale (width bounded by the canvas) -> bottom-align on the square canvas
     magick $master -trim +repage -resize "${Canvas}x${h}" -background none -gravity south -extent "${Canvas}x${Canvas}" $out
+    # -extent crops silently when the figure does not fit (width is bounded by -resize, height is not).
+    $bb = (magick $out -trim +repage -format "%wx%h" info:) -split 'x'
+    if ([int]$bb[1] -lt $h) {
+      Write-Warning "${id} ${slot}: cropped vertically (wanted ${h}px, kept $($bb[1])px). Raise `$Canvas or lower combat_scale."
+    }
     $kb = [int]((Get-Item $out).Length / 1KB)
     Write-Output ("{0,-16} {1,-14} x{2,-5} -> assets/units/{3}/{3}_{1}.png ({4}KB)" -f $id, $slot, $sc, $id, $kb)
     $any = $true
