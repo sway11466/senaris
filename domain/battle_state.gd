@@ -530,7 +530,7 @@ func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
 		return true  # 入っても盤上に他の駒が残る
 	# 盤上最後の1体：入った駒自身が b の出せる控えになる＝b に空き隣接があれば復帰可。
 	# 他拠点で既に復帰可能でもよい（＝入った瞬間に「盤上0かつ復帰なし」の敗北にならない）。
-	return _base_has_open_neighbor(b) or _has_reinforcement(u.team)
+	return _base_has_open_neighbor(b) or has_reinforcement(u.team)
 
 func enter_base(unit_id: int) -> bool:
 	if not can_enter_base(unit_id):
@@ -751,7 +751,8 @@ func team_unit_count(team: int) -> int:
 
 ## team が「復帰手段」を持つか＝所有拠点に、実際に盤上へ出せる控えが1体でもいる（案B）。
 ## 盤上0でもこれが真なら、その陣営はまだ消滅していない＝敗北/勝利にしない。
-func _has_reinforcement(team: int) -> bool:
+## 勝敗判定（Victory）と駐留の可否（can_enter_base_at）の両方が使う＝state 側に置く。
+func has_reinforcement(team: int) -> bool:
 	for b in _bases:
 		if b.team == team and _base_has_deployable_garrison(b) and _base_has_open_neighbor(b):
 			return true
@@ -773,50 +774,16 @@ func _base_has_open_neighbor(b: Base) -> bool:
 			return true
 	return false
 
-## 決着結果。敗北を優先（自軍消滅／自軍本拠地の喪失）。相討ち消滅も負け。
-## 消滅＝盤上0 かつ 復帰手段なし（案B）。勝利は 殲滅（常に有効）＋ victory_conditions のいずれか（OR）。
+## 撃破済みの駒か（ボス撃破の勝利条件が見る記録）。盤から消えた駒は unit_by_id では引けない。
+func is_defeated(unit_id: int) -> bool:
+	return _defeated.has(unit_id)
+
+## 決着結果。判定規則は Victory（static ヘルパー）が持つ＝勝利条件タイプが増えても state は太らない。
 func outcome() -> int:
-	if team_unit_count(0) == 0 and not _has_reinforcement(0):
-		return PLAYER_LOSS
-	if _own_hq_lost():
-		return PLAYER_LOSS  # 味方本拠地を奪われたら敗北（hq を置いたステージだけ効く）
-	if team_unit_count(1) == 0 and not _has_reinforcement(1):
-		return PLAYER_WIN
-	for c in victory_conditions:
-		if _victory_met(c):
-			return PLAYER_WIN
-	if turn_limit > 0 and turn_number > turn_limit:
-		return PLAYER_LOSS  # ターン制限超過＝時間切れ敗北（引き分けなし）。詳細 → doc/gdd/map.md
-	return ONGOING
-
-## 自軍 native の本拠地（hq）が敵の手に落ちているか。hq が無いステージでは常に false。
-func _own_hq_lost() -> bool:
-	for b in _bases:
-		if b.is_hq() and b.native_team == 0 and b.team != 0:
-			return true
-	return false
-
-## 勝利条件1件の判定。未知の type は満たさない扱い（前方互換）。
-func _victory_met(c: Dictionary) -> bool:
-	match String(c.get("type", "")):
-		"defeat_unit":  # ボス撃破＝指定IDの駒が撃破済み
-			return _defeated.has(int(c.get("unit_id", -1)))
-		"capture_hq":   # 本拠地占領＝敵 native の hq をすべて自軍が保持（hq が無ければ不成立）
-			return _enemy_hq_all_captured()
-	return false
-
-## 敵 native の本拠地（hq）がすべて自軍所属になっているか。該当 hq が1つも無ければ false（空勝ち防止）。
-func _enemy_hq_all_captured() -> bool:
-	var found := false
-	for b in _bases:
-		if b.is_hq() and b.native_team == 1:
-			found = true
-			if b.team != 0:
-				return false
-	return found
+	return Victory.outcome(self)
 
 func is_over() -> bool:
-	return outcome() != ONGOING
+	return Victory.is_over(self)
 
 # --- 手番 ---
 

@@ -255,14 +255,6 @@
 - 対応：`domain/sight.gd`（static）へ移し、BattleState には委譲の薄い口を残すか呼び出し側（brain・presentation）を直呼びに更新する。`_sight_cost` 表は state が持ち続ける（セーブ・set_sight_cost 注入との整合）。着手は進行中の索敵作業が落ち着いてから。
 - 該当：`domain/battle_state.gd`・`domain/sight.gd`（新規）・`tests/unit/test_sight.gd`・`domain/ai/nearest_attacker_brain.gd`・`presentation/board/hex_board_3d.gd`。
 
-### refactoring-7
-
-**BattleState から勝敗判定を Victory ヘルパーへ抽出**（優先度：低）
-
-- 背景：勝敗判定（`outcome`/`_victory_met`/`_has_reinforcement` ほか約80行）は読み取り専用のクエリで、勝利条件タイプ（defeat_unit/capture_hq）はキャンペーン制作で増える見込み。増えるたび BattleState が太る。
-- 対応：`domain/victory.gd`（static・Sight と同パターン）へ抽出。復帰手段（案B）の判定は `can_enter_base_at` とも共有しているため、共有部の置き場所を抽出時に決める。着手の引き金＝勝利条件タイプを次に追加するとき。
-- 該当：`domain/battle_state.gd`・`domain/victory.gd`（新規）・`tests/unit/`。
-
 ### refactoring-8
 
 **デッドコードの整理（未接続シグナル・テスト専用関数）**（優先度：低）
