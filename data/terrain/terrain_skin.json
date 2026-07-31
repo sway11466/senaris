@@ -1,6 +1,8 @@
 {
 	"skins": [
 		{
+			"combat_ground": "plain",
+			"combat_layout": "line",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -12,6 +14,8 @@
 			"terrain_type": "road"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -23,6 +27,8 @@
 			"terrain_type": "plain"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -34,6 +40,8 @@
 			"terrain_type": "plain"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0.18,
 			"grid": true,
@@ -45,6 +53,8 @@
 			"terrain_type": "plateau"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -56,6 +66,8 @@
 			"terrain_type": "wasteland"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0.18,
 			"grid": true,
@@ -67,6 +79,8 @@
 			"terrain_type": "forest"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0.12,
 			"grid": true,
@@ -78,6 +92,8 @@
 			"terrain_type": "bush"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -89,6 +105,8 @@
 			"terrain_type": "mountain"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_layout": "line",
 			"connect": true,
 			"elevation": 0,
 			"grid": true,
@@ -100,6 +118,8 @@
 			"terrain_type": "fence"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_layout": "center",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -111,6 +131,8 @@
 			"terrain_type": "trap"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_layout": "line",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -122,6 +144,8 @@
 			"terrain_type": "rampart"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0.36,
 			"grid": true,
@@ -133,6 +157,8 @@
 			"terrain_type": "cliff"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0.7,
 			"grid": false,
@@ -144,6 +170,8 @@
 			"terrain_type": "wall"
 		},
 		{
+			"combat_ground": "",
+			"combat_layout": "",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -155,6 +183,8 @@
 			"terrain_type": "wall"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_layout": "center",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,
@@ -166,6 +196,8 @@
 			"terrain_type": "fort"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_layout": "center",
 			"connect": false,
 			"elevation": 0,
 			"grid": true,

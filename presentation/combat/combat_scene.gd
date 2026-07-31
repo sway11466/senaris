@@ -16,6 +16,9 @@ const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1
 	Vector2(0.23, 0.62), Vector2(0.45, 0.36), Vector2(0.55, 0.68), Vector2(0.77, 0.42),
 	Vector2(0.66, 0.10), Vector2(0.34, 0.94), Vector2(0.12, 0.30), Vector2(0.88, 0.74),
 ]
+const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
+## 地面（3D）は守り手の地形スキンで組む。タイル画像が引けないスキンのための下地色＝どの地形かは
+## 分かるが「絵が無い」ことも分かる。仕様 → doc/tech/combat_scene.md
 const TERRAIN_COLOR := {
 	"plain": Color(0.56, 0.71, 0.42), "forest": Color(0.30, 0.49, 0.28),
 	"mountain": Color(0.60, 0.55, 0.47), "plateau": Color(0.72, 0.65, 0.42),
@@ -32,11 +35,14 @@ const FIG_H := 0.30   # 立ち絵の高さ（窓内寸の高さに対する比�
 const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
 
 var _skins := {}
+var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _backdrop: ColorRect  # 盤を薄暗くする幕
 var _panel: Panel         # 中央のモーダル窓（地形色＝StyleBox）
 var _style: StyleBoxFlat  # 窓の背景（地形色を差し替える）
-var _inner: Control       # 窓の中身（図＋エフェクト）。シェイク対象
+var _inner: Control       # 窓の中身（地面＋図＋エフェクト）。シェイク対象
+var _ground: CombatGround3D  # 地面（3D・盤と同じ地形タイル）
+var _haze: TextureRect       # 奥を落とす縦グラデ（タイルの繰り返しを目立たせない）
 var _fig := { "L": null, "R": null }  # 各サイドの図レイヤ（Control）
 var _fx: Control                       # フラッシュ・エフェクト・損害数
 var _area: Vector2        # 窓の内寸（レイアウト基準）
@@ -76,6 +82,15 @@ func _build() -> void:
 	_inner.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(_inner)
+	# 地面はシェイク対象（_inner）の中＝立ち絵と一緒に揺れる（背景だけ止まって見えない）。
+	_ground = CombatGround3D.new()
+	_inner.add_child(_ground)
+	_haze = TextureRect.new()
+	_haze.texture = _make_haze()
+	_haze.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_haze.stretch_mode = TextureRect.STRETCH_SCALE
+	_haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inner.add_child(_haze)
 	for side in ["L", "R"]:
 		var f := Control.new()
 		f.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -101,9 +116,21 @@ func _layout() -> void:
 	_area = Vector2(min(board.size.x * 0.90, 740.0), min(board.size.y * 0.62, 520.0))
 	_panel.size = _area
 	_panel.position = ((board.size - _area) * 0.5).round()
+	# 地面と靄は窓より少し大きく取る＝シェイクで縁に窓の下地が覗かない。
+	# アンカーに任せず直に置く（_layout 直後に地面を組むので、親のサイズ反映を待てない）。
+	var bleed := Vector2(GROUND_BLEED, GROUND_BLEED)
+	_ground.position = -bleed
+	_ground.size = _area + bleed * 2.0
+	_haze.position = -bleed
+	_haze.size = _area + bleed * 2.0
 
 func bind(skins: Dictionary) -> void:
 	_skins = skins
+
+## ステージの地形の見た目差分（座標→skin_id）。地面をどのスキンで組むかの解決に使う。
+## ステージごとに変わるので load_stage が呼ぶ（盤の bind と同じ出どころ）。
+func bind_terrain_skins(terrain_skins: Dictionary) -> void:
+	_terrain_skins = terrain_skins
 
 ## 戦闘結果 detail を演出する。detail が空なら何もしない。
 func play(detail: Dictionary) -> void:
@@ -128,6 +155,7 @@ func play(detail: Dictionary) -> void:
 
 	_layout()
 	_style.bg_color = TERRAIN_COLOR.get(String(t.get("terrain", "")), Color(0.35, 0.38, 0.34))
+	_ground.build(_defender_skin(t), def_side)  # 地面は守り手の地形（攻撃側の地形は使わない）
 	_render_side("L", L, int(L["troops_before"]))
 	_render_side("R", R, int(R["troops_before"]))
 	visible = true
@@ -252,6 +280,29 @@ func _skin_of(comb: Dictionary) -> UnitSkin:
 func _placeholder_label(comb: Dictionary) -> String:
 	var skin := _skin_of(comb)
 	return skin.combat_label() if skin != null else String(comb.get("type_id", "?"))
+
+## 守り手の地形スキン（地面の材料）。ステージの見た目差分を優先し、無ければ地形の既定スキン。
+## pos が来ない古い detail でも既定スキンには落ちる（平地/雪原の別は付かないが地面は出る）。
+func _defender_skin(t: Dictionary) -> TerrainSkin:
+	var pos: Variant = t.get("pos")
+	var skin_id := ""
+	if typeof(pos) == TYPE_VECTOR2I:
+		skin_id = String(_terrain_skins.get(pos, ""))
+	return TerrainSkinCatalog.resolve(skin_id, String(t.get("terrain", "")))
+
+## 奥（画面上）を落とす縦グラデ。遠くのタイルの繰り返しを目立たせず、手前の隊列に目を寄せる。
+func _make_haze() -> GradientTexture2D:
+	var g := Gradient.new()
+	g.set_color(0, Color(0.05, 0.06, 0.08, 0.55))
+	g.set_color(1, Color(0.05, 0.06, 0.08, 0.0))
+	g.set_offset(1, 0.55)  # 窓の上半分だけで抜ける
+	var t := GradientTexture2D.new()
+	t.gradient = g
+	t.fill_from = Vector2(0, 0)
+	t.fill_to = Vector2(0, 1)
+	t.width = 8
+	t.height = 128
+	return t
 
 func _flash(side: String) -> void:
 	var vp := _size()

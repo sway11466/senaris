@@ -106,7 +106,6 @@ var _glow_mat: StandardMaterial3D # 同・材質（加算合成）。明滅は _
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
 var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
-var _terrain_mat := {}    # Texture2D -> StandardMaterial3D（タイル材質キャッシュ）
 var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
 var _avg_color := {}      # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
 var _skirt_tex: ImageTexture  # スカートの粒状ノイズ（べた塗り回避。_ready で1回生成）
@@ -1187,11 +1186,7 @@ func _add_tile(hex: Vector2i) -> void:
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, _elev(hex), p.y)
 	if skin != null and skin.orientable:
-		# 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ。
-		var o := absi(hash(Vector2i(hex.y, hex.x)))
-		mi.rotation.y = float(o % 6) * (PI / 3.0)
-		if (o / 6) % 2 == 1:
-			mi.scale = Vector3(-1.0, 1.0, 1.0)  # 左右反転（cull無効なので裏面でも描ける）
+		TerrainTiles.orient(mi, hex)  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
 	_tiles_root.add_child(mi)
 
@@ -1680,26 +1675,11 @@ func _bill_material(color: Color) -> StandardMaterial3D:
 
 ## 床(XZ)に寝かせたフラットトップ六角メッシュ（中心ファン）。UVはテクスチャの外接矩形。
 func _make_hex_mesh() -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in 6:
-		var a0 := deg_to_rad(60.0 * i)
-		var a1 := deg_to_rad(60.0 * (i + 1))
-		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5, 0.5)); st.add_vertex(Vector3.ZERO)
-		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5 + cos(a0) * 0.5, 0.5 + sin(a0) * 0.5)); st.add_vertex(Vector3(cos(a0) * TILE, 0.0, sin(a0) * TILE))
-		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5 + cos(a1) * 0.5, 0.5 + sin(a1) * 0.5)); st.add_vertex(Vector3(cos(a1) * TILE, 0.0, sin(a1) * TILE))
-	return st.commit()
+	return TerrainTiles.hex_mesh(TILE)  # 戦闘演出の地面と共有（同じ絵・同じ発色で敷く）
 
 ## タイル材質（アンライト＝2D canvas と同じ発色）。テクスチャごとにキャッシュ。
 func _terrain_material(tex: Texture2D) -> StandardMaterial3D:
-	if _terrain_mat.has(tex):
-		return _terrain_mat[tex]
-	var m := StandardMaterial3D.new()
-	m.albedo_texture = tex
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 左右反転タイル（scale.x=-1）でも描けるように
-	_terrain_mat[tex] = m
-	return m
+	return TerrainTiles.material(tex)
 
 ## オーバーレイ材質（半透明・アンライト）。色ごとにキャッシュ。
 func _overlay_material(color: Color) -> StandardMaterial3D:
@@ -1726,27 +1706,11 @@ func _unit_texture(u: Unit) -> Texture2D:
 
 ## 地形タイルを読む。基本 {name}.png ＋連番 variant。
 func _load_terrain_variants(base_path: String) -> Array:
-	var texs: Array = []
-	var base := load(base_path) as Texture2D
-	if base != null:
-		texs.append(base)
-	var stem := base_path.trim_suffix(".png")
-	var n := 2
-	while true:
-		var p := "%s_%d.png" % [stem, n]
-		if not ResourceLoader.exists(p):
-			break
-		var t := load(p) as Texture2D
-		if t != null:
-			texs.append(t)
-		n += 1
-	return texs
+	return TerrainTiles.variants(base_path)
 
 ## ヘックス座標から決定的に variant を選ぶ（盤の再構築でも不変）。
 func _terrain_variant(hex: Vector2i, count: int) -> int:
-	if count <= 1:
-		return 0
-	return absi(hash(hex)) % count
+	return TerrainTiles.variant_index(hex, count)
 
 func _clear_children(root: Node3D) -> void:
 	for c in root.get_children():

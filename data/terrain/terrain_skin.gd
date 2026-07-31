@@ -18,6 +18,9 @@ var connect: bool          ## 隣の同スキンと繋がる線地形か（柵�
 var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
 var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
 var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
+## 戦闘演出の地面の作り方（→ doc/tech/combat_scene.md）。マップ絵をそのまま敷いて組む。
+var combat_ground: String  ## 下地に敷くスキンID。空＝自分自身で敷き詰める（既定）
+var combat_layout: String  ## 自分の絵の置き方。fill(既定・空も同じ) / line(隊列の間を横断) / center(中央1マス)
 
 static func from_dict(d: Dictionary) -> TerrainSkin:
 	var s := TerrainSkin.new()
@@ -29,7 +32,17 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.elevation = float(d.get("elevation", 0.0))
 	s.sprite_sink = float(d.get("sprite_sink", 0.0))
 	s.grid = bool(d.get("grid", true))
+	s.combat_ground = String(d.get("combat_ground", ""))
+	s.combat_layout = String(d.get("combat_layout", ""))
 	return s
+
+## 戦闘演出の地面で、自分の絵をどう置くか（空を fill に畳んだ値）。
+func combat_placement() -> String:
+	return combat_layout if combat_layout != "" else "fill"
+
+## 戦闘演出の地面の下地スキンID（空なら自分自身＝敷き詰め）。
+func combat_ground_id() -> String:
+	return combat_ground if combat_ground != "" else skin_id
 
 ## タイル画像（基本）のパス。ファイル名は skin_id 規約（変種 _2/_3 は描画側が連番で拾う）。
 func image_path() -> String:

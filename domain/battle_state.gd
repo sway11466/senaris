@@ -698,10 +698,11 @@ func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 
 ## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。
 ## statuses＝この時点で効いている状態補正エントリの一覧（戦闘レポートのバフ表示用）。
+## pos は演出シーンが地面を組むのに要る（terrain＝性能IDだけでは平地/雪原の別＝スキンが決まらない）。
 func _unit_snapshot(u: Unit) -> Dictionary:
 	return {
 		"id": u.id, "type_id": u.type_id, "skin_id": u.skin_id, "team": u.team, "level": u.level,
-		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos),
+		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos), "pos": u.pos,
 		"statuses": StatusMod.applied(_status_mods, u),
 	}
 

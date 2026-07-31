@@ -99,7 +99,9 @@ func _install_state(state: BattleState, path: String) -> void:
 	brain.presets = _ai_presets  # 部隊のラベル解決用
 	_controller.ai_brain = brain
 	add_child(_controller)
-	$HexBoard.bind(state, _controller, _skins, StageLoader.load_terrain_skins(path))  # 見た目差分(座標→skin)は presentation へ（案P）
+	var terrain_skins := StageLoader.load_terrain_skins(path)  # 見た目差分(座標→skin)は presentation へ（案P）
+	$HexBoard.bind(state, _controller, _skins, terrain_skins)
+	_combat_scene.bind_terrain_skins(terrain_skins)  # 演出の地面も同じ見た目差分から組む
 	$InfoPanel.bind(state, _skins)
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($InfoPanel.show_combat)
