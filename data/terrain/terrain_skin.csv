@@ -1,6 +1,6 @@
 skin_id,terrain_type,name,orientable,connect,elevation,sprite_sink,grid,combat_ground,combat_layout,memo
 スキンID,地形タイプ,表示名,向き変化,隣と繋がる,見た目の高さ,立ち絵の沈み,グリッド線,戦闘背景の下地,戦闘背景の置き方,備考
-road,road,道,false,false,0,0,true,plain,line,既定スキン
+road,road,道,false,true,0,0,true,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）
 plain,plain,平地,true,false,0,0,true,,,既定スキン
 plain_cave1,plain,洞窟の床,true,false,0,0,true,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
 plateau,plateau,台地,true,false,0.18,0,true,,,既定スキン

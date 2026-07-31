@@ -1,0 +1,48 @@
+STYLE: A map tile element for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading,
+clear dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game, seen from DIRECTLY OVERHEAD — flat, no perspective, no
+horizon, no sky, no depth. This is ground: nothing is built on it, nothing
+stands up, nothing casts a shadow. Read at thumbnail size: a few large legible
+shapes, no fine detail. Square 1:1.
+
+BACKGROUND — IMPORTANT: this is a cut-out element, not a scene. Everything that
+is not the road itself is PLAIN PURE WHITE (#FFFFFF), flat and empty, right out
+to all four edges. NO grass, NO scenery, NO texture, NO gradient, NO shadow, NO
+border, NO frame. Nothing at all on the white.
+
+SUBJECT: A single straight, wide DIRT ROAD running away from the viewer,
+straight up the frame. A broad, well-travelled country highway of bare packed
+earth, beaten pale and smooth by carts and feet.
+
+Composition, exactly: the road is one straight vertical band, dead centre
+left-to-right, crossing the full height of the frame and continuing off BOTH the
+top edge and the bottom edge — never stopping, never bending, never leaning,
+never curving, no fork, no junction, no crossing, no end. It is identical in
+width and character along its whole length, so the top edge and the bottom edge
+match up when the picture is stacked head to tail. There is nothing special
+anywhere along it — no landmark, no marker, no puddle, no rut, no wheel track,
+no stone, no patch that would stand out if this stretch were repeated.
+
+The road is WIDE: about three fifths of the frame across, leaving a strip of
+white of about one fifth of the frame on the left and the same on the right.
+Both edges run straight up the frame and are only very slightly irregular, the
+way trodden earth meets a verge — small, shallow waver only, never a bulge or a
+bite that would eat into the white strips.
+
+Each edge of the road carries a clear dark outline, the same weight of outline
+as the rest of the game's map art, so the band reads as a defined shape against
+the white.
+
+COLOR: warm pale sandy earth, roughly hex #D8C39A — a light, slightly greyed
+tan. Inside the band keep it calm and almost flat, with only faint, soft mottling
+a little darker than the base to suggest packed dirt. CRITICAL: no part of the
+road may be white or near-white — keep every pixel of it clearly darker than the
+background, well away from #FFFFFF. NO bright highlights, NO pale dust, NO
+bleached patches, NO glare. Equally: NOT dark mud, NOT brown soil, NOT grey
+gravel, NOT cobblestones, NOT paving slabs, NOT brick.
+
+Lit dimly and evenly from straight above, with NO cast shadow at all: the road
+is flat ground and throws no shadow, and there is no dark smear or soft dark
+band alongside it.
