@@ -7,6 +7,7 @@
 					"description": "",
 					"images": {},
 					"name": "飛空艇",
+					"retainers": [],
 					"skin_id": "airship",
 					"type_id": "airship"
 				}
@@ -20,6 +21,7 @@
 					"description": "",
 					"images": {},
 					"name": "アーチャー",
+					"retainers": [],
 					"skin_id": "archer",
 					"type_id": "archer"
 				}
@@ -33,6 +35,7 @@
 					"description": "",
 					"images": {},
 					"name": "バリスタ",
+					"retainers": [],
 					"skin_id": "ballista",
 					"type_id": "ballista"
 				}
@@ -46,6 +49,7 @@
 					"description": "",
 					"images": {},
 					"name": "バリケード",
+					"retainers": [],
 					"skin_id": "barricade",
 					"type_id": "barricade"
 				}
@@ -59,6 +63,7 @@
 					"description": "",
 					"images": {},
 					"name": "バードマン",
+					"retainers": [],
 					"skin_id": "birdman",
 					"type_id": "birdman"
 				}
@@ -69,6 +74,7 @@
 					"description": "",
 					"images": {},
 					"name": "グリフォン",
+					"retainers": [],
 					"skin_id": "griffon",
 					"type_id": "birdman"
 				}
@@ -81,6 +87,7 @@
 					"description": "",
 					"images": {},
 					"name": "ビショップ",
+					"retainers": [],
 					"skin_id": "bishop",
 					"type_id": "bishop"
 				}
@@ -91,6 +98,7 @@
 					"description": "",
 					"images": {},
 					"name": "ゾンビ",
+					"retainers": [],
 					"skin_id": "zombie",
 					"type_id": "bishop"
 				}
@@ -103,6 +111,7 @@
 					"description": "",
 					"images": {},
 					"name": "クレリック",
+					"retainers": [],
 					"skin_id": "cleric",
 					"type_id": "cleric"
 				}
@@ -113,6 +122,7 @@
 					"description": "",
 					"images": {},
 					"name": "ゴブリン",
+					"retainers": [],
 					"skin_id": "goblin",
 					"type_id": "cleric"
 				},
@@ -121,6 +131,7 @@
 					"description": "",
 					"images": {},
 					"name": "ローグ",
+					"retainers": [],
 					"skin_id": "rogue",
 					"type_id": "cleric"
 				}
@@ -134,6 +145,7 @@
 					"description": "",
 					"images": {},
 					"name": "レッドドラゴン",
+					"retainers": [],
 					"skin_id": "dragon",
 					"type_id": "dragon"
 				}
@@ -146,6 +158,7 @@
 					"description": "",
 					"images": {},
 					"name": "ドラゴンナイト",
+					"retainers": [],
 					"skin_id": "dragon_knight",
 					"type_id": "dragon_knight"
 				}
@@ -159,6 +172,7 @@
 					"description": "",
 					"images": {},
 					"name": "ドワーフ",
+					"retainers": [],
 					"skin_id": "dwarf",
 					"type_id": "dwarf"
 				}
@@ -172,6 +186,7 @@
 					"description": "",
 					"images": {},
 					"name": "エルフ",
+					"retainers": [],
 					"skin_id": "elf",
 					"type_id": "elf"
 				}
@@ -185,6 +200,7 @@
 					"description": "",
 					"images": {},
 					"name": "ファイター",
+					"retainers": [],
 					"skin_id": "fighter",
 					"type_id": "fighter"
 				}
@@ -195,6 +211,7 @@
 					"description": "",
 					"images": {},
 					"name": "グール",
+					"retainers": [],
 					"skin_id": "ghoul",
 					"type_id": "fighter"
 				},
@@ -203,6 +220,7 @@
 					"description": "",
 					"images": {},
 					"name": "オーク",
+					"retainers": [],
 					"skin_id": "orc",
 					"type_id": "fighter"
 				}
@@ -215,6 +233,7 @@
 					"description": "",
 					"images": {},
 					"name": "ハーフリング",
+					"retainers": [],
 					"skin_id": "halfling",
 					"type_id": "halfling"
 				}
@@ -229,6 +248,7 @@
 					"description": "",
 					"images": {},
 					"name": "ハーピー",
+					"retainers": [],
 					"skin_id": "harpy",
 					"type_id": "harpy"
 				}
@@ -241,6 +261,7 @@
 					"description": "",
 					"images": {},
 					"name": "ハンター",
+					"retainers": [],
 					"skin_id": "hunter",
 					"type_id": "hunter"
 				}
@@ -254,6 +275,7 @@
 					"description": "",
 					"images": {},
 					"name": "ナイト",
+					"retainers": [],
 					"skin_id": "knight",
 					"type_id": "knight"
 				}
@@ -264,6 +286,7 @@
 					"description": "",
 					"images": {},
 					"name": "トレント",
+					"retainers": [],
 					"skin_id": "treant",
 					"type_id": "knight"
 				}
@@ -276,6 +299,7 @@
 					"description": "",
 					"images": {},
 					"name": "くノ一",
+					"retainers": [],
 					"skin_id": "kunoichi",
 					"type_id": "kunoichi"
 				}
@@ -289,6 +313,7 @@
 					"description": "",
 					"images": {},
 					"name": "メイジ",
+					"retainers": [],
 					"skin_id": "mage",
 					"type_id": "mage"
 				}
@@ -299,6 +324,7 @@
 					"description": "",
 					"images": {},
 					"name": "オークメイジ",
+					"retainers": [],
 					"skin_id": "orc_mage",
 					"type_id": "mage"
 				}
@@ -311,6 +337,7 @@
 					"description": "",
 					"images": {},
 					"name": "マジックナイト",
+					"retainers": [],
 					"skin_id": "magic_knight",
 					"type_id": "magic_knight"
 				}
@@ -324,6 +351,7 @@
 					"description": "",
 					"images": {},
 					"name": "ニンジャ",
+					"retainers": [],
 					"skin_id": "ninja",
 					"type_id": "ninja"
 				}
@@ -337,6 +365,7 @@
 					"description": "",
 					"images": {},
 					"name": "ノービス",
+					"retainers": [],
 					"skin_id": "novice",
 					"type_id": "novice"
 				}
@@ -347,6 +376,7 @@
 					"description": "",
 					"images": {},
 					"name": "ダイアウルフ",
+					"retainers": [],
 					"skin_id": "dire_wolf",
 					"type_id": "novice"
 				}
@@ -359,6 +389,7 @@
 					"description": "",
 					"images": {},
 					"name": "パラディン",
+					"retainers": [],
 					"skin_id": "paladin",
 					"type_id": "paladin"
 				}
@@ -369,6 +400,9 @@
 					"description": "",
 					"images": {},
 					"name": "ゴブリンロード",
+					"retainers": [
+						"goblin"
+					],
 					"skin_id": "goblin_lord",
 					"type_id": "paladin"
 				},
@@ -377,6 +411,7 @@
 					"description": "",
 					"images": {},
 					"name": "首領",
+					"retainers": [],
 					"skin_id": "rogue_boss",
 					"type_id": "paladin"
 				}
@@ -389,6 +424,7 @@
 					"description": "",
 					"images": {},
 					"name": "ピクシー",
+					"retainers": [],
 					"skin_id": "pixie",
 					"type_id": "pixie"
 				}
@@ -399,6 +435,7 @@
 					"description": "",
 					"images": {},
 					"name": "ゴースト",
+					"retainers": [],
 					"skin_id": "ghost",
 					"type_id": "pixie"
 				}
@@ -411,6 +448,7 @@
 					"description": "",
 					"images": {},
 					"name": "プリースト",
+					"retainers": [],
 					"skin_id": "priest",
 					"type_id": "priest"
 				}
@@ -421,6 +459,7 @@
 					"description": "",
 					"images": {},
 					"name": "ホブゴブリン",
+					"retainers": [],
 					"skin_id": "hobgoblin",
 					"type_id": "priest"
 				},
@@ -429,6 +468,7 @@
 					"description": "",
 					"images": {},
 					"name": "スケルトン",
+					"retainers": [],
 					"skin_id": "skeleton",
 					"type_id": "priest"
 				}
@@ -441,6 +481,7 @@
 					"description": "",
 					"images": {},
 					"name": "サムライ",
+					"retainers": [],
 					"skin_id": "samurai",
 					"type_id": "samurai"
 				}
@@ -454,6 +495,7 @@
 					"description": "",
 					"images": {},
 					"name": "スリンガー",
+					"retainers": [],
 					"skin_id": "slinger",
 					"type_id": "slinger"
 				}
@@ -464,6 +506,7 @@
 					"description": "",
 					"images": {},
 					"name": "ゴブリンアーチャー",
+					"retainers": [],
 					"skin_id": "goblin_archer",
 					"type_id": "slinger"
 				},
@@ -472,6 +515,7 @@
 					"description": "",
 					"images": {},
 					"name": "スケルトンアーチャー",
+					"retainers": [],
 					"skin_id": "skeleton_archer",
 					"type_id": "slinger"
 				},
@@ -480,6 +524,7 @@
 					"description": "",
 					"images": {},
 					"name": "マタンゴ",
+					"retainers": [],
 					"skin_id": "matango",
 					"type_id": "slinger"
 				}
@@ -492,6 +537,7 @@
 					"description": "",
 					"images": {},
 					"name": "スナイパー",
+					"retainers": [],
 					"skin_id": "sniper",
 					"type_id": "sniper"
 				}
@@ -502,6 +548,15 @@
 					"description": "",
 					"images": {},
 					"name": "ネクロマンサー",
+					"retainers": [
+						"skeleton",
+						"zombie",
+						"skeleton",
+						"zombie",
+						"skeleton",
+						"skeleton",
+						"zombie"
+					],
 					"skin_id": "necromancer",
 					"type_id": "sniper"
 				}
@@ -514,6 +569,7 @@
 					"description": "",
 					"images": {},
 					"name": "ソーサラー",
+					"retainers": [],
 					"skin_id": "sorcerer",
 					"type_id": "sorcerer"
 				}
@@ -527,6 +583,7 @@
 					"description": "",
 					"images": {},
 					"name": "シーフ",
+					"retainers": [],
 					"skin_id": "thief",
 					"type_id": "thief"
 				}
@@ -540,6 +597,7 @@
 					"description": "",
 					"images": {},
 					"name": "ヴァンガード",
+					"retainers": [],
 					"skin_id": "vanguard",
 					"type_id": "vanguard"
 				}
@@ -550,6 +608,7 @@
 					"description": "",
 					"images": {},
 					"name": "オークリーダー",
+					"retainers": [],
 					"skin_id": "orc_leader",
 					"type_id": "vanguard"
 				}
@@ -562,6 +621,7 @@
 					"description": "",
 					"images": {},
 					"name": "馬車",
+					"retainers": [],
 					"skin_id": "wagon",
 					"type_id": "wagon"
 				}
@@ -575,6 +635,7 @@
 					"description": "",
 					"images": {},
 					"name": "ウォーロード",
+					"retainers": [],
 					"skin_id": "warlord",
 					"type_id": "warlord"
 				}
@@ -585,6 +646,7 @@
 					"description": "",
 					"images": {},
 					"name": "デュラハン",
+					"retainers": [],
 					"skin_id": "dullahan",
 					"type_id": "warlord"
 				},
@@ -593,6 +655,7 @@
 					"description": "",
 					"images": {},
 					"name": "キメラ",
+					"retainers": [],
 					"skin_id": "chimera",
 					"type_id": "warlord"
 				}
@@ -605,6 +668,7 @@
 					"description": "",
 					"images": {},
 					"name": "ウィッチ",
+					"retainers": [],
 					"skin_id": "witch",
 					"type_id": "witch"
 				}
@@ -615,6 +679,7 @@
 					"description": "",
 					"images": {},
 					"name": "マンドラゴラ",
+					"retainers": [],
 					"skin_id": "mandragora",
 					"type_id": "witch"
 				}
@@ -627,6 +692,7 @@
 					"description": "",
 					"images": {},
 					"name": "ウィザード",
+					"retainers": [],
 					"skin_id": "wizard",
 					"type_id": "wizard"
 				}

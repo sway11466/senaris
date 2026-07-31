@@ -89,6 +89,46 @@ func test_unit_skin_duplicate_skin_id_blocks() -> void:
 	var r := Units.build_unit_skin(rows, ["knight"])
 	assert_null(r["json"], "skin_id 重複で json=null")
 
+# --- units: retainers（戦闘演出でボスの脇に並べる従者スキン） ---
+
+func _skin_rows_with_retainers(value: String) -> Array:
+	var boss := _valid_skin_row("boss", "knight", "enemy")
+	boss["retainers"] = value
+	return [boss, _valid_skin_row("mob", "knight", "enemy")]
+
+func test_retainers_split_into_array() -> void:
+	var r := Units.build_unit_skin(_skin_rows_with_retainers("mob|boss|mob"), ["knight"])
+	assert_eq(r["problems"].size(), 0)
+	assert_eq(r["json"]["skins"]["knight"]["enemy"][0]["retainers"], ["mob", "boss", "mob"])
+
+func test_retainers_empty_cell_is_empty_array() -> void:
+	# 空欄＝従者なし＝全部本人の絵。列を書いていない既存行もここに落ちる。
+	var r := Units.build_unit_skin([ _valid_skin_row("solo", "knight", "ally") ], ["knight"])
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["retainers"], [])
+
+func test_retainers_trims_and_drops_blanks() -> void:
+	var r := Units.build_unit_skin(_skin_rows_with_retainers(" mob | | mob "), ["knight"])
+	assert_eq(r["json"]["skins"]["knight"]["enemy"][0]["retainers"], ["mob", "mob"])
+
+func test_retainers_dangling_skin_ref_blocks() -> void:
+	# 打ち間違えると「黙って絵が出ない」ので、生成を止めて気づかせる。
+	var r := Units.build_unit_skin(_skin_rows_with_retainers("mob|typo"), ["knight"])
+	assert_null(r["json"], "未定義 skin_id を指す retainers で json=null")
+
+func test_retainers_over_max_blocks() -> void:
+	var many := []
+	for i in Units.RETAINER_MAX + 1:
+		many.append("mob")
+	var r := Units.build_unit_skin(_skin_rows_with_retainers("|".join(many)), ["knight"])
+	assert_null(r["json"], "隊列に入り切らない数の retainers で json=null")
+
+func test_retainers_at_max_is_allowed() -> void:
+	var many := []
+	for i in Units.RETAINER_MAX:
+		many.append("mob")
+	var r := Units.build_unit_skin(_skin_rows_with_retainers("|".join(many)), ["knight"])
+	assert_eq(r["problems"].size(), 0, "上限ちょうどは通る")
+
 # --- ai: build_presets ---
 
 func _valid_ai_row(label: String) -> Dictionary:

@@ -17,6 +17,7 @@ var name: String          ## 表示名（例: クレリック / ゴブリン）
 var category: String      ## 管理分類（基準/ゴブリン/アンデッド…）。参考データ＝ゲームロジックで参照しない（ツール・図鑑用）
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
 var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
+var retainers: Array       ## 戦闘演出で脇に並べる別スキンの skin_id（先頭＝本人の隣）。空＝全部本人の絵。→ doc/tech/combat_scene.md
 
 static func from_dict(d: Dictionary) -> UnitSkin:
 	var s := UnitSkin.new()
@@ -26,6 +27,8 @@ static func from_dict(d: Dictionary) -> UnitSkin:
 	s.category = String(d.get("category", ""))
 	s.description = String(d.get("description", ""))
 	s.images = d.get("images", {})
+	var r: Variant = d.get("retainers", [])
+	s.retainers = r if typeof(r) == TYPE_ARRAY else []
 	return s
 
 ## マップ表示のプレースホルダ文字（名前の先頭2文字）。

@@ -15,6 +15,10 @@ const TYPE_REQUIRED := [
 const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id"]
 ## side は陣営の2値のみ（convert が skins[tid][side] へ振り分けるため他値はNG）。
 const SIDES := ["ally", "enemy"]
+## 従者リスト（retainers 列）の区切り。CSV なのでカンマは使えない。
+const RETAINER_SEP := "|"
+## 従者の上限。戦闘演出の隊列は8スロットで、先頭1つは本人が使う（doc/tech/combat_scene.md）。
+const RETAINER_MAX := 7
 
 func _initialize() -> void:
 	var type_rows := Csv.read_table("res://data/units/unit_type.csv")
@@ -48,17 +52,19 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "types": rows } }
 
-## スキン表（1行=1別名: skin_id, side, type_id, name, category）→ { problems, json }。純関数。
+## スキン表（1行=1別名: skin_id, side, type_id, name, category, retainers）→ { problems, json }。純関数。
 ## 同じ (type_id, side) の行は出現順にエイリアス配列へ。description/images は空（後で拡張）。
 ## category は管理分類（基準/ゴブリン/…）＝参考データとして JSON にも持つ。
 ## skin は見た目レイヤー（案P）＝category をゲームロジックから参照しないこと（ツール・図鑑用）。
-## side enum・skin_id重複・type_id参照・必須列を検証。problems があれば json は null。
+## retainers は戦闘演出で本人の脇に並べる別スキン（'|' 区切り・空＝全部本人）。→ doc/tech/combat_scene.md
+## side enum・skin_id重複・type_id参照・retainers参照・必須列を検証。problems があれば json は null。
 static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
 	problems += Csv.invalid_values(rows, "side", SIDES, "skin_id")
 	problems += Csv.invalid_values(rows, "type_id", type_ids, "skin_id")  # unit_type に無い性能への参照切れ
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
+	problems += _retainer_problems(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	var skins := {}
@@ -70,9 +76,32 @@ static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 		skins[tid][side].append({
 			"skin_id": str(r.get("skin_id", "")), "type_id": tid,
 			"name": str(r["name"]), "category": str(r.get("category", "")),
-			"description": "", "images": {},
+			"description": "", "images": {}, "retainers": parse_retainers(r),
 		})
 	return { "problems": problems, "json": { "skins": skins } }
+
+## retainers セル → skin_id の配列。空セル・空要素は落とす。純関数。
+static func parse_retainers(row: Dictionary) -> Array:
+	var out := []
+	for part in str(row.get("retainers", "")).split(RETAINER_SEP):
+		var id := part.strip_edges()
+		if not id.is_empty():
+			out.append(id)
+	return out
+
+## retainers の検証：実在しない skin_id への参照（＝黙って絵が出ない罠）と、隊列に入り切らない数。
+static func _retainer_problems(rows: Array) -> Array:
+	var known := Csv.value_set(rows, "skin_id")
+	var out := []
+	for r in rows:
+		var label := str(r.get("skin_id", ""))
+		var list := parse_retainers(r)
+		if list.size() > RETAINER_MAX:
+			out.append("'%s': retainers が %d 個（上限 %d＝隊列8のうち先頭は本人）" % [label, list.size(), RETAINER_MAX])
+		for id in list:
+			if not known.has(id):
+				out.append("'%s': retainers が未定義の skin_id を指している: '%s'" % [label, id])
+	return out
 
 func _report(name: String, problems: Array) -> void:
 	for p in problems:

@@ -10,8 +10,11 @@ class_name CombatScene
 signal finished  # 演出が閉じた（自動クローズ or クリック）。AIターンのテンポ制御が待つ。
 
 const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1）。並び順=重心から近い順で兵数少でも中央に寄る。combat_scene.md
-	Vector2(0.45, 0.36), Vector2(0.55, 0.68), Vector2(0.23, 0.52), Vector2(0.77, 0.52),
-	Vector2(0.66, 0.20), Vector2(0.34, 0.84), Vector2(0.12, 0.20), Vector2(0.88, 0.84),
+	# x で3列に分かれる（後列 0.12/0.23/0.34・中列 0.45/0.55・前列 0.66/0.77/0.88）。
+	# 後列は y を大きく（画面下へ）、前列は y を小さく（画面上へ）取って、地面の傾きで寝ていた
+	# 隊列を起こす＝3列が斜めに潰れず、前後の重なりが減る。
+	Vector2(0.45, 0.36), Vector2(0.55, 0.68), Vector2(0.23, 0.62), Vector2(0.77, 0.42),
+	Vector2(0.66, 0.10), Vector2(0.34, 0.94), Vector2(0.12, 0.30), Vector2(0.88, 0.74),
 ]
 const TERRAIN_COLOR := {
 	"plain": Color(0.56, 0.71, 0.42), "forest": Color(0.30, 0.49, 0.28),
@@ -166,18 +169,18 @@ func _render_side(side: String, comb: Dictionary, count: int) -> void:
 	var layer: Control = _fig[side]
 	_clear(layer)
 	var vp := _size()
-	var tex := _texture_for(comb)
 	var team := int(comb.get("team", 0))
+	var texs := _textures_for(comb, count)  # スロットごとの絵（先頭＝本人・以降は従者）
 	var figs := []
 	for i in count:
 		var p: Vector2 = POS[i]
 		var s := FIG_SCALE
 		var cx := (vp.x * 0.06 + p.x * vp.x * 0.36) if side == "L" else (vp.x * 0.94 - p.x * vp.x * 0.36)
 		var feet := vp.y * 0.38 + p.y * vp.y * 0.42 + p.x * vp.y * 0.16
-		figs.append({ "cx": cx, "feet": feet, "s": s })
+		figs.append({ "cx": cx, "feet": feet, "s": s, "tex": texs[i] })
 	figs.sort_custom(func(u, v): return u["feet"] < v["feet"])  # 手前（下）を後に＝前面
 	for f in figs:
-		_add_figure(layer, f["cx"], f["feet"], f["s"], tex, team, comb)
+		_add_figure(layer, f["cx"], f["feet"], f["s"], f["tex"], team, comb)
 
 func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2D, team: int, comb: Dictionary) -> void:
 	var vp := _size()
@@ -207,19 +210,47 @@ func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2
 		panel.add_child(lbl)
 		layer.add_child(panel)
 
+## 隊列スロットごとの立ち絵。先頭は必ず本人で、2体目以降は従者（スキンの retainers）を
+## 順に巡回して割り当てる。retainers が空なら全部本人＝従来どおりの見た目。
+## ボス＋手下の一団を、絵を足さずに既存スキンの組み合わせで作るための仕組み。仕様 → doc/tech/combat_scene.md
+func _textures_for(comb: Dictionary, count: int) -> Array:
+	var own := _texture_for(comb)
+	var skin := _skin_of(comb)
+	var list: Array = skin.retainers if skin != null else []
+	var out := []
+	for i in count:
+		if i == 0 or list.is_empty():
+			out.append(own)
+		else:
+			out.append(_retainer_texture(String(list[(i - 1) % list.size()]), own))
+	return out
+
+## 従者1体ぶんの立ち絵。スキンが引けない／絵が無い場合は本人の絵で埋める（穴を空けない）。
+func _retainer_texture(skin_id: String, fallback: Texture2D) -> Texture2D:
+	var s: UnitSkin = SkinCatalog.skin_by_id(_skins, skin_id)
+	if s == null:
+		return fallback
+	var tex := _skin_texture(s)
+	return tex if tex != null else fallback
+
 func _texture_for(comb: Dictionary) -> Texture2D:
-	var skin: UnitSkin = SkinCatalog.resolve(_skins, String(comb.get("skin_id", "")), String(comb["type_id"]), int(comb["team"]))
-	if skin == null:
-		return null
-	var p := skin.image("combat")  # 本番アートが来れば combat スロット優先
+	var skin := _skin_of(comb)
+	return _skin_texture(skin) if skin != null else null
+
+## スキンの立ち絵。combat スロット優先、無ければ map 画像を流用（本番アートが来るまでの繋ぎ）。
+func _skin_texture(skin: UnitSkin) -> Texture2D:
+	var p := skin.image("combat")
 	if p == "":
-		p = skin.image("map")       # 当面は map 画像を流用
+		p = skin.image("map")
 	if p != "" and ResourceLoader.exists(p):
 		return load(p) as Texture2D
 	return null
 
+func _skin_of(comb: Dictionary) -> UnitSkin:
+	return SkinCatalog.resolve(_skins, String(comb.get("skin_id", "")), String(comb["type_id"]), int(comb["team"]))
+
 func _placeholder_label(comb: Dictionary) -> String:
-	var skin: UnitSkin = SkinCatalog.resolve(_skins, String(comb.get("skin_id", "")), String(comb["type_id"]), int(comb["team"]))
+	var skin := _skin_of(comb)
 	return skin.combat_label() if skin != null else String(comb.get("type_id", "?"))
 
 func _flash(side: String) -> void:
