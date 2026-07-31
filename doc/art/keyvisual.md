@@ -57,6 +57,22 @@ around it. Wide 4:3 composition.
 - 追加スロット（cover 以外の kind）：cover と同じ二層・同じ ILLUST STYLE（§2）で作り、-src ファイル名に kind トークンを前置して cover と共存させる（ユニットの map=既定／combat=トークン、と同じ思想）。単一絵なら変種letter `_a` は省く。`CampaignCatalog` は `{id}_{kind}.png` を規約解決するので、絵を置くだけで有効・無ければスキップ。
   - `victory`＝キャンペーン完走（最終ステージ勝利）で出す扉絵（[../gdd/stage_select.md](../gdd/stage_select.md) 戦闘後フロー）。SUBJECT `{id}_victory_prompt.txt` → `{id}_victory_01_raw.png` →（透かし除去）`{id}_victory_02_dew.png` → ゲーム用 `assets/campaign/{id}/{id}_victory.png`。
 
+### 陣形スキルのカットイン
+
+陣形スキルの発動で挟む1枚絵（[../gdd/formations.md](../gdd/formations.md) 発動の演出）。冒険譚ではなくレシピに紐づくので、冒険譚の絵とは別系統に置く。
+
+| 段階 | 置き場（`{recipe_id}`＝Formation.RECIPES のキー） | 例（三重詠唱） |
+|---|---|---|
+| ① AI生成直後 | `assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity/trinity_01_raw.png` |
+| ② 透かし除去 | `assets/formations-src/{recipe_id}/{recipe_id}_02_dew.png` | 同上フォルダ |
+| ③ 手動調整マスター（任意） | `assets/formations-src/{recipe_id}/{recipe_id}_03_master.png` | 同上フォルダ |
+| SUBJECT | `assets/formations-src/{recipe_id}/{recipe_id}_prompt.txt` | 同上フォルダ |
+| ④ ゲーム用 | `assets/formations/{recipe_id}.png` | `assets/formations/trinity.png` |
+
+- 絵柄は cover と同じ ILLUST STYLE（§2）。描くのは「機構が動く瞬間」＝獲得用キービジュアル（§1）と同じ狙いで、盤では見せられない一撃の迫力を1枚で見せる。
+- 規約解決。置けば出て、無ければカットインを飛ばす（コード不変）。`formations-src/` は `.gdignore` で Godot 非インポート。
+- 獲得用キービジュアルと**共用を検討する**。冒険譚2の獲得絵は「三重詠唱が屍の波を薙ぐ」を想定しており（[backlog.md](../backlog.md) feature-24）、`trinity` のカットインと画題が同じ。1枚を両方に使えるなら制作が1回で済む。共用するなら片方を cp するのではなく、`assets/formations/trinity.png` を正としてキャンペーン側から参照する形を検討する。
+
 ---
 
 未完了の作業（獲得用キービジュアルの制作）は [backlog.md](../backlog.md)（feature-24）を参照。
