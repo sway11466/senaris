@@ -48,7 +48,10 @@
       { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st4.intro.1" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st4.intro.2" },
       { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st4.intro.3" },
-      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st4.intro.4" }
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st4.intro.5" },
+      { "speaker": "char.witch.name",  "skin": "witch",  "text": "t2.st4.intro.6" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st4.intro.4" },
+      { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st4.intro.7" }
     ],
     "outro": [
       { "speaker": "char.mage.name",   "skin": "wizard", "text": "t2.st4.outro.1" },
