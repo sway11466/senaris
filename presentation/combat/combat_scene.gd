@@ -17,6 +17,11 @@ const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1
 	Vector2(0.66, 0.10), Vector2(0.34, 0.94), Vector2(0.12, 0.30), Vector2(0.88, 0.74),
 ]
 const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
+const CORNER_CUT := 0.09   # 窓の角を落とす量（短辺に対する比）。横長八角形にする
+const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずかに寒色＝空気遠近）
+const HAZE_ALPHA := 0.80                     # 最奥での濃さ
+const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
+const EDGE_WIDTH := 2.0
 ## 地面（3D）は守り手の地形スキンで組む。タイル画像が引けないスキンのための下地色＝どの地形かは
 ## 分かるが「絵が無い」ことも分かる。仕様 → doc/tech/combat_scene.md
 const TERRAIN_COLOR := {
@@ -38,8 +43,9 @@ var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _backdrop: ColorRect  # 盤を薄暗くする幕
-var _panel: Panel         # 中央のモーダル窓（地形色＝StyleBox）
-var _style: StyleBoxFlat  # 窓の背景（地形色を差し替える）
+var _panel: Control       # 中央のモーダル窓（横長八角形。中身のクリップ元も兼ねる）
+var _edge: Control        # 窓の縁取り（窓の上に重ねて描く＝地面に線が隠れない）
+var _bg := Color(0.35, 0.38, 0.34)  # 窓の下地色（地形色。地面が敷けないときに見える）
 var _inner: Control       # 窓の中身（地面＋図＋エフェクト）。シェイク対象
 var _ground: CombatGround3D  # 地面（3D・盤と同じ地形タイル）
 var _haze: TextureRect       # 奥を落とす縦グラデ（タイルの繰り返しを目立たせない）
@@ -68,15 +74,12 @@ func _build() -> void:
 	_backdrop.color = Color(0, 0, 0, 0.45)  # 盤を薄暗く
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(_backdrop)
-	_panel = Panel.new()  # 中央のモーダル窓
-	_style = StyleBoxFlat.new()
-	_style.bg_color = Color(0.35, 0.38, 0.34)
-	_style.set_corner_radius_all(10)
-	_style.border_color = Color(0, 0, 0, 0.55)
-	_style.set_border_width_all(2)
-	_panel.add_theme_stylebox_override("panel", _style)
-	_panel.clip_contents = true  # 窓外にはみ出さない（シェイクも窓内で）
+	# 中央のモーダル窓。八角形を自分で描き、それをマスクに中身（地面・立ち絵・エフェクト）を
+	# 切り抜く＝角の外には盤の暗幕が覗く。シェイクのはみ出しもここで止まる。
+	_panel = Control.new()
+	_panel.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.draw.connect(_draw_window)
 	_root.add_child(_panel)
 	_inner = Control.new()  # 窓の中身（シェイク対象）
 	_inner.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -101,6 +104,11 @@ func _build() -> void:
 	_fx.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_inner.add_child(_fx)
+	# 縁取りは窓の外（クリップの外側）に置く＝線が中身に半分食われない。
+	_edge = Control.new()
+	_edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_edge.draw.connect(_draw_edge)
+	_root.add_child(_edge)
 	visible = false
 
 ## 窓を盤エリア（右の情報ボックスを除く）の中央に配置し、内寸 _area を確定する（play のたびに再計算）。
@@ -123,6 +131,10 @@ func _layout() -> void:
 	_ground.size = _area + bleed * 2.0
 	_haze.position = -bleed
 	_haze.size = _area + bleed * 2.0
+	_edge.position = _panel.position
+	_edge.size = _area
+	_panel.queue_redraw()
+	_edge.queue_redraw()
 
 func bind(skins: Dictionary) -> void:
 	_skins = skins
@@ -154,7 +166,8 @@ func play(detail: Dictionary) -> void:
 	_clear(_fx)
 
 	_layout()
-	_style.bg_color = TERRAIN_COLOR.get(String(t.get("terrain", "")), Color(0.35, 0.38, 0.34))
+	_bg = TERRAIN_COLOR.get(String(t.get("terrain", "")), Color(0.35, 0.38, 0.34))
+	_panel.queue_redraw()
 	_ground.build(_defender_skin(t), def_side)  # 地面は守り手の地形（攻撃側の地形は使わない）
 	_render_side("L", L, int(L["troops_before"]))
 	_render_side("R", R, int(R["troops_before"]))
@@ -281,6 +294,24 @@ func _placeholder_label(comb: Dictionary) -> String:
 	var skin := _skin_of(comb)
 	return skin.combat_label() if skin != null else String(comb.get("type_id", "?"))
 
+## 窓の形＝角を落とした横長八角形（左上から時計回り）。中身のクリップ形状も縁取りもこれ1つで決まる。
+func _window_shape(sz: Vector2) -> PackedVector2Array:
+	var c := minf(sz.x, sz.y) * CORNER_CUT
+	return PackedVector2Array([
+		Vector2(c, 0), Vector2(sz.x - c, 0), Vector2(sz.x, c), Vector2(sz.x, sz.y - c),
+		Vector2(sz.x - c, sz.y), Vector2(c, sz.y), Vector2(0, sz.y - c), Vector2(0, c),
+	])
+
+## 窓の下地（地形色）。この描画がそのまま中身のクリップ形状になる（CLIP_CHILDREN_AND_DRAW）。
+func _draw_window() -> void:
+	_panel.draw_colored_polygon(_window_shape(_panel.size), _bg)
+
+## 窓の縁取り（八角形の枠）。閉じるため始点を末尾にもう一度足す。
+func _draw_edge() -> void:
+	var pts := _window_shape(_edge.size)
+	pts.append(pts[0])
+	_edge.draw_polyline(pts, EDGE_COLOR, EDGE_WIDTH, true)
+
 ## 守り手の地形スキン（地面の材料）。ステージの見た目差分を優先し、無ければ地形の既定スキン。
 ## pos が来ない古い detail でも既定スキンには落ちる（平地/雪原の別は付かないが地面は出る）。
 func _defender_skin(t: Dictionary) -> TerrainSkin:
@@ -290,12 +321,16 @@ func _defender_skin(t: Dictionary) -> TerrainSkin:
 		skin_id = String(_terrain_skins.get(pos, ""))
 	return TerrainSkinCatalog.resolve(skin_id, String(t.get("terrain", "")))
 
-## 奥（画面上）を落とす縦グラデ。遠くのタイルの繰り返しを目立たせず、手前の隊列に目を寄せる。
+## 奥（画面上）を落とす縦グラデ。距離感を出しつつ、遠くのタイルの繰り返しを目立たせない。
+## 立ち絵より下のレイヤーに敷くので、隊列は暗くならず地面だけが奥へ沈む。
 func _make_haze() -> GradientTexture2D:
 	var g := Gradient.new()
-	g.set_color(0, Color(0.05, 0.06, 0.08, 0.55))
-	g.set_color(1, Color(0.05, 0.06, 0.08, 0.0))
-	g.set_offset(1, 0.55)  # 窓の上半分だけで抜ける
+	g.offsets = PackedFloat32Array([0.0, 0.30, 0.78])
+	g.colors = PackedColorArray([
+		Color(HAZE_COLOR, HAZE_ALPHA),          # 最奥
+		Color(HAZE_COLOR, HAZE_ALPHA * 0.55),   # 中景（落ち方を緩めて帯にしない）
+		Color(HAZE_COLOR, 0.0),                 # 手前は素通し
+	])
 	var t := GradientTexture2D.new()
 	t.gradient = g
 	t.fill_from = Vector2(0, 0)

@@ -10,13 +10,26 @@ class_name CombatGround3D
 ##   center … 下地を敷き、守り手側の1マスだけそのスキン（拠点・罠）
 ## 既定が敷き詰めなので、レシピの無いスキンでも必ず何かは映る（背景画像方式のような穴が開かない）。
 
-const TILE := 1.0            # ワールドでの hex サイズ（盤と同じ＝タイルPNGの見え方が揃う）
-const CAM_PITCH_DEG := 62.0  # 俯角。盤(52°)より立てる＝寄っても遠近が急にならず、地平も映らない
+##
+## 敷き方は盤のヘックス格子ではなく、手前から奥へ「帯」を積む。帯ごとにタイルを縮めていく＝
+## カメラの遠近に上乗せして奥行きを強調する（強制遠近）。ここは盤ではないのでマス目が揃っている
+## 必要がなく、目盛りとして読ませないぶん、絵として奥行きが出るほうを取る。
+## 帯どうしは少し重ね、手前の帯を上に置く（瓦葺き）＝大きさの違う帯の継ぎ目が見えない。
+
+const TILE := 1.0            # 一番手前の帯の hex サイズ（奥へ行くほど BAND_SHRINK 倍で縮む）
+const CAM_PITCH_DEG := 42.0  # 俯角。盤(52°)より倒して斜め上ビューを強めに出す（下げるほど遠近が強い）
 const CAM_FOV := 42.0
 const VIEW_COLS := 4.0       # 窓の横幅に見せる列数（小さいほど寄る）。1列＝TILE*1.5
-const LINE_HALF := 8         # line レシピで敷く縦列の長さ（中心から上下へ・画面外まで伸ばす）
+const BAND_SHRINK := 0.93    # 1帯奥へ行くごとのタイル倍率（1.0＝縮めない＝カメラの遠近だけ）
+## 帯の送り量（ヘックスの縦幅に対する比）。帯ごとに大きさが変わると列の位相がずれるので、
+## 0.5 以下まで重ねないと噛み合わせの谷が埋まらず穴が開く（0.5＝位相に関係なく必ず塞がる境目）。
+const BAND_OVERLAP := 0.45
+const BAND_MAX := 32         # 帯数の上限（縮むほど枚数が増えるので歯止め）
+const BAND_MIN_SIZE := 0.18  # これより小さい帯は敷かない（奥は靄に沈む）
+const BAND_LIFT := 0.004     # 手前の帯をわずかに持ち上げる量（同一平面の Z ファイティング回避）
 const FEATURE_POS := Vector2(1.4, 0.6)  # center レシピの目標点（守り手側・地面のワールド座標。x は左側で反転）
 const BG_COLOR := Color(0.10, 0.11, 0.12)  # タイルの外側（通常は見えない）
+const SQRT3 := 1.7320508075688772
 
 var _vp: SubViewport
 var _cam: Camera3D
@@ -58,54 +71,74 @@ func build(skin: TerrainSkin, def_side: String) -> void:
 	var ground := TerrainSkinCatalog.skin_by_id(skin.combat_ground_id())
 	if ground == null:
 		ground = skin
-	var feature := _feature_cells(skin, def_side)
-	for hex in _ground_hexes():
-		var s := skin if feature.has(hex) else ground
-		_add_tile(hex, s, feature)
-
-## そのスキンの絵を置くヘックス（レシピ別）。fill は空＝全面が「自分の絵」になるので下地と一致する。
-func _feature_cells(skin: TerrainSkin, def_side: String) -> Dictionary:
-	var cells := {}
-	match skin.combat_placement():
-		"line":
-			# q=0 の列＝画面を縦に横切る1本（Hex.to_pixel は q がワールドx＝画面の横）。
-			# 両隊列の真ん中を柵や道が走る絵になる。
-			for r in range(-LINE_HALF, LINE_HALF + 1):
-				cells[Vector2i(0, r)] = true
-		"center":
-			cells[_defender_hex(def_side)] = true
-		_:
-			pass  # fill＝下地がそのまま自分の絵
-	return cells
-
-## 守り手の隊列の足元あたりのヘックス（拠点・罠を置く場所）。画面の左右どちら側かで振り分ける。
-## 目標点は隊列の重心の足元＝窓の横 0.75 あたり・縦は中央より少し手前（立ち絵の足元の平均）。
-## 実際に敷くのはそこに一番近いヘックス（格子にスナップする）。
-func _defender_hex(def_side: String) -> Vector2i:
-	var p := FEATURE_POS
+	var placement := skin.combat_placement()
+	var bands := _bands()
+	# center は目標点にいちばん近い帯を1つだけ選ぶ＝守り手の足元に1マスだけ現れる。
+	var target := FEATURE_POS
 	if def_side == "L":
-		p.x = -p.x
-	return Hex.from_pixel(p * TILE, TILE)
+		target.x = -target.x
+	var feat_band := -1
+	if placement == "center":
+		for i in bands.size():
+			if feat_band < 0 or absf(bands[i]["z"] - target.y) < absf(bands[feat_band]["z"] - target.y):
+				feat_band = i
+	for i in bands.size():
+		var feat_col := 9999
+		if placement == "line":
+			feat_col = 0  # 画面の中央を縦に走る列＝両隊列の間
+		elif i == feat_band:
+			feat_col = int(round(target.x / (bands[i]["tile"] * 1.5)))
+		_add_band(i, bands[i], skin, ground, placement, feat_col)
 
-func _add_tile(hex: Vector2i, skin: TerrainSkin, feature: Dictionary) -> void:
-	var texs := TerrainTiles.variants(_image_path(hex, skin, feature))
+## 手前から奥への帯の並び（それぞれの奥行き z とタイルの大きさ）。
+## 奥へ行くほどタイルを縮め、送り幅もそのぶん詰める＝カメラの遠近に強制遠近を上乗せする。
+func _bands() -> Array:
+	var out := []
+	var z := _near_z()
+	var far := _far_z()
+	var tile := TILE
+	for _i in BAND_MAX:
+		if tile < BAND_MIN_SIZE or z < far:
+			break
+		out.append({ "z": z, "tile": tile })
+		z -= SQRT3 * tile * BAND_OVERLAP
+		tile *= BAND_SHRINK
+	return out
+
+## 帯1本（同じ大きさのタイルを横一列）。flat-top なので、列ごとに半マスぶん奥へずらして噛み合わせる。
+## 手前の帯ほど y を高く置く＝重なった部分は手前が勝つ（瓦葺き＝大きさの違う帯の継ぎ目が見えない）。
+func _add_band(band: int, info: Dictionary, skin: TerrainSkin, ground: TerrainSkin,
+		placement: String, feat_col: int) -> void:
+	var z: float = info["z"]
+	var tile: float = info["tile"]
+	var pitch := tile * 1.5
+	var n := int(ceil((_half_width_at(z) + tile) / pitch))
+	var y := float(BAND_MAX - band) * BAND_LIFT
+	for col in range(-n, n + 1):
+		var cell := Vector2i(col, band)
+		var is_feature := col == feat_col
+		var s := skin if is_feature else ground
+		var pos := Vector3(col * pitch, y, z + (SQRT3 * 0.5 * tile if col % 2 != 0 else 0.0))
+		_add_tile(cell, pos, tile, s, placement if is_feature else "")
+
+func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin, placement: String) -> void:
+	var texs := TerrainTiles.variants(_image_path(skin, placement))
 	if texs.is_empty():
 		return  # 絵が無いスキンは敷かない（窓の地形色が透ける＝どこが未整備か分かる）
 	var mi := MeshInstance3D.new()
-	mi.mesh = TerrainTiles.hex_mesh(TILE)
-	mi.material_override = TerrainTiles.material(texs[TerrainTiles.variant_index(hex, texs.size())])
-	var p := Hex.to_pixel(hex, TILE)
-	mi.position = Vector3(p.x, 0.0, p.y)  # 標高は付けない（地面は平ら・立ち絵は2Dで上に載る）
+	mi.mesh = TerrainTiles.hex_mesh(tile)
+	mi.material_override = TerrainTiles.material(texs[TerrainTiles.variant_index(cell, texs.size())])
+	mi.position = pos
 	if skin.orientable:
-		TerrainTiles.orient(mi, hex)
+		TerrainTiles.orient(mi, cell)
 	_tiles.add_child(mi)
 
-## そのヘックスに敷くPNG。線地形（柵・道）は feature の並びから接続タイルを選ぶ＝盤と同じ絵で繋がる。
-func _image_path(hex: Vector2i, skin: TerrainSkin, feature: Dictionary) -> String:
-	if skin.connect and feature.has(hex):
-		var connected: Array = []
-		for d in Hex.DIRECTIONS:
-			connected.append(feature.has(hex + d))
+## 敷くPNG。line で置く線地形（柵・道）は、上下の帯へ繋がる直線の接続タイルを選ぶ。
+## 帯ごとにタイルが縮むので、線も奥へ行くほど細くなる＝1本の道/柵が遠ざかって見える。
+func _image_path(skin: TerrainSkin, placement: String) -> String:
+	if skin.connect and placement == "line":
+		# Hex.DIRECTIONS の index 2 と 5 が縦の隣＝この2方向だけ繋がった直線タイル。
+		var connected := [false, false, true, false, false, true]
 		var p := skin.connected_image_path(connected)
 		if ResourceLoader.exists(p):
 			return p
@@ -122,32 +155,25 @@ func _place_camera() -> void:
 	_cam.position = Vector3(0.0, sin(pitch), cos(pitch)) * dist
 	_cam.look_at(Vector3.ZERO, Vector3.UP)
 
-## 窓に映る範囲を覆うヘックス一覧。画面4隅のレイを地面(y=0)に落とした矩形を、
-## 半マス刻みで舐めて拾う（取りこぼしなく、余分も少ない）。
-func _ground_hexes() -> Array:
+## 一番手前に敷く帯の奥行き（窓の下辺より少し手前＝縁で地面が切れない）。
+func _near_z() -> float:
 	var vp := Vector2(_vp.size)
-	if vp.x <= 0.0 or vp.y <= 0.0:
-		return []
-	var mn := Vector2(INF, INF)
-	var mx := Vector2(-INF, -INF)
-	for c: Vector2 in [Vector2(0, 0), Vector2(vp.x, 0), Vector2(0, vp.y), vp]:
-		var p := _plane_point(c)
-		if not p.is_finite():
-			return Hex.within_range(Vector2i.ZERO, 8)  # 地平が映る画角＝広めに敷いて逃げる
-		mn = mn.min(Vector2(p.x, p.z))
-		mx = mx.max(Vector2(p.x, p.z))
-	mn -= Vector2(TILE, TILE)  # タイルの半径ぶん外まで＝縁で欠けない
-	mx += Vector2(TILE, TILE)
-	var cells := {}
-	var step := TILE * 0.5
-	var y := mn.y
-	while y <= mx.y:
-		var x := mn.x
-		while x <= mx.x:
-			cells[Hex.from_pixel(Vector2(x, y), TILE)] = true
-			x += step
-		y += step
-	return cells.keys()
+	var p := _plane_point(Vector2(vp.x * 0.5, vp.y))
+	return (p.z if p.is_finite() else 2.0) + TILE
+
+## 敷き止める奥行き（窓の上辺より少し奥）。地平が映る画角では手前から一定量で打ち切る。
+func _far_z() -> float:
+	var p := _plane_point(Vector2(Vector2(_vp.size).x * 0.5, 0.0))
+	return (p.z if p.is_finite() else _near_z() - 12.0) - TILE
+
+## その奥行きで窓に映る横幅の半分（カメラからの距離に比例）。帯ごとの枚数を決めるのに使う。
+func _half_width_at(z: float) -> float:
+	var vp := Vector2(_vp.size)
+	if vp.y <= 0.0:
+		return TILE
+	var fwd := -_cam.position.normalized()  # 原点を見ているので視線＝カメラ位置の逆向き
+	var d := maxf((Vector3(0.0, 0.0, z) - _cam.position).dot(fwd), 0.1)
+	return tan(deg_to_rad(CAM_FOV) * 0.5) * (vp.x / vp.y) * d
 
 ## screen 直下の地面(y=0)上の点。交差しない（水平線より上）なら Vector3.INF。
 func _plane_point(screen: Vector2) -> Vector3:
