@@ -1,6 +1,7 @@
 {
 	"skins": [
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -11,6 +12,7 @@
 			"terrain_type": "road"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -21,6 +23,7 @@
 			"terrain_type": "plain"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "ダンジョンの踏み固めた土の床（性能は平地のまま）",
@@ -31,6 +34,7 @@
 			"terrain_type": "plain"
 		},
 		{
+			"connect": false,
 			"elevation": 0.18,
 			"grid": true,
 			"memo": "既定スキン",
@@ -41,6 +45,7 @@
 			"terrain_type": "plateau"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -51,6 +56,7 @@
 			"terrain_type": "wasteland"
 		},
 		{
+			"connect": false,
 			"elevation": 0.18,
 			"grid": true,
 			"memo": "既定スキン",
@@ -61,6 +67,7 @@
 			"terrain_type": "forest"
 		},
 		{
+			"connect": false,
 			"elevation": 0.12,
 			"grid": true,
 			"memo": "既定スキン",
@@ -71,6 +78,7 @@
 			"terrain_type": "bush"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -81,9 +89,10 @@
 			"terrain_type": "mountain"
 		},
 		{
+			"connect": true,
 			"elevation": 0,
 			"grid": true,
-			"memo": "既定スキン",
+			"memo": "既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）",
 			"name": "柵",
 			"orientable": false,
 			"skin_id": "fence",
@@ -91,6 +100,7 @@
 			"terrain_type": "fence"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -101,6 +111,7 @@
 			"terrain_type": "trap"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -111,6 +122,7 @@
 			"terrain_type": "rampart"
 		},
 		{
+			"connect": false,
 			"elevation": 0.36,
 			"grid": true,
 			"memo": "既定スキン",
@@ -121,6 +133,7 @@
 			"terrain_type": "cliff"
 		},
 		{
+			"connect": false,
 			"elevation": 0.7,
 			"grid": false,
 			"memo": "既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる",
@@ -131,6 +144,7 @@
 			"terrain_type": "wall"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "人が積んだ石壁（ダンジョンの掘った岩とは別系統）",
@@ -141,6 +155,7 @@
 			"terrain_type": "wall"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン",
@@ -151,6 +166,7 @@
 			"terrain_type": "fort"
 		},
 		{
+			"connect": false,
 			"elevation": 0,
 			"grid": true,
 			"memo": "石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）",

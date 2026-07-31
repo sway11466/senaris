@@ -65,6 +65,7 @@ static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 		problems.append("skin_id が重複: '%s'" % v)
 	problems += Csv.invalid_values(rows, "terrain_type", type_ids, "skin_id")  # terrain_type に無い性能への参照切れ
 	problems += Csv.invalid_values(rows, "orientable", ["true", "false"], "skin_id")  # bool以外（打ち間違い→黙って true 化）を弾く
+	problems += Csv.invalid_values(rows, "connect", ["true", "false"], "skin_id")
 	problems += Csv.invalid_values(rows, "grid", ["true", "false"], "skin_id")
 	problems += _invalid_amount(rows, "elevation")   # 打ち間違いが「高さ0」に化けて黙って平らになるのを防ぐ
 	problems += _invalid_amount(rows, "sprite_sink")

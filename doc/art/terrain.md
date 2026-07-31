@@ -1,6 +1,6 @@
 # 地形タイルの方針
 
-盤面に敷く地形タイルの生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルは地形固有：形状・反復対策・TERRAIN STYLE・切り抜きと保管。
+盤面に敷く地形タイルの生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルは地形固有：形状・反復対策・TERRAIN STYLE・切り抜きと保管・線地形の接続タイル。
 
 凡例: 【暫定】 【指針】 【未決】（ラベルなし＝決定事項。ただし決定は覆りうる）
 
@@ -11,6 +11,7 @@
 - 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）が terrain_id ごとに1枚を各ヘックスに敷く（3D盤でも同じPNGをヘックスメッシュに貼る＝この寸法は現行）。置き場は `assets/terrain/{name}.png`（terrain.csv の image 列）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
 - 現状は「1地形1枚・接地による遷移なし」。各ヘックスが地形の自己完結アイコン（Into the Breach 系）。
 - 【視覚】地形は盤上で標高を持てる（見た目のみ・性能不変）。[hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) の `ELEVATION`（地形id→高さ）でタイルを持ち上げ、低い隣接辺／盤外辺に崖のスカートを下ろしてメサに見せる。現状は台地(plateau)だけ +少し。ユニット・影・グリッド・拠点・オーバーレイ・クリック判定（ピッキング）も標高に追従する。
+- 柵・道のような線地形は、隣り合う同スキンとの繋がり方でタイルを選び分ける（§3）。
 - 反復対策＝バリアント敷き分け（実装済み）: 同名連番 `{name}_2.png` `{name}_3.png` … を置くと、hex_board が存在する分を集め、ヘックス座標から決定的に敷き分ける（ちらつかない）。連番が無ければ従来どおり1枚。terrain.csv/JSON は変更不要のドロップイン。
 - 将来: マップの美しさのため、隣接地形に合わせた「縁フリンジ」方式（境界の辺にだけ縁パーツを重ねる2パス目）へ段階的に移行する。ベースタイルを枠内で自己完結する絵にしておけば、フリンジは純粋な追加（縁パーツ＋描画パス＋地形の優先順位表）で足せる＝手戻りなし。フル遷移（Wangタイル・組合せ爆発）は不採用。
 
@@ -50,6 +51,18 @@ visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
 
 ---
 
+## 3. 線地形（接続タイル）
+
+柵や道のように「線」で伸びる地形は、隣り合う同スキンとの繋がり方でタイルの絵が変わる。terrain_skin.csv の `connect` 列を true にすると、盤（[hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）と [map_editor](../tech/tools.md) が向きの組み合わせ別のタイルを引く。
+
+- ファイル名は `assets/terrain/{skin_id}_c{6桁}.png`。6桁は [Hex.DIRECTIONS](../../domain/hex/hex.gd) の順で、1＝その方向の隣も同じスキン。64通り。欠けている組み合わせは `{skin_id}.png` に落ちる（＝縦の直線）。
+- 64枚は手描きしない。直線1枚の元絵から [`../../tools/gen_connect_tiles.ps1`](../../tools/gen_connect_tiles.ps1) が生成する。中心の柱から1つ上の柱までを「腕」として切り出し、60°刻みで回して重ね、中心に柱を置く。ヘックスの中心から辺の中点までは6方向とも 110.85px なので、腕は1本あれば足りる。
+- 繋がるのは腕の先が辺の中点に来るため。柱がちょうど辺の上に乗り、隣のタイルと半分ずつ分け合って1本の柱に見える。
+- 元絵の条件: 正方・縦一直線・左右中央・上下端まで貫通・フレーム中心と少し上に柱・落ち影なし・地面は平地の基準色（#B4C6A0）。影は生成時に一定方向で付ける（元絵に焼き込むと、回した腕の影が別方向を向く）。柵の SUBJECT は `assets/terrain-src/fence/fence_prompt.txt`。
+- ヘックスの左右は頂点で、東西に隣が無い。真横の直線は引けず、東西に伸ばす柵は120°の曲がりが交互に並ぶジグザグになる。ステージJSONでは同じ row に識別文字を並べるとこの形になる。
+
+---
+
 ## 参考資料
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・共通メソッド）
@@ -57,4 +70,5 @@ visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
 - [../gdd/movement.md](../gdd/movement.md) — 移動タイプ・地形コスト
 - [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) — 盤面（タイル敷き・バリアント敷き分け）
 - [`../../tools/gen_terrain_tile.ps1`](../../tools/gen_terrain_tile.ps1) — ②ヘックス切り抜きツール
+- [`../../tools/gen_connect_tiles.ps1`](../../tools/gen_connect_tiles.ps1) — 線地形の接続タイル64通りの生成
 - [../../tools/gen_terrain_tiles.gd](../../tools/gen_terrain_tiles.gd) — プレースホルダ生成

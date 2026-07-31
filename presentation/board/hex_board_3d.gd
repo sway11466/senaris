@@ -1102,13 +1102,37 @@ func _tile_texture(hex: Vector2i) -> Texture2D:
 
 ## そのヘックスに敷く画像の基準パス。占領されている拠点は、所有チーム別の絵があればそれを使う。
 ## assets/terrain/{skin_id}_team{N}.png を置けば切り替わり、置かなければ中立の絵のまま（コード不変）。
+## 線地形（connect＝柵・道）は、隣り合う同スキンの向きの組み合わせで絵を選ぶ。
 func _tile_image_path(skin: TerrainSkin, hex: Vector2i) -> String:
 	var team := _base_team_at(hex)
 	if team >= 0:
 		var p := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
 		if ResourceLoader.exists(p):
 			return p
+	if skin.connect:
+		var cp := skin.connected_image_path(_connected_dirs(skin, hex))
+		if ResourceLoader.exists(cp):
+			return cp
 	return skin.image_path()
+
+## hex の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤外は既定地形が返る＝繋がらない。
+## ただし線の端が盤の縁に来たときだけ、盤の外へ腕を伸ばす（TerrainSkin.extend_off_board）。
+func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
+	var connected: Array = []
+	var on_board: Array = []
+	for d in Hex.DIRECTIONS:
+		var n := hex + d
+		var s := _skin_at(n)
+		connected.append(s != null and s.skin_id == skin.skin_id)
+		on_board.append(_in_board(n))
+	return TerrainSkin.extend_off_board(connected, on_board)
+
+## hex が盤の矩形（offset col/row）の中にあるか。
+func _in_board(hex: Vector2i) -> bool:
+	if state == null:
+		return false
+	var c := Hex.axial_to_offset(hex)
+	return c.x >= 0 and c.x < state.cols and c.y >= 0 and c.y < state.rows
 
 ## そのヘックスにある拠点の所属チーム。拠点でない/中立なら -1。拠点は数個なので線形で足りる。
 func _base_team_at(hex: Vector2i) -> int:

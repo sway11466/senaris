@@ -169,7 +169,7 @@ func _draw() -> void:
 			var ch := doc.terrain_char(col, row)
 			var tid := TerrainType.char_to_id(ch)
 			var skin := String(skins.get(cell, ""))
-			var tex := _terrain_texture(cell, skin, tid, int(base_teams.get(cell, -1)))
+			var tex := _terrain_texture(cell, skin, tid, int(base_teams.get(cell, -1)), skins)
 			if tex != null:
 				draw_texture_rect(tex, Rect2(center - Vector2(hex_size, hex_size * SQRT3 * 0.5),
 					Vector2(hex_size * 2.0, hex_size * SQRT3)), false)
@@ -266,22 +266,44 @@ func _draw_unit(font: Font, u: Dictionary, team: int, squad_tag: String, font_si
 
 
 ## セルに敷くタイル画像。skin 未指定は地形タイプの既定スキン、拠点は陣営別の絵があればそちら。
-## 変種（_2/_3）の選び方は本体と同じ＝エディタと実機で同じ絵が出る。
-func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: int) -> Texture2D:
+## 変種（_2/_3）の選び方も線地形（connect）の繋がり方も本体と同じ＝エディタと実機で同じ絵が出る。
+func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: int,
+		skins: Dictionary) -> Texture2D:
 	var skin := TerrainSkinCatalog.resolve(skin_id, type_id)
 	if skin == null:
 		return null
 	var base := skin.image_path()
+	var by_team := false
 	if team >= 0:
 		var p := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
 		if ResourceLoader.exists(p):
 			base = p
+			by_team = true
+	if not by_team and skin.connect:
+		var cp := skin.connected_image_path(_connected_dirs(cell, skin, skins))
+		if ResourceLoader.exists(cp):
+			base = cp
 	var paths := _variant_paths(base)
 	if paths.is_empty():
 		return null
 	var axial := Hex.offset_to_axial(cell.x, cell.y)  # 本体の variant 選択は軸座標のハッシュ
 	return _scaled(String(paths[absi(hash(axial)) % paths.size()]),
 		ceili(hex_size * 2.0), ceili(hex_size * SQRT3))
+
+
+## cell の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤外は既定地形が返る＝繋がらない。
+## 端が盤の縁に来たときの盤外への延長も本体と同じ（TerrainSkin.extend_off_board）。
+func _connected_dirs(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> Array:
+	var axial := Hex.offset_to_axial(cell.x, cell.y)
+	var connected: Array = []
+	var on_board: Array = []
+	for d in Hex.DIRECTIONS:
+		var c := Hex.axial_to_offset(axial + d)
+		var n := TerrainSkinCatalog.resolve(String(skins.get(c, "")),
+			TerrainType.char_to_id(doc.terrain_char(c.x, c.y)))
+		connected.append(n != null and n.skin_id == skin.skin_id)
+		on_board.append(c.x >= 0 and c.x < doc.cols() and c.y >= 0 and c.y < doc.rows())
+	return TerrainSkin.extend_off_board(connected, on_board)
 
 
 ## 駒の map 画像。skin 指定を優先し、無ければ type の既定スキン（自軍は type だけで置かれる）。

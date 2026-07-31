@@ -39,6 +39,11 @@ static func skin_by_id(skin_id: String) -> TerrainSkin:
 	_ensure()
 	return _by_id.get(skin_id, null)
 
+## 収録スキンを全部返す（CSV の順は保証しない）。表全体を舐めたい検査・ツール向け。
+static func all_skins() -> Array:
+	_ensure()
+	return _by_id.values()
+
 ## 性能(terrain_type)の既定スキン。無ければ null。
 static func for_type(type_id: String) -> TerrainSkin:
 	_ensure()

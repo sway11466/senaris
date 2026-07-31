@@ -1,0 +1,52 @@
+STYLE: A map tile for a fantasy tactics game, in the same clean stylized
+cel-shaded look as the game's terrain and unit art: bold flat shading, clear
+dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game: the GROUND is seen from directly overhead, but anything built
+on it is drawn from the front and slightly above, STANDING UPRIGHT and facing
+the bottom of the frame — nothing lying flat, no perspective, no horizon, no
+sky. The ground fills the ENTIRE square frame edge to edge, with NO border, NO
+frame, NO vignette. Read at thumbnail size: a few large legible shapes, no fine
+detail. Square 1:1.
+
+SUBJECT: A single straight WOODEN FENCE running away from the viewer, straight
+up the frame, across a patch of grassland.
+
+Composition, exactly: the fence is one straight vertical run, dead centre
+left-to-right, crossing the full height of the frame and continuing off BOTH the
+top edge and the bottom edge — never stopping, never bending, never leaning,
+never curving, no gate, no opening, no gap, no end. It is identical in width and
+structure along its whole length, so the top edge and the bottom edge match up
+when the picture is stacked head to tail. There are exactly three posts: one at
+the very centre of the frame, one at the top edge and one at the bottom edge
+(those two cut in half by the frame edge). Everything else is open ground.
+
+The fence is CHUNKY and heavy, not a line: each post is a squat square timber
+standing upright, its front face plainly visible, roughly one tenth of the frame
+wide, with two thick horizontal rails and a row of closely set upright palings
+running between the posts up the frame. Everything about it stands up off the
+ground and has visible height and thickness. CRITICAL: this must read as a solid
+piece of carpentry at thumbnail size — NOT a thin line, NOT a hairline, NOT a
+ladder, NOT railway track, NOT a seam in the grass. Counting posts, rails and
+its shadow, the fence takes up about a quarter of the frame width.
+
+The timber is old weathered dark grey-brown wood, dry and muted with almost no
+warmth in it — clearly darker than the grass so it reads against it. The palings
+vary only very slightly in width and height, and one or two lean a little. NO
+gate, NO sign, NO rope, NO lantern, NO skulls, NO gravestones, NO climbing
+plants, NO objects leaning against it.
+
+Lit dimly and evenly from straight above, with NO cast shadow at all: the fence
+throws NO shadow onto the grass, on either side, and there is no dark smear or
+soft dark band along it. The grass runs clean right up to the foot of the fence.
+Shading stays inside the timber itself — the front faces a little lighter, the
+undercuts a little darker.
+
+The ground on both sides is the same plain grassland as the surrounding map:
+calm short grass on light muted sage green, hex #B4C6A0 — use this exact green,
+carry it out to all four edges, keep it even and low-contrast, and scatter only
+a FEW small grass tufts and tiny pebbles over it, randomly and unevenly with
+bare gaps between them. Keep the grass right beside the fence completely clear —
+no tufts or pebbles touching it or overlapping it. NO path, NO bare earth, NO
+paving, NO flowers, NO hedges. The grass is the same on the left and the right of the fence — neither
+side is a garden, a field or a yard.

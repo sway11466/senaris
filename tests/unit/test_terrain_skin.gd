@@ -44,6 +44,58 @@ func test_orientable_matches_natural_terrain() -> void:
 		var s := TerrainSkinCatalog.for_type(tid)
 		assert_true(s != null and not s.orientable, "%s は非 orientable" % tid)
 
+func test_connect_only_on_line_terrain() -> void:
+	# 線地形（隣と繋がる）は柵だけ。面で覆う地形・構造物は false（向き別タイルを探しに行かせない）。
+	var fence := TerrainSkinCatalog.for_type("fence")
+	assert_true(fence != null and fence.connect, "fence は connect")
+	for tid in ["plain", "forest", "mountain", "wall", "fort", "cliff"]:
+		var s := TerrainSkinCatalog.for_type(tid)
+		assert_true(s != null and not s.connect, "%s は非 connect" % tid)
+
+func test_connected_image_path_bits() -> void:
+	# 6要素（Hex.DIRECTIONS 順）がそのまま 0/1 の6桁になる。生成物のファイル名規約。
+	var fence := TerrainSkinCatalog.for_type("fence")
+	assert_not_null(fence, "fence スキン")
+	if fence == null:
+		return
+	assert_eq(fence.connected_image_path([false, false, true, false, false, true]),
+		"res://assets/terrain/fence_c001001.png", "上下だけ繋がる＝縦の直線")
+	assert_eq(fence.connected_image_path([false, false, false, false, false, false]),
+		"res://assets/terrain/fence_c000000.png", "どこにも繋がらない＝独立した柱")
+
+func test_extend_off_board_continues_a_line_past_the_edge() -> void:
+	# 端点（隣1つ）で、その反対側が盤の外なら、そちらへ腕を伸ばす＝盤の縁で柵が途切れない。
+	var connected := [true, false, false, false, false, false]   # dir0 だけ繋がる
+	var on_board := [true, true, true, false, true, true]        # その反対 dir3 が盤外
+	var out := TerrainSkin.extend_off_board(connected, on_board)
+	assert_eq(out, [true, false, false, true, false, false], "反対側 dir3 へ伸びる")
+
+func test_extend_off_board_keeps_inner_ends_capped() -> void:
+	# 反対側が盤の中なら伸ばさない（盤の途中で終わる柵は端点のまま）。
+	var connected := [true, false, false, false, false, false]
+	var on_board := [true, true, true, true, true, true]
+	assert_eq(TerrainSkin.extend_off_board(connected, on_board), connected, "盤内の端点は変えない")
+
+func test_extend_off_board_skips_non_ends() -> void:
+	# 隣が2つ以上あるマスには効かせない。外周に沿って走る柵が外向きの腕を櫛のように生やすため。
+	var connected := [true, false, true, false, false, false]
+	var on_board := [true, false, true, false, false, false]
+	assert_eq(TerrainSkin.extend_off_board(connected, on_board), connected, "通過マスは変えない")
+	var lone := [false, false, false, false, false, false]
+	assert_eq(TerrainSkin.extend_off_board(lone, on_board), lone, "孤立した柱は柱のまま")
+
+func test_connect_tiles_all_present() -> void:
+	# connect スキンは64通りぜんぶ揃っている必要がある（1つでも欠けるとそのマスだけ絵が化ける）。
+	for s: TerrainSkin in TerrainSkinCatalog.all_skins():
+		if not s.connect:
+			continue
+		for mask in 64:
+			var bits: Array = []
+			for i in 6:
+				bits.append((mask & (1 << i)) != 0)
+			var p: String = s.connected_image_path(bits)
+			assert_true(ResourceLoader.exists(p), "%s の接続タイルがある: %s" % [s.skin_id, p])
+
 func test_parse_terrain_skins_maps_coords() -> void:
 	# ステージの terrain_skins（[{col,row,skin}]）→ { Vector2i: skin_id } に正しく畳む。
 	var data := { "terrain_skins": [

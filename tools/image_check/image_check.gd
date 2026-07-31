@@ -150,7 +150,7 @@ func _scan_terrains() -> void:
 			continue
 		var base := f.trim_suffix(".png")
 		var parts := base.rsplit("_", true, 1)
-		if parts.size() == 2 and parts[1].is_valid_int():
+		if parts.size() == 2 and (parts[1].is_valid_int() or _is_connect_suffix(parts[1])):
 			base = parts[0]
 		seen[base] = true
 	_terrains = seen.keys()
@@ -159,6 +159,16 @@ func _scan_terrains() -> void:
 		_ta = _default_terr("plain", 0)
 		_tb = _default_terr("forest", 1)
 		_tc = _default_terr("mountain", 2)
+
+## 線地形の接続タイルの接尾辞（_c000000〜_c111111）か。同じ柵の向き違いなので一覧では1つに畳む。
+static func _is_connect_suffix(s: String) -> bool:
+	if s.length() != 7 or not s.begins_with("c"):
+		return false
+	for i in range(1, 7):
+		if s[i] != "0" and s[i] != "1":
+			return false
+	return true
+
 
 func _default_terr(want: String, idx: int) -> String:
 	if _terrains.has(want):
