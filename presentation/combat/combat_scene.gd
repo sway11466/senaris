@@ -17,6 +17,7 @@ const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1
 	Vector2(0.66, 0.10), Vector2(0.34, 0.94), Vector2(0.12, 0.30), Vector2(0.88, 0.74),
 ]
 const SINGLE_POS := Vector2(0.50, 0.55)  # single（複製しない駒）の立ち位置。隊列の重心あたりに1体だけ置く
+const SINGLE_SCALE := 1.4  # single だけ一段大きく描く（隊列8体ぶんの面積を1体で受けるので、等倍だと画が空く）
 const MAX_TROOPS := 8  # 兵量バーの目盛り数＝戦闘ルールの上限（doc/gdd/combat.md）。POS の枠数と同じ
 const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
 const CORNER_CUT := 0.09   # 窓の角を落とす量（短辺に対する比）。横長八角形にする
@@ -238,7 +239,7 @@ func _render_side(side: String, comb: Dictionary, count: int, animate: bool = fa
 	if skin != null and skin.is_single_figure():
 		# 1体だけ＝損害で絵が減らないので、減り方は兵量バーが受け持つ。
 		var at := _slot_pos(side, SINGLE_POS)
-		_add_figure(layer, at.x, at.y, FIG_SCALE, _texture_for(comb), team, comb)
+		_add_figure(layer, at.x, at.y, FIG_SCALE * SINGLE_SCALE, _texture_for(comb), team, comb)
 		return
 	var texs := _textures_for(comb, count)  # スロットごとの絵（先頭＝本人・以降は従者）
 	var figs := []
