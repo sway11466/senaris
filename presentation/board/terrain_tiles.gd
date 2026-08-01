@@ -9,6 +9,13 @@ static var _mesh := {}      # 半径(float) -> ArrayMesh
 static var _mat := {}       # Texture2D -> StandardMaterial3D
 static var _variants := {}  # 基本パス(String) -> Array[Texture2D]
 
+## UV の縦の係数。PNG はヘックスの外接矩形（256×222＝2R × √3R）で切ってあるので、
+## 縦は横と同じ 0.5 ではなく 1/√3。0.5 は外接「正方形」（2R × 2R）用の値で、これを使うと
+## 絵が縦に 2/√3＝1.155倍 引き伸ばされ、上下端の6.7%が六角形の外に出て描かれない。
+## 自然テクスチャでは気付けないが、絵の中に位置の約束を持つ地形（柵・道の接続タイル＝腕の先が
+## 辺の中点に来る）は斜めの継ぎ目でずれる。詳細 → doc/art/terrain.md §1
+const UV_V := 0.5773502691896258
+
 ## 床(XZ)に寝かせたフラットトップ六角メッシュ（中心ファン）。UVはテクスチャの外接矩形。
 static func hex_mesh(size: float) -> ArrayMesh:
 	if _mesh.has(size):
@@ -19,8 +26,8 @@ static func hex_mesh(size: float) -> ArrayMesh:
 		var a0 := deg_to_rad(60.0 * i)
 		var a1 := deg_to_rad(60.0 * (i + 1))
 		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5, 0.5)); st.add_vertex(Vector3.ZERO)
-		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5 + cos(a0) * 0.5, 0.5 + sin(a0) * 0.5)); st.add_vertex(Vector3(cos(a0) * size, 0.0, sin(a0) * size))
-		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5 + cos(a1) * 0.5, 0.5 + sin(a1) * 0.5)); st.add_vertex(Vector3(cos(a1) * size, 0.0, sin(a1) * size))
+		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5 + cos(a0) * 0.5, 0.5 + sin(a0) * UV_V)); st.add_vertex(Vector3(cos(a0) * size, 0.0, sin(a0) * size))
+		st.set_normal(Vector3.UP); st.set_uv(Vector2(0.5 + cos(a1) * 0.5, 0.5 + sin(a1) * UV_V)); st.add_vertex(Vector3(cos(a1) * size, 0.0, sin(a1) * size))
 	var m := st.commit()
 	_mesh[size] = m
 	return m
