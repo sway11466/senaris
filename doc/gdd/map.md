@@ -222,5 +222,6 @@
 
 ## 関連ドキュメント
 
+- [map_patterns.md](map_patterns.md) — マップの型・難易度・ステージ一覧
 - [combat.md](combat.md) — 戦闘解決
 - [units.md](units.md) — ユニット性能・対応表
