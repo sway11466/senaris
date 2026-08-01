@@ -272,7 +272,6 @@ func test_entered_unit_cannot_deploy_same_turn() -> void:
 	s.end_turn()  # 次の自軍ターン
 	assert_true(s.can_deploy_garrison(base_hex, 0), "次の自軍ターンからは出せる")
 	assert_true(s.deploy(base_hex, 0, out_hex), "出撃できる")
-	assert_eq(s.unit_by_id(1).entered_base_turn, -1, "盤に出たら収容の記録は落ちる")
 
 func test_initial_garrison_can_deploy_on_first_turn() -> void:
 	# 初期配置の控えは「入った」わけではない＝1ターン目から出せる（新ルールの巻き添えにしない）。
@@ -282,3 +281,13 @@ func test_initial_garrison_can_deploy_on_first_turn() -> void:
 	b.garrison.append(Unit.new(9, 0, base_hex, 3))
 	s.add_base(b)
 	assert_true(s.can_deploy_garrison(base_hex, 0), "初期配置の控えは初手から出せる")
+
+func test_entering_marks_the_unit_done() -> void:
+	# 「入る」も1手＝行動終了。この扱いが、そのターンの出撃を止める根拠になっている。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 0))
+	s.add_unit(Unit.new(1, 0, base_hex, 3))
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(6, 6), 3))
+	assert_true(s.enter_base(1), "自軍拠点の中に入れる")
+	assert_true(s.is_done(1), "入った駒はそのターン行動終了")

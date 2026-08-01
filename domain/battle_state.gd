@@ -456,8 +456,11 @@ func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 	if b == null or index < 0 or index >= b.garrison.size():
 		return false
 	var u: Unit = b.garrison[index]
-	if u.entered_base_turn == turn_number:
-		return false  # 「入る」で収容したターンは出せない＝入って出るの往復を作らない
+	# このターン行動を終えた駒は出せない＝「入る」で収容した駒の往復を止める。判定は明示的な
+	# 行動終了フラグだけを見る（is_done は「動ける先が無い」も完了とするので盤外の駒は常に真＝
+	# 初期配置の控えまで出せなくなる）。フラグは end_turn で一掃される＝次の自軍ターンから出せる。
+	if _done.has(u.id):
+		return false
 	return u.is_unclaimed() or u.recruited_team == b.team
 
 ## 拠点の garrison[index] を隣接 to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
@@ -478,7 +481,6 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 		return false
 	var u: Unit = b.garrison[garrison_index]
 	b.garrison.remove_at(garrison_index)
-	u.entered_base_turn = -1  # 盤に出た＝収容の記録を落とす（次に入り直したら付け直す）
 	u.team = current_team
 	if u.is_unclaimed():
 		u.recruited_team = current_team  # 解放＝帰属確定。以後は拠点を奪われても寝返らず捕虜になる
@@ -524,7 +526,7 @@ func enter_base(unit_id: int) -> bool:
 	var u := unit_by_id(unit_id)
 	var b := base_at(u.pos)
 	_take_off_board(unit_id)
-	u.entered_base_turn = turn_number  # このターンの出撃を止める（往復させない）
+	set_done(unit_id)  # 入るのも1手＝行動終了。これがそのターンの出撃を止める（往復させない）
 	b.garrison.append(u)
 	return true
 
