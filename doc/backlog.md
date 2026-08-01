@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=2 / feature=31 / refactoring=9
+次回採番: bug=2 / feature=32 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -250,6 +250,14 @@
   - **勝利条件の追加**（st4・st6・st7）：墓地の拠点に `"kind": "hq"`（team/native は敵）を足し、ステージの `victory` 配列に `{ "type": "capture_hq" }` を入れる。st7 は既存の `defeat_unit` と併記＝OR評価。判定機構は実装済み（[map.md](gdd/map.md) 勝敗条件）なのでデータだけで足りる。
   - 盤の作り直し：st2＝道1本＋南北の荒地＋柵で囲った集落／st3＝関門を幅2・詠唱部屋を幅3〜4／st4＝墓地間に荒地の帯・道は墓地の正面から外す／st5＝柵で囲った廃墟の中庭＋背後の迂回路／st6＝墓地を上下に離し中央に斜めの帯／st7＝st6＋崖に囲まれたネクロの高台・崖の縁の降車点。
 - 該当：`data/stages/tutorial2-undead-rush/st1〜st7.json`・`doc/campaign/tutorial2-undead-rush.md`（実装後に差分があれば反映）。着手の引き金＝冒険譚2の制作に入るとき。関連＝feature-14（themed 拠点＝墓地の見た目）。
+
+### feature-31
+
+**体験版ビルドの素材選別（収録ステージから必要素材を導出して除外）**（優先度：低）
+
+- 背景：体験版はチュートリアルを絞って配布する（[monetization.md](sales/monetization.md)）が、収録しないステージのユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
+- 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
+- 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝開発用アセットの除外と同じ段・parking lot「Steam 配布の段取り」と連動）。
 
 ## リファクタリング
 
