@@ -144,7 +144,7 @@ func test_combat_effect_dangling_ref_blocks() -> void:
 # --- effects: build（攻撃エフェクト表） ---
 
 func _valid_effect_row(eid: String, kind: String) -> Dictionary:
-	return { "effect_id": eid, "name": "名", "kind": kind }
+	return { "effect_id": eid, "name": "名", "kind": kind, "scale": 1.0 }
 
 func test_effects_valid_builds_json() -> void:
 	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("arrow", "projectile") ]
@@ -162,6 +162,19 @@ func test_effects_each_required_column_pins_json_null() -> void:
 func test_effects_invalid_kind_blocks() -> void:
 	var r := Effects.build([ _valid_effect_row("slash_s", "burst") ])
 	assert_null(r["json"], "kind が enum 外で json=null")
+
+func test_effects_non_numeric_scale_blocks() -> void:
+	# 文字列が混じると float() で 0 に化けてエフェクトが消えるので、生成を止める。
+	var row := _valid_effect_row("slash_s", "impact")
+	row["scale"] = "おおきめ"
+	var r := Effects.build([row])
+	assert_null(r["json"], "scale が数値でないと json=null")
+
+func test_effects_zero_scale_blocks() -> void:
+	var row := _valid_effect_row("slash_s", "impact")
+	row["scale"] = 0
+	var r := Effects.build([row])
+	assert_null(r["json"], "scale=0（見えない）で json=null")
 
 func test_effects_duplicate_id_blocks() -> void:
 	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("slash_s", "projectile") ]

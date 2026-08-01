@@ -455,7 +455,8 @@ func _is_projectile(comb: Dictionary) -> bool:
 	return e != null and e.is_projectile()
 
 ## エフェクト1個ぶんのノード。絵が置かれていなければ既定のスパーク（星）を描く＝穴が開かない。
-## 大きさは被弾側の立ち絵1体ぶんに合わせる（絵のpxではなく画面の枠を基準にする）。
+## 大きさは「被弾側の立ち絵1体ぶんの幅 × カタログの scale」。絵は余白を切り詰めて作る約束なので、
+## 大小の差は画像ではなく scale で付ける（切り詰めた絵をそのまま並べると全部同じ幅になる）。
 func _effect_node(eff: CombatEffect) -> Node2D:
 	var tex: Texture2D = null
 	if eff != null:
@@ -469,9 +470,10 @@ func _effect_node(eff: CombatEffect) -> Node2D:
 		return star
 	var s := Sprite2D.new()
 	s.texture = tex
-	var w := float(tex.get_width())
-	if w > 0.0:
-		s.scale = Vector2.ONE * (_size().y * FIG_H * FIG_SCALE / w)
+	# 基準は長辺。幅で揃えると、縦長の斬撃が縦にはみ出し、横長の矢と釣り合わない。
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	if longest > 0.0:
+		s.scale = Vector2.ONE * (_size().y * FIG_H * FIG_SCALE * eff.scale / longest)
 	return s
 
 ## 隊列の中心（被弾側なら着弾点、攻撃側なら発射点）。
@@ -480,9 +482,13 @@ func _fx_center(side: String) -> Vector2:
 	return Vector2(vp.x * 0.28 if side == "L" else vp.x * 0.72, vp.y * 0.5)
 
 ## 重ねる型：被弾側の隊列の上で拡大しながら消える。
+## 絵は「右へ向かう一撃」で描く約束なので、左を殴るとき（＝攻撃側が右）だけ水平反転する。
+## 飛ぶ型と同じ向きの規約＝どちらも1枚で両陣営に使える。
 func _burst(side: String, eff: CombatEffect) -> void:
 	var node := _effect_node(eff)
 	node.position = _fx_center(side)
+	if side == "L":
+		node.scale.x = -node.scale.x
 	var base := node.scale
 	node.scale = base * 0.4
 	_fx.add_child(node)

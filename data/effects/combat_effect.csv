@@ -1,7 +1,7 @@
-effect_id,name,kind,memo
-エフェクトID,表示名,出し方,備考
-slash_s,斬撃（小）,impact,小さめの剣（ノービス・ゴブリン）
-slash_m,斬撃（中）,impact,標準の剣（ファイター・ホブゴブリン・ゴブリンロード）
-arrow,矢,projectile,弓（アーチャー・ゴブリンアーチャー）
-stone,投石,projectile,スリング（ハーフリング）
-holy,聖光,impact,近接の聖なる一撃（クレリック）。射程1なので飛ばさない
+effect_id,name,kind,scale,memo
+エフェクトID,表示名,出し方,表示倍率,備考
+slash_s,斬撃（小）,impact,0.85,小さめの剣（ノービス・ゴブリン）
+slash_m,斬撃（中）,impact,1.15,標準の剣（ファイター・ホブゴブリン・ゴブリンロード）
+arrow,矢,projectile,0.9,弓（アーチャー・ゴブリンアーチャー）
+stone,投石,projectile,0.5,スリング（ハーフリング）。小さい石
+holy,聖光,impact,1.0,近接の聖なる一撃（クレリック）。射程1なので飛ばさない

@@ -4,31 +4,36 @@
 			"effect_id": "slash_s",
 			"kind": "impact",
 			"memo": "小さめの剣（ノービス・ゴブリン）",
-			"name": "斬撃（小）"
+			"name": "斬撃（小）",
+			"scale": 0.85
 		},
 		{
 			"effect_id": "slash_m",
 			"kind": "impact",
 			"memo": "標準の剣（ファイター・ホブゴブリン・ゴブリンロード）",
-			"name": "斬撃（中）"
+			"name": "斬撃（中）",
+			"scale": 1.15
 		},
 		{
 			"effect_id": "arrow",
 			"kind": "projectile",
 			"memo": "弓（アーチャー・ゴブリンアーチャー）",
-			"name": "矢"
+			"name": "矢",
+			"scale": 0.9
 		},
 		{
 			"effect_id": "stone",
 			"kind": "projectile",
-			"memo": "スリング（ハーフリング）",
-			"name": "投石"
+			"memo": "スリング（ハーフリング）。小さい石",
+			"name": "投石",
+			"scale": 0.5
 		},
 		{
 			"effect_id": "holy",
 			"kind": "impact",
 			"memo": "近接の聖なる一撃（クレリック）。射程1なので飛ばさない",
-			"name": "聖光"
+			"name": "聖光",
+			"scale": 1.0
 		}
 	]
 }

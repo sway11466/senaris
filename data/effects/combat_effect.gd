@@ -12,6 +12,9 @@ const KINDS := [KIND_IMPACT, KIND_PROJECTILE]
 var effect_id: String  ## エフェクトID（主キー。unit_skin.csv の combat_effect が指す）
 var name: String       ## 表示名（斬撃（小）/矢 …。人が読む用）
 var kind: String = KIND_IMPACT
+## 表示倍率（1.0＝被弾側の立ち絵1体ぶんの幅）。絵は余白を切り詰めて描く＝大小の差は
+## キャンバスの余白ではなくこの列で付ける（ユニットの map_scale/combat_scale とは別物）。
+var scale: float = 1.0
 
 static func from_dict(d: Dictionary) -> CombatEffect:
 	var e := CombatEffect.new()
@@ -19,6 +22,8 @@ static func from_dict(d: Dictionary) -> CombatEffect:
 	e.name = String(d.get("name", ""))
 	var k := String(d.get("kind", ""))
 	e.kind = k if KINDS.has(k) else KIND_IMPACT  # 未知値は重ねる側へ倒す（飛ばすより事故が小さい）
+	var s: Variant = d.get("scale", 1.0)
+	e.scale = float(s) if (typeof(s) == TYPE_FLOAT or typeof(s) == TYPE_INT) and float(s) > 0.0 else 1.0
 	return e
 
 ## 絵の置き場（規約で解決＝カタログにパスを書かない）。無ければ演出側が既定のスパークに落とす。

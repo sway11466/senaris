@@ -207,11 +207,27 @@ POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the
 - 単位はスキンではなく武器の種類。剣で斬った跡に陣営の個性は要らないので、味方とゴブリンが同じ斬撃を共有する。ユニットを増やしても、既存のIDを指すだけなら作画は増えない。
 - 割り当ては `unit_skin.csv` の `combat_effect` 列（空＝既定のスパーク＝どのスキンが未整備か盤面で分かる）。定義は `data/effects/combat_effect.csv`。
 - キャラと違い、人・顔・背景は描かない。武器が当たった痕跡そのもの（斬り跡・矢・石・光）だけを、透過の1枚に描く。
-- 立ち絵と同じ絵柄に寄せる：フラットなセル塗り・muted な限定色・輪郭は太め。細かい粒子やグラデーションの霞は縮小で消えるので使わない。
-- `projectile` は左右反転して両陣営で使い回すので、向きを持つ絵（矢・石）は右向きに描く。上下方向の傾きは付けない（飛翔中に回転させない）。
-- 大きさの基準は被弾側の立ち絵1体ぶん。斬撃（小）は剣の長さぶん、斬撃（中）はそれより一回り大きく描いて段階を出す。
+- 立ち絵と同じ絵柄に寄せる：フラットなセル塗り・限定色。細かい粒子・淡いグラデーション・強い発光は縮小で消えるか切り抜きが荒れるので使わない。
+- 向きは「右へ向かう一撃」で統一して描く。左向きは演出側が水平反転するので描き分けない（`impact` も `projectile` も同じ規約）。飛ぶものは水平＝上下の傾きを付けない。
+- 味方とゴブリンが同じ絵を使うので、陣営色（青・赤）に寄せない中立色で描く。斬撃は銀白〜淡い水色。陣営が決まっているもの（聖光＝クレリック）は例外で、その陣営の色を使ってよい。
+- キャンバスいっぱいに描く（余白は最小）。ユニットと違い余白に大小を焼き込まない＝書き出しでトリムする。画面に出る大きさは `combat_effect.csv` の `scale` 列（1.0＝被弾側の立ち絵1体ぶん。絵の長辺が基準）で決めるので、斬撃（小）と（中）の差はこの数字で付ける。絵の側は弧の太さ・長さで質の差を出す。
+- 背景は明るいエフェクト（斬撃・聖光）＝黒、暗い物体（矢・石）＝白。切り抜きのコントラストを優先して SUBJECT ごとに選ぶ。
 
-保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。
+EFFECT STYLE（共通・固定）:
+```
+STYLE: A single fantasy tactics-game attack effect, drawn as ONE isolated
+graphic: NO character, NO hands, NO weapon owner, NO ground, NO scenery, NO
+text. Clean stylized vector-like shapes with bold flat cel-shading in only two
+or three tones — the same flat, slightly muted look as the game's unit pieces.
+NOT photorealistic, NO glowing bloom, NO soft gradients, NO sparkle particles,
+NO smoke, NO motion-blur haze. A crisp, bold, readable silhouette that still
+reads when shrunk very small. The graphic is drawn as a blow travelling to the
+RIGHT, level and horizontal (no upward or downward tilt). It fills the frame
+edge to edge with only a thin margin. Plain single flat background color (given
+in the subject) for easy cutout. Square 1:1 composition.
+```
+
+保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。書き出しは [`tools/gen_effect.ps1`](../../tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
 
 チュートリアル１で要るのは5枚（斬撃小・斬撃中・矢・投石・聖光）。
 

@@ -4,8 +4,8 @@
 
 .DESCRIPTION
   For one or more skin_ids (or 'all'), reads the combat-slot masters
-  units-src/<group>/<id>/<id>_<slot>_03_master.png (slot = combat, combat_hero,
-  combat_effect) and writes assets/units/<id>/<id>_<slot>.png: trim transparent
+  units-src/<group>/<id>/<id>_<slot>_03_master.png (slot = combat, combat_hero)
+  and writes assets/units/<id>/<id>_<slot>.png: trim transparent
   margins, set the figure height = BaseHeight * combat_scale (unit_skin.csv), then
   bottom-align it on a fixed 512 square transparent canvas. Alpha kept, no color
   reduction (unlike the map slot).
@@ -34,7 +34,7 @@ $BaseHeight = 384   # figure height (px) at combat_scale=1.0. Baseline = fighter
                     # 0.75 * Canvas = max scale 1.333. NOTE: dragon is 1.4 and does NOT fit -> its
                     # top gets cropped (the warning below catches it). Deciding the combat canvas
                     # belongs with the combat-scene framing work (backlog feature-22).
-$Slots    = @('combat', 'combat_hero', 'combat_effect')
+$Slots    = @('combat', 'combat_hero')  # attack effects are shared per weapon kind now -> tools\gen_effect.ps1
 $SkinIds = @($SkinIds)
 if ($SkinIds.Count -eq 0) { throw "usage: gen_unit_combat.ps1 <skin_id> [<skin_id> ...] | all" }
 
