@@ -1,6 +1,7 @@
 extends Control
 class_name FormationCutin
-## 陣形スキルの発動で挟む1枚絵のカットイン（presentation）。暗幕の上に絵を出し、少し留めて消える。
+## 陣形スキルの発動で挟む1枚絵のカットイン（presentation）。盤エリアの暗幕の上に絵を出し、留めて消える。
+## 窓は戦闘演出シーンと同じ位置・大きさ・形（八角形）＝盤が完全に消えない・演出の見た目を揃える。
 ## 絵はレシピIDで規約解決＝assets/formations/{recipe_id}.png。無ければ何もせず false を返す
 ## （カットインを飛ばして盤の結果だけ見せる。音は main が鳴らす）。
 ## クリック／キーで即座に飛ばせる。頭はロックしない＝1ステージに何度も出るため。
@@ -14,11 +15,14 @@ const EXTS := [".png", ".webp"]
 const FADE_SEC := 0.15    # 出し／引きの秒数（片道）
 const HOLD_SEC := 0.70    # 留める秒数。FADE*2+HOLD = 1.0 秒（仕様の「約1秒」）
 const ZOOM_FROM := 1.06   # 絵の入り＝わずかに寄った状態から等倍へ。動きを感じさせるだけの幅に留める
-const SCRIM_ALPHA := 0.72 # 暗幕。盤を完全には消さない（戻り先が見えていた方が復帰が早い）
+const SCRIM_ALPHA := 0.45 # 暗幕の濃さ。戦闘演出シーンの幕と同じ＝盤の沈み方を演出間で揃える
 
-var _scrim: ColorRect
-var _art: TextureRect
+var _scrim: ColorRect     # 暗幕（盤エリアだけ）。右の情報パネルは覆わない
+var _window: Control      # 八角形の窓。絵はこの中に描く（_draw_art）
+var _edge: Control        # 窓の縁取り
 var _tween: Tween = null
+var _texture: Texture2D = null
+var _art_scale := 1.0     # 入りのズーム（窓の中で絵だけが動く）
 
 func _ready() -> void:
 	# 親が Node2D（main）なのでアンカーは効かない＝矩形は _layout で明示的に置く（ターンバナーと同じ）。
@@ -32,19 +36,21 @@ func _build() -> void:
 	_scrim.color = Color(0, 0, 0, SCRIM_ALPHA)
 	_scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_scrim)
-	_art = TextureRect.new()
-	_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_art.pivot_offset = Vector2.ZERO  # 拡縮の中心は _layout で絵の中心に置き直す
-	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_art)
+	_window = Control.new()
+	_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_window.draw.connect(_draw_art)
+	add_child(_window)
+	_edge = Control.new()
+	_edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_edge.draw.connect(_draw_edge)
+	add_child(_edge)
 
 ## カットインを出す。絵が在れば true（呼び手は finished を待つ）、無ければ何もせず false。
 func play(recipe_id: String) -> bool:
 	var tex := _load_art(recipe_id)
 	if tex == null:
 		return false
-	_art.texture = tex
+	_texture = tex
 	visible = true
 	_layout()
 	_animate()
@@ -64,11 +70,11 @@ func _animate() -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	modulate.a = 0.0
-	_art.scale = Vector2(ZOOM_FROM, ZOOM_FROM)
+	_art_scale = ZOOM_FROM
 	# 出し → 留め → 引き の3段。段の区切りは chain()、同時に走らせるものだけ parallel()。
 	_tween = create_tween()
 	_tween.tween_property(self, "modulate:a", 1.0, FADE_SEC)
-	_tween.parallel().tween_property(_art, "scale", Vector2.ONE, FADE_SEC) \
+	_tween.parallel().tween_method(_set_art_scale, ZOOM_FROM, 1.0, FADE_SEC) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_tween.chain().tween_interval(HOLD_SEC)
 	_tween.chain().tween_property(self, "modulate:a", 0.0, FADE_SEC)
@@ -100,15 +106,56 @@ func _close() -> void:
 func dismiss() -> void:
 	_close()
 
+## 入りのズーム。窓の大きさは変えず、中の絵だけを寄った状態から等倍へ戻す。
+func _set_art_scale(v: float) -> void:
+	_art_scale = v
+	_window.queue_redraw()
+
+## 窓は戦闘演出シーンと同じ位置・大きさ・形（盤エリア中央の八角形）に合わせる。
+## 暗幕も同じく盤エリアだけ＝右の情報パネルは覆わない。盤が完全に消えるのを避ける。
 func _layout() -> void:
 	if not visible:
 		return
 	var vp := get_viewport().get_visible_rect().size
 	position = Vector2.ZERO
 	size = vp
-	_scrim.position = Vector2.ZERO
-	_scrim.size = vp
-	# 絵は画面に収まる最大＝はみ出させない（縦横比はエンジンが保つ）。
-	_art.position = Vector2.ZERO
-	_art.size = vp
-	_art.pivot_offset = vp * 0.5
+	var board := UiLayout.board_area(vp)
+	_scrim.position = board.position
+	_scrim.size = board.size
+	var area := Vector2(minf(board.size.x * 0.90, 740.0), minf(board.size.y * 0.62, 520.0))
+	var at := board.position + ((board.size - area) * 0.5).round()
+	for c in [_window, _edge]:
+		c.position = at
+		c.size = area
+	_window.queue_redraw()
+	_edge.queue_redraw()
+
+## 絵を八角形の窓に流し込む（窓を覆う最大＝はみ出しは切る）。TextureRect では角を落とせないため直に描く。
+func _draw_art() -> void:
+	if _texture == null:
+		return
+	var sz := _window.size
+	var t := Vector2(_texture.get_size())
+	if t.x <= 0.0 or t.y <= 0.0:
+		return
+	var cover := maxf(sz.x / t.x, sz.y / t.y) * _art_scale  # COVERED＝短辺を満たす（余白を作らない）
+	var drawn := t * cover
+	var origin := (sz - drawn) * 0.5
+	var pts := _window_shape(sz)
+	var uvs := PackedVector2Array()
+	for p in pts:  # 窓の頂点を絵のUVへ落とす＝ポリゴンで切り抜きながらテクスチャを貼る
+		uvs.append((p - origin) / drawn)
+	_window.draw_colored_polygon(pts, Color.WHITE, uvs, _texture)
+
+func _draw_edge() -> void:
+	var pts := _window_shape(_edge.size)
+	pts.append(pts[0])
+	_edge.draw_polyline(pts, CombatScene.EDGE_COLOR, CombatScene.EDGE_WIDTH, true)
+
+## 横長八角形（戦闘演出シーンと同じ角の落とし方）。
+func _window_shape(sz: Vector2) -> PackedVector2Array:
+	var c := minf(sz.x, sz.y) * CombatScene.CORNER_CUT
+	return PackedVector2Array([
+		Vector2(c, 0), Vector2(sz.x - c, 0), Vector2(sz.x, c), Vector2(sz.x, sz.y - c),
+		Vector2(sz.x - c, sz.y), Vector2(c, sz.y), Vector2(0, sz.y - c), Vector2(0, c),
+	])
