@@ -3,15 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cx1pqgiljj474"
-path="res://.godot/imported/road_c101100.png-de1d571ba0f540bbd64210d39214c0d3.ctex"
-metadata={
-"vram_texture": false
-}
+valid=false
 
 [deps]
 
 source_file="res://assets/terrain/road_c101100.png"
-dest_files=["res://.godot/imported/road_c101100.png-de1d571ba0f540bbd64210d39214c0d3.ctex"]
 
 [params]
 
