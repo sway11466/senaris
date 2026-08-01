@@ -11,6 +11,7 @@ var _controller: MatchController = null
 var _hud: Hud = null
 var _turn_plate: TurnPlate = null  # ターン板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
 var _turn_banner: TurnBanner = null  # ターンの切り替わりを見せる横帯（永続・画面中央）。同上
+var _formation_cutin: FormationCutin = null  # 陣形スキルの1枚絵カットイン（永続）。仕様 → doc/gdd/formations.md
 const TURN_BANNER_GAP := 0.3  # 敵ターンでバナーが引けてから最初の行動までの間（秒）
 var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
 var _current_stage_path := ""
@@ -55,6 +56,7 @@ func _ready() -> void:
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_turn_plate()  # 永続のターン板（盤エリア上端中央）。load_stage がターン・代表ユニットを流し込む
 	_install_turn_banner()  # 永続のターンバナー（画面中央・ターンが移った瞬間だけ出る）
+	_install_formation_cutin()  # 永続の陣形カットイン（絵が在るレシピの発動時だけ出る）
 	_install_aura()  # 永続の加護の光（盤エリア外周）。陣営全体バフが効いている間だけ出す
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
@@ -112,7 +114,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.turn_start_pace = _await_turn_banner  # 敵ターンは頭の一拍（バナー）を見せてから動く
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.battle_finished.connect(_on_battle_finished)
-	_controller.formation_resolved.connect(func(_r: Dictionary) -> void: _update_aura())
+	_controller.formation_resolved.connect(_on_formation_resolved)
 	_apply_emblem()  # ターン板の左右（冒険譚の代表ユニット）。ステージが変われば差し替わる
 	_update_turn_plate(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
@@ -148,6 +150,21 @@ func _await_turn_banner() -> void:
 	if is_inside_tree():
 		await get_tree().create_timer(TURN_BANNER_GAP).timeout
 
+## 陣形スキル／エンチャントの発動演出。発動の頭で音を鳴らし、陣形は1枚絵のカットインを挟んでから
+## 盤に戻って結果（着弾音・加護の光）を見せる。エンチャントはカットインを付けない（音と足元の光だけ）。
+## 絵が無いレシピはカットインを飛ばす＝音と盤の結果は同じに出る。仕様 → doc/gdd/formations.md
+func _on_formation_resolved(result: Dictionary) -> void:
+	var recipe := String(result.get("recipe", ""))
+	if Formation.is_enchant(recipe):
+		SfxPlayer.play_event("map_enchant")
+		_update_aura()
+		return
+	SfxPlayer.play_event("map_formation")
+	if _formation_cutin != null and _formation_cutin.play(recipe):
+		await _formation_cutin.finished
+	SfxPlayer.play_event("map_formation_hit")
+	_update_aura()
+
 func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0
 	_turn_plate.set_turn(team, turn_number, limit)
@@ -168,6 +185,8 @@ func _apply_emblem() -> void:
 func _on_battle_finished(outcome: int) -> void:
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターン制限切れはターンの切り替わりと同時＝戦果票と重ねない
+	if _formation_cutin != null:
+		_formation_cutin.dismiss()  # 陣形でボスを倒した＝カットインの最中に決着しうる
 	match outcome:
 		BattleState.PLAYER_WIN:
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
@@ -424,6 +443,11 @@ func _install_turn_banner() -> void:
 	_turn_banner = TurnBanner.new()
 	_turn_banner.name = "TurnBanner"
 	add_child(_turn_banner)
+
+func _install_formation_cutin() -> void:
+	_formation_cutin = FormationCutin.new()
+	_formation_cutin.name = "FormationCutin"
+	add_child(_formation_cutin)
 
 ## 加護の光（盤エリア外周）。盤より前・情報パネルより後ろに置く＝文字を明るくしない。
 ## HexBoard は Node3D（3Dは常に2Dの後ろ）なので、2Dの並びで InfoPanel より前に入れればよい。

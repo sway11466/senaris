@@ -79,6 +79,12 @@ const RECIPES := {
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
 const IMPLEMENTED_EFFECTS := ["area", "single", "buff"]
 
+## そのレシピがエンチャント（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
+## 演出・効果音の出し分けが読む（陣形はカットインあり／エンチャントは音だけ）。
+static func is_enchant(recipe_id: String) -> bool:
+	var r: Dictionary = RECIPES.get(recipe_id, {})
+	return String(r.get("shape", "")) == "solo"
+
 ## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
 ## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
 static func available_for(state: BattleState, unit: Unit) -> Array:

@@ -319,3 +319,10 @@ func test_resolve_kills_when_lethal() -> void:
 	var res := s.resolve_formation(opt, f["enemy_hex"])
 	assert_true(bool(res["results"][0]["killed"]), "撃破フラグ")
 	assert_null(s.unit_by_id(9), "撃破された敵は盤から消える")
+
+func test_is_enchant_splits_catalog_by_shape() -> void:
+	# 演出・効果音の出し分けが読む区別（陣形＝カットインあり／エンチャント＝音だけ）。
+	assert_true(Formation.is_enchant("pixie_dust"), "単独発動(shape=solo)はエンチャント")
+	assert_false(Formation.is_enchant("trinity"), "複数人のレシピは陣形")
+	assert_false(Formation.is_enchant("holy_aria"), "クラスタも陣形")
+	assert_false(Formation.is_enchant("no_such_recipe"), "未知のIDは陣形扱い（落ちない）")
