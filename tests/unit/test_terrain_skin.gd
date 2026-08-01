@@ -76,13 +76,35 @@ func test_extend_off_board_keeps_inner_ends_capped() -> void:
 	var on_board := [true, true, true, true, true, true]
 	assert_eq(TerrainSkin.extend_off_board(connected, on_board), connected, "盤内の端点は変えない")
 
-func test_extend_off_board_skips_non_ends() -> void:
-	# 隣が2つ以上あるマスには効かせない。外周に沿って走る柵が外向きの腕を櫛のように生やすため。
+func test_extend_off_board_ignores_lone_cells() -> void:
+	# どこにも繋がらないマスは何をしても変わらない（伸ばす向きの根拠が無い）。
+	var lone := [false, false, false, false, false, false]
+	var on_board := [true, false, true, false, false, false]
+	assert_eq(TerrainSkin.extend_off_board(lone, on_board), lone, "孤立した柱は柱のまま")
+
+func test_extend_off_board_grows_no_comb_along_the_rim() -> void:
+	# 盤の縁と平行に走る線に、外向きの腕は生えない。腕が生えるには「その向きの反対側が
+	# 繋がっている」＝線が盤の外を向いている必要があり、縁と平行な線はこれを満たさない。
+	# 最終列を縦に走る柵: dir2/dir5 で繋がり、盤外は dir0/dir1。
+	var connected := [false, false, true, false, false, true]
+	var on_board := [false, false, true, true, true, true]
+	assert_eq(TerrainSkin.extend_off_board(connected, on_board), connected, "縁沿いの通過マスは変えない")
+
+func test_extend_off_board_fills_an_area_out_to_the_rim() -> void:
+	# 面地形（道）が盤の縁に乗ったとき、盤外を向いた向きが複数あればその全部へ伸びる。
+	# 蓋（輪郭付きの終端）を縁に作らないための挙動。tutorial2-st1 の右端がこの形。
+	var connected := [false, false, false, false, true, true]   # dir4/dir5 で繋がる
+	var on_board := [false, false, true, true, true, true]      # dir0/dir1 が盤外
+	# dir4 の反対 dir1 が盤外 → 伸ばす。dir5 の反対 dir2 は盤内 → 伸ばさない。
+	assert_eq(TerrainSkin.extend_off_board(connected, on_board),
+		[false, true, false, false, true, true], "盤外を向いた軸だけ伸びる")
+
+func test_extend_off_board_forks_at_a_corner_bend() -> void:
+	# 盤の角で線が曲がると、曲がりの両側とも盤外を向くので二又に伸びる（許容した挙動）。
 	var connected := [true, false, true, false, false, false]
 	var on_board := [true, false, true, false, false, false]
-	assert_eq(TerrainSkin.extend_off_board(connected, on_board), connected, "通過マスは変えない")
-	var lone := [false, false, false, false, false, false]
-	assert_eq(TerrainSkin.extend_off_board(lone, on_board), lone, "孤立した柱は柱のまま")
+	assert_eq(TerrainSkin.extend_off_board(connected, on_board),
+		[true, false, true, true, false, true], "dir0→dir3・dir2→dir5 の両方へ伸びる")
 
 func test_connect_tiles_all_present() -> void:
 	# connect スキンは64通りぜんぶ揃っている必要がある（1つでも欠けるとそのマスだけ絵が化ける）。

@@ -59,23 +59,19 @@ func connected_image_path(connected: Array) -> String:
 	return "res://assets/terrain/%s_c%s.png" % [skin_id, bits]
 
 ## 盤の縁で線を切らないための補正。connected / on_board はどちらも Hex.DIRECTIONS 順の6要素。
-## 繋がっている隣が1つだけのマスは、その反対側が盤の外なら、そちらへも腕を伸ばす＝柵や道が
-## 盤の外へ続いて見える（地図の外側にも世界が続いている扱い）。
-## 隣が2つ以上あるマスには効かせない。外周に沿って走る柵が、外向きの腕を櫛のように生やすため。
+## 繋がっている方向ごとに、その反対側が盤の外ならそちらへも伸ばす＝柵や道が盤の外へ続いて
+## 見える（地図の外側にも世界が続いている扱い）。判定は軸単位（Hex.DIRECTIONS は i と i+3 が
+## 反対向き）で、片側が繋がっていて反対側が盤外の軸だけが対象。
+## 外周に沿って走る線に外向きの腕は生えない。腕が生えるには「その向きの反対側が繋がっている」
+## ＝線が盤の外を向いている必要があり、縁と平行に走る線はこれを満たさないため。
+## 盤の角で線が曲がっていると、曲がりの両側とも盤外を向いて二又に伸びる。地図の外へ両方向とも
+## 続く、という扱いで許容する（既存ステージでは道の縁4マスだけが該当＝面地形が縁まで埋まる形）。
 static func extend_off_board(connected: Array, on_board: Array) -> Array:
-	var count := 0
-	var only := -1
-	for i in 6:
-		if bool(connected[i]):
-			count += 1
-			only = i
-	if count != 1:
-		return connected
-	var opposite := (only + 3) % 6  # Hex.DIRECTIONS は i と i+3 が反対向き
-	if bool(on_board[opposite]):
-		return connected
 	var extended := connected.duplicate()
-	extended[opposite] = true
+	for i in 6:
+		var opposite := (i + 3) % 6
+		if bool(connected[i]) and not bool(on_board[opposite]):
+			extended[opposite] = true
 	return extended
 
 ## 側面（スカート）画像のパス。置いてあれば段差の側面に貼られ、無ければ既定の粒ノイズ＋断面色になる。
