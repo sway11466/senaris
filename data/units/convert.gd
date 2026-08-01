@@ -27,6 +27,8 @@ func _initialize() -> void:
 	var skin_rows := Csv.read_table("res://data/units/unit_skin.csv")
 	var type_ids := Csv.value_set(type_rows, "id")
 	var move_types := Csv.value_set(Csv.read_table("res://data/movement/movement.csv"), "move_type")
+	# 攻撃エフェクトは別表（data/effects/）。参照切れ＝黙ってスパークに落ちる罠なので照合する。
+	var effect_ids := Csv.value_set(Csv.read_table("res://data/effects/combat_effect.csv"), "effect_id")
 
 	var t := build_unit_type(type_rows, move_types)
 	if t["json"] == null:
@@ -35,7 +37,7 @@ func _initialize() -> void:
 		Csv.write_json("res://data/units/unit_type.json", t["json"])
 		print("unit_type.json: %d types" % type_rows.size())
 
-	var s := build_unit_skin(skin_rows, type_ids)
+	var s := build_unit_skin(skin_rows, type_ids, effect_ids)
 	if s["json"] == null:
 		_report("unit_skin.csv", s["problems"])
 	else:
@@ -60,11 +62,14 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 ## skin は見た目レイヤー（案P）＝category をゲームロジックから参照しないこと（ツール・図鑑用）。
 ## combat_lineup は戦闘演出での並べ方（squad/retinue/single）＝スキンごとに人が決める（性能から導かない）。
 ## retainers は戦闘演出で本人の脇に並べる別スキン（'|' 区切り・retinue のときだけ）。→ doc/tech/combat_scene.md
-## side/combat_lineup enum・skin_id重複・type_id参照・retainers参照・必須列を検証。problems があれば json は null。
-static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
+## combat_effect は攻撃エフェクトID（空＝既定のスパーク）。effect_ids は data/effects/ の実在ID集合。
+## side/combat_lineup enum・skin_id重複・type_id参照・combat_effect参照・retainers参照・必須列を検証。
+## problems があれば json は null。
+static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []) -> Dictionary:
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
 	problems += Csv.invalid_values(rows, "side", SIDES, "skin_id")
 	problems += Csv.invalid_values(rows, "combat_lineup", SkinDef.LINEUPS, "skin_id")
+	problems += Csv.invalid_values(rows, "combat_effect", effect_ids, "skin_id")  # 未定義のエフェクトID
 	problems += Csv.invalid_values(rows, "type_id", type_ids, "skin_id")  # unit_type に無い性能への参照切れ
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
@@ -82,6 +87,7 @@ static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 			"name": str(r["name"]), "category": str(r.get("category", "")),
 			"description": "", "images": {},
 			"combat_lineup": str(r.get("combat_lineup", "")), "retainers": parse_retainers(r),
+			"combat_effect": str(r.get("combat_effect", "")),
 		})
 	return { "problems": problems, "json": { "skins": skins } }
 

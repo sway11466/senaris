@@ -4,6 +4,7 @@ extends GutTest
 ## 「必須列の定義を1つ落としても既存テストが緑のまま」という穴を、必須列を1つずつ抜いて塞ぐ。
 
 const Units = preload("res://data/units/convert.gd")
+const Effects = preload("res://data/effects/convert.gd")
 const Ai = preload("res://data/ai/convert.gd")
 const Terrain = preload("res://data/terrain/convert.gd")
 const Movement = preload("res://data/movement/convert.gd")
@@ -117,6 +118,55 @@ func test_retainers_without_retinue_blocks() -> void:
 	row["retainers"] = "mob"
 	var r := Units.build_unit_skin([row, _valid_skin_row("mob", "knight", "enemy")], ["knight"])
 	assert_null(r["json"], "retinue 以外で retainers を書くと json=null")
+
+# --- units: combat_effect（攻撃エフェクトの割り当て） ---
+
+func test_combat_effect_flows_into_json() -> void:
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["combat_effect"] = "slash_m"
+	var r := Units.build_unit_skin([row], ["knight"], ["slash_m"])
+	assert_eq(r["problems"].size(), 0)
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["combat_effect"], "slash_m")
+
+func test_combat_effect_empty_is_allowed() -> void:
+	# 空欄＝既定のスパーク（未整備が画面で分かる運用）。必須にはしない。
+	var r := Units.build_unit_skin([ _valid_skin_row("kn_a", "knight", "ally") ], ["knight"], ["slash_m"])
+	assert_eq(r["problems"].size(), 0)
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["combat_effect"], "")
+
+func test_combat_effect_dangling_ref_blocks() -> void:
+	# 打ち間違えると黙ってスパークに落ちて気づけないので、生成を止める。
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["combat_effect"] = "slash_typo"
+	var r := Units.build_unit_skin([row], ["knight"], ["slash_m"])
+	assert_null(r["json"], "未定義の combat_effect で json=null")
+
+# --- effects: build（攻撃エフェクト表） ---
+
+func _valid_effect_row(eid: String, kind: String) -> Dictionary:
+	return { "effect_id": eid, "name": "名", "kind": kind }
+
+func test_effects_valid_builds_json() -> void:
+	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("arrow", "projectile") ]
+	var r := Effects.build(rows)
+	assert_eq(r["problems"].size(), 0, "正常＝違反0")
+	assert_eq(r["json"]["effects"], rows, "json は { effects: rows }")
+
+func test_effects_each_required_column_pins_json_null() -> void:
+	for col in Effects.REQUIRED:
+		var row := _valid_effect_row("slash_s", "impact")
+		row.erase(col)
+		var r := Effects.build([row])
+		assert_null(r["json"], "'%s' 欠落で json=null" % col)
+
+func test_effects_invalid_kind_blocks() -> void:
+	var r := Effects.build([ _valid_effect_row("slash_s", "burst") ])
+	assert_null(r["json"], "kind が enum 外で json=null")
+
+func test_effects_duplicate_id_blocks() -> void:
+	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("slash_s", "projectile") ]
+	var r := Effects.build(rows)
+	assert_null(r["json"], "effect_id 重複で json=null")
 
 # --- units: retainers（戦闘演出でボスの脇に並べる従者スキン） ---
 
