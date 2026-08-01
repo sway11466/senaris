@@ -5,14 +5,16 @@ extends SceneTree
 ## 実行: godot --headless --path . --script res://data/units/convert.gd
 
 const Csv = preload("res://data/csv_util.gd")
+const SkinDef = preload("res://data/units/unit_skin.gd")
 
 ## 非空で必ず要る性能列（category/memo は任意）。
 const TYPE_REQUIRED := [
 	"id", "atk_ground", "atk_air", "pierce", "defense", "move", "move_type",
 	"range", "move_after_attack", "can_capture", "max_troops", "capacity",
 ]
-## スキンの必須列。
-const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id"]
+## スキンの必須列。combat_lineup は既定値を持たせず必ず書かせる（空＝squad の暗黙既定にすると
+## 「書き忘れ」と「squad と決めた」が区別できなくなる）。
+const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id", "combat_lineup"]
 ## side は陣営の2値のみ（convert が skins[tid][side] へ振り分けるため他値はNG）。
 const SIDES := ["ally", "enemy"]
 ## 従者リスト（retainers 列）の区切り。CSV なのでカンマは使えない。
@@ -52,15 +54,17 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "types": rows } }
 
-## スキン表（1行=1別名: skin_id, side, type_id, name, category, retainers）→ { problems, json }。純関数。
+## スキン表（1行=1別名: skin_id, side, type_id, name, category, combat_lineup, retainers）→ { problems, json }。純関数。
 ## 同じ (type_id, side) の行は出現順にエイリアス配列へ。description/images は空（後で拡張）。
 ## category は管理分類（基準/ゴブリン/…）＝参考データとして JSON にも持つ。
 ## skin は見た目レイヤー（案P）＝category をゲームロジックから参照しないこと（ツール・図鑑用）。
-## retainers は戦闘演出で本人の脇に並べる別スキン（'|' 区切り・空＝全部本人）。→ doc/tech/combat_scene.md
-## side enum・skin_id重複・type_id参照・retainers参照・必須列を検証。problems があれば json は null。
+## combat_lineup は戦闘演出での並べ方（squad/retinue/single）＝スキンごとに人が決める（性能から導かない）。
+## retainers は戦闘演出で本人の脇に並べる別スキン（'|' 区切り・retinue のときだけ）。→ doc/tech/combat_scene.md
+## side/combat_lineup enum・skin_id重複・type_id参照・retainers参照・必須列を検証。problems があれば json は null。
 static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
 	problems += Csv.invalid_values(rows, "side", SIDES, "skin_id")
+	problems += Csv.invalid_values(rows, "combat_lineup", SkinDef.LINEUPS, "skin_id")
 	problems += Csv.invalid_values(rows, "type_id", type_ids, "skin_id")  # unit_type に無い性能への参照切れ
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
@@ -76,7 +80,8 @@ static func build_unit_skin(rows: Array, type_ids: Array) -> Dictionary:
 		skins[tid][side].append({
 			"skin_id": str(r.get("skin_id", "")), "type_id": tid,
 			"name": str(r["name"]), "category": str(r.get("category", "")),
-			"description": "", "images": {}, "retainers": parse_retainers(r),
+			"description": "", "images": {},
+			"combat_lineup": str(r.get("combat_lineup", "")), "retainers": parse_retainers(r),
 		})
 	return { "problems": problems, "json": { "skins": skins } }
 
@@ -89,13 +94,20 @@ static func parse_retainers(row: Dictionary) -> Array:
 			out.append(id)
 	return out
 
-## retainers の検証：実在しない skin_id への参照（＝黙って絵が出ない罠）と、隊列に入り切らない数。
+## retainers の検証：実在しない skin_id への参照（＝黙って絵が出ない罠）・隊列に入り切らない数・
+## combat_lineup との噛み合わせ（retinue なのに従者が無い／retinue でないのに従者が書いてある＝どちらも
+## 意図と表示がずれたまま黙って通る）。
 static func _retainer_problems(rows: Array) -> Array:
 	var known := Csv.value_set(rows, "skin_id")
 	var out := []
 	for r in rows:
 		var label := str(r.get("skin_id", ""))
+		var lineup := str(r.get("combat_lineup", "")).strip_edges()
 		var list := parse_retainers(r)
+		if lineup == SkinDef.LINEUP_RETINUE and list.is_empty():
+			out.append("'%s': combat_lineup が retinue なのに retainers が空（従者を書くか squad にする）" % label)
+		if lineup != SkinDef.LINEUP_RETINUE and not list.is_empty():
+			out.append("'%s': combat_lineup が '%s' なのに retainers が書いてある（retinue 以外では使わない）" % [label, lineup])
 		if list.size() > RETAINER_MAX:
 			out.append("'%s': retainers が %d 個（上限 %d＝隊列8のうち先頭は本人）" % [label, list.size(), RETAINER_MAX])
 		for id in list:

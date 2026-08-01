@@ -11,13 +11,20 @@ class_name UnitSkin
 ##   戦闘表示   = フルネーム
 ## images にパスを入れれば、描画側がそちらに切り替える（コードは不変）。
 
+## 戦闘演出での並べ方（unit_skin.csv の combat_lineup 列）。→ doc/tech/combat_scene.md
+const LINEUP_SQUAD := "squad"      ## 本人の絵を兵量ぶん複製（既定）
+const LINEUP_RETINUE := "retinue"  ## 先頭＝本人・残りは retainers（ボス系）
+const LINEUP_SINGLE := "single"    ## 1体だけ描く（馬車・ドラゴン級＝数えられない駒）
+const LINEUPS := [LINEUP_SQUAD, LINEUP_RETINUE, LINEUP_SINGLE]
+
 var skin_id: String       ## スキンID（主キー。ステージはこれで見た目を指定）。skin→type は1:1
 var type_id: String       ## 紐づく性能(UnitType)のID
 var name: String          ## 表示名（例: クレリック / ゴブリン）
 var category: String      ## 管理分類（基準/ゴブリン/アンデッド…）。参考データ＝ゲームロジックで参照しない（ツール・図鑑用）
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
 var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
-var retainers: Array       ## 戦闘演出で脇に並べる別スキンの skin_id（先頭＝本人の隣）。空＝全部本人の絵。→ doc/tech/combat_scene.md
+var combat_lineup: String = LINEUP_SQUAD  ## 戦闘演出での並べ方（LINEUPS のいずれか）
+var retainers: Array       ## 戦闘演出で脇に並べる別スキンの skin_id（先頭＝本人の隣）。retinue のときだけ使う。→ doc/tech/combat_scene.md
 
 static func from_dict(d: Dictionary) -> UnitSkin:
 	var s := UnitSkin.new()
@@ -27,9 +34,15 @@ static func from_dict(d: Dictionary) -> UnitSkin:
 	s.category = String(d.get("category", ""))
 	s.description = String(d.get("description", ""))
 	s.images = d.get("images", {})
+	var lineup := String(d.get("combat_lineup", ""))
+	s.combat_lineup = lineup if LINEUPS.has(lineup) else LINEUP_SQUAD  # 未知値は既定へ倒す（描かない事故にしない）
 	var r: Variant = d.get("retainers", [])
 	s.retainers = r if typeof(r) == TYPE_ARRAY else []
 	return s
+
+## 1体だけ描く駒か（複製しない）。馬車・飛空艇・ドラゴン級＝兵として数えられない見た目。
+func is_single_figure() -> bool:
+	return combat_lineup == LINEUP_SINGLE
 
 ## マップ表示のプレースホルダ文字（名前の先頭2文字）。
 func map_label() -> String:

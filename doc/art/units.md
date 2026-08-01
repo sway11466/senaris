@@ -131,7 +131,8 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 向きは陣営で固定して焼き込む：プレイヤーは右向き・敵は左向き（プレイヤー左／敵右で対峙）。左右反転はしないので武器の持ち手が破綻しない。
 - 1スキン1枚＝単体を描く。演出側が兵数（1〜8・[../gdd/combat.md](../gdd/combat.md)）ぶんを隊列スロットに複製表示する。
 - 透過切り抜き（map と同じ「単色背景→背景除去」）。背景は演出側が地形ごとに敷くのでキャラのみ。
-- ボス系：絵は1枚のまま「ボス＋手下」に見せる。隊列の中央が本人で、残りは従者＝別スキンの `combat` を借りる（例：ネクロマンサー＋スケルトン／ゾンビ）。指定は `unit_skin.csv` の `retainers` 列＝作画側の作業は無い。→ [../tech/combat_scene.md](../tech/combat_scene.md)
+- ボス系：絵は1枚のまま「ボス＋手下」に見せる。隊列の中央が本人で、残りは従者＝別スキンの `combat` を借りる（例：ネクロマンサー＋スケルトン／ゾンビ）。指定は `unit_skin.csv` の `combat_lineup=retinue` ＋ `retainers` 列＝作画側の作業は無い。→ [../tech/combat_scene.md](../tech/combat_scene.md)
+- 単体表示（`combat_lineup=single`・馬車／飛空艇／ドラゴン級）は複製せず1体だけ出る。作画の作りは同じ（1スキン1枚）だが、隣に自分のコピーが並ばないぶん1体で画が持つ必要がある。
 - 攻撃エフェクト：ユニットごと1枚（combat_effect）。相手の隊列上に重ねて出す（斬撃＝被弾側／魔法＝着弾側）。
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
   - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
@@ -190,8 +191,12 @@ POSE (unarmed): A lunging bare-handed attack — both arms (or claws) thrust out
 ```
 POSE (drift): A floating attack pose — the body hovers clear of the ground with no weight on any foot, drifting toward the enemy on the right with both hands (or the weapon) reaching ahead, the trailing hem or tail streaming out behind. For flying units.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`。
+```
+POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the right of the frame under its load, the draft animal (if any) leaning into the harness with its head low and legs mid-stride, the cargo body following behind so the hood, wheels/hull and lashed load all read clearly. It does NOT fight and takes no combat stance: no weapon anywhere, no raised guard, no aggression — just a heavy non-combat vehicle pressing on across the battlefield. For transport units.
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`／輸送（馬車・飛空艇）＝`haul`。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
+- 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない／武器を持たない」と明示し、チビ体型の指定は牽引する動物にだけ効かせる。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 

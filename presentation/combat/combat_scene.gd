@@ -16,6 +16,8 @@ const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1
 	Vector2(0.23, 0.62), Vector2(0.45, 0.36), Vector2(0.55, 0.68), Vector2(0.77, 0.42),
 	Vector2(0.66, 0.10), Vector2(0.34, 0.94), Vector2(0.12, 0.30), Vector2(0.88, 0.74),
 ]
+const SINGLE_POS := Vector2(0.50, 0.55)  # single（複製しない駒）の立ち位置。隊列の重心あたりに1体だけ置く
+const MAX_TROOPS := 8  # 兵量バーの目盛り数＝戦闘ルールの上限（doc/gdd/combat.md）。POS の枠数と同じ
 const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
 const CORNER_CUT := 0.09   # 窓の角を落とす量（短辺に対する比）。横長八角形にする
 const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずかに寒色＝空気遠近）
@@ -38,6 +40,13 @@ const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（�
 const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
 const FIG_H := 0.30   # 立ち絵の高さ（窓内寸の高さに対する比）。盤エリア窓化で横が詰まるぶん少し小さく（実機で調整）
 const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
+# 兵量バー（窓内寸に対する比）。両陣営に常時出す＝隊列が減る駒もバーだけの駒も損害の読み方を揃える。
+const BAR_W := 0.30
+const BAR_H := 0.028
+const BAR_Y := 0.90
+const BAR_FALL := 0.35  # 目盛りが減っていく時間（秒）
+const BAR_BG := Color(0, 0, 0, 0.50)
+const BAR_EDGE := Color(0, 0, 0, 0.65)
 
 var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
@@ -50,6 +59,10 @@ var _inner: Control       # 窓の中身（地面＋図＋エフェクト）。�
 var _ground: CombatGround3D  # 地面（3D・盤と同じ地形タイル）
 var _haze: TextureRect       # 奥を落とす縦グラデ（タイルの繰り返しを目立たせない）
 var _fig := { "L": null, "R": null }  # 各サイドの図レイヤ（Control）
+var _bar := { "L": null, "R": null }  # 各サイドの兵量バー（Control・立ち絵の上に重ねる）
+var _bar_val := { "L": 0.0, "R": 0.0 }   # バーの表示値（減少をアニメさせるので float）
+var _bar_team := { "L": 0, "R": 1 }      # バーの色（陣営）
+var _bar_tween := { "L": null, "R": null }  # 減少アニメ（連戦で前の戦闘のぶんが残らないよう都度 kill）
 var _fx: Control                       # フラッシュ・エフェクト・損害数
 var _area: Vector2        # 窓の内寸（レイアウト基準）
 var _tween: Tween
@@ -100,6 +113,14 @@ func _build() -> void:
 		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_inner.add_child(f)
 		_fig[side] = f
+	# バーは立ち絵より前面（隊列に隠れない）／エフェクトより後面（フラッシュは上から被せる）。
+	for side in ["L", "R"]:
+		var b := Control.new()
+		b.set_anchors_preset(Control.PRESET_FULL_RECT)
+		b.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		b.draw.connect(_draw_bar.bind(side))
+		_inner.add_child(b)
+		_bar[side] = b
 	_fx = Control.new()
 	_fx.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -198,30 +219,86 @@ func play(detail: Dictionary) -> void:
 		if gen == _gen:
 			_dismiss())
 
-## 片側に着弾：フラッシュ＋エフェクト＋損害数＋図を after へ更新。
+## 片側に着弾：フラッシュ＋エフェクト＋損害数＋図とバーを after へ更新。
 func _strike_side(side: String, dmg: int, after: int, comb: Dictionary) -> void:
-	_render_side(side, comb, after)
+	_render_side(side, comb, after, true)
 	_flash(side)
 	_spark(side)
 	if dmg > 0:
 		_damage(side, dmg)
 
-func _render_side(side: String, comb: Dictionary, count: int) -> void:
+## 片側の隊列＋兵量バーを count 兵ぶんで描き直す。animate=true は着弾時（バーが減っていく）。
+## 並べ方はスキンの combat_lineup：single は複製せず1体だけ（馬車・ドラゴン級＝兵として数えない駒）。
+func _render_side(side: String, comb: Dictionary, count: int, animate: bool = false) -> void:
 	var layer: Control = _fig[side]
 	_clear(layer)
-	var vp := _size()
 	var team := int(comb.get("team", 0))
+	_set_bar(side, count, team, animate)
+	var skin := _skin_of(comb)
+	if skin != null and skin.is_single_figure():
+		# 1体だけ＝損害で絵が減らないので、減り方は兵量バーが受け持つ。
+		var at := _slot_pos(side, SINGLE_POS)
+		_add_figure(layer, at.x, at.y, FIG_SCALE, _texture_for(comb), team, comb)
+		return
 	var texs := _textures_for(comb, count)  # スロットごとの絵（先頭＝本人・以降は従者）
 	var figs := []
 	for i in count:
-		var p: Vector2 = POS[i]
-		var s := FIG_SCALE
-		var cx := (vp.x * 0.06 + p.x * vp.x * 0.36) if side == "L" else (vp.x * 0.94 - p.x * vp.x * 0.36)
-		var feet := vp.y * 0.38 + p.y * vp.y * 0.42 + p.x * vp.y * 0.16
-		figs.append({ "cx": cx, "feet": feet, "s": s, "tex": texs[i] })
+		var at := _slot_pos(side, POS[i])
+		figs.append({ "cx": at.x, "feet": at.y, "s": FIG_SCALE, "tex": texs[i] })
 	figs.sort_custom(func(u, v): return u["feet"] < v["feet"])  # 手前（下）を後に＝前面
 	for f in figs:
 		_add_figure(layer, f["cx"], f["feet"], f["s"], f["tex"], team, comb)
+
+## 隊列の正規化座標（x:奥0→前1／y:上0→下1）→ 窓内の (中心x, 足元y)。
+## 敵側は x を反転して中央（激突点）へ正対させる。地面の傾きぶん、前ほど足元を下げる。
+func _slot_pos(side: String, p: Vector2) -> Vector2:
+	var vp := _size()
+	var cx := (vp.x * 0.06 + p.x * vp.x * 0.36) if side == "L" else (vp.x * 0.94 - p.x * vp.x * 0.36)
+	var feet := vp.y * 0.38 + p.y * vp.y * 0.42 + p.x * vp.y * 0.16
+	return Vector2(cx, feet)
+
+## 兵量バーを count へ更新。animate なら現在値からアニメで落とす（着弾の手応え）。
+## 開幕は snap＝前の戦闘の値から動かない（連戦で前のバーが残らないよう既存アニメは kill）。
+func _set_bar(side: String, count: int, team: int, animate: bool) -> void:
+	_bar_team[side] = team
+	var prev: Tween = _bar_tween[side]
+	if prev != null and prev.is_valid():
+		prev.kill()
+	if not animate:
+		_set_bar_val(side, float(count))
+		return
+	var tw := create_tween()
+	tw.tween_method(func(v: float) -> void: _set_bar_val(side, v), float(_bar_val[side]), float(count), BAR_FALL)
+	_bar_tween[side] = tw
+
+func _set_bar_val(side: String, v: float) -> void:
+	_bar_val[side] = v
+	var c: Control = _bar[side]
+	if c != null:
+		c.queue_redraw()
+
+## 兵量バー（8分割の刻み＝隊列8スロットと同じ数え方）。表示パターンに関わらず両陣営に常時出す。
+## 仕様 → doc/tech/combat_scene.md「兵量バー」
+func _draw_bar(side: String) -> void:
+	var c: Control = _bar[side]
+	if c == null:
+		return
+	var vp := _size()
+	var w := vp.x * BAR_W
+	var h := vp.y * BAR_H
+	var cx := vp.x * 0.24 if side == "L" else vp.x * 0.76
+	var origin := Vector2(cx - w * 0.5, vp.y * BAR_Y)
+	var gap := 2.0
+	var cell := (w - gap * (MAX_TROOPS - 1)) / MAX_TROOPS
+	var col: Color = TEAM_COLOR.get(int(_bar_team[side]), Color(0.5, 0.5, 0.5))
+	var val := float(_bar_val[side])
+	for i in MAX_TROOPS:
+		var slot := Rect2(Vector2(origin.x + i * (cell + gap), origin.y), Vector2(cell, h))
+		c.draw_rect(slot, BAR_BG)  # 空の枠も見せる＝最大8のうち今いくつかが読める
+		var f := clampf(val - float(i), 0.0, 1.0)
+		if f > 0.0:
+			c.draw_rect(Rect2(slot.position, Vector2(cell * f, h)), col.lightened(0.15))
+		c.draw_rect(slot, BAR_EDGE, false, 1.0)
 
 func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2D, team: int, comb: Dictionary) -> void:
 	var vp := _size()

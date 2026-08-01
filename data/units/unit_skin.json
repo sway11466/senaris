@@ -4,6 +4,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "single",
 					"description": "",
 					"images": {},
 					"name": "飛空艇",
@@ -18,6 +19,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "アーチャー",
@@ -32,6 +34,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "バリスタ",
@@ -46,6 +49,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "バリケード",
@@ -60,6 +64,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "バードマン",
@@ -71,6 +76,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "グリフォン",
@@ -84,6 +90,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ビショップ",
@@ -95,6 +102,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ゾンビ",
@@ -108,6 +116,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "クレリック",
@@ -119,6 +128,7 @@
 			"enemy": [
 				{
 					"category": "ゴブリン",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ゴブリン",
@@ -128,6 +138,7 @@
 				},
 				{
 					"category": "ローグ一味",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ローグ",
@@ -142,6 +153,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "single",
 					"description": "",
 					"images": {},
 					"name": "レッドドラゴン",
@@ -155,6 +167,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ドラゴンナイト",
@@ -169,6 +182,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ドワーフ",
@@ -183,6 +197,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "エルフ",
@@ -197,6 +212,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ファイター",
@@ -208,6 +224,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "グール",
@@ -217,6 +234,7 @@
 				},
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "オーク",
@@ -230,6 +248,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ハーフリング",
@@ -245,6 +264,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ハーピー",
@@ -258,6 +278,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ハンター",
@@ -272,6 +293,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ナイト",
@@ -283,6 +305,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "トレント",
@@ -296,6 +319,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "くノ一",
@@ -310,6 +334,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "メイジ",
@@ -321,6 +346,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "オークメイジ",
@@ -334,6 +360,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "マジックナイト",
@@ -348,6 +375,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ニンジャ",
@@ -362,6 +390,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ノービス",
@@ -373,6 +402,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ダイアウルフ",
@@ -386,6 +416,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "パラディン",
@@ -397,6 +428,7 @@
 			"enemy": [
 				{
 					"category": "ゴブリン",
+					"combat_lineup": "retinue",
 					"description": "",
 					"images": {},
 					"name": "ゴブリンロード",
@@ -408,6 +440,7 @@
 				},
 				{
 					"category": "ローグ一味",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "首領",
@@ -421,6 +454,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ピクシー",
@@ -432,6 +466,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ゴースト",
@@ -445,6 +480,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "プリースト",
@@ -456,6 +492,7 @@
 			"enemy": [
 				{
 					"category": "ゴブリン",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ホブゴブリン",
@@ -465,6 +502,7 @@
 				},
 				{
 					"category": "アンデッド",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "スケルトン",
@@ -478,6 +516,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "サムライ",
@@ -492,6 +531,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "スリンガー",
@@ -503,6 +543,7 @@
 			"enemy": [
 				{
 					"category": "ゴブリン",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ゴブリンアーチャー",
@@ -512,6 +553,7 @@
 				},
 				{
 					"category": "アンデッド",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "スケルトンアーチャー",
@@ -521,6 +563,7 @@
 				},
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "マタンゴ",
@@ -534,6 +577,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "スナイパー",
@@ -545,6 +589,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
+					"combat_lineup": "retinue",
 					"description": "",
 					"images": {},
 					"name": "ネクロマンサー",
@@ -566,6 +611,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ソーサラー",
@@ -580,6 +626,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "シーフ",
@@ -594,6 +641,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ヴァンガード",
@@ -605,6 +653,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "オークリーダー",
@@ -618,6 +667,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "single",
 					"description": "",
 					"images": {},
 					"name": "馬車",
@@ -632,6 +682,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ウォーロード",
@@ -643,6 +694,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "デュラハン",
@@ -652,6 +704,7 @@
 				},
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "キメラ",
@@ -665,6 +718,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ウィッチ",
@@ -676,6 +730,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "マンドラゴラ",
@@ -689,6 +744,7 @@
 			"ally": [
 				{
 					"category": "基準",
+					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"name": "ウィザード",

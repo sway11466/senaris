@@ -46,7 +46,7 @@ func test_unit_type_duplicate_id_blocks() -> void:
 # --- units: build_unit_skin ---
 
 func _valid_skin_row(sid: String, tid: String, side: String) -> Dictionary:
-	return { "skin_id": sid, "name": "名", "side": side, "type_id": tid }
+	return { "skin_id": sid, "name": "名", "side": side, "type_id": tid, "combat_lineup": "squad" }
 
 func test_unit_skin_valid_builds_json() -> void:
 	var rows := [
@@ -89,10 +89,40 @@ func test_unit_skin_duplicate_skin_id_blocks() -> void:
 	var r := Units.build_unit_skin(rows, ["knight"])
 	assert_null(r["json"], "skin_id 重複で json=null")
 
+# --- units: combat_lineup（戦闘演出での並べ方） ---
+
+func test_combat_lineup_flows_into_json() -> void:
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["combat_lineup"] = "single"
+	var r := Units.build_unit_skin([row], ["knight"])
+	assert_eq(r["problems"].size(), 0)
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["combat_lineup"], "single")
+
+func test_combat_lineup_invalid_value_blocks() -> void:
+	# 打ち間違えを既定へ倒すと「squad と決めた」と区別できないので生成を止める。
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["combat_lineup"] = "solo"
+	var r := Units.build_unit_skin([row], ["knight"])
+	assert_null(r["json"], "combat_lineup が enum 外で json=null")
+
+func test_retinue_without_retainers_blocks() -> void:
+	var row := _valid_skin_row("boss", "knight", "enemy")
+	row["combat_lineup"] = "retinue"
+	var r := Units.build_unit_skin([row], ["knight"])
+	assert_null(r["json"], "retinue なのに従者が無いと json=null")
+
+func test_retainers_without_retinue_blocks() -> void:
+	# squad/single に従者を書いても表示に出ない＝書いた意図が黙って捨てられる。
+	var row := _valid_skin_row("boss", "knight", "enemy")
+	row["retainers"] = "mob"
+	var r := Units.build_unit_skin([row, _valid_skin_row("mob", "knight", "enemy")], ["knight"])
+	assert_null(r["json"], "retinue 以外で retainers を書くと json=null")
+
 # --- units: retainers（戦闘演出でボスの脇に並べる従者スキン） ---
 
 func _skin_rows_with_retainers(value: String) -> Array:
 	var boss := _valid_skin_row("boss", "knight", "enemy")
+	boss["combat_lineup"] = "retinue"
 	boss["retainers"] = value
 	return [boss, _valid_skin_row("mob", "knight", "enemy")]
 
