@@ -1,7 +1,7 @@
 [gd_resource type="AudioBusLayout" format=3]
 
 ; 音量バス。曲と効果音を別々に絞れるようにする（設定画面の音量スライダーの受け皿）。
-; 素材そのものの音量は tools/gen_sfx.ps1 が -3 dBFS に揃える＝ここは場面ごとのバランス調整用。
+; 素材そのものの音量は MuseScore のミキサーで作る（基準 -9 dBFS）＝ここは場面ごとのバランス調整用。
 ; 仕様 → doc/audio/sfx.md「同時再生の扱い」
 
 [resource]
