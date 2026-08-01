@@ -133,7 +133,7 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 透過切り抜き（map と同じ「単色背景→背景除去」）。背景は演出側が地形ごとに敷くのでキャラのみ。
 - ボス系：絵は1枚のまま「ボス＋手下」に見せる。隊列の中央が本人で、残りは従者＝別スキンの `combat` を借りる（例：ネクロマンサー＋スケルトン／ゾンビ）。指定は `unit_skin.csv` の `combat_lineup=retinue` ＋ `retainers` 列＝作画側の作業は無い。→ [../tech/combat_scene.md](../tech/combat_scene.md)
 - 単体表示（`combat_lineup=single`・馬車／飛空艇／ドラゴン級）は複製せず1体だけ出る。作画の作りは同じ（1スキン1枚）だが、隣に自分のコピーが並ばないぶん1体で画が持つ必要がある。
-- 攻撃エフェクト：ユニットごと1枚（combat_effect）。相手の隊列上に重ねて出す（斬撃＝被弾側／魔法＝着弾側）。
+- 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `data/effects/combat_effect.csv`。→ §3.4
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
   - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
   - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 512四方・下端揃え・透過」で書き出す（減色はしない）。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
@@ -199,6 +199,21 @@ POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the
 - 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない／武器を持たない」と明示し、チビ体型の指定は牽引する動物にだけ効かせる。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
+
+### 3.4 攻撃エフェクト（combat_effect スロット）
+
+被弾側の隊列に重ねる（または飛ばす）1枚絵。演出側の扱い（`impact` / `projectile`・タイミング）は [../tech/combat_scene.md](../tech/combat_scene.md)。
+
+- 単位はスキンではなく武器の種類。剣で斬った跡に陣営の個性は要らないので、味方とゴブリンが同じ斬撃を共有する。ユニットを増やしても、既存のIDを指すだけなら作画は増えない。
+- 割り当ては `unit_skin.csv` の `combat_effect` 列（空＝既定のスパーク＝どのスキンが未整備か盤面で分かる）。定義は `data/effects/combat_effect.csv`。
+- キャラと違い、人・顔・背景は描かない。武器が当たった痕跡そのもの（斬り跡・矢・石・光）だけを、透過の1枚に描く。
+- 立ち絵と同じ絵柄に寄せる：フラットなセル塗り・muted な限定色・輪郭は太め。細かい粒子やグラデーションの霞は縮小で消えるので使わない。
+- `projectile` は左右反転して両陣営で使い回すので、向きを持つ絵（矢・石）は右向きに描く。上下方向の傾きは付けない（飛翔中に回転させない）。
+- 大きさの基準は被弾側の立ち絵1体ぶん。斬撃（小）は剣の長さぶん、斬撃（中）はそれより一回り大きく描いて段階を出す。
+
+保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。
+
+チュートリアル１で要るのは5枚（斬撃小・斬撃中・矢・投石・聖光）。
 
 ---
 
