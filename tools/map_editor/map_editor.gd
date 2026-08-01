@@ -518,7 +518,7 @@ func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> vo
 
 
 func _build_enemy_palette() -> void:
-	_add_hint(_mode_box, "左クリック＝選択中の部隊に配置 / 右クリック＝駒を削除")
+	_add_hint(_mode_box, "左クリック＝選択中の部隊に配置（配置済みの敵の上なら、その部隊とスキンを取り込む）\n右クリック＝駒を削除")
 	var squads: Array = _doc.data["enemy"]
 	if _sel_squad >= squads.size():
 		_sel_squad = maxi(squads.size() - 1, 0)
@@ -596,6 +596,46 @@ func _build_enemy_palette() -> void:
 	_mode_box.add_child(skin_ob)
 
 
+## 配置済みの敵の駒を左クリックしたときに、その設定（部隊・スキン）をパレットへ取り込む。
+## 取り込んだら true（＝配置はしない）。敵の駒でなければ false＝従来どおり配置を試みる。
+func _pick_enemy(col: int, row: int) -> bool:
+	var hit := _doc.unit_at(col, row)
+	if hit.is_empty() or int(hit["squad"]) < 0:
+		return false
+	var u: Dictionary = hit["unit"]
+	var skin := String(u.get("skin", ""))
+	_sel_squad = int(hit["squad"])  # 部隊名・AI・sight はこの選択に追従して表示される
+	var pickable := _is_enemy_skin(skin)
+	if pickable:
+		var cat := _skin_category(skin)
+		if _sel_skin_category != "" and _sel_skin_category != cat:
+			_sel_skin_category = cat  # 絞り込みで一覧から外れる skin は、分類ごと合わせる
+		_sel_skin_id = skin
+	_set_mode("enemy")
+	if pickable:
+		_say("部隊%d / %s の設定を取り込みました。" % [_sel_squad, skin])
+	else:
+		_say("部隊%d を選びました（%s は敵パレットに無い見た目のため取り込めません）。"
+			% [_sel_squad, skin if skin != "" else String(u.get("type", "?"))])
+	return true
+
+
+## 敵パレットに出る見た目か（未登録／基準＝味方専用は出ない）。
+func _is_enemy_skin(skin_id: String) -> bool:
+	for s in _skins:
+		if String(s["skin_id"]) == skin_id:
+			return String(s["category"]) != STANDARD_CATEGORY
+	return false
+
+
+## skin_id の分類（未登録は ""＝「すべて」扱い）。
+func _skin_category(skin_id: String) -> String:
+	for s in _skins:
+		if String(s["skin_id"]) == skin_id:
+			return String(s["category"])
+	return ""
+
+
 # --- 盤の操作 ---
 
 
@@ -622,6 +662,8 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 					_board.refresh()
 		"enemy":
 			if button == MOUSE_BUTTON_LEFT:
+				if _pick_enemy(col, row):
+					return  # 配置済みの敵を左クリック＝その設定をパレットへ取り込む（配置しない）
 				if _doc.data["enemy"].is_empty():
 					_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
 					_set_mode("enemy")
