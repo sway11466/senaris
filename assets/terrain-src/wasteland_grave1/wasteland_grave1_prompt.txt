@@ -1,0 +1,47 @@
+STYLE: A top-down ground-terrain tile for a fantasy tactics game, in the same
+clean stylized cel-shaded look as the game's unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from directly overhead — a flat lay
+with NO perspective, NO horizon, NO sky. The texture fills the ENTIRE square
+frame edge to edge, with NO border, NO frame, NO vignette, and no single big
+focal object. CRITICAL: scatter any small details (grass tufts, pebbles)
+RANDOMLY and UNEVENLY — a few loose clusters here, bare empty gaps there —
+NEVER evenly spaced, NEVER in rows or a regular grid. Avoid large,
+high-contrast patches or blotches (they read as a big feature and repeat
+visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: Neglected, dying grassland on the edge of a town, the ground that runs
+out to an old graveyard. Coarse grass that has gone dry and yellow, thinning
+out, with tired bare soil showing faintly through it here and there. This is
+first and foremost a QUIET, PLAIN, ALMOST EMPTY field of dry grass: the colour
+carries it, not the detail. Most of the frame is bare dry grass with nothing on
+it at all. The soil shows in only a handful of small openings, each about as
+wide as a tuft of grass, scattered irregularly with wide empty gaps between —
+NOT dozens of them, NOT a speckle all over the frame, and NOT a few big bald
+patches either.
+
+The dead grass is the base color, hex #B2B28E — a drained, yellowed olive. The
+soil showing through is a PALE dusty earth, hex #A89877, only a little darker
+than the grass. These read as the same family as the game's healthy grassland
+(#B4C6A0) with the life drained out of it: nearly the same lightness, less
+green, more ochre. Do NOT push it to orange, rust or desert sand.
+
+CRITICAL, and the easiest thing to get wrong: the picture must stay LIGHT
+OVERALL. Squint at it and it should be only a little darker than a field of
+green grass — never a brown or earthy picture. Dark brown soil, dark stones and
+dark shadows are what drag the average down, so keep every dark accent both
+FEW and SMALL. If in doubt, use fewer of them and make them paler.
+
+Loose objects on the ground are RARE. In the whole frame there are only a
+handful of them in total: a few small stones half sunk into the soil, two or
+three dry fallen twigs, a clump of grass that has collapsed and lies flat and
+matted, and perhaps one low scrubby weed. That is all — resist adding more.
+They are pale and dusty, never dark, and they sit in loose clusters with large
+stretches of plain grass in between. NO carpet of pebbles, NO litter of leaves
+and sticks spread evenly over the frame.
+
+The mood is quiet neglect — ground nobody tends any more — NOT scorched, NOT
+poisoned, NOT magical. NO cracked dried mud, NO desert, NO ash, NO burn marks,
+NO green glow, NO mist. NO gravestones, NO headstones, NO bones, NO skulls, NO
+crosses, NO fences, NO paths, NO tracks, NO buildings, NO water, NO flowers.
+Nothing that reads as a single object placed on the tile.
