@@ -40,10 +40,20 @@ BGM の制作方針と組込の運用。少ない曲を作り込み、ムード�
 たたき台（AI支援で出した .musicxml / .mid）
   → 編曲（MuseScore、原本 .mscz で保存）
   → 書き出し（.wav＝可逆。44100Hz / 16bit / ステレオ）
-  → ループ加工（ループ長で切り、切った残響を先頭に足す＝1コマンド）
-  → 変換（ffmpeg で Ogg Vorbis → assets/bgm/{track_id}.ogg）
-  → Godot 組込（.import に loop=true）
+  ┌─ ここから下は tools\gen_bgm.ps1 が一括で行う ─────────────┐
+  │ → ループ長の算出（.mscz の小節数・拍子・テンポから）      │
+  │ → ループ加工（ループ長で切り、切った残響を先頭に足す）    │
+  │ → 変換（ffmpeg で Ogg Vorbis → assets/bgm/{track_id}.ogg）│
+  │ → Godot 組込（.import に loop=true）                      │
+  └───────────────────────────────────────────────────────────┘
 ```
+
+```
+powershell -File tools\gen_bgm.ps1 <track_id> …      # ループ曲
+powershell -File tools\gen_bgm.ps1 victory -Stinger  # 一発曲（折り返さない・loop=false）
+```
+
+以下は素材が仕様どおりかを確かめるための説明で、手順としては上のコマンド1つで足りる。スクリプトは各段でクリップ・残響長・コーデックを検証し、統合ラウドネスを報告する（音量は補正しない＝原本と食い違わせないため）。ツールの索引は [../tech/tools.md](../tech/tools.md)。
 
 ### ループ加工（ループ曲のみ）
 

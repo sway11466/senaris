@@ -28,9 +28,10 @@
 | `gen_connect_tiles.ps1` | 線方式（柵）の接続タイル64通りを、直線1枚の元絵から生成する＝腕を6方向に回して重ねる | `powershell -File tools\gen_connect_tiles.ps1 <name> <src> -ArmFrom … -ArmTo … -BandX … -BandW … -PostHalf …` | [../art/terrain.md](../art/terrain.md) |
 | `gen_area_tiles.ps1` | 面方式（道）の接続タイル64通りを、全面テクスチャ1枚から生成する＝同じ絵をマスクで抜き、繋がらない側を隣の素材で覆う | `powershell -File tools\gen_area_tiles.ps1 <name> <src> -BandX … -BandW … -Bite …` | [../art/terrain.md](../art/terrain.md) |
 | `gen_sfx.ps1` | MuseScore の .wav から効果音 .ogg を作る（無音トリム・ピーク -3dBFS 揃え・変換） | `powershell -File tools\gen_sfx.ps1 <sfx_id> …` | [../audio/sfx.md](../audio/sfx.md) |
+| `gen_bgm.ps1` | MuseScore の .wav から BGM .ogg を作る（楽譜からループ長を算出・残響の折り返し・変換・loop=true でインポート） | `powershell -File tools\gen_bgm.ps1 <track_id> … [-Stinger] [-LoopSec <秒>]` | [../audio/bgm.md](../audio/bgm.md) |
 | `gen_terrain_tiles.gd` | 地形タイルのプレースホルダ（ベタ塗りヘックス）を生成する | `godot --headless --script res://tools/gen_terrain_tiles.gd` | [../art/terrain.md](../art/terrain.md) |
 
-BGM には生成スクリプトが無い。ループ加工と Ogg 変換を ffmpeg のコマンドで直に行う（[../audio/bgm.md](../audio/bgm.md) §制作ワークフロー）。
+ループ長は `gen_bgm.ps1` が `.mscz` から算出する（小節数×1小節の拍数÷テンポ）。繰り返し記号やアウフタクトのある譜面はこの式が当たらないので、その時だけ `-LoopSec` で秒数を渡す。
 
 ## 使い捨ての検証スクリプト
 
