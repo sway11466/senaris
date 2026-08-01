@@ -41,6 +41,7 @@ const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（�
 const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
 const FLIGHT := 0.2       # 飛び道具が攻撃側から被弾側へ届くまで（秒）。この間ぶん着弾＝損害表示も遅れる
 const BURST := 0.30       # 重ねるエフェクトの拡大フェード時間（秒）
+const STAGGER := 0.025    # エフェクト1発ごとの時差（秒）。同時に出すと1枚の大きな絵に見えて斉射・乱戦にならない
 const FIG_H := 0.30   # 立ち絵の高さ（窓内寸の高さに対する比）。盤エリア窓化で横が詰まるぶん少し小さく（実機で調整）
 const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
 # 兵量バー（窓内寸に対する比）。両陣営に常時出す＝隊列が減る駒もバーだけの駒も損害の読み方を揃える。
@@ -66,6 +67,7 @@ var _bar := { "L": null, "R": null }  # 各サイドの兵量バー（Control・
 var _bar_val := { "L": 0.0, "R": 0.0 }   # バーの表示値（減少をアニメさせるので float）
 var _bar_team := { "L": 0, "R": 1 }      # バーの色（陣営）
 var _bar_tween := { "L": null, "R": null }  # 減少アニメ（連戦で前の戦闘のぶんが残らないよう都度 kill）
+var _shown := { "L": 0, "R": 0 }  # いま隊列に並んでいる数。エフェクトの発数はこれに合わせる（絵と食い違わせない）
 var _fx: Control                       # フラッシュ・エフェクト・損害数
 var _area: Vector2        # 窓の内寸（レイアウト基準）
 var _tween: Tween
@@ -205,42 +207,66 @@ func play(detail: Dictionary) -> void:
 	var atk_after := int(a["troops_after"])
 
 	# ため：まず隊列を見せてから斬りかかる（突入直後に即着弾しない）。
-	# 飛び道具は放ってから届くまで FLIGHT かかる。この遅れを後続にも足して、
-	# 「攻撃側が着弾 → 反撃 → 幕引き」の順番が飛び道具で入れ替わらないようにする。
-	var atk_fly := _is_projectile(atk_comb)
-	var def_fly := counter and _is_projectile(def_comb)
+	# 一撃は放ってから着弾するまで時間がかかる（飛翔＋発数ぶんの時差）。この遅れを後続にも
+	# 足して、「攻撃側が着弾 → 反撃 → 幕引き」の順番が入れ替わらないようにする。
 	_tween = create_tween()
 	_tween.tween_interval(LEAD_IN)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
 			_strike_side(def_side, def_dmg, def_after, def_comb, atk_comb, gen))
 	if counter:
-		_tween.tween_interval(COUNTER_GAP + (FLIGHT if atk_fly else 0.0))
+		_tween.tween_interval(COUNTER_GAP + _strike_time(atk_comb, int(a["troops_before"])))
 		_tween.tween_callback(func() -> void:
 			if gen == _gen:
 				_strike_side(atk_side, atk_dmg, atk_after, atk_comb, def_comb, gen))
-	_tween.tween_interval(0.7 + (FLIGHT if (def_fly if counter else atk_fly) else 0.0))
+		_tween.tween_interval(0.7 + _strike_time(def_comb, def_after))
+	else:
+		_tween.tween_interval(0.7 + _strike_time(atk_comb, int(a["troops_before"])))
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
 			_dismiss())
 
 ## 片側への一撃。side＝被弾側、comb＝被弾側の駒、by＝殴った側の駒（エフェクトの持ち主）。
-## 重ねる型は即着弾、飛ぶ型は届いてから着弾＝シェイク・フラッシュ・損害数・兵量バーは着弾に揃える。
+## エフェクトは殴った側の兵量ぶん出し、被弾側の隊列スロットへ配る（1発が1体に当たって見える）。
+## 殴った側のほうが多いときはスロットを先頭から巡回する＝誰も居ない場所を斬らない。
+## シェイク・フラッシュ・損害数・兵量バーは最後の1発が届いた時点に揃える。
 func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dictionary, gen: int) -> void:
 	var eff := _effect_of(by)
-	var land := func() -> void:
+	# 発数は「いま殴った側に並んでいる数」。反撃では既に減った後の隊列が振るので、
+	# detail の戦闘前の兵量を使うと、2体しか居ないのに5発斬るような絵になる。
+	var shots := clampi(int(_shown.get(_other_side(side), 1)), 1, POS.size())
+	var targets := _troops_of(comb)
+	var fly := eff != null and eff.is_projectile()
+	for i in shots:
+		var to := _slot_pos(side, POS[i % targets])
+		var delay := float(i) * STAGGER
+		if fly:
+			_spawn_fly(_slot_pos(_other_side(side), POS[i]), to, eff, delay, gen)
+		else:
+			_spawn_burst(to, side == "L", eff, delay, gen)
+	var tw := create_tween()
+	tw.tween_interval(_strike_time(by, shots))
+	tw.tween_callback(func() -> void:
 		if gen != _gen:
 			return  # スキップで閉じた後に飛来物が届いても何もしない
 		_shake()
 		_render_side(side, comb, after, true)
 		_flash(side)
 		if dmg > 0:
-			_damage(side, dmg)
-	if eff != null and eff.is_projectile():
-		_fly(side, eff, land)
-	else:
-		_burst(side, eff)
-		land.call()
+			_damage(side, dmg))
+
+## 隊列スロットに収まる兵量（1〜8）。detail の値をそのまま信じず枠内に丸める。
+func _troops_of(comb: Dictionary) -> int:
+	return clampi(int(comb.get("troops_before", 1)), 1, POS.size())
+
+## その一撃が「放ってから最後の1発が届く」までの時間。飛翔＋発数ぶんの時差。
+## shots は殴る時点で並んでいる数（反撃は減った後の数）＝play が先に見積もって幕引きを合わせる。
+func _strike_time(by: Dictionary, shots: int) -> float:
+	var stagger := float(clampi(shots, 1, POS.size()) - 1) * STAGGER
+	return stagger + (FLIGHT if _is_projectile(by) else 0.0)
+
+func _other_side(side: String) -> String:
+	return "R" if side == "L" else "L"
 
 ## 片側の隊列＋兵量バーを count 兵ぶんで描き直す。animate=true は着弾時（バーが減っていく）。
 ## 並べ方はスキンの combat_lineup：single は複製せず1体だけ（馬車・ドラゴン級＝兵として数えない駒）。
@@ -248,6 +274,7 @@ func _render_side(side: String, comb: Dictionary, count: int, animate: bool = fa
 	var layer: Control = _fig[side]
 	_clear(layer)
 	var team := int(comb.get("team", 0))
+	_shown[side] = count
 	_set_bar(side, count, team, animate)
 	var skin := _skin_of(comb)
 	if skin != null and skin.is_single_figure():
@@ -476,42 +503,44 @@ func _effect_node(eff: CombatEffect) -> Node2D:
 		s.scale = Vector2.ONE * (_size().y * FIG_H * FIG_SCALE * eff.scale / longest)
 	return s
 
-## 隊列の中心（被弾側なら着弾点、攻撃側なら発射点）。
-func _fx_center(side: String) -> Vector2:
-	var vp := _size()
-	return Vector2(vp.x * 0.28 if side == "L" else vp.x * 0.72, vp.y * 0.5)
-
-## 重ねる型：被弾側の隊列の上で拡大しながら消える。
+## 重ねる型を1発：被弾側のスロットの上で拡大しながら消える。
 ## 絵は「右へ向かう一撃」で描く約束なので、左を殴るとき（＝攻撃側が右）だけ水平反転する。
 ## 飛ぶ型と同じ向きの規約＝どちらも1枚で両陣営に使える。
-func _burst(side: String, eff: CombatEffect) -> void:
-	var node := _effect_node(eff)
-	node.position = _fx_center(side)
-	if side == "L":
-		node.scale.x = -node.scale.x
-	var base := node.scale
-	node.scale = base * 0.4
-	_fx.add_child(node)
+func _spawn_burst(at: Vector2, mirror: bool, eff: CombatEffect, delay: float, gen: int) -> void:
 	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(node, "scale", base * 1.6, BURST)
-	tw.tween_property(node, "modulate:a", 0.0, BURST)
-	tw.chain().tween_callback(node.queue_free)
+	tw.tween_interval(delay)
+	tw.tween_callback(func() -> void:
+		if gen != _gen:
+			return
+		var node := _effect_node(eff)
+		node.position = at
+		if mirror:
+			node.scale.x = -node.scale.x
+		var base := node.scale
+		node.scale = base * 0.4
+		_fx.add_child(node)
+		var t2 := create_tween()
+		t2.set_parallel(true)
+		t2.tween_property(node, "scale", base * 1.6, BURST)
+		t2.tween_property(node, "modulate:a", 0.0, BURST)
+		t2.chain().tween_callback(node.queue_free))
 
-## 飛ぶ型：殴った側の隊列から被弾側の隊列へ飛び、着弾で消えて on_land を呼ぶ。
+## 飛ぶ型を1発：殴った側のスロットから被弾側のスロットへ飛び、着弾で消える。
 ## 絵は右向きに描く約束なので、左へ飛ぶときだけ水平反転する（1枚で両陣営に使える）。
-func _fly(side: String, eff: CombatEffect, on_land: Callable) -> void:
-	var from := _fx_center("R" if side == "L" else "L")
-	var to := _fx_center(side)
-	var node := _effect_node(eff)
-	node.position = from
-	if to.x < from.x:
-		node.scale.x = -node.scale.x
-	_fx.add_child(node)
+func _spawn_fly(from: Vector2, to: Vector2, eff: CombatEffect, delay: float, gen: int) -> void:
 	var tw := create_tween()
-	tw.tween_property(node, "position", to, FLIGHT)
-	tw.tween_callback(node.queue_free)
-	tw.tween_callback(on_land)
+	tw.tween_interval(delay)
+	tw.tween_callback(func() -> void:
+		if gen != _gen:
+			return
+		var node := _effect_node(eff)
+		node.position = from
+		if to.x < from.x:
+			node.scale.x = -node.scale.x
+		_fx.add_child(node)
+		var t2 := create_tween()
+		t2.tween_property(node, "position", to, FLIGHT)
+		t2.tween_callback(node.queue_free))
 
 func _damage(side: String, dmg: int) -> void:
 	var vp := _size()
