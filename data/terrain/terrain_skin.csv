@@ -6,6 +6,7 @@ plain_cave1,plain,洞窟の床,true,false,0,0,true,,,ダンジョンの踏み固
 plateau,plateau,台地,true,false,0.18,0,true,,,既定スキン
 wasteland,wasteland,荒地,true,false,0,0,true,,,既定スキン
 wasteland_grave1,wasteland,墓地の荒れ野,true,false,0,0,true,,,町外れの、墓地へ続く枯れた草地（性能は荒地のまま）
+wasteland_tomb1,wasteland,墓標の荒れ地,true,false,0,0,true,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）
 forest,forest,森,true,false,0.18,0.18,true,,,既定スキン
 bush,bush,茂み,true,false,0.12,0.12,true,,,既定スキン
 mountain,mountain,山,true,false,0,0,true,,,既定スキン
@@ -17,3 +18,4 @@ wall,wall,壁,false,false,0.70,0,false,,,既定スキン。上面は黒＝天井
 wall_stone1,wall,石積みの壁,false,false,0,0,true,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 fort,fort,拠点,false,false,0,0,true,plain,center,既定スキン
 fort_town1,fort,町,false,false,0,0,true,plain,center,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+fort_crypt1,fort,納骨堂,false,false,0,0,true,wasteland_grave1,center,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）

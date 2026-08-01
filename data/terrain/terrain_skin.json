@@ -82,6 +82,19 @@
 			"combat_ground": "",
 			"combat_layout": "",
 			"connect": false,
+			"elevation": 0,
+			"grid": true,
+			"memo": "墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）",
+			"name": "墓標の荒れ地",
+			"orientable": true,
+			"skin_id": "wasteland_tomb1",
+			"sprite_sink": 0,
+			"terrain_type": "wasteland"
+		},
+		{
+			"combat_ground": "",
+			"combat_layout": "",
+			"connect": false,
 			"elevation": 0.18,
 			"grid": true,
 			"memo": "既定スキン",
@@ -218,6 +231,19 @@
 			"name": "町",
 			"orientable": false,
 			"skin_id": "fort_town1",
+			"sprite_sink": 0,
+			"terrain_type": "fort"
+		},
+		{
+			"combat_ground": "wasteland_grave1",
+			"combat_layout": "center",
+			"connect": false,
+			"elevation": 0,
+			"grid": true,
+			"memo": "墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "納骨堂",
+			"orientable": false,
+			"skin_id": "fort_crypt1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
 		}
