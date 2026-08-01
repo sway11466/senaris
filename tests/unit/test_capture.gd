@@ -255,3 +255,30 @@ func test_neutral_garrison_defects_to_captor() -> void:
 	assert_eq(s.unit_by_id(10).team, 0, "出撃で自軍に寝返る")
 	assert_eq(s.unit_by_id(10).native_team, Base.NEUTRAL, "native は不変")
 	assert_eq(s.unit_by_id(10).recruited_team, 0, "帰属が自軍で確定する")
+
+func test_entered_unit_cannot_deploy_same_turn() -> void:
+	# 「入る」で収容した駒は、そのターン出撃させられない＝入って出るの往復を作らない。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 0))
+	var u := Unit.new(1, 0, base_hex, 3)
+	s.add_unit(u)
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(6, 6), 3))  # 盤上最後の1体にならないよう相棒
+	assert_true(s.enter_base(1), "自軍拠点の中に入れる")
+	assert_false(s.can_deploy_garrison(base_hex, 0), "入ったターンは出せない")
+	var out_hex := Hex.neighbor(base_hex, 0)
+	assert_false(s.deploy(base_hex, 0, out_hex), "出撃コマンド自体も通らない")
+	s.end_turn()
+	s.end_turn()  # 次の自軍ターン
+	assert_true(s.can_deploy_garrison(base_hex, 0), "次の自軍ターンからは出せる")
+	assert_true(s.deploy(base_hex, 0, out_hex), "出撃できる")
+	assert_eq(s.unit_by_id(1).entered_base_turn, -1, "盤に出たら収容の記録は落ちる")
+
+func test_initial_garrison_can_deploy_on_first_turn() -> void:
+	# 初期配置の控えは「入った」わけではない＝1ターン目から出せる（新ルールの巻き添えにしない）。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	var b := Base.new(base_hex, 0)
+	b.garrison.append(Unit.new(9, 0, base_hex, 3))
+	s.add_base(b)
+	assert_true(s.can_deploy_garrison(base_hex, 0), "初期配置の控えは初手から出せる")

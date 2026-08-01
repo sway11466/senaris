@@ -456,6 +456,8 @@ func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 	if b == null or index < 0 or index >= b.garrison.size():
 		return false
 	var u: Unit = b.garrison[index]
+	if u.entered_base_turn == turn_number:
+		return false  # 「入る」で収容したターンは出せない＝入って出るの往復を作らない
 	return u.is_unclaimed() or u.recruited_team == b.team
 
 ## 拠点の garrison[index] を隣接 to_hex へ出撃させる。出撃は1歩＝そのターンは行動完了。
@@ -476,6 +478,7 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 		return false
 	var u: Unit = b.garrison[garrison_index]
 	b.garrison.remove_at(garrison_index)
+	u.entered_base_turn = -1  # 盤に出た＝収容の記録を落とす（次に入り直したら付け直す）
 	u.team = current_team
 	if u.is_unclaimed():
 		u.recruited_team = current_team  # 解放＝帰属確定。以後は拠点を奪われても寝返らず捕虜になる
@@ -521,6 +524,7 @@ func enter_base(unit_id: int) -> bool:
 	var u := unit_by_id(unit_id)
 	var b := base_at(u.pos)
 	_take_off_board(unit_id)
+	u.entered_base_turn = turn_number  # このターンの出撃を止める（往復させない）
 	b.garrison.append(u)
 	return true
 

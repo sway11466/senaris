@@ -35,6 +35,9 @@ var attack_range: int = 1  ## 最大射程（上限）。1=近接、≥2=遠隔�
 var move_after_attack: bool = false  ## 攻撃後に残り移動力で再移動できるか（ヒット&アウェイ）。UnitType から設定
 var can_capture: bool = false  ## 拠点を占領できるか（cleric/bishop/paladin等）。UnitType から設定。詳細 → doc/gdd/map.md
 var capacity: int = 0  ## 輸送の搭載数（0=輸送不可。馬車4・飛空艇6）。UnitType から設定。詳細 → doc/gdd/movement.md
+## 「入る」で拠点に収容されたターン番号（-1＝初期配置の控え・盤上の駒）。同じターンの出撃を止める
+## ＝入って出るの往復を作らない。出撃したら -1 に戻す。詳細 → doc/gdd/map.md
+var entered_base_turn: int = -1
 
 ## 輸送ユニットか（駒を載せて運べるか）。
 func is_transport() -> bool:
@@ -146,6 +149,8 @@ func to_full_dict() -> Dictionary:
 	d["recruited"] = recruited_team
 	d["q"] = pos.x
 	d["r"] = pos.y
+	if entered_base_turn >= 0:
+		d["entered_turn"] = entered_base_turn  # 収容中の駒だけ持つ（既定 -1 はセーブに出さない）
 	return d
 
 ## to_full_dict からの復元。性能は t（UnitType）から再構築し、盤情報を戻す。
@@ -156,4 +161,5 @@ static func from_full_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	unit.set_native_team(int(data.get("native", unit.team)))
 	unit.recruited_team = int(data.get("recruited", unit.native_team))  # 旧セーブは native と同値で復元
 	unit.pos = Vector2i(int(data.get("q", 0)), int(data.get("r", 0)))
+	unit.entered_base_turn = int(data.get("entered_turn", -1))  # 旧セーブは -1＝出撃を止めない
 	return unit
