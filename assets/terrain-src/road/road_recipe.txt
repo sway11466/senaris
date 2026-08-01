@@ -1,1 +1,1 @@
-powershell -File tools\gen_connect_tiles.ps1 road assets\terrain-src\road\road_03_master.png -ArmFrom 290 -ArmTo 500 -BandX 366 -BandW 292 -PostHalf 50 -Threshold 96 -NoShadow
+powershell -File tools\gen_area_tiles.ps1 road assets\terrain-src\road\road_01_raw.png -BandX 372 -BandW 276 -Bite 46
