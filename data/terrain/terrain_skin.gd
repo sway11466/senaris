@@ -10,11 +10,17 @@ class_name TerrainSkin
 ## 画像は autowire 規約＝assets/terrain/{skin_id}.png（変種は hex_board が _2/_3 を連番プローブ）。
 ## 見た目データなので domain には持ち込まない（案P＝presentation 専用）。
 
+const CONNECT_LINE := "line"  ## 線の地形（柵）。端が盤の縁に来たら、その先へまっすぐ伸ばす
+const CONNECT_AREA := "area"  ## 面の地形（道）。盤の外は縁のマスがそのまま続いているものとして扱う
+
 var skin_id: String        ## スキンID（主キー。ステージはこれで見た目を指定）
 var terrain_type: String   ## 紐づく性能(TerrainType)のid
 var name: String           ## 表示名（例: 平地 / 雪原）
 var orientable: bool       ## 座標ハッシュで回転60°×左右反転してよいか（向きの無い自然地形＝true）
-var connect: bool          ## 隣の同スキンと繋がる線地形か（柵・道）。true なら向きの組み合わせ別タイルを引く
+## 隣の同スキンと繋がる地形の繋がり方。空/false＝繋がらない、line＝線（柵）、area＝面（道）。
+## line/area なら向きの組み合わせ別タイル（_c000000〜_c111111）を引く。この2つで違うのは盤の縁の
+## 扱いだけで、タイルの命名も枚数も同じ（→ doc/art/terrain.md §3）。
+var connect: String
 var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
 var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
 var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
@@ -28,7 +34,10 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.terrain_type = String(d.get("terrain_type", ""))
 	s.name = String(d.get("name", ""))
 	s.orientable = bool(d.get("orientable", false))
-	s.connect = bool(d.get("connect", false))
+	# 知らない値（旧データの bool true/false・打ち間違い）は「繋がらない」に倒す。false が真になる
+	# 事故を防ぐ。String() は bool を受けないので、文字列かどうかを先に見る。
+	var c: Variant = d.get("connect", "")
+	s.connect = String(c) if typeof(c) == TYPE_STRING and c in [CONNECT_LINE, CONNECT_AREA] else ""
 	s.elevation = float(d.get("elevation", 0.0))
 	s.sprite_sink = float(d.get("sprite_sink", 0.0))
 	s.grid = bool(d.get("grid", true))
@@ -58,20 +67,33 @@ func connected_image_path(connected: Array) -> String:
 		bits += "1" if bool(c) else "0"
 	return "res://assets/terrain/%s_c%s.png" % [skin_id, bits]
 
-## 盤の縁で線を切らないための補正。connected / on_board はどちらも Hex.DIRECTIONS 順の6要素。
-## 繋がっている方向ごとに、その反対側が盤の外ならそちらへも伸ばす＝柵や道が盤の外へ続いて
-## 見える（地図の外側にも世界が続いている扱い）。判定は軸単位（Hex.DIRECTIONS は i と i+3 が
-## 反対向き）で、片側が繋がっていて反対側が盤外の軸だけが対象。
-## 外周に沿って走る線に外向きの腕は生えない。腕が生えるには「その向きの反対側が繋がっている」
-## ＝線が盤の外を向いている必要があり、縁と平行に走る線はこれを満たさないため。
-## 盤の角で線が曲がっていると、曲がりの両側とも盤外を向いて二又に伸びる。地図の外へ両方向とも
-## 続く、という扱いで許容する（既存ステージでは道の縁4マスだけが該当＝面地形が縁まで埋まる形）。
+## 繋がる地形か（line または area）。向きの組み合わせ別タイルを引くかの判定に使う。
+func connects() -> bool:
+	return connect == CONNECT_LINE or connect == CONNECT_AREA
+
+## 面の地形か。盤の縁の扱いだけがこれで変わる（→ doc/art/terrain.md §3.5）。
+func connects_as_area() -> bool:
+	return connect == CONNECT_AREA
+
+## 線（connect=line）を盤の縁で切らないための補正。connected / on_board はどちらも
+## Hex.DIRECTIONS 順の6要素。繋がっている隣が1つだけのマスは、その反対側が盤の外なら、そちらへも
+## 腕を伸ばす＝柵が盤の外へ続いて見える（地図の外側にも世界が続いている扱い）。
+## 隣が2つ以上あるマスには効かせない。外周に沿って走る柵が、外向きの腕を櫛のように生やすため。
+## 面（connect=area）はこれを使わない。面は「盤の外＝縁のマスの続き」として隣を引く（呼び出し側）。
 static func extend_off_board(connected: Array, on_board: Array) -> Array:
-	var extended := connected.duplicate()
+	var count := 0
+	var only := -1
 	for i in 6:
-		var opposite := (i + 3) % 6
-		if bool(connected[i]) and not bool(on_board[opposite]):
-			extended[opposite] = true
+		if bool(connected[i]):
+			count += 1
+			only = i
+	if count != 1:
+		return connected
+	var opposite := (only + 3) % 6  # Hex.DIRECTIONS は i と i+3 が反対向き
+	if bool(on_board[opposite]):
+		return connected
+	var extended := connected.duplicate()
+	extended[opposite] = true
 	return extended
 
 ## 側面（スカート）画像のパス。置いてあれば段差の側面に貼られ、無ければ既定の粒ノイズ＋断面色になる。

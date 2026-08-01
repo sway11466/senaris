@@ -136,7 +136,7 @@ func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin, pla
 ## 敷くPNG。line で置く線地形（柵・道）は、上下の帯へ繋がる直線の接続タイルを選ぶ。
 ## 帯ごとにタイルが縮むので、線も奥へ行くほど細くなる＝1本の道/柵が遠ざかって見える。
 func _image_path(skin: TerrainSkin, placement: String) -> String:
-	if skin.connect and placement == "line":
+	if skin.connects() and placement == "line":
 		# Hex.DIRECTIONS の index 2 と 5 が縦の隣＝この2方向だけ繋がった直線タイル。
 		var connected := [false, false, true, false, false, true]
 		var p := skin.connected_image_path(connected)

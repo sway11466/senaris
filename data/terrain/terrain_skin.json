@@ -3,7 +3,7 @@
 		{
 			"combat_ground": "plain",
 			"combat_layout": "line",
-			"connect": true,
+			"connect": "area",
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）",
@@ -133,7 +133,7 @@
 		{
 			"combat_ground": "plain",
 			"combat_layout": "line",
-			"connect": true,
+			"connect": "line",
 			"elevation": 0,
 			"grid": true,
 			"memo": "既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）",

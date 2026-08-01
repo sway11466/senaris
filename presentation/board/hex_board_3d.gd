@@ -1108,23 +1108,37 @@ func _tile_image_path(skin: TerrainSkin, hex: Vector2i) -> String:
 		var p := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
 		if ResourceLoader.exists(p):
 			return p
-	if skin.connect:
+	if skin.connects():
 		var cp := skin.connected_image_path(_connected_dirs(skin, hex))
 		if ResourceLoader.exists(cp):
 			return cp
 	return skin.image_path()
 
-## hex の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤外は既定地形が返る＝繋がらない。
-## ただし線の端が盤の縁に来たときだけ、盤の外へ腕を伸ばす（TerrainSkin.extend_off_board）。
+## hex の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤の縁の扱いは繋がり方で変える。
+## 面(area＝道)は盤の外を「縁のマスがそのまま続いている」として引く＝盤外の隣の座標を盤に丸めて
+## その地形を読む。縁で帯が輪郭付きの蓋にならず、まっすぐ盤の外へ抜ける。
+## 線(line＝柵)は丸めない。端が縁に来たときだけ、その先へまっすぐ腕を伸ばす（extend_off_board）。
 func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
+	var area := skin.connects_as_area()
 	var connected: Array = []
 	var on_board: Array = []
 	for d in Hex.DIRECTIONS:
 		var n := hex + d
+		if area:
+			n = _clamp_to_board(n)
 		var s := _skin_at(n)
 		connected.append(s != null and s.skin_id == skin.skin_id)
 		on_board.append(_in_board(n))
+	if area:
+		return connected
 	return TerrainSkin.extend_off_board(connected, on_board)
+
+## 盤の矩形（offset col/row）へ丸め込む。盤内はそのまま返る。
+func _clamp_to_board(hex: Vector2i) -> Vector2i:
+	if state == null:
+		return hex
+	var c := Hex.axial_to_offset(hex)
+	return Hex.offset_to_axial(clampi(c.x, 0, state.cols - 1), clampi(c.y, 0, state.rows - 1))
 
 ## hex が盤の矩形（offset col/row）の中にあるか。
 func _in_board(hex: Vector2i) -> bool:

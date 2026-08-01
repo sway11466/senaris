@@ -279,7 +279,7 @@ func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: in
 		if ResourceLoader.exists(p):
 			base = p
 			by_team = true
-	if not by_team and skin.connect:
+	if not by_team and skin.connects():
 		var cp := skin.connected_image_path(_connected_dirs(cell, skin, skins))
 		if ResourceLoader.exists(cp):
 			base = cp
@@ -291,18 +291,25 @@ func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: in
 		ceili(hex_size * 2.0), ceili(hex_size * SQRT3))
 
 
-## cell の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤外は既定地形が返る＝繋がらない。
-## 端が盤の縁に来たときの盤外への延長も本体と同じ（TerrainSkin.extend_off_board）。
+## cell の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤の縁の扱いも本体と同じ＝面(area)は盤外の
+## 座標を盤に丸めて引き、線(line)は丸めずに端だけ伸ばす（TerrainSkin.extend_off_board）。
 func _connected_dirs(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> Array:
 	var axial := Hex.offset_to_axial(cell.x, cell.y)
+	var area := skin.connects_as_area()
 	var connected: Array = []
 	var on_board: Array = []
 	for d in Hex.DIRECTIONS:
 		var c := Hex.axial_to_offset(axial + d)
+		var inside := c.x >= 0 and c.x < doc.cols() and c.y >= 0 and c.y < doc.rows()
+		if area:
+			c = Vector2i(clampi(c.x, 0, doc.cols() - 1), clampi(c.y, 0, doc.rows() - 1))
+			inside = true
 		var n := TerrainSkinCatalog.resolve(String(skins.get(c, "")),
 			TerrainType.char_to_id(doc.terrain_char(c.x, c.y)))
 		connected.append(n != null and n.skin_id == skin.skin_id)
-		on_board.append(c.x >= 0 and c.x < doc.cols() and c.y >= 0 and c.y < doc.rows())
+		on_board.append(inside)
+	if area:
+		return connected
 	return TerrainSkin.extend_off_board(connected, on_board)
 
 
