@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=2 / feature=30 / refactoring=9
+次回採番: bug=2 / feature=31 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -237,6 +237,18 @@
 - 背景：陣形スキルとエンチャントは当面プレイヤー専用で、敵AIは移動・攻撃・占領しかしない（[formations.md](gdd/formations.md) 実装方針・[enchants.md](gdd/enchants.md) 共通ルール）。看板機能を敵が使わないと、プレイヤーだけが持つ特権のままになる。成立条件はスキンID照合になった（未指定は種別へフォールバック）ので、敵側スキンをレシピに書けば成立させられる＝データ面の下地はできている。残るのはAIの思考。
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) `nearest_attacker_brain` に発動判断を足す＝成立している選択肢を `Formation.available_for` で採り、撃つ価値（面に入る敵の数・バフの効き）で評価して選ぶ。思考軸として ai.csv に列を足すか、部隊単位の指定にするかを先に決める（[ai.md](gdd/ai.md) の「ロジック＝コード／組合せ＝データ」に従う）。feature-4（思考軸の残り値の配線）の隣。
 - 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`data/ai/ai.csv`（軸を足す場合）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`／`doc/gdd/enchants.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
+
+### feature-30
+
+**冒険譚2のステージ盤面をマップ設計に合わせて作り直す**（優先度：中）
+
+- 背景：[tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) の各話に盤の形を書き、型・難易度を [map_patterns.md](gdd/map_patterns.md) のステージ一覧へ載せた（doc 先行）。既存のステージJSONがこれに追いついていない。st1（荒地の広野）と st3（壁の通路）は骨格ができているが、st2・st5・st6・st7 は**全面平地**で盤の設計が入っていない。加えて doc と食い違っている点が3つある。
+- 対応：st1 → st7 の順に盤を組み直す。doc との食い違い3件は先に潰す。
+  - **湧き口が2hexになっていない**（st4・st6・st7）：崖が拠点の東側にしか無く、`(12,5)` の隣接6hexのうち4hexが開いていて、しかも味方側に開口している。doc は「湧くのは2ヘックスだけ」。隣接6hexのうち4hexを崖で塞ぎ、残す2hexは互いに隣接する組にする。
+  - **st3 のバリケード初期配置**：関門（col10,11）に最初から置いてあり、馬車で運ぶ必然性がない。戦闘前会話「馬車でバリケードを運んで」と食い違うので、味方側後方へ移す。
+  - **st1 の術者が道の上**：wizard(col3,row1)・priest(col3,row3) が `L`（道＝防0.8）に立っている。撃たれ弱い駒が防御-20%の床にいるのは意図と逆。初期配置を平地側へずらすか道の位置を変える。
+  - 盤の作り直し：st2＝道1本＋南北の荒地＋柵で囲った集落／st3＝関門を幅2・詠唱部屋を幅3〜4／st4＝墓地間に荒地の帯・道は墓地の正面から外す／st5＝柵で囲った廃墟の中庭＋背後の迂回路／st6＝墓地を上下に離し中央に斜めの帯／st7＝st6＋崖に囲まれたネクロの高台・崖の縁の降車点。
+- 該当：`data/stages/tutorial2-undead-rush/st1〜st7.json`・`doc/campaign/tutorial2-undead-rush.md`（実装後に差分があれば反映）。着手の引き金＝冒険譚2の制作に入るとき。関連＝feature-14（themed 拠点＝墓地の見た目）。
 
 ## リファクタリング
 
