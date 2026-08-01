@@ -24,7 +24,10 @@ const BIND := {
 	"menu_stage": "ui_confirm",
 	"menu_back": "ui_cancel",
 	"menu_locked": "ui_denied",
+	# --- マップ（会話）---
+	"map_talk": "ui_hover",  # 文字送り。ホバーと同じ極短クリックを共用する
 	# --- マップ（盤の操作）---
+	"map_hover": "ui_hover",
 	"map_select": "ui_confirm",
 	"map_confirm": "ui_confirm",
 	"map_cancel": "ui_cancel",

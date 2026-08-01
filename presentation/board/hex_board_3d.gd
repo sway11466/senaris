@@ -258,6 +258,16 @@ func _process(_delta: float) -> void:
 	if h != _hover:
 		_hover = h
 		_sync_overlay()
+		_play_hover_sfx(h)
+
+## ホバー音は駒と拠点の上でだけ鳴らす。盤は空きマスが大半で、全マスで鳴らすとカーソルを
+## 動かすだけで鳴り続け、音が「そこに何かある」という情報を失う。→ doc/audio/sfx.md
+func _play_hover_sfx(hex: Vector2i) -> void:
+	if not _on_board(hex):
+		return
+	if state.unit_at(hex) == null and state.base_at(hex) == null:
+		return
+	SfxPlayer.play_event("map_hover")
 
 # =========================================================================
 # 入力（パン/ズームは3Dカメラ流儀）

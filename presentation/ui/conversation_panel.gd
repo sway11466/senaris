@@ -81,6 +81,7 @@ func start(lines: Array, finish_label: String) -> void:
 
 func _reveal_next() -> void:
 	_add_message(_lines[_shown], _shown)
+	SfxPlayer.play_event("map_talk")
 	_shown += 1
 	_next_btn.text = _finish_label if _shown >= _lines.size() else "次へ ▶"
 	_scroll_to_last()

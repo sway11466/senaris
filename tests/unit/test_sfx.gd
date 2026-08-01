@@ -10,6 +10,10 @@ func test_bind_shares_base_sounds_across_screens() -> void:
 	assert_eq(SfxCatalog.sfx_of("map_select"), "ui_confirm", "確定はメニューでも盤でも同じ素材")
 	assert_eq(SfxCatalog.sfx_of("menu_back"), "ui_cancel")
 	assert_eq(SfxCatalog.sfx_of("map_cancel"), "ui_cancel", "キャンセルも共用")
+	assert_eq(SfxCatalog.sfx_of("menu_locked"), "ui_denied")
+	assert_eq(SfxCatalog.sfx_of("map_denied"), "ui_denied", "否定も共用")
+	assert_eq(SfxCatalog.sfx_of("map_hover"), "ui_hover")
+	assert_eq(SfxCatalog.sfx_of("map_talk"), "ui_hover", "文字送りはホバーと同じ極短クリック")
 
 func test_sfx_of_unbound_event_is_empty() -> void:
 	# 対応表に無い発火点＝まだ音を割り当てていない。空文字を返して無音で進む。
@@ -34,8 +38,9 @@ func test_path_of_event_chains_bind_and_autowire() -> void:
 	assert_eq(SfxCatalog.path_of_event("map_select"), "res://assets/sfx/ui_confirm.ogg")
 	assert_true(SfxCatalog.exists("menu_back"), "素材が置いてあれば exists")
 
-func test_bound_event_without_asset_is_silent() -> void:
-	# 対応表には在るが素材が未配置＝解決は空。ui_denied はまだ作っていない。
-	assert_eq(SfxCatalog.sfx_of("map_denied"), "ui_denied", "対応表には載っている")
-	assert_eq(SfxCatalog.path_of_event("map_denied"), "", "素材が無ければ無音で進む")
-	assert_false(SfxCatalog.exists("map_denied"))
+func test_every_bound_event_has_its_asset() -> void:
+	# 素材が未用意の発火点は対応表に載せない、という決まりを守れているか（doc/audio/sfx.md）。
+	# 載せてしまうと「配線したのに鳴らない」が黙って起きる。素材が無いなら載せず、
+	# 置いた時点で鳴り出すのが規約 autowire の狙い。
+	for event_id: String in SfxCatalog.BIND:
+		assert_true(SfxCatalog.exists(event_id), "対応表に載せた発火点は素材が在る: %s" % event_id)
