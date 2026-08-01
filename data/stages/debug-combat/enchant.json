@@ -3,6 +3,7 @@
   "name": "debug-enchant",
   "cols": 12,
   "rows": 9,
+  "margin": 0,
   "terrain": [
     "............",
     "............",

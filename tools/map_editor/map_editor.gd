@@ -53,6 +53,7 @@ var _name_edit: LineEdit
 var _turn_spin: SpinBox
 var _cols_spin: SpinBox
 var _rows_spin: SpinBox
+var _margin_spin: SpinBox  ## 外周（盤の外側に描く地形の厚み）
 var _mode_box: VBoxContainer
 var _inspector: VBoxContainer
 var _victory_box: VBoxContainer
@@ -61,7 +62,7 @@ var _open_dialog: FileDialog
 var _save_dialog: FileDialog
 var _confirm: ConfirmationDialog
 var _confirm_cb := Callable()
-var _press_cell := Vector2i(-1, -1)  # 選択モードのドラッグ移動の起点
+var _press_cell := MapEditorBoard.OUTSIDE  # 選択モードのドラッグ移動の起点
 
 
 func _ready() -> void:
@@ -218,6 +219,11 @@ func _build_ui() -> void:
 	_add_label(grid, "rows")
 	_rows_spin = _make_spin(4, 99, 8)
 	grid.add_child(_rows_spin)
+	# 外周＝盤の外側に何マス地形を描くか。接続タイル（柵・道）が縁で「盤の外に何があるか」を
+	# 推測せず読めるようにするためのもの。厚み1で6近傍を覆える。詳細 → doc/gdd/map.md
+	_add_label(grid, "margin")
+	_margin_spin = _make_spin(0, 3, 0)
+	grid.add_child(_margin_spin)
 	_add_button(panel, "サイズを適用（縮小で範囲外の駒は削除）", _on_resize)
 
 	# モード
@@ -318,7 +324,7 @@ func _ask(text: String, cb: Callable) -> void:
 func _set_mode(mode: String) -> void:
 	_mode = mode
 	_mode_buttons[mode].button_pressed = true
-	_board.selected = Vector2i(-1, -1)
+	_board.selected = MapEditorBoard.OUTSIDE
 	_board.queue_redraw()
 	for c in _mode_box.get_children():
 		c.queue_free()
@@ -594,6 +600,10 @@ func _build_enemy_palette() -> void:
 
 
 func _on_cell_pressed(col: int, row: int, button: int) -> void:
+	# 外周(margin)は地形を描くだけの場所＝駒・拠点は置けず、選択の対象にもしない。
+	if _mode != "terrain" and not _doc.in_board(col, row):
+		_say("外周（margin）には駒・拠点を置けません。地形モードでのみ塗れます。")
+		return
 	match _mode:
 		"terrain":
 			_doc.push_terrain_undo()  # 1手＝押してから離すまで（ドラッグの一筆もまとめて戻せる）
@@ -644,7 +654,7 @@ func _on_cell_dragged(col: int, row: int, button: int) -> void:
 
 
 func _on_cell_released(col: int, row: int, _button: int) -> void:
-	if _mode != "select" or _press_cell.x < 0:
+	if _mode != "select" or _press_cell == MapEditorBoard.OUTSIDE:
 		return
 	var to := Vector2i(col, row)
 	if to != _press_cell:
@@ -654,7 +664,7 @@ func _on_cell_released(col: int, row: int, _button: int) -> void:
 			_show_inspection(to.x, to.y)
 		else:
 			_say("そこへは移動できません（範囲外か、同じ種類が既にあります）。")
-	_press_cell = Vector2i(-1, -1)
+	_press_cell = MapEditorBoard.OUTSIDE
 
 
 ## いま塗る内容 [地形の文字, skin_id]。右クリックは既定地形＋差分なしに戻す。
@@ -862,15 +872,17 @@ func _sync_fields() -> void:
 	_turn_spin.set_value_no_signal(maxf(int(_doc.data.get("turn_limit", 30)), 1))
 	_cols_spin.set_value_no_signal(_doc.cols())
 	_rows_spin.set_value_no_signal(_doc.rows())
+	_margin_spin.set_value_no_signal(_doc.margin())
 	_path_label.text = _path if _path != "" else "（未保存の新規ステージ）"
 	_path_label.tooltip_text = _path_label.text
 
 
 func _on_resize() -> void:
+	_doc.set_margin(int(_margin_spin.value))  # 外周を先に決める（resize が同じグリッドを整えるため）
 	var dropped := _doc.resize(int(_cols_spin.value), int(_rows_spin.value))
-	_board.selected = Vector2i(-1, -1)
+	_board.selected = MapEditorBoard.OUTSIDE
 	_board.refresh()
-	_say("サイズを %d×%d にしました。" % [_doc.cols(), _doc.rows()]
+	_say("サイズを %d×%d（外周 %d）にしました。" % [_doc.cols(), _doc.rows(), _doc.margin()]
 		+ ("範囲外の駒/拠点/スキン指定を %d 件削除しました。" % dropped if dropped > 0 else ""))
 
 

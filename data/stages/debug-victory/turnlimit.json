@@ -3,6 +3,7 @@
   "name": "debug-turnlimit",
   "cols": 8,
   "rows": 5,
+  "margin": 0,
   "terrain": [
     "........",
     "........",

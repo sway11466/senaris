@@ -43,7 +43,9 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 	return default_team
 
 ## ステージ辞書から BattleState を組み立てる。
-## 期待キー: cols, rows, terrain(配列の文字列), player(駒の配列), enemy(squadの配列), bases(配列の辞書)。
+## 期待キー: cols, rows, margin, terrain(配列の文字列), player(駒の配列), enemy(squadの配列), bases(配列の辞書)。
+## margin＝terrain を盤より何マス外側まで書いたか（外周）。cols/rows は遊べる盤のままで、
+## ずれるのは terrain の読み出し位置だけ＝駒・拠点・terrain_skins の座標は盤の0起点で不変。
 ## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
 ## enemy は squad の配列で、各 squad が AI プリセット(ai)を持つ（敵は必ず squad に属する）。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）＝性能の唯一の出どころ。
@@ -53,7 +55,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	var cols := int(data.get("cols", 12))
 	var rows := int(data.get("rows", 8))
 	var state := BattleState.new(cols, rows)
-	_apply_terrain(state, data.get("terrain", []))
+	_apply_terrain(state, data.get("terrain", []), _parse_margin(data))
 	var next_id := _apply_units(state, data.get("player", []), catalog, 0, skin_catalog)
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
@@ -86,16 +88,64 @@ static func load_file(path: String, carried: Array = []) -> BattleState:
 	state.set_sight_cost(TerrainType.sight_cost_table())  # 地形ごとの視線コスト（索敵の遮蔽・減衰）を有効化
 	return state
 
+## 外周（ステージJSON "margin"）の厚み。0＝外周なし。負値は0に丸める。詳細 → doc/gdd/map.md
+static func _parse_margin(data: Dictionary) -> int:
+	return maxi(int(data.get("margin", 0)), 0)
+
 ## 地形グリッド（文字列の配列）を盤に反映。row=行index, col=文字index → offset(col,row)。
-static func _apply_terrain(state: BattleState, grid: Variant) -> void:
+## margin（外周）があるグリッドは盤より1周ぶん大きく書かれているので、読み出しを margin ずらす。
+## 外周そのものは盤に入れない＝BattleState は cols×rows のまま（駒も入らない・描かれもしない）。
+static func _apply_terrain(state: BattleState, grid: Variant, margin: int = 0) -> void:
 	if typeof(grid) != TYPE_ARRAY:
 		return
-	for row in grid.size():
-		var line := String(grid[row])
-		for col in line.length():
-			var tid := TerrainType.char_to_id(line[col])
+	var lines: Array = grid
+	for i in lines.size():
+		var row := i - margin
+		if row < 0 or row >= state.rows:
+			continue
+		var line := String(lines[i])
+		for j in line.length():
+			var col := j - margin
+			if col < 0 or col >= state.cols:
+				continue
+			var tid := TerrainType.char_to_id(line[j])
 			if tid != TerrainType.DEFAULT_ID:  # 既定地形は明示設定不要
 				state.set_terrain(Hex.offset_to_axial(col, row), tid)
+
+## 外周（margin）の地形 → { axial: terrain_id }。盤の外側のセルだけを、既定地形も含めて全て載せる。
+## 用途は接続タイル（柵・道）の向き決めだけ＝「盤の外に何があるか」を作者が描いたもの。
+## presentation 専用（案P＝terrain_skins と同じ渡し方）で BattleState には入れない。
+## 空＝外周なし。空でないことが「作者が描いた」の合図で、盤側はこれがある時だけ縁の推測をやめる。
+static func parse_margin_terrain(data: Dictionary) -> Dictionary:
+	var out := {}
+	var margin := _parse_margin(data)
+	if margin <= 0:
+		return out
+	var grid: Variant = data.get("terrain", [])
+	if typeof(grid) != TYPE_ARRAY:
+		return out
+	var cols := int(data.get("cols", 12))
+	var rows := int(data.get("rows", 8))
+	var lines: Array = grid
+	for i in lines.size():
+		var row := i - margin
+		var line := String(lines[i])
+		for j in line.length():
+			var col := j - margin
+			if col >= 0 and col < cols and row >= 0 and row < rows:
+				continue  # 盤の中は BattleState が持つ＝ここは外周だけ
+			out[Hex.offset_to_axial(col, row)] = TerrainType.char_to_id(line[j])
+	return out
+
+## res:// パスの JSON から外周の地形を読む（load_terrain_skins と対＝盤の縁の判定を presentation へ）。
+static func load_margin_terrain(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return {}
+	return parse_margin_terrain(data)
 
 ## 見た目レイヤー：ステージ辞書の "terrain_skins"（[{col,row,skin}]）→ { Vector2i: skin_id }。
 ## skin は presentation 専用（案P）＝BattleState には入れない。載らないセルは呼び出し側で type 既定にフォールバック。

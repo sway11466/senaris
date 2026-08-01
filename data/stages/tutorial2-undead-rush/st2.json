@@ -3,6 +3,7 @@
   "name": "tutorial2-st2",
   "cols": 24,
   "rows": 9,
+  "margin": 0,
   "terrain": [
     "FFFFFFFFF%%%%%%%%%%%%%%%",
     "FFFFFFFF%%%%%%%%%%%%%%%%",

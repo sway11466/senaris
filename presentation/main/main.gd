@@ -102,7 +102,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.ai_brain = brain
 	add_child(_controller)
 	var terrain_skins := StageLoader.load_terrain_skins(path)  # 見た目差分(座標→skin)は presentation へ（案P）
-	$HexBoard.bind(state, _controller, _skins, terrain_skins)
+	# 外周(margin)＝盤の外側1周ぶんの地形。盤には入らず、縁の接続タイルの向き決めにだけ使う。
+	$HexBoard.bind(state, _controller, _skins, terrain_skins, StageLoader.load_margin_terrain(path))
 	_combat_scene.bind_terrain_skins(terrain_skins)  # 演出の地面も同じ見た目差分から組む
 	$InfoPanel.bind(state, _skins)
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。

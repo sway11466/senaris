@@ -3,6 +3,7 @@
   "name": "debug-terrain",
   "cols": 14,
   "rows": 11,
+  "margin": 0,
   "terrain": [
     "..............",
     ".LLL.PPP.%%%..",

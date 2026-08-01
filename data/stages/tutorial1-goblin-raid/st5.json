@@ -3,6 +3,7 @@
   "name": "tutorial-st5",
   "cols": 22,
   "rows": 9,
+  "margin": 0,
   "terrain": [
     "CCCCCCCCCCCCCCCCCCCCCC",
     "PPPFFFPPPPFFFPPPPPCCCC",

@@ -3,6 +3,7 @@
   "name": "debug-base",
   "cols": 16,
   "rows": 7,
+  "margin": 0,
   "terrain": [
     "................",
     "................",

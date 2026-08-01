@@ -76,7 +76,11 @@ const INVALID_HEX := Vector2i(-9999, -9999)
 var state: BattleState
 var controller: MatchController
 var _terrain_tex := {}    # skin_id(String) -> Array[Texture2D]（基本＋連番 variant）
-var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分）
+var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。盤外＝外周のセルも書ける）
+## Vector2i -> terrain_id（外周＝盤の外側1周ぶんの地形。作者が描いたもの）。
+## 描かないし駒も入らない＝接続タイル（柵・道）が「盤の外に何があるか」を引くためだけのデータ。
+## 空＝外周なしで、そのときだけ縁の推測（面は丸め込み／線は腕を伸ばす）に落ちる。
+var _margin_terrain := {}
 var _side_tex := {}           # skin_id -> Texture2D|null（側面画像。置いていなければ null）
 var _tile_nodes := {}         # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _elev_cache := {}         # Vector2i -> float（スキン解決の結果。_build_tiles で捨てる）
@@ -186,11 +190,12 @@ func _ready() -> void:
 	_menu.id_pressed.connect(_on_menu_id)
 	_menu.popup_hide.connect(_on_menu_closed)
 
-func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}) -> void:
+func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}) -> void:
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
 	_terrain_skins = p_terrain_skins
+	_margin_terrain = p_margin_terrain
 	_reset_interaction()
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -1114,21 +1119,32 @@ func _tile_image_path(skin: TerrainSkin, hex: Vector2i) -> String:
 			return cp
 	return skin.image_path()
 
-## hex の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤の縁の扱いは繋がり方で変える。
-## 面(area＝道)は盤の外を「縁のマスがそのまま続いている」として引く＝盤外の隣の座標を盤に丸めて
-## その地形を読む。縁で帯が輪郭付きの蓋にならず、まっすぐ盤の外へ抜ける。
-## 線(line＝柵)は丸めない。端が縁に来たときだけ、その先へまっすぐ腕を伸ばす（extend_off_board）。
+## hex の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤外の隣をどう埋めるかを3段で決める。
+## 1) 外周(margin)が描いてあれば、そのマスの地形をそのまま読む＝作者の指定が最優先。線も面も同じ扱い
+##    で、on_board も真にする＝腕を伸ばす補正は効かせない（描いてある以上、推測する必要がない）。
+## 2) 外周が無い面(area＝道)は「縁のマスがそのまま続いている」として引く＝座標を盤に丸めて読む。
+##    縁で帯が輪郭付きの蓋にならず、まっすぐ盤の外へ抜ける。
+## 3) 外周が無い線(line＝柵)は丸めない。端が縁に来たときだけ、その先へ腕を伸ばす（extend_off_board）。
+## 6近傍だけでは出せない絵（縁の2マス先の事情で変わる形）があるので、1) を用意している。
 func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
 	var area := skin.connects_as_area()
 	var connected: Array = []
 	var on_board: Array = []
 	for d in Hex.DIRECTIONS:
 		var n := hex + d
-		if area:
-			n = _clamp_to_board(n)
-		var s := _skin_at(n)
+		var s: TerrainSkin = null
+		var covered := true
+		if _in_board(n):
+			s = _skin_at(n)
+		elif _margin_terrain.has(n):
+			# 外周のセル。見た目差分(terrain_skins)は盤外の座標でも書けるので盤内と同じ引き方をする。
+			s = TerrainSkinCatalog.resolve(_terrain_skins.get(n, ""), String(_margin_terrain[n]))
+		elif area:
+			s = _skin_at(_clamp_to_board(n))
+		else:
+			covered = false
 		connected.append(s != null and s.skin_id == skin.skin_id)
-		on_board.append(_in_board(n))
+		on_board.append(covered)
 	if area:
 		return connected
 	return TerrainSkin.extend_off_board(connected, on_board)

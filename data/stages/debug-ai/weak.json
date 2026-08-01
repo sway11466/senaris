@@ -3,6 +3,7 @@
   "name": "debug-weak",
   "cols": 13,
   "rows": 7,
+  "margin": 0,
   "terrain": [
     ".............",
     ".............",

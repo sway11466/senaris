@@ -3,6 +3,7 @@
   "name": "debug-hq",
   "cols": 12,
   "rows": 7,
+  "margin": 0,
   "terrain": [
     "............",
     "............",

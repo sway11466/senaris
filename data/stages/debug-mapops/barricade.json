@@ -3,6 +3,7 @@
   "name": "debug-barricade",
   "cols": 14,
   "rows": 7,
+  "margin": 0,
   "terrain": [
     "..............",
     "..............",

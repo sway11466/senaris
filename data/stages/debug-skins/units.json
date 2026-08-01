@@ -3,6 +3,7 @@
   "name": "units",
   "cols": 10,
   "rows": 13,
+  "margin": 0,
   "terrain": [
     "..........",
     "..........",

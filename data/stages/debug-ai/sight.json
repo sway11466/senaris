@@ -3,6 +3,7 @@
   "name": "debug-sight",
   "cols": 13,
   "rows": 11,
+  "margin": 0,
   "terrain": [
     ".............",
     ".............",

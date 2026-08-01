@@ -16,6 +16,11 @@ signal zoom_requested(step: int)  ## Ctrl＋ホイール（+1=拡大 / -1=縮小
 const SQRT3 := 1.7320508075688772
 const MARGIN := 22.0  ## 盤の余白（列/行番号の表示領域を兼ねる）
 
+## 描画領域の外を表す番兵。外周(margin)があると (-1,-1) は正当なセルなので、負値では判別できない。
+const OUTSIDE := Vector2i(-9999, -9999)
+const MARGIN_DIM := 0.45  ## 外周のセルの描画の薄さ（盤との区別）。盤外＝駒を置けないことを見た目で示す
+const COLOR_BOARD_EDGE := Color(1, 1, 1, 0.55)  ## 盤と外周の境界線
+
 ## 駒の立ち絵（384四方のキャンバス）をヘックス何個分の高さで描くか。
 ## 実機は 3.75（doc/art/units.md §3.1）だが、真上から見るエディタでは隣のマスを覆うので小さめにする。
 const UNIT_CANVAS_HEXES := 2.6
@@ -52,11 +57,11 @@ var hex_size := 26.0:
 	set(v):
 		hex_size = v
 		refresh()
-var hover := Vector2i(-1, -1)
-var selected := Vector2i(-1, -1)
+var hover := OUTSIDE
+var selected := OUTSIDE
 
 var _drag_button := -1
-var _last_cell := Vector2i(-1, -1)
+var _last_cell := OUTSIDE
 var _panning := false
 
 var _unit_skins := {}   # SkinCatalog の索引（画像パスは autowire 済み＝実機と同じ絵になる）
@@ -67,33 +72,39 @@ var _variants := {}     # 基本パス -> Array[String]（基本＋連番 varian
 func _ready() -> void:
 	_unit_skins = SkinCatalog.load_standard()
 	mouse_exited.connect(func() -> void:
-		hover = Vector2i(-1, -1)
+		hover = OUTSIDE
 		queue_redraw())
 
 
-## doc の変更後に呼ぶ（サイズ再計算＋再描画）。
+## doc の変更後に呼ぶ（サイズ再計算＋再描画）。外周(margin)ぶんも描くので領域を広げる。
 func refresh() -> void:
 	if doc == null:
 		return
+	var m := doc.margin()
 	custom_minimum_size = Vector2(
-		hex_size * (1.5 * (doc.cols() - 1) + 2.0) + MARGIN * 2.0,
-		hex_size * SQRT3 * (doc.rows() + 0.5) + MARGIN * 2.0)
+		hex_size * (1.5 * (doc.cols() + m * 2 - 1) + 2.0) + MARGIN * 2.0,
+		hex_size * SQRT3 * (doc.rows() + m * 2 + 0.5) + MARGIN * 2.0)
 	queue_redraw()
 
 
+## 盤の (0,0) の中心。外周ぶんだけ内側へずらす＝外周のセル（負の col/row）も領域に収まる。
+## ずらし量は描画範囲の左上端から出す。to_pixel は col=-m で x 最小、row=-m かつ偶数列で y 最小
+## （奇数列は odd-q の食い違いで半ヘックス下がる）＝ずらし量は (1.5m, √3m) ヘックス。
 func _origin() -> Vector2:
-	return Vector2(hex_size + MARGIN, hex_size * SQRT3 * 0.5 + MARGIN)
+	var m := float(doc.margin()) if doc != null else 0.0
+	return Vector2(hex_size * (1.0 + 1.5 * m) + MARGIN, hex_size * SQRT3 * (0.5 + m) + MARGIN)
 
 
 func cell_center(col: int, row: int) -> Vector2:
 	return _origin() + Hex.to_pixel(Hex.offset_to_axial(col, row), hex_size)
 
 
-## ピクセル→セル。盤外は (-1,-1)。
+## ピクセル→セル。外周も返す（描画領域の外は (-9999,-9999)）。
+## 呼び出し側は doc.in_board() で「駒を置ける盤か」を判定する（外周には置けない）。
 func cell_at(p: Vector2) -> Vector2i:
 	var off := Hex.axial_to_offset(Hex.from_pixel(p - _origin(), hex_size))
-	if off.x < 0 or off.x >= doc.cols() or off.y < 0 or off.y >= doc.rows():
-		return Vector2i(-1, -1)
+	if not doc.in_canvas(off.x, off.y):
+		return OUTSIDE
 	return off
 
 
@@ -122,18 +133,18 @@ func _gui_input(event: InputEvent) -> void:
 		if event.pressed:
 			_drag_button = event.button_index
 			_last_cell = cell
-			if cell.x >= 0:
+			if cell != OUTSIDE:
 				cell_pressed.emit(cell.x, cell.y, event.button_index)
 		elif event.button_index == _drag_button:
 			_drag_button = -1
-			if cell.x >= 0:
+			if cell != OUTSIDE:
 				cell_released.emit(cell.x, cell.y, event.button_index)
 	elif event is InputEventMouseMotion:
 		var cell := cell_at(event.position)
 		if cell != hover:
 			hover = cell
 			queue_redraw()
-		if _drag_button != -1 and cell.x >= 0 and cell != _last_cell:
+		if _drag_button != -1 and cell != OUTSIDE and cell != _last_cell:
 			_last_cell = cell
 			cell_dragged.emit(cell.x, cell.y, _drag_button)
 
@@ -159,36 +170,39 @@ func _draw() -> void:
 		var c := cell_center(0, row)
 		draw_string(font, Vector2(1.0, c.y + 4.0), str(row),
 			HORIZONTAL_ALIGNMENT_LEFT, MARGIN - 2.0, 10, Color(1, 1, 1, 0.45))
-	# 地形（タイル画像。無ければ色＋skin_id の文字）
+	# 地形（タイル画像。無ければ色＋skin_id の文字）。外周(margin)も描くが、盤外と分かるよう薄くする。
 	var skins := doc.terrain_skin_map()
 	var base_teams := _base_team_map()
-	for row in doc.rows():
-		for col in doc.cols():
+	var m := doc.margin()
+	for row in range(-m, doc.rows() + m):
+		for col in range(-m, doc.cols() + m):
 			var cell := Vector2i(col, row)
 			var center := cell_center(col, row)
 			var ch := doc.terrain_char(col, row)
 			var tid := TerrainType.char_to_id(ch)
 			var skin := String(skins.get(cell, ""))
+			var dim := 1.0 if doc.in_board(col, row) else MARGIN_DIM
 			var tex := _terrain_texture(cell, skin, tid, int(base_teams.get(cell, -1)), skins)
 			if tex != null:
 				draw_texture_rect(tex, Rect2(center - Vector2(hex_size, hex_size * SQRT3 * 0.5),
-					Vector2(hex_size * 2.0, hex_size * SQRT3)), false)
+					Vector2(hex_size * 2.0, hex_size * SQRT3)), false, Color(1, 1, 1, dim))
 				var edge := _hex_points(center, hex_size)
 				edge.append(edge[0])
-				draw_polyline(edge, Color(0, 0, 0, 0.22), 1.0)
+				draw_polyline(edge, Color(0, 0, 0, 0.22 * dim), 1.0)
 			else:
 				var color: Color = TERRAIN_COLORS.get(tid, Color(0.5, 0.5, 0.5))
-				draw_colored_polygon(_hex_points(center, hex_size * 0.96), color)
+				draw_colored_polygon(_hex_points(center, hex_size * 0.96), Color(color, dim))
 				var border := _hex_points(center, hex_size * 0.96)
 				border.append(border[0])
-				draw_polyline(border, Color(0, 0, 0, 0.35), 1.0)
+				draw_polyline(border, Color(0, 0, 0, 0.35 * dim), 1.0)
 				if skin != "":
 					_text(font, center, hex_size * 0.1, skin.substr(0, 10),
-						maxi(7, int(hex_size * 0.26)), Color(0.7, 0.85, 1.0))
+						maxi(7, int(hex_size * 0.26)), Color(0.7, 0.85, 1.0, dim))
 			if ch != MapEditorDoc.DEFAULT_CHAR:
 				# 性能(TerrainType)は絵からは読めないので必ず重ねる。絵の邪魔をしないよう控えめに。
 				_text(font, center, hex_size * -0.35, ch,
-					maxi(8, int(hex_size * 0.42)), Color(1, 1, 1, 0.6))
+					maxi(8, int(hex_size * 0.42)), Color(1, 1, 1, 0.6 * dim))
+	_draw_board_edge()
 	# 拠点（リング＋種別＋控え数）
 	for b in doc.data["bases"]:
 		var center := cell_center(int(b.get("col", 0)), int(b.get("row", 0)))
@@ -230,6 +244,25 @@ func _draw() -> void:
 		var pts := _hex_points(cell_center(selected.x, selected.y), hex_size * 0.96)
 		pts.append(pts[0])
 		draw_polyline(pts, Color(1.0, 0.9, 0.2, 0.95), 2.5)
+
+
+## 遊べる盤の輪郭。外周を描いていると盤の縁がどこか読めなくなるので、境界の辺だけをなぞる。
+## 各辺は隣との中点を通り、辺の向きは隣への向きと直交する（正六角形なので辺の長さ＝hex_size）。
+func _draw_board_edge() -> void:
+	if doc.margin() <= 0:
+		return
+	for row in doc.rows():
+		for col in doc.cols():
+			var center := cell_center(col, row)
+			var axial := Hex.offset_to_axial(col, row)
+			for d in Hex.DIRECTIONS:
+				var n := Hex.axial_to_offset(axial + d)
+				if doc.in_board(n.x, n.y):
+					continue  # 盤の内どうし＝境界ではない
+				var delta := Hex.to_pixel(axial + d, hex_size) - Hex.to_pixel(axial, hex_size)
+				var perp := Vector2(-delta.y, delta.x).normalized() * (hex_size * 0.5)
+				var mid := center + delta * 0.5
+				draw_line(mid - perp, mid + perp, COLOR_BOARD_EDGE, 2.0)
 
 
 ## 駒1体。map 画像があれば陣営色の台座＋立ち絵、無ければ丸＋スキン名で描く（画像未用意のスキンが多い）。
@@ -291,8 +324,10 @@ func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: in
 		ceili(hex_size * 2.0), ceili(hex_size * SQRT3))
 
 
-## cell の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤の縁の扱いも本体と同じ＝面(area)は盤外の
-## 座標を盤に丸めて引き、線(line)は丸めずに端だけ伸ばす（TerrainSkin.extend_off_board）。
+## cell の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤の縁の扱いは本体と同じ3段
+## （→ presentation/board/hex_board_3d.gd の _connected_dirs）＝エディタと実機で同じ絵が出る。
+## 1) 外周(margin)が描いてあればそれを読む 2) 外周が無い面(area)は座標を盤に丸めて読む
+## 3) 外周が無い線(line)は丸めず端だけ伸ばす（TerrainSkin.extend_off_board）。
 func _connected_dirs(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> Array:
 	var axial := Hex.offset_to_axial(cell.x, cell.y)
 	var area := skin.connects_as_area()
@@ -300,14 +335,20 @@ func _connected_dirs(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> Ar
 	var on_board: Array = []
 	for d in Hex.DIRECTIONS:
 		var c := Hex.axial_to_offset(axial + d)
-		var inside := c.x >= 0 and c.x < doc.cols() and c.y >= 0 and c.y < doc.rows()
-		if area:
-			c = Vector2i(clampi(c.x, 0, doc.cols() - 1), clampi(c.y, 0, doc.rows() - 1))
-			inside = true
-		var n := TerrainSkinCatalog.resolve(String(skins.get(c, "")),
-			TerrainType.char_to_id(doc.terrain_char(c.x, c.y)))
+		var covered := true
+		var n: TerrainSkin = null
+		if doc.in_board(c.x, c.y) or doc.in_canvas(c.x, c.y):
+			# 盤内、または作者が描いた外周。どちらも書いてある地形をそのまま読む。
+			n = TerrainSkinCatalog.resolve(String(skins.get(c, "")),
+				TerrainType.char_to_id(doc.terrain_char(c.x, c.y)))
+		elif area:
+			var b := Vector2i(clampi(c.x, 0, doc.cols() - 1), clampi(c.y, 0, doc.rows() - 1))
+			n = TerrainSkinCatalog.resolve(String(skins.get(b, "")),
+				TerrainType.char_to_id(doc.terrain_char(b.x, b.y)))
+		else:
+			covered = false
 		connected.append(n != null and n.skin_id == skin.skin_id)
-		on_board.append(inside)
+		on_board.append(covered)
 	if area:
 		return connected
 	return TerrainSkin.extend_off_board(connected, on_board)

@@ -9,7 +9,7 @@ class_name MapEditorDoc
 const DEFAULT_CHAR := "."  ## 既定地形（plain）のASCII文字
 
 ## 保存時のトップレベルキーの並び（既存ステージの手書き順に合わせる）。残りは元の順で末尾。
-const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "terrain", "terrain_skins", "player", "enemy", "bases", "victory", "ai", "dialogue"]
+const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "victory", "ai", "dialogue"]
 
 ## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers）。
 const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers"]
@@ -23,9 +23,9 @@ var _terrain_undo := {}    ## 直前の地形操作より前の状態（terrain 
 
 
 ## 新規ステージ（平地のみ・駒なし）。
-static func new_stage(cols: int = 12, rows: int = 8) -> MapEditorDoc:
+static func new_stage(cols: int = 12, rows: int = 8, margin: int = 0) -> MapEditorDoc:
 	var doc := MapEditorDoc.new()
-	doc.data = { "turn_limit": 30, "name": "", "cols": cols, "rows": rows, "terrain": [], "player": [], "enemy": [], "bases": [] }
+	doc.data = { "turn_limit": 30, "name": "", "cols": cols, "rows": rows, "margin": margin, "terrain": [], "player": [], "enemy": [], "bases": [] }
 	doc._normalize_terrain()
 	return doc
 
@@ -46,6 +46,8 @@ static func from_text(text: String) -> MapEditorDoc:
 	for key in ["player", "enemy", "bases"]:  # 編集対象の配列はキー欠落を補う
 		if typeof(doc.data.get(key)) != TYPE_ARRAY:
 			doc.data[key] = []
+	if not doc.data.has("margin"):
+		doc.data["margin"] = 0  # 既定値に頼らず必ず書き出す（保存でキーが増える＝意図した挙動）
 	doc._normalize_terrain()
 	return doc
 
@@ -58,36 +60,85 @@ func rows() -> int:
 	return int(data.get("rows", 8))
 
 
+## 外周（盤の外側に何マスぶん地形を描くか）。0＝外周なし。詳細 → doc/gdd/map.md
+## cols()/rows() は遊べる盤のままで、terrain だけがこのぶん大きい。駒・拠点は外周に置けない。
+func margin() -> int:
+	return maxi(int(data.get("margin", 0)), 0)
+
+
+## 外周まで含めた描画領域に col/row が入っているか（-margin .. cols+margin-1）。
+func in_canvas(col: int, row: int) -> bool:
+	var m := margin()
+	return col >= -m and col < cols() + m and row >= -m and row < rows() + m
+
+
+## 遊べる盤の中か（駒・拠点を置ける範囲）。外周は含まない。
+func in_board(col: int, row: int) -> bool:
+	return col >= 0 and col < cols() and row >= 0 and row < rows()
+
+
 # --- 地形 ---
 
 
-## terrain 配列を rows()行 × cols()桁 に整える（不足は既定地形で埋め、超過は切る）。
+## terrain 配列を (rows()+2*margin)行 × (cols()+2*margin)桁 に整える
+## （不足は既定地形で埋め、超過は切る）。margin ぶんずれた位置に盤が入る。
 func _normalize_terrain() -> void:
 	var grid: Variant = data.get("terrain", [])
 	var lines: Array = grid if typeof(grid) == TYPE_ARRAY else []
+	var m := margin()
+	var width := cols() + m * 2
 	var out := []
-	for row in rows():
-		var line := String(lines[row]) if row < lines.size() else ""
-		if line.length() < cols():
-			line += DEFAULT_CHAR.repeat(cols() - line.length())
-		out.append(line.substr(0, cols()))
+	for i in rows() + m * 2:
+		var line := String(lines[i]) if i < lines.size() else ""
+		if line.length() < width:
+			line += DEFAULT_CHAR.repeat(width - line.length())
+		out.append(line.substr(0, width))
 	data["terrain"] = out
 
 
+## セルの地形文字。col/row は盤の0起点（外周は負値・cols()以上）。範囲外は既定地形。
 func terrain_char(col: int, row: int) -> String:
+	var m := margin()
 	var lines: Array = data.get("terrain", [])
-	if row < 0 or row >= lines.size():
+	var i := row + m
+	if i < 0 or i >= lines.size():
 		return DEFAULT_CHAR
-	var line := String(lines[row])
-	return line[col] if col >= 0 and col < line.length() else DEFAULT_CHAR
+	var line := String(lines[i])
+	var j := col + m
+	return line[j] if j >= 0 and j < line.length() else DEFAULT_CHAR
 
 
+## セルの地形文字を書き換える。外周（margin の内側）も塗れる＝盤の縁の繋がりを作者が決められる。
 func set_terrain_char(col: int, row: int, ch: String) -> void:
-	if col < 0 or col >= cols() or row < 0 or row >= rows():
+	if not in_canvas(col, row):
 		return
+	var m := margin()
 	var lines: Array = data["terrain"]
-	var line := String(lines[row])
-	lines[row] = line.substr(0, col) + ch + line.substr(col + 1)
+	var i := row + m
+	var j := col + m
+	var line := String(lines[i])
+	lines[i] = line.substr(0, j) + ch + line.substr(j + 1)
+
+
+## 外周の厚みを変える（グリッドを描き直す）。減らすと外に出た地形・skin 指定は捨てられる。
+## グリッドは盤の座標で読み直してから敷き直す＝厚みが変わっても盤の中身がずれない
+## （_normalize_terrain は末尾を足し引きするだけなので、これを挟まないと全体が1マスずれる）。
+func set_margin(new_margin: int) -> void:
+	var m := maxi(new_margin, 0)
+	var old := margin()
+	if m == old:
+		return
+	var keep := {}  # 盤の0起点の座標 → 地形の文字（旧グリッドから読む）
+	for row in range(-m, rows() + m):
+		for col in range(-m, cols() + m):
+			keep[Vector2i(col, row)] = terrain_char(col, row)  # 旧グリッドの外は既定地形
+	data["margin"] = m
+	_normalize_terrain()
+	for cell in keep:
+		set_terrain_char(cell.x, cell.y, String(keep[cell]))
+	_terrain_undo = {}  # 旧サイズのスナップショットは戻せない（グリッドとズレる）
+	if typeof(data.get("terrain_skins")) == TYPE_ARRAY:
+		_drop_outside_canvas(data["terrain_skins"])
 
 
 # --- ベタ塗り（連結領域） ---
@@ -95,10 +146,12 @@ func set_terrain_char(col: int, row: int, ch: String) -> void:
 
 ## クリックしたマスと地続きのマスを返す。同じ見た目＝地形の文字と skin_id の両方が一致するマス
 ## だけを辿る（同じ平地でも既定スキンと plain_cave1 は別領域）。隣接は六方向（Hex と同じ定義）。
+## 盤と外周は跨がない＝盤で始めた塗りが外周へ漏れず、外周で始めた塗りが盤を塗り潰さない。
 func connected_cells(col: int, row: int) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
-	if col < 0 or col >= cols() or row < 0 or row >= rows():
+	if not in_canvas(col, row):
 		return out
+	var on_board := in_board(col, row)
 	var skins := terrain_skin_map()
 	var target_char := terrain_char(col, row)
 	var target_skin := String(skins.get(Vector2i(col, row), ""))
@@ -110,8 +163,8 @@ func connected_cells(col: int, row: int) -> Array[Vector2i]:
 		out.append(cell)
 		for dir in 6:
 			var n := Hex.axial_to_offset(Hex.neighbor(Hex.offset_to_axial(cell.x, cell.y), dir))
-			if n.x < 0 or n.x >= cols() or n.y < 0 or n.y >= rows():
-				continue  # 盤外へは広げない
+			if not in_canvas(n.x, n.y) or in_board(n.x, n.y) != on_board:
+				continue  # 描画領域の外／盤と外周の境は跨がない
 			if seen.has(n):
 				continue
 			if terrain_char(n.x, n.y) != target_char:
@@ -182,8 +235,9 @@ func terrain_skin_map() -> Dictionary:
 
 
 ## セルの skin_id を設定する。"" は指定の削除＝type の既定スキンに戻す。
+## 外周のセル（負の col/row・cols()以上）にも書ける＝盤外の座標がそのまま載る。
 func set_terrain_skin(col: int, row: int, skin_id: String) -> void:
-	if col < 0 or col >= cols() or row < 0 or row >= rows():
+	if not in_canvas(col, row):
 		return
 	if typeof(data.get("terrain_skins")) != TYPE_ARRAY:
 		if skin_id == "":
@@ -228,15 +282,27 @@ func resize(new_cols: int, new_rows: int) -> int:
 		dropped += _drop_out_of_range(sq.get("units", []))
 	dropped += _drop_out_of_range(data["bases"])
 	if typeof(data.get("terrain_skins")) == TYPE_ARRAY:
-		dropped += _drop_out_of_range(data["terrain_skins"])
+		dropped += _drop_outside_canvas(data["terrain_skins"])  # skin は外周にも書ける
 	return dropped
 
 
+## 盤の外に出た要素（駒・拠点）を落とす。外周には置けないので基準は盤そのもの。
 func _drop_out_of_range(list: Array) -> int:
 	var dropped := 0
 	for i in range(list.size() - 1, -1, -1):
 		var e: Dictionary = list[i]
 		if int(e.get("col", 0)) >= cols() or int(e.get("row", 0)) >= rows():
+			list.remove_at(i)
+			dropped += 1
+	return dropped
+
+
+## 描画領域（盤＋外周）の外に出た要素を落とす。skin 指定は外周にも載るのでこちらを使う。
+func _drop_outside_canvas(list: Array) -> int:
+	var dropped := 0
+	for i in range(list.size() - 1, -1, -1):
+		var e: Dictionary = list[i]
+		if not in_canvas(int(e.get("col", 0)), int(e.get("row", 0))):
 			list.remove_at(i)
 			dropped += 1
 	return dropped

@@ -3,6 +3,7 @@
   "name": "debug-formation",
   "cols": 14,
   "rows": 8,
+  "margin": 0,
   "terrain": [
     "..............",
     "..............",

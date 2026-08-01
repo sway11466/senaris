@@ -3,6 +3,7 @@
   "name": "tutorial-st3",
   "cols": 18,
   "rows": 10,
+  "margin": 0,
   "terrain": [
     "FFFFFCCCCCCCCCFFFF",
     "FFFFFFCCCCCCCFFFFF",

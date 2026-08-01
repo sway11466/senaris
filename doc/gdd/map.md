@@ -115,6 +115,28 @@
 - 演出・見た目のキー（presentation 専用＝BattleState には入らない）:
   - `dialogue`: 戦闘前後の会話 `{ "intro": [...], "outro": [...] }`・各行 `{speaker, skin, text}`・テキストは翻訳キー。仕様 → [../campaign/authoring.md](../campaign/authoring.md)
   - `terrain_skins`: 地形の見た目差分（座標→skin_id の列挙。未指定セルは type の既定スキン）。性能の `terrain` グリッドとは別レイヤー
+  - `margin`: 外周＝盤の外側に何マスぶん地形を描くか（下記）
+
+### 外周（margin）
+
+盤の縁のマスは「盤の外に何があるか」が分からない。柵や道のような繋がる地形（`connect`）はそれで絵が決まるので、外側を作者が描けるようにしたのが `margin`。
+
+- `cols` / `rows` は遊べる盤のまま。`terrain` だけを外周ぶん大きく書き、厚みを `margin` で言う。グリッドは `(cols + 2*margin)` 文字 × `(rows + 2*margin)` 行。
+- 駒・拠点・`carryover_slots` の座標は盤の0起点のまま。ずれるのは `terrain` の読み出し位置だけで、`margin: 0` なら書き方も挙動も従来と変わらない。
+- 外周は描かない・駒は入れない・盤（`BattleState`）にも存在しない。接続タイルの向きを引くためだけのデータ。
+- 厚みは 1 で足りる。offset 座標では6近傍が必ず col±1・row±1 に収まるので、1周あればどのマスの隣も覆える。
+- `terrain_skins` は外周のセルも指せる（`col`/`row` が負値や `cols` 以上になるだけ）。
+- 縁の絵がどう決まるかは [../art/terrain.md](../art/terrain.md) §3.5。
+- 例（24×9 の盤に外周1周＝26文字×11行）:
+  ```json
+  "cols": 24, "rows": 9, "margin": 1,
+  "terrain": [
+    "FFFFFFFFFF%%%%%%%%%%%%%%%%",
+    "FFFFFFFFFF%%%%%%%%%%%%%%%%",
+    "（中略：盤の9行が1文字ずつ内側に入る）",
+    "LLLL....%%%%%%%%FFFFFFFFFF"
+  ]
+  ```
 
 ### 駒の配置（陣営セクション）
 

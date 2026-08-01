@@ -3,6 +3,7 @@
   "name": "debug-spawn",
   "cols": 10,
   "rows": 7,
+  "margin": 0,
   "terrain": [
     "..........",
     "..........",

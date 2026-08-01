@@ -405,3 +405,98 @@ func test_type_field_sets_skin_id_to_same_name() -> void:
 	var u := s.unit_by_id(1)
 	assert_eq(u.skin_id, "fighter", "type 指定 → 同名 skin_id")
 	assert_eq(u.type_id, "fighter", "type_id はそのまま")
+
+# --- 外周（margin）。terrain だけ盤より1周ぶん大きく書き、盤の外の地形を作者が描けるようにする ---
+# 盤(cols/rows)・駒・拠点・terrain_skins の座標は margin があっても盤の0起点のまま。
+# 詳細 → doc/gdd/map.md, doc/art/terrain.md §3.5
+
+## 外周ありのサンプル。盤は 4×3 で、terrain は 6文字×5行（1周ぶん大きい）。
+## 盤の中身は "PP.." / "..%%" / "...." で、外周は全周 F（森）にしてある。
+const MARGIN_STAGE := {
+	"cols": 4, "rows": 3, "margin": 1,
+	"terrain": [
+		"FFFFFF",
+		"FPP..F",
+		"F..%%F",
+		"F....F",
+		"FFFFFF",
+	],
+}
+
+func test_margin_shifts_terrain_read_by_one_ring() -> void:
+	var s := StageLoader.build(MARGIN_STAGE)
+	assert_eq(s.cols, 4, "cols は遊べる盤のまま")
+	assert_eq(s.rows, 3, "rows は遊べる盤のまま")
+	# grid の行1・文字1 が盤の (0,0)＝margin ぶんずれて読まれる
+	assert_eq(s.terrain_at(Hex.offset_to_axial(0, 0)), "plateau", "(0,0)は台地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(1, 0)), "plateau", "(1,0)は台地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 0)), "plain", "(2,0)は平地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 1)), "wasteland", "(2,1)は荒地")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(3, 1)), "wasteland", "(3,1)は荒地")
+
+func test_margin_terrain_does_not_enter_the_board() -> void:
+	var s := StageLoader.build(MARGIN_STAGE)
+	# 外周の F（森）が盤に紛れ込んでいない＝盤の中に森は1マスも無い
+	for col in s.cols:
+		for row in s.rows:
+			assert_ne(s.terrain_at(Hex.offset_to_axial(col, row)), "forest",
+				"外周の森が盤 (%d,%d) に入っていない" % [col, row])
+
+func test_parse_margin_terrain_returns_only_the_ring() -> void:
+	var ring := StageLoader.parse_margin_terrain(MARGIN_STAGE)
+	# 6×5 のグリッドから盤の 4×3 を除いた 18 マスが外周
+	assert_eq(ring.size(), 6 * 5 - 4 * 3, "外周のマス数")
+	assert_eq(String(ring[Hex.offset_to_axial(-1, -1)]), "forest", "左上の外周")
+	assert_eq(String(ring[Hex.offset_to_axial(4, 3)]), "forest", "右下の外周")
+	assert_eq(String(ring[Hex.offset_to_axial(0, -1)]), "forest", "上辺の外周")
+	assert_false(ring.has(Hex.offset_to_axial(0, 0)), "盤の中は載らない")
+	assert_false(ring.has(Hex.offset_to_axial(3, 2)), "盤の右下も載らない")
+
+func test_parse_margin_terrain_includes_default_terrain_cells() -> void:
+	# 外周の平地も載る＝「作者が平地を描いた」が「外周なし」と区別できる（盤側の分岐がこれで決まる）
+	var ring := StageLoader.parse_margin_terrain({
+		"cols": 2, "rows": 2, "margin": 1,
+		"terrain": ["....", "....", "....", "...."],
+	})
+	assert_eq(ring.size(), 4 * 4 - 2 * 2, "全周ぶん載る")
+	assert_eq(String(ring[Hex.offset_to_axial(-1, 0)]), "plain", "既定地形も明示的に載る")
+
+func test_margin_absent_or_zero_changes_nothing() -> void:
+	var without := { "cols": 4, "rows": 3, "terrain": ["PP..", "..%%", "...."] }
+	var s := StageLoader.build(without)
+	assert_eq(s.terrain_at(Hex.offset_to_axial(0, 0)), "plateau", "margin 無しは今までどおり")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 1)), "wasteland", "margin 無しは今までどおり")
+	assert_eq(StageLoader.parse_margin_terrain(without), {}, "margin 無し＝外周は空")
+	assert_eq(StageLoader.parse_margin_terrain({ "cols": 4, "rows": 3, "margin": 0,
+		"terrain": ["PP..", "..%%", "...."] }), {}, "margin 0＝外周は空")
+
+func test_oversized_terrain_lines_do_not_leak_past_the_board() -> void:
+	# 行が長すぎる/多すぎるデータでも盤の外へは書かない（margin を数えるので範囲を閉じている）
+	var s := StageLoader.build({ "cols": 2, "rows": 2, "terrain": ["PPPP", "PPPP", "PPPP"] })
+	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 0)), "plain", "盤の右外は既定のまま")
+	assert_eq(s.terrain_at(Hex.offset_to_axial(0, 2)), "plain", "盤の下外は既定のまま")
+
+func test_stage_files_declare_margin_explicitly() -> void:
+	# 既定値に頼らない方針＝盤を持つステージJSONは margin を必ず書く（doc/gdd/map.md）
+	var missing: Array[String] = []
+	for entry in _all_stage_files():
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(entry))
+		if typeof(d) == TYPE_DICTIONARY and d.has("terrain") and not d.has("margin"):
+			missing.append(entry)
+	assert_eq(missing, [] as Array[String], "margin を書いていないステージがある")
+
+## data/stages/ 以下のステージJSON（冒険譚マニフェスト campaign.json は盤を持たないので除く）。
+func _all_stage_files() -> Array[String]:
+	var out: Array[String] = []
+	var root := "res://data/stages"
+	var dir := DirAccess.open(root)
+	if dir == null:
+		return out
+	for sub in dir.get_directories():
+		var sd := DirAccess.open("%s/%s" % [root, sub])
+		if sd == null:
+			continue
+		for f in sd.get_files():
+			if f.ends_with(".json") and f != "campaign.json":
+				out.append("%s/%s/%s" % [root, sub, f])
+	return out

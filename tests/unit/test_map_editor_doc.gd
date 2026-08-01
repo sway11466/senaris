@@ -9,6 +9,7 @@ const SAMPLE := """
   "name": "sample",
   "cols": 6,
   "rows": 4,
+  "margin": 0,
   "terrain": [
     "..FF..",
     "......",
@@ -317,3 +318,125 @@ func test_remove_victory_erases_empty_key() -> void:
 	doc.remove_victory(0)
 	assert_false(doc.data.has("victory"))
 	assert_false(JSON.parse_string(doc.to_text()).has("victory"))
+
+
+# --- 外周（margin）。terrain だけ盤より大きく持ち、駒・拠点は盤にしか置けない ---
+# エディタが margin を知らないまま保存すると terrain の行数・桁数が cols/rows と食い違って壊れる。
+# ここで守るのは「開いて保存しても外周が消えない」こと。詳細 → doc/gdd/map.md
+
+const MARGIN_SAMPLE := """
+{
+  "turn_limit": 30,
+  "name": "ring",
+  "cols": 4,
+  "rows": 3,
+  "margin": 1,
+  "terrain": [
+    "FFFFFF",
+    "FPP..F",
+    "F..%%F",
+    "F....F",
+    "FFFFFF"
+  ],
+  "terrain_skins": [
+    { "col": -1, "row": 1, "skin": "wasteland_grave1" }
+  ],
+  "player": [
+    { "type": "fighter", "col": 1, "row": 1 }
+  ],
+  "enemy": [],
+  "bases": []
+}
+"""
+
+
+func test_margin_roundtrip_keeps_the_ring() -> void:
+	var out := _roundtrip(MARGIN_SAMPLE)
+	var src: Dictionary = JSON.parse_string(MARGIN_SAMPLE)
+	assert_eq_deep(out, src)  # 読込→保存で外周が消えたり切り詰められたりしない
+
+
+func test_margin_terrain_char_is_addressed_from_the_board_origin() -> void:
+	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	assert_eq(doc.cols(), 4, "cols は遊べる盤のまま")
+	assert_eq(doc.rows(), 3, "rows は遊べる盤のまま")
+	assert_eq(doc.margin(), 1)
+	assert_eq(doc.terrain_char(0, 0), "P", "盤の(0,0)は grid の行1・文字1")
+	assert_eq(doc.terrain_char(2, 1), "%", "盤の(2,1)")
+	assert_eq(doc.terrain_char(-1, -1), "F", "外周の左上")
+	assert_eq(doc.terrain_char(4, 3), "F", "外周の右下")
+
+
+func test_margin_cells_are_paintable_and_survive_saving() -> void:
+	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	doc.set_terrain_char(-1, 1, "L")   # 左辺の外周を道に
+	doc.set_terrain_char(1, 3, "L")    # 下辺の外周を道に
+	assert_eq(doc.terrain_char(-1, 1), "L")
+	assert_eq(doc.terrain_char(1, 3), "L")
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(String(out["terrain"][2]), "L..%%F", "左辺の外周が書き出しに乗る")
+	assert_eq(String(out["terrain"][4]), "FFLFFF", "下辺の外周が書き出しに乗る")
+
+
+func test_margin_rejects_cells_outside_the_canvas() -> void:
+	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	doc.set_terrain_char(-2, 0, "L")  # 外周のさらに外
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(out["terrain"].size(), 5, "行数は変わらない")
+	for line in out["terrain"]:
+		assert_eq(String(line).length(), 6, "桁数も変わらない")
+
+
+func test_in_board_excludes_the_ring() -> void:
+	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	assert_true(doc.in_board(0, 0), "盤の左上")
+	assert_true(doc.in_board(3, 2), "盤の右下")
+	assert_false(doc.in_board(-1, 0), "外周は盤ではない＝駒を置けない")
+	assert_false(doc.in_board(4, 0), "同上")
+	assert_true(doc.in_canvas(-1, -1), "外周は描画領域には入る")
+	assert_false(doc.in_canvas(-2, -1), "外周の外は描画領域でもない")
+
+
+func test_terrain_skins_can_address_the_ring() -> void:
+	# 外周のセルにも見た目差分を書ける（座標が盤外になるだけ＝形式はそのまま）
+	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	assert_eq(doc.terrain_skin(-1, 1), "wasteland_grave1", "読み込んだ外周の skin 指定")
+	doc.set_terrain_skin(4, 2, "road")
+	assert_eq(doc.terrain_skin(4, 2), "road", "外周に skin を足せる")
+
+
+func test_fill_does_not_cross_the_board_edge() -> void:
+	# 盤の中で始めた塗りが外周へ漏れない（逆も同じ）＝縁の絵を作者が握れる
+	var doc := MapEditorDoc.from_text("""
+{ "cols": 3, "rows": 3, "margin": 1, "terrain": [
+	".....", ".....", ".....", ".....", "....."
+], "player": [], "enemy": [], "bases": [] }
+""")
+	assert_eq(doc.fill_terrain(1, 1, "L", ""), 9, "盤の9マスだけ塗る（外周には出ない）")
+	assert_eq(doc.terrain_char(0, 0), "L", "盤は塗られた")
+	assert_eq(doc.terrain_char(-1, -1), ".", "外周は塗られていない")
+	assert_eq(doc.fill_terrain(-1, -1, "M", ""), 16, "外周だけを塗る（5×5 - 3×3）")
+	assert_eq(doc.terrain_char(1, 1), "L", "盤は巻き込まれない")
+
+
+func test_set_margin_grows_and_shrinks_the_grid() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)  # 6×4・margin 0
+	doc.set_margin(1)
+	var grown: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(grown["terrain"].size(), 6, "行が2つ増える")
+	assert_eq(String(grown["terrain"][0]).length(), 8, "桁も2つ増える")
+	assert_eq(doc.terrain_char(2, 0), "F", "盤の中身はずれない")
+	doc.set_margin(0)
+	var shrunk: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(shrunk["terrain"].size(), 4, "元の行数に戻る")
+	assert_eq(String(shrunk["terrain"][0]), "..FF..", "盤の中身も元のまま")
+
+
+func test_margin_is_written_even_when_absent_from_the_source() -> void:
+	# 既定値に頼らない方針＝読み込んだファイルに margin が無ければ 0 を書き足して保存する
+	var doc := MapEditorDoc.from_text("""
+{ "cols": 3, "rows": 2, "terrain": ["...", "..."], "player": [], "enemy": [], "bases": [] }
+""")
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_true(out.has("margin"), "margin キーが書き出される")
+	assert_eq(int(out["margin"]), 0)
