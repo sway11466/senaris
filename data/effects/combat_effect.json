@@ -24,9 +24,9 @@
 		{
 			"effect_id": "stone",
 			"kind": "projectile",
-			"memo": "スリング（ハーフリング）。小さい石",
+			"memo": "スリング（ハーフリング）。小さい石＝速度線ごと兵士の3割ほど",
 			"name": "投石",
-			"scale": 0.5
+			"scale": 0.32
 		},
 		{
 			"effect_id": "holy",
