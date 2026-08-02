@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c7vdkgkds44n8"
-path="res://.godot/imported/trinity.png-643e8b197017bb83434f1cbbc055b3ed.ctex"
+uid="uid://bolvpgeqe4nod"
+path="res://.godot/imported/divine_judgment.png-33a3ac83ae208539eaccb69560d627bc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/formations/trinity.png"
-dest_files=["res://.godot/imported/trinity.png-643e8b197017bb83434f1cbbc055b3ed.ctex"]
+source_file="res://assets/formations/divine_judgment.png"
+dest_files=["res://.godot/imported/divine_judgment.png-33a3ac83ae208539eaccb69560d627bc.ctex"]
 
 [params]
 

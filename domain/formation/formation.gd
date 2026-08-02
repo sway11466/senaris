@@ -21,7 +21,7 @@ class_name Formation
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 const RECIPES := {
-	"trinity": {
+	"trinity_spell": {
 		"name": "三重詠唱",
 		"leader_skins": ["wizard", "witch"],
 		"member_skins": ["wizard", "witch"],

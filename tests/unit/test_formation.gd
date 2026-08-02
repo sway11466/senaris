@@ -31,7 +31,7 @@ func test_available_detects_trinity_triangle() -> void:
 	var opts := Formation.available_for(f["s"], f["leader"])
 	assert_eq(opts.size(), 1, "三角形の三重詠唱が1つ検出される")
 	var o: Dictionary = opts[0]
-	assert_eq(String(o["recipe"]), "trinity", "レシピは trinity")
+	assert_eq(String(o["recipe"]), "trinity_spell", "レシピは trinity_spell")
 	assert_eq((o["participants"] as Array).size(), 3, "参加3体")
 	assert_true(bool(o["needs_target"]), "面攻撃は対象指定が要る")
 
@@ -323,6 +323,6 @@ func test_resolve_kills_when_lethal() -> void:
 func test_is_enchant_splits_catalog_by_shape() -> void:
 	# 演出・効果音の出し分けが読む区別（陣形＝カットインあり／エンチャント＝音だけ）。
 	assert_true(Formation.is_enchant("pixie_dust"), "単独発動(shape=solo)はエンチャント")
-	assert_false(Formation.is_enchant("trinity"), "複数人のレシピは陣形")
+	assert_false(Formation.is_enchant("trinity_spell"), "複数人のレシピは陣形")
 	assert_false(Formation.is_enchant("holy_aria"), "クラスタも陣形")
 	assert_false(Formation.is_enchant("no_such_recipe"), "未知のIDは陣形扱い（落ちない）")

@@ -63,15 +63,15 @@ around it. Wide 4:3 composition.
 
 | 段階 | 置き場（`{recipe_id}`＝Formation.RECIPES のキー） | 例（三重詠唱） |
 |---|---|---|
-| ① AI生成直後 | `assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity/trinity_01_raw.png` |
+| ① AI生成直後 | `assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity_spell/trinity_spell_01_raw.png` |
 | ② 透かし除去 | `assets/formations-src/{recipe_id}/{recipe_id}_02_dew.png` | 同上フォルダ |
 | ③ 手動調整マスター（任意） | `assets/formations-src/{recipe_id}/{recipe_id}_03_master.png` | 同上フォルダ |
 | SUBJECT | `assets/formations-src/{recipe_id}/{recipe_id}_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用 | `assets/formations/{recipe_id}.png` | `assets/formations/trinity.png` |
+| ④ ゲーム用 | `assets/formations/{recipe_id}.png` | `assets/formations/trinity_spell.png` |
 
 - 絵柄は cover と同じ ILLUST STYLE（§2）。描くのは「機構が動く瞬間」＝獲得用キービジュアル（§1）と同じ狙いで、盤では見せられない一撃の迫力を1枚で見せる。
 - 規約解決。置けば出て、無ければカットインを飛ばす（コード不変）。`formations-src/` は `.gdignore` で Godot 非インポート。
-- 獲得用キービジュアルと**共用を検討する**。冒険譚2の獲得絵は「三重詠唱が屍の波を薙ぐ」を想定しており（[backlog.md](../backlog.md) feature-24）、`trinity` のカットインと画題が同じ。1枚を両方に使えるなら制作が1回で済む。共用するなら片方を cp するのではなく、`assets/formations/trinity.png` を正としてキャンペーン側から参照する形を検討する。
+- 獲得用キービジュアルと**共用を検討する**。冒険譚2の獲得絵は「三重詠唱が屍の波を薙ぐ」を想定しており（[backlog.md](../backlog.md) feature-24）、`trinity_spell` のカットインと画題が同じ。1枚を両方に使えるなら制作が1回で済む。共用するなら片方を cp するのではなく、`assets/formations/trinity_spell.png` を正としてキャンペーン側から参照する形を検討する。
 
 ---
 

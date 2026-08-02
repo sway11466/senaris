@@ -272,7 +272,7 @@
 **陣形スキルのカットイン絵を描く**（優先度：中）
 
 - 背景：カットインの器は実装済み（`presentation/formation/formation_cutin.gd`＝戦闘演出シーンと同じ八角形の窓・約1秒・スキップ可）。絵を `assets/formations/{recipe_id}.png` に置けば規約解決で出て、無ければカットインを飛ばす。いま絵が1枚も無いので、発動しても盤の結果だけが出る。
-- 対応：3レシピぶん（`trinity`／`divine_judgment`／`holy_aria`）。`prompt.txt` を先に書いてから生成する。`trinity` は冒険譚2の獲得キービジュアル（feature-24）が「三重詠唱が屍の波を薙ぐ」で画題が重なるため、1枚を両方に使えないか先に検討する（共用するなら `assets/formations/trinity.png` を正としてキャンペーン側から参照する形）。絵ができたらカットインの入り方（いまはフェード＋わずかなズーム）を構図に合わせて詰める＝先に凝った入り方を決めると絵と噛み合わず二度手間になる。
+- 対応：3レシピぶん（`trinity_spell`／`divine_judgment`／`holy_aria`）。`prompt.txt` を先に書いてから生成する。`trinity_spell` は冒険譚2の獲得キービジュアル（feature-24）が「三重詠唱が屍の波を薙ぐ」で画題が重なるため、1枚を両方に使えないか先に検討する（共用するなら `assets/formations/trinity_spell.png` を正としてキャンペーン側から参照する形）。絵ができたらカットインの入り方（いまはフェード＋わずかなズーム）を構図に合わせて詰める＝先に凝った入り方を決めると絵と噛み合わず二度手間になる。
 - 該当：`assets/formations-src/{recipe_id}/`・`assets/formations/{recipe_id}.png`・`presentation/formation/formation_cutin.gd`（入り方の調整）・`doc/art/keyvisual.md` §3・`doc/gdd/formations.md`。着手の引き金＝絵を生成できるとき。関連＝feature-24（獲得キービジュアル）。
 
 ### feature-34
