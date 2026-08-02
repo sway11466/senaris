@@ -25,7 +25,7 @@
     { "type": "thief", "col": 0, "row": 7 }
   ],
   "enemy": [
-    { "name": "案山子（待機・索敵0）", "ai": "guard", "sight": 0,
+    { "order": 1, "name": "案山子（待機・索敵0）", "ai": "guard", "sight": 0,
       "units": [
         { "type": "novice", "skin": "goblin", "col": 2,  "row": 2 },
         { "type": "novice", "skin": "goblin", "col": 6,  "row": 2 },

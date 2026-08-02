@@ -30,7 +30,7 @@
     { "type": "wagon",   "col": 3, "row": 5 }
   ],
   "enemy": [
-    { "name": "前衛", "ai": "charge", "units": [
+    { "order": 1, "name": "前衛", "ai": "charge", "units": [
       { "skin": "skeleton", "col": 7, "row": 4 }, { "skin": "skeleton", "col": 7, "row": 5 },
       { "skin": "skeleton", "col": 7, "row": 6 }, { "skin": "zombie", "col": 8, "row": 4 },
       { "skin": "zombie", "col": 8, "row": 5 }, { "skin": "zombie", "col": 8, "row": 6 },
@@ -39,9 +39,9 @@
     ] }
   ],
   "bases": [
-    { "col": 12, "row": 5, "team": "enemy", "ai": "charge",
+    { "order": 2, "col": 12, "row": 5, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] },
-    { "col": 20, "row": 5, "team": "enemy", "ai": "charge",
+    { "order": 3, "col": 20, "row": 5, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] }
   ],
   "dialogue": {

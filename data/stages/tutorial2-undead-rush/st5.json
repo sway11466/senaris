@@ -37,14 +37,14 @@
     { "type": "barricade", "col": 4, "row": 7 }
   ],
   "enemy": [
-    { "name": "死霊の群れ", "ai": "charge", "units": [
+    { "order": 1, "name": "死霊の群れ", "ai": "charge", "units": [
       { "skin": "ghoul", "col": 12, "row": 3 }, { "skin": "ghoul", "col": 12, "row": 4 },
       { "skin": "ghoul", "col": 12, "row": 5 }, { "skin": "ghoul", "col": 12, "row": 6 },
       { "skin": "ghoul", "col": 12, "row": 7 }, { "skin": "ghoul", "col": 13, "row": 4 },
       { "skin": "ghoul", "col": 13, "row": 5 }, { "skin": "ghoul", "col": 13, "row": 6 },
       { "skin": "ghoul", "col": 14, "row": 4 }, { "skin": "ghoul", "col": 14, "row": 5 }
     ] },
-    { "name": "掠め取り", "ai": "weak", "units": [
+    { "order": 2, "name": "掠め取り", "ai": "weak", "units": [
       { "skin": "skeleton", "col": 16, "row": 4 }, { "skin": "skeleton", "col": 16, "row": 6 },
       { "skin": "zombie", "col": 17, "row": 4 }, { "skin": "zombie", "col": 17, "row": 6 },
       { "skin": "skeleton_archer", "col": 18, "row": 4 }, { "skin": "skeleton_archer", "col": 18, "row": 6 }

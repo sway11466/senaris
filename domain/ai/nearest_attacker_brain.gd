@@ -105,36 +105,100 @@ func _squadmate_engaged(state: BattleState, u: Unit) -> bool:
 			return true
 	return false
 
+## 行動順は部隊(squad)単位。order の小さい部隊から、部隊の中は前線に近い駒から動かし、
+## その部隊の拠点の出撃は盤上の駒を捌いたあと。詳細 → doc/gdd/ai.md（行動順）
 func next_action(state: BattleState, team: int) -> AiAction:
-	for u in state.units():
-		if u.team != team or state.is_done(u.id):
-			continue
-		if not _ensure_engaged(state, u):
-			continue  # 未起動（待機AI）＝その場で待つ。起動条件は _ensure_engaged 参照
-		# 占領: 今ターンの移動範囲に自陣営以外の拠点があれば取りに行く（攻撃より優先）。
-		if u.can_capture and not state.has_moved(u.id):
-			var base_hex := _reachable_capture_hex(state, u)
-			if base_hex != u.pos:
-				return AiAction.move_to(u.id, base_hex)
-		# 攻撃: 射程内の敵がいれば殴る。獲物のみ(attack=prey)は獲物・確殺以外を素通しして前進を続ける。
-		var targets := state.attack_targets(u.id)
-		if _attack_prey_only(state, u):
-			targets = _prey_or_kill_targets(state, u, targets)
-		if not targets.is_empty():
-			return AiAction.attack(u.id, _pick_target(state, u, targets))
-		# 前進: まだ動いていなければ目標へ寄る。
-		if not state.has_moved(u.id):
-			var dest := _advance_dest(state, u)
-			if dest != u.pos:
-				return AiAction.move_to(u.id, dest)
-	# 拠点出撃(deploy): 盤上ユニットを捌いた後、AI所有の拠点から起動成立時に出せるだけ出す（1手ずつ）。ai.md §7
-	for b in state.bases():
-		if b.team != team:
-			continue
-		var deploy_action := _try_deploy(state, b)
-		if deploy_action != null:
-			return deploy_action
+	for si in _squad_order(state):
+		for u in _units_in_order(state, team, si):
+			var action := _unit_action(state, u)
+			if action != null:
+				return action
+		# 拠点出撃(deploy): この部隊の拠点から起動成立時に出せるだけ出す（1手ずつ）。ai.md §7
+		for b in state.bases():
+			if b.team != team or b.squad_index != si:
+				continue
+			var deploy_action := _try_deploy(state, b)
+			if deploy_action != null:
+				return deploy_action
 	return null
+
+## u が今できる1手（無ければ null）。占領 → 攻撃 → 前進の順で、doc/gdd/ai.md の思考の流れに対応する。
+func _unit_action(state: BattleState, u: Unit) -> AiAction:
+	if state.is_done(u.id):
+		return null
+	if not _ensure_engaged(state, u):
+		return null  # 未起動（待機AI）＝その場で待つ。起動条件は _ensure_engaged 参照
+	# 占領: 今ターンの移動範囲に自陣営以外の拠点があれば取りに行く（攻撃より優先）。
+	if u.can_capture and not state.has_moved(u.id):
+		var base_hex := _reachable_capture_hex(state, u)
+		if base_hex != u.pos:
+			return AiAction.move_to(u.id, base_hex)
+	# 攻撃: 射程内の敵がいれば殴る。獲物のみ(attack=prey)は獲物・確殺以外を素通しして前進を続ける。
+	var targets := state.attack_targets(u.id)
+	if _attack_prey_only(state, u):
+		targets = _prey_or_kill_targets(state, u, targets)
+	if not targets.is_empty():
+		return AiAction.attack(u.id, _pick_target(state, u, targets))
+	# 前進: まだ動いていなければ目標へ寄る。
+	if not state.has_moved(u.id):
+		var dest := _advance_dest(state, u)
+		if dest != u.pos:
+			return AiAction.move_to(u.id, dest)
+	return null
+
+# --- 行動順（doc/gdd/ai.md 行動順） ---
+
+## 部隊を動かす順に並べた index の列。order 昇順（同値・省略は登録順）、末尾に -1＝部隊に属さない駒。
+func _squad_order(state: BattleState) -> Array[int]:
+	var idx: Array[int] = []
+	for i in state.squads.size():
+		idx.append(i)
+	idx.sort_custom(func(a: int, b: int) -> bool:
+		var ka := _order_of(state, a)
+		var kb := _order_of(state, b)
+		return ka < kb or (ka == kb and a < b))
+	idx.append(-1)  # 部隊に属さない駒（テスト・素の敵）は最後
+	return idx
+
+## 部隊の order。省略・非数値は登録順（index）で代用する＝データが欠けても順番が壊れない。
+## 実データは全部隊に order を書く（抜けはデータ整合テストで検出）。doc/gdd/ai.md 行動順
+func _order_of(state: BattleState, squad_index: int) -> int:
+	if squad_index < 0 or squad_index >= state.squads.size():
+		return 1 << 30
+	var v: Variant = (state.squads[squad_index] as Dictionary).get("order")
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return int(v)
+	return squad_index
+
+## 部隊 squad_index に属する team の駒を、動かす順に並べる。
+## 前線に近い順（最寄り敵までの距離が短い順）。同距離は col → row → 駒番号。
+## 前の駒から動かさないと後ろが塞がれて進めないので、毎回いまの盤面で並べ直す。
+func _units_in_order(state: BattleState, team: int, squad_index: int) -> Array[Unit]:
+	var list: Array[Unit] = []
+	for u in state.units():
+		if u.team == team and state.squad_index_of(u.id) == squad_index:
+			list.append(u)
+	var dist := {}  # unit_id -> 最寄り敵までの距離（並べ替え中に何度も引くのでここで1回だけ計算）
+	for u in list:
+		dist[u.id] = _distance_to_nearest_enemy(state, u)
+	list.sort_custom(func(a: Unit, b: Unit) -> bool:
+		var da: int = dist[a.id]
+		var db: int = dist[b.id]
+		if da != db:
+			return da < db
+		var oa := Hex.axial_to_offset(a.pos)
+		var ob := Hex.axial_to_offset(b.pos)
+		if oa.x != ob.x:
+			return oa.x < ob.x
+		if oa.y != ob.y:
+			return oa.y < ob.y
+		return a.id < b.id)
+	return list
+
+## u から最寄りの敵までの距離（敵がいなければ 0＝全員同値になり col → row で並ぶ）。
+func _distance_to_nearest_enemy(state: BattleState, u: Unit) -> int:
+	var enemy := _nearest_enemy(state, u)
+	return Hex.distance(u.pos, enemy.pos) if enemy != null else 0
 
 # --- 弱者狙い（attack=prey / target=weak / advance=flank）。詳細 → doc/gdd/ai.md（弱者狙いの設計） ---
 

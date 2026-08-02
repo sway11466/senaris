@@ -92,7 +92,7 @@
     { "type": "witch", "col": 7, "row": 8 }
   ],
   "enemy": [
-    { "name": "屍の群れ", "ai": "charge",
+    { "order": 1, "name": "屍の群れ", "ai": "charge",
       "units": [
         { "skin": "skeleton", "col": 7, "row": 3 },
         { "skin": "skeleton", "col": 7, "row": 2 },

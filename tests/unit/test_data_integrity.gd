@@ -55,6 +55,33 @@ func test_stage_squad_ai_labels_exist() -> void:
 		if not top.is_empty():
 			assert_true(presets.has(top), "%s のトップレベル ai '%s' が ai.json に実在" % [path, top])
 
+func test_stage_squads_and_ai_bases_have_order() -> void:
+	# 行動順 order は全部隊・AI出撃する全拠点に書く（doc/gdd/ai.md 行動順）。
+	# 省略はコード側では登録順にフォールバックするので黙って通ってしまう＝ここで抜けを捕まえる。
+	# 同一ステージ内で重複していると順番が記述順に落ちるので、一意であることも見る。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var seen := {}
+		for squad in data.get("enemy", []):
+			if typeof(squad) != TYPE_DICTIONARY:
+				continue
+			_assert_order(path, squad, "squad '%s'" % str(squad.get("name", "無名")), seen)
+		for base in data.get("bases", []):
+			if typeof(base) != TYPE_DICTIONARY or not (base as Dictionary).has("ai"):
+				continue  # ai 無し＝AI出撃しない拠点は行動順の列に並ばない
+			_assert_order(path, base, "base (%s, %s)" % [str(base.get("col")), str(base.get("row"))], seen)
+
+func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictionary) -> void:
+	var v: Variant = holder.get("order")
+	if typeof(v) != TYPE_FLOAT and typeof(v) != TYPE_INT:
+		assert_true(false, "%s の %s に order がある" % [path, label])
+		return
+	var n := int(v)
+	assert_false(seen.has(n), "%s の %s の order %d が他と重複しない" % [path, label, n])
+	seen[n] = true
+
 ## data/stages 以下を再帰し、ステージJSON（campaign.json マニフェストは除く）のパス配列を返す。
 func _all_stage_files(root: String) -> Array:
 	var out: Array = []

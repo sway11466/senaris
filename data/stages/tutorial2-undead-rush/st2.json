@@ -134,14 +134,14 @@
     { "type": "knight", "col": 4, "row": 7 }
   ],
   "enemy": [
-    { "name": "先遣", "ai": "charge",
+    { "order": 1, "name": "先遣", "ai": "charge",
       "units": [
         { "skin": "skeleton_archer", "col": 21, "row": 3 },
         { "skin": "skeleton_archer", "col": 11, "row": 0 },
         { "skin": "skeleton_archer", "col": 22, "row": 1 },
         { "skin": "skeleton_archer", "col": 18, "row": 7 }
       ] },
-    { "name": "墓場の群れ", "ai": "raid",
+    { "order": 2, "name": "墓場の群れ", "ai": "raid",
       "units": [
         { "skin": "skeleton", "col": 15, "row": 6 },
         { "skin": "skeleton", "col": 16, "row": 3 },
@@ -164,7 +164,8 @@
       "garrison": [ { "skin": "novice", "count": 2 } ] }
   ],
   "defeat": [
-    { "type": "lose_base", "col": 10, "row": 4 }
+    { "type": "lose_base",
+      "bases": [ { "col": 10, "row": 4 } ] }
   ],
   "dialogue": {
     "intro": [

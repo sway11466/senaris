@@ -21,7 +21,7 @@
     { "type": "novice", "col": 2, "row": 5 }
   ],
   "enemy": [
-    { "ai": "charge",
+    { "order": 1, "ai": "charge",
       "units": [
         { "skin": "goblin", "col": 14, "row": 2 },
         { "skin": "goblin", "col": 14, "row": 6 },

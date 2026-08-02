@@ -42,10 +42,10 @@
     { "type": "witch",   "col": 4, "row": 6 }
   ],
   "enemy": [
-    { "name": "元凶", "ai": "guard", "sight": 4, "units": [
-      { "skin": "necromancer", "col": 26, "row": 5, "id": 999 }
+    { "order": 1, "name": "元凶", "ai": "guard", "sight": 4, "units": [
+      { "skin": "necromancer", "actor": "necromancer", "col": 26, "row": 5 }
     ] },
-    { "name": "屍の海", "ai": "charge", "units": [
+    { "order": 2, "name": "屍の海", "ai": "charge", "units": [
       { "skin": "ghoul", "col": 8, "row": 3 }, { "skin": "ghoul", "col": 8, "row": 4 },
       { "skin": "ghoul", "col": 8, "row": 5 }, { "skin": "ghoul", "col": 8, "row": 6 },
       { "skin": "ghoul", "col": 8, "row": 7 }, { "skin": "ghoul", "col": 9, "row": 3 },
@@ -59,13 +59,13 @@
     ] }
   ],
   "bases": [
-    { "col": 14, "row": 5, "team": "enemy", "ai": "charge",
+    { "order": 3, "col": 14, "row": 5, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] },
-    { "col": 24, "row": 5, "team": "enemy", "ai": "charge",
+    { "order": 4, "col": 24, "row": 5, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_id": 999 }
+    { "type": "defeat_unit", "actor": "necromancer" }
   ],
   "dialogue": {
     "intro": [

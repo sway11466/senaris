@@ -60,7 +60,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	_apply_carryover(state, data.get("carryover_slots", []), carried, catalog, next_id)
-	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": 99 }]（ボスは squad 側で id 明示）
+	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "actor": "necromancer" }]（ボスの駒に actor）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
@@ -261,7 +261,7 @@ static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary
 		return 1
 	var auto_id := 1
 	for u in units:
-		var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), team, skin_catalog)
+		var unit := _make_unit(u, catalog, auto_id, team, skin_catalog)
 		state.add_unit(unit)
 		auto_id += 1
 		auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
@@ -276,14 +276,15 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 		return start_id
 	var auto_id := start_id
 	for pd in list:
-		var p := _make_unit(pd, catalog, int(pd.get("id", auto_id)), transport.team, skin_catalog)  # 搭乗は同陣営
+		var p := _make_unit(pd, catalog, auto_id, transport.team, skin_catalog)  # 搭乗は同陣営
 		state.put_passenger(transport.id, p)
 		auto_id += 1
 	return auto_id
 
 ## enemy セクション（部隊(squad)の配列）を盤に追加。各部隊は { name?, ai: プリセットラベル, ...上書き, units: [...] }。
 ## team は陣営（呼び出し側が固定＝敵=1）。敵は必ず squad に属する（バラ配置は無い）。
-## units は通常の駒記法（型/スキン/troops・level/id 明示）と同じで、採番も player の続きから連続する。
+## units は通常の駒記法（型/スキン/troops・level）と同じで、採番も player の続きから連続する。
+## 部隊定義には行動順 order も入る（順番の解決は NearestAttackerBrain＝doc/gdd/ai.md 行動順）。
 ## 部隊メンバーは BattleState に「unit→部隊」の対応が登録され、AIが部隊のプリセットで振る舞う。
 static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictionary, team: int, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(squads) != TYPE_ARRAY:
@@ -319,7 +320,7 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 			var squad := {}
 			for key in b:
 				if not (key in ["col", "row", "team", "kind", "garrison", "native"]):
-					squad[key] = b[key]  # ai＋上書き（sight/engage/…）だけを部隊定義に
+					squad[key] = b[key]  # ai＋上書き（sight/engage/…）＋行動順 order を部隊定義に
 			base.squad_index = state.squads.size()
 			state.squads.append(squad)
 		for g in b.get("garrison", []):

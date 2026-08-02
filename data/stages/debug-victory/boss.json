@@ -20,13 +20,13 @@
     { "type": "archer", "col": 0, "row": 3 }
   ],
   "enemy": [
-    { "ai": "charge", "units": [
-      { "id": 99, "skin": "goblin", "col": 4, "row": 3 },
+    { "order": 1, "ai": "charge", "units": [
+      { "skin": "goblin", "actor": "boss", "col": 4, "row": 3 },
       { "skin": "hobgoblin", "col": 8, "row": 2 },
       { "skin": "hobgoblin", "col": 8, "row": 4 }
     ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_id": 99 }
+    { "type": "defeat_unit", "actor": "boss" }
   ]
 }

@@ -172,9 +172,9 @@
     { "type": "archer", "col": 2, "row": 7 }
   ],
   "enemy": [
-    { "name": "通路", "ai": "guard", "sight": 3,
+    { "order": 1, "name": "通路", "ai": "guard", "sight": 3,
       "units": [ { "skin": "goblin", "col": 18, "row": 9 } ] },
-    { "name": "手下部屋", "ai": "guard", "sight": 3,
+    { "order": 2, "name": "手下部屋", "ai": "guard", "sight": 3,
       "units": [
         { "skin": "goblin", "col": 12, "row": 3 },
         { "skin": "goblin", "col": 12, "row": 4 },
@@ -185,14 +185,14 @@
         { "skin": "goblin", "col": 15, "row": 9 },
         { "skin": "hobgoblin", "col": 11, "row": 3 }
       ] },
-    { "name": "ボス部屋", "ai": "guard", "sight": 3,
+    { "order": 3, "name": "ボス部屋", "ai": "guard", "sight": 3,
       "units": [
         { "skin": "goblin_archer", "col": 25, "row": 6 },
         { "skin": "goblin_archer", "col": 25, "row": 4 },
         { "skin": "hobgoblin", "col": 23, "row": 6 },
         { "skin": "hobgoblin", "col": 23, "row": 4 }
       ] },
-    { "name": "ボス", "ai": "guard", "sight": 0,
+    { "order": 4, "name": "ボス", "ai": "guard", "sight": 0,
       "units": [ { "skin": "goblin_lord", "col": 25, "row": 5 } ] }
   ],
   "dialogue": {

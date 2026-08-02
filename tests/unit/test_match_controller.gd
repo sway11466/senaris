@@ -118,8 +118,9 @@ func test_attack_annihilation_finishes_once() -> void:
 
 func test_formation_boss_kill_finishes_once() -> void:
 	var s := BattleState.new(12, 8)
-	s.victory_conditions = [{"type": "defeat_unit", "unit_id": 9}]
+	s.victory_conditions = [{"type": "defeat_unit", "actor": "boss"}]
 	var f := _trinity_state(s)  # 敵 id9＝ボス（def 1＝撃破される）
+	s.unit_by_id(9).actor = "boss"  # 勝敗条件は actor で名指す（doc/gdd/map.md）
 	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
 	var mc := _mc(s)
 	var cmd := _formation_cmd(s, f["leader"], f["enemy_hex"])

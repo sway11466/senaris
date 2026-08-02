@@ -23,12 +23,12 @@ var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形�
 var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md
 
 ## 勝利条件リスト（OR＝どれか1つ満たせば勝利）。空＝殲滅のみ（従来挙動）。詳細 → doc/gdd/map.md（勝敗条件）
-## 要素は dict。現在対応: { "type": "defeat_unit", "unit_id": <int> } ＝ ボス撃破（id はステージJSONで明示採番）
+## 要素は dict。現在対応: { "type": "defeat_unit", "actor": <String> } ＝ ボス撃破（駒に actor を書いて名指す）
 var victory_conditions: Array = []
 
 ## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。
 ## 要素は dict。現在対応: { "type": "lose_base", "col": <int>, "row": <int> } ＝ 指定拠点を敵に奪われる
-##                       { "type": "lose_unit", "unit_id": <int> } ＝ 護衛対象の喪失
+##                       { "type": "lose_unit", "actors": [<String>, …] } ＝ 護衛対象の喪失
 ## 本拠地(hq)喪失の常時ルールとは別軸＝あちらは陣営の要、こちらはステージが名指しする守り物。
 var defeat_conditions: Array = []
 
@@ -106,7 +106,8 @@ func _expire_status_mods() -> void:
 			kept.append(m)
 	_status_mods = kept
 
-var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録。ボス撃破判定に使う）
+var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録）
+var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -722,10 +723,17 @@ func _unit_snapshot(u: Unit) -> Dictionary:
 ## 輸送が撃破された場合、搭乗中の駒も失われる（ネクタリス準拠）。
 func _remove_unit(unit_id: int) -> void:
 	_defeated[unit_id] = true
+	_mark_actor_defeated(unit_by_id(unit_id))
 	for p in passengers(unit_id):
 		_defeated[p.id] = true  # 巻き添え（盤上には居ないのでリストから消すだけ）
+		_mark_actor_defeated(p)
 	_passengers.erase(unit_id)
 	_take_off_board(unit_id)
+
+## 名前つきの駒（actor）の撃破を記録する。名前の無い駒は素通し。
+func _mark_actor_defeated(u: Unit) -> void:
+	if u != null and u.actor != "":
+		_defeated_actors[u.actor] = true
 
 ## 駒を盤上リストから外す（撃破記録は付けない。乗車・撃破処理の内部用）。
 func _take_off_board(unit_id: int) -> void:
@@ -770,9 +778,13 @@ func _base_has_open_neighbor(b: Base) -> bool:
 			return true
 	return false
 
-## 撃破済みの駒か（ボス撃破の勝利条件が見る記録）。盤から消えた駒は unit_by_id では引けない。
+## 撃破済みの駒か。盤から消えた駒は unit_by_id では引けないので記録を見る。
 func is_defeated(unit_id: int) -> bool:
 	return _defeated.has(unit_id)
+
+## 名指しした駒（actor）が撃破済みか。ボス撃破・護衛対象の喪失が見る。詳細 → doc/gdd/map.md
+func is_actor_defeated(actor: String) -> bool:
+	return actor != "" and _defeated_actors.has(actor)
 
 ## 駒を1体、戦闘を経ずに盤から除去する（撃破扱い＝ボス撃破の勝利条件にも効く）。
 ## 戦闘の結果ではない除去の入口＝デバッグメニューの「敵を殲滅」が使う。詳細 → doc/gdd/uiux.md
@@ -899,6 +911,7 @@ func to_dict() -> Dictionary:
 		"moved": _moved.keys(), "post_moved": _post_moved.keys(),
 		"attacked": _attacked.keys(), "done": _done.keys(),
 		"engaged": _engaged.keys(), "defeated": _defeated.keys(),
+		"defeated_actors": _defeated_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
 	}
 
@@ -940,6 +953,10 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 	s._done = _ids_to_set(data.get("done", []))
 	s._engaged = _ids_to_set(data.get("engaged", []))
 	s._defeated = _ids_to_set(data.get("defeated", []))
+	var actors: Variant = data.get("defeated_actors", [])
+	if typeof(actors) == TYPE_ARRAY:
+		for a in actors:
+			s._defeated_actors[String(a)] = true
 	s._spent = _str_keyed_to_int(data.get("spent", {}))
 	s._squad_of = _str_keyed_to_int(data.get("squad_of", {}))
 	return s

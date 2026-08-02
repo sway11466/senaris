@@ -53,7 +53,7 @@
     { "skin": "ballista",       "col": 5, "row": 7 }
   ],
   "enemy": [
-    { "ai": "charge", "units": [
+    { "order": 1, "ai": "charge", "units": [
       { "skin": "goblin",         "col": 6, "row": 7 },
       { "skin": "hobgoblin",      "col": 7, "row": 7 },
       { "skin": "goblin_archer",  "col": 8, "row": 7 },

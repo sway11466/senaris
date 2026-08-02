@@ -41,11 +41,11 @@
     { "type": "wagon",   "col": 1, "row": 4 }
   ],
   "enemy": [
-    { "name": "首無し", "ai": "weak", "units": [
+    { "order": 1, "name": "首無し", "ai": "weak", "units": [
       { "skin": "dullahan", "col": 10, "row": 5 },
       { "skin": "ghoul", "col": 9, "row": 4 }, { "skin": "ghoul", "col": 9, "row": 5 }, { "skin": "ghoul", "col": 9, "row": 6 }
     ] },
-    { "name": "屍の波", "ai": "charge", "units": [
+    { "order": 2, "name": "屍の波", "ai": "charge", "units": [
       { "skin": "ghoul", "col": 11, "row": 3 }, { "skin": "ghoul", "col": 11, "row": 4 },
       { "skin": "ghoul", "col": 11, "row": 5 }, { "skin": "ghoul", "col": 11, "row": 6 },
       { "skin": "ghoul", "col": 11, "row": 7 }, { "skin": "ghoul", "col": 12, "row": 3 },
@@ -59,9 +59,9 @@
     ] }
   ],
   "bases": [
-    { "col": 14, "row": 5, "team": "enemy", "ai": "charge",
+    { "order": 3, "col": 14, "row": 5, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] },
-    { "col": 23, "row": 5, "team": "enemy", "ai": "charge",
+    { "order": 4, "col": 23, "row": 5, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "zombie", "count": 15 }, { "skin": "skeleton", "count": 15 } ] }
   ],
   "dialogue": {

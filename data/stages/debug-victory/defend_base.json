@@ -18,7 +18,7 @@
     { "type": "novice", "col": 2, "row": 3 }
   ],
   "enemy": [
-    { "name": "拠点強襲", "ai": "raid",
+    { "order": 1, "name": "拠点強襲", "ai": "raid",
       "units": [
         { "skin": "goblin", "col": 8, "row": 3 },
         { "skin": "hobgoblin", "col": 8, "row": 5 }
@@ -29,6 +29,7 @@
       "garrison": [ { "skin": "novice", "count": 1 } ] }
   ],
   "defeat": [
-    { "type": "lose_base", "col": 4, "row": 3 }
+    { "type": "lose_base",
+      "bases": [ { "col": 4, "row": 3 } ] }
   ]
 }

@@ -208,15 +208,15 @@ func test_squad_units_follow_squad_preset() -> void:
 	s.add_base(Base.new(base_hex, 0))
 	var enemy_pos := Hex.offset_to_axial(0, 1)               # 左に敵
 	s.add_unit(Unit.new(1, 0, enemy_pos, 3))
-	# id順に手を返す: 最初は部隊なし(10)＝敵へ
+	# 行動順は部隊が先で、部隊に属さない駒は最後（doc/gdd/ai.md 行動順）。
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, 10)
-	assert_lt(Hex.distance(a.to, enemy_pos), Hex.distance(start, enemy_pos), "部隊なしは敵へ")
-	assert_true(s.move_unit(10, a.to))
-	# 次はraid部隊(11)＝拠点へ
+	assert_eq(a.unit_id, 11, "部隊の駒が先")
+	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(raider.pos, base_hex), "raid部隊は拠点へ")
+	assert_true(s.move_unit(11, a.to))
+	# 次は部隊なし(10)＝敵へ
 	var b := _brain.next_action(s, 1)
-	assert_eq(b.unit_id, 11)
-	assert_lt(Hex.distance(b.to, base_hex), Hex.distance(raider.pos, base_hex), "raid部隊は拠点へ")
+	assert_eq(b.unit_id, 10, "部隊に属さない駒は最後")
+	assert_lt(Hex.distance(b.to, enemy_pos), Hex.distance(start, enemy_pos), "部隊なしは敵へ")
 
 func test_squad_override_beats_preset() -> void:
 	# 部隊の上書き（advance）はプリセット値より優先される。
@@ -483,6 +483,52 @@ func test_ai_catalog_has_weak_preset() -> void:
 	assert_eq(String(presets["weak"]["target"]), "weak;near", "対象優先＝弱者狙い")
 	assert_eq(String(presets["weak"]["advance"]), "flank", "前進＝回り込み")
 
+# --- 行動順（order）。部隊単位・部隊内は前線から。詳細 → doc/gdd/ai.md 行動順 ---
+
+## 敵2体（部隊A・部隊B に1体ずつ）と、左端の自軍1体を置いた盤を返す。
+## 部隊の order は呼び出し側が state.squads に書く。
+func _order_state(order_a: int, order_b: int) -> BattleState:
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	s.squads.append({ "ai": "charge", "order": order_a })
+	s.squads.append({ "ai": "charge", "order": order_b })
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))
+	s.assign_squad(10, 0)
+	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(6, 1), 3))
+	s.assign_squad(11, 1)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))  # 自軍（前線＝左）
+	return s
+
+func test_squad_order_decides_which_squad_moves_first() -> void:
+	# order の小さい部隊から動く。記述順（squads の並び）ではない。
+	assert_eq(_brain.next_action(_order_state(1, 2), 1).unit_id, 10, "order 1 の部隊が先")
+	assert_eq(_brain.next_action(_order_state(2, 1), 1).unit_id, 11, "order を入れ替えれば順番も入れ替わる")
+
+func test_squad_order_falls_back_to_registration_order() -> void:
+	# order を書かない部隊は登録順に並ぶ（データが欠けても順番が壊れない）。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	s.squads.append({ "ai": "charge" })
+	s.squads.append({ "ai": "charge" })
+	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(6, 1), 3))
+	s.assign_squad(11, 1)
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))
+	s.assign_squad(10, 0)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))
+	assert_eq(_brain.next_action(s, 1).unit_id, 10, "部隊0が先＝登録順")
+
+func test_units_in_squad_move_front_first() -> void:
+	# 部隊の中は最寄り敵に近い駒から。後ろの駒を先に動かすと前の駒に塞がれるため。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	s.squads.append({ "ai": "charge", "order": 1 })
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(8, 1), 3))  # 後列（先に登録）
+	s.assign_squad(10, 0)
+	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(5, 1), 3))  # 前列
+	s.assign_squad(11, 0)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))   # 自軍＝左
+	assert_eq(_brain.next_action(s, 1).unit_id, 11, "前線に近い駒が先（登録順ではない）")
+
 # --- 拠点出撃（deploy）＝ AI所有拠点から控えを出す。詳細 → doc/gdd/ai.md §7 ---
 
 const DEPLOY_PRESETS := {
@@ -514,6 +560,24 @@ func test_base_charge_deploys_immediately() -> void:
 	assert_eq(a.kind, AiAction.Kind.DEPLOY, "charge拠点は即出撃")
 	assert_eq(a.base_hex, base_hex, "出撃元＝この拠点")
 	assert_eq(Hex.distance(a.to, base_hex), 1, "隣接マスへ出す")
+
+func test_base_deploy_takes_its_turn_by_order() -> void:
+	# 拠点も1部隊＝盤上の部隊と同じ列に並ぶ。order で出撃を先にも後にも回せる。
+	_brain.presets = DEPLOY_PRESETS
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var base_hex := Hex.offset_to_axial(8, 1)
+	var b := _add_enemy_base(s, base_hex, "charge")
+	s.squads[b.squad_index]["order"] = 1
+	s.squads.append({ "ai": "charge", "order": 2 })
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))  # 盤上の駒（別部隊）
+	s.assign_squad(10, s.squads.size() - 1)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))   # 自軍＝左
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "拠点の order が小さければ出撃が先")
+	s.squads[b.squad_index]["order"] = 3
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "拠点の order を後ろへ回せば盤上の駒が先")
+	assert_eq(a.unit_id, 10)
 
 func test_base_guard_waits_until_enemy_in_sight() -> void:
 	_brain.presets = DEPLOY_PRESETS

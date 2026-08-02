@@ -20,17 +20,17 @@ const SAMPLE := """
     { "type": "fighter", "col": 1, "row": 1 }
   ],
   "enemy": [
-    { "name": "本隊", "ai": "guard", "sight": 3, "units": [
+    { "order": 1, "name": "本隊", "ai": "guard", "sight": 3, "units": [
       { "skin": "goblin", "col": 4, "row": 1 },
-      { "id": 99, "skin": "hobgoblin", "col": 4, "row": 2 }
+      { "skin": "hobgoblin", "actor": "hobgoblin", "col": 4, "row": 2 }
     ] }
   ],
   "bases": [
-    { "col": 5, "row": 3, "team": "enemy", "ai": "charge",
+    { "order": 2, "col": 5, "row": 3, "team": "enemy", "ai": "charge",
       "garrison": [ { "skin": "goblin", "count": 4 } ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_id": 99 }
+    { "type": "defeat_unit", "actor": "hobgoblin" }
   ],
   "dialogue": {
     "intro": [
@@ -292,25 +292,38 @@ func test_base_add_remove() -> void:
 	assert_true(doc.remove_base_at(2, 2))
 
 
-# --- id・勝利条件 ---
+# --- 名指し(actor)・行動順(order)・勝利条件 ---
 
 
-func test_computed_ids_follow_stage_loader_numbering() -> void:
+func test_used_actors_collects_named_pieces() -> void:
 	var doc := MapEditorDoc.from_text(SAMPLE)
-	var ids := doc.computed_ids()
-	assert_eq(ids["p:0"], 1)      # player が 1 から
-	assert_eq(ids["e:0:0"], 2)    # 敵は続き番号
-	assert_eq(ids["e:0:1"], 99)   # 明示 id はそれを表示
+	assert_true(doc.used_actors().has("hobgoblin"), "部隊の駒の actor を拾う")
+	assert_eq(doc.used_actors().size(), 1, "名前なしの駒は数えない")
 
 
-func test_set_boss_assigns_free_id_and_victory() -> void:
+func test_set_boss_assigns_actor_and_victory() -> void:
 	var doc := MapEditorDoc.from_text(SAMPLE)
-	var id := doc.set_boss(0, 0)  # id 99 は使用済み → 98
-	assert_eq(id, 98)
-	assert_eq(doc.data["enemy"][0]["units"][0]["id"], 98)
+	# スキン名 "goblin" は未使用 → そのまま actor になる。
+	assert_eq(doc.set_boss(0, 0), "goblin")
+	assert_eq(doc.data["enemy"][0]["units"][0]["actor"], "goblin")
+	assert_false(doc.data["enemy"][0]["units"][0].has("id"), "数値 id は書かない")
 	assert_eq(doc.victory_list().size(), 2)
-	assert_eq(doc.set_boss(0, 0), 98, "再指定しても増えない")
+	assert_eq(doc.set_boss(0, 0), "goblin", "再指定しても増えない")
 	assert_eq(doc.victory_list().size(), 2)
+
+
+func test_set_boss_avoids_duplicate_actor() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	# 2体目の hobgoblin を置くと、既存の actor "hobgoblin" と衝突しない名前になる。
+	doc.add_enemy(0, "hobgoblin", 3, 3)
+	var last: int = doc.data["enemy"][0]["units"].size() - 1
+	assert_eq(doc.set_boss(0, last), "hobgoblin2")
+
+
+func test_add_squad_gets_next_order() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	assert_eq(doc.max_order(), 2, "部隊1＋AI出撃する拠点2")
+	assert_eq(doc.data["enemy"][doc.add_squad("charge")]["order"], 3, "追加した部隊は末尾の順番")
 
 
 func test_remove_victory_erases_empty_key() -> void:
@@ -461,10 +474,36 @@ func test_defeat_follows_base_move_and_removal() -> void:
 	var doc := _doc_with_base()
 	doc.add_defeat_lose_base(3, 2)
 	assert_true(doc.move(3, 2, 5, 4), "拠点を動かす")
-	var c: Dictionary = doc.defeat_list()[0]
-	assert_eq([int(c["col"]), int(c["row"])], [5, 4], "敗北条件の座標も追随する")
+	var t: Dictionary = MapEditorDoc.lose_base_targets(doc.defeat_list()[0])[0]
+	assert_eq([int(t["col"]), int(t["row"])], [5, 4], "敗北条件の座標も追随する")
 	assert_true(doc.remove_base_at(5, 4), "拠点を消す")
 	assert_true(doc.defeat_list().is_empty(), "宙に浮いた敗北条件は残さない")
+
+func test_add_defeat_lose_base_group_makes_an_and() -> void:
+	var doc := _doc_with_base()
+	doc.add_base(6, 2, "neutral", "fort")
+	doc.add_defeat_lose_base(3, 2)
+	doc.add_defeat_lose_base(6, 2, true)  # 相乗り＝両方失って初めて敗北
+	assert_eq(doc.defeat_list().size(), 1, "条件は増えない（1件の中に2対象）")
+	assert_eq(MapEditorDoc.lose_base_targets(doc.defeat_list()[0]).size(), 2)
+
+func test_add_defeat_lose_base_without_group_makes_an_or() -> void:
+	var doc := _doc_with_base()
+	doc.add_base(6, 2, "neutral", "fort")
+	doc.add_defeat_lose_base(3, 2)
+	doc.add_defeat_lose_base(6, 2)
+	assert_eq(doc.defeat_list().size(), 2, "別条件＝どちらか失えば敗北")
+
+func test_removing_one_of_an_and_keeps_the_condition() -> void:
+	var doc := _doc_with_base()
+	doc.add_base(6, 2, "neutral", "fort")
+	doc.add_defeat_lose_base(3, 2)
+	doc.add_defeat_lose_base(6, 2, true)
+	doc.remove_defeat_lose_base(3, 2)
+	assert_eq(doc.defeat_list().size(), 1, "残りの対象があれば条件は残る")
+	assert_eq(MapEditorDoc.lose_base_targets(doc.defeat_list()[0]).size(), 1)
+	doc.remove_defeat_lose_base(6, 2)
+	assert_true(doc.defeat_list().is_empty(), "最後の対象を外したら条件ごと消える")
 
 func test_defeat_key_is_omitted_when_empty() -> void:
 	var doc := _doc_with_base()

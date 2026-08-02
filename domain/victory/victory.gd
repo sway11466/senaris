@@ -33,8 +33,8 @@ static func is_over(state: BattleState) -> bool:
 ## 勝利条件タイプを足すときは、ここに分岐を1つと判定関数を1つ足す（BattleState は触らない）。
 static func condition_met(state: BattleState, c: Dictionary) -> bool:
 	match String(c.get("type", "")):
-		"defeat_unit":  # ボス撃破＝指定IDの駒が撃破済み
-			return state.is_defeated(int(c.get("unit_id", -1)))
+		"defeat_unit":  # ボス撃破＝名指し(actor)の駒が撃破済み
+			return state.is_actor_defeated(String(c.get("actor", "")))
 		"capture_hq":   # 本拠地占領＝敵 native の hq をすべて自軍が保持（hq が無ければ不成立）
 			return _enemy_hq_all_captured(state)
 	return false
@@ -42,13 +42,37 @@ static func condition_met(state: BattleState, c: Dictionary) -> bool:
 ## 敗北条件1件の判定。未知の type は満たさない扱い（前方互換）。
 ## 敗北条件タイプを足すときは、ここに分岐を1つと判定関数を1つ足す（BattleState は触らない）。
 ## 本拠地の喪失（_own_hq_lost）とは別軸＝あちらは hq の常時ルール、こちらはステージが名指しする守り物。
+##
+## 1件が複数の対象を持ち、その中は AND＝すべて失って初めて成立。条件どうしは OR（outcome のループ）。
+## 「AもBも失ったら負け」は1件に2つ、「AかBを失ったら負け」は1つずつ2件、と書き分ける。
 static func defeat_condition_met(state: BattleState, c: Dictionary) -> bool:
 	match String(c.get("type", "")):
-		"lose_base":  # 指定した拠点が敵の手に落ちる（奪還すれば解消）
-			return _base_taken_by_enemy(state, int(c.get("col", -1)), int(c.get("row", -1)))
-		"lose_unit":  # 護衛対象の喪失＝指定IDの駒が撃破済み（勝利側の defeat_unit と対）
-			return state.is_defeated(int(c.get("unit_id", -1)))
+		"lose_base":  # 名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立。奪還で解消）
+			return _all_bases_taken(state, c.get("bases"))
+		"lose_unit":  # 護衛対象をすべて失う（勝利側の defeat_unit と対）
+			return _all_actors_defeated(state, c.get("actors"))
 	return false
+
+## 指定した拠点がすべて敵の手に落ちているか。対象が空なら false（空指定で即敗北にしない）。
+## 盤に無い座標は「まだ失っていない」扱い＝不成立（作者の指定ミスで遊べなくならない）。
+static func _all_bases_taken(state: BattleState, targets: Variant) -> bool:
+	if typeof(targets) != TYPE_ARRAY or (targets as Array).is_empty():
+		return false
+	for t in targets:
+		if typeof(t) != TYPE_DICTIONARY:
+			return false
+		if not _base_taken_by_enemy(state, int(t.get("col", -1)), int(t.get("row", -1))):
+			return false
+	return true
+
+## 名指し(actor)した駒をすべて失っているか。対象が空なら false（空指定で即敗北にしない）。
+static func _all_actors_defeated(state: BattleState, actors: Variant) -> bool:
+	if typeof(actors) != TYPE_ARRAY or (actors as Array).is_empty():
+		return false
+	for a in actors:
+		if not state.is_actor_defeated(String(a)):
+			return false
+	return true
 
 ## 指定マスの拠点が敵陣営の所属になっているか。拠点が無いマスは false（作者の指定ミスで即敗北にしない）。
 static func _base_taken_by_enemy(state: BattleState, col: int, row: int) -> bool:

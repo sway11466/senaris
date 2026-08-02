@@ -19,7 +19,7 @@
     { "type": "novice", "col": 4, "row": 4 }
   ],
   "enemy": [
-    { "name": "本拠地強襲", "ai": "raid",
+    { "order": 1, "name": "本拠地強襲", "ai": "raid",
       "units": [
         { "skin": "goblin", "col": 8, "row": 3 },
         { "skin": "hobgoblin", "col": 7, "row": 1 },

@@ -2,6 +2,9 @@ extends GutTest
 ## BattleState の中断セーブ直列化（to_dict/from_dict）ラウンドトリップテスト。詳細 → doc/tech/gamesystem.md
 ## 実際のセーブと同じく JSON を通す＝数値の float 化・キーの文字列化まで含めて状態が保たれることを固定する。
 
+## 敵knight の駒番号。id は内部の通し番号＝自動採番（自軍 archer/wagon/搭乗knight の次）。
+const BOSS_ID := 4
+
 func _cat() -> Dictionary:
 	return {
 		"archer": UnitType.from_dict({ "id": "archer", "atk_ground": 8, "defense": 5, "move": 4, "range": "1-2", "max_troops": 8 }),
@@ -17,10 +20,10 @@ func _rich_state() -> BattleState:
 			{ "type": "archer", "col": 1, "row": 1 },
 			{ "type": "wagon", "col": 2, "row": 1, "passengers": [{ "type": "knight" }] },
 		],
-		"enemy": [{ "ai": "charge", "units": [{ "type": "knight", "col": 6, "row": 1, "id": 99 }] }],
+		"enemy": [{ "order": 1, "ai": "charge", "units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "kind": "hq", "garrison": [{ "type": "archer", "count": 1 }] }],
-		"victory": [{ "type": "defeat_unit", "unit_id": 99 }],
-		"defeat": [{ "type": "lose_base", "col": 4, "row": 3 }],
+		"victory": [{ "type": "defeat_unit", "actor": "boss" }],
+		"defeat": [{ "type": "lose_base", "bases": [{ "col": 4, "row": 3 }] }],
 	}
 	var s := StageLoader.build(data, _cat())
 	# 進行中の状態を模す：ターン・行動フラグ・損耗・状態補正・撃破記録を仕込む。
@@ -29,12 +32,13 @@ func _rich_state() -> BattleState:
 	s.unit_by_id(1).troops = 5      # archer 損耗
 	s.unit_by_id(1).add_experience(2)  # level 1→3
 	s.set_done(1)
-	s.mark_engaged(99)
+	s.mark_engaged(BOSS_ID)
 	s._moved[1] = true
-	s._attacked[99] = true
+	s._attacked[BOSS_ID] = true
 	s._post_moved[2] = true
 	s._spent[1] = 2
-	s._defeated[42] = true          # 盤外で撃破済みのボス（ボス撃破判定用）
+	s._defeated[42] = true                 # 盤外で撃破済みの駒
+	s._defeated_actors["ghost"] = true     # 名指しの撃破記録（ボス撃破・護衛対象の判定用）
 	s.add_status_mod({ "scope": "team", "team": 0, "op": "mul", "target": "attack", "value": 1.3, "owner_team": 0, "remaining": 2 })
 	return s
 
@@ -66,19 +70,20 @@ func test_units_roundtrip_with_board_and_growth() -> void:
 	assert_eq(a.level, 3, "経験を保つ")
 	assert_eq(a.unit_attack, 8, "性能は type から再構築")
 	assert_eq(a.attack_range, 2)
-	var e := s2.unit_by_id(99)
+	var e := s2.unit_by_id(BOSS_ID)
 	assert_eq(e.team, 1, "敵の陣営を保つ")
 	assert_eq(e.pos, Hex.offset_to_axial(6, 1))
 
 func test_action_flags_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
 	assert_true(s2.has_moved(1), "移動済みフラグ")
-	assert_true(s2.has_attacked(99), "攻撃済みフラグ")
+	assert_true(s2.has_attacked(BOSS_ID), "攻撃済みフラグ")
 	assert_true(s2._post_moved.has(2), "攻撃後移動フラグ")
 	assert_true(s2._done.has(1), "待機フラグ")
-	assert_true(s2.is_engaged(99), "AI起動フラグ")
+	assert_true(s2.is_engaged(BOSS_ID), "AI起動フラグ")
 	assert_eq(int(s2._spent.get(1, 0)), 2, "使った移動コスト")
-	assert_true(s2._defeated.has(42), "撃破記録（ボス撃破判定用）")
+	assert_true(s2._defeated.has(42), "撃破記録")
+	assert_true(s2.is_actor_defeated("ghost"), "名指しの撃破記録（ボス撃破・護衛対象の判定用）")
 
 func test_terrain_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
@@ -100,8 +105,8 @@ func test_bases_and_garrison_roundtrip() -> void:
 func test_squads_and_membership_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
 	assert_eq(s2.squads.size(), 1, "敵の charge 部隊")
-	assert_eq(s2.squad_index_of(99), 0, "敵knight は部隊0所属")
-	assert_eq(String(s2.squad_of(99).get("ai", "")), "charge", "部隊のプリセット")
+	assert_eq(s2.squad_index_of(BOSS_ID), 0, "敵knight は部隊0所属")
+	assert_eq(String(s2.squad_of(BOSS_ID).get("ai", "")), "charge", "部隊のプリセット")
 
 func test_passengers_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
@@ -118,13 +123,14 @@ func test_status_mods_roundtrip() -> void:
 func test_victory_conditions_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
 	assert_eq(s2.victory_conditions.size(), 1)
-	assert_eq(int(s2.victory_conditions[0]["unit_id"]), 99, "ボス撃破条件の対象id")
+	assert_eq(String(s2.victory_conditions[0]["actor"]), "boss", "ボス撃破条件の名指し先")
 
 func test_defeat_conditions_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
 	assert_eq(s2.defeat_conditions.size(), 1)
 	assert_eq(String(s2.defeat_conditions[0]["type"]), "lose_base", "防衛対象の敗北条件が復元される")
-	assert_eq(int(s2.defeat_conditions[0]["col"]), 4)
+	var targets: Array = s2.defeat_conditions[0]["bases"]
+	assert_eq([int(targets[0]["col"]), int(targets[0]["row"])], [4, 3], "対象の座標まで復元される")
 
 func test_empty_state_roundtrips() -> void:
 	# 最小状態（既定値）でも壊れない。

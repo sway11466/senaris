@@ -18,12 +18,12 @@
     { "type": "cleric", "col": 3, "row": 4 }
   ],
   "enemy": [
-    { "name": "湧き拠点もち", "ai": "guard", "sight": 2,
+    { "order": 1, "name": "湧き拠点もち", "ai": "guard", "sight": 2,
       "units": [
         { "skin": "goblin", "col": 6, "row": 2 },
         { "skin": "goblin", "col": 6, "row": 4 }
       ] },
-    { "name": "拠点攻略隊", "ai": "raid",
+    { "order": 2, "name": "拠点攻略隊", "ai": "raid",
       "units": [
         { "skin": "goblin", "col": 14, "row": 2 },
         { "skin": "goblin", "col": 15, "row": 3 },

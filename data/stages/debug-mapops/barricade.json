@@ -20,7 +20,7 @@
     { "type": "fighter", "col": 2, "row": 2 }
   ],
   "enemy": [
-    { "name": "見張りのゴブリン", "ai": "guard",
+    { "order": 1, "name": "見張りのゴブリン", "ai": "guard",
       "units": [
         { "skin": "goblin", "col": 10, "row": 2 },
         { "skin": "goblin", "col": 10, "row": 4 },

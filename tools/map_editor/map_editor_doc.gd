@@ -11,11 +11,12 @@ const DEFAULT_CHAR := "."  ## 既定地形（plain）のASCII文字
 ## 保存時のトップレベルキーの並び（既存ステージの手書き順に合わせる）。残りは元の順で末尾。
 const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "victory", "defeat", "ai", "dialogue"]
 
-## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers）。
-const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers"]
+## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers /
+## 敗北条件の bases・actors）。1件だけなら1行に収まる＝手書きの既存ステージと同じ見た目になる。
+const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers", "bases", "actors"]
 
 ## 辞書内キーの並び（既存ステージの手書き順に寄せる）。残りは元の順、BLOCK_ARRAY_KEYS は常に末尾。
-const ENTITY_KEY_ORDER := ["id", "name", "ai", "speaker", "type", "skin", "text", "col", "row", "team", "kind", "count", "native", "unit_id"]
+const ENTITY_KEY_ORDER := ["order", "name", "ai", "speaker", "type", "skin", "actor", "text", "col", "row", "team", "kind", "count", "native"]
 
 var data: Dictionary = {}
 var _keys_in_source := {}  ## 読み込んだファイルに元からあったキー（空でも書き戻すための記録）
@@ -357,15 +358,34 @@ func add_enemy(squad_idx: int, skin_id: String, col: int, row: int) -> bool:
 	return true
 
 
-## 敵部隊を追加して index を返す。
+## 敵部隊を追加して index を返す。行動順 order は既存の最大＋1（doc/gdd/ai.md 行動順）。
 func add_squad(ai: String, name: String = "") -> int:
 	var sq := {}
+	sq["order"] = max_order() + 1
 	if name != "":
 		sq["name"] = name
 	sq["ai"] = ai
 	sq["units"] = []
 	data["enemy"].append(sq)
 	return data["enemy"].size() - 1
+
+
+## ステージで使われている行動順 order の最大値（部隊＋AI出撃する拠点。無ければ 0）。
+func max_order() -> int:
+	var best := 0
+	for sq in data["enemy"]:
+		best = maxi(best, _order_value(sq))
+	for b in data.get("bases", []):
+		if typeof(b) == TYPE_DICTIONARY and (b as Dictionary).has("ai"):
+			best = maxi(best, _order_value(b))
+	return best
+
+
+func _order_value(holder: Variant) -> int:
+	if typeof(holder) != TYPE_DICTIONARY:
+		return 0
+	var v: Variant = (holder as Dictionary).get("order")
+	return int(v) if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT else 0
 
 
 ## 敵部隊を削除（所属ユニットごと）。
@@ -433,80 +453,104 @@ func remove_defeat_lose_base(col: int, row: int) -> void:
 	_drop_lose_base(col, row)
 
 
-## 指定マスを指す lose_base 条件を取り除く（拠点の削除に追随）。
+## 指定マスを指す防衛対象を取り除く（拠点の削除に追随）。対象が空になった条件ごと消す。
 func _drop_lose_base(col: int, row: int) -> void:
 	var d := defeat_list()
 	for i in range(d.size() - 1, -1, -1):
-		if _is_lose_base_at(d[i], col, row):
+		if not is_lose_base(d[i]):
+			continue
+		var targets := lose_base_targets(d[i])
+		for j in range(targets.size() - 1, -1, -1):
+			if _is_target_at(targets[j], col, row):
+				targets.remove_at(j)
+		if targets.is_empty():
 			d.remove_at(i)
 	if d.is_empty() and data.has("defeat"):
 		data.erase("defeat")
 
 
-## 指定マスを指す lose_base 条件の座標を付け替える（拠点の移動に追随）。
+## 指定マスを指す防衛対象の座標を付け替える（拠点の移動に追随）。
 func _move_lose_base(from_col: int, from_row: int, to_col: int, to_row: int) -> void:
 	for c in defeat_list():
-		if _is_lose_base_at(c, from_col, from_row):
-			c["col"] = to_col
-			c["row"] = to_row
+		for t in lose_base_targets(c):
+			if _is_target_at(t, from_col, from_row):
+				t["col"] = to_col
+				t["row"] = to_row
 
 
-static func _is_lose_base_at(c: Variant, col: int, row: int) -> bool:
-	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_base" \
-		and int(c.get("col", -1)) == col and int(c.get("row", -1)) == row
+static func is_lose_base(c: Variant) -> bool:
+	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_base"
 
 
-# --- id・勝利条件 ---
+## lose_base 条件が持つ対象の配列。実体を返す＝呼び出し側の追加・削除がそのまま効く。
+static func lose_base_targets(c: Variant) -> Array:
+	if not is_lose_base(c):
+		return []
+	var b: Variant = c.get("bases", [])
+	return b if typeof(b) == TYPE_ARRAY else []
 
 
-## StageLoader と同じ規則で駒の id を求める（表示用）。
-## 採番は player 順 → 各部隊の units 順。明示 "id" があってもカウンタは進む。passengers もカウンタを消費。
-## 返り値: { "p:<i>": id, "e:<s>:<i>": id }
-func computed_ids() -> Dictionary:
+static func _is_target_at(t: Variant, col: int, row: int) -> bool:
+	return typeof(t) == TYPE_DICTIONARY and int(t.get("col", -1)) == col and int(t.get("row", -1)) == row
+
+
+# --- 名指し(actor)・勝利条件 ---
+
+
+## ステージで使われている actor の集合（盤の駒・部隊の駒・拠点の控え）。重複しない名前を作るのに使う。
+func used_actors() -> Dictionary:
 	var out := {}
-	var counter := 1
-	var units: Array = data["player"]
-	for i in units.size():
-		out["p:%d" % i] = int(units[i].get("id", counter))
-		counter += 1
-		counter += _passenger_count(units[i])
-	var squads: Array = data["enemy"]
-	for s in squads.size():
-		var su: Array = squads[s].get("units", [])
-		for i in su.size():
-			out["e:%d:%d" % [s, i]] = int(su[i].get("id", counter))
-			counter += 1
-			counter += _passenger_count(su[i])
+	for u in data["player"]:
+		_collect_actor(out, u)
+	for sq in data["enemy"]:
+		for u in sq.get("units", []):
+			_collect_actor(out, u)
+	for b in data.get("bases", []):
+		if typeof(b) != TYPE_DICTIONARY:
+			continue
+		for g in b.get("garrison", []):
+			_collect_actor(out, g)
 	return out
 
 
-func _passenger_count(unit: Dictionary) -> int:
-	var p: Variant = unit.get("passengers", [])
-	return p.size() if typeof(p) == TYPE_ARRAY else 0
+func _collect_actor(out: Dictionary, unit: Variant) -> void:
+	if typeof(unit) != TYPE_DICTIONARY:
+		return
+	var a := String((unit as Dictionary).get("actor", ""))
+	if a != "":
+		out[a] = true
+	for p in (unit as Dictionary).get("passengers", []):
+		_collect_actor(out, p)
 
 
-## 駒をボス指定＝明示 id を振り、勝利条件 defeat_unit を追加。振った id を返す。
-## id は 99 から下りで空きを使う（既存ステージの慣習）。既に明示 id 持ちならそれを使う。
-func set_boss(squad_idx: int, unit_idx: int) -> int:
+## base を土台に、ステージ内で重複しない actor 名を作る（"necromancer" → "necromancer2" …）。
+func _free_actor(base: String) -> String:
+	var stem := base if base != "" else "boss"
+	var used := used_actors()
+	if not used.has(stem):
+		return stem
+	var n := 2
+	while used.has("%s%d" % [stem, n]):
+		n += 1
+	return "%s%d" % [stem, n]
+
+
+## 駒をボス指定＝actor を振り、勝利条件 defeat_unit を追加。振った actor を返す。
+## 既に actor 持ちならそれを使う。無ければ skin（無ければ type）を土台に重複しない名前を作る。
+## 駒を指す手段は actor 一本＝数値 id はデータに書かない（doc/gdd/map.md 名前つきの駒）。
+func set_boss(squad_idx: int, unit_idx: int) -> String:
 	var unit: Dictionary = data["enemy"][squad_idx]["units"][unit_idx]
-	var id: int
-	if unit.has("id"):
-		id = int(unit["id"])
-	else:
-		var used := {}
-		for v in computed_ids().values():
-			used[int(v)] = true
-		id = 99
-		while used.has(id):
-			id -= 1
-		unit["id"] = id
+	var actor := String(unit.get("actor", ""))
+	if actor == "":
+		actor = _free_actor(String(unit.get("skin", unit.get("type", ""))))
+		unit["actor"] = actor
 	if typeof(data.get("victory")) != TYPE_ARRAY:
 		data["victory"] = []
 	for c in data["victory"]:
-		if String(c.get("type", "")) == "defeat_unit" and int(c.get("unit_id", -1)) == id:
-			return id  # 既に条件あり
-	data["victory"].append({ "type": "defeat_unit", "unit_id": id })
-	return id
+		if String(c.get("type", "")) == "defeat_unit" and String(c.get("actor", "")) == actor:
+			return actor  # 既に条件あり
+	data["victory"].append({ "type": "defeat_unit", "actor": actor })
+	return actor
 
 
 func victory_list() -> Array:
@@ -529,17 +573,36 @@ func defeat_list() -> Array:
 
 ## 拠点(col,row)を防衛対象にする＝奪われたら敗北。既に指定済みなら何もしない。
 ## 拠点の無いマスは受け付けない（作者の指定ミスを保存前に弾く）。
-func add_defeat_lose_base(col: int, row: int) -> bool:
+## group=false: 単独の条件として足す＝他の条件とOR（どれか1つ失えば敗北）。
+## group=true: 直近の lose_base 条件に相乗り＝同じ条件内はAND（すべて失って初めて敗北）。
+func add_defeat_lose_base(col: int, row: int, group: bool = false) -> bool:
 	if base_at(col, row).is_empty():
 		return false
+	if has_defeat_lose_base(col, row):
+		return true  # 既に指定済み
 	if typeof(data.get("defeat")) != TYPE_ARRAY:
 		data["defeat"] = []
-	for c in data["defeat"]:
-		if String(c.get("type", "")) == "lose_base" \
-				and int(c.get("col", -1)) == col and int(c.get("row", -1)) == row:
-			return true  # 既に条件あり
-	data["defeat"].append({ "type": "lose_base", "col": col, "row": row })
+	var target := { "col": col, "row": row }
+	var d: Array = data["defeat"]
+	if group:
+		for i in range(d.size() - 1, -1, -1):
+			if not is_lose_base(d[i]):
+				continue
+			if typeof(d[i].get("bases")) != TYPE_ARRAY:
+				d[i]["bases"] = []
+			d[i]["bases"].append(target)
+			return true
+	d.append({ "type": "lose_base", "bases": [target] })
 	return true
+
+
+## そのマスが既にどこかの lose_base 条件の対象になっているか。
+func has_defeat_lose_base(col: int, row: int) -> bool:
+	for c in defeat_list():
+		for t in lose_base_targets(c):
+			if _is_target_at(t, col, row):
+				return true
+	return false
 
 
 func remove_defeat(index: int) -> void:
