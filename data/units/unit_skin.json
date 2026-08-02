@@ -109,7 +109,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "punch",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -240,7 +240,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "claw",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -314,7 +314,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -446,7 +446,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -515,7 +515,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "holy",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -539,7 +539,7 @@
 				},
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -594,7 +594,7 @@
 				},
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "arrow_bone",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -633,7 +633,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "curse",
 					"combat_lineup": "retinue",
 					"description": "",
 					"images": {},
@@ -745,7 +745,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -771,7 +771,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "magic_bolt",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -799,7 +799,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "magic_bolt",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},

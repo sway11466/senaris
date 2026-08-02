@@ -15,10 +15,24 @@
 			"scale": 1.15
 		},
 		{
+			"effect_id": "slash_l",
+			"kind": "impact",
+			"memo": "両手武器の薙ぎ払い。太い弧＋残り筋",
+			"name": "斬撃（大）",
+			"scale": 1.45
+		},
+		{
 			"effect_id": "arrow",
 			"kind": "projectile",
 			"memo": "弓の矢",
 			"name": "矢",
+			"scale": 0.9
+		},
+		{
+			"effect_id": "arrow_bone",
+			"kind": "projectile",
+			"memo": "骨の矢＋冷たい青緑の燐光",
+			"name": "呪いの矢",
 			"scale": 0.9
 		},
 		{
@@ -27,6 +41,34 @@
 			"memo": "スリングの小石＝速度線ごと兵士の3割ほど",
 			"name": "投石",
 			"scale": 0.32
+		},
+		{
+			"effect_id": "magic_bolt",
+			"kind": "projectile",
+			"memo": "青白い魔力の弾",
+			"name": "魔弾",
+			"scale": 0.7
+		},
+		{
+			"effect_id": "curse",
+			"kind": "impact",
+			"memo": "浮かび上がる青緑のドクロ",
+			"name": "呪い",
+			"scale": 1.0
+		},
+		{
+			"effect_id": "claw",
+			"kind": "impact",
+			"memo": "3本の裂け目",
+			"name": "爪痕",
+			"scale": 0.9
+		},
+		{
+			"effect_id": "punch",
+			"kind": "impact",
+			"memo": "徒手の一撃。同心の衝撃線",
+			"name": "打撃",
+			"scale": 0.8
 		},
 		{
 			"effect_id": "holy",

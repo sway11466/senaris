@@ -2,6 +2,12 @@ effect_id,name,kind,scale,memo
 エフェクトID,表示名,出し方,表示倍率,備考
 slash_s,斬撃（小）,impact,0.85,軽い剣の一閃。細い弧
 slash_m,斬撃（中）,impact,1.15,標準の剣。太く長い弧
+slash_l,斬撃（大）,impact,1.45,両手武器の薙ぎ払い。太い弧＋残り筋
 arrow,矢,projectile,0.9,弓の矢
+arrow_bone,呪いの矢,projectile,0.9,骨の矢＋冷たい青緑の燐光
 stone,投石,projectile,0.32,スリングの小石＝速度線ごと兵士の3割ほど
+magic_bolt,魔弾,projectile,0.7,青白い魔力の弾
+curse,呪い,impact,1.0,浮かび上がる青緑のドクロ
+claw,爪痕,impact,0.9,3本の裂け目
+punch,打撃,impact,0.8,徒手の一撃。同心の衝撃線
 holy,聖光,impact,1.0,近接の聖なる一撃。射程1なので飛ばさない

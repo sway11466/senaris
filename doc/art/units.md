@@ -229,7 +229,7 @@ in the subject) for easy cutout. Square 1:1 composition.
 
 保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。書き出しは [`tools/gen_effect.ps1`](../../tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
 
-チュートリアル１で要るのは5枚（斬撃小・斬撃中・矢・投石・聖光）。
+`effect_id` は武器の種類を接頭辞にし、変種を接尾辞で足す（`slash_s` / `slash_m` / `slash_l`、`arrow` / `arrow_bone`）。並べたときに同じ武器種が固まり、変種が増えても列が散らない。
 
 ---
 
