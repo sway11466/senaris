@@ -232,6 +232,10 @@ func play(detail: Dictionary) -> void:
 ## シェイク・フラッシュ・損害数・兵量バーは最後の1発が届いた時点に揃える。
 func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dictionary, gen: int) -> void:
 	var eff := _effect_of(by)
+	# cmb_attack。1発ずつではなく一撃につき1回鳴らす＝8体並ぶと8連射になって音が潰れる。
+	# 素材はエフェクトIDの規約解決（assets/sfx/{effect_id}.ogg）。無ければ無音で進む。
+	if eff != null:
+		SfxPlayer.play_sfx(eff.effect_id)
 	# 発数は「いま殴った側に並んでいる数」。反撃では既に減った後の隊列が振るので、
 	# detail の戦闘前の兵量を使うと、2体しか居ないのに5発斬るような絵になる。
 	var shots := clampi(int(_shown.get(_other_side(side), 1)), 1, POS.size())

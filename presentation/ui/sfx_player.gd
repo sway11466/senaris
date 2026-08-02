@@ -38,11 +38,24 @@ static func play_event(event_id: String) -> void:
 	if _instance != null:
 		_instance.play(event_id)
 
+## 素材IDを直に指定して鳴らす入口。対応表を通さない発火点のためにある。
+## 攻撃エフェクト（cmb_attack）は素材がエフェクトIDで決まり、BIND に並べると
+## エフェクトを足すたびに表が伸びる＝規約解決（assets/sfx/{effect_id}.ogg）に任せる。
+static func play_sfx(sfx_id: String) -> void:
+	if _instance != null:
+		_instance.play_id(sfx_id)
+
 ## 発火点IDの音を鳴らす。対応表に無い／ファイルが未配置なら無音で進む。
 func play(event_id: String) -> void:
 	var sfx_id := SfxCatalog.sfx_of(event_id)
 	if sfx_id.is_empty():
 		return  # 対応表に無い発火点＝まだ音を割り当てていない。ログも出さない（設計どおりの無音）
+	play_id(sfx_id)
+
+## 素材IDの音を鳴らす。未配置なら無音＋ログ1行で進む。
+func play_id(sfx_id: String) -> void:
+	if sfx_id.is_empty():
+		return
 	var now := Time.get_ticks_msec() / 1000.0
 	var last: float = _last_played.get(sfx_id, -1.0)
 	if last >= 0.0 and now - last < REPEAT_GUARD_SEC:
