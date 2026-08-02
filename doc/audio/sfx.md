@@ -220,7 +220,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 採否が決まったら、その `sfx_id` の候補を1つに絞り、`assets/sfx-src/credits.md` に出典を記録する。候補の列が消えて素材が1つ書かれている状態が、決まった印になる。
 
-場所の表記は「年 パート番号 / ライブラリ名」。zip の URL は products 側の `_raw/<年>_<パート>.json` にある。
+場所の表記は「年 パート番号 / ライブラリ名」。zip の URL は products 側の `raw/<年>_<パート>.json` にある。
 
 移動音（`map_move`、移動タイプごとの動的解決）。
 

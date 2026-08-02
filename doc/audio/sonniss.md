@@ -78,7 +78,14 @@ zip 本体（199 GiB）を落とさずに索引だけを作っている。zip �
 C:\Users\tappe\OneDrive\project\products\assets\audio\sfx\sonniss.com\
 ```
 
-再生成の手順と、つまずいた点（User-Agent 必須・Range が無視されることがある・curl の `--max-filesize` が HEAD にも効く）は、同フォルダの `README.md` に残してある。
+| サブフォルダ | 中身 |
+| --- | --- |
+| `raw/` | 各 zip のセントラルディレクトリから読んだ生の一覧（JSON、年_パート単位）。zip の URL はここにある |
+| `tools/` | 索引を再生成するスクリプト |
+| `tracklists/` | 公式 Tracklist の原本（xlsx / CSV / 2015のみ PDF） |
+| `meta/` | 2026年版 zip に同梱の Readme / License / Filelist |
+
+再生成の手順と、つまずいた点（User-Agent 必須・Range が無視されることがある・curl の `--max-filesize` が HEAD にも効く）は、同フォルダの `README.md` に残してある。再生成したら `sonniss_index.tsv` にも反映すること（手順は README にある）。
 
 ## 索引の検証
 
