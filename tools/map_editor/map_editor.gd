@@ -67,7 +67,13 @@ var _press_cell := MapEditorBoard.OUTSIDE  # 選択モードのドラッグ移�
 
 func _ready() -> void:
 	get_window().title = "Senaris マップエディタ"
+	# 本体は 1280x720 を拡大表示する設定（project.godot の stretch）だが、ツールはドット等倍で使う
+	# ＝ウィンドウを広げたぶんだけ編集領域が増える。プロジェクト設定は触らず、この窓だけ切る。
+	get_window().content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 	get_window().min_size = Vector2i(1200, 760)
+	var usable := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size
+	get_window().size = Vector2i(mini(1600, usable.x), mini(900, usable.y))  # 画面より大きくはしない
+	get_window().move_to_center()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_load_catalogs()
 	_doc = MapEditorDoc.new_stage()
