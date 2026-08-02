@@ -24,8 +24,10 @@
 
 | sfx_id | 用途 | 出典 | 入手形式 | ライセンス | 改変度 |
 |---|---|---|---|---|---|
-| `slash_s` | 斬撃（小）のエフェクト | Sonniss GDC 2026 / 344 Audio - Historical Weapons Vol. 2 `WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2` | wav 192kHz/24bit | 商用可・改変可・表記不要／再配布不可・AI学習不可 | 未着手 |
-| `slash_m` | 斬撃（中）のエフェクト | Sonniss GDC 2026 / David Dumais Audio - Melee Weapons Pack 2 `METLFric_SWING SCRAPE ... Long Blade 14` | wav 96kHz/24bit | 同上 | 未着手 |
+| `slash_s` | 斬撃（小）のエフェクト | Sonniss GDC 2026 / 344 Audio - Historical Weapons Vol. 2 `WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2` | wav 192kHz/24bit | 商用可・改変可・表記不要／再配布不可・AI学習不可 | 8.46〜9.06秒を切り出し、+0.9 dB。slash_s_recipe.txt |
+| `slash_m` | 斬撃（中）のエフェクト | Sonniss GDC 2026 / David Dumais Audio - Melee Weapons Pack 2 `METLFric_SWING SCRAPE ... Long Blade 14` | wav 96kHz/24bit | 同上 | 切り出しなし、-5.2 dB。slash_m_recipe.txt |
+| `holy` | 聖光のエフェクト | Sonniss GDC 2026 / Cinematic Sound Design - User Interface `Button Arp Twinkle` | wav 96kHz/24bit | 同上 | 切り出しなし、-4.5 dB。holy_recipe.txt |
+| `magic_bolt` | 魔弾のエフェクト | Sonniss GDC 2026 / 344 Audio - Elemental Palette Designed Vol. 1 `WINDDsgn_Wind, Rush, Whoosh, Long x5 01` | wav 96kHz/24bit | 同上 | 飛翔のみ（0.02〜0.60秒・着弾を落とす）、+6.8 dB。magic_bolt_recipe.txt |
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 未着手 |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。

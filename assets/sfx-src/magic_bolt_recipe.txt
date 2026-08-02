@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2026/magic_bolt__WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav" -af "atrim=0.02:0.60,volume=6.8dB" -c:a pcm_s24le magic_bolt.wav

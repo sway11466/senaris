@@ -197,6 +197,22 @@ BGM と同じ流儀に揃える（[bgm.md](bgm.md)）。音量はミキサーの
 
 用途によって基準から外してよい。外した素材は `gen_sfx.ps1` の `$IntendedPeak` に狙いの値を書いて記録する。書かないと、後から見た者が「ずれている」と判断して基準へ戻してしまう。現在の例外は `ui_hover` の -11 dBFS で、ホバーと文字送りで鳴り続けるため他より控えめに置いている。
 
+### 外部素材はゲインを当てて合わせる
+
+上の「ツールは触らない」は自作素材の話。外部素材にはフェーダーが無いので、切り出しの段階でゲインを当てて基準に寄せる。フェーダーの設定ミスを隠す心配は、そもそもフェーダーが無いため起きない。
+
+かわりにレシピを残す。`assets/sfx-src/{sfx_id}_recipe.txt` に、原本から `{sfx_id}.wav` を作った ffmpeg のコマンドをそのまま1行で書く。地形タイルの `{skin_id}_recipe.txt` と同じ流儀（[../art/terrain.md](../art/terrain.md)）で、狙いも同じ。切り出し位置とゲイン量は素材ごとに実測して決めるため、残さないと作り直しのたびに測り直しになる。どの原本を使ったかもレシピが示す。
+
+```
+ffmpeg -y -i "sonniss/2026/magic_bolt__WINDDsgn_....wav" -af "atrim=0.02:0.60,volume=6.8dB" -c:a pcm_s24le magic_bolt.wav
+```
+
+`atrim` が切り出し、`volume` がゲイン。`-c:a pcm_s24le` は必須で、付けないと ffmpeg が 16bit に落とす。原本は 96〜192kHz / 24bit なので、ogg にする前にここで削る意味はない。
+
+参照する原本は必ず `sonniss/<年>/` に置いたものにする。試聴用に切った中間ファイルを指すと、それを消した時点で再現できなくなる。
+
+原本は無加工のまま残す。レシピは `.txt` なのでコミットされ、`.wav` は両方とも gitignore で残らない。つまりリポジトリには「どう作ったか」だけが残り、再配布不可の素材そのものは入らない。
+
 ベロシティで音量を変えない。打楽器では強打サンプルに切り替わり、音量ではなく音色が変わる。フェーダーは純粋な音量なのでこの問題がない。
 
 揃える指標は BGM と違う。BGM は統合ラウドネス（-23 LUFS）、効果音はピーク（dBFS）。統合ラウドネスは 400ms のブロックにゲートを掛けて求めるため、1秒未満の音では成立しない（実測: 0.40秒の `ui_cancel` は -70 LUFS ＝「該当するブロック無し」を返す）。
@@ -267,24 +283,24 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | | `BOW Arrow Hit 05.wav`（着弾） | 2020 p9 / SmartSoundFX – Medieval |
 | `stone` | `Bluezone_BC0297_stone_impact_015.wav`（着弾） | 2024 p1 / BluezoneCorp - Stone Impact |
 | | `PM_RI_Source_53 Rocks Impact Hit Single Stone.wav`（着弾） | 2020 p5 / PMSFX - Rocky Impacts |
-| `magic_bolt` | `SCIWeap_Flyby Plasma J 01_RSCPC_SFEW.wav` | 2024 p6 / Rescopic Sound - Sci-Fi Energy Weapons |
-| | `SCIWeap_Shot Pulse YR 05_RSCPC_SFEW.wav`（発射） | 2024 p6 / 同上 |
-| | `WHSH_Pure SciFi-Whoosh Fast 03_RSCPC_DW.wav` | 2024 p6 / Rescopic Sound - Distinct Whooshes |
-| | `Laser_Beam_004.wav` | 2024 p1 / Doex Studio - 90s Anime SFX Pack |
+| `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
 | `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
-| | `Helinä,windchimes,aluminum,pipes,woodclapper,...` | 2019 p2 / Eiravaein Works - Helina |
-| | `Enchanting_Bells_4.wav` | 2023 p2 / CB Sound Design - Dreamcatcher |
-| | `MAGMisc_Magic Christmas Bells 2_344 Audio_Christmas.wav` | 2026 p1 / 344 Audio - Christmas Vol. 1 |
 
 `slash_s` と `slash_m` は試聴して決めた。`slash_l` は未試聴で、Weapon Swings が High / Normal / Low に分かれているのでそこから取る。
 
-`magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感が近い。この手の音はファンタジー系ライブラリよりSF系のほうが揃っており、Sci-Fi Energy Weapons の `Flyby`（飛行）と `Shot`（発射）は名前のとおり撃つ側と通過側で分かれている。ただしSF素材はそのままだと機械的に寄るため、質感が浮くようなら高域を削るなどの加工が要る。
+`magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 
-`holy`（聖光＝近接の聖なる一撃・impact）はキラキラした音を当てる。伸びる魔法音ではなく、粒が立つ短い音。`MAGAngl`（Angelic）が付いた Fantasy Game 2 を試聴したが、明るい一撃ではなく水魔法・回復系に聞こえたため外した。名前に Bright / Positive とあっても実体は柔らかく伸びる音であることが多く、同じ理由で `Buff_Positive` 系も期待しにくい。狙うのは風鈴・鈴・アルペジオのほうで、上の4本はその方向で拾ったもの。
-
-この帯域は MuseScore でも作れる（グロッケン＝きらめき、チューブラーベル＝死と神域）。`holy` は外部調達にこだわらず自作と比べて決める。
+`holy`（聖光＝近接の聖なる一撃・impact）はキラキラした音を当てる。伸びる魔法音ではなく、粒が立つ短い音。試聴して決めた。`MAGAngl`（Angelic）が付いた Fantasy Game 2 は、明るい一撃ではなく水魔法・回復系に聞こえたため外した。名前に Bright / Positive とあっても実体は柔らかく伸びる音であることが多く、同じ理由で `Buff_Positive` 系も期待しにくい。狙うのは風鈴・鈴・アルペジオのほう。
 
 `curse` `claw` `punch` `arrow_bone` は未探索。
+
+### 攻撃エフェクトの素材に着弾音を含めない
+
+外部素材は「飛んで当たる」までを1ファイルに収めていることが多い。攻撃エフェクトに採るときは着弾を落として、飛翔・振り抜きまでで切る。
+
+`cmb_attack` と `cmb_hit` は別々に鳴り、`cmb_hit` は損害の結果で3種に分岐する（上記の動的解決）。つまり着弾音は「弾かれた・減った・全滅した」を伝える情報の音で、攻撃側の素材にも着弾が入っていると二重に鳴って情報が濁る。
+
+`magic_bolt` に採った素材は 1.05 秒に飛翔（0.03〜0.60秒）と着弾（0.60〜1.02秒）が入っていたため、飛翔だけを切り出した。落とした着弾部分は原本に残っているので、`cmb_hit` 系の素材として使い回せる。
 
 盤の操作。
 
@@ -319,13 +335,17 @@ assets/
   sfx-src/              ← 制作元（.gdignore を置いて Godot のスキャン対象外にする）
     .gdignore
     ui_confirm.mscz     ← 楽音系の原本
-    ui_confirm.wav      ← 書き出し中間物（コミットしない）
+    ui_confirm.wav      ← gen_sfx.ps1 の入力（コミットしない）
+    slash_s.wav         ← 物音系も同じ位置に置く。原本ではなく1テイクに絞ったもの
     credits.md          ← 権利・ライセンス台帳
+    sonniss/2026/       ← 外部素材の原本。無加工・多テイクのまま（コミットしない）
+    sonniss/trash/2026/ ← 試聴して不採用にしたもの。消さずに残す
 data/audio/
   sfx.csv               ← 素材台帳（sfx_id・種別・状態・出典・ライセンス）
   sfx_bind.csv          ← 対応表（event_id → sfx_id）
 ```
 
+- 外部素材は3段で持つ。原本（`sonniss/<年>/`）→ 1テイクに絞ったもの（`sfx-src/{sfx_id}.wav`）→ ゲーム用（`sfx/{sfx_id}.ogg`）。絵の `_01_raw` → `_03_master` → `assets/units/` と同型。原本は多テイクの詰め合わせであることが多く、そのままでは鳴らせない。どちらの `.wav` も gitignore 済みで、Sonniss の素材は再配布不可なのでコミットしてはいけない。
 - 形式は `.ogg`（Ogg Vorbis 限定）。同じ拡張子でも Ogg Opus は Godot が読めないため、書き出し時にコーデックを確認する（[bgm.md](bgm.md) と同じ罠）。
 - 効果音はループしない。`.import` の `loop` は false のままでよい。
 - 短い音が多く尺が総じて軽いため、圧縮率は BGM ほど攻めなくてよい。歯切れが鈍るようなら `.wav` のまま載せる判断もありうる。

@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2026/slash_s__WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav" -af "atrim=8.46:9.06,volume=0.9dB" -c:a pcm_s24le slash_s.wav
