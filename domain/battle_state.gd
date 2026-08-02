@@ -26,6 +26,12 @@ var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 �
 ## 要素は dict。現在対応: { "type": "defeat_unit", "unit_id": <int> } ＝ ボス撃破（id はステージJSONで明示採番）
 var victory_conditions: Array = []
 
+## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。
+## 要素は dict。現在対応: { "type": "lose_base", "col": <int>, "row": <int> } ＝ 指定拠点を敵に奪われる
+##                       { "type": "lose_unit", "unit_id": <int> } ＝ 護衛対象の喪失
+## 本拠地(hq)喪失の常時ルールとは別軸＝あちらは陣営の要、こちらはステージが名指しする守り物。
+var defeat_conditions: Array = []
+
 ## 敵チーム既定のAIプリセットラベル（ステージJSONの "ai"。空＝charge）。詳細 → doc/gdd/ai.md
 ## 部隊(squad)に属するユニットは部隊の割り当てが優先。これは部隊外ユニットの既定。
 var enemy_ai: String = ""
@@ -886,6 +892,7 @@ func to_dict() -> Dictionary:
 		"terrain": terrain_out,
 		"bases": bases_out,
 		"victory_conditions": victory_conditions,
+		"defeat_conditions": defeat_conditions,
 		"squads": squads,
 		"status_mods": _status_mods,
 		"passengers": pass_out,
@@ -915,6 +922,8 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 			s._bases.append(Base.from_dict(bd, catalog))
 	var vc: Variant = data.get("victory_conditions", [])
 	s.victory_conditions = vc if typeof(vc) == TYPE_ARRAY else []
+	var dc: Variant = data.get("defeat_conditions", [])
+	s.defeat_conditions = dc if typeof(dc) == TYPE_ARRAY else []
 	var sq: Variant = data.get("squads", [])
 	s.squads = sq if typeof(sq) == TYPE_ARRAY else []
 	var sm: Variant = data.get("status_mods", [])

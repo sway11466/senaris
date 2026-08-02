@@ -64,6 +64,10 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
+	# 敗北条件リスト（OR）。例: "defeat": [{ "type": "lose_base", "col": 10, "row": 4 }]
+	var defeat: Variant = data.get("defeat", [])
+	if typeof(defeat) == TYPE_ARRAY:
+		state.defeat_conditions = defeat
 	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
 	state.roster = _parse_roster(data.get("roster"))  # fresh（既定）/carryover。受け渡しは main が RosterStore 経由で配線

@@ -177,3 +177,85 @@ func test_victory_helper_judges_single_condition() -> void:
 	assert_true(Victory.condition_met(s, boss), "撃破済みなら成立")
 	assert_false(Victory.condition_met(s, { "type": "no_such_type" }), "未知の type は満たさない")
 	assert_true(s.is_defeated(BOSS_ID), "撃破の記録は state 側の口から引ける")
+
+
+# --- 敗北条件リスト（defeat）。本拠地喪失の常時ルールとは別軸＝ステージが名指しする守り物。---
+
+## 自軍の駒＋敵の占領役＋守るべき中立拠点（col4,row4）の盤。
+func _defend_state() -> BattleState:
+	var s := BattleState.new(8, 8)
+	var hex := Hex.offset_to_axial(4, 4)
+	s.defeat_conditions = [{ "type": "lose_base", "col": 4, "row": 4 }]
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	var raider := Unit.new(2, 1, Hex.neighbor(hex, 3), 3)  # 拠点の隣に敵の占領役
+	raider.can_capture = true
+	s.add_unit(raider)
+	s.add_base(Base.new(hex, Base.NEUTRAL, "fort"))  # 中立の砦＝hqではない
+	return s
+
+func test_lose_base_defeat_when_enemy_takes_it() -> void:
+	var s := _defend_state()
+	assert_eq(s.outcome(), BattleState.ONGOING, "中立のうちは継続（未占領で即敗北にしない）")
+	var hex := Hex.offset_to_axial(4, 4)
+	s.current_team = 1  # 敵の手番にする（移動は手番側の駒しか動かせない）
+	assert_true(s.move_unit(2, hex), "敵の占領役が拠点へ進入")
+	assert_eq(s.base_at(hex).team, 1, "進入した瞬間に敵のもの")
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "hqでなくても、名指しした拠点を奪われたら敗北")
+
+func test_lose_base_is_cleared_by_retaking() -> void:
+	var s := _defend_state()
+	var hex := Hex.offset_to_axial(4, 4)
+	s.base_at(hex).team = 1
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS)
+	s.base_at(hex).team = 0  # 奪還
+	assert_eq(s.outcome(), BattleState.ONGOING, "取り返せば敗北条件は解消する")
+
+func test_lose_base_ignores_missing_base() -> void:
+	# 作者が消した拠点を指したままでも即敗北にしない（指定ミスで遊べなくならない）。
+	var s := BattleState.new(8, 8)
+	s.defeat_conditions = [{ "type": "lose_base", "col": 4, "row": 4 }]
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	assert_eq(s.outcome(), BattleState.ONGOING, "拠点が無いマスの指定は不成立")
+
+func test_lose_unit_defeat_on_escort_death() -> void:
+	# 護衛対象の喪失（勝利側の defeat_unit と対）。
+	var s := BattleState.new(8, 8)
+	s.defeat_conditions = [{ "type": "lose_unit", "unit_id": 7 }]
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	var vip := Unit.new(7, 0, Hex.offset_to_axial(2, 2), 3, 1)  # 護衛対象（兵1）
+	s.add_unit(vip)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	assert_eq(s.outcome(), BattleState.ONGOING, "生きている間は継続")
+	s.remove_unit(7)
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "護衛対象を失ったら敗北")
+
+func test_unknown_defeat_type_is_ignored() -> void:
+	var s := BattleState.new(8, 8)
+	s.defeat_conditions = [{ "type": "no_such_defeat" }]
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	assert_eq(s.outcome(), BattleState.ONGOING, "未知タイプは満たさない扱い（前方互換）")
+
+func test_defeat_wins_over_victory_condition() -> void:
+	# 勝利条件と同時に成立したら敗北を優先（既存の敗北優先方針）。
+	var s := _defend_state()
+	var hex := Hex.offset_to_axial(4, 4)
+	s.base_at(hex).team = 1
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": 2 }]
+	s.remove_unit(2)  # 敵を全滅させたが拠点は奪われたまま
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "敗北条件が勝利より優先される")
+
+func test_loader_reads_defeat_list() -> void:
+	var s := StageLoader.build({
+		"cols": 6, "rows": 6,
+		"player": [ { "type": "cleric", "col": 0, "row": 0 } ],
+		"bases": [ { "col": 3, "row": 3, "team": "neutral", "kind": "fort" } ],
+		"defeat": [ { "type": "lose_base", "col": 3, "row": 3 } ],
+	})
+	assert_eq(s.defeat_conditions.size(), 1, "defeat リストが載る")
+	assert_eq(String(s.defeat_conditions[0]["type"]), "lose_base")
+
+func test_loader_defaults_to_empty_defeat() -> void:
+	var s := StageLoader.build({ "cols": 6, "rows": 6 })
+	assert_true(s.defeat_conditions.is_empty(), "defeat 未指定＝空リスト（常時ルールのみ）")

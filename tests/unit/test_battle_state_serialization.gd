@@ -20,6 +20,7 @@ func _rich_state() -> BattleState:
 		"enemy": [{ "ai": "charge", "units": [{ "type": "knight", "col": 6, "row": 1, "id": 99 }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "kind": "hq", "garrison": [{ "type": "archer", "count": 1 }] }],
 		"victory": [{ "type": "defeat_unit", "unit_id": 99 }],
+		"defeat": [{ "type": "lose_base", "col": 4, "row": 3 }],
 	}
 	var s := StageLoader.build(data, _cat())
 	# 進行中の状態を模す：ターン・行動フラグ・損耗・状態補正・撃破記録を仕込む。
@@ -118,6 +119,12 @@ func test_victory_conditions_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())
 	assert_eq(s2.victory_conditions.size(), 1)
 	assert_eq(int(s2.victory_conditions[0]["unit_id"]), 99, "ボス撃破条件の対象id")
+
+func test_defeat_conditions_roundtrip() -> void:
+	var s2 := _roundtrip(_rich_state())
+	assert_eq(s2.defeat_conditions.size(), 1)
+	assert_eq(String(s2.defeat_conditions[0]["type"]), "lose_base", "防衛対象の敗北条件が復元される")
+	assert_eq(int(s2.defeat_conditions[0]["col"]), 4)
 
 func test_empty_state_roundtrips() -> void:
 	# 最小状態（既定値）でも壊れない。

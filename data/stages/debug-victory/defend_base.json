@@ -1,0 +1,34 @@
+{
+  "turn_limit": 30,
+  "name": "debug-defend-base",
+  "cols": 12,
+  "rows": 7,
+  "margin": 0,
+  "terrain": [
+    "............",
+    "............",
+    "............",
+    "....O.......",
+    "............",
+    "............",
+    "............"
+  ],
+  "player": [
+    { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "novice", "col": 2, "row": 3 }
+  ],
+  "enemy": [
+    { "name": "拠点強襲", "ai": "raid",
+      "units": [
+        { "skin": "goblin", "col": 8, "row": 3 },
+        { "skin": "hobgoblin", "col": 8, "row": 5 }
+      ] }
+  ],
+  "bases": [
+    { "col": 4, "row": 3, "team": "neutral", "kind": "fort",
+      "garrison": [ { "skin": "novice", "count": 1 } ] }
+  ],
+  "defeat": [
+    { "type": "lose_base", "col": 4, "row": 3 }
+  ]
+}

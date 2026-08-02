@@ -440,3 +440,35 @@ func test_margin_is_written_even_when_absent_from_the_source() -> void:
 	var out: Dictionary = JSON.parse_string(doc.to_text())
 	assert_true(out.has("margin"), "margin キーが書き出される")
 	assert_eq(int(out["margin"]), 0)
+
+# --- 敗北条件（防衛対象の拠点） ---
+
+func _doc_with_base() -> MapEditorDoc:
+	var doc := MapEditorDoc.new_stage()
+	doc.add_base(3, 2, "neutral", "fort")
+	return doc
+
+func test_add_defeat_lose_base_needs_a_base() -> void:
+	var doc := _doc_with_base()
+	assert_false(doc.add_defeat_lose_base(0, 0), "拠点の無いマスは防衛対象にできない")
+	assert_true(doc.defeat_list().is_empty())
+	assert_true(doc.add_defeat_lose_base(3, 2), "拠点のマスは指定できる")
+	assert_eq(doc.defeat_list().size(), 1)
+	assert_true(doc.add_defeat_lose_base(3, 2), "二重指定は増やさない")
+	assert_eq(doc.defeat_list().size(), 1)
+
+func test_defeat_follows_base_move_and_removal() -> void:
+	var doc := _doc_with_base()
+	doc.add_defeat_lose_base(3, 2)
+	assert_true(doc.move(3, 2, 5, 4), "拠点を動かす")
+	var c: Dictionary = doc.defeat_list()[0]
+	assert_eq([int(c["col"]), int(c["row"])], [5, 4], "敗北条件の座標も追随する")
+	assert_true(doc.remove_base_at(5, 4), "拠点を消す")
+	assert_true(doc.defeat_list().is_empty(), "宙に浮いた敗北条件は残さない")
+
+func test_defeat_key_is_omitted_when_empty() -> void:
+	var doc := _doc_with_base()
+	doc.add_defeat_lose_base(3, 2)
+	assert_true(doc.to_text().contains("\"defeat\""), "指定があれば書き出す")
+	doc.remove_defeat(0)
+	assert_false(doc.to_text().contains("\"defeat\""), "空の defeat キーは書き出さない")

@@ -9,7 +9,7 @@ class_name MapEditorDoc
 const DEFAULT_CHAR := "."  ## 既定地形（plain）のASCII文字
 
 ## 保存時のトップレベルキーの並び（既存ステージの手書き順に合わせる）。残りは元の順で末尾。
-const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "victory", "ai", "dialogue"]
+const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "victory", "defeat", "ai", "dialogue"]
 
 ## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers）。
 const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers"]
@@ -402,6 +402,7 @@ func remove_base_at(col: int, row: int) -> bool:
 	if hit.is_empty():
 		return false
 	data["bases"].remove_at(hit["index"])
+	_drop_lose_base(col, row)  # 消えた拠点を指す敗北条件を残さない
 	return true
 
 
@@ -422,8 +423,37 @@ func move(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
 			return false
 		bh["base"]["col"] = to_col
 		bh["base"]["row"] = to_row
+		_move_lose_base(from_col, from_row, to_col, to_row)  # 敗北条件の座標も連れて動く
 		return true
 	return false
+
+
+## 防衛対象の指定を外す（拠点自体は残す）。
+func remove_defeat_lose_base(col: int, row: int) -> void:
+	_drop_lose_base(col, row)
+
+
+## 指定マスを指す lose_base 条件を取り除く（拠点の削除に追随）。
+func _drop_lose_base(col: int, row: int) -> void:
+	var d := defeat_list()
+	for i in range(d.size() - 1, -1, -1):
+		if _is_lose_base_at(d[i], col, row):
+			d.remove_at(i)
+	if d.is_empty() and data.has("defeat"):
+		data.erase("defeat")
+
+
+## 指定マスを指す lose_base 条件の座標を付け替える（拠点の移動に追随）。
+func _move_lose_base(from_col: int, from_row: int, to_col: int, to_row: int) -> void:
+	for c in defeat_list():
+		if _is_lose_base_at(c, from_col, from_row):
+			c["col"] = to_col
+			c["row"] = to_row
+
+
+static func _is_lose_base_at(c: Variant, col: int, row: int) -> bool:
+	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_base" \
+		and int(c.get("col", -1)) == col and int(c.get("row", -1)) == row
 
 
 # --- id・勝利条件 ---
@@ -492,6 +522,34 @@ func remove_victory(index: int) -> void:
 		data.erase("victory")  # 空の victory キーは書き出さない
 
 
+func defeat_list() -> Array:
+	var d: Variant = data.get("defeat", [])
+	return d if typeof(d) == TYPE_ARRAY else []
+
+
+## 拠点(col,row)を防衛対象にする＝奪われたら敗北。既に指定済みなら何もしない。
+## 拠点の無いマスは受け付けない（作者の指定ミスを保存前に弾く）。
+func add_defeat_lose_base(col: int, row: int) -> bool:
+	if base_at(col, row).is_empty():
+		return false
+	if typeof(data.get("defeat")) != TYPE_ARRAY:
+		data["defeat"] = []
+	for c in data["defeat"]:
+		if String(c.get("type", "")) == "lose_base" \
+				and int(c.get("col", -1)) == col and int(c.get("row", -1)) == row:
+			return true  # 既に条件あり
+	data["defeat"].append({ "type": "lose_base", "col": col, "row": row })
+	return true
+
+
+func remove_defeat(index: int) -> void:
+	var d := defeat_list()
+	if index >= 0 and index < d.size():
+		d.remove_at(index)
+	if d.is_empty() and data.has("defeat"):
+		data.erase("defeat")  # 空の defeat キーは書き出さない
+
+
 # --- 保存（テキスト化） ---
 # 既存ステージの手書きスタイルに寄せる：2スペースインデント・駒/控え/会話行は1行辞書・terrain は1行1文字列。
 
@@ -509,7 +567,7 @@ func to_text() -> String:
 	for k in keys:
 		# 任意キー（bases/victory/terrain_skins）は空なら書かない（読み込み時の補完でキーを増やさない）。
 		# ただし元ファイルに書いてあったキーはそのまま残す（往復で内容を変えない）。
-		if String(k) in ["bases", "victory", "terrain_skins"] and typeof(data[k]) == TYPE_ARRAY \
+		if String(k) in ["bases", "victory", "defeat", "terrain_skins"] and typeof(data[k]) == TYPE_ARRAY \
 				and data[k].is_empty() and not _keys_in_source.has(String(k)):
 			continue
 		parts.append("  %s: %s" % [JSON.stringify(String(k)), _emit_top(k, data[k])])

@@ -10,7 +10,7 @@ const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを
 
 const STAGES_DIR := "res://data/stages"
 const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
-const MODE_LABELS := { "select": "選択", "terrain": "地形", "player": "自軍", "enemy": "敵", "base": "拠点" }
+const MODE_LABELS := { "select": "選択", "terrain": "地形", "player": "自軍", "enemy": "敵", "base": "拠点", "outcome": "勝敗" }
 const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
 const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
@@ -57,6 +57,7 @@ var _margin_spin: SpinBox  ## 外周（盤の外側に描く地形の厚み）
 var _mode_box: VBoxContainer
 var _inspector: VBoxContainer
 var _victory_box: VBoxContainer
+var _defeat_box: VBoxContainer
 var _mode_buttons := {}
 var _open_dialog: FileDialog
 var _save_dialog: FileDialog
@@ -80,7 +81,6 @@ func _ready() -> void:
 	_build_ui()
 	_sync_fields()
 	_set_mode("terrain")
-	_refresh_victory()
 
 
 ## Ctrl+Z ＝直前の地形操作の取り消し（入力欄にフォーカスがあるときは、そちらの取り消しが優先）。
@@ -250,12 +250,6 @@ func _build_ui() -> void:
 	_mode_box.add_theme_constant_override("separation", 6)
 	panel.add_child(_mode_box)
 
-	# 勝利条件
-	panel.add_child(HSeparator.new())
-	_add_heading(panel, "勝利条件（敵全滅は常に有効）")
-	_victory_box = VBoxContainer.new()
-	panel.add_child(_victory_box)
-
 	# ステータス行
 	_status = Label.new()
 	_status.modulate = Color(1, 1, 1, 0.7)
@@ -364,6 +358,8 @@ func _set_mode(mode: String) -> void:
 			_mode_box.add_child(ob)
 		"enemy":
 			_build_enemy_palette()
+		"outcome":
+			_build_outcome_panel()
 		"base":
 			_add_hint(_mode_box, "左クリック＝設置 / 右クリック＝拠点を削除。\n控え（garrison）は「選択」モードで拠点を選んで編集。")
 			_mode_box.add_child(_labeled_option("所属", TEAM_LABELS.keys(), TEAM_LABELS.values(), _base_team,
@@ -689,6 +685,15 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 			else:
 				if _doc.remove_base_at(col, row):
 					_board.refresh()
+		"outcome":
+			if button == MOUSE_BUTTON_LEFT:
+				if _doc.add_defeat_lose_base(col, row):
+					_say("(%d, %d) の拠点を防衛対象にしました（奪われたら敗北）。" % [col, row])
+				else:
+					_say("そのマスに拠点がありません。防衛対象にできるのは拠点だけです。")
+			else:
+				_doc.remove_defeat_lose_base(col, row)
+			_refresh_defeat()
 		"select":
 			_press_cell = Vector2i(col, row)
 			_board.selected = _press_cell
@@ -860,10 +865,26 @@ func _inspect_base(hit: Dictionary) -> void:
 		_show_inspection(int(b["col"]), int(b["row"])))
 
 
-# --- 勝利条件 ---
+# --- 勝敗条件（「勝敗」モード） ---
+# 常時ルール（敵全滅で勝ち／自軍全滅・本拠地喪失・ターン制限で負け）はここに出さない。
+# ここに並ぶのはステージが足す追加条件だけ＝データに書いてあるものと1対1で対応する。
+
+
+func _build_outcome_panel() -> void:
+	_add_hint(_mode_box, "盤の拠点を左クリック＝奪われたら敗北（防衛対象）。右クリック＝その指定を外す。\nボス撃破（勝利）は「選択」モードで敵の駒から指定する。")
+	_add_heading(_mode_box, "勝利条件（敵全滅は常に有効）")
+	_victory_box = VBoxContainer.new()
+	_mode_box.add_child(_victory_box)
+	_add_heading(_mode_box, "敗北条件（全滅・本拠地喪失・時間切れは常に有効）")
+	_defeat_box = VBoxContainer.new()
+	_mode_box.add_child(_defeat_box)
+	_refresh_victory()
+	_refresh_defeat()
 
 
 func _refresh_victory() -> void:
+	if _victory_box == null or not is_instance_valid(_victory_box):
+		return  # 「勝敗」モード以外では箱が無い＝描くものがない
 	for c in _victory_box.get_children():
 		c.queue_free()
 	var list := _doc.victory_list()
@@ -882,6 +903,41 @@ func _refresh_victory() -> void:
 		_add_button(row, "×", func() -> void:
 			_doc.remove_victory(i)
 			_refresh_victory())
+
+
+func _refresh_defeat() -> void:
+	if _defeat_box == null or not is_instance_valid(_defeat_box):
+		return
+	for c in _defeat_box.get_children():
+		c.queue_free()
+	var list := _doc.defeat_list()
+	if list.is_empty():
+		_add_hint(_defeat_box, "（追加条件なし）")
+		return
+	for i in list.size():
+		var c: Dictionary = list[i]
+		var row := HBoxContainer.new()
+		_defeat_box.add_child(row)
+		var l := Label.new()
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		l.text = _defeat_text(c)
+		row.add_child(l)
+		_add_button(row, "×", func() -> void:
+			_doc.remove_defeat(i)
+			_refresh_defeat())
+
+
+## 敗北条件1件の表示文。指す先が消えている条件は「拠点なし」と出す（保存前に気づけるように）。
+func _defeat_text(c: Dictionary) -> String:
+	match String(c.get("type", "")):
+		"lose_base":
+			var col := int(c.get("col", -1))
+			var row := int(c.get("row", -1))
+			var missing := "" if not _doc.base_at(col, row).is_empty() else "  ← 拠点なし"
+			return "lose_base: (%d, %d)%s" % [col, row, missing]
+		"lose_unit":
+			return "lose_unit: unit_id=%d" % int(c.get("unit_id", 0))
+	return String(c.get("type", "?"))
 
 
 # --- ファイル操作 ---
@@ -911,8 +967,7 @@ func _after_load() -> void:
 	_board.doc = _doc
 	_sync_fields()
 	_board.refresh()
-	_set_mode(_mode)
-	_refresh_victory()
+	_set_mode(_mode)  # パレット再構築ついでに勝敗条件の一覧も貼り直される
 
 
 func _sync_fields() -> void:
