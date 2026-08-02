@@ -316,12 +316,25 @@ func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: in
 		var cp := skin.connected_image_path(_connected_dirs(cell, skin, skins))
 		if ResourceLoader.exists(cp):
 			base = cp
-	var paths := _variant_paths(base)
+	var w := ceili(hex_size * 2.0)
+	var h := ceili(hex_size * SQRT3)
+	var axial := Hex.offset_to_axial(cell.x, cell.y)  # 本体の variant 選択は軸座標のハッシュ
+	var over := _variant_texture(base, axial, w, h)
+	# 地面を絵に焼き込んでいないスキン（map_ground）は、本体と同じく下地を敷いてから重ねる。
+	var ground_id := skin.map_ground_id()
+	if not ground_id.is_empty() and not by_team:
+		var ground := TerrainSkinCatalog.resolve(ground_id, "")
+		if ground != null:
+			return TerrainTiles.composited(_variant_texture(ground.image_path(), axial, w, h), over)
+	return over
+
+
+## 基本パスの variant を1枚選び、盤の表示サイズに縮めて返す。
+func _variant_texture(base_path: String, axial: Vector2i, w: int, h: int) -> Texture2D:
+	var paths := _variant_paths(base_path)
 	if paths.is_empty():
 		return null
-	var axial := Hex.offset_to_axial(cell.x, cell.y)  # 本体の variant 選択は軸座標のハッシュ
-	return _scaled(String(paths[absi(hash(axial)) % paths.size()]),
-		ceili(hex_size * 2.0), ceili(hex_size * SQRT3))
+	return _scaled(String(paths[absi(hash(axial)) % paths.size()]), w, h)
 
 
 ## cell の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤の縁の扱いは本体と同じ3段

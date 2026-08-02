@@ -1101,11 +1101,23 @@ func _build_tiles() -> void:
 	_add_ground()
 
 ## hex の地形タイルのテクスチャ（skin 解決＋variant 敷き分け＋キャッシュ）。無ければ null。
+## map_ground を持つスキン（地面を絵に焼き込んでいない柵など）は、下地を敷いてから重ねる。
+## 下地の variant もこのヘックスで選ぶので、柵のマスだけ地面が固定される、ということにならない。
 func _tile_texture(hex: Vector2i) -> Texture2D:
 	var skin := _skin_at(hex)
 	if skin == null:
 		return null
-	var path := _tile_image_path(skin, hex)
+	var over := _variant_texture(_tile_image_path(skin, hex), hex)
+	var ground_id := skin.map_ground_id()
+	if ground_id.is_empty():
+		return over
+	var ground := TerrainSkinCatalog.resolve(ground_id, "")
+	if ground == null:
+		return over
+	return TerrainTiles.composited(_variant_texture(ground.image_path(), hex), over)
+
+## パスの variant を読み、このヘックスぶんの1枚を返す（読み込みはパスごとに1回）。
+func _variant_texture(path: String, hex: Vector2i) -> Texture2D:
 	var variants: Array = _terrain_tex.get(path, [])
 	if variants.is_empty() and not _terrain_tex.has(path):
 		variants = _load_terrain_variants(path)

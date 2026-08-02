@@ -125,9 +125,18 @@ func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin, pla
 	var texs := TerrainTiles.variants(_image_path(skin, placement))
 	if texs.is_empty():
 		return  # 絵が無いスキンは敷かない（窓の地形色が透ける＝どこが未整備か分かる）
+	var tex: Texture2D = texs[TerrainTiles.variant_index(cell, texs.size())]
+	# 地面を絵に焼き込んでいないスキン（map_ground＝柵など）は、盤と同じく下地を敷いてから重ねる。
+	var ground_id := skin.map_ground_id()
+	if not ground_id.is_empty():
+		var g := TerrainSkinCatalog.resolve(ground_id, "")
+		if g != null:
+			var gt := TerrainTiles.variants(g.image_path())
+			if not gt.is_empty():
+				tex = TerrainTiles.composited(gt[TerrainTiles.variant_index(cell, gt.size())], tex)
 	var mi := MeshInstance3D.new()
 	mi.mesh = TerrainTiles.hex_mesh(tile)
-	mi.material_override = TerrainTiles.material(texs[TerrainTiles.variant_index(cell, texs.size())])
+	mi.material_override = TerrainTiles.material(tex)
 	mi.position = pos
 	if skin.orientable:
 		TerrainTiles.orient(mi, cell)

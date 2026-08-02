@@ -1,1 +1,1 @@
-powershell -File tools\gen_connect_tiles.ps1 fence assets\terrain-src\fence\fence_01_raw.png -ArmFrom 136 -ArmTo 512 -BandX 460 -BandW 104 -PostHalf 32
+powershell -File tools\gen_connect_tiles.ps1 fence assets\terrain-src\fence\fence_01_raw.png -ArmFrom 136 -ArmTo 512 -BandX 460 -BandW 104 -PostHalf 32 -NoBase

@@ -71,6 +71,9 @@ static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 	problems += _invalid_amount(rows, "elevation")   # 打ち間違いが「高さ0」に化けて黙って平らになるのを防ぐ
 	problems += _invalid_amount(rows, "sprite_sink")
 	# 戦闘演出の地面（→ doc/tech/combat_scene.md）。下地は実在スキンだけ・置き方は既知の語だけ。
+	# 盤の重ね（map_ground＝下地 / map_overlay＝絵を借りる先）はどちらも skin_id への参照。
+	problems += Csv.invalid_values(rows, "map_ground", Csv.value_set(rows, "skin_id"), "skin_id")
+	problems += Csv.invalid_values(rows, "map_overlay", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "combat_ground", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "combat_layout", ["fill", "line", "center"], "skin_id")
 	# 各 terrain_type に少なくとも1枚のスキン（＝描画のフォールバック先）があること。

@@ -24,6 +24,10 @@ var connect: String
 var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
 var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
 var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
+## 盤に敷くときの重ね方。地面を絵に焼き込まず、描画時に下地＋重ね絵で組む（→ doc/art/terrain.md §3.6）。
+## 両方とも空＝1枚絵で完結する従来のタイル。既存スキンは全部これなので挙動は変わらない。
+var map_ground: String     ## 下に敷くスキンID。空＝敷かない
+var map_overlay: String    ## 上に重ねる絵を借りるスキンID。空＝自分の絵
 ## 戦闘演出の地面の作り方（→ doc/tech/combat_scene.md）。マップ絵をそのまま敷いて組む。
 var combat_ground: String  ## 下地に敷くスキンID。空＝自分自身で敷き詰める（既定）
 var combat_layout: String  ## 自分の絵の置き方。fill(既定・空も同じ) / line(隊列の間を横断) / center(中央1マス)
@@ -41,6 +45,8 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.elevation = float(d.get("elevation", 0.0))
 	s.sprite_sink = float(d.get("sprite_sink", 0.0))
 	s.grid = bool(d.get("grid", true))
+	s.map_ground = String(d.get("map_ground", ""))
+	s.map_overlay = String(d.get("map_overlay", ""))
 	s.combat_ground = String(d.get("combat_ground", ""))
 	s.combat_layout = String(d.get("combat_layout", ""))
 	return s
@@ -53,9 +59,18 @@ func combat_placement() -> String:
 func combat_ground_id() -> String:
 	return combat_ground if combat_ground != "" else skin_id
 
+## タイル画像を引くときの skin_id。map_overlay があればそちら＝絵を借りる。
+## 「同じ絵を別の地面の上に置く」スキン（墓地の柵など）は、これで絵を複製せずに済む。
+func art_id() -> String:
+	return map_overlay if map_overlay != "" else skin_id
+
+## 盤で下に敷くスキンID（空＝敷かない＝自分の絵だけで完結する従来のタイル）。
+func map_ground_id() -> String:
+	return map_ground
+
 ## タイル画像（基本）のパス。ファイル名は skin_id 規約（変種 _2/_3 は描画側が連番で拾う）。
 func image_path() -> String:
-	return "res://assets/terrain/%s.png" % skin_id
+	return "res://assets/terrain/%s.png" % art_id()
 
 ## 接続タイル（connect=true 用）のパス。柵や道は「どの辺で隣と繋がっているか」で絵が変わる。
 ## connected は Hex.DIRECTIONS 順の6要素（true＝その方向の隣も同じスキン）で、そのまま 0/1 の
@@ -65,7 +80,7 @@ func connected_image_path(connected: Array) -> String:
 	var bits := ""
 	for c in connected:
 		bits += "1" if bool(c) else "0"
-	return "res://assets/terrain/%s_c%s.png" % [skin_id, bits]
+	return "res://assets/terrain/%s_c%s.png" % [art_id(), bits]
 
 ## 繋がる地形か（line または area）。向きの組み合わせ別タイルを引くかの判定に使う。
 func connects() -> bool:

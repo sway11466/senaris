@@ -8,6 +8,7 @@ class_name TerrainTiles
 static var _mesh := {}      # 半径(float) -> ArrayMesh
 static var _mat := {}       # Texture2D -> StandardMaterial3D
 static var _variants := {}  # 基本パス(String) -> Array[Texture2D]
+static var _composed := {}  # "下地の id@重ね絵の id" -> Texture2D（合成結果）
 
 ## UV の縦の係数。PNG はヘックスの外接矩形（256×222＝2R × √3R）で切ってあるので、
 ## 縦は横と同じ 0.5 ではなく 1/√3。0.5 は外接「正方形」（2R × 2R）用の値で、これを使うと
@@ -63,6 +64,42 @@ static func variants(base_path: String) -> Array:
 		n += 1
 	_variants[base_path] = texs
 	return texs
+
+## 下地の上に重ね絵を合成した1枚を返す（terrain_skin.csv の map_ground / map_overlay）。
+## 地面を絵に焼き込まないための仕組み。同じ絵を別の地面の上に置くたびに64枚を焼き直さずに済み、
+## 下地側の variant 敷き分けもそのまま効く。合成は (下地, 重ね絵) の組ごとに1回でキャッシュする。
+## どちらか欠けていれば在るほうをそのまま返す。詳細 → doc/art/terrain.md §3.6
+static func composited(ground: Texture2D, overlay: Texture2D) -> Texture2D:
+	if ground == null:
+		return overlay
+	if overlay == null:
+		return ground
+	var key := "%d@%d" % [ground.get_instance_id(), overlay.get_instance_id()]
+	if _composed.has(key):
+		return _composed[key]
+	var under := _rgba(ground)
+	var over := _rgba(overlay)
+	var tex: Texture2D = null
+	if under != null and over != null:
+		if over.get_size() != under.get_size():
+			over.resize(under.get_width(), under.get_height(), Image.INTERPOLATE_LANCZOS)
+		under.blend_rect(over, Rect2i(Vector2i.ZERO, over.get_size()), Vector2i.ZERO)
+		tex = ImageTexture.create_from_image(under)
+	_composed[key] = tex
+	return tex
+
+## テクスチャを編集できる RGBA8 の Image にする（インポート済みは圧縮されていることがある）。
+static func _rgba(tex: Texture2D) -> Image:
+	var img := tex.get_image()
+	if img == null:
+		return null
+	img = img.duplicate()  # キャッシュ済みの Image を書き換えない
+	if img.is_compressed():
+		if img.decompress() != OK:
+			return null
+	if img.get_format() != Image.FORMAT_RGBA8:
+		img.convert(Image.FORMAT_RGBA8)
+	return img
 
 ## ヘックス座標から決定的に variant を選ぶ（作り直しても同じ絵＝ちらつかない）。
 static func variant_index(hex: Vector2i, count: int) -> int:

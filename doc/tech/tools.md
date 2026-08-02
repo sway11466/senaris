@@ -26,7 +26,7 @@
 | `gen_unit_combat.ps1` | ユニットの master から combat 立ち絵（512四方・下端揃え・透過）を書き出す | `powershell -File tools\gen_unit_combat.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_effect.ps1` | 攻撃エフェクトの master をトリムして長辺512に収める（大小は `combat_effect.csv` の `scale` が持つので余白は焼かない） | `powershell -File tools\gen_effect.ps1 <effect_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_terrain_tile.ps1` | 元絵をフラットトップのヘックスに切り抜いて地形タイルにする（2枚目以降は variant） | `powershell -File tools\gen_terrain_tile.ps1 <name> <src1> <src2> …` | [../art/terrain.md](../art/terrain.md) |
-| `gen_connect_tiles.ps1` | 線方式（柵）の接続タイル64通りを、直線1枚の元絵から生成する＝腕を6方向に回して重ねる | `powershell -File tools\gen_connect_tiles.ps1 <name> <src> -ArmFrom … -ArmTo … -BandX … -BandW … -PostHalf …` | [../art/terrain.md](../art/terrain.md) |
+| `gen_connect_tiles.ps1` | 線方式（柵）の接続タイル64通りを、直線1枚の元絵から生成する＝腕を6方向に回して重ねる。`-NoBase` で地面を焼かず透過のまま書き出す | `powershell -File tools\gen_connect_tiles.ps1 <name> <src> -ArmFrom … -ArmTo … -BandX … -BandW … -PostHalf … [-NoBase]` | [../art/terrain.md](../art/terrain.md) |
 | `gen_area_tiles.ps1` | 面方式（道）の接続タイル64通りを、全面テクスチャ1枚から生成する＝同じ絵をマスクで抜き、繋がらない側を隣の素材で覆う | `powershell -File tools\gen_area_tiles.ps1 <name> <src> -BandX … -BandW … -Bite …` | [../art/terrain.md](../art/terrain.md) |
 | `gen_sfx.ps1` | MuseScore の .wav から効果音 .ogg を作る（無音トリム・変換・ピーク実測）。音量は揃えず測って報告だけする。基準から外れていれば警告を出す | `powershell -File tools\gen_sfx.ps1 <sfx_id> …` | [../audio/sfx.md](../audio/sfx.md) |
 | `gen_bgm.ps1` | MuseScore の .wav から BGM .ogg を作る（楽譜からループ長を算出・残響の折り返し・変換・loop=true でインポート） | `powershell -File tools\gen_bgm.ps1 <track_id> … [-Stinger] [-LoopSec <秒>]` | [../audio/bgm.md](../audio/bgm.md) |

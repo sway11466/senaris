@@ -39,6 +39,11 @@ param(
   [Parameter(Mandatory = $true)][int]$BandW,        # width of that band
   [Parameter(Mandatory = $true)][int]$PostHalf,     # half height of the centre post, in source px
   [string]$Base = 'assets\terrain\plain.png',       # ground the pieces are composed onto
+  [switch]$NoBase,                                  # leave the ground out: transparent tiles the
+                                                    # board lays over a separate ground skin
+                                                    # (terrain_skin.csv map_ground). One set of art
+                                                    # then serves every ground instead of one baked
+                                                    # set per ground. Art spec: doc/art/terrain.md 3.6
   [int]$Threshold = 66,                             # gray % above which a pixel counts as ground
   [string]$EdgeColor = '#2F3028',                   # colour bled into the cut edge (the art's outline)
   [switch]$NoShadow,
@@ -67,7 +72,7 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 if (-not [System.IO.Path]::IsPathRooted($Source)) { $Source = Join-Path $repo $Source }
 if (-not [System.IO.Path]::IsPathRooted($Base)) { $Base = Join-Path $repo $Base }
 if (-not (Test-Path $Source)) { throw "source not found: $Source" }
-if (-not (Test-Path $Base)) { throw "base tile not found: $Base" }
+if ((-not $NoBase) -and (-not (Test-Path $Base))) { throw "base tile not found: $Base" }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("connect_tiles_" + $Name)
 if (Test-Path $work) { Remove-Item -Recurse -Force $work }
@@ -135,11 +140,14 @@ for ($mask = 0; $mask -lt 64; $mask++) {
       '+channel', '-fill', 'black', '-colorize', '100', ')', '-geometry', $ShadowOffset, '-composite'
     )
   }
+  # -NoBase: start from an empty canvas instead of the ground tile. The shadow still goes down
+  # (it belongs to the timber, and lands on whatever ground the board lays underneath).
+  $under = if ($NoBase) { @() } else { @($Base, '-geometry', "+0+$baseY", '-composite') }
   $args = @('-size', "${W}x${W}", 'xc:none') + $layers + @(
     $post, '-geometry', "+$postX+$postY", '-composite',
     '-write', 'mpr:L', '+delete',
-    '-size', "${W}x${W}", 'xc:none', $Base, '-geometry', "+0+$baseY", '-composite'
-  ) + $shadow + @(
+    '-size', "${W}x${W}", 'xc:none'
+  ) + $under + $shadow + @(
     'mpr:L', '-geometry', '+0+0', '-composite',
     '-crop', "${W}x${H}+0+$baseY", '+repage',
     '(', '-size', "${W}x${H}", 'xc:none', '-fill', 'white', '-draw', $hexPoly, ')',

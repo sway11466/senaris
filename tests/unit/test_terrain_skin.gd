@@ -56,6 +56,26 @@ func test_connect_is_line_or_area() -> void:
 		var s := TerrainSkinCatalog.for_type(tid)
 		assert_false(s != null and s.connects(), "%s は繋がらない" % tid)
 
+func test_map_overlay_borrows_the_art_of_another_skin() -> void:
+	# 地面を絵に焼き込まないので、同じ柵の絵を別の地面の上に置ける＝画像を複製しない。
+	var grave := TerrainSkinCatalog.resolve("fence_grave1", "")
+	assert_not_null(grave, "墓地の柵スキン")
+	if grave == null:
+		return
+	assert_eq(grave.art_id(), "fence", "絵は柵から借りる")
+	assert_eq(grave.map_ground_id(), "wasteland_grave1", "下地は墓地の荒れ野")
+	assert_eq(grave.image_path(), "res://assets/terrain/fence.png", "基本タイルも借りた絵")
+	assert_eq(grave.connected_image_path([false, false, true, false, false, true]),
+		"res://assets/terrain/fence_c001001.png", "接続タイルも借りた絵")
+
+func test_art_id_defaults_to_self() -> void:
+	# map_overlay を書いていないスキンは自分の絵。既存スキンの引き方は変わらない。
+	var fence := TerrainSkinCatalog.resolve("fence", "")
+	assert_true(fence != null and fence.art_id() == "fence", "既定は自分自身")
+	assert_true(fence != null and fence.map_ground_id() == "plain", "柵の下地は平地")
+	var plain := TerrainSkinCatalog.resolve("plain", "")
+	assert_true(plain != null and plain.map_ground_id() == "", "下地を持たないスキンは空")
+
 func test_connect_falls_back_when_the_value_is_unknown() -> void:
 	# 旧データの true/false や打ち間違いは「繋がらない」に倒す。false が真になる事故を防ぐ。
 	for v: Variant in [true, false, "true", "", "LINE", "wall"]:
