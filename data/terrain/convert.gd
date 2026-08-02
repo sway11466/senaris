@@ -8,6 +8,8 @@ extends SceneTree
 ## 実行: godot --headless --path . --script res://data/terrain/convert.gd
 
 const Csv = preload("res://data/csv_util.gd")
+## 値の正解集合（ORIENTS ほか）はモデル側が正本。ここで文字列を二重に持たない。
+const SkinDef = preload("res://data/terrain/terrain_skin.gd")
 
 ## 性能で必ず要る列（memo は任意）。name/image は skin へ分離済み。
 const TYPE_REQUIRED := ["id", "char", "atk", "def", "sight_cost"]
@@ -64,7 +66,9 @@ static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
 	problems += Csv.invalid_values(rows, "terrain_type", type_ids, "skin_id")  # terrain_type に無い性能への参照切れ
-	problems += Csv.invalid_values(rows, "orientable", ["true", "false"], "skin_id")  # bool以外（打ち間違い→黙って true 化）を弾く
+	# orientable は多値: none(散らさない) / flip(左右反転だけ) / full(回転＋反転)。旧データの
+	# true/false は「回してよいか」しか言えず flip と区別できないので弾く（→ TerrainSkin.ORIENTS）。
+	problems += Csv.invalid_values(rows, "orientable", SkinDef.ORIENTS, "skin_id")
 	# connect は多値: line(柵＝線) / area(道＝面) / false(繋がらない)。旧データの true は曖昧なので弾く。
 	problems += Csv.invalid_values(rows, "connect", ["line", "area", "false"], "skin_id")
 	problems += Csv.invalid_values(rows, "grid", ["true", "false"], "skin_id")

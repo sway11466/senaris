@@ -10,7 +10,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）",
 			"name": "道",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "road",
 			"sprite_sink": 0,
 			"terrain_type": "road"
@@ -25,7 +25,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "平地",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "plain",
 			"sprite_sink": 0,
 			"terrain_type": "plain"
@@ -40,7 +40,7 @@
 			"map_overlay": "",
 			"memo": "ダンジョンの踏み固めた土の床（性能は平地のまま）",
 			"name": "洞窟の床",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "plain_cave1",
 			"sprite_sink": 0,
 			"terrain_type": "plain"
@@ -55,7 +55,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "台地",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "plateau",
 			"sprite_sink": 0,
 			"terrain_type": "plateau"
@@ -70,7 +70,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "荒地",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "wasteland",
 			"sprite_sink": 0,
 			"terrain_type": "wasteland"
@@ -85,7 +85,7 @@
 			"map_overlay": "",
 			"memo": "町外れの、墓地へ続く枯れた草地（性能は荒地のまま）",
 			"name": "墓地の荒れ野",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "wasteland_grave1",
 			"sprite_sink": 0,
 			"terrain_type": "wasteland"
@@ -98,9 +98,9 @@
 			"grid": true,
 			"map_ground": "",
 			"map_overlay": "",
-			"memo": "墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）",
+			"memo": "墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）。墓標を立てて描くので回さない＝左右反転だけで散らす",
 			"name": "墓標の荒れ地",
-			"orientable": true,
+			"orientable": "flip",
 			"skin_id": "wasteland_tomb1",
 			"sprite_sink": 0,
 			"terrain_type": "wasteland"
@@ -115,7 +115,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "森",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "forest",
 			"sprite_sink": 0.18,
 			"terrain_type": "forest"
@@ -130,7 +130,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "茂み",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "bush",
 			"sprite_sink": 0.12,
 			"terrain_type": "bush"
@@ -145,7 +145,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "山",
-			"orientable": true,
+			"orientable": "full",
 			"skin_id": "mountain",
 			"sprite_sink": 0,
 			"terrain_type": "mountain"
@@ -160,7 +160,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く",
 			"name": "柵",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "fence",
 			"sprite_sink": 0,
 			"terrain_type": "fence"
@@ -175,7 +175,7 @@
 			"map_overlay": "fence",
 			"memo": "柵の絵（map_overlay）を借り、墓地の荒れ野の上に立てる",
 			"name": "墓地の柵",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "fence_grave1",
 			"sprite_sink": 0,
 			"terrain_type": "fence"
@@ -190,7 +190,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "罠",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "trap",
 			"sprite_sink": 0,
 			"terrain_type": "trap"
@@ -205,7 +205,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "城壁",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "rampart",
 			"sprite_sink": 0,
 			"terrain_type": "rampart"
@@ -220,7 +220,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "崖",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "cliff",
 			"sprite_sink": 0,
 			"terrain_type": "cliff"
@@ -235,7 +235,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる",
 			"name": "壁",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "wall",
 			"sprite_sink": 0,
 			"terrain_type": "wall"
@@ -250,7 +250,7 @@
 			"map_overlay": "",
 			"memo": "人が積んだ石壁（ダンジョンの掘った岩とは別系統）",
 			"name": "石積みの壁",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "wall_stone1",
 			"sprite_sink": 0,
 			"terrain_type": "wall"
@@ -265,7 +265,7 @@
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "拠点",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "fort",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
@@ -280,7 +280,7 @@
 			"map_overlay": "",
 			"memo": "石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "町",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "fort_town1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
@@ -295,7 +295,7 @@
 			"map_overlay": "",
 			"memo": "墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "納骨堂",
-			"orientable": false,
+			"orientable": "none",
 			"skin_id": "fort_crypt1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"

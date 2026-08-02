@@ -107,10 +107,13 @@ static func variant_index(hex: Vector2i, count: int) -> int:
 		return 0
 	return absi(hash(hex)) % count
 
-## 向きの無い自然地形を、座標ハッシュで60°回転＋左右反転する（反復対策）。決定的。
-## orientable なスキンにだけ適用する（道・柵・拠点は向きが意味を持つので回さない）。
-static func orient(mi: MeshInstance3D, hex: Vector2i) -> void:
+## 同じ絵が隣り合う見え方を、座標ハッシュで散らす（反復対策）。決定的＝作り直しても同じ並び。
+## どこまで散らせるかは絵が向きを持つかで決まる（TerrainSkin.ORIENT_*）。
+## rotate=true なら60°回転＋左右反転、false なら左右反転だけ＝立てて描いた物（墓標）が倒れない。
+## 呼ぶかどうかは skin.orients() で判定する（道・柵・拠点は向きが意味を持つので呼ばない）。
+static func orient(mi: MeshInstance3D, hex: Vector2i, rotate: bool = true) -> void:
 	var o := absi(hash(Vector2i(hex.y, hex.x)))
-	mi.rotation.y = float(o % 6) * (PI / 3.0)
+	if rotate:
+		mi.rotation.y = float(o % 6) * (PI / 3.0)
 	if (o / 6) % 2 == 1:
 		mi.scale = Vector3(-1.0, 1.0, 1.0)  # cull無効なので裏面でも描ける

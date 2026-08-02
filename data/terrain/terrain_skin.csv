@@ -1,22 +1,22 @@
 skin_id,terrain_type,name,orientable,connect,elevation,sprite_sink,grid,map_ground,map_overlay,combat_ground,combat_layout,memo
-スキンID,地形タイプ,表示名,向き変化,隣との繋がり方,見た目の高さ,立ち絵の沈み,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,戦闘背景の置き方,備考
-road,road,道,false,area,0,0,true,,,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）
-plain,plain,平地,true,false,0,0,true,,,,,既定スキン
-plain_cave1,plain,洞窟の床,true,false,0,0,true,,,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
-plateau,plateau,台地,true,false,0.18,0,true,,,,,既定スキン
-wasteland,wasteland,荒地,true,false,0,0,true,,,,,既定スキン
-wasteland_grave1,wasteland,墓地の荒れ野,true,false,0,0,true,,,,,町外れの、墓地へ続く枯れた草地（性能は荒地のまま）
-wasteland_tomb1,wasteland,墓標の荒れ地,true,false,0,0,true,,,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）
-forest,forest,森,true,false,0.18,0.18,true,,,,,既定スキン
-bush,bush,茂み,true,false,0.12,0.12,true,,,,,既定スキン
-mountain,mountain,山,true,false,0,0,true,,,,,既定スキン
-fence,fence,柵,false,line,0,0,true,plain,,plain,line,既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
-fence_grave1,fence,墓地の柵,false,line,0,0,true,wasteland_grave1,fence,wasteland_grave1,line,柵の絵（map_overlay）を借り、墓地の荒れ野の上に立てる
-trap,trap,罠,false,false,0,0,true,,,plain,center,既定スキン
-rampart,rampart,城壁,false,false,0,0,true,,,plain,line,既定スキン
-cliff,cliff,崖,false,false,0.36,0,true,,,,,既定スキン
-wall,wall,壁,false,false,0.70,0,false,,,,,既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
-wall_stone1,wall,石積みの壁,false,false,0,0,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
-fort,fort,拠点,false,false,0,0,true,,,plain,center,既定スキン
-fort_town1,fort,町,false,false,0,0,true,,,plain,center,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-fort_crypt1,fort,納骨堂,false,false,0,0,true,,,wasteland_grave1,center,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,見た目の高さ,立ち絵の沈み,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,戦闘背景の置き方,備考
+road,road,道,none,area,0,0,true,,,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）
+plain,plain,平地,full,false,0,0,true,,,,,既定スキン
+plain_cave1,plain,洞窟の床,full,false,0,0,true,,,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
+plateau,plateau,台地,full,false,0.18,0,true,,,,,既定スキン
+wasteland,wasteland,荒地,full,false,0,0,true,,,,,既定スキン
+wasteland_grave1,wasteland,墓地の荒れ野,full,false,0,0,true,,,,,町外れの、墓地へ続く枯れた草地（性能は荒地のまま）
+wasteland_tomb1,wasteland,墓標の荒れ地,flip,false,0,0,true,,,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）。墓標を立てて描くので回さない＝左右反転だけで散らす
+forest,forest,森,full,false,0.18,0.18,true,,,,,既定スキン
+bush,bush,茂み,full,false,0.12,0.12,true,,,,,既定スキン
+mountain,mountain,山,full,false,0,0,true,,,,,既定スキン
+fence,fence,柵,none,line,0,0,true,plain,,plain,line,既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
+fence_grave1,fence,墓地の柵,none,line,0,0,true,wasteland_grave1,fence,wasteland_grave1,line,柵の絵（map_overlay）を借り、墓地の荒れ野の上に立てる
+trap,trap,罠,none,false,0,0,true,,,plain,center,既定スキン
+rampart,rampart,城壁,none,false,0,0,true,,,plain,line,既定スキン
+cliff,cliff,崖,none,false,0.36,0,true,,,,,既定スキン
+wall,wall,壁,none,false,0.70,0,false,,,,,既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
+wall_stone1,wall,石積みの壁,none,false,0,0,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
+fort,fort,拠点,none,false,0,0,true,,,plain,center,既定スキン
+fort_town1,fort,町,none,false,0,0,true,,,plain,center,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+fort_crypt1,fort,納骨堂,none,false,0,0,true,,,wasteland_grave1,center,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）

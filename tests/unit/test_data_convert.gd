@@ -298,7 +298,7 @@ func test_terrain_sight_cost_from_real_data() -> void:
 # --- terrain: build_skin ---
 
 func _valid_terrain_skin(sid: String, tid: String) -> Dictionary:
-	return { "skin_id": sid, "terrain_type": tid, "name": "名", "orientable": false, "elevation": 0, "sprite_sink": 0 }
+	return { "skin_id": sid, "terrain_type": tid, "name": "名", "orientable": "none", "elevation": 0, "sprite_sink": 0 }
 
 func test_terrain_skin_valid_builds_json() -> void:
 	var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
@@ -331,11 +331,20 @@ func test_terrain_skin_uncovered_type_blocks() -> void:
 	var r := Terrain.build_skin([ _valid_terrain_skin("plain_a", "plain") ], ["plain", "forest"])
 	assert_null(r["json"], "type 未カバーで json=null")
 
-func test_terrain_skin_non_bool_orientable_blocks() -> void:
+func test_terrain_skin_unknown_orientable_blocks() -> void:
 	var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
-	rows[0]["orientable"] = "maybe"  # bool 以外の誤記
+	rows[0]["orientable"] = "maybe"  # ORIENTS に無い誤記
 	var r := Terrain.build_skin(rows, ["plain", "forest"])
-	assert_null(r["json"], "orientable が非bool で json=null")
+	assert_null(r["json"], "orientable が未知の値で json=null")
+
+func test_terrain_skin_legacy_bool_orientable_blocks() -> void:
+	# 旧データの true/false は「回してよいか」しか言えず、flip（左右反転だけ）と区別できない。
+	# 黙って full に化けると、立てて描いた墓標が回って倒れる＝生成前に弾く。
+	for legacy in [true, false]:
+		var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
+		rows[0]["orientable"] = legacy
+		var r := Terrain.build_skin(rows, ["plain", "forest"])
+		assert_null(r["json"], "orientable が旧 bool(%s) で json=null" % legacy)
 
 # --- movement: build ---
 

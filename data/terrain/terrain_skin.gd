@@ -13,10 +13,17 @@ class_name TerrainSkin
 const CONNECT_LINE := "line"  ## 線の地形（柵）。端が盤の縁に来たら、その先へまっすぐ伸ばす
 const CONNECT_AREA := "area"  ## 面の地形（道）。盤の外は縁のマスがそのまま続いているものとして扱う
 
+## 同じ絵が隣り合ったときの見え方を散らす手段（→ orientable）。絵が向きを持つほど使える手が減る。
+const ORIENT_NONE := "none"  ## 何もしない。向きが意味を持つ絵（道・柵・拠点）
+const ORIENT_FLIP := "flip"  ## 左右反転だけ。立てて描いた物がある絵（墓標）。回すと倒れる
+const ORIENT_FULL := "full"  ## 回転60°＋左右反転。向きの無い自然地形（平地・森）
+const ORIENTS := [ORIENT_NONE, ORIENT_FLIP, ORIENT_FULL]
+
 var skin_id: String        ## スキンID（主キー。ステージはこれで見た目を指定）
 var terrain_type: String   ## 紐づく性能(TerrainType)のid
 var name: String           ## 表示名（例: 平地 / 雪原）
-var orientable: bool       ## 座標ハッシュで回転60°×左右反転してよいか（向きの無い自然地形＝true）
+## 座標ハッシュで見た目をどこまで散らしてよいか（ORIENT_* のどれか）。絵の向きが持つ意味で決まる。
+var orientable: String
 ## 隣の同スキンと繋がる地形の繋がり方。空/false＝繋がらない、line＝線（柵）、area＝面（道）。
 ## line/area なら向きの組み合わせ別タイル（_c000000〜_c111111）を引く。この2つで違うのは盤の縁の
 ## 扱いだけで、タイルの命名も枚数も同じ（→ doc/art/terrain.md §3）。
@@ -37,7 +44,10 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.skin_id = String(d.get("skin_id", ""))
 	s.terrain_type = String(d.get("terrain_type", ""))
 	s.name = String(d.get("name", ""))
-	s.orientable = bool(d.get("orientable", false))
+	# 知らない値（旧データの bool true/false・打ち間違い）は「散らさない」に倒す。勝手に回して
+	# 絵が倒れるより、散らないほうが害が小さい。String() は bool を受けないので先に型を見る。
+	var o: Variant = d.get("orientable", ORIENT_NONE)
+	s.orientable = String(o) if typeof(o) == TYPE_STRING and o in ORIENTS else ORIENT_NONE
 	# 知らない値（旧データの bool true/false・打ち間違い）は「繋がらない」に倒す。false が真になる
 	# 事故を防ぐ。String() は bool を受けないので、文字列かどうかを先に見る。
 	var c: Variant = d.get("connect", "")
@@ -81,6 +91,14 @@ func connected_image_path(connected: Array) -> String:
 	for c in connected:
 		bits += "1" if bool(c) else "0"
 	return "res://assets/terrain/%s_c%s.png" % [art_id(), bits]
+
+## 座標ハッシュで見た目を散らす対象か（none 以外）。呼び出し側はこれで orient() を呼ぶか決める。
+func orients() -> bool:
+	return orientable != ORIENT_NONE
+
+## 60°回転してよいか。立てて描いた物がある絵（flip）は回すと倒れるので false。
+func rotates() -> bool:
+	return orientable == ORIENT_FULL
 
 ## 繋がる地形か（line または area）。向きの組み合わせ別タイルを引くかの判定に使う。
 func connects() -> bool:

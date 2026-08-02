@@ -1237,8 +1237,8 @@ func _add_tile(hex: Vector2i) -> void:
 	mi.material_override = _terrain_material(tex)
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, _elev(hex), p.y)
-	if skin != null and skin.orientable:
-		TerrainTiles.orient(mi, hex)  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
+	if skin != null and skin.orients():
+		TerrainTiles.orient(mi, hex, skin.rotates())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
 	_tiles_root.add_child(mi)
 

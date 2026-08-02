@@ -36,13 +36,28 @@ func test_resolve_prefers_explicit_skin() -> void:
 		assert_eq(TerrainSkinCatalog.resolve("forest", "plain"), forest, "実在 skin_id を優先")
 
 func test_orientable_matches_natural_terrain() -> void:
-	# 向きの無い自然地形は orientable=true、道/壁など構造物は false（旧ハードコードの移設先）。
+	# 向きの無い自然地形は full（回転＋反転）、道/壁など構造物は none（旧ハードコードの移設先）。
 	for tid in ["plain", "forest", "mountain", "wasteland", "bush", "plateau"]:
 		var s := TerrainSkinCatalog.for_type(tid)
-		assert_true(s != null and s.orientable, "%s は orientable" % tid)
+		assert_true(s != null and s.orients() and s.rotates(), "%s は full" % tid)
 	for tid in ["road", "fence", "wall", "cliff", "rampart", "trap", "fort"]:
 		var s := TerrainSkinCatalog.for_type(tid)
-		assert_true(s != null and not s.orientable, "%s は非 orientable" % tid)
+		assert_true(s != null and not s.orients(), "%s は none" % tid)
+
+func test_flip_only_skin_does_not_rotate() -> void:
+	# 立てて描いた物がある絵（墓標）は回すと倒れる。左右反転だけで散らす。
+	var tomb := TerrainSkinCatalog.skin_by_id("wasteland_tomb1")
+	assert_not_null(tomb, "wasteland_tomb1 が引ける")
+	if tomb != null:
+		assert_eq(tomb.orientable, TerrainSkin.ORIENT_FLIP, "墓標は flip")
+		assert_true(tomb.orients(), "散らしの対象ではある")
+		assert_false(tomb.rotates(), "回してはいけない")
+
+func test_unknown_orientable_falls_back_to_none() -> void:
+	# 旧データの bool や打ち間違いが来ても、勝手に回して絵を倒すより散らさないほうが害が小さい。
+	for bad in [true, false, "maybe", 1]:
+		var s := TerrainSkin.from_dict({ "skin_id": "x", "orientable": bad })
+		assert_eq(s.orientable, TerrainSkin.ORIENT_NONE, "不正値(%s)は none に倒す" % [bad])
 
 func test_connect_is_line_or_area() -> void:
 	# 繋がる地形は柵（線）と道（面）だけ。他は繋がらない＝向き別タイルを探しに行かせない。

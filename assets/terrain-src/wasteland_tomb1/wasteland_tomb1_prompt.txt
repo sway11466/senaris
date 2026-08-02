@@ -1,53 +1,39 @@
-STYLE: A top-down ground-terrain tile for a fantasy tactics game, in the same
-clean stylized cel-shaded look as the game's unit art: bold flat shading, a
-mature, slightly muted, limited color palette (NOT bright saturated, NOT
-painterly photorealism). Viewed straight from directly overhead — a flat lay
-with NO perspective, NO horizon, NO sky. The texture fills the ENTIRE square
-frame edge to edge, with NO border, NO frame, NO vignette, and no single big
-focal object. CRITICAL: scatter any small details (grass tufts, pebbles)
-RANDOMLY and UNEVENLY — a few loose clusters here, bare empty gaps there —
-NEVER evenly spaced, NEVER in rows or a regular grid. Avoid large,
-high-contrast patches or blotches (they read as a big feature and repeat
-visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+SUBJECT: An old graveyard gone to seed. The ground is dry yellowed grass, hex
+#B2B28E, with pale dusty soil, hex #A89877, showing through in a handful of
+small openings. Hold that grass colour precisely — it is a greyed-out khaki,
+NOT a warm yellow. Do NOT make it more yellow, more golden, more saturated or
+brighter than #B2B28E. Keep the ground even and low-contrast.
 
-SUBJECT: An old graveyard gone to seed, on the edge of a town. The ground is
-exactly the same neglected dying grassland as the graveyard's approach tile: dry
-yellowed grass, hex #B2B28E, with pale dusty soil, hex #A89877, showing through
-in only a handful of small openings. Use these exact colors and keep the ground
-even and low-contrast — the two tiles must look like one continuous field.
-
-Standing in that grass are OLD GRAVE MARKERS. The ground stays flat and seen
+Standing in the grass are FOUR or FIVE OLD GRAVE MARKERS. The ground is seen
 from straight above, but the markers themselves are drawn STANDING UPRIGHT and
 facing the bottom of the frame, the way buildings are drawn on the world map of
-a classic 2D role-playing game — so you see the face of each one, and each casts
-a short soft shadow onto the grass beside it. They must match the grave markers
-drawn around the mausoleum on the neighbouring tile.
+a classic 2D role-playing game, so you see the face of each one.
 
-Vary the shapes, and use a DIFFERENT one for each marker: a slab with a rounded
-top, a squared-off upright slab, a stone CROSS with short thick arms, and a
-broken stub whose top has snapped off. Give some of them a slight lean, each at
-its own angle, so none of them stand quite straight.
+Give every marker a different shape: a slab with a rounded top, a squared-off
+slab, a stone cross with short thick arms, a stub whose top has snapped off.
+Lean some of them at their own angle so none stand quite straight.
 
-There are only FOUR or FIVE markers in the whole frame. Scatter them irregularly
-— two close together, one off on its own, wide empty grass between — NEVER
-evenly spaced, NEVER in a row, NEVER in a grid, and NEVER near the middle in a
-way that makes one of them the subject of the picture. Keep them well away from
-the four edges.
+SIZE — each marker stands roughly ONE THIRD of the frame's height. If the
+picture were 1000 pixels tall, each would be about 330 pixels tall. They are by
+far the largest things in the picture, many times taller than a clump of grass,
+chunky and solid, still readable when the whole picture is shrunk to a
+thumbnail. Do NOT draw them small, thin or dainty. Their stone is dull mid-grey,
+clearly paler than the grass but NOT white and NOT black-outlined.
 
-Keep them SMALL and QUIET: each one only a little taller than a clump of grass,
-dull mid-grey stone that is clearly paler than the grass but NOT white and NOT
-black-outlined, with soft low-contrast shading. The cross has thick, stubby arms
-so it still reads as a cross when the picture is shrunk — NOT a thin spindly
-one. They should read as graves at a glance without any one of them punching out
-of the picture, because this tile is laid down many times side by side and a
-loud marker would repeat visibly.
+PLACEMENT — scatter them irregularly: two close together, one off on its own,
+wide empty grass between. NEVER evenly spaced, NEVER in a row or a grid, and
+never centred in a way that makes one of them the subject. Keep them all in the
+middle of the picture: the outer fifth of the frame on all four sides, and the
+four corners, are plain empty grass. No marker may touch an edge, sit in a
+corner, or be clipped by the frame. This is a rule about where things go, not
+something to draw — do NOT draw a circle, ring, outline, border or guide line
+of any kind.
 
-Nothing else stands up from the ground. NO building of any kind, NO tomb, NO
-mausoleum, NO hut, NO wall, NO doorway, NO opening, NO entrance, NO steps, NO
-archway, NO fence, NO gate, NO path — anything that reads as a structure or an
-opening belongs to a different tile and must not appear here. NO crosses, NO
-religious symbols, NO statues, NO urns, NO flowers, NO candles, NO bones, NO
-skulls, NO freshly dug earth, NO open graves, NO mounds. NO glow, NO mist, NO
-green or purple light, NO magic.
+NO SHADOWS. The markers cast nothing on the grass; there is no light direction
+in this picture at all.
+
+Nothing else stands up from the ground: no building, tomb, mausoleum, hut,
+wall, doorway, steps, fence, gate or path. No statues, urns, flowers, candles,
+bones, skulls, open graves or mounds. No glow, no mist, no magic.
 
 The mood is quiet neglect — a burial ground nobody visits any more.
