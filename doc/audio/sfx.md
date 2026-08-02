@@ -165,8 +165,10 @@
 
 素材の性質で手段を分ける。BGM の二段構えと同じ発想。
 
-- 楽音（占領・ターン切替・陣形など）: MuseScore ＋ Muse Sounds で自作する。権利は完全に自作物になり、追加コストはゼロ。`victory` / `defeat` スティンガーで実証済みの手順がそのまま使える。
+- 楽音（占領・ターン切替・陣形・全滅など）: MuseScore ＋ Muse Sounds で自作する。権利は完全に自作物になり、追加コストはゼロ。`victory` / `defeat` スティンガーで実証済みの手順がそのまま使える。
 - 物音（攻撃・移動・扉や板の手触り）: オーケストラ音源では出ないため外部から調達する。帰属表記の管理を最小化するため CC0 を軸にし、身近な物での自録り（フォーリー）も併用する。
+
+境目は音の材質で決まる。全滅音（`cmb_hit_wipe`）は物音に見えるが、求めているのが低く長い余韻＝オーケストラの得意分野なので楽音側に置く。外部素材の同種の音（映画予告編で鳴る金管の一撃）を試聴したうえで、自作のほうが曲と揃うと判断した。
 
 楽器の役割は BGM と共有する（[tracks.md](tracks.md) の横断方針）。フルート＝主役の声、ホルン＝威厳と力、グロッケン＝きらめき、チューブラーベル＝死と神域、ティンパニ＝重心。曲と関わる場面の音（占領・陣形など）では同じ割り当てを守ることで、単発の音が曲と喧嘩しない。
 
@@ -247,47 +249,53 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `cmb_hit_damage` | `PUNCH_PERCUSSIVE_HEAVY_06.wav` | 2020 p9 / Shapeforms - Hit & Punch |
 | | `PUNCH_DESIGNED_LIGHT_78.wav` | 2020 p9 / 同上 |
 | | `Hand-to-Hand Combat - Body Hits - Deep Punch 02.wav` | 2018 p6 / The Chris Alan - Hand-to-Hand Combat |
-| `cmb_hit_wipe` | `Braam 004 (D).wav` ほか `013 (B)` `029 (G)` `035 (G#)` | 2020 p3 / Federico Soler Fernandez - Effective Trailer Braams |
-| | `DSGNBram____Cinematic Horn Braam, Epic, Cinematic, Dark, Instrument, Huge-32.wav` | 2026 p3 / Jake Fielding - Cinematic Horn Braams |
-| | `DSGNBoom_Gong, Drone, Low End 25` | 2023 p1 / 344 Audio - Cymbals From Hell Vol. 2 |
+
+`cmb_hit_wipe` は外部調達しない。MuseScore で自作する（上記の調達方針）。チューブラーベル＝死と神域、ホルン＝威厳と力、ティンパニ＝重心という [tracks.md](tracks.md) の役割をそのまま使えば、曲と喧嘩しない全滅音になる。外部のブラーム素材は音程が固定で、多調のトラックライブラリと必ずどこかでぶつかる。
 
 `cmb_hit_none` は Double Trouble が本命。`Parry`（受け流し）という名前のファイルが直球で存在し、同じライブラリに板金鎧と鎖帷子の被弾音も揃うため、弾かれる音と当たる音を同じ収録から取れる。
 
-`cmb_hit_wipe` の Braam は予告編で鳴る金管の低く重い一撃。全滅の余韻という要求にそのまま合う。Trailer Braams は4本とも音程（D / B / G / G#）が明記されているため、トラックライブラリの調（[tracks.md](tracks.md)）に合わせて選べる。
-
 血肉系（Gore）のライブラリも各年にあるが、作風に対して生々しすぎるため候補から外した。
 
-攻撃エフェクト（`cmb_attack`、エフェクトIDごとの動的解決）。エフェクトのカタログは絵と同時に決めるため、ここでは系統ごとに置く。
+攻撃エフェクト（`cmb_attack`）。エフェクトIDは絵と音の共通キーなので、候補も [combat_effect.csv](../../data/effects/combat_effect.csv) の `effect_id` で並べる。
 
-| 系統 | 候補 | 場所 |
+| effect_id | 候補 | 場所 |
 |---|---|---|
-| 斬撃 | `MeleeSwingsPack_96khz_Stereo_HighSwings15.wav`（軽） | 2020 p3 / David Dumais Audio - Weapon Sounds - Weapon Swings |
-| | `MeleeSwingsPack_96khz_Stereo_NormalSwings39.wav`（標準） | 2020 p3 / 同上 |
-| | `MeleeSwingsPack_96khz_Stereo_LowSwings31.wav`（重） | 2020 p3 / 同上 |
-| | `SWSH_Sword Slash Impact V2 Assorted 18` | 2023 p2 / David Dumais Audio - Melee Weapons Pack 1 |
-| 射撃（弓） | `Nocked,archery,firing,loose,crossbow1,carbonbolt,atbow,snap,buzz,airy,bright,alt.wav` | 2019 p2 / Eiravaein Works - Nocked |
+| `slash_s` | `WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav` | 2026 p1 / 344 Audio - Historical Weapons Vol. 2 |
+| `slash_m` | `METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav` | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
+| `slash_l` | `MeleeSwingsPack_96khz_Stereo_LowSwings31.wav` | 2020 p3 / David Dumais Audio - Weapon Sounds - Weapon Swings |
+| `arrow` | `Nocked,archery,firing,loose,crossbow1,carbonbolt,atbow,snap,buzz,airy,bright,alt.wav` | 2019 p2 / Eiravaein Works - Nocked |
 | | `BOW Arrow Hit 05.wav`（着弾） | 2020 p9 / SmartSoundFX – Medieval |
-| 射撃（投石） | `Bluezone_BC0297_stone_impact_015.wav`（着弾） | 2024 p1 / BluezoneCorp - Stone Impact |
+| `stone` | `Bluezone_BC0297_stone_impact_015.wav`（着弾） | 2024 p1 / BluezoneCorp - Stone Impact |
 | | `PM_RI_Source_53 Rocks Impact Hit Single Stone.wav`（着弾） | 2020 p5 / PMSFX - Rocky Impacts |
-| 魔法（聖） | `MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav` | 2026 p2 / Epic Stock Media - Fantasy Game 2 |
-| | `Ice_Spell_Ice_Spell_Buff_Positive_02.wav` | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
+| `magic_bolt` | `SCIWeap_Flyby Plasma J 01_RSCPC_SFEW.wav` | 2024 p6 / Rescopic Sound - Sci-Fi Energy Weapons |
+| | `SCIWeap_Shot Pulse YR 05_RSCPC_SFEW.wav`（発射） | 2024 p6 / 同上 |
+| | `WHSH_Pure SciFi-Whoosh Fast 03_RSCPC_DW.wav` | 2024 p6 / Rescopic Sound - Distinct Whooshes |
+| | `Laser_Beam_004.wav` | 2024 p1 / Doex Studio - 90s Anime SFX Pack |
+| `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
+| | `Helinä,windchimes,aluminum,pipes,woodclapper,...` | 2019 p2 / Eiravaein Works - Helina |
 | | `Enchanting_Bells_4.wav` | 2023 p2 / CB Sound Design - Dreamcatcher |
+| | `MAGMisc_Magic Christmas Bells 2_344 Audio_Christmas.wav` | 2026 p1 / 344 Audio - Christmas Vol. 1 |
 
-Weapon Swings は High / Normal / Low が名前で分かれており、威力の段階（小・中・大）にそのまま割り当てられる。
+`slash_s` と `slash_m` は試聴して決めた。`slash_l` は未試聴で、Weapon Swings が High / Normal / Low に分かれているのでそこから取る。
 
-魔法系は暗い方向の音が大半で、明るい一撃は少ない。`MAGAngl`（Angelic）が付いた Fantasy Game 2 と、`Buff_Positive` と明示された Sound Spark が数少ない例。Dreamcatcher のベルは魔法として設計された音ではないが、明るく短い点では合う。
+`magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感が近い。この手の音はファンタジー系ライブラリよりSF系のほうが揃っており、Sci-Fi Energy Weapons の `Flyby`（飛行）と `Shot`（発射）は名前のとおり撃つ側と通過側で分かれている。ただしSF素材はそのままだと機械的に寄るため、質感が浮くようなら高域を削るなどの加工が要る。
+
+`holy`（聖光＝近接の聖なる一撃・impact）はキラキラした音を当てる。伸びる魔法音ではなく、粒が立つ短い音。`MAGAngl`（Angelic）が付いた Fantasy Game 2 を試聴したが、明るい一撃ではなく水魔法・回復系に聞こえたため外した。名前に Bright / Positive とあっても実体は柔らかく伸びる音であることが多く、同じ理由で `Buff_Positive` 系も期待しにくい。狙うのは風鈴・鈴・アルペジオのほうで、上の4本はその方向で拾ったもの。
+
+この帯域は MuseScore でも作れる（グロッケン＝きらめき、チューブラーベル＝死と神域）。`holy` は外部調達にこだわらず自作と比べて決める。
+
+`curse` `claw` `punch` `arrow_bone` は未探索。
 
 盤の操作。
 
 | event_id | 候補 | 場所 |
 |---|---|---|
-| `map_capture` | `GS sail impact 004.wav`（旗の布音） | 2023 p2 / Gladestock Studios - Naval Warfare |
-| | `Cloth 29.wav` | 2018 p6 / TheWorkRoom Audio Post - Cloths & Sponges Foley |
+| `map_capture` | `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02_ESM_FG2.wav` | 2026 p2 / Epic Stock Media - Fantasy Game 2 |
 | `map_board` | `WOODImpt_Impact Wood 23_DDUMAIS_NONE.wav` | 2023 p2 / David Dumais Audio - Melee Weapons Pack 1 |
 | | `WOODImpt_Drops20_InMotionAudio_Wood.wav` | 2024 p2 / InMotionAudio - Wood |
 | | `EFX CTM Floor Board Creak 03 A.wav`（軋み） | 2019 p2 / Coll Anderson - House Library Add Ons |
 
-`map_capture` は楽音（チューブラーベル）と布音を重ねる設計なので、布側だけをここから取る。旗そのものの録音はバンドル内に無く、帆（sail）が最も近い。
+`map_capture` は楽音（チューブラーベル）と布音を重ねる設計なので、布側だけをここから取る。採用したのは布バッグを開く 0.7 秒の音で、旗の録音ではない。それでも旗が翻る質感として通ると試聴で判断した。バンドル内に旗そのものの録音は無い。
 
 `map_board` は木の打撃音に軋みを重ねて作る。輸送ユニットの移動音を将来個別に持たせる場合は、2023 p2 の Dramatic Cat - Horse Carriage に `VEHWagn_Wood Cart Roll On Stone Pavement In Courtyard 03`（荷馬車が石畳を進む音）と馬の足音が揃っている。
 
@@ -295,9 +303,9 @@ Weapon Swings は High / Normal / Low が名前で分かれており、威力の
 
 探して見つからなかったものを記録する。次に探すときの手がかりになる。
 
-- 羽ばたき（`map_move` の `flight`）。実用になるのは 2019 p6 / Soundmind - Predatory Birds の `PRB315 Northern Goshawk` 1本だけで、鳴き声と羽ばたきが同一ファイルに同居しており切り出しが要る。布のはためき（`map_capture` の候補）を短く切って連打するほうが早い。
+- 羽ばたき（`map_move` の `flight`）。実用になるのは 2019 p6 / Soundmind - Predatory Birds の `PRB315 Northern Goshawk` 1本だけで、鳴き声と羽ばたきが同一ファイルに同居しており切り出しが要る。`map_capture` に採用した布の音を短く切って連打するほうが早い。
 - 投石の発射音。古代のスリング（投げ紐）は無い。近いのは 2018 p3 / Eiravaein Works - Vaeyan IV のゴム式パチンコ1本だが音が違う。布を鋭く振る音を自録りするのが現実的。着弾側は候補が揃っている。
-- 旗のはためき単体。上記のとおり帆で代用する。
+- 旗のはためき単体。録音そのものが無いため、布の小物音で代用する（`map_capture` で採用済み）。
 
 ## データ形式・ディレクトリ
 
