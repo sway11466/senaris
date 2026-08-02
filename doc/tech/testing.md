@@ -42,8 +42,8 @@ godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutco
 
 GitHub Actions（`.github/workflows/tests.yml`）が main への push と pull request で全テストを実行する。ubuntu-latest に Godot 4.7-stable（Linux headless）を導入し、`--import` のあと上記コマンドを回す。テスト失敗は GUT の exit code で赤になる。class_name 未インポート等の早期終了は exit 0 になるため、ログの「All tests passed」検査で偽グリーンを防ぐ。
 
-## 現状の構成（2026-07 時点）
+## 構成
 
-- `tests/unit/` — 35本。domain（combat / pierce / support / surround / air_combat / movement / hex / ai / formation / capture / transport / turn / victory / battle_state）・data（data_integrity / data_convert / csv_util / 各カタログ / unit_type / skin 系 / i18n / dialogue）・application（match_controller / command_actions / stage_loader / campaign_progress / campaign_catalog）・infrastructure（progress_store）。
+- `tests/unit/` — 1話題1ファイルで `test_<話題>.gd`。話題はレイヤーの単位に対応する＝domain（戦闘・移動・AI・陣形・占領・輸送・ターン・勝敗・盤の状態）／data（CSV正本→JSON生成の整合・各カタログ・多言語・会話）／application（試合進行・コマンド・ステージ読込・キャンペーン進行）／infrastructure（永続化）。どの話題があるかはディレクトリが正本＝ここに一覧を持たない。
 - `tests/manual/` — 使い捨てスクリプト置き場（セレクト画面のヘッドレス再現・スクショ）。自動実行の対象外。
 - 手動での機能確認は機能別のデバッグステージ（`data/stages/debug-*/`）を使う。カテゴリ内訳・未実装TODO → [debug-stages.md](debug-stages.md)。
