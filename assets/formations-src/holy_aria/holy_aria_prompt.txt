@@ -1,0 +1,18 @@
+NOTE: 生成時は assets/units/cleric/cleric_combat.png・priest/priest_combat.png・
+bishop/bishop_combat.png を参照画像として添付する（衣装を実際のユニットに寄せるため）。
+
+SUBJECT: FIVE chibi clergy singing a holy hymn together — TWO clerics, TWO priests and ONE bishop — gathered in a close cluster on open ground, seen from a slightly low angle. This is a blessing, not an attack: the mood is warm, calm and uplifting.
+
+All five are SINGING, eyes CLOSED, mouths open in a small round "o" holding a sustained note, faces serene and absorbed. Nobody shouts, grimaces, strains or looks fierce. Heads are tilted at different angles — some bowed, some lifted toward the light — so the five read as a choir, not a row of copies.
+
+The bishop stands at the center, slightly forward and taller than the rest, the focal point of the group. He is an OLDER man with short receding brown hair and a lined face, and he wears NO HAT — no mitre, no cap, no hood, bare-headed. His vestments are heavy and ornate: a blue-grey and cream robe covered in fine gold embroidery, a gold-trimmed stole over the shoulders, a small cross pendant at his chest. He holds a tall dark crozier topped with a pale stone cross, gripped in both hands before him.
+
+The two clerics flank the group at the outer edges. They are young men in blue-grey hooded robes with the HOOD UP, a cream off-white tabard hanging down the front, a brown belt and brown boots. Each cradles a small pale stone cross in both hands, held close against the chest. Their uniform is identical to each other — separate them only by how they stand and where their head is turned.
+
+The two priests stand between the bishop and the clerics. They are young women in a blue-grey veil with gold trim worn over a white coif, and a blue-grey robe over a cream underlayer with a gold cross embroidered on the chest and gold hems. Each holds a tall slender staff topped with a pale stone cross, held upright. Their uniform is identical to each other — separate them only by pose.
+
+Floating in the air ABOVE and BEHIND the group hangs a great luminous CROSS of warm golden-white light — a clean hard-edged flat graphic shape with straight tapering arms and a small ring where the arms meet, NOT a soft blurry glow, NOT a lens flare. It is large: several times the height of the figures, dominating the upper part of the frame.
+
+From that cross, broad shafts of warm golden light spill downward and outward over the whole scene, drawn as clean straight-edged beams rather than haze. The light pours over the five singers from above and pools around their feet, and slender motes and small gold cross-glyphs drift upward through the beams. The cross is the light source, so all five are lit warmly from above and behind, their robe hems and veils stirring gently in a soft updraft — everything about the picture should feel like a benediction settling over an army.
+
+The five figures read clearly against the light — do not let the glow wash them out. NO enemies, NO corpses, NO named characters, NO hex grid, NO UI. Background: a wide quiet battlefield at dawn under a breaking overcast sky, the clouds parting just where the cross hangs, kept simple so the choir and the cross of light dominate.
