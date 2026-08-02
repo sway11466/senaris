@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=2 / feature=32 / refactoring=9
+次回採番: bug=2 / feature=35 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -258,6 +258,30 @@
 - 背景：体験版はチュートリアルを絞って配布する（[monetization.md](sales/monetization.md)）が、収録しないステージのユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
 - 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
 - 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝開発用アセットの除外と同じ段・parking lot「Steam 配布の段取り」と連動）。
+
+### feature-32
+
+**陣形スキル・エンチャントの効果音を作る**（優先度：中）
+
+- 背景：発火点（`map_formation`＝発動の頭／`map_formation_hit`＝効果が届いた瞬間／`map_enchant`＝エンチャント発動）を呼ぶ配線は入っているが、素材が無い。`sfx_catalog.gd` の `BIND` は「素材がある発火点だけ載せる」表で、載っていない発火点は無音で進む設計なので、いまは黙って何も鳴らない（壊れてはいない）。看板機能の発動が無音なのは手応えとして弱い。
+- 対応：MuseScore ＋ Muse Sounds で自作 → `tools/gen_sfx.ps1` で `.ogg` 化（`victory`／`defeat` スティンガーで実証済みの手順）。作ったら `BIND` に1行ずつ足すだけで鳴る。音の性格は、陣形＝詠唱が結実する重い一撃、`map_formation_hit`＝着弾（陣形は戦闘演出シーンを通らないので `cmb_hit` は借りない）、`map_enchant`＝陣形より軽く短い（毎ターン飛ぶため）。
+- 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`BIND`）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
+
+### feature-33
+
+**陣形スキルのカットイン絵を描く**（優先度：中）
+
+- 背景：カットインの器は実装済み（`presentation/formation/formation_cutin.gd`＝戦闘演出シーンと同じ八角形の窓・約1秒・スキップ可）。絵を `assets/formations/{recipe_id}.png` に置けば規約解決で出て、無ければカットインを飛ばす。いま絵が1枚も無いので、発動しても盤の結果だけが出る。
+- 対応：3レシピぶん（`trinity`／`divine_judgment`／`holy_aria`）。`prompt.txt` を先に書いてから生成する。`trinity` は冒険譚2の獲得キービジュアル（feature-24）が「三重詠唱が屍の波を薙ぐ」で画題が重なるため、1枚を両方に使えないか先に検討する（共用するなら `assets/formations/trinity.png` を正としてキャンペーン側から参照する形）。絵ができたらカットインの入り方（いまはフェード＋わずかなズーム）を構図に合わせて詰める＝先に凝った入り方を決めると絵と噛み合わず二度手間になる。
+- 該当：`assets/formations-src/{recipe_id}/`・`assets/formations/{recipe_id}.png`・`presentation/formation/formation_cutin.gd`（入り方の調整）・`doc/art/keyvisual.md` §3・`doc/gdd/formations.md`。着手の引き金＝絵を生成できるとき。関連＝feature-24（獲得キービジュアル）。
+
+### feature-34
+
+**陣形スキルの着弾を盤で光らせる**（優先度：低）
+
+- 背景：陣形スキルが解決しても、盤は `_sync()` で駒を消して兵数を書き換えるだけで、どのヘックスに当たったのかを示す表示が無い（`hex_board_3d.gd` `_on_formation_resolved`）。三重詠唱は7ヘクスに当たる面の広さが売りなので、当たった範囲が見えないと手応えが伝わらない。カットインは華を担うが「どこに当たったか」は担えない。
+- 対応：`formation_resolved` の結果（着弾ごとの hex）を受けて、そのヘックスを一瞬光らせる。盤にヘックス単位のフラッシュ表示が無いので新設が要る（既存のオーバーレイ＝`_reachable`／`_targets` と同じ層に、時間で消える一時的なハイライトを足す形）。カットインが閉じた後に出す＝順番は main が持つ（発動音 → カットイン → 着弾音＋光）。
+- 該当：`presentation/board/hex_board_3d.gd`・`presentation/main/main.gd`（順番）・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝カットインの絵ができて演出を通しで見るとき（feature-33 の後）。
 
 ## リファクタリング
 
