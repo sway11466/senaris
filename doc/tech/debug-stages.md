@@ -37,6 +37,8 @@
 | ボス撃破 | `debug-victory/boss.json` | 実装済み |
 | 本拠地占領（raid） | `debug-victory/hq.json` | 実装済み |
 | ターン制限（10で時間切れ敗北） | `debug-victory/turnlimit.json` | 実装済み |
+| 拠点防衛（奪われたら敗北） | `debug-victory/defend_base.json` | 実装済み |
+| 拠点防衛×2（両方失ったら敗北＝AND） | `debug-victory/defend_two.json` | 実装済み |
 
 ## debug-mapops（マップ操作）
 

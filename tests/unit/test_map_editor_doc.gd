@@ -511,3 +511,23 @@ func test_defeat_key_is_omitted_when_empty() -> void:
 	assert_true(doc.to_text().contains("\"defeat\""), "指定があれば書き出す")
 	doc.remove_defeat(0)
 	assert_false(doc.to_text().contains("\"defeat\""), "空の defeat キーは書き出さない")
+
+## 手書きの既存ステージと同じ書式で出す（エディタで開き直しただけで差分が出ない）。
+func test_defeat_is_written_in_the_handwritten_style() -> void:
+	var doc := _doc_with_base()
+	doc.add_base(6, 2, "neutral", "fort")
+	doc.add_defeat_lose_base(3, 2)
+	assert_true(doc.to_text().contains(
+		"  \"defeat\": [\n" +
+		"    { \"type\": \"lose_base\",\n" +
+		"      \"bases\": [ { \"col\": 3, \"row\": 2 } ] }\n" +
+		"  ]"), "対象1つは1行に収める")
+	doc.add_defeat_lose_base(6, 2, true)
+	assert_true(doc.to_text().contains(
+		"  \"defeat\": [\n" +
+		"    { \"type\": \"lose_base\",\n" +
+		"      \"bases\": [\n" +
+		"        { \"col\": 3, \"row\": 2 },\n" +
+		"        { \"col\": 6, \"row\": 2 }\n" +
+		"      ] }\n" +
+		"  ]"), "対象が複数なら1件1行で段落にする")
