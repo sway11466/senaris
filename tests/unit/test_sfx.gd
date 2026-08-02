@@ -11,7 +11,6 @@ func test_bind_shares_base_sounds_across_screens() -> void:
 	assert_eq(SfxCatalog.sfx_of("menu_back"), "ui_cancel")
 	assert_eq(SfxCatalog.sfx_of("map_cancel"), "ui_cancel", "キャンセルも共用")
 	assert_eq(SfxCatalog.sfx_of("menu_locked"), "ui_denied")
-	assert_eq(SfxCatalog.sfx_of("map_denied"), "ui_denied", "否定も共用")
 	assert_eq(SfxCatalog.sfx_of("map_hover"), "ui_hover")
 	assert_eq(SfxCatalog.sfx_of("map_talk"), "ui_hover", "文字送りはホバーと同じ極短クリック")
 

@@ -132,15 +132,23 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	row.focus_mode = Control.FOCUS_NONE
 	row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var locked := false
 	match _progress.stage_state(campaign_id, String(s["id"])):
 		CampaignProgress.CLEARED:
 			row.text = "✓ %s" % label
 		CampaignProgress.LOCKED:
+			locked = true
 			row.text = "🔒 %s — %s" % [label, _progress.unlock_text(campaign_id, String(s["id"]))]
-			row.disabled = true
+			# disabled にはしない＝入力を受け取らず拒否音を鳴らせなくなるため（doc/audio/sfx.md）。
+			# 押せるままにして押されたら音だけ返し、淡い見た目は自前で当てる。
+			var dim := row.get_theme_color("font_disabled_color", "Button")
+			for c in ["font_color", "font_hover_color", "font_pressed_color"]:
+				row.add_theme_color_override(c, dim)
 		_:
 			row.text = label
-	if not row.disabled:
+	if locked:
+		row.pressed.connect(func() -> void: SfxPlayer.play_event("menu_locked"))
+	else:
 		row.pressed.connect(_open_briefing.bind(campaign_id, s))
 	return row
 

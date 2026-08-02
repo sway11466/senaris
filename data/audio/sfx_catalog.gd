@@ -31,7 +31,6 @@ const BIND := {
 	"map_select": "ui_confirm",
 	"map_confirm": "ui_confirm",
 	"map_cancel": "ui_cancel",
-	"map_denied": "ui_denied",
 }
 
 ## 発火点IDに割り当てられた素材ID。未登録なら ""。
