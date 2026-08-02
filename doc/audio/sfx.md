@@ -214,6 +214,91 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 場面ごとのバランスはこのスクリプトの仕事ではなく、下記のバスで取る（書き出し直さずに調整できる）。
 
+### 物音の素材候補
+
+物音系の素材プールは Sonniss GDC バンドル（[sonniss.md](sonniss.md)）。索引を `sfx_id` ごとに引いた結果を候補として残す。
+
+採否が決まったら、その `sfx_id` の候補を1つに絞り、`assets/sfx-src/credits.md` に出典を記録する。候補の列が消えて素材が1つ書かれている状態が、決まった印になる。
+
+場所の表記は「年 パート番号 / ライブラリ名」。zip の URL は products 側の `_raw/<年>_<パート>.json` にある。
+
+移動音（`map_move`、移動タイプごとの動的解決）。
+
+| move_type | 候補 | 場所 |
+|---|---|---|
+| `ground` 系 | `237_Foley_Footsteps_Metal_Boot_Walk_Normal_Close.wav` | 2017 p8 / Tovusound - Edward Foleyart Add-On Extended Footsteps |
+| | `FS Metal Soldier Walk N01.wav` | 2016 p2 / Levan Nadashvili - Soldier Footsteps |
+| | `PM_SDNG_Single_Step_Footstep_19.wav` | 2019 p3 / PMSFX - STEPS Dirt & Gravel |
+| | `PM_SDGS_14 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
+| `light_foot` | `FS Ground Civilian Walk N03.wav` | 2016 p2 / Levan Nadashvili - Civilian Footsteps |
+| | `FS Wood Civilian Crouch N03.wav` | 2016 p2 / 同上 |
+| | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` | 2017 p8 / Tovusound - Extended Footsteps |
+| `flight` | 適当な素材が無い。下記 | |
+
+金属床のブーツを名前で明示しているのは Tovusound と Levan Nadashvili の2つだけ。土・草は PMSFX が単発ステップを出しているため踏むたびに鳴らす用途に向く。Levan Nadashvili は Soldier（重）と Civilian（軽）が同じ収録で対になっており、重い足音と軽い足音の音色差を揃えやすい。
+
+命中音（`cmb_hit`、損害の値で分岐）。
+
+| sfx_id | 候補 | 場所 |
+|---|---|---|
+| `cmb_hit_none` | `Weapon_Impact_Parry_01.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
+| | `Plate_Impact_Hard_02.wav` | 2017 p3 / 同上 |
+| | `WEAPArmr_Metal Shield Block Hits_JSE_MW.wav` | 2024 p2 / Justsoundeffects - Melee Weapons |
+| `cmb_hit_damage` | `PUNCH_PERCUSSIVE_HEAVY_06.wav` | 2020 p9 / Shapeforms - Hit & Punch |
+| | `PUNCH_DESIGNED_LIGHT_78.wav` | 2020 p9 / 同上 |
+| | `Hand-to-Hand Combat - Body Hits - Deep Punch 02.wav` | 2018 p6 / The Chris Alan - Hand-to-Hand Combat |
+| `cmb_hit_wipe` | `Braam 004 (D).wav` ほか `013 (B)` `029 (G)` `035 (G#)` | 2020 p3 / Federico Soler Fernandez - Effective Trailer Braams |
+| | `DSGNBram____Cinematic Horn Braam, Epic, Cinematic, Dark, Instrument, Huge-32.wav` | 2026 p3 / Jake Fielding - Cinematic Horn Braams |
+| | `DSGNBoom_Gong, Drone, Low End 25` | 2023 p1 / 344 Audio - Cymbals From Hell Vol. 2 |
+
+`cmb_hit_none` は Double Trouble が本命。`Parry`（受け流し）という名前のファイルが直球で存在し、同じライブラリに板金鎧と鎖帷子の被弾音も揃うため、弾かれる音と当たる音を同じ収録から取れる。
+
+`cmb_hit_wipe` の Braam は予告編で鳴る金管の低く重い一撃。全滅の余韻という要求にそのまま合う。Trailer Braams は4本とも音程（D / B / G / G#）が明記されているため、トラックライブラリの調（[tracks.md](tracks.md)）に合わせて選べる。
+
+血肉系（Gore）のライブラリも各年にあるが、作風に対して生々しすぎるため候補から外した。
+
+攻撃エフェクト（`cmb_attack`、エフェクトIDごとの動的解決）。エフェクトのカタログは絵と同時に決めるため、ここでは系統ごとに置く。
+
+| 系統 | 候補 | 場所 |
+|---|---|---|
+| 斬撃 | `MeleeSwingsPack_96khz_Stereo_HighSwings15.wav`（軽） | 2020 p3 / David Dumais Audio - Weapon Sounds - Weapon Swings |
+| | `MeleeSwingsPack_96khz_Stereo_NormalSwings39.wav`（標準） | 2020 p3 / 同上 |
+| | `MeleeSwingsPack_96khz_Stereo_LowSwings31.wav`（重） | 2020 p3 / 同上 |
+| | `SWSH_Sword Slash Impact V2 Assorted 18` | 2023 p2 / David Dumais Audio - Melee Weapons Pack 1 |
+| 射撃（弓） | `Nocked,archery,firing,loose,crossbow1,carbonbolt,atbow,snap,buzz,airy,bright,alt.wav` | 2019 p2 / Eiravaein Works - Nocked |
+| | `BOW Arrow Hit 05.wav`（着弾） | 2020 p9 / SmartSoundFX – Medieval |
+| 射撃（投石） | `Bluezone_BC0297_stone_impact_015.wav`（着弾） | 2024 p1 / BluezoneCorp - Stone Impact |
+| | `PM_RI_Source_53 Rocks Impact Hit Single Stone.wav`（着弾） | 2020 p5 / PMSFX - Rocky Impacts |
+| 魔法（聖） | `MAGAngl_Magic Light Spell Enchantment Potion Effect Tonal Bright 03_ESM_FG2.wav` | 2026 p2 / Epic Stock Media - Fantasy Game 2 |
+| | `Ice_Spell_Ice_Spell_Buff_Positive_02.wav` | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
+| | `Enchanting_Bells_4.wav` | 2023 p2 / CB Sound Design - Dreamcatcher |
+
+Weapon Swings は High / Normal / Low が名前で分かれており、威力の段階（小・中・大）にそのまま割り当てられる。
+
+魔法系は暗い方向の音が大半で、明るい一撃は少ない。`MAGAngl`（Angelic）が付いた Fantasy Game 2 と、`Buff_Positive` と明示された Sound Spark が数少ない例。Dreamcatcher のベルは魔法として設計された音ではないが、明るく短い点では合う。
+
+盤の操作。
+
+| event_id | 候補 | 場所 |
+|---|---|---|
+| `map_capture` | `GS sail impact 004.wav`（旗の布音） | 2023 p2 / Gladestock Studios - Naval Warfare |
+| | `Cloth 29.wav` | 2018 p6 / TheWorkRoom Audio Post - Cloths & Sponges Foley |
+| `map_board` | `WOODImpt_Impact Wood 23_DDUMAIS_NONE.wav` | 2023 p2 / David Dumais Audio - Melee Weapons Pack 1 |
+| | `WOODImpt_Drops20_InMotionAudio_Wood.wav` | 2024 p2 / InMotionAudio - Wood |
+| | `EFX CTM Floor Board Creak 03 A.wav`（軋み） | 2019 p2 / Coll Anderson - House Library Add Ons |
+
+`map_capture` は楽音（チューブラーベル）と布音を重ねる設計なので、布側だけをここから取る。旗そのものの録音はバンドル内に無く、帆（sail）が最も近い。
+
+`map_board` は木の打撃音に軋みを重ねて作る。輸送ユニットの移動音を将来個別に持たせる場合は、2023 p2 の Dramatic Cat - Horse Carriage に `VEHWagn_Wood Cart Roll On Stone Pavement In Courtyard 03`（荷馬車が石畳を進む音）と馬の足音が揃っている。
+
+### バンドルで賄えないもの
+
+探して見つからなかったものを記録する。次に探すときの手がかりになる。
+
+- 羽ばたき（`map_move` の `flight`）。実用になるのは 2019 p6 / Soundmind - Predatory Birds の `PRB315 Northern Goshawk` 1本だけで、鳴き声と羽ばたきが同一ファイルに同居しており切り出しが要る。布のはためき（`map_capture` の候補）を短く切って連打するほうが早い。
+- 投石の発射音。古代のスリング（投げ紐）は無い。近いのは 2018 p3 / Eiravaein Works - Vaeyan IV のゴム式パチンコ1本だが音が違う。布を鋭く振る音を自録りするのが現実的。着弾側は候補が揃っている。
+- 旗のはためき単体。上記のとおり帆で代用する。
+
 ## データ形式・ディレクトリ
 
 BGM（`bgm` / `bgm-src`）・絵（`units` / `units-src`）と同型で対を作る。
