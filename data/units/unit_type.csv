@@ -1,8 +1,8 @@
 id,atk_ground,atk_air,pierce,defense,move,move_type,range,move_after_attack,can_capture,max_troops,capacity,category,memo
 種別ID,対地,対空,貫通率,防御,移動,移動タイプ,射程,攻撃後移動,占領可,満員兵数,搭乗数,兵種,備考
-cleric,20,0,0,20,3,ground,1,false,true,8,0,占領兵,見習い
-priest,40,0,0,20,3,ground,1,false,true,8,0,占領兵,
-bishop,20,0,0,40,3,ground,1,false,true,8,0,占領兵,
+cleric,20,0,0,20,2,ground,1,false,true,8,0,占領兵,見習い
+priest,40,0,0,20,2,ground,1,false,true,8,0,占領兵,
+bishop,20,0,0,40,2,ground,1,false,true,8,0,占領兵,
 paladin,50,0,0,50,5,ground,1,false,true,8,0,占領兵,
 slinger,20,20,0,20,3,ground,1-2,false,false,8,0,弓兵,見習い
 archer,30,40,0,30,4,ground,1-3,false,false,8,0,弓兵,

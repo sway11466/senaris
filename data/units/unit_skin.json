@@ -278,6 +278,22 @@
 			],
 			"enemy": []
 		},
+		"juggernaut": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "魔獣",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "トロール",
+					"retainers": [],
+					"skin_id": "troll",
+					"type_id": "juggernaut"
+				}
+			]
+		},
 		"knight": {
 			"ally": [
 				{
@@ -380,7 +396,19 @@
 					"type_id": "ninja"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "ワイアーム",
+					"retainers": [],
+					"skin_id": "wyrm",
+					"type_id": "ninja"
+				}
+			]
 		},
 		"novice": {
 			"ally": [
@@ -549,6 +577,22 @@
 				}
 			],
 			"enemy": []
+		},
+		"scout": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "魔獣",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "ロックサーペント",
+					"retainers": [],
+					"skin_id": "rock_serpent",
+					"type_id": "scout"
+				}
+			]
 		},
 		"slinger": {
 			"ally": [
