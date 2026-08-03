@@ -278,7 +278,7 @@
 			],
 			"enemy": []
 		},
-		"harpy": {
+		"harrier": {
 			"ally": [],
 			"enemy": [
 				{
@@ -290,7 +290,7 @@
 					"name": "ハーピー",
 					"retainers": [],
 					"skin_id": "harpy",
-					"type_id": "harpy"
+					"type_id": "harrier"
 				}
 			]
 		},
