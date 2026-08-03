@@ -1,6 +1,6 @@
 extends GutTest
-## エンチャント（単独発動・味方1体を強化）＝成立・対象の絞り込み・適用・持続を検証する。
-## 仕組みは陣形スキルと共通（Formation のレシピとして持つ）。詳細 → doc/gdd/enchants.md
+## ユニットスキル（単独発動・味方1体を強化）＝成立・対象の絞り込み・適用・持続を検証する。
+## 仕組みは陣形スキルと共通（Formation のレシピとして持つ）。詳細 → doc/gdd/skills.md
 
 func _state() -> BattleState:
 	return BattleState.new(10, 8)
@@ -41,7 +41,7 @@ func test_not_offered_by_other_types() -> void:
 			found = true
 	assert_false(found, "ピクシー以外は撃てない")
 
-## 発動者の照合もスキンID（→ doc/gdd/enchants.md 共通ルール）。性能が pixie でも別スキンなら撃てない。
+## 発動者の照合もスキンID（→ doc/gdd/skills.md 共通ルール）。性能が pixie でも別スキンなら撃てない。
 func test_not_offered_by_other_skin() -> void:
 	var f := _dust_state()
 	f["pixie"].skin_id = "harpy"
@@ -57,13 +57,13 @@ func test_target_self_and_adjacent_ally_only() -> void:
 	assert_false(Formation.can_target(s, o, f["foe"].pos), "隣接でも敵には掛けられない")
 	assert_false(Formation.can_target(s, o, Hex.neighbor(f["pixie"].pos, 1)), "空きマスには掛けられない")
 
-## 陣形スキルは配置そのものがレシピなので自マスでしか撃てないが、エンチャントは移動後でも撃てる。
+## 陣形スキルは配置そのものがレシピなので自マスでしか撃てないが、ユニットスキルは移動後でも撃てる。
 func test_can_cast_after_moving() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var far: Unit = f["far"]
 	var o := _dust_option(f)
-	assert_eq(String(o["kind"]), "enchant", "エンチャント扱い")
+	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
 	assert_true(bool(o["after_move"]), "移動後でも撃てる印が立つ")
 	assert_false(Formation.can_target(s, o, far.pos), "移動前は離れた味方に届かない")
 	assert_true(s.move_unit(1, far.pos + Vector2i(-1, 0)), "far の隣へ飛ぶ")

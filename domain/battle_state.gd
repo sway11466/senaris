@@ -620,7 +620,7 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 ## 成功なら {recipe, results:[{target_id, loss, killed, detail}...]}、不正（ターン違い・行動済み・射程外）なら空。
 func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	# 妥当性: 参加者が現ターン・未行動・生存していること、target が射程内であること。
-	# 移動後でも撃てるレシピ（エンチャント）は「行動を使い切っていないか」で見る。
+	# 移動後でも撃てるレシピ（ユニットスキル）は「行動を使い切っていないか」で見る。
 	# 陣形は従来どおり盤の行動終了判定に従う（配置が変わる＝動いたら成立しない）。
 	var after_move := bool(option.get("after_move", false))
 	for pid in option["participants"]:
@@ -668,8 +668,8 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	return {"recipe": option["recipe"], "results": results}
 
 ## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
-## （エンチャント＝buff_scope "unit"・target のhexに居る味方）の両方を作る。
-## 詳細 → doc/gdd/formations.md, doc/gdd/enchants.md
+## （ユニットスキル＝buff_scope "unit"・target のhexに居る味方）の両方を作る。
+## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 	# 発動者の兵1人あたりで効くレシピ（妖精の粉）は、発動時の残兵数を掛けて値を焼き込む。
 	# 以後は発動者と切り離される＝ピクシーが損耗しても倒されても補正は変わらない。
@@ -817,7 +817,7 @@ func is_done(unit_id: int) -> bool:
 
 ## このターンの行動をまだ使っていないか（「待機」で終えておらず、攻撃もしていない）。
 ## is_done と違い「行ける先が無い／撃てる相手が居ない」を終了扱いにしない。移動してから
-## 撃てるエンチャントは、移動後この判定で発動可否を決める。詳細 → doc/gdd/enchants.md
+## 撃てるユニットスキルは、移動後この判定で発動可否を決める。詳細 → doc/gdd/skills.md
 func has_action_left(unit_id: int) -> bool:
 	return not _done.has(unit_id) and not has_attacked(unit_id)
 

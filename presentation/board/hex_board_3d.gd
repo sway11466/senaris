@@ -36,11 +36,11 @@ const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の�
 ## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
-const COLOR_ENCHANT_GLOW := Color(0.85, 1.00, 0.55)  # エンチャント中の足元の光（黄緑）
-const ENCHANT_GLOW_RADIUS := TILE * 0.72   # 光の広がり（ヘックスに収まる大きさ）
-const ENCHANT_GLOW_MIN := 0.35             # 明滅の下限アルファ
-const ENCHANT_GLOW_MAX := 0.85             # 同・上限
-const ENCHANT_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
+const COLOR_SKILL_GLOW := Color(0.85, 1.00, 0.55)  # ユニットスキル中の足元の光（黄緑）
+const SKILL_GLOW_RADIUS := TILE * 0.72   # 光の広がり（ヘックスに収まる大きさ）
+const SKILL_GLOW_MIN := 0.35             # 明滅の下限アルファ
+const SKILL_GLOW_MAX := 0.85             # 同・上限
+const SKILL_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
 const CAM_FOV := 42.0
 const MIN_DIST := 5.0            # ズーム＝カメラ距離の範囲
@@ -105,7 +105,7 @@ var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル�
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
 var _shadow_mesh: ArrayMesh       # 足元のブロブシャドウ（楕円）
-var _glow_mesh: ArrayMesh         # エンチャント中の足元の光（楕円・影より一回り大きい）
+var _glow_mesh: ArrayMesh         # ユニットスキル中の足元の光（楕円・影より一回り大きい）
 var _glow_mat: StandardMaterial3D # 同・材質（加算合成）。明滅は _process が alpha を書き換える
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
@@ -173,7 +173,7 @@ func _ready() -> void:
 	_overlay_mesh = _make_hex_mesh()
 	_hexring_mesh = _make_hexring_mesh()
 	_shadow_mesh = _make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
-	_glow_mesh = _make_glow_mesh(ENCHANT_GLOW_RADIUS, 0.5)
+	_glow_mesh = _make_glow_mesh(SKILL_GLOW_RADIUS, 0.5)
 	_glow_mat = _make_glow_material()
 	_skirt_tex = _make_skirt_texture()
 	_disc_mesh = CylinderMesh.new()
@@ -249,9 +249,9 @@ func refresh() -> void:
 func _process(_delta: float) -> void:
 	# 足元の光の明滅。位相は絶対時刻から出す＝_sync_units でノードを作り直しても途切れない。
 	if _glow_mat != null:
-		var t := float(Time.get_ticks_msec()) * 0.001 / ENCHANT_GLOW_CYCLE
+		var t := float(Time.get_ticks_msec()) * 0.001 / SKILL_GLOW_CYCLE
 		var w := 0.5 - 0.5 * cos(t * TAU)  # 0..1 のなめらかな往復
-		_glow_mat.albedo_color.a = lerpf(ENCHANT_GLOW_MIN, ENCHANT_GLOW_MAX, w)
+		_glow_mat.albedo_color.a = lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
 	if state == null:
 		return
 	var h := _hex_at_mouse()
@@ -593,14 +593,14 @@ func _open_command_menu(dest: Vector2i) -> void:
 	_formation_opts = []
 	if sel != null:
 		for o in Formation.available_for(state, sel):
-			# エンチャントは単独で成立する＝移動先で開いたメニューにも出す（after_move）。
+			# ユニットスキルは単独で成立する＝移動先で開いたメニューにも出す（after_move）。
 			if dest == sel.pos or bool(o.get("after_move", false)):
 				_formation_opts.append(o)
 		if not _formation_opts.is_empty():
 			_menu.add_separator()
 			for i in _formation_opts.size():
 				var o: Dictionary = _formation_opts[i]
-				var label := "エンチャント" if String(o.get("kind", "")) == "enchant" else "陣形"
+				var label := "ユニットスキル" if String(o.get("kind", "")) == "skill" else "陣形"
 				_menu.add_item("%s: %s" % [label, String(o["name"])], FORMATION_ID_BASE + i)
 	_menu.add_separator()
 	_menu.add_item("キャンセル", MENU_CANCEL)
@@ -618,7 +618,7 @@ func _on_menu_id(id: int) -> void:
 		return
 	if id >= FORMATION_ID_BASE:  # 300以上＝UNLOAD/DEPLOYより先に判定（範囲が重ならないよう最上位）
 		var opt: Dictionary = _formation_opts[id - FORMATION_ID_BASE]
-		# 移動後のエンチャントは、先に移動を確定してから対象を選ぶ（隣接判定を移動先で行う）。
+		# 移動後のユニットスキルは、先に移動を確定してから対象を選ぶ（隣接判定を移動先で行う）。
 		# 自マスで開いた場合（陣形スキル）は保留移動が無いので素通り。
 		_commit_pending_move()
 		_enter_formation(opt)
@@ -699,7 +699,7 @@ func _formation_target_cells(option: Dictionary) -> Array:
 		for h in Hex.within_range(o, rng):
 			if _on_board(h):
 				in_range[h] = true
-	# エンチャント（対象1体のバフ）は味方の居るhexだけ＝自分自身も選べる。
+	# ユニットスキル（対象1体のバフ）は味方の居るhexだけ＝自分自身も選べる。
 	var buff_unit := String(option.get("buff_scope", "")) == "unit"
 	if String(option["effect"]) != "single" and not buff_unit:
 		return in_range.keys()
@@ -945,15 +945,29 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 		return
 	var steps := path.size() - 1
 	var per_hex := minf(MOVE_ANIM_SEC_PER_HEX, MOVE_ANIM_MAX_SEC / float(steps))
+	# map_move。1マス踏むごとに1回鳴らす（doc/audio/sfx.md 移動音）。
+	# 素材は移動タイプで決まる＝足音（重）／足音（軽）／羽ばたき。未配置なら無音で進む。
+	var move_sfx := _move_sfx_of(unit_id)
 	node.position = _hex_world(path[0])
 	var t := create_tween()  # 既定は等速（TRANS_LINEAR）＝マスを一定の速さで歩く
 	for i in range(1, path.size()):
+		if move_sfx != "":
+			t.tween_callback(func() -> void: SfxPlayer.play_sfx(move_sfx))
 		t.tween_property(node, "position", _hex_world(path[i]), per_hex)
 	t.finished.connect(func() -> void:
 		if _move_tween == t:
 			_move_tween = null
 		move_animation_finished.emit())
 	_move_tween = t
+
+## その駒の移動音の素材ID。盤に居ない・移動タイプ不明なら ""＝無音。
+func _move_sfx_of(unit_id: int) -> String:
+	if state == null:
+		return ""
+	var u := state.unit_by_id(unit_id)
+	if u == null:
+		return ""
+	return SfxCatalog.move_sfx_of(UnitCatalog.move_type_of(u.type_id))
 
 ## ヘックスの中心（ユニットの親ノードを置くワールド座標）。地形の標高ぶん持ち上げる。
 func _hex_world(hex: Vector2i) -> Vector3:
@@ -1396,7 +1410,7 @@ func _sync_units() -> void:
 			sh.material_override = _overlay_material(COLOR_SHADOW)
 			sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
 			root.add_child(sh)
-			_add_enchant_glow(u, root)
+			_add_skill_glow(u, root)
 		else:
 			_add_unit_placeholder(u, done, root)
 		# 包囲中（攻防に係数<1.0）を明示。
@@ -1409,9 +1423,9 @@ func _sync_units() -> void:
 		if pcount > 0:
 			_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
 
-## エンチャントが効いている駒の足元を光らせる。見た目を宣言した補正（fx）が1つでも
-## 効いていれば出す＝陣営全体バフ（ホーリーアリア等）では光らない。詳細 → doc/gdd/enchants.md
-func _add_enchant_glow(u: Unit, root: Node3D) -> void:
+## ユニットスキルが効いている駒の足元を光らせる。見た目を宣言した補正（fx）が1つでも
+## 効いていれば出す＝陣営全体バフ（ホーリーアリア等）では光らない。詳細 → doc/gdd/skills.md
+func _add_skill_glow(u: Unit, root: Node3D) -> void:
 	var lit := false
 	for m in state.status_mods_for(u):
 		if not String(m.get("fx", "")).is_empty():
@@ -1633,11 +1647,11 @@ func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
 
 ## スカート用の粒状ノイズ（グレースケール・シームレス）。頂点カラーに乗算されて土の質感になる。
 ## 変化幅は控えめ（0.78〜1.0倍）＝べた塗り感だけ消し、色は頂点グラデに任せる。
-## エンチャント中の足元の光の材質（加算合成・中心が濃く外へ消える）。
+## ユニットスキル中の足元の光の材質（加算合成・中心が濃く外へ消える）。
 ## 明滅は共有の1材質を _process が書き換える＝掛かっている駒が同じ位相で光る。
 func _make_glow_material() -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
-	m.albedo_color = COLOR_ENCHANT_GLOW
+	m.albedo_color = COLOR_SKILL_GLOW
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD  # 地形の上に載せる＝暗くしない

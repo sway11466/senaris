@@ -32,7 +32,7 @@
 
 - [doc/gdd/combat.md](doc/gdd/combat.md) — 戦闘解決（補正チェーン・陣形スキル）
 - [doc/gdd/formations.md](doc/gdd/formations.md) — 陣形スキル（レシピ・カタログ）
-- [doc/gdd/enchants.md](doc/gdd/enchants.md) — エンチャント（単独発動・味方1体を強化。仕組みは陣形と共通）
+- [doc/gdd/skills.md](doc/gdd/skills.md) — ユニットスキル（発動者1体で撃つ。仕組みは陣形スキルと共通）
 - [doc/gdd/units.md](doc/gdd/units.md) — ユニット性能設計・対応表
 - [doc/gdd/movement.md](doc/gdd/movement.md) — 移動タイプ・地形コスト・reachable
 - [doc/gdd/map.md](doc/gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル

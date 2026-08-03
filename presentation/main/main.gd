@@ -151,13 +151,13 @@ func _await_turn_banner() -> void:
 	if is_inside_tree():
 		await get_tree().create_timer(TURN_BANNER_GAP).timeout
 
-## 陣形スキル／エンチャントの発動演出。発動の頭で音を鳴らし、陣形は1枚絵のカットインを挟んでから
-## 盤に戻って結果（着弾音・加護の光）を見せる。エンチャントはカットインを付けない（音と足元の光だけ）。
+## 陣形スキル／ユニットスキルの発動演出。発動の頭で音を鳴らし、陣形は1枚絵のカットインを挟んでから
+## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインを付けない（音と足元の光だけ）。
 ## 絵が無いレシピはカットインを飛ばす＝音と盤の結果は同じに出る。仕様 → doc/gdd/formations.md
 func _on_formation_resolved(result: Dictionary) -> void:
 	var recipe := String(result.get("recipe", ""))
-	if Formation.is_enchant(recipe):
-		SfxPlayer.play_event("map_enchant")
+	if Formation.is_unit_skill(recipe):
+		SfxPlayer.play_event("map_skill")
 		_update_aura()
 		return
 	SfxPlayer.play_event("map_formation")

@@ -224,19 +224,19 @@
 
 ### feature-28
 
-**エンチャント第2弾（貫通追加・再行動）**（優先度：中）
+**ユニットスキル第2弾（貫通追加・再行動）**（優先度：中）
 
-- 背景：エンチャントの器（単独発動・味方1体へ状態補正・移動後発動）は①妖精の粉で実装済み（[enchants.md](gdd/enchants.md)）。カタログを増やす段で、次に入れる2つの方向まで決まっている＝(1) 貫通追加＝対象の攻撃に貫通率を乗せる、(2) 再行動＝行動を終えた味方をもう一度動かす。どちらもレシピは未設計（発動者・値・持続・射程が未定）でカタログにも載っていない。
-- 対応：(1) 貫通追加は既存の状態補正で足りるか要確認＝`StatusMod` は攻防への add/mul は持つが、貫通率（`Unit.pierce`）に効く経路が無いため、補正チェーンに貫通の口を足すかどうかから決める。(2) 再行動は「1ターンに各ユニット1回まで」の縛りを入れる方針まで決定済み（無制限だと1体を延々動かせて崩壊する）。縛りの持ち場は駒側のフラグ＝`BattleState` に再行動回数を持たせ、中断セーブの直列化にも載せる。レシピが固まったら enchants.md のカタログへ②③として追記する。
-- 該当：`domain/formation/formation.gd`（RECIPES）・`domain/battle_state.gd`（再行動フラグ・直列化）・`domain/status/status_mod.gd`／`domain/combat/combat.gd`（貫通の口）・`tests/unit/test_enchant.gd`・`doc/gdd/enchants.md`。
+- 背景：ユニットスキルの器（単独発動・味方1体へ状態補正・移動後発動）は①妖精の粉で実装済み（[skills.md](gdd/skills.md)）。カタログを増やす段で、次に入れる2つの方向まで決まっている＝(1) 貫通追加＝対象の攻撃に貫通率を乗せる、(2) 再行動＝行動を終えた味方をもう一度動かす。どちらもレシピは未設計（発動者・値・持続・射程が未定）でカタログにも載っていない。
+- 対応：(1) 貫通追加は既存の状態補正で足りるか要確認＝`StatusMod` は攻防への add/mul は持つが、貫通率（`Unit.pierce`）に効く経路が無いため、補正チェーンに貫通の口を足すかどうかから決める。(2) 再行動は「1ターンに各ユニット1回まで」の縛りを入れる方針まで決定済み（無制限だと1体を延々動かせて崩壊する）。縛りの持ち場は駒側のフラグ＝`BattleState` に再行動回数を持たせ、中断セーブの直列化にも載せる。レシピが固まったら skills.md のカタログへ②③として追記する。
+- 該当：`domain/formation/formation.gd`（RECIPES）・`domain/battle_state.gd`（再行動フラグ・直列化）・`domain/status/status_mod.gd`／`domain/combat/combat.gd`（貫通の口）・`tests/unit/test_skill.gd`・`doc/gdd/skills.md`。
 
 ### feature-29
 
-**敵AIの陣形スキル／エンチャント使用**（優先度：中）
+**敵AIの陣形スキル／ユニットスキル使用**（優先度：中）
 
-- 背景：陣形スキルとエンチャントは当面プレイヤー専用で、敵AIは移動・攻撃・占領しかしない（[formations.md](gdd/formations.md) 実装方針・[enchants.md](gdd/enchants.md) 共通ルール）。看板機能を敵が使わないと、プレイヤーだけが持つ特権のままになる。成立条件はスキンID照合になった（未指定は種別へフォールバック）ので、敵側スキンをレシピに書けば成立させられる＝データ面の下地はできている。残るのはAIの思考。
+- 背景：陣形スキルとユニットスキルは当面プレイヤー専用で、敵AIは移動・攻撃・占領しかしない（[formations.md](gdd/formations.md) 実装方針・[skills.md](gdd/skills.md) 共通ルール）。看板機能を敵が使わないと、プレイヤーだけが持つ特権のままになる。成立条件はスキンID照合になった（未指定は種別へフォールバック）ので、敵側スキンをレシピに書けば成立させられる＝データ面の下地はできている。残るのはAIの思考。
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) `nearest_attacker_brain` に発動判断を足す＝成立している選択肢を `Formation.available_for` で採り、撃つ価値（面に入る敵の数・バフの効き）で評価して選ぶ。思考軸として ai.csv に列を足すか、部隊単位の指定にするかを先に決める（[ai.md](gdd/ai.md) の「ロジック＝コード／組合せ＝データ」に従う）。feature-4（思考軸の残り値の配線）の隣。
-- 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`data/ai/ai.csv`（軸を足す場合）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`／`doc/gdd/enchants.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
+- 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`data/ai/ai.csv`（軸を足す場合）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`／`doc/gdd/skills.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
 ### feature-30
 
@@ -261,10 +261,10 @@
 
 ### feature-32
 
-**陣形スキル・エンチャントの効果音を作る**（優先度：中）
+**陣形スキル・ユニットスキルの効果音を作る**（優先度：中）
 
-- 背景：発火点（`map_formation`＝発動の頭／`map_formation_hit`＝効果が届いた瞬間／`map_enchant`＝エンチャント発動）を呼ぶ配線は入っているが、素材が無い。`sfx_catalog.gd` の `BIND` は「素材がある発火点だけ載せる」表で、載っていない発火点は無音で進む設計なので、いまは黙って何も鳴らない（壊れてはいない）。看板機能の発動が無音なのは手応えとして弱い。
-- 対応：MuseScore ＋ Muse Sounds で自作 → `tools/gen_sfx.ps1` で `.ogg` 化（`victory`／`defeat` スティンガーで実証済みの手順）。作ったら `BIND` に1行ずつ足すだけで鳴る。音の性格は、陣形＝詠唱が結実する重い一撃、`map_formation_hit`＝着弾（陣形は戦闘演出シーンを通らないので `cmb_hit` は借りない）、`map_enchant`＝陣形より軽く短い（毎ターン飛ぶため）。
+- 背景：発火点（`map_formation`＝発動の頭／`map_formation_hit`＝効果が届いた瞬間／`map_skill`＝ユニットスキル発動）を呼ぶ配線は入っているが、素材が無い。`sfx_catalog.gd` の `BIND` は「素材がある発火点だけ載せる」表で、載っていない発火点は無音で進む設計なので、いまは黙って何も鳴らない（壊れてはいない）。看板機能の発動が無音なのは手応えとして弱い。
+- 対応：MuseScore ＋ Muse Sounds で自作 → `tools/gen_sfx.ps1` で `.ogg` 化（`victory`／`defeat` スティンガーで実証済みの手順）。作ったら `BIND` に1行ずつ足すだけで鳴る。音の性格は、陣形＝詠唱が結実する重い一撃、`map_formation_hit`＝着弾（陣形は戦闘演出シーンを通らないので `cmb_hit` は借りない）、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。
 - 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`BIND`）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
 
 ### feature-33

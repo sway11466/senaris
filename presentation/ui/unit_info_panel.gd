@@ -146,7 +146,7 @@ func _format(u: Unit) -> String:
 		TerrainSkinCatalog.display_name(terr), TerrainType.attack_factor(terr), TerrainType.defense_factor(terr)])
 	if surround < 1.0:
 		lines.append("包囲  ×%.2f（弱体化中）" % surround)
-	# いま効いている状態補正（エンチャント・陣形バフ）。表記は戦闘レポートと共通＝攻/防の順。
+	# いま効いている状態補正（ユニットスキル・陣形バフ）。表記は戦闘レポートと共通＝攻/防の順。
 	for m in _state.status_mods_for(u):
 		lines.append("補正  %s" % CombatReportView.status_text(m))
 

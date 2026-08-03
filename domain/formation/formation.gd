@@ -54,8 +54,8 @@ const RECIPES := {
 		"buff_fx": "aura",  # 盤全体の見た目（外周から差し込む金の光）。詳細 → doc/gdd/formations.md
 		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ラウンド。詳細 → doc/gdd/formations.md
 	},
-	# エンチャント＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
-	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/enchants.md
+	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
+	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md
 	"pixie_dust": {
 		"name": "妖精の粉",
 		"leader_skins": ["pixie"],
@@ -66,7 +66,7 @@ const RECIPES := {
 		"buff_scope": "unit",
 		"buff_op": "add",  # 実効攻防への加算（経験・包囲・地形の補正は乗らない）
 		# 発動したピクシー1兵あたりの加算量。発動時の残兵数を掛けた値を焼き込む＝以後ピクシーが
-		# 損耗しても倒されても、掛かった補正は変わらない。詳細 → doc/gdd/enchants.md
+		# 損耗しても倒されても、掛かった補正は変わらない。詳細 → doc/gdd/skills.md
 		"buff_value_per_troop": 10.0,
 		"buff_target": "both",
 		"buff_fx": "dust",  # 盤の見た目（掛かっている駒の足元を光らせる）。空＝見た目なし
@@ -79,9 +79,9 @@ const RECIPES := {
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
 const IMPLEMENTED_EFFECTS := ["area", "single", "buff"]
 
-## そのレシピがエンチャント（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
-## 演出・効果音の出し分けが読む（陣形はカットインあり／エンチャントは音だけ）。
-static func is_enchant(recipe_id: String) -> bool:
+## そのレシピがユニットスキル（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
+## 演出・効果音の出し分けが読む（陣形はカットインあり／ユニットスキルは音だけ）。
+static func is_unit_skill(recipe_id: String) -> bool:
 	var r: Dictionary = RECIPES.get(recipe_id, {})
 	return String(r.get("shape", "")) == "solo"
 
@@ -97,7 +97,7 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 			continue
 		if not _matches(unit, r["leader_skins"]):
 			continue
-		# 陣形は「まだ何も終えていない」＝盤の行動終了判定に従う。エンチャントは移動後でも
+		# 陣形は「まだ何も終えていない」＝盤の行動終了判定に従う。ユニットスキルは移動後でも
 		# 撃てるので、行動を使い切ったか（待機・攻撃済み）だけを見る。
 		if String(r["shape"]) == "solo":
 			if not state.has_action_left(unit.id):
@@ -109,7 +109,7 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 				for members in _triangle_sets(state, unit, r):
 					out.append(_option(rid, r, [unit, members[0], members[1]]))
 			"solo":
-				out.append(_option(rid, r, [unit]))  # エンチャント＝発動者だけで成立
+				out.append(_option(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
 				var members := _cluster(state, unit, r)
 				if not members.is_empty():
@@ -154,7 +154,7 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 		within = leader != null and Hex.distance(leader.pos, target) <= rng
 	if not within:
 		return false
-	# 対象1体のバフ（エンチャント）は味方の居るhexだけ＝空撃ちさせない。発動者自身も選べる。
+	# 対象1体のバフ（ユニットスキル）は味方の居るhexだけ＝空撃ちさせない。発動者自身も選べる。
 	if String(option.get("buff_scope", "")) == "unit":
 		var u := state.unit_at(target)
 		return u != null and leader != null and u.team == leader.team
@@ -218,12 +218,12 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		"leader_id": participants[0].id,
 		"participants": ids,
 		"effect": effect,
-		# エンチャント（単独発動）と陣形スキル（複数人）の区別。表示ラベルと、移動後に撃てるかを分ける。
-		"kind": "enchant" if String(r["shape"]) == "solo" else "formation",
+		# ユニットスキル（単独発動）と陣形スキル（複数人）の区別。表示ラベルと、移動後に撃てるかを分ける。
+		"kind": "skill" if String(r["shape"]) == "solo" else "formation",
 		# 陣形は配置そのものがレシピなので移動したら成立が変わる＝自マスでしか撃てない。
-		# エンチャントは他の参加者が要らないので、移動してから撃ってよい。詳細 → doc/gdd/enchants.md
+		# ユニットスキルは他の参加者が要らないので、移動してから撃ってよい。詳細 → doc/gdd/skills.md
 		"after_move": String(r["shape"]) == "solo",
-		# 対象1体のバフ（エンチャント）は掛ける相手を選ぶ＝陣営全体バフと違って対象指定が要る。
+		# 対象1体のバフ（ユニットスキル）は掛ける相手を選ぶ＝陣営全体バフと違って対象指定が要る。
 		"needs_target": effect in ["area", "single"] or buff_scope == "unit",
 		"range": int(r.get("range", 0)),
 		"range_from": String(r.get("range_from", "leader")),

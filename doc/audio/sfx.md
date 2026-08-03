@@ -101,12 +101,12 @@
 | `map_capture` | 占領成立 | 専用 | 山場。チューブラーベル（神域の役割）＋旗の布音。盤面が変わった重み |
 | `map_formation` | 陣形スキル発動（詠唱が起こる瞬間＝演出の頭） | 専用 | 特別感。ハープ／グロッケンの上行グリス＋ホルン。数少ない華 |
 | `map_formation_hit` | 陣形スキルの効果が届いた瞬間（面ダメージの着弾・全体バフの発効） | 専用 | 発動音の落とし所。`map_formation` と対で設計する。ダメージ系は低く重い一撃、バフ系は澄んだ和音 |
-| `map_enchant` | エンチャント発動（味方1体に効果が乗る瞬間） | 専用 | 陣形より軽く短い。ハープの短い上行＋鈴。毎ターン鳴りうるので耳に残しすぎない |
+| `map_skill` | ユニットスキル発動（味方1体に効果が乗る瞬間） | 専用 | 陣形より軽く短い。ハープの短い上行＋鈴。毎ターン鳴りうるので耳に残しすぎない |
 | `map_crisis` | 危機BGMへ切り替わる瞬間 | 専用 | 曲の切替を後押しする一撃。低い鐘＋弦のスタブ |
 
 ホバー音はユニットと拠点の上でだけ鳴らす。盤は空きマスが大半のため全マスで鳴らすとカーソルを動かすだけで鳴り続け、音が意味を失う。対象を絞ると「そこに何かある」という情報になり、盤を見ずに指を動かしても気付ける。
 
-陣形スキルとエンチャントは仕組みを共有するが（[../gdd/formations.md](../gdd/formations.md)・[../gdd/enchants.md](../gdd/enchants.md)）、鳴らし方は分ける。陣形は成立させるのが難しく1ステージに数回しか撃てない＝長めの華でよい。エンチャントは単独で撃てて毎ターン飛ぶ＝短く軽い音に留める。同じ音を共用すると、頻度の高いエンチャント側で「特別な音」が擦り切れる。
+陣形スキルとユニットスキルは仕組みを共有するが（[../gdd/formations.md](../gdd/formations.md)・[../gdd/skills.md](../gdd/skills.md)）、鳴らし方は分ける。陣形は成立させるのが難しく1ステージに数回しか撃てない＝長めの華でよい。ユニットスキルは単独で撃てて毎ターン飛ぶ＝短く軽い音に留める。同じ音を共用すると、頻度の高いユニットスキル側で「特別な音」が擦り切れる。
 
 陣形スキルは戦闘演出シーン（下記）を通らないため、着弾音を `cmb_hit` から借りられない。`map_formation_hit` を別に持つのはこのため。
 
@@ -117,12 +117,9 @@
 | event_id | 鳴る瞬間 | 素材 | 望まれる音 |
 |---|---|---|---|
 | `cmb_open` | 開幕（背景＋両隊列が出る） | 専用 | 場面転換の空気。弦の短いスウェル＋構える金属 |
-| `cmb_attack` | 攻撃エフェクト発生。攻撃側→0.1秒差で反撃側 | 専用 | スキンのエフェクトで決まる。下記の動的解決。物量の中心 |
-| `cmb_hit` | 攻撃側の攻撃が当たった結果 | 専用 | 1回の戦闘で1回だけ。結果で3種に分岐。下記の動的解決 |
+| `cmb_hit` | 一撃が届いた結果。攻撃側・反撃側それぞれで鳴る | 専用 | 近接は1音、遠距離は発射＋着弾の2音。下記の動的解決 |
 
-命中音は攻撃側の攻撃にだけ付ける。反撃側（防御側）の命中音は鳴らさない。損害は攻守同時（[../gdd/combat.md](../gdd/combat.md)）なので両方に付けると結局どちらの結果か聞き分けられず、音が濁るだけになる。攻撃側に固定すれば、鳴った音は必ず「仕掛けた攻撃が相手に何をしたか」を指す。
-
-攻撃音は両方鳴る（攻撃側→0.1秒差で反撃側）。このずらし幅は画像エフェクトと揃える。音だけ別のタイミングにしない。
+一撃ごとに鳴らすので、反撃のある戦闘では2回（遠距離なら最大4回）鳴る。攻撃と命中を別の発火点に分けない理由は下記の動的解決に書いた。
 
 演出のスキップは `ui_cancel` を共用する。
 
@@ -134,30 +131,47 @@
 
 攻撃エフェクトはスキンごとに決める。全スキンに個別の音を作ると量が過大になるため、エフェクトの種類を決めてスキンから参照する。エフェクトIDは絵と音の共通キーとし、同じIDで `combat_effect` の画像と `assets/sfx/{effect_id}.ogg` の両方を解決する（エフェクト＝絵と音のセット）。
 
-`unit_skin.csv` にエフェクトID列を足し、`cmb_attack` はそこから素材を引く。種類は斬撃・打撃・刺突・射撃・魔法などの系統に、威力の段階（小・中・大）を掛けた粒度で持つ。実際のカタログは絵の制作と同時に決める（音だけ先に決めない）。
+`unit_skin.csv` のエフェクトID列から素材を引く。種類は斬撃・打撃・刺突・射撃・魔法などの系統に、威力の段階（小・中・大）を掛けた粒度で持つ。実際のカタログは絵の制作と同時に決める（音だけ先に決めない）。
 
 ### 命中音
 
-`cmb_hit` は攻撃側の攻撃が防御側に与えた結果から3種に分岐する。データ参照ではなく、domain が算出した損害の値で決まる。
+一撃ごとに鳴らす。攻撃側の一撃でも反撃の一撃でも同じ規則で、素材はエフェクトの出し方（`kind`）と損害の値で決まる。損害は domain が算出した値をそのまま見る。
 
-| 結果 | sfx_id | 望まれる音 |
+近接（`impact`）は1音。
+
+| 損害 | 素材 | 望まれる音 |
 |---|---|---|
-| 損害0 | `cmb_hit_none` | 弾かれる軽い金属。何も起きなかったことが分かる |
-| 兵力減少 | `cmb_hit_damage` | 倒れる鈍い音。損害の主音 |
-| 全滅 | `cmb_hit_wipe` | 消滅の余韻。低く長い |
+| 0 | `cmb_hit_none` | 弾かれる金属。武器によらず共通 |
+| 1以上（全滅を含む） | `{effect_id}` | その武器の音。斬撃なら斬り込み、聖光なら聖光 |
 
-見るのは防御側の被害だけなので、反撃で攻撃側が全滅した場合も音は鳴らない（相討ちなら `cmb_hit_wipe` が1回）。攻撃側の被害は隊列の消滅と右パネルの数字で示す。
+遠距離（`projectile`）は2音。発射と着弾が飛翔時間ぶん離れるため、分けても潰れない。
+
+| 鳴る瞬間 | 損害 | 素材 |
+|---|---|---|
+| 発射 | 不問 | `{effect_id}` |
+| 着弾 | 0 | `cmb_hit_none` |
+| 着弾 | 1以上 | `{effect_id}_hit` |
+
+損害0と全滅を音で区別しない。どちらも隊列・数字・兵量バーが伝えており、音を足しても情報は増えない。区別するのは「効かなかった」だけで、これは殴った側の判断が外れたことを意味するため耳で分かる価値がある。
+
+近接で1音に絞るのは、攻撃音と命中音を別に鳴らすと重なるため。両者の間隔は `(発数-1) × STAGGER` しかなく、1体同士なら 0 秒＝完全に同時になる。さらに反撃が着弾の `COUNTER_GAP` 秒後に始まるので、分けると 0.1 秒の間に3音が固まる。
+
+したがって近接のエフェクト素材は、振り抜きではなく接触まで含んだものを選ぶ。振り抜くだけの素材を当てると、当たったのに手応えが無い音になる。素材の見分けは立ち上がりの鋭さで付く（実測: 接触ありは 46.8 dB/20ms、振り抜きのみは 3.5 dB/20ms）。
+
+遠距離の発射音には逆に着弾を含めない。着弾は別に鳴るため、含めると二重になる。
 
 ### 移動音
 
 `map_move` は `unit_type.csv` の `move_type` から引く。ただし移動タイプは地形コストの都合で分かれており、音としては集約される。
 
-| move_type | 音の系統 |
-|---|---|
-| `ground` / `forest_walk` / `bush_walk` / `mountain_walk` | 足音（重） |
-| `light_foot` | 足音（軽） |
-| `flight` | 羽ばたき |
-| `fixed` | 無音（移動しない） |
+| move_type | sfx_id | 音の系統 |
+|---|---|---|
+| `ground` / `forest_walk` / `bush_walk` / `mountain_walk` | `move_ground` | 足音（重） |
+| `light_foot` | `move_light_foot` | 足音（軽） |
+| `flight` | `move_flight` | 羽ばたき |
+| `fixed` | （無し） | 無音（移動しない） |
+
+1マス踏むごとに1回鳴らす。移動アニメは1マス 0.12 秒だが、経路が長いと上限（`MOVE_ANIM_MAX_SEC`）に収めるため1マスあたりが縮む。縮んだぶんは `SfxPlayer` の連射間引き（`REPEAT_GUARD_SEC`）が受け止めるので、機関銃にはならない。
 
 蹄・車輪など個別の音が要るユニットが出たら、攻撃エフェクトと同じくスキン側の指定で上書きする。既定は移動タイプから、必要な駒だけ個別に、という順序を守る。
 
@@ -257,38 +271,35 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 金属床のブーツを名前で明示しているのは Tovusound と Levan Nadashvili の2つだけ。土・草は PMSFX が単発ステップを出しているため踏むたびに鳴らす用途に向く。Levan Nadashvili は Soldier（重）と Civilian（軽）が同じ収録で対になっており、重い足音と軽い足音の音色差を揃えやすい。
 
-命中音（`cmb_hit`、損害の値で分岐）。
+弾き返す音（`cmb_hit_none`）。損害0のとき、近接でも遠距離でも、武器によらずこれ1つだけを鳴らす。
 
-| sfx_id | 候補 | 場所 |
-|---|---|---|
-| `cmb_hit_none` | `Weapon_Impact_Parry_01.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
-| | `Plate_Impact_Hard_02.wav` | 2017 p3 / 同上 |
-| | `WEAPArmr_Metal Shield Block Hits_JSE_MW.wav` | 2024 p2 / Justsoundeffects - Melee Weapons |
-| `cmb_hit_damage` | `PUNCH_PERCUSSIVE_HEAVY_06.wav` | 2020 p9 / Shapeforms - Hit & Punch |
-| | `PUNCH_DESIGNED_LIGHT_78.wav` | 2020 p9 / 同上 |
-| | `Hand-to-Hand Combat - Body Hits - Deep Punch 02.wav` | 2018 p6 / The Chris Alan - Hand-to-Hand Combat |
+| 候補 | 場所 |
+|---|---|
+| `Weapon_Impact_Parry_01.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
+| `Plate_Impact_Hard_02.wav` | 2017 p3 / 同上 |
+| `WEAPArmr_Metal Shield Block Hits_JSE_MW.wav` | 2024 p2 / Justsoundeffects - Melee Weapons |
 
-`cmb_hit_wipe` は外部調達しない。MuseScore で自作する（上記の調達方針）。チューブラーベル＝死と神域、ホルン＝威厳と力、ティンパニ＝重心という [tracks.md](tracks.md) の役割をそのまま使えば、曲と喧嘩しない全滅音になる。外部のブラーム素材は音程が固定で、多調のトラックライブラリと必ずどこかでぶつかる。
-
-`cmb_hit_none` は Double Trouble が本命。`Parry`（受け流し）という名前のファイルが直球で存在し、同じライブラリに板金鎧と鎖帷子の被弾音も揃うため、弾かれる音と当たる音を同じ収録から取れる。
+Double Trouble が本命。`Parry`（受け流し）という名前のファイルが直球で存在する。
 
 血肉系（Gore）のライブラリも各年にあるが、作風に対して生々しすぎるため候補から外した。
 
-攻撃エフェクト（`cmb_attack`）。エフェクトIDは絵と音の共通キーなので、候補も [combat_effect.csv](../../data/effects/combat_effect.csv) の `effect_id` で並べる。
+攻撃エフェクトの音。エフェクトIDは絵と音の共通キーなので、候補も [combat_effect.csv](../../data/effects/combat_effect.csv) の `effect_id` で並べる。
 
 | effect_id | 候補 | 場所 |
 |---|---|---|
 | `slash_s` | `WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav` | 2026 p1 / 344 Audio - Historical Weapons Vol. 2 |
 | `slash_m` | `METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav` | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
-| `slash_l` | `MeleeSwingsPack_96khz_Stereo_LowSwings31.wav` | 2020 p3 / David Dumais Audio - Weapon Sounds - Weapon Swings |
+| `slash_l` | `MeleeSwingsPack_96khz_Mono_DesignedSwings12.wav` | 2020 p3 / David Dumais Audio - Weapon Sounds - Weapon Swings |
 | `arrow` | `Nocked,archery,firing,loose,crossbow1,carbonbolt,atbow,snap,buzz,airy,bright,alt.wav` | 2019 p2 / Eiravaein Works - Nocked |
-| | `BOW Arrow Hit 05.wav`（着弾） | 2020 p9 / SmartSoundFX – Medieval |
-| `stone` | `Bluezone_BC0297_stone_impact_015.wav`（着弾） | 2024 p1 / BluezoneCorp - Stone Impact |
-| | `PM_RI_Source_53 Rocks Impact Hit Single Stone.wav`（着弾） | 2020 p5 / PMSFX - Rocky Impacts |
+| `arrow_hit` | `BOW Arrow Hit 05.wav` | 2020 p9 / SmartSoundFX – Medieval |
+| `arrow_bone_hit` | 同上（矢の着弾は矢と呪いの矢で共用する） | 2020 p9 / 同上 |
+| `stone_hit` | `PM_RI_Source_92 Rocks Impact Hit Single Stone.wav` | 2020 p5 / PMSFX - Rocky Impacts |
 | `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
 | `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
 
-`slash_s` と `slash_m` は試聴して決めた。`slash_l` は未試聴で、Weapon Swings が High / Normal / Low に分かれているのでそこから取る。
+`slash_s` `slash_m` `slash_l` `holy` `magic_bolt` と着弾3つは試聴して決めた。
+
+`stone` `arrow_bone` の発射音と `magic_bolt_hit` は未定。投石の発射音（スリング）はバンドルに無い。
 
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 
@@ -296,13 +307,13 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `curse` `claw` `punch` `arrow_bone` は未探索。
 
-### 攻撃エフェクトの素材に着弾音を含めない
+### 遠距離の発射音からは着弾を落とす
 
-外部素材は「飛んで当たる」までを1ファイルに収めていることが多い。攻撃エフェクトに採るときは着弾を落として、飛翔・振り抜きまでで切る。
+外部素材は「飛んで当たる」までを1ファイルに収めていることが多い。遠距離（`projectile`）の発射音に採るときは着弾を切り落とす。着弾は `{effect_id}_hit` で別に鳴るため、含めると二重になる。
 
-`cmb_attack` と `cmb_hit` は別々に鳴り、`cmb_hit` は損害の結果で3種に分岐する（上記の動的解決）。つまり着弾音は「弾かれた・減った・全滅した」を伝える情報の音で、攻撃側の素材にも着弾が入っていると二重に鳴って情報が濁る。
+近接（`impact`）は逆で、接触まで含んだ素材を選ぶ（上記の命中音）。
 
-`magic_bolt` に採った素材は 1.05 秒に飛翔（0.03〜0.60秒）と着弾（0.60〜1.02秒）が入っていたため、飛翔だけを切り出した。落とした着弾部分は原本に残っているので、`cmb_hit` 系の素材として使い回せる。
+`magic_bolt` に採った素材は 1.05 秒に飛翔（0.03〜0.60秒）と着弾（0.60〜1.02秒）が入っていたため、飛翔だけを切り出した。落とした着弾部分は原本に残っているので、`magic_bolt_hit` の素材にそのまま使える。
 
 盤の操作。
 
