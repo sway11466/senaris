@@ -300,14 +300,14 @@
 **デッドコードの整理（未接続シグナル・テスト専用関数）**（優先度：低）
 
 - 背景：コード全体を走査し、本番コードから参照されていないシグナル・関数を検出した。未参照の .gd ファイルや未使用の定数は無い。デッドコードは2種類：(1) 発火するが誰も接続していないシグナル、(2) テストからしか呼ばれない public 関数。後者は「テスト容易性のために残す」か「本番と同じ経路でテストすべき」かの判断を含む。
-- 対応：項目ごとに削除・接続・残置を判断する。
-  - シグナル（2件）: `MatchController.move_rejected`・`unit_died`＝発火するが presentation が未接続。SFX／視覚フィードバックに使うなら接続、不要なら削除。
-  - BgmDirector（2件）: `enter_crisis()`・`in_crisis()`＝危機BGM切替。実装済みだがゲームに未配線。配線するなら feature、しないなら削除。
-  - BattleState（2件）: `can_move()`・`can_deploy()`＝テスト用クエリ。本体は別経路で判定。テスト容易性のために残すか、テストを本番経路に寄せて削除。
-  - Combat（2件）: `effective_attack()`・`effective_defense()`＝breakdown のラッパー。テスト専用。
-  - Hex（2件）: `ring()`・`flood_reach()`＝本番は `within_range`・`flood_reach_cost_map` を使用。
-  - TerrainSkinCatalog（1件）: `for_type()`＝`resolve()` と重複。
-  - Store 系（3件）: `RosterStore.has_roster()`・`clear_roster()`、`SaveStore.clear()`＝テスト専用のクリーンアップ。
+- 対応（2026-08-03 全件判断済み）：項目ごとに削除・残置を判断した。削除4件・残置7件。削除対象はリモートエージェントで実施可能（テストの機械的置換＋関数削除＋GUT回帰確認）。
+  - シグナル（2件）: `MatchController.move_rejected`・`unit_died`＝発火するが presentation が未接続。→ **残置**（将来 SFX／視覚フィードバックに使う可能性）。
+  - BgmDirector（2件）: `enter_crisis()`・`in_crisis()`＝危機BGM切替。実装済みだがゲームに未配線。→ **残置**（将来配線する可能性）。
+  - BattleState（2件）: `can_move()`・`can_deploy()`＝テスト用クエリ。本体は別経路で判定。→ **削除**（テストは `move_unit()` 戻り値・`deploy_cells().is_empty()` で代替。影響3か所・機械的置換）。
+  - Combat（2件）: `effective_attack()`・`effective_defense()`＝breakdown のラッパー。テスト専用。→ **削除**（テストは `attack_breakdown(...)["total"]`・`defense_breakdown(...)["total"]` で代替。影響5ファイル24か所・機械的置換）。
+  - Hex（2件）: `ring()`・`flood_reach()`＝本番は `within_range`・`flood_reach_cost_map` を使用。→ **残置**（テストの代替APIでは可読性・検証力が下がるため。テスト専用ユーティリティとして維持）。
+  - TerrainSkinCatalog（1件）: `for_type()`＝`resolve()` と重複。→ **削除**（テストは `resolve("", type_id)` で代替。影響1ファイル9か所・機械的置換）。
+  - Store 系（3件）: `RosterStore.has_roster()`＝テスト専用クエリ → **削除**（テストは `load_roster() == []` で代替。影響1ファイル12か所・機械的置換）。`RosterStore.clear_roster()`・`SaveStore.clear()`＝テスト対象そのもの（削除動作の検証） → **残置**。
 - 該当：`application/match_controller.gd`・`application/bgm_director.gd`・`domain/battle_state.gd`・`domain/combat/combat.gd`・`domain/hex/hex.gd`・`data/terrain/terrain_skin_catalog.gd`・`infrastructure/save/roster_store.gd`・`infrastructure/save/save_store.gd`。
 
 ## parking lot
