@@ -33,9 +33,24 @@ const BIND := {
 	"map_cancel": "ui_cancel",
 }
 
+## 移動タイプ → 移動音の素材。移動タイプは地形コストの都合で分かれているが、
+## 音としては3系統に集約する（doc/audio/sfx.md 移動音）。未知値・fixed は ""＝無音。
+const MOVE_BIND := {
+	"ground": "move_ground",
+	"forest_walk": "move_ground",
+	"bush_walk": "move_ground",
+	"mountain_walk": "move_ground",
+	"light_foot": "move_light_foot",
+	"flight": "move_flight",
+}
+
 ## 発火点IDに割り当てられた素材ID。未登録なら ""。
 static func sfx_of(event_id: String) -> String:
 	return String(BIND.get(event_id, ""))
+
+## 移動タイプの足音・羽ばたきの素材ID。未登録なら ""。
+static func move_sfx_of(move_type: String) -> String:
+	return String(MOVE_BIND.get(move_type, ""))
 
 ## 素材IDのファイルパス。素材IDが空、またはファイルが未配置なら ""。
 static func path_of(sfx_id: String) -> String:

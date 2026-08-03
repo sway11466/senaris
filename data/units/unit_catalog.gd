@@ -53,6 +53,36 @@ static func display_category(type_id: String) -> String:
 				_categories = build_categories(data)
 	return String(_categories.get(type_id, ""))
 
+static var _move_types := {}      # type_id -> 移動タイプ
+static var _move_types_loaded := false
+
+## 種別IDの移動タイプ（"ground"/"flight"…）。移動音の解決に使う（doc/audio/sfx.md 移動音）。
+## 不明idは ""。display_category と同じく、ロスター本体とは別に遅延ロードする。
+static func move_type_of(type_id: String) -> String:
+	if not _move_types_loaded:
+		_move_types_loaded = true
+		var text := FileAccess.get_file_as_string(UNIT_TYPE_PATH)
+		if not text.is_empty():
+			var data: Variant = JSON.parse_string(text)
+			if typeof(data) == TYPE_DICTIONARY:
+				_move_types = build_move_types(data)
+	return String(_move_types.get(type_id, ""))
+
+## ロスター辞書 → { id: 移動タイプ }。純関数＝IOなし。
+static func build_move_types(data: Dictionary) -> Dictionary:
+	var out := {}
+	var types: Variant = data.get("types", [])
+	if typeof(types) != TYPE_ARRAY:
+		return out
+	for d in types:
+		if typeof(d) != TYPE_DICTIONARY:
+			continue
+		var id := String(d.get("id", ""))
+		var mt := String(d.get("move_type", ""))
+		if id != "" and mt != "":
+			out[id] = mt
+	return out
+
 ## ロスター辞書 → { id: 兵種名 }。category 列が無い/空の種別は落とす。純関数＝IOなし。
 static func build_categories(data: Dictionary) -> Dictionary:
 	var out := {}

@@ -38,6 +38,9 @@ const TERRAIN_COLOR := {
 }
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
 const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（秒）
+## 損害0のときに鳴らす音。武器によらず常にこれ1つ（doc/audio/sfx.md 命中音）。
+const SFX_DEFLECT := "cmb_hit_none"
+
 const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
 const FLIGHT := 0.2       # 飛び道具が攻撃側から被弾側へ届くまで（秒）。この間ぶん着弾＝損害表示も遅れる
 const BURST := 0.30       # 重ねるエフェクトの拡大フェード時間（秒）
@@ -232,10 +235,14 @@ func play(detail: Dictionary) -> void:
 ## シェイク・フラッシュ・損害数・兵量バーは最後の1発が届いた時点に揃える。
 func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dictionary, gen: int) -> void:
 	var eff := _effect_of(by)
-	# cmb_attack。1発ずつではなく一撃につき1回鳴らす＝8体並ぶと8連射になって音が潰れる。
+	# 命中音。1発ずつではなく一撃につき鳴らす＝8体並ぶと8連射になって潰れる。
+	# 近接は1音（ここだけ）。遠距離は発射をここで鳴らし、着弾は最後の1発が届く時点に回す。
 	# 素材はエフェクトIDの規約解決（assets/sfx/{effect_id}.ogg）。無ければ無音で進む。
 	if eff != null:
-		SfxPlayer.play_sfx(eff.effect_id)
+		if eff.is_projectile():
+			SfxPlayer.play_sfx(eff.effect_id)  # 発射。損害によらず武器固有
+		else:
+			SfxPlayer.play_sfx(SFX_DEFLECT if dmg <= 0 else eff.effect_id)
 	# 発数は「いま殴った側に並んでいる数」。反撃では既に減った後の隊列が振るので、
 	# detail の戦闘前の兵量を使うと、2体しか居ないのに5発斬るような絵になる。
 	var shots := clampi(int(_shown.get(_other_side(side), 1)), 1, POS.size())
@@ -253,6 +260,8 @@ func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dict
 	tw.tween_callback(func() -> void:
 		if gen != _gen:
 			return  # スキップで閉じた後に飛来物が届いても何もしない
+		if eff != null and eff.is_projectile():
+			SfxPlayer.play_sfx(SFX_DEFLECT if dmg <= 0 else "%s_hit" % eff.effect_id)
 		_shake()
 		_render_side(side, comb, after, true)
 		_flash(side)

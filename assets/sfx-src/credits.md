@@ -28,6 +28,11 @@
 | `slash_m` | 斬撃（中）のエフェクト | Sonniss GDC 2026 / David Dumais Audio - Melee Weapons Pack 2 `METLFric_SWING SCRAPE ... Long Blade 14` | wav 96kHz/24bit | 同上 | 切り出しなし、-5.8 dB。slash_m_recipe.txt |
 | `holy` | 聖光のエフェクト | Sonniss GDC 2026 / Cinematic Sound Design - User Interface `Button Arp Twinkle` | wav 96kHz/24bit | 同上 | 切り出しなし、-6.7 dB。holy_recipe.txt |
 | `magic_bolt` | 魔弾のエフェクト | Sonniss GDC 2026 / 344 Audio - Elemental Palette Designed Vol. 1 `WINDDsgn_Wind, Rush, Whoosh, Long x5 01` | wav 96kHz/24bit | 同上 | 飛翔のみ（0.02〜0.60秒・着弾を落とす）、+6.1 dB。magic_bolt_recipe.txt |
+| `slash_l` | 斬撃（大）のエフェクト | Sonniss GDC 2020 / David Dumais Audio - Weapon Sounds - Weapon Swings `MeleeSwingsPack_96khz_Mono_DesignedSwings12` | wav 96kHz/16bit | 同上 | 切り出しなし、-6.8 dB。slash_l_recipe.txt |
+| `arrow_hit` | 矢の着弾 | Sonniss GDC 2020 / SmartSoundFX – Medieval `BOW Arrow Hit 05` | wav 48kHz/24bit | 同上 | 切り出しなし、-7.6 dB。arrow_hit_recipe.txt |
+| `arrow_bone_hit` | 呪いの矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_bone_hit_recipe.txt |
+| `stone_hit` | 投石の着弾 | Sonniss GDC 2020 / PMSFX - Rocky Impacts `PM_RI_Source_92 Rocks Impact Hit Single Stone` | wav 192kHz/24bit | 同上 | 切り出しなし、-8.3 dB。stone_hit_recipe.txt |
+| `move_ground` | 足音（重）。ground 系の移動 | Sonniss GDC 2020 / PMSFX - STEPS Dry Grass & Shrubs `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow` | wav 192kHz/24bit | 同上 | 切り出しなし、+1.8 dB。move_ground_recipe.txt |
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 未着手 |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。

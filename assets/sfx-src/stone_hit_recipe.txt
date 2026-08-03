@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2020/stone_hit__PM_RI_Source_92 Rocks Impact Hit Single Stone.wav" -af "volume=-8.3dB" -c:a pcm_s24le stone_hit.wav
