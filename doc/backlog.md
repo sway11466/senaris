@@ -140,7 +140,7 @@
 - 対応：(a) `Unit.recruited_team`（帰属先。既定＝`native_team`、中立駒の出撃時に出した側で確定・以後不変）を追加し、`can_deploy_garrison`／`_base_has_deployable_garrison`／`_heal_garrisons` の native 判定を帰属で見るよう差し替え。(b) `Unit.actor`（冒険譚をまたいで一意な永続キャラ識別子）を追加し `to_dict`/`from_dict` に載せる。(c) 持ち越しを名簿へ意味変え＝クリア時に前名簿と突き合わせ、欠けた `actor` を `troops:0` で残し、帰属が自軍の `actor` 駒を加える。配置は `troops > 0` の者だけ。(d) `_apply_carryover` を順詰めから `actor` 指名＋残り順詰めへ。(e) `parse_dialogue` に `when`（`joined:<actor>` / 否定）の評価を足す。
 - 置き場所：carryover の保存・読出は現在 presentation の `main.gd`（保存 :120／読出 :54-59）に直書きで、application に差配役がない。名簿の更新規則はゲームルールなので application に薄いサービスを新設し、main はそれを呼ぶだけにする（`CampaignProgress` の隣）。
 - 該当：`domain/unit/unit.gd`・`domain/battle_state.gd`（帰属ゲート）・`application/stage_loader.gd`（`_apply_carryover`・`parse_dialogue`）・`application/roster_service.gd`（名簿サービス）・`presentation/main/main.gd`（呼び出しの差し替え）・`tests/unit/`（`test_recruit`・`test_roster_service`・`test_carryover_slots`・`test_dialogue_when` ほか）・`doc/gdd/map.md`・`doc/campaign/authoring.md`・`doc/tech/gamesystem.md`。
-- 進捗：(a)〜(e) 実装＋テスト済み（GUT 540）。`Unit.set_native_team` で native と帰属を揃える口を用意し、直接代入で片方だけ動く事故を防いだ。名簿に載るのは `actor` を持つ駒だけ＝名前のない雑兵は持ち越さない。残りは main の live 配線の実機確認（最初の carryover ステージを組んだ時＝冒険譚3データ制作と同時に行う）。
+- 進捗（2026-08-03）：(a)〜(e) 実装＋テスト済み（GUT 540）。`Unit.set_native_team` で native と帰属を揃える口を用意し、直接代入で片方だけ動く事故を防いだ。名簿に載るのは `actor` を持つ駒だけ＝名前のない雑兵は持ち越さない。main の配線もコード上は完了確認済み（勝利時の名簿保存＝`RosterService.update_after_clear` → `_roster_store.save_roster`、開始時の継承読込＝`_load_roster`、会話の `when` 条件フィルタ＝`StageLoader.load_dialogue` にロスター渡し）。**コーディング作業は完了**。残りは冒険譚3データ制作時の実機通しテストのみ（依存先＝tutorial3 ステージデータ）。
 - 前提：冒険譚3のステージデータ制作では、ベテラン5＋新米4＋加入組すべてに `actor` を振る（味方に名前のない駒はいない）。
 
 ### feature-19
