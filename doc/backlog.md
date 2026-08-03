@@ -41,6 +41,7 @@
 
 - 背景：AIの各軸のうち一部の値しか効いていない（[ai.md](gdd/ai.md) §4〜6・§1）。実装済みは attack=`always`/`prey`、target=`near`/`weak`、advance=`max`/`base`/`flank`、engage=`charge`/`sight`/`squad`。未実装は attack の `solo_adv`/`surround_able`/`surrounded`/`no_retal`/`kill`、target の `maxdmg`/`mindmg`/`capturer`/`ranged`/`flyer`、advance の `spacing`（間合維持＝キティング）/`squad`/`careful`、engage の `turn:N`。ai.csv には列・表記があり、読み手（Brain）が未対応。retreat 軸は別途 feature-2。
 - 対応：`nearest_attacker_brain` の `_pick_target`／攻撃判定／`_advance_dest`／`_ensure_engaged` に各値の分岐を足す。射程ユニットの間合維持（spacing）は AI の質に効く本命。値ごとにテストを足す。
+- 優先して要るのは target の `flyer`（飛行を優先して狙う）。飛行は `atk_air>0` の駒でしか触れないので、対空を持つ敵が地上の駒を殴っている間、こちらの飛行は事実上の安全地帯になる。対空持ちが「空を狙える唯一の駒」であることを AI が理解しない限り、飛行の価値が壊れたままになる（竜狩り st5＝ハーピー／グリフォンが空で絡む回で効く）。
 - 該当：`domain/ai/nearest_attacker_brain.gd`・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`（各軸の実装状況を更新）。ai.csv は列既存のため変更不要。
 
 ### feature-5
