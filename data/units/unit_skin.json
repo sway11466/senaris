@@ -175,22 +175,6 @@
 				}
 			]
 		},
-		"dragon_knight": {
-			"ally": [
-				{
-					"category": "基準",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"name": "ドラゴンナイト",
-					"retainers": [],
-					"skin_id": "dragon_knight",
-					"type_id": "dragon_knight"
-				}
-			],
-			"enemy": []
-		},
 		"dwarf": {
 			"ally": [
 				{
@@ -466,6 +450,22 @@
 					"type_id": "paladin"
 				}
 			]
+		},
+		"pegasus": {
+			"ally": [
+				{
+					"category": "基準",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "ペガサス",
+					"retainers": [],
+					"skin_id": "pegasus",
+					"type_id": "pegasus"
+				}
+			],
+			"enemy": []
 		},
 		"pixie": {
 			"ally": [
