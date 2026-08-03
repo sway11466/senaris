@@ -614,6 +614,22 @@
 					"type_id": "sniper"
 				}
 			],
+			"enemy": []
+		},
+		"sorcerer": {
+			"ally": [
+				{
+					"category": "基準",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "ソーサラー",
+					"retainers": [],
+					"skin_id": "sorcerer",
+					"type_id": "sorcerer"
+				}
+			],
 			"enemy": [
 				{
 					"category": "アンデッド",
@@ -632,25 +648,9 @@
 						"zombie"
 					],
 					"skin_id": "necromancer",
-					"type_id": "sniper"
-				}
-			]
-		},
-		"sorcerer": {
-			"ally": [
-				{
-					"category": "基準",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"name": "ソーサラー",
-					"retainers": [],
-					"skin_id": "sorcerer",
 					"type_id": "sorcerer"
 				}
-			],
-			"enemy": []
+			]
 		},
 		"thief": {
 			"ally": [
