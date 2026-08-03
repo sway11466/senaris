@@ -94,21 +94,21 @@ func test_buffs_only_the_chosen_unit() -> void:
 	var near: Unit = f["near"]
 	var far: Unit = f["far"]
 	var foe: Unit = f["foe"]
-	var near_before := Combat.effective_attack(s, near, foe, true)
-	var far_before := Combat.effective_attack(s, far, foe, true)
+	var near_before := float(Combat.attack_breakdown(s, near, foe, true)["total"])
+	var far_before := float(Combat.attack_breakdown(s, far, foe, true)["total"])
 	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "発動成功")
-	assert_almost_eq(Combat.effective_attack(s, near, foe, true), near_before + 10.0 * near.troops, 0.001,
+	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), near_before + 10.0 * near.troops, 0.001,
 		"対象の実効攻撃力に 10×残兵数 が乗る")
-	assert_almost_eq(Combat.effective_attack(s, far, foe, true), far_before, 0.001, "他の味方には乗らない")
+	assert_almost_eq(float(Combat.attack_breakdown(s, far, foe, true)["total"]), far_before, 0.001, "他の味方には乗らない")
 
 func test_buffs_defense_too() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	var foe: Unit = f["foe"]
-	var before := Combat.effective_defense(s, near, foe, true)
+	var before := float(Combat.defense_breakdown(s, near, foe, true)["total"])
 	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "発動成功")
-	assert_almost_eq(Combat.effective_defense(s, near, foe, true), before + 10.0 * near.troops, 0.001,
+	assert_almost_eq(float(Combat.defense_breakdown(s, near, foe, true)["total"]), before + 10.0 * near.troops, 0.001,
 		"防御にも同じだけ乗る")
 
 func test_caster_is_done() -> void:
@@ -123,9 +123,9 @@ func test_self_target() -> void:
 	var s: BattleState = f["s"]
 	var pixie: Unit = f["pixie"]
 	var foe: Unit = f["foe"]
-	var before := Combat.effective_defense(s, pixie, foe, true)
+	var before := float(Combat.defense_breakdown(s, pixie, foe, true)["total"])
 	assert_false(s.resolve_formation(_dust_option(f), pixie.pos).is_empty(), "自分に掛けられる")
-	assert_almost_eq(Combat.effective_defense(s, pixie, foe, true), before + 10.0 * pixie.troops, 0.001,
+	assert_almost_eq(float(Combat.defense_breakdown(s, pixie, foe, true)["total"]), before + 10.0 * pixie.troops, 0.001,
 		"自分の防御に乗る")
 
 # --- 残兵数への追随・重ねがけ・持続 ---
@@ -158,23 +158,23 @@ func test_stacking_adds_up() -> void:
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	var foe: Unit = f["foe"]
-	var before := Combat.effective_attack(s, near, foe, true)
+	var before := float(Combat.attack_breakdown(s, near, foe, true)["total"])
 	var second := Unit.new(5, 0, Hex.neighbor(near.pos, 2), 5, 8, 10, 10, 1, "pixie")  # near の隣の2体目
 	s.add_unit(second)
 	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "1体目が発動")
 	var opts := Formation.available_for(s, second)
 	assert_gt(opts.size(), 0, "2体目も撃てる")
 	assert_false(s.resolve_formation(opts[0], near.pos).is_empty(), "同じ相手に重ねられる")
-	assert_almost_eq(Combat.effective_attack(s, near, foe, true), before + 160.0, 0.001, "+80 が2つで +160")
+	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 160.0, 0.001, "+80 が2つで +160")
 
 func test_expires_after_one_round() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	var foe: Unit = f["foe"]
-	var before := Combat.effective_attack(s, near, foe, true)
+	var before := float(Combat.attack_breakdown(s, near, foe, true)["total"])
 	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "発動成功")
 	s.end_turn()  # 敵ターンへ
-	assert_almost_eq(Combat.effective_attack(s, near, foe, true), before + 80.0, 0.001, "敵ターン中はまだ効く")
+	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 80.0, 0.001, "敵ターン中はまだ効く")
 	s.end_turn()  # 次の自軍ターンへ＝満了
-	assert_almost_eq(Combat.effective_attack(s, near, foe, true), before, 0.001, "次の自軍ターン開始で切れる")
+	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before, 0.001, "次の自軍ターン開始で切れる")

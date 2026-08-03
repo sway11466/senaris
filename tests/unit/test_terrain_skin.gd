@@ -7,7 +7,7 @@ func test_every_skin_type_exists() -> void:
 	var type_ids := TerrainType.all_ids()
 	assert_gt(type_ids.size(), 0, "地形タイプが読める")
 	for tid in type_ids:
-		var s := TerrainSkinCatalog.for_type(tid)
+		var s := TerrainSkinCatalog.resolve("",tid)
 		assert_not_null(s, "terrain_type '%s' に既定スキンがある" % tid)
 		if s != null:
 			assert_true(tid in type_ids, "スキンの terrain_type '%s' が実在" % s.terrain_type)
@@ -15,14 +15,14 @@ func test_every_skin_type_exists() -> void:
 func test_default_skin_is_same_name() -> void:
 	# 既定スキンは skin_id == terrain_type（type 指定/未指定セルの解決先）。
 	for tid in TerrainType.all_ids():
-		var s := TerrainSkinCatalog.for_type(tid)
+		var s := TerrainSkinCatalog.resolve("",tid)
 		assert_not_null(s, "%s に既定スキン" % tid)
 		if s != null:
 			assert_eq(s.skin_id, tid, "%s の既定スキンは同名 skin_id" % tid)
 
 func test_resolve_falls_back_to_type_default() -> void:
 	# 未収録セル（skin_id=""）／未知 skin_id は terrain_type の既定スキンにフォールバックする。
-	var default_plain := TerrainSkinCatalog.for_type("plain")
+	var default_plain := TerrainSkinCatalog.resolve("","plain")
 	assert_not_null(default_plain, "plain に既定スキン")
 	assert_eq(TerrainSkinCatalog.resolve("", "plain"), default_plain, "空 skin_id は type 既定へ")
 	assert_eq(TerrainSkinCatalog.resolve("no_such_skin", "plain"), default_plain, "未知 skin_id は type 既定へ")
@@ -38,10 +38,10 @@ func test_resolve_prefers_explicit_skin() -> void:
 func test_orientable_matches_natural_terrain() -> void:
 	# 向きの無い自然地形は full（回転＋反転）、道/壁など構造物は none（旧ハードコードの移設先）。
 	for tid in ["plain", "forest", "mountain", "wasteland", "bush", "plateau"]:
-		var s := TerrainSkinCatalog.for_type(tid)
+		var s := TerrainSkinCatalog.resolve("",tid)
 		assert_true(s != null and s.orients() and s.rotates(), "%s は full" % tid)
 	for tid in ["road", "fence", "wall", "cliff", "rampart", "trap", "fort"]:
-		var s := TerrainSkinCatalog.for_type(tid)
+		var s := TerrainSkinCatalog.resolve("",tid)
 		assert_true(s != null and not s.orients(), "%s は none" % tid)
 
 func test_flip_only_skin_does_not_rotate() -> void:
@@ -61,14 +61,14 @@ func test_unknown_orientable_falls_back_to_none() -> void:
 
 func test_connect_is_line_or_area() -> void:
 	# 繋がる地形は柵（線）と道（面）だけ。他は繋がらない＝向き別タイルを探しに行かせない。
-	var fence := TerrainSkinCatalog.for_type("fence")
+	var fence := TerrainSkinCatalog.resolve("","fence")
 	assert_true(fence != null and fence.connects(), "fence は繋がる")
 	assert_false(fence != null and fence.connects_as_area(), "fence は線＝面ではない")
-	var road := TerrainSkinCatalog.for_type("road")
+	var road := TerrainSkinCatalog.resolve("","road")
 	assert_true(road != null and road.connects(), "road は繋がる")
 	assert_true(road != null and road.connects_as_area(), "road は面")
 	for tid in ["plain", "forest", "mountain", "wall", "fort", "cliff"]:
-		var s := TerrainSkinCatalog.for_type(tid)
+		var s := TerrainSkinCatalog.resolve("",tid)
 		assert_false(s != null and s.connects(), "%s は繋がらない" % tid)
 
 func test_map_overlay_borrows_the_art_of_another_skin() -> void:
@@ -99,7 +99,7 @@ func test_connect_falls_back_when_the_value_is_unknown() -> void:
 
 func test_connected_image_path_bits() -> void:
 	# 6要素（Hex.DIRECTIONS 順）がそのまま 0/1 の6桁になる。生成物のファイル名規約。
-	var fence := TerrainSkinCatalog.for_type("fence")
+	var fence := TerrainSkinCatalog.resolve("","fence")
 	assert_not_null(fence, "fence スキン")
 	if fence == null:
 		return

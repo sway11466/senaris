@@ -36,7 +36,6 @@ func test_move_valid() -> void:
 	var start := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, start, 2))
 	var dest := Hex.neighbor(start, 0)
-	assert_true(s.can_move(1, dest))
 	assert_true(s.move_unit(1, dest), "妥当な移動は成功")
 	assert_eq(s.unit_by_id(1).pos, dest, "座標が更新される")
 

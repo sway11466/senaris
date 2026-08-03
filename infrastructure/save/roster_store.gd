@@ -15,10 +15,6 @@ func _init(path: String = DEFAULT_PATH) -> void:
 	_path = path
 	_load()
 
-## 冒険譚に持ち越し戦力があるか（＝空でないスナップショットが記録済みか）。
-func has_roster(campaign_id: String) -> bool:
-	return not (_rosters.get(campaign_id, []) as Array).is_empty()
-
 ## 持ち越し戦力（Unit.to_dict() の配列）のコピーを返す。無ければ空配列。
 func load_roster(campaign_id: String) -> Array:
 	return (_rosters.get(campaign_id, []) as Array).duplicate(true)

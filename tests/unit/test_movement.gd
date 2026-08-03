@@ -109,7 +109,7 @@ func test_pass_through_ally_but_cannot_stop() -> void:
 	var reach := s.reachable(1)
 	assert_false(reach.has(p1), "味方のマスには停止できない（到達候補外）")
 	assert_true(reach.has(p2), "味方を通過してその先へ届く")
-	assert_false(s.can_move(1, p1), "味方のマスへは移動できない")
+	assert_false(s.move_unit(1, p1), "味方のマスへは移動できない")
 
 func test_enemy_still_blocks_passage() -> void:
 	# 敵は従来どおり壁。p0→p1(敵)→p2 で p2 に届かない。

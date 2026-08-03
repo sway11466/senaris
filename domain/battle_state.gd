@@ -354,15 +354,6 @@ func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:
 			return true
 	return false
 
-## unit_id を to へ動かせるか（空きマスかつ残り移動範囲内）。地形のみの判定でターンは見ない。
-func can_move(unit_id: int, to: Vector2i) -> bool:
-	if unit_at(to) != null:
-		return false
-	var u := unit_by_id(unit_id)
-	if u == null or to == u.pos:
-		return false
-	return _reach_map(unit_id).has(to)
-
 ## 妥当なら移動を適用して true。ターン違い・移動権なし・不正先なら false。移動コストを予算から消費。
 ## 移動先が「乗れる味方輸送」のマスなら乗車＝盤から降りて搭乗し、その駒は行動完了になる。
 func move_unit(unit_id: int, to: Vector2i) -> bool:
@@ -450,10 +441,6 @@ func _deploy_boardable(b: Base, garrison_index: int, occ: Unit) -> bool:
 		if not (gu as Unit).is_transport():
 			return true  # 輸送でない控えが1体でも居れば候補（輸送は輸送に乗れない）
 	return false
-
-## いま出撃させられるか（自軍拠点・控えあり・出せる先あり）。
-func can_deploy(base_hex: Vector2i) -> bool:
-	return not deploy_cells(base_hex).is_empty()
 
 ## garrison[index] を出撃させられるか（帰属ルール）。帰属未確定（中立でまだ解放されていない）は
 ## 誰の拠点からでも出せる＝出した側の戦力になる。確定済みは「拠点の現所有者＝帰属先」のときだけ

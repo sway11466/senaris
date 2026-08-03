@@ -105,14 +105,6 @@ static func defense_breakdown_from(troops: int, stat: int, experience: float, su
 		"total": capped * pierce_factor,
 	}
 
-## u が enemy を攻撃するときの実効攻撃力（内訳の total）。
-static func effective_attack(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
-	return attack_breakdown(state, u, enemy, melee)["total"]
-
-## u が enemy に攻撃されるときの実効防御力（内訳の total）。
-static func effective_defense(state: BattleState, u: Unit, enemy: Unit, melee := true) -> float:
-	return defense_breakdown(state, u, enemy, melee)["total"]
-
 ## u の味方（u自身を除く）で enemy に隣接しているものからの支援合計。
 ## is_attack=true で攻撃支援（味方のユニット攻撃力）、false で防御支援（味方のユニット防御力）。
 ## 支援量は味方の素の値（兵数 × ステータス × SUPPORT_RATE＝0.25）。経験・包囲などの補正は含めない。

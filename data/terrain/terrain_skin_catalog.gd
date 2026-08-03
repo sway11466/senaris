@@ -44,11 +44,6 @@ static func all_skins() -> Array:
 	_ensure()
 	return _by_id.values()
 
-## 性能(terrain_type)の既定スキン。無ければ null。
-static func for_type(type_id: String) -> TerrainSkin:
-	_ensure()
-	return _default_by_type.get(type_id, null)
-
 ## セルの見た目を解決：skin_id を優先（あれば）、無ければ terrain_type の既定スキンへフォールバック。
 ## ステージの terrain_skins に載らないセルは skin_id="" で来る＝type 既定になる（暫定フォールバック）。
 static func resolve(skin_id: String, type_id: String) -> TerrainSkin:

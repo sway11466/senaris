@@ -46,9 +46,9 @@ func test_mul_scales_effective_attack() -> void:
 	var foe := Unit.new(2, 1, Hex.neighbor(atk.pos, 0), 3, 8, 30, 30)
 	s.add_unit(atk)
 	s.add_unit(foe)
-	var before := Combat.effective_attack(s, atk, foe, false)
+	var before := float(Combat.attack_breakdown(s, atk, foe, false)["total"])
 	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "remaining": 2})
-	assert_almost_eq(Combat.effective_attack(s, atk, foe, false), before * 1.3, 0.01, "実効攻撃力が×1.3")
+	assert_almost_eq(float(Combat.attack_breakdown(s, atk, foe, false)["total"]), before * 1.3, 0.01, "実効攻撃力が×1.3")
 
 func test_no_mods_is_regression() -> void:
 	# 状態補正が無ければ mul=1.0・add=0＝従来の計算と一致（回帰防止）。

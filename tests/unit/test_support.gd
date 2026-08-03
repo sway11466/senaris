@@ -11,7 +11,7 @@ func test_attack_support_from_ally_next_to_defender() -> void:
 	s.add_unit(Unit.new(2, 1, dp, 3, 8, 10, 10))  # 防御側
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(dp, 2), 3, 6, 8, 10))  # 味方: 兵6 攻8 → 支援 6×8×0.25=12
 	# 攻撃側の包囲は不成立（隣接敵は防御側1体のみ）→ base 80、支援 +12
-	var ea := Combat.effective_attack(s, s.unit_by_id(1), s.unit_by_id(2))
+	var ea := float(Combat.attack_breakdown(s, s.unit_by_id(1), s.unit_by_id(2))["total"])
 	assert_almost_eq(ea, 92.0, 0.001, "隣接味方の攻撃支援 +12")
 
 func test_defense_support_from_ally_next_to_attacker() -> void:

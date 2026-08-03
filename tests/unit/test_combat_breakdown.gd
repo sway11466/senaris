@@ -8,15 +8,13 @@ func _state() -> BattleState:
 
 # --- 単一の真実: 実効値・損害は breakdown から導く ---
 
-func test_effective_values_delegate_to_breakdown() -> void:
+func test_casualties_delegates_to_hit_detail() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	var a := Unit.new(1, 0, ap, 3, 8, 20, 15)
 	var t := Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 7, 12, 10)
 	s.add_unit(a)
 	s.add_unit(t)
-	assert_eq(Combat.effective_attack(s, a, t), Combat.attack_breakdown(s, a, t)["total"], "effective_attack＝breakdown.total")
-	assert_eq(Combat.effective_defense(s, t, a), Combat.defense_breakdown(s, t, a)["total"], "effective_defense＝breakdown.total")
 	assert_eq(Combat.casualties(s, a, t), Combat.hit_detail(s, a, t)["loss"], "casualties＝hit_detail.loss")
 
 func test_attack_breakdown_factors() -> void:

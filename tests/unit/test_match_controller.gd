@@ -62,9 +62,9 @@ func test_finished_latch_blocks_all_commands() -> void:
 	# 前提: state 上は全コマンドが成立しうる（塞ぐのはラッチだけ）ことを確認しておく。
 	var move_to := Hex.neighbor(u1.pos, 3)
 	var unload_to: Vector2i = s.unload_cells(4, 0)[0]
-	assert_true(s.can_move(1, move_to), "前提: 移動は state 的には妥当")
+	assert_true(move_to in s.reachable(1) and s.unit_at(move_to) == null, "前提: 移動は state 的には妥当")
 	assert_true(s.can_attack(1, 2), "前提: 攻撃は state 的には妥当")
-	assert_true(s.can_deploy(b.hex), "前提: 出撃は state 的には妥当")
+	assert_false(s.deploy_cells(b.hex).is_empty(), "前提: 出撃は state 的には妥当")
 	assert_true(s.can_enter_base(3), "前提: 駐留は state 的には妥当")
 	# 決着後は全コマンドが no-op（false）でシグナルも出ない。
 	assert_false(mc.execute(MoveCommand.new(1, move_to)), "決着後の移動は no-op")

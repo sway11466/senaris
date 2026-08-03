@@ -117,7 +117,7 @@ func test_deploy_cells_and_can_deploy() -> void:
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	_captured_base_with_garrison(s, base_hex, 1)
-	assert_true(s.can_deploy(base_hex), "控えあり・空きありなら出撃可")
+	assert_false(s.deploy_cells(base_hex).is_empty(), "控えあり・空きありなら出撃可")
 	assert_eq(s.deploy_cells(base_hex).size(), 6, "開けた拠点の周囲6マスが出撃先")
 
 func test_capture_then_deploy_same_turn() -> void:
@@ -134,7 +134,7 @@ func test_capture_then_deploy_same_turn() -> void:
 	assert_eq(b.team, 0, "進入で即占領")
 	# 同ターンに出撃（拠点に乗った占領兵の隣の空きへ）
 	var to := Hex.neighbor(base_hex, 2)
-	assert_true(s.can_deploy(base_hex), "占領した同じターンに出撃できる")
+	assert_false(s.deploy_cells(base_hex).is_empty(), "占領した同じターンに出撃できる")
 	assert_true(s.deploy(base_hex, 0, to), "控えを隣接へ出撃")
 	assert_eq(s.unit_at(to).team, 0, "出た駒は自軍")
 	assert_eq(b.garrison.size(), 0, "garrison が減る")
@@ -143,7 +143,7 @@ func test_empty_base_capture_is_noop() -> void:
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 0))  # garrison 空・自軍所属
-	assert_false(s.can_deploy(base_hex), "空の拠点からは出撃できない（出す駒が無い）")
+	assert_true(s.deploy_cells(base_hex).is_empty(), "空の拠点からは出撃できない（出す駒が無い）")
 	assert_eq(s.deploy_cells(base_hex).size(), 0)
 
 # --- 回復（休憩＝拠点の中に入るモデル） ---
