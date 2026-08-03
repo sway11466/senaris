@@ -262,13 +262,11 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 弾き返す音（`cmb_hit_none`）。損害0のとき、近接でも遠距離でも、武器によらずこれ1つだけを鳴らす。
 
-| 候補 | 場所 |
+| 素材 | 場所 |
 |---|---|
 | `Weapon_Impact_Parry_01.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
-| `Plate_Impact_Hard_02.wav` | 2017 p3 / 同上 |
-| `WEAPArmr_Metal Shield Block Hits_JSE_MW.wav` | 2024 p2 / Justsoundeffects - Melee Weapons |
 
-Double Trouble が本命。`Parry`（受け流し）という名前のファイルが直球で存在する。
+試聴して決めた。同じライブラリの `Plate_Impact_Hard_02.wav`（板金鎧）と `Chainmail_Impact_Hard_03.wav`（鎖帷子）は不採用。
 
 血肉系（Gore）のライブラリも各年にあるが、作風に対して生々しすぎるため候補から外した。
 
