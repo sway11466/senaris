@@ -85,9 +85,9 @@
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
-					"name": "グリフォン",
+					"name": "ハーピー",
 					"retainers": [],
-					"skin_id": "griffon",
+					"skin_id": "harpy",
 					"type_id": "birdman"
 				}
 			]
@@ -277,22 +277,6 @@
 				}
 			],
 			"enemy": []
-		},
-		"harrier": {
-			"ally": [],
-			"enemy": [
-				{
-					"category": "魔獣",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"name": "ハーピー",
-					"retainers": [],
-					"skin_id": "harpy",
-					"type_id": "harrier"
-				}
-			]
 		},
 		"hunter": {
 			"ally": [
@@ -683,6 +667,22 @@
 				}
 			],
 			"enemy": []
+		},
+		"valkyrie": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "魔獣",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "グリフォン",
+					"retainers": [],
+					"skin_id": "griffon",
+					"type_id": "valkyrie"
+				}
+			]
 		},
 		"vanguard": {
 			"ally": [

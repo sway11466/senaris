@@ -17,9 +17,9 @@ halfling,40,10,0,20,6,bush_walk,1-2,true,false,8,0,斥候,
 ninja,50,30,0,20,7,light_foot,1,true,false,8,0,斥候,
 kunoichi,30,20,0.5,20,7,light_foot,1,true,false,8,0,斥候,忍術（魔法攻撃・貫通0.5）
 pixie,10,10,0.5,10,5,flight,1,false,false,8,0,飛行兵,
-harrier,30,30,0,30,6,flight,1,false,false,8,0,飛行兵,群れる軽飛行（ハーピー等に使用）
+birdman,30,30,0,30,6,flight,1,false,false,8,0,飛行兵,群れる軽飛行（鳥人・ハーピー）
 dragon_knight,10,90,0,30,12,flight,1,false,false,8,0,飛行兵,
-birdman,70,20,0,30,10,flight,1,false,false,8,0,飛行兵,
+valkyrie,70,20,0,30,10,flight,1,false,false,8,0,飛行兵,翼を持つ高速の飛行（グリフォン等に使用）
 novice,45,0,0,30,5,ground,1,false,false,8,0,歩兵,
 fighter,50,0,0,40,6,ground,1,false,false,8,0,歩兵,
 vanguard,55,0,0,50,6,ground,1,false,false,8,0,歩兵,
