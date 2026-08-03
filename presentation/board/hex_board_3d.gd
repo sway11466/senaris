@@ -307,6 +307,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_on_cancel(true)
 	elif event.is_action_pressed("ui_accept"):
 		_deselect()
+		SfxPlayer.play_event("map_turn_end")
 		controller.end_turn()
 
 ## スクロール（2本指/ピンチ/ホイール）・全体表示を処理。消費したら true。

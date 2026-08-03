@@ -473,6 +473,7 @@ func _update_aura() -> void:
 
 func _on_end_turn_requested() -> void:
 	if _controller != null:
+		SfxPlayer.play_event("map_turn_end")
 		_controller.end_turn()
 
 func _on_restart_requested() -> void:

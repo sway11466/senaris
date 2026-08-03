@@ -24,6 +24,8 @@ const BIND := {
 	"menu_stage": "ui_confirm",
 	"menu_back": "ui_cancel",
 	"menu_locked": "ui_denied",
+	# --- マップ（開始・ターン・終了）---
+	"map_turn_end": "ui_confirm",
 	# --- マップ（会話）---
 	"map_talk": "ui_hover",  # 文字送り。ホバーと同じ極短クリックを共用する
 	# --- マップ（盤の操作）---
