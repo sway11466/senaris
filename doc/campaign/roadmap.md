@@ -17,7 +17,7 @@
 |---|---|---|---|
 | [ゴブリンの襲撃](tutorial1-goblin-raid.md) | ★☆☆☆☆ | 完了 | 完了（st1〜7） |
 | [アンデッドの群れ](tutorial2-undead-rush.md) | ★★☆☆☆ | 完了 | 完了（st1〜7） |
-| [竜狩り](tutorial3-dragon-hunt.md) | ★★★☆☆ | ドラフト（骨子＋casting） | 未着手 |
+| [竜狩り](tutorial3-dragon-hunt.md) | ★★★☆☆ | 完了（全7話。会話は st4 のみ要旨） | 未着手 |
 
 ## かけだし向け
 
