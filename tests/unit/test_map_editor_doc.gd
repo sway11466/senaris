@@ -301,23 +301,44 @@ func test_used_actors_collects_named_pieces() -> void:
 	assert_eq(doc.used_actors().size(), 1, "名前なしの駒は数えない")
 
 
-func test_set_boss_assigns_actor_and_victory() -> void:
+func test_free_actor_avoids_duplicate() -> void:
 	var doc := MapEditorDoc.from_text(SAMPLE)
-	# スキン名 "goblin" は未使用 → そのまま actor になる。
-	assert_eq(doc.set_boss(0, 0), "goblin")
-	assert_eq(doc.data["enemy"][0]["units"][0]["actor"], "goblin")
-	assert_false(doc.data["enemy"][0]["units"][0].has("id"), "数値 id は書かない")
-	assert_eq(doc.victory_list().size(), 2)
-	assert_eq(doc.set_boss(0, 0), "goblin", "再指定しても増えない")
-	assert_eq(doc.victory_list().size(), 2)
+	assert_eq(doc.free_actor("goblin"), "goblin", "未使用ならそのまま")
+	assert_eq(doc.free_actor("hobgoblin"), "hobgoblin2", "使用済みなら連番を足す")
 
 
-func test_set_boss_avoids_duplicate_actor() -> void:
+func test_set_actor_names_player_and_enemy() -> void:
 	var doc := MapEditorDoc.from_text(SAMPLE)
-	# 2体目の hobgoblin を置くと、既存の actor "hobgoblin" と衝突しない名前になる。
-	doc.add_enemy(0, "hobgoblin", 3, 3)
-	var last: int = doc.data["enemy"][0]["units"].size() - 1
-	assert_eq(doc.set_boss(0, last), "hobgoblin2")
+	doc.set_actor(doc.data["player"][0], "cap")
+	doc.set_actor(doc.data["enemy"][0]["units"][0], "goblin")
+	assert_eq(doc.data["player"][0]["actor"], "cap", "自軍にも名前を付けられる")
+	assert_false(doc.data["player"][0].has("id"), "数値 id は書かない")
+	assert_true(doc.used_actors().has("cap"))
+	assert_eq(doc.used_actors().size(), 3)
+
+
+func test_set_actor_rename_follows_victory() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	doc.set_actor(doc.data["enemy"][0]["units"][1], "necromancer")
+	assert_eq(doc.victory_list()[0]["actor"], "necromancer", "勝利条件の名指しも付け替わる")
+
+
+func test_set_actor_clear_drops_condition() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	doc.set_actor(doc.data["enemy"][0]["units"][1], "")
+	assert_false(doc.data["enemy"][0]["units"][1].has("actor"))
+	assert_eq(doc.victory_list().size(), 0, "指す先が無くなった条件は残さない")
+	assert_false(doc.data.has("victory"), "空の victory キーは書き出さない")
+
+
+func test_set_actor_follows_lose_unit() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	doc.set_actor(doc.data["player"][0], "cap")
+	doc.data["defeat"] = [{ "type": "lose_unit", "actors": ["cap", "other"] }]
+	doc.set_actor(doc.data["player"][0], "captain")
+	assert_eq(doc.defeat_list()[0]["actors"], ["captain", "other"], "護衛対象の名指しも追随")
+	doc.set_actor(doc.data["player"][0], "")
+	assert_eq(doc.defeat_list()[0]["actors"], ["other"], "外した名前だけ落ちる")
 
 
 func test_add_squad_gets_next_order() -> void:

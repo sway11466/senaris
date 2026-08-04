@@ -524,8 +524,8 @@ func _collect_actor(out: Dictionary, unit: Variant) -> void:
 
 
 ## base を土台に、ステージ内で重複しない actor 名を作る（"necromancer" → "necromancer2" …）。
-func _free_actor(base: String) -> String:
-	var stem := base if base != "" else "boss"
+func free_actor(base: String) -> String:
+	var stem := base if base != "" else "actor"
 	var used := used_actors()
 	if not used.has(stem):
 		return stem
@@ -535,22 +535,52 @@ func _free_actor(base: String) -> String:
 	return "%s%d" % [stem, n]
 
 
-## 駒をボス指定＝actor を振り、勝利条件 defeat_unit を追加。振った actor を返す。
-## 既に actor 持ちならそれを使う。無ければ skin（無ければ type）を土台に重複しない名前を作る。
+## 駒の名指し(actor)を書き換える。空文字なら名前を外す。
 ## 駒を指す手段は actor 一本＝数値 id はデータに書かない（doc/gdd/map.md 名前つきの駒）。
-func set_boss(squad_idx: int, unit_idx: int) -> String:
-	var unit: Dictionary = data["enemy"][squad_idx]["units"][unit_idx]
-	var actor := String(unit.get("actor", ""))
-	if actor == "":
-		actor = _free_actor(String(unit.get("skin", unit.get("type", ""))))
-		unit["actor"] = actor
-	if typeof(data.get("victory")) != TYPE_ARRAY:
-		data["victory"] = []
-	for c in data["victory"]:
-		if String(c.get("type", "")) == "defeat_unit" and String(c.get("actor", "")) == actor:
-			return actor  # 既に条件あり
-	data["victory"].append({ "type": "defeat_unit", "actor": actor })
-	return actor
+## 元の名前を指していた勝敗条件は一緒に付け替える（拠点を動かすと lose_base が追随するのと同じ）。
+## 指す先が無くなった条件は消す＝「対象なし＝成立しない」条件を黙って残さない。
+func set_actor(unit: Dictionary, name: String) -> void:
+	var old := String(unit.get("actor", ""))
+	if old == name:
+		return
+	if name == "":
+		unit.erase("actor")
+	else:
+		unit["actor"] = name
+	if old != "":
+		_rename_actor_refs(old, name)
+
+
+## 勝敗条件の中の actor 名を付け替える（new が空なら、その名指しを取り除く）。
+func _rename_actor_refs(old: String, new: String) -> void:
+	var v := victory_list()
+	for i in range(v.size() - 1, -1, -1):
+		if String(v[i].get("type", "")) != "defeat_unit" or String(v[i].get("actor", "")) != old:
+			continue
+		if new == "":
+			v.remove_at(i)
+		else:
+			v[i]["actor"] = new
+	if v.is_empty() and data.has("victory"):
+		data.erase("victory")
+	var d := defeat_list()
+	for i in range(d.size() - 1, -1, -1):
+		if String(d[i].get("type", "")) != "lose_unit":
+			continue
+		var actors: Variant = d[i].get("actors", [])
+		if typeof(actors) != TYPE_ARRAY:
+			continue
+		for j in range((actors as Array).size() - 1, -1, -1):
+			if String(actors[j]) != old:
+				continue
+			if new == "":
+				(actors as Array).remove_at(j)
+			else:
+				actors[j] = new
+		if (actors as Array).is_empty():
+			d.remove_at(i)
+	if d.is_empty() and data.has("defeat"):
+		data.erase("defeat")
 
 
 func victory_list() -> Array:
