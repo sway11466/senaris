@@ -10,8 +10,8 @@ const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを
 
 const STAGES_DIR := "res://data/stages"
 const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
-const MODE_LABELS := { "select": "選択", "terrain": "地形", "player": "自軍", "enemy": "敵",
-	"squad": "敵グループ", "base": "拠点", "outcome": "勝敗" }
+const MODE_LABELS := { "stage": "ステージ", "select": "選択", "terrain": "地形", "player": "自軍",
+	"enemy": "敵", "squad": "敵グループ", "base": "拠点", "outcome": "勝敗" }
 const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
 const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
@@ -85,7 +85,7 @@ func _ready() -> void:
 	_doc = MapEditorDoc.new_stage()
 	_build_ui()
 	_sync_fields()
-	_set_mode("terrain")
+	_set_mode("stage")  # 開いて最初に触るのは名前と盤のサイズ
 
 
 ## Ctrl+Z ＝直前の地形操作の取り消し（入力欄にフォーカスがあるときは、そちらの取り消しが優先）。
@@ -196,7 +196,11 @@ func _build_ui() -> void:
 
 	var panel_scroll := ScrollContainer.new()
 	panel_scroll.custom_minimum_size = Vector2(360, 0)
-	panel_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# 横スクロールを DISABLED にすると、ScrollContainer は中身の最小幅を自分の最小幅として
+	# 親に要求する＝パネル幅がモードごとの「いちばん長い行」で決まり、切り替えるたびに動く。
+	# AUTO なら幅は常に 360。中身は 360 に合わせて縮み、それでも溢れたときだけ横バーが出る
+	# （＝溢れたことに気づける）。行が長くなりがちなラベルは折り返す（_add_label / _add_heading）。
+	panel_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	main.add_child(panel_scroll)
 	var panel_margin := MarginContainer.new()
 	panel_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -209,38 +213,7 @@ func _build_ui() -> void:
 	panel.add_theme_constant_override("separation", 6)
 	panel_margin.add_child(panel)
 
-	# ステージ情報
-	_add_heading(panel, "ステージ情報")
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 8)
-	panel.add_child(grid)
-	_add_label(grid, "name")
-	_name_edit = LineEdit.new()
-	_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_name_edit.text_changed.connect(func(t: String) -> void: _doc.data["name"] = t)
-	grid.add_child(_name_edit)
-	_add_label(grid, "turn_limit")
-	_turn_spin = _make_spin(1, 999, 30)
-	_turn_spin.value_changed.connect(func(v: float) -> void:
-		_doc.data["turn_limit"] = int(v)
-		_refresh_defeat())  # 敗北条件の一覧に「ターン制限 N を超過」を出しているので追随させる
-	grid.add_child(_turn_spin)
-	_add_label(grid, "cols")
-	_cols_spin = _make_spin(4, 99, 12)
-	grid.add_child(_cols_spin)
-	_add_label(grid, "rows")
-	_rows_spin = _make_spin(4, 99, 8)
-	grid.add_child(_rows_spin)
-	# 外周＝盤の外側に何マス地形を描くか。接続タイル（柵・道）が縁で「盤の外に何があるか」を
-	# 推測せず読めるようにするためのもの。厚み1で6近傍を覆える。詳細 → doc/gdd/map.md
-	_add_label(grid, "margin")
-	_margin_spin = _make_spin(0, 3, 0)
-	grid.add_child(_margin_spin)
-	_add_button(panel, "サイズを適用（縮小で範囲外の駒は削除）", _on_resize)
-
 	# モード
-	panel.add_child(HSeparator.new())
 	_add_heading(panel, "モード")
 	var modes := HFlowContainer.new()  # モードが増えるとパネル幅に収まらない＝折り返す
 	panel.add_child(modes)
@@ -285,17 +258,38 @@ func _make_file_dialog(mode: FileDialog.FileMode) -> FileDialog:
 	return d
 
 
+## 見出しと、単独行の説明ラベル（_add_info）は折り返す。折り返さないと長い行がパネルの幅を
+## 決めてしまう。逆に、行や表の中の見出し（_add_label）を折り返すと列が1文字幅まで潰れるので、
+## そちらは折り返さない。
 func _add_heading(parent: Control, text: String) -> void:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", 15)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(l)
 
 
+## 行・表の中に置く見出し（"col" "所属" など）。折り返さない＝列の幅を保つ。
 func _add_label(parent: Control, text: String) -> void:
 	var l := Label.new()
 	l.text = text
 	parent.add_child(l)
+
+
+## 単独の行として置く説明・情報のラベル。長くなるので折り返す。
+func _add_info(parent: Control, text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	parent.add_child(l)
+
+
+## パネルの OptionButton。項目名が長くても幅を押し広げない（行の幅に収めて切る）。
+func _make_option() -> OptionButton:
+	var ob := OptionButton.new()
+	ob.clip_text = true
+	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return ob
 
 
 func _add_button(parent: Control, text: String, cb: Callable) -> Button:
@@ -338,6 +332,8 @@ func _set_mode(mode: String) -> void:
 	for c in _mode_box.get_children():
 		c.queue_free()
 	match mode:
+		"stage":
+			_build_stage_palette()
 		"select":
 			_add_hint(_mode_box, "クリック＝選択して下に表示（表示だけ・編集はしない）。ドラッグ＝駒/拠点を移動。\n"
 				+ "拠点の中身（控えなど）を編集するのは「拠点」モード。")
@@ -383,8 +379,7 @@ func _add_hint(parent: Control, text: String) -> void:
 func _labeled_option(label: String, keys: Array, displays: Array, current: String, on_pick: Callable) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	_add_label(row, label)
-	var ob := OptionButton.new()
-	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var ob := _make_option()
 	for i in keys.size():
 		ob.add_item(String(displays[i]))
 		if String(keys[i]) == current:
@@ -540,6 +535,39 @@ func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> vo
 			target["sight"] = int(v))
 
 
+## 「ステージ」モード＝ステージ全体の設定（名前・ターン制限・盤のサイズ）。
+## 入力欄はこのモードのときだけ存在する＝値の出どころは常に _doc（_sync_fields で貼り直す）。
+func _build_stage_palette() -> void:
+	_add_hint(_mode_box, "ステージ全体の設定。cols / rows / margin は「サイズを適用」で盤に反映する。")
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 8)
+	_mode_box.add_child(grid)
+	_add_label(grid, "name")
+	_name_edit = LineEdit.new()
+	_name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_name_edit.text_changed.connect(func(t: String) -> void: _doc.data["name"] = t)
+	grid.add_child(_name_edit)
+	_add_label(grid, "turn_limit")
+	_turn_spin = _make_spin(1, 999, 30)
+	_turn_spin.value_changed.connect(func(v: float) -> void: _doc.data["turn_limit"] = int(v))
+	grid.add_child(_turn_spin)
+	_add_label(grid, "cols")
+	_cols_spin = _make_spin(4, 99, 12)
+	grid.add_child(_cols_spin)
+	_add_label(grid, "rows")
+	_rows_spin = _make_spin(4, 99, 8)
+	grid.add_child(_rows_spin)
+	# 外周＝盤の外側に何マス地形を描くか。接続タイル（柵・道）が縁で「盤の外に何があるか」を
+	# 推測せず読めるようにするためのもの。厚み1で6近傍を覆える。詳細 → doc/gdd/map.md
+	_add_label(grid, "margin")
+	_margin_spin = _make_spin(0, 3, 0)
+	grid.add_child(_margin_spin)
+	_add_button(_mode_box, "サイズを適用", _on_resize).tooltip_text = \
+		"cols / rows / margin を盤に反映する。縮小すると範囲外の駒・拠点・スキン指定は削除される。"
+	_sync_fields()  # 入力欄を作り直したので、いまの doc の値を入れ直す
+
+
 ## 「自軍」モード＝駒を置く道具（分類→種別）。置いた駒／クリックした駒は下段で名前を付けられる。
 func _build_player_palette() -> void:
 	_add_hint(_mode_box, "左クリック＝配置（配置済みの自軍の駒の上なら、その種別を取り込んで選ぶ）\n右クリック＝駒を削除")
@@ -554,7 +582,7 @@ func _build_player_palette() -> void:
 			ids.append(String(t["id"]))
 	if not ids.has(_sel_type_id) and not ids.is_empty():
 		_sel_type_id = String(ids[0])  # 絞り込みで外れたら先頭にフォールバック
-	var ob := OptionButton.new()
+	var ob := _make_option()
 	for i in ids.size():
 		ob.add_item(ids[i])
 		if String(ids[i]) == _sel_type_id:
@@ -581,8 +609,7 @@ func _add_squad_selector(with_buttons: bool) -> void:
 		_sel_squad = maxi(squads.size() - 1, 0)
 	var row := HBoxContainer.new()
 	_mode_box.add_child(row)
-	var ob := OptionButton.new()
-	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var ob := _make_option()
 	for i in squads.size():
 		ob.add_item("部隊%d[順%s]: %s（%s）" % [i, str(squads[i].get("order", "-")),
 			String(squads[i].get("name", "無名")), String(squads[i].get("ai", "?"))])
@@ -640,7 +667,7 @@ func _build_squad_palette() -> void:
 			sq["ai"] = k
 			_set_mode("squad")))
 	_add_sight_row(_mode_box, sq, String(sq.get("ai", "")))
-	_add_label(_mode_box, "所属する駒: %d 体" % sq.get("units", []).size())
+	_add_info(_mode_box, "所属する駒: %d 体" % sq.get("units", []).size())
 
 
 ## 「敵」モード＝駒を置く道具（配置先の部隊とスキンを選ぶ）。部隊の設定は「敵グループ」モード。
@@ -666,7 +693,7 @@ func _build_enemy_palette() -> void:
 		pool_ids.append(String(s["skin_id"]))
 	if not pool_ids.has(_sel_skin_id) and not pool_ids.is_empty():
 		_sel_skin_id = String(pool_ids[0])  # 絞り込みで外れたら先頭にフォールバック
-	var skin_ob := OptionButton.new()
+	var skin_ob := _make_option()
 	for i in pool.size():
 		skin_ob.add_item("%s（%s）" % [pool[i]["skin_id"], pool[i]["type_id"]])
 		if String(pool[i]["skin_id"]) == _sel_skin_id:
@@ -891,9 +918,9 @@ func _show_inspection(col: int, row: int) -> void:
 	for c in _inspector.get_children():
 		c.queue_free()
 	var tid := TerrainType.char_to_id(_doc.terrain_char(col, row))
-	_add_label(_inspector, "マス (%d, %d)  地形: %s" % [col, row, tid])
+	_add_info(_inspector, "マス (%d, %d)  地形: %s" % [col, row, tid])
 	var skin := _doc.terrain_skin(col, row)
-	_add_label(_inspector, "見た目: %s" % [skin if skin != "" else "%s（既定）" % _default_skin_by_type.get(tid, tid)])
+	_add_info(_inspector, "見た目: %s" % [skin if skin != "" else "%s（既定）" % _default_skin_by_type.get(tid, tid)])
 	var uh := _doc.unit_at(col, row)
 	if not uh.is_empty():
 		_inspect_unit(uh)
@@ -910,9 +937,9 @@ func _inspect_unit(hit: Dictionary) -> void:
 	var squad := int(hit["squad"])
 	var head := "自軍: %s" % String(u.get("type", u.get("skin", "?"))) if squad < 0 \
 		else "敵（部隊%d）: %s" % [squad, String(u.get("skin", u.get("type", "?")))]
-	_add_label(_inspector, head)
+	_add_info(_inspector,head)
 	var actor := String(u.get("actor", ""))
-	_add_label(_inspector, "actor: %s" % (actor if actor != "" else "（名前なし）"))
+	_add_info(_inspector, "actor: %s" % (actor if actor != "" else "（名前なし）"))
 	if u.has("passengers") and not u["passengers"].is_empty():
 		_add_hint(_inspector, "同乗 %d 体（passengers は JSON 直接編集）" % u["passengers"].size())
 	_add_hint(_inspector, "駒の編集は「自軍」「敵」モードで。")
@@ -922,27 +949,27 @@ func _inspect_unit(hit: Dictionary) -> void:
 ## （同じ設定が2箇所にあると、どちらが効くのか分からなくなるため）。
 func _inspect_base(hit: Dictionary) -> void:
 	var b: Dictionary = hit["base"]
-	_add_label(_inspector, "拠点: %s / %s" % [
+	_add_info(_inspector, "拠点: %s / %s" % [
 		String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))),
 		String(KIND_LABELS.get(String(b.get("kind", "fort")), b.get("kind", "?")))])
 	var ai := String(b.get("ai", ""))
 	if ai == "":
-		_add_label(_inspector, "AI出撃: （なし）")
+		_add_info(_inspector, "AI出撃: （なし）")
 	else:
-		_add_label(_inspector, "AI出撃: %s（%s）  order: %s"
+		_add_info(_inspector, "AI出撃: %s（%s）  order: %s"
 			% [ai, String(_ai_names.get(ai, ai)), str(b.get("order", "-"))])
 		if _preset_uses_sight(ai):
 			var default_sight := _preset_sight(ai)
-			_add_label(_inspector, "sight: %d%s" % [int(b.get("sight", default_sight)),
+			_add_info(_inspector, "sight: %d%s" % [int(b.get("sight", default_sight)),
 				"（上書き）" if b.has("sight") else "（%s の既定）" % ai])
 	var g: Variant = b.get("garrison", [])
 	if typeof(g) == TYPE_ARRAY and not (g as Array).is_empty():
-		_add_label(_inspector, "控え（garrison）")
+		_add_info(_inspector, "控え（garrison）")
 		for e in g:
-			_add_label(_inspector, "  ・%s ×%d"
+			_add_info(_inspector, "  ・%s ×%d"
 				% [String(e.get("skin", e.get("type", "?"))), maxi(int(e.get("count", 1)), 1)])
 	else:
-		_add_label(_inspector, "控え（garrison）: （なし）")
+		_add_info(_inspector, "控え（garrison）: （なし）")
 	_add_hint(_inspector, "拠点の編集は「拠点」モードで。")
 
 
@@ -977,7 +1004,7 @@ func _refresh_unit_box() -> void:
 	var u: Dictionary = hit["unit"]
 	var squad := int(hit["squad"])
 	_add_heading(_unit_box, "選んだ駒 (%d, %d)" % [_sel_unit.x, _sel_unit.y])
-	_add_label(_unit_box, "自軍: %s" % String(u.get("type", u.get("skin", "?"))) if squad < 0 \
+	_add_info(_unit_box, "自軍: %s" % String(u.get("type", u.get("skin", "?"))) if squad < 0 \
 		else "敵（部隊%d）: %s" % [squad, String(u.get("skin", u.get("type", "?")))])
 	if u.has("passengers") and typeof(u["passengers"]) == TYPE_ARRAY and not u["passengers"].is_empty():
 		_add_hint(_unit_box, "同乗 %d 体（passengers は JSON 直接編集）" % u["passengers"].size())
@@ -1081,7 +1108,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 		_add_order_row(parent, b)  # 拠点も1部隊＝盤上の部隊と同じ列に並ぶ（doc/gdd/ai.md 行動順）
 	_add_sight_row(parent, b, String(b.get("ai", "")))
 	# 控え（garrison）
-	_add_label(parent, "控え（garrison）")
+	_add_info(parent, "控え（garrison）")
 	if typeof(b.get("garrison")) != TYPE_ARRAY:
 		b["garrison"] = []
 	var g: Array = b["garrison"]
@@ -1089,8 +1116,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 		var entry: Dictionary = g[i]
 		var row := HBoxContainer.new()
 		parent.add_child(row)
-		var ob := OptionButton.new()
-		ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var ob := _make_option()
 		var current := String(entry.get("skin", entry.get("type", "")))
 		for j in _skins.size():
 			ob.add_item("%s（%s）" % [_skins[j]["skin_id"], _skins[j]["type_id"]])
@@ -1273,7 +1299,7 @@ func _build_lose_base_targets(box: VBoxContainer, c: Dictionary) -> void:
 			_refresh_defeat())
 		if _doc.base_at(int(t.get("col", -1)), int(t.get("row", -1))).is_empty():
 			_add_warn(box, "  ↑ このマスに拠点がありません")
-	_add_button(box, "対象を追加（すべて失って成立）", func() -> void:
+	_add_button(box, "対象を追加", func() -> void:
 		var free := _free_base_target()
 		if free == MapEditorBoard.OUTSIDE:
 			_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
@@ -1298,7 +1324,7 @@ func _build_lose_unit_targets(box: VBoxContainer, c: Dictionary) -> void:
 				_refresh_defeat())
 		if not _doc.used_actors().has(String(actors[j])):
 			_add_warn(box, "  ↑ この名前の駒がありません")
-	_add_button(box, "対象を追加（すべて失って成立）", func() -> void:
+	_add_button(box, "対象を追加", func() -> void:
 		var free := _free_actor_target()
 		if free == "":
 			_say(_no_actor_message())
@@ -1390,8 +1416,7 @@ func _add_kind_adder(parent: Control, kinds: Dictionary, on_add: Callable) -> vo
 	var row := HBoxContainer.new()
 	parent.add_child(row)
 	_add_label(row, "条件を追加")
-	var ob := OptionButton.new()
-	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var ob := _make_option()
 	var keys := kinds.keys()
 	for k in keys:
 		ob.add_item(String(kinds[k][0]))
@@ -1504,13 +1529,15 @@ func _after_load() -> void:
 
 
 func _sync_fields() -> void:
+	_path_label.text = _path if _path != "" else "（未保存の新規ステージ）"
+	_path_label.tooltip_text = _path_label.text
+	if _name_edit == null or not is_instance_valid(_name_edit):
+		return  # 「ステージ」モード以外では入力欄が無い（作り直すときに読み直す）
 	_name_edit.text = String(_doc.data.get("name", ""))
 	_turn_spin.set_value_no_signal(maxf(int(_doc.data.get("turn_limit", 30)), 1))
 	_cols_spin.set_value_no_signal(_doc.cols())
 	_rows_spin.set_value_no_signal(_doc.rows())
 	_margin_spin.set_value_no_signal(_doc.margin())
-	_path_label.text = _path if _path != "" else "（未保存の新規ステージ）"
-	_path_label.tooltip_text = _path_label.text
 
 
 func _on_resize() -> void:
