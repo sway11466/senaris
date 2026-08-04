@@ -267,17 +267,15 @@ func _poster(c: Dictionary) -> Control:
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 8)
 
-	# 上: カバー絵（card 用クロップ優先／無ければ cover／どちらも無ければ暗色プレースホルダ）
+	# 上: 扉絵（cover。無ければ暗色プレースホルダ）
 	var art := TextureRect.new()
 	art.custom_minimum_size = Vector2(0.0, POSTER_ART_HEIGHT)
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
-	# カード絵＝card 優先／無ければ cover。連番バリアントから表示ごとに1枚選ぶ（複数置けばランダム）。
-	# 選んだ index を覚えておき、stage 側へ渡して同じ絵に固定する（board→stage で変わらない）。
-	var art_paths: Array = c.get("card_paths", [])
-	if art_paths.is_empty():
-		art_paths = c.get("cover_paths", [])
+	# 貼り紙とステージ一覧は同じ cover を使う＝押した紙がそのまま開く体験にする（専用クロップは持たない）。
+	# 連番バリアントから表示ごとに1枚選び、選んだ index を stage 側へ渡して同じ絵に固定する。
+	var art_paths: Array = c.get("cover_paths", [])
 	var art_idx := _pick_index(art_paths)
 	_variant_by_id[String(c["id"])] = art_idx
 	if art_idx >= 0:

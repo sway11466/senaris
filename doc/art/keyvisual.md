@@ -50,10 +50,10 @@ around it. Wide 4:3 composition.
 | ④ ゲーム用（`_03_master`＞`_02_dew` を cp・比率調整は不要） | `assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial2-undead-rush_cover.png` |
 
 - 変種letter：1枚だけなら **付けない**（上表＝既定）。複数の cover 変種を出して表示ごとにランダムに1枚選ばせたいときだけ `_a`/`_b`/`_c`…（例: `{id}_a_01_raw.png`）を付ける（[campaign_catalog.gd](../../data/stages/campaign_catalog.gd) の連番 `{id}_cover_2.png` はゲーム用側の変種）。チュートリアル1の cover は歴史的経緯で `_a` 付き。
-- 命名は他系統と揃える: slot（`_cover`/`_card`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_NN_raw/dew/master`（複数変種時は `_a_NN…`）は羊皮紙流。
-- ②は `assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚カードに反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
+- 命名は他系統と揃える: slot（`_cover`/`_victory`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_NN_raw/dew/master`（複数変種時は `_a_NN…`）は羊皮紙流。
+- ②は `assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚の貼り紙に反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
 - 連番変種（`{id}_cover_2.png` …）を複数置くと、表示ごとにランダムで1枚選ぶ（[campaign_catalog.gd](../../data/stages/campaign_catalog.gd) `_resolve_art_variants`／地形・羊皮紙と同思想）。1枚だけなら固定。
-- cover の元は `_03_master` があればそれ、無ければ `_02_dew`（[direction.md](direction.md) §3）。1枚を大パネル＝全体、カード＝横帯として使い回す（比率はエンジンが合わせる）。
+- cover の元は `_03_master` があればそれ、無ければ `_02_dew`（[direction.md](direction.md) §3）。1枚を大パネルと貼り紙（276×230）で使い回す＝貼り紙用に切り直した別画像は持たない（比率はエンジンが合わせる）。押した紙とその先の大パネルが同じ絵であることを優先する。
 - 追加スロット（cover 以外の kind）：cover と同じ二層・同じ ILLUST STYLE（§2）で作り、-src ファイル名に kind トークンを前置して cover と共存させる（ユニットの map=既定／combat=トークン、と同じ思想）。単一絵なら変種letter `_a` は省く。`CampaignCatalog` は `{id}_{kind}.png` を規約解決するので、絵を置くだけで有効・無ければスキップ。
   - `victory`＝キャンペーン完走（最終ステージ勝利）で出す扉絵（[../gdd/stage_select.md](../gdd/stage_select.md) 戦闘後フロー）。SUBJECT `{id}_victory_prompt.txt` → `{id}_victory_01_raw.png` →（透かし除去）`{id}_victory_02_dew.png` → ゲーム用 `assets/campaign/{id}/{id}_victory.png`。
 
