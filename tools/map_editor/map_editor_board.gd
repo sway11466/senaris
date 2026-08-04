@@ -10,7 +10,6 @@ class_name MapEditorBoard
 
 signal cell_pressed(col: int, row: int, button: int)
 signal cell_dragged(col: int, row: int, button: int)
-signal cell_released(col: int, row: int, button: int)
 signal zoom_requested(step: int)  ## Ctrl＋ホイール（+1=拡大 / -1=縮小）
 
 const SQRT3 := 1.7320508075688772
@@ -137,8 +136,6 @@ func _gui_input(event: InputEvent) -> void:
 				cell_pressed.emit(cell.x, cell.y, event.button_index)
 		elif event.button_index == _drag_button:
 			_drag_button = -1
-			if cell != OUTSIDE:
-				cell_released.emit(cell.x, cell.y, event.button_index)
 	elif event is InputEventMouseMotion:
 		var cell := cell_at(event.position)
 		if cell != hover:

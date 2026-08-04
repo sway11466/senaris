@@ -66,7 +66,6 @@ var _open_dialog: FileDialog
 var _save_dialog: FileDialog
 var _confirm: ConfirmationDialog
 var _confirm_cb := Callable()
-var _press_cell := MapEditorBoard.OUTSIDE  # 選択モードのドラッグ移動の起点
 var _sel_base := MapEditorBoard.OUTSIDE    # 「拠点」モードで編集中の拠点のマス
 var _sel_unit := MapEditorBoard.OUTSIDE    # 「自軍」「敵」モードで編集中の駒のマス
 
@@ -189,7 +188,6 @@ func _build_ui() -> void:
 	_board.scroll = scroll  # 中ボタンドラッグのパン先
 	_board.cell_pressed.connect(_on_cell_pressed)
 	_board.cell_dragged.connect(_on_cell_dragged)
-	_board.cell_released.connect(_on_cell_released)
 	_board.zoom_requested.connect(func(step: int) -> void: zoom.value += step * zoom.step)
 	scroll.add_child(_board)
 	_board.refresh()
@@ -204,12 +202,16 @@ func _build_ui() -> void:
 	main.add_child(panel_scroll)
 	var panel_margin := MarginContainer.new()
 	panel_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 縦にも伸ばす＝一覧（地形リスト）をパネルの下端まで届かせるための連鎖。
+	# panel_margin → panel → _mode_box → リスト のどこかで止まると、リストは最小高のまま。
+	panel_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel_margin.add_theme_constant_override("margin_left", 8)
 	panel_margin.add_theme_constant_override("margin_right", 14)  # 縦スクロールバーと入力欄の間の余白
 	panel_margin.add_theme_constant_override("margin_bottom", 12)
 	panel_scroll.add_child(panel_margin)
 	var panel := VBoxContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.add_theme_constant_override("separation", 6)
 	panel_margin.add_child(panel)
 
@@ -227,6 +229,7 @@ func _build_ui() -> void:
 		modes.add_child(b)
 		_mode_buttons[m] = b
 	_mode_box = VBoxContainer.new()
+	_mode_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_mode_box.add_theme_constant_override("separation", 6)
 	panel.add_child(_mode_box)
 
@@ -335,8 +338,7 @@ func _set_mode(mode: String) -> void:
 		"stage":
 			_build_stage_palette()
 		"select":
-			_add_hint(_mode_box, "クリック＝選択して下に表示（表示だけ・編集はしない）。ドラッグ＝駒/拠点を移動。\n"
-				+ "拠点の中身（控えなど）を編集するのは「拠点」モード。")
+			_add_hint(_mode_box, "マップ上で選択した地形・ユニットの情報を参照できる。")
 			_inspector = VBoxContainer.new()
 			_inspector.add_theme_constant_override("separation", 6)
 			_mode_box.add_child(_inspector)
@@ -377,15 +379,21 @@ func _add_hint(parent: Control, text: String) -> void:
 
 ## ラベル＋OptionButton の行。keys[i] を displays[i] で表示し、選択で on_pick(keys[i]) を呼ぶ。
 func _labeled_option(label: String, keys: Array, displays: Array, current: String, on_pick: Callable) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	_add_label(row, label)
 	var ob := _make_option()
 	for i in keys.size():
 		ob.add_item(String(displays[i]))
 		if String(keys[i]) == current:
 			ob.select(i)
 	ob.item_selected.connect(func(i: int) -> void: on_pick.call(String(keys[i])))
-	row.add_child(ob)
+	return _labeled_row(label, ob)
+
+
+## ラベル＋コントロールの1行（パレットの各項目を同じ形に揃える）。
+func _labeled_row(label: String, control: Control) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	_add_label(row, label)
+	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(control)
 	return row
 
 
@@ -404,15 +412,15 @@ func _ai_options(with_none: bool) -> Array:
 
 ## 地形パレット。分類「基本」＝地形タイプ一覧（性能）／それ以外＝その地形の見た目バリエーション一覧。
 func _build_terrain_palette() -> void:
-	_mode_box.add_child(_labeled_option("塗り方", TOOL_LABELS.keys(), TOOL_LABELS.values(), _paint_tool,
-		func(k: String) -> void:
-			_paint_tool = k
-			_set_mode("terrain")))
 	if _paint_tool == "fill":
 		_add_hint(_mode_box, "左クリック＝地続きをまとめて塗る / 右クリック＝地続きを平地に戻す。\n"
 			+ "範囲は「いまの見た目が同じ」マス（地形＋スキンの両方が一致）。誤爆は Ctrl+Z で戻せる。")
 	else:
 		_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
+	_mode_box.add_child(_labeled_option("塗り方", TOOL_LABELS.keys(), TOOL_LABELS.values(), _paint_tool,
+		func(k: String) -> void:
+			_paint_tool = k
+			_set_mode("terrain")))
 	var cat_keys := [""]
 	var cat_names := ["基本（地形タイプ）"]
 	for t in _terrains:
@@ -424,7 +432,8 @@ func _build_terrain_palette() -> void:
 			_sel_terrain_skin = String(_default_skin_by_type.get(k, ""))  # 分類を変えたら既定スキンから
 			_set_mode("terrain")))
 	var list := ItemList.new()
-	list.custom_minimum_size = Vector2(0, 320)
+	list.custom_minimum_size = Vector2(0, 160)
+	list.size_flags_vertical = Control.SIZE_EXPAND_FILL  # パネルの下端まで伸ばす
 	if _sel_terrain_category == "":
 		for t in _terrains:
 			list.add_item("%s  %s — %s" % [t["char"], t["id"], t["memo"]])
@@ -490,12 +499,13 @@ func _preset_sight(ai_label: String) -> int:
 
 ## 部隊/拠点の行動順 order 行。小さいほうから動く（拠点も1部隊として同じ列に並ぶ）。
 ## 詳細 → doc/gdd/ai.md（行動順）
-func _add_order_row(parent: Control, target: Dictionary) -> void:
+func _add_order_row(parent: Control, target: Dictionary, label: String = "order") -> void:
 	var row := HBoxContainer.new()
 	parent.add_child(row)
-	_add_label(row, "order")
+	if label != "":
+		_add_label(row, label)
 	var spin := _make_spin(1, 99, float(maxi(int(target.get("order", _doc.max_order() + 1)), 1)))
-	spin.custom_minimum_size = Vector2(70, 0)
+	spin.custom_minimum_size = Vector2(64, 0)
 	spin.tooltip_text = "行動順。小さいほうから動く。拠点（AI出撃）も同じ列に並ぶ。"
 	spin.value_changed.connect(func(v: float) -> void: target["order"] = int(v))
 	row.add_child(spin)
@@ -517,13 +527,13 @@ func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> vo
 	var check := CheckBox.new()
 	check.text = "sight"
 	check.button_pressed = target.has("sight")
-	check.tooltip_text = "索敵の広さ（視線コストの積算予算）。外すとプリセット既定を継承する。"
+	check.tooltip_text = "索敵の広さ（視線コストの積算予算）。外すとプリセット既定 %d を継承する。" % preset_sight
 	row.add_child(check)
 	var spin := _make_spin(0, 20, float(int(target.get("sight", preset_sight))))
-	spin.custom_minimum_size = Vector2(70, 0)
+	spin.custom_minimum_size = Vector2(64, 0)
 	spin.editable = check.button_pressed
+	spin.tooltip_text = check.tooltip_text
 	row.add_child(spin)
-	_add_label(row, "（既定 %d）" % preset_sight)
 	check.toggled.connect(func(on: bool) -> void:
 		spin.editable = on
 		if on:
@@ -570,7 +580,7 @@ func _build_stage_palette() -> void:
 
 ## 「自軍」モード＝駒を置く道具（分類→種別）。置いた駒／クリックした駒は下段で名前を付けられる。
 func _build_player_palette() -> void:
-	_add_hint(_mode_box, "左クリック＝配置（配置済みの自軍の駒の上なら、その種別を取り込んで選ぶ）\n右クリック＝駒を削除")
+	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝削除")
 	# 分類（category）で絞ってから種別を選ぶ
 	_mode_box.add_child(_labeled_option("分類", [""] + _categories, ["すべて"] + _categories, _sel_category,
 		func(k: String) -> void:
@@ -588,27 +598,24 @@ func _build_player_palette() -> void:
 		if String(ids[i]) == _sel_type_id:
 			ob.select(i)
 	ob.item_selected.connect(func(i: int) -> void: _sel_type_id = String(ids[i]))
-	_mode_box.add_child(ob)
+	_mode_box.add_child(_labeled_row("タイプ", ob))
 	_add_unit_box()
 
 
-## 「自軍」「敵」モードの下段を作る（選んだ駒の中身）。
+## 「自軍」「敵」モードの最後の行＝アクター名。駒を選ぶと、その駒のものが入る。
 func _add_unit_box() -> void:
-	_mode_box.add_child(HSeparator.new())
 	_unit_box = VBoxContainer.new()
 	_unit_box.add_theme_constant_override("separation", 6)
 	_mode_box.add_child(_unit_box)
 	_refresh_unit_box()
 
 
-## 部隊を選ぶ行。「敵」＝選ぶだけ（配置先の指定）／「敵グループ」＝追加・削除も持つ。
-## _sel_squad は両モードで共有＝グループ側で選んだ部隊に、そのまま駒を置ける。
-func _add_squad_selector(with_buttons: bool) -> void:
+## 「敵」モードの配置先を選ぶ行。_sel_squad は「敵グループ」モードと共有＝
+## グループ側で選んだ部隊に、そのまま駒を置ける。
+func _add_squad_selector() -> void:
 	var squads: Array = _doc.data["enemy"]
 	if _sel_squad >= squads.size():
 		_sel_squad = maxi(squads.size() - 1, 0)
-	var row := HBoxContainer.new()
-	_mode_box.add_child(row)
 	var ob := _make_option()
 	for i in squads.size():
 		ob.add_item("部隊%d[順%s]: %s（%s）" % [i, str(squads[i].get("order", "-")),
@@ -618,62 +625,84 @@ func _add_squad_selector(with_buttons: bool) -> void:
 	ob.item_selected.connect(func(i: int) -> void:
 		_sel_squad = i
 		_set_mode(_mode))
-	row.add_child(ob)
-	if not with_buttons:
-		return
-	_add_button(row, "追加", func() -> void:
-		_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
-		_set_mode("squad"))
-	if not squads.is_empty():
-		_add_button(row, "削除", func() -> void:
-			_ask("部隊%d を所属ユニットごと削除します。よろしいですか？" % _sel_squad, func() -> void:
-				_doc.remove_squad(_sel_squad)
-				_sel_squad = 0
-				_set_mode("squad")
-				_board.refresh()))
+	_mode_box.add_child(_labeled_row("部隊", ob))
 
 
-## 「敵グループ」モード＝部隊そのものの管理（作る・選ぶ・名前とAIと行動順を決める）。
+## 「敵グループ」モード＝部隊の一覧（1部隊＝2行）。作る・選ぶ・名前とAIと行動順を決める・消す。
 ## 駒の配置は持たない＝置くのは「敵」モードの仕事（同じ画面に混ぜると何を触っているか読めない）。
 func _build_squad_palette() -> void:
 	_add_hint(_mode_box, "部隊を作る・選ぶ・設定する。駒を置くのは「敵」モード。\n"
 		+ "盤の敵の駒を左クリック＝その駒の部隊を選ぶ。")
-	_add_squad_selector(true)
 	var squads: Array = _doc.data["enemy"]
+	if _sel_squad >= squads.size():
+		_sel_squad = maxi(squads.size() - 1, 0)
 	if squads.is_empty():
-		_add_hint(_mode_box, "部隊がありません。「追加」で作成します。")
-		return
-	var sq: Dictionary = squads[_sel_squad]
-	# 行動順（doc/gdd/ai.md 行動順）
-	_add_order_row(_mode_box, sq)
-	# 部隊名
-	var name_row := HBoxContainer.new()
-	_mode_box.add_child(name_row)
-	_add_label(name_row, "部隊名")
+		_add_hint(_mode_box, "部隊がありません。「部隊を追加」で作成します。")
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 12)  # 部隊どうしの隙間（2行が1件だと分かるように）
+	_mode_box.add_child(list)
+	var group := ButtonGroup.new()
+	for i in squads.size():
+		_add_squad_item(list, group, i, squads[i])
+	_add_button(_mode_box, "部隊を追加", func() -> void:
+		_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
+		_set_mode("squad"))
+
+
+## 部隊1件＝2行。
+## 1行目: 選択トグル（部隊番号と駒数）／部隊名／削除
+## 2行目: 行動順／AIプリセット／sight 上書き（索敵で起動するプリセットのときだけ）
+func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: Dictionary) -> void:
+	var item := VBoxContainer.new()
+	item.add_theme_constant_override("separation", 2)
+	parent.add_child(item)
+
+	var row1 := HBoxContainer.new()
+	item.add_child(row1)
+	var pick := Button.new()
+	pick.text = "部隊%d・%d体" % [index, sq.get("units", []).size()]
+	pick.toggle_mode = true
+	pick.button_group = group
+	pick.button_pressed = index == _sel_squad
+	pick.tooltip_text = "この部隊を選ぶ（「敵」モードで駒を置く先になる）"
+	pick.pressed.connect(func() -> void:
+		_sel_squad = index
+		_set_mode("squad"))
+	row1.add_child(pick)
 	var name_edit := LineEdit.new()
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_edit.text = String(sq.get("name", ""))
-	name_edit.placeholder_text = "（省略可）"
+	name_edit.placeholder_text = "部隊名（省略可）"
 	name_edit.text_changed.connect(func(t: String) -> void:
 		if t == "":
 			sq.erase("name")
 		else:
 			sq["name"] = t)
-	name_row.add_child(name_edit)
-	# AIプリセット（索敵で起きるプリセットのときだけ sight を上書きできる）
+	row1.add_child(name_edit)
+	_add_button(row1, "×", func() -> void:
+		_ask("部隊%d を所属ユニットごと削除します。よろしいですか？" % index, func() -> void:
+			_doc.remove_squad(index)
+			_sel_squad = 0
+			_set_mode("squad")
+			_board.refresh()))
+
+	var row2 := HBoxContainer.new()
+	item.add_child(row2)
+	_add_order_row(row2, sq, "")  # 行動順（doc/gdd/ai.md 行動順）。ラベルは省いてツールチップで示す
 	var ai_opts := _ai_options(false)
-	_mode_box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(sq.get("ai", "")),
+	var ai_row := _labeled_option("AI", ai_opts[0], ai_opts[1], String(sq.get("ai", "")),
 		func(k: String) -> void:
 			sq["ai"] = k
-			_set_mode("squad")))
-	_add_sight_row(_mode_box, sq, String(sq.get("ai", "")))
-	_add_info(_mode_box, "所属する駒: %d 体" % sq.get("units", []).size())
+			_set_mode("squad"))
+	ai_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row2.add_child(ai_row)
+	_add_sight_row(row2, sq, String(sq.get("ai", "")))
 
 
 ## 「敵」モード＝駒を置く道具（配置先の部隊とスキンを選ぶ）。部隊の設定は「敵グループ」モード。
 func _build_enemy_palette() -> void:
-	_add_hint(_mode_box, "左クリック＝選択中の部隊に配置（配置済みの敵の上なら、その部隊とスキンを取り込む）\n右クリック＝駒を削除")
-	_add_squad_selector(false)
+	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝削除")
+	_add_squad_selector()
 	if _doc.data["enemy"].is_empty():
 		_add_hint(_mode_box, "部隊がありません。盤をクリックすると自動で作成します（設定は「敵グループ」モードで）。")
 	# 配置するスキン：分類で絞ってから選ぶ（基準＝味方専用スキンは出さない）
@@ -699,7 +728,7 @@ func _build_enemy_palette() -> void:
 		if String(pool[i]["skin_id"]) == _sel_skin_id:
 			skin_ob.select(i)
 	skin_ob.item_selected.connect(func(i: int) -> void: _sel_skin_id = String(pool_ids[i]))
-	_mode_box.add_child(skin_ob)
+	_mode_box.add_child(_labeled_row("スキン", skin_ob))
 	_add_unit_box()
 
 
@@ -848,8 +877,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 		"outcome":
 			_say("勝敗条件は右のパネルで足す・消す（盤のクリックでは変わらない）。")
 		"select":
-			_press_cell = Vector2i(col, row)
-			_board.selected = _press_cell
+			_board.selected = Vector2i(col, row)
 			_board.queue_redraw()
 			_show_inspection(col, row)
 
@@ -857,20 +885,6 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 func _on_cell_dragged(col: int, row: int, button: int) -> void:
 	if _mode == "terrain" and _paint_tool == "pen":
 		_paint(col, row, button)
-
-
-func _on_cell_released(col: int, row: int, _button: int) -> void:
-	if _mode != "select" or _press_cell == MapEditorBoard.OUTSIDE:
-		return
-	var to := Vector2i(col, row)
-	if to != _press_cell:
-		if _doc.move(_press_cell.x, _press_cell.y, to.x, to.y):
-			_board.selected = to
-			_board.refresh()
-			_show_inspection(to.x, to.y)
-		else:
-			_say("そこへは移動できません（範囲外か、同じ種類が既にあります）。")
-	_press_cell = MapEditorBoard.OUTSIDE
 
 
 ## いま塗る内容 [地形の文字, skin_id]。右クリックは既定地形＋差分なしに戻す。
@@ -991,43 +1005,33 @@ func _deselect_unit() -> void:
 	_refresh_unit_box()
 
 
-## 下段を貼り直す。選んでいない（または駒が消えた）ときは案内だけ出す。
+## アクター名の行を貼り直す（選んだ駒が変わった／消えたとき）。
 func _refresh_unit_box() -> void:
 	if _unit_box == null or not is_instance_valid(_unit_box):
 		return  # 「自軍」「敵」モード以外では箱が無い＝描くものがない
 	for c in _unit_box.get_children():
 		c.queue_free()
 	var hit := _doc.unit_at(_sel_unit.x, _sel_unit.y)
-	if hit.is_empty():
-		_add_hint(_unit_box, "盤の駒を左クリックすると、ここで名前（actor）を付けられます。")
-		return
-	var u: Dictionary = hit["unit"]
-	var squad := int(hit["squad"])
-	_add_heading(_unit_box, "選んだ駒 (%d, %d)" % [_sel_unit.x, _sel_unit.y])
-	_add_info(_unit_box, "自軍: %s" % String(u.get("type", u.get("skin", "?"))) if squad < 0 \
-		else "敵（部隊%d）: %s" % [squad, String(u.get("skin", u.get("type", "?")))])
+	var u: Dictionary = hit["unit"] if not hit.is_empty() else {}
+	_add_actor_row(_unit_box, u)
 	if u.has("passengers") and typeof(u["passengers"]) == TYPE_ARRAY and not u["passengers"].is_empty():
 		_add_hint(_unit_box, "同乗 %d 体（passengers は JSON 直接編集）" % u["passengers"].size())
-	_add_actor_row(_unit_box, u)
-	_add_button(_unit_box, "この駒を削除", func() -> void:
-		_doc.remove_unit_at(_sel_unit.x, _sel_unit.y)
-		_board.refresh()
-		_deselect_unit())
 
 
 ## 名指し(actor)の入力行。空＝名前なし。味方・敵のどちらにも付けられる。
+## u が空＝駒を選んでいない＝入力できない（名前は駒に付くもので、パレットの設定ではない）。
 ## 確定は Enter かフォーカスを外したとき＝1文字打つたびに勝敗条件を追い直さない。
 func _add_actor_row(parent: VBoxContainer, u: Dictionary) -> void:
-	var row := HBoxContainer.new()
-	parent.add_child(row)
-	_add_label(row, "actor")
 	var edit := LineEdit.new()
-	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	edit.text = String(u.get("actor", ""))
-	edit.placeholder_text = "（名前なし）"
+	edit.editable = not u.is_empty()
+	edit.placeholder_text = "（名前なし）" if not u.is_empty() else "（駒を選ぶと入力できる）"
 	edit.tooltip_text = "駒を名指す値。会話の分岐・継承(carryover)・勝敗条件がこの名前を見る。\n" \
 		+ "名前のない雑兵には付けない（doc/gdd/map.md 名前つきの駒）。"
-	row.add_child(edit)
+	var row := _labeled_row("アクター名", edit)
+	parent.add_child(row)
+	if u.is_empty():
+		return
 	var apply := func(text: String) -> void:
 		var new_name := text.strip_edges()
 		var old := String(u.get("actor", ""))

@@ -426,28 +426,6 @@ func remove_base_at(col: int, row: int) -> bool:
 	return true
 
 
-## 駒（優先）または拠点を移動。移動先に同種が居れば false。
-func move(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
-	if to_col < 0 or to_col >= cols() or to_row < 0 or to_row >= rows():
-		return false
-	var hit := unit_at(from_col, from_row)
-	if not hit.is_empty():
-		if not unit_at(to_col, to_row).is_empty():
-			return false
-		hit["unit"]["col"] = to_col
-		hit["unit"]["row"] = to_row
-		return true
-	var bh := base_at(from_col, from_row)
-	if not bh.is_empty():
-		if not base_at(to_col, to_row).is_empty():
-			return false
-		bh["base"]["col"] = to_col
-		bh["base"]["row"] = to_row
-		_move_lose_base(from_col, from_row, to_col, to_row)  # 敗北条件の座標も連れて動く
-		return true
-	return false
-
-
 ## 指定マスを指す防衛対象を取り除く（拠点の削除に追随）。対象が空になった条件ごと消す。
 func _drop_lose_base(col: int, row: int) -> void:
 	var d := defeat_list()
@@ -462,15 +440,6 @@ func _drop_lose_base(col: int, row: int) -> void:
 			d.remove_at(i)
 	if d.is_empty() and data.has("defeat"):
 		data.erase("defeat")
-
-
-## 指定マスを指す防衛対象の座標を付け替える（拠点の移動に追随）。
-func _move_lose_base(from_col: int, from_row: int, to_col: int, to_row: int) -> void:
-	for c in defeat_list():
-		for t in lose_base_targets(c):
-			if _is_target_at(t, from_col, from_row):
-				t["col"] = to_col
-				t["row"] = to_row
 
 
 static func is_lose_base(c: Variant) -> bool:

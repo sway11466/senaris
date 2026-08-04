@@ -276,14 +276,6 @@ func test_add_and_remove_units() -> void:
 	assert_true(doc.unit_at(3, 1).is_empty())
 
 
-func test_move_unit_and_reject_occupied() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
-	assert_true(doc.move(1, 1, 2, 2))
-	assert_eq(int(doc.unit_at(2, 2)["unit"]["col"]), 2)
-	assert_false(doc.move(2, 2, 4, 1), "駒の上には動かせない")
-	assert_false(doc.move(2, 2, 99, 0), "盤外には動かせない")
-
-
 func test_base_add_remove() -> void:
 	var doc := MapEditorDoc.new_stage(6, 4)
 	assert_true(doc.add_base(2, 2, "neutral", "fort", ""))
@@ -491,13 +483,11 @@ func test_add_defeat_lose_base_needs_a_base() -> void:
 	assert_true(doc.add_defeat_lose_base(3, 2), "二重指定は増やさない")
 	assert_eq(doc.defeat_list().size(), 1)
 
-func test_defeat_follows_base_move_and_removal() -> void:
+func test_defeat_follows_base_removal() -> void:
 	var doc := _doc_with_base()
 	doc.add_defeat_lose_base(3, 2)
-	assert_true(doc.move(3, 2, 5, 4), "拠点を動かす")
-	var t: Dictionary = MapEditorDoc.lose_base_targets(doc.defeat_list()[0])[0]
-	assert_eq([int(t["col"]), int(t["row"])], [5, 4], "敗北条件の座標も追随する")
-	assert_true(doc.remove_base_at(5, 4), "拠点を消す")
+	assert_eq(doc.defeat_list().size(), 1)
+	assert_true(doc.remove_base_at(3, 2), "拠点を消す")
 	assert_true(doc.defeat_list().is_empty(), "宙に浮いた敗北条件は残さない")
 
 func test_add_defeat_lose_base_group_makes_an_and() -> void:
