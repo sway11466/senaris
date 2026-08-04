@@ -10,7 +10,7 @@ func _triangle(c: Vector2i) -> Array:
 	return [c, Hex.neighbor(c, 0), Hex.neighbor(c, 1)]
 
 # 三重詠唱の成立盤：wizard 3体が三角形＋離れた位置に敵1体。leader=id1。
-func _trinity_state(enemy_def := 20) -> Dictionary:
+func _trinity_spell_state(enemy_def := 20) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var tri := _triangle(c)
@@ -26,8 +26,8 @@ func _trinity_state(enemy_def := 20) -> Dictionary:
 
 # --- 検出 ---
 
-func test_available_detects_trinity_triangle() -> void:
-	var f := _trinity_state()
+func test_available_detects_trinity_spell_triangle() -> void:
+	var f := _trinity_spell_state()
 	var opts := Formation.available_for(f["s"], f["leader"])
 	assert_eq(opts.size(), 1, "三角形の三重詠唱が1つ検出される")
 	var o: Dictionary = opts[0]
@@ -47,13 +47,13 @@ func test_no_triangle_when_not_adjacent() -> void:
 
 func test_leader_type_gates_recipe() -> void:
 	# クレリックを選んでも三重詠唱（魔法兵）は出ない。
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	var cleric := Unit.new(20, 0, Hex.offset_to_axial(1, 1), 3, 8, 20, 20, 1, "cleric")
 	f["s"].add_unit(cleric)
 	assert_eq(Formation.available_for(f["s"], cleric).size(), 0, "leader_type 不一致は検出0")
 
 func test_done_member_excluded() -> void:
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	f["s"].set_done(2)  # member を行動済みに
 	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 0, "行動済みメンバーは三角形に数えない")
 
@@ -215,7 +215,7 @@ func test_single_out_of_range_fails() -> void:
 
 func test_resolve_uses_leader_attack() -> void:
 	# 面ダメージ＝発動者1体の実効攻撃力（合算しない）。単体の hit と一致する。
-	var f := _trinity_state(100)  # 硬い敵＝非撃破で損害が兵数上限に張り付かない範囲
+	var f := _trinity_spell_state(100)  # 硬い敵＝非撃破で損害が兵数上限に張り付かない範囲
 	var s: BattleState = f["s"]
 	var enemy: Unit = f["enemy"]
 	var leader: Unit = f["leader"]
@@ -231,7 +231,7 @@ func test_resolve_uses_leader_attack() -> void:
 	assert_eq(enemy.troops, before - expect, "敵の兵数が損害ぶん減る")
 
 func test_resolve_marks_participants_done() -> void:
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	s.resolve_formation(opt, f["enemy_hex"])
@@ -239,7 +239,7 @@ func test_resolve_marks_participants_done() -> void:
 
 func test_area_hits_allies_too() -> void:
 	# フレンドリーファイア: 着弾中心の7hexに居る敵も味方も当たる（発動者3体は除外）。
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	var s: BattleState = f["s"]
 	var center: Vector2i = f["enemy_hex"]
 	var enemy2 := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 20)  # 面内の別の敵
@@ -258,7 +258,7 @@ func test_area_hits_allies_too() -> void:
 
 func test_area_excludes_participants() -> void:
 	# 発動者3体が着弾範囲に入っても自傷しない（詠唱の源）。leader を中心に撃つ。
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	var s: BattleState = f["s"]
 	var leader: Unit = f["leader"]
 	var w2_before := s.unit_by_id(2).troops
@@ -274,7 +274,7 @@ func test_area_excludes_participants() -> void:
 	assert_eq(s.unit_by_id(2).troops, w2_before, "発動者の兵数は不変")
 
 func test_resolve_out_of_range_fails() -> void:
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 全参加者から射程5超
@@ -282,7 +282,7 @@ func test_resolve_out_of_range_fails() -> void:
 
 func test_participants_gain_experience() -> void:
 	# 撃破なし＝発動で全員+1（Lv1→Lv2）。硬い敵で一撃では死なせない。
-	var f := _trinity_state(100)
+	var f := _trinity_spell_state(100)
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	s.resolve_formation(opt, f["enemy_hex"])
@@ -292,7 +292,7 @@ func test_participants_gain_experience() -> void:
 
 func test_empty_cast_grants_no_experience() -> void:
 	# 面に敵が1体も居ない空撃ちは経験0（ただし参加者は行動完了）。
-	var f := _trinity_state()
+	var f := _trinity_spell_state()
 	var s: BattleState = f["s"]
 	var empty := Hex.offset_to_axial(3, 3) + Hex.direction(3) * 2  # 射程内・面に駒なし
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
@@ -304,7 +304,7 @@ func test_empty_cast_grants_no_experience() -> void:
 
 func test_kill_grants_extra_experience() -> void:
 	# 撃破が1体でもあれば +2（Lv1→Lv3）。
-	var f := _trinity_state(1)  # 低防御＝撃破される
+	var f := _trinity_spell_state(1)  # 低防御＝撃破される
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	s.resolve_formation(opt, f["enemy_hex"])
@@ -313,7 +313,7 @@ func test_kill_grants_extra_experience() -> void:
 
 func test_resolve_kills_when_lethal() -> void:
 	# 防御が薄い敵は撃破され盤から消える。
-	var f := _trinity_state(1)  # 低防御
+	var f := _trinity_spell_state(1)  # 低防御
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	var res := s.resolve_formation(opt, f["enemy_hex"])

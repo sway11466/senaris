@@ -20,7 +20,7 @@ func _mc(s: BattleState) -> MatchController:
 	return mc
 
 # 三重詠唱の成立盤（test_formation.gd と同じ配置）。敵 id9 は def 低め＝撃破される。
-func _trinity_state(s: BattleState, enemy_def := 1) -> Dictionary:
+func _trinity_spell_state(s: BattleState, enemy_def := 1) -> Dictionary:
 	var c := Hex.offset_to_axial(3, 3)
 	var w1 := Unit.new(1, 0, c, 3, 8, 40, 30, 1, "wizard")
 	var w2 := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 40, 30, 1, "wizard")
@@ -119,7 +119,7 @@ func test_attack_annihilation_finishes_once() -> void:
 func test_formation_boss_kill_finishes_once() -> void:
 	var s := BattleState.new(12, 8)
 	s.victory_conditions = [{"type": "defeat_unit", "actor": "boss"}]
-	var f := _trinity_state(s)  # 敵 id9＝ボス（def 1＝撃破される）
+	var f := _trinity_spell_state(s)  # 敵 id9＝ボス（def 1＝撃破される）
 	s.unit_by_id(9).actor = "boss"  # 勝敗条件は actor で名指す（doc/gdd/map.md）
 	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
 	var mc := _mc(s)
@@ -252,7 +252,7 @@ func test_execute_attack_invalid_fails_without_signals() -> void:
 
 func test_execute_formation_emits_died_per_kill() -> void:
 	var s := BattleState.new(12, 8)
-	var f := _trinity_state(s)  # 敵 id9（def 1）＝着弾中心
+	var f := _trinity_spell_state(s)  # 敵 id9（def 1）＝着弾中心
 	s.add_unit(Unit.new(10, 1, Hex.neighbor(f["enemy_hex"], 2), 3, 8, 10, 1))  # 面内の敵＝同時撃破
 	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(10, 6), 3))                 # 残存する敵＝決着しない
 	var mc := _mc(s)
@@ -268,7 +268,7 @@ func test_execute_formation_emits_died_per_kill() -> void:
 
 func test_execute_formation_invalid_fails_without_signals() -> void:
 	var s := BattleState.new(12, 8)
-	var f := _trinity_state(s)
+	var f := _trinity_spell_state(s)
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 射程5超＝不成立
 	var mc := _mc(s)
 	assert_false(mc.execute_formation(_formation_cmd(s, f["leader"], far)))

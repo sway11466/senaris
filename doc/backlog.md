@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=2 / feature=36 / refactoring=9
+次回採番: bug=2 / feature=37 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -268,21 +268,13 @@
 - 対応：MuseScore ＋ Muse Sounds で自作 → `tools/gen_sfx.ps1` で `.ogg` 化（`victory`／`defeat` スティンガーで実証済みの手順）。作ったら `BIND` に1行ずつ足すだけで鳴る。音の性格は、陣形＝詠唱が結実する重い一撃、`map_formation_hit`＝着弾（陣形は戦闘演出シーンを通らないので `cmb_hit` は借りない）、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。
 - 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`BIND`）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
 
-### feature-33
-
-**陣形スキルのカットイン絵を描く**（優先度：中）
-
-- 背景：カットインの器は実装済み（`presentation/formation/formation_cutin.gd`＝戦闘演出シーンと同じ八角形の窓・約1秒・スキップ可）。絵を `assets/formations/{recipe_id}.png` に置けば規約解決で出て、無ければカットインを飛ばす。いま絵が1枚も無いので、発動しても盤の結果だけが出る。
-- 対応：3レシピぶん（`trinity_spell`／`divine_judgment`／`holy_aria`）。`prompt.txt` を先に書いてから生成する。`trinity_spell` は冒険譚2の獲得キービジュアル（feature-24）が「三重詠唱が屍の波を薙ぐ」で画題が重なるため、1枚を両方に使えないか先に検討する（共用するなら `assets/formations/trinity_spell.png` を正としてキャンペーン側から参照する形）。絵ができたらカットインの入り方（いまはフェード＋わずかなズーム）を構図に合わせて詰める＝先に凝った入り方を決めると絵と噛み合わず二度手間になる。
-- 該当：`assets/formations-src/{recipe_id}/`・`assets/formations/{recipe_id}.png`・`presentation/formation/formation_cutin.gd`（入り方の調整）・`doc/art/keyvisual.md` §3・`doc/gdd/formations.md`。着手の引き金＝絵を生成できるとき。関連＝feature-24（獲得キービジュアル）。
-
 ### feature-34
 
 **陣形スキルの着弾を盤で光らせる**（優先度：低）
 
 - 背景：陣形スキルが解決しても、盤は `_sync()` で駒を消して兵数を書き換えるだけで、どのヘックスに当たったのかを示す表示が無い（`hex_board_3d.gd` `_on_formation_resolved`）。三重詠唱は7ヘクスに当たる面の広さが売りなので、当たった範囲が見えないと手応えが伝わらない。カットインは華を担うが「どこに当たったか」は担えない。
 - 対応：`formation_resolved` の結果（着弾ごとの hex）を受けて、そのヘックスを一瞬光らせる。盤にヘックス単位のフラッシュ表示が無いので新設が要る（既存のオーバーレイ＝`_reachable`／`_targets` と同じ層に、時間で消える一時的なハイライトを足す形）。カットインが閉じた後に出す＝順番は main が持つ（発動音 → カットイン → 着弾音＋光）。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/main/main.gd`（順番）・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝カットインの絵ができて演出を通しで見るとき（feature-33 の後）。
+- 該当：`presentation/board/hex_board_3d.gd`・`presentation/main/main.gd`（順番）・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝演出を通しで見て、当たった範囲が分からないと感じたとき。
 
 ### feature-35
 
@@ -291,6 +283,14 @@
 - 背景：[skills.md](gdd/skills.md) にレシピ②毒牙・③浄化を載せたが、いまのユニットスキルは味方1体を強化するものしか撃てない。対象の絞り込みは `Formation.can_target` が `buff_scope == "unit"` のとき「味方の居る hex だけ」に固定しており、敵を選べない。解除の操作自体も無い。この2つは [tutorial3 st3](campaign/tutorial3-dragon-hunt.md)（鉱脈の争奪）で組になって出る＝ロックサーペントの群れが毒牙を重ね、聖職の浄化が落とす。
 - 対応：(1) レシピに対象陣営の指定を足し、`can_target` の絞り込みを味方／敵で切り替える。状態補正エントリ自体は既存の器のまま（`scope: unit`・`op: mul`・値 1.0 未満）で、新しい演算は要らない。(2) 状態補正エントリに有害フラグを足し、浄化＝対象に効いている有害エントリを `_status_mods` から取り除く効果を新設する。値の符号から有害性を推測しない（攻撃だけ下げて防御を上げるスキルが出たときに破綻する）。中断セーブに乗るので旧セーブの既定値も決める。
 - 該当：`domain/formation/formation.gd`（レシピ・`can_target`）・`domain/battle_state.gd`（解除・直列化）・`domain/combat/status_mod.gd`（有害フラグ）・`presentation/board/hex_board_3d.gd`（対象選択の絞り込み）・`tests/unit/test_skill.gd`・`doc/gdd/skills.md`。着手の引き金＝tutorial3 st3 を組むとき。関連＝feature-29（敵AIのスキル使用。毒牙を敵が撃つには思考側も要る）。
+
+### feature-36
+
+**陣形カットインの入り方を絵の構図に合わせて詰める**（優先度：低）
+
+- 背景：カットインの入り方は絵が無い時期に決めた暫定で、フェード＋わずかなズーム（`ZOOM_FROM=1.06`）を3レシピ共通で掛けている。絵が揃ったいま、構図と噛み合っているかを見ていない。三重詠唱と神の裁きは光が上へ抜ける縦の構図、ホーリーアリアは横に広がる構図で、同じ入り方が3枚とも最適とは限らない。窓は横長八角形（最大740×520）で絵は4:3なので、上下が少し切れることも合わせて確認する。
+- 対応：3枚を実機で通しで見て、寄りの量・向き・秒数（`FADE_SEC`／`HOLD_SEC`）を詰める。レシピごとに変えるならレシピ側に持たせる。絵を差し替えたら見直す前提の調整なので、凝りすぎない。
+- 該当：`presentation/formation/formation_cutin.gd`・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝演出を通しで見て気になったとき。
 
 ## リファクタリング
 
