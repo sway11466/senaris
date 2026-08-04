@@ -406,6 +406,24 @@ func add_base(col: int, row: int, team: String, kind: String, ai: String = "") -
 	return true
 
 
+## 敵の駒を別の部隊へ移す（位置はそのまま）。移したら true。
+func move_unit_to_squad(from_squad: int, index: int, to_squad: int) -> bool:
+	var squads: Array = data["enemy"]
+	if from_squad == to_squad:
+		return false
+	if from_squad < 0 or from_squad >= squads.size() or to_squad < 0 or to_squad >= squads.size():
+		return false
+	var units: Array = squads[from_squad].get("units", [])
+	if index < 0 or index >= units.size():
+		return false
+	var unit: Variant = units[index]
+	units.remove_at(index)
+	if typeof(squads[to_squad].get("units")) != TYPE_ARRAY:
+		squads[to_squad]["units"] = []
+	squads[to_squad]["units"].append(unit)
+	return true
+
+
 func remove_unit_at(col: int, row: int) -> bool:
 	var hit := unit_at(col, row)
 	if hit.is_empty():

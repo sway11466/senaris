@@ -332,6 +332,13 @@ func _set_mode(mode: String) -> void:
 	_sel_base = MapEditorBoard.OUTSIDE
 	_sel_unit = MapEditorBoard.OUTSIDE
 	_board.queue_redraw()
+	_rebuild_mode()
+
+
+## いまのモードのパレットだけ貼り直す（選択は保つ）。
+## パレット内の絞り込みを変えたときはこちら＝_set_mode を呼ぶと選択中の駒が外れてしまう。
+func _rebuild_mode() -> void:
+	var mode := _mode
 	for c in _mode_box.get_children():
 		c.queue_free()
 	match mode:
@@ -420,7 +427,7 @@ func _build_terrain_palette() -> void:
 	_mode_box.add_child(_labeled_option("塗り方", TOOL_LABELS.keys(), TOOL_LABELS.values(), _paint_tool,
 		func(k: String) -> void:
 			_paint_tool = k
-			_set_mode("terrain")))
+			_rebuild_mode()))
 	var cat_keys := [""]
 	var cat_names := ["基本（地形タイプ）"]
 	for t in _terrains:
@@ -430,7 +437,7 @@ func _build_terrain_palette() -> void:
 		func(k: String) -> void:
 			_sel_terrain_category = k
 			_sel_terrain_skin = String(_default_skin_by_type.get(k, ""))  # 分類を変えたら既定スキンから
-			_set_mode("terrain")))
+			_rebuild_mode()))
 	var list := ItemList.new()
 	list.custom_minimum_size = Vector2(0, 160)
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL  # パネルの下端まで伸ばす
@@ -585,7 +592,8 @@ func _build_player_palette() -> void:
 	_mode_box.add_child(_labeled_option("分類", [""] + _categories, ["すべて"] + _categories, _sel_category,
 		func(k: String) -> void:
 			_sel_category = k
-			_set_mode("player")))
+			_rebuild_mode()
+			_apply_palette_to_selected_unit()))
 	var ids := []
 	for t in _unit_types:
 		if _sel_category == "" or String(t["category"]) == _sel_category:
@@ -597,9 +605,42 @@ func _build_player_palette() -> void:
 		ob.add_item(ids[i])
 		if String(ids[i]) == _sel_type_id:
 			ob.select(i)
-	ob.item_selected.connect(func(i: int) -> void: _sel_type_id = String(ids[i]))
+	ob.item_selected.connect(func(i: int) -> void:
+		_sel_type_id = String(ids[i])
+		_apply_palette_to_selected_unit())
 	_mode_box.add_child(_labeled_row("タイプ", ob))
 	_add_unit_box()
+
+
+## パレットの値を、選んでいる駒に反映する（選んでいなければ何もしない＝次に置く駒の設定のまま）。
+## 自軍＝タイプ、敵＝スキンと所属部隊。パレットは「置く道具」と「選んだ駒の編集」を兼ねる。
+func _apply_palette_to_selected_unit() -> void:
+	var hit := _doc.unit_at(_sel_unit.x, _sel_unit.y)
+	if hit.is_empty():
+		return
+	var u: Dictionary = hit["unit"]
+	var squad := int(hit["squad"])
+	if _mode == "player" and squad < 0:
+		if String(u.get("type", "")) == _sel_type_id:
+			return
+		u["type"] = _sel_type_id
+		_say("(%d, %d) の駒を %s にしました。" % [_sel_unit.x, _sel_unit.y, _sel_type_id])
+	elif _mode == "enemy" and squad >= 0:
+		var changed := false
+		if String(u.get("skin", "")) != _sel_skin_id:
+			u["skin"] = _sel_skin_id
+			u.erase("type")  # 敵はスキンで置く＝型の指定が残っていると食い違う
+			changed = true
+		if squad != _sel_squad and _doc.move_unit_to_squad(squad, int(hit["index"]), _sel_squad):
+			changed = true
+			_say("(%d, %d) の駒を部隊%d へ移しました。" % [_sel_unit.x, _sel_unit.y, _sel_squad])
+		elif changed:
+			_say("(%d, %d) の駒を %s にしました。" % [_sel_unit.x, _sel_unit.y, _sel_skin_id])
+		if not changed:
+			return
+	else:
+		return
+	_board.refresh()
 
 
 ## 「自軍」「敵」モードの最後の行＝アクター名。駒を選ぶと、その駒のものが入る。
@@ -624,7 +665,8 @@ func _add_squad_selector() -> void:
 		ob.select(_sel_squad)
 	ob.item_selected.connect(func(i: int) -> void:
 		_sel_squad = i
-		_set_mode(_mode))
+		_rebuild_mode()
+		_apply_palette_to_selected_unit())
 	_mode_box.add_child(_labeled_row("部隊", ob))
 
 
@@ -646,7 +688,7 @@ func _build_squad_palette() -> void:
 		_add_squad_item(list, group, i, squads[i])
 	_add_button(_mode_box, "部隊を追加", func() -> void:
 		_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
-		_set_mode("squad"))
+		_rebuild_mode())
 
 
 ## 部隊1件＝2行。
@@ -667,7 +709,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	pick.tooltip_text = "この部隊を選ぶ（「敵」モードで駒を置く先になる）"
 	pick.pressed.connect(func() -> void:
 		_sel_squad = index
-		_set_mode("squad"))
+		_rebuild_mode())
 	row1.add_child(pick)
 	var name_edit := LineEdit.new()
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -683,7 +725,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 		_ask("部隊%d を所属ユニットごと削除します。よろしいですか？" % index, func() -> void:
 			_doc.remove_squad(index)
 			_sel_squad = 0
-			_set_mode("squad")
+			_rebuild_mode()
 			_board.refresh()))
 
 	var row2 := HBoxContainer.new()
@@ -693,7 +735,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	var ai_row := _labeled_option("AI", ai_opts[0], ai_opts[1], String(sq.get("ai", "")),
 		func(k: String) -> void:
 			sq["ai"] = k
-			_set_mode("squad"))
+			_rebuild_mode())
 	ai_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row2.add_child(ai_row)
 	_add_sight_row(row2, sq, String(sq.get("ai", "")))
@@ -709,7 +751,8 @@ func _build_enemy_palette() -> void:
 	_mode_box.add_child(_labeled_option("分類", [""] + _skin_categories, ["すべて"] + _skin_categories, _sel_skin_category,
 		func(k: String) -> void:
 			_sel_skin_category = k
-			_set_mode("enemy")))
+			_rebuild_mode()
+			_apply_palette_to_selected_unit()))
 	var pool := []
 	for s in _skins:
 		if String(s["category"]) == STANDARD_CATEGORY:
@@ -727,7 +770,9 @@ func _build_enemy_palette() -> void:
 		skin_ob.add_item("%s（%s）" % [pool[i]["skin_id"], pool[i]["type_id"]])
 		if String(pool[i]["skin_id"]) == _sel_skin_id:
 			skin_ob.select(i)
-	skin_ob.item_selected.connect(func(i: int) -> void: _sel_skin_id = String(pool_ids[i]))
+	skin_ob.item_selected.connect(func(i: int) -> void:
+		_sel_skin_id = String(pool_ids[i])
+		_apply_palette_to_selected_unit())
 	_mode_box.add_child(_labeled_row("スキン", skin_ob))
 	_add_unit_box()
 
@@ -747,7 +792,7 @@ func _pick_enemy(col: int, row: int) -> bool:
 		if _sel_skin_category != "" and _sel_skin_category != cat:
 			_sel_skin_category = cat  # 絞り込みで一覧から外れる skin は、分類ごと合わせる
 		_sel_skin_id = skin
-	_set_mode("enemy")
+	_rebuild_mode()
 	_select_unit(col, row)  # 下段でこの駒に名前(actor)を付けられる
 	if pickable:
 		_say("部隊%d / %s の設定を取り込みました。" % [_sel_squad, skin])
@@ -770,7 +815,7 @@ func _pick_player(col: int, row: int) -> bool:
 		if _sel_category != "" and _sel_category != cat:
 			_sel_category = cat  # 絞り込みで一覧から外れる type は、分類ごと合わせる
 		_sel_type_id = tid
-	_set_mode("player")
+	_rebuild_mode()
 	_select_unit(col, row)
 	_say("(%d, %d) の %s を選びました。" % [col, row, tid if tid != "" else "駒"])
 	return true
@@ -836,7 +881,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 				var created := false
 				if _doc.data["enemy"].is_empty():
 					_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
-					_set_mode("enemy")
+					_rebuild_mode()
 					created = true
 				if _doc.add_enemy(_sel_squad, _sel_skin_id, col, row):
 					_board.refresh()
@@ -858,7 +903,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 					_say("敵の駒を左クリックすると、その駒の部隊を選べます。")
 				else:
 					_sel_squad = int(hit["squad"])
-					_set_mode("squad")
+					_rebuild_mode()
 					_say("部隊%d を選びました。" % _sel_squad)
 		"base":
 			if button == MOUSE_BUTTON_LEFT:

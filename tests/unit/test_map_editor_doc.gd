@@ -276,6 +276,17 @@ func test_add_and_remove_units() -> void:
 	assert_true(doc.unit_at(3, 1).is_empty())
 
 
+func test_move_unit_to_squad() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	var to := doc.add_squad("charge")
+	assert_false(doc.move_unit_to_squad(0, 0, 0), "同じ部隊へは移さない")
+	assert_true(doc.move_unit_to_squad(0, 0, to))
+	assert_eq(doc.data["enemy"][0]["units"].size(), 1)
+	assert_eq(String(doc.data["enemy"][to]["units"][0]["skin"]), "goblin", "駒の中身はそのまま")
+	assert_eq(int(doc.data["enemy"][to]["units"][0]["col"]), 4, "位置も変えない")
+	assert_false(doc.move_unit_to_squad(0, 9, to), "居ない駒は移せない")
+
+
 func test_base_add_remove() -> void:
 	var doc := MapEditorDoc.new_stage(6, 4)
 	assert_true(doc.add_base(2, 2, "neutral", "fort", ""))
