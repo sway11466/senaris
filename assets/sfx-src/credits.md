@@ -38,6 +38,7 @@
 | `stone` | 投石の発射（同ライブラリの別テイク） | 同上 | 同上 | 同上 | 3本目（2.981〜3.754秒）、-2.9 dB。stone_recipe.txt |
 | `punch` | 徒手の一撃 | Sonniss GDC 2019 / Rock The Speakerbox - Melee `MELEE - DESIGNED - HEADBUTT Crack` | wav 96kHz/24bit | 同上 | 4テイク中の2本目（1.662〜2.541秒）、-10.0 dB。punch_recipe.txt |
 | `curse` | 呪い | Sonniss GDC 2019 / Sound Spark LLC – Magic Spells, Buffs and Attacks `Dark_Spell_Life_Tap_03` | wav 96kHz/24bit | 同上 | 切り出しなし、-7.0 dB。curse_recipe.txt |
+| `magic_bolt_hit` | 魔弾の着弾 | Sonniss GDC 2020 / David Dumais Audio - Magic Sound FX Pack 1 `Magic_Explosion_Short19` | wav 44.1kHz/24bit | 同上 | 切り出しなし、-8.5 dB。magic_bolt_hit_recipe.txt |
 | `claw` | 爪痕 | Sonniss GDC 2017 / Double Trouble Audio - Medieval Armor and Impacts `Plate_Impact_Hard_02` | wav 96kHz/24bit | 同上 | 切り出しなし、-8.6 dB。claw_recipe.txt |
 | `cmb_hit_none` | 弾き返す音（損害0） | Sonniss GDC 2017 / Double Trouble Audio - Medieval Armor and Impacts `Weapon_Impact_Parry_01` | wav 96kHz/24bit | 同上 | 切り出しなし、-8.7 dB。cmb_hit_none_recipe.txt |
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 未着手 |

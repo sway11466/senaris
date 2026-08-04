@@ -284,6 +284,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `arrow_bone_hit` | 同上 | 2020 p9 / 同上 |
 | `stone_hit` | `PM_RI_Source_92 Rocks Impact Hit Single Stone.wav` | 2020 p5 / PMSFX - Rocky Impacts |
 | `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
+| `magic_bolt_hit` | `Magic_Explosion_Short19.wav` | 2020 p3 / David Dumais Audio - Magic Sound FX Pack 1 |
 | `curse` | `Dark_Spell_Life_Tap_03.wav` | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
 | `claw` | `Plate_Impact_Hard_02.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
 | `punch` | `MELEE - DESIGNED - HEADBUTT Crack.wav` の2テイク目 | 2019 p5 / Rock The Speakerbox - Melee |
@@ -295,7 +296,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `claw`（爪痕）は板金鎧を叩く音を当てた。索引を claw で引いて出るのは動物の足音ライブラリだけで、爪の収録はバンドルに無い。裂く音や怪物の攻撃音も試聴したが、こちらを採った。
 
-`magic_bolt_hit` は未定。
+`magic_bolt_hit`（魔弾の着弾）は破裂音のイメージで引き直して決めた。一巡目に見た怪物の攻撃・電撃・炸裂系（2023 p2 David Dumais の Magic / Monster Pack 2 ほか）は5本とも不採用。
 
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 

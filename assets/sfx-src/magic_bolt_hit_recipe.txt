@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2020/magic_bolt_hit__Magic_Explosion_Short19.wav" -af "volume=-8.5dB" -c:a pcm_s24le magic_bolt_hit.wav
