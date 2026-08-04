@@ -448,11 +448,6 @@ func move(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
 	return false
 
 
-## 防衛対象の指定を外す（拠点自体は残す）。
-func remove_defeat_lose_base(col: int, row: int) -> void:
-	_drop_lose_base(col, row)
-
-
 ## 指定マスを指す防衛対象を取り除く（拠点の削除に追随）。対象が空になった条件ごと消す。
 func _drop_lose_base(col: int, row: int) -> void:
 	var d := defeat_list()
@@ -480,6 +475,18 @@ func _move_lose_base(from_col: int, from_row: int, to_col: int, to_row: int) -> 
 
 static func is_lose_base(c: Variant) -> bool:
 	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_base"
+
+
+static func is_lose_unit(c: Variant) -> bool:
+	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_unit"
+
+
+## lose_unit 条件が持つ名指しの配列。実体を返す＝呼び出し側の追加・削除がそのまま効く。
+static func lose_unit_actors(c: Variant) -> Array:
+	if not is_lose_unit(c):
+		return []
+	var a: Variant = c.get("actors", [])
+	return a if typeof(a) == TYPE_ARRAY else []
 
 
 ## lose_base 条件が持つ対象の配列。実体を返す＝呼び出し側の追加・削除がそのまま効く。
@@ -588,6 +595,13 @@ func victory_list() -> Array:
 	return v if typeof(v) == TYPE_ARRAY else []
 
 
+## 勝利条件を1件足す（キーが無ければ作る）。中身の妥当性は呼び出し側が見る。
+func add_victory(cond: Dictionary) -> void:
+	if typeof(data.get("victory")) != TYPE_ARRAY:
+		data["victory"] = []
+	data["victory"].append(cond)
+
+
 func remove_victory(index: int) -> void:
 	var v := victory_list()
 	if index >= 0 and index < v.size():
@@ -633,6 +647,13 @@ func has_defeat_lose_base(col: int, row: int) -> bool:
 			if _is_target_at(t, col, row):
 				return true
 	return false
+
+
+## 敗北条件を1件足す（キーが無ければ作る）。中身の妥当性は呼び出し側が見る。
+func add_defeat(cond: Dictionary) -> void:
+	if typeof(data.get("defeat")) != TYPE_ARRAY:
+		data["defeat"] = []
+	data["defeat"].append(cond)
 
 
 func remove_defeat(index: int) -> void:

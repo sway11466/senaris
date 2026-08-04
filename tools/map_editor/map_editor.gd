@@ -819,17 +819,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 				if _sel_base == Vector2i(col, row):
 					_deselect_base()
 		"outcome":
-			if button == MOUSE_BUTTON_LEFT:
-				# Shift＝直前の条件に相乗り（AND＝すべて失って敗北）／素＝単独の条件（OR＝1つ失えば敗北）
-				var group := Input.is_key_pressed(KEY_SHIFT)
-				if _doc.add_defeat_lose_base(col, row, group):
-					_say("(%d, %d) の拠点を防衛対象にしました（%s）。"
-						% [col, row, "直前の条件に相乗り＝すべて失ったら敗北" if group else "奪われたら敗北"])
-				else:
-					_say("そのマスに拠点がありません。防衛対象にできるのは拠点だけです。")
-			else:
-				_doc.remove_defeat_lose_base(col, row)
-			_refresh_defeat()
+			_say("勝敗条件は右のパネルで足す・消す（盤のクリックでは変わらない）。")
 		"select":
 			_press_cell = Vector2i(col, row)
 			_board.selected = _press_cell
@@ -1132,12 +1122,27 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 
 
 # --- 勝敗条件（「勝敗」モード） ---
-# 常時ルール（データに書かなくても効くもの）を灰色で、ステージが足す条件を白＋×ボタンで並べる。
-# 灰色の行は消せないのでボタンを付けない＝「見えるが触れない」で常時ルールだと分かる。
+# 1条件＝「見出し1行＋インデントした中身」。見出しは折り返さない（切れた分はツールチップ）＝
+# 一覧として縦に読める。常時ルール（データに書かなくても効くもの）は灰色・×なしで並べる
+# ＝「見えるが触れない」で常時だと分かる。
+# 1条件の中は AND（すべて失う/倒す）、条件どうしは OR。「いずれかで成立」させたい対象は、
+# 同じ条件に足さず別の条件として足す（doc/gdd/map.md 勝敗条件）。
+
+
+## 追加できる条件の種類。key＝JSONの type、値＝[表示名, 説明]。
+const VICTORY_KINDS := {
+	"defeat_unit": ["ボス撃破", "名指し(actor)の駒を倒す"],
+	"capture_hq": ["本拠地占領", "敵の本拠地(hq)をすべて自軍が保持する"],
+}
+const DEFEAT_KINDS := {
+	"lose_base": ["拠点の喪失", "名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立）"],
+	"lose_unit": ["護衛対象の喪失", "名指し(actor)の駒をすべて失う"],
+}
 
 
 func _build_outcome_panel() -> void:
-	_add_hint(_mode_box, "盤の拠点を左クリック＝奪われたら敗北（防衛対象）。Shift+左クリック＝直前の条件に相乗り（両方失って初めて敗北）。右クリック＝その指定を外す。\nボス撃破（勝利）は「選択」モードで敵の駒から指定する。")
+	_add_hint(_mode_box, "1つの条件に対象を並べる＝すべて失って（倒して）成立。\n"
+		+ "「いずれかで成立」にしたいときは、同じ条件に足さず条件を分ける。")
 	_add_heading(_mode_box, "勝利条件（いずれか1つで勝ち）")
 	_victory_box = VBoxContainer.new()
 	_mode_box.add_child(_victory_box)
@@ -1148,9 +1153,60 @@ func _build_outcome_panel() -> void:
 	_refresh_defeat()
 
 
-## 常時ルールの1行（灰色・削除ボタンなし）。
-func _add_always_on(parent: Control, text: String) -> void:
-	_add_hint(parent, "・" + text + "  ［常時］")
+## 条件1件の見出し行。折り返さず、はみ出した分はツールチップで読む。
+## on_remove が無効なら右端は ［常時］＝消せない行だと見て分かる。
+func _add_outcome_head(parent: Control, text: String, on_remove: Callable) -> void:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var l := Label.new()
+	l.text = text
+	l.clip_text = true
+	l.tooltip_text = text
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(l)
+	if on_remove.is_valid():
+		_add_button(row, "×", on_remove)
+	else:
+		var mark := Label.new()
+		mark.text = "［常時］"
+		mark.modulate = Color(1, 1, 1, 0.5)
+		row.add_child(mark)
+
+
+## 見出しの下にぶら下げる箱（左に字下げ）。
+func _indent(parent: Control) -> VBoxContainer:
+	var m := MarginContainer.new()
+	m.add_theme_constant_override("margin_left", 16)
+	parent.add_child(m)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 2)
+	m.add_child(box)
+	return box
+
+
+## 説明の1行（灰色。ここは折り返してよい＝見出しの1行制限を補う場所）。
+func _add_note(parent: Control, text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.modulate = Color(1, 1, 1, 0.55)
+	parent.add_child(l)
+
+
+## 指す先が無い対象の警告（保存前に気づけるように）。
+func _add_warn(parent: Control, text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	l.modulate = Color(1.0, 0.72, 0.5)
+	parent.add_child(l)
+
+
+## 常時ルールの1件（見出し＋任意の説明）。
+func _add_always_on(parent: Control, text: String, note: String = "") -> void:
+	_add_outcome_head(parent, text, Callable())
+	if note != "":
+		_add_note(_indent(parent), note)
 
 
 func _refresh_victory() -> void:
@@ -1158,19 +1214,21 @@ func _refresh_victory() -> void:
 		return  # 「勝敗」モード以外では箱が無い＝描くものがない
 	for c in _victory_box.get_children():
 		c.queue_free()
-	_add_always_on(_victory_box, "敵の殲滅（盤上0 かつ 復帰手段なし）")
+	_add_always_on(_victory_box, "敵の殲滅", "盤上0 かつ 復帰手段なし")
 	var list := _doc.victory_list()
 	for i in list.size():
 		var c: Dictionary = list[i]
-		var row := HBoxContainer.new()
-		_victory_box.add_child(row)
-		var l := Label.new()
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		l.text = _victory_text(c)
-		row.add_child(l)
-		_add_button(row, "×", func() -> void:
+		var type_id := String(c.get("type", ""))
+		var kind: Array = VICTORY_KINDS.get(type_id, [type_id, "エディタが知らない条件（JSONを直接見る）"])
+		_add_outcome_head(_victory_box, String(kind[0]), func() -> void:
 			_doc.remove_victory(i)
 			_refresh_victory())
+		var box := _indent(_victory_box)
+		_add_note(box, String(kind[1]))
+		if type_id == "defeat_unit":
+			_add_actor_target_row(box, String(c.get("actor", "")),
+				func(name: String) -> void: c["actor"] = name, Callable())
+	_add_kind_adder(_victory_box, VICTORY_KINDS, _add_victory_kind)
 
 
 func _refresh_defeat() -> void:
@@ -1178,22 +1236,232 @@ func _refresh_defeat() -> void:
 		return
 	for c in _defeat_box.get_children():
 		c.queue_free()
-	_add_always_on(_defeat_box, "自軍の殲滅（盤上0 かつ 復帰手段なし）")
+	_add_always_on(_defeat_box, "自軍の殲滅", "盤上0 かつ 復帰手段なし")
 	if _has_own_hq():
 		_add_always_on(_defeat_box, "自軍本拠地（hq）の喪失")
-	_add_always_on(_defeat_box, "ターン制限 %d を超過（時間切れ）" % int(_doc.data.get("turn_limit", 30)))
+	_add_always_on(_defeat_box, "時間切れ", "ターン制限 %d を超過" % int(_doc.data.get("turn_limit", 30)))
 	var list := _doc.defeat_list()
 	for i in list.size():
 		var c: Dictionary = list[i]
-		var row := HBoxContainer.new()
-		_defeat_box.add_child(row)
-		var l := Label.new()
-		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		l.text = _defeat_text(c)
-		row.add_child(l)
-		_add_button(row, "×", func() -> void:
+		var type_id := String(c.get("type", ""))
+		var kind: Array = DEFEAT_KINDS.get(type_id, [type_id, "エディタが知らない条件（JSONを直接見る）"])
+		_add_outcome_head(_defeat_box, String(kind[0]), func() -> void:
 			_doc.remove_defeat(i)
 			_refresh_defeat())
+		var box := _indent(_defeat_box)
+		_add_note(box, String(kind[1]))
+		match type_id:
+			"lose_base":
+				_build_lose_base_targets(box, c)
+			"lose_unit":
+				_build_lose_unit_targets(box, c)
+	_add_kind_adder(_defeat_box, DEFEAT_KINDS, _add_defeat_kind)
+
+
+## lose_base の対象（拠点の座標）一覧＋追加。対象が空になった条件は残さない。
+func _build_lose_base_targets(box: VBoxContainer, c: Dictionary) -> void:
+	if typeof(c.get("bases")) != TYPE_ARRAY:
+		c["bases"] = []
+	var targets: Array = c["bases"]
+	if targets.is_empty():
+		_add_warn(box, "対象がありません（このままだと成立しません）")
+	for j in targets.size():
+		var t: Dictionary = targets[j]
+		_add_base_target_row(box, t, func() -> void:
+			targets.remove_at(j)
+			_drop_empty_defeat(c)
+			_refresh_defeat())
+		if _doc.base_at(int(t.get("col", -1)), int(t.get("row", -1))).is_empty():
+			_add_warn(box, "  ↑ このマスに拠点がありません")
+	_add_button(box, "対象を追加（すべて失って成立）", func() -> void:
+		var free := _free_base_target()
+		if free == MapEditorBoard.OUTSIDE:
+			_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
+			return
+		targets.append({ "col": free.x, "row": free.y })
+		_refresh_defeat())
+
+
+## lose_unit の対象（actor）一覧＋追加。対象が空になった条件は残さない。
+func _build_lose_unit_targets(box: VBoxContainer, c: Dictionary) -> void:
+	if typeof(c.get("actors")) != TYPE_ARRAY:
+		c["actors"] = []
+	var actors: Array = c["actors"]
+	if actors.is_empty():
+		_add_warn(box, "対象がありません（このままだと成立しません）")
+	for j in actors.size():
+		_add_actor_target_row(box, String(actors[j]),
+			func(name: String) -> void: actors[j] = name,
+			func() -> void:
+				actors.remove_at(j)
+				_drop_empty_defeat(c)
+				_refresh_defeat())
+		if not _doc.used_actors().has(String(actors[j])):
+			_add_warn(box, "  ↑ この名前の駒がありません")
+	_add_button(box, "対象を追加（すべて失って成立）", func() -> void:
+		var free := _free_actor_target()
+		if free == "":
+			_say(_no_actor_message())
+			return
+		actors.append(free)
+		_refresh_defeat())
+
+
+## 対象が空になった敗北条件を取り除く（成立しない条件を黙って残さない）。
+func _drop_empty_defeat(c: Dictionary) -> void:
+	var targets := MapEditorDoc.lose_base_targets(c) if MapEditorDoc.is_lose_base(c) \
+		else MapEditorDoc.lose_unit_actors(c)
+	if not targets.is_empty():
+		return
+	var list := _doc.defeat_list()
+	for i in list.size():
+		if list[i] == c:
+			_doc.remove_defeat(i)
+			return
+
+
+## 勝敗条件が指す actor の入力行。実在しない名前は弾いて元に戻す（保存前に「駒なし」を作らない）。
+func _add_actor_target_row(parent: Control, current: String, apply: Callable,
+		on_remove: Callable) -> void:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	_add_label(row, "actor")
+	var edit := LineEdit.new()
+	edit.text = current
+	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	edit.placeholder_text = "駒の actor 名"
+	row.add_child(edit)
+	var state := { "v": current }  # 貼り直さずに現在値を持つ（貼り直すと入力中のフォーカスが飛ぶ）
+	var commit := func(text: String) -> void:
+		var name := text.strip_edges()
+		if name == String(state["v"]):
+			return
+		if not _doc.used_actors().has(name):
+			_say("actor \"%s\" の駒がありません。「自軍」「敵」モードで名前を付けてから指定してください。" % name)
+			edit.text = String(state["v"])
+			return
+		state["v"] = name
+		apply.call(name)
+		_say("対象を \"%s\" にしました。" % name)
+	edit.text_submitted.connect(func(text: String) -> void: commit.call(text))
+	edit.focus_exited.connect(func() -> void: commit.call(edit.text))
+	if on_remove.is_valid():
+		_add_button(row, "×", on_remove)
+
+
+## 拠点を指す座標の入力行。拠点の無いマスは弾いて元に戻す。
+func _add_base_target_row(parent: Control, t: Dictionary, on_remove: Callable) -> void:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var cur_col := int(t.get("col", 0))
+	var cur_row := int(t.get("row", 0))
+	var state := { "col": cur_col, "row": cur_row }
+	_add_label(row, "col")
+	var col_spin := _make_spin(0, maxi(_doc.cols() - 1, 0), cur_col)
+	col_spin.custom_minimum_size = Vector2(66, 0)
+	row.add_child(col_spin)
+	_add_label(row, "row")
+	var row_spin := _make_spin(0, maxi(_doc.rows() - 1, 0), cur_row)
+	row_spin.custom_minimum_size = Vector2(66, 0)
+	row.add_child(row_spin)
+	var commit := func(_v: float) -> void:
+		var col := int(col_spin.value)
+		var r := int(row_spin.value)
+		if col == int(state["col"]) and r == int(state["row"]):
+			return
+		if _doc.base_at(col, r).is_empty():
+			_say("(%d, %d) に拠点がありません。防衛対象にできるのは拠点だけです。" % [col, r])
+			col_spin.set_value_no_signal(state["col"])
+			row_spin.set_value_no_signal(state["row"])
+			return
+		state["col"] = col
+		state["row"] = r
+		t["col"] = col
+		t["row"] = r
+		_say("防衛対象を (%d, %d) にしました。" % [col, r])
+	col_spin.value_changed.connect(commit)
+	row_spin.value_changed.connect(commit)
+	if on_remove.is_valid():
+		_add_button(row, "×", on_remove)
+
+
+## 「条件を追加」の行（種類を選んで ＋）。
+func _add_kind_adder(parent: Control, kinds: Dictionary, on_add: Callable) -> void:
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	_add_label(row, "条件を追加")
+	var ob := OptionButton.new()
+	ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var keys := kinds.keys()
+	for k in keys:
+		ob.add_item(String(kinds[k][0]))
+	row.add_child(ob)
+	_add_button(row, "＋", func() -> void: on_add.call(String(keys[maxi(ob.selected, 0)])))
+
+
+func _add_victory_kind(type_id: String) -> void:
+	match type_id:
+		"defeat_unit":
+			var actor := _free_actor_target()
+			if actor == "":
+				_say(_no_actor_message())
+				return
+			_doc.add_victory({ "type": "defeat_unit", "actor": actor })
+		"capture_hq":
+			for c in _doc.victory_list():
+				if String(c.get("type", "")) == "capture_hq":
+					_say("「本拠地占領」は既に条件にあります。")
+					return
+			_doc.add_victory({ "type": "capture_hq" })
+	_refresh_victory()
+
+
+func _add_defeat_kind(type_id: String) -> void:
+	match type_id:
+		"lose_base":
+			var free := _free_base_target()
+			if free == MapEditorBoard.OUTSIDE:
+				_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
+				return
+			_doc.add_defeat_lose_base(free.x, free.y)  # 単独の条件＝他の条件とOR
+		"lose_unit":
+			var actor := _free_actor_target()
+			if actor == "":
+				_say(_no_actor_message())
+				return
+			_doc.add_defeat({ "type": "lose_unit", "actors": [actor] })
+	_refresh_defeat()
+
+
+## まだどの条件も指していない拠点のマス（無ければ OUTSIDE）。新しい対象の初期値に使う。
+func _free_base_target() -> Vector2i:
+	for b in _doc.data.get("bases", []):
+		var col := int(b.get("col", 0))
+		var row := int(b.get("row", 0))
+		if not _doc.has_defeat_lose_base(col, row):
+			return Vector2i(col, row)
+	return MapEditorBoard.OUTSIDE
+
+
+## まだどの条件も指していない actor（無ければ ""）。新しい対象の初期値に使う。
+func _free_actor_target() -> String:
+	var taken := {}
+	for c in _doc.victory_list():
+		if String(c.get("type", "")) == "defeat_unit":
+			taken[String(c.get("actor", ""))] = true
+	for c in _doc.defeat_list():
+		for a in MapEditorDoc.lose_unit_actors(c):
+			taken[String(a)] = true
+	for a in _doc.used_actors():
+		if not taken.has(String(a)):
+			return String(a)
+	return ""
+
+
+func _no_actor_message() -> String:
+	if _doc.used_actors().is_empty():
+		return "名前(actor)の付いた駒がありません。「自軍」「敵」モードで先に名前を付けてください。"
+	return "名前(actor)の付いた駒は、すべて既にどれかの条件が指しています。"
 
 
 ## 自軍 native の本拠地が盤にあるか（＝「本拠地の喪失で敗北」が効くステージか）。
@@ -1203,42 +1471,6 @@ func _has_own_hq() -> bool:
 		if String(b.get("kind", "fort")) == "hq" and String(b.get("team", "neutral")) == "player":
 			return true
 	return false
-
-
-## 勝利条件1件の表示文。指す先が消えている名指しは「駒なし」と出す（保存前に気づけるように）。
-func _victory_text(c: Dictionary) -> String:
-	if String(c.get("type", "")) == "defeat_unit":
-		var actor := String(c.get("actor", ""))
-		if actor == "":
-			return "defeat_unit: 対象なし ← 成立しない"
-		return "defeat_unit: " + actor + ("" if _doc.used_actors().has(actor) else " ← 駒なし")
-	return String(c.get("type", "?"))
-
-
-## 敗北条件1件の表示文。1件の中は AND なので「かつ」で繋ぐ。
-## 指す先が消えている対象は「拠点なし」と出す（保存前に気づけるように）。
-func _defeat_text(c: Dictionary) -> String:
-	match String(c.get("type", "")):
-		"lose_base":
-			var parts: Array[String] = []
-			for t in MapEditorDoc.lose_base_targets(c):
-				var col := int(t.get("col", -1))
-				var row := int(t.get("row", -1))
-				var missing := "" if not _doc.base_at(col, row).is_empty() else " ← 拠点なし"
-				parts.append("(%d, %d)%s" % [col, row, missing])
-			if parts.is_empty():
-				return "lose_base: 対象なし ← 成立しない"
-			return "lose_base: " + " かつ ".join(parts)
-		"lose_unit":
-			var actors: Variant = c.get("actors", [])
-			if typeof(actors) != TYPE_ARRAY or (actors as Array).is_empty():
-				return "lose_unit: 対象なし ← 成立しない"
-			var names: Array[String] = []
-			var known := _doc.used_actors()
-			for a in actors:
-				names.append(String(a) + ("" if known.has(String(a)) else " ← 駒なし"))
-			return "lose_unit: " + " かつ ".join(names)
-	return String(c.get("type", "?"))
 
 
 # --- ファイル操作 ---

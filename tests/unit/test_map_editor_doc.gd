@@ -515,16 +515,17 @@ func test_add_defeat_lose_base_without_group_makes_an_or() -> void:
 	doc.add_defeat_lose_base(6, 2)
 	assert_eq(doc.defeat_list().size(), 2, "別条件＝どちらか失えば敗北")
 
+## AND条件の対象になっている拠点を消したとき、残りの対象があれば条件は残る。
 func test_removing_one_of_an_and_keeps_the_condition() -> void:
 	var doc := _doc_with_base()
 	doc.add_base(6, 2, "neutral", "fort")
 	doc.add_defeat_lose_base(3, 2)
 	doc.add_defeat_lose_base(6, 2, true)
-	doc.remove_defeat_lose_base(3, 2)
+	assert_true(doc.remove_base_at(3, 2))
 	assert_eq(doc.defeat_list().size(), 1, "残りの対象があれば条件は残る")
 	assert_eq(MapEditorDoc.lose_base_targets(doc.defeat_list()[0]).size(), 1)
-	doc.remove_defeat_lose_base(6, 2)
-	assert_true(doc.defeat_list().is_empty(), "最後の対象を外したら条件ごと消える")
+	assert_true(doc.remove_base_at(6, 2))
+	assert_true(doc.defeat_list().is_empty(), "最後の対象が消えたら条件ごと消える")
 
 func test_defeat_key_is_omitted_when_empty() -> void:
 	var doc := _doc_with_base()
