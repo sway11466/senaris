@@ -266,7 +266,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 |---|---|
 | `Weapon_Impact_Parry_01.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
 
-試聴して決めた。同じライブラリの `Plate_Impact_Hard_02.wav`（板金鎧）と `Chainmail_Impact_Hard_03.wav`（鎖帷子）は不採用。
+試聴して決めた。同じライブラリの `Chainmail_Impact_Hard_03.wav`（鎖帷子）は不採用。`Plate_Impact_Hard_02.wav`（板金鎧）は弾き返す音としては採らず、`claw` に回した。
 
 血肉系（Gore）のライブラリも各年にあるが、作風に対して生々しすぎるため候補から外した。
 
@@ -285,6 +285,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `stone_hit` | `PM_RI_Source_92 Rocks Impact Hit Single Stone.wav` | 2020 p5 / PMSFX - Rocky Impacts |
 | `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
 | `curse` | `Dark_Spell_Life_Tap_03.wav` | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
+| `claw` | `Plate_Impact_Hard_02.wav` | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
 | `punch` | `MELEE - DESIGNED - HEADBUTT Crack.wav` の2テイク目 | 2019 p5 / Rock The Speakerbox - Melee |
 | `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
 
@@ -292,7 +293,9 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 飛び道具3種の発射は同じ「ロープを速く振る」収録の別テイク。スリングは実際に紐を振り回して投げるものなので、投石にはこれが直接あたる。弓の発射も、弦の弾ける音より風切りのほうが飛んでいく感じが出た（弓の収録＝2019 p2 Eiravaein Works - Nocked は試聴して不採用）。
 
-`claw` と `magic_bolt_hit` は未定。索引を claw で引いて出るのは動物の足音ライブラリだけなので、布や革を裂く音から作ることになる。
+`claw`（爪痕）は板金鎧を叩く音を当てた。索引を claw で引いて出るのは動物の足音ライブラリだけで、爪の収録はバンドルに無い。裂く音や怪物の攻撃音も試聴したが、こちらを採った。
+
+`magic_bolt_hit` は未定。
 
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 

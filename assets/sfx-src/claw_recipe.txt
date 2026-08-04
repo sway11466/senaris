@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2017/claw__Plate_Impact_Hard_02.wav" -af "volume=-8.6dB" -c:a pcm_s24le claw.wav
