@@ -1,0 +1,6 @@
+# Godot が生成するファイル。エディタ実行・--import・テスト実行のたびに LF で
+# 書き直されるので、作業ツリーを LF に固定して行末だけの差分が出ないようにする。
+# Git for Windows は system 設定で core.autocrlf=true が入っているため、
+# ここで明示しないと 350 個以上が一度に modified に見える。
+*.import text eol=lf
+*.uid    text eol=lf
