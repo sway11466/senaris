@@ -277,16 +277,22 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `slash_s` | `WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav` | 2026 p1 / 344 Audio - Historical Weapons Vol. 2 |
 | `slash_m` | `METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav` | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 | `slash_l` | `MeleeSwingsPack_96khz_Mono_DesignedSwings12.wav` | 2020 p3 / David Dumais Audio - Weapon Sounds - Weapon Swings |
-| `arrow` | `Nocked,archery,firing,loose,crossbow1,carbonbolt,atbow,snap,buzz,airy,bright,alt.wav` | 2019 p2 / Eiravaein Works - Nocked |
+| `arrow` | `MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目 | 2019 p5 / Rock The Speakerbox - Melee |
+| `arrow_bone` | 同上（矢と呪いの矢は発射も着弾も共用する） | 2019 p5 / 同上 |
+| `stone` | 同ファイルの3テイク目 | 2019 p5 / 同上 |
 | `arrow_hit` | `BOW Arrow Hit 05.wav` | 2020 p9 / SmartSoundFX – Medieval |
-| `arrow_bone_hit` | 同上（矢の着弾は矢と呪いの矢で共用する） | 2020 p9 / 同上 |
+| `arrow_bone_hit` | 同上 | 2020 p9 / 同上 |
 | `stone_hit` | `PM_RI_Source_92 Rocks Impact Hit Single Stone.wav` | 2020 p5 / PMSFX - Rocky Impacts |
 | `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
+| `curse` | `Dark_Spell_Life_Tap_03.wav` | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
+| `punch` | `MELEE - DESIGNED - HEADBUTT Crack.wav` の2テイク目 | 2019 p5 / Rock The Speakerbox - Melee |
 | `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
 
-`slash_s` `slash_m` `slash_l` `holy` `magic_bolt` と着弾3つは試聴して決めた。
+すべて試聴して決めた。
 
-`stone` `arrow_bone` の発射音と `magic_bolt_hit` は未定。投石の発射音（スリング）はバンドルに無い。
+飛び道具3種の発射は同じ「ロープを速く振る」収録の別テイク。スリングは実際に紐を振り回して投げるものなので、投石にはこれが直接あたる。弓の発射も、弦の弾ける音より風切りのほうが飛んでいく感じが出た（弓の収録＝2019 p2 Eiravaein Works - Nocked は試聴して不採用）。
+
+`claw` と `magic_bolt_hit` は未定。索引を claw で引いて出るのは動物の足音ライブラリだけなので、布や革を裂く音から作ることになる。
 
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 

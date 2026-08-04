@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2019/stone__MELEE - CK - ROPE WHOOSH Fast Light 01.wav" -af "atrim=7.465:8.057,volume=-4.7dB" -c:a pcm_s24le arrow.wav
