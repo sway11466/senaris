@@ -238,15 +238,41 @@ func terrain_at(hex: Vector2i) -> String:
 ## hex に地形を設定する。
 func set_terrain(hex: Vector2i, terrain_id: String) -> void:
 	_terrain[hex] = terrain_id
+	_travel_cache.clear()
 
 ## 移動コスト表を設定する（move_type -> {地形名: コスト}）。
 func set_movement(table: Dictionary) -> void:
 	_movement = table
+	_travel_cache.clear()
 
 ## hex が矩形フィールド内か。
 func in_field(hex: Vector2i) -> bool:
 	var off := Hex.axial_to_offset(hex)
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
+
+## goal から盤全体へ、move_type の地形コストで測った道のり表 { ヘックス: コスト }。
+## 移動力の予算では切らない＝何ターンかければ届くか、を測る道具。届かないヘックスは載らない。
+## 駒の配置・ZOC は見ない＝地形だけの道のり。見ると味方で塞がった瞬間に道が消えて、
+## 「行き先なし＝その場で停止」に戻ってしまう（AIの前進が直線距離で止まっていた問題と同じ形）。
+## 用途はAIの前進＝直線距離ではなくこの値が縮むマスへ寄る。詳細 → doc/gdd/ai.md（前進）
+func travel_cost_field(goal: Vector2i, move_type: String) -> Dictionary:
+	if not in_field(goal):
+		return {}
+	var key := "%d,%d|%s" % [goal.x, goal.y, move_type]
+	if _travel_cache.has(key):
+		return _travel_cache[key]
+	var cost_fn := func(hex: Vector2i) -> int:
+		if not in_field(hex):
+			return Movement.IMPASSABLE
+		return Movement.cost(_movement, move_type, terrain_at(hex))
+	var field := Hex.flood_reach_cost_map(goal, 1 << 24, cost_fn)
+	_travel_cache[key] = field
+	return field
+
+## travel_cost_field のメモ（地形・移動コスト表が変わるまで有効）。
+## 盤ごと・移動タイプごとに1枚で、駒が動いても作り直さない＝AIが毎ターン全員ぶん流し直さない。
+## 直列化しない（to_dict に載せない）＝復元後に作り直せる導出物。
+var _travel_cache := {}
 
 # --- 視線（索敵の遮蔽・減衰）。詳細 → doc/gdd/movement.md（視線）, doc/gdd/ai.md（起動） ---
 

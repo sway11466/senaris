@@ -151,6 +151,44 @@ func test_advance_to_base_applies_to_non_capturer_too() -> void:
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(start, base_hex), "護衛も拠点へ向かう")
 
+# --- 前進の迂回（道のりで測る）。詳細 → doc/gdd/ai.md（前進） ---
+
+## 5列目を wall_rows マスぶん壁で塞いだ盤（残りが抜け道）。目標は西の拠点、敵(10)は東。
+## 目標を拠点にして敵ユニットを置かない＝戦闘を挟まず「歩き方」だけを見る。
+func _walled_base_state(height: int, wall_rows: int) -> BattleState:
+	var s := BattleState.new(11, height)
+	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	s.current_team = 1
+	for row in wall_rows:
+		s.set_terrain(Hex.offset_to_axial(5, row), "wall")
+	s.add_base(Base.new(Hex.offset_to_axial(2, 1), 0))  # 自軍拠点＝敵から見て取りに行く先
+	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 1), 3)
+	u.move_type = "ground"
+	s.add_unit(u)
+	return s
+
+## 敵ターンを turns 回まわす（自軍は何もしない）。
+func _run_enemy_turns(s: BattleState, turns: int) -> void:
+	for _turn in turns:
+		_run_turn(s, 1)
+		s.end_turn()  # → 自軍ターン
+		s.end_turn()  # → 敵ターン
+
+func test_advance_detours_around_a_wall() -> void:
+	# 直線距離では縮まないマスしか無くても、道のり（地形コスト）が縮む方へ回り込む。
+	# 直線距離だけで測っていた頃は、壁の手前で止まったきり動かなくなっていた。
+	_brain.advance_to_base = true
+	var s := _walled_base_state(7, 6)  # 南の1マスだけ空く
+	_run_enemy_turns(s, 12)
+	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "南の隙間を回って壁の向こうへ抜ける")
+
+func test_advance_stops_at_the_wall_when_walled_off() -> void:
+	# 完全に分断されていれば道が無い＝壁際まで詰めて、そこから無意味に動かない。
+	_brain.advance_to_base = true
+	var s := _walled_base_state(3, 3)  # 全高を塞ぐ＝抜け道なし
+	_run_enemy_turns(s, 4)
+	assert_eq(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 6, "壁際まで詰めてそこで止まる")
+
 func test_from_preset_wires_advance_base() -> void:
 	# ai.csv の advance="base" → 拠点前進フラグ。空/未知は既定（charge相当）。
 	assert_true(NearestAttackerBrain.from_preset({ "advance": "base" }).advance_to_base, "base＝拠点前進ON")

@@ -350,8 +350,30 @@ func _nearest_capture_base_hex(state: BattleState, u: Unit) -> Vector2i:
 			best = b.hex
 	return best
 
-## 移動範囲のうち、goal への距離が最も縮むヘックスを返す（縮まないなら現在地）。
+## 移動範囲のうち、goal までの道のり（地形コストで測った距離）が最も縮むヘックスを返す。
+## 直線距離ではなく道のりで測る＝柵や壁で正面が塞がっていても回り込む。同値なら直線距離が
+## 近い方（横に広がって次の一歩を作る）。どちらも縮まないなら現在地＝今ターンは待つ。
+## 地形的に道が無い（goal と繋がっていない）ときだけ、従来の直線寄せに退避する。
 func _step_toward(state: BattleState, u: Unit, goal: Vector2i) -> Vector2i:
+	var field := state.travel_cost_field(goal, u.move_type)
+	if not field.has(u.pos):
+		return _step_toward_straight(state, u, goal)
+	var best := u.pos
+	var best_c := int(field[u.pos])
+	var best_d := Hex.distance(u.pos, goal)
+	for h in state.reachable(u.id):
+		if not field.has(h):
+			continue
+		var c := int(field[h])
+		var d := Hex.distance(h, goal)
+		if c < best_c or (c == best_c and d < best_d):
+			best = h
+			best_c = c
+			best_d = d
+	return best
+
+## 直線距離だけで寄せる版（道のりが測れないときの退避）。縮まないなら現在地。
+func _step_toward_straight(state: BattleState, u: Unit, goal: Vector2i) -> Vector2i:
 	var best := u.pos
 	var best_d := Hex.distance(u.pos, goal)
 	for h in state.reachable(u.id):

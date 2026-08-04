@@ -9,6 +9,28 @@ func test_movement_table_loads() -> void:
 	assert_eq(Movement.cost(t, "ground", "plain"), 1, "平地=1（基準）")
 	assert_eq(Movement.cost(t, "ground", "wall"), Movement.IMPASSABLE, "壁は進入不可")
 
+func test_travel_cost_field_measures_the_way_around() -> void:
+	# 道のり表: 壁の裏は直線距離より遠い（回り込むぶん）。AIの前進が参照する。
+	var s := BattleState.new(9, 5)
+	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	for row in 4:  # 3列目を上から4マス塞ぐ（南に隙間1）
+		s.set_terrain(Hex.offset_to_axial(3, row), "wall")
+	var goal := Hex.offset_to_axial(1, 1)
+	var field := s.travel_cost_field(goal, "ground")
+	assert_eq(int(field[goal]), 0, "目標自身は0")
+	var behind := Hex.offset_to_axial(4, 1)
+	assert_gt(int(field[behind]), Hex.distance(behind, goal), "壁の裏は直線距離より遠い")
+
+func test_travel_cost_field_omits_unreachable() -> void:
+	# 完全に分断された側と、進入不可の地形そのものは載らない（＝道が無い）。
+	var s := BattleState.new(9, 3)
+	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	for row in 3:
+		s.set_terrain(Hex.offset_to_axial(3, row), "wall")
+	var field := s.travel_cost_field(Hex.offset_to_axial(1, 1), "ground")
+	assert_false(field.has(Hex.offset_to_axial(3, 1)), "壁そのものは載らない")
+	assert_false(field.has(Hex.offset_to_axial(5, 1)), "分断された向こう側は載らない")
+
 func test_move_type_display_name() -> void:
 	# 表示名（movement.csv の name 列）が movement.json 経由で引けること。
 	assert_eq(Movement.display_name("ground"), "歩行", "ground の表示名")
