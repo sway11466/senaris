@@ -10,6 +10,7 @@
 
 - 飛行は全陣営で「浮いて見える」を必須（足元に影＋宙に浮く姿勢）。
   - 理由：飛行は `atk_air>0` の駒でしか攻撃・反撃できず（[../gdd/combat.md](../gdd/combat.md)）、読み違えると1ターン丸損する罰の重い機構。武器表現は自由でも、浮遊だけはどの陣営でも揃える。
+- 攻撃力0の駒（バリケード・馬車・飛空艇）には、刺さる・斬れる形を一切持たせない。尖った杭・刃・穂先・棘は、盤の上では「触れると痛い＝反撃してくる」と読まれる。攻0 の駒は、丸い笠木・鉄帯・二重の厚みのような「受ける質量」だけで強さを見せる。
 - 【指針】「動いて見せる」は絵を増やさず、コード側の移動tween＋簡単なエフェクトで出す（歩行コマ＝複数枚はAI一貫性が悪く・物量も数倍なので作らない）。行動前後は当面 `map` 1枚＋グレー化（画像スロット → [overview.md](overview.md)）。
 - 造形・サイズ・背景などの制作仕様は §3、プロンプト雛形（共通STYLE）は §3.2。
 
@@ -133,6 +134,7 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 透過切り抜き（map と同じ「単色背景→背景除去」）。背景は演出側が地形ごとに敷くのでキャラのみ。
 - ボス系：絵は1枚のまま「ボス＋手下」に見せる。隊列の中央が本人で、残りは従者＝別スキンの `combat` を借りる（例：ネクロマンサー＋スケルトン／ゾンビ）。指定は `unit_skin.csv` の `combat_lineup=retinue` ＋ `retainers` 列＝作画側の作業は無い。→ [../tech/combat_scene.md](../tech/combat_scene.md)
 - 単体表示（`combat_lineup=single`・馬車／飛空艇／ドラゴン級）は複製せず1体だけ出る。作画の作りは同じ（1スキン1枚）だが、隣に自分のコピーが並ばないぶん1体で画が持つ必要がある。
+- 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。ただし戦闘シーンは地面を3Dで敷くため、流用する map の master は足元の影を消しておく（STYLE の `small soft ground shadow` を焼き込んだままにしない）。
 - 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `data/effects/combat_effect.csv`。→ §3.4
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
   - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
@@ -194,9 +196,10 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 ```
 POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the right of the frame under its load, the draft animal (if any) leaning into the harness with its head low and legs mid-stride, the cargo body following behind so the hood, wheels/hull and lashed load all read clearly. It does NOT fight and takes no combat stance: no weapon anywhere, no raised guard, no aggression — just a heavy non-combat vehicle pressing on across the battlefield. For transport units.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`／輸送（馬車・飛空艇）＝`haul`。
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`／輸送（馬車・飛空艇）＝`haul`。据置でも攻撃する兵器（バリスタ）は `ranged`。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
-- 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない／武器を持たない」と明示し、チビ体型の指定は牽引する動物にだけ効かせる。
+- 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない／武器を持たない」と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない完全な静物（バリケード等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
+- 兵器の静物は、地形タイルの柵（`assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
