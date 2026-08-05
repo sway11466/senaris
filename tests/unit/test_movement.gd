@@ -31,6 +31,23 @@ func test_travel_cost_field_omits_unreachable() -> void:
 	assert_false(field.has(Hex.offset_to_axial(3, 1)), "壁そのものは載らない")
 	assert_false(field.has(Hex.offset_to_axial(5, 1)), "分断された向こう側は載らない")
 
+func test_travel_cost_field_skips_hexes_the_unit_can_never_enter() -> void:
+	# 1マスの進入コストが移動力を超えるマスは、何ターンかけても入れない＝その駒には壁。
+	# 上限を渡すと道のりから外れ、遠回りの値になる（外さないと勾配が柵を指して前進が止まる）。
+	var s := BattleState.new(9, 5)
+	s.set_movement({ "ground": { "plain": 1, "fence": 3 } })
+	for row in 4:  # 3列目を上から4マス柵で塞ぐ（南に隙間1）
+		s.set_terrain(Hex.offset_to_axial(3, row), "fence")
+	var goal := Hex.offset_to_axial(1, 1)
+	var behind := Hex.offset_to_axial(4, 1)
+	var through := int(s.travel_cost_field(goal, "ground")[behind])
+	var around := int(s.travel_cost_field(goal, "ground", 2)[behind])
+	assert_gt(around, through, "移動2の駒は柵を通れない＝迂回のぶん遠い")
+	assert_false(s.travel_cost_field(goal, "ground", 2).has(Hex.offset_to_axial(3, 1)),
+		"踏めない柵そのものは載らない")
+	assert_eq(int(s.travel_cost_field(goal, "ground", 3)[behind]), through,
+		"移動3なら柵を1歩で越えられる＝上限なしと同じ")
+
 func test_move_type_display_name() -> void:
 	# 表示名（movement.csv の name 列）が movement.json 経由で引けること。
 	assert_eq(Movement.display_name("ground"), "歩行", "ground の表示名")

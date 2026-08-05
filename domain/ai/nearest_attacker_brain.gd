@@ -355,7 +355,9 @@ func _nearest_capture_base_hex(state: BattleState, u: Unit) -> Vector2i:
 ## 近い方（横に広がって次の一歩を作る）。どちらも縮まないなら現在地＝今ターンは待つ。
 ## 地形的に道が無い（goal と繋がっていない）ときだけ、従来の直線寄せに退避する。
 func _step_toward(state: BattleState, u: Unit, goal: Vector2i) -> Vector2i:
-	var field := state.travel_cost_field(goal, u.move_type)
+	# 移動力を渡す＝1歩で入れないマス（移動2の駒にとっての柵）を道のりの計算から外す。
+	# 外さないと勾配がそのマスを指し、踏めるマスが全部「上り」になって前進が止まる。
+	var field := state.travel_cost_field(goal, u.move_type, u.move)
 	if not field.has(u.pos):
 		return _step_toward_straight(state, u, goal)
 	var best := u.pos

@@ -251,20 +251,28 @@ func in_field(hex: Vector2i) -> bool:
 	return off.x >= 0 and off.x < cols and off.y >= 0 and off.y < rows
 
 ## goal から盤全体へ、move_type の地形コストで測った道のり表 { ヘックス: コスト }。
-## 移動力の予算では切らない＝何ターンかければ届くか、を測る道具。届かないヘックスは載らない。
+## 何ターンかければ届くか、を測る道具＝1ターンの移動力の予算では切らない。届かないヘックスは載らない。
 ## 駒の配置・ZOC は見ない＝地形だけの道のり。見ると味方で塞がった瞬間に道が消えて、
 ## 「行き先なし＝その場で停止」に戻ってしまう（AIの前進が直線距離で止まっていた問題と同じ形）。
+##
+## max_step_cost（＝その駒の移動力。0＝上限なし）を渡すと、1マスの進入コストがそれを超える
+## ヘックスを通行不能として流す。ターンを重ねても入れないマス（移動2の駒にとっての柵＝コスト3）は
+## その駒の道ではない。最短路に含めると勾配がそこを指し、実際に踏めるマスが全部「上り」になって、
+## 前進先が現在地のまま＝永久に動かない駒ができる。
 ## 用途はAIの前進＝直線距離ではなくこの値が縮むマスへ寄る。詳細 → doc/gdd/ai.md（前進）
-func travel_cost_field(goal: Vector2i, move_type: String) -> Dictionary:
+func travel_cost_field(goal: Vector2i, move_type: String, max_step_cost: int = 0) -> Dictionary:
 	if not in_field(goal):
 		return {}
-	var key := "%d,%d|%s" % [goal.x, goal.y, move_type]
+	var key := "%d,%d|%s|%d" % [goal.x, goal.y, move_type, max_step_cost]
 	if _travel_cache.has(key):
 		return _travel_cache[key]
 	var cost_fn := func(hex: Vector2i) -> int:
 		if not in_field(hex):
 			return Movement.IMPASSABLE
-		return Movement.cost(_movement, move_type, terrain_at(hex))
+		var c := Movement.cost(_movement, move_type, terrain_at(hex))
+		if max_step_cost > 0 and c > max_step_cost:
+			return Movement.IMPASSABLE  # 何ターンかけても入れない＝この駒には壁
+		return c
 	var field := Hex.flood_reach_cost_map(goal, 1 << 24, cost_fn)
 	_travel_cache[key] = field
 	return field

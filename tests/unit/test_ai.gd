@@ -189,6 +189,35 @@ func test_advance_stops_at_the_wall_when_walled_off() -> void:
 	_run_enemy_turns(s, 4)
 	assert_eq(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 6, "壁際まで詰めてそこで止まる")
 
+## 5列目を柵（コスト3）で wall_rows マスぶん塞いだ盤。壁と違い「通れる駒と通れない駒がいる」。
+## 目標は西の拠点、敵(10)は東。move が柵のコスト未満なら、その駒にとっては壁と同じ。
+func _fenced_base_state(height: int, fence_rows: int, move: int) -> BattleState:
+	var s := BattleState.new(11, height)
+	s.set_movement({ "ground": { "plain": 1, "fence": 3 } })
+	s.current_team = 1
+	for row in fence_rows:
+		s.set_terrain(Hex.offset_to_axial(5, row), "fence")
+	s.add_base(Base.new(Hex.offset_to_axial(2, 1), 0))
+	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 1), move)
+	u.move_type = "ground"
+	s.add_unit(u)
+	return s
+
+func test_advance_detours_around_a_fence_it_cannot_step_on() -> void:
+	# 柵はコスト3＝移動2の駒は一生踏めない。道のりの最短路が柵を通ると、勾配が柵を指して
+	# 踏めるマスが全部「上り」になり、その場から動かなくなっていた。
+	_brain.advance_to_base = true
+	var s := _fenced_base_state(7, 6, 2)  # 南の1マスだけ空く
+	_run_enemy_turns(s, 14)
+	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "南の隙間を回って柵の向こうへ抜ける")
+
+func test_advance_crosses_a_fence_it_can_step_on() -> void:
+	# 移動3なら柵を1歩で越えられる＝迂回せず正面から抜ける（上限は駒ごとに効く）。
+	_brain.advance_to_base = true
+	var s := _fenced_base_state(3, 3, 3)  # 全高を塞ぐ＝迂回路なし
+	_run_enemy_turns(s, 6)
+	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "柵を踏み越えて拠点へ向かう")
+
 func test_from_preset_wires_advance_base() -> void:
 	# ai.csv の advance="base" → 拠点前進フラグ。空/未知は既定（charge相当）。
 	assert_true(NearestAttackerBrain.from_preset({ "advance": "base" }).advance_to_base, "base＝拠点前進ON")
