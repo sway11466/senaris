@@ -60,9 +60,12 @@ $TargetDb = -9.0
 
 # Materials deliberately built away from the common level, and where they aim
 # instead. ui_hover fires on every mouse-over and every text advance, so it is
-# held under the rest on purpose. Listed here so the check stops flagging it.
+# held under the rest on purpose. move_light_foot is the footstep of scouts and
+# thieves -- light units are meant to sound light, and it fires once per tile.
+# Listed here so the check stops flagging them.
 $IntendedPeak = @{
-  'ui_hover' = -11.0
+  'ui_hover'        = -11.0
+  'move_light_foot' = -12.0
 }
 
 function Find-Ffmpeg([string]$exe) {

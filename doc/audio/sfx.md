@@ -198,7 +198,7 @@ BGM と同じ流儀に揃える（[bgm.md](bgm.md)）。音量はミキサーの
 - BGM のピークは実測 -11〜-12 dBFS。-9 なら曲の 2〜3 dB 上に乗り、UI 音が曲を突き抜けて聞こえる。
 - `SfxPlayer` のプールは8声。無関係な波形どうしの合算は 10log₁₀(N) で効くので、-9 の素材が8つ重なっても合計はおよそ 0 dBFS。天井にちょうど収まる。
 
-用途によって基準から外してよい。外した素材は `gen_sfx.ps1` の `$IntendedPeak` に狙いの値を書いて記録する。書かないと、後から見た者が「ずれている」と判断して基準へ戻してしまう。現在の例外は `ui_hover` の -11 dBFS で、ホバーと文字送りで鳴り続けるため他より控えめに置いている。
+用途によって基準から外してよい。外した素材は `gen_sfx.ps1` の `$IntendedPeak` に狙いの値を書いて記録する。書かないと、後から見た者が「ずれている」と判断して基準へ戻してしまう。現在の例外は2つ。`ui_hover` の -11 dBFS は、ホバーと文字送りで鳴り続けるため他より控えめに置いている。`move_light_foot` の -12 dBFS は、斥候・盗賊といった軽装の足音で、軽い駒は軽く聞こえてほしいのと、1マス踏むごとに鳴るため。
 
 ### 外部素材はゲインを当てて合わせる
 
@@ -247,18 +247,15 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 移動音（`map_move`、移動タイプごとの動的解決）。
 
-| move_type | 候補 | 場所 |
+| move_type | 素材 | 場所 |
 |---|---|---|
-| `ground` 系 | `237_Foley_Footsteps_Metal_Boot_Walk_Normal_Close.wav` | 2017 p8 / Tovusound - Edward Foleyart Add-On Extended Footsteps |
-| | `FS Metal Soldier Walk N01.wav` | 2016 p2 / Levan Nadashvili - Soldier Footsteps |
-| | `PM_SDNG_Single_Step_Footstep_19.wav` | 2019 p3 / PMSFX - STEPS Dirt & Gravel |
-| | `PM_SDGS_14 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
-| `light_foot` | `FS Ground Civilian Walk N03.wav` | 2016 p2 / Levan Nadashvili - Civilian Footsteps |
-| | `FS Wood Civilian Crouch N03.wav` | 2016 p2 / 同上 |
-| | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` | 2017 p8 / Tovusound - Extended Footsteps |
+| `ground` 系 | `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
+| `light_foot` | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` の歩き1歩 | 2017 p8 / Tovusound - Extended Footsteps |
 | `flight` | 適当な素材が無い。下記 | |
 
-金属床のブーツを名前で明示しているのは Tovusound と Levan Nadashvili の2つだけ。土・草は PMSFX が単発ステップを出しているため踏むたびに鳴らす用途に向く。Levan Nadashvili は Soldier（重）と Civilian（軽）が同じ収録で対になっており、重い足音と軽い足音の音色差を揃えやすい。
+どちらも草の上の1歩で、重い側はブーツ、軽い側はスニーカー。同じ地面で靴だけが違うので、踏み替えても地形が変わったようには聞こえない。軽い側は基準より 3 dB 下げて置いている（上記の音量基準）。
+
+`light_foot` の原本は Walk / Run / Jog が続けて入った24.5秒・約50歩のファイルなので、歩きの部分から1歩だけ切り出している。同じ用途で見た Levan Nadashvili - Civilian Footsteps の土・木の1歩は試聴して不採用。
 
 弾き返す音（`cmb_hit_none`）。損害0のとき、近接でも遠距離でも、武器によらずこれ1つだけを鳴らす。
 
