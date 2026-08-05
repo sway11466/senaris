@@ -103,7 +103,8 @@ func _load_catalogs() -> void:
 	var ut: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/units/unit_type.json"))
 	for t in ut.get("types", []):
 		var cat := String(t.get("category", ""))
-		_unit_types.append({ "id": String(t["id"]), "category": cat })
+		_unit_types.append({ "id": String(t["id"]), "category": cat,
+			"capacity": int(t.get("capacity", 0)) })  # 同乗(passengers)を出すかと、その上限
 		if cat != "" and not _categories.has(cat):
 			_categories.append(cat)
 	if not _unit_types.is_empty():
@@ -401,7 +402,8 @@ func _labeled_option(label: String, keys: Array, displays: Array, current: Strin
 ## ラベル＋コントロールの1行（パレットの各項目を同じ形に揃える）。
 func _labeled_row(label: String, control: Control) -> HBoxContainer:
 	var row := HBoxContainer.new()
-	_add_label(row, label)
+	if label != "":
+		_add_label(row, label)
 	control.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(control)
 	return row
@@ -1087,8 +1089,74 @@ func _refresh_unit_box() -> void:
 	var hit := _doc.unit_at(_sel_unit.x, _sel_unit.y)
 	var u: Dictionary = hit["unit"] if not hit.is_empty() else {}
 	_add_actor_row(_unit_box, u)
-	if u.has("passengers") and typeof(u["passengers"]) == TYPE_ARRAY and not u["passengers"].is_empty():
-		_add_hint(_unit_box, "同乗 %d 体（passengers は JSON 直接編集）" % u["passengers"].size())
+	if not u.is_empty():
+		_add_passenger_rows(_unit_box, u)
+
+
+## 同乗（passengers）の一覧＋追加。輸送（capacity ≥ 1）の駒にだけ出す。
+## 中身は拠点の控えと同じ形＝1行1体、× で外す。載せた駒は盤上に出ない（殲滅の数に入らない）。
+## 詳細 → doc/gdd/movement.md（輸送）
+func _add_passenger_rows(parent: VBoxContainer, u: Dictionary) -> void:
+	var capacity := _capacity_of(u)
+	if capacity <= 0:
+		return
+	# 空のまま passengers キーを生やさない（読み込んで保存しただけで差分が出てしまう）
+	var raw: Variant = u.get("passengers", [])
+	var list: Array = raw if typeof(raw) == TYPE_ARRAY else []
+	_add_info(parent, "同乗（passengers） %d/%d" % [list.size(), capacity])
+	# 選べるのはそのモードの置き方に合わせる＝自軍は type、敵は skin（基準＝味方専用は出さない）
+	var by_skin := _mode == "enemy"
+	var keys := []
+	var displays := []
+	if by_skin:
+		for s in _skins:
+			if String(s["category"]) == STANDARD_CATEGORY:
+				continue
+			keys.append(String(s["skin_id"]))
+			displays.append("%s（%s）" % [s["skin_id"], s["type_id"]])
+	else:
+		for t in _unit_types:
+			keys.append(String(t["id"]))
+			displays.append(String(t["id"]))
+	for i in list.size():
+		var entry: Dictionary = list[i]
+		var row := _labeled_option("", keys, displays, String(entry.get("skin", entry.get("type", ""))),
+			func(k: String) -> void:
+				entry.erase("skin")
+				entry.erase("type")
+				entry["skin" if by_skin else "type"] = k
+				_board.refresh())
+		parent.add_child(row)
+		_add_button(row, "×", func() -> void:
+			if i >= list.size():
+				return  # 貼り直し待ちの古い行（queue_free は次のフレーム）
+			list.remove_at(i)
+			if list.is_empty():
+				u.erase("passengers")  # 空の passengers キーは書き出さない
+			_board.refresh()
+			_refresh_unit_box())
+	_add_button(parent, "同乗を追加", func() -> void:
+		if list.size() >= capacity:
+			_say("この輸送は %d 体までです。" % capacity)
+			return
+		list.append({ ("skin" if by_skin else "type"): String(keys[0]) })
+		u["passengers"] = list
+		_board.refresh()
+		_refresh_unit_box())
+
+
+## 駒の積載数（type から引く。敵は skin → type を逆引き）。輸送でなければ 0。
+func _capacity_of(u: Dictionary) -> int:
+	var type_id := String(u.get("type", ""))
+	if type_id == "":
+		for s in _skins:
+			if String(s["skin_id"]) == String(u.get("skin", "")):
+				type_id = String(s["type_id"])
+				break
+	for t in _unit_types:
+		if String(t["id"]) == type_id:
+			return int(t["capacity"])
+	return 0
 
 
 ## 名指し(actor)の入力行。空＝名前なし。味方・敵のどちらにも付けられる。
