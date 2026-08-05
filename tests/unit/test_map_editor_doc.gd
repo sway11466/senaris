@@ -276,6 +276,18 @@ func test_add_and_remove_units() -> void:
 	assert_true(doc.unit_at(3, 1).is_empty())
 
 
+func test_move_unit_at() -> void:
+	var doc := MapEditorDoc.from_text(SAMPLE)
+	assert_true(doc.move_unit_at(1, 1, 2, 2), "空きマスへは動かせる")
+	assert_eq(int(doc.data["player"][0]["col"]), 2)
+	assert_eq(int(doc.data["player"][0]["row"]), 2)
+	assert_false(doc.move_unit_at(2, 2, 4, 1), "駒のいるマスへは動かせない")
+	assert_false(doc.move_unit_at(2, 2, 99, 0), "盤外へは動かせない")
+	assert_false(doc.move_unit_at(0, 0, 3, 3), "駒のいないマスからは動かせない")
+	assert_true(doc.move_unit_at(4, 2, 5, 2), "敵の駒も動かせる")
+	assert_eq(int(doc.data["enemy"][0]["units"][1]["col"]), 5)
+
+
 func test_move_unit_to_squad() -> void:
 	var doc := MapEditorDoc.from_text(SAMPLE)
 	var to := doc.add_squad("charge")

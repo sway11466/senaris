@@ -396,6 +396,18 @@ func add_base(col: int, row: int, team: String, kind: String, ai: String = "") -
 	return true
 
 
+## 駒を別のマスへ動かす（拠点は動かさない）。外周・盤外や、既に駒がいるマスへは動かせない。
+func move_unit_at(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
+	if not in_board(to_col, to_row):
+		return false
+	var hit := unit_at(from_col, from_row)
+	if hit.is_empty() or not unit_at(to_col, to_row).is_empty():
+		return false
+	hit["unit"]["col"] = to_col
+	hit["unit"]["row"] = to_row
+	return true
+
+
 ## 敵の駒を別の部隊へ移す（位置はそのまま）。移したら true。
 func move_unit_to_squad(from_squad: int, index: int, to_squad: int) -> bool:
 	var squads: Array = data["enemy"]

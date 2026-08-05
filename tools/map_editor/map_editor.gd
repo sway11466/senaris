@@ -66,6 +66,7 @@ var _open_dialog: FileDialog
 var _save_dialog: FileDialog
 var _confirm: ConfirmationDialog
 var _confirm_cb := Callable()
+var _press_cell := MapEditorBoard.OUTSIDE  # 「自軍」「敵」モードのドラッグ移動の起点
 var _sel_base := MapEditorBoard.OUTSIDE    # 「拠点」モードで編集中の拠点のマス
 var _sel_unit := MapEditorBoard.OUTSIDE    # 「自軍」「敵」モードで編集中の駒のマス
 
@@ -188,6 +189,7 @@ func _build_ui() -> void:
 	_board.scroll = scroll  # 中ボタンドラッグのパン先
 	_board.cell_pressed.connect(_on_cell_pressed)
 	_board.cell_dragged.connect(_on_cell_dragged)
+	_board.cell_released.connect(_on_cell_released)
 	_board.zoom_requested.connect(func(step: int) -> void: zoom.value += step * zoom.step)
 	scroll.add_child(_board)
 	_board.refresh()
@@ -331,6 +333,7 @@ func _set_mode(mode: String) -> void:
 	_board.selected = MapEditorBoard.OUTSIDE
 	_sel_base = MapEditorBoard.OUTSIDE
 	_sel_unit = MapEditorBoard.OUTSIDE
+	_press_cell = MapEditorBoard.OUTSIDE
 	_board.queue_redraw()
 	_rebuild_mode()
 
@@ -587,7 +590,7 @@ func _build_stage_palette() -> void:
 
 ## 「自軍」モード＝駒を置く道具（分類→種別）。置いた駒／クリックした駒は下段で名前を付けられる。
 func _build_player_palette() -> void:
-	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝削除")
+	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝削除\nドラッグ＝移動")
 	# 分類（category）で絞ってから種別を選ぶ
 	_mode_box.add_child(_labeled_option("分類", [""] + _categories, ["すべて"] + _categories, _sel_category,
 		func(k: String) -> void:
@@ -743,7 +746,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 
 ## 「敵」モード＝駒を置く道具（配置先の部隊とスキンを選ぶ）。部隊の設定は「敵グループ」モード。
 func _build_enemy_palette() -> void:
-	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝削除")
+	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝削除\nドラッグ＝移動")
 	_add_squad_selector()
 	if _doc.data["enemy"].is_empty():
 		_add_hint(_mode_box, "部隊がありません。盤をクリックすると自動で作成します（設定は「敵グループ」モードで）。")
@@ -849,6 +852,7 @@ func _skin_category(skin_id: String) -> String:
 
 
 func _on_cell_pressed(col: int, row: int, button: int) -> void:
+	_press_cell = MapEditorBoard.OUTSIDE  # 押すたびに引き直す（駒を掴めたときだけ下で入れる）
 	# 外周(margin)は地形を描くだけの場所＝駒・拠点は置けず、選択の対象にもしない。
 	if _mode != "terrain" and not _doc.in_board(col, row):
 		_say("外周（margin）には駒・拠点を置けません。地形モードでのみ塗れます。")
@@ -863,10 +867,12 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 		"player":
 			if button == MOUSE_BUTTON_LEFT:
 				if _pick_player(col, row):
+					_press_cell = Vector2i(col, row)  # 掴んだ＝そのままドラッグで動かせる
 					return  # 配置済みの自軍を左クリック＝その種別を取り込む（配置しない）
 				if _doc.add_player(_sel_type_id, col, row):
 					_board.refresh()
 					_select_unit(col, row)
+					_press_cell = Vector2i(col, row)
 				else:
 					_say("そのマスには既に駒があります。")
 			else:
@@ -877,6 +883,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 		"enemy":
 			if button == MOUSE_BUTTON_LEFT:
 				if _pick_enemy(col, row):
+					_press_cell = Vector2i(col, row)  # 掴んだ＝そのままドラッグで動かせる
 					return  # 配置済みの敵を左クリック＝その設定をパレットへ取り込む（配置しない）
 				var created := false
 				if _doc.data["enemy"].is_empty():
@@ -886,6 +893,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 				if _doc.add_enemy(_sel_squad, _sel_skin_id, col, row):
 					_board.refresh()
 					_select_unit(col, row)
+					_press_cell = Vector2i(col, row)
 					if created:
 						_say("部隊がなかったので部隊%d を自動で作りました（名前・AI は「敵グループ」モードで）。" % _sel_squad)
 				else:
@@ -930,6 +938,26 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 func _on_cell_dragged(col: int, row: int, button: int) -> void:
 	if _mode == "terrain" and _paint_tool == "pen":
 		_paint(col, row, button)
+
+
+## 「自軍」「敵」モードの左ドラッグ＝掴んだ駒を離したマスへ動かす。
+## 動かせるのは駒だけ（拠点はドラッグしない）。掴めていないときは何もしない。
+func _on_cell_released(col: int, row: int, button: int) -> void:
+	var from := _press_cell
+	_press_cell = MapEditorBoard.OUTSIDE
+	if button != MOUSE_BUTTON_LEFT or from == MapEditorBoard.OUTSIDE:
+		return
+	if _mode != "player" and _mode != "enemy":
+		return
+	var to := Vector2i(col, row)
+	if to == from:
+		return  # 掴んで同じマスで離した＝ただのクリック
+	if _doc.move_unit_at(from.x, from.y, to.x, to.y):
+		_board.refresh()
+		_select_unit(to.x, to.y)
+		_say("駒を (%d, %d) → (%d, %d) へ動かしました。" % [from.x, from.y, to.x, to.y])
+	else:
+		_say("(%d, %d) へは動かせません（外周か、既に駒があります）。" % [to.x, to.y])
 
 
 ## いま塗る内容 [地形の文字, skin_id]。右クリックは既定地形＋差分なしに戻す。
