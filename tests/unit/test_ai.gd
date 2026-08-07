@@ -218,6 +218,82 @@ func test_advance_crosses_a_fence_it_can_step_on() -> void:
 	_run_enemy_turns(s, 6)
 	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "柵を踏み越えて拠点へ向かう")
 
+func test_advance_goes_around_a_wall_of_allies() -> void:
+	# 味方で正面が埋まっていても、標的以外の駒を壁として測り直して回り込む。
+	# 味方の上は通過できても止まれないので、駒を見ないまま測ると勾配が仲間の背中を指す。
+	var s := BattleState.new(11, 5)
+	s.set_movement({ "ground": { "plain": 1 } })
+	s.current_team = 1
+	var goal := Hex.offset_to_axial(1, 2)
+	s.add_unit(Unit.new(1, 0, goal, 3))
+	var u := Unit.new(10, 1, Hex.offset_to_axial(6, 2), 2)
+	u.move_type = "ground"
+	s.add_unit(u)
+	var id := 20
+	for col in [4, 5]:                                # 2列ぶんの味方の壁＝通り抜けきれない厚み
+		for row in [1, 2, 3]:
+			s.add_unit(Unit.new(id, 1, Hex.offset_to_axial(col, row), 2))
+			id += 1
+	var dest := Hex.axial_to_offset(_brain._advance_dest(s, u))
+	assert_ne(dest, Hex.axial_to_offset(u.pos), "塞がれていても止まらない")
+	assert_true(dest.y == 0 or dest.y == 4, "壁の上下（空いている行）へ回り込む")
+
+func test_prey_is_picked_from_enemies_it_can_reach() -> void:
+	# 獲物は「歩いて隣まで行ける敵」から選ぶ。壁の向こうにもっと弱い敵がいても、
+	# 手の出せない相手を目標にして前進が止まらないようにする。
+	var s := BattleState.new(11, 5)
+	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	s.current_team = 1
+	for row in 5:                                       # 5列目で盤を完全に二分する壁
+		s.set_terrain(Hex.offset_to_axial(5, row), "wall")
+	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 2), 3)
+	u.move_type = "ground"
+	s.add_unit(u)
+	var near_side := Unit.new(1, 0, Hex.offset_to_axial(8, 2), 3)  # 届く（防御は高め）
+	near_side.unit_defense = 40
+	s.add_unit(near_side)
+	var far_side := Unit.new(2, 0, Hex.offset_to_axial(2, 2), 3)   # 壁の向こう（もっと弱い）
+	far_side.unit_defense = 10
+	s.add_unit(far_side)
+	assert_eq(_brain._prey_of(s, u).id, 1, "壁の向こうの弱い敵ではなく、届く敵を狙う")
+	assert_eq(_brain._nearest_enemy(s, u).id, 1, "最寄りの敵も届く敵から選ぶ")
+
+func test_prey_is_the_nearest_of_the_soft_tier() -> void:
+	# 獲物は「防御の低い層（最小＋10）」の中から、道のりが短いものを選ぶ。
+	# 最弱1体に固定すると、盤の隅のエルフを全員で追って手近なクレリックを素通りする。
+	var s := BattleState.new(15, 5)
+	s.set_movement({ "ground": { "plain": 1 } })
+	s.current_team = 1
+	var u := Unit.new(10, 1, Hex.offset_to_axial(12, 2), 3)
+	u.move_type = "ground"
+	s.add_unit(u)
+	var elf := Unit.new(1, 0, Hex.offset_to_axial(1, 2), 3)    # 最弱だが遠い
+	elf.unit_defense = 10
+	s.add_unit(elf)
+	var cleric := Unit.new(2, 0, Hex.offset_to_axial(10, 2), 3)  # 1段上だが近い
+	cleric.unit_defense = 20
+	s.add_unit(cleric)
+	var knight := Unit.new(3, 0, Hex.offset_to_axial(11, 2), 3)  # 層の外＝狙わない
+	knight.unit_defense = 70
+	s.add_unit(knight)
+	assert_eq(_brain._prey_of(s, u).id, 2, "層（10〜20）の中で近いクレリックを狙う")
+	elf.unit_defense = 20  # 層が 20〜30 に上がっても、騎士(70)は層の外のまま
+	assert_eq(_brain._prey_of(s, u).id, 2, "層は盤の顔ぶれに追随する")
+
+func test_prey_falls_back_when_nothing_is_reachable() -> void:
+	# 1体も届かなければ盤上の敵から選ぶ（近づけないなりに寄せる＝目標なしで固まらない）。
+	var s := BattleState.new(11, 5)
+	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	s.current_team = 1
+	for row in 5:
+		s.set_terrain(Hex.offset_to_axial(5, row), "wall")
+	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 2), 3)
+	u.move_type = "ground"
+	s.add_unit(u)
+	var far_side := Unit.new(2, 0, Hex.offset_to_axial(2, 2), 3)
+	s.add_unit(far_side)
+	assert_eq(_brain._prey_of(s, u).id, 2, "届く敵が居なければ盤上の敵を狙う")
+
 func test_from_preset_wires_advance_base() -> void:
 	# ai.csv の advance="base" → 拠点前進フラグ。空/未知は既定（charge相当）。
 	assert_true(NearestAttackerBrain.from_preset({ "advance": "base" }).advance_to_base, "base＝拠点前進ON")

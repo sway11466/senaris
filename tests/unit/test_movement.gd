@@ -48,6 +48,24 @@ func test_travel_cost_field_skips_hexes_the_unit_can_never_enter() -> void:
 	assert_eq(int(s.travel_cost_field(goal, "ground", 3)[behind]), through,
 		"移動3なら柵を1歩で越えられる＝上限なしと同じ")
 
+func test_travel_cost_field_avoiding_units_walls_off_other_pieces() -> void:
+	# 標的以外の駒は敵味方を問わず壁＝止まれるマスだけを繋いだ「実際に歩けるルート」を測る。
+	# 測る側の駒がいま立っているマスだけは壁にしない（自分で道を塞がない）。
+	var s := BattleState.new(9, 5)
+	s.set_movement({ "ground": { "plain": 1 } })
+	var goal := Hex.offset_to_axial(1, 2)
+	s.add_unit(Unit.new(1, 0, goal, 3))                      # 標的
+	var from := Hex.offset_to_axial(5, 2)
+	s.add_unit(Unit.new(10, 1, from, 3))                     # 測る側
+	for row in [1, 2, 3]:                                    # 間を塞ぐ壁（味方2体・敵1体）
+		s.add_unit(Unit.new(20 + row, 1 if row != 2 else 0, Hex.offset_to_axial(3, row), 3))
+	var field := s.travel_cost_field_avoiding_units(goal, "ground", 0, from)
+	assert_true(field.has(from), "自分のマスは壁にしない")
+	assert_false(field.has(Hex.offset_to_axial(3, 2)), "敵の駒も壁")
+	assert_false(field.has(Hex.offset_to_axial(3, 1)), "味方の駒も壁")
+	assert_gt(int(field[from]), int(s.travel_cost_field(goal, "ground")[from]),
+		"駒を避けるぶん、地形だけの道のりより遠い")
+
 func test_move_type_display_name() -> void:
 	# 表示名（movement.csv の name 列）が movement.json 経由で引けること。
 	assert_eq(Movement.display_name("ground"), "歩行", "ground の表示名")

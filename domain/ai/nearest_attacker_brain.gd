@@ -214,38 +214,73 @@ func _targets_weak(state: BattleState, u: Unit) -> bool:
 func _advance_is_flank(state: BattleState, u: Unit) -> bool:
 	return String(_param(state, u, "advance")) == "flank"
 
-## 盤上の敵のうち最も低いユニット防御力（敵がいなければ -1）。獲物の判定基準。
-func _min_enemy_defense(state: BattleState, u: Unit) -> int:
-	var min_def := -1
+## u から実際に歩いて隣まで行ける敵の一覧（標的以外の駒を壁として測ったルートがある相手）。
+## 標的の選び方はここから選ぶ＝道の無い相手を選んで前進が止まるのを防ぐ。
+## 1体も届かない（自分が完全に囲まれている等）なら盤上の敵をそのまま返す＝従来どおりの選び方。
+## 返り値は [敵, その敵の隣までの道のり] の配列。詳細 → doc/gdd/ai.md（標的の選び方）
+func _enemies_in_reach(state: BattleState, u: Unit) -> Array:
+	# u を起点に流す＝自分から見た道のり。自分のマスは壁にしない（起点なので当然通れる）。
+	var field := state.travel_cost_field_avoiding_units(u.pos, u.move_type, u.move, u.pos)
+	var reachable_list: Array = []
+	var all_list: Array = []
 	for other in state.units():
-		if other.team != u.team and (min_def < 0 or other.unit_defense < min_def):
-			min_def = other.unit_defense
-	return min_def
-
-## 獲物＝盤上の敵のうちユニット防御力（素のステータス）が最も低いもの。兵数は見ない。
-## 同率は u から近い方 → id小。獲物が倒れたら次に低いものが自動的に次の獲物になる。
-func _prey_of(state: BattleState, u: Unit) -> Unit:
-	var min_def := _min_enemy_defense(state, u)
-	var best: Unit = null
-	var best_d := 1 << 30
-	for other in state.units():
-		if other.team == u.team or other.unit_defense != min_def:
+		if other.team == u.team:
 			continue
-		var d := Hex.distance(u.pos, other.pos)
-		if best == null or d < best_d or (d == best_d and other.id < best.id):
+		var best_c := 1 << 30
+		for nb in Hex.neighbors(other.pos):
+			var c := int(field.get(nb, 1 << 30))
+			if c < best_c:
+				best_c = c
+		all_list.append([other, Hex.distance(u.pos, other.pos)])
+		if best_c < (1 << 30):
+			reachable_list.append([other, best_c])
+	return reachable_list if not reachable_list.is_empty() else all_list
+
+## 獲物の層の幅。ユニット防御力は10刻みの段（10=エルフ/馬車 … 80=バリケード）なので、
+## +10＝「いちばん柔らかい段とその次の段」。1体に固定すると、盤の隅の最弱1体を全員で
+## 追いかけて手近な柔らかい相手を素通りする。詳細 → doc/gdd/ai.md（弱者狙いの設計）
+const PREY_DEFENSE_BAND := 10
+
+## 獲物の層の上限＝届く敵の最小防御 ＋ PREY_DEFENSE_BAND（届く敵がいなければ -1）。
+func _prey_defense_ceiling(state: BattleState, u: Unit) -> int:
+	var min_def := -1
+	for entry in _enemies_in_reach(state, u):
+		var d: int = (entry[0] as Unit).unit_defense
+		if min_def < 0 or d < min_def:
+			min_def = d
+	return min_def + PREY_DEFENSE_BAND if min_def >= 0 else -1
+
+## 獲物＝届く敵のうち「防御の低い層」にいるもの。層の中は道のりが短い方 → id小。兵数は見ない。
+## 「届く敵」から選ぶので、壁や群れの向こうで手の出せない相手を眺めて止まることがない。
+## 獲物が倒れたら層を測り直す＝次に柔らかい相手が自動的に次の獲物になる。
+func _prey_of(state: BattleState, u: Unit) -> Unit:
+	var ceiling := _prey_defense_ceiling(state, u)
+	if ceiling < 0:
+		return null
+	var best: Unit = null
+	var best_c := 1 << 30
+	for entry in _enemies_in_reach(state, u):
+		var other: Unit = entry[0]
+		var c := int(entry[1])
+		if other.unit_defense > ceiling:
+			continue
+		if best == null or c < best_c or (c == best_c and other.id < best.id):
 			best = other
-			best_d = d
+			best_c = c
 	return best
 
 ## 攻撃条件「獲物のみ」: 射程内のうち獲物（最低防御）と確殺（一撃で倒しきれる相手）だけ残す。
 ## 与ダメは戦闘式で厳密計算（combat.md＝決定的）。
 func _prey_or_kill_targets(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
-	var min_def := _min_enemy_defense(state, u)
+	# 獲物と同じ層に入る相手なら殴ってよい。ここを「獲物1体だけ」に絞ると、
+	# 層で寄っていったのに隣の相手を殴らない、というちぐはぐが出る。
+	var ceiling := _prey_defense_ceiling(state, u)
 	var out: Array[int] = []
 	for id in ids:
 		var t := state.unit_by_id(id)
 		var melee := Hex.distance(u.pos, t.pos) <= 1  # 距離1なら近接＝支援が乗る（解決式と一致）
-		if t.unit_defense == min_def or Combat.casualties(state, u, t, melee) >= t.troops:
+		if (ceiling >= 0 and t.unit_defense <= ceiling) \
+				or Combat.casualties(state, u, t, melee) >= t.troops:
 			out.append(id)
 	return out
 
@@ -350,16 +385,29 @@ func _nearest_capture_base_hex(state: BattleState, u: Unit) -> Vector2i:
 			best = b.hex
 	return best
 
-## 移動範囲のうち、goal までの道のり（地形コストで測った距離）が最も縮むヘックスを返す。
-## 直線距離ではなく道のりで測る＝柵や壁で正面が塞がっていても回り込む。同値なら直線距離が
-## 近い方（横に広がって次の一歩を作る）。どちらも縮まないなら現在地＝今ターンは待つ。
-## 地形的に道が無い（goal と繋がっていない）ときだけ、従来の直線寄せに退避する。
+## 移動範囲のうち、goal までの道のりが最も縮むヘックスを返す。3段で測り、上から順に試す。
+## 1) 標的以外の駒を壁として測った道のり＝実際に歩けるルート。味方の上は通過できても止まれない
+##    ので、駒を見ないまま測ると勾配が仲間の背中を指し、止まれるマスが全部「上り」になって固まる
+## 2) 地形だけの道のり＝1で道が消えたとき（標的が駒に囲まれている）。駒はいずれ動くので寄せておく
+## 3) 直線距離＝地形的にも goal と繋がっていないとき（壁の向こう）。壁際まで詰めてそこで止まる
+## どれでも縮まないなら現在地＝今ターンは待つ。詳細 → doc/gdd/ai.md（前進）
 func _step_toward(state: BattleState, u: Unit, goal: Vector2i) -> Vector2i:
 	# 移動力を渡す＝1歩で入れないマス（移動2の駒にとっての柵）を道のりの計算から外す。
 	# 外さないと勾配がそのマスを指し、踏めるマスが全部「上り」になって前進が止まる。
-	var field := state.travel_cost_field(goal, u.move_type, u.move)
+	var dest := _descend(state, u,
+		state.travel_cost_field_avoiding_units(goal, u.move_type, u.move, u.pos), goal)
+	if dest != u.pos:
+		return dest
+	dest = _descend(state, u, state.travel_cost_field(goal, u.move_type, u.move), goal)
+	if dest != u.pos:
+		return dest
+	return _step_toward_straight(state, u, goal)
+
+## 道のり表 field の勾配を1手ぶん降りる。同値なら直線距離が近い方（横に広がって次の一歩を作る）。
+## 自分の位置が表に無い＝その表では goal と繋がっていない＝現在地を返す（呼び出し側が次の段へ）。
+func _descend(state: BattleState, u: Unit, field: Dictionary, goal: Vector2i) -> Vector2i:
 	if not field.has(u.pos):
-		return _step_toward_straight(state, u, goal)
+		return u.pos
 	var best := u.pos
 	var best_c := int(field[u.pos])
 	var best_d := Hex.distance(u.pos, goal)
@@ -385,16 +433,16 @@ func _step_toward_straight(state: BattleState, u: Unit, goal: Vector2i) -> Vecto
 			best = h
 	return best
 
+## 最寄りの敵＝届く敵のうち道のりが短いもの（同値は id 小）。獲物と同じく「届く敵」から選ぶ。
 func _nearest_enemy(state: BattleState, u: Unit) -> Unit:
 	var best: Unit = null
-	var best_d := 1 << 30
-	for other in state.units():
-		if other.team == u.team:
-			continue
-		var d := Hex.distance(u.pos, other.pos)
-		if d < best_d:
-			best_d = d
+	var best_c := 1 << 30
+	for entry in _enemies_in_reach(state, u):
+		var other: Unit = entry[0]
+		var c := int(entry[1])
+		if c < best_c or (c == best_c and best != null and other.id < best.id):
 			best = other
+			best_c = c
 	return best
 
 # --- 拠点出撃（deploy）。詳細 → doc/gdd/ai.md §7 拠点出撃 ---

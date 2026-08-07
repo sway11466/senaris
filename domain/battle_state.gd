@@ -277,6 +277,26 @@ func travel_cost_field(goal: Vector2i, move_type: String, max_step_cost: int = 0
 	_travel_cache[key] = field
 	return field
 
+## 駒を避けた道のり表＝標的(goal)以外の駒が立つヘックスを壁として流す（敵味方を問わない）。
+## 味方の上は通過できても止まれない＝止まれるマスだけを繋いだ「実際に歩けるルート」がこれで出る。
+## from_hex（測る側の駒がいま立っているマス）は壁にしない＝自分自身で道を塞がない。
+## 駒は1手ごとに動くのでメモしない（地形だけの travel_cost_field と違って使い捨て）。
+## 標的が完全に囲まれていると道が消える＝呼び出し側は地形だけの表へ退避する（AIの前進）。
+func travel_cost_field_avoiding_units(goal: Vector2i, move_type: String,
+		max_step_cost: int = 0, from_hex: Vector2i = Vector2i(1 << 30, 1 << 30)) -> Dictionary:
+	if not in_field(goal):
+		return {}
+	var cost_fn := func(hex: Vector2i) -> int:
+		if not in_field(hex):
+			return Movement.IMPASSABLE
+		if hex != goal and hex != from_hex and unit_at(hex) != null:
+			return Movement.IMPASSABLE  # 標的以外の駒は壁
+		var c := Movement.cost(_movement, move_type, terrain_at(hex))
+		if max_step_cost > 0 and c > max_step_cost:
+			return Movement.IMPASSABLE
+		return c
+	return Hex.flood_reach_cost_map(goal, 1 << 24, cost_fn)
+
 ## travel_cost_field のメモ（地形・移動コスト表が変わるまで有効）。
 ## 盤ごと・移動タイプごとに1枚で、駒が動いても作り直さない＝AIが毎ターン全員ぶん流し直さない。
 ## 直列化しない（to_dict に載せない）＝復元後に作り直せる導出物。
