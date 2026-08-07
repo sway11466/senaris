@@ -211,6 +211,21 @@
 			"terrain_type": "rampart"
 		},
 		{
+			"combat_ground": "wasteland_grave1",
+			"combat_layout": "line",
+			"connect": false,
+			"elevation": 0.36,
+			"grid": true,
+			"map_ground": "",
+			"map_overlay": "",
+			"memo": "崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない",
+			"name": "瓦礫の山",
+			"orientable": "full",
+			"skin_id": "rampart_rubble1",
+			"sprite_sink": 0,
+			"terrain_type": "rampart"
+		},
+		{
 			"combat_ground": "",
 			"combat_layout": "",
 			"connect": false,

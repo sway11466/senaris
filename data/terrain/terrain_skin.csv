@@ -14,6 +14,7 @@ fence,fence,柵,none,line,0,0,true,plain,,plain,line,既定スキン。隣の柵
 fence_grave1,fence,墓地の柵,none,line,0,0,true,wasteland_grave1,fence,wasteland_grave1,line,柵の絵（map_overlay）を借り、墓地の荒れ野の上に立てる
 trap,trap,罠,none,false,0,0,true,,,plain,center,既定スキン
 rampart,rampart,城壁,none,false,0,0,true,,,plain,line,既定スキン
+rampart_rubble1,rampart,瓦礫の山,full,false,0.36,0,true,,,wasteland_grave1,line,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
 cliff,cliff,崖,none,false,0.36,0,true,,,,,既定スキン
 wall,wall,壁,none,false,0.70,0,false,,,,,既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
 wall_stone1,wall,石積みの壁,none,false,0,0,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
