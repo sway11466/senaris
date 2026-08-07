@@ -1,0 +1,70 @@
+STYLE: A side-on texture for a fantasy tactics game, in the same clean stylized
+cel-shaded look as the game's terrain and unit art: bold flat shading, a mature,
+slightly muted, limited color palette (NOT bright saturated, NOT painterly
+photorealism). Viewed straight from the FRONT, face-on — a flat lay with NO
+perspective, NO horizon, NO sky, NO ground line, NO floor, NO grass. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary the pieces
+RANDOMLY and UNEVENLY — never a repeated motif, never the same shape twice,
+never in rows or a regular grid. Avoid large, high-contrast patches (they repeat
+visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The cut FLANK of a heap of graveyard rubble, as if the pile had been
+sliced open and you are looking straight at the exposed side. This is an
+ASSEMBLY OF LOOSE SEPARATE PIECES piled on each other — never one solid body of
+rock. What faces you is mostly the THICKNESS of flat stone: the edges of broken
+headstone slabs, crypt roof slabs and floor slabs lying at every angle, some
+nearly flat, some tipped steeply, some standing almost on end, crossing and
+propping each other. Between and behind them are squared blocks seen end-on,
+snapped chunks, and the small chips and grit that have trickled down into the
+voids. Everything is wedged and unstable-looking, resting on whatever is beneath
+it. This is the DEEP BOTTOM of the heap over the whole frame — rubble that has
+settled for years and compacted under its own weight. Everywhere, edge to edge,
+the pieces have slumped into each other until they touch: slabs lie flush along
+their neighbours, chunks have dropped into every hollow, and chips and grit have
+trickled down and filled what was left. Do NOT make the top of the frame more
+open than the bottom, and do NOT run any change of density from top to bottom or
+from side to side. The density is the same everywhere, just with the clumping
+varied. Almost NO dark shows through: what gaps remain are hairline seams and
+narrow slots between touching pieces — NO open pockets, NO black holes, NO
+caverns, and never a patch of dark bigger than one of the small chips.
+
+A couple of old bones or a pale skull may be caught among the stones — this came
+out of a burial ground — but keep them FEW, SMALL and as pale as the stone. NO
+carving, NO inscriptions, NO writing, NO names, NO symbols on any piece.
+
+STRICTLY FORBIDDEN: NOT a built wall — NO regular courses, NO stacked brick
+pattern, NO mortar lines, NO fitted joints, NO worked or dressed faces, NO
+foundation, NO capping row. NOT one continuous rock face — every piece must be
+plainly separate, with its own outline, from the ones around it. Also NO
+classical or temple architecture of any kind: NO columns, NO column drums, NO
+fluted stone, NO capitals, NO cornices, NO moulded edges, NO pediments. NO
+natural boulders, NO cobbles, NO gravel bed, NO cliff face. NO earth, NO soil,
+NO mud, NO roots, NO moss, NO lichen, NO plants of any kind. NO coffins, NO
+props, NO tools, NO metal.
+
+The stone is a dull weathered grey-tan, hex #A79E90 — the same stone as the
+graveyard's markers, a shade deeper than the sunlit top of the heap because this
+is its shaded inner side. Each piece takes a slightly different flat tone
+somewhere between #B4AC9E and #968D80, so the pieces separate from one another
+by tone alone.
+
+CRITICAL — the light comes from DIRECTLY ABOVE and from nowhere else. This strip
+is wrapped around all six sides of a hexagon, so any sideways light would
+contradict itself: NO light from the left, NO light from the right, NO highlight
+or gradient running sideways across the frame, NO cast shadows thrown to one
+side. Upward-facing edges may catch a little light and the undersides of pieces
+may sit a little darker — that is the only shading allowed, and it must be the
+same everywhere across the width.
+
+Piece size varies but stays SMALL — big slabs leave big gaps, so keep them out:
+the largest slab edges are about one tenth of the frame height, most are well
+under that, down to fist-sized chips and grit. Arrange them irregularly, NEVER
+evenly spaced, NEVER in rows, NEVER the same shape twice.
+
+CRITICAL, and the easiest thing to get wrong: the picture must stay LIGHT
+OVERALL — squint at it and it should read as pale stone, never a dark grey or
+brown picture. Dark voids and dark outlines are what drag the average down, so
+keep every dark accent both FEW and THIN. If in doubt, use fewer of them and
+make them paler.
