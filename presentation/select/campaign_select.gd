@@ -231,11 +231,13 @@ func _nav_arrow(glyph: String) -> Button:
 func _on_prev() -> void:
 	if _idx > 0:
 		_idx -= 1
+		SfxPlayer.play_event("menu_tier")
 		_render_current()
 
 func _on_next() -> void:
 	if _idx < _boards.size() - 1:
 		_idx += 1
+		SfxPlayer.play_event("menu_tier")
 		_render_current()
 
 ## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。

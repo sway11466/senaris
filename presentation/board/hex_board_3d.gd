@@ -837,6 +837,7 @@ func _clear_unload() -> void:
 func _on_unit_unloaded(_unit_id: int, _transport_id: int, _to: Vector2i) -> void:
 	_unload_transport = -1
 	_unload_cells.clear()
+	SfxPlayer.play_event("map_board")
 	_sync()
 
 ## 自軍の出撃可能な拠点をクリック → 拠点メニュー。
@@ -932,6 +933,10 @@ func _inspect_unit(id: int) -> void:
 
 func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i, path: Array[Vector2i]) -> void:
 	_sync()  # 盤は真実（＝移動先）で作り直す
+	# 乗車には専用のシグナルが無い。輸送のマスへ入った駒は盤から外れる＝作り直した後に
+	# ノードが残っていなければ乗ったと分かる（降車は _on_unit_unloaded 側で鳴らす）。
+	if not _unit_nodes.has(unit_id):
+		SfxPlayer.play_event("map_board")
 	_animate_move(unit_id, path)
 
 ## 移動した駒を経路の起点へ戻し、マスを1つずつ辿らせる（見た目だけ後追い）。

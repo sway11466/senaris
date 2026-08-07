@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2026/map_capture__CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02_ESM_FG2.wav" -af "volume=-7.9dB" -c:a pcm_s24le menu_slide.wav

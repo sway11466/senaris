@@ -20,6 +20,7 @@ const EXTS := [".ogg", ".wav"]
 ## 増えて手に負えなくなったら data/audio/sfx_bind.csv へ出す（doc/audio/sfx.md）。
 const BIND := {
 	# --- メニュー（タイトル・冒険譚選択・ステージセレクト）---
+	"menu_tier": "menu_slide",  # 難易度帯ボードを繰る。布が滑る音（map_capture と同じ収録）
 	"menu_campaign": "ui_confirm",
 	"menu_stage": "ui_confirm",
 	"menu_back": "ui_cancel",
@@ -33,6 +34,7 @@ const BIND := {
 	"map_select": "ui_confirm",
 	"map_confirm": "ui_confirm",
 	"map_cancel": "ui_cancel",
+	"map_board": "map_board",  # 輸送への乗車・降車
 }
 
 ## 移動タイプ → 移動音の素材。移動タイプは地形コストの都合で分かれているが、
