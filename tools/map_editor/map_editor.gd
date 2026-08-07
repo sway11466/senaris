@@ -28,6 +28,7 @@ var _skins: Array = []           # [{ skin_id, type_id, category }]（CSV順＝�
 var _skin_categories: Array = [] # 敵パレット用の分類一覧（基準を除く・出現順）
 var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]（CSV順）
 var _default_skin_by_type := {}      # terrain_type -> 既定スキンの skin_id（TerrainSkinCatalog と同じ規則）
+var _bgm_tracks: Array = []  # assets/bgm/ に実在するトラックID（BGM欄の選択肢。autowire と同じ規約）
 var _ai_presets: Array = []  # [label]
 var _ai_names := {}          # label -> 表示名
 var _ai_params := {}         # label -> プリセット辞書（ai.csv の1行。sight の既定値を引く）
@@ -128,6 +129,17 @@ func _load_catalogs() -> void:
 		# 既定スキン＝skin_id == terrain_type を優先。無ければその type の最初の行（TerrainSkinCatalog と同じ）
 		if not _default_skin_by_type.has(type_id) or sid == type_id:
 			_default_skin_by_type[type_id] = sid
+	var bgm_dir := DirAccess.open(BgmCatalog.BGM_ROOT)
+	if bgm_dir != null:
+		for f in bgm_dir.get_files():
+			# .ogg と .ogg.import のどちらで見えても同じトラックIDに畳む
+			var file := String(f)
+			if not (file.ends_with(".ogg") or file.ends_with(".ogg.import")):
+				continue
+			var id := file.trim_suffix(".import").trim_suffix(".ogg")
+			if not _bgm_tracks.has(id):
+				_bgm_tracks.append(id)
+		_bgm_tracks.sort()
 	var ai := AiCatalog.load_default()
 	for label in ai:
 		_ai_presets.append(String(label))
@@ -586,7 +598,32 @@ func _build_stage_palette() -> void:
 	grid.add_child(_margin_spin)
 	_add_button(_mode_box, "サイズを適用", _on_resize).tooltip_text = \
 		"cols / rows / margin を盤に反映する。縮小すると範囲外の駒・拠点・スキン指定は削除される。"
+	# BGM（bgm: { main, crisis }）。値はトラックID＝assets/bgm/{id}.ogg を規約で解決する。
+	# 詳細 → doc/audio/bgm.md
+	_add_heading(_mode_box, "BGM")
+	_add_hint(_mode_box, "曲は assets/bgm/ に置いた .ogg から選ぶ。\n"
+		+ "「（指定なし）」は冒険譚の既定（campaign.json）→ 全体既定へ送る。")
+	for slot in BgmCatalog.SLOTS:
+		_mode_box.add_child(_bgm_row(String(slot)))
 	_sync_fields()  # 入力欄を作り直したので、いまの doc の値を入れ直す
+
+
+## BGM スロット1つ分の行。選択肢は assets/bgm/ に実在する .ogg ＋ いま指しているID。
+## 未配置のIDを指したステージを開いても選択肢から落とさない＝開いて保存しただけで指定が消えない。
+func _bgm_row(slot: String) -> HBoxContainer:
+	var current := String(_doc.bgm().get(slot, ""))
+	var keys := [""]
+	var displays := ["（指定なし）"]
+	for track in _bgm_tracks:
+		keys.append(String(track))
+		displays.append(String(track))
+	if current != "" and not keys.has(current):
+		keys.append(current)
+		displays.append("%s（ファイル未配置）" % current)
+	var row := _labeled_option("bgm %s" % slot, keys, displays, current,
+		func(k: String) -> void: _doc.set_bgm(slot, k))
+	row.tooltip_text = "main＝そのステージの曲。crisis＝危機の状態に切り替わったときの曲（任意）。"
+	return row
 
 
 ## 「自軍」モード＝駒を置く道具（分類→種別）。置いた駒／クリックした駒は下段で名前を付けられる。

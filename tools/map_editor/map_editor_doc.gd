@@ -597,6 +597,26 @@ func _rename_actor_refs(old: String, new: String) -> void:
 		data.erase("defeat")
 
 
+## BGM の指定（bgm: { main, crisis }）。無ければ空の辞書。値はトラックID。詳細 → doc/audio/bgm.md
+func bgm() -> Dictionary:
+	var v: Variant = data.get("bgm", {})
+	return v if typeof(v) == TYPE_DICTIONARY else {}
+
+
+## BGM スロットを決める。空文字＝そのスロットを外す（冒険譚の既定→全体既定へフォールバックさせる）。
+## スロットが全部空になったら bgm キーごと消す＝空の欄を書き出さない。
+func set_bgm(slot: String, track_id: String) -> void:
+	var b := bgm()
+	if track_id == "":
+		b.erase(slot)
+	else:
+		b[slot] = track_id
+	if b.is_empty():
+		data.erase("bgm")
+	else:
+		data["bgm"] = b
+
+
 func victory_list() -> Array:
 	var v: Variant = data.get("victory", [])
 	return v if typeof(v) == TYPE_ARRAY else []
