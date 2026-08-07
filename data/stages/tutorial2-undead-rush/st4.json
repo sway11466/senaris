@@ -317,11 +317,36 @@
       ] }
   ],
   "bases": [
-    { "order": 3, "ai": "charge", "col": 20, "row": 5, "team": "enemy",
+    { "order": 3, "ai": "charge", "col": 20, "row": 5, "team": "enemy", "kind": "hq",
       "garrison": [
-        { "skin": "zombie", "count": 20 },
-        { "skin": "skeleton", "count": 20 }
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 },
+        { "skin": "zombie", "count": 2 },
+        { "skin": "skeleton", "count": 2 }
       ] }
+  ],
+  "victory": [
+    { "type": "capture_hq" }
   ],
   "dialogue": {
     "intro": [
