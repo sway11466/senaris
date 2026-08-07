@@ -457,10 +457,28 @@ func deploy_cells(base_hex: Vector2i, garrison_index := -1) -> Array[Vector2i]:
 			continue
 		var occ := unit_at(nb)
 		if occ == null:
-			cells.append(nb)
+			if _deploy_enterable(b, garrison_index, nb):
+				cells.append(nb)
 		elif _deploy_boardable(b, garrison_index, occ):
 			cells.append(nb)  # 出撃＝そのまま搭乗（隣接1マスの特例の拠点版）
 	return cells
+
+## 拠点 b の控え（index 指定 or いずれか）が nb の地形に立てるか。
+## その移動タイプで進入不可の地形（壁・瓦礫など）へは出せない＝出た瞬間に動かせない駒を作らない。
+## index 省略のときは「誰か1体でも入れるなら候補」＝誰を出すかは後で決まるため。
+func _deploy_enterable(b: Base, garrison_index: int, nb: Vector2i) -> bool:
+	var terrain := terrain_at(nb)
+	if garrison_index >= 0:
+		if garrison_index >= b.garrison.size():
+			return false
+		return _enterable_terrain((b.garrison[garrison_index] as Unit).move_type, terrain)
+	for gu in b.garrison:
+		if _enterable_terrain((gu as Unit).move_type, terrain):
+			return true
+	return false
+
+func _enterable_terrain(move_type: String, terrain: String) -> bool:
+	return Movement.cost(_movement, move_type, terrain) != Movement.IMPASSABLE
 
 ## 拠点 b の控え（index 指定 or いずれか）が輸送 occ に出撃で直接乗れるか。
 ## can_board 相当だが、控えの team は出撃時に確定するため拠点の所属で判定する。
@@ -507,6 +525,8 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	var occ := unit_at(to_hex)
 	if occ != null and not _deploy_boardable(b, garrison_index, occ):
 		return false
+	if occ == null and not _deploy_enterable(b, garrison_index, to_hex):
+		return false  # 進入不可の地形へは出せない（deploy_cells と同じ規則）
 	var u: Unit = b.garrison[garrison_index]
 	b.garrison.remove_at(garrison_index)
 	u.team = current_team

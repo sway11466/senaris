@@ -120,6 +120,33 @@ func test_deploy_cells_and_can_deploy() -> void:
 	assert_false(s.deploy_cells(base_hex).is_empty(), "控えあり・空きありなら出撃可")
 	assert_eq(s.deploy_cells(base_hex).size(), 6, "開けた拠点の周囲6マスが出撃先")
 
+func test_deploy_skips_terrain_the_unit_cannot_enter() -> void:
+	# 進入不可の地形（壁・瓦礫）は出撃先にしない＝出た瞬間に動かせない駒を作らない。
+	# 冒険譚2 st4 で、瓦礫（rampart）に囲まれた拠点からゾンビが壁の上に湧いていた。
+	var s := _state()
+	s.set_movement({ "ground": { "plain": 1, "rampart": "x" }, "flight": { "plain": 1, "rampart": 1 } })
+	var base_hex := Hex.offset_to_axial(4, 4)
+	var b := _captured_base_with_garrison(s, base_hex, 1)
+	(b.garrison[0] as Unit).move_type = "ground"
+	var blocked := Hex.neighbor(base_hex, 0)
+	s.set_terrain(blocked, "rampart")
+	assert_false(s.deploy_cells(base_hex, 0).has(blocked), "歩行は瓦礫を出撃先にしない")
+	assert_false(s.deploy(base_hex, 0, blocked), "候補外なので出撃もできない")
+	assert_eq(b.garrison.size(), 1, "控えは減っていない")
+	assert_true(s.deploy(base_hex, 0, Hex.neighbor(base_hex, 1)), "入れる隣接マスへは出せる")
+
+func test_deploy_allows_terrain_the_unit_can_enter() -> void:
+	# 同じ地形でも、飛行なら入れる＝移動タイプごとに判定する。
+	var s := _state()
+	s.set_movement({ "ground": { "plain": 1, "rampart": "x" }, "flight": { "plain": 1, "rampart": 1 } })
+	var base_hex := Hex.offset_to_axial(4, 4)
+	var b := _captured_base_with_garrison(s, base_hex, 1)
+	(b.garrison[0] as Unit).move_type = "flight"
+	var rampart := Hex.neighbor(base_hex, 0)
+	s.set_terrain(rampart, "rampart")
+	assert_true(s.deploy_cells(base_hex, 0).has(rampart), "飛行は瓦礫にも出せる")
+	assert_true(s.deploy(base_hex, 0, rampart))
+
 func test_capture_then_deploy_same_turn() -> void:
 	# 占領した同じターンに、中の控えを出撃させられる（即解放）。
 	var s := _state()
