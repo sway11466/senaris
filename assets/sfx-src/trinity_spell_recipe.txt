@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2018/trinity_spell__water_blast_projectile_spell_03.wav" -af "volume=-9.0dB" -c:a pcm_s24le trinity_spell.wav

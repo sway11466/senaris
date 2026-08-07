@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2020/trinity_spell_hit__Magic_Spells_Impact_Creation20.wav" -af "volume=-9.0dB" -c:a pcm_s24le trinity_spell_hit.wav

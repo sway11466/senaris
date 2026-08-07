@@ -160,10 +160,12 @@ func _on_formation_resolved(result: Dictionary) -> void:
 		SfxPlayer.play_event("map_skill")
 		_update_aura()
 		return
-	SfxPlayer.play_event("map_formation")
+	# 陣形の音はレシピごとに違う＝規約解決（assets/sfx/{recipe_id}.ogg と {recipe_id}_hit.ogg）。
+	# 面殲滅と全体バフで同じ音を鳴らすと、何が起きたのかが音から分からない。
+	SfxPlayer.play_sfx(recipe)
 	if _formation_cutin != null and _formation_cutin.play(recipe):
 		await _formation_cutin.finished
-	SfxPlayer.play_event("map_formation_hit")
+	SfxPlayer.play_sfx("%s_hit" % recipe)
 	_update_aura()
 
 func _update_turn_plate(team: int, turn_number: int) -> void:
