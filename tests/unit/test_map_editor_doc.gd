@@ -276,6 +276,19 @@ func test_add_and_remove_units() -> void:
 	assert_true(doc.unit_at(3, 1).is_empty())
 
 
+func test_move_base_at_carries_the_defeat_target() -> void:
+	var doc := _doc_with_base()
+	doc.add_base(6, 2, "neutral", "fort")
+	doc.add_defeat_lose_base(3, 2)
+	assert_false(doc.move_base_at(3, 2, 6, 2), "拠点のあるマスへは動かせない")
+	assert_false(doc.move_base_at(3, 2, 99, 0), "盤外へは動かせない")
+	assert_false(doc.move_base_at(0, 0, 5, 4), "拠点のないマスからは動かせない")
+	assert_true(doc.move_base_at(3, 2, 5, 4))
+	assert_true(doc.base_at(5, 4).size() > 0, "動いた先に拠点がある")
+	var t: Dictionary = MapEditorDoc.lose_base_targets(doc.defeat_list()[0])[0]
+	assert_eq([int(t["col"]), int(t["row"])], [5, 4], "防衛対象の座標も連れて動く")
+
+
 func test_move_unit_at() -> void:
 	var doc := MapEditorDoc.from_text(SAMPLE)
 	assert_true(doc.move_unit_at(1, 1, 2, 2), "空きマスへは動かせる")

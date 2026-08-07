@@ -364,8 +364,7 @@ func _rebuild_mode() -> void:
 		"outcome":
 			_build_outcome_panel()
 		"base":
-			_add_hint(_mode_box, "左クリック＝設置（拠点の上なら、その拠点を選んで下で編集）\n右クリック＝拠点を削除。\n"
-				+ "下の3つは「これから置く拠点」の設定。既存の拠点は選んでから下段で編集する。")
+			_add_hint(_mode_box, "左クリック＝設置 or 選択\n右クリック＝削除\nドラッグ＝移動")
 			_mode_box.add_child(_labeled_option("所属", TEAM_LABELS.keys(), TEAM_LABELS.values(), _base_team,
 				func(k: String) -> void: _base_team = k))
 			_mode_box.add_child(_labeled_option("種別", KIND_LABELS.keys(), KIND_LABELS.values(), _base_kind,
@@ -924,6 +923,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 				else:
 					_say("(%d, %d) の拠点を選びました（下で控えなどを編集できます）。" % [col, row])
 				_select_base(col, row)
+				_press_cell = Vector2i(col, row)  # 掴んだ＝そのままドラッグで動かせる
 			else:
 				if _doc.remove_base_at(col, row):
 					_board.refresh()
@@ -942,24 +942,32 @@ func _on_cell_dragged(col: int, row: int, button: int) -> void:
 		_paint(col, row, button)
 
 
-## 「自軍」「敵」モードの左ドラッグ＝掴んだ駒を離したマスへ動かす。
-## 動かせるのは駒だけ（拠点はドラッグしない）。掴めていないときは何もしない。
+## 左ドラッグ＝掴んだものを離したマスへ動かす（「自軍」「敵」＝駒／「拠点」＝拠点）。
+## 掴めていないときは何もしない。
 func _on_cell_released(col: int, row: int, button: int) -> void:
 	var from := _press_cell
 	_press_cell = MapEditorBoard.OUTSIDE
 	if button != MOUSE_BUTTON_LEFT or from == MapEditorBoard.OUTSIDE:
 		return
-	if _mode != "player" and _mode != "enemy":
-		return
 	var to := Vector2i(col, row)
 	if to == from:
 		return  # 掴んで同じマスで離した＝ただのクリック
-	if _doc.move_unit_at(from.x, from.y, to.x, to.y):
-		_board.refresh()
-		_select_unit(to.x, to.y)
-		_say("駒を (%d, %d) → (%d, %d) へ動かしました。" % [from.x, from.y, to.x, to.y])
-	else:
-		_say("(%d, %d) へは動かせません（外周か、既に駒があります）。" % [to.x, to.y])
+	match _mode:
+		"player", "enemy":
+			if _doc.move_unit_at(from.x, from.y, to.x, to.y):
+				_board.refresh()
+				_select_unit(to.x, to.y)
+				_say("駒を (%d, %d) → (%d, %d) へ動かしました。" % [from.x, from.y, to.x, to.y])
+			else:
+				_say("(%d, %d) へは動かせません（外周か、既に駒があります）。" % [to.x, to.y])
+		"base":
+			if _doc.move_base_at(from.x, from.y, to.x, to.y):
+				_board.refresh()
+				_select_base(to.x, to.y)
+				_refresh_defeat()  # 防衛対象の座標も連れて動く＝一覧の表示を合わせる
+				_say("拠点を (%d, %d) → (%d, %d) へ動かしました。" % [from.x, from.y, to.x, to.y])
+			else:
+				_say("(%d, %d) へは動かせません（外周か、既に拠点があります）。" % [to.x, to.y])
 
 
 ## いま塗る内容 [地形の文字, skin_id]。右クリックは既定地形＋差分なしに戻す。

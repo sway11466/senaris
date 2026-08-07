@@ -396,6 +396,24 @@ func add_base(col: int, row: int, team: String, kind: String, ai: String = "") -
 	return true
 
 
+## 拠点を別のマスへ動かす。外周・盤外や、既に拠点があるマスへは動かせない。
+## 名指ししていた敗北条件(lose_base)の座標も連れて動く＝指す先が消えたことにしない。
+func move_base_at(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
+	if not in_board(to_col, to_row):
+		return false
+	var hit := base_at(from_col, from_row)
+	if hit.is_empty() or not base_at(to_col, to_row).is_empty():
+		return false
+	hit["base"]["col"] = to_col
+	hit["base"]["row"] = to_row
+	for c in defeat_list():
+		for t in lose_base_targets(c):
+			if _is_target_at(t, from_col, from_row):
+				t["col"] = to_col
+				t["row"] = to_row
+	return true
+
+
 ## 駒を別のマスへ動かす（拠点は動かさない）。外周・盤外や、既に駒がいるマスへは動かせない。
 func move_unit_at(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
 	if not in_board(to_col, to_row):
