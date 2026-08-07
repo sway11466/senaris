@@ -262,11 +262,11 @@
 
 ### feature-32
 
-**陣形スキル・ユニットスキルの効果音を作る**（優先度：中）
+**残りの陣形スキルとユニットスキルの効果音を作る**（優先度：中）
 
-- 背景：発火点（`map_formation`＝発動の頭／`map_formation_hit`＝効果が届いた瞬間／`map_skill`＝ユニットスキル発動）を呼ぶ配線は入っているが、素材が無い。`sfx_catalog.gd` の `BIND` は「素材がある発火点だけ載せる」表で、載っていない発火点は無音で進む設計なので、いまは黙って何も鳴らない（壊れてはいない）。看板機能の発動が無音なのは手応えとして弱い。
-- 対応：MuseScore ＋ Muse Sounds で自作 → `tools/gen_sfx.ps1` で `.ogg` 化（`victory`／`defeat` スティンガーで実証済みの手順）。作ったら `BIND` に1行ずつ足すだけで鳴る。音の性格は、陣形＝詠唱が結実する重い一撃、`map_formation_hit`＝着弾（陣形は戦闘演出シーンを通らないので `cmb_hit` は借りない）、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。
-- 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`BIND`）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
+- 背景：三重詠唱（`trinity_spell`）は発射・着弾とも入ったが、`holy_aria`（全体バフ）と `divine_judgment`（単体狙撃）、それに `map_skill`（ユニットスキル発動）が無音のまま。呼び出しは入っていて素材だけが無い状態なので、置けば鳴る。看板機能の発動が無音なのは手応えとして弱い。
+- 対応：陣形はレシピIDの規約解決＝`assets/sfx/{recipe_id}.ogg`（発動）と `{recipe_id}_hit.ogg`（着弾）を置くだけ（`BIND` は使わない）。`map_skill` は `BIND` に1行足す。音の性格は `holy_aria`＝澄んだ和音で、着弾ではなく発効、`divine_judgment`＝遠くまで届く一条で着弾は点で鋭く、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。三重詠唱は物音の素材から採ったが、この2つは MuseScore ＋ Muse Sounds で作るほうが合うかもしれない（`victory`／`defeat` スティンガーで実証済みの手順）。
+- 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`map_skill` のみ）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
 
 ### feature-34
 
