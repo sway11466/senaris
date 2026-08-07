@@ -267,9 +267,9 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 |---|---|---|
 | `ground` 系 | `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
 | `light_foot` | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` の歩き1歩 | 2017 p8 / Tovusound - Extended Footsteps |
-| `flight` | 適当な素材が無い。下記 | |
+| `flight` | `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav` の3テイク目 | 2020 p13 / Systematic-Sound - Modern Cloth Foley 01 |
 
-どちらも草の上の1歩で、重い側はブーツ、軽い側はスニーカー。同じ地面で靴だけが違うので、踏み替えても地形が変わったようには聞こえない。軽い側は基準より 3 dB 下げて置いている（上記の音量基準）。
+足音2つはどちらも草の上の1歩で、重い側はブーツ、軽い側はスニーカー。同じ地面で靴だけが違うので、踏み替えても地形が変わったようには聞こえない。軽い側は基準より 3 dB 下げて置いている（上記の音量基準）。
 
 `light_foot` の原本は Walk / Run / Jog が続けて入った24.5秒・約50歩のファイルなので、歩きの部分から1歩だけ切り出している。同じ用途で見た Levan Nadashvili - Civilian Footsteps の土・木の1歩は試聴して不採用。
 
@@ -338,13 +338,16 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `map_board` は木の打撃音に軋みを重ねて作る。輸送ユニットの移動音を将来個別に持たせる場合は、2023 p2 の Dramatic Cat - Horse Carriage に `VEHWagn_Wood Cart Roll On Stone Pavement In Courtyard 03`（荷馬車が石畳を進む音）と馬の足音が揃っている。
 
-### バンドルで賄えないもの
+### バンドルに録音が無かったもの
 
-探して見つからなかったものを記録する。次に探すときの手がかりになる。
+名前で引いても出てこなかったものと、代わりに何を当てたかを記録する。次に探すときの手がかりになる。
 
-- 羽ばたき（`map_move` の `flight`）。実用になるのは 2019 p6 / Soundmind - Predatory Birds の `PRB315 Northern Goshawk` 1本だけで、鳴き声と羽ばたきが同一ファイルに同居しており切り出しが要る。`map_capture` に採用した布の音を短く切って連打するほうが早い。
-- 投石の発射音。古代のスリング（投げ紐）は無い。近いのは 2018 p3 / Eiravaein Works - Vaeyan IV のゴム式パチンコ1本だが音が違う。布を鋭く振る音を自録りするのが現実的。着弾側は候補が揃っている。
+- 羽ばたき（`map_move` の `flight`）。索引を wing / flap / flutter で引いても、鳥・こうもりで出るのは鳴き声と環境音だけ。上着を振る布の音（Modern Cloth Foley の Whoosh Flutter）を当てた。布が空気を打つ音は羽ばたきとして通る。
+- 投石の発射音。古代のスリング（投げ紐）は無い。紐を速く振り回すロープの風切りを当てた。スリングは実際に紐を振り回して投げるものなので、質感が直接あたる。
+- 爪（`claw`）。claw で引いて出るのは動物の足音ライブラリだけ。板金鎧を叩く音を当てた。
 - 旗のはためき単体。録音そのものが無いため、布の小物音で代用する（`map_capture` で採用済み）。
+
+いずれも「その物の録音」ではなく「同じ物理現象の録音」で代えている。名前で見つからないときは、何が音を出しているのかまで戻して引き直す。
 
 ## データ形式・ディレクトリ
 

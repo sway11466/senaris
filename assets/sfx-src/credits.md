@@ -41,6 +41,7 @@
 | `magic_bolt_hit` | 魔弾の着弾 | Sonniss GDC 2020 / David Dumais Audio - Magic Sound FX Pack 1 `Magic_Explosion_Short19` | wav 44.1kHz/24bit | 同上 | 切り出しなし、-8.5 dB。magic_bolt_hit_recipe.txt |
 | `claw` | 爪痕 | Sonniss GDC 2017 / Double Trouble Audio - Medieval Armor and Impacts `Plate_Impact_Hard_02` | wav 96kHz/24bit | 同上 | 切り出しなし、-8.6 dB。claw_recipe.txt |
 | `cmb_hit_none` | 弾き返す音（損害0） | Sonniss GDC 2017 / Double Trouble Audio - Medieval Armor and Impacts `Weapon_Impact_Parry_01` | wav 96kHz/24bit | 同上 | 切り出しなし、-8.7 dB。cmb_hit_none_recipe.txt |
+| `move_flight` | 羽ばたき。flight の移動 | Sonniss GDC 2020 / Systematic-Sound - Sound Themes - Modern Cloth Foley 01 `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter` | wav 96kHz/24bit | 同上 | 7テイク中3本目の中心（5.94〜6.36秒）、-9.0 dB。move_flight_recipe.txt |
 | `trinity_spell` | 三重詠唱の発射 | Sonniss GDC 2018 / Gamemaster Audio - Magic and Spell Sounds `water_blast_projectile_spell_03` | wav 96kHz/24bit | 同上 | 切り出しなし、-9.0 dB。trinity_spell_recipe.txt |
 | `trinity_spell_hit` | 三重詠唱の着弾 | Sonniss GDC 2020 / David Dumais Audio - Spells Magic 1 `Magic_Spells_Impact_Creation20` | wav 96kHz/24bit | 同上 | 切り出しなし、-9.0 dB。trinity_spell_hit_recipe.txt |
 | `move_light_foot` | 足音（軽）。light_foot の移動 | Sonniss GDC 2017 / Tovusound - Edward Foleyart Add-On Extended Footsteps `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close` | wav 96kHz/24bit | 同上 | 歩きの1歩（0.976〜1.29秒）、+8.9 dB。狙いは -12 dBFS。move_light_foot_recipe.txt |
