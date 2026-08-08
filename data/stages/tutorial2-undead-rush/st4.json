@@ -357,6 +357,9 @@
       { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.intro.7" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.10" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st4.intro.9" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.11" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.intro.12" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.13" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.intro.4" }
     ],
     "outro": [
