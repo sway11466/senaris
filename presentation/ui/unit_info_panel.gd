@@ -12,6 +12,9 @@ class_name UnitInfoPanel
 const SEPARATOR := "──────────────────────"
 const NONE := "—"
 const TAB_MIN_W := 96.0  # タブ1枚の最低幅（戦闘レポートと同じ考え方）
+## 項目名の欄の幅。タブをまたいで同じ値を使う＝どのタブでも値の頭が同じ位置に並ぶ。
+## 空白で桁合わせしないのは、看板のフォントが等幅でないため（文字数を数えても揃わない）。
+const LABEL_W := 88.0
 
 ## タブ＝[id, 見出し]。id は _tab_lines の分岐と合わせる。
 const TABS := [["ability", "能力"], ["status", "状態"], ["terrain", "地形"]]
@@ -24,6 +27,7 @@ var _tabs_row: HBoxContainer
 var _tabs := {}         # id -> Button
 var _tab := "ability"   # いま選んでいるタブ。駒を選び直しても保つ＝同じ観点で駒を見比べられる
 var _shown_unit := -1   # タブ表示中の駒（タブを押したときに描き直す相手）。-1＝素のテキスト表示中
+var _rows: VBoxContainer  # ユニット表示の「項目名／値」2列。素のテキスト表示のときは引っ込める
 var _label: Label
 var _report: CombatReportView  # 戦闘レポート（サマリー/詳細タブ）。戦闘時だけ _label と入れ替えて表示
 var _notify_token := 0  # 一時通知の世代。待っている間に別の表示へ変わったら戻さないための印
@@ -60,6 +64,13 @@ func _ready() -> void:
 		b.pressed.connect(_on_tab_pressed.bind(String(t[0])))
 		_tabs_row.add_child(b)
 		_tabs[String(t[0])] = b
+	# ユニット表示は「項目名／値」の2列。値を同じ位置から始めるので、行ごとの控えではなく
+	# 幅を決めた欄に入れる（Label 1枚に空白で詰めても等幅フォントでないため揃わない）。
+	_rows = VBoxContainer.new()
+	_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_rows.add_theme_constant_override("separation", 4)
+	_rows.hide()
+	box.add_child(_rows)
 	_label = Label.new()
 	_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
@@ -99,8 +110,9 @@ func show_unit(unit_id: int) -> void:
 	var b: Button = _tabs[_tab]
 	b.button_pressed = true
 	_tabs_row.show()
-	_label.text = _tab_text(u, _tab)
-	_label.show()
+	_label.hide()
+	_rebuild_rows(u, _tab)
+	_rows.show()
 
 ## タブを押した＝表示中の駒をそのタブで描き直す。
 func _on_tab_pressed(id: String) -> void:
@@ -137,6 +149,7 @@ func _show_text(text: String) -> void:
 	_shown_unit = -1
 	_header.hide()
 	_tabs_row.hide()
+	_rows.hide()
 	_label.text = text
 	_label.show()
 
@@ -192,75 +205,99 @@ func _header_text(u: Unit) -> String:
 			lines.append("兵種  %s" % category)
 	return "\n".join(lines)
 
-## タブ1枚ぶんの本文。1行1項目。
-func _tab_text(u: Unit, tab: String) -> String:
+# --- タブの中身（項目名／値の2列）。値の頭は LABEL_W でタブをまたいで揃う ---
+
+## いま選んでいるタブの行を組み直す。
+func _rebuild_rows(u: Unit, tab: String) -> void:
+	for c in _rows.get_children():
+		_rows.remove_child(c)  # queue_free 待ちの旧行が新行と同居して1フレーム崩れるのを避ける
+		c.queue_free()
 	match tab:
 		"status":
-			return "\n".join(_status_lines(u))
+			_build_status(u)
 		"terrain":
-			return "\n".join(_terrain_lines(u))
-	return "\n".join(_ability_lines(u))
+			_build_terrain(u)
+		_:
+			_build_ability(u)
+
+## 項目1つ＝「項目名（幅固定）／値」の1行。
+func _add_row(label: String, value: String) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	var l := Label.new()
+	l.text = label
+	l.custom_minimum_size = Vector2(LABEL_W, 0)
+	row.add_child(l)
+	var v := Label.new()
+	v.text = value
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.add_child(v)
+	_rows.add_child(row)
+
+## 幅いっぱいの1行（区切り線・控えの箇条書きなど、項目名／値に割れないもの）。
+func _add_full_row(text: String) -> void:
+	var l := Label.new()
+	l.text = text
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_rows.add_child(l)
 
 ## 能力＝駒そのものの性能（盤の状況で変わらない値）。
-func _ability_lines(u: Unit) -> Array[String]:
-	var lines: Array[String] = []
-	lines.append("兵数  %d / %d" % [u.troops, u.max_troops])
-	lines.append("Lv  %d" % u.level)
-	lines.append("対地攻撃  %d" % u.unit_attack)
-	lines.append("対空攻撃  %s" % (str(u.atk_air) if u.atk_air > 0 else NONE))
-	lines.append("防御  %d" % u.unit_defense)
-	lines.append("移動  %d" % u.move)
-	lines.append("移動種別  %s" % Movement.display_name(u.move_type))
-	lines.append("射程  %s" % (str(u.attack_range) if u.min_range == u.attack_range \
-		else "%d-%d" % [u.min_range, u.attack_range]))
-	# 飛行は「移動種別」の行がそのまま示すので特性には並べない（同じことを二度書かない）。
+func _build_ability(u: Unit) -> void:
+	_add_row("兵数", "%d / %d" % [u.troops, u.max_troops])
+	_add_row("Lv", str(u.level))
+	_add_row("対地攻撃", str(u.unit_attack))
+	_add_row("対空攻撃", str(u.atk_air) if u.atk_air > 0 else NONE)
+	_add_row("防御", str(u.unit_defense))
+	_add_row("移動", str(u.move))
+	_add_row("移動種別", Movement.display_name(u.move_type))
+	_add_row("射程", str(u.attack_range) if u.min_range == u.attack_range \
+		else "%d-%d" % [u.min_range, u.attack_range])
+	# 特性は「他の行を見ても分からないこと」だけ並べる。飛行は「移動種別」、遠隔・近接不可は
+	# 「射程」がそのまま示すので置かない（同じことを二度書かない）。詳細 → doc/gdd/units.md
 	var traits: Array[String] = []
+	if u.pierce > 0.0:
+		traits.append("防御貫通%d%%" % roundi(u.pierce * 100.0))  # 魔法兵50%＝相手の防御を半分無視
 	if u.can_capture:
 		traits.append("占領可")
 	if u.move_after_attack:
-		traits.append("攻撃後移動")
-	if u.attack_range >= 2:
-		traits.append("遠隔(距離2+は反撃なし)")
-	if u.min_range >= 2:
-		traits.append("近接不可(懐に死角)")
+		traits.append("攻撃後再移動")
 	for t in traits:
-		lines.append("特性  %s" % t)
-	return lines
+		_add_row("特性", t)
 
 ## 状態＝このターン何ができるか＋いま効いているバフ・デバフ。
 ## 包囲は地形ではなく「隣の敵に囲まれて弱っている」＝デバフなのでここに置く。
-func _status_lines(u: Unit) -> Array[String]:
-	var lines: Array[String] = []
-	lines.append("行動  %s" % _action_state(u))
-	_add_separator(lines)
+func _build_status(u: Unit) -> void:
+	_add_row("行動", _action_state(u))
+	_add_full_row("")
+	_add_full_row(SEPARATOR)
 	var mods := _state.status_mods_for(u)
 	var surround := Surround.factor(_state, u)
 	if mods.is_empty() and surround >= 1.0:
-		lines.append("バフ・デバフ  なし")
-		return lines
+		_add_row("補正", "なし")
+		return
 	# 表記は戦闘レポートと共通＝名前 攻/防 の順。
 	for m in mods:
-		lines.append("補正  %s" % CombatReportView.status_text(m))
+		_add_row("補正", CombatReportView.status_text(m))
 	if surround < 1.0:
-		lines.append("包囲  ×%.2f（攻防とも弱体化）" % surround)
-	return lines
+		_add_row("包囲", "×%.2f（攻防とも弱体化）" % surround)
 
 ## 地形＝いるマスの影響（拠点に乗っていればその情報も）。
-func _terrain_lines(u: Unit) -> Array[String]:
+func _build_terrain(u: Unit) -> void:
 	var terr := _state.terrain_at(u.pos)
-	var lines: Array[String] = []
-	lines.append("地形  %s" % _terrain_name(u.pos, terr))
-	lines.append("攻撃補正  ×%.2f" % TerrainType.attack_factor(terr))
-	lines.append("防御補正  ×%.2f" % TerrainType.defense_factor(terr))
+	_add_row("地形", _terrain_name(u.pos, terr))
+	_add_row("攻撃補正", "×%.2f" % TerrainType.attack_factor(terr))
+	_add_row("防御補正", "×%.2f" % TerrainType.defense_factor(terr))
 	var b := _state.base_at(u.pos)
-	if b != null:
-		_add_separator(lines)
-		lines.append("%s  所属:%s" % ["本拠地" if b.is_hq() else "拠点",
-			"中立" if b.team < 0 else ("自軍" if b.team == 0 else "敵軍")])
-		lines.append("控え  %d体" % b.garrison.size())
-		for gu in b.garrison:
-			lines.append("  ・%s" % _garrison_line(gu, b))
-	return lines
+	if b == null:
+		return
+	_add_full_row("")
+	_add_full_row(SEPARATOR)
+	_add_row("本拠地" if b.is_hq() else "拠点",
+		"中立" if b.team < 0 else ("自軍" if b.team == 0 else "敵軍"))
+	_add_row("控え", "%d体" % b.garrison.size())
+	for gu in b.garrison:
+		_add_full_row("  ・%s" % _garrison_line(gu, b))
 
 ## 行動状態の短い説明。
 func _action_state(u: Unit) -> String:
