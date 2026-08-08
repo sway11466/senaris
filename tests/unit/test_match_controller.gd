@@ -19,7 +19,7 @@ func _mc(s: BattleState) -> MatchController:
 	watch_signals(mc)
 	return mc
 
-# 三重詠唱の成立盤（test_formation.gd と同じ配置）。敵 id9 は def 低め＝撃破される。
+# トリニティスペルの成立盤（test_formation.gd と同じ配置）。敵 id9 は def 低め＝撃破される。
 func _trinity_spell_state(s: BattleState, enemy_def := 1) -> Dictionary:
 	var c := Hex.offset_to_axial(3, 3)
 	var w1 := Unit.new(1, 0, c, 3, 8, 40, 30, 1, "wizard")
@@ -34,7 +34,7 @@ func _trinity_spell_state(s: BattleState, enemy_def := 1) -> Dictionary:
 
 func _formation_cmd(s: BattleState, leader: Unit, target: Vector2i) -> FormationCommand:
 	var opts := Formation.available_for(s, leader)
-	assert_eq(opts.size(), 1, "前提: 三重詠唱が検出される")
+	assert_eq(opts.size(), 1, "前提: トリニティスペルが検出される")
 	return FormationCommand.new(opts[0], target)
 
 # --- _finished ラッチ（決着後は全コマンドが no-op） ---

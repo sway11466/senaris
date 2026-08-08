@@ -207,16 +207,16 @@ func test_dread_offered_by_ghost_alone() -> void:
 	assert_false(o.is_empty(), "ゴースト単独で成立する")
 	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
 	assert_true(bool(o["after_move"]), "移動後でも撃てる")
-	assert_true(bool(o["buff_harmful"]), "有害な補正＝浄化が落とす対象")
+	assert_true(bool(o["buff_harmful"]), "有害な補正＝ピュリファイが落とす対象")
 
-## ピクシー性能を借りているだけなので、妖精の粉は撃てない（照合はスキンID）。
+## ピクシー性能を借りているだけなので、ピクシーダストは撃てない（照合はスキンID）。
 func test_ghost_cannot_cast_pixie_dust() -> void:
 	var f := _dread_state()
 	var found := false
 	for o in Formation.available_for(f["s"], f["ghost"]):
 		if String(o["recipe"]) == "pixie_dust":
 			found = true
-	assert_false(found, "ゴーストは妖精の粉を撃てない")
+	assert_false(found, "ゴーストはピクシーダストを撃てない")
 
 func test_dread_targets_adjacent_enemy_only() -> void:
 	var f := _dread_state()
@@ -263,7 +263,7 @@ func test_dread_expires_after_one_round() -> void:
 	s.end_turn()  # 次の発動側ターンへ＝満了
 	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before, 0.001, "次の発動側ターン開始で切れる")
 
-# --- ③浄化（有害な補正の解除）---
+# --- ③ピュリファイ（有害な補正の解除）---
 
 # プリースト＋隣接する味方＋離れた味方＋隣接する敵。leader=priest(id1)。
 func _purify_state() -> Dictionary:
@@ -283,12 +283,12 @@ func _purify_option(f: Dictionary) -> Dictionary:
 			return o
 	return {}
 
-## near に有害な弱体（ドレッドタッチ相当）と無害な強化（妖精の粉相当）を1つずつ掛ける。
+## near に有害な弱体（ドレッドタッチ相当）と無害な強化（ピクシーダスト相当）を1つずつ掛ける。
 func _afflict(s: BattleState, u: Unit) -> void:
 	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
 		"value": -80.0, "owner_team": 1, "remaining": 1, "name": "ドレッドタッチ", "harmful": true})
 	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
-		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "妖精の粉", "harmful": false})
+		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "ピクシーダスト", "harmful": false})
 
 func test_purify_offered_by_clergy_alone() -> void:
 	var f := _purify_state()
@@ -325,7 +325,7 @@ func test_purify_drops_harmful_and_keeps_buff() -> void:
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "弱体だけ落ちて強化は残る")
 	assert_almost_eq(float(s.status_aggregate(near, "defense")["add"]), 80.0, 0.001, "防御側も同じ")
 
-## 掛けられた数がいくつでも1回の発動で全部落ちる（毒牙が3本刺さっていても1回で済む）。
+## 掛けられた数がいくつでも1回の発動で全部落ちる（ヴェノムファングが3本刺さっていても1回で済む）。
 func test_purify_drops_every_harmful_at_once() -> void:
 	var f := _purify_state()
 	var s: BattleState = f["s"]
@@ -350,7 +350,7 @@ func test_purify_touches_only_the_target() -> void:
 	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "対象の弱体は落ちる")
 	assert_almost_eq(float(s.status_aggregate(far, "attack")["add"]), 0.0, 0.001, "離れた味方の弱体は残る")
-	assert_almost_eq(float(s.status_aggregate(near, "attack")["mul"]), 0.7, 0.001, "陣営全体の補正は1人の浄化では落ちない")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["mul"]), 0.7, 0.001, "陣営全体の補正は1人のピュリファイでは落ちない")
 
 func test_purify_consumes_the_casters_action() -> void:
 	var f := _purify_state()

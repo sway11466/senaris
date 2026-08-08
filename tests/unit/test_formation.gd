@@ -1,11 +1,11 @@
 extends GutTest
-## 陣形スキル（スライスA＝フレームワーク＋①三重詠唱）の検出・威力・適用を検証する。
+## 陣形スキル（スライスA＝フレームワーク＋①トリニティスペル）の検出・威力・適用を検証する。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 
 func _state() -> BattleState:
 	return BattleState.new(12, 8)
 
-## そのレシピの選択肢だけを数える。聖職は浄化（ユニットスキル）も単独で撃てるので、
+## そのレシピの選択肢だけを数える。聖職はピュリファイ（ユニットスキル）も単独で撃てるので、
 ## 選択肢の総数で陣形スキルの成立を判定すると混ざる。詳細 → doc/gdd/skills.md
 func _count(opts: Array, recipe: String) -> int:
 	var n := 0
@@ -25,7 +25,7 @@ func _pick(opts: Array, recipe: String) -> Dictionary:
 func _triangle(c: Vector2i) -> Array:
 	return [c, Hex.neighbor(c, 0), Hex.neighbor(c, 1)]
 
-# 三重詠唱の成立盤：wizard 3体が三角形＋離れた位置に敵1体。leader=id1。
+# トリニティスペルの成立盤：wizard 3体が三角形＋離れた位置に敵1体。leader=id1。
 func _trinity_spell_state(enemy_def := 20) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -45,7 +45,7 @@ func _trinity_spell_state(enemy_def := 20) -> Dictionary:
 func test_available_detects_trinity_spell_triangle() -> void:
 	var f := _trinity_spell_state()
 	var opts := Formation.available_for(f["s"], f["leader"])
-	assert_eq(opts.size(), 1, "三角形の三重詠唱が1つ検出される")
+	assert_eq(opts.size(), 1, "三角形のトリニティスペルが1つ検出される")
 	var o: Dictionary = opts[0]
 	assert_eq(String(o["recipe"]), "trinity_spell", "レシピは trinity_spell")
 	assert_eq((o["participants"] as Array).size(), 3, "参加3体")
@@ -62,7 +62,7 @@ func test_no_triangle_when_not_adjacent() -> void:
 	assert_eq(Formation.available_for(s, w1).size(), 0, "三角形にならなければ検出0")
 
 func test_leader_type_gates_recipe() -> void:
-	# クレリックを選んでも三重詠唱（魔法兵）は出ない。
+	# クレリックを選んでもトリニティスペル（魔法兵）は出ない。
 	var f := _trinity_spell_state()
 	var cleric := Unit.new(20, 0, Hex.offset_to_axial(1, 1), 3, 8, 20, 20, 1, "cleric")
 	f["s"].add_unit(cleric)
@@ -156,7 +156,7 @@ func test_holy_aria_lasts_one_round() -> void:
 	s.end_turn()  # 次の自軍ターンへ＝ここで満了
 	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before, 1.0, "次の自軍ターン開始で切れる")
 
-# ③神の裁きの成立盤：paladin＋聖職2の三角形＋射程内(距離 enemy_dist)の敵1体。leader=paladin(id1)。
+# ③ディバインジャッジメントの成立盤：paladin＋聖職2の三角形＋射程内(距離 enemy_dist)の敵1体。leader=paladin(id1)。
 func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -173,14 +173,14 @@ func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 func test_divine_judgment_offered() -> void:
 	var f := _judgment_state()
 	var opts := Formation.available_for(f["s"], f["leader"])
-	assert_eq(opts.size(), 1, "神の裁きが検出される")
+	assert_eq(opts.size(), 1, "ディバインジャッジメントが検出される")
 	var o: Dictionary = opts[0]
 	assert_eq(String(o["recipe"]), "divine_judgment", "レシピは divine_judgment")
 	assert_eq(String(o["effect"]), "single", "単体効果")
 	assert_eq(int(o["range"]), 10, "射程10")
 
 func test_divine_judgment_leader_must_be_paladin() -> void:
-	# 聖職を選んでも神の裁きは出ない（発動者はパラディンのみ）。
+	# 聖職を選んでもディバインジャッジメントは出ない（発動者はパラディンのみ）。
 	var f := _judgment_state()
 	var cleric: Unit = f["s"].unit_by_id(2)
 	assert_eq(_count(Formation.available_for(f["s"], cleric), "divine_judgment"), 0, "発動者がパラディンでなければ未提示")

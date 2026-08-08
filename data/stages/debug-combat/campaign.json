@@ -3,6 +3,6 @@
   "title": "デバッグ：戦闘補正",
   "debug": true,
   "stages": [
-    { "id": "skill", "file": "skill.json", "title": "ユニットスキル（妖精の粉）" }
+    { "id": "skill", "file": "skill.json", "title": "ユニットスキル（ピクシーダスト）" }
   ]
 }

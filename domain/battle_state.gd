@@ -84,9 +84,9 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
-## unit に掛かっている有害な状態補正を落とす（③浄化）。落とした件数を返す。
+## unit に掛かっている有害な状態補正を落とす（③ピュリファイ）。落とした件数を返す。
 ## 落とすのは harmful が立っていて対象1体（scope="unit"）のものだけ＝味方から掛かった
-## 強化（妖精の粉）は残り、陣営全体に掛かった補正を1人の浄化で消すこともない。
+## 強化（ピクシーダスト）は残り、陣営全体に掛かった補正を1人のピュリファイで消すこともない。
 ## 詳細 → doc/gdd/skills.md
 func clear_harmful_status(unit: Unit) -> int:
 	var kept: Array = []
@@ -725,7 +725,7 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
 		add_status_mod(_buff_entry(option, target))
-	# 浄化（③）は積むのではなく落とす。同じく着弾は起きない＝results空・経験0。
+	# ピュリファイ（③）は積むのではなく落とす。同じく着弾は起きない＝results空・経験0。
 	elif String(option["effect"]) == "cleanse":
 		var cleansed := unit_at(target)  # can_target が味方の存在を保証済み
 		if cleansed != null:
@@ -764,10 +764,10 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	return {"recipe": option["recipe"], "results": results}
 
 ## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
-## （ユニットスキル＝buff_scope "unit"・target のhexに居る駒。味方＝妖精の粉／敵＝ドレッドタッチ）の両方を作る。
+## （ユニットスキル＝buff_scope "unit"・target のhexに居る駒。味方＝ピクシーダスト／敵＝ドレッドタッチ）の両方を作る。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
-	# 発動者の兵1人あたりで効くレシピ（妖精の粉・ドレッドタッチ）は、発動時の残兵数を掛けて
+	# 発動者の兵1人あたりで効くレシピ（ピクシーダスト・ドレッドタッチ）は、発動時の残兵数を掛けて
 	# 値を焼き込む。以後は発動者と切り離される＝掛けた側が損耗しても倒されても補正は変わらない。
 	# 弱体は負値（ドレッドタッチ＝-10/兵）なので、0 以外かどうかで判定する。
 	var value := float(option.get("buff_value", 1.0))
@@ -783,7 +783,7 @@ func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 		"remaining": int(option.get("duration_turns", 1)),
 		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
 		"fx": String(option.get("buff_fx", "")),  # 盤の見た目（presentation が読む。空＝見た目なし）
-		# 有害な補正か。浄化（ピュリファイ）が落とす対象をこれで決める＝値の符号から推測しない。
+		# 有害な補正か。ピュリファイが落とす対象をこれで決める＝値の符号から推測しない。
 		"harmful": bool(option.get("buff_harmful", false)),
 	}
 	if String(option.get("buff_scope", "team")) == "unit":

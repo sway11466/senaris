@@ -700,7 +700,7 @@ func _formation_target_cells(option: Dictionary) -> Array:
 		for h in Hex.within_range(o, rng):
 			if _on_board(h):
 				in_range[h] = true
-	# ユニットスキル（対象1体）は駒の居るhexだけ。味方向き（妖精の粉・浄化）は自分自身も選べ、
+	# ユニットスキル（対象1体）は駒の居るhexだけ。味方向き（ピクシーダスト・ピュリファイ）は自分自身も選べ、
 	# 敵向き（buff_side="enemy"）は敵の居るhexだけ＝Formation.can_target と同じ絞り込みにする。
 	var buff_unit := String(option.get("buff_scope", "")) == "unit"
 	var want_enemy := String(option.get("buff_side", "ally")) == "enemy"

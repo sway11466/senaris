@@ -12,7 +12,7 @@ class_name StatusMod
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
 ##   owner_team / remaining: 持続管理（残り自軍ターン数。BattleState.end_turn が減算）
 ##   name: String … 表示名（例: "ホーリーアリア"）。表示専用・省略可（name 無しの旧セーブも読める）
-##   harmful: bool … 有害な補正か（浄化が落とす対象）。省略＝false。値の符号からは判断しない
+##   harmful: bool … 有害な補正か（ピュリファイが落とす対象）。省略＝false。値の符号からは判断しない
 ##     ＝「攻撃は下がるが防御は上がる」ようなスキルで破綻するため。詳細 → doc/gdd/skills.md
 
 ## mods のうち unit の target（"attack"/"defense"）に効くものを合成する。
@@ -42,7 +42,7 @@ static func applied(mods: Array, unit: Unit) -> Array:
 			out.append(m)
 	return out
 
-## エントリ m が unit に効くか（scope 判定）。集計と表示だけでなく、浄化が落とす対象の
+## エントリ m が unit に効くか（scope 判定）。集計と表示だけでなく、ピュリファイが落とす対象の
 ## 選別（BattleState.clear_harmful_status）も同じ判定を使う＝ずれない。
 static func applies_to(m: Dictionary, unit: Unit) -> bool:
 	match String(m.get("scope", "")):

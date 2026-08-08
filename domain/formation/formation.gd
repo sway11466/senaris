@@ -5,7 +5,7 @@ class_name Formation
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
-## ①三重詠唱(area)＋③神の裁き(single)＝ダメージ系／②ホーリーアリア(buff)＝状態補正（乗算・全体・持続）。
+## ①トリニティスペル(area)＋③ディバインジャッジメント(single)＝ダメージ系／②ホーリーアリア(buff)＝状態補正（乗算・全体・持続）。
 ## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
@@ -22,7 +22,7 @@ class_name Formation
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 const RECIPES := {
 	"trinity_spell": {
-		"name": "三重詠唱",
+		"name": "トリニティスペル",
 		"leader_skins": ["wizard", "witch"],
 		"member_skins": ["wizard", "witch"],
 		"shape": "triangle",
@@ -33,7 +33,7 @@ const RECIPES := {
 		"range_from": "any",
 	},
 	"divine_judgment": {
-		"name": "神の裁き",
+		"name": "ディバインジャッジメント",
 		"leader_skins": ["paladin"],
 		"member_skins": ["cleric", "priest", "bishop"],
 		"shape": "triangle",
@@ -57,7 +57,7 @@ const RECIPES := {
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md
 	"pixie_dust": {
-		"name": "妖精の粉",
+		"name": "ピクシーダスト",
 		"leader_skins": ["pixie"],
 		"member_skins": [],
 		"shape": "solo",
@@ -75,7 +75,7 @@ const RECIPES := {
 		"range_from": "leader",
 	},
 	"purify": {
-		"name": "浄化",
+		"name": "ピュリファイ",
 		"leader_skins": ["cleric", "priest", "bishop"],
 		"member_skins": [],
 		"shape": "solo",
@@ -95,13 +95,13 @@ const RECIPES := {
 		"count": 1,
 		"effect": "buff",
 		"buff_scope": "unit",
-		"buff_side": "enemy",  # 対象は敵1体（妖精の粉は味方＝"ally"）。詳細 → doc/gdd/skills.md
+		"buff_side": "enemy",  # 対象は敵1体（ピクシーダストは味方＝"ally"）。詳細 → doc/gdd/skills.md
 		"buff_op": "add",
-		# 妖精の粉と同じ形の負値＝発動時のゴーストの残兵数を掛けて焼き込む（満員8体で -80）。
+		# ピクシーダストと同じ形の負値＝発動時のゴーストの残兵数を掛けて焼き込む（満員8体で -80）。
 		"buff_value_per_troop": -10.0,
 		"buff_target": "both",
 		"buff_fx": "dread",
-		"buff_harmful": true,  # 浄化（ピュリファイ）が落とす対象。値の符号からは判断しない
+		"buff_harmful": true,  # ピュリファイが落とす対象。値の符号からは判断しない
 		"duration_turns": 1,
 		"range": 1,
 		"range_from": "leader",
@@ -186,7 +186,7 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 		within = leader != null and Hex.distance(leader.pos, target) <= rng
 	if not within:
 		return false
-	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（妖精の粉）は発動者
+	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（ピクシーダスト）は発動者
 	# 自身も選べ、敵を弱らせるもの（ドレッドタッチ）は敵だけを選べる。詳細 → doc/gdd/skills.md
 	if String(option.get("buff_scope", "")) == "unit":
 		var u := state.unit_at(target)
@@ -272,7 +272,7 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 	# 対象1体のスキルが味方向きか敵向きか（can_target の絞り込み）。既定は味方。
 	opt["buff_side"] = String(r.get("buff_side", "ally"))
 	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
-		# 有害な補正か（浄化が落とす対象）。値の符号から推測しない＝レシピが明示する。
+		# 有害な補正か（ピュリファイが落とす対象）。値の符号から推測しない＝レシピが明示する。
 		opt["buff_harmful"] = bool(r.get("buff_harmful", false))
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
 		opt["buff_value"] = float(r.get("buff_value", 1.0))

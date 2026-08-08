@@ -237,7 +237,7 @@ func _support_text(side: Dictionary) -> String:
 		return NONE
 	return "%s/%s" % [("+%d" % sa) if sa != 0 else NONE, ("+%d" % sd) if sd != 0 else NONE]
 
-## バフ1件の表記（例: ホーリーアリア ×1.30/×1.30、妖精の粉 +80/+80）。
+## バフ1件の表記（例: ホーリーアリア ×1.30/×1.30、ピクシーダスト +80/+80）。
 ## target で攻/防の効き先を描き分ける。
 static func status_text(m: Dictionary) -> String:
 	var nm := String(m.get("name", ""))
