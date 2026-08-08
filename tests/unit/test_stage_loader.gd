@@ -165,7 +165,7 @@ func test_carryover_places_survivors_into_slots_in_order() -> void:
 	assert_eq(k.troops, 4, "2体目も順どおり")
 
 func test_carryover_coexists_with_fresh_reinforcements() -> void:
-	# 継承ユニット＋新米（player 増援）が共存し、id が衝突しない。
+	# 継承ユニット＋新米（player の補充）が共存し、id が衝突しない。
 	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8 }]
 	var data := { "cols": 8, "rows": 6, "roster": "carryover",
 		"carryover_slots": [{ "col": 1, "row": 1 }],

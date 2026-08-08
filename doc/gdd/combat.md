@@ -166,7 +166,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 
 ほかに 道/荒地/茂み/柵/城壁/崖。係数・移動コストは terrain.csv / movement.csv 参照（**川・海・通路は廃止**、荒地を追加）。
 
-- **拠点（fort/castle）は地形としては「防御の強いマス」**。占領・出撃（増援）・回復（休憩）の挙動は地形補正とは別レイヤーで、`domain/capture/`＋`BattleState` が担う（[map.md](map.md) 拠点・占領）。
+- **拠点（fort/castle）は地形としては「防御の強いマス」**。占領・出撃（控えを出す）・回復（休憩）の挙動は地形補正とは別レイヤーで、`domain/capture/`＋`BattleState` が担う（[map.md](map.md) 拠点・占領）。
 
 - 実装: `Terrain`（係数・`attack_factor`/`defense_factor`）／`domain/battle_state.gd`（盤面の地形保持 `terrain_at`/`set_terrain`、idは文字列）／戦闘での参照は `domain/combat/combat.gd`。移動コストは [movement.md](movement.md)。
 

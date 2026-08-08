@@ -142,7 +142,7 @@ func test_holy_aria_buffs_whole_team() -> void:
 	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
 	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
-## ホーリーアリアの持続＝1ラウンド（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/formations.md
+## ホーリーアリアの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
 func test_holy_aria_lasts_one_round() -> void:
 	var f := _aria_state()
 	var s: BattleState = f["s"]

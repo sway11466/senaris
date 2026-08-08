@@ -21,4 +21,4 @@ wall_stone1,wall,石積みの壁,none,false,0,0,true,,,,,人が積んだ石壁�
 fort,fort,拠点,none,false,0,0,true,,,plain,center,既定スキン
 fort_town1,fort,町,none,false,0,0,true,,,plain,center,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 fort_crypt1,fort,納骨堂,none,false,0,0,true,,,plain_grave1,center,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-fort_chapel1,fort,礼拝堂,none,false,0,0,true,,,plain_grave1,center,墓地に建つ味方の聖所。鐘楼の十字が目印。増援は出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+fort_chapel1,fort,礼拝堂,none,false,0,0,true,,,plain_grave1,center,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）

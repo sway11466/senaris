@@ -52,7 +52,7 @@ const RECIPES := {
 		"buff_op": "mul",
 		"buff_value": 1.3,
 		"buff_fx": "aura",  # 盤全体の見た目（外周から差し込む金の光）。詳細 → doc/gdd/formations.md
-		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ラウンド。詳細 → doc/gdd/formations.md
+		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
 	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md
