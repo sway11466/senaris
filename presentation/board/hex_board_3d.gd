@@ -700,8 +700,10 @@ func _formation_target_cells(option: Dictionary) -> Array:
 		for h in Hex.within_range(o, rng):
 			if _on_board(h):
 				in_range[h] = true
-	# ユニットスキル（対象1体のバフ）は味方の居るhexだけ＝自分自身も選べる。
+	# ユニットスキル（対象1体）は駒の居るhexだけ。味方向き（妖精の粉・浄化）は自分自身も選べ、
+	# 敵向き（buff_side="enemy"）は敵の居るhexだけ＝Formation.can_target と同じ絞り込みにする。
 	var buff_unit := String(option.get("buff_scope", "")) == "unit"
+	var want_enemy := String(option.get("buff_side", "ally")) == "enemy"
 	if String(option["effect"]) != "single" and not buff_unit:
 		return in_range.keys()
 	var cells := {}
@@ -711,7 +713,7 @@ func _formation_target_cells(option: Dictionary) -> Array:
 		if u == null:
 			continue
 		if buff_unit:
-			if u.team == state.current_team:
+			if (u.team != state.current_team) == want_enemy:
 				cells[h] = true
 		elif not (u.id in participants):
 			cells[h] = true

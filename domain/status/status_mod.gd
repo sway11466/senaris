@@ -21,7 +21,7 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 	var mul := 1.0
 	var add := 0.0
 	for m in mods:
-		if not _applies(m, unit):
+		if not applies_to(m, unit):
 			continue
 		var t := String(m.get("target", "both"))
 		if t != "both" and t != target:
@@ -38,12 +38,13 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 static func applied(mods: Array, unit: Unit) -> Array:
 	var out: Array = []
 	for m in mods:
-		if _applies(m, unit):
+		if applies_to(m, unit):
 			out.append(m)
 	return out
 
-## エントリ m が unit に効くか（scope 判定）。
-static func _applies(m: Dictionary, unit: Unit) -> bool:
+## エントリ m が unit に効くか（scope 判定）。集計と表示だけでなく、浄化が落とす対象の
+## 選別（BattleState.clear_harmful_status）も同じ判定を使う＝ずれない。
+static func applies_to(m: Dictionary, unit: Unit) -> bool:
 	match String(m.get("scope", "")):
 		"team":
 			return int(m.get("team", -99)) == unit.team

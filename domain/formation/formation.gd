@@ -74,6 +74,19 @@ const RECIPES := {
 		"range": 1,  # 自分(0)＋隣接(1)
 		"range_from": "leader",
 	},
+	"purify": {
+		"name": "浄化",
+		"leader_skins": ["cleric", "priest", "bishop"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		# 状態補正を積むのではなく落とす＝値を持たない。詳細 → doc/gdd/skills.md
+		"effect": "cleanse",
+		"buff_scope": "unit",  # 対象1体（自分＋隣接）
+		"buff_side": "ally",
+		"range": 1,
+		"range_from": "leader",
+	},
 	"dread_touch": {
 		"name": "ドレッドタッチ",
 		"leader_skins": ["ghost"],
@@ -96,7 +109,7 @@ const RECIPES := {
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
-const IMPLEMENTED_EFFECTS := ["area", "single", "buff"]
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse"]
 
 ## そのレシピがユニットスキル（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
 ## 演出・効果音の出し分けが読む（陣形はカットインあり／ユニットスキルは音だけ）。
@@ -254,10 +267,11 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		"range_from": String(r.get("range_from", "leader")),
 		"radius": int(r.get("radius", 0)),
 	}
+	# 対象の絞り込みは効果の種類と独立に載せる（積む buff も落とす cleanse も同じ選び方をする）。
+	opt["buff_scope"] = buff_scope
+	# 対象1体のスキルが味方向きか敵向きか（can_target の絞り込み）。既定は味方。
+	opt["buff_side"] = String(r.get("buff_side", "ally"))
 	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
-		opt["buff_scope"] = buff_scope
-		# 対象1体のスキルが味方向きか敵向きか（can_target の絞り込み）。既定は味方。
-		opt["buff_side"] = String(r.get("buff_side", "ally"))
 		# 有害な補正か（浄化が落とす対象）。値の符号から推測しない＝レシピが明示する。
 		opt["buff_harmful"] = bool(r.get("buff_harmful", false))
 		opt["buff_op"] = String(r.get("buff_op", "mul"))

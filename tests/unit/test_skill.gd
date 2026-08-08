@@ -262,3 +262,102 @@ func test_dread_expires_after_one_round() -> void:
 	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before - 80.0, 0.001, "相手ターン中は効いている")
 	s.end_turn()  # 次の発動側ターンへ＝満了
 	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before, 0.001, "次の発動側ターン開始で切れる")
+
+# --- ③浄化（有害な補正の解除）---
+
+# プリースト＋隣接する味方＋離れた味方＋隣接する敵。leader=priest(id1)。
+func _purify_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var priest := Unit.new(1, 0, c, 2, 8, 40, 20, 1, "priest")
+	var near := Unit.new(2, 0, Hex.neighbor(c, 0), 6, 8, 50, 40, 1, "fighter")
+	var far := Unit.new(3, 0, Hex.offset_to_axial(8, 6), 6, 8, 50, 40, 1, "fighter")
+	var foe := Unit.new(4, 1, Hex.neighbor(c, 3), 6, 8, 50, 40, 1, "fighter")
+	for u in [priest, near, far, foe]:
+		s.add_unit(u)
+	return {"s": s, "priest": priest, "near": near, "far": far, "foe": foe}
+
+func _purify_option(f: Dictionary) -> Dictionary:
+	for o in Formation.available_for(f["s"], f["priest"]):
+		if String(o["recipe"]) == "purify":
+			return o
+	return {}
+
+## near に有害な弱体（ドレッドタッチ相当）と無害な強化（妖精の粉相当）を1つずつ掛ける。
+func _afflict(s: BattleState, u: Unit) -> void:
+	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
+		"value": -80.0, "owner_team": 1, "remaining": 1, "name": "ドレッドタッチ", "harmful": true})
+	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
+		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "妖精の粉", "harmful": false})
+
+func test_purify_offered_by_clergy_alone() -> void:
+	var f := _purify_state()
+	var o := _purify_option(f)
+	assert_false(o.is_empty(), "聖職単独で成立する")
+	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
+	assert_true(bool(o["needs_target"]), "掛ける相手を選ぶ")
+
+func test_purify_not_offered_by_others() -> void:
+	var f := _purify_state()
+	var found := false
+	for o in Formation.available_for(f["s"], f["near"]):  # fighter
+		if String(o["recipe"]) == "purify":
+			found = true
+	assert_false(found, "聖職以外は撃てない")
+
+func test_purify_targets_self_and_adjacent_ally_only() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var o := _purify_option(f)
+	assert_true(Formation.can_target(s, o, f["priest"].pos), "自分自身に掛けられる")
+	assert_true(Formation.can_target(s, o, f["near"].pos), "隣接する味方に掛けられる")
+	assert_false(Formation.can_target(s, o, f["far"].pos), "離れた味方には掛けられない")
+	assert_false(Formation.can_target(s, o, f["foe"].pos), "敵には掛けられない")
+	assert_false(Formation.can_target(s, o, Hex.neighbor(f["priest"].pos, 1)), "空きマスには掛けられない")
+
+func test_purify_drops_harmful_and_keeps_buff() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var near: Unit = f["near"]
+	_afflict(s, near)
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 0.0, 0.001, "掛ける前は -80 と +80 で相殺")
+	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "弱体だけ落ちて強化は残る")
+	assert_almost_eq(float(s.status_aggregate(near, "defense")["add"]), 80.0, 0.001, "防御側も同じ")
+
+## 掛けられた数がいくつでも1回の発動で全部落ちる（毒牙が3本刺さっていても1回で済む）。
+func test_purify_drops_every_harmful_at_once() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var near: Unit = f["near"]
+	for i in 3:
+		s.add_status_mod({"scope": "unit", "unit_id": near.id, "op": "add", "target": "both",
+			"value": -50.0, "owner_team": 1, "remaining": 1, "harmful": true})
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), -150.0, 0.001, "3本で -150")
+	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 0.0, 0.001, "1回で全部落ちる")
+
+## 落とすのは対象1体ぶんだけ＝他の味方に掛かった弱体や、陣営全体の補正は動かさない。
+func test_purify_touches_only_the_target() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var near: Unit = f["near"]
+	var far: Unit = f["far"]
+	_afflict(s, near)
+	_afflict(s, far)
+	s.add_status_mod({"scope": "team", "team": 0, "op": "mul", "target": "both",
+		"value": 0.7, "owner_team": 1, "remaining": 1, "harmful": true})
+	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "対象の弱体は落ちる")
+	assert_almost_eq(float(s.status_aggregate(far, "attack")["add"]), 0.0, 0.001, "離れた味方の弱体は残る")
+	assert_almost_eq(float(s.status_aggregate(near, "attack")["mul"]), 0.7, 0.001, "陣営全体の補正は1人の浄化では落ちない")
+
+func test_purify_consumes_the_casters_action() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var near: Unit = f["near"]
+	_afflict(s, near)
+	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_true(s.is_done(1), "発動者は行動完了")
+	assert_false(s.is_done(2), "掛けられた側は行動を消費しない")
+	assert_eq(f["priest"].level, 1, "着弾が無いので経験は増えない")

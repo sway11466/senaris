@@ -84,6 +84,23 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
+## unit に掛かっている有害な状態補正を落とす（③浄化）。落とした件数を返す。
+## 落とすのは harmful が立っていて対象1体（scope="unit"）のものだけ＝味方から掛かった
+## 強化（妖精の粉）は残り、陣営全体に掛かった補正を1人の浄化で消すこともない。
+## 詳細 → doc/gdd/skills.md
+func clear_harmful_status(unit: Unit) -> int:
+	var kept: Array = []
+	for m in _status_mods:
+		var drop := bool(m.get("harmful", false)) \
+			and String(m.get("scope", "")) == "unit" \
+			and StatusMod.applies_to(m, unit)
+		if drop:
+			continue
+		kept.append(m)
+	var removed := _status_mods.size() - kept.size()
+	_status_mods = kept
+	return removed
+
 ## 陣営全体に効いていて盤の見た目（fx）を宣言している補正の名前。無ければ空文字。
 ## 盤全体のエフェクト（ホーリーアリアの加護の光）を出すかの判定に presentation が使う。
 func team_aura_fx() -> String:
@@ -708,6 +725,11 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
 		add_status_mod(_buff_entry(option, target))
+	# 浄化（③）は積むのではなく落とす。同じく着弾は起きない＝results空・経験0。
+	elif String(option["effect"]) == "cleanse":
+		var cleansed := unit_at(target)  # can_target が味方の存在を保証済み
+		if cleansed != null:
+			clear_harmful_status(cleansed)
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(self, option, target)
 	var results: Array = []

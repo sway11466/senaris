@@ -5,6 +5,22 @@ extends GutTest
 func _state() -> BattleState:
 	return BattleState.new(12, 8)
 
+## そのレシピの選択肢だけを数える。聖職は浄化（ユニットスキル）も単独で撃てるので、
+## 選択肢の総数で陣形スキルの成立を判定すると混ざる。詳細 → doc/gdd/skills.md
+func _count(opts: Array, recipe: String) -> int:
+	var n := 0
+	for o in opts:
+		if String(o["recipe"]) == recipe:
+			n += 1
+	return n
+
+## そのレシピの選択肢を1つ取り出す（無ければ空）。
+func _pick(opts: Array, recipe: String) -> Dictionary:
+	for o in opts:
+		if String(o["recipe"]) == recipe:
+			return o
+	return {}
+
 # 相互隣接の三角形を作る3つの axial（C, C+dir0, C+dir1 は互いに距離1）。
 func _triangle(c: Vector2i) -> Array:
 	return [c, Hex.neighbor(c, 0), Hex.neighbor(c, 1)]
@@ -50,7 +66,7 @@ func test_leader_type_gates_recipe() -> void:
 	var f := _trinity_spell_state()
 	var cleric := Unit.new(20, 0, Hex.offset_to_axial(1, 1), 3, 8, 20, 20, 1, "cleric")
 	f["s"].add_unit(cleric)
-	assert_eq(Formation.available_for(f["s"], cleric).size(), 0, "leader_type 不一致は検出0")
+	assert_eq(_count(Formation.available_for(f["s"], cleric), "trinity_spell"), 0, "leader_type 不一致は検出0")
 
 func test_done_member_excluded() -> void:
 	var f := _trinity_spell_state()
@@ -75,8 +91,8 @@ func _aria_state() -> Dictionary:
 func test_holy_aria_offered_with_five_clustered() -> void:
 	var f := _aria_state()
 	var opts := Formation.available_for(f["s"], f["leader"])
-	assert_eq(opts.size(), 1, "占領兵5体クラスタでホーリーアリア")
-	var o: Dictionary = opts[0]
+	assert_eq(_count(opts, "holy_aria"), 1, "占領兵5体クラスタでホーリーアリア")
+	var o := _pick(opts, "holy_aria")
 	assert_eq(String(o["recipe"]), "holy_aria", "レシピは holy_aria")
 	assert_eq(String(o["effect"]), "buff", "バフ効果")
 	assert_false(bool(o["needs_target"]), "バフは対象指定不要")
@@ -90,7 +106,7 @@ func test_holy_aria_needs_five() -> void:
 		s.add_unit(u)
 		if i == 0:
 			leader = u
-	assert_eq(Formation.available_for(s, leader).size(), 0, "4体では不成立")
+	assert_eq(_count(Formation.available_for(s, leader), "holy_aria"), 0, "4体では不成立")
 
 ## レシピの照合はスキンID。性能(type)が cleric でも見た目がゴブリンなら聖歌隊にならない。
 ## 詳細 → doc/gdd/formations.md 共通ルール
@@ -112,7 +128,7 @@ func test_recipe_matches_with_explicit_skin() -> void:
 	for u in f["s"].units():
 		if u.type_id == "cleric":
 			u.skin_id = "cleric"
-	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 1, "基準スキン指定でも成立")
+	assert_eq(_count(Formation.available_for(f["s"], f["leader"]), "holy_aria"), 1, "基準スキン指定でも成立")
 
 func test_holy_aria_buffs_whole_team() -> void:
 	var f := _aria_state()
@@ -167,7 +183,7 @@ func test_divine_judgment_leader_must_be_paladin() -> void:
 	# 聖職を選んでも神の裁きは出ない（発動者はパラディンのみ）。
 	var f := _judgment_state()
 	var cleric: Unit = f["s"].unit_by_id(2)
-	assert_eq(Formation.available_for(f["s"], cleric).size(), 0, "発動者がパラディンでなければ未提示")
+	assert_eq(_count(Formation.available_for(f["s"], cleric), "divine_judgment"), 0, "発動者がパラディンでなければ未提示")
 
 func test_single_hits_only_target_hex() -> void:
 	# 単体＝狙ったヘックスの敵だけ。隣の敵には及ばない（radius 0）。
