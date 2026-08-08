@@ -27,19 +27,17 @@ func test_parse_slots_ignores_malformed_values() -> void:
 	assert_eq(BgmCatalog.parse_slots("map_calm"), {}, "辞書でない bgm 欄")
 	assert_eq(BgmCatalog.parse_slots({ "other": "x" }), {}, "未知スロットは拾わない")
 
-# --- BgmDirector：フォールバック連鎖と crisis ---
+# --- BgmDirector：フォールバックと crisis ---
 
-func test_stage_bgm_wins_over_campaign() -> void:
+func test_stage_bgm_decides_the_track() -> void:
 	var d := BgmDirector.new()
-	d.begin_stage({ "main": "boss" }, { "main": "map_calm" })
-	assert_eq(d.track_id(), "boss", "ステージ指定が冒険譚既定に優先")
+	d.begin_stage({ "main": "boss" })
+	assert_eq(d.track_id(), "boss", "ステージ指定がそのまま鳴る曲になる")
 
-func test_falls_back_to_campaign_then_global_default() -> void:
+func test_falls_back_to_global_default() -> void:
 	var d := BgmDirector.new()
-	d.begin_stage({}, { "main": "t1_journey" })
-	assert_eq(d.track_id(), "t1_journey", "ステージ未指定→冒険譚既定")
-	d.begin_stage({}, {})
-	assert_eq(d.track_id(), BgmDirector.DEFAULT_STAGE_TRACK, "どちらも未指定→全体既定")
+	d.begin_stage({})
+	assert_eq(d.track_id(), BgmDirector.DEFAULT_STAGE_TRACK, "ステージ未指定→全体既定")
 
 func test_crisis_switch_is_sticky() -> void:
 	var d := BgmDirector.new()
@@ -69,19 +67,22 @@ func test_begin_stage_resets_crisis() -> void:
 	assert_false(d.in_crisis(), "ステージ開始でリセット")
 	assert_eq(d.track_id(), "map_calm")
 
-# --- ステージJSON / campaign.json との結線 ---
+# --- ステージJSON との結線 ---
 
 func test_stage_loader_parses_bgm() -> void:
 	assert_eq(StageLoader.parse_bgm({ "bgm": { "main": "boss" } }), { "main": "boss" })
-	assert_eq(StageLoader.parse_bgm({}), {}, "bgm 欄なしは空＝連鎖で埋まる")
+	assert_eq(StageLoader.parse_bgm({}), {}, "bgm 欄なしは空＝全体既定へ落ちる")
 
 func test_boot_underlay_uses_menu_track() -> void:
 	# セレクトの下敷きはメニュー曲を指す＝起動時に曲が二重に切り替わらない。
 	var bgm := StageLoader.load_bgm("res://data/stages/_boot/underlay.json")
 	assert_eq(bgm.get("main", ""), BgmDirector.MENU_TRACK)
 
-func test_campaign_manifest_exposes_bgm_slot() -> void:
-	# 冒険譚に bgm 欄が無くても空辞書で通る（既定にフォールバックする）。
-	var c := CampaignCatalog.load_file("res://data/stages/tutorial1-goblin-raid/campaign.json")
-	assert_true(c.has("bgm"), "マニフェストは常に bgm キーを持つ")
-	assert_eq(c["bgm"], {}, "未指定は空＝全体既定へ")
+func test_campaign_stages_all_declare_bgm() -> void:
+	# 曲は冒険譚単位でなくステージJSONに書く＝本編ステージに書き漏らしが無いことを守る。
+	for dir_name in ["tutorial1-goblin-raid", "tutorial2-undead-rush"]:
+		var c := CampaignCatalog.load_file("res://data/stages/%s/campaign.json" % dir_name)
+		for s in c["stages"]:
+			var bgm := StageLoader.load_bgm(String(s["path"]))
+			assert_ne(String(bgm.get("main", "")), "",
+				"%s/%s に bgm main が要る（無いと全体既定＝無音）" % [dir_name, s["id"]])

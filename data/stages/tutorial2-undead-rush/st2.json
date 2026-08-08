@@ -5,19 +5,29 @@
   "rows": 9,
   "margin": 1,
   "terrain": [
-    "FFFFFFFFFF%%%%%%%%%%..LLLL",
-    "FFFFFFFFFF%%%%%%+%..LLLLLL",
-    "FFFFFFFFF%%%%%++L+LLLLLL..",
-    "FFFFFFFF%%%%%+LLLLLLLL..%%",
-    "FFFFFFFF%%%%.+LLOLLL.%%%%%",
-    "FF%F%F%%%%..LLLLLLL+%%%%%%",
-    "FF%%%%%%..LLLLLLLL++%%%%%%",
-    "%%%%%%..LLLLLL.+++%%%%F%FF",
-    "%%%%..LLLLLL....%%%%%FFFFF",
-    "%%..LLLLLL..%%%%%%%%FFFFFF",
-    "%.LLLLLL..%%%%%%%%%FFFFFFF"
+    "FFFFFFFFFF............LLLL",
+    "FFFFFFFFFF......+...LLLLLL",
+    "FFFFFFFFF.....++L+LLLLLL..",
+    "FFFFFFFF.....+LLLLLLLL..%%",
+    "FFFFFFFF.....+LLOLLL...%%%",
+    "FF.F.F......LLLLLLL+.....%",
+    "FF........LLLLLLLL++.....%",
+    "%.......LLLLLL.+++....F.FF",
+    "%.....LLLLLL.........FFFFF",
+    "%...LLLLLL..........FFFFFF",
+    "%.LLLLLL...........FFFFFFF"
   ],
   "terrain_skins": [
+    { "col": 9, "row": -1, "skin": "plain_grave1" },
+    { "col": 10, "row": -1, "skin": "plain_grave1" },
+    { "col": 11, "row": -1, "skin": "plain_grave1" },
+    { "col": 12, "row": -1, "skin": "plain_grave1" },
+    { "col": 13, "row": -1, "skin": "plain_grave1" },
+    { "col": 14, "row": -1, "skin": "plain_grave1" },
+    { "col": 15, "row": -1, "skin": "plain_grave1" },
+    { "col": 16, "row": -1, "skin": "plain_grave1" },
+    { "col": 17, "row": -1, "skin": "plain_grave1" },
+    { "col": 18, "row": -1, "skin": "plain_grave1" },
     { "col": 9, "row": 0, "skin": "plain_grave1" },
     { "col": 10, "row": 0, "skin": "plain_grave1" },
     { "col": 11, "row": 0, "skin": "plain_grave1" },
@@ -93,15 +103,24 @@
     { "col": 15, "row": 8, "skin": "plain_grave1" },
     { "col": 16, "row": 8, "skin": "plain_grave1" },
     { "col": 17, "row": 8, "skin": "plain_grave1" },
-    { "col": 18, "row": 8, "skin": "plain_grave1" }
+    { "col": 18, "row": 8, "skin": "plain_grave1" },
+    { "col": 9, "row": 9, "skin": "plain_grave1" },
+    { "col": 10, "row": 9, "skin": "plain_grave1" },
+    { "col": 11, "row": 9, "skin": "plain_grave1" },
+    { "col": 12, "row": 9, "skin": "plain_grave1" },
+    { "col": 13, "row": 9, "skin": "plain_grave1" },
+    { "col": 14, "row": 9, "skin": "plain_grave1" },
+    { "col": 15, "row": 9, "skin": "plain_grave1" },
+    { "col": 16, "row": 9, "skin": "plain_grave1" },
+    { "col": 17, "row": 9, "skin": "plain_grave1" }
   ],
   "player": [
-    { "type": "priest", "col": 5, "row": 8 },
-    { "type": "wagon", "col": 6, "row": 8 },
+    { "type": "priest", "col": 6, "row": 8 },
+    { "type": "wagon", "col": 7, "row": 7 },
     { "type": "wizard", "col": 5, "row": 7 },
     { "type": "witch", "col": 7, "row": 8 },
-    { "type": "fighter", "col": 7, "row": 7 },
-    { "type": "knight", "col": 8, "row": 7 }
+    { "type": "fighter", "col": 6, "row": 7 },
+    { "type": "knight", "col": 8, "row": 8 }
   ],
   "enemy": [
     { "order": 2, "name": "先遣", "ai": "charge",
@@ -119,11 +138,11 @@
         { "skin": "skeleton", "col": 11, "row": 0 },
         { "skin": "skeleton", "col": 9, "row": 2 },
         { "skin": "skeleton", "col": 6, "row": 1 },
-        { "skin": "skeleton", "col": 2, "row": 6 },
+        { "skin": "skeleton", "col": 1, "row": 5 },
         { "skin": "skeleton", "col": 2, "row": 3 },
         { "skin": "zombie", "col": 20, "row": 5 },
         { "skin": "zombie", "col": 17, "row": 7 },
-        { "skin": "zombie", "col": 12, "row": 8 },
+        { "skin": "zombie", "col": 13, "row": 8 },
         { "skin": "zombie", "col": 22, "row": 8 },
         { "skin": "zombie", "col": 6, "row": 4 },
         { "skin": "zombie", "col": 3, "row": 1 }
@@ -153,5 +172,6 @@
       { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st2.outro.3" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st2.outro.4" }
     ]
-  }
+  },
+  "bgm": { "main": "journey" }
 }

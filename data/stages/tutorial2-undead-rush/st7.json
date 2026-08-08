@@ -87,5 +87,6 @@
       { "speaker": "char.knight.name",  "skin": "knight",  "text": "t2.st7.outro.5" },
       { "speaker": "char.priest.name",  "skin": "priest",  "text": "t2.st7.outro.6" }
     ]
-  }
+  },
+  "bgm": { "main": "graveyard" }
 }

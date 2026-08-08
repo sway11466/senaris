@@ -139,7 +139,7 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 | `crisis` | 危機（状態切替用） | 警報型：裏拍の弦スタブ＋同音連打＋半音の軋み。イ短調 ♩=160 | ○ | たたき台あり（32小節・v2） |
 
 割当（チュートリアル1）: st1–2 = `journey` ／ st3–5 = `raid` ／ st6–7 = `dungeon`（いずれもステージJSONに記載済み）。
-割当（チュートリアル2）: 全ステージ = `graveyard`（`campaign.json` の冒険譚既定で一括指定。ステージJSONには書かない）。曲が増えたらステージ側で上書きして出し分ける想定で、最終ステージ（ネクロマンサー）= `boss` が候補。
+割当（チュートリアル2）: st1–2 = `journey` ／ st3–7 = `graveyard`（いずれもステージJSONに記載済み）。曲が増えたら出し分ける想定で、最終ステージ（ネクロマンサー）= `boss` が候補。
 
 > 「戦闘曲」を独立トラックとしては持たない。緊張感は**ステージ曲の出し分け＋下記の状態切り替え**で作る。個々の戦闘は SFX（[../tech/combat_scene.md](../tech/combat_scene.md) の演出）で示す。
 > 使い回しで耳が飽きてきたら、キャンペーンの看板1曲だけ専用曲を足して対処する（派生で凌ぐ方針は §方針）。最初から作り分けない。
@@ -176,17 +176,17 @@ assets/
 ```
 
 - スロット制：`main`（必須）＋ `crisis`（任意＝状態切替用。未指定なら切替イベントが来ても曲は変わらない）。将来 `intro` 等もスロット追加で対応。
-- **フォールバック連鎖**：ステージの `bgm` → `campaign.json` の既定 → 全体既定。全ステージに書かなくても冒険譚単位の指定で済む。
+- **フォールバック**：ステージの `bgm` → 全体既定。曲はステージJSONに1ステージずつ書く（冒険譚単位の一括指定は持たない＝どの曲が鳴るかをステージのファイルだけで読み切れるようにする）。
 
 ### レイヤー配置
 
 | レイヤー | 実体 | 責務 |
 |---|---|---|
 | `data` | `data/audio/bgm_catalog.gd` | トラックカタログ（ID→パス解決・autowire）と `bgm` 欄の読み取り。純ロジック |
-| `application` | `application/bgm_director.gd` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定（フォールバック連鎖）。`crisis` フラグ管理もここ |
+| `application` | `application/bgm_director.gd` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定（未指定なら全体既定）。`crisis` フラグ管理もここ |
 | `presentation` | `presentation/ui/bgm_player.gd` | `AudioStreamPlayer`×2 の入れ替え。ID を受けて鳴らすだけ |
 
-ステージJSON の `bgm` 欄は `StageLoader.parse_bgm` / `load_bgm`（会話・skin と同じく `BattleState` には入れない）、冒険譚既定は `CampaignCatalog` が `bgm` キーとして持つ。`main`（`presentation/main/main.gd`）が両者を `BgmDirector` に渡し、決まったIDを `BgmPlayer` に流す。
+ステージJSON の `bgm` 欄は `StageLoader.parse_bgm` / `load_bgm` が読む（会話・skin と同じく `BattleState` には入れない）。`main`（`presentation/main/main.gd`）がそれを `BgmDirector` に渡し、決まったIDを `BgmPlayer` に流す。
 
 場面の切り替わりは2箇所だけ。ステージ開始（`_install_state`＝新規ロードと中断セーブ復元で共通）と、セレクトを開いたとき（`SelectScreen.opened` → メニュー曲）。同じトラックIDを指す遷移では鳴り続ける（頭出しに戻らない）。
 
@@ -227,6 +227,6 @@ assets/
 - 曲を追加したら本ドキュメントのライブラリ表と台帳（`assets/bgm-src/credits.md`）を更新する。
 - **投入済み（8曲）**: `menu`（76.800秒）／ `journey`（71.111秒）／ `raid`（60.952秒）／ `dungeon`（96.000秒）／ `graveyard`（64.000秒）／ `afterglow`（41.739秒）＝いずれもループ長ちょうど・ラップアラウンド加算あり。`victory`（10.3秒）／ `defeat`（14.4秒）＝スティンガー（ループなし）。曲が未配置のステージは無音＋ログ1行で進む（autowire）。
 - **スティンガーの鳴らし方**: `main._on_battle_finished` が決着時に `BgmPlayer.play_stinger` で一発再生（ステージ曲を素早く下げ、フェードインなしで頭から出す）。戦果票の印が落ちる瞬間に合わせる（[../gdd/uiux.md](../gdd/uiux.md) §決着の演出）。勝利は鳴り終わってから `afterglow` へ繋ぐ＝ファンファーレは約10秒で終わるのに outro 会話はその後も続くため、繋がないと無音が居座る。敗北は繋がない（会話が無く、すぐ再挑戦かセレクトへ行く）。連結は待っている間に別の曲へ切り替わっていたら捨てる（会話を読み飛ばして次ステージが始まった後に割り込まない）。
-- **全体既定は `map_calm`**（`BgmDirector.DEFAULT_STAGE_TRACK`）で、この ID の曲は無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる。チュートリアル1は全ステージに `bgm` を書いたので現在は該当なし。
+- **全体既定は `map_calm`**（`BgmDirector.DEFAULT_STAGE_TRACK`）で、この ID の曲は無い＝ステージに `bgm` 指定が無いと無音になる。チュートリアル1・2は全ステージに `bgm` を書いたので該当するのはデバッグステージだけ。
 
 未完了の作業（たたき台の仕上げ・title 曲・全体既定の決定）は [backlog.md](../backlog.md)（feature-21）を参照。

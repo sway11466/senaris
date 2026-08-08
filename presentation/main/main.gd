@@ -25,13 +25,14 @@ var _conversation: ConversationPanel = null
 var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネルより後ろ・盤より前）
 var _scrim_tween: Tween = null  # 進行中のフェード。次のフェード開始時に kill する（off の hide が on を消す競合対策）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
+var _skill_scene: SkillScene = null  # ユニットスキルの演出（永続・formation_resolved のスキル分を受ける）
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
 var _victory_overlay := false  # 完走イラストを outro 会話に重ねて出した＝会話後に全画面で出し直さない印
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
 var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の基準）
 var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
-var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/冒険譚/既定のフォールバック連鎖
+var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/既定のフォールバック
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
@@ -46,6 +47,9 @@ func _ready() -> void:
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
 	_combat_scene.bind(_skins)
 	add_child(_combat_scene)
+	_skill_scene = SkillScene.new()  # ユニットスキルの演出（永続）。舞台は戦闘と共通＝CombatStage
+	_skill_scene.bind(_skins)
+	add_child(_skill_scene)
 	_victory_screen = VictoryScreen.new()  # キャンペーン完走の勝利イラスト（永続）
 	add_child(_victory_screen)
 	_result = ResultBanner.new()  # 決着の戦果票（永続）。load_stage より前に用意
@@ -105,6 +109,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	# 外周(margin)＝盤の外側1周ぶんの地形。盤には入らず、縁の接続タイルの向き決めにだけ使う。
 	$HexBoard.bind(state, _controller, _skins, terrain_skins, StageLoader.load_margin_terrain(path))
 	_combat_scene.bind_terrain_skins(terrain_skins)  # 演出の地面も同じ見た目差分から組む
+	_skill_scene.bind_terrain_skins(terrain_skins)  # スキルの演出も同じ地面を組む
 	$InfoPanel.bind(state, _skins)
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($InfoPanel.show_combat)
@@ -123,10 +128,13 @@ func _install_state(state: BattleState, path: String) -> void:
 	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
 
-## AIターンのテンポ制御（controller.combat_pace）：戦闘演出が出ていれば閉じるまで待つ。
+## AIターンのテンポ制御（controller.combat_pace）：演出が出ていれば閉じるまで待つ。
+## 戦闘とユニットスキルは別のシーンだが同時には出ない（1手＝どちらか一方）。
 func _await_combat_view() -> void:
 	if _combat_scene != null and _combat_scene.visible:
 		await _combat_scene.finished
+	if _skill_scene != null and _skill_scene.visible:
+		await _skill_scene.finished
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_plate(team, turn_number)
@@ -153,13 +161,17 @@ func _await_turn_banner() -> void:
 		await get_tree().create_timer(TURN_BANNER_GAP).timeout
 
 ## 陣形スキル／ユニットスキルの発動演出。発動の頭で音を鳴らし、陣形は1枚絵のカットインを挟んでから
-## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインを付けない（音と足元の光だけ）。
+## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインではなく演出シーン
+## （効果対象が1体のものだけ＝doc/tech/combat_scene.md）を出す。
 ## 絵が無いレシピはカットインを飛ばす＝音と盤の結果は同じに出る。仕様 → doc/gdd/formations.md
 func _on_formation_resolved(result: Dictionary) -> void:
 	var recipe := String(result.get("recipe", ""))
 	if Formation.is_unit_skill(recipe):
 		SfxPlayer.play_event("map_skill")
 		_update_aura()
+		var skill: Dictionary = result.get("skill", {})
+		if _skill_scene != null and not skill.is_empty():
+			_skill_scene.play(skill)
 		return
 	# 陣形の音はレシピごとに違う＝規約解決（assets/sfx/{recipe_id}.ogg と {recipe_id}_hit.ogg）。
 	# 面殲滅と全体バフで同じ音を鳴らすと、何が起きたのかが音から分からない。
@@ -409,21 +421,13 @@ func _start_stage_bgm_when_drawn(path: String) -> void:
 		return
 	_start_stage_bgm(path)
 
-## ステージのBGMを張り替える。曲はステージJSONの bgm → 冒険譚の既定 → 全体既定の順で決まる。
+## ステージのBGMを張り替える。曲はステージJSONの bgm → 全体既定の順で決まる。
 ## 同じ曲を指すステージが続けば鳴りっぱなし（頭出しに戻らない）＝BgmPlayer 側で吸収。
 func _start_stage_bgm(path: String) -> void:
 	if _bgm == null:
 		return
-	_bgm_director.begin_stage(StageLoader.load_bgm(path), _campaign_bgm())
+	_bgm_director.begin_stage(StageLoader.load_bgm(path))
 	_bgm.play(_bgm_director.track_id())
-
-## 現冒険譚の既定BGM（campaign.json の bgm 欄）。セレクト外（デバッグ直起動など）では空。
-func _campaign_bgm() -> Dictionary:
-	if _progress == null or _current_campaign_id.is_empty():
-		return {}
-	var c := _progress.campaign(_current_campaign_id)
-	var bgm: Variant = c.get("bgm", {})
-	return bgm if typeof(bgm) == TYPE_DICTIONARY else {}
 
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
 func _install_hud() -> void:

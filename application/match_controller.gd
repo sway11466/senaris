@@ -188,7 +188,7 @@ func _action_focus_hex(action: AiAction) -> Vector2i:
 		_:  # DEPLOY
 			return action.to
 
-## 1手を適用する。戦闘演出が出た（＝攻撃が成立した）なら true。
+## 1手を適用する。演出が出た（＝攻撃かスキルが成立した）なら true＝呼び出し側が完了を待つ。
 func _apply_ai_action(action: AiAction) -> bool:
 	match action.kind:
 		AiAction.Kind.MOVE:
@@ -198,7 +198,9 @@ func _apply_ai_action(action: AiAction) -> bool:
 		AiAction.Kind.DEPLOY:
 			execute_deploy(DeployCommand.new(action.base_hex, action.garrison_index, action.to))
 		AiAction.Kind.SKILL:
-			execute_formation(FormationCommand.new(action.option, action.to))
+			# 効果対象が1体のユニットスキルは演出シーンに乗る（doc/tech/combat_scene.md）ので、
+			# 攻撃と同じく閉じるまで待たせる。演出が出ないレシピなら pace 側が即返る。
+			return execute_formation(FormationCommand.new(action.option, action.to))
 	return false
 
 func _check_finished() -> void:

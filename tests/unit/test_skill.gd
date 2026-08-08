@@ -122,10 +122,10 @@ func test_self_target() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var pixie: Unit = f["pixie"]
-	var foe: Unit = f["foe"]
-	var before := float(Combat.defense_breakdown(s, pixie, foe, true)["total"])
 	assert_false(s.resolve_formation(_dust_option(f), pixie.pos).is_empty(), "自分に掛けられる")
-	assert_almost_eq(float(Combat.defense_breakdown(s, pixie, foe, true)["total"]), before + 10.0 * pixie.troops, 0.001,
+	# 掛けた本人は発動で経験も+1されるので、実効防御の前後差には経験補正が混ざる。
+	# 見たいのは粉が自分に乗ったかどうかなので、状態補正の集計で測る。
+	assert_almost_eq(float(s.status_aggregate(pixie, "defense")["add"]), 10.0 * pixie.troops, 0.001,
 		"自分の防御に乗る")
 
 # --- 残兵数への追随・重ねがけ・持続 ---
@@ -360,4 +360,4 @@ func test_purify_consumes_the_casters_action() -> void:
 	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
 	assert_true(s.is_done(1), "発動者は行動完了")
 	assert_false(s.is_done(2), "掛けられた側は行動を消費しない")
-	assert_eq(f["priest"].level, 1, "着弾が無いので経験は増えない")
+	assert_eq(f["priest"].level, 2, "発動者に経験+1（撃破は起きないので前半だけ）")

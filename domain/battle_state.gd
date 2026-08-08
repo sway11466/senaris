@@ -722,14 +722,27 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			return {}
 	if not Formation.can_target(self, option, target):
 		return {}
+	# 効果対象が1体のユニットスキルは演出シーンに乗る（→ doc/tech/combat_scene.md）。
+	# 兵数が動かない＝着弾も撃破も起きないので、内訳は results ではなく専用の1件で渡す。
+	# 発動前に撮る＝戦闘の detail（戦闘前スナップショット）と同じ流儀。
+	var skill_scope := String(option.get("buff_scope", "")) == "unit"
+	var skill_detail := _skill_snapshot(option, target) if skill_scope else {}
 	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
-		add_status_mod(_buff_entry(option, target))
-	# ピュリファイ（③）は積むのではなく落とす。同じく着弾は起きない＝results空・経験0。
+		var entry := _buff_entry(option, target)
+		add_status_mod(entry)
+		if skill_scope:
+			skill_detail["op"] = String(entry.get("op", "mul"))
+			skill_detail["value"] = float(entry.get("value", 0.0))
+			skill_detail["buff_target"] = String(entry.get("target", "both"))
+			skill_detail["harmful"] = bool(entry.get("harmful", false))
+	# ピュリファイ（③）は積むのではなく落とす。同じく着弾は起きない＝results空。
 	elif String(option["effect"]) == "cleanse":
 		var cleansed := unit_at(target)  # can_target が味方の存在を保証済み
 		if cleansed != null:
-			clear_harmful_status(cleansed)
+			var dropped := clear_harmful_status(cleansed)
+			if skill_scope:
+				skill_detail["cleansed"] = dropped
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(self, option, target)
 	var results: Array = []
@@ -754,6 +767,9 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	var exp_gain := 0
 	if not results.is_empty():
 		exp_gain = 1 + (1 if any_killed else 0)
+	elif skill_scope:
+		# ユニットスキルは撃破が起きないので前半（戦ったら+1）だけが乗る。詳細 → doc/gdd/skills.md
+		exp_gain = 1
 	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）＋経験値加算。
 	for pid in option["participants"]:
 		var p := unit_by_id(int(pid))
@@ -761,7 +777,32 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			p.add_experience(exp_gain)
 		set_done(int(pid))
 		mark_engaged(int(pid))
-	return {"recipe": option["recipe"], "results": results}
+	var out := {"recipe": option["recipe"], "results": results}
+	if skill_scope:
+		out["skill"] = skill_detail
+	return out
+
+## 効果対象が1体のユニットスキルの演出用内訳（発動前に撮る）。発動者と対象のスナップショットに、
+## レシピの情報（表示名・エフェクトID）を添える。乗った補正の値は呼び出し側が足す。
+## 兵数は動かないので troops_after は troops_before と同じ＝戦闘の detail と器を揃える。
+## 詳細 → doc/tech/combat_scene.md ユニットスキルの演出
+func _skill_snapshot(option: Dictionary, target: Vector2i) -> Dictionary:
+	var caster := unit_by_id(int(option.get("leader_id", -1)))
+	var victim := unit_at(target)
+	var c_snap := _unit_snapshot(caster) if caster != null else {}
+	var t_snap := _unit_snapshot(victim) if victim != null else {}
+	if not c_snap.is_empty():
+		c_snap["troops_after"] = int(c_snap["troops_before"])
+	if not t_snap.is_empty():
+		t_snap["troops_after"] = int(t_snap["troops_before"])
+	return {
+		"recipe": String(option.get("recipe", "")),
+		"name": String(option.get("name", "")),
+		"effect": String(option.get("effect", "")),
+		"combat_effect": String(option.get("combat_effect", "")),
+		"caster": c_snap,
+		"target": t_snap,
+	}
 
 ## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
 ## （ユニットスキル＝buff_scope "unit"・target のhexに居る駒。味方＝ピクシーダスト／敵＝ドレッドタッチ）の両方を作る。
