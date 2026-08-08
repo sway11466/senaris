@@ -12,8 +12,20 @@ class_name StatusMod
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
 ##   owner_team / remaining: 持続管理（残り自軍ターン数。BattleState.end_turn が減算）
 ##   name: String … 表示名（例: "ホーリーアリア"）。表示専用・省略可（name 無しの旧セーブも読める）
-##   harmful: bool … 有害な補正か（ピュリファイが落とす対象）。省略＝false。値の符号からは判断しない
-##     ＝「攻撃は下がるが防御は上がる」ようなスキルで破綻するため。詳細 → doc/gdd/skills.md
+##   kind: "buff" | "debuff" … その補正が掛かった側にとって良いものか悪いものか。省略＝"buff"。
+##     ピュリファイが落とす対象と、盤の見た目（強化＝黄緑／弱体＝紫）の出し分けがこれを見る。
+##     値の符号からは判断しない＝「攻撃は下がるが防御は上がる」ようなスキルで破綻するため。
+##     詳細 → doc/gdd/skills.md
+
+const KIND_BUFF := "buff"
+const KIND_DEBUFF := "debuff"
+
+## エントリ m が弱体（デバフ）か。kind を持たないエントリは強化扱い。
+## 旧セーブは bool の harmful を持つので、そちらも読む（版を上げずに読み続けられる）。
+static func is_debuff(m: Dictionary) -> bool:
+	if m.has("kind"):
+		return String(m.get("kind", KIND_BUFF)) == KIND_DEBUFF
+	return bool(m.get("harmful", false))
 
 ## mods のうち unit の target（"attack"/"defense"）に効くものを合成する。
 ## 戻り: { "mul": 掛け合わせ, "add": 足し合わせ }。該当なしは { 1.0, 0.0 }。
@@ -43,7 +55,7 @@ static func applied(mods: Array, unit: Unit) -> Array:
 	return out
 
 ## エントリ m が unit に効くか（scope 判定）。集計と表示だけでなく、ピュリファイが落とす対象の
-## 選別（BattleState.clear_harmful_status）も同じ判定を使う＝ずれない。
+## 選別（BattleState.clear_debuffs）も同じ判定を使う＝ずれない。
 static func applies_to(m: Dictionary, unit: Unit) -> bool:
 	match String(m.get("scope", "")):
 		"team":

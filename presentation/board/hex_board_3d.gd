@@ -36,8 +36,13 @@ const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の�
 ## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
-const COLOR_SKILL_GLOW := Color(0.85, 1.00, 0.55)  # ユニットスキル中の足元の光（黄緑）
+## ユニットスキルが効いている駒の足元の光。強化と弱体を色で分け、両方効いていれば両方出す
+## （弱体＝内側の塗り／強化＝その外周の輪）。仕様 → doc/gdd/skills.md 共通ルール
+const COLOR_SKILL_GLOW := Color(0.85, 1.00, 0.55)  # 強化（黄緑）
+const COLOR_SKILL_DEBUFF := Color(0.72, 0.42, 0.95)  # 弱体（紫）。赤は敵陣営の色と紛れるので避ける
 const SKILL_GLOW_RADIUS := TILE * 0.72   # 光の広がり（ヘックスに収まる大きさ）
+const SKILL_RING_INNER := TILE * 0.76    # 強化の輪。弱体の塗りの外側に置いて互いを潰さない
+const SKILL_RING_OUTER := TILE * 0.98
 const SKILL_GLOW_MIN := 0.35             # 明滅の下限アルファ
 const SKILL_GLOW_MAX := 0.85             # 同・上限
 const SKILL_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
@@ -105,8 +110,10 @@ var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル�
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
 var _shadow_mesh: ArrayMesh       # 足元のブロブシャドウ（楕円）
-var _glow_mesh: ArrayMesh         # ユニットスキル中の足元の光（楕円・影より一回り大きい）
-var _glow_mat: StandardMaterial3D # 同・材質（加算合成）。明滅は _process が alpha を書き換える
+var _glow_mesh: ArrayMesh         # 弱体の光（塗りの楕円・影より一回り大きい）
+var _glow_ring_mesh: ArrayMesh    # 強化の光（輪の楕円・弱体の塗りの外側）
+var _glow_mat: StandardMaterial3D # 強化の材質（加算合成）。明滅は _process が alpha を書き換える
+var _glow_mat_debuff: StandardMaterial3D # 弱体の材質（同上・色だけ違う）
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
 var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
@@ -174,7 +181,9 @@ func _ready() -> void:
 	_hexring_mesh = _make_hexring_mesh()
 	_shadow_mesh = _make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
 	_glow_mesh = _make_glow_mesh(SKILL_GLOW_RADIUS, 0.5)
-	_glow_mat = _make_glow_material()
+	_glow_ring_mesh = _make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
+	_glow_mat = _make_glow_material(COLOR_SKILL_GLOW)
+	_glow_mat_debuff = _make_glow_material(COLOR_SKILL_DEBUFF, false)
 	_skirt_tex = _make_skirt_texture()
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
@@ -251,7 +260,9 @@ func _process(_delta: float) -> void:
 	if _glow_mat != null:
 		var t := float(Time.get_ticks_msec()) * 0.001 / SKILL_GLOW_CYCLE
 		var w := 0.5 - 0.5 * cos(t * TAU)  # 0..1 のなめらかな往復
-		_glow_mat.albedo_color.a = lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
+		var a := lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
+		_glow_mat.albedo_color.a = a
+		_glow_mat_debuff.albedo_color.a = a  # 強化と弱体は同じ位相で明滅する（2つ出ても揃う）
 	if state == null:
 		return
 	var h := _hex_at_mouse()
@@ -1418,9 +1429,9 @@ func _sync_units() -> void:
 			sh.material_override = _overlay_material(COLOR_SHADOW)
 			sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
 			root.add_child(sh)
-			_add_skill_glow(u, root)
 		else:
 			_add_unit_placeholder(u, done, root)
+		_add_skill_glow(u, root)  # 絵の有無によらず出す（プレースホルダの駒でも掛かりは見える）
 		# 包囲中（攻防に係数<1.0）を明示。
 		if Surround.factor(state, u) < 1.0:
 			_add_ring(Vector3.ZERO, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, root)
@@ -1431,21 +1442,34 @@ func _sync_units() -> void:
 		if pcount > 0:
 			_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
 
-## ユニットスキルが効いている駒の足元を光らせる。見た目を宣言した補正（fx）が1つでも
-## 効いていれば出す＝陣営全体バフ（ホーリーアリア等）では光らない。詳細 → doc/gdd/skills.md
+## ユニットスキルが効いている駒の足元を光らせる。見た目を宣言した補正（fx）だけを見る＝
+## 陣営全体バフ（ホーリーアリア等）では光らない。強化と弱体は別に数え、両方あれば両方出す
+## （弱体＝内側の塗り／強化＝その外周の輪）。詳細 → doc/gdd/skills.md 共通ルール
 func _add_skill_glow(u: Unit, root: Node3D) -> void:
-	var lit := false
+	var buffed := false
+	var debuffed := false
 	for m in state.status_mods_for(u):
-		if not String(m.get("fx", "")).is_empty():
-			lit = true
-			break
-	if not lit:
-		return
-	var g := MeshInstance3D.new()
-	g.mesh = _glow_mesh
-	g.material_override = _glow_mat  # 共有＝全員が同じ位相で明滅する
-	g.position = Vector3(0, 0.034, SPRITE_FOOT_Z + 0.08)  # 影の上（影の黒に打ち消されない高さ）
-	root.add_child(g)
+		if String(m.get("fx", "")).is_empty():
+			continue
+		if StatusMod.is_debuff(m):
+			debuffed = true
+		else:
+			buffed = true
+	# 影の上（影の黒に打ち消されない高さ）。輪は塗りと同じ高さに重ねてよい＝範囲が重ならない。
+	var at := Vector3(0, 0.034, SPRITE_FOOT_Z + 0.08)
+	if debuffed:
+		var g := MeshInstance3D.new()
+		g.mesh = _glow_mesh
+		g.material_override = _glow_mat_debuff  # 共有＝全員が同じ位相で明滅する
+		g.position = at
+		root.add_child(g)
+	if buffed:
+		var r := MeshInstance3D.new()
+		# 弱体が出ていないときも輪のまま＝色と形の対応を状況で変えない（強化はいつも輪）。
+		r.mesh = _glow_ring_mesh
+		r.material_override = _glow_mat
+		r.position = at
+		root.add_child(r)
 
 ## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル）。
 ## root＝そのユニットの親ノード（位置は相対）。
@@ -1657,12 +1681,14 @@ func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
 ## 変化幅は控えめ（0.78〜1.0倍）＝べた塗り感だけ消し、色は頂点グラデに任せる。
 ## ユニットスキル中の足元の光の材質（加算合成・中心が濃く外へ消える）。
 ## 明滅は共有の1材質を _process が書き換える＝掛かっている駒が同じ位相で光る。
-func _make_glow_material() -> StandardMaterial3D:
+## 足元の光の材質。add＝地形の上に載せる（暗くしない）＝強化の輪はこちら。
+## 弱体の塗りは mix にする＝加算だと明るい地形の上で白へ飽和し、紫に見えない（平地で実測）。
+func _make_glow_material(color: Color, additive: bool = true) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
-	m.albedo_color = COLOR_SKILL_GLOW
+	m.albedo_color = color
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD  # 地形の上に載せる＝暗くしない
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD if additive else BaseMaterial3D.BLEND_MODE_MIX
 	m.vertex_color_use_as_albedo = true  # 中心→外周のアルファ落ちは頂点カラーで作る
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return m
@@ -1681,6 +1707,34 @@ func _make_glow_mesh(radius: float, z_ratio: float) -> ArrayMesh:
 		st.add_vertex(Vector3(cos(a0) * radius, 0.0, sin(a0) * radius * z_ratio))
 		st.set_color(Color(1, 1, 1, 0)); st.set_normal(Vector3.UP)
 		st.add_vertex(Vector3(cos(a1) * radius, 0.0, sin(a1) * radius * z_ratio))
+	return st.commit()
+
+## 足元の光の輪。内周と外周が透明・その中間が不透明の帯（_make_glow_mesh と同じ頂点カラー方式）。
+## 塗りの外側に置くので、弱体の塗りと強化の輪が同じ足元に出ても互いを潰さない。
+func _make_glow_ring_mesh(r_in: float, r_out: float, z_ratio: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n := 32
+	var r_mid := (r_in + r_out) * 0.5
+	for i in n:
+		var a0 := TAU * float(i) / float(n)
+		var a1 := TAU * float(i + 1) / float(n)
+		# 内周→中間→外周の2段の帯。中間だけ不透明にして、両端へなだらかに消す。
+		for band in [[r_in, 0.0, r_mid, 1.0], [r_mid, 1.0, r_out, 0.0]]:
+			var ri: float = band[0]
+			var ai: float = band[1]
+			var ro: float = band[2]
+			var ao: float = band[3]
+			var p0 := Vector3(cos(a0) * ri, 0.0, sin(a0) * ri * z_ratio)
+			var p1 := Vector3(cos(a1) * ri, 0.0, sin(a1) * ri * z_ratio)
+			var q0 := Vector3(cos(a0) * ro, 0.0, sin(a0) * ro * z_ratio)
+			var q1 := Vector3(cos(a1) * ro, 0.0, sin(a1) * ro * z_ratio)
+			st.set_color(Color(1, 1, 1, ai)); st.set_normal(Vector3.UP); st.add_vertex(p0)
+			st.set_color(Color(1, 1, 1, ai)); st.set_normal(Vector3.UP); st.add_vertex(p1)
+			st.set_color(Color(1, 1, 1, ao)); st.set_normal(Vector3.UP); st.add_vertex(q0)
+			st.set_color(Color(1, 1, 1, ao)); st.set_normal(Vector3.UP); st.add_vertex(q0)
+			st.set_color(Color(1, 1, 1, ai)); st.set_normal(Vector3.UP); st.add_vertex(p1)
+			st.set_color(Color(1, 1, 1, ao)); st.set_normal(Vector3.UP); st.add_vertex(q1)
 	return st.commit()
 
 func _make_skirt_texture() -> ImageTexture:

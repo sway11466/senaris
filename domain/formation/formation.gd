@@ -70,7 +70,7 @@ const RECIPES := {
 		"buff_value_per_troop": 10.0,
 		"buff_target": "both",
 		"buff_fx": "dust",  # 盤の見た目（掛かっている駒の足元を光らせる）。空＝見た目なし
-		"duration_turns": 1,
+		"duration_turns": 3,  # 発動側ターン3回ぶん。詳細 → doc/gdd/skills.md
 		"range": 1,  # 自分(0)＋隣接(1)
 		"range_from": "leader",
 	},
@@ -101,8 +101,8 @@ const RECIPES := {
 		"buff_value_per_troop": -10.0,
 		"buff_target": "both",
 		"buff_fx": "dread",
-		"buff_harmful": true,  # ピュリファイが落とす対象。値の符号からは判断しない
-		"duration_turns": 1,
+		"buff_kind": "debuff",  # 強化か弱体か。ピュリファイが落とす対象・盤の見た目。値の符号からは判断しない
+		"duration_turns": 3,  # 発動側ターン3回ぶん。詳細 → doc/gdd/skills.md
 		"range": 1,
 		"range_from": "leader",
 	},
@@ -276,8 +276,8 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 	# 撃ってもビショップが撃っても同じ絵になる。詳細 → doc/gdd/skills.md 実装方針
 	opt["combat_effect"] = String(r.get("combat_effect", ""))
 	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
-		# 有害な補正か（ピュリファイが落とす対象）。値の符号から推測しない＝レシピが明示する。
-		opt["buff_harmful"] = bool(r.get("buff_harmful", false))
+		# 強化か弱体か（ピュリファイが落とす対象・盤の見た目）。値の符号から推測しない＝レシピが明示する。
+		opt["buff_kind"] = String(r.get("buff_kind", StatusMod.KIND_BUFF))
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
 		opt["buff_value"] = float(r.get("buff_value", 1.0))
 		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))

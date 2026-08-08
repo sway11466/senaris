@@ -276,9 +276,10 @@ func _build_status(u: Unit) -> void:
 	if mods.is_empty() and surround >= 1.0:
 		_add_row("補正", "なし")
 		return
-	# 表記は戦闘レポートと共通＝名前 攻/防 の順。
+	# 表記は戦闘レポートと共通＝名前 攻/防 の順。残りは「掛けた側のターンがあと何回で切れるか」
+	# （敵ターンを跨いでも減らない＝BattleState._expire_status_mods）。
 	for m in mods:
-		_add_row("補正", CombatReportView.status_text(m))
+		_add_row("補正", "%s  残り%d" % [CombatReportView.status_text(m), int(m.get("remaining", 0))])
 	if surround < 1.0:
 		_add_row("包囲", "×%.2f（攻防とも弱体化）" % surround)
 

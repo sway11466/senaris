@@ -84,14 +84,14 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
-## unit に掛かっている有害な状態補正を落とす（③ピュリファイ）。落とした件数を返す。
-## 落とすのは harmful が立っていて対象1体（scope="unit"）のものだけ＝味方から掛かった
+## unit に掛かっている弱体（デバフ）を落とす（③ピュリファイ）。落とした件数を返す。
+## 落とすのは kind が debuff で対象1体（scope="unit"）のものだけ＝味方から掛かった
 ## 強化（ピクシーダスト）は残り、陣営全体に掛かった補正を1人のピュリファイで消すこともない。
 ## 詳細 → doc/gdd/skills.md
-func clear_harmful_status(unit: Unit) -> int:
+func clear_debuffs(unit: Unit) -> int:
 	var kept: Array = []
 	for m in _status_mods:
-		var drop := bool(m.get("harmful", false)) \
+		var drop := StatusMod.is_debuff(m) \
 			and String(m.get("scope", "")) == "unit" \
 			and StatusMod.applies_to(m, unit)
 		if drop:
@@ -735,12 +735,12 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			skill_detail["op"] = String(entry.get("op", "mul"))
 			skill_detail["value"] = float(entry.get("value", 0.0))
 			skill_detail["buff_target"] = String(entry.get("target", "both"))
-			skill_detail["harmful"] = bool(entry.get("harmful", false))
+			skill_detail["kind"] = String(entry.get("kind", StatusMod.KIND_BUFF))
 	# ピュリファイ（③）は積むのではなく落とす。同じく着弾は起きない＝results空。
 	elif String(option["effect"]) == "cleanse":
 		var cleansed := unit_at(target)  # can_target が味方の存在を保証済み
 		if cleansed != null:
-			var dropped := clear_harmful_status(cleansed)
+			var dropped := clear_debuffs(cleansed)
 			if skill_scope:
 				skill_detail["cleansed"] = dropped
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
@@ -824,8 +824,8 @@ func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 		"remaining": int(option.get("duration_turns", 1)),
 		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
 		"fx": String(option.get("buff_fx", "")),  # 盤の見た目（presentation が読む。空＝見た目なし）
-		# 有害な補正か。ピュリファイが落とす対象をこれで決める＝値の符号から推測しない。
-		"harmful": bool(option.get("buff_harmful", false)),
+		# 強化か弱体か。ピュリファイが落とす対象と盤の見た目をこれで決める＝値の符号から推測しない。
+		"kind": String(option.get("buff_kind", StatusMod.KIND_BUFF)),
 	}
 	if String(option.get("buff_scope", "team")) == "unit":
 		var u := unit_at(target)  # can_target が対象の存在と陣営を保証済み

@@ -167,17 +167,24 @@ func test_stacking_adds_up() -> void:
 	assert_false(s.resolve_formation(opts[0], near.pos).is_empty(), "同じ相手に重ねられる")
 	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 160.0, 0.001, "+80 が2つで +160")
 
-func test_expires_after_one_round() -> void:
+func test_expires_after_three_rounds() -> void:
+	# 持続は自軍ターン3回ぶん（doc/gdd/skills.md ①）。敵ターンでは減らない。
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	var foe: Unit = f["foe"]
 	var before := float(Combat.attack_breakdown(s, near, foe, true)["total"])
 	assert_false(s.resolve_formation(_dust_option(f), near.pos).is_empty(), "発動成功")
-	s.end_turn()  # 敵ターンへ
-	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 80.0, 0.001, "敵ターン中はまだ効く")
-	s.end_turn()  # 次の自軍ターンへ＝満了
-	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before, 0.001, "次の自軍ターン開始で切れる")
+	for round_index in 3:
+		s.end_turn()  # 敵ターンへ
+		assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 80.0, 0.001,
+			"敵ターン中はまだ効く（%d周目）" % (round_index + 1))
+		if round_index < 2:
+			s.end_turn()  # 次の自軍ターンへ＝まだ残っている
+			assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 80.0, 0.001,
+				"自軍ターン %d 回目もまだ効く" % (round_index + 2))
+	s.end_turn()  # 3回ぶん使い切った次の自軍ターン＝満了
+	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before, 0.001, "自軍ターン3回ぶんで切れる")
 
 # --- ④ドレッドタッチ（単体弱体・対象は敵）---
 
@@ -207,7 +214,7 @@ func test_dread_offered_by_ghost_alone() -> void:
 	assert_false(o.is_empty(), "ゴースト単独で成立する")
 	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
 	assert_true(bool(o["after_move"]), "移動後でも撃てる")
-	assert_true(bool(o["buff_harmful"]), "有害な補正＝ピュリファイが落とす対象")
+	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
 
 ## ピクシー性能を借りているだけなので、ピクシーダストは撃てない（照合はスキンID）。
 func test_ghost_cannot_cast_pixie_dust() -> void:
@@ -251,17 +258,24 @@ func test_dread_scales_with_caster_troops() -> void:
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["add"]), -30.0, 0.001, "ゴースト3体なら -30")
 	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), -30.0, 0.001, "防御側も同じ")
 
-func test_dread_expires_after_one_round() -> void:
+func test_dread_expires_after_three_rounds() -> void:
+	# 持続は発動側ターン3回ぶん（doc/gdd/skills.md ④）。相手ターンでは減らない。
 	var f := _dread_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
 	var ghost: Unit = f["ghost"]
 	var before := float(Combat.attack_breakdown(s, foe, ghost, true)["total"])
 	assert_false(s.resolve_formation(_dread_option(f), foe.pos).is_empty(), "発動成功")
-	s.end_turn()  # 相手ターンへ
-	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before - 80.0, 0.001, "相手ターン中は効いている")
-	s.end_turn()  # 次の発動側ターンへ＝満了
-	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before, 0.001, "次の発動側ターン開始で切れる")
+	for round_index in 3:
+		s.end_turn()  # 相手ターンへ
+		assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before - 80.0, 0.001,
+			"相手ターン中は効いている（%d周目）" % (round_index + 1))
+		if round_index < 2:
+			s.end_turn()  # 次の発動側ターンへ＝まだ残っている
+			assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before - 80.0, 0.001,
+				"発動側ターン %d 回目もまだ効く" % (round_index + 2))
+	s.end_turn()  # 3回ぶん使い切った次の発動側ターン＝満了
+	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before, 0.001, "発動側ターン3回ぶんで切れる")
 
 # --- ③ピュリファイ（有害な補正の解除）---
 
@@ -286,9 +300,9 @@ func _purify_option(f: Dictionary) -> Dictionary:
 ## near に有害な弱体（ドレッドタッチ相当）と無害な強化（ピクシーダスト相当）を1つずつ掛ける。
 func _afflict(s: BattleState, u: Unit) -> void:
 	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
-		"value": -80.0, "owner_team": 1, "remaining": 1, "name": "ドレッドタッチ", "harmful": true})
+		"value": -80.0, "owner_team": 1, "remaining": 1, "name": "ドレッドタッチ", "kind": "debuff"})
 	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
-		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "ピクシーダスト", "harmful": false})
+		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "ピクシーダスト", "kind": "buff"})
 
 func test_purify_offered_by_clergy_alone() -> void:
 	var f := _purify_state()
@@ -315,7 +329,7 @@ func test_purify_targets_self_and_adjacent_ally_only() -> void:
 	assert_false(Formation.can_target(s, o, f["foe"].pos), "敵には掛けられない")
 	assert_false(Formation.can_target(s, o, Hex.neighbor(f["priest"].pos, 1)), "空きマスには掛けられない")
 
-func test_purify_drops_harmful_and_keeps_buff() -> void:
+func test_purify_drops_debuffs_and_keeps_buffs() -> void:
 	var f := _purify_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
@@ -326,13 +340,13 @@ func test_purify_drops_harmful_and_keeps_buff() -> void:
 	assert_almost_eq(float(s.status_aggregate(near, "defense")["add"]), 80.0, 0.001, "防御側も同じ")
 
 ## 掛けられた数がいくつでも1回の発動で全部落ちる（ヴェノムファングが3本刺さっていても1回で済む）。
-func test_purify_drops_every_harmful_at_once() -> void:
+func test_purify_drops_every_debuff_at_once() -> void:
 	var f := _purify_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	for i in 3:
 		s.add_status_mod({"scope": "unit", "unit_id": near.id, "op": "add", "target": "both",
-			"value": -50.0, "owner_team": 1, "remaining": 1, "harmful": true})
+			"value": -50.0, "owner_team": 1, "remaining": 1, "kind": "debuff"})
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), -150.0, 0.001, "3本で -150")
 	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 0.0, 0.001, "1回で全部落ちる")
@@ -346,7 +360,7 @@ func test_purify_touches_only_the_target() -> void:
 	_afflict(s, near)
 	_afflict(s, far)
 	s.add_status_mod({"scope": "team", "team": 0, "op": "mul", "target": "both",
-		"value": 0.7, "owner_team": 1, "remaining": 1, "harmful": true})
+		"value": 0.7, "owner_team": 1, "remaining": 1, "kind": "debuff"})
 	assert_false(s.resolve_formation(_purify_option(f), near.pos).is_empty(), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "対象の弱体は落ちる")
 	assert_almost_eq(float(s.status_aggregate(far, "attack")["add"]), 0.0, 0.001, "離れた味方の弱体は残る")
