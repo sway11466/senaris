@@ -81,7 +81,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
