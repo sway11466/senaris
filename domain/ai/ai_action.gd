@@ -4,14 +4,15 @@ class_name AiAction
 ## domain は application のコマンドに依存できないため、AIはコマンドではなくこれを返し、
 ## application(MatchController) が MoveCommand/AttackCommand に翻訳して実行する。
 
-enum Kind { MOVE, ATTACK, DEPLOY }
+enum Kind { MOVE, ATTACK, DEPLOY, SKILL }
 
 var kind: Kind
 var unit_id: int
-var to: Vector2i         ## MOVE / DEPLOY のとき有効（DEPLOY は出撃先hex）
+var to: Vector2i         ## MOVE / DEPLOY / SKILL のとき有効（DEPLOY は出撃先hex・SKILL は対象hex）
 var target_id: int       ## ATTACK のとき有効
 var base_hex: Vector2i   ## DEPLOY のとき有効（出撃元の拠点hex）
 var garrison_index: int  ## DEPLOY のとき有効（出す控えの index）
+var option: Dictionary   ## SKILL のとき有効（Formation.available_for の1要素）
 
 static func move_to(unit_id: int, to: Vector2i) -> AiAction:
 	var a := AiAction.new()
@@ -27,7 +28,17 @@ static func attack(unit_id: int, target_id: int) -> AiAction:
 	a.target_id = target_id
 	return a
 
-## 拠点 base_hex の garrison_index を to へ出撃させる1手（詳細 → doc/gdd/ai.md §7 拠点出撃）。
+## unit_id が option のユニットスキルを target へ放つ1手（詳細 → doc/gdd/ai.md §4 スキル）。
+## option は Formation.available_for が返す辞書そのまま＝application が FormationCommand へ翻訳する。
+static func skill(unit_id: int, option: Dictionary, target: Vector2i) -> AiAction:
+	var a := AiAction.new()
+	a.kind = Kind.SKILL
+	a.unit_id = unit_id
+	a.option = option
+	a.to = target
+	return a
+
+## 拠点 base_hex の garrison_index を to へ出撃させる1手（詳細 → doc/gdd/ai.md §9 拠点出撃）。
 static func deploy(base_hex: Vector2i, garrison_index: int, to: Vector2i) -> AiAction:
 	var a := AiAction.new()
 	a.kind = Kind.DEPLOY

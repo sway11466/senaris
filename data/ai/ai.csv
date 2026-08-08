@@ -1,6 +1,6 @@
-label,name,engage,sight,retreat,attack,target,advance
-ラベル,表示名,起動,索敵半径,撤退閾値,攻撃条件,対象優先,前進
-charge,突撃,charge,-,0,always,near,max
-guard,待機,sight|squad,3,0,always,near,max
-raid,拠点攻略,charge,-,0,always,near,base
-weak,弱者狙い,charge,-,0,prey,weak;near,flank
+label,name,engage,sight,retreat,skill,skill_target,attack,target,advance
+ラベル,表示名,起動,索敵半径,撤退閾値,スキル発動,スキル対象,攻撃条件,対象優先,前進
+charge,突撃,charge,-,0,always,near,always,near,max
+guard,待機,sight|squad,3,0,always,near,always,near,max
+raid,拠点攻略,charge,-,0,always,near,always,near,base
+weak,弱者狙い,charge,-,0,always,weak;near,prey,weak;near,flank

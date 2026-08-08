@@ -294,6 +294,60 @@ func test_prey_falls_back_when_nothing_is_reachable() -> void:
 	s.add_unit(far_side)
 	assert_eq(_brain._prey_of(s, u).id, 2, "届く敵が居なければ盤上の敵を狙う")
 
+# --- スキル（doc/gdd/ai.md §4・§5） ---
+
+## ゴースト1体と、隣接する自軍2体を置いた盤。skill 軸を preset で渡す。
+func _ghost_state(skill: String, skill_target: String) -> BattleState:
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var ghost := Unit.new(10, 1, Hex.offset_to_axial(4, 2), 5)
+	ghost.skin_id = "ghost"
+	s.add_unit(ghost)
+	s.squads.append({ "ai": "ghost", "skill": skill, "skill_target": skill_target })
+	s.assign_squad(10, 0)
+	return s
+
+func test_skill_is_cast_before_attacking() -> void:
+	# 放つと行動完了＝そのターンは殴らない。だから攻撃より前に決める。
+	var s := _ghost_state("always", "near")
+	var target := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
+	s.add_unit(Unit.new(1, 0, target, 3))
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "隣接敵がいてもまずスキルを放つ")
+	assert_eq(a.unit_id, 10)
+	assert_eq(a.to, target, "対象は隣接する敵のマス")
+	assert_eq(String(a.option["recipe"]), "dread_touch")
+
+func test_skill_is_skipped_when_the_axis_is_off() -> void:
+	var s := _ghost_state("-", "-")
+	s.add_unit(Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3))
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "放たない設定なら従来どおり殴る")
+
+func test_skill_target_prefers_the_most_troops() -> void:
+	# skill_target=troops＝残兵の多い相手（デバフが長く効く）。同値は駒番号の小さいほう。
+	var s := _ghost_state("always", "troops")
+	var ghost_pos := Hex.offset_to_axial(4, 2)
+	var thin := Unit.new(1, 0, Hex.neighbor(ghost_pos, 0), 3)
+	thin.troops = 2
+	s.add_unit(thin)
+	var fat := Unit.new(2, 0, Hex.neighbor(ghost_pos, 3), 3)
+	fat.troops = 8
+	s.add_unit(fat)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL)
+	assert_eq(a.to, fat.pos, "残兵の多いほうに掛ける")
+
+func test_skill_is_not_cast_without_a_target_in_range() -> void:
+	# 対象にできる相手が範囲内にいなければ放たない＝前進に落ちる。
+	var s := _ghost_state("always", "near")
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 2), 3))  # 遠い
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "射程外なら前進する")
+
 func test_from_preset_wires_advance_base() -> void:
 	# ai.csv の advance="base" → 拠点前進フラグ。空/未知は既定（charge相当）。
 	assert_true(NearestAttackerBrain.from_preset({ "advance": "base" }).advance_to_base, "base＝拠点前進ON")

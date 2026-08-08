@@ -17,11 +17,18 @@ var presets := {}
 ## 部隊に属さないユニットの既定プリセット（ステージ直下 "ai" のラベルぶん）。空＝DEFAULT_PRESET（charge相当）。
 var default_preset := {}
 
+## スキル発動条件（skill 軸）と対象優先（skill_target 軸）で実装済みの値。
+## 未実装の値は「該当なし」と同じ扱いにする＝データに書いてあっても素通りする（doc/gdd/ai.md §4・§5）。
+const SKILL_TRIGGERS := ["always"]      ## 突撃＝対象にできる相手が範囲内にいれば放つ
+const NO_HEX := Vector2i(1 << 30, 1 << 30)  ## 「対象なし」の番兵（盤の外）
+const SKILL_TARGET_KEYS := ["troops", "weak", "atk", "near"]
+
 ## 全軸の既定値＝「素の charge AI」。プリセット/上書きにその軸が無いときの唯一のフォールバック。
 ## 以前は各所に散っていた既定リテラル（"max"/"charge"/"always"/…）をここへ集約＝ドリフト源を撤去（doc/gdd/ai.md）。
 ## ai.csv 由来のプリセットは全軸そろい（生成時に検証済み）なので実データでは使われない＝テスト等の部分プリセット用の保険。
 const DEFAULT_PRESET := {
 	"engage": "charge", "sight": 0, "retreat": 0,
+	"skill": "-", "skill_target": "-",
 	"attack": "always", "target": "near", "advance": "max",
 }
 
@@ -133,6 +140,10 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 		var base_hex := _reachable_capture_hex(state, u)
 		if base_hex != u.pos:
 			return AiAction.move_to(u.id, base_hex)
+	# スキル: 放つと行動完了＝そのターンは殴らないので、攻撃より前に決める（doc/gdd/ai.md §4）。
+	var skill_action := _try_skill(state, u)
+	if skill_action != null:
+		return skill_action
 	# 攻撃: 射程内の敵がいれば殴る。獲物のみ(attack=prey)は獲物・確殺以外を素通しして前進を続ける。
 	var targets := state.attack_targets(u.id)
 	if _attack_prey_only(state, u):
@@ -199,6 +210,67 @@ func _units_in_order(state: BattleState, team: int, squad_index: int) -> Array[U
 func _distance_to_nearest_enemy(state: BattleState, u: Unit) -> int:
 	var enemy := _nearest_enemy(state, u)
 	return Hex.distance(u.pos, enemy.pos) if enemy != null else 0
+
+# --- スキル（skill / skill_target）。詳細 → doc/gdd/ai.md §4・§5 ---
+
+## u が今ターン放てるユニットスキルの1手（無ければ null）。
+## 放つと発動者は行動完了になるので、攻撃より前に呼ぶ。移動後でも放てる（skills.md 共通ルール）。
+func _try_skill(state: BattleState, u: Unit) -> AiAction:
+	var triggers := String(_param(state, u, "skill")).split("|")
+	var live: Array[String] = []
+	for t in triggers:
+		if t in SKILL_TRIGGERS:
+			live.append(t)
+	if live.is_empty():
+		return null  # 放たない（"-"）／未実装のトリガーだけ＝素通り
+	for option in Formation.available_for(state, u):
+		var target := _pick_skill_target(state, u, option)
+		if target != NO_HEX:
+			return AiAction.skill(u.id, option, target)
+	return null
+
+## 対象を選ぶ（skill_target 軸の優先順位順）。放てる相手がいなければ番兵を返す。
+## 候補は「その option で狙えるヘックス」＝Formation.can_target が通るマス。
+func _pick_skill_target(state: BattleState, u: Unit, option: Dictionary) -> Vector2i:
+	var candidates: Array[Unit] = []
+	for other in state.units():
+		if not Formation.can_target(state, option, other.pos):
+			continue
+		candidates.append(other)
+	if candidates.is_empty():
+		return NO_HEX
+	var keys := String(_param(state, u, "skill_target")).split(";")
+	for key in keys:
+		if not (key in SKILL_TARGET_KEYS) or candidates.size() == 1:
+			continue
+		candidates = _narrow_skill_targets(state, u, candidates, key)
+	var best: Unit = candidates[0]
+	for c in candidates:
+		if c.id < best.id:  # 絞りきれなければ駒番号の小さいほう（攻撃対象と同じ）
+			best = c
+	return best.pos
+
+## 優先順位1つぶんの絞り込み。同値の候補は全部残して次の項目へ渡す。
+func _narrow_skill_targets(state: BattleState, u: Unit, candidates: Array[Unit], key: String) -> Array[Unit]:
+	var score := func(c: Unit) -> int:
+		match key:
+			"troops":
+				return c.troops
+			"weak":
+				return -c.unit_defense  # 防御が低いほど良い
+			"atk":
+				return int(Combat.attack_breakdown(state, c, u)["total"])  # c が u を殴るときの実効攻撃力
+			"near":
+				return -Hex.distance(u.pos, c.pos)
+		return 0
+	var best_score := -(1 << 30)
+	for c in candidates:
+		best_score = maxi(best_score, int(score.call(c)))
+	var out: Array[Unit] = []
+	for c in candidates:
+		if int(score.call(c)) == best_score:
+			out.append(c)
+	return out
 
 # --- 弱者狙い（attack=prey / target=weak / advance=flank）。詳細 → doc/gdd/ai.md（弱者狙いの設計） ---
 

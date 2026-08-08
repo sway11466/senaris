@@ -182,7 +182,7 @@ func run_ai_turn() -> void:
 ## 出撃は駒が現れる出撃先。行動を適用する前に呼ぶ＝主体はまだ動いていない。
 func _action_focus_hex(action: AiAction) -> Vector2i:
 	match action.kind:
-		AiAction.Kind.MOVE, AiAction.Kind.ATTACK:
+		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL:
 			var u := state.unit_by_id(action.unit_id)
 			return u.pos if u != null else action.to
 		_:  # DEPLOY
@@ -197,6 +197,8 @@ func _apply_ai_action(action: AiAction) -> bool:
 			return execute_attack(AttackCommand.new(action.unit_id, action.target_id))
 		AiAction.Kind.DEPLOY:
 			execute_deploy(DeployCommand.new(action.base_hex, action.garrison_index, action.to))
+		AiAction.Kind.SKILL:
+			execute_formation(FormationCommand.new(action.option, action.to))
 	return false
 
 func _check_finished() -> void:

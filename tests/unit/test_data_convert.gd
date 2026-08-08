@@ -227,6 +227,7 @@ func test_retainers_at_max_is_allowed() -> void:
 func _valid_ai_row(label: String) -> Dictionary:
 	return {
 		"label": label, "engage": "charge", "sight": "-", "retreat": "-",
+		"skill": "-", "skill_target": "-",
 		"attack": "-", "target": "weak", "advance": "-",
 	}
 

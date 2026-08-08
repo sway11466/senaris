@@ -8,7 +8,8 @@ const Csv = preload("res://data/csv_util.gd")
 
 ## 各プリセットが非空で必ず持つべき思考の軸（doc/gdd/ai.md「既定と省略のポリシー」）。
 ## CSVは省略不可＝`-`（該当なし）も値として埋める。欠け/空セルはデータのバグとして生成を止める。
-const REQUIRED_AXES := ["engage", "sight", "retreat", "attack", "target", "advance"]
+const REQUIRED_AXES := ["engage", "sight", "retreat", "skill", "skill_target",
+	"attack", "target", "advance"]
 
 func _initialize() -> void:
 	var rows := Csv.read_table("res://data/ai/ai.csv")
@@ -22,7 +23,7 @@ func _initialize() -> void:
 		print("ai.json: %d presets" % result["json"]["presets"].size())
 	quit()
 
-## ai.csv 行 → { problems, json }。json は { "presets": { label: {engage, sight, retreat, attack, target, advance} } }。
+## ai.csv 行 → { problems, json }。json は { "presets": { label: 全軸の辞書 } }（軸は REQUIRED_AXES）。
 ## 全軸そろい検証つき（共有 Csv.missing_required）＋ label 空行の検出: 1件でも欠け/空があれば json は null。純関数。
 static func build_presets(rows: Array) -> Dictionary:
 	var problems := []
