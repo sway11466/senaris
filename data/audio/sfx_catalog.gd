@@ -26,6 +26,10 @@ const BIND := {
 	"menu_back": "ui_cancel",
 	"menu_locked": "ui_denied",
 	# --- マップ（開始・ターン・終了）---
+	# 陣営の切り替わりはホルン3音＋ティンパニ。自軍は長三和音・敵軍は短三和音で、
+	# 3音目の半音だけが違う＝同じ合図と分かったうえで、どちらの番かが音色で分かる。
+	"map_turn_player": "map_turn_player",
+	"map_turn_enemy": "map_turn_enemy",
 	"map_turn_end": "ui_confirm",
 	# --- マップ（会話）---
 	"map_talk": "ui_hover",  # 文字送り。ホバーと同じ極短クリックを共用する

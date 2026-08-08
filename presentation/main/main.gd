@@ -132,6 +132,7 @@ func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_plate(team, turn_number)
 	_hud.set_player_turn(team == 0)
 	_update_aura()  # ターン開始で持続が減る＝ここで切れることがある
+	SfxPlayer.play_event("map_turn_player" if team == 0 else "map_turn_enemy")
 	_show_turn_banner(team)
 
 ## ターンの切り替わりを見せる横帯。自分のターンは操作を受け付けたまま（クリック等で即消し）、
