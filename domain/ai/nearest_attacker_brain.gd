@@ -19,9 +19,13 @@ var default_preset := {}
 
 ## スキル発動条件（skill 軸）と対象優先（skill_target 軸）で実装済みの値。
 ## 未実装の値は「該当なし」と同じ扱いにする＝データに書いてあっても素通りする（doc/gdd/ai.md §4・§5）。
-const SKILL_TRIGGERS := ["always"]      ## 突撃＝対象にできる相手が範囲内にいれば放つ
+## always＝対象にできる相手が範囲内にいれば放つ。包囲まわりの2語は攻撃条件と同じ意味（_surround_passes）。
+const SKILL_TRIGGERS := ["always", "surround_able", "surrounded"]
 const NO_HEX := Vector2i(1 << 30, 1 << 30)  ## 「対象なし」の番兵（盤の外）
 const SKILL_TARGET_KEYS := ["troops", "weak", "atk", "near"]
+
+## 攻撃条件（attack 軸）で実装済みの値。solo_adv / no_retal / kill は未実装＝素通り（doc/gdd/ai.md §6）。
+const ATTACK_CONDITIONS := ["always", "prey", "surround_able", "surrounded"]
 
 ## 全軸の既定値＝「素の charge AI」。プリセット/上書きにその軸が無いときの唯一のフォールバック。
 ## 以前は各所に散っていた既定リテラル（"max"/"charge"/"always"/…）をここへ集約＝ドリフト源を撤去（doc/gdd/ai.md）。
@@ -144,10 +148,9 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 	var skill_action := _try_skill(state, u)
 	if skill_action != null:
 		return skill_action
-	# 攻撃: 射程内の敵がいれば殴る。獲物のみ(attack=prey)は獲物・確殺以外を素通しして前進を続ける。
-	var targets := state.attack_targets(u.id)
-	if _attack_prey_only(state, u):
-		targets = _prey_or_kill_targets(state, u, targets)
+	# 攻撃: 射程内の敵がいれば殴る。攻撃条件(attack)で絞った結果が空なら殴らずに前進を続ける
+	# （獲物のみ＝硬い前衛を素通り、包囲可能／包囲状態＝独りでは突っ込まない）。
+	var targets := _attack_allowed_targets(state, u, state.attack_targets(u.id))
 	if not targets.is_empty():
 		return AiAction.attack(u.id, _pick_target(state, u, targets))
 	# 前進: まだ動いていなければ目標へ寄る。
@@ -224,17 +227,20 @@ func _try_skill(state: BattleState, u: Unit) -> AiAction:
 	if live.is_empty():
 		return null  # 放たない（"-"）／未実装のトリガーだけ＝素通り
 	for option in Formation.available_for(state, u):
-		var target := _pick_skill_target(state, u, option)
+		var target := _pick_skill_target(state, u, option, live)
 		if target != NO_HEX:
 			return AiAction.skill(u.id, option, target)
 	return null
 
 ## 対象を選ぶ（skill_target 軸の優先順位順）。放てる相手がいなければ番兵を返す。
-## 候補は「その option で狙えるヘックス」＝Formation.can_target が通るマス。
-func _pick_skill_target(state: BattleState, u: Unit, option: Dictionary) -> Vector2i:
+## 候補は「その option で狙えるヘックス」＝Formation.can_target が通るマスのうち、
+## 発動条件（live）を満たす相手だけ。条件は対象1体ごとに見る＝包囲まわりは相手の状態で決まる。
+func _pick_skill_target(state: BattleState, u: Unit, option: Dictionary, live: Array[String]) -> Vector2i:
 	var candidates: Array[Unit] = []
 	for other in state.units():
 		if not Formation.can_target(state, option, other.pos):
+			continue
+		if not _skill_trigger_passes(state, u, other, live):
 			continue
 		candidates.append(other)
 	if candidates.is_empty():
@@ -249,6 +255,12 @@ func _pick_skill_target(state: BattleState, u: Unit, option: Dictionary) -> Vect
 		if c.id < best.id:  # 絞りきれなければ駒番号の小さいほう（攻撃対象と同じ）
 			best = c
 	return best.pos
+
+## スキル発動条件を対象1体に当てる。always は誰でも通す。包囲まわりは攻撃条件と共通の判定へ。
+func _skill_trigger_passes(state: BattleState, u: Unit, target: Unit, live: Array[String]) -> bool:
+	if "always" in live:
+		return true
+	return _surround_passes(state, u, target, live)
 
 ## 優先順位1つぶんの絞り込み。同値の候補は全部残して次の項目へ渡す。
 func _narrow_skill_targets(state: BattleState, u: Unit, candidates: Array[Unit], key: String) -> Array[Unit]:
@@ -272,11 +284,64 @@ func _narrow_skill_targets(state: BattleState, u: Unit, candidates: Array[Unit],
 			out.append(c)
 	return out
 
+# --- 包囲まわりの条件（surround_able / surrounded）。skill 軸・attack 軸で共通。ai.md §4・§6 ---
+
+## 包囲まわりの条件を対象1体に当てる（live に含まれる語だけ見る＝"|" は OR）。
+## 語の意味を skill 軸と attack 軸で揃えるため、判定はここ1か所に置く。
+## 包囲は敵に向ける条件なので、味方に掛けるスキル（buff_side=ally）の対象はここを通らない
+## ＝そういうスキルを持つ駒に包囲条件を書くと放たなくなる。
+func _surround_passes(state: BattleState, u: Unit, target: Unit, live: Array[String]) -> bool:
+	if target == null or target.team == u.team:
+		return false
+	if "surrounded" in live and Surround.factor(state, target) < 1.0:
+		return true
+	if "surround_able" in live and _surround_reach_count(state, u, target) >= Surround.GATE:
+		return true
+	return false
+
+## 今ターン中に target へ隣接できる自陣営の駒の数（包囲可能の判定材料）。
+## すでに隣接している駒と、まだ動いておらず target の隣のマスへ停まれる駒を数える。
+## 発動者自身も同じ規則で数に入る（移動後なら「すでに隣接」のときだけ）。
+## Surround.GATE に届けば、あとから寄って包囲が成立する＝先に弱らせる価値がある（ai.md §4）。
+func _surround_reach_count(state: BattleState, u: Unit, target: Unit) -> int:
+	var ring := Hex.neighbors(target.pos)
+	var count := 0
+	for other in state.units():
+		if other.team != u.team:
+			continue
+		if Hex.distance(other.pos, target.pos) == 1:
+			count += 1
+			continue
+		if state.has_moved(other.id) or state.is_done(other.id):
+			continue  # もう動けない駒は今ターン中には寄れない
+		var reach := state.reachable(other.id)
+		for h in ring:
+			if h in reach:
+				count += 1
+				break
+	return count
+
 # --- 弱者狙い（attack=prey / target=weak / advance=flank）。詳細 → doc/gdd/ai.md（弱者狙いの設計） ---
 
-## u の攻撃条件が「獲物のみ」(prey) か。attack 軸（"|"＝OR リスト）に prey を含むかで判定。
-func _attack_prey_only(state: BattleState, u: Unit) -> bool:
-	return "prey" in String(_param(state, u, "attack")).split("|")
+## 攻撃条件（attack 軸）で射程内の候補を絞る。"|"＝OR なので、どれか1つでも通れば殴ってよい。
+## 未実装の値（solo_adv / no_retal / kill）だけ・always・軸なしは従来どおり全部通す。
+## 返す順は ids の並びのまま＝同値の対象を選ぶときの決まり方を変えない。
+func _attack_allowed_targets(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
+	var live: Array[String] = []
+	for t in String(_param(state, u, "attack")).split("|"):
+		if t in ATTACK_CONDITIONS and not (t in live):
+			live.append(t)
+	if live.is_empty() or "always" in live:
+		return ids
+	var allowed := {}
+	if "prey" in live:
+		for id in _prey_or_kill_targets(state, u, ids):
+			allowed[id] = true
+	var out: Array[int] = []
+	for id in ids:
+		if allowed.has(id) or _surround_passes(state, u, state.unit_by_id(id), live):
+			out.append(id)
+	return out
 
 ## u の対象優先が「弱者狙い」(weak) か。target 軸（";"＝順序リスト）に weak を含むかで判定。
 func _targets_weak(state: BattleState, u: Unit) -> bool:

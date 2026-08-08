@@ -348,6 +348,89 @@ func test_skill_is_not_cast_without_a_target_in_range() -> void:
 	assert_not_null(a)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "射程外なら前進する")
 
+# --- 包囲まわりの条件（surround_able / surrounded）。skill 軸・attack 軸で共通。ai.md §4・§6 ---
+
+## target の隣で、taken でも盤外でも埋まってもいないマス（包囲役を置く場所）。
+func _free_ring_hex(s: BattleState, target: Vector2i, taken: Vector2i) -> Vector2i:
+	for h in Hex.neighbors(target):
+		if h != taken and s.in_field(h) and s.unit_at(h) == null:
+			return h
+	return target
+
+## target から距離2の空きマス（「今ターン中に隣へ寄れる味方」を置く場所）。
+func _approach_hex(s: BattleState, target: Vector2i) -> Vector2i:
+	for ring in Hex.neighbors(target):
+		for far in Hex.neighbors(ring):
+			if Hex.distance(far, target) == 2 and s.in_field(far) and s.unit_at(far) == null:
+				return far
+	return target
+
+## 駒1体を team1 の部隊に入れ、attack 軸だけ指定した盤（ほかの軸は既定＝charge 相当）。
+func _attack_axis_state(attack: String) -> BattleState:
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(4, 2), 3))
+	s.squads.append({ "ai": "test", "attack": attack })
+	s.assign_squad(10, 0)
+	return s
+
+func test_skill_surrounded_waits_until_the_target_is_pinned() -> void:
+	# 包囲状態＝すでに味方2体以上が隣接して包囲効果が出ている相手にだけ放つ。
+	var s := _ghost_state("surrounded", "near")
+	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
+	s.add_unit(Unit.new(1, 0, target_pos, 3))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "ゴースト1体では包囲が成立しない＝放たずに殴る")
+	s.add_unit(Unit.new(11, 1, _free_ring_hex(s, target_pos, Hex.offset_to_axial(4, 2)), 3))
+	a = _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "包囲が成立したら放つ")
+	assert_eq(a.to, target_pos, "対象は包囲されている敵")
+
+func test_skill_surround_able_counts_allies_that_can_still_close_in() -> void:
+	# 包囲可能＝いま隣接している駒＋今ターン中に隣接できる駒が Surround.GATE に届くか。
+	var s := _ghost_state("surround_able", "near")
+	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
+	s.add_unit(Unit.new(1, 0, target_pos, 3))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣接できるのがゴーストだけ＝1体では届かない")
+	s.add_unit(Unit.new(11, 1, _approach_hex(s, target_pos), 3))
+	a = _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "あとから寄れる味方がいれば先に弱らせる")
+	assert_eq(a.to, target_pos)
+
+func test_skill_surround_able_ignores_allies_that_are_done() -> void:
+	# 行動を終えた駒は今ターン中には寄れない＝数に入らない。
+	var s := _ghost_state("surround_able", "near")
+	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
+	s.add_unit(Unit.new(1, 0, target_pos, 3))
+	s.add_unit(Unit.new(11, 1, _approach_hex(s, target_pos), 3))
+	s.set_done(11)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "行動済みの味方は包囲可能に数えない")
+
+func test_attack_surrounded_holds_until_the_target_is_pinned() -> void:
+	# 攻撃条件も skill 軸と同じ語・同じ判定。1体では殴らない。
+	var s := _attack_axis_state("surrounded")
+	var u_pos := Hex.offset_to_axial(4, 2)
+	var target_pos := Hex.neighbor(u_pos, 0)
+	s.add_unit(Unit.new(1, 0, target_pos, 3))
+	assert_true(_brain._attack_allowed_targets(s, s.unit_by_id(10), s.attack_targets(10)).is_empty(),
+		"包囲が成立していない相手は攻撃候補から外れる")
+	s.add_unit(Unit.new(11, 1, _free_ring_hex(s, target_pos, u_pos), 3))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "包囲が成立したら殴る")
+	assert_eq(a.target_id, 1)
+
+func test_attack_conditions_are_or_and_unimplemented_ones_pass_through() -> void:
+	# "|"＝OR。未実装の語（solo_adv / no_retal / kill）だけなら従来どおり全部通す（ai.md §6）。
+	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
+	var s := _attack_axis_state("solo_adv|no_retal")
+	s.add_unit(Unit.new(1, 0, target_pos, 3))
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.ATTACK, "未実装の条件は素通り＝殴る")
+	var s2 := _attack_axis_state("surrounded|always")
+	s2.add_unit(Unit.new(1, 0, target_pos, 3))
+	assert_eq(_brain.next_action(s2, 1).kind, AiAction.Kind.ATTACK, "always が混ざれば無条件に殴る")
+
 func test_from_preset_wires_advance_base() -> void:
 	# ai.csv の advance="base" → 拠点前進フラグ。空/未知は既定（charge相当）。
 	assert_true(NearestAttackerBrain.from_preset({ "advance": "base" }).advance_to_base, "base＝拠点前進ON")

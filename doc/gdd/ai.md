@@ -57,7 +57,9 @@
 - 補足
   - 発動者は行動完了になる＝放つと**そのターンは攻撃しない**。だから攻撃より前に決める。
   - 放てるスキルの有無はレシピ側で決まる（[skills.md](skills.md)）。持っていない駒はこの軸を素通りする。
-  - 実装状況: **突撃のみ実装済み**（`NearestAttackerBrain._try_skill`／`AiAction.skill`）。包囲可能・包囲状態は軸の定義だけで未配線＝データに書いても素通りする。対象は複数人の陣形スキルも含めて `Formation.available_for` から採るが、いま敵が持つのはユニットスキルだけ。
+  - 発動条件は対象1体ごとに見る（包囲可能・包囲状態は相手の状態で決まる）。条件を満たす相手が1体もいなければ放たない。
+  - 包囲は敵に向ける条件なので、味方に掛けるスキル（ピクシーダスト等）の対象はこの2語を通らない＝そういう駒に包囲条件を書くと放たなくなる。
+  - 実装状況: 3つとも実装済み（`NearestAttackerBrain._try_skill`／`_surround_passes`／`AiAction.skill`）。包囲まわりの判定は攻撃条件と同じコードを使う。対象は複数人の陣形スキルも含めて `Formation.available_for` から採るが、いま敵が持つのはユニットスキルだけ。
 
 ### 5. スキル対象（skill_target）— 発動する場合の対象の選び方
 - スキップ
@@ -83,6 +85,12 @@
   - 包囲状態: すでに味方ユニットが隣接していて包囲効果が発動する場合
   - 反撃なし: 反撃を受けないことが確定している相手がいる場合
   - 確殺: 一撃で倒しきれる相手がいる
+- 補足
+  - 条件は射程内の相手1体ごとに当てて候補を絞る。通る相手が1体もいなければ殴らずに前進を続ける。
+  - 包囲可能＝いま対象に隣接している自陣営の駒＋まだ行動していない味方で対象の隣へ寄れる駒が、包囲成立数（`Surround.GATE`＝2）に届くこと。自分も同じ規則で数に入る。
+- 実装状況
+  - 突撃・獲物のみ・包囲可能・包囲状態を実装済み（`_attack_allowed_targets`／`_surround_passes`）。包囲まわりの判定はスキル発動条件と同じコードを使う。
+  - 単独有利・反撃なし・確殺は未実装＝「該当なし」と同じ扱い（それだけを書くと素通り＝殴れれば殴る）。
 
 ### 7. 攻撃対象（target）— 攻撃する場合の対象と位置の選び方
 - スキップ
@@ -199,7 +207,7 @@ AIは2層: **プリセット（ふるまいの組み合わせ）＝CSV** と **�
 - **実装済み（`nearest_attacker_brain`）**: 2.占領ステップ（占領可ユニットが移動範囲内の敵/中立拠点を攻撃より優先して取る）と、前進の `base`（拠点前進＝全ユニットが拠点へ向かう）オプション。
 - **起動（engage）も実装済み＝待機AIが動く**: `charge`（常時）／`sight`（**視線が通り**索敵内に敵＝壁の裏は無反応・森ごし減衰。[movement.md](movement.md) 視線）／`squad`（部隊の誰かが起動＝一斉警戒）／被ダメ（`BattleState.attack` が確定起動）／自衛（射程内に敵が来たら起動＝隣で寝続けない）。起動済みフラグは `BattleState`（`is_engaged`）に持ち、一度起動したら戻らない。`turn:N` は未実装。
 - **CSVパイプライン実装済み**: `data/ai/ai.csv` →（`convert.gd`）→ `ai.json` → `AiCatalog.load_default()`（data層・純データ）→ `NearestAttackerBrain.from_preset(p)`（domain層でBrain組立）。
-- **部隊(squad)割り当ても実装済み**: ステージJSONの `enemy`＝部隊の配列（下記）を StageLoader が読み、BattleState が unit→部隊の対応を保持。**敵は必ず部隊に属する**（バラ配置は無い）。Brain はユニットごとに「部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ `DEFAULT_PRESET`」で解決する（`ai` 未指定/未知の部隊＝charge 相当＝`DEFAULT_PRESET`。散在していた既定リテラルは単一定数へ集約済み。未知ラベルの明示検出は将来）。デバッグステージ: `data/stages/debug-victory/hq.json`（raid部隊）／`data/stages/debug-ai/sight.json`（guard部隊×2＝一斉警戒＋視線）。プリセットのうち効くのは `engage`・`sight`・`advance`（`max`/`base`/`flank`）・`attack`（`prey` のみ。ほかは既定＝殴れれば殴る）・`target`（`weak` のみ。ほかは既定＝射程内の兵数最小）。retreat は未配線＝現状は常に退かない（CSVに書いても効かない。配線は将来対応）。
+- **部隊(squad)割り当ても実装済み**: ステージJSONの `enemy`＝部隊の配列（下記）を StageLoader が読み、BattleState が unit→部隊の対応を保持。**敵は必ず部隊に属する**（バラ配置は無い）。Brain はユニットごとに「部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ `DEFAULT_PRESET`」で解決する（`ai` 未指定/未知の部隊＝charge 相当＝`DEFAULT_PRESET`。散在していた既定リテラルは単一定数へ集約済み。未知ラベルの明示検出は将来）。デバッグステージ: `data/stages/debug-victory/hq.json`（raid部隊）／`data/stages/debug-ai/sight.json`（guard部隊×2＝一斉警戒＋視線）。プリセットのうち効くのは `engage`・`sight`・`advance`（`max`/`base`/`flank`）・`skill`／`skill_target`・`attack`（`always`/`prey`/`surround_able`/`surrounded`。ほかは既定＝殴れれば殴る）・`target`（`weak` のみ。ほかは既定＝射程内の兵数最小）。retreat は未配線＝現状は常に退かない（CSVに書いても効かない。配線は将来対応）。
 
 ### 割り当て ＝ ステージデータ（部隊）
 
