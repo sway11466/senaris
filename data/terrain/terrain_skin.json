@@ -49,6 +49,21 @@
 			"combat_ground": "",
 			"combat_layout": "",
 			"connect": false,
+			"elevation": 0,
+			"grid": true,
+			"map_ground": "",
+			"map_overlay": "",
+			"memo": "町外れの、墓地へ続く枯れた草地（性能は平地のまま）",
+			"name": "墓地の草地",
+			"orientable": "full",
+			"skin_id": "plain_grave1",
+			"sprite_sink": 0,
+			"terrain_type": "plain"
+		},
+		{
+			"combat_ground": "",
+			"combat_layout": "",
+			"connect": false,
 			"elevation": 0.18,
 			"grid": true,
 			"map_ground": "",
@@ -72,21 +87,6 @@
 			"name": "荒地",
 			"orientable": "full",
 			"skin_id": "wasteland",
-			"sprite_sink": 0,
-			"terrain_type": "wasteland"
-		},
-		{
-			"combat_ground": "",
-			"combat_layout": "",
-			"connect": false,
-			"elevation": 0,
-			"grid": true,
-			"map_ground": "",
-			"map_overlay": "",
-			"memo": "町外れの、墓地へ続く枯れた草地（性能は荒地のまま）",
-			"name": "墓地の荒れ野",
-			"orientable": "full",
-			"skin_id": "wasteland_grave1",
 			"sprite_sink": 0,
 			"terrain_type": "wasteland"
 		},
@@ -166,14 +166,14 @@
 			"terrain_type": "fence"
 		},
 		{
-			"combat_ground": "wasteland_grave1",
+			"combat_ground": "plain_grave1",
 			"combat_layout": "line",
 			"connect": "line",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "wasteland_grave1",
+			"map_ground": "plain_grave1",
 			"map_overlay": "fence",
-			"memo": "柵の絵（map_overlay）を借り、墓地の荒れ野の上に立てる",
+			"memo": "柵の絵（map_overlay）を借り、墓地の草地の上に立てる",
 			"name": "墓地の柵",
 			"orientable": "none",
 			"skin_id": "fence_grave1",
@@ -211,7 +211,7 @@
 			"terrain_type": "rampart"
 		},
 		{
-			"combat_ground": "wasteland_grave1",
+			"combat_ground": "plain_grave1",
 			"combat_layout": "line",
 			"connect": false,
 			"elevation": 0.36,
@@ -301,7 +301,7 @@
 			"terrain_type": "fort"
 		},
 		{
-			"combat_ground": "wasteland_grave1",
+			"combat_ground": "plain_grave1",
 			"combat_layout": "center",
 			"connect": false,
 			"elevation": 0,

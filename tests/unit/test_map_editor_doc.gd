@@ -401,7 +401,7 @@ const MARGIN_SAMPLE := """
     "FFFFFF"
   ],
   "terrain_skins": [
-    { "col": -1, "row": 1, "skin": "wasteland_grave1" }
+    { "col": -1, "row": 1, "skin": "plain_grave1" }
   ],
   "player": [
     { "type": "fighter", "col": 1, "row": 1 }
@@ -462,7 +462,7 @@ func test_in_board_excludes_the_ring() -> void:
 func test_terrain_skins_can_address_the_ring() -> void:
 	# 外周のセルにも見た目差分を書ける（座標が盤外になるだけ＝形式はそのまま）
 	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
-	assert_eq(doc.terrain_skin(-1, 1), "wasteland_grave1", "読み込んだ外周の skin 指定")
+	assert_eq(doc.terrain_skin(-1, 1), "plain_grave1", "読み込んだ外周の skin 指定")
 	doc.set_terrain_skin(4, 2, "road")
 	assert_eq(doc.terrain_skin(4, 2), "road", "外周に skin を足せる")
 

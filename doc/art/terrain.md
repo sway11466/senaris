@@ -146,11 +146,11 @@ visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
 | `map_ground` | 下に敷くスキンID | 敷かない＝1枚絵で完結する従来のタイル |
 | `map_overlay` | 上に重ねる絵を借りるスキンID | 自分の絵 |
 
-墓地の柵は、柵の絵を借りて墓地の荒れ野の上に置くので **CSV 1行だけ**で足りる。新しい画像は要らない。
+墓地の柵は、柵の絵を借りて墓地の草地の上に置くので **CSV 1行だけ**で足りる。新しい画像は要らない。
 
 ```
 fence,        fence, 柵,       false, line, 0,0,true, plain,            ,      plain,            line, …
-fence_grave1, fence, 墓地の柵, false, line, 0,0,true, wasteland_grave1, fence, wasteland_grave1, line, …
+fence_grave1, fence, 墓地の柵, false, line, 0,0,true, plain_grave1, fence, plain_grave1, line, …
 ```
 
 - 地面を焼き込むと、地面の種類ごとに64枚を焼き直すことになる。柵は焼き込みで1.84MB／地面1種、地面なしなら1.34MBが1回きり（実測）。2種目からは差が開く一方で、`assets/terrain` 全体が2.6MBしかないので効き方が大きい。

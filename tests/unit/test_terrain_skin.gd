@@ -78,7 +78,7 @@ func test_map_overlay_borrows_the_art_of_another_skin() -> void:
 	if grave == null:
 		return
 	assert_eq(grave.art_id(), "fence", "絵は柵から借りる")
-	assert_eq(grave.map_ground_id(), "wasteland_grave1", "下地は墓地の荒れ野")
+	assert_eq(grave.map_ground_id(), "plain_grave1", "下地は墓地の草地")
 	assert_eq(grave.image_path(), "res://assets/terrain/fence.png", "基本タイルも借りた絵")
 	assert_eq(grave.connected_image_path([false, false, true, false, false, true]),
 		"res://assets/terrain/fence_c001001.png", "接続タイルも借りた絵")

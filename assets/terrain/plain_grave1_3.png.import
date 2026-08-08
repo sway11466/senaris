@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c026pw16srmq3"
-path="res://.godot/imported/wasteland_grave1_3.png-3e4b8440ebfb0f06584472627b3a7931.ctex"
+uid="uid://lbs2ous33mnj"
+path="res://.godot/imported/plain_grave1_3.png-c6937cd9d438460d11a27157bea93cee.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/wasteland_grave1_3.png"
-dest_files=["res://.godot/imported/wasteland_grave1_3.png-3e4b8440ebfb0f06584472627b3a7931.ctex"]
+source_file="res://assets/terrain/plain_grave1_3.png"
+dest_files=["res://.godot/imported/plain_grave1_3.png-c6937cd9d438460d11a27157bea93cee.ctex"]
 
 [params]
 
