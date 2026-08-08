@@ -89,7 +89,7 @@ func _build_side(parent: HBoxContainer, head_text: String, atk_default: int, def
 	inputs["attack"] = _add_spin(grid, "ユニット攻撃力", 0, 999, 1, atk_default)
 	inputs["defense"] = _add_spin(grid, "ユニット防御力", 0, 999, 1, def_default)
 	inputs["pierce"] = _add_spin(grid, "貫通 (0〜1)", 0.0, 1.0, 0.05, 0.0)
-	inputs["level"] = _add_spin(grid, "経験Lv", 1, Unit.MAX_LEVEL, 1, 1)
+	inputs["level"] = _add_spin(grid, "レベル", 1, Unit.MAX_LEVEL, 1, 1)
 	inputs["terrain"] = _add_terrain(grid, "地形")
 	inputs["occ"] = _add_spin(grid, "包囲: 隣接敵(占有)", 0, 6, 1, 0)
 	inputs["zoc"] = _add_spin(grid, "包囲: ZOC数", 0, 6, 1, 0)
@@ -208,7 +208,7 @@ func _render(atk: Dictionary, df: Dictionary, fwd: Dictionary, ret: Variant) -> 
 ## 実効攻撃力の内訳を「素 → 支援 → 実効」の順で文字列化。
 func _fmt_attack(bd: Dictionary) -> String:
 	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["experience"]) * float(bd["surround"]) * float(bd["terrain"])
-	var s := "  兵%d × 攻%d × 経験%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
+	var s := "  兵%d × 攻%d × レベル%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
 		bd["troops"], bd["stat"], bd["experience"], bd["surround"], bd["terrain"], pre]
 	if float(bd["support"]) > 0.0:
 		s += "  ＋ 支援 %.1f\n" % bd["support"]
@@ -221,7 +221,7 @@ func _fmt_defense(bd: Dictionary) -> String:
 	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["experience"]) * float(bd["surround"]) * float(bd["terrain"])
 	var supported := pre + float(bd["support"])
 	var capped_val: float = min(supported, pre * Combat.DEFENSE_SUPPORT_CAP)
-	var s := "  兵%d × 防%d × 経験%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
+	var s := "  兵%d × 防%d × レベル%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
 		bd["troops"], bd["stat"], bd["experience"], bd["surround"], bd["terrain"], pre]
 	if float(bd["support"]) > 0.0:
 		var note := "  (2倍上限で頭打ち)" if bd["capped"] else ""

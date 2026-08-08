@@ -19,6 +19,7 @@ var _skins := {}
 var _detail := {}
 var _tabs := {}  # "summary"/"attacker"/"defender" -> Button
 var _summary: GridContainer
+var _side_head: Label
 var _detail_label: Label
 
 func _ready() -> void:
@@ -48,6 +49,11 @@ func _ready() -> void:
 		b.pressed.connect(_show_tab.bind(t[0]))
 		tabs.add_child(b)
 		_tabs[t[0]] = b
+	_side_head = Label.new()  # 攻撃側/守備側タブの見出し（誰の内訳か・兵の増減）
+	_side_head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_side_head.hide()
+	v.add_child(_side_head)
+	# サマリーも攻撃側/守備側も同じ3列の表（左＝その駒の攻め／中＝項目／右＝その駒の守り）。
 	_summary = GridContainer.new()
 	_summary.columns = 3
 	_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -58,6 +64,9 @@ func _ready() -> void:
 	_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_detail_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_detail_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# 表の下の補足＝表より一段小さく（中央のラベル12・値14と同じ型づかい）。
+	_detail_label.add_theme_font_size_override("font_size", 13)
+	_detail_label.add_theme_color_override("font_color", VALUE_COLOR)
 	v.add_child(_detail_label)
 
 func bind(skins: Dictionary) -> void:
@@ -75,12 +84,12 @@ func show_report(detail: Dictionary) -> void:
 func _show_tab(id: String) -> void:
 	if _detail.is_empty():
 		return
-	_summary.visible = id == "summary"
-	_detail_label.visible = id != "summary"
+	_side_head.visible = id != "summary"
 	if id == "summary":
 		_rebuild_summary()
+		_detail_label.text = ""
 	else:
-		_detail_label.text = _format_side_detail(id == "attacker")
+		_rebuild_side(id == "attacker")
 
 # --- 表示の左右解決 ---
 
@@ -140,6 +149,13 @@ func _add_status_rows(ls: Dictionary, rs: Dictionary) -> void:
 
 func _add_row(lt: String, label: String, rt: String) -> void:
 	_add_control_row(_value_label(lt), label, _value_label(rt))
+
+## 表の区切り線（3列ぶんの細い線）。積み上げと結果を分ける。
+func _add_rule() -> void:
+	for i in 3:
+		var sep := HSeparator.new()
+		sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_summary.add_child(sep)
 
 func _add_control_row(left: Control, label: String, right: Control) -> void:
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -253,9 +269,14 @@ static func status_text(m: Dictionary) -> String:
 	var def_part := eff if t != "attack" else NONE
 	return "%s %s/%s" % [nm, atk_part, def_part]
 
-# --- 詳細（数式チェーン）。式の整形は旧 UnitInfoPanel._format_combat から移設 ---
+# --- 攻撃側／守備側タブ（補正の内訳）。サマリーと同じ3列の表で、係数を1行1項目で並べる ---
+# 左＝その駒の攻め（攻撃 or 反撃）／中＝項目名／右＝その駒の守り。両側で係数の並びが同じなので、
+# 1つの表に収まる。1本の長い式にすると板の幅で3行に折り返して読めなくなる。
 
-func _format_side_detail(attacker_side: bool) -> String:
+func _rebuild_side(attacker_side: bool) -> void:
+	for c in _summary.get_children():
+		_summary.remove_child(c)
+		c.queue_free()
 	var a: Dictionary = _detail["attacker"]
 	var t: Dictionary = _detail["defender"]
 	var fwd: Dictionary = _detail["to_defender"]
@@ -264,51 +285,97 @@ func _format_side_detail(attacker_side: bool) -> String:
 	var other: Dictionary = t if attacker_side else a
 	var nm := _display_name(snap)
 	var on := _display_name(other)
+	# 攻め＝攻撃側なら往路の攻撃、守備側なら反撃。守り＝その駒が受ける側の内訳。
+	var off: Dictionary = fwd["attack"] if attacker_side else (ret["attack"] if ret != null else {})
+	var def: Dictionary = (ret["defense"] if ret != null else {}) if attacker_side else fwd["defense"]
+	_side_head.text = "%s Lv%d  兵 %d/%d → %d/%d (%+d)" % [nm, snap["level"],
+		snap["troops_before"], snap["max"], snap["troops_after"], snap["max"],
+		int(snap["troops_after"]) - int(snap["troops_before"])]
+
+	# 列の見出しは下の損害の説明でも使い回す＝どの列の話がどの説明かを同じ言葉で結ぶ。
+	var off_head := ("攻撃 → %s" % on) if attacker_side else ("反撃 → %s" % on)
+	var def_head := "防御 ← %s" % on
+	_add_row(off_head, "", def_head)
+	_add_row(_num(off, "troops"), "兵数", _num(def, "troops"))
+	# 攻撃力と防御力は別の行に分ける＝どちらの列がどちらの側の話か、行だけ見て分かるようにする。
+	# 効かない側は — にして行そのものは残す（行の有無で探させない）。
+	_add_row(_stat_text(off), "攻撃", NONE)
+	_add_row(NONE, "防御", _stat_text(def))
+	_add_row(_mul(off, "experience"), "レベル", _mul(def, "experience"))
+	_add_row(_mul(off, "surround"), "包囲", _mul(def, "surround"))
+	_add_row(_mul(off, "terrain"), "地形", _mul(def, "terrain"))
+	_add_row(_status_part(off), "状態", _status_part(def))
+	_add_row(_add_text(off, "support"), "支援", _add_text(def, "support"))
+	# 貫通は防御側にだけ乗る（攻撃側の pierce が相手の防御を削る）。効いていなければ — 。
+	_add_row(NONE, "貫通", _mul(def, "pierce"))
+	_add_rule()  # ここまでが積み上げ、ここから下が出来上がった値
+	_add_row(_total_text(off, "反撃なし"), "実効攻撃力", NONE)
+	_add_row(NONE, "実効防御力", _total_text(def, NONE))
+	# ぶつけ合った相手の値はもう一方のタブに同じ数字で出るので、表には載せない
+	# （攻撃側タブの「相手の実効防御力」＝守備側タブの「実効防御力」）。
+	# 損害の出し方は左右に割らず、幅いっぱいで式に数字を入れて見せる＝どちらが何兵失うのか、
+	# 列の位置ではなく文で分かるようにする。
+	# 損害はそのタブの駒が「与える側」の1本だけ書く。受ける側の損害は、その相手のタブに
+	# 同じ形で出る（攻撃側タブ＝ナイトが与える／守備側タブ＝スケルトンが反撃で与える）。
+	var own_hit: Variant = fwd if attacker_side else ret
 	var lines: Array[String] = []
-	lines.append("%s Lv%d（%s）" % [nm, snap["level"], TerrainSkinCatalog.display_name(snap["terrain"])])
-	lines.append("兵 %d/%d → %d/%d (%+d)" % [snap["troops_before"], snap["max"], snap["troops_after"], snap["max"], snap["troops_after"] - snap["troops_before"]])
-	lines.append("──────────────────────")
-	if attacker_side:
-		lines.append("▼ 攻撃 → %s" % on)
-		lines.append(_chain(fwd["attack"]))
-		lines.append(_damage_line(nm, on, fwd, t["troops_before"]))
-		lines.append("▼ 防御 ← %s の反撃" % on)
-		if ret != null:
-			lines.append(_chain(ret["defense"]))
-			lines.append(_damage_line(on, nm, ret, a["troops_before"]))
-		else:
-			lines.append("  反撃なし（無傷）")
+	if bool(def.get("capped", false)) or bool(off.get("capped", false)):
+		lines.append("防御の支援は素の2倍が上限。上限に当たっている。")
+	if own_hit == null:
+		lines.append("%s" % off_head)
+		lines.append("  反撃なし（距離2以上・対空を持たない・懐に死角のいずれか）")
 	else:
-		lines.append("▼ 防御 ← %s" % on)
-		lines.append(_chain(fwd["defense"]))
-		lines.append(_damage_line(on, nm, fwd, t["troops_before"]))
-		lines.append("▼ 反撃 → %s" % on)
-		if ret != null:
-			lines.append(_chain(ret["attack"]))
-			lines.append(_damage_line(nm, on, ret, a["troops_before"]))
-		else:
-			lines.append("  反撃なし")
-	lines.append("──────────────────────")
-	lines.append("損害の式  割合=攻²÷(攻²+防²)、失う兵=相手の現在兵×割合")
-	return "\n".join(lines)
+		lines.append_array(_damage_block(off_head, on, own_hit, other))
+	_detail_label.text = "\n".join(lines)
 
-## 補正チェーン1行。breakdown は Combat.attack_breakdown / defense_breakdown。
-func _chain(b: Dictionary) -> String:
-	var is_atk: bool = b["kind"] == "attack"
-	var head := "攻" if is_atk else "防"
-	var stat_label := ("対空" if b.get("vs_aerial", false) else "対地") if is_atk else "防"
-	# 状態補正（バフ/デバフ）は効いているときだけ式に出す（既定 mul=1.0・add=0 なら非表示）。
-	var smul: float = b.get("status_mul", 1.0)
-	var sadd: float = b.get("status_add", 0.0)
-	var smul_str := " × 状態×%.2f" % smul if not is_equal_approx(smul, 1.0) else ""
-	var sadd_str := " ＋状態%d" % roundi(sadd) if not is_zero_approx(sadd) else ""
-	return "  %s %d = 兵%d × %s%d × 経験×%.2f × 包囲×%.2f × 地形×%.2f%s ＋支援%d%s" % [
-		head, roundi(b["total"]), b["troops"], stat_label, b["stat"],
-		b["experience"], b["surround"], b["terrain"], smul_str, roundi(b["support"]), sadd_str]
+## その駒が与える損害の説明。式の形を先に出し、次の行で実際の数字に置き換える。
+## 2乗は「520×520」と展開する（13px では小さい ² が読めない）。
+## victim＝兵を失う側／hit は Combat.hit_detail（攻/防の内訳と損害率・損害）。
+func _damage_block(head: String, victim_name: String, hit: Dictionary, victim_snap: Dictionary) -> Array[String]:
+	var atk := roundi(float(hit["attack"]["total"]))
+	var def_total := roundi(float(hit["defense"]["total"]))
+	var pct := int(round(float(hit["fraction"]) * 100.0))
+	return [
+		head,
+		"  損害率 ＝ 実効攻撃力² ÷ (実効攻撃力² ＋ 相手の実効防御力²)",
+		"       ＝ %d×%d ÷ (%d×%d ＋ %d×%d) ＝ %d%%" % [atk, atk, atk, atk, def_total, def_total, pct],
+		"  %sが失う兵 ＝ 兵%d × %d%% ＝ %d" % [victim_name, int(victim_snap["troops_before"]), pct, int(hit["loss"])],
+	]
 
-## 損害1行: 「攻撃側 → 受け手  攻A 対 防D → P% → 兵N×P% = 失う兵」。
-func _damage_line(from_name: String, to_name: String, hit: Dictionary, defender_troops: int) -> String:
-	var pct := int(round(hit["fraction"] * 100.0))
-	return "  %s → %s  攻%d 対 防%d → %d%% → 兵%d×%d%% = %d" % [
-		from_name, to_name, roundi(hit["attack"]["total"]), roundi(hit["defense"]["total"]),
-		pct, defender_troops, pct, hit["loss"]]
+
+## 内訳の整数値（兵数など）。内訳が空＝その向きは起きていない（反撃なし）。
+func _num(b: Dictionary, key: String) -> String:
+	return String.num_int64(int(b.get(key, 0))) if not b.is_empty() else NONE
+
+## 係数1つ。1.00（＝効いていない）も表に残す＝行の有無で「効いたか」を探させない。
+func _mul(b: Dictionary, key: String) -> String:
+	if b.is_empty() or not b.has(key):
+		return NONE
+	return "×%.2f" % float(b[key])
+
+## 加算1つ（支援）。
+func _add_text(b: Dictionary, key: String) -> String:
+	return "%+d" % roundi(float(b.get(key, 0.0))) if not b.is_empty() else NONE
+
+## ユニットの素の値。攻撃は対地/対空の別を添える（同じ駒でも相手で変わる）。
+## 防御は単一値で、行のラベルが「防御」なので数字だけでよい。
+func _stat_text(b: Dictionary) -> String:
+	if b.is_empty():
+		return NONE
+	if String(b.get("kind", "")) == "attack":
+		return "%s %d" % ["対空" if b.get("vs_aerial", false) else "対地", int(b["stat"])]
+	return String.num_int64(int(b["stat"]))
+
+## 状態補正（バフ/デバフ）。倍率と加算の両方が効いていれば併記する。
+func _status_part(b: Dictionary) -> String:
+	if b.is_empty():
+		return NONE
+	var parts: Array[String] = []
+	var smul := float(b.get("status_mul", 1.0))
+	var sadd := float(b.get("status_add", 0.0))
+	if not is_equal_approx(smul, 1.0):
+		parts.append("×%.2f" % smul)
+	if not is_zero_approx(sadd):
+		parts.append("%+d" % roundi(sadd))
+	return " ".join(parts) if not parts.is_empty() else NONE
+
