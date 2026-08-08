@@ -523,7 +523,7 @@
 			"enemy": [
 				{
 					"category": "アンデッド",
-					"combat_effect": "",
+					"combat_effect": "curse_wisp",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},

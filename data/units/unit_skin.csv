@@ -41,7 +41,7 @@ zombie,ゾンビ,enemy,bishop,アンデッド,1.0,1.0,squad,,punch
 skeleton_archer,スケルトンアーチャー,enemy,slinger,アンデッド,1.0,1.0,squad,,arrow_bone
 ghoul,グール,enemy,fighter,アンデッド,1.05,1.05,squad,,claw
 dullahan,デュラハン,enemy,warlord,アンデッド,1.1,1.1,squad,,slash_l
-ghost,ゴースト,enemy,pixie,アンデッド,0.9,0.9,squad,,
+ghost,ゴースト,enemy,pixie,アンデッド,0.9,0.9,squad,,curse_wisp
 wraith,レイス,enemy,birdman,アンデッド,1.05,1.05,squad,,
 necromancer,ネクロマンサー,enemy,sorcerer,アンデッド,1.05,1.26,retinue,skeleton|zombie|skeleton|zombie|skeleton|skeleton|zombie,curse
 orc,オーク,enemy,fighter,魔獣,1.05,1.05,squad,,

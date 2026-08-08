@@ -57,6 +57,13 @@
 			"scale": 1.0
 		},
 		{
+			"effect_id": "curse_wisp",
+			"kind": "impact",
+			"memo": "顔のある青緑の魂火が数体まとわりつく。中心は空洞（触れる死＝ゴースト系）",
+			"name": "呪いの燐気",
+			"scale": 0.9
+		},
+		{
 			"effect_id": "claw",
 			"kind": "impact",
 			"memo": "3本の裂け目",
