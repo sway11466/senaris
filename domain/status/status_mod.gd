@@ -12,6 +12,8 @@ class_name StatusMod
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
 ##   owner_team / remaining: 持続管理（残り自軍ターン数。BattleState.end_turn が減算）
 ##   name: String … 表示名（例: "ホーリーアリア"）。表示専用・省略可（name 無しの旧セーブも読める）
+##   harmful: bool … 有害な補正か（浄化が落とす対象）。省略＝false。値の符号からは判断しない
+##     ＝「攻撃は下がるが防御は上がる」ようなスキルで破綻するため。詳細 → doc/gdd/skills.md
 
 ## mods のうち unit の target（"attack"/"defense"）に効くものを合成する。
 ## 戻り: { "mul": 掛け合わせ, "add": 足し合わせ }。該当なしは { 1.0, 0.0 }。

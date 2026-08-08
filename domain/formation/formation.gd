@@ -74,6 +74,25 @@ const RECIPES := {
 		"range": 1,  # 自分(0)＋隣接(1)
 		"range_from": "leader",
 	},
+	"dread_touch": {
+		"name": "ドレッドタッチ",
+		"leader_skins": ["ghost"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"effect": "buff",
+		"buff_scope": "unit",
+		"buff_side": "enemy",  # 対象は敵1体（妖精の粉は味方＝"ally"）。詳細 → doc/gdd/skills.md
+		"buff_op": "add",
+		# 妖精の粉と同じ形の負値＝発動時のゴーストの残兵数を掛けて焼き込む（満員8体で -80）。
+		"buff_value_per_troop": -10.0,
+		"buff_target": "both",
+		"buff_fx": "dread",
+		"buff_harmful": true,  # 浄化（ピュリファイ）が落とす対象。値の符号からは判断しない
+		"duration_turns": 1,
+		"range": 1,
+		"range_from": "leader",
+	},
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
@@ -154,10 +173,16 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 		within = leader != null and Hex.distance(leader.pos, target) <= rng
 	if not within:
 		return false
-	# 対象1体のバフ（ユニットスキル）は味方の居るhexだけ＝空撃ちさせない。発動者自身も選べる。
+	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（妖精の粉）は発動者
+	# 自身も選べ、敵を弱らせるもの（ドレッドタッチ）は敵だけを選べる。詳細 → doc/gdd/skills.md
 	if String(option.get("buff_scope", "")) == "unit":
 		var u := state.unit_at(target)
-		return u != null and leader != null and u.team == leader.team
+		if u == null or leader == null:
+			return false
+		var same_team := u.team == leader.team
+		if String(option.get("buff_side", "ally")) == "enemy":
+			return not same_team
+		return same_team
 	return true
 
 # --- 内部 ---
@@ -231,6 +256,10 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 	}
 	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
 		opt["buff_scope"] = buff_scope
+		# 対象1体のスキルが味方向きか敵向きか（can_target の絞り込み）。既定は味方。
+		opt["buff_side"] = String(r.get("buff_side", "ally"))
+		# 有害な補正か（浄化が落とす対象）。値の符号から推測しない＝レシピが明示する。
+		opt["buff_harmful"] = bool(r.get("buff_harmful", false))
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
 		opt["buff_value"] = float(r.get("buff_value", 1.0))
 		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))

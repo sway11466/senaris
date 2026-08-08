@@ -80,6 +80,17 @@
 			],
 			"enemy": [
 				{
+					"category": "アンデッド",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"name": "レイス",
+					"retainers": [],
+					"skin_id": "wraith",
+					"type_id": "birdman"
+				},
+				{
 					"category": "魔獣",
 					"combat_effect": "",
 					"combat_lineup": "squad",

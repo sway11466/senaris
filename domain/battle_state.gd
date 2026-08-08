@@ -742,14 +742,15 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	return {"recipe": option["recipe"], "results": results}
 
 ## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
-## （ユニットスキル＝buff_scope "unit"・target のhexに居る味方）の両方を作る。
+## （ユニットスキル＝buff_scope "unit"・target のhexに居る駒。味方＝妖精の粉／敵＝ドレッドタッチ）の両方を作る。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
-	# 発動者の兵1人あたりで効くレシピ（妖精の粉）は、発動時の残兵数を掛けて値を焼き込む。
-	# 以後は発動者と切り離される＝ピクシーが損耗しても倒されても補正は変わらない。
+	# 発動者の兵1人あたりで効くレシピ（妖精の粉・ドレッドタッチ）は、発動時の残兵数を掛けて
+	# 値を焼き込む。以後は発動者と切り離される＝掛けた側が損耗しても倒されても補正は変わらない。
+	# 弱体は負値（ドレッドタッチ＝-10/兵）なので、0 以外かどうかで判定する。
 	var value := float(option.get("buff_value", 1.0))
 	var per_troop := float(option.get("buff_value_per_troop", 0.0))
-	if per_troop > 0.0:
+	if not is_zero_approx(per_troop):
 		var caster := unit_by_id(int(option.get("leader_id", -1)))
 		value = per_troop * float(caster.troops if caster != null else 0)
 	var e := {
@@ -760,9 +761,11 @@ func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 		"remaining": int(option.get("duration_turns", 1)),
 		"name": String(option.get("name", "")),  # 戦闘レポートの表示用（レシピ表示名）
 		"fx": String(option.get("buff_fx", "")),  # 盤の見た目（presentation が読む。空＝見た目なし）
+		# 有害な補正か。浄化（ピュリファイ）が落とす対象をこれで決める＝値の符号から推測しない。
+		"harmful": bool(option.get("buff_harmful", false)),
 	}
 	if String(option.get("buff_scope", "team")) == "unit":
-		var u := unit_at(target)  # can_target が味方の存在を保証済み
+		var u := unit_at(target)  # can_target が対象の存在と陣営を保証済み
 		e["scope"] = "unit"
 		e["unit_id"] = u.id if u != null else -1
 	else:

@@ -178,3 +178,87 @@ func test_expires_after_one_round() -> void:
 	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before + 80.0, 0.001, "敵ターン中はまだ効く")
 	s.end_turn()  # 次の自軍ターンへ＝満了
 	assert_almost_eq(float(Combat.attack_breakdown(s, near, foe, true)["total"]), before, 0.001, "次の自軍ターン開始で切れる")
+
+# --- ④ドレッドタッチ（単体弱体・対象は敵）---
+
+# ゴースト1体＋隣接する敵＋離れた敵＋隣接する味方。leader=ghost(id1)。
+# ゴーストは pixie 性能を借りた別スキン＝skin_id で照合される（→ doc/gdd/skills.md 共通ルール）。
+func _dread_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var ghost := Unit.new(1, 0, c, 5, 8, 10, 10, 1, "pixie")
+	ghost.skin_id = "ghost"
+	var foe := Unit.new(2, 1, Hex.neighbor(c, 0), 6, 8, 50, 40, 1, "fighter")
+	var far_foe := Unit.new(3, 1, Hex.offset_to_axial(8, 6), 6, 8, 50, 40, 1, "fighter")
+	var ally := Unit.new(4, 0, Hex.neighbor(c, 3), 6, 8, 50, 40, 1, "fighter")
+	for u in [ghost, foe, far_foe, ally]:
+		s.add_unit(u)
+	return {"s": s, "ghost": ghost, "foe": foe, "far_foe": far_foe, "ally": ally}
+
+func _dread_option(f: Dictionary) -> Dictionary:
+	for o in Formation.available_for(f["s"], f["ghost"]):
+		if String(o["recipe"]) == "dread_touch":
+			return o
+	return {}
+
+func test_dread_offered_by_ghost_alone() -> void:
+	var f := _dread_state()
+	var o := _dread_option(f)
+	assert_false(o.is_empty(), "ゴースト単独で成立する")
+	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
+	assert_true(bool(o["after_move"]), "移動後でも撃てる")
+	assert_true(bool(o["buff_harmful"]), "有害な補正＝浄化が落とす対象")
+
+## ピクシー性能を借りているだけなので、妖精の粉は撃てない（照合はスキンID）。
+func test_ghost_cannot_cast_pixie_dust() -> void:
+	var f := _dread_state()
+	var found := false
+	for o in Formation.available_for(f["s"], f["ghost"]):
+		if String(o["recipe"]) == "pixie_dust":
+			found = true
+	assert_false(found, "ゴーストは妖精の粉を撃てない")
+
+func test_dread_targets_adjacent_enemy_only() -> void:
+	var f := _dread_state()
+	var s: BattleState = f["s"]
+	var o := _dread_option(f)
+	assert_true(Formation.can_target(s, o, f["foe"].pos), "隣接する敵に掛けられる")
+	assert_false(Formation.can_target(s, o, f["far_foe"].pos), "離れた敵には掛けられない")
+	assert_false(Formation.can_target(s, o, f["ally"].pos), "隣接でも味方には掛けられない")
+	assert_false(Formation.can_target(s, o, f["ghost"].pos), "自分自身は選べない")
+	assert_false(Formation.can_target(s, o, Hex.neighbor(f["ghost"].pos, 1)), "空きマスには掛けられない")
+
+func test_dread_lowers_attack_and_defense() -> void:
+	var f := _dread_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	var ghost: Unit = f["ghost"]
+	var atk_before := float(Combat.attack_breakdown(s, foe, ghost, true)["total"])
+	var def_before := float(Combat.defense_breakdown(s, foe, ghost, true)["total"])
+	assert_false(s.resolve_formation(_dread_option(f), foe.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), atk_before - 80.0, 0.001,
+		"満員のゴーストなら実効攻撃力が -80")
+	assert_almost_eq(float(Combat.defense_breakdown(s, foe, ghost, true)["total"]), def_before - 80.0, 0.001,
+		"防御にも同じだけ効く")
+
+## 強さを決めるのは掛ける側（ゴースト）の残兵数＝削れば効きが薄くなる。
+func test_dread_scales_with_caster_troops() -> void:
+	var f := _dread_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	f["ghost"].troops = 3
+	assert_false(s.resolve_formation(_dread_option(f), foe.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["add"]), -30.0, 0.001, "ゴースト3体なら -30")
+	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), -30.0, 0.001, "防御側も同じ")
+
+func test_dread_expires_after_one_round() -> void:
+	var f := _dread_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	var ghost: Unit = f["ghost"]
+	var before := float(Combat.attack_breakdown(s, foe, ghost, true)["total"])
+	assert_false(s.resolve_formation(_dread_option(f), foe.pos).is_empty(), "発動成功")
+	s.end_turn()  # 相手ターンへ
+	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before - 80.0, 0.001, "相手ターン中は効いている")
+	s.end_turn()  # 次の発動側ターンへ＝満了
+	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before, 0.001, "次の発動側ターン開始で切れる")
