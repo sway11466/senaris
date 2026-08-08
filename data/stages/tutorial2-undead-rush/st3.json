@@ -274,6 +274,10 @@
       { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st3.intro.5" },
       { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st3.intro.3" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st3.intro.7" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st3.intro.11" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st3.intro.12" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st3.intro.13" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st3.intro.14" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st3.intro.10" }
     ],
     "outro": [
