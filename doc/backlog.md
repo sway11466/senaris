@@ -178,14 +178,6 @@
 - 対応：(1) 隊列スロットの実px（シーン解像度・立ち絵サイズ確定後）とアニメのタイミング値を決める。(2) 演出速度設定のUI配置（システムメニュー／オプション）を決める。確定したら combat_scene.md に反映。背景は3Dの地面（マップ絵の流用）に決着＝背景絵の作画スペックは不要になった。
 - 該当：`doc/tech/combat_scene.md`（確定後に反映）・`presentation/combat/`（実装時）。着手の引き金＝戦闘演出シーンの実装に入るとき。
 
-### feature-23
-
-**戦闘の決定性（乱数の有無）の確定**（優先度：中）
-
-- 背景：[architecture.md](tech/architecture.md) の未決・保留。戦闘が決定的（乱数なし）か確率的（乱数あり）かの設計判断。中断セーブの正確さと将来のリプレイに影響する＝乱数があるならシード／状態もセーブ対象になる。[combat.md](gdd/combat.md) は決定的を前提に書かれている（「中断セーブはシード不要・リプレイ完全一致・AI先読みも正確」）。
-- 対応：決定的で確定するか、確率要素を入れるかを決める。確定したら architecture.md の未決を閉じ、関連する doc（combat.md・gamesystem.md）との整合を確認。
-- 該当：`doc/tech/architecture.md`・`doc/gdd/combat.md`・`doc/tech/gamesystem.md`。
-
 ### feature-24
 
 **獲得用キービジュアルの制作**（優先度：低）
