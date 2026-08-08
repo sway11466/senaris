@@ -39,12 +39,20 @@ const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
 ## ユニットスキルが効いている駒の足元の光。強化と弱体を色で分け、両方効いていれば両方出す
 ## （弱体＝内側の塗り／強化＝その外周の輪）。仕様 → doc/gdd/skills.md 共通ルール
 const COLOR_SKILL_GLOW := Color(0.85, 1.00, 0.55)  # 強化（黄緑）
-const COLOR_SKILL_DEBUFF := Color(0.72, 0.42, 0.95)  # 弱体（紫）。赤は敵陣営の色と紛れるので避ける
-const SKILL_GLOW_RADIUS := TILE * 0.72   # 光の広がり（ヘックスに収まる大きさ）
-const SKILL_RING_INNER := TILE * 0.76    # 強化の輪。弱体の塗りの外側に置いて互いを潰さない
-const SKILL_RING_OUTER := TILE * 0.98
-const SKILL_GLOW_MIN := 0.35             # 明滅の下限アルファ
+## 弱体（紫）。赤は敵陣営の色と紛れるので避ける。地形は明るい緑〜土色が多いので、
+## 明度を落とした濃い紫にする＝淡い紫だと明るい地形に沈んで気づけない。
+const COLOR_SKILL_DEBUFF := Color(0.42, 0.12, 0.68)
+## どちらも輪にする。塗りにすると立ち絵の足元に隠れて前側の三日月しか見えない（実機で確認）。
+## 弱体を内側・太く、強化を外側・細く＝重なっても互いを潰さず、面積の差で弱体のほうが目に付く。
+const SKILL_DEBUFF_INNER := TILE * 0.46
+const SKILL_DEBUFF_OUTER := TILE * 0.80
+const SKILL_RING_INNER := TILE * 0.84
+const SKILL_RING_OUTER := TILE * 1.02
+const SKILL_GLOW_MIN := 0.35             # 明滅の下限アルファ（強化の輪＝加算合成）
 const SKILL_GLOW_MAX := 0.85             # 同・上限
+## 弱体の塗りは通常合成なので、加算の輪と同じ数字では薄く出る。下限を上げて常に読めるようにする。
+const SKILL_DEBUFF_MIN := 0.55
+const SKILL_DEBUFF_MAX := 0.92
 const SKILL_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
 const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
 const CAM_FOV := 42.0
@@ -110,8 +118,8 @@ var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル�
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
 var _shadow_mesh: ArrayMesh       # 足元のブロブシャドウ（楕円）
-var _glow_mesh: ArrayMesh         # 弱体の光（塗りの楕円・影より一回り大きい）
-var _glow_ring_mesh: ArrayMesh    # 強化の光（輪の楕円・弱体の塗りの外側）
+var _glow_mesh: ArrayMesh         # 弱体の光（内側の太い輪）
+var _glow_ring_mesh: ArrayMesh    # 強化の光（その外側の細い輪）
 var _glow_mat: StandardMaterial3D # 強化の材質（加算合成）。明滅は _process が alpha を書き換える
 var _glow_mat_debuff: StandardMaterial3D # 弱体の材質（同上・色だけ違う）
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
@@ -180,7 +188,7 @@ func _ready() -> void:
 	_overlay_mesh = _make_hex_mesh()
 	_hexring_mesh = _make_hexring_mesh()
 	_shadow_mesh = _make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
-	_glow_mesh = _make_glow_mesh(SKILL_GLOW_RADIUS, 0.5)
+	_glow_mesh = _make_glow_ring_mesh(SKILL_DEBUFF_INNER, SKILL_DEBUFF_OUTER, 0.5)
 	_glow_ring_mesh = _make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
 	_glow_mat = _make_glow_material(COLOR_SKILL_GLOW)
 	_glow_mat_debuff = _make_glow_material(COLOR_SKILL_DEBUFF, false)
@@ -260,9 +268,9 @@ func _process(_delta: float) -> void:
 	if _glow_mat != null:
 		var t := float(Time.get_ticks_msec()) * 0.001 / SKILL_GLOW_CYCLE
 		var w := 0.5 - 0.5 * cos(t * TAU)  # 0..1 のなめらかな往復
-		var a := lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
-		_glow_mat.albedo_color.a = a
-		_glow_mat_debuff.albedo_color.a = a  # 強化と弱体は同じ位相で明滅する（2つ出ても揃う）
+		_glow_mat.albedo_color.a = lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
+		# 位相は共通（2つ出ても揃って呼吸する）。濃さの幅だけ合成方式に合わせて分ける。
+		_glow_mat_debuff.albedo_color.a = lerpf(SKILL_DEBUFF_MIN, SKILL_DEBUFF_MAX, w)
 	if state == null:
 		return
 	var h := _hex_at_mouse()
@@ -1455,7 +1463,7 @@ func _add_skill_glow(u: Unit, root: Node3D) -> void:
 			debuffed = true
 		else:
 			buffed = true
-	# 影の上（影の黒に打ち消されない高さ）。輪は塗りと同じ高さに重ねてよい＝範囲が重ならない。
+	# 影の上（影の黒に打ち消されない高さ）。2つの輪は半径が重ならないので同じ高さでよい。
 	var at := Vector3(0, 0.034, SPRITE_FOOT_Z + 0.08)
 	if debuffed:
 		var g := MeshInstance3D.new()
@@ -1465,7 +1473,6 @@ func _add_skill_glow(u: Unit, root: Node3D) -> void:
 		root.add_child(g)
 	if buffed:
 		var r := MeshInstance3D.new()
-		# 弱体が出ていないときも輪のまま＝色と形の対応を状況で変えない（強化はいつも輪）。
 		r.mesh = _glow_ring_mesh
 		r.material_override = _glow_mat
 		r.position = at
