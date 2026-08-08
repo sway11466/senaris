@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=2 / feature=40 / refactoring=9
+次回採番: bug=2 / feature=42 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -326,6 +326,14 @@
 - 対応：(1) GodotSteam を導入し `infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（feature-25 決着済）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
 - 該当：`infrastructure/platform/`（GodotSteam の隔離・新規）・`application/campaign_progress.gd`（完走判定・ランク記録）・`infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）が先に要る。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
+
+### feature-41
+
+**ユニットスキルの演出の手応え（シェイク・フラッシュの出し分け）**（優先度：低）
+
+- 背景：ユニットスキルの演出（[combat_scene.md](tech/combat_scene.md) ユニットスキルの演出）は兵量バーが動かないので、戦闘から「減る」という一番大きな動きが抜ける。残るのはシェイク・フラッシュ・数値だけで、弱体（ドレッドタッチ・ヴェノムファング）と強化（ピクシーダスト・ピュリファイ）に同じ動きを当てると、強化されたのに殴られたように見えるおそれがある。
+- 対応：レシピの `buff_harmful` で動きを分ける。有害なら被対象がひるむ（シェイク＋暗いフラッシュ）、そうでなければ光る（明るいフラッシュのみ・シェイクなし）、という向きが素直。数値の色も同じ基準で分けられる。分ける軸を新設せず既存のフラグを使うのは、値の符号から推測しないという [skills.md](gdd/skills.md) の方針と揃えるため。
+- 該当：ユニットスキルの演出モジュール（`presentation/combat/`）・`doc/tech/combat_scene.md`。着手の引き金＝実際に動くものを見て、手応えが足りないと感じたとき（先に数値を決めても当たらないので、通しで見てから調整する）。
 
 ## リファクタリング
 
