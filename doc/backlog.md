@@ -258,7 +258,7 @@
 
 **体験版ビルドの素材選別（収録ステージから必要素材を導出して除外）**（優先度：低）
 
-- 背景：体験版はチュートリアルを絞って配布する（[monetization.md](sales/monetization.md)）が、収録しないステージのユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
+- 背景：体験版はチュートリアル3本のみを収録し、本編の冒険譚は入れない（[monetization.md](sales/monetization.md) 体験版の収録範囲）。収録しない冒険譚のユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
 - 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
 - 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝開発用アセットの除外と同じ段・parking lot「Steam 配布の段取り」と連動）。
 
@@ -317,6 +317,15 @@
 - 背景：attack 軸に「殴らない」値が無く、`always`（射程内なら必ず殴る）か `prey`（獲物と確殺だけ殴る）しか選べない（[ai.md](gdd/ai.md) §4）。[tutorial3 st6](campaign/tutorial3-dragon-hunt.md) の手負いのローグ一味は「殴り合いに付き合わず泉へ走る」動きが芯で、追いつけないから部屋を回り込んで挟み撃ちにする、という盤の遊びがそこから出る。`raid`＋`prey` で近い動きは出るが、脆い駒が射程に入ると立ち止まってしまい「逃げている」感じが濁る。撤退（retreat＝兵数が減ったら退く。feature-2）とは別物で、こちらは最初から戦う気が無い側。
 - 対応：attack 軸に `none`（撃たない）を足す。あわせて、逃走中は敵ZOCへ自分から入らない詰め方（`flank` の安全マス優先を目的地へ向けて流用）を検討する。ai.csv に `flee` プリセット（engage=charge／attack=none／advance=base）を1行足す。前進の道のり計算は実装済みなので、通路を塞げば回り込む挙動はそのまま乗る。
 - 該当：`domain/ai/nearest_attacker_brain.gd`・`data/ai/ai.csv`＋`ai.json`・`doc/gdd/ai.md`（§4 と プリセット表）・`tests/unit/test_ai.gd`。着手の引き金＝tutorial3 st6 を組むとき。関連＝feature-4（思考軸の残り値の配線）。
+
+### feature-40
+
+**Steam 実績・Stats の配線（GodotSteam 導入）**（優先度：低）
+
+- 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
+- 対応：(1) GodotSteam を導入し `infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（feature-25 決着済）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
+- 該当：`infrastructure/platform/`（GodotSteam の隔離・新規）・`application/campaign_progress.gd`（完走判定・ランク記録）・`infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）が先に要る。
+- 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
 
 ## リファクタリング
 
