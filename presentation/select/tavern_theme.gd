@@ -339,21 +339,6 @@ static func _ink_box(bg: Color) -> StyleBoxFlat:
 
 # --- 装飾パーツ ---
 
-## 封蝋のピン（貼り紙を留める赤い蝋）。
-static func wax_seal(diameter := 26.0) -> Control:
-	var seal := Panel.new()
-	seal.custom_minimum_size = Vector2(diameter, diameter)
-	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = WAX
-	sb.set_corner_radius_all(int(diameter / 2.0))
-	sb.set_border_width_all(2)
-	sb.border_color = Color(0.34, 0.06, 0.05)
-	sb.shadow_color = Color(0.0, 0.0, 0.0, 0.4)
-	sb.shadow_size = 3
-	seal.add_theme_stylebox_override("panel", sb)
-	return seal
-
 const STAMP_FONT_PATH := "res://assets/fonts/RockSalt-Regular.ttf"  ## 印・ボード名の手書き風書体
 static var _stamp_font: Font = null
 

@@ -1,7 +1,7 @@
 extends Control
 class_name CampaignSelect
 ## キャンペーン選択画面＝酒場の依頼ボード。方向性 → doc/gdd/stage_select.md
-## 木のボードに、冒険譚を縦長の依頼書（羊皮紙ポスター）としてピン留め表示する。
+## 木のボードに、冒険譚を縦長の依頼書（羊皮紙ポスター）として並べる。
 ## ボードは難易度帯（tier）ごとに分かれ、◁▷ で1枚ずつ繰るカルーセル。ボード名は上梁に手書き風（Rock Salt）。
 ## 状態は持たず、refresh() のたびに CampaignProgress から導出して描く。空のボードは出さない。
 ## デバッグ冒険譚はデバッグビルドのみ「Debug」ボードにまとめる。選択はシグナルで SelectScreen へ委ねる。
@@ -10,7 +10,6 @@ signal campaign_chosen(campaign_id: String, variant: int)  # variant＝カード
 
 const POSTER_SIZE := Vector2(300, 440)  # 縦長の貼り紙
 const POSTER_ART_HEIGHT := 230.0
-const PIN_OVERHANG := 14.0  # 封蝋ピンが紙の上辺からはみ出す量（この分ポスター枠を上に広げる）
 const RAIL_HEIGHT := 76.0   # ボード上梁の帯（board.png のテクスチャ縁と一致・ボード名を載せる）
 const BOARD_NAME_FONT := "res://assets/fonts/RockSalt-Regular.ttf"
 const BOARD_NAME_COLOR := Color(0.906, 0.824, 0.627)  # 焼き付けたクリーム
@@ -204,7 +203,7 @@ func _rebuild_dots() -> void:
 func _empty_note() -> Control:
 	var note := Label.new()
 	note.text = "― 準備中 ―"
-	note.custom_minimum_size = POSTER_SIZE + Vector2(0.0, PIN_OVERHANG)
+	note.custom_minimum_size = POSTER_SIZE
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	note.add_theme_font_size_override("font_size", 20)
@@ -241,14 +240,13 @@ func _on_next() -> void:
 		_render_current()
 
 ## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。
-## 封蝋ピンは紙の上辺からはみ出すので、カードの子（clip対象）ではなく
-## ポスター土台（非clip）の直下に置く＝切れない。土台は上に PIN_OVERHANG ぶん広い。
+## 土台（非clip）とカード（clip）を分けてあるのは、カードの外へはみ出す飾りを後から
+## 足せるようにするため。いまは飾りが無いので土台とカードは同じ大きさ。
 func _poster(c: Dictionary) -> Control:
 	var poster := Control.new()
-	poster.custom_minimum_size = POSTER_SIZE + Vector2(0.0, PIN_OVERHANG)
+	poster.custom_minimum_size = POSTER_SIZE
 
 	var card := Button.new()
-	card.position = Vector2(0.0, PIN_OVERHANG)  # ピンのはみ出しぶん下げる
 	card.custom_minimum_size = POSTER_SIZE
 	card.size = POSTER_SIZE
 	card.focus_mode = Control.FOCUS_NONE
@@ -294,12 +292,6 @@ func _poster(c: Dictionary) -> Control:
 		var stamp := TavernTheme.stamp("DONE", TavernTheme.WAX, -12.0, 54, 1.0, 180.0)  # 絵の上＝不透明（透かすと字が絵に負ける）
 		stamp.position = Vector2((POSTER_SIZE.x - stamp.size.x) * 0.5, POSTER_ART_HEIGHT - stamp.size.y - 18.0)
 		card.add_child(stamp)
-
-	# 封蝋のピン（紙の上辺中央・半分はみ出して留める。poster直下＝切れない）
-	var seal := TavernTheme.wax_seal()
-	var d: float = seal.custom_minimum_size.x
-	seal.position = Vector2((POSTER_SIZE.x - d) / 2.0, PIN_OVERHANG - d / 2.0)
-	poster.add_child(seal)
 	return poster
 
 func _on_card_pressed(campaign_id: String) -> void:
