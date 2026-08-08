@@ -123,29 +123,27 @@
     { "type": "knight", "col": 8, "row": 8 }
   ],
   "enemy": [
-    { "order": 2, "name": "先遣", "ai": "charge",
+    { "order": 1, "name": "北西", "ai": "charge",
       "units": [
-        { "skin": "skeleton_archer", "col": 23, "row": 2 },
-        { "skin": "skeleton_archer", "col": 5, "row": 2 },
-        { "skin": "zombie", "col": 23, "row": 3 }
-      ] },
-    { "order": 1, "name": "墓場の群れ", "ai": "raid",
-      "units": [
-        { "skin": "skeleton", "col": 22, "row": 3 },
-        { "skin": "skeleton", "col": 22, "row": 6 },
-        { "skin": "skeleton", "col": 19, "row": 7 },
-        { "skin": "skeleton", "col": 15, "row": 7 },
-        { "skin": "skeleton", "col": 11, "row": 0 },
+        { "skin": "skeleton_archer", "col": 6, "row": 2 },
+        { "skin": "skeleton", "col": 2, "row": 6 },
+        { "skin": "skeleton", "col": 3, "row": 4 },
+        { "skin": "zombie", "col": 1, "row": 4 },
+        { "skin": "zombie", "col": 6, "row": 4 },
+        { "skin": "skeleton", "col": 7, "row": 0 },
         { "skin": "skeleton", "col": 9, "row": 2 },
-        { "skin": "skeleton", "col": 6, "row": 1 },
-        { "skin": "skeleton", "col": 1, "row": 5 },
-        { "skin": "skeleton", "col": 2, "row": 3 },
-        { "skin": "zombie", "col": 20, "row": 5 },
+        { "skin": "skeleton", "col": 11, "row": 0 }
+      ] },
+    { "order": 2, "name": "南東", "ai": "raid",
+      "units": [
+        { "skin": "skeleton", "col": 23, "row": 4 },
+        { "skin": "skeleton", "col": 19, "row": 5 },
+        { "skin": "skeleton", "col": 15, "row": 7 },
+        { "skin": "zombie", "col": 21, "row": 3 },
         { "skin": "zombie", "col": 17, "row": 7 },
         { "skin": "zombie", "col": 13, "row": 8 },
-        { "skin": "zombie", "col": 22, "row": 8 },
-        { "skin": "zombie", "col": 6, "row": 4 },
-        { "skin": "zombie", "col": 3, "row": 1 }
+        { "skin": "zombie", "col": 22, "row": 6 },
+        { "skin": "skeleton_archer", "col": 23, "row": 2 }
       ] }
   ],
   "bases": [
