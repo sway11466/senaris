@@ -314,6 +314,21 @@
 			"skin_id": "fort_crypt1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
+		},
+		{
+			"combat_ground": "plain_grave1",
+			"combat_layout": "center",
+			"connect": false,
+			"elevation": 0,
+			"grid": true,
+			"map_ground": "",
+			"map_overlay": "",
+			"memo": "墓地に建つ味方の聖所。鐘楼の十字が目印。増援は出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "礼拝堂",
+			"orientable": "none",
+			"skin_id": "fort_chapel1",
+			"sprite_sink": 0,
+			"terrain_type": "fort"
 		}
 	]
 }
