@@ -7,7 +7,9 @@ class_name CombatGround3D
 ## レシピは terrain_skin.csv の2列（combat_ground＝下地スキン／combat_layout＝自分の絵の置き方）:
 ##   fill   … そのスキンで一面に敷き詰める（既定＝表に書かないスキンは全部これ）
 ##   line   … 下地を敷き、両隊列の間を縦に横切る1列だけそのスキン（柵・道・城壁）
-##   center … 下地を敷き、守り手側の1マスだけそのスキン（拠点・罠）
+##   center … 下地だけをここで敷く。そのスキン自身は帯に混ぜず、地面を組んだ後に2Dで重ねる
+##            （CombatStage の feature レイヤー）＝帯の縮小と靄を受けない。拠点のような
+##            「立っているもの」は、帯に混ぜると奥で小さく暗くなるか手前で立ち絵に隠れるかしかない。
 ## 既定が敷き詰めなので、レシピの無いスキンでも必ず何かは映る（背景画像方式のような穴が開かない）。
 
 ##
@@ -27,7 +29,6 @@ const BAND_OVERLAP := 0.45
 const BAND_MAX := 32         # 帯数の上限（縮むほど枚数が増えるので歯止め）
 const BAND_MIN_SIZE := 0.18  # これより小さい帯は敷かない（奥は靄に沈む）
 const BAND_LIFT := 0.004     # 手前の帯をわずかに持ち上げる量（同一平面の Z ファイティング回避）
-const FEATURE_POS := Vector2(1.4, 0.6)  # center レシピの目標点（守り手側・地面のワールド座標。x は左側で反転）
 const BG_COLOR := Color(0.10, 0.11, 0.12)  # タイルの外側（通常は見えない）
 const SQRT3 := 1.7320508075688772
 
@@ -59,6 +60,7 @@ func _init() -> void:
 
 ## 守り手の地形スキンで地面を組む。def_side は守り手が画面のどちら側か（"L"/"R"）。
 ## skin が null なら地面を空にする＝窓の地形色（CombatScene の下地）がそのまま出る。
+## center のスキン自身はここでは敷かない（地面を組んだ後に2Dで重ねる＝クラス冒頭の説明）。
 func build(skin: TerrainSkin, def_side: String) -> void:
 	var key := "%s|%s|%s" % [skin.skin_id if skin != null else "", def_side, str(size)]
 	if key == _built:
@@ -72,22 +74,10 @@ func build(skin: TerrainSkin, def_side: String) -> void:
 	if ground == null:
 		ground = skin
 	var placement := skin.combat_placement()
+	# line は画面の中央を縦に走る列＝両隊列の間。center は帯に混ぜない（重ねる側で出す）。
+	var feat_col := 0 if placement == "line" else 9999
 	var bands := _bands()
-	# center は目標点にいちばん近い帯を1つだけ選ぶ＝守り手の足元に1マスだけ現れる。
-	var target := FEATURE_POS
-	if def_side == "L":
-		target.x = -target.x
-	var feat_band := -1
-	if placement == "center":
-		for i in bands.size():
-			if feat_band < 0 or absf(bands[i]["z"] - target.y) < absf(bands[feat_band]["z"] - target.y):
-				feat_band = i
 	for i in bands.size():
-		var feat_col := 9999
-		if placement == "line":
-			feat_col = 0  # 画面の中央を縦に走る列＝両隊列の間
-		elif i == feat_band:
-			feat_col = int(round(target.x / (bands[i]["tile"] * 1.5)))
 		_add_band(i, bands[i], skin, ground, placement, feat_col)
 
 ## 手前から奥への帯の並び（それぞれの奥行き z とタイルの大きさ）。
