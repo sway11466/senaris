@@ -52,7 +52,7 @@
 			"road": 1,
 			"trap": 1,
 			"wall": "x",
-			"wasteland": 2
+			"wasteland": 1
 		},
 		"forest_walk": {
 			"bush": 2,
