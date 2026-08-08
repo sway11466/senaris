@@ -22,6 +22,9 @@ const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 ## 戦力供給モデル（ステージJSON "roster"）の許容値。既定は fresh（独立）。詳細 → doc/gdd/map.md
 const ROSTER_MODES := ["fresh", "carryover"]
 
+## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
+const EVENT_KEYS := ["type", "team", "turn", "label", "units"]
+
 ## roster 値を検証して返す。省略（null）・未知の表記は "fresh"（独立＝前ステージを引き継がない）。
 static func _parse_roster(value: Variant) -> String:
 	if value == null:
@@ -59,6 +62,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	var next_id := _apply_units(state, data.get("player", []), catalog, 0, skin_catalog)
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
+	next_id = _apply_events(state, data.get("events", []), catalog, next_id, skin_catalog)
 	_apply_carryover(state, data.get("carryover_slots", []), carried, catalog, next_id)
 	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "actor": "necromancer" }]（ボスの駒に actor）
 	var victory: Variant = data.get("victory", [])
@@ -71,6 +75,8 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
 	state.roster = _parse_roster(data.get("roster"))  # fresh（既定）/carryover。受け渡しは main が RosterStore 経由で配線
+	# 1ターン目の増援はここでは出さない。置き場所の判定に移動コスト表が要るので、
+	# set_movement のあと（load_file）で fire_due_events() を呼ぶ。以降のターンは end_turn が拾う。
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
@@ -90,6 +96,7 @@ static func load_file(path: String, carried: Array = []) -> BattleState:
 	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
 	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
 	state.set_sight_cost(TerrainType.sight_cost_table())  # 地形ごとの視線コスト（索敵の遮蔽・減衰）を有効化
+	state.fire_due_events()  # 1ターン目に指定された増援を出す（移動コスト表が要るのでここ）
 	return state
 
 ## 外周（ステージJSON "margin"）の厚み。0＝外周なし。負値は0に丸める。詳細 → doc/gdd/map.md
@@ -303,6 +310,53 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 			state.assign_squad(unit.id, idx)
 			auto_id += 1
 			auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
+	return auto_id
+
+## events（時限発生）を読む。いまは増援（type: "reinforce"）だけを扱う。詳細 → doc/gdd/map.md イベント
+## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生ターンに盤へ出す＝domain は JSON を知らない。
+## team:"enemy" の増援は1つの部隊として登録し、その index をイベントに持たせる（発生時に assign_squad）。
+## 採番は他のセクションの続き。搭載駒（passengers）も同じ列で採番する。
+static func _apply_events(state: BattleState, events: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
+	if typeof(events) != TYPE_ARRAY:
+		return start_id
+	var auto_id := start_id
+	for e in events:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var type_id := String(e.get("type", "reinforce"))
+		if type_id != "reinforce":
+			push_warning("StageLoader: 未知のイベント type '%s'（無視）" % type_id)
+			continue
+		var team := _parse_team(e.get("team"), 0)
+		var squad_index := -1
+		if team == 1:  # 敵の増援＝1部隊。AIプリセット等の上書きはイベント直下に書く（部隊定義と同じ流儀）
+			var squad := {}
+			for key in e:
+				if not (key in EVENT_KEYS):
+					squad[key] = e[key]
+			squad_index = state.squads.size()
+			state.squads.append(squad)
+		var units: Array = []
+		for ud in e.get("units", []):
+			if typeof(ud) != TYPE_DICTIONARY:
+				continue
+			var unit := _make_unit(ud, catalog, auto_id, team, skin_catalog)
+			auto_id += 1
+			var ps: Array = []
+			var plist: Variant = ud.get("passengers", [])
+			if typeof(plist) == TYPE_ARRAY and not plist.is_empty():
+				if unit.is_transport():
+					for pd in plist:
+						ps.append(_make_unit(pd, catalog, auto_id, team, skin_catalog))  # 搭乗は同陣営
+						auto_id += 1
+				else:
+					push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % unit.id)
+			units.append({ "unit": unit, "passengers": ps })
+		state.add_event({
+			"turn": int(e.get("turn", 1)), "team": team,
+			"label": String(e.get("label", "")), "squad": squad_index,
+			"units": units,
+		})
 	return auto_id
 
 ## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。

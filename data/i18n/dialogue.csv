@@ -193,3 +193,5 @@ dbg.base.3,味方の町を敵に奪われると、中の控えは閉じ込めら
 dbg.base.4,盤上の味方が零でも、町に控えが残っていれば敗北しない。控えも無いときだけ消滅する。,"Zero allies on the board is not a loss while a town still holds reserves. You are wiped out only when neither remains."
 dbg.base.5,町の色は所有で変わる。灰が中立、青が味方、赤が敵。,"Town colours follow ownership: grey neutral, blue ours, red theirs."
 dbg.base.6,右奥のゴブリン三体は拠点攻略。遠くから町を取りに来る。放っておけば中立も味方の町も奪われる。,"The three goblins at the far right are raiders. They march in from a distance to take a town — leave them be and both the neutral town and ours will fall."
+dbg.event.airship,飛空艇 到着まで あと{n}ターン,"Airship arrives in {n} turn(s)"
+dbg.event.goblins,ゴブリンの増援まで あと{n}ターン,"Goblin reinforcements in {n} turn(s)"

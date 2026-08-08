@@ -148,6 +148,91 @@ func unit_at(hex: Vector2i) -> Unit:
 			return u
 	return null
 
+# --- イベント（時限発生）。詳細 → doc/gdd/map.md イベント ---
+#
+# 増援＝開始時に盤に存在しない駒が、指定のターンに加わること。拠点の控えを出す出撃や、
+# 盤に居る敵部隊が動き出す起動（engage）とは別物で、これだけを「増援」と呼ぶ。
+# 駒は StageLoader が読み込み時に組んで（catalog 解決込み）ここへ預け、発生ターンに盤へ出す。
+
+## 未発生のイベント。発生したものは取り除く＝残っているものが未発生。
+## 各要素 = { turn, team, label, squad, units: [ { unit: Unit, passengers: Array[Unit] } ] }
+var _events: Array = []
+
+## イベントを積む（StageLoader が組んで渡す）。
+func add_event(entry: Dictionary) -> void:
+	_events.append(entry)
+
+## 未発生のイベント一覧（読み取り専用）。
+func pending_events() -> Array:
+	return _events
+
+## いちばん近い未発生の増援の { label, turns }。turns＝あと何ターンで来るか（0＝このターン）。
+## label を持たないイベントは予告しない＝ここには出さない。無ければ空。残りターン板が読む
+## （→ doc/gdd/uiux.md 残りターン板）。
+func next_event() -> Dictionary:
+	var out := {}
+	var best := -1
+	for e in _events:
+		var label := String(e.get("label", ""))
+		if label.is_empty():
+			continue
+		var t := int(e.get("turn", 0))
+		if best < 0 or t < best:
+			best = t
+			out = { "label": label, "turns": maxi(t - turn_number, 0) }
+	return out
+
+## 発生ターンが来たイベントを起こす。起きたものの配列を返す（演出・ログ用）。
+## end_turn の最後と、ステージ開始直後（1ターン目の分）に呼ぶ。指定ターンを過ぎていても
+## 取りこぼさないよう「turn 以下」で見る。
+func fire_due_events() -> Array:
+	var fired: Array = []
+	var kept: Array = []
+	for e in _events:
+		if int(e.get("turn", 0)) <= turn_number and int(e.get("team", -1)) == current_team:
+			_place_event_units(e)
+			fired.append(e)
+		else:
+			kept.append(e)
+	_events = kept
+	return fired
+
+## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
+func _place_event_units(e: Dictionary) -> void:
+	var squad_index := int(e.get("squad", -1))
+	for item in e.get("units", []):
+		var u: Unit = item.get("unit")
+		if u == null:
+			continue
+		var hex := _free_hex_for(u, u.pos)
+		if hex == Vector2i.MAX:
+			push_warning("BattleState: 増援を置く空きが無い（この駒は出さない）: id=%d" % u.id)
+			continue
+		u.pos = hex
+		add_unit(u)
+		if squad_index >= 0:
+			assign_squad(u.id, squad_index)
+		for p in item.get("passengers", []):
+			put_passenger(u.id, p)
+
+## u を置くヘックス。希望位置が埋まっている／その駒が入れない地形なら最寄りの空きへずらす。
+## 見つからなければ Vector2i.MAX。近い順に見るので、ずれても意図した場所の近くに出る。
+func _free_hex_for(u: Unit, want: Vector2i) -> Vector2i:
+	var seen := { want: true }
+	var frontier: Array[Vector2i] = [want]
+	while not frontier.is_empty():
+		var nxt: Array[Vector2i] = []
+		for h in frontier:
+			if unit_at(h) == null and _enter_cost(h, u) != Movement.IMPASSABLE:
+				return h
+			for n in Hex.neighbors(h):
+				if seen.has(n) or not in_field(n):
+					continue
+				seen[n] = true
+				nxt.append(n)
+		frontier = nxt
+	return Vector2i.MAX
+
 # --- 輸送（積載・運搬）。詳細 → doc/gdd/movement.md ---
 
 var _passengers := {}  # transport_id -> Array[Unit]（搭乗中の駒。盤上には居ない＝殲滅カウント外）
@@ -989,6 +1074,7 @@ func end_turn() -> void:
 		turn_number += 1
 	_expire_status_mods()  # 始まった陣営の持続バフ/デバフを1減らして満了を掃除
 	_heal_garrisons()
+	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
 
 ## ターンが始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
 ## 回復できるのは native が自陣営/中立の拠点だけ＝奪った敵 native 拠点は出撃拠点にはなるが回復しない。
@@ -1040,7 +1126,51 @@ func to_dict() -> Dictionary:
 		"engaged": _engaged.keys(), "defeated": _defeated.keys(),
 		"defeated_actors": _defeated_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
+		"events": _events_to_dicts(),
 	}
+
+## 素データ1件 → イベント（駒を復元）。to_dict の逆。
+static func _event_from_dict(ed: Dictionary, catalog: Dictionary) -> Dictionary:
+	var units: Array = []
+	for item in ed.get("units", []):
+		if typeof(item) != TYPE_DICTIONARY:
+			continue
+		var ud: Variant = item.get("unit")
+		if typeof(ud) != TYPE_DICTIONARY:
+			continue
+		var ps: Array = []
+		for pd in item.get("passengers", []):
+			if typeof(pd) == TYPE_DICTIONARY:
+				ps.append(Unit.from_full_dict(pd, catalog.get(String(pd.get("type", "")))))
+		units.append({
+			"unit": Unit.from_full_dict(ud, catalog.get(String(ud.get("type", "")))),
+			"passengers": ps,
+		})
+	return {
+		"turn": int(ed.get("turn", 0)), "team": int(ed.get("team", -1)),
+		"label": String(ed.get("label", "")), "squad": int(ed.get("squad", -1)),
+		"units": units,
+	}
+
+## 未発生イベントを素データへ（駒は to_full_dict）。発生済みは配列から消えているので出ない。
+func _events_to_dicts() -> Array:
+	var out: Array = []
+	for e in _events:
+		var units_out: Array = []
+		for item in e.get("units", []):
+			var u: Unit = item.get("unit")
+			if u == null:
+				continue
+			var ps: Array = []
+			for p in item.get("passengers", []):
+				ps.append((p as Unit).to_full_dict())
+			units_out.append({ "unit": u.to_full_dict(), "passengers": ps })
+		out.append({
+			"turn": int(e.get("turn", 0)), "team": int(e.get("team", -1)),
+			"label": String(e.get("label", "")), "squad": int(e.get("squad", -1)),
+			"units": units_out,
+		})
+	return out
 
 ## to_dict からの復元。ユニット/拠点の性能は catalog（{id: UnitType}）から再構築する。
 ## movement 表は復元しない＝呼び出し側が set_movement で再適用する（doc の "見た目・コンフィグはセーブに含めない"）。
@@ -1074,6 +1204,9 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 			if typeof(pd) == TYPE_DICTIONARY:
 				arr.append(Unit.from_full_dict(pd, catalog.get(String(pd.get("type", "")))))
 		s._passengers[int(tid)] = arr
+	for ed in data.get("events", []):
+		if typeof(ed) == TYPE_DICTIONARY:
+			s._events.append(_event_from_dict(ed, catalog))
 	s._moved = _ids_to_set(data.get("moved", []))
 	s._post_moved = _ids_to_set(data.get("post_moved", []))
 	s._attacked = _ids_to_set(data.get("attacked", []))
