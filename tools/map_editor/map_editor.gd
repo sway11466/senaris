@@ -11,7 +11,7 @@ const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを
 const STAGES_DIR := "res://data/stages"
 const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
 const MODE_LABELS := { "stage": "ステージ", "select": "選択", "terrain": "地形", "player": "自軍",
-	"enemy": "敵", "squad": "敵グループ", "base": "拠点", "outcome": "勝敗" }
+	"enemy": "敵", "squad": "敵グループ", "base": "拠点", "event": "イベント", "outcome": "勝敗" }
 const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
 const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
@@ -62,6 +62,7 @@ var _base_box: VBoxContainer  ## 「拠点」モードの下段＝選択中の�
 var _unit_box: VBoxContainer  ## 「自軍」「敵」モードの下段＝選択中の駒の編集UI
 var _victory_box: VBoxContainer
 var _defeat_box: VBoxContainer
+var _event_box: VBoxContainer  ## 「イベント」モードの一覧＝増援（時限発生）
 var _mode_buttons := {}
 var _open_dialog: FileDialog
 var _save_dialog: FileDialog
@@ -373,6 +374,8 @@ func _rebuild_mode() -> void:
 			_build_enemy_palette()
 		"squad":
 			_build_squad_palette()
+		"event":
+			_build_event_panel()
 		"outcome":
 			_build_outcome_panel()
 		"base":
@@ -1135,13 +1138,17 @@ func _refresh_unit_box() -> void:
 	var u: Dictionary = hit["unit"] if not hit.is_empty() else {}
 	_add_actor_row(_unit_box, u)
 	if not u.is_empty():
-		_add_passenger_rows(_unit_box, u)
+		_add_passenger_rows(_unit_box, u, _mode == "enemy", func() -> void:
+			_board.refresh()
+			_refresh_unit_box())
 
 
 ## 同乗（passengers）の一覧＋追加。輸送（capacity ≥ 1）の駒にだけ出す。
 ## 中身は拠点の控えと同じ形＝1行1体、× で外す。載せた駒は盤上に出ない（殲滅の数に入らない）。
 ## 詳細 → doc/gdd/movement.md（輸送）
-func _add_passenger_rows(parent: VBoxContainer, u: Dictionary) -> void:
+## by_skin＝駒を skin で選ぶ（敵）か type で選ぶ（自軍）か。on_change＝1行足し引きしたあとの貼り直し。
+## 盤の駒（選択パネル）とイベントの駒（増援）で貼り直し先が違うので、呼び出し側から渡す。
+func _add_passenger_rows(parent: VBoxContainer, u: Dictionary, by_skin: bool, on_change: Callable) -> void:
 	var capacity := _capacity_of(u)
 	if capacity <= 0:
 		return
@@ -1149,20 +1156,8 @@ func _add_passenger_rows(parent: VBoxContainer, u: Dictionary) -> void:
 	var raw: Variant = u.get("passengers", [])
 	var list: Array = raw if typeof(raw) == TYPE_ARRAY else []
 	_add_info(parent, "同乗（passengers） %d/%d" % [list.size(), capacity])
-	# 選べるのはそのモードの置き方に合わせる＝自軍は type、敵は skin（基準＝味方専用は出さない）
-	var by_skin := _mode == "enemy"
-	var keys := []
-	var displays := []
-	if by_skin:
-		for s in _skins:
-			if String(s["category"]) == STANDARD_CATEGORY:
-				continue
-			keys.append(String(s["skin_id"]))
-			displays.append("%s（%s）" % [s["skin_id"], s["type_id"]])
-	else:
-		for t in _unit_types:
-			keys.append(String(t["id"]))
-			displays.append(String(t["id"]))
+	var keys := _unit_pick_keys(by_skin)
+	var displays := _unit_pick_displays(by_skin)
 	for i in list.size():
 		var entry: Dictionary = list[i]
 		var row := _labeled_option("", keys, displays, String(entry.get("skin", entry.get("type", ""))),
@@ -1178,16 +1173,40 @@ func _add_passenger_rows(parent: VBoxContainer, u: Dictionary) -> void:
 			list.remove_at(i)
 			if list.is_empty():
 				u.erase("passengers")  # 空の passengers キーは書き出さない
-			_board.refresh()
-			_refresh_unit_box())
+			on_change.call())
 	_add_button(parent, "同乗を追加", func() -> void:
 		if list.size() >= capacity:
 			_say("この輸送は %d 体までです。" % capacity)
 			return
 		list.append({ ("skin" if by_skin else "type"): String(keys[0]) })
 		u["passengers"] = list
-		_board.refresh()
-		_refresh_unit_box())
+		on_change.call())
+
+
+## 駒を選ぶドロップダウンのキー列。敵は skin（基準＝味方専用スキンは出さない）、自軍は type。
+func _unit_pick_keys(by_skin: bool) -> Array:
+	var keys := []
+	if by_skin:
+		for s in _skins:
+			if String(s["category"]) != STANDARD_CATEGORY:
+				keys.append(String(s["skin_id"]))
+	else:
+		for t in _unit_types:
+			keys.append(String(t["id"]))
+	return keys
+
+
+## _unit_pick_keys と同じ並びの表示名。
+func _unit_pick_displays(by_skin: bool) -> Array:
+	var out := []
+	if by_skin:
+		for s in _skins:
+			if String(s["category"]) != STANDARD_CATEGORY:
+				out.append("%s（%s）" % [s["skin_id"], s["type_id"]])
+	else:
+		for t in _unit_types:
+			out.append(String(t["id"]))
+	return out
 
 
 ## 駒の積載数（type から引く。敵は skin → type を逆引き）。輸送でなければ 0。
@@ -1354,6 +1373,117 @@ const DEFEAT_KINDS := {
 	"lose_base": ["拠点の喪失", "名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立）"],
 	"lose_unit": ["護衛対象の喪失", "名指し(actor)の駒をすべて失う"],
 }
+
+
+# --- イベント（時限発生＝増援）。盤に描くものではないのでリスト編集で持つ。詳細 → doc/gdd/map.md イベント ---
+
+func _build_event_panel() -> void:
+	_add_hint(_mode_box, "指定ターンに、盤に居ない駒を足す（増援）。\n"
+		+ "ターンは両陣営1巡で1。その陣営の手番が始まる時点で出る。\n"
+		+ "座標は駒ごとに指定する。埋まっている／入れない地形なら最寄りの空きへずれる。")
+	_event_box = VBoxContainer.new()
+	_event_box.add_theme_constant_override("separation", 8)
+	_mode_box.add_child(_event_box)
+	_refresh_events()
+
+
+func _refresh_events() -> void:
+	if _event_box == null or not is_instance_valid(_event_box):
+		return  # 「イベント」モード以外では箱が無い＝描くものがない
+	for c in _event_box.get_children():
+		c.queue_free()
+	var list := _doc.event_list()
+	for i in list.size():
+		if typeof(list[i]) == TYPE_DICTIONARY:
+			_add_event_rows(i, list[i])
+	_add_button(_event_box, "＋ 増援を足す", func() -> void:
+		_doc.add_event(_doc.event_list().size() + 1, "player")
+		_refresh_events())
+
+
+## 増援1件（見出し＋ターン・陣営・AI・予告文・駒の一覧）。
+func _add_event_rows(index: int, ev: Dictionary) -> void:
+	var team := String(ev.get("team", "player"))
+	var units: Array = _doc.event_units(index)
+	_add_outcome_head(_event_box, "%dターン目 ／ %s ／ %d体" % [int(ev.get("turn", 1)),
+		TEAM_LABELS.get(team, team), units.size()], func() -> void:
+			_doc.remove_event(index)
+			_refresh_events())
+	var box := _indent(_event_box)
+	var type_id := String(ev.get("type", "reinforce"))
+	if type_id != "reinforce":
+		_add_warn(box, "エディタが知らないイベント種別 '%s'（JSONを直接見る）" % type_id)
+		return
+	var turn := _make_spin(1, 999, int(ev.get("turn", 1)))
+	turn.value_changed.connect(func(v: float) -> void:
+		ev["turn"] = int(v)
+		_refresh_events())
+	box.add_child(_labeled_row("ターン", turn))
+	box.add_child(_labeled_option("陣営", ["player", "enemy"], ["自軍", "敵"], team,
+		func(k: String) -> void:
+			ev["team"] = k
+			if k == "player":
+				ev.erase("ai")  # 自軍の増援は部隊を持たない
+			for u in units:  # 選び方が type ↔ skin で変わるので、指定を持ち越さない
+				u.erase("type")
+				u.erase("skin")
+			_refresh_events()))
+	if team == "enemy":
+		var ai_opts := _ai_options(false)
+		box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(ev.get("ai", "")),
+			func(k: String) -> void: ev["ai"] = k))
+	var label := LineEdit.new()
+	label.text = String(ev.get("label", ""))
+	label.placeholder_text = "翻訳キー（空＝予告を出さない）"
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.text_changed.connect(func(t: String) -> void:
+		if t.strip_edges().is_empty():
+			ev.erase("label")  # 空の label キーは書き出さない
+		else:
+			ev["label"] = t)
+	box.add_child(_labeled_row("予告", label))
+	_add_note(box, "予告は右パネル下の板に出る。訳文の {n} に残りターン数が入る。")
+	_add_event_unit_rows(box, index, ev, units)
+
+
+## 増援の駒（1行1体＝駒の種類・座標・× ／ 輸送なら同乗もぶら下げる）。
+func _add_event_unit_rows(parent: VBoxContainer, index: int, ev: Dictionary, units: Array) -> void:
+	var by_skin := String(ev.get("team", "player")) == "enemy"
+	var keys := _unit_pick_keys(by_skin)
+	var displays := _unit_pick_displays(by_skin)
+	if keys.is_empty():
+		return
+	var cols := int(_doc.data.get("cols", 12))
+	var rows := int(_doc.data.get("rows", 8))
+	_add_info(parent, "駒（units） %d体" % units.size())
+	for i in units.size():
+		var u: Dictionary = units[i]
+		var row := _labeled_option("", keys, displays, String(u.get("skin", u.get("type", ""))),
+			func(k: String) -> void:
+				u.erase("skin")
+				u.erase("type")
+				u["skin" if by_skin else "type"] = k
+				_refresh_events())
+		parent.add_child(row)
+		_add_button(row, "×", func() -> void:
+			if i >= units.size():
+				return  # 貼り直し待ちの古い行（queue_free は次のフレーム）
+			units.remove_at(i)
+			_refresh_events())
+		# 座標は別行。同じ行に足すと駒のドロップダウンが潰れて種類が読めなくなる。
+		var pos := HBoxContainer.new()
+		parent.add_child(pos)
+		var col_spin := _make_spin(0, cols - 1, int(u.get("col", 0)))
+		col_spin.value_changed.connect(func(v: float) -> void: u["col"] = int(v))
+		pos.add_child(_labeled_row("col", col_spin))
+		var row_spin := _make_spin(0, rows - 1, int(u.get("row", 0)))
+		row_spin.value_changed.connect(func(v: float) -> void: u["row"] = int(v))
+		pos.add_child(_labeled_row("row", row_spin))
+		_add_passenger_rows(_indent(parent), u, by_skin, _refresh_events)
+	_add_button(parent, "駒を追加", func() -> void:
+		units.append({ ("skin" if by_skin else "type"): String(keys[0]), "col": 0, "row": 0 })
+		ev["units"] = units
+		_refresh_events())
 
 
 func _build_outcome_panel() -> void:

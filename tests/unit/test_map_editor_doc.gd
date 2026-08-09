@@ -44,6 +44,36 @@ const SAMPLE := """
 """
 
 
+## イベント（時限発生＝増援）を持つステージ。搭載駒つきの輸送が来る形。
+const EVENT_SAMPLE := """
+{
+  "turn_limit": 50,
+  "name": "event-sample",
+  "cols": 6,
+  "rows": 4,
+  "margin": 0,
+  "terrain": [
+    "......",
+    "......",
+    "......",
+    "......"
+  ],
+  "player": [
+    { "type": "fighter", "col": 1, "row": 1 }
+  ],
+  "enemy": [],
+  "events": [
+    { "turn": 5, "type": "reinforce", "team": "player",
+      "label": "t2.st7.event.airship",
+      "units": [
+        { "type": "airship", "col": 0, "row": 3,
+          "passengers": [ { "type": "paladin" } ] }
+      ] }
+  ]
+}
+"""
+
+
 func _roundtrip(text: String) -> Dictionary:
 	var doc := MapEditorDoc.from_text(text)
 	assert_not_null(doc, "パースできること")
@@ -579,3 +609,52 @@ func test_defeat_is_written_in_the_handwritten_style() -> void:
 		"        { \"col\": 6, \"row\": 2 }\n" +
 		"      ] }\n" +
 		"  ]"), "対象が複数なら1件1行で段落にする")
+
+
+# --- イベント（時限発生＝増援）。仕様 → doc/gdd/map.md イベント ---
+
+func test_events_round_trip_untouched() -> void:
+	# エディタが触らないステージでも events はそのまま書き戻る（未知キーの温存と同じ扱い）。
+	var src := MapEditorDoc.from_text(EVENT_SAMPLE)
+	assert_not_null(src, "読み込める")
+	if src == null:
+		return
+	var back := MapEditorDoc.from_text(src.to_text())
+	assert_not_null(back, "書き戻したものを読み直せる")
+	if back == null:
+		return
+	var e: Array = back.event_list()
+	assert_eq(e.size(), 1, "イベントが1件残る")
+	assert_eq(int((e[0] as Dictionary)["turn"]), 5, "ターンが保たれる")
+	assert_eq(String((e[0] as Dictionary)["label"]), "t2.st7.event.airship", "予告キーが保たれる")
+	var units: Array = (e[0] as Dictionary)["units"]
+	assert_eq(String((units[0] as Dictionary)["type"]), "airship", "駒が保たれる")
+	assert_eq(((units[0] as Dictionary)["passengers"] as Array).size(), 1, "同乗も保たれる")
+
+
+func test_add_and_remove_event() -> void:
+	var doc := MapEditorDoc.new_stage(8, 6)
+	assert_true(doc.event_list().is_empty(), "最初は空")
+	doc.add_event(5, "player")
+	assert_eq(doc.event_list().size(), 1, "1件足せる")
+	assert_eq(String((doc.event_list()[0] as Dictionary)["type"]), "reinforce", "型は増援")
+	doc.event_units(0).append({ "type": "airship", "col": 0, "row": 5 })
+	assert_eq(doc.event_units(0).size(), 1, "駒を足せる")
+	assert_true(doc.to_text().contains("\"events\""), "保存に出る")
+	doc.remove_event(0)
+	assert_true(doc.event_list().is_empty(), "消せる")
+	assert_false(doc.to_text().contains("\"events\""), "空の events キーは書き出さない")
+
+
+## ターンが1未満にならない（0ターン目のイベントは発生ターンが来ない＝出ないままになる）。
+func test_event_turn_is_at_least_one() -> void:
+	var doc := MapEditorDoc.new_stage(8, 6)
+	doc.add_event(0, "player")
+	assert_eq(int((doc.event_list()[0] as Dictionary)["turn"]), 1, "1に丸める")
+
+
+func test_event_units_on_missing_index_is_empty() -> void:
+	var doc := MapEditorDoc.new_stage(8, 6)
+	assert_true(doc.event_units(0).is_empty(), "イベントが無ければ空")
+	doc.add_event(2, "enemy")
+	assert_true(doc.event_units(3).is_empty(), "範囲外でも壊れない")

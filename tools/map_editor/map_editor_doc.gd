@@ -637,6 +637,39 @@ func remove_victory(index: int) -> void:
 		data.erase("victory")  # 空の victory キーは書き出さない
 
 
+# --- イベント（時限発生＝増援）。盤に描くものではないのでリストとして持つ。詳細 → doc/gdd/map.md イベント ---
+
+func event_list() -> Array:
+	var e: Variant = data.get("events", [])
+	return e if typeof(e) == TYPE_ARRAY else []
+
+
+## 増援を1件足す（キーが無ければ作る）。駒は空で始め、パネル側で足す。
+func add_event(turn: int, team: String) -> void:
+	if typeof(data.get("events")) != TYPE_ARRAY:
+		data["events"] = []
+	data["events"].append({ "turn": maxi(turn, 1), "type": "reinforce", "team": team, "units": [] })
+
+
+func remove_event(index: int) -> void:
+	var e := event_list()
+	if index >= 0 and index < e.size():
+		e.remove_at(index)
+	if e.is_empty() and data.has("events"):
+		data.erase("events")  # 空の events キーは書き出さない
+
+
+## index のイベントの駒リスト（無ければ作って返す＝そのまま編集できる）。範囲外は空。
+func event_units(index: int) -> Array:
+	var e := event_list()
+	if index < 0 or index >= e.size():
+		return []
+	var ev: Dictionary = e[index]
+	if typeof(ev.get("units")) != TYPE_ARRAY:
+		ev["units"] = []
+	return ev["units"]
+
+
 func defeat_list() -> Array:
 	var d: Variant = data.get("defeat", [])
 	return d if typeof(d) == TYPE_ARRAY else []
