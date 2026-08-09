@@ -1695,40 +1695,38 @@ func _add_actor_target_row(parent: Control, current: String, apply: Callable,
 		_add_button(row, "×", on_remove)
 
 
-## 拠点を指す座標の入力行。拠点の無いマスは弾いて元に戻す。
+## 拠点を指す対象の行。盤にある拠点から選ぶ＝拠点でないマスは選びようがない
+## （座標を2つ手で入れる形だと、片方を変えた途中の座標で弾かれて移せなくなる）。
+## 指す先の拠点が消えているときだけ、その座標を選択肢の末尾に残す＝黙って別の拠点にすり替えない。
 func _add_base_target_row(parent: Control, t: Dictionary, on_remove: Callable) -> void:
-	var row := HBoxContainer.new()
-	parent.add_child(row)
-	var cur_col := int(t.get("col", 0))
-	var cur_row := int(t.get("row", 0))
-	var state := { "col": cur_col, "row": cur_row }
-	_add_label(row, "col")
-	var col_spin := _make_spin(0, maxi(_doc.cols() - 1, 0), cur_col)
-	col_spin.custom_minimum_size = Vector2(66, 0)
-	row.add_child(col_spin)
-	_add_label(row, "row")
-	var row_spin := _make_spin(0, maxi(_doc.rows() - 1, 0), cur_row)
-	row_spin.custom_minimum_size = Vector2(66, 0)
-	row.add_child(row_spin)
-	var commit := func(_v: float) -> void:
-		var col := int(col_spin.value)
-		var r := int(row_spin.value)
-		if col == int(state["col"]) and r == int(state["row"]):
-			return
-		if _doc.base_at(col, r).is_empty():
-			_say("(%d, %d) に拠点がありません。防衛対象にできるのは拠点だけです。" % [col, r])
-			col_spin.set_value_no_signal(state["col"])
-			row_spin.set_value_no_signal(state["row"])
-			return
-		state["col"] = col
-		state["row"] = r
-		t["col"] = col
-		t["row"] = r
-		_say("防衛対象を (%d, %d) にしました。" % [col, r])
-	col_spin.value_changed.connect(commit)
-	row_spin.value_changed.connect(commit)
+	var keys := []
+	var displays := []
+	for b in _doc.data.get("bases", []):
+		var col := int(b.get("col", 0))
+		var r := int(b.get("row", 0))
+		keys.append(_base_target_key(col, r))
+		displays.append("(%d, %d) %s / %s" % [col, r,
+			String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))),
+			String(KIND_LABELS.get(String(b.get("kind", "fort")), b.get("kind", "?")))])
+	var cur_col := int(t.get("col", -1))
+	var cur_row := int(t.get("row", -1))
+	var cur_key := _base_target_key(cur_col, cur_row)
+	if not keys.has(cur_key):
+		keys.append(cur_key)
+		displays.append("(%d, %d) 拠点なし" % [cur_col, cur_row])
+	var row := _labeled_option("拠点", keys, displays, cur_key, func(key: String) -> void:
+		var picked := key.split(",")
+		t["col"] = int(picked[0])
+		t["row"] = int(picked[1])
+		_say("防衛対象を (%s, %s) にしました。" % [picked[0], picked[1]])
+		_refresh_defeat())  # 選び直しで「拠点なし」の項目と警告が消える
 	if on_remove.is_valid():
 		_add_button(row, "×", on_remove)
+	parent.add_child(row)
+
+
+func _base_target_key(col: int, row: int) -> String:
+	return "%d,%d" % [col, row]
 
 
 ## 「条件を追加」の行（種類を選んで ＋）。
