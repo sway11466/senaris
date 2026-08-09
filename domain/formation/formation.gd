@@ -9,10 +9,10 @@ class_name Formation
 ## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
-## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×経験×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
+## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
 ## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(leader)の性質を使う（①魔法兵0.5／③聖職0）。
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし発動者自身は除外（詠唱の源＝自傷しない）。
-## - 参加者は経験値+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
+## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
 
 ## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
 ## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
@@ -64,7 +64,7 @@ const RECIPES := {
 		"count": 1,
 		"effect": "buff",
 		"buff_scope": "unit",
-		"buff_op": "add",  # 実効攻防への加算（経験・包囲・地形の補正は乗らない）
+		"buff_op": "add",  # 実効攻防への加算（レベル・包囲・地形の補正は乗らない）
 		# 発動したピクシー1兵あたりの加算量。発動時の残兵数を掛けた値を焼き込む＝以後ピクシーが
 		# 損耗しても倒されても、掛かった補正は変わらない。詳細 → doc/gdd/skills.md
 		"buff_value_per_troop": 10.0,
@@ -292,7 +292,7 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
 static func _formation_hit(state: BattleState, option: Dictionary, victim: Unit) -> Dictionary:
 	var leader := state.unit_by_id(int(option["leader_id"]))
-	# 間接扱い＝melee=false（支援は乗らない）。発動者の実効攻撃力（兵数×攻撃力×経験×包囲×地形）。
+	# 間接扱い＝melee=false（支援は乗らない）。発動者の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）。
 	var atk := float(Combat.attack_breakdown(state, leader, victim, false)["total"])
 	var synth_atk := {"kind": "attack", "total": atk}
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。

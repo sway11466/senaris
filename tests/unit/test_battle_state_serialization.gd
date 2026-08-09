@@ -67,7 +67,7 @@ func test_units_roundtrip_with_board_and_growth() -> void:
 	assert_eq(a.team, 0)
 	assert_eq(a.pos, Hex.offset_to_axial(1, 1), "位置を保つ")
 	assert_eq(a.troops, 5, "損耗を保つ")
-	assert_eq(a.level, 3, "経験を保つ")
+	assert_eq(a.level, 3, "レベルを保つ")
 	assert_eq(a.unit_attack, 8, "性能は type から再構築")
 	assert_eq(a.attack_range, 2)
 	var e := s2.unit_by_id(BOSS_ID)

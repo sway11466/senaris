@@ -155,7 +155,7 @@ func test_carryover_places_survivors_into_slots_in_order() -> void:
 	var a := s.unit_at(Hex.offset_to_axial(1, 2))
 	assert_not_null(a, "slot[0] に継承[0]")
 	assert_eq(a.type_id, "archer")
-	assert_eq(a.level, 3, "経験を保つ")
+	assert_eq(a.level, 3, "レベルを保つ")
 	assert_eq(a.troops, 6, "損耗を保つ")
 	assert_eq(a.team, 0, "継承は自軍")
 	assert_eq(a.unit_attack, 8, "性能は type から再構築")
@@ -232,7 +232,7 @@ func test_load_file_places_carried_units() -> void:
 	var u := s.unit_at(Hex.offset_to_axial(1, 1))
 	assert_not_null(u, "carried が load_file 経由で配置される")
 	assert_eq(u.type_id, "knight")
-	assert_eq(u.level, 4, "経験を保つ")
+	assert_eq(u.level, 4, "レベルを保つ")
 	assert_eq(u.troops, 3, "損耗を保つ")
 
 func test_build_bases_with_garrison() -> void:

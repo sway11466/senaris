@@ -176,7 +176,7 @@ func test_empty_base_capture_is_noop() -> void:
 # --- 回復（休憩＝拠点の中に入るモデル） ---
 
 func test_enter_own_base_and_heal() -> void:
-	# 自軍拠点に「入る」＝garrison になり盤上から消える。ターン開始で満員へ回復（経験Lvは据え置き）。
+	# 自軍拠点に「入る」＝garrison になり盤上から消える。ターン開始で満員へ回復（Lvは据え置き）。
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 0))
@@ -192,7 +192,7 @@ func test_enter_own_base_and_heal() -> void:
 	s.end_turn()  # 自軍ターン開始 → 駐留駒が回復
 	var healed: Unit = s.base_at(base_hex).garrison[0]
 	assert_eq(healed.troops, 8, "駐留中はターン開始時に満員へ回復")
-	assert_eq(healed.level, 4, "経験Lvは据え置き")
+	assert_eq(healed.level, 4, "Lvは据え置き")
 
 func test_standing_on_base_no_longer_heals() -> void:
 	# 旧モデル（hexの上に立つと回復）は廃止＝中に入らない限り回復しない。

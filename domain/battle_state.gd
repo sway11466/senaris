@@ -746,7 +746,7 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	var t := unit_by_id(target_id)
 	var melee := Hex.distance(a.pos, t.pos) <= 1  # 距離1の攻撃＝近接（反撃あり）、距離≥2＝遠隔（反撃なし）
 	# 反撃は「近接（距離1）」かつ「防御側が距離1を狙えて、攻撃側を攻撃できる」ときだけ成立。
-	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない／砲兵(min_range≥2)は懐の敵に反撃できない（→被反撃なし・経験+0）。
+	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない／砲兵(min_range≥2)は懐の敵に反撃できない（→被反撃なし・Lv+0）。
 	var can_retaliate := melee and t.can_reach(1) and t.attack_against(a) > 0
 	# 同時攻撃: 戦闘前の状態で内訳ごと確定してから適用（決定的）。表示はこの内訳をそのまま使う。
 	var fwd := Combat.hit_detail(self, a, t, melee)
@@ -842,8 +842,8 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		if killed:
 			_remove_unit(victim.id)
 		results.append({"target_id": victim.id, "loss": loss, "killed": killed, "detail": hit})
-	# 経験値: attack と同じ「戦ったら+1・倒したらさらに+1」を陣形1発の単位で（面で複数撃破でも+2止まり）。
-	# 対象に1体も当たらなかった空撃ちは0（戦っていない＝経験を稼げない）。
+	# レベル: attack と同じ「戦ったら+1・倒したらさらに+1」を陣形1発の単位で（面で複数撃破でも+2止まり）。
+	# 対象に1体も当たらなかった空撃ちは0（戦っていない＝上がらない）。
 	var any_killed := false
 	for r in results:
 		if bool(r["killed"]):
@@ -1076,7 +1076,7 @@ func end_turn() -> void:
 	_heal_garrisons()
 	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
 
-## ターンが始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・経験Lvは据え置き）。
+## ターンが始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・Lvは据え置き）。
 ## 回復できるのは native が自陣営/中立の拠点だけ＝奪った敵 native 拠点は出撃拠点にはなるが回復しない。
 ## 閉じ込め駒（帰属先≠所有者）も回復しない。hexの上に立っている駒は回復しない（中に入るモデル）。
 func _heal_garrisons() -> void:

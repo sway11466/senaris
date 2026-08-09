@@ -205,7 +205,7 @@ func test_can_attack_at_range() -> void:
 	assert_false(s2.can_attack(1, 2), "近接は距離2を撃てない")
 
 func test_ranged_unit_meleeing_at_distance1_is_melee() -> void:
-	# 射程1-2の弓が隣接(距離1)で殴った一撃は近接扱い＝反撃を受け、双方が経験を積む。
+	# 射程1-2の弓が隣接(距離1)で殴った一撃は近接扱い＝反撃を受け、双方のレベルが上がる。
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
@@ -238,7 +238,7 @@ func test_min_range_dead_zone_cannot_hit_adjacent() -> void:
 	assert_true(s2.can_attack(1, 2), "距離2は射程内で撃てる")
 
 func test_min_range_defender_cannot_retaliate_in_melee() -> void:
-	# 砲兵(min_range≥2)は懐に入られると距離1に反撃できない＝被弾一方・経験+0。
+	# 砲兵(min_range≥2)は懐に入られると距離1に反撃できない＝被弾一方・Lv+0。
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))                  # 近接の攻撃側(team0)
@@ -249,7 +249,7 @@ func test_min_range_defender_cannot_retaliate_in_melee() -> void:
 	var r := s.attack(1, 2)
 	assert_true(r["damage"] > 0, "攻撃側は当てる")
 	assert_eq(r["retaliation"], 0, "懐に死角の砲兵は距離1に反撃できない")
-	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は経験+0")
+	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は Lv+0")
 
 func test_combat_is_deterministic() -> void:
 	# 同じ初期条件なら何度やっても同じ結果（乱数なし）。
