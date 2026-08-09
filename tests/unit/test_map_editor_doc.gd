@@ -350,6 +350,17 @@ func test_base_add_remove() -> void:
 	assert_true(doc.remove_base_at(2, 2))
 
 
+func test_garrison_count_sums_the_rows() -> void:
+	assert_eq(MapEditorDoc.garrison_count({}), 0, "garrison が無い拠点は0体")
+	assert_eq(MapEditorDoc.garrison_count({ "garrison": [] }), 0)
+	assert_eq(MapEditorDoc.garrison_count({ "garrison": [
+		{ "skin": "goblin", "count": 3 }, { "skin": "elf" },
+	] }), 4, "count 省略は1体として足す")
+	assert_eq(MapEditorDoc.garrison_count({ "garrison": [{ "skin": "goblin", "count": 0 }] }), 1,
+		"0以下の count も1体として数える（編集UIの下限に合わせる）")
+	assert_eq(MapEditorDoc.garrison_count({ "garrison": "壊れた値" }), 0, "配列でなければ0体")
+
+
 # --- 名指し(actor)・行動順(order)・勝利条件 ---
 
 

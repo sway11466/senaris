@@ -327,6 +327,21 @@ func base_at(col: int, row: int) -> Dictionary:
 	return {}
 
 
+## 拠点の控え（garrison）に眠っている駒の総数。1行＝skin×count で、count 省略は1体。
+## 盤のラベルもパネルの表示もこれを通す＝数え方が2箇所で食い違わない。
+static func garrison_count(base: Variant) -> int:
+	if typeof(base) != TYPE_DICTIONARY:
+		return 0
+	var g: Variant = (base as Dictionary).get("garrison", [])
+	if typeof(g) != TYPE_ARRAY:
+		return 0
+	var n := 0
+	for e in g as Array:
+		if typeof(e) == TYPE_DICTIONARY:
+			n += maxi(int((e as Dictionary).get("count", 1)), 1)
+	return n
+
+
 ## 自軍の駒を置く（既に駒があれば false）。
 func add_player(type_id: String, col: int, row: int) -> bool:
 	if not unit_at(col, row).is_empty():

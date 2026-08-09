@@ -209,11 +209,7 @@ func _draw() -> void:
 		var color: Color = TEAM_COLORS.get(String(b.get("team", "neutral")), TEAM_COLORS["neutral"])
 		draw_arc(center, hex_size * 0.74, 0.0, TAU, 32, color, 3.0)
 		var label := "HQ" if String(b.get("kind", "fort")) == "hq" else "F"
-		var g: Variant = b.get("garrison", [])
-		var g_count := 0
-		if typeof(g) == TYPE_ARRAY:
-			for e in g:
-				g_count += maxi(int(e.get("count", 1)), 1)
+		var g_count := MapEditorDoc.garrison_count(b)
 		if g_count > 0:
 			label += " x%d" % g_count
 		_text(font, center, hex_size * 0.9, label, maxi(8, int(hex_size * 0.36)), color.lightened(0.4))

@@ -296,11 +296,13 @@ func _add_label(parent: Control, text: String) -> void:
 
 
 ## 単独の行として置く説明・情報のラベル。長くなるので折り返す。
-func _add_info(parent: Control, text: String) -> void:
+## 後から文字を書き換えたいときのために作った Label を返す。
+func _add_info(parent: Control, text: String) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	parent.add_child(l)
+	return l
 
 
 ## パネルの OptionButton。項目名が長くても幅を押し広げない（行の幅に収めて切る）。
@@ -1101,7 +1103,7 @@ func _inspect_base(hit: Dictionary) -> void:
 				"（上書き）" if b.has("sight") else "（%s の既定）" % ai])
 	var g: Variant = b.get("garrison", [])
 	if typeof(g) == TYPE_ARRAY and not (g as Array).is_empty():
-		_add_info(_inspector, "控え（garrison）")
+		_add_info(_inspector, "控え（garrison）: 計 %d 体" % MapEditorDoc.garrison_count(b))
 		for e in g:
 			_add_info(_inspector, "  ・%s ×%d"
 				% [String(e.get("skin", e.get("type", "?"))), maxi(int(e.get("count", 1)), 1)])
@@ -1316,11 +1318,14 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 	if b.has("ai"):
 		_add_order_row(parent, b)  # 拠点も1部隊＝盤上の部隊と同じ列に並ぶ（doc/gdd/ai.md 行動順）
 	_add_sight_row(parent, b, String(b.get("ai", "")))
-	# 控え（garrison）
-	_add_info(parent, "控え（garrison）")
+	# 控え（garrison）。見出しに総数を出す＝行が増えても「この拠点に何体眠っているか」が一目で読める
 	if typeof(b.get("garrison")) != TYPE_ARRAY:
 		b["garrison"] = []
 	var g: Array = b["garrison"]
+	var total := _add_info(parent, "")
+	var show_total := func() -> void:
+		total.text = "控え（garrison）: 計 %d 体" % MapEditorDoc.garrison_count(b)
+	show_total.call()
 	for i in g.size():
 		var entry: Dictionary = g[i]
 		var row := HBoxContainer.new()
@@ -1340,6 +1345,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 		count.custom_minimum_size = Vector2(70, 0)
 		count.value_changed.connect(func(v: float) -> void:
 			entry["count"] = int(v)
+			show_total.call()  # 下段は貼り直さない（入力中の行が消える）＝見出しだけ書き換える
 			_board.refresh())
 		row.add_child(count)
 		_add_button(row, "×", func() -> void:
