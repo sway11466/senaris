@@ -24,6 +24,7 @@ func play(detail: Dictionary) -> void:
 	var def_side := "R" if int(a["team"]) == 0 else "L"
 
 	_open(t, def_side)  # 地面は守り手の地形（攻撃側の地形は使わない）
+	SfxPlayer.play_event("cmb_open")  # 幕開け。盤から演出へ表示が切り替わった合図
 	var gen := _gen
 	_render_side("L", L, int(L["troops_before"]))
 	_render_side("R", R, int(R["troops_before"]))
