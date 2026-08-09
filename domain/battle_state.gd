@@ -155,8 +155,12 @@ func unit_at(hex: Vector2i) -> Unit:
 # 駒は StageLoader が読み込み時に組んで（catalog 解決込み）ここへ預け、発生ターンに盤へ出す。
 
 ## 未発生のイベント。発生したものは取り除く＝残っているものが未発生。
-## 各要素 = { turn, team, label, squad, units: [ { unit: Unit, passengers: Array[Unit] } ] }
+## 各要素 = { turn, team, label, dialogue, squad, units: [ { unit: Unit, passengers: Array[Unit] } ] }
 var _events: Array = []
+
+## 直近の fire_due_events で起きたイベント（上へ知らせるための控え）。end_turn が内側で発火するので、
+## 戻り値だけでは呼び出し側に届かない。保存はしない＝復元直後は空。
+var last_fired_events: Array = []
 
 ## イベントを積む（StageLoader が組んで渡す）。
 func add_event(entry: Dictionary) -> void:
@@ -195,6 +199,7 @@ func fire_due_events() -> Array:
 		else:
 			kept.append(e)
 	_events = kept
+	last_fired_events = fired
 	return fired
 
 ## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
@@ -690,6 +695,9 @@ func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
 	# 他拠点で既に復帰可能でもよい（＝入った瞬間に「盤上0かつ復帰なし」の敗北にならない）。
 	return _base_has_open_neighbor(b) or has_reinforcement(u.team)
 
+## 輸送が入ったときは積載を空にし、搭乗駒も garrison へ移す＝拠点の中に「積んだままの馬車」を
+## 残さない（中では降ろせないので、そのままだと搭乗駒が回復も出撃もできない）。搭乗駒にも行動終了を
+## 付ける＝乗せて入ってその場でバラまく再配置を止める（輸送自身の往復を止めるのと同じ理由）。
 func enter_base(unit_id: int) -> bool:
 	if not can_enter_base(unit_id):
 		return false
@@ -698,6 +706,10 @@ func enter_base(unit_id: int) -> bool:
 	_take_off_board(unit_id)
 	set_done(unit_id)  # 入るのも1手＝行動終了。これがそのターンの出撃を止める（往復させない）
 	b.garrison.append(u)
+	for p in passengers(unit_id):
+		set_done(p.id)
+		b.garrison.append(p)
+	_passengers.erase(unit_id)
 	return true
 
 # --- 攻撃 ---
@@ -1149,7 +1161,7 @@ static func _event_from_dict(ed: Dictionary, catalog: Dictionary) -> Dictionary:
 	return {
 		"turn": int(ed.get("turn", 0)), "team": int(ed.get("team", -1)),
 		"label": String(ed.get("label", "")), "squad": int(ed.get("squad", -1)),
-		"units": units,
+		"dialogue": String(ed.get("dialogue", "")), "units": units,
 	}
 
 ## 未発生イベントを素データへ（駒は to_full_dict）。発生済みは配列から消えているので出ない。
@@ -1168,7 +1180,7 @@ func _events_to_dicts() -> Array:
 		out.append({
 			"turn": int(e.get("turn", 0)), "team": int(e.get("team", -1)),
 			"label": String(e.get("label", "")), "squad": int(e.get("squad", -1)),
-			"units": units_out,
+			"dialogue": String(e.get("dialogue", "")), "units": units_out,
 		})
 	return out
 

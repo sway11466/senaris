@@ -288,6 +288,45 @@ func test_transport_garrison_cannot_deploy_onto_transport() -> void:
 	assert_false(s.deploy(base_hex, 0, wagon.pos), "輸送は輸送に乗れない（出撃でも）")
 	assert_true(s.deploy(base_hex, 0, Hex.offset_to_axial(3, 2)), "空きマスへの出撃は通常どおり")
 
+# --- 拠点に入る（輸送は積載ごと。doc/gdd/movement.md・doc/gdd/map.md） ---
+
+func test_enter_base_moves_passengers_into_garrison() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 0)
+	s.add_base(b)
+	s.add_unit(_transport(1, 0, base_hex))
+	var rider := Unit.new(2, 0, Vector2i.ZERO, 3)
+	rider.troops = 3  # 傷んだ状態で運ばれてきた
+	s.put_passenger(1, rider)
+	s.add_unit(Unit.new(3, 0, Hex.offset_to_axial(6, 6), 3))  # 盤上最後の1体にならないよう相棒
+	assert_true(s.enter_base(1), "積んだまま拠点に入れる")
+	assert_eq(s.passengers(1).size(), 0, "積載は空になる")
+	assert_eq(b.garrison.size(), 2, "輸送も搭乗駒も garrison に入る")
+	assert_eq(b.garrison[1].id, 2, "搭乗駒は輸送の次に並ぶ")
+	assert_false(s.can_deploy_garrison(base_hex, 0), "入ったターンは輸送を出せない")
+	assert_false(s.can_deploy_garrison(base_hex, 1), "搭乗駒もそのターンは出せない（バラまき再配置の防止）")
+	s.end_turn()
+	s.end_turn()
+	assert_eq(b.garrison[1].troops, b.garrison[1].max_troops, "中で回復する＝搭乗駒も回復の対象")
+	assert_true(s.can_deploy_garrison(base_hex, 1), "翌ターンからは出撃できる")
+
+func test_deploy_from_base_brings_no_passengers() -> void:
+	# 積載は拠点で空になっているので、出撃した輸送は空のまま出る。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(3, 3)
+	var b := Base.new(base_hex, 0)
+	s.add_base(b)
+	s.add_unit(_transport(1, 0, base_hex))
+	s.put_passenger(1, Unit.new(2, 0, Vector2i.ZERO, 3))
+	s.add_unit(Unit.new(3, 0, Hex.offset_to_axial(6, 6), 3))
+	assert_true(s.enter_base(1), "拠点に入る")
+	s.end_turn()
+	s.end_turn()
+	assert_true(s.deploy(base_hex, 0, Hex.neighbor(base_hex, 0)), "輸送を出撃させる")
+	assert_eq(s.passengers(1).size(), 0, "出てきた輸送は空")
+	assert_eq(b.garrison.size(), 1, "元の搭乗駒は控えとして拠点に残る")
+
 # --- 輸送の撃破 ---
 
 func test_transport_death_kills_passengers() -> void:
