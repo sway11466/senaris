@@ -62,7 +62,7 @@ func _ready() -> void:
 	_install_turn_plate()  # 永続のターン板（盤エリア上端中央）。load_stage がターン・代表ユニットを流し込む
 	_install_turn_banner()  # 永続のターンバナー（画面中央・ターンが移った瞬間だけ出る）
 	_install_formation_cutin()  # 永続の陣形カットイン（絵が在るレシピの発動時だけ出る）
-	_install_aura()  # 永続の加護の光（盤エリア外周）。陣営全体バフが効いている間だけ出す
+	_install_aura()  # 永続の加護の光（画面外周）。陣営全体バフが効いている間だけ出す
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
@@ -469,13 +469,16 @@ func _install_formation_cutin() -> void:
 	_formation_cutin.name = "FormationCutin"
 	add_child(_formation_cutin)
 
-## 加護の光（盤エリア外周）。盤より前・情報パネルより後ろに置く＝文字を明るくしない。
-## HexBoard は Node3D（3Dは常に2Dの後ろ）なので、2Dの並びで InfoPanel より前に入れればよい。
+## 加護の光（画面外周）。盤・情報パネル・HUD より前に置く＝右の情報ボックスも同じ光の下に入る。
+## ここで add_child した位置（カットインの後・会話の暗幕の前）が、そのまま光の届く範囲になる：
+##   - 前に来る＝盤／情報パネル／HUD／ターン板／カットイン → 照らす
+##   - 後ろに来る＝会話の暗幕と会話パネル → 照らさない（会話中に盤だけ明るいのを防ぐ）
+##   - 別レイヤー（CanvasLayer）＝戦闘演出・勝利画面・戦果票・セレクト → 照らさない
+## 並びが意味を持つので、_install_conversation より前に呼ぶこと。
 func _install_aura() -> void:
 	_aura = AuraOverlay.new()
 	_aura.name = "AuraOverlay"
 	add_child(_aura)
-	move_child(_aura, 0)
 	get_viewport().size_changed.connect(func() -> void:
 		if _aura != null and _aura.visible:
 			_aura.fit_to(get_viewport().get_visible_rect().size))

@@ -1,8 +1,9 @@
 extends TextureRect
 class_name AuraOverlay
-## 陣営全体バフ（ホーリーアリア等）が効いている間、盤エリアの外周から光を差し込ませる。
+## 陣営全体バフ（ホーリーアリア等）が効いている間、画面の外周から光を差し込ませる。
 ## 盤の情報層（地形・駒・範囲塗り）に一切触れないのが狙い＝中央は素通しで、縁だけ明るい。
-## 盤エリアにだけ敷く（右の情報ボックスは覆わない）。詳細 → doc/gdd/formations.md
+## 画面全体に敷く（右の情報ボックスも含む）。盤エリアだけに敷くと、盤の右端に光の帯が立ち、
+## その真横の暗い情報ボックスとの境目で光が断ち切られて見えるため。詳細 → doc/gdd/formations.md
 
 const HOLY_COLOR := Color(1.00, 0.88, 0.55)  # 加護の光（金）。陣営では振らない＝範囲塗りの色語彙と混ぜない
 const ALPHA := 0.45       # 濃さ（明滅はしない＝盤の読み取りを揺らさない）
@@ -25,11 +26,10 @@ func _ready() -> void:
 	material = m
 	hide()
 
-## 盤エリアに合わせて敷く。ビューポートのリサイズ時にも呼ぶ。
+## 画面いっぱいに敷く。ビューポートのリサイズ時にも呼ぶ。
 func fit_to(vp: Vector2) -> void:
-	var area := UiLayout.board_area(vp)
-	position = area.position
-	size = area.size
+	position = Vector2.ZERO
+	size = vp
 
 ## 光を出す。stop() まで出しっぱなし（明滅しない）。
 func play(color: Color, vp: Vector2) -> void:
