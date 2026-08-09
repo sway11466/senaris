@@ -1,5 +1,5 @@
 {
-  "turn_limit": 50,
+  "turn_limit": 30,
   "name": "tutorial2-st7",
   "cols": 13,
   "rows": 26,
@@ -564,8 +564,7 @@
     { "col": 6, "row": 1, "team": "enemy", "kind": "fort", "garrison": [] }
   ],
   "events": [
-    { "turn": 5, "type": "reinforce", "label": "飛空艇の到着", "team": "player",
-      "dialogue": "arrive", "focus": true,
+    { "turn": 5, "type": "reinforce", "label": "飛空艇の到着まであと{n}ターン", "team": "player", "dialogue": "arrive", "focus": true,
       "units": [
         { "type": "airship", "col": 6, "row": 25,
           "passengers": [
