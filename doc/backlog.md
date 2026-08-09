@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=44 / refactoring=9
+次回採番: bug=3 / feature=48 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -359,6 +359,41 @@ combat_power = (effective_atk × move_mult) × (effective_def × move_mult)
   - **ステージ難易度への集約**：ユニット戦闘力を得た後、敵味方の合計比でステージの戦力比を出し、他のつまみ（同時要素数・取り返しやすさ・時間圧・情報）と合成して難易度スコアにする手順が未設計。
 - 該当：`doc/gdd/map_patterns.md`（難易度の数値化セクション追加）・`unit_type.csv`（`combat_power` 列を足す場合）・`tools/`（算出スクリプト）。
 
+### feature-44
+
+**ステージ途中のBGM切替（イベント経由）**（優先度：低）
+
+- 背景：曲を途中で切り替える仕組みを `bgm` の `crisis` スロット＋永続フラグ＋`BgmDirector.enter_crisis()` として持っていたが、ゲームに配線されず使うステージも無かったため撤去した。BGM専用に状態をもう1本立てるより、既にあるイベント（`events`＝Nターン目に起きること・[map.md](gdd/map.md) イベント）の `type` を1つ足すほうが、状態の置き場もJSONの書き場所も1か所に寄る。
+- 対応：`events` に BGM 切替の type を足す（`turn` で発生・トラックIDを指定）。曲はライブラリの `crisis`（警報型・たたき台あり）が候補。必殺技やボス出現のような盤面イベントを引き金にしたくなったら、BGM専用の抜け道を作らず、イベント側に条件トリガーを足す形で設計する。
+- 該当：`doc/gdd/map.md`（イベント表）・`domain/battle_state.gd`（`fire_due_events`）・`application/stage_loader.gd`（`_apply_events`）・`presentation/main/main.gd`（曲の張り替え）・`doc/audio/bgm.md`。着手の引き金＝ステージ途中で曲を変えたくなったとき。
+
+### feature-45
+
+**起動スプラッシュとアプリアイコンの差し替え**
+
+- 背景：`project.godot` に `boot_splash` の項目が一つも無く、デバッグ実行でもエクスポート版でもデフォルトの Godot ロゴが出る。ウィンドウ／タスクバーのアイコン（`application/config/icon`）も未設定で Godot のアイコンのまま。Godot は MIT でロゴの表示義務が無いため、フォークやカスタムビルドは不要＝プロジェクト設定と画像の差し替えだけで済む。
+- 対応：単色の地に Senaris ロゴ、その下に小さく開発元名を入れた PNG を1枚作り、`boot_splash/image` に指定する。地の色は画像に焼かず `boot_splash/bg_color` に持たせ、`fullsize=false`（原寸中央）で置く＝解像度が変わってもロゴが歪まない。ブートスプラッシュはエンジン起動前の静止画でフェード等は不可なので、動きを付けたくなった場合はタイトルシーン側の演出として作る（feature-46）。`minimum_display_time` はエディタ実行とエクスポート版で効き方が異なる可能性があるため実機で確認する。あわせて `application/config/icon`（ウィンドウ／タスクバー）と Windows export preset の exe アイコン（.ico）も差し替える。
+- 前提：ロゴに焼き込む開発元名（サークル名／会社名）が未決。絵を起こす前に決まっている必要がある。Steam のパブリッシャー名にもなるため feature-27（タイトル名の確定手続き）と同じ段で決めるのが自然。
+- 該当：`project.godot`（`boot_splash/*`・`application/config/icon`）・`export_presets.cfg`（exe アイコン・feature-10 で新規作成）・`assets/`（スプラッシュ画像・アイコン）・`doc/art/`（ロゴの作画方針）。着手の引き金＝開発元名が決まったとき、または配布ビルドを作るとき。
+
+### feature-46
+
+**タイトル画面（酒場の入口）**
+
+- 背景：起動すると下敷きの盤を敷いた上でいきなりセレクト画面が開く（`presentation/main/main.gd` の `_ready` に「タイトル画面は未実装＝将来ここに挟む」と記載）。タイトル画面が無いため、終了・設定・クレジットの置き場が無く、起動直後の初期化のもたつきを隠す場所も無い。
+- 対応：セレクト画面が「酒場の中の依頼ボード」なので、タイトルは酒場の外に置いて場所を繋げる。夜の街路に吊り看板が下がり、そこにタイトルが入る構図。「はじめる」で扉が開いて中へ入る＝セレクト画面へ、という流れにする。背景は材質の組み合わせではなく専用の1枚絵を起こす（材質だけで組むとセレクト画面と同じ絵面になり、タイトルとしての格が出ない）。作画方針は [keyvisual.md](art/keyvisual.md) の ILLUST STYLE、スロット定義は [menu.md](art/menu.md) に足す。ボタンは既存の `plank`（木の板ボタン）を流用＝セレクトと同族の手触りになる。Press any key の一拍は挟まず最初からメニューを出す（PC では無意味なクリックが1回増えるだけ）。
+- メニュー項目：つづきから（`SaveStore.has_save()` が真のときだけ出し、押したら盤へ直行。実装済みの中断セーブをそのまま使う）／はじめる（セレクトへ）／設定（feature-47）／クレジット／おわる。
+- クレジット：素材の権利表記。作業の本体は画面ではなく権利台帳の整備（[bgm.md](audio/bgm.md)・[sfx.md](audio/sfx.md)・[sonniss.md](audio/sonniss.md)）で、どの素材が表記を要求するかの確認が要る。リリース前が締め切り。
+- 該当：`presentation/title/`（新規）・`presentation/main/main.gd`（起動時にタイトルを挟む・`_install_select` の前）・`presentation/select/tavern_theme.gd`（`plank` 流用）・`assets/`（背景1枚絵）・`doc/art/menu.md`（スロット追加）・`doc/gdd/title.md`（新規。実装時に書く）。関連＝feature-21（`title` 曲が未着手）・feature-12（メニュー文言の i18n キー化）。着手の引き金＝配布ビルドが見えてきたとき、または1枚絵を描けるとき。
+
+### feature-47
+
+**設定画面**
+
+- 背景：`presentation/ui/hud.gd` のシステムメニューに「設定」項目があるが、`main.gd` 側に受け口が無く現状は空振り。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
+- 対応：1枚の設定シーンを作り、タイトル画面（feature-46）とゲーム中のシステムメニューの両方から開く。項目は 音量（マスター／BGM／SE）・言語（ja／en。翻訳は投入済み）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。永続化は `user://settings.json`（`ProgressStore` の隣・セーブデータとは別枠。設定は中断セーブに含めない）。音量は AudioServer のバスに反映、言語は `TranslationServer.set_locale`。
+- 該当：`presentation/settings/`（新規）・`presentation/ui/hud.gd`（`settings_requested` シグナル）・`presentation/main/main.gd`（結線）・`infrastructure/save/settings_store.gd`（新規）・`presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（演出速度の設定値化）・feature-12（項目名の i18n）・feature-22（演出速度UIの配置が未決とある＝ここで決まる）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
+
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
@@ -378,7 +413,6 @@ combat_power = (effective_atk × move_mult) × (effective_def × move_mult)
 - 背景：コード全体を走査し、本番コードから参照されていないシグナル・関数を検出した。未参照の .gd ファイルや未使用の定数は無い。デッドコードは2種類：(1) 発火するが誰も接続していないシグナル、(2) テストからしか呼ばれない public 関数。後者は「テスト容易性のために残す」か「本番と同じ経路でテストすべき」かの判断を含む。
 - 対応（2026-08-03 全件判断済み）：項目ごとに削除・残置を判断した。削除4件・残置7件。削除対象はリモートエージェントで実施可能（テストの機械的置換＋関数削除＋GUT回帰確認）。
   - シグナル（2件）: `MatchController.move_rejected`・`unit_died`＝発火するが presentation が未接続。→ **残置**（将来 SFX／視覚フィードバックに使う可能性）。
-  - BgmDirector（2件）: `enter_crisis()`・`in_crisis()`＝危機BGM切替。実装済みだがゲームに未配線。→ **残置**（将来配線する可能性）。
   - BattleState（2件）: `can_move()`・`can_deploy()`＝テスト用クエリ。本体は別経路で判定。→ **削除**（テストは `move_unit()` 戻り値・`deploy_cells().is_empty()` で代替。影響3か所・機械的置換）。
   - Combat（2件）: `effective_attack()`・`effective_defense()`＝breakdown のラッパー。テスト専用。→ **削除**（テストは `attack_breakdown(...)["total"]`・`defense_breakdown(...)["total"]` で代替。影響5ファイル24か所・機械的置換）。
   - Hex（2件）: `ring()`・`flood_reach()`＝本番は `within_range`・`flood_reach_cost_map` を使用。→ **残置**（テストの代替APIでは可読性・検証力が下がるため。テスト専用ユーティリティとして維持）。

@@ -4,37 +4,23 @@ class_name BgmDirector
 ## 詳細 → doc/audio/bgm.md, doc/tech/architecture.md
 ##
 ## BGM はステージ単位で流す＝戦闘ごとに曲を切り替えない（攻撃・着弾は SFX と戦闘演出で示す）。
-## スロット制：main（必須）＋ crisis（任意＝状態切替用。未指定なら切替要求が来ても曲は変わらない）。
+## スロット制：いまは main（必須）だけ。将来 intro 等が要るならスロット追加で対応。
 ## フォールバック連鎖：ステージの bgm → 全体既定。曲はステージJSONに1ステージずつ書く。
-## crisis は一度立てたら戻さない（曲がパタパタ切り替わる事故を防ぐ）。ステージ開始でリセット。
 
 const MENU_TRACK := "menu"               ## セレクト画面（酒場の依頼ボード）。ステージ外の唯一の場面
 const DEFAULT_STAGE_TRACK := "map_calm"  ## 全体既定＝ステージにも冒険譚にも指定が無いとき
 const AFTERGLOW_TRACK := "afterglow"     ## 勝利スティンガーの後に続ける曲（outro 会話を読む間の下敷き）
 
 var _main := ""
-var _crisis := ""
-var _in_crisis := false
 
-## ステージ開始：スロットを張り替えて crisis をリセットする。
+## ステージ開始：スロットを張り替える。
 ## stage_bgm は BgmCatalog.parse_slots の結果（空可）。
 func begin_stage(stage_bgm: Dictionary) -> void:
 	_main = _pick("main", stage_bgm, DEFAULT_STAGE_TRACK)
-	_crisis = _pick("crisis", stage_bgm, "")
-	_in_crisis = false
-
-## 危機BGMへ切り替える（永続＝一度立てたら戻さない）。crisis スロットが空なら何も起きない。
-## 引き金は domain 側の「盤面が変わる級」のイベント（必殺技・ボス出現など）を application が受けて呼ぶ。
-func enter_crisis() -> void:
-	if not _crisis.is_empty():
-		_in_crisis = true
-
-func in_crisis() -> bool:
-	return _in_crisis
 
 ## いま鳴るべきトラックID。曲が未配置でもここでは判定しない（鳴らす側が無音＋ログにする）。
 func track_id() -> String:
-	return _crisis if _in_crisis else _main
+	return _main
 
 ## スロット1つを解決：ステージ → 既定。
 static func _pick(slot: String, stage_bgm: Dictionary, fallback: String) -> String:

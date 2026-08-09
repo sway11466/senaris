@@ -243,7 +243,7 @@ static func load_dialogue(path: String, roster: Array = []) -> Dictionary:
 		return { "intro": [], "outro": [] }
 	return parse_dialogue(data, roster)
 
-## BGM：ステージ辞書の "bgm"（{ main, crisis }）を取り出す。値はトラックID（assets/bgm/{id}.ogg）。
+## BGM：ステージ辞書の "bgm"（{ main }）を取り出す。値はトラックID（assets/bgm/{id}.ogg）。
 ## 会話(skin)と同じく presentation/application 側の関心＝BattleState には入れない。
 ## 空スロットの穴埋め（冒険譚既定・全体既定）は application/bgm_director.gd。詳細 → doc/audio/bgm.md
 static func parse_bgm(data: Dictionary) -> Dictionary:

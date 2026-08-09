@@ -9,8 +9,8 @@ class_name BgmCatalog
 
 const BGM_ROOT := "res://assets/bgm"
 
-## bgm 欄のスロット（main＝必須 / crisis＝任意＝状態切替用）。将来 intro 等はここに足す。
-const SLOTS := ["main", "crisis"]
+## bgm 欄のスロット（いまは main＝必須 だけ）。将来 intro 等はここに足す。
+const SLOTS := ["main"]
 
 ## トラックIDのファイルパス。トラックID が空、またはファイルが未配置なら ""。
 static func path_of(track_id: String) -> String:
@@ -23,7 +23,7 @@ static func path_of(track_id: String) -> String:
 static func exists(track_id: String) -> bool:
 	return not path_of(track_id).is_empty()
 
-## "bgm" 欄（{ main, crisis }）→ 埋まっているスロットだけの辞書。
+## "bgm" 欄（{ main }）→ 埋まっているスロットだけの辞書。
 ## ステージJSON と campaign.json の両方で同じ書式なので、data 層に置いて双方から使う。
 ## 値が文字列でない/空のスロットは落とす＝呼び出し側はフォールバック連鎖で埋める（BgmDirector）。
 static func parse_slots(value: Variant) -> Dictionary:

@@ -597,7 +597,7 @@ func _rename_actor_refs(old: String, new: String) -> void:
 		data.erase("defeat")
 
 
-## BGM の指定（bgm: { main, crisis }）。無ければ空の辞書。値はトラックID。詳細 → doc/audio/bgm.md
+## BGM の指定（bgm: { main }）。無ければ空の辞書。値はトラックID。詳細 → doc/audio/bgm.md
 func bgm() -> Dictionary:
 	var v: Variant = data.get("bgm", {})
 	return v if typeof(v) == TYPE_DICTIONARY else {}

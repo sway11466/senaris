@@ -16,18 +16,17 @@ func test_path_of_missing_track_is_empty() -> void:
 	assert_eq(BgmCatalog.path_of(""), "", "トラックID未指定も空文字")
 
 func test_parse_slots_keeps_filled_slots_only() -> void:
-	var got := BgmCatalog.parse_slots({ "main": "map_calm", "crisis": "map_crisis" })
-	assert_eq(got, { "main": "map_calm", "crisis": "map_crisis" })
-	assert_eq(BgmCatalog.parse_slots({ "main": "map_calm" }), { "main": "map_calm" }, "crisis 省略はキーごと落ちる")
+	assert_eq(BgmCatalog.parse_slots({ "main": "map_calm" }), { "main": "map_calm" })
 	assert_eq(BgmCatalog.parse_slots({}), {}, "空の bgm 欄")
 
 func test_parse_slots_ignores_malformed_values() -> void:
 	# 外部データ（JSON）なので型違いが来うる。落とすだけで例外にしない。
-	assert_eq(BgmCatalog.parse_slots({ "main": "", "crisis": 3 }), {}, "空文字・非文字列は落とす")
+	assert_eq(BgmCatalog.parse_slots({ "main": "" }), {}, "空文字は落とす")
+	assert_eq(BgmCatalog.parse_slots({ "main": 3 }), {}, "非文字列は落とす")
 	assert_eq(BgmCatalog.parse_slots("map_calm"), {}, "辞書でない bgm 欄")
 	assert_eq(BgmCatalog.parse_slots({ "other": "x" }), {}, "未知スロットは拾わない")
 
-# --- BgmDirector：フォールバックと crisis ---
+# --- BgmDirector：フォールバック ---
 
 func test_stage_bgm_decides_the_track() -> void:
 	var d := BgmDirector.new()
@@ -39,33 +38,12 @@ func test_falls_back_to_global_default() -> void:
 	d.begin_stage({})
 	assert_eq(d.track_id(), BgmDirector.DEFAULT_STAGE_TRACK, "ステージ未指定→全体既定")
 
-func test_crisis_switch_is_sticky() -> void:
+func test_begin_stage_replaces_the_track() -> void:
+	# ステージを跨いでも前のステージの曲を引きずらない。
 	var d := BgmDirector.new()
-	d.begin_stage({ "main": "map_calm", "crisis": "map_crisis" })
-	assert_eq(d.track_id(), "map_calm", "開始は main")
-	assert_false(d.in_crisis())
-	d.enter_crisis()
-	assert_true(d.in_crisis())
-	assert_eq(d.track_id(), "map_crisis", "危機BGMへ")
-	d.enter_crisis()
-	assert_eq(d.track_id(), "map_crisis", "二度目の要求でも荒れない（永続）")
-
-func test_crisis_without_slot_does_nothing() -> void:
-	# crisis 未指定のステージは切替要求が来ても曲が変わらない（doc/audio/bgm.md）。
-	var d := BgmDirector.new()
+	d.begin_stage({ "main": "boss" })
 	d.begin_stage({ "main": "map_calm" })
-	d.enter_crisis()
-	assert_false(d.in_crisis(), "crisis スロットが空なら立たない")
-	assert_eq(d.track_id(), "map_calm")
-
-func test_begin_stage_resets_crisis() -> void:
-	# 次のステージへ進んだら通常曲に戻る（危機はステージ内だけの状態）。
-	var d := BgmDirector.new()
-	d.begin_stage({ "main": "map_calm", "crisis": "map_crisis" })
-	d.enter_crisis()
-	d.begin_stage({ "main": "map_calm", "crisis": "map_crisis" })
-	assert_false(d.in_crisis(), "ステージ開始でリセット")
-	assert_eq(d.track_id(), "map_calm")
+	assert_eq(d.track_id(), "map_calm", "後から始めたステージの曲になる")
 
 # --- ステージJSON との結線 ---
 

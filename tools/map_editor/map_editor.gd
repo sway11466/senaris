@@ -601,7 +601,7 @@ func _build_stage_palette() -> void:
 	grid.add_child(_margin_spin)
 	_add_button(_mode_box, "サイズを適用", _on_resize).tooltip_text = \
 		"cols / rows / margin を盤に反映する。縮小すると範囲外の駒・拠点・スキン指定は削除される。"
-	# BGM（bgm: { main, crisis }）。値はトラックID＝assets/bgm/{id}.ogg を規約で解決する。
+	# BGM（bgm: { main }）。値はトラックID＝assets/bgm/{id}.ogg を規約で解決する。
 	# 詳細 → doc/audio/bgm.md
 	_add_heading(_mode_box, "BGM")
 	_add_hint(_mode_box, "曲は assets/bgm/ に置いた .ogg から選ぶ。\n"
@@ -625,7 +625,7 @@ func _bgm_row(slot: String) -> HBoxContainer:
 		displays.append("%s（ファイル未配置）" % current)
 	var row := _labeled_option("bgm %s" % slot, keys, displays, current,
 		func(k: String) -> void: _doc.set_bgm(slot, k))
-	row.tooltip_text = "main＝そのステージの曲。crisis＝危機の状態に切り替わったときの曲（任意）。"
+	row.tooltip_text = "main＝そのステージの曲。"
 	return row
 
 
