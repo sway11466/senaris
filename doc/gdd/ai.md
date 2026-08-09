@@ -230,7 +230,7 @@ AIは2層: **プリセット（ふるまいの組み合わせ）＝CSV** と **�
 
 ## 関連ドキュメント
 
-- [combat.md](combat.md) — 戦闘解決（決定的・包囲/支援/地形/経験）
+- [combat.md](combat.md) — 戦闘解決（決定的・包囲/支援/地形/レベル）
 - [movement.md](movement.md) — 移動・再移動
 - [map.md](map.md) — ステージデータ・占領兵（`can_capture`）
 - [units.md](units.md) — ユニット性能・CSV正本パイプライン
