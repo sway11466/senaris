@@ -56,6 +56,7 @@
   1. Unit 直列化：`Unit.to_dict`/`from_dict`（上記5フィールド＋復元は catalog）＋テスト。以降すべての土台（規模：小）。
   2. carryover 本体：(2a) `StageLoader` が `roster:"fresh"|"carryover"` を読む／(2b) 戦力スナップショットの保存・読出（`RosterStore`・ProgressStore の隣）／(2c) 継承スロット配置（案A＝配置スロットに順に嵌める）／(2d) ステージ間受け渡し（勝利→生存抽出→保存／次ステージ→読出→配置）。ここで tutorial3 が生存戦力で繋がる＝連戦が動く（規模：小〜中）。
   3. 見せ方：tutorial3 データ（各話 `roster:carryover`＋継承スロット＋新規勧誘）／セレクトの連戦区間可視化（規模：中）。中断セーブ（BattleState 全状態）は feature-9。
+- tutorial3 データ制作時に併せて通す（名簿まわり・コードは実装済み）：ベテラン5＋新米4＋加入組すべてに `actor` を振る（味方に名前のない駒はいない）。そのうえで、離脱者が `troops:0` で名簿に残ること・中立から勧誘した駒が拠点を奪われても寝返らないこと・会話の `when`（`joined:<actor>`）が仲間の有無で切り替わることを実機で確認する。
 - 進捗（2026-07-18）：Phase 1〜2 実装＋テスト済み＝`Unit.to_dict/from_dict`／`StageLoader` の `roster` 解釈・`_apply_carryover`・`survivors_snapshot`／`RosterStore`（`user://roster.json`）／main の勝利フック（生存保存）・開始フック（継承読込）。ロジック経路は統合テスト `tests/unit/test_carryover_flow.gd` で担保（勝利→保存→継承・リトライは前勝利の戦力）。残り＝Phase 3（tutorial3 実データ＋セレクト可視化）。main の live 配線の実機確認は、最初の carryover ステージ（tutorial3 か debug 連戦）を組んだ時に行う＝それまで保留。
 
 ### feature-6
@@ -119,11 +120,11 @@
 
 ### feature-14
 
-**themed 拠点（教会・魔法ギルド・墓地・回復の泉）**（優先度：中）
+**themed 拠点の特殊効果（回復の泉）と追加スキン**（優先度：中）
 
-- 背景：拠点地形は汎用 `fort` のみで、冒険譚2・3 が要求する見た目・名前つきの拠点（墓地＝湧き元／泉＝回復 等）が無い。機構的には fort＋garrison で「湧き元」「占領で停止」は成立するが、テーマ別の見た目・名前と、回復の泉のような特殊効果が未整備。
-- 対応：拠点に skin（見た目・名前）レイヤーを持たせる（terrain_skin と同方式）か、拠点種別を足す。回復の泉など特殊効果が要るものは効果を設計。まずは見た目・名前から。
-- 該当：`data/terrain/`（拠点スキン）・`domain/capture/`・`presentation/board/hex_board_3d.gd`・`doc/gdd/map.md`。着手の引き金＝冒険譚2/3 のステージ制作時。
+- 背景：拠点の見た目・名前レイヤーは実装済み＝`terrain_skin.csv` に `fort_town1`（町）・`fort_crypt1`（納骨堂＝湧き元）・`fort_chapel1`（礼拝堂）があり、占領で屋根の色が変わる（`_team0`／`_team1`）。残るのは (1) 効果を伴う拠点＝冒険譚3の回復の泉、(2) 冒険譚が要求する残りのスキン（魔法ギルド等）。効果つきは「拠点に乗ると回復する」を占領・出撃と別の軸で持たせる必要があり、スキンを足すだけでは済まない。
+- 対応：(1) 回復の泉の効果を設計する＝拠点スキンに効果を紐付けるか、拠点種別を足すか。既存の `_heal_garrisons`（控えの回復）と紛れないよう、盤上の駒への効果として置き場所を分ける。(2) 追加スキンは既存3種と同じ手順（`terrain_skin.csv` に行を足し、画像を作る）。
+- 該当：`data/terrain/terrain_skin.csv`（拠点スキン）・`domain/capture/`・`presentation/board/hex_board_3d.gd`・`doc/gdd/map.md`。着手の引き金＝冒険譚3のステージ制作時（泉は tutorial3 で要る）。
 
 ### feature-16
 
@@ -132,17 +133,6 @@
 - 背景：敵の全行動を見せる（移動アニメ＋カメラ追従）ぶん、敵が多いターンは総時間が伸びる。アニメ速度の設定（高速／標準／オフ）と敵ターンのスキップは SLG の定番だが、設定画面もスキップ導線も未実装（[uiux.md](gdd/uiux.md) システムメニュー・敵ターンのカメラ）。また演出には未対応の隙間がいくつかある。
 - 対応：(1) 設定画面を作る段で、移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）とカメラ追従（`FOCUS_PAN_SEC`）を設定値から引く。(2) 敵ターンのスキップ（キー／ボタンで残りを一気に最終状態へ）。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
 - 該当：`presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`application/match_controller.gd`（ターンのテンポ・スキップ）・設定の永続化（feature-9 のセーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき／敵ターンが長く感じ始めたら。
-
-### feature-18
-
-**名簿（パーティ）・帰属の確定・会話の分岐**（優先度：高）
-
-- 背景：冒険譚3が初の carryover 型で、中立拠点の勧誘によって仲間が増減する。現状の持ち越しは「盤上の生存者リスト」で、(1) 兵力ゼロで撃破された仲間は消える＝離脱として会話に出せない、(2) 中立から解放した駒は `native` が中立のままなので、拠点を奪われると敵が出撃させられる＝寝返る（仕様は捕虜）、(3) `Unit` がキャラの同一性を持たず同 type が複数いると区別できない、(4) 会話に条件分岐が無く仲間の有無を反映できない。設計は [map.md](gdd/map.md)（帰属・名簿・actor）と [authoring.md](campaign/authoring.md)（会話の分岐）に記載。
-- 対応：(a) `Unit.recruited_team`（帰属先。既定＝`native_team`、中立駒の出撃時に出した側で確定・以後不変）を追加し、`can_deploy_garrison`／`_base_has_deployable_garrison`／`_heal_garrisons` の native 判定を帰属で見るよう差し替え。(b) `Unit.actor`（冒険譚をまたいで一意な永続キャラ識別子）を追加し `to_dict`/`from_dict` に載せる。(c) 持ち越しを名簿へ意味変え＝クリア時に前名簿と突き合わせ、欠けた `actor` を `troops:0` で残し、帰属が自軍の `actor` 駒を加える。配置は `troops > 0` の者だけ。(d) `_apply_carryover` を順詰めから `actor` 指名＋残り順詰めへ。(e) `parse_dialogue` に `when`（`joined:<actor>` / 否定）の評価を足す。
-- 置き場所：carryover の保存・読出は現在 presentation の `main.gd`（保存 :120／読出 :54-59）に直書きで、application に差配役がない。名簿の更新規則はゲームルールなので application に薄いサービスを新設し、main はそれを呼ぶだけにする（`CampaignProgress` の隣）。
-- 該当：`domain/unit/unit.gd`・`domain/battle_state.gd`（帰属ゲート）・`application/stage_loader.gd`（`_apply_carryover`・`parse_dialogue`）・`application/roster_service.gd`（名簿サービス）・`presentation/main/main.gd`（呼び出しの差し替え）・`tests/unit/`（`test_recruit`・`test_roster_service`・`test_carryover_slots`・`test_dialogue_when` ほか）・`doc/gdd/map.md`・`doc/campaign/authoring.md`・`doc/tech/gamesystem.md`。
-- 進捗（2026-08-03）：(a)〜(e) 実装＋テスト済み（GUT 540）。`Unit.set_native_team` で native と帰属を揃える口を用意し、直接代入で片方だけ動く事故を防いだ。名簿に載るのは `actor` を持つ駒だけ＝名前のない雑兵は持ち越さない。main の配線もコード上は完了確認済み（勝利時の名簿保存＝`RosterService.update_after_clear` → `_roster_store.save_roster`、開始時の継承読込＝`_load_roster`、会話の `when` 条件フィルタ＝`StageLoader.load_dialogue` にロスター渡し）。**コーディング作業は完了**。残りは冒険譚3データ制作時の実機通しテストのみ（依存先＝tutorial3 ステージデータ）。
-- 前提：冒険譚3のステージデータ制作では、ベテラン5＋新米4＋加入組すべてに `actor` を振る（味方に名前のない駒はいない）。
 
 ### feature-19
 
@@ -166,9 +156,9 @@
 
 **BGM のたたき台仕上げと拡充**（優先度：低）
 
-- 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台8曲（`.musicxml`／`.mid`）が MuseScore での仕上げ待ち。ライブラリ表のうち `title` が未着手。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
-- 対応：(1) たたき台8曲（`forest`／`ruins`／`graveyard`／`temple`／`ritual`／`boss`／`boss2`／`crisis`）の MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。(2) `title` 曲の制作（`menu` と共用するか検討含む）。(3) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
-- 該当：`assets/bgm-src/`・`assets/bgm/`・`presentation/audio/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
+- 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台のうち `graveyard`・`boss` は仕上げて `.ogg` 化済み（投入済みは afterglow／boss／defeat／dungeon／graveyard／journey／menu／raid／victory）。残りの下書き（`forest`／`ruins`／`temple`／`ritual`／`boss2`／`crisis`）が `.mscz` のまま仕上げ待ち。ライブラリ表のうち `title` は下書きも無い。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
+- 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) `title` 曲の制作（`menu` と共用するか検討含む・feature-46 のタイトル画面で要る）。(3) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
+- 該当：`assets/bgm-src/`・`assets/bgm/`・`application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
 
 ### feature-22
 
@@ -182,9 +172,9 @@
 
 **獲得用キービジュアルの制作**（優先度：低）
 
-- 背景：[keyvisual.md](art/keyvisual.md) の未決事項。冒険譚クリア時に表示する獲得イラストが未制作。扉絵・カード用とは別で、「機構が動く瞬間」を描く。
-- 対応：冒険譚1「細道で少数 vs 群れ」／冒険譚2「トリニティスペルが屍の波を薙ぐ」のキービジュアルを制作。作画方針は keyvisual.md（ILLUST STYLE・透かし対策）に従う。
-- 該当：`assets/`（画像）・`data/stages/*/campaign.json`（`victory_path`）・`doc/art/keyvisual.md`。着手の引き金＝冒険譚の仕上げに入るとき。
+- 背景：冒険譚クリア時に表示する獲得イラスト。扉絵・カード用とは別で、「機構が動く瞬間」を描く。冒険譚1「細道で少数 vs 群れ」は制作・投入済み。冒険譚2「トリニティスペルが屍の波を薙ぐ」が未制作。
+- 対応：冒険譚2のキービジュアルを制作する。作画方針は [keyvisual.md](art/keyvisual.md)（ILLUST STYLE・透かし対策）に従う。置き場所は規約解決＝`assets/campaign/{id}/{id}_victory.png`（無ければ表示しない）なので、置けば出る。
+- 該当：`assets/campaign/tutorial2-undead-rush/`（画像）・`doc/art/keyvisual.md`。着手の引き金＝冒険譚の仕上げに入るとき。
 
 ### feature-25
 
@@ -199,15 +189,15 @@
 
 **デバッグステージの構成見直しと拡充**（優先度：低）
 
-- 背景：デバッグ冒険譚は機能別6カテゴリに分かれているが、既存ステージは計11枚で、カテゴリ内の機能カバーに隙間がある。また既存ステージの役割も実装の進展に伴い変わってきている（例：siege.json は閉じ込め判定だけでなく中立寝返り・拠点スキンも兼ねる）。拡充の前にカテゴリ分けと既存ステージの役割を見直し、整理した上で不足分を足す。
-- 対応：(1) 6カテゴリの分け方と既存ステージの役割を再評価し、必要なら再編する。(2) 不足しているデバッグステージを追加する。対象は以下（旧 [debug-stages.md](tech/debug-stages.md) の「あるべき」から移植）:
+- 背景：デバッグ冒険譚は機能別6カテゴリに分かれており、既存ステージは計18枚（台帳＝[debug-stages.md](tech/debug-stages.md)）。カテゴリの分け方と既存ステージの役割は見直し済み（旧 siege.json は base.json＝拠点と勝敗に統合、旧 debug.json の総合マップは廃止して各カテゴリへ吸収）ので、残るのはカバーの隙間を埋める追加のみ。戦闘の補正チェーンを1つずつ切り分ける盤がまだ無く、そこが一番厚い。
+- 対応：不足しているデバッグステージを追加する。対象は以下。
   - combat: 地形補正／間接／魔法／対空・対地／包囲／支援／レベル補正（7件）
-  - ai: charge／raid／起動トリガー見本（3件）
-  - victory: 殲滅／自軍hq喪失で敗北／複数条件OR（3件）
-  - mapops: 拠点（占領・出撃・回復）／陣形②③／飛空艇・初期搭乗（3件）
+  - ai: charge／raid（2件。起動トリガー見本は sight.json が担う）
+  - victory: 殲滅／自軍hq喪失で敗北／複数条件OR（3件。既存 defend_two は AND）
+  - mapops: 陣形②③／飛空艇・初期搭乗（2件。拠点は base.json で済）
   - skins: 構造物系タイル（1件）
   - misc: 追加の演出・UI検証（1件）
-- 該当：`data/stages/debug-*/`・`doc/tech/debug-stages.md`（台帳更新）。着手の引き金＝機能を足してデバッグステージが欲しくなったとき、またはカテゴリの見通しが悪くなったとき。
+- 該当：`data/stages/debug-*/`・`doc/tech/debug-stages.md`（台帳更新）。着手の引き金＝機能を足してデバッグステージが欲しくなったとき。
 
 ### feature-27
 
@@ -237,14 +227,13 @@
 
 **冒険譚2のステージ盤面をマップ設計に合わせて作り直す**（優先度：中）
 
-- 背景：[tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) の各話に盤の形を書き、型・難易度を [map_patterns.md](gdd/map_patterns.md) のステージ一覧へ載せた（doc 先行）。既存のステージJSONがこれに追いついていない。st1（荒地の広野）と st3（壁の通路）は骨格ができているが、st2・st5・st6・st7 は**全面平地**で盤の設計が入っていない。加えて doc と食い違っている点が3つある。
-- 対応：st1 → st7 の順に盤を組み直す。doc との食い違い3件は先に潰す。
-  - **湧き口が2hexになっていない**（st4・st6・st7）：崖が拠点の東側にしか無く、`(12,5)` の隣接6hexのうち4hexが開いていて、しかも味方側に開口している。doc は「湧くのは2ヘックスだけ」。隣接6hexのうち4hexを崖で塞ぎ、残す2hexは互いに隣接する組にする。
-  - **st3 のバリケード初期配置**：関門（col10,11）に最初から置いてあり、馬車で運ぶ必然性がない。戦闘前会話「馬車でバリケードを運んで」と食い違うので、味方側後方へ移す。
-  - **st1 の術者が道の上**：wizard(col3,row1)・priest(col3,row3) が `L`（道＝防0.8）に立っている。撃たれ弱い駒が防御-20%の床にいるのは意図と逆。初期配置を平地側へずらすか道の位置を変える。
-  - **勝利条件の追加**（st4・st6・st7）：墓地の拠点に `"kind": "hq"`（team/native は敵）を足し、ステージの `victory` 配列に `{ "type": "capture_hq" }` を入れる。st7 は既存の `defeat_unit` と併記＝OR評価。判定機構は実装済み（[map.md](gdd/map.md) 勝敗条件）なのでデータだけで足りる。
-  - 盤の作り直し：st2＝道1本＋南北の荒地＋柵で囲った集落／st3＝関門を幅2・詠唱部屋を幅3〜4／st4＝墓地間に荒地の帯・道は墓地の正面から外す／st5＝柵で囲った廃墟の中庭＋背後の迂回路／st6＝墓地を上下に離し中央に斜めの帯／st7＝st6＋崖に囲まれたネクロの高台・崖の縁の降車点。
-- 該当：`data/stages/tutorial2-undead-rush/st1〜st7.json`・`doc/campaign/tutorial2-undead-rush.md`（実装後に差分があれば反映）。着手の引き金＝冒険譚2の制作に入るとき。関連＝feature-14（themed 拠点＝墓地の見た目）。
+- 背景：[tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) の各話に盤の形を書き、型・難易度を [map_patterns.md](gdd/map_patterns.md) のステージ一覧へ載せた（doc 先行）。盤の組み直しは進み、st1〜st7 すべてに地形が入った（全面平地は無くなった）。残るのは仕上げの詰めで、doc との食い違いが3件。
+- 対応：
+  - 湧き口が2hexになっていない（st4）：st6・st7 の湧き元は城壁で囲われ開口1〜2hexになったが、st4 の敵hq `(20,5)` は隣接の大半が荒地で開いたまま。doc は「湧くのは2ヘックスだけ」。塞いで、残す2hexは互いに隣接する組にする。
+  - st1 の術者が道の上：priest `(6,8)` が `L`（道＝防0.8）に立っている。撃たれ弱い駒が防御-20%の床にいるのは意図と逆。wizard は平地へ移して解消済みなので、残りは priest 1体。
+  - 勝利条件の追加（st6・st7）：墓地の拠点に `"kind": "hq"`（team/native は敵）を足し、ステージの `victory` 配列に `{ "type": "capture_hq" }` を入れる。st7 は既存の `defeat_unit` と併記＝OR評価。判定機構は実装済み（[map.md](gdd/map.md) 勝敗条件）なのでデータだけで足りる。st4 は対応済み。
+  - 仕上げ：組み直した盤が doc の各話の記述（通路の幅・迂回路・帯の向き）と合っているかを通しで見直し、差分があれば doc 側を実装に合わせる。
+- 該当：`data/stages/tutorial2-undead-rush/st1・st4・st6・st7.json`・`doc/campaign/tutorial2-undead-rush.md`（実装後に差分があれば反映）。関連＝feature-14（themed 拠点＝墓地の見た目）。
 
 ### feature-31
 
@@ -258,8 +247,8 @@
 
 **残りの陣形スキルとユニットスキルの効果音を作る**（優先度：中）
 
-- 背景：トリニティスペル（`trinity_spell`）は発射・着弾とも入ったが、`holy_aria`（全体バフ）と `divine_judgment`（単体狙撃）、それに `map_skill`（ユニットスキル発動）が無音のまま。呼び出しは入っていて素材だけが無い状態なので、置けば鳴る。看板機能の発動が無音なのは手応えとして弱い。
-- 対応：陣形はレシピIDの規約解決＝`assets/sfx/{recipe_id}.ogg`（発動）と `{recipe_id}_hit.ogg`（着弾）を置くだけ（`BIND` は使わない）。`map_skill` は `BIND` に1行足す。音の性格は `holy_aria`＝澄んだ和音で、着弾ではなく発効、`divine_judgment`＝遠くまで届く一条で着弾は点で鋭く、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。トリニティスペルは物音の素材から採ったが、この2つは MuseScore ＋ Muse Sounds で作るほうが合うかもしれない（`victory`／`defeat` スティンガーで実証済みの手順）。
+- 背景：トリニティスペル（`trinity_spell`）は発射・着弾とも、`holy_aria`（全体バフ）は発効音が入った。残るは `divine_judgment`（単体狙撃）と `map_skill`（ユニットスキル発動）で、呼び出しは入っていて素材だけが無い状態なので、置けば鳴る。看板機能の発動が無音なのは手応えとして弱い。
+- 対応：陣形はレシピIDの規約解決＝`assets/sfx/{recipe_id}.ogg`（発動）と `{recipe_id}_hit.ogg`（着弾）を置くだけ（`BIND` は使わない）。`map_skill` は `BIND` に1行足す。音の性格は `divine_judgment`＝遠くまで届く一条で着弾は点で鋭く、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。トリニティスペルは物音の素材から採ったが、`divine_judgment` は MuseScore ＋ Muse Sounds で作るほうが合うかもしれない（`victory`／`defeat` スティンガー・`holy_aria` で実証済みの手順）。
 - 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`map_skill` のみ）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
 
 ### feature-34
@@ -402,23 +391,9 @@ combat_power = (effective_atk × move_mult) × (effective_def × move_mult)
 
 **hex_board_3d の段階分割（メッシュ生成→カメラ→インタラクション再評価）**（優先度：中）
 
-- 背景：`presentation/board/hex_board_3d.gd` はプロダクト最大の約1500行で、(a) カメラリグ＋picking、(b) 選択→移動→コマンドメニューのインタラクション状態機械（約480行・コマンド追加のたび成長する中心）、(c) 盤の3D描画同期、(d) メッシュ/材質生成ヘルパーの4責務が同居している。ただし一括分割は危険：(b) と (c) はオーバーレイ状態（`_reachable`/`_targets`/`_formation_cells` 等）を共有する密結合で、素朴に切るとシグナルの往復や状態の二重持ちを生む。外側の疎な責務から段階的に剥がす。
-- 対応：(1) メッシュ/材質生成（`_make_*` 系・材質/テクスチャキャッシュ）を `board_mesh_factory.gd` へ抽出（純関数中心・最小リスク）。(2) カメラ数学（リグ・パン/ズーム/fit/追従 Tween・picking）を `board_camera_rig.gd` へ抽出。入力イベントの受け口（`_unhandled_input`）は盤に1本のまま残してリグへ委譲＝イベント処理順の罠を避ける。`fit_to_view` の state 直読みはやめ、盤の外接矩形を引数で渡す。(3) 約1100行へ減った状態でインタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を先に定義してから。より小さい代替として PopupMenu の組み立てだけの抽出（メニュービルダー）も可。
+- 背景：`presentation/board/hex_board_3d.gd` はプロダクト最大の約2000行で、(a) カメラリグ＋picking、(b) 選択→移動→コマンドメニューのインタラクション状態機械（コマンド追加のたび成長する中心）、(c) 盤の3D描画同期、(d) メッシュ/材質生成ヘルパーの4責務が同居している。ただし一括分割は危険：(b) と (c) はオーバーレイ状態（`_reachable`/`_targets`/`_formation_cells` 等）を共有する密結合で、素朴に切るとシグナルの往復や状態の二重持ちを生む。外側の疎な責務から段階的に剥がす。
+- 対応：(1) メッシュ/材質生成（`_make_*` 系・材質/テクスチャキャッシュ）を `board_mesh_factory.gd` へ抽出（純関数中心・最小リスク）。(2) カメラ数学（リグ・パン/ズーム/fit/追従 Tween・picking）を `board_camera_rig.gd` へ抽出。入力イベントの受け口（`_unhandled_input`）は盤に1本のまま残してリグへ委譲＝イベント処理順の罠を避ける。`fit_to_view` の state 直読みはやめ、盤の外接矩形を引数で渡す。(3) 2つを剥がして縮んだ状態で、インタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を先に定義してから。より小さい代替として PopupMenu の組み立てだけの抽出（メニュービルダー）も可。
 - 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`（新規）・`presentation/board/board_camera_rig.gd`（新規）。挙動を変えないリファクタリングのため各段で実機確認（tests/manual の流儀）。
-
-### refactoring-8
-
-**デッドコードの整理（未接続シグナル・テスト専用関数）**（優先度：低）
-
-- 背景：コード全体を走査し、本番コードから参照されていないシグナル・関数を検出した。未参照の .gd ファイルや未使用の定数は無い。デッドコードは2種類：(1) 発火するが誰も接続していないシグナル、(2) テストからしか呼ばれない public 関数。後者は「テスト容易性のために残す」か「本番と同じ経路でテストすべき」かの判断を含む。
-- 対応（2026-08-03 全件判断済み）：項目ごとに削除・残置を判断した。削除4件・残置7件。削除対象はリモートエージェントで実施可能（テストの機械的置換＋関数削除＋GUT回帰確認）。
-  - シグナル（2件）: `MatchController.move_rejected`・`unit_died`＝発火するが presentation が未接続。→ **残置**（将来 SFX／視覚フィードバックに使う可能性）。
-  - BattleState（2件）: `can_move()`・`can_deploy()`＝テスト用クエリ。本体は別経路で判定。→ **削除**（テストは `move_unit()` 戻り値・`deploy_cells().is_empty()` で代替。影響3か所・機械的置換）。
-  - Combat（2件）: `effective_attack()`・`effective_defense()`＝breakdown のラッパー。テスト専用。→ **削除**（テストは `attack_breakdown(...)["total"]`・`defense_breakdown(...)["total"]` で代替。影響5ファイル24か所・機械的置換）。
-  - Hex（2件）: `ring()`・`flood_reach()`＝本番は `within_range`・`flood_reach_cost_map` を使用。→ **残置**（テストの代替APIでは可読性・検証力が下がるため。テスト専用ユーティリティとして維持）。
-  - TerrainSkinCatalog（1件）: `for_type()`＝`resolve()` と重複。→ **削除**（テストは `resolve("", type_id)` で代替。影響1ファイル9か所・機械的置換）。
-  - Store 系（3件）: `RosterStore.has_roster()`＝テスト専用クエリ → **削除**（テストは `load_roster() == []` で代替。影響1ファイル12か所・機械的置換）。`RosterStore.clear_roster()`・`SaveStore.clear()`＝テスト対象そのもの（削除動作の検証） → **残置**。
-- 該当：`application/match_controller.gd`・`application/bgm_director.gd`・`domain/battle_state.gd`・`domain/combat/combat.gd`・`domain/hex/hex.gd`・`data/terrain/terrain_skin_catalog.gd`・`infrastructure/save/roster_store.gd`・`infrastructure/save/save_store.gd`。
 
 ## parking lot
 
