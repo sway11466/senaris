@@ -429,7 +429,7 @@
       ] }
   ],
   "bases": [
-    { "order": 5, "ai": "charge", "col": 17, "row": 6, "team": "enemy",
+    { "order": 5, "ai": "charge", "col": 17, "row": 6, "team": "enemy", "kind": "hq",
       "garrison": [
         { "skin": "skeleton_archer", "count": 3 },
         { "skin": "skeleton", "count": 3 },
@@ -444,7 +444,7 @@
         { "skin": "skeleton_archer", "count": 3 },
         { "skin": "skeleton", "count": 3 }
       ] },
-    { "order": 4, "ai": "charge", "col": 9, "row": 4, "team": "enemy", "kind": "fort",
+    { "order": 4, "ai": "charge", "col": 9, "row": 4, "team": "enemy", "kind": "hq",
       "garrison": [
         { "skin": "ghoul", "count": 1 },
         { "skin": "zombie", "count": 2 },
@@ -462,6 +462,9 @@
         { "skin": "zombie", "count": 2 }
       ] },
     { "col": 3, "row": 10, "team": "player", "kind": "hq", "garrison": [] }
+  ],
+  "victory": [
+    { "type": "capture_hq" }
   ],
   "dialogue": {
     "intro": [
