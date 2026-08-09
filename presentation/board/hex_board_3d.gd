@@ -90,11 +90,13 @@ const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 ## 立ち絵は足元が手前（SPRITE_FOOT_Z）に出て背も高いので、駒の高さに置けば地形に負けない。
 ## クリックの入口になる記号は地面に置かない（仕様 → doc/gdd/uiux.md 盤の表示記号）。
 const COLOR_ATTACK_MARK := Color(0.98, 0.22, 0.20)
-const COLOR_ATTACK_MARK_EDGE := Color(0.10, 0.02, 0.02, 0.90)  # 明るい地形・淡い立ち絵の上でも輪郭が立つ
+## 縁取りは黒。赤が主色の背景（火口・炎）が来ても輪郭が残るように、明度で分ける。
+## 盤の現状（緑・灰・黒）では赤だけで足りるが、後から足すと絵の調整をやり直すことになる。
+const COLOR_ATTACK_MARK_EDGE := Color(0.06, 0.03, 0.03)
 const MARK_W := TILE * 0.42        # マーカーの横幅
 const MARK_H := TILE * 0.38        # 同・高さ（下向きの先端までの深さ）
-const MARK_EDGE := TILE * 0.045    # 縁取りの張り出し
-const MARK_GAP := TILE * 0.16      # 頭のてっぺんからマーカーの先端までの隙間
+const MARK_EDGE := TILE * 0.035    # 縁取りの張り出し（全周で等距離）
+const MARK_GAP := TILE * 0.16      # 頭のてっぺんから縁取りの先端までの隙間
 const MARK_BOB := TILE * 0.06      # 上下の揺れ幅（止まっていると背景の模様に紛れる）
 const MARK_BOB_CYCLE := 1.1        # 同・周期（秒）
 ## 引いた画角での最小の大きさ(px)。盤全体を映すと1ヘックスが39px まで縮み、素のままだと
@@ -143,9 +145,10 @@ var _glow_mat: StandardMaterial3D # 強化の材質（加算合成）。明滅�
 var _glow_mat_debuff: StandardMaterial3D # 弱体の材質（同上・色だけ違う）
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
 var _mark_mesh: ArrayMesh         # 攻撃対象マーカー（下向き三角）
-var _mark_edge_mesh: ArrayMesh    # 同・その下に敷く一回り大きい縁取り
+var _mark_edge_mesh: ArrayMesh    # 同・その下に敷く縁取り（全周を等距離に押し出した三角）
 var _mark_mat: StandardMaterial3D      # 同・本体の材質（深度切り＝常に最前面）
 var _mark_mat_edge: StandardMaterial3D # 同・縁取りの材質（本体より1つ手前で描く）
+var _mark_tip_drop := 0.0         # 同・縁取りの先端が本体より下へ伸びる量（隙間の補正）
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
 var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
 var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
@@ -217,8 +220,13 @@ func _ready() -> void:
 	_glow_ring_mesh = _make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
 	_glow_mat = _make_glow_material(COLOR_SKILL_GLOW)
 	_glow_mat_debuff = _make_glow_material(COLOR_SKILL_DEBUFF, false)
-	_mark_mesh = _make_down_tri_mesh(MARK_W, MARK_H, 0.0)
-	_mark_edge_mesh = _make_down_tri_mesh(MARK_W + MARK_EDGE * 2.0, MARK_H + MARK_EDGE * 2.0, -MARK_EDGE)
+	var tri := _tri_points(MARK_W, MARK_H)
+	var tri_edge := _outset_tri(tri, MARK_EDGE)
+	_mark_mesh = _make_tri_mesh(tri)
+	_mark_edge_mesh = _make_tri_mesh(tri_edge)
+	# 等距離に押し出すと、鋭い先端は e より深く伸びる（先端の角度から e/sin(θ/2)）。
+	# 隙間は見えている縁取りの先から測りたいので、その伸びぶんを持ち上げに足す。
+	_mark_tip_drop = -tri_edge[1].y
 	_mark_mat = _make_mark_material(COLOR_ATTACK_MARK, 4)
 	_mark_mat_edge = _make_mark_material(COLOR_ATTACK_MARK_EDGE, 3)
 	_skirt_tex = _make_skirt_texture()
@@ -1717,7 +1725,7 @@ func _add_target_marker(u: Unit) -> void:
 	if u == null:
 		return
 	var n := Node3D.new()
-	var base := _unit_head_pos(u) + _cam_up * MARK_GAP
+	var base := _unit_head_pos(u) + _cam_up * (MARK_GAP + _mark_tip_drop)
 	n.position = base
 	n.set_meta("base_pos", base)
 	var edge := MeshInstance3D.new()
@@ -1903,14 +1911,37 @@ func _make_hexring_mesh() -> ArrayMesh:
 		st.set_normal(Vector3.UP); st.add_vertex(o1)
 	return st.commit()
 
-## 下向きの三角（XY平面・原点＝下の先端）。ビルボード材質と組んで頭上マーカーにする。
-## tip_y をずらすと先端の位置が動く＝縁取りは本体より下へ出した一回り大きい三角にする。
-func _make_down_tri_mesh(w: float, h: float, tip_y: float) -> ArrayMesh:
+## 下向き三角の頂点（XY平面・原点＝下の先端）。ビルボード材質と組んで頭上マーカーにする。
+func _tri_points(w: float, h: float) -> Array[Vector2]:
+	return [Vector2(-w * 0.5, h), Vector2(0.0, 0.0), Vector2(w * 0.5, h)]
+
+## 三角形の3辺すべてを外へ e だけ等距離に押し出した三角形（＝縁取りの下敷き）。
+## 幅と高さを増やしただけの相似形では、上辺と斜辺で張り出しが2倍ちがう（上辺0.045に対し
+## 斜辺0.022＝実測）ので、輪郭ではなく上辺の帽子に見える。内接円の半径が r→r+e に増えた
+## 相似形＝内心を中心に (r+e)/r 倍すれば、どの辺からも距離 e で揃う。
+func _outset_tri(p: Array[Vector2], e: float) -> Array[Vector2]:
+	var a := p[1].distance_to(p[2])  # 各頂点の対辺の長さ（内心の重み）
+	var b := p[2].distance_to(p[0])
+	var c := p[0].distance_to(p[1])
+	var per := a + b + c
+	var area := absf((p[1] - p[0]).cross(p[2] - p[0])) * 0.5
+	if per <= 0.0 or area <= 0.0:
+		return p
+	var incenter := (p[0] * a + p[1] * b + p[2] * c) / per
+	var r := area / (per * 0.5)  # 内接円の半径
+	var k := (r + e) / r
+	return [
+		incenter + (p[0] - incenter) * k,
+		incenter + (p[1] - incenter) * k,
+		incenter + (p[2] - incenter) * k,
+	]
+
+## 頂点3つ（XY平面）を三角のメッシュにする。裏面も描く前提で巻き順は問わない。
+func _make_tri_mesh(p: Array[Vector2]) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.set_normal(Vector3.BACK); st.add_vertex(Vector3(-w * 0.5, tip_y + h, 0.0))
-	st.set_normal(Vector3.BACK); st.add_vertex(Vector3(0.0, tip_y, 0.0))
-	st.set_normal(Vector3.BACK); st.add_vertex(Vector3(w * 0.5, tip_y + h, 0.0))
+	for v in p:
+		st.set_normal(Vector3.BACK); st.add_vertex(Vector3(v.x, v.y, 0.0))
 	return st.commit()
 
 ## 頭上マーカーの材質。深度判定を切って常に最前面に描く＝地形にも他の駒にも隠れない
