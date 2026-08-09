@@ -20,6 +20,7 @@
 | `defeat` | 敗北スティンガー | 自作（AI支援たたき台を編曲） | MusicXML → MuseScore | 自作物＝商用可・改変可・表記不要 | 編曲・仕上げまで自作 |
 | `graveyard` | ステージ（墓地・アンデッド） | 自作（AI支援たたき台を編曲） | MusicXML → MuseScore | 自作物＝商用可・改変可・表記不要 | 編曲・仕上げまで自作 |
 | `afterglow` | 勝利の余韻（outro会話の下敷き） | 自作（AI支援たたき台を編曲） | MusicXML → MuseScore | 自作物＝商用可・改変可・表記不要 | 編曲・仕上げまで自作 |
+| `boss` | ステージ（精鋭ボス戦） | 自作（AI支援たたき台を編曲） | MusicXML → MuseScore | 自作物＝商用可・改変可・表記不要 | 編曲・仕上げまで自作 |
 
 設計意図と経緯は [../../doc/audio/tracks.md](../../doc/audio/tracks.md) を参照。
 
