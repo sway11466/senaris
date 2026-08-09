@@ -1022,13 +1022,19 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 		return
 	var steps := path.size() - 1
 	var per_hex := minf(MOVE_ANIM_SEC_PER_HEX, MOVE_ANIM_MAX_SEC / float(steps))
-	# map_move。1マス踏むごとに1回鳴らす（doc/audio/sfx.md 移動音）。
-	# 素材は移動タイプで決まる＝足音（重）／足音（軽）／羽ばたき。未配置なら無音で進む。
+	# map_move（doc/audio/sfx.md 移動音）。素材は移動タイプ＋スキンで決まり、未配置なら無音で進む。
+	# 鳴らす頻度は素材ごとの最小間隔で決める。0＝1マス踏むごと（足音）、飛行は数マスに1回。
+	# per_hex は経路が長いほど縮む＝マス数で間引くと長い経路で羽ばたきが速まるため、時間で見る。
 	var move_sfx := _move_sfx_of(unit_id)
+	var move_interval := SfxCatalog.move_interval_of(move_sfx)
+	var last_sfx_sec := -1.0  # 直近に鳴らした時刻（アニメ開始から）。負＝まだ鳴らしていない
 	node.position = _hex_world(path[0])
 	var t := create_tween()  # 既定は等速（TRANS_LINEAR）＝マスを一定の速さで歩く
 	for i in range(1, path.size()):
-		if move_sfx != "":
+		var at_sec := per_hex * float(i - 1)  # このマスへ踏み出す時刻
+		# 1マス目（last < 0）は間隔によらず必ず鳴らす＝短い移動でも無音にしない。
+		if move_sfx != "" and (last_sfx_sec < 0.0 or at_sec - last_sfx_sec >= move_interval):
+			last_sfx_sec = at_sec
 			t.tween_callback(func() -> void: SfxPlayer.play_sfx(move_sfx))
 		t.tween_property(node, "position", _hex_world(path[i]), per_hex)
 	t.finished.connect(func() -> void:
@@ -1037,13 +1043,18 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 		move_animation_finished.emit())
 	_move_tween = t
 
-## その駒の移動音の素材ID。盤に居ない・移動タイプ不明なら ""＝無音。
+## その駒の移動音の素材ID。スキンの指定（map_move_sfx）を優先し、無ければ移動タイプの既定。
+## 飛行の飛び方の違い（羽ばたき／浮遊／プロペラ）はスキン側で分かれる（doc/audio/sfx.md 移動音）。
+## 盤に居ない・移動タイプ不明なら ""＝無音。
 func _move_sfx_of(unit_id: int) -> String:
 	if state == null:
 		return ""
 	var u := state.unit_by_id(unit_id)
 	if u == null:
 		return ""
+	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
+	if s != null and s.map_move_sfx != "":
+		return s.map_move_sfx
 	return SfxCatalog.move_sfx_of(UnitCatalog.move_type_of(u.type_id))
 
 ## ヘックスの中心（ユニットの親ノードを置くワールド座標）。地形の標高ぶん持ち上げる。

@@ -37,6 +37,41 @@ func test_path_of_event_chains_bind_and_autowire() -> void:
 	assert_eq(SfxCatalog.path_of_event("map_select"), "res://assets/sfx/ui_confirm.ogg")
 	assert_true(SfxCatalog.exists("menu_back"), "素材が置いてあれば exists")
 
+# --- 移動音：移動タイプ → 素材 → 間隔 ---
+
+func test_move_bind_collapses_move_types() -> void:
+	# 移動タイプは地形コストの都合で分かれているが、音としては足音（重）へ集約する。
+	assert_eq(SfxCatalog.move_sfx_of("ground"), "move_ground")
+	assert_eq(SfxCatalog.move_sfx_of("forest_walk"), "move_ground", "森歩きも同じ足音")
+	assert_eq(SfxCatalog.move_sfx_of("light_foot"), "move_light_foot")
+	assert_eq(SfxCatalog.move_sfx_of("flight"), "move_flight")
+
+func test_move_sfx_of_unknown_type_is_silent() -> void:
+	assert_eq(SfxCatalog.move_sfx_of("fixed"), "", "動かない駒は無音")
+	assert_eq(SfxCatalog.move_sfx_of("no_such_type"), "", "未知の移動タイプも無音")
+
+func test_move_bind_targets_exist_in_move_sfx() -> void:
+	# MOVE_SFX が移動音の素材IDの正本（unit_skin.csv の検証もここを見る）。
+	# 既定の指し先が載っていないと、その駒だけ間隔が引けなくなる。
+	for move_type: String in SfxCatalog.MOVE_BIND:
+		var sfx_id := SfxCatalog.move_sfx_of(move_type)
+		assert_true(SfxCatalog.MOVE_SFX.has(sfx_id), "%s の既定 '%s' が MOVE_SFX に在る" % [move_type, sfx_id])
+
+func test_move_interval_footsteps_are_every_hex() -> void:
+	# 足音は1マス踏むごと＝間隔0。飛行だけが数マスに1回になる。
+	assert_eq(SfxCatalog.move_interval_of("move_ground"), 0.0)
+	assert_eq(SfxCatalog.move_interval_of("move_light_foot"), 0.0)
+
+func test_move_interval_flight_is_spaced_out() -> void:
+	# 1マス 0.12 秒（MOVE_ANIM_SEC_PER_HEX）より広くないと羽ばたきに聞こえない。
+	for sfx_id in ["move_flight", "move_float", "move_propeller"]:
+		assert_gt(SfxCatalog.move_interval_of(sfx_id), 0.12, "%s は1マスより広い間隔" % sfx_id)
+
+func test_move_interval_unknown_falls_back_to_every_hex() -> void:
+	# 未登録は0＝既定の鳴り方へ倒す（鳴らない方向には倒さない）。
+	assert_eq(SfxCatalog.move_interval_of("no_such_sfx"), 0.0)
+	assert_eq(SfxCatalog.move_interval_of(""), 0.0)
+
 func test_every_bound_event_has_its_asset() -> void:
 	# 素材が未用意の発火点は対応表に載せない、という決まりを守れているか（doc/audio/sfx.md）。
 	# 載せてしまうと「配線したのに鳴らない」が黙って起きる。素材が無いなら載せず、

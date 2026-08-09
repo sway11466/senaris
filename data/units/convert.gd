@@ -6,6 +6,7 @@ extends SceneTree
 
 const Csv = preload("res://data/csv_util.gd")
 const SkinDef = preload("res://data/units/unit_skin.gd")
+const SfxDef = preload("res://data/audio/sfx_catalog.gd")
 
 ## 非空で必ず要る性能列（category/memo は任意）。
 const TYPE_REQUIRED := [
@@ -63,13 +64,16 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 ## combat_lineup は戦闘演出での並べ方（squad/retinue/single）＝スキンごとに人が決める（性能から導かない）。
 ## retainers は戦闘演出で本人の脇に並べる別スキン（'|' 区切り・retinue のときだけ）。→ doc/tech/combat_scene.md
 ## combat_effect は攻撃エフェクトID（空＝既定のスパーク）。effect_ids は data/effects/ の実在ID集合。
-## side/combat_lineup enum・skin_id重複・type_id参照・combat_effect参照・retainers参照・必須列を検証。
-## problems があれば json は null。
+## map_move_sfx は移動音の素材ID（空＝移動タイプの既定）。→ doc/audio/sfx.md 移動音
+## side/combat_lineup enum・skin_id重複・type_id参照・combat_effect参照・map_move_sfx参照・
+## retainers参照・必須列を検証。problems があれば json は null。
 static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []) -> Dictionary:
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
 	problems += Csv.invalid_values(rows, "side", SIDES, "skin_id")
 	problems += Csv.invalid_values(rows, "combat_lineup", SkinDef.LINEUPS, "skin_id")
 	problems += Csv.invalid_values(rows, "combat_effect", effect_ids, "skin_id")  # 未定義のエフェクトID
+	# 素材IDの綴り違い＝黙って無音になる罠。SfxCatalog の表に無い値は通さない。
+	problems += Csv.invalid_values(rows, "map_move_sfx", SfxDef.MOVE_SFX.keys(), "skin_id")
 	problems += Csv.invalid_values(rows, "type_id", type_ids, "skin_id")  # unit_type に無い性能への参照切れ
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
@@ -88,6 +92,7 @@ static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []
 			"description": "", "images": {},
 			"combat_lineup": str(r.get("combat_lineup", "")), "retainers": parse_retainers(r),
 			"combat_effect": str(r.get("combat_effect", "")),
+			"map_move_sfx": str(r.get("map_move_sfx", "")),
 		})
 	return { "problems": problems, "json": { "skins": skins } }
 

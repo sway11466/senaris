@@ -141,6 +141,28 @@ func test_combat_effect_dangling_ref_blocks() -> void:
 	var r := Units.build_unit_skin([row], ["knight"], ["slash_m"])
 	assert_null(r["json"], "未定義の combat_effect で json=null")
 
+# --- units: map_move_sfx（移動音のスキン上書き） ---
+
+func test_map_move_sfx_flows_into_json() -> void:
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["map_move_sfx"] = "move_float"
+	var r := Units.build_unit_skin([row], ["knight"])
+	assert_eq(r["problems"].size(), 0)
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["map_move_sfx"], "move_float")
+
+func test_map_move_sfx_empty_is_allowed() -> void:
+	# 空欄＝移動タイプの既定を使う（上書きが要る駒だけ書く運用）。
+	var r := Units.build_unit_skin([ _valid_skin_row("kn_a", "knight", "ally") ], ["knight"])
+	assert_eq(r["problems"].size(), 0)
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["map_move_sfx"], "")
+
+func test_map_move_sfx_unknown_id_blocks() -> void:
+	# 綴りを間違えると黙って無音になるので、生成を止める。
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["map_move_sfx"] = "move_flght"
+	var r := Units.build_unit_skin([row], ["knight"])
+	assert_null(r["json"], "SfxCatalog.MOVE_SFX に無い素材IDで json=null")
+
 # --- effects: build（攻撃エフェクト表） ---
 
 func _valid_effect_row(eid: String, kind: String) -> Dictionary:

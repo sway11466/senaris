@@ -25,6 +25,7 @@ var description: String    ## 説明文（図鑑/ツールチップ用。任意�
 var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
 var combat_lineup: String = LINEUP_SQUAD  ## 戦闘演出での並べ方（LINEUPS のいずれか）
 var combat_effect: String  ## 攻撃エフェクトID（data/effects/combat_effect.csv）。空＝既定のスパーク
+var map_move_sfx: String   ## 移動音の素材ID（SfxCatalog.MOVE_SFX）。空＝移動タイプの既定。→ doc/audio/sfx.md
 var retainers: Array       ## 戦闘演出で脇に並べる別スキンの skin_id（先頭＝本人の隣）。retinue のときだけ使う。→ doc/tech/combat_scene.md
 
 static func from_dict(d: Dictionary) -> UnitSkin:
@@ -38,6 +39,7 @@ static func from_dict(d: Dictionary) -> UnitSkin:
 	var lineup := String(d.get("combat_lineup", ""))
 	s.combat_lineup = lineup if LINEUPS.has(lineup) else LINEUP_SQUAD  # 未知値は既定へ倒す（描かない事故にしない）
 	s.combat_effect = String(d.get("combat_effect", ""))
+	s.map_move_sfx = String(d.get("map_move_sfx", ""))
 	var r: Variant = d.get("retainers", [])
 	s.retainers = r if typeof(r) == TYPE_ARRAY else []
 	return s

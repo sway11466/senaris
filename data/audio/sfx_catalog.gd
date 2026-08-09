@@ -45,8 +45,9 @@ const BIND := {
 	"cmb_open": "menu_slide",
 }
 
-## 移動タイプ → 移動音の素材。移動タイプは地形コストの都合で分かれているが、
+## 移動タイプ → 移動音の素材（既定）。移動タイプは地形コストの都合で分かれているが、
 ## 音としては3系統に集約する（doc/audio/sfx.md 移動音）。未知値・fixed は ""＝無音。
+## 駒ごとの例外は unit_skin.csv の map_move_sfx 列で上書きする（飛行の飛び方の違いはこちら）。
 const MOVE_BIND := {
 	"ground": "move_ground",
 	"forest_walk": "move_ground",
@@ -56,13 +57,31 @@ const MOVE_BIND := {
 	"flight": "move_flight",
 }
 
+## 移動音の素材と、繰り返す最小間隔（秒）。0＝1マス踏むごと。
+## 飛行を1マスごと（0.12秒間隔）に鳴らすと羽ばたきに聞こえず連続したノイズになるため、
+## マス数ではなく時間で間引く。移動アニメは経路が長いほど1マスが縮む（MOVE_ANIM_MAX_SEC で
+## 頭打ち）ので、マス数で持つと長い経路で間隔が詰まる。→ doc/audio/sfx.md 鳴らす間隔
+## ここが移動音の素材IDの正本＝unit_skin.csv の map_move_sfx 列はこのキーだけを許す。
+const MOVE_SFX := {
+	"move_ground": 0.0,
+	"move_light_foot": 0.0,
+	"move_flight": 0.30,
+	"move_float": 0.45,      # 魔法で浮く（ピクシー・ゴースト）＝羽ばたかない
+	"move_propeller": 0.50,  # 飛空艇。素材の尺に合わせると切れ目なく繋がる
+}
+
 ## 発火点IDに割り当てられた素材ID。未登録なら ""。
 static func sfx_of(event_id: String) -> String:
 	return String(BIND.get(event_id, ""))
 
-## 移動タイプの足音・羽ばたきの素材ID。未登録なら ""。
+## 移動タイプの足音・羽ばたきの素材ID（既定）。未登録なら ""。
 static func move_sfx_of(move_type: String) -> String:
 	return String(MOVE_BIND.get(move_type, ""))
+
+## 移動音を繰り返す最小間隔（秒）。0＝1マスごと。未登録の素材も 0 に倒す
+## （鳴らない方向ではなく既定の鳴り方へ落とす）。
+static func move_interval_of(sfx_id: String) -> float:
+	return float(MOVE_SFX.get(sfx_id, 0.0))
 
 ## 素材IDのファイルパス。素材IDが空、またはファイルが未配置なら ""。
 static func path_of(sfx_id: String) -> String:

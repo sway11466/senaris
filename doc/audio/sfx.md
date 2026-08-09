@@ -96,7 +96,7 @@
 | `map_select` | 自軍ユニットを選択（移動範囲が開く） | `ui_confirm` | |
 | `map_confirm` | メニュー項目を決定 | `ui_confirm` | |
 | `map_cancel` | キャンセル・戻る（右クリック／Esc） | `ui_cancel` | |
-| `map_move` | 移動アニメ中（1マス0.12秒・最大0.6秒） | 専用 | 移動タイプごと。踏むたびに鳴らす。下記の動的解決 |
+| `map_move` | 移動アニメ中（1マス0.12秒・最大0.6秒） | 専用 | 移動タイプ・スキンごと。素材ごとの間隔で繰り返す。下記の動的解決 |
 | `map_board` | 輸送への乗車・降車 | `map_board`（専用） | 中空の鈍い音。乗車には専用のシグナルが無く、移動後に駒が盤から消えたことで判定する |
 | `map_capture` | 占領成立 | 専用 | 山場。チューブラーベル（神域の役割）＋旗の布音。盤面が変わった重み |
 | `map_formation` | 陣形スキル発動（演出の頭） | 専用 | レシピごと。下記の動的解決 |
@@ -152,7 +152,7 @@
 
 ### 移動音
 
-`map_move` は `unit_type.csv` の `move_type` から引く。ただし移動タイプは地形コストの都合で分かれており、音としては集約される。
+`map_move` の素材は `unit_type.csv` の `move_type` から引き、必要な駒だけスキン側で上書きする。既定は移動タイプ、例外はスキン、という順序。
 
 | move_type | sfx_id | 音の系統 |
 |---|---|---|
@@ -161,9 +161,42 @@
 | `flight` | `move_flight` | 羽ばたき |
 | `fixed` | （無し） | 無音（移動しない） |
 
-1マス踏むごとに1回鳴らす。移動アニメは1マス 0.12 秒だが、経路が長いと上限（`MOVE_ANIM_MAX_SEC`）に収めるため1マスあたりが縮む。縮んだぶんは `SfxPlayer` の連射間引き（`REPEAT_GUARD_SEC`）が受け止めるので、機関銃にはならない。
+移動タイプは地形コストの都合で分かれており、音としては集約される。
 
-蹄・車輪など個別の音が要るユニットが出たら、攻撃エフェクトと同じくスキン側の指定で上書きする。既定は移動タイプから、必要な駒だけ個別に、という順序を守る。
+上書きは `unit_skin.csv` の `map_move_sfx` 列（素材IDを直に書く。空欄＝移動タイプの既定）。攻撃エフェクトの `combat_effect` 列と同じ形で、列名は発火点IDに揃える。
+
+#### 飛行はスキンで分ける
+
+飛行だけは既定の1つでは足りない。ピクシーとドラゴンが同じ音で飛ぶのは無理がある。
+
+分ける軸はスキンで、移動タイプは増やさない。`move_type` の正本は地形コスト表（`data/movement/movement.csv`）で、コストが1マスも違わない行を音のために増やすと、表から「この2つは何が違うのか」が読めなくなる。移動タイプは地形との噛み合いを決める軸であって見た目の軸ではない。型でも届かない＝ピクシーとゴーストは同じ `pixie` 型、グリフォンは `valkyrie` 型で、型を分けると性能まで割れる。
+
+| sfx_id | スキン | 音の系統 |
+|---|---|---|
+| `move_flight` | ペガサス・バードマン・ハーピー・グリフォン・レッドドラゴン | 羽ばたき。大きな翼が空気を打つ |
+| `move_float` | ピクシー・ゴースト・レイス | 浮遊。羽ばたかない。空気がふわりと動く程度 |
+| `move_propeller` | 飛空艇 | プロペラ。木と布の羽根が回る |
+
+ピクシーは羽が付いていて羽ばたいて見えるが、飛んでいるのは魔法の力ということにする。ゴースト・レイスと同じ `move_float` を鳴らす。
+
+#### 鳴らす間隔
+
+素材ごとに最小間隔（秒）を持つ。0 なら1マス踏むごと、それ以外は前回からその秒数が経った最初のマスで鳴らす。経路の1マス目は間隔によらず必ず鳴らす（短い移動でも1回は鳴る）。
+
+| sfx_id | 間隔 |
+|---|---|
+| `move_ground` / `move_light_foot` | 0（1マスごと） |
+| `move_flight` | 0.30 |
+| `move_float` | 0.45 |
+| `move_propeller` | 0.50 |
+
+飛行を1マスごとに鳴らすと羽ばたきに聞こえない。移動アニメは1マス 0.12 秒（`MOVE_ANIM_SEC_PER_HEX`）なので、1マスごとでは 0.12 秒間隔＝1秒に8回になる。翼を打つ間隔として速すぎて、連続したノイズとして聞こえる。足が地面を蹴る間隔としては妥当なので、足音は 0 のままでよい。
+
+マス数ではなく時間で持つのは、1マスあたりの秒数が経路の長さで変わるため。移動アニメ全体には上限（`MOVE_ANIM_MAX_SEC` ＝ 0.6 秒）があり、5マスを超えると1マスが 0.12 秒より縮む。10マスなら1マス 0.06 秒で、「3マスごと」と決めていると 0.18 秒間隔まで詰まる。時間で持てば経路の長さによらず羽ばたきの速さが変わらない。
+
+`move_propeller` は連続音の近似でもある。プロペラは本来ずっと回っているので、素材の尺と間隔を合わせれば切れ目なく繋がって聞こえる。間隔の値は素材が決まってから実尺で詰める。
+
+蹄・車輪など個別の音が要るユニットが出たら、同じ `map_move_sfx` 列で足す。既定は移動タイプから、必要な駒だけ個別に、という順序を守る。
 
 ### 陣形スキル
 
@@ -260,15 +293,17 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 場所の表記は「年 パート番号 / ライブラリ名」。zip の URL は products 側の `raw/<年>_<パート>.json` にある。
 
-移動音（`map_move`、移動タイプごとの動的解決）。
+移動音（`map_move`、移動タイプ・スキンごとの動的解決）。
 
-| move_type | 素材 | 場所 |
+| sfx_id | 素材 | 場所 |
 |---|---|---|
-| `ground` 系 | `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
-| `light_foot` | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` の歩き1歩 | 2017 p8 / Tovusound - Extended Footsteps |
-| `flight` | `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav` の3テイク目 | 2020 p13 / Systematic-Sound - Modern Cloth Foley 01 |
+| `move_ground` | `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
+| `move_light_foot` | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` の歩き1歩 | 2017 p8 / Tovusound - Extended Footsteps |
+| `move_flight` | `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav` の3テイク目 | 2020 p13 / Systematic-Sound - Modern Cloth Foley 01 |
 
 足音2つはどちらも草の上の1歩で、重い側はブーツ、軽い側はスニーカー。同じ地面で靴だけが違うので、踏み替えても地形が変わったようには聞こえない。軽い側は基準より 3 dB 下げて置いている（上記の音量基準）。
+
+`move_float`（浮遊）と `move_propeller`（プロペラ）は未探索。浮遊は物音ではなく楽音側に寄る可能性がある＝空気の動きより、かすかな魔力のきらめきのほうが近いかもしれない。
 
 `light_foot` の原本は Walk / Run / Jog が続けて入った24.5秒・約50歩のファイルなので、歩きの部分から1歩だけ切り出している。同じ用途で見た Levan Nadashvili - Civilian Footsteps の土・木の1歩は試聴して不採用。
 
@@ -341,7 +376,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 名前で引いても出てこなかったものと、代わりに何を当てたかを記録する。次に探すときの手がかりになる。
 
-- 羽ばたき（`map_move` の `flight`）。索引を wing / flap / flutter で引いても、鳥・こうもりで出るのは鳴き声と環境音だけ。上着を振る布の音（Modern Cloth Foley の Whoosh Flutter）を当てた。布が空気を打つ音は羽ばたきとして通る。
+- 羽ばたき（`move_flight`）。索引を wing / flap / flutter で引いても、鳥・こうもりで出るのは鳴き声と環境音だけ。上着を振る布の音（Modern Cloth Foley の Whoosh Flutter）を当てた。布が空気を打つ音は羽ばたきとして通る。
 - 投石の発射音。古代のスリング（投げ紐）は無い。紐を速く振り回すロープの風切りを当てた。スリングは実際に紐を振り回して投げるものなので、質感が直接あたる。
 - 爪（`claw`）。claw で引いて出るのは動物の足音ライブラリだけ。板金鎧を叩く音を当てた。
 - 旗のはためき単体。録音そのものが無いため、布の小物音で代用する（`map_capture` で採用済み）。
@@ -383,7 +418,7 @@ BGM（[bgm.md](bgm.md)）と同じ責務分担に揃える。音の再生は pre
 | レイヤー | 実体 | 責務 |
 |---|---|---|
 | `data` | `data/audio/sfx_catalog.gd` | 素材カタログと対応表の読み取り（`event_id` → `sfx_id` 解決・autowire）。純ロジック |
-| `application` | — | 動的解決の引数（エフェクトID・移動タイプ）を渡す |
+| `application` | — | 動的解決の引数（エフェクトID・移動タイプ・スキン）を渡す |
 | `presentation` | `presentation/ui/sfx_player.gd` | `AudioStreamPlayer` のプール。ID を受けて鳴らすだけ |
 
 `domain` は事実をシグナルで発火するだけで、音の存在を知らない。
