@@ -227,11 +227,11 @@
 
 ### feature-29
 
-**敵AIの陣形スキル／ユニットスキル使用**（優先度：中）
+**敵AIの陣形スキル使用（複数人）**（優先度：中）
 
-- 背景：陣形スキルとユニットスキルは当面プレイヤー専用で、敵AIは移動・攻撃・占領しかしない（[formations.md](gdd/formations.md) 実装方針・[skills.md](gdd/skills.md) 共通ルール）。看板機能を敵が使わないと、プレイヤーだけが持つ特権のままになる。成立条件はスキンID照合になった（未指定は種別へフォールバック）ので、敵側スキンをレシピに書けば成立させられる＝データ面の下地はできている。残るのはAIの思考。
-- 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) `nearest_attacker_brain` に発動判断を足す＝成立している選択肢を `Formation.available_for` で採り、撃つ価値（面に入る敵の数・バフの効き）で評価して選ぶ。思考軸として ai.csv に列を足すか、部隊単位の指定にするかを先に決める（[ai.md](gdd/ai.md) の「ロジック＝コード／組合せ＝データ」に従う）。feature-4（思考軸の残り値の配線）の隣。
-- 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`data/ai/ai.csv`（軸を足す場合）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`／`doc/gdd/skills.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
+- 背景：ユニットスキル（発動者1体）は敵も撃つようになった（思考軸 `skill` / `skill_target`＝[ai.md](gdd/ai.md) §4・§5）。残るのは複数人の陣形スキルで、敵陣営向けのレシピが1つも無い。実行経路は `AiAction.SKILL` で共通なので、レシピを足せば同じ仕組みで飛ぶ。成立条件はスキンID照合（未指定は種別へフォールバック）＝データ面の下地はできている。
+- 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) 撃つ価値の評価を足す＝ユニットスキルは「対象1体」で選べたが、面の陣形は着弾中心の選び方（面に入る敵の数・味方の巻き込み）が要る。`_pick_skill_target` は対象1体を前提にしているのでここを広げる。
+- 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
 ### feature-30
 
@@ -272,11 +272,11 @@
 
 ### feature-35
 
-**敵を対象にするユニットスキル（ヴェノムファング）と、状態異常の解除（ピュリファイ）**（優先度：中）
+**ユニットスキル ヴェノムファングのレシピ**（優先度：中）
 
-- 背景：[skills.md](gdd/skills.md) にレシピ②ヴェノムファング・③ピュリファイを載せたが、いまのユニットスキルは味方1体を強化するものしか撃てない。対象の絞り込みは `Formation.can_target` が `buff_scope == "unit"` のとき「味方の居る hex だけ」に固定しており、敵を選べない。解除の操作自体も無い。この2つは [tutorial3 st3](campaign/tutorial3-dragon-hunt.md)（鉱脈の争奪）で組になって出る＝ロックサーペントの群れがヴェノムファングを重ね、聖職のピュリファイが落とす。
-- 対応：(1) レシピに対象陣営の指定を足し、`can_target` の絞り込みを味方／敵で切り替える。状態補正エントリ自体は既存の器のまま（`scope: unit`・`op: mul`・値 1.0 未満）で、新しい演算は要らない。(2) 状態補正エントリに有害フラグを足し、ピュリファイ＝対象に効いている有害エントリを `_status_mods` から取り除く効果を新設する。値の符号から有害性を推測しない（攻撃だけ下げて防御を上げるスキルが出たときに破綻する）。中断セーブに乗るので旧セーブの既定値も決める。
-- 該当：`domain/formation/formation.gd`（レシピ・`can_target`）・`domain/battle_state.gd`（解除・直列化）・`domain/combat/status_mod.gd`（有害フラグ）・`presentation/board/hex_board_3d.gd`（対象選択の絞り込み）・`tests/unit/test_skill.gd`・`doc/gdd/skills.md`。着手の引き金＝tutorial3 st3 を組むとき。関連＝feature-29（敵AIのスキル使用。ヴェノムファングを敵が撃つには思考側も要る）。
+- 背景：[skills.md](gdd/skills.md) の②ヴェノムファングだけレシピが無い。仕組みはもう通っている＝敵を対象にする指定（`buff_side: "enemy"`）はドレッドタッチで、有害な補正の解除はピュリファイ（効果の型 `cleanse`・`kind: "debuff"`）で実装済み。残るのはカタログにレシピを1本足すことだけ。[tutorial3 st3](campaign/tutorial3-dragon-hunt.md)（鉱脈の争奪）で、ロックサーペントの群れが重ねた毒を聖職のピュリファイが落とす形で出る。
+- 対応：`RECIPES` に `venom_fang` を足す。ドレッドタッチとの違いは効き方で、あちらが加算（残兵数×-10）なのに対しヴェノムファングは係数（`op: "mul"`・値 1.0 未満）＝重ねても 0 にならず、行動不能にはならない。持続の数え方は共通。敵が撃つ思考側（`skill` / `skill_target`）は配線済み。
+- 該当：`domain/formation/formation.gd`（レシピ）・`tests/unit/test_skill.gd`・`doc/gdd/skills.md`（持続の行を実装値に合わせる）。着手の引き金＝tutorial3 st3 を組むとき。
 
 ### feature-36
 
