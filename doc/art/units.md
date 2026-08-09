@@ -156,6 +156,8 @@ SUBJECT（生成プロンプト本体）の置き場：
 
 生成は3ブロックを順に貼る：STYLE（共通・固定・ポーズ非依存）＋ POSE（下のカタログから役割で選ぶ）＋ SUBJECT（ユニット別）。POSE と SUBJECT は `{skin_id}_combat_prompt.txt` に一緒に置く（先頭に POSE 行 → SUBJECT）。STYLE は本 doc が正本。
 
+カタログに載せるのは2体以上で使い回す POSE だけ。1体しか使わない姿勢（乗り物のように、その駒の形に固有のもの）はカタログに置かず、そのユニットの `{skin_id}_combat_prompt.txt` の先頭に直接書く。文面が doc と txt の両方にあると、片方だけ直したときにずれる。
+
 STYLE（共通・固定・ポーズ非依存）:
 ```
 STYLE: A single fantasy tactics-game battle piece of ONE unit, drawn in the
@@ -204,13 +206,7 @@ POSE (unarmed): A lunging bare-handed attack — both arms (or claws) thrust out
 ```
 POSE (drift): A floating attack pose — the body hovers clear of the ground with no weight on any foot, drifting toward the enemy on the right with both hands (or the weapon) reaching ahead, the trailing hem or tail streaming out behind. For flying units.
 ```
-```
-POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the right of the frame under its load, the draft animal (if any) leaning into the harness with its head low and legs mid-stride, the cargo body following behind so the hood, wheels/hull and lashed load all read clearly. It does NOT fight and takes no combat stance: no weapon anywhere, no raised guard, no aggression — just a heavy non-combat vehicle pressing on across the battlefield. For ground transport units.
-```
-```
-POSE (haul air): A cruising flight pose, seen from the side — the airborne transport makes way toward the right of the frame under its load, hanging clear of the ground with nothing touching the earth, hull level and nose slightly ahead, so the envelope, hull, propellers and lashed cargo all read clearly. It carries one light gun for self-defence but is not attacking: no charge, no raised guard, no aggression — a heavy transport pressing on across the battlefield. For flying transport units.
-```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`／地上の輸送（馬車）＝`haul`／飛行する輸送（飛空艇）＝`haul air`。据置でも攻撃する兵器（バリスタ）は `ranged`。
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`。据置でも攻撃する兵器（バリスタ）は `ranged`。輸送（馬車・飛空艇）は乗り物ごとに姿勢が違うので、カタログではなく各 `{skin_id}_combat_prompt.txt` の先頭に書いてある。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
 - 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない」（武装する駒は「武装はこの1門だけ」）と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない駒（バリケード・飛空艇等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
 - 兵器の静物は、地形タイルの柵（`assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。

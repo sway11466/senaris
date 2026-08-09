@@ -48,7 +48,7 @@
 - `data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --script res://data/units/convert.gd`
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
 - `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
-- `data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id, category, map_scale, combat_scale, retainers`**。`skin_id` が主キー／`category`＝管理分類: 基準・ゴブリン・アンデッド・デモ、この順に整列／`map_scale`・`combat_scale`＝書き出し時の背丈倍率（[../art/units.md](../art/units.md) §3）／`retainers`＝戦闘演出でボスの脇に並べる別スキン（`|` 区切り・空＝全部本人。[../tech/combat_scene.md](../tech/combat_scene.md)））→ `data/units/unit_skin.json`。`category` は JSON にも出力する参考データ（skin は見た目レイヤー＝ゲームロジックでは参照しない。マップエディタの絞り込み等ツール用）。画像・説明は当面空で、必要時にCSVへ列追加。
+- `data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id, category, map_scale, map_offset_x, combat_scale, retainers`**。`skin_id` が主キー／`category`＝管理分類: 基準・ゴブリン・アンデッド・デモ、この順に整列／`map_scale`・`combat_scale`＝書き出し時の背丈倍率（[../art/units.md](../art/units.md) §3）／`map_offset_x`＝書き出し時の横位置補正（体の中心をヘックス中心に合わせる。同§3.1）／`retainers`＝戦闘演出でボスの脇に並べる別スキン（`|` 区切り・空＝全部本人。[../tech/combat_scene.md](../tech/combat_scene.md)））→ `data/units/unit_skin.json`。`category` は JSON にも出力する参考データ（skin は見た目レイヤー＝ゲームロジックでは参照しない。マップエディタの絞り込み等ツール用）。画像・説明は当面空で、必要時にCSVへ列追加。
 - `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 
