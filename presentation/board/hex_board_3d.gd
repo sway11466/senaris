@@ -84,6 +84,24 @@ const COLOR_TROOPS_FILL := Color(0.30, 0.90, 0.40)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
+## 攻撃対象マーカー＝対象の頭上に浮かぶ下向きの三角。深度判定を切って常に最前面に描く。
+## 地面の輪だけでは読めないため。俯角52°では手前の地形が 高さ×0.78 ぶんの奥行を隠し
+## （壁0.70＝ヘックスの奥行の3割強）、輪の奥側は対象の立ち絵が覆う＝前後から挟まれる。
+## 立ち絵は足元が手前（SPRITE_FOOT_Z）に出て背も高いので、駒の高さに置けば地形に負けない。
+## クリックの入口になる記号は地面に置かない（仕様 → doc/gdd/uiux.md 盤の表示記号）。
+const COLOR_ATTACK_MARK := Color(0.98, 0.22, 0.20)
+const COLOR_ATTACK_MARK_EDGE := Color(0.10, 0.02, 0.02, 0.90)  # 明るい地形・淡い立ち絵の上でも輪郭が立つ
+const MARK_W := TILE * 0.42        # マーカーの横幅
+const MARK_H := TILE * 0.38        # 同・高さ（下向きの先端までの深さ）
+const MARK_EDGE := TILE * 0.045    # 縁取りの張り出し
+const MARK_GAP := TILE * 0.16      # 頭のてっぺんからマーカーの先端までの隙間
+const MARK_BOB := TILE * 0.06      # 上下の揺れ幅（止まっていると背景の模様に紛れる）
+const MARK_BOB_CYCLE := 1.1        # 同・周期（秒）
+## 引いた画角での最小の大きさ(px)。盤全体を映すと1ヘックスが39px まで縮み、素のままだと
+## マーカーは8px＝探せない。これを下回るぶんだけ拡大する（寄った画角では等倍のまま）。
+const MARK_MIN_PX := 18.0
+const MARK_MAX_SCALE := 2.5        # 拡大の上限（際限なく大きくすると盤を覆う）
+
 const INVALID_HEX := Vector2i(-9999, -9999)
 
 var state: BattleState
@@ -105,6 +123,7 @@ var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 var _cam: Camera3D
 var _cam_target := Vector3.ZERO
 var _cam_dist := 20.0
+var _cam_up := Vector3.UP  # カメラの上方向（_update_camera が入れる）。頭上マーカーの持ち上げ向き
 var _press_pos := Vector2.ZERO   # 左ボタン押下位置（クリック/ドラッグ判別の起点・スクリーン座標）
 var _press_on_empty := false     # 押下が空き地（ユニット無し）から始まったか＝パン許可
 var _dragging_pan := false       # 左ドラッグでパン中
@@ -123,9 +142,14 @@ var _glow_ring_mesh: ArrayMesh    # 強化の光（その外側の細い輪）
 var _glow_mat: StandardMaterial3D # 強化の材質（加算合成）。明滅は _process が alpha を書き換える
 var _glow_mat_debuff: StandardMaterial3D # 弱体の材質（同上・色だけ違う）
 var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
+var _mark_mesh: ArrayMesh         # 攻撃対象マーカー（下向き三角）
+var _mark_edge_mesh: ArrayMesh    # 同・その下に敷く一回り大きい縁取り
+var _mark_mat: StandardMaterial3D      # 同・本体の材質（深度切り＝常に最前面）
+var _mark_mat_edge: StandardMaterial3D # 同・縁取りの材質（本体より1つ手前で描く）
 var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
 var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
 var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
+var _fig_height := {}     # Texture2D -> float（立ち絵の実体の背丈＝マーカーを置く高さの基準）
 var _avg_color := {}      # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
 var _skirt_tex: ImageTexture  # スカートの粒状ノイズ（べた塗り回避。_ready で1回生成）
 
@@ -136,6 +160,7 @@ var _inspected_id := -1  # 閲覧のみのユニット（敵など）。選択�
 var _reachable := {}     # Vector2i -> true
 var _inspect_reach := {} # Vector2i -> true（閲覧中の敵ユニットの移動範囲＝脅威範囲）
 var _targets := {}       # Vector2i -> target_id（攻撃可能な敵の位置）
+var _target_markers: Array[Node3D] = []  # 頭上マーカーのノード（_process が揺らす。_sync_overlay が作り直す）
 var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
@@ -192,6 +217,10 @@ func _ready() -> void:
 	_glow_ring_mesh = _make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
 	_glow_mat = _make_glow_material(COLOR_SKILL_GLOW)
 	_glow_mat_debuff = _make_glow_material(COLOR_SKILL_DEBUFF, false)
+	_mark_mesh = _make_down_tri_mesh(MARK_W, MARK_H, 0.0)
+	_mark_edge_mesh = _make_down_tri_mesh(MARK_W + MARK_EDGE * 2.0, MARK_H + MARK_EDGE * 2.0, -MARK_EDGE)
+	_mark_mat = _make_mark_material(COLOR_ATTACK_MARK, 4)
+	_mark_mat_edge = _make_mark_material(COLOR_ATTACK_MARK_EDGE, 3)
 	_skirt_tex = _make_skirt_texture()
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
@@ -271,6 +300,15 @@ func _process(_delta: float) -> void:
 		_glow_mat.albedo_color.a = lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
 		# 位相は共通（2つ出ても揃って呼吸する）。濃さの幅だけ合成方式に合わせて分ける。
 		_glow_mat_debuff.albedo_color.a = lerpf(SKILL_DEBUFF_MIN, SKILL_DEBUFF_MAX, w)
+	# 攻撃対象マーカーの上下の揺れ。位相は足元の光と同じく絶対時刻から出す＝作り直しで途切れない。
+	# 明滅ではなく動きにするのは、深度を切って最前面に描く記号は背景の模様に紛れるのを
+	# 濃さで解けないため（薄くすると読めず、濃いままだと止まって見える）。
+	if not _target_markers.is_empty():
+		var dy := sin(float(Time.get_ticks_msec()) * 0.001 / MARK_BOB_CYCLE * TAU) * MARK_BOB
+		var s := _mark_scale()  # ズームで見失わないよう、引いた画角では拡大する
+		for m in _target_markers:
+			m.position = Vector3(m.get_meta("base_pos")) + _cam_up * (dy * s)
+			m.scale = Vector3(s, s, 1.0)
 	if state == null:
 		return
 	var h := _hex_at_mouse()
@@ -369,6 +407,10 @@ func _update_camera() -> void:
 	var pitch := deg_to_rad(CAM_PITCH_DEG)
 	_cam.position = _cam_target + Vector3(0.0, sin(pitch), cos(pitch)) * _cam_dist
 	_cam.look_at(_cam_target, Vector3.UP)
+	# ビルボードの「上」＝カメラの上方向。俯角固定なのでパン・ズームでは変わらない。
+	# ワールドのYで持ち上げた点は遠近で画面中心から外へ倒れるが、ビルボードの立ち絵は倒れない
+	# （常にカメラへ正対＝画面の縦に伸びる）。駒の頭に載せる物はこの向きで持ち上げる。
+	_cam_up = Vector3(0.0, cos(pitch), -sin(pitch))
 
 ## 画面1pxがワールドで何mか（注視点の距離基準の近似）。パン・fit の換算に使う。
 func _world_per_pixel() -> float:
@@ -1509,6 +1551,7 @@ func _add_unit_placeholder(u: Unit, done: bool, root: Node3D) -> void:
 ## 種類ごとに高さをずらして重なりのZファイトを避ける。
 func _sync_overlay() -> void:
 	_clear_children(_overlay_root)
+	_target_markers.clear()  # 実体は _overlay_root の子＝いま消えた。参照を残すと _process が落ちる
 	if state == null:
 		return
 	for h in _reachable:
@@ -1523,9 +1566,12 @@ func _sync_overlay() -> void:
 		_add_cell(_pending_to, COLOR_PENDING, 0.03)
 	if _unload_to != INVALID_HEX:
 		_add_cell(_unload_to, COLOR_PENDING, 0.03)
-	for pos in _targets:  # 攻撃可能な敵＝赤リング
+	# 攻撃可能な敵＝頭上のマーカー（見つけるための記号）＋地面の赤リング（どのマスを押すかの補助）。
+	# リングだけでは手前の地形に隠れて読めないが、クリック判定はマス単位なので位置の目印としては残す。
+	for pos in _targets:
 		var tp := Hex.to_pixel(pos, TILE)
 		_add_ring(Vector3(tp.x, _elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
+		_add_target_marker(state.unit_by_id(int(_targets[pos])))
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
@@ -1652,6 +1698,9 @@ func _add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -
 	root.add_child(l)
 
 ## 地面に寝かせた円環（選択/攻撃/閲覧/包囲リング）。radius|width でメッシュをキャッシュ。
+## y は wpos からの上乗せ＝タイル上面からの浮かせ量。wpos.y を無視して絶対高さに置くと、
+## 標高を持つスキン（森・台地・崖・壁）の上に立つ駒の輪がタイルの中に埋まって見えなくなる。
+## 駒に付ける輪は親ノードが標高に乗っているので wpos.y=0 で呼ばれる（相対座標のまま効く）。
 func _add_ring(wpos: Vector3, radius: float, width: float, color: Color, y: float, root: Node3D) -> void:
 	var key := "%.3f|%.3f" % [radius, width]
 	if not _ring_mesh.has(key):
@@ -1659,8 +1708,69 @@ func _add_ring(wpos: Vector3, radius: float, width: float, color: Color, y: floa
 	var mi := MeshInstance3D.new()
 	mi.mesh = _ring_mesh[key]
 	mi.material_override = _overlay_material(color)
-	mi.position = Vector3(wpos.x, y, wpos.z)
+	mi.position = Vector3(wpos.x, wpos.y + y, wpos.z)
 	root.add_child(mi)
+
+## 攻撃対象マーカー（頭上の下向き三角）を1体ぶん置く。縁取り→本体の順に重ねる。
+## 揺れの基準位置は meta に持たせる＝_process はノードを1周するだけで済む。
+func _add_target_marker(u: Unit) -> void:
+	if u == null:
+		return
+	var n := Node3D.new()
+	var base := _unit_head_pos(u) + _cam_up * MARK_GAP
+	n.position = base
+	n.set_meta("base_pos", base)
+	var edge := MeshInstance3D.new()
+	edge.mesh = _mark_edge_mesh
+	edge.material_override = _mark_mat_edge
+	n.add_child(edge)
+	var fill := MeshInstance3D.new()
+	fill.mesh = _mark_mesh
+	fill.material_override = _mark_mat
+	n.add_child(fill)
+	_overlay_root.add_child(n)
+	_target_markers.append(n)
+
+## 頭上マーカーの倍率。画面上で MARK_MIN_PX を割り込むぶんだけ拡大する（寄っていれば等倍）。
+## 盤の駒と一緒に縮んでよい記号ではない＝探すための印なので、下限は画面のpxで持つ。
+func _mark_scale() -> float:
+	var px := MARK_W / _world_per_pixel()
+	if px >= MARK_MIN_PX:
+		return 1.0
+	return minf(MARK_MIN_PX / px, MARK_MAX_SCALE)
+
+## 駒の頭のてっぺんのワールド位置。足元（立ち絵の原点）から、ビルボードが伸びる向き
+## ＝カメラの上方向へ背丈ぶん進めた点。立ち絵は沈み（植生の厚み）も受けるのでそれも引く。
+func _unit_head_pos(u: Unit) -> Vector3:
+	var p := Hex.to_pixel(u.pos, TILE)
+	# 足元は立ち絵と同じ置き方（z を手前へ SPRITE_FOOT_Z ぶん出す）。
+	var foot := Vector3(p.x, _elev(u.pos) + 0.02 - _sprite_sink(u.pos), p.y + SPRITE_FOOT_Z)
+	var tex := _unit_texture(u)
+	if tex == null:
+		return foot + _cam_up * (TILE * 0.35)  # プレースホルダの円盤＝背丈を持たないので固定
+	return foot + _cam_up * _figure_height(tex)
+
+## 立ち絵PNGの「実体」の背丈（ワールド単位）。キャンバス全高ではなく非透過部分の上端で測る。
+## 大小関係はキャンバスに焼き込んだ余白で表しているので（→ doc/art/units.md 3.1）、キャンバス
+## 全高を使うとハーフリングの頭上マーカーがドラゴンと同じ高さに浮く。テクスチャごとにキャッシュ。
+func _figure_height(tex: Texture2D) -> float:
+	if _fig_height.has(tex):
+		return _fig_height[tex]
+	var canvas := UNIT_CANVAS_TILES * TILE
+	var h := canvas  # 読めなければキャンバス全高＝高めに浮く（駒に食い込むより害が小さい）
+	var img := tex.get_image()
+	if img != null and img.is_compressed():
+		img = img.duplicate()  # キャッシュ済みの Image を書き換えない
+		if img.decompress() != OK:
+			img = null
+	if img != null:
+		var used := img.get_used_rect()
+		if used.size.y > 0:
+			# 立ち絵は原点＝足元・上へ canvas ぶん伸びる。テクスチャの行 r はワールド
+			# (tex_h - r) × pixel_size の高さに来るので、実体の上端は最上行から出る。
+			h = float(tex.get_height() - used.position.y) * canvas / float(tex.get_height())
+	_fig_height[tex] = h
+	return h
 
 ## 床(XZ)の円環メッシュ（32分割の帯）。
 func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
@@ -1792,6 +1902,30 @@ func _make_hexring_mesh() -> ArrayMesh:
 		st.set_normal(Vector3.UP); st.add_vertex(i0)
 		st.set_normal(Vector3.UP); st.add_vertex(o1)
 	return st.commit()
+
+## 下向きの三角（XY平面・原点＝下の先端）。ビルボード材質と組んで頭上マーカーにする。
+## tip_y をずらすと先端の位置が動く＝縁取りは本体より下へ出した一回り大きい三角にする。
+func _make_down_tri_mesh(w: float, h: float, tip_y: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_normal(Vector3.BACK); st.add_vertex(Vector3(-w * 0.5, tip_y + h, 0.0))
+	st.set_normal(Vector3.BACK); st.add_vertex(Vector3(0.0, tip_y, 0.0))
+	st.set_normal(Vector3.BACK); st.add_vertex(Vector3(w * 0.5, tip_y + h, 0.0))
+	return st.commit()
+
+## 頭上マーカーの材質。深度判定を切って常に最前面に描く＝地形にも他の駒にも隠れない
+## （+N ラベルと同じ手）。重なり順は render_priority だけで決まるので、縁取り→本体の順に上げる。
+func _make_mark_material(color: Color, priority: int) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = color
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	m.billboard_keep_scale = true
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.no_depth_test = true
+	m.render_priority = priority
+	return m
 
 ## ビルボード材質（兵数バー用・アンライト・半透明可）。色ごとにキャッシュ。
 func _bill_material(color: Color) -> StandardMaterial3D:
