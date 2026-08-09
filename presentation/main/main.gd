@@ -352,19 +352,26 @@ func _maybe_start_intro() -> void:
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
 
-## 盤のイベント（増援）に台本が付いていれば、その場で会話を挟む。駒はもう盤に出ている＝
-## 何が来たのかを見せてから喋らせる。会話の間は盤とターン終了を止める（intro/outro と同じ扱い）。
+## 盤のイベント（増援）が起きたときの見せ方。focus 指定があれば、まず駒が出た場所へカメラを寄せ
+## （寄せ終わってから）台本があれば会話を挟む。駒はもう盤に出ている＝何が来たのかを見せてから
+## 喋らせる。会話の間は盤とターン終了を止める（intro/outro と同じ扱い）。
 ## 敵ターンのイベントでは出さない＝AIが動いている最中は盤を止められない（doc/gdd/map.md イベント）。
 func _on_event_fired(info: Dictionary) -> void:
-	var key := String(info.get("dialogue", ""))
-	if key.is_empty() or _conversation == null or _conversation_phase != "":
+	if _controller == null or _controller.is_ai_turn() or _conversation_phase != "":
 		return
-	if _controller == null or _controller.is_ai_turn():
+	if bool(info.get("focus", false)):
+		var hex: Vector2i = info.get("hex", Vector2i.MAX)
+		if hex != Vector2i.MAX:
+			await $HexBoard.focus_camera_on(hex)  # 会話より先＝喋る相手が画面に居る状態で幕を引く
+	var key := String(info.get("dialogue", ""))
+	if key.is_empty() or _conversation == null:
 		return
 	var lines: Array = _dialogue.get(key, [])
 	if lines.is_empty():
 		push_warning("main: イベントの台本が見つからない: dialogue=%s" % key)
 		return
+	if _conversation_phase != "":
+		return  # カメラを寄せている間に別の会話が始まっていた（同じターンに複数イベント）
 	_conversation_phase = "event"
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない

@@ -23,7 +23,7 @@ const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 const ROSTER_MODES := ["fresh", "carryover"]
 
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["type", "team", "turn", "label", "units", "dialogue"]
+const EVENT_KEYS := ["type", "team", "turn", "label", "units", "dialogue", "focus"]
 
 ## roster 値を検証して返す。省略（null）・未知の表記は "fresh"（独立＝前ステージを引き継がない）。
 static func _parse_roster(value: Variant) -> String:
@@ -360,7 +360,7 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 		state.add_event({
 			"turn": int(e.get("turn", 1)), "team": team,
 			"label": String(e.get("label", "")), "squad": squad_index,
-			"dialogue": dialogue, "units": units,
+			"dialogue": dialogue, "focus": bool(e.get("focus", false)), "units": units,
 		})
 	return auto_id
 

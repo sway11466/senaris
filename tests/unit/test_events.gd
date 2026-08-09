@@ -179,10 +179,35 @@ func test_event_carries_dialogue_key() -> void:
 	assert_eq(s.last_fired_events.size(), 1, "起きたイベントを控える")
 	assert_eq(String(s.last_fired_events[0].get("dialogue", "")), "arrive", "台本キーごと渡す")
 
-## 台本キーを書かないイベントは空のまま（会話なしで黙って加わる）。
+## 台本キーを書かないイベントは空のまま（会話なしで黙って加わる）。カメラも既定は寄せない。
 func test_event_without_dialogue_key_is_empty() -> void:
 	var s := _state([_reinforce(1)])
 	assert_eq(String(s.last_fired_events[0].get("dialogue", "")), "", "既定は会話なし")
+	assert_false(bool(s.last_fired_events[0].get("focus", false)), "既定はカメラを寄せない")
+
+# --- カメラ（focus）と、実際に駒が出た場所 ---
+
+## focus は指定をそのまま預かり、placed に「実際に出た hex」が入る＝カメラの行き先になる。
+func test_event_records_where_units_landed() -> void:
+	var s := _state([_reinforce(1, { "focus": true })])
+	var fired: Dictionary = s.last_fired_events[0]
+	assert_true(bool(fired.get("focus", false)), "カメラ指定を預かる")
+	assert_eq(fired.get("placed", []), [Hex.offset_to_axial(5, 3)], "出た hex を控える")
+
+## ずれて出たときは、指定座標ではなくずれた先を控える（カメラは本当の場所を見る）。
+func test_placed_hex_follows_the_shift() -> void:
+	var data := _data([_reinforce(1, { "focus": true })])
+	data["player"].append({ "type": "fighter", "col": 5, "row": 3 })  # 指定先を先に埋める
+	var s := _build(data)
+	var placed: Array = s.last_fired_events[0].get("placed", [])
+	assert_eq(placed.size(), 1, "1体ぶん控える")
+	assert_ne(placed[0], Hex.offset_to_axial(5, 3), "指定座標ではない")
+	assert_eq(Hex.distance(placed[0], Hex.offset_to_axial(5, 3)), 1, "ずれた先＝隣を控える")
+
+func test_focus_survives_serialization() -> void:
+	var s := _state([_reinforce(4, { "focus": true })])
+	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	assert_true(bool(back.pending_events()[0].get("focus", false)), "中断セーブでもカメラ指定は残る")
 
 # --- 中断セーブ ---
 

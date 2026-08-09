@@ -156,13 +156,17 @@ func end_turn() -> void:
 	if not _finished and is_ai_turn():
 		run_ai_turn()  # async（fire-and-forget）
 
-## このターンに起きたイベントを1件ずつ上へ流す。渡すのは素データ（label＋台本キー）だけ＝
-## 何を見せるかは presentation が決める。詳細 → doc/gdd/map.md イベント
+## このターンに起きたイベントを1件ずつ上へ流す。渡すのは素データ（label・台本キー・カメラ指定と
+## その行き先）だけ＝何を見せるかは presentation が決める。hex は実際に駒が出た場所の先頭
+## （置けずに1体も出なければ Vector2i.MAX）。詳細 → doc/gdd/map.md イベント
 func _announce_fired_events() -> void:
 	for e in state.last_fired_events:
+		var placed: Array = e.get("placed", [])
 		event_fired.emit({
 			"label": String(e.get("label", "")),
 			"dialogue": String(e.get("dialogue", "")),
+			"focus": bool(e.get("focus", false)),
+			"hex": placed[0] if not placed.is_empty() else Vector2i.MAX,
 		})
 
 ## AIのターンを実行。next_action が尽きるまで1手ずつ実行し、最後にターンを返す。

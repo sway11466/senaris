@@ -294,14 +294,16 @@ func test_end_turn_emits_event_fired() -> void:
 	s.set_movement(Movement.load_default())
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
-	s.add_event({ "turn": 2, "team": 0, "label": "ui.test.airship", "dialogue": "arrive", "squad": -1,
+	s.add_event({ "turn": 2, "team": 0, "label": "ui.test.airship", "dialogue": "arrive",
+		"focus": true, "squad": -1,
 		"units": [ { "unit": Unit.new(3, 0, Hex.offset_to_axial(4, 4), 3), "passengers": [] } ] })
 	var mc := _mc(s)
 	mc.end_turn()  # ターン1 敵＝自軍のイベントは起きない
 	assert_signal_not_emitted(mc, "event_fired", "陣営が違えば飛ばない")
 	mc.end_turn()  # ターン2 自軍＝発生
 	assert_signal_emitted_with_parameters(mc, "event_fired",
-		[{ "label": "ui.test.airship", "dialogue": "arrive" }], 0)
+		[{ "label": "ui.test.airship", "dialogue": "arrive", "focus": true,
+			"hex": Hex.offset_to_axial(4, 4) }], 0)
 
 ## イベントの無いターンは飛ばない（毎ターン鳴らさない）。
 func test_end_turn_without_event_is_silent() -> void:

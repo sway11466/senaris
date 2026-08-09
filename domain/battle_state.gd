@@ -155,7 +155,8 @@ func unit_at(hex: Vector2i) -> Unit:
 # 駒は StageLoader が読み込み時に組んで（catalog 解決込み）ここへ預け、発生ターンに盤へ出す。
 
 ## 未発生のイベント。発生したものは取り除く＝残っているものが未発生。
-## 各要素 = { turn, team, label, dialogue, squad, units: [ { unit: Unit, passengers: Array[Unit] } ] }
+## 各要素 = { turn, team, label, dialogue, focus, squad, units: [ { unit: Unit, passengers: Array[Unit] } ] }
+## 発生時に placed（実際に駒が出た hex の配列）が足される。
 var _events: Array = []
 
 ## 直近の fire_due_events で起きたイベント（上へ知らせるための控え）。end_turn が内側で発火するので、
@@ -203,8 +204,11 @@ func fire_due_events() -> Array:
 	return fired
 
 ## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
+## 実際に出た hex は placed に控える＝ずれて出ても、上（カメラ・演出）が本当の場所を見られる。
 func _place_event_units(e: Dictionary) -> void:
 	var squad_index := int(e.get("squad", -1))
+	var placed: Array[Vector2i] = []
+	e["placed"] = placed
 	for item in e.get("units", []):
 		var u: Unit = item.get("unit")
 		if u == null:
@@ -214,6 +218,7 @@ func _place_event_units(e: Dictionary) -> void:
 			push_warning("BattleState: 増援を置く空きが無い（この駒は出さない）: id=%d" % u.id)
 			continue
 		u.pos = hex
+		placed.append(hex)
 		add_unit(u)
 		if squad_index >= 0:
 			assign_squad(u.id, squad_index)
@@ -1161,7 +1166,8 @@ static func _event_from_dict(ed: Dictionary, catalog: Dictionary) -> Dictionary:
 	return {
 		"turn": int(ed.get("turn", 0)), "team": int(ed.get("team", -1)),
 		"label": String(ed.get("label", "")), "squad": int(ed.get("squad", -1)),
-		"dialogue": String(ed.get("dialogue", "")), "units": units,
+		"dialogue": String(ed.get("dialogue", "")), "focus": bool(ed.get("focus", false)),
+		"units": units,
 	}
 
 ## 未発生イベントを素データへ（駒は to_full_dict）。発生済みは配列から消えているので出ない。
@@ -1180,7 +1186,8 @@ func _events_to_dicts() -> Array:
 		out.append({
 			"turn": int(e.get("turn", 0)), "team": int(e.get("team", -1)),
 			"label": String(e.get("label", "")), "squad": int(e.get("squad", -1)),
-			"dialogue": String(e.get("dialogue", "")), "units": units_out,
+			"dialogue": String(e.get("dialogue", "")), "focus": bool(e.get("focus", false)),
+			"units": units_out,
 		})
 	return out
 
