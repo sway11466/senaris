@@ -18,8 +18,8 @@ func test_from_matches_board_plain() -> void:
 	s.add_unit(t)
 	var board := Combat.hit_detail(s, a, t)
 
-	var atk := Combat.attack_breakdown_from(8, 30, Combat.experience_at(1), Surround.factor_from_counts(0, 0), TerrainType.attack_factor("plain"), 0.0)
-	var df := Combat.defense_breakdown_from(8, 80, Combat.experience_at(1), Surround.factor_from_counts(0, 0), TerrainType.defense_factor("plain"), 0.0, 0.0)
+	var atk := Combat.attack_breakdown_from(8, 30, Combat.level_factor_at(1), Surround.factor_from_counts(0, 0), TerrainType.attack_factor("plain"), 0.0)
+	var df := Combat.defense_breakdown_from(8, 80, Combat.level_factor_at(1), Surround.factor_from_counts(0, 0), TerrainType.defense_factor("plain"), 0.0, 0.0)
 	var sim := Combat.hit_from_breakdowns(atk, df, 8)
 
 	assert_almost_eq(float(sim["attack"]["total"]), float(board["attack"]["total"]), 0.001, "実効攻撃が一致")
@@ -38,8 +38,8 @@ func test_from_matches_board_with_terrain_and_level() -> void:
 	s.add_unit(t)
 	var board := Combat.hit_detail(s, a, t)
 
-	var atk := Combat.attack_breakdown_from(8, 20, Combat.experience_at(6), Surround.factor_from_counts(0, 0), TerrainType.attack_factor("plateau"), 0.0)
-	var df := Combat.defense_breakdown_from(7, 40, Combat.experience_at(1), Surround.factor_from_counts(0, 0), TerrainType.defense_factor("plain"), 0.0, 0.0)
+	var atk := Combat.attack_breakdown_from(8, 20, Combat.level_factor_at(6), Surround.factor_from_counts(0, 0), TerrainType.attack_factor("plateau"), 0.0)
+	var df := Combat.defense_breakdown_from(7, 40, Combat.level_factor_at(1), Surround.factor_from_counts(0, 0), TerrainType.defense_factor("plain"), 0.0, 0.0)
 	var sim := Combat.hit_from_breakdowns(atk, df, 7)
 
 	assert_almost_eq(float(sim["attack"]["total"]), float(board["attack"]["total"]), 0.001, "台地×Lv6の実効攻撃が一致")

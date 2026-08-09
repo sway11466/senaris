@@ -30,7 +30,7 @@ func test_attack_breakdown_factors() -> void:
 	assert_eq(b["troops"], 8)
 	assert_eq(b["stat"], 50, "地上相手は対地")
 	assert_false(b["vs_aerial"])
-	assert_almost_eq(float(b["experience"]), 1.0, 0.001)
+	assert_almost_eq(float(b["level"]), 1.0, 0.001)
 	assert_almost_eq(float(b["terrain"]), 1.15, 0.001)
 	assert_almost_eq(float(b["total"]), 8.0 * 50.0 * 1.15, 0.01, "兵8×対地50×地形1.15＝460")
 

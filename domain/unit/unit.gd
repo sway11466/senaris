@@ -5,7 +5,7 @@ class_name Unit
 ## 例外は Formation＝陣形／ユニットスキルの成立条件だけは「見た目が同じか」で決めるため skin_id を見る。
 ## 詳細 → doc/gdd/combat.md
 
-const MAX_LEVEL := 99  ## 経験値（＝レベル）の上限
+const MAX_LEVEL := 99  ## レベルの上限
 const NEUTRAL_TEAM := -1  ## 中立（＝帰属未確定）。Base.NEUTRAL と同値（Base を参照すると循環するため別に置く）
 
 var id: int            ## 一意なID
@@ -25,7 +25,7 @@ var unit_attack: int   ## ユニット攻撃力＝対地（兵1体あたり。�
 var atk_air: int = 0   ## 対空攻撃力（0＝対空不可＝飛行ユニットを攻撃・反撃できない）。UnitType から設定
 var unit_defense: int  ## ユニット防御力（兵1体あたり。原典 BuD 相当。対地/対空で分けない単一値）
 var pierce: float = 0.0  ## 防御貫通率（攻撃時に相手の実効防御を pierce ぶん減らす。0=なし・0.5=半減）。UnitType から設定
-var level: int         ## 経験値＝レベル（1〜MAX_LEVEL）。初期Lv1＝補正なし。詳細 → combat.md
+var level: int         ## レベル（1〜MAX_LEVEL）。初期Lv1＝補正なし。詳細 → combat.md
 var type_id: String    ## 種別ID（UnitType/スキンの参照キー。空＝未指定）。描画・占領で使う
 var skin_id: String = ""  ## スキンID（見た目の指定。空＝type_id+team の既定スキンで描画）。StageLoader が設定。
                        ## 陣形／ユニットスキルの成立条件もこの値で照合する（空なら type_id）。詳細 → doc/gdd/formations.md
@@ -70,8 +70,8 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 	level = clampi(p_level, 1, MAX_LEVEL)
 	type_id = p_type_id
 
-## 経験値（＝レベル）を加算。1〜MAX_LEVEL にクランプ。詳細 → combat.md
-func add_experience(n: int) -> void:
+## レベルを加算。1〜MAX_LEVEL にクランプ。詳細 → combat.md
+func gain_level(n: int) -> void:
 	level = clampi(level + n, 1, MAX_LEVEL)
 
 ## 生来の陣営を設定する。帰属先も同じ値に揃える（生成時＝まだ解放されていない状態のため）。

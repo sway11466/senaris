@@ -301,7 +301,7 @@ func _rebuild_side(attacker_side: bool) -> void:
 	# 効かない側は — にして行そのものは残す（行の有無で探させない）。
 	_add_row(_stat_text(off), "攻撃", NONE)
 	_add_row(NONE, "防御", _stat_text(def))
-	_add_row(_mul(off, "experience"), "レベル", _mul(def, "experience"))
+	_add_row(_mul(off, "level"), "レベル", _mul(def, "level"))
 	_add_row(_mul(off, "surround"), "包囲", _mul(def, "surround"))
 	_add_row(_mul(off, "terrain"), "地形", _mul(def, "terrain"))
 	_add_row(_status_part(off), "状態", _status_part(def))

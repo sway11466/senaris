@@ -31,7 +31,7 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 	# --- 戦闘の結果を模す：archer が損耗（troops 8→4・経験 +2）。
 	var archer := s1.unit_by_id(1)
 	archer.troops = 4
-	archer.add_experience(2)  # level 1→3
+	archer.gain_level(2)  # level 1→3
 
 	# --- main の勝利フック相当：生存自軍を保存。
 	var store := RosterStore.new(PATH)

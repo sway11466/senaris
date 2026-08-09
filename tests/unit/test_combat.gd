@@ -90,7 +90,7 @@ func test_attack_targets_lists_adjacent_enemies() -> void:
 	assert_eq(ids.size(), 2, "隣接する敵2体だけが対象")
 	assert_true(ids.has(2) and ids.has(3))
 
-func test_experience_boosts_attack_and_defense() -> void:
+func test_level_boosts_attack_and_defense() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	# 攻撃側 Lv41（+1%/Lv ＝ ×1.40）、防御側 Lv1（補正なし）
@@ -100,7 +100,7 @@ func test_experience_boosts_attack_and_defense() -> void:
 	assert_eq(r["damage"], 5, "Lv41攻撃(×1.40)で互角時の4より多く削る")
 	assert_eq(r["retaliation"], 3, "Lv41で防御も上がり被反撃は4より少ない")
 
-func test_experience_gained_on_survived_fight() -> void:
+func test_level_gained_on_survived_fight() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))               # Lv1
@@ -109,7 +109,7 @@ func test_experience_gained_on_survived_fight() -> void:
 	assert_eq(s.unit_by_id(1).level, 2, "戦って生き残った攻撃側は+1でLv2")
 	assert_eq(s.unit_by_id(2).level, 2, "反撃した近接防御側も+1でLv2")
 
-func test_experience_bonus_on_kill() -> void:
+func test_level_bonus_on_kill() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 100, 10))             # Lv1
@@ -117,10 +117,10 @@ func test_experience_bonus_on_kill() -> void:
 	s.attack(1, 2)
 	assert_eq(s.unit_by_id(1).level, 3, "参加+1・撃破+1でLv1→Lv3")
 
-func test_experience_caps_at_max_level() -> void:
+func test_level_caps_at_max_level() -> void:
 	var u := Unit.new(1, 0, Vector2i.ZERO, 3)
 	u.level = Unit.MAX_LEVEL - 2
-	u.add_experience(5)
+	u.gain_level(5)
 	assert_eq(u.level, Unit.MAX_LEVEL, "Lv99で頭打ち")
 
 func test_terrain_defaults_to_plains() -> void:

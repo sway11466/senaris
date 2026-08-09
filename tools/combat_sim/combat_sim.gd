@@ -148,7 +148,7 @@ func _read(inputs: Dictionary) -> Dictionary:
 func _side_attack_bd(side: Dictionary) -> Dictionary:
 	return Combat.attack_breakdown_from(
 		side["troops"], side["attack"],
-		Combat.experience_at(side["level"]),
+		Combat.level_factor_at(side["level"]),
 		Surround.factor_from_counts(side["occ"], side["zoc"]),
 		TerrainType.attack_factor(side["terrain"]),
 		side["sup_atk"] * Combat.SUPPORT_RATE)
@@ -158,7 +158,7 @@ func _side_attack_bd(side: Dictionary) -> Dictionary:
 func _side_defense_bd(side: Dictionary, attacker_pierce: float) -> Dictionary:
 	return Combat.defense_breakdown_from(
 		side["troops"], side["defense"],
-		Combat.experience_at(side["level"]),
+		Combat.level_factor_at(side["level"]),
 		Surround.factor_from_counts(side["occ"], side["zoc"]),
 		TerrainType.defense_factor(side["terrain"]),
 		side["sup_def"] * Combat.SUPPORT_RATE,
@@ -207,9 +207,9 @@ func _render(atk: Dictionary, df: Dictionary, fwd: Dictionary, ret: Variant) -> 
 
 ## 実効攻撃力の内訳を「素 → 支援 → 実効」の順で文字列化。
 func _fmt_attack(bd: Dictionary) -> String:
-	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["experience"]) * float(bd["surround"]) * float(bd["terrain"])
+	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["level"]) * float(bd["surround"]) * float(bd["terrain"])
 	var s := "  兵%d × 攻%d × レベル%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
-		bd["troops"], bd["stat"], bd["experience"], bd["surround"], bd["terrain"], pre]
+		bd["troops"], bd["stat"], bd["level"], bd["surround"], bd["terrain"], pre]
 	if float(bd["support"]) > 0.0:
 		s += "  ＋ 支援 %.1f\n" % bd["support"]
 	s += "  → 実効攻撃力 [b]%.1f[/b]\n" % bd["total"]
@@ -218,11 +218,11 @@ func _fmt_attack(bd: Dictionary) -> String:
 
 ## 実効防御力の内訳を「素 → 支援(2倍上限) → 貫通 → 実効」の順で文字列化。
 func _fmt_defense(bd: Dictionary) -> String:
-	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["experience"]) * float(bd["surround"]) * float(bd["terrain"])
+	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["level"]) * float(bd["surround"]) * float(bd["terrain"])
 	var supported := pre + float(bd["support"])
 	var capped_val: float = min(supported, pre * Combat.DEFENSE_SUPPORT_CAP)
 	var s := "  兵%d × 防%d × レベル%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
-		bd["troops"], bd["stat"], bd["experience"], bd["surround"], bd["terrain"], pre]
+		bd["troops"], bd["stat"], bd["level"], bd["surround"], bd["terrain"], pre]
 	if float(bd["support"]) > 0.0:
 		var note := "  (2倍上限で頭打ち)" if bd["capped"] else ""
 		s += "  ＋ 支援 %.1f → %.1f%s\n" % [bd["support"], capped_val, note]

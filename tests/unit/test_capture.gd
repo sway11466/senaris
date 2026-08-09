@@ -37,7 +37,7 @@ func test_capture_neutral_base() -> void:
 	assert_true(s.move_unit(1, base_hex))
 	assert_eq(s.base_at(base_hex).team, 0, "中立拠点は占領可ユニットで自軍化")
 
-func test_capture_grants_experience() -> void:
+func test_capture_grants_level() -> void:
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 1))
@@ -46,9 +46,9 @@ func test_capture_grants_experience() -> void:
 	s.add_unit(u)
 	assert_eq(u.level, 1, "初期Lv1")
 	assert_true(s.move_unit(1, base_hex))
-	assert_eq(u.level, 1 + BattleState.CAPTURE_EXPERIENCE, "占領で経験+10")
+	assert_eq(u.level, 1 + BattleState.CAPTURE_LEVEL_GAIN, "占領でLv+10")
 
-func test_entering_own_base_grants_no_experience() -> void:
+func test_entering_own_base_grants_no_level() -> void:
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 0))  # はじめから自軍所属
@@ -56,9 +56,9 @@ func test_entering_own_base_grants_no_experience() -> void:
 	u.can_capture = true
 	s.add_unit(u)
 	assert_true(s.move_unit(1, base_hex))
-	assert_eq(u.level, 1, "所属が変わらなければ経験は入らない")
+	assert_eq(u.level, 1, "所属が変わらなければレベルは上がらない")
 
-func test_capture_experience_clamps_at_max_level() -> void:
+func test_capture_level_clamps_at_max_level() -> void:
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
 	s.add_base(Base.new(base_hex, 1))

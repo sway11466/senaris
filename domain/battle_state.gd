@@ -317,8 +317,8 @@ func unload(transport_id: int, index: int, to: Vector2i) -> bool:
 
 # --- 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md ---
 
-## 占領成功で占領兵が得る経験（＝レベル）。占領兵は戦闘機会が少ないぶんを1回で補う。詳細 → doc/gdd/combat.md
-const CAPTURE_EXPERIENCE := 10
+## 占領成功で占領兵が得るレベル。占領兵は戦闘機会が少ないぶんを1回で補う。詳細 → doc/gdd/combat.md
+const CAPTURE_LEVEL_GAIN := 10
 
 func add_base(base: Base) -> void:
 	_bases.append(base)
@@ -547,7 +547,7 @@ func _try_capture(u: Unit) -> void:
 	var b := base_at(u.pos)
 	if b != null and b.team != u.team:
 		b.team = u.team
-		u.add_experience(CAPTURE_EXPERIENCE)
+		u.gain_level(CAPTURE_LEVEL_GAIN)
 
 ## いま移動できるか（ターン・移動権・残り予算）。
 ## 攻撃前: 通常移動を未使用なら可。攻撃後: 再移動可ユニットが再移動を未使用なら可。
@@ -762,11 +762,11 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	var attacker_killed := a.troops <= 0
 	a_snap["troops_after"] = maxi(a.troops, 0)
 	t_snap["troops_after"] = maxi(t.troops, 0)
-	# 経験値: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
+	# レベル: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
 	# 防御側は反撃が成立したときだけ+1（間接で撃たれた側／対空なしで飛行に撃たれた側は+0）。
-	a.add_experience(1 + (1 if target_killed else 0))
+	a.gain_level(1 + (1 if target_killed else 0))
 	if can_retaliate:
-		t.add_experience(1 + (1 if attacker_killed else 0))
+		t.gain_level(1 + (1 if attacker_killed else 0))
 	if target_killed:
 		_remove_unit(target_id)
 	if attacker_killed:
@@ -855,11 +855,11 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	elif skill_scope:
 		# ユニットスキルは撃破が起きないので前半（戦ったら+1）だけが乗る。詳細 → doc/gdd/skills.md
 		exp_gain = 1
-	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）＋経験値加算。
+	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）＋レベル加算。
 	for pid in option["participants"]:
 		var p := unit_by_id(int(pid))
 		if p != null:
-			p.add_experience(exp_gain)
+			p.gain_level(exp_gain)
 		set_done(int(pid))
 		mark_engaged(int(pid))
 	var out := {"recipe": option["recipe"], "results": results}

@@ -2,12 +2,12 @@ extends RefCounted
 class_name Combat
 ## 戦闘解決（純ロジック・決定的＝乱数なし）。詳細 → doc/gdd/combat.md
 ##
-## 実効攻撃力 A ＝ 兵数 × ユニット攻撃力 × 経験 × 包囲 × 地形(攻) ＋ 支援(攻)
-## 実効防御力 D ＝ ( 兵数 × ユニット防御力 × 経験 × 包囲 × 地形(防) ＋ 支援(防) ) ×(1 − 攻撃側pierce)
+## 実効攻撃力 A ＝ 兵数 × ユニット攻撃力 × レベル × 包囲 × 地形(攻) ＋ 支援(攻)
+## 実効防御力 D ＝ ( 兵数 × ユニット防御力 × レベル × 包囲 × 地形(防) ＋ 支援(防) ) ×(1 − 攻撃側pierce)
 ##   ＝ 支援・2倍上限を適用した後に攻撃側の防御貫通を掛ける（魔法兵0.5＝防御半減／物理0＝据え置き）。
 ## 失う兵数 ＝ clamp( round( k × 相手兵数 × A^p/(A^p+D^p) ), 0, 相手兵数 )
 ##
-## 補正のうち 包囲・支援・経験・地形・貫通(pierce) は実装済み（地形は平地・台地の2種から順次追加）。
+## 補正のうち 包囲・支援・レベル・地形・貫通(pierce) は実装済み（地形は平地・台地の2種から順次追加）。
 
 const K := 1.0  ## 殺傷力（全体の削り量。チューニング用）
 const P := 2.0  ## 決定力（戦力差の効き。互角は常に0.5、差だけ鋭くなる）
@@ -15,21 +15,21 @@ const P := 2.0  ## 決定力（戦力差の効き。互角は常に0.5、差だ�
 const SUPPORT_RATE := 0.25       ## 支援は味方の素ステータスの25%
 const DEFENSE_SUPPORT_CAP := 2.0 ## 支援後の防御は支援前の2倍まで
 
-## 経験値補正（Lv1〜99）: 1レベルごとに +1%。Lv1＝×1.0（補正なし）、Lv99＝×1.98。攻防共通。
+## レベル補正（Lv1〜99）: 1レベルごとに +1%。Lv1＝×1.0（補正なし）、Lv99＝×1.98。攻防共通。
 ## 攻防回数が多くレベルが速く上がる前提なので、1段を薄く長く伸ばす線形カーブ。詳細 → combat.md
-const EXPERIENCE_PER_LEVEL := 0.01
+const FACTOR_PER_LEVEL := 0.01
 
 ## 包囲補正係数（段階式・1.0＝影響なし）。攻防の両方に乗る。詳細は Surround。
 static func surround_factor(state: BattleState, u: Unit) -> float:
 	return Surround.factor(state, u)
 
-## u の経験（レベル）補正倍率。攻撃力・防御力の両方に乗る。Lv1＝×1.0。
-static func experience_factor(u: Unit) -> float:
-	return experience_at(u.level)
+## u のレベル補正倍率。攻撃力・防御力の両方に乗る。Lv1＝×1.0。
+static func level_factor(u: Unit) -> float:
+	return level_factor_at(u.level)
 
-## level（1〜MAX_LEVEL）→ 経験補正倍率。Unit を介さず level 値から直接引く（明示計算・ツール用）。
-static func experience_at(level: int) -> float:
-	return 1.0 + EXPERIENCE_PER_LEVEL * float(clampi(level, 1, Unit.MAX_LEVEL) - 1)
+## level（1〜MAX_LEVEL）→ レベル補正倍率。Unit を介さず level 値から直接引く（明示計算・ツール用）。
+static func level_factor_at(level: int) -> float:
+	return 1.0 + FACTOR_PER_LEVEL * float(clampi(level, 1, Unit.MAX_LEVEL) - 1)
 
 ## 実効攻撃力の内訳（dict）。**式の本体はここだけ**＝total を各係数から組み立てる。
 ## 表示も戦闘解決もこの内訳から導くので、画面の数字と実処理が必ず一致する。
@@ -40,7 +40,7 @@ static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := 
 	var b := attack_breakdown_from(
 		u.troops,
 		u.attack_against(enemy),
-		experience_factor(u),
+		level_factor(u),
 		surround_factor(state, u),
 		TerrainType.attack_factor(state.terrain_at(u.pos)),
 		_support(state, u, enemy, true) if melee else 0.0,
@@ -51,19 +51,19 @@ static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := 
 
 ## 明示係数から実効攻撃力の内訳を組む（式の本体）。盤ベースの attack_breakdown も
 ## 開発ツール（tools/combat_sim）も、攻撃力の total 計算はここに集約する＝式を二重に持たない。
-static func attack_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
+static func attack_breakdown_from(troops: int, stat: int, lv: float, surround: float, terrain: float, support: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
 	var b := {
 		"kind": "attack",
 		"troops": troops,
 		"stat": stat,
-		"experience": experience,
+		"level": lv,
 		"surround": surround,
 		"terrain": terrain,
 		"support": support,
 		"status_mul": status_mul,
 		"status_add": status_add,
 	}
-	b["total"] = float(troops) * float(stat) * experience * surround * terrain * status_mul + support + status_add
+	b["total"] = float(troops) * float(stat) * lv * surround * terrain * status_mul + support + status_add
 	return b
 
 ## 実効防御力の内訳（dict）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
@@ -74,7 +74,7 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 	var b := defense_breakdown_from(
 		u.troops,
 		u.unit_defense,
-		experience_factor(u),
+		level_factor(u),
 		surround_factor(state, u),
 		TerrainType.defense_factor(state.terrain_at(u.pos)),
 		_support(state, u, enemy, false) if melee else 0.0,
@@ -85,8 +85,8 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 
 ## 明示係数から実効防御力の内訳を組む（式の本体）。支援後に2倍上限、最後に攻撃側の貫通を掛ける。
 ## 盤ベースの defense_breakdown も開発ツールも、防御力の total 計算はここに集約する。
-static func defense_breakdown_from(troops: int, stat: int, experience: float, surround: float, terrain: float, support: float, pierce: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
-	var pre := float(troops) * float(stat) * experience * surround * terrain * status_mul
+static func defense_breakdown_from(troops: int, stat: int, lv: float, surround: float, terrain: float, support: float, pierce: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
+	var pre := float(troops) * float(stat) * lv * surround * terrain * status_mul
 	var supported := pre + support + status_add  # 加算群（支援・状態add）は素の2倍上限の対象
 	var capped := minf(supported, pre * DEFENSE_SUPPORT_CAP)  # 支援は素の2倍まで
 	var pierce_factor := 1.0 - pierce  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
@@ -94,7 +94,7 @@ static func defense_breakdown_from(troops: int, stat: int, experience: float, su
 		"kind": "defense",
 		"troops": troops,
 		"stat": stat,
-		"experience": experience,
+		"level": lv,
 		"surround": surround,
 		"terrain": terrain,
 		"support": support,

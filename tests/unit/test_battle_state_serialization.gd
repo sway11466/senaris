@@ -30,7 +30,7 @@ func _rich_state() -> BattleState:
 	s.current_team = 1
 	s.turn_number = 3
 	s.unit_by_id(1).troops = 5      # archer 損耗
-	s.unit_by_id(1).add_experience(2)  # level 1→3
+	s.unit_by_id(1).gain_level(2)  # level 1→3
 	s.set_done(1)
 	s.mark_engaged(BOSS_ID)
 	s._moved[1] = true
