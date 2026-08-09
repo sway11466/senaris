@@ -43,6 +43,13 @@
 			"scale": 0.32
 		},
 		{
+			"effect_id": "cannonball",
+			"kind": "projectile",
+			"memo": "飛空艇の砲。鉄球＋速度線。射程1だが飛ばす",
+			"name": "砲弾",
+			"scale": 0.55
+		},
+		{
 			"effect_id": "magic_bolt",
 			"kind": "projectile",
 			"memo": "青白い魔力の弾",
