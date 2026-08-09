@@ -4,6 +4,6 @@
   "debug": true,
   "stages": [
     { "id": "skill", "file": "skill.json", "title": "ユニットスキル（ピクシーダスト）" },
-    { "id": "effect", "file": "effect.json", "title": "攻撃エフェクト（全13種）" }
+    { "id": "effect", "file": "effect.json", "title": "攻撃エフェクト（全種）" }
   ]
 }
