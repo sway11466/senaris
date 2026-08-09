@@ -497,6 +497,13 @@
     { "col": 6, "row": 27, "team": "player", "kind": "fort", "garrison": [] },
     { "col": 6, "row": 1, "team": "enemy", "kind": "fort", "garrison": [] }
   ],
+  "events": [
+    { "turn": 5, "type": "reinforce", "label": "飛空艇の到着", "team": "player",
+      "units": [
+        { "type": "airship", "col": 6, "row": 29,
+          "passengers": [ { "type": "paladin" } ] }
+      ] }
+  ],
   "victory": [
     { "type": "defeat_unit", "actor": "necromancer" }
   ],
