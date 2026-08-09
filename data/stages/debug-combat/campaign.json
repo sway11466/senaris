@@ -1,8 +1,9 @@
 {
   "id": "debug-combat",
-  "title": "デバッグ：戦闘補正",
+  "title": "デバッグ：戦闘関連",
   "debug": true,
   "stages": [
-    { "id": "skill", "file": "skill.json", "title": "ユニットスキル（ピクシーダスト）" }
+    { "id": "skill", "file": "skill.json", "title": "ユニットスキル（ピクシーダスト）" },
+    { "id": "effect", "file": "effect.json", "title": "攻撃エフェクト（全13種）" }
   ]
 }

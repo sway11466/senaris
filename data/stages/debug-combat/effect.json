@@ -1,0 +1,41 @@
+{
+  "turn_limit": 99,
+  "name": "debug-effect",
+  "cols": 10,
+  "rows": 9,
+  "margin": 0,
+  "terrain": [
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
+  ],
+  "player": [
+    { "skin": "novice",   "col": 1, "row": 1 },
+    { "skin": "fighter",  "col": 1, "row": 3 },
+    { "skin": "cleric",   "col": 1, "row": 5 },
+    { "skin": "archer",   "col": 1, "row": 7 },
+
+    { "skin": "halfling", "col": 6, "row": 1 },
+    { "skin": "airship",  "col": 6, "row": 3 },
+    { "skin": "wizard",   "col": 6, "row": 7 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "エフェクト見本（待機・索敵0）", "ai": "guard", "sight": 0,
+      "units": [
+        { "skin": "ghoul",           "col": 2, "row": 1 },
+        { "skin": "zombie",          "col": 2, "row": 3 },
+        { "skin": "dullahan",        "col": 2, "row": 5 },
+        { "skin": "skeleton_archer", "col": 2, "row": 7 },
+
+        { "skin": "ghost",           "col": 7, "row": 1 },
+        { "skin": "goblin_archer",   "col": 7, "row": 3 },
+        { "skin": "necromancer",     "col": 8, "row": 7 }
+      ] }
+  ]
+}
