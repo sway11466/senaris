@@ -10,7 +10,8 @@
 
 - 飛行は全陣営で「浮いて見える」を必須（足元に影＋宙に浮く姿勢）。
   - 理由：飛行は `atk_air>0` の駒でしか攻撃・反撃できず（[../gdd/combat.md](../gdd/combat.md)）、読み違えると1ターン丸損する罰の重い機構。武器表現は自由でも、浮遊だけはどの陣営でも揃える。
-- 攻撃力0の駒（バリケード・馬車・飛空艇）には、刺さる・斬れる形を一切持たせない。尖った杭・刃・穂先・棘は、盤の上では「触れると痛い＝反撃してくる」と読まれる。攻0 の駒は、丸い笠木・鉄帯・二重の厚みのような「受ける質量」だけで強さを見せる。
+- 攻撃力0の駒（バリケード・馬車）には、刺さる・斬れる形を一切持たせない。尖った杭・刃・穂先・棘は、盤の上では「触れると痛い＝反撃してくる」と読まれる。攻0 の駒は、丸い笠木・鉄帯・二重の厚みのような「受ける質量」だけで強さを見せる。
+  - 逆に、輸送でも攻撃を持つ駒（飛空艇＝10/10）には武装を1つだけ見せる。ただし刃物ではなく、丸い砲口の砲のように「撃つ」と読める形にする（殴り合う駒ではない）。
 - 【指針】「動いて見せる」は絵を増やさず、コード側の移動tween＋簡単なエフェクトで出す（歩行コマ＝複数枚はAI一貫性が悪く・物量も数倍なので作らない）。行動前後は当面 `map` 1枚＋グレー化（画像スロット → [overview.md](overview.md)）。
 - 造形・サイズ・背景などの制作仕様は §3、プロンプト雛形（共通STYLE）は §3.2。
 
@@ -71,7 +72,7 @@
    ```
    powershell -File tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
    ```
-   ②master と `unit_skin.csv` の `map_scale` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
 4. Godot 再実行 → `SkinCatalog` が `assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
 
 - ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
@@ -89,6 +90,16 @@
 戦闘立ち絵（3.3）は別のキャンバス（512・BaseHeight 384＝倍率 1.333 まで）で、レッドドラゴンの 1.4 は収まらない。
 
 大型ユニットの枠は、絵を描いてから決める。キャンバス値は master に影響せず、再生成も `all` の1コマンドなので、後決めでも描き直しは起きない。必要な幅は絵の縦横比でしか決まらないため、先に数値だけ決めると二度手間になる。残りの判断は backlog bug-1。
+
+#### 横位置は体の中心に合わせる
+
+ヘックスの中心に置くのは絵の外接矩形ではなく体の中心。弓・杖・マントのように横へ張り出す小物は、はみ出させたまま中心の計算から外す。外接矩形を基準にすると同じ立ち姿でも持ち物次第で駒の位置が動き、どのマスに立っているのかが読みにくくなる。代わりに武器は隣のマスへ余計にはみ出すが、立ち位置の一貫性を優先する。
+
+補正量は `unit_skin.csv` の `map_offset_x`（既定0）。単位は基準高さ200px（`map_scale`＝1.0）に対する px で、プラスが右。書き出し時に `map_scale` を掛けたぶんだけ画像をずらすので、後から倍率を変えても見え方の相対位置は保たれる。ゲーム側はこの列を読まない（`map_scale` と同じくキャンバスの余白として PNG に焼き込む）ので、値を変えたら該当ユニットを再生成する。
+
+値は目視で決める。機械的な重心計算は弓の下端や裾を体と誤認するため候補出しにしか使えない。補正が入っているのは `map_offset_x` が0でない行だけで、`all` で書き出せばツールの `shift=` 欄に一覧が出る。
+
+マスターを描き直してポーズが変わると補正量は無効になる。差し替えたときは `map_offset_x` を見直す。
 
 ### 3.2 確定プロンプト雛形（アンカー方式）
 
@@ -194,11 +205,14 @@ POSE (unarmed): A lunging bare-handed attack — both arms (or claws) thrust out
 POSE (drift): A floating attack pose — the body hovers clear of the ground with no weight on any foot, drifting toward the enemy on the right with both hands (or the weapon) reaching ahead, the trailing hem or tail streaming out behind. For flying units.
 ```
 ```
-POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the right of the frame under its load, the draft animal (if any) leaning into the harness with its head low and legs mid-stride, the cargo body following behind so the hood, wheels/hull and lashed load all read clearly. It does NOT fight and takes no combat stance: no weapon anywhere, no raised guard, no aggression — just a heavy non-combat vehicle pressing on across the battlefield. For transport units.
+POSE (haul): A hauling pose, seen from the side — the vehicle rolls toward the right of the frame under its load, the draft animal (if any) leaning into the harness with its head low and legs mid-stride, the cargo body following behind so the hood, wheels/hull and lashed load all read clearly. It does NOT fight and takes no combat stance: no weapon anywhere, no raised guard, no aggression — just a heavy non-combat vehicle pressing on across the battlefield. For ground transport units.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`／輸送（馬車・飛空艇）＝`haul`。据置でも攻撃する兵器（バリスタ）は `ranged`。
+```
+POSE (haul air): A cruising flight pose, seen from the side — the airborne transport makes way toward the right of the frame under its load, hanging clear of the ground with nothing touching the earth, hull level and nose slightly ahead, so the envelope, hull, propellers and lashed cargo all read clearly. It carries one light gun for self-defence but is not attacking: no charge, no raised guard, no aggression — a heavy transport pressing on across the battlefield. For flying transport units.
+```
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`／地上の輸送（馬車）＝`haul`／飛行する輸送（飛空艇）＝`haul air`。据置でも攻撃する兵器（バリスタ）は `ranged`。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
-- 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない／武器を持たない」と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない完全な静物（バリケード等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
+- 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない」（武装する駒は「武装はこの1門だけ」）と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない駒（バリケード・飛空艇等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
 - 兵器の静物は、地形タイルの柵（`assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
