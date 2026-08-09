@@ -163,14 +163,15 @@ func _await_turn_banner() -> void:
 	if is_inside_tree():
 		await get_tree().create_timer(TURN_BANNER_GAP).timeout
 
-## 陣形スキル／ユニットスキルの発動演出。発動の頭で音を鳴らし、陣形は1枚絵のカットインを挟んでから
+## 陣形スキル／ユニットスキルの発動演出。陣形は発動の頭で音を鳴らし、1枚絵のカットインを挟んでから
 ## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインではなく演出シーン
 ## （効果対象が1体のものだけ＝doc/tech/combat_scene.md）を出す。
 ## 絵が無いレシピはカットインを飛ばす＝音と盤の結果は同じに出る。仕様 → doc/gdd/formations.md
 func _on_formation_resolved(result: Dictionary) -> void:
 	var recipe := String(result.get("recipe", ""))
 	if Formation.is_unit_skill(recipe):
-		SfxPlayer.play_event("map_skill")
+		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
+		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
 		_update_aura()
 		var skill: Dictionary = result.get("skill", {})
 		if _skill_scene != null and not skill.is_empty():

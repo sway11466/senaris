@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2026/holy__Button Arp Twinkle.wav" -af "volume=-6.7dB" -c:a pcm_s24le purify.wav

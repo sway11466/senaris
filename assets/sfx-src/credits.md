@@ -30,6 +30,7 @@
 | `slash_s` | 斬撃（小）のエフェクト | Sonniss GDC 2026 / 344 Audio - Historical Weapons Vol. 2 `WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2` | wav 192kHz/24bit | 商用可・改変可・表記不要／再配布不可・AI学習不可 | 8.46〜9.06秒を切り出し、-1.3 dB。slash_s_recipe.txt |
 | `slash_m` | 斬撃（中）のエフェクト | Sonniss GDC 2026 / David Dumais Audio - Melee Weapons Pack 2 `METLFric_SWING SCRAPE ... Long Blade 14` | wav 96kHz/24bit | 同上 | 切り出しなし、-5.8 dB。slash_m_recipe.txt |
 | `holy` | 聖光のエフェクト | Sonniss GDC 2026 / Cinematic Sound Design - User Interface `Button Arp Twinkle` | wav 96kHz/24bit | 同上 | 切り出しなし、-6.7 dB。holy_recipe.txt |
+| `purify` | ピュリファイの発動（聖職） | 同上 | 同上 | 同上 | `holy` と同一の切り出し（切り出しなし）、-6.7 dB。purify_recipe.txt |
 | `magic_bolt` | 魔弾のエフェクト | Sonniss GDC 2026 / 344 Audio - Elemental Palette Designed Vol. 1 `WINDDsgn_Wind, Rush, Whoosh, Long x5 01` | wav 96kHz/24bit | 同上 | 飛翔のみ（0.02〜0.60秒・着弾を落とす）、+6.1 dB。magic_bolt_recipe.txt |
 | `slash_l` | 斬撃（大）のエフェクト | Sonniss GDC 2020 / David Dumais Audio - Weapon Sounds - Weapon Swings `MeleeSwingsPack_96khz_Mono_DesignedSwings12` | wav 96kHz/16bit | 同上 | 切り出しなし、-6.8 dB。slash_l_recipe.txt |
 | `arrow_hit` | 矢の着弾 | Sonniss GDC 2020 / SmartSoundFX – Medieval `BOW Arrow Hit 05` | wav 48kHz/24bit | 同上 | 切り出しなし、-7.6 dB。arrow_hit_recipe.txt |
@@ -42,6 +43,7 @@
 | `punch` | 徒手の一撃 | Sonniss GDC 2019 / Rock The Speakerbox - Melee `MELEE - DESIGNED - HEADBUTT Crack` | wav 96kHz/24bit | 同上 | 4テイク中の2本目（1.662〜2.541秒）、-10.0 dB。punch_recipe.txt |
 | `curse` | 呪い | Sonniss GDC 2019 / Sound Spark LLC – Magic Spells, Buffs and Attacks `Dark_Spell_Life_Tap_03` | wav 96kHz/24bit | 同上 | 切り出しなし、-7.0 dB。curse_recipe.txt |
 | `curse_wisp` | 呪いの燐気（ゴースト） | Sonniss GDC 2020 / Fox Audio Post-Production - Ghost Whoosh `SFX_Ghost_Whoosh_Male_03` | wav 96kHz/24bit | 同上 | 山の頭から（1.30〜2.10秒）、-6.0 dB。curse_wisp_recipe.txt |
+| `dread_touch` | ドレッドタッチの発動（ゴースト） | 同上 | 同上 | 同上 | `curse_wisp` と同一の切り出し（1.30〜2.10秒）、-6.0 dB。dread_touch_recipe.txt |
 | `magic_bolt_hit` | 魔弾の着弾 | Sonniss GDC 2020 / David Dumais Audio - Magic Sound FX Pack 1 `Magic_Explosion_Short19` | wav 44.1kHz/24bit | 同上 | 切り出しなし、-8.5 dB。magic_bolt_hit_recipe.txt |
 | `claw` | 爪痕 | Sonniss GDC 2017 / Double Trouble Audio - Medieval Armor and Impacts `Plate_Impact_Hard_02` | wav 96kHz/24bit | 同上 | 切り出しなし、-8.6 dB。claw_recipe.txt |
 | `cmb_hit_none` | 弾き返す音（損害0） | Sonniss GDC 2017 / Double Trouble Audio - Medieval Armor and Impacts `Weapon_Impact_Parry_01` | wav 96kHz/24bit | 同上 | 切り出しなし、-8.7 dB。cmb_hit_none_recipe.txt |
