@@ -138,6 +138,13 @@ func _await_combat_view() -> void:
 		await _combat_scene.finished
 	if _skill_scene != null and _skill_scene.visible:
 		await _skill_scene.finished
+	await _await_board_impact()
+
+## 陣形スキルの着弾が出ている間は待つ（敵ターンのテンポ制御・決着の告知の両方から呼ぶ）。
+## カットインの最中もこれが立っている＝カットイン→着弾を最後まで見せてから次へ進む。
+func _await_board_impact() -> void:
+	if $HexBoard.is_impacting():
+		await $HexBoard.formation_impact_finished
 
 func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_turn_plate(team, turn_number)
@@ -173,6 +180,7 @@ func _on_formation_resolved(result: Dictionary) -> void:
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
 		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
 		_update_aura()
+		$HexBoard.play_formation_impact(result)  # 効果対象が1体＝着弾があれば盤にも出す
 		var skill: Dictionary = result.get("skill", {})
 		if _skill_scene != null and not skill.is_empty():
 			_skill_scene.play(skill)
@@ -183,7 +191,24 @@ func _on_formation_resolved(result: Dictionary) -> void:
 	if _formation_cutin != null and _formation_cutin.play(recipe):
 		await _formation_cutin.finished
 	SfxPlayer.play_sfx("%s_hit" % recipe)
+	# 着弾＝揺れ → 面の光 → 被弾した駒を1体ずつ。揺れは画面全体（右の情報ボックスも同じ衝撃の下に
+	# 置く）＝2D側はここ、盤（3D）は HexBoard がカメラに同じ量を掛ける。着弾の無いバフは揺らさない。
+	if $HexBoard.is_impacting():
+		_shake_screen()
+	await $HexBoard.play_formation_impact(result)
 	_update_aura()
+
+## 着弾の揺れ（2D側）。このノードごと振る＝盤の上に載る UI・オーバーレイが一緒に動く。
+## 別レイヤー（CanvasLayer＝戦闘演出・戦果票・セレクト）には乗らないが、着弾の瞬間それらは出ていない。
+func _shake_screen() -> void:
+	var d := float(HexBoard3D.SHAKE_PX)
+	var step := float(HexBoard3D.SHAKE_STEP)
+	var tw := create_tween()
+	tw.tween_property(self, "position", Vector2(-d, d * 0.5), step)
+	tw.tween_property(self, "position", Vector2(d * 0.8, -d * 0.3), step)
+	tw.tween_property(self, "position", Vector2(-d * 0.4, -d * 0.2), step)
+	tw.tween_property(self, "position", Vector2.ZERO, step)
+	$HexBoard.shake()
 
 func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0

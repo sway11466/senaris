@@ -157,17 +157,21 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 static func preview(state: BattleState, option: Dictionary, target: Vector2i) -> Dictionary:
 	var hits: Array = []
 	var participants: Array = option["participants"]
+	for hx in blast_cells(option, target):
+		var victim := state.unit_at(hx)
+		if victim != null and not (victim.id in participants):
+			hits.append(_formation_hit(state, option, victim))
+	return {"recipe": option["recipe"], "hits": hits}
+
+## 着弾する面＝効果が及ぶヘックス（駒の有無によらない）。着弾の無いもの（バフ・解除）は空。
+## 盤の演出が「どこに当たったか」を光らせるのに使う。詳細 → doc/gdd/formations.md 発動の演出
+static func blast_cells(option: Dictionary, target: Vector2i) -> Array[Vector2i]:
 	match String(option["effect"]):
 		"area":
-			for hx in Hex.within_range(target, int(option["radius"])):
-				var victim := state.unit_at(hx)
-				if victim != null and not (victim.id in participants):
-					hits.append(_formation_hit(state, option, victim))
+			return Hex.within_range(target, int(option.get("radius", 0)))
 		"single":
-			var victim := state.unit_at(target)
-			if victim != null and not (victim.id in participants):
-				hits.append(_formation_hit(state, option, victim))
-	return {"recipe": option["recipe"], "hits": hits}
+			return [target] as Array[Vector2i]
+	return [] as Array[Vector2i]
 
 ## target が発動条件の射程内か（"any"＝参加者のどれか／"leader"＝発動者から）。
 static func can_target(state: BattleState, option: Dictionary, target: Vector2i) -> bool:

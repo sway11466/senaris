@@ -16,6 +16,9 @@ signal system_menu_requested
 ## AIターンのテンポ制御に使う（main が controller.move_pace へ注入）。待ち手を取り残さないため
 ## 中断でも必ず発行する。
 signal move_animation_finished
+## 陣形スキルの着弾演出が終わった（打ち切りでも必ず発行＝待ち手を取り残さない）。
+## 決着の告知（戦果票）と敵ターンのテンポ制御がこれを待つ。
+signal formation_impact_finished
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
@@ -73,6 +76,25 @@ const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周
 const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
+# 陣形スキルの着弾演出（→ doc/gdd/formations.md 発動の演出）。揺れ→面の光→被弾した駒を1体ずつ。
+const COLOR_FORMATION_HIT := Color(1.00, 0.82, 0.40)  # 着弾した面の光（金）
+const HIT_LEAD_SEC := 0.10        # 揺れてから面が光るまでの間（同時に出すと1つの衝撃に潰れる）
+const HIT_CELL_RISE := 0.07       # 面の光の立ち上がり
+const HIT_CELL_SETTLE := 0.18     # 立ち上がりから居座りの濃さへ落とすまで
+const HIT_CELL_HOLD := 0.16       # 同・居座り（この間に駒の処理が進む）
+const HIT_CELL_FADE := 0.32       # 同・引き
+const HIT_CELL_ALPHA := 0.34      # 同・立ち上がりの濃さ（加算合成。これ以上は地形が白く飛ぶ）
+const HIT_CELL_ALPHA_HOLD := 0.13 # 同・居座りの濃さ。駒に重ねるエフェクトを埋もれさせない
+const HIT_STEP_SEC := 0.13        # 駒1体ぶんの間隔＝何体が受けたのかを数えられる範囲で詰める
+const HIT_BURST_SEC := 0.30       # 駒に重ねるエフェクトの拡大フェード
+const HIT_BURST_TILES := 2.2      # 同・大きさの基準（scale 1.0 でヘックス幅の何倍か）
+const HIT_BURST_FROM := 0.55      # 同・出だしの倍率（ここから 1.5 倍まで開く）
+const HIT_BURST_HOLD := 0.35      # 同・薄れ始めるまでの割合（出た瞬間から薄いと当たった感が出ない）
+const HIT_FLASH_SEC := 0.14       # 被弾フラッシュ（立ち絵を白く飛ばす）の片道
+const HIT_FLASH_GAIN := 2.2       # 同・明るさの倍率
+const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
+const SHAKE_PX := 7.0             # 着弾の揺れ幅（画面px。盤と2D側で同じ量を使う）
+const SHAKE_STEP := 0.05          # 同・1振りの秒数
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
 const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
@@ -135,6 +157,7 @@ var _tiles_root: Node3D    # 地形タイル＋グリッド線＋下地（bind �
 var _bases_root: Node3D    # 拠点の縁取り・控え数（占領で変わるのでイベントごとに作り直し）
 var _units_root: Node3D    # ユニット（イベントごとに作り直し）
 var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ごとに作り直し）
+var _fx_root: Node3D       # 一時的な演出（着弾の光・駒に重ねるエフェクト）。オーバーレイの作り直しで消えない層
 var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル用・UVは外接矩形）
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
@@ -178,6 +201,10 @@ var _choosing_formation := false  # 陣形スキルの着弾中心クリック�
 var _formation_active := {}     # 発動中の陣形 option（着弾待ち）
 var _formation_cells := {}      # Vector2i -> true（着弾可能な射程内hex）
 var _formation_opts: Array = [] # 現メニューで提示中の陣形 option 一覧
+var _impact_gen := 0            # 着弾演出の世代。ステージが変わったら増やす＝await の先で打ち切る
+var _impact_pending := false    # 陣形の着弾待ち＝盤の作り直しを保留している（撃たれる前の姿のまま置く）
+var _impact_lock := false       # 着弾演出の間だけ入力を止めた＝終わったら元へ戻す
+var _effect_tex := {}           # effect_id -> Texture2D|null（駒に重ねるエフェクトの絵）
 var _menu: PopupMenu = null
 var _menu_handled := false
 var _menu_base := INVALID_HEX
@@ -238,6 +265,7 @@ func _ready() -> void:
 	_bases_root = Node3D.new(); add_child(_bases_root)
 	_units_root = Node3D.new(); add_child(_units_root)
 	_overlay_root = Node3D.new(); add_child(_overlay_root)
+	_fx_root = Node3D.new(); add_child(_fx_root)
 	# コマンドメニュー（Window なのでカメラ変換の影響を受けない）。
 	_menu = PopupMenu.new()
 	add_child(_menu)
@@ -283,6 +311,11 @@ func _reset_interaction() -> void:
 	_pending_to = INVALID_HEX
 	_choosing_target = false
 	_clear_formation()
+	_impact_gen += 1  # 進行中の着弾演出を打ち切る（await の先で盤に触らせない）
+	_impact_pending = false
+	_impact_lock = false
+	if _fx_root != null:
+		_clear_children(_fx_root)
 	if _menu != null and _menu.visible:
 		_menu.hide()
 	_dragging_pan = false
@@ -788,10 +821,212 @@ func _formation_target_cells(option: Dictionary) -> Array:
 			cells[h] = true
 	return cells.keys()
 
-## 陣形スキルが解決した＝盤を更新して選択解除（発動ユニットは行動完了）。
-func _on_formation_resolved(_result: Dictionary) -> void:
+## 陣形スキルが解決した＝選択を解く。着弾がある場合、盤の作り直しは play_formation_impact まで
+## 保留する（撃たれる前の姿のまま置く）＝カットインの裏で駒が消えない。順番は main が持つ。
+## 詳細 → doc/gdd/formations.md 発動の演出
+func _on_formation_resolved(result: Dictionary) -> void:
+	_impact_pending = not (result.get("results", []) as Array).is_empty()
 	_deselect()
+	if not _impact_pending:
+		_sync()
+
+## 着弾を見せる：面の光 → 被弾した駒を1体ずつ（エフェクト→フラッシュ→兵数、撃破はフェード）。
+## 画面全体の揺れは main が持つ（盤だけを揺らしても画面全体にはならない）。
+## 着弾が無いもの（バフ・解除）は光らせず盤を更新するだけ＝呼び出し側で分岐しなくていい。
+func play_formation_impact(result: Dictionary) -> void:
+	if not _impact_pending:
+		return  # 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み
+	var hits: Array = result.get("results", [])
+	if hits.is_empty():
+		_end_impact()
+		_sync()
+		return
+	var gen := _impact_gen
+	_impact_lock = not _locked
+	_locked = true  # 演出中に盤を触らせない（別の作り直しが割り込むと消えかけの駒が飛ぶ）
+	await _wait(HIT_LEAD_SEC)  # 揺れと同時に光らせない＝1つの衝撃に潰れる
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	var center := Vector2i(result.get("center", Vector2i.ZERO))
+	# 面の光は駒の処理が終わるまで保たせる＝どの範囲の中で起きているのかが見えたまま進む。
+	_flash_cells(result.get("cells", []), HIT_CELL_HOLD + HIT_STEP_SEC * float(hits.size()))
+	var eff := _impact_effect(result)
+	# 着弾中心に近い駒から外へ。同距離は id 順＝毎回同じ順で出る（見え方が揺れない）。
+	var order: Array = hits.duplicate()
+	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		var da := Hex.distance(Vector2i(a["hex"]), center)
+		var db := Hex.distance(Vector2i(b["hex"]), center)
+		return da < db if da != db else int(a["target_id"]) < int(b["target_id"]))
+	for i in order.size():
+		_hit_unit(order[i], eff)
+		await _wait(HIT_STEP_SEC if i < order.size() - 1 else maxf(HIT_STEP_SEC, HIT_FADE_SEC))
+		if gen != _impact_gen:
+			_end_impact()
+			return
+	_end_impact()
 	_sync()
+
+## 着弾演出の後始末＝保留を解き、止めた入力を戻し、待っている側（main）へ知らせる。
+## 決着が割り込んだ場合は _impact_lock が下りている＝解錠しない。
+func _end_impact() -> void:
+	_impact_pending = false
+	if _impact_lock:
+		_locked = false
+		_impact_lock = false
+	formation_impact_finished.emit()
+
+## 着弾演出が進行中か（盤が撃たれる前の姿を保持している間）。決着の告知はこれが終わるまで待つ。
+func is_impacting() -> bool:
+	return _impact_pending
+
+## 被弾した駒1体ぶん。撃破ならその場でフェードアウト、生き残りは新しい兵数で組み直して光らせる。
+func _hit_unit(hit: Dictionary, eff: CombatEffect) -> void:
+	var uid := int(hit["target_id"])
+	var hex := Vector2i(hit["hex"])
+	_spawn_burst(hex, eff)
+	var node: Node3D = _unit_nodes.get(uid)
+	if node == null:
+		return
+	_unit_nodes.erase(uid)
+	if bool(hit["killed"]):
+		_fade_out_unit(node)
+		return
+	# 兵数バーは組み立て時に焼くので、減った値を出すには組み直すのが早い（state は解決済み）。
+	_units_root.remove_child(node)
+	node.queue_free()
+	var u := state.unit_by_id(uid)
+	if u != null:
+		_flash_unit(_build_unit_node(u))
+
+## 被弾フラッシュ＝立ち絵を一瞬白く飛ばして戻す。行動終了の暗さ（modulate）を基準に掛ける。
+func _flash_unit(node: Node3D) -> void:
+	for c in node.get_children():
+		if not (c is Sprite3D):
+			continue
+		var spr := c as Sprite3D
+		var base := spr.modulate
+		var hot := Color(base.r * HIT_FLASH_GAIN, base.g * HIT_FLASH_GAIN, base.b * HIT_FLASH_GAIN, base.a)
+		var tw := create_tween()
+		tw.tween_property(spr, "modulate", hot, HIT_FLASH_SEC)
+		tw.tween_property(spr, "modulate", base, HIT_FLASH_SEC)
+
+## 撃破された駒を消す。立ち絵は薄くして消し、影・バー・輪は共有材質なので隠すだけにする
+## （材質のアルファを触ると、同じ色を使う他の駒まで一緒に薄くなる）。
+func _fade_out_unit(node: Node3D) -> void:
+	var tw := create_tween()
+	tw.set_parallel(true)
+	for c in node.get_children():
+		if c is Sprite3D:
+			var spr := c as Sprite3D
+			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED  # discard のままでは薄くならない
+			tw.tween_property(spr, "modulate:a", 0.0, HIT_FADE_SEC)
+		elif c is Label3D:
+			tw.tween_property(c, "modulate:a", 0.0, HIT_FADE_SEC)
+		elif c is Node3D:
+			(c as Node3D).hide()
+	tw.chain().tween_callback(node.queue_free)
+
+## 着弾した面を光らせる。駒の居ない空ヘックスも光らせる＝面の広さが伝わる。
+## 盤の外へはみ出したヘックスは出さない。材質は1枚ごとに作る（アルファを個別に動かすため）。
+func _flash_cells(cells: Array, hold: float) -> void:
+	for c in cells:
+		var hex := Vector2i(c)
+		if not _in_board(hex):
+			continue
+		var m := StandardMaterial3D.new()
+		m.albedo_color = Color(COLOR_FORMATION_HIT, 0.0)
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD  # 地形の上に載せる（塗り潰さない）
+		var mi := MeshInstance3D.new()
+		mi.mesh = _overlay_mesh
+		mi.material_override = m
+		var p := Hex.to_pixel(hex, TILE)
+		mi.position = Vector3(p.x, _elev(hex) + 0.05, p.y)
+		_fx_root.add_child(mi)
+		# 立ち上がりで一度強く光らせ、駒を処理している間は薄く居座らせる（面は見えたまま・
+		# 駒に重ねるエフェクトは埋もれない）。最後に引く。
+		var tw := create_tween()
+		tw.tween_property(m, "albedo_color:a", HIT_CELL_ALPHA, HIT_CELL_RISE)
+		tw.tween_property(m, "albedo_color:a", HIT_CELL_ALPHA_HOLD, HIT_CELL_SETTLE)
+		tw.tween_interval(hold)
+		tw.tween_property(m, "albedo_color:a", 0.0, HIT_CELL_FADE)
+		tw.tween_callback(mi.queue_free)
+
+## 駒に重ねるエフェクト1発。戦闘演出シーンと同じカタログの絵を使い、盤では kind によらず
+## 重ねる（飛ばさない）＝盤上では飛翔の距離が短く、飛んだと読めない。
+## 絵が引けないときは、そのヘックスだけを濃く光らせる＝穴が開かない。
+func _spawn_burst(hex: Vector2i, eff: CombatEffect) -> void:
+	var tex := _effect_texture(eff)
+	if tex == null:
+		_flash_cells([hex], HIT_BURST_SEC)
+		return
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（足元の地形や後列に潜り込ませない）
+	spr.render_priority = 6
+	# 大きさの基準は長辺（縦長の斬撃と横長の矢が釣り合う）。倍率はカタログの scale。
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (HIT_BURST_TILES * TILE * eff.scale) / maxf(longest, 1.0)
+	var at := _hex_world(hex)
+	spr.position = Vector3(at.x, at.y + TILE * 0.9, at.z + SPRITE_FOOT_Z)
+	_fx_root.add_child(spr)
+	spr.scale = Vector3.ONE * HIT_BURST_FROM
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(spr, "scale", Vector3.ONE * 1.5, HIT_BURST_SEC)
+	tw.tween_property(spr, "modulate:a", 0.0, HIT_BURST_SEC * (1.0 - HIT_BURST_HOLD)) \
+		.set_delay(HIT_BURST_SEC * HIT_BURST_HOLD)
+	tw.chain().tween_callback(spr.queue_free)
+
+## 着弾に使うエフェクト。レシピの combat_effect を優先し、空なら発動者スキンの combat_effect へ
+## 落ちる（ユニットスキルの演出と同じ規約 → doc/gdd/skills.md）。どちらも無ければ null。
+func _impact_effect(result: Dictionary) -> CombatEffect:
+	var id := String(result.get("combat_effect", ""))
+	if id.is_empty():
+		var leader := state.unit_by_id(int(result.get("leader_id", -1))) if state != null else null
+		if leader != null:
+			var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, leader.skin_id, leader.type_id, leader.team)
+			if s != null:
+				id = s.combat_effect
+	return CombatEffectCatalog.by_id(id)
+
+## エフェクトの絵（キャッシュ）。未定義・未配置は null＝呼び出し側がヘックスの光に落とす。
+func _effect_texture(eff: CombatEffect) -> Texture2D:
+	if eff == null:
+		return null
+	if _effect_tex.has(eff.effect_id):
+		return _effect_tex[eff.effect_id]
+	var p := eff.image_path()
+	var tex := load(p) as Texture2D if p != "" and ResourceLoader.exists(p) else null
+	_effect_tex[eff.effect_id] = tex
+	return tex
+
+## 着弾の揺れ（盤ぶん）。カメラの frustum をずらす＝注視点を動かさないので、
+## 揺れ終わりに位置が残らない。2D側（UI）の揺れは main が同じ量で掛ける。
+func shake(px: float = SHAKE_PX) -> void:
+	if _cam == null:
+		return
+	var d := px * _world_per_pixel()
+	var tw := create_tween()
+	tw.tween_method(_set_cam_shake, Vector2.ZERO, Vector2(-d, d * 0.5), SHAKE_STEP)
+	tw.tween_method(_set_cam_shake, Vector2(-d, d * 0.5), Vector2(d * 0.8, -d * 0.3), SHAKE_STEP)
+	tw.tween_method(_set_cam_shake, Vector2(d * 0.8, -d * 0.3), Vector2(-d * 0.4, -d * 0.2), SHAKE_STEP)
+	tw.tween_method(_set_cam_shake, Vector2(-d * 0.4, -d * 0.2), Vector2.ZERO, SHAKE_STEP)
+
+func _set_cam_shake(v: Vector2) -> void:
+	if _cam == null:
+		return
+	_cam.h_offset = v.x
+	_cam.v_offset = v.y
+
+func _wait(sec: float) -> void:
+	if is_inside_tree():
+		await get_tree().create_timer(sec).timeout
 
 ## メニューが閉じた。id_pressed と popup_hide の発火順は環境差があるため、
 ## 判定を1フレーム遅らせ、項目選択（_on_menu_id）が先に処理されるようにする。
@@ -1153,6 +1388,7 @@ func _on_turn_changed(_team: int, _turn_number: int) -> void:
 
 func _on_battle_finished(_winner: int) -> void:
 	_locked = true
+	_impact_lock = false  # 決着中は解錠しない（陣形で決着＝着弾演出の途中で飛んでくる）
 	_deselect()
 	_clear_deploy()
 	_clear_unload()
@@ -1472,44 +1708,50 @@ func _sync_units() -> void:
 	if state == null:
 		return
 	for u in state.units():
-		var p := Hex.to_pixel(u.pos, TILE)
-		var root := Node3D.new()
-		root.position = Vector3(p.x, _elev(u.pos), p.y)
-		_units_root.add_child(root)
-		_unit_nodes[u.id] = root
-		var done := state.is_done(u.id)
-		var tex := _unit_texture(u)
-		if tex != null:
-			var spr := Sprite3D.new()
-			spr.texture = tex
-			spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 常にカメラへ正対＝立ち姿のまま
-			spr.shaded = false
-			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
-			spr.pixel_size = (UNIT_CANVAS_TILES * TILE) / float(tex.get_height())
-			spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
-			# 足元は下辺寄り＝マスの中に立って見える。植生地形はそのぶん沈めて足元を隠す。
-			spr.position = Vector3(0, 0.02 - _sprite_sink(u.pos), SPRITE_FOOT_Z)
-			if done:
-				spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
-			root.add_child(spr)
-			# 足元のブロブシャドウ（接地感）。範囲塗りの上・リングの下の高さ。
-			var sh := MeshInstance3D.new()
-			sh.mesh = _shadow_mesh
-			sh.material_override = _overlay_material(COLOR_SHADOW)
-			sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
-			root.add_child(sh)
-		else:
-			_add_unit_placeholder(u, done, root)
-		_add_skill_glow(u, root)  # 絵の有無によらず出す（プレースホルダの駒でも掛かりは見える）
-		# 包囲中（攻防に係数<1.0）を明示。
-		if Surround.factor(state, u) < 1.0:
-			_add_ring(Vector3.ZERO, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, root)
-		# 兵数バー（残存兵数/満員）。駒の足元に置く。
-		_add_troops_bar(u, root)
-		# 輸送の搭載数を左上に小さく（拠点の garrison 表示と同じ流儀）。
-		var pcount := state.passengers(u.id).size()
-		if pcount > 0:
-			_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
+		_build_unit_node(u)
+
+## 駒1体ぶんの見た目一式（立ち絵・影・光・兵数バー）を組んで _units_root に足す。
+## 1体だけ作り直せるように切り出してある（着弾で兵数だけ書き換わる駒＝play_formation_impact）。
+func _build_unit_node(u: Unit) -> Node3D:
+	var p := Hex.to_pixel(u.pos, TILE)
+	var root := Node3D.new()
+	root.position = Vector3(p.x, _elev(u.pos), p.y)
+	_units_root.add_child(root)
+	_unit_nodes[u.id] = root
+	var done := state.is_done(u.id)
+	var tex := _unit_texture(u)
+	if tex != null:
+		var spr := Sprite3D.new()
+		spr.texture = tex
+		spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 常にカメラへ正対＝立ち姿のまま
+		spr.shaded = false
+		spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
+		spr.pixel_size = (UNIT_CANVAS_TILES * TILE) / float(tex.get_height())
+		spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
+		# 足元は下辺寄り＝マスの中に立って見える。植生地形はそのぶん沈めて足元を隠す。
+		spr.position = Vector3(0, 0.02 - _sprite_sink(u.pos), SPRITE_FOOT_Z)
+		if done:
+			spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
+		root.add_child(spr)
+		# 足元のブロブシャドウ（接地感）。範囲塗りの上・リングの下の高さ。
+		var sh := MeshInstance3D.new()
+		sh.mesh = _shadow_mesh
+		sh.material_override = _overlay_material(COLOR_SHADOW)
+		sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
+		root.add_child(sh)
+	else:
+		_add_unit_placeholder(u, done, root)
+	_add_skill_glow(u, root)  # 絵の有無によらず出す（プレースホルダの駒でも掛かりは見える）
+	# 包囲中（攻防に係数<1.0）を明示。
+	if Surround.factor(state, u) < 1.0:
+		_add_ring(Vector3.ZERO, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, root)
+	# 兵数バー（残存兵数/満員）。駒の足元に置く。
+	_add_troops_bar(u, root)
+	# 輸送の搭載数を左上に小さく（拠点の garrison 表示と同じ流儀）。
+	var pcount := state.passengers(u.id).size()
+	if pcount > 0:
+		_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
+	return root
 
 ## ユニットスキルが効いている駒の足元を光らせる。見た目を宣言した補正（fx）だけを見る＝
 ## 陣営全体バフ（ホーリーアリア等）では光らない。強化と弱体は別に数え、両方あれば両方出す

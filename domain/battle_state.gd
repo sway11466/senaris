@@ -853,12 +853,13 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		if victim == null:
 			continue
 		var loss := int(hit["loss"])
+		var vhex := victim.pos  # 撃破すると盤から外れる＝消える前に控える（演出が当たった場所を出す）
 		victim.troops -= loss
 		var killed := victim.troops <= 0
 		mark_engaged(victim.id)  # 被弾＝起動トリガー（待機AIが立つ）
 		if killed:
 			_remove_unit(victim.id)
-		results.append({"target_id": victim.id, "loss": loss, "killed": killed, "detail": hit})
+		results.append({"target_id": victim.id, "hex": vhex, "loss": loss, "killed": killed, "detail": hit})
 	# レベル: attack と同じ「戦ったら+1・倒したらさらに+1」を陣形1発の単位で（面で複数撃破でも+2止まり）。
 	# 対象に1体も当たらなかった空撃ちは0（戦っていない＝上がらない）。
 	var any_killed := false
@@ -879,7 +880,16 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			p.gain_level(exp_gain)
 		set_done(int(pid))
 		mark_engaged(int(pid))
-	var out := {"recipe": option["recipe"], "results": results}
+	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
+	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
+	var out := {
+		"recipe": option["recipe"],
+		"results": results,
+		"center": target,
+		"cells": Formation.blast_cells(option, target),
+		"leader_id": int(option.get("leader_id", -1)),
+		"combat_effect": String(option.get("combat_effect", "")),
+	}
 	if skill_scope:
 		out["skill"] = skill_detail
 	return out
