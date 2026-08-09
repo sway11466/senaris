@@ -167,6 +167,23 @@ func test_next_event_picks_the_soonest() -> void:
 	])
 	assert_eq(String(s.next_event()["label"]), "ui.test.soon", "いちばん近いものを出す")
 
+# --- 会話（イベントに付ける台本キー） ---
+
+## イベントが預かるのは台本のキーだけ（台本そのものは presentation が読む＝案P）。
+## 起きたイベントは last_fired_events に控える＝end_turn の内側で発火しても上へ届く。
+func test_event_carries_dialogue_key() -> void:
+	var s := _state([_reinforce(2, { "dialogue": "arrive" })])
+	assert_eq(String(s.pending_events()[0].get("dialogue", "")), "arrive", "台本キーを預かる")
+	assert_true(s.last_fired_events.is_empty(), "まだ起きていない")
+	s.end_turn(); s.end_turn()  # ターン2 自軍＝発生
+	assert_eq(s.last_fired_events.size(), 1, "起きたイベントを控える")
+	assert_eq(String(s.last_fired_events[0].get("dialogue", "")), "arrive", "台本キーごと渡す")
+
+## 台本キーを書かないイベントは空のまま（会話なしで黙って加わる）。
+func test_event_without_dialogue_key_is_empty() -> void:
+	var s := _state([_reinforce(1)])
+	assert_eq(String(s.last_fired_events[0].get("dialogue", "")), "", "既定は会話なし")
+
 # --- 中断セーブ ---
 
 func test_pending_event_survives_serialization() -> void:
@@ -184,6 +201,11 @@ func test_pending_event_survives_serialization() -> void:
 	assert_not_null(ship, "復元後も発生ターンに来る")
 	if ship != null:
 		assert_eq(back.passengers(ship.id).size(), 1, "搭載駒も復元される")
+
+func test_dialogue_key_survives_serialization() -> void:
+	var s := _state([_reinforce(4, { "dialogue": "arrive" })])
+	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	assert_eq(String(back.pending_events()[0].get("dialogue", "")), "arrive", "中断セーブでも台本キーは残る")
 
 func test_fired_event_is_not_serialized() -> void:
 	var s := _state([_reinforce(1)])

@@ -23,7 +23,7 @@ const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 const ROSTER_MODES := ["fresh", "carryover"]
 
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["type", "team", "turn", "label", "units"]
+const EVENT_KEYS := ["type", "team", "turn", "label", "units", "dialogue"]
 
 ## roster 値を検証して返す。省略（null）・未知の表記は "fresh"（独立＝前ステージを引き継がない）。
 static func _parse_roster(value: Variant) -> String:
@@ -182,25 +182,26 @@ static func load_terrain_skins(path: String) -> Dictionary:
 		return {}
 	return parse_terrain_skins(data)
 
-## 会話（シナリオ）：ステージ辞書の "dialogue"（{ intro:[...], outro:[...] }）を取り出す。
+## 会話（シナリオ）：ステージ辞書の "dialogue" を台本ごとに取り出す。intro/outro は戦闘前後、
+## それ以外のキーは events の "dialogue" が名指しする戦闘中の会話（doc/gdd/map.md イベント）。
 ## presentation 専用（案P と同じ＝BattleState には入れない）。各行 { speaker, skin, text } ＋任意 when。
 ## text/speaker は翻訳キー＝表示時に tr() で解決する（i18n。正本 data/i18n/dialogue.csv）。
 ## roster（名簿＝Unit.to_dict() の配列）を渡すと when 条件を評価して行を絞る。詳細 → doc/campaign/authoring.md
 static func parse_dialogue(data: Dictionary, roster: Array = []) -> Dictionary:
-	var out := { "intro": [], "outro": [] }
+	var out := { "intro": [], "outro": [] }  # 前後は台本が無くても空で返す（呼び出し側が素通りできる）
 	var dlg: Variant = data.get("dialogue", {})
 	if typeof(dlg) != TYPE_DICTIONARY:
 		return out
 	var joined := _roster_actors(roster)
-	for phase in ["intro", "outro"]:
-		var lines: Variant = dlg.get(phase, [])
+	for phase in (dlg as Dictionary):
+		var lines: Variant = dlg[phase]
 		if typeof(lines) != TYPE_ARRAY:
 			continue
 		var kept: Array = []
 		for line in lines:
 			if typeof(line) != TYPE_DICTIONARY or _when_holds(line.get("when"), joined):
 				kept.append(line)
-		out[phase] = kept
+		out[String(phase)] = kept
 	return out
 
 ## 名簿に在籍している actor の集合（兵力ゼロの離脱者も在籍＝会話には出る）。
@@ -352,10 +353,14 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 				else:
 					push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % unit.id)
 			units.append({ "unit": unit, "passengers": ps })
+		var dialogue := String(e.get("dialogue", ""))
+		if dialogue != "" and team != 0:
+			# 敵ターンのイベントは AI が動いている最中に起きる＝会話で盤を止められない。
+			push_warning("StageLoader: dialogue は team:\"player\" のイベントで使う（この会話は流れない）: %s" % dialogue)
 		state.add_event({
 			"turn": int(e.get("turn", 1)), "team": team,
 			"label": String(e.get("label", "")), "squad": squad_index,
-			"units": units,
+			"dialogue": dialogue, "units": units,
 		})
 	return auto_id
 

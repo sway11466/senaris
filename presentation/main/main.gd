@@ -35,8 +35,8 @@ var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の�
 var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/既定のフォールバック
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
-var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（presentation専用・案P）
-var _conversation_phase := ""  # "intro"/"outro"/""＝いま流している会話フェーズ
+var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（台本キー→行。presentation専用・案P）
+var _conversation_phase := ""  # "intro"/"outro"/"event"/""＝いま流している会話フェーズ
 
 func _ready() -> void:
 	print("Senaris booted.")
@@ -121,6 +121,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体をカメラに収めてから見せる
 	_controller.turn_start_pace = _await_turn_banner  # 敵ターンは頭の一拍（バナー）を見せてから動く
 	_controller.turn_changed.connect(_on_turn_changed)
+	_controller.event_fired.connect(_on_event_fired)
 	_controller.battle_finished.connect(_on_battle_finished)
 	_controller.formation_resolved.connect(_on_formation_resolved)
 	_apply_emblem()  # ターン板の左右（冒険譚の代表ユニット）。ステージが変われば差し替わる
@@ -351,13 +352,35 @@ func _maybe_start_intro() -> void:
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
 
+## 盤のイベント（増援）に台本が付いていれば、その場で会話を挟む。駒はもう盤に出ている＝
+## 何が来たのかを見せてから喋らせる。会話の間は盤とターン終了を止める（intro/outro と同じ扱い）。
+## 敵ターンのイベントでは出さない＝AIが動いている最中は盤を止められない（doc/gdd/map.md イベント）。
+func _on_event_fired(info: Dictionary) -> void:
+	var key := String(info.get("dialogue", ""))
+	if key.is_empty() or _conversation == null or _conversation_phase != "":
+		return
+	if _controller == null or _controller.is_ai_turn():
+		return
+	var lines: Array = _dialogue.get(key, [])
+	if lines.is_empty():
+		push_warning("main: イベントの台本が見つからない: dialogue=%s" % key)
+		return
+	_conversation_phase = "event"
+	if _turn_banner != null:
+		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない
+	$InfoPanel.hide()
+	$HexBoard.set_input_locked(true)
+	_set_scrim(true)  # 盤を沈めて会話に注視させる
+	_hud.set_player_turn(false)
+	_conversation.start(lines, "戦闘再開 ▶")
+
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:
 	$InfoPanel.show()  # 会話が終わったら情報パネルを戻す
 	$HexBoard.set_input_locked(false)  # 盤の凍結を解除（intro/outro 共通）
 	_set_scrim(false)  # 暗幕を戻す（盤が主役に戻る）
 	match _conversation_phase:
-		"intro":
+		"intro", "event":  # 戦闘へ戻る（開幕・途中の割り込みで同じ）
 			_conversation_phase = ""
 			if _controller != null:
 				_hud.set_player_turn(_controller.state.current_team == 0)

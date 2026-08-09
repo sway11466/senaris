@@ -18,6 +18,7 @@ signal unit_entered_base(unit_id: int, base_hex: Vector2i)
 signal unit_stood(unit_id: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
+signal event_fired(info: Dictionary)  # イベント（増援）が起きた＝{ label, dialogue }。台本そのものは presentation が持つ
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
 
 var state: BattleState
@@ -148,8 +149,21 @@ func end_turn() -> void:
 	state.end_turn()
 	turn_changed.emit(state.current_team, state.turn_number)
 	_check_finished()  # ターン跨ぎで決着が付くことがある（ターン制限＝時間切れ敗北）
+	# 増援は end_turn の内側で盤に出る＝ターン板・盤の同期が済んでから知らせる（会話は駒が見えてから）。
+	# 決着していれば知らせない（戦果票と会話が重なる）。
+	if not _finished:
+		_announce_fired_events()
 	if not _finished and is_ai_turn():
 		run_ai_turn()  # async（fire-and-forget）
+
+## このターンに起きたイベントを1件ずつ上へ流す。渡すのは素データ（label＋台本キー）だけ＝
+## 何を見せるかは presentation が決める。詳細 → doc/gdd/map.md イベント
+func _announce_fired_events() -> void:
+	for e in state.last_fired_events:
+		event_fired.emit({
+			"label": String(e.get("label", "")),
+			"dialogue": String(e.get("dialogue", "")),
+		})
 
 ## AIのターンを実行。next_action が尽きるまで1手ずつ実行し、最後にターンを返す。
 func run_ai_turn() -> void:
