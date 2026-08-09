@@ -223,18 +223,6 @@
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) 撃つ価値の評価を足す＝ユニットスキルは「対象1体」で選べたが、面の陣形は着弾中心の選び方（面に入る敵の数・味方の巻き込み）が要る。`_pick_skill_target` は対象1体を前提にしているのでここを広げる。
 - 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
-### feature-30
-
-**冒険譚2のステージ盤面をマップ設計に合わせて作り直す**（優先度：中）
-
-- 背景：[tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) の各話に盤の形を書き、型・難易度を [map_patterns.md](gdd/map_patterns.md) のステージ一覧へ載せた（doc 先行）。盤の組み直しは進み、st1〜st7 すべてに地形が入った（全面平地は無くなった）。残るのは仕上げの詰めで、doc との食い違いが3件。
-- 対応：
-  - 湧き口が2hexになっていない（st4）：st6・st7 の湧き元は城壁で囲われ開口1〜2hexになったが、st4 の敵hq `(20,5)` は隣接の大半が荒地で開いたまま。doc は「湧くのは2ヘックスだけ」。塞いで、残す2hexは互いに隣接する組にする。
-  - st1 の術者が道の上：priest `(6,8)` が `L`（道＝防0.8）に立っている。撃たれ弱い駒が防御-20%の床にいるのは意図と逆。wizard は平地へ移して解消済みなので、残りは priest 1体。
-  - 勝利条件の追加（st6・st7）：墓地の拠点に `"kind": "hq"`（team/native は敵）を足し、ステージの `victory` 配列に `{ "type": "capture_hq" }` を入れる。st7 は既存の `defeat_unit` と併記＝OR評価。判定機構は実装済み（[map.md](gdd/map.md) 勝敗条件）なのでデータだけで足りる。st4 は対応済み。
-  - 仕上げ：組み直した盤が doc の各話の記述（通路の幅・迂回路・帯の向き）と合っているかを通しで見直し、差分があれば doc 側を実装に合わせる。
-- 該当：`data/stages/tutorial2-undead-rush/st1・st4・st6・st7.json`・`doc/campaign/tutorial2-undead-rush.md`（実装後に差分があれば反映）。関連＝feature-14（themed 拠点＝墓地の見た目）。
-
 ### feature-31
 
 **体験版ビルドの素材選別（収録ステージから必要素材を導出して除外）**（優先度：低）
@@ -242,14 +230,6 @@
 - 背景：体験版はチュートリアル3本のみを収録し、本編の冒険譚は入れない（[monetization.md](sales/monetization.md) 体験版の収録範囲）。収録しない冒険譚のユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
 - 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
 - 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝開発用アセットの除外と同じ段・parking lot「Steam 配布の段取り」と連動）。
-
-### feature-32
-
-**残りの陣形スキルとユニットスキルの効果音を作る**（優先度：中）
-
-- 背景：トリニティスペル（`trinity_spell`）は発射・着弾とも、`holy_aria`（全体バフ）は発効音が入った。残るは `divine_judgment`（単体狙撃）と `map_skill`（ユニットスキル発動）で、呼び出しは入っていて素材だけが無い状態なので、置けば鳴る。看板機能の発動が無音なのは手応えとして弱い。
-- 対応：陣形はレシピIDの規約解決＝`assets/sfx/{recipe_id}.ogg`（発動）と `{recipe_id}_hit.ogg`（着弾）を置くだけ（`BIND` は使わない）。`map_skill` は `BIND` に1行足す。音の性格は `divine_judgment`＝遠くまで届く一条で着弾は点で鋭く、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。トリニティスペルは物音の素材から採ったが、`divine_judgment` は MuseScore ＋ Muse Sounds で作るほうが合うかもしれない（`victory`／`defeat` スティンガー・`holy_aria` で実証済みの手順）。
-- 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`map_skill` のみ）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
 
 ### feature-48
 
@@ -261,11 +241,16 @@
 
 ### feature-34
 
-**陣形スキルの着弾を盤で光らせる**（優先度：低）
+**陣形スキルの着弾を盤で見せる**（優先度：中）
 
-- 背景：陣形スキルが解決しても、盤は `_sync()` で駒を消して兵数を書き換えるだけで、どのヘックスに当たったのかを示す表示が無い（`hex_board_3d.gd` `_on_formation_resolved`）。トリニティスペルは7ヘクスに当たる面の広さが売りなので、当たった範囲が見えないと手応えが伝わらない。カットインは華を担うが「どこに当たったか」は担えない。
-- 対応：`formation_resolved` の結果（着弾ごとの hex）を受けて、そのヘックスを一瞬光らせる。盤にヘックス単位のフラッシュ表示が無いので新設が要る（既存のオーバーレイ＝`_reachable`／`_targets` と同じ層に、時間で消える一時的なハイライトを足す形）。カットインが閉じた後に出す＝順番は main が持つ（発動音 → カットイン → 着弾音＋光）。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/main/main.gd`（順番）・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝演出を通しで見て、当たった範囲が分からないと感じたとき。
+- 背景：陣形スキルが解決しても、盤は `_sync()` で駒を消して兵数を書き換えるだけ（`hex_board_3d.gd` `_on_formation_resolved`）。しかも board のハンドラは main より先に繋がる（`bind` が main の接続より前）ため、駒が消えるのはカットインより前。カットインが明けたときには敵がもう居らず、どこに当たって誰が受けたのかが分からない。[formations.md](gdd/formations.md) 発動の演出（揺れ → 面の光 → 被弾した駒を1体ずつ）に実装を合わせる。
+- 対応：足場が4つ要る。
+  - 盤の更新を着弾まで遅らせる。board は結果を預かるだけにして `_sync()` を打たず、順番は main が持つ。駒ノードが残るので、撃破のフェードアウトはその残りノードに掛けられる。
+  - 着弾中心を結果に載せる。今の戻りは `{recipe, results}` だけで hex が無く、撃破された駒は state から消えているので `target_id` からも引けない（`battle_state.gd` `resolve_formation`）。
+  - 盤にヘックス単位の一時ハイライトを新設（既存のオーバーレイ＝`_reachable`／`_targets` と同じ層に、時間で消えるものを足す）。駒に重ねるエフェクトは `data/effects/combat_effect.csv` から引き、盤は3Dなのでビルボードで出す。
+  - 画面全体の揺れを新設。今ある `_shake` は戦闘演出シーンの窓の中だけ。画面全体に掛かるものは加護の光（`AuraOverlay`）と同じ層で考える。
+- 併せて要る：陣形で決着すると `battle_finished` がカットイン中に飛ぶ＝着弾を見せてから戦果票へ渡す順番。敵AIが陣形を撃つときは着弾の完了を待つフック（`combat_pace` は演出シーンしか待っていない）。
+- 該当：`presentation/board/hex_board_3d.gd`・`presentation/main/main.gd`（順番）・`domain/battle_state.gd`（着弾中心）・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝盤の演出に手を入れるとき。
 
 ### feature-35
 
