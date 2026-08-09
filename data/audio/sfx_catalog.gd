@@ -66,7 +66,7 @@ const MOVE_SFX := {
 	"move_ground": 0.0,
 	"move_light_foot": 0.0,
 	"move_flight": 0.30,
-	"move_float": 0.50,      # 魔法で浮く（ピクシー・ゴースト）＝羽ばたかない
+	"move_float": 0.30,      # 魔法で浮く（ピクシー・ゴースト）＝羽ばたかない。全力移動で2回鳴る
 	"move_propeller": 0.16,  # 飛空艇。飛行と同じ素材を、重なるまで詰めて連続音にする
 }
 
