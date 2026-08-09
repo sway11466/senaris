@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=48 / refactoring=9
+次回採番: bug=3 / feature=49 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -203,7 +203,7 @@
 
 **タイトル名「Senaris」の確定手続き**（優先度：低）
 
-- 背景：[naming_decision_senaris.md](sales/naming_decision_senaris.md) でタイトル名は「Senaris」に決定済みだが、確定前の手続き4件が残っている。すべてオーナー側の手作業。`.net` ドメインと Steamコミュニティ `id/senaris` は取得済み。
+- 背景：[naming_decision_senaris.md](sales/naming_decision_senaris.md) でタイトル名は「Senaris」に決定済みだが、確定前の手続き4件が残っている。すべてオーナー側の手作業で、いずれも未着手＝ドメインもハンドルも1つも取得していない。`.net` は第三者（Senaris Network＝ルーマニアの小規模コミュニティ）が使用中、Steamコミュニティ `id/senaris` も他者が使用（いずれも要再確認）。
 - 対応：(1) 商標クリアランス＝第9類・第41類で US(USPTO)／EU(EUIPO)／日本(J-PlatPat) の各DBを正式確認。(2) `senaris.com` ドメイン取得（`.com` を主軸に）。(3) SNSハンドル確保（X／Bluesky／Discord 等）。(4) Steam アプリ名予約（Steamworks 登録時・Steam Direct $100）。確定したら naming_decision_senaris.md のステータスを更新。
 - 該当：`doc/sales/naming_decision_senaris.md`。着手の引き金＝配布が見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
@@ -250,6 +250,14 @@
 - 背景：トリニティスペル（`trinity_spell`）は発射・着弾とも、`holy_aria`（全体バフ）は発効音が入った。残るは `divine_judgment`（単体狙撃）と `map_skill`（ユニットスキル発動）で、呼び出しは入っていて素材だけが無い状態なので、置けば鳴る。看板機能の発動が無音なのは手応えとして弱い。
 - 対応：陣形はレシピIDの規約解決＝`assets/sfx/{recipe_id}.ogg`（発動）と `{recipe_id}_hit.ogg`（着弾）を置くだけ（`BIND` は使わない）。`map_skill` は `BIND` に1行足す。音の性格は `divine_judgment`＝遠くまで届く一条で着弾は点で鋭く、`map_skill`＝陣形より軽く短い（毎ターン飛ぶため）。トリニティスペルは物音の素材から採ったが、`divine_judgment` は MuseScore ＋ Muse Sounds で作るほうが合うかもしれない（`victory`／`defeat` スティンガー・`holy_aria` で実証済みの手順）。
 - 該当：`assets/sfx-src/`・`assets/sfx/`・`data/audio/sfx_catalog.gd`（`map_skill` のみ）・`doc/audio/sfx.md`。着手の引き金＝音を作れる時間が取れたとき。
+
+### feature-48
+
+**羽ばたきの素材を採り直す**（優先度：中）
+
+- 背景：`move_flight` に当てている上着の布音（Modern Cloth Foley の Whoosh Flutter）が、羽ばたきに聞こえない。素材が 0.42 秒あるのに間隔が 0.30 秒で、常に 0.12 秒ぶん重なって連続音になるため。翼を打つ一打ずつには分かれない。飛空艇（`move_propeller`）はこの連続音の性質をそのまま利用して同じ素材から作ったので、飛行側だけが宙に浮いている。
+- 対応：一打で完結する素材に差し替える。Sonniss バンドルには使える羽ばたきが無いことが確認済み（[doc/audio/sfx.md](audio/sfx.md) の「バンドルに録音が無かったもの」）。外部の素材集を1本買うか、自録り（うちわ・厚紙・畳んだ布で空気を打つ）に切り替える。長さは 0.30 秒より短く収めて、重ならずに一打ずつ聞こえる形にする。ペガサスからレッドドラゴンまで1つで賄うので、翼の大きさが特定できない中庸な質感を狙う。
+- 該当：`assets/sfx-src/move_flight_recipe.txt`・`assets/sfx/move_flight.ogg`・`assets/sfx-src/credits.md`・`data/audio/sfx_catalog.gd`（間隔）・`doc/audio/sfx.md`。着手の引き金＝素材を調達したとき。
 
 ### feature-34
 

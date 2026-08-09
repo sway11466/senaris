@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2020/move_flight__SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav" -af "atrim=5.94:6.36,volume=-9.0dB" -c:a pcm_s24le move_propeller.wav

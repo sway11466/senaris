@@ -66,8 +66,8 @@ const MOVE_SFX := {
 	"move_ground": 0.0,
 	"move_light_foot": 0.0,
 	"move_flight": 0.30,
-	"move_float": 0.45,      # 魔法で浮く（ピクシー・ゴースト）＝羽ばたかない
-	"move_propeller": 0.50,  # 飛空艇。素材の尺に合わせると切れ目なく繋がる
+	"move_float": 0.50,      # 魔法で浮く（ピクシー・ゴースト）＝羽ばたかない
+	"move_propeller": 0.16,  # 飛空艇。飛行と同じ素材を、重なるまで詰めて連続音にする
 }
 
 ## 発火点IDに割り当てられた素材ID。未登録なら ""。

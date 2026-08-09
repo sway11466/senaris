@@ -174,10 +174,12 @@
 | sfx_id | スキン | 音の系統 |
 |---|---|---|
 | `move_flight` | ペガサス・バードマン・ハーピー・グリフォン・レッドドラゴン | 羽ばたき。大きな翼が空気を打つ |
-| `move_float` | ピクシー・ゴースト・レイス | 浮遊。羽ばたかない。空気がふわりと動く程度 |
-| `move_propeller` | 飛空艇 | プロペラ。木と布の羽根が回る |
+| `move_float` | ピクシー・ゴースト・レイス | 浮遊。羽ばたかない。踏み出す一歩の気配だけが残る |
+| `move_propeller` | 飛空艇 | プロペラ。帆布の羽根が回る |
 
 ピクシーは羽が付いていて羽ばたいて見えるが、飛んでいるのは魔法の力ということにする。ゴースト・レイスと同じ `move_float` を鳴らす。
+
+`move_propeller` は `move_flight` と同じ素材を使い、鳴らす間隔だけで別物にする（下記）。飛空艇の羽根は帆布なので、布が空気を打つ音という点で羽ばたきと材質が同じ。違うのは回り続けるか一打ずつかで、それは間隔が表す。
 
 #### 鳴らす間隔
 
@@ -187,14 +189,16 @@
 |---|---|
 | `move_ground` / `move_light_foot` | 0（1マスごと） |
 | `move_flight` | 0.30 |
-| `move_float` | 0.45 |
-| `move_propeller` | 0.50 |
+| `move_float` | 0.50 |
+| `move_propeller` | 0.16 |
 
 飛行を1マスごとに鳴らすと羽ばたきに聞こえない。移動アニメは1マス 0.12 秒（`MOVE_ANIM_SEC_PER_HEX`）なので、1マスごとでは 0.12 秒間隔＝1秒に8回になる。翼を打つ間隔として速すぎて、連続したノイズとして聞こえる。足が地面を蹴る間隔としては妥当なので、足音は 0 のままでよい。
 
 マス数ではなく時間で持つのは、1マスあたりの秒数が経路の長さで変わるため。移動アニメ全体には上限（`MOVE_ANIM_MAX_SEC` ＝ 0.6 秒）があり、5マスを超えると1マスが 0.12 秒より縮む。10マスなら1マス 0.06 秒で、「3マスごと」と決めていると 0.18 秒間隔まで詰まる。時間で持てば経路の長さによらず羽ばたきの速さが変わらない。
 
-`move_propeller` は連続音の近似でもある。プロペラは本来ずっと回っているので、素材の尺と間隔を合わせれば切れ目なく繋がって聞こえる。間隔の値は素材が決まってから実尺で詰める。
+`move_propeller` は逆に、間隔を素材の尺より短くして連続音にする。素材は 0.42 秒あり間隔は 0.16 秒なので、常に2〜3本が重なって切れ目が消える。プロペラは本来ずっと回っているものなので、これでいい。
+
+重なると連続音になるという性質は、`move_flight` の 0.30 秒でも起きている。0.42 秒の素材を 0.30 秒間隔で鳴らせば 0.12 秒ぶん重なる。羽ばたきに聞こえずプロペラのように聞こえるのはこのためで、飛空艇の音を同じ素材から作れる根拠でもある。
 
 蹄・車輪など個別の音が要るユニットが出たら、同じ `map_move_sfx` 列で足す。既定は移動タイプから、必要な駒だけ個別に、という順序を守る。
 
@@ -300,10 +304,12 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `move_ground` | `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav` | 2020 p5 / PMSFX - STEPS Dry Grass & Shrubs |
 | `move_light_foot` | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` の歩き1歩 | 2017 p8 / Tovusound - Extended Footsteps |
 | `move_flight` | `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter.wav` の3テイク目 | 2020 p13 / Systematic-Sound - Modern Cloth Foley 01 |
+| `move_propeller` | 同上（`move_flight` と同一の切り出し。間隔だけで分ける） | 2020 p13 / 同上 |
+| `move_float` | `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav` の別の1歩（1.620〜1.940秒） | 2017 p8 / Tovusound - Extended Footsteps |
 
 足音2つはどちらも草の上の1歩で、重い側はブーツ、軽い側はスニーカー。同じ地面で靴だけが違うので、踏み替えても地形が変わったようには聞こえない。軽い側は基準より 3 dB 下げて置いている（上記の音量基準）。
 
-`move_float`（浮遊）と `move_propeller`（プロペラ）は未探索。浮遊は物音ではなく楽音側に寄る可能性がある＝空気の動きより、かすかな魔力のきらめきのほうが近いかもしれない。
+`move_float`（浮遊）も同じスニーカーの収録から採っている。空気の動く音（エアリーなウーシュ）や魔法のきらめき（風鈴・クリスタルグラス）を一巡ずつ試聴して、どちらも外した。浮遊は飛翔音ではないので風は違い、かといって鳴り物を足すと音が主張しすぎる。かすかな一歩の気配だけが、ふわりと進む見た目に付いてくる。同じ収録の別テイクなので `move_light_foot` と地面の質感が揃う点も都合がよい。
 
 `light_foot` の原本は Walk / Run / Jog が続けて入った24.5秒・約50歩のファイルなので、歩きの部分から1歩だけ切り出している。同じ用途で見た Levan Nadashvili - Civilian Footsteps の土・木の1歩は試聴して不採用。
 
@@ -376,7 +382,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 名前で引いても出てこなかったものと、代わりに何を当てたかを記録する。次に探すときの手がかりになる。
 
-- 羽ばたき（`move_flight`）。索引を wing / flap / flutter で引いても、鳥・こうもりで出るのは鳴き声と環境音だけ。上着を振る布の音（Modern Cloth Foley の Whoosh Flutter）を当てた。布が空気を打つ音は羽ばたきとして通る。
+- 羽ばたき（`move_flight`）。索引を wing / flap / flutter で引いても、鳥・こうもりで出るのは鳴き声と環境音だけ。ライブラリ名まで広げて猛禽・鴉・鳥のフォーリーを当たると、羽ばたきが明記された収録は 2019 p6 / Soundmind - Predatory Birds の `PRB315 Northern Goshawk` 1本だけで、これも22.3秒のうち15秒までが鳴き声、羽ばたきらしき物音は -50 dB 前後（鳴き声より40 dB 低い）。使うには増幅でノイズが持ち上がる。上着を振る布の音（Modern Cloth Foley の Whoosh Flutter）を当てている。
 - 投石の発射音。古代のスリング（投げ紐）は無い。紐を速く振り回すロープの風切りを当てた。スリングは実際に紐を振り回して投げるものなので、質感が直接あたる。
 - 爪（`claw`）。claw で引いて出るのは動物の足音ライブラリだけ。板金鎧を叩く音を当てた。
 - 旗のはためき単体。録音そのものが無いため、布の小物音で代用する（`map_capture` で採用済み）。
