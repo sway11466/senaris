@@ -86,10 +86,11 @@ const HIT_CELL_FADE := 0.32       # 同・引き
 const HIT_CELL_ALPHA := 0.34      # 同・立ち上がりの濃さ（加算合成。これ以上は地形が白く飛ぶ）
 const HIT_CELL_ALPHA_HOLD := 0.13 # 同・居座りの濃さ。駒に重ねるエフェクトを埋もれさせない
 const HIT_STEP_SEC := 0.13        # 駒1体ぶんの間隔＝何体が受けたのかを数えられる範囲で詰める
-const HIT_BURST_SEC := 0.30       # 駒に重ねるエフェクトの拡大フェード
+const HIT_DROP_SEC := 0.16        # 駒に落とすエフェクトの落下時間（着弾＝ここで駒が反応する）
+const HIT_DROP_FROM := TILE * 2.0 # 同・落とし始める高さ（駒の頭より上）
+const HIT_BURST_SEC := 0.18       # 同・着弾して弾けて消えるまで
 const HIT_BURST_TILES := 2.2      # 同・大きさの基準（scale 1.0 でヘックス幅の何倍か）
-const HIT_BURST_FROM := 0.55      # 同・出だしの倍率（ここから 1.5 倍まで開く）
-const HIT_BURST_HOLD := 0.35      # 同・薄れ始めるまでの割合（出た瞬間から薄いと当たった感が出ない）
+const HIT_BURST_OPEN := 1.35      # 同・着弾で開く倍率
 const HIT_FLASH_SEC := 0.14       # 被弾フラッシュ（立ち絵を白く飛ばす）の片道
 const HIT_FLASH_GAIN := 2.2       # 同・明るさの倍率
 const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
@@ -850,7 +851,7 @@ func play_formation_impact(result: Dictionary) -> void:
 		return
 	var center := Vector2i(result.get("center", Vector2i.ZERO))
 	# 面の光は駒の処理が終わるまで保たせる＝どの範囲の中で起きているのかが見えたまま進む。
-	_flash_cells(result.get("cells", []), HIT_CELL_HOLD + HIT_STEP_SEC * float(hits.size()))
+	_flash_cells(result.get("cells", []), HIT_CELL_HOLD + HIT_DROP_SEC + HIT_STEP_SEC * float(hits.size()))
 	var eff := _impact_effect(result)
 	# 着弾中心に近い駒から外へ。同距離は id 順＝毎回同じ順で出る（見え方が揺れない）。
 	var order: Array = hits.duplicate()
@@ -860,7 +861,8 @@ func play_formation_impact(result: Dictionary) -> void:
 		return da < db if da != db else int(a["target_id"]) < int(b["target_id"]))
 	for i in order.size():
 		_hit_unit(order[i], eff)
-		await _wait(HIT_STEP_SEC if i < order.size() - 1 else maxf(HIT_STEP_SEC, HIT_FADE_SEC))
+		# 最後の1発は落ちて当たって消えるまで待ってから盤を作り直す（消えかけの駒を飛ばさない）。
+		await _wait(HIT_STEP_SEC if i < order.size() - 1 else HIT_DROP_SEC + maxf(HIT_BURST_SEC, HIT_FADE_SEC))
 		if gen != _impact_gen:
 			_end_impact()
 			return
@@ -880,11 +882,16 @@ func _end_impact() -> void:
 func is_impacting() -> bool:
 	return _impact_pending
 
-## 被弾した駒1体ぶん。撃破ならその場でフェードアウト、生き残りは新しい兵数で組み直して光らせる。
+## 被弾した駒1体ぶん。エフェクトが上から落ちきった瞬間に駒が反応する
+## （撃破ならその場でフェードアウト、生き残りは新しい兵数で組み直して光らせる）。
 func _hit_unit(hit: Dictionary, eff: CombatEffect) -> void:
+	var gen := _impact_gen
+	_spawn_burst(Vector2i(hit["hex"]), eff, func() -> void:
+		if gen == _impact_gen:
+			_land_hit(hit))
+
+func _land_hit(hit: Dictionary) -> void:
 	var uid := int(hit["target_id"])
-	var hex := Vector2i(hit["hex"])
-	_spawn_burst(hex, eff)
 	var node: Node3D = _unit_nodes.get(uid)
 	if node == null:
 		return
@@ -954,13 +961,16 @@ func _flash_cells(cells: Array, hold: float) -> void:
 		tw.tween_property(m, "albedo_color:a", 0.0, HIT_CELL_FADE)
 		tw.tween_callback(mi.queue_free)
 
-## 駒に重ねるエフェクト1発。戦闘演出シーンと同じカタログの絵を使い、盤では kind によらず
-## 重ねる（飛ばさない）＝盤上では飛翔の距離が短く、飛んだと読めない。
+## 駒に当てるエフェクト1発。戦闘演出シーンと同じカタログの絵を使い、盤では kind によらず
+## 真上から落として当てる。盤には左右の向きが無い（右から撃つこともある）ので、絵の
+## 「右へ向かう一撃」をそのまま重ねると流れる向きが嘘になる＝90度回して落とす向きに使う。
+## 落ちきった時点で on_land を呼ぶ＝駒の反応（フラッシュ・兵数・撃破）はそこに揃う。
 ## 絵が引けないときは、そのヘックスだけを濃く光らせる＝穴が開かない。
-func _spawn_burst(hex: Vector2i, eff: CombatEffect) -> void:
+func _spawn_burst(hex: Vector2i, eff: CombatEffect, on_land: Callable) -> void:
 	var tex := _effect_texture(eff)
 	if tex == null:
 		_flash_cells([hex], HIT_BURST_SEC)
+		on_land.call()
 		return
 	var spr := Sprite3D.new()
 	spr.texture = tex
@@ -973,14 +983,15 @@ func _spawn_burst(hex: Vector2i, eff: CombatEffect) -> void:
 	var longest := float(maxi(tex.get_width(), tex.get_height()))
 	spr.pixel_size = (HIT_BURST_TILES * TILE * eff.scale) / maxf(longest, 1.0)
 	var at := _hex_world(hex)
-	spr.position = Vector3(at.x, at.y + TILE * 0.9, at.z + SPRITE_FOOT_Z)
+	var land := Vector3(at.x, at.y + TILE * 0.9, at.z + SPRITE_FOOT_Z)
+	spr.position = land + Vector3(0, HIT_DROP_FROM, 0)
 	_fx_root.add_child(spr)
-	spr.scale = Vector3.ONE * HIT_BURST_FROM
 	var tw := create_tween()
-	tw.set_parallel(true)
-	tw.tween_property(spr, "scale", Vector3.ONE * 1.5, HIT_BURST_SEC)
-	tw.tween_property(spr, "modulate:a", 0.0, HIT_BURST_SEC * (1.0 - HIT_BURST_HOLD)) \
-		.set_delay(HIT_BURST_SEC * HIT_BURST_HOLD)
+	tw.tween_property(spr, "position", land, HIT_DROP_SEC).set_ease(Tween.EASE_IN)  # 落下＝加速
+	tw.tween_callback(on_land)
+	tw.set_parallel(true)  # 着弾＝開きながら消える
+	tw.tween_property(spr, "scale", Vector3.ONE * HIT_BURST_OPEN, HIT_BURST_SEC)
+	tw.tween_property(spr, "modulate:a", 0.0, HIT_BURST_SEC)
 	tw.chain().tween_callback(spr.queue_free)
 
 ## 着弾に使うエフェクト。レシピの combat_effect を優先し、空なら発動者スキンの combat_effect へ
@@ -995,14 +1006,21 @@ func _impact_effect(result: Dictionary) -> CombatEffect:
 				id = s.combat_effect
 	return CombatEffectCatalog.by_id(id)
 
-## エフェクトの絵（キャッシュ）。未定義・未配置は null＝呼び出し側がヘックスの光に落とす。
+## エフェクトの絵（キャッシュ）。カタログの絵は「右へ向かう一撃」なので、盤で使うぶんは
+## 時計回りに90度回して「下へ向かう一撃」にする（→ _spawn_burst）。ビルボードは回転を
+## 打ち消すので、ノードではなく画像そのものを回す。未定義・未配置は null。
 func _effect_texture(eff: CombatEffect) -> Texture2D:
 	if eff == null:
 		return null
 	if _effect_tex.has(eff.effect_id):
 		return _effect_tex[eff.effect_id]
 	var p := eff.image_path()
-	var tex := load(p) as Texture2D if p != "" and ResourceLoader.exists(p) else null
+	var src := load(p) as Texture2D if p != "" and ResourceLoader.exists(p) else null
+	var tex: Texture2D = null
+	if src != null:
+		var img := src.get_image()
+		img.rotate_90(CLOCKWISE)
+		tex = ImageTexture.create_from_image(img)
 	_effect_tex[eff.effect_id] = tex
 	return tex
 
