@@ -17,7 +17,7 @@ func _transport(id: int, team: int, pos: Vector2i, cap := 4, move := 6) -> Unit:
 func test_catalog_wires_capacity() -> void:
 	var cat := UnitCatalog.load_default()
 	assert_eq(cat["wagon"].capacity, 4, "馬車=搭載4")
-	assert_eq(cat["airship"].capacity, 6, "飛空艇=搭載6")
+	assert_eq(cat["airship"].capacity, 4, "飛空艇=搭載4")
 	assert_eq(cat["fighter"].capacity, 0, "歩兵=輸送不可")
 
 func test_loader_wires_passengers() -> void:
@@ -27,7 +27,7 @@ func test_loader_wires_passengers() -> void:
 	] }
 	var s := StageLoader.build(data, UnitCatalog.load_default())
 	var airship := s.unit_by_id(1)
-	assert_eq(airship.capacity, 6, "capacity が type から載る")
+	assert_eq(airship.capacity, 4, "capacity が type から載る")
 	assert_eq(s.passengers(1).size(), 2, "初期搭乗2体")
 	assert_null(s.unit_by_id(2), "搭乗駒は盤上に居ない")
 	assert_eq(s.passengers(1)[0].team, 0, "搭乗駒は輸送と同陣営")

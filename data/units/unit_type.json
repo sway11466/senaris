@@ -532,7 +532,7 @@
 			"atk_air": 10,
 			"atk_ground": 10,
 			"can_capture": false,
-			"capacity": 6,
+			"capacity": 4,
 			"category": "輸送",
 			"defense": 10,
 			"id": "airship",
