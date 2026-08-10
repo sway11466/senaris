@@ -273,6 +273,7 @@ func _poster(c: Dictionary) -> Control:
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
+	TavernTheme.round_corners(art, float(TavernTheme.ART_CORNER_RADIUS))  # 紙に貼った写真の丸み
 	# 貼り紙とステージ一覧は同じ cover を使う＝押した紙がそのまま開く体験にする（専用クロップは持たない）。
 	# 連番バリアントから表示ごとに1枚選び、選んだ index を stage 側へ渡して同じ絵に固定する。
 	var art_paths: Array = c.get("cover_paths", [])

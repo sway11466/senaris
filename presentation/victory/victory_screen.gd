@@ -13,20 +13,6 @@ signal finished  # 全画面モーダルを閉じた（クリック/キー or �
 const FADE_IN := 0.4  # イラストの浮かび上がり（秒）
 const BOARD_MARGIN := 32.0  # 重ね表示で盤エリアの内側に取る余白。右は会話パネルとの間合いになる
 
-## 絵の四隅を彫り枠と同じ半径で削るシェーダ。枠は角丸・絵は直角だと四隅が枠の外へ飛び出すため、
-## 描画時にアルファで丸める（マスク用のノードを足さない）。smoothstep の 1px 幅がアンチエイリアス。
-const ROUNDED_SHADER := """
-shader_type canvas_item;
-uniform vec2 rect_px;     // 絵の実寸（px）
-uniform float radius_px;  // 角の半径（彫り枠と同じ値）
-void fragment() {
-	vec2 half_px = rect_px * 0.5;
-	vec2 q = abs(UV * rect_px - half_px) - (half_px - vec2(radius_px));
-	float d = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - radius_px;
-	COLOR.a *= 1.0 - smoothstep(-1.0, 1.0, d);
-}
-"""
-
 var _root: Control        # 表示域（モーダルは全画面・重ね表示は盤エリアの内側）
 var _backdrop: ColorRect  # イラスト外側を覆う黒（レターボックス）。全画面モーダルのときだけ敷く
 var _pic: TextureRect     # 勝利イラスト（アスペクト維持で中央）
@@ -55,12 +41,8 @@ func _build() -> void:
 	_pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE  # 元画像より小さくできるように
 	_pic.stretch_mode = TextureRect.STRETCH_SCALE
 	_pic.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var sh := Shader.new()
-	sh.code = ROUNDED_SHADER
-	var mat := ShaderMaterial.new()
-	mat.shader = sh
-	mat.set_shader_parameter("radius_px", float(TavernTheme.FRAME_CORNER_RADIUS))
-	_pic.material = mat  # rect_px は寸法が決まる _fit_pic で渡す
+	# 絵の四隅を彫り枠と同じ半径で丸める。直角のままだと四隅が枠線の外へ飛び出す。
+	TavernTheme.round_corners(_pic, float(TavernTheme.FRAME_CORNER_RADIUS))
 	_root.add_child(_pic)
 	# 縁取りは右の会話パネルと同じ彫り枠を流用する（新しい見た目を発明しない）。
 	# 絵の子にする＝FULL_RECT アンカーで絵の寸法にそのまま追従する。
@@ -123,10 +105,7 @@ func _fit_pic() -> void:
 		return
 	var s := minf(_root.size.x / ts.x, _root.size.y / ts.y)
 	_pic.size = (ts * s).round()
-	_pic.position = ((_root.size - _pic.size) * 0.5).round()
-	var mat := _pic.material as ShaderMaterial
-	if mat != null:
-		mat.set_shader_parameter("rect_px", _pic.size)  # 角丸の計算に実寸が要る
+	_pic.position = ((_root.size - _pic.size) * 0.5).round()  # 角丸は描画時に寸法へ追従する
 
 func _on_input(e: InputEvent) -> void:
 	if not _modal:

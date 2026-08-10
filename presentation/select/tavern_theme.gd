@@ -204,6 +204,47 @@ static func signboard_stylebox() -> StyleBox:
 ## 四隅が枠からはみ出さないよう同じ値で角を丸める。
 const FRAME_CORNER_RADIUS := 6
 
+## 枠を持たない絵（扉絵など）の角の丸み（px）。枠に合わせる必要が無いので少し強めに丸める
+## ＝小さい貼り紙の絵でも丸みが見える。
+const ART_CORNER_RADIUS := 8
+
+## 四隅を丸めて描くシェーダ。角丸矩形の距離場でアルファを削る（マスク用のノードを足さない）。
+## 位置は UV でなく VERTEX（＝コントロール内の px）で取る＝KEEP_ASPECT_COVERED のように
+## UV が 0..1 にならない stretch_mode でも効く。smoothstep の 1px 幅がアンチエイリアス。
+const _ROUNDED_SHADER := """
+shader_type canvas_item;
+uniform vec2 rect_px;     // 描画矩形の実寸（px）
+uniform float radius_px;  // 角の半径
+varying vec2 v_pos;
+void vertex() {
+	v_pos = VERTEX;
+}
+void fragment() {
+	vec2 half_px = rect_px * 0.5;
+	vec2 q = abs(v_pos - half_px) - (half_px - vec2(radius_px));
+	float d = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - radius_px;
+	COLOR.a *= 1.0 - smoothstep(-1.0, 1.0, d);
+}
+"""
+
+## ctrl の四隅を radius（px）で丸めて描くようにする。コンテナが大きさを決めるノードにも、
+## 自分で size を入れるノードにもそのまま掛けられる。子ノードには波及しない。
+static func round_corners(ctrl: Control, radius: float) -> void:
+	var sh := Shader.new()
+	sh.code = _ROUNDED_SHADER
+	var mat := ShaderMaterial.new()
+	mat.shader = sh
+	mat.set_shader_parameter("radius_px", radius)
+	ctrl.material = mat
+	# 寸法は draw で渡す。resized はツリーに入る前の変更では飛ばないので取りこぼす
+	# （＝絵が丸ごと消える）。描画のたびなら必ず現在の寸法で更新できる。
+	ctrl.draw.connect(_feed_rect_px.bind(ctrl, mat))
+	_feed_rect_px(ctrl, mat)
+
+## 角丸シェーダに現在の寸法を渡す（round_corners が draw につなぐ）。
+static func _feed_rect_px(ctrl: Control, mat: ShaderMaterial) -> void:
+	mat.set_shader_parameter("rect_px", ctrl.size)
+
 ## 看板の彫り枠（パネルの最前面に重ねる縁だけの飾り・クリック透過）。
 static func signboard_frame() -> Control:
 	var frame := Panel.new()
