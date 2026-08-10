@@ -610,9 +610,11 @@
       { "speaker": "char.paladin.name", "skin": "paladin", "text": "t2.st7.outro.1" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st7.outro.2" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st7.outro.3" },
-      { "speaker": "char.paladin.name", "skin": "paladin", "text": "t2.st7.outro.4" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st7.outro.5" },
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st7.outro.6" }
+      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st7.outro.4" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st7.outro.5" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st7.outro.6" },
+      { "speaker": "char.paladin.name", "skin": "paladin", "text": "t2.st7.outro.7" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st7.outro.8" }
     ]
   },
   "bgm": { "main": "boss" }
