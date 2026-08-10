@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2020/arrow_hit__BOW Arrow Hit 05.wav" -af "volume=-7.6dB" -c:a pcm_s24le arrow_bone_hit.wav
+ffmpeg -y -i "sonniss/arrow_hit__2020__BOW Arrow Hit 05.wav" -af "volume=-7.6dB" -c:a pcm_s24le arrow_bone_hit.wav

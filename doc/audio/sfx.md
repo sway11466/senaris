@@ -271,14 +271,16 @@ BGM と同じ流儀に揃える（[bgm.md](bgm.md)）。音量はミキサーの
 かわりにレシピを残す。`assets/sfx-src/{sfx_id}_recipe.txt` に、原本から `{sfx_id}.wav` を作った ffmpeg のコマンドをそのまま1行で書く。地形タイルの `{skin_id}_recipe.txt` と同じ流儀（[../art/terrain.md](../art/terrain.md)）で、狙いも同じ。切り出し位置とゲイン量は素材ごとに実測して決めるため、残さないと作り直しのたびに測り直しになる。どの原本を使ったかもレシピが示す。
 
 ```
-ffmpeg -y -i "sonniss/2026/magic_bolt__WINDDsgn_....wav" -af "atrim=0.02:0.60,volume=6.8dB" -c:a pcm_s24le magic_bolt.wav
+ffmpeg -y -i "sonniss/magic_bolt__2026__WINDDsgn_....wav" -af "atrim=0.02:0.60,volume=6.8dB" -c:a pcm_s24le magic_bolt.wav
 ```
 
 `atrim` が切り出し、`volume` がゲイン。`-c:a pcm_s24le` は必須で、付けないと ffmpeg が 16bit に落とす。原本は 96〜192kHz / 24bit なので、ogg にする前にここで削る意味はない。
 
 ゲインの値は `.wav` を -9 dBFS に合わせるのではなく、`gen_sfx.ps1` が測る `.ogg` の値で追い込む。符号化でピークが上がるためで、実測では最大 2.2 dB 動いた（`.wav` を -9.0 に揃えて出した ogg が -6.8）。手順は自作素材と同じ2回で、レシピのゲインを 0 で一度出す → 測る → 差をレシピに入れて出し直す。
 
-参照する原本は必ず `sonniss/<年>/` に置いたものにする。試聴用に切った中間ファイルを指すと、それを消した時点で再現できなくなる。
+参照する原本は必ず `sonniss/` に置いたものにする。試聴用に切った中間ファイルを指すと、それを消した時点で再現できなくなる。
+
+原本の名前は `<用途>__<年>__<元のファイル名>.wav`。年でフォルダを切らず1階層に並べるのは、同じ用途の候補が年をまたいで散らばると聴き比べにくいため。用途を頭に置くことで並び順がそのまま候補の束になる。年は出典の特定に要るので名前に残す（[sonniss.md](sonniss.md) の索引は年とパートで引く）。
 
 原本は無加工のまま残す。レシピは `.txt` なのでコミットされ、`.wav` は両方とも gitignore で残らない。つまりリポジトリには「どう作ったか」だけが残り、再配布不可の素材そのものは入らない。
 
@@ -433,14 +435,15 @@ assets/
     ui_confirm.wav      ← gen_sfx.ps1 の入力（コミットしない）
     slash_s.wav         ← 物音系も同じ位置に置く。原本ではなく1テイクに絞ったもの
     credits.md          ← 権利・ライセンス台帳
-    sonniss/2026/       ← 外部素材の原本。無加工・多テイクのまま（コミットしない）
-    sonniss/trash/2026/ ← 試聴して不採用にしたもの。消さずに残す
+    sonniss/            ← 外部素材の原本。無加工・多テイクのまま（コミットしない）
+      slash_s__2026__WEAPSwrd_....wav
+      trash/            ← 試聴して不採用にしたもの。消さずに残す
 data/audio/
   sfx.csv               ← 素材台帳（sfx_id・種別・状態・出典・ライセンス）
   sfx_bind.csv          ← 対応表（event_id → sfx_id）
 ```
 
-- 外部素材は3段で持つ。原本（`sonniss/<年>/`）→ 1テイクに絞ったもの（`sfx-src/{sfx_id}.wav`）→ ゲーム用（`sfx/{sfx_id}.ogg`）。絵の `_01_raw` → `_03_master` → `assets/units/` と同型。原本は多テイクの詰め合わせであることが多く、そのままでは鳴らせない。どちらの `.wav` も gitignore 済みで、Sonniss の素材は再配布不可なのでコミットしてはいけない。
+- 外部素材は3段で持つ。原本（`sonniss/`）→ 1テイクに絞ったもの（`sfx-src/{sfx_id}.wav`）→ ゲーム用（`sfx/{sfx_id}.ogg`）。絵の `_01_raw` → `_03_master` → `assets/units/` と同型。原本は多テイクの詰め合わせであることが多く、そのままでは鳴らせない。どちらの `.wav` も gitignore 済みで、Sonniss の素材は再配布不可なのでコミットしてはいけない。
 - 形式は `.ogg`（Ogg Vorbis 限定）。同じ拡張子でも Ogg Opus は Godot が読めないため、書き出し時にコーデックを確認する（[bgm.md](bgm.md) と同じ罠）。
 - 効果音はループしない。`.import` の `loop` は false のままでよい。
 - 短い音が多く尺が総じて軽いため、圧縮率は BGM ほど攻めなくてよい。歯切れが鈍るようなら `.wav` のまま載せる判断もありうる。

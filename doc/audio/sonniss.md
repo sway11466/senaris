@@ -113,7 +113,7 @@ products 側の `picks.tsv` に候補を1行ずつ足す。列は 年 / パー�
 python tools/pick.py 2020 --dry
 ```
 
-問題なければ取り出す。`assets/sfx-src/sonniss/<年>/<用途>__<元のファイル名>.wav` に置かれる。取得済みは飛ばすので、途中で止めても繰り返し実行できる。
+問題なければ取り出す。`assets/sfx-src/sonniss/<用途>__<年>__<元のファイル名>.wav` に置かれる。取得済みは飛ばすので、途中で止めても繰り返し実行できる。
 
 ```bash
 python tools/pick.py 2020
@@ -130,7 +130,7 @@ python tools/pick.py 2020
 採用が決まったら `assets/sfx-src/<sfx_id>_recipe.txt` に ffmpeg のコマンドを1行で残す。切り出し位置と当てたゲインが後から分かるようにするためで、原本を置けない（再配布不可）ぶんをこれで補う。
 
 ```
-ffmpeg -y -i "sonniss/2020/curse_wisp__SFX_Ghost_Whoosh_Male_03.wav" -af "atrim=1.30:2.10,volume=-6.0dB" -c:a pcm_s24le curse_wisp.wav
+ffmpeg -y -i "sonniss/curse_wisp__2020__SFX_Ghost_Whoosh_Male_03.wav" -af "atrim=1.30:2.10,volume=-6.0dB" -c:a pcm_s24le curse_wisp.wav
 ```
 
 あとは `tools/gen_sfx.ps1 <sfx_id>` で ogg にし、`assets/sfx-src/credits.md` に1行足す。ゲインの決め方は [sfx.md](sfx.md) の「外部素材はゲインを当てて合わせる」。

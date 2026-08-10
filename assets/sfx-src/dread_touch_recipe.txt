@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2020/curse_wisp__SFX_Ghost_Whoosh_Male_03.wav" -af "atrim=1.30:2.10,volume=-6.0dB" -c:a pcm_s24le dread_touch.wav
+ffmpeg -y -i "sonniss/curse_wisp__2020__SFX_Ghost_Whoosh_Male_03.wav" -af "atrim=1.30:2.10,volume=-6.0dB" -c:a pcm_s24le dread_touch.wav

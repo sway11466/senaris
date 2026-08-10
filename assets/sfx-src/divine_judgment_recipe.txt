@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2026/divine_judgment__DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav" -af "volume=-8.0dB" -c:a pcm_s24le divine_judgment.wav
+ffmpeg -y -i "sonniss/divine_judgment__2026__DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav" -af "volume=-8.0dB" -c:a pcm_s24le divine_judgment.wav

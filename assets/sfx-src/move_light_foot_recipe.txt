@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2017/move_light_foot__169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav" -af "atrim=0.976:1.29,volume=8.9dB" -c:a pcm_s24le move_light_foot.wav
+ffmpeg -y -i "sonniss/move_light_foot__2017__169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close.wav" -af "atrim=0.976:1.29,volume=8.9dB" -c:a pcm_s24le move_light_foot.wav

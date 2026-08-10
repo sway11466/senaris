@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2019/punch__MELEE - DESIGNED - HEADBUTT Crack.wav" -af "atrim=1.662:2.541,volume=-10.0dB" -c:a pcm_s24le punch.wav
+ffmpeg -y -i "sonniss/punch__2019__MELEE - DESIGNED - HEADBUTT Crack.wav" -af "atrim=1.662:2.541,volume=-10.0dB" -c:a pcm_s24le punch.wav

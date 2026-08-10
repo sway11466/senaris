@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2017/cmb_hit_none__Weapon_Impact_Parry_01.wav" -af "volume=-8.7dB" -c:a pcm_s24le cmb_hit_none.wav
+ffmpeg -y -i "sonniss/cmb_hit_none__2017__Weapon_Impact_Parry_01.wav" -af "volume=-8.7dB" -c:a pcm_s24le cmb_hit_none.wav

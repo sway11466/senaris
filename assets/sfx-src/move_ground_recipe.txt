@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2020/map_move_ground__PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav" -af "volume=1.8dB" -c:a pcm_s24le move_ground.wav
+ffmpeg -y -i "sonniss/map_move_ground__2020__PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow .wav" -af "volume=1.8dB" -c:a pcm_s24le move_ground.wav

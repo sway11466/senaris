@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/2020/slash_l__MeleeSwingsPack_96khz_Mono_DesignedSwings12.wav" -af "volume=-6.8dB" -c:a pcm_s24le slash_l.wav
+ffmpeg -y -i "sonniss/slash_l__2020__MeleeSwingsPack_96khz_Mono_DesignedSwings12.wav" -af "volume=-6.8dB" -c:a pcm_s24le slash_l.wav
