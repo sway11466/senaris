@@ -369,11 +369,18 @@ combat_power = (effective_atk × move_mult) × (effective_def × move_mult)
 
 ### refactoring-5
 
-**hex_board_3d の段階分割（メッシュ生成→カメラ→インタラクション再評価）**（優先度：中）
+**hex_board_3d の段階分割**（優先度：中）
 
-- 背景：`presentation/board/hex_board_3d.gd` はプロダクト最大の約2000行で、(a) カメラリグ＋picking、(b) 選択→移動→コマンドメニューのインタラクション状態機械（コマンド追加のたび成長する中心）、(c) 盤の3D描画同期、(d) メッシュ/材質生成ヘルパーの4責務が同居している。ただし一括分割は危険：(b) と (c) はオーバーレイ状態（`_reachable`/`_targets`/`_formation_cells` 等）を共有する密結合で、素朴に切るとシグナルの往復や状態の二重持ちを生む。外側の疎な責務から段階的に剥がす。
-- 対応：(1) メッシュ/材質生成（`_make_*` 系・材質/テクスチャキャッシュ）を `board_mesh_factory.gd` へ抽出（純関数中心・最小リスク）。(2) カメラ数学（リグ・パン/ズーム/fit/追従 Tween・picking）を `board_camera_rig.gd` へ抽出。入力イベントの受け口（`_unhandled_input`）は盤に1本のまま残してリグへ委譲＝イベント処理順の罠を避ける。`fit_to_view` の state 直読みはやめ、盤の外接矩形を引数で渡す。(3) 2つを剥がして縮んだ状態で、インタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を先に定義してから。より小さい代替として PopupMenu の組み立てだけの抽出（メニュービルダー）も可。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`（新規）・`presentation/board/board_camera_rig.gd`（新規）。挙動を変えないリファクタリングのため各段で実機確認（tests/manual の流儀）。
+- 背景：`presentation/board/hex_board_3d.gd` は元2254行で、(a) カメラリグ＋picking、(b) 選択→移動→コマンドメニューのインタラクション状態機械、(c) 盤の3D描画同期、(d) メッシュ/材質生成ヘルパー、(e) 駒の描画、(f) 地形タイル構築、(g) 着弾演出の責務が同居している。(b) と (c) はオーバーレイ状態（`_reachable`/`_targets`/`_formation_cells` 等）を共有する密結合なので、外側の疎な責務から段階的に剥がし、hex_board_3d をイベント配線と入力→状態遷移の専任にする。
+- 対応：切り出しやすい順に進める。各段でテスト先行・全テスト合格・実機確認を経てからコミットする。
+  1. メッシュ/材質生成 → `board_mesh_factory.gd`（純関数・static クラス）。
+  2. カメラリグ → `board_camera.gd`（パン/ズーム/fit/追従/揺れ。入力の受け口は盤に残し委譲）。
+  3. 駒の描画（`_build_unit_node`・影・兵数バー・リング・マーカー）。
+  4. 地形タイル構築（`_build_tiles`・スキン解決・スカート・グリッド・下地）。
+  5. 着弾演出（`play_formation_impact` 一連）。
+  6. 1〜5を剥がした状態でインタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を定義してから。
+- 進捗（2026-08-10）：ステップ1完了（`3d72eab`・2254→2041行・-213行）。ステップ2のコード変更とテスト作成が完了、未コミット（`board_camera.gd` 167行・`test_board_camera.gd` 97行・hex_board_3d の差し替え済み）。
+- 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`・`presentation/board/board_camera.gd`・`tests/unit/test_board_mesh_factory.gd`・`tests/unit/test_board_camera.gd`。3〜5の切り出し先ファイル名は着手時に決める。
 
 ## parking lot
 
