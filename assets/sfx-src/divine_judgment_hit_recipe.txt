@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/2019/divine_judgment_hit__Impact,Sound Design,Hit,Chime,Resonant Hit,Chime Accent,Tinkle,Fast.wav" -af "atrim=0:1.90,asetpts=N/SR/TB,afade=t=out:st=1.80:d=0.10,volume=-8.9dB" -c:a pcm_s24le divine_judgment_hit.wav

@@ -369,6 +369,23 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `curse` `claw` `punch` `arrow_bone` は未探索。
 
+陣形スキルの音（発動と着弾の2本で1組）。候補はレシピIDで並べる。
+
+| recipe_id | 素材 | 場所 |
+|---|---|---|
+| `trinity_spell` | `water_blast_projectile_spell_03.wav` | 2018 p3 / Gamemaster Audio - Magic and Spell Sounds |
+| `trinity_spell_hit` | `Magic_Spells_Impact_Creation20.wav` | 2020 p3 / David Dumais Audio - Spells Magic 1 |
+| `divine_judgment` | `DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav` | 2026 p2 / Epic Stock Media - Anime Game |
+| `divine_judgment_hit` | `Impact,Sound Design,Hit,Chime,Resonant Hit,Chime Accent,Tinkle,Fast.wav` の頭から 1.90 秒 | 2019 p1 / Airborne Sound - Crisis Accents |
+
+`holy_aria` は外部素材を使わない（澄んだ和音＝MuseScore で自作）。
+
+`divine_judgment`（発動）は `holy` を決めるときに不採用にした素材を採り直したもの。`holy` は近接の一撃で「粒が立つ短い音」を探していたため 1.5 秒は長すぎたが、陣形の発動はカットインの 1.0 秒に乗る華なので条件が逆になる。同じ収録を回すことで、聖職の攻撃と聖職の陣形が同じ音世界に収まる。
+
+`divine_judgment_hit`（着弾）は残響が 4.5 秒あるため頭から 1.90 秒で切り、末尾に 0.10 秒のフェードを掛けた。1.5〜1.7 秒にある二度目の山（Chime Accent）まで残している。1ステージに1〜2回しか撃たない一撃なので、余韻が重さになる。着弾後は盤の演出だけが続くため、長くても音がぶつかる相手がいない。
+
+キラキラの系統から外れる候補も一巡した。ハープ・木琴・ベルギターのグリッサンド（2018 p6・2019 p6・2023 p2）はきらめきはあるが裁きの芯が無い。雷（2015 p4・2018 p5）は重さを足せるが系統が違い、キラキラと2本重ねる作りは既存レシピに無い。和音の打撃（2026 p2 `Impact Hit Rapid Chord Reverb`）は `holy_aria` の澄んだ和音と食い合う。
+
 ### 遠距離の発射音からは着弾を落とす
 
 外部素材は「飛んで当たる」までを1ファイルに収めていることが多い。遠距離（`projectile`）の発射音に採るときは着弾を切り落とす。着弾は `{effect_id}_hit` で別に鳴るため、含めると二重になる。
