@@ -6,18 +6,18 @@
   "difficulty": 3,
   "emblem": { "ally": "vanguard", "enemy": "dragon" },
   "stages": [
-    { "id": "st1", "file": "st1.json", "title": "t3.st1.title", "party": "A" },
-    { "id": "st2", "file": "st2.json", "title": "t3.st2.title", "party": "A",
+    { "id": "st1", "file": "st1.json", "title": "t3.st1.title", "party": ["veterans", "rookies"] },
+    { "id": "st2", "file": "st2.json", "title": "t3.st2.title", "party": ["veterans", "rookies"],
       "unlock": [ { "type": "cleared", "stage": "st1" } ] },
-    { "id": "st3", "file": "st3.json", "title": "t3.st3.title", "party": "A",
+    { "id": "st3", "file": "st3.json", "title": "t3.st3.title", "party": ["veterans", "rookies"],
       "unlock": [ { "type": "cleared", "stage": "st2" } ] },
-    { "id": "st4", "file": "st4.json", "title": "t3.st4.title", "party": "A",
+    { "id": "st4", "file": "st4.json", "title": "t3.st4.title", "party": ["veterans", "rookies"],
       "unlock": [ { "type": "cleared", "stage": "st3" } ] },
-    { "id": "st5", "file": "st5.json", "title": "t3.st5.title", "party": "A",
+    { "id": "st5", "file": "st5.json", "title": "t3.st5.title", "party": ["veterans", "rookies"],
       "unlock": [ { "type": "cleared", "stage": "st4" } ] },
-    { "id": "st6", "file": "st6.json", "title": "t3.st6.title", "party": "A",
+    { "id": "st6", "file": "st6.json", "title": "t3.st6.title", "party": ["veterans", "rookies"],
       "unlock": [ { "type": "cleared", "stage": "st5" } ] },
-    { "id": "st7", "file": "st7.json", "title": "t3.st7.title", "party": "A",
+    { "id": "st7", "file": "st7.json", "title": "t3.st7.title", "party": ["veterans", "rookies"],
       "unlock": [ { "type": "cleared", "stage": "st6" } ] }
   ]
 }
