@@ -1736,9 +1736,9 @@ func _build_unit_node(u: Unit) -> Node3D:
 	root.position = Vector3(p.x, _elev(u.pos), p.y)
 	_units_root.add_child(root)
 	_unit_nodes[u.id] = root
-	# 暗く落とすのは「行動を終えた駒」と「いまターンでない陣営の駒」。行ける先が無いだけの駒は
-	# 落とさない（陣形には参加できる＝まだ手が残っている）。
-	var done := not state.is_current_unit(u) or state.is_done(u.id)
+	# 暗く落とすのは「このターンの行動を終えた駒」だけ。行ける先が無いだけの駒も、ターンでない
+	# 側の陣営も落とさない（どちらの陣営のターンかはターン板で示す → doc/gdd/uiux.md）。
+	var done := state.is_done(u.id)
 	var tex := _unit_texture(u)
 	if tex != null:
 		var spr := Sprite3D.new()
