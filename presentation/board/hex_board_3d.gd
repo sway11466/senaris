@@ -23,9 +23,6 @@ signal formation_impact_finished
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
 const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
-const FOCUS_PAN_SEC := 0.25          # AIターンのカメラ追従＝1回のパンにかける秒数（なめらかに）
-const FOCUS_MARGIN := 96.0           # 追従の安全域(デッドゾーン)＝可視域の内側マージン(px)。この内なら動かさない
-const FOCUS_PULL_IN := 40.0          # 追従時は縁ちょうどでなく安全域の少し内側まで入れる（俯角の換算誤差・境界の揺れを吸収）
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
 ## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。絵そのものではなくキャンバスを基準に
 ## するのは、大小関係を余白として焼き込んでいるため（小さい駒＝同じ枠で絵が小さい）。
@@ -57,15 +54,8 @@ const SKILL_GLOW_MAX := 0.85             # 同・上限
 const SKILL_DEBUFF_MIN := 0.55
 const SKILL_DEBUFF_MAX := 0.92
 const SKILL_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
-const CAM_PITCH_DEG := 52.0      # カメラ俯角（プローブで確認した見え方）
-const CAM_FOV := 42.0
-const MIN_DIST := 5.0            # ズーム＝カメラ距離の範囲
-const MAX_DIST := 90.0
-const ZOOM_STEP := 1.15
 const INFOPANEL_LEFT := UiLayout.RIGHT_BOX_LEFT    # InfoPanel の左端（レイアウト定数は ui_layout.gd に集約）
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
-const PAN_GESTURE_SPEED := 24.0  # パンジェスチャ(macOS等の2本指)の感度
-const PAN_WHEEL_STEP := 50.0     # 2本指スクロール1ノッチぶんのパン量(px)
 
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
@@ -94,8 +84,6 @@ const HIT_BURST_OPEN := 1.35      # 同・着弾で開く倍率
 const HIT_FLASH_SEC := 0.14       # 被弾フラッシュ（立ち絵を白く飛ばす）の片道
 const HIT_FLASH_GAIN := 2.2       # 同・明るさの倍率
 const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
-const SHAKE_PX := 7.0             # 着弾の揺れ幅（画面px。盤と2D側で同じ量を使う）
-const SHAKE_STEP := 0.05          # 同・1振りの秒数
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
 const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
@@ -144,11 +132,8 @@ var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い
 var _unit_tex := {}       # 画像パス(String) -> Texture2D
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 
-# --- カメラリグ（俯角固定・注視点とdistだけ動かす）---
-var _cam: Camera3D
-var _cam_target := Vector3.ZERO
-var _cam_dist := 20.0
-var _cam_up := Vector3.UP  # カメラの上方向（_update_camera が入れる）。頭上マーカーの持ち上げ向き
+# --- カメラリグ（BoardCamera に委譲）---
+var _board_cam: BoardCamera
 var _press_pos := Vector2.ZERO   # 左ボタン押下位置（クリック/ドラッグ判別の起点・スクリーン座標）
 var _press_on_empty := false     # 押下が空き地（ユニット無し）から始まったか＝パン許可
 var _dragging_pan := false       # 左ドラッグでパン中
@@ -192,7 +177,6 @@ var _locked := false     # 決着・AIターン中は入力を受けない（カ
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
 var _unit_nodes := {}    # unit_id -> Node3D（そのユニットの見た目一式の親。_sync_units が作り直す）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の _sync_units で必ず畳む）
-var _cam_tween: Tween = null   # 進行中のカメラ追従パン（同時に1本＝新しい追従で差し替える）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
 var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
@@ -232,11 +216,8 @@ func _ready() -> void:
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-58, -35, 0)
 	add_child(sun)
-	_cam = Camera3D.new()
-	_cam.fov = CAM_FOV
-	add_child(_cam)
-	_update_camera()
-	_cam.make_current()
+	_board_cam = BoardCamera.new()
+	add_child(_board_cam)
 	# 共有メッシュとコンテナ。
 	_hex_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_overlay_mesh = BoardMeshFactory.make_hex_mesh(TILE)
@@ -347,7 +328,7 @@ func _process(_delta: float) -> void:
 		var dy := sin(float(Time.get_ticks_msec()) * 0.001 / MARK_BOB_CYCLE * TAU) * MARK_BOB
 		var s := _mark_scale()  # ズームで見失わないよう、引いた画角では拡大する
 		for m in _target_markers:
-			m.position = Vector3(m.get_meta("base_pos")) + _cam_up * (dy * s)
+			m.position = Vector3(m.get_meta("base_pos")) + _board_cam.cam_up * (dy * s)
 			m.scale = Vector3(s, s, 1.0)
 	if state == null:
 		return
@@ -393,7 +374,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if not _dragging_pan and _press_pos.distance_to(get_viewport().get_mouse_position()) > DRAG_THRESHOLD:
 			_dragging_pan = true
 		if _dragging_pan:
-			_pan_by(event.relative)  # 空き地ドラッグ＝パン
+			_board_cam.pan_by(event.relative)  # 空き地ドラッグ＝パン
 		return
 	# --- 盤操作（自ターンのみ）---
 	if _locked or controller.is_ai_turn():
@@ -417,67 +398,29 @@ func _handle_camera_scroll(event: InputEvent) -> bool:
 		var f: float = event.factor if event.factor > 0.0 else 1.0
 		if event.ctrl_pressed:  # ピンチ＝ズーム
 			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-				_zoom_at_point(pow(ZOOM_STEP, f), get_viewport().get_mouse_position())
+				_board_cam.zoom_at_point(pow(BoardCamera.ZOOM_STEP, f), get_viewport().get_mouse_position())
 			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-				_zoom_at_point(pow(1.0 / ZOOM_STEP, f), get_viewport().get_mouse_position())
+				_board_cam.zoom_at_point(pow(1.0 / BoardCamera.ZOOM_STEP, f), get_viewport().get_mouse_position())
 		else:  # 2本指スクロール＝パン（上下左右）
-			var step := PAN_WHEEL_STEP * f
+			var step := BoardCamera.PAN_WHEEL_STEP * f
 			match event.button_index:
-				MOUSE_BUTTON_WHEEL_UP: _pan_by(Vector2(0, step))
-				MOUSE_BUTTON_WHEEL_DOWN: _pan_by(Vector2(0, -step))
-				MOUSE_BUTTON_WHEEL_LEFT: _pan_by(Vector2(step, 0))
-				MOUSE_BUTTON_WHEEL_RIGHT: _pan_by(Vector2(-step, 0))
+				MOUSE_BUTTON_WHEEL_UP: _board_cam.pan_by(Vector2(0, step))
+				MOUSE_BUTTON_WHEEL_DOWN: _board_cam.pan_by(Vector2(0, -step))
+				MOUSE_BUTTON_WHEEL_LEFT: _board_cam.pan_by(Vector2(step, 0))
+				MOUSE_BUTTON_WHEEL_RIGHT: _board_cam.pan_by(Vector2(-step, 0))
 		return true
 	if event is InputEventMagnifyGesture:
-		_zoom_at_point(event.factor, event.position)
+		_board_cam.zoom_at_point(event.factor, event.position)
 		return true
 	if event is InputEventPanGesture:
-		_pan_by(-event.delta * PAN_GESTURE_SPEED)
+		_board_cam.pan_by(-event.delta * BoardCamera.PAN_GESTURE_SPEED)
 		return true
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F:
 		fit_to_view()
 		return true
 	return false
 
-# =========================================================================
-# カメラリグ（俯角固定。注視点 _cam_target と距離 _cam_dist だけ動かす）
-# =========================================================================
-
-func _update_camera() -> void:
-	var pitch := deg_to_rad(CAM_PITCH_DEG)
-	_cam.position = _cam_target + Vector3(0.0, sin(pitch), cos(pitch)) * _cam_dist
-	_cam.look_at(_cam_target, Vector3.UP)
-	# ビルボードの「上」＝カメラの上方向。俯角固定なのでパン・ズームでは変わらない。
-	# ワールドのYで持ち上げた点は遠近で画面中心から外へ倒れるが、ビルボードの立ち絵は倒れない
-	# （常にカメラへ正対＝画面の縦に伸びる）。駒の頭に載せる物はこの向きで持ち上げる。
-	_cam_up = Vector3(0.0, cos(pitch), -sin(pitch))
-
-## 画面1pxがワールドで何mか（注視点の距離基準の近似）。パン・fit の換算に使う。
-func _world_per_pixel() -> float:
-	return 2.0 * _cam_dist * tan(deg_to_rad(CAM_FOV) * 0.5) / get_viewport().get_visible_rect().size.y
-
-## マウス移動(px)ぶん盤が指に追随するよう注視点を動かす。
-## 画面の縦は俯角で奥行きが sin(pitch) に縮むぶん割り戻す。
-func _pan_by(px: Vector2) -> void:
-	var wpp := _world_per_pixel()
-	_cam_target.x -= px.x * wpp
-	_cam_target.z -= px.y * wpp / sin(deg_to_rad(CAM_PITCH_DEG))
-	_update_camera()
-
-## screen の直下の盤上の点を固定したままズーム（＝カーソル基点）。
-func _zoom_at_point(factor: float, screen: Vector2) -> void:
-	var nd := clampf(_cam_dist / factor, MIN_DIST, MAX_DIST)  # ズームイン＝距離を縮める
-	if is_equal_approx(nd, _cam_dist):
-		return
-	var before := _plane_point_at(screen)
-	_cam_dist = nd
-	_update_camera()
-	var after := _plane_point_at(screen)
-	if before.is_finite() and after.is_finite():
-		_cam_target += Vector3(before.x - after.x, 0.0, before.z - after.z)
-		_update_camera()
-
-## 盤全体が HUD を避けた表示領域（上のターン板・右の InfoPanel を除く）に収まるよう距離と注視点を合わせる。
+## 盤全体が HUD を避けた表示領域に収まるよう距離と注視点を合わせる。
 func fit_to_view() -> void:
 	if state == null:
 		return
@@ -490,74 +433,27 @@ func fit_to_view() -> void:
 			mx = mx.max(p)
 	if mn.x > mx.x:
 		return
-	var c := (mn + mx) * 0.5
-	var half := (mx - mn) * 0.5 + Vector2(TILE * 1.5, TILE * 1.5)
-	var vp := get_viewport().get_visible_rect().size
-	var tanf := tan(deg_to_rad(CAM_FOV) * 0.5)
-	var sp := sin(deg_to_rad(CAM_PITCH_DEG))
-	var vis_w := minf(vp.x, INFOPANEL_LEFT) - 32.0   # 可視域（右の InfoPanel・左右マージンを除く）
-	var vis_h := vp.y - 96.0                          # 上のターン板の下から下端まで
-	var d_h := half.x / (tanf * vis_w / vp.y)         # 横に収まる距離
-	var d_v := half.y * sp / (tanf * vis_h / vp.y)    # 縦（奥行きは俯角で縮む）に収まる距離
-	_cam_dist = clampf(maxf(d_h, d_v) * 1.05, MIN_DIST, MAX_DIST)
-	# 盤中心が可視域の中心（画面中心より左・やや下）に来るよう注視点をずらす。
-	var wpp := _world_per_pixel()
-	var dx_px := vp.x * 0.5 - (16.0 + vis_w * 0.5)
-	var dy_px := vp.y * 0.5 - (64.0 + vis_h * 0.5)
-	_cam_target = Vector3(c.x + dx_px * wpp, 0.0, c.y + dy_px * wpp / sp)
-	_update_camera()
+	_board_cam.fit_to_bounds(mn, mx, TILE, _vis_rect())
 
 ## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
 ## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
-## ただし: すでに安全域(可視域の内側)に見えていれば動かさない＝近くの敵が続くとき無駄に揺らさない。
-## 外／端にいるときだけ、その主体が安全域に入る最小限だけ なめらかにパンする。ズーム(距離)は変えない。
 func focus_camera_on(hex: Vector2i) -> void:
 	if state == null:
 		return
-	var w := _hex_world(hex)
-	if _cam.is_position_behind(w):
-		return  # 主体がカメラ背後（通常起きない）＝寄せようがない
-	var sp := _cam.unproject_position(w)
+	await _board_cam.focus_on(_hex_world(hex), _vis_rect())
+
+## 着弾の揺れ（盤ぶん）。
+func shake(px: float = BoardCamera.SHAKE_PX) -> void:
+	_board_cam.shake(px)
+
+## HUD を避けた可視域を Rect2 で返す（fit / focus の共通パラメータ）。
+func _vis_rect() -> Rect2:
 	var vp := get_viewport().get_visible_rect().size
-	# 安全域＝可視域（右の InfoPanel・上のターン板を除く）の、さらに内側 FOCUS_MARGIN。
-	var left := 16.0 + FOCUS_MARGIN
-	var right := INFOPANEL_LEFT - 16.0 - FOCUS_MARGIN
-	var top := 96.0 + FOCUS_MARGIN
-	var bottom := vp.y - FOCUS_MARGIN
-	# はみ出し量(px)。判定の縁は [left,right]/[top,bottom]（内側なら 0＝動かさない＝デッドゾーン）。
-	# 動かすときの目標は縁より FOCUS_PULL_IN 内側＝一度入れたら次はデッドゾーン内で安定（揺れない）。
-	var dx := 0.0
-	if sp.x < left:
-		dx = sp.x - (left + FOCUS_PULL_IN)
-	elif sp.x > right:
-		dx = sp.x - (right - FOCUS_PULL_IN)
-	var dy := 0.0
-	if sp.y < top:
-		dy = sp.y - (top + FOCUS_PULL_IN)
-	elif sp.y > bottom:
-		dy = sp.y - (bottom - FOCUS_PULL_IN)
-	if is_zero_approx(dx) and is_zero_approx(dy):
-		return  # 見えている＝カメラは動かさない
-	# はみ出しぶんだけ注視点をずらす（画面の縦は俯角で奥行きが縮むぶん割り戻す・_pan_by と同じ換算）。
-	var wpp := _world_per_pixel()
-	var dest := _cam_target
-	dest.x += dx * wpp
-	dest.z += dy * wpp / sin(deg_to_rad(CAM_PITCH_DEG))
-	await _pan_target_to(dest)
-
-## 注視点を dest へ Tween でなめらかに移す（追従用）。完了まで待てる。
-func _pan_target_to(dest: Vector3) -> void:
-	if _cam_tween != null and _cam_tween.is_valid():
-		_cam_tween.kill()  # 前の追従が残っていれば差し替える（同時に1本）
-	var t := create_tween()
-	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.tween_method(_set_cam_target, _cam_target, dest, FOCUS_PAN_SEC)
-	_cam_tween = t
-	await t.finished
-
-func _set_cam_target(p: Vector3) -> void:
-	_cam_target = p
-	_update_camera()
+	var x := 16.0
+	var y := 64.0
+	var w := minf(vp.x, INFOPANEL_LEFT) - 32.0
+	var h := vp.y - 96.0
+	return Rect2(x, y, w, h)
 
 # =========================================================================
 # picking（マウスレイ ∩ 盤平面 y=0。物理・コリジョン不要）
@@ -565,8 +461,8 @@ func _set_cam_target(p: Vector3) -> void:
 
 ## screen 直下・高さ y の水平面上の点。交差しない（水平線より上）なら Vector3.INF。
 func _plane_point_at_y(screen: Vector2, y: float) -> Vector3:
-	var o := _cam.project_ray_origin(screen)
-	var d := _cam.project_ray_normal(screen)
+	var o := _board_cam.camera.project_ray_origin(screen)
+	var d := _board_cam.camera.project_ray_normal(screen)
 	if absf(d.y) < 1e-6:
 		return Vector3.INF
 	var t := (y - o.y) / d.y
@@ -985,23 +881,6 @@ func _effect_texture(eff: CombatEffect) -> Texture2D:
 	_effect_tex[eff.effect_id] = tex
 	return tex
 
-## 着弾の揺れ（盤ぶん）。カメラの frustum をずらす＝注視点を動かさないので、
-## 揺れ終わりに位置が残らない。2D側（UI）の揺れは main が同じ量で掛ける。
-func shake(px: float = SHAKE_PX) -> void:
-	if _cam == null:
-		return
-	var d := px * _world_per_pixel()
-	var tw := create_tween()
-	tw.tween_method(_set_cam_shake, Vector2.ZERO, Vector2(-d, d * 0.5), SHAKE_STEP)
-	tw.tween_method(_set_cam_shake, Vector2(-d, d * 0.5), Vector2(d * 0.8, -d * 0.3), SHAKE_STEP)
-	tw.tween_method(_set_cam_shake, Vector2(d * 0.8, -d * 0.3), Vector2(-d * 0.4, -d * 0.2), SHAKE_STEP)
-	tw.tween_method(_set_cam_shake, Vector2(-d * 0.4, -d * 0.2), Vector2.ZERO, SHAKE_STEP)
-
-func _set_cam_shake(v: Vector2) -> void:
-	if _cam == null:
-		return
-	_cam.h_offset = v.x
-	_cam.v_offset = v.y
 
 func _wait(sec: float) -> void:
 	if is_inside_tree():
@@ -1959,7 +1838,7 @@ func _add_target_marker(u: Unit) -> void:
 	if u == null:
 		return
 	var n := Node3D.new()
-	var base := _unit_head_pos(u) + _cam_up * (MARK_GAP + _mark_tip_drop)
+	var base := _unit_head_pos(u) + _board_cam.cam_up * (MARK_GAP + _mark_tip_drop)
 	n.position = base
 	n.set_meta("base_pos", base)
 	var edge := MeshInstance3D.new()
@@ -1976,7 +1855,7 @@ func _add_target_marker(u: Unit) -> void:
 ## 頭上マーカーの倍率。画面上で MARK_MIN_PX を割り込むぶんだけ拡大する（寄っていれば等倍）。
 ## 盤の駒と一緒に縮んでよい記号ではない＝探すための印なので、下限は画面のpxで持つ。
 func _mark_scale() -> float:
-	var px := MARK_W / _world_per_pixel()
+	var px := MARK_W / _board_cam.world_per_pixel()
 	if px >= MARK_MIN_PX:
 		return 1.0
 	return minf(MARK_MIN_PX / px, MARK_MAX_SCALE)
@@ -1989,8 +1868,8 @@ func _unit_head_pos(u: Unit) -> Vector3:
 	var foot := Vector3(p.x, _elev(u.pos) + 0.02 - _sprite_sink(u.pos), p.y + SPRITE_FOOT_Z)
 	var tex := _unit_texture(u)
 	if tex == null:
-		return foot + _cam_up * (TILE * 0.35)  # プレースホルダの円盤＝背丈を持たないので固定
-	return foot + _cam_up * _figure_height(tex)
+		return foot + _board_cam.cam_up * (TILE * 0.35)  # プレースホルダの円盤＝背丈を持たないので固定
+	return foot + _board_cam.cam_up * _figure_height(tex)
 
 ## 立ち絵PNGの「実体」の背丈（ワールド単位）。キャンバス全高ではなく非透過部分の上端で測る。
 ## 大小関係はキャンバスに焼き込んだ余白で表しているので（→ doc/art/units.md 3.1）、キャンバス

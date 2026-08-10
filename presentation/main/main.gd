@@ -201,8 +201,8 @@ func _on_formation_resolved(result: Dictionary) -> void:
 ## 着弾の揺れ（2D側）。このノードごと振る＝盤の上に載る UI・オーバーレイが一緒に動く。
 ## 別レイヤー（CanvasLayer＝戦闘演出・戦果票・セレクト）には乗らないが、着弾の瞬間それらは出ていない。
 func _shake_screen() -> void:
-	var d := float(HexBoard3D.SHAKE_PX)
-	var step := float(HexBoard3D.SHAKE_STEP)
+	var d := float(BoardCamera.SHAKE_PX)
+	var step := float(BoardCamera.SHAKE_STEP)
 	var tw := create_tween()
 	tw.tween_property(self, "position", Vector2(-d, d * 0.5), step)
 	tw.tween_property(self, "position", Vector2(d * 0.8, -d * 0.3), step)
