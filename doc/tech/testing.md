@@ -46,4 +46,4 @@ GitHub Actions（`.github/workflows/tests.yml`）が main への push と pull r
 
 - `tests/unit/` — 1話題1ファイルで `test_<話題>.gd`。話題はレイヤーの単位に対応する＝domain（戦闘・移動・AI・陣形・占領・輸送・ターン・勝敗・盤の状態）／data（CSV正本→JSON生成の整合・各カタログ・多言語・会話）／application（試合進行・コマンド・ステージ読込・キャンペーン進行）／infrastructure（永続化）。どの話題があるかはディレクトリが正本＝ここに一覧を持たない。
 - `tests/manual/` — 使い捨てスクリプト置き場（セレクト画面のヘッドレス再現・スクショ）。自動実行の対象外。
-- 手動での機能確認は機能別のデバッグステージ（`data/stages/debug-*/`）を使う。カテゴリ内訳・未実装TODO → [debug-stages.md](debug-stages.md)。
+- 手動での機能確認は機能別のデバッグステージ（`data/stages/debug-*/`）を使う。カテゴリ内訳 → [debug-stages.md](debug-stages.md)。
