@@ -48,19 +48,18 @@
 
 **戦力供給の持ち越し（carryover）**（優先度：高）
 
-- 背景：キャンペーンの背骨。前ステージの生存ユニット（Lv・残兵）を次ステージへ持ち越す供給モデル（[map.md](gdd/map.md) §戦力供給）。エンジン側（Phase 1〜2d）は実装済み＝下記「進捗」。残るのは tutorial3 実データ制作（3a・コンテンツ＝[campaign/roadmap.md](campaign/roadmap.md) 側）とセレクトの連戦区間可視化（3b・下記「対応（可視化）」）、および live 配線の実機確認（保留）。
+- 背景：キャンペーンの背骨。前ステージの生存ユニット（Lv・残兵）を次ステージへ持ち越す供給モデル（[map.md](gdd/map.md) §戦力供給）。エンジン側（Phase 1〜2d・3b）は実装済み＝下記「進捗」。残るのは tutorial3 実データの仕上げ（3a・コンテンツ＝[campaign/roadmap.md](campaign/roadmap.md) 側）と、live 配線の実機確認。
 - 対応（済・Phase 1〜2d）：前ステージ勝利時の名簿（type/skin/level/残兵）を `carryover_slots` に順に配置。永続化は `RosterStore`。詳細は下記「進捗」。
-- 対応（3b-1・名簿の更新規則）：クリア時に更新するのは「その盤に出た者だけ」に変える。いまの `RosterService.update_after_clear` は名簿に居て盤に居ない者を一律 `troops:0`（戦線離脱）にするため、隊を分けて戦うと待機中の隊が全滅扱いになる。出撃した者の集合を開始時に控えて、更新をそこに限る。これが隊分けの土台（[map.md](gdd/map.md) 名簿の更新／隊を分ける）。
-- 対応（3b-2・`roster` フィールドの廃止）：ステージJSONの `roster: fresh|carryover` を落とす。実装は元からこの値を見ておらず（`_apply_carryover` は `carryover_slots` の有無で動く）、隊分けも `actor` の名指しで表せるため、宣言としての役目が無い。`BattleState.roster` と直列化も落とす（中断セーブの版上げ）。
-- 対応（3b-3・セレクトの可視化）：持ち越しの有無は戦い方を変える（主力を死なせられない温存プレイか、使い切ってよいか）ため、挑む前に分かるようにする。ステージ一覧の左に隊ごとの綴じ紐（レーン）を通し、その隊が出る話は実線・出ない話は薄い線にする（並走＝協力、片方だけ＝待機）。判定は `campaign.json` の stage エントリに置く `party`（表示専用・文字列か配列）で、ステージJSONは開かない。ステージJSONを開くと1冒険譚あたり 54〜89ms かかる（実測・7ステージ）＝貼り紙を押すたびに引っかかるため。隊名は画面に出さない（作者用の識別子）。冒険譚カード（上位）には出さない。
-- 該当：`application/roster_service.gd`（更新規則）・`application/stage_loader.gd`（`roster` 廃止）・`domain/battle_state.gd`（同・直列化）・`data/stages/campaign_catalog.gd`（`party` の読み取り）・`presentation/select/stage_select.gd`（レーン描画）・`presentation/main/main.gd`・`doc/gdd/map.md`・`doc/gdd/stage_select.md`。
+- 対応（済・3b）：名簿の更新を「その盤に出た者だけ」に限定（待機中の隊を失わせない）／`roster` フィールドの廃止／セレクトの連戦レーン。詳細は下記「進捗（2026-08-11）」。
+- 該当：`application/roster_service.gd`・`application/stage_loader.gd`・`domain/battle_state.gd`・`data/stages/campaign_catalog.gd`・`presentation/select/stage_select.gd`・`presentation/main/main.gd`・`doc/gdd/map.md`・`doc/gdd/stage_select.md`。
 - ロードマップ（feature-9 と共有・carryover 先／中断セーブ後）：土台は `Unit` 直列化で、本項（持ち越し）と feature-9（中断）が共有する。前提＝戦闘に乱数なし＝中断セーブはシード不要で状態だけで完全再現／性能はデータ駆動でスナップショットは `type_id`・`skin_id`・`level`・`troops`・`max_troops` だけ持てば足りる（他は type から `UnitCatalog` で再構築＝数値を焼かない）／`ProgressStore`（素JSON＋`user://`）が雛形・`garrison`/`deploy` 機構は既存（案Bはそのまま乗る）。
   1. Unit 直列化：`Unit.to_dict`/`from_dict`（上記5フィールド＋復元は catalog）＋テスト。以降すべての土台（規模：小）。
   2. carryover 本体：(2a) `StageLoader` が持ち越しの有無を解釈する／(2b) 戦力スナップショットの保存・読出（`RosterStore`・ProgressStore の隣）／(2c) 継承スロット配置（案A＝配置スロットに順に嵌める）／(2d) ステージ間受け渡し（勝利→生存抽出→保存／次ステージ→読出→配置）。ここで tutorial3 が生存戦力で繋がる＝連戦が動く（規模：小〜中）。
   3. 見せ方：tutorial3 データ（継承スロット＋新規勧誘）／セレクトの連戦区間可視化（規模：中）。中断セーブ（BattleState 全状態）は feature-9。
 - tutorial3 データ制作時に併せて通す（名簿まわり・コードは実装済み）：ベテラン5＋新米4＋加入組すべてに `actor` を振る（味方に名前のない駒はいない）。そのうえで、離脱者が `troops:0` で名簿に残ること・中立から勧誘した駒が拠点を奪われても寝返らないこと・会話の `when`（`joined:<actor>`）が仲間の有無で切り替わることを実機で確認する。
 - 進捗（2026-07-18）：Phase 1〜2 実装＋テスト済み＝`Unit.to_dict/from_dict`／`StageLoader` の `roster` 解釈・`_apply_carryover`・`survivors_snapshot`／`RosterStore`（`user://roster.json`）／main の勝利フック（生存保存）・開始フック（継承読込）。ロジック経路は統合テスト `tests/unit/test_carryover_flow.gd` で担保（勝利→保存→継承・リトライは前勝利の戦力）。main の live 配線の実機確認は、最初の carryover ステージ（tutorial3 か debug 連戦）を組んだ時に行う＝それまで保留。
-- 設計見直し（2026-08-11）：冒険譚の途中で隊を分ける構想（st1・st2 は A隊／st3・st4 は B隊／st5 で合流）が出たため、Phase 3 の設計をやり直した。名簿は冒険譚に1冊のままとし、隊分けは `carryover_slots` の `actor` 名指しで表す（隊名をデータに持たない）。engine 側で足りないのは「出撃しなかった者は名簿を触らない」の1点＝上記 3b-1。これに伴い `roster` フィールドは役目を失うので落とす（3b-2）。可視化は 3b-3。ステージJSONの書式が変わるため、制作中の tutorial3 データから `roster` を外す必要がある（3a 側と要調整）。
+- 進捗（2026-08-11）：冒険譚の途中で隊を分ける構想（st1・st2 は A隊／st3・st4 は B隊／st5 で合流）に合わせて Phase 3 を設計し直し、実装した。名簿は冒険譚に1冊のままで、隊分けは `carryover_slots` の `actor` 名指しが表す（隊名をデータに持たない）。(1) `BattleState._sortied_actors`＝この戦闘に投入された名前つきの駒を全入口（`add_unit`/`add_base`/`put_passenger`）で控え、`RosterService.update_after_clear` はそこに載っている者だけ更新する（出番の無い在籍者は据え置き）。(2) `roster` フィールドを廃止＝継承の宣言は `carryover_slots` の有無が兼ねる。中断セーブは直列化が変わるので `SaveStore.VERSION` を 2 へ。(3) セレクトのステージ行を木札（`wood_button`）にし、左に隊ごとの綴じ紐を通した。判定は `campaign.json` の `party`、待機区間は破線。レーンの導出は `StageSelect.lanes_of()`（純関数・テストあり）。描画の目視は `tests/manual/shot_stage_rows.gd`。
+- 残り：tutorial3 の会話テキスト（3a・別セッション進行中）と、live 配線の実機確認＝連戦を通しで遊び、名簿の受け渡し・離脱者の在籍・勧誘した駒の帰属・会話の `when` 切り替わりを見る。
 
 ### feature-6
 
