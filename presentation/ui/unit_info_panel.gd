@@ -302,8 +302,12 @@ func _build_terrain(u: Unit) -> void:
 
 ## 行動状態の短い説明。
 func _action_state(u: Unit) -> String:
+	if not _state.is_current_unit(u):
+		return "ターン外"
 	if _state.is_done(u.id):
 		return "行動完了"
+	if _state.is_stuck(u.id):
+		return "行き止まり"  # 行動は残っているが動く先も撃つ相手も無い（陣形には参加できる）
 	var parts: Array[String] = []
 	parts.append("移動可" if _state.can_still_move(u.id) else "移動済")
 	parts.append("攻撃可" if not _state.has_attacked(u.id) else "攻撃済")

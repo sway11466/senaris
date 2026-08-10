@@ -135,8 +135,8 @@ func next_action(state: BattleState, team: int) -> AiAction:
 
 ## u が今できる1手（無ければ null）。占領 → 攻撃 → 前進の順で、doc/gdd/ai.md の思考の流れに対応する。
 func _unit_action(state: BattleState, u: Unit) -> AiAction:
-	if state.is_done(u.id):
-		return null
+	if state.is_done(u.id) or state.is_stuck(u.id):
+		return null  # 行動を終えた／打つ手が無い（囲まれて行ける先も撃てる相手も無い）
 	if not _ensure_engaged(state, u):
 		return null  # 未起動（待機AI）＝その場で待つ。起動条件は _ensure_engaged 参照
 	# 占領: 今ターンの移動範囲に自陣営以外の拠点があれば取りに行く（攻撃より優先）。

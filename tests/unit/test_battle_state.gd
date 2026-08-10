@@ -63,6 +63,20 @@ func test_normal_unit_done_after_attack() -> void:
 	assert_false(s.can_still_move(1), "通常ユニットは攻撃後に動けない")
 	assert_true(s.is_done(1), "通常ユニットは攻撃で完了")
 
+## 出口を塞がれた駒は「打つ手が無い（is_stuck）」だけで、行動を終えた（is_done）わけではない。
+## ターン開始から行動完了にしてしまうと、暗く落ちて選択できず、陣形スキルにも参加できなくなる。
+func test_blocked_unit_is_stuck_but_not_done() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, c, 1, 8, 20, 20))  # 移動1＝味方のマスは通過できても先へ抜けられない
+	for i in 6:
+		s.add_unit(Unit.new(10 + i, 0, Hex.neighbor(c, i), 1, 8, 20, 20))
+	assert_eq(s.reachable(1).size(), 1, "前提: 味方に囲まれて止まれる先が自分のマスしか無い")
+	assert_true(s.attack_targets(1).is_empty(), "前提: 撃てる相手も居ない")
+	assert_true(s.is_stuck(1), "打つ手が無い")
+	assert_false(s.is_done(1), "このターンまだ何も使っていない＝行動完了ではない")
+	assert_true(s.can_select(1), "選択できる（待機も陣形スキルも選べる）")
+
 func test_move_budget_shared_across_attack() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)

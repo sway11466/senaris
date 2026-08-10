@@ -495,7 +495,7 @@ func _adjacent_boardable(u: Unit) -> Array[Vector2i]:
 
 ## u が hex に進入するコスト。盤外・敵ユニットのマスは進入不可（Movement.IMPASSABLE）。
 ## 味方のマスは通過できる（地形コスト）が停止はできない（到達候補からは _reach_map で除外）。
-## 乗れる味方輸送のマスへは進入できる（＝移動先に選ぶと乗車）。それ以外は地形コスト。
+## 乗れる味方輸送のマスへも同じく進入できる（そこで止まれば乗車・通り抜けてもよい）。
 func _enter_cost(hex: Vector2i, u: Unit) -> int:
 	if not in_field(hex):
 		return Movement.IMPASSABLE
@@ -504,12 +504,10 @@ func _enter_cost(hex: Vector2i, u: Unit) -> int:
 		return Movement.IMPASSABLE  # 敵の上は通れない（味方は通過可）
 	return Movement.cost(_movement, u.move_type, terrain_at(hex))
 
-## hex で移動が止まるか（その先へ展開しない）。敵ZOC＝停止／乗れる輸送＝乗車先なので通過不可。
+## hex で移動が止まるか（その先へ展開しない）。止まるのは敵ZOCだけ。
 ## 味方のマスでは止まらず先へ展開する（通過はできるが停止はできない＝到達候補にはならない）。
+## 輸送も味方のマスと同じ＝すり抜けて先へ行ける（乗車先としても選べる。doc/gdd/movement.md）。
 func _move_stop(hex: Vector2i, u: Unit) -> bool:
-	var occ := unit_at(hex)
-	if occ != null and can_board(u, occ):
-		return true  # 乗れる輸送のマス（終点としてのみ有効）
 	return _in_enemy_zoc(hex, u)
 
 ## hex が u から見た敵ZOC内か（敵ユニットに隣接しているか）。ZOCに入ると移動が止まる。
@@ -635,8 +633,8 @@ func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 		return false
 	var u: Unit = b.garrison[index]
 	# このターン行動を終えた駒は出せない＝「入る」で収容した駒の往復を止める。判定は明示的な
-	# 行動終了フラグだけを見る（is_done は「動ける先が無い」も完了とするので盤外の駒は常に真＝
-	# 初期配置の控えまで出せなくなる）。フラグは end_turn で一掃される＝次の自軍ターンから出せる。
+	# 行動終了フラグだけを見る（盤外の駒に is_done / is_stuck の盤面判定は当てられない）。
+	# フラグは end_turn で一掃される＝次の自軍ターンから出せる。
 	if _done.has(u.id):
 		return false
 	return u.is_unclaimed() or u.recruited_team == b.team
@@ -812,15 +810,14 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 ## target＝着弾中心（buff では無視）。参加ユニットは行動完了。詳細 → doc/gdd/formations.md
 ## 成功なら {recipe, results:[{target_id, loss, killed, detail}...]}、不正（ターン違い・行動済み・射程外）なら空。
 func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
-	# 妥当性: 参加者が現ターン・未行動・生存していること、target が射程内であること。
-	# 移動後でも撃てるレシピ（ユニットスキル）は「行動を使い切っていないか」で見る。
-	# 陣形は従来どおり盤の行動終了判定に従う（配置が変わる＝動いたら成立しない）。
-	var after_move := bool(option.get("after_move", false))
+	# 妥当性: 参加者が現ターン・生存していること、まだ行動を使い切っていないこと（待機・攻撃済み
+	# でない）、target が射程内であること。行ける先が無いだけの駒は参加できる＝発動に移動先も
+	# 攻撃相手も要らない（Formation.available_for と同じ資格）。
 	for pid in option["participants"]:
 		var p := unit_by_id(int(pid))
 		if p == null or p.team != current_team:
 			return {}
-		if not (has_action_left(int(pid)) if after_move else not is_done(int(pid))):
+		if not has_action_left(int(pid)):
 			return {}
 	if not Formation.can_target(self, option, target):
 		return {}
@@ -1055,7 +1052,9 @@ func has_moved(unit_id: int) -> bool:
 func has_attacked(unit_id: int) -> bool:
 	return _attacked.has(unit_id)
 
-## このターンの行動を使い切ったか（もう移動も攻撃もできない／明示的に待機した）。
+## このターンの行動を終えたか（明示的に待機した／このターン動くか撃つかして、もう手が残っていない）。
+## このターンまだ何もしていない駒は、瓦礫や味方に囲まれて行ける先が無くても終わりにしない
+## ＝暗く落とさず、選択も陣形への参加もできる（そちらは is_stuck で見る）。
 ## 降車は「搭乗駒の行動」＝輸送自身が行動完了（待機・攻撃済み）でも、降ろせる駒が居る限り
 ## 選択可能にする（未行動の搭乗駒はいつでも降ろせる）。詳細 → doc/gdd/movement.md
 func is_done(unit_id: int) -> bool:
@@ -1063,6 +1062,14 @@ func is_done(unit_id: int) -> bool:
 		return false  # 「待機」済みでも降車のために選択できる
 	if _done.has(unit_id):
 		return true  # 「待機」で行動終了済み
+	if not has_moved(unit_id) and not has_attacked(unit_id):
+		return false  # このターンまだ何も使っていない＝手詰まりでも「終えた」ではない
+	return is_stuck(unit_id)
+
+## 打つ手が無いか（行ける先も撃てる相手も無い）。行動を使ったかどうかとは別＝ターン開始から
+## 手詰まりの駒もありうる（瓦礫に囲まれる・味方で塞がれる・敵ZOCで出口が終端になる）。
+## 手詰まりでも陣形スキルには参加できるので、盤の表示・選択可否はこれではなく is_done を見る。
+func is_stuck(unit_id: int) -> bool:
 	var can_atk := not has_attacked(unit_id) and not attack_targets(unit_id).is_empty()
 	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
 	return not can_atk and not can_mv

@@ -73,6 +73,19 @@ func test_done_member_excluded() -> void:
 	f["s"].set_done(2)  # member を行動済みに
 	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 0, "行動済みメンバーは三角形に数えない")
 
+## 発動に移動先も攻撃相手も要らない＝行き止まりのメンバーも参加できる。
+## 囲まれて動けないだけの駒を除外すると、密集した盤で陣形が組めなくなる。
+func test_stuck_member_still_counts() -> void:
+	var f := _trinity_spell_state()
+	var s: BattleState = f["s"]
+	s.unit_by_id(2).move = 0  # 行ける先が無い（瓦礫や味方に囲まれた駒と同じ状態）
+	assert_true(s.is_stuck(2), "前提: メンバーに打つ手が無い")
+	assert_false(s.is_done(2), "前提: 行動は使っていない")
+	assert_eq(_count(Formation.available_for(s, f["leader"]), "trinity_spell"), 1,
+		"動けないだけのメンバーも三角形に数える")
+	var opt := _pick(Formation.available_for(s, f["leader"]), "trinity_spell")
+	assert_false(s.resolve_formation(opt, f["enemy_hex"]).is_empty(), "そのまま発動できる")
+
 # ②ホーリーアリアの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
 func _aria_state() -> Dictionary:
 	var s := _state()

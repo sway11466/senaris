@@ -129,12 +129,9 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 			continue
 		if not _matches(unit, r["leader_skins"]):
 			continue
-		# 陣形は「まだ何も終えていない」＝盤の行動終了判定に従う。ユニットスキルは移動後でも
-		# 撃てるので、行動を使い切ったか（待機・攻撃済み）だけを見る。
-		if String(r["shape"]) == "solo":
-			if not state.has_action_left(unit.id):
-				continue
-		elif state.is_done(unit.id):
+		# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
+		# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
+		if not state.has_action_left(unit.id):
 			continue
 		match String(r["shape"]):
 			"triangle":
@@ -215,7 +212,7 @@ static func _matches(unit: Unit, skins: Array) -> bool:
 static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
-		if u.id == leader.id or u.team != leader.team or state.is_done(u.id):
+		if u.id == leader.id or u.team != leader.team or not state.has_action_left(u.id):
 			continue
 		if not _matches(u, r["member_skins"]):
 			continue
@@ -236,7 +233,7 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary) -> Array:
 	while not frontier.is_empty():
 		var cur: Unit = frontier.pop_back()
 		for u in state.units():
-			if seen.has(u.id) or u.team != leader.team or state.is_done(u.id):
+			if seen.has(u.id) or u.team != leader.team or not state.has_action_left(u.id):
 				continue
 			if not _matches(u, r["member_skins"]):
 				continue

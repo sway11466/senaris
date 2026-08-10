@@ -60,15 +60,29 @@ func test_cannot_board_enemy_full_or_transport() -> void:
 	s.add_unit(wagon2)
 	assert_false(s.move_unit(3, wagon.pos), "輸送は輸送に乗れない")
 
-func test_cannot_pass_through_transport() -> void:
-	# 輸送のマスは「終点としてのみ」進入可＝すり抜けて先へは行けない。
+func test_can_pass_through_transport() -> void:
+	# 輸送のマスは他の味方のマスと同じ＝すり抜けて先へ行ける（止まれば乗車）。
 	var s := BattleState.new(6, 1)
 	s.set_movement(Movement.load_default())
 	s.add_unit(_transport(1, 0, Hex.offset_to_axial(1, 0)))
 	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(0, 0), 3))
 	var reach := s.reachable(2)
 	assert_true(reach.has(Hex.offset_to_axial(1, 0)), "輸送のマスには入れる（乗車）")
-	assert_false(reach.has(Hex.offset_to_axial(2, 0)), "その先へは通り抜けられない（1本道）")
+	assert_true(reach.has(Hex.offset_to_axial(2, 0)), "その先へも通り抜けられる（1本道）")
+	assert_eq(s.path_to(2, Hex.offset_to_axial(3, 0)).size(), 4, "経路は輸送のマスを通る")
+
+func test_full_transport_does_not_change_pass_through() -> void:
+	# 満員かどうかで通り抜けの可否が変わらない（空き有無で壁になっていた不具合）。
+	var s := BattleState.new(6, 1)
+	s.set_movement(Movement.load_default())
+	var wagon := _transport(1, 0, Hex.offset_to_axial(1, 0), 1)
+	s.add_unit(wagon)
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(0, 0), 3))
+	assert_true(s.reachable(2).has(Hex.offset_to_axial(2, 0)), "空きあり: 先へ抜けられる")
+	s.put_passenger(1, Unit.new(9, 0, Vector2i.ZERO, 3))  # 満員にする
+	var reach := s.reachable(2)
+	assert_true(reach.has(Hex.offset_to_axial(2, 0)), "満員でも先へ抜けられる")
+	assert_false(reach.has(Hex.offset_to_axial(1, 0)), "満員の輸送のマスでは止まれない")
 
 func test_transport_moves_after_loading_same_turn() -> void:
 	var s := _state()
