@@ -396,7 +396,7 @@
   ],
   "enemy": [
     { "order": 50, "name": "ネクロマンサー", "ai": "guard", "sight": 10,
-      "units": [ { "skin": "necromancer", "col": 6, "row": 2 } ] },
+      "units": [ { "skin": "necromancer", "actor": "necromancer", "col": 6, "row": 2 } ] },
     { "order": 1, "name": "前衛左舷", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 4, "row": 20 },
