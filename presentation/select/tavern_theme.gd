@@ -200,6 +200,10 @@ static func signboard_stylebox() -> StyleBox:
 	sb.set_corner_radius_all(6)
 	return sb
 
+## 看板の彫り枠の角の丸み（px）。枠の下に絵を敷く側（勝利イラストなど）は、
+## 四隅が枠からはみ出さないよう同じ値で角を丸める。
+const FRAME_CORNER_RADIUS := 6
+
 ## 看板の彫り枠（パネルの最前面に重ねる縁だけの飾り・クリック透過）。
 static func signboard_frame() -> Control:
 	var frame := Panel.new()
@@ -209,7 +213,7 @@ static func signboard_frame() -> Control:
 	sb.draw_center = false
 	sb.set_border_width_all(4)
 	sb.border_color = BOARD_FRAME
-	sb.set_corner_radius_all(6)
+	sb.set_corner_radius_all(FRAME_CORNER_RADIUS)
 	frame.add_theme_stylebox_override("panel", sb)
 	return frame
 
