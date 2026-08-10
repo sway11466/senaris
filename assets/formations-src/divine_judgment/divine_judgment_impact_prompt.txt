@@ -1,0 +1,40 @@
+NOTE: これは盤の着弾エフェクト（駒の真上から落ちる小さい絵）。1秒のカットイン
+（divine_judgment_prompt.txt）とは別物で、絵柄も違う＝人物・背景を描かず、痕跡だけを描く。
+向きは下向き固定（盤では回転させない）。置き場と扱い → doc/art/keyvisual.md §3、
+doc/gdd/formations.md 発動の演出。参考に assets/effects/holy.png（聖光）と揃えると、
+聖職の一撃と陣形の裁きが同じ色・同じ十字の記号でつながる。
+
+STYLE: A single fantasy tactics-game attack effect, drawn as ONE isolated graphic:
+NO character, NO hands, NO weapon owner, NO ground, NO scenery, NO text, NO hex
+grid, NO UI. Clean stylized vector-like shapes with bold flat cel-shading in only
+two or three tones — the same flat, slightly muted look as the game's unit pieces.
+NOT photorealistic, NO glowing bloom, NO soft gradients, NO sparkle particles, NO
+smoke, NO motion-blur haze, NO lens flare, NO volumetric god-rays. A crisp, bold,
+readable silhouette that still reads when shrunk very small. The graphic is drawn
+as a blow travelling straight DOWN, vertical and level (no sideways tilt). It fills
+the frame edge to edge with only a thin margin. Plain single flat background color
+(given in the subject) for easy cutout. TALL portrait composition, roughly 1:2.5
+(clearly taller than wide).
+
+SUBJECT: A divine judgment falling from the sky — ONE straight vertical shaft of
+light coming DOWN from the top edge of the frame and striking a point at the
+bottom. Left-right symmetrical.
+
+The shaft is NARROW and hard-edged, like a cut-out ribbon of light, not a cone and
+not a spotlight: it starts thin at the very top edge, stays slender for most of its
+length, and flares only slightly as it nears the bottom. Warm white core with a
+pale gold outline edge, two tones only, straight parallel sides and clean corners.
+Flanking the shaft, two or three short straight gold speed lines fall alongside it,
+thinner and shorter than the shaft, to say that the light is descending fast.
+
+Where it lands at the bottom, draw the point of impact as a FLAT RING seen almost
+edge-on — a thin gold ellipse lying on the ground with a few short straight spikes
+of light stabbing outward from its rim, and a small pale gold cross resting at the
+center of the ring (the cross motif the game's clerics carry). The ring must be
+HOLLOW: the area inside it is empty background, not filled with light, so the
+figure standing there is never hidden. Keep the whole bottom cluster compact — a
+sharp point of impact, NOT a wide explosion, NOT a shockwave dome, NOT a crater.
+
+This is used only by the player's paladin and clergy, so warm white and gold is
+correct — do not use blue or red. Pure black background (single flat color, for
+easy cutout).

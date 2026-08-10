@@ -25,6 +25,7 @@
 | `gen_unit_map.ps1` | ユニットの master から map 画像（384四方・透過・64色）を書き出す | `powershell -File tools\gen_unit_map.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_unit_combat.ps1` | ユニットの master から combat 立ち絵（512四方・下端揃え・透過）を書き出す | `powershell -File tools\gen_unit_combat.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_effect.ps1` | 攻撃エフェクトの master をトリムして長辺512に収める（大小は `combat_effect.csv` の `scale` が持つので余白は焼かない） | `powershell -File tools\gen_effect.ps1 <effect_id> … \| all` | [../art/units.md](../art/units.md) |
+| `gen_formation_impact.ps1` | 陣形スキルの盤の着弾エフェクトの master をトリムして長辺512に収める（絵は下向きに描く＝盤では回さない） | `powershell -File tools\gen_formation_impact.ps1 <recipe_id> … \| all` | [../art/keyvisual.md](../art/keyvisual.md) |
 | `gen_terrain_tile.ps1` | 元絵をフラットトップのヘックスに切り抜いて地形タイルにする（2枚目以降は variant） | `powershell -File tools\gen_terrain_tile.ps1 <name> <src1> <src2> …` | [../art/terrain.md](../art/terrain.md) |
 | `gen_connect_tiles.ps1` | 線方式（柵）の接続タイル64通りを、直線1枚の元絵から生成する＝腕を6方向に回して重ねる。`-NoBase` で地面を焼かず透過のまま書き出す | `powershell -File tools\gen_connect_tiles.ps1 <name> <src> -ArmFrom … -ArmTo … -BandX … -BandW … -PostHalf … [-NoBase]` | [../art/terrain.md](../art/terrain.md) |
 | `gen_area_tiles.ps1` | 面方式（道）の接続タイル64通りを、全面テクスチャ1枚から生成する＝同じ絵をマスクで抜き、繋がらない側を隣の素材で覆う | `powershell -File tools\gen_area_tiles.ps1 <name> <src> -BandX … -BandW … -Bite …` | [../art/terrain.md](../art/terrain.md) |

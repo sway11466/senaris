@@ -885,7 +885,6 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		"center": target,
 		"cells": Formation.blast_cells(option, target),
 		"leader_id": int(option.get("leader_id", -1)),
-		"combat_effect": String(option.get("combat_effect", "")),
 	}
 	if skill_scope:
 		out["skill"] = skill_detail

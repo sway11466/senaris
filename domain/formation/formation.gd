@@ -343,9 +343,10 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 	opt["buff_scope"] = buff_scope
 	# 対象1体のスキルが味方向きか敵向きか（can_target の絞り込み）。既定は味方。
 	opt["buff_side"] = String(r.get("buff_side", "ally"))
-	# 演出で使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる（presentation 側で解決）。
-	# エフェクトの単位を「誰が撃ったか」ではなく「何を撃ったか」にする列＝ピュリファイはクレリックが
-	# 撃ってもビショップが撃っても同じ絵になる。詳細 → doc/gdd/skills.md 実装方針
+	# ユニットスキルの演出シーンで使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる
+	# （presentation 側で解決）。エフェクトの単位を「誰が撃ったか」ではなく「何を撃ったか」にする列＝
+	# ピュリファイはクレリックが撃ってもビショップが撃っても同じ絵になる。詳細 → doc/gdd/skills.md 実装方針
+	# 陣形の盤の着弾はこれを見ない（レシピ専用の絵を規約解決する → doc/gdd/formations.md 発動の演出）。
 	opt["combat_effect"] = String(r.get("combat_effect", ""))
 	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
 		# 強化か弱体か（ピュリファイが落とす対象・盤の見た目）。値の符号から推測しない＝レシピが明示する。

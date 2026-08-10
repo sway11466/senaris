@@ -57,9 +57,11 @@ around it. Wide 4:3 composition.
 - 追加スロット（cover 以外の kind）：cover と同じ二層・同じ ILLUST STYLE（§2）で作り、-src ファイル名に kind トークンを前置して cover と共存させる（ユニットの map=既定／combat=トークン、と同じ思想）。単一絵なら変種letter `_a` は省く。`CampaignCatalog` は `{id}_{kind}.png` を規約解決するので、絵を置くだけで有効・無ければスキップ。
   - `victory`＝キャンペーン完走（最終ステージ勝利）で出す扉絵（[../gdd/stage_select.md](../gdd/stage_select.md) 戦闘後フロー）。SUBJECT `{id}_victory_prompt.txt` → `{id}_victory_01_raw.png` →（透かし除去）`{id}_victory_02_dew.png` → ゲーム用 `assets/campaign/{id}/{id}_victory.png`。
 
-### 陣形スキルのカットイン
+### 陣形スキルの絵
 
-陣形スキルの発動で挟む1枚絵（[../gdd/formations.md](../gdd/formations.md) 発動の演出）。冒険譚ではなくレシピに紐づくので、冒険譚の絵とは別系統に置く。
+陣形スキルの絵は2種類ある（[../gdd/formations.md](../gdd/formations.md) 発動の演出）。発動で挟む1枚絵のカットインと、カットインが明けたあと盤の駒に落ちる着弾エフェクト。冒険譚ではなくレシピに紐づくので、冒険譚の絵とは別系統に置く。どちらも同じフォルダ・同じ `{recipe_id}` 起点で、着弾側に `_impact` が付く。
+
+#### カットイン
 
 | 段階 | 置き場（`{recipe_id}`＝Formation.RECIPES のキー） | 例（トリニティスペル） |
 |---|---|---|
@@ -74,9 +76,21 @@ around it. Wide 4:3 composition.
 - 獲得用キービジュアルとは**共用しない**。冒険譚2の獲得絵は `trinity_spell` のカットインと画題が近い（どちらもトリニティスペル）が、狙う瞬間が違う＝カットインは詠唱が結実する一瞬、獲得絵は戦いが終わった後の景色。1枚で兼ねると、毎回挟むカットインと、クリア時に1度だけ出る絵が同じになって、どちらの効き目も落ちる。
 - 描く瞬間はレシピごとに変える。トリニティスペルとディバインジャッジメントは光が上へ抜ける縦の構図、ホーリーアリアは横へ広がる構図＝攻撃と祝福で画の方向を分ける。術者は目を閉じて詠唱に没入させ、暴れるのは魔法の側に任せる（静と動の対比）。
 
----
+#### 盤の着弾エフェクト
 
-未完了の作業（獲得用キービジュアルの制作）は [backlog.md](../backlog.md)（feature-24）を参照。
+| 段階 | 置き場 | 例（トリニティスペル） |
+|---|---|---|
+| ① AI生成直後 | `assets/formations-src/{recipe_id}/{recipe_id}_impact_01_raw.png` | `formations-src/trinity_spell/trinity_spell_impact_01_raw.png` |
+| ② 透かし除去 | `assets/formations-src/{recipe_id}/{recipe_id}_impact_02_dew.png` | 同上フォルダ |
+| ③ 透過マスター | `assets/formations-src/{recipe_id}/{recipe_id}_impact_03_master.png` | 同上フォルダ |
+| SUBJECT | `assets/formations-src/{recipe_id}/{recipe_id}_impact_prompt.txt` | 同上フォルダ |
+| ④ ゲーム用 | `assets/formations/{recipe_id}_impact.png` | `assets/formations/trinity_spell_impact.png` |
+
+- ④は [`tools/gen_formation_impact.ps1`](../../tools/gen_formation_impact.ps1)（`{recipe_id}` 複数可／`all`）で書き出す。③をトリムして長辺512に収めるだけ。
+- 絵柄はカットインの ILLUST STYLE ではなく、攻撃エフェクトの EFFECT STYLE（[units.md](units.md) §3.4）に寄せる。盤で30〜70px に縮む小さな絵なので、人・背景を描かず、フラットな2〜3色・硬い輪郭で痕跡そのものだけを描く。
+- 向きは下向き（上から落ちてくる形）で描く。盤でしか使わないので演出側は回転させない。攻撃エフェクトの「右へ向かう一撃」の約束は適用しない。
+- 大小の倍率は無い。キャンバスいっぱいに描いて釣り合わせる。
+- 規約解決。置けば出て、無ければ絵を出さず面の光だけになる（コード不変）。
 
 ---
 

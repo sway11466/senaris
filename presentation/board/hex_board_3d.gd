@@ -187,7 +187,7 @@ var _formation_opts: Array = [] # 現メニューで提示中の陣形 option �
 var _impact_gen := 0            # 着弾演出の世代。ステージが変わったら増やす＝await の先で打ち切る
 var _impact_pending := false    # 陣形の着弾待ち＝盤の作り直しを保留している（撃たれる前の姿のまま置く）
 var _impact_lock := false       # 着弾演出の間だけ入力を止めた＝終わったら元へ戻す
-var _effect_tex := {}           # effect_id -> Texture2D|null（駒に重ねるエフェクトの絵）
+var _impact_tex := {}           # recipe_id -> Texture2D|null（駒に重ねる着弾の絵）
 var _menu: PopupMenu = null
 var _menu_handled := false
 var _menu_base := INVALID_HEX
@@ -709,7 +709,7 @@ func play_formation_impact(result: Dictionary) -> void:
 	var center := Vector2i(result.get("center", Vector2i.ZERO))
 	# 面の光は駒の処理が終わるまで保たせる＝どの範囲の中で起きているのかが見えたまま進む。
 	_flash_cells(result.get("cells", []), HIT_CELL_HOLD + HIT_DROP_SEC + HIT_STEP_SEC * float(hits.size()))
-	var eff := _impact_effect(result)
+	var tex := _impact_texture(String(result.get("recipe", "")))
 	# 着弾中心に近い駒から外へ。同距離は id 順＝毎回同じ順で出る（見え方が揺れない）。
 	var order: Array = hits.duplicate()
 	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
@@ -717,7 +717,7 @@ func play_formation_impact(result: Dictionary) -> void:
 		var db := Hex.distance(Vector2i(b["hex"]), center)
 		return da < db if da != db else int(a["target_id"]) < int(b["target_id"]))
 	for i in order.size():
-		_hit_unit(order[i], eff)
+		_hit_unit(order[i], tex)
 		# 最後の1発は落ちて当たって消えるまで待ってから盤を作り直す（消えかけの駒を飛ばさない）。
 		await _wait(HIT_STEP_SEC if i < order.size() - 1 else HIT_DROP_SEC + maxf(HIT_BURST_SEC, HIT_FADE_SEC))
 		if gen != _impact_gen:
@@ -741,9 +741,9 @@ func is_impacting() -> bool:
 
 ## 被弾した駒1体ぶん。エフェクトが上から落ちきった瞬間に駒が反応する
 ## （撃破ならその場でフェードアウト、生き残りは新しい兵数で組み直して光らせる）。
-func _hit_unit(hit: Dictionary, eff: CombatEffect) -> void:
+func _hit_unit(hit: Dictionary, tex: Texture2D) -> void:
 	var gen := _impact_gen
-	_spawn_burst(Vector2i(hit["hex"]), eff, func() -> void:
+	_spawn_burst(Vector2i(hit["hex"]), tex, func() -> void:
 		if gen == _impact_gen:
 			_land_hit(hit))
 
@@ -818,13 +818,10 @@ func _flash_cells(cells: Array, hold: float) -> void:
 		tw.tween_property(m, "albedo_color:a", 0.0, HIT_CELL_FADE)
 		tw.tween_callback(mi.queue_free)
 
-## 駒に当てるエフェクト1発。戦闘演出シーンと同じカタログの絵を使い、盤では kind によらず
-## 真上から落として当てる。盤には左右の向きが無い（右から撃つこともある）ので、絵の
-## 「右へ向かう一撃」をそのまま重ねると流れる向きが嘘になる＝90度回して落とす向きに使う。
+## 駒に当てるエフェクト1発。レシピ専用の絵を駒の真上から落として当てる。
 ## 落ちきった時点で on_land を呼ぶ＝駒の反応（フラッシュ・兵数・撃破）はそこに揃う。
-## 絵が引けないときは、そのヘックスだけを濃く光らせる＝穴が開かない。
-func _spawn_burst(hex: Vector2i, eff: CombatEffect, on_land: Callable) -> void:
-	var tex := _effect_texture(eff)
+## 絵が無いときは、そのヘックスだけを濃く光らせる＝穴が開かない。
+func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable) -> void:
 	if tex == null:
 		_flash_cells([hex], HIT_BURST_SEC)
 		on_land.call()
@@ -836,9 +833,9 @@ func _spawn_burst(hex: Vector2i, eff: CombatEffect, on_land: Callable) -> void:
 	spr.transparent = true
 	spr.no_depth_test = true      # 駒より手前に出す（足元の地形や後列に潜り込ませない）
 	spr.render_priority = 6
-	# 大きさの基準は長辺（縦長の斬撃と横長の矢が釣り合う）。倍率はカタログの scale。
+	# 大きさの基準は長辺。倍率は持たず、絵の側を枠いっぱいに描いて釣り合わせる。
 	var longest := float(maxi(tex.get_width(), tex.get_height()))
-	spr.pixel_size = (HIT_BURST_TILES * TILE * eff.scale) / maxf(longest, 1.0)
+	spr.pixel_size = (HIT_BURST_TILES * TILE) / maxf(longest, 1.0)
 	var at := _hex_world(hex)
 	var land := Vector3(at.x, at.y + TILE * 0.9, at.z + SPRITE_FOOT_Z)
 	spr.position = land + Vector3(0, HIT_DROP_FROM, 0)
@@ -851,34 +848,19 @@ func _spawn_burst(hex: Vector2i, eff: CombatEffect, on_land: Callable) -> void:
 	tw.tween_property(spr, "modulate:a", 0.0, HIT_BURST_SEC)
 	tw.chain().tween_callback(spr.queue_free)
 
-## 着弾に使うエフェクト。レシピの combat_effect を優先し、空なら発動者スキンの combat_effect へ
-## 落ちる（ユニットスキルの演出と同じ規約 → doc/gdd/skills.md）。どちらも無ければ null。
-func _impact_effect(result: Dictionary) -> CombatEffect:
-	var id := String(result.get("combat_effect", ""))
-	if id.is_empty():
-		var leader := state.unit_by_id(int(result.get("leader_id", -1))) if state != null else null
-		if leader != null:
-			var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, leader.skin_id, leader.type_id, leader.team)
-			if s != null:
-				id = s.combat_effect
-	return CombatEffectCatalog.by_id(id)
-
-## エフェクトの絵（キャッシュ）。カタログの絵は「右へ向かう一撃」なので、盤で使うぶんは
-## 時計回りに90度回して「下へ向かう一撃」にする（→ _spawn_burst）。ビルボードは回転を
-## 打ち消すので、ノードではなく画像そのものを回す。未定義・未配置は null。
-func _effect_texture(eff: CombatEffect) -> Texture2D:
-	if eff == null:
+## 着弾に使う絵（キャッシュ）。レシピIDで規約解決する＝assets/formations/{recipe_id}_impact.png。
+## カットイン（{recipe_id}.png）と同じ置き場・同じ規約で、接尾辞だけが違う。
+## 盤でしか使わないので絵は最初から下向きに描く＝ここで回さない。
+## 無ければ null＝絵を出さず面の光だけで済ませる（武器の攻撃エフェクトへは落とさない。
+## 借り物を落とすと剣の弧が天から降ってくる）。詳細 → doc/gdd/formations.md 発動の演出
+func _impact_texture(recipe: String) -> Texture2D:
+	if recipe.is_empty():
 		return null
-	if _effect_tex.has(eff.effect_id):
-		return _effect_tex[eff.effect_id]
-	var p := eff.image_path()
-	var src := load(p) as Texture2D if p != "" and ResourceLoader.exists(p) else null
-	var tex: Texture2D = null
-	if src != null:
-		var img := src.get_image()
-		img.rotate_90(CLOCKWISE)
-		tex = ImageTexture.create_from_image(img)
-	_effect_tex[eff.effect_id] = tex
+	if _impact_tex.has(recipe):
+		return _impact_tex[recipe]
+	var p := "res://assets/formations/%s_impact.png" % recipe
+	var tex := load(p) as Texture2D if ResourceLoader.exists(p) else null
+	_impact_tex[recipe] = tex
 	return tex
 
 
