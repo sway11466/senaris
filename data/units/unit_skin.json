@@ -169,7 +169,7 @@
 					"type_id": "cleric"
 				},
 				{
-					"category": "ローグ一味",
+					"category": "悪党",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -186,7 +186,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "ドラゴン",
 					"combat_effect": "",
 					"combat_lineup": "single",
 					"description": "",
@@ -262,7 +262,7 @@
 					"type_id": "fighter"
 				},
 				{
-					"category": "魔獣",
+					"category": "オーク",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -349,21 +349,21 @@
 					"description": "",
 					"images": {},
 					"map_move_sfx": "",
-					"name": "トレント",
+					"name": "スコーピオン",
 					"retainers": [],
-					"skin_id": "treant",
+					"skin_id": "scorpion",
 					"type_id": "knight"
 				},
 				{
-					"category": "魔獣",
+					"category": "植物",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
 					"map_move_sfx": "",
-					"name": "スコーピオン",
+					"name": "トレント",
 					"retainers": [],
-					"skin_id": "scorpion",
+					"skin_id": "treant",
 					"type_id": "knight"
 				}
 			]
@@ -402,7 +402,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "オーク",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -523,7 +523,7 @@
 					"type_id": "paladin"
 				},
 				{
-					"category": "ローグ一味",
+					"category": "悪党",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -700,7 +700,7 @@
 					"type_id": "slinger"
 				},
 				{
-					"category": "魔獣",
+					"category": "植物",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -785,7 +785,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "魔法生物",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -832,7 +832,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "オーク",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -921,7 +921,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "植物",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
