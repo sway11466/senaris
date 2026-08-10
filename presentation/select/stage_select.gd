@@ -11,12 +11,61 @@ signal back_requested
 
 const ROW_HEIGHT := 48.0
 
+## 連戦の綴じ紐。ステージ行の左に、隊ごとの縦線を1本ずつ通す。仕様 → doc/gdd/stage_select.md 連戦の区間
+## その隊が出る話は実線、初出から最後の登場までのあいだで出ない話は薄い線＝待機していて後で戻る。
+## 行の y は隣の VBox から借りる（自前で行の高さを再計算しない＝折り返しで背の伸びた行にも追随する）。
+class _Lanes extends Control:
+	const W := 14.0    # レーン1本ぶんの幅
+	const LINE := 2.0  # 線の太さ
+	const CAP := 8.0   # 端を止める横棒の長さ
+	const DIM := 0.6   # 出番の無い区間の濃さ。暗い木の上では 0.3 だと消えて「線が途切れた」に見える
+	const DASH := 6.0  # 出番の無い区間の破線の刻み。濃さだけでなく形も変える＝意味の違いを見せる
+
+	var rows: VBoxContainer = null  # 行の並び（y 位置の借り元）
+	var spans: Array = []           # レーンごとの { first, last, active }（表示順）
+
+	func _draw() -> void:
+		if rows == null:
+			return
+		var color := TavernTheme.BRAND  # 焼き印と同じ色＝暗い木の上で読める
+		var count := rows.get_child_count()
+		var dy := rows.position.y - position.y
+		for j in spans.size():
+			var span: Dictionary = spans[j]
+			var first := int(span["first"])
+			var last := int(span["last"])
+			if first >= count or last >= count:
+				continue  # 行より多い span は描かない（データが食い違っても壊れない）
+			var active: Dictionary = span["active"]
+			var x := W * (float(j) + 0.5)
+			var top := _top(first, dy)
+			var bottom := _bottom(last, dy)
+			# 待機の区間は破線でつなぐ＝切れてはいないが、いまは出ていないと読める。
+			draw_dashed_line(Vector2(x, top), Vector2(x, bottom), Color(color, DIM), LINE, DASH)
+			for i in range(first, last + 1):
+				if not active.has(i):
+					continue
+				var seg_end := _bottom(i, dy)
+				if i < last and active.has(i + 1):
+					seg_end = _top(i + 1, dy)  # 行間も埋める＝続いていることを途切れさせない
+				draw_line(Vector2(x, _top(i, dy)), Vector2(x, seg_end), color, LINE)
+			for y in [top, bottom]:
+				draw_line(Vector2(x - CAP * 0.5, y), Vector2(x + CAP * 0.5, y), color, LINE)
+
+	func _top(i: int, dy: float) -> float:
+		return (rows.get_child(i) as Control).position.y + dy
+
+	func _bottom(i: int, dy: float) -> float:
+		var c := rows.get_child(i) as Control
+		return c.position.y + c.size.y + dy
+
 var _progress: CampaignProgress
 var _title: Label
 var _art: ColorRect                    # 左＝冒険譚の絵（絵が無ければタイトルのプレースホルダ）
 var _art_label: Label
 var _art_texture: TextureRect          # 冒険譚の扉絵（cover_path があれば表示）
 var _stage_list: VBoxContainer         # 右＝縦リスト
+var _lanes: _Lanes                     # 縦リストの左に通す連戦の綴じ紐
 var _briefing: QuestSheet
 var _pending := {}  # ブリーフィング表示中のステージ { campaign_id, stage_id, path }
 
@@ -87,10 +136,24 @@ func _ready() -> void:
 	stage_scroll.size_flags_stretch_ratio = 1.0
 	body.add_child(stage_scroll)
 
+	# 綴じ紐は行と同じスクロール内に置く＝一覧を送っても線が置き去りにならない。
+	var listing := HBoxContainer.new()
+	listing.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	listing.add_theme_constant_override("separation", 0)
+	stage_scroll.add_child(listing)
+
+	_lanes = _Lanes.new()
+	_lanes.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_lanes.size_flags_vertical = Control.SIZE_FILL
+	listing.add_child(_lanes)
+
 	_stage_list = VBoxContainer.new()
 	_stage_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_stage_list.add_theme_constant_override("separation", 8)
-	stage_scroll.add_child(_stage_list)
+	listing.add_child(_stage_list)
+	_lanes.rows = _stage_list
+	# 行が並び直すたびに引き直す（初回の配置も、折り返しで背が変わったときもここで拾う）。
+	_stage_list.sort_children.connect(_lanes.queue_redraw)
 
 	_briefing = QuestSheet.new()
 	_briefing.confirmed.connect(_on_sortie)
@@ -117,6 +180,28 @@ func show_campaign(campaign_id: String, variant: int = -1) -> void:
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
 		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
+	_lanes.spans = lanes_of(c["stages"])
+	_lanes.custom_minimum_size.x = _Lanes.W * float(_lanes.spans.size())  # 隊が無ければ幅0＝溝も出ない
+	_lanes.queue_redraw()
+
+## ステージ一覧 → 連戦レーン（表示順）。1レーン＝1隊で、{ first, last, active } を持つ。
+## first/last＝その隊が最初／最後に出るステージの index、active＝出るステージの index の集合。
+## 純関数（描画に依存しない）。仕様 → doc/gdd/stage_select.md 連戦の区間
+static func lanes_of(stages: Array) -> Array:
+	var order: Array = []  # 隊の登場順＝レーンの並び順
+	var by_party := {}
+	for i in stages.size():
+		for p in (stages[i] as Dictionary).get("party", []):
+			var key := String(p)
+			if not by_party.has(key):
+				order.append(key)
+				by_party[key] = { "first": i, "last": i, "active": {} }
+			by_party[key]["last"] = i
+			by_party[key]["active"][i] = true
+	var out: Array = []
+	for key in order:
+		out.append(by_party[key])
+	return out
 
 ## 扉絵を表示。cover_path があれば絵＋ラベル非表示、無ければプレースホルダ（タイトル）へ。
 func _set_cover(cover_path: String, title: String) -> void:
@@ -129,27 +214,23 @@ func _set_cover(cover_path: String, title: String) -> void:
 
 func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 	var label := "%d. %s" % [number, tr(String(s["title"]))]  # stage.title は翻訳キー（i18n）
-	var row := Button.new()
+	var stage_state := _progress.stage_state(campaign_id, String(s["id"]))
+	var locked := stage_state == CampaignProgress.LOCKED
+	var text := label
+	match stage_state:
+		CampaignProgress.CLEARED:
+			text = "✓ %s" % label
+		CampaignProgress.LOCKED:
+			text = "🔒 %s — %s" % [label, _progress.unlock_text(campaign_id, String(s["id"]))]
+	# 依頼ボードに下がる木札（focus_mode は wood_button 側で NONE 済み）。
+	var row := TavernTheme.wood_button(text)
 	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	row.focus_mode = Control.FOCUS_NONE
 	row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var locked := false
-	match _progress.stage_state(campaign_id, String(s["id"])):
-		CampaignProgress.CLEARED:
-			row.text = "✓ %s" % label
-		CampaignProgress.LOCKED:
-			locked = true
-			row.text = "🔒 %s — %s" % [label, _progress.unlock_text(campaign_id, String(s["id"]))]
-			# disabled にはしない＝入力を受け取らず拒否音を鳴らせなくなるため（doc/audio/sfx.md）。
-			# 押せるままにして押されたら音だけ返し、淡い見た目は自前で当てる。
-			var dim := row.get_theme_color("font_disabled_color", "Button")
-			for c in ["font_color", "font_hover_color", "font_pressed_color"]:
-				row.add_theme_color_override(c, dim)
-		_:
-			row.text = label
 	if locked:
+		# 押せるままにして押されたら音だけ返す（disabled にしない理由は dim_wood_button）。
+		TavernTheme.dim_wood_button(row)
 		row.pressed.connect(func() -> void: SfxPlayer.play_event("menu_locked"))
 	else:
 		row.pressed.connect(_open_briefing.bind(campaign_id, s))

@@ -33,6 +33,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 			"file": file,
 			"path": "%s/%s" % [dir_path, file],
 			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
+			"party": _parse_party(s.get("party")),
 		})
 	_warn_dangling_unlock(id, stages)
 	return {
@@ -47,6 +48,20 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
 		"stages": stages,
 	}
+
+## party（そのステージに出る隊）を文字列の配列へ正規化。文字列1つは1要素、未指定・不正は空配列。
+## 表示専用（ステージ一覧の連戦レーン）＝実際の編成は actor と carryover_slots が決める。
+## 仕様 → doc/gdd/stage_select.md 連戦の区間
+static func _parse_party(raw: Variant) -> Array:
+	var out: Array = []
+	var list: Array = raw if typeof(raw) == TYPE_ARRAY else [raw]
+	for e in list:
+		if typeof(e) != TYPE_STRING:
+			continue
+		var v := String(e)
+		if not v.is_empty() and not (v in out):
+			out.append(v)
+	return out
 
 ## emblem（ターン板の代表ユニット）を { ally, enemy } の skin_id へ正規化。空文字・非辞書は落とす。
 ## 仕様 → doc/gdd/stage_select.md（冒険譚マニフェスト）・doc/gdd/uiux.md（ターン表示）

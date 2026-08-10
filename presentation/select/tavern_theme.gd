@@ -326,6 +326,17 @@ static func wood_button(text: String) -> Button:
 	b.add_theme_stylebox_override("disabled", _plank_box(0.65))
 	return b
 
+## 木の板ボタンを「押せるが選べない」見た目に落とす（未解放のステージ行など）。
+## disabled にはしない＝入力を受け取らず拒否音を鳴らせなくなるため（doc/audio/sfx.md）。
+## 押しても状態が変わらないよう、normal/hover/pressed に同じ暗い板を当てる。
+static func dim_wood_button(b: Button) -> void:
+	var dim := _plank_box(0.6)
+	for state in ["normal", "hover", "pressed"]:
+		b.add_theme_stylebox_override(state, dim)
+	var dim_font := b.get_theme_color("font_disabled_color", "Button")
+	for c in ["font_color", "font_hover_color", "font_pressed_color"]:
+		b.add_theme_color_override(c, dim_font)
+
 static func _plank_box(bright: float) -> StyleBox:
 	var tex := _tex("plank")
 	if tex != null:

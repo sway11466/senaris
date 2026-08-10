@@ -57,6 +57,22 @@ func test_all_unlock_refs_resolve() -> void:
 					continue  # stage を参照しない条件（entitlement 等）
 				assert_true(ids.has(ref), "%s/%s の unlock 参照 '%s' が実在" % [c["id"], s["id"], ref])
 
+func test_party_normalizes_to_array() -> void:
+	# party（連戦レーンの表示専用メタ）は文字列1つでも配列でも受ける。未指定・不正は空。
+	var c := CampaignCatalog.build({
+		"id": "a",
+		"stages": [
+			{ "id": "s1", "file": "s1.json", "party": "A" },
+			{ "id": "s2", "file": "s2.json", "party": ["A", "B", "A"] },
+			{ "id": "s3", "file": "s3.json" },
+			{ "id": "s4", "file": "s4.json", "party": ["", 7, "B"] },
+		],
+	}, "res://x")
+	assert_eq(c["stages"][0]["party"], ["A"], "文字列1つは1要素の配列に畳む")
+	assert_eq(c["stages"][1]["party"], ["A", "B"], "配列はそのまま（重複は落とす）")
+	assert_eq(c["stages"][2]["party"], [], "未指定は空＝線を出さない")
+	assert_eq(c["stages"][3]["party"], ["B"], "空文字・文字列でない要素は落とす")
+
 func test_build_rejects_broken() -> void:
 	assert_eq(CampaignCatalog.build({}, "x"), {}, "id 無しは不正")
 	assert_push_warning("マニフェストが不正")
