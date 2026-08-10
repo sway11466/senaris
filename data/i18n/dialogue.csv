@@ -91,17 +91,19 @@ char.priest.name,司祭,Priest
 char.mage.name,魔導師,Mage
 char.witch.name,魔女,Witch
 char.paladin.name,聖騎士,Paladin
-char.vanguard.name,隊長,Captain
-char.thief.name,盗賊,Thief
-char.hunter.name,狩人,Hunter
-char.bishop.name,司教,Bishop
-char.wizard.name,魔術師,Wizard
-char.fighter.name,戦士,Fighter
-char.halfling.name,小人,Halfling
-char.pixie.name,妖精,Pixie
+char.vanguard.name,ヴァンガード,Vanguard
+char.thief.name,シーフ,Thief
+char.hunter.name,ハンター,Hunter
+char.bishop.name,ビショップ,Bishop
+char.wizard.name,ウィザード,Wizard
+char.rookie_fighter.name,ファイター,Fighter
+char.rookie_halfling.name,ハーフリング,Halfling
+char.rookie_archer.name,アーチャー,Archer
+char.rookie_cleric.name,クレリック,Cleric
+char.pixie.name,ピクシー,Pixie
 char.dwarf.name,ドワーフ,Dwarf
 char.elf.name,エルフ,Elf
-char.birdman.name,鳥人,Birdman
+char.birdman.name,バードマン,Birdman
 char.rogue_boss.name,首領,Ringleader
 t2.st1.intro.1,このあたりに動くスケルトンがいるという噂、半信半疑でしたが……,"We half-doubted the rumors of walking skeletons around here, but..."
 t2.st1.intro.2,噂通りだな。骨が、起き上がってくる。前へ出るぞ、隊列を崩すな。,"The rumors were true. The bones are rising. Advance — hold your formation."
@@ -220,7 +222,7 @@ t3.st1.intro.2,その街道の先、悲鳴が上がってるけど。,"There's s
 t3.st1.intro.3,若い連中が四人。上を取られている——空から来る手合いだ。,"Four youngsters. Something has the height on them — the kind that comes from the sky."
 t3.st1.intro.4,下がれ！ 割って入るぞ。,"Fall back! We're cutting in."
 t3.st1.intro.5,空の相手に剣は届かん。槍でも斧でも同じだ。,"Blades don't reach the sky. Nor spears, nor axes."
-t3.st1.intro.6,落とすのは弓と魔法だ。私と魔術師で空を、残りは地上を抑えてくれ。,"Bows and spells bring them down. The wizard and I take the air — the rest of you hold the ground."
+t3.st1.intro.6,落とすのは弓と魔法だ。私とウィザードで空を、残りは地上を抑えてくれ。,"Bows and spells bring them down. The wizard and I take the air — the rest of you hold the ground."
 t3.st1.intro.7,あの方たちを死なせないこと。それが第一です。,"Above all, don't let those youngsters die."
 t3.st1.outro.1,助けていただき、ありがとうございました。俺たちも、連れて行ってもらえませんか。,"Thank you for saving us. Would you… let us come with you?"
 t3.st1.outro.2,絶対に足手まといになるけど、良いの？,"They'll slow us down for certain. You're all right with that?"

@@ -52,10 +52,10 @@
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st1.intro.7" }
     ],
     "outro": [
-      { "speaker": "char.fighter.name", "skin": "fighter", "text": "t3.st1.outro.1" },
+      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st1.outro.1" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st1.outro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.3" },
-      { "speaker": "char.archer.name", "skin": "archer", "text": "t3.st1.outro.4" },
+      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "t3.st1.outro.4" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st1.outro.5" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.6" }
     ]

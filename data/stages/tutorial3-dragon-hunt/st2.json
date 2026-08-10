@@ -76,16 +76,16 @@
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.archer.name", "skin": "archer", "text": "t3.st2.intro.1" },
+      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "t3.st2.intro.1" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.intro.3" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st2.intro.4" },
-      { "speaker": "char.fighter.name", "skin": "fighter", "text": "t3.st2.intro.5" },
+      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st2.intro.5" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.6" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st2.intro.7" }
     ],
     "outro": [
-      { "speaker": "char.halfling.name", "skin": "halfling", "text": "t3.st2.outro.1" },
+      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "t3.st2.outro.1" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.outro.3" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.4" },

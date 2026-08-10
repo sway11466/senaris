@@ -72,7 +72,7 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st4.intro.7" }
     ],
     "outro": [
-      { "speaker": "char.archer.name", "skin": "archer", "text": "t3.st4.outro.1" },
+      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "t3.st4.outro.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st4.outro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st4.outro.3" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st4.outro.4" }

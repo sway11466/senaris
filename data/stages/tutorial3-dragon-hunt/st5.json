@@ -76,7 +76,7 @@
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st5.intro.7" }
     ],
     "outro": [
-      { "speaker": "char.fighter.name", "skin": "fighter", "text": "t3.st5.outro.1" },
+      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st5.outro.1" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st5.outro.2" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.outro.3" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st5.outro.4" }

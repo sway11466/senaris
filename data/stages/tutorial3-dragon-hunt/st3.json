@@ -70,7 +70,7 @@
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st3.intro.4" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st3.intro.5" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st3.intro.6" },
-      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t3.st3.intro.7" },
+      { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "t3.st3.intro.7" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st3.intro.8" }
     ],
     "outro": [
