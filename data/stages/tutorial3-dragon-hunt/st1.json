@@ -1,44 +1,53 @@
 {
   "turn_limit": 30,
   "name": "tutorial3-st1",
-  "cols": 18,
-  "rows": 9,
+  "cols": 9,
+  "rows": 18,
   "margin": 1,
   "terrain": [
-    "....................",
-    "...F.....FF.........",
-    "....F......F........",
-    "........*...........",
-    "....................",
-    "...LLLLLLLLLLLLLL...",
-    ".....*.......F......",
-    "...F........*.......",
-    "......F......F......",
-    "...FF.........F.....",
-    "...................."
+    "...........",
+    "...........",
+    "...........",
+    ".....L.....",
+    ".....L.....",
+    ".....L...F.",
+    ".....LF.F..",
+    ".....L.*...",
+    "..F..L.....",
+    ".F...L.....",
+    ".F...L.....",
+    "...*.L.....",
+    ".....L.....",
+    ".....L..F..",
+    ".....L*....",
+    "..F..L...F.",
+    ".F...L.F.F.",
+    "...........",
+    "...........",
+    "..........."
   ],
   "player": [
-    { "type": "wizard", "col": 0, "row": 3, "actor": "wizard" },
-    { "type": "hunter", "col": 0, "row": 4, "actor": "hunter" },
-    { "type": "bishop", "col": 0, "row": 5, "actor": "bishop" },
-    { "type": "vanguard", "col": 1, "row": 4, "actor": "vanguard" },
-    { "type": "thief", "col": 1, "row": 5, "actor": "thief" },
-    { "type": "fighter", "col": 8, "row": 4, "troops": 5, "actor": "fighter" },
-    { "type": "halfling", "col": 8, "row": 5, "troops": 5, "actor": "halfling" },
-    { "type": "archer", "col": 9, "row": 4, "troops": 4, "actor": "archer" },
-    { "type": "cleric", "col": 9, "row": 5, "troops": 4, "actor": "cleric" }
+    { "type": "wizard", "col": 3, "row": 17, "actor": "wizard" },
+    { "type": "hunter", "col": 4, "row": 17, "actor": "hunter" },
+    { "type": "bishop", "col": 5, "row": 17, "actor": "bishop" },
+    { "type": "vanguard", "col": 4, "row": 16, "actor": "vanguard" },
+    { "type": "thief", "col": 5, "row": 16, "actor": "thief" },
+    { "type": "fighter", "col": 4, "row": 9, "troops": 5, "actor": "fighter" },
+    { "type": "halfling", "col": 5, "row": 9, "troops": 5, "actor": "halfling" },
+    { "type": "archer", "col": 4, "row": 8, "troops": 4, "actor": "archer" },
+    { "type": "cleric", "col": 5, "row": 8, "troops": 4, "actor": "cleric" }
   ],
   "enemy": [
     { "order": 1, "name": "空の魔獣", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 7, "row": 6 },
-        { "skin": "griffon", "col": 10, "row": 3 }
+        { "skin": "griffon", "col": 6, "row": 10 },
+        { "skin": "griffon", "col": 3, "row": 7 }
       ] },
     { "order": 2, "name": "オークの群れ", "ai": "charge",
       "units": [
-        { "skin": "orc", "col": 13, "row": 3 },
-        { "skin": "orc", "col": 14, "row": 4 },
-        { "skin": "orc", "col": 13, "row": 5 }
+        { "skin": "orc", "col": 3, "row": 4 },
+        { "skin": "orc", "col": 4, "row": 3 },
+        { "skin": "orc", "col": 5, "row": 4 }
       ] }
   ],
   "dialogue": {
@@ -49,6 +58,7 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.intro.4" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st1.intro.5" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st1.intro.6" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.intro.8" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st1.intro.7" }
     ],
     "outro": [
@@ -57,7 +67,10 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.3" },
       { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "t3.st1.outro.4" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st1.outro.5" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.6" }
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.6" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st1.outro.7" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st1.outro.8" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.9" }
     ]
   },
   "bgm": { "main": "journey" }

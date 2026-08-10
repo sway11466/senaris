@@ -1,72 +1,88 @@
 {
   "turn_limit": 30,
   "name": "tutorial3-st5",
-  "cols": 24,
-  "rows": 12,
+  "cols": 12,
+  "rows": 24,
   "margin": 1,
   "terrain": [
-    "CCCCCCCCCCCCCCCCCCCCCCCCCC",
-    "CCCCCCCCCCCCCCCCCCCCCCCCCC",
-    "CCCCCCCCCCCCCCCCCCCCCCCCCC",
-    "CCCCCCCCCCCCCOCCCCCCCCCCCC",
-    "CCCCCCCCCCCC..CCCCCCCCCCCC",
-    "CCCCCCCCCCCC..CCCCCCCCCCCC",
-    "MMMMMMMMMMMMMMMMMMMMMMMMMM",
-    "M........................M",
-    "M........................M",
-    "MMMMMMMMMMMMMMMMMMMMMMMMMM",
-    "CCCCCC...CCCCCCCCCCCCCCCCC",
-    "CCCCCC.O.CCCCCCCCCCCCCCCCC",
-    "CCCCCCCCCCCCCCCCCCCCCCCCCC",
-    "CCCCCCCCCCCCCCCCCCCCCCCCCC"
+    "CCCCCCMMMMCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCO..M..MCCCC",
+    "CCCC..M..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..M..CC",
+    "CCCCCCM..M.OCC",
+    "CCCCCCM..M..CC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCM..MCCCC",
+    "CCCCCCMMMMCCCC"
   ],
   "carryover_slots": [
-    { "col": 1, "row": 6, "actor": "vanguard" },
-    { "col": 2, "row": 6, "actor": "thief" },
-    { "col": 3, "row": 6, "actor": "hunter" },
-    { "col": 0, "row": 6, "actor": "bishop" },
-    { "col": 4, "row": 6, "actor": "wizard" },
-    { "col": 1, "row": 7, "actor": "fighter" },
-    { "col": 3, "row": 7, "actor": "halfling" },
-    { "col": 2, "row": 7, "actor": "archer" },
-    { "col": 0, "row": 7, "actor": "cleric" },
-    { "col": 5, "row": 6, "actor": "pixie" },
-    { "col": 4, "row": 7, "actor": "dwarf" },
-    { "col": 5, "row": 7, "actor": "elf" }
+    { "col": 6, "row": 22, "actor": "vanguard" },
+    { "col": 6, "row": 21, "actor": "thief" },
+    { "col": 6, "row": 20, "actor": "hunter" },
+    { "col": 6, "row": 23, "actor": "bishop" },
+    { "col": 6, "row": 19, "actor": "wizard" },
+    { "col": 7, "row": 22, "actor": "fighter" },
+    { "col": 7, "row": 20, "actor": "halfling" },
+    { "col": 7, "row": 21, "actor": "archer" },
+    { "col": 7, "row": 23, "actor": "cleric" },
+    { "col": 6, "row": 18, "actor": "pixie" },
+    { "col": 7, "row": 19, "actor": "dwarf" },
+    { "col": 7, "row": 18, "actor": "elf" }
   ],
   "enemy": [
     { "order": 1, "name": "崖のハーピー", "ai": "charge",
       "units": [
-        { "skin": "harpy", "col": 5, "row": 2 },
-        { "skin": "harpy", "col": 8, "row": 1 },
-        { "skin": "harpy", "col": 15, "row": 1 },
-        { "skin": "harpy", "col": 18, "row": 3 }
+        { "skin": "harpy", "col": 2, "row": 18 },
+        { "skin": "harpy", "col": 1, "row": 15 },
+        { "skin": "harpy", "col": 1, "row": 8 },
+        { "skin": "harpy", "col": 3, "row": 5 }
       ] },
     { "order": 2, "name": "降りてきたグリフォン", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 10, "row": 0 },
-        { "skin": "griffon", "col": 16, "row": 2 }
+        { "skin": "griffon", "col": 0, "row": 13 },
+        { "skin": "griffon", "col": 2, "row": 7 }
       ] },
     { "order": 3, "name": "山道の魔獣", "ai": "charge",
       "units": [
-        { "skin": "wyrm", "col": 18, "row": 6 },
-        { "skin": "wyrm", "col": 19, "row": 7 },
-        { "skin": "rock_serpent", "col": 15, "row": 7 },
-        { "skin": "rock_serpent", "col": 16, "row": 6 }
+        { "skin": "wyrm", "col": 6, "row": 5 },
+        { "skin": "wyrm", "col": 7, "row": 4 },
+        { "skin": "rock_serpent", "col": 7, "row": 8 },
+        { "skin": "rock_serpent", "col": 6, "row": 7 }
       ] },
     { "order": 4, "name": "ローグ一味", "ai": "raid",
       "units": [
-        { "skin": "rogue", "col": 21, "row": 6 },
-        { "skin": "rogue", "col": 22, "row": 7 }
+        { "skin": "rogue", "col": 6, "row": 2 },
+        { "skin": "rogue", "col": 7, "row": 1 }
       ] }
   ],
   "bases": [
-    { "col": 12, "row": 2, "team": "neutral", "kind": "fort",
+    { "col": 2, "row": 11, "team": "neutral", "kind": "fort",
       "garrison": [ { "type": "birdman", "actor": "birdman" } ] },
-    { "col": 6, "row": 10, "team": "neutral", "kind": "fort" }
+    { "col": 10, "row": 17, "team": "neutral", "kind": "fort" }
   ],
   "dialogue": {
     "intro": [
+      { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st5.rogue.1" },
+      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st5.rogue.2" },
+      { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st5.rogue.3" },
+      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st5.rogue.4" },
       { "speaker": "char.elf.name", "skin": "elf", "text": "t3.st5.intro.1", "when": "joined:elf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.intro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st5.intro.3" },
