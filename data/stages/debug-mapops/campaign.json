@@ -4,7 +4,7 @@
   "debug": true,
   "stages": [
     { "id": "base", "file": "base.json", "title": "拠点と勝敗（消滅判定・寝返り・閉じ込め）" },
-    { "id": "formation", "file": "formation.json", "title": "陣形スキル（①トリニティスペル）" },
+    { "id": "formation", "file": "formation.json", "title": "陣形スキル（味方ユニット）" },
     { "id": "transport", "file": "transport.json", "title": "輸送（乗車・運搬・降車）" },
     { "id": "barricade", "file": "barricade.json", "title": "バリケード輸送（出撃→隣接乗降）" },
     { "id": "event", "file": "event.json", "title": "イベント＝増援（残りターン板・搭載駒ごと到着）" }

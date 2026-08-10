@@ -64,7 +64,7 @@
 | ステージ | ファイル | 状態 |
 | --- | --- | --- |
 | 拠点と勝敗（消滅判定・寝返り・閉じ込め・スキンの所有色） | `debug-mapops/base.json` | 実装済み |
-| 陣形スキル（①トリニティスペル） | `debug-mapops/formation.json` | 実装済み |
+| 陣形スキル（味方ユニット） | `debug-mapops/formation.json` | 実装済み |
 | 輸送（乗車・運搬・降車） | `debug-mapops/transport.json` | 実装済み |
 | バリケード輸送（出撃→隣接乗降） | `debug-mapops/barricade.json` | 実装済み |
 | イベント＝増援（残りターン板・搭載駒ごと到着・壁指定は最寄りへずらす） | `debug-mapops/event.json` | 実装済み |
