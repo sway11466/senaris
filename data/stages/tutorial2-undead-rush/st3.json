@@ -1,5 +1,5 @@
 {
-  "turn_limit": 40,
+  "turn_limit": 30,
   "name": "tutorial2-st3",
   "cols": 23,
   "rows": 9,
