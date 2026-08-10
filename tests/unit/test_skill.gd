@@ -57,14 +57,13 @@ func test_target_self_and_adjacent_ally_only() -> void:
 	assert_false(Formation.can_target(s, o, f["foe"].pos), "隣接でも敵には掛けられない")
 	assert_false(Formation.can_target(s, o, Hex.neighbor(f["pixie"].pos, 1)), "空きマスには掛けられない")
 
-## 陣形スキルは配置そのものがレシピなので自マスでしか撃てないが、ユニットスキルは移動後でも撃てる。
+## 発動者は移動してから撃てる（陣形・ユニットスキルとも同じ規則 → doc/gdd/formations.md）。
 func test_can_cast_after_moving() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var far: Unit = f["far"]
 	var o := _dust_option(f)
 	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_true(bool(o["after_move"]), "移動後でも撃てる印が立つ")
 	assert_false(Formation.can_target(s, o, far.pos), "移動前は離れた味方に届かない")
 	assert_true(s.move_unit(1, far.pos + Vector2i(-1, 0)), "far の隣へ飛ぶ")
 	assert_true(Formation.can_target(s, o, far.pos), "移動先から隣接になれば掛けられる")
@@ -72,7 +71,7 @@ func test_can_cast_after_moving() -> void:
 	assert_false(s.resolve_formation(o, far.pos).is_empty(), "移動後に発動できる")
 	assert_true(s.is_done(1), "発動者は行動完了")
 
-func test_formation_stays_stationary_only() -> void:
+func test_cluster_recipe_is_a_formation() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var leader: Unit = null
@@ -83,8 +82,7 @@ func test_formation_stays_stationary_only() -> void:
 			leader = u
 	var opts := Formation.available_for(s, leader)
 	assert_gt(opts.size(), 0, "ホーリーアリアが成立している前提")
-	assert_eq(String(opts[0]["kind"]), "formation", "陣形スキル扱い")
-	assert_false(bool(opts[0]["after_move"]), "陣形は移動後に撃てない印")
+	assert_eq(String(opts[0]["kind"]), "formation", "陣形スキル扱い（表示ラベルの出し分け）")
 
 # --- 適用 ---
 
@@ -213,7 +211,6 @@ func test_dread_offered_by_ghost_alone() -> void:
 	var o := _dread_option(f)
 	assert_false(o.is_empty(), "ゴースト単独で成立する")
 	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_true(bool(o["after_move"]), "移動後でも撃てる")
 	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
 
 ## ピクシー性能を借りているだけなので、ピクシーダストは撃てない（照合はスキンID）。

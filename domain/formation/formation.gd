@@ -111,6 +111,10 @@ const RECIPES := {
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
 const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse"]
 
+## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
+## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
+const NO_HEX := Vector2i(1 << 30, 1 << 30)
+
 ## そのレシピがユニットスキル（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
 ## 演出・効果音の出し分けが読む（陣形はカットインあり／ユニットスキルは音だけ）。
 static func is_unit_skill(recipe_id: String) -> bool:
@@ -119,10 +123,13 @@ static func is_unit_skill(recipe_id: String) -> bool:
 
 ## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
 ## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
-static func available_for(state: BattleState, unit: Unit) -> Array:
+## from_hex＝発動者がそこに居ると仮定して成立を見る（移動を確定する前のコマンドメニュー用）。
+## 発動者は移動してから発動してよい＝隣接の判定は移動先で行う。詳細 → doc/gdd/formations.md
+static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> Array:
 	var out: Array = []
 	if unit == null:
 		return out
+	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
 	for rid in RECIPES:
 		var r: Dictionary = RECIPES[rid]
 		if not (r["effect"] in IMPLEMENTED_EFFECTS):
@@ -135,12 +142,12 @@ static func available_for(state: BattleState, unit: Unit) -> Array:
 			continue
 		match String(r["shape"]):
 			"triangle":
-				for members in _triangle_sets(state, unit, r):
+				for members in _triangle_sets(state, unit, r, lead_pos):
 					out.append(_option(rid, r, [unit, members[0], members[1]]))
 			"solo":
 				out.append(_option(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
-				var members := _cluster(state, unit, r)
+				var members := _cluster(state, unit, r, lead_pos)
 				if not members.is_empty():
 					var ordered: Array = [unit]  # 発動者を先頭に（leader_id 用）
 					for m in members:
@@ -171,18 +178,25 @@ static func blast_cells(option: Dictionary, target: Vector2i) -> Array[Vector2i]
 	return [] as Array[Vector2i]
 
 ## target が発動条件の射程内か（"any"＝参加者のどれか／"leader"＝発動者から）。
-static func can_target(state: BattleState, option: Dictionary, target: Vector2i) -> bool:
+## from_hex＝発動者がそこに居ると仮定する（移動を確定する前の判定）。省略すると盤の実位置。
+static func can_target(state: BattleState, option: Dictionary, target: Vector2i, from_hex := NO_HEX) -> bool:
 	if not bool(option["needs_target"]):
 		return true
 	var rng := int(option["range"])
-	var leader := state.unit_by_id(int(option["leader_id"]))
+	var lead_id := int(option["leader_id"])
+	var leader := state.unit_by_id(lead_id)
 	var within := false
 	if String(option["range_from"]) == "any":
 		for pid in option["participants"]:
 			var p := state.unit_by_id(int(pid))
-			if p != null and Hex.distance(p.pos, target) <= rng:
+			if p == null:
+				continue
+			var ppos := from_hex if (from_hex != NO_HEX and p.id == lead_id) else p.pos
+			if Hex.distance(ppos, target) <= rng:
 				within = true
 				break
+	elif from_hex != NO_HEX:
+		within = Hex.distance(from_hex, target) <= rng
 	else:
 		within = leader != null and Hex.distance(leader.pos, target) <= rng
 	if not within:
@@ -190,7 +204,7 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（ピクシーダスト）は発動者
 	# 自身も選べ、敵を弱らせるもの（ドレッドタッチ）は敵だけを選べる。詳細 → doc/gdd/skills.md
 	if String(option.get("buff_scope", "")) == "unit":
-		var u := state.unit_at(target)
+		var u := _unit_at_assumed(state, leader, from_hex, target)
 		if u == null or leader == null:
 			return false
 		var same_team := u.team == leader.team
@@ -198,6 +212,28 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i)
 			return not same_team
 		return same_team
 	return true
+
+## option の着弾中心に選べるhex（発動条件の射程内・盤上）。空＝いま撃てる先が無い＝コマンド
+## メニューでは項目を無効化する（→ doc/gdd/uiux.md 「できない操作は選べない」）。
+## from_hex＝発動者がそこに居ると仮定する（移動を確定する前のメニュー判定）。省略すると実位置。
+## single（単体狙撃）は「参加者以外の駒が居るhex」だけ＝空撃ちさせない。area（面）は地面にも撃てる。
+## 陣営の絞り込み（味方向き／敵向き）は can_target が持つ＝ここには二重に書かない。
+static func targetable_cells(state: BattleState, option: Dictionary, from_hex := NO_HEX) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if not bool(option["needs_target"]):
+		return out
+	var leader := state.unit_by_id(int(option["leader_id"]))
+	var single := String(option["effect"]) == "single"
+	var participants: Array = option["participants"]
+	for h in _in_range_cells(state, option, from_hex):
+		if not can_target(state, option, h, from_hex):
+			continue
+		if single:
+			var u := _unit_at_assumed(state, leader, from_hex, h)
+			if u == null or u.id in participants:
+				continue
+		out.append(h)
+	return out
 
 # --- 内部 ---
 
@@ -208,15 +244,51 @@ static func _matches(unit: Unit, skins: Array) -> bool:
 	var key := unit.skin_id if unit.skin_id != "" else unit.type_id
 	return key in skins
 
-## leader に隣接する member_skins の候補（同陣営・未行動）から、互いに隣接する2体組を全列挙。
-static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary) -> Array:
+## from_hex に発動者が居ると仮定したときの hex の駒。移動を確定する前は盤の上の発動者がまだ
+## 元のマスに立っているので、そこを空として読み替える（自分に掛けるスキルの対象判定に効く）。
+static func _unit_at_assumed(state: BattleState, leader: Unit, from_hex: Vector2i, hex: Vector2i) -> Unit:
+	if leader != null and from_hex != NO_HEX:
+		if hex == from_hex:
+			return leader
+		if hex == leader.pos:
+			return null
+	return state.unit_at(hex)
+
+## 射程内かつ盤上のhex（重複なし）。起点は "any" なら参加者ぜんぶ／"leader" なら発動者だけ。
+static func _in_range_cells(state: BattleState, option: Dictionary, from_hex: Vector2i) -> Array[Vector2i]:
+	var rng := int(option["range"])
+	var lead_id := int(option["leader_id"])
+	var origins: Array[Vector2i] = []
+	if String(option["range_from"]) == "any":
+		for pid in option["participants"]:
+			var p := state.unit_by_id(int(pid))
+			if p != null:
+				origins.append(from_hex if (from_hex != NO_HEX and p.id == lead_id) else p.pos)
+	elif from_hex != NO_HEX:
+		origins.append(from_hex)
+	else:
+		var leader := state.unit_by_id(lead_id)
+		if leader != null:
+			origins.append(leader.pos)
+	var seen := {}
+	var out: Array[Vector2i] = []
+	for o in origins:
+		for h in Hex.within_range(o, rng):
+			if not seen.has(h) and state.in_field(h):
+				seen[h] = true
+				out.append(h)
+	return out
+
+## leader（lead_pos に居るものとする）に隣接する member_skins の候補（同陣営・未行動）から、
+## 互いに隣接する2体組を全列挙。lead_pos は移動先のこともある＝発動者だけ仮の位置で測る。
+static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
 		if u.id == leader.id or u.team != leader.team or not state.has_action_left(u.id):
 			continue
 		if not _matches(u, r["member_skins"]):
 			continue
-		if Hex.distance(u.pos, leader.pos) == 1:
+		if Hex.distance(u.pos, lead_pos) == 1:
 			cand.append(u)
 	var sets: Array = []
 	for i in cand.size():
@@ -227,19 +299,20 @@ static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary) -> A
 
 ## leader を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
 ## ②ホーリーアリア＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
-static func _cluster(state: BattleState, leader: Unit, r: Dictionary) -> Array:
+## leader は lead_pos に居るものとする（移動先のこともある）＝探索は位置で持ち回る。
+static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
 	var seen := {leader.id: leader}
-	var frontier: Array[Unit] = [leader]
+	var frontier: Array[Vector2i] = [lead_pos]
 	while not frontier.is_empty():
-		var cur: Unit = frontier.pop_back()
+		var cur: Vector2i = frontier.pop_back()
 		for u in state.units():
 			if seen.has(u.id) or u.team != leader.team or not state.has_action_left(u.id):
 				continue
 			if not _matches(u, r["member_skins"]):
 				continue
-			if Hex.distance(u.pos, cur.pos) == 1:
+			if Hex.distance(u.pos, cur) == 1:
 				seen[u.id] = u
-				frontier.append(u)
+				frontier.append(u.pos)
 	if seen.size() < int(r["count"]):
 		return []
 	return seen.values()
@@ -257,11 +330,9 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		"leader_id": participants[0].id,
 		"participants": ids,
 		"effect": effect,
-		# ユニットスキル（単独発動）と陣形スキル（複数人）の区別。表示ラベルと、移動後に撃てるかを分ける。
+		# ユニットスキル（単独発動）と陣形スキル（複数人）の区別。表示ラベルの出し分けに使う。
+		# 発動者が移動してから撃てるのは両方とも同じ＝ここでは分けない。詳細 → doc/gdd/formations.md
 		"kind": "skill" if String(r["shape"]) == "solo" else "formation",
-		# 陣形は配置そのものがレシピなので移動したら成立が変わる＝自マスでしか撃てない。
-		# ユニットスキルは他の参加者が要らないので、移動してから撃ってよい。詳細 → doc/gdd/skills.md
-		"after_move": String(r["shape"]) == "solo",
 		# 対象1体のバフ（ユニットスキル）は掛ける相手を選ぶ＝陣営全体バフと違って対象指定が要る。
 		"needs_target": effect in ["area", "single"] or buff_scope == "unit",
 		"range": int(r.get("range", 0)),

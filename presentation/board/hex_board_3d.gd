@@ -693,19 +693,20 @@ func _open_command_menu(dest: Vector2i) -> void:
 			_menu.add_item("出撃: %s" % (gsk.name if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
 			if no_cells or not state.can_deploy_garrison(dest, i):
 				_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)
-	# 陣形スキルは自マスで開いたときだけ＝配置そのものがレシピなので、移動すると成立が変わる。
+	# 発動者は移動してから撃てる＝成立も射程も「移動先 dest に居るものとして」見る。
+	# 成立していないレシピは項目を出さない。成立していても撃てる先が無ければ、出したうえで
+	# 無効化する（攻撃と同じ流儀＝できない操作は選べない → doc/gdd/uiux.md）。
 	_formation_opts = []
 	if sel != null:
-		for o in Formation.available_for(state, sel):
-			# ユニットスキルは単独で成立する＝移動先で開いたメニューにも出す（after_move）。
-			if dest == sel.pos or bool(o.get("after_move", false)):
-				_formation_opts.append(o)
+		_formation_opts = Formation.available_for(state, sel, dest)
 		if not _formation_opts.is_empty():
 			_menu.add_separator()
 			for i in _formation_opts.size():
 				var o: Dictionary = _formation_opts[i]
 				var label := "ユニットスキル" if String(o.get("kind", "")) == "skill" else "陣形"
 				_menu.add_item("%s: %s" % [label, String(o["name"])], FORMATION_ID_BASE + i)
+				if Formation.targetable_cells(state, o, dest).is_empty() and bool(o["needs_target"]):
+					_menu.set_item_disabled(_menu.get_item_index(FORMATION_ID_BASE + i), true)
 	_menu.add_separator()
 	_menu.add_item("キャンセル", MENU_CANCEL)
 	_menu_handled = false
@@ -722,8 +723,8 @@ func _on_menu_id(id: int) -> void:
 		return
 	if id >= FORMATION_ID_BASE:  # 300以上＝UNLOAD/DEPLOYより先に判定（範囲が重ならないよう最上位）
 		var opt: Dictionary = _formation_opts[id - FORMATION_ID_BASE]
-		# 移動後のユニットスキルは、先に移動を確定してから対象を選ぶ（隣接判定を移動先で行う）。
-		# 自マスで開いた場合（陣形スキル）は保留移動が無いので素通り。
+		# 陣形もユニットスキルも、先に移動を確定してから対象を選ぶ（射程は移動先から測る）。
+		# 動かずに開いた場合は保留移動が無いので素通り。
 		_commit_pending_move()
 		_enter_formation(opt)
 		return
@@ -773,54 +774,16 @@ func _enter_formation(option: Dictionary) -> void:
 	if not bool(option["needs_target"]):
 		controller.execute_formation(FormationCommand.new(option, INVALID_HEX))
 		return
-	_commit_pending_move()  # 自マスなので実質no-op（保険）
+	_commit_pending_move()  # 移動してから撃つ＝先に確定させる（自マスなら no-op）
 	_reachable.clear()
 	_targets.clear()
 	_choosing_formation = true
 	_formation_active = option
 	_formation_cells.clear()
-	for h in _formation_target_cells(option):
+	# 移動は確定済み＝発動者は盤の上の実位置に居る（from_hex は渡さない）。
+	for h in Formation.targetable_cells(state, option):
 		_formation_cells[h] = true
 	_sync_overlay()
-
-## option の着弾可能hex（発動条件の射程内・盤上）。range_from="any"なら参加者のどれかから。
-## single（単体狙撃）は射程内の「参加者以外のユニットが居るhex」だけ選べる＝空撃ちさせない。
-## area（面）は射程内ならどこでも指定できる（地面に撃てる）。
-func _formation_target_cells(option: Dictionary) -> Array:
-	var in_range := {}
-	var rng := int(option["range"])
-	var origins: Array[Vector2i] = []
-	if String(option["range_from"]) == "any":
-		for pid in option["participants"]:
-			var p := state.unit_by_id(int(pid))
-			if p != null:
-				origins.append(p.pos)
-	else:
-		var leader := state.unit_by_id(int(option["leader_id"]))
-		if leader != null:
-			origins.append(leader.pos)
-	for o in origins:
-		for h in Hex.within_range(o, rng):
-			if _on_board(h):
-				in_range[h] = true
-	# ユニットスキル（対象1体）は駒の居るhexだけ。味方向き（ピクシーダスト・ピュリファイ）は自分自身も選べ、
-	# 敵向き（buff_side="enemy"）は敵の居るhexだけ＝Formation.can_target と同じ絞り込みにする。
-	var buff_unit := String(option.get("buff_scope", "")) == "unit"
-	var want_enemy := String(option.get("buff_side", "ally")) == "enemy"
-	if String(option["effect"]) != "single" and not buff_unit:
-		return in_range.keys()
-	var cells := {}
-	var participants: Array = option["participants"]
-	for h in in_range:
-		var u := state.unit_at(h)
-		if u == null:
-			continue
-		if buff_unit:
-			if (u.team != state.current_team) == want_enemy:
-				cells[h] = true
-		elif not (u.id in participants):
-			cells[h] = true
-	return cells.keys()
 
 ## 陣形スキルが解決した＝選択を解く。着弾がある場合、盤の作り直しは play_formation_impact まで
 ## 保留する（撃たれる前の姿のまま置く）＝カットインの裏で駒が消えない。順番は main が持つ。

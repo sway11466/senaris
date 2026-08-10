@@ -86,6 +86,27 @@ func test_stuck_member_still_counts() -> void:
 	var opt := _pick(Formation.available_for(s, f["leader"]), "trinity_spell")
 	assert_false(s.resolve_formation(opt, f["enemy_hex"]).is_empty(), "そのまま発動できる")
 
+## 発動者は移動してから発動してよい＝三角形の成立を移動先で判定する。
+## 詳細 → doc/gdd/formations.md 発動ルール
+func test_triangle_forms_at_move_destination() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var tri := _triangle(c)
+	var w1 := Unit.new(1, 0, c + Hex.direction(3) * 2, 3, 8, 40, 30, 1, "wizard")  # 2マス離れて控える
+	var w2 := Unit.new(2, 0, tri[1], 3, 8, 40, 30, 1, "wizard")
+	var w3 := Unit.new(3, 0, tri[2], 3, 8, 40, 30, 1, "wizard")
+	for u in [w1, w2, w3]:
+		s.add_unit(u)
+	assert_eq(_count(Formation.available_for(s, w1), "trinity_spell"), 0, "いまの位置では成立しない")
+	assert_eq(_count(Formation.available_for(s, w1, tri[0]), "trinity_spell"), 1,
+		"移動先に立てば三角形が成立する")
+	assert_true(s.move_unit(1, tri[0]), "そこへ移動する")
+	assert_true(s.has_action_left(1), "移動しただけでは行動を使い切らない")
+	var opt := _pick(Formation.available_for(s, w1), "trinity_spell")
+	assert_false(opt.is_empty(), "移動後の盤でも成立している")
+	assert_false(s.resolve_formation(opt, c + Hex.direction(0) * 3).is_empty(), "移動後に発動できる")
+	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
+
 # ②ホーリーアリアの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
 func _aria_state() -> Dictionary:
 	var s := _state()
@@ -120,6 +141,20 @@ func test_holy_aria_needs_five() -> void:
 		if i == 0:
 			leader = u
 	assert_eq(_count(Formation.available_for(s, leader), "holy_aria"), 0, "4体では不成立")
+
+## クラスタも三角形と同じ＝発動者が移動先で列に加われば成立する。
+func test_cluster_forms_at_move_destination() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	for i in 4:  # 4体が一列に並んでいる（id 2..5）
+		s.add_unit(Unit.new(i + 2, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric"))
+	var leader := Unit.new(1, 0, c + Hex.direction(0) * 5, 3, 8, 20, 20, 1, "cleric")  # 列から離れている
+	s.add_unit(leader)
+	assert_eq(_count(Formation.available_for(s, leader), "holy_aria"), 0, "離れていれば不成立")
+	var join := c + Hex.direction(0) * 4  # 列の端に隣接する空きマス
+	var opts := Formation.available_for(s, leader, join)
+	assert_eq(_count(opts, "holy_aria"), 1, "移動先で列に加われば5体クラスタが成立する")
+	assert_eq((_pick(opts, "holy_aria")["participants"] as Array).size(), 5, "参加は5体")
 
 ## レシピの照合はスキンID。性能(type)が cleric でも見た目がゴブリンなら聖歌隊にならない。
 ## 詳細 → doc/gdd/formations.md 共通ルール
@@ -197,6 +232,33 @@ func test_divine_judgment_leader_must_be_paladin() -> void:
 	var f := _judgment_state()
 	var cleric: Unit = f["s"].unit_by_id(2)
 	assert_eq(_count(Formation.available_for(f["s"], cleric), "divine_judgment"), 0, "発動者がパラディンでなければ未提示")
+
+## 着弾中心に選べるhex＝コマンドメニューの有効/無効の材料。空なら項目を無効化する
+## （攻撃と同じ流儀 → doc/gdd/uiux.md）。単体狙撃は駒の居るhexだけ＝地面には撃てない。
+func test_targetable_cells_empty_when_nothing_in_range() -> void:
+	var f := _judgment_state(20, 6)
+	var s: BattleState = f["s"]
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	assert_true(f["enemy_hex"] in Formation.targetable_cells(s, opt), "射程内の敵は選べる")
+	assert_true(s.remove_unit(9), "その敵を盤から外す")
+	assert_true(Formation.targetable_cells(s, opt).is_empty(), "狙える駒が無ければ選べる先も無い")
+
+## 射程は移動先から測る＝いま届かなくても、寄れば届く。
+func test_targetable_cells_measured_from_move_destination() -> void:
+	# 射程10の外に敵を置ける広さ。dir0（axial +q）へ進むと offset の行も q/2 ぶん下がるので、
+	# 12マス伸ばすには列だけでなく行も要る（_state() の 12x8 では盤外に落ちる）。
+	var s := BattleState.new(24, 16)
+	var c := Hex.offset_to_axial(3, 3)
+	var tri := _triangle(c)
+	s.add_unit(Unit.new(1, 0, tri[0], 3, 8, 50, 50, 1, "paladin"))
+	s.add_unit(Unit.new(2, 0, tri[1], 3, 8, 20, 20, 1, "cleric"))
+	s.add_unit(Unit.new(3, 0, tri[2], 3, 8, 20, 20, 1, "priest"))
+	var enemy_hex := c + Hex.direction(0) * 12  # 発動者から距離12＝射程10の外
+	s.add_unit(Unit.new(9, 1, enemy_hex, 3, 8, 10, 20))
+	var opt: Dictionary = Formation.available_for(s, s.unit_by_id(1))[0]
+	assert_true(Formation.targetable_cells(s, opt).is_empty(), "いまの位置からは射程外")
+	assert_true(enemy_hex in Formation.targetable_cells(s, opt, c + Hex.direction(0) * 2),
+		"2マス寄った位置からなら射程内")
 
 func test_single_hits_only_target_hex() -> void:
 	# 単体＝狙ったヘックスの敵だけ。隣の敵には及ばない（radius 0）。
