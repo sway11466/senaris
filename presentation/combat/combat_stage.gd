@@ -40,6 +40,13 @@ const TERRAIN_COLOR := {
 }
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
 const LEAD_IN := 0.8      # 突入から最初の着弾までの「ため」（秒）
+## 幕開け・幕引き。開きは動きで「場面が切り替わった」と知らせ、閉じは静かに溶かす（非対称）。
+## 開きに使う時間は LEAD_IN の内側で消化する＝ためが短くなるだけで演出全体は伸びない。
+const OPEN_WIPE := 0.15   # 窓が上下に開くまで（秒）
+const OPEN_SLIDE := 0.15  # 窓が開ききってから隊列が中央へ寄り切るまで（秒）
+const SLIDE_DX := 0.05    # 隊列の入り幅（窓内寸の幅に対する比）。外側から中央（激突点）へ寄る
+const WIPE_MIN := 0.06    # 閉じた窓の高さ（等倍に対する比）。0 にすると縁取りが潰れて描画が荒れる
+const CLOSE_FADE := 0.30  # 幕引きのフェード（秒）。EASE_IN＝最初ゆっくり薄れ、最後にすっと消える
 ## 損害0のときに鳴らす音。武器によらず常にこれ1つ（doc/audio/sfx.md 命中音）。
 const SFX_DEFLECT := "cmb_hit_none"
 
@@ -81,6 +88,8 @@ var _mirror := { "L": false, "R": false }  # その側の立ち絵を水平反�
 var _fx: Control                       # フラッシュ・エフェクト・損害数
 var _area: Vector2        # 窓の内寸（レイアウト基準）
 var _tween: Tween
+var _anim: Tween   # 幕開け・幕引きのアニメ（進行 _tween とは別。連戦で前のぶんが残らないよう都度 kill）
+var _closing := false  # 幕引きのフェード中。この間はもう進行しない（クリックで飛ばせる）
 var _gen := 0  # play 世代（連続戦闘で古い自動クローズを無効化）
 
 func _ready() -> void:
@@ -176,6 +185,9 @@ func _layout() -> void:
 	_haze.size = _area + bleed * 2.0
 	_edge.position = _panel.position
 	_edge.size = _area
+	# 幕開けのワイプは窓と縁取りを縦に潰した状態から開く。中心を軸にする＝上下へ割れて見える。
+	_panel.pivot_offset = _area * 0.5
+	_edge.pivot_offset = _area * 0.5
 	_panel.queue_redraw()
 	_edge.queue_redraw()
 
@@ -193,6 +205,10 @@ func _open(ground: Dictionary, ground_side: String) -> void:
 	_gen += 1
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
+	if _anim != null and _anim.is_valid():
+		_anim.kill()
+	if _closing:
+		_close_now()  # 前の幕引きの途中で次が来たら畳んでおく＝finished を待つ側を取り残さない
 	_clear(_fx)
 	_layout()
 	_bg = TERRAIN_COLOR.get(String(ground.get("terrain", "")), Color(0.35, 0.38, 0.34))
@@ -202,7 +218,28 @@ func _open(ground: Dictionary, ground_side: String) -> void:
 	_clear(_feature)
 	if skin != null and skin.combat_placement() == "center":
 		_add_feature(skin, ground_side)
+	_start_open_anim()
+
+## 幕開け：暗幕が差す → 窓が上下に開く → 両軍の隊列が外側から中央へ寄る。
+## 隊列は _open の直後（同フレーム）に _render_side が組むので、ここで先に図レイヤを外へ置いておける。
+## バーと地形の重ね絵は動かさない＝窓に属する表示なので、隊列と一緒に流れると窓が滑って見える。
+func _start_open_anim() -> void:
+	var dx := _size().x * SLIDE_DX
+	_root.modulate.a = 1.0
+	_backdrop.modulate.a = 0.0
+	_panel.scale.y = WIPE_MIN
+	_edge.scale.y = WIPE_MIN
+	_fig["L"].position.x = -dx
+	_fig["R"].position.x = dx
 	visible = true
+	_anim = create_tween()
+	_anim.set_parallel(true)
+	_anim.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	_anim.tween_property(_backdrop, "modulate:a", 1.0, OPEN_WIPE)
+	_anim.tween_property(_panel, "scale:y", 1.0, OPEN_WIPE)
+	_anim.tween_property(_edge, "scale:y", 1.0, OPEN_WIPE)
+	_anim.tween_property(_fig["L"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
+	_anim.tween_property(_fig["R"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 
 ## center レシピの1枚（拠点など）を地面の上に重ねる。3Dの帯には混ぜない＝奥へ行くほど縮む
 ## 帯の倍率と靄を受けないので、いつも同じ大きさで読める。仕様 → doc/tech/combat_scene.md
@@ -555,15 +592,37 @@ func _star_points(outer: float, inner: float) -> PackedVector2Array:
 
 func _on_root_input(e: InputEvent) -> void:
 	if e is InputEventMouseButton and e.pressed:
-		_dismiss()  # クリックで即スキップ
+		if _closing:
+			# 幕引きの最中のクリック＝余韻も飛ばす（連打で待たされない）
+			if _anim != null and _anim.is_valid():
+				_anim.kill()
+			_close_now()
+		else:
+			_dismiss()  # クリックで即スキップ
 
+## 幕引きを始める。演出はここで止まり、あとは薄れて消えるだけ。
+## finished はフェードが終わってから出す＝盤は幕が引き切るまで動かない。
 func _dismiss() -> void:
-	if not visible:
+	if not visible or _closing:
 		return  # 二重クローズ（クリック＋自動）で finished を重ねない
-	_gen += 1  # 進行中の自動クローズを無効化
+	_closing = true
+	_gen += 1  # 進行中の自動クローズ・飛来中のエフェクトを無効化
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
+	if _anim != null and _anim.is_valid():
+		_anim.kill()
+	_anim = create_tween()
+	_anim.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_anim.tween_property(_root, "modulate:a", 0.0, CLOSE_FADE)
+	_anim.tween_callback(_close_now)
+
+## 実際に消す。フェード完了とスキップの両方から来るので、見た目の後始末はここに集約する。
+func _close_now() -> void:
+	if not visible:
+		return
+	_closing = false
 	_inner.position = Vector2.ZERO
+	_root.modulate.a = 1.0
 	visible = false
 	finished.emit()
 
