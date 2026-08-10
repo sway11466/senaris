@@ -248,6 +248,9 @@ func _on_battle_finished(outcome: int) -> void:
 				if _roster_store != null and _controller != null:
 					var updated := RosterService.update_after_clear(_load_roster(), _controller.state)
 					_roster_store.save_roster(_current_campaign_id, updated)
+					# 戦闘後の会話は「クリア後の名簿」で条件を見る＝この回で仲間になった駒が喋れる。
+					# 読み込み時の名簿のままだと、加入が確定するのはクリア時なので合流の台詞が落ちる。
+					_dialogue = StageLoader.load_dialogue(_current_stage_path, updated)
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
 	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
