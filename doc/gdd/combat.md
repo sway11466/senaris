@@ -152,7 +152,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 
 **地形はデータ駆動**。正本 `data/terrain/terrain.csv`（`id, char, atk, def, image`）→ `terrain.json`、`Terrain` カタログ（`data/terrain/terrain.gd`）が係数・ASCII文字・タイル画像ファイル名を提供。**地形を増やす＝terrain.csv に1行＋movement.csv に1列**（コード不変）。タイル画像は placeholder を `tools/gen_terrain_tiles.gd` で用意（色は生成時に1回決める＝データには持たない。アート確定後は同名PNGを差し替え）。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
 
-**実装済みの地形（現在13種・真は `terrain.csv`）**。代表例:
+**実装済みの地形（種類は `terrain.csv` が正本）**。代表例:
 
 | id | 地形 | char | 地形(攻) | 地形(防) | 性格 |
 |---|---|---|---|---|---|
