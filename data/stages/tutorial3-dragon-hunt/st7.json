@@ -1,0 +1,82 @@
+{
+  "turn_limit": 25,
+  "name": "tutorial3-st7",
+  "cols": 20,
+  "rows": 11,
+  "margin": 1,
+  "terrain": [
+    "%%%%%%%%%%%%%%%%%%%%%%",
+    "%%%%%%%%%%%%%%%%%%%%%%",
+    "%%%%%####%%%%####%%%%%",
+    "%%%%%####%%%%####%%%%%",
+    "%%%%%%%%%%%%%%%%%%%%%%",
+    "%%%####%%%%%%%%####%%%",
+    "%%%####%%%PPPP%####%%%",
+    "%%%####%%%PPPP%####%%%",
+    "%%%%%%%%%%%%%%%%%%%%%%",
+    "%%%%%####%%%%####%%%%%",
+    "%%%%%####%%%%####%%%%%",
+    "%%%%%%%%%%%%%%%%%%%%%%",
+    "%%%%%%%%%%%%%%%%%%%%%%"
+  ],
+  "carryover_slots": [
+    { "col": 2, "row": 3, "actor": "vanguard" },
+    { "col": 3, "row": 3, "actor": "thief" },
+    { "col": 1, "row": 3, "actor": "hunter" },
+    { "col": 0, "row": 3, "actor": "bishop" },
+    { "col": 4, "row": 3, "actor": "wizard" },
+    { "col": 2, "row": 7, "actor": "fighter" },
+    { "col": 3, "row": 7, "actor": "halfling" },
+    { "col": 1, "row": 7, "actor": "archer" },
+    { "col": 0, "row": 7, "actor": "cleric" },
+    { "col": 4, "row": 7, "actor": "dwarf" },
+    { "col": 0, "row": 5, "actor": "elf" },
+    { "col": 1, "row": 5, "actor": "pixie" },
+    { "col": 0, "row": 0, "actor": "birdman" }
+  ],
+  "enemy": [
+    { "order": 1, "name": "レッドドラゴン", "ai": "weak",
+      "units": [
+        { "skin": "dragon", "col": 18, "row": 5, "actor": "dragon" }
+      ] },
+    { "order": 2, "name": "山から追われた飛行", "ai": "charge",
+      "units": [
+        { "skin": "griffon", "col": 13, "row": 3 },
+        { "skin": "griffon", "col": 19, "row": 3 },
+        { "skin": "griffon", "col": 15, "row": 7 }
+      ] },
+    { "order": 3, "name": "荒野のワイアーム", "ai": "charge",
+      "units": [
+        { "skin": "wyrm", "col": 16, "row": 3 },
+        { "skin": "wyrm", "col": 16, "row": 7 }
+      ] },
+    { "order": 4, "name": "岩棚のスコーピオン", "ai": "guard", "sight": 2,
+      "units": [
+        { "skin": "scorpion", "col": 9, "row": 5 },
+        { "skin": "scorpion", "col": 12, "row": 6 }
+      ] }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "actor": "dragon" }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st7.intro.1" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st7.intro.2" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st7.intro.3" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st7.intro.4" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st7.intro.5" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st7.intro.6" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st7.intro.7" }
+    ],
+    "outro": [
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st7.outro.1" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st7.outro.2" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st7.outro.3" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st7.outro.4" },
+      { "speaker": "char.fighter.name", "skin": "fighter", "text": "t3.st7.outro.5" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st7.outro.6" }
+    ]
+  },
+  "bgm": { "main": "boss" }
+}

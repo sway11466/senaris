@@ -1,0 +1,97 @@
+{
+  "turn_limit": 30,
+  "name": "tutorial3-st2",
+  "cols": 27,
+  "rows": 11,
+  "margin": 1,
+  "terrain": [
+    ".............................",
+    "....#...................#....",
+    "....#...................#....",
+    "....#...................#....",
+    "....#...................#....",
+    "........................#....",
+    "....LLLLLOLLLLLLLLLOLLLLL....",
+    "....#........................",
+    "....#...................#....",
+    "....#...................#....",
+    "....#...................#....",
+    "....#...................#....",
+    "............................."
+  ],
+  "terrain_skins": [
+    { "col": 8, "row": 5, "skin": "fort_town1" },
+    { "col": 18, "row": 5, "skin": "fort_town1" }
+  ],
+  "player": [
+    { "type": "wagon", "col": 13, "row": 5 },
+    { "type": "ballista", "col": 14, "row": 5 },
+    { "type": "barricade", "col": 4, "row": 3 },
+    { "type": "barricade", "col": 4, "row": 4 },
+    { "type": "barricade", "col": 22, "row": 6 },
+    { "type": "barricade", "col": 22, "row": 7 }
+  ],
+  "carryover_slots": [
+    { "col": 20, "row": 4, "actor": "vanguard" },
+    { "col": 20, "row": 5, "actor": "thief" },
+    { "col": 21, "row": 5, "actor": "hunter" },
+    { "col": 21, "row": 6, "actor": "bishop" },
+    { "col": 20, "row": 6, "actor": "wizard" },
+    { "col": 6, "row": 4, "actor": "fighter" },
+    { "col": 6, "row": 5, "actor": "halfling" },
+    { "col": 5, "row": 4, "actor": "archer" },
+    { "col": 5, "row": 5, "actor": "cleric" }
+  ],
+  "enemy": [
+    { "order": 1, "name": "西門・ハーピー", "ai": "charge",
+      "units": [
+        { "skin": "harpy", "col": 0, "row": 3 },
+        { "skin": "harpy", "col": 1, "row": 4 },
+        { "skin": "harpy", "col": 0, "row": 6 },
+        { "skin": "harpy", "col": 1, "row": 7 }
+      ] },
+    { "order": 2, "name": "西門・ローグ", "ai": "raid",
+      "units": [
+        { "skin": "rogue", "col": 2, "row": 4 },
+        { "skin": "rogue", "col": 2, "row": 5 }
+      ] },
+    { "order": 3, "name": "東門・オークの群れ", "ai": "charge",
+      "units": [
+        { "skin": "orc", "col": 24, "row": 4 },
+        { "skin": "orc", "col": 25, "row": 5 },
+        { "skin": "orc", "col": 24, "row": 6 },
+        { "skin": "orc", "col": 25, "row": 7 },
+        { "skin": "orc_leader", "col": 26, "row": 5 },
+        { "skin": "orc_mage", "col": 26, "row": 4 },
+        { "skin": "orc_mage", "col": 26, "row": 6 }
+      ] }
+  ],
+  "bases": [
+    { "col": 8, "row": 5, "team": "player", "kind": "fort" },
+    { "col": 18, "row": 5, "team": "player", "kind": "fort" }
+  ],
+  "defeat": [
+    { "type": "lose_base", "bases": [ { "col": 8, "row": 5 } ] },
+    { "type": "lose_base", "bases": [ { "col": 18, "row": 5 } ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.archer.name", "skin": "archer", "text": "t3.st2.intro.1" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.2" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.intro.3" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st2.intro.4" },
+      { "speaker": "char.fighter.name", "skin": "fighter", "text": "t3.st2.intro.5" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.6" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st2.intro.7" }
+    ],
+    "outro": [
+      { "speaker": "char.halfling.name", "skin": "halfling", "text": "t3.st2.outro.1" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.2" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.outro.3" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.4" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st2.outro.5" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.outro.6" }
+    ]
+  },
+  "bgm": { "main": "raid" }
+}

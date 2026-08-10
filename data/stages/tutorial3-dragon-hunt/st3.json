@@ -1,0 +1,85 @@
+{
+  "turn_limit": 30,
+  "name": "tutorial3-st3",
+  "cols": 20,
+  "rows": 11,
+  "margin": 1,
+  "terrain": [
+    "......................",
+    "........%%.....CC.....",
+    "...%%.....%%....C.....",
+    "......%%.....CC.......",
+    "...%%......%%....%%...",
+    ".......CC.....%%......",
+    "...LLLLLLLLO...%%.....",
+    ".......CC.....%%......",
+    "...%%......%%....%%...",
+    "......%%.....CC.......",
+    "...%%.....%%....C.....",
+    "........%%.....CC.....",
+    "......................"
+  ],
+  "player": [
+    { "type": "pixie", "col": 3, "row": 5, "actor": "pixie" }
+  ],
+  "carryover_slots": [
+    { "col": 2, "row": 4, "actor": "vanguard" },
+    { "col": 2, "row": 6, "actor": "thief" },
+    { "col": 1, "row": 4, "actor": "hunter" },
+    { "col": 2, "row": 5, "actor": "bishop" },
+    { "col": 1, "row": 6, "actor": "wizard" },
+    { "col": 1, "row": 5, "actor": "fighter" },
+    { "col": 0, "row": 4, "actor": "halfling" },
+    { "col": 0, "row": 5, "actor": "archer" },
+    { "col": 0, "row": 6, "actor": "cleric" }
+  ],
+  "enemy": [
+    { "order": 1, "name": "岩陰のロックサーペント", "ai": "guard", "sight": 3,
+      "units": [
+        { "skin": "rock_serpent", "col": 5, "row": 2 },
+        { "skin": "rock_serpent", "col": 6, "row": 3 },
+        { "skin": "rock_serpent", "col": 9, "row": 3 },
+        { "skin": "rock_serpent", "col": 6, "row": 7 },
+        { "skin": "rock_serpent", "col": 5, "row": 8 }
+      ] },
+    { "order": 2, "name": "居座るトロール", "ai": "guard", "sight": 2,
+      "units": [
+        { "skin": "troll", "col": 7, "row": 5 },
+        { "skin": "troll", "col": 11, "row": 4 }
+      ] },
+    { "order": 3, "name": "ワイアーム", "ai": "charge",
+      "units": [
+        { "skin": "wyrm", "col": 14, "row": 4 },
+        { "skin": "wyrm", "col": 14, "row": 6 }
+      ] },
+    { "order": 4, "name": "ローグ一味", "ai": "raid",
+      "units": [
+        { "skin": "rogue", "col": 17, "row": 7 },
+        { "skin": "rogue", "col": 18, "row": 8 }
+      ] }
+  ],
+  "bases": [
+    { "col": 10, "row": 5, "team": "neutral", "kind": "fort",
+      "garrison": [ { "type": "dwarf", "actor": "dwarf" } ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st3.intro.1" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st3.intro.2" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st3.intro.3" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st3.intro.4" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st3.intro.5" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st3.intro.6" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t3.st3.intro.7" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st3.intro.8" }
+    ],
+    "outro": [
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st3.outro.1" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st3.outro.2" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st3.outro.3" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st3.outro.4" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st3.outro.5" }
+    ]
+  },
+  "bgm": { "main": "journey" }
+}

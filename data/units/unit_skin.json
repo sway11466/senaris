@@ -353,6 +353,18 @@
 					"retainers": [],
 					"skin_id": "treant",
 					"type_id": "knight"
+				},
+				{
+					"category": "魔獣",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "スコーピオン",
+					"retainers": [],
+					"skin_id": "scorpion",
+					"type_id": "knight"
 				}
 			]
 		},
@@ -771,7 +783,20 @@
 					"type_id": "thief"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "魔獣",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ミミック",
+					"retainers": [],
+					"skin_id": "mimic",
+					"type_id": "thief"
+				}
+			]
 		},
 		"valkyrie": {
 			"ally": [],
