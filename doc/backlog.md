@@ -239,19 +239,6 @@
 - 対応：一打で完結する素材に差し替える。Sonniss バンドルには使える羽ばたきが無いことが確認済み（[doc/audio/sfx.md](audio/sfx.md) の「バンドルに録音が無かったもの」）。外部の素材集を1本買うか、自録り（うちわ・厚紙・畳んだ布で空気を打つ）に切り替える。長さは 0.30 秒より短く収めて、重ならずに一打ずつ聞こえる形にする。ペガサスからレッドドラゴンまで1つで賄うので、翼の大きさが特定できない中庸な質感を狙う。
 - 該当：`assets/sfx-src/move_flight_recipe.txt`・`assets/sfx/move_flight.ogg`・`assets/sfx-src/credits.md`・`data/audio/sfx_catalog.gd`（間隔）・`doc/audio/sfx.md`。着手の引き金＝素材を調達したとき。
 
-### feature-34
-
-**陣形スキルの着弾を盤で見せる**（優先度：中）
-
-- 背景：陣形スキルが解決しても、盤は `_sync()` で駒を消して兵数を書き換えるだけ（`hex_board_3d.gd` `_on_formation_resolved`）。しかも board のハンドラは main より先に繋がる（`bind` が main の接続より前）ため、駒が消えるのはカットインより前。カットインが明けたときには敵がもう居らず、どこに当たって誰が受けたのかが分からない。[formations.md](gdd/formations.md) 発動の演出（揺れ → 面の光 → 被弾した駒を1体ずつ）に実装を合わせる。
-- 対応：足場が4つ要る。
-  - 盤の更新を着弾まで遅らせる。board は結果を預かるだけにして `_sync()` を打たず、順番は main が持つ。駒ノードが残るので、撃破のフェードアウトはその残りノードに掛けられる。
-  - 着弾中心を結果に載せる。今の戻りは `{recipe, results}` だけで hex が無く、撃破された駒は state から消えているので `target_id` からも引けない（`battle_state.gd` `resolve_formation`）。
-  - 盤にヘックス単位の一時ハイライトを新設（既存のオーバーレイ＝`_reachable`／`_targets` と同じ層に、時間で消えるものを足す）。駒に重ねるエフェクトは `data/effects/combat_effect.csv` から引き、盤は3Dなのでビルボードで出す。
-  - 画面全体の揺れを新設。今ある `_shake` は戦闘演出シーンの窓の中だけ。画面全体に掛かるものは加護の光（`AuraOverlay`）と同じ層で考える。
-- 併せて要る：陣形で決着すると `battle_finished` がカットイン中に飛ぶ＝着弾を見せてから戦果票へ渡す順番。敵AIが陣形を撃つときは着弾の完了を待つフック（`combat_pace` は演出シーンしか待っていない）。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/main/main.gd`（順番）・`domain/battle_state.gd`（着弾中心）・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝盤の演出に手を入れるとき。
-
 ### feature-35
 
 **ユニットスキル ヴェノムファングのレシピ**（優先度：中）
