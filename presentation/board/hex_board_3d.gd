@@ -173,8 +173,6 @@ var _mark_edge_mesh: ArrayMesh    # 同・その下に敷く縁取り（全周�
 var _mark_mat: StandardMaterial3D      # 同・本体の材質（深度切り＝常に最前面）
 var _mark_mat_edge: StandardMaterial3D # 同・縁取りの材質（本体より1つ手前で描く）
 var _mark_tip_drop := 0.0         # 同・縁取りの先端が本体より下へ伸びる量（隙間の補正）
-var _overlay_mat := {}    # Color -> StandardMaterial3D（オーバーレイ材質キャッシュ）
-var _bill_mat := {}       # Color -> StandardMaterial3D（ビルボード材質キャッシュ＝兵数バー用）
 var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
 var _fig_height := {}     # Texture2D -> float（立ち絵の実体の背丈＝マーカーを置く高さの基準）
 var _avg_color := {}      # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
@@ -240,24 +238,24 @@ func _ready() -> void:
 	_update_camera()
 	_cam.make_current()
 	# 共有メッシュとコンテナ。
-	_hex_mesh = _make_hex_mesh()
-	_overlay_mesh = _make_hex_mesh()
-	_hexring_mesh = _make_hexring_mesh()
-	_shadow_mesh = _make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
-	_glow_mesh = _make_glow_ring_mesh(SKILL_DEBUFF_INNER, SKILL_DEBUFF_OUTER, 0.5)
-	_glow_ring_mesh = _make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
-	_glow_mat = _make_glow_material(COLOR_SKILL_GLOW)
-	_glow_mat_debuff = _make_glow_material(COLOR_SKILL_DEBUFF, false)
-	var tri := _tri_points(MARK_W, MARK_H)
-	var tri_edge := _outset_tri(tri, MARK_EDGE)
-	_mark_mesh = _make_tri_mesh(tri)
-	_mark_edge_mesh = _make_tri_mesh(tri_edge)
+	_hex_mesh = BoardMeshFactory.make_hex_mesh(TILE)
+	_overlay_mesh = BoardMeshFactory.make_hex_mesh(TILE)
+	_hexring_mesh = BoardMeshFactory.make_hexring_mesh(TILE)
+	_shadow_mesh = BoardMeshFactory.make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
+	_glow_mesh = BoardMeshFactory.make_glow_ring_mesh(SKILL_DEBUFF_INNER, SKILL_DEBUFF_OUTER, 0.5)
+	_glow_ring_mesh = BoardMeshFactory.make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
+	_glow_mat = BoardMeshFactory.make_glow_material(COLOR_SKILL_GLOW)
+	_glow_mat_debuff = BoardMeshFactory.make_glow_material(COLOR_SKILL_DEBUFF, false)
+	var tri := BoardMeshFactory.tri_points(MARK_W, MARK_H)
+	var tri_edge := BoardMeshFactory.outset_tri(tri, MARK_EDGE)
+	_mark_mesh = BoardMeshFactory.make_tri_mesh(tri)
+	_mark_edge_mesh = BoardMeshFactory.make_tri_mesh(tri_edge)
 	# 等距離に押し出すと、鋭い先端は e より深く伸びる（先端の角度から e/sin(θ/2)）。
 	# 隙間は見えている縁取りの先から測りたいので、その伸びぶんを持ち上げに足す。
 	_mark_tip_drop = -tri_edge[1].y
-	_mark_mat = _make_mark_material(COLOR_ATTACK_MARK, 4)
-	_mark_mat_edge = _make_mark_material(COLOR_ATTACK_MARK_EDGE, 3)
-	_skirt_tex = _make_skirt_texture()
+	_mark_mat = BoardMeshFactory.make_mark_material(COLOR_ATTACK_MARK, 4)
+	_mark_mat_edge = BoardMeshFactory.make_mark_material(COLOR_ATTACK_MARK_EDGE, 3)
+	_skirt_tex = BoardMeshFactory.make_skirt_texture()
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
 	_disc_mesh.bottom_radius = TILE * 0.55
@@ -1396,7 +1394,7 @@ func _sync_bases() -> void:
 			col = TEAM_COLORS[b.team % TEAM_COLORS.size()]
 		var mi := MeshInstance3D.new()
 		mi.mesh = _hexring_mesh
-		mi.material_override = _overlay_material(col)
+		mi.material_override = BoardMeshFactory.overlay_material(col)
 		var p := Hex.to_pixel(b.hex, TILE)
 		var by := _elev(b.hex)
 		mi.position = Vector3(p.x, by + 0.015, p.y)
@@ -1521,7 +1519,7 @@ func _refresh_base_tiles() -> void:
 			continue
 		var tex := _tile_texture(b.hex)
 		if tex != null:
-			mi.material_override = _terrain_material(tex)
+			mi.material_override = BoardMeshFactory.terrain_material(tex)
 
 ## タイルの平均色（中央付近を5点サンプル・透過は除外）。スカートの断面色に使う。
 func _tile_avg_color(tex: Texture2D) -> Color:
@@ -1553,7 +1551,7 @@ func _add_tile(hex: Vector2i) -> void:
 	var skin := _skin_at(hex)
 	var mi := MeshInstance3D.new()
 	mi.mesh = _hex_mesh
-	mi.material_override = _terrain_material(tex)
+	mi.material_override = BoardMeshFactory.terrain_material(tex)
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, _elev(hex), p.y)
 	if skin != null and skin.orients():
@@ -1719,7 +1717,7 @@ func _build_unit_node(u: Unit) -> Node3D:
 		# 足元のブロブシャドウ（接地感）。範囲塗りの上・リングの下の高さ。
 		var sh := MeshInstance3D.new()
 		sh.mesh = _shadow_mesh
-		sh.material_override = _overlay_material(COLOR_SHADOW)
+		sh.material_override = BoardMeshFactory.overlay_material(COLOR_SHADOW)
 		sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
 		root.add_child(sh)
 	else:
@@ -1840,7 +1838,7 @@ func _sync_overlay() -> void:
 func _add_cell(hex: Vector2i, color: Color, y: float) -> void:
 	var mi := MeshInstance3D.new()
 	mi.mesh = _overlay_mesh
-	mi.material_override = _overlay_material(color)
+	mi.material_override = BoardMeshFactory.overlay_material(color)
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, _elev(hex) + y, p.y)
 	_overlay_root.add_child(mi)
@@ -1908,7 +1906,7 @@ func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	var bgq := QuadMesh.new()
 	bgq.size = Vector2(w, h)
 	bg.mesh = bgq
-	bg.material_override = _bill_material(COLOR_TROOPS_BG)
+	bg.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_BG)
 	bg.position = base_pos
 	root.add_child(bg)
 	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
@@ -1919,7 +1917,7 @@ func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	fq.size = Vector2(w * ratio, h * 0.8)
 	fq.center_offset = Vector3(-w * (1.0 - ratio) * 0.5, 0.0, 0.0)  # 左詰め（ビルボードでも左端固定）
 	fill.mesh = fq
-	fill.material_override = _bill_material(COLOR_TROOPS_FILL)
+	fill.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_FILL)
 	fill.position = base_pos + Vector3(0, 0, 0.01)
 	root.add_child(fill)
 
@@ -1948,10 +1946,10 @@ func _add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -
 func _add_ring(wpos: Vector3, radius: float, width: float, color: Color, y: float, root: Node3D) -> void:
 	var key := "%.3f|%.3f" % [radius, width]
 	if not _ring_mesh.has(key):
-		_ring_mesh[key] = _make_ring_mesh(radius, width)
+		_ring_mesh[key] = BoardMeshFactory.make_ring_mesh(radius, width)
 	var mi := MeshInstance3D.new()
 	mi.mesh = _ring_mesh[key]
-	mi.material_override = _overlay_material(color)
+	mi.material_override = BoardMeshFactory.overlay_material(color)
 	mi.position = Vector3(wpos.x, wpos.y + y, wpos.z)
 	root.add_child(mi)
 
@@ -2016,217 +2014,6 @@ func _figure_height(tex: Texture2D) -> float:
 	_fig_height[tex] = h
 	return h
 
-## 床(XZ)の円環メッシュ（32分割の帯）。
-func _make_ring_mesh(radius: float, width: float) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := 32
-	var r0 := radius - width * 0.5
-	var r1 := radius + width * 0.5
-	for i in n:
-		var a0 := TAU * float(i) / float(n)
-		var a1 := TAU * float(i + 1) / float(n)
-		var o0 := Vector3(cos(a0) * r1, 0.0, sin(a0) * r1)
-		var o1 := Vector3(cos(a1) * r1, 0.0, sin(a1) * r1)
-		var i0 := Vector3(cos(a0) * r0, 0.0, sin(a0) * r0)
-		var i1 := Vector3(cos(a1) * r0, 0.0, sin(a1) * r0)
-		st.set_normal(Vector3.UP); st.add_vertex(o0)
-		st.set_normal(Vector3.UP); st.add_vertex(o1)
-		st.set_normal(Vector3.UP); st.add_vertex(i0)
-		st.set_normal(Vector3.UP); st.add_vertex(i1)
-		st.set_normal(Vector3.UP); st.add_vertex(i0)
-		st.set_normal(Vector3.UP); st.add_vertex(o1)
-	return st.commit()
-
-## スカート用の粒状ノイズ（グレースケール・シームレス）。頂点カラーに乗算されて土の質感になる。
-## 変化幅は控えめ（0.78〜1.0倍）＝べた塗り感だけ消し、色は頂点グラデに任せる。
-## ユニットスキル中の足元の光の材質（加算合成・中心が濃く外へ消える）。
-## 明滅は共有の1材質を _process が書き換える＝掛かっている駒が同じ位相で光る。
-## 足元の光の材質。add＝地形の上に載せる（暗くしない）＝強化の輪はこちら。
-## 弱体の塗りは mix にする＝加算だと明るい地形の上で白へ飽和し、紫に見えない（平地で実測）。
-func _make_glow_material(color: Color, additive: bool = true) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD if additive else BaseMaterial3D.BLEND_MODE_MIX
-	m.vertex_color_use_as_albedo = true  # 中心→外周のアルファ落ちは頂点カラーで作る
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	return m
-
-## 足元の光の円盤。中心が不透明・外周が透明の頂点カラーを持つ（_make_disc_mesh は UV も
-## 頂点カラーも持たないので、テクスチャを貼っても一様に透明になる＝こちらを使う）。
-func _make_glow_mesh(radius: float, z_ratio: float) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := 32
-	for i in n:
-		var a0 := TAU * float(i) / float(n)
-		var a1 := TAU * float(i + 1) / float(n)
-		st.set_color(Color(1, 1, 1, 1)); st.set_normal(Vector3.UP); st.add_vertex(Vector3.ZERO)
-		st.set_color(Color(1, 1, 1, 0)); st.set_normal(Vector3.UP)
-		st.add_vertex(Vector3(cos(a0) * radius, 0.0, sin(a0) * radius * z_ratio))
-		st.set_color(Color(1, 1, 1, 0)); st.set_normal(Vector3.UP)
-		st.add_vertex(Vector3(cos(a1) * radius, 0.0, sin(a1) * radius * z_ratio))
-	return st.commit()
-
-## 足元の光の輪。内周と外周が透明・その中間が不透明の帯（_make_glow_mesh と同じ頂点カラー方式）。
-## 塗りの外側に置くので、弱体の塗りと強化の輪が同じ足元に出ても互いを潰さない。
-func _make_glow_ring_mesh(r_in: float, r_out: float, z_ratio: float) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := 32
-	var r_mid := (r_in + r_out) * 0.5
-	for i in n:
-		var a0 := TAU * float(i) / float(n)
-		var a1 := TAU * float(i + 1) / float(n)
-		# 内周→中間→外周の2段の帯。中間だけ不透明にして、両端へなだらかに消す。
-		for band in [[r_in, 0.0, r_mid, 1.0], [r_mid, 1.0, r_out, 0.0]]:
-			var ri: float = band[0]
-			var ai: float = band[1]
-			var ro: float = band[2]
-			var ao: float = band[3]
-			var p0 := Vector3(cos(a0) * ri, 0.0, sin(a0) * ri * z_ratio)
-			var p1 := Vector3(cos(a1) * ri, 0.0, sin(a1) * ri * z_ratio)
-			var q0 := Vector3(cos(a0) * ro, 0.0, sin(a0) * ro * z_ratio)
-			var q1 := Vector3(cos(a1) * ro, 0.0, sin(a1) * ro * z_ratio)
-			st.set_color(Color(1, 1, 1, ai)); st.set_normal(Vector3.UP); st.add_vertex(p0)
-			st.set_color(Color(1, 1, 1, ai)); st.set_normal(Vector3.UP); st.add_vertex(p1)
-			st.set_color(Color(1, 1, 1, ao)); st.set_normal(Vector3.UP); st.add_vertex(q0)
-			st.set_color(Color(1, 1, 1, ao)); st.set_normal(Vector3.UP); st.add_vertex(q0)
-			st.set_color(Color(1, 1, 1, ai)); st.set_normal(Vector3.UP); st.add_vertex(p1)
-			st.set_color(Color(1, 1, 1, ao)); st.set_normal(Vector3.UP); st.add_vertex(q1)
-	return st.commit()
-
-func _make_skirt_texture() -> ImageTexture:
-	var fn := FastNoiseLite.new()
-	fn.seed = 7  # 決定的（毎回同じ見た目）
-	fn.frequency = 0.05
-	fn.fractal_octaves = 4
-	var img := fn.get_seamless_image(256, 256)
-	for y in 256:
-		for x in 256:
-			var v := img.get_pixel(x, y).r          # ノイズ値 0..1
-			var g := 0.78 + v * 0.22                 # 控えめな明暗に圧縮
-			img.set_pixel(x, y, Color(g, g, g))
-	return ImageTexture.create_from_image(img)
-
-## 床(XZ)の楕円メッシュ（ブロブシャドウ用。z_ratio でつぶす）。
-func _make_disc_mesh(radius: float, z_ratio: float) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var n := 24
-	for i in n:
-		var a0 := TAU * float(i) / float(n)
-		var a1 := TAU * float(i + 1) / float(n)
-		st.set_normal(Vector3.UP); st.add_vertex(Vector3.ZERO)
-		st.set_normal(Vector3.UP); st.add_vertex(Vector3(cos(a0) * radius, 0.0, sin(a0) * radius * z_ratio))
-		st.set_normal(Vector3.UP); st.add_vertex(Vector3(cos(a1) * radius, 0.0, sin(a1) * radius * z_ratio))
-	return st.commit()
-
-## 拠点の縁取り＝六角の枠メッシュ（タイルの外側に張り出す帯）。
-## 内側へ食い込ませるとタイルの絵を隠す（町スキンは六角いっぱいに描かれている）。
-## 帯をヘックスの外へ出し、隣のタイルの上に乗せることで、絵を欠かさず所属を示す。
-func _make_hexring_mesh() -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var r_out := TILE * 1.10
-	var r_in := TILE * 1.00
-	for i in 6:
-		var a0 := deg_to_rad(60.0 * i)
-		var a1 := deg_to_rad(60.0 * (i + 1))
-		var o0 := Vector3(cos(a0) * r_out, 0.0, sin(a0) * r_out)
-		var o1 := Vector3(cos(a1) * r_out, 0.0, sin(a1) * r_out)
-		var i0 := Vector3(cos(a0) * r_in, 0.0, sin(a0) * r_in)
-		var i1 := Vector3(cos(a1) * r_in, 0.0, sin(a1) * r_in)
-		st.set_normal(Vector3.UP); st.add_vertex(o0)
-		st.set_normal(Vector3.UP); st.add_vertex(o1)
-		st.set_normal(Vector3.UP); st.add_vertex(i0)
-		st.set_normal(Vector3.UP); st.add_vertex(i1)
-		st.set_normal(Vector3.UP); st.add_vertex(i0)
-		st.set_normal(Vector3.UP); st.add_vertex(o1)
-	return st.commit()
-
-## 下向き三角の頂点（XY平面・原点＝下の先端）。ビルボード材質と組んで頭上マーカーにする。
-func _tri_points(w: float, h: float) -> Array[Vector2]:
-	return [Vector2(-w * 0.5, h), Vector2(0.0, 0.0), Vector2(w * 0.5, h)]
-
-## 三角形の3辺すべてを外へ e だけ等距離に押し出した三角形（＝縁取りの下敷き）。
-## 幅と高さを増やしただけの相似形では、上辺と斜辺で張り出しが2倍ちがう（上辺0.045に対し
-## 斜辺0.022＝実測）ので、輪郭ではなく上辺の帽子に見える。内接円の半径が r→r+e に増えた
-## 相似形＝内心を中心に (r+e)/r 倍すれば、どの辺からも距離 e で揃う。
-func _outset_tri(p: Array[Vector2], e: float) -> Array[Vector2]:
-	var a := p[1].distance_to(p[2])  # 各頂点の対辺の長さ（内心の重み）
-	var b := p[2].distance_to(p[0])
-	var c := p[0].distance_to(p[1])
-	var per := a + b + c
-	var area := absf((p[1] - p[0]).cross(p[2] - p[0])) * 0.5
-	if per <= 0.0 or area <= 0.0:
-		return p
-	var incenter := (p[0] * a + p[1] * b + p[2] * c) / per
-	var r := area / (per * 0.5)  # 内接円の半径
-	var k := (r + e) / r
-	return [
-		incenter + (p[0] - incenter) * k,
-		incenter + (p[1] - incenter) * k,
-		incenter + (p[2] - incenter) * k,
-	]
-
-## 頂点3つ（XY平面）を三角のメッシュにする。裏面も描く前提で巻き順は問わない。
-func _make_tri_mesh(p: Array[Vector2]) -> ArrayMesh:
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for v in p:
-		st.set_normal(Vector3.BACK); st.add_vertex(Vector3(v.x, v.y, 0.0))
-	return st.commit()
-
-## 頭上マーカーの材質。深度判定を切って常に最前面に描く＝地形にも他の駒にも隠れない
-## （+N ラベルと同じ手）。重なり順は render_priority だけで決まるので、縁取り→本体の順に上げる。
-func _make_mark_material(color: Color, priority: int) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	m.billboard_keep_scale = true
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	m.no_depth_test = true
-	m.render_priority = priority
-	return m
-
-## ビルボード材質（兵数バー用・アンライト・半透明可）。色ごとにキャッシュ。
-func _bill_material(color: Color) -> StandardMaterial3D:
-	if _bill_mat.has(color):
-		return _bill_mat[color]
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	m.billboard_keep_scale = true
-	_bill_mat[color] = m
-	return m
-
-# --- メッシュ・材質・テクスチャのヘルパー ---
-
-## 床(XZ)に寝かせたフラットトップ六角メッシュ（中心ファン）。UVはテクスチャの外接矩形。
-func _make_hex_mesh() -> ArrayMesh:
-	return TerrainTiles.hex_mesh(TILE)  # 戦闘演出の地面と共有（同じ絵・同じ発色で敷く）
-
-## タイル材質（アンライト＝2D canvas と同じ発色）。テクスチャごとにキャッシュ。
-func _terrain_material(tex: Texture2D) -> StandardMaterial3D:
-	return TerrainTiles.material(tex)
-
-## オーバーレイ材質（半透明・アンライト）。色ごとにキャッシュ。
-func _overlay_material(color: Color) -> StandardMaterial3D:
-	if _overlay_mat.has(color):
-		return _overlay_mat[color]
-	var m := StandardMaterial3D.new()
-	m.albedo_color = color
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	_overlay_mat[color] = m
-	return m
 
 ## スキンの map 画像テクスチャ（キャッシュ）。未設定/未配置は null＝プレースホルダ描画。
 func _unit_texture(u: Unit) -> Texture2D:
