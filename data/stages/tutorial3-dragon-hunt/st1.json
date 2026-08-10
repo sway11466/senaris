@@ -1,53 +1,49 @@
 {
   "turn_limit": 30,
   "name": "tutorial3-st1",
-  "cols": 9,
-  "rows": 18,
+  "cols": 13,
+  "rows": 14,
   "margin": 1,
   "terrain": [
-    "...........",
-    "...........",
-    "...........",
-    ".....L.....",
-    ".....L.....",
-    ".....L...F.",
-    ".....LF.F..",
-    ".....L.*...",
-    "..F..L.....",
-    ".F...L.....",
-    ".F...L.....",
-    "...*.L.....",
-    ".....L.....",
-    ".....L..F..",
-    ".....L*....",
-    "..F..L...F.",
-    ".F...L.F.F.",
-    "...........",
-    "...........",
-    "..........."
+    "...............",
+    "...F...L.......",
+    "....F..L....FF.",
+    ".......L..F....",
+    "..F....L.......",
+    "....*..L...F...",
+    ".......L.......",
+    "...F...L...*...",
+    ".......L.......",
+    ".....F.L..F....",
+    ".......L.......",
+    "...FF..L.......",
+    ".......L...F...",
+    "..F....L.......",
+    "....F..L..FF...",
+    "..............."
   ],
   "player": [
-    { "type": "wizard", "col": 3, "row": 17, "actor": "wizard" },
-    { "type": "hunter", "col": 4, "row": 17, "actor": "hunter" },
-    { "type": "bishop", "col": 5, "row": 17, "actor": "bishop" },
-    { "type": "vanguard", "col": 4, "row": 16, "actor": "vanguard" },
-    { "type": "thief", "col": 5, "row": 16, "actor": "thief" },
-    { "type": "fighter", "col": 4, "row": 9, "troops": 5, "actor": "fighter" },
-    { "type": "halfling", "col": 5, "row": 9, "troops": 5, "actor": "halfling" },
-    { "type": "archer", "col": 4, "row": 8, "troops": 4, "actor": "archer" },
-    { "type": "cleric", "col": 5, "row": 8, "troops": 4, "actor": "cleric" }
+    {"type": "wizard", "col": 4, "row": 13, "actor": "wizard"},
+    {"type": "hunter", "col": 5, "row": 13, "actor": "hunter"},
+    {"type": "bishop", "col": 6, "row": 13, "actor": "bishop"},
+    {"type": "vanguard", "col": 5, "row": 12, "actor": "vanguard"},
+    {"type": "thief", "col": 6, "row": 12, "actor": "thief"},
+    {"type": "fighter", "col": 5, "row": 7, "troops": 5, "actor": "fighter"},
+    {"type": "halfling", "col": 6, "row": 7, "troops": 5, "actor": "halfling"},
+    {"type": "archer", "col": 5, "row": 8, "troops": 4, "actor": "archer"},
+    {"type": "cleric", "col": 6, "row": 8, "troops": 4, "actor": "cleric"}
   ],
   "enemy": [
     { "order": 1, "name": "空の魔獣", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 6, "row": 10 },
-        { "skin": "griffon", "col": 3, "row": 7 }
+        {"skin": "griffon", "col": 7, "row": 6},
+        {"skin": "griffon", "col": 5, "row": 9}
       ] },
     { "order": 2, "name": "オークの群れ", "ai": "charge",
       "units": [
-        { "skin": "orc", "col": 3, "row": 4 },
-        { "skin": "orc", "col": 4, "row": 3 },
-        { "skin": "orc", "col": 5, "row": 4 }
+        {"skin": "orc", "col": 6, "row": 1},
+        {"skin": "orc", "col": 5, "row": 2},
+        {"skin": "orc", "col": 7, "row": 2}
       ] }
   ],
   "dialogue": {

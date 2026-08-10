@@ -1,89 +1,83 @@
 {
   "turn_limit": 30,
   "name": "tutorial3-st6",
-  "cols": 13,
-  "rows": 23,
+  "cols": 16,
+  "rows": 18,
   "margin": 1,
   "terrain": [
-    "###############",
-    "###############",
-    "#####......####",
-    "#####......####",
-    "#####..O...####",
-    "#####......####",
-    "#####......####",
-    "#####..##..####",
-    "#####..##..####",
-    "##.....##....##",
-    "##.....##....##",
-    "##.....##....##",
-    "##..O..##....##",
-    "##.....##....##",
-    "##.....##....##",
-    "####..###..####",
-    "####..###..####",
-    "####..###..####",
-    "####.......####",
-    "####.......####",
-    "####...O...####",
-    "####.......####",
-    "####.......####",
-    "###############",
-    "###############"
+    "##################",
+    "##################",
+    "##################",
+    "####..........####",
+    "####....O.....####",
+    "####..........####",
+    "####..........####",
+    "####..........####",
+    "####..######..####",
+    "###...######...###",
+    "###...######...###",
+    "###.O.######...###",
+    "###...######...###",
+    "###...######...###",
+    "####..######..####",
+    "####..........####",
+    "####..........####",
+    "####....O.....####",
+    "####..........####",
+    "##################"
   ],
   "carryover_slots": [
-    { "col": 3, "row": 21, "actor": "cleric" },
-    { "col": 3, "row": 20, "actor": "archer" },
-    { "col": 3, "row": 19, "actor": "bishop" },
-    { "col": 3, "row": 18, "actor": "fighter" },
-    { "col": 3, "row": 17, "actor": "pixie" },
-    { "col": 4, "row": 21, "actor": "hunter" },
-    { "col": 4, "row": 20, "actor": "vanguard" },
-    { "col": 4, "row": 19, "actor": "thief" },
-    { "col": 4, "row": 18, "actor": "halfling" },
-    { "col": 4, "row": 17, "actor": "wizard" },
-    { "col": 5, "row": 21, "actor": "dwarf" },
-    { "col": 5, "row": 20, "actor": "elf" },
-    { "col": 5, "row": 19, "actor": "birdman" }
+    {"col": 5, "row": 17, "actor": "cleric"},
+    {"col": 6, "row": 17, "actor": "archer"},
+    {"col": 7, "row": 17, "actor": "bishop"},
+    {"col": 8, "row": 17, "actor": "fighter"},
+    {"col": 9, "row": 17, "actor": "pixie"},
+    {"col": 5, "row": 16, "actor": "hunter"},
+    {"col": 6, "row": 16, "actor": "vanguard"},
+    {"col": 8, "row": 16, "actor": "thief"},
+    {"col": 9, "row": 16, "actor": "halfling"},
+    {"col": 5, "row": 15, "actor": "wizard"},
+    {"col": 6, "row": 15, "actor": "dwarf"},
+    {"col": 7, "row": 15, "actor": "elf"},
+    {"col": 8, "row": 15, "actor": "birdman"}
   ],
   "enemy": [
     { "order": 1, "name": "ローグ本隊", "ai": "raid",
       "units": [
-        { "skin": "rogue", "col": 2, "row": 12 },
-        { "skin": "rogue", "col": 4, "row": 9 },
-        { "skin": "rogue", "col": 9, "row": 11 },
-        { "skin": "rogue", "col": 5, "row": 4 }
+        {"skin": "rogue", "col": 5, "row": 5},
+        {"skin": "rogue", "col": 10, "row": 4},
+        {"skin": "rogue", "col": 3, "row": 9},
+        {"skin": "rogue", "col": 12, "row": 11}
       ] },
     { "order": 2, "name": "頭目", "ai": "raid",
       "units": [
-        { "skin": "rogue_boss", "col": 8, "row": 3, "actor": "paladin" }
+        {"skin": "rogue_boss", "col": 8, "row": 3, "actor": "paladin"}
       ] },
     { "order": 3, "name": "宝の間のミミック", "ai": "guard", "sight": 1,
       "units": [
-        { "skin": "mimic", "col": 1, "row": 10 },
-        { "skin": "mimic", "col": 11, "row": 10 },
-        { "skin": "mimic", "col": 4, "row": 2 },
-        { "skin": "mimic", "col": 9, "row": 5 }
+        {"skin": "mimic", "col": 4, "row": 2},
+        {"skin": "mimic", "col": 11, "row": 2},
+        {"skin": "mimic", "col": 12, "row": 8},
+        {"skin": "mimic", "col": 3, "row": 12}
       ] },
     { "order": 4, "name": "坑道のスコーピオン", "ai": "guard", "sight": 2,
       "units": [
-        { "skin": "scorpion", "col": 4, "row": 7 },
-        { "skin": "scorpion", "col": 5, "row": 6 },
-        { "skin": "scorpion", "col": 8, "row": 7 },
-        { "skin": "scorpion", "col": 9, "row": 6 }
+        {"skin": "scorpion", "col": 3, "row": 7},
+        {"skin": "scorpion", "col": 11, "row": 7},
+        {"skin": "scorpion", "col": 4, "row": 13},
+        {"skin": "scorpion", "col": 11, "row": 13}
       ] }
   ],
   "bases": [
-    { "col": 6, "row": 19, "team": "player", "kind": "fort" },
-    { "col": 3, "row": 11, "team": "neutral", "kind": "fort" },
-    { "col": 6, "row": 3, "team": "neutral", "kind": "fort" }
+    {"col": 7, "row": 16, "team": "player", "kind": "fort"},
+    {"col": 3, "row": 10, "team": "neutral", "kind": "fort"},
+    {"col": 7, "row": 3, "team": "neutral", "kind": "fort"}
   ],
   "victory": [
-    { "type": "defeat_unit", "actor": "paladin" }
+    {"type": "defeat_unit", "actor": "paladin"}
   ],
   "defeat": [
-    { "type": "lose_base",
-      "bases": [ { "col": 6, "row": 19 }, { "col": 3, "row": 11 }, { "col": 6, "row": 3 } ] }
+    {"type": "lose_base", "bases": [{"col": 7, "row": 16}, {"col": 3, "row": 10}, {"col": 7, "row": 3}]}
   ],
   "dialogue": {
     "intro": [

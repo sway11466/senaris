@@ -1,75 +1,70 @@
 {
   "turn_limit": 30,
   "name": "tutorial3-st3",
-  "cols": 11,
-  "rows": 20,
+  "cols": 14,
+  "rows": 16,
   "margin": 1,
   "terrain": [
-    ".............",
-    ".............",
-    ".............",
-    "....%...%....",
-    "....%...%....",
-    ".CC...%...CC.",
-    ".C...%%%...C.",
-    "...C.%.%.C...",
-    "...C.....C...",
-    "....%...%....",
-    "..%.%.O.%.%..",
-    "..%...L...%..",
-    ".%....L....%.",
-    ".%...CLC...%.",
-    "...%.CLC.%...",
-    "...%..L..%...",
-    "......L......",
-    "..%.%.L.%.%..",
-    "..%.%.L.%.%..",
-    ".............",
-    ".............",
-    "............."
+    "................",
+    "...%%......CC...",
+    "......%%........",
+    "...CC.....%%....",
+    ".......%%.......",
+    "...%%......%%...",
+    "......%%........",
+    "......O...%%....",
+    "...CC.L.CC......",
+    "...CC.L.CC......",
+    "...%%.L....%%...",
+    "......L%%.......",
+    "...%%.L.........",
+    "......L...%%....",
+    "...%%.L.........",
+    "......L..CC.....",
+    "...%%.L.........",
+    "................"
   ],
   "player": [
-    { "type": "pixie", "col": 5, "row": 16, "actor": "pixie" }
+    {"type": "pixie", "col": 6, "row": 13, "actor": "pixie"}
   ],
   "carryover_slots": [
-    { "col": 4, "row": 17, "actor": "vanguard" },
-    { "col": 6, "row": 17, "actor": "thief" },
-    { "col": 4, "row": 18, "actor": "hunter" },
-    { "col": 5, "row": 17, "actor": "bishop" },
-    { "col": 6, "row": 18, "actor": "wizard" },
-    { "col": 5, "row": 18, "actor": "fighter" },
-    { "col": 4, "row": 19, "actor": "halfling" },
-    { "col": 5, "row": 19, "actor": "archer" },
-    { "col": 6, "row": 19, "actor": "cleric" }
+    {"col": 5, "row": 15, "actor": "vanguard"},
+    {"col": 4, "row": 15, "actor": "thief"},
+    {"col": 6, "row": 15, "actor": "hunter"},
+    {"col": 5, "row": 13, "actor": "bishop"},
+    {"col": 4, "row": 14, "actor": "wizard"},
+    {"col": 6, "row": 14, "actor": "fighter"},
+    {"col": 3, "row": 15, "actor": "halfling"},
+    {"col": 7, "row": 15, "actor": "archer"},
+    {"col": 3, "row": 14, "actor": "cleric"}
   ],
   "enemy": [
     { "order": 1, "name": "岩陰のロックサーペント", "ai": "guard", "sight": 3,
       "units": [
-        { "skin": "rock_serpent", "col": 2, "row": 14 },
-        { "skin": "rock_serpent", "col": 3, "row": 13 },
-        { "skin": "rock_serpent", "col": 3, "row": 10 },
-        { "skin": "rock_serpent", "col": 7, "row": 13 },
-        { "skin": "rock_serpent", "col": 8, "row": 14 }
+        {"skin": "rock_serpent", "col": 6, "row": 10},
+        {"skin": "rock_serpent", "col": 2, "row": 11},
+        {"skin": "rock_serpent", "col": 9, "row": 9},
+        {"skin": "rock_serpent", "col": 3, "row": 12},
+        {"skin": "rock_serpent", "col": 8, "row": 12}
       ] },
     { "order": 2, "name": "居座るトロール", "ai": "guard", "sight": 2,
       "units": [
-        { "skin": "troll", "col": 5, "row": 12 },
-        { "skin": "troll", "col": 4, "row": 8 }
+        {"skin": "troll", "col": 5, "row": 8},
+        {"skin": "troll", "col": 4, "row": 7}
       ] },
     { "order": 3, "name": "ワイアーム", "ai": "charge",
       "units": [
-        { "skin": "wyrm", "col": 4, "row": 5 },
-        { "skin": "wyrm", "col": 6, "row": 5 }
+        {"skin": "wyrm", "col": 4, "row": 4},
+        {"skin": "wyrm", "col": 7, "row": 5}
       ] },
     { "order": 4, "name": "ローグ一味", "ai": "raid",
       "units": [
-        { "skin": "rogue", "col": 7, "row": 2 },
-        { "skin": "rogue", "col": 8, "row": 1 }
+        {"skin": "rogue", "col": 5, "row": 1},
+        {"skin": "rogue", "col": 7, "row": 1}
       ] }
   ],
   "bases": [
-    { "col": 5, "row": 9, "team": "neutral", "kind": "fort",
-      "garrison": [ { "type": "dwarf", "actor": "dwarf" } ] }
+    {"col": 5, "row": 6, "team": "neutral", "kind": "fort", "garrison": [{"type": "dwarf", "actor": "dwarf"}]}
   ],
   "dialogue": {
     "intro": [

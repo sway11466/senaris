@@ -1,72 +1,67 @@
 {
   "turn_limit": 25,
   "name": "tutorial3-st7",
-  "cols": 11,
-  "rows": 20,
+  "cols": 14,
+  "rows": 15,
   "margin": 1,
   "terrain": [
-    "%%%%%%%%%%%%%",
-    "%%%%%%%%%%%%%",
-    "%%%%%%%%%%%%%",
-    "%%%%%###%%%%%",
-    "%%%%%###%%%%%",
-    "%%##%###%##%%",
-    "%%##%###%##%%",
-    "%%##%%%%%##%%",
-    "%%##%%PP%##%%",
-    "%%%%%%PP%%%%%",
-    "%%%%%%PP%%%%%",
-    "%%%%%%PP%%%%%",
-    "%%%%%%%%%%%%%",
-    "%%##%%%%%##%%",
-    "%%##%%%%%##%%",
-    "%%##%###%##%%",
-    "%%##%###%##%%",
-    "%%%%%###%%%%%",
-    "%%%%%###%%%%%",
-    "%%%%%%%%%%%%%",
-    "%%%%%%%%%%%%%",
-    "%%%%%%%%%%%%%"
+    "%%%%%%%%%%%%%%%%",
+    "%%%%%%%%%%%%%%%%",
+    "%%%####%%####%%%",
+    "%%%####%%####%%%",
+    "%%%%%%%%%%%%%%%%",
+    "%####%%%%%%####%",
+    "%####%PPPP%####%",
+    "%####%PPPP%####%",
+    "%####%%%%%%####%",
+    "%%%%%%%%%%%%%%%%",
+    "%%%####%%####%%%",
+    "%%%####%%####%%%",
+    "%%%%%%%%%%%%%%%%",
+    "%%%%####%%####%%",
+    "%%%%####%%####%%",
+    "%%%%%%%%%%%%%%%%",
+    "%%%%%%%%%%%%%%%%"
   ],
   "carryover_slots": [
-    { "col": 3, "row": 17, "actor": "vanguard" },
-    { "col": 3, "row": 16, "actor": "thief" },
-    { "col": 3, "row": 18, "actor": "hunter" },
-    { "col": 3, "row": 19, "actor": "bishop" },
-    { "col": 3, "row": 15, "actor": "wizard" },
-    { "col": 7, "row": 17, "actor": "fighter" },
-    { "col": 7, "row": 16, "actor": "halfling" },
-    { "col": 7, "row": 18, "actor": "archer" },
-    { "col": 7, "row": 19, "actor": "cleric" },
-    { "col": 7, "row": 15, "actor": "dwarf" },
-    { "col": 5, "row": 19, "actor": "elf" },
-    { "col": 5, "row": 18, "actor": "pixie" },
-    { "col": 0, "row": 19, "actor": "birdman" }
+    {"col": 7, "row": 14, "actor": "bishop"},
+    {"col": 6, "row": 14, "actor": "vanguard"},
+    {"col": 5, "row": 14, "actor": "hunter"},
+    {"col": 8, "row": 14, "actor": "thief"},
+    {"col": 4, "row": 14, "actor": "wizard"},
+    {"col": 9, "row": 14, "actor": "fighter"},
+    {"col": 3, "row": 14, "actor": "archer"},
+    {"col": 10, "row": 14, "actor": "cleric"},
+    {"col": 11, "row": 14, "actor": "halfling"},
+    {"col": 7, "row": 13, "actor": "dwarf"},
+    {"col": 8, "row": 13, "actor": "elf"},
+    {"col": 6, "row": 11, "actor": "pixie"},
+    {"col": 7, "row": 11, "actor": "birdman"}
   ],
   "enemy": [
     { "order": 1, "name": "レッドドラゴン", "ai": "weak",
       "units": [
-        { "skin": "dragon", "col": 5, "row": 1, "actor": "dragon" }
+        {"skin": "dragon", "col": 7, "row": 1, "actor": "dragon"}
       ] },
     { "order": 2, "name": "山から追われた飛行", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 3, "row": 6 },
-        { "skin": "griffon", "col": 3, "row": 0 },
-        { "skin": "griffon", "col": 7, "row": 4 }
+        {"skin": "griffon", "col": 1, "row": 0},
+        {"skin": "griffon", "col": 12, "row": 0},
+        {"skin": "griffon", "col": 7, "row": 3}
       ] },
     { "order": 3, "name": "荒野のワイアーム", "ai": "charge",
       "units": [
-        { "skin": "wyrm", "col": 3, "row": 3 },
-        { "skin": "wyrm", "col": 7, "row": 3 }
+        {"skin": "wyrm", "col": 6, "row": 3},
+        {"skin": "wyrm", "col": 8, "row": 3}
       ] },
     { "order": 4, "name": "岩棚のスコーピオン", "ai": "guard", "sight": 2,
       "units": [
-        { "skin": "scorpion", "col": 5, "row": 10 },
-        { "skin": "scorpion", "col": 6, "row": 7 }
+        {"skin": "scorpion", "col": 6, "row": 5},
+        {"skin": "scorpion", "col": 8, "row": 6}
       ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "actor": "dragon" }
+    {"type": "defeat_unit", "actor": "dragon"}
   ],
   "dialogue": {
     "intro": [
