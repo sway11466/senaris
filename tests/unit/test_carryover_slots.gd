@@ -17,7 +17,7 @@ func _at(s: BattleState, col: int, row: int) -> Unit:
 
 func test_named_slot_places_that_actor() -> void:
 	var carried: Array = [_member("knight", "t3.van"), _member("elf", "t3.elf")]
-	var s := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1, "actor": "t3.elf" },
 		{ "col": 2, "row": 1 },
 	] }, _catalog(), {}, carried)
@@ -27,7 +27,7 @@ func test_named_slot_places_that_actor() -> void:
 func test_missing_actor_leaves_the_slot_empty() -> void:
 	# 未加入の仲間を名指ししたスロットは空のまま＝他の駒に回さない（作者の配置を守る）。
 	var carried: Array = [_member("knight", "t3.van")]
-	var s := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1, "actor": "t3.elf" },
 		{ "col": 2, "row": 1 },
 	] }, _catalog(), {}, carried)
@@ -38,7 +38,7 @@ func test_missing_actor_leaves_the_slot_empty() -> void:
 func test_zero_troops_member_is_not_deployed() -> void:
 	# 兵力ゼロの離脱者は名簿に在籍するが盤には出ない。
 	var carried: Array = [_member("knight", "t3.van", 0), _member("elf", "t3.elf", 5)]
-	var s := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1 },
 		{ "col": 2, "row": 1 },
 	] }, _catalog(), {}, carried)
@@ -48,7 +48,7 @@ func test_zero_troops_member_is_not_deployed() -> void:
 
 func test_zero_troops_named_slot_stays_empty() -> void:
 	var carried: Array = [_member("elf", "t3.elf", 0)]
-	var s := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1, "actor": "t3.elf" },
 	] }, _catalog(), {}, carried)
 	assert_eq(s.units().size(), 0, "離脱者は名指しでも出撃しない")
@@ -58,7 +58,7 @@ func test_anonymous_members_fill_in_order() -> void:
 		{ "type": "recruit", "skin": "recruit", "level": 1, "troops": 7, "max_troops": 8 },
 		{ "type": "knight", "skin": "knight", "level": 2, "troops": 8, "max_troops": 8 },
 	]
-	var s := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1 }, { "col": 2, "row": 1 },
 	] }, _catalog(), {}, carried)
 	assert_eq(_at(s, 1, 1).type_id, "recruit", "名簿順で詰まる")
@@ -66,7 +66,7 @@ func test_anonymous_members_fill_in_order() -> void:
 
 func test_carried_units_belong_to_player() -> void:
 	var carried: Array = [_member("elf", "t3.elf")]
-	var s := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover",
+	var s := StageLoader.build({ "cols": 8, "rows": 6, 
 		"carryover_slots": [{ "col": 1, "row": 1 }] }, _catalog(), {}, carried)
 	var u := _at(s, 1, 1)
 	assert_eq(u.team, 0)

@@ -10,7 +10,6 @@ var rows: int  ## 矩形フィールドの高さ（offset row 数）
 var current_team: int = 0  ## 現在のターンの陣営
 var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 var turn_limit: int = 0    ## ターン上限（超過でプレイヤー敗北・引き分けなし）。0＝無制限。実ステージJSONでは必須指定。詳細 → doc/gdd/map.md
-var roster: String = "fresh"  ## 戦力供給モデル（"fresh"=独立/"carryover"=継承）。ステージJSONの roster から。継承ステージ間の受け渡しに使う。詳細 → doc/gdd/map.md
 
 var _units: Array[Unit] = []
 var _moved := {}       # unit_id -> true（攻撃前の移動を1回使った）
@@ -125,6 +124,9 @@ func _expire_status_mods() -> void:
 
 var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録）
 var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
+## actor -> true（この戦闘に投入された名前つきの駒。初期配置・拠点の控え・搭乗・増援のすべてを含む）。
+## クリア後の名簿更新がここを見て「出た者」と「出番の無かった者」を分ける。詳細 → doc/gdd/map.md 名簿の更新
+var _sortied_actors := {}
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -132,6 +134,16 @@ func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 
 func add_unit(unit: Unit) -> void:
 	_units.append(unit)
+	_mark_sortied(unit)
+
+## 名前つきの駒を「この戦闘に出た」として控える。盤・控え・搭乗の入口すべてから呼ぶ。
+func _mark_sortied(u: Unit) -> void:
+	if u != null and u.actor != "":
+		_sortied_actors[u.actor] = true
+
+## この戦闘に投入された駒か（名簿の更新対象かどうか）。
+func has_sortied(actor: String) -> bool:
+	return actor != "" and _sortied_actors.has(actor)
 
 func units() -> Array[Unit]:
 	return _units
@@ -265,6 +277,7 @@ func put_passenger(transport_id: int, u: Unit) -> void:
 		var list: Array[Unit] = []
 		_passengers[transport_id] = list
 	_passengers[transport_id].append(u)
+	_mark_sortied(u)
 
 ## 降車先候補の {hex: コスト}。搭乗駒が「輸送の位置を起点に」自力で動ける空きhex（通常移動と同じ規則）。
 ## 隣接1マスの特例: 輸送に隣接する進入可能な空きマスは、移動力・地形コストに関係なく常に含める
@@ -332,6 +345,8 @@ const CAPTURE_LEVEL_GAIN := 10
 
 func add_base(base: Base) -> void:
 	_bases.append(base)
+	for gu in base.garrison:
+		_mark_sortied(gu as Unit)  # 控えも投入済み（出撃しなくてもこの盤に居る）
 
 func bases() -> Array[Base]:
 	return _bases
@@ -1145,7 +1160,7 @@ func to_dict() -> Dictionary:
 	return {
 		"cols": cols, "rows": rows,
 		"current_team": current_team, "turn_number": turn_number,
-		"turn_limit": turn_limit, "roster": roster, "enemy_ai": enemy_ai,
+		"turn_limit": turn_limit, "enemy_ai": enemy_ai,
 		"units": units_out,
 		"terrain": terrain_out,
 		"bases": bases_out,
@@ -1158,6 +1173,7 @@ func to_dict() -> Dictionary:
 		"attacked": _attacked.keys(), "done": _done.keys(),
 		"engaged": _engaged.keys(), "defeated": _defeated.keys(),
 		"defeated_actors": _defeated_actors.keys(),
+		"sortied_actors": _sortied_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
 		"events": _events_to_dicts(),
 	}
@@ -1214,7 +1230,6 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 	s.current_team = int(data.get("current_team", 0))
 	s.turn_number = int(data.get("turn_number", 1))
 	s.turn_limit = int(data.get("turn_limit", 0))
-	s.roster = String(data.get("roster", "fresh"))
 	s.enemy_ai = String(data.get("enemy_ai", ""))
 	for ud in data.get("units", []):
 		if typeof(ud) == TYPE_DICTIONARY:
@@ -1252,6 +1267,10 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 	if typeof(actors) == TYPE_ARRAY:
 		for a in actors:
 			s._defeated_actors[String(a)] = true
+	var sortied: Variant = data.get("sortied_actors", [])
+	if typeof(sortied) == TYPE_ARRAY:
+		for a in sortied:
+			s._sortied_actors[String(a)] = true
 	s._spent = _str_keyed_to_int(data.get("spent", {}))
 	s._squad_of = _str_keyed_to_int(data.get("squad_of", {}))
 	return s

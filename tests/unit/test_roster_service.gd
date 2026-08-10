@@ -28,15 +28,43 @@ func test_named_member_lost_stays_enrolled_with_zero_troops() -> void:
 		{ "type": "knight", "skin": "knight", "level": 3, "troops": 6, "max_troops": 8, "actor": "t3.van" },
 		{ "type": "elf", "skin": "elf", "level": 1, "troops": 8, "max_troops": 8, "actor": "t3.elf" },
 	]
-	# 決着した盤にはヴァンガードだけが残っている（エルフは失った）。
+	# 2人とも出撃した盤で、エルフだけを失って決着した。
 	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
 		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "troops": 2, "level": 3 },
+		{ "type": "elf", "col": 2, "row": 1, "actor": "t3.elf" },
 	] }, _catalog())
+	assert_true(s.remove_unit(s.unit_at(Hex.offset_to_axial(2, 1)).id), "エルフを失う")
 	var updated := RosterService.update_after_clear(previous, s)
 	assert_eq(_actors(updated), ["t3.van", "t3.elf"], "名簿の並び順を保つ")
 	assert_eq(int(_entry(updated, "t3.van")["troops"]), 2, "生存者は現在値で更新")
 	assert_eq(int(_entry(updated, "t3.elf")["troops"]), 0, "失った仲間は troops 0 で在籍")
 	assert_eq(int(_entry(updated, "t3.elf")["level"]), 1, "離脱者の素性は前の名簿のまま")
+
+func test_member_not_sortied_is_left_untouched() -> void:
+	# 出番の無かった在籍者は名簿を書き換えない（別の隊として待機している＝失ってはいない）。
+	# これが無いと、隊を分けて戦う冒険譚で待機中の隊が全滅扱いになる。詳細 → doc/gdd/map.md 名簿の更新
+	var previous: Array = [
+		{ "type": "knight", "skin": "knight", "level": 3, "troops": 6, "max_troops": 8, "actor": "t3.van" },
+		{ "type": "elf", "skin": "elf", "level": 2, "troops": 5, "max_troops": 8, "actor": "t3.elf" },
+	]
+	# この盤に出したのはヴァンガードだけ（エルフは配置していない）。
+	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
+		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "troops": 2, "level": 3 },
+	] }, _catalog())
+	var updated := RosterService.update_after_clear(previous, s)
+	assert_eq(_actors(updated), ["t3.van", "t3.elf"], "名簿の並び順を保つ")
+	assert_eq(int(_entry(updated, "t3.van")["troops"]), 2, "出た者は現在値で更新")
+	assert_eq(int(_entry(updated, "t3.elf")["troops"]), 5, "出番の無かった者は据え置き")
+	assert_eq(int(_entry(updated, "t3.elf")["level"]), 2, "素性も前の名簿のまま")
+
+func test_garrison_member_counts_as_sortied() -> void:
+	# 拠点の控えに居るだけで出撃しなかった者も「この盤に出た」＝更新対象。
+	# 盤から消えていれば離脱として数える（控えごと拠点を失った場合）。
+	var s := StageLoader.build({ "cols": 8, "rows": 4,
+		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van" }],
+		"bases": [{ "col": 4, "row": 1, "team": "player",
+			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
+	assert_true(s.has_sortied("t3.elf"), "控えも投入済みとして数える")
 
 func test_anonymous_units_are_not_enrolled() -> void:
 	# 名前のない雑兵は同一性を持たない＝名簿に載らない（持ち越さず各ステージが配給する）。

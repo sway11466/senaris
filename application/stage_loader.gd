@@ -19,21 +19,8 @@ class_name StageLoader
 ## 陣営表記（ステージJSON）→ 内部 int（0=自軍 / 1=敵 / -1=中立=Base.NEUTRAL）。
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
-## 戦力供給モデル（ステージJSON "roster"）の許容値。既定は fresh（独立）。詳細 → doc/gdd/map.md
-const ROSTER_MODES := ["fresh", "carryover"]
-
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
 const EVENT_KEYS := ["type", "team", "turn", "label", "units", "dialogue", "focus"]
-
-## roster 値を検証して返す。省略（null）・未知の表記は "fresh"（独立＝前ステージを引き継がない）。
-static func _parse_roster(value: Variant) -> String:
-	if value == null:
-		return "fresh"
-	var key := String(value)
-	if key in ROSTER_MODES:
-		return key
-	push_warning("StageLoader: 未知の roster '%s'（fresh/carryover のいずれか）＝fresh を使用" % key)
-	return "fresh"
 
 ## 陣営値を int に解決する。キー省略（null）は default_team、未知の表記は警告して default_team。
 static func _parse_team(value: Variant, default_team: int) -> int:
@@ -52,8 +39,8 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 ## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
 ## enemy は squad の配列で、各 squad が AI プリセット(ai)を持つ（敵は必ず squad に属する）。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）＝性能の唯一の出どころ。
-## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝前ステージの生存者）。
-## roster:carryover のステージで carryover_slots の位置に順に嵌める（案A）。fresh では未使用。
+## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝名簿）。
+## carryover_slots を書いたステージで、その位置に嵌める。書かなければ独立＝carried は未使用。
 static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}, carried: Array = []) -> BattleState:
 	var cols := int(data.get("cols", 12))
 	var rows := int(data.get("rows", 8))
@@ -74,14 +61,13 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 		state.defeat_conditions = defeat
 	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
-	state.roster = _parse_roster(data.get("roster"))  # fresh（既定）/carryover。受け渡しは main が RosterStore 経由で配線
 	# 1ターン目の増援はここでは出さない。置き場所の判定に移動コスト表が要るので、
 	# set_movement のあと（load_file）で fire_due_events() を呼ぶ。以降のターンは end_turn が拾う。
 	return state
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
 ## ユニット種別は標準ロスター(UnitCatalog)で解決する。
-## carried = 継承ユニットの直列化リスト（roster:carryover のステージで carryover_slots に嵌める）。fresh では無視される。
+## carried = 継承ユニットの直列化リスト（carryover_slots を書いたステージでその位置に嵌める）。書かなければ無視される。
 static func load_file(path: String, carried: Array = []) -> BattleState:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():

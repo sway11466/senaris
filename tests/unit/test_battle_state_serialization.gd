@@ -14,7 +14,7 @@ func _cat() -> Dictionary:
 
 func _rich_state() -> BattleState:
 	var data := {
-		"cols": 8, "rows": 6, "turn_limit": 15, "roster": "carryover", "ai": "charge",
+		"cols": 8, "rows": 6, "turn_limit": 15, "ai": "charge",
 		"terrain": ["........", "..PP....", "........", "........", "........", "........"],
 		"player": [
 			{ "type": "archer", "col": 1, "row": 1 },
@@ -56,7 +56,7 @@ func test_scalars_roundtrip() -> void:
 	assert_eq(s2.current_team, 1, "ターンの陣営")
 	assert_eq(s2.turn_number, 3)
 	assert_eq(s2.turn_limit, 15)
-	assert_eq(s2.roster, "carryover")
+	assert_true(s2.has_sortied("boss"), "この盤に投入された名前つきの駒の記録も復元する（名簿の更新が見る）")
 	assert_eq(s2.enemy_ai, "charge")
 
 func test_units_roundtrip_with_board_and_growth() -> void:
@@ -138,4 +138,4 @@ func test_empty_state_roundtrips() -> void:
 	assert_eq(s2.cols, 4)
 	assert_eq(s2.units().size(), 0)
 	assert_eq(s2.bases().size(), 0)
-	assert_eq(s2.roster, "fresh")
+	assert_false(s2.has_sortied("boss"), "空の盤なら投入記録も空")

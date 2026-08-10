@@ -39,7 +39,7 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 
 	# --- main のステージ開始フック相当：別インスタンスで読み直し、S2(carryover)に渡す。
 	var carried := RosterStore.new(PATH).load_roster("camp")
-	var s2 := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var s2 := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 2, "row": 2 }, { "col": 2, "row": 3 },
 	] }, cat, {}, carried)
 
@@ -66,11 +66,11 @@ func test_retry_uses_previous_win_snapshot_not_current_run() -> void:
 
 	# S2 開始（1回目）＝兵5を継承。
 	var carried1 := RosterStore.new(PATH).load_roster("camp")
-	var s2a := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover",
+	var s2a := StageLoader.build({ "cols": 8, "rows": 6,
 		"carryover_slots": [{ "col": 1, "row": 1 }] }, cat, {}, carried1)
 	assert_eq(s2a.unit_at(Hex.offset_to_axial(1, 1)).troops, 5)
 	# S2 で敗北（保存しない）→ 再挑戦。スナップショットは触れていない。
 	var carried2 := RosterStore.new(PATH).load_roster("camp")
-	var s2b := StageLoader.build({ "cols": 8, "rows": 6, "roster": "carryover",
+	var s2b := StageLoader.build({ "cols": 8, "rows": 6,
 		"carryover_slots": [{ "col": 1, "row": 1 }] }, cat, {}, carried2)
 	assert_eq(s2b.unit_at(Hex.offset_to_axial(1, 1)).troops, 5, "再挑戦も S1勝利時の兵5からやり直せる")

@@ -35,7 +35,9 @@ static func _enrolled(u: Unit) -> bool:
 	return u.recruited_team == 0 and u.actor != ""
 
 ## クリア時の名簿を作る。previous＝前ステージ終了時の名簿、state＝決着した盤。
-## 在籍者は名簿の並び順を保ち、盤から消えていれば troops:0 の離脱として残す。
+## 在籍者は名簿の並び順を保ち、更新するのはこの盤に出た者だけ。出た者が盤から消えていれば
+## troops:0 の離脱として残し、そもそも出番の無かった者は前の状態のまま据え置く（別の隊として
+## 待機している＝失ってはいない。詳細 → doc/gdd/map.md 名簿の更新）。
 ## 続けて、新たに加わった仲間（勧誘・そのステージで合流した名前つきの駒）を盤の順で加える。
 static func update_after_clear(previous: Array, state: BattleState) -> Array:
 	var current := collect(state)
@@ -56,10 +58,12 @@ static func update_after_clear(previous: Array, state: BattleState) -> Array:
 			var i: int = current_by_actor[a]
 			out.append(current[i])
 			consumed[i] = true
-		else:
+		elif state.has_sortied(a):
 			var lost: Dictionary = (e as Dictionary).duplicate(true)
-			lost["troops"] = 0  # 戦線離脱。在籍は続く（会話には出る）
+			lost["troops"] = 0  # 出たのに盤から消えた＝戦線離脱。在籍は続く（会話には出る）
 			out.append(lost)
+		else:
+			out.append((e as Dictionary).duplicate(true))  # 出番なし＝据え置き
 	for i in current.size():
 		if not consumed.has(i):
 			out.append(current[i])  # 新規加入（勧誘・合流）

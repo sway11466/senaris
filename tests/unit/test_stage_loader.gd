@@ -59,19 +59,11 @@ func test_build_unit_fields_and_defaults() -> void:
 	assert_eq(u2.unit_attack, 10, "type 無しは素の既定（atk10）")
 	assert_eq(u2.move, 3, "type 無しは素の既定（move3）")
 
-func test_roster_defaults_to_fresh() -> void:
-	# roster 省略＝独立（fresh）＝前ステージを引き継がない（1話完結の既定）。詳細 → doc/gdd/map.md
-	var s := StageLoader.build({ "cols": 4, "rows": 4 })
-	assert_eq(s.roster, "fresh", "roster 省略は fresh")
-
-func test_roster_reads_carryover() -> void:
-	var s := StageLoader.build({ "cols": 4, "rows": 4, "roster": "carryover" })
-	assert_eq(s.roster, "carryover", "roster:carryover を読む＝継承ステージ")
-
-func test_roster_unknown_falls_back_to_fresh() -> void:
-	var s := StageLoader.build({ "cols": 4, "rows": 4, "roster": "bogus" })
-	assert_push_warning("未知の roster")
-	assert_eq(s.roster, "fresh", "未知の roster は fresh にフォールバック")
+func test_carryover_slots_absent_means_independent() -> void:
+	# 継承の宣言は carryover_slots の有無が兼ねる（roster フィールドは持たない）。詳細 → doc/gdd/map.md
+	var carried: Array = [{ "type": "knight", "troops": 5, "actor": "t.van" }]
+	var s := StageLoader.build({ "cols": 4, "rows": 4 }, {}, {}, carried)
+	assert_eq(s.units().size(), 0, "スロットを書かなければ名簿は盤に出ない")
 
 func test_build_resolves_type_from_catalog() -> void:
 	var catalog := {
@@ -147,7 +139,7 @@ func test_carryover_places_survivors_into_slots_in_order() -> void:
 		{ "type": "archer", "skin": "archer", "level": 3, "troops": 6, "max_troops": 8 },
 		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8 },
 	]
-	var data := { "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var data := { "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 2 }, { "col": 1, "row": 3 },
 	] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
@@ -167,7 +159,7 @@ func test_carryover_places_survivors_into_slots_in_order() -> void:
 func test_carryover_coexists_with_fresh_reinforcements() -> void:
 	# 継承ユニット＋新米（player の補充）が共存し、id が衝突しない。
 	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8 }]
-	var data := { "cols": 8, "rows": 6, "roster": "carryover",
+	var data := { "cols": 8, "rows": 6,
 		"carryover_slots": [{ "col": 1, "row": 1 }],
 		"player": [{ "type": "recruit", "col": 5, "row": 4 }] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
@@ -182,7 +174,7 @@ func test_carryover_coexists_with_fresh_reinforcements() -> void:
 
 func test_carryover_fewer_survivors_leaves_slots_empty() -> void:
 	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 8, "max_troops": 8 }]
-	var data := { "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var data := { "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1 }, { "col": 1, "row": 2 }, { "col": 1, "row": 3 },
 	] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
@@ -194,7 +186,7 @@ func test_carryover_more_survivors_than_slots_drops_extra() -> void:
 		{ "type": "knight", "skin": "knight", "level": 1, "troops": 8, "max_troops": 8 },
 		{ "type": "recruit", "skin": "recruit", "level": 1, "troops": 8, "max_troops": 8 },
 	]
-	var data := { "cols": 8, "rows": 6, "roster": "carryover", "carryover_slots": [
+	var data := { "cols": 8, "rows": 6, "carryover_slots": [
 		{ "col": 1, "row": 1 },
 	] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
@@ -223,7 +215,7 @@ func test_roster_collect_returns_player_only() -> void:
 func test_load_file_places_carried_units() -> void:
 	# load_file(path, carried) で継承ユニットが carryover_slots に嵌る（main の受け渡し経路）。
 	_write_stage(JSON.stringify({
-		"cols": 8, "rows": 6, "turn_limit": 20, "roster": "carryover",
+		"cols": 8, "rows": 6, "turn_limit": 20,
 		"carryover_slots": [{ "col": 1, "row": 1 }],
 	}))
 	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8 }]
