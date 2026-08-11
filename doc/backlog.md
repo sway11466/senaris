@@ -158,8 +158,8 @@
 
 **BGM のたたき台仕上げと拡充**（優先度：低）
 
-- 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台のうち `graveyard`・`boss` は仕上げて `.ogg` 化済み（投入済みは afterglow／boss／defeat／dungeon／graveyard／journey／menu／raid／victory）。残りの下書き（`forest`／`ruins`／`temple`／`ritual`／`boss2`／`crisis`）が `.mscz` のまま仕上げ待ち。ライブラリ表のうち `title` は下書きも無い。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
-- 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) `title` 曲の制作（`menu` と共用するか検討含む・feature-46 のタイトル画面で要る）。(3) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
+- 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台のうち `graveyard`・`boss` は仕上げて `.ogg` 化済み（投入済みは afterglow／boss／defeat／dungeon／graveyard／journey／menu／raid／title／victory）。残りの下書き（`forest`／`ruins`／`temple`／`ritual`／`boss2`／`crisis`）が `.mscz` のまま仕上げ待ち。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
+- 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
 - 該当：`assets/bgm-src/`・`assets/bgm/`・`application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
 
 ### feature-22
@@ -311,11 +311,14 @@
 
 **タイトル画面（酒場の入口）**
 
-- 背景：起動すると下敷きの盤を敷いた上でいきなりセレクト画面が開く（`presentation/main/main.gd` の `_ready` に「タイトル画面は未実装＝将来ここに挟む」と記載）。タイトル画面が無いため、終了・設定・クレジットの置き場が無く、起動直後の初期化のもたつきを隠す場所も無い。
-- 対応：セレクト画面が「酒場の中の依頼ボード」なので、タイトルは酒場の外に置いて場所を繋げる。夜の街路に吊り看板が下がり、そこにタイトルが入る構図。「はじめる」で扉が開いて中へ入る＝セレクト画面へ、という流れにする。背景は材質の組み合わせではなく専用の1枚絵を起こす（材質だけで組むとセレクト画面と同じ絵面になり、タイトルとしての格が出ない）。作画方針は [keyvisual.md](art/keyvisual.md) の ILLUST STYLE、スロット定義は [menu.md](art/menu.md) に足す。ボタンは既存の `plank`（木の板ボタン）を流用＝セレクトと同族の手触りになる。Press any key の一拍は挟まず最初からメニューを出す（PC では無意味なクリックが1回増えるだけ）。
+- 背景：画面と場面の繋ぎは入った（`presentation/title/title_screen.gd`）。起動すると酒場の扉が外から映り、入力で扉が開く動画に切り替わり、くぐるとセレクト画面へ渡る。まだ載っていないのは文字と項目で、終了・設定・クレジットの置き場が無い。
+- 入っているもの：閉じた扉の1枚絵（`assets/menu/door.png`）と、扉が開いて店内へ入る動画（`assets/menu/door_open.ogv`・10秒・扉の軋みと焚き火の音込み）。素材の作り方と落とし穴は [menu.md](art/menu.md) §5。BGM は曲ではなく店のざわめき（`title`）で、扉が閉じている間はこもらせ、扉が開くのに合わせて開く（[bgm.md](audio/bgm.md)）。動画は再生中の入力でスキップできる。
+- 仕様から変えたこと：吊り看板は作らなかった。絵に文字を入れないのが全アセット共通のルールなので、タイトルは UI 側で載せる。またタイトルにメインテーマは置かず、作品の顔となる旋律は `menu`（セレクト画面の曲）が担うことにした。
+- 対応（残り）：背景の上にメニュー項目を重ねる。ボタンは既存の `plank`（木の板ボタン）を流用＝セレクトと同族の手触りになる。Press any key の一拍は挟まず最初からメニューを出す（PC では無意味なクリックが1回増えるだけ）。いまは項目が無いぶん任意の入力で先へ進む暫定状態なので、ここは実装時に置き換える。「はじめる」で扉の動画を再生してセレクトへ。
+- 決めていないこと：タイトルロゴを画面のどこに置くか（扉の右手前が暗く空いている）。「つづきから」は盤へ直行するが、そのとき扉の動画を挟むか（酒場に入る画と、戦場へ戻る動きが噛み合わない）。
 - メニュー項目：つづきから（`SaveStore.has_save()` が真のときだけ出し、押したら盤へ直行。実装済みの中断セーブをそのまま使う）／はじめる（セレクトへ）／設定（feature-47）／クレジット／おわる。
-- クレジット：素材の権利表記。作業の本体は画面ではなく権利台帳の整備（[bgm.md](audio/bgm.md)・[sfx.md](audio/sfx.md)・[sonniss.md](audio/sonniss.md)）で、どの素材が表記を要求するかの確認が要る。リリース前が締め切り。
-- 該当：`presentation/title/`（新規）・`presentation/main/main.gd`（起動時にタイトルを挟む・`_install_select` の前）・`presentation/select/tavern_theme.gd`（`plank` 流用）・`assets/`（背景1枚絵）・`doc/art/menu.md`（スロット追加）・`doc/gdd/title.md`（新規。実装時に書く）。関連＝feature-21（`title` 曲が未着手）・feature-12（メニュー文言の i18n キー化）。着手の引き金＝配布ビルドが見えてきたとき、または1枚絵を描けるとき。
+- クレジット：素材の権利表記。作業の本体は画面ではなく権利台帳の整備（[bgm.md](audio/bgm.md)・[sfx.md](audio/sfx.md)・[sonniss.md](audio/sonniss.md)）で、どの素材が表記を要求するかの確認が要る。`title`（ざわめき）は表記不要のライセンスだが自作ではないため台帳に明記済み。リリース前が締め切り。
+- 該当：`presentation/title/title_screen.gd`（実装済み。ここに項目を足す）・`presentation/main/main.gd`（結線済み）・`presentation/select/tavern_theme.gd`（`plank` 流用）・`doc/gdd/title.md`（新規。実装時に書く）。関連＝feature-12（メニュー文言の i18n キー化）。着手の引き金＝配布ビルドが見えてきたとき。
 
 ### feature-47
 
