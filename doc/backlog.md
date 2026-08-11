@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=49 / refactoring=9
+次回採番: bug=3 / feature=50 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -324,6 +324,14 @@
 - 背景：`presentation/ui/hud.gd` のシステムメニューに「設定」項目があるが、`main.gd` 側に受け口が無く現状は空振り。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
 - 対応：1枚の設定シーンを作り、タイトル画面（feature-46）とゲーム中のシステムメニューの両方から開く。項目は 音量（マスター／BGM／SE）・言語（ja／en。翻訳は投入済み）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。永続化は `user://settings.json`（`ProgressStore` の隣・セーブデータとは別枠。設定は中断セーブに含めない）。音量は AudioServer のバスに反映、言語は `TranslationServer.set_locale`。
 - 該当：`presentation/settings/`（新規）・`presentation/ui/hud.gd`（`settings_requested` シグナル）・`presentation/main/main.gd`（結線）・`infrastructure/save/settings_store.gd`（新規）・`presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（演出速度の設定値化）・feature-12（項目名の i18n）・feature-22（演出速度UIの配置が未決とある＝ここで決まる）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
+
+### feature-49
+
+**ステージ開始の区切り音（`menu_sortie`）**（優先度：低）
+
+- 背景：ステージに入る経路が2種類ある。連戦（outro 会話 → `_advance_or_select` → 次ステージ）と、文脈の外から入る経路（ステージセレクト、および未実装の「つづきから」）。連戦では会話でステージ同士が繋がっており、区切りの音を入れると繋がっているものを切ってしまうので鳴らさない（現状すでに無音で、これが正しい）。外から入る経路にだけ区切りが要る。
+- 対応：`menu_sortie` を作り、外から入る経路でだけ鳴らす。いまセレクト経由では `menu_stage`（`ui_confirm`）が鳴っているので、置き換えるか後ろに重ねるかを決める。判断材料は入口が2つに増えてからのほうが揃う＝ロード機能（feature-9 の中断セーブ復元）ができて「つづきから」が動くようになってから着手する。入口が1つの現状では、決定音との違いを検討する材料が足りない。
+- 該当：`assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`data/audio/sfx_catalog.gd`（BIND）・`presentation/select/stage_select.gd`（セレクト経由）・ロード経路（feature-9 で決まる箇所）・`doc/audio/sfx.md`（発火点カタログ）。関連＝feature-9（中断セーブのロード）。着手の引き金＝「つづきから」が動くようになったとき。
 
 ## リファクタリング
 
