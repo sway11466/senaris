@@ -204,9 +204,12 @@ POSE (cast): An offensive spellcasting stance — the staff (or magic focus) lev
 POSE (unarmed): A lunging bare-handed attack — both arms (or claws) thrust out at full reach toward the enemy on the right, the body leaning heavily into the reach, weight forward, closing the distance with nothing but its hands; no weapon anywhere in the pose. For units that carry no weapon.
 ```
 ```
+POSE (bite): A lunging bite — the body coils back and then whips forward so the head lances out toward the enemy on the left, jaws wide open and fangs bared, neck extended at full reach, the rest of the body trailing behind the strike. For beasts that attack with their mouth and have no arms to swing.
+```
+```
 POSE (drift): A floating attack pose — the body hovers clear of the ground with no weight on any foot, drifting toward the enemy on the right with both hands (or the weapon) reaching ahead, the trailing hem or tail streaming out behind. For flying units.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／飛行（ゴースト等）＝`drift`。据置でも攻撃する兵器（バリスタ）は `ranged`。輸送（馬車・飛空艇）は乗り物ごとに姿勢が違うので、カタログではなく各 `{skin_id}_combat_prompt.txt` の先頭に書いてある。
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／腕を持たず口で襲う獣（蛇・竜の眷属等）＝`bite`／飛行（ゴースト等）＝`drift`。据置でも攻撃する兵器（バリスタ）は `ranged`。輸送（馬車・飛空艇）は乗り物ごとに姿勢が違うので、カタログではなく各 `{skin_id}_combat_prompt.txt` の先頭に書いてある。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
 - 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない」（武装する駒は「武装はこの1門だけ」）と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない駒（バリケード・飛空艇等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
 - 兵器の静物は、地形タイルの柵（`assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。
