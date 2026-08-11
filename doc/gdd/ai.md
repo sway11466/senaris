@@ -74,6 +74,16 @@
 - 補足
   - 同じ条件が複数ユニット合致する場合は次の優先順位項目で絞り、すべて使っても絞りきれない場合は駒番号の小さいものを対象とする（攻撃対象と同じ）
 
+### 5b. デバフ本数の上限（skill_stack）— もう十分弱っている相手を避ける
+
+対象にすでに効いている弱体の本数に上限を設ける軸。上限に達している相手は5の候補から外す。
+
+- 数えるのは対象1体に効いている弱体の合計（`kind` が `debuff` で `scope` が `unit` のエントリ）。スキルの種類では分けない＝ヴェノムファングとドレッドタッチの混成も合算する。ピュリファイが落とす範囲と同じ数え方なので、解除された分は自動的に数から減る（[skills.md](skills.md)）。
+- 候補が1体も残らなければ放たない＝そのまま6の攻撃へ落ちる。永遠にスキルだけ放って手番を捨てることがなくなる。
+- 値は本数。`-`＝上限なし（いくらでも重ねる）。
+- 何本まで重ねると得かはスキルと部隊で違うので、ラベルの性格ではなく数値で持つ。1本が重いもの（ドレッドタッチ＝満員で攻防-80・3ターン）は 1、群れで何本も刺して効いてくるもの（ヴェノムファング）は 2〜3、が出発点。部隊ごとの上書きで調整する。
+- 実装状況: 実装済み（`_pick_skill_target` の候補生成＋`StatusMod.debuff_count`）。
+
 ### 6. 攻撃（attack）— 攻撃するかどうか
 - 必須
   - なし
@@ -159,7 +169,7 @@
 
 プリセットの**正本は `data/ai/ai.csv`**（CSV正本→`ai.json` 生成）。doc にフル一覧は持たない（CSVが真実）。
 
-- **列**: `label, name, engage, sight, retreat, skill, skill_target, attack, target, advance`（name＝表示名、以降＝思考の流れのパラメーター。**2.占領は全AI共通の既定なので列を持たない**）
+- **列**: `label, name, engage, sight, retreat, skill, skill_target, skill_stack, attack, target, advance`（name＝表示名、以降＝思考の流れのパラメーター。**2.占領は全AI共通の既定なので列を持たない**）
 - **セル表記**: `|`＝OR ／ `;`＝順序 ／ `-`＝該当なし（この軸で特別なことをしない、を表す値。空欄ではない）。「間接攻撃を優先（反撃回避）」は全AI共通の既定なので列に持たない。
 - 一斉警戒は `engage` の `squad` トリガーで表現（専用列は持たない）。
 
@@ -191,6 +201,7 @@ AIは2層: **プリセット（ふるまいの組み合わせ）＝CSV** と **�
 | `retreat` | 3.撤退閾値（兵数。`0`＝退かない） | `0` / `2` … |
 | `skill` | 4.スキル発動条件 | `-`（放たない）／`always`（突撃）／`surround_able`（包囲可能）／`surrounded`（包囲状態）。複数は `|`＝OR。攻撃条件と同じ語 |
 | `skill_target` | 5.スキル対象（順序） | `-`／`troops`（最大兵数）／`weak`（弱者狙い）／`atk`（最大攻撃）／`near`（最短距離）。順序は `;` |
+| `skill_stack` | 5b.デバフ本数の上限 | 本数（その数だけ弱体が効いている相手には掛けない）／`-`＝上限なし |
 | `attack` | 6.攻撃条件 | `always`／`prey`（獲物のみ）／`solo_adv`／`surround_able`／`surrounded`／`no_retal`／`kill`。複数は `|`＝OR |
 | `target` | 7.対象優先（順序） | `near`／`weak`／`maxdmg`／`mindmg`／`capturer`／`ranged`／`flyer`。順序は `;`（間接攻撃優先は既定＝暗黙） |
 | `advance` | 8.前進 | `max`／`spacing`／`squad`／`careful`／`base`（拠点前進）／`flank`（回り込み） |
@@ -207,7 +218,7 @@ AIは2層: **プリセット（ふるまいの組み合わせ）＝CSV** と **�
 - **実装済み（`nearest_attacker_brain`）**: 2.占領ステップ（占領可ユニットが移動範囲内の敵/中立拠点を攻撃より優先して取る）と、前進の `base`（拠点前進＝全ユニットが拠点へ向かう）オプション。
 - **起動（engage）も実装済み＝待機AIが動く**: `charge`（常時）／`sight`（**視線が通り**索敵内に敵＝壁の裏は無反応・森ごし減衰。[movement.md](movement.md) 視線）／`squad`（部隊の誰かが起動＝一斉警戒）／被ダメ（`BattleState.attack` が確定起動）／自衛（射程内に敵が来たら起動＝隣で寝続けない）。起動済みフラグは `BattleState`（`is_engaged`）に持ち、一度起動したら戻らない。`turn:N` は未実装。
 - **CSVパイプライン実装済み**: `data/ai/ai.csv` →（`convert.gd`）→ `ai.json` → `AiCatalog.load_default()`（data層・純データ）→ `NearestAttackerBrain.from_preset(p)`（domain層でBrain組立）。
-- **部隊(squad)割り当ても実装済み**: ステージJSONの `enemy`＝部隊の配列（下記）を StageLoader が読み、BattleState が unit→部隊の対応を保持。**敵は必ず部隊に属する**（バラ配置は無い）。Brain はユニットごとに「部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ `DEFAULT_PRESET`」で解決する（`ai` 未指定/未知の部隊＝charge 相当＝`DEFAULT_PRESET`。散在していた既定リテラルは単一定数へ集約済み。未知ラベルの明示検出は将来）。デバッグステージ: `data/stages/debug-victory/hq.json`（raid部隊）／`data/stages/debug-ai/sight.json`（guard部隊×2＝一斉警戒＋視線）。プリセットのうち効くのは `engage`・`sight`・`advance`（`max`/`base`/`flank`）・`skill`／`skill_target`・`attack`（`always`/`prey`/`surround_able`/`surrounded`。ほかは既定＝殴れれば殴る）・`target`（`weak` のみ。ほかは既定＝射程内の兵数最小）。retreat は未配線＝現状は常に退かない（CSVに書いても効かない。配線は将来対応）。
+- **部隊(squad)割り当ても実装済み**: ステージJSONの `enemy`＝部隊の配列（下記）を StageLoader が読み、BattleState が unit→部隊の対応を保持。**敵は必ず部隊に属する**（バラ配置は無い）。Brain はユニットごとに「部隊の上書き ＞ 部隊プリセット ＞ Brain既定プリセット ＞ `DEFAULT_PRESET`」で解決する（`ai` 未指定/未知の部隊＝charge 相当＝`DEFAULT_PRESET`。散在していた既定リテラルは単一定数へ集約済み。未知ラベルの明示検出は将来）。デバッグステージ: `data/stages/debug-victory/hq.json`（raid部隊）／`data/stages/debug-ai/sight.json`（guard部隊×2＝一斉警戒＋視線）。プリセットのうち効くのは `engage`・`sight`・`advance`（`max`/`base`/`flank`）・`skill`／`skill_target`／`skill_stack`・`attack`（`always`/`prey`/`surround_able`/`surrounded`。ほかは既定＝殴れれば殴る）・`target`（`weak` のみ。ほかは既定＝射程内の兵数最小）。retreat は未配線＝現状は常に退かない（CSVに書いても効かない。配線は将来対応）。
 
 ### 割り当て ＝ ステージデータ（部隊）
 

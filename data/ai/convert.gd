@@ -8,7 +8,7 @@ const Csv = preload("res://data/csv_util.gd")
 
 ## 各プリセットが非空で必ず持つべき思考の軸（doc/gdd/ai.md「既定と省略のポリシー」）。
 ## CSVは省略不可＝`-`（該当なし）も値として埋める。欠け/空セルはデータのバグとして生成を止める。
-const REQUIRED_AXES := ["engage", "sight", "retreat", "skill", "skill_target",
+const REQUIRED_AXES := ["engage", "sight", "retreat", "skill", "skill_target", "skill_stack",
 	"attack", "target", "advance"]
 
 func _initialize() -> void:

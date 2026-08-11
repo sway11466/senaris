@@ -17,6 +17,24 @@ func test_team_mul_applies_to_team_only() -> void:
 	assert_almost_eq(float(s.status_aggregate(ally, "attack")["mul"]), 1.3, 0.001, "味方(team0)に乗る")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001, "敵(team1)には乗らない")
 
+func test_debuff_count_counts_only_this_units_debuffs() -> void:
+	# 敵AIのデバフ本数の上限（doc/gdd/ai.md §5b）が読む数え方。数えるのはピュリファイが落とすのと
+	# 同じ範囲＝kind=debuff かつ scope=unit で、その駒に効いているものだけ。種類では分けず合算する。
+	var s := _state()
+	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3, 8, 30, 30)
+	var v := Unit.new(2, 0, Hex.offset_to_axial(3, 2), 3, 8, 30, 30)
+	s.add_unit(u)
+	s.add_unit(v)
+	assert_eq(s.debuff_count(u), 0, "何も掛かっていなければ0")
+	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 1, "op": "add", "target": "both", "value": -40, "kind": "debuff", "remaining": 3})
+	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 1, "op": "mul", "target": "both", "value": 0.7, "kind": "debuff", "remaining": 1})
+	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 0, "op": "add", "target": "both", "value": 30, "kind": "buff", "remaining": 3})
+	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 1, "op": "mul", "target": "both", "value": 0.8, "kind": "debuff", "remaining": 1})
+	assert_eq(s.debuff_count(u), 2, "種類の違う弱体2本を合算（強化と陣営全体は数えない）")
+	assert_eq(s.debuff_count(v), 0, "別の駒には効いていない")
+	s.clear_debuffs(u)
+	assert_eq(s.debuff_count(u), 0, "ピュリファイで落ちた分は数からも消える")
+
 func test_target_filter() -> void:
 	var s := _state()
 	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3, 8, 30, 30)

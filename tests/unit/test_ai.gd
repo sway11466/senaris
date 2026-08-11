@@ -297,13 +297,15 @@ func test_prey_falls_back_when_nothing_is_reachable() -> void:
 # --- スキル（doc/gdd/ai.md §4・§5） ---
 
 ## ゴースト1体と、隣接する自軍2体を置いた盤。skill 軸を preset で渡す。
-func _ghost_state(skill: String, skill_target: String) -> BattleState:
+## skill_stack＝デバフ本数の上限（既定 "-"＝上限なし＝この軸を使わない）。
+func _ghost_state(skill: String, skill_target: String, skill_stack: Variant = "-") -> BattleState:
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
 	var ghost := Unit.new(10, 1, Hex.offset_to_axial(4, 2), 5)
 	ghost.skin_id = "ghost"
 	s.add_unit(ghost)
-	s.squads.append({ "ai": "ghost", "skill": skill, "skill_target": skill_target })
+	s.squads.append({ "ai": "ghost", "skill": skill, "skill_target": skill_target,
+		"skill_stack": skill_stack })
 	s.assign_squad(10, 0)
 	return s
 
@@ -347,6 +349,57 @@ func test_skill_is_not_cast_without_a_target_in_range() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "射程外なら前進する")
+
+# --- デバフ本数の上限（skill_stack）。doc/gdd/ai.md §5b ---
+
+## 対象1体に弱体を1本積む（本数を数えられればよいので値は最小限）。
+func _add_debuff(s: BattleState, unit_id: int) -> void:
+	s.add_status_mod({ "scope": "unit", "unit_id": unit_id, "owner_team": 1,
+		"op": "add", "target": "both", "value": -10.0, "kind": "debuff", "remaining": 3 })
+
+func test_skill_stack_avoids_targets_at_the_cap() -> void:
+	# 上限に達している相手は候補から外れる＝まだ掛かっていないほうへ回る。
+	# skill_target=near で両方とも距離1＝同値なので、上限が無ければ駒番号の小さい 1 が選ばれる盤。
+	var s := _ghost_state("always", "near", 1)
+	var ghost_pos := Hex.offset_to_axial(4, 2)
+	var already := Unit.new(1, 0, Hex.neighbor(ghost_pos, 0), 3)
+	s.add_unit(already)
+	var fresh := Unit.new(2, 0, Hex.neighbor(ghost_pos, 3), 3)
+	s.add_unit(fresh)
+	_add_debuff(s, already.id)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL)
+	assert_eq(a.to, fresh.pos, "まだ掛かっていないほうに掛ける")
+
+func test_skill_stack_turns_to_attacking_when_all_targets_are_capped() -> void:
+	# 候補が1体も残らなければ放たない＝そのまま攻撃へ落ちる（手番をスキルで捨てない）。
+	var s := _ghost_state("always", "near", 1)
+	var target := Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3)
+	s.add_unit(target)
+	_add_debuff(s, target.id)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "もう十分弱っている＝重ねずに殴る")
+
+func test_skill_stack_counts_debuffs_up_to_the_cap() -> void:
+	# 上限2＝1本目までは重ねる（2本で打ち止め）。種類では分けず合計で数える。
+	var s := _ghost_state("always", "near", 2)
+	var target := Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3)
+	s.add_unit(target)
+	_add_debuff(s, target.id)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.SKILL, "1本なら上限2に届かない")
+	_add_debuff(s, target.id)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.ATTACK, "2本で打ち止め")
+
+func test_skill_stack_unlimited_keeps_stacking() -> void:
+	# "-"＝上限なし＝従来どおり重ねがけする（既存プリセットの挙動を変えない）。
+	var s := _ghost_state("always", "near")
+	var target := Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3)
+	s.add_unit(target)
+	_add_debuff(s, target.id)
+	_add_debuff(s, target.id)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "上限なしなら何本でも重ねる")
+	assert_eq(a.to, target.pos)
 
 # --- 包囲まわりの条件（surround_able / surrounded）。skill 軸・attack 軸で共通。ai.md §4・§6 ---
 
@@ -742,9 +795,10 @@ func test_weak_debug_stage_wires_squad() -> void:
 	assert_eq(wagon.unit_defense, min_def, "馬車が獲物（自軍最低防御）")
 
 func test_ai_presets_have_all_axes() -> void:
-	# 全軸そろい検証: どのプリセットも6軸を非空で持つ（ai.csv 省略不可ポリシー・doc/gdd/ai.md）。
+	# 全軸そろい検証: どのプリセットも全軸を非空で持つ（ai.csv 省略不可ポリシー・doc/gdd/ai.md）。
 	# `-`（該当なし）も値として埋まっている＝非空。欠け/空は convert.gd が生成時に弾く前提の回帰網。
-	var axes := ["engage", "sight", "retreat", "attack", "target", "advance"]
+	var axes := ["engage", "sight", "retreat", "skill", "skill_target", "skill_stack",
+		"attack", "target", "advance"]
 	var presets := AiCatalog.load_default()
 	assert_gt(presets.size(), 0, "プリセットが1つ以上ある")
 	for label in presets:

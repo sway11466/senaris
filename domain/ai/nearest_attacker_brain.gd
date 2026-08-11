@@ -32,7 +32,7 @@ const ATTACK_CONDITIONS := ["always", "prey", "surround_able", "surrounded"]
 ## ai.csv 由来のプリセットは全軸そろい（生成時に検証済み）なので実データでは使われない＝テスト等の部分プリセット用の保険。
 const DEFAULT_PRESET := {
 	"engage": "charge", "sight": 0, "retreat": 0,
-	"skill": "-", "skill_target": "-",
+	"skill": "-", "skill_target": "-", "skill_stack": "-",
 	"attack": "always", "target": "near", "advance": "max",
 }
 
@@ -232,16 +232,28 @@ func _try_skill(state: BattleState, u: Unit) -> AiAction:
 			return AiAction.skill(u.id, option, target)
 	return null
 
+## u が同じ相手に許すデバフの本数（skill_stack 軸）。"-"・欠落は -1＝上限なし（doc/gdd/ai.md §5b）。
+## JSON経由で数値が float になるので sight と同じく両方の型を受ける。
+func _skill_stack_of(state: BattleState, u: Unit) -> int:
+	var v: Variant = _param(state, u, "skill_stack")
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return maxi(int(v), 0)
+	return -1
+
 ## 対象を選ぶ（skill_target 軸の優先順位順）。放てる相手がいなければ番兵を返す。
 ## 候補は「その option で狙えるヘックス」＝Formation.can_target が通るマスのうち、
 ## 発動条件（live）を満たす相手だけ。条件は対象1体ごとに見る＝包囲まわりは相手の状態で決まる。
+## さらにデバフ本数が上限（skill_stack）に達している相手を外す＝候補が空になれば放たずに攻撃へ落ちる。
 func _pick_skill_target(state: BattleState, u: Unit, option: Dictionary, live: Array[String]) -> Vector2i:
+	var cap := _skill_stack_of(state, u)
 	var candidates: Array[Unit] = []
 	for other in state.units():
 		if not Formation.can_target(state, option, other.pos):
 			continue
 		if not _skill_trigger_passes(state, u, other, live):
 			continue
+		if cap >= 0 and state.debuff_count(other) >= cap:
+			continue  # もう十分弱っている＝ここへ重ねずに攻撃へ回る（ai.md §5b）
 		candidates.append(other)
 	if candidates.is_empty():
 		return NO_HEX
