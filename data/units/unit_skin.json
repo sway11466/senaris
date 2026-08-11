@@ -170,7 +170,7 @@
 				},
 				{
 					"category": "悪党",
-					"combat_effect": "",
+					"combat_effect": "slash_s",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
