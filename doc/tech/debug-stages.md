@@ -12,10 +12,10 @@
 
 戦闘解決の補正チェーンと戦闘演出を1機能ずつ切り分けて見る。設計 → [../gdd/combat.md](../gdd/combat.md)・[combat_scene.md](combat_scene.md)。
 
-| ステージ | ファイル | 状態 |
-| --- | --- | --- |
-| ユニットスキル（ピクシーダスト） | `debug-combat/skill.json` | 実装済み |
-| 攻撃エフェクト（全種） | `debug-combat/effect.json` | 実装済み |
+| ステージ | ファイル |
+| --- | --- |
+| ユニットスキル（ピクシーダスト） | `debug-combat/skill.json` |
+| 攻撃エフェクト（全種） | `debug-combat/effect.json` |
 
 ユニットスキルの盤は全面平地。ピクシー2体と、掛ける相手（ファイター2・アーチャー・ナイト）を左に固め、索敵0の待機ユニットを右に置いた。自分・隣接の味方・離れた味方で対象の絞り込みを確かめ、そのまま殴って戦闘レポートの加算バフ表示（`ピクシーダスト +80/+80`）まで見られる。2体のピクシーで同じ相手に重ねがけもできる。
 
@@ -39,44 +39,43 @@
 
 思考プリセットの振る舞いを見る。設計 → [../gdd/ai.md](../gdd/ai.md)。
 
-| ステージ | ファイル | 状態 |
-| --- | --- | --- |
-| 待機・索敵（guard＋視線） | `debug-ai/sight.json` | 実装済み |
-| 弱者狙いAI（weak） | `debug-ai/weak.json` | 実装済み |
-| 敵拠点の出撃（charge湧き） | `debug-ai/spawn.json` | 実装済み |
+| ステージ | ファイル |
+| --- | --- |
+| 待機・索敵（guard＋視線） | `debug-ai/sight.json` |
+| 弱者狙いAI（weak） | `debug-ai/weak.json` |
+| 敵拠点の出撃（charge湧き） | `debug-ai/spawn.json` |
 
 ## debug-victory（勝利条件）
 
 決着判定を条件ごとに見る。設計 → [../gdd/map.md](../gdd/map.md)。
 
-| ステージ | ファイル | 状態 |
-| --- | --- | --- |
-| ボス撃破 | `debug-victory/boss.json` | 実装済み |
-| 本拠地占領（raid） | `debug-victory/hq.json` | 実装済み |
-| ターン制限（10で時間切れ敗北） | `debug-victory/turnlimit.json` | 実装済み |
-| 拠点防衛（奪われたら敗北） | `debug-victory/defend_base.json` | 実装済み |
-| 拠点防衛×2（両方失ったら敗北＝AND） | `debug-victory/defend_two.json` | 実装済み |
+| ステージ | ファイル |
+| --- | --- |
+| ボス撃破 | `debug-victory/boss.json` |
+| 本拠地占領（raid） | `debug-victory/hq.json` |
+| ターン制限（10で時間切れ敗北） | `debug-victory/turnlimit.json` |
+| 拠点防衛（奪われたら敗北） | `debug-victory/defend_base.json` |
+| 拠点防衛×2（両方失ったら敗北＝AND） | `debug-victory/defend_two.json` |
 
 ## debug-mapops（マップ操作）
 
 拠点・陣形・輸送などの盤上操作を見る。設計 → [../gdd/map.md](../gdd/map.md)・[../gdd/formations.md](../gdd/formations.md)・[../gdd/movement.md](../gdd/movement.md)。
 
-| ステージ | ファイル | 状態 |
-| --- | --- | --- |
-| 拠点と勝敗（消滅判定・寝返り・閉じ込め・スキンの所有色） | `debug-mapops/base.json` | 実装済み |
-| 陣形スキル（味方ユニット） | `debug-mapops/formation.json` | 実装済み |
-| 輸送（乗車・運搬・降車） | `debug-mapops/transport.json` | 実装済み |
-| バリケード輸送（出撃→隣接乗降） | `debug-mapops/barricade.json` | 実装済み |
-| イベント＝増援（残りターン板・搭載駒ごと到着・壁指定は最寄りへずらす） | `debug-mapops/event.json` | 実装済み |
-
+| ステージ | ファイル |
+| --- | --- |
+| 拠点と勝敗（消滅判定・寝返り・閉じ込め・スキンの所有色） | `debug-mapops/base.json` |
+| 陣形スキル（味方ユニット） | `debug-mapops/formation.json` |
+| 輸送（乗車・運搬・降車） | `debug-mapops/transport.json` |
+| バリケード輸送（出撃→隣接乗降） | `debug-mapops/barricade.json` |
+| イベント＝増援（残りターン板・搭載駒ごと到着・壁指定は最寄りへずらす） | `debug-mapops/event.json` |
 ## debug-skins（ユニット/地形スキン）
 
 見た目レイヤー（skin）の一覧確認。設計 → [../art/units.md](../art/units.md)・[../art/terrain.md](../art/terrain.md)。
 
-| ステージ | ファイル | 状態 |
-| --- | --- | --- |
-| ユニット一覧（全スキン） | `debug-skins/units.json` | 実装済み |
-| 地形見本（基本地形・7ヘクスずつ） | `debug-skins/terrain.json` | 実装済み |
+| ステージ | ファイル |
+| --- | --- |
+| ユニット一覧（全スキン） | `debug-skins/units.json` |
+| 地形見本（基本地形・7ヘクスずつ） | `debug-skins/terrain.json` |
 
 地形見本は、全面平地の上に基本地形（道・台地・荒地・森・茂み・山）を7ヘクスの塊で1つずつ置いた盤。各塊の中心に索敵0の待機ユニットを立てて、地形の上に駒が乗った見え方も一緒に確認できる。歩き回る側は移動8・軽歩行のシーフ5体。
 
@@ -84,7 +83,7 @@
 
 上のどれにも入らない演出・UI検証。
 
-| ステージ | ファイル | 状態 |
-| --- | --- | --- |
-| 会話シーン（前後・チャット風） | `debug-misc/talk.json` | 実装済み |
+| ステージ | ファイル |
+| --- | --- |
+| 会話シーン（前後・チャット風） | `debug-misc/talk.json` |
 
