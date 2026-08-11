@@ -14,6 +14,9 @@ var _event_plate: EventPlate = null  # 残りターン板（右ボックスの�
 var _turn_banner: TurnBanner = null  # ターンの切り替わりを見せる横帯（永続・画面中央）。同上
 var _formation_cutin: FormationCutin = null  # 陣形スキルの1枚絵カットイン（永続）。仕様 → doc/gdd/formations.md
 const TURN_BANNER_GAP := 0.3  # 敵ターンでバナーが引けてから最初の行動までの間（秒）
+## タイトルのざわめきを無音から立ち上げる時間（秒）。起動直後の一発目なので、素の音量で
+## 出ると音が唐突に生える。扉に近づいていくくらいの間をとる。
+const TITLE_BGM_FADE_IN := 2.5
 var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
@@ -625,7 +628,7 @@ func _install_title() -> void:
 	_title.finished.connect(_on_title_finished, CONNECT_ONE_SHOT)
 	if _bgm != null:
 		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
-		_bgm.play(BgmDirector.TITLE_TRACK)
+		_bgm.play(BgmDirector.TITLE_TRACK, TITLE_BGM_FADE_IN)
 	_title.play()
 
 ## 扉が開き始めた＝遮っていたものが無くなる。こもりを扉の動きと同じ時間で解く。
