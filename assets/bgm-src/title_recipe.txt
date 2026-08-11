@@ -1,0 +1,6 @@
+# title は自作曲ではなく外部素材（Sonniss GDC 2026）から作った環境音。MuseScore を通らないので gen_bgm.ps1 も使わない。
+# 原本は再配布不可でリポジトリに置けない。取り直すときは products 側の tools/pick.py で picks.tsv の title 行を引く。
+# 原本 623 秒のうち 499〜589 秒。先頭 4 秒に 589〜593 秒を等パワーで重ねてループの継ぎ目を消している。
+# 品質は q3（既定の q6 から落とす例外。ざわめきは細部が要らず、明瞭でないほうが扉の向こうの雰囲気に合う）。
+# ゲインは統合ラウドネス -23 LUFS に合わせるための +6.1 dB（結果 -23.0 LUFS・ピーク -3.98 dB）。
+ffmpeg -y -i "../sfx-src/sonniss/title__2026__SBbra_Bar E 001.wav" -filter_complex "[0:a]atrim=start=499:end=503,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=4:curve=qsin[h];[0:a]atrim=start=589:end=593,asetpts=PTS-STARTPTS,afade=t=out:st=0:d=4:curve=qsin[o];[h][o]amix=inputs=2:normalize=0[head];[0:a]atrim=start=503:end=589,asetpts=PTS-STARTPTS[rest];[head][rest]concat=n=2:v=0:a=1,volume=6.1dB[out]" -map "[out]" -ar 44100 -ac 2 -c:a libvorbis -q:a 3 ../bgm/title.ogg
