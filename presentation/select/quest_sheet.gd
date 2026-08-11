@@ -1,9 +1,9 @@
 extends Control
 class_name QuestSheet
-## 出撃確認の依頼書ダイアログ。仕様 → doc/gdd/stage_select.md（ブリーフィング）
+## 出撃確認の依頼書ダイアログ。仕様 → doc/gdd/stage_select.md（依頼書）
 ## ボードから紙を1枚受け取る見立て＝羊皮紙シート＋出撃/戻る。
-## 標準 ConfirmationDialog の置き換え。将来のブリーフィング項目（勝利条件・推奨戦力など）は
-## シート中央（罫線とボタンの間）に足す。
+## 標準 ConfirmationDialog の置き換え。勝利条件・推奨戦力といった事前情報は載せない
+## ＝出撃確認のワンクッションに徹する（説明は盤と開始の会話が担う）。
 
 signal confirmed
 

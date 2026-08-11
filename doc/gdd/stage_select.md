@@ -21,7 +21,7 @@
 
 - **冒険譚選択**とステージ一覧は別画面とする（冒険譚＝配布・選択の単位。[map.md](map.md) 用語）。冒険譚が2〜3個のうちは1画面に縦積みでも成立するが、増えることを見越して分けておく。
 - 冒険譚を選ぶ → その中の**プレイするステージを選ぶ**。クリア済みステージは**すべて選び直せる**（再挑戦）＋次の未クリアステージ（解放済み）が選べる。
-- ステージカードを選ぶ → **ステージ詳細（ブリーフィング）** を表示 → 「出撃」で開始。誤タップでいきなり戦闘に入らないよう、開始前にワンクッション置く。
+- ステージカードを選ぶ → **依頼書**（羊皮紙のダイアログ・ステージ名と「出撃／戻る」）→ 「出撃」で開始。誤タップでいきなり戦闘に入らないよう、開始前にワンクッション置く。勝利条件・推奨戦力といった事前情報は載せない＝盤とステージ開始の会話で読ませる（先に文字で説明すると導入の会話と重複する）。
 
 ## 戦闘後フロー
 
@@ -215,10 +215,8 @@ domain（戦闘ロジック）には手を入れない。
 - **配線**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../presentation/victory/victory_screen.gd)・最終ステージ勝利で outro 会話に重ねて盤エリアに表示、outro が無ければ全画面）。
 - **難易度帯ボード**: tier カルーセル（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）あり・カード用クロップ（card）は未配置で cover にフォールバック中。
-- **未実装**: タイトル画面（起動→直接冒険譚選択）。ブリーフィングは羊皮紙の依頼書ダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）で出撃確認まで＝中身（勝利条件・推奨戦力など）は未決事項参照。
+- **依頼書**: 羊皮紙のダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）＝ステージ名と「出撃／戻る」。出撃確認のワンクッションに徹する。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
-
-設計の未確定事項（ブリーフィング内容）は [backlog.md](../backlog.md)（feature-25）を参照。
 
 ## 関連ドキュメント
 

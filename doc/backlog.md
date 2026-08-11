@@ -126,15 +126,6 @@
 - 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
 - 該当：`assets/bgm-src/`・`assets/bgm/`・`application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
 
-### feature-25
-
-**ステージセレクトの設計未確定事項**（優先度：中）
-
-- 背景：[stage_select.md](gdd/stage_select.md) の設計の未確定。ステージセレクト画面の2つの設計論点が決まっていない。
-- 対応：(1) ステージ詳細（ブリーフィング）に何を出すか決める（勝利条件・推奨戦力・シナリオ導入など。羊皮紙の依頼書ダイアログ `quest_sheet.gd` が器）。確定したら stage_select.md に反映。
-- 決着済（2026-08-08）：(2) クリア評価（ターン数・ランク）は記録する。「全ステージを上位ランク以上で踏破」の Steam 実績が全ステージのランクを参照するため（[monetization.md](sales/monetization.md) 実績・計測）。実装は feature-19 のランク確定後、進捗セーブ（`application/campaign_progress.gd`・[stage_select.md](gdd/stage_select.md) クリア記録）に足す。
-- 該当：`doc/gdd/stage_select.md`（確定後に反映）・`presentation/select/quest_sheet.gd`（ブリーフィング実装時）・`application/campaign_progress.gd`（記録時）。
-
 ### feature-26
 
 **デバッグステージの構成見直しと拡充**（優先度：低）
@@ -234,7 +225,7 @@
 **Steam 実績・Stats の配線（GodotSteam 導入）**（優先度：低）
 
 - 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
-- 対応：(1) GodotSteam を導入し `infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（feature-25 決着済）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
+- 対応：(1) GodotSteam を導入し `infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
 - 該当：`infrastructure/platform/`（GodotSteam の隔離・新規）・`application/campaign_progress.gd`（完走判定・ランク記録）・`infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）が先に要る。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
 
