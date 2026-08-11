@@ -16,7 +16,7 @@ func test_bind_shares_base_sounds_across_screens() -> void:
 
 func test_sfx_of_unbound_event_is_empty() -> void:
 	# 対応表に無い発火点＝まだ音を割り当てていない。空文字を返して無音で進む。
-	assert_eq(SfxCatalog.sfx_of("map_scrim"), "", "未割当の発火点は空文字")
+	assert_eq(SfxCatalog.sfx_of("menu_sortie"), "", "未割当の発火点は空文字")
 	assert_eq(SfxCatalog.sfx_of("no_such_event"), "", "未知の発火点も空文字")
 	assert_eq(SfxCatalog.sfx_of(""), "", "発火点未指定も空文字")
 
