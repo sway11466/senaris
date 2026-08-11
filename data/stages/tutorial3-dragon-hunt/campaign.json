@@ -4,7 +4,7 @@
   "desc": "t3.desc",
   "tier": "tutorial",
   "difficulty": 3,
-  "emblem": { "ally": "vanguard", "enemy": "dragon" },
+  "emblem": { "ally": "vanguard", "enemy": "red_dragon" },
   "stages": [
     { "id": "st1", "file": "st1.json", "title": "t3.st1.title", "party": ["veterans", "rookies"] },
     { "id": "st2", "file": "st2.json", "title": "t3.st2.title", "party": ["veterans", "rookies"],

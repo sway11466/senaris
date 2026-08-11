@@ -41,7 +41,7 @@
   "enemy": [
     { "order": 1, "name": "レッドドラゴン", "ai": "weak",
       "units": [
-        {"skin": "dragon", "col": 7, "row": 1, "actor": "dragon"}
+        {"skin": "red_dragon", "col": 7, "row": 1, "actor": "dragon"}
       ] },
     { "order": 2, "name": "山から追われた飛行", "ai": "charge",
       "units": [

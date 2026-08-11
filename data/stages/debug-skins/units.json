@@ -67,7 +67,7 @@
       { "skin": "ghost",          "col": 7, "row": 9 },
       { "skin": "necromancer",    "col": 8, "row": 9 },
 
-      { "skin": "dragon",         "col": 1, "row": 11 }
+      { "skin": "red_dragon",         "col": 1, "row": 11 }
     ] }
   ],
   "bases": []
