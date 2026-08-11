@@ -1,0 +1,29 @@
+MOTION (image-to-video; the supplied image is the first frame — keep its art style, palette and layout exactly, do not redraw or restyle it):
+
+The shot begins completely still. The camera then pushes in slowly and steadily toward the tavern door, straight along its line of sight, with no handheld shake and no rotation. As it closes in, the door swings inward, away from the camera, opening from the right edge on its hinges. Warm golden light spills out through the widening gap and washes across the stone doorstep and the cobbles, blooming briefly as the gap widens. The camera keeps advancing and passes through the doorway into the room, and the shot ends inside.
+
+The room beyond is a warm, lived-in tavern common room in the SAME art style as the first frame: heavy wooden tables and benches, tankards and a few bottles left on them, a fire burning in a stone hearth, hanging iron lanterns, dark timber beams overhead. Mature, slightly muted, limited palette — warm amber light against deep brown and blue-grey shadow. Keep the shapes simple and readable, not photorealistic, not brightly saturated.
+
+The room is occupied by exactly SIX characters plus a barkeep. They are chunky stylized characters about 2 to 2.5 heads tall with oversized heads and hands, in the same cel-shaded look as everything else — charming and a bit rough, NOT moe, NOT overly cute.
+
+CRITICAL: every one of them must look CLEARLY DIFFERENT from the others — different species, different build, different hair, different clothing colour. Do NOT reuse one face. Do NOT fill the room with the same bearded man repeated. Each is a distinct individual:
+
+1. A stout red-bearded DWARF in a brown leather jerkin, seated at a table on the left, seen from behind and to the side.
+2. A slender ELF with long pale hair and a deep green hood, seated across from the dwarf, face turned away toward the fire.
+3. A small round-faced HALFLING, child-sized, kneeling up on a bench to reach the table, in a rust-red tunic.
+4. A lean HUMAN WOMAN WARRIOR, dark hair in a high ponytail, worn leather armour over a deep blue tunic, her sword propped against the bench beside her, sitting alone near the hearth with her back to us.
+5. A broad HUMAN KNIGHT in a padded gambeson, helmet set down on the bench beside them, at a table on the right.
+6. A young HUMAN adventurer, short dark hair, plain travelling tunic and a satchel, seated beside the knight and leaning in to listen.
+7. The BARKEEP: a heavyset bald HUMAN man with a white apron, standing behind the counter in the background, wiping a tankard.
+
+Four of the seven are human (4, 5, 6 and the barkeep) — but they must still be plainly different people from one another in age, build, hair and dress.
+
+Their movement is SMALL and calm: lifting a tankard, leaning in to talk, a slow nod, a shrug. NOBODY walks. NOBODY approaches the camera. NOBODY turns to look at the camera. No character is ever close to the camera or large in frame. Keep every figure small, at a distance, and lit from behind by the hearth so faces stay simple and mostly in shadow. Several of them have their backs to us.
+
+The street outside stays completely empty of people for the whole shot — figures appear only inside the room, only after the door opens.
+
+The lantern flame flickers gently throughout. Fine dust drifts slowly through the lantern light. The exterior stays put — the stone wall, the timber framing and the alley on the right must not move, warp or change shape; only the door moves.
+
+NO camera cut, one continuous move. NO text, NO logo, NO title, NO lettering on signs, barrels or bottles.
+
+AUDIO: only two things — a heavy wooden door creaking open on iron hinges, and a crackling hearth fire. NO voices, NO speech, NO laughter, NO crowd noise, NO clinking mugs, NO music. The room must sound quiet apart from the fire.

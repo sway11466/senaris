@@ -1,6 +1,6 @@
 # メニュー画面のアート方針
 
-メニュー画面（当面はセレクト画面＝酒場の依頼ボード）の材質テクスチャ（木壁・ボード板・羊皮紙・汚し）の生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルはメニュー画面固有：狙い・スロット・敷き方（タイル/ナインパッチ）・MATERIAL STYLE・保管。タイトル画面など他のメニュー画面が増えたらここに足す。画面の設計そのものは [../gdd/stage_select.md](../gdd/stage_select.md)。
+メニュー画面の絵の生成設計。中心はセレクト画面（酒場の依頼ボード）の材質テクスチャ（木壁・ボード板・羊皮紙・汚し）で、加えてタイトル画面の扉（1枚絵・動画／§5）。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルはメニュー画面固有：狙い・スロット・敷き方（タイル/ナインパッチ）・MATERIAL STYLE・保管。他のメニュー画面が増えたらここに足す。画面の設計そのものは [../gdd/stage_select.md](../gdd/stage_select.md)。
 
 凡例: 【暫定】 【指針】 【未決】（ラベルなし＝決定事項。ただし決定は覆りうる）
 
@@ -66,7 +66,30 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 - タイル材（`wall` / `grunge`）は Godot のインポート設定で Repeat を Enabled にする（継ぎ目タイルに必須）。上下左右がつながるシームレス画像で作る。
 - ナインパッチ材（`board` / `parchment`）は縁が固定・中央がタイル。縁に枠/傷みを描き、中央は伸ばしても歪まない一様な地にする。
 
-## 5. 未決事項
+## 5. タイトル画面の扉（1枚絵・動画）
+
+起動時に酒場の扉を外から見せ、開始すると扉が開いて店内へ入る。セレクト画面の依頼ボードは「入って振り向いた先」にあたる＝扉からは見えない向きの壁なので、店内の映像とボードの画は矛盾しない。
+
+材質スロット（§2〜§4）とは別系統。真正面フラットの MATERIAL STYLE ではなく1枚絵なので、絵柄は ILLUST STYLE（[keyvisual.md](keyvisual.md) §2）に従う。ただし画面背景なので末尾の `Wide 4:3 composition.` は落として 16:9 にする。SUBJECT の正本は `{name}_prompt.txt`（静止画）と `{name}_open_prompt.txt`（動画の MOTION）。
+
+| 段階 | 置き場 | 例 |
+|---|---|---|
+| SUBJECT（静止画） | `assets/menu-src/door/door_prompt.txt` | |
+| ① AI生成 | `assets/menu-src/door/door_01_raw.png` | |
+| ② 透かし除去 | `assets/menu-src/door/door_02_dew.png` | |
+| MOTION（動画） | `assets/menu-src/door/door_open_prompt.txt` | |
+| ① AI生成 | `assets/menu-src/door/door_open_{letter}_01_raw.mp4` | `door_open_b_01_raw.mp4` |
+| ② 透かし切り落とし | `assets/menu-src/door/door_open_{letter}_02_crop.mp4` | `door_open_b_02_crop.mp4` |
+| ③ ゲーム用 | `assets/menu/door_open.ogv` | |
+
+- 動画は同じ MOTION でも生成のたびに結果が大きく振れる（人物の描き分け・位置の飛び）ので、複数 take を撮って選ぶ前提。take ごとに変種letter（`_a`/`_b`…）を付け、採用した1本だけを ③ に焼く。`door_open_prompt.txt` は採用 take を生成した文面に合わせる。
+- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`assets/menu/` に置くのは他のメニュー資産と並べるため。
+- 動画の透かしは除去ツールが使えない。ツールは半透明オーバーレイを逆算する仕組みで、非可逆圧縮された動画では画素値が戻らないため。右下ごと切り落とす。
+- 透かしの大きさと位置は生成のたびに変わる（実測: ある take は 24px 角・右下から48px、別の take は 48px 角・右下から96px）。毎回コマを抜いて測ってから切り出し範囲を決める。16:9 を保つには、透かしの左端より内側で幅を決め、その幅から高さを割り出して左上を原点に切り、元の解像度へ戻す。
+- 変換は Ogg Theora（Godot が標準で再生できる唯一の動画コーデック）。`-c:v libtheora -q:v 8 -c:a libvorbis -q:a 5`。変換後は必ずコマ数を数えて全コマ読めることを確かめる。ffmpeg 8.1.2（gyan build）は Theora 書き出しが壊れており、読めるコマが数枚まで落ちて後半が完全に崩壊した。9.0 で解消。
+- 音声は動画に含める（扉の軋み・焚き火）。絵と合っているものを分解しない。店内の賑わいは別トラックで足す（[../audio/sfx.md](../audio/sfx.md)）。
+
+## 6. 未決事項
 
 - [ ] 汚し（grunge）を壁だけでなく画面全体（ボード・貼り紙の上）にも薄く重ねるか。当面は壁のみ。
 
@@ -77,6 +100,7 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 ## 参考資料
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・共通メソッド）
+- [keyvisual.md](keyvisual.md) — 扉絵・キービジュアル（ILLUST STYLE の正本。タイトル画面の扉もこれに従う）
 - [terrain.md](terrain.md) — 地形タイル（反復対策・タイル材の作法の原型）
 - [../gdd/stage_select.md](../gdd/stage_select.md) — セレクト画面の設計（酒場の依頼ボード）
 - [../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd) — 材質スロットの autowire＋フォールバック実装
