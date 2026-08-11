@@ -318,3 +318,82 @@ func test_entering_marks_the_unit_done() -> void:
 	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(6, 6), 3))
 	assert_true(s.enter_base(1), "自軍拠点の中に入れる")
 	assert_true(s.is_done(1), "入った駒はそのターン行動終了")
+
+# --- 占領の通知（MatchController.base_captured）---
+# domain は所属を書き換えるだけでシグナルを持たない（_try_capture は移動・降車の内側で静かに
+# 起きる）。application が行き先の拠点の所属を前後で見比べて発火させる。演出（占領音）はこれを聴く。
+
+func _controller(s: BattleState) -> MatchController:
+	var mc := MatchController.new()
+	mc.setup(s)
+	autofree(mc)
+	return mc
+
+func test_capture_emits_base_captured() -> void:
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 1))  # 敵所属
+	var u := Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3)
+	u.can_capture = true
+	s.add_unit(u)
+	var mc := _controller(s)
+	var got: Array = []
+	mc.base_captured.connect(func(h: Vector2i, t: int) -> void: got.append([h, t]))
+	assert_true(mc.execute(MoveCommand.new(1, base_hex)), "移動できる")
+	assert_eq(got.size(), 1, "占領で base_captured が1回飛ぶ")
+	assert_eq(got[0][0], base_hex, "占領した拠点のhexを渡す")
+	assert_eq(got[0][1], 0, "新しい所属陣営を渡す")
+
+func test_capture_neutral_base_emits() -> void:
+	# 中立は Base.NEUTRAL = -1。application 側の「拠点なし」の番兵と同じ値にすると、
+	# 中立の占領が「拠点の無いマスへ動いた」と区別できず黙って鳴らなくなる。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex))  # 中立
+	var u := Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3)
+	u.can_capture = true
+	s.add_unit(u)
+	var mc := _controller(s)
+	var got: Array = []
+	mc.base_captured.connect(func(h: Vector2i, t: int) -> void: got.append([h, t]))
+	assert_true(mc.execute(MoveCommand.new(1, base_hex)))
+	assert_eq(got.size(), 1, "中立拠点の占領でも飛ぶ")
+	assert_eq(got[0][1], 0, "所属は占領した陣営")
+
+func test_move_onto_own_base_does_not_emit() -> void:
+	# 既に自軍の拠点へ乗っても所属は変わらない＝占領ではない。ここで鳴らすと音が意味を失う。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 0))
+	var u := Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3)
+	u.can_capture = true
+	s.add_unit(u)
+	var mc := _controller(s)
+	var n := [0]
+	mc.base_captured.connect(func(_h: Vector2i, _t: int) -> void: n[0] += 1)
+	assert_true(mc.execute(MoveCommand.new(1, base_hex)))
+	assert_eq(n[0], 0, "所属が変わらなければ飛ばさない")
+
+func test_move_without_base_does_not_emit() -> void:
+	# 拠点の無いマスへの移動。前後とも「拠点なし」で、比較が誤爆しないこと。
+	var s := _state()
+	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3)
+	u.can_capture = true
+	s.add_unit(u)
+	var mc := _controller(s)
+	var n := [0]
+	mc.base_captured.connect(func(_h: Vector2i, _t: int) -> void: n[0] += 1)
+	assert_true(mc.execute(MoveCommand.new(1, Hex.offset_to_axial(3, 2))))
+	assert_eq(n[0], 0, "拠点の無いマスでは飛ばさない")
+
+func test_non_capture_unit_does_not_emit() -> void:
+	# 占領できない駒が敵拠点に乗っても所属は変わらない＝音も鳴らない。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex, 1))
+	s.add_unit(Unit.new(1, 0, Hex.neighbor(base_hex, 0), 3))  # can_capture=false
+	var mc := _controller(s)
+	var n := [0]
+	mc.base_captured.connect(func(_h: Vector2i, _t: int) -> void: n[0] += 1)
+	assert_true(mc.execute(MoveCommand.new(1, base_hex)))
+	assert_eq(n[0], 0, "占領不可ユニットでは飛ばさない")

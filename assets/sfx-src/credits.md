@@ -18,6 +18,7 @@
 | `map_turn_player` | 自軍ターン開始 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
 | `map_turn_enemy` | 敵ターン開始 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
 | `holy_aria` | ホーリーアリアの発動 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
+| `map_capture` | 占領成立（鐘の層） | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作。原本 map_capture_bell.mscz。布と重ねる |
 
 ## 第三者素材
 
@@ -57,6 +58,6 @@
 | `move_light_foot` | 足音（軽）。light_foot の移動 | Sonniss GDC 2017 / Tovusound - Edward Foleyart Add-On Extended Footsteps `169_Foley_Footsteps_Grass_Sneaker_Walk_Fast_Run_Jog_Close` | wav 96kHz/24bit | 同上 | 歩きの1歩（0.976〜1.29秒）、+8.9 dB。狙いは -12 dBFS。move_light_foot_recipe.txt |
 | `move_float` | 浮遊。ピクシー・ゴースト・レイスの移動 | 同上（同じ収録の別の1歩） | 同上 | 同上 | 歩きの1歩（1.620〜1.940秒）、+6.2 dB。move_float_recipe.txt |
 | `move_propeller` | プロペラ。飛空艇の移動 | Sonniss GDC 2020 / Systematic-Sound - Sound Themes - Modern Cloth Foley 01 `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter` | wav 96kHz/24bit | 同上 | `move_flight` と同一の切り出し（5.94〜6.36秒）、-9.0 dB。鳴らす間隔だけで別物にする。move_propeller_recipe.txt |
-| `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 未着手 |
+| `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 切り出しなし、0.45秒遅らせて -8.3 dB。鐘（自作）と重ねる。map_capture_recipe.txt |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。

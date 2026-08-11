@@ -265,6 +265,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_deployed.connect(_on_unit_deployed)
 	controller.unit_unloaded.connect(_on_unit_unloaded)
 	controller.unit_entered_base.connect(_on_unit_entered_base)
+	controller.base_captured.connect(_on_base_captured)
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
@@ -1214,6 +1215,12 @@ func _on_unit_deployed(_unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> voi
 func _on_unit_stood(_unit_id: int) -> void:
 	await await_move_animation()
 	_sync()
+
+## 占領成立。歩き切ってから鳴らす＝駒が拠点に着く前に音が出ない。
+## 盤の描き直しは _on_unit_moved の _sync が済ませているので、ここは音だけ。
+func _on_base_captured(_base_hex: Vector2i, _team: int) -> void:
+	await await_move_animation()
+	SfxPlayer.play_event("map_capture")
 
 ## 「入る」＝駒は拠点の中へ消える。待つ理由は待機と同じ（歩いてから入る）。
 func _on_unit_entered_base(_unit_id: int, _base_hex: Vector2i) -> void:

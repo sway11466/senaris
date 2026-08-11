@@ -1,0 +1,1 @@
+ffmpeg -y -i "map_capture_bell.wav" -i "sonniss/map_capture__2026__CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02_ESM_FG2.wav" -filter_complex "[1:a]aresample=44100,adelay=450|450,volume=-8.3dB[c];[0:a][c]amix=inputs=2:normalize=0:duration=longest[o]" -map "[o]" -c:a pcm_s24le map_capture.wav

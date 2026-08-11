@@ -15,6 +15,7 @@ signal formation_resolved(result: Dictionary)  # 陣形スキルの解決結果�
 signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
 signal unit_unloaded(unit_id: int, transport_id: int, to: Vector2i)
 signal unit_entered_base(unit_id: int, base_hex: Vector2i)
+signal base_captured(base_hex: Vector2i, team: int)  # 拠点の所属が変わった＝占領成立
 signal unit_stood(unit_id: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
 signal unit_died(unit_id: int)
 signal turn_changed(team: int, turn_number: int)
@@ -54,8 +55,10 @@ func execute(cmd: MoveCommand) -> bool:
 		return false
 	var from := u.pos
 	var path := state.path_to(cmd.unit_id, cmd.to)
+	var before := _base_team_at(cmd.to)
 	if state.move_unit(cmd.unit_id, cmd.to):
 		unit_moved.emit(cmd.unit_id, from, cmd.to, path)
+		_emit_if_captured(cmd.to, before)
 		_check_finished()  # 移動＝占領が起きうる（本拠地の占領/喪失はこの瞬間に決着する）
 		return true
 	move_rejected.emit(cmd.unit_id, cmd.to)
@@ -114,12 +117,30 @@ func deploy_cells_for(base_hex: Vector2i, garrison_index := -1) -> Array[Vector2
 func execute_unload(cmd: UnloadCommand) -> bool:
 	if _finished:
 		return false
+	var before := _base_team_at(cmd.to)
 	if state.unload(cmd.transport_id, cmd.index, cmd.to):
 		var u := state.unit_at(cmd.to)
 		unit_unloaded.emit(u.id if u != null else -1, cmd.transport_id, cmd.to)
+		_emit_if_captured(cmd.to, before)
 		_check_finished()
 		return true
 	return false
+
+## 占領の検出。domain は所属を書き換えるだけでシグナルを持たない（_try_capture は移動・降車の
+## 内側で静かに起きる）ため、行き先の拠点の所属を操作の前後で見比べて発火させる。
+## 拠点が無いマスは NO_BASE。Base.NEUTRAL（中立）は -1 なので、それとは別の値にする＝
+## 同じにすると「中立拠点を占領した」が「拠点が無い所へ動いた」と見分けられなくなる。
+const NO_BASE := -99
+
+func _base_team_at(hex: Vector2i) -> int:
+	var b := state.base_at(hex)
+	return b.team if b != null else NO_BASE
+
+## before と変わっていれば占領。中立→自軍も敵→自軍も同じ扱い（どちらも盤の支配が動いた）。
+func _emit_if_captured(hex: Vector2i, before: int) -> void:
+	var after := _base_team_at(hex)
+	if after != NO_BASE and after != before:
+		base_captured.emit(hex, after)
 
 ## 表示用: 輸送 transport_id の搭乗駒 index の降車先候補（状態は変えない）。
 func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
