@@ -817,6 +817,84 @@ func test_ai_catalog_has_weak_preset() -> void:
 	assert_eq(String(presets["weak"]["target"]), "weak;near", "対象優先＝弱者狙い")
 	assert_eq(String(presets["weak"]["advance"]), "flank", "前進＝回り込み")
 
+func test_ai_catalog_has_swarm_preset() -> void:
+	# 群れAI＝包囲できる／包囲している相手にだけスキルと攻撃、デバフは1本まで。
+	var presets := AiCatalog.load_default()
+	assert_true(presets.has("swarm"), "swarm がある")
+	assert_eq(String(presets["swarm"]["skill"]), "surround_able|surrounded", "スキル発動＝包囲まわり")
+	assert_eq(String(presets["swarm"]["attack"]), "surround_able|surrounded", "攻撃条件＝包囲まわり")
+	assert_eq(int(presets["swarm"]["skill_stack"]), 1, "デバフは1本まで")
+	assert_eq(String(presets["swarm"]["target"]), "damaged;near", "対象優先＝損耗狙い")
+	assert_eq(int(presets["swarm"]["attack_sight"]), 10, "標的を探す半径")
+
+func test_existing_presets_keep_their_target_axis() -> void:
+	# 既存ラベルの思考は変えない（マップ調整がこの動きに乗っている）。
+	# damaged / attack_sight の追加で target 軸の解釈が変わっていないことを固定する。
+	var presets := AiCatalog.load_default()
+	for label in ["charge", "guard", "raid"]:
+		assert_eq(String(presets[label]["target"]), "near", "%s の対象優先は据え置き" % label)
+		assert_eq(String(presets[label]["attack_sight"]), "-", "%s は盤全体を見る" % label)
+	assert_eq(String(presets["weak"]["target"]), "weak;near", "weak の対象優先は据え置き")
+	assert_eq(String(presets["weak"]["attack_sight"]), "-", "weak も盤全体を見る")
+
+# --- 損耗狙い（target=damaged）と標的半径（attack_sight）。doc/gdd/ai.md §7・§7b ---
+
+## 自軍1体（team1・damaged 指定）と、兵数の違う敵を置く盤。attack_sight は呼び出し側で指定。
+func _damaged_state(target: String, attack_sight: Variant) -> BattleState:
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(7, 2), 3))
+	s.squads.append({ "ai": "test", "target": target, "attack_sight": attack_sight })
+	s.assign_squad(10, 0)
+	return s
+
+func test_damaged_picks_the_most_worn_target_in_range() -> void:
+	# 射程内では損耗率が最大の相手を殴る（満員8なら残兵が最も少ない相手と同じ結果）。
+	var s := _damaged_state("damaged;near", "-")
+	var pos := Hex.offset_to_axial(7, 2)
+	var full := Unit.new(1, 0, Hex.neighbor(pos, 0), 8)
+	s.add_unit(full)
+	var worn := Unit.new(2, 0, Hex.neighbor(pos, 3), 8)
+	worn.troops = 2
+	s.add_unit(worn)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, worn.id, "傷ついているほうを殴る")
+
+## 近くに無傷の敵・盤の反対側に損耗した敵を置いた盤（どちらへ前進するかで半径の効きを見る）。
+func _worn_far_state(attack_sight: Variant) -> BattleState:
+	var s := _damaged_state("damaged;near", attack_sight)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 2), 8))  # 近い・無傷
+	var worn := Unit.new(2, 0, Hex.offset_to_axial(0, 2), 8)  # 遠い・損耗
+	worn.troops = 2
+	s.add_unit(worn)
+	return s
+
+func test_attack_sight_dash_sees_the_whole_board() -> void:
+	# "-"＝盤全体。無傷の近い敵ではなく、盤の反対側の傷ついた敵へ寄る。
+	var s := _worn_far_state("-")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(Hex.distance(a.to, Hex.offset_to_axial(0, 2)), 7, "傷ついた敵との距離が縮む")
+
+func test_attack_sight_limits_the_search_radius() -> void:
+	# 同じ盤で半径3。外の損耗した敵は狙わず、最寄りの敵へ前進する（立ち止まらない）。
+	var s := _worn_far_state(3)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(Hex.distance(a.to, Hex.offset_to_axial(4, 2)), 3, "半径内に損耗した敵がいなければ最寄りへ")
+
+func test_damaged_ignores_unharmed_enemies_as_a_goal() -> void:
+	# 無傷しかいなければ損耗狙いは効かず、従来どおり最寄りの敵へ。
+	var s := _damaged_state("damaged;near", 10)
+	var near_foe := Unit.new(1, 0, Hex.offset_to_axial(4, 2), 8)
+	s.add_unit(near_foe)
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(0, 2), 8))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(Hex.distance(a.to, near_foe.pos), Hex.distance(Hex.offset_to_axial(7, 2), near_foe.pos),
+		"最寄りの敵へ寄る")
+
 # --- 行動順（order）。部隊単位・部隊内は前線から。詳細 → doc/gdd/ai.md 行動順 ---
 
 ## 敵2体（部隊A・部隊B に1体ずつ）と、左端の自軍1体を置いた盤を返す。

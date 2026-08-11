@@ -3,6 +3,7 @@
 		"charge": {
 			"advance": "max",
 			"attack": "always",
+			"attack_sight": "-",
 			"engage": "charge",
 			"name": "突撃",
 			"retreat": 0,
@@ -15,6 +16,7 @@
 		"guard": {
 			"advance": "max",
 			"attack": "always",
+			"attack_sight": "-",
 			"engage": "sight|squad",
 			"name": "待機",
 			"retreat": 0,
@@ -27,6 +29,7 @@
 		"raid": {
 			"advance": "base",
 			"attack": "always",
+			"attack_sight": "-",
 			"engage": "charge",
 			"name": "拠点攻略",
 			"retreat": 0,
@@ -36,9 +39,23 @@
 			"skill_target": "near",
 			"target": "near"
 		},
+		"swarm": {
+			"advance": "max",
+			"attack": "surround_able|surrounded",
+			"attack_sight": 10,
+			"engage": "charge",
+			"name": "群れ",
+			"retreat": 0,
+			"sight": "-",
+			"skill": "surround_able|surrounded",
+			"skill_stack": 1,
+			"skill_target": "damaged;near",
+			"target": "damaged;near"
+		},
 		"weak": {
 			"advance": "flank",
 			"attack": "prey",
+			"attack_sight": "-",
 			"engage": "charge",
 			"name": "弱者狙い",
 			"retreat": 0,

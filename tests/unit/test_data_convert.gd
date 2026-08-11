@@ -250,7 +250,7 @@ func _valid_ai_row(label: String) -> Dictionary:
 	return {
 		"label": label, "engage": "charge", "sight": "-", "retreat": "-",
 		"skill": "-", "skill_target": "-", "skill_stack": "-",
-		"attack": "-", "target": "weak", "advance": "-",
+		"attack_sight": "-", "attack": "-", "target": "weak", "advance": "-",
 	}
 
 func test_ai_valid_builds_json() -> void:
