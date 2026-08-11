@@ -203,7 +203,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -263,7 +263,7 @@
 				},
 				{
 					"category": "オーク",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -403,7 +403,7 @@
 			"enemy": [
 				{
 					"category": "オーク",
-					"combat_effect": "",
+					"combat_effect": "fire_ball",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -557,7 +557,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "magic_dust",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -803,7 +803,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
-					"combat_effect": "",
+					"combat_effect": "claw",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -833,7 +833,7 @@
 			"enemy": [
 				{
 					"category": "オーク",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
