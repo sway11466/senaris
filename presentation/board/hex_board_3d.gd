@@ -510,6 +510,7 @@ func _on_click(hex: Vector2i) -> void:
 	# 出撃モード中: 出撃先候補をクリック → 出撃。それ以外は出撃モードを抜けて通常処理。
 	if _deploy_base != INVALID_HEX:
 		if _deploy_cells.has(hex):
+			SfxPlayer.play_event("map_deploy")
 			controller.execute_deploy(DeployCommand.new(_deploy_base, _deploy_index, hex))
 			return
 		_clear_deploy()
