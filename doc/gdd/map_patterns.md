@@ -333,5 +333,5 @@ P19 詠唱枠（陣形の成立空間）
 - [map.md](map.md) — 拠点・占領・勝敗条件・戦力供給モデル
 - [movement.md](movement.md) — 移動タイプ・地形コスト
 - [formations.md](formations.md) — 陣形スキルのレシピ（P19 詠唱枠が満たす条件）
-- [ai.md](ai.md) — 敵の思考パターン（突撃・待機ほか）
+- [ai.md](ai.md) — 敵の思考パターン（特性＝突撃・待機ほか）
 - [../campaign/authoring.md](../campaign/authoring.md) — 冒険譚の制作方針

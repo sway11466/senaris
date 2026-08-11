@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=50 / refactoring=9
+次回採番: bug=3 / feature=51 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -18,20 +18,19 @@
 
 ### feature-2
 
-**敵AI: retreat（撤退）軸の配線**（優先度：低）
+**敵AI: 撤退する特性**（優先度：低）
 
-- 背景：AI思考の6軸のうち retreat（撤退閾値＝兵数がこの値を下回ったら退く／ただし自軍拠点が無ければ退かない。[ai.md](gdd/ai.md)「3. 撤退」）は、ai.csv に列・既定（`0`＝退かない）があり `DEFAULT_PRESET` にも入っているが、`nearest_attacker_brain` がこの値を読んでいない＝**未配線**で、現状は常に退かない。既定値の設計は済んでおり、残るのは挙動の実装のみ。
-- 対応：`nearest_attacker_brain` に撤退判定を足す（`_param(state, u, "retreat")` を読み、兵数 < 閾値 かつ自軍拠点あり のとき退く＝拠点方向へ後退／交戦回避）。部隊ごとの上書きは既存の `_param` 解決でそのまま効く。実装後に ai.md の「retreat は未配線」記述を更新。
-- 該当：`domain/ai/nearest_attacker_brain.gd`・`tests/unit/test_ai.gd`（テスト追加）・`doc/gdd/ai.md`（記述更新）。ai.csv は列既存のため変更不要。
+- 背景：削られた駒が自陣営の拠点へ下がり、中に入って回復し、また出てくる動き。プレイヤーは「削りきる前に逃がすと振り出し」になるので、深追いするか諦めるかの判断が生まれる。[ai.md](gdd/ai.md) の特性はどれも撤退しないので、行動ルールにも `retreat` パラメーターにも入れていない。
+- 対応：行動ルールに2行を足した特性を作る（`損耗が retreat 以上で自陣営の拠点にいる → 拠点に入る` ／ `損耗が retreat 以上で移動距離が測れる自陣営の拠点がある → 拠点へ最大前進`）。位置を攻撃より上に置けば背を向けて逃げ、下に置けば殴ってから退く。パラメーター `retreat` は損耗率で持つ。回復は[map.md](gdd/map.md) の「入る」に乗る＝敵AIが初めて「入る」を使う。
+- 該当：`doc/gdd/ai.md`（特性を1つ追加）・`data/ai/ai.csv`（列 `retreat` を追加）・`domain/ai/`・`tests/unit/test_ai.gd`。着手の引き金＝撤退する敵を出したい冒険譚を作るとき。
 
 ### feature-4
 
-**敵AI: 思考軸の残り値の配線**（優先度：中）
+**敵AI: 特性の拡充（対空狙い・間合維持）**（優先度：中）
 
-- 背景：AIの各軸のうち一部の値しか効いていない（[ai.md](gdd/ai.md) §4〜6・§1）。実装済みは skill=`always`/`surround_able`/`surrounded`、skill_target=全値、attack=`always`/`prey`/`surround_able`/`surrounded`、target=`near`/`weak`、advance=`max`/`base`/`flank`、engage=`charge`/`sight`/`squad`。未実装は attack の `solo_adv`/`no_retal`/`kill`、target の `maxdmg`/`mindmg`/`capturer`/`ranged`/`flyer`、advance の `spacing`（間合維持＝キティング）/`squad`/`careful`、engage の `turn:N`。ai.csv には列・表記があり、読み手（Brain）が未対応。retreat 軸は別途 feature-2。
-- 対応：`nearest_attacker_brain` の `_pick_target`／攻撃判定／`_advance_dest`／`_ensure_engaged` に各値の分岐を足す。射程ユニットの間合維持（spacing）は AI の質に効く本命。値ごとにテストを足す。
-- 優先して要るのは target の `flyer`（飛行を優先して狙う）。飛行は `atk_air>0` の駒でしか触れないので、対空を持つ敵が地上の駒を殴っている間、こちらの飛行は事実上の安全地帯になる。対空持ちが「空を狙える唯一の駒」であることを AI が理解しない限り、飛行の価値が壊れたままになる（竜狩り st5＝ハーピー／グリフォンが空で絡む回で効く）。
-- 該当：`domain/ai/nearest_attacker_brain.gd`・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`（各軸の実装状況を更新）。ai.csv は列既存のため変更不要。
+- 背景：[ai.md](gdd/ai.md) の特性は5つで、盤の遊びとして要るのに表せない動きが2つある。(1) 飛行を優先して狙う。飛行は `atk_air>0` の駒でしか触れないので、対空を持つ敵が地上の駒を殴っている間、こちらの飛行は事実上の安全地帯になる。対空持ちが「空を狙える唯一の駒」であることを AI が理解しない限り、飛行の価値が壊れたままになる（竜狩り st5＝ハーピー／グリフォンが空で絡む回で効く）。(2) 間合維持（キティング）。射程ユニットが次の敵ターンに攻撃されない位置で止まる動きで、射程の価値がここで出る。
+- 対応：それぞれ特性として立てる。対空狙いは獲物・手負いと同じ形の標的語（攻撃できる飛行ユニット）を足して行動ルールを書く。間合維持は前進の種類を1つ足す（脅威圏＝敵の移動力＋射程の外へ止まる）。
+- 該当：`doc/gdd/ai.md`（用語・特性を追加）・`data/ai/ai.csv`・`domain/ai/`・`tests/unit/test_ai.gd`。
 
 ### feature-6
 
@@ -160,7 +159,7 @@
 
 **敵AIの陣形スキル使用（複数人）**（優先度：中）
 
-- 背景：ユニットスキル（発動者1体）は敵も撃つようになった（思考軸 `skill` / `skill_target`＝[ai.md](gdd/ai.md) §4・§5）。残るのは複数人の陣形スキルで、敵陣営向けのレシピが1つも無い。実行経路は `AiAction.SKILL` で共通なので、レシピを足せば同じ仕組みで飛ぶ。成立条件はスキンID照合（未指定は種別へフォールバック）＝データ面の下地はできている。
+- 背景：ユニットスキル（発動者1体）は敵も撃つようになった（特性の行動ルール＝[ai.md](gdd/ai.md)）。残るのは複数人の陣形スキルで、敵陣営向けのレシピが1つも無い。実行経路は `AiAction.SKILL` で共通なので、レシピを足せば同じ仕組みで飛ぶ。成立条件はスキンID照合（未指定は種別へフォールバック）＝データ面の下地はできている。
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) 撃つ価値の評価を足す＝ユニットスキルは「対象1体」で選べたが、面の陣形は着弾中心の選び方（面に入る敵の数・味方の巻き込み）が要る。`_pick_skill_target` は対象1体を前提にしているのでここを広げる。
 - 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
@@ -216,9 +215,9 @@
 
 **逃走AI（交戦を避けて目的地へ走る）**（優先度：中）
 
-- 背景：attack 軸に「殴らない」値が無く、`always`（射程内なら必ず殴る）か `prey`（獲物と確殺だけ殴る）しか選べない（[ai.md](gdd/ai.md) §4）。[tutorial3 st6](campaign/tutorial3-dragon-hunt.md) の手負いのローグ一味は「殴り合いに付き合わず泉へ走る」動きが芯で、追いつけないから部屋を回り込んで挟み撃ちにする、という盤の遊びがそこから出る。`raid`＋`prey` で近い動きは出るが、脆い駒が射程に入ると立ち止まってしまい「逃げている」感じが濁る。撤退（retreat＝兵数が減ったら退く。feature-2）とは別物で、こちらは最初から戦う気が無い側。
-- 対応：attack 軸に `none`（撃たない）を足す。あわせて、逃走中は敵ZOCへ自分から入らない詰め方（`flank` の安全マス優先を目的地へ向けて流用）を検討する。ai.csv に `flee` プリセット（engage=charge／attack=none／advance=base）を1行足す。前進の道のり計算は実装済みなので、通路を塞げば回り込む挙動はそのまま乗る。
-- 該当：`domain/ai/nearest_attacker_brain.gd`・`data/ai/ai.csv`＋`ai.json`・`doc/gdd/ai.md`（§4 と プリセット表）・`tests/unit/test_ai.gd`。着手の引き金＝tutorial3 st6 を組むとき。関連＝feature-4（思考軸の残り値の配線）。
+- 背景：[tutorial3 st6](campaign/tutorial3-dragon-hunt.md) の手負いのローグ一味は「殴り合いに付き合わず泉へ走る」動きが芯で、追いつけないから部屋を回り込んで挟み撃ちにする、という盤の遊びがそこから出る。[ai.md](gdd/ai.md) の特性はどれも攻撃の行を持つので、射程に敵が入ると立ち止まって「逃げている」感じが濁る。撤退（損耗したら退く。feature-2）とは別物で、こちらは最初から戦う気が無い側。
+- 対応：攻撃の行を持たない特性を1つ足す。行動ルールは占領と前進だけで、前進は回り込み（敵ZOCを避けて目的地へ）。目的地を拠点にするか別の地点にするかは冒険譚側の設計と合わせて決める。
+- 該当：`doc/gdd/ai.md`（特性を1つ追加）・`data/ai/ai.csv`＋`ai.json`・`domain/ai/`・`tests/unit/test_ai.gd`。着手の引き金＝tutorial3 st6 を組むとき。
 
 ### feature-40
 
@@ -282,6 +281,14 @@
 - 背景：ステージに入る経路が2種類ある。連戦（outro 会話 → `_advance_or_select` → 次ステージ）と、文脈の外から入る経路（ステージセレクト、および未実装の「つづきから」）。連戦では会話でステージ同士が繋がっており、区切りの音を入れると繋がっているものを切ってしまうので鳴らさない（現状すでに無音で、これが正しい）。外から入る経路にだけ区切りが要る。
 - 対応：`menu_sortie` を作り、外から入る経路でだけ鳴らす。いまセレクト経由では `menu_stage`（`ui_confirm`）が鳴っているので、置き換えるか後ろに重ねるかを決める。判断材料は入口が2つに増えてからのほうが揃う＝ロード機能（feature-9 の中断セーブ復元）ができて「つづきから」が動くようになってから着手する。入口が1つの現状では、決定音との違いを検討する材料が足りない。
 - 該当：`assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`data/audio/sfx_catalog.gd`（BIND）・`presentation/select/stage_select.gd`（セレクト経由）・ロード経路（feature-9 で決まる箇所）・`doc/audio/sfx.md`（発火点カタログ）。関連＝feature-9（中断セーブのロード）。着手の引き金＝「つづきから」が動くようになったとき。
+
+### feature-50
+
+**敵AI: 新仕様（特性ベース）への作り直し**（優先度：高）
+
+- 背景：[ai.md](gdd/ai.md) を軸の組み合わせから特性単位へ書き直した（旧版は `doc/gdd/ai_old.md`）。実装は旧仕様のまま＝`nearest_attacker_brain` が engage/skill/attack/target/advance の各軸を読む作り。距離の定義（盤上距離・移動距離・迂回距離・視線距離）、前進の種類（最大前進・回り込み・直線寄せ）、stack 条件、獲物・手負いの選び方が新仕様で変わっている。
+- 対応：特性ごとの行動ルールを上から当てる形へ作り直す。ai.csv の列を `ai` / `name` / `sight` / `stack` に絞る（旧列は全廃）。テストは特性ごとに「どの行が成立するか」で書く。旧実装で効いていた挙動との差分（stack の全特性適用、weak の sight、swarm の行順、raid が敵を追わない）を回帰で押さえる。完了時に `ai_old.md` を消し、コード内の ai.md 参照コメントを更新する。
+- 該当：`domain/ai/`・`data/ai/ai.csv`＋`convert.gd`＋`ai_catalog.gd`・`application/stage_loader.gd`・`data/stages/`（部隊定義）・`tests/unit/test_ai.gd`・`tests/unit/test_data_integrity.gd`・`doc/gdd/ai_old.md`（削除）。
 
 ## リファクタリング
 
