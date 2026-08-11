@@ -20,6 +20,10 @@ var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _save_store: SaveStore = null  # 中断セーブ（盤の状態まるごと・1枠）。user://save.json
 var _select: SelectScreen = null
+var _title: TitleScreen = null  # 起動時のタイトル画面（酒場の扉）。閉じたらセレクトを開く
+## タイトルを抜けるまで true。下敷きステージ（セレクトの背景）の曲がタイトルのざわめきを
+## 上書きしないためのガード。下敷きの曲は盤が描き切ってから鳴る＝タイトルより後に割り込む。
+var _title_pending := true
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録・carryover のキー用）
 var _current_stage_id := ""
 var _conversation: ConversationPanel = null
@@ -69,7 +73,8 @@ func _ready() -> void:
 	_save_store = SaveStore.new()  # 中断セーブ（user://save.json）
 	_hud.set_load_available(_save_store.has_save())  # 起動時に中断セーブが在ればロードを有効化
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
-	_install_select()  # 起動直後はセレクトを開く（タイトル画面は未実装＝将来ここに挟む）
+	_install_select()  # 生成と配線だけ。開くのはタイトルで扉をくぐってから
+	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
 ## ステージ配置（carryover_slots）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/map.md
@@ -495,6 +500,8 @@ func _start_stage_bgm(path: String) -> void:
 	if _bgm == null:
 		return
 	_bgm_director.begin_stage(StageLoader.load_bgm(path))
+	if _title_pending:
+		return  # タイトル表示中＝ざわめきを流したまま。曲はセレクトを開くときに張り替わる
 	_bgm.play(_bgm_director.track_id())
 
 # --- 永続HUD（ターン終了ボタン＋システムメニュー）。presentation/ui/hud.gd ---
@@ -605,6 +612,32 @@ func _install_select() -> void:
 	_select.stage_chosen.connect(_on_stage_chosen)
 	_select.opened.connect(_on_select_opened)  # ステージ外に戻ったらメニュー曲へ
 	_hud.stage_select_requested.connect(_select.open)
+	# ここでは開かない。起動直後はタイトル画面が前に出て、扉をくぐった時点で開く（_install_title）。
+
+# --- タイトル画面（presentation/title/）。仕様 → doc/art/menu.md §5・doc/audio/bgm.md ---
+## 起動直後は酒場の扉を外から見せる。曲は鳴らさず、店から漏れるざわめき（title）だけを
+## こもらせて流す。入力で扉が開き、扉が開くのに合わせてこもりを解く＝音がひらける。
+func _install_title() -> void:
+	_title = TitleScreen.new()
+	_title.name = "TitleScreen"
+	add_child(_title)
+	_title.door_opening.connect(_on_title_door_opening)
+	_title.finished.connect(_on_title_finished, CONNECT_ONE_SHOT)
+	if _bgm != null:
+		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
+		_bgm.play(BgmDirector.TITLE_TRACK)
+	_title.play()
+
+## 扉が開き始めた＝遮っていたものが無くなる。こもりを扉の動きと同じ時間で解く。
+func _on_title_door_opening() -> void:
+	if _bgm != null:
+		_bgm.open_up(TitleScreen.OPEN_SEC)
+
+## 扉をくぐった（or スキップ）＝セレクトへ。曲は _on_select_opened がメニュー曲に張り替える。
+func _on_title_finished() -> void:
+	_title_pending = false
+	if _bgm != null:
+		_bgm.open_up(0.0)  # スキップで開き切っていない場合の後始末（挿しっぱなしを残さない）
 	_select.open()
 
 ## セレクトを開いた＝ステージ外の場面。盤（下敷き）は残るがBGMはメニュー曲に戻す。

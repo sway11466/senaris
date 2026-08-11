@@ -7,6 +7,7 @@ class_name BgmDirector
 ## スロット制：いまは main（必須）だけ。将来 intro 等が要るならスロット追加で対応。
 ## フォールバック連鎖：ステージの bgm → 全体既定。曲はステージJSONに1ステージずつ書く。
 
+const TITLE_TRACK := "title"             ## タイトル画面。曲ではなく酒場のざわめき（外部素材）
 const MENU_TRACK := "menu"               ## セレクト画面（酒場の依頼ボード）。ステージ外の唯一の場面
 const DEFAULT_STAGE_TRACK := "map_calm"  ## 全体既定＝ステージにも冒険譚にも指定が無いとき
 const AFTERGLOW_TRACK := "afterglow"     ## 勝利スティンガーの後に続ける曲（outro 会話を読む間の下敷き）

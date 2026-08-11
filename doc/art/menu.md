@@ -80,10 +80,12 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 | MOTION（動画） | `assets/menu-src/door/door_open_prompt.txt` | |
 | ① AI生成 | `assets/menu-src/door/door_open_{letter}_01_raw.mp4` | `door_open_b_01_raw.mp4` |
 | ② 透かし切り落とし | `assets/menu-src/door/door_open_{letter}_02_crop.mp4` | `door_open_b_02_crop.mp4` |
-| ③ ゲーム用 | `assets/menu/door_open.ogv` | |
+| ③ ゲーム用（動画） | `assets/menu/door_open.ogv` | |
+| ③ ゲーム用（静止画） | `assets/menu/door.png` | ②の1コマ目を抜いたもの |
 
 - 動画は同じ MOTION でも生成のたびに結果が大きく振れる（人物の描き分け・位置の飛び）ので、複数 take を撮って選ぶ前提。take ごとに変種letter（`_a`/`_b`…）を付け、採用した1本だけを ③ に焼く。`door_open_prompt.txt` は採用 take を生成した文面に合わせる。
-- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`assets/menu/` に置くのは他のメニュー資産と並べるため。
+- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`assets/menu/` に置くのは他のメニュー資産と並べるため。読むのは [../../presentation/title/title_screen.gd](../../presentation/title/title_screen.gd)。
+- タイトル画面の静止画は、元の1枚絵ではなく動画の1コマ目を抜いて作る。元絵から切り出しを再現しようとすると、生成側が行った縮小と一致せず（実測 PSNR 26.1 dB＝目に見えて違う）、動画へ切り替わった瞬間に画がジャンプする。
 - 動画の透かしは除去ツールが使えない。ツールは半透明オーバーレイを逆算する仕組みで、非可逆圧縮された動画では画素値が戻らないため。右下ごと切り落とす。
 - 透かしの大きさと位置は生成のたびに変わる（実測: ある take は 24px 角・右下から48px、別の take は 48px 角・右下から96px）。毎回コマを抜いて測ってから切り出し範囲を決める。16:9 を保つには、透かしの左端より内側で幅を決め、その幅から高さを割り出して左上を原点に切り、元の解像度へ戻す。
 - 変換は Ogg Theora（Godot が標準で再生できる唯一の動画コーデック）。`-c:v libtheora -q:v 8 -c:a libvorbis -q:a 5`。変換後は必ずコマ数を数えて全コマ読めることを確かめる。ffmpeg 8.1.2（gyan build）は Theora 書き出しが壊れており、読めるコマが数枚まで落ちて後半が完全に崩壊した。9.0 で解消。

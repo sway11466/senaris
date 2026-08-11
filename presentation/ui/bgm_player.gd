@@ -11,11 +11,15 @@ const FADE_OUT_SEC := 1.0  ## 旧曲を落とす時間。新曲はフェード�
 const DUCK_SEC := 0.3      ## スティンガー時に現曲を素早く下げる時間（ファンファーレの頭に被せない）
 const FOLLOW_FADE_SEC := 2.0  ## スティンガーの後に続く曲だけはフェードインする（下記 _follow_stinger）
 const SILENCE_DB := -60.0  ## 実質無音。0.0 が通常音量
+const MUFFLE_HZ := 900.0   ## 閉じた扉越しに聞こえる状態。これより上を削るとこもる
+const OPEN_HZ := 20000.0   ## 実質フィルタなし（人の可聴域の上端）
 
 var _players: Array[AudioStreamPlayer] = []
 var _active := 0        ## いま表で鳴っているプレイヤーの index
 var _current_track := ""
 var _tween: Tween = null
+var _lowpass: AudioEffectLowPassFilter = null  ## 挿している間だけ非 null（下記 muffle/open_up）
+var _lowpass_tween: Tween = null
 
 func _ready() -> void:
 	for _i in 2:
@@ -89,6 +93,48 @@ func _load(track_id: String) -> AudioStream:
 ## 曲を止める（無音へフェード）。
 func stop() -> void:
 	play("")
+
+# --- こもり（ローパス）。タイトル画面で「閉じた扉の向こうの音」を作る ---
+# 高い音ほど遮蔽物に吸われる＝壁越しの音が低音ばかりに聞こえる現象を、バスに挿した
+# ローパスフィルタで再現する。素材を2種類持たずに済み、扉が開く動きに合わせて
+# 連続的に開けられる（焼き込むとこの変化が作れない）。
+
+## 曲をこもらせる。既に挿していれば何もしない。
+func muffle() -> void:
+	if _lowpass != null:
+		return
+	var bus := AudioServer.get_bus_index(BUS)
+	if bus < 0:
+		return
+	_lowpass = AudioEffectLowPassFilter.new()
+	_lowpass.cutoff_hz = MUFFLE_HZ
+	AudioServer.add_bus_effect(bus, _lowpass)
+
+## こもりを sec 秒かけて解く。開ききったらフィルタを外す。
+## 外すのは、バスの効果が場面をまたいで残り続けるため（挿しっぱなしだと以降の曲もこもる）。
+## sec <= 0 なら即座に外す（スキップされた場合の後始末）。
+func open_up(sec: float) -> void:
+	if _lowpass == null:
+		return
+	if _lowpass_tween != null and _lowpass_tween.is_valid():
+		return  # 既に開いている最中＝二重に走らせない
+	if sec <= 0.0:
+		_remove_lowpass()
+		return
+	_lowpass_tween = create_tween()
+	_lowpass_tween.tween_property(_lowpass, "cutoff_hz", OPEN_HZ, sec)
+	_lowpass_tween.tween_callback(_remove_lowpass)
+
+func _remove_lowpass() -> void:
+	if _lowpass == null:
+		return
+	var bus := AudioServer.get_bus_index(BUS)
+	if bus >= 0:
+		for i in range(AudioServer.get_bus_effect_count(bus) - 1, -1, -1):
+			if AudioServer.get_bus_effect(bus, i) == _lowpass:
+				AudioServer.remove_bus_effect(bus, i)
+				break
+	_lowpass = null
 
 ## いま鳴っている（鳴っているはずの）トラックID。未配置で無音のときも要求されたIDを返す。
 func current_track() -> String:
