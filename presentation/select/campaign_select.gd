@@ -335,7 +335,7 @@ func _poster_info(c: Dictionary) -> Control:
 	danger.add_child(_make_stars(int(c.get("difficulty", 0))))
 	info.add_child(danger)
 
-	# 説明文（依頼の紹介・3〜4行に自動折り返し）
+	# 説明文（依頼の紹介・自動折り返し）。カードに収まるのは5行までなので、本文側を5行以内で書く。
 	var desc_key := String(c.get("desc", ""))
 	if not desc_key.is_empty():
 		var desc := Label.new()

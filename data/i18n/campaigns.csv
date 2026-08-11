@@ -1,6 +1,6 @@
 keys,ja,en
 t1.title,ゴブリンの襲撃,Goblin Raid
-t1.desc,町外れに現れたゴブリンの群れを討つ。移動・地形・包囲・支援・間接・占領——戦術の基礎を、隊長と新兵の初陣を通してひとつずつ学ぶ、旅立ちの章。,"Drive the goblin band from the town's edge. Movement, terrain, encirclement, support, indirect fire, capture — learn the fundamentals one battle at a time, through a captain and his green recruit's first campaign."
+t1.desc,町外れに現れたゴブリンの群れを討ち、襲われる町を救い、巣穴の主を断つ。移動・地形・包囲・支援・間接・占領といった戦術の基礎を、隊長と新兵の初陣を通してひとつずつ学ぶ、旅立ちの章。,"Rout the goblins at the town's edge, free the town, end their lord in his den. Movement, terrain, encirclement, support, indirect fire, capture — the basics, one battle at a time."
 t1.st1.title,町外れの平原,Plains at the Town's Edge
 t1.st2.title,高所の敵陣,The High Ground
 t1.st3.title,細道の包囲,Ambush in the Narrows
@@ -9,7 +9,7 @@ t1.st5.title,巣穴への道,The Road to the Den
 t1.st6.title,潜む群れ,The Lurking Swarm
 t1.st7.title,最奥の主,Lord of the Deep
 t2.title,アンデッドの群れ,The Undead Swarm
-t2.desc,墓地から湧き出すアンデッドとの戦い。魔法ユニット、輸送、陣形スキルを駆使して墓地に潜む邪悪を殲滅する第二の章。,"Push back the dead welling from the graveyard and cut down the necromancer behind it all. The long reach of battle-mages, transport by wagon and airship, and Senaris's signature formation skills — Triple Chant, Sacred Aegis, Divine Judgment — brought together by a joint company of knights, clergy, and mages: the second chapter."
+t2.desc,墓地から湧き出すアンデッドとの戦い。騎士団・教会・魔法ギルドの混成調査隊が、魔法兵の長射程と輸送、陣形スキルを駆使し、屍の群れを押し返して元凶のネクロマンサーを討つ第二の章。,"The dead well up from the graveyard. Knights, clergy, and mages push back the swarm with long-range casters, transport, and formation skills, and cut down the necromancer behind it."
 t2.st1.title,墓地の骸骨,Bones in the Graveyard
 t2.st2.title,馬車で救援,Rescue by Wagon
 t2.st3.title,三重詠唱,The Triple Chant
@@ -18,7 +18,7 @@ t2.st5.title,聖なる加護,Sacred Aegis
 t2.st6.title,首無しの強敵,The Headless Terror
 t2.st7.title,神の裁き,Divine Judgment
 t3.title,竜狩り,The Dragon Hunt
-t3.desc,街を襲う魔獣の討伐と原因究明を請け負ったベテラン冒険者たちが、黒幕の悪党に行き着き、最後には彼らが怒らせた竜と対峙する第三の章。平原から火口へ舞台を移しながら、飛行と対空、異種族の勧誘、そして戦力を次の戦いへ持ち越す消耗の重みを学ぶ。,"Veteran adventurers take a contract to cull the beasts plaguing the city and find out why they came — a trail that leads to human villains, and at its end to the dragon they enraged. From plains to caldera, learn aerial combat and anti-air, the recruiting of other peoples, and the weight of carrying a worn company into the next battle."
+t3.desc,街を襲う魔獣の討伐を請け負ったベテラン冒険者たちが、黒幕を追い竜と対峙する第三の章。平原から火口へ舞台を移し、飛行と対空、異種族の勧誘、戦力を次へ持ち越す消耗の重みを学ぶ。,"Veterans hired to cull the beasts raiding the city follow the trail to its masters, and face the dragon. From plains to caldera: flight and anti-air, other peoples recruited, losses carried on."
 t3.st1.title,新米たちの窮地,Recruits in Peril
 t3.st2.title,東西の門,The Two Gates
 t3.st3.title,荒野の足止め,Pinned in the Badlands
