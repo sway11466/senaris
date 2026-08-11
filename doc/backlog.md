@@ -92,14 +92,6 @@
 - 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線（それまではローカルで常時充足扱い等の切替）。
 - 該当：`application/campaign_progress.gd`・`presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝配布ビルド（parking lot「Steam 配布の段取り」と連動）。
 
-### feature-14
-
-**themed 拠点の特殊効果（回復の泉）と追加スキン**（優先度：中）
-
-- 背景：拠点の見た目・名前レイヤーは実装済み＝`terrain_skin.csv` に `fort_town1`（町）・`fort_crypt1`（納骨堂＝湧き元）・`fort_chapel1`（礼拝堂）があり、占領で屋根の色が変わる（`_team0`／`_team1`）。残るのは (1) 効果を伴う拠点＝冒険譚3の回復の泉、(2) 冒険譚が要求する残りのスキン（魔法ギルド等）。効果つきは「拠点に乗ると回復する」を占領・出撃と別の軸で持たせる必要があり、スキンを足すだけでは済まない。
-- 対応：(1) 回復の泉の効果を設計する＝拠点スキンに効果を紐付けるか、拠点種別を足すか。既存の `_heal_garrisons`（控えの回復）と紛れないよう、盤上の駒への効果として置き場所を分ける。(2) 追加スキンは既存3種と同じ手順（`terrain_skin.csv` に行を足し、画像を作る）。
-- 該当：`data/terrain/terrain_skin.csv`（拠点スキン）・`domain/capture/`・`presentation/board/hex_board_3d.gd`・`doc/gdd/map.md`。着手の引き金＝冒険譚3のステージ制作時（泉は tutorial3 で要る）。
-
 ### feature-16
 
 **移動/カメラ演出の速度設定・敵ターンスキップ・演出の適用範囲拡張**（優先度：低）
