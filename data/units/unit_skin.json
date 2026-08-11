@@ -313,7 +313,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "巨人",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -451,7 +451,7 @@
 				{
 					"category": "魔獣",
 					"combat_effect": "",
-					"combat_lineup": "squad",
+					"combat_lineup": "single",
 					"description": "",
 					"images": {},
 					"map_move_sfx": "",
