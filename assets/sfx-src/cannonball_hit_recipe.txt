@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/cannonball__2016__Automatic Cannon - MK44 - 03 - Single Shot with Report 03.wav" -af "atrim=2.18:3.05,volume=-8.0dB" -c:a pcm_s24le cannonball_hit.wav

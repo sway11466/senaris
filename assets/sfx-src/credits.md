@@ -59,5 +59,7 @@
 | `move_float` | 浮遊。ピクシー・ゴースト・レイスの移動 | 同上（同じ収録の別の1歩） | 同上 | 同上 | 歩きの1歩（1.620〜1.940秒）、+6.2 dB。move_float_recipe.txt |
 | `move_propeller` | プロペラ。飛空艇の移動 | Sonniss GDC 2020 / Systematic-Sound - Sound Themes - Modern Cloth Foley 01 `SFX CLOTH Foley Jacket Synthetic Soft Shell Whoosh Flutter` | wav 96kHz/24bit | 同上 | `move_flight` と同一の切り出し（5.94〜6.36秒）、-9.0 dB。鳴らす間隔だけで別物にする。move_propeller_recipe.txt |
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 切り出しなし、0.45秒遅らせて -8.3 dB。鐘（自作）と重ねる。map_capture_recipe.txt |
+| `cannonball` | 砲弾の発射（飛空艇） | Sonniss GDC 2016 / Fascinated Sound - The Gun Locker SFX Pack `Automatic Cannon - MK44 - 03 - Single Shot with Report 03` | wav 96kHz/24bit | 同上 | 発砲だけ（0.24〜2.05秒・立ち上がりの手前を落とす）、-9.0 dB。cannonball_recipe.txt |
+| `cannonball_hit` | 砲弾の着弾（同じ収録の後半） | 同上 | 同上 | 同上 | Report だけ（2.18〜3.05秒）、-8.0 dB。cannonball_hit_recipe.txt。1本に発砲と着弾が両方入っている |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。
