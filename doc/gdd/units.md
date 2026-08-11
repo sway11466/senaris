@@ -33,6 +33,7 @@
 - **性能 ＝ `UnitType`**（`data/units/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
 - **見た目＋識別 ＝ `UnitSkin`**（`data/units/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
 - **同性能・別名**（プリースト↔ホブゴブリン↔スケルトン）は、その性能の `enemy`/`ally` 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚（ステージ）側が決める**＝ユニットデータは冒険譚/テーマ名を持たない（責務分離）。
+- **`skin_id` の付け方**：表示名と対応させ、`type_id` と同じ値にしない（レッドドラゴンの `dragon` は性能名と見分けが付かず `red_dragon` に改めた）。`skin_id` は素材フォルダ名と画像の解決パスに直結する（`assets/units-src/{group}/{skin_id}/`・`assets/units/{skin_id}/{skin_id}_{slot}.png`）ので、直すなら絵を書き出す前が最も安い。ステージJSONの `skin`・会話の話者名キー・`campaign.json` の `emblem` も同時に追う。駒を名指す `actor` は別の名前空間なので巻き込まない。
 - **`skin_id` が主キー**：各スキンは一意な `skin_id` を持ち、`skin_id → type` は1:1（スキンが決まれば性能も一意）。引きは `SkinCatalog.skin_by_id(catalog, skin_id)`／`type_of_skin(catalog, skin_id)`、描画は `resolve(catalog, skin_id, type_id, team)`（skin_id 優先・無ければ type_id+team の先頭へフォールバック）。従来の `skin(catalog, type_id, team, index)` も残置。
 
 ### 2. ファイル・フォルダ配置
