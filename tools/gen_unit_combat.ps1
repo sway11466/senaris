@@ -29,11 +29,14 @@ param(
   [string[]]$SkinIds        # one or more skin_ids, or 'all'.
 )
 $ErrorActionPreference = 'Stop'
-$Canvas     = 512   # output canvas (square)
+$Canvas     = 704   # output canvas (square). Pairs with FIG_H in presentation/combat/combat_stage.gd:
+                    # the scene draws this square at one fixed on-screen size, so the relative sizes
+                    # live in the margin baked around each figure. Change this and FIG_H must be
+                    # scaled by the same factor, and every skin re-exported with 'all'.
 $BaseHeight = 384   # figure height (px) at combat_scale=1.0. Baseline = fighter.
-                    # 0.75 * Canvas = max scale 1.333. NOTE: dragon is 1.4 and does NOT fit -> its
-                    # top gets cropped (the warning below catches it). Deciding the combat canvas
-                    # belongs with the combat-scene framing work (backlog feature-22).
+                    # Canvas / BaseHeight = max scale 1.83 in height. Width is capped by the canvas
+                    # too (-resize below fits inside), so a wide master hits the limit sooner: the
+                    # widest current piece is the wyrm at 499px tall x 1.32 = 659px.
 $Slots    = @('combat', 'combat_hero')  # attack effects are shared per weapon kind now -> tools\gen_effect.ps1
 $SkinIds = @($SkinIds)
 if ($SkinIds.Count -eq 0) { throw "usage: gen_unit_combat.ps1 <skin_id> [<skin_id> ...] | all" }
