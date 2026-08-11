@@ -524,14 +524,16 @@
 				},
 				{
 					"category": "悪党",
-					"combat_effect": "",
-					"combat_lineup": "squad",
+					"combat_effect": "slash_m",
+					"combat_lineup": "retinue",
 					"description": "",
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ローグヘッド",
-					"retainers": [],
-					"skin_id": "rogue_boss",
+					"retainers": [
+						"rogue"
+					],
+					"skin_id": "rogue_head",
 					"type_id": "paladin"
 				}
 			]

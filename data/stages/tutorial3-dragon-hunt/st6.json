@@ -51,7 +51,7 @@
       ] },
     { "order": 2, "name": "頭目", "ai": "raid",
       "units": [
-        {"skin": "rogue_boss", "col": 8, "row": 3, "actor": "paladin"}
+        {"skin": "rogue_head", "col": 8, "row": 3, "actor": "paladin"}
       ] },
     { "order": 3, "name": "宝の間のミミック", "ai": "guard", "sight": 1,
       "units": [
@@ -82,9 +82,9 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st6.rogue.1" },
-      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st6.rogue.2" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st6.rogue.2" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st6.rogue.3" },
-      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st6.intro.3" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st6.intro.3" },
       { "speaker": "char.birdman.name", "skin": "birdman", "text": "t3.st6.intro.1", "when": "joined:birdman" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "t3.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st6.intro.2" },
@@ -94,7 +94,7 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st6.intro.7" }
     ],
     "outro": [
-      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st6.outro.1" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st6.outro.1" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st6.outro.2" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st6.outro.3" },
       { "speaker": "char.elf.name", "skin": "elf", "text": "t3.st6.outro.7", "when": "joined:elf" },

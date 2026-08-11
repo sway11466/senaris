@@ -105,7 +105,7 @@ char.dwarf.name,ドワーフ,Dwarf
 char.elf.name,エルフ,Elf
 char.birdman.name,バードマン,Birdman
 char.rogue.name,ローグ,Rogue
-char.rogue_boss.name,ローグヘッド,Ringleader
+char.rogue_head.name,ローグヘッド,Ringleader
 t2.st1.intro.1,このあたりに動くスケルトンがいるという噂、半信半疑でしたが……,"We half-doubted the rumors of walking skeletons around here, but..."
 t2.st1.intro.2,噂通りだな。骨が、起き上がってくる。前へ出るぞ、隊列を崩すな。,"The rumors were true. The bones are rising. Advance — hold your formation."
 t2.st1.intro.3,慌てる必要はない。,"No need to panic."

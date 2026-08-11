@@ -73,9 +73,9 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st5.rogue.1" },
-      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st5.rogue.2" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st5.rogue.2" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st5.rogue.3" },
-      { "speaker": "char.rogue_boss.name", "skin": "rogue_boss", "text": "t3.st5.rogue.4" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st5.rogue.4" },
       { "speaker": "char.elf.name", "skin": "elf", "text": "t3.st5.intro.1", "when": "joined:elf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.intro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st5.intro.3" },
