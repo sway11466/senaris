@@ -83,6 +83,10 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
+## unit 1体に効いている弱体（デバフ）の本数。敵AIのデバフ本数の上限（doc/gdd/ai.md §5b）が読む。
+func debuff_count(unit: Unit) -> int:
+	return StatusMod.debuff_count(_status_mods, unit)
+
 ## unit に掛かっている弱体（デバフ）を落とす（③ピュリファイ）。落とした件数を返す。
 ## 落とすのは kind が debuff で対象1体（scope="unit"）のものだけ＝味方から掛かった
 ## 強化（ピクシーダスト）は残り、陣営全体に掛かった補正を1人のピュリファイで消すこともない。
@@ -90,10 +94,7 @@ func status_mods_for(unit: Unit) -> Array:
 func clear_debuffs(unit: Unit) -> int:
 	var kept: Array = []
 	for m in _status_mods:
-		var drop := StatusMod.is_debuff(m) \
-			and String(m.get("scope", "")) == "unit" \
-			and StatusMod.applies_to(m, unit)
-		if drop:
+		if StatusMod.is_unit_debuff(m, unit):
 			continue
 		kept.append(m)
 	var removed := _status_mods.size() - kept.size()

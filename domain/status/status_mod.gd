@@ -44,6 +44,21 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 			add += float(m.get("value", 0.0))
 	return {"mul": mul, "add": add}
 
+## エントリ m が unit 1体に掛かった弱体か（陣営全体のものは含めない）。
+## ピュリファイが落とす範囲（BattleState.clear_debuffs）と、敵AIのデバフ本数の上限判定
+## （doc/gdd/ai.md §5b skill_stack）が同じ判定を使う＝落とせるものと数えるものがずれない。
+static func is_unit_debuff(m: Dictionary, unit: Unit) -> bool:
+	return is_debuff(m) and String(m.get("scope", "")) == "unit" and applies_to(m, unit)
+
+## unit 1体に効いている弱体（デバフ）の本数。敵AIの「もう十分弱っている相手には掛けない」
+## 判定が使う。スキルの種類では分けない＝別種のデバフも合算する（doc/gdd/ai.md §5b）。
+static func debuff_count(mods: Array, unit: Unit) -> int:
+	var n := 0
+	for m in mods:
+		if is_unit_debuff(m, unit):
+			n += 1
+	return n
+
 ## mods のうち unit に効いているエントリをそのまま返す（表示用）。
 ## aggregate と同じ scope 判定を使う＝画面に出す一覧と実計算が必ず一致する。
 ## target での絞り込みはしない（攻/防どちらに効くかは各エントリの target を見て表示側が描き分ける）。

@@ -22,7 +22,7 @@ var default_preset := {}
 ## always＝対象にできる相手が範囲内にいれば放つ。包囲まわりの2語は攻撃条件と同じ意味（_surround_passes）。
 const SKILL_TRIGGERS := ["always", "surround_able", "surrounded"]
 const NO_HEX := Vector2i(1 << 30, 1 << 30)  ## 「対象なし」の番兵（盤の外）
-const SKILL_TARGET_KEYS := ["troops", "weak", "atk", "near"]
+const SKILL_TARGET_KEYS := ["troops", "weak", "damaged", "atk", "near"]
 
 ## 攻撃条件（attack 軸）で実装済みの値。solo_adv / no_retal / kill は未実装＝素通り（doc/gdd/ai.md §6）。
 const ATTACK_CONDITIONS := ["always", "prey", "surround_able", "surrounded"]
@@ -32,8 +32,8 @@ const ATTACK_CONDITIONS := ["always", "prey", "surround_able", "surrounded"]
 ## ai.csv 由来のプリセットは全軸そろい（生成時に検証済み）なので実データでは使われない＝テスト等の部分プリセット用の保険。
 const DEFAULT_PRESET := {
 	"engage": "charge", "sight": 0, "retreat": 0,
-	"skill": "-", "skill_target": "-",
-	"attack": "always", "target": "near", "advance": "max",
+	"skill": "-", "skill_target": "-", "skill_stack": "-",
+	"attack_sight": "-", "attack": "always", "target": "near", "advance": "max",
 }
 
 ## プリセット辞書（ai.csv の1行＝AiCatalog が返す値）から Brain を組み立てる。
@@ -232,16 +232,28 @@ func _try_skill(state: BattleState, u: Unit) -> AiAction:
 			return AiAction.skill(u.id, option, target)
 	return null
 
+## u が同じ相手に許すデバフの本数（skill_stack 軸）。"-"・欠落は -1＝上限なし（doc/gdd/ai.md §5b）。
+## JSON経由で数値が float になるので sight と同じく両方の型を受ける。
+func _skill_stack_of(state: BattleState, u: Unit) -> int:
+	var v: Variant = _param(state, u, "skill_stack")
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return maxi(int(v), 0)
+	return -1
+
 ## 対象を選ぶ（skill_target 軸の優先順位順）。放てる相手がいなければ番兵を返す。
 ## 候補は「その option で狙えるヘックス」＝Formation.can_target が通るマスのうち、
 ## 発動条件（live）を満たす相手だけ。条件は対象1体ごとに見る＝包囲まわりは相手の状態で決まる。
+## さらにデバフ本数が上限（skill_stack）に達している相手を外す＝候補が空になれば放たずに攻撃へ落ちる。
 func _pick_skill_target(state: BattleState, u: Unit, option: Dictionary, live: Array[String]) -> Vector2i:
+	var cap := _skill_stack_of(state, u)
 	var candidates: Array[Unit] = []
 	for other in state.units():
 		if not Formation.can_target(state, option, other.pos):
 			continue
 		if not _skill_trigger_passes(state, u, other, live):
 			continue
+		if cap >= 0 and state.debuff_count(other) >= cap:
+			continue  # もう十分弱っている＝ここへ重ねずに攻撃へ回る（ai.md §5b）
 		candidates.append(other)
 	if candidates.is_empty():
 		return NO_HEX
@@ -270,6 +282,8 @@ func _narrow_skill_targets(state: BattleState, u: Unit, candidates: Array[Unit],
 				return c.troops
 			"weak":
 				return -c.unit_defense  # 防御が低いほど良い
+			"damaged":
+				return _damage_percent(c)  # 損耗率が高いほど良い
 			"atk":
 				return int(Combat.attack_breakdown(state, c, u)["total"])  # c が u を殴るときの実効攻撃力
 			"near":
@@ -347,6 +361,24 @@ func _attack_allowed_targets(state: BattleState, u: Unit, ids: Array[int]) -> Ar
 func _targets_weak(state: BattleState, u: Unit) -> bool:
 	return "weak" in String(_param(state, u, "target")).split(";")
 
+## u の対象優先が「損耗狙い」(damaged) か。すでに兵を失っている相手へ集まる（doc/gdd/ai.md §7）。
+func _targets_damaged(state: BattleState, u: Unit) -> bool:
+	return "damaged" in String(_param(state, u, "target")).split(";")
+
+## 損耗率（失った兵の割合）を百分率の整数で。無傷＝0・全滅寸前ほど大きい。
+## 割合で見るのは満員兵数が駒ごとに違っても意味が保つため（いまは全員8なので残兵の少なさと一致）。
+static func _damage_percent(u: Unit) -> int:
+	if u.max_troops <= 0:
+		return 0
+	return int(round(float(u.max_troops - u.troops) * 100.0 / float(u.max_troops)))
+
+## u の標的探しの半径（attack_sight 軸）。"-"・欠落は -1＝盤全体（doc/gdd/ai.md §7b）。
+func _attack_sight_of(state: BattleState, u: Unit) -> int:
+	var v: Variant = _param(state, u, "attack_sight")
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return maxi(int(v), 0)
+	return -1
+
 ## u の前進が「回り込み」(flank) か。
 func _advance_is_flank(state: BattleState, u: Unit) -> bool:
 	return String(_param(state, u, "advance")) == "flank"
@@ -373,6 +405,20 @@ func _enemies_in_reach(state: BattleState, u: Unit) -> Array:
 			reachable_list.append([other, best_c])
 	return reachable_list if not reachable_list.is_empty() else all_list
 
+## _enemies_in_reach のうち、標的を探す半径（attack_sight）に収まる相手だけ。
+## 半径が "-"（-1）なら丸ごと返す＝盤全体。狙う相手が半径内に1体もいなければ空を返し、
+## 呼び出し側は従来どおり最寄りの敵へ前進する（立ち止まらない）。詳細 → doc/gdd/ai.md §7b
+func _enemies_within_sight(state: BattleState, u: Unit) -> Array:
+	var list := _enemies_in_reach(state, u)
+	var radius := _attack_sight_of(state, u)
+	if radius < 0:
+		return list
+	var out: Array = []
+	for entry in list:
+		if int(entry[1]) <= radius:
+			out.append(entry)
+	return out
+
 ## 獲物の層の幅。ユニット防御力は10刻みの段（10=エルフ/馬車 … 80=バリケード）なので、
 ## +10＝「いちばん柔らかい段とその次の段」。1体に固定すると、盤の隅の最弱1体を全員で
 ## 追いかけて手近な柔らかい相手を素通りする。詳細 → doc/gdd/ai.md（弱者狙いの設計）
@@ -381,7 +427,7 @@ const PREY_DEFENSE_BAND := 10
 ## 獲物の層の上限＝届く敵の最小防御 ＋ PREY_DEFENSE_BAND（届く敵がいなければ -1）。
 func _prey_defense_ceiling(state: BattleState, u: Unit) -> int:
 	var min_def := -1
-	for entry in _enemies_in_reach(state, u):
+	for entry in _enemies_within_sight(state, u):
 		var d: int = (entry[0] as Unit).unit_defense
 		if min_def < 0 or d < min_def:
 			min_def = d
@@ -396,13 +442,32 @@ func _prey_of(state: BattleState, u: Unit) -> Unit:
 		return null
 	var best: Unit = null
 	var best_c := 1 << 30
-	for entry in _enemies_in_reach(state, u):
+	for entry in _enemies_within_sight(state, u):
 		var other: Unit = entry[0]
 		var c := int(entry[1])
 		if other.unit_defense > ceiling:
 			continue
 		if best == null or c < best_c or (c == best_c and other.id < best.id):
 			best = other
+			best_c = c
+	return best
+
+## 損耗狙い(target=damaged)の標的＝半径内で最も損耗している敵。無傷しかいなければ null
+## （呼び出し側が最寄りの敵へ落とす）。同率は道のりが短い方 → id小。詳細 → doc/gdd/ai.md §7・§7b
+func _most_damaged_enemy(state: BattleState, u: Unit) -> Unit:
+	var best: Unit = null
+	var best_pct := 0
+	var best_c := 1 << 30
+	for entry in _enemies_within_sight(state, u):
+		var other: Unit = entry[0]
+		var c := int(entry[1])
+		var pct := _damage_percent(other)
+		if pct <= 0:
+			continue  # 無傷は狙う理由がない
+		if best == null or pct > best_pct \
+				or (pct == best_pct and (c < best_c or (c == best_c and other.id < best.id))):
+			best = other
+			best_pct = pct
 			best_c = c
 	return best
 
@@ -421,11 +486,30 @@ func _prey_or_kill_targets(state: BattleState, u: Unit, ids: Array[int]) -> Arra
 			out.append(id)
 	return out
 
-## 射程内の攻撃対象を選ぶ。weak＝攻撃後の残兵最小（確殺を自然に最優先）、既定＝兵数最小。
+## 射程内の攻撃対象を選ぶ。weak＝攻撃後の残兵最小（確殺を自然に最優先）、
+## damaged＝損耗率が最大（群れで同じ相手を削り切る）、既定＝兵数最小。
+## 半径（attack_sight）はここには効かない＝射程内なら当然範囲内（doc/gdd/ai.md §7b）。
 func _pick_target(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	if _targets_weak(state, u):
 		return _most_killable(state, u, ids)
+	if _targets_damaged(state, u):
+		return _most_damaged(state, u, ids)
 	return _weakest(state, ids)
+
+## 射程内で損耗率が最大の敵。同率は近い方 → id小。全員無傷なら近い方 → id小に落ちる。
+func _most_damaged(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var best := ids[0]
+	var best_pct := -1
+	var best_d := 1 << 30
+	for id in ids:
+		var t := state.unit_by_id(id)
+		var pct := _damage_percent(t)
+		var d := Hex.distance(u.pos, t.pos)
+		if pct > best_pct or (pct == best_pct and (d < best_d or (d == best_d and id < best))):
+			best = id
+			best_pct = pct
+			best_d = d
+	return best
 
 ## 与ダメを戦闘式で厳密計算し、攻撃後の残兵が最小になる敵。同値は近い方 → id小。
 func _most_killable(state: BattleState, u: Unit, ids: Array[int]) -> int:
@@ -470,14 +554,21 @@ func _reachable_capture_hex(state: BattleState, u: Unit) -> Vector2i:
 	return best
 
 ## 攻撃できないターンの前進先。拠点前進（部隊 or Brain既定で解決）なら最寄りの
-## 占領できる拠点へ。標的は target 軸で決まる（weak＝獲物、既定＝最寄りの敵）。
+## 占領できる拠点へ。標的は target 軸で決まる（weak＝獲物、damaged＝最も損耗した敵、既定＝最寄りの敵）。
+## weak / damaged が探す範囲は attack_sight 軸（doc/gdd/ai.md §7b）。見つからなければ最寄りの敵。
 ## 詰め方は advance 軸で決まる（flank＝回り込み、既定＝距離が縮むヘックス。縮まないなら現在地）。
 func _advance_dest(state: BattleState, u: Unit) -> Vector2i:
 	if _unit_advances_to_base(state, u):
 		var goal := _nearest_capture_base_hex(state, u)
 		if goal != u.pos:
 			return _step_toward(state, u, goal)
-	var enemy := _prey_of(state, u) if _targets_weak(state, u) else _nearest_enemy(state, u)
+	var enemy: Unit = null
+	if _targets_weak(state, u):
+		enemy = _prey_of(state, u)
+	elif _targets_damaged(state, u):
+		enemy = _most_damaged_enemy(state, u)
+	if enemy == null:
+		enemy = _nearest_enemy(state, u)  # 狙う相手が半径内にいない＝最寄りへ（立ち止まらない）
 	if enemy == null:
 		return u.pos
 	if _advance_is_flank(state, u):
