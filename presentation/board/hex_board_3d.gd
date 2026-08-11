@@ -23,37 +23,12 @@ signal formation_impact_finished
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
 const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
-const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
-## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。絵そのものではなくキャンバスを基準に
-## するのは、大小関係を余白として焼き込んでいるため（小さい駒＝同じ枠で絵が小さい）。
-## tools/gen_unit_map.ps1 の $Canvas / $BaseHeight と対で決まる＝どちらか変えたら両方直す。
-## 384 / 200 × 1.95タイル ＝ 3.75（倍率1.0の駒が約1.95タイルの背丈になる）。
-const UNIT_CANVAS_TILES := 3.75
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
 ## 見た目の高さ（elevation）と立ち絵の沈み（sprite_sink）はスキン側のデータ＝terrain_skin.csv。
 ## 高さは段差辺に側面スカートを生やす（崖は台地より高い＝登れる高台と登れない絶壁を序列で見せる）。
 ## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
 ## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
-const COLOR_SHADOW := Color(0, 0, 0, 0.28)     # 足元のブロブシャドウ
-## ユニットスキルが効いている駒の足元の光。強化と弱体を色で分け、両方効いていれば両方出す
-## （弱体＝内側の塗り／強化＝その外周の輪）。仕様 → doc/gdd/skills.md 共通ルール
-const COLOR_SKILL_GLOW := Color(0.85, 1.00, 0.55)  # 強化（黄緑）
-## 弱体（紫）。赤は敵陣営の色と紛れるので避ける。地形は明るい緑〜土色が多いので、
-## 明度を落とした濃い紫にする＝淡い紫だと明るい地形に沈んで気づけない。
-const COLOR_SKILL_DEBUFF := Color(0.42, 0.12, 0.68)
-## どちらも輪にする。塗りにすると立ち絵の足元に隠れて前側の三日月しか見えない（実機で確認）。
-## 弱体を内側・太く、強化を外側・細く＝重なっても互いを潰さず、面積の差で弱体のほうが目に付く。
-const SKILL_DEBUFF_INNER := TILE * 0.46
-const SKILL_DEBUFF_OUTER := TILE * 0.80
-const SKILL_RING_INNER := TILE * 0.84
-const SKILL_RING_OUTER := TILE * 1.02
-const SKILL_GLOW_MIN := 0.35             # 明滅の下限アルファ（強化の輪＝加算合成）
-const SKILL_GLOW_MAX := 0.85             # 同・上限
-## 弱体の塗りは通常合成なので、加算の輪と同じ数字では薄く出る。下限を上げて常に読めるようにする。
-const SKILL_DEBUFF_MIN := 0.55
-const SKILL_DEBUFF_MAX := 0.92
-const SKILL_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
 const INFOPANEL_LEFT := UiLayout.RIGHT_BOX_LEFT    # InfoPanel の左端（レイアウト定数は ui_layout.gd に集約）
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
 
@@ -88,32 +63,8 @@ const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
 const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
 const COLOR_INSPECT_RING := Color(0.85, 0.90, 1.00)
-const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const COLOR_BASE_NEUTRAL := Color(0.80, 0.80, 0.80)  # 未占領拠点の縁取り
-const COLOR_TROOPS_BG := Color(0, 0, 0, 0.6)
-const COLOR_TROOPS_FILL := Color(0.30, 0.90, 0.40)
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
-const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
-
-## 攻撃対象マーカー＝対象の頭上に浮かぶ下向きの三角。深度判定を切って常に最前面に描く。
-## 地面の輪だけでは読めないため。俯角52°では手前の地形が 高さ×0.78 ぶんの奥行を隠し
-## （壁0.70＝ヘックスの奥行の3割強）、輪の奥側は対象の立ち絵が覆う＝前後から挟まれる。
-## 立ち絵は足元が手前（SPRITE_FOOT_Z）に出て背も高いので、駒の高さに置けば地形に負けない。
-## クリックの入口になる記号は地面に置かない（仕様 → doc/gdd/uiux.md 盤の表示記号）。
-const COLOR_ATTACK_MARK := Color(0.98, 0.22, 0.20)
-## 縁取りは黒。赤が主色の背景（火口・炎）が来ても輪郭が残るように、明度で分ける。
-## 盤の現状（緑・灰・黒）では赤だけで足りるが、後から足すと絵の調整をやり直すことになる。
-const COLOR_ATTACK_MARK_EDGE := Color(0.06, 0.03, 0.03)
-const MARK_W := TILE * 0.42        # マーカーの横幅
-const MARK_H := TILE * 0.38        # 同・高さ（下向きの先端までの深さ）
-const MARK_EDGE := TILE * 0.035    # 縁取りの張り出し（全周で等距離）
-const MARK_GAP := TILE * 0.16      # 頭のてっぺんから縁取りの先端までの隙間
-const MARK_BOB := TILE * 0.06      # 上下の揺れ幅（止まっていると背景の模様に紛れる）
-const MARK_BOB_CYCLE := 1.1        # 同・周期（秒）
-## 引いた画角での最小の大きさ(px)。盤全体を映すと1ヘックスが39px まで縮み、素のままだと
-## マーカーは8px＝探せない。これを下回るぶんだけ拡大する（寄った画角では等倍のまま）。
-const MARK_MIN_PX := 18.0
-const MARK_MAX_SCALE := 2.5        # 拡大の上限（際限なく大きくすると盤を覆う）
 
 const INVALID_HEX := Vector2i(-9999, -9999)
 
@@ -129,7 +80,6 @@ var _side_tex := {}           # skin_id -> Texture2D|null（側面画像。置�
 var _tile_nodes := {}         # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _elev_cache := {}         # Vector2i -> float（スキン解決の結果。_build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）。同上
-var _unit_tex := {}       # 画像パス(String) -> Texture2D
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 
 # --- カメラリグ（BoardCamera に委譲）---
@@ -141,25 +91,12 @@ var _dragging_pan := false       # 左ドラッグでパン中
 # --- シーン構造（_ready で組む）---
 var _tiles_root: Node3D    # 地形タイル＋グリッド線＋下地（bind ごとに作り直し）
 var _bases_root: Node3D    # 拠点の縁取り・控え数（占領で変わるのでイベントごとに作り直し）
-var _units_root: Node3D    # ユニット（イベントごとに作り直し）
+var _unit_renderer: BoardUnitRenderer  # 駒の描画（立ち絵・影・光・兵数バー・リング・マーカー）
 var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ごとに作り直し）
 var _fx_root: Node3D       # 一時的な演出（着弾の光・駒に重ねるエフェクト）。オーバーレイの作り直しで消えない層
 var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル用・UVは外接矩形）
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
-var _shadow_mesh: ArrayMesh       # 足元のブロブシャドウ（楕円）
-var _glow_mesh: ArrayMesh         # 弱体の光（内側の太い輪）
-var _glow_ring_mesh: ArrayMesh    # 強化の光（その外側の細い輪）
-var _glow_mat: StandardMaterial3D # 強化の材質（加算合成）。明滅は _process が alpha を書き換える
-var _glow_mat_debuff: StandardMaterial3D # 弱体の材質（同上・色だけ違う）
-var _disc_mesh: CylinderMesh      # 画像なしユニットのプレースホルダ円盤
-var _mark_mesh: ArrayMesh         # 攻撃対象マーカー（下向き三角）
-var _mark_edge_mesh: ArrayMesh    # 同・その下に敷く縁取り（全周を等距離に押し出した三角）
-var _mark_mat: StandardMaterial3D      # 同・本体の材質（深度切り＝常に最前面）
-var _mark_mat_edge: StandardMaterial3D # 同・縁取りの材質（本体より1つ手前で描く）
-var _mark_tip_drop := 0.0         # 同・縁取りの先端が本体より下へ伸びる量（隙間の補正）
-var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
-var _fig_height := {}     # Texture2D -> float（立ち絵の実体の背丈＝マーカーを置く高さの基準）
 var _avg_color := {}      # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
 var _skirt_tex: ImageTexture  # スカートの粒状ノイズ（べた塗り回避。_ready で1回生成）
 
@@ -170,13 +107,11 @@ var _inspected_id := -1  # 閲覧のみのユニット（敵など）。選択�
 var _reachable := {}     # Vector2i -> true
 var _inspect_reach := {} # Vector2i -> true（閲覧中の敵ユニットの移動範囲＝脅威範囲）
 var _targets := {}       # Vector2i -> target_id（攻撃可能な敵の位置）
-var _target_markers: Array[Node3D] = []  # 頭上マーカーのノード（_process が揺らす。_sync_overlay が作り直す）
 var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
-var _unit_nodes := {}    # unit_id -> Node3D（そのユニットの見た目一式の親。_sync_units が作り直す）
-var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の _sync_units で必ず畳む）
+var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
 var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
@@ -222,28 +157,10 @@ func _ready() -> void:
 	_hex_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_overlay_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_hexring_mesh = BoardMeshFactory.make_hexring_mesh(TILE)
-	_shadow_mesh = BoardMeshFactory.make_disc_mesh(TILE * 0.55, 0.5)  # 楕円（zを潰した円）＝立ち絵の足元影
-	_glow_mesh = BoardMeshFactory.make_glow_ring_mesh(SKILL_DEBUFF_INNER, SKILL_DEBUFF_OUTER, 0.5)
-	_glow_ring_mesh = BoardMeshFactory.make_glow_ring_mesh(SKILL_RING_INNER, SKILL_RING_OUTER, 0.5)
-	_glow_mat = BoardMeshFactory.make_glow_material(COLOR_SKILL_GLOW)
-	_glow_mat_debuff = BoardMeshFactory.make_glow_material(COLOR_SKILL_DEBUFF, false)
-	var tri := BoardMeshFactory.tri_points(MARK_W, MARK_H)
-	var tri_edge := BoardMeshFactory.outset_tri(tri, MARK_EDGE)
-	_mark_mesh = BoardMeshFactory.make_tri_mesh(tri)
-	_mark_edge_mesh = BoardMeshFactory.make_tri_mesh(tri_edge)
-	# 等距離に押し出すと、鋭い先端は e より深く伸びる（先端の角度から e/sin(θ/2)）。
-	# 隙間は見えている縁取りの先から測りたいので、その伸びぶんを持ち上げに足す。
-	_mark_tip_drop = -tri_edge[1].y
-	_mark_mat = BoardMeshFactory.make_mark_material(COLOR_ATTACK_MARK, 4)
-	_mark_mat_edge = BoardMeshFactory.make_mark_material(COLOR_ATTACK_MARK_EDGE, 3)
 	_skirt_tex = BoardMeshFactory.make_skirt_texture()
-	_disc_mesh = CylinderMesh.new()
-	_disc_mesh.top_radius = TILE * 0.55
-	_disc_mesh.bottom_radius = TILE * 0.55
-	_disc_mesh.height = 0.06
 	_tiles_root = Node3D.new(); add_child(_tiles_root)
 	_bases_root = Node3D.new(); add_child(_bases_root)
-	_units_root = Node3D.new(); add_child(_units_root)
+	_unit_renderer = BoardUnitRenderer.new(); add_child(_unit_renderer)
 	_overlay_root = Node3D.new(); add_child(_overlay_root)
 	_fx_root = Node3D.new(); add_child(_fx_root)
 	# コマンドメニュー（Window なのでカメラ変換の影響を受けない）。
@@ -258,6 +175,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	_skin_catalog = p_skin_catalog
 	_terrain_skins = p_terrain_skins
 	_margin_terrain = p_margin_terrain
+	_unit_renderer.setup(_board_cam, state, _skin_catalog, _elev, _sprite_sink)
 	_reset_interaction()
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -315,22 +233,6 @@ func refresh() -> void:
 	_sync()
 
 func _process(_delta: float) -> void:
-	# 足元の光の明滅。位相は絶対時刻から出す＝_sync_units でノードを作り直しても途切れない。
-	if _glow_mat != null:
-		var t := float(Time.get_ticks_msec()) * 0.001 / SKILL_GLOW_CYCLE
-		var w := 0.5 - 0.5 * cos(t * TAU)  # 0..1 のなめらかな往復
-		_glow_mat.albedo_color.a = lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
-		# 位相は共通（2つ出ても揃って呼吸する）。濃さの幅だけ合成方式に合わせて分ける。
-		_glow_mat_debuff.albedo_color.a = lerpf(SKILL_DEBUFF_MIN, SKILL_DEBUFF_MAX, w)
-	# 攻撃対象マーカーの上下の揺れ。位相は足元の光と同じく絶対時刻から出す＝作り直しで途切れない。
-	# 明滅ではなく動きにするのは、深度を切って最前面に描く記号は背景の模様に紛れるのを
-	# 濃さで解けないため（薄くすると読めず、濃いままだと止まって見える）。
-	if not _target_markers.is_empty():
-		var dy := sin(float(Time.get_ticks_msec()) * 0.001 / MARK_BOB_CYCLE * TAU) * MARK_BOB
-		var s := _mark_scale()  # ズームで見失わないよう、引いた画角では拡大する
-		for m in _target_markers:
-			m.position = Vector3(m.get_meta("base_pos")) + _board_cam.cam_up * (dy * s)
-			m.scale = Vector3(s, s, 1.0)
 	if state == null:
 		return
 	var h := _hex_at_mouse()
@@ -751,19 +653,18 @@ func _hit_unit(hit: Dictionary, tex: Texture2D) -> void:
 
 func _land_hit(hit: Dictionary) -> void:
 	var uid := int(hit["target_id"])
-	var node: Node3D = _unit_nodes.get(uid)
+	var node: Node3D = _unit_renderer.get_unit_node(uid)
 	if node == null:
 		return
-	_unit_nodes.erase(uid)
 	if bool(hit["killed"]):
+		_unit_renderer.forget_unit(uid)
 		_fade_out_unit(node)
 		return
 	# 兵数バーは組み立て時に焼くので、減った値を出すには組み直すのが早い（state は解決済み）。
-	_units_root.remove_child(node)
-	node.queue_free()
+	_unit_renderer.remove_unit(uid)
 	var u := state.unit_by_id(uid)
 	if u != null:
-		_flash_unit(_build_unit_node(u))
+		_flash_unit(_unit_renderer.build_unit_node(u))
 
 ## 被弾フラッシュ＝立ち絵を一瞬白く飛ばして戻す。行動終了の暗さ（modulate）を基準に掛ける。
 func _flash_unit(node: Node3D) -> void:
@@ -839,7 +740,7 @@ func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable) -> void:
 	var longest := float(maxi(tex.get_width(), tex.get_height()))
 	spr.pixel_size = (HIT_BURST_TILES * TILE) / maxf(longest, 1.0)
 	var at := _hex_world(hex)
-	var land := Vector3(at.x, at.y + TILE * 0.9, at.z + SPRITE_FOOT_Z)
+	var land := Vector3(at.x, at.y + TILE * 0.9, at.z + BoardUnitRenderer.SPRITE_FOOT_Z)
 	spr.position = land + Vector3(0, HIT_DROP_FROM, 0)
 	_fx_root.add_child(spr)
 	var tw := create_tween()
@@ -1083,16 +984,16 @@ func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i, path: Array[Ve
 	_sync()  # 盤は真実（＝移動先）で作り直す
 	# 乗車には専用のシグナルが無い。輸送のマスへ入った駒は盤から外れる＝作り直した後に
 	# ノードが残っていなければ乗ったと分かる（降車は _on_unit_unloaded 側で鳴らす）。
-	if not _unit_nodes.has(unit_id):
+	if not _unit_renderer.has_unit_node(unit_id):
 		SfxPlayer.play_event("map_board")
 	_animate_move(unit_id, path)
 
 ## 移動した駒を経路の起点へ戻し、マスを1つずつ辿らせる（見た目だけ後追い）。
 ## 盤の状態は既に移動先で確定しているので、アニメが途中で切れても嘘にはならない
-## ＝別イベントの _sync_units がノードごと作り直し、駒は真実の位置にスナップする
+## ＝別イベントの sync_units がノードごと作り直し、駒は真実の位置にスナップする
 ## （戦闘演出と同じ「状態は即確定・見た目は後追い」の流儀）。
 func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
-	var node: Node3D = _unit_nodes.get(unit_id)
+	var node: Node3D = _unit_renderer.get_unit_node(unit_id)
 	# 経路なし＝アニメできない（乗車で盤から消えた／隣接特例の外）→ 従来どおり瞬間移動。
 	if node == null or path.size() < 2:
 		move_animation_finished.emit()
@@ -1211,7 +1112,7 @@ func _on_unit_deployed(_unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> voi
 	_sync()
 
 ## 「待機」＝駒は動かないが行動終了の見た目（暗く）へ変える。
-## 移動を伴う待機では直前に移動アニメが走っている＝_sync_units はそれを畳むため、
+## 移動を伴う待機では直前に移動アニメが走っている＝sync_units はそれを畳むため、
 ## 歩き切るのを待ってから作り直す（待たないと駒が移動先へ飛ぶ）。
 func _on_unit_stood(_unit_id: int) -> void:
 	await await_move_animation()
@@ -1248,7 +1149,8 @@ func _on_battle_finished(_winner: int) -> void:
 ## 盤の見た目を状態から作り直す。
 func _sync() -> void:
 	_sync_bases()
-	_sync_units()
+	_kill_move_tween()
+	_unit_renderer.sync_units()
 	_sync_overlay()
 
 ## 拠点の所属（六角の縁取り）と控え数。占領で変わるためイベントごとに作り直す。
@@ -1270,7 +1172,7 @@ func _sync_bases() -> void:
 		_bases_root.add_child(mi)
 		# 控え数（出撃できる人数）を左上に小さく。
 		if not b.garrison.is_empty():
-			_add_count_label("+%d" % b.garrison.size(), Vector3(p.x, by, p.y), col, _bases_root)
+			_unit_renderer.add_count_label("+%d" % b.garrison.size(), Vector3(p.x, by, p.y), col, _bases_root)
 
 ## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
 func _build_tiles() -> void:
@@ -1546,123 +1448,11 @@ func _add_ground() -> void:
 	mi.position = Vector3(c.x, -SKIRT_DEPTH - 0.35, c.y)
 	_tiles_root.add_child(mi)
 
-## 全ユニットの見た目を作り直す（数十体規模なので毎イベント作り直しで十分軽い）。
-## 1体＝1つの親ノード（_unit_nodes に id で登録）。立ち絵・影・兵数バー・リングはすべてその子＝
-## 親を動かせば一式が付いてくる（移動アニメ）。子の位置は親からの相対で置く。
-func _sync_units() -> void:
-	_kill_move_tween()  # 作り直す＝アニメ中のノードは消える。先に畳んで真実の位置から始める
-	_clear_children(_units_root)
-	_unit_nodes.clear()
-	if state == null:
-		return
-	for u in state.units():
-		_build_unit_node(u)
-
-## 駒1体ぶんの見た目一式（立ち絵・影・光・兵数バー）を組んで _units_root に足す。
-## 1体だけ作り直せるように切り出してある（着弾で兵数だけ書き換わる駒＝play_formation_impact）。
-func _build_unit_node(u: Unit) -> Node3D:
-	var p := Hex.to_pixel(u.pos, TILE)
-	var root := Node3D.new()
-	root.position = Vector3(p.x, _elev(u.pos), p.y)
-	_units_root.add_child(root)
-	_unit_nodes[u.id] = root
-	# 暗く落とすのは「このターンの行動を終えた駒」だけ。行ける先が無いだけの駒も、ターンでない
-	# 側の陣営も落とさない（どちらの陣営のターンかはターン板で示す → doc/gdd/uiux.md）。
-	var done := state.is_done(u.id)
-	var tex := _unit_texture(u)
-	if tex != null:
-		var spr := Sprite3D.new()
-		spr.texture = tex
-		spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED  # 常にカメラへ正対＝立ち姿のまま
-		spr.shaded = false
-		spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避（手前/奥が常に正しい）
-		spr.pixel_size = (UNIT_CANVAS_TILES * TILE) / float(tex.get_height())
-		spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元（接地・回転軸）
-		# 足元は下辺寄り＝マスの中に立って見える。植生地形はそのぶん沈めて足元を隠す。
-		spr.position = Vector3(0, 0.02 - _sprite_sink(u.pos), SPRITE_FOOT_Z)
-		if done:
-			spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
-		root.add_child(spr)
-		# 足元のブロブシャドウ（接地感）。範囲塗りの上・リングの下の高さ。
-		var sh := MeshInstance3D.new()
-		sh.mesh = _shadow_mesh
-		sh.material_override = BoardMeshFactory.overlay_material(COLOR_SHADOW)
-		sh.position = Vector3(0, 0.032, SPRITE_FOOT_Z + 0.08)  # 台座の少し手前まで出す
-		root.add_child(sh)
-	else:
-		_add_unit_placeholder(u, done, root)
-	_add_skill_glow(u, root)  # 絵の有無によらず出す（プレースホルダの駒でも掛かりは見える）
-	# 包囲中（攻防に係数<1.0）を明示。
-	if Surround.factor(state, u) < 1.0:
-		_add_ring(Vector3.ZERO, TILE * 0.86, 0.05, COLOR_SURROUNDED, 0.05, root)
-	# 兵数バー（残存兵数/満員）。駒の足元に置く。
-	_add_troops_bar(u, root)
-	# 輸送の搭載数を左上に小さく（拠点の garrison 表示と同じ流儀）。
-	var pcount := state.passengers(u.id).size()
-	if pcount > 0:
-		_add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
-	return root
-
-## ユニットスキルが効いている駒の足元を光らせる。見た目を宣言した補正（fx）だけを見る＝
-## 陣営全体バフ（ホーリーアリア等）では光らない。強化と弱体は別に数え、両方あれば両方出す
-## （弱体＝内側の塗り／強化＝その外周の輪）。詳細 → doc/gdd/skills.md 共通ルール
-func _add_skill_glow(u: Unit, root: Node3D) -> void:
-	var buffed := false
-	var debuffed := false
-	for m in state.status_mods_for(u):
-		if String(m.get("fx", "")).is_empty():
-			continue
-		if StatusMod.is_debuff(m):
-			debuffed = true
-		else:
-			buffed = true
-	# 影の上（影の黒に打ち消されない高さ）。2つの輪は半径が重ならないので同じ高さでよい。
-	var at := Vector3(0, 0.034, SPRITE_FOOT_Z + 0.08)
-	if debuffed:
-		var g := MeshInstance3D.new()
-		g.mesh = _glow_mesh
-		g.material_override = _glow_mat_debuff  # 共有＝全員が同じ位相で明滅する
-		g.position = at
-		root.add_child(g)
-	if buffed:
-		var r := MeshInstance3D.new()
-		r.mesh = _glow_ring_mesh
-		r.material_override = _glow_mat
-		r.position = at
-		root.add_child(r)
-
-## 画像なしユニットのプレースホルダ（チーム色の円盤＋スキン名ラベル）。
-## root＝そのユニットの親ノード（位置は相対）。
-func _add_unit_placeholder(u: Unit, done: bool, root: Node3D) -> void:
-	var col: Color = TEAM_COLORS[u.team % TEAM_COLORS.size()]
-	if done:
-		col = col.darkened(0.45)
-	var mi := MeshInstance3D.new()
-	mi.mesh = _disc_mesh
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = col
-	mi.material_override = m
-	mi.position = Vector3(0, 0.05, 0)
-	root.add_child(mi)
-	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
-	var label := s.map_label() if s != null else u.type_id.substr(0, 2)
-	if label.is_empty():
-		return
-	var l := Label3D.new()
-	l.text = label
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.font_size = 64
-	l.pixel_size = 0.01
-	l.modulate = COLOR_UNIT_LABEL
-	l.position = Vector3(0, 0.6, 0)
-	root.add_child(l)
-
 ## オーバーレイ（範囲・候補・プレビュー・選択・攻撃対象・ホバー）を作り直す。
 ## 種類ごとに高さをずらして重なりのZファイトを避ける。
 func _sync_overlay() -> void:
 	_clear_children(_overlay_root)
-	_target_markers.clear()  # 実体は _overlay_root の子＝いま消えた。参照を残すと _process が落ちる
+	_unit_renderer.clear_target_markers()  # 実体は _overlay_root の子＝いま消えた。参照を残すと _process が落ちる
 	if state == null:
 		return
 	for h in _reachable:
@@ -1681,8 +1471,8 @@ func _sync_overlay() -> void:
 	# リングだけでは手前の地形に隠れて読めないが、クリック判定はマス単位なので位置の目印としては残す。
 	for pos in _targets:
 		var tp := Hex.to_pixel(pos, TILE)
-		_add_ring(Vector3(tp.x, _elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
-		_add_target_marker(state.unit_by_id(int(_targets[pos])))
+		_unit_renderer.add_ring(Vector3(tp.x, _elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
+		_unit_renderer.add_target_marker(state.unit_by_id(int(_targets[pos])), _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
@@ -1691,11 +1481,11 @@ func _sync_overlay() -> void:
 	var sel := state.unit_by_id(_selected_id) if _selected_id != -1 else null
 	if sel != null:
 		var sp := Hex.to_pixel(sel.pos, TILE)
-		_add_ring(Vector3(sp.x, _elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
+		_unit_renderer.add_ring(Vector3(sp.x, _elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
 	var ins := state.unit_by_id(_inspected_id) if _inspected_id != -1 else null
 	if ins != null:
 		var ip := Hex.to_pixel(ins.pos, TILE)
-		_add_ring(Vector3(ip.x, _elev(ins.pos), ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
+		_unit_renderer.add_ring(Vector3(ip.x, _elev(ins.pos), ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
 		# 待機中の見張り（sight で起きる・未起動）を選んだら、検知域の外周を赤線でなぞる。
 		if controller != null:
 			var det: int = controller.detection_radius(ins)
@@ -1762,139 +1552,6 @@ func _add_thick_edge(im: ImmediateMesh, v0: Vector3, v1: Vector3, hw: float) -> 
 	var e := e1 - perp
 	im.surface_add_vertex(a); im.surface_add_vertex(c); im.surface_add_vertex(b)
 	im.surface_add_vertex(b); im.surface_add_vertex(c); im.surface_add_vertex(e)
-
-# --- 兵数バー・ラベル・リングのヘルパー ---
-
-## 兵数バー（背景＋残存率ぶんの緑）。ビルボードの小さなクアッド2枚を足元に置く。
-## root＝そのユニットの親ノード（位置は相対）。
-func _add_troops_bar(u: Unit, root: Node3D) -> void:
-	var w := TILE * 1.0
-	var h := TILE * 0.13
-	var base_pos := Vector3(0, 0.10, SPRITE_FOOT_Z + 0.15)  # 立ち絵より手前＝隠れない
-	var bg := MeshInstance3D.new()
-	var bgq := QuadMesh.new()
-	bgq.size = Vector2(w, h)
-	bg.mesh = bgq
-	bg.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_BG)
-	bg.position = base_pos
-	root.add_child(bg)
-	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
-	if ratio <= 0.0:
-		return
-	var fill := MeshInstance3D.new()
-	var fq := QuadMesh.new()
-	fq.size = Vector2(w * ratio, h * 0.8)
-	fq.center_offset = Vector3(-w * (1.0 - ratio) * 0.5, 0.0, 0.0)  # 左詰め（ビルボードでも左端固定）
-	fill.mesh = fq
-	fill.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_FILL)
-	fill.position = base_pos + Vector3(0, 0, 0.01)
-	root.add_child(fill)
-
-## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。マス左上に置く。
-## root＝追加先（拠点は _bases_root・ユニットは _units_root。別コンテナなのはクリア周期が違うため）。
-func _add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -> void:
-	var l := Label3D.new()
-	l.text = text
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.font_size = 48
-	l.pixel_size = 0.01
-	l.modulate = color
-	l.outline_size = 16  # 淡い地形の上でも読めるように
-	# 重なり順は 縁取りリング → タイルの絵 → この数字。リングもリング状の半透明なので、
-	# 深度だけに任せると数字がリングの下に潜る。深度判定を切り、最後に描かせて最前面に固定する。
-	l.no_depth_test = true
-	l.render_priority = 2
-	l.outline_render_priority = 1
-	l.position = wpos + Vector3(-TILE * 0.55, 0.8, -TILE * 0.3)
-	root.add_child(l)
-
-## 地面に寝かせた円環（選択/攻撃/閲覧/包囲リング）。radius|width でメッシュをキャッシュ。
-## y は wpos からの上乗せ＝タイル上面からの浮かせ量。wpos.y を無視して絶対高さに置くと、
-## 標高を持つスキン（森・台地・崖・壁）の上に立つ駒の輪がタイルの中に埋まって見えなくなる。
-## 駒に付ける輪は親ノードが標高に乗っているので wpos.y=0 で呼ばれる（相対座標のまま効く）。
-func _add_ring(wpos: Vector3, radius: float, width: float, color: Color, y: float, root: Node3D) -> void:
-	var key := "%.3f|%.3f" % [radius, width]
-	if not _ring_mesh.has(key):
-		_ring_mesh[key] = BoardMeshFactory.make_ring_mesh(radius, width)
-	var mi := MeshInstance3D.new()
-	mi.mesh = _ring_mesh[key]
-	mi.material_override = BoardMeshFactory.overlay_material(color)
-	mi.position = Vector3(wpos.x, wpos.y + y, wpos.z)
-	root.add_child(mi)
-
-## 攻撃対象マーカー（頭上の下向き三角）を1体ぶん置く。縁取り→本体の順に重ねる。
-## 揺れの基準位置は meta に持たせる＝_process はノードを1周するだけで済む。
-func _add_target_marker(u: Unit) -> void:
-	if u == null:
-		return
-	var n := Node3D.new()
-	var base := _unit_head_pos(u) + _board_cam.cam_up * (MARK_GAP + _mark_tip_drop)
-	n.position = base
-	n.set_meta("base_pos", base)
-	var edge := MeshInstance3D.new()
-	edge.mesh = _mark_edge_mesh
-	edge.material_override = _mark_mat_edge
-	n.add_child(edge)
-	var fill := MeshInstance3D.new()
-	fill.mesh = _mark_mesh
-	fill.material_override = _mark_mat
-	n.add_child(fill)
-	_overlay_root.add_child(n)
-	_target_markers.append(n)
-
-## 頭上マーカーの倍率。画面上で MARK_MIN_PX を割り込むぶんだけ拡大する（寄っていれば等倍）。
-## 盤の駒と一緒に縮んでよい記号ではない＝探すための印なので、下限は画面のpxで持つ。
-func _mark_scale() -> float:
-	var px := MARK_W / _board_cam.world_per_pixel()
-	if px >= MARK_MIN_PX:
-		return 1.0
-	return minf(MARK_MIN_PX / px, MARK_MAX_SCALE)
-
-## 駒の頭のてっぺんのワールド位置。足元（立ち絵の原点）から、ビルボードが伸びる向き
-## ＝カメラの上方向へ背丈ぶん進めた点。立ち絵は沈み（植生の厚み）も受けるのでそれも引く。
-func _unit_head_pos(u: Unit) -> Vector3:
-	var p := Hex.to_pixel(u.pos, TILE)
-	# 足元は立ち絵と同じ置き方（z を手前へ SPRITE_FOOT_Z ぶん出す）。
-	var foot := Vector3(p.x, _elev(u.pos) + 0.02 - _sprite_sink(u.pos), p.y + SPRITE_FOOT_Z)
-	var tex := _unit_texture(u)
-	if tex == null:
-		return foot + _board_cam.cam_up * (TILE * 0.35)  # プレースホルダの円盤＝背丈を持たないので固定
-	return foot + _board_cam.cam_up * _figure_height(tex)
-
-## 立ち絵PNGの「実体」の背丈（ワールド単位）。キャンバス全高ではなく非透過部分の上端で測る。
-## 大小関係はキャンバスに焼き込んだ余白で表しているので（→ doc/art/units.md 3.1）、キャンバス
-## 全高を使うとハーフリングの頭上マーカーがドラゴンと同じ高さに浮く。テクスチャごとにキャッシュ。
-func _figure_height(tex: Texture2D) -> float:
-	if _fig_height.has(tex):
-		return _fig_height[tex]
-	var canvas := UNIT_CANVAS_TILES * TILE
-	var h := canvas  # 読めなければキャンバス全高＝高めに浮く（駒に食い込むより害が小さい）
-	var img := tex.get_image()
-	if img != null and img.is_compressed():
-		img = img.duplicate()  # キャッシュ済みの Image を書き換えない
-		if img.decompress() != OK:
-			img = null
-	if img != null:
-		var used := img.get_used_rect()
-		if used.size.y > 0:
-			# 立ち絵は原点＝足元・上へ canvas ぶん伸びる。テクスチャの行 r はワールド
-			# (tex_h - r) × pixel_size の高さに来るので、実体の上端は最上行から出る。
-			h = float(tex.get_height() - used.position.y) * canvas / float(tex.get_height())
-	_fig_height[tex] = h
-	return h
-
-
-## スキンの map 画像テクスチャ（キャッシュ）。未設定/未配置は null＝プレースホルダ描画。
-func _unit_texture(u: Unit) -> Texture2D:
-	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
-	if s == null:
-		return null
-	var p := s.image("map")
-	if p == "":
-		return null
-	if not _unit_tex.has(p):
-		_unit_tex[p] = load(p)
-	return _unit_tex[p]
 
 ## 地形タイルを読む。基本 {name}.png ＋連番 variant。
 func _load_terrain_variants(base_path: String) -> Array:
