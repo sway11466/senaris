@@ -314,8 +314,8 @@
 			"enemy": [
 				{
 					"category": "巨人",
-					"combat_effect": "",
-					"combat_lineup": "squad",
+					"combat_effect": "punch",
+					"combat_lineup": "single",
 					"description": "",
 					"images": {},
 					"map_move_sfx": "",
