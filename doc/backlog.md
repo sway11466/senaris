@@ -299,8 +299,8 @@
   4. 地形タイル構築（`_build_tiles`・スキン解決・スカート・グリッド・下地）。
   5. 着弾演出（`play_formation_impact` 一連）。
   6. 1〜5を剥がした状態でインタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を定義してから。
-- 進捗（2026-08-11）：ステップ1完了（`3d72eab`・2254→2041行・-213行）。ステップ2完了（`65c3499`・2041→1910行・-131行・`board_camera.gd` 167行・`test_board_camera.gd` 97行）。ステップ3完了（1910→1567行・-343行・`board_unit_renderer.gd` 374行・`test_board_unit_renderer.gd` 116行）。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`・`presentation/board/board_camera.gd`・`presentation/board/board_unit_renderer.gd`・`tests/unit/test_board_mesh_factory.gd`・`tests/unit/test_board_camera.gd`・`tests/unit/test_board_unit_renderer.gd`。4〜5の切り出し先ファイル名は着手時に決める。
+- 進捗（2026-08-11）：ステップ1完了（`3d72eab`・2254→2041行・-213行）。ステップ2完了（`65c3499`・2041→1910行・-131行・`board_camera.gd` 167行・`test_board_camera.gd` 97行）。ステップ3完了（`844a061`・1910→1567行・-343行・`board_unit_renderer.gd` 374行・`test_board_unit_renderer.gd` 116行）。ステップ4完了（1567→944行・-623行・`board_terrain_renderer.gd` 300行・`test_board_terrain_renderer.gd` 68行）。
+- 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`・`presentation/board/board_camera.gd`・`presentation/board/board_unit_renderer.gd`・`presentation/board/board_terrain_renderer.gd`・`tests/unit/test_board_mesh_factory.gd`・`tests/unit/test_board_camera.gd`・`tests/unit/test_board_unit_renderer.gd`・`tests/unit/test_board_terrain_renderer.gd`。5の切り出し先ファイル名は着手時に決める。
 
 ## parking lot
 

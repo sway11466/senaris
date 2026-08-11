@@ -23,16 +23,9 @@ signal formation_impact_finished
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
 const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
-const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
-## 見た目の高さ（elevation）と立ち絵の沈み（sprite_sink）はスキン側のデータ＝terrain_skin.csv。
-## 高さは段差辺に側面スカートを生やす（崖は台地より高い＝登れる高台と登れない絶壁を序列で見せる）。
-## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
-## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
-const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 const INFOPANEL_LEFT := UiLayout.RIGHT_BOX_LEFT    # InfoPanel の左端（レイアウト定数は ui_layout.gd に集約）
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
 
-const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
 const COLOR_REACH := Color(0.25, 0.85, 0.55, 0.30)
 const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動の緑と区別）
@@ -70,16 +63,6 @@ const INVALID_HEX := Vector2i(-9999, -9999)
 
 var state: BattleState
 var controller: MatchController
-var _terrain_tex := {}    # skin_id(String) -> Array[Texture2D]（基本＋連番 variant）
-var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。盤外＝外周のセルも書ける）
-## Vector2i -> terrain_id（外周＝盤の外側1周ぶんの地形。作者が描いたもの）。
-## 描かないし駒も入らない＝接続タイル（柵・道）が「盤の外に何があるか」を引くためだけのデータ。
-## 空＝外周なしで、そのときだけ縁の推測（面は丸め込み／線は腕を伸ばす）に落ちる。
-var _margin_terrain := {}
-var _side_tex := {}           # skin_id -> Texture2D|null（側面画像。置いていなければ null）
-var _tile_nodes := {}         # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
-var _elev_cache := {}         # Vector2i -> float（スキン解決の結果。_build_tiles で捨てる）
-var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）。同上
 var _skin_catalog := {}   # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 
 # --- カメラリグ（BoardCamera に委譲）---
@@ -89,16 +72,13 @@ var _press_on_empty := false     # 押下が空き地（ユニット無し）か
 var _dragging_pan := false       # 左ドラッグでパン中
 
 # --- シーン構造（_ready で組む）---
-var _tiles_root: Node3D    # 地形タイル＋グリッド線＋下地（bind ごとに作り直し）
+var _terrain_renderer: BoardTerrainRenderer  # 地形タイル（タイル・グリッド線・スカート・下地）
 var _bases_root: Node3D    # 拠点の縁取り・控え数（占領で変わるのでイベントごとに作り直し）
 var _unit_renderer: BoardUnitRenderer  # 駒の描画（立ち絵・影・光・兵数バー・リング・マーカー）
 var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ごとに作り直し）
 var _fx_root: Node3D       # 一時的な演出（着弾の光・駒に重ねるエフェクト）。オーバーレイの作り直しで消えない層
-var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル用・UVは外接矩形）
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
-var _avg_color := {}      # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
-var _skirt_tex: ImageTexture  # スカートの粒状ノイズ（べた塗り回避。_ready で1回生成）
 
 # --- インタラクション状態 ---
 var _hover := INVALID_HEX
@@ -154,11 +134,9 @@ func _ready() -> void:
 	_board_cam = BoardCamera.new()
 	add_child(_board_cam)
 	# 共有メッシュとコンテナ。
-	_hex_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_overlay_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_hexring_mesh = BoardMeshFactory.make_hexring_mesh(TILE)
-	_skirt_tex = BoardMeshFactory.make_skirt_texture()
-	_tiles_root = Node3D.new(); add_child(_tiles_root)
+	_terrain_renderer = BoardTerrainRenderer.new(); add_child(_terrain_renderer)
 	_bases_root = Node3D.new(); add_child(_bases_root)
 	_unit_renderer = BoardUnitRenderer.new(); add_child(_unit_renderer)
 	_overlay_root = Node3D.new(); add_child(_overlay_root)
@@ -173,9 +151,8 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	_terrain_skins = p_terrain_skins
-	_margin_terrain = p_margin_terrain
-	_unit_renderer.setup(_board_cam, state, _skin_catalog, _elev, _sprite_sink)
+	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain)
+	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.sprite_sink)
 	_reset_interaction()
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -187,7 +164,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.battle_finished.connect(_on_battle_finished)
-	_build_tiles()
+	_terrain_renderer.build_tiles()
 	fit_to_view()
 	_sync()
 
@@ -381,12 +358,12 @@ func _plane_point_at(screen: Vector2) -> Vector3:
 ## 最初の hex を返す（上のタイルが下を隠す）。どの標高にも当たらなければ y=0 の素の hex。
 func _hex_at_mouse() -> Vector2i:
 	var screen := get_viewport().get_mouse_position()
-	for e in _elev_levels():
+	for e in _terrain_renderer.elev_levels():
 		var p := _plane_point_at_y(screen, e)
 		if not p.is_finite():
 			continue
 		var hex := Hex.from_pixel(Vector2(p.x, p.z), TILE)
-		if _on_board(hex) and is_equal_approx(_elev(hex), e):
+		if _on_board(hex) and is_equal_approx(_terrain_renderer.elev(hex), e):
 			return hex
 	var p0 := _plane_point_at_y(screen, 0.0)
 	if not p0.is_finite():
@@ -710,7 +687,7 @@ func _flash_cells(cells: Array, hold: float) -> void:
 		mi.mesh = _overlay_mesh
 		mi.material_override = m
 		var p := Hex.to_pixel(hex, TILE)
-		mi.position = Vector3(p.x, _elev(hex) + 0.05, p.y)
+		mi.position = Vector3(p.x, _terrain_renderer.elev(hex) + 0.05, p.y)
 		_fx_root.add_child(mi)
 		# 立ち上がりで一度強く光らせ、駒を処理している間は薄く居座らせる（面は見えたまま・
 		# 駒に重ねるエフェクトは埋もれない）。最後に引く。
@@ -1038,55 +1015,7 @@ func _move_sfx_of(unit_id: int) -> String:
 ## ヘックスの中心（ユニットの親ノードを置くワールド座標）。地形の標高ぶん持ち上げる。
 func _hex_world(hex: Vector2i) -> Vector3:
 	var p := Hex.to_pixel(hex, TILE)
-	return Vector3(p.x, _elev(hex), p.y)
-
-## そのヘックスの見た目のスキン（ステージの差分指定を優先・無ければ地形の既定）。無ければ null。
-func _skin_at(hex: Vector2i) -> TerrainSkin:
-	if state == null:
-		return null
-	return TerrainSkinCatalog.resolve(_terrain_skins.get(hex, ""), state.terrain_at(hex))
-
-## スキンの側面画像（置いてあれば）。無ければ null＝既定の粒ノイズ＋断面色。スキン単位でキャッシュ。
-func _side_texture(skin: TerrainSkin) -> Texture2D:
-	if skin == null:
-		return null
-	if _side_tex.has(skin.skin_id):
-		return _side_tex[skin.skin_id]
-	var p := skin.side_image_path()
-	var tex := load(p) as Texture2D if ResourceLoader.exists(p) else null
-	_side_tex[skin.skin_id] = tex
-	return tex
-
-## そのヘックスの見た目の標高（スキン別・既定0）。ピッキング/配置/スカートで使う。
-## 毎フレームのピッキングから何度も引かれるので、盤を組み直すまでキャッシュする。
-func _elev(hex: Vector2i) -> float:
-	if _elev_cache.has(hex):
-		return _elev_cache[hex]
-	var skin := _skin_at(hex)
-	var e: float = skin.elevation if skin != null else 0.0
-	_elev_cache[hex] = e
-	return e
-
-## 立ち絵をタイル上面より沈める量（植生の厚み・既定0）。足元が下草・樹冠に隠れる量。
-func _sprite_sink(hex: Vector2i) -> float:
-	var skin := _skin_at(hex)
-	return skin.sprite_sink if skin != null else 0.0
-
-## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
-## スキンはセルごとに違いうるので、定数表ではなく実際に敷かれた高さから集める。
-func _elev_levels() -> Array:
-	if not _elev_levels_cache.is_empty():
-		return _elev_levels_cache
-	var s := { 0.0: true }
-	if state != null:
-		for col in state.cols:
-			for row in state.rows:
-				s[_elev(Hex.offset_to_axial(col, row))] = true
-	var arr := s.keys()
-	arr.sort()
-	arr.reverse()
-	_elev_levels_cache = arr
-	return arr
+	return Vector3(p.x, _terrain_renderer.elev(hex), p.y)
 
 ## 進行中の移動アニメを畳む。待っている側（AIターン）を取り残さないため完了を必ず知らせる。
 func _kill_move_tween() -> void:
@@ -1158,7 +1087,7 @@ func _sync_bases() -> void:
 	_clear_children(_bases_root)
 	if state == null:
 		return
-	_refresh_base_tiles()
+	_terrain_renderer.refresh_base_tiles()
 	for b in state.bases():
 		var col := COLOR_BASE_NEUTRAL
 		if b.team >= 0:
@@ -1167,104 +1096,12 @@ func _sync_bases() -> void:
 		mi.mesh = _hexring_mesh
 		mi.material_override = BoardMeshFactory.overlay_material(col)
 		var p := Hex.to_pixel(b.hex, TILE)
-		var by := _elev(b.hex)
+		var by := _terrain_renderer.elev(b.hex)
 		mi.position = Vector3(p.x, by + 0.015, p.y)
 		_bases_root.add_child(mi)
 		# 控え数（出撃できる人数）を左上に小さく。
 		if not b.garrison.is_empty():
 			_unit_renderer.add_count_label("+%d" % b.garrison.size(), Vector3(p.x, by, p.y), col, _bases_root)
-
-## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
-func _build_tiles() -> void:
-	_clear_children(_tiles_root)
-	_tile_nodes.clear()          # 破棄したノードを指したままにしない
-	_elev_cache.clear()          # スキン解決のキャッシュはステージごとに捨てる
-	_elev_levels_cache.clear()
-	for col in state.cols:
-		for row in state.rows:
-			var hex := Hex.offset_to_axial(col, row)
-			_add_tile(hex)
-	_add_grid()
-	_add_skirt()
-	_add_ground()
-
-## hex の地形タイルのテクスチャ（skin 解決＋variant 敷き分け＋キャッシュ）。無ければ null。
-## map_ground を持つスキン（地面を絵に焼き込んでいない柵など）は、下地を敷いてから重ねる。
-## 下地の variant もこのヘックスで選ぶので、柵のマスだけ地面が固定される、ということにならない。
-func _tile_texture(hex: Vector2i) -> Texture2D:
-	var skin := _skin_at(hex)
-	if skin == null:
-		return null
-	var over := _variant_texture(_tile_image_path(skin, hex), hex)
-	var ground_id := skin.map_ground_id()
-	if ground_id.is_empty():
-		return over
-	var ground := TerrainSkinCatalog.resolve(ground_id, "")
-	if ground == null:
-		return over
-	return TerrainTiles.composited(_variant_texture(ground.image_path(), hex), over)
-
-## パスの variant を読み、このヘックスぶんの1枚を返す（読み込みはパスごとに1回）。
-func _variant_texture(path: String, hex: Vector2i) -> Texture2D:
-	var variants: Array = _terrain_tex.get(path, [])
-	if variants.is_empty() and not _terrain_tex.has(path):
-		variants = _load_terrain_variants(path)
-		_terrain_tex[path] = variants
-	if variants.is_empty():
-		return null
-	return variants[_terrain_variant(hex, variants.size())]
-
-## そのヘックスに敷く画像の基準パス。占領されている拠点は、所有チーム別の絵があればそれを使う。
-## assets/terrain/{skin_id}_team{N}.png を置けば切り替わり、置かなければ中立の絵のまま（コード不変）。
-## 線地形（connect＝柵・道）は、隣り合う同スキンの向きの組み合わせで絵を選ぶ。
-func _tile_image_path(skin: TerrainSkin, hex: Vector2i) -> String:
-	var team := _base_team_at(hex)
-	if team >= 0:
-		var p := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
-		if ResourceLoader.exists(p):
-			return p
-	if skin.connects():
-		var cp := skin.connected_image_path(_connected_dirs(skin, hex))
-		if ResourceLoader.exists(cp):
-			return cp
-	return skin.image_path()
-
-## hex の6近傍が同じスキンか（Hex.DIRECTIONS 順）。盤外の隣をどう埋めるかを3段で決める。
-## 1) 外周(margin)が描いてあれば、そのマスの地形をそのまま読む＝作者の指定が最優先。線も面も同じ扱い
-##    で、on_board も真にする＝腕を伸ばす補正は効かせない（描いてある以上、推測する必要がない）。
-## 2) 外周が無い面(area＝道)は「縁のマスがそのまま続いている」として引く＝座標を盤に丸めて読む。
-##    縁で帯が輪郭付きの蓋にならず、まっすぐ盤の外へ抜ける。
-## 3) 外周が無い線(line＝柵)は丸めない。端が縁に来たときだけ、その先へ腕を伸ばす（extend_off_board）。
-## 6近傍だけでは出せない絵（縁の2マス先の事情で変わる形）があるので、1) を用意している。
-func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
-	var area := skin.connects_as_area()
-	var connected: Array = []
-	var on_board: Array = []
-	for d in Hex.DIRECTIONS:
-		var n := hex + d
-		var s: TerrainSkin = null
-		var covered := true
-		if _in_board(n):
-			s = _skin_at(n)
-		elif _margin_terrain.has(n):
-			# 外周のセル。見た目差分(terrain_skins)は盤外の座標でも書けるので盤内と同じ引き方をする。
-			s = TerrainSkinCatalog.resolve(_terrain_skins.get(n, ""), String(_margin_terrain[n]))
-		elif area:
-			s = _skin_at(_clamp_to_board(n))
-		else:
-			covered = false
-		connected.append(s != null and s.skin_id == skin.skin_id)
-		on_board.append(covered)
-	if area:
-		return connected
-	return TerrainSkin.extend_off_board(connected, on_board)
-
-## 盤の矩形（offset col/row）へ丸め込む。盤内はそのまま返る。
-func _clamp_to_board(hex: Vector2i) -> Vector2i:
-	if state == null:
-		return hex
-	var c := Hex.axial_to_offset(hex)
-	return Hex.offset_to_axial(clampi(c.x, 0, state.cols - 1), clampi(c.y, 0, state.rows - 1))
 
 ## hex が盤の矩形（offset col/row）の中にあるか。
 func _in_board(hex: Vector2i) -> bool:
@@ -1272,181 +1109,6 @@ func _in_board(hex: Vector2i) -> bool:
 		return false
 	var c := Hex.axial_to_offset(hex)
 	return c.x >= 0 and c.x < state.cols and c.y >= 0 and c.y < state.rows
-
-## そのヘックスにある拠点の所属チーム。拠点でない/中立なら -1。拠点は数個なので線形で足りる。
-func _base_team_at(hex: Vector2i) -> int:
-	if state == null:
-		return -1
-	for b in state.bases():
-		if b.hex == hex:
-			return b.team
-	return -1
-
-## 拠点タイルを現在の所有チームの絵に貼り替える。占領で色が変わるので _sync_bases から毎回呼ぶ。
-func _refresh_base_tiles() -> void:
-	for b in state.bases():
-		var mi: MeshInstance3D = _tile_nodes.get(b.hex)
-		if mi == null:
-			continue
-		var tex := _tile_texture(b.hex)
-		if tex != null:
-			mi.material_override = BoardMeshFactory.terrain_material(tex)
-
-## タイルの平均色（中央付近を5点サンプル・透過は除外）。スカートの断面色に使う。
-func _tile_avg_color(tex: Texture2D) -> Color:
-	if _avg_color.has(tex):
-		return _avg_color[tex]
-	var col := Color(0.35, 0.30, 0.22)  # 読めない場合のフォールバック（土色）
-	var img := tex.get_image()
-	if img != null:
-		if img.is_compressed():
-			img.decompress()
-		var w := img.get_width()
-		var h := img.get_height()
-		var sum := Vector3.ZERO
-		var cnt := 0
-		for off: Vector2 in [Vector2(0.5, 0.5), Vector2(0.3, 0.35), Vector2(0.7, 0.35), Vector2(0.3, 0.65), Vector2(0.7, 0.65)]:
-			var c := img.get_pixel(int(w * off.x), int(h * off.y))
-			if c.a > 0.5:
-				sum += Vector3(c.r, c.g, c.b)
-				cnt += 1
-		if cnt > 0:
-			col = Color(sum.x / cnt, sum.y / cnt, sum.z / cnt)
-	_avg_color[tex] = col
-	return col
-
-func _add_tile(hex: Vector2i) -> void:
-	var tex := _tile_texture(hex)
-	if tex == null:
-		return
-	var skin := _skin_at(hex)
-	var mi := MeshInstance3D.new()
-	mi.mesh = _hex_mesh
-	mi.material_override = BoardMeshFactory.terrain_material(tex)
-	var p := Hex.to_pixel(hex, TILE)
-	mi.position = Vector3(p.x, _elev(hex), p.y)
-	if skin != null and skin.orients():
-		TerrainTiles.orient(mi, hex, skin.rotates())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
-	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
-	_tiles_root.add_child(mi)
-
-## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
-## スキンが grid=false のマスは引かない＝駒が入れない地形が枠で刻まれず、一つの塊として読める。
-func _add_grid() -> void:
-	var im := ImmediateMesh.new()
-	im.surface_begin(Mesh.PRIMITIVE_LINES)
-	for col in state.cols:
-		for row in state.rows:
-			var hex := Hex.offset_to_axial(col, row)
-			var skin := _skin_at(hex)
-			if skin != null and not skin.grid:
-				continue
-			var p := Hex.to_pixel(hex, TILE)
-			var gy := _elev(hex) + 0.01
-			for i in 6:
-				var a0 := deg_to_rad(60.0 * i)
-				var a1 := deg_to_rad(60.0 * (i + 1))
-				im.surface_add_vertex(Vector3(p.x + cos(a0) * TILE, gy, p.y + sin(a0) * TILE))
-				im.surface_add_vertex(Vector3(p.x + cos(a1) * TILE, gy, p.y + sin(a1) * TILE))
-	im.surface_end()
-	var mi := MeshInstance3D.new()
-	mi.mesh = im
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = COLOR_LINE
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mi.material_override = m
-	_tiles_root.add_child(mi)
-
-## 盤外周の側面（スカート）。盤外に接する辺だけ下へ伸ばし、ジオラマの「島」に見せる。
-## 側面画像（assets/terrain/{skin_id}_side.png）を持つスキンは、その画像を貼った別メッシュにまとめる。
-## 画像ごとにマテリアルが要るので、テクスチャ単位でメッシュを分ける（アンライトなので法線は不問）。
-func _add_skirt() -> void:
-	# 辺 i（コーナー i→i+1・辺中点の方位 60i+30°）に対応する隣接方向（フラットトップ axial）。
-	var dirs: Array[Vector2i] = [
-		Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 1),
-		Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
-	]
-	var tools := {}  # Texture2D|null -> SurfaceTool（null＝既定の粒ノイズ＋断面色）
-	for col in state.cols:
-		for row in state.rows:
-			var hex := Hex.offset_to_axial(col, row)
-			var p := Hex.to_pixel(hex, TILE)
-			var side := _side_texture(_skin_at(hex))
-			var top_c: Color
-			var bot_c: Color
-			if side != null:
-				# 側面画像はそれ自体が岩肌＝タイルの平均色で染めない。上端→下端の減光だけ掛ける。
-				top_c = Color(1, 1, 1)
-				bot_c = Color(0.8, 0.8, 0.8)
-			else:
-				# 断面色＝そのタイルの平均色（草の下は緑土・砂の下は砂色＝地続きに見える）。
-				# べた塗り回避: 上端は明るめ→下端ほど暗い頂点グラデ＋粒状ノイズテクスチャを重ねる。
-				var tex := _tile_texture(hex)
-				var base := _tile_avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
-				top_c = base.darkened(SKIRT_DARKEN - 0.20)
-				bot_c = base.darkened(SKIRT_DARKEN + 0.20)
-			var st: SurfaceTool = tools.get(side)
-			if st == null:
-				st = SurfaceTool.new()
-				st.begin(Mesh.PRIMITIVE_TRIANGLES)
-				tools[side] = st
-			var top := _elev(hex)
-			for i in 6:
-				var nb := hex + dirs[i]
-				var bottom: float
-				if not _on_board(nb):
-					bottom = -SKIRT_DEPTH         # 盤外＝ジオラマの縁（島の厚み）
-				elif _elev(nb) < top - 0.001:
-					bottom = _elev(nb)            # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）
-				else:
-					continue                      # 同高 or 高い隣にはスカート不要
-				var a0 := deg_to_rad(60.0 * i)
-				var a1 := deg_to_rad(60.0 * (i + 1))
-				var c0 := Vector3(p.x + cos(a0) * TILE, top, p.y + sin(a0) * TILE)
-				var c1 := Vector3(p.x + cos(a1) * TILE, top, p.y + sin(a1) * TILE)
-				var d0 := Vector3(c0.x, bottom, c0.z)
-				var d1 := Vector3(c1.x, bottom, c1.z)
-				# UVのuはコーナーのワールド座標から取る＝隣り合う辺と連続（継ぎ目が出ない）。
-				var u0 := (c0.x * 0.31 + c0.z * 0.53) * 0.8
-				var u1 := (c1.x * 0.31 + c1.z * 0.53) * 0.8
-				st.set_color(top_c); st.set_uv(Vector2(u0, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c0)
-				st.set_color(top_c); st.set_uv(Vector2(u1, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c1)
-				st.set_color(bot_c); st.set_uv(Vector2(u0, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d0)
-				st.set_color(bot_c); st.set_uv(Vector2(u1, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d1)
-				st.set_color(bot_c); st.set_uv(Vector2(u0, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d0)
-				st.set_color(top_c); st.set_uv(Vector2(u1, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c1)
-	for side in tools:
-		var mi := MeshInstance3D.new()
-		mi.mesh = tools[side].commit()
-		var m := StandardMaterial3D.new()
-		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.vertex_color_use_as_albedo = true  # 断面色/減光（頂点カラー）× テクスチャの積
-		m.albedo_texture = side if side != null else _skirt_tex
-		m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 三角形の向きを気にしない（内外どちらからも見える）
-		mi.material_override = m
-		_tiles_root.add_child(mi)
-
-## 盤の下地（虚空に浮かないための大きな平面）。スカートの下端より深くに置き、盤を「島」として浮かせる。
-func _add_ground() -> void:
-	var mn := Vector2(INF, INF)
-	var mx := Vector2(-INF, -INF)
-	for col in state.cols:
-		for row in state.rows:
-			var p := Hex.to_pixel(Hex.offset_to_axial(col, row), TILE)
-			mn = mn.min(p)
-			mx = mx.max(p)
-	var c := (mn + mx) * 0.5
-	var pm := PlaneMesh.new()
-	pm.size = (mx - mn) + Vector2(60.0, 60.0)
-	var mi := MeshInstance3D.new()
-	mi.mesh = pm
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = Color(0.22, 0.24, 0.18)  # 盤より暗く＝盤が浮き立つ
-	mi.material_override = m
-	mi.position = Vector3(c.x, -SKIRT_DEPTH - 0.35, c.y)
-	_tiles_root.add_child(mi)
 
 ## オーバーレイ（範囲・候補・プレビュー・選択・攻撃対象・ホバー）を作り直す。
 ## 種類ごとに高さをずらして重なりのZファイトを避ける。
@@ -1471,7 +1133,7 @@ func _sync_overlay() -> void:
 	# リングだけでは手前の地形に隠れて読めないが、クリック判定はマス単位なので位置の目印としては残す。
 	for pos in _targets:
 		var tp := Hex.to_pixel(pos, TILE)
-		_unit_renderer.add_ring(Vector3(tp.x, _elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
+		_unit_renderer.add_ring(Vector3(tp.x, _terrain_renderer.elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
 		_unit_renderer.add_target_marker(state.unit_by_id(int(_targets[pos])), _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
@@ -1481,11 +1143,11 @@ func _sync_overlay() -> void:
 	var sel := state.unit_by_id(_selected_id) if _selected_id != -1 else null
 	if sel != null:
 		var sp := Hex.to_pixel(sel.pos, TILE)
-		_unit_renderer.add_ring(Vector3(sp.x, _elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
+		_unit_renderer.add_ring(Vector3(sp.x, _terrain_renderer.elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
 	var ins := state.unit_by_id(_inspected_id) if _inspected_id != -1 else null
 	if ins != null:
 		var ip := Hex.to_pixel(ins.pos, TILE)
-		_unit_renderer.add_ring(Vector3(ip.x, _elev(ins.pos), ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
+		_unit_renderer.add_ring(Vector3(ip.x, _terrain_renderer.elev(ins.pos), ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)
 		# 待機中の見張り（sight で起きる・未起動）を選んだら、検知域の外周を赤線でなぞる。
 		if controller != null:
 			var det: int = controller.detection_radius(ins)
@@ -1499,10 +1161,10 @@ func _add_cell(hex: Vector2i, color: Color, y: float) -> void:
 	mi.mesh = _overlay_mesh
 	mi.material_override = BoardMeshFactory.overlay_material(color)
 	var p := Hex.to_pixel(hex, TILE)
-	mi.position = Vector3(p.x, _elev(hex) + y, p.y)
+	mi.position = Vector3(p.x, _terrain_renderer.elev(hex) + y, p.y)
 	_overlay_root.add_child(mi)
 
-## 辺 i（コーナー i→i+1）に対応する隣接方向（フラットトップ axial・_add_skirt と同じ対応）。
+## 辺 i（コーナー i→i+1）に対応する隣接方向（フラットトップ axial・BoardTerrainRenderer._add_skirt と同じ対応）。
 const _EDGE_DIRS: Array[Vector2i] = [
 	Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 1),
 	Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
@@ -1517,7 +1179,7 @@ func _add_sight_boundary(visible: Dictionary) -> void:
 	var hw := TILE * SIGHT_EDGE_WIDTH * 0.5  # 帯の半幅
 	for hex in visible:
 		var p := Hex.to_pixel(hex, TILE)
-		var sy := _elev(hex) + 0.05
+		var sy := _terrain_renderer.elev(hex) + 0.05
 		for i in 6:
 			if visible.has(hex + _EDGE_DIRS[i]):
 				continue  # 内側の辺は描かない（外周だけ）
@@ -1552,14 +1214,6 @@ func _add_thick_edge(im: ImmediateMesh, v0: Vector3, v1: Vector3, hw: float) -> 
 	var e := e1 - perp
 	im.surface_add_vertex(a); im.surface_add_vertex(c); im.surface_add_vertex(b)
 	im.surface_add_vertex(b); im.surface_add_vertex(c); im.surface_add_vertex(e)
-
-## 地形タイルを読む。基本 {name}.png ＋連番 variant。
-func _load_terrain_variants(base_path: String) -> Array:
-	return TerrainTiles.variants(base_path)
-
-## ヘックス座標から決定的に variant を選ぶ（盤の再構築でも不変）。
-func _terrain_variant(hex: Vector2i, count: int) -> int:
-	return TerrainTiles.variant_index(hex, count)
 
 func _clear_children(root: Node3D) -> void:
 	for c in root.get_children():
