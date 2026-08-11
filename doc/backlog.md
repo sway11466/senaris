@@ -97,7 +97,7 @@
 **移動/カメラ演出の速度設定・敵ターンスキップ・演出の適用範囲拡張**（優先度：低）
 
 - 背景：敵の全行動を見せる（移動アニメ＋カメラ追従）ぶん、敵が多いターンは総時間が伸びる。アニメ速度の設定（高速／標準／オフ）と敵ターンのスキップは SLG の定番だが、設定画面もスキップ導線も未実装（[uiux.md](gdd/uiux.md) システムメニュー・敵ターンのカメラ）。また演出には未対応の隙間がいくつかある。
-- 対応：(1) 設定画面を作る段で、移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）とカメラ追従（`FOCUS_PAN_SEC`）を設定値から引く。(2) 敵ターンのスキップ（キー／ボタンで残りを一気に最終状態へ）。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
+- 対応：(1) 設定画面を作る段で、移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）とカメラ追従（`FOCUS_PAN_SEC`）を設定値から引く。戦闘演出の速度（[combat_scene.md](tech/combat_scene.md) テンポ・スキップの「フル／短縮／オフ」3段）も同じ設定に乗せる＝置き場所が決まっていないのはこれだけで、AIターンの短縮は仕様だけあって未実装。(2) 敵ターンのスキップ（キー／ボタンで残りを一気に最終状態へ）。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
 - 該当：`presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`application/match_controller.gd`（ターンのテンポ・スキップ）・設定の永続化（feature-9 のセーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき／敵ターンが長く感じ始めたら。
 
 ### feature-19
@@ -125,14 +125,6 @@
 - 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台のうち `graveyard`・`boss` は仕上げて `.ogg` 化済み（投入済みは afterglow／boss／defeat／dungeon／graveyard／journey／menu／raid／title／victory）。残りの下書き（`forest`／`ruins`／`temple`／`ritual`／`boss2`／`crisis`）が `.mscz` のまま仕上げ待ち。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
 - 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
 - 該当：`assets/bgm-src/`・`assets/bgm/`・`application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
-
-### feature-22
-
-**戦闘演出シーンの未決仕様確定**（優先度：低）
-
-- 背景：戦闘演出シーンの設計は [combat_scene.md](tech/combat_scene.md) で左右固定・隊列・エフェクトまで確定済み。実装着手に必要な3点の数値／仕様が未確定。
-- 対応：(1) 隊列スロットの実px（シーン解像度・立ち絵サイズ確定後）とアニメのタイミング値を決める。(2) 演出速度設定のUI配置（システムメニュー／オプション）を決める。確定したら combat_scene.md に反映。背景は3Dの地面（マップ絵の流用）に決着＝背景絵の作画スペックは不要になった。
-- 該当：`doc/tech/combat_scene.md`（確定後に反映）・`presentation/combat/`（実装時）。着手の引き金＝戦闘演出シーンの実装に入るとき。
 
 ### feature-25
 
@@ -290,7 +282,7 @@
 
 - 背景：`presentation/ui/hud.gd` のシステムメニューに「設定」項目があるが、`main.gd` 側に受け口が無く現状は空振り。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
 - 対応：1枚の設定シーンを作り、タイトル画面（feature-46）とゲーム中のシステムメニューの両方から開く。項目は 音量（マスター／BGM／SE）・言語（ja／en。翻訳は投入済み）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。永続化は `user://settings.json`（`ProgressStore` の隣・セーブデータとは別枠。設定は中断セーブに含めない）。音量は AudioServer のバスに反映、言語は `TranslationServer.set_locale`。
-- 該当：`presentation/settings/`（新規）・`presentation/ui/hud.gd`（`settings_requested` シグナル）・`presentation/main/main.gd`（結線）・`infrastructure/save/settings_store.gd`（新規）・`presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（演出速度の設定値化）・feature-12（項目名の i18n）・feature-22（演出速度UIの配置が未決とある＝ここで決まる）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
+- 該当：`presentation/settings/`（新規）・`presentation/ui/hud.gd`（`settings_requested` シグナル）・`presentation/main/main.gd`（結線）・`infrastructure/save/settings_store.gd`（新規）・`presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-12（項目名の i18n）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
 
 ### feature-49
 
