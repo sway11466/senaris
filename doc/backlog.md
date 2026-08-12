@@ -261,7 +261,11 @@
 **アプリアイコンの差し替え**
 
 - 背景：ウィンドウ／タスクバーのアイコン（`application/config/icon`）が未設定で Godot のアイコンのまま。Godot は MIT でロゴの表示義務が無いため、フォークやカスタムビルドは不要＝プロジェクト設定と画像の差し替えだけで済む。起動スプラッシュは差し替え済み（2026-08-13。[menu.md](art/menu.md) §6）。
-- 対応：小サイズ版のロゴ（`assets/promo-src/logo/logo_small_dark.svg`）から PNG を書き出して `application/config/icon` に指定する。変換は `tools/rasterize_svg.gd`。あわせて Windows export preset の exe アイコン（.ico）も差し替える。アイコンは正方形で、スプラッシュと違って文字が読める寸法にならないため、紋章だけを切り出す形になる可能性がある（実機で見て決める）。
+- 対応：文字を落とした紋章だけの版を `tools/logo/build_logo.py` に足し、PNG へ焼いて `application/config/icon` に指定する。変換は `tools/rasterize_svg.gd`、`.ico`（16/24/32/48/64/128/256 を1ファイルに束ねる）は ImageMagick で組む。あわせて Windows export preset の exe アイコンも差し替える。
+- 小さいアイコンはヘックス1枚に剣が刺さっているだけの版にする。7枚のクラスタは 32px 以下で塊に潰れる。どの寸法から切り替えるかは焼いて見て決める。
+- 紋章版は、タイルから文字を抜いているマスクを剣だけに絞って組み直す。文字のレイヤーを消すだけだと、タイルに文字型の切り欠きが残る。
+- 紋章は横 500 に対して縦 565（剣が上に伸びる分）で正方形ではない。左右に余白を足すか、アイコン版だけ剣を短くするかを選ぶ。
+- exe への焼き込みは `export_presets.cfg`（feature-10 で新規作成）が要る。それまでに作れるのはウィンドウ用の PNG と `.ico` まで。
 - 該当：`project.godot`（`application/config/icon`）・`export_presets.cfg`（exe アイコン・feature-10 で新規作成）・`assets/`（アイコン画像）。着手の引き金＝配布ビルドを作るとき。
 
 ### feature-46
