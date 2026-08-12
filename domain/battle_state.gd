@@ -527,10 +527,11 @@ func _move_stop(hex: Vector2i, u: Unit) -> bool:
 	return _in_enemy_zoc(hex, u)
 
 ## hex が u から見た敵ZOC内か（敵ユニットに隣接しているか）。ZOCに入ると移動が止まる。
-func _in_enemy_zoc(hex: Vector2i, u: Unit) -> bool:
+## ignore_id＝ZOCを数えない敵（-1＝全員数える）。AIの迂回距離が狙う標的だけを外すのに使う。
+func _in_enemy_zoc(hex: Vector2i, u: Unit, ignore_id: int = -1) -> bool:
 	for nb in Hex.neighbors(hex):
 		var occ := unit_at(nb)
-		if occ != null and occ.team != u.team:
+		if occ != null and occ.team != u.team and occ.id != ignore_id:
 			return true
 	return false
 
@@ -742,9 +743,17 @@ func can_attack(attacker_id: int, target_id: int) -> bool:
 
 ## from_hex に attacker が居ると仮定したときの攻撃可否。仮移動でメニューを出す（移動確定前）ために使う。
 func _can_attack_from(a: Unit, t: Unit, from_hex: Vector2i) -> bool:
-	if a == null or t == null:
+	if a == null:
 		return false
 	if not is_current_unit(a) or has_attacked(a.id):
+		return false
+	return _can_hit(a, t, from_hex)
+
+## a が from_hex から t に攻撃を届かせられるか＝盤の形だけの判定（ターンの状態は見ない）。
+## 陣営・対空/対地・射程の3つ。AIの距離（攻撃可能なマス）はターンの外から測るのでこちらを使う
+## ＝手番でない駒からも距離が読める。攻撃そのものの可否は _can_attack_from（ターン判定つき）。
+func _can_hit(a: Unit, t: Unit, from_hex: Vector2i) -> bool:
+	if a == null or t == null:
 		return false
 	if t.team == a.team:
 		return false
@@ -821,6 +830,112 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 			"melee": melee,
 		},
 	}
+
+# --- AIの距離（攻撃可能なマス・移動距離／地形距離／迂回距離）。詳細 → doc/gdd/ai.md（用語 > 距離） ---
+
+## 距離が「測れない」ことを表す番兵。除外したマスを避けて標的へ辿り着けないときの値で、
+## そのまま比較できる（＝どの標的よりも遠い）。行き先が無くなったあとどう振る舞うかは
+## 特性ごとの行動ルールが決める。
+const UNREACHABLE := 1 << 30
+
+## 標的 target_id に攻撃可能なマスの集合＝unit_id の駒がそこに立てば攻撃が届くマス。
+## 射程（min_range〜attack_range）だけでなく、その標的を攻撃できるか（対空・対地）まで見る
+## ＝対空攻撃力の無い駒にとって飛行の標的は1マスも持たない＝距離が測れない。
+## 空きも地形も見ない: 駒で埋まったマスは移動距離の側で壁として落ち、地形距離では逆に数える
+## （地形距離は駒を壁にしない）。ここで絞ると2つの距離の使い分けが潰れる。
+func attack_cells(unit_id: int, target_id: int) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	var a := unit_by_id(unit_id)
+	var t := unit_by_id(target_id)
+	if a == null or t == null:
+		return cells
+	for hex in Hex.within_range(t.pos, a.attack_range):
+		if in_field(hex) and _can_hit(a, t, hex):
+			cells.append(hex)
+	return cells
+
+## 移動距離の表＝unit_id の駒の移動規則で、from を起点に流した道のり表 { ヘックス: コスト }。
+## 侵入できないマス（地形・すでに駒がいるマス・1マスのコストが移動力を超えるマス）は載らない。
+##
+## 起点を引数に取るのは、AIが表を2方向に使うため。標的選び＝行動ユニットから流して各標的の
+## 攻撃可能なマスを読む。前進＝標的から流して移動範囲の各マスを読む（縮むマスを探す）。
+## 向きが違うだけで規則は同じなので、1駒につき「自分から3種類」＋「決めた標的へ1種類」で足りる。
+##
+## 行動ユニットが今いるマスは、起点でなくても壁にしない（自分自身で道を塞がない）。
+func move_cost_field(unit_id: int, from: Vector2i) -> Dictionary:
+	var u := unit_by_id(unit_id)
+	if u == null:
+		return {}
+	return travel_cost_field_avoiding_units(from, u.move_type, u.move, u.pos)
+
+## 地形距離の表＝駒を壁として数えず、地形だけで測った道のり表。
+## 仲間や敵に塞がれていても、その駒がどいたあとに通れる道を測る（見込前進が使う）。
+## travel_cost_field のメモに乗る＝同じ起点・同じ移動タイプなら流し直さない。
+func terrain_cost_field(unit_id: int, from: Vector2i) -> Dictionary:
+	var u := unit_by_id(unit_id)
+	if u == null:
+		return {}
+	return travel_cost_field(from, u.move_type, u.move)
+
+## 迂回距離の表＝移動距離の表に加えて敵ZOC（敵ユニットに隣接するマス）も壁にしたもの。
+## ZOCは入ると移動が終わるので、避けて進めば前衛の帯に触れずに横へ滑れる（回り込みが使う）。
+##
+## ignore_zoc_id＝ZOCを数えないユニット（＝狙っている標的自身）。標的のZOCまで避けると
+## 標的の隣へ入れず必ず測れなくなるので、そこだけ外す。-1＝全ての敵のZOCを避ける（拠点が標的のとき）。
+##
+## 行動ユニットが今いるマスはZOCでも壁にしない。起点から流すときは Dijkstra が起点にコストを
+## 掛けないので、標的から流すときと値が食い違わないよう向きを揃える。
+## 駒もZOCも1手ごとに動くのでメモしない（地形だけの terrain_cost_field と違って使い捨て）。
+func detour_cost_field(unit_id: int, from: Vector2i, ignore_zoc_id: int = -1) -> Dictionary:
+	var u := unit_by_id(unit_id)
+	if u == null or not in_field(from):
+		return {}
+	var cost_fn := func(hex: Vector2i) -> int:
+		if not in_field(hex):
+			return Movement.IMPASSABLE
+		if hex != from and hex != u.pos:
+			if unit_at(hex) != null:
+				return Movement.IMPASSABLE  # 起点・自分以外の駒は壁
+			if _in_enemy_zoc(hex, u, ignore_zoc_id):
+				return Movement.IMPASSABLE  # 敵ZOCは踏まない＝これが迂回
+		var c := Movement.cost(_movement, u.move_type, terrain_at(hex))
+		if u.move > 0 and c > u.move:
+			return Movement.IMPASSABLE  # 何ターンかけても入れない＝この駒には壁
+		return c
+	return Hex.flood_reach_cost_map(from, 1 << 24, cost_fn)
+
+## field 上で cells に届く最小コスト。1マスも載っていなければ UNREACHABLE（＝測れない）。
+## 同値をどう捌くか（col → row の若い方）は行き先を選ぶ側の話なので、ここでは値だけ返す。
+func min_cost_in(field: Dictionary, cells: Array) -> int:
+	var best := UNREACHABLE
+	for hex in cells:
+		var c := int(field.get(hex, UNREACHABLE))
+		if c < best:
+			best = c
+	return best
+
+## 移動距離＝行動ユニットが侵入できないマスを除いて、現在地から cells までを地形コストで測った最小距離。
+## 標的を1つ測る口。同じターンに複数の標的を測るなら move_cost_field を1枚作って min_cost_in で読む
+## （この口は呼ぶたびに盤を流し直す）。以下の2つも同じ。
+func move_distance(unit_id: int, cells: Array) -> int:
+	var u := unit_by_id(unit_id)
+	if u == null:
+		return UNREACHABLE
+	return min_cost_in(move_cost_field(unit_id, u.pos), cells)
+
+## 地形距離＝移動距離から駒の除外を外し、地形だけで測った最小距離。
+func terrain_distance(unit_id: int, cells: Array) -> int:
+	var u := unit_by_id(unit_id)
+	if u == null:
+		return UNREACHABLE
+	return min_cost_in(terrain_cost_field(unit_id, u.pos), cells)
+
+## 迂回距離＝移動距離に敵ZOCの除外を加えた最小距離。ignore_zoc_id は detour_cost_field と同じ。
+func detour_distance(unit_id: int, cells: Array, ignore_zoc_id: int = -1) -> int:
+	var u := unit_by_id(unit_id)
+	if u == null:
+		return UNREACHABLE
+	return min_cost_in(detour_cost_field(unit_id, u.pos, ignore_zoc_id), cells)
 
 ## 陣形スキルを解決して盤に適用する。option＝Formation.available_for の1要素。
 ## target＝着弾中心（buff では無視）。参加ユニットは行動完了。詳細 → doc/gdd/formations.md
