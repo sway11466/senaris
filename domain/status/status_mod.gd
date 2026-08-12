@@ -46,7 +46,7 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 
 ## エントリ m が unit 1体に掛かった弱体か（陣営全体のものは含めない）。
 ## ピュリファイが落とす範囲（BattleState.clear_debuffs）と、敵AIのデバフ本数の上限判定
-## （doc/gdd/ai.md §5b skill_stack）が同じ判定を使う＝落とせるものと数えるものがずれない。
+## （doc/gdd/ai.md stack 条件）が同じ判定を使う＝落とせるものと数えるものがずれない。
 static func is_unit_debuff(m: Dictionary, unit: Unit) -> bool:
 	return is_debuff(m) and String(m.get("scope", "")) == "unit" and applies_to(m, unit)
 

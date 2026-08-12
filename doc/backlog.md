@@ -295,23 +295,6 @@
 - 対応：`menu_sortie` を作り、外から入る経路でだけ鳴らす。いまセレクト経由では `menu_stage`（`ui_confirm`）が鳴っているので、置き換えるか後ろに重ねるかを決める。判断材料は入口が2つに増えてからのほうが揃う＝ロード機能（feature-9 の中断セーブ復元）ができて「つづきから」が動くようになってから着手する。入口が1つの現状では、決定音との違いを検討する材料が足りない。
 - 該当：`assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`data/audio/sfx_catalog.gd`（BIND）・`presentation/select/stage_select.gd`（セレクト経由）・ロード経路（feature-9 で決まる箇所）・`doc/audio/sfx.md`（発火点カタログ）。関連＝feature-9（中断セーブのロード）。着手の引き金＝「つづきから」が動くようになったとき。
 
-### feature-50
-
-**敵AI: 新仕様（特性ベース）への作り直し**（優先度：高）
-
-- 背景：[ai.md](gdd/ai.md) を軸の組み合わせから特性単位へ書き直した（旧版は `doc/gdd/ai_old.md`）。実装は旧仕様のまま＝`nearest_attacker_brain` が engage/skill/attack/target/advance の各軸を読む作り。距離の定義（盤上距離・移動距離・迂回距離・視線距離）、前進の種類（最大前進・回り込み・直線寄せ）、stack 条件、獲物・手負いの選び方が新仕様で変わっている。
-- 対応：特性ごとの行動ルールを上から当てる形へ作り直す。ai.csv の列を `ai` / `name` / `sight` / `stack` に絞る（旧列は全廃）。テストは特性ごとに「どの行が成立するか」で書く。旧実装で効いていた挙動との差分（stack の全特性適用、weak の sight、swarm の行順、raid が敵を追わない）を回帰で押さえる。完了時に `ai_old.md` を消し、コード内の ai.md 参照コメントを更新する。
-- 該当：`domain/ai/`・`data/ai/ai.csv`＋`convert.gd`＋`ai_catalog.gd`・`application/stage_loader.gd`・`data/stages/`（部隊定義）・`tests/unit/test_ai.gd`・`tests/unit/test_data_integrity.gd`・`doc/gdd/ai_old.md`（削除）。
-- 段取り（2026-08-12 の読み合わせで決定。仕様は ai.md 更新済み・以降は ai.md が正本）：
-  1. データ層＝`ai.csv` を4列化（主キー列 `label`→`ai`）・`convert.gd` の必須列・`ai_catalog`。`sight` の記号は `-`（その特性は使わない）／`*`（上限なし・壁は遮る）／数値。`test_data_integrity` に「敵駒は必ず部隊に属する」の検証を追加。
-  2. 距離の基盤＝`BattleState` に地形距離・迂回距離・攻撃可能なマス集合を足す（移動距離は既存の `travel_cost_field_avoiding_units`）。攻撃可能なマスは対空・対地まで見る。
-  3. 特性エンジン＝行動ルールを表として持つ Brain へ作り直し。特性ごとに「どの行が成立するか」でテストを書く。
-  4. 配線＝ステージ直下の `ai`（`BattleState.enemy_ai`）と `NearestAttackerBrain.from_preset` を廃止。`main.gd`・`match_controller`・`stage_loader` を新しい組み立てに合わせる。敵駒は必ず部隊に属する（テストも部隊で書く）。
-  5. 行動順・拠点出撃を新仕様へ（部隊 order → 部隊内は盤上距離、拠点は1部隊）。
-  6. 検知域の表示に weak を含める（`*` は十分大きい予算として扱う）。`presentation/board/hex_board_3d.gd`・`match_controller.detection_radius`。
-  7. 後片付け＝`ai_old.md` 削除・コード内の参照コメント更新・本エントリ削除。
-- 依存は一直線（2 は 1、3 は 2、…）。並行に走らせず順に消化する。
-
 ### feature-51
 
 **プロモーション映像の制作**（優先度：低）

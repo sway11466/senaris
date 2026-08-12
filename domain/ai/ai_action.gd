@@ -28,7 +28,7 @@ static func attack(unit_id: int, target_id: int) -> AiAction:
 	a.target_id = target_id
 	return a
 
-## unit_id が option のユニットスキルを target へ放つ1手（詳細 → doc/gdd/ai.md §4 スキル）。
+## unit_id が option のユニットスキルを target へ放つ1手（詳細 → doc/gdd/ai.md 特性詳細のスキルの行）。
 ## option は Formation.available_for が返す辞書そのまま＝application が FormationCommand へ翻訳する。
 static func skill(unit_id: int, option: Dictionary, target: Vector2i) -> AiAction:
 	var a := AiAction.new()
@@ -38,7 +38,7 @@ static func skill(unit_id: int, option: Dictionary, target: Vector2i) -> AiActio
 	a.to = target
 	return a
 
-## 拠点 base_hex の garrison_index を to へ出撃させる1手（詳細 → doc/gdd/ai.md §9 拠点出撃）。
+## 拠点 base_hex の garrison_index を to へ出撃させる1手（詳細 → doc/gdd/ai.md 拠点出撃）。
 static func deploy(base_hex: Vector2i, garrison_index: int, to: Vector2i) -> AiAction:
 	var a := AiAction.new()
 	a.kind = Kind.DEPLOY

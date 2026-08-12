@@ -18,7 +18,7 @@ func test_team_mul_applies_to_team_only() -> void:
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001, "敵(team1)には乗らない")
 
 func test_debuff_count_counts_only_this_units_debuffs() -> void:
-	# 敵AIのデバフ本数の上限（doc/gdd/ai.md §5b）が読む数え方。数えるのはピュリファイが落とすのと
+	# 敵AIのデバフ本数の上限（doc/gdd/ai.md stack 条件）が読む数え方。数えるのはピュリファイが落とすのと
 	# 同じ範囲＝kind=debuff かつ scope=unit で、その駒に効いているものだけ。種類では分けず合算する。
 	var s := _state()
 	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3, 8, 30, 30)
