@@ -83,9 +83,14 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
-## unit 1体に効いている弱体（デバフ）の本数。敵AIのデバフ本数の上限（doc/gdd/ai.md §5b）が読む。
+## unit 1体に効いている弱体（デバフ）の本数。敵AIの stack 条件（doc/gdd/ai.md）が読む。
 func debuff_count(unit: Unit) -> int:
 	return StatusMod.debuff_count(_status_mods, unit)
+
+## unit 1体に効いている強化（バフ）の本数。敵AIの stack 条件（強化を重ねる上限）が読む。
+## 弱体と同じく対象1体に掛かったものだけ＝陣営全体の補正（ホーリーアリア）は数えない。
+func buff_count(unit: Unit) -> int:
+	return StatusMod.buff_count(_status_mods, unit)
 
 ## unit に掛かっている弱体（デバフ）を落とす（③ピュリファイ）。落とした件数を返す。
 ## 落とすのは kind が debuff で対象1体（scope="unit"）のものだけ＝味方から掛かった
@@ -936,6 +941,16 @@ func detour_distance(unit_id: int, cells: Array, ignore_zoc_id: int = -1) -> int
 	if u == null:
 		return UNREACHABLE
 	return min_cost_in(detour_cost_field(unit_id, u.pos, ignore_zoc_id), cells)
+
+## 標的がユニットのときの迂回距離の表。ignore_zoc_id に標的自身を埋める＝素の detour_cost_field は
+## 既定（-1）が「全ての敵ZOCを避ける」で、ユニットを狙うと必ず測れなくなる側に転ぶ。
+## 拠点を狙うとき（raid）は標的がユニットでないので、素の口を -1 のまま使うのが正しい。
+func detour_cost_field_to(unit_id: int, from: Vector2i, target_id: int) -> Dictionary:
+	return detour_cost_field(unit_id, from, target_id)
+
+## 標的がユニットのときの迂回距離＝その標的に攻撃可能なマスまで、標的自身のZOCだけ外して測る。
+func detour_distance_to(unit_id: int, target_id: int) -> int:
+	return detour_distance(unit_id, attack_cells(unit_id, target_id), target_id)
 
 ## 陣形スキルを解決して盤に適用する。option＝Formation.available_for の1要素。
 ## target＝着弾中心（buff では無視）。参加ユニットは行動完了。詳細 → doc/gdd/formations.md

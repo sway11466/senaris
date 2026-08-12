@@ -110,8 +110,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.setup(state)
 	# 敵軍(team 1)のAI: 部隊(squad)はステージ定義のラベルで、部隊外はステージ既定ラベルで振る舞う。
 	_controller.ai_team = 1
-	var brain := NearestAttackerBrain.from_preset(_ai_presets.get(state.enemy_ai, {}))
-	brain.presets = _ai_presets  # 部隊のラベル解決用
+	var brain := TraitBrain.new()
+	brain.presets = _ai_presets  # 部隊の特性解決用（特性id -> パラメーター）
 	_controller.ai_brain = brain
 	add_child(_controller)
 	var terrain_skins := StageLoader.load_terrain_skins(path)  # 見た目差分(座標→skin)は presentation へ（案P）
