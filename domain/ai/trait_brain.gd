@@ -16,6 +16,9 @@ var presets := {}
 const TRAITS := ["charge", "guard", "raid", "weak", "swarm"]
 const DEFAULT_TRAIT := "charge"
 
+## 行動開始条件が視線距離で決まる特性＝盤に検知域を描く対象（doc/gdd/ai.md 特性詳細）。
+const SIGHT_TRAITS := ["guard", "weak"]
+
 ## sight `*`（上限なし）の視線予算。盤のどの距離にも届き、かつ壁（TerrainType.SIGHT_OPAQUE＝1<<20）
 ## 1枚で必ず遮られる大きさ。「上限なし・ただし壁は遮る」を1つの数で表す（doc/gdd/ai.md データ構成）。
 const SIGHT_UNLIMITED := 1 << 16
@@ -118,11 +121,14 @@ func _squad_unit_engaged(state: BattleState, squad_index: int, except_id := -1) 
 			return true
 	return false
 
-## unit の検知半径（索敵範囲の可視化用）。まだ動き出していない guard なら sight、それ以外は0。
+## unit の検知半径（索敵範囲の可視化用）。まだ動き出していない駒のうち、行動開始条件が
+## 視線距離で決まる特性（SIGHT_TRAITS）なら sight、それ以外は0＝盤に検知域を描かない。
+## swarm も sight を持つが行動開始条件は常時＝寝ている状態が無いのでここには入らない。
+## `*`（上限なし）は SIGHT_UNLIMITED がそのまま返る。輪の走査は Sight 側が盤の広さで頭打ちにする。
 func detection_radius(state: BattleState, unit: Unit) -> int:
 	if unit == null or state.is_engaged(unit.id):
 		return 0
-	if _trait_of(state, unit) != "guard":
+	if not (_trait_of(state, unit) in SIGHT_TRAITS):
 		return 0
 	return _sight_of(state, unit)
 

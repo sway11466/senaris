@@ -17,9 +17,22 @@ static func reaches(state: BattleState, from: Vector2i, to: Vector2i, budget: in
 ## 全コスト≥1 前提で距離 budget 以内を候補にし、視線が通るものだけ残す（壁は影を作る・森は範囲が縮む）。
 static func visible_hexes(state: BattleState, from: Vector2i, budget: int) -> Dictionary:
 	var out := { from: true }
-	for h in Hex.within_range(from, budget):
+	for h in _candidates(state, from, budget):
 		if state.in_field(h) and reaches(state, from, h, budget):
 			out[h] = true
+	return out
+
+## 走査する候補マス。予算の輪が盤より大きくなるなら盤の全マスを回す。
+## sight `*`（上限なし）の予算は盤より桁違いに大きく、輪をそのまま回すと盤外を億単位で
+## 走査して固まる。盤内しか残さないので結果は変わらず、狭い索敵では輪のほうが安いので残す。
+## この関数は盤を描き直すたびに呼ばれる（検知域の輪郭）＝走査量がそのまま操作の重さになる。
+static func _candidates(state: BattleState, from: Vector2i, budget: int) -> Array:
+	if budget >= 0 and 3 * budget * (budget + 1) + 1 <= state.cols * state.rows:
+		return Hex.within_range(from, budget)
+	var out: Array = []
+	for col in state.cols:
+		for row in state.rows:
+			out.append(Hex.offset_to_axial(col, row))
 	return out
 
 ## from→to の直線（bias でずらした1本）の視線コスト積算（from を除き to を含む）。

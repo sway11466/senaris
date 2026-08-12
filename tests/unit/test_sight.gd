@@ -88,3 +88,14 @@ func test_sight_helper_reads_injected_cost_table() -> void:
 	assert_true(Sight.reaches(s, Vector2i(0, 0), Vector2i(2, 0), 2), "表なし＝全地形1＝距離2で届く")
 	s.set_sight_cost(COST)
 	assert_false(Sight.reaches(s, Vector2i(0, 0), Vector2i(2, 0), 2), "森(2)を注入すると同じ経路で届かない")
+
+func test_visible_hexes_is_bounded_by_the_board() -> void:
+	# sight `*`（上限なし）の予算は盤より桁違いに大きい。候補の輪を盤の広さで頭打ちにしないと
+	# 盤外を億単位で走査して固まる。結果は「盤内の見えるマス」だけなので変わらない。
+	var s := _state(6, 4)
+	s.set_terrain(Vector2i(2, 0), "wall")
+	var huge := s.visible_hexes(Vector2i(0, 0), TraitBrain.SIGHT_UNLIMITED)
+	for h in huge:
+		assert_true(s.in_field(h), "盤外は含めない")
+	assert_lt(huge.size(), 6 * 4 + 1, "壁の影のぶんだけ盤の全マスより少ない")
+	assert_false(huge.has(Vector2i(3, 0)), "壁の裏は上限なしでも見えない")

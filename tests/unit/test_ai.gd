@@ -291,6 +291,19 @@ func test_detection_radius_only_for_a_sleeping_guard() -> void:
 	s.mark_engaged(g.id)
 	assert_eq(_brain.detection_radius(s, g), 0, "起動済みは0")
 
+func test_detection_radius_covers_weak_and_skips_swarm() -> void:
+	# weak も行動開始条件が視線で決まる＝寝ている間は検知域を描く（sight `*` は上限なしの予算）。
+	# swarm は sight を持つが行動開始条件は常時＝寝ている状態が無いので描かない。
+	var s := BattleState.new(12, 3)
+	var w := _ai(s, _squad(s, "weak"), 10, 1, 1)
+	var sw := _ai(s, _squad(s, "swarm"), 11, 2, 1)
+	assert_eq(_brain.detection_radius(s, w), TraitBrain.SIGHT_UNLIMITED, "寝ている弱者狙い＝上限なしの予算")
+	assert_eq(_brain.detection_radius(s, sw), 0, "群れは常時起動＝検知域なし")
+	assert_eq(_brain.detection_radius(s, _ai(s, _squad(s, "weak", { "sight": 4 }), 12, 3, 1)), 4,
+		"部隊の上書きがそのまま半径になる")
+	s.mark_engaged(w.id)
+	assert_eq(_brain.detection_radius(s, w), 0, "獲物を見つけたあとは0")
+
 # --- raid（拠点攻略） ---
 
 func test_raid_heads_for_the_base_instead_of_the_enemy() -> void:
