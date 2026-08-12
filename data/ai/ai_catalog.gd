@@ -1,16 +1,16 @@
 extends RefCounted
 class_name AiCatalog
-## AI思考プリセット表(JSON) → { label: プリセット辞書 } の読み込み。詳細 → doc/gdd/ai.md
-## data層＝純データのみ（Brain の組立は domain/ai 側＝NearestAttackerBrain.from_preset）。
+## AI特性表(JSON) → { 特性id: パラメーター辞書 } の読み込み。詳細 → doc/gdd/ai.md
+## data層＝純データのみ（Brain の組立は domain/ai 側）。
 
 const AI_PATH := "res://data/ai/ai.json"
 
-## プリセット辞書（{ "presets": { label: {...} } }）→ { label: Dictionary }。
+## 特性辞書（{ "presets": { 特性id: {...} } }）→ { 特性id: Dictionary }。
 static func build(data: Dictionary) -> Dictionary:
 	var presets: Variant = data.get("presets", {})
 	return presets if typeof(presets) == TYPE_DICTIONARY else {}
 
-## res:// パスの JSON を読み込んで { label: Dictionary } を返す。失敗時は空。
+## res:// パスの JSON を読み込んで { 特性id: Dictionary } を返す。失敗時は空。
 static func load_file(path: String) -> Dictionary:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
@@ -22,6 +22,6 @@ static func load_file(path: String) -> Dictionary:
 		return {}
 	return build(data)
 
-## 既定のプリセット表（ai.json）を読み込む。
+## 既定の特性表（ai.json）を読み込む。
 static func load_default() -> Dictionary:
 	return load_file(AI_PATH)

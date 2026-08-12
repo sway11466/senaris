@@ -246,31 +246,27 @@ func test_retainers_at_max_is_allowed() -> void:
 
 # --- ai: build_presets ---
 
-func _valid_ai_row(label: String) -> Dictionary:
-	return {
-		"label": label, "engage": "charge", "sight": "-", "retreat": "-",
-		"skill": "-", "skill_target": "-", "skill_stack": "-",
-		"attack_sight": "-", "attack": "-", "target": "weak", "advance": "-",
-	}
+func _valid_ai_row(ai: String) -> Dictionary:
+	return { "ai": ai, "name": "拠点攻略", "sight": "-", "stack": "-" }
 
 func test_ai_valid_builds_json() -> void:
 	var r := Ai.build_presets([ _valid_ai_row("raid") ])
 	assert_eq(r["problems"].size(), 0)
 	assert_not_null(r["json"])
 	assert_true(r["json"]["presets"].has("raid"))
-	assert_false(r["json"]["presets"]["raid"].has("label"), "label は軸に含めない")
-	assert_eq(r["json"]["presets"]["raid"]["engage"], "charge")
+	assert_false(r["json"]["presets"]["raid"].has("ai"), "主キー ai はパラメーターに含めない")
+	assert_eq(r["json"]["presets"]["raid"]["name"], "拠点攻略")
 
 func test_ai_each_required_axis_pins_json_null() -> void:
 	for axis in Ai.REQUIRED_AXES:
 		var row := _valid_ai_row("raid")
 		row.erase(axis)
 		var r := Ai.build_presets([row])
-		assert_null(r["json"], "軸 '%s' 欠落で json=null" % axis)
+		assert_null(r["json"], "列 '%s' 欠落で json=null" % axis)
 
 func test_ai_empty_label_blocks() -> void:
 	var r := Ai.build_presets([ _valid_ai_row("") ])
-	assert_null(r["json"], "label 空で json=null")
+	assert_null(r["json"], "ai 空で json=null")
 
 # --- terrain: build_type ---
 

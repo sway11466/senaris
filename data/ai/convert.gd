@@ -6,10 +6,9 @@ extends SceneTree
 
 const Csv = preload("res://data/csv_util.gd")
 
-## 各プリセットが非空で必ず持つべき思考の軸（doc/gdd/ai.md「既定と省略のポリシー」）。
+## 各特性が非空で必ず持つべき列（doc/gdd/ai.md「データ構成」）。主キー `ai` は別途 空チェックする。
 ## CSVは省略不可＝`-`（該当なし）も値として埋める。欠け/空セルはデータのバグとして生成を止める。
-const REQUIRED_AXES := ["engage", "sight", "retreat", "skill", "skill_target", "skill_stack",
-	"attack_sight", "attack", "target", "advance"]
+const REQUIRED_AXES := ["name", "sight", "stack"]
 
 func _initialize() -> void:
 	var rows := Csv.read_table("res://data/ai/ai.csv")
@@ -23,23 +22,23 @@ func _initialize() -> void:
 		print("ai.json: %d presets" % result["json"]["presets"].size())
 	quit()
 
-## ai.csv 行 → { problems, json }。json は { "presets": { label: 全軸の辞書 } }（軸は REQUIRED_AXES）。
-## 全軸そろい検証つき（共有 Csv.missing_required）＋ label 空行の検出: 1件でも欠け/空があれば json は null。純関数。
+## ai.csv 行 → { problems, json }。json は { "presets": { 特性id: 残り列の辞書 } }（列は REQUIRED_AXES）。
+## 全列そろい検証つき（共有 Csv.missing_required）＋ ai 空行の検出: 1件でも欠け/空があれば json は null。純関数。
 static func build_presets(rows: Array) -> Dictionary:
 	var problems := []
-	for p in Csv.missing_required(rows, REQUIRED_AXES, "label"):
+	for p in Csv.missing_required(rows, REQUIRED_AXES, "ai"):
 		problems.append("%s（`-`＝該当なし を明示すること）" % p)
 	for i in rows.size():
-		if str(rows[i].get("label", "")).strip_edges().is_empty():
-			problems.append("行[%d] の label が空" % i)
+		if str(rows[i].get("ai", "")).strip_edges().is_empty():
+			problems.append("行[%d] の ai が空" % i)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	var presets := {}
 	for r in rows:
-		var label := str(r["label"])
+		var ai := str(r["ai"])
 		var p := {}
 		for key in r:
-			if key != "label":
+			if key != "ai":
 				p[key] = r[key]
-		presets[label] = p
+		presets[ai] = p
 	return { "problems": problems, "json": { "presets": presets } }

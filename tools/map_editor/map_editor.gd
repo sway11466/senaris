@@ -15,6 +15,11 @@ const MODE_LABELS := { "stage": "ステージ", "select": "選択", "terrain": "
 const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
 const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
+## sight の記号（ai.csv・ステージJSON 共通。詳細 → doc/gdd/ai.md データ構成）。
+const SIGHT_UNUSED := "-"     ## その特性は sight を使わない
+const SIGHT_UNLIMITED := "*"  ## 上限なし＝盤全体（視線コスト x の壁は遮る）
+## `*`（上限なし）から数値へ切り替えたときの出発値。継承できる数が無いのでここで決め打つ。
+const SIGHT_SPIN_DEFAULT := 5
 
 var _doc: MapEditorDoc
 var _path := ""  # 現在のファイル（グローバルパス。空=未保存）
@@ -29,9 +34,9 @@ var _skin_categories: Array = [] # 敵パレット用の分類一覧（基準を
 var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]（CSV順）
 var _default_skin_by_type := {}      # terrain_type -> 既定スキンの skin_id（TerrainSkinCatalog と同じ規則）
 var _bgm_tracks: Array = []  # assets/bgm/ に実在するトラックID（BGM欄の選択肢。autowire と同じ規約）
-var _ai_presets: Array = []  # [label]
-var _ai_names := {}          # label -> 表示名
-var _ai_params := {}         # label -> プリセット辞書（ai.csv の1行。sight の既定値を引く）
+var _ai_presets: Array = []  # [特性id]
+var _ai_names := {}          # 特性id -> 表示名
+var _ai_params := {}         # 特性id -> パラメーター辞書（ai.csv の1行。sight の既定値を引く）
 
 # パレット選択状態
 var _sel_terrain := 0
@@ -512,17 +517,34 @@ func _char_of_type(type_id: String) -> String:
 	return MapEditorDoc.DEFAULT_CHAR
 
 
-## AIプリセットが索敵で起動するか（engage に sight トークン）。いまの ai.csv では guard だけ。
-func _preset_uses_sight(ai_label: String) -> bool:
+## 特性の sight 既定値（ai.csv の生の値＝`-` / `*` / 数値）。未定義の特性は `-` 扱い。
+func _preset_sight_value(ai_label: String) -> Variant:
 	var preset: Dictionary = _ai_params.get(ai_label, {})
-	return "sight" in String(preset.get("engage", "")).split("|")
+	return preset.get("sight", SIGHT_UNUSED)
 
 
-## AIプリセットの sight 既定値（未設定・数値でない値は 0）。
-func _preset_sight(ai_label: String) -> int:
-	var preset: Dictionary = _ai_params.get(ai_label, {})
-	var v: Variant = preset.get("sight")
-	return int(v) if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT else 0
+## その特性が sight を使うか。`-`＝使わない（charge・raid）／`*` と数値＝使う。
+## 詳細 → doc/gdd/ai.md データ構成
+static func _sight_is_used(v: Variant) -> bool:
+	if typeof(v) != TYPE_STRING:
+		return typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT
+	var s := String(v).strip_edges()
+	return s != SIGHT_UNUSED and s != ""
+
+
+## sight が `*`（上限なし＝盤全体。ただし視線コスト x の壁は遮る）か。
+static func _sight_is_unlimited(v: Variant) -> bool:
+	return typeof(v) == TYPE_STRING and String(v).strip_edges() == SIGHT_UNLIMITED
+
+
+## sight の表示文字列（`*` はそのまま、数値は10進）。
+static func _sight_text(v: Variant) -> String:
+	return SIGHT_UNLIMITED if _sight_is_unlimited(v) else str(_sight_number(v))
+
+
+## sight のスピンボックス用の数値（`*` や非数値は SIGHT_SPIN_DEFAULT）。
+static func _sight_number(v: Variant) -> int:
+	return int(v) if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT else SIGHT_SPIN_DEFAULT
 
 
 ## 部隊/拠点の行動順 order 行。小さいほうから動く（拠点も1部隊として同じ列に並ぶ）。
@@ -541,36 +563,49 @@ func _add_order_row(parent: Control, target: Dictionary, label: String = "order"
 		target["order"] = int(spin.value)  # 省略を残さない（実データは全部隊に書く）
 
 
-## 部隊/拠点の sight 上書き行。索敵で起動するプリセットのときだけ出す。
-## sight 以外の軸は出さない：新しいふるまいは ai.csv にラベルを足して表現する
-## （AIは「プリセット＝CSV／割り当て＝ステージ」の2層。詳細 → doc/gdd/ai.md データ構成）。
+## 部隊/拠点の sight 上書き行。sight を使う特性のときだけ出す（`-` の特性では出さない）。
+## 「sight」＝上書きするか（外すと特性の既定を継承）、「上限なし」＝`*` を書く、数値＝視線距離。
+## sight 以外のパラメーターは出さない：新しいふるまいは ai.csv に特性を足して表現する
+## （AIは「特性＝CSV／割り当て＝ステージ」の2層。詳細 → doc/gdd/ai.md データ構成）。
 func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> void:
-	if not _preset_uses_sight(ai_label):
-		if target.erase("sight"):  # 見えない上書きを残さない（索敵で起きないAIに変えたら消す）
-			_say("%s は索敵で起動しないため、sight の上書きを外しました。" % ai_label)
+	var preset_value: Variant = _preset_sight_value(ai_label)
+	if not _sight_is_used(preset_value):
+		if target.erase("sight"):  # 見えない上書きを残さない（sight を使わないAIに変えたら消す）
+			_say("%s は sight を使わない特性のため、sight の上書きを外しました。" % ai_label)
 		return
-	var preset_sight := _preset_sight(ai_label)
+	var current: Variant = target.get("sight", preset_value)
+	var tip := "索敵の広さ（視線コストの積算予算）。外すと %s の既定 %s を継承する。" \
+		% [ai_label, _sight_text(preset_value)]
 	var row := HBoxContainer.new()
 	parent.add_child(row)
 	var check := CheckBox.new()
 	check.text = "sight"
 	check.button_pressed = target.has("sight")
-	check.tooltip_text = "索敵の広さ（視線コストの積算予算）。外すとプリセット既定 %d を継承する。" % preset_sight
+	check.tooltip_text = tip
 	row.add_child(check)
-	var spin := _make_spin(0, 20, float(int(target.get("sight", preset_sight))))
+	var star := CheckBox.new()
+	star.text = "上限なし"
+	star.button_pressed = _sight_is_unlimited(current)
+	star.tooltip_text = "盤全体を見る（ai.csv の `*`）。視線コスト x の壁は遮る。"
+	row.add_child(star)
+	var spin := _make_spin(0, 20, float(_sight_number(current)))
 	spin.custom_minimum_size = Vector2(64, 0)
-	spin.editable = check.button_pressed
-	spin.tooltip_text = check.tooltip_text
+	spin.tooltip_text = tip
 	row.add_child(spin)
-	check.toggled.connect(func(on: bool) -> void:
-		spin.editable = on
-		if on:
-			target["sight"] = int(spin.value)
+	# 3つのウィジェットが1つの値を作るので、書き込みも活殺も1箇所に寄せる（どれが動いても同じ関数）。
+	var apply := func() -> void:
+		if not check.button_pressed:
+			target.erase("sight")
+		elif star.button_pressed:
+			target["sight"] = SIGHT_UNLIMITED
 		else:
-			target.erase("sight"))
-	spin.value_changed.connect(func(v: float) -> void:
-		if check.button_pressed:
-			target["sight"] = int(v))
+			target["sight"] = int(spin.value)
+		star.disabled = not check.button_pressed
+		spin.editable = check.button_pressed and not star.button_pressed
+	apply.call()
+	check.toggled.connect(func(_on: bool) -> void: apply.call())
+	star.toggled.connect(func(_on: bool) -> void: apply.call())
+	spin.value_changed.connect(func(_v: float) -> void: apply.call())
 
 
 ## 「ステージ」モード＝ステージ全体の設定（名前・ターン制限・盤のサイズ）。
@@ -737,9 +772,10 @@ func _build_squad_palette() -> void:
 		_rebuild_mode())
 
 
-## 部隊1件＝2行。
+## 部隊1件＝2〜3行。
 ## 1行目: 選択トグル（部隊番号と駒数）／部隊名／削除
-## 2行目: 行動順／AIプリセット／sight 上書き（索敵で起動するプリセットのときだけ）
+## 2行目: 行動順／AI特性
+## 3行目: sight 上書き（sight を使う特性のときだけ。2行目に足すとAI名が潰れる幅しかない）
 func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: Dictionary) -> void:
 	var item := VBoxContainer.new()
 	item.add_theme_constant_override("separation", 2)
@@ -784,7 +820,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 			_rebuild_mode())
 	ai_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row2.add_child(ai_row)
-	_add_sight_row(row2, sq, String(sq.get("ai", "")))
+	_add_sight_row(item, sq, String(sq.get("ai", "")))
 
 
 ## 「敵」モード＝駒を置く道具（配置先の部隊とスキンを選ぶ）。部隊の設定は「敵グループ」モード。
@@ -1097,9 +1133,9 @@ func _inspect_base(hit: Dictionary) -> void:
 	else:
 		_add_info(_inspector, "AI出撃: %s（%s）  order: %s"
 			% [ai, String(_ai_names.get(ai, ai)), str(b.get("order", "-"))])
-		if _preset_uses_sight(ai):
-			var default_sight := _preset_sight(ai)
-			_add_info(_inspector, "sight: %d%s" % [int(b.get("sight", default_sight)),
+		var preset_sight: Variant = _preset_sight_value(ai)
+		if _sight_is_used(preset_sight):
+			_add_info(_inspector, "sight: %s%s" % [_sight_text(b.get("sight", preset_sight)),
 				"（上書き）" if b.has("sight") else "（%s の既定）" % ai])
 	var g: Variant = b.get("garrison", [])
 	if typeof(g) == TYPE_ARRAY and not (g as Array).is_empty():
