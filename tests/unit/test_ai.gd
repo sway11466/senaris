@@ -540,15 +540,65 @@ func test_stack_is_a_floor_for_cleansing() -> void:
 	_mod(s, ally, StatusMod.KIND_DEBUFF)
 	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.SKILL, "2本刺さったら落としに動く")
 
+# --- 行動順（部隊は order 順・部隊の中は前線から） ---
+
+func test_squads_act_in_order_not_in_registration_order() -> void:
+	# 部隊は order（1から昇順）の小さいほうから動く。登録順でも敵への近さでもない。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var late := _squad(s, "charge", { "order": 2 })  # 先に登録するが order は後
+	var early := _squad(s, "charge", { "order": 1 })
+	_ai(s, late, 10, 6, 2)  # 敵に近い＝距離で決めるならこちらが先になる
+	var far := _ai(s, early, 11, 8, 2)
+	_pc(s, 1, 1, 2)
+	assert_eq(_brain.next_action(s, 1).unit_id, far.id, "order 1 の部隊から動く")
+
+func test_squad_members_move_from_the_front_line() -> void:
+	# 部隊の中は盤上距離で最寄りの敵に近い駒から。後ろの駒が先に動くと前の駒に塞がれるため。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var back := _ai(s, si, 10, 9, 2)
+	var front := _ai(s, si, 11, 7, 2)
+	_pc(s, 1, 1, 2)
+	assert_eq(_brain.next_action(s, 1).unit_id, front.id, "最寄りの敵に近い駒から動く")
+	# 駒が動けば距離も変わる＝毎ターン計算し直すので前後が入れ替われば順番も入れ替わる
+	back.pos = Hex.offset_to_axial(4, 2)
+	assert_eq(_brain.next_action(s, 1).unit_id, back.id, "前に出た駒が先頭になる")
+
+func test_the_base_deploys_after_the_pieces_of_its_squad() -> void:
+	# 出撃を行うのは、その部隊の盤上の駒を動かし終えたあと。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 6, 2)
+	_base_with_garrison(s, si, 4, 2)
+	_pc(s, 1, 11, 2)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "盤上の駒が先")
+	assert_eq(a.unit_id, u.id)
+	s.set_done(u.id)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "駒を捌いてから出撃")
+
 # --- 拠点出撃（行動開始条件を拠点hex基準で見る） ---
 
-## 控えを1体持つ team1 の拠点を置く。
-func _base_with_garrison(s: BattleState, squad_index: int, col: int, row: int) -> Base:
+## 控えを count 体持つ team1 の拠点を置く（控えの id は 20 から連番＝garrison の記述順）。
+func _base_with_garrison(s: BattleState, squad_index: int, col: int, row: int, count := 1) -> Base:
 	var b := Base.new(Hex.offset_to_axial(col, row), 1)
 	b.squad_index = squad_index
-	b.garrison.append(_u(20, 1, col, row))
+	for i in count:
+		b.garrison.append(_u(20 + i, 1, col, row))
 	s.add_base(b)
 	return b
+
+## 次の1手を出撃として実行し、その AiAction を返す（出す手が無ければ null）。
+func _run_deploy(s: BattleState) -> AiAction:
+	var a := _brain.next_action(s, 1)
+	if a == null:
+		return null
+	assert_eq(a.kind, AiAction.Kind.DEPLOY, "この盤で出るのは出撃だけ")
+	assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
+	return a
 
 func test_base_deploys_at_once_when_its_squad_is_charge() -> void:
 	var s := BattleState.new(9, 5)
@@ -567,3 +617,119 @@ func test_guard_base_waits_until_an_enemy_is_in_sight() -> void:
 	assert_null(_brain.next_action(s, 1), "拠点hexから sight の外なら出さない")
 	e.pos = Hex.offset_to_axial(6, 2)
 	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "索敵に入れば出す")
+
+func test_guard_base_stays_awake_after_the_enemy_backs_off() -> void:
+	# 拠点の行動開始条件も一度成立したら以後は判定しない＝眠り直さない。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_base_with_garrison(s, _squad(s, "guard"), 4, 2)
+	var e := _pc(s, 1, 6, 2)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "前提: 索敵に入って起きる")
+	e.pos = Hex.offset_to_axial(11, 2)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "離れても止まらない")
+
+func test_base_wakes_when_a_squadmate_is_engaged() -> void:
+	# 一斉警戒は部隊の中で向きを問わない＝部隊の駒が起きれば拠点も起きる。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "guard")  # 既定 sight 3
+	var scout := _ai(s, si, 10, 8, 2)
+	_base_with_garrison(s, si, 4, 2)
+	_pc(s, 1, 11, 2)  # 拠点hexからは視線距離7＝拠点だけでは気づかない
+	assert_eq(_brain.next_action(s, 1).unit_id, scout.id, "前提: 索敵に入った駒が先に起きる")
+	s.set_done(scout.id)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "部隊の駒が起きたら拠点も起きる")
+
+func test_a_piece_wakes_when_its_base_is_engaged() -> void:
+	# 逆向きも同じ。出撃は「敵を見つけたから出した」動きなので、出てきた駒が自分の sight では
+	# 敵を捉えられずに拠点の真横で止まる、という壊れ方をさせない。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "guard")
+	var far := _ai(s, si, 10, 0, 0)  # 敵まで視線距離6＝自分では気づかない
+	_base_with_garrison(s, si, 4, 2)
+	_pc(s, 1, 6, 2)
+	assert_not_null(_run_deploy(s), "前提: 拠点は索敵に反応して出撃する")
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "拠点が起きたら同じ部隊の駒も起きる")
+	assert_eq(a.unit_id, far.id)
+
+func test_base_ignores_another_squads_alarm() -> void:
+	# 一斉警戒はその部隊の中で閉じる＝盤上の別部隊が行動開始しても拠点は起きない。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var other := _squad(s, "charge")
+	var runner := _ai(s, other, 10, 8, 2)
+	_base_with_garrison(s, _squad(s, "guard"), 4, 2)
+	_pc(s, 1, 11, 2)  # 拠点hexからは sight の外
+	s.mark_engaged(runner.id)
+	s.set_done(runner.id)  # 先に動き終えた扱い
+	assert_null(_brain.next_action(s, 1), "別部隊の起動では拠点は起きない")
+
+func test_base_deploys_until_the_open_neighbors_are_full() -> void:
+	# 行動開始したあとは、空き隣接が埋まるまで出す。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var b := _base_with_garrison(s, _squad(s, "charge"), 4, 2, 8)
+	var deployed := 0
+	for _i in 20:
+		if _run_deploy(s) == null:
+			break
+		deployed += 1
+	assert_eq(deployed, 6, "隣接6マスが埋まるまで出す")
+	assert_eq(b.garrison.size(), 2, "空きが尽きたら控えは残る")
+
+func test_base_deploys_until_the_garrison_runs_out() -> void:
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var b := _base_with_garrison(s, _squad(s, "charge"), 4, 2, 2)
+	assert_not_null(_run_deploy(s))
+	assert_not_null(_run_deploy(s))
+	assert_null(_brain.next_action(s, 1), "控えが尽きたら出さない")
+	assert_eq(b.garrison.size(), 0)
+
+func test_base_deploys_in_the_order_the_garrison_is_written() -> void:
+	# 控えは全員が拠点hexにいて座標で並ばない＝出す順は garrison の記述順。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	_base_with_garrison(s, _squad(s, "charge"), 4, 2, 2)
+	assert_eq(_run_deploy(s).garrison_index, 0)
+	assert_not_null(s.unit_by_id(20), "記述順の先頭が盤に出る")
+	assert_null(s.unit_by_id(21), "2体目はまだ控え")
+
+func test_base_deploys_toward_the_nearest_enemy() -> void:
+	# 出す先は、盤上距離が最小の敵に最も近い空きマス。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_base_with_garrison(s, _squad(s, "charge"), 4, 2)
+	_pc(s, 1, 8, 4)   # 拠点から盤上距離4＝こちらが最寄り
+	_pc(s, 2, 11, 0)  # 盤上距離7
+	var a := _run_deploy(s)
+	assert_eq(_col(a.to), 5, "最寄りの敵に最も近い隣接へ出す")
+	assert_eq(_row(a.to), 2)
+
+func test_base_deploys_to_the_youngest_cell_without_enemies() -> void:
+	# 盤上に敵がいなければ col → row の若いマス。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	_base_with_garrison(s, _squad(s, "charge"), 4, 2)
+	var a := _run_deploy(s)
+	assert_eq(_col(a.to), 3)
+	assert_eq(_row(a.to), 1)
+
+func test_base_does_not_deploy_a_garrison_locked_to_the_other_side() -> void:
+	# 出せるのは native ルールを満たす駒だけ（奪われた拠点の駒は閉じ込め）。doc/gdd/map.md 出撃
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var b := _base_with_garrison(s, _squad(s, "charge"), 4, 2)
+	(b.garrison[0] as Unit).set_native_team(0)
+	_pc(s, 1, 8, 2)
+	assert_null(_brain.next_action(s, 1), "帰属が自軍側の控えは敵の拠点から出せない")
+
+func test_base_without_ai_never_deploys() -> void:
+	# ai を書かない拠点は出撃しない（opt-in）。控えを抱えたまま湧かせたくない拠点を表す。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	_base_with_garrison(s, -1, 4, 2)
+	_pc(s, 1, 8, 2)
+	assert_null(_brain.next_action(s, 1))

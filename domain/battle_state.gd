@@ -64,6 +64,19 @@ func mark_engaged(unit_id: int) -> void:
 ## unit_id が起動済みか。
 func is_engaged(unit_id: int) -> bool:
 	return _engaged.has(unit_id)
+
+var _engaged_squads := {}  # squads の index -> true（拠点の起動フラグ。一度起動したら戻らない）
+
+## 部隊 squad_index を起動済みにする。盤上に駒を持たない部隊（＝拠点そのもの）は駒のフラグを
+## 立てられないので部隊の側に焼く。一斉警戒はこのフラグを通って部隊の中を双方向に回る。
+func mark_squad_engaged(squad_index: int) -> void:
+	if squad_index >= 0:
+		_engaged_squads[squad_index] = true
+
+## 部隊 squad_index が起動済みか（拠点が起きたか）。
+func is_squad_engaged(squad_index: int) -> bool:
+	return squad_index >= 0 and _engaged_squads.has(squad_index)
+
 # --- 状態補正（バフ/デバフ・持続）。詳細 → doc/gdd/combat.md「状態補正」 ---
 
 var _status_mods: Array = []  # エントリ配列 {scope,op,target,value,owner_team,remaining,...}。中断セーブに乗る
@@ -1299,7 +1312,8 @@ func to_dict() -> Dictionary:
 		"passengers": pass_out,
 		"moved": _moved.keys(), "post_moved": _post_moved.keys(),
 		"attacked": _attacked.keys(), "done": _done.keys(),
-		"engaged": _engaged.keys(), "defeated": _defeated.keys(),
+		"engaged": _engaged.keys(), "engaged_squads": _engaged_squads.keys(),
+		"defeated": _defeated.keys(),
 		"defeated_actors": _defeated_actors.keys(),
 		"sortied_actors": _sortied_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
@@ -1389,6 +1403,7 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 	s._attacked = _ids_to_set(data.get("attacked", []))
 	s._done = _ids_to_set(data.get("done", []))
 	s._engaged = _ids_to_set(data.get("engaged", []))
+	s._engaged_squads = _ids_to_set(data.get("engaged_squads", []))
 	s._defeated = _ids_to_set(data.get("defeated", []))
 	var actors: Variant = data.get("defeated_actors", [])
 	if typeof(actors) == TYPE_ARRAY:

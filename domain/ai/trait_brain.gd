@@ -100,13 +100,21 @@ func _enemy_in_sight(state: BattleState, from: Vector2i, team: int, budget: int)
 			return true
 	return false
 
-## u と同じ部隊の誰かが行動開始済みか（一斉警戒）。
+## u と同じ部隊の誰かが行動開始済みか（一斉警戒）。拠点も部隊の一員として数える＝その拠点が
+## 起きていれば、そこから出した駒も自分の sight で敵を捉えられなくても動き出す。
 func _squadmate_engaged(state: BattleState, u: Unit) -> bool:
 	var idx := state.squad_index_of(u.id)
 	if idx < 0:
 		return false
+	return state.is_squad_engaged(idx) or _squad_unit_engaged(state, idx, u.id)
+
+## 部隊 squad_index の盤上の駒に行動開始済みの者がいるか（except_id は自分＝数えない）。
+func _squad_unit_engaged(state: BattleState, squad_index: int, except_id := -1) -> bool:
+	if squad_index < 0:
+		return false  # 部隊なし同士を「同じ部隊」と数えない
 	for other in state.units():
-		if other.id != u.id and state.squad_index_of(other.id) == idx and state.is_engaged(other.id):
+		if other.id != except_id and state.squad_index_of(other.id) == squad_index \
+				and state.is_engaged(other.id):
 			return true
 	return false
 
@@ -742,15 +750,25 @@ func _try_deploy(state: BattleState, b: Base) -> AiAction:
 
 ## 拠点の行動開始条件＝ユニットと同じ条件を拠点hex基準で見る。
 ## charge / raid / swarm＝常時、guard＝拠点hexから sight 内に敵、weak＝拠点hexから sight 内に獲物。
+## 一度成立したら以後は判定しない（部隊のフラグに焼く）＝敵が索敵から出ても拠点は眠り直さない。
+## 一斉警戒はその部隊の中で閉じる＝同じ部隊の盤上の駒（その拠点から出した駒）が起きていれば拠点も
+## 起きる。別部隊が起きても拠点は起きない（部隊のフラグしか見ないため）。
 func _base_engaged(state: BattleState, b: Base) -> bool:
-	var trait_id := _base_trait(state, b)
-	var budget := _sight_budget(_base_param(state, b, "sight"))
-	match trait_id:
-		"guard":
-			return _enemy_in_sight(state, b.hex, b.team, budget)
-		"weak":
-			return not _base_prey_in_sight(state, b, budget).is_empty()
-	return true
+	if state.is_squad_engaged(b.squad_index):
+		return true
+	var engaged := _squad_unit_engaged(state, b.squad_index)
+	if not engaged:
+		var budget := _sight_budget(_base_param(state, b, "sight"))
+		match _base_trait(state, b):
+			"guard":
+				engaged = _enemy_in_sight(state, b.hex, b.team, budget)
+			"weak":
+				engaged = not _base_prey_in_sight(state, b, budget).is_empty()
+			_:  # charge / raid / swarm＝常時
+				engaged = true
+	if engaged:
+		state.mark_squad_engaged(b.squad_index)
+	return engaged
 
 ## 拠点の特性id（部隊の ai）。未設定・未知は charge。
 func _base_trait(state: BattleState, b: Base) -> String:
