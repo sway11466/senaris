@@ -19,7 +19,8 @@ const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
 const SIGHT_UNUSED := "-"     ## その特性は sight を使わない
 const SIGHT_UNLIMITED := "*"  ## 上限なし＝盤全体（視線コスト x の壁は遮る）
 ## `*`（上限なし）から数値へ切り替えたときの出発値。継承できる数が無いのでここで決め打つ。
-const SIGHT_SPIN_DEFAULT := 5
+## 数値を取る特性は guard だけなので、その ai.csv 既定に合わせる。
+const SIGHT_SPIN_DEFAULT := 3
 
 var _doc: MapEditorDoc
 var _path := ""  # 現在のファイル（グローバルパス。空=未保存）
