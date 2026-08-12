@@ -51,11 +51,25 @@ static func is_unit_debuff(m: Dictionary, unit: Unit) -> bool:
 	return is_debuff(m) and String(m.get("scope", "")) == "unit" and applies_to(m, unit)
 
 ## unit 1体に効いている弱体（デバフ）の本数。敵AIの「もう十分弱っている相手には掛けない」
-## 判定が使う。スキルの種類では分けない＝別種のデバフも合算する（doc/gdd/ai.md §5b）。
+## 判定が使う。スキルの種類では分けない＝別種のデバフも合算する（doc/gdd/ai.md stack 条件）。
 static func debuff_count(mods: Array, unit: Unit) -> int:
 	var n := 0
 	for m in mods:
 		if is_unit_debuff(m, unit):
+			n += 1
+	return n
+
+## エントリ m が unit 1体に掛かった強化か（陣営全体のものは含めない）。
+## 弱体の裏返しで、数える範囲を is_unit_debuff と揃える＝1人の解除で落とせる範囲と同じ。
+static func is_unit_buff(m: Dictionary, unit: Unit) -> bool:
+	return not is_debuff(m) and String(m.get("scope", "")) == "unit" and applies_to(m, unit)
+
+## unit 1体に効いている強化（バフ）の本数。敵AIの stack 条件（同じ相手に強化を重ねる上限）が読む。
+## 陣営全体に掛かった補正（ホーリーアリア）は数えない＝debuff_count と対称。詳細 → doc/gdd/ai.md
+static func buff_count(mods: Array, unit: Unit) -> int:
+	var n := 0
+	for m in mods:
+		if is_unit_buff(m, unit):
 			n += 1
 	return n
 

@@ -1,0 +1,798 @@
+extends AiBrain
+class_name TraitBrain
+## 特性ベースの敵AI。特性ごとの行動ルールを上から順に当て、最初に成立した行を採る。
+## 仕様の正本は doc/gdd/ai.md（特性詳細）＝ここは表を写して実行するだけ。
+##
+## 1行＝行動条件と行動内容の組で、行動内容には対象の選び方まで含む。条件と対象選びを別の軸に
+## 分けない＝「放つかどうか」と「誰に放つか」は同じ候補集合を絞る操作なので1箇所に書く。
+##
+## 1手ずつ返す（AiBrain の約束）。どの行も成立しなければ null＝待機で、その駒はその場に留まる。
+## 移動を使い切った駒は、移動を伴う行（占領・前進）を飛ばして次の行を見る。
+
+## 特性表（特性id -> { name, sight, stack }＝AiCatalog.load_default()）。部隊の特性解決に使う。
+var presets := {}
+
+## 実装済みの特性id。部隊が未知の値・特性なしなら charge として扱う。
+const TRAITS := ["charge", "guard", "raid", "weak", "swarm"]
+const DEFAULT_TRAIT := "charge"
+
+## sight `*`（上限なし）の視線予算。盤のどの距離にも届き、かつ壁（TerrainType.SIGHT_OPAQUE＝1<<20）
+## 1枚で必ず遮られる大きさ。「上限なし・ただし壁は遮る」を1つの数で表す（doc/gdd/ai.md データ構成）。
+const SIGHT_UNLIMITED := 1 << 16
+
+## stack `-`（上限なし）。強化・弱体では常に成立し、解除では1本以上あれば成立する。
+const NO_LIMIT := -1
+
+## 獲物の層の幅。ユニット防御力は10刻みの段なので +10＝「最も柔らかい段とその次の段」。
+## 1体に固定すると盤の隅の最弱1体を全員で追って手近な柔らかい敵を素通りする（doc/gdd/ai.md 獲物）。
+const PREY_DEFENSE_BAND := 10
+
+const NO_HEX := Vector2i(1 << 30, 1 << 30)  ## 「対象なし」の番兵（盤の外）
+
+## スキル対象の選び方（行ごとに違う）。near＝盤上距離が最小／weak＝防御力が最小／damaged＝損耗が最大。
+const PICK_NEAR := "near"
+const PICK_WEAK := "weak"
+const PICK_DAMAGED := "damaged"
+
+# --- 特性とパラメーターの解決 ---
+
+## u の特性id。部隊に属さない駒・未知の特性は charge（常時起動・前へ出る）として扱う。
+func _trait_of(state: BattleState, u: Unit) -> String:
+	var id := String(state.squad_of(u.id).get("ai", ""))
+	return id if id in TRAITS else DEFAULT_TRAIT
+
+## u のパラメーター（解決順＝部隊の上書き ＞ 特性の既定）。どちらにも無ければ "-"（該当なし）。
+func _param(state: BattleState, u: Unit, key: String) -> Variant:
+	var squad := state.squad_of(u.id)
+	if squad.has(key):
+		return squad[key]
+	return _preset_param(_trait_of(state, u), key)
+
+## 特性の既定パラメーター。特性表に無ければ "-"。
+func _preset_param(trait_id: String, key: String) -> Variant:
+	var p: Dictionary = presets.get(trait_id, {})
+	return p.get(key, "-")
+
+## 視線の予算に読み替える。数値はそのまま／"*"＝上限なし／それ以外（"-"＝その特性は使わない）は0。
+## ai.json は型が混ざる（int と String）ので typeof で分ける。
+static func _sight_budget(v: Variant) -> int:
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return maxi(int(v), 0)
+	return SIGHT_UNLIMITED if String(v) == "*" else 0
+
+## stack の本数に読み替える。数値はそのまま／それ以外（"-"）は NO_LIMIT＝上限なし。
+static func _stack_limit(v: Variant) -> int:
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return maxi(int(v), 0)
+	return NO_LIMIT
+
+func _sight_of(state: BattleState, u: Unit) -> int:
+	return _sight_budget(_param(state, u, "sight"))
+
+# --- 行動開始条件（doc/gdd/ai.md 特性の書き方） ---
+
+## u が行動開始しているか判定し、条件が成立したら開始済みにして true。
+## 一度成立したら以後は判定しない（成立したあとで敵が離れても止まらない）。
+## 攻撃を受けた駒は特性によらずその時点で行動開始する＝BattleState.attack が mark_engaged を呼ぶ。
+func _ensure_engaged(state: BattleState, u: Unit) -> bool:
+	if state.is_engaged(u.id):
+		return true
+	var engaged := false
+	match _trait_of(state, u):
+		"guard":  # 視線距離が sight 以内に敵 ／ 部隊の誰かが行動開始済み（一斉警戒）
+			engaged = _enemy_in_sight(state, u.pos, u.team, _sight_of(state, u)) \
+				or _squadmate_engaged(state, u)
+		"weak":  # 視線距離が sight 以内に獲物
+			engaged = not _prey_in_sight(state, u).is_empty()
+		_:  # charge / raid / swarm＝常時
+			engaged = true
+	if engaged:
+		state.mark_engaged(u.id)
+	return engaged
+
+## from から視線距離 budget 以内に team 以外のユニットがいるか。壁で途切れ、森ごしでは減衰する
+## （全地形コスト1なら盤上距離と一致）。詳細 → doc/gdd/movement.md（視線）
+func _enemy_in_sight(state: BattleState, from: Vector2i, team: int, budget: int) -> bool:
+	if budget <= 0:
+		return false
+	for other in state.units():
+		if other.team != team and state.sight_reaches(from, other.pos, budget):
+			return true
+	return false
+
+## u と同じ部隊の誰かが行動開始済みか（一斉警戒）。
+func _squadmate_engaged(state: BattleState, u: Unit) -> bool:
+	var idx := state.squad_index_of(u.id)
+	if idx < 0:
+		return false
+	for other in state.units():
+		if other.id != u.id and state.squad_index_of(other.id) == idx and state.is_engaged(other.id):
+			return true
+	return false
+
+## unit の検知半径（索敵範囲の可視化用）。まだ動き出していない guard なら sight、それ以外は0。
+func detection_radius(state: BattleState, unit: Unit) -> int:
+	if unit == null or state.is_engaged(unit.id):
+		return 0
+	if _trait_of(state, unit) != "guard":
+		return 0
+	return _sight_of(state, unit)
+
+# --- 行動順（doc/gdd/ai.md 行動順） ---
+
+## 敵のターンで行う次の1手。部隊は order の小さいほうから、部隊の中は前線に近い駒から動かし、
+## その部隊の拠点の出撃は盤上の駒を捌いたあと。
+func next_action(state: BattleState, team: int) -> AiAction:
+	for si in _squad_order(state):
+		for u in _units_in_order(state, team, si):
+			var action := _unit_action(state, u)
+			if action != null:
+				return action
+		for b in state.bases():
+			if b.team != team or b.squad_index != si:
+				continue
+			var deploy_action := _try_deploy(state, b)
+			if deploy_action != null:
+				return deploy_action
+	return null
+
+## 部隊を動かす順に並べた index の列。order 昇順（同値・省略は登録順）、末尾に -1＝部隊に属さない駒。
+func _squad_order(state: BattleState) -> Array[int]:
+	var idx: Array[int] = []
+	for i in state.squads.size():
+		idx.append(i)
+	idx.sort_custom(func(a: int, b: int) -> bool:
+		var ka := _order_of(state, a)
+		var kb := _order_of(state, b)
+		return ka < kb or (ka == kb and a < b))
+	idx.append(-1)
+	return idx
+
+## 部隊の order。省略・非数値は登録順（index）で代用する＝データが欠けても順番が壊れない。
+## 実データは全部隊に order を書く（抜けはデータ整合テストで検出）。
+func _order_of(state: BattleState, squad_index: int) -> int:
+	if squad_index < 0 or squad_index >= state.squads.size():
+		return 1 << 30
+	var v: Variant = (state.squads[squad_index] as Dictionary).get("order")
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return int(v)
+	return squad_index
+
+## 部隊 squad_index に属する team の駒を、動かす順に並べる。盤上距離で最寄りの敵に近い駒から、
+## 同値は col → row の若い順。駒が動けば距離も変わるので毎ターン計算し直す。
+## 前線から動かすのは、後ろの駒が先に動くと前の駒に塞がれて進めないため。
+func _units_in_order(state: BattleState, team: int, squad_index: int) -> Array[Unit]:
+	var list: Array[Unit] = []
+	for u in state.units():
+		if u.team == team and state.squad_index_of(u.id) == squad_index:
+			list.append(u)
+	var dist := {}  # unit_id -> 最寄り敵までの盤上距離（並べ替え中に何度も引くので先に1回だけ）
+	for u in list:
+		dist[u.id] = _board_distance_to_nearest_enemy(state, u)
+	list.sort_custom(func(a: Unit, b: Unit) -> bool:
+		var da: int = dist[a.id]
+		var db: int = dist[b.id]
+		if da != db:
+			return da < db
+		if a.pos != b.pos:
+			return _is_younger_hex(a.pos, b.pos)
+		return a.id < b.id)
+	return list
+
+## u から最寄りの敵までの盤上距離（敵がいなければ0＝全員同値になり col → row で並ぶ）。
+func _board_distance_to_nearest_enemy(state: BattleState, u: Unit) -> int:
+	var best := 1 << 30
+	for other in state.units():
+		if other.team != u.team:
+			best = mini(best, Hex.distance(u.pos, other.pos))
+	return 0 if best == (1 << 30) else best
+
+# --- 行動ルール（doc/gdd/ai.md 特性詳細） ---
+
+## u が今できる1手（無ければ null＝待機）。特性ごとの行を上から当てる。
+func _unit_action(state: BattleState, u: Unit) -> AiAction:
+	if state.is_done(u.id) or state.is_stuck(u.id):
+		return null  # 行動を終えた／打つ手が無い（囲まれて行ける先も撃てる相手も無い）
+	if not _ensure_engaged(state, u):
+		return null  # まだ動き出していない
+	match _trait_of(state, u):
+		"raid":
+			return _raid_action(state, u)
+		"weak":
+			return _weak_action(state, u)
+		"swarm":
+			return _swarm_action(state, u)
+	return _charge_action(state, u)  # charge / guard は動き出したあとの行が同じ
+
+## charge（突撃）／guard（待機）の行動ルール。
+## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
+## 2 スキル射程内に stack 条件を満たす対象 → 盤上距離が最小の対象にスキル
+## 3 攻撃射程内に敵 → 盤上距離が最小の敵を攻撃
+## 4 移動距離が測れる敵 → 移動距離が最小の敵へ最大前進
+## 5 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
+## 6 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+func _charge_action(state: BattleState, u: Unit) -> AiAction:
+	var row := _capture_row(state, u)
+	if row != null:
+		return row
+	row = _skill_row(state, u, PICK_NEAR)
+	if row != null:
+		return row
+	var in_range := state.attack_targets(u.id)
+	if not in_range.is_empty():
+		return AiAction.attack(u.id, _nearest_id_by_board(state, u, in_range))
+	return _advance_to_nearest_enemy(state, u)
+
+## raid（拠点攻略）の行動ルール。1〜3 は突撃と同じで、4〜6 の行き先が敵ではなく拠点。
+## 拠点への距離は拠点hexそのものまで測る（拠点は攻撃の標的ではない）。
+## 向かう拠点が盤上に無ければ待機する＝敵を追わない。
+func _raid_action(state: BattleState, u: Unit) -> AiAction:
+	var row := _capture_row(state, u)
+	if row != null:
+		return row
+	row = _skill_row(state, u, PICK_NEAR)
+	if row != null:
+		return row
+	var in_range := state.attack_targets(u.id)
+	if not in_range.is_empty():
+		return AiAction.attack(u.id, _nearest_id_by_board(state, u, in_range))
+	if not _can_advance(state, u):
+		return null
+	var goals := _hostile_base_hexes(state, u)
+	if goals.is_empty():
+		return null
+	# 4 移動距離／5 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
+	var move_field := state.move_cost_field(u.id, u.pos)
+	var goal := _nearest_hex_in(move_field, goals)
+	if goal != NO_HEX:
+		return _advance(state, u, state.move_cost_field(u.id, goal), [goal])
+	var terrain_field := state.terrain_cost_field(u.id, u.pos)
+	goal = _nearest_hex_in(terrain_field, goals)
+	if goal != NO_HEX:
+		return _advance(state, u, state.terrain_cost_field(u.id, goal), [goal])
+	# 6 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
+	return _advance_straight(state, u, _nearest_hex_by_board(u.pos, goals))
+
+## weak（弱者狙い）の行動ルール。前衛を避けて柔らかい敵へ回り込む。
+## 1 占領／2 防御力が最小の対象にスキル
+## 3 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃
+## 4 攻撃射程内に一撃で倒せる敵 → 盤上距離が最小の敵を攻撃
+## 5〜8 狙う獲物へ 回り込み → 最大前進 → 見込前進 → 直線寄せ
+##
+## 狙う獲物＝ sight 範囲内の獲物のうち移動距離が最小のもの（測れる獲物がいなければ盤上距離が最小）。
+## 5〜8 はどれもこの1体へ向かう＝行の間で行き先が入れ替わらない。sight の判定は毎ターン行う＝
+## 起動後に獲物が視線から消えたら前進だけ止まる（攻撃とスキルは続く）。
+func _weak_action(state: BattleState, u: Unit) -> AiAction:
+	var row := _capture_row(state, u)
+	if row != null:
+		return row
+	row = _skill_row(state, u, PICK_WEAK)
+	if row != null:
+		return row
+	var in_range := state.attack_targets(u.id)
+	var prey_ids := _ids_of(_prey_of(state, u))
+	var prey_in_range: Array[int] = []
+	var killable: Array[int] = []
+	for id in in_range:
+		if id in prey_ids:
+			prey_in_range.append(id)
+		if _can_kill_in_one_hit(state, u, state.unit_by_id(id)):
+			killable.append(id)
+	if not prey_in_range.is_empty():
+		return AiAction.attack(u.id, _fewest_left_id(state, u, prey_in_range))
+	if not killable.is_empty():
+		return AiAction.attack(u.id, _nearest_id_by_board(state, u, killable))
+	if not _can_advance(state, u):
+		return null
+	var move_field := state.move_cost_field(u.id, u.pos)
+	var target := _hunted_prey(state, u, move_field)
+	if target == null:
+		return null  # sight 範囲内に獲物がいない＝前進はしない
+	var cells := state.attack_cells(u.id, target.id)
+	# 5 回り込み（迂回距離）。標的自身のZOCは外して測る＝外さないと隣へ入れず必ず測れない。
+	# 表は標的から流して1枚だけ作り、自分のマスが載っているかで「測れる」を見る（両向きで一致する）。
+	var detour_field := state.detour_cost_field_to(u.id, target.pos, target.id)
+	if detour_field.has(u.pos):
+		return _advance(state, u, detour_field, cells)
+	if state.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
+		return _advance(state, u, state.move_cost_field(u.id, target.pos), cells)
+	if state.terrain_distance(u.id, cells) < BattleState.UNREACHABLE:
+		return _advance(state, u, state.terrain_cost_field(u.id, target.pos), cells)
+	return _advance_straight(state, u, target.pos)
+
+## swarm（群れ）の行動ルール。傷ついた敵へ集まり、無傷の敵には頭数が揃ってから手を出す。
+## 1 攻撃射程内に手負い → 手負いを攻撃（ここだけ包囲を条件にしない＝単独でも噛みつく）
+## 2 攻撃射程内に stack 条件を満たさない包囲可能な敵 → 損耗が最大の敵を攻撃
+## 3 スキル射程内に stack 条件を満たす包囲可能な対象 → 損耗が最大の対象にスキル
+## 4 攻撃射程内に包囲可能な敵 → 損耗が最大の敵を攻撃
+## 5/6 sight 範囲内の手負いへ 最大前進 → 見込前進
+## 7/8 移動距離／地形距離が最小の敵へ 最大前進 → 見込前進
+## 9 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+##
+## 拠点は取らない（占領の行を持たない）。占領兵を混ぜても拠点へは向かわない。
+func _swarm_action(state: BattleState, u: Unit) -> AiAction:
+	var move_field := state.move_cost_field(u.id, u.pos)
+	var wounded := _wounded_of(state, u, move_field)
+	var in_range := state.attack_targets(u.id)
+	if wounded != null and wounded.id in in_range:
+		return AiAction.attack(u.id, wounded.id)
+	var kind := _skill_kind_of(state, u)
+	var surroundable: Array[int] = []
+	var stacked: Array[int] = []  # stack 条件を満たさない＝もう重ねる価値がない相手
+	for id in in_range:
+		var t := state.unit_by_id(id)
+		if not _surround_able(state, u, t):
+			continue
+		surroundable.append(id)
+		if not _stack_passes(state, u, kind, t):
+			stacked.append(id)
+	if not stacked.is_empty():
+		return AiAction.attack(u.id, _most_damaged_id(state, u, stacked))
+	var row := _skill_row(state, u, PICK_DAMAGED, true)
+	if row != null:
+		return row
+	if not surroundable.is_empty():
+		return AiAction.attack(u.id, _most_damaged_id(state, u, surroundable))
+	if not _can_advance(state, u):
+		return null
+	# 5/6 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
+	if wounded != null and _in_sight(state, u, wounded):
+		var cells := state.attack_cells(u.id, wounded.id)
+		if state.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
+			return _advance(state, u, state.move_cost_field(u.id, wounded.pos), cells)
+		if state.terrain_distance(u.id, cells) < BattleState.UNREACHABLE:
+			return _advance(state, u, state.terrain_cost_field(u.id, wounded.pos), cells)
+	return _advance_to_nearest_enemy(state, u)
+
+# --- 行の部品 ---
+
+## 占領の行＝占領兵で、移動範囲に自陣営以外の拠点があれば盤上距離が最小の拠点へ動く。
+## 拠点hexへ進入すればその場で占領（BattleState.move_unit）。
+func _capture_row(state: BattleState, u: Unit) -> AiAction:
+	if not u.can_capture or not _can_advance(state, u):
+		return null
+	var reach := state.reachable(u.id)
+	var best := NO_HEX
+	for b in state.bases():
+		if b.team == u.team or b.hex == u.pos or not (b.hex in reach):
+			continue  # 自陣営の拠点は対象外（敵・中立を取る）。すでに乗っているマスは動く先にならない
+		if best == NO_HEX or _nearer_hex(u.pos, b.hex, best):
+			best = b.hex
+	return AiAction.move_to(u.id, best) if best != NO_HEX else null
+
+## スキルの行＝掛けられる対象のうち stack 条件を満たすものを集め、pick で1体に絞って放つ。
+## 放つと発動者は行動完了になるので攻撃より前に置く。移動後でも放てる（doc/gdd/skills.md）。
+## require_surround＝対象が包囲可能であることも条件に足す（swarm）。
+func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := false) -> AiAction:
+	for option in Formation.available_for(state, u):
+		if not bool(option.get("needs_target", true)):
+			return AiAction.skill(u.id, option, u.pos)  # 陣営全体＝対象を選ばない
+		var kind := _skill_kind(option)
+		var candidates: Array[Unit] = []
+		for other in state.units():
+			if not Formation.can_target(state, option, other.pos):
+				continue
+			if require_surround and not _surround_able(state, u, other):
+				continue
+			if not _stack_passes(state, u, kind, other):
+				continue
+			candidates.append(other)
+		if candidates.is_empty():
+			continue
+		return AiAction.skill(u.id, option, _pick_skill_target(state, u, candidates, pick).pos)
+	return null
+
+## 前進の行（敵向け・突撃と群れの末尾が共有）。移動距離 → 地形距離 → 盤上距離の順に測り、
+## 測れた時点でその行が成立する＝縮むマスが無ければ現在地に留まって待機になる。
+func _advance_to_nearest_enemy(state: BattleState, u: Unit) -> AiAction:
+	if not _can_advance(state, u):
+		return null
+	var enemies := _attackable_enemies(state, u)
+	if enemies.is_empty():
+		return null
+	var move_field := state.move_cost_field(u.id, u.pos)
+	var target := _nearest_target(state, u, enemies, move_field)
+	if target != null:
+		return _advance(state, u, state.move_cost_field(u.id, target.pos),
+			state.attack_cells(u.id, target.id))
+	target = _nearest_target(state, u, enemies, state.terrain_cost_field(u.id, u.pos))
+	if target != null:
+		return _advance(state, u, state.terrain_cost_field(u.id, target.pos),
+			state.attack_cells(u.id, target.id))
+	return _advance_straight(state, u, _nearest_unit_by_board(u.pos, enemies).pos)
+
+## いま移動を伴う行を実行できるか（移動を使い切っていないか）。
+func _can_advance(state: BattleState, u: Unit) -> bool:
+	return state.can_still_move(u.id)
+
+# --- 前進（doc/gdd/ai.md 前進） ---
+
+## 標的から流した道のり表の勾配を降りて、移動範囲のうち距離が最も縮むマスへ動く1手。
+## 同値のマスは col → row の若い方、縮むマスが1つも無ければ現在地に留まる（＝null＝待機）。
+## goal_cells＝標的に攻撃可能なマス（拠点なら拠点hex）＝そこに立てば距離0。表は標的から流して
+## いるので、そのままでは「標的のマスからの遠さ」になり、懐に死角のある駒（min_range≥2）が
+## 攻撃できない位置へ詰めてしまう。攻撃可能なマスを0として読むことで距離の定義と揃える。
+func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array) -> AiAction:
+	var goals := {}
+	for c in goal_cells:
+		goals[c] = true
+	var best := u.pos
+	var best_c := _advance_score(field, goals, u.pos)
+	for h in state.reachable(u.id):
+		var c := _advance_score(field, goals, h)
+		if c < best_c or (c == best_c and best != u.pos and _is_younger_hex(h, best)):
+			best = h
+			best_c = c
+	return AiAction.move_to(u.id, best) if best != u.pos else null
+
+## 直線寄せ＝盤上距離が縮むマスへ動く（距離が測れないときに使う）。壁の向こうの標的へ
+## 壁際まで詰めて止まる動きになる。縮むマスが無ければ現在地。
+func _advance_straight(state: BattleState, u: Unit, goal: Vector2i) -> AiAction:
+	var best := u.pos
+	var best_d := Hex.distance(u.pos, goal)
+	for h in state.reachable(u.id):
+		var d := Hex.distance(h, goal)
+		if d < best_d or (d == best_d and best != u.pos and _is_younger_hex(h, best)):
+			best = h
+			best_d = d
+	return AiAction.move_to(u.id, best) if best != u.pos else null
+
+## hex に立ったときの標的への距離。攻撃可能なマスは0、表に無いマスは測れない（UNREACHABLE）。
+static func _advance_score(field: Dictionary, goals: Dictionary, hex: Vector2i) -> int:
+	if goals.has(hex):
+		return 0
+	return int(field.get(hex, BattleState.UNREACHABLE))
+
+# --- 標的の選び方 ---
+
+## u が攻撃できる敵（対空・対地を見る）。飛行を狙えない駒はその相手を最初から数えない。
+func _attackable_enemies(state: BattleState, u: Unit) -> Array[Unit]:
+	var out: Array[Unit] = []
+	for other in state.units():
+		if other.team != u.team and u.attack_against(other) > 0:
+			out.append(other)
+	return out
+
+## 表 field で測って距離が最小の標的（測れる標的が1つも無ければ null）。同値は col → row の若い方。
+## 表は行動ユニットから1枚流したものを渡す＝標的ごとに盤を流し直さない。
+func _nearest_target(state: BattleState, u: Unit, enemies: Array[Unit], field: Dictionary) -> Unit:
+	var best: Unit = null
+	var best_c := BattleState.UNREACHABLE
+	for e in enemies:
+		var c := state.min_cost_in(field, state.attack_cells(u.id, e.id))
+		if c >= BattleState.UNREACHABLE:
+			continue
+		if best == null or c < best_c or (c == best_c and _is_younger_hex(e.pos, best.pos)):
+			best = e
+			best_c = c
+	return best
+
+## 表 field で測って距離が最小のヘックス（測れなければ NO_HEX）。同値は col → row の若い方。
+func _nearest_hex_in(field: Dictionary, cells: Array[Vector2i]) -> Vector2i:
+	var best := NO_HEX
+	var best_c := BattleState.UNREACHABLE
+	for h in cells:
+		var c := int(field.get(h, BattleState.UNREACHABLE))
+		if c >= BattleState.UNREACHABLE:
+			continue
+		if best == NO_HEX or c < best_c or (c == best_c and _is_younger_hex(h, best)):
+			best = h
+			best_c = c
+	return best
+
+## 盤上距離が最小の敵ID。同値は col → row の若い方。
+func _nearest_id_by_board(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var best := ids[0]
+	for id in ids:
+		var t := state.unit_by_id(id)
+		if _nearer_hex(u.pos, t.pos, state.unit_by_id(best).pos):
+			best = id
+	return best
+
+## 盤上距離が最小の敵。同値は col → row の若い方。
+func _nearest_unit_by_board(from: Vector2i, units: Array[Unit]) -> Unit:
+	var best: Unit = units[0]
+	for other in units:
+		if _nearer_hex(from, other.pos, best.pos):
+			best = other
+	return best
+
+## 盤上距離が最小のヘックス。同値は col → row の若い方。
+func _nearest_hex_by_board(from: Vector2i, cells: Array[Vector2i]) -> Vector2i:
+	var best := cells[0]
+	for h in cells:
+		if _nearer_hex(from, h, best):
+			best = h
+	return best
+
+## 自陣営以外の拠点hex（中立も含む）。
+func _hostile_base_hexes(state: BattleState, u: Unit) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for b in state.bases():
+		if b.team != u.team:
+			out.append(b.hex)
+	return out
+
+## 獲物＝ u が攻撃できる敵のうち、防御力が最小の敵の防御力 +10 までにいるもの（集合）。
+## 上限は必ず盤全体の敵から計算する。射程内など狭い範囲から計算し直すと、硬い前衛しか
+## 射程に入っていないターンにその前衛が獲物になってしまう（doc/gdd/ai.md 獲物）。
+func _prey_of(state: BattleState, u: Unit) -> Array[Unit]:
+	return _prey_among(_attackable_enemies(state, u))
+
+## 候補の中から獲物の層を切り出す（防御力が最小のもの +PREY_DEFENSE_BAND まで）。
+func _prey_among(enemies: Array[Unit]) -> Array[Unit]:
+	var min_def := -1
+	for e in enemies:
+		if min_def < 0 or e.unit_defense < min_def:
+			min_def = e.unit_defense
+	var out: Array[Unit] = []
+	if min_def < 0:
+		return out
+	for e in enemies:
+		if e.unit_defense <= min_def + PREY_DEFENSE_BAND:
+			out.append(e)
+	return out
+
+## sight 範囲内の獲物（weak の行動開始条件と、狙う獲物の候補）。
+func _prey_in_sight(state: BattleState, u: Unit) -> Array[Unit]:
+	var budget := _sight_of(state, u)
+	var out: Array[Unit] = []
+	if budget <= 0:
+		return out
+	for e in _prey_of(state, u):
+		if state.sight_reaches(u.pos, e.pos, budget):
+			out.append(e)
+	return out
+
+## 狙う獲物＝ sight 範囲内の獲物のうち移動距離が最小のもの。
+## 移動距離が測れる獲物が1体もいなければ盤上距離が最小のもの（前進の行き先が消えない）。
+func _hunted_prey(state: BattleState, u: Unit, move_field: Dictionary) -> Unit:
+	var candidates := _prey_in_sight(state, u)
+	if candidates.is_empty():
+		return null
+	var best := _nearest_target(state, u, candidates, move_field)
+	return best if best != null else _nearest_unit_by_board(u.pos, candidates)
+
+## 手負い＝ u が攻撃できる敵のうち損耗が最大のもの。同値は移動距離が最小（さらに同値は col → row）。
+## 損耗に下限を置かない＝全員無傷のターンは最も近い敵が手負いになり、そこで最初の一噛みが起きる。
+## 盤全体から1体だけ選ぶ（範囲の判定は選び終えたこの1体に対して行う）。
+func _wounded_of(state: BattleState, u: Unit, move_field: Dictionary) -> Unit:
+	var best: Unit = null
+	var best_pct := -1
+	var best_c := BattleState.UNREACHABLE
+	for e in _attackable_enemies(state, u):
+		var pct := _damage_percent(e)
+		var c := state.min_cost_in(move_field, state.attack_cells(u.id, e.id))
+		if best == null or pct > best_pct \
+				or (pct == best_pct and (c < best_c \
+					or (c == best_c and _is_younger_hex(e.pos, best.pos)))):
+			best = e
+			best_pct = pct
+			best_c = c
+	return best
+
+## 選び終えた標的が u の sight 範囲内にいるか（swarm の前進の行）。
+func _in_sight(state: BattleState, u: Unit, target: Unit) -> bool:
+	var budget := _sight_of(state, u)
+	return budget > 0 and state.sight_reaches(u.pos, target.pos, budget)
+
+## 損耗率（失った兵の割合）を百分率の整数で。無傷＝0・全滅寸前ほど大きい。
+## 割合で見るのは満員兵数が駒ごとに違っても並べられるため（doc/gdd/ai.md 損耗）。
+static func _damage_percent(u: Unit) -> int:
+	if u.max_troops <= 0:
+		return 0
+	return int(round(float(u.max_troops - u.troops) * 100.0 / float(u.max_troops)))
+
+## 損耗が最大の敵ID。同値は盤上距離が近い方 → col → row。
+func _most_damaged_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var best := ids[0]
+	for id in ids:
+		var t := state.unit_by_id(id)
+		var b := state.unit_by_id(best)
+		var pct := _damage_percent(t)
+		var best_pct := _damage_percent(b)
+		if pct > best_pct or (pct == best_pct and _nearer_hex(u.pos, t.pos, b.pos)):
+			best = id
+	return best
+
+## 攻撃後の残兵が最小になる敵ID（確殺を自然に最優先）。同値は盤上距離が近い方 → col → row。
+func _fewest_left_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var best := ids[0]
+	var best_left := 1 << 30
+	for id in ids:
+		var t := state.unit_by_id(id)
+		var left := t.troops - Combat.casualties(state, u, t, Hex.distance(u.pos, t.pos) <= 1)
+		if left < best_left or (left == best_left \
+				and _nearer_hex(u.pos, t.pos, state.unit_by_id(best).pos)):
+			best = id
+			best_left = left
+	return best
+
+## u の一撃で倒しきれる相手か（与ダメは戦闘式で厳密計算＝combat.md は決定的）。
+func _can_kill_in_one_hit(state: BattleState, u: Unit, t: Unit) -> bool:
+	if t == null:
+		return false
+	var melee := Hex.distance(u.pos, t.pos) <= 1  # 距離1なら近接＝支援が乗る（解決式と一致）
+	return Combat.casualties(state, u, t, melee) >= t.troops
+
+# --- stack 条件（doc/gdd/ai.md stack 条件） ---
+
+## option のスキルが強化・弱体・解除のどれか。判別はレシピのフラグから決める
+## （effect が cleanse なら解除、buff_kind が debuff なら弱体、それ以外は強化）。
+static func _skill_kind(option: Dictionary) -> String:
+	if String(option.get("effect", "")) == "cleanse":
+		return "cleanse"
+	if String(option.get("buff_kind", "")) == StatusMod.KIND_DEBUFF:
+		return StatusMod.KIND_DEBUFF
+	return StatusMod.KIND_BUFF
+
+## u がいま放てるスキルの種類（複数あれば最初の1つ。持たなければ弱体扱い）。
+## swarm の「stack 条件を満たさない敵は殴りに切り替える」行が、掛ける側の種類を知るために読む。
+func _skill_kind_of(state: BattleState, u: Unit) -> String:
+	for option in Formation.available_for(state, u):
+		return _skill_kind(option)
+	return StatusMod.KIND_DEBUFF
+
+## target が stack 条件を満たすか（＝そのスキルを掛ける価値があるか）。
+## 強化・弱体は上限（stack 本未満なら掛ける）、解除は下限（stack 本以上なら掛ける）。
+## 数えるのは対象1体に掛かった補正だけ＝陣営全体に掛かった補正（ホーリーアリア）は数えない。
+func _stack_passes(state: BattleState, u: Unit, kind: String, target: Unit) -> bool:
+	var limit := _stack_limit(_param(state, u, "stack"))
+	if kind == "cleanse":
+		return state.debuff_count(target) >= (1 if limit == NO_LIMIT else maxi(limit, 1))
+	if limit == NO_LIMIT:
+		return true
+	if kind == StatusMod.KIND_DEBUFF:
+		return state.debuff_count(target) < limit
+	return state.buff_count(target) < limit
+
+## スキル対象を1体に絞る。near＝盤上距離が最小／weak＝防御力が最小／damaged＝損耗が最大。
+## 同値は col → row の若い方 → 駒番号の小さい方。
+func _pick_skill_target(state: BattleState, u: Unit, candidates: Array[Unit], pick: String) -> Unit:
+	var best: Unit = candidates[0]
+	for c in candidates:
+		if _skill_target_better(state, u, c, best, pick):
+			best = c
+	return best
+
+func _skill_target_better(state: BattleState, u: Unit, c: Unit, best: Unit, pick: String) -> bool:
+	var score := 0
+	var best_score := 0
+	match pick:
+		PICK_WEAK:
+			score = -c.unit_defense  # 防御が低いほど良い
+			best_score = -best.unit_defense
+		PICK_DAMAGED:
+			score = _damage_percent(c)
+			best_score = _damage_percent(best)
+		_:
+			score = -Hex.distance(u.pos, c.pos)
+			best_score = -Hex.distance(u.pos, best.pos)
+	if score != best_score:
+		return score > best_score
+	if c.pos != best.pos:
+		return _is_younger_hex(c.pos, best.pos)
+	return c.id < best.id
+
+# --- 包囲可能（doc/gdd/ai.md 包囲可能） ---
+
+## target を包囲できるか＝いま隣接している自陣営の駒と、まだ行動しておらず今ターン target の隣へ
+## 寄れる味方を合わせて包囲成立数（Surround.GATE）に届くか。行動ユニット自身も数に入る。
+## すでに包囲されている相手は隣接数が成立数に達しているので、必ず包囲可能でもある。
+func _surround_able(state: BattleState, u: Unit, target: Unit) -> bool:
+	if target == null or target.team == u.team:
+		return false
+	var ring := Hex.neighbors(target.pos)
+	var count := 0
+	for other in state.units():
+		if other.team != u.team:
+			continue
+		if Hex.distance(other.pos, target.pos) == 1:
+			count += 1
+			continue
+		if state.has_moved(other.id) or state.is_done(other.id):
+			continue  # もう動けない駒は今ターン中には寄れない
+		for h in state.reachable(other.id):
+			if h in ring:
+				count += 1
+				break
+	return count >= Surround.GATE
+
+# --- 座標の若さ（同値の決め方）。距離が同じなら col → row の若い方が近い ---
+
+## a のほうが b より col → row で若いか。
+static func _is_younger_hex(a: Vector2i, b: Vector2i) -> bool:
+	var oa := Hex.axial_to_offset(a)
+	var ob := Hex.axial_to_offset(b)
+	if oa.x != ob.x:
+		return oa.x < ob.x
+	return oa.y < ob.y
+
+## from から見て a のほうが b より近いか（盤上距離 → col → row）。
+static func _nearer_hex(from: Vector2i, a: Vector2i, b: Vector2i) -> bool:
+	var da := Hex.distance(from, a)
+	var db := Hex.distance(from, b)
+	if da != db:
+		return da < db
+	return _is_younger_hex(a, b)
+
+static func _ids_of(units: Array[Unit]) -> Array[int]:
+	var out: Array[int] = []
+	for u in units:
+		out.append(u.id)
+	return out
+
+# --- 拠点出撃（doc/gdd/ai.md 拠点出撃） ---
+
+## 拠点 b から出せる控えが1体でもあれば、その出撃1手を返す（行動開始しているときのみ）。無ければ null。
+## next_action を尽きるまで回すので、この1手ずつ返しが「出せるだけ出す」になる。
+func _try_deploy(state: BattleState, b: Base) -> AiAction:
+	if b.squad_index < 0:
+		return null  # ai 未指定の拠点はAI出撃しない（opt-in）
+	if not _base_engaged(state, b):
+		return null
+	for i in b.garrison.size():
+		if not state.can_deploy_garrison(b.hex, i):
+			continue  # 閉じ込め（native≠所有者）＝出せない
+		var cells := state.deploy_cells(b.hex, i)
+		if cells.is_empty():
+			continue  # 空き隣接なし＝今は出せない
+		return AiAction.deploy(b.hex, i, _best_deploy_cell(state, b, cells))
+	return null
+
+## 拠点の行動開始条件＝ユニットと同じ条件を拠点hex基準で見る。
+## charge / raid / swarm＝常時、guard＝拠点hexから sight 内に敵、weak＝拠点hexから sight 内に獲物。
+func _base_engaged(state: BattleState, b: Base) -> bool:
+	var trait_id := _base_trait(state, b)
+	var budget := _sight_budget(_base_param(state, b, "sight"))
+	match trait_id:
+		"guard":
+			return _enemy_in_sight(state, b.hex, b.team, budget)
+		"weak":
+			return not _base_prey_in_sight(state, b, budget).is_empty()
+	return true
+
+## 拠点の特性id（部隊の ai）。未設定・未知は charge。
+func _base_trait(state: BattleState, b: Base) -> String:
+	if b.squad_index < 0 or b.squad_index >= state.squads.size():
+		return DEFAULT_TRAIT
+	var id := String((state.squads[b.squad_index] as Dictionary).get("ai", ""))
+	return id if id in TRAITS else DEFAULT_TRAIT
+
+## 拠点のパラメーター解決: 部隊の上書き ＞ 特性の既定。部隊未設定は "-"。
+func _base_param(state: BattleState, b: Base, key: String) -> Variant:
+	if b.squad_index < 0 or b.squad_index >= state.squads.size():
+		return "-"
+	var squad: Dictionary = state.squads[b.squad_index]
+	if squad.has(key):
+		return squad[key]
+	return _preset_param(_base_trait(state, b), key)
+
+## 拠点hexから視線 budget 以内にいる獲物（拠点に攻撃力は無いので対空・対地では絞らない）。
+func _base_prey_in_sight(state: BattleState, b: Base, budget: int) -> Array[Unit]:
+	var out: Array[Unit] = []
+	if budget <= 0:
+		return out
+	var enemies: Array[Unit] = []
+	for other in state.units():
+		if other.team != b.team:
+			enemies.append(other)
+	for e in _prey_among(enemies):
+		if state.sight_reaches(b.hex, e.pos, budget):
+			out.append(e)
+	return out
+
+## 出撃先候補のうち、盤上距離が最小の敵に最も近いマス（敵がいなければ col → row の若いマス）。
+func _best_deploy_cell(state: BattleState, b: Base, cells: Array[Vector2i]) -> Vector2i:
+	var enemies: Array[Unit] = []
+	for other in state.units():
+		if other.team != b.team:
+			enemies.append(other)
+	if enemies.is_empty():
+		var young := cells[0]
+		for c in cells:
+			if _is_younger_hex(c, young):
+				young = c
+		return young
+	var goal := _nearest_unit_by_board(b.hex, enemies).pos
+	return _nearest_hex_by_board(goal, cells)

@@ -1,1086 +1,569 @@
 extends GutTest
-## domain/ai/nearest_attacker_brain.gd の思考テスト（純ロジック・ツリー不要）。
+## domain/ai/trait_brain.gd の思考テスト（純ロジック・ツリー不要）。
+## 特性ごとに「どの行が成立するか」を見る。仕様の正本は doc/gdd/ai.md（特性詳細）。
+##
+## 敵ユニットは必ず部隊(squad)に属する形で組む＝実データに部隊外の敵は無い。
+## 距離そのもの（測れる／測れない・どのマスを数えるか）は test_ai_distance.gd の受け持ち。
+##
+## 盤は flat-top / odd-q。offset の「行」は axial の直線ではないので横方向は最短路が扇状に
+## 広がり、敵1体のZOCでは迂回距離が伸びないことがある（同じ長さの別ルートが残る）。
+## 回り込みの効きを見るテストは壁で抜け道を絞った盤で書く。
 
-var _brain: NearestAttackerBrain
+const PLAIN_WALL := { "ground": { "plain": 1, "wall": "x" } }
+
+var _brain: TraitBrain
 
 func before_each() -> void:
-	_brain = NearestAttackerBrain.new()
+	_brain = TraitBrain.new()
+	_brain.presets = AiCatalog.load_default()  # 特性の既定は ai.csv 由来の実データを使う
 
-# 指定 team のターンとして、行動が尽きるまで AI を実際に適用する（安全のため上限付き）。
-func _run_turn(state: BattleState, team: int) -> void:
-	state.current_team = team
-	var guard := 0
-	while guard < 100:
-		guard += 1
-		var a := _brain.next_action(state, team)
-		if a == null:
-			return
-		if a.kind == AiAction.Kind.MOVE:
-			assert_true(state.move_unit(a.unit_id, a.to), "AIの移動は妥当であるべき")
-		else:
-			assert_false(state.attack(a.unit_id, a.target_id).is_empty(), "AIの攻撃は妥当であるべき")
-	fail_test("AIのターンが終了しなかった（無限ループの疑い）")
+# --- 盤の組み立て ---
 
-func test_attacks_adjacent_enemy() -> void:
-	var s := BattleState.new(8, 8)
+## 敵(team 1)の部隊を作って index を返す。overrides＝部隊ごとのパラメーター上書き。
+func _squad(s: BattleState, ai: String, overrides := {}) -> int:
+	var squad := { "ai": ai, "order": s.squads.size() + 1 }
+	for k in overrides:
+		squad[k] = overrides[k]
+	s.squads.append(squad)
+	return s.squads.size() - 1
+
+## 地上の駒を1体作る（座標は offset で指定）。
+func _u(id: int, team: int, col: int, row: int, move := 3, troops := 8,
+		atk := 20, def := 10) -> Unit:
+	var u := Unit.new(id, team, Hex.offset_to_axial(col, row), move, troops, atk, def)
+	u.move_type = "ground"
+	return u
+
+## 敵AIの駒（team 1）を部隊に入れて盤へ置く。
+func _ai(s: BattleState, squad_index: int, id: int, col: int, row: int, move := 3) -> Unit:
+	var u := _u(id, 1, col, row, move)
+	s.add_unit(u)
+	s.assign_squad(u.id, squad_index)
+	return u
+
+## プレイヤーの駒（team 0）を盤へ置く。
+func _pc(s: BattleState, id: int, col: int, row: int, def := 10) -> Unit:
+	var u := _u(id, 0, col, row, 3, 8, 20, def)
+	s.add_unit(u)
+	return u
+
+## 損耗させる（満員兵数は変えない＝損耗は割合で見る）。
+func _hurt(u: Unit, troops: int) -> Unit:
+	u.troops = troops
+	return u
+
+func _skin(u: Unit, skin: String) -> Unit:
+	u.skin_id = skin
+	return u
+
+## 対象1体に掛かった補正を1本積む。
+func _mod(s: BattleState, u: Unit, kind: String) -> void:
+	s.add_status_mod({
+		"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
+		"value": 10.0 if kind == StatusMod.KIND_BUFF else -10.0,
+		"kind": kind, "owner_team": 1, "remaining": 3,
+	})
+
+func _col(hex: Vector2i) -> int:
+	return Hex.axial_to_offset(hex).x
+
+func _row(hex: Vector2i) -> int:
+	return Hex.axial_to_offset(hex).y
+
+# --- charge（突撃） ---
+
+func test_charge_attacks_the_nearest_enemy_not_the_weakest() -> void:
+	# 攻撃対象は盤上距離が最小の敵。旧実装の既定は兵数最小だったのでここが変わる。
+	var s := BattleState.new(9, 9)
 	s.current_team = 1
-	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(Unit.new(10, 1, ep, 3))                  # AIユニット
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3))  # 隣接する自軍
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣接敵がいれば攻撃を選ぶ")
-	assert_eq(a.target_id, 1)
-
-func test_moves_closer_when_far() -> void:
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var ai_pos := Hex.offset_to_axial(0, 1)
-	var enemy_pos := Hex.offset_to_axial(10, 1)
-	s.add_unit(Unit.new(10, 1, ai_pos, 3))
-	s.add_unit(Unit.new(1, 0, enemy_pos, 3))
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.MOVE, "遠ければ近づく")
-	assert_lt(Hex.distance(a.to, enemy_pos), Hex.distance(ai_pos, enemy_pos), "距離が縮む")
-
-func test_focuses_weakest_adjacent() -> void:
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(Unit.new(10, 1, ep, 3))
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3, 8))   # 兵数8
-	s.add_unit(Unit.new(2, 0, Hex.neighbor(ep, 2), 3, 3))   # 兵数3（弱い）
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 4, 4)
+	archer.attack_range = 2
+	var near := _pc(s, 1, 4, 3)             # 盤上距離1・満員
+	_hurt(_pc(s, 2, 4, 2), 2)               # 盤上距離2・兵数2（旧実装ならこちらを狙った）
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, 2, "最も兵数の少ない敵を狙う")
+	assert_eq(a.target_id, near.id, "兵数ではなく盤上距離が最小の敵")
 
-func test_no_action_without_enemies() -> void:
+func test_charge_captures_before_attacking() -> void:
+	# #1 占領兵で移動範囲に自陣営以外の拠点があれば、殴れる敵がいても取りに行く。
 	var s := BattleState.new(8, 8)
 	s.current_team = 1
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(3, 3), 3))
-	assert_null(_brain.next_action(s, 1), "敵がいなければ何もしない")
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 3, 3)
+	u.can_capture = true
+	_pc(s, 1, 3, 2)                          # 隣接＝殴れる
+	var base_hex := Hex.offset_to_axial(3, 5)
+	s.add_base(Base.new(base_hex, 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "占領は攻撃より上の行")
+	assert_eq(a.to, base_hex, "拠点hexへ進入＝占領")
 
-func test_full_turn_engages_and_damages() -> void:
-	# 数ヘックス離れた敵へ寄って殴る一連の流れ。AIは強くて落ちない設定。
+func test_charge_ignores_its_own_base() -> void:
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 3, 3)
+	u.can_capture = true
+	var e := _pc(s, 1, 3, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(3, 5), 1))  # 自陣営の拠点
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "自陣営の拠点は占領の対象外")
+	assert_eq(a.target_id, e.id)
+
+func test_charge_advances_by_move_distance() -> void:
+	# #4 移動距離が測れる敵へ最大前進＝開けた盤では移動力ぶん詰める。
 	var s := BattleState.new(12, 3)
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(0, 1), 4, 8, 20, 20))  # AI 移動力4・強い
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 0, 1)
+	var e := _pc(s, 1, 10, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_eq(Hex.distance(a.to, e.pos), Hex.distance(u.pos, e.pos) - 3, "移動力ぶん縮む")
+
+func test_charge_uses_terrain_distance_when_pieces_block_the_way() -> void:
+	# #5 標的が駒に囲まれて移動距離が測れないとき、地形距離で詰めておく（駒はいずれ動く）。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 1, 2)
+	var e := _pc(s, 1, 6, 2)
+	var id := 20
+	for nb in Hex.neighbors(e.pos):
+		var o := Hex.axial_to_offset(nb)
+		var blocker := _ai(s, si, id, o.x, o.y)
+		s.set_done(blocker.id)  # もう動かない駒＝行動順で飛ばされる
+		id += 1
+	assert_eq(s.move_distance(10, s.attack_cells(10, 1)), BattleState.UNREACHABLE,
+		"前提: 攻撃可能なマスが全部埋まっている＝移動距離は測れない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "地形距離で詰める")
+	assert_lt(Hex.distance(a.to, e.pos), Hex.distance(u.pos, e.pos), "標的へ近づく")
+
+func test_charge_closes_in_a_straight_line_when_walled_off() -> void:
+	# #6 どの道のりも測れないとき＝壁の向こうの敵へ、壁際まで詰めて止まる。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	s.set_movement(PLAIN_WALL)
+	for row in 5:
+		s.set_terrain(Hex.offset_to_axial(4, row), "wall")
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 1, 2)
+	_pc(s, 1, 7, 2)
+	assert_eq(s.move_distance(10, s.attack_cells(10, 1)), BattleState.UNREACHABLE, "前提: 道が無い")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_eq(_col(a.to), 3, "壁の手前まで詰める")
+	assert_eq(u.pos, Hex.offset_to_axial(1, 2), "返すのは1手＝盤はまだ動かない")
+
+func test_charge_skips_the_advance_rows_after_spending_its_move() -> void:
+	# 移動を使い切った駒は、移動を伴う行（占領・前進）を飛ばす＝残る行が無ければ待機。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	_ai(s, si, 10, 0, 1)
+	_pc(s, 1, 10, 1)
+	var a := _brain.next_action(s, 1)
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: 1手目は前進")
+	assert_null(_brain.next_action(s, 1), "移動を使い切ったので待機")
+
+func test_charge_waits_without_enemies() -> void:
+	var s := BattleState.new(8, 8)
+	s.current_team = 1
+	_ai(s, _squad(s, "charge"), 10, 3, 3)
+	assert_null(_brain.next_action(s, 1), "標的にできる敵がいなければ末尾の行も成立しない")
+	assert_true(s.is_engaged(10), "行動開始条件は常時＝起きてはいる")
+
+func test_charge_reaches_the_enemy_over_several_actions() -> void:
+	# 1手ずつ返す＝寄って殴るまでを呼び出し側が回す。
+	var s := BattleState.new(12, 3)
+	var si := _squad(s, "charge")
+	_ai(s, si, 10, 0, 1, 4)
 	var enemy_pos := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(1, 0, enemy_pos, 3, 8, 1, 10))                    # 反撃は微弱
+	var e := _pc(s, 1, 5, 1)
+	e.unit_attack = 1  # 反撃は微弱＝AIは落ちない
 	_run_turn(s, 1)
 	var ai := s.unit_by_id(10)
-	assert_not_null(ai, "AIユニットは生存（敵の反撃が微弱なので）")
+	assert_not_null(ai, "AIユニットは生存")
 	assert_eq(Hex.distance(ai.pos, enemy_pos), 1, "敵に隣接するまで前進する")
 	assert_lt(s.unit_by_id(1).troops, 8, "前進後に攻撃して兵数を削る")
 
-# --- 占領ステップ（起動の後・攻撃の前）と前進オプション「拠点前進」 ---
-
-## 占領可のAIユニットを作る（cleric相当）。
-func _capturer(id: int, team: int, pos: Vector2i, move := 3) -> Unit:
-	var u := Unit.new(id, team, pos, move)
-	u.can_capture = true
-	return u
-
-func test_capturer_takes_reachable_base_over_attack() -> void:
-	# 隣に殴れる敵がいても、移動範囲に取れる拠点があれば占領を優先する。
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(_capturer(10, 1, ep))
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3))       # 隣接する自軍（殴れる）
-	var base_hex := Hex.offset_to_axial(3, 5)                # 距離2＝移動範囲内
-	s.add_base(Base.new(base_hex, 0))                        # 自軍所属の拠点＝AIから見て奪える
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE, "攻撃より占領を優先")
-	assert_eq(a.to, base_hex, "拠点hexへ移動（進入＝占領）")
-
-func test_non_capturer_ignores_base() -> void:
-	# 占領不可ユニットは拠点を無視して従来どおり攻撃する。
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(Unit.new(10, 1, ep, 3))                       # can_capture=false
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3))
-	s.add_base(Base.new(Hex.offset_to_axial(3, 5), 0))
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "占領不可なら拠点を無視して攻撃")
-
-func test_capturer_ignores_own_base() -> void:
-	# 自陣営の拠点は占領対象でない（敵がいなければ何もしない）。
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	s.add_unit(_capturer(10, 1, Hex.offset_to_axial(3, 3)))
-	s.add_base(Base.new(Hex.offset_to_axial(3, 5), 1))       # 自陣営(team1)の拠点
-	assert_null(_brain.next_action(s, 1), "自陣営の拠点しか無ければ動かない")
-
-func test_full_turn_capture_flips_base() -> void:
-	# 実際にターンを回すと、拠点へ進入して所属が変わる（自動占領）。
-	var s := BattleState.new(8, 8)
-	var base_hex := Hex.offset_to_axial(3, 5)
-	s.add_unit(_capturer(10, 1, Hex.offset_to_axial(3, 3)))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(7, 7), 3))  # 遠くの自軍（起動のため）
-	s.add_base(Base.new(base_hex, 0))
-	_run_turn(s, 1)
-	assert_eq(s.base_at(base_hex).team, 1, "ターンの中で拠点を占領して所属が変わる")
-
-func test_advance_to_base_option_steps_toward_base() -> void:
-	# 拠点前進オプション: 届かない拠点でも、敵ではなく拠点の方へ前進する。
-	_brain.advance_to_base = true
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(_capturer(10, 1, start))
-	var base_hex := Hex.offset_to_axial(11, 1)               # 右の彼方（届かない）
-	s.add_base(Base.new(base_hex, 0))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3)) # 敵は左の彼方
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(start, base_hex), "拠点への距離が縮む＝敵でなく拠点へ向かう")
-
-func test_advance_to_base_applies_to_non_capturer_too() -> void:
-	# 拠点前進は部隊ごと拠点攻略へ向かう動き＝占領不可ユニット（護衛）も拠点方向へ前進する。
-	_brain.advance_to_base = true
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))                    # can_capture=false（護衛）
-	var base_hex := Hex.offset_to_axial(11, 1)
-	s.add_base(Base.new(base_hex, 0))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3)) # 敵は逆方向
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(start, base_hex), "護衛も拠点へ向かう")
-
-# --- 前進の迂回（道のりで測る）。詳細 → doc/gdd/ai.md（前進） ---
-
-## 5列目を wall_rows マスぶん壁で塞いだ盤（残りが抜け道）。目標は西の拠点、敵(10)は東。
-## 目標を拠点にして敵ユニットを置かない＝戦闘を挟まず「歩き方」だけを見る。
-func _walled_base_state(height: int, wall_rows: int) -> BattleState:
-	var s := BattleState.new(11, height)
-	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
-	s.current_team = 1
-	for row in wall_rows:
-		s.set_terrain(Hex.offset_to_axial(5, row), "wall")
-	s.add_base(Base.new(Hex.offset_to_axial(2, 1), 0))  # 自軍拠点＝敵から見て取りに行く先
-	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 1), 3)
-	u.move_type = "ground"
-	s.add_unit(u)
-	return s
-
-## 敵ターンを turns 回まわす（自軍は何もしない）。
-func _run_enemy_turns(s: BattleState, turns: int) -> void:
-	for _turn in turns:
-		_run_turn(s, 1)
-		s.end_turn()  # → 自軍ターン
-		s.end_turn()  # → 敵ターン
-
-func test_advance_detours_around_a_wall() -> void:
-	# 直線距離では縮まないマスしか無くても、道のり（地形コスト）が縮む方へ回り込む。
-	# 直線距離だけで測っていた頃は、壁の手前で止まったきり動かなくなっていた。
-	_brain.advance_to_base = true
-	var s := _walled_base_state(7, 6)  # 南の1マスだけ空く
-	_run_enemy_turns(s, 12)
-	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "南の隙間を回って壁の向こうへ抜ける")
-
-func test_advance_stops_at_the_wall_when_walled_off() -> void:
-	# 完全に分断されていれば道が無い＝壁際まで詰めて、そこから無意味に動かない。
-	_brain.advance_to_base = true
-	var s := _walled_base_state(3, 3)  # 全高を塞ぐ＝抜け道なし
-	_run_enemy_turns(s, 4)
-	assert_eq(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 6, "壁際まで詰めてそこで止まる")
-
-## 5列目を柵（コスト3）で wall_rows マスぶん塞いだ盤。壁と違い「通れる駒と通れない駒がいる」。
-## 目標は西の拠点、敵(10)は東。move が柵のコスト未満なら、その駒にとっては壁と同じ。
-func _fenced_base_state(height: int, fence_rows: int, move: int) -> BattleState:
-	var s := BattleState.new(11, height)
-	s.set_movement({ "ground": { "plain": 1, "fence": 3 } })
-	s.current_team = 1
-	for row in fence_rows:
-		s.set_terrain(Hex.offset_to_axial(5, row), "fence")
-	s.add_base(Base.new(Hex.offset_to_axial(2, 1), 0))
-	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 1), move)
-	u.move_type = "ground"
-	s.add_unit(u)
-	return s
-
-func test_advance_detours_around_a_fence_it_cannot_step_on() -> void:
-	# 柵はコスト3＝移動2の駒は一生踏めない。道のりの最短路が柵を通ると、勾配が柵を指して
-	# 踏めるマスが全部「上り」になり、その場から動かなくなっていた。
-	_brain.advance_to_base = true
-	var s := _fenced_base_state(7, 6, 2)  # 南の1マスだけ空く
-	_run_enemy_turns(s, 14)
-	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "南の隙間を回って柵の向こうへ抜ける")
-
-func test_advance_crosses_a_fence_it_can_step_on() -> void:
-	# 移動3なら柵を1歩で越えられる＝迂回せず正面から抜ける（上限は駒ごとに効く）。
-	_brain.advance_to_base = true
-	var s := _fenced_base_state(3, 3, 3)  # 全高を塞ぐ＝迂回路なし
-	_run_enemy_turns(s, 6)
-	assert_lt(Hex.axial_to_offset(s.unit_by_id(10).pos).x, 5, "柵を踏み越えて拠点へ向かう")
-
-func test_advance_goes_around_a_wall_of_allies() -> void:
-	# 味方で正面が埋まっていても、標的以外の駒を壁として測り直して回り込む。
-	# 味方の上は通過できても止まれないので、駒を見ないまま測ると勾配が仲間の背中を指す。
-	var s := BattleState.new(11, 5)
-	s.set_movement({ "ground": { "plain": 1 } })
-	s.current_team = 1
-	var goal := Hex.offset_to_axial(1, 2)
-	s.add_unit(Unit.new(1, 0, goal, 3))
-	var u := Unit.new(10, 1, Hex.offset_to_axial(6, 2), 2)
-	u.move_type = "ground"
-	s.add_unit(u)
-	var id := 20
-	for col in [4, 5]:                                # 2列ぶんの味方の壁＝通り抜けきれない厚み
-		for row in [1, 2, 3]:
-			s.add_unit(Unit.new(id, 1, Hex.offset_to_axial(col, row), 2))
-			id += 1
-	var dest := Hex.axial_to_offset(_brain._advance_dest(s, u))
-	assert_ne(dest, Hex.axial_to_offset(u.pos), "塞がれていても止まらない")
-	assert_true(dest.y == 0 or dest.y == 4, "壁の上下（空いている行）へ回り込む")
-
-func test_prey_is_picked_from_enemies_it_can_reach() -> void:
-	# 獲物は「歩いて隣まで行ける敵」から選ぶ。壁の向こうにもっと弱い敵がいても、
-	# 手の出せない相手を目標にして前進が止まらないようにする。
-	var s := BattleState.new(11, 5)
-	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
-	s.current_team = 1
-	for row in 5:                                       # 5列目で盤を完全に二分する壁
-		s.set_terrain(Hex.offset_to_axial(5, row), "wall")
-	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 2), 3)
-	u.move_type = "ground"
-	s.add_unit(u)
-	var near_side := Unit.new(1, 0, Hex.offset_to_axial(8, 2), 3)  # 届く（防御は高め）
-	near_side.unit_defense = 40
-	s.add_unit(near_side)
-	var far_side := Unit.new(2, 0, Hex.offset_to_axial(2, 2), 3)   # 壁の向こう（もっと弱い）
-	far_side.unit_defense = 10
-	s.add_unit(far_side)
-	assert_eq(_brain._prey_of(s, u).id, 1, "壁の向こうの弱い敵ではなく、届く敵を狙う")
-	assert_eq(_brain._nearest_enemy(s, u).id, 1, "最寄りの敵も届く敵から選ぶ")
-
-func test_prey_is_the_nearest_of_the_soft_tier() -> void:
-	# 獲物は「防御の低い層（最小＋10）」の中から、道のりが短いものを選ぶ。
-	# 最弱1体に固定すると、盤の隅のエルフを全員で追って手近なクレリックを素通りする。
-	var s := BattleState.new(15, 5)
-	s.set_movement({ "ground": { "plain": 1 } })
-	s.current_team = 1
-	var u := Unit.new(10, 1, Hex.offset_to_axial(12, 2), 3)
-	u.move_type = "ground"
-	s.add_unit(u)
-	var elf := Unit.new(1, 0, Hex.offset_to_axial(1, 2), 3)    # 最弱だが遠い
-	elf.unit_defense = 10
-	s.add_unit(elf)
-	var cleric := Unit.new(2, 0, Hex.offset_to_axial(10, 2), 3)  # 1段上だが近い
-	cleric.unit_defense = 20
-	s.add_unit(cleric)
-	var knight := Unit.new(3, 0, Hex.offset_to_axial(11, 2), 3)  # 層の外＝狙わない
-	knight.unit_defense = 70
-	s.add_unit(knight)
-	assert_eq(_brain._prey_of(s, u).id, 2, "層（10〜20）の中で近いクレリックを狙う")
-	elf.unit_defense = 20  # 層が 20〜30 に上がっても、騎士(70)は層の外のまま
-	assert_eq(_brain._prey_of(s, u).id, 2, "層は盤の顔ぶれに追随する")
-
-func test_prey_falls_back_when_nothing_is_reachable() -> void:
-	# 1体も届かなければ盤上の敵から選ぶ（近づけないなりに寄せる＝目標なしで固まらない）。
-	var s := BattleState.new(11, 5)
-	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
-	s.current_team = 1
-	for row in 5:
-		s.set_terrain(Hex.offset_to_axial(5, row), "wall")
-	var u := Unit.new(10, 1, Hex.offset_to_axial(7, 2), 3)
-	u.move_type = "ground"
-	s.add_unit(u)
-	var far_side := Unit.new(2, 0, Hex.offset_to_axial(2, 2), 3)
-	s.add_unit(far_side)
-	assert_eq(_brain._prey_of(s, u).id, 2, "届く敵が居なければ盤上の敵を狙う")
-
-# --- スキル（doc/gdd/ai.md §4・§5） ---
-
-## ゴースト1体と、隣接する自軍2体を置いた盤。skill 軸を preset で渡す。
-## skill_stack＝デバフ本数の上限（既定 "-"＝上限なし＝この軸を使わない）。
-func _ghost_state(skill: String, skill_target: String, skill_stack: Variant = "-") -> BattleState:
-	var s := BattleState.new(9, 5)
-	s.current_team = 1
-	var ghost := Unit.new(10, 1, Hex.offset_to_axial(4, 2), 5)
-	ghost.skin_id = "ghost"
-	s.add_unit(ghost)
-	s.squads.append({ "ai": "ghost", "skill": skill, "skill_target": skill_target,
-		"skill_stack": skill_stack })
-	s.assign_squad(10, 0)
-	return s
-
-func test_skill_is_cast_before_attacking() -> void:
-	# 放つと行動完了＝そのターンは殴らない。だから攻撃より前に決める。
-	var s := _ghost_state("always", "near")
-	var target := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
-	s.add_unit(Unit.new(1, 0, target, 3))
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.SKILL, "隣接敵がいてもまずスキルを放つ")
-	assert_eq(a.unit_id, 10)
-	assert_eq(a.to, target, "対象は隣接する敵のマス")
-	assert_eq(String(a.option["recipe"]), "dread_touch")
-
-func test_skill_is_skipped_when_the_axis_is_off() -> void:
-	var s := _ghost_state("-", "-")
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3))
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "放たない設定なら従来どおり殴る")
-
-func test_skill_target_prefers_the_most_troops() -> void:
-	# skill_target=troops＝残兵の多い相手（デバフが長く効く）。同値は駒番号の小さいほう。
-	var s := _ghost_state("always", "troops")
-	var ghost_pos := Hex.offset_to_axial(4, 2)
-	var thin := Unit.new(1, 0, Hex.neighbor(ghost_pos, 0), 3)
-	thin.troops = 2
-	s.add_unit(thin)
-	var fat := Unit.new(2, 0, Hex.neighbor(ghost_pos, 3), 3)
-	fat.troops = 8
-	s.add_unit(fat)
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.SKILL)
-	assert_eq(a.to, fat.pos, "残兵の多いほうに掛ける")
-
-func test_skill_is_not_cast_without_a_target_in_range() -> void:
-	# 対象にできる相手が範囲内にいなければ放たない＝前進に落ちる。
-	var s := _ghost_state("always", "near")
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 2), 3))  # 遠い
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.MOVE, "射程外なら前進する")
-
-# --- デバフ本数の上限（skill_stack）。doc/gdd/ai.md §5b ---
-
-## 対象1体に弱体を1本積む（本数を数えられればよいので値は最小限）。
-func _add_debuff(s: BattleState, unit_id: int) -> void:
-	s.add_status_mod({ "scope": "unit", "unit_id": unit_id, "owner_team": 1,
-		"op": "add", "target": "both", "value": -10.0, "kind": "debuff", "remaining": 3 })
-
-func test_skill_stack_avoids_targets_at_the_cap() -> void:
-	# 上限に達している相手は候補から外れる＝まだ掛かっていないほうへ回る。
-	# skill_target=near で両方とも距離1＝同値なので、上限が無ければ駒番号の小さい 1 が選ばれる盤。
-	var s := _ghost_state("always", "near", 1)
-	var ghost_pos := Hex.offset_to_axial(4, 2)
-	var already := Unit.new(1, 0, Hex.neighbor(ghost_pos, 0), 3)
-	s.add_unit(already)
-	var fresh := Unit.new(2, 0, Hex.neighbor(ghost_pos, 3), 3)
-	s.add_unit(fresh)
-	_add_debuff(s, already.id)
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.SKILL)
-	assert_eq(a.to, fresh.pos, "まだ掛かっていないほうに掛ける")
-
-func test_skill_stack_turns_to_attacking_when_all_targets_are_capped() -> void:
-	# 候補が1体も残らなければ放たない＝そのまま攻撃へ落ちる（手番をスキルで捨てない）。
-	var s := _ghost_state("always", "near", 1)
-	var target := Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3)
-	s.add_unit(target)
-	_add_debuff(s, target.id)
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "もう十分弱っている＝重ねずに殴る")
-
-func test_skill_stack_counts_debuffs_up_to_the_cap() -> void:
-	# 上限2＝1本目までは重ねる（2本で打ち止め）。種類では分けず合計で数える。
-	var s := _ghost_state("always", "near", 2)
-	var target := Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3)
-	s.add_unit(target)
-	_add_debuff(s, target.id)
-	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.SKILL, "1本なら上限2に届かない")
-	_add_debuff(s, target.id)
-	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.ATTACK, "2本で打ち止め")
-
-func test_skill_stack_unlimited_keeps_stacking() -> void:
-	# "-"＝上限なし＝従来どおり重ねがけする（既存プリセットの挙動を変えない）。
-	var s := _ghost_state("always", "near")
-	var target := Unit.new(1, 0, Hex.neighbor(Hex.offset_to_axial(4, 2), 0), 3)
-	s.add_unit(target)
-	_add_debuff(s, target.id)
-	_add_debuff(s, target.id)
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.SKILL, "上限なしなら何本でも重ねる")
-	assert_eq(a.to, target.pos)
-
-# --- 包囲まわりの条件（surround_able / surrounded）。skill 軸・attack 軸で共通。ai.md §4・§6 ---
-
-## target の隣で、taken でも盤外でも埋まってもいないマス（包囲役を置く場所）。
-func _free_ring_hex(s: BattleState, target: Vector2i, taken: Vector2i) -> Vector2i:
-	for h in Hex.neighbors(target):
-		if h != taken and s.in_field(h) and s.unit_at(h) == null:
-			return h
-	return target
-
-## target から距離2の空きマス（「今ターン中に隣へ寄れる味方」を置く場所）。
-func _approach_hex(s: BattleState, target: Vector2i) -> Vector2i:
-	for ring in Hex.neighbors(target):
-		for far in Hex.neighbors(ring):
-			if Hex.distance(far, target) == 2 and s.in_field(far) and s.unit_at(far) == null:
-				return far
-	return target
-
-## 駒1体を team1 の部隊に入れ、attack 軸だけ指定した盤（ほかの軸は既定＝charge 相当）。
-func _attack_axis_state(attack: String) -> BattleState:
-	var s := BattleState.new(9, 5)
-	s.current_team = 1
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(4, 2), 3))
-	s.squads.append({ "ai": "test", "attack": attack })
-	s.assign_squad(10, 0)
-	return s
-
-func test_skill_surrounded_waits_until_the_target_is_pinned() -> void:
-	# 包囲状態＝すでに味方2体以上が隣接して包囲効果が出ている相手にだけ放つ。
-	var s := _ghost_state("surrounded", "near")
-	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
-	s.add_unit(Unit.new(1, 0, target_pos, 3))
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "ゴースト1体では包囲が成立しない＝放たずに殴る")
-	s.add_unit(Unit.new(11, 1, _free_ring_hex(s, target_pos, Hex.offset_to_axial(4, 2)), 3))
-	a = _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.SKILL, "包囲が成立したら放つ")
-	assert_eq(a.to, target_pos, "対象は包囲されている敵")
-
-func test_skill_surround_able_counts_allies_that_can_still_close_in() -> void:
-	# 包囲可能＝いま隣接している駒＋今ターン中に隣接できる駒が Surround.GATE に届くか。
-	var s := _ghost_state("surround_able", "near")
-	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
-	s.add_unit(Unit.new(1, 0, target_pos, 3))
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣接できるのがゴーストだけ＝1体では届かない")
-	s.add_unit(Unit.new(11, 1, _approach_hex(s, target_pos), 3))
-	a = _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.SKILL, "あとから寄れる味方がいれば先に弱らせる")
-	assert_eq(a.to, target_pos)
-
-func test_skill_surround_able_ignores_allies_that_are_done() -> void:
-	# 行動を終えた駒は今ターン中には寄れない＝数に入らない。
-	var s := _ghost_state("surround_able", "near")
-	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
-	s.add_unit(Unit.new(1, 0, target_pos, 3))
-	s.add_unit(Unit.new(11, 1, _approach_hex(s, target_pos), 3))
-	s.set_done(11)
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "行動済みの味方は包囲可能に数えない")
-
-func test_attack_surrounded_holds_until_the_target_is_pinned() -> void:
-	# 攻撃条件も skill 軸と同じ語・同じ判定。1体では殴らない。
-	var s := _attack_axis_state("surrounded")
-	var u_pos := Hex.offset_to_axial(4, 2)
-	var target_pos := Hex.neighbor(u_pos, 0)
-	s.add_unit(Unit.new(1, 0, target_pos, 3))
-	assert_true(_brain._attack_allowed_targets(s, s.unit_by_id(10), s.attack_targets(10)).is_empty(),
-		"包囲が成立していない相手は攻撃候補から外れる")
-	s.add_unit(Unit.new(11, 1, _free_ring_hex(s, target_pos, u_pos), 3))
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "包囲が成立したら殴る")
-	assert_eq(a.target_id, 1)
-
-func test_attack_conditions_are_or_and_unimplemented_ones_pass_through() -> void:
-	# "|"＝OR。未実装の語（solo_adv / no_retal / kill）だけなら従来どおり全部通す（ai.md §6）。
-	var target_pos := Hex.neighbor(Hex.offset_to_axial(4, 2), 0)
-	var s := _attack_axis_state("solo_adv|no_retal")
-	s.add_unit(Unit.new(1, 0, target_pos, 3))
-	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.ATTACK, "未実装の条件は素通り＝殴る")
-	var s2 := _attack_axis_state("surrounded|always")
-	s2.add_unit(Unit.new(1, 0, target_pos, 3))
-	assert_eq(_brain.next_action(s2, 1).kind, AiAction.Kind.ATTACK, "always が混ざれば無条件に殴る")
-
-func test_from_preset_wires_advance_base() -> void:
-	# ai.csv の advance="base" → 拠点前進フラグ。空/未知は既定（charge相当）。
-	assert_true(NearestAttackerBrain.from_preset({ "advance": "base" }).advance_to_base, "base＝拠点前進ON")
-	assert_false(NearestAttackerBrain.from_preset({ "advance": "max" }).advance_to_base, "max＝既定")
-	assert_false(NearestAttackerBrain.from_preset({}).advance_to_base, "空辞書＝既定")
-
-func test_ai_catalog_default_has_raid_preset() -> void:
-	# 生成物 ai.json に raid（拠点攻略）プリセットが載っている（CSV→JSONパイプラインの配線確認）。
-	var presets := AiCatalog.load_default()
-	assert_true(presets.has("charge"), "charge がある")
-	assert_true(presets.has("raid"), "raid がある")
-	assert_eq(String(presets["raid"]["advance"]), "base", "raid は拠点前進")
-
-func test_loader_wires_enemy_ai_label() -> void:
-	var s := StageLoader.build({ "cols": 6, "rows": 6, "ai": "raid" })
-	assert_eq(s.enemy_ai, "raid", "ステージJSONの ai ラベルが載る")
-	var s2 := StageLoader.build({ "cols": 6, "rows": 6 })
-	assert_eq(s2.enemy_ai, "", "未指定＝空（既定 charge）")
-
-# --- 部隊(squad)単位のAI割り当て ---
-
-const PRESETS := {
-	"charge": { "advance": "max" },
-	"raid": { "advance": "base" },
-}
-
-func test_loader_wires_squads() -> void:
-	var data := { "cols": 8, "rows": 8,
-		"player": [ { "col": 1, "row": 1 } ],
-		"enemy": [
-			{ "name": "強襲", "ai": "raid",
-				"units": [ { "col": 5, "row": 5 }, { "col": 6, "row": 5 } ] },
-		],
-	}
-	var s := StageLoader.build(data)
-	assert_eq(s.units().size(), 3, "player1＋部隊2が盤に載る")
-	assert_eq(s.squads.size(), 1)
-	var sq2 := s.squad_of(2)  # 採番は直書きから連続（部隊の1体目=id2）
-	assert_eq(String(sq2.get("ai", "")), "raid", "部隊メンバーは部隊のラベルを持つ")
-	assert_eq(String(sq2.get("name", "")), "強襲")
-	assert_true(s.squad_of(1).is_empty(), "直書きユニットは部隊なし")
-
-func test_squad_units_follow_squad_preset() -> void:
-	# 同じ盤で、raid部隊のユニットは拠点へ・部隊外（既定charge）のユニットは敵へ向かう。
-	_brain.presets = PRESETS
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))                    # 部隊なし（既定=敵へ）
-	var raider := Unit.new(11, 1, Hex.offset_to_axial(5, 0), 3)
-	s.add_unit(raider)
-	s.squads.append({ "name": "強襲", "ai": "raid" })
-	s.assign_squad(11, 0)
-	var base_hex := Hex.offset_to_axial(11, 1)               # 右に拠点
-	s.add_base(Base.new(base_hex, 0))
-	var enemy_pos := Hex.offset_to_axial(0, 1)               # 左に敵
-	s.add_unit(Unit.new(1, 0, enemy_pos, 3))
-	# 行動順は部隊が先で、部隊に属さない駒は最後（doc/gdd/ai.md 行動順）。
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, 11, "部隊の駒が先")
-	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(raider.pos, base_hex), "raid部隊は拠点へ")
-	assert_true(s.move_unit(11, a.to))
-	# 次は部隊なし(10)＝敵へ
-	var b := _brain.next_action(s, 1)
-	assert_eq(b.unit_id, 10, "部隊に属さない駒は最後")
-	assert_lt(Hex.distance(b.to, enemy_pos), Hex.distance(start, enemy_pos), "部隊なしは敵へ")
-
-func test_squad_override_beats_preset() -> void:
-	# 部隊の上書き（advance）はプリセット値より優先される。
-	_brain.presets = PRESETS
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))
-	s.squads.append({ "name": "上書き", "ai": "charge", "advance": "base" })  # charge だが base に上書き
-	s.assign_squad(10, 0)
-	var base_hex := Hex.offset_to_axial(11, 1)
-	s.add_base(Base.new(base_hex, 0))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))
-	var a := _brain.next_action(s, 1)
-	assert_lt(Hex.distance(a.to, base_hex), Hex.distance(start, base_hex), "上書き advance=base が効く")
-
-# --- 待機AI（guard）＝起動（engage）判定 ---
-
-const GUARD := { "engage": "sight|squad", "sight": 3, "advance": "max" }
-
-## guard部隊に属するAIユニットを1体足す（部隊は共有 index 0）。
-func _add_guard(s: BattleState, id: int, pos: Vector2i) -> void:
-	if s.squads.is_empty():
-		s.squads.append({ "name": "見張り", "ai": "guard" })
-	s.add_unit(Unit.new(id, 1, pos, 3))
-	s.assign_squad(id, 0)
-
-func test_guard_sleeps_when_enemy_far() -> void:
-	_brain.presets = { "guard": GUARD }
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))  # 距離8＝索敵3の外
-	assert_null(_brain.next_action(s, 1), "索敵外なら動かない（待機）")
-	assert_false(s.is_engaged(10), "未起動のまま")
-
-func test_guard_wakes_on_sight() -> void:
-	_brain.presets = { "guard": GUARD }
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(5, 1), 3))  # 距離3＝索敵内
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a, "索敵内に敵が入ったら起動して動く")
-	assert_true(s.is_engaged(10), "起動済みになる")
-
-func test_guard_does_not_wake_through_wall() -> void:
-	# 壁で視線が遮られると、索敵距離内でも待機AIは起きない（壁の裏には反応しない）。詳細 → doc/gdd/movement.md（視線）
-	_brain.presets = { "guard": GUARD }
-	var s := BattleState.new(12, 3)
-	s.set_sight_cost({ "plain": 1, "wall": 1 << 20 })
-	s.current_team = 1
-	for row in 3:  # 5列目と8列目の間を壁で全高に塞ぐ（視線は必ず壁を通る）
-		s.set_terrain(Hex.offset_to_axial(6, row), "wall")
-		s.set_terrain(Hex.offset_to_axial(7, row), "wall")
-	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(5, 1), 3))  # 距離3＝索敵内だが壁の裏
-	assert_null(_brain.next_action(s, 1), "壁の裏の敵には反応しない（待機のまま）")
-	assert_false(s.is_engaged(10), "未起動のまま")
-
-func test_detection_radius_for_sleeping_sight_guard() -> void:
-	# 検知域の可視化用：寝ている sight 見張りは sight 半径、起動後は0。
-	_brain.presets = { "guard": GUARD }
-	var s := BattleState.new(12, 3)
-	_add_guard(s, 10, Hex.offset_to_axial(6, 1))
-	assert_eq(_brain.detection_radius(s, s.unit_by_id(10)), 3, "寝ている見張り＝sight半径3")
-	s.mark_engaged(10)
-	assert_eq(_brain.detection_radius(s, s.unit_by_id(10)), 0, "起動済みは0（もう寝ていない）")
-
-func test_detection_radius_zero_for_charge() -> void:
-	# charge（常時起動・sight トリガー無し）は検知域を出さない。
-	var s := BattleState.new(6, 3)
-	s.add_unit(Unit.new(1, 1, Hex.offset_to_axial(3, 1), 3))  # 部隊なし＝既定 charge
-	assert_eq(_brain.detection_radius(s, s.unit_by_id(1)), 0, "突撃は検知域なし")
-
-func test_guard_squad_alarm_wakes_all() -> void:
-	# 一斉警戒: 1体が索敵で起動すると、索敵外の同部隊メンバーも起動する。
-	_brain.presets = { "guard": GUARD }
-	var s := BattleState.new(14, 3)
-	s.current_team = 1
-	_add_guard(s, 10, Hex.offset_to_axial(6, 1))   # 敵まで3＝起動する
-	_add_guard(s, 11, Hex.offset_to_axial(12, 1))  # 敵まで9＝索敵外だが部隊で起動
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(3, 1), 3, 8, 10, 40))
-	var moved := {}
+## 行動が尽きるまで AI を実際に適用する（安全のため上限付き）。
+func _run_turn(s: BattleState, team: int) -> void:
+	s.current_team = team
 	var guard := 0
-	while guard < 20:
+	while guard < 100:
 		guard += 1
-		var a := _brain.next_action(s, 1)
+		var a := _brain.next_action(s, team)
 		if a == null:
-			break
-		moved[a.unit_id] = true
-		if a.kind == AiAction.Kind.MOVE:
-			s.move_unit(a.unit_id, a.to)
-		else:
-			s.attack(a.unit_id, a.target_id)
-	assert_true(moved.has(10), "索敵した本人が動く")
-	assert_true(moved.has(11), "索敵外の同部隊メンバーも一斉に動く")
+			return
+		match a.kind:
+			AiAction.Kind.MOVE:
+				assert_true(s.move_unit(a.unit_id, a.to), "AIの移動は妥当であるべき")
+			AiAction.Kind.ATTACK:
+				assert_false(s.attack(a.unit_id, a.target_id).is_empty(), "AIの攻撃は妥当であるべき")
+			AiAction.Kind.SKILL:
+				assert_false(s.resolve_formation(a.option, a.to).is_empty(), "AIのスキルは妥当であるべき")
+			AiAction.Kind.DEPLOY:
+				assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
+	fail_test("AIのターンが終了しなかった（無限ループの疑い）")
 
-func test_guard_wakes_when_damaged() -> void:
-	# 被ダメ＝確定起動。撃たれた待機ユニットは次のターンから動く。
-	_brain.presets = { "guard": GUARD }
-	var s := BattleState.new(12, 3)
-	_add_guard(s, 10, Hex.offset_to_axial(8, 1))
-	var sniper := Unit.new(1, 0, Hex.offset_to_axial(4, 1), 3, 8, 30, 10)  # 距離4=索敵外
-	sniper.attack_range = 4  # 索敵外から間接で撃つ
-	s.add_unit(sniper)
-	s.current_team = 0
-	s.attack(1, 10)
-	assert_true(s.is_engaged(10), "撃たれて起動")
-	s.current_team = 1
-	assert_not_null(_brain.next_action(s, 1), "起動済みなので動く")
+# --- guard（待機） ---
 
-func test_guard_self_defense_when_adjacent() -> void:
-	# 索敵トリガー無し（squadのみ）でも、射程内に敵が来たら自衛で起動して殴る。
-	_brain.presets = { "guard": { "engage": "squad", "sight": 0, "advance": "max" } }
+func test_guard_sleeps_until_an_enemy_enters_its_sight() -> void:
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var gp := Hex.offset_to_axial(8, 1)
-	_add_guard(s, 10, gp)
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(gp, 3), 3))  # 隣接
+	var si := _squad(s, "guard")  # 既定 sight 3
+	_ai(s, si, 10, 1, 1)
+	var e := _pc(s, 1, 8, 1)
+	assert_null(_brain.next_action(s, 1), "視線距離が sight の外なら動かない")
+	assert_false(s.is_engaged(10))
+	e.pos = Hex.offset_to_axial(4, 1)
+	assert_not_null(_brain.next_action(s, 1), "sight に入れば動き出す")
+	assert_true(s.is_engaged(10))
+
+func test_guard_keeps_going_after_the_enemy_backs_off() -> void:
+	# 行動開始条件は一度成立したら以後判定しない＝離れても止まらない。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "guard")
+	_ai(s, si, 10, 1, 1)
+	var e := _pc(s, 1, 4, 1)
+	assert_not_null(_brain.next_action(s, 1), "前提: sight 内で起きる")
+	e.pos = Hex.offset_to_axial(11, 1)
+	assert_not_null(_brain.next_action(s, 1), "離れても止まらない")
+
+func test_guard_wakes_when_a_squadmate_is_engaged() -> void:
+	# 一斉警戒＝部隊の誰かが行動開始済みなら自分も起きる。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "guard")
+	var near := _ai(s, si, 10, 1, 1)
+	var far := _ai(s, si, 11, 0, 0)  # 敵まで視線距離4＝自分では気づかない
+	_pc(s, 1, 4, 1)
+	s.mark_engaged(near.id)
+	s.set_done(near.id)  # 先に動き終えた扱い
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "隣で寝続けず自衛で攻撃")
+	assert_eq(a.unit_id, far.id, "部隊ごと起きる")
 
-# --- 弱者狙い（weak）＝ attack=prey / target=weak / advance=flank。詳細 → doc/gdd/ai.md ---
-
-const WEAK := { "engage": "charge", "attack": "prey", "target": "weak;near", "advance": "flank" }
-
-func test_weak_advances_toward_prey_not_nearest() -> void:
-	# 前進の目標＝獲物（盤上最低防御）。近い硬い敵ではなく、遠い脆い敵へ向かう。
-	var brain := NearestAttackerBrain.from_preset(WEAK)
-	var s := BattleState.new(13, 3)
+func test_guard_wakes_when_shot_from_outside_its_sight() -> void:
+	# 攻撃を受けた駒は特性と行動開始条件によらず、その時点で行動開始する。
+	var s := BattleState.new(12, 3)
+	var si := _squad(s, "guard")
+	_ai(s, si, 10, 5, 1)
+	var shooter := _pc(s, 1, 1, 1)
+	shooter.attack_range = 4  # 視線3の外から届く
+	s.current_team = 0
+	assert_false(s.attack(shooter.id, 10).is_empty(), "前提: sight の外から撃てる")
 	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 1), 3, 8, 10, 40))   # 近い・硬い（防40）
-	var frail_pos := Hex.offset_to_axial(11, 1)
-	s.add_unit(Unit.new(2, 0, frail_pos, 3, 8, 10, 10))                   # 遠い・脆い（防10）＝獲物
-	var a := brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "近い敵でなく獲物へ向かう")
+	assert_true(s.is_engaged(10), "撃たれたら起きる")
+	assert_not_null(_brain.next_action(s, 1))
 
-func test_prey_only_skips_tough_frontline() -> void:
-	# 攻撃条件「獲物のみ」: 硬い前衛が隣にいても殴らず、獲物へ前進を続ける。
-	var brain := NearestAttackerBrain.from_preset(WEAK)
-	var s := BattleState.new(13, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 1), 3, 8, 10, 40))   # 隣接する硬い前衛（確殺不可）
-	var frail_pos := Hex.offset_to_axial(11, 1)
-	s.add_unit(Unit.new(2, 0, frail_pos, 3, 8, 10, 10))                   # 獲物
-	var a := brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE, "前衛と殴り合わず前進")
-	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "獲物への距離が縮む")
-
-func test_prey_only_still_takes_the_kill() -> void:
-	# 確殺なら獲物でなくても殴る（隣の瀕死を無視して歩かない）。
-	var brain := NearestAttackerBrain.from_preset(WEAK)
-	var s := BattleState.new(13, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 1), 3, 1, 10, 30))   # 隣接・兵1＝確殺できる（獲物ではない）
-	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(11, 1), 3, 8, 10, 10))  # 獲物は遠く
-	var a := brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "確殺は据え膳＝殴る")
-	assert_eq(a.target_id, 1)
-
-func test_target_weak_picks_most_killable_in_range() -> void:
-	# 対象優先 weak: 兵数最小（既定）ではなく、攻撃後の残兵が最小の敵を選ぶ。
+func test_guard_stays_asleep_with_an_enemy_in_attack_range() -> void:
+	# 旧実装にあった自衛（撃たれていないが攻撃射程内に敵が入ったら起きる）は廃止した。
 	var s := BattleState.new(8, 8)
 	s.current_team = 1
-	var ep := Hex.offset_to_axial(3, 3)
-	s.add_unit(Unit.new(10, 1, ep, 3))
-	s.add_unit(Unit.new(1, 0, Hex.neighbor(ep, 0), 3, 3, 10, 50))   # 兵3・防50＝削れない
-	s.add_unit(Unit.new(2, 0, Hex.neighbor(ep, 2), 3, 4, 10, 5))    # 兵4・防5＝倒しきれる
-	var d := _brain.next_action(s, 1)
-	assert_eq(d.target_id, 1, "既定（兵数最小）は兵3を選ぶ")
-	var weak_brain := NearestAttackerBrain.from_preset({ "attack": "always", "target": "weak;near", "advance": "max" })
-	var a := weak_brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, 2, "weak は残兵最小（確殺）の兵4を選ぶ")
+	var si := _squad(s, "guard", { "sight": "-" })  # 索敵では起きない見張り
+	_ai(s, si, 10, 3, 3)
+	_pc(s, 1, 3, 2)  # 隣接＝射程内
+	assert_null(_brain.next_action(s, 1), "射程内に来ただけでは起きない")
+	assert_false(s.is_engaged(10))
 
-func test_flank_slides_around_zoc() -> void:
-	# 回り込み: 前衛のZOC（隣接マス）に入らないマスを優先して獲物へ詰める。
-	var brain := NearestAttackerBrain.from_preset(WEAK)
-	var s := BattleState.new(13, 7)
+func test_guard_acts_like_charge_once_awake() -> void:
+	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var start := Hex.offset_to_axial(2, 3)
-	s.add_unit(Unit.new(10, 1, start, 3))
-	var wall_pos := Hex.offset_to_axial(5, 3)
-	s.add_unit(Unit.new(1, 0, wall_pos, 3, 8, 10, 40))                    # 進路上の前衛
-	var wagon_pos := Hex.offset_to_axial(8, 3)
-	s.add_unit(Unit.new(2, 0, wagon_pos, 3, 8, 10, 10))                   # 獲物（前衛の奥）
-	var a := brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, wagon_pos), Hex.distance(start, wagon_pos), "獲物への距離が縮む")
-	assert_gt(Hex.distance(a.to, wall_pos), 1, "前衛のZOC（隣接マス）は避ける")
-
-func test_flank_falls_back_to_close_in_on_prey() -> void:
-	# 獲物への最終接近: 安全なマスでは縮まらない（獲物自身のZOC）ので、詰めて隣接する。
-	var brain := NearestAttackerBrain.from_preset(WEAK)
-	var s := BattleState.new(13, 3)
-	s.current_team = 1
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))
-	var wagon_pos := Hex.offset_to_axial(7, 1)
-	s.add_unit(Unit.new(2, 0, wagon_pos, 3, 8, 10, 10))                   # 獲物（距離2）
-	var a := brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_eq(Hex.distance(a.to, wagon_pos), 1, "フォールバックで獲物に隣接まで詰める")
-
-func test_squad_weak_preset_applies() -> void:
-	# 部隊の ai=weak でも同じ思考が効く（プリセット解決の配線）。
-	_brain.presets = { "weak": WEAK }
-	var s := BattleState.new(13, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(Unit.new(10, 1, start, 3))
-	s.squads.append({ "name": "狩り", "ai": "weak" })
-	s.assign_squad(10, 0)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 1), 3, 8, 10, 40))   # 隣接する硬い前衛
-	var frail_pos := Hex.offset_to_axial(11, 1)
-	s.add_unit(Unit.new(2, 0, frail_pos, 3, 8, 10, 10))                   # 獲物
+	var si := _squad(s, "guard")
+	_ai(s, si, 10, 1, 1)
+	var e := _pc(s, 1, 3, 1)
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE, "部隊経由でも獲物のみ＝前衛を殴らない")
-	assert_lt(Hex.distance(a.to, frail_pos), Hex.distance(start, frail_pos), "獲物へ向かう")
+	assert_eq(a.kind, AiAction.Kind.MOVE, "起きたあとは突撃と同じ行")
+	assert_lt(Hex.distance(a.to, e.pos), Hex.distance(Hex.offset_to_axial(1, 1), e.pos))
 
-func test_weak_debug_stage_wires_squad() -> void:
-	# デバッグステージ weak.json: 部隊が weak を参照し、馬車が獲物（盤上最低防御）になっている。
-	var s := StageLoader.load_file("res://data/stages/debug-ai/weak.json")
-	assert_not_null(s, "weak.json が読める")
-	assert_eq(s.squads.size(), 2, "弱者狙い squad ＋ 場外ゴブリンの charge squad")
-	assert_eq(String(s.squads[0].get("ai", "")), "weak", "先頭の部隊のAIラベル＝weak")
-	var wagon: Unit = null
-	var min_def := 1 << 30
-	for u in s.units():
-		if u.team == 0:
-			min_def = mini(min_def, u.unit_defense)
-			if u.type_id == "wagon":
-				wagon = u
-	assert_not_null(wagon, "馬車がいる")
-	assert_eq(wagon.unit_defense, min_def, "馬車が獲物（自軍最低防御）")
+func test_detection_radius_only_for_a_sleeping_guard() -> void:
+	var s := BattleState.new(12, 3)
+	var si := _squad(s, "guard")
+	var g := _ai(s, si, 10, 1, 1)
+	var c := _ai(s, _squad(s, "charge"), 11, 2, 1)
+	assert_eq(_brain.detection_radius(s, g), 3, "寝ている見張り＝sight 半径")
+	assert_eq(_brain.detection_radius(s, c), 0, "常時の特性に検知域は無い")
+	s.mark_engaged(g.id)
+	assert_eq(_brain.detection_radius(s, g), 0, "起動済みは0")
 
-func test_ai_presets_have_all_axes() -> void:
-	# 全軸そろい検証: どのプリセットも全軸を非空で持つ（ai.csv 省略不可ポリシー・doc/gdd/ai.md）。
-	# `-`（該当なし）も値として埋まっている＝非空。欠け/空は convert.gd が生成時に弾く前提の回帰網。
-	var axes := ["engage", "sight", "retreat", "skill", "skill_target", "skill_stack",
-		"attack", "target", "advance"]
-	var presets := AiCatalog.load_default()
-	assert_gt(presets.size(), 0, "プリセットが1つ以上ある")
-	for label in presets:
-		var p: Dictionary = presets[label]
-		for axis in axes:
-			assert_true(p.has(axis), "%s に軸 '%s' がある" % [label, axis])
-			var v: Variant = p.get(axis)  # 数値セルは int で来る＝非空。空判定は文字列セルにだけ効かせる
-			var empty: bool = v == null or (typeof(v) == TYPE_STRING and v.strip_edges().is_empty())
-			assert_false(empty, "%s.%s が非空" % [label, axis])
+# --- raid（拠点攻略） ---
 
-func test_ai_catalog_has_weak_preset() -> void:
-	# 生成物 ai.json に weak（弱者狙い）が載っている（CSV→JSONパイプラインの配線確認）。
-	var presets := AiCatalog.load_default()
-	assert_true(presets.has("weak"), "weak がある")
-	assert_eq(String(presets["weak"]["attack"]), "prey", "攻撃条件＝獲物のみ")
-	assert_eq(String(presets["weak"]["target"]), "weak;near", "対象優先＝弱者狙い")
-	assert_eq(String(presets["weak"]["advance"]), "flank", "前進＝回り込み")
-
-func test_ai_catalog_has_swarm_preset() -> void:
-	# 群れAI＝包囲できる／包囲している相手にだけスキルと攻撃、デバフは1本まで。
-	var presets := AiCatalog.load_default()
-	assert_true(presets.has("swarm"), "swarm がある")
-	assert_eq(String(presets["swarm"]["skill"]), "surround_able|surrounded", "スキル発動＝包囲まわり")
-	assert_eq(String(presets["swarm"]["attack"]), "surround_able|surrounded", "攻撃条件＝包囲まわり")
-	assert_eq(int(presets["swarm"]["skill_stack"]), 1, "デバフは1本まで")
-	assert_eq(String(presets["swarm"]["target"]), "damaged;near", "対象優先＝損耗狙い")
-	assert_eq(int(presets["swarm"]["attack_sight"]), 10, "標的を探す半径")
-
-func test_existing_presets_keep_their_target_axis() -> void:
-	# 既存ラベルの思考は変えない（マップ調整がこの動きに乗っている）。
-	# damaged / attack_sight の追加で target 軸の解釈が変わっていないことを固定する。
-	var presets := AiCatalog.load_default()
-	for label in ["charge", "guard", "raid"]:
-		assert_eq(String(presets[label]["target"]), "near", "%s の対象優先は据え置き" % label)
-		assert_eq(String(presets[label]["attack_sight"]), "-", "%s は盤全体を見る" % label)
-	assert_eq(String(presets["weak"]["target"]), "weak;near", "weak の対象優先は据え置き")
-	assert_eq(String(presets["weak"]["attack_sight"]), "-", "weak も盤全体を見る")
-
-# --- 損耗狙い（target=damaged）と標的半径（attack_sight）。doc/gdd/ai.md §7・§7b ---
-
-## 自軍1体（team1・damaged 指定）と、兵数の違う敵を置く盤。attack_sight は呼び出し側で指定。
-func _damaged_state(target: String, attack_sight: Variant) -> BattleState:
-	var s := BattleState.new(15, 5)
+func test_raid_heads_for_the_base_instead_of_the_enemy() -> void:
+	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(7, 2), 3))
-	s.squads.append({ "ai": "test", "target": target, "attack_sight": attack_sight })
-	s.assign_squad(10, 0)
-	return s
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 5, 1)
+	_pc(s, 1, 2, 1)  # 敵は西に3（射程外）
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 0))  # 拠点は東に4
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 5, "敵ではなく拠点へ向かう")
 
-func test_damaged_picks_the_most_worn_target_in_range() -> void:
-	# 射程内では損耗率が最大の相手を殴る（満員8なら残兵が最も少ない相手と同じ結果）。
-	var s := _damaged_state("damaged;near", "-")
-	var pos := Hex.offset_to_axial(7, 2)
-	var full := Unit.new(1, 0, Hex.neighbor(pos, 0), 8)
-	s.add_unit(full)
-	var worn := Unit.new(2, 0, Hex.neighbor(pos, 3), 8)
-	worn.troops = 2
-	s.add_unit(worn)
+func test_raid_waits_when_no_base_is_left() -> void:
+	# 敵を追わない＝拠点を全部取られたあとは動かなくなる（突撃との差）。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 5, 1)
+	_pc(s, 1, 2, 1)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 1))  # 自陣営の拠点は向かう先ではない
+	assert_null(_brain.next_action(s, 1), "向かう拠点が盤上に無ければ待機")
+	assert_true(s.is_engaged(10), "行動開始条件は常時")
+
+func test_raid_attacks_what_is_already_in_range() -> void:
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 5, 1)
+	var e := _pc(s, 1, 5, 0)  # 隣接
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "着いた先で戦う＝射程内なら殴る")
+	assert_eq(a.target_id, e.id)
+
+func test_raid_takes_the_nearest_base_including_neutral() -> void:
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 5, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(7, 2), Base.NEUTRAL))  # 中立も向かう先
+	s.add_base(Base.new(Hex.offset_to_axial(0, 2), 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 5, "近いほうの拠点（中立）へ向かう")
+
+# --- weak（弱者狙い） ---
+
+func test_weak_sleeps_until_prey_is_in_sight() -> void:
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "weak", { "sight": 2 })
+	_ai(s, si, 10, 1, 1)
+	var e := _pc(s, 1, 6, 1)
+	assert_null(_brain.next_action(s, 1), "sight の外の獲物では起きない")
+	e.pos = Hex.offset_to_axial(3, 1)
+	assert_not_null(_brain.next_action(s, 1), "獲物が視線に入れば起きる")
+
+func test_weak_walks_past_the_hard_front_line() -> void:
+	# 獲物の上限は盤全体の敵から計算する。射程内の敵から計算し直すと、硬い前衛しか射程に
+	# 入っていないターンにその前衛が獲物になり、弱者狙いが硬い相手と殴り合いはじめる。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "weak")
+	var u := _ai(s, si, 10, 4, 2)
+	_pc(s, 1, 4, 1, 80)               # 硬い前衛（防御80）＝隣接
+	var soft := _pc(s, 2, 7, 2, 10)   # 柔らかい後衛（防御10）
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "硬い前衛とは殴り合わない")
+	assert_lt(Hex.distance(a.to, soft.pos), Hex.distance(u.pos, soft.pos), "獲物へ寄る")
+
+func test_weak_attacks_the_prey_it_can_reduce_most() -> void:
+	# #3 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃する。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "weak")
+	var u := _ai(s, si, 10, 4, 2)
+	u.attack_range = 2
+	_pc(s, 1, 4, 1, 10)                        # 隣接・満員
+	var hurt := _hurt(_pc(s, 2, 4, 0, 10), 1)  # 距離2・残り1
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, worn.id, "傷ついているほうを殴る")
+	assert_eq(a.target_id, hurt.id, "攻撃後の残兵が最小になる相手")
 
-## 近くに無傷の敵・盤の反対側に損耗した敵を置いた盤（どちらへ前進するかで半径の効きを見る）。
-func _worn_far_state(attack_sight: Variant) -> BattleState:
-	var s := _damaged_state("damaged;near", attack_sight)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 2), 8))  # 近い・無傷
-	var worn := Unit.new(2, 0, Hex.offset_to_axial(0, 2), 8)  # 遠い・損耗
-	worn.troops = 2
-	s.add_unit(worn)
-	return s
+func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
+	# #4 獲物でなくても、一撃で倒せる相手なら殴る。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "weak")
+	var u := _ai(s, si, 10, 4, 2)
+	var tough := _hurt(_pc(s, 1, 4, 1, 80), 1)  # 硬いが残り1
+	_pc(s, 2, 8, 2, 10)                         # 獲物は遠い
+	assert_true(Combat.casualties(s, u, tough, true) >= tough.troops, "前提: 一撃で倒せる")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, tough.id, "獲物でなくても倒しきれるなら殴る")
 
-func test_attack_sight_dash_sees_the_whole_board() -> void:
-	# "-"＝盤全体。無傷の近い敵ではなく、盤の反対側の傷ついた敵へ寄る。
-	var s := _worn_far_state("-")
+func test_weak_flanks_around_the_zoc_band() -> void:
+	# #5 回り込み＝敵ZOCを避けて獲物へ近づく。壁で抜け道を絞らないと同じ長さの別ルートが
+	# 残って迂回距離が伸びない（flat-top / odd-q は横に扇状へ広がる）。
+	var s := BattleState.new(9, 7)
+	s.current_team = 1
+	s.set_movement(PLAIN_WALL)
+	for row in [0, 2, 3, 4, 5]:
+		s.set_terrain(Hex.offset_to_axial(4, row), "wall")  # 抜け道は row 1 と row 6
+	var si := _squad(s, "weak")
+	var u := _ai(s, si, 10, 1, 0)
+	var blocker := _pc(s, 1, 3, 1, 80)  # 近い抜け道の脇＝ZOCで蓋をする硬い駒
+	var prey := _pc(s, 2, 7, 0, 10)
+	assert_lt(s.detour_distance_to(10, prey.id), BattleState.UNREACHABLE,
+		"前提: 遠い抜け道があるので迂回距離は測れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, Hex.offset_to_axial(0, 2)), 7, "傷ついた敵との距離が縮む")
+	assert_gt(Hex.distance(a.to, blocker.pos), 1, "ZOCの帯に触れない")
+	assert_gt(_row(a.to), _row(u.pos), "遠い抜け道の側へ回る")
 
-func test_attack_sight_limits_the_search_radius() -> void:
-	# 同じ盤で半径3。外の損耗した敵は狙わず、最寄りの敵へ前進する（立ち止まらない）。
-	var s := _worn_far_state(3)
+func test_weak_stops_advancing_when_the_prey_leaves_sight() -> void:
+	# 行動開始は一度きりの判定、#5〜#8 の sight は毎ターンの判定＝視線から消えたら前進だけ止まる。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "weak", { "sight": 2 })
+	_ai(s, si, 10, 1, 1)
+	var prey := _pc(s, 1, 3, 1)
+	assert_not_null(_brain.next_action(s, 1), "前提: sight 内なら前進する")
+	prey.pos = Hex.offset_to_axial(9, 1)
+	assert_null(_brain.next_action(s, 1), "獲物が視線から消えたら前進を止める")
+	assert_true(s.is_engaged(10), "行動開始そのものは戻らない")
+
+# --- swarm（群れ） ---
+
+func test_swarm_bites_a_wounded_enemy_alone() -> void:
+	# #1 だけ包囲を条件にしない＝手負いには単独でも噛みつく。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "swarm")
+	_ai(s, si, 10, 4, 2)
+	var wounded := _hurt(_pc(s, 1, 4, 1), 3)
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, Hex.offset_to_axial(4, 2)), 3, "半径内に損耗した敵がいなければ最寄りへ")
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, wounded.id)
 
-func test_damaged_ignores_unharmed_enemies_as_a_goal() -> void:
-	# 無傷しかいなければ損耗狙いは効かず、従来どおり最寄りの敵へ。
-	var s := _damaged_state("damaged;near", 10)
-	var near_foe := Unit.new(1, 0, Hex.offset_to_axial(4, 2), 8)
-	s.add_unit(near_foe)
-	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(0, 2), 8))
+func test_swarm_leaves_a_healthy_enemy_and_goes_for_the_wounded() -> void:
+	# 無傷の敵には頭数が揃うまで手を出さない。手負いは盤全体から1体選ぶ。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "swarm")
+	var u := _ai(s, si, 10, 4, 2)
+	_pc(s, 1, 4, 1)                            # 無傷・隣接
+	var wounded := _hurt(_pc(s, 2, 9, 2), 2)   # 手負い・遠い
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, near_foe.pos), Hex.distance(Hex.offset_to_axial(7, 2), near_foe.pos),
-		"最寄りの敵へ寄る")
+	assert_eq(a.kind, AiAction.Kind.MOVE, "単独では無傷の敵に手を出さない")
+	assert_lt(Hex.distance(a.to, wounded.pos), Hex.distance(u.pos, wounded.pos), "手負いへ寄る")
 
-# --- 行動順（order）。部隊単位・部隊内は前線から。詳細 → doc/gdd/ai.md 行動順 ---
-
-## 敵2体（部隊A・部隊B に1体ずつ）と、左端の自軍1体を置いた盤を返す。
-## 部隊の order は呼び出し側が state.squads に書く。
-func _order_state(order_a: int, order_b: int) -> BattleState:
-	var s := BattleState.new(12, 3)
+func test_swarm_attacks_a_healthy_enemy_once_the_numbers_are_there() -> void:
+	# #4 包囲可能な敵は殴る（行動ユニット自身も数に入る）。
+	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	s.squads.append({ "ai": "charge", "order": order_a })
-	s.squads.append({ "ai": "charge", "order": order_b })
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))
-	s.assign_squad(10, 0)
-	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(6, 1), 3))
-	s.assign_squad(11, 1)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))  # 自軍（前線＝左）
-	return s
+	var si := _squad(s, "swarm")
+	_ai(s, si, 10, 4, 2)
+	_ai(s, si, 11, 4, 0)                  # 同じ敵に隣接する2体目＝包囲可能
+	var healthy := _pc(s, 1, 4, 1)
+	_hurt(_pc(s, 2, 9, 2), 2)             # 手負いは遠い＝#1 は成立しない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "頭数が揃えば無傷の敵にも手を出す")
+	assert_eq(a.target_id, healthy.id)
 
-func test_squad_order_decides_which_squad_moves_first() -> void:
-	# order の小さい部隊から動く。記述順（squads の並び）ではない。
-	assert_eq(_brain.next_action(_order_state(1, 2), 1).unit_id, 10, "order 1 の部隊が先")
-	assert_eq(_brain.next_action(_order_state(2, 1), 1).unit_id, 11, "order を入れ替えれば順番も入れ替わる")
-
-func test_squad_order_falls_back_to_registration_order() -> void:
-	# order を書かない部隊は登録順に並ぶ（データが欠けても順番が壊れない）。
-	var s := BattleState.new(12, 3)
+func test_swarm_does_not_take_bases() -> void:
+	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	s.squads.append({ "ai": "charge" })
-	s.squads.append({ "ai": "charge" })
-	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(6, 1), 3))
-	s.assign_squad(11, 1)
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))
-	s.assign_squad(10, 0)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))
-	assert_eq(_brain.next_action(s, 1).unit_id, 10, "部隊0が先＝登録順")
+	var si := _squad(s, "swarm")
+	var u := _ai(s, si, 10, 4, 2)
+	u.can_capture = true
+	var base_hex := Hex.offset_to_axial(4, 4)  # 移動範囲内の敵拠点
+	s.add_base(Base.new(base_hex, 0))
+	_pc(s, 1, 9, 2)
+	var a := _brain.next_action(s, 1)
+	assert_ne(a.to, base_hex, "占領兵を混ぜても拠点へは向かわない")
 
-func test_units_in_squad_move_front_first() -> void:
-	# 部隊の中は最寄り敵に近い駒から。後ろの駒を先に動かすと前の駒に塞がれるため。
-	var s := BattleState.new(12, 3)
+func test_swarm_switches_from_the_skill_to_attacking_when_stacked() -> void:
+	# #2 は #3 の裏返し＝効き切った相手に重ねる価値はないので殴りに切り替わる。
+	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	s.squads.append({ "ai": "charge", "order": 1 })
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(8, 1), 3))  # 後列（先に登録）
-	s.assign_squad(10, 0)
-	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(5, 1), 3))  # 前列
-	s.assign_squad(11, 0)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))   # 自軍＝左
-	assert_eq(_brain.next_action(s, 1).unit_id, 11, "前線に近い駒が先（登録順ではない）")
+	var si := _squad(s, "swarm")  # 既定 stack 1
+	_skin(_ai(s, si, 10, 4, 2), "ghost")
+	_ai(s, si, 11, 4, 4)                       # 今ターン隣へ寄れる2体目＝包囲可能（先に動くのはゴースト）
+	var healthy := _pc(s, 1, 4, 1)
+	_hurt(_pc(s, 2, 9, 2), 2)                  # 手負いは遠い＝#1 は成立しない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "前提: まだ刺さっていなければ掛ける")
+	_mod(s, healthy, StatusMod.KIND_DEBUFF)
+	a = _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "stack に達した相手は殴る")
+	assert_eq(a.target_id, healthy.id)
 
-# --- 拠点出撃（deploy）＝ AI所有拠点から控えを出す。詳細 → doc/gdd/ai.md §7 ---
+# --- stack 条件（全特性のパラメーター） ---
 
-const DEPLOY_PRESETS := {
-	"charge": { "engage": "charge" },
-	"guard": { "engage": "sight", "sight": 3 },
-}
+func test_stack_caps_buffs_on_the_same_ally() -> void:
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge", { "stack": 1 })
+	var pixie := _skin(_ai(s, si, 10, 6, 2), "pixie")
+	var ally := _ai(s, si, 11, 5, 2)
+	_pc(s, 1, 8, 2)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "前提: まだ掛かっていなければ放つ")
+	_mod(s, ally, StatusMod.KIND_BUFF)
+	_mod(s, pixie, StatusMod.KIND_BUFF)  # 自分にも掛けられるので両方埋める
+	a = _brain.next_action(s, 1)
+	assert_ne(a.kind, AiAction.Kind.SKILL, "強化は上限＝stack 本未満のときだけ掛ける")
 
-## team1所有の拠点＋garrison（native=enemy＝出せる）＋squad を積んで返す。
-func _add_enemy_base(s: BattleState, base_hex: Vector2i, ai: String, count := 2) -> Base:
-	var b := Base.new(base_hex, 1)  # team1 所有
-	b.squad_index = s.squads.size()
-	s.squads.append({ "ai": ai })
-	for i in count:
-		var g := Unit.new(1000 + i, 0, base_hex, 3)  # team は出撃時に確定
-		g.set_native_team(1)  # native/帰属=enemy＝所有者と一致＝出せる
-		b.garrison.append(g)
+func test_stack_does_not_count_buffs_cast_on_the_whole_team() -> void:
+	# 数えるのは対象1体に掛かった補正だけ（陣営全体のホーリーアリアは数えない）。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge", { "stack": 1 })
+	_skin(_ai(s, si, 10, 6, 2), "pixie")
+	_ai(s, si, 11, 5, 2)
+	_pc(s, 1, 8, 2)
+	s.add_status_mod({
+		"scope": "team", "team": 1, "op": "mul", "target": "both", "value": 1.3,
+		"kind": StatusMod.KIND_BUFF, "owner_team": 1, "remaining": 1,
+	})
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.SKILL, "陣営全体の補正は本数に入らない")
+
+func test_stack_caps_debuffs_on_the_same_enemy() -> void:
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge", { "stack": 1 })
+	_skin(_ai(s, si, 10, 6, 2), "ghost")
+	var victim := _pc(s, 1, 6, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "前提: 1本も刺さっていなければ掛ける")
+	_mod(s, victim, StatusMod.KIND_DEBUFF)
+	a = _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "上限に達したら殴りに回る")
+
+func test_stack_is_a_floor_for_cleansing() -> void:
+	# 解除だけ向きが逆＝何本刺さったら動くかの閾値になる。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge", { "stack": 2 })
+	_skin(_ai(s, si, 10, 6, 2), "cleric")
+	var ally := _ai(s, si, 11, 5, 2)
+	_pc(s, 1, 8, 2)
+	_mod(s, ally, StatusMod.KIND_DEBUFF)
+	assert_ne(_brain.next_action(s, 1).kind, AiAction.Kind.SKILL, "1本では動かない（下限2本）")
+	_mod(s, ally, StatusMod.KIND_DEBUFF)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.SKILL, "2本刺さったら落としに動く")
+
+# --- 拠点出撃（行動開始条件を拠点hex基準で見る） ---
+
+## 控えを1体持つ team1 の拠点を置く。
+func _base_with_garrison(s: BattleState, squad_index: int, col: int, row: int) -> Base:
+	var b := Base.new(Hex.offset_to_axial(col, row), 1)
+	b.squad_index = squad_index
+	b.garrison.append(_u(20, 1, col, row))
 	s.add_base(b)
 	return b
 
-func test_base_charge_deploys_immediately() -> void:
-	_brain.presets = DEPLOY_PRESETS
-	var s := BattleState.new(8, 8)
+func test_base_deploys_at_once_when_its_squad_is_charge() -> void:
+	var s := BattleState.new(9, 5)
 	s.current_team = 1
-	var base_hex := Hex.offset_to_axial(3, 3)
-	_add_enemy_base(s, base_hex, "charge")
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))  # 敵（出す先の基準）
+	_base_with_garrison(s, _squad(s, "charge"), 4, 2)
+	_pc(s, 1, 8, 2)
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
-	assert_eq(a.kind, AiAction.Kind.DEPLOY, "charge拠点は即出撃")
-	assert_eq(a.base_hex, base_hex, "出撃元＝この拠点")
-	assert_eq(Hex.distance(a.to, base_hex), 1, "隣接マスへ出す")
+	assert_eq(a.kind, AiAction.Kind.DEPLOY, "常時の特性は初手から出す")
 
-func test_base_deploy_takes_its_turn_by_order() -> void:
-	# 拠点も1部隊＝盤上の部隊と同じ列に並ぶ。order で出撃を先にも後にも回せる。
-	_brain.presets = DEPLOY_PRESETS
-	var s := BattleState.new(12, 3)
+func test_guard_base_waits_until_an_enemy_is_in_sight() -> void:
+	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	var base_hex := Hex.offset_to_axial(8, 1)
-	var b := _add_enemy_base(s, base_hex, "charge")
-	s.squads[b.squad_index]["order"] = 1
-	s.squads.append({ "ai": "charge", "order": 2 })
-	s.add_unit(Unit.new(10, 1, Hex.offset_to_axial(5, 1), 3))  # 盤上の駒（別部隊）
-	s.assign_squad(10, s.squads.size() - 1)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(0, 1), 3))   # 自軍＝左
-	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "拠点の order が小さければ出撃が先")
-	s.squads[b.squad_index]["order"] = 3
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE, "拠点の order を後ろへ回せば盤上の駒が先")
-	assert_eq(a.unit_id, 10)
-
-func test_base_guard_waits_until_enemy_in_sight() -> void:
-	_brain.presets = DEPLOY_PRESETS
-	var s := BattleState.new(16, 3)
-	s.current_team = 1
-	var base_hex := Hex.offset_to_axial(3, 1)
-	_add_enemy_base(s, base_hex, "guard")  # sight 3
-	var enemy := Unit.new(1, 0, Hex.offset_to_axial(12, 1), 3)  # 遠い＝索敵外
-	s.add_unit(enemy)
-	assert_null(_brain.next_action(s, 1), "索敵外なら出さない（潜伏）")
-	enemy.pos = Hex.offset_to_axial(5, 1)  # 拠点から距離2＝索敵内
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a, "索敵内に敵が来たら出す")
-	assert_eq(a.kind, AiAction.Kind.DEPLOY)
-
-func test_base_without_ai_does_not_deploy() -> void:
-	# opt-in: ai 未指定（squad_index=-1）の拠点は自動出撃しない。
-	_brain.presets = DEPLOY_PRESETS
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var base_hex := Hex.offset_to_axial(3, 3)
-	var b := Base.new(base_hex, 1)  # ai なし
-	var g := Unit.new(1000, 0, base_hex, 3)
-	g.set_native_team(1)
-	b.garrison.append(g)
-	s.add_base(b)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))
-	assert_null(_brain.next_action(s, 1), "ai未指定の拠点は湧かない")
-
-func test_base_does_not_deploy_locked_garrison() -> void:
-	# 奪われた敵拠点の閉じ込め＝native≠所有者の控えは出せない。
-	_brain.presets = DEPLOY_PRESETS
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var base_hex := Hex.offset_to_axial(3, 3)
-	var b := Base.new(base_hex, 1)
-	b.squad_index = s.squads.size()
-	s.squads.append({ "ai": "charge" })
-	var g := Unit.new(1000, 0, base_hex, 3)
-	g.set_native_team(0)  # native/帰属=player＝奪われて閉じ込め
-	b.garrison.append(g)
-	s.add_base(b)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))
-	assert_null(_brain.next_action(s, 1), "閉じ込めの控えは出さない")
-
-func test_base_deploys_all_and_assigns_squad() -> void:
-	# ターンを回すと出せるだけ出し、出した駒は拠点の squad に属する。
-	_brain.presets = DEPLOY_PRESETS
-	var s := BattleState.new(8, 8)
-	s.current_team = 1
-	var base_hex := Hex.offset_to_axial(3, 3)
-	var b := _add_enemy_base(s, base_hex, "charge", 3)
-	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 3), 3))  # 敵
-	var guard := 0
-	while guard < 50:
-		guard += 1
-		var a := _brain.next_action(s, 1)
-		if a == null:
-			break
-		if a.kind == AiAction.Kind.DEPLOY:
-			assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AI出撃は妥当")
-		elif a.kind == AiAction.Kind.MOVE:
-			s.move_unit(a.unit_id, a.to)
-		else:
-			s.attack(a.unit_id, a.target_id)
-	assert_eq(b.garrison.size(), 0, "空き隣接がある盤なら3体とも出撃")
-	var deployed := s.units().filter(func(u: Unit) -> bool: return u.team == 1)
-	assert_eq(deployed.size(), 3, "3体が盤上に出た")
-	for u in deployed:
-		assert_eq(s.squad_index_of(u.id), b.squad_index, "出した駒は拠点squadに属する")
-
-func test_spawn_debug_stage_wires_base_squad() -> void:
-	# デバッグステージ spawn.json: 敵拠点に ai=charge の squad が紐づき、控えが出せる（native=enemy）。
-	var s := StageLoader.load_file("res://data/stages/debug-ai/spawn.json")
-	assert_not_null(s, "spawn.json が読める")
-	var b := s.base_at(Hex.offset_to_axial(8, 3))
-	assert_not_null(b, "敵拠点がある")
-	assert_true(b.squad_index >= 0, "拠点に ai squad が紐づく")
-	assert_eq(String(s.squads[b.squad_index].get("ai", "")), "charge", "拠点squadのAI＝charge")
-	assert_eq(b.garrison.size(), 4, "goblin×4 が控え")
-	assert_true(s.can_deploy_garrison(b.hex, 0), "native=enemy＝敵所有拠点から出せる")
-
-func test_advance_default_still_heads_to_enemy() -> void:
-	# 既定（advance_to_base=false）は従来どおり敵へ前進する（回帰）。
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var start := Hex.offset_to_axial(5, 1)
-	s.add_unit(_capturer(10, 1, start))
-	s.add_base(Base.new(Hex.offset_to_axial(11, 1), 0))      # 右に拠点（届かない）
-	var enemy_pos := Hex.offset_to_axial(0, 1)
-	s.add_unit(Unit.new(1, 0, enemy_pos, 3))                 # 左に敵
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.MOVE)
-	assert_lt(Hex.distance(a.to, enemy_pos), Hex.distance(start, enemy_pos), "既定は敵へ向かう")
+	_base_with_garrison(s, _squad(s, "guard"), 4, 2)
+	var e := _pc(s, 1, 11, 2)
+	assert_null(_brain.next_action(s, 1), "拠点hexから sight の外なら出さない")
+	e.pos = Hex.offset_to_axial(6, 2)
+	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "索敵に入れば出す")
