@@ -6,7 +6,7 @@ extends Node2D
 ## デバッグ用ステージは data/stages/debug-*/（機能別の debug:true 冒険譚としてセレクトに出る）。一覧 → doc/tech/debug-stages.md
 
 var _skins := {}
-var _ai_presets := {}  # AI思考プリセット（data/ai/ai.json）。label -> パラメーター辞書
+var _ai_presets := {}  # 特性表（data/ai/ai.json）。特性id -> パラメーター辞書（既定値）
 var _controller: MatchController = null
 var _hud: Hud = null
 var _turn_plate: TurnPlate = null  # ターン板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
@@ -108,10 +108,10 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller = MatchController.new()
 	_controller.name = "MatchController"
 	_controller.setup(state)
-	# 敵軍(team 1)のAI: 部隊(squad)はステージ定義のラベルで、部隊外はステージ既定ラベルで振る舞う。
+	# 敵軍(team 1)のAI: 特性ベース。敵の駒は必ず部隊(squad)に属し、その部隊の特性で振る舞う。
 	_controller.ai_team = 1
 	var brain := TraitBrain.new()
-	brain.presets = _ai_presets  # 部隊の特性解決用（特性id -> パラメーター）
+	brain.presets = _ai_presets  # 部隊の特性解決用（特性id -> パラメーターの既定値）
 	_controller.ai_brain = brain
 	add_child(_controller)
 	var terrain_skins := StageLoader.load_terrain_skins(path)  # 見た目差分(座標→skin)は presentation へ（案P）

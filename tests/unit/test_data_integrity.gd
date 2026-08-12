@@ -33,8 +33,7 @@ func test_movement_table_covers_all_terrain() -> void:
 			assert_true(costs.has(t), "move_type '%s' に地形 '%s' のコストがある" % [mt, t])
 
 func test_stage_squad_ai_labels_exist() -> void:
-	# ステージの squad が参照する ai ラベルが ai.json に実在する（打ち間違い→黙って charge 化 を封じる）。
-	# doc/gdd/ai.md「既定と省略のポリシー」の欠損検出＝「存在しないラベル参照」の網。
+	# ステージの squad が参照する特性id が ai.json に実在する（打ち間違い→黙って charge 化 を封じる）。
 	var presets := AiCatalog.load_default()
 	var files := _all_stage_files("res://data/stages")
 	assert_gt(files.size(), 0, "ステージJSONが見つかる")
@@ -50,10 +49,6 @@ func test_stage_squad_ai_labels_exist() -> void:
 			if label.is_empty():
 				continue  # 未指定＝charge 既定（正当）
 			assert_true(presets.has(label), "%s の squad.ai '%s' が ai.json に実在" % [path, label])
-		# 旧スキーマの squad 外フォールバック（トップレベル "ai"）も、あれば実在チェック。
-		var top := str(data.get("ai", "")).strip_edges()
-		if not top.is_empty():
-			assert_true(presets.has(top), "%s のトップレベル ai '%s' が ai.json に実在" % [path, top])
 
 ## 駒の直書きを見分ける印。部隊定義には現れず、駒にだけ現れるキー（player は type / enemy は skin）。
 const PIECE_KEYS := ["skin", "type", "col", "row"]

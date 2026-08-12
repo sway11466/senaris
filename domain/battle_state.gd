@@ -31,12 +31,9 @@ var victory_conditions: Array = []
 ## 本拠地(hq)喪失の常時ルールとは別軸＝あちらは陣営の要、こちらはステージが名指しする守り物。
 var defeat_conditions: Array = []
 
-## 敵チーム既定のAIプリセットラベル（ステージJSONの "ai"。空＝charge）。詳細 → doc/gdd/ai.md
-## 部隊(squad)に属するユニットは部隊の割り当てが優先。これは部隊外ユニットの既定。
-var enemy_ai: String = ""
-
-## 部隊(squad)＝AIプリセットを共有するユニットの束。詳細 → doc/gdd/ai.md
-## 要素は dict: { "name": 表示名, "ai": プリセットラベル, ...プリセット値の上書き（sight/retreat/advance 等） }
+## 部隊(squad)＝特性とパラメーターを共有するユニットの束。敵ユニットは必ずいずれかの部隊に属する。
+## 要素は dict: { "name": 表示名, "ai": 特性id, "order": 行動順, ...パラメーターの上書き（sight/stack） }
+## 詳細 → doc/gdd/ai.md（部隊）
 var squads: Array = []
 var _squad_of := {}  # unit_id -> squads の index（部隊に属さないユニットは未登録）
 
@@ -1291,7 +1288,7 @@ func to_dict() -> Dictionary:
 	return {
 		"cols": cols, "rows": rows,
 		"current_team": current_team, "turn_number": turn_number,
-		"turn_limit": turn_limit, "enemy_ai": enemy_ai,
+		"turn_limit": turn_limit,
 		"units": units_out,
 		"terrain": terrain_out,
 		"bases": bases_out,
@@ -1361,7 +1358,6 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 	s.current_team = int(data.get("current_team", 0))
 	s.turn_number = int(data.get("turn_number", 1))
 	s.turn_limit = int(data.get("turn_limit", 0))
-	s.enemy_ai = String(data.get("enemy_ai", ""))
 	for ud in data.get("units", []):
 		if typeof(ud) == TYPE_DICTIONARY:
 			s._units.append(Unit.from_full_dict(ud, catalog.get(String(ud.get("type", "")))))

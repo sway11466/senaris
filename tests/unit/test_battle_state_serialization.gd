@@ -14,13 +14,14 @@ func _cat() -> Dictionary:
 
 func _rich_state() -> BattleState:
 	var data := {
-		"cols": 8, "rows": 6, "turn_limit": 15, "ai": "charge",
+		"cols": 8, "rows": 6, "turn_limit": 15,
 		"terrain": ["........", "..PP....", "........", "........", "........", "........"],
 		"player": [
 			{ "type": "archer", "col": 1, "row": 1 },
 			{ "type": "wagon", "col": 2, "row": 1, "passengers": [{ "type": "knight" }] },
 		],
-		"enemy": [{ "order": 1, "ai": "charge", "units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
+		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "guard", "sight": 4,
+			"units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "kind": "hq", "garrison": [{ "type": "archer", "count": 1 }] }],
 		"victory": [{ "type": "defeat_unit", "actor": "boss" }],
 		"defeat": [{ "type": "lose_base", "bases": [{ "col": 4, "row": 3 }] }],
@@ -57,7 +58,6 @@ func test_scalars_roundtrip() -> void:
 	assert_eq(s2.turn_number, 3)
 	assert_eq(s2.turn_limit, 15)
 	assert_true(s2.has_sortied("boss"), "この盤に投入された名前つきの駒の記録も復元する（名簿の更新が見る）")
-	assert_eq(s2.enemy_ai, "charge")
 
 func test_units_roundtrip_with_board_and_growth() -> void:
 	var s2 := _roundtrip(_rich_state())
@@ -103,10 +103,14 @@ func test_bases_and_garrison_roundtrip() -> void:
 	assert_eq(b.garrison[0].type_id, "archer", "garrison の type を再構築")
 
 func test_squads_and_membership_roundtrip() -> void:
+	# 部隊定義と「駒→部隊」の対応。落ちると復元後の敵が特性を失う＝別物になる。
 	var s2 := _roundtrip(_rich_state())
-	assert_eq(s2.squads.size(), 1, "敵の charge 部隊")
+	assert_eq(s2.squads.size(), 1, "敵の guard 部隊")
 	assert_eq(s2.squad_index_of(BOSS_ID), 0, "敵knight は部隊0所属")
-	assert_eq(String(s2.squad_of(BOSS_ID).get("ai", "")), "charge", "部隊のプリセット")
+	var sq := s2.squad_of(BOSS_ID)
+	assert_eq(String(sq.get("ai", "")), "guard", "部隊の特性id")
+	assert_eq(int(sq.get("order", 0)), 1, "行動順")
+	assert_eq(int(sq.get("sight", 0)), 4, "部隊ごとのパラメーター上書き")
 
 func test_passengers_roundtrip() -> void:
 	var s2 := _roundtrip(_rich_state())

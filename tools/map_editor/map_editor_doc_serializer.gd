@@ -5,7 +5,7 @@ class_name MapEditorDocSerializer
 ## MapEditorDoc.to_text() から委譲される。データ操作は持たない＝入力を文字列に変えるだけ。
 
 ## 保存時のトップレベルキーの並び（既存ステージの手書き順に合わせる）。残りは元の順で末尾。
-const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "events", "victory", "defeat", "ai", "dialogue"]
+const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "events", "victory", "defeat", "dialogue"]
 
 ## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers /
 ## 敗北条件の bases・actors）。1件だけなら1行に収まる＝手書きの既存ステージと同じ見た目になる。
