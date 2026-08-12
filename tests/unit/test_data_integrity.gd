@@ -92,6 +92,12 @@ func test_stage_squads_and_ai_bases_have_order() -> void:
 			if typeof(base) != TYPE_DICTIONARY or not (base as Dictionary).has("ai"):
 				continue  # ai 無し＝AI出撃しない拠点は行動順の列に並ばない
 			_assert_order(path, base, "base (%s, %s)" % [str(base.get("col")), str(base.get("row"))], seen)
+		for event in data.get("events", []):
+			# 敵の増援も1部隊として squads に積まれる＝行動順の列に並ぶ（order はイベント直下に書く）。
+			# 自軍の増援に部隊は無い（行動を選ぶのはプレイヤー）ので team で絞る。
+			if typeof(event) != TYPE_DICTIONARY or str(event.get("team", "")) != "enemy":
+				continue
+			_assert_order(path, event, "event (turn %d)" % int(event.get("turn", 0)), seen)
 
 func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictionary) -> void:
 	var v: Variant = holder.get("order")

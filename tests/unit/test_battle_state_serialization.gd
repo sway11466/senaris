@@ -34,6 +34,7 @@ func _rich_state() -> BattleState:
 	s.unit_by_id(1).gain_level(2)  # level 1→3
 	s.set_done(1)
 	s.mark_engaged(BOSS_ID)
+	s.mark_squad_engaged(0)  # 拠点＝部隊の起動フラグ（盤上に駒を持たないので部隊の側に立つ）
 	s._moved[1] = true
 	s._attacked[BOSS_ID] = true
 	s._post_moved[2] = true
@@ -81,6 +82,7 @@ func test_action_flags_roundtrip() -> void:
 	assert_true(s2._post_moved.has(2), "攻撃後移動フラグ")
 	assert_true(s2._done.has(1), "待機フラグ")
 	assert_true(s2.is_engaged(BOSS_ID), "AI起動フラグ")
+	assert_true(s2.is_squad_engaged(0), "部隊(拠点)のAI起動フラグ＝再開後に眠り直さない")
 	assert_eq(int(s2._spent.get(1, 0)), 2, "使った移動コスト")
 	assert_true(s2._defeated.has(42), "撃破記録")
 	assert_true(s2.is_actor_defeated("ghost"), "名指しの撃破記録（ボス撃破・護衛対象の判定用）")

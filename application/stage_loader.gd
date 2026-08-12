@@ -301,6 +301,8 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 ## events（時限発生）を読む。いまは増援（type: "reinforce"）だけを扱う。詳細 → doc/gdd/map.md イベント
 ## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生ターンに盤へ出す＝domain は JSON を知らない。
 ## team:"enemy" の増援は1つの部隊として登録し、その index をイベントに持たせる（発生時に assign_squad）。
+## 部隊定義（ai・パラメーターの上書き・行動順 order）はイベント直下に書く＝EVENT_KEYS 以外を拾う。
+## order は敵の増援にも要る（湧いた部隊も行動順の列に並ぶ）＝抜けは test_data_integrity が捕まえる。
 ## 採番は他のセクションの続き。搭載駒（passengers）も同じ列で採番する。
 static func _apply_events(state: BattleState, events: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(events) != TYPE_ARRAY:
