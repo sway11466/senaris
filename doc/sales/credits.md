@@ -38,7 +38,7 @@
 | Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・クリア済みの印 | 含む | ライセンス文の同梱と著作権表記 | `assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
 | OpenCV | 画像処理スクリプト | 道具 | なし | |
 
-Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、export の設定をしないと同梱から漏れる。取り扱いは [backlog.md](../backlog.md) feature-10。
+Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[backlog.md](../backlog.md) feature-10）。
 
 ### SIL Open Font License
 
@@ -97,10 +97,14 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 頒布物に入るもの、すなわち義務があるものと、第三者の出力が含まれるものを載せる。表記文が指定されているライセンスは、指定文をそのまま使い、自己流に言い換えない。
 
 - Godot Engine。ライセンス文は実行時に `Engine.get_license_text()` で取れるので、画面に流し込む。同梱サードパーティの分も `Engine.get_copyright_info()` に入っている
-- Rock Salt。`Copyright (c) 2010 by Font Diner, Inc DBA Sideshow.` と、Apache License 2.0 の下で使っている旨。ライセンス全文は配布物に同梱する（[backlog.md](../backlog.md) feature-10）
+- Rock Salt。`Copyright (c) 2010 by Font Diner, Inc DBA Sideshow.` と、Apache License 2.0 の下で使っている旨。ライセンス全文は `THIRD-PARTY-LICENSES.txt` で渡す
 - Sonniss GDC Game Audio Bundle。表記義務は無いが、効果音の土台なので名前を残す
 - Muse Sounds ／ MS Basic
 - Google Gemini。AI 生成の開示はストア側の手続きが本体だが、画面にも出す
+
+## ストアページに出すもの
+
+ストアページに要るのは、表記文が指定されているライセンスと、ストア側の手続き（Steam の AI 生成コンテンツ開示）だけ。頒布物に対してだけ義務があり指定文を持たないライセンスは、ストアページに載せる必要がない。Apache 2.0 の Rock Salt がこれに当たる（ライセンス文の同梱とゲーム内クレジットで足りる）。
 
 ## 製品ビルドから外すもの
 

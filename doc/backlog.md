@@ -69,11 +69,13 @@
 
 ### feature-10
 
-**製品ビルドから開発用アセットを除外（ツール・デバッグステージ）**（優先度：低）
+**製品ビルドの中身を整える（開発用アセットの除外・ライセンス文の同梱）**（優先度：中）
 
-- 背景：`tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）とデバッグ用ステージ（`data/stages/debug*/`）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。
-- 対応：export preset を作る段で、非公開フィルタ（除外パターン）に `tools/` とデバッグステージのパスを加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
-- 該当：`export_presets.cfg`（新規）・`tools/`・`data/stages/debug*/`・ステージ一覧の参照箇所。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
+- 背景：`tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）・デバッグ用ステージ（`data/stages/debug*/`）・`addons/gut/`（テストフレームワーク）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。GUT は本体（MIT）と同梱フォント（OFL）を抱えているので、含めたままだと不要な表記義務まで背負う（[credits.md](sales/credits.md)）。
+- 背景（同梱側）：逆に、含めなければならないものが落ちる。RockSalt（Apache 2.0）はライセンス文の同梱が義務だが、`assets/fonts/RockSalt-LICENSE.txt` は Godot がリソースとして扱わない素のファイルで、非リソースファイルのフィルタに指定しない限り pck に入らない。フォント本体（`.ttf`）は `.fontdata` に変換されて入るので、フォントだけ入ってライセンス文が無い、という一番まずい形になる。
+- 対応（除外）：export preset の非公開フィルタ（除外パターン）に `tools/`・デバッグステージのパス・`addons/gut/` を加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
+- 対応（同梱）：ビルド出力（exe と同じ階層＝Steam のデポにそのまま上がる場所）に `THIRD-PARTY-LICENSES.txt` を置く。中身は [credits.md](sales/credits.md) の義務がある行から起こす。preset の非リソースフィルタで pck に入れる手も取れるが、`export_presets.cfg` は `.gitignore` されていて preset を作り直すたびに設定が消え、消えたことに気づけないので、そちらには頼らない。exe の隣なら pck を解凍せずに読める利点もある。
+- 該当：`export_presets.cfg`（新規）・`tools/`・`data/stages/debug*/`・`addons/gut/`・ステージ一覧の参照箇所・`doc/sales/credits.md`（同梱する文面の出どころ）。関連＝feature-54（ライセンスの裏取り）。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-12
 
@@ -179,7 +181,7 @@
 
 - 背景：体験版はチュートリアル3本のみを収録し、本編の冒険譚は入れない（[monetization.md](sales/monetization.md) 体験版の収録範囲）。収録しない冒険譚のユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
 - 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
-- 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝開発用アセットの除外と同じ段・parking lot「Steam 配布の段取り」と連動）。
+- 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝製品ビルドの中身を整えるのと同じ段・parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-48
 
