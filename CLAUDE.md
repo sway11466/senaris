@@ -90,3 +90,4 @@
 - [doc/adr/ADR-0001-adopt-godot.md](doc/adr/ADR-0001-adopt-godot.md) — ゲームエンジンに Godot 4 を採用
 - [doc/adr/ADR-0002-paid-data-protection.md](doc/adr/ADR-0002-paid-data-protection.md) — 有料データの保護（署名＋pck 暗号化）
 - [doc/adr/ADR-0003-board-3d-hybrid.md](doc/adr/ADR-0003-board-3d-hybrid.md) — 盤面の描画を3Dハイブリッド（傾けたカメラ＋2Dアセット）に
+- [doc/adr/ADR-0004-logo-typeface-ofl.md](doc/adr/ADR-0004-logo-typeface-ofl.md) — ロゴの書体を OFL のフォントから選ぶ（EB Garamond）

@@ -1,0 +1,44 @@
+A game title logo, drawn as flat solid shapes. This is a LOGO, not an illustration or a
+scene: one single colour (black) on a plain white background. No gradient, no shading, no
+texture, no glow, no drop shadow, no frame or border, no background scenery. Nothing but the
+mark itself on empty white.
+
+NO OUTLINES ANYWHERE. Every shape is a filled silhouette. Do not draw contour lines around
+the hexagons, around the sword, or around the letters. Shapes are read by their filled form
+alone, never by a stroke.
+
+COMPOSITION: the emblem and the wordmark OVERLAP. The emblem sits above and its lower edge
+descends into the wordmark, passing behind the letters so the two read as one locked
+composition rather than two stacked pieces. Keep the overlap SHALLOW: only the very bottom
+of the emblem crosses the tops of the letters. Every letter of the word stays fully readable
+— nothing may cover a letter enough to break its shape. The whole logo is wider than it is
+tall.
+
+THE EMBLEM: seven flat hexagonal tiles lying on the ground, seen from a low camera looking
+down, so each hexagon is squashed vertically to about 80% of its height. The hexagons are
+FLAT-TOP: a flat horizontal edge along the top and bottom, a pointed corner at the left and
+the right. One hexagon sits in the centre and the other six surround it in a ring, so the
+six enclose the one. The arrangement is left-right symmetrical.
+
+Each tile is a solid filled shape with a narrow clean gap of white between it and its
+neighbours — the gaps are what separate the tiles, not outlines. Vary the fill between solid
+black and lighter grey so the cluster has depth without any linework.
+
+A single straight sword is driven point-down into the CENTRE hexagon, LEANING at a slight
+angle rather than standing perfectly upright — tilted maybe fifteen degrees off vertical, as
+though it was thrust into the ground and left there. The blade is partly buried in that
+tile; the crossguard and the grip rise above the cluster. The
+sword is a solid silhouette, plain and heavy — a simple soldier's arming sword, no ornament,
+no jewels, no engraving, no wings, no ribbons. Make the sword broad enough to stay visible
+when the logo is small.
+
+The emblem must read as one single figure: a sword planted in the middle of a ring of six
+tiles. It is an encirclement.
+
+THE WORDMARK: the single word SENARIS, set in a slender elegant serif typeface with the
+letters spaced widely apart, drawn as solid filled letterforms. No outline, no bevel, no
+metallic effect, no banner behind it.
+
+The whole logo must stay legible when shrunk to a strip only 87 pixels tall, so keep the
+shapes large and simple, keep the gaps between tiles wide enough not to close up, and do not
+add any small detail that would disappear at that size.
