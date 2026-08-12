@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=54 / refactoring=9
+次回採番: bug=3 / feature=55 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -274,7 +274,7 @@
 - 対応（残り）：背景の上にメニュー項目を重ねる。ボタンは既存の `plank`（木の板ボタン）を流用＝セレクトと同族の手触りになる。Press any key の一拍は挟まず最初からメニューを出す（PC では無意味なクリックが1回増えるだけ）。いまは項目が無いぶん任意の入力で先へ進む暫定状態なので、ここは実装時に置き換える。「はじめる」で扉の動画を再生してセレクトへ。
 - 決めていないこと：タイトルロゴを画面のどこに置くか（扉の右手前が暗く空いている）。「つづきから」は盤へ直行するが、そのとき扉の動画を挟むか（酒場に入る画と、戦場へ戻る動きが噛み合わない）。
 - メニュー項目：つづきから（`SaveStore.has_save()` が真のときだけ出し、押したら盤へ直行。実装済みの中断セーブをそのまま使う）／はじめる（セレクトへ）／設定（feature-47）／クレジット／おわる。
-- クレジット：素材の権利表記。作業の本体は画面ではなく権利台帳の整備（[bgm.md](audio/bgm.md)・[sfx.md](audio/sfx.md)・[sonniss.md](audio/sonniss.md)）で、どの素材が表記を要求するかの確認が要る。`title`（ざわめき）は表記不要のライセンスだが自作ではないため台帳に明記済み。リリース前が締め切り。
+- クレジット：素材の権利表記。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。決めていないのは、制作に使った道具（MuseScore・ImageMagick・FFmpeg・Inkscape ほか）を画面にも出すか＝台帳には義務の有無に関わらず載せてあるが、画面に載せる範囲は未決。リリース前が締め切り。
 - 該当：`presentation/title/title_screen.gd`（実装済み。ここに項目を足す）・`presentation/main/main.gd`（結線済み）・`presentation/select/tavern_theme.gd`（`plank` 流用）・`doc/gdd/title.md`（新規。実装時に書く）。関連＝feature-12（メニュー文言の i18n キー化）。着手の引き金＝配布ビルドが見えてきたとき。
 
 ### feature-47
@@ -369,6 +369,19 @@
   - 外すもの＝ローグライク・自動生成（該当しない）、マルチプレイヤー系（無い）、ドット絵（絵柄が違う）。
   - 表示順は最終的にユーザー投票で並び替わる。開発者が設定した順が効くのは投票が溜まるまでの初期だけ。
 - 該当：`doc/art/promo.md`（作画方針）・`assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（ロゴ）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
+
+### feature-54
+
+**クレジット正本のライセンス裏取り**（優先度：中）
+
+- 背景：[credits.md](sales/credits.md) を起こしたが、ライセンスの裏が取れているのはリポジトリ内に根拠ファイルがあるものだけ（Rock Salt・GUT とその同梱フォント・EB Garamond・Sonniss）。残りは一般知識で分類しただけで、正本の「根拠」列が空欄になっている。表記を確定する前に公式の記載で確認する必要がある。
+- 対応：空欄の行について公式サイトのライセンス記載を当たり、根拠列を埋める。対象は Godot Engine・MuseScore Studio・Muse Sounds／MS Basic・FFmpeg・ImageMagick・Inkscape・fontTools・Pillow・NumPy・OpenCV・Google Gemini。とくに注意する点：
+  - FFmpeg はビルドによって LGPL と GPL が変わる。使っているバイナリがどちらかを確認する
+  - Muse Sounds と MS Basic は、書き出した音声を商用作品に載せてよいかが規約本文の確認事項。ここが崩れると自作曲が全部影響を受ける
+  - Google Gemini は出力物の権利帰属と商用利用条件。Steam の AI 開示（[monetization.md](sales/monetization.md)）とは別の論点
+  - Godot は同梱サードパーティを含めた表示義務の範囲。`Engine.get_copyright_info()` の内容で足りるかを確認する
+  - Pillow はバージョンによってライセンス表記が変わっている
+- 該当：`doc/sales/credits.md`（根拠列）。関連＝feature-46（クレジット画面）・feature-10（ライセンス文の同梱）。着手の引き金＝配布ビルドを作る前。
 
 ## リファクタリング
 

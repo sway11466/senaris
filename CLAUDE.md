@@ -83,6 +83,7 @@
 ### 販売・ブランド — `sales/`
 
 - [doc/sales/monetization.md](doc/sales/monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
+- [doc/sales/credits.md](doc/sales/credits.md) — クレジット・第三者権利の正本（ライセンス別の一覧・クレジット画面に出すもの・ビルドから外すもの）
 - [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) — タイトル名「Senaris」の決定
 
 ### 意思決定記録 — `adr/`
