@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmflgsaxi5r4s"
-path="res://.godot/imported/wizard_map.png-9ce4b64b4c1150e5dc37fff41f4799cd.ctex"
+uid="uid://d4nnisvwqfxla"
+path="res://.godot/imported/mage_map.png-0bb1550ab83b43c534328f96ac41ee7e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/units/wizard/wizard_map.png"
-dest_files=["res://.godot/imported/wizard_map.png-9ce4b64b4c1150e5dc37fff41f4799cd.ctex"]
+source_file="res://assets/units/mage/mage_map.png"
+dest_files=["res://.godot/imported/mage_map.png-0bb1550ab83b43c534328f96ac41ee7e.ctex"]
 
 [params]
 

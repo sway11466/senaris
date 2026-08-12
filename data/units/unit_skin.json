@@ -389,7 +389,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "magic_bolt",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},

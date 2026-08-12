@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dy2mevx42chjp"
-path="res://.godot/imported/wizard_combat.png-68c6a5b8fcd3b960ebe8de55ddadf458.ctex"
+uid="uid://dl6qptbag20ki"
+path="res://.godot/imported/mage_combat.png-ab73be20da9e7ed3047f22d2c3b5eb48.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/units/wizard/wizard_combat.png"
-dest_files=["res://.godot/imported/wizard_combat.png-68c6a5b8fcd3b960ebe8de55ddadf458.ctex"]
+source_file="res://assets/units/mage/mage_combat.png"
+dest_files=["res://.godot/imported/mage_combat.png-ab73be20da9e7ed3047f22d2c3b5eb48.ctex"]
 
 [params]
 

@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=55 / refactoring=9
+次回採番: bug=3 / feature=56 / refactoring=9
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -369,6 +369,14 @@
   - Godot は同梱サードパーティを含めた表示義務の範囲。`Engine.get_copyright_info()` の内容で足りるかを確認する
   - Pillow はバージョンによってライセンス表記が変わっている
 - 該当：`doc/sales/credits.md`（根拠列）。関連＝feature-46（クレジット画面）・feature-10（ライセンス文の同梱）。着手の引き金＝配布ビルドを作る前。
+
+### feature-55
+
+**ウィザードの絵を描き直す（＋冒険譚2のキービジュアル2枚）**（優先度：中）
+
+- 背景：元のウィザードの絵は顔が若く、見習いのメイジに流用した（`assets/units/mage/`）。ベテラン5の一員としてのウィザードは、年季の入った術者として描き直す必要がある。いまウィザードは絵が無く、盤でも戦闘でも陣営色の板で出る（冒険譚2 全7話・冒険譚3 全7話・デバッグステージ4本・会話の顔＝portrait 未用意で map を流用）。あわせて冒険譚2のキービジュアル2枚（cover・victory）は、プロンプトで術者を「a YOUNG mage（NOT an old man）」と名指して描いてあるため、ウィザードを大人にすると絵の中の術者だけ旧デザインで残る。
+- 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
+- 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
 
 ## リファクタリング
 
