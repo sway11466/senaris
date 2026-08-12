@@ -36,7 +36,8 @@
     {"col": 7, "row": 13, "actor": "dwarf"},
     {"col": 8, "row": 13, "actor": "elf"},
     {"col": 6, "row": 11, "actor": "pixie"},
-    {"col": 7, "row": 11, "actor": "birdman"}
+    {"col": 7, "row": 11, "actor": "birdman"},
+    {"col": 2, "row": 14, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "レッドドラゴン", "ai": "weak",
@@ -69,6 +70,8 @@
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st7.intro.2" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st7.intro.3" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st7.intro.4" },
+      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st7.intro.11" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st7.intro.12" },
       { "speaker": "char.elf.name", "skin": "elf", "text": "t3.st7.intro.8", "when": "joined:elf" },
       { "speaker": "char.birdman.name", "skin": "birdman", "text": "t3.st7.intro.9", "when": "joined:birdman" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st7.intro.5" },
@@ -82,7 +85,8 @@
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st7.outro.3" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st7.outro.4" },
       { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st7.outro.5" },
-      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st7.outro.6" }
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st7.outro.6" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st7.outro.7" }
     ]
   },
   "bgm": { "main": "boss" }

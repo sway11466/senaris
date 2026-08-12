@@ -38,7 +38,8 @@
     {"col": 6, "row": 15, "actor": "halfling"},
     {"col": 7, "row": 15, "actor": "pixie"},
     {"col": 3, "row": 15, "actor": "dwarf"},
-    {"col": 4, "row": 15, "actor": "elf"}
+    {"col": 4, "row": 15, "actor": "elf"},
+    {"col": 8, "row": 15, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "崖のハーピー", "ai": "charge",
@@ -80,6 +81,8 @@
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.intro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st5.intro.3" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st5.intro.4" },
+      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st5.intro.8" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.intro.9" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st5.intro.5" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "t3.st5.intro.6", "when": "joined:dwarf" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st5.intro.7" }

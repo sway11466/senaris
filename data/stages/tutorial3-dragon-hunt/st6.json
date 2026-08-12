@@ -39,7 +39,8 @@
     {"col": 5, "row": 15, "actor": "wizard"},
     {"col": 6, "row": 15, "actor": "dwarf"},
     {"col": 7, "row": 15, "actor": "elf"},
-    {"col": 8, "row": 15, "actor": "birdman"}
+    {"col": 8, "row": 15, "actor": "birdman"},
+    {"col": 9, "row": 15, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "ローグ本隊", "ai": "raid",
@@ -89,6 +90,8 @@
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "t3.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st6.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st6.intro.4" },
+      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st6.intro.9" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st6.intro.10" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st6.intro.5" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st6.intro.6" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st6.intro.7" }
