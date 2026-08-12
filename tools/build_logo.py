@@ -12,13 +12,19 @@ R = 100.0
 S3 = math.sqrt(3.0)
 PITCH = math.radians(52.0)
 FOV = math.radians(42.0)
-DIST = 7.0 * R
+DIST = 6.0 * R
 CLUSTER_W = 500.0
 SHRINK = 0.94
 
 TILT = 15.0
-SWORD_TOTAL = 430.0
-SWORD_VISIBLE = 260.0
+SWORD_TOTAL = 516.0
+SWORD_VISIBLE = 312.0
+EMBLEM_DY = 24.0  # 紋章を縦へずらす量（ロゴ単位）。正＝下
+ALIGN_TO = "A"  # 紋章の横位置を、この文字の中心に合わせる（None なら語の中心）
+ENTRY_DY = 10.0  # 刺さり口を中央ヘックスの中心から下へずらす量（ロゴ単位）
+GROUND_SLANT = 8.0  # 剣を切る地面の線の傾き（度）。正＝右下がり
+LETTER_HALO = 12.0  # 文字と剣の周りをタイルから抜く余白（ロゴ単位）
+SWORD_HALO = 37.0   # 単色版のときだけ剣に使う太い抜き（同色なので広く取る）
 
 WORD = "SENARIS"
 TRACK = 0.12
@@ -26,7 +32,7 @@ WORD_W = 1200.0
 OVERLAP = 0.70
 
 FONT_PATH = "assets/promo-src/logo/fonts/EBGaramond-variable.ttf"
-SWORD_SVG = "assets/promo-src/logo/sword.svg"
+SWORD_SVG = "assets/promo-src/logo/sword.svg"  # tools/trace_sword.py が生成する
 
 CENTERS = [
     (0.0, 0.0),
@@ -39,9 +45,11 @@ PALETTE = {
     "dark": dict(ramp=((0x6E, 0x92, 0xB8), (0x8A, 0x8A, 0x96), (0xC0, 0x5A, 0x62)),
                  steel="#d2d8de", ink="#e8ecf0"),
     "light": dict(ramp=((0xAB, 0xBE, 0xD1), (0xBE, 0xBE, 0xC6), (0xDA, 0xAF, 0xB3)),
-                  steel="#3a414a", ink="#333942"),
-    "mono-white": dict(flat="#ffffff"),
-    "mono-black": dict(flat="#000000"),
+                  steel="#586270", ink="#333942"),
+    # 単色版（白1色・黒1色）は用途が見当たらないため生成していない。
+    # 必要になったら次の2行を戻すだけでよい（剣を抜く処理はそのまま残してある）。
+    #   "mono-white": dict(flat="#ffffff"),
+    #   "mono-black": dict(flat="#000000"),
 }
 
 
@@ -107,7 +115,8 @@ def sword_bits():
     scale = SWORD_TOTAL / h
     buried_local = (SWORD_TOTAL - SWORD_VISIBLE) / scale
     ex, ey = w / 2.0, h - buried_local
-    return d, "rotate(%.3f) scale(%.5f) translate(%.3f,%.3f)" % (TILT, scale, -ex, -ey)
+    return d, "translate(0,%.2f) rotate(%.3f) scale(%.5f) translate(%.3f,%.3f)" % (ENTRY_DY, TILT, scale, -ex, -ey)
+
 
 
 def glyph_paths(target_w):
@@ -127,7 +136,12 @@ def glyph_paths(target_w):
         x += hmtx[gname][0] + upem * TRACK
     total = x - upem * TRACK
     scale = target_w / total
-    return items, scale, cap * scale
+    dx = 0.0
+    if ALIGN_TO:
+        i = WORD.index(ALIGN_TO)
+        adv = hmtx[cmap[ord(ALIGN_TO)]][0]
+        dx = -target_w / 2.0 + (items[i][1] + adv / 2.0) * scale
+    return items, scale, cap * scale, dx
 
 
 def build(mode, shrink=SHRINK):
@@ -135,7 +149,7 @@ def build(mode, shrink=SHRINK):
     flat = pal.get("flat")
     tiles = tile_polys(shrink)
     sword_d, sword_tf = sword_bits()
-    glyphs, gscale, cap_h = glyph_paths(WORD_W)
+    glyphs, gscale, cap_h, emblem_dx = glyph_paths(WORD_W)
 
     top = min(CLUSTER_TOP, -SWORD_VISIBLE)
     word_top = CLUSTER_BOTTOM - cap_h * OVERLAP
@@ -144,8 +158,10 @@ def build(mode, shrink=SHRINK):
     pad = 24.0
     vb = (-half_w - pad, top - pad, 2 * (half_w + pad), (word_bottom - top) + 2 * pad)
 
-    parts = ['<clipPath id="ground"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f"/></clipPath>'
-             % (vb[0], vb[1], vb[2], -vb[1])]
+    big = 4000.0
+    m = math.tan(math.radians(GROUND_SLANT))
+    parts = ['<clipPath id="ground"><polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f"/></clipPath>'
+             % (-big, ENTRY_DY - big * m, big, ENTRY_DY + big * m, big, -big, -big, -big)]
     if not flat:
         lo, mid, hi = pal["ramp"]
         parts.append('<linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="%.1f" y1="0" x2="%.1f" y2="0">'
@@ -153,18 +169,29 @@ def build(mode, shrink=SHRINK):
         for off, c in ((0.0, lo), (1.0, hi)):
             parts.append('<stop offset="%.2f" stop-color="#%02x%02x%02x"/>' % ((off,) + c))
         parts.append("</linearGradient>")
-    if flat:
-        parts.append('<mask id="cut" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
-        parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
-        parts.append('<g clip-path="url(#ground)"><path d="%s" transform="%s" fill="#000" stroke="#000"'
-                     ' stroke-width="56" stroke-linejoin="round"/></g>' % (sword_d, sword_tf))
-        parts.append("</mask>")
-    parts.append('<g id="tiles"%s>' % (' mask="url(#cut)"' if flat else ""))
+    parts.append('<mask id="cut" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
+    parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
+    parts.append('<g clip-path="url(#ground)"><path d="%s" transform="%s" fill="#000" stroke="#000"'
+                 ' stroke-width="%.1f" stroke-linejoin="round"/></g>'
+                 % (sword_d, sword_tf, SWORD_HALO if flat else LETTER_HALO))
+    # マスクはタイル群の座標系（紋章の移動が効いた後）で解釈されるので、その分を打ち消す
+    parts.append('<g transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="#000" stroke="#000"'
+                 ' stroke-width="%.1f" stroke-linejoin="round">'
+                 % (-WORD_W / 2.0 - emblem_dx, word_bottom - EMBLEM_DY, gscale, -gscale,
+                    LETTER_HALO / gscale))
+    for cmds, ox in glyphs:
+        parts.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
+    parts.append("</g>")
+    parts.append("</mask>")
+    parts.append('<g id="emblem" transform="translate(%.2f,%.2f)">' % (emblem_dx, EMBLEM_DY))
+    parts.append('<g id="tiles" mask="url(#cut)">')
     for t, pts in tiles:
         parts.append('<polygon points="%s" fill="%s"/>' % (pts, flat or "url(#sweep)"))
     parts.append("</g>")
-    parts.append('<g id="sword" clip-path="url(#ground)"><path d="%s" transform="%s" fill="%s"/></g>'
-                 % (sword_d, sword_tf, flat or pal["steel"]))
+    parts.append('<g id="sword" clip-path="url(#ground)">')
+    parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or pal["steel"]))
+    parts.append("</g>")
+    parts.append("</g>")
     parts.append('<g id="wordmark" transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="%s">'
                  % (-WORD_W / 2.0, word_bottom, gscale, -gscale, flat or pal["ink"]))
     for cmds, ox in glyphs:
@@ -178,7 +205,7 @@ def build(mode, shrink=SHRINK):
 
 if __name__ == "__main__":
     print("cluster top/bottom in logo units: %.1f / %.1f" % (CLUSTER_TOP, CLUSTER_BOTTOM))
-    for mode in ("dark", "light", "mono-white", "mono-black"):
+    for mode in ("dark", "light"):
         p = "assets/promo-src/logo/logo_%s.svg" % mode
         open(p, "w", encoding="utf-8").write(build(mode))
         print("wrote", p)

@@ -1,28 +1,38 @@
-A reference sheet of FOUR sword silhouettes, side by side in a single row, evenly spaced,
-on a plain pure-white background.
+A single sword, drawn as one SOLID BLACK SILHOUETTE on a plain pure-white background.
+A filled shape only — no outline, no contour line, no grey, no gradient, no shading, no
+highlight, no texture, no drop shadow, no background scenery, no ground, no frame, no
+lettering of any kind.
 
-Each sword is a SOLID BLACK SILHOUETTE — a filled shape only. No outline, no contour line, no
-grey, no gradient, no shading, no highlight, no texture, no drop shadow, no reflection, no
-background scenery, no ground, no frame, no labels, no numbers, no text of any kind.
+The sword stands PERFECTLY VERTICAL and upright: point straight down, pommel straight up.
+Do not tilt, rotate or lean it. It is seen flat from the front, face-on to the blade, so it
+is exactly left-right symmetrical — the same shape on both sides of its centre line.
 
-Each sword stands PERFECTLY VERTICAL and upright, point straight down, pommel straight up.
-Do not tilt, rotate or lean any of them. Each is seen flat from the front, face-on to the
-blade, so it is exactly left-right symmetrical: the same shape on both sides of its centre
-line.
+Proportions: the blade takes roughly two thirds of the total height, the hilt the remaining
+third. The whole weapon is SLENDER and elegant rather than broad and heavy.
 
-Every sword is a plain, heavy, practical soldier's weapon — a straight double-edged arming
-sword. Simple crossguard, plain grip, plain round or disc pommel. NO ornament, no jewels, no
-engraving, no runes, no wings, no wrapped ribbons, no wire binding, no fuller lines, no
-lettering on the blade. Nothing but the outline of the weapon itself.
+THE BLADE: straight and double-edged, narrow, with a long gradual taper that runs most of
+its length and finishes in a sharp needle-like point. The edges are clean straight lines,
+not curved.
 
-Make every sword BROAD and heavy in proportion — a thick blade and a substantial guard — so
-the shape survives when it is shrunk down very small. Thin, delicate, elegant blades are
-wrong here.
+Down the centre of the blade runs a FULLER — a single very narrow white groove, drawn as a
+thin white gap through the black silhouette, following the centre line. It starts just below
+the crossguard and runs almost the whole way to the point, narrowing with the blade and
+closing before the tip. It is a hairline: thin enough to read as an engraved channel, never
+so wide that the blade looks split into two. No other engraving and no lettering on the
+blade.
 
-Vary the four only in these ways, keeping all of them simple:
-  1. a short broad blade with a straight narrow crossguard
-  2. a longer blade with a heavier straight crossguard and a larger disc pommel
-  3. a blade that tapers more sharply to the point, with a slightly downswept crossguard
-  4. a wide blade with a thick straight crossguard and a compact round pommel
+THE CROSSGUARD: slim and narrow — only a little wider than the grip is long. Its two arms
+sweep gently DOWNWARD toward the blade, like a shallow bow, and each arm ends in a small
+round knob. Nothing sits at its centre: no ring, no jewel, no boss — the blade simply passes
+into the guard.
 
-All four are the same height and sit on the same baseline, filling the frame vertically.
+THE GRIP: bound in wrapping, shown as five or six narrow horizontal white gaps that cross
+the grip evenly from side to side, leaving black bands between them. The grip is a simple
+straight column, slightly narrower than the crossguard is thick.
+
+THE POMMEL: an OPEN RING at the very top — a circle with a white hole through its middle,
+like a finger ring, joined to the bottom of the grip.
+
+Everything is one connected silhouette. The only white inside the sword is the fuller down
+the blade, the hole in the pommel ring, and the narrow gaps of the grip wrapping. Keep those
+openings large enough to stay open and not fill in.
