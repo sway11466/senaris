@@ -2,6 +2,9 @@
 
 盤と同じカメラ（俯角52度・画角42度＝board_camera.gd）で7ヘックスを投影し、
 中央ヘックスの中心に剣を刺し、その下に SENARIS を置く。
+
+起動スプラッシュ版はロゴの下に開発元名を足し、ピクセル寸法を焼いて書き出す
+（地の色は焼かない＝project.godot の boot_splash/bg_color が持つ）。
 """
 import math
 import re
@@ -31,6 +34,12 @@ TRACK = 0.12
 WORD_W = 1200.0
 OVERLAP = 0.70
 
+DEV_WORD = "craftkobo"  # 開発元名（起動スプラッシュだけに載る）
+DEV_TRACK = 0.30
+DEV_W = 340.0        # 開発元名の幅（ロゴ単位）。ロゴ幅の 1/4 強
+DEV_GAP = 72.0       # SENARIS の下端から開発元名のベースラインまで（ロゴ単位）
+SPLASH_PX_W = 760.0  # スプラッシュ PNG の横幅（px）。1280x720 のウィンドウで約6割
+
 FONT_PATH = "assets/promo-src/logo/fonts/EBGaramond-variable.ttf"
 SWORD_SVG = "assets/promo-src/logo/sword.svg"  # tools/trace_sword.py が生成する
 
@@ -43,9 +52,9 @@ CENTERS = [
 
 PALETTE = {
     "dark": dict(ramp=((0x6E, 0x92, 0xB8), (0x8A, 0x8A, 0x96), (0xC0, 0x5A, 0x62)),
-                 steel="#d2d8de", ink="#e8ecf0"),
+                 steel="#d2d8de", ink="#e8ecf0", dev="#8b95a1"),
     "light": dict(ramp=((0xAB, 0xBE, 0xD1), (0xBE, 0xBE, 0xC6), (0xDA, 0xAF, 0xB3)),
-                  steel="#586270", ink="#333942"),
+                  steel="#586270", ink="#333942", dev="#6b7482"),
     # 単色版（白1色・黒1色）は用途が見当たらないため生成していない。
     # 必要になったら次の2行を戻すだけでよい（剣を抜く処理はそのまま残してある）。
     #   "mono-white": dict(flat="#ffffff"),
@@ -119,7 +128,7 @@ def sword_bits():
 
 
 
-def glyph_paths(target_w):
+def glyph_paths(word, target_w, track, align_to=None):
     f = TTFont(FONT_PATH)
     upem = f["head"].unitsPerEm
     cap = getattr(f["OS/2"], "sCapHeight", 0) or 700
@@ -128,35 +137,50 @@ def glyph_paths(target_w):
     hmtx = f["hmtx"]
     x = 0.0
     items = []
-    for ch in WORD:
+    for ch in word:
         gname = cmap[ord(ch)]
         pen = SVGPathPen(gs)
         gs[gname].draw(pen)
         items.append((pen.getCommands(), x))
-        x += hmtx[gname][0] + upem * TRACK
-    total = x - upem * TRACK
+        x += hmtx[gname][0] + upem * track
+    total = x - upem * track
     scale = target_w / total
     dx = 0.0
-    if ALIGN_TO:
-        i = WORD.index(ALIGN_TO)
-        adv = hmtx[cmap[ord(ALIGN_TO)]][0]
+    if align_to:
+        i = word.index(align_to)
+        adv = hmtx[cmap[ord(align_to)]][0]
         dx = -target_w / 2.0 + (items[i][1] + adv / 2.0) * scale
     return items, scale, cap * scale, dx
 
 
-def build(mode, shrink=SHRINK):
+def wordmark(gid, items, scale, target_w, baseline, fill):
+    """パス化した語を、中央そろえ・指定のベースラインに置く。"""
+    out = ['<g id="%s" transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="%s">'
+           % (gid, -target_w / 2.0, baseline, scale, -scale, fill)]
+    for cmds, ox in items:
+        out.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
+    out.append("</g>")
+    return out
+
+
+def build(mode, shrink=SHRINK, dev=False, px_w=None):
     pal = PALETTE[mode]
     flat = pal.get("flat")
     tiles = tile_polys(shrink)
     sword_d, sword_tf = sword_bits()
-    glyphs, gscale, cap_h, emblem_dx = glyph_paths(WORD_W)
+    glyphs, gscale, cap_h, emblem_dx = glyph_paths(WORD, WORD_W, TRACK, ALIGN_TO)
 
     top = min(CLUSTER_TOP, -SWORD_VISIBLE)
     word_top = CLUSTER_BOTTOM - cap_h * OVERLAP
     word_bottom = word_top + cap_h
     half_w = max(CLUSTER_W / 2.0, WORD_W / 2.0)
     pad = 24.0
-    vb = (-half_w - pad, top - pad, 2 * (half_w + pad), (word_bottom - top) + 2 * pad)
+    bottom = word_bottom
+    if dev:
+        dev_glyphs, dscale, _dcap, _dx = glyph_paths(DEV_WORD, DEV_W, DEV_TRACK)
+        dev_baseline = word_bottom + DEV_GAP
+        bottom = dev_baseline  # craftkobo に下へ出る字は無いのでベースラインが下端
+    vb = (-half_w - pad, top - pad, 2 * (half_w + pad), (bottom - top) + 2 * pad)
 
     big = 4000.0
     m = math.tan(math.radians(GROUND_SLANT))
@@ -192,14 +216,15 @@ def build(mode, shrink=SHRINK):
     parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or pal["steel"]))
     parts.append("</g>")
     parts.append("</g>")
-    parts.append('<g id="wordmark" transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="%s">'
-                 % (-WORD_W / 2.0, word_bottom, gscale, -gscale, flat or pal["ink"]))
-    for cmds, ox in glyphs:
-        parts.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
-    parts.append("</g>")
+    parts += wordmark("wordmark", glyphs, gscale, WORD_W, word_bottom, flat or pal["ink"])
+    if dev:
+        parts += wordmark("devname", dev_glyphs, dscale, DEV_W, dev_baseline, flat or pal["dev"])
 
+    w, h = vb[2], vb[3]
+    if px_w:
+        w, h = px_w, px_w * vb[3] / vb[2]
     head = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="%.1f %.1f %.1f %.1f" width="%.0f" height="%.0f">'
-            % (vb[0], vb[1], vb[2], vb[3], vb[2], vb[3]))
+            % (vb[0], vb[1], vb[2], vb[3], w, h))
     return head + "\n" + "\n".join(parts) + "\n</svg>\n"
 
 
@@ -211,4 +236,9 @@ if __name__ == "__main__":
         print("wrote", p)
     p = "assets/promo-src/logo/logo_small_dark.svg"
     open(p, "w", encoding="utf-8").write(build("dark", shrink=0.90))
+    print("wrote", p)
+    # 起動スプラッシュ用。ゲームに入る画像の作業元なので promo-src ではなく menu-src に置く
+    # （PNG への変換は tools/rasterize_svg.gd）。
+    p = "assets/menu-src/splash/splash.svg"
+    open(p, "w", encoding="utf-8").write(build("dark", dev=True, px_w=SPLASH_PX_W))
     print("wrote", p)
