@@ -37,7 +37,7 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 ## margin＝terrain を盤より何マス外側まで書いたか（外周）。cols/rows は遊べる盤のままで、
 ## ずれるのは terrain の読み出し位置だけ＝駒・拠点・terrain_skins の座標は盤の0起点で不変。
 ## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
-## enemy は squad の配列で、各 squad が AI プリセット(ai)を持つ（敵は必ず squad に属する）。
+## enemy は squad の配列で、各 squad が特性(ai)を持つ（敵は必ず squad に属する）。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）＝性能の唯一の出どころ。
 ## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝名簿）。
 ## carryover_slots を書いたステージで、その位置に嵌める。書かなければ独立＝carried は未使用。
@@ -59,7 +59,6 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	var defeat: Variant = data.get("defeat", [])
 	if typeof(defeat) == TYPE_ARRAY:
 		state.defeat_conditions = defeat
-	state.enemy_ai = String(data.get("ai", ""))  # squad 外ユニット用の内部フォールバック（新スキーマでは通常未使用）
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
 	# 1ターン目の増援はここでは出さない。置き場所の判定に移動コスト表が要るので、
 	# set_movement のあと（load_file）で fire_due_events() を呼ぶ。以降のターンは end_turn が拾う。
@@ -275,11 +274,11 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 		auto_id += 1
 	return auto_id
 
-## enemy セクション（部隊(squad)の配列）を盤に追加。各部隊は { name?, ai: プリセットラベル, ...上書き, units: [...] }。
+## enemy セクション（部隊(squad)の配列）を盤に追加。各部隊は { name?, ai: 特性id, ...上書き, units: [...] }。
 ## team は陣営（呼び出し側が固定＝敵=1）。敵は必ず squad に属する（バラ配置は無い）。
 ## units は通常の駒記法（型/スキン/troops・level）と同じで、採番も player の続きから連続する。
-## 部隊定義には行動順 order も入る（順番の解決は NearestAttackerBrain＝doc/gdd/ai.md 行動順）。
-## 部隊メンバーは BattleState に「unit→部隊」の対応が登録され、AIが部隊のプリセットで振る舞う。
+## 部隊定義には行動順 order も入る（順番の解決は TraitBrain＝doc/gdd/ai.md 行動順）。
+## 部隊メンバーは BattleState に「unit→部隊」の対応が登録され、AIが部隊の特性で振る舞う。
 static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictionary, team: int, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(squads) != TYPE_ARRAY:
 		return start_id
@@ -361,11 +360,11 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
 		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL), String(b.get("kind", "fort")))
-		if b.has("ai"):  # 拠点=1squad（garrison を出す preset）。ai 未指定の拠点はAI出撃しない。ai.md §7
+		if b.has("ai"):  # 拠点そのものが1部隊（garrison を出す）。ai 未指定の拠点はAI出撃しない
 			var squad := {}
 			for key in b:
 				if not (key in ["col", "row", "team", "kind", "garrison", "native"]):
-					squad[key] = b[key]  # ai＋上書き（sight/engage/…）＋行動順 order を部隊定義に
+					squad[key] = b[key]  # ai＋パラメーターの上書き（sight/stack）＋行動順 order を部隊定義に
 			base.squad_index = state.squads.size()
 			state.squads.append(squad)
 		for g in b.get("garrison", []):
