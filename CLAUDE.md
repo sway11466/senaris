@@ -70,6 +70,7 @@
 - [doc/art/terrain.md](doc/art/terrain.md) — 地形タイルの方針（TERRAIN STYLE・切り抜き・反復対策）
 - [doc/art/keyvisual.md](doc/art/keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・透かし対策）
 - [doc/art/menu.md](doc/art/menu.md) — メニュー画面の材質（木壁・依頼ボード・羊皮紙・ナインパッチ）
+- [doc/art/promo.md](doc/art/promo.md) — 宣伝素材の方針（ロゴ・ストア用カプセル・プロモ画像／動画）
 - [doc/art/overview.md](doc/art/overview.md) — 画像スロット仕様（`map`/`combat`）
 
 ### サウンド — `audio/`（Audio Bible）
