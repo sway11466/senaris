@@ -32,7 +32,8 @@
 | `gen_sfx.ps1` | MuseScore の .wav から効果音 .ogg を作る（無音トリム・変換・ピーク実測）。音量は揃えず測って報告だけする。基準から外れていれば警告を出す | `powershell -File tools\gen_sfx.ps1 <sfx_id> …` | [../audio/sfx.md](../audio/sfx.md) |
 | `gen_bgm.ps1` | MuseScore の .wav から BGM .ogg を作る（楽譜からループ長を算出・残響の折り返し・変換・loop=true でインポート） | `powershell -File tools\gen_bgm.ps1 <track_id> … [-Stinger] [-LoopSec <秒>]` | [../audio/bgm.md](../audio/bgm.md) |
 | `gen_terrain_tiles.gd` | 地形タイルのプレースホルダ（ベタ塗りヘックス）を生成する | `godot --headless --script res://tools/gen_terrain_tiles.gd` | [../art/terrain.md](../art/terrain.md) |
-| `build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣を刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版・単色版を書き出す | `uv run --no-project --with fonttools python tools/build_logo.py` | [../art/promo.md](../art/promo.md) |
+| `logo/trace_sword.py` | 剣の黒シルエット PNG を SVG のパスに変換する（溝・柄頭の輪・巻きの隙間は穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_sword.py` | [../art/promo.md](../art/promo.md) |
+| `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣を刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版を書き出す | `uv run --no-project --with fonttools python tools/logo/build_logo.py` | [../art/promo.md](../art/promo.md) |
 
 ループ長は `gen_bgm.ps1` が `.mscz` から算出する（小節数×1小節の拍数÷テンポ）。繰り返し記号やアウフタクトのある譜面はこの式が当たらないので、その時だけ `-LoopSec` で秒数を渡す。
 
