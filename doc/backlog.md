@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=56 / refactoring=9
+次回採番: bug=3 / feature=56 / refactoring=10
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -381,6 +381,14 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
+
+### refactoring-9
+
+**battle_state.gd から StatusMod 管理を切り出す**（優先度：中）
+
+- 背景：`domain/battle_state.gd`（1444行）の状態補正まわり（lines 82–139）は、`_status_mods` 配列を持ち `StatusMod` ユーティリティへ委譲するだけの独立した塊。BattleState に戻る依存が `current_team`（持続の満了判定）だけで、他の責務（イベント・輸送・行動フラグなど）とは違い、盤面操作と絡まずきれいに切れる。
+- 対応：`domain/status_mod_manager.gd`（RefCounted）を新設し、`_status_mods` 配列と操作メソッド（`add_status_mod`・`status_aggregate`・`status_mods_for`・`debuff_count`・`buff_count`・`clear_debuffs`・`team_aura_fx`・`_expire_status_mods`）を移す。BattleState 側は同名メソッドを1行ラッパーで残し、公開 API は変えない。直列化（`to_dict`/`from_dict`）の `_status_mods` 部分も StatusModManager に持たせる。テスト 28 本が全パスすることを確認して完了。
+- 該当：`domain/battle_state.gd`・`domain/status_mod_manager.gd`（新規）・`tests/unit/test_battle_state*.gd`（変更なしが目標）。
 
 ## parking lot
 
