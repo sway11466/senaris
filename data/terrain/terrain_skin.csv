@@ -16,6 +16,7 @@ trap,trap,罠,none,false,0,0,true,,,plain,center,既定スキン
 rampart,rampart,城壁,none,false,0,0,true,,,plain,line,既定スキン
 rampart_rubble1,rampart,瓦礫の山,full,false,0.36,0,true,,,plain_grave1,line,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
 cliff,cliff,崖,none,false,0.36,0,true,,,,,既定スキン
+river,river,川,none,area,0,0,true,,,plain,line,既定スキン。隣の川と繋がる向き別タイル（_c000000〜_c111111）
 wall,wall,壁,none,false,0.70,0,false,,,,,既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
 wall_stone1,wall,石積みの壁,none,false,0,0,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 fort,fort,拠点,none,false,0,0,true,,,plain,center,既定スキン

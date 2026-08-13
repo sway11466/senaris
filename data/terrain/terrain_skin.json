@@ -241,6 +241,21 @@
 			"terrain_type": "cliff"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_layout": "line",
+			"connect": "area",
+			"elevation": 0,
+			"grid": true,
+			"map_ground": "",
+			"map_overlay": "",
+			"memo": "既定スキン。隣の川と繋がる向き別タイル（_c000000〜_c111111）",
+			"name": "川",
+			"orientable": "none",
+			"skin_id": "river",
+			"sprite_sink": 0,
+			"terrain_type": "river"
+		},
+		{
 			"combat_ground": "",
 			"combat_layout": "",
 			"connect": false,

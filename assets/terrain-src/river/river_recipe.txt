@@ -1,0 +1,1 @@
+powershell -File tools\gen_area_tiles.ps1 river assets\terrain-src\river\river_01_raw.png -BandX 320 -BandW 380 -Bite 46 -EdgeColor "#1A4E5B"
