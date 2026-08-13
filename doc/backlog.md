@@ -382,21 +382,6 @@
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
 
-### refactoring-5
-
-**hex_board_3d の段階分割**（優先度：中）
-
-- 背景：`presentation/board/hex_board_3d.gd` は元2254行で、(a) カメラリグ＋picking、(b) 選択→移動→コマンドメニューのインタラクション状態機械、(c) 盤の3D描画同期、(d) メッシュ/材質生成ヘルパー、(e) 駒の描画、(f) 地形タイル構築、(g) 着弾演出の責務が同居している。(b) と (c) はオーバーレイ状態（`_reachable`/`_targets`/`_formation_cells` 等）を共有する密結合なので、外側の疎な責務から段階的に剥がし、hex_board_3d をイベント配線と入力→状態遷移の専任にする。
-- 対応：切り出しやすい順に進める。各段でテスト先行・全テスト合格・実機確認を経てからコミットする。
-  1. メッシュ/材質生成 → `board_mesh_factory.gd`（純関数・static クラス）。
-  2. カメラリグ → `board_camera.gd`（パン/ズーム/fit/追従/揺れ。入力の受け口は盤に残し委譲）。
-  3. 駒の描画（`_build_unit_node`・影・兵数バー・リング・マーカー）。
-  4. 地形タイル構築（`_build_tiles`・スキン解決・スカート・グリッド・下地）。
-  5. 着弾演出（`play_formation_impact` 一連）。
-  6. 1〜5を剥がした状態でインタラクション分割の要否を再評価する。切る場合は「オーバーレイ表示モデル（インタラクションが書き・描画が読む素データ）」を定義してから。
-- 進捗（2026-08-11）：ステップ1完了（`3d72eab`・2254→2041行・-213行）。ステップ2完了（`65c3499`・2041→1910行・-131行・`board_camera.gd` 167行・`test_board_camera.gd` 97行）。ステップ3完了（`844a061`・1910→1567行・-343行・`board_unit_renderer.gd` 374行・`test_board_unit_renderer.gd` 116行）。ステップ4完了（1567→944行・-623行・`board_terrain_renderer.gd` 300行・`test_board_terrain_renderer.gd` 68行）。ステップ5完了（1221→1028行・-193行・`board_impact_renderer.gd` 270行・`test_board_impact_renderer.gd` 108行。ステップ4以降に他の機能追加で1221行まで増えていた）。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/board/board_mesh_factory.gd`・`presentation/board/board_camera.gd`・`presentation/board/board_unit_renderer.gd`・`presentation/board/board_terrain_renderer.gd`・`presentation/board/board_impact_renderer.gd`・`tests/unit/test_board_mesh_factory.gd`・`tests/unit/test_board_camera.gd`・`tests/unit/test_board_unit_renderer.gd`・`tests/unit/test_board_terrain_renderer.gd`・`tests/unit/test_board_impact_renderer.gd`。
-
 ## parking lot
 
 後回し・いつかやる候補の置き場（特定の作業に紐付かない将来アイデア）。着手が決まった段で機能追加・リファクタリングへ引き上げる。
