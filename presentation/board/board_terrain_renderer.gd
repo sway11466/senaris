@@ -172,7 +172,8 @@ func _tile_texture(hex: Vector2i) -> Texture2D:
 	var ground := TerrainSkinCatalog.resolve(ground_id, "")
 	if ground == null:
 		return over
-	return TerrainTiles.composited(_variant_texture(ground.image_path(), hex), over)
+	# 下地も接続タイルを引く。橋のマスに敷く川は、そのマスの向きに合った1枚でなければ繋がらない。
+	return TerrainTiles.composited(_variant_texture(_tile_image_path(ground, hex), hex), over)
 
 ## パスの variant を読み、このヘックスぶんの1枚を返す（読み込みはパスごとに1回）。
 func _variant_texture(path: String, hex: Vector2i) -> Texture2D:
@@ -223,7 +224,7 @@ func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
 			s = _skin_at(_clamp_to_board(n))
 		else:
 			covered = false
-		connected.append(s != null and s.skin_id == skin.skin_id)
+		connected.append(s != null and s.connect_group_id() == skin.connect_group_id())
 		on_board.append(covered)
 	if area:
 		return connected

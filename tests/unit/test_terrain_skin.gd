@@ -20,6 +20,26 @@ func test_default_skin_is_same_name() -> void:
 		if s != null:
 			assert_eq(s.skin_id, tid, "%s の既定スキンは同名 skin_id" % tid)
 
+func test_connect_group_defaults_to_skin_id() -> void:
+	# 名札(connect_as)を書いていないスキンは自分の skin_id が名札＝従来どおり同スキンとだけ繋がる。
+	for sid in ["road", "fence", "plain"]:
+		var s := TerrainSkinCatalog.skin_by_id(sid)
+		assert_not_null(s, "%s スキンが引ける" % sid)
+		if s != null:
+			assert_eq(s.connect_group_id(), sid, "%s の名札は skin_id" % sid)
+
+func test_bridge_shares_river_connect_group() -> void:
+	# 橋は川と同じ名札＝川の帯が橋のマスへ伸びる。板は接続で選ばない（connect なし）。
+	var river := TerrainSkinCatalog.skin_by_id("river")
+	assert_not_null(river, "river スキンが引ける")
+	for sid in ["bridge", "bridge_r", "bridge_l"]:
+		var b := TerrainSkinCatalog.skin_by_id(sid)
+		assert_not_null(b, "%s スキンが引ける" % sid)
+		if b != null and river != null:
+			assert_eq(b.connect_group_id(), river.connect_group_id(), "%s は川と同じ名札" % sid)
+			assert_false(b.connects(), "%s は接続で絵を選ばない" % sid)
+			assert_eq(b.map_ground_id(), "river", "%s の下地は川" % sid)
+
 func test_resolve_falls_back_to_type_default() -> void:
 	# 未収録セル（skin_id=""）／未知 skin_id は terrain_type の既定スキンにフォールバックする。
 	var default_plain := TerrainSkinCatalog.resolve("","plain")

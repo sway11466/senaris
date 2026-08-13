@@ -308,10 +308,8 @@ func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: in
 		if ResourceLoader.exists(p):
 			base = p
 			by_team = true
-	if not by_team and skin.connects():
-		var cp := skin.connected_image_path(_connected_dirs(cell, skin, skins))
-		if ResourceLoader.exists(cp):
-			base = cp
+	if not by_team:
+		base = _connected_path(cell, skin, skins)
 	var w := ceili(hex_size * 2.0)
 	var h := ceili(hex_size * SQRT3)
 	var axial := Hex.offset_to_axial(cell.x, cell.y)  # 本体の variant 選択は軸座標のハッシュ
@@ -321,8 +319,19 @@ func _terrain_texture(cell: Vector2i, skin_id: String, type_id: String, team: in
 	if not ground_id.is_empty() and not by_team:
 		var ground := TerrainSkinCatalog.resolve(ground_id, "")
 		if ground != null:
-			return TerrainTiles.composited(_variant_texture(ground.image_path(), axial, w, h), over)
+			# 下地も接続タイルを引く（本体と同じ）。橋のマスの川は向きが合っていないと繋がらない。
+			var gp := _connected_path(cell, ground, skins)
+			return TerrainTiles.composited(_variant_texture(gp, axial, w, h), over)
 	return over
+
+
+## skin がそのセルで引く画像パス。繋がる地形なら向きの組み合わせ別タイル、無ければ基本の1枚。
+func _connected_path(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> String:
+	if skin.connects():
+		var cp := skin.connected_image_path(_connected_dirs(cell, skin, skins))
+		if ResourceLoader.exists(cp):
+			return cp
+	return skin.image_path()
 
 
 ## 基本パスの variant を1枚選び、盤の表示サイズに縮めて返す。
@@ -356,7 +365,7 @@ func _connected_dirs(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> Ar
 				TerrainType.char_to_id(doc.terrain_char(b.x, b.y)))
 		else:
 			covered = false
-		connected.append(n != null and n.skin_id == skin.skin_id)
+		connected.append(n != null and n.connect_group_id() == skin.connect_group_id())
 		on_board.append(covered)
 	if area:
 		return connected

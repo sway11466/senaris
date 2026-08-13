@@ -10,6 +10,7 @@
 	},
 	"movement_types": {
 		"bush_walk": {
+			"bridge": 1,
 			"bush": 1,
 			"cliff": "x",
 			"fence": 3,
@@ -26,6 +27,7 @@
 			"wasteland": 2
 		},
 		"fixed": {
+			"bridge": 1,
 			"bush": 1,
 			"cliff": "x",
 			"fence": "x",
@@ -42,6 +44,7 @@
 			"wasteland": 1
 		},
 		"flight": {
+			"bridge": 1,
 			"bush": 1,
 			"cliff": 1,
 			"fence": 1,
@@ -58,6 +61,7 @@
 			"wasteland": 1
 		},
 		"forest_walk": {
+			"bridge": 1,
 			"bush": 2,
 			"cliff": "x",
 			"fence": 3,
@@ -74,6 +78,7 @@
 			"wasteland": 2
 		},
 		"ground": {
+			"bridge": 1,
 			"bush": 2,
 			"cliff": "x",
 			"fence": 3,
@@ -90,6 +95,7 @@
 			"wasteland": 2
 		},
 		"light_foot": {
+			"bridge": 1,
 			"bush": 1,
 			"cliff": "x",
 			"fence": 1,
@@ -106,6 +112,7 @@
 			"wasteland": 1
 		},
 		"mountain_walk": {
+			"bridge": 1,
 			"bush": 2,
 			"cliff": "x",
 			"fence": 3,

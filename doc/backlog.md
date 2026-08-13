@@ -44,8 +44,8 @@
 
 **地形・移動タイプの拡充（浅瀬・海・騎乗・水棲）**（優先度：低）
 
-- 背景：水系の地形は川（`river`＝飛行のみ進入可）だけで、渡れる浅瀬と海が無い。移動タイプ側も騎乗・水棲が未整備（[movement.md](gdd/movement.md)）。川で盤を横断させると地上ユニットが渡る手段を持たない。
-- 対応：`terrain_type.csv` に浅瀬・海を足し、`movement.csv` に対応する列と騎乗・水棲の行を足す（CSV正本→JSON生成のパイプラインに乗せる）。関連する既定スキン画像も要る。浅瀬は川と別スキンになるので、接続タイルの繋がり判定（今は skin_id 一致）を緩めないと川の帯が浅瀬のマスで途切れる。
+- 背景：水系の地形は川（`river`）と橋（`bridge`）だけで、歩いて渡れる浅瀬と海が無い。移動タイプ側も騎乗・水棲が未整備（[movement.md](gdd/movement.md)）。
+- 対応：`terrain_type.csv` に浅瀬・海を足し、`movement.csv` に対応する列と騎乗・水棲の行を足す（CSV正本→JSON生成のパイプラインに乗せる）。関連する既定スキン画像も要る。浅瀬は川と繋がって見えてほしいので、スキンの名札（`connect_as`）に `water` を書く（[terrain.md](art/terrain.md) §3.1）。
 - 該当：`data/terrain/terrain_type.csv`・`data/terrain/terrain_skin.csv`・`data/movement/movement.csv`・`doc/gdd/movement.md`。
 
 ### feature-8

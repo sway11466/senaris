@@ -1,0 +1,71 @@
+STYLE: A map tile element for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading,
+clear dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game: the DECK is seen from directly overhead, flat, and the low
+railings along its two sides are drawn with a little visible thickness — no
+perspective, no horizon, no sky. Read at thumbnail size: a few large legible
+shapes, no fine detail. Square 1:1.
+
+BACKGROUND — IMPORTANT: this is a cut-out element, not a scene. Everything that
+is not the bridge itself is PLAIN PURE WHITE (#FFFFFF), flat and empty, right
+out to all four edges. NO water, NO river, NO grass, NO bank, NO scenery, NO
+texture, NO gradient, NO shadow, NO border, NO frame. Nothing at all on the
+white — the water this bridge crosses is added by the game, not drawn here.
+
+SUBJECT: A single straight WOODEN FOOTBRIDGE running away from the viewer,
+straight up the frame: a plank deck with a low timber railing down each side.
+
+Composition, exactly: the bridge is one straight vertical run, dead centre
+left-to-right, crossing the full height of the frame and continuing off BOTH the
+top edge and the bottom edge — never stopping, never bending, never leaning,
+never curving, no arch, no ramp, no steps, no gate, no gap, no end. The deck
+keeps the same width and the same construction along its whole length; only the
+individual boards differ from one another.
+
+There are exactly three heavy CROSS-BEAMS across the deck: one at the very
+centre of the frame, one near the top edge and one near the bottom edge. These
+three are the one thing in the picture that must be EXACT: dead straight, at
+right angles to the run, spaced evenly (the same distance from the top beam to
+the centre beam as from the centre beam to the bottom beam), and identical to
+each other in thickness and colour. Each runs the full width of the deck and is
+clearly thicker and darker than the ordinary boards. They are the only
+landmarks.
+
+The bridge is WIDE and solid, not a line: the deck is about two fifths of the
+frame across, floored with boards laid ACROSS the run (left to right, like
+rungs), and edged by a low railing on the left side and another on the right,
+each railing a plain timber rail on short posts, roughly a fifteenth of the
+frame thick. CRITICAL: this must read as a solid piece of carpentry at thumbnail
+size — NOT a thin line, NOT a rope bridge, NOT a ladder, NOT railway track, NOT
+a stone arch bridge, NOT a pier or jetty.
+
+ROUGH BOARDS — IMPORTANT: between the cross-beams the decking is hand-laid and
+uneven, not a machined grid. The boards vary in thickness (some twice as thick
+as their neighbours), the gaps between them vary, a few sit slightly askew or
+overlap their neighbour, one or two are shorter and leave a notch at one end,
+and the grey-brown tone drifts from board to board. Some boards are split, some
+are patched. NO two stretches of decking look alike, and there must be no
+repeating rhythm, no evenly spaced boards, no grid, no herringbone, no pattern
+of any kind. The railing posts along the two sides are likewise unevenly spaced
+and slightly different in height and thickness — NOT a row of identical blocks.
+Keep all of this small and low-contrast: it is roughness in the carpentry, not
+damage, and nothing here may be big enough to read as a landmark.
+
+OPEN GAPS: where boards do not meet, the gap is a real hole right through the
+deck — draw it as the same PLAIN WHITE as the background, so that what lies
+under the bridge would show through. Never draw a gap as a dark line, a black
+shadow or a painted seam. Keep the holes narrow and few: a scatter of thin
+slivers between boards and one or two small notches, not a rotten or collapsing
+deck.
+
+The timber is old weathered dark grey-brown wood, dry and muted with almost no
+warmth in it. CRITICAL: every part of the bridge must be clearly DARK against
+the white — no plank, rail or highlight may be white or near-white, and there
+must be no pale bleached boards. Shading stays inside the timber itself: the
+deck a little lighter, the undercuts and the gaps between planks darker.
+
+Lit dimly and evenly from straight above, with NO cast shadow at all: the bridge
+throws no shadow on either side, and there is no dark smear or soft dark band
+along it. Nothing stands on it and nothing is tied to it — NO lantern, NO sign,
+NO rope, NO barrel, NO plants, NO moss, NO snow, NO figures.

@@ -28,6 +28,10 @@ var orientable: String
 ## line/area なら向きの組み合わせ別タイル（_c000000〜_c111111）を引く。この2つで違うのは盤の縁の
 ## 扱いだけで、タイルの命名も枚数も同じ（→ doc/art/terrain.md §3）。
 var connect: String
+## 隣から見たときの自分の名札（片方向）。空＝自分の skin_id。同じ名札のスキンは「繋がっている隣」と
+## 数えられる＝川(river)と橋(bridge_*)に water と書けば、川の帯が橋のマスへ伸びる。自分がどの絵を
+## 引くかは connect 側の話で、名札は関係しない（橋は connect=false で向き固定の1枚）。
+var connect_as: String
 var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
 var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
 var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
@@ -52,6 +56,8 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	# 事故を防ぐ。String() は bool を受けないので、文字列かどうかを先に見る。
 	var c: Variant = d.get("connect", "")
 	s.connect = String(c) if typeof(c) == TYPE_STRING and c in [CONNECT_LINE, CONNECT_AREA] else ""
+	var ca: Variant = d.get("connect_as", "")
+	s.connect_as = String(ca) if typeof(ca) == TYPE_STRING else ""
 	s.elevation = float(d.get("elevation", 0.0))
 	s.sprite_sink = float(d.get("sprite_sink", 0.0))
 	s.grid = bool(d.get("grid", true))
@@ -77,6 +83,10 @@ func art_id() -> String:
 ## 盤で下に敷くスキンID（空＝敷かない＝自分の絵だけで完結する従来のタイル）。
 func map_ground_id() -> String:
 	return map_ground
+
+## 隣から見たときの自分の名札（空なら skin_id）。繋がり判定はこの値どうしを突き合わせる。
+func connect_group_id() -> String:
+	return connect_as if connect_as != "" else skin_id
 
 ## タイル画像（基本）のパス。ファイル名は skin_id 規約（変種 _2/_3 は描画側が連番で拾う）。
 func image_path() -> String:
