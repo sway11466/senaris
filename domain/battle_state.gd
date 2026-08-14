@@ -414,6 +414,13 @@ func base_at(hex: Vector2i) -> Base:
 func terrain_at(hex: Vector2i) -> String:
 	return _terrain.get(hex, TerrainType.DEFAULT_ID)
 
+## u が hex の地形に入れるか（駒の有無は見ない＝地形だけの判定）。
+## 盤外・進入不可地形（move_type の x）が false。AIが降車先を見積もるのに使う。
+func can_enter_terrain(u: Unit, hex: Vector2i) -> bool:
+	if u == null or not in_field(hex):
+		return false
+	return Movement.cost(_movement, u.move_type, terrain_at(hex)) != Movement.IMPASSABLE
+
 ## hex に地形を設定する。
 func set_terrain(hex: Vector2i, terrain_id: String) -> void:
 	_terrain[hex] = terrain_id

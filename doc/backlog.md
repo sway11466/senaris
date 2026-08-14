@@ -32,14 +32,6 @@
 - 対応：それぞれ特性として立てる。対空狙いは獲物・手負いと同じ形の標的語（攻撃できる飛行ユニット）を足して行動ルールを書く。間合維持は前進の種類を1つ足す（脅威圏＝敵の移動力＋射程の外へ止まる）。
 - 該当：`doc/gdd/ai.md`（用語・特性を追加）・`data/ai/ai.csv`・`domain/ai/`・`tests/unit/test_ai.gd`。
 
-### feature-6
-
-**敵AIの乗降（輸送を使う敵）**（優先度：低）
-
-- 背景：プレイヤー側の輸送（乗降）は実装済みだが、敵AIは乗降しない。`domain/ai/` に board/unload/passenger 参照が無く、`AiAction` に降車の手が無い。仕様は [ai.md](gdd/ai.md)（特殊特性＝輸送ユニット・raid の行動ルール #4〜#6）で決めてあるので、実装だけが残っている。
-- 対応：輸送ユニットの扱い（部隊内で最後・目的地hexに乗らない・攻撃しない）と、raid の乗る／降ろす行を実装する。`AiAction` に降車の種別を足し、`MatchController` が `UnloadCommand` へ翻訳する。
-- 該当：`domain/ai/trait_brain.gd`・`domain/ai/ai_action.gd`・`application/match_controller.gd`・`tests/unit/test_ai_*.gd`。着手の引き金＝冒険譚3 st2 の「ならず者の馬車」を動かすとき。
-
 ### feature-7
 
 **地形・移動タイプの拡充（浅瀬・海・騎乗・水棲）**（優先度：低）

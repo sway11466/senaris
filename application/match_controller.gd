@@ -224,7 +224,7 @@ func _action_focus_hex(action: AiAction) -> Vector2i:
 		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL:
 			var u := state.unit_by_id(action.unit_id)
 			return u.pos if u != null else action.to
-		_:  # DEPLOY
+		_:  # DEPLOY / UNLOAD＝駒が現れるマスを見せる
 			return action.to
 
 ## 1手を適用する。演出が出た（＝攻撃かスキルが成立した）なら true＝呼び出し側が完了を待つ。
@@ -236,6 +236,8 @@ func _apply_ai_action(action: AiAction) -> bool:
 			return execute_attack(AttackCommand.new(action.unit_id, action.target_id))
 		AiAction.Kind.DEPLOY:
 			execute_deploy(DeployCommand.new(action.base_hex, action.garrison_index, action.to))
+		AiAction.Kind.UNLOAD:
+			execute_unload(UnloadCommand.new(action.unit_id, action.passenger_index, action.to))
 		AiAction.Kind.SKILL:
 			# 効果対象が1体のユニットスキルは演出シーンに乗る（doc/tech/combat_scene.md）ので、
 			# 攻撃と同じく閉じるまで待たせる。演出が出ないレシピなら pace 側が即返る。
