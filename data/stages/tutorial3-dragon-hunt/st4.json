@@ -24,19 +24,19 @@
     "FFF.........FFFF",
     "FFFFFFFFFFFFFFFF"
   ],
-  "carryover_slots": [
-    {"col": 5, "row": 15, "actor": "vanguard"},
-    {"col": 7, "row": 15, "actor": "thief"},
-    {"col": 4, "row": 15, "actor": "hunter"},
-    {"col": 6, "row": 15, "actor": "bishop"},
-    {"col": 8, "row": 15, "actor": "wizard"},
-    {"col": 3, "row": 15, "actor": "fighter"},
-    {"col": 9, "row": 15, "actor": "halfling"},
-    {"col": 2, "row": 15, "actor": "archer"},
-    {"col": 10, "row": 15, "actor": "cleric"},
-    {"col": 6, "row": 14, "actor": "pixie"},
-    {"col": 2, "row": 14, "actor": "dwarf"},
-    {"col": 10, "row": 14, "actor": "mage"}
+  "player": [
+    {"type": "vanguard", "col": 5, "row": 15, "actor": "vanguard"},
+    {"type": "thief", "col": 7, "row": 15, "actor": "thief"},
+    {"type": "hunter", "col": 4, "row": 15, "actor": "hunter"},
+    {"type": "bishop", "col": 6, "row": 15, "actor": "bishop"},
+    {"type": "wizard", "col": 8, "row": 15, "actor": "wizard"},
+    {"type": "fighter", "col": 3, "row": 15, "actor": "fighter"},
+    {"type": "halfling", "col": 9, "row": 15, "actor": "halfling"},
+    {"type": "archer", "col": 2, "row": 15, "actor": "archer"},
+    {"type": "cleric", "col": 10, "row": 15, "actor": "cleric"},
+    {"type": "pixie", "col": 6, "row": 14, "actor": "pixie"},
+    {"type": "dwarf", "col": 2, "row": 14, "actor": "dwarf"},
+    {"type": "mage", "col": 10, "row": 14, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "道を塞ぐトレント", "ai": "guard", "sight": 3,

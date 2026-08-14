@@ -43,16 +43,16 @@
     { "col": 6, "row": 18, "skin": "road_stone1" }
   ],
   "player": [
-    { "type": "wizard", "actor": "wizard", "col": 7, "row": 17 },
-    { "type": "hunter", "actor": "hunter", "col": 5, "row": 17 },
-    { "type": "bishop", "actor": "bishop", "col": 6, "row": 18 },
-    { "type": "vanguard", "actor": "vanguard", "col": 7, "row": 16 },
-    { "type": "thief", "actor": "thief", "col": 6, "row": 17 },
-    { "type": "fighter", "actor": "fighter", "col": 9, "row": 8 },
-    { "type": "halfling", "actor": "halfling", "col": 10, "row": 9 },
-    { "type": "archer", "actor": "archer", "col": 9, "row": 9 },
-    { "type": "cleric", "actor": "cleric", "col": 9, "row": 10 },
-    { "type": "mage", "actor": "mage", "col": 10, "row": 10 }
+    { "type": "wizard", "actor": "wizard", "join": true, "col": 7, "row": 17 },
+    { "type": "hunter", "actor": "hunter", "join": true, "col": 5, "row": 17 },
+    { "type": "bishop", "actor": "bishop", "join": true, "col": 6, "row": 18 },
+    { "type": "vanguard", "actor": "vanguard", "join": true, "col": 7, "row": 16 },
+    { "type": "thief", "actor": "thief", "join": true, "col": 6, "row": 17 },
+    { "type": "fighter", "actor": "fighter", "join": true, "col": 9, "row": 8 },
+    { "type": "halfling", "actor": "halfling", "join": true, "col": 10, "row": 9 },
+    { "type": "archer", "actor": "archer", "join": true, "col": 9, "row": 9 },
+    { "type": "cleric", "actor": "cleric", "join": true, "col": 9, "row": 10 },
+    { "type": "mage", "actor": "mage", "join": true, "col": 10, "row": 10 }
   ],
   "enemy": [
     { "order": 2, "name": "グリフォン隊", "ai": "charge",

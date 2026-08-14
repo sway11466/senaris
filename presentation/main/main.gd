@@ -80,7 +80,7 @@ func _ready() -> void:
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
-## ステージ配置（carryover_slots）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/map.md
+## ステージ配置（player の actor 突き合わせ）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/map.md
 func _load_roster() -> Array:
 	if _roster_store == null or _current_campaign_id.is_empty():
 		return []
@@ -88,7 +88,7 @@ func _load_roster() -> Array:
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:
-	# carryover: 冒険譚の名簿があれば渡す。fresh ステージ（carryover_slots 無し）では無視される。
+	# carryover: 冒険譚の名簿があれば渡す。突き合う actor の無い fresh ステージでは無視される。
 	var state := StageLoader.load_file(path, _load_roster())
 	if state == null:
 		push_error("main: ステージを読めない: %s" % path)

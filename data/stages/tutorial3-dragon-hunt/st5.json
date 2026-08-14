@@ -26,20 +26,20 @@
     "CCCCCCM..MCCCCCCC",
     "CCCCCCCCCCCCCCCCC"
   ],
-  "carryover_slots": [
-    {"col": 6, "row": 17, "actor": "bishop"},
-    {"col": 7, "row": 17, "actor": "vanguard"},
-    {"col": 5, "row": 17, "actor": "wizard"},
-    {"col": 8, "row": 17, "actor": "cleric"},
-    {"col": 6, "row": 16, "actor": "thief"},
-    {"col": 7, "row": 16, "actor": "hunter"},
-    {"col": 5, "row": 16, "actor": "fighter"},
-    {"col": 8, "row": 16, "actor": "archer"},
-    {"col": 6, "row": 15, "actor": "halfling"},
-    {"col": 7, "row": 15, "actor": "pixie"},
-    {"col": 3, "row": 15, "actor": "dwarf"},
-    {"col": 4, "row": 15, "actor": "elf"},
-    {"col": 8, "row": 15, "actor": "mage"}
+  "player": [
+    {"type": "bishop", "col": 6, "row": 17, "actor": "bishop"},
+    {"type": "vanguard", "col": 7, "row": 17, "actor": "vanguard"},
+    {"type": "wizard", "col": 5, "row": 17, "actor": "wizard"},
+    {"type": "cleric", "col": 8, "row": 17, "actor": "cleric"},
+    {"type": "thief", "col": 6, "row": 16, "actor": "thief"},
+    {"type": "hunter", "col": 7, "row": 16, "actor": "hunter"},
+    {"type": "fighter", "col": 5, "row": 16, "actor": "fighter"},
+    {"type": "archer", "col": 8, "row": 16, "actor": "archer"},
+    {"type": "halfling", "col": 6, "row": 15, "actor": "halfling"},
+    {"type": "pixie", "col": 7, "row": 15, "actor": "pixie"},
+    {"type": "dwarf", "col": 3, "row": 15, "actor": "dwarf"},
+    {"type": "elf", "col": 4, "row": 15, "actor": "elf"},
+    {"type": "mage", "col": 8, "row": 15, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "崖のハーピー", "ai": "charge",

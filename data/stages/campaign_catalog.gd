@@ -50,7 +50,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	}
 
 ## party（そのステージに出る隊）を文字列の配列へ正規化。文字列1つは1要素、未指定・不正は空配列。
-## 表示専用（ステージ一覧の連戦レーン）＝実際の編成は actor と carryover_slots が決める。
+## 表示専用（ステージ一覧の連戦レーン）＝実際の編成は player に書いた actor が決める。
 ## 仕様 → doc/gdd/stage_select.md 連戦の区間
 static func _parse_party(raw: Variant) -> Array:
 	var out: Array = []

@@ -30,8 +30,8 @@ func test_named_member_lost_stays_enrolled_with_zero_troops() -> void:
 	]
 	# 2人とも出撃した盤で、エルフだけを失って決着した。
 	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
-		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "troops": 2, "level": 3 },
-		{ "type": "elf", "col": 2, "row": 1, "actor": "t3.elf" },
+		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "join": true, "troops": 2, "level": 3 },
+		{ "type": "elf", "col": 2, "row": 1, "actor": "t3.elf", "join": true },
 	] }, _catalog())
 	assert_true(s.remove_unit(s.unit_at(Hex.offset_to_axial(2, 1)).id), "エルフを失う")
 	var updated := RosterService.update_after_clear(previous, s)
@@ -49,7 +49,7 @@ func test_member_not_sortied_is_left_untouched() -> void:
 	]
 	# この盤に出したのはヴァンガードだけ（エルフは配置していない）。
 	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
-		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "troops": 2, "level": 3 },
+		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "join": true, "troops": 2, "level": 3 },
 	] }, _catalog())
 	var updated := RosterService.update_after_clear(previous, s)
 	assert_eq(_actors(updated), ["t3.van", "t3.elf"], "名簿の並び順を保つ")
@@ -61,7 +61,7 @@ func test_garrison_member_counts_as_sortied() -> void:
 	# 拠点の控えに居るだけで出撃しなかった者も「この盤に出た」＝更新対象。
 	# 盤から消えていれば離脱として数える（控えごと拠点を失った場合）。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van" }],
+		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "join": true }],
 		"bases": [{ "col": 4, "row": 1, "team": "player",
 			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
 	assert_true(s.has_sortied("t3.elf"), "控えも投入済みとして数える")
@@ -70,7 +70,7 @@ func test_anonymous_units_are_not_enrolled() -> void:
 	# 名前のない雑兵は同一性を持たない＝名簿に載らない（持ち越さず各ステージが配給する）。
 	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
 		{ "type": "recruit", "col": 1, "row": 1 },
-		{ "type": "knight", "col": 2, "row": 1, "actor": "t3.van" },
+		{ "type": "knight", "col": 2, "row": 1, "actor": "t3.van", "join": true },
 	] }, _catalog())
 	var updated := RosterService.update_after_clear([], s)
 	assert_eq(_actors(updated), ["t3.van"], "actor のある仲間だけが載る")
@@ -78,7 +78,7 @@ func test_anonymous_units_are_not_enrolled() -> void:
 func test_unreleased_neutral_is_not_enrolled() -> void:
 	# 中立のまま取り逃した駒は帰属が自軍にならない＝名簿に載らない。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van" }],
+		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "join": true }],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
 			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
 	var updated := RosterService.update_after_clear([], s)
@@ -87,7 +87,7 @@ func test_unreleased_neutral_is_not_enrolled() -> void:
 func test_enemy_released_neutral_is_not_enrolled() -> void:
 	# 敵が先に解放した駒は帰属が敵で確定＝自軍の名簿には載らない。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van" }],
+		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "join": true }],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
 			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
 	var base_hex := Hex.offset_to_axial(4, 1)

@@ -103,11 +103,11 @@ func test_build_wires_ai_bases_as_squads() -> void:
 	assert_false(s.squads[0].has("garrison"), "控えは部隊定義に混ぜない（拠点が持つ）")
 	assert_eq(s.base_at(Hex.offset_to_axial(1, 1)).squad_index, -1, "ai 無しの拠点はAI出撃しない")
 
-func test_carryover_slots_absent_means_independent() -> void:
-	# 継承の宣言は carryover_slots の有無が兼ねる（roster フィールドは持たない）。詳細 → doc/gdd/map.md
+func test_roster_without_matching_actor_means_independent() -> void:
+	# 継承を宣言するフィールドは持たない＝突き合う actor が無ければ名簿は盤に出ない。詳細 → doc/gdd/map.md
 	var carried: Array = [{ "type": "knight", "troops": 5, "actor": "t.van" }]
 	var s := StageLoader.build({ "cols": 4, "rows": 4 }, {}, {}, carried)
-	assert_eq(s.units().size(), 0, "スロットを書かなければ名簿は盤に出ない")
+	assert_eq(s.units().size(), 0, "player に書かなければ名簿は盤に出ない")
 
 func test_build_resolves_type_from_catalog() -> void:
 	var catalog := {
@@ -177,19 +177,19 @@ func _carry_catalog() -> Dictionary:
 		"recruit": UnitType.from_dict({ "id": "recruit", "atk_ground": 6, "defense": 4, "move": 3, "max_troops": 8 }),
 	}
 
-func test_carryover_places_survivors_into_slots_in_order() -> void:
-	# 継承ユニットを carryover_slots に順に嵌める（案A）。成長・損耗は保ち、性能は type から再構築。
+func test_carryover_places_named_members() -> void:
+	# actor だけを書いた駒は名簿から出る。成長・損耗は保ち、性能は type から再構築。
 	var carried := [
-		{ "type": "archer", "skin": "archer", "level": 3, "troops": 6, "max_troops": 8 },
-		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8 },
+		{ "type": "archer", "skin": "archer", "level": 3, "troops": 6, "max_troops": 8, "actor": "c.archer" },
+		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8, "actor": "c.knight" },
 	]
-	var data := { "cols": 8, "rows": 6, "carryover_slots": [
-		{ "col": 1, "row": 2 }, { "col": 1, "row": 3 },
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 2, "actor": "c.archer" }, { "col": 1, "row": 3, "actor": "c.knight" },
 	] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
 	assert_eq(s.units().size(), 2, "継承2体が配置される")
 	var a := s.unit_at(Hex.offset_to_axial(1, 2))
-	assert_not_null(a, "slot[0] に継承[0]")
+	assert_not_null(a, "名指しの位置にその仲間")
 	assert_eq(a.type_id, "archer")
 	assert_eq(a.level, 3, "レベルを保つ")
 	assert_eq(a.troops, 6, "損耗を保つ")
@@ -198,14 +198,15 @@ func test_carryover_places_survivors_into_slots_in_order() -> void:
 	assert_eq(a.attack_range, 2, "射程も type から")
 	var k := s.unit_at(Hex.offset_to_axial(1, 3))
 	assert_eq(k.type_id, "knight")
-	assert_eq(k.troops, 4, "2体目も順どおり")
+	assert_eq(k.troops, 4, "2体目も名指しどおり")
 
 func test_carryover_coexists_with_fresh_reinforcements() -> void:
-	# 継承ユニット＋新米（player の補充）が共存し、id が衝突しない。
-	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8 }]
-	var data := { "cols": 8, "rows": 6,
-		"carryover_slots": [{ "col": 1, "row": 1 }],
-		"player": [{ "type": "recruit", "col": 5, "row": 4 }] }
+	# 継承ユニット＋新米（配給）が同じ player セクションに共存し、id が衝突しない。
+	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8, "actor": "c.archer" }]
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "c.archer" },
+		{ "type": "recruit", "col": 5, "row": 4 },
+	] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
 	assert_eq(s.units().size(), 2, "継承1＋新米1")
 	var ids := {}
@@ -216,38 +217,17 @@ func test_carryover_coexists_with_fresh_reinforcements() -> void:
 	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).troops, 8)
 	assert_eq(s.unit_at(Hex.offset_to_axial(1, 1)).troops, 5, "継承は損耗を保つ")
 
-func test_carryover_fewer_survivors_leaves_slots_empty() -> void:
-	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 8, "max_troops": 8 }]
-	var data := { "cols": 8, "rows": 6, "carryover_slots": [
-		{ "col": 1, "row": 1 }, { "col": 1, "row": 2 }, { "col": 1, "row": 3 },
-	] }
-	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
-	assert_eq(s.units().size(), 1, "生存者ぶんだけ配置＝余ったスロットは空")
-
-func test_carryover_more_survivors_than_slots_drops_extra() -> void:
-	var carried := [
-		{ "type": "archer", "skin": "archer", "level": 1, "troops": 8, "max_troops": 8 },
-		{ "type": "knight", "skin": "knight", "level": 1, "troops": 8, "max_troops": 8 },
-		{ "type": "recruit", "skin": "recruit", "level": 1, "troops": 8, "max_troops": 8 },
-	]
-	var data := { "cols": 8, "rows": 6, "carryover_slots": [
-		{ "col": 1, "row": 1 },
-	] }
-	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
-	assert_push_warning("スロットが足りず")
-	assert_eq(s.units().size(), 1, "スロットぶんだけ配置＝余剰は出撃しない")
-
-func test_no_carried_units_ignores_slots() -> void:
-	# fresh（継承なし）＝carried 空ならスロットがあっても何も置かない。
-	var data := { "cols": 8, "rows": 6, "carryover_slots": [{ "col": 1, "row": 1 }] }
+func test_no_carried_units_leaves_named_pieces_off_the_board() -> void:
+	# fresh（継承なし）＝carried 空なら actor だけの駒は盤に出ない。
+	var data := { "cols": 8, "rows": 6, "player": [{ "col": 1, "row": 1, "actor": "c.archer" }] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, [])
 	assert_eq(s.units().size(), 0, "carried 空なら継承配置なし")
 
 func test_roster_collect_returns_player_only() -> void:
 	# 名簿の収集＝自軍に帰属する名前つきの駒だけ返す（敵は含めない）。
 	var data := { "cols": 6, "rows": 4,
-		"player": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer" },
-			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight" }],
+		"player": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer", "join": true },
+			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight", "join": true }],
 		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1, "actor": "c.foe" }] }] }
 	var s := StageLoader.build(data, _carry_catalog())
 	var snaps := RosterService.collect(s)
@@ -257,12 +237,12 @@ func test_roster_collect_returns_player_only() -> void:
 	assert_false("recruit" in types, "敵(team 1)は含めない")
 
 func test_load_file_places_carried_units() -> void:
-	# load_file(path, carried) で継承ユニットが carryover_slots に嵌る（main の受け渡し経路）。
+	# load_file(path, carried) で名簿の仲間が player の actor に嵌る（main の受け渡し経路）。
 	_write_stage(JSON.stringify({
 		"cols": 8, "rows": 6, "turn_limit": 20,
-		"carryover_slots": [{ "col": 1, "row": 1 }],
+		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }],
 	}))
-	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8 }]
+	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8, "actor": "c.knight" }]
 	var s := StageLoader.load_file(TMP_PATH, carried)
 	assert_not_null(s)
 	var u := s.unit_at(Hex.offset_to_axial(1, 1))

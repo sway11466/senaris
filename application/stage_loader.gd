@@ -40,17 +40,17 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 ## enemy は squad の配列で、各 squad が特性(ai)を持つ（敵は必ず squad に属する）。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）＝性能の唯一の出どころ。
 ## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝名簿）。
-## carryover_slots を書いたステージで、その位置に嵌める。書かなければ独立＝carried は未使用。
+## player の駒のうち actor を持つものだけが名簿と突き合わされる（詳細 → _apply_units）。
+## 名簿が空／突き合う actor が無ければ何も起きない＝独立のステージは carried を無視する。
 static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {}, carried: Array = []) -> BattleState:
 	var cols := int(data.get("cols", 12))
 	var rows := int(data.get("rows", 8))
 	var state := BattleState.new(cols, rows)
 	_apply_terrain(state, data.get("terrain", []), _parse_margin(data))
-	var next_id := _apply_units(state, data.get("player", []), catalog, 0, skin_catalog)
+	var next_id := _apply_units(state, data.get("player", []), catalog, 0, skin_catalog, carried)
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	next_id = _apply_events(state, data.get("events", []), catalog, next_id, skin_catalog)
-	_apply_carryover(state, data.get("carryover_slots", []), carried, catalog, next_id)
 	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "actor": "necromancer" }]（ボスの駒に actor）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
@@ -66,7 +66,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
 ## ユニット種別は標準ロスター(UnitCatalog)で解決する。
-## carried = 継承ユニットの直列化リスト（carryover_slots を書いたステージでその位置に嵌める）。書かなければ無視される。
+## carried = 継承ユニットの直列化リスト（名簿）。player の actor 付きの駒がここから引かれる。
 static func load_file(path: String, carried: Array = []) -> BattleState:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
@@ -245,20 +245,84 @@ static func load_bgm(path: String) -> Dictionary:
 		return {}
 	return parse_bgm(data)
 
-## 駒配置リスト（player セクション）を盤に追加。id 省略時は出現順に1始まりで採番。次の採番値を返す。
+## 駒配置リスト（player セクション）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
-static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}) -> int:
+##
+## carried（名簿）との突き合わせ＝戦力供給モデル。詳細 → doc/gdd/map.md 配置
+##   actor なし         → 配給。そのステージ限りの駒（名簿に載らない）
+##   actor ＋ join:true → 配給。名簿は見ない＝初登場（クリア時に名簿へ載る）
+##   actor だけ         → 名簿から引く。居ない／兵力ゼロなら盤に出さない（その位置は空のまま）
+## 出さなかった駒は id を消費しない（採番は盤に乗った駒の順）。
+static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}, carried: Array = []) -> int:
 	if typeof(units) != TYPE_ARRAY:
 		return 1
+	var by_actor := _roster_by_actor(carried)
 	var auto_id := 1
 	for u in units:
-		var unit := _make_unit(u, catalog, auto_id, team, skin_catalog)
+		var unit := _resolve_player_unit(u, catalog, auto_id, team, skin_catalog, by_actor)
+		if unit == null:
+			continue  # 名簿に居ない／離脱者＝この駒は今回出撃しない
 		state.add_unit(unit)
 		auto_id += 1
 		auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
 	return auto_id
+
+## 名簿を actor で引く索引。同じ actor が重複していれば名簿順で最初の1体が勝つ。
+static func _roster_by_actor(carried: Array) -> Dictionary:
+	var by_actor := {}
+	for e in carried:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var a := String(e.get("actor", ""))
+		if a != "" and not by_actor.has(a):
+			by_actor[a] = e
+	return by_actor
+
+## player の駒を1つ解決する（配給するか、名簿から引くか、出さないか）。null＝盤に出さない。
+static func _resolve_player_unit(u: Dictionary, catalog: Dictionary, id: int, team: int,
+		skin_catalog: Dictionary, by_actor: Dictionary) -> Unit:
+	var actor := String(u.get("actor", ""))
+	if actor == "" or bool(u.get("join", false)):
+		return _make_unit(u, catalog, id, team, skin_catalog)  # 配給（ステージが戦力を用意する）
+	if not by_actor.has(actor):
+		return null  # 未加入／まだ登場していない＝勝手に湧かせない
+	var snap: Dictionary = by_actor[actor]
+	if int(snap.get("troops", 0)) <= 0:
+		return null  # 兵力ゼロの離脱者は名簿に在籍したまま出撃しない（会話には出る）
+	return _make_carried_unit(u, snap, catalog, id, skin_catalog)
+
+## 名簿のスナップショットから継承の駒を作る。性能（type/skin）はステージJSONが優先で、省けば名簿から引く。
+## 個体の状態（level/troops/max_troops）は名簿が持つ＝ステージ側に書いても効かない。
+## 名簿はプレイヤーの手元にあるセーブなので、性能の出どころはステージ側に置く。
+static func _make_carried_unit(u: Dictionary, snap: Dictionary, catalog: Dictionary, id: int,
+		skin_catalog: Dictionary) -> Unit:
+	if u.has("troops") or u.has("level"):
+		push_warning("StageLoader: 継承の駒 '%s' の troops/level はステージ側では効かない（名簿が持つ）"
+			% String(snap.get("actor", "")))
+	var merged := snap.duplicate()
+	var type_id := String(u.get("type", ""))
+	var skin_id := String(u.get("skin", ""))
+	if type_id == "" and skin_id != "" and not skin_catalog.is_empty():
+		type_id = SkinCatalog.type_of_skin(skin_catalog, skin_id)  # skin 指定 → 性能を逆引き
+	if type_id != "":
+		merged["type"] = type_id
+		merged["skin"] = skin_id if skin_id != "" else type_id
+	elif skin_id != "":
+		merged["skin"] = skin_id  # 見た目だけ差し替え（性能は名簿のまま）
+	var final_type := String(merged.get("type", ""))
+	var t: UnitType = catalog.get(final_type)
+	if t == null:
+		push_warning("StageLoader: 継承ユニットの未知 type '%s'＝既定性能で配置" % final_type)
+	elif final_type != String(snap.get("type", "")):
+		merged["max_troops"] = t.max_troops  # 型が変われば満員値も新しい型のもの（損耗 troops は名簿のまま）
+	var unit := Unit.from_dict(merged, t)
+	unit.id = id
+	unit.team = 0  # 継承は自軍
+	unit.set_native_team(0)  # 帰属は確定済み（名簿に載っている＝仲間）
+	unit.pos = Hex.offset_to_axial(int(u.get("col", 0)), int(u.get("row", 0)))
+	return unit
 
 ## 輸送ユニットの初期搭乗（"passengers": [...]）。各要素は通常のユニット記法（col/row 不要）。
 static func _apply_initial_passengers(state: BattleState, transport: Unit, list: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
@@ -376,76 +440,7 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)
-	return auto_id  # garrison も id を消費するので次の採番を継ぐ（継承ユニットの配置に使う）
-
-## 継承ユニット（carried＝名簿＝Unit.to_dict() の配列）を carryover_slots に嵌める。詳細 → doc/gdd/map.md
-## slots は [{col,row, actor?}]。actor を書いたスロットはその仲間を名指しで置き、指名のないスロットに
-## 残りを名簿順で詰める。名指しの相手が名簿に居なければ（未加入）そのスロットは空のまま＝作者の配置が崩れない。
-## 盤に出すのは troops > 0 の者だけ＝兵力ゼロの離脱者は名簿に在籍したまま出撃しない（会話には出る）。
-## 性能は type から再構築（Unit.from_dict）。出撃できる者がスロット数を超えれば余剰は出撃せず警告。
-static func _apply_carryover(state: BattleState, slots: Variant, carried: Array, catalog: Dictionary, start_id: int) -> int:
-	if typeof(slots) != TYPE_ARRAY or carried.is_empty():
-		return start_id
-	# 出撃できるのは在籍者のうち兵力が残っている者だけ（名簿順を保つ）
-	var deployable: Array = []
-	for e in carried:
-		if typeof(e) == TYPE_DICTIONARY and int(e.get("troops", 0)) > 0:
-			deployable.append(e)
-	var used := {}  # deployable の index -> true（名指しで消費済み）
-	var by_actor := {}  # actor -> deployable の index（先勝ち＝名簿順で最初の1体）
-	for i in deployable.size():
-		var a := String((deployable[i] as Dictionary).get("actor", ""))
-		if a != "" and not by_actor.has(a):
-			by_actor[a] = i
-	# 第1巡: actor 指名のスロットを埋める（該当者が居なければ空のまま）
-	var assigned := {}  # slot index -> deployable index
-	for si in slots.size():
-		if typeof(slots[si]) != TYPE_DICTIONARY:
-			continue
-		var want := String((slots[si] as Dictionary).get("actor", ""))
-		if want == "":
-			continue
-		if by_actor.has(want):
-			assigned[si] = by_actor[want]
-			used[by_actor[want]] = true
-		else:
-			assigned[si] = -1  # 未加入＝このスロットは他の駒に回さず空けておく
-	# 第2巡: 指名のないスロットへ残りを名簿順で詰める
-	var rest: Array = []
-	for i in deployable.size():
-		if not used.has(i):
-			rest.append(i)
-	var next_rest := 0
-	for si in slots.size():
-		if assigned.has(si) or typeof(slots[si]) != TYPE_DICTIONARY:
-			continue
-		if next_rest >= rest.size():
-			break
-		assigned[si] = rest[next_rest]
-		next_rest += 1
-	# 配置
-	var auto_id := start_id
-	for si in slots.size():
-		var di: int = assigned.get(si, -1)
-		if di < 0:
-			continue
-		var slot: Dictionary = slots[si]
-		var snap: Dictionary = deployable[di]
-		var type_id := String(snap.get("type", ""))
-		var t: UnitType = catalog.get(type_id)
-		if t == null and type_id != "":
-			push_warning("StageLoader: 継承ユニットの未知 type '%s'＝既定性能で配置" % type_id)
-		var unit := Unit.from_dict(snap, t)
-		unit.id = auto_id
-		unit.team = 0  # 継承は自軍
-		unit.set_native_team(0)  # 帰属は確定済み（名簿に載っている＝仲間）
-		unit.pos = Hex.offset_to_axial(int(slot.get("col", 0)), int(slot.get("row", 0)))
-		state.add_unit(unit)
-		auto_id += 1
-	var left := rest.size() - next_rest
-	if left > 0:
-		push_warning("StageLoader: 出撃できる継承 %d 体に対しスロットが足りず %d 体は今回出撃しない" % [deployable.size(), left])
-	return auto_id
+	return auto_id  # garrison も id を消費するので次の採番を継ぐ
 
 ## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
 ## 性能（攻撃/防御/移動/射程…）は type が唯一の出どころ＝ステージ側から上書きできない。

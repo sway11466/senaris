@@ -41,19 +41,17 @@
     { "type": "barricade", "col": 6, "row": 4 },
     { "type": "barricade", "col": 8, "row": 4 },
     { "type": "barricade", "col": 8, "row": 18 },
-    { "type": "barricade", "col": 9, "row": 18 }
-  ],
-  "carryover_slots": [
-    { "col": 7, "row": 5, "actor": "archer" },
-    { "col": 6, "row": 5, "actor": "fighter" },
-    { "col": 8, "row": 5, "actor": "halfling" },
-    { "col": 7, "row": 6, "actor": "cleric" },
-    { "col": 6, "row": 6, "actor": "mage" },
-    { "col": 7, "row": 17, "actor": "vanguard" },
-    { "col": 6, "row": 17, "actor": "thief" },
-    { "col": 7, "row": 16, "actor": "hunter" },
-    { "col": 8, "row": 16, "actor": "bishop" },
-    { "col": 6, "row": 16, "actor": "wizard" }
+    { "type": "barricade", "col": 9, "row": 18 },
+    { "type": "archer", "col": 7, "row": 5, "actor": "archer" },
+    { "type": "fighter", "col": 6, "row": 5, "actor": "fighter" },
+    { "type": "halfling", "col": 8, "row": 5, "actor": "halfling" },
+    { "type": "cleric", "col": 7, "row": 6, "actor": "cleric" },
+    { "type": "mage", "col": 6, "row": 6, "actor": "mage" },
+    { "type": "vanguard", "col": 7, "row": 17, "actor": "vanguard" },
+    { "type": "thief", "col": 6, "row": 17, "actor": "thief" },
+    { "type": "hunter", "col": 7, "row": 16, "actor": "hunter" },
+    { "type": "bishop", "col": 8, "row": 16, "actor": "bishop" },
+    { "type": "wizard", "col": 6, "row": 16, "actor": "wizard" }
   ],
   "enemy": [
     { "order": 1, "name": "北門・ハーピー", "ai": "charge",

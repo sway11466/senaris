@@ -23,21 +23,21 @@
     "%%%%%%%%%%%%%%%%",
     "%%%%%%%%%%%%%%%%"
   ],
-  "carryover_slots": [
-    {"col": 7, "row": 14, "actor": "bishop"},
-    {"col": 6, "row": 14, "actor": "vanguard"},
-    {"col": 5, "row": 14, "actor": "hunter"},
-    {"col": 8, "row": 14, "actor": "thief"},
-    {"col": 4, "row": 14, "actor": "wizard"},
-    {"col": 9, "row": 14, "actor": "fighter"},
-    {"col": 3, "row": 14, "actor": "archer"},
-    {"col": 10, "row": 14, "actor": "cleric"},
-    {"col": 11, "row": 14, "actor": "halfling"},
-    {"col": 7, "row": 13, "actor": "dwarf"},
-    {"col": 8, "row": 13, "actor": "elf"},
-    {"col": 6, "row": 11, "actor": "pixie"},
-    {"col": 7, "row": 11, "actor": "birdman"},
-    {"col": 2, "row": 14, "actor": "mage"}
+  "player": [
+    {"type": "bishop", "col": 7, "row": 14, "actor": "bishop"},
+    {"type": "vanguard", "col": 6, "row": 14, "actor": "vanguard"},
+    {"type": "hunter", "col": 5, "row": 14, "actor": "hunter"},
+    {"type": "thief", "col": 8, "row": 14, "actor": "thief"},
+    {"type": "wizard", "col": 4, "row": 14, "actor": "wizard"},
+    {"type": "fighter", "col": 9, "row": 14, "actor": "fighter"},
+    {"type": "archer", "col": 3, "row": 14, "actor": "archer"},
+    {"type": "cleric", "col": 10, "row": 14, "actor": "cleric"},
+    {"type": "halfling", "col": 11, "row": 14, "actor": "halfling"},
+    {"type": "dwarf", "col": 7, "row": 13, "actor": "dwarf"},
+    {"type": "elf", "col": 8, "row": 13, "actor": "elf"},
+    {"type": "pixie", "col": 6, "row": 11, "actor": "pixie"},
+    {"type": "birdman", "col": 7, "row": 11, "actor": "birdman"},
+    {"type": "mage", "col": 2, "row": 14, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "レッドドラゴン", "ai": "weak",

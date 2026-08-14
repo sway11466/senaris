@@ -26,21 +26,21 @@
     "####..........####",
     "##################"
   ],
-  "carryover_slots": [
-    {"col": 5, "row": 17, "actor": "cleric"},
-    {"col": 6, "row": 17, "actor": "archer"},
-    {"col": 7, "row": 17, "actor": "bishop"},
-    {"col": 8, "row": 17, "actor": "fighter"},
-    {"col": 9, "row": 17, "actor": "pixie"},
-    {"col": 5, "row": 16, "actor": "hunter"},
-    {"col": 6, "row": 16, "actor": "vanguard"},
-    {"col": 8, "row": 16, "actor": "thief"},
-    {"col": 9, "row": 16, "actor": "halfling"},
-    {"col": 5, "row": 15, "actor": "wizard"},
-    {"col": 6, "row": 15, "actor": "dwarf"},
-    {"col": 7, "row": 15, "actor": "elf"},
-    {"col": 8, "row": 15, "actor": "birdman"},
-    {"col": 9, "row": 15, "actor": "mage"}
+  "player": [
+    {"type": "cleric", "col": 5, "row": 17, "actor": "cleric"},
+    {"type": "archer", "col": 6, "row": 17, "actor": "archer"},
+    {"type": "bishop", "col": 7, "row": 17, "actor": "bishop"},
+    {"type": "fighter", "col": 8, "row": 17, "actor": "fighter"},
+    {"type": "pixie", "col": 9, "row": 17, "actor": "pixie"},
+    {"type": "hunter", "col": 5, "row": 16, "actor": "hunter"},
+    {"type": "vanguard", "col": 6, "row": 16, "actor": "vanguard"},
+    {"type": "thief", "col": 8, "row": 16, "actor": "thief"},
+    {"type": "halfling", "col": 9, "row": 16, "actor": "halfling"},
+    {"type": "wizard", "col": 5, "row": 15, "actor": "wizard"},
+    {"type": "dwarf", "col": 6, "row": 15, "actor": "dwarf"},
+    {"type": "elf", "col": 7, "row": 15, "actor": "elf"},
+    {"type": "birdman", "col": 8, "row": 15, "actor": "birdman"},
+    {"type": "mage", "col": 9, "row": 15, "actor": "mage"}
   ],
   "enemy": [
     { "order": 1, "name": "ローグ本隊", "ai": "raid",

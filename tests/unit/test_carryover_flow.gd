@@ -25,9 +25,9 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 	var cat := _catalog()
 	# --- S1 を組む（自軍2体）。
 	var s1 := StageLoader.build({ "cols": 8, "rows": 6, "player": [
-		{ "type": "archer", "col": 0, "row": 0, "actor": "c.archer" },
-		{ "type": "knight", "col": 1, "row": 0, "actor": "c.knight" },
-	] }, cat)  # 名簿に載るのは actor を持つ駒だけ
+		{ "type": "archer", "col": 0, "row": 0, "actor": "c.archer", "join": true },
+		{ "type": "knight", "col": 1, "row": 0, "actor": "c.knight", "join": true },
+	] }, cat)  # 名簿に載るのは actor を持つ駒だけ（join＝初登場なので配給）
 	# --- 戦闘の結果を模す：archer が損耗（troops 8→4・Lv +2）。
 	var archer := s1.unit_by_id(1)
 	archer.troops = 4
@@ -39,8 +39,8 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 
 	# --- main のステージ開始フック相当：別インスタンスで読み直し、S2(carryover)に渡す。
 	var carried := RosterStore.new(PATH).load_roster("camp")
-	var s2 := StageLoader.build({ "cols": 8, "rows": 6, "carryover_slots": [
-		{ "col": 2, "row": 2 }, { "col": 2, "row": 3 },
+	var s2 := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "col": 2, "row": 2, "actor": "c.archer" }, { "col": 2, "row": 3, "actor": "c.knight" },
 	] }, cat, {}, carried)
 
 	# --- S2 に S1 の生存者が損耗・成長つきで並ぶ。
@@ -58,7 +58,7 @@ func test_retry_uses_previous_win_snapshot_not_current_run() -> void:
 	# 保存は勝利時のみ＝S2で負けて作り直しても、S2開始時の carried は「S1勝利時の戦力」で不変。
 	var cat := _catalog()
 	var s1 := StageLoader.build({ "cols": 8, "rows": 6, "player": [
-		{ "type": "knight", "col": 0, "row": 0, "actor": "c.knight" },
+		{ "type": "knight", "col": 0, "row": 0, "actor": "c.knight", "join": true },
 	] }, cat)
 	s1.unit_by_id(1).troops = 5  # S1 を 兵5 で勝ち抜けた
 	var store := RosterStore.new(PATH)
@@ -67,10 +67,10 @@ func test_retry_uses_previous_win_snapshot_not_current_run() -> void:
 	# S2 開始（1回目）＝兵5を継承。
 	var carried1 := RosterStore.new(PATH).load_roster("camp")
 	var s2a := StageLoader.build({ "cols": 8, "rows": 6,
-		"carryover_slots": [{ "col": 1, "row": 1 }] }, cat, {}, carried1)
+		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }] }, cat, {}, carried1)
 	assert_eq(s2a.unit_at(Hex.offset_to_axial(1, 1)).troops, 5)
 	# S2 で敗北（保存しない）→ 再挑戦。スナップショットは触れていない。
 	var carried2 := RosterStore.new(PATH).load_roster("camp")
 	var s2b := StageLoader.build({ "cols": 8, "rows": 6,
-		"carryover_slots": [{ "col": 1, "row": 1 }] }, cat, {}, carried2)
+		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }] }, cat, {}, carried2)
 	assert_eq(s2b.unit_at(Hex.offset_to_axial(1, 1)).troops, 5, "再挑戦も S1勝利時の兵5からやり直せる")

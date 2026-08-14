@@ -574,6 +574,7 @@ func set_actor(unit: Dictionary, name: String) -> void:
 		return
 	if name == "":
 		unit.erase("actor")
+		unit.erase("join")  # 名簿への初登場は名前つきの駒だけの話（doc/gdd/map.md 配置）
 	else:
 		unit["actor"] = name
 	if old != "":

@@ -1176,6 +1176,8 @@ func _refresh_unit_box() -> void:
 	var hit := _doc.unit_at(_sel_unit.x, _sel_unit.y)
 	var u: Dictionary = hit["unit"] if not hit.is_empty() else {}
 	_add_actor_row(_unit_box, u)
+	if _mode == "player":
+		_add_join_row(_unit_box, u)
 	if not u.is_empty():
 		_add_passenger_rows(_unit_box, u, _mode == "enemy", func() -> void:
 			_board.refresh()
@@ -1298,6 +1300,34 @@ func _add_actor_row(parent: VBoxContainer, u: Dictionary) -> void:
 	_add_button(row, "自動", func() -> void:
 		# 下段は貼り直さない：入力欄が消えると focus_exited が古い文字列で走り、付けた名前を上書きしてしまう
 		apply.call(_doc.free_actor(String(u.get("skin", u.get("type", ""))))))
+
+
+## 名簿への初登場(join)の行。自軍の駒にだけ出す（名簿は自軍のもの）。
+## off＝名簿から引く＝居なければ盤に出ない。on＝この盤で配給する＝クリアで名簿に載る。
+## 詳細 → doc/gdd/map.md 配置
+func _add_join_row(parent: VBoxContainer, u: Dictionary) -> void:
+	var check := CheckBox.new()
+	check.text = "この盤で初登場（配給する）"
+	check.button_pressed = bool(u.get("join", false))
+	check.disabled = u.is_empty()
+	check.tooltip_text = "オフ＝名簿から引く。まだ仲間になっていなければ、この駒は盤に出ない。\n" \
+		+ "オン＝この盤が配給する（初登場）。クリアで名簿に載る。\n" \
+		+ "アクター名の無い駒はいつも配給なので、この設定は要らない。"
+	parent.add_child(_labeled_row("継承", check))
+	if check.disabled:
+		return
+	check.toggled.connect(func(on: bool) -> void:
+		var actor := String(u.get("actor", ""))
+		if on and actor == "":  # 名前の無い駒はもともと配給＝印を書いても意味が無い
+			_say("アクター名の無い駒はいつも配給されます。先に名前を付けてください。")
+			check.set_pressed_no_signal(false)
+			return
+		if on:
+			u["join"] = true
+			_say("\"%s\" をこの盤の初登場にしました（名簿を見ずに配給）。" % actor)
+		else:
+			u.erase("join")
+			_say("\"%s\" を名簿から引くようにしました（未加入なら盤に出ません）。" % actor))
 
 
 # --- 「拠点」モードの編集UI（選択中の1つ） ---
