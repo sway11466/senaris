@@ -375,6 +375,126 @@ func test_venom_expires_after_three_rounds() -> void:
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001,
 		"発動側ターン3回ぶんで切れる")
 
+# --- ⑤スライムスプリット（分裂・駒生成）---
+
+# スライム1体＋周囲に空きマスがある配置。leader=slime(id1)。
+# スライムは敵（team=1）なので end_turn で敵ターンに進めてから使う。
+func _split_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	s.end_turn()  # 敵ターン（team=1）に進める
+	return {"s": s, "slime": slime}
+
+func _split_option(f: Dictionary) -> Dictionary:
+	for o in Formation.available_for(f["s"], f["slime"]):
+		if String(o["recipe"]) == "slime_split":
+			return o
+	return {}
+
+func test_split_offered_by_slime_alone() -> void:
+	var f := _split_state()
+	var o := _split_option(f)
+	assert_false(o.is_empty(), "スライム単独で成立する")
+	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
+	assert_false(bool(o["needs_target"]), "対象選択は不要")
+
+func test_split_not_offered_by_other_skins() -> void:
+	var f := _split_state()
+	var fighter := Unit.new(2, 1, Hex.neighbor(f["slime"].pos, 0), 6, 8, 50, 40, 1, "fighter")
+	f["s"].add_unit(fighter)
+	var found := false
+	for o in Formation.available_for(f["s"], fighter):
+		if String(o["recipe"]) == "slime_split":
+			found = true
+	assert_false(found, "スライム以外は撃てない")
+
+func test_split_spawns_a_unit() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	var before_count := s.units().size()
+	var result := s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	assert_false(result.is_empty(), "発動成功")
+	assert_eq(s.units().size(), before_count + 1, "駒が1体増える")
+
+func test_split_inherits_troops() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	f["slime"].troops = 5  # 損耗した状態で分裂
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	var spawned: Unit = null
+	for u in s.units():
+		if u.id != f["slime"].id:
+			spawned = u
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_eq(spawned.troops, 5, "兵数は発動者の現在値を引き継ぐ")
+	assert_eq(spawned.max_troops, 8, "max_troops は type の既定値")
+
+func test_split_spawned_is_done() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	var spawned: Unit = null
+	for u in s.units():
+		if u.id != f["slime"].id:
+			spawned = u
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_true(s.is_done(spawned.id), "生まれたターンは行動済み")
+
+func test_split_caster_is_done() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	assert_true(s.is_done(f["slime"].id), "発動者は行動完了")
+
+func test_split_spawned_inherits_skin_and_type() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	var spawned: Unit = null
+	for u in s.units():
+		if u.id != f["slime"].id:
+			spawned = u
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_eq(spawned.skin_id, "slime", "skin_id を引き継ぐ")
+	assert_eq(spawned.type_id, "slime", "type_id を引き継ぐ")
+	assert_eq(spawned.team, f["slime"].team, "陣営を引き継ぐ")
+
+func test_split_id_does_not_collide() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	# 既存の id より大きい id を持つ駒を足す
+	var other := Unit.new(100, 1, Hex.offset_to_axial(7, 7), 2, 8, 20, 20, 1, "slime")
+	s.add_unit(other)
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	var spawned: Unit = null
+	for u in s.units():
+		if u.id != f["slime"].id and u.id != 100:
+			spawned = u
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_gt(spawned.id, 100, "既存の最大 id より大きい")
+
+## 隣接に空きマスが無ければメニューに出ない＝発動できない。
+func test_split_not_offered_when_surrounded() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	var slime: Unit = f["slime"]
+	# 6方向すべてに駒を置いて埋める
+	for dir in 6:
+		var nb := Hex.neighbor(slime.pos, dir)
+		s.add_unit(Unit.new(10 + dir, 1, nb, 2, 8, 20, 20, 1, "fighter"))
+	assert_true(_split_option(f).is_empty(), "隣接が全部埋まっていると成立しない")
+
+## 殲滅勝利の判定に分裂で増えた駒が含まれる（全滅させないと勝てない）。
+func test_split_spawned_counts_for_annihilation() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	assert_eq(s.team_unit_count(1), 2, "敵の駒数が2に増えている")
+
 # --- ③ピュリファイ（有害な補正の解除）---
 
 # プリースト＋隣接する味方＋離れた味方＋隣接する敵。leader=priest(id1)。

@@ -998,6 +998,13 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			var dropped := clear_debuffs(cleansed)
 			if skill_scope:
 				skill_detail["cleansed"] = dropped
+	# スライムスプリット（⑤）は隣接する空きマスへ発動者の複製を1体置く。
+	# 着弾・兵数変化は起きない。詳細 → doc/gdd/skills.md
+	elif String(option["effect"]) == "spawn":
+		var spawned := _do_spawn(option)
+		if spawned != null:
+			skill_detail["spawned_id"] = spawned.id
+			skill_detail["spawned_hex"] = spawned.pos
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(self, option, target)
 	var results: Array = []
@@ -1045,6 +1052,54 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	if skill_scope:
 		out["skill"] = skill_detail
 	return out
+
+## 盤上＋搭乗＋garrison の全駒から最大の unit id を返す。分裂で新駒を作るときの採番に使う。
+func _max_unit_id() -> int:
+	var m := 0
+	for u in _units:
+		if u.id > m:
+			m = u.id
+	for list in _passengers.values():
+		for u in list:
+			if u.id > m:
+				m = u.id
+	for b in _bases:
+		for u in b.garrison:
+			if u.id > m:
+				m = u.id
+	return m
+
+## 分裂スキル（⑤スライムスプリット）の実行。発動者の隣接する空きマスへ複製を1体置く。
+## 空きマスが無ければ null を返す（発動失敗）。詳細 → doc/gdd/skills.md
+func _do_spawn(option: Dictionary) -> Unit:
+	var caster := unit_by_id(int(option.get("leader_id", -1)))
+	if caster == null:
+		return null
+	# 隣接する空きマス（盤内かつ駒が居ない）を探す
+	var candidates: Array[Vector2i] = []
+	for nb in Hex.neighbors(caster.pos):
+		if in_field(nb) and unit_at(nb) == null:
+			candidates.append(nb)
+	if candidates.is_empty():
+		return null
+	# 先頭を選ぶ（Hex.neighbors は方向0から時計回りの固定順＝決定的）
+	var spawn_hex := candidates[0]
+	var new_id := _max_unit_id() + 1
+	var spawned := Unit.new(new_id, caster.team, spawn_hex, caster.move,
+		caster.troops, caster.unit_attack, caster.unit_defense, 1, caster.type_id)
+	spawned.max_troops = caster.max_troops
+	spawned.skin_id = caster.skin_id
+	spawned.move_type = caster.move_type
+	spawned.atk_air = caster.atk_air
+	spawned.pierce = caster.pierce
+	spawned.min_range = caster.min_range
+	spawned.attack_range = caster.attack_range
+	spawned.move_after_attack = caster.move_after_attack
+	spawned.can_capture = caster.can_capture
+	spawned.capacity = caster.capacity
+	add_unit(spawned)
+	set_done(new_id)  # 生まれたターンは行動済み
+	return spawned
 
 ## 効果対象が1体のユニットスキルの演出用内訳（発動前に撮る）。発動者と対象のスナップショットに、
 ## レシピの情報（表示名・エフェクトID）を添える。乗った補正の値は呼び出し側が足す。

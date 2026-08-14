@@ -126,10 +126,23 @@ const RECIPES := {
 		"range": 1,
 		"range_from": "leader",
 	},
+	"slime_split": {
+		"name": "スライムスプリット",
+		"leader_skins": ["slime"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		# 駒を盤に追加する効果。状態補正ではない。対象選択なし（隣接する空きマスへ自動配置）。
+		# 発動者の複製を1体生成し、兵数は発動時点の発動者の兵数を引き継ぐ。max_troops は type の既定値。
+		# 詳細 → doc/gdd/skills.md
+		"effect": "spawn",
+		"range": 0,  # 自分の隣接に湧く＝対象選択は不要
+		"range_from": "leader",
+	},
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
-const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse"]
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn"]
 
 ## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
@@ -165,6 +178,15 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 				for members in _triangle_sets(state, unit, r, lead_pos):
 					out.append(_option(rid, r, [unit, members[0], members[1]]))
 			"solo":
+				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
+				if String(r["effect"]) == "spawn":
+					var has_empty := false
+					for nb in Hex.neighbors(lead_pos):
+						if state.in_field(nb) and state.unit_at(nb) == null:
+							has_empty = true
+							break
+					if not has_empty:
+						continue
 				out.append(_option(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
 				var members := _cluster(state, unit, r, lead_pos)

@@ -575,6 +575,22 @@
 			"move_type": "ground",
 			"pierce": 0,
 			"range": "2-6"
+		},
+		{
+			"atk_air": 0,
+			"atk_ground": 20,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "魔法生物",
+			"defense": 20,
+			"id": "slime",
+			"max_troops": 8,
+			"memo": "分裂スキルで増える",
+			"move": 2,
+			"move_after_attack": false,
+			"move_type": "ground",
+			"pierce": 0,
+			"range": 1
 		}
 	]
 }

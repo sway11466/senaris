@@ -661,6 +661,23 @@
 				}
 			]
 		},
+		"slime": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "魔法生物",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "スライム",
+					"retainers": [],
+					"skin_id": "slime",
+					"type_id": "slime"
+				}
+			]
+		},
 		"slinger": {
 			"ally": [
 				{
