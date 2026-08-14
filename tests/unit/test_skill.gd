@@ -274,6 +274,107 @@ func test_dread_expires_after_three_rounds() -> void:
 	s.end_turn()  # 3回ぶん使い切った次の発動側ターン＝満了
 	assert_almost_eq(float(Combat.attack_breakdown(s, foe, ghost, true)["total"]), before, 0.001, "発動側ターン3回ぶんで切れる")
 
+# --- ②ヴェノムファング（単体弱体・係数型）---
+
+# ロックサーペント1体＋隣接する敵＋離れた敵＋隣接する味方。leader=rock_serpent(id1)。
+func _venom_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var serpent := Unit.new(1, 0, c, 7, 8, 20, 20, 1, "scout")
+	serpent.skin_id = "rock_serpent"
+	var foe := Unit.new(2, 1, Hex.neighbor(c, 0), 6, 8, 50, 40, 1, "fighter")
+	var far_foe := Unit.new(3, 1, Hex.offset_to_axial(8, 6), 6, 8, 50, 40, 1, "fighter")
+	var ally := Unit.new(4, 0, Hex.neighbor(c, 3), 6, 8, 50, 40, 1, "fighter")
+	for u in [serpent, foe, far_foe, ally]:
+		s.add_unit(u)
+	return {"s": s, "serpent": serpent, "foe": foe, "far_foe": far_foe, "ally": ally}
+
+func _venom_option(f: Dictionary) -> Dictionary:
+	for o in Formation.available_for(f["s"], f["serpent"]):
+		if String(o["recipe"]) == "venom_fang":
+			return o
+	return {}
+
+func test_venom_offered_by_rock_serpent_alone() -> void:
+	var f := _venom_state()
+	var o := _venom_option(f)
+	assert_false(o.is_empty(), "ロックサーペント単独で成立する")
+	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
+	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
+
+func test_venom_not_offered_by_other_skins() -> void:
+	var f := _venom_state()
+	var found := false
+	for o in Formation.available_for(f["s"], f["ally"]):  # fighter
+		if String(o["recipe"]) == "venom_fang":
+			found = true
+	assert_false(found, "ロックサーペント以外は撃てない")
+
+func test_venom_targets_adjacent_enemy_only() -> void:
+	var f := _venom_state()
+	var s: BattleState = f["s"]
+	var o := _venom_option(f)
+	assert_true(Formation.can_target(s, o, f["foe"].pos), "隣接する敵に掛けられる")
+	assert_false(Formation.can_target(s, o, f["far_foe"].pos), "離れた敵には掛けられない")
+	assert_false(Formation.can_target(s, o, f["ally"].pos), "隣接でも味方には掛けられない")
+	assert_false(Formation.can_target(s, o, f["serpent"].pos), "自分自身は選べない")
+
+func test_venom_lowers_attack_and_defense_by_mul() -> void:
+	var f := _venom_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_venom_option(f), foe.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
+		"1本で攻撃に ×0.9")
+	assert_almost_eq(float(s.status_aggregate(foe, "defense")["mul"]), 0.9, 0.001,
+		"防御にも ×0.9")
+
+## 係数は固定（0.9）＝発動者の残兵数に依らない。ドレッドタッチ（add・残兵依存）との違い。
+func test_venom_value_independent_of_caster_troops() -> void:
+	var f := _venom_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	f["serpent"].troops = 3  # 損耗しても係数は変わらない
+	assert_false(s.resolve_formation(_venom_option(f), foe.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
+		"3体でも ×0.9（残兵に依らない）")
+
+## 重ねがけは掛け合わさる＝0.9×0.9=0.81。加算（ドレッドタッチ）と違い 0 にはならない。
+func test_venom_stacking_multiplies() -> void:
+	var f := _venom_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	var second := Unit.new(5, 0, Hex.neighbor(foe.pos, 2), 7, 8, 20, 20, 1, "scout")
+	second.skin_id = "rock_serpent"
+	s.add_unit(second)
+	assert_false(s.resolve_formation(_venom_option(f), foe.pos).is_empty(), "1体目が発動")
+	var opts := Formation.available_for(s, second)
+	var o2 := {}
+	for o in opts:
+		if String(o["recipe"]) == "venom_fang":
+			o2 = o
+	assert_false(o2.is_empty(), "2体目も撃てる")
+	assert_false(s.resolve_formation(o2, foe.pos).is_empty(), "同じ相手に重ねられる")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.81, 0.001,
+		"2本で ×0.81（0.9×0.9）")
+
+func test_venom_expires_after_three_rounds() -> void:
+	var f := _venom_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_venom_option(f), foe.pos).is_empty(), "発動成功")
+	for round_index in 3:
+		s.end_turn()  # 相手ターンへ
+		assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
+			"相手ターン中は効いている（%d周目）" % (round_index + 1))
+		if round_index < 2:
+			s.end_turn()  # 次の発動側ターンへ＝まだ残っている
+			assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
+				"発動側ターン %d 回目もまだ効く" % (round_index + 2))
+	s.end_turn()  # 3回ぶん使い切った次の発動側ターン＝満了
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001,
+		"発動側ターン3回ぶんで切れる")
+
 # --- ③ピュリファイ（有害な補正の解除）---
 
 # プリースト＋隣接する味方＋離れた味方＋隣接する敵。leader=priest(id1)。

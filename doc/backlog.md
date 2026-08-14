@@ -191,14 +191,6 @@
 - 対応：一打で完結する素材に差し替える。Sonniss バンドルには使える羽ばたきが無いことが確認済み（[doc/audio/sfx.md](audio/sfx.md) の「バンドルに録音が無かったもの」）。外部の素材集を1本買うか、自録り（うちわ・厚紙・畳んだ布で空気を打つ）に切り替える。長さは 0.30 秒より短く収めて、重ならずに一打ずつ聞こえる形にする。ペガサスからレッドドラゴンまで1つで賄うので、翼の大きさが特定できない中庸な質感を狙う。
 - 該当：`assets/sfx-src/move_flight_recipe.txt`・`assets/sfx/move_flight.ogg`・`assets/sfx-src/credits.md`・`data/audio/sfx_catalog.gd`（間隔）・`doc/audio/sfx.md`。着手の引き金＝素材を調達したとき。
 
-### feature-35
-
-**ユニットスキル ヴェノムファングのレシピ**（優先度：中）
-
-- 背景：[skills.md](gdd/skills.md) の②ヴェノムファングだけレシピが無い。仕組みはもう通っている＝敵を対象にする指定（`buff_side: "enemy"`）はドレッドタッチで、有害な補正の解除はピュリファイ（効果の型 `cleanse`・`kind: "debuff"`）で実装済み。残るのはカタログにレシピを1本足すことだけ。[tutorial3 st3](campaign/tutorial3-dragon-hunt.md)（鉱脈の争奪）で、ロックサーペントの群れが重ねた毒を聖職のピュリファイが落とす形で出る。
-- 対応：`RECIPES` に `venom_fang` を足す。ドレッドタッチとの違いは効き方で、あちらが加算（残兵数×-10）なのに対しヴェノムファングは係数（`op: "mul"`・値 1.0 未満）＝重ねても 0 にならず、行動不能にはならない。持続の数え方は共通。敵が撃つ思考側（`skill` / `skill_target`）は配線済み。
-- 該当：`domain/formation/formation.gd`（レシピ）・`tests/unit/test_skill.gd`・`doc/gdd/skills.md`（持続の行を実装値に合わせる）。着手の引き金＝tutorial3 st3 を組むとき。
-
 ### feature-36
 
 **陣形カットインの入り方を絵の構図に合わせて詰める**（優先度：低）
@@ -381,14 +373,6 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
-
-### refactoring-9
-
-**battle_state.gd から StatusMod 管理を切り出す**（優先度：中）
-
-- 背景：`domain/battle_state.gd`（1444行）の状態補正まわり（lines 82–139）は、`_status_mods` 配列を持ち `StatusMod` ユーティリティへ委譲するだけの独立した塊。BattleState に戻る依存が `current_team`（持続の満了判定）だけで、他の責務（イベント・輸送・行動フラグなど）とは違い、盤面操作と絡まずきれいに切れる。
-- 対応：`domain/status_mod_manager.gd`（RefCounted）を新設し、`_status_mods` 配列と操作メソッド（`add_status_mod`・`status_aggregate`・`status_mods_for`・`debuff_count`・`buff_count`・`clear_debuffs`・`team_aura_fx`・`_expire_status_mods`）を移す。BattleState 側は同名メソッドを1行ラッパーで残し、公開 API は変えない。直列化（`to_dict`/`from_dict`）の `_status_mods` 部分も StatusModManager に持たせる。テスト 28 本が全パスすることを確認して完了。
-- 該当：`domain/battle_state.gd`・`domain/status_mod_manager.gd`（新規）・`tests/unit/test_battle_state*.gd`（変更なしが目標）。
 
 ## parking lot
 

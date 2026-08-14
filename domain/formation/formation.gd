@@ -106,6 +106,26 @@ const RECIPES := {
 		"range": 1,
 		"range_from": "leader",
 	},
+	"venom_fang": {
+		"name": "ヴェノムファング",
+		"leader_skins": ["rock_serpent"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"effect": "buff",
+		"buff_scope": "unit",
+		"buff_side": "enemy",
+		"buff_op": "mul",
+		# 固定係数 0.9＝1本で攻防10%減。重ねると掛け合わさる（2本で0.81・3本で0.73）。
+		# ドレッドタッチの残兵依存（add）と違い、兵数に依らない。詳細 → doc/gdd/skills.md
+		"buff_value": 0.9,
+		"buff_target": "both",
+		"buff_fx": "venom",
+		"buff_kind": "debuff",
+		"duration_turns": 3,  # 発動側ターン3回ぶん。詳細 → doc/gdd/skills.md
+		"range": 1,
+		"range_from": "leader",
+	},
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
