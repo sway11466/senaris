@@ -433,7 +433,7 @@ st3 以降の戦闘前には、ローグ側の場面（頭目と手下の企み�
 | 輸送（積載・運搬） | 2 | tutorial2 で導入。バリスタ運搬に隣接1マス特例を流用 |
 | バリスタ・バリケード（兵器） | 2 | バリスタ 90/対空30/射6/移0（対空も撃てる）、バリケード 防80/移0 |
 | ユニットスキル（ピクシーダスト） | 5 | `formation.gd` の `pixie_dust`。デバッグ: `data/stages/debug-combat/skill.json` |
-| 戦力供給＝継承（carryover） | 全話 | `carryover_slots`／`RosterStore`この冒険譚の背骨。st1 だけ `player` で配給し、st2 以降は全スロットを `actor` で名指しする |
+| 戦力供給＝継承（carryover） | 全話 | `player` の `actor`／`RosterStore`この冒険譚の背骨。st1 だけ `join` を付けて配給し、st2 以降は `actor` だけを書いて名簿から出す |
 | 名簿・`actor`・会話の分岐 | 4・5 中心 | `RosterService`／`Unit.actor`／会話の `when: joined:<actor>`仲間の加入と会話の出欠がここに乗る。実機での確認は最初の carryover ステージを組んだ時 |
 | 新 type（軽飛行） | 2・5 | 型 `birdman`＝鳥人・ハーピー共用。高速飛行は型 `valkyrie`＝グリフォン |
 | 敵スキン（オーク3種/グリフォン/トレント/マタンゴ/マンドラゴラ/ローグ/ローグヘッド） | 各所 | `unit_skin.csv` に追加。既存 type 流用絵は未用意＝当面は陣営色の板で表示 |
