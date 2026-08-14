@@ -365,7 +365,7 @@ func _connected_dirs(cell: Vector2i, skin: TerrainSkin, skins: Dictionary) -> Ar
 				TerrainType.char_to_id(doc.terrain_char(b.x, b.y)))
 		else:
 			covered = false
-		connected.append(n != null and n.connect_group_id() == skin.connect_group_id())
+		connected.append(skin.connects_with(n))
 		on_board.append(covered)
 	if area:
 		return connected

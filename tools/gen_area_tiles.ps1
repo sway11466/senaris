@@ -49,6 +49,9 @@ param(
   [int]$BandH = 0,                               # its height (0 = down to the bottom)
   [int]$Bite = 46,                               # px eaten in from an edge midpoint; sets the band width
   [string]$Cut = 'assets\terrain\plain.png',     # material laid over the parts that are not this terrain
+  [switch]$CutTransparent,                       # leave the cut side transparent instead of laying -Cut over
+                                                 # it: the board shows whatever is underneath (a bridge over
+                                                 # a river). -Cut is then ignored.
   [int]$EdgeWidth = 2,                           # dark outline drawn along the cut, 0 = none
   [string]$EdgeColor = '#2E281C'                 # its colour (sample it from the source's own outline)
 )
@@ -76,7 +79,7 @@ New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 if (-not [System.IO.Path]::IsPathRooted($Source)) { $Source = Join-Path $repo $Source }
 if (-not [System.IO.Path]::IsPathRooted($Cut)) { $Cut = Join-Path $repo $Cut }
 if (-not (Test-Path $Source)) { throw "source not found: $Source" }
-if (-not (Test-Path $Cut)) { throw "cut material not found: $Cut" }
+if ((-not $CutTransparent) -and (-not (Test-Path $Cut))) { throw "cut material not found: $Cut" }
 
 $halfW = $APOTHEM - $Bite
 if ($halfW -le 0) { throw "-Bite must be smaller than $APOTHEM" }
@@ -154,11 +157,15 @@ for ($mask = 0; $mask -lt 64; $mask++) {
   }
 
   $out = Join-Path $outDir ("{0}_c{1}.png" -f $Name, $bits)
-  $args = @(
-    $base,
-    '(', $Cut, '-alpha', 'off', '(', $mRoad, '-negate', ')', '-compose', 'CopyOpacity', '-composite', ')',
-    '-compose', 'Over', '-composite'
-  ) + $edge + @(
+  # -CutTransparent: the mask becomes the tile's alpha, so the cut side is a hole and the board
+  # shows the skin laid underneath (map_ground). Otherwise the cut side is covered by -Cut.
+  $cover = if ($CutTransparent) {
+    @('-alpha', 'off', $mRoad, '-compose', 'CopyOpacity', '-composite')
+  } else {
+    @('(', $Cut, '-alpha', 'off', '(', $mRoad, '-negate', ')', '-compose', 'CopyOpacity', '-composite', ')',
+      '-compose', 'Over', '-composite')
+  }
+  $args = @($base) + $cover + $edge + @(
     '(', '-size', "${W}x${H}", 'xc:none', '-fill', 'white', '-draw', $hexPoly, ')',
     '-alpha', 'set', '-compose', 'DstIn', '-composite',
     '-colors', "$Colors", '-dither', 'None', $out

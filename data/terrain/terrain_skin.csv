@@ -1,6 +1,6 @@
-skin_id,terrain_type,name,orientable,connect,connect_as,elevation,sprite_sink,grid,map_ground,map_overlay,combat_ground,combat_layout,memo
-スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がりの名札,見た目の高さ,立ち絵の沈み,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,戦闘背景の置き方,備考
-road,road,道,none,area,,0,0,true,,,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）
+skin_id,terrain_type,name,orientable,connect,connect_to,elevation,sprite_sink,grid,map_ground,map_overlay,combat_ground,combat_layout,memo
+スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,立ち絵の沈み,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,戦闘背景の置き方,備考
+road,road,道,none,area,road_stone1 road_bridge1,0,0,true,,,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）
 plain,plain,平地,full,false,,0,0,true,,,,,既定スキン
 plain_cave1,plain,洞窟の床,full,false,,0,0,true,,,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
 plain_grave1,plain,墓地の草地,full,false,,0,0,true,,,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
@@ -16,10 +16,9 @@ trap,trap,罠,none,false,,0,0,true,,,plain,center,既定スキン
 rampart,rampart,城壁,none,false,,0,0,true,,,plain,line,既定スキン
 rampart_rubble1,rampart,瓦礫の山,full,false,,0.36,0,true,,,plain_grave1,line,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
 cliff,cliff,崖,none,false,,0.36,0,true,,,,,既定スキン
-river,river,川,none,area,water,0,0,true,,,plain,line,既定スキン。隣の川と繋がる向き別タイル（_c000000〜_c111111）
-bridge,bridge,橋（縦）,none,false,water,0,0,true,river,,plain,line,縦の軸（上－下）に架かる橋。板は向き固定＝接続では選ばない。下の川は map_ground が向き別に敷く
-bridge_r,bridge,橋（右）,none,false,water,0,0,true,river,,plain,line,右上－左下の軸に架かる橋
-bridge_l,bridge,橋（左）,none,false,water,0,0,true,river,,plain,line,左上－右下の軸に架かる橋
+river,river,川,none,area,road_bridge1,0,0,true,,,plain,line,既定スキン。隣の川と繋がる向き別タイル（_c000000〜_c111111）
+road_stone1,road,石畳,none,area,road road_bridge1,0,0,true,plain,,plain,line,石畳の道。地面は焼き込まず map_ground で敷く＝同じ絵を橋にも使う
+road_bridge1,road,橋,none,area,road road_stone1,0,0,true,river,road_stone1,plain,line,石畳の絵（map_overlay）を借り、川の上に架ける。川側が river に橋を書くので水は下をくぐる
 wall,wall,壁,none,false,,0.70,0,false,,,,,既定スキン。上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
 wall_stone1,wall,石積みの壁,none,false,,0,0,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 fort,fort,拠点,none,false,,0,0,true,,,plain,center,既定スキン

@@ -21,12 +21,20 @@
     ".FFFF.LLL..F..R",
     ".FFFF.LLL...RRR",
     ".FFF..LLL.RRRR.",
-    ".F....LLBRRR...",
-    "......BBBR.....",
-    "....RRBBL......",
+    ".F....LLLRRR...",
+    "......LLLR.....",
+    "....RRLLL......",
     "..RRRRLLL......",
     "RRRR..LLL......",
     "RR....LLL......"
+  ],
+  "terrain_skins": [
+    { "col": 7, "row": 15, "skin": "road_bridge1" },
+    { "col": 5, "row": 16, "skin": "road_bridge1" },
+    { "col": 6, "row": 16, "skin": "road_bridge1" },
+    { "col": 7, "row": 16, "skin": "road_bridge1" },
+    { "col": 5, "row": 17, "skin": "road_bridge1" },
+    { "col": 6, "row": 17, "skin": "road_bridge1" }
   ],
   "player": [
     { "type": "wizard", "actor": "wizard", "col": 7, "row": 17 },

@@ -1,0 +1,3 @@
+powershell -File tools\gen_area_tiles.ps1 road_stone1 assets\terrain-src\road_stone1\road_stone1_01_raw.png -BandX 162 -BandY 162 -BandW 700 -BandH 700 -Bite 46 -CutTransparent -EdgeWidth 3 -EdgeColor "#42423D"
+# -CutTransparent＝切り取った側を透過のまま残す。下地は terrain_skin.csv の map_ground（石畳=plain / 橋=river）。
+# 元絵の中央700px四方をテクスチャに使う＝ヘックス1枚あたり石が約10個。EdgeColor は元絵の目地の実測値。

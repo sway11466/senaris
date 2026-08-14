@@ -1,0 +1,48 @@
+STYLE: A map tile texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading,
+clear dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game, seen from DIRECTLY OVERHEAD — flat, no perspective, no
+horizon, no sky, no depth, nothing standing up. Read at thumbnail size: a few
+large legible shapes, no fine detail. Square 1:1.
+
+SUBJECT: The stone-paved roadway of an old bridge, seen from straight above —
+just the paving, filling the whole picture.
+
+FILL THE FRAME — IMPORTANT: the stone paving covers the ENTIRE square, edge to
+edge, corner to corner. This is a texture swatch, not a scene and not an object.
+NO background, NO grass, NO water, NO river, NO bank, NO parapet, NO railing, NO
+kerb, NO edge, NO border, NO frame, NO vignette, NO rounded corners. The paving
+runs off all four sides. Nothing stands on it and nothing lies on it.
+
+THE STONES: irregular flagstones fitted together, hand-laid by a mason, each one
+a slightly different size and a slightly different shape — some four-sided, some
+five- or six-sided, a few small ones wedged between big ones. A stone is roughly
+a fifteenth of the frame across, and none is bigger than a tenth of the frame.
+
+NO PATTERN — CRITICAL: this same texture will be used for every stone tile on
+the map, unrotated, so any regularity shows up immediately as a repeat. There
+must be NO rows, NO courses, NO grid, NO brickwork or running bond, NO
+herringbone, NO fan or circular pattern, NO radiating layout, and NO joint line
+that runs straight across more than about a fifth of the frame. The stones sit
+at all angles and their joints wander. Nothing anywhere in the picture is big
+enough or distinctive enough to be recognised as a landmark if this square were
+laid down twenty times side by side.
+
+THE JOINTS: the gaps between stones are THIN and DARK — narrow dark lines, a
+little darker than the stone itself. CRITICAL: no white or pale joints, no wide
+mortar beds, no bright grout. The joints must never become the loudest thing in
+the picture.
+
+COLOR: dry grey stone, roughly hex #8C8A82 — a calm, slightly warm mid grey,
+almost colourless, clearly darker than the game's grass (#B4C6A0) and its dirt
+roads (#D8C39A) and plainly different from its blue water. Each stone is a
+slightly different shade of that grey, some a touch warmer, some a touch cooler,
+scattered unevenly so the variation never falls into a pattern. NO stone may be
+white or near-white, and none may be near-black. NO moss, NO grass in the
+joints, NO puddles, NO snow, NO sand, NO leaves, NO rubble, NO cracks big enough
+to notice, NO carved marks, NO inscriptions, NO wheel ruts.
+
+Lit dimly and evenly from straight above, with NO cast shadow at all and no
+light direction: the stones are flat paving and throw no shadows. Shading stays
+inside each stone — very slight, just enough to tell one stone from the next.

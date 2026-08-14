@@ -224,7 +224,7 @@ func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
 			s = _skin_at(_clamp_to_board(n))
 		else:
 			covered = false
-		connected.append(s != null and s.connect_group_id() == skin.connect_group_id())
+		connected.append(skin.connects_with(s))
 		on_board.append(covered)
 	if area:
 		return connected
