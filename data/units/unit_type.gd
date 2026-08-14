@@ -21,7 +21,7 @@ var attack_range: int    ## 最大射程（上限）。1=近接、>1=間接。CS
 var move_after_attack: bool  ## 攻撃後に再移動できるか（ヒット&アウェイ）
 var can_capture: bool    ## 占領可否
 var max_troops: int      ## 満員兵数
-var capacity: int        ## 輸送の搭載数（0=輸送不可。馬車4・飛空艇6）
+var capacity: int        ## 輸送の搭載数（0=輸送不可）
 
 ## 辞書（JSONの1要素）から UnitType を作る。欠けたキーは無難な既定値。
 static func from_dict(d: Dictionary) -> UnitType:

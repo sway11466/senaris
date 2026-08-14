@@ -34,7 +34,7 @@ var min_range: int = 1  ## 最短射程（下限）。≥2＝懐に死角（砲�
 var attack_range: int = 1  ## 最大射程（上限）。1=近接、≥2=遠隔可。距離1の攻撃は近接扱い（反撃あり）。UnitType から設定
 var move_after_attack: bool = false  ## 攻撃後に残り移動力で再移動できるか（ヒット&アウェイ）。UnitType から設定
 var can_capture: bool = false  ## 拠点を占領できるか（cleric/bishop/paladin等）。UnitType から設定。詳細 → doc/gdd/map.md
-var capacity: int = 0  ## 輸送の搭載数（0=輸送不可。馬車4・飛空艇6）。UnitType から設定。詳細 → doc/gdd/movement.md
+var capacity: int = 0  ## 輸送の搭載数（0=輸送不可）。UnitType から設定。詳細 → doc/gdd/movement.md
 
 ## 輸送ユニットか（駒を載せて運べるか）。
 func is_transport() -> bool:
