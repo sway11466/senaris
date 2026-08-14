@@ -138,6 +138,42 @@ func _expire_status_mods() -> void:
 			kept.append(m)
 	_status_mods = kept
 
+# --- チャージ（再使用間隔）。詳細 → doc/gdd/skills.md ---
+#
+# 駒ごと・レシピごとに整数値を持ち、毎ターン開始時に +1 される。レシピの必要量に達すると
+# 発動できる。発動すると 0 に戻る。盤に出た直後は 0＝溜まるまで撃てない。
+# 将来、他のスキルでチャージ量を直接加速できる余地を残す（→ doc/gdd/skills.md 共通ルール）。
+
+var _charges := {}  # unit_id -> { recipe_id: int }
+
+## unit_id の recipe_id に対するチャージ量（未登録は 0）。
+func get_charge(unit_id: int, recipe_id: String) -> int:
+	var per_unit: Variant = _charges.get(unit_id)
+	if per_unit == null or typeof(per_unit) != TYPE_DICTIONARY:
+		return 0
+	return int((per_unit as Dictionary).get(recipe_id, 0))
+
+## unit_id の recipe_id のチャージ量を value にセットする。
+func set_charge(unit_id: int, recipe_id: String, value: int) -> void:
+	if not _charges.has(unit_id):
+		_charges[unit_id] = {}
+	_charges[unit_id][recipe_id] = value
+
+## ターン開始時に、始まった陣営の駒のチャージ量を +1 する（charge_turns を持つレシピだけ）。
+## 盤上の駒だけが対象（搭乗中・garrison はチャージしない）。
+func _increment_charges() -> void:
+	for u in _units:
+		if u.team != current_team:
+			continue
+		for rid in Formation.RECIPES:
+			var r: Dictionary = Formation.RECIPES[rid]
+			if int(r.get("charge_turns", 0)) <= 0:
+				continue
+			if not Formation._matches(u, r["leader_skins"]):
+				continue
+			var cur := get_charge(u.id, rid)
+			set_charge(u.id, rid, cur + 1)
+
 var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録）
 var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
 ## actor -> true（この戦闘に投入された名前つきの駒。初期配置・拠点の控え・搭乗・増援のすべてを含む）。
@@ -1040,6 +1076,11 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			p.gain_level(exp_gain)
 		set_done(int(pid))
 		mark_engaged(int(pid))
+	# チャージが必要なレシピは発動後に 0 に戻す（→ doc/gdd/skills.md 共通ルール）。
+	var rid := String(option.get("recipe", ""))
+	var recipe_def: Dictionary = Formation.RECIPES.get(rid, {})
+	if int(recipe_def.get("charge_turns", 0)) > 0:
+		set_charge(int(option["leader_id"]), rid, 0)
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
 	var out := {
@@ -1317,6 +1358,7 @@ func end_turn() -> void:
 	if current_team == 0:
 		turn_number += 1
 	_expire_status_mods()  # 始まった陣営の持続バフ/デバフを1減らして満了を掃除
+	_increment_charges()   # 始まった陣営の駒のチャージ量を +1（→ doc/gdd/skills.md）
 	_heal_garrisons()
 	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
 
@@ -1372,6 +1414,7 @@ func to_dict() -> Dictionary:
 		"defeated_actors": _defeated_actors.keys(),
 		"sortied_actors": _sortied_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
+		"charges": _charges_to_dict(),
 		"events": _events_to_dicts(),
 	}
 
@@ -1470,6 +1513,7 @@ static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState
 			s._sortied_actors[String(a)] = true
 	s._spent = _str_keyed_to_int(data.get("spent", {}))
 	s._squad_of = _str_keyed_to_int(data.get("squad_of", {}))
+	s._charges = _charges_from_dict(data.get("charges", {}))
 	return s
 
 ## int キーの dict → 文字列キーの dict（JSON はキーを文字列化するので保存時に明示変換）。
@@ -1497,3 +1541,27 @@ static func _ids_to_set(src: Variant) -> Dictionary:
 
 static func _as_dict(v: Variant) -> Dictionary:
 	return v if typeof(v) == TYPE_DICTIONARY else {}
+
+## _charges を JSON 化可能な dict に変換（キーを文字列化）。
+## { unit_id(int): { recipe_id: int } } → { "unit_id": { recipe_id: int } }
+func _charges_to_dict() -> Dictionary:
+	var out := {}
+	for uid in _charges:
+		var inner: Dictionary = _charges[uid]
+		if not inner.is_empty():
+			out[str(uid)] = inner.duplicate()
+	return out
+
+## JSON 復元後の dict → _charges（文字列キーを int に戻す）。
+static func _charges_from_dict(src: Variant) -> Dictionary:
+	var out := {}
+	if typeof(src) != TYPE_DICTIONARY:
+		return out
+	for uid_str in src:
+		var inner: Variant = src[uid_str]
+		if typeof(inner) == TYPE_DICTIONARY:
+			var restored := {}
+			for rid in inner:
+				restored[String(rid)] = int(inner[rid])
+			out[int(uid_str)] = restored
+	return out

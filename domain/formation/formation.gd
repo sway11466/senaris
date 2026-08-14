@@ -138,6 +138,7 @@ const RECIPES := {
 		"effect": "spawn",
 		"range": 0,  # 自分の隣接に湧く＝対象選択は不要
 		"range_from": "leader",
+		"charge_turns": 3,  # 盤に出た直後は撃てない。3ターン溜めてから発動。詳細 → doc/gdd/skills.md
 	},
 }
 
@@ -172,6 +173,10 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 		# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
 		# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
 		if not state.has_action_left(unit.id):
+			continue
+		# チャージが必要なレシピは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
+		var ct := int(r.get("charge_turns", 0))
+		if ct > 0 and state.get_charge(unit.id, rid) < ct:
 			continue
 		match String(r["shape"]):
 			"triangle":

@@ -387,6 +387,7 @@ func _split_state() -> Dictionary:
 	slime.move_type = "ground"
 	s.add_unit(slime)
 	s.end_turn()  # 敵ターン（team=1）に進める
+	s.set_charge(slime.id, "slime_split", 3)  # チャージ済み（即発動できる状態）
 	return {"s": s, "slime": slime}
 
 func _split_option(f: Dictionary) -> Dictionary:
@@ -593,3 +594,121 @@ func test_purify_consumes_the_casters_action() -> void:
 	assert_true(s.is_done(1), "発動者は行動完了")
 	assert_false(s.is_done(2), "掛けられた側は行動を消費しない")
 	assert_eq(f["priest"].level, 2, "発動者に Lv+1（撃破は起きないので前半だけ）")
+
+# --- チャージ（再使用間隔）---
+
+## チャージ量 0 のスライムはスライムスプリットを撃てない。
+func test_charge_blocks_uncharged_skill() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	s.end_turn()  # 敵ターン
+	# チャージ未設定（0）＝撃てない
+	var found := false
+	for o in Formation.available_for(s, slime):
+		if String(o["recipe"]) == "slime_split":
+			found = true
+	assert_false(found, "チャージ量 0 では成立しない")
+
+## チャージ量が必要量に達すると発動できる。
+func test_charge_allows_when_full() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	s.end_turn()  # 敵ターン
+	s.set_charge(slime.id, "slime_split", 3)
+	var found := false
+	for o in Formation.available_for(s, slime):
+		if String(o["recipe"]) == "slime_split":
+			found = true
+	assert_true(found, "チャージ量が必要量に達すれば成立する")
+
+## チャージ量が必要量未満だと撃てない（1足りない）。
+func test_charge_blocks_when_short() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	s.end_turn()
+	s.set_charge(slime.id, "slime_split", 2)  # 3 が必要だが 2 しか溜まっていない
+	var found := false
+	for o in Formation.available_for(s, slime):
+		if String(o["recipe"]) == "slime_split":
+			found = true
+	assert_false(found, "チャージ量が足りなければ成立しない")
+
+## 毎ターン開始時にチャージ量が +1 される。
+func test_charge_increments_each_turn() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	assert_eq(s.get_charge(slime.id, "slime_split"), 0, "初期値は 0")
+	# team=0 のターンを終了 → team=1 のターン開始（敵ターン）＝敵駒のチャージが +1
+	s.end_turn()
+	assert_eq(s.get_charge(slime.id, "slime_split"), 1, "1ターン目で +1")
+	s.end_turn()  # team=1 → team=0（プレイヤーターン）＝敵は増えない
+	assert_eq(s.get_charge(slime.id, "slime_split"), 1, "相手ターンでは増えない")
+	s.end_turn()  # team=0 → team=1（敵ターン）
+	assert_eq(s.get_charge(slime.id, "slime_split"), 2, "2ターン目で +1")
+
+## 発動するとチャージ量が 0 に戻る。
+func test_charge_resets_on_use() -> void:
+	var f := _split_state()  # チャージ3で即発動可
+	var s: BattleState = f["s"]
+	assert_eq(s.get_charge(f["slime"].id, "slime_split"), 3, "発動前は 3")
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	assert_eq(s.get_charge(f["slime"].id, "slime_split"), 0, "発動後は 0 に戻る")
+
+## 分裂で生まれた駒のチャージ量は 0（溜まるまで撃てない）。
+func test_charge_spawned_starts_at_zero() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	var spawned: Unit = null
+	for u in s.units():
+		if u.id != f["slime"].id:
+			spawned = u
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_eq(s.get_charge(spawned.id, "slime_split"), 0, "生まれた駒のチャージ量は 0")
+
+## 3ターン溜めれば盤に出た直後の駒でも発動できる（初期 0 → 3ターンで 3）。
+func test_charge_accumulates_to_threshold() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	# 3ターンぶんのサイクルを回す（player→enemy→player→enemy→player→enemy）
+	for i in 3:
+		s.end_turn()  # → enemy turn: charge +1
+		s.end_turn()  # → player turn: charge stays
+	assert_eq(s.get_charge(slime.id, "slime_split"), 3, "3ターンで必要量に達する")
+	var found := false
+	for o in Formation.available_for(s, slime):
+		if String(o["recipe"]) == "slime_split":
+			found = true
+	assert_true(found, "必要量に達したので発動できる")
+
+## チャージ量は中断セーブに乗る（to_dict → from_dict で往復）。
+func test_charge_survives_serialization() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "ground"
+	s.add_unit(slime)
+	s.set_charge(slime.id, "slime_split", 2)
+	var restored := BattleState.from_dict(s.to_dict())
+	assert_eq(restored.get_charge(slime.id, "slime_split"), 2, "復元後もチャージ量が保たれる")
