@@ -66,7 +66,8 @@
     { "order": 2, "name": "北門・ローグ", "ai": "raid",
       "units": [
         { "skin": "rogue", "col": 7, "row": 1 },
-        { "skin": "rogue", "col": 8, "row": 2 }
+        { "skin": "rogue", "col": 8, "row": 2 },
+        { "skin": "rogue_wagon", "col": 8, "row": 0 }
       ] },
     { "order": 3, "name": "南門・オークの群れ", "ai": "charge",
       "units": [
@@ -89,24 +90,29 @@
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "t3.st2.intro.1" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.intro.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st2.intro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.3" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.intro.4" },
-      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st2.intro.9" },
-      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st2.intro.10" },
+      { "text": "t3.st2.intro.4", "sfx": "map_turn_enemy" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st2.intro.5" },
-      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st2.intro.6" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.7" },
-      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st2.intro.8" }
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.6" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.intro.7" },
+      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st2.intro.8" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st2.intro.9" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st2.intro.10" },
+      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st2.intro.11" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.intro.12" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st2.intro.13" }
     ],
     "outro": [
-      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "t3.st2.outro.1" },
-      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.2" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.outro.3" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.outro.1" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st2.outro.2" },
+      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "t3.st2.outro.3" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.4" },
-      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st2.outro.5" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.outro.6" }
+      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st2.outro.5" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st2.outro.6" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st2.outro.7" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st2.outro.8" }
     ]
   },
   "bgm": { "main": "raid" }

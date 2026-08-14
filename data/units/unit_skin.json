@@ -879,7 +879,20 @@
 					"type_id": "wagon"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "悪党",
+					"combat_effect": "",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ならず者の馬車",
+					"retainers": [],
+					"skin_id": "rogue_wagon",
+					"type_id": "wagon"
+				}
+			]
 		},
 		"warlord": {
 			"ally": [
