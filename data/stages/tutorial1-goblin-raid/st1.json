@@ -1,19 +1,20 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st1",
-  "bgm": { "main": "journey" },
   "cols": 14,
   "rows": 8,
-  "margin": 0,
+  "margin": 1,
   "terrain": [
-    ".............F",
-    "............FF",
-    "...........FFF",
-    "...........FFF",
-    "..........FFFF",
-    "............FF",
-    "............FF",
-    ".............."
+    "PPPP............",
+    "PPPP......FFFFF.",
+    "PPPP.......FFFF.",
+    ".P..........FFF.",
+    ".............F..",
+    "..............RR",
+    "............RRRR",
+    "......R.R.RRRR..",
+    "....RRRRRRRR....",
+    "...RRRRRRR......"
   ],
   "player": [
     { "type": "fighter", "col": 1, "row": 3 },
@@ -42,5 +43,6 @@
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st1.outro.3" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.outro.4" }
     ]
-  }
+  },
+  "bgm": { "main": "journey" }
 }
