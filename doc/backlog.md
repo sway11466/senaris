@@ -199,14 +199,6 @@
 - 対応：3枚を実機で通しで見て、寄りの量・向き・秒数（`FADE_SEC`／`HOLD_SEC`）を詰める。レシピごとに変えるならレシピ側に持たせる。絵を差し替えたら見直す前提の調整なので、凝りすぎない。
 - 該当：`presentation/formation/formation_cutin.gd`・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝演出を通しで見て気になったとき。
 
-### feature-37
-
-**駒を生成するスキル効果（スライムの分裂）と新 type `slime`**（優先度：中）
-
-- 背景：いまのユニットスキル・陣形スキルは「対象に状態補正を掛ける」効果しか持たず、盤に駒を増やせない。[tutorial3 st6](campaign/tutorial3-dragon-hunt.md)（洞窟）のスライムが、放置すると分裂して増える魔獣として要る＝「元から絶つか、無視して先を急ぐか」という選択を作る役。駒が増える機構は拠点の出撃（deploy）にしか無く、あちらは garrison の頭数が上限で拠点に紐づくため、盤上の駒が自分で増える形には使えない。
-- 対応：スキル効果に「隣接する空きマスへ発動者の複製を1体置く」種別を足す。生成した駒の id 採番（既存の通し番号を継ぐ）・初期兵数（分裂で半減するか満員かは要設計）・増殖の上限（無いと殲滅勝利が終わらない＝盤上の同 type 上限か、分裂回数の世代上限）を決める。中断セーブに乗るので、生成された駒が `to_dict`/`from_dict` を往復することも確認する。あわせて `slime` 20/0/防20/移2/ground/射1 を unit_type に足す（弱く遅い地上の雑魚。`cleric` は数値が近いが占領可なので泉を取られてしまい使えない）。
-- 該当：`domain/formation/formation.gd`（効果種別）・`domain/battle_state.gd`（駒の追加・直列化）・`data/units/unit_type.csv`＋`unit_type.json`（`slime` 行）・`data/units/unit_skin.csv`（スライムのスキン）・`doc/gdd/skills.md`（レシピ）・`doc/gdd/units.md`（対応表）・`tests/unit/test_skill.gd`。着手の引き金＝tutorial3 st6 を組むとき。関連＝feature-38（3ターンに1回に抑えるクールダウン）・feature-29（敵AIがスキルを撃つ）。
-
 ### feature-38
 
 **スキルの再使用間隔（クールダウン）**（優先度：中）
