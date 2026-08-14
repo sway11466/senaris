@@ -121,6 +121,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_skill_scene.bind_terrain_skins(terrain_skins)  # スキルの演出も同じ地面を組む
 	$InfoPanel.bind(state, _skins)
 	$InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
+	$InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($InfoPanel.show_combat)
 	_controller.combat_resolved.connect(_combat_scene.play)  # 演出シーン（結果＝シーン／根拠＝右パネル）

@@ -6,7 +6,8 @@ class_name UnitInfoPanel
 ##
 ## ユニットは1行1項目で出す。板は固定寸法（UiLayout.RIGHT_BOX）で全部は入りきらないので、
 ## 戦闘レポートと同じ作りのタブ（能力／状態／地形）で切り替える＝スクロールさせない。
-## 見出し（名前・陣営・兵種）はタブの上に据え置き＝どの駒を見ているか常に分かる。
+## 見出し（名前・陣営／部隊・兵種／敵の特性）はタブの上に据え置き＝どの駒を見ているか常に分かる。
+## 仕様 → doc/gdd/uiux.md ユニット情報パネル
 
 ## グループの区切り線。改行だけで離すと「どこまでが同じ話か」が読めないので線を引く。
 const SEPARATOR := "──────────────────────"
@@ -19,10 +20,21 @@ const LABEL_W := 88.0
 ## タブ＝[id, 見出し]。id は _tab_lines の分岐と合わせる。
 const TABS := [["ability", "能力"], ["status", "状態"], ["terrain", "地形"]]
 
+## 特性アイコン（`{特性id}.png`）。ユニット画像と同じ規約解決で、在れば出す・無ければ文字だけ。
+const AI_ICON_DIR := "res://assets/ui/ai/"
+const AI_ICON_SIZE := 40.0  # 見出し2行ぶんの高さ
+
 var _state: BattleState
 var _skins := {}        # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地形名をスキン名で出すのに使う）
-var _header: Label      # 【名前】陣営／兵種（ユニット表示のときだけ出す据え置きの見出し）
+var _ai_presets := {}   # 特性id -> パラメーター辞書（data/ai/ai.json）。特性名を引くのに使う
+var _ai_icons := {}     # 特性id -> Texture2D / null（無い印。毎回 load しないための控え）
+var _header: HBoxContainer  # 据え置きの見出し（左＝名前と部隊/兵種・右＝敵の特性）
+var _header_name: Label     # 名前（陣営）
+var _header_sub: Label      # 敵＝部隊名／自軍＝兵種。どちらも無ければ隠す
+var _ai_box: HBoxContainer  # 特性の欄（敵のときだけ出す）
+var _ai_icon: TextureRect
+var _ai_name: Label
 var _tabs_row: HBoxContainer
 var _tabs := {}         # id -> Button
 var _tab := "ability"   # いま選んでいるタブ。駒を選び直しても保つ＝同じ観点で駒を見比べられる
@@ -44,10 +56,34 @@ func _ready() -> void:
 	box.offset_right = -16
 	box.offset_bottom = -14
 	box.add_theme_constant_override("separation", 8)
-	_header = Label.new()
-	_header.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_header = HBoxContainer.new()
+	_header.add_theme_constant_override("separation", 8)
 	_header.hide()
 	box.add_child(_header)
+	var head_left := VBoxContainer.new()
+	head_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head_left.add_theme_constant_override("separation", 2)
+	_header.add_child(head_left)
+	_header_name = Label.new()
+	_header_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head_left.add_child(_header_name)
+	_header_sub = Label.new()
+	_header_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	head_left.add_child(_header_sub)
+	# 特性の欄。アイコンは見出し2行ぶんの高さで、特性名はその隣に上寄せで並べる。
+	_ai_box = HBoxContainer.new()
+	_ai_box.add_theme_constant_override("separation", 6)
+	_ai_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_ai_box.hide()
+	_header.add_child(_ai_box)
+	_ai_icon = TextureRect.new()
+	_ai_icon.custom_minimum_size = Vector2(AI_ICON_SIZE, AI_ICON_SIZE)
+	_ai_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_ai_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_ai_box.add_child(_ai_icon)
+	_ai_name = Label.new()
+	_ai_name.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_ai_box.add_child(_ai_name)
 	_tabs_row = HBoxContainer.new()
 	_tabs_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tabs_row.add_theme_constant_override("separation", 6)
@@ -93,6 +129,10 @@ func bind(state: BattleState, skin_catalog: Dictionary) -> void:
 func bind_terrain_skins(terrain_skins: Dictionary) -> void:
 	_terrain_skins = terrain_skins
 
+## 特性表（data/ai/ai.json）を渡す（main から1回）。敵の見出しに出す特性名の引き先。
+func bind_ai_presets(presets: Dictionary) -> void:
+	_ai_presets = presets
+
 ## 選択変更を受けて表示を更新（id<0 で未選択）。タブの選択は駒をまたいで保つ。
 func show_unit(unit_id: int) -> void:
 	if _state == null or unit_id < 0:
@@ -105,7 +145,7 @@ func show_unit(unit_id: int) -> void:
 	_shown_unit = unit_id
 	if _report != null:
 		_report.hide()
-	_header.text = _header_text(u)
+	_update_header(u)
 	_header.show()
 	var b: Button = _tabs[_tab]
 	b.button_pressed = true
@@ -194,16 +234,65 @@ func _garrison_line(gu: Unit, b: Base) -> String:
 	var nm := sk.name if sk != null else gu.type_id
 	return "%s  兵%d/%d  Lv%d" % [nm, gu.troops, gu.max_troops, gu.level]
 
-## タブの上に据え置く見出し（名前・陣営・兵種）。
-func _header_text(u: Unit) -> String:
+## タブの上に据え置く見出しを組み直す。仕様 → doc/gdd/uiux.md ユニット情報パネル
+## 2行目は敵＝部隊名／自軍＝兵種。敵に兵種を出さないのはリスキン元（種別）が透けるため。
+func _update_header(u: Unit) -> void:
 	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)
 	var unit_name := skin.name if skin != null else u.type_id
-	var lines: Array[String] = ["【%s】 %s" % [unit_name, "自軍" if u.team == 0 else "敵軍"]]
-	if u.team == 0:  # 敵はリスキン元（種別）が透けるので出さない
+	_header_name.text = "%s （%s）" % [unit_name, "自軍" if u.team == 0 else "敵軍"]
+	var sub := ""
+	if u.team == 0:
 		var category := UnitCatalog.display_category(u.type_id)
 		if category != "":
-			lines.append("兵種  %s" % category)
-	return "\n".join(lines)
+			sub = "兵種  %s" % category
+	else:
+		sub = _squad_name(u)
+	_header_sub.text = sub
+	_header_sub.visible = not sub.is_empty()
+	_update_ai(u)
+
+## 敵の見出し2行目＝所属部隊の名前。部隊は一斉警戒の範囲＝この駒に触れると誰まで起きるかを示す。
+## name はステージが持つ表示名で tr() を通す（i18n 移行時にキーへ差し替えられる）。
+## name の無い部隊は order から組む＝名前を書かなくても部隊が分かれていることは見せる。
+func _squad_name(u: Unit) -> String:
+	var squad := _state.squad_of(u.id)
+	if squad.is_empty():
+		return ""
+	var nm := String(squad.get("name", ""))
+	if not nm.is_empty():
+		return tr(nm)
+	var order: Variant = squad.get("order")
+	var n := _state.squad_index_of(u.id) + 1
+	if typeof(order) == TYPE_INT or typeof(order) == TYPE_FLOAT:
+		n = int(order)
+	return "第%d部隊" % n
+
+## 特性の欄（敵だけ）。アイコンは在れば出す＝未制作でも文字だけで成立する。
+func _update_ai(u: Unit) -> void:
+	var id := ""
+	if u.team != 0:
+		id = String(_state.squad_of(u.id).get("ai", ""))
+	if id.is_empty():
+		_ai_box.hide()
+		return
+	var preset: Variant = _ai_presets.get(id, {})
+	var display := id
+	if typeof(preset) == TYPE_DICTIONARY:
+		display = String((preset as Dictionary).get("name", id))
+	_ai_name.text = display
+	var tex := _ai_icon_texture(id)
+	_ai_icon.texture = tex
+	_ai_icon.visible = tex != null
+	_ai_box.show()
+
+## 特性アイコン（無ければ null）。有無は一度引いたら控えておく＝選択のたびに走らせない。
+func _ai_icon_texture(id: String) -> Texture2D:
+	if _ai_icons.has(id):
+		return _ai_icons[id]
+	var path := AI_ICON_DIR + id + ".png"
+	var tex: Texture2D = load(path) if ResourceLoader.exists(path) else null
+	_ai_icons[id] = tex
+	return tex
 
 # --- タブの中身（項目名／値の2列）。値の頭は LABEL_W でタブをまたいで揃う ---
 
