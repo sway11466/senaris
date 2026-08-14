@@ -1,0 +1,36 @@
+{
+  "turn_limit": 30,
+  "name": "debug-ai-transport",
+  "cols": 14,
+  "rows": 7,
+  "margin": 0,
+  "terrain": [
+    "..............",
+    "..............",
+    "..............",
+    ".O............",
+    "..............",
+    "..............",
+    ".............."
+  ],
+  "player": [
+    { "type": "fighter", "col": 3, "row": 1 },
+    { "type": "cleric", "col": 3, "row": 5 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "馬車と乗り手", "ai": "raid",
+      "units": [
+        { "skin": "rogue_wagon", "col": 11, "row": 3,
+          "passengers": [ { "skin": "rogue" } ] },
+        { "skin": "rogue", "col": 12, "row": 3 },
+        { "skin": "rogue", "col": 11, "row": 4 }
+      ] },
+    { "order": 2, "name": "別部隊のローグ", "ai": "raid",
+      "units": [
+        { "skin": "rogue", "col": 11, "row": 2 }
+      ] }
+  ],
+  "bases": [
+    { "col": 1, "row": 3, "team": "player", "kind": "fort" }
+  ]
+}

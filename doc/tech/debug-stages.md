@@ -44,6 +44,7 @@
 | 待機・索敵（guard＋視線） | `debug-ai/sight.json` |
 | 弱者狙いAI（weak） | `debug-ai/weak.json` |
 | 敵拠点の出撃（charge湧き） | `debug-ai/spawn.json` |
+| 輸送を使う敵AI（乗る・運ぶ・降ろす） | `debug-ai/transport.json` |
 
 ## debug-victory（勝利条件）
 

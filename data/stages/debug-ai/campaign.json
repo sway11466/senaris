@@ -5,6 +5,7 @@
   "stages": [
     { "id": "sight", "file": "sight.json", "title": "待機・索敵（視線＝壁の影・森の減衰）" },
     { "id": "weak", "file": "weak.json", "title": "弱者狙いAI（weak）" },
-    { "id": "spawn", "file": "spawn.json", "title": "敵拠点の出撃（charge湧き）" }
+    { "id": "spawn", "file": "spawn.json", "title": "敵拠点の出撃（charge湧き）" },
+    { "id": "transport", "file": "transport.json", "title": "輸送を使う敵AI（乗る・運ぶ・降ろす）" }
   ]
 }

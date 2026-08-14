@@ -65,7 +65,8 @@
       "units": [
         { "skin": "rogue", "col": 7, "row": 1 },
         { "skin": "rogue", "col": 8, "row": 2 },
-        { "skin": "rogue_wagon", "col": 8, "row": 0 }
+        { "skin": "rogue_wagon", "col": 8, "row": 0,
+          "passengers": [ { "skin": "rogue" } ] }
       ] },
     { "order": 3, "name": "南門・オークの群れ", "ai": "charge",
       "units": [
