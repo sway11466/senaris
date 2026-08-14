@@ -468,14 +468,17 @@ func travel_cost_field(goal: Vector2i, move_type: String, max_step_cost: int = 0
 ## from_hex（測る側の駒がいま立っているマス）は壁にしない＝自分自身で道を塞がない。
 ## 駒は1手ごとに動くのでメモしない（地形だけの travel_cost_field と違って使い捨て）。
 ## 標的が完全に囲まれていると道が消える＝呼び出し側は地形だけの表へ退避する（AIの前進）。
+## ignore_ids＝「居ないもの」として測る駒のid（AIの経路上の敵＝どければ道が良くなるかを測る）。
 func travel_cost_field_avoiding_units(goal: Vector2i, move_type: String,
-		max_step_cost: int = 0, from_hex: Vector2i = Vector2i(1 << 30, 1 << 30)) -> Dictionary:
+		max_step_cost: int = 0, from_hex: Vector2i = Vector2i(1 << 30, 1 << 30),
+		ignore_ids: Dictionary = {}) -> Dictionary:
 	if not in_field(goal):
 		return {}
 	var cost_fn := func(hex: Vector2i) -> int:
 		if not in_field(hex):
 			return Movement.IMPASSABLE
-		if hex != goal and hex != from_hex and unit_at(hex) != null:
+		var occ := unit_at(hex)
+		if hex != goal and hex != from_hex and occ != null and not ignore_ids.has(occ.id):
 			return Movement.IMPASSABLE  # 標的以外の駒は壁
 		var c := Movement.cost(_movement, move_type, terrain_at(hex))
 		if max_step_cost > 0 and c > max_step_cost:
@@ -586,10 +589,10 @@ func _move_stop(hex: Vector2i, u: Unit) -> bool:
 
 ## hex が u から見た敵ZOC内か（敵ユニットに隣接しているか）。ZOCに入ると移動が止まる。
 ## ignore_id＝ZOCを数えない敵（-1＝全員数える）。AIの迂回距離が狙う標的だけを外すのに使う。
-func _in_enemy_zoc(hex: Vector2i, u: Unit, ignore_id: int = -1) -> bool:
+func _in_enemy_zoc(hex: Vector2i, u: Unit, ignore_id: int = -1, ignore_ids: Dictionary = {}) -> bool:
 	for nb in Hex.neighbors(hex):
 		var occ := unit_at(nb)
-		if occ != null and occ.team != u.team and occ.id != ignore_id:
+		if occ != null and occ.team != u.team and occ.id != ignore_id and not ignore_ids.has(occ.id):
 			return true
 	return false
 
@@ -921,10 +924,15 @@ func attack_cells(unit_id: int, target_id: int) -> Array[Vector2i]:
 ##
 ## 行動ユニットが今いるマスは、起点でなくても壁にしない（自分自身で道を塞がない）。
 func move_cost_field(unit_id: int, from: Vector2i) -> Dictionary:
+	return move_cost_field_without(unit_id, from, {})
+
+## 移動距離の表を、ignore_ids の駒が居ないものとして流したもの。
+## AIが「その敵をどければ道が良くなるか」を測るのに使う（doc/gdd/ai.md 経路上の敵）。
+func move_cost_field_without(unit_id: int, from: Vector2i, ignore_ids: Dictionary) -> Dictionary:
 	var u := unit_by_id(unit_id)
 	if u == null:
 		return {}
-	return travel_cost_field_avoiding_units(from, u.move_type, u.move, u.pos)
+	return travel_cost_field_avoiding_units(from, u.move_type, u.move, u.pos, ignore_ids)
 
 ## 地形距離の表＝駒を壁として数えず、地形だけで測った道のり表。
 ## 仲間や敵に塞がれていても、その駒がどいたあとに通れる道を測る（見込前進が使う）。
@@ -944,7 +952,9 @@ func terrain_cost_field(unit_id: int, from: Vector2i) -> Dictionary:
 ## 行動ユニットが今いるマスはZOCでも壁にしない。起点から流すときは Dijkstra が起点にコストを
 ## 掛けないので、標的から流すときと値が食い違わないよう向きを揃える。
 ## 駒もZOCも1手ごとに動くのでメモしない（地形だけの terrain_cost_field と違って使い捨て）。
-func detour_cost_field(unit_id: int, from: Vector2i, ignore_zoc_id: int = -1) -> Dictionary:
+## ignore_ids＝「居ないもの」として測る駒のid。壁にもZOCの主にも数えない。
+func detour_cost_field(unit_id: int, from: Vector2i, ignore_zoc_id: int = -1,
+		ignore_ids: Dictionary = {}) -> Dictionary:
 	var u := unit_by_id(unit_id)
 	if u == null or not in_field(from):
 		return {}
@@ -952,9 +962,10 @@ func detour_cost_field(unit_id: int, from: Vector2i, ignore_zoc_id: int = -1) ->
 		if not in_field(hex):
 			return Movement.IMPASSABLE
 		if hex != from and hex != u.pos:
-			if unit_at(hex) != null:
+			var occ := unit_at(hex)
+			if occ != null and not ignore_ids.has(occ.id):
 				return Movement.IMPASSABLE  # 起点・自分以外の駒は壁
-			if _in_enemy_zoc(hex, u, ignore_zoc_id):
+			if _in_enemy_zoc(hex, u, ignore_zoc_id, ignore_ids):
 				return Movement.IMPASSABLE  # 敵ZOCは踏まない＝これが迂回
 		var c := Movement.cost(_movement, u.move_type, terrain_at(hex))
 		if u.move > 0 and c > u.move:

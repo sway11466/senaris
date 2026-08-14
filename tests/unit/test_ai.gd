@@ -328,15 +328,67 @@ func test_raid_waits_when_no_base_is_left() -> void:
 	assert_null(_brain.next_action(s, 1), "向かう拠点が盤上に無ければ待機")
 	assert_true(s.is_engaged(10), "行動開始条件は常時")
 
-func test_raid_attacks_what_is_already_in_range() -> void:
+func test_raid_ignores_an_enemy_that_is_not_in_the_way() -> void:
+	# 経路上でない敵は殴らない＝目の前の敵を無視して素通りしていくのが raid の圧。
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
 	var si := _squad(s, "raid")
 	_ai(s, si, 10, 5, 1)
-	var e := _pc(s, 1, 5, 0)  # 隣接
+	_pc(s, 1, 5, 0)  # 隣接だが拠点への道は塞いでいない
 	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 0))
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK, "着いた先で戦う＝射程内なら殴る")
+	assert_eq(a.kind, AiAction.Kind.MOVE, "殴らずに拠点へ歩く")
+	assert_gt(_col(a.to), 5)
+
+## 壁で通路を1本だけ残した盤（開いている row だけが道）。
+func _corridor(s: BattleState, open_rows: Array) -> void:
+	s.set_movement(PLAIN_WALL)
+	for col in s.cols:
+		for row in s.rows:
+			if not (row in open_rows):
+				s.set_terrain(Hex.offset_to_axial(col, row), "wall")
+
+func test_raid_attacks_an_enemy_blocking_the_corridor() -> void:
+	# 体で道を塞いでいる＝どければ移動距離が測れるようになる。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2])
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 4, 2)
+	var e := _pc(s, 1, 5, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "通路を塞ぐ敵は殴る")
+	assert_eq(a.target_id, e.id)
+
+func test_raid_attacks_when_two_enemies_block_together() -> void:
+	# 幅2の通路を2体で塞ぐ形。1体ずつ試すとどちらを外しても道が開かず、
+	# 両方とも経路上ではないと読まれてしまう＝まとめてどけて測る。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2, 3])
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 4, 3)
+	_pc(s, 1, 5, 2)
+	_pc(s, 2, 5, 3)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "2体で塞がれていても殴る")
+	assert_eq(a.target_id, 1, "一番前＝拠点への地形距離が最小の駒を殴る")
+
+func test_raid_attacks_an_enemy_that_pins_it_with_zoc() -> void:
+	# 体では塞いでいないが、ZOCで通路が消えている＝迂回距離が測れなくなっている。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2, 3])
+	var si := _squad(s, "raid")
+	_ai(s, si, 10, 4, 3)
+	var e := _pc(s, 1, 5, 3)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	assert_lt(s.min_cost_in(s.move_cost_field(10, s.unit_by_id(10).pos),
+		[Hex.offset_to_axial(9, 2)]), BattleState.UNREACHABLE, "体では塞がれていない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "ZOCで足を止めている敵は殴る")
 	assert_eq(a.target_id, e.id)
 
 func test_raid_takes_the_nearest_base_including_neutral() -> void:

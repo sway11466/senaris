@@ -284,9 +284,9 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	row = _skill_row(state, u, PICK_NEAR)
 	if row != null:
 		return row
-	var in_range := _attack_targets(state, u)
-	if not in_range.is_empty():
-		return AiAction.attack(u.id, _nearest_id_by_board(state, u, in_range))
+	var blocker := _blocking_enemy_id(state, u, _attack_targets(state, u))
+	if blocker >= 0:
+		return AiAction.attack(u.id, blocker)
 	# 4/5 降ろす（乗員を持つ駒＝輸送ユニットにしか当たらない）
 	row = _unload_now_row(state, u)
 	if row != null:
@@ -445,6 +445,53 @@ func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := f
 			continue
 		return AiAction.skill(u.id, option, _pick_skill_target(state, u, candidates, pick).pos)
 	return null
+
+# --- 経路上の敵（doc/gdd/ai.md 経路上の敵） ---
+
+## 射程内の敵のうち、拠点への道を塞いでいる1体（居なければ -1）。
+## 塞いでいるかは、射程内の敵をまとめてどけたと仮定して道が良くなるかで見る。
+## 1体ずつ試さないのは、通路を2体で塞がれるとどちらを外しても道が開かないため。
+##
+## 良くなるのは2つ。移動距離が縮む（体で塞いでいる）か、迂回距離が測れないところから
+## 測れるようになる（ZOCで足を止めている）か。迂回距離を縮んだかで見ないのは、隣に立って
+## いるだけの敵でも、どければ避けるZOCが減って必ず短くなるため（それでは横の敵にもつられる）。
+func _blocking_enemy_id(state: BattleState, u: Unit, in_range: Array[int]) -> int:
+	if in_range.is_empty():
+		return -1
+	var goals := _hostile_base_hexes(state, u)
+	if goals.is_empty():
+		return -1
+	var ignore := {}
+	for id in in_range:
+		ignore[id] = true
+	if not _route_improves(state, u, goals, ignore):
+		return -1
+	# 一番前で塞いでいる駒＝拠点への地形距離が最小のもの。同値は盤上距離 → col → row。
+	var best := -1
+	var best_c := BattleState.UNREACHABLE
+	for id in in_range:
+		var e := state.unit_by_id(id)
+		var c := BattleState.UNREACHABLE
+		for g in goals:
+			c = mini(c, int(state.travel_cost_field(g, u.move_type, u.move)
+				.get(e.pos, BattleState.UNREACHABLE)))
+		if best < 0 or c < best_c \
+				or (c == best_c and _nearer_hex(u.pos, e.pos, state.unit_by_id(best).pos)):
+			best = id
+			best_c = c
+	return best
+
+## ignore の駒をどけると拠点への道が良くなるか。
+func _route_improves(state: BattleState, u: Unit, goals: Array[Vector2i], ignore: Dictionary) -> bool:
+	var before := state.min_cost_in(state.move_cost_field(u.id, u.pos), goals)
+	var after := state.min_cost_in(state.move_cost_field_without(u.id, u.pos, ignore), goals)
+	if after < before:
+		return true  # 体で道を塞いでいる（測れるようになった場合も含む）
+	var zoc_before := state.min_cost_in(state.detour_cost_field(u.id, u.pos), goals)
+	if zoc_before < BattleState.UNREACHABLE:
+		return false  # ZOCを避ける道が残っている＝足は止まっていない
+	return state.min_cost_in(state.detour_cost_field(u.id, u.pos, -1, ignore), goals) \
+		< BattleState.UNREACHABLE
 
 # --- 降ろす・乗る（doc/gdd/ai.md raid #4〜#6・輸送ユニット） ---
 
