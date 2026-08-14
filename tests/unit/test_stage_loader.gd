@@ -226,8 +226,8 @@ func test_no_carried_units_leaves_named_pieces_off_the_board() -> void:
 func test_roster_collect_returns_player_only() -> void:
 	# 名簿の収集＝自軍に帰属する名前つきの駒だけ返す（敵は含めない）。
 	var data := { "cols": 6, "rows": 4,
-		"player": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer", "join": true },
-			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight", "join": true }],
+		"player": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer", "supply": "join" },
+			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight", "supply": "join" }],
 		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1, "actor": "c.foe" }] }] }
 	var s := StageLoader.build(data, _carry_catalog())
 	var snaps := RosterService.collect(s)

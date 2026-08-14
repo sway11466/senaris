@@ -1177,7 +1177,7 @@ func _refresh_unit_box() -> void:
 	var u: Dictionary = hit["unit"] if not hit.is_empty() else {}
 	_add_actor_row(_unit_box, u)
 	if _mode == "player":
-		_add_join_row(_unit_box, u)
+		_add_supply_row(_unit_box, u)
 	if not u.is_empty():
 		_add_passenger_rows(_unit_box, u, _mode == "enemy", func() -> void:
 			_board.refresh()
@@ -1302,32 +1302,39 @@ func _add_actor_row(parent: VBoxContainer, u: Dictionary) -> void:
 		apply.call(_doc.free_actor(String(u.get("skin", u.get("type", ""))))))
 
 
-## 名簿への初登場(join)の行。自軍の駒にだけ出す（名簿は自軍のもの）。
-## off＝名簿から引く＝居なければ盤に出ない。on＝この盤で配給する＝クリアで名簿に載る。
+## 戦力供給(supply)の行。自軍の駒にだけ出す（名簿は自軍のもの）。
+## 省略＝名簿から引く＝居なければ盤に出ない。join＝この盤で配給する＝クリアで名簿に載る。
+## refill＝名簿から引いて兵数だけ満員に戻す。revive＝離脱者（兵力ゼロ）も満員で呼び戻す。
 ## 詳細 → doc/gdd/map.md 配置
-func _add_join_row(parent: VBoxContainer, u: Dictionary) -> void:
-	var check := CheckBox.new()
-	check.text = "この盤で初登場（配給する）"
-	check.button_pressed = bool(u.get("join", false))
-	check.disabled = u.is_empty()
-	check.tooltip_text = "オフ＝名簿から引く。まだ仲間になっていなければ、この駒は盤に出ない。\n" \
-		+ "オン＝この盤が配給する（初登場）。クリアで名簿に載る。\n" \
+func _add_supply_row(parent: VBoxContainer, u: Dictionary) -> void:
+	var keys := ["", "join", "refill", "revive"]
+	var displays := ["名簿から（そのまま）", "この盤で初登場（配給）", "名簿から＋兵を満タン", "離脱者も呼び戻す"]
+	var ob := _make_option()
+	for d in displays:
+		ob.add_item(d)
+	ob.select(maxi(keys.find(String(u.get("supply", ""))), 0))
+	ob.disabled = u.is_empty()
+	ob.tooltip_text = "名簿から（そのまま）＝前の盤の損耗・成長のまま出す。まだ仲間になっていなければ盤に出ない。\n" \
+		+ "この盤で初登場＝名簿を見ずに配給する。クリアで名簿に載る。\n" \
+		+ "兵を満タン＝成長はそのままで兵数だけ戻す（幕間の休息）。離脱者は戻らない。\n" \
+		+ "離脱者も呼び戻す＝兵力ゼロで抜けた仲間も満タンで戻す。\n" \
 		+ "アクター名の無い駒はいつも配給なので、この設定は要らない。"
-	parent.add_child(_labeled_row("継承", check))
-	if check.disabled:
+	parent.add_child(_labeled_row("継承", ob))
+	if ob.disabled:
 		return
-	check.toggled.connect(func(on: bool) -> void:
+	ob.item_selected.connect(func(i: int) -> void:
+		var key := String(keys[i])
 		var actor := String(u.get("actor", ""))
-		if on and actor == "":  # 名前の無い駒はもともと配給＝印を書いても意味が無い
+		if key != "" and actor == "":  # 名前の無い駒はもともと配給＝指定を書いても意味が無い
 			_say("アクター名の無い駒はいつも配給されます。先に名前を付けてください。")
-			check.set_pressed_no_signal(false)
+			ob.select(0)
 			return
-		if on:
-			u["join"] = true
-			_say("\"%s\" をこの盤の初登場にしました（名簿を見ずに配給）。" % actor)
+		if key == "":
+			u.erase("supply")
+			_say("\"%s\" を名簿から引くようにしました（未加入なら盤に出ません）。" % actor)
 		else:
-			u.erase("join")
-			_say("\"%s\" を名簿から引くようにしました（未加入なら盤に出ません）。" % actor))
+			u["supply"] = key
+			_say("\"%s\" の出し方を「%s」にしました。" % [actor, displays[i]]))
 
 
 # --- 「拠点」モードの編集UI（選択中の1つ） ---

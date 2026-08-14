@@ -25,7 +25,7 @@
     "................"
   ],
   "player": [
-    {"type": "pixie", "col": 6, "row": 13, "actor": "pixie", "join": true},
+    {"type": "pixie", "col": 6, "row": 13, "actor": "pixie", "supply": "join"},
     {"type": "vanguard", "col": 5, "row": 15, "actor": "vanguard"},
     {"type": "thief", "col": 4, "row": 15, "actor": "thief"},
     {"type": "hunter", "col": 6, "row": 15, "actor": "hunter"},

@@ -1,5 +1,5 @@
 extends GutTest
-## player の駒と名簿の突き合わせ（actor なし＝配給／join＝初登場／actor だけ＝名簿から）。
+## player の駒と名簿の突き合わせ（actor なし＝配給／actor だけ＝名簿から／supply＝join・refill・revive）。
 ## 仕様 → doc/gdd/map.md（配置）
 
 func _catalog() -> Dictionary:
@@ -47,9 +47,9 @@ func test_zero_troops_member_is_not_deployed() -> void:
 	assert_eq(_at(s, 2, 1).actor, "t3.elf")
 
 func test_join_supplies_a_fresh_unit() -> void:
-	# join＝名簿への初登場。名簿を見ずに配給する＝満員・Lv1 で出る。
+	# supply:"join"＝名簿への初登場。名簿を見ずに配給する＝満員・Lv1 で出る。
 	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
-		{ "type": "recruit", "col": 1, "row": 1, "actor": "t3.new", "join": true },
+		{ "type": "recruit", "col": 1, "row": 1, "actor": "t3.new", "supply": "join" },
 	] }, _catalog(), {}, [])
 	var u := _at(s, 1, 1)
 	assert_eq(u.actor, "t3.new", "名簿が空でも配給される")
@@ -60,9 +60,70 @@ func test_join_ignores_the_roster_snapshot() -> void:
 	# 既に名簿へ載っている actor に join を書いたら配給が勝つ（再挑戦で同じ初回を再現する）。
 	var carried: Array = [_member("elf", "t3.elf", 2)]
 	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
-		{ "type": "elf", "col": 1, "row": 1, "actor": "t3.elf", "join": true },
+		{ "type": "elf", "col": 1, "row": 1, "actor": "t3.elf", "supply": "join" },
 	] }, _catalog(), {}, carried)
 	assert_eq(_at(s, 1, 1).troops, 8, "名簿の損耗を引き継がない")
+
+func test_refill_tops_up_troops_but_keeps_growth() -> void:
+	# supply:"refill"＝幕間の補充。兵数だけ満員へ戻し、Lv（成長）は名簿のまま。
+	var member := _member("elf", "t3.elf", 3)
+	member["level"] = 4
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "t3.elf", "supply": "refill" },
+	] }, _catalog(), {}, [member])
+	var u := _at(s, 1, 1)
+	assert_eq(u.troops, 8, "兵数は満員へ戻る")
+	assert_eq(u.level, 4, "レベルは名簿のまま＝成長は消えない")
+
+func test_refill_uses_the_new_max_when_the_stage_changes_type() -> void:
+	# 満員値は駒の max_troops＝ステージ側で type を変えていれば新しい型のもの。
+	var carried: Array = [_member("elf", "t3.elf", 3)]
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.elf", "supply": "refill" },
+	] }, _catalog(), {}, carried)
+	assert_eq(_at(s, 1, 1).troops, 6, "knight の満員値まで")
+
+func test_refill_does_not_recall_a_lost_member() -> void:
+	# 兵力ゼロの離脱者は refill では戻らない（戦線離脱は回復手段に届かない）。
+	var carried: Array = [_member("knight", "t3.van", 0)]
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "t3.van", "supply": "refill" },
+	] }, _catalog(), {}, carried)
+	assert_null(_at(s, 1, 1), "離脱者は盤に出ない")
+
+func test_revive_recalls_a_lost_member_at_full_strength() -> void:
+	# supply:"revive"＝離脱した隊が戦線に戻る。在籍者だけが対象。
+	var member := _member("knight", "t3.van", 0)
+	member["level"] = 3
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "t3.van", "supply": "revive" },
+	] }, _catalog(), {}, [member])
+	var u := _at(s, 1, 1)
+	assert_eq(u.troops, 8, "満員で戻る")
+	assert_eq(u.level, 3, "レベルは名簿のまま")
+
+func test_revive_does_not_summon_a_non_member() -> void:
+	# 名簿に居ない actor は revive でも湧かない（勧誘し損ねた仲間はそこに出ない）。
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "type": "elf", "col": 1, "row": 1, "actor": "t3.elf", "supply": "revive" },
+	] }, _catalog(), {}, [])
+	assert_null(_at(s, 1, 1), "未加入の駒は出ない")
+
+func test_unknown_supply_falls_back_to_the_roster() -> void:
+	var carried: Array = [_member("elf", "t3.elf", 3)]
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "t3.elf", "supply": "heal" },
+	] }, _catalog(), {}, carried)
+	assert_push_warning("未知の supply")
+	assert_eq(_at(s, 1, 1).troops, 3, "名簿の損耗のまま出す")
+
+func test_legacy_join_key_warns() -> void:
+	# 旧キーを黙って無視すると駒が盤から消えて気づけない＝警告を出す。
+	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [
+		{ "type": "recruit", "col": 1, "row": 1, "actor": "t3.new", "join": true },
+	] }, _catalog(), {}, [])
+	assert_push_warning("'join' は廃止")
+	assert_null(_at(s, 1, 1), "名簿に居ないので出ない（配給されない）")
 
 func test_anonymous_pieces_are_always_supplied() -> void:
 	# actor の無い駒（バリケードのような配給品）は名簿と無関係にそのステージが用意する。

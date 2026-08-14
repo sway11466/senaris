@@ -22,6 +22,13 @@ const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
 const EVENT_KEYS := ["type", "team", "turn", "label", "units", "dialogue", "focus"]
 
+## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/map.md 配置
+const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
+const SUPPLY_JOIN := "join"       # 名簿を見ずに配給（初登場）＝Lv も兵数も初期値
+const SUPPLY_REFILL := "refill"   # 名簿から出すが兵数は満員へ（Lv は名簿のまま）
+const SUPPLY_REVIVE := "revive"   # refill に加えて、兵力ゼロの離脱者も満員で呼び戻す
+const SUPPLY_VALUES := [SUPPLY_JOIN, SUPPLY_REFILL, SUPPLY_REVIVE]
+
 ## 陣営値を int に解決する。キー省略（null）は default_team、未知の表記は警告して default_team。
 static func _parse_team(value: Variant, default_team: int) -> int:
 	if value == null:
@@ -251,9 +258,11 @@ static func load_bgm(path: String) -> Dictionary:
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
 ##
 ## carried（名簿）との突き合わせ＝戦力供給モデル。詳細 → doc/gdd/map.md 配置
-##   actor なし         → 配給。そのステージ限りの駒（名簿に載らない）
-##   actor ＋ join:true → 配給。名簿は見ない＝初登場（クリア時に名簿へ載る）
-##   actor だけ         → 名簿から引く。居ない／兵力ゼロなら盤に出さない（その位置は空のまま）
+##   actor なし              → 配給。そのステージ限りの駒（名簿に載らない）
+##   actor だけ              → 名簿から引く。居ない／兵力ゼロなら盤に出さない（その位置は空のまま）
+##   supply:"join"           → 配給。名簿は見ない＝初登場（クリア時に名簿へ載る）
+##   supply:"refill"         → 名簿から引き、兵数だけ満員へ（Lv は名簿のまま）。離脱者は出さない
+##   supply:"revive"         → refill に加えて兵力ゼロの離脱者も満員で出す
 ## 出さなかった駒は id を消費しない（採番は盤に乗った駒の順）。
 static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}, carried: Array = []) -> int:
 	if typeof(units) != TYPE_ARRAY:
@@ -284,20 +293,32 @@ static func _roster_by_actor(carried: Array) -> Dictionary:
 static func _resolve_player_unit(u: Dictionary, catalog: Dictionary, id: int, team: int,
 		skin_catalog: Dictionary, by_actor: Dictionary) -> Unit:
 	var actor := String(u.get("actor", ""))
-	if actor == "" or bool(u.get("join", false)):
+	var supply := _parse_supply(u)
+	if actor == "" or supply == SUPPLY_JOIN:
 		return _make_unit(u, catalog, id, team, skin_catalog)  # 配給（ステージが戦力を用意する）
 	if not by_actor.has(actor):
 		return null  # 未加入／まだ登場していない＝勝手に湧かせない
 	var snap: Dictionary = by_actor[actor]
-	if int(snap.get("troops", 0)) <= 0:
+	if int(snap.get("troops", 0)) <= 0 and supply != SUPPLY_REVIVE:
 		return null  # 兵力ゼロの離脱者は名簿に在籍したまま出撃しない（会話には出る）
-	return _make_carried_unit(u, snap, catalog, id, skin_catalog)
+	return _make_carried_unit(u, snap, catalog, id, skin_catalog, supply != SUPPLY_CARRY)
+
+## 駒の "supply" を解決する。未知の値は警告して省略扱い（名簿のまま持ち越す）。
+static func _parse_supply(u: Dictionary) -> String:
+	if u.has("join"):  # 旧キー。黙って無視すると駒が盤から消えて気づけない
+		push_warning("StageLoader: 'join' は廃止＝\"supply\": \"join\" に書き換える（doc/gdd/map.md 配置）")
+	var supply := String(u.get("supply", SUPPLY_CARRY))
+	if supply == SUPPLY_CARRY or SUPPLY_VALUES.has(supply):
+		return supply
+	push_warning("StageLoader: 未知の supply '%s'（join/refill/revive のいずれか）＝名簿のまま出す" % supply)
+	return SUPPLY_CARRY
 
 ## 名簿のスナップショットから継承の駒を作る。性能（type/skin）はステージJSONが優先で、省けば名簿から引く。
-## 個体の状態（level/troops/max_troops）は名簿が持つ＝ステージ側に書いても効かない。
+## 個体の状態（level/troops/max_troops）は名簿が持つ＝ステージ側に数値を書いても効かない。
 ## 名簿はプレイヤーの手元にあるセーブなので、性能の出どころはステージ側に置く。
+## refill＝兵数だけ満員へ戻す（supply: refill/revive）。Lv は名簿のまま＝成長は消えない。
 static func _make_carried_unit(u: Dictionary, snap: Dictionary, catalog: Dictionary, id: int,
-		skin_catalog: Dictionary) -> Unit:
+		skin_catalog: Dictionary, refill: bool = false) -> Unit:
 	if u.has("troops") or u.has("level"):
 		push_warning("StageLoader: 継承の駒 '%s' の troops/level はステージ側では効かない（名簿が持つ）"
 			% String(snap.get("actor", "")))
@@ -317,6 +338,8 @@ static func _make_carried_unit(u: Dictionary, snap: Dictionary, catalog: Diction
 		push_warning("StageLoader: 継承ユニットの未知 type '%s'＝既定性能で配置" % final_type)
 	elif final_type != String(snap.get("type", "")):
 		merged["max_troops"] = t.max_troops  # 型が変われば満員値も新しい型のもの（損耗 troops は名簿のまま）
+	if refill:
+		merged["troops"] = int(merged.get("max_troops", 8))  # 幕間の補充・離脱者の復帰＝満員で出す
 	var unit := Unit.from_dict(merged, t)
 	unit.id = id
 	unit.team = 0  # 継承は自軍
