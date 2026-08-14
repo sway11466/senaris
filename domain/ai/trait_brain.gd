@@ -418,6 +418,8 @@ func _capture_row(state: BattleState, u: Unit) -> AiAction:
 	for b in state.bases():
 		if b.team == u.team or b.hex == u.pos or not (b.hex in reach):
 			continue  # 自陣営の拠点は対象外（敵・中立を取る）。すでに乗っているマスは動く先にならない
+		if state.unit_at(b.hex) != null:
+			continue  # 味方輸送が拠点に乗っている＝そこへ動くと占領ではなく乗車になる
 		if best == NO_HEX or _nearer_hex(u.pos, b.hex, best):
 			best = b.hex
 	return AiAction.move_to(u.id, best) if best != NO_HEX else null
@@ -486,10 +488,11 @@ func _unload_move_row(state: BattleState, u: Unit) -> AiAction:
 	var goals := _hostile_base_hexes(state, u)
 	if list.is_empty() or goals.is_empty() or not _can_advance(state, u):
 		return null
+	var forbidden := _forbidden_cells(state, u)  # 目的地hexに乗らない＝降ろすための移動でも同じ
 	var best := NO_HEX
 	var best_d := 1 << 30
 	for h in state.reachable(u.id):
-		if h == u.pos or state.unit_at(h) != null:
+		if h == u.pos or forbidden.has(h) or state.unit_at(h) != null:
 			continue
 		for b in goals:
 			var d := Hex.distance(h, b)
@@ -611,8 +614,8 @@ func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array)
 	var best := u.pos
 	var best_c := _advance_score(field, goals, u.pos)
 	for h in state.reachable(u.id):
-		if forbidden.has(h):
-			continue
+		if forbidden.has(h) or state.unit_at(h) != null:
+			continue  # 駒の居るマス＝乗れる味方輸送。前進で踏むと乗るつもりのない乗車になる
 		var c := _advance_score(field, goals, h)
 		if c < best_c or (c == best_c and best != u.pos and _is_younger_hex(h, best)):
 			best = h
@@ -626,8 +629,8 @@ func _advance_straight(state: BattleState, u: Unit, goal: Vector2i) -> AiAction:
 	var best := u.pos
 	var best_d := Hex.distance(u.pos, goal)
 	for h in state.reachable(u.id):
-		if forbidden.has(h):
-			continue
+		if forbidden.has(h) or state.unit_at(h) != null:
+			continue  # 前進では味方輸送のマスに止まらない（乗るかどうかは乗る行が決める）
 		var d := Hex.distance(h, goal)
 		if d < best_d or (d == best_d and best != u.pos and _is_younger_hex(h, best)):
 			best = h

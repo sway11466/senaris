@@ -225,6 +225,33 @@ func test_keeps_a_passenger_that_cannot_reach_the_base() -> void:
 	assert_true(a == null or a.kind != AiAction.Kind.UNLOAD, "崖の拠点には降ろさない")
 	assert_eq(s.passengers(10).size(), 1, "乗せたまま")
 
+func test_carrying_transport_also_stops_short_of_the_base_hex() -> void:
+	# 降ろすための移動でも拠点hexには乗らない（拠点に乗ると乗員を拠点へ降ろせなくなる）。
+	var s := _state()
+	var si := _squad(s, "raid")
+	_wagon(s, si, 10, 5, 2)
+	_passenger(s, 10, 20)
+	var base_hex := _hex(9, 2)
+	s.add_base(Base.new(base_hex, 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_ne(a.to, base_hex, "拠点hexには乗らない")
+	assert_eq(Hex.distance(a.to, base_hex), 1, "拠点の隣まで寄る")
+
+func test_capture_row_does_not_board_a_transport_sitting_on_the_base() -> void:
+	# 拠点hexに味方輸送が居ると、そのマスは「乗れる輸送のマス」として移動範囲に入る。
+	# 占領の行がそれを拠点への進入と取り違えると、占領のつもりで乗車してしまう。
+	var s := _state()
+	var si := _squad(s, "raid")
+	var base_hex := _hex(9, 2)
+	_wagon(s, si, 10, 9, 2)  # 拠点の上に居る輸送（ステージデータで置かれた場合）
+	var cleric := _ai(s, si, 11, 8, 2, 2)
+	cleric.can_capture = true
+	s.add_base(Base.new(base_hex, 0))
+	assert_true(s.reachable(11).has(base_hex), "乗れる輸送のマス＝移動範囲には入る")
+	var a := _brain.next_action(s, 1)
+	assert_true(a == null or a.to != base_hex, "占領のつもりで乗車しない")
+
 func test_does_not_unload_a_non_capturer_onto_the_base_hex() -> void:
 	# 占領できない駒を拠点hexへ降ろしても占領は起きず、拠点を塞ぐだけ。
 	var s := _state()
