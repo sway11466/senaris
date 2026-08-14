@@ -3,6 +3,7 @@ class_name ConversationPanel
 ## ステージ前後の会話（チャット風）。右エリアに顔＋ふきだしを上から積み、
 ## 「次へ」で1行ずつ追加、「会話をスキップ」で丸ごと飛ばす。presentation 専用（盤面に触れない・案P）。
 ## 話者は左右交互で出す。セリフ/話者名は翻訳キー＝tr() で解決（i18n・正本 data/i18n/dialogue.csv）。
+## 話者のいない行（効果音・ト書き）も1行として挟める＝顔を出さず中央に文字だけ、`sfx` があればその音を鳴らす。
 ## 詳細 → doc/campaign/authoring.md
 ##
 ## 顔は UnitSkin の portrait スロット（未用意は名前2文字のプレースホルダ）。
@@ -14,11 +15,15 @@ const COLOR_BUBBLE_L := Color(0.22, 0.25, 0.31)  # 左（相手側）の吹き�
 const COLOR_BUBBLE_R := Color(0.17, 0.33, 0.29)  # 右の吹き出し（色で左右を区別）
 const COLOR_FACE_BG := Color(0.28, 0.32, 0.40)
 const COLOR_NAME := Color(0.75, 0.82, 0.92)
+const COLOR_NARRATION := Color(0.72, 0.70, 0.62)  # 話者のいない行（効果音・ト書き）。話者より落として地の文に見せる
 const BUBBLE_RATIO := 6.0   # 吹き出しと余白の幅比（余白を詰めて吹き出しを広めに）
+const NARRATION_FONT_SIZE := 22    # 擬音は大きく出す（音そのものの大きさを字で見せる）
+const NARRATION_MARGIN := 18       # 上下に1行ぶんの空き＝前後の吹き出しから離して間を作る
 
 var _skins := {}
 var _lines: Array = []
 var _shown := 0
+var _speakers := 0  # 話者のいる行だけを数える＝左右交互の順番（効果音の行を挟んでも左右が入れ替わらない）
 var _finish_label := "閉じる"
 var _scroll: ScrollContainer
 var _messages: VBoxContainer
@@ -66,11 +71,13 @@ func bind(skin_catalog: Dictionary) -> void:
 	_skins = skin_catalog
 
 ## 会話を開始。lines＝[{ speaker, skin, text }]（speaker/text は翻訳キー）。
+## 話者のいない行 { text, sfx } は効果音・ト書き（顔も名前も出さず中央に文字だけ）。
 ## finish_label＝最後の1行を読んだ後のボタン文言（intro="戦闘開始" / outro="閉じる" 等）。
 func start(lines: Array, finish_label: String) -> void:
 	_lines = lines
 	_finish_label = finish_label
 	_shown = 0
+	_speakers = 0
 	for c in _messages.get_children():
 		c.queue_free()
 	show()
@@ -79,12 +86,39 @@ func start(lines: Array, finish_label: String) -> void:
 		return
 	_reveal_next()
 
+## 次の1行を出す。行の作りで見た目と音が決まる。
+## - speaker あり＝顔＋吹き出し（左右交互）
+## - speaker なし・text あり＝中央に文字だけ（効果音・ト書き）
+## - sfx あり＝その行が出るときにその音を鳴らす（文字送り音の代わり）
+## 表示するものが何も無い行（sfx だけ）は「次へ」を消費させず、続けて次の行まで進める。
 func _reveal_next() -> void:
-	_add_message(_lines[_shown], _shown)
-	SfxPlayer.play_event("map_talk")
-	_shown += 1
+	while _shown < _lines.size():
+		var line := _line_at(_shown)
+		_shown += 1
+		var shown_here := true
+		if line.has("speaker"):
+			_add_message(line, _speakers)
+			_speakers += 1
+		elif String(line.get("text", "")) != "":
+			_add_narration(line)
+		else:
+			shown_here = false
+		var sfx := String(line.get("sfx", ""))
+		if sfx != "":
+			SfxPlayer.play_sfx(sfx)  # 効果音の行＝文字送り音は鳴らさない（音が重ならないように）
+		elif shown_here:
+			SfxPlayer.play_event("map_talk")
+		if shown_here:
+			break
 	_next_btn.text = _finish_label if _shown >= _lines.size() else "次へ ▶"
 	_scroll_to_last()
+
+## 台本の1行。辞書でなければ空辞書に倒す（壊れたデータで会話を止めない）。
+func _line_at(index: int) -> Dictionary:
+	var v: Variant = _lines[index]
+	if typeof(v) != TYPE_DICTIONARY:
+		return {}
+	return v
 
 ## 追加した行が見えるところまでスクロールする。
 ## 追加直後は行の高さがまだ決まっておらず（Container の再整列は次のレイアウトパス）、その時点の
@@ -147,6 +181,24 @@ func _add_message(line: Dictionary, index: int) -> void:
 		row.add_child(bubble)
 		row.add_child(gap)
 	_messages.add_child(row)
+
+## 話者のいない行＝効果音・ト書き。顔も名前も吹き出しも出さず、幅いっぱいの中央寄せで文字だけを置く。
+## 誰かの発言ではないので吹き出しを与えない（左右のどちらに寄せても話者に見えてしまう）。
+## 大きめの字＋上下1行ぶんの空きで、掛け合いの流れを断つ出来事として立てる。
+func _add_narration(line: Dictionary) -> void:
+	var mc := MarginContainer.new()
+	mc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mc.add_theme_constant_override("margin_top", NARRATION_MARGIN)
+	mc.add_theme_constant_override("margin_bottom", NARRATION_MARGIN)
+	var lbl := Label.new()
+	lbl.text = tr(String(line.get("text", "")))
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", NARRATION_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", COLOR_NARRATION)
+	mc.add_child(lbl)
+	_messages.add_child(mc)
 
 ## 吹き出しのしっぽ（三角）。バルーンの顔側の縁に付け、顔の方向を指す。色はバルーンと同じ。
 ## MarginContainer の上マージンで少し下げる（名前の下＝本文あたりに付く）。

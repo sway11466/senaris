@@ -2,54 +2,63 @@
   "turn_limit": 30,
   "name": "tutorial3-st1",
   "cols": 13,
-  "rows": 14,
+  "rows": 20,
   "margin": 1,
   "terrain": [
-    "...............",
-    "...F...L.......",
-    "....F..L....FF.",
-    ".......L..F....",
-    "..F....L.......",
-    "....*..L...F...",
-    ".......L.......",
-    "...F...L...*...",
-    ".......L.......",
-    ".....F.L..F....",
-    ".......L.......",
-    "...FF..L.......",
-    ".......L...F...",
-    "..F....L.......",
-    "....F..L..FF...",
-    "..............."
+    "......LLL......",
+    "......LLL......",
+    "......LLL......",
+    "......LLL.....*",
+    "..FFF.LLL...***",
+    "..FFF.LLL..****",
+    "...F..LLL..****",
+    "......LLL..****",
+    "......LLL..****",
+    ".FF...LLL....**",
+    ".FFFF.LLL......",
+    ".FFFF.LLL.F....",
+    ".FFFF.LLL.FF...",
+    ".FFFF.LLL..F..R",
+    ".FFFF.LLL...RRR",
+    ".FFF..LLL.RRRR.",
+    ".F....LLBRRR...",
+    "......BBBR.....",
+    "....RRBBL......",
+    "..RRRRLLL......",
+    "RRRR..LLL......",
+    "RR....LLL......"
   ],
   "player": [
-    { "type": "wizard", "actor": "wizard", "col": 4, "row": 13 },
-    { "type": "hunter", "actor": "hunter", "col": 5, "row": 13 },
-    { "type": "bishop", "actor": "bishop", "col": 6, "row": 13 },
-    { "type": "vanguard", "actor": "vanguard", "col": 5, "row": 12 },
-    { "type": "thief", "actor": "thief", "col": 6, "row": 12 },
-    { "type": "fighter", "actor": "fighter", "col": 5, "row": 7 },
-    { "type": "halfling", "actor": "halfling", "col": 6, "row": 7 },
-    { "type": "archer", "actor": "archer", "col": 5, "row": 8 },
-    { "type": "cleric", "actor": "cleric", "col": 6, "row": 8 },
-    { "type": "mage", "actor": "mage", "col": 4, "row": 8 }
+    { "type": "wizard", "actor": "wizard", "col": 7, "row": 17 },
+    { "type": "hunter", "actor": "hunter", "col": 5, "row": 17 },
+    { "type": "bishop", "actor": "bishop", "col": 6, "row": 18 },
+    { "type": "vanguard", "actor": "vanguard", "col": 6, "row": 17 },
+    { "type": "thief", "actor": "thief", "col": 7, "row": 16 },
+    { "type": "fighter", "actor": "fighter", "col": 8, "row": 8 },
+    { "type": "halfling", "actor": "halfling", "col": 7, "row": 8 },
+    { "type": "archer", "actor": "archer", "col": 9, "row": 9 },
+    { "type": "cleric", "actor": "cleric", "col": 8, "row": 10 },
+    { "type": "mage", "actor": "mage", "col": 8, "row": 9 }
   ],
   "enemy": [
-    { "order": 1, "name": "空の魔獣", "ai": "charge",
+    { "order": 2, "name": "グリフォン隊", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 7, "row": 6 },
-        { "skin": "griffon", "col": 5, "row": 9 }
+        { "skin": "griffon", "col": 2, "row": 1 },
+        { "skin": "griffon", "col": 1, "row": 1 }
       ] },
-    { "order": 2, "name": "オークの群れ", "ai": "charge",
+    { "order": 1, "name": "オーク隊", "ai": "charge",
       "units": [
-        { "skin": "orc", "col": 6, "row": 1 },
-        { "skin": "orc", "col": 5, "row": 2 },
-        { "skin": "orc", "col": 7, "row": 2 }
+        { "skin": "orc", "col": 10, "row": 4 },
+        { "skin": "orc", "col": 11, "row": 6 },
+        { "skin": "orc", "col": 8, "row": 7 }
       ] }
   ],
   "dialogue": {
     "intro": [
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.intro.1" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st1.intro.9" },
+      { "text": "t3.st1.intro.10", "sfx": "slash_m" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st1.intro.11" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st1.intro.2" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st1.intro.3" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.intro.4" },
@@ -67,9 +76,7 @@
       { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st1.outro.10" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st1.outro.11" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.6" },
-      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st1.outro.7" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st1.outro.8" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st1.outro.9" }
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st1.outro.7" }
     ]
   },
   "bgm": { "main": "journey" }
