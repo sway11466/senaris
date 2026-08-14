@@ -98,7 +98,7 @@
 				},
 				{
 					"category": "魔獣",
-					"combat_effect": "",
+					"combat_effect": "claw",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
