@@ -3,7 +3,7 @@
 盤と同じカメラ（俯角52度・画角42度＝board_camera.gd）で7ヘックスを投影し、
 中央ヘックスの中心に剣を刺し、その下に SENARIS を置く。
 
-起動スプラッシュ版はロゴの下に開発元名を足し、ピクセル寸法を焼いて書き出す
+起動スプラッシュ版はロゴの右下に開発元名を小さく足し、ピクセル寸法を焼いて書き出す
 （地の色は焼かない＝project.godot の boot_splash/bg_color が持つ）。
 """
 import math
@@ -35,9 +35,10 @@ WORD_W = 1200.0
 OVERLAP = 0.70
 
 DEV_WORD = "craftkobo"  # 開発元名（起動スプラッシュだけに載る）
-DEV_TRACK = 0.30
-DEV_W = 340.0        # 開発元名の幅（ロゴ単位）。ロゴ幅の 1/4 強
-DEV_GAP = 72.0       # SENARIS の下端から開発元名のベースラインまで（ロゴ単位）
+DEV_TRACK = 0.20
+DEV_W = 200.0        # 開発元名の幅（ロゴ単位）。ロゴ幅の 1/6 で、副題に見えない大きさ
+DEV_GAP = 48.0       # SENARIS の下端から開発元名のベースラインまで（ロゴ単位）
+DEV_INSET = 10.0     # 右端の微調整。字送り幅ではなく字の見た目の右端を S にそろえる分
 SPLASH_PX_W = 760.0  # スプラッシュ PNG の横幅（px）。1280x720 のウィンドウで約6割
 
 FONT_PATH = "assets/promo-src/logo/fonts/EBGaramond-variable.ttf"
@@ -52,7 +53,7 @@ CENTERS = [
 
 PALETTE = {
     "dark": dict(ramp=((0x6E, 0x92, 0xB8), (0x8A, 0x8A, 0x96), (0xC0, 0x5A, 0x62)),
-                 steel="#d2d8de", ink="#e8ecf0", dev="#8b95a1"),
+                 steel="#d2d8de", ink="#e8ecf0", dev="#6d7784"),
     "light": dict(ramp=((0xAB, 0xBE, 0xD1), (0xBE, 0xBE, 0xC6), (0xDA, 0xAF, 0xB3)),
                   steel="#586270", ink="#333942", dev="#6b7482"),
     # 単色版（白1色・黒1色）は用途が見当たらないため生成していない。
@@ -153,10 +154,11 @@ def glyph_paths(word, target_w, track, align_to=None):
     return items, scale, cap * scale, dx
 
 
-def wordmark(gid, items, scale, target_w, baseline, fill):
-    """パス化した語を、中央そろえ・指定のベースラインに置く。"""
+def wordmark(gid, items, scale, target_w, baseline, fill, left=None):
+    """パス化した語を、指定のベースラインに置く。left 省略で中央そろえ。"""
+    x = -target_w / 2.0 if left is None else left
     out = ['<g id="%s" transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="%s">'
-           % (gid, -target_w / 2.0, baseline, scale, -scale, fill)]
+           % (gid, x, baseline, scale, -scale, fill)]
     for cmds, ox in items:
         out.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
     out.append("</g>")
@@ -218,7 +220,9 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None):
     parts.append("</g>")
     parts += wordmark("wordmark", glyphs, gscale, WORD_W, word_bottom, flat or pal["ink"])
     if dev:
-        parts += wordmark("devname", dev_glyphs, dscale, DEV_W, dev_baseline, flat or pal["dev"])
+        # ロゴの右下に寄せる（右端を SENARIS の右端にそろえる）。中央に置くと副題に見える。
+        parts += wordmark("devname", dev_glyphs, dscale, DEV_W, dev_baseline, flat or pal["dev"],
+                          left=WORD_W / 2.0 - DEV_W - DEV_INSET)
 
     w, h = vb[2], vb[3]
     if px_w:

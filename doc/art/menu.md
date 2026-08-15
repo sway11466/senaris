@@ -93,7 +93,9 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 
 ## 6. 起動スプラッシュ
 
-エンジンが最初のシーンより前に出す静止画。ロゴ（暗背景版）の下に開発元名 `craftkobo` を小さく置いた1枚で、絵は足さない。ロゴの方針は [promo.md](promo.md) §1 が正本。
+エンジンが最初のシーンより前に出す静止画。ロゴ（暗背景版）の右下に開発元名 `craftkobo` を小さく添えた1枚で、絵は足さない。ロゴの方針は [promo.md](promo.md) §1 が正本。
+
+開発元名は控えめに。中央そろえで下に置くと副題に見えるので、右端を SENARIS の右端（字送り幅ではなく字の見た目の端）にそろえ、幅はロゴの 1/6、色も一段沈める。
 
 地の色は画像に焼かず `project.godot` の `boot_splash/bg_color` が持つ＝画像は透過。値は `#0d1925` で、[keyvisual.md](keyvisual.md) 系の扉の絵（`assets/menu/door.png`）の暗部を測った色（夜空 `#0d1929`／陰った石壁 `#0d1925`／石畳の影 `#0f1822`、いずれも輝度23前後）。画面が扉に切り替わったときに明るさが跳ねない。
 
@@ -102,7 +104,7 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 | 段階 | 置き場 | 例 |
 |---|---|---|
 | ① 作業元（SVG） | `assets/menu-src/splash/splash.svg` | `build_logo.py` の出力 |
-| ② ゲーム用 | `assets/menu/splash.png` | 760×447・透過 |
+| ② ゲーム用 | `assets/menu/splash.png` | 760×433・透過 |
 
 - 生成AIを使わないので、他のメニュー資産と違って段階名（`_01_raw` ほか）と `_prompt.txt` は無い。
 - ②は材質ではないので `tavern_theme.gd` の autowire は拾わない（スロット名で引くため）。読むのはエンジン本体。
