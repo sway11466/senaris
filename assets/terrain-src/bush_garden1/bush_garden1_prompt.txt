@@ -1,0 +1,50 @@
+STYLE: A map tile object for a fantasy tactics game, in the same clean stylized
+cel-shaded look as the game's terrain and unit art: bold flat shading, clear
+dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game, seen from DIRECTLY OVERHEAD — a flat lay with NO perspective,
+NO isometric or three-quarter view, no horizon, no sky, no depth, nothing
+standing up and nothing leaning towards the viewer. Read at thumbnail size: a
+few large legible shapes, no fine detail. Square 1:1.
+
+SUBJECT: ONE rectangular raised vegetable bed — a plot of garden soil boxed in
+by low wooden planks — seen from straight above, sitting alone on a plain white
+background so that it can be cut out and laid over the game's own ground.
+
+SIZE AND PLACEMENT — the bed is a single landscape rectangle in the MIDDLE of
+the picture. In a 1024-pixel picture it is about 660 pixels wide and 500 pixels
+tall, leaving about 180 pixels of white to its left and right and about 260
+pixels of white above and below. It must NOT touch any edge and must NOT be cut
+by any edge. There is exactly ONE bed: no second plot, no row of plots, no path,
+no plants outside the frame of the bed.
+
+THE FRAME — four straight wooden boards laid on edge around the plot, seen from
+directly above, so the frame reads as a rectangular band about 40 pixels thick
+in a 1024-pixel picture. Weathered mid-brown timber, hex #7A5C3C, with the grain
+running along each board. Square corners, straight sides. NO posts sticking up,
+NO fence, NO trellis, NO gate, NO label or sign.
+
+INSIDE THE BED — dark turned soil, hex #4E3B2A, with THREE or FOUR low ridges
+running the long way across the plot, evenly spaced and parallel. Along the crest
+of each ridge sits a row of small leafy vegetables — cabbages, onion tops,
+carrot tops, bean leaves — one kind per ridge and a different kind from the
+ridge beside it, each plant about 45 pixels across in a 1024-pixel picture, set
+along the row with small irregular gaps. The plants are a muted mid green, hex
+#7E9660. Some bare soil shows at the ends of the rows. Do NOT draw fruit,
+flowers, tall stalks, stakes, trellises, poles or vines.
+
+THE BACKGROUND — everything outside the wooden frame is PURE FLAT WHITE,
+#FFFFFF, with NO texture, NO shading, NO gradient, NO speckles, NO grey, NO
+grass, NO soil, NO drop shadow. This white is going to be deleted, so the
+outside of the frame must be a hard, clean, crisp edge against it. Nothing in
+the bed itself may be white, near-white or pale.
+
+NO SHADOWS — the bed casts nothing onto the white, and there is NO light
+direction in this picture at all. This tile gets rotated and mirrored when it is
+laid on the map, so a baked light direction would end up pointing several
+different ways across the board.
+
+Nothing else: no scarecrow, no tools, no baskets, no watering can, no well, no
+water, no people, no animals, no buildings, no stones, no signboards, no
+lettering. NO border, NO frame around the picture itself, NO vignette, NO
+caption, NO logo.
