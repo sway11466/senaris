@@ -84,6 +84,57 @@ func test_world_per_pixel_scales_with_dist() -> void:
 	var wpp2 := cam.world_per_pixel()
 	assert_true(wpp2 > wpp1, "距離が遠いほど大きい")
 
+# --- focus_dest（AIターンの追従の行き先）---
+
+## 追従の可視域（HUD を避けた矩形の代用）。
+func _vis() -> Rect2:
+	var vp := cam.get_viewport().get_visible_rect().size
+	return Rect2(16.0, 64.0, vp.x - 32.0, vp.y - 96.0)
+
+## dest へ動かしたとき world_pos が可視域に入るか。
+func _visible_after(world_pos: Vector3, dest: Vector3) -> bool:
+	cam.target = dest
+	cam.update_rig()
+	if cam.camera.is_position_behind(world_pos):
+		return false
+	return _vis().has_point(cam.camera.unproject_position(world_pos))
+
+func test_focus_dest_ignores_unit_in_safe_area() -> void:
+	# 注視点の真上＝画面中央。安全域の内側なので動かさない（デッドゾーン）。
+	assert_eq(cam.focus_dest(Vector3.ZERO, _vis()), cam.target, "見えている主体は追わない")
+
+func test_focus_dest_pulls_in_far_unit() -> void:
+	# 画面の上（奥）へ大きく外れた主体。1回のパンで可視域に入る。
+	var p := Vector3(0.0, 0.0, -40.0)
+	assert_true(_visible_after(p, cam.focus_dest(p, _vis())), "奥に外れた主体が可視域に入る")
+
+func test_focus_dest_near_unit_does_not_overshoot() -> void:
+	# 画面の下（手前）へ外れた主体。px 差分の線形近似だとここで数十倍に飛んで盤の外に出た。
+	var p := Vector3(0.0, 0.0, 25.0)
+	var dest := cam.focus_dest(p, _vis())
+	assert_almost_eq(dest.z, p.z, cam.dist, "手前の主体でも行き過ぎない")
+	assert_true(_visible_after(p, dest), "手前に外れた主体が可視域に入る")
+
+func test_focus_dest_recovers_unit_behind_camera() -> void:
+	# カメラの背後（＝一度通り越した状態）からも引き戻せる。
+	var p := Vector3(0.0, 0.0, 40.0)
+	assert_true(cam.camera.is_position_behind(p), "前提：この点は背後にある")
+	assert_true(_visible_after(p, cam.focus_dest(p, _vis())), "背後の主体も可視域に戻す")
+
+func test_focus_dest_keeps_only_out_of_range_axis() -> void:
+	# 横にだけ外れた主体は、縦の見え方（画面上のy）を保ったまま寄せる。
+	var p := Vector3(30.0, 0.0, 0.0)
+	var before := cam.camera.unproject_position(p).y
+	cam.target = cam.focus_dest(p, _vis())
+	cam.update_rig()
+	assert_almost_eq(cam.camera.unproject_position(p).y, before, 8.0, "縦の見え方は変えない")
+
+func test_focus_dest_clamped_to_board_bounds() -> void:
+	# 盤の外へは出さない（保険）。
+	cam.set_focus_bounds(Vector2(-10.0, -10.0), Vector2(10.0, 10.0), 2.0)
+	var dest := cam.focus_dest(Vector3(0.0, 0.0, 200.0), _vis())
+	assert_almost_eq(dest.z, 12.0, 0.001, "盤の範囲＋余白で止まる")
+
 # --- shake ---
 
 func test_shake_does_not_crash() -> void:

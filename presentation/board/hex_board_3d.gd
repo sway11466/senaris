@@ -282,6 +282,23 @@ func _handle_camera_scroll(event: InputEvent) -> bool:
 func fit_to_view() -> void:
 	if state == null:
 		return
+	var b := _board_bounds()
+	if b.size.x < 0.0:
+		return
+	_board_cam.fit_to_bounds(b.position, b.end, TILE, _vis_rect())
+
+## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
+## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
+func focus_camera_on(hex: Vector2i) -> void:
+	if state == null:
+		return
+	var b := _board_bounds()
+	if b.size.x >= 0.0:
+		_board_cam.set_focus_bounds(b.position, b.end, TILE * 2.0)
+	await _board_cam.focus_on(_hex_world(hex), _vis_rect())
+
+## 盤の外周をピクセル座標（＝ワールド xz）の矩形で返す。盤が空なら size が負。
+func _board_bounds() -> Rect2:
 	var mn := Vector2(INF, INF)
 	var mx := Vector2(-INF, -INF)
 	for col in state.cols:
@@ -290,15 +307,8 @@ func fit_to_view() -> void:
 			mn = mn.min(p)
 			mx = mx.max(p)
 	if mn.x > mx.x:
-		return
-	_board_cam.fit_to_bounds(mn, mx, TILE, _vis_rect())
-
-## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
-## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
-func focus_camera_on(hex: Vector2i) -> void:
-	if state == null:
-		return
-	await _board_cam.focus_on(_hex_world(hex), _vis_rect())
+		return Rect2()
+	return Rect2(mn, mx - mn)
 
 ## 着弾の揺れ（盤ぶん）。
 func shake(px: float = BoardCamera.SHAKE_PX) -> void:

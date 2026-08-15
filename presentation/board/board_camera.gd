@@ -25,6 +25,9 @@ var target := Vector3.ZERO
 var dist := 20.0
 ## カメラの上方向（ビルボードの持ち上げ向き）。update_rig が算出する。
 var cam_up := Vector3.UP
+## 追従の行き先を収める範囲（ワールドxz）。既定は無制限＝呼び出し側が set_focus_bounds で渡す。
+var focus_min := Vector2(-INF, -INF)
+var focus_max := Vector2(INF, INF)
 
 var _tween: Tween = null
 
@@ -92,33 +95,52 @@ func fit_to_bounds(hex_min: Vector2, hex_max: Vector2, tile: float, vis_rect: Re
 	target = Vector3(c.x + dx_px * wpp, 0.0, c.y + dy_px * wpp / sp)
 	update_rig()
 
+## 追従の行き先を収める範囲を hex ピクセル座標＋余白で渡す（保険＝盤の外へ飛ばさない）。
+func set_focus_bounds(hex_min: Vector2, hex_max: Vector2, margin: float) -> void:
+	focus_min = hex_min - Vector2(margin, margin)
+	focus_max = hex_max + Vector2(margin, margin)
+
 ## world_pos が vis_rect 内の安全域(FOCUS_MARGIN 内側)に見えていなければ、
 ## そこへなめらかにパンする。すでに見えていれば何もしない。
 func focus_on(world_pos: Vector3, vis_rect: Rect2) -> void:
-	if camera.is_position_behind(world_pos):
+	var dest := focus_dest(world_pos, vis_rect)
+	if dest.is_equal_approx(target):
 		return
-	var sp := camera.unproject_position(world_pos)
-	var left := vis_rect.position.x + FOCUS_MARGIN
-	var right := vis_rect.end.x - FOCUS_MARGIN
-	var top := vis_rect.position.y + FOCUS_MARGIN
-	var bottom := vis_rect.end.y - FOCUS_MARGIN
-	var dx := 0.0
-	if sp.x < left:
-		dx = sp.x - (left + FOCUS_PULL_IN)
-	elif sp.x > right:
-		dx = sp.x - (right - FOCUS_PULL_IN)
-	var dy := 0.0
-	if sp.y < top:
-		dy = sp.y - (top + FOCUS_PULL_IN)
-	elif sp.y > bottom:
-		dy = sp.y - (bottom - FOCUS_PULL_IN)
-	if is_zero_approx(dx) and is_zero_approx(dy):
-		return
-	var wpp := world_per_pixel()
-	var dest := target
-	dest.x += dx * wpp
-	dest.z += dy * wpp / sin(deg_to_rad(PITCH_DEG))
 	await pan_target_to(dest)
+
+## focus_on の行き先（注視点）。はみ出した px 量から逆算するのではなく、
+## 「寄せたい画面位置の真下にある盤上の点」をレイ交差で求め、主体との差だけ注視点をずらす。
+## リグは平行移動なので、この差分だけ動かせば主体はちょうどその画面位置に来る。
+## px × world_per_pixel の線形近似は注視点の奥行きでしか合わず、画面の上下に離れた主体ほど
+## 外れる（手前側では数十倍に膨らみ、盤の外まで飛んで真っ暗になる）。
+func focus_dest(world_pos: Vector3, vis_rect: Rect2) -> Vector3:
+	# 主体を置きたい画面位置。はみ出した軸だけ安全域の内側へ、そうでない軸は今の位置のまま
+	# ＝「最小限だけ動かす」。カメラの背後（＝通り越した）なら手掛かりが無いので可視域の中心へ。
+	var aim := vis_rect.position + vis_rect.size * 0.5
+	if not camera.is_position_behind(world_pos):
+		var sp := camera.unproject_position(world_pos)
+		var left := vis_rect.position.x + FOCUS_MARGIN
+		var right := vis_rect.end.x - FOCUS_MARGIN
+		var top := vis_rect.position.y + FOCUS_MARGIN
+		var bottom := vis_rect.end.y - FOCUS_MARGIN
+		aim = sp
+		if sp.x < left:
+			aim.x = left + FOCUS_PULL_IN
+		elif sp.x > right:
+			aim.x = right - FOCUS_PULL_IN
+		if sp.y < top:
+			aim.y = top + FOCUS_PULL_IN
+		elif sp.y > bottom:
+			aim.y = bottom - FOCUS_PULL_IN
+		if aim.is_equal_approx(sp):
+			return target  # 安全域に見えている＝追わない（デッドゾーン）
+	var anchor := _plane_point(aim, world_pos.y)
+	if not anchor.is_finite():
+		return target
+	var dest := target + Vector3(world_pos.x - anchor.x, 0.0, world_pos.z - anchor.z)
+	dest.x = clampf(dest.x, focus_min.x, focus_max.x)
+	dest.z = clampf(dest.z, focus_min.y, focus_max.y)
+	return dest
 
 ## 注視点を dest へ Tween でなめらかに移す。完了まで待てる。
 func pan_target_to(dest: Vector3) -> void:
@@ -155,13 +177,14 @@ func _set_shake(v: Vector2) -> void:
 	camera.h_offset = v.x
 	camera.v_offset = v.y
 
-## screen 直下の盤平面(y=0)上の点。ズームのカーソル基点に使う。
-func _plane_point(screen: Vector2) -> Vector3:
+## screen 直下の水平面(既定は盤面 y=0)上の点。ズームのカーソル基点と追従の基準に使う。
+## plane_y は主体の高さ（起伏のぶん盤面より上）に合わせるために渡す。
+func _plane_point(screen: Vector2, plane_y: float = 0.0) -> Vector3:
 	var o := camera.project_ray_origin(screen)
 	var d := camera.project_ray_normal(screen)
 	if absf(d.y) < 1e-6:
 		return Vector3.INF
-	var t := -o.y / d.y
+	var t := (plane_y - o.y) / d.y
 	if t < 0.0:
 		return Vector3.INF
 	return o + d * t
