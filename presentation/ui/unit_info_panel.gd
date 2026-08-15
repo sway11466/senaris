@@ -22,7 +22,7 @@ const TABS := [["ability", "能力"], ["status", "状態"], ["terrain", "地形"
 
 ## 特性アイコン（`{特性id}.png`）。ユニット画像と同じ規約解決で、在れば出す・無ければ文字だけ。
 const AI_ICON_DIR := "res://assets/ui/ai/"
-const AI_ICON_SIZE := 40.0  # 見出し2行ぶんの高さ
+const AI_FRAME_SIZE := 44.0  # 額の外寸（見出し2行ぶん）。絵は縁と余白のぶん内側に入る
 
 var _state: BattleState
 var _skins := {}        # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
@@ -33,6 +33,7 @@ var _header: HBoxContainer  # 据え置きの見出し（左＝名前と部隊/�
 var _header_name: Label     # 名前（陣営）
 var _header_sub: Label      # 敵＝部隊名／自軍＝兵種。どちらも無ければ隠す
 var _ai_box: HBoxContainer  # 特性の欄（敵のときだけ出す）
+var _ai_frame: PanelContainer  # アイコンの額（絵が無ければ額ごと隠す）
 var _ai_icon: TextureRect
 var _ai_name: Label
 var _tabs_row: HBoxContainer
@@ -76,11 +77,15 @@ func _ready() -> void:
 	_ai_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_ai_box.hide()
 	_header.add_child(_ai_box)
+	# 額はアプリ側で描いて絵を嵌める（絵に枠を描き込ませると生成のたびに形が揺らぐ）。
+	_ai_frame = PanelContainer.new()
+	_ai_frame.add_theme_stylebox_override("panel", TavernTheme.icon_frame_stylebox())
+	_ai_frame.custom_minimum_size = Vector2(AI_FRAME_SIZE, AI_FRAME_SIZE)
+	_ai_box.add_child(_ai_frame)
 	_ai_icon = TextureRect.new()
-	_ai_icon.custom_minimum_size = Vector2(AI_ICON_SIZE, AI_ICON_SIZE)
 	_ai_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_ai_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_ai_box.add_child(_ai_icon)
+	_ai_frame.add_child(_ai_icon)
 	_ai_name = Label.new()
 	_ai_name.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_ai_box.add_child(_ai_name)
@@ -280,7 +285,7 @@ func _update_ai(u: Unit) -> void:
 	_ai_name.text = display
 	var tex := _ai_icon_texture(id)
 	_ai_icon.texture = tex
-	_ai_icon.visible = tex != null
+	_ai_frame.visible = tex != null  # 絵が無ければ額ごと消す＝特性名の文字だけで成立させる
 	_ai_box.show()
 
 ## 特性アイコン（無ければ null）。有無は一度引いたら控えておく＝選択のたびに走らせない。

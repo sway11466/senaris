@@ -269,6 +269,17 @@ static func _texture_box(tex: Texture2D, edge: int, content: int) -> StyleBoxTex
 	sb.set_content_margin_all(content)
 	return sb
 
+## アイコンを収める小さな額（板に彫った窪み＋明るい縁）。中身は content_margin ぶん内側に入る。
+## 額を絵に描き込まずアプリ側で嵌めるのは、生成のたびに枠の形が揺らぐため（絵は中身だけを持つ）。
+static func icon_frame_stylebox() -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.13, 0.08, 0.04)  # 板より暗く落として窪みに見せる
+	sb.set_border_width_all(2)
+	sb.border_color = Color(0.38, 0.26, 0.14)
+	sb.set_corner_radius_all(4)
+	sb.set_content_margin_all(4)
+	return sb
+
 ## 小さな木の看板（見出し用プレート）。
 static func plaque_stylebox() -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
