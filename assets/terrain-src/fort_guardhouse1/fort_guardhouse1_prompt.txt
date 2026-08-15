@@ -1,0 +1,39 @@
+SUBJECT: A small GUARDHOUSE beside a town gate, as drawn on the world map of a
+classic 2D role-playing game: the ground seen from directly overhead, but the
+building drawn from the front and slightly above, standing upright and facing
+the bottom of the frame — nothing lying flat, no perspective.
+
+ONE squat single-storey guardhouse of rough grey fieldstone with a steep
+slate-and-timber roof and a plain timber door in the middle of its front wall.
+There is no second building. It stands at the BACK of a small square yard. A low
+drystone wall runs all the way round the yard, with a simple timber gate in the
+middle of the front side. The yard is cobbled.
+
+IN THE YARD — exactly two things, both large enough to read: a wooden weapon
+rack standing against the wall with three or four spears in it, and a
+two-wheeled hand cart parked to one side. Nothing else: no people, no animals,
+no barrels, no fire, no laundry, no crates, no flags, no signage, no smoke.
+
+SIZE — the whole compound is a chunky block, roughly as wide as it is tall,
+sitting in the MIDDLE of the picture. In a 1024-pixel picture it is about 700
+pixels across, leaving about 160 pixels of white on all four sides. It must NOT
+touch any edge and must NOT be cut by any edge. This is a guardhouse, not a
+town: one building, one yard.
+
+COLOR — the stone and the slate are plain grey with almost no colour in them,
+neither warm nor cool; only the door, the gate, the rack and the cart are
+weathered brown timber. NO ochre, NO warm tan, and NO strong red, blue or green
+anywhere — those colours mark who holds the post.
+
+THE BACKGROUND — everything outside the drystone wall is PURE FLAT WHITE,
+#FFFFFF, with NO texture, NO shading, NO gradient, NO grass, NO soil, NO road,
+NO paving. This white is going to be deleted and the game will draw its own
+street there, so the outside of the wall must be a hard, clean, crisp edge
+against it. Nothing inside the compound may be white or near-white.
+
+LIGHT — dim light from above and slightly in front, with short soft shadows.
+Every shadow falls INSIDE the yard or against the wall; NOTHING casts a shadow
+out onto the white.
+
+Read at thumbnail size: a few large legible shapes, no fine detail, no
+picked-out windows. Square 1:1.

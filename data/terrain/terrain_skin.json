@@ -433,6 +433,22 @@
 			"terrain_type": "fort"
 		},
 		{
+			"combat_ground": "road",
+			"combat_layout": "center",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"grid": true,
+			"map_ground": "road",
+			"map_overlay": "",
+			"memo": "門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "詰所",
+			"orientable": "flip",
+			"skin_id": "fort_guardhouse1",
+			"sprite_sink": 0,
+			"terrain_type": "fort"
+		},
+		{
 			"combat_ground": "plain_grave1",
 			"combat_layout": "center",
 			"connect": false,

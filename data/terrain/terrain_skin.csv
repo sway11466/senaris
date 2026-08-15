@@ -27,5 +27,6 @@ wall,wall,壁,none,false,,0.72,0,false,,,,,既定スキン。上面は黒＝天�
 wall_stone1,wall,石積みの壁,none,false,,0,0,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 fort,fort,拠点,none,false,,0,0,true,,,plain,center,既定スキン
 fort_town1,fort,町,none,false,,0,0,true,,,plain,center,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+fort_guardhouse1,fort,詰所,flip,false,,0,0,true,road,,road,center,門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 fort_crypt1,fort,納骨堂,none,false,,0,0,true,,,plain_grave1,center,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 fort_chapel1,fort,礼拝堂,none,false,,0,0,true,,,plain_grave1,center,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
