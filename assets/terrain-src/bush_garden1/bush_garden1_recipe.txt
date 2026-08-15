@@ -1,1 +1,0 @@
-powershell -File tools\gen_terrain_tile.ps1 bush_garden1 assets\terrain-src\bush_garden1\bush_garden1_01_raw.jpg -Transparent white -Fit

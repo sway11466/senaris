@@ -1,0 +1,6 @@
+powershell -File tools\gen_terrain_tile.ps1 bush_garden_v assets\terrain-src\bush_garden_v\bush_garden_v_01_raw.jpg -Transparent white -Fit -Rotate 90
+powershell -File tools\gen_terrain_tile.ps1 bush_garden_r assets\terrain-src\bush_garden_v\bush_garden_v_01_raw.jpg -Transparent white -Fit -Rotate 150
+powershell -File tools\gen_terrain_tile.ps1 bush_garden_l assets\terrain-src\bush_garden_v\bush_garden_v_01_raw.jpg -Transparent white -Fit -Rotate 210
+
+元絵は畝が横向きなので、縦は90°回したもの。そこから60°ずつで右（右上から左下）と
+左（左上から右下）になり、街区の3方向と同じ軸に乗る。

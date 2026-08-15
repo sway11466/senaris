@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dvblwwb0rem3i"
-path="res://.godot/imported/bush_garden1.png-6331a9e4c2198e9c25eb93734d993109.ctex"
+uid="uid://6wtqjo4p4hq3"
+path="res://.godot/imported/bush_garden_v.png-58ef1919c5321fe08220208b502142fd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/bush_garden1.png"
-dest_files=["res://.godot/imported/bush_garden1.png-6331a9e4c2198e9c25eb93734d993109.ctex"]
+source_file="res://assets/terrain/bush_garden_v.png"
+dest_files=["res://.godot/imported/bush_garden_v.png-58ef1919c5321fe08220208b502142fd.ctex"]
 
 [params]
 
