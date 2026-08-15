@@ -71,12 +71,16 @@ func _ready() -> void:
 	_header_sub = Label.new()
 	_header_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	head_left.add_child(_header_sub)
-	# 特性の欄。アイコンは見出し2行ぶんの高さで、特性名はその隣に上寄せで並べる。
+	# 特性の欄。額は板の右端に固定し、特性名はその左に上寄せで置く。額を先（左）にすると
+	# 特性名の長さで額の位置が動く＝駒を選び直すたびにアイコンが横に泳ぐ。
 	_ai_box = HBoxContainer.new()
 	_ai_box.add_theme_constant_override("separation", 6)
 	_ai_box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	_ai_box.hide()
 	_header.add_child(_ai_box)
+	_ai_name = Label.new()
+	_ai_name.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_ai_box.add_child(_ai_name)
 	# 額はアプリ側で描いて絵を嵌める（絵に枠を描き込ませると生成のたびに形が揺らぐ）。
 	_ai_frame = PanelContainer.new()
 	_ai_frame.add_theme_stylebox_override("panel", TavernTheme.icon_frame_stylebox())
@@ -86,9 +90,6 @@ func _ready() -> void:
 	_ai_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_ai_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_ai_frame.add_child(_ai_icon)
-	_ai_name = Label.new()
-	_ai_name.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	_ai_box.add_child(_ai_name)
 	_tabs_row = HBoxContainer.new()
 	_tabs_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tabs_row.add_theme_constant_override("separation", 6)
