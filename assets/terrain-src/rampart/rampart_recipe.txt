@@ -13,6 +13,6 @@ magick assets\terrain-src\rampart\rampart_side_01_raw.jpg -crop 1024x140+0+384 +
 #   godot --headless --path . --script res://data/terrain/convert.gd
 # 画像を差し替えたら .godot/imported/ の当該 ctex/md5 を消してから --import（消さないと古い生成物が黙って使われる）。
 
-# 没にした案の残骸: rampart_parapet_prompt.txt / rampart_parapet_01_raw.jpg
-# 帯（歩廊）を接続タイルで走らせ、帯の外を胸壁で埋める案。マス全体が石になる＝壁の輪郭がヘックスの輪郭になり、
-# まっすぐな壁の縁が1マスごとに64px出入りしてジグザグに見えたため不採用。
+# 没案: 帯（歩廊）を接続タイルで走らせ、帯の外を胸壁で埋める案。マス全体が石になる＝壁の輪郭がヘックスの輪郭に
+# なり、まっすぐな壁の縁が1マスごとに64px出入りしてジグザグに見えたため不採用。胸壁の元絵とプロンプトは
+# コミット 08fa8ae に入っている（作業ツリーからは削除）。
