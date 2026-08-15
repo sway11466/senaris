@@ -79,6 +79,22 @@ func test_flip_only_skin_does_not_rotate() -> void:
 		assert_true(tomb.orients(), "散らしの対象ではある")
 		assert_false(tomb.rotates(), "回してはいけない")
 
+func test_flip_xy_skin_flips_both_ways_without_rotating() -> void:
+	# 向き別スキンとして作者が塗り分ける絵（街区）は、回すと指定した向きが崩れる。反転だけで散らす。
+	var town := TerrainSkinCatalog.skin_by_id("plateau_town_v")
+	assert_not_null(town, "plateau_town_v が引ける")
+	if town != null:
+		assert_eq(town.orientable, TerrainSkin.ORIENT_FLIP_XY, "街区は flip_xy")
+		assert_true(town.orients(), "散らしの対象ではある")
+		assert_false(town.rotates(), "回してはいけない")
+		assert_true(town.flips_vertically(), "上下反転はしてよい")
+
+func test_only_flip_xy_flips_vertically() -> void:
+	# 上下反転は flip_xy だけの手。full まで巻き込むと、既存の自然地形の見え方が変わってしまう。
+	for mode in [TerrainSkin.ORIENT_NONE, TerrainSkin.ORIENT_FLIP, TerrainSkin.ORIENT_FULL]:
+		var s := TerrainSkin.from_dict({ "skin_id": "x", "orientable": mode })
+		assert_false(s.flips_vertically(), "%s は上下反転しない" % mode)
+
 func test_unknown_orientable_falls_back_to_none() -> void:
 	# 旧データの bool や打ち間違いが来ても、勝手に回して絵を倒すより散らさないほうが害が小さい。
 	for bad in [true, false, "maybe", 1]:

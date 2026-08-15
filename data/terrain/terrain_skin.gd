@@ -17,7 +17,10 @@ const CONNECT_AREA := "area"  ## 面の地形（道）。盤の外は縁のマ�
 const ORIENT_NONE := "none"  ## 何もしない。向きが意味を持つ絵（道・柵・拠点）
 const ORIENT_FLIP := "flip"  ## 左右反転だけ。立てて描いた物がある絵（墓標）。回すと倒れる
 const ORIENT_FULL := "full"  ## 回転60°＋左右反転。向きの無い自然地形（平地・森）
-const ORIENTS := [ORIENT_NONE, ORIENT_FLIP, ORIENT_FULL]
+## 上下左右反転だけ・回転なし。向きを持つ絵を、向き別のスキンとして作者が塗り分けるとき（街区）。
+## 回すと作者の指定した向きが崩れるが、反転は軸を変えないので繰り返しを散らす手として使える。
+const ORIENT_FLIP_XY := "flip_xy"
+const ORIENTS := [ORIENT_NONE, ORIENT_FLIP, ORIENT_FULL, ORIENT_FLIP_XY]
 
 var skin_id: String        ## スキンID（主キー。ステージはこれで見た目を指定）
 var terrain_type: String   ## 紐づく性能(TerrainType)のid
@@ -111,6 +114,11 @@ func orients() -> bool:
 ## 60°回転してよいか。立てて描いた物がある絵（flip）は回すと倒れるので false。
 func rotates() -> bool:
 	return orientable == ORIENT_FULL
+
+## 上下反転してよいか。左右反転は none 以外なら常に効くが、上下は flip_xy だけ。
+## 上下も左右も正六角形を自分自身に写すので、絵が六角形に収まっていればはみ出さない。
+func flips_vertically() -> bool:
+	return orientable == ORIENT_FLIP_XY
 
 ## 繋がる地形か（line または area）。向きの組み合わせ別タイルを引くかの判定に使う。
 func connects() -> bool:

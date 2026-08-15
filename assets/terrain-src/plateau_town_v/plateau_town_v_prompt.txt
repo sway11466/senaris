@@ -1,0 +1,79 @@
+STYLE: A map tile object for a fantasy tactics game, in the same clean stylized
+cel-shaded look as the game's terrain and unit art: bold flat shading, clear
+dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game, seen from DIRECTLY OVERHEAD — a flat lay with NO perspective,
+NO isometric or three-quarter view, no horizon, no sky, no depth, nothing
+standing up and nothing leaning towards the viewer. Read at thumbnail size: a
+few large legible shapes, no fine detail. Square 1:1.
+
+SUBJECT: ONE block of a town — eight to ten small houses standing in two or
+three short terraces with lanes between them — seen from straight above, sitting
+alone on a plain white background so that it can be cut out and laid over the
+game's own ground.
+
+VIEWPOINT — CRITICAL: you are looking straight DOWN at the roofs. Draw the ROOF
+SURFACES, not the front of the buildings. Each house is a simple gabled roof: an
+oblong split down its middle by a ridge line into two sloping halves, one half a
+shade lighter than the other. NO walls, NO windows, NO doors, NO facades,
+nothing standing up. A few small square chimneys seen from above are fine.
+
+SIZE AND PLACEMENT — the block is a single clump in the MIDDLE of the picture.
+In a 1024-pixel picture it is about 660 pixels wide and 500 pixels tall, leaving
+about 180 pixels of white to its left and right and about 260 pixels of white
+above and below. It must NOT touch any edge and must NOT be cut by any edge.
+There is exactly ONE block: no second cluster, no stray hut out on its own, no
+road, no wall, no fence around it.
+
+THE LANES — MOST IMPORTANT: people have to be able to walk to every house.
+Narrow lanes thread through the block, about a twelfth of the block's width
+across (roughly 55 pixels in a 1024-pixel picture). At least two of them open
+from the outside of the block and run right into the middle, and one small
+square opens out where they meet. EVERY house has a lane along at least one of
+its sides. NO house is sealed in on all four sides by other houses.
+
+THE LANES ARE WHITE — draw the lanes in exactly the same pure white as the
+background, not as a paved or earthen street. They are cut out along with the
+background, and the game draws its own ground through them, so a lane must join
+the outside white without a break.
+
+OUTLINES — each house is outlined on its own. Do NOT draw an outline around the
+block as a whole. Where a lane opens to the outside, NOTHING closes it off: no
+line, no kerb, no bar, no gate, no dotted line across the mouth of the lane. A
+lane is empty white that joins the white outside without a single stroke
+crossing it. No line may run through white where there is no building.
+
+THE CLUMP — within a terrace the houses stand shoulder to shoulder and share
+walls, all squared up to the same lane, the way a row of town houses does. The
+terraces themselves sit at slightly different angles to each other. The OUTLINE
+of the block is IRREGULAR: houses of different depths, so the edge steps in and
+out and no side of the block is one long straight wall. Overall it is a chunky
+mass, wider than it is tall — NOT a perfect rectangle, NOT a circle, NOT a star,
+NOT a ring closed all the way round a courtyard.
+
+COLOR — muted and limited. Most roofs are weathered terracotta tile, hex
+#A9705C; a good number are grey slate, hex #8C8A82; one or two are straw thatch,
+hex #B39A6E. Mix the three kinds across the block so no side of it is all one
+colour. Each roof is a slightly different shade of its own material. NO roof may
+be white, near-white or near-black — the white is reserved for the background.
+
+THE BACKGROUND — everything outside the block is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO speckles, NO grey, NO grass, NO soil, NO
+street, NO drop shadow. This white is going to be deleted and the game will draw
+its own ground there, so the outside of the block must be a hard, clean, crisp
+edge against it.
+
+NO SHADOWS — this rule was broken last time, so read it twice. NO house has a
+dark edge along one side and a pale edge along the other. NO house drops a
+shadow into a lane, onto the white, or onto the house beside it. There is NO
+light direction in this picture at all: a roof looks exactly the same whichever
+way it is turned. This tile is rotated and mirrored when it is laid on the map,
+so a baked light direction would end up pointing several different ways across
+the board. Shading
+stays inside each roof: the two slopes of a gable differ slightly, and that is
+all.
+
+Nothing else: no people, no animals, no carts, no market stalls, no laundry, no
+smoke, no trees, no gardens, no wells, no city wall, no tower, no church, no
+gate, no signboards, no lettering. NO border, NO frame around the picture
+itself, NO vignette, NO caption, NO logo.

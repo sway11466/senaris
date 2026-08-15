@@ -20,13 +20,18 @@
   ground underneath (terrain_skin.csv map_ground; see doc/art/terrain.md 3.6).
   Generate the art on a flat pure background and name that colour here.
 
-  -Fit centres the remaining art and pads the canvas until the art fits inside
-  the hexagon AT ANY ROTATION. The board rotates tiles whose skin is orientable,
-  and the hexagon is 110.85px from centre to an edge but 128px to a vertex, so
-  art that clears the vertices can still be clipped by the edges. -Fit sizes the
-  art by its half-diagonal, which is what a rotation sweeps, so the same source
-  gives the same result at 0 and at 60 degrees. It also normalises size: every
-  variant comes out at the same scale whatever margin the generator left.
+  -Fit centres the remaining art and scales it as large as it will go while
+  still sitting inside the hexagon, so no part of it is ever clipped. Fitting the
+  hexagon (not its inscribed circle) is enough even for a tile the board rotates:
+  orient() turns the hex MESH by 60 degrees and mirrors it with scale.x = -1
+  (presentation/board/terrain_tiles.gd), and both are symmetries of a regular
+  hexagon, so art inside the hexagon stays inside at every orientation. The size
+  is found by binary search on the padded canvas, testing the art's actual
+  silhouette against the hexagon, so a ragged outline is allowed to reach into
+  the corners instead of being held back by its widest point. -Fit also
+  normalises size: every variant comes out at the same scale whatever margin the
+  generator happened to leave. -FitMargin below 1 shrinks the art from that
+  maximum, which is how you leave a street between neighbouring tiles.
 
 .EXAMPLE
   powershell -File tools\gen_terrain_tile.ps1 plain art\plain_a.png
@@ -43,8 +48,9 @@ param(
   [switch]$Upright,                               # pre-stretch for the camera pitch (see $Stretch)
   [string]$Transparent = '',                      # background colour to drop, e.g. 'white'. '' = keep it
   [int]$Fuzz = 10,                                # tolerance for -Transparent, percent
-  [switch]$Fit,                                   # centre the art and pad so it fits the hexagon when rotated
-  [double]$FitMargin = 0.94,                      # share of the apothem the art's half-diagonal may reach
+  [double]$Rotate = 0,                            # turn the art this many degrees clockwise before fitting
+  [switch]$Fit,                                   # centre the art and scale it to the largest that fits the hexagon
+  [double]$FitMargin = 1.0,                       # 1 = touch the hexagon; below 1 leaves a gap to the neighbours
   [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
   [string[]]$Sources                              # one or more source images (variant order)
 )
@@ -73,6 +79,18 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 
 # Flat-top hexagon points on the 256x222 canvas (center 128,111; R=128; half-h=110.85).
 $hex = "polygon 256,111 192,221.85 64,221.85 0,111 64,0.15 192,0.15"
+# The same hexagon inverted: white OUTSIDE it. -Fit multiplies the art's alpha by this and asks
+# whether anything is left, i.e. whether any of the art pokes out of the hexagon.
+$outMask = Join-Path $work 'outside.png'
+& magick -size "${W}x${H}" xc:white -fill black -draw $hex $outMask
+
+# Fraction of the tile that is both opaque and outside the hexagon, for the art padded to ${n} square.
+function Get-Overflow([string]$art, [int]$n) {
+  $probe = Join-Path $work 'probe.png'
+  & magick $art -trim +repage -background none -gravity center -extent "${n}x${n}" `
+    -resize "${W}x${H}^" -gravity center -extent "${W}x${H}" -alpha extract -threshold 50% -strip $probe
+  return [double](& magick $probe $outMask -compose Multiply -composite -format "%[fx:mean]" info:)
+}
 
 $i = 0
 foreach ($src in $Sources) {
@@ -90,15 +108,32 @@ foreach ($src in $Sources) {
     $stage = $keyed
   }
 
-  # -Fit: trim to the art, then pad to a square big enough that the art's half-diagonal
-  # lands inside the apothem once the square has been cover-resized to the tile.
-  # A square canvas of N scales by W/N, so the half-diagonal becomes hypot(w,h)/2 * W/N,
-  # and we want that <= APOTHEM * FitMargin. N is therefore hypot(w,h) * (W/2) / limit.
+  # -Rotate: turn the art before fitting, to make the direction-variant skins of one drawing.
+  # The three axes of a flat-top hexagon are 0 (up-down), 60 and 120 degrees; art drawn with an
+  # up-down grain therefore gives all three directions from the one source.
+  if ($Rotate -ne 0) {
+    $turned = Join-Path $work ("turned_{0}.png" -f $i)
+    & magick $stage -background none -rotate $Rotate $turned
+    $stage = $turned
+  }
+
+  # -Fit: trim to the art, then binary-search the padded square canvas for the SMALLEST one
+  # (= largest art) that still leaves nothing outside the hexagon. Padding to N scales the art
+  # by W/N, so N and the art's size move opposite ways.
   if ($Fit) {
     $dim = (& magick $stage -trim -format "%w %h" info:) -split '\s+'
     $cw = [double]$dim[0]; $ch = [double]$dim[1]
-    $limit = $APOTHEM * $FitMargin
-    $n = [int][math]::Ceiling([math]::Sqrt($cw * $cw + $ch * $ch) * ($W / 2.0) / $limit)
+    # hi: half-diagonal inside the apothem. A circle of that radius is inside the hexagon, so this
+    # always fits and is a valid upper bound. lo: the art cannot be wider than the hexagon is at
+    # its widest, nor taller than the hexagon is tall; below this no N can possibly fit.
+    $hi = [int][math]::Ceiling([math]::Sqrt($cw * $cw + $ch * $ch) * ($W / 2.0) / $APOTHEM)
+    $lo = [int][math]::Ceiling([math]::Max($cw, $ch * $W / (2.0 * $APOTHEM)))
+    $tol = 0.00005   # ~3px of the 256x222 tile, to absorb the antialiased rim
+    while ($hi - $lo -gt 1) {
+      $mid = [int](($hi + $lo) / 2)
+      if ((Get-Overflow $stage $mid) -le $tol) { $hi = $mid } else { $lo = $mid }
+    }
+    $n = [int][math]::Ceiling($hi / $FitMargin)
     $fitted = Join-Path $work ("fitted_{0}.png" -f $i)
     & magick $stage -trim +repage -background none -gravity center -extent "${n}x${n}" $fitted
     $stage = $fitted
