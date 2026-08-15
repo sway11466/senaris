@@ -39,13 +39,13 @@
     {"type": "mage", "col": 10, "row": 14, "actor": "mage"}
   ],
   "enemy": [
-    { "order": 1, "name": "道を塞ぐトレント", "ai": "guard", "sight": 3,
+    { "order": 1, "name": "道を塞ぐトレント", "ai": "ambush", "sight": 3,
       "units": [
         {"skin": "treant", "col": 2, "row": 10},
         {"skin": "treant", "col": 6, "row": 10},
         {"skin": "treant", "col": 10, "row": 10}
       ] },
-    { "order": 2, "name": "マタンゴの群生", "ai": "guard", "sight": 2,
+    { "order": 2, "name": "マタンゴの群生", "ai": "ambush", "sight": 2,
       "units": [
         {"skin": "matango", "col": 2, "row": 12},
         {"skin": "matango", "col": 10, "row": 12},

@@ -66,7 +66,7 @@ func test_build_wires_enemy_squads() -> void:
 		"cols": 8, "rows": 4,
 		"player": [ { "col": 1, "row": 1 } ],
 		"enemy": [
-			{ "order": 2, "name": "見張り", "ai": "guard", "sight": 5,
+			{ "order": 2, "name": "見張り", "ai": "ambush", "sight": 5,
 				"units": [ { "col": 6, "row": 1 } ] },
 			{ "order": 1, "name": "本隊", "ai": "charge",
 				"units": [ { "col": 5, "row": 2 }, { "col": 5, "row": 3 } ] },
@@ -74,7 +74,7 @@ func test_build_wires_enemy_squads() -> void:
 	}
 	var s := StageLoader.build(data)
 	assert_eq(s.squads.size(), 2, "部隊は記述順に登録される")
-	assert_eq(str(s.squads[0].get("ai", "")), "guard")
+	assert_eq(str(s.squads[0].get("ai", "")), "ambush")
 	assert_eq(int(s.squads[0].get("sight", 0)), 5, "部隊ごとのパラメーター上書きも部隊定義に入る")
 	assert_false(s.squads[0].has("units"), "units は部隊定義に残さない（駒は盤に置く）")
 	assert_eq(int(s.squads[1].get("order", 0)), 1, "行動順は書かれた値のまま（並べ替えは Brain の仕事）")
@@ -88,7 +88,7 @@ func test_build_wires_ai_bases_as_squads() -> void:
 	var data := {
 		"cols": 8, "rows": 4,
 		"bases": [
-			{ "col": 6, "row": 1, "team": "enemy", "ai": "guard", "sight": 2, "order": 3,
+			{ "col": 6, "row": 1, "team": "enemy", "ai": "ambush", "sight": 2, "order": 3,
 				"garrison": [ { "count": 1 } ] },
 			{ "col": 1, "row": 1, "team": "player", "garrison": [ { "count": 1 } ] },
 		],
@@ -97,7 +97,7 @@ func test_build_wires_ai_bases_as_squads() -> void:
 	assert_eq(s.squads.size(), 1, "ai を書いた拠点だけが部隊になる")
 	var ai_base := s.base_at(Hex.offset_to_axial(6, 1))
 	assert_eq(ai_base.squad_index, 0, "拠点→部隊の対応")
-	assert_eq(str(s.squads[0].get("ai", "")), "guard")
+	assert_eq(str(s.squads[0].get("ai", "")), "ambush")
 	assert_eq(int(s.squads[0].get("sight", 0)), 2)
 	assert_eq(int(s.squads[0].get("order", 0)), 3)
 	assert_false(s.squads[0].has("garrison"), "控えは部隊定義に混ぜない（拠点が持つ）")

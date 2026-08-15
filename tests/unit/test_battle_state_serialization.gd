@@ -20,7 +20,7 @@ func _rich_state() -> BattleState:
 			{ "type": "archer", "col": 1, "row": 1 },
 			{ "type": "wagon", "col": 2, "row": 1, "passengers": [{ "type": "knight" }] },
 		],
-		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "guard", "sight": 4,
+		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "ambush", "sight": 4,
 			"units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "kind": "hq", "garrison": [{ "type": "archer", "count": 1 }] }],
 		"victory": [{ "type": "defeat_unit", "actor": "boss" }],
@@ -110,7 +110,7 @@ func test_squads_and_membership_roundtrip() -> void:
 	assert_eq(s2.squads.size(), 1, "敵の guard 部隊")
 	assert_eq(s2.squad_index_of(BOSS_ID), 0, "敵knight は部隊0所属")
 	var sq := s2.squad_of(BOSS_ID)
-	assert_eq(String(sq.get("ai", "")), "guard", "部隊の特性id")
+	assert_eq(String(sq.get("ai", "")), "ambush", "部隊の特性id")
 	assert_eq(int(sq.get("order", 0)), 1, "行動順")
 	assert_eq(int(sq.get("sight", 0)), 4, "部隊ごとのパラメーター上書き")
 

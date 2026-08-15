@@ -55,7 +55,7 @@
         {"skin": "wyrm", "col": 6, "row": 3},
         {"skin": "wyrm", "col": 8, "row": 3}
       ] },
-    { "order": 4, "name": "岩棚のスコーピオン", "ai": "guard", "sight": 2,
+    { "order": 4, "name": "岩棚のスコーピオン", "ai": "ambush", "sight": 2,
       "units": [
         {"skin": "scorpion", "col": 6, "row": 5},
         {"skin": "scorpion", "col": 8, "row": 6}

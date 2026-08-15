@@ -24,7 +24,7 @@
     { "type": "knight",  "skin": "knight",  "col": 0, "row": 4 }
   ],
   "enemy": [
-    { "order": 1, "name": "案山子（待機・索敵0）", "ai": "guard", "sight": 0,
+    { "order": 1, "name": "案山子（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
       "units": [
         { "type": "novice",  "skin": "goblin",    "col": 8, "row": 3 },
         { "type": "novice",  "skin": "goblin",    "col": 8, "row": 5 },

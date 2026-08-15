@@ -26,7 +26,7 @@
     { "skin": "wizard",   "col": 6, "row": 7 }
   ],
   "enemy": [
-    { "order": 1, "name": "エフェクト見本（待機・索敵0）", "ai": "guard", "sight": 0,
+    { "order": 1, "name": "エフェクト見本（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
       "units": [
         { "skin": "ghoul",           "col": 2, "row": 1 },
         { "skin": "zombie",          "col": 2, "row": 3 },

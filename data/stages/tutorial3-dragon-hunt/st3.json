@@ -38,7 +38,7 @@
     {"type": "mage", "col": 7, "row": 14, "actor": "mage"}
   ],
   "enemy": [
-    { "order": 1, "name": "岩陰のロックサーペント", "ai": "guard", "sight": 3,
+    { "order": 1, "name": "岩陰のロックサーペント", "ai": "ambush", "sight": 3,
       "units": [
         {"skin": "rock_serpent", "col": 6, "row": 10},
         {"skin": "rock_serpent", "col": 2, "row": 11},
@@ -46,7 +46,7 @@
         {"skin": "rock_serpent", "col": 3, "row": 12},
         {"skin": "rock_serpent", "col": 8, "row": 12}
       ] },
-    { "order": 2, "name": "居座るトロール", "ai": "guard", "sight": 2,
+    { "order": 2, "name": "居座るトロール", "ai": "ambush", "sight": 2,
       "units": [
         {"skin": "troll", "col": 5, "row": 8},
         {"skin": "troll", "col": 4, "row": 7}

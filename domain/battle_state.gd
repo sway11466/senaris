@@ -53,9 +53,9 @@ func squad_index_of(unit_id: int) -> int:
 		return -1
 	return int(idx)
 
-# --- AI起動状態（待機AIの「起きた」フラグ）。詳細 → doc/gdd/ai.md ---
+# --- AI起動状態（待ち伏せAIの「起きた」フラグ）。詳細 → doc/gdd/ai.md ---
 
-var _engaged := {}  # unit_id -> true（待機AIが起動済み。一度起動したら戻らない）
+var _engaged := {}  # unit_id -> true（待ち伏せAIが起動済み。一度起動したら戻らない）
 
 ## unit_id を起動済みにする（AIの起動判定・被弾で立つ）。
 func mark_engaged(unit_id: int) -> void:
@@ -873,7 +873,7 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	if attacker_killed:
 		_remove_unit(attacker_id)
 	_attacked[attacker_id] = true  # 移動可否は move_after_attack で判定（再移動）
-	# 被ダメは待機AIの確定起動トリガー（攻撃した側も当然起動済み）。詳細 → doc/gdd/ai.md
+	# 被ダメは待ち伏せAIの確定起動トリガー（攻撃した側も当然起動済み）。詳細 → doc/gdd/ai.md
 	mark_engaged(attacker_id)
 	mark_engaged(target_id)
 	return {
@@ -1070,7 +1070,7 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		var vhex := victim.pos  # 撃破すると盤から外れる＝消える前に控える（演出が当たった場所を出す）
 		victim.troops -= loss
 		var killed := victim.troops <= 0
-		mark_engaged(victim.id)  # 被弾＝起動トリガー（待機AIが立つ）
+		mark_engaged(victim.id)  # 被弾＝起動トリガー（待ち伏せAIが立つ）
 		if killed:
 			_remove_unit(victim.id)
 		results.append({"target_id": victim.id, "hex": vhex, "loss": loss, "killed": killed, "detail": hit})

@@ -54,14 +54,14 @@
       "units": [
         {"skin": "rogue_head", "col": 8, "row": 3, "actor": "paladin"}
       ] },
-    { "order": 3, "name": "宝の間のミミック", "ai": "guard", "sight": 1,
+    { "order": 3, "name": "宝の間のミミック", "ai": "ambush", "sight": 1,
       "units": [
         {"skin": "mimic", "col": 4, "row": 2},
         {"skin": "mimic", "col": 11, "row": 2},
         {"skin": "mimic", "col": 12, "row": 8},
         {"skin": "mimic", "col": 3, "row": 12}
       ] },
-    { "order": 4, "name": "坑道のスコーピオン", "ai": "guard", "sight": 2,
+    { "order": 4, "name": "坑道のスコーピオン", "ai": "ambush", "sight": 2,
       "units": [
         {"skin": "scorpion", "col": 3, "row": 7},
         {"skin": "scorpion", "col": 11, "row": 7},

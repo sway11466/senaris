@@ -20,7 +20,7 @@ const SAMPLE := """
     { "type": "fighter", "col": 1, "row": 1 }
   ],
   "enemy": [
-    { "order": 1, "name": "本隊", "ai": "guard", "sight": 3, "units": [
+    { "order": 1, "name": "本隊", "ai": "ambush", "sight": 3, "units": [
       { "skin": "goblin", "col": 4, "row": 1 },
       { "skin": "hobgoblin", "actor": "hobgoblin", "col": 4, "row": 2 }
     ] }

@@ -18,7 +18,7 @@
     { "type": "cleric", "col": 3, "row": 4 }
   ],
   "enemy": [
-    { "order": 1, "name": "湧き拠点もち", "ai": "guard", "sight": 2,
+    { "order": 1, "name": "湧き拠点もち", "ai": "ambush", "sight": 2,
       "units": [
         { "skin": "goblin", "col": 6, "row": 2 },
         { "skin": "goblin", "col": 6, "row": 4 }

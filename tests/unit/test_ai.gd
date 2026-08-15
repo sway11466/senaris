@@ -209,12 +209,12 @@ func _run_turn(s: BattleState, team: int) -> void:
 				assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
 	fail_test("AIのターンが終了しなかった（無限ループの疑い）")
 
-# --- guard（待機） ---
+# --- ambush（待ち伏せ） ---
 
-func test_guard_sleeps_until_an_enemy_enters_its_sight() -> void:
+func test_ambush_sleeps_until_an_enemy_enters_its_sight() -> void:
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var si := _squad(s, "guard")  # 既定 sight 3
+	var si := _squad(s, "ambush")  # 既定 sight 3
 	_ai(s, si, 10, 1, 1)
 	var e := _pc(s, 1, 8, 1)
 	assert_null(_brain.next_action(s, 1), "視線距離が sight の外なら動かない")
@@ -223,22 +223,22 @@ func test_guard_sleeps_until_an_enemy_enters_its_sight() -> void:
 	assert_not_null(_brain.next_action(s, 1), "sight に入れば動き出す")
 	assert_true(s.is_engaged(10))
 
-func test_guard_keeps_going_after_the_enemy_backs_off() -> void:
+func test_ambush_keeps_going_after_the_enemy_backs_off() -> void:
 	# 行動開始条件は一度成立したら以後判定しない＝離れても止まらない。
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var si := _squad(s, "guard")
+	var si := _squad(s, "ambush")
 	_ai(s, si, 10, 1, 1)
 	var e := _pc(s, 1, 4, 1)
 	assert_not_null(_brain.next_action(s, 1), "前提: sight 内で起きる")
 	e.pos = Hex.offset_to_axial(11, 1)
 	assert_not_null(_brain.next_action(s, 1), "離れても止まらない")
 
-func test_guard_wakes_when_a_squadmate_is_engaged() -> void:
+func test_ambush_wakes_when_a_squadmate_is_engaged() -> void:
 	# 一斉警戒＝部隊の誰かが行動開始済みなら自分も起きる。
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var si := _squad(s, "guard")
+	var si := _squad(s, "ambush")
 	var near := _ai(s, si, 10, 1, 1)
 	var far := _ai(s, si, 11, 0, 0)  # 敵まで視線距離4＝自分では気づかない
 	_pc(s, 1, 4, 1)
@@ -248,10 +248,10 @@ func test_guard_wakes_when_a_squadmate_is_engaged() -> void:
 	assert_not_null(a)
 	assert_eq(a.unit_id, far.id, "部隊ごと起きる")
 
-func test_guard_wakes_when_shot_from_outside_its_sight() -> void:
+func test_ambush_wakes_when_shot_from_outside_its_sight() -> void:
 	# 攻撃を受けた駒は特性と行動開始条件によらず、その時点で行動開始する。
 	var s := BattleState.new(12, 3)
-	var si := _squad(s, "guard")
+	var si := _squad(s, "ambush")
 	_ai(s, si, 10, 5, 1)
 	var shooter := _pc(s, 1, 1, 1)
 	shooter.attack_range = 4  # 視線3の外から届く
@@ -261,29 +261,29 @@ func test_guard_wakes_when_shot_from_outside_its_sight() -> void:
 	assert_true(s.is_engaged(10), "撃たれたら起きる")
 	assert_not_null(_brain.next_action(s, 1))
 
-func test_guard_stays_asleep_with_an_enemy_in_attack_range() -> void:
+func test_ambush_stays_asleep_with_an_enemy_in_attack_range() -> void:
 	# 旧実装にあった自衛（撃たれていないが攻撃射程内に敵が入ったら起きる）は廃止した。
 	var s := BattleState.new(8, 8)
 	s.current_team = 1
-	var si := _squad(s, "guard", { "sight": "-" })  # 索敵では起きない見張り
+	var si := _squad(s, "ambush", { "sight": "-" })  # 索敵では起きない待ち伏せ
 	_ai(s, si, 10, 3, 3)
 	_pc(s, 1, 3, 2)  # 隣接＝射程内
 	assert_null(_brain.next_action(s, 1), "射程内に来ただけでは起きない")
 	assert_false(s.is_engaged(10))
 
-func test_guard_acts_like_charge_once_awake() -> void:
+func test_ambush_acts_like_charge_once_awake() -> void:
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var si := _squad(s, "guard")
+	var si := _squad(s, "ambush")
 	_ai(s, si, 10, 1, 1)
 	var e := _pc(s, 1, 3, 1)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "起きたあとは突撃と同じ行")
 	assert_lt(Hex.distance(a.to, e.pos), Hex.distance(Hex.offset_to_axial(1, 1), e.pos))
 
-func test_detection_radius_only_for_a_sleeping_guard() -> void:
+func test_detection_radius_only_for_a_sleeping_ambusher() -> void:
 	var s := BattleState.new(12, 3)
-	var si := _squad(s, "guard")
+	var si := _squad(s, "ambush")
 	var g := _ai(s, si, 10, 1, 1)
 	var c := _ai(s, _squad(s, "charge"), 11, 2, 1)
 	assert_eq(_brain.detection_radius(s, g), 3, "寝ている見張り＝sight 半径")
@@ -674,20 +674,20 @@ func test_base_deploys_at_once_when_its_squad_is_charge() -> void:
 	assert_not_null(a)
 	assert_eq(a.kind, AiAction.Kind.DEPLOY, "常時の特性は初手から出す")
 
-func test_guard_base_waits_until_an_enemy_is_in_sight() -> void:
+func test_ambush_base_waits_until_an_enemy_is_in_sight() -> void:
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	_base_with_garrison(s, _squad(s, "guard"), 4, 2)
+	_base_with_garrison(s, _squad(s, "ambush"), 4, 2)
 	var e := _pc(s, 1, 11, 2)
 	assert_null(_brain.next_action(s, 1), "拠点hexから sight の外なら出さない")
 	e.pos = Hex.offset_to_axial(6, 2)
 	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "索敵に入れば出す")
 
-func test_guard_base_stays_awake_after_the_enemy_backs_off() -> void:
+func test_ambush_base_stays_awake_after_the_enemy_backs_off() -> void:
 	# 拠点の行動開始条件も一度成立したら以後は判定しない＝眠り直さない。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	_base_with_garrison(s, _squad(s, "guard"), 4, 2)
+	_base_with_garrison(s, _squad(s, "ambush"), 4, 2)
 	var e := _pc(s, 1, 6, 2)
 	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "前提: 索敵に入って起きる")
 	e.pos = Hex.offset_to_axial(11, 2)
@@ -697,7 +697,7 @@ func test_base_wakes_when_a_squadmate_is_engaged() -> void:
 	# 一斉警戒は部隊の中で向きを問わない＝部隊の駒が起きれば拠点も起きる。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	var si := _squad(s, "guard")  # 既定 sight 3
+	var si := _squad(s, "ambush")  # 既定 sight 3
 	var scout := _ai(s, si, 10, 8, 2)
 	_base_with_garrison(s, si, 4, 2)
 	_pc(s, 1, 11, 2)  # 拠点hexからは視線距離7＝拠点だけでは気づかない
@@ -710,7 +710,7 @@ func test_a_piece_wakes_when_its_base_is_engaged() -> void:
 	# 敵を捉えられずに拠点の真横で止まる、という壊れ方をさせない。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	var si := _squad(s, "guard")
+	var si := _squad(s, "ambush")
 	var far := _ai(s, si, 10, 0, 0)  # 敵まで視線距離6＝自分では気づかない
 	_base_with_garrison(s, si, 4, 2)
 	_pc(s, 1, 6, 2)
@@ -725,7 +725,7 @@ func test_base_ignores_another_squads_alarm() -> void:
 	s.current_team = 1
 	var other := _squad(s, "charge")
 	var runner := _ai(s, other, 10, 8, 2)
-	_base_with_garrison(s, _squad(s, "guard"), 4, 2)
+	_base_with_garrison(s, _squad(s, "ambush"), 4, 2)
 	_pc(s, 1, 11, 2)  # 拠点hexからは sight の外
 	s.mark_engaged(runner.id)
 	s.set_done(runner.id)  # 先に動き終えた扱い

@@ -1,13 +1,13 @@
 {
 	"presets": {
+		"ambush": {
+			"name": "待ち伏せ",
+			"sight": 3,
+			"stack": "-"
+		},
 		"charge": {
 			"name": "突撃",
 			"sight": "-",
-			"stack": "-"
-		},
-		"guard": {
-			"name": "待機",
-			"sight": 3,
 			"stack": "-"
 		},
 		"raid": {

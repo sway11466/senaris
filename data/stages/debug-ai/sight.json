@@ -24,12 +24,12 @@
     { "type": "thief", "col": 11, "row": 4 }
   ],
   "enemy": [
-    { "order": 1, "name": "見張り（壁と森）", "ai": "guard", "sight": 5,
+    { "order": 1, "name": "見張り（壁と森）", "ai": "ambush", "sight": 5,
       "units": [
         { "skin": "goblin", "col": 6, "row": 4 },
         { "skin": "goblin", "col": 6, "row": 5 }
       ] },
-    { "order": 2, "name": "見張り（開地・一斉警戒）", "ai": "guard", "sight": 4,
+    { "order": 2, "name": "見張り（開地・一斉警戒）", "ai": "ambush", "sight": 4,
       "units": [
         { "skin": "goblin", "col": 6, "row": 9 },
         { "skin": "hobgoblin", "col": 7, "row": 9 }

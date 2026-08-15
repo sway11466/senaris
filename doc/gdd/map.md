@@ -164,7 +164,7 @@
 - 各駒（`player[]` / `enemy[].units[]`）の記法は共通: `type`（性能）か `skin`（見た目・性能は逆引き）＋ `col`/`row`＋任意 `troops`（損耗・省略＝満員）／`level`（成長・省略＝1）＋任意 `actor`（下記）。輸送は `passengers:[...]`。`player` の駒にはもう1つ `supply`（名簿との突き合わせ方 → [戦力供給モデル](#戦力供給モデル独立継承)）を書ける。
 - 駒に番号は書かない。盤の駒には内部の通し番号（id）が振られるが、これは実行時のハンドルであってデータの語彙ではない。駒を名指すのは `actor` の役目で、勝敗条件も名簿も会話も `actor` を見る。
 - **性能は `type` が唯一の出どころ**＝攻撃・防御・移動・射程などをステージ側から上書きすることはできない。ボス個体や強化型が要るなら `type` を足す（数値がステージに散らばるとバランス調整の見通しが効かなくなるため）。駒に書けるのは個体の状態（`troops`/`level`）だけ。
-- **部隊(squad)** ＝ `{ "order": 行動順, "name"?: 表示名, "ai": 特性id, ...上書き, "units": [...] }`。`ai` は [ai.md](ai.md) の特性（`charge`/`guard`/`raid`/`weak`/`swarm`）。`sight`・`stack` は部隊ごとに上書きできる。`order` は敵の行動順（[ai.md](ai.md) 行動順）で、`ai` を持つ拠点も同じ列に並ぶ。
+- **部隊(squad)** ＝ `{ "order": 行動順, "name"?: 表示名, "ai": 特性id, ...上書き, "units": [...] }`。`ai` は [ai.md](ai.md) の特性（`charge`/`ambush`/`raid`/`weak`/`swarm`）。`sight`・`stack` は部隊ごとに上書きできる。`order` は敵の行動順（[ai.md](ai.md) 行動順）で、`ai` を持つ拠点も同じ列に並ぶ。
 - 例:
   ```json
   "player": [
@@ -172,7 +172,7 @@
   ],
   "enemy": [
     { "order": 1, "ai": "charge", "units": [ { "skin": "goblin", "col": 9, "row": 5 } ] },
-    { "order": 2, "name": "奥の部屋", "ai": "guard", "sight": 3, "units": [ ... ] }
+    { "order": 2, "name": "奥の部屋", "ai": "ambush", "sight": 3, "units": [ ... ] }
   ]
   ```
 

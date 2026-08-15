@@ -1,7 +1,7 @@
 ai,name,sight,stack
 特性id,表示名,索敵範囲,スキル上限
 charge,突撃,-,-
-guard,待機,3,-
+ambush,待ち伏せ,3,-
 raid,拠点攻略,-,-
 weak,弱者狙い,*,-
 swarm,群れ,*,1
