@@ -1,0 +1,18 @@
+# 上面＝歩廊の敷石。元絵の中央460px四方だけを使う（全面1024pxだと敷石が17px→盤上で5pxになり砂利に見えた。
+# 460なら38px→盤上11pxで敷石として読める）。gen_terrain_tile.ps1 に切り出し引数が無いので先に magick で切る。
+magick assets\terrain-src\rampart\rampart_01_raw.jpg -crop 460x460+282+282 +repage tmp_walk.png
+powershell -File tools\gen_terrain_tile.ps1 rampart tmp_walk.png
+
+# 側面＝切石積みの壁面。左右シームレスは全幅を保つ限り生きるので、行だけを切る。
+# 高さ0.54の段差は盤で約12pxしかないので、帯を薄く切って段を大きく見せる（280px=4段では潰れた／140px=2段で読める）。
+# +384 は明度が画像全体の平均(46.7)に最も近い帯を14候補から選んだもの。
+magick assets\terrain-src\rampart\rampart_side_01_raw.jpg -crop 1024x140+0+384 +repage -colors 64 -dither None assets\terrain\rampart_side.png
+
+# terrain_skin.csv: elevation 0.54（0.18刻み×3。台地0.18・崖0.36の系列）/ orientable full（1枚しか無いので、回転と反転で繰り返しを散らす）。
+# CSV を直したら JSON を焼き直す:
+#   godot --headless --path . --script res://data/terrain/convert.gd
+# 画像を差し替えたら .godot/imported/ の当該 ctex/md5 を消してから --import（消さないと古い生成物が黙って使われる）。
+
+# 没にした案の残骸: rampart_parapet_prompt.txt / rampart_parapet_01_raw.jpg
+# 帯（歩廊）を接続タイルで走らせ、帯の外を胸壁で埋める案。マス全体が石になる＝壁の輪郭がヘックスの輪郭になり、
+# まっすぐな壁の縁が1マスごとに64px出入りしてジグザグに見えたため不採用。

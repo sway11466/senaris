@@ -1,0 +1,55 @@
+STYLE: A map tile texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading,
+clear dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
+role-playing game, seen from DIRECTLY OVERHEAD — flat, no perspective, no
+horizon, no sky, no depth, nothing standing up. Read at thumbnail size: a few
+large legible shapes, no fine detail. Square 1:1.
+
+SUBJECT: The paved WALKWAY that runs along the top of a fortress wall — the
+level stone floor the defenders walk on, seen from straight above. Just the
+paving, filling the whole picture.
+
+FILL THE FRAME — IMPORTANT: the paving covers the ENTIRE square, edge to edge,
+corner to corner. This is a texture swatch, not a scene and not an object. NO
+parapet, NO battlements, NO merlons, NO crenellations, NO wall, NO kerb, NO
+railing, NO edge, NO steps, NO stair, NO hatch, NO background, NO grass, NO
+ground, NO sky, NO border, NO frame, NO vignette, NO rounded corners. The paving
+runs off all four sides. Nothing stands on it and nothing lies on it — NO
+weapons, NO barrels, NO braziers, NO banners, NO people.
+
+THE STONES: dressed paving slabs cut by a mason for a fortress — squarish and
+rectangular, tidier and more squared-off than a village lane's cobbles, but not
+machine-perfect: each slab a slightly different size, corners a little worn, a
+few small slabs wedged between larger ones. A slab is roughly a twelfth of the
+frame across, and none is bigger than an eighth of the frame.
+
+NO PATTERN — CRITICAL: this same texture is used for every wall tile on the map,
+unrotated and never mirrored, so any regularity shows up immediately as a
+repeat. There must be NO rows, NO courses, NO grid, NO brickwork or running
+bond, NO herringbone, NO fan or circular pattern, NO radiating layout, and NO
+joint line that runs straight across more than about a fifth of the frame. The
+slabs sit at slightly different angles and their joints wander. Nothing anywhere
+in the picture is big enough or distinctive enough to be recognised as a
+landmark if this square were laid down twenty times side by side.
+
+THE JOINTS: the gaps between slabs are THIN and DARK — narrow dark lines, a
+little darker than the stone itself. CRITICAL: no white or pale joints, no wide
+mortar beds, no bright grout. The joints must never become the loudest thing in
+the picture.
+
+COLOR: pale cool grey granite, roughly hex #A9AEB0 — a light, faintly blue-grey
+stone, almost colourless. It must read as the LIGHTER of the two stones that
+meet inside one map tile: clearly lighter than the wall's parapet capping
+(#8E9498) that borders it, and clearly lighter and cooler than the game's stone
+road (#8C8A82). Also plainly different from the graveyard rubble's warm grey-tan
+(#B9B2A4) and from the game's grass (#B4C6A0). Each slab is a slightly different
+shade of that grey, some a touch warmer, some a touch cooler, scattered unevenly
+so the variation never falls into a pattern. NO slab may be white or near-white,
+and none may be near-black. Swept and walked-on: NO moss, NO lichen, NO grass in
+the joints, NO puddles, NO snow, NO sand, NO leaves, NO rubble, NO dirt patches,
+NO cracks big enough to notice, NO carved marks, NO inscriptions, NO blood.
+
+Lit dimly and evenly from straight above, with NO cast shadow at all and no
+light direction: the slabs are flat paving and throw no shadows. Shading stays
+inside each slab — very slight, just enough to tell one slab from the next.
