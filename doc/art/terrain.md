@@ -31,32 +31,35 @@
 
 ---
 
-## 2. 生成方式（TERRAIN STYLE）
+## 2. 生成方式（STYLE と SUBJECT）
 
-生成方式は共通のアンカー方式（共通 STYLE ＋ 地形ごとの SUBJECT／[direction.md](direction.md) §3）。ユニットの人物 STYLE（[units.md](units.md) §3.2）とは別物で、真上視点・画面いっぱい・継ぎ目が出にくい平坦テクスチャに振る。反復を避けるため大きな高コントラストの特徴は禁止（大きな色ムラは「大きな特徴」＝敷き詰めで規則的に繰り返す。平地は盤の大半を覆う背景なので特に均一・低コントラストに保ちユニットを引き立てる）。
+生成は共通のアンカー方式（STYLE ＋ 地形ごとの SUBJECT／[direction.md](direction.md) §3）。ただし地形の STYLE は1本に固定しない。絵の作りが違えば STYLE ごと替えてよく、実際に壁は側面視、城壁はサムネイルで読める大きな形に振った独自の STYLE で作っている。共通で守るのはテイスト（絵柄・視点・出力の形）だけ。ユニットの人物 STYLE（[units.md](units.md) §3.2）とは別物。
 
-TERRAIN STYLE（共通・固定）:
+TERRAIN STYLE（テイストの共通項）:
 ```
-STYLE: A top-down ground-terrain tile for a fantasy tactics game, in the same
-clean stylized cel-shaded look as the game's unit art: bold flat shading, a
-mature, slightly muted, limited color palette (NOT bright saturated, NOT
-painterly photorealism). Viewed straight from directly overhead — a flat lay
-with NO perspective, NO horizon, NO sky. The texture fills the ENTIRE square
-frame edge to edge, with NO border, NO frame, NO vignette, and no single big
-focal object. CRITICAL: scatter any small details (grass tufts, pebbles)
-RANDOMLY and UNEVENLY — a few loose clusters here, bare empty gaps there —
-NEVER evenly spaced, NEVER in rows or a regular grid. Avoid large,
-high-contrast patches or blotches (they read as a big feature and repeat
-visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+STYLE: A map tile texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's unit art: bold flat shading, clear dark
+outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). Seen from DIRECTLY OVERHEAD — a flat
+lay with NO perspective, NO horizon, NO sky, nothing standing up. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette. Square 1:1.
 ```
 
-地面のテクスチャではなく、識別できる物（墓標など）を置く地形は、SUBJECT に次を足す。どれも一度踏んだ手戻り。
+テイストに密度の指示を混ぜない。旧 STYLE は「小物はまばらに散らし、何も無い隙間も作れ」を含んでいて、隙間なく覆う地形（茂み）と正面から衝突した。SUBJECT でいくら「地面を見せるな」と書いても、STYLE 側の指示が残っている限り生成物に平らな地色が残る。
 
-- 物は中央に集める。正方の生成物はヘックスに切り抜かれ、四隅と外周は落ちる。外側1/5を空けないと物が縁で切れる。透かしが四隅落ちで消えるのと同じ理屈が、作画側では制約として効く。
-- 位置の指定は余白で書く。「中央の円の内側に収める」のように図形で言うと、その円が線として描かれる。あわせて「線・枠・補助線を描くな」を明記する。
-- 大きさは画面比で書き、画素数で言い換える（「フレーム高さの1/3。1000px の絵なら約330px」）。「小さく」「大きく」は前回と同じ解釈に戻る。
-- 隣り合う地形と地続きに見せるなら、地面の色を基準色の HEX で固定したうえで「これより黄色く・鮮やかに・明るくするな」と方向を禁じる。HEX 指定だけでは黄色へ流れた（墓標で12枚中7枚が外れ、採用できたのは5枚）。
-- 影は描かない。真上視点の地面に光源方向を持ち込むと、反転や隣接タイルと食い違う。
+密度・反復対策・物の置き方は、地形の作りごとに SUBJECT へ足す。
+
+- 敷き詰めるテクスチャ（平地・森・茂み・荒地）＝反復対策: 大きな高コントラストの塊を作らせない・大局の色は均一で低コントラスト・単一の主役物を置かない。大きな色ムラは「大きな特徴」＝敷き詰めで規則的に繰り返す。平地は盤の大半を覆う背景なので特に均一に保ち、ユニットを引き立てる。
+- まばらな地面（平地・墓地の草地・台地）＝密度: 小物は不規則に散らし、何も無い隙間を作る。列や格子にしない。
+- 隙間なく覆う（森・茂み）＝密度: 一続きの塊として描かせ、平らな地色を残させない。塊どうしが接しきらない所は、地面ではなく濃い下草で埋めさせる（「地面を描くな」の禁止だけでは、生成側に逃げ道が無く地色が残る）。
+- 物を置く（墓標など）＝地面のテクスチャではなく、識別できる物を置く地形。次を足す。どれも一度踏んだ手戻り。
+  - 物は中央に集める。正方の生成物はヘックスに切り抜かれ、四隅と外周は落ちる。外側1/5を空けないと物が縁で切れる。透かしが四隅落ちで消えるのと同じ理屈が、作画側では制約として効く。
+  - 位置の指定は余白で書く。「中央の円の内側に収める」のように図形で言うと、その円が線として描かれる。あわせて「線・枠・補助線を描くな」を明記する。
+  - 大きさは画面比で書き、画素数で言い換える（「フレーム高さの1/3。1000px の絵なら約330px」）。「小さく」「大きく」は前回と同じ解釈に戻る。
+  - 隣り合う地形と地続きに見せるなら、地面の色を基準色の HEX で固定したうえで「これより黄色く・鮮やかに・明るくするな」と方向を禁じる。HEX 指定だけでは黄色へ流れた（墓標で12枚中7枚が外れ、採用できたのは5枚）。
+
+影は地形共通で描かない。真上視点の地面に光源方向を持ち込むと、反転や隣接タイルと食い違う。
 
 保管・命名（ユニット（[units.md](units.md) §3.1）と同じ二層。terrain.csv/JSON は触らないドロップイン）：
 
