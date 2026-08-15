@@ -1,6 +1,6 @@
 skin_id,terrain_type,name,orientable,connect,connect_to,elevation,sprite_sink,grid,map_ground,map_overlay,combat_ground,combat_layout,memo
 スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,立ち絵の沈み,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,戦闘背景の置き方,備考
-road,road,道,none,area,road_stone1 road_bridge1 plateau_town_v plateau_town_r plateau_town_l bush_garden_v bush_garden_r bush_garden_l,0,0,true,,,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園を片方向で書く＝その下を道がくぐる
+road,road,道,none,area,road_stone1 road_bridge1 plateau_town_v plateau_town_r plateau_town_l bush_garden_v bush_garden_r bush_garden_l fort_guardhouse1,0,0,true,,,plain,line,既定スキン。隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園・詰所を片方向で書く＝その下を道がくぐる
 plain,plain,平地,full,false,,0,0,true,,,,,既定スキン
 plain_cave1,plain,洞窟の床,full,false,,0,0,true,,,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
 plain_grave1,plain,墓地の草地,full,false,,0,0,true,,,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
