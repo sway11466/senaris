@@ -9,7 +9,11 @@ class_name CampaignSelect
 signal campaign_chosen(campaign_id: String, variant: int)  # variant＝カードで表示中の連番index（stage側で同じ絵に固定）
 signal title_requested  # タイトルのメニューへ戻る（左上のボタン・Esc）
 
-const POSTER_SIZE := Vector2(300, 440)  # 縦長の貼り紙
+## 貼り紙の大きさ。横幅は板の貼り付け面（画面1280で1099px＝TavernTheme の枠の厚みから決まる）を
+## 3枚＋隙間4つ（枠との左右2つ＋紙どうし2つ）で埋める値 (1099-19*4)/3。
+## ＝枠と紙の間隔が紙どうしの間隔と揃う。板の幅を変えたら測り直す。
+const POSTER_SIZE := Vector2(341, 440)
+const POSTER_SEPARATION := 19  # 貼り紙どうしの隙間（縦横とも）＝枠と紙の隙間もこれに合わせる
 const POSTER_ART_HEIGHT := 230.0
 const RAIL_HEIGHT := 76.0   # ボード上梁の帯（board.png のテクスチャ縁と一致・ボード名を載せる）
 const BOARD_NAME_FONT := "res://assets/fonts/RockSalt-Regular.ttf"
@@ -68,15 +72,25 @@ func _ready() -> void:
 	board.add_theme_stylebox_override("panel", TavernTheme.board_stylebox())
 	board_area.add_child(board)
 
+	# 貼り付け面（board の content margin＝彫り枠の内側ちょうど）の内側に、さらに紙1枚ぶんの
+	# 隙間を左右へ入れる＝枠と紙の間隔が紙どうしの間隔と揃う。上下は板側の余白のままにする。
+	var paste := MarginContainer.new()
+	paste.add_theme_constant_override("margin_left", POSTER_SEPARATION)
+	paste.add_theme_constant_override("margin_right", POSTER_SEPARATION)
+	board.add_child(paste)
+
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	board.add_child(scroll)
+	# 縦スクロールバーは出さない（ホイールでは動く）。出すと幅を取って貼り紙の置き場が
+	# 狭くなり、3枚が2枚に折り返してしまう（4枚以上のボードで実測）。
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	paste.add_child(scroll)
 
 	_posters = HFlowContainer.new()
 	_posters.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_posters.add_theme_constant_override("h_separation", 20)
-	_posters.add_theme_constant_override("v_separation", 20)
+	_posters.add_theme_constant_override("h_separation", POSTER_SEPARATION)
+	_posters.add_theme_constant_override("v_separation", POSTER_SEPARATION)
 	scroll.add_child(_posters)
 
 	# ボード名＝上梁に手書き風で載せる（貼り紙エリアの外＝紙と干渉しない）

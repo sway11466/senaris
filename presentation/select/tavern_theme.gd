@@ -101,19 +101,33 @@ static func _radial(inner: Color, outer: Color) -> GradientTexture2D:
 
 # --- StyleBox 部品 ---
 
+## 彫り枠の厚み＝board.png 実測（内側コーナー (82,76)-(1325,689) / 画像1408x768）。
+## ナインパッチの固定幅であり、左右はそのまま内側余白にも使う（＝貼り紙の置き場が貼り付け面と一致する）。
+const BOARD_EDGE_LEFT := 82
+const BOARD_EDGE_TOP := 76
+const BOARD_EDGE_RIGHT := 83
+const BOARD_EDGE_BOTTOM := 79
+## 上下の内側余白＝上梁（ボード名）・下梁に貼り紙を被せないための余裕。枠の厚みより広く取る。
+const BOARD_PAD_V := 96
+
 ## 依頼ボード本体（木板＋太い枠＋影）。board.png があればテクスチャ、無ければベタ塗り。
 static func board_stylebox() -> StyleBox:
 	var tex := _tex("board")
 	if tex != null:
-		var sb := _texture_box(tex, 80, 96)  # 内側余白96px（貼り紙を枠に被せない）。縁は下で四辺個別に上書き
+		var sb := _texture_box(tex, 80, 0)  # 縁と内側余白は下で四辺個別に入れる
 		# 一様なまっすぐ枠なので、辺はタイルでなく素直に引き伸ばす（節が無いので伸びても崩れない）。
 		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-		# 彫り枠の内側境界＝board.png 実測（内側コーナー (82,76)-(1325,689) / 画像1408x768）。四辺の固定幅。
-		sb.set_texture_margin(SIDE_LEFT, 82)
-		sb.set_texture_margin(SIDE_TOP, 76)
-		sb.set_texture_margin(SIDE_RIGHT, 83)
-		sb.set_texture_margin(SIDE_BOTTOM, 79)
+		sb.set_texture_margin(SIDE_LEFT, BOARD_EDGE_LEFT)
+		sb.set_texture_margin(SIDE_TOP, BOARD_EDGE_TOP)
+		sb.set_texture_margin(SIDE_RIGHT, BOARD_EDGE_RIGHT)
+		sb.set_texture_margin(SIDE_BOTTOM, BOARD_EDGE_BOTTOM)
+		# 左右は枠の厚みと同値＝置き場の幅が貼り付け面ちょうど（画面1280で1099px）になる。
+		# 紙との隙間はここでは足さない＝画面側（CampaignSelect）が持つ。
+		sb.set_content_margin(SIDE_LEFT, BOARD_EDGE_LEFT)
+		sb.set_content_margin(SIDE_RIGHT, BOARD_EDGE_RIGHT)
+		sb.set_content_margin(SIDE_TOP, BOARD_PAD_V)
+		sb.set_content_margin(SIDE_BOTTOM, BOARD_PAD_V)
 		return sb
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = BOARD_WOOD
@@ -176,6 +190,10 @@ static func parchment_stylebox(seed := 0, bright := 1.0) -> StyleBox:
 	if not texs.is_empty():
 		var tex: Texture2D = texs[absi(seed) % texs.size()]
 		var sbt := _texture_box(tex, 8, 0)
+		# 横だけ引き伸ばす＝紙の実寸(300)より POSTER_SIZE.x(341) が広く、タイルだと中途半端な
+		# 繰り返しの継ぎ目が右寄りに出る（実測）。繊維の伸びは 1.2 倍弱で目に付かない。
+		# 縦は実寸と同じなのでタイルのままで 1:1。
+		sbt.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 		sbt.modulate_color = Color(bright, bright, bright, 1.0)
 		return sbt
 	var sb := StyleBoxFlat.new()
