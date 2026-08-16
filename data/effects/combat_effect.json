@@ -57,6 +57,20 @@
 			"scale": 0.7
 		},
 		{
+			"effect_id": "magic_dust",
+			"kind": "projectile",
+			"memo": "ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）",
+			"name": "魔法の粉",
+			"scale": 0.8
+		},
+		{
+			"effect_id": "fire_ball",
+			"kind": "projectile",
+			"memo": "呪い師の深紅の火の玉＋尾を引く炎",
+			"name": "火球",
+			"scale": 0.8
+		},
+		{
 			"effect_id": "curse",
 			"kind": "impact",
 			"memo": "浮かび上がる青緑のドクロ",
@@ -89,6 +103,20 @@
 			"kind": "impact",
 			"memo": "近接の聖なる一撃。射程1なので飛ばさない",
 			"name": "聖光",
+			"scale": 1.0
+		},
+		{
+			"effect_id": "spore",
+			"kind": "projectile",
+			"memo": "マタンゴの胞子。霞でなく粒の図形で描く（切り抜きのため）",
+			"name": "胞子",
+			"scale": 0.75
+		},
+		{
+			"effect_id": "scream",
+			"kind": "impact",
+			"memo": "マンドラゴラの魔法の悲鳴。面積が大きいので中心は空洞",
+			"name": "悲鳴",
 			"scale": 1.0
 		}
 	]
