@@ -185,9 +185,9 @@
 			"grid": true,
 			"map_ground": "",
 			"map_overlay": "",
-			"memo": "既定スキン",
+			"memo": "既定スキン。塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす",
 			"name": "茂み",
-			"orientable": "full",
+			"orientable": "flip",
 			"skin_id": "bush",
 			"sprite_sink": 0.12,
 			"terrain_type": "bush"

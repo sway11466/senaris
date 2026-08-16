@@ -11,7 +11,7 @@ plateau_town_l,plateau,街区（左）,flip_xy,false,,0,0,true,road,,road,center
 wasteland,wasteland,荒地,full,false,,0,0,true,,,,,既定スキン
 wasteland_tomb1,wasteland,墓標の荒れ地,flip,false,,0,0,true,,,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）。墓標を立てて描くので回さない＝左右反転だけで散らす
 forest,forest,森,full,false,,0.18,0.18,true,,,,,既定スキン
-bush,bush,茂み,full,false,,0.12,0.12,true,,,,,既定スキン
+bush,bush,茂み,flip,false,,0.12,0.12,true,,,,,既定スキン。塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす
 bush_garden_v,bush,菜園（縦）,flip_xy,false,,0,0,true,road,,road,center,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦
 bush_garden_r,bush,菜園（右）,flip_xy,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝右上から左下
 bush_garden_l,bush,菜園（左）,flip_xy,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝左上から右下
