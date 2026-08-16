@@ -21,19 +21,19 @@
 ICON STYLE（共通・固定）:
 
 ```
-STYLE: A single fantasy game UI icon, drawn as ONE isolated emblem: NO
-character, NO hands, NO ground, NO scenery, NO text, NO frame, NO border. It
-looks like a branding-iron mark burned into a dark wooden signboard — a bold
-flat shape in warm amber-gold, one light tone plus at most one slightly darker
-tone of the same amber, with hard flat edges. Clean stylized vector-like shapes,
-the same slightly muted look as the game's unit pieces. This mark labels an
-ENEMY, so it must read as grim and menacing: heavy, blunt, a little crude, never
-elegant, never heroic or angelic — no feathered wings, no halos, no laurels.
-NOT photorealistic, NO glowing bloom, NO soft gradients, NO sparkle particles,
-NO smoke, NO metallic sheen. Symmetrical about the axis given in the subject. A
-crisp, bold silhouette that still reads when shrunk to 36 pixels tall. The mark
-fills the square canvas edge to edge, leaving only a thin margin — never a small
-mark floating in a large empty background. Square 1:1 composition.
+STYLE: A single fantasy game UI icon: ONE isolated emblem on an empty
+background, drawn as a branding-iron mark burned into a dark wooden signboard —
+a bold flat shape in warm amber-gold, one light tone plus at most one slightly
+darker tone of the same amber, with hard flat edges. Clean stylized vector-like
+shapes, the same slightly muted look as the game's unit pieces. This mark labels
+an ENEMY, so it reads as grim and menacing: heavy, blunt, a little crude. Follow
+the arrangement the subject describes exactly, including which way each element
+points and where each element sits. A crisp, bold silhouette that still reads
+when shrunk to 36 pixels tall. The mark fills the square canvas edge to edge,
+leaving only a thin margin. Square 1:1 composition. Keep the frame clean: the
+emblem alone, no characters, no hands, no ground, no scenery, no text, no
+border, and no photographic rendering, bloom, gradients, particles or metallic
+sheen.
 ```
 
 SUBJECT を書くときの勘所（実地で効いたもの）:
@@ -42,6 +42,9 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 - 36pxで残るのは輪郭だけ。内側の模様・彫り・刃こぼれは潰れるので、意味を持たせない。区別は外形のくびれと張り出しで作る。
 - 敵に付ける印なので、優美な形に寄せない。禍々しさは朽ちや腐食ではなく形で出す（欠けは36pxでは輪郭のノイズにしかならない）。
 - 語がモチーフを呼ぶ。`wings` は鳥の翼を呼ぶので、コウモリなら膜・リブ・鉤爪という部品で描写する。
+- 禁止を並べるより、位置と向きを肯定文で言い切る。「鏡像にするな」は効かないが、「鼻面が左の辺を指し、耳は頭蓋の右側にある」と書けば反転は起きない。禁止したい語を書くほど、その像が絵に出る。
+- 対称は SUBJECT に持たせる。共通STYLEに「左右対称」と書くと、同じ向きの複製を3つ並べる絵で下の2つが鏡像になる（群れで踏んだ）。STYLE 側は「SUBJECT の配置と向きにそのまま従う」までにする。
+- 輪郭の型を5種で散らす。色は全部同じなので、横長・縦長・丸・反復のように外形の型を分けておくと、名前を読まなくても取り違えない。
 - 背景は切り抜きのコントラストで選ぶ。明るい印なら黒。暗い輪郭を持たせるなら黒どうしで分離できないので白にする。
 
 ## 3. 保管・書き出し
