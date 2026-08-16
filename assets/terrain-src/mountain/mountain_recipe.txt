@@ -10,7 +10,7 @@ magick assets\terrain-src\mountain\mountain_side_01_raw.png -crop 1024x140+0+884
 # CSV を直したら JSON を焼き直す:
 #   godot --headless --path . --script res://data/terrain/convert.gd
 
-# 変種は1枚。片寄り4.00＝大局の明暗が大きいが、山では斜面の起伏として働くので抑えない
+# 変種は1枚。明暗むら4.00＝大局の明暗が大きいが、山では斜面の起伏として働くので抑えない
 # （平坦な地面の基準 1.8 は当てはめない）。広く敷いて繰り返しが気になったら mountain_2.png を足す。
 
 # 没案: (1) 岩を1つずつ輪郭で囲んだ「転がった岩」＝砂利場に見えた。(2) 1ヘクスに山を1つ立てて描く
