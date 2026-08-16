@@ -10,7 +10,10 @@ script = ExtResource("1")
 [node name="HexBoard" type="Node3D" parent="."]
 script = ExtResource("2")
 
-[node name="InfoPanel" type="Panel" parent="."]
+[node name="Front" type="CanvasLayer" parent="."]
+layer = 45
+
+[node name="InfoPanel" type="Panel" parent="Front"]
 offset_left = 800.0
 offset_top = 96.0
 offset_right = 1264.0

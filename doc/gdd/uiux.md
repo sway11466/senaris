@@ -118,7 +118,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 - 画面全体に半透明の暗幕をかけ、会話パネルだけをその前面に残す（周りが沈んで会話に目が行く）。盤・ターン表示・HUD はまとめて暗くなる。
 - 暗幕はフェードで出し入れする（唐突に暗転しない）。会話が終われば盤が主役に戻る。
 
-実装 → [../../presentation/main/main.gd](../../presentation/main/main.gd)（`_scrim`・会話フローで出し入れ）・[../../presentation/ui/conversation_panel.gd](../../presentation/ui/conversation_panel.gd)（会話パネル）
+実装 → [../../presentation/ui/screen_lighting.gd](../../presentation/ui/screen_lighting.gd)（画面の明暗の共通基盤。暗幕は会話・戦闘演出・陣形カットインで同じもの）・[../../presentation/main/main.gd](../../presentation/main/main.gd)（`_set_scrim`・会話フローで出し入れ）・[../../presentation/ui/conversation_panel.gd](../../presentation/ui/conversation_panel.gd)（会話パネル）
 
 ---
 

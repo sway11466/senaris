@@ -5,8 +5,10 @@ class_name CombatStage
 ##   戦闘 → CombatScene（ため→着弾→反撃→幕引き）
 ##   ユニットスキル → SkillScene（ため→発動→幕引き。兵量は動かない）
 ## 仕様 → doc/tech/combat_scene.md
-## 窓と暗幕は盤エリア（UiLayout.board_area）だけを覆う＝右の InfoPanel は隠さず、
-## 補正チェーンなどの詳細内訳を演出と同時に読めるようにする（演出=結果／右パネル=根拠）。
+## 窓は盤エリア（UiLayout.board_area）の中央に置き、右の InfoPanel は隠さない＝
+## 補正チェーンなどの詳細内訳を演出と同時に読める（演出=結果／右パネル=根拠）。
+## 暗転は共通基盤（ScreenLighting・層40）に頼む＝_open で掛け、_close_now で明ける。
+## InfoPanel は前面パネル層（45）で幕より前に浮くので暗くならない。本層（50）は窓だけを持つ。
 ## 状態は持たず play() のたびに引数から導出して描く。
 
 signal finished  # 演出が閉じた（自動クローズ or クリック）。AIターンのテンポ制御が待つ。
@@ -75,7 +77,7 @@ const BAR_EDGE := Color(0, 0, 0, 0.65)
 var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
 var _root: Control        # 全画面の入力キャッチ（モーダル）
-var _backdrop: ColorRect  # 盤を薄暗くする幕
+var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。_open で暗転・_close_now で明ける
 var _panel: Control       # 中央のモーダル窓（横長八角形。中身のクリップ元も兼ねる）
 var _edge: Control        # 窓の縁取り（窓の上に重ねて描く＝地面に線が隠れない）
 var _bg := Color(0.35, 0.38, 0.34)  # 窓の下地色（地形色。地面が敷けないときに見える）
@@ -111,11 +113,6 @@ func _build() -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.gui_input.connect(_on_root_input)
 	add_child(_root)
-	_backdrop = ColorRect.new()
-	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)  # _root（＝盤エリア）いっぱいに敷く
-	_backdrop.color = Color(0, 0, 0, 0.45)  # 盤を薄暗く
-	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_root.add_child(_backdrop)
 	# 中央のモーダル窓。八角形を自分で描き、それをマスクに中身（地面・立ち絵・エフェクト）を
 	# 切り抜く＝角の外には盤の暗幕が覗く。シェイクのはみ出しもここで止まる。
 	_panel = Control.new()
@@ -169,7 +166,7 @@ func _build() -> void:
 	visible = false
 
 ## 窓を盤エリア（右の情報ボックスを除く）の中央に配置し、内寸 _area を確定する（play のたびに再計算）。
-## 暗幕も同じ盤エリアに絞る＝右の InfoPanel が覆われず、詳細内訳を演出中に読める。
+## 入力キャッチ（_root）も盤エリアに絞る＝右の InfoPanel のタブ操作は演出中も効く。
 func _layout() -> void:
 	var vp := Vector2(1152, 648)
 	var v := get_viewport()
@@ -177,7 +174,7 @@ func _layout() -> void:
 		vp = v.get_visible_rect().size
 	var board := UiLayout.board_area(vp)
 	_root.position = board.position
-	_root.size = board.size  # 暗幕は FULL_RECT アンカーで _root に追従する
+	_root.size = board.size
 	_area = Vector2(min(board.size.x * 0.90, 740.0), min(board.size.y * 0.62, 520.0))
 	_panel.size = _area
 	_panel.position = ((board.size - _area) * 0.5).round()
@@ -198,6 +195,10 @@ func _layout() -> void:
 
 func bind(skins: Dictionary) -> void:
 	_skins = skins
+
+## 画面の明暗の共通基盤（main が結線）。舞台の開閉に合わせて暗転を掛け外しする。
+func bind_screen(screen: ScreenLighting) -> void:
+	_screen = screen
 
 ## ステージの地形の見た目差分（座標→skin_id）。地面をどのスキンで組むかの解決に使う。
 ## ステージごとに変わるので load_stage が呼ぶ（盤の bind と同じ出どころ）。
@@ -223,15 +224,16 @@ func _open(ground: Dictionary, ground_side: String) -> void:
 	_clear(_feature)
 	if skin != null and skin.combat_placement() == "center":
 		_add_feature(skin, ground_side)
+	if _screen != null:
+		_screen.dim(self)  # 暗転は共通基盤（フェードはあちら持ち）。窓のワイプとほぼ同時に走る
 	_start_open_anim()
 
-## 幕開け：暗幕が差す → 窓が上下に開く → 両軍の隊列が外側から中央へ寄る。
+## 幕開け：窓が上下に開く → 両軍の隊列が外側から中央へ寄る（暗転は _open が共通基盤に頼んでいる）。
 ## 隊列は _open の直後（同フレーム）に _render_side が組むので、ここで先に図レイヤを外へ置いておける。
 ## バーと地形の重ね絵は動かさない＝窓に属する表示なので、隊列と一緒に流れると窓が滑って見える。
 func _start_open_anim() -> void:
 	var dx := _size().x * SLIDE_DX
 	_root.modulate.a = 1.0
-	_backdrop.modulate.a = 0.0
 	_panel.scale.y = WIPE_MIN
 	_edge.scale.y = WIPE_MIN
 	_fig["L"].position.x = -dx
@@ -240,7 +242,6 @@ func _start_open_anim() -> void:
 	_anim = create_tween()
 	_anim.set_parallel(true)
 	_anim.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	_anim.tween_property(_backdrop, "modulate:a", 1.0, OPEN_WIPE)
 	_anim.tween_property(_panel, "scale:y", 1.0, OPEN_WIPE)
 	_anim.tween_property(_edge, "scale:y", 1.0, OPEN_WIPE)
 	_anim.tween_property(_fig["L"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
@@ -629,6 +630,8 @@ func _close_now() -> void:
 	_inner.position = Vector2.ZERO
 	_root.modulate.a = 1.0
 	visible = false
+	if _screen != null:
+		_screen.undim(self)  # 暗転を明ける（窓が消えてから共通基盤のフェードで戻る）
 	finished.emit()
 
 func _clear(node: Node) -> void:

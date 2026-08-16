@@ -22,7 +22,7 @@ const TITLE_BGM_FADE_IN := 2.5
 const TITLE_MENU_FADE := 3.0
 ## 「おわる」で決定音を聞かせてから窓を閉じるまでの待ち（秒）。
 const QUIT_SFX_SEC := 0.7
-var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
+var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（永続・層40）。暗幕と加護の光を持つ
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
@@ -35,8 +35,6 @@ var _title_pending := true
 var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録・carryover のキー用）
 var _current_stage_id := ""
 var _conversation: ConversationPanel = null
-var _scrim: ColorRect = null  # 会話中に盤を沈める暗幕（会話パネルより後ろ・盤より前）
-var _scrim_tween: Tween = null  # 進行中のフェード。次のフェード開始時に kill する（off の hide が on を消す競合対策）
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _skill_scene: SkillScene = null  # ユニットスキルの演出（永続・formation_resolved のスキル分を受ける）
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
@@ -55,13 +53,17 @@ func _ready() -> void:
 	_skins = SkinCatalog.load_standard()
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
-	$HexBoard.selection_changed.connect($InfoPanel.show_unit)
-	$HexBoard.tile_inspected.connect($InfoPanel.show_terrain)  # 空きマス選択→地形/拠点情報
+	# InfoPanel は前面パネル層 $Front（層45）＝暗転（ScreenLighting・層40）で沈まない側。
+	$HexBoard.selection_changed.connect($Front/InfoPanel.show_unit)
+	$HexBoard.tile_inspected.connect($Front/InfoPanel.show_terrain)  # 空きマス選択→地形/拠点情報
+	_install_screen()  # 画面の明暗の共通基盤（暗幕＋加護の光）。暗転を頼む演出より先に用意
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
 	_combat_scene.bind(_skins)
+	_combat_scene.bind_screen(_screen)
 	add_child(_combat_scene)
 	_skill_scene = SkillScene.new()  # ユニットスキルの演出（永続）。舞台は戦闘と共通＝CombatStage
 	_skill_scene.bind(_skins)
+	_skill_scene.bind_screen(_screen)
 	add_child(_skill_scene)
 	_victory_screen = VictoryScreen.new()  # キャンペーン完走の勝利イラスト（永続）
 	add_child(_victory_screen)
@@ -74,7 +76,6 @@ func _ready() -> void:
 	_install_turn_plate()  # 永続のターン板（盤エリア上端中央）。load_stage がターン・代表ユニットを流し込む
 	_install_turn_banner()  # 永続のターンバナー（画面中央・ターンが移った瞬間だけ出る）
 	_install_formation_cutin()  # 永続の陣形カットイン（絵が在るレシピの発動時だけ出る）
-	_install_aura()  # 永続の加護の光（画面外周）。陣営全体バフが効いている間だけ出す
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
@@ -124,11 +125,11 @@ func _install_state(state: BattleState, path: String) -> void:
 	$HexBoard.bind(state, _controller, _skins, terrain_skins, StageLoader.load_margin_terrain(path))
 	_combat_scene.bind_terrain_skins(terrain_skins)  # 演出の地面も同じ見た目差分から組む
 	_skill_scene.bind_terrain_skins(terrain_skins)  # スキルの演出も同じ地面を組む
-	$InfoPanel.bind(state, _skins)
-	$InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
-	$InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先
+	$Front/InfoPanel.bind(state, _skins)
+	$Front/InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
+	$Front/InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
-	_controller.combat_resolved.connect($InfoPanel.show_combat)
+	_controller.combat_resolved.connect($Front/InfoPanel.show_combat)
 	_controller.combat_resolved.connect(_combat_scene.play)  # 演出シーン（結果＝シーン／根拠＝右パネル）
 	_controller.combat_pace = _await_combat_view  # AIターンは演出の完了を待ってから次へ
 	_controller.move_pace = $HexBoard.await_move_animation  # 同上＝移動アニメも歩き切るまで待つ
@@ -213,16 +214,22 @@ func _on_formation_resolved(result: Dictionary) -> void:
 	_update_aura()
 
 ## 着弾の揺れ（2D側）。このノードごと振る＝盤の上に載る UI・オーバーレイが一緒に動く。
-## 別レイヤー（CanvasLayer＝戦闘演出・戦果票・セレクト）には乗らないが、着弾の瞬間それらは出ていない。
+## 前面パネル層 $Front（CanvasLayer）はこのノードの移動に乗らないので offset を同じ量で振る
+## ＝右の情報ボックスも同じ衝撃の下に置く（仕様）。ScreenLighting（明暗）は光なので揺らさない。
+## ほかの別レイヤー（戦闘演出・戦果票・セレクト）は着弾の瞬間には出ていない。
 func _shake_screen() -> void:
+	_shake_prop(self, "position")
+	_shake_prop($Front, "offset")
+	$HexBoard.shake()
+
+func _shake_prop(target: Object, prop: String) -> void:
 	var d := float(BoardCamera.SHAKE_PX)
 	var step := float(BoardCamera.SHAKE_STEP)
 	var tw := create_tween()
-	tw.tween_property(self, "position", Vector2(-d, d * 0.5), step)
-	tw.tween_property(self, "position", Vector2(d * 0.8, -d * 0.3), step)
-	tw.tween_property(self, "position", Vector2(-d * 0.4, -d * 0.2), step)
-	tw.tween_property(self, "position", Vector2.ZERO, step)
-	$HexBoard.shake()
+	tw.tween_property(target, prop, Vector2(-d, d * 0.5), step)
+	tw.tween_property(target, prop, Vector2(d * 0.8, -d * 0.3), step)
+	tw.tween_property(target, prop, Vector2(-d * 0.4, -d * 0.2), step)
+	tw.tween_property(target, prop, Vector2.ZERO, step)
 
 func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0
@@ -273,7 +280,7 @@ func _on_battle_finished(outcome: int) -> void:
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
 			_conversation_phase = "outro"
-			$InfoPanel.hide()
+			$Front/InfoPanel.hide()
 			$HexBoard.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
 			_set_scrim(true)  # 盤を沈めて会話に注視させる
 			# 冒険譚を完走した回だけ、盤の代わりに勝利イラストを敷いて outro を読ませる
@@ -345,20 +352,7 @@ func _stage_title() -> String:
 
 # --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
 func _install_conversation() -> void:
-	# 暗幕は会話パネルより先に add＝パネルの後ろ（下）・盤や HUD の前（前面）に来る。
-	# Node2D の子の Control はアンカーで自動リサイズされない（親にサイズが無い）ため、
-	# ビューポート全体を size で明示し、リサイズに追従させる（InfoPanel と同じ事情）。
-	_scrim = ColorRect.new()
-	_scrim.color = Color(0.0, 0.0, 0.0, 0.5)  # 暗さの度合い（叩き台。実機で調整）
-	_scrim.position = Vector2.ZERO
-	_scrim.size = get_viewport().get_visible_rect().size
-	_scrim.mouse_filter = Control.MOUSE_FILTER_STOP  # 会話中は盤エリアのクリックを吸う（入力ガードの二重化）
-	_scrim.modulate.a = 0.0
-	_scrim.hide()
-	add_child(_scrim)
-	get_viewport().size_changed.connect(func() -> void:
-		if _scrim != null:
-			_scrim.size = get_viewport().get_visible_rect().size)
+	# パネルは前面パネル層 $Front（層45）＝暗転で沈まない側。暗幕は共通基盤（_screen）に頼む。
 	_conversation = preload("res://presentation/ui/conversation_panel.gd").new()
 	_conversation.offset_left = UiLayout.RIGHT_BOX.position.x  # InfoPanel と同じ箱に重ねる（会話中は InfoPanel を隠す）
 	_conversation.offset_top = UiLayout.RIGHT_BOX.position.y
@@ -366,23 +360,17 @@ func _install_conversation() -> void:
 	_conversation.offset_bottom = UiLayout.RIGHT_BOX.end.y
 	_conversation.bind(_skins)
 	_conversation.closed.connect(_on_conversation_closed)
-	add_child(_conversation)
+	$Front.add_child(_conversation)
 
-## 会話中の暗幕をフェードで出し入れする（唐突に暗くしない）。off はフェード後に隠して
-## クリックを吸わないよう戻す。intro/outro の開始で on、会話終了で off。
+## 会話中の暗転（共通基盤に頼む）。フェード・重ね掛けの管理は ScreenLighting 持ち。
+## block_input=true＝幕より下（盤・HUD）へのクリックも吸う（盤ロックとの二重ガード）。
 func _set_scrim(on: bool) -> void:
-	if _scrim == null:
+	if _screen == null:
 		return
-	# 前回のフェードが生きたままだと、outro の off（完了時 hide）が直後の intro の on を
-	# 上書きして「会話中なのに盤が明るい」まま固まる（次ステージ連続進行で再現）。必ず止める。
-	if _scrim_tween != null and _scrim_tween.is_valid():
-		_scrim_tween.kill()
 	if on:
-		_scrim.show()
-	_scrim_tween = create_tween()
-	_scrim_tween.tween_property(_scrim, "modulate:a", 1.0 if on else 0.0, 0.2)
-	if not on:
-		_scrim_tween.tween_callback(_scrim.hide)
+		_screen.dim(self, true)
+	else:
+		_screen.undim(self)
 
 ## intro 会話があれば、盤操作をロックして先に流す（無ければ即戦闘）。
 func _maybe_start_intro() -> void:
@@ -391,7 +379,7 @@ func _maybe_start_intro() -> void:
 	_conversation_phase = "intro"
 	$HexBoard.set_input_locked(true)
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
-	$InfoPanel.hide()  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
+	$Front/InfoPanel.hide()  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
 
@@ -418,7 +406,7 @@ func _on_event_fired(info: Dictionary) -> void:
 	_conversation_phase = "event"
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない
-	$InfoPanel.hide()
+	$Front/InfoPanel.hide()
 	$HexBoard.set_input_locked(true)
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
 	_hud.set_player_turn(false)
@@ -426,7 +414,7 @@ func _on_event_fired(info: Dictionary) -> void:
 
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:
-	$InfoPanel.show()  # 会話が終わったら情報パネルを戻す
+	$Front/InfoPanel.show()  # 会話が終わったら情報パネルを戻す
 	$HexBoard.set_input_locked(false)  # 盤の凍結を解除（intro/outro 共通）
 	_set_scrim(false)  # 暗幕を戻す（盤が主役に戻る）
 	match _conversation_phase:
@@ -542,31 +530,26 @@ func _install_turn_banner() -> void:
 func _install_formation_cutin() -> void:
 	_formation_cutin = FormationCutin.new()
 	_formation_cutin.name = "FormationCutin"
-	add_child(_formation_cutin)
+	_formation_cutin.bind_screen(_screen)
+	$Front.add_child(_formation_cutin)  # 前面パネル層＝暗転しても絵は沈まない（暗転は自身が掛ける）
 
-## 加護の光（画面外周）。盤・情報パネル・HUD より前に置く＝右の情報ボックスも同じ光の下に入る。
-## ここで add_child した位置（カットインの後・会話の暗幕の前）が、そのまま光の届く範囲になる：
-##   - 前に来る＝盤／情報パネル／HUD／ターン板／カットイン → 照らす
-##   - 後ろに来る＝会話の暗幕と会話パネル → 照らさない（会話中に盤だけ明るいのを防ぐ）
-##   - 別レイヤー（CanvasLayer）＝戦闘演出・勝利画面・戦果票・セレクト → 照らさない
-## 並びが意味を持つので、_install_conversation より前に呼ぶこと。
-func _install_aura() -> void:
-	_aura = AuraOverlay.new()
-	_aura.name = "AuraOverlay"
-	add_child(_aura)
-	get_viewport().size_changed.connect(func() -> void:
-		if _aura != null and _aura.visible:
-			_aura.fit_to(get_viewport().get_visible_rect().size))
+## 画面の明暗の共通基盤（presentation/ui/screen_lighting.gd）。暗幕と加護の光をここに集約する。
+## 層の並び（0=盤・HUD／40=本層／45=$Front／50=演出窓 …）は ScreenLighting のヘッダ参照。
+## 旧実装の「add_child の順序が光の届く範囲を決める」約束は層番号に置き換わった＝呼び順は自由。
+func _install_screen() -> void:
+	_screen = ScreenLighting.new()
+	_screen.name = "ScreenLighting"
+	add_child(_screen)
 
 ## 陣営全体バフ（ホーリーアリア）が効いている間だけ加護の光を出す。
 ## ターンの切り替わりで満了するので、turn_changed と陣形の解決で見直す。
 func _update_aura() -> void:
-	if _aura == null or _controller == null:
+	if _screen == null or _controller == null:
 		return
 	if _controller.state.team_aura_fx().is_empty():
-		_aura.stop()
+		_screen.aura_stop()
 	else:
-		_aura.play(AuraOverlay.HOLY_COLOR, get_viewport().get_visible_rect().size)
+		_screen.aura_play(AuraOverlay.HOLY_COLOR)
 
 func _on_end_turn_requested() -> void:
 	if _controller != null:
@@ -596,7 +579,7 @@ func _on_save_requested() -> void:
 	}
 	_save_store.save(_controller.state.to_dict(), meta)
 	_hud.set_load_available(true)  # 以後ロード可能に
-	$InfoPanel.notify("セーブしました")  # 一時通知は右パネルへ（上端の情報バーは廃止）
+	$Front/InfoPanel.notify("セーブしました")  # 一時通知は右パネルへ（上端の情報バーは廃止）
 
 ## 中断セーブから再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
 func _on_load_requested() -> void:

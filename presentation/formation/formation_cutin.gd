@@ -1,6 +1,7 @@
 extends Control
 class_name FormationCutin
-## 陣形スキルの発動で挟む1枚絵のカットイン（presentation）。盤エリアの暗幕の上に絵を出し、留めて消える。
+## 陣形スキルの発動で挟む1枚絵のカットイン（presentation）。画面全体の暗転（ScreenLighting）の
+## 上に絵を出し、留めて消える。本体は前面パネル層（45）＝幕より前。右の InfoPanel も同じ層で沈まない。
 ## 窓は戦闘演出シーンと同じ位置・大きさ・形（八角形）＝盤が完全に消えない・演出の見た目を揃える。
 ## 絵はレシピIDで規約解決＝assets/formations/{recipe_id}.png。無ければ何もせず false を返す
 ## （カットインを飛ばして盤の結果だけ見せる。音は main が鳴らす）。
@@ -15,9 +16,8 @@ const EXTS := [".png", ".webp"]
 const FADE_SEC := 0.15    # 出し／引きの秒数（片道）
 const HOLD_SEC := 0.70    # 留める秒数。FADE*2+HOLD = 1.0 秒（仕様の「約1秒」）
 const ZOOM_FROM := 1.06   # 絵の入り＝わずかに寄った状態から等倍へ。動きを感じさせるだけの幅に留める
-const SCRIM_ALPHA := 0.45 # 暗幕の濃さ。戦闘演出シーンの幕と同じ＝盤の沈み方を演出間で揃える
 
-var _scrim: ColorRect     # 暗幕（盤エリアだけ）。右の情報パネルは覆わない
+var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。play で暗転・close で明ける
 var _window: Control      # 八角形の窓。絵はこの中に描く（_draw_art）
 var _edge: Control        # 窓の縁取り
 var _tween: Tween = null
@@ -25,17 +25,18 @@ var _texture: Texture2D = null
 var _art_scale := 1.0     # 入りのズーム（窓の中で絵だけが動く）
 
 func _ready() -> void:
-	# 親が Node2D（main）なのでアンカーは効かない＝矩形は _layout で明示的に置く（ターンバナーと同じ）。
+	# 親は前面パネル層（CanvasLayer）＝ Control 親ではないのでアンカーは効かない。
+	# 矩形は _layout で明示的に置く（ターンバナーと同じ）。
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 	_build()
 	get_viewport().size_changed.connect(_layout)
 
+## 画面の明暗の共通基盤（main が結線）。カットインの出し入れに合わせて暗転を掛け外しする。
+func bind_screen(screen: ScreenLighting) -> void:
+	_screen = screen
+
 func _build() -> void:
-	_scrim = ColorRect.new()
-	_scrim.color = Color(0, 0, 0, SCRIM_ALPHA)
-	_scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_scrim)
 	_window = Control.new()
 	_window.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_window.draw.connect(_draw_art)
@@ -51,6 +52,8 @@ func play(recipe_id: String) -> bool:
 	if tex == null:
 		return false
 	_texture = tex
+	if _screen != null:
+		_screen.dim(self)  # 画面全体を沈めて絵に注視させる（濃さ・フェードは共通基盤持ち）
 	visible = true
 	_layout()
 	_animate()
@@ -99,6 +102,8 @@ func _close() -> void:
 	_tween = null
 	if not visible:
 		return
+	if _screen != null:
+		_screen.undim(self)  # 暗転を明ける（着弾＝盤の結果へ目を戻す）
 	visible = false
 	finished.emit()
 
@@ -112,7 +117,7 @@ func _set_art_scale(v: float) -> void:
 	_window.queue_redraw()
 
 ## 窓は戦闘演出シーンと同じ位置・大きさ・形（盤エリア中央の八角形）に合わせる。
-## 暗幕も同じく盤エリアだけ＝右の情報パネルは覆わない。盤が完全に消えるのを避ける。
+## 暗転は共通基盤（画面全体）＝ここでは窓と縁取りだけを置く。
 func _layout() -> void:
 	if not visible:
 		return
@@ -120,8 +125,6 @@ func _layout() -> void:
 	position = Vector2.ZERO
 	size = vp
 	var board := UiLayout.board_area(vp)
-	_scrim.position = board.position
-	_scrim.size = board.size
 	var area := Vector2(minf(board.size.x * 0.90, 740.0), minf(board.size.y * 0.62, 520.0))
 	var at := board.position + ((board.size - area) * 0.5).round()
 	for c in [_window, _edge]:
