@@ -34,11 +34,13 @@ func _ready() -> void:
 ## 空文字は「曲なし」＝現在の曲をフェードアウトして無音にする。
 ## fade_in_sec は既定 0＝頭から素の音量（曲の入りを聞かせる）。無音から静かに立ち上げたい
 ## 場面だけ秒数を渡す。
-func play(track_id: String, fade_in_sec: float = 0.0) -> void:
+## fade_out_sec を渡すと旧曲の落ちる時間も変えられる。fade_in と同じ長さにすれば
+## 両者が重なるクロスフェードになる（既定は旧曲だけ素早く落とす）。
+func play(track_id: String, fade_in_sec: float = 0.0, fade_out_sec: float = FADE_OUT_SEC) -> void:
 	if track_id == _current_track:
 		return
 	_current_track = track_id
-	_fade_to(_load(track_id), fade_in_sec)
+	_fade_to(_load(track_id), fade_in_sec, fade_out_sec)
 
 ## スティンガー（勝利/敗北など loop=false の一発曲）を鳴らす。現在のステージ曲は素早く下げ、
 ## スティンガーはフェードインせず頭から出す＝ファンファーレの立ち上がりを殺さない。
@@ -145,7 +147,7 @@ func current_track() -> String:
 ## 聞こえないまま過ぎる＝スティンガーと同じ理由で、頭は素の音量で出す。
 ## fade_in_sec > 0 のときだけ無音から立ち上げる（前が鳴り止んでいて、素の音量だと唐突な場面）。
 ## stream が null なら現在の曲を落とすだけ。
-func _fade_to(stream: AudioStream, fade_in_sec: float = 0.0) -> void:
+func _fade_to(stream: AudioStream, fade_in_sec: float = 0.0, fade_out_sec: float = FADE_OUT_SEC) -> void:
 	if _tween != null and _tween.is_valid():
 		_tween.kill()  # 前のフェードが生きたままだと音量の取り合いになる（会話の暗幕と同じ事情）
 	var outgoing := _players[_active]
@@ -156,7 +158,7 @@ func _fade_to(stream: AudioStream, fade_in_sec: float = 0.0) -> void:
 		incoming.volume_db = SILENCE_DB if fade_in_sec > 0.0 else 0.0
 		incoming.play()
 	_tween = create_tween().set_parallel(true)
-	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, FADE_OUT_SEC)
+	_tween.tween_property(outgoing, "volume_db", SILENCE_DB, fade_out_sec)
 	if stream != null and fade_in_sec > 0.0:
 		_tween.tween_property(_players[_active], "volume_db", 0.0, fade_in_sec)
 	_tween.chain().tween_callback(outgoing.stop)  # 消えてから止める（裏を空けて次の切替に備える）

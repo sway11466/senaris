@@ -200,6 +200,23 @@ static func signboard_stylebox() -> StyleBox:
 	sb.set_corner_radius_all(6)
 	return sb
 
+## タイトルのメニュー板（[../title/title_screen.gd](../title/title_screen.gd)）。1枚絵をそのまま
+## 伸縮して敷く＝ナインパッチにしない。枠のレールと四隅の金具が描き込まれた絵なので、
+## 辺を引き伸ばすと飾りが崩れる。歪ませないための縦横比は置く側が絵に合わせて持つ（下記 texture）。
+static func title_board_stylebox() -> StyleBox:
+	var tex := title_board_texture()
+	if tex == null:
+		return signboard_stylebox()  # 絵が無ければ従来の暗い木の看板へフォールバック
+	var sb := StyleBoxTexture.new()
+	sb.texture = tex
+	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
+
+## タイトルのメニュー板の絵（無ければ null）。置く側が縦横比を読むために公開する。
+static func title_board_texture() -> Texture2D:
+	return _tex("title_board")
+
 ## 看板の彫り枠の角の丸み（px）。枠の下に絵を敷く側（勝利イラストなど）は、
 ## 四隅が枠からはみ出さないよう同じ値で角を丸める。
 const FRAME_CORNER_RADIUS := 6

@@ -17,6 +17,9 @@ const TURN_BANNER_GAP := 0.3  # 敵ターンでバナーが引けてから最初
 ## タイトルのざわめきを無音から立ち上げる時間（秒）。起動直後の一発目なので、素の音量で
 ## 出ると音が唐突に生える。扉に近づいていくくらいの間をとる。
 const TITLE_BGM_FADE_IN := 2.5
+## メニューが出たときに menu 曲へ渡す時間（秒）。ざわめきの落ちと曲の立ち上がりを同じ長さで
+## 重ねる＝クロスフェード。店のざわめきから旋律へゆっくり持ち替える場面なので長めにとる。
+const TITLE_MENU_FADE := 3.0
 var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
@@ -619,30 +622,53 @@ func _install_select() -> void:
 	# ここでは開かない。起動直後はタイトル画面が前に出て、扉をくぐった時点で開く（_install_title）。
 
 # --- タイトル画面（presentation/title/）。仕様 → doc/art/menu.md §5・doc/audio/bgm.md ---
-## 起動直後は酒場の扉を外から見せる。曲は鳴らさず、店から漏れるざわめき（title）だけを
-## こもらせて流す。入力で扉が開き、扉が開くのに合わせてこもりを解く＝音がひらける。
+## 起動直後は酒場の扉が開いて店内へ入る動画を流す。この間は曲を鳴らさず、店から漏れるざわめき
+## （title）だけをこもらせて流し、扉が開くのに合わせてこもりを解く＝音がひらける。
+## 入り終わって（or スキップして）メニューが出たところで menu 曲へ渡す（_on_title_menu_shown）。
 func _install_title() -> void:
 	_title = TitleScreen.new()
 	_title.name = "TitleScreen"
 	add_child(_title)
 	_title.door_opening.connect(_on_title_door_opening)
-	_title.finished.connect(_on_title_finished, CONNECT_ONE_SHOT)
+	_title.menu_shown.connect(_on_title_menu_shown)
+	_title.continue_requested.connect(_on_title_continue)
+	_title.new_game_requested.connect(_on_title_new_game)
+	_title.quit_requested.connect(_on_title_quit)
 	if _bgm != null:
 		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
 		_bgm.play(BgmDirector.TITLE_TRACK, TITLE_BGM_FADE_IN)
-	_title.play()
+	_title.play(_save_store != null and _save_store.has_save())
 
 ## 扉が開き始めた＝遮っていたものが無くなる。こもりを扉の動きと同じ時間で解く。
 func _on_title_door_opening() -> void:
 	if _bgm != null:
 		_bgm.open_up(TitleScreen.OPEN_SEC)
 
-## 扉をくぐった（or スキップ）＝セレクトへ。曲は _on_select_opened がメニュー曲に張り替える。
-func _on_title_finished() -> void:
+## メニューが出た＝店に入り切った。ここで初めて旋律が立ち上がる（ざわめき→menu のクロスフェード）。
+func _on_title_menu_shown() -> void:
+	if _bgm == null:
+		return
+	_bgm.open_up(0.0)  # スキップで開き切っていない場合の後始末（挿しっぱなしを残さない）
+	_bgm.play(BgmDirector.MENU_TRACK, TITLE_MENU_FADE, TITLE_MENU_FADE)
+
+## 冒険の続き＝中断セーブから盤へ直行（セレクトは開かない）。曲はステージのものに張り替わる。
+## 項目はセーブが在るときだけ出るが、読めなかったときは行き先が無くなるのでセレクトへ落とす。
+func _on_title_continue() -> void:
+	_title_pending = false  # 以後は盤・セレクトの曲が主＝ざわめきのガードを解く
+	_title.close()
+	if _save_store != null and _save_store.has_save():
+		_on_load_requested()
+	else:
+		_select.open()
+
+## 新しい冒険譚＝セレクトへ。曲は既に menu なので _on_select_opened の play は空振りする。
+func _on_title_new_game() -> void:
 	_title_pending = false
-	if _bgm != null:
-		_bgm.open_up(0.0)  # スキップで開き切っていない場合の後始末（挿しっぱなしを残さない）
+	_title.close()
 	_select.open()
+
+func _on_title_quit() -> void:
+	get_tree().quit()
 
 ## セレクトを開いた＝ステージ外の場面。盤（下敷き）は残るがBGMはメニュー曲に戻す。
 func _on_select_opened() -> void:
