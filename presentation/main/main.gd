@@ -20,6 +20,8 @@ const TITLE_BGM_FADE_IN := 2.5
 ## メニューが出たときに menu 曲へ渡す時間（秒）。ざわめきの落ちと曲の立ち上がりを同じ長さで
 ## 重ねる＝クロスフェード。店のざわめきから旋律へゆっくり持ち替える場面なので長めにとる。
 const TITLE_MENU_FADE := 3.0
+## 「おわる」で決定音を聞かせてから窓を閉じるまでの待ち（秒）。
+const QUIT_SFX_SEC := 0.7
 var _aura: AuraOverlay = null  # 加護の光（永続・盤エリア外周）。陣営全体バフ中だけ出す
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
@@ -618,6 +620,7 @@ func _install_select() -> void:
 	_select.setup(_progress)
 	_select.stage_chosen.connect(_on_stage_chosen)
 	_select.opened.connect(_on_select_opened)  # ステージ外に戻ったらメニュー曲へ
+	_select.title_requested.connect(_on_select_title_requested)  # さらに戻る＝タイトルのメニュー
 	_hud.stage_select_requested.connect(_select.open)
 	# ここでは開かない。起動直後はタイトル画面が前に出て、扉をくぐった時点で開く（_install_title）。
 
@@ -667,8 +670,16 @@ func _on_title_new_game() -> void:
 	_title.close()
 	_select.open()
 
+## おわる。決定音（ui_confirm＝実測0.69秒）を鳴らし切ってから落とす＝即 quit だと音が切れる。
 func _on_title_quit() -> void:
+	await get_tree().create_timer(QUIT_SFX_SEC).timeout
 	get_tree().quit()
+
+## 冒険譚選択から戻る＝タイトルのメニューへ。扉と動画は見せ直さない（曲も menu のまま続く）。
+## 中断セーブの有無はここで取り直す＝遊んでいる間にセーブしていれば「冒険の続き」が有効になる。
+func _on_select_title_requested() -> void:
+	_select.close()
+	_title.reopen(_save_store != null and _save_store.has_save())
 
 ## セレクトを開いた＝ステージ外の場面。盤（下敷き）は残るがBGMはメニュー曲に戻す。
 func _on_select_opened() -> void:

@@ -21,6 +21,7 @@ const EXTS := [".ogg", ".wav"]
 const BIND := {
 	# --- メニュー（タイトル・冒険譚選択・ステージセレクト）---
 	"menu_tier": "menu_slide",  # 難易度帯ボードを繰る。布が滑る音（map_capture と同じ収録）
+	"menu_command": "ui_confirm",  # タイトルのメニュー項目を選ぶ
 	"menu_campaign": "ui_confirm",
 	"menu_stage": "ui_confirm",
 	"menu_back": "ui_cancel",

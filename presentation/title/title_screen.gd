@@ -31,21 +31,19 @@ const OPEN_SEC := 1.9
 ## メニューが浮かび上がる時間（秒）。動画が止まった瞬間に板が現れると唐突なので一拍かける。
 const MENU_FADE_SEC := 0.5
 
-## メニュー板の置き場（画面比・左上と右下）。画面の上下中央、かつ左半分の左右中央に置く
-## ＝板の中心は (0.25, 0.5)。画面比で持つので、窓の大きさが変わっても絵に対する位置が動かない。
-## 板を収める枠（画面比）。左半分の中で上下に余白をとり、その中に板を絵の縦横比のまま
-## 目一杯収めて中央に置く＝板の中心は画面の上下中央・左半分の左右中央 (0.25, 0.5)。
-const PANEL_AREA_RIGHT := 0.5
-const PANEL_AREA_TOP := 0.10
-const PANEL_AREA_BOTTOM := 0.90
+## ボタンを置く領域（画面比）。左半分の中央に縦一列で並べる＝列の中心は (0.25, 0.5)。
+const MENU_AREA_RIGHT := 0.5
 
-## 板の絵が無いときの縦横比（幅÷高さ）。絵が在ればその寸法から取る。
-const PANEL_FALLBACK_RATIO := 0.56
+## 暗幕の右端（画面比）と色。ボタンの帯を絵から分けるためだけの膜で、文字はボタン（不透明）に載る。
+## 木ではなく中立の暗色にする＝操作の道具は酒場の物ではない（キャンペーンセレクトの
+## カルーセルUIが灰色なのと同じ考え。campaign_select.gd の DOT_COLOR）。
+const SCRIM_RIGHT := 0.56
+const SCRIM_COLOR := Color(0.04, 0.03, 0.03)
+const SCRIM_ALPHA_EDGE := 0.80   # 画面左端
+const SCRIM_ALPHA_HOLD := 0.74   # ボタンの列を覆う範囲。ここから右へ抜けていく
+const SCRIM_HOLD_AT := 0.55      # 抜け始める位置（暗幕の幅に対する比）
 
-## 板の内側の余白（px）。四隅の金具にボタンが掛からない幅をとる。
-const PANEL_PAD_X := 52
-const PANEL_PAD_Y := 52
-
+const BUTTON_WIDTH := 260
 const BUTTON_HEIGHT := 52
 const BUTTON_GAP := 18
 const BUTTON_FONT_SIZE := 20
@@ -99,6 +97,17 @@ func play(has_save: bool) -> void:
 ## タイトルを畳む（項目を選んで次の場面へ移るとき。場面の切り替えは main が持つ）。
 func close() -> void:
 	visible = false
+
+## メニューへ戻る（セレクトから）。扉と動画はもう見せず、店内の絵とメニューだけを出し直す。
+## 項目は作り直す＝遊んでいる間に中断セーブが増減していても「冒険の続き」の可否が合う。
+func reopen(has_save: bool) -> void:
+	_has_save = has_save
+	if _menu != null:
+		_menu.queue_free()
+		_menu = null
+	_menu_open = false
+	visible = true
+	_show_menu()
 
 ## 動画を始める。読めなければ絵を出したままメニューへ進む。
 func _start_video() -> void:
@@ -160,37 +169,29 @@ func _show_menu() -> void:
 	create_tween().tween_property(_menu, "modulate:a", 1.0, MENU_FADE_SEC)
 	menu_shown.emit()
 
-## メニュー板。不透明の板を敷き、木の板ボタンを縦に並べる。
-## 板は1枚絵をそのまま伸縮させる（ナインパッチにしない）ので、絵の縦横比を保つ枠に収めて歪ませない。
+## メニュー。左半分に暗幕を敷き、その中央に木の板ボタンを縦に並べる。
+## 酒場の物（木の板を敷く等）にはしない＝設定・マニュアル・おわる は作中の誰の行為でもなく、
+## 操作の道具だから絵から浮かせる。キャンペーンセレクトのカルーセルUIを灰色にしたのと同じ判断。
 ## 項目は常に同じ並びで出し、いま選べないもの（行き先が未実装・中断セーブが無い）は押せない見た目にする
 ## ＝起動のたびに並びが動かず、この画面から何ができるのかも分かる。
 func _build_menu() -> Control:
-	var area := AspectRatioContainer.new()
-	area.anchor_left = 0.0
-	area.anchor_top = PANEL_AREA_TOP
-	area.anchor_right = PANEL_AREA_RIGHT
-	area.anchor_bottom = PANEL_AREA_BOTTOM
-	area.offset_left = 0.0
-	area.offset_top = 0.0
-	area.offset_right = 0.0
-	area.offset_bottom = 0.0
-	area.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	area.stretch_mode = AspectRatioContainer.STRETCH_FIT
-	area.alignment_horizontal = AspectRatioContainer.ALIGNMENT_CENTER
-	area.alignment_vertical = AspectRatioContainer.ALIGNMENT_CENTER
-	var tex := TavernTheme.title_board_texture()
-	area.ratio = PANEL_FALLBACK_RATIO if tex == null else float(tex.get_width()) / float(tex.get_height())
-	var panel := Panel.new()
-	panel.add_theme_stylebox_override("panel", TavernTheme.title_board_stylebox())
-	area.add_child(panel)
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_scrim())
+	var center := CenterContainer.new()  # 左半分のちょうど真ん中に列を置く
+	center.anchor_left = 0.0
+	center.anchor_top = 0.0
+	center.anchor_right = MENU_AREA_RIGHT
+	center.anchor_bottom = 1.0
+	center.offset_left = 0.0
+	center.offset_top = 0.0
+	center.offset_right = 0.0
+	center.offset_bottom = 0.0
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(center)
 	var box := VBoxContainer.new()
-	panel.add_child(box)
-	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	box.offset_left = PANEL_PAD_X
-	box.offset_top = PANEL_PAD_Y
-	box.offset_right = -PANEL_PAD_X
-	box.offset_bottom = -PANEL_PAD_Y
-	box.alignment = BoxContainer.ALIGNMENT_CENTER  # 項目数が変わっても（続きの有無）板の中で釣り合う
+	center.add_child(box)
 	box.add_theme_constant_override("separation", BUTTON_GAP)
 	# 中断セーブが無いときも項目は出す（押せないだけ）＝並びが変わらず、何が在るかも分かる
 	box.add_child(_menu_button("冒険の続き", continue_requested if _has_save else null))
@@ -199,15 +200,48 @@ func _build_menu() -> Control:
 	box.add_child(_menu_button("マニュアル", null))  # 同上（feature-52）
 	box.add_child(_menu_button("クレジット", null))  # 同上（feature-46）
 	box.add_child(_menu_button("おわる", quit_requested))
-	return area
+	return layer
 
-## 板ボタン1つ。sig が null＝いま選べない項目で、押せない見た目にして並びだけ残す。
+## ボタンの帯を絵から分ける暗幕。左端から右へ抜ける横グラデーション1枚。
+func _scrim() -> Control:
+	var grad := Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, SCRIM_HOLD_AT, 1.0])
+	grad.colors = PackedColorArray([
+		Color(SCRIM_COLOR, SCRIM_ALPHA_EDGE),
+		Color(SCRIM_COLOR, SCRIM_ALPHA_HOLD),
+		Color(SCRIM_COLOR, 0.0),
+	])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.width = 256
+	tex.height = 1
+	tex.fill_from = Vector2(0.0, 0.0)  # 左から右へ（縦は一様）
+	tex.fill_to = Vector2(1.0, 0.0)
+	var rect := TextureRect.new()
+	rect.texture = tex
+	rect.stretch_mode = TextureRect.STRETCH_SCALE
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rect.anchor_left = 0.0
+	rect.anchor_top = 0.0
+	rect.anchor_right = SCRIM_RIGHT
+	rect.anchor_bottom = 1.0
+	rect.offset_left = 0.0
+	rect.offset_top = 0.0
+	rect.offset_right = 0.0
+	rect.offset_bottom = 0.0
+	return rect
+
+## 板ボタン1つ。sig が null＝いま選べない項目で、沈んだ見た目にして並びだけ残す。
+## disabled にはしない＝入力を受け取らないと拒否音を鳴らせないため（セレクトの未解放ステージと同じ）。
 func _menu_button(text: String, sig: Variant) -> Button:
 	var b := TavernTheme.wood_button(text)
-	b.custom_minimum_size = Vector2(0, BUTTON_HEIGHT)
+	b.custom_minimum_size = Vector2(BUTTON_WIDTH, BUTTON_HEIGHT)
 	b.add_theme_font_size_override("font_size", BUTTON_FONT_SIZE)
 	if sig == null:
-		b.disabled = true
+		TavernTheme.dim_wood_button(b)
+		b.pressed.connect(func() -> void: SfxPlayer.play_event("menu_locked"))
 	else:
-		b.pressed.connect(func() -> void: (sig as Signal).emit())
+		b.pressed.connect(func() -> void:
+			SfxPlayer.play_event("menu_command")
+			(sig as Signal).emit())
 	return b

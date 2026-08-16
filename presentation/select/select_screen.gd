@@ -7,6 +7,8 @@ class_name SelectScreen
 signal stage_chosen(campaign_id: String, stage_id: String, path: String)
 ## セレクトを開いた（＝ステージ外の場面に戻った）。main が BGM をメニュー曲に戻すのに使う。
 signal opened
+## 冒険譚選択からさらに戻る＝タイトルのメニューへ。main が画面を入れ替える。
+signal title_requested
 
 var _campaign_select: CampaignSelect
 var _stage_select: StageSelect
@@ -18,6 +20,7 @@ func _ready() -> void:
 	_campaign_select = CampaignSelect.new()
 	_campaign_select.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_campaign_select.campaign_chosen.connect(_on_campaign_chosen)
+	_campaign_select.title_requested.connect(title_requested.emit)
 	add_child(_campaign_select)
 
 	_stage_select = StageSelect.new()
