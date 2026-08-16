@@ -21,7 +21,8 @@ fence_grave1,fence,墓地の柵,none,line,,0,0,true,plain_grave1,fence,plain_gra
 trap,trap,罠,none,false,,0,0,true,,,plain,center,既定スキン
 rampart,rampart,城壁,full,false,,0.54,0,true,,,plain,line,既定スキン。上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
 rampart_rubble1,rampart,瓦礫の山,full,false,,0.36,0,true,,,plain_grave1,line,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
-cliff,cliff,崖,none,false,,0.36,0,true,,,,,既定スキン
+cliff,cliff,崖,full,false,,0.54,0,true,,,,,既定スキン。上面は上向きに砕けた岩＝足場が無い・城壁と同じ高さまで上げる。山と同じ岩の暖色だが一段暗い
+cliff_granite1,cliff,花崗岩の崖,full,false,,0.54,0,true,,,,,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の崖・山）とは別の岩質
 river,river,川,none,area,road_bridge1,0,0,true,,,plain,line,既定スキン。隣の川と繋がる向き別タイル（_c000000〜_c111111）
 road_stone1,road,石畳,none,area,road road_bridge1,0,0,true,plain,,plain,line,石畳の道。地面は焼き込まず map_ground で敷く＝同じ絵を橋にも使う
 road_bridge1,road,橋,none,area,road road_stone1,0,0,true,river,road_stone1,plain,line,石畳の絵（map_overlay）を借り、川の上に架ける。川側が river に橋を書くので水は下をくぐる

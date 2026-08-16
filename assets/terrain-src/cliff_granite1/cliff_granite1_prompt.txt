@@ -1,0 +1,8 @@
+SUBJECT: The bare TOP of an impassable rocky CLIFF outcrop, seen straight from
+directly overhead. Cold grey-blue weathered bedrock (base color around #8C9098)
+broken by irregular hairline fissures running in NO single direction, with
+chipped angular fragments and a few darker recesses. A very small amount of dry
+moss in the deepest cracks only — no grass field, no soil. Hard, cold, sheer,
+clearly unclimbable. Keep the large-scale color even and low-contrast so it
+tiles cleanly. This is only the flat rock surface — NO cliff face, NO slope,
+NO drop-off, NO edge shadow in the tile.
