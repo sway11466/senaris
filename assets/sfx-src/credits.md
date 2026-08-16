@@ -75,5 +75,6 @@
 | `magic_dust` | 魔法の粉の発射（ピクシー）。着弾音は持たない | Sonniss GDC 2026 / Cinematic Sound Design - User Interface `Interface Plucks Happy` | wav 96kHz/24bit | 同上 | 切り出しなし、-5.5 dB。magic_dust_recipe.txt |
 | `fire_ball` | 火球の発射（オークメイジ） | Sonniss GDC 2026 / Epic Stock Media - Elemental Mutation Whooshes and Impacts `FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03` | wav 96kHz/24bit | 同上 | 山の頭から（0.55〜1.10秒・前後にフェード）、-8.0 dB。fire_ball_recipe.txt |
 | `fire_ball_hit` | 火球の着弾（魔弾と同一素材） | Sonniss GDC 2020 / David Dumais Audio - Magic Sound FX Pack 1 `Magic_Explosion_Short19` | wav 44.1kHz/24bit | 同上 | `magic_bolt_hit` と同一の切り出し（切り出しなし）、-8.5 dB。fire_ball_hit_recipe.txt |
+| `quake` | 坑道が抜ける地響き（冒険譚3 st3 の会話） | Sonniss GDC 2020 / Stefano Cremona - Explosions `DeepExplosion02` | wav 96kHz/24bit | 同上 | 頭から 3.40 秒（2.90 秒からフェード）、-9.0 dB。quake_recipe.txt |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。

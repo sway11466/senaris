@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/quake__2020__DeepExplosion02.wav" -af "atrim=0:3.40,asetpts=N/SR/TB,afade=t=in:st=0:d=0.01,afade=t=out:st=2.90:d=0.50,volume=-9.0dB" -c:a pcm_s24le quake.wav

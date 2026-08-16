@@ -443,6 +443,14 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `map_board` は木の打撃音に軋みを重ねて作る。輸送ユニットの移動音を将来個別に持たせる場合は、2023 p2 の Dramatic Cat - Horse Carriage に `VEHWagn_Wood Cart Roll On Stone Pavement In Courtyard 03`（荷馬車が石畳を進む音）と馬の足音が揃っている。
 
+会話の物音。台本の効果音行（`sound:` ＝素材ID）が名指しで鳴らすもので、発火点カタログには載らない。
+
+| sfx_id | 素材 | 場所 |
+|---|---|---|
+| `quake` | `DeepExplosion02.wav` の頭から 3.40 秒 | 2020 p12 / Stefano Cremona - Explosions |
+
+`quake`（冒険譚3 st3・トロールが坑道を破って這い出す地響き）は、岩が砕ける音ではなく低く遠い爆発を当てた。岩・瓦礫の崩落（Mechanical Wave - Rock Brick and Dirt、Soundrangers - Foley Elements Rocks Dirt And Stone ほか計9本）は物としては合うが、どれも小石が転がる軽さで地響きにならない。地震・噴火・低域のランブルまで広げた10本のうち、5.4 秒の減衰を持つこの1本だけが「一発の重い衝撃＋地面が鳴り続ける尾」の形をしていた。頭 1.5 秒の轟きに続く尾は 2.90 秒からのフェードで畳んでいる。
+
 ### バンドルに録音が無かったもの
 
 名前で引いても出てこなかったものと、代わりに何を当てたかを記録する。次に探すときの手がかりになる。

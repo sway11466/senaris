@@ -334,14 +334,6 @@
 - 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
 - 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
 
-### feature-56
-
-**効果音 `rock_crash`（岩が砕ける物音）を調達する**（優先度：低）
-
-- 背景：冒険譚3 st3 の戦闘前会話で、トロールが坑道を破って這い出す物音を鳴らす（`data/stages/tutorial3-dragon-hunt/st3.json` の擬音行「ドゴォンッ」）。素材が未配置なので、いまは無音＋ログ1行で進む（[audio/sfx.md](audio/sfx.md) 動的解決）。会話が「何やら騒がしいな」→ 無音 → 「魔物が這い出している」と繋がるため、物音が無いと騒ぎの正体が台詞の説明だけになる。
-- 対応：Sonniss バンドル（[audio/sonniss.md](audio/sonniss.md)）の索引から岩・瓦礫の崩落／重量物の破壊を当たり、1つに絞って `assets/sfx/rock_crash.ogg` に置く。既存の `stone_hit`（小石の当たる音）とは別物で、要るのは坑道が抜けるくらいの重さの音。決めたら [audio/sfx.md](audio/sfx.md) の物音の素材候補に行を足し、`assets/sfx-src/credits.md` に出典を記録する。
-- 該当：`assets/sfx/rock_crash.ogg`・`doc/audio/sfx.md`・`assets/sfx-src/credits.md`。着手の引き金＝効果音をまとめて調達する回。
-
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。

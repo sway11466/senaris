@@ -1,75 +1,90 @@
 {
   "turn_limit": 30,
   "name": "tutorial3-st3",
-  "cols": 14,
-  "rows": 16,
+  "cols": 27,
+  "rows": 23,
   "margin": 1,
   "terrain": [
-    "................",
-    "...%%......CC...",
-    "......%%........",
-    "...CC.....%%....",
-    ".......%%.......",
-    "...%%......%%...",
-    "......%%........",
-    "......O...%%....",
-    "...CC.L.CC......",
-    "...CC.L.CC......",
-    "...%%.L....%%...",
-    "......L%%.......",
-    "...%%.L.........",
-    "......L...%%....",
-    "...%%.L.........",
-    "......L..CC.....",
-    "...%%.L.........",
-    "................"
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+    "PPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+    "PPPPPPPPPPPPCPCPCPPPPPPPPPPPP",
+    "PPPPPPPPPPCCCCCCCCCPPPPPPPPPP",
+    "PPPPPPPP%CCCPPPPPCCC%PPPPPPPP",
+    "PPPPPPC%%CPPPPPPPPPC%%CPPPPPP",
+    "PPPPCCCCPPPP%P%P%PPPPCCCCPPPP",
+    "PPPCCCPPPP%%%%%%%%%PPPPCCCPPP",
+    "PPPCCPPP%%%%P%P%P%%%%PPPCCPPP",
+    "PPPCCPP%%%PPPPPPPPP%%%PPCCPPP",
+    "PPPCCPP%%PPP%%%%%PPP%%PPCCPPP",
+    "PPPCCPP%%PP%PPPPP%PP%%PPCCPPP",
+    "PPPCCPP%%PP%%P%P%%PP%%PPCCPPP",
+    "PPPCCPP%%PPPP%P%PPPP%%PPCCPPP",
+    "PPPCCPP%%%%PPPPPPP%%%%PPCCPPP",
+    "PPPCCPPPP%%%%%%%%%%%PPPPCCPPP",
+    "PPPCCCCPPPP%%%%%%%PPPPCCCCPPP",
+    "PPPPPCCC%PPPPPPPPPPP%CCCPPPPP",
+    "P%%PPPP%%CCPPPOPPPCC%%PPPP%%P",
+    "P%%%%PPPPCCCCPCPCCCCPPPP%%%%P",
+    "PPP%%%%PPPPCCCCCCCPPPP%%%%PPP",
+    "PPPPP%%%%PPPPPPPPPPP%%%%PPPPP",
+    "PPPPPPP%%%%PPP%PPP%%%%PPPPPPP",
+    "PPPPPPPPP%%%%%%%%%%%PPPPPPPPP",
+    "PPPPPPPPPPPP%%%%%%PPPPPPPPPPP"
+  ],
+  "terrain_skins": [
+    { "col": 13, "row": 17, "skin": "fort_town1" }
   ],
   "player": [
-    {"type": "pixie", "col": 6, "row": 13, "actor": "pixie", "supply": "join"},
-    {"type": "vanguard", "col": 5, "row": 15, "actor": "vanguard"},
-    {"type": "thief", "col": 4, "row": 15, "actor": "thief"},
-    {"type": "hunter", "col": 6, "row": 15, "actor": "hunter"},
-    {"type": "bishop", "col": 5, "row": 13, "actor": "bishop"},
-    {"type": "wizard", "col": 4, "row": 14, "actor": "wizard"},
-    {"type": "fighter", "col": 6, "row": 14, "actor": "fighter"},
-    {"type": "halfling", "col": 3, "row": 15, "actor": "halfling"},
-    {"type": "archer", "col": 7, "row": 15, "actor": "archer"},
-    {"type": "cleric", "col": 3, "row": 14, "actor": "cleric"},
-    {"type": "mage", "col": 7, "row": 14, "actor": "mage"}
+    { "type": "pixie", "actor": "pixie", "col": 5, "row": 22, "supply": "join" },
+    { "type": "vanguard", "actor": "vanguard", "col": 4, "row": 21 },
+    { "type": "thief", "actor": "thief", "col": 4, "row": 22 },
+    { "type": "hunter", "actor": "hunter", "col": 3, "row": 21 },
+    { "type": "bishop", "actor": "bishop", "col": 3, "row": 22 },
+    { "type": "wizard", "actor": "wizard", "col": 5, "row": 21 },
+    { "type": "fighter", "actor": "fighter", "col": 23, "row": 20 },
+    { "type": "halfling", "actor": "halfling", "col": 23, "row": 21 },
+    { "type": "archer", "actor": "archer", "col": 24, "row": 22 },
+    { "type": "cleric", "actor": "cleric", "col": 23, "row": 22 },
+    { "type": "mage", "actor": "mage", "col": 22, "row": 22 }
   ],
   "enemy": [
     { "order": 1, "name": "岩陰のロックサーペント", "ai": "ambush", "sight": 3,
       "units": [
-        {"skin": "rock_serpent", "col": 6, "row": 10},
-        {"skin": "rock_serpent", "col": 2, "row": 11},
-        {"skin": "rock_serpent", "col": 9, "row": 9},
-        {"skin": "rock_serpent", "col": 3, "row": 12},
-        {"skin": "rock_serpent", "col": 8, "row": 12}
+        { "skin": "rock_serpent", "col": 6, "row": 4 },
+        { "skin": "rock_serpent", "col": 19, "row": 16 },
+        { "skin": "rock_serpent", "col": 19, "row": 17 },
+        { "skin": "rock_serpent", "col": 20, "row": 17 },
+        { "skin": "rock_serpent", "col": 7, "row": 3 },
+        { "skin": "rock_serpent", "col": 7, "row": 4 },
+        { "skin": "rock_serpent", "col": 19, "row": 3 },
+        { "skin": "rock_serpent", "col": 20, "row": 4 },
+        { "skin": "rock_serpent", "col": 19, "row": 4 },
+        { "skin": "rock_serpent", "col": 7, "row": 16 },
+        { "skin": "rock_serpent", "col": 6, "row": 17 },
+        { "skin": "rock_serpent", "col": 7, "row": 17 }
       ] },
     { "order": 2, "name": "居座るトロール", "ai": "ambush", "sight": 2,
-      "units": [
-        {"skin": "troll", "col": 5, "row": 8},
-        {"skin": "troll", "col": 4, "row": 7}
-      ] },
+      "units": [ { "skin": "troll", "col": 13, "row": 10 } ] },
     { "order": 3, "name": "ワイアーム", "ai": "charge",
       "units": [
-        {"skin": "wyrm", "col": 4, "row": 4},
-        {"skin": "wyrm", "col": 7, "row": 5}
+        { "skin": "wyrm", "col": 11, "row": 10 },
+        { "skin": "wyrm", "col": 15, "row": 10 }
       ] },
     { "order": 4, "name": "ローグ一味", "ai": "raid",
       "units": [
-        {"skin": "rogue", "col": 5, "row": 1},
-        {"skin": "rogue", "col": 7, "row": 1}
+        { "skin": "rogue", "col": 14, "row": 3 },
+        { "skin": "rogue", "col": 12, "row": 3 }
       ] }
   ],
   "bases": [
-    {"col": 5, "row": 6, "team": "neutral", "kind": "fort", "garrison": [{"type": "dwarf", "actor": "dwarf"}]}
+    { "col": 13, "row": 17, "team": "neutral", "kind": "fort",
+      "garrison": [ { "type": "dwarf", "actor": "dwarf" } ] }
   ],
   "dialogue": {
     "intro": [
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st3.intro.1" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st3.intro.11" },
-      { "text": "t3.st3.intro.12", "sfx": "rock_crash" },
+      { "text": "t3.st3.intro.12", "sfx": "quake" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st3.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st3.intro.3" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st3.rogue.1" },
