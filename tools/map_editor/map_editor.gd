@@ -21,6 +21,8 @@ const SIGHT_UNLIMITED := "*"  ## 上限なし＝盤全体（視線コスト x �
 ## `*`（上限なし）から数値へ切り替えたときの出発値。継承できる数が無いのでここで決め打つ。
 ## 数値を取る特性は ambush だけなので、その ai.csv 既定に合わせる。
 const SIGHT_SPIN_DEFAULT := 3
+## 「全体をずらす」で盤の外に出るものの言い方（MapEditorDoc.shift_losses のキー → 表示名）。
+const SHIFT_LOSS_LABELS := { "terrain": "地形", "skins": "スキン指定", "units": "駒", "bases": "拠点" }
 
 var _doc: MapEditorDoc
 var _path := ""  # 現在のファイル（グローバルパス。空=未保存）
@@ -639,6 +641,18 @@ func _build_stage_palette() -> void:
 	grid.add_child(_margin_spin)
 	_add_button(_mode_box, "サイズを適用", _on_resize).tooltip_text = \
 		"cols / rows / margin を盤に反映する。縮小すると範囲外の駒・拠点・スキン指定は削除される。"
+	# 盤を広げると余白は右と下に増える＝左上に描いたものを寄せ直すための操作。
+	# 左右が2列単位な理由は MapEditorDoc.is_shiftable_dcol にある。
+	_add_heading(_mode_box, "全体をずらす")
+	_add_hint(_mode_box, "地形・見た目スキン・駒・拠点・防衛対象をまとめて平行移動する。\n"
+		+ "左右は2列単位（1列だと奇数列と偶数列が入れ替わって形が崩れる）。\n"
+		+ "盤の外に出る中身があるときは動かさない＝逆向きに押せば戻せる（Ctrl+Z の対象外）。")
+	var shift_row := HBoxContainer.new()
+	_mode_box.add_child(shift_row)
+	for step: Array in [[-2, 0, "← 2列"], [2, 0, "→ 2列"], [0, -1, "↑ 1行"], [0, 1, "↓ 1行"]]:
+		var delta := Vector2i(int(step[0]), int(step[1]))
+		var b := _add_button(shift_row, String(step[2]), func() -> void: _on_shift(delta))
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# BGM（bgm: { main }）。値はトラックID＝assets/bgm/{id}.ogg を規約で解決する。
 	# 詳細 → doc/audio/bgm.md
 	_add_heading(_mode_box, "BGM")
@@ -1946,6 +1960,30 @@ func _on_resize() -> void:
 	_board.refresh()
 	_say("サイズを %d×%d（外周 %d）にしました。" % [_doc.cols(), _doc.rows(), _doc.margin()]
 		+ ("範囲外の駒/拠点/スキン指定を %d 件削除しました。" % dropped if dropped > 0 else ""))
+
+
+## 盤の中身をまとめてずらす。外へ出る中身があるときは何もせず、何が邪魔かを伝える。
+func _on_shift(delta: Vector2i) -> void:
+	var lost := _doc.shift_losses(delta.x, delta.y)
+	if not lost.is_empty():
+		var parts := []
+		for key in SHIFT_LOSS_LABELS:
+			if lost.has(key):
+				parts.append("%s %d 件" % [SHIFT_LOSS_LABELS[key], int(lost[key])])
+		_say("ずらせません。盤の外に出る %s があります。先に盤を広げてください。" % "／".join(parts))
+		return
+	_doc.shift(delta.x, delta.y)
+	_deselect_base()  # 選んでいた拠点・駒は別のマスへ動いた（下段は案内に戻す）
+	_deselect_unit()
+	_board.refresh()
+	_say("全体を%sずらしました。" % _shift_label(delta))
+
+
+## ずらした向きの言い方（案内文用）。左右か上下のどちらか一方だけが 0 でない前提。
+func _shift_label(delta: Vector2i) -> String:
+	if delta.x != 0:
+		return "右へ %d 列" % delta.x if delta.x > 0 else "左へ %d 列" % -delta.x
+	return "下へ %d 行" % delta.y if delta.y > 0 else "上へ %d 行" % -delta.y
 
 
 func _on_save() -> void:

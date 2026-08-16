@@ -299,6 +299,113 @@ func _drop_outside_canvas(list: Array) -> int:
 	return dropped
 
 
+# --- 全体の平行移動（盤の中身をまとめてずらす） ---
+
+
+## その列送りが平行移動になるか（偶数のみ）。盤は odd-q＝奇数列だけ半マス下げて敷くので、
+## 奇数列ぶん送ると列の偶奇が入れ替わり、隣接の噛み合わせが変わる＝描いた形が崩れる。
+## 例: 離れている (0,0) と (1,1) は、1列送ると (1,0) と (2,1) ＝隣同士になる。2列なら形は保たれる。
+static func is_shiftable_dcol(dcol: int) -> bool:
+	return dcol % 2 == 0
+
+
+## 平行移動で描画領域・盤の外へ出てしまう中身の数（キー: terrain / skins / units / bases）。
+## 空の辞書＝そのまま動かせる。地形は既定地形でないマスだけ数える（空白が外へ出るのは失っていない）。
+func shift_losses(dcol: int, drow: int) -> Dictionary:
+	var out := {}
+	var m := margin()
+	var terrain_lost := 0
+	for row in range(-m, rows() + m):
+		for col in range(-m, cols() + m):
+			if terrain_char(col, row) == DEFAULT_CHAR:
+				continue
+			if not in_canvas(col + dcol, row + drow):
+				terrain_lost += 1
+	if terrain_lost > 0:
+		out["terrain"] = terrain_lost
+	var skins_lost := 0
+	for e in _skin_entries():
+		if not in_canvas(int(e.get("col", 0)) + dcol, int(e.get("row", 0)) + drow):
+			skins_lost += 1
+	if skins_lost > 0:
+		out["skins"] = skins_lost
+	var units_lost := 0
+	for u in placed_units():
+		if not in_board(int(u.get("col", 0)) + dcol, int(u.get("row", 0)) + drow):
+			units_lost += 1
+	if units_lost > 0:
+		out["units"] = units_lost
+	var bases_lost := 0
+	for b in data.get("bases", []):
+		if typeof(b) != TYPE_DICTIONARY:
+			continue
+		if not in_board(int(b.get("col", 0)) + dcol, int(b.get("row", 0)) + drow):
+			bases_lost += 1
+	if bases_lost > 0:
+		out["bases"] = bases_lost
+	return out
+
+
+## 盤の中身（地形・見た目スキン・駒・拠点・防衛対象）をまとめてずらす。動かせたら true。
+## dcol は偶数のみ（is_shiftable_dcol）。何かが外へ出るなら1つも動かさない
+## ＝逆向きに押せば必ず元へ戻せる（この操作は Ctrl+Z の対象外）。
+func shift(dcol: int, drow: int) -> bool:
+	if not is_shiftable_dcol(dcol) or (dcol == 0 and drow == 0):
+		return false
+	if not shift_losses(dcol, drow).is_empty():
+		return false
+	var m := margin()
+	var keep := {}  # 盤の0起点の座標 → 地形の文字（敷き直す前に読み切る）
+	for row in range(-m, rows() + m):
+		for col in range(-m, cols() + m):
+			keep[Vector2i(col, row)] = terrain_char(col, row)
+	var blank := []
+	for _i in rows() + m * 2:
+		blank.append(DEFAULT_CHAR.repeat(cols() + m * 2))
+	data["terrain"] = blank
+	for cell in keep:
+		set_terrain_char(cell.x + dcol, cell.y + drow, String(keep[cell]))
+	for e in _skin_entries():
+		e["col"] = int(e.get("col", 0)) + dcol
+		e["row"] = int(e.get("row", 0)) + drow
+	for u in placed_units():
+		u["col"] = int(u.get("col", 0)) + dcol
+		u["row"] = int(u.get("row", 0)) + drow
+	for b in data.get("bases", []):
+		if typeof(b) == TYPE_DICTIONARY:
+			b["col"] = int(b.get("col", 0)) + dcol
+			b["row"] = int(b.get("row", 0)) + drow
+	for c in defeat_list():  # 拠点を名指しする防衛対象も連れて動く＝指す先が消えたことにしない
+		for t in lose_base_targets(c):
+			if typeof(t) == TYPE_DICTIONARY:
+				t["col"] = int(t.get("col", 0)) + dcol
+				t["row"] = int(t.get("row", 0)) + drow
+	_terrain_undo = {}  # 駒ごと動いた後に地形だけ戻すと辻褄が合わない
+	return true
+
+
+## 盤に座標を持つ駒すべて（自軍・敵部隊・増援イベント）。実体を返す＝書き換えがそのまま効く。
+## 拠点の控え(garrison)と搭載駒(passengers)は座標を持たない（出撃時に決まる）ので含めない。
+func placed_units() -> Array:
+	var out := []
+	for u in data.get("player", []):
+		if typeof(u) == TYPE_DICTIONARY:
+			out.append(u)
+	for sq in data.get("enemy", []):
+		if typeof(sq) != TYPE_DICTIONARY:
+			continue
+		for u in (sq as Dictionary).get("units", []):
+			if typeof(u) == TYPE_DICTIONARY:
+				out.append(u)
+	for ev in event_list():
+		if typeof(ev) != TYPE_DICTIONARY:
+			continue
+		for u in (ev as Dictionary).get("units", []):
+			if typeof(u) == TYPE_DICTIONARY:
+				out.append(u)
+	return out
+
+
 # --- ユニット・拠点 ---
 
 

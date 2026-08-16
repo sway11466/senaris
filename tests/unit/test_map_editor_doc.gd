@@ -544,6 +544,82 @@ func test_margin_is_written_even_when_absent_from_the_source() -> void:
 	assert_true(out.has("margin"), "margin キーが書き出される")
 	assert_eq(int(out["margin"]), 0)
 
+# --- 全体の平行移動（盤を広げたあと、左上に描いた中身を寄せ直す操作） ---
+# ここで守るのは「座標を持つものが1つ残らず同じだけ動く」ことと「外へ出るなら1つも動かさない」こと。
+# 後者があるので逆向きに押せば必ず元へ戻せる（この操作は地形の Ctrl+Z の対象外）。
+
+
+func test_shift_moves_board_contents_together() -> void:
+	var doc := MapEditorDoc.new_stage(8, 6)
+	doc.set_terrain_char(1, 1, "F")
+	doc.set_terrain_skin(1, 1, "forest_pine1")
+	doc.add_player("fighter", 2, 1)
+	doc.add_squad("charge")
+	doc.add_enemy(0, "goblin", 2, 2)
+	doc.add_base(3, 1, "enemy", "fort")
+	doc.add_defeat_lose_base(3, 1)
+	assert_true(doc.shift(2, 1))
+	assert_eq(doc.terrain_char(3, 2), "F")
+	assert_eq(doc.terrain_char(1, 1), ".", "元のマスは既定地形に戻る")
+	assert_eq(doc.terrain_skin(3, 2), "forest_pine1")
+	assert_eq(doc.terrain_skin(1, 1), "")
+	assert_eq(int(doc.data["player"][0]["col"]), 4)
+	assert_eq(int(doc.data["player"][0]["row"]), 2)
+	assert_eq(int(doc.data["enemy"][0]["units"][0]["col"]), 4)
+	assert_eq(int(doc.data["enemy"][0]["units"][0]["row"]), 3)
+	assert_false(doc.base_at(5, 2).is_empty())
+	assert_true(doc.has_defeat_lose_base(5, 2), "拠点を名指しする防衛対象も連れて動く")
+
+
+func test_shift_moves_event_units() -> void:
+	var doc := MapEditorDoc.from_text(EVENT_SAMPLE)
+	assert_true(doc.shift(2, 0))
+	var u: Dictionary = doc.event_units(0)[0]
+	assert_eq(int(u["col"]), 2)
+	assert_eq(int(u["row"]), 3)
+	assert_false(u["passengers"][0].has("col"), "搭載駒は座標を持たない＝触らない")
+
+
+func test_shift_rejects_odd_column_step() -> void:
+	var doc := MapEditorDoc.new_stage(8, 6)
+	doc.set_terrain_char(1, 1, "F")
+	assert_false(doc.shift(1, 0), "奇数列送りは平行移動にならない（odd-q で列の偶奇が入れ替わる）")
+	assert_eq(doc.terrain_char(1, 1), "F", "弾いたら1マスも動かさない")
+
+
+func test_shift_does_nothing_when_contents_would_fall_off() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.set_terrain_char(0, 0, "F")
+	doc.add_player("fighter", 5, 1)
+	assert_eq(int(doc.shift_losses(2, 0).get("units", 0)), 1)
+	assert_false(doc.shift(2, 0))
+	assert_eq(doc.terrain_char(0, 0), "F", "地形も駒も1つも動かさない")
+	assert_eq(int(doc.data["player"][0]["col"]), 5)
+
+
+func test_shift_counts_only_non_default_terrain_as_lost() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	assert_true(doc.shift_losses(0, 1).is_empty(), "空白のマスが外へ出るのは失っていない")
+	doc.set_terrain_char(2, 3, "F")
+	assert_eq(int(doc.shift_losses(0, 1).get("terrain", 0)), 1)
+
+
+func test_shift_moves_margin_terrain_with_the_board() -> void:
+	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)  # 4×3・外周1（縁が F で囲われている）
+	doc.resize(6, 3)  # 右に2列ぶんの余白を作る
+	assert_true(doc.shift(2, 0))
+	assert_eq(doc.terrain_char(3, 0), "P", "盤の中身がそのまま2列右へ")
+	assert_eq(doc.terrain_char(1, -1), "F", "外周の地形も一緒に動く")
+	assert_eq(doc.terrain_char(-1, 0), ".", "何も入ってこない左端は既定地形で空く")
+	assert_eq(doc.terrain_skin(1, 1), "plain_grave1", "外周(-1,1)のスキン指定も一緒に動く")
+
+
+func test_shift_drops_terrain_undo() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.push_terrain_undo()
+	assert_true(doc.shift(0, 1))
+	assert_false(doc.can_undo_terrain(), "駒ごと動いた後に地形だけ戻せてはいけない")
+
 # --- 敗北条件（防衛対象の拠点） ---
 
 func _doc_with_base() -> MapEditorDoc:
