@@ -14,7 +14,8 @@ var _campaign_select: CampaignSelect
 var _stage_select: StageSelect
 
 func _ready() -> void:
-	layer = 10  # 盤・HUD より手前（全画面で覆う）
+	layer = 46  # ステージの画面一式（盤・HUD・明暗40・前面パネル45）より手前＝全画面で覆う。
+	            # 45以下だと InfoPanel や加護の光がセレクトの上に浮いてしまう（ScreenLighting のヘッダ参照）
 	add_child(TavernTheme.wall_background())  # 酒場の木の壁（両画面共通の背景）
 
 	_campaign_select = CampaignSelect.new()
