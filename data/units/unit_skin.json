@@ -187,7 +187,7 @@
 			"enemy": [
 				{
 					"category": "ドラゴン",
-					"combat_effect": "",
+					"combat_effect": "fire_breath",
 					"combat_lineup": "single",
 					"description": "",
 					"images": {},
@@ -344,7 +344,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
-					"combat_effect": "",
+					"combat_effect": "pincer",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},

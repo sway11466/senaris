@@ -85,6 +85,13 @@
 			"scale": 0.8
 		},
 		{
+			"effect_id": "fire_breath",
+			"kind": "impact",
+			"memo": "竜のブレス。飛行から吹き下ろすので例外的に左上→右下の斜め向き。ボスの1体表示なので色数を多めに使う",
+			"name": "火炎の息",
+			"scale": 2.0
+		},
+		{
 			"effect_id": "curse",
 			"kind": "impact",
 			"memo": "浮かび上がる青緑のドクロ",
@@ -111,6 +118,13 @@
 			"memo": "大蛇の顎。正面で上下に開く＋大牙2本。面積が大きいので中心は空洞",
 			"name": "牙",
 			"scale": 1.0
+		},
+		{
+			"effect_id": "pincer",
+			"kind": "impact",
+			"memo": "大鋏で挟み切った跡。斬撃と同じ細い弧を2本、右寄りで交差",
+			"name": "鋏",
+			"scale": 1.2
 		},
 		{
 			"effect_id": "punch",
