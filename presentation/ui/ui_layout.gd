@@ -7,6 +7,12 @@ class_name UiLayout
 const RIGHT_BOX_LEFT := 800.0
 const RIGHT_BOX := Rect2(RIGHT_BOX_LEFT, 96.0, 464.0, 532.0)  # x=800..1264 / y=96..628
 
+## 盤に常設するタイトルロゴ。右ボックスの上に空く帯（y=0..96）の中に、右端を右ボックスの
+## 右端にそろえて置く。幅は絵の縦横比から決める（透明な余白を除いた実体で測る）。
+## 仕様 → doc/gdd/uiux.md
+const LOGO_H := 72.0
+const LOGO_TOP := 12.0  # 帯の上下中央（(96 - 72) / 2）
+
 ## 残りターン板（増援の予告）。右ボックスの直下に幅を合わせて置く。仕様 → doc/gdd/uiux.md
 const EVENT_PLATE_GAP := 10.0
 const EVENT_PLATE_H := 44.0

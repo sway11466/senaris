@@ -5,6 +5,8 @@ extends Node2D
 ## 進行管理（解放判定・クリア記録）は application/campaign_progress.gd。仕様 → doc/gdd/stage_select.md
 ## デバッグ用ステージは data/stages/debug-*/（機能別の debug:true 冒険譚としてセレクトに出る）。一覧 → doc/tech/debug-stages.md
 
+const BOARD_LOGO_PATH := "res://assets/ui/logo.png"  # 盤の右上に常設するタイトルロゴ
+
 var _skins := {}
 var _ai_presets := {}  # 特性表（data/ai/ai.json）。特性id -> パラメーター辞書（既定値）
 var _controller: MatchController = null
@@ -74,6 +76,7 @@ func _ready() -> void:
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
 	_install_turn_plate()  # 永続のターン板（盤エリア上端中央）。load_stage がターン・代表ユニットを流し込む
+	_install_board_logo()  # 永続のタイトルロゴ（右上・情報ボックスの上の帯）
 	_install_turn_banner()  # 永続のターンバナー（画面中央・ターンが移った瞬間だけ出る）
 	_install_formation_cutin()  # 永続の陣形カットイン（絵が在るレシピの発動時だけ出る）
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
@@ -520,6 +523,33 @@ func _install_turn_plate() -> void:
 	_event_plate = EventPlate.new()
 	_event_plate.name = "EventPlate"
 	add_child(_event_plate)
+
+# --- タイトルロゴ（盤の右上・常設）。仕様 → doc/gdd/uiux.md ---
+## 情報ボックスの上に空く帯へ、右端をボックスの右端にそろえて置く。盤にもボックスにも掛からない。
+## 前面パネル層 $Front（層45）＝会話の暗転（層40）では沈まない。戦闘演出（層50）より後ろなので、
+## 演出が出ている間は隠れる（演出は数秒の切り替え画）。
+## 絵は透明な余白を含むので、実体の矩形（get_used_rect）だけを切り出して使う＝右端そろえがずれない。
+func _install_board_logo() -> void:
+	var tex := ResourceLoader.load(BOARD_LOGO_PATH) as Texture2D
+	if tex == null:
+		print("main: ロゴの絵が無い＝盤に出さない: %s" % BOARD_LOGO_PATH)
+		return
+	var used := tex.get_image().get_used_rect()
+	if used.size.y <= 0:
+		return
+	var at := AtlasTexture.new()
+	at.atlas = tex
+	at.region = Rect2(used.position, used.size)
+	var rect := TextureRect.new()
+	rect.name = "BoardLogo"
+	rect.texture = at
+	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	rect.stretch_mode = TextureRect.STRETCH_SCALE
+	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤の操作を邪魔しない
+	var w := UiLayout.LOGO_H * float(used.size.x) / float(used.size.y)
+	rect.position = Vector2(UiLayout.RIGHT_BOX.end.x - w, UiLayout.LOGO_TOP)
+	rect.size = Vector2(w, UiLayout.LOGO_H)
+	$Front.add_child(rect)
 
 ## ターンの切り替わりを見せる横帯。presentation/ui/turn_banner.gd。仕様 → doc/gdd/uiux.md
 func _install_turn_banner() -> void:
