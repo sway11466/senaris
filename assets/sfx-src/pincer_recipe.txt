@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/slash_m__2026__METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav" -af "volume=-5.8dB" -c:a pcm_s24le pincer.wav

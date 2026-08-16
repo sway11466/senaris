@@ -67,6 +67,8 @@
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 切り出しなし、0.45秒遅らせて -8.3 dB。鐘（自作）と重ねる。map_capture_recipe.txt |
 | `cannonball` | 砲弾の発射（飛空艇） | Sonniss GDC 2016 / Fascinated Sound - The Gun Locker SFX Pack `Automatic Cannon - MK44 - 03 - Single Shot with Report 03` | wav 96kHz/24bit | 同上 | 発砲だけ（0.24〜2.05秒・立ち上がりの手前を落とす）、-9.0 dB。cannonball_recipe.txt |
 | `cannonball_hit` | 砲弾の着弾（同じ収録の後半） | 同上 | 同上 | 同上 | Report だけ（2.18〜3.05秒）、-8.0 dB。cannonball_hit_recipe.txt。1本に発砲と着弾が両方入っている |
+| `bite` | 大蛇の顎（ロックサーペント・ワイアーム） | Sonniss GDC 2015 / Mattia Cellotto - Crunch Mode `Celery,Bite,Crunch,Slow,Bone,Break,Stick,Creak,Various07` | wav 96kHz/24bit | 同上 | 2つの山（0.18〜0.62秒・前後にフェード）、-5.5 dB。bite_recipe.txt |
+| `pincer` | 大鋏（スコーピオン。斬撃（中）と同一素材） | Sonniss GDC 2026 / David Dumais Audio - Melee Weapons Pack 2 `METLFric_SWING SCRAPE ... Long Blade 14` | wav 96kHz/24bit | 同上 | `slash_m` と同一の切り出し（切り出しなし）、-5.8 dB。pincer_recipe.txt |
 | `spore` | 胞子の発射（マタンゴ）。着弾音は持たない | Sonniss GDC 2024 / Justsoundeffects - Steampunk Gadgets `AIRBrst_Steam Release Short 03_JSE_SG_Mono` | wav 96kHz/24bit | 同上 | 5テイク中の5本目（7.15〜7.70秒・前後にフェード）、-2.9 dB。spore_recipe.txt |
 | `magic_dust` | 魔法の粉の発射（ピクシー）。着弾音は持たない | Sonniss GDC 2026 / Cinematic Sound Design - User Interface `Interface Plucks Happy` | wav 96kHz/24bit | 同上 | 切り出しなし、-5.5 dB。magic_dust_recipe.txt |
 | `fire_ball` | 火球の発射（オークメイジ） | Sonniss GDC 2026 / Epic Stock Media - Elemental Mutation Whooshes and Impacts `FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03` | wav 96kHz/24bit | 同上 | 山の頭から（0.55〜1.10秒・前後にフェード）、-8.0 dB。fire_ball_recipe.txt |

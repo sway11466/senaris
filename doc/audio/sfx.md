@@ -371,6 +371,8 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `punch` | `MELEE - DESIGNED - HEADBUTT Crack.wav` の2テイク目 | 2019 p5 / Rock The Speakerbox - Melee |
 | `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
 | `spore` | `AIRBrst_Steam Release Short 03_JSE_SG_Mono.wav` の5テイク目 | 2024 p2 / Justsoundeffects - Steampunk Gadgets |
+| `bite` | `Celery,Bite,Crunch,Slow,Bone,Break,Stick,Creak,Various07.wav` | 2015 p3 / Mattia Cellotto - Crunch Mode |
+| `pincer` | `METLFric_SWING SCRAPE ... Long Blade 14`（`slash_m` と同一の切り出し） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
 すべて試聴して決めた。
 
@@ -387,6 +389,10 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 
 `magic_dust`（魔法の粉＝ピクシーの攻撃・projectile）は粒の弾ける音を当てる。`holy` を決めるときに落とした素材を採り直したもので、冒険譚3 st2 の会話で籠の中の妖精が声を上げる合図にも同じ素材を鳴らす。
+
+`bite`（大蛇の顎＝ロックサーペント・ワイアーム・impact）はセロリを噛み割る音を当てる。怪物の噛みつきや尾の打撃を含む5本を試聴して決めた。血肉系（Gore）にも直球の候補があるが、作風に合わないので引いていない。野菜の破断は骨が折れる音の代わりに使う定番で、生々しさを出さずに顎が閉じる質感が出る。
+
+`pincer`（大鋏＝スコーピオン・impact）は `slash_m` と同じ収録をそのまま使う。絵が「斬撃と同じ細い弧を2本、右寄りで交差」＝挟み切った跡なので、音も斬撃から借りる。
 
 `spore`（胞子＝マタンゴの攻撃・projectile）は加圧されたものが抜ける音を当てる。スプレー缶・霧吹き・粉を撒く音を含む7本を試聴して決めた。粉を撒く収録は立ち上がりが無く、基準まで持ち上げるとノイズだけが上がるため外している。
 
