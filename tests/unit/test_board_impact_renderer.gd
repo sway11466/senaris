@@ -78,22 +78,24 @@ func test_cancel_unlock_clears_impact_lock() -> void:
 	assert_false(renderer._impact_lock, "cancel_unlock で _impact_lock が false")
 
 # --- play（着弾なし）---
+# 呼ばれたことの記録は辞書に書く。ラムダはローカル変数を値でコピーして持つので、
+# ラムダの中で bool のローカルに代入しても外側は false のまま＝何を書いても通るテストになる。
 
 func test_play_without_pending_does_nothing() -> void:
 	# _impact_pending が false なら何もしない。
-	var synced := false
+	var called := { "sync": false }
 	renderer.setup(null, null, Callable(), Callable(), null,
-		func() -> void: synced = true, Callable())
+		func() -> void: called["sync"] = true, Callable())
 	await renderer.play({}, false)
-	assert_false(synced, "pending でなければ sync は呼ばれない")
+	assert_false(called["sync"], "pending でなければ sync は呼ばれない")
 
 func test_play_with_empty_hits_syncs() -> void:
 	renderer.set_pending(true)
-	var synced := false
+	var called := { "sync": false }
 	renderer.setup(null, null, Callable(), Callable(), null,
-		func() -> void: synced = true, Callable())
+		func() -> void: called["sync"] = true, Callable())
 	await renderer.play({"results": []}, false)
-	assert_true(synced, "空の hits で sync が呼ばれる")
+	assert_true(called["sync"], "空の hits で sync が呼ばれる")
 	assert_false(renderer.is_impacting(), "演出後は pending が解除される")
 
 # --- impact_finished シグナル ---
@@ -102,7 +104,7 @@ func test_impact_finished_emitted_on_empty_hits() -> void:
 	renderer.set_pending(true)
 	renderer.setup(null, null, Callable(), Callable(), null,
 		func() -> void: pass, Callable())
-	var emitted := false
-	renderer.impact_finished.connect(func() -> void: emitted = true)
+	var called := { "emitted": false }
+	renderer.impact_finished.connect(func() -> void: called["emitted"] = true)
 	await renderer.play({"results": []}, false)
-	assert_true(emitted, "impact_finished が発行される")
+	assert_true(called["emitted"], "impact_finished が発行される")
