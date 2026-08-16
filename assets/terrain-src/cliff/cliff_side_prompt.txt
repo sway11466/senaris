@@ -1,0 +1,44 @@
+STYLE: A side-on rock-face texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary the rock
+RANDOMLY and UNEVENLY — never a repeated motif, never the same shape twice,
+never in columns of equal width. Avoid large, high-contrast patches (they repeat
+visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The sheer face of a crag that no one can climb, seen face-on. The rock
+has SPLIT DOWNWARD into tall wedges and slabs that lean against each other, their
+arrises sharp, with deep narrow clefts running down between them. The clefts
+wander, branch and pinch out; they are never straight, never parallel, and never
+evenly spaced. Here and there a wedge has sheared away and left a blunt overhang
+with a dark undercut beneath it. A few short cross-fractures cut sideways and
+stop, but the relief is clearly VERTICAL overall — this is the same shattered
+rock as the crag's upper surface, seen from the side.
+
+The fracturing reaches the TOP EDGE of the frame evenly, with no skyline, no
+crest, no summit and no single tall spike breaking the top: the face has been cut
+off flat where the frame ends. The bottom edge is cut off the same way — NO
+ground, NO scree, NO rubble pile, NO talus slope, nothing that reads as the
+bottom of the cliff.
+
+Mid warm grey stone, hex #85796A — use this exact stone colour and keep it
+consistent. Do NOT drift cooler, bluer, more purple or more saturated than it,
+and do NOT make it much lighter: this is the same rock as the crag's upper
+surface, seen in section, a shade deeper. Shade every plane as ONE FLAT TONE — a
+lighter face, a mid face, a dark cleft — flat cel shading of the rock's own faces,
+NOT a cast shadow and NOT a light direction, and no face near-black.
+
+Read at thumbnail size: the whole face is only a narrow strip on screen, so keep
+the wedges CHUNKY and few — about six to ten of them across the width of the
+frame — with no fine detail that would disappear. Spread the relief evenly from
+top to bottom, with no single large feature that sits at one height only.
+
+NO separate stones, NO cobbles, NO boulders set side by side, nothing that reads
+as built or assembled. NOT masonry — NO stacked bricks, NO mortar lines, NO
+worked edges, NO tool marks, NO carved shapes. NO vegetation of any kind — NO
+grass, NO moss, NO lichen, NO trees, NO soil, NO snow. NO water, NO caves, NO
+openings, NO objects of any kind.
