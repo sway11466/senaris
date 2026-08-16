@@ -61,14 +61,17 @@ func test_resolve_prefers_explicit_skin() -> void:
 		# 別 type を渡しても、実在 skin_id が優先される。
 		assert_eq(TerrainSkinCatalog.resolve("forest", "plain"), forest, "実在 skin_id を優先")
 
-func test_orientable_matches_natural_terrain() -> void:
-	# 向きの無い自然地形は full（回転＋反転）、道/壁など構造物は none（旧ハードコードの移設先）。
-	for tid in ["plain", "forest", "mountain", "wasteland", "bush", "plateau"]:
-		var s := TerrainSkinCatalog.resolve("",tid)
-		assert_true(s != null and s.orients() and s.rotates(), "%s は full" % tid)
-	for tid in ["road", "fence", "wall", "cliff", "rampart", "trap", "fort"]:
-		var s := TerrainSkinCatalog.resolve("",tid)
-		assert_true(s != null and not s.orients(), "%s は none" % tid)
+func test_connecting_skins_are_never_oriented() -> void:
+	# 繋がる地形（道・柵・川）は向きの組み合わせ別タイル（_c000000〜）を引く＝回しても反転しても
+	# 隣との繋がりが壊れる。どのスキンをどう散らすかは CSV が持つので、ここでは一覧を書き写さず
+	# 「繋がるなら散らさない」という関係だけを見る（書き写すと絵を足すたびに嘘になる）。
+	var checked := 0
+	for s: TerrainSkin in TerrainSkinCatalog.all_skins():
+		if not s.connects():
+			continue
+		checked += 1
+		assert_false(s.orients(), "%s は繋がる＝散らしてはいけない" % s.skin_id)
+	assert_true(checked > 0, "繋がるスキンが1つは居る（1件も見ずに通っていない）")
 
 func test_flip_only_skin_does_not_rotate() -> void:
 	# 立てて描いた物がある絵（墓標）は回すと倒れる。左右反転だけで散らす。
