@@ -377,8 +377,29 @@ static func _plank_box(bright: float) -> StyleBox:
 	sb.set_content_margin(SIDE_BOTTOM, 6)
 	return sb
 
-## 画面を渡り歩くためのボタン（戻る・繰り矢印）。無機質なグレーの文字だけで、板にも紙にも載せない。
-## これは酒場の物ではない＝操作の道具なので、あえて世界観の素材から外す（doc/gdd/title.md）。
+## 画面を一段戻るボタン。押して何かが起きるコマンドなので、メニュー項目と同じ木の板で出す。
+## 置き場は画面の左下で全画面共通＝背景の絵に合わせて動かさない（doc/gdd/stage_select.md）。
+const BACK_SIZE := Vector2(150, 44)
+const BACK_INSET := 24.0
+
+static func back_button(text: String) -> Button:
+	var b := wood_button(text)
+	b.custom_minimum_size = BACK_SIZE
+	return b
+
+## 画面の左下（BACK_INSET の余白）へ置く。戻るボタンの位置を1箇所で決めるための共通処理。
+static func place_bottom_left(c: Control) -> void:
+	c.anchor_left = 0.0
+	c.anchor_right = 0.0
+	c.anchor_top = 1.0
+	c.anchor_bottom = 1.0
+	c.offset_left = BACK_INSET
+	c.offset_right = BACK_INSET + BACK_SIZE.x
+	c.offset_top = -BACK_INSET - BACK_SIZE.y
+	c.offset_bottom = -BACK_INSET
+
+## 画面を繰るための小さな道具（カルーセルの矢印）。押すたびに場面が変わるのではなく
+## 同じ画面の中身を送るだけなので、コマンド（板ボタン）とは別の無機質なグレーで出す。
 static func nav_button(text: String, font_size := 20) -> Button:
 	var b := Button.new()
 	b.text = text

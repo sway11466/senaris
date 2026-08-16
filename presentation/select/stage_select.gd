@@ -147,10 +147,11 @@ func _ready() -> void:
 	# 行が並び直すたびに引き直す（初回の配置も、折り返しで背が変わったときもここで拾う）。
 	_stage_list.sort_children.connect(_lanes.queue_redraw)
 
-	# 冒険譚選択へ戻る。戻りは常に左下＝上はステージ名の場所なので空けておく（doc/gdd/stage_select.md）。
+	# 冒険譚選択へ戻る。戻りは常に画面の左下＝上はステージ名の場所なので空けておく
+	# （doc/gdd/stage_select.md）。絵に重ねず行として持つ＝余白は TavernTheme と同値で揃う。
 	var footer := HBoxContainer.new()
 	vbox.add_child(footer)
-	var back := TavernTheme.nav_button("← 冒険譚")
+	var back := TavernTheme.back_button("← 冒険譚")
 	back.pressed.connect(func() -> void:
 		SfxPlayer.play_event("menu_back")
 		back_requested.emit())

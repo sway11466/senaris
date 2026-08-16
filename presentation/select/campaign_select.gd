@@ -17,7 +17,6 @@ const BOARD_NAME_COLOR := Color(0.906, 0.824, 0.627)  # 焼き付けたクリー
 const DOT_COLOR := Color(0.82, 0.82, 0.82, 0.75)  # カルーセルUI＝無機質なグレー（酒場の物ではない）
 const ARROW_SIZE := Vector2(48, 72)  # 繰り矢印の当たり判定サイズ
 const ARROW_INSET := 8.0             # ボード左右端からの距離（左右同値＝対称）
-const BACK_SIZE := Vector2(132, 40)  # 「← メニュー」の当たり判定サイズ
 
 # 難易度帯（表示順）＝ボード。名は英語固定（雰囲気優先・多言語化しない）。
 const TIERS := [
@@ -120,20 +119,12 @@ func _ready() -> void:
 	_right_arrow.pressed.connect(_on_next)
 	board_area.add_child(_right_arrow)
 
-	# タイトルのメニューへ戻る。戻りは常に左下（ステージセレクトの「← 冒険譚」と同じ位置）。
-	# 上梁はボード名の場所なので空けておく。矢印・ドットと同じグレー＝操作の道具は酒場の物ではない。
-	# Esc でも同じ入口を通る。
-	var to_menu := TavernTheme.nav_button("← メニュー")
-	to_menu.anchor_left = 0.0
-	to_menu.anchor_right = 0.0
-	to_menu.anchor_top = 1.0
-	to_menu.anchor_bottom = 1.0
-	to_menu.offset_left = ARROW_INSET
-	to_menu.offset_right = ARROW_INSET + BACK_SIZE.x
-	to_menu.offset_top = -ARROW_INSET - BACK_SIZE.y
-	to_menu.offset_bottom = -ARROW_INSET
+	# タイトルのメニューへ戻る。ボードではなく画面の左下に置く＝どの画面でも戻るは同じ場所。
+	# 上梁はボード名の場所なので空けておく。Esc でも同じ入口を通る。
+	var to_menu := TavernTheme.back_button("← メニュー")
+	TavernTheme.place_bottom_left(to_menu)
 	to_menu.pressed.connect(_on_back_to_title)
-	board_area.add_child(to_menu)
+	add_child(to_menu)
 
 	# 現在地ドット＝カルーセルのUI。板の下梁にオーバーレイ（レイアウト幅を取らない）。1枚のときは隠す。
 	_dots = HBoxContainer.new()
