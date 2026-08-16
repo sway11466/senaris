@@ -359,6 +359,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `stone_hit` | `PM_RI_Source_92 Rocks Impact Hit Single Stone.wav` | 2020 p5 / PMSFX - Rocky Impacts |
 | `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
 | `magic_bolt_hit` | `Magic_Explosion_Short19.wav` | 2020 p3 / David Dumais Audio - Magic Sound FX Pack 1 |
+| `magic_dust` | `Interface Plucks Happy.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
 | `fire_ball` | `FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav` | 2026 p2 / Epic Stock Media - Elemental Mutation Whooshes and Impacts |
 | `fire_ball_hit` | `Magic_Explosion_Short19.wav`（`magic_bolt_hit` と同一の切り出し） | 2020 p3 / David Dumais Audio - Magic Sound FX Pack 1 |
 | `curse` | `Dark_Spell_Life_Tap_03.wav` | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
@@ -375,6 +376,10 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 `magic_bolt_hit`（魔弾の着弾）は破裂音のイメージで引き直して決めた。一巡目に見た怪物の攻撃・電撃・炸裂系（2023 p2 David Dumais の Magic / Monster Pack 2 ほか）は5本とも不採用。
 
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
+
+`magic_dust`（魔法の粉＝ピクシーの攻撃・projectile）は粒の弾ける音を当てる。`holy` を決めるときに落とした素材を採り直したもので、冒険譚3 st2 の会話で籠の中の妖精が声を上げる合図にも同じ素材を鳴らす。
+
+この1本だけは projectile でありながら着弾音を持たない。ピクシーは対地10・対空10 の非力な駒で、当たった手応えを鳴らすと実際より重い一撃に聞こえる。損害0のときは規約どおり `cmb_hit_none` が鳴る（弾かれたことは伝わる）。
 
 `fire_ball`（火球＝オークメイジの深紅の火の玉・projectile）は火が吹き出すウーシュを当てる。火だけを集めたライブラリ（2018 p3 / Gregor Quendel - Designed Fire）を含む5本を試聴して決めた。着弾は `magic_bolt_hit` と同じ収録をそのまま使い、火球専用の着弾は持たない。
 
