@@ -115,11 +115,9 @@
     { "type": "hunter", "actor": "hunter", "col": 8, "row": 17, "supply": "refill" },
     { "type": "bishop", "actor": "bishop", "col": 7, "row": 15, "supply": "refill" },
     { "type": "wizard", "actor": "wizard", "col": 6, "row": 17, "supply": "refill" },
-    { "type": "barricade", "col": 7, "row": 5 },
     { "type": "barricade", "col": 7, "row": 4 },
     { "type": "barricade", "col": 6, "row": 19 },
     { "type": "barricade", "col": 7, "row": 19 },
-    { "type": "barricade", "col": 7, "row": 18 },
     { "type": "barricade", "col": 8, "row": 19 }
   ],
   "enemy": [
@@ -146,16 +144,15 @@
       ] },
     { "order": 4, "name": "南門・ローグ", "ai": "raid",
       "units": [
-        { "skin": "rogue_wagon", "col": 12, "row": 24,
-          "passengers": [ { "skin": "rogue" } ] },
+        { "skin": "rogue_wagon", "col": 12, "row": 24 },
         { "skin": "rogue", "col": 13, "row": 24 }
       ] }
   ],
   "bases": [
     { "col": 7, "row": 6, "team": "player", "kind": "fort",
-      "garrison": [ { "skin": "barricade", "count": 2 } ] },
+      "garrison": [ { "skin": "barricade", "count": 1 } ] },
     { "col": 7, "row": 17, "team": "player", "kind": "fort",
-      "garrison": [ { "skin": "barricade", "count": 2 } ] }
+      "garrison": [ { "skin": "barricade", "count": 1 } ] }
   ],
   "defeat": [
     { "type": "lose_base",

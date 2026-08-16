@@ -200,6 +200,8 @@ POSE (channel): A calm, grounded channelling pose — standing composed with bot
 POSE (ranged): A poised shooting stance — bow drawn to the cheek (or crossbow/gun leveled), aiming toward the enemy on the right, weight balanced and steady, focused down the shot; not lunging into melee.
 ```
 ```
+POSE (sling): A poised skirmisher's throwing stance — a leather sling whirled out to the side / just loosing a stone toward the enemy on the right, weight balanced and light on the feet, focused on the shot; not lunging into melee. For sling users (the drawn-bow `ranged` stance does not fit a whirled cord).
+```
 ```
 POSE (rally): A commanding rally pose — the weapon (or holy symbol) thrust high overhead, chest out, standing tall and heroic to inspire the charge, leading toward the enemy on the right; not mid-strike, not lunging.
 ```
@@ -219,7 +221,7 @@ POSE (bite): A lunging bite — the body coils back and then whips forward so th
 ```
 POSE (drift): A floating attack pose — the body hovers clear of the ground with no weight on any foot, drifting toward the enemy on the right with both hands (or the weapon) reaching ahead, the trailing hem or tail streaming out behind. For flying units.
 ```
-- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／腕を持たず口で襲う獣（蛇・竜の眷属等）＝`bite`／飛行（ゴースト等）＝`drift`。据置でも攻撃する兵器（バリスタ）は `ranged`。輸送（馬車・飛空艇）は乗り物ごとに姿勢が違うので、カタログではなく各 `{skin_id}_combat_prompt.txt` の先頭に書いてある。
+- 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／投石（投石紐）＝`sling`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／腕を持たず口で襲う獣（蛇・竜の眷属等）＝`bite`／飛行（ゴースト等）＝`drift`。据置でも攻撃する兵器（バリスタ）は `ranged`。輸送（馬車・飛空艇）は乗り物ごとに姿勢が違うので、カタログではなく各 `{skin_id}_combat_prompt.txt` の先頭に書いてある。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
 - 人型でない静物（兵器・輸送・建造物）は、map と combat で同じ形にならないことがある。言葉のアンカーは顔・配色・持ち物のような属性は固定できるが、木組みの幾何（梁が何本で、どこで交差するか）は書き切れないため、角度を変えると別の構造に組み直される（バリスタで数回踏んだ）。手は2つ：部材を減らして「1本の梁＋上に載る主部＋脚」程度の単純な形にするか、combat を作らず map を流用する（`_skin_texture` が map へ落ちる。バリケードと同じ扱い。流用するときは map の master から足元の影を消す）。
 - 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない」（武装する駒は「武装はこの1門だけ」）と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない駒（バリケード・飛空艇等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。

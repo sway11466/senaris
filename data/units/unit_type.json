@@ -118,7 +118,7 @@
 			"can_capture": false,
 			"capacity": 0,
 			"category": "弓兵",
-			"defense": 10,
+			"defense": 20,
 			"id": "elf",
 			"max_troops": 8,
 			"memo": "",

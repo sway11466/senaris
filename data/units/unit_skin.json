@@ -72,7 +72,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "punch",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -114,7 +114,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "holy",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -220,7 +220,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "arrow",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -296,7 +296,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "arrow_crossbow",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -356,7 +356,7 @@
 				},
 				{
 					"category": "植物",
-					"combat_effect": "",
+					"combat_effect": "punch",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -450,7 +450,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
-					"combat_effect": "",
+					"combat_effect": "bite",
 					"combat_lineup": "single",
 					"description": "",
 					"images": {},
@@ -624,6 +624,18 @@
 					"retainers": [],
 					"skin_id": "skeleton",
 					"type_id": "priest"
+				},
+				{
+					"category": "悪党",
+					"combat_effect": "slash_l",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ローグアックス",
+					"retainers": [],
+					"skin_id": "rogue_axe",
+					"type_id": "priest"
 				}
 			]
 		},
@@ -649,7 +661,7 @@
 			"enemy": [
 				{
 					"category": "魔獣",
-					"combat_effect": "",
+					"combat_effect": "bite",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -729,6 +741,18 @@
 					"retainers": [],
 					"skin_id": "matango",
 					"type_id": "slinger"
+				},
+				{
+					"category": "悪党",
+					"combat_effect": "stone",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ローグスリンガー",
+					"retainers": [],
+					"skin_id": "rogue_slinger",
+					"type_id": "slinger"
 				}
 			]
 		},
@@ -791,7 +815,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},
@@ -838,7 +862,7 @@
 			"ally": [
 				{
 					"category": "基準",
-					"combat_effect": "",
+					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},

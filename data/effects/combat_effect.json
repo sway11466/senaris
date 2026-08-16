@@ -106,6 +106,13 @@
 			"scale": 0.9
 		},
 		{
+			"effect_id": "bite",
+			"kind": "impact",
+			"memo": "大蛇の顎。正面で上下に開く＋大牙2本。面積が大きいので中心は空洞",
+			"name": "牙",
+			"scale": 1.0
+		},
+		{
 			"effect_id": "punch",
 			"kind": "impact",
 			"memo": "徒手の一撃。同心の衝撃線",
