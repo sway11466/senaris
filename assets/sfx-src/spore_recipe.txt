@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/spore__2024__AIRBrst_Steam Release Short 03_JSE_SG_Mono.wav" -af "atrim=7.15:7.70,asetpts=N/SR/TB,afade=t=in:st=0:d=0.01,afade=t=out:st=0.49:d=0.06,volume=-2.9dB" -c:a pcm_s24le spore.wav
