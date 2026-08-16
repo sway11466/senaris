@@ -1,7 +1,7 @@
 extends Control
 class_name QuestSheet
 ## 出撃確認の依頼書ダイアログ。仕様 → doc/gdd/stage_select.md（依頼書）
-## ボードから紙を1枚受け取る見立て＝羊皮紙シート＋出撃/戻る。
+## ボードから紙を1枚受け取る見立て＝羊皮紙シート＋出撃する/別のステージを選ぶ。
 ## 標準 ConfirmationDialog の置き換え。勝利条件・推奨戦力といった事前情報は載せない
 ## ＝出撃確認のワンクッションに徹する（説明は盤と開始の会話が担う）。
 
@@ -68,18 +68,22 @@ func _ready() -> void:
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(spacer)
 
+	# 左＝やめる／右＝進む（doc/gdd/uiux.md ボタンの左右）。紙の下辺の両端に開いて置く。
 	var buttons := HBoxContainer.new()
-	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 24)
 	content.add_child(buttons)
 
-	var sortie := TavernTheme.wax_button("出撃")
-	sortie.pressed.connect(_on_sortie_pressed)
-	buttons.add_child(sortie)
-
-	var back := TavernTheme.ink_button("戻る")
+	var back := TavernTheme.ink_button("別のステージを選ぶ")
 	back.pressed.connect(_cancel)
 	buttons.add_child(back)
+
+	var gap := Control.new()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	buttons.add_child(gap)
+
+	var sortie := TavernTheme.wax_button("出撃する")
+	sortie.pressed.connect(_on_sortie_pressed)
+	buttons.add_child(sortie)
 
 func open(stage_title: String) -> void:
 	_title.text = stage_title
