@@ -17,6 +17,7 @@ const BOARD_NAME_COLOR := Color(0.906, 0.824, 0.627)  # 焼き付けたクリー
 const DOT_COLOR := Color(0.82, 0.82, 0.82, 0.75)  # カルーセルUI＝無機質なグレー（酒場の物ではない）
 const ARROW_SIZE := Vector2(48, 72)  # 繰り矢印の当たり判定サイズ
 const ARROW_INSET := 8.0             # ボード左右端からの距離（左右同値＝対称）
+const BOARD_MARGIN := 8              # ボードの外周に残す壁の幅（画面の縁からボードまで）
 
 # 難易度帯（表示順）＝ボード。名は英語固定（雰囲気優先・多言語化しない）。
 const TIERS := [
@@ -42,10 +43,13 @@ var _dots: HBoxContainer
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 
+	# ボードを画面いっぱい近くまで広げる（壁は縁に細く残す）。28px 空けていた頃は、ボードの下辺が
+	# 画面下から28px＝左下の戻るボタンの底辺（画面下から24px）と4px しか離れず、線がぶつかっていた。
+	# 広げるとボタンは下梁の帯の中に収まる（実測: 梁 y633-712 に対しボタン y652-696）。
 	var margin := MarginContainer.new()
 	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
 	for side in ["margin_left", "margin_top", "margin_right", "margin_bottom"]:
-		margin.add_theme_constant_override(side, 28)
+		margin.add_theme_constant_override(side, BOARD_MARGIN)
 	add_child(margin)
 
 	var vbox := VBoxContainer.new()
