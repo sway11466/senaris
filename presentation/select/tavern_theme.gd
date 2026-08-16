@@ -315,7 +315,7 @@ static func plaque_stylebox() -> StyleBoxFlat:
 	sb.set_content_margin(SIDE_BOTTOM, 6)
 	return sb
 
-## 封蝋色の主ボタン（依頼書の「出撃」など）。
+## 封蝋色の主ボタン（依頼書の「出撃する」など）。
 static func wax_button(text: String) -> Button:
 	var b := Button.new()
 	b.text = text
@@ -437,7 +437,7 @@ static func nav_button(text: String, font_size := 20) -> Button:
 		b.add_theme_stylebox_override(st, empty)
 	return b
 
-## 控えめなインク縁ボタン（依頼書の「戻る」など・羊皮紙の上に置く）。
+## 控えめなインク縁ボタン（依頼書の「別のステージを選ぶ」など・羊皮紙の上に置く）。
 static func ink_button(text: String) -> Button:
 	var b := Button.new()
 	b.text = text

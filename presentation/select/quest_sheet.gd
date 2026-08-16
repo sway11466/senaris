@@ -17,7 +17,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	visible = false
 
-	# 幕: 背後のクリックを止める。幕クリック＝戻る（誤出撃防止のワンクッションなので閉じやすく）
+	# 幕: 背後のクリックを止める。幕クリック＝取り消し（誤出撃防止のワンクッションなので閉じやすく）
 	var dim := ColorRect.new()
 	dim.color = Color(0.0, 0.0, 0.0, 0.45)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -92,7 +92,7 @@ func open(stage_title: String) -> void:
 func close() -> void:
 	visible = false
 
-## 取り消して閉じる（戻るボタン・幕クリック・Esc の共通入口）。開くときに音が鳴るので、
+## 取り消して閉じる（「別のステージを選ぶ」・幕クリック・Esc の共通入口）。開くときに音が鳴るので、
 ## 閉じるときも鳴らないと非対称になる。出撃は確定音が鳴るので、こちらは通さない。
 func _cancel() -> void:
 	SfxPlayer.play_event("menu_back")
