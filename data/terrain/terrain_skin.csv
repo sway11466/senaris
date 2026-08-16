@@ -15,7 +15,7 @@ bush,bush,茂み,flip,false,,0.12,0.12,true,,,,,既定スキン。塊の向き�
 bush_garden_v,bush,菜園（縦）,flip_xy,false,,0,0,true,road,,road,center,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦
 bush_garden_r,bush,菜園（右）,flip_xy,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝右上から左下
 bush_garden_l,bush,菜園（左）,flip_xy,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝左上から右下
-mountain,mountain,山,full,false,,0,0,true,,,,,既定スキン
+mountain,mountain,山,full,false,,0.36,0,true,,,,,既定スキン。上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。崖より低く、明るい岩
 fence,fence,柵,none,line,,0,0,true,plain,,plain,line,既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
 fence_grave1,fence,墓地の柵,none,line,,0,0,true,plain_grave1,fence,plain_grave1,line,柵の絵（map_overlay）を借り、墓地の草地の上に立てる
 trap,trap,罠,none,false,,0,0,true,,,plain,center,既定スキン

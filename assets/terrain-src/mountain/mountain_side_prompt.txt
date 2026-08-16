@@ -1,0 +1,41 @@
+STYLE: A side-on rock-face texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary the rock
+RANDOMLY and UNEVENLY — never a repeated motif, never the same shape twice,
+never in rows of equal height. Avoid large, high-contrast patches (they repeat
+visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The cut face of a mountainside where the bedrock has been sheared away,
+seen face-on. The rock is LAYERED: broad horizontal beds stacked on top of each
+other, each bed a different thickness, their edges running roughly sideways
+across the face but wavering, pinching out and picking up again — never a stack
+of even stripes and never straight parallel lines. Where a bed juts out it
+leaves a blunt lip with a darker recess under it; where one has crumbled the
+face steps back into a shallow scoop. Short vertical joints cut across a few of
+the beds and stop, but the relief is clearly HORIZONTAL overall — the opposite
+of a face that split downward.
+
+Pale warm grey stone, hex #B4A895 — use this exact stone colour and keep it
+consistent. Do NOT drift cooler, bluer, more purple or more saturated than it,
+and do NOT make it much darker: this is the same pale rock as the mountain's
+upper surface, seen in section, only a shade deeper. Shade every plane as ONE
+FLAT TONE — a lighter bed face, a mid face, a darker recess under each lip —
+flat cel shading of the rock's own faces, NOT a cast shadow and NOT a light
+direction, and no face near-black.
+
+Read at thumbnail size: the whole face is only a narrow strip on screen, so keep
+the beds CHUNKY and few — about five to eight beds from top to bottom of the
+frame — with no fine detail that would disappear. Spread the relief evenly from
+top to bottom, with no single large feature that sits at one height only.
+
+NO separate stones, NO cobbles, NO boulders set side by side, NO joints between
+pieces, nothing that reads as built or assembled. NOT masonry — NO stacked
+bricks, NO mortar lines, NO worked edges, NO tool marks. NO vegetation of any
+kind — NO grass, NO moss, NO lichen, NO trees, NO soil, NO snow. NO scree or
+rubble pile at the bottom, NO talus slope, NO top surface, NO ground, NO objects
+of any kind.

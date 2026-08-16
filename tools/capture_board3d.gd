@@ -47,7 +47,7 @@ func _ready() -> void:
 		for row in state.rows:
 			var hex := Hex.offset_to_axial(col, row)
 			var p := Hex.to_pixel(hex, HexBoard3D.TILE)
-			var screen := board._cam.unproject_position(Vector3(p.x, 0.0, p.y))
+			var screen: Vector2 = board._cam.unproject_position(Vector3(p.x, 0.0, p.y))
 			var pt := board._plane_point_at(screen)
 			total += 1
 			if not pt.is_finite() or Hex.from_pixel(Vector2(pt.x, pt.z), HexBoard3D.TILE) != hex:
