@@ -325,13 +325,17 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 
 ## weak（弱者狙い）の行動ルール。前衛を避けて柔らかい敵へ回り込む。
 ## 1 占領／2 防御力が最小の対象にスキル
-## 3 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃
-## 4 攻撃射程内に一撃で倒せる敵 → 盤上距離が最小の敵を攻撃
-## 5〜8 狙う獲物へ 回り込み → 最大前進 → 見込前進 → 直線寄せ
+## 3 間接攻撃できる駒で、いま一撃で倒せる敵がおらず狙う獲物を撃てる → 狙う獲物へ最大間合い
+## 4 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃
+## 5 攻撃射程内に一撃で倒せる敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
+## 6〜9 狙う獲物へ 回り込み → 最大前進 → 見込前進 → 直線寄せ
 ##
 ## 狙う獲物＝ sight 範囲内の獲物のうち移動距離が最小のもの（測れる獲物がいなければ盤上距離が最小）。
-## 5〜8 はどれもこの1体へ向かう＝行の間で行き先が入れ替わらない。sight の判定は毎ターン行う＝
+## 3 と 6〜9 はどれもこの1体へ向かう＝行の間で行き先が入れ替わらない。sight の判定は毎ターン行う＝
 ## 起動後に獲物が視線から消えたら前進だけ止まる（攻撃とスキルは続く）。
+##
+## 3 が「一撃で倒せる敵がいない」を条件に持つのは、倒しきれる相手から下がらないため。倒しても
+## 反撃は受ける（同時解決）が、獲物を1体減らす価値のほうが大きい。
 func _weak_action(state: BattleState, u: Unit) -> AiAction:
 	var row := _capture_row(state, u)
 	if row != null:
@@ -348,16 +352,19 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 			prey_in_range.append(id)
 		if _can_kill_in_one_hit(state, u, state.unit_by_id(id)):
 			killable.append(id)
+	var can_move := _can_advance(state, u)
+	var move_field := state.move_cost_field(u.id, u.pos) if can_move else {}
+	var target := _hunted_prey(state, u, move_field) if can_move else null
+	if killable.is_empty() and target != null:
+		row = _standoff_row(state, u, target)
+		if row != null:
+			return row
 	if not prey_in_range.is_empty():
 		return AiAction.attack(u.id, _fewest_left_id(state, u, prey_in_range))
 	if not killable.is_empty():
-		return AiAction.attack(u.id, _nearest_id_by_board(state, u, killable))
-	if not _can_advance(state, u):
-		return null
-	var move_field := state.move_cost_field(u.id, u.pos)
-	var target := _hunted_prey(state, u, move_field)
-	if target == null:
-		return null  # sight 範囲内に獲物がいない＝前進はしない
+		return AiAction.attack(u.id, _safest_id(state, u, killable))
+	if not can_move or target == null:
+		return null  # 移動を使い切った／sight 範囲内に獲物がいない＝前進はしない
 	var cells := state.attack_cells(u.id, target.id)
 	# 5 回り込み（迂回距離）。標的自身のZOCは外して測る＝外さないと隣へ入れず必ず測れない。
 	# 表は標的から流して1枚だけ作り、自分のマスが載っているかで「測れる」を見る（両向きで一致する）。
@@ -371,18 +378,26 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 	return _advance_straight(state, u, target.pos)
 
 ## swarm（群れ）の行動ルール。傷ついた敵へ集まり、無傷の敵には頭数が揃ってから手を出す。
-## 1 攻撃射程内に手負い → 手負いを攻撃（ここだけ包囲を条件にしない＝単独でも噛みつく）
-## 2 攻撃射程内に stack 条件を満たさない包囲可能な敵 → 損耗が最大の敵を攻撃
-## 3 スキル射程内に stack 条件を満たす包囲可能な対象 → 損耗が最大の対象にスキル
-## 4 攻撃射程内に包囲可能な敵 → 損耗が最大の敵を攻撃
-## 5/6 sight 範囲内の手負いへ 最大前進 → 見込前進
-## 7/8 移動距離／地形距離が最小の敵へ 最大前進 → 見込前進
-## 9 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+## 1 間接攻撃できる駒で、移動範囲のどこかから手負いを撃てる → 手負いへ最大間合い
+## 2 攻撃射程内に手負い → 手負いを攻撃（ここだけ包囲を条件にしない＝単独でも噛みつく）
+## 3 攻撃射程内に stack 条件を満たさない包囲可能な敵 → 損耗が最大の敵を攻撃
+## 4 スキル射程内に stack 条件を満たす包囲可能な対象 → 損耗が最大の対象にスキル
+## 5 攻撃射程内に包囲可能な敵 → 損耗が最大の敵を攻撃
+## 6/7 sight 範囲内の手負いへ 最大前進 → 見込前進
+## 8/9 移動距離／地形距離が最小の敵へ 最大前進 → 見込前進
+## 10 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+##
+## 1 で下がった駒は包囲の頭数から外れる（隣接しなくなる）。包囲は間接にも効くので、囲むのは
+## 近接の駒に任せ、間接の駒は外から撃つという住み分けになる。
 ##
 ## 拠点は取らない（占領の行を持たない）。占領兵を混ぜても拠点へは向かわない。
 func _swarm_action(state: BattleState, u: Unit) -> AiAction:
 	var move_field := state.move_cost_field(u.id, u.pos)
 	var wounded := _wounded_of(state, u, move_field)
+	if wounded != null:
+		var standoff := _standoff_row(state, u, wounded)
+		if standoff != null:
+			return standoff
 	var in_range := _attack_targets(state, u)
 	if wounded != null and wounded.id in in_range:
 		return AiAction.attack(u.id, wounded.id)
@@ -405,7 +420,7 @@ func _swarm_action(state: BattleState, u: Unit) -> AiAction:
 		return AiAction.attack(u.id, _most_damaged_id(state, u, surroundable))
 	if not _can_advance(state, u):
 		return null
-	# 5/6 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
+	# 6/7 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
 	if wounded != null and _in_sight(state, u, wounded):
 		var cells := state.attack_cells(u.id, wounded.id)
 		if state.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
@@ -457,26 +472,33 @@ func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := f
 ## 最大間合いの行＝間接攻撃できる駒が、撃てる敵から距離を取ってから撃つための移動（doc/gdd/ai.md
 ## 用語 > 最大間合い）。撃つのはこの行ではなく、移動後にもう一度表を上から当てた攻撃の行。
 ##
-## 標的は「移動範囲のどこかから撃てる敵」のうち盤上距離が最小のもの＝いまの位置から撃てるかは
-## 問わない（射程の外から詰めるときも射程の外縁で止まる）。行き先はその標的を撃てるマスのうち
-## 標的への盤上距離が最大のもので、同値は現在地優先 → col → row の若い方。
+## 標的を渡すとその1体へ間合いを取る（weak＝狙う獲物・swarm＝手負い＝前進の行と同じ1体へ向かう）。
+## 渡さなければ「移動範囲のどこかから撃てる敵」のうち盤上距離が最小のもの（charge / ambush）。
+## どちらもいまの位置から撃てるかは問わない＝射程の外から詰めるときも射程の外縁で止まる。
+##
+## 行き先はその標的を撃てるマスのうち標的への盤上距離が最大のもので、同値は現在地優先 →
+## col → row の若い方。
 ##
 ## 近接しかできない駒は撃てるマスがどれも距離1＝最大間合いが現在地と同じになるので、この行では
 ## 動かない。射程で先に弾いておくと、盤を流さずに済む。
-func _standoff_row(state: BattleState, u: Unit) -> AiAction:
+func _standoff_row(state: BattleState, u: Unit, target: Unit = null) -> AiAction:
 	if u.attack_range < 2 or _is_transport(u) or not _can_advance(state, u):
 		return null
 	var reach := state.reachable(u.id)
-	var target: Unit = null
 	var cells: Array[Vector2i] = []
-	for e in _attackable_enemies(state, u):
-		if target != null and not _nearer_hex(u.pos, e.pos, target.pos):
-			continue
-		var spots := _standing_attack_cells(state, u, e, reach)
-		if spots.is_empty():
-			continue  # 今ターン撃てる位置が無い敵は標的にしない（前進の行に任せる）
-		target = e
-		cells = spots
+	if target != null:
+		cells = _standing_attack_cells(state, u, target, reach)
+		if cells.is_empty():
+			return null  # 今ターン撃てる位置が無い＝前進の行に任せる
+	else:
+		for e in _attackable_enemies(state, u):
+			if target != null and not _nearer_hex(u.pos, e.pos, target.pos):
+				continue
+			var spots := _standing_attack_cells(state, u, e, reach)
+			if spots.is_empty():
+				continue  # 今ターン撃てる位置が無い敵は標的にしない（前進の行に任せる）
+			target = e
+			cells = spots
 	if target == null:
 		return null
 	var best := NO_HEX

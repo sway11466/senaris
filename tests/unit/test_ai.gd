@@ -439,6 +439,21 @@ func test_raid_attacks_an_enemy_blocking_the_corridor() -> void:
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "通路を塞ぐ敵は殴る")
 	assert_eq(a.target_id, e.id)
 
+func test_raid_does_not_back_off_from_the_enemy_in_its_way() -> void:
+	# raid は最大間合いの行を持たない＝間合いを取る移動は拠点から遠ざかるため。
+	# 間接攻撃できる駒も、塞がれた位置からそのまま殴る。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2])
+	var si := _squad(s, "raid")
+	var archer := _ai(s, si, 10, 4, 2)
+	archer.attack_range = 2
+	var e := _pc(s, 1, 5, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "下がらずに殴る")
+	assert_eq(a.target_id, e.id)
+
 func test_raid_attacks_when_two_enemies_block_together() -> void:
 	# 幅2の通路を2体で塞ぐ形。1体ずつ試すとどちらを外しても道が開かず、
 	# 両方とも経路上ではないと読まれてしまう＝まとめてどけて測る。
@@ -506,7 +521,7 @@ func test_weak_walks_past_the_hard_front_line() -> void:
 	assert_lt(Hex.distance(a.to, soft.pos), Hex.distance(u.pos, soft.pos), "獲物へ寄る")
 
 func test_weak_attacks_the_prey_it_can_reduce_most() -> void:
-	# #3 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃する。
+	# #4 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃する。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
 	var si := _squad(s, "weak")
@@ -519,7 +534,7 @@ func test_weak_attacks_the_prey_it_can_reduce_most() -> void:
 	assert_eq(a.target_id, hurt.id, "攻撃後の残兵が最小になる相手")
 
 func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
-	# #4 獲物でなくても、一撃で倒せる相手なら殴る。
+	# #5 獲物でなくても、一撃で倒せる相手なら殴る。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
 	var si := _squad(s, "weak")
@@ -531,8 +546,54 @@ func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, tough.id, "獲物でなくても倒しきれるなら殴る")
 
+func test_weak_backs_off_before_shooting_the_prey() -> void:
+	# #3 間接攻撃できる駒は、狙う獲物から最大間合いを取ってから撃つ。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "weak")
+	var archer := _ai(s, si, 10, 4, 2)
+	archer.attack_range = 2
+	var prey := _pc(s, 1, 4, 1, 10)             # 隣接・満員＝一撃では倒せない
+	assert_lt(Combat.casualties(s, archer, prey, true), prey.troops, "前提: 一撃では倒せない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
+	assert_eq(Hex.distance(a.to, prey.pos), 2, "射程上限まで間合いを取る")
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
+	assert_eq(b.target_id, prey.id)
+
+func test_weak_does_not_back_off_from_a_finishing_blow() -> void:
+	# #3 は「いまの位置から一撃で倒せる敵がいない」ときだけ成立＝倒しきれる相手からは下がらない。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "weak")
+	var archer := _ai(s, si, 10, 4, 2)
+	archer.attack_range = 2
+	var tough := _hurt(_pc(s, 1, 4, 1, 80), 1)  # 硬いが残り1＝一撃で倒せる
+	_pc(s, 2, 10, 2, 10)                        # 獲物は遠い＝硬い相手は獲物にならない
+	assert_true(Combat.casualties(s, archer, tough, true) >= tough.troops, "前提: 一撃で倒せる")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "倒しきれる相手からは下がらない")
+	assert_eq(a.target_id, tough.id)
+
+func test_weak_finishes_the_enemy_that_cannot_retaliate() -> void:
+	# #5 どちらも倒せるなら反撃を受けない相手から倒す。移動0＝下がる余地を消して行だけを見る。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "weak")
+	var archer := _ai(s, si, 10, 4, 2, 0)
+	archer.attack_range = 2
+	_hurt(_pc(s, 1, 4, 1, 80), 1)               # 隣接＝殴れば反撃される
+	var far := _hurt(_pc(s, 2, 4, 0, 80), 1)    # 盤上距離2＝反撃されない
+	_pc(s, 3, 10, 2, 10)                        # 獲物は遠い＝硬い2体は獲物にならない
+	assert_true(Combat.casualties(s, archer, far, false) >= far.troops, "前提: 距離2でも倒せる")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, far.id, "反撃されない敵から倒す")
+
 func test_weak_flanks_around_the_zoc_band() -> void:
-	# #5 回り込み＝敵ZOCを避けて獲物へ近づく。壁で抜け道を絞らないと同じ長さの別ルートが
+	# #6 回り込み＝敵ZOCを避けて獲物へ近づく。壁で抜け道を絞らないと同じ長さの別ルートが
 	# 残って迂回距離が伸びない（flat-top / odd-q は横に扇状へ広がる）。
 	var s := BattleState.new(9, 7)
 	s.current_team = 1
@@ -551,7 +612,7 @@ func test_weak_flanks_around_the_zoc_band() -> void:
 	assert_gt(_row(a.to), _row(u.pos), "遠い抜け道の側へ回る")
 
 func test_weak_stops_advancing_when_the_prey_leaves_sight() -> void:
-	# 行動開始は一度きりの判定、#5〜#8 の sight は毎ターンの判定＝視線から消えたら前進だけ止まる。
+	# 行動開始は一度きりの判定、#6〜#9 の sight は毎ターンの判定＝視線から消えたら前進だけ止まる。
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
 	var si := _squad(s, "weak", { "sight": 2 })
@@ -565,7 +626,7 @@ func test_weak_stops_advancing_when_the_prey_leaves_sight() -> void:
 # --- swarm（群れ） ---
 
 func test_swarm_bites_a_wounded_enemy_alone() -> void:
-	# #1 だけ包囲を条件にしない＝手負いには単独でも噛みつく。
+	# #2 だけ包囲を条件にしない＝手負いには単独でも噛みつく。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
 	var si := _squad(s, "swarm")
@@ -574,6 +635,22 @@ func test_swarm_bites_a_wounded_enemy_alone() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, wounded.id)
+
+func test_swarm_backs_off_before_shooting_the_wounded() -> void:
+	# #1 間接攻撃できる駒は手負いから最大間合いを取ってから撃つ（囲むのは近接の駒に任せる）。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "swarm")
+	var archer := _ai(s, si, 10, 4, 2)
+	archer.attack_range = 2
+	var wounded := _hurt(_pc(s, 1, 4, 1), 3)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
+	assert_eq(Hex.distance(a.to, wounded.pos), 2, "射程上限まで間合いを取る")
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
+	assert_eq(b.target_id, wounded.id)
 
 func test_swarm_leaves_a_healthy_enemy_and_goes_for_the_wounded() -> void:
 	# 無傷の敵には頭数が揃うまで手を出さない。手負いは盤全体から1体選ぶ。
@@ -588,14 +665,14 @@ func test_swarm_leaves_a_healthy_enemy_and_goes_for_the_wounded() -> void:
 	assert_lt(Hex.distance(a.to, wounded.pos), Hex.distance(u.pos, wounded.pos), "手負いへ寄る")
 
 func test_swarm_attacks_a_healthy_enemy_once_the_numbers_are_there() -> void:
-	# #4 包囲可能な敵は殴る（行動ユニット自身も数に入る）。
+	# #5 包囲可能な敵は殴る（行動ユニット自身も数に入る）。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
 	var si := _squad(s, "swarm")
 	_ai(s, si, 10, 4, 2)
 	_ai(s, si, 11, 4, 0)                  # 同じ敵に隣接する2体目＝包囲可能
 	var healthy := _pc(s, 1, 4, 1)
-	_hurt(_pc(s, 2, 9, 2), 2)             # 手負いは遠い＝#1 は成立しない
+	_hurt(_pc(s, 2, 9, 2), 2)             # 手負いは遠い＝#2 は成立しない
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "頭数が揃えば無傷の敵にも手を出す")
 	assert_eq(a.target_id, healthy.id)
