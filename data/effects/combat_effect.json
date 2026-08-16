@@ -36,6 +36,13 @@
 			"scale": 0.9
 		},
 		{
+			"effect_id": "arrow_bolt",
+			"kind": "projectile",
+			"memo": "バリスタの太矢。太い軸＋大きな鉄の穂",
+			"name": "太矢",
+			"scale": 1.05
+		},
+		{
 			"effect_id": "stone",
 			"kind": "projectile",
 			"memo": "スリングの小石＝速度線ごと兵士の3割ほど",
