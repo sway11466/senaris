@@ -94,13 +94,16 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 
 ## ゲーム内クレジットに出すもの
 
-頒布物に入るもの、すなわち義務があるものと、第三者の出力が含まれるものを載せる。表記文が指定されているライセンスは、指定文をそのまま使い、自己流に言い換えない。
+頒布物に入るもの（義務があるもの）、第三者の出力が含まれるもの、制作に使った道具を載せる。表記文が指定されているライセンスは、指定文をそのまま使い、自己流に言い換えない。
 
 - Godot Engine。ライセンス文は実行時に `Engine.get_license_text()` で取れるので、画面に流し込む。同梱サードパーティの分も `Engine.get_copyright_info()` に入っている
 - Rock Salt。`Copyright (c) 2010 by Font Diner, Inc DBA Sideshow.` と、Apache License 2.0 の下で使っている旨。ライセンス全文は `THIRD-PARTY-LICENSES.txt` で渡す
 - Sonniss GDC Game Audio Bundle。表記義務は無いが、効果音の土台なので名前を残す
 - Muse Sounds ／ MS Basic
 - Google Gemini。AI 生成の開示はストア側の手続きが本体だが、画面にも出す
+- 制作に使った道具（MuseScore Studio・Inkscape・FFmpeg・ImageMagick・NumPy・Pillow・OpenCV・fontTools）。義務は無いが、本書冒頭の方針（義務が無い製品も載せる）を画面にも通す。義務のある表記と混ざらないよう末尾にまとめ、一段小さく置く
+
+Godot はライセンス全文を画面に載せる。`Engine.get_license_text()` の中身をそのまま流す＝ MIT の「ライセンス文の表示」を画面だけで満たせる（同梱ファイル `THIRD-PARTY-LICENSES.txt` は配布ビルドの話で、[backlog.md](../backlog.md) feature-10 待ち）。長いのでスクロールする領域に入れる。
 
 ## ストアページに出すもの
 
