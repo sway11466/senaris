@@ -23,6 +23,7 @@
 
     { "skin": "halfling", "col": 6, "row": 1 },
     { "skin": "airship",  "col": 6, "row": 3 },
+    { "skin": "ballista", "col": 6, "row": 5 },
     { "skin": "wizard",   "col": 6, "row": 7 }
   ],
   "enemy": [
