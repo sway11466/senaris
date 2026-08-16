@@ -86,14 +86,6 @@ func _ready() -> void:
 	header.add_theme_constant_override("separation", 12)
 	vbox.add_child(header)
 
-	var back := Button.new()
-	back.text = "← 冒険譚"
-	back.focus_mode = Control.FOCUS_NONE
-	back.pressed.connect(func() -> void:
-		SfxPlayer.play_event("menu_back")
-		back_requested.emit())
-	header.add_child(back)
-
 	_title = Label.new()
 	_title.add_theme_font_size_override("font_size", 24)
 	header.add_child(_title)
@@ -154,6 +146,15 @@ func _ready() -> void:
 	_lanes.rows = _stage_list
 	# 行が並び直すたびに引き直す（初回の配置も、折り返しで背が変わったときもここで拾う）。
 	_stage_list.sort_children.connect(_lanes.queue_redraw)
+
+	# 冒険譚選択へ戻る。戻りは常に左下＝上はステージ名の場所なので空けておく（doc/gdd/stage_select.md）。
+	var footer := HBoxContainer.new()
+	vbox.add_child(footer)
+	var back := TavernTheme.nav_button("← 冒険譚")
+	back.pressed.connect(func() -> void:
+		SfxPlayer.play_event("menu_back")
+		back_requested.emit())
+	footer.add_child(back)
 
 	_briefing = QuestSheet.new()
 	_briefing.confirmed.connect(_on_sortie)

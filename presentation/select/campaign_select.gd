@@ -120,17 +120,18 @@ func _ready() -> void:
 	_right_arrow.pressed.connect(_on_next)
 	board_area.add_child(_right_arrow)
 
-	# タイトルのメニューへ戻る。戻りは常に左上（ステージセレクトの「← 冒険譚」と同じ位置）。
-	# 矢印・ドットと同じグレー＝操作の道具は酒場の物ではない。Esc でも同じ入口を通る。
-	var to_menu := _nav_button("← メニュー", 20)
+	# タイトルのメニューへ戻る。戻りは常に左下（ステージセレクトの「← 冒険譚」と同じ位置）。
+	# 上梁はボード名の場所なので空けておく。矢印・ドットと同じグレー＝操作の道具は酒場の物ではない。
+	# Esc でも同じ入口を通る。
+	var to_menu := TavernTheme.nav_button("← メニュー")
 	to_menu.anchor_left = 0.0
 	to_menu.anchor_right = 0.0
-	to_menu.anchor_top = 0.0
-	to_menu.anchor_bottom = 0.0
+	to_menu.anchor_top = 1.0
+	to_menu.anchor_bottom = 1.0
 	to_menu.offset_left = ARROW_INSET
 	to_menu.offset_right = ARROW_INSET + BACK_SIZE.x
-	to_menu.offset_top = ARROW_INSET
-	to_menu.offset_bottom = ARROW_INSET + BACK_SIZE.y
+	to_menu.offset_top = -ARROW_INSET - BACK_SIZE.y
+	to_menu.offset_bottom = -ARROW_INSET
 	to_menu.pressed.connect(_on_back_to_title)
 	board_area.add_child(to_menu)
 
@@ -229,25 +230,9 @@ func _empty_note() -> Control:
 
 ## カルーセルの繰り矢印＝無機質なグレー矢印（酒場のオブジェクトではない＝UI視点。板ボタンにしない）。
 func _nav_arrow(glyph: String) -> Button:
-	return _nav_button(glyph, 34)
+	return TavernTheme.nav_button(glyph, 34)
 
-## カルーセルと同じ無機質なグレーのボタン（酒場の物ではない＝板ボタンにしない）。
-func _nav_button(text: String, font_size: int) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.focus_mode = Control.FOCUS_NONE
-	b.flat = true
-	b.add_theme_font_size_override("font_size", font_size)
-	b.add_theme_color_override("font_color", Color(0.78, 0.78, 0.78, 0.6))
-	b.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 0.95))
-	b.add_theme_color_override("font_pressed_color", Color(0.65, 0.65, 0.65, 0.85))
-	b.add_theme_color_override("font_disabled_color", Color(0.55, 0.55, 0.55, 0.2))
-	var empty := StyleBoxEmpty.new()
-	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
-		b.add_theme_stylebox_override(st, empty)
-	return b
-
-## タイトルのメニューへ戻る（左上のボタン・Esc の共通入口）。一段戻る音は他の戻ると同じ。
+## タイトルのメニューへ戻る（左下のボタン・Esc の共通入口）。一段戻る音は他の戻ると同じ。
 func _on_back_to_title() -> void:
 	SfxPlayer.play_event("menu_back")
 	title_requested.emit()
