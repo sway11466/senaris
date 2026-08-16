@@ -74,16 +74,94 @@ func _row(hex: Vector2i) -> int:
 
 func test_charge_attacks_the_nearest_enemy_not_the_weakest() -> void:
 	# 攻撃対象は盤上距離が最小の敵。旧実装の既定は兵数最小だったのでここが変わる。
+	# 移動0＝最大間合いの行を素通りさせて攻撃の行だけを見る。どちらも距離2以上＝反撃されない。
 	var s := BattleState.new(9, 9)
 	s.current_team = 1
 	var si := _squad(s, "charge")
-	var archer := _ai(s, si, 10, 4, 4)
-	archer.attack_range = 2
-	var near := _pc(s, 1, 4, 3)             # 盤上距離1・満員
-	_hurt(_pc(s, 2, 4, 2), 2)               # 盤上距離2・兵数2（旧実装ならこちらを狙った）
+	var archer := _ai(s, si, 10, 4, 4, 0)
+	archer.attack_range = 3
+	var near := _pc(s, 1, 4, 2)             # 盤上距離2・満員
+	_hurt(_pc(s, 2, 4, 1), 2)               # 盤上距離3・兵数2（旧実装ならこちらを狙った）
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, near.id, "兵数ではなく盤上距離が最小の敵")
+
+func test_charge_backs_off_to_the_range_edge_before_shooting() -> void:
+	# #3 間接攻撃できる駒は、撃てる敵から最大間合いを取ってから撃つ。
+	# 隣接のまま撃つと近接扱い＝反撃を受ける（doc/gdd/combat.md 用語）。
+	var s := BattleState.new(9, 3)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 4, 1)
+	archer.attack_range = 2
+	var e := _pc(s, 1, 3, 1)                # 隣接＝このままだと反撃を受ける
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
+	assert_eq(Hex.distance(a.to, e.pos), 2, "射程上限まで間合いを取る")
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
+	assert_eq(b.target_id, e.id)
+
+func test_charge_stops_at_the_range_edge_while_closing_in() -> void:
+	# #3 の標的は「移動範囲のどこかから撃てる敵」＝射程の外から詰めるときも外縁で止まる。
+	# 移動4・距離5＝隣接まで届くが、届くからといって踏み込まない。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 0, 1, 4)
+	archer.attack_range = 2
+	var e := _pc(s, 1, 5, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_eq(Hex.distance(a.to, e.pos), 2, "射程上限のマスで止まる")
+
+func test_charge_does_not_shuffle_when_already_at_the_range_edge() -> void:
+	# 最大間合いは同値なら現在地優先＝すでに射程上限にいる駒は動かずに撃つ。
+	var s := BattleState.new(9, 3)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 4, 1)
+	archer.attack_range = 2
+	var e := _pc(s, 1, 2, 1)                # 盤上距離2＝すでに最大間合い
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "横のマスへ動き直さない")
+	assert_eq(a.target_id, e.id)
+
+func test_charge_melee_piece_attacks_without_repositioning() -> void:
+	# 近接しかできない駒は撃てるマスがどれも距離1＝最大間合いが現在地と同じ＝この行では動かない。
+	var s := BattleState.new(9, 3)
+	s.current_team = 1
+	var e := _pc(s, 1, 3, 1)
+	_ai(s, _squad(s, "charge"), 10, 4, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, e.id)
+
+func test_charge_shoots_the_enemy_that_cannot_retaliate() -> void:
+	# #4 隣に敵がいても、距離2で撃てる相手がいればそちらを撃つ（間接＝反撃なし）。
+	# 移動0＝下がれない駒にして、攻撃の行の対象選びだけを見る。
+	var s := BattleState.new(9, 9)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 4, 4, 0)
+	archer.attack_range = 2
+	_pc(s, 1, 4, 3)                         # 隣接＝殴れば反撃される
+	var far := _pc(s, 2, 4, 2)              # 盤上距離2＝反撃されない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, far.id, "反撃されない敵を優先する")
+
+func test_charge_melees_when_it_cannot_avoid_retaliation() -> void:
+	# 反撃されない敵が1体もいなければ、これまで通り盤上距離が最小の敵を殴る。
+	var s := BattleState.new(9, 9)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	_ai(s, si, 10, 4, 4, 0)                 # 近接・移動0＝下がる先も遠い相手も無い
+	var e := _pc(s, 1, 4, 3)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, e.id)
 
 func test_charge_captures_before_attacking() -> void:
 	# #1 占領兵で移動範囲に自陣営以外の拠点があれば、殴れる敵がいても取りに行く。

@@ -85,9 +85,13 @@ static func _is_transport(u: Unit) -> bool:
 
 ## 攻撃の行が見る標的。輸送ユニットは攻撃しない＝どの特性でも空になる（自分から仕掛けないだけで、
 ## 殴られたときの反撃は戦闘解決の側で起きる）。
+## 攻撃済みの駒も空。ヒット&アウェイ持ち（move_after_attack）は撃ったあとも動けるので行を見直すが、
+## そこで撃てる相手を返すと成立しない攻撃を返し続けることになる。
 func _attack_targets(state: BattleState, u: Unit) -> Array[int]:
 	var none: Array[int] = []
-	return none if _is_transport(u) else state.attack_targets(u.id)
+	if _is_transport(u) or state.has_attacked(u.id):
+		return none
+	return state.attack_targets(u.id)
 
 ## 前進で止まってはいけないマス。輸送ユニットは目的地hex（自陣営以外の拠点）に乗らない
 ## ＝塞ぐと運んできた占領兵も他の味方も拠点へ入れない。
@@ -257,10 +261,11 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 ## charge（突撃）／ambush（待ち伏せ）の行動ルール。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
 ## 2 スキル射程内に stack 条件を満たす対象 → 盤上距離が最小の対象にスキル
-## 3 攻撃射程内に敵 → 盤上距離が最小の敵を攻撃
-## 4 移動距離が測れる敵 → 移動距離が最小の敵へ最大前進
-## 5 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
-## 6 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+## 3 間接攻撃できる駒で、移動範囲のどこかから撃てる敵 → 盤上距離が最小のその敵へ最大間合い
+## 4 攻撃射程内に敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
+## 5 移動距離が測れる敵 → 移動距離が最小の敵へ最大前進
+## 6 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
+## 7 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
 func _charge_action(state: BattleState, u: Unit) -> AiAction:
 	var row := _capture_row(state, u)
 	if row != null:
@@ -268,9 +273,12 @@ func _charge_action(state: BattleState, u: Unit) -> AiAction:
 	row = _skill_row(state, u, PICK_NEAR)
 	if row != null:
 		return row
+	row = _standoff_row(state, u)
+	if row != null:
+		return row
 	var in_range := _attack_targets(state, u)
 	if not in_range.is_empty():
-		return AiAction.attack(u.id, _nearest_id_by_board(state, u, in_range))
+		return AiAction.attack(u.id, _safest_id(state, u, in_range))
 	return _advance_to_nearest_enemy(state, u)
 
 ## raid（拠点攻略）の行動ルール。1〜3 は突撃と同じで、7〜9 の行き先が敵ではなく拠点。
@@ -445,6 +453,57 @@ func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := f
 			continue
 		return AiAction.skill(u.id, option, _pick_skill_target(state, u, candidates, pick).pos)
 	return null
+
+## 最大間合いの行＝間接攻撃できる駒が、撃てる敵から距離を取ってから撃つための移動（doc/gdd/ai.md
+## 用語 > 最大間合い）。撃つのはこの行ではなく、移動後にもう一度表を上から当てた攻撃の行。
+##
+## 標的は「移動範囲のどこかから撃てる敵」のうち盤上距離が最小のもの＝いまの位置から撃てるかは
+## 問わない（射程の外から詰めるときも射程の外縁で止まる）。行き先はその標的を撃てるマスのうち
+## 標的への盤上距離が最大のもので、同値は現在地優先 → col → row の若い方。
+##
+## 近接しかできない駒は撃てるマスがどれも距離1＝最大間合いが現在地と同じになるので、この行では
+## 動かない。射程で先に弾いておくと、盤を流さずに済む。
+func _standoff_row(state: BattleState, u: Unit) -> AiAction:
+	if u.attack_range < 2 or _is_transport(u) or not _can_advance(state, u):
+		return null
+	var reach := state.reachable(u.id)
+	var target: Unit = null
+	var cells: Array[Vector2i] = []
+	for e in _attackable_enemies(state, u):
+		if target != null and not _nearer_hex(u.pos, e.pos, target.pos):
+			continue
+		var spots := _standing_attack_cells(state, u, e, reach)
+		if spots.is_empty():
+			continue  # 今ターン撃てる位置が無い敵は標的にしない（前進の行に任せる）
+		target = e
+		cells = spots
+	if target == null:
+		return null
+	var best := NO_HEX
+	var best_d := -1
+	for h in cells:
+		var d := Hex.distance(h, target.pos)
+		var better := best == NO_HEX or d > best_d
+		if not better and d == best_d and best != u.pos:
+			better = h == u.pos or _is_younger_hex(h, best)
+		if better:
+			best = h
+			best_d = d
+	return AiAction.move_to(u.id, best) if best != u.pos else null
+
+## target を攻撃できるマスのうち、今ターン実際に立てるもの。
+## 駒の居るマス＝乗れる味方輸送は除く（前進と同じ理由＝踏むと乗るつもりのない乗車になる）。
+## 自分が今いるマスは「動かない」という選択肢なので残す。
+func _standing_attack_cells(state: BattleState, u: Unit, target: Unit,
+		reach: Array[Vector2i]) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for h in state.attack_cells(u.id, target.id):
+		if not (h in reach):
+			continue
+		if h != u.pos and state.unit_at(h) != null:
+			continue
+		out.append(h)
+	return out
 
 # --- 経路上の敵（doc/gdd/ai.md 経路上の敵） ---
 
@@ -726,6 +785,23 @@ func _nearest_hex_in(field: Dictionary, cells: Array[Vector2i]) -> Vector2i:
 			best = h
 			best_c = c
 	return best
+
+## 反撃されない敵を優先し、その中で盤上距離が最小の敵ID（doc/gdd/ai.md 用語 > 反撃されない）。
+## 同じ1手なら反撃を受けない相手を撃つほうが得なので、隣に敵がいても距離2で撃てる相手を先に見る。
+## 反撃されない敵が1体もいなければ、これまで通り盤上距離が最小の敵を殴る。
+func _safest_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var safe: Array[int] = []
+	for id in ids:
+		if not _retaliates(u, state.unit_by_id(id), u.pos):
+			safe.append(id)
+	return _nearest_id_by_board(state, u, safe if not safe.is_empty() else ids)
+
+## from から t を攻撃したとき t が反撃してくるか。判定は戦闘解決（BattleState.attack）と同じ＝
+## 距離1で、t が距離1を狙えて（min_range≤1）、t がこちらを攻撃できる（対空・対地）とき。
+static func _retaliates(u: Unit, t: Unit, from: Vector2i) -> bool:
+	if t == null:
+		return false
+	return Hex.distance(from, t.pos) <= 1 and t.can_reach(1) and t.attack_against(u) > 0
 
 ## 盤上距離が最小の敵ID。同値は col → row の若い方。
 func _nearest_id_by_board(state: BattleState, u: Unit, ids: Array[int]) -> int:
