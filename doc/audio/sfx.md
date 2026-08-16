@@ -354,8 +354,12 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `arrow` | `MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目 | 2019 p5 / Rock The Speakerbox - Melee |
 | `arrow_bone` | 同上（矢と呪いの矢は発射も着弾も共用する） | 2019 p5 / 同上 |
 | `stone` | 同ファイルの3テイク目 | 2019 p5 / 同上 |
+| `arrow_bolt` | 同ファイルの4テイク目 | 2019 p5 / 同上 |
+| `arrow_crossbow` | 同上（太矢とクロスボウは発射も着弾も共用する） | 2019 p5 / 同上 |
 | `arrow_hit` | `BOW Arrow Hit 05.wav` | 2020 p9 / SmartSoundFX – Medieval |
 | `arrow_bone_hit` | 同上 | 2020 p9 / 同上 |
+| `arrow_bolt_hit` | 同上 | 2020 p9 / 同上 |
+| `arrow_crossbow_hit` | 同上 | 2020 p9 / 同上 |
 | `stone_hit` | `PM_RI_Source_92 Rocks Impact Hit Single Stone.wav` | 2020 p5 / PMSFX - Rocky Impacts |
 | `magic_bolt` | `WINDDsgn_Wind, Rush, Whoosh, Long x5 01_344 Audio_Elemental Palette Designed Vol 1.wav` | 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
 | `magic_bolt_hit` | `Magic_Explosion_Short19.wav` | 2020 p3 / David Dumais Audio - Magic Sound FX Pack 1 |
@@ -369,7 +373,11 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 すべて試聴して決めた。
 
-飛び道具3種の発射は同じ「ロープを速く振る」収録の別テイク。スリングは実際に紐を振り回して投げるものなので、投石にはこれが直接あたる。弓の発射も、弦の弾ける音より風切りのほうが飛んでいく感じが出た（弓の収録＝2019 p2 Eiravaein Works - Nocked は試聴して不採用）。
+飛び道具の発射は同じ「ロープを速く振る」収録の別テイク。スリングは実際に紐を振り回して投げるものなので、投石にはこれが直接あたる。弓の発射も、弦の弾ける音より風切りのほうが飛んでいく感じが出た（弓の収録＝2019 p2 Eiravaein Works - Nocked は試聴して不採用）。
+
+`arrow_bolt`（バリスタの太矢）とハンターのクロスボウも同じ収録から採る。使い残しのテイクのうち一番太い4本目を当て、矢（6本目・0.23秒）より長い 0.31 秒にした。同じ盤にアーチャーとバリスタが並ぶ回があるので、どちらが撃ったかが耳で付く必要がある。
+
+`arrow_crossbow`（ハンター）は絵が `arrow` と同じで、音だけ `arrow_bolt` と同じ。エフェクトIDは絵と音のセットなので、絵だけ共有して音を変えることはできず、`assets/effects/arrow.png` を複製して置いている。ハンターの武器はクロスボウだが、飛んでいく矢の見た目は弓の矢と変わらないため、絵は新しく描かない。
 
 `claw`（爪痕）は板金鎧を叩く音を当てた。索引を claw で引いて出るのは動物の足音ライブラリだけで、爪の収録はバンドルに無い。裂く音や怪物の攻撃音も試聴したが、こちらを採った。
 

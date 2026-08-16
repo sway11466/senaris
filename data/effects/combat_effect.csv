@@ -6,6 +6,7 @@ slash_l,斬撃（大）,impact,1.45,両手武器の薙ぎ払い。太い弧＋�
 arrow,矢,projectile,0.9,弓の矢
 arrow_bone,呪いの矢,projectile,0.9,骨の矢＋冷たい青緑の燐光
 arrow_bolt,太矢,projectile,1.05,バリスタの太矢。太い軸＋大きな鉄の穂
+arrow_crossbow,クロスボウの矢,projectile,0.9,ハンターのクロスボウ。絵は arrow と同じ・音は arrow_bolt と同じ
 stone,投石,projectile,0.32,スリングの小石＝速度線ごと兵士の3割ほど
 cannonball,砲弾,projectile,0.55,飛空艇の砲。鉄球＋速度線。射程1だが飛ばす
 magic_bolt,魔弾,projectile,0.7,青白い魔力の弾

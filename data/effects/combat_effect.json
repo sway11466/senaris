@@ -43,6 +43,13 @@
 			"scale": 1.05
 		},
 		{
+			"effect_id": "arrow_crossbow",
+			"kind": "projectile",
+			"memo": "ハンターのクロスボウ。絵は arrow と同じ・音は arrow_bolt と同じ",
+			"name": "クロスボウの矢",
+			"scale": 0.9
+		},
+		{
 			"effect_id": "stone",
 			"kind": "projectile",
 			"memo": "スリングの小石＝速度線ごと兵士の3割ほど",

@@ -38,11 +38,15 @@
 | `slash_l` | 斬撃（大）のエフェクト | Sonniss GDC 2020 / David Dumais Audio - Weapon Sounds - Weapon Swings `MeleeSwingsPack_96khz_Mono_DesignedSwings12` | wav 96kHz/16bit | 同上 | 切り出しなし、-6.8 dB。slash_l_recipe.txt |
 | `arrow_hit` | 矢の着弾 | Sonniss GDC 2020 / SmartSoundFX – Medieval `BOW Arrow Hit 05` | wav 48kHz/24bit | 同上 | 切り出しなし、-7.6 dB。arrow_hit_recipe.txt |
 | `arrow_bone_hit` | 呪いの矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_bone_hit_recipe.txt |
+| `arrow_bolt_hit` | 太矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_bolt_hit_recipe.txt |
+| `arrow_crossbow_hit` | クロスボウの矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_crossbow_hit_recipe.txt |
 | `stone_hit` | 投石の着弾 | Sonniss GDC 2020 / PMSFX - Rocky Impacts `PM_RI_Source_92 Rocks Impact Hit Single Stone` | wav 192kHz/24bit | 同上 | 切り出しなし、-8.3 dB。stone_hit_recipe.txt |
 | `move_ground` | 足音（重）。ground 系の移動 | Sonniss GDC 2020 / PMSFX - STEPS Dry Grass & Shrubs `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow` | wav 192kHz/24bit | 同上 | 切り出しなし、+1.8 dB。move_ground_recipe.txt |
 | `arrow` | 矢の発射 | Sonniss GDC 2019 / Rock The Speakerbox - Melee `MELEE - CK - ROPE WHOOSH Fast Light 01` | wav 96kHz/24bit | 同上 | 6テイク中の6本目（7.465〜8.057秒）、-4.7 dB。arrow_recipe.txt |
 | `arrow_bone` | 呪いの矢の発射（矢と同一素材） | 同上 | 同上 | 同上 | 同上、-4.7 dB。arrow_bone_recipe.txt |
 | `stone` | 投石の発射（同ライブラリの別テイク） | 同上 | 同上 | 同上 | 3本目（2.981〜3.754秒）、-2.9 dB。stone_recipe.txt |
+| `arrow_bolt` | 太矢の発射（バリスタ・同ファイルの別テイク） | 同上 | 同上 | 同上 | 4本目（4.575〜5.060秒）、-5.1 dB。arrow_bolt_recipe.txt |
+| `arrow_crossbow` | クロスボウの矢の発射（ハンター・太矢と同一素材） | 同上 | 同上 | 同上 | 同上、-5.1 dB。arrow_crossbow_recipe.txt |
 | `punch` | 徒手の一撃 | Sonniss GDC 2019 / Rock The Speakerbox - Melee `MELEE - DESIGNED - HEADBUTT Crack` | wav 96kHz/24bit | 同上 | 4テイク中の2本目（1.662〜2.541秒）、-10.0 dB。punch_recipe.txt |
 | `curse` | 呪い | Sonniss GDC 2019 / Sound Spark LLC – Magic Spells, Buffs and Attacks `Dark_Spell_Life_Tap_03` | wav 96kHz/24bit | 同上 | 切り出しなし、-7.0 dB。curse_recipe.txt |
 | `curse_wisp` | 呪いの燐気（ゴースト） | Sonniss GDC 2020 / Fox Audio Post-Production - Ghost Whoosh `SFX_Ghost_Whoosh_Male_03` | wav 96kHz/24bit | 同上 | 山の頭から（1.30〜2.10秒）、-6.0 dB。curse_wisp_recipe.txt |
