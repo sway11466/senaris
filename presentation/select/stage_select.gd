@@ -121,12 +121,19 @@ func _ready() -> void:
 	_art_label.add_theme_font_size_override("font_size", 32)
 	center.add_child(_art_label)
 
-	# --- 右: ステージの縦リスト ---
+	# --- 右: ステージの縦リスト（壁に掛かった背板の上に並べる） ---
+	# 板は左の絵パネルと同じ高さに伸びる＝左右が釣り合い、行の下の壁の空きも埋まる。
+	var list_board := PanelContainer.new()
+	list_board.add_theme_stylebox_override("panel", TavernTheme.list_board_stylebox())
+	list_board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list_board.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	list_board.size_flags_stretch_ratio = 1.0  # 絵:リスト ≒ 2:1
+	body.add_child(list_board)
+
 	var stage_scroll := ScrollContainer.new()
 	stage_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	stage_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	stage_scroll.size_flags_stretch_ratio = 1.0
-	body.add_child(stage_scroll)
+	list_board.add_child(stage_scroll)
 
 	# 綴じ紐は行と同じスクロール内に置く＝一覧を送っても線が置き去りにならない。
 	var listing := HBoxContainer.new()

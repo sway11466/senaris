@@ -4,7 +4,8 @@ class_name TavernTheme
 ## 材質だけ画像・構造と光はコード（ハイブリッド）。テクスチャは autowire で差し込む：
 ## assets/menu/<name>.png が在れば使い、無ければプロシージャル（ベタ塗り）へフォールバック。
 ## ＝画像スロット制。絵を置くだけで格上げされ、セレクト画面側は無改修（UnitSkin と同思想）。
-## 素材スロット: wall（木壁・タイル）／board（依頼ボード板）／parchment（貼り紙）／grunge（汚し）。
+## 素材スロット: wall（木壁・タイル）／board（依頼ボード板）／list_board（ステージ一覧の背板）／
+## parchment（貼り紙）／grunge（汚し）。
 ## 仕様（サイズ・シームレス条件・色味）→ doc/art/menu.md。
 
 const SLOT_DIR := "res://assets/menu/"
@@ -123,6 +124,27 @@ static func board_stylebox() -> StyleBox:
 	sb.shadow_size = 16
 	sb.set_content_margin_all(20)
 	return sb
+
+## ステージ一覧の背板（縦長・四隅に鉄具）。list_board.png があればテクスチャ、無ければ依頼ボードと同じ地。
+## ナインパッチの固定幅は56px＝四隅の鉄具（実測で一辺52pxまで）を割らない大きさ。枠そのものは約26pxで、
+## 残りは内側の板が入る。辺は board と同じく引き伸ばす（一様なまっすぐ枠なので伸びても崩れない）。
+static func list_board_stylebox() -> StyleBox:
+	var tex := _tex("list_board")
+	if tex != null:
+		var sb := _texture_box(tex, 56, LIST_BOARD_PAD)
+		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		return sb
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = BOARD_WOOD
+	sb.set_border_width_all(10)
+	sb.border_color = BOARD_FRAME
+	sb.set_corner_radius_all(6)
+	sb.set_content_margin_all(LIST_BOARD_PAD)
+	return sb
+
+## 背板の内側余白＝行を枠に被せないための固定値（枠約26px＋余白）。
+const LIST_BOARD_PAD := 36
 
 ## 羊皮紙テクスチャの変種一覧（parchment.png＋parchment_2.png/_3.png…を連番プローブ・1回だけ読む）。
 ## カードごとに違う紙を敷いて「全部同じ貼り紙」を避ける。ポスターは固定サイズなので伸縮の心配はない。
