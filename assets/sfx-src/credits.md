@@ -63,5 +63,7 @@
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 切り出しなし、0.45秒遅らせて -8.3 dB。鐘（自作）と重ねる。map_capture_recipe.txt |
 | `cannonball` | 砲弾の発射（飛空艇） | Sonniss GDC 2016 / Fascinated Sound - The Gun Locker SFX Pack `Automatic Cannon - MK44 - 03 - Single Shot with Report 03` | wav 96kHz/24bit | 同上 | 発砲だけ（0.24〜2.05秒・立ち上がりの手前を落とす）、-9.0 dB。cannonball_recipe.txt |
 | `cannonball_hit` | 砲弾の着弾（同じ収録の後半） | 同上 | 同上 | 同上 | Report だけ（2.18〜3.05秒）、-8.0 dB。cannonball_hit_recipe.txt。1本に発砲と着弾が両方入っている |
+| `fire_ball` | 火球の発射（オークメイジ） | Sonniss GDC 2026 / Epic Stock Media - Elemental Mutation Whooshes and Impacts `FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03` | wav 96kHz/24bit | 同上 | 山の頭から（0.55〜1.10秒・前後にフェード）、-8.0 dB。fire_ball_recipe.txt |
+| `fire_ball_hit` | 火球の着弾（魔弾と同一素材） | Sonniss GDC 2020 / David Dumais Audio - Magic Sound FX Pack 1 `Magic_Explosion_Short19` | wav 44.1kHz/24bit | 同上 | `magic_bolt_hit` と同一の切り出し（切り出しなし）、-8.5 dB。fire_ball_hit_recipe.txt |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。

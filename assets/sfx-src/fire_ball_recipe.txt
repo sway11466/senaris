@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/fire_ball__2026__FIREWhsh_Whoosh Fire Deep Growl Monster Saturated Crisp 03_ESM_EMWI.wav" -af "atrim=0.55:1.10,asetpts=N/SR/TB,afade=t=in:st=0:d=0.02,afade=t=out:st=0.49:d=0.06,volume=-8.0dB" -c:a pcm_s24le fire_ball.wav
