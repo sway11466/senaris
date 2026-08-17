@@ -3,6 +3,7 @@ effect_id,name,kind,scale,memo
 slash_s,斬撃（小）,impact,0.85,軽い剣の一閃。細い弧
 slash_m,斬撃（中）,impact,1.15,標準の剣。太く長い弧
 slash_l,斬撃（大）,impact,1.45,両手武器の薙ぎ払い。太い弧＋残り筋
+thrust,刺突,impact,1.15,突き・刺し全般。斬撃と同じ銀白で、弧ではなく横一文字の紡錘
 arrow,矢,projectile,0.9,弓の矢
 arrow_bone,呪いの矢,projectile,0.9,骨の矢＋冷たい青緑の燐光
 arrow_bolt,太矢,projectile,1.05,バリスタの太矢。太い軸＋大きな鉄の穂

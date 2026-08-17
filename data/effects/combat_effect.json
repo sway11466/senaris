@@ -22,6 +22,13 @@
 			"scale": 1.45
 		},
 		{
+			"effect_id": "thrust",
+			"kind": "impact",
+			"memo": "突き・刺し全般。斬撃と同じ銀白で、弧ではなく横一文字の紡錘",
+			"name": "刺突",
+			"scale": 1.15
+		},
+		{
 			"effect_id": "arrow",
 			"kind": "projectile",
 			"memo": "弓の矢",
