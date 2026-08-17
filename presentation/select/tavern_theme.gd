@@ -388,8 +388,38 @@ static func dim_wood_button(b: Button) -> void:
 	for c in ["font_color", "font_hover_color", "font_pressed_color"]:
 		b.add_theme_color_override(c, dim_font)
 
-static func _plank_box(bright: float) -> StyleBox:
+## 裏返して掛けた木札にする（未解放のステージ行・doc/gdd/stage_select.md）。板の絵を上下反転して
+## 当てる＝ベベルの光が下から来る向きになり、表の札と並んだときに裏側と読める。dim より暗く、
+## 彫りも塗りも無い裏面らしく色味を少し冷たくする。入力は殺さない（拒否音を鳴らすため）。
+static func flip_wood_button(b: Button) -> void:
+	dim_wood_button(b)
+	var back := _plank_box(0.78, true)
+	for state in ["normal", "hover", "pressed"]:
+		b.add_theme_stylebox_override(state, back)
+
+static var _plank_back: Texture2D = null  ## 裏返しの板。反転は1枚だけ作って全行で使い回す
+
+## 板のテクスチャ。flipped なら上下反転した1枚を返す（plank が無ければ null＝ベタ塗りへ）。
+static func _plank_texture(flipped: bool) -> Texture2D:
 	var tex := _tex("plank")
+	if not flipped or tex == null:
+		return tex
+	if _plank_back == null:
+		var img := tex.get_image()
+		if img == null:
+			return tex
+		img = img.duplicate() as Image  # 元テクスチャの画像を壊さない
+		if img.is_compressed():
+			img.decompress()
+		img.flip_y()
+		_plank_back = ImageTexture.create_from_image(img)
+	return _plank_back
+
+static func _plank_box(bright: float, flipped := false) -> StyleBox:
+	var tint := Color(bright, bright, bright, 1.0)
+	if flipped:
+		tint = Color(bright * 0.88, bright * 0.92, bright * 0.96, 1.0)  # 陰の裏面＝暖色を少し抜く
+	var tex := _plank_texture(flipped)
 	if tex != null:
 		var sb := StyleBoxTexture.new()
 		sb.texture = tex
@@ -400,14 +430,14 @@ static func _plank_box(bright: float) -> StyleBox:
 		# ベベルはまっすぐ・低コントラストの木目なので、辺も中央も素直に引き伸ばす
 		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-		sb.modulate_color = Color(bright, bright, bright, 1.0)
+		sb.modulate_color = tint
 		sb.set_content_margin(SIDE_LEFT, 16)
 		sb.set_content_margin(SIDE_RIGHT, 16)
 		sb.set_content_margin(SIDE_TOP, 6)
 		sb.set_content_margin(SIDE_BOTTOM, 6)
 		return sb
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.24, 0.16, 0.10) * Color(bright, bright, bright, 1.0)
+	sb.bg_color = Color(0.24, 0.16, 0.10) * tint
 	sb.set_border_width_all(2)
 	sb.border_color = Color(0.13, 0.08, 0.05)
 	sb.set_corner_radius_all(4)

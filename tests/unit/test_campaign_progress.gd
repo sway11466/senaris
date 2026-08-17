@@ -114,8 +114,14 @@ func test_next_playable_stage_unknown_campaign_is_empty() -> void:
 
 func test_unlock_text_joins_entitlement_condition() -> void:
 	var p := _progress()
+	p.record_clear("camp", "st1")  # st2 を解放＝前提の名前を出してよい状態にする
 	assert_eq(p.unlock_text("camp", "st3"), "「二」クリアで解放・追加コンテンツ",
 		"entitlement は「追加コンテンツ」、複数条件は「・」で連結")
+
+func test_unlock_text_hides_locked_prerequisite_name() -> void:
+	var p := _progress()
+	assert_eq(p.unlock_text("camp", "st3"), "2番めの依頼をクリアで解放・追加コンテンツ",
+		"前提(st2)自身が locked なら名前を伏せて番号で指す")
 
 func test_unlock_text_unknown_stage_is_empty() -> void:
 	var p := _progress()

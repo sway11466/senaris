@@ -68,7 +68,8 @@ func stage_state(campaign_id: String, stage_id: String) -> String:
 			return LOCKED
 	return UNLOCKED
 
-## locked カードに出す解放条件の説明文（例「「高所の敵陣」クリアで解放」）。
+## locked ステージを押したときに依頼書へ出す解放条件（例「「高所の敵陣」クリアで解放」）。
+## 前提ステージ自身が locked なら名前を出さず番号で指す＝一覧で伏せている名前を条件文が漏らさない。
 func unlock_text(campaign_id: String, stage_id: String) -> String:
 	var c := campaign(campaign_id)
 	var stage := _find_stage(c, stage_id)
@@ -80,9 +81,17 @@ func unlock_text(campaign_id: String, stage_id: String) -> String:
 			continue
 		match String(cond.get("type", "")):
 			"cleared":
-				var ref := _find_stage(c, String(cond.get("stage", "")))
+				var ref_id := String(cond.get("stage", ""))
+				if stage_state(campaign_id, ref_id) == LOCKED:
+					var n := _stage_number(c, ref_id)
+					if n > 0:
+						parts.append("%d番めの依頼をクリアで解放" % n)
+					else:
+						parts.append("別の依頼をクリアで解放")
+					continue
+				var ref := _find_stage(c, ref_id)
 				# title は翻訳キー（i18n）。TranslationServer で解決（生テキストは素通し）
-				var title := String(TranslationServer.translate(ref.get("title", String(cond.get("stage", "")))))
+				var title := String(TranslationServer.translate(ref.get("title", ref_id)))
 				parts.append("「%s」クリアで解放" % title)
 			"entitlement":
 				parts.append("追加コンテンツ")
@@ -122,6 +131,15 @@ func next_playable_stage(campaign_id: String, stage_id: String) -> Dictionary:
 	if nxt.is_empty() or stage_state(campaign_id, String(nxt["id"])) == LOCKED:
 		return {}
 	return nxt
+
+## ステージ一覧での通し番号（1始まり・見つからなければ 0）。ステージ名を伏せたまま指すのに使う。
+func _stage_number(c: Dictionary, stage_id: String) -> int:
+	if c.is_empty():
+		return 0
+	for i in c["stages"].size():
+		if c["stages"][i]["id"] == stage_id:
+			return i + 1
+	return 0
 
 func _find_stage(c: Dictionary, stage_id: String) -> Dictionary:
 	if c.is_empty():

@@ -67,10 +67,11 @@
 - リストは壁に直接置かず、**縦長の背板**（`list_board` スロット・[../art/menu.md](../art/menu.md)）の上に並べる。板は左の扉絵パネルと同じ高さに伸ばす＝左右が釣り合い、行の下に残る壁の空きも埋まる。四隅の鉄具が「壁に掛かった板」に見せる。
 - **全クリア後は扉絵を勝利絵（`{id}_victory.png`）に差し替える**＝踏破した後の姿を見せる。条件は冒険譚カードの「DONE」焼き印と同じ（`CampaignProgress.is_all_cleared`）。勝利絵を持たない冒険譚は cover のまま。**カード側の絵は変えない**＝一覧で同じ冒険譚だと分かるようにする。
 - リスト行の中身: **ステージ番号・ステージ名・状態**。並び順はマニフェストの記述順（＝物語順）。
+- 未解放のステージは名前を伏せる＝板を裏返して掛けてある見立て。板の絵を上下反転して当て（光の向きが逆になる＝裏側）、少し傾けて並べる。先の話の題名がネタバレにならず、一覧から条件の文字も消える。解放条件は押したときに依頼書で出す（[依頼書](#画面の配線)）。条件に出す前提ステージ名も、その前提自身が未解放なら番号で指す＝伏せた名前を条件文が漏らさない。
 
 | 状態 | 表示 |
 |---|---|
-| **未解放（locked）** | グレーアウト＋鍵アイコン。解放条件をテキストで示す（例「st2 クリアで解放」）。選択不可 |
+| **未解放（locked）** | 裏返して掛けた札。番号だけ残しステージ名は出さない。押すと解放条件を依頼書で出す（出撃はできない） |
 | **未クリア（unlocked）** | 通常表示。ここが「次にやるステージ」 |
 | **クリア済み（cleared）** | クリアバッジ（✓）。**常に選択可**＝再挑戦できる |
 
@@ -218,7 +219,7 @@ domain（戦闘ロジック）には手を入れない。
 - **配線**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../presentation/victory/victory_screen.gd)・最終ステージ勝利で outro 会話に重ねて盤エリアに表示、outro が無ければ全画面）。
 - **難易度帯ボード**: tier カルーセル（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）あり・カード用クロップ（card）は未配置で cover にフォールバック中。
-- **依頼書**: 羊皮紙のダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）＝ステージ名と「出撃する（右下）／別のステージを選ぶ（左下）」。出撃確認のワンクッションに徹する。左右の並びと文言の付け方は [uiux.md](uiux.md) ボタンの左右に従う。
+- **依頼書**: 羊皮紙のダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）＝ステージ名と「出撃する（右下）／別のステージを選ぶ（左下）」。出撃確認のワンクッションに徹する。左右の並びと文言の付け方は [uiux.md](uiux.md) ボタンの左右に従う。未解放の札を押したときは同じ紙を「まだ受けられない依頼」＋解放条件＋「閉じる」で出す（ステージ名は伏せたまま・出撃ボタンは出さない）。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
 
 ## 関連ドキュメント

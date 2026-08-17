@@ -4,12 +4,18 @@ class_name QuestSheet
 ## ボードから紙を1枚受け取る見立て＝羊皮紙シート＋出撃する/別のステージを選ぶ。
 ## 標準 ConfirmationDialog の置き換え。勝利条件・推奨戦力といった事前情報は載せない
 ## ＝出撃確認のワンクッションに徹する（説明は盤と開始の会話が担う）。
+## 未解放のステージを押したときは同じ紙で解放条件を出す（open_locked）＝一覧から条件の文字を追い出す。
 
 signal confirmed
 
 const SHEET_SIZE := Vector2(560, 400)  # parchment_sheet.png と同寸（中央タイルが1:1）
 
+const LOCKED_TITLE := "まだ受けられない依頼"
+
 var _title: Label
+var _body: Label
+var _back: Button
+var _sortie: Button
 
 func _ready() -> void:
 	# set_anchors_preset はツリー内で呼ぶと現在の矩形（サイズ0）を保つようオフセットを
@@ -57,12 +63,12 @@ func _ready() -> void:
 	rule.custom_minimum_size = Vector2(0.0, 2.0)
 	content.add_child(rule)
 
-	var question := Label.new()
-	question.text = "出撃しますか？"
-	question.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	question.add_theme_font_size_override("font_size", 18)
-	question.add_theme_color_override("font_color", TavernTheme.INK)
-	content.add_child(question)
+	_body = Label.new()
+	_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_body.add_theme_font_size_override("font_size", 18)
+	_body.add_theme_color_override("font_color", TavernTheme.INK)
+	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(_body)
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -73,20 +79,32 @@ func _ready() -> void:
 	buttons.add_theme_constant_override("separation", 24)
 	content.add_child(buttons)
 
-	var back := TavernTheme.ink_button("別のステージを選ぶ")
-	back.pressed.connect(_cancel)
-	buttons.add_child(back)
+	_back = TavernTheme.ink_button("別のステージを選ぶ")
+	_back.pressed.connect(_cancel)
+	buttons.add_child(_back)
 
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(gap)
 
-	var sortie := TavernTheme.wax_button("出撃する")
-	sortie.pressed.connect(_on_sortie_pressed)
-	buttons.add_child(sortie)
+	_sortie = TavernTheme.wax_button("出撃する")
+	_sortie.pressed.connect(_on_sortie_pressed)
+	buttons.add_child(_sortie)
 
 func open(stage_title: String) -> void:
 	_title.text = stage_title
+	_body.text = "出撃しますか？"
+	_back.text = "別のステージを選ぶ"
+	_sortie.visible = true
+	visible = true
+
+## 未解放のステージを押したときの紙＝解放条件だけを書いて出す。ステージ名は伏せたまま
+## （一覧では札を裏返している）＝紙が名前を漏らさない。出撃は無いので閉じるだけ。
+func open_locked(unlock_text: String) -> void:
+	_title.text = LOCKED_TITLE
+	_body.text = unlock_text
+	_back.text = "閉じる"
+	_sortie.visible = false
 	visible = true
 
 func close() -> void:

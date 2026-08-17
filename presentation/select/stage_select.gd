@@ -10,6 +10,7 @@ signal stage_chosen(campaign_id: String, stage_id: String, path: String)
 signal back_requested
 
 const ROW_HEIGHT := 48.0
+const LOCKED_TILTS := [-2.0, 1.4, -1.6, 2.2]  # 裏返した札の傾き（度）
 
 ## 連戦の綴じ紐。ステージ行の左に、隊ごとの縦線を1本ずつ通す。仕様 → doc/gdd/stage_select.md 連戦の区間
 ## その隊が出る話は実線、初出から最後の登場までのあいだで出ない話は薄い線＝待機していて後で戻る。
@@ -221,7 +222,8 @@ func _set_cover(cover_path: String, title: String) -> void:
 	_art_texture.visible = tex != null
 	_art_label.text = "" if tex != null else title
 
-func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
+## ステージ1行。未解放は裏返した札（名前を出さず傾けた板）で返すので、戻りは Control。
+func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Control:
 	var label := "%d. %s" % [number, tr(String(s["title"]))]  # stage.title は翻訳キー（i18n）
 	var stage_state := _progress.stage_state(campaign_id, String(s["id"]))
 	var locked := stage_state == CampaignProgress.LOCKED
@@ -230,7 +232,7 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 		CampaignProgress.CLEARED:
 			text = "✓ %s" % label
 		CampaignProgress.LOCKED:
-			text = "🔒 %s — %s" % [label, _progress.unlock_text(campaign_id, String(s["id"]))]
+			text = "%d." % number  # 名前は伏せる＝裏返した札。解放条件は押すと依頼書で出す
 	# 依頼ボードに下がる木札（focus_mode は wood_button 側で NONE 済み）。
 	var row := TavernTheme.wood_button(text)
 	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
@@ -238,12 +240,27 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Button:
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	if locked:
-		# 押せるままにして押されたら音だけ返す（disabled にしない理由は dim_wood_button）。
-		TavernTheme.dim_wood_button(row)
-		row.pressed.connect(func() -> void: SfxPlayer.play_event("menu_locked"))
-	else:
-		row.pressed.connect(_open_briefing.bind(campaign_id, s))
+		# 押せるままにして押されたら音＋依頼書を返す（disabled にしない理由は dim_wood_button）。
+		TavernTheme.flip_wood_button(row)
+		row.pressed.connect(_open_locked.bind(campaign_id, String(s["id"])))
+		return _tilted(row, number)
+	row.pressed.connect(_open_briefing.bind(campaign_id, s))
 	return row
+
+## 裏返した札を少し傾ける＝掛け直されていない札に見せる。角度は番号で巡回＝並びが機械的にならない。
+## Container は並べ直すたびに子の rotation を 0 に戻すので、素の Control で1枚くるんでその中で回す
+## （VBox が触るのは外側だけ）。回転の軸は札の中心＝寸法が変わるたびに取り直す。
+func _tilted(row: Button, number: int) -> Control:
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
+	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.rotation = deg_to_rad(float(LOCKED_TILTS[number % LOCKED_TILTS.size()]))
+	row.pivot_offset = row.size * 0.5
+	row.resized.connect(func() -> void: row.pivot_offset = row.size * 0.5)
+	holder.add_child(row)
+	return holder
 
 # --- ブリーフィング → 出撃 ---
 
@@ -255,6 +272,11 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 		"path": String(s["path"]),
 	}
 	_briefing.open(tr(String(s["title"])))
+
+## 未解放の札を押したとき＝拒否音＋解放条件だけを書いた紙を出す（ステージ名は出さない）。
+func _open_locked(campaign_id: String, stage_id: String) -> void:
+	SfxPlayer.play_event("menu_locked")
+	_briefing.open_locked(_progress.unlock_text(campaign_id, stage_id))
 
 func _on_sortie() -> void:
 	if _pending.is_empty():
