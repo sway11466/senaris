@@ -25,10 +25,10 @@
 - 正本 `data/movement/movement.csv`（行=移動タイプ、列=地形コスト、2行ヘッダ）→ 生成 `data/movement/movement.json`（[[csv-data-pipeline]] と同じ仕組み）。
 - 地形名は `Terrain.NAMES`（`plain`/`plateau`…）と一致させる。
 - 現状の移動タイプ（全コストは `movement.csv` が正本）:
-  - **ground**（地上・基準）／**flight**（飛行・地形をほぼ無視）／**light_foot**（軽歩行・斥候＝山や城壁も越える）
-  - **forest_walk**（森を低コスト＝エルフ）／**bush_walk**（茂みを低コスト＝ハーフリング）／**mountain_walk**（山を低コスト＝ドワーフ）／**fixed**（移動0＝バリスタ/バリケード）
+  - **ground**（地上・基準）／**flight**（飛行・地形をほぼ無視）／**light_foot**（軽歩行・斥候＝岩地や城壁も越える）
+  - **forest_walk**（森を低コスト＝エルフ）／**bush_walk**（茂みを低コスト＝ハーフリング）／**mountain_walk**（岩地を低コスト＝ドワーフ）／**fixed**（移動0＝バリスタ/バリケード）
 
-- 地形は **データ駆動**（[combat.md](combat.md) 地形効果／`data/terrain/terrain.csv`）。地形を増やす＝terrain.csv に1行＋この movement.csv に1列。山・水辺なども同様。
+- 地形は **データ駆動**（[combat.md](combat.md) 地形効果／`data/terrain/terrain.csv`）。地形を増やす＝terrain.csv に1行＋この movement.csv に1列。岩地・水辺なども同様。
 
 ---
 

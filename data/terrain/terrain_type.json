@@ -5,7 +5,9 @@
 			"char": "L",
 			"def": 0.8,
 			"id": "road",
+			"layer": "footing",
 			"memo": "見通しが良く防御が低い",
+			"name": "道",
 			"sight_cost": 1
 		},
 		{
@@ -13,15 +15,9 @@
 			"char": ".",
 			"def": 1.0,
 			"id": "plain",
+			"layer": "footing",
 			"memo": "特徴なし",
-			"sight_cost": 1
-		},
-		{
-			"atk": 1.15,
-			"char": "P",
-			"def": 1.15,
-			"id": "plateau",
-			"memo": "攻防ともに少しアップ",
+			"name": "平地",
 			"sight_cost": 1
 		},
 		{
@@ -29,47 +25,9 @@
 			"char": "%",
 			"def": 1.0,
 			"id": "wasteland",
+			"layer": "footing",
 			"memo": "移動コストやや高め",
-			"sight_cost": 1
-		},
-		{
-			"atk": 1.0,
-			"char": "F",
-			"def": 1.2,
-			"id": "forest",
-			"memo": "防御有利、移動コストやや高め、専用通過ユニット有",
-			"sight_cost": 2
-		},
-		{
-			"atk": 1.2,
-			"char": "*",
-			"def": 1.0,
-			"id": "bush",
-			"memo": "攻撃有利、移動コストやや高め、専用通過ユニット有",
-			"sight_cost": 2
-		},
-		{
-			"atk": 0.6,
-			"char": "M",
-			"def": 0.6,
-			"id": "mountain",
-			"memo": "攻防不利、移動コスト高め、専用通過ユニット有",
-			"sight_cost": 3
-		},
-		{
-			"atk": 1.0,
-			"char": "+",
-			"def": 1.5,
-			"id": "fence",
-			"memo": "防御特化、移動コスト高め",
-			"sight_cost": 2
-		},
-		{
-			"atk": 1.5,
-			"char": "T",
-			"def": 1.0,
-			"id": "trap",
-			"memo": "攻撃特化、移動コスト高め",
+			"name": "荒地",
 			"sight_cost": 1
 		},
 		{
@@ -77,23 +35,19 @@
 			"char": "W",
 			"def": 1.0,
 			"id": "rampart",
+			"layer": "footing",
 			"memo": "飛行ユニットと斥候が移動可能",
-			"sight_cost": 3
-		},
-		{
-			"atk": 1.0,
-			"char": "C",
-			"def": 1.0,
-			"id": "cliff",
-			"memo": "飛行ユニットのみ移動可能",
-			"sight_cost": 3
+			"name": "城壁",
+			"sight_cost": "x"
 		},
 		{
 			"atk": 1.0,
 			"char": "R",
 			"def": 1.0,
 			"id": "river",
-			"memo": "飛行ユニットのみ移動可能、見通しは良い",
+			"layer": "footing",
+			"memo": "飛行ユニットのみ移動可能",
+			"name": "川",
 			"sight_cost": 1
 		},
 		{
@@ -101,16 +55,120 @@
 			"char": "#",
 			"def": 1.0,
 			"id": "wall",
+			"layer": "footing",
 			"memo": "全ユニット移動不可",
+			"name": "壁",
 			"sight_cost": "x"
 		},
 		{
+			"atk": 1.1,
+			"char": "P",
+			"def": 1.1,
+			"id": "plateau",
+			"layer": "footing",
+			"memo": "攻防ともに少しアップ",
+			"name": "台地",
+			"sight_cost": 1
+		},
+		{
 			"atk": 1.0,
+			"char": "F",
+			"def": 1.2,
+			"id": "forest",
+			"layer": "footing",
+			"memo": "防御有利、移動コストやや高め、専用通過ユニット有",
+			"name": "森",
+			"sight_cost": 2
+		},
+		{
+			"atk": 1.2,
+			"char": "*",
+			"def": 1.0,
+			"id": "bush",
+			"layer": "footing",
+			"memo": "攻撃有利、移動コストやや高め、専用通過ユニット有",
+			"name": "茂み",
+			"sight_cost": 2
+		},
+		{
+			"atk": 0.6,
+			"char": "M",
+			"def": 0.6,
+			"id": "bedrock",
+			"layer": "footing",
+			"memo": "攻防不利、移動コスト高め、専用通過ユニット有",
+			"name": "岩地",
+			"sight_cost": 2
+		},
+		{
+			"atk": 1.0,
+			"char": "+",
+			"def": 1.5,
+			"id": "fence",
+			"layer": "object",
+			"memo": "防御特化、移動コスト高め",
+			"name": "柵",
+			"sight_cost": 1
+		},
+		{
+			"atk": 1.5,
+			"char": "T",
+			"def": 1.0,
+			"id": "trap",
+			"layer": "object",
+			"memo": "攻撃特化、移動コスト高め",
+			"name": "罠",
+			"sight_cost": 1
+		},
+		{
+			"atk": 0.8,
+			"char": "U",
+			"def": 0.8,
+			"id": "prop",
+			"layer": "object",
+			"memo": "攻防不利、移動コストやや高め",
+			"name": "置物",
+			"sight_cost": 2
+		},
+		{
+			"atk": 0.6,
+			"char": "G",
+			"def": 0.6,
+			"id": "rubble1",
+			"layer": "object",
+			"memo": "飛行ユニットと斥候が移動可能",
+			"name": "瓦礫",
+			"sight_cost": 3
+		},
+		{
+			"atk": 1.0,
+			"char": "C",
+			"def": 1.0,
+			"id": "rock",
+			"layer": "object",
+			"memo": "飛行ユニットのみ移動可能",
+			"name": "大岩",
+			"sight_cost": "x"
+		},
+		{
+			"atk": 1.2,
+			"char": "B",
+			"def": 0.8,
+			"id": "building",
+			"layer": "object",
+			"memo": "攻撃有利、防御不利",
+			"name": "建物",
+			"sight_cost": 3
+		},
+		{
+			"atk": 0.8,
 			"char": "O",
 			"def": 1.2,
 			"id": "fort",
-			"memo": "拠点想定で少し硬い",
-			"sight_cost": 1
+			"layer": "object",
+			"memo": "防御有利、攻撃不利",
+			"name": "砦",
+			"sight_cost": 3
 		}
 	]
 }

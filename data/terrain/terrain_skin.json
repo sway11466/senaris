@@ -91,10 +91,10 @@
 			"map_overlay": "",
 			"memo": "街の一区画。棟割りが縦。地面は焼き込まず道を下地に敷く",
 			"name": "街区",
-			"orientable": "flip_xy",
-			"skin_id": "plateau_town_v",
+			"orientable": "none",
+			"skin_id": "road_building_town1_v",
 			"sprite_sink": 0,
-			"terrain_type": "plateau"
+			"terrain_type": "building"
 		},
 		{
 			"combat_ground": "road",
@@ -107,10 +107,10 @@
 			"map_overlay": "",
 			"memo": "同じ元絵を60°回した向き＝右上から左下",
 			"name": "街区",
-			"orientable": "flip_xy",
-			"skin_id": "plateau_town_r",
+			"orientable": "none",
+			"skin_id": "road_building_town1_r",
 			"sprite_sink": 0,
-			"terrain_type": "plateau"
+			"terrain_type": "building"
 		},
 		{
 			"combat_ground": "road",
@@ -123,10 +123,10 @@
 			"map_overlay": "",
 			"memo": "同じ元絵を120°回した向き＝左上から右下",
 			"name": "街区",
-			"orientable": "flip_xy",
-			"skin_id": "plateau_town_l",
+			"orientable": "none",
+			"skin_id": "road_building_town1_l",
 			"sprite_sink": 0,
-			"terrain_type": "plateau"
+			"terrain_type": "building"
 		},
 		{
 			"combat_ground": "",
@@ -151,14 +151,14 @@
 			"connect_to": "",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "wasteland",
 			"map_overlay": "",
 			"memo": "墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（fort_crypt1 と対）。墓標を立てて描くので回さない＝左右反転だけで散らす",
 			"name": "墓標の荒れ地",
-			"orientable": "flip",
-			"skin_id": "wasteland_tomb1",
+			"orientable": "none",
+			"skin_id": "wasteland_prop_tomb1",
 			"sprite_sink": 0,
-			"terrain_type": "wasteland"
+			"terrain_type": "prop"
 		},
 		{
 			"combat_ground": "",
@@ -203,10 +203,10 @@
 			"map_overlay": "",
 			"memo": "街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦",
 			"name": "菜園",
-			"orientable": "flip_xy",
-			"skin_id": "bush_garden_v",
+			"orientable": "none",
+			"skin_id": "road_prop_garden1_v",
 			"sprite_sink": 0,
-			"terrain_type": "bush"
+			"terrain_type": "prop"
 		},
 		{
 			"combat_ground": "road",
@@ -219,10 +219,10 @@
 			"map_overlay": "",
 			"memo": "同じ元絵を回した向き＝右上から左下",
 			"name": "菜園",
-			"orientable": "flip_xy",
-			"skin_id": "bush_garden_r",
+			"orientable": "none",
+			"skin_id": "road_prop_garden1_r",
 			"sprite_sink": 0,
-			"terrain_type": "bush"
+			"terrain_type": "prop"
 		},
 		{
 			"combat_ground": "road",
@@ -235,10 +235,10 @@
 			"map_overlay": "",
 			"memo": "同じ元絵を回した向き＝左上から右下",
 			"name": "菜園",
-			"orientable": "flip_xy",
-			"skin_id": "bush_garden_l",
+			"orientable": "none",
+			"skin_id": "road_prop_garden1_l",
 			"sprite_sink": 0,
-			"terrain_type": "bush"
+			"terrain_type": "prop"
 		},
 		{
 			"combat_ground": "",
@@ -250,11 +250,11 @@
 			"map_ground": "",
 			"map_overlay": "",
 			"memo": "既定スキン。上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。崖より低く、明るい岩",
-			"name": "山",
+			"name": "岩地",
 			"orientable": "full",
-			"skin_id": "mountain",
+			"skin_id": "bedrock",
 			"sprite_sink": 0,
-			"terrain_type": "mountain"
+			"terrain_type": "bedrock"
 		},
 		{
 			"combat_ground": "plain",
@@ -268,7 +268,7 @@
 			"memo": "既定スキン。隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く",
 			"name": "柵",
 			"orientable": "none",
-			"skin_id": "fence",
+			"skin_id": "plain_fence",
 			"sprite_sink": 0,
 			"terrain_type": "fence"
 		},
@@ -280,11 +280,11 @@
 			"elevation": 0,
 			"grid": true,
 			"map_ground": "plain_grave1",
-			"map_overlay": "fence",
+			"map_overlay": "plain_fence",
 			"memo": "柵の絵（map_overlay）を借り、墓地の草地の上に立てる",
 			"name": "墓地の柵",
 			"orientable": "none",
-			"skin_id": "fence_grave1",
+			"skin_id": "plain_grave1_fence",
 			"sprite_sink": 0,
 			"terrain_type": "fence"
 		},
@@ -295,12 +295,12 @@
 			"connect_to": "",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain",
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "罠",
 			"orientable": "none",
-			"skin_id": "trap",
+			"skin_id": "plain_trap",
 			"sprite_sink": 0,
 			"terrain_type": "trap"
 		},
@@ -325,48 +325,48 @@
 			"combat_layout": "line",
 			"connect": false,
 			"connect_to": "",
-			"elevation": 0.36,
+			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain_grave1",
 			"map_overlay": "",
 			"memo": "崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない",
 			"name": "瓦礫の山",
-			"orientable": "full",
-			"skin_id": "rampart_rubble1",
+			"orientable": "none",
+			"skin_id": "plain_grave1_rubble1",
 			"sprite_sink": 0,
-			"terrain_type": "rampart"
+			"terrain_type": "rubble1"
 		},
 		{
 			"combat_ground": "",
 			"combat_layout": "",
 			"connect": false,
 			"connect_to": "",
-			"elevation": 0.54,
+			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain",
 			"map_overlay": "",
-			"memo": "既定スキン。上面は上向きに砕けた岩＝足場が無い・城壁と同じ高さまで上げる。山と同じ岩の暖色だが一段暗い",
-			"name": "崖",
-			"orientable": "full",
-			"skin_id": "cliff",
+			"memo": "既定スキン。上面は上向きに砕けた岩＝足場が無い。岩地と同じ岩の暖色だが一段暗い",
+			"name": "大岩",
+			"orientable": "none",
+			"skin_id": "plain_rock",
 			"sprite_sink": 0,
-			"terrain_type": "cliff"
+			"terrain_type": "rock"
 		},
 		{
 			"combat_ground": "",
 			"combat_layout": "",
 			"connect": false,
 			"connect_to": "",
-			"elevation": 0.54,
+			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain",
 			"map_overlay": "",
-			"memo": "寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の崖・山）とは別の岩質",
-			"name": "花崗岩の崖",
-			"orientable": "full",
-			"skin_id": "cliff_granite1",
+			"memo": "寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の大岩・岩地）とは別の岩質",
+			"name": "花崗岩の大岩",
+			"orientable": "none",
+			"skin_id": "plain_rock_granite1",
 			"sprite_sink": 0,
-			"terrain_type": "cliff"
+			"terrain_type": "rock"
 		},
 		{
 			"combat_ground": "plain",
@@ -455,12 +455,12 @@
 			"connect_to": "",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain",
 			"map_overlay": "",
 			"memo": "既定スキン",
 			"name": "拠点",
 			"orientable": "none",
-			"skin_id": "fort",
+			"skin_id": "plain_fort",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
@@ -471,12 +471,12 @@
 			"connect_to": "",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "road",
 			"map_overlay": "",
 			"memo": "石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "町",
 			"orientable": "none",
-			"skin_id": "fort_town1",
+			"skin_id": "road_fort_town1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
@@ -491,8 +491,8 @@
 			"map_overlay": "",
 			"memo": "門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "詰所",
-			"orientable": "flip",
-			"skin_id": "fort_guardhouse1",
+			"orientable": "none",
+			"skin_id": "road_fort_guardhouse1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
@@ -503,12 +503,12 @@
 			"connect_to": "",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain_grave1",
 			"map_overlay": "",
 			"memo": "墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "納骨堂",
 			"orientable": "none",
-			"skin_id": "fort_crypt1",
+			"skin_id": "plain_grave1_fort_crypt1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
@@ -519,12 +519,12 @@
 			"connect_to": "",
 			"elevation": 0,
 			"grid": true,
-			"map_ground": "",
+			"map_ground": "plain_grave1",
 			"map_overlay": "",
 			"memo": "墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "礼拝堂",
 			"orientable": "none",
-			"skin_id": "fort_chapel1",
+			"skin_id": "plain_grave1_fort_chapel1",
 			"sprite_sink": 0,
 			"terrain_type": "fort"
 		}

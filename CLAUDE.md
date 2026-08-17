@@ -36,6 +36,7 @@
 - [doc/gdd/skills.md](doc/gdd/skills.md) — ユニットスキル（発動者1体で撃つ。仕組みは陣形スキルと共通）
 - [doc/gdd/units.md](doc/gdd/units.md) — ユニット性能設計・対応表
 - [doc/gdd/movement.md](doc/gdd/movement.md) — 移動タイプ・地形コスト・reachable
+- [doc/gdd/terrain.md](doc/gdd/terrain.md) — 地形（タイプとスキン・足場とオブジェクト・盤の高さ）
 - [doc/gdd/map.md](doc/gdd/map.md) — 拠点・占領・ステージ・用語・戦力供給モデル
 - [doc/gdd/map_patterns.md](doc/gdd/map_patterns.md) — マップの型（パターンカタログ）・難易度の表し方・ステージ一覧
 - [doc/gdd/title.md](doc/gdd/title.md) — タイトル画面（入店の動画・店内のメニュー・項目と行き先）

@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=57 / refactoring=11
+次回採番: bug=3 / feature=58 / refactoring=11
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -333,6 +333,20 @@
 - 背景：元のウィザードの絵は顔が若く、見習いのメイジに流用した（`assets/units/mage/`）。ベテラン5の一員としてのウィザードは、年季の入った術者として描き直す必要がある。いまウィザードは絵が無く、盤でも戦闘でも陣営色の板で出る（冒険譚2 全7話・冒険譚3 全7話・デバッグステージ4本・会話の顔＝portrait 未用意で map を流用）。あわせて冒険譚2のキービジュアル2枚（cover・victory）は、プロンプトで術者を「a YOUNG mage（NOT an old man）」と名指して描いてあるため、ウィザードを大人にすると絵の中の術者だけ旧デザインで残る。
 - 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
 - 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
+
+### feature-57
+
+**地形モデルの刷新（足場とオブジェクト・盤の基準高さ）**（優先度：高）
+
+- 背景：地形が地形の成り立ち（山・崖）で名前を持っていて、真上から見下ろす盤ではそれを絵で伝えられない。崖は既定ズームで側面の壁が約6pxしか出ず、灰色の砂利の帯に見える（tutorial3 st3 で実測）。地面の絵が正直に伝えられるのは足場の状態で、高さや成り立ちではない。新しい考え方は [gdd/terrain.md](gdd/terrain.md) に仕様として書いた。実装はまだ追いついていない。
+- 対応：
+  1. `terrain_type.csv` に `kind` 列（`footing` / `object`）を足し、`convert.gd` の検証に値の集合を加える。どのタイプがどちらかの割り振りはオーナーが入れる。
+  2. オブジェクトの描画。足場タイルを敷いたうえに、駒と同じビルボード板を1枚立てる。同じマスに駒が入るときは駒を手前・オブジェクトを奥に置く。今の盤は寝たタイルとスカートしか描けない。
+  3. 足場の側面画像。側面を持つのは岩地・崖・城壁・瓦礫の山・壁の5枚だけで、足場スキン13枚に対して11枚足りない。基準高さを入れると段差は盤のいたるところに出るので、側面は必須になる。
+  4. 盤の基準高さ。ステージJSONの `height.row` / `height.col` を読み、`elev(hex)`（[board_terrain_renderer.gd:81](../presentation/board/board_terrain_renderer.gd)）に和として足す。タイル・スカート・駒・当たり判定はすべてこの関数を見ているので、下流は追随する。
+  5. 当たり判定の作り替え。今は盤にある高さの種類を1つずつ水平面として試す（[hex_board_3d.gd:349](../presentation/board/hex_board_3d.gd)）。行と列の基準を入れると種類が行数×列数まで増えるので、この総当たりは持たない。
+  6. `convert.gd` の `elevation` 検証は0以上を要求している。崖を沈めて穴にする案を採るなら緩める（-0.54 で撮った検証＝`tests/manual/shot_cliff.gd`）。
+- 該当：`data/terrain/terrain_type.csv`・`data/terrain/terrain_skin.csv`・`data/terrain/convert.gd`・`presentation/board/board_terrain_renderer.gd`・`presentation/board/hex_board_3d.gd`・`presentation/board/board_unit_renderer.gd`・`assets/terrain/`・`doc/gdd/terrain.md`・`doc/art/terrain.md`。着手の引き金＝`kind` の割り振りが決まったとき。
 
 ## リファクタリング
 
