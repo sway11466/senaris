@@ -150,7 +150,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 - **攻撃・防御の両方に地形係数を持たせる**（攻防別の2係数）。罠地形＝攻撃強化、穴ぐら＝防御強化…のように地形の性格づけで戦略を広げる狙い。
 - 各地形が `地形(攻)` と `地形(防)` を持つ。**ユニットが立っているヘックスの地形**が効く（攻撃側は自分の足元の地形(攻)、防御側は自分の足元の地形(防)）。
 
-**地形はデータ駆動**。正本 `data/terrain/terrain_type.csv` → `terrain_type.json`、`Terrain` カタログ（`data/terrain/terrain.gd`）が係数・ASCII文字を提供。地形の考え方（足場とオブジェクト・スキン）は [terrain.md](terrain.md)。**地形を増やす＝terrain.csv に1行＋movement.csv に1列**（コード不変）。タイル画像は placeholder を `tools/gen_terrain_tiles.gd` で用意（色は生成時に1回決める＝データには持たない。アート確定後は同名PNGを差し替え）。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
+**地形はデータ駆動**。正本 `data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形の考え方（足場とオブジェクト・スキン）は [terrain.md](terrain.md)。**地形を増やす＝terrain_type.csv に1行＋terrain_skin.csv に1行＋movement.csv に1列**（コード不変）。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
 
 **地形の性格**（種類は `terrain_type.csv` が正本）。代表例:
 

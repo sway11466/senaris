@@ -113,26 +113,26 @@ func test_unload_respects_move_type_and_occupancy() -> void:
 	var ground := Unit.new(2, 0, Vector2i.ZERO, 3)
 	ground.move_type = "ground"
 	s.put_passenger(1, ground)
-	var cliff := Hex.offset_to_axial(3, 2)
-	s.set_terrain(cliff, "cliff")  # 地上は進入不可
+	var rock := Hex.offset_to_axial(3, 2)
+	s.set_terrain(rock, "rock")  # 地上は進入不可
 	var blocker := Unit.new(3, 0, Hex.offset_to_axial(3, 4), 3)
 	s.add_unit(blocker)
 	var cells := s.unload_cells(1, 0)
-	assert_false(cells.has(cliff), "地上駒は崖へ降りられない")
+	assert_false(cells.has(rock), "地上駒は大岩へ降りられない")
 	assert_false(cells.has(blocker.pos), "占有マスへは降りられない")
 	assert_false(cells.has(wagon.pos), "輸送自身のマスは降車先でない")
 	assert_true(cells.size() > 0, "他の空きへは降りられる")
 
-func test_flight_passenger_can_unload_onto_cliff() -> void:
+func test_flight_passenger_can_unload_onto_rock() -> void:
 	var s := _state()
 	var airship := _transport(1, 0, Hex.offset_to_axial(3, 3), 6)
 	s.add_unit(airship)
 	var flyer := Unit.new(2, 0, Vector2i.ZERO, 3)
 	flyer.move_type = "flight"
 	s.put_passenger(1, flyer)
-	var cliff := Hex.offset_to_axial(3, 2)
-	s.set_terrain(cliff, "cliff")
-	assert_true(s.unload_cells(1, 0).has(cliff), "飛行駒は崖の上にも降りられる")
+	var rock := Hex.offset_to_axial(3, 2)
+	s.set_terrain(rock, "rock")
+	assert_true(s.unload_cells(1, 0).has(rock), "飛行駒は大岩の上にも降りられる")
 
 func test_unload_places_unit_and_allows_attack() -> void:
 	var s := _state()
@@ -221,7 +221,7 @@ func test_move0_passenger_unloads_to_adjacent() -> void:
 func test_move1_unit_boards_transport_on_costly_terrain() -> void:
 	var s := _state()
 	var wagon_hex := Hex.offset_to_axial(3, 3)
-	s.set_terrain(wagon_hex, "mountain")  # ground の進入コスト3 ＞ 移動1
+	s.set_terrain(wagon_hex, "bedrock")  # ground の進入コスト3 ＞ 移動1
 	s.add_unit(_transport(1, 0, wagon_hex))
 	var rider := Unit.new(2, 0, Hex.offset_to_axial(2, 3), 1)
 	rider.move_type = "ground"
@@ -235,10 +235,10 @@ func test_special_unload_respects_impassable_terrain() -> void:
 	var ground := Unit.new(2, 0, Vector2i.ZERO, 0)  # 移動0の地上駒
 	ground.move_type = "ground"
 	s.put_passenger(1, ground)
-	var cliff := Hex.offset_to_axial(3, 2)
-	s.set_terrain(cliff, "cliff")  # 地上は進入不可
+	var rock := Hex.offset_to_axial(3, 2)
+	s.set_terrain(rock, "rock")  # 地上は進入不可
 	var cells := s.unload_cells(1, 0)
-	assert_false(cells.has(cliff), "進入不可地形へは特例でも降ろせない")
+	assert_false(cells.has(rock), "進入不可地形へは特例でも降ろせない")
 	assert_eq(cells.size(), 5, "残りの隣接5マスへは降ろせる")
 
 func test_special_board_then_unload_same_turn_denied() -> void:

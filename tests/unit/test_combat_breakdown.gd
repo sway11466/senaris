@@ -20,7 +20,7 @@ func test_casualties_delegates_to_hit_detail() -> void:
 func test_attack_breakdown_factors() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
-	s.set_terrain(ap, "plateau")  # 攻×1.15
+	s.set_terrain(ap, "plateau")  # 攻に台地の係数（実数は terrain_type.csv）
 	var a := Unit.new(1, 0, ap, 3, 8, 50, 40)
 	var t := Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 4)
 	s.add_unit(a)
@@ -31,8 +31,9 @@ func test_attack_breakdown_factors() -> void:
 	assert_eq(b["stat"], 50, "地上相手は対地")
 	assert_false(b["vs_aerial"])
 	assert_almost_eq(float(b["level"]), 1.0, 0.001)
-	assert_almost_eq(float(b["terrain"]), 1.15, 0.001)
-	assert_almost_eq(float(b["total"]), 8.0 * 50.0 * 1.15, 0.01, "兵8×対地50×地形1.15＝460")
+	var plateau := TerrainType.attack_factor("plateau")
+	assert_almost_eq(float(b["terrain"]), plateau, 0.001)
+	assert_almost_eq(float(b["total"]), 8.0 * 50.0 * plateau, 0.01, "兵8×対地50×台地の地形係数")
 
 func test_attack_breakdown_uses_atk_air_vs_flyer() -> void:
 	var s := _state()

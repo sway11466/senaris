@@ -270,45 +270,61 @@ func test_ai_empty_label_blocks() -> void:
 
 # --- terrain: build_type ---
 
+func _valid_terrain_type(id: String, ch: String, layer := "footing") -> Dictionary:
+	return { "id": id, "name": "名", "layer": layer, "char": ch, "atk": 0, "def": 0, "sight_cost": 1 }
+
+## build_skin に渡す地形タイプ表（足場2つ）。
+func _terrain_types() -> Array:
+	return [ _valid_terrain_type("plain", "."), _valid_terrain_type("forest", "F") ]
+
 func test_terrain_type_valid_builds_json() -> void:
 	var rows := [
-		{ "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 },
-		{ "id": "forest", "char": "F", "atk": 0, "def": 2, "sight_cost": 2 },
-		{ "id": "wall", "char": "#", "atk": 0, "def": 0, "sight_cost": "x" },  # x＝完全遮蔽も有効
+		_valid_terrain_type("plain", "."),
+		_valid_terrain_type("forest", "F"),
+		_valid_terrain_type("rock", "C", "object"),
 	]
+	rows[2]["sight_cost"] = "x"  # x＝完全遮蔽も有効
 	var r := Terrain.build_type(rows)
 	assert_eq(r["problems"].size(), 0)
 	assert_eq(r["json"]["terrains"], rows)
 
 func test_terrain_type_each_required_column_pins_json_null() -> void:
 	for col in Terrain.TYPE_REQUIRED:
-		var row := { "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 }
+		var row := _valid_terrain_type("plain", ".")
 		row.erase(col)
 		var r := Terrain.build_type([row])
 		assert_null(r["json"], "'%s' 欠落で json=null" % col)
 
 func test_terrain_type_duplicate_char_blocks() -> void:
-	var rows := [
-		{ "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 },
-		{ "id": "road", "char": ".", "atk": 0, "def": 0, "sight_cost": 1 },  # char 衝突
-	]
+	var rows := [ _valid_terrain_type("plain", "."), _valid_terrain_type("road", ".") ]  # char 衝突
 	assert_null(Terrain.build_type(rows)["json"], "char 重複で json=null")
+
+func test_terrain_type_unknown_layer_blocks() -> void:
+	# layer は footing / object だけ。未知の語が黙って足場扱いになると描き方を取り違える。
+	var row := _valid_terrain_type("plain", ".")
+	row["layer"] = "prop"
+	assert_null(Terrain.build_type([row])["json"], "layer が未知の値で json=null")
 
 func test_terrain_type_invalid_sight_cost_blocks() -> void:
 	# sight_cost は 0以上の整数か 'x' だけ許す（負数・小数・他文字列は弾く）。
 	for bad in [-1, 1.5, "y", "opaque"]:
-		var rows := [{ "id": "plain", "char": ".", "atk": 0, "def": 0, "sight_cost": bad }]
-		assert_null(Terrain.build_type(rows)["json"], "sight_cost=%s で json=null" % str(bad))
+		var row := _valid_terrain_type("plain", ".")
+		row["sight_cost"] = bad
+		assert_null(Terrain.build_type([row])["json"], "sight_cost=%s で json=null" % str(bad))
 	# 0 と 'x' は有効
-	assert_eq(Terrain.build_type([{ "id": "a", "char": "a", "atk": 0, "def": 0, "sight_cost": 0 }])["problems"].size(), 0, "0 は有効")
-	assert_eq(Terrain.build_type([{ "id": "b", "char": "b", "atk": 0, "def": 0, "sight_cost": "x" }])["problems"].size(), 0, "'x' は有効")
+	var zero := _valid_terrain_type("a", "a")
+	zero["sight_cost"] = 0
+	assert_eq(Terrain.build_type([zero])["problems"].size(), 0, "0 は有効")
+	var opaque := _valid_terrain_type("b", "b")
+	opaque["sight_cost"] = "x"
+	assert_eq(Terrain.build_type([opaque])["problems"].size(), 0, "'x' は有効")
 
 # --- terrain: TerrainType.sight_cost（実データ）---
 
 func test_terrain_sight_cost_from_real_data() -> void:
 	assert_eq(TerrainType.sight_cost("plain"), 1, "開地=1")
 	assert_eq(TerrainType.sight_cost("forest"), 2, "森=2（減衰）")
-	assert_eq(TerrainType.sight_cost("mountain"), 3, "山=3")
+	assert_eq(TerrainType.sight_cost("bedrock"), 2, "岩地=2")
 	assert_eq(TerrainType.sight_cost("wall"), TerrainType.SIGHT_OPAQUE, "壁=完全遮蔽")
 	assert_eq(TerrainType.sight_cost("nonexistent"), TerrainType.SIGHT_DEFAULT, "未定義=既定1")
 	var table := TerrainType.sight_cost_table()
@@ -320,49 +336,61 @@ func _valid_terrain_skin(sid: String, tid: String) -> Dictionary:
 	return { "skin_id": sid, "terrain_type": tid, "name": "名", "orientable": "none", "elevation": 0, "sprite_sink": 0 }
 
 func test_terrain_skin_valid_builds_json() -> void:
-	var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
-	var r := Terrain.build_skin(rows, ["plain", "forest"])
+	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
+	var r := Terrain.build_skin(rows, _terrain_types())
 	assert_eq(r["problems"].size(), 0)
 	assert_eq(r["json"]["skins"], rows)
 
 func test_terrain_skin_each_required_column_pins_json_null() -> void:
 	for col in Terrain.SKIN_REQUIRED:
-		var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
+		var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
 		rows[0].erase(col)
-		var r := Terrain.build_skin(rows, ["plain", "forest"])
+		var r := Terrain.build_skin(rows, _terrain_types())
 		assert_null(r["json"], "'%s' 欠落で json=null" % col)
 
 func test_terrain_skin_amount_must_be_number() -> void:
 	# 見た目の量が文字列だと float() で 0 に化けて黙って平らになる＝生成前に弾く。
 	for col in ["elevation", "sprite_sink"]:
-		var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
+		var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
 		rows[0][col] = "０.18"  # 全角＝数値に推論されず文字列のまま入る打ち間違い
-		var r := Terrain.build_skin(rows, ["plain", "forest"])
+		var r := Terrain.build_skin(rows, _terrain_types())
 		assert_null(r["json"], "'%s' が数値でなければ json=null" % col)
 
 func test_terrain_skin_negative_amount_blocks() -> void:
-	var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
+	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
 	rows[0]["elevation"] = -0.1
-	assert_null(Terrain.build_skin(rows, ["plain", "forest"])["json"], "負の高さは弾く")
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "負の高さは弾く")
 
-func test_terrain_skin_uncovered_type_blocks() -> void:
-	# forest のスキンが1枚も無い＝描画フォールバック先が無い。
-	var r := Terrain.build_skin([ _valid_terrain_skin("plain_a", "plain") ], ["plain", "forest"])
-	assert_null(r["json"], "type 未カバーで json=null")
+func test_terrain_footing_without_same_name_skin_blocks() -> void:
+	# 足場は型IDと同名のスキンで引く（ステージが指定しないセル）。同名が無いと引けない。
+	var r := Terrain.build_skin([ _valid_terrain_skin("plain", "plain") ], _terrain_types())
+	assert_null(r["json"], "足場 forest に同名スキンが無く json=null")
+
+func test_terrain_object_without_map_ground_blocks() -> void:
+	# オブジェクトは足場の上に置く＝下に敷く足場を書かないと、描く側が既定を決めることになる。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("fence", "+", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_valid_terrain_skin("plain_fence", "fence"),  # map_ground を書いていない
+	]
+	assert_null(Terrain.build_skin(rows, types)["json"], "object で map_ground 空なら json=null")
+	rows[2]["map_ground"] = "plain"
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "足場を書けば通る")
 
 func test_terrain_skin_unknown_orientable_blocks() -> void:
-	var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
+	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
 	rows[0]["orientable"] = "maybe"  # ORIENTS に無い誤記
-	var r := Terrain.build_skin(rows, ["plain", "forest"])
+	var r := Terrain.build_skin(rows, _terrain_types())
 	assert_null(r["json"], "orientable が未知の値で json=null")
 
 func test_terrain_skin_legacy_bool_orientable_blocks() -> void:
 	# 旧データの true/false は「回してよいか」しか言えず、flip（左右反転だけ）と区別できない。
 	# 黙って full に化けると、立てて描いた墓標が回って倒れる＝生成前に弾く。
 	for legacy in [true, false]:
-		var rows := [ _valid_terrain_skin("plain_a", "plain"), _valid_terrain_skin("forest_a", "forest") ]
+		var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
 		rows[0]["orientable"] = legacy
-		var r := Terrain.build_skin(rows, ["plain", "forest"])
+		var r := Terrain.build_skin(rows, _terrain_types())
 		assert_null(r["json"], "orientable が旧 bool(%s) で json=null" % legacy)
 
 # --- movement: build ---

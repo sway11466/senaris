@@ -61,6 +61,17 @@ static func sight_cost_table() -> Dictionary:
 		out[id] = sight_cost(id)
 	return out
 
+## 地形の管理名（terrain_type.csv の name 列。不明idは id をそのまま返す）。
+## 見た目の表示名はスキンが持つ（TerrainSkin.name）。地形タイプしか手元に無い場面はこちらを使う。
+static func display_name(id: String) -> String:
+	_ensure()
+	return String(_defs.get(id, {}).get("name", id))
+
+## 地形の層（footing＝足場 / object＝足場の上に置くもの）。詳細 → doc/gdd/terrain.md
+static func layer(id: String) -> String:
+	_ensure()
+	return String(_defs.get(id, {}).get("layer", "footing"))
+
 ## ステージのASCII文字 → 地形id（未定義文字は既定地形）。
 static func char_to_id(ch: String) -> String:
 	_ensure()

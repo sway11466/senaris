@@ -12,7 +12,9 @@ const Csv = preload("res://data/csv_util.gd")
 const SkinDef = preload("res://data/terrain/terrain_skin.gd")
 
 ## 性能で必ず要る列（memo は任意）。name/image は skin へ分離済み。
-const TYPE_REQUIRED := ["id", "char", "atk", "def", "sight_cost"]
+const TYPE_REQUIRED := ["id", "name", "layer", "char", "atk", "def", "sight_cost"]
+## 地形の層（→ doc/gdd/terrain.md）。足場＝面や線で敷くもの／オブジェクト＝点として置くもの。
+const LAYERS := ["footing", "object"]
 ## スキンで必ず要る列（memo は任意）。
 const SKIN_REQUIRED := ["skin_id", "terrain_type", "name"]
 
@@ -28,7 +30,7 @@ func _initialize() -> void:
 		Csv.write_json("res://data/terrain/terrain_type.json", t["json"])
 		print("terrain_type.json: %d terrains" % type_rows.size())
 
-	var s := build_skin(skin_rows, type_ids)
+	var s := build_skin(skin_rows, type_rows)
 	if s["json"] == null:
 		_report("terrain_skin.csv", s["problems"])
 	else:
@@ -43,6 +45,7 @@ static func build_type(rows: Array) -> Dictionary:
 		problems.append("id が重複: '%s'（後勝ち上書きになる）" % v)
 	for v in Csv.duplicates(rows, "char"):
 		problems.append("char が重複: '%s'（マップ文字→地形の衝突）" % v)
+	problems += Csv.invalid_values(rows, "layer", LAYERS, "id")
 	problems += _invalid_sight_cost(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
@@ -60,8 +63,9 @@ static func _invalid_sight_cost(rows: Array) -> Array:
 	return problems
 
 ## スキン表 → { problems, json }。json は { "skins": rows } 形。純関数。
-## skin_id 一意・terrain_type 参照整合・orientable の bool・各 type に既定スキン（1枚以上）を検証。
-static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
+## skin_id 一意・terrain_type 参照整合・列の値域・オブジェクトの足場指定を検証。
+static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
+	var type_ids := Csv.value_set(type_rows, "id")
 	var problems := Csv.missing_required(rows, SKIN_REQUIRED, "skin_id")
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
@@ -80,14 +84,40 @@ static func build_skin(rows: Array, type_ids: Array) -> Dictionary:
 	problems += Csv.invalid_values(rows, "map_overlay", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "combat_ground", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "combat_layout", ["fill", "line", "center"], "skin_id")
-	# 各 terrain_type に少なくとも1枚のスキン（＝描画のフォールバック先）があること。
-	var covered := Csv.value_set(rows, "terrain_type")
-	for tid in type_ids:
-		if not (tid in covered):
-			problems.append("terrain_type '%s' にスキンが1枚も無い（描画フォールバック先が無い）" % tid)
+	# オブジェクトは足場の上に置く＝下に敷く足場（map_ground）を必ず書く。空を許すと
+	# 「足場の書いていないオブジェクト」ができ、描く側が既定を勝手に決めることになる。
+	problems += _object_without_ground(rows, type_rows)
+	# 足場は型IDと同名のスキンを1枚持つ（ステージが指定しないセルはこれを引く）。
+	# オブジェクトは足場を名前に含む＝同名は存在しないので、ステージが必ず指定する。
+	problems += _footing_without_same_name_skin(rows, type_rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "skins": rows } }
+
+## layer が object の地形タイプに属するスキンで、map_ground（下に敷く足場）が空の行。
+static func _object_without_ground(rows: Array, type_rows: Array) -> Array:
+	var layer_of := {}
+	for t in type_rows:
+		layer_of[String(t.get("id", ""))] = String(t.get("layer", ""))
+	var problems: Array = []
+	for r in rows:
+		if layer_of.get(String(r.get("terrain_type", "")), "") != "object":
+			continue
+		if String(r.get("map_ground", "")).strip_edges() == "":
+			problems.append("行[%s] は object なのに map_ground（下に敷く足場）が空" % String(r.get("skin_id", "")))
+	return problems
+
+## layer が footing の地形タイプで、型IDと同名のスキンが無いもの。
+static func _footing_without_same_name_skin(rows: Array, type_rows: Array) -> Array:
+	var skin_ids := Csv.value_set(rows, "skin_id")
+	var problems: Array = []
+	for t in type_rows:
+		var id := String(t.get("id", ""))
+		if String(t.get("layer", "")) != "footing":
+			continue
+		if not (id in skin_ids):
+			problems.append("足場 '%s' に同名のスキンが無い（指定なしのセルが引けない）" % id)
+	return problems
 
 ## 見た目の量（elevation / sprite_sink）は「0以上の数値」だけ許す。文字列が混じると float() で 0 に化けて黙って平らになる。
 static func _invalid_amount(rows: Array, col: String) -> Array:

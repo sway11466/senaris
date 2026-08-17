@@ -131,22 +131,26 @@ func test_terrain_plateau_boosts_attacker() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	s.set_terrain(ap, "plateau")                          # 攻撃側を台地に
-	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
-	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 平地
-	var r := s.attack(1, 2)
-	assert_eq(r["damage"], 5, "台地の攻撃側(×1.15)は互角時の4より多く削る")
-	assert_eq(r["retaliation"], 3, "台地は防御も+15%で被反撃が4より軽い")
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)
+	var d := Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10)    # 平地
+	s.add_unit(a)
+	s.add_unit(d)
+	# 係数の実数は terrain_type.csv が持つ（調整で動く）ので、丸めた損害ではなく実効値の向きを見る。
+	# 小さい兵数だと係数の差が損害の丸めに埋もれ、CSV調整のたびにテストが嘘になる。
+	assert_gt(Combat.attack_breakdown(s, a, d)["terrain"], 1.0, "台地は攻撃側の地形係数を上げる")
+	assert_gt(Combat.defense_breakdown(s, a, d)["terrain"], 1.0, "台地は同じマスの防御係数も上げる")
 
 func test_terrain_plateau_boosts_defender() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	var dp := Hex.neighbor(ap, 0)
 	s.set_terrain(dp, "plateau")                          # 防御側を台地に
-	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))               # 平地
-	s.add_unit(Unit.new(2, 1, dp, 3, 8, 10, 10))
-	var r := s.attack(1, 2)
-	assert_eq(r["damage"], 3, "台地の防御側(×1.15)は4より受けにくい")
-	assert_eq(r["retaliation"], 5, "台地は攻撃も+15%で反撃が4より重い")
+	var a := Unit.new(1, 0, ap, 3, 8, 10, 10)                  # 平地
+	var d := Unit.new(2, 1, dp, 3, 8, 10, 10)
+	s.add_unit(a)
+	s.add_unit(d)
+	assert_gt(Combat.defense_breakdown(s, d, a)["terrain"], 1.0, "台地の防御側は地形係数が上がる")
+	assert_eq(Combat.attack_breakdown(s, a, d)["terrain"], 1.0, "平地の攻撃側は補正なし")
 
 func test_indirect_no_retaliation() -> void:
 	var s := _state()

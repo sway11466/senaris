@@ -151,7 +151,8 @@ static func load_margin_terrain(path: String) -> Dictionary:
 	return parse_margin_terrain(data)
 
 ## 見た目レイヤー：ステージ辞書の "terrain_skins"（[{col,row,skin}]）→ { Vector2i: skin_id }。
-## skin は presentation 専用（案P）＝BattleState には入れない。載らないセルは呼び出し側で type 既定にフォールバック。
+## skin は presentation 専用（案P）＝BattleState には入れない。載らないセルは型IDと同名のスキンで描く
+## （足場のみ。オブジェクトは同名が無いので必ず書く → doc/gdd/terrain.md）。
 static func parse_terrain_skins(data: Dictionary) -> Dictionary:
 	var out := {}
 	var list: Variant = data.get("terrain_skins", [])

@@ -232,7 +232,7 @@ func _base_def_text(bd: Dictionary) -> String:
 
 func _terrain_text(snap: Dictionary) -> String:
 	var terr := String(snap["terrain"])
-	return "%s ×%.2f/×%.2f" % [TerrainSkinCatalog.display_name(terr), TerrainType.attack_factor(terr), TerrainType.defense_factor(terr)]
+	return "%s ×%.2f/×%.2f" % [TerrainType.display_name(terr), TerrainType.attack_factor(terr), TerrainType.defense_factor(terr)]
 
 ## 包囲は攻防共通の係数＝どちらかの内訳から取り出す（反撃なし側は攻が空）。
 func _surround_of(side: Dictionary) -> float:
