@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c8ywlp3kbttle"
-path="res://.godot/imported/fence_c011011.png-b7104d2b7e6993398ba5b5c622146744.ctex"
+path="res://.godot/imported/plain_fence_c011011.png-e3f4dbaf777544340172642fb3b3dc36.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/fence_c011011.png"
-dest_files=["res://.godot/imported/fence_c011011.png-b7104d2b7e6993398ba5b5c622146744.ctex"]
+source_file="res://assets/terrain/plain_fence_c011011.png"
+dest_files=["res://.godot/imported/plain_fence_c011011.png-e3f4dbaf777544340172642fb3b3dc36.ctex"]
 
 [params]
 

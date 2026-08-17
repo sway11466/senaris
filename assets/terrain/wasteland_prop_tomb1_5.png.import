@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://tt7smriikvwm"
-path="res://.godot/imported/wasteland_tomb1_5.png-ab24e0877316d9e97ff27f00f0d17b0d.ctex"
+path="res://.godot/imported/wasteland_prop_tomb1_5.png-9947780792fc9e22838fb88e8426eae1.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/wasteland_tomb1_5.png"
-dest_files=["res://.godot/imported/wasteland_tomb1_5.png-ab24e0877316d9e97ff27f00f0d17b0d.ctex"]
+source_file="res://assets/terrain/wasteland_prop_tomb1_5.png"
+dest_files=["res://.godot/imported/wasteland_prop_tomb1_5.png-9947780792fc9e22838fb88e8426eae1.ctex"]
 
 [params]
 

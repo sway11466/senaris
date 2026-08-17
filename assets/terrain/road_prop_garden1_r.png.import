@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bb8lqp7tnyidl"
-path="res://.godot/imported/bush_garden_r.png-c7c051f71b8e43d528e38815a313b838.ctex"
+path="res://.godot/imported/road_prop_garden1_r.png-bfa85a4db64db207d19304985f0ca600.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/bush_garden_r.png"
-dest_files=["res://.godot/imported/bush_garden_r.png-c7c051f71b8e43d528e38815a313b838.ctex"]
+source_file="res://assets/terrain/road_prop_garden1_r.png"
+dest_files=["res://.godot/imported/road_prop_garden1_r.png-bfa85a4db64db207d19304985f0ca600.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c1xrs2q7nvw16"
-path="res://.godot/imported/cliff_granite1_2.png-4006aac07f58e18fa28616d4561943fb.ctex"
+path="res://.godot/imported/plain_rock_granite1_2.png-31ef006cffc201fa7f9b9e84982f62f7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/cliff_granite1_2.png"
-dest_files=["res://.godot/imported/cliff_granite1_2.png-4006aac07f58e18fa28616d4561943fb.ctex"]
+source_file="res://assets/terrain/plain_rock_granite1_2.png"
+dest_files=["res://.godot/imported/plain_rock_granite1_2.png-31ef006cffc201fa7f9b9e84982f62f7.ctex"]
 
 [params]
 

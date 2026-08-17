@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dcbfipo6qc0vy"
-path="res://.godot/imported/trap.png-19ea9f056d019334c8e46abd5411ace2.ctex"
+path="res://.godot/imported/plain_trap.png-cafd3355cd7bc0ca9ada938171c4be22.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/trap.png"
-dest_files=["res://.godot/imported/trap.png-19ea9f056d019334c8e46abd5411ace2.ctex"]
+source_file="res://assets/terrain/plain_trap.png"
+dest_files=["res://.godot/imported/plain_trap.png-cafd3355cd7bc0ca9ada938171c4be22.ctex"]
 
 [params]
 

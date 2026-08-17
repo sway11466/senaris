@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bm7dim3yd4v70"
-path="res://.godot/imported/fort_chapel1_team1.png-c935e309a9903cc033ca60fcaba4def1.ctex"
+path="res://.godot/imported/plain_grave1_fort_chapel1_team1.png-30b5b087c0aa85fc2ea295d1656f50a9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/fort_chapel1_team1.png"
-dest_files=["res://.godot/imported/fort_chapel1_team1.png-c935e309a9903cc033ca60fcaba4def1.ctex"]
+source_file="res://assets/terrain/plain_grave1_fort_chapel1_team1.png"
+dest_files=["res://.godot/imported/plain_grave1_fort_chapel1_team1.png-30b5b087c0aa85fc2ea295d1656f50a9.ctex"]
 
 [params]
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c4pm8bggi3ts0"
-path="res://.godot/imported/plateau_town_l.png-bb7646a49f078be12c982bc86a965324.ctex"
+path="res://.godot/imported/road_building_town1_l.png-de84d0fd54880db8fecdf8ed257273a7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plateau_town_l.png"
-dest_files=["res://.godot/imported/plateau_town_l.png-bb7646a49f078be12c982bc86a965324.ctex"]
+source_file="res://assets/terrain/road_building_town1_l.png"
+dest_files=["res://.godot/imported/road_building_town1_l.png-de84d0fd54880db8fecdf8ed257273a7.ctex"]
 
 [params]
 
