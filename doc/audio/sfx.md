@@ -78,6 +78,10 @@
 |---|---|---|---|
 | `map_talk` | 会話の文字送り | `ui_hover` | 性質が同じ極短クリックのため共用する |
 
+台本の1行に `sfx` を書くと、その素材IDをそのまま鳴らす（対応表を通らず `assets/sfx/{sfx_id}.ogg` を直に引く）。攻撃エフェクトでもUI操作でもない音を、物語の任意のタイミングで鳴らす手段はこれ。冒険譚3では、街道の先の交戦音に `slash_m`、敵襲の合図に `map_turn_enemy`、籠の中の妖精の声に `magic_dust` を当てている。`sfx` を書いた行は文字送り音を鳴らさないので、2音が重ならない。
+
+この経路で鳴らす音は発火点を持たない＝素材を置くだけで使える。場面のためだけに用意した素材（`scream_female` ほか）もここに入る。
+
 暗幕のフェードには音を置かない。幕が下りた直後に会話パネルが開いて文字送りが鳴り始めるため、場面が変わったことは既に音で伝わっている。全14ステージの前後で鳴る頻度に対して、足す情報が無い。実機で確認したうえでの判断。
 
 ### マップ（開始・ターン・終了）
@@ -373,6 +377,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `holy` | `Button Arp Twinkle.wav` | 2026 p2 / Cinematic Sound Design - User Interface |
 | `spore` | `AIRBrst_Steam Release Short 03_JSE_SG_Mono.wav` の5テイク目 | 2024 p2 / Justsoundeffects - Steampunk Gadgets |
 | `bite` | `Celery,Bite,Crunch,Slow,Bone,Break,Stick,Creak,Various07.wav` | 2015 p3 / Mattia Cellotto - Crunch Mode |
+| `scream` | `Bloody Nightmare - Horror Impacts - Robotic Scream.wav` | 2015 p4 / SoundMorph - Bloody Nightmare |
 | `pincer` | `METLFric_SWING SCRAPE ... Long Blade 14`（`slash_m` と同一の切り出し） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
 すべて試聴して決めた。
@@ -390,6 +395,8 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 `magic_bolt`（魔弾＝青白い魔力の弾・projectile）はエネルギーが飛ぶ音を当てる。ソニックブームのように空気を裂いて通り過ぎる質感。試聴して決めた。
 
 `magic_dust`（魔法の粉＝ピクシーの攻撃・projectile）は粒の弾ける音を当てる。`holy` を決めるときに落とした素材を採り直したもので、冒険譚3 st2 の会話で籠の中の妖精が声を上げる合図にも同じ素材を鳴らす。
+
+`scream`（魔法の悲鳴＝マンドラゴラ・impact）は加工された非人間の叫びを当てる。生の人間の悲鳴は外した。盤で鳴るのは草が敵を攻撃する音なので、人の声そのものだと草ではなく人が倒れた音に聞こえる。素材は尾が10秒あり、どこで切ってもまだ音が大きい途中で終わるため、1.5秒で切って末尾に 0.40 秒のフェードを掛けている。
 
 `bite`（大蛇の顎＝ロックサーペント・ワイアーム・impact）はセロリを噛み割る音を当てる。怪物の噛みつきや尾の打撃を含む5本を試聴して決めた。血肉系（Gore）にも直球の候補があるが、作風に合わないので引いていない。野菜の破断は骨が折れる音の代わりに使う定番で、生々しさを出さずに顎が閉じる質感が出る。
 

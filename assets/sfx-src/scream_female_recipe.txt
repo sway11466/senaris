@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/scream_female__2017__SH101_Human_Female_Scream_Alien_OtherWorldly_Fienup_002.wav" -af "volume=-5.9dB" -c:a pcm_s24le scream_female.wav
