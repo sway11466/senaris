@@ -12,9 +12,17 @@ signal cell_pressed(col: int, row: int, button: int)
 signal cell_dragged(col: int, row: int, button: int)
 signal cell_released(col: int, row: int, button: int)
 signal zoom_requested(step: int)  ## Ctrl＋ホイール（+1=拡大 / -1=縮小）
+signal height_edited(axis: String, index: int, value: float)  ## 番号帯の高さ入力欄で確定（axis="row"/"col"）
 
 const SQRT3 := 1.7320508075688772
-const MARGIN := 22.0  ## 盤の余白（列/行番号の表示領域を兼ねる）
+const MARGIN := 22.0    ## 盤の右・下の余白
+const HEADER_H := 36.0  ## 上の帯（列番号＋列の基準高さ。→ doc/gdd/terrain.md 盤の高さ）
+const HEADER_W := 56.0  ## 左の帯（行番号＋行の基準高さ）
+const HEIGHT_RANGE := 99.0  ## 基準高さの入力範囲（±）
+## 基準高さの文字色。0は薄く（分布が読める程度）、ホバーで明るく＝クリックできる合図。
+const COLOR_HEIGHT := Color(1.0, 0.82, 0.4, 0.9)
+const COLOR_HEIGHT_ZERO := Color(1.0, 0.82, 0.4, 0.35)
+const COLOR_HEIGHT_HOVER := Color(1.0, 0.95, 0.7, 1.0)
 
 ## 描画領域の外を表す番兵。外周(margin)があると (-1,-1) は正当なセルなので、負値では判別できない。
 const OUTSIDE := Vector2i(-9999, -9999)
@@ -68,6 +76,11 @@ var _unit_skins := {}   # SkinCatalog の索引（画像パスは autowire 済�
 var _tex_cache := {}    # "画像パス@幅" -> Texture2D|null（縮小済み）
 var _variants := {}     # 基本パス -> Array[String]（基本＋連番 variant のパス。ResourceLoader の探索は1回だけ）
 
+var _hover_header := {}          # ホバー中の番号帯 { axis, index }。空＝帯の外
+var _height_edit: LineEdit = null  # 開いている高さ入力欄（null＝なし）
+var _height_edit_axis := ""
+var _height_edit_index := -1
+
 
 func _ready() -> void:
 	_unit_skins = SkinCatalog.load_standard()
@@ -77,13 +90,15 @@ func _ready() -> void:
 
 
 ## doc の変更後に呼ぶ（サイズ再計算＋再描画）。外周(margin)ぶんも描くので領域を広げる。
+## ズームや盤サイズが変わると入力欄の位置がずれるので、開いていたら閉じる。
 func refresh() -> void:
 	if doc == null:
 		return
+	_close_height_editor()
 	var m := doc.margin()
 	custom_minimum_size = Vector2(
-		hex_size * (1.5 * (doc.cols() + m * 2 - 1) + 2.0) + MARGIN * 2.0,
-		hex_size * SQRT3 * (doc.rows() + m * 2 + 0.5) + MARGIN * 2.0)
+		hex_size * (1.5 * (doc.cols() + m * 2 - 1) + 2.0) + HEADER_W + MARGIN,
+		hex_size * SQRT3 * (doc.rows() + m * 2 + 0.5) + HEADER_H + MARGIN)
 	queue_redraw()
 
 
@@ -92,7 +107,7 @@ func refresh() -> void:
 ## （奇数列は odd-q の食い違いで半ヘックス下がる）＝ずらし量は (1.5m, √3m) ヘックス。
 func _origin() -> Vector2:
 	var m := float(doc.margin()) if doc != null else 0.0
-	return Vector2(hex_size * (1.0 + 1.5 * m) + MARGIN, hex_size * SQRT3 * (0.5 + m) + MARGIN)
+	return Vector2(hex_size * (1.0 + 1.5 * m) + HEADER_W, hex_size * SQRT3 * (0.5 + m) + HEADER_H)
 
 
 func cell_center(col: int, row: int) -> Vector2:
@@ -129,6 +144,14 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 		return
 	if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+		if event.pressed:
+			_close_height_editor()  # 入力欄の外をクリック＝取り消して閉じる
+			if event.button_index == MOUSE_BUTTON_LEFT:
+				var hh := _header_at(event.position)
+				if not hh.is_empty():  # 番号帯の高さ表示をクリック＝その場で入力欄を開く
+					_open_height_editor(String(hh["axis"]), int(hh["index"]))
+					accept_event()
+					return
 		var cell := cell_at(event.position)
 		if event.pressed:
 			_drag_button = event.button_index
@@ -140,6 +163,13 @@ func _gui_input(event: InputEvent) -> void:
 			if cell != OUTSIDE:
 				cell_released.emit(cell.x, cell.y, event.button_index)
 	elif event is InputEventMouseMotion:
+		var hh := _header_at(event.position)
+		if hh != _hover_header:
+			_hover_header = hh
+			# 手のカーソルで「クリックできる」を示す（帯の外では通常の矢印に戻す）。
+			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if not hh.is_empty() \
+				else Control.CURSOR_ARROW
+			queue_redraw()
 		var cell := cell_at(event.position)
 		if cell != hover:
 			hover = cell
@@ -147,6 +177,79 @@ func _gui_input(event: InputEvent) -> void:
 		if _drag_button != -1 and cell != OUTSIDE and cell != _last_cell:
 			_last_cell = cell
 			cell_dragged.emit(cell.x, cell.y, _drag_button)
+
+
+# --- 盤の高さ（番号帯の常時表示とその場の入力欄）。値の意味 → doc/gdd/terrain.md 盤の高さ ---
+
+
+## 番号帯のどの行/列の上か。上の帯＝列・左の帯＝行。どちらでもなければ空辞書。
+## 帯は盤の行・列だけが対象（外周は高さを持たない＝height 配列は盤のサイズ基準）。
+func _header_at(p: Vector2) -> Dictionary:
+	if doc == null:
+		return {}
+	if p.y >= 0.0 and p.y < HEADER_H:
+		for col in doc.cols():
+			if absf(p.x - cell_center(col, 0).x) <= hex_size * 0.75:
+				return { "axis": "col", "index": col }
+	if p.x >= 0.0 and p.x < HEADER_W:
+		for row in doc.rows():
+			if absf(p.y - cell_center(0, row).y) <= hex_size * SQRT3 * 0.5:
+				return { "axis": "row", "index": row }
+	return {}
+
+
+## クリックした番号の位置に入力欄を開く。Enter＝確定（height_edited を発火）、
+## Esc・外クリック＝取り消し。値の書き込みは main（doc を持つ側）に任せる。
+func _open_height_editor(axis: String, index: int) -> void:
+	_close_height_editor()
+	var e := LineEdit.new()
+	e.text = _fmt_height(doc.col_height(index) if axis == "col" else doc.row_height(index))
+	if axis == "col":
+		e.position = Vector2(cell_center(index, 0).x - 30.0, HEADER_H - 26.0)
+		e.size = Vector2(60.0, 24.0)
+	else:
+		e.position = Vector2(2.0, cell_center(0, index).y - 12.0)
+		e.size = Vector2(HEADER_W - 4.0, 24.0)
+	e.text_submitted.connect(_commit_height)
+	e.focus_exited.connect(_close_height_editor)  # Esc は LineEdit がフォーカスを手放す＝ここに来る
+	add_child(e)
+	_height_edit = e
+	_height_edit_axis = axis
+	_height_edit_index = index
+	e.grab_focus()
+	e.select_all()
+
+
+## 入力欄の確定。数値として読めない入力は捨てる（元の値のまま）。
+func _commit_height(text: String) -> void:
+	var axis := _height_edit_axis
+	var index := _height_edit_index
+	_close_height_editor()
+	var s := text.strip_edges()
+	if not s.is_valid_float():
+		return
+	height_edited.emit(axis, index, clampf(s.to_float(), -HEIGHT_RANGE, HEIGHT_RANGE))
+
+
+func _close_height_editor() -> void:
+	if _height_edit == null:
+		return
+	var e := _height_edit
+	_height_edit = null
+	# 解放時に遅れて飛ぶ focus_exited を切る＝入れ替えで開いた次の入力欄を巻き込んで閉じない。
+	e.focus_exited.disconnect(_close_height_editor)
+	e.queue_free()
+
+
+## 基準高さの表示文字。整数値は整数で（保存時の _scalar と同じ見た目）。
+static func _fmt_height(v: float) -> String:
+	return str(int(v)) if v == floorf(v) else str(v)
+
+
+static func _height_color(v: float, hovered: bool) -> Color:
+	if hovered:
+		return COLOR_HEIGHT_HOVER
+	return COLOR_HEIGHT if v != 0.0 else COLOR_HEIGHT_ZERO
 
 
 func _hex_points(center: Vector2, size: float) -> PackedVector2Array:
@@ -161,15 +264,24 @@ func _draw() -> void:
 	if doc == null:
 		return
 	var font := get_theme_default_font()
-	# 列/行番号（JSONの col/row と突き合わせるため）
+	# 列/行番号（JSONの col/row と突き合わせるため）と基準高さ（全マス分の常時表示＝クリックの受け皿。
+	# 番号は薄い白・高さは琥珀色で、座標と高さを読み違えないようにする）。
+	var hover_axis := String(_hover_header.get("axis", ""))
+	var hover_index := int(_hover_header.get("index", -1))
 	for col in doc.cols():
 		var c := cell_center(col, 0)
-		draw_string(font, Vector2(c.x - hex_size, MARGIN - 8.0), str(col),
+		draw_string(font, Vector2(c.x - hex_size, HEADER_H - 22.0), str(col),
 			HORIZONTAL_ALIGNMENT_CENTER, hex_size * 2.0, 10, Color(1, 1, 1, 0.45))
+		draw_string(font, Vector2(c.x - hex_size, HEADER_H - 8.0), _fmt_height(doc.col_height(col)),
+			HORIZONTAL_ALIGNMENT_CENTER, hex_size * 2.0, 10,
+			_height_color(doc.col_height(col), hover_axis == "col" and hover_index == col))
 	for row in doc.rows():
 		var c := cell_center(0, row)
-		draw_string(font, Vector2(1.0, c.y + 4.0), str(row),
-			HORIZONTAL_ALIGNMENT_LEFT, MARGIN - 2.0, 10, Color(1, 1, 1, 0.45))
+		draw_string(font, Vector2(2.0, c.y + 4.0), str(row),
+			HORIZONTAL_ALIGNMENT_LEFT, 18.0, 10, Color(1, 1, 1, 0.45))
+		draw_string(font, Vector2(22.0, c.y + 4.0), _fmt_height(doc.row_height(row)),
+			HORIZONTAL_ALIGNMENT_LEFT, HEADER_W - 26.0, 10,
+			_height_color(doc.row_height(row), hover_axis == "row" and hover_index == row))
 	# 地形（タイル画像。無ければ色＋skin_id の文字）。外周(margin)も描くが、盤外と分かるよう薄くする。
 	var skins := doc.terrain_skin_map()
 	var base_teams := _base_team_map()

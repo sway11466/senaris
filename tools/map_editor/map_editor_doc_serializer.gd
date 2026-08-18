@@ -5,7 +5,7 @@ class_name MapEditorDocSerializer
 ## MapEditorDoc.to_text() から委譲される。データ操作は持たない＝入力を文字列に変えるだけ。
 
 ## 保存時のトップレベルキーの並び（既存ステージの手書き順に合わせる）。残りは元の順で末尾。
-const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "events", "victory", "defeat", "dialogue"]
+const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "height", "terrain", "terrain_skins", "player", "enemy", "bases", "events", "victory", "defeat", "dialogue"]
 
 ## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers /
 ## 敗北条件の bases・actors）。1件だけなら1行に収まる＝手書きの既存ステージと同じ見た目になる。
@@ -47,7 +47,22 @@ static func _emit_top(key: String, v: Variant) -> String:
 		return "[\n" + ",\n".join(lines) + "\n  ]"
 	if key == "terrain_skins" and typeof(v) == TYPE_ARRAY and not v.is_empty():
 		return _emit_terrain_skins(v)
+	if key == "height" and typeof(v) == TYPE_DICTIONARY:
+		return _emit_height(v)
 	return _emit(v, 2)
+
+
+## height：仕様書（doc/gdd/terrain.md）の例と同じ1行 { "row": [..], "col": [..] }。
+## 既定の整形だと配列入りの辞書は段落表示になり、行・列の数値の並びが縦に散って読めない。
+static func _emit_height(d: Dictionary) -> String:
+	var parts: Array[String] = []
+	for k in ["row", "col"]:
+		if d.has(k):
+			parts.append("%s: %s" % [JSON.stringify(k), _emit(d[k], 2)])
+	for k in d:  # 未知キーは後ろに温存
+		if not (String(k) in ["row", "col"]):
+			parts.append("%s: %s" % [JSON.stringify(String(k)), _emit(d[k], 2)])
+	return "{ " + ", ".join(parts) + " }"
 
 
 ## terrain_skins：1件1行・キーは col, row, skin の順（手書きの既存ステージに合わせる）。

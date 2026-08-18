@@ -22,7 +22,8 @@ const SIGHT_UNLIMITED := "*"  ## 上限なし＝盤全体（視線コスト x �
 ## 数値を取る特性は ambush だけなので、その ai.csv 既定に合わせる。
 const SIGHT_SPIN_DEFAULT := 3
 ## 「全体をずらす」で盤の外に出るものの言い方（MapEditorDoc.shift_losses のキー → 表示名）。
-const SHIFT_LOSS_LABELS := { "terrain": "地形", "skins": "スキン指定", "units": "駒", "bases": "拠点" }
+const SHIFT_LOSS_LABELS := { "terrain": "地形", "skins": "スキン指定", "units": "駒", "bases": "拠点",
+	"height": "基準高さ" }
 
 var _doc: MapEditorDoc
 var _path := ""  # 現在のファイル（グローバルパス。空=未保存）
@@ -109,7 +110,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _load_catalogs() -> void:
 	var tt: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/terrain/terrain_type.json"))
 	for t in tt.get("terrains", []):
-		_terrains.append({ "id": String(t["id"]), "char": String(t.get("char", "?")), "memo": String(t.get("memo", "")) })
+		_terrains.append({ "id": String(t["id"]), "char": String(t.get("char", "?")),
+			"name": String(t.get("name", t["id"])), "memo": String(t.get("memo", "")) })
 	var ut: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/units/unit_type.json"))
 	for t in ut.get("types", []):
 		var cat := String(t.get("category", ""))
@@ -178,6 +180,10 @@ func _build_ui() -> void:
 	_add_button(bar, "保存", _on_save)
 	_add_button(bar, "名前を付けて保存", func() -> void: _save_dialog.popup_centered(Vector2i(900, 600)))
 	_add_button(bar, "地形を元に戻す (Ctrl+Z)", _undo_terrain)
+	# 実機で確認＝一時ファイルに書き出してゲーム本体を別プロセスで起動し、直接読み込ませる。
+	# エディタの盤は真上からの平面表示＝盤の高さや立ち絵の重なりは実機の絵でしか確かめられない。
+	_add_button(bar, "実機で確認", _on_preview).tooltip_text = \
+		"編集中のステージを一時保存し、ゲーム本体を別ウィンドウで起動して読み込む。\n保存済みファイルには触らない。"
 	_path_label = Label.new()
 	_path_label.text = "（未保存の新規ステージ）"
 	_path_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -213,6 +219,7 @@ func _build_ui() -> void:
 	_board.cell_dragged.connect(_on_cell_dragged)
 	_board.cell_released.connect(_on_cell_released)
 	_board.zoom_requested.connect(func(step: int) -> void: zoom.value += step * zoom.step)
+	_board.height_edited.connect(_on_height_edited)
 	scroll.add_child(_board)
 	_board.refresh()
 
@@ -472,7 +479,7 @@ func _build_terrain_palette() -> void:
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL  # パネルの下端まで伸ばす
 	if _sel_terrain_category == "":
 		for t in _terrains:
-			list.add_item("%s  %s — %s" % [t["char"], t["id"], t["memo"]])
+			list.add_item("%s  %s — %s" % [t["char"], t["name"], t["memo"]])
 		if _sel_terrain < _terrains.size():
 			list.select(_sel_terrain)
 		list.item_selected.connect(func(i: int) -> void: _sel_terrain = i)
@@ -1984,6 +1991,38 @@ func _shift_label(delta: Vector2i) -> String:
 	if delta.x != 0:
 		return "右へ %d 列" % delta.x if delta.x > 0 else "左へ %d 列" % -delta.x
 	return "下へ %d 行" % delta.y if delta.y > 0 else "上へ %d 行" % -delta.y
+
+
+## 盤の番号帯の高さ入力欄で確定（→ MapEditorBoard.height_edited）。見た目だけの値なので
+## 地形の取り消し（Ctrl+Z）の対象にはしない＝もう一度クリックして打ち直す。
+func _on_height_edited(axis: String, index: int, value: float) -> void:
+	if axis == "col":
+		_doc.set_col_height(index, value)
+	else:
+		_doc.set_row_height(index, value)
+	_board.refresh()
+	_say("%s %d の基準高さを %s にしました（見た目だけ・ルールに入らない）。"
+		% ["列" if axis == "col" else "行", index, MapEditorBoard._fmt_height(value)])
+
+
+## 「実機で確認」＝編集中の内容を一時ファイルへ書き、ゲーム本体を別プロセスで起動して読ませる。
+## 保存済みファイルには触らない。起動の中身は preview_launch.gd（shot スクリプトと同じ流儀）。
+func _on_preview() -> void:
+	var tmp := "user://map_editor_preview.json"
+	var f := FileAccess.open(tmp, FileAccess.WRITE)
+	if f == null:
+		_say("一時ファイルを書けませんでした: " + tmp)
+		return
+	f.store_string(_doc.to_text())
+	f.close()
+	var pid := OS.create_process(OS.get_executable_path(), [
+		"--path", ProjectSettings.globalize_path("res://"),
+		"-s", "res://tools/map_editor/preview_launch.gd",
+		"--", ProjectSettings.globalize_path(tmp)])
+	if pid == -1:
+		_say("実機の起動に失敗しました。")
+	else:
+		_say("実機を別ウィンドウで起動しました（いまの編集内容のコピーを読ませています）。")
 
 
 func _on_save() -> void:
