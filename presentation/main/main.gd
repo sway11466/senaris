@@ -555,7 +555,8 @@ func _install_board_logo() -> void:
 func _install_turn_banner() -> void:
 	_turn_banner = TurnBanner.new()
 	_turn_banner.name = "TurnBanner"
-	add_child(_turn_banner)
+	# 前面パネル層 $Front（層45）＝InfoPanel より後の子＝その前に出る。暗幕（層40）でも沈まない。
+	$Front.add_child(_turn_banner)
 
 func _install_formation_cutin() -> void:
 	_formation_cutin = FormationCutin.new()

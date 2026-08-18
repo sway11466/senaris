@@ -24,7 +24,7 @@ var _skippable := false    # 自分のターン＝クリック／キーで即座
 var _art_left := true      # 立ち絵を文字の左に出すか（自軍＝左／敵軍＝右）
 
 func _ready() -> void:
-	# 親が Node2D（main）なのでアンカーは効かない＝矩形は _layout で明示的に置く（ターン板と同じ）。
+	# 親は $Front（CanvasLayer・層45）＝InfoPanel の前。矩形は _layout で明示的に置く（ターン板と同じ）。
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤の入力を邪魔しない（自分のターンは操作を受け付ける）
 	visible = false
 	_build()
