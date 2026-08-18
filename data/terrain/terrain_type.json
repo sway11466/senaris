@@ -134,7 +134,7 @@
 			"atk": 0.6,
 			"char": "G",
 			"def": 0.6,
-			"id": "rubble1",
+			"id": "rubble",
 			"layer": "object",
 			"memo": "飛行ユニットと斥候が移動可能",
 			"name": "瓦礫",

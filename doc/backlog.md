@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=58 / refactoring=11
+次回採番: bug=3 / feature=59 / refactoring=11
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -336,17 +336,32 @@
 
 ### feature-57
 
-**地形モデルの刷新（足場とオブジェクト・盤の基準高さ）**（優先度：高）
+**地形の刷新で残った絵と盤**（優先度：高）
 
-- 背景：地形が地形の成り立ち（山・崖）で名前を持っていて、真上から見下ろす盤ではそれを絵で伝えられない。崖は既定ズームで側面の壁が約6pxしか出ず、灰色の砂利の帯に見える（tutorial3 st3 で実測）。地面の絵が正直に伝えられるのは足場の状態で、高さや成り立ちではない。新しい考え方は [gdd/terrain.md](gdd/terrain.md) に仕様として書いた。実装はまだ追いついていない。
-- 対応：
-  1. `terrain_type.csv` に `kind` 列（`footing` / `object`）を足し、`convert.gd` の検証に値の集合を加える。どのタイプがどちらかの割り振りはオーナーが入れる。
-  2. オブジェクトの描画。足場タイルを敷いたうえに、駒と同じビルボード板を1枚立てる。同じマスに駒が入るときは駒を手前・オブジェクトを奥に置く。今の盤は寝たタイルとスカートしか描けない。
-  3. 足場の側面画像。側面を持つのは岩地・崖・城壁・瓦礫の山・壁の5枚だけで、足場スキン13枚に対して11枚足りない。基準高さを入れると段差は盤のいたるところに出るので、側面は必須になる。
-  4. 盤の基準高さ。ステージJSONの `height.row` / `height.col` を読み、`elev(hex)`（[board_terrain_renderer.gd:81](../presentation/board/board_terrain_renderer.gd)）に和として足す。タイル・スカート・駒・当たり判定はすべてこの関数を見ているので、下流は追随する。
-  5. 当たり判定の作り替え。今は盤にある高さの種類を1つずつ水平面として試す（[hex_board_3d.gd:349](../presentation/board/hex_board_3d.gd)）。行と列の基準を入れると種類が行数×列数まで増えるので、この総当たりは持たない。
-  6. `convert.gd` の `elevation` 検証は0以上を要求している。崖を沈めて穴にする案を採るなら緩める（-0.54 で撮った検証＝`tests/manual/shot_cliff.gd`）。
-- 該当：`data/terrain/terrain_type.csv`・`data/terrain/terrain_skin.csv`・`data/terrain/convert.gd`・`presentation/board/board_terrain_renderer.gd`・`presentation/board/hex_board_3d.gd`・`presentation/board/board_unit_renderer.gd`・`assets/terrain/`・`doc/gdd/terrain.md`・`doc/art/terrain.md`。着手の引き金＝`kind` の割り振りが決まったとき。
+- 背景：地形を足場とオブジェクトの二層に組み替え、盤の基準高さ（行＋列）まで実装した（2026-08-18）。考え方は [gdd/terrain.md](gdd/terrain.md)、絵の作法は [art/terrain.md](art/terrain.md)。残っているのは絵と盤で、コードは通っている。
+- 残り（絵）：
+  1. 足場の側面画像12枚。段差の壁に貼る、横から見た左右シームレスの帯。持っているのは岩地・城壁・壁の3枚だけで、道・平地・洞窟の床・墓地の草地・台地・荒地・森・茂み・川・石畳・橋・石積みの壁が無い。基準高さを使う盤では段差が至る所に出るので、無いとタイルの平均色＋粒ノイズのままになる。
+  2. オブジェクトの立ち絵。街区・菜園・墓標・瓦礫・罠・大岩・砦（町/詰所/納骨堂/礼拝堂）は、真上から描いた旧タイルのまま板として立っている＝寝た絵が起き上がった見た目。駒の作法（正面から・カメラに正対）で描き直す。
+  3. 柵の板（`assets/terrain/plain_fence_side.png`）は ImageMagick で描いた仮置き。同名で差し替えれば描画側は変わらない。
+- 残り（盤）：
+  4. 崖を面として敷いていた513マス（tutorial1 st5・tutorial3 st3/st5）。大岩は点として置くオブジェクトなので、面の置き換え先を決めて引き直す。飛行だけ通れる足場は今は川しかない。
+  5. tutorial3 st2 の街区マスは識別文字が `P`（台地）のままで、スキンだけ建物になっている＝見た目と性能が食い違う。`B` に直す。
+- 残り（調整）：
+  6. オブジェクトの立ち絵の大きさ（`OBJECT_CANVAS_TILES = 2.2`）と、駒より奥へのずらし量（`-0.2`）は仮決め。絵ができてから実機で合わせる。
+  7. 帯で描く地形（道・川・橋）は高さを持たせない、という制約（[art/terrain.md](art/terrain.md) §1）と基準高さの関係を未確認。基準高さは道のマスも一緒に上下させるので、川と橋で段差が出ないか見る。
+- 該当：`assets/terrain/`・`assets/terrain-src/`・`data/stages/tutorial1-goblin-raid/st5.json`・`data/stages/tutorial3-dragon-hunt/st2.json`・`st3.json`・`st5.json`・`presentation/board/board_terrain_renderer.gd`。検証は `tests/manual/shot_board_height.gd`（高さ・当たり判定）と `tests/manual/shot_cliff.gd`（盤の撮影）。
+
+### feature-58
+
+**地形の係数を実際に遊んで詰める**（優先度：中）
+
+- 背景：地形の刷新で係数をいくつか動かしたが、盤で確かめていない。
+  - 台地を 1.15 から 1.1 に下げた結果、兵8・攻防10の互角戦では損害が変わらなくなった（1.15 では 5/3 に動いていた）。小さい戦闘で台地の有利が見えない。
+  - 柵の防御 1.5 が砦 1.2 より高い。守りの代表を砦に置いた以上、柵を下げるか砦を上げるかしたくなる。
+  - 建物 1.2/0.8 と砦 0.8/1.2 は鏡にしたが、砦の攻0.8は反撃にも乗る（[combat.gd:45](../domain/combat/combat.gd)）＝砦は耐えるが削り返せない場所になる。狙いどおりか盤で見る。
+  - 町（`road_fort_town1`）を道の `connect_to` に入れていない。入れると町の下を街路がくぐる。街区・菜園・詰所は入れてある。
+- 対応：遊べる盤ができてから触る。数値は `terrain_type.csv` が正本で、doc には書かない。
+- 該当：`data/terrain/terrain_type.csv`・`data/terrain/terrain_skin.csv`。着手の引き金＝刷新した地形で盤を1つ組んで遊べるようになったとき。
 
 ## リファクタリング
 

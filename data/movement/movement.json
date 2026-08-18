@@ -23,7 +23,7 @@
 			"river": "x",
 			"road": 1,
 			"rock": "x",
-			"rubble1": "x",
+			"rubble": "x",
 			"trap": 3,
 			"wall": "x",
 			"wasteland": 2
@@ -42,7 +42,7 @@
 			"river": "x",
 			"road": 1,
 			"rock": "x",
-			"rubble1": 1,
+			"rubble": 1,
 			"trap": "x",
 			"wall": "x",
 			"wasteland": 1
@@ -61,7 +61,7 @@
 			"river": 1,
 			"road": 1,
 			"rock": 1,
-			"rubble1": 1,
+			"rubble": 1,
 			"trap": 1,
 			"wall": "x",
 			"wasteland": 1
@@ -80,7 +80,7 @@
 			"river": "x",
 			"road": 1,
 			"rock": "x",
-			"rubble1": "x",
+			"rubble": "x",
 			"trap": 3,
 			"wall": "x",
 			"wasteland": 2
@@ -99,7 +99,7 @@
 			"river": "x",
 			"road": 1,
 			"rock": "x",
-			"rubble1": "x",
+			"rubble": "x",
 			"trap": 3,
 			"wall": "x",
 			"wasteland": 2
@@ -118,7 +118,7 @@
 			"river": "x",
 			"road": 1,
 			"rock": "x",
-			"rubble1": 4,
+			"rubble": 4,
 			"trap": 1,
 			"wall": "x",
 			"wasteland": 1
@@ -137,7 +137,7 @@
 			"river": "x",
 			"road": 1,
 			"rock": "x",
-			"rubble1": "x",
+			"rubble": "x",
 			"trap": 3,
 			"wall": "x",
 			"wasteland": 1

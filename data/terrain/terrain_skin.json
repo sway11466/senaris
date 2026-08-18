@@ -334,7 +334,7 @@
 			"orientable": "none",
 			"skin_id": "plain_grave1_rubble1",
 			"sprite_sink": 0,
-			"terrain_type": "rubble1"
+			"terrain_type": "rubble"
 		},
 		{
 			"combat_ground": "",
