@@ -334,29 +334,6 @@
 - 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
 - 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
 
-### feature-57
-
-**地形の刷新で残ったコード側の詰め**（優先度：中）
-
-- 背景：地形を足場とオブジェクトの二層に組み替え、盤の基準高さ（行＋列）まで実装した（2026-08-18）。考え方は [gdd/terrain.md](gdd/terrain.md)、絵の作法は [art/terrain.md](art/terrain.md)。残っているのは、絵ができてからでないと決められない数値と、エディタの口。
-- 対応：
-  1. オブジェクトの立ち絵の大きさ（`OBJECT_CANVAS_TILES = 2.2`）と、駒より奥へのずらし量（`OBJECT_FOOT_Z = -0.2`）が仮決め。立ち絵ができてから実機で合わせる。
-  2. 帯で描く地形（道・川・橋）は高さを持たせない、という制約（[art/terrain.md](art/terrain.md) §1）と盤の基準高さの関係が未確認。基準高さは道のマスも一緒に上下させるので、川と橋のあるマスで段差が出ないか見る。
-  3. マップエディタに盤の基準高さを触る口が無い＝いまは手で JSON の `height` を書く。エディタは未知キーを温存する（`map_editor.gd:4-5`）ので壊れはしない。行ぶん・列ぶんの数値を並べるより、刻み幅と向きから一括生成して個別に直す形が実用的。
-- 該当：`presentation/board/board_terrain_renderer.gd`・`tools/map_editor/`。検証は `tests/manual/shot_board_height.gd`（高さ・当たり判定の往復チェック）と `tests/manual/shot_cliff.gd`（盤の撮影）。
-
-### feature-58
-
-**地形の係数を実際に遊んで詰める**（優先度：中）
-
-- 背景：地形の刷新で係数をいくつか動かしたが、盤で確かめていない。
-  - 台地を 1.15 から 1.1 に下げた結果、兵8・攻防10の互角戦では損害が変わらなくなった（1.15 では 5/3 に動いていた）。小さい戦闘で台地の有利が見えない。
-  - 柵の防御 1.5 が砦 1.2 より高い。守りの代表を砦に置いた以上、柵を下げるか砦を上げるかしたくなる。
-  - 建物 1.2/0.8 と砦 0.8/1.2 は鏡にしたが、砦の攻0.8は反撃にも乗る（[combat.gd:45](../domain/combat/combat.gd)）＝砦は耐えるが削り返せない場所になる。狙いどおりか盤で見る。
-  - 町（`road_fort_town1`）を道の `connect_to` に入れていない。入れると町の下を街路がくぐる。街区・菜園・詰所は入れてある。
-- 対応：遊べる盤ができてから触る。数値は `terrain_type.csv` が正本で、doc には書かない。
-- 該当：`data/terrain/terrain_type.csv`・`data/terrain/terrain_skin.csv`。着手の引き金＝刷新した地形で盤を1つ組んで遊べるようになったとき。
-
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
