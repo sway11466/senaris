@@ -135,8 +135,10 @@ func set_margin(new_margin: int) -> void:
 # --- ベタ塗り（連結領域） ---
 
 
-## クリックしたマスと地続きのマスを返す。同じ見た目＝地形の文字と skin_id の両方が一致するマス
-## だけを辿る（同じ平地でも既定スキンと plain_cave1 は別領域）。隣接は六方向（Hex と同じ定義）。
+## クリックしたマスと地続きのマスを返す。同じ見た目＝地形の文字・skin_id・高さ上書きの全部が
+## 一致するマスだけを辿る（同じ平地でも既定スキンと plain_cave1 は別領域。同じ水でも高さ違いは別領域）。
+## 高さの比較はエントリのデータ同士＝行・列の基準高さは見ない（傾斜盤でも同じ塗りは1領域）。
+## 隣接は六方向（Hex と同じ定義）。
 ## 盤と外周は跨がない＝盤で始めた塗りが外周へ漏れず、外周で始めた塗りが盤を塗り潰さない。
 func connected_cells(col: int, row: int) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
@@ -144,9 +146,11 @@ func connected_cells(col: int, row: int) -> Array[Vector2i]:
 		return out
 	var on_board := in_board(col, row)
 	var skins := terrain_skin_map()
+	var ovs := _override_keys()
 	var target_char := terrain_char(col, row)
-	var target_skin := String(skins.get(Vector2i(col, row), ""))
 	var start := Vector2i(col, row)
+	var target_skin := String(skins.get(start, ""))
+	var target_ov := String(ovs.get(start, ""))
 	var seen := { start: true }
 	var stack: Array[Vector2i] = [start]
 	while not stack.is_empty():
@@ -162,18 +166,30 @@ func connected_cells(col: int, row: int) -> Array[Vector2i]:
 				continue
 			if String(skins.get(n, "")) != target_skin:
 				continue
+			if String(ovs.get(n, "")) != target_ov:
+				continue
 			seen[n] = true
 			stack.append(n)
 	return out
 
 
+## 座標→高さ上書きの比較キー（"elevation|floor" の文字列）。連結判定用＝データそのままの比較。
+## 文字列にするのは null と数値の混在を安全に比べるため（型違い Variant の == は実行時エラー）。
+func _override_keys() -> Dictionary:
+	var out := {}
+	for e in _skin_entries():
+		out[Vector2i(int(e.get("col", -1)), int(e.get("row", -1)))] = \
+			"%s|%s" % [str(e.get("elevation")), str(e.get("floor"))]
+	return out
+
+
 ## 連結領域をまとめて塗る（性能＝地形の文字、見た目＝skin_id。"" は差分なし＝type の既定）。
-## 塗ったマス数を返す。
-func fill_terrain(col: int, row: int, ch: String, skin_id: String) -> int:
+## ov＝マスごとの高さ上書き（{ elevation, floor }。空＝上書きなし）。塗ったマス数を返す。
+func fill_terrain(col: int, row: int, ch: String, skin_id: String, ov: Dictionary = {}) -> int:
 	var cells := connected_cells(col, row)
 	for cell in cells:
 		set_terrain_char(cell.x, cell.y, ch)
-		set_terrain_skin(cell.x, cell.y, skin_id)
+		set_terrain_skin(cell.x, cell.y, skin_id, ov)
 	return cells.size()
 
 
@@ -330,7 +346,9 @@ func terrain_skin_map() -> Dictionary:
 
 ## セルの skin_id を設定する。"" は指定の削除＝type の既定スキンに戻す。
 ## 外周のセル（負の col/row・cols()以上）にも書ける＝盤外の座標がそのまま載る。
-func set_terrain_skin(col: int, row: int, skin_id: String) -> void:
+## ov＝マスごとの高さ上書き（{ elevation, floor }。空＝上書きなし＝キーを消す）。上書きはスキンの
+## エントリにしか持てない＝塗り直しでエントリが消えれば上書きも消える（見えない上書きを残さない）。
+func set_terrain_skin(col: int, row: int, skin_id: String, ov: Dictionary = {}) -> void:
 	if not in_canvas(col, row):
 		return
 	if typeof(data.get("terrain_skins")) != TYPE_ARRAY:
@@ -347,9 +365,34 @@ func set_terrain_skin(col: int, row: int, skin_id: String) -> void:
 				list.remove_at(i)
 			else:
 				e["skin"] = skin_id
+				_apply_override(e, ov)
 			return
 	if skin_id != "":
-		list.append({ "col": col, "row": row, "skin": skin_id })
+		var entry := { "col": col, "row": row, "skin": skin_id }
+		_apply_override(entry, ov)
+		list.append(entry)
+
+
+## エントリへ高さ上書きを書く/消す。ペア（elevation・floor）でだけ書く＝片方だけの状態を作らない。
+static func _apply_override(e: Dictionary, ov: Dictionary) -> void:
+	if ov.has("elevation") and ov.has("floor"):
+		e["elevation"] = float(ov["elevation"])
+		e["floor"] = float(ov["floor"])
+	else:
+		e.erase("elevation")
+		e.erase("floor")
+
+
+## セルの高さ上書き（{ elevation, floor }）。無ければ空辞書（ペアが揃っていないものも無い扱い）。
+func height_override(col: int, row: int) -> Dictionary:
+	for e in _skin_entries():
+		if int(e.get("col", -1)) == col and int(e.get("row", -1)) == row:
+			var ev: Variant = e.get("elevation")
+			var fl: Variant = e.get("floor")
+			if typeof(ev) in [TYPE_INT, TYPE_FLOAT] and typeof(fl) in [TYPE_INT, TYPE_FLOAT]:
+				return { "elevation": float(ev), "floor": float(fl) }
+			return {}
+	return {}
 
 
 ## terrain_skins の要素（辞書のみ）。キーが無い/不正なら空配列。

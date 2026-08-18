@@ -65,7 +65,8 @@ static func _emit_height(d: Dictionary) -> String:
 	return "{ " + ", ".join(parts) + " }"
 
 
-## terrain_skins：1件1行・キーは col, row, skin の順（手書きの既存ステージに合わせる）。
+## terrain_skins：1件1行・キーは col, row, skin, elevation, floor の順（手書きの既存ステージに合わせる。
+## elevation / floor はマスごとの高さ上書き＝あるときだけ書かれる）。
 ## 並びは row→col ＝ terrain グリッドと同じ順にして、diff で盤と突き合わせられるようにする。
 static func _emit_terrain_skins(v: Array) -> String:
 	var entries := []
@@ -80,11 +81,11 @@ static func _emit_terrain_skins(v: Array) -> String:
 	var lines: Array[String] = []
 	for e in entries:
 		var parts: Array[String] = []
-		for k in ["col", "row", "skin"]:
+		for k in ["col", "row", "skin", "elevation", "floor"]:
 			if e.has(k):
 				parts.append("%s: %s" % [JSON.stringify(k), _scalar(e[k])])
 		for k in e:  # 未知キーは後ろに温存
-			if not (String(k) in ["col", "row", "skin"]):
+			if not (String(k) in ["col", "row", "skin", "elevation", "floor"]):
 				parts.append("%s: %s" % [JSON.stringify(String(k)), _emit(e[k], 4)])
 		lines.append("    { " + ", ".join(parts) + " }")
 	return "[\n" + ",\n".join(lines) + "\n  ]"

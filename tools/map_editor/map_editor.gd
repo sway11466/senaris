@@ -46,6 +46,8 @@ var _ai_params := {}         # 特性id -> パラメーター辞書（ai.csv の
 var _sel_terrain := 0
 var _sel_terrain_category := ""  # 地形パレットの分類（空=基本＝地形タイプ一覧 / それ以外=その type のスキン一覧）
 var _sel_terrain_skin := ""      # 塗る見た目スキンの skin_id（分類が「基本」以外のとき有効）
+var _ov_elevation := ""          # 高さ上書きの入力値（elevation）。空＝上書きなし。floor とペアでだけ塗れる
+var _ov_floor := ""              # 高さ上書きの入力値（floor）。空＝上書きなし
 var _paint_tool := "pen"         # 塗り方（pen=1マスずつ / fill=連結領域をまとめて）
 var _sel_category := ""  # 自軍パレットの分類絞り込み（空=すべて）
 var _sel_type_id := ""   # 配置する自軍ユニットの type_id
@@ -457,7 +459,7 @@ func _ai_options(with_none: bool) -> Array:
 func _build_terrain_palette() -> void:
 	if _paint_tool == "fill":
 		_add_hint(_mode_box, "左クリック＝地続きをまとめて塗る / 右クリック＝地続きを平地に戻す。\n"
-			+ "範囲は「いまの見た目が同じ」マス（地形＋スキンの両方が一致）。誤爆は Ctrl+Z で戻せる。")
+			+ "範囲は「いまの見た目が同じ」マス（地形＋スキン＋高さ上書きが一致）。誤爆は Ctrl+Z で戻せる。")
 	else:
 		_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
 	_mode_box.add_child(_labeled_option("塗り方", TOOL_LABELS.keys(), TOOL_LABELS.values(), _paint_tool,
@@ -474,6 +476,8 @@ func _build_terrain_palette() -> void:
 			_sel_terrain_category = k
 			_sel_terrain_skin = String(_default_skin_by_type.get(k, ""))  # 分類を変えたら既定スキンから
 			_rebuild_mode()))
+	_mode_box.add_child(_height_override_row())
+	_add_hint(_mode_box, "高さ上書き＝elevation と floor をペアで（空欄＝スキンの高さのまま）。見た目だけ・ルールに入らない。")
 	var list := ItemList.new()
 	list.custom_minimum_size = Vector2(0, 160)
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL  # パネルの下端まで伸ばす
@@ -509,6 +513,26 @@ func _build_terrain_palette() -> void:
 			list.select(i)
 	list.item_selected.connect(func(i: int) -> void: _sel_terrain_skin = String(ids[i]))
 	_mode_box.add_child(list)
+
+
+## 高さ上書きの入力行（elevation / floor の2欄）。値はテキストのまま持ち、塗る瞬間に検証する
+## （_brush_override）。空欄＝上書きなし。片方だけ入れた状態では塗れない（ペア必須）。
+func _height_override_row() -> HBoxContainer:
+	var box := HBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var ev := LineEdit.new()
+	ev.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ev.placeholder_text = "elevation"
+	ev.text = _ov_elevation
+	ev.text_changed.connect(func(t: String) -> void: _ov_elevation = t)
+	box.add_child(ev)
+	var fl := LineEdit.new()
+	fl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	fl.placeholder_text = "floor"
+	fl.text = _ov_floor
+	fl.text_changed.connect(func(t: String) -> void: _ov_floor = t)
+	box.add_child(fl)
+	return _labeled_row("高さ上書き", box)
 
 
 ## 地形タイプの表示名（既定スキンの name。未登録の type は id をそのまま）。
@@ -1070,30 +1094,57 @@ func _on_cell_released(col: int, row: int, button: int) -> void:
 				_say("(%d, %d) へは動かせません（外周か、既に拠点があります）。" % [to.x, to.y])
 
 
-## いま塗る内容 [地形の文字, skin_id]。右クリックは既定地形＋差分なしに戻す。
+## いま塗る内容 [地形の文字, skin_id, 高さ上書き]。右クリックは既定地形＋差分なしに戻す。
 ## 既定スキンは差分に書かない＝未指定セルは type の既定へフォールバックする既存の解釈のまま。
-func _brush(button: int) -> Array:
+## ただし高さ上書きがあるときは既定スキンでも明示して書く（上書きはスキンのエントリにしか持てない）。
+## 高さ上書きの入力が不正（片方だけ・数値でない）なら null＝塗れない。
+func _brush(button: int) -> Variant:
 	if button == MOUSE_BUTTON_RIGHT:
-		return [MapEditorDoc.DEFAULT_CHAR, ""]
+		return [MapEditorDoc.DEFAULT_CHAR, "", {}]
+	var ov: Variant = _brush_override()
+	if ov == null:
+		return null
 	if _sel_terrain_category == "":
-		return [String(_terrains[_sel_terrain]["char"]), ""]
+		var tid := String(_terrains[_sel_terrain]["id"])
+		return [String(_terrains[_sel_terrain]["char"]),
+			"" if ov.is_empty() else String(_default_skin_by_type.get(tid, "")), ov]
 	var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
-	return [_char_of_type(_sel_terrain_category),
-		"" if _sel_terrain_skin == default_id else _sel_terrain_skin]
+	var skin := _sel_terrain_skin
+	if ov.is_empty() and skin == default_id:
+		skin = ""  # 既定スキン＋上書きなし＝差分に書かない（従来どおり）
+	return [_char_of_type(_sel_terrain_category), skin, ov]
 
 
-## 地形を1マス塗る。性能（terrain の文字）と見た目（terrain_skins の差分）を同時に決める。
+## 高さ上書きの入力値 → { elevation, floor }。両方空＝{}（上書きなし）。
+## 片方だけ・数値でない＝null（塗る操作を止める＝半分だけ書いた JSON を作らない）。
+func _brush_override() -> Variant:
+	var ev := _ov_elevation.strip_edges()
+	var fl := _ov_floor.strip_edges()
+	if ev == "" and fl == "":
+		return {}
+	if not ev.is_valid_float() or not fl.is_valid_float():
+		return null
+	return { "elevation": ev.to_float(), "floor": fl.to_float() }
+
+
+## 地形を1マス塗る。性能（terrain の文字）と見た目（terrain_skins の差分＋高さ上書き）を同時に決める。
 func _paint(col: int, row: int, button: int) -> void:
-	var brush := _brush(button)
+	var brush: Variant = _brush(button)
+	if brush == null:
+		_say("高さ上書きは elevation と floor を数値のペアで入れてください（空欄＝上書きなし）。")
+		return
 	_doc.set_terrain_char(col, row, String(brush[0]))
-	_doc.set_terrain_skin(col, row, String(brush[1]))
+	_doc.set_terrain_skin(col, row, String(brush[1]), brush[2])
 	_board.queue_redraw()
 
 
-## 地続き（いまの見た目が同じマス）をまとめて塗る。
+## 地続き（いまの見た目が同じマス）をまとめて塗る。高さ上書きも込みで塗る。
 func _fill(col: int, row: int, button: int) -> void:
-	var brush := _brush(button)
-	var n := _doc.fill_terrain(col, row, String(brush[0]), String(brush[1]))
+	var brush: Variant = _brush(button)
+	if brush == null:
+		_say("高さ上書きは elevation と floor を数値のペアで入れてください（空欄＝上書きなし）。")
+		return
+	var n := _doc.fill_terrain(col, row, String(brush[0]), String(brush[1]), brush[2])
 	_board.queue_redraw()
 	_say("%d マスを塗りました（Ctrl+Z で戻せます）。" % n)
 
@@ -1118,6 +1169,9 @@ func _show_inspection(col: int, row: int) -> void:
 	_add_info(_inspector, "マス (%d, %d)  地形: %s" % [col, row, tid])
 	var skin := _doc.terrain_skin(col, row)
 	_add_info(_inspector, "見た目: %s" % [skin if skin != "" else "%s（既定）" % _default_skin_by_type.get(tid, tid)])
+	var ov := _doc.height_override(col, row)
+	if not ov.is_empty():
+		_add_info(_inspector, "高さ上書き: elevation %s / floor %s" % [str(ov["elevation"]), str(ov["floor"])])
 	var uh := _doc.unit_at(col, row)
 	if not uh.is_empty():
 		_inspect_unit(uh)

@@ -291,6 +291,51 @@ func test_resize_drops_out_of_range_terrain_skins() -> void:
 	assert_eq(doc.terrain_skin(1, 1), "fort_town1")
 
 
+# --- マスごとの高さ上書き（elevation / floor のペア → doc/gdd/terrain.md 盤の高さ） ---
+
+
+func test_height_override_writes_pair_and_clears_on_repaint() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_terrain_skin(2, 1, "river", { "elevation": -0.36, "floor": -0.18 })
+	assert_eq_deep(doc.height_override(2, 1), { "elevation": -0.36, "floor": -0.18 })
+	doc.set_terrain_skin(2, 1, "river")  # 上書きなしで塗り直し＝上書きだけ消える
+	assert_eq_deep(doc.height_override(2, 1), {})
+	assert_eq(doc.terrain_skin(2, 1), "river", "スキン指定は残る")
+	doc.set_terrain_skin(2, 1, "", { "elevation": 1.0, "floor": 1.0 })
+	assert_eq(doc.data["terrain_skins"].size(), 0, "スキン削除でエントリごと消える（上書きは残せない）")
+
+
+func test_height_override_is_emitted_in_key_order() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_terrain_skin(1, 0, "river", { "elevation": -0.18, "floor": 0.0 })
+	assert_string_contains(doc.to_text(),
+		"{ \"col\": 1, \"row\": 0, \"skin\": \"river\", \"elevation\": -0.18, \"floor\": 0 }")
+
+
+func test_fill_paints_height_override_together() -> void:
+	var doc := MapEditorDoc.new_stage(3, 2)
+	assert_eq(doc.fill_terrain(0, 0, "R", "river", { "elevation": -0.18, "floor": 0.0 }), 6)
+	assert_eq_deep(doc.height_override(2, 1), { "elevation": -0.18, "floor": 0.0 })
+
+
+func test_fill_does_not_leak_across_a_different_height_override() -> void:
+	# 同じスキンでも高さ上書きが違えば別領域（湖ごとに水面レベルが違う）。比較はエントリの
+	# データ同士＝行・列の基準高さは見ない。
+	var doc := MapEditorDoc.new_stage(3, 3)
+	for row in 3:
+		doc.set_terrain_skin(1, row, "river", { "elevation": -0.36, "floor": -0.18 })
+	for row in 3:
+		doc.set_terrain_skin(0, row, "river")
+		doc.set_terrain_skin(2, row, "river")
+	doc.set_terrain_char(0, 0, "R")  # 文字も揃える（全マス R）
+	for col in 3:
+		for row in 3:
+			doc.set_terrain_char(col, row, "R")
+	assert_eq(doc.fill_terrain(0, 0, "R", "river", {}), 3, "上書きなしの左列だけ")
+	# 上書き側は据え置き
+	assert_eq_deep(doc.height_override(1, 0), { "elevation": -0.36, "floor": -0.18 })
+
+
 # --- 駒・拠点の操作 ---
 
 
