@@ -372,11 +372,60 @@ func test_terrain_object_without_map_ground_blocks() -> void:
 	types.append(_valid_terrain_type("fence", "+", "object"))
 	var rows := [
 		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
-		_valid_terrain_skin("plain_fence", "fence"),  # map_ground を書いていない
+		_object_terrain_skin("plain_fence", "fence"),
 	]
+	rows[2].erase("map_ground")
 	assert_null(Terrain.build_skin(rows, types)["json"], "object で map_ground 空なら json=null")
 	rows[2]["map_ground"] = "plain"
 	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "足場を書けば通る")
+
+## オブジェクトのスキン行（足場・描画倍率・足元の奥行きを埋めた、最小の有効な行）。
+func _object_terrain_skin(sid: String, tid: String) -> Dictionary:
+	var r := _valid_terrain_skin(sid, tid)
+	r["map_ground"] = "plain"
+	r["map_scale"] = 1.0
+	r["object_foot_z"] = 0.2
+	return r
+
+func test_terrain_object_without_map_scale_blocks() -> void:
+	# 描画倍率は絵の書き出しだけが読む列。空のまま書き出すと等倍の巨大な立ち絵が盤に出るので、
+	# ゲームが読まない列でもここで弾く（空を1.0に倒さない）。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("fort", "O", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_object_terrain_skin("plain_fort", "fort"),
+	]
+	rows[2].erase("map_scale")
+	assert_null(Terrain.build_skin(rows, types)["json"], "倍率が空で json=null")
+	rows[2]["map_scale"] = 0
+	assert_null(Terrain.build_skin(rows, types)["json"], "0倍で json=null")
+	rows[2]["map_scale"] = 1.13
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "正の数なら通る")
+
+func test_terrain_footing_with_object_column_blocks() -> void:
+	# 足場に書いても効かない列。埋まっていると読む側があるように見えるので、空を要求する。
+	for col in ["map_scale", "object_foot_z"]:
+		var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
+		rows[0][col] = 1.0
+		var r := Terrain.build_skin(rows, _terrain_types())
+		assert_null(r["json"], "足場に %s があれば json=null" % col)
+
+func test_terrain_object_foot_z_required_except_connected() -> void:
+	# 立ち絵は足元の奥行きが要る。柵は板で立てる＝この列を使わないので、逆に空でなければ弾く。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("fort", "O", "object"))
+	types.append(_valid_terrain_type("fence", "+", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_object_terrain_skin("plain_fort", "fort"), _object_terrain_skin("plain_fence", "fence"),
+	]
+	rows[3]["connect"] = "line"
+	assert_null(Terrain.build_skin(rows, types)["json"], "柵に足元の奥行きがあれば json=null")
+	rows[3]["object_foot_z"] = ""
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "柵は空で通る")
+	rows[2].erase("object_foot_z")
+	assert_null(Terrain.build_skin(rows, types)["json"], "立ち絵で空なら json=null")
 
 func test_terrain_skin_unknown_orientable_blocks() -> void:
 	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]

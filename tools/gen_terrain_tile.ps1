@@ -33,6 +33,17 @@
   generator happened to leave. -FitMargin below 1 shrinks the art from that
   maximum, which is how you leave a street between neighbouring tiles.
 
+  An object skin (a building, a rock, a fort) is not a tile at all: the board stands it up as a
+  billboard, the same way it stands up a unit.
+
+  -Object writes that standee instead of a hex tile. The figure is scaled to
+  200px * map_scale (data/terrain/terrain_skin.csv) and dropped bottom-aligned on a 384px square
+  canvas. The board maps the CANVAS height to a fixed number of tiles, so the size difference
+  between objects is carried by the transparent padding, exactly as it is for units. Same ruler
+  as gen_unit_map.ps1, so map_scale 1.0 is one fighter tall. An empty map_scale is an error, not
+  a default. Cannot be combined with -Fit / -Upright (there is no hexagon to fit and no tile to
+  pre-stretch). Rule of record: doc/art/terrain.md.
+
 .EXAMPLE
   powershell -File tools\gen_terrain_tile.ps1 plain art\plain_a.png
   powershell -File tools\gen_terrain_tile.ps1 plain art\p1.png art\p2.png art\p3.png
@@ -49,6 +60,7 @@ param(
   [string]$Transparent = '',                      # background colour to drop, e.g. 'white'. '' = keep it
   [int]$Fuzz = 10,                                # tolerance for -Transparent, percent
   [double]$Rotate = 0,                            # turn the art this many degrees clockwise before fitting
+  [switch]$Object,                                # write a standee (see -Object above) instead of a hex tile
   [switch]$Fit,                                   # centre the art and scale it to the largest that fits the hexagon
   [double]$FitMargin = 1.0,                       # 1 = touch the hexagon; below 1 leaves a gap to the neighbours
   [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
@@ -76,6 +88,24 @@ $outDir = Join-Path $repo 'assets\terrain'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("terrain_tile_" + $Name)
 New-Item -ItemType Directory -Force -Path $work | Out-Null
+
+# -Object: the standee ruler. Both numbers are shared with units (gen_unit_map.ps1) so that one
+# scale reads across the whole board; changing either means re-exporting everything and moving
+# CANVAS_TILES in presentation/board/board_terrain_renderer.gd with it.
+$ObjBase   = 200   # figure height (px) at map_scale = 1.0
+$ObjCanvas = 384   # output canvas (square). 384/200 = max scale 1.92
+$ObjHeight = 0
+if ($Object) {
+  if ($Fit -or $Upright) { throw "-Object cannot be combined with -Fit / -Upright" }
+  $csv = Join-Path $repo "data\terrain\terrain_skin.csv"
+  $row = Import-Csv -Path $csv -Encoding UTF8 | Where-Object { $_.skin_id -eq $Name } | Select-Object -First 1
+  if (-not $row) { throw "$Name is not a skin_id in data/terrain/terrain_skin.csv" }
+  # No fallback on purpose: a missing scale would silently ship a full-size object.
+  if ($row.map_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.map_scale -le 0) {
+    throw "$Name has no map_scale in terrain_skin.csv (found '$($row.map_scale)'). Fill the column."
+  }
+  $ObjHeight = [int][math]::Round($ObjBase * [double]$row.map_scale)
+}
 
 # Flat-top hexagon points on the 256x222 canvas (center 128,111; R=128; half-h=110.85).
 $hex = "polygon 256,111 192,221.85 64,221.85 0,111 64,0.15 192,0.15"
@@ -138,6 +168,27 @@ foreach ($src in $Sources) {
     & magick $stage -trim +repage -background none -gravity center -extent "${n}x${n}" $fitted
     $stage = $fitted
     $note = " [fit {0}x{1} -> {2}sq]" -f [int]$cw, [int]$ch, $n
+  }
+
+  # -Object: trim to the art, scale it to the height the csv asks for, and drop it bottom-aligned
+  # on the square canvas. The padding left over is what carries the size difference. No hex mask:
+  # nothing here is tiled, the board bills this up facing the camera.
+  if ($Object) {
+    magick $stage -trim +repage -resize "x$ObjHeight" -background none -gravity south `
+      -extent "${ObjCanvas}x${ObjCanvas}" -colors $Colors -dither None $out
+    # -extent crops silently when the art does not fit, so verify what actually landed.
+    $bb = (magick $out -trim -format "%w %h %X" info:) -split " "
+    $bw = [int]$bb[0]
+    $bx = [int]($bb[2] -replace "\+", "")
+    if ([int]$bb[1] -lt $ObjHeight) {
+      Write-Warning "${Name}: cropped vertically (wanted ${ObjHeight}px, kept $($bb[1])px). Lower map_scale."
+    }
+    if ($bx -le 0 -or ($bx + $bw) -ge $ObjCanvas) {
+      Write-Warning "${Name}: touches the ${ObjCanvas}px canvas edge (art $bw px at +$bx). Lower map_scale."
+    }
+    $kb = [int]((Get-Item $out).Length / 1KB)
+    Write-Output ("{0,-14} <- {1,-28} -> assets/terrain/{2}{3}.png ({4}KB) [standee H={5}]" -f $Name, (Split-Path $src -Leaf), $Name, $suffix, $kb, $ObjHeight)
+    continue
   }
 
   # cover-resize -> center-crop -> [-Upright: stretch tall, crop back] -> hex alpha mask -> colors

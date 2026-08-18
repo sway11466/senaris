@@ -117,6 +117,10 @@ func test_objects_are_never_oriented() -> void:
 			continue
 		assert_false(s.orients(), "%s はオブジェクト＝散らさない" % s.skin_id)
 		assert_eq(s.elevation, 0.0, "%s はオブジェクト＝高さは立ち絵が持つ" % s.skin_id)
+		if s.connects():
+			continue  # 柵は板で立てる＝足元の奥行きを使わない
+		# 立ち絵は駒より奥に立つ（CSVの空欄は 0.0 として出るので、抜けもここで落ちる）。
+		assert_gt(s.object_foot_z, 0.0, "%s はオブジェクト＝足元の奥行きを持つ" % s.skin_id)
 
 func test_unknown_orientable_falls_back_to_none() -> void:
 	# 旧データの bool や打ち間違いが来ても、勝手に回して絵を倒すより散らさないほうが害が小さい。

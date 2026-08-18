@@ -37,6 +37,10 @@ var connect: String
 var connect_to: PackedStringArray
 var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
 var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
+## オブジェクトの立ち絵を、ヘックス中心からどれだけ奥へ置くか（ワールド単位・TILE=1・正＝奥）。
+## 駒は手前に立つので、同じマスなら駒が前に出る。足場のスキンはこの列を持たない（空）。
+## 背丈のほうはここで読まない＝描画倍率(map_scale)は絵の書き出し専用（→ doc/art/terrain.md）。
+var object_foot_z: float
 var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
 ## 盤に敷くときの重ね方。地面を絵に焼き込まず、描画時に下地＋重ね絵で組む（→ doc/art/terrain.md §3.6）。
 ## 両方とも空＝1枚絵で完結する従来のタイル。既存スキンは全部これなので挙動は変わらない。
@@ -63,6 +67,7 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.connect_to = String(ct).split(" ", false) if typeof(ct) == TYPE_STRING else PackedStringArray()
 	s.elevation = float(d.get("elevation", 0.0))
 	s.sprite_sink = float(d.get("sprite_sink", 0.0))
+	s.object_foot_z = float(d.get("object_foot_z", 0.0))
 	s.grid = bool(d.get("grid", true))
 	s.map_ground = String(d.get("map_ground", ""))
 	s.map_overlay = String(d.get("map_overlay", ""))

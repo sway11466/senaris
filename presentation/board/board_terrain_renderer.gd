@@ -13,10 +13,12 @@ const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の�
 ## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
 ## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
-## オブジェクト（足場の上に置くもの）の立ち絵の大きさ＝絵の高さ何タイルぶんか。駒（3.75）より小さい。
-const OBJECT_CANVAS_TILES := 2.2
-## 立ち絵の足元をヘックス中心から奥（上辺寄り）へ。駒は手前（+0.6）に立つので、駒が前に出る。
-const OBJECT_FOOT_Z := -TILE * 0.2
+## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。BoardUnitRenderer.UNIT_CANVAS_TILES と同値
+## ＝駒とオブジェクトで物差しを1本にする（背丈を「駒の何倍か」で読める）。大小の差はキャンバスに
+## 焼き込んだ余白が持つ＝倍率(terrain_skin.csv の map_scale)は絵の書き出しだけが読む。
+const CANVAS_TILES := 3.75
+## 立ち絵の足元をヘックス中心から奥（上辺寄り）へずらす量はスキン側のデータ＝object_foot_z。
+## 駒は手前（+0.6）に立つので、同じマスなら駒が前に出る。
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
 
 # --- 状態（setup で注入）---
@@ -335,7 +337,9 @@ func _add_objects() -> void:
 
 ## 繋がるオブジェクト（柵）。ヘックス中心から、繋がる隣との辺の中点まで板を立てる。
 ## 向きは板の置き方が出すので、絵は横から見た1枚で足りる（繋がり方別に64枚を持たない）。
-## 板の高さは絵の縦横比が決める＝データに高さを持たせない。
+## 板の幅は盤の形が決めている（中心→辺の中点＝0.866タイル）ので、高さは絵の縦横比から出す。
+## 絵をその幅に合わせた細長いキャンバスで書き出せば、背丈は立ち絵と同じ物差しに乗る
+## （→ doc/art/terrain.md）。ここでスキンの倍率を読まないのはそのため。
 func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) -> void:
 	var tex := _object_side_texture(skin)
 	if tex == null:
@@ -364,7 +368,7 @@ func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) ->
 		st.set_uv(Vector2(1, 0)); st.add_vertex(b + up)
 		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
 
-## 繋がらないオブジェクト（岩・建物・砦）。駒と同じ立ち絵1枚を、駒より奥に立てる。
+## 繋がらないオブジェクト（岩・建物・砦）。駒と同じ立ち絵1枚を、スキンが指す奥行きぶん奥に立てる。
 func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
 	if tex == null:
@@ -375,9 +379,9 @@ func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	spr.shaded = false
 	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-	spr.pixel_size = (OBJECT_CANVAS_TILES * TILE) / float(tex.get_height())
+	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
-	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y + OBJECT_FOOT_Z)
+	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y - skin.object_foot_z)
 	add_child(spr)
 
 ## 繋がるオブジェクトの板の絵（assets/terrain/{art_id}_side.png）。無ければ声を上げて null。
