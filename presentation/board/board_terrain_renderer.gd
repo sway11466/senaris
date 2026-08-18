@@ -8,10 +8,10 @@ class_name BoardTerrainRenderer
 # HexBoard3D.TILE と同値。盤全体で共有する「ヘックスの大きさ」の定数。
 const TILE := 1.0
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
-## 見た目の高さ（elevation）と立ち絵の沈み（sprite_sink）はスキン側のデータ＝terrain_skin.csv。
+## 見た目の高さ（elevation）と駒の足元の高さ（floor）はスキン側のデータ＝terrain_skin.csv。
 ## 高さは段差辺に側面スカートを生やす（崖は台地より高い＝登れる高台と登れない絶壁を序列で見せる）。
-## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
-## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
+## floor が動かすのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
+## floor < elevation で駒が地形に沈む（森＝木々の間の地面）、> で浮く（水面の上を飛ぶ）。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 ## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。BoardUnitRenderer.UNIT_CANVAS_TILES と同値
 ## ＝駒とオブジェクトで物差しを1本にする（背丈を「駒の何倍か」で読める）。大小の差はキャンバスに
@@ -30,7 +30,10 @@ var _terrain_skins := {}   # Vector2i -> skin_id（ステージの見た目差�
 var _margin_terrain := {}
 ## 盤の基準高さ（見た目のみ）。{ "row": [行数ぶん], "col": [列数ぶん] }。空＝その軸は平ら。
 ## あるマスの高さ ＝ 行の基準 ＋ 列の基準 ＋ スキンの elevation（→ doc/gdd/terrain.md 盤の高さ）。
+## 盤の高さを無視するスキン（ignore_board_height）は基準を足さない＝elevation / floor が絶対高さ。
 var _board_height := { "row": [], "col": [] }
+## Vector2i -> { "elevation": float, "floor": float }（マスごとの高さ上書き。スキンの値を差し替える）。
+var _height_overrides := {}
 
 # --- キャッシュ ---
 var _terrain_tex := {}     # base_path(String) -> Array[Texture2D]（基本＋連番 variant）
@@ -50,11 +53,12 @@ func _ready() -> void:
 	_skirt_tex = BoardMeshFactory.make_skirt_texture()
 
 func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictionary,
-		board_height: Dictionary = { "row": [], "col": [] }) -> void:
+		board_height: Dictionary = { "row": [], "col": [] }, height_overrides: Dictionary = {}) -> void:
 	_state = state
 	_terrain_skins = terrain_skins
 	_margin_terrain = margin_terrain
 	_board_height = board_height
+	_height_overrides = height_overrides
 
 # =========================================================================
 # Public API
@@ -94,10 +98,21 @@ func refresh_base_tiles() -> void:
 func elev(hex: Vector2i) -> float:
 	if _elev_cache.has(hex):
 		return _elev_cache[hex]
-	var skin := _skin_at(hex)
-	var e: float = (skin.elevation if skin != null else 0.0) + _base_height(hex)
+	var e := _skin_height(hex, "elevation")
 	_elev_cache[hex] = e
 	return e
+
+## スキン由来の高さ（elevation / floor）を1本の規則で解決する。
+## マスに高さ上書きがあればスキンの値を差し替え、盤の高さ（行＋列の基準）は
+## 無視フラグの無いスキンだけに足す（→ doc/gdd/terrain.md 盤の高さ）。
+func _skin_height(hex: Vector2i, key: String) -> float:
+	var skin := _skin_at(hex)
+	if skin == null:
+		return _base_height(hex)
+	var ov: Variant = _height_overrides.get(hex)
+	var v: float = float(ov[key]) if typeof(ov) == TYPE_DICTIONARY else \
+		(skin.elevation if key == "elevation" else skin.floor)
+	return v if skin.ignore_board_height else v + _base_height(hex)
 
 ## 盤の基準高さ（行＋列）。ステージが書いていなければ0＝平ら。盤の外のセルは縁の値に丸める
 ## （外周のスカートが盤の縁と地続きに見えるように）。
@@ -114,10 +129,10 @@ func _base_height(hex: Vector2i) -> float:
 		h += float(col[clampi(o.x, 0, col.size() - 1)])
 	return h
 
-## 立ち絵をタイル上面より沈める量（植生の厚み・既定0）。足元が下草・樹冠に隠れる量。
-func sprite_sink(hex: Vector2i) -> float:
-	var skin := _skin_at(hex)
-	return skin.sprite_sink if skin != null else 0.0
+## 駒の足元の高さ（floor・既定＝上面と同じ）。立ち絵だけがこの高さに立つ。
+## elevation より低ければ地形に沈み（森）、高ければ浮く（水面の上を飛ぶ）。
+func unit_floor(hex: Vector2i) -> float:
+	return _skin_height(hex, "floor")
 
 ## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
 ## スキンはセルごとに違いうるので、定数表ではなく実際に敷かれた高さから集める。

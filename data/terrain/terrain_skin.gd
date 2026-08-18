@@ -35,8 +35,13 @@ var connect: String
 ## 片方向で書ける＝川に橋を書き、橋に川を書かなければ「川は橋へ帯を伸ばすが、橋は川へ伸びない」に
 ## なる。橋の下を川がくぐるのはこの非対称で作る（→ doc/art/terrain.md §3.7）。
 var connect_to: PackedStringArray
-var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。0で平ら。段差辺には側面スカートが付く
-var sprite_sink: float     ## 立ち絵だけタイル上面より沈める量（植生の厚み）。elevation と同値で足元が地面と揃う
+var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1）。負も可（水面など）。段差辺には側面スカートが付く
+## 駒の足元の高さ（ワールド単位・TILE=1）。elevation と同じ座標系で、駒の立ち絵だけがこの高さに立つ。
+## elevation より低ければ地形に沈む（森＝木々の間の地面）、高ければ浮く（水面の上を飛ぶ）。
+var floor: float
+## 行・列の基準高さ（盤の高さ）を足さないか。true＝elevation / floor が絶対高さになる。
+## 水面のように、盤の傾斜に乗らず一定の高さを保つスキンが使う（→ doc/gdd/terrain.md 盤の高さ）。
+var ignore_board_height: bool
 ## オブジェクトの立ち絵を、ヘックス中心からどれだけ奥へ置くか（ワールド単位・TILE=1・正＝奥）。
 ## 駒は手前に立つので、同じマスなら駒が前に出る。足場のスキンはこの列を持たない（空）。
 ## 背丈のほうはここで読まない＝描画倍率(map_scale)は絵の書き出し専用（→ doc/art/terrain.md）。
@@ -66,7 +71,8 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	var ct: Variant = d.get("connect_to", "")
 	s.connect_to = String(ct).split(" ", false) if typeof(ct) == TYPE_STRING else PackedStringArray()
 	s.elevation = float(d.get("elevation", 0.0))
-	s.sprite_sink = float(d.get("sprite_sink", 0.0))
+	s.floor = float(d.get("floor", 0.0))
+	s.ignore_board_height = bool(d.get("ignore_board_height", false))
 	s.object_foot_z = float(d.get("object_foot_z", 0.0))
 	s.grid = bool(d.get("grid", true))
 	s.map_ground = String(d.get("map_ground", ""))

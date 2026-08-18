@@ -30,7 +30,8 @@ func _ready() -> void:
 	var board: HexBoard3D = preload("res://presentation/board/hex_board_3d.gd").new()
 	add_child(board)
 	board.bind(state, controller, skins, StageLoader.load_terrain_skins(path),
-		StageLoader.load_margin_terrain(path))
+		StageLoader.load_margin_terrain(path), StageLoader.load_board_height(path, state.cols, state.rows),
+		StageLoader.load_height_overrides(path))
 
 	# 地形テクスチャ・シェーダのウォームアップに数フレーム回す。
 	for i in 6:

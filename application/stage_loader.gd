@@ -165,6 +165,35 @@ static func parse_terrain_skins(data: Dictionary) -> Dictionary:
 		out[hex] = String(e.get("skin", ""))
 	return out
 
+## 見た目レイヤー：マスごとの高さ上書き。terrain_skins のエントリに elevation と floor をペアで
+## 書くと、そのマスだけスキンの値を差し替える（無視フラグ・行/列の基準の扱いはスキン定義のまま
+## → doc/gdd/terrain.md 盤の高さ）。片方だけ・数値でない値は書き間違い＝エラーにして適用しない
+## （黙って半分だけ効くと、駒が地形にめり込んで原因が追えなくなる）。
+static func parse_height_overrides(data: Dictionary) -> Dictionary:
+	var out := {}
+	var list: Variant = data.get("terrain_skins", [])
+	if typeof(list) != TYPE_ARRAY:
+		return out
+	for e in list:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		var has_e: bool = e.has("elevation")
+		var has_f: bool = e.has("floor")
+		if not has_e and not has_f:
+			continue
+		var col := int(e.get("col", 0))
+		var row := int(e.get("row", 0))
+		if has_e != has_f:
+			push_error("stage: terrain_skins (%d, %d) の高さ上書きは elevation と floor をペアで書く" % [col, row])
+			continue
+		var ev: Variant = e.get("elevation")
+		var fl: Variant = e.get("floor")
+		if not (typeof(ev) in [TYPE_INT, TYPE_FLOAT]) or not (typeof(fl) in [TYPE_INT, TYPE_FLOAT]):
+			push_error("stage: terrain_skins (%d, %d) の elevation / floor が数値でない" % [col, row])
+			continue
+		out[Hex.offset_to_axial(col, row)] = { "elevation": float(ev), "floor": float(fl) }
+	return out
+
 ## 見た目レイヤー：盤の基準高さ。ステージ辞書の "height"（{row:[..], col:[..]}）→ { row, col }。
 ## あるマスの見た目の高さ ＝ 行の基準 ＋ 列の基準 ＋ スキンの elevation（→ doc/gdd/terrain.md 盤の高さ）。
 ## 移動にも戦闘にも視線にも入らない。書いていなければ平ら。書くなら盤の行数・列数と長さを合わせる
@@ -211,6 +240,16 @@ static func load_terrain_skins(path: String) -> Dictionary:
 	if typeof(data) != TYPE_DICTIONARY:
 		return {}
 	return parse_terrain_skins(data)
+
+## res:// パスの JSON からマスごとの高さ上書きを読む（load_terrain_skins と対）。
+static func load_height_overrides(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return {}
+	return parse_height_overrides(data)
 
 ## 会話（シナリオ）：ステージ辞書の "dialogue" を台本ごとに取り出す。intro/outro は戦闘前後、
 ## それ以外のキーは events の "dialogue" が名指しする戦闘中の会話（doc/gdd/map.md イベント）。

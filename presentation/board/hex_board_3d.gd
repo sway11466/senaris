@@ -128,12 +128,12 @@ func _ready() -> void:
 	_menu.id_pressed.connect(_on_menu_id)
 	_menu.popup_hide.connect(_on_menu_closed)
 
-func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}, p_board_height: Dictionary = { "row": [], "col": [] }) -> void:
+func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}, p_board_height: Dictionary = { "row": [], "col": [] }, p_height_overrides: Dictionary = {}) -> void:
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_board_height)
-	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.sprite_sink)
+	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_board_height, p_height_overrides)
+	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.unit_floor)
 	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, _in_board, state, _sync, func(v: bool) -> void: _locked = v)
 	_reset_interaction()
 	controller.unit_moved.connect(_on_unit_moved)

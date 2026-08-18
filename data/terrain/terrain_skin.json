@@ -6,7 +6,9 @@
 			"connect": "area",
 			"connect_to": "road_stone1 road_bridge1 road_building_town1_v road_building_town1_r road_building_town1_l road_prop_garden1_v road_prop_garden1_r road_prop_garden1_l road_fort_guardhouse1",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -15,7 +17,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "road",
-			"sprite_sink": 0,
 			"terrain_type": "road"
 		},
 		{
@@ -24,7 +25,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -33,7 +36,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "plain",
-			"sprite_sink": 0,
 			"terrain_type": "plain"
 		},
 		{
@@ -42,7 +44,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -51,7 +55,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "plain_cave1",
-			"sprite_sink": 0,
 			"terrain_type": "plain"
 		},
 		{
@@ -60,7 +63,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -69,7 +74,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "plain_grave1",
-			"sprite_sink": 0,
 			"terrain_type": "plain"
 		},
 		{
@@ -78,7 +82,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.18,
+			"floor": 0.18,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -87,7 +93,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "plateau",
-			"sprite_sink": 0,
 			"terrain_type": "plateau"
 		},
 		{
@@ -96,7 +101,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 1.33,
@@ -105,7 +112,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_building_town1_v",
-			"sprite_sink": 0,
 			"terrain_type": "building"
 		},
 		{
@@ -114,7 +120,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 1.33,
@@ -123,7 +131,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_building_town1_r",
-			"sprite_sink": 0,
 			"terrain_type": "building"
 		},
 		{
@@ -132,7 +139,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 1.33,
@@ -141,7 +150,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_building_town1_l",
-			"sprite_sink": 0,
 			"terrain_type": "building"
 		},
 		{
@@ -150,7 +158,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -159,7 +169,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "wasteland",
-			"sprite_sink": 0,
 			"terrain_type": "wasteland"
 		},
 		{
@@ -168,7 +177,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "wasteland",
 			"map_overlay": "",
 			"map_scale": 0.61,
@@ -177,7 +188,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "wasteland_prop_tomb1",
-			"sprite_sink": 0,
 			"terrain_type": "prop"
 		},
 		{
@@ -186,16 +196,17 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.18,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
-			"memo": "",
+			"memo": "駒は木々の間の地面に立つ＝floor 0（上面より低い）",
 			"name": "森",
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "forest",
-			"sprite_sink": 0.18,
 			"terrain_type": "forest"
 		},
 		{
@@ -204,16 +215,17 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.12,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
-			"memo": "塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす",
+			"memo": "塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0",
 			"name": "茂み",
 			"object_foot_z": "",
 			"orientable": "flip_x",
 			"skin_id": "bush",
-			"sprite_sink": 0.12,
 			"terrain_type": "bush"
 		},
 		{
@@ -222,7 +234,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 0.41,
@@ -231,7 +245,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_prop_garden1_v",
-			"sprite_sink": 0,
 			"terrain_type": "prop"
 		},
 		{
@@ -240,7 +253,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 0.41,
@@ -249,7 +264,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_prop_garden1_r",
-			"sprite_sink": 0,
 			"terrain_type": "prop"
 		},
 		{
@@ -258,7 +272,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 0.41,
@@ -267,7 +283,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_prop_garden1_l",
-			"sprite_sink": 0,
 			"terrain_type": "prop"
 		},
 		{
@@ -276,7 +291,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.36,
+			"floor": 0.36,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -285,7 +302,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "bedrock",
-			"sprite_sink": 0,
 			"terrain_type": "bedrock"
 		},
 		{
@@ -294,7 +310,9 @@
 			"connect": "line",
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain",
 			"map_overlay": "",
 			"map_scale": 0.23,
@@ -303,7 +321,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "plain_fence",
-			"sprite_sink": 0,
 			"terrain_type": "fence"
 		},
 		{
@@ -312,7 +329,9 @@
 			"connect": "line",
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
 			"map_overlay": "plain_fence",
 			"map_scale": 0.23,
@@ -321,7 +340,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "plain_grave1_fence",
-			"sprite_sink": 0,
 			"terrain_type": "fence"
 		},
 		{
@@ -330,7 +348,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain",
 			"map_overlay": "",
 			"map_scale": 0.15,
@@ -339,7 +359,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "plain_trap",
-			"sprite_sink": 0,
 			"terrain_type": "trap"
 		},
 		{
@@ -348,7 +367,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
+			"floor": 0.54,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -357,7 +378,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "rampart",
-			"sprite_sink": 0,
 			"terrain_type": "rampart"
 		},
 		{
@@ -366,7 +386,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
+			"floor": 0.54,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -375,7 +397,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "rampart_ridge1",
-			"sprite_sink": 0,
 			"terrain_type": "rampart"
 		},
 		{
@@ -384,7 +405,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
+			"floor": 0.54,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -393,7 +416,6 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"skin_id": "rampart_granite1",
-			"sprite_sink": 0,
 			"terrain_type": "rampart"
 		},
 		{
@@ -402,7 +424,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
 			"map_overlay": "",
 			"map_scale": 0.51,
@@ -411,7 +435,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "plain_grave1_rubble1",
-			"sprite_sink": 0,
 			"terrain_type": "rubble"
 		},
 		{
@@ -420,16 +443,17 @@
 			"connect": "area",
 			"connect_to": "road_bridge1",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
-			"memo": "隣の川と繋がる向き別タイル（_c000000〜_c111111）",
+			"memo": "隣の川と繋がる向き別タイル（_c000000〜_c111111）。水スキンに置き換え予定（→ 盤高無視＋負の elevation）",
 			"name": "川",
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "river",
-			"sprite_sink": 0,
 			"terrain_type": "river"
 		},
 		{
@@ -438,7 +462,9 @@
 			"connect": "area",
 			"connect_to": "road road_bridge1",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain",
 			"map_overlay": "",
 			"map_scale": "",
@@ -447,7 +473,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "road_stone1",
-			"sprite_sink": 0,
 			"terrain_type": "road"
 		},
 		{
@@ -456,7 +481,9 @@
 			"connect": "area",
 			"connect_to": "road road_stone1",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "river",
 			"map_overlay": "road_stone1",
 			"map_scale": "",
@@ -465,7 +492,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "road_bridge1",
-			"sprite_sink": 0,
 			"terrain_type": "road"
 		},
 		{
@@ -474,7 +500,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.72,
+			"floor": 0.72,
 			"grid": false,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -483,7 +511,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "wall",
-			"sprite_sink": 0,
 			"terrain_type": "wall"
 		},
 		{
@@ -492,7 +519,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "",
 			"map_overlay": "",
 			"map_scale": "",
@@ -501,7 +530,6 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"skin_id": "wall_stone1",
-			"sprite_sink": 0,
 			"terrain_type": "wall"
 		},
 		{
@@ -510,7 +538,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain",
 			"map_overlay": "",
 			"map_scale": 1.13,
@@ -519,7 +549,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "plain_fort",
-			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
 		{
@@ -528,7 +557,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 1.33,
@@ -537,7 +568,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_fort_town1",
-			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
 		{
@@ -546,7 +576,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "road",
 			"map_overlay": "",
 			"map_scale": 1.02,
@@ -555,7 +587,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "road_fort_guardhouse1",
-			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
 		{
@@ -564,7 +595,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
 			"map_overlay": "",
 			"map_scale": 0.92,
@@ -573,7 +606,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "plain_grave1_fort_crypt1",
-			"sprite_sink": 0,
 			"terrain_type": "fort"
 		},
 		{
@@ -582,7 +614,9 @@
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
+			"floor": 0,
 			"grid": true,
+			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
 			"map_overlay": "",
 			"map_scale": 1.23,
@@ -591,7 +625,6 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"skin_id": "plain_grave1_fort_chapel1",
-			"sprite_sink": 0,
 			"terrain_type": "fort"
 		}
 	]

@@ -15,8 +15,8 @@ const SkinDef = preload("res://data/terrain/terrain_skin.gd")
 const TYPE_REQUIRED := ["id", "name", "layer", "char", "atk", "def", "sight_cost"]
 ## 地形の層（→ doc/gdd/terrain.md）。足場＝面や線で敷くもの／オブジェクト＝点として置くもの。
 const LAYERS := ["footing", "object"]
-## スキンで必ず要る列（memo は任意）。
-const SKIN_REQUIRED := ["skin_id", "terrain_type", "name"]
+## スキンで必ず要る列（memo は任意）。ignore_board_height は空を既定に倒さず全行に明示させる。
+const SKIN_REQUIRED := ["skin_id", "terrain_type", "name", "ignore_board_height"]
 
 func _initialize() -> void:
 	var type_rows := Csv.read_table("res://data/terrain/terrain_type.csv")
@@ -77,7 +77,9 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	problems += Csv.invalid_values(rows, "connect", ["line", "area", "false"], "skin_id")
 	problems += Csv.invalid_values(rows, "grid", ["true", "false"], "skin_id")
 	problems += _invalid_amount(rows, "elevation")   # 打ち間違いが「高さ0」に化けて黙って平らになるのを防ぐ
-	problems += _invalid_amount(rows, "sprite_sink")
+	problems += _invalid_amount(rows, "floor")
+	# 盤の高さ（行・列の基準）を足さないスキン（水面など）。全行に明示する＝空を既定に倒さない。
+	problems += Csv.invalid_values(rows, "ignore_board_height", ["true", "false"], "skin_id")
 	# オブジェクトにだけ要る2列。層で必須が切り替わるので _invalid_amount（全行必須）とは分けて見る。
 	problems += _invalid_object_amount(rows, type_rows, "map_scale", true, false)
 	problems += _invalid_object_amount(rows, type_rows, "object_foot_z", false, true)
@@ -150,15 +152,15 @@ static func _footing_without_same_name_skin(rows: Array, type_rows: Array) -> Ar
 			problems.append("足場 '%s' に同名のスキンが無い（指定なしのセルが引けない）" % id)
 	return problems
 
-## 見た目の量（elevation / sprite_sink）は「0以上の数値」だけ許す。文字列が混じると float() で 0 に化けて黙って平らになる。
+## 見た目の量（elevation / floor）は数値だけ許す（負も可＝水面など）。文字列が混じると float() で 0 に化けて黙って平らになる。
 static func _invalid_amount(rows: Array, col: String) -> Array:
 	var problems: Array = []
 	for i in rows.size():
 		var r: Dictionary = rows[i]
 		var v: Variant = r.get(col)
-		var ok: bool = (typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT) and float(v) >= 0.0
+		var ok: bool = typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT
 		if not ok:
-			problems.append("行[%s] の %s が不正 '%s'（0以上の数値）" % [str(r.get("skin_id", i)), col, str(v)])
+			problems.append("行[%s] の %s が不正 '%s'（数値。負も可）" % [str(r.get("skin_id", i)), col, str(v)])
 	return problems
 
 func _report(name: String, problems: Array) -> void:

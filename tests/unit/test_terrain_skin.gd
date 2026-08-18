@@ -237,6 +237,54 @@ func test_parse_board_height_reads_both_axes() -> void:
 	assert_eq(h["row"], [0.0, 0.18, 0.36], "行の基準")
 	assert_eq(h["col"], [0.0, 0.5], "列の基準")
 
+func test_from_dict_reads_floor_and_ignore_board_height() -> void:
+	# floor＝駒の足元の高さ（elevation と同じ座標系）。ignore_board_height＝行・列の基準を足さない。
+	var s := TerrainSkin.from_dict({ "skin_id": "x", "elevation": -0.18, "floor": 0.0,
+		"ignore_board_height": true })
+	assert_eq(s.elevation, -0.18, "elevation は負も可（水面）")
+	assert_eq(s.floor, 0.0, "floor は独立の値")
+	assert_true(s.ignore_board_height, "盤の高さを無視")
+
+func test_floor_matches_elevation_when_units_stand_on_top() -> void:
+	# 上に立つ地形は floor ＝ elevation。沈む地形（森・茂み）は floor < elevation。
+	for sid in ["plateau", "bedrock", "rampart", "wall"]:
+		var s := TerrainSkinCatalog.skin_by_id(sid)
+		assert_true(s != null and s.floor == s.elevation, "%s は上面に立つ" % sid)
+	for sid in ["forest", "bush"]:
+		var s := TerrainSkinCatalog.skin_by_id(sid)
+		assert_true(s != null and s.floor < s.elevation, "%s は地形に沈む" % sid)
+
+func test_parse_height_overrides_reads_pairs() -> void:
+	# terrain_skins のエントリに elevation と floor をペアで書くと、そのマスだけ高さを差し替える。
+	var d := { "terrain_skins": [
+		{ "col": 2, "row": 3, "skin": "plain", "elevation": -0.36, "floor": -0.18 },
+		{ "col": 0, "row": 0, "skin": "forest" },
+	] }
+	var m := StageLoader.parse_height_overrides(d)
+	assert_eq(m.size(), 1, "上書きの無いエントリは載らない")
+	var ov: Dictionary = m.get(Hex.offset_to_axial(2, 3), {})
+	assert_eq(ov.get("elevation"), -0.36, "elevation の上書き")
+	assert_eq(ov.get("floor"), -0.18, "floor の上書き")
+
+func test_parse_height_overrides_rejects_half_pairs() -> void:
+	# 片方だけの高さ上書きは書き間違い＝エラーにして適用しない（黙って半分だけ効かせない）。
+	var d := { "terrain_skins": [
+		{ "col": 1, "row": 1, "skin": "plain", "elevation": -0.18 },
+		{ "col": 2, "row": 1, "skin": "plain", "floor": 0.5 },
+	] }
+	assert_eq(StageLoader.parse_height_overrides(d).size(), 0, "片方だけは適用しない")
+	assert_push_error_count(2, "2件ともエラーで知らせる")
+
+func test_parse_height_overrides_rejects_non_numbers() -> void:
+	var d := { "terrain_skins": [
+		{ "col": 1, "row": 1, "skin": "plain", "elevation": "low", "floor": 0.0 },
+	] }
+	assert_eq(StageLoader.parse_height_overrides(d).size(), 0, "数値でない値は適用しない")
+	assert_push_error_count(1, "エラーで知らせる")
+
+func test_parse_height_overrides_empty_when_absent() -> void:
+	assert_eq(StageLoader.parse_height_overrides({}).size(), 0, "未指定は空")
+
 func test_parse_board_height_rejects_wrong_length() -> void:
 	# 長さが盤と違う配列を黙って0で埋めると、どこまで指定したつもりか分からなくなる。
 	var d := { "height": { "row": [0, 0.18], "col": [0, 0.5] } }

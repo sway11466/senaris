@@ -47,7 +47,7 @@ var _board_cam: BoardCamera
 var _state: BattleState
 var _skin_catalog: Dictionary
 var _elev_fn: Callable       # (hex: Vector2i) -> float（地形の見た目の高さ）
-var _sprite_sink_fn: Callable # (hex: Vector2i) -> float（植生の沈み量）
+var _floor_fn: Callable      # (hex: Vector2i) -> float（駒の足元の高さ。立ち絵だけがここに立つ）
 
 # --- メッシュ・材質（_ready で生成）---
 var _shadow_mesh: ArrayMesh
@@ -93,12 +93,12 @@ func _ready() -> void:
 
 ## 外部参照を注入する。bind（ステージ確定）のたびに呼ばれる。
 func setup(board_cam: BoardCamera, p_state: BattleState, skin_catalog: Dictionary,
-		elev_fn: Callable, sprite_sink_fn: Callable) -> void:
+		elev_fn: Callable, floor_fn: Callable) -> void:
 	_board_cam = board_cam
 	_state = p_state
 	_skin_catalog = skin_catalog
 	_elev_fn = elev_fn
-	_sprite_sink_fn = sprite_sink_fn
+	_floor_fn = floor_fn
 
 func _process(_delta: float) -> void:
 	# 足元の光の明滅。位相は絶対時刻から出す＝sync_units でノードを作り直しても途切れない。
@@ -149,7 +149,8 @@ func build_unit_node(u: Unit) -> Node3D:
 		spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD    # 半透明ソート回避
 		spr.pixel_size = (UNIT_CANVAS_TILES * TILE) / float(tex.get_height())
 		spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元
-		spr.position = Vector3(0, 0.02 - _sprite_sink_fn.call(u.pos), SPRITE_FOOT_Z)
+		# 根ノードはタイル上面（elev）。立ち絵だけ floor へずらす＝影・バー・リングは上面のまま。
+		spr.position = Vector3(0, 0.02 + _floor_fn.call(u.pos) - _elev_fn.call(u.pos), SPRITE_FOOT_Z)
 		if done:
 			spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
 		root.add_child(spr)
@@ -333,7 +334,7 @@ func _mark_scale() -> float:
 ## 駒の頭のてっぺんのワールド位置。足元からカメラの上方向へ背丈ぶん進めた点。
 func _unit_head_pos(u: Unit) -> Vector3:
 	var p := Hex.to_pixel(u.pos, TILE)
-	var foot := Vector3(p.x, _elev_fn.call(u.pos) + 0.02 - _sprite_sink_fn.call(u.pos), p.y + SPRITE_FOOT_Z)
+	var foot := Vector3(p.x, _floor_fn.call(u.pos) + 0.02, p.y + SPRITE_FOOT_Z)
 	var tex := _unit_texture(u)
 	if tex == null:
 		return foot + _board_cam.cam_up * (TILE * 0.35)

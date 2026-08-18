@@ -41,13 +41,13 @@ func test_color_line_has_alpha() -> void:
 	assert_true(BoardTerrainRenderer.COLOR_LINE.a > 0.0 and BoardTerrainRenderer.COLOR_LINE.a < 1.0,
 		"COLOR_LINE は半透明")
 
-# --- elev / sprite_sink（state 未設定）---
+# --- elev / unit_floor（state 未設定）---
 
 func test_elev_without_state_returns_zero() -> void:
 	assert_eq(renderer.elev(Vector2i.ZERO), 0.0, "state 未設定なら標高 0")
 
-func test_sprite_sink_without_state_returns_zero() -> void:
-	assert_eq(renderer.sprite_sink(Vector2i.ZERO), 0.0, "state 未設定なら沈み 0")
+func test_unit_floor_without_state_returns_zero() -> void:
+	assert_eq(renderer.unit_floor(Vector2i.ZERO), 0.0, "state 未設定なら足元 0")
 
 func test_elev_levels_without_state() -> void:
 	var levels := renderer.elev_levels()

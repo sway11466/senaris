@@ -333,7 +333,8 @@ func test_terrain_sight_cost_from_real_data() -> void:
 # --- terrain: build_skin ---
 
 func _valid_terrain_skin(sid: String, tid: String) -> Dictionary:
-	return { "skin_id": sid, "terrain_type": tid, "name": "名", "orientable": "none", "elevation": 0, "sprite_sink": 0 }
+	return { "skin_id": sid, "terrain_type": tid, "name": "名", "orientable": "none",
+		"elevation": 0, "floor": 0, "ignore_board_height": "false" }
 
 func test_terrain_skin_valid_builds_json() -> void:
 	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
@@ -350,16 +351,26 @@ func test_terrain_skin_each_required_column_pins_json_null() -> void:
 
 func test_terrain_skin_amount_must_be_number() -> void:
 	# 見た目の量が文字列だと float() で 0 に化けて黙って平らになる＝生成前に弾く。
-	for col in ["elevation", "sprite_sink"]:
+	for col in ["elevation", "floor"]:
 		var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
 		rows[0][col] = "０.18"  # 全角＝数値に推論されず文字列のまま入る打ち間違い
 		var r := Terrain.build_skin(rows, _terrain_types())
 		assert_null(r["json"], "'%s' が数値でなければ json=null" % col)
 
-func test_terrain_skin_negative_amount_blocks() -> void:
+func test_terrain_skin_negative_amount_is_valid() -> void:
+	# 負の高さは水面（盤の高さを無視して沈む足場）で使う＝弾かない。
 	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
-	rows[0]["elevation"] = -0.1
-	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "負の高さは弾く")
+	rows[0]["elevation"] = -0.18
+	rows[0]["floor"] = 0
+	assert_eq(Terrain.build_skin(rows, _terrain_types())["problems"].size(), 0, "負の高さは有効")
+
+func test_terrain_skin_ignore_board_height_must_be_bool_word() -> void:
+	# 盤の高さを無視するかは全行に true/false を明示する（空を既定に倒さない）。
+	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
+	rows[0]["ignore_board_height"] = "yes"
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "未知の語は弾く")
+	rows[0].erase("ignore_board_height")
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "空/欠落も弾く")
 
 func test_terrain_footing_without_same_name_skin_blocks() -> void:
 	# 足場は型IDと同名のスキンで引く（ステージが指定しないセル）。同名が無いと引けない。
