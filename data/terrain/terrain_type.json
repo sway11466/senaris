@@ -61,12 +61,12 @@
 			"sight_cost": "x"
 		},
 		{
-			"atk": 1.1,
+			"atk": 1.2,
 			"char": "P",
-			"def": 1.1,
+			"def": 1.2,
 			"id": "plateau",
 			"layer": "footing",
-			"memo": "攻防ともに少しアップ",
+			"memo": "攻防ともにアップ",
 			"name": "台地",
 			"sight_cost": 1
 		},

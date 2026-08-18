@@ -6,7 +6,7 @@ wasteland,荒地,footing,%,1.0,1.0,1,移動コストやや高め
 rampart,城壁,footing,W,1.0,1.0,x,飛行ユニットと斥候が移動可能
 river,川,footing,R,1.0,1.0,1,飛行ユニットのみ移動可能
 wall,壁,footing,#,1.0,1.0,x,全ユニット移動不可
-plateau,台地,footing,P,1.1,1.1,1,攻防ともに少しアップ
+plateau,台地,footing,P,1.2,1.2,1,攻防ともにアップ
 forest,森,footing,F,1.0,1.2,2,防御有利、移動コストやや高め、専用通過ユニット有
 bush,茂み,footing,*,1.2,1.0,2,攻撃有利、移動コストやや高め、専用通過ユニット有
 bedrock,岩地,footing,M,0.6,0.6,2,攻防不利、移動コスト高め、専用通過ユニット有

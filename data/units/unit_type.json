@@ -556,7 +556,7 @@
 			"memo": "",
 			"move": 0,
 			"move_after_attack": false,
-			"move_type": "ground",
+			"move_type": "fixed",
 			"pierce": 0,
 			"range": 0
 		},
@@ -572,7 +572,7 @@
 			"memo": "",
 			"move": 0,
 			"move_after_attack": false,
-			"move_type": "ground",
+			"move_type": "fixed",
 			"pierce": 0,
 			"range": "2-6"
 		},
