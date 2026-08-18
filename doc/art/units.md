@@ -112,30 +112,41 @@
 
 ### 3.2 確定プロンプト雛形（アンカー方式）
 
-アンカー方式の考え方は [direction.md](direction.md) §3。`STYLE:` ブロックは全ユニット共通で固定、`SUBJECT:` ブロックだけ差し替える。i2i（参照画像）は使わず、同じ STYLE 文＋SUBJECT の言葉指定だけで一貫性を出す。SUBJECT に「same steel-blue palette / same face style as the fighter」等を明記するのがコツ。Nano Banana はタグ羅列より自然文の描写が効く。
+アンカー方式の考え方は [direction.md](direction.md) §3。`SUBJECT:` はユニットごと、`STYLE:` は本節が持つ。i2i（参照画像）は使わず、同じ STYLE 文＋SUBJECT の言葉指定だけで一貫性を出す。SUBJECT に「same steel-blue palette / same face style as the fighter」等を明記するのがコツ。Nano Banana はタグ羅列より自然文の描写が効く。
 
-STYLE（共通・固定）:
+ただし STYLE は1本に固定しない。共通で守るのはテイスト（絵柄・視点・出力の形）だけで、造形の違うグループは自分の STYLE を `assets/units-src/{group}/style.md` に持ってよい。地形が壁・城壁で独自 STYLE を持つのと同じ運用（→ [terrain.md](terrain.md) §2）。
+
+分けた理由は、共通 STYLE が味方の人型で固めたものだから。頭身・表情・武器の構えといった条項は、竜・植物・魔法生物には当てはまらない。当てはまらない指示を渡し続けると、SUBJECT でそれを打ち消す文言が増え、狙いより打ち消しのほうが長い不安定なプロンプトになる。
+
+UNIT STYLE（テイストの共通項・全グループ）:
 ```
 STYLE: A single fantasy tactics-game unit piece, clean stylized vector-like
 illustration with bold flat cel-shading and a strong readable silhouette.
+Simplified, bold, rounded chunky shapes, grounded in a mature, slightly
+muted, limited color palette. NOT bright saturated anime coloring, NOT
+painterly photorealism. Soft rim light, minimal fussy detail so the shape
+reads clearly even when shrunk very small. Strictly symmetrical, straight-on front
+view — the subject faces the camera directly, square to the viewer
+(NO three-quarter turn, NO side view). Full body, in a neutral,
+evenly-weighted stance that does NOT commit to a left or right direction.
+Centered, feet near the
+lower third with a small soft ground shadow. Plain pure-white background
+(single flat color, for easy cutout). Square 1:1 composition.
+```
+
+人型グループの追加分（味方・ゴブリン・オーク・アンデッド・悪党）:
+```
 Chunky, appealing, strong super-deformed / chibi proportions — about 2 to 2.5
 heads tall, with a very large oversized head, a small stubby body and short
 thick limbs; keep the weapon and role props chunky and bold so they still read
 clearly even at tiny sizes. Expressive face with large clear eyes and a calm,
-confident personality (not angry or grimacing). Simplified, bold, rounded
-chunky shapes. Charming and heroic with a bit of grit — a strong chibi build,
-but NOT moe and NOT overly cute; grounded in a mature, slightly
-muted, limited color palette. NOT bright saturated anime coloring, NOT
-painterly photorealism. Soft rim light, minimal fussy detail so the shape
-reads clearly even when shrunk very small. Strictly symmetrical, straight-on front
-view — the character faces the camera directly, shoulders square to the viewer
-(NO three-quarter turn, NO side view). Full body, standing in a neutral,
-evenly-weighted stance that does NOT commit to a left or right direction —
-weapon(s) held upright and ready in front, close to the body, not extended or
-pointing off to one side. Centered, feet near the
-lower third with a small soft ground shadow. Plain pure-white background
-(single flat color, for easy cutout). Square 1:1 composition.
+confident personality (not angry or grimacing). Charming and heroic with a bit
+of grit — a strong chibi build, but NOT moe and NOT overly cute. Weapon(s) held
+upright and ready in front, close to the body, not extended or pointing off to
+one side.
 ```
+
+人型でないグループ（魔獣・巨人・植物・ドラゴン・魔法生物）は追加分を使わない。体型・顔の作り・付属物はグループの `style.md` が持ち、個体差は SUBJECT に書く。グループが独自の STYLE ブロックを持つ場合も、テイストの共通項は必ず先頭に付ける＝盤に並んだとき同じ絵柄に見えることだけは全グループで守る。
 
 SUBJECT（生成プロンプト本体）の置き場：
 
@@ -238,7 +249,7 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 - キャラと違い、人・顔・背景は描かない。武器が当たった痕跡そのもの（斬り跡・矢・石・光）だけを、透過の1枚に描く。
 - 立ち絵と同じ絵柄に寄せる：フラットなセル塗り・限定色。細かい粒子・淡いグラデーション・強い発光は縮小で消えるか切り抜きが荒れるので使わない。
 - 例外＝靄・粉・煙のように、そもそも輪郭を持たないもの。この文法（輪郭線つきの平らな図形）で描かせると、必ず粒＝物体になる（胞子で豆・小石・スライムの塊と3回外した）。これに当たる効果は EFFECT STYLE から「輪郭線・平らなセル塗り・ぼかし禁止」の各行を外し、黒背景の上に柔らかい縁の靄として描いて、黒を輝度でアルファに変換する。[`tools/gen_effect.ps1`](../../tools/gen_effect.ps1) はトリムと縮小しかせずアルファをそのまま通すので、半透明の縁は最後まで残る（立ち絵で溶けるのは、白背景を手で切っているから）。
-- 向きは「右へ向かう一撃」で統一して描く。左向きは演出側が水平反転するので描き分けない（`impact` も `projectile` も同じ規約）。飛ぶものは水平＝上下の傾きを付けない。
+- 向きは「右へ向かう一撃」で統一して描く。左向きは演出側が水平反転するので描き分けない（`impact` も `projectile` も同じ規約）。飛ぶもの（`projectile`）は水平＝上下の傾きを付けない。被弾に重ねるもの（`impact`）は斜めに振ってよい（爪痕＝左上から右下、竜のブレス＝飛行から吹き下ろす）。
 - 味方とゴブリンが同じ絵を使うので、陣営色（青・赤）に寄せない中立色で描く。斬撃は銀白〜淡い水色。陣営が決まっているもの（聖光＝クレリック）は例外で、その陣営の色を使ってよい。
 - キャンバスいっぱいに描く（余白は最小）。ユニットと違い余白に大小を焼き込まない＝書き出しでトリムする。画面に出る大きさは `combat_effect.csv` の `scale` 列（1.0＝被弾側の立ち絵1体ぶん。絵の長辺が基準）で決めるので、斬撃（小）と（中）の差はこの数字で付ける。絵の側は弧の太さ・長さで質の差を出す。
 - 背景は明るいエフェクト（斬撃・聖光）＝黒、暗い物体（矢・石）＝白。切り抜きのコントラストを優先して SUBJECT ごとに選ぶ。淡い青白の弾のように、白背景では抜きにくいものは黒へ寄せる。
@@ -246,7 +257,7 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 - 被弾に重ねるもの（`impact`）で面積の大きい絵は、中心を空洞にする。中心を塗り潰すと被弾側のユニットが隠れ、誰が殴られたのか分からなくなる（打撃＝マンガの集中線は、棘のリングが相手を囲む形にした）。
 - 効果は陣営の性格を表す手段でもある。ネクロマンサーは弾を飛ばすより、被弾側にドクロが浮かぶ `impact` のほうが呪いとして伝わる。射程と `kind` は必ずしも対応しない（聖光は射程1なので飛ばさない）。
 
-EFFECT STYLE（共通・固定）:
+EFFECT STYLE（テイストの共通項）:
 ```
 STYLE: A single fantasy tactics-game attack effect, drawn as ONE isolated
 graphic: NO character, NO hands, NO weapon owner, NO ground, NO scenery, NO
@@ -259,6 +270,13 @@ RIGHT, level and horizontal (no upward or downward tilt). It fills the frame
 edge to edge with only a thin margin. Plain single flat background color (given
 in the subject) for easy cutout. Square 1:1 composition.
 ```
+
+ユニットと同じく1本に固定しない。共通で守るのはテイスト（フラットなセル塗り・硬い輪郭・切り抜ける背景・小さくても読める形）だけで、絵の作りが変われば条項を差し替えてよい。差し替えたら、何をどう変えたかを `combat_effect.csv` の備考に残す＝あとから見て「なぜこれだけ違うのか」が辿れるようにする。
+
+実際に差し替えた例：
+
+- 向き。上の文は上下の傾きを禁じているが、これは飛ぶもの（`projectile`）の条項。`impact` は斜めに振ってよく、爪痕・竜のブレスは左上から右下に流している。
+- 色数。「2〜3色」は盤で小さく出る前提の数。竜のブレスは `single` 表示のボスが1発だけ出す絵で、大きく出るぶん階調が潰れないので5〜6色に増やしている。
 
 保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。書き出しは [`tools/gen_effect.ps1`](../../tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
 
