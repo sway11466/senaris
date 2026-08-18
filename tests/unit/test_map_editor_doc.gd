@@ -620,6 +620,104 @@ func test_shift_drops_terrain_undo() -> void:
 	assert_true(doc.shift(0, 1))
 	assert_false(doc.can_undo_terrain(), "駒ごと動いた後に地形だけ戻せてはいけない")
 
+# --- 盤の高さ（height＝行・列の基準。見た目だけ＝ルールに入らない。→ doc/gdd/terrain.md 盤の高さ） ---
+
+
+const HEIGHT_SAMPLE := """
+{ "cols": 4, "rows": 3, "margin": 0,
+  "height": { "row": [0, 0.18, 0.36], "col": [0, 0, 0.18, 0.18] },
+  "terrain": ["....", "....", "...."], "player": [], "enemy": [], "bases": [] }
+"""
+
+
+func test_height_reads_and_writes() -> void:
+	var doc := MapEditorDoc.from_text(HEIGHT_SAMPLE)
+	assert_eq(doc.row_height(1), 0.18)
+	assert_eq(doc.col_height(3), 0.18)
+	assert_eq(doc.row_height(9), 0.0, "範囲外は0")
+	doc.set_row_height(0, -0.5)
+	assert_eq(doc.row_height(0), -0.5, "負の高さ（掘り下げ）も書ける")
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(out["height"]["row"], [-0.5, 0.18, 0.36])
+
+
+func test_height_creates_only_the_edited_axis() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	assert_eq(doc.row_height(1), 0.0, "キーが無ければ平ら")
+	doc.set_col_height(2, 0.3)
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(out["height"]["col"], [0.0, 0.0, 0.3, 0.0])
+	assert_false(out["height"].has("row"), "書いていない軸は書かない（省略＝平ら）")
+
+
+func test_height_all_zero_is_not_written() -> void:
+	var doc := MapEditorDoc.new_stage(4, 3)
+	doc.set_row_height(1, 0.3)
+	doc.set_row_height(1, 0.0)
+	assert_false(JSON.parse_string(doc.to_text()).has("height"), "全部0は省略と同義＝キーごと消す")
+
+
+func test_height_in_source_survives_even_when_flat() -> void:
+	var src := """
+{ "cols": 2, "rows": 2, "height": { "row": [0, 0], "col": [0, 0] },
+  "terrain": ["..", ".."], "player": [], "enemy": [], "bases": [] }
+"""
+	var out: Dictionary = JSON.parse_string(MapEditorDoc.from_text(src).to_text())
+	assert_true(out.has("height"), "元ファイルにあったキーは温存（往復で内容を変えない）")
+
+
+func test_height_is_written_inline_between_margin_and_terrain() -> void:
+	var text := MapEditorDoc.from_text(HEIGHT_SAMPLE).to_text()
+	assert_true(text.contains('"height": { "row": [0, 0.18, 0.36], "col": [0, 0, 0.18, 0.18] }'),
+		"仕様書（doc/gdd/terrain.md）の例と同じ1行書式")
+	assert_true(text.find("\"margin\"") < text.find("\"height\""), "手書きステージと同じ位置")
+	assert_true(text.find("\"height\"") < text.find("\"terrain\""))
+
+
+func test_height_wrong_length_is_normalized_on_save() -> void:
+	# StageLoader は長さ違いの配列を弾く（＝その軸が平らに倒れる）ので、保存時に盤へ合わせて直す
+	var src := """
+{ "cols": 2, "rows": 3, "height": { "row": [0.5] },
+  "terrain": ["..", "..", ".."], "player": [], "enemy": [], "bases": [] }
+"""
+	var out: Dictionary = JSON.parse_string(MapEditorDoc.from_text(src).to_text())
+	assert_eq(out["height"]["row"], [0.5, 0.0, 0.0], "足りない分は0で埋める")
+
+
+func test_resize_pads_and_truncates_height() -> void:
+	var doc := MapEditorDoc.from_text(HEIGHT_SAMPLE)  # 4×3
+	doc.resize(6, 2)
+	var out: Dictionary = JSON.parse_string(doc.to_text())
+	assert_eq(out["height"]["row"], [0.0, 0.18], "縮んだ分は端から切る")
+	assert_eq(out["height"]["col"], [0.0, 0.0, 0.18, 0.18, 0.0, 0.0], "伸びた分は0")
+
+
+func test_shift_moves_height_with_the_board() -> void:
+	var doc := MapEditorDoc.from_text(HEIGHT_SAMPLE)  # 4×3
+	doc.resize(6, 4)  # 右と下に余白を作ってから送る
+	assert_true(doc.shift(2, 1))
+	assert_eq(doc.row_height(2), 0.18, "行の基準も1つ下へ")
+	assert_eq(doc.row_height(3), 0.36)
+	assert_eq(doc.row_height(0), 0.0, "空いた端は0")
+	assert_eq(doc.col_height(4), 0.18, "列の基準も2つ右へ")
+	assert_eq(doc.col_height(2), 0.0)
+
+
+func test_shift_does_nothing_when_height_would_fall_off() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.set_row_height(3, 0.3)
+	assert_eq(int(doc.shift_losses(0, 1).get("height", 0)), 1)
+	assert_false(doc.shift(0, 1))
+	assert_eq(doc.row_height(3), 0.3, "弾いたら高さも動かさない")
+
+
+func test_shift_ignores_zero_height_falling_off() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.set_row_height(0, 0.3)  # 端の行3は0のまま＝こぼれても失っていない
+	assert_true(doc.shift_losses(0, 1).is_empty())
+	assert_true(doc.shift(0, 1))
+	assert_eq(doc.row_height(1), 0.3)
+
 # --- 敗北条件（防衛対象の拠点） ---
 
 func _doc_with_base() -> MapEditorDoc:
