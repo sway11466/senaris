@@ -84,21 +84,31 @@ func test_connecting_skins_are_never_oriented() -> void:
 		assert_false(s.orients(), "%s は繋がる＝散らしてはいけない" % s.skin_id)
 	assert_true(checked > 0, "繋がるスキンが1つは居る（1件も見ずに通っていない）")
 
-func test_flip_only_skin_does_not_rotate() -> void:
+func test_flip_x_skin_does_not_rotate() -> void:
 	# 塊に向きがある絵（茂み）は回すと1マスごとに向きが変わる。左右反転だけで散らす。
 	var bush := TerrainSkinCatalog.skin_by_id("bush")
 	assert_not_null(bush, "bush が引ける")
 	if bush != null:
-		assert_eq(bush.orientable, TerrainSkin.ORIENT_FLIP, "茂みは flip")
+		assert_eq(bush.orientable, TerrainSkin.ORIENT_FLIP_X, "茂みは flip_x")
 		assert_true(bush.orients(), "散らしの対象ではある")
 		assert_false(bush.rotates(), "回してはいけない")
 
-func test_flip_xy_flips_both_ways_without_rotating() -> void:
-	# 向き別スキンとして作者が塗り分ける絵は、回すと指定した向きが崩れる。反転だけで散らす。
-	var s := TerrainSkin.from_dict({ "skin_id": "x", "orientable": TerrainSkin.ORIENT_FLIP_XY })
-	assert_true(s.orients(), "散らしの対象ではある")
-	assert_false(s.rotates(), "回してはいけない")
-	assert_true(s.flips_vertically(), "上下反転はしてよい")
+func test_orient_values_allow_exactly_what_they_name() -> void:
+	# 値の名前と、効く操作（回転・左右・上下）を1対1で固定する。名前を読めば挙動が分かる状態を守る。
+	var table := {
+		TerrainSkin.ORIENT_NONE:    [false, false, false],
+		TerrainSkin.ORIENT_FLIP_X:  [false, true,  false],
+		TerrainSkin.ORIENT_FLIP_Y:  [false, false, true],
+		TerrainSkin.ORIENT_FLIP_XY: [false, true,  true],
+		TerrainSkin.ORIENT_FULL:    [true,  true,  true],
+	}
+	for mode: String in table:
+		var want: Array = table[mode]
+		var s := TerrainSkin.from_dict({ "skin_id": "x", "orientable": mode })
+		assert_eq(s.rotates(), want[0], "%s の回転" % mode)
+		assert_eq(s.flips_horizontally(), want[1], "%s の左右反転" % mode)
+		assert_eq(s.flips_vertically(), want[2], "%s の上下反転" % mode)
+		assert_eq(s.orients(), mode != TerrainSkin.ORIENT_NONE, "%s の散らし対象か" % mode)
 
 func test_objects_are_never_oriented() -> void:
 	# オブジェクトは立ち絵＝回しも反転もしない（→ doc/gdd/terrain.md）。
@@ -107,12 +117,6 @@ func test_objects_are_never_oriented() -> void:
 			continue
 		assert_false(s.orients(), "%s はオブジェクト＝散らさない" % s.skin_id)
 		assert_eq(s.elevation, 0.0, "%s はオブジェクト＝高さは立ち絵が持つ" % s.skin_id)
-
-func test_only_flip_xy_flips_vertically() -> void:
-	# 上下反転は flip_xy だけの手。full まで巻き込むと、既存の自然地形の見え方が変わってしまう。
-	for mode in [TerrainSkin.ORIENT_NONE, TerrainSkin.ORIENT_FLIP, TerrainSkin.ORIENT_FULL]:
-		var s := TerrainSkin.from_dict({ "skin_id": "x", "orientable": mode })
-		assert_false(s.flips_vertically(), "%s は上下反転しない" % mode)
 
 func test_unknown_orientable_falls_back_to_none() -> void:
 	# 旧データの bool や打ち間違いが来ても、勝手に回して絵を倒すより散らさないほうが害が小さい。

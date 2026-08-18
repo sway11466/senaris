@@ -108,17 +108,15 @@ static func variant_index(hex: Vector2i, count: int) -> int:
 	return absi(hash(hex)) % count
 
 ## 同じ絵が隣り合う見え方を、座標ハッシュで散らす（反復対策）。決定的＝作り直しても同じ並び。
-## どこまで散らせるかは絵が向きを持つかで決まる（TerrainSkin.ORIENT_*）。
-## rotate=true なら60°回転＋左右反転、false なら左右反転だけ＝立てて描いた物（墓標）が倒れない。
-## flip_v=true なら上下反転も足す（向き別スキンで塗り分ける街区＝回さないが反転はしてよい絵）。
+## 何をしてよいかは絵が向きを持つかで決まる（TerrainSkin.ORIENT_*）。呼び出し側が3つの可否を渡す。
 ## 60°回転も上下左右の反転も正六角形を自分自身に写すので、絵が六角形に収まっていればはみ出さない。
-## 呼ぶかどうかは skin.orients() で判定する（道・柵・拠点は向きが意味を持つので呼ばない）。
-static func orient(mi: MeshInstance3D, hex: Vector2i, rotate: bool = true, flip_v: bool = false) -> void:
+## 呼ぶかどうかは skin.orients() で判定する（道・壁・オブジェクトは向きが意味を持つので呼ばない）。
+static func orient(mi: MeshInstance3D, hex: Vector2i, rotate: bool, flip_h: bool, flip_v: bool) -> void:
 	var o := absi(hash(Vector2i(hex.y, hex.x)))
 	if rotate:
 		mi.rotation.y = float(o % 6) * (PI / 3.0)
-	# cull無効なので裏面でも描ける。回転とは別のビットを使う＝向きと反転が連動しない。
-	var sx := -1.0 if (o / 6) % 2 == 1 else 1.0
+	# cull無効なので裏面でも描ける。回転・左右・上下で別のビットを使う＝それぞれが連動しない。
+	var sx := -1.0 if flip_h and (o / 6) % 2 == 1 else 1.0
 	var sz := -1.0 if flip_v and (o / 12) % 2 == 1 else 1.0
 	if sx < 0.0 or sz < 0.0:
 		mi.scale = Vector3(sx, 1.0, sz)

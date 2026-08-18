@@ -264,7 +264,7 @@ func _add_tile(hex: Vector2i) -> void:
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, elev(hex), p.y)
 	if skin != null and skin.orients():
-		TerrainTiles.orient(mi, hex, skin.rotates(), skin.flips_vertically())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
+		TerrainTiles.orient(mi, hex, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
 	add_child(mi)
 

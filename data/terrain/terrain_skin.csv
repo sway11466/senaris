@@ -11,7 +11,7 @@ road_building_town1_l,building,街区,none,false,,0,0,true,road,,road,center,同
 wasteland,wasteland,荒地,full,false,,0,0,true,,,,,
 wasteland_prop_tomb1,prop,墓標の荒れ地,none,false,,0,0,true,wasteland,,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（納骨堂と対）
 forest,forest,森,full,false,,0.18,0.18,true,,,,,
-bush,bush,茂み,flip,false,,0.12,0.12,true,,,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす
+bush,bush,茂み,flip_x,false,,0.12,0.12,true,,,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす
 road_prop_garden1_v,prop,菜園,none,false,,0,0,true,road,,road,center,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦
 road_prop_garden1_r,prop,菜園,none,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝右上から左下
 road_prop_garden1_l,prop,菜園,none,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝左上から右下

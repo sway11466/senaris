@@ -129,7 +129,7 @@ func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin, pla
 	mi.material_override = TerrainTiles.material(tex)
 	mi.position = pos
 	if skin.orients():
-		TerrainTiles.orient(mi, cell, skin.rotates(), skin.flips_vertically())
+		TerrainTiles.orient(mi, cell, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())
 	_tiles.add_child(mi)
 
 ## 敷くPNG。line で置く線地形（柵・道）は、上下の帯へ繋がる直線の接続タイルを選ぶ。
