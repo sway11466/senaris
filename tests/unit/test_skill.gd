@@ -712,3 +712,140 @@ func test_charge_survives_serialization() -> void:
 	s.set_charge(slime.id, "slime_split", 2)
 	var restored := BattleState.from_dict(s.to_dict())
 	assert_eq(restored.get_charge(slime.id, "slime_split"), 2, "復元後もチャージ量が保たれる")
+
+# --- ⑥ポイズンスティング（継続ダメージ）。詳細 → doc/gdd/skills.md ---
+
+# スコーピオン1体（敵team=1）＋隣接する味方2体＋離れた味方＋隣接する仲間の蠍。
+# 発動側を敵にするのは、対象側（プレイヤー）のターン開始で減ることを確かめるため。
+func _sting_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var scorpion := Unit.new(1, 1, c, 5, 8, 50, 70, 1, "knight")
+	scorpion.skin_id = "scorpion"
+	var foe := Unit.new(2, 0, Hex.neighbor(c, 0), 6, 8, 50, 40, 1, "fighter")
+	var far_foe := Unit.new(3, 0, Hex.offset_to_axial(8, 6), 6, 8, 50, 40, 1, "fighter")
+	var ally := Unit.new(4, 1, Hex.neighbor(c, 3), 6, 8, 50, 40, 1, "fighter")
+	for u in [scorpion, foe, far_foe, ally]:
+		s.add_unit(u)
+	s.end_turn()  # 敵ターン（team=1）へ
+	return {"s": s, "scorpion": scorpion, "foe": foe, "far_foe": far_foe, "ally": ally}
+
+func _sting_option(f: Dictionary) -> Dictionary:
+	for o in Formation.available_for(f["s"], f["scorpion"]):
+		if String(o["recipe"]) == "poison_sting":
+			return o
+	return {}
+
+func test_sting_offered_by_scorpion_alone() -> void:
+	var f := _sting_state()
+	var o := _sting_option(f)
+	assert_false(o.is_empty(), "スコーピオン単独で成立する")
+	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
+	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
+
+func test_sting_not_offered_by_other_skins() -> void:
+	var f := _sting_state()
+	var found := false
+	for o in Formation.available_for(f["s"], f["ally"]):  # fighter
+		if String(o["recipe"]) == "poison_sting":
+			found = true
+	assert_false(found, "スコーピオン以外は撃てない")
+
+func test_sting_targets_adjacent_enemy_only() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var o := _sting_option(f)
+	assert_true(Formation.can_target(s, o, f["foe"].pos), "隣接する敵に掛けられる")
+	assert_false(Formation.can_target(s, o, f["far_foe"].pos), "離れた敵には掛けられない")
+	assert_false(Formation.can_target(s, o, f["ally"].pos), "隣接でも味方には掛けられない")
+	assert_false(Formation.can_target(s, o, f["scorpion"].pos), "自分自身は選べない")
+
+## 掛けた瞬間には減らない＝最初に減るのは次の対象ターン開始。
+func test_sting_does_not_reduce_on_cast() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_eq(foe.troops, 8, "発動した瞬間は兵数が動かない")
+
+func test_sting_reduces_one_troop_at_target_turn_start() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	s.end_turn()  # 対象側（プレイヤー）のターン開始
+	assert_eq(foe.troops, 7, "対象側のターン開始で1減る")
+
+## 攻防の補正チェーンには乗らない（ヴェノムファングとの違い）。
+func test_sting_does_not_touch_attack_or_defense() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001, "攻撃に係数は乗らない")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["add"]), 0.0, 0.001, "攻撃に加算もない")
+	assert_almost_eq(float(s.status_aggregate(foe, "defense")["mul"]), 1.0, 0.001, "防御に係数は乗らない")
+	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), 0.0, 0.001, "防御に加算もない")
+
+## 3ターンぶん＝合計3減って止まる。
+func test_sting_ticks_three_times_then_expires() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	for round_index in 3:
+		s.end_turn()  # 対象側のターン開始＝毒が入る
+		assert_eq(foe.troops, 8 - (round_index + 1), "%d回目で %d 減っている" % [round_index + 1, round_index + 1])
+		s.end_turn()  # 発動側のターン開始＝持続を1消費
+	s.end_turn()  # 4回目の対象ターン＝もう掛かっていない
+	assert_eq(foe.troops, 5, "3回で止まる（合計3減）")
+
+## 重ねがけは加算＝2本刺されば毎ターン2減る。
+func test_sting_stacking_adds_up() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	var second := Unit.new(5, 1, Hex.neighbor(foe.pos, 2), 5, 8, 50, 70, 1, "knight")
+	second.skin_id = "scorpion"
+	s.add_unit(second)
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "1体目が発動")
+	var o2 := {}
+	for o in Formation.available_for(s, second):
+		if String(o["recipe"]) == "poison_sting":
+			o2 = o
+	assert_false(o2.is_empty(), "2体目も撃てる")
+	assert_false(s.resolve_formation(o2, foe.pos).is_empty(), "同じ相手に重ねられる")
+	s.end_turn()
+	assert_eq(foe.troops, 6, "2本で毎ターン2減る")
+
+## 毒では全滅しない＝残兵1で止まる。倒すのは戦闘の役目（doc/gdd/skills.md）。
+func test_sting_never_kills() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	foe.troops = 1
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	s.end_turn()
+	assert_eq(foe.troops, 1, "残兵1は減らない")
+	assert_not_null(s.unit_by_id(foe.id), "盤から消えない")
+
+## ピュリファイで落とせる（他の弱体と同じ器に乗っている）。
+func test_sting_is_cleansable() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_eq(s.debuff_count(foe), 1, "弱体1本として数える")
+	assert_eq(s.clear_debuffs(foe), 1, "ピュリファイが落とす")
+	s.end_turn()
+	assert_eq(foe.troops, 8, "落としたので減らない")
+
+## 中断セーブに乗る（他の状態補正と同じ器なので往復できる）。
+func test_sting_survives_serialization() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
+	var restored := BattleState.from_dict(s.to_dict())
+	restored.end_turn()
+	assert_eq(restored.unit_by_id(foe.id).troops, 7, "復元後もターン開始で減る")

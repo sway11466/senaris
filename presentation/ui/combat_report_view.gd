@@ -259,6 +259,9 @@ static func status_text(m: Dictionary) -> String:
 	var nm := String(m.get("name", ""))
 	if nm.is_empty():
 		nm = "補正"
+	# 継続ダメージは攻防に効かない＝攻/防の2列に置けない。毎ターン何人減るかをそのまま出す。
+	if StatusMod.is_dot(m):
+		return "%s 毒 -%d/ターン" % [nm, int(m.get("value", 0))]
 	var eff: String
 	if String(m.get("op", "mul")) == "mul":
 		eff = "×%.2f" % float(m.get("value", 1.0))

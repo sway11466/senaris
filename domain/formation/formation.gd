@@ -126,6 +126,25 @@ const RECIPES := {
 		"range": 1,
 		"range_from": "leader",
 	},
+	"poison_sting": {
+		"name": "ポイズンスティング",
+		"leader_skins": ["scorpion"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		# 補正値を積むのではなく、持続の間ターン開始に兵数を減らす。攻防には触らない
+		# （補正チェーンに参加しない）＝ヴェノムファングの上位版ではなく別軸。詳細 → doc/gdd/skills.md
+		"effect": "dot",
+		"buff_scope": "unit",
+		"buff_side": "enemy",
+		"dot_troops": 1,  # 対象側のターン開始ごとに減る兵数
+		"buff_fx": "venom",
+		"buff_kind": "debuff",
+		"duration_turns": 3,  # 発動側ターン3回ぶん＝合計3減る。詳細 → doc/gdd/skills.md
+		"range": 1,
+		"range_from": "leader",
+		"combat_effect": "thrust",  # 当面は刺突の汎用（毒色は絵に持たせない）
+	},
 	"slime_split": {
 		"name": "スライムスプリット",
 		"leader_skins": ["slime"],
@@ -143,7 +162,7 @@ const RECIPES := {
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
-const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn"]
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot"]
 
 ## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
@@ -403,6 +422,12 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))
 		opt["buff_fx"] = String(r.get("buff_fx", ""))
 		opt["buff_target"] = String(r.get("buff_target", "both"))
+		opt["duration_turns"] = int(r.get("duration_turns", 1))
+	elif effect == "dot":  # 継続ダメージの値を option に載せる（BattleState._dot_entry が読む）
+		# 弱体であることは明示する＝ピュリファイが落とす対象・盤の見た目・敵AIの stack 条件が読む。
+		opt["buff_kind"] = String(r.get("buff_kind", StatusMod.KIND_DEBUFF))
+		opt["buff_fx"] = String(r.get("buff_fx", ""))
+		opt["dot_troops"] = int(r.get("dot_troops", 1))
 		opt["duration_turns"] = int(r.get("duration_turns", 1))
 	return opt
 

@@ -87,6 +87,11 @@ func _skill_effect(detail: Dictionary, caster: Dictionary) -> CombatEffect:
 
 ## 対象に何が起きたかの表示。損害数の代わりに、乗った補正（または落とした件数）を出す。
 func _effect_text(detail: Dictionary) -> String:
+	# 継続ダメージ（ポイズンスティング）は掛けた瞬間には減らない＝兵量バーが動かない。
+	# その代わり、毎ターン何人減るかをここに出す。詳細 → doc/gdd/skills.md
+	if String(detail.get("effect", "")) == "dot":
+		var per_turn := int(detail.get("dot_troops", 0))
+		return "毒 -%d/ターン" % per_turn if per_turn > 0 else ""
 	if String(detail.get("effect", "")) == "cleanse":
 		var n := int(detail.get("cleansed", 0))
 		return "解呪 %d" % n if n > 0 else ""

@@ -20,6 +20,23 @@ class_name StatusMod
 const KIND_BUFF := "buff"
 const KIND_DEBUFF := "debuff"
 
+## 継続ダメージ（ポイズンスティング）のエントリが持つ op。持続と解除は状態補正の器に相乗りするが、
+## 攻防の補正チェーンには参加しない＝aggregate は読み飛ばす。詳細 → doc/gdd/skills.md
+const OP_DOT := "dot"
+
+## エントリ m が継続ダメージか（毎ターン兵数を減らす側）。
+static func is_dot(m: Dictionary) -> bool:
+	return String(m.get("op", "")) == OP_DOT
+
+## mods のうち unit に効いている継続ダメージの、1ターンあたりの合計兵数。重ねがけは加算。
+## 実際に減らすのは BattleState（ターン開始時）で、ここは数えるだけ＝純ロジック。
+static func dot_amount(mods: Array, unit: Unit) -> int:
+	var n := 0
+	for m in mods:
+		if is_dot(m) and applies_to(m, unit):
+			n += int(m.get("value", 0))
+	return n
+
 ## エントリ m が弱体（デバフ）か。kind を持たないエントリは強化扱い。
 ## 旧セーブは bool の harmful を持つので、そちらも読む（版を上げずに読み続けられる）。
 static func is_debuff(m: Dictionary) -> bool:
@@ -35,6 +52,8 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 	for m in mods:
 		if not applies_to(m, unit):
 			continue
+		if is_dot(m):
+			continue  # 継続ダメージは兵数を直接減らす＝攻防の補正チェーンには乗らない
 		var t := String(m.get("target", "both"))
 		if t != "both" and t != target:
 			continue

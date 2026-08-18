@@ -79,6 +79,9 @@ func is_squad_engaged(squad_index: int) -> bool:
 
 # --- 状態補正（バフ/デバフ・持続）。詳細 → doc/gdd/combat.md「状態補正」 ---
 
+## 継続ダメージ（毒）で下回らせない残兵数。毒では全滅しない＝倒すのは戦闘の役目。詳細 → doc/gdd/skills.md
+const DOT_TROOPS_FLOOR := 1
+
 var _status_mods: Array = []  # エントリ配列 {scope,op,target,value,owner_team,remaining,...}。中断セーブに乗る
 
 ## 状態補正エントリを積む（陣形バフ等）。
@@ -137,6 +140,21 @@ func _expire_status_mods() -> void:
 		else:
 			kept.append(m)
 	_status_mods = kept
+
+## 継続ダメージ（⑥ポイズンスティング）を、ターンが始まった陣営の駒に適用する（end_turn から呼ぶ）。
+## 減るのは対象側のターン開始時＝掛けられた側が自分の手番の頭で気づける（持続の満了判定が
+## 発動側ターン開始なのとは別軸）。重ねがけは加算。詳細 → doc/gdd/skills.md
+##
+## 残兵 DOT_TROOPS_FLOOR を下回らせない＝毒では全滅しない。倒すのは戦闘の役目で、殴らずに毒だけで
+## 削る戦法を最適解にしないための線引き。盤の上の駒だけが対象（搭乗中・garrison は減らない）。
+func _tick_dots() -> void:
+	for u in _units:
+		if u.team != current_team:
+			continue
+		var n := StatusMod.dot_amount(_status_mods, u)
+		if n <= 0:
+			continue
+		u.troops = maxi(u.troops - n, DOT_TROOPS_FLOOR)
 
 # --- チャージ（再使用間隔）。詳細 → doc/gdd/skills.md ---
 #
@@ -1059,6 +1077,14 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		if spawned != null:
 			skill_detail["spawned_id"] = spawned.id
 			skill_detail["spawned_hex"] = spawned.pos
+	# ポイズンスティング（⑥）は補正値を積むのではなく、持続の間ターン開始に兵数を減らすエントリを
+	# 置く。掛けた瞬間には減らない＝最初に減るのは次の対象ターン開始。詳細 → doc/gdd/skills.md
+	elif String(option["effect"]) == "dot":
+		var dot := _dot_entry(option, target)
+		add_status_mod(dot)
+		if skill_scope:
+			skill_detail["dot_troops"] = int(dot.get("value", 0))
+			skill_detail["kind"] = String(dot.get("kind", StatusMod.KIND_DEBUFF))
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(self, option, target)
 	var results: Array = []
@@ -1180,6 +1206,23 @@ func _skill_snapshot(option: Dictionary, target: Vector2i) -> Dictionary:
 		"combat_effect": String(option.get("combat_effect", "")),
 		"caster": c_snap,
 		"target": t_snap,
+	}
+
+## 継続ダメージ（⑥ポイズンスティング）の状態補正エントリを組む。値は「1ターンに減る兵数」で、
+## 攻防の補正チェーンには参加しない（op が "dot"＝StatusMod.aggregate が読み飛ばす）。持続の数え方と
+## ピュリファイでの解除は他の弱体と同じ器に相乗りする。詳細 → doc/gdd/skills.md
+func _dot_entry(option: Dictionary, target: Vector2i) -> Dictionary:
+	var u := unit_at(target)  # can_target が対象の存在と陣営を保証済み
+	return {
+		"scope": "unit",
+		"unit_id": u.id if u != null else -1,
+		"owner_team": current_team,
+		"op": StatusMod.OP_DOT,
+		"value": int(option.get("dot_troops", 1)),
+		"remaining": int(option.get("duration_turns", 1)),
+		"name": String(option.get("name", "")),
+		"fx": String(option.get("buff_fx", "")),
+		"kind": String(option.get("buff_kind", StatusMod.KIND_DEBUFF)),
 	}
 
 ## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
@@ -1376,6 +1419,7 @@ func end_turn() -> void:
 	if current_team == 0:
 		turn_number += 1
 	_expire_status_mods()  # 始まった陣営の持続バフ/デバフを1減らして満了を掃除
+	_tick_dots()           # 始まった陣営の駒に継続ダメージ（毒）を入れる（→ doc/gdd/skills.md）
 	_increment_charges()   # 始まった陣営の駒のチャージ量を +1（→ doc/gdd/skills.md）
 	_heal_garrisons()
 	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
