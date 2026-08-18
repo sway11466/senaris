@@ -3,27 +3,38 @@
 		"ambush": {
 			"name": "待ち伏せ",
 			"sight": 3,
-			"stack": "-"
+			"stack": "-",
+			"retreat": "-"
 		},
 		"charge": {
 			"name": "突撃",
 			"sight": "-",
-			"stack": "-"
+			"stack": "-",
+			"retreat": "-"
+		},
+		"flee": {
+			"name": "逃走",
+			"sight": "-",
+			"stack": "-",
+			"retreat": 50
 		},
 		"raid": {
 			"name": "拠点攻略",
 			"sight": "-",
-			"stack": "-"
+			"stack": "-",
+			"retreat": "-"
 		},
 		"swarm": {
 			"name": "群れ",
 			"sight": "*",
-			"stack": 1
+			"stack": 1,
+			"retreat": "-"
 		},
 		"weak": {
 			"name": "弱者狙い",
 			"sight": "*",
-			"stack": "-"
+			"stack": "-",
+			"retreat": "-"
 		}
 	}
 }

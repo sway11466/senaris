@@ -953,3 +953,90 @@ func test_base_without_ai_never_deploys() -> void:
 	_base_with_garrison(s, -1, 4, 2)
 	_pc(s, 1, 8, 2)
 	assert_null(_brain.next_action(s, 1))
+
+# --- flee（逃走） ---
+
+func test_flee_heads_for_hostile_base_when_healthy() -> void:
+	# 元気なうちは敵拠点（自陣営以外）へ回り込みで向かう。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 3, 1)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 0))  # プレイヤーの拠点＝敵にとっての目的地
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "敵拠点へ向かう")
+	assert_gt(_col(a.to), 3, "東の拠点へ近づく")
+
+func test_flee_heads_for_friendly_base_when_damaged() -> void:
+	# 損耗 ≧ retreat で自陣営拠点へ向かう（retreat 既定50＝半分削れたら）。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	var u := _ai(s, si, 10, 5, 1)
+	_hurt(u, 4)  # 満員8 → 4 = 損耗50%
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 1))  # 自陣営の拠点
+	s.add_base(Base.new(Hex.offset_to_axial(0, 1), 0))  # 敵拠点（こっちへは行かない）
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 5, "自陣営拠点（東）へ向かう")
+
+func test_flee_enters_friendly_base_when_damaged_and_on_base() -> void:
+	# 損耗状態で自陣営の拠点hexにいれば「入る」。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	var base_hex := Hex.offset_to_axial(4, 2)
+	s.add_base(Base.new(base_hex, 1))  # 自陣営の拠点
+	var u := _ai(s, si, 10, 4, 2)
+	_hurt(u, 4)  # 損耗50%
+	# 盤上最後の1体＝入ると全滅になるので、もう1体置く
+	_ai(s, si, 11, 6, 2)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入る")
+	assert_eq(a.unit_id, 10)
+
+func test_flee_does_not_attack() -> void:
+	# 攻撃の行を持たない＝射程内に敵がいても殴らない。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 4, 2)
+	_pc(s, 1, 4, 1)  # 隣接
+	s.add_base(Base.new(Hex.offset_to_axial(8, 2), 0))  # 目的地
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "殴らずに拠点へ歩く")
+	assert_ne(a.to, s.unit_by_id(1).pos, "敵のマスへは向かわない")
+
+func test_flee_waits_when_zoc_blocks_all_routes() -> void:
+	# ZOCで全方位塞がれたら待機（ZOCに突っ込まない）。
+	# 壁で通路を1本だけ残し、その通路を敵のZOCで塞ぐ。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2])
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 4, 2)
+	_pc(s, 1, 5, 2)  # 通路を塞ぐ敵
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	assert_null(_brain.next_action(s, 1), "ZOCで道が無ければ待機")
+
+func test_flee_captures_before_fleeing() -> void:
+	# 占領は逃走より上の行＝移動範囲に敵拠点があれば取る。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	var u := _ai(s, si, 10, 4, 2)
+	u.can_capture = true
+	var base_hex := Hex.offset_to_axial(4, 4)  # 移動範囲内
+	s.add_base(Base.new(base_hex, 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_eq(a.to, base_hex, "拠点を占領しに行く")
+
+func test_flee_waits_when_no_base_exists() -> void:
+	# 向かう拠点が盤上に無ければ待機（敵も自陣営も無い状態）。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 4, 2)
+	_pc(s, 1, 8, 2)
+	assert_null(_brain.next_action(s, 1), "拠点が無ければ待機")

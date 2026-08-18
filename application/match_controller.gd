@@ -221,7 +221,7 @@ func run_ai_turn() -> void:
 ## 出撃は駒が現れる出撃先。行動を適用する前に呼ぶ＝主体はまだ動いていない。
 func _action_focus_hex(action: AiAction) -> Vector2i:
 	match action.kind:
-		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL:
+		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL, AiAction.Kind.ENTER_BASE:
 			var u := state.unit_by_id(action.unit_id)
 			return u.pos if u != null else action.to
 		_:  # DEPLOY / UNLOAD＝駒が現れるマスを見せる
@@ -242,6 +242,8 @@ func _apply_ai_action(action: AiAction) -> bool:
 			# 効果対象が1体のユニットスキルは演出シーンに乗る（doc/tech/combat_scene.md）ので、
 			# 攻撃と同じく閉じるまで待たせる。演出が出ないレシピなら pace 側が即返る。
 			return execute_formation(FormationCommand.new(action.option, action.to))
+		AiAction.Kind.ENTER_BASE:
+			enter_base(action.unit_id)
 	return false
 
 func _check_finished() -> void:

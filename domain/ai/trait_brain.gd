@@ -13,7 +13,7 @@ class_name TraitBrain
 var presets := {}
 
 ## 実装済みの特性id。部隊が未知の値・特性なしなら charge として扱う。
-const TRAITS := ["charge", "ambush", "raid", "weak", "swarm"]
+const TRAITS := ["charge", "ambush", "raid", "weak", "swarm", "flee"]
 const DEFAULT_TRAIT := "charge"
 
 ## 輸送ユニット（特殊特性）＝搭載数がこの値以上の駒。特性に重ねて働き、ステージデータには書かない
@@ -256,6 +256,8 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 			return _weak_action(state, u)
 		"swarm":
 			return _swarm_action(state, u)
+		"flee":
+			return _flee_action(state, u)
 	return _charge_action(state, u)  # charge / ambush は動き出したあとの行が同じ
 
 ## charge（突撃）／ambush（待ち伏せ）の行動ルール。
@@ -857,6 +859,56 @@ func _hostile_base_hexes(state: BattleState, u: Unit) -> Array[Vector2i]:
 		if b.team != u.team:
 			out.append(b.hex)
 	return out
+
+## 自陣営の拠点hex。
+func _friendly_base_hexes(state: BattleState, u: Unit) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for b in state.bases():
+		if b.team == u.team:
+			out.append(b.hex)
+	return out
+
+## retreat パラメーターを損耗率の閾値に読み替える。数値はそのまま、"-"＝使わない＝101（到達不能）。
+static func _retreat_percent(v: Variant) -> int:
+	if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT:
+		return clampi(int(v), 0, 100)
+	return 101  # "-" = 使わない
+
+# --- flee（逃走）の行動ルール（doc/gdd/ai.md flee） ---
+
+## flee（逃走）の行動ルール。戦わずに拠点へ走る。
+## 1 占領兵で、移動範囲に自陣営以外の拠点 → 占領
+## 2 損耗 ≧ retreat で、自陣営の拠点hexにいる → 拠点に入る
+## 3 損耗 ≧ retreat で、迂回距離が測れる自陣営拠点 → 自陣営拠点へ回り込み
+## 4 損耗 < retreat で、迂回距離が測れる敵拠点 → 敵拠点へ回り込み
+func _flee_action(state: BattleState, u: Unit) -> AiAction:
+	var row := _capture_row(state, u)
+	if row != null:
+		return row
+	var threshold := _retreat_percent(_param(state, u, "retreat"))
+	var damaged := _damage_percent(u) >= threshold
+	if damaged:
+		# #2 自陣営の拠点hexにいる → 入る
+		if state.can_enter_base(u.id):
+			return AiAction.enter_base(u.id)
+		# #3 自陣営拠点へ回り込み
+		if _can_advance(state, u):
+			return _detour_to_base(state, u, _friendly_base_hexes(state, u))
+	else:
+		# #4 敵拠点へ回り込み
+		if _can_advance(state, u):
+			return _detour_to_base(state, u, _hostile_base_hexes(state, u))
+	return null
+
+## 回り込み（迂回距離）で拠点へ向かう1手。ZOCを避けた道が無ければ null＝待機。
+func _detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
+	if goals.is_empty():
+		return null
+	var detour_field := state.detour_cost_field(u.id, u.pos)
+	var goal := _nearest_hex_in(detour_field, goals)
+	if goal == NO_HEX:
+		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている → 待機
+	return _advance(state, u, state.detour_cost_field(u.id, goal), [goal])
 
 ## 獲物＝ u が攻撃できる敵のうち、防御力が最小の敵の防御力 +10 までにいるもの（集合）。
 ## 上限は必ず盤全体の敵から計算する。射程内など狭い範囲から計算し直すと、硬い前衛しか

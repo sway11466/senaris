@@ -247,7 +247,7 @@ func test_retainers_at_max_is_allowed() -> void:
 # --- ai: build_presets ---
 
 func _valid_ai_row(ai: String) -> Dictionary:
-	return { "ai": ai, "name": "拠点攻略", "sight": "-", "stack": "-" }
+	return { "ai": ai, "name": "拠点攻略", "sight": "-", "stack": "-", "retreat": "-" }
 
 func test_ai_valid_builds_json() -> void:
 	var r := Ai.build_presets([ _valid_ai_row("raid") ])

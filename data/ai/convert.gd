@@ -8,7 +8,7 @@ const Csv = preload("res://data/csv_util.gd")
 
 ## 各特性が非空で必ず持つべき列（doc/gdd/ai.md「データ構成」）。主キー `ai` は別途 空チェックする。
 ## CSVは省略不可＝`-`（該当なし）も値として埋める。欠け/空セルはデータのバグとして生成を止める。
-const REQUIRED_AXES := ["name", "sight", "stack"]
+const REQUIRED_AXES := ["name", "sight", "stack", "retreat"]
 
 func _initialize() -> void:
 	var rows := Csv.read_table("res://data/ai/ai.csv")

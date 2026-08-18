@@ -4,7 +4,7 @@ class_name AiAction
 ## domain は application のコマンドに依存できないため、AIはコマンドではなくこれを返し、
 ## application(MatchController) が MoveCommand/AttackCommand に翻訳して実行する。
 
-enum Kind { MOVE, ATTACK, DEPLOY, SKILL, UNLOAD }
+enum Kind { MOVE, ATTACK, DEPLOY, SKILL, UNLOAD, ENTER_BASE }
 
 var kind: Kind
 var unit_id: int         ## 行動する駒。UNLOAD では降ろす側＝輸送の id
@@ -56,4 +56,12 @@ static func deploy(base_hex: Vector2i, garrison_index: int, to: Vector2i) -> AiA
 	a.base_hex = base_hex
 	a.garrison_index = garrison_index
 	a.to = to
+	return a
+
+## 自陣営の拠点に「入る」1手（詳細 → doc/gdd/ai.md flee #2）。
+## 駒が拠点hexに立っているときに使う。garrison 化して盤上から消え、ターン開始で回復する。
+static func enter_base(unit_id: int) -> AiAction:
+	var a := AiAction.new()
+	a.kind = Kind.ENTER_BASE
+	a.unit_id = unit_id
 	return a
