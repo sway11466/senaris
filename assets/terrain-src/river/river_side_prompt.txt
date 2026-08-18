@@ -1,0 +1,44 @@
+STYLE: A side-on falling-water texture for a fantasy tactics game, in the same
+clean stylized cel-shaded look as the game's terrain and unit art: bold flat
+shading, a mature, slightly muted, limited colour palette (NOT bright saturated,
+NOT painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary the water
+RANDOMLY and UNEVENLY — never a repeated motif, never the same shape twice, never
+in columns of equal width. Avoid large, high-contrast patches (they repeat visibly
+when tiled); keep large-scale colour even and low-contrast. Square 1:1.
+
+SUBJECT: The face of a WATERFALL — an unbroken curtain of river water pouring
+straight DOWN, seen face-on. Nothing but falling water across the whole frame: NO
+rock, NO cliff, NO stone, NO ledge, NO moss, NO plants, NO spray cloud, NO
+rainbow, NO objects of any kind, and nothing visible behind the water.
+
+The water falls in tall vertical threads and ribbons that run the full height of
+the frame. They differ in width and brightness, wander slightly, split and rejoin,
+and are spaced unevenly — never straight parallel lines, never evenly spaced,
+never columns of equal width. Between them the water is a smoother, slightly
+deeper sheet, so the relief reads as clearly VERTICAL overall. A few short torn
+edges and small flecks of white spray sit along the threads, small and scattered.
+
+BOTH the top and the bottom edges are cut off FLAT where the frame ends — this is
+the middle of the fall. NO lip, NO crest, NO brink, NO still water above; NO
+plunge pool, NO churn, NO foam bank, NO mist, NO splash below. The fall is the
+same in character from top to bottom, so it still reads right when it is stretched
+tall or squeezed short.
+
+COLOUR: the same river blue as the water above, hex #63A0D6, run a shade deeper in
+the sheet between the threads. The threads themselves are a pale, light version of
+that same blue, and the small spray flecks may reach near-white — but the frame
+overall must stay clearly BLUE. Do NOT push it toward green or teal, do NOT grey
+it down, and do NOT wash the whole frame out to white or pale grey.
+
+Shade in FLAT tones — a light thread, a mid sheet, a deep shadow between — flat
+cel shading of the water's own forms, NOT a cast shadow and NOT a light direction,
+and no tone near-black.
+
+Read at thumbnail size: the fall is only a narrow strip on screen, so keep the
+threads CHUNKY and few — about eight to twelve of them across the width of the
+frame — with no fine detail that would disappear. Spread the relief evenly from
+top to bottom, with no single large feature that sits at one height only.

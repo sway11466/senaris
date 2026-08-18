@@ -1,1 +1,25 @@
-powershell -File tools\gen_area_tiles.ps1 river assets\terrain-src\river\river_01_raw.png -BandX 320 -BandW 380 -Bite 46 -EdgeColor "#1A4E5B"
+# 上面＝真上から見た水面。1024px の原寸をそのまま切り抜く。1枚だけで変種を持たない
+# （orientable full＝60°回転と上下左右反転で散らす。水面は向きを持たないので回して破綻しない）。
+powershell -File tools\gen_terrain_tile.ps1 river assets\terrain-src\river\river_a.png
+
+# 側面＝落ちる水（滝）。左右シームレスは全幅を保つ限り生きるので、行だけを切る。
+# 厚みは180px。盤は側面画像を段差の高さへ縦に引き伸ばすので、この厚みは「引き伸ばし1.0倍に
+# なる段差」を決める値になる。u は世界座標から取り、1024px がおよそ2ヘックスぶん＝1タイル≒504px
+# なので、180px は段差0.36（マスごとの高さ上書きで作る標準的な滝）でちょうど等倍になる。
+# 盤外周（0.45）では1.25倍に伸び、既定の水面と平地の段差（0.18）では0.5倍に潰れる。
+# +280 は明度が画像全体の平均(64.07)に最も近い帯を13候補から選んだもの（差0.07）。
+magick assets\terrain-src\river\river_side_a.png -crop 1024x180+0+280 +repage -colors 64 -dither None assets\terrain\river_side.png
+
+# terrain_skin.csv: elevation -0.18 / floor 0 / ignore_board_height true / connect false。
+# 盤の高さを無視するので水面は絶対 -0.18＝傾斜盤でも水平を保つ。滝は水位を段にすると出る
+# （ステージの terrain_skins に elevation/floor をペアで上書き）。
+# CSV を直したら JSON を焼き直す:
+#   godot --headless --path . --script res://data/terrain/convert.gd
+# 画像を差し替えたら .godot/imported/ の当該 ctex/md5 を消してから --import
+# （消さないと古い生成物が黙って使われる）。
+
+# 実測（切り抜き後のタイル）: 上面 H=202.6 S=61.3 L=61.5・明暗むら1.70／側面 H=203.8 S=53.3 L=63.9。
+# 指定した基準色 #63A0D6（H208 S59 L61）にほぼ乗っている。隣り合う平地は S=17.7 L=67.6。
+
+# 旧版（縦帯1本の元絵から gen_area_tiles.ps1 で向き別64枚を焼く面方式）は廃止。
+# 川を道と同じ接続タイルで敷くのをやめ、1マス自己完結の水面に置き換えた。

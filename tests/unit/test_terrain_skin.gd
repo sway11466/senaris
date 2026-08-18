@@ -39,8 +39,9 @@ func test_connect_to_defaults_to_self_only() -> void:
 		assert_true(fence.connects_with(fence), "自分自身とは常に繋がる")
 		assert_false(fence.connects_with(road), "書いていない相手とは繋がらない")
 
-func test_bridge_connects_one_way_with_river() -> void:
-	# 橋の下を川がくぐるのは片方向の判定で作る＝川は橋へ伸びるが、橋は川へ伸びない。
+func test_bridge_does_not_connect_with_river() -> void:
+	# 川は水面に作り直して接続タイルをやめた（→ doc/art/terrain.md §1）。橋の下地に水を敷く
+	# 関係だけが残り、繋がり判定は道の側だけで閉じる。
 	var river := TerrainSkinCatalog.skin_by_id("river")
 	var bridge := TerrainSkinCatalog.skin_by_id("road_bridge1")
 	var stone := TerrainSkinCatalog.skin_by_id("road_stone1")
@@ -48,13 +49,23 @@ func test_bridge_connects_one_way_with_river() -> void:
 	assert_not_null(bridge, "road_bridge1 スキンが引ける")
 	if river == null or bridge == null or stone == null or road == null:
 		return
-	assert_true(river.connects_with(bridge), "川は橋へ帯を伸ばす")
+	assert_eq(river.connect, "", "川は繋がらない＝1マス完結の水面（line/area 以外は空へ正規化）")
 	assert_false(bridge.connects_with(river), "橋は川へ石畳を伸ばさない")
 	assert_true(bridge.connects_with(road), "橋は道と繋がる")
 	assert_true(road.connects_with(bridge), "道は橋と繋がる")
 	assert_true(stone.connects_with(bridge), "石畳は橋と繋がる")
 	assert_eq(bridge.map_ground_id(), "river", "橋の下地は川")
 	assert_eq(bridge.art_id(), "road_stone1", "橋は石畳の絵を借りる")
+
+func test_river_is_water_surface() -> void:
+	# 水面は盤の高さを無視して絶対の水位に置く。駒は水面より上（floor > elevation）に立つ＝浮く。
+	var river := TerrainSkinCatalog.skin_by_id("river")
+	assert_not_null(river, "river スキンが引ける")
+	if river == null:
+		return
+	assert_true(river.ignore_board_height, "盤の高さを無視する＝傾斜盤でも水平")
+	assert_lt(river.elevation, 0.0, "水面は地面より低い")
+	assert_gt(river.floor, river.elevation, "駒は水面の上に浮く")
 
 func test_resolve_does_not_substitute() -> void:
 	# 未知の skin_id を書いたら、黙って別の絵で埋めずに null を返す（データの不備として声を上げる）。

@@ -1,77 +1,40 @@
-STYLE: A map tile element for a fantasy tactics game, in the same clean
-stylized cel-shaded look as the game's terrain and unit art: bold flat shading,
-clear dark outlines, a mature, slightly muted, limited color palette (NOT bright
-saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
-role-playing game, seen from DIRECTLY OVERHEAD — flat, no perspective, no
-horizon, no sky, no depth. This is ground seen from above: nothing is built on
-it, nothing stands up out of it, nothing casts a shadow, and nothing is
-reflected in it. Read at thumbnail size: a few large legible shapes, no fine
-detail. Square 1:1.
+SUBJECT: Clear, still, deep RIVER WATER seen from DIRECTLY OVERHEAD, filling the
+entire frame edge to edge. Nothing but water: NO bank, NO shore, NO grass, NO
+reeds, NO rocks, NO sand, NO gravel, NO weed, NO riverbed showing through, NO
+bridge, NO boat, NO foam, and nothing floating on it. This is the open middle of
+the water, nowhere near its edges.
 
-BACKGROUND — IMPORTANT: this is a cut-out element, not a scene. Everything that
-is not the water itself is PLAIN PURE WHITE (#FFFFFF), flat and empty, right out
-to all four edges. NO grass, NO bank, NO shore, NO reeds, NO rocks, NO scenery,
-NO texture, NO gradient, NO shadow, NO border, NO frame. Nothing at all on the
-white.
+COLOUR: clear, bright BLUE water, exactly hex #63A0D6 — a true sky-leaning blue,
+NOT a cyan and NOT a teal. Keep this exact colour: do NOT push it toward green,
+do NOT grey it down, do NOT darken it, and equally do NOT lighten it and do NOT
+brighten it to neon, cartoon primary blue or electric turquoise. This is the most
+colourful thing on the game's map and it is meant to be — it has to lift the
+board beside the game's grass (#B4C6A0) and its dirt roads (#D8C39A).
 
-SUBJECT: A single straight, wide RIVER running away from the viewer, straight up
-the frame. Clean, clear, blue-green river water, calm and still. It should read
-as WATER at a glance, unmistakably — the most obviously watery thing on the map.
-
-Composition, exactly: the river is one straight vertical band, dead centre
-left-to-right, crossing the full height of the frame and continuing off BOTH the
-top edge and the bottom edge — never stopping, never bending, never leaning,
-never curving, no fork, no junction, no crossing, no end. It is identical in
-width and character along its whole length, so the top edge and the bottom edge
-match up when the picture is stacked head to tail. There is nothing special
-anywhere along it — no landmark, no stepping stone, no sandbar, no rock, no
-island, no bridge, no boat, no patch that would stand out if this stretch were
-repeated.
-
-NO DIRECTION — CRITICAL: the surface of the water must look the same whichever
-way the picture is turned, because this same water will be used for stretches of
-river running in six different directions. NO current, NO flow lines, NO streaks,
-NO wake, NO long wave crests, NO swirls, NO foam, and no mark of any kind that
-runs along the length of the river or shows which way the water is moving.
-
-SURFACE — the important part: a FINE, DENSE, ALL-OVER SPARKLE. The whole river,
-edge to edge and end to end, is covered in many small bright ripple highlights —
-the crowded net of light on the bottom of a sunlit swimming pool, seen from
-directly overhead. Hundreds of them, small and close together: each highlight is
+SURFACE: a FINE, DENSE, ALL-OVER SPARKLE — many small bright ripple highlights,
+the crowded net of light on the bottom of a sunlit swimming pool seen from
+straight above. Hundreds of them, small and close together: each highlight is
 about a fortieth of the frame across (roughly 25px in a 1024px picture) and never
 wider than a twentieth. They lie at all angles and are spaced unevenly, so the
-pattern has no grain, no rows, and no direction. Drawn the game's way — crisp,
-flat, stylized shapes of light — NOT a photograph, NOT soft glowing photoreal
-caustics, NOT blurred.
+pattern has no grain, no rows, no grid and no direction. Drawn the game's way —
+crisp, flat, stylized shapes of light — NOT a photograph, NOT soft glowing
+photoreal caustics, NOT blurred. The highlights are a pale, light version of the
+same blue: bright enough to glitter, still clearly tinted blue, never pure white,
+and always small.
 
-NOT large soft blobs: NO big rounded patches of paler or deeper water, NO clouds,
-NO spots, NO stains, NO blotches, NO puddle shapes. Anything wider than a
-twentieth of the frame reads as a landmark and shows up as an obvious repeat when
-this stretch of river is cut into tiles and laid end to end — a few big pale
-blobs is the single worst failure for this picture.
+NO DIRECTION — CRITICAL: the surface must look the same whichever way the picture
+is turned, because the same water is laid across the board and is rotated and
+mirrored tile by tile. NO current, NO flow lines, NO streaks, NO wake, NO long
+wave crests, NO swirls, NO spray, and no mark of any kind that shows which way
+the water is moving.
 
-The river is WIDE: about three fifths of the frame across, leaving a strip of
-white of about one fifth of the frame on the left and the same on the right.
-Both edges run straight up the frame and are only very slightly irregular, the
-way a water's edge meets the land — small, shallow waver only, never a bulge or
-a bite that would eat into the white strips.
-
-Each edge of the water carries a clear dark outline, the same weight of outline
-as the rest of the game's map art, so the band reads as a defined shape against
-the white.
-
-COLOR: light, clear CYAN-BLUE water, roughly hex #6FB6CC — the pale blue of
-shallow sunlit water, clearly bluer and clearly LIGHTER than a greyed teal.
-This is the brightest, most colourful thing on the map and it is meant to be:
-it should lift the board beside the game's grass (#B4C6A0) and its dirt roads
-(#D8C39A). Do not grey it down, do not darken it, do not push it toward green.
-The sparkle highlights are a pale, light version of that same blue — bright
-enough to glitter, but still tinted blue and kept OFF pure white, and always
-small: no broad pale area anywhere. Equally: NOT neon, NOT cartoon primary blue,
-NOT electric turquoise, NOT muddy brown, NOT grey, NOT near-black.
-Nothing of the riverbed shows through — no stones, no gravel, no sand, no weed,
-no silt.
+NO LANDMARKS — the single worst failure: anything wider than a twentieth of the
+frame reads as a feature and shows up as an obvious repeat when this water is cut
+into tiles and laid across the board. NO large soft blobs, NO big rounded patches
+of paler or deeper water, NO clouds, NO spots, NO stains, NO blotches, NO puddle
+shapes, NO single focal thing anywhere. Keep the large-scale colour even and
+low-contrast across the whole frame.
 
 Lit brightly and evenly from straight above, with NO cast shadow at all and NO
-reflection of anything: this is flat water seen from directly overhead, and
-there is no dark smear or soft dark band alongside it.
+reflection of anything — no sky, no cloud, no bank, no tree. Flat water seen from
+directly overhead, with no dark smear and no soft dark band anywhere.
