@@ -3,8 +3,8 @@ extends SceneTree
 ## 実行: godot --path . -s res://tests/manual/shot_cliff.gd -- <出力ディレクトリの絶対パス>
 ## （--headless は付けない＝描画されないと get_texture() が撮れない）
 
-const STAGE := "res://data/stages/tutorial3-dragon-hunt/st3.json"
-const NEAR_HEX := Vector2i(4, 9)   # 崖の帯と台地の境目（offset col,row）
+const STAGE := "res://data/stages/tutorial2-undead-rush/st4.json"
+const NEAR_HEX := Vector2i(2, 1)   # 崖の帯と台地の境目（offset col,row）
 ## 崖の高さの上書き（第2引数）。負＝穴。省略時は CSV のまま。
 ## CSV の検証は elevation>=0 を要求するので、負の検討はここで実行時に差し替える。
 

@@ -13,6 +13,10 @@ const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の�
 ## 沈めるのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
 ## 高さと同値の沈みにすると足元がまわりの地面と揃う＝背丈は平地の駒のまま、沈めたぶんだけ隠れる。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
+## オブジェクト（足場の上に置くもの）の立ち絵の大きさ＝絵の高さ何タイルぶんか。駒（3.75）より小さい。
+const OBJECT_CANVAS_TILES := 2.2
+## 立ち絵の足元をヘックス中心から奥（上辺寄り）へ。駒は手前（+0.6）に立つので、駒が前に出る。
+const OBJECT_FOOT_Z := -TILE * 0.2
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
 
 # --- 状態（setup で注入）---
@@ -29,6 +33,7 @@ var _board_height := { "row": [], "col": [] }
 # --- キャッシュ ---
 var _terrain_tex := {}     # base_path(String) -> Array[Texture2D]（基本＋連番 variant）
 var _side_tex := {}        # skin_id -> Texture2D|null（側面画像。置いていなければ null）
+var _obj_side_tex := {}    # art_id -> Texture2D|null（繋がるオブジェクトの板の絵）
 var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）
@@ -65,6 +70,7 @@ func build_tiles() -> void:
 		for row in _state.rows:
 			var hex := Hex.offset_to_axial(col, row)
 			_add_tile(hex)
+	_add_objects()
 	_add_grid()
 	_add_skirt()
 	_add_ground()
@@ -274,10 +280,11 @@ func _tile_avg_color(tex: Texture2D) -> Color:
 	return col
 
 func _add_tile(hex: Vector2i) -> void:
-	var tex := _tile_texture(hex)
+	var skin := _skin_at(hex)
+	# オブジェクトのマスは床に足場だけを敷く（物そのものは _add_objects が立てる）。
+	var tex := _ground_texture(hex, skin) if _is_object(skin) else _tile_texture(hex)
 	if tex == null:
 		return
-	var skin := _skin_at(hex)
 	var mi := MeshInstance3D.new()
 	mi.mesh = _hex_mesh
 	mi.material_override = BoardMeshFactory.terrain_material(tex)
@@ -287,6 +294,103 @@ func _add_tile(hex: Vector2i) -> void:
 		TerrainTiles.orient(mi, hex, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
 	add_child(mi)
+
+## そのスキンがオブジェクト（足場の上に置くもの）か。→ doc/gdd/terrain.md
+func _is_object(skin: TerrainSkin) -> bool:
+	return skin != null and TerrainType.layer(skin.terrain_type) == "object"
+
+## オブジェクトのマスに敷く足場のテクスチャ（map_ground）。書いていなければ null。
+func _ground_texture(hex: Vector2i, skin: TerrainSkin) -> Texture2D:
+	if skin == null:
+		return null
+	var ground := TerrainSkinCatalog.resolve(skin.map_ground_id(), "")
+	if ground == null:
+		return null
+	return _variant_texture(_tile_image_path(ground, hex), hex)
+
+## オブジェクトを立てる。繋がるもの（柵）はワールドに向きを持った板、それ以外はカメラに
+## 正対する立ち絵1枚（→ doc/gdd/terrain.md）。板は絵ごとに1メッシュへまとめる。
+func _add_objects() -> void:
+	var panels := {}  # Texture2D -> SurfaceTool
+	for col in _state.cols:
+		for row in _state.rows:
+			var hex := Hex.offset_to_axial(col, row)
+			var skin := _skin_at(hex)
+			if not _is_object(skin):
+				continue
+			if skin.connects():
+				_add_object_panels(panels, skin, hex)
+			else:
+				_add_object_standee(skin, hex)
+	for tex: Texture2D in panels:
+		var mi := MeshInstance3D.new()
+		mi.mesh = panels[tex].commit()
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = tex
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 裏から見ても描く
+		mi.material_override = m
+		add_child(mi)
+
+## 繋がるオブジェクト（柵）。ヘックス中心から、繋がる隣との辺の中点まで板を立てる。
+## 向きは板の置き方が出すので、絵は横から見た1枚で足りる（繋がり方別に64枚を持たない）。
+## 板の高さは絵の縦横比が決める＝データに高さを持たせない。
+func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) -> void:
+	var tex := _object_side_texture(skin)
+	if tex == null:
+		return
+	var st: SurfaceTool = panels.get(tex)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		panels[tex] = st
+	var p := Hex.to_pixel(hex, TILE)
+	var y := elev(hex)
+	var conn := _connected_dirs(skin, hex)
+	var half := TILE * sqrt(3.0) * 0.5  # 中心から辺の中点まで
+	var h := half * (float(tex.get_height()) / maxf(float(tex.get_width()), 1.0))
+	for i in 6:
+		if not bool(conn[i]):
+			continue
+		var q := Hex.to_pixel(hex + Hex.DIRECTIONS[i], TILE)
+		var a := Vector3(p.x, y, p.y)
+		var b := Vector3((p.x + q.x) * 0.5, y, (p.y + q.y) * 0.5)
+		var up := Vector3(0.0, h, 0.0)
+		st.set_uv(Vector2(0, 1)); st.add_vertex(a)
+		st.set_uv(Vector2(1, 1)); st.add_vertex(b)
+		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
+		st.set_uv(Vector2(1, 1)); st.add_vertex(b)
+		st.set_uv(Vector2(1, 0)); st.add_vertex(b + up)
+		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
+
+## 繋がらないオブジェクト（岩・建物・砦）。駒と同じ立ち絵1枚を、駒より奥に立てる。
+func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
+	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
+	if tex == null:
+		return
+	var p := Hex.to_pixel(hex, TILE)
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	spr.pixel_size = (OBJECT_CANVAS_TILES * TILE) / float(tex.get_height())
+	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
+	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y + OBJECT_FOOT_Z)
+	add_child(spr)
+
+## 繋がるオブジェクトの板の絵（assets/terrain/{art_id}_side.png）。無ければ声を上げて null。
+func _object_side_texture(skin: TerrainSkin) -> Texture2D:
+	var id := skin.art_id()
+	if _obj_side_tex.has(id):
+		return _obj_side_tex[id]
+	var path := "res://assets/terrain/%s_side.png" % id
+	var tex := load(path) as Texture2D if ResourceLoader.exists(path) else null
+	if tex == null:
+		push_error("BoardTerrainRenderer: 板の絵が無い %s" % path)
+	_obj_side_tex[id] = tex
+	return tex
 
 ## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
 ## スキンが grid=false のマスは引かない＝駒が入れない地形が枠で刻まれず、一つの塊として読める。
