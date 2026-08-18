@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=60 / refactoring=11
+次回採番: bug=3 / feature=60 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -345,6 +345,14 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
+
+### refactoring-11
+
+**旧地形システムの map_overlay（絵を借りる）を消す**（優先度：低）
+
+- 背景：`map_overlay` は二層化（足場とオブジェクト）前の旧地形システムで入れた仕組みで、スキンが別スキンの絵を借りて自前の画像を持たない。現在の利用は2スキン＝`plain_grave1_fence`（柵の接続タイル64枚を `plain_fence` から借用）と `road_bridge1`（石畳の接続タイル64枚を `road_stone1` から借用）。マップと絵は順次作り直し中で、この仕組みは残さない。
+- 対応：機能ごと削除し、CSVからも列を消す。絵は skin_id で直引きになるので、借りていた2スキンには自前の画像を持たせる（借り先のタイルの複製、または作り直し）。橋は feature-59（橋の下の水）で絵の作り直し自体が検討対象なので、同時に片付けるとよい。
+- 該当：`data/terrain/terrain_skin.csv`（列削除＋JSON再生成）・`data/terrain/terrain_skin.gd`（`map_overlay`・`art_id()`）・`data/terrain/convert.gd`（検証1行）・`presentation/board/board_terrain_renderer.gd`（`_object_side_texture`）・`tests/unit/test_terrain_skin.gd`（借用のテスト）・`doc/art/terrain.md`。着手の引き金＝墓地の柵か橋の絵を作り直すとき。
 
 ## parking lot
 
