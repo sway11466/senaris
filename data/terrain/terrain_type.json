@@ -169,6 +169,16 @@
 			"memo": "防御有利、攻撃不利",
 			"name": "砦",
 			"sight_cost": 3
+		},
+		{
+			"atk": 1.0,
+			"char": "X",
+			"def": 1.0,
+			"id": "keepout",
+			"layer": "object",
+			"memo": "全ユニット移動不可・視線も遮る。高低差の縁などをゲーム記号で塞ぐ",
+			"name": "立入禁止",
+			"sight_cost": "x"
 		}
 	]
 }
