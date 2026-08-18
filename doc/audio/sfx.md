@@ -378,6 +378,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `spore` | `AIRBrst_Steam Release Short 03_JSE_SG_Mono.wav` の5テイク目 | 2024 p2 / Justsoundeffects - Steampunk Gadgets |
 | `bite` | `Celery,Bite,Crunch,Slow,Bone,Break,Stick,Creak,Various07.wav` | 2015 p3 / Mattia Cellotto - Crunch Mode |
 | `scream` | `Bloody Nightmare - Horror Impacts - Robotic Scream.wav` | 2015 p4 / SoundMorph - Bloody Nightmare |
+| `fire_breath` | `torch_whoosh_20.wav` | 2018 p5 / Soundrangers - Whooshes And Transitions |
 | `pincer` | `METLFric_SWING SCRAPE ... Long Blade 14`（`slash_m` と同一の切り出し） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
 すべて試聴して決めた。
@@ -397,6 +398,8 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 `magic_dust`（魔法の粉＝ピクシーの攻撃・projectile）は粒の弾ける音を当てる。`holy` を決めるときに落とした素材を採り直したもので、冒険譚3 st2 の会話で籠の中の妖精が声を上げる合図にも同じ素材を鳴らす。
 
 `scream`（魔法の悲鳴＝マンドラゴラ・impact）は加工された非人間の叫びを当てる。生の人間の悲鳴は外した。盤で鳴るのは草が敵を攻撃する音なので、人の声そのものだと草ではなく人が倒れた音に聞こえる。素材は尾が10秒あり、どこで切ってもまだ音が大きい途中で終わるため、1.5秒で切って末尾に 0.40 秒のフェードを掛けている。
+
+`fire_breath`（火炎の息＝レッドドラゴン・impact）は松明を振る風切りを当てる。竜専門のライブラリ（2015 p5 / Varazuvi - Hollywood Dragons）の息づかい・咆哮も試聴したが、録音レベルが低く基準まで +10〜21 dB を要するため採らなかった。咆哮は絵が炎なので、鳴らすと絵にない出来事を音が語ることになる点でも外れる。
 
 `bite`（大蛇の顎＝ロックサーペント・ワイアーム・impact）はセロリを噛み割る音を当てる。怪物の噛みつきや尾の打撃を含む5本を試聴して決めた。血肉系（Gore）にも直球の候補があるが、作風に合わないので引いていない。野菜の破断は骨が折れる音の代わりに使う定番で、生々しさを出さずに顎が閉じる質感が出る。
 
