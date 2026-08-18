@@ -65,8 +65,11 @@ const FIG_H := 0.41   # 立ち絵の高さ（窓内寸の高さに対する比�
                       # tools/gen_unit_combat.ps1 の $Canvas と対で、片方を変えたら同じ倍率でもう片方も直す
                       # （512→704 に広げたぶん 0.30→0.41）。実機で詰める値。
 const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
-# 地形の重ね絵（center レシピ＝拠点）。いずれも窓内寸に対する比。
-const FEATURE_H := 0.34       # 高さ。立ち絵（0.285）より一回り大きく＝建物として見える
+# 地形の重ね絵（奥＝守り手側に建つ塊）。いずれも窓内寸に対する比。
+## 描くのは絵の実体ではなくキャンバス全体で、オブジェクトごとの大小はその中の余白が持つ
+## （立ち絵と同じ仕組み → doc/art/terrain.md）。FIG_H と同値にしてあるので、駒と同じ作法で
+## 描いたキャンバスなら、倍率1.0のオブジェクトは倍率1.0の駒と同じ背丈で出る。
+const FEATURE_H := FIG_H
 const FEATURE_BOTTOM := 0.44  # 下端。隊列の頭（約0.24）に少し被る＝奥に建っていると読める
 const FEATURE_CX := 0.24      # 中心x（左側の値。右側は 1-この値）＝その陣営の隊列の真上
 # 兵量バー（窓内寸に対する比）。両陣営に常時出す＝隊列が減る駒もバーだけの駒も損害の読み方を揃える。
@@ -87,7 +90,8 @@ var _bg := Color(0.35, 0.38, 0.34)  # 窓の下地色（地形色。地面が敷
 var _inner: Control       # 窓の中身（地面＋図＋エフェクト）。シェイク対象
 var _ground: CombatGround3D  # 地面（3D・盤と同じ地形タイル）
 var _haze: TextureRect       # 奥を落とす縦グラデ（タイルの繰り返しを目立たせない）
-var _feature: Control        # 地面の上・立ち絵の下に重ねる地形の1枚（center レシピ＝拠点など）
+var _feature: Control        # 奥の重ね絵（地面の上・立ち絵の下）。守り手側に建つ塊
+var _feature_front: Control  # 手前の重ね絵（立ち絵の上・バーの下）。窓の全幅に渡る帯
 var _fig := { "L": null, "R": null }  # 各サイドの図レイヤ（Control）
 var _bar := { "L": null, "R": null }  # 各サイドの兵量バー（Control・立ち絵の上に重ねる）
 var _bar_val := { "L": 0.0, "R": 0.0 }   # バーの表示値（減少をアニメさせるので float）
@@ -149,6 +153,12 @@ func _build() -> void:
 		f.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_inner.add_child(f)
 		_fig[side] = f
+	# 手前の重ね絵は立ち絵より前面＝前列の足元に被って額縁になる。バーより後面に置くので、
+	# 帯が兵量バーを隠すことはない。
+	_feature_front = Control.new()
+	_feature_front.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_feature_front.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inner.add_child(_feature_front)
 	# バーは立ち絵より前面（隊列に隠れない）／エフェクトより後面（フラッシュは上から被せる）。
 	for side in ["L", "R"]:
 		var b := Control.new()
@@ -225,8 +235,9 @@ func _open(ground: Dictionary, ground_side: String) -> void:
 	var skin := _ground_skin_of(ground)
 	_ground.build(skin, ground_side)
 	_clear(_feature)
-	if skin != null and skin.combat_placement() == "center":
-		_add_feature(skin, ground_side)
+	_clear(_feature_front)
+	if skin != null:
+		_add_features(skin, ground_side)
 	if _screen != null:
 		_screen.dim(self)  # 暗転は共通基盤（フェードはあちら持ち）。窓のワイプとほぼ同時に走る
 	_start_open_anim()
@@ -250,26 +261,42 @@ func _start_open_anim() -> void:
 	_anim.tween_property(_fig["L"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 	_anim.tween_property(_fig["R"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 
-## center レシピの1枚（拠点など）を地面の上に重ねる。3Dの帯には混ぜない＝奥へ行くほど縮む
-## 帯の倍率と靄を受けないので、いつも同じ大きさで読める。仕様 → doc/tech/combat_scene.md
-## 隊列より奥に建つものとして、隊列の頭が少し被る高さに置く（前後関係が出る）。
-func _add_feature(skin: TerrainSkin, side: String) -> void:
-	var texs := TerrainTiles.variants(skin.image_path())
-	if texs.is_empty():
-		return  # 絵が無いスキンは重ねない（地面だけが出る）
-	var tex: Texture2D = texs[0]  # 1枚しか出ないので変種は使わない（毎回同じ構図＝読める）
-	var vp := _size()
-	var h := vp.y * FEATURE_H
-	var w := h * (float(tex.get_width()) / float(maxi(tex.get_height(), 1)))
+## 地形の重ね絵を2枚とも出す。置いてある絵だけを出し、無ければ何も重ねない（地面だけ）。
+## 3Dの帯には混ぜない＝奥へ行くほど縮む帯の倍率と靄を受けないので、いつも同じ大きさで読める。
+## 仕様 → doc/tech/combat_scene.md
+func _add_features(skin: TerrainSkin, side: String) -> void:
+	var back := _feature_texture(skin, "back")
+	if back != null:
+		# 隊列より奥に建つものとして、隊列の頭が少し被る高さに置く（前後関係が出る）。
+		var vp := _size()
+		var h := vp.y * FEATURE_H
+		var w := h * (float(back.get_width()) / float(maxi(back.get_height(), 1)))
+		var cx := vp.x * (FEATURE_CX if side == "L" else 1.0 - FEATURE_CX)
+		_feature.add_child(_feature_rect(back, Vector2(cx - w * 0.5, vp.y * FEATURE_BOTTOM - h), Vector2(w, h)))
+	var front := _feature_texture(skin, "front")
+	if front != null:
+		# 手前の帯は窓の全幅に渡して下辺に接地させる＝味方側から敵側まで通る額縁になる。
+		# 高さは絵の縦横比が決める（横幅が決まっている以上、縦を別に指定すると絵が歪む）。
+		var vp2 := _size()
+		var fh := vp2.x * (float(front.get_height()) / float(maxi(front.get_width(), 1)))
+		_feature_front.add_child(_feature_rect(front, Vector2(0.0, vp2.y - fh), Vector2(vp2.x, fh)))
+
+## 重ね絵のPNG（assets/terrain/{skin_id}_combat_{back|front}.png）。置いていなければ null。
+## 盤の立ち絵は使わない＝戦闘は近景で要る絵が違う（→ doc/art/terrain.md）。絵を置けば出る。
+func _feature_texture(skin: TerrainSkin, slot: String) -> Texture2D:
+	var path := "res://assets/terrain/%s_combat_%s.png" % [skin.skin_id, slot]
+	return load(path) as Texture2D if ResourceLoader.exists(path) else null
+
+## 重ね絵1枚ぶんの TextureRect（位置と大きさは呼び出し側が決める）。
+func _feature_rect(tex: Texture2D, pos: Vector2, size2: Vector2) -> TextureRect:
 	var tr := TextureRect.new()
 	tr.texture = tex
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tr.stretch_mode = TextureRect.STRETCH_SCALE
-	tr.size = Vector2(w, h)
-	var cx := vp.x * (FEATURE_CX if side == "L" else 1.0 - FEATURE_CX)
-	tr.position = Vector2(cx - w * 0.5, vp.y * FEATURE_BOTTOM - h)
+	tr.size = size2
+	tr.position = pos
 	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_feature.add_child(tr)
+	return tr
 
 ## 隊列スロットに収まる兵量（1〜8）。値をそのまま信じず枠内に丸める。
 func _troops_of(comb: Dictionary) -> int:
