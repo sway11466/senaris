@@ -32,7 +32,7 @@
     "PPPPPPPPPPPP%%%%%%PPPPPPPPPPP"
   ],
   "terrain_skins": [
-    { "col": 13, "row": 17, "skin": "fort_town1" }
+    { "col": 13, "row": 17, "skin": "road_fort_town1" }
   ],
   "player": [
     { "type": "pixie", "actor": "pixie", "col": 5, "row": 22, "supply": "join" },

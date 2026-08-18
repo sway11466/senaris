@@ -36,9 +36,9 @@
     { "col": 4, "row": 5, "team": "neutral", "garrison": [ { "type": "novice", "count": 2 } ] }
   ],
   "terrain_skins": [
-    { "col": 1, "row": 3, "skin": "fort_town1" },
-    { "col": 8, "row": 3, "skin": "fort_town1" },
-    { "col": 4, "row": 5, "skin": "fort_town1" }
+    { "col": 1, "row": 3, "skin": "road_fort_town1" },
+    { "col": 8, "row": 3, "skin": "road_fort_town1" },
+    { "col": 4, "row": 5, "skin": "road_fort_town1" }
   ],
   "dialogue": {
     "intro": [
