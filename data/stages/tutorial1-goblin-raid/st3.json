@@ -5,16 +5,16 @@
   "rows": 10,
   "margin": 0,
   "terrain": [
-    "FFFFFCCCCCCCCCFFFF",
-    "FFFFFFCCCCCCCFFFFF",
-    "FFFFFFFCCCCCFFF...",
-    "FFF.F.FFCCCCF.....",
-    "........CCC.......",
+    "FFFFFWWWWWWWWWFFFF",
+    "FFFFFFWWWWWWWFFFFF",
+    "FFFFFFFWWWWWFFF...",
+    "FFF.F.FFWWWWF.....",
+    "........WWW.......",
     "..................",
-    ".......CCCCC......",
-    ".....CCCCCCC.FFFFF",
-    ".....CCCCCCCFFFFFF",
-    "...CCCCCCCCCCCFFFF"
+    ".......WWWWW......",
+    ".....WWWWWWW.FFFFF",
+    ".....WWWWWWWFFFFFF",
+    "...WWWWWWWWWWWFFFF"
   ],
   "terrain_skins": [
     { "col": 5, "row": 0, "skin": "rampart_granite1" },
