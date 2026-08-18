@@ -15,14 +15,14 @@ bush,bush,茂み,flip_x,false,,0.12,0.12,true,,,,,塊の向きが揃った方が
 road_prop_garden1_v,prop,菜園,none,false,,0,0,true,road,,road,center,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦
 road_prop_garden1_r,prop,菜園,none,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝右上から左下
 road_prop_garden1_l,prop,菜園,none,false,,0,0,true,road,,road,center,同じ元絵を回した向き＝左上から右下
-bedrock,bedrock,岩地,full,false,,0.36,0,true,,,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。大岩より明るい岩
+bedrock,bedrock,岩地,full,false,,0.36,0,true,,,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。尾根より明るい岩
 plain_fence,fence,柵,none,line,,0,0,true,plain,,plain,line,隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,true,plain_grave1,plain_fence,plain_grave1,line,柵の絵（map_overlay）を借り、墓地の草地の上に立てる
 plain_trap,trap,罠,none,false,,0,0,true,plain,,plain,center,
 rampart,rampart,城壁,full,false,,0.54,0,true,,,plain,line,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
+rampart_ridge1,rampart,尾根,full,false,,0.54,0,true,,,bedrock,line,山の背。上面は上向きに砕けた岩＝足場が無い・側面画像で縦に割れた岩壁を見せる。飛行と斥候だけが越え、視線を完全に遮る
+rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0,true,,,bedrock,line,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
 plain_grave1_rubble1,rubble,瓦礫の山,none,false,,0,0,true,plain_grave1,,plain_grave1,line,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
-plain_rock,rock,大岩,none,false,,0,0,true,plain,,,,上向きに砕けた岩の塊＝足場が無い。岩地と同じ岩の暖色だが一段暗い
-plain_rock_granite1,rock,花崗岩の大岩,none,false,,0,0,true,plain,,,,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の大岩・岩地）とは別の岩質
 river,river,川,none,area,road_bridge1,0,0,true,,,plain,line,隣の川と繋がる向き別タイル（_c000000〜_c111111）
 road_stone1,road,石畳,none,area,road road_bridge1,0,0,true,plain,,plain,line,石畳の道。地面は焼き込まず map_ground で敷く＝同じ絵を橋にも使う
 road_bridge1,road,橋,none,area,road road_stone1,0,0,true,river,road_stone1,plain,line,石畳の絵（map_overlay）を借り、川の上に架ける。川側が river に橋を書くので水は下をくぐる

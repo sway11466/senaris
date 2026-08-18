@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cdd57t0nqy5lf"
-path="res://.godot/imported/plain_rock.png-294d89a0016de5de47dd2c75d3f24b6d.ctex"
+uid="uid://c1xrs2q7nvw16"
+path="res://.godot/imported/rampart_granite1_2.png-d69c0568bd764b2b5a528bed616dabd9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_rock.png"
-dest_files=["res://.godot/imported/plain_rock.png-294d89a0016de5de47dd2c75d3f24b6d.ctex"]
+source_file="res://assets/terrain/rampart_granite1_2.png"
+dest_files=["res://.godot/imported/rampart_granite1_2.png-d69c0568bd764b2b5a528bed616dabd9.ctex"]
 
 [params]
 
