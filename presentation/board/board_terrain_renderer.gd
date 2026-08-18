@@ -22,6 +22,9 @@ var _terrain_skins := {}   # Vector2i -> skin_id（ステージの見た目差�
 ## 描かないし駒も入らない＝接続タイル（柵・道）が「盤の外に何があるか」を引くためだけのデータ。
 ## 空＝外周なしで、そのときだけ縁の推測（面は丸め込み／線は腕を伸ばす）に落ちる。
 var _margin_terrain := {}
+## 盤の基準高さ（見た目のみ）。{ "row": [行数ぶん], "col": [列数ぶん] }。空＝その軸は平ら。
+## あるマスの高さ ＝ 行の基準 ＋ 列の基準 ＋ スキンの elevation（→ doc/gdd/terrain.md 盤の高さ）。
+var _board_height := { "row": [], "col": [] }
 
 # --- キャッシュ ---
 var _terrain_tex := {}     # base_path(String) -> Array[Texture2D]（基本＋連番 variant）
@@ -39,10 +42,12 @@ func _ready() -> void:
 	_hex_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_skirt_tex = BoardMeshFactory.make_skirt_texture()
 
-func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictionary) -> void:
+func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictionary,
+		board_height: Dictionary = { "row": [], "col": [] }) -> void:
 	_state = state
 	_terrain_skins = terrain_skins
 	_margin_terrain = margin_terrain
+	_board_height = board_height
 
 # =========================================================================
 # Public API
@@ -82,9 +87,24 @@ func elev(hex: Vector2i) -> float:
 	if _elev_cache.has(hex):
 		return _elev_cache[hex]
 	var skin := _skin_at(hex)
-	var e: float = skin.elevation if skin != null else 0.0
+	var e: float = (skin.elevation if skin != null else 0.0) + _base_height(hex)
 	_elev_cache[hex] = e
 	return e
+
+## 盤の基準高さ（行＋列）。ステージが書いていなければ0＝平ら。盤の外のセルは縁の値に丸める
+## （外周のスカートが盤の縁と地続きに見えるように）。
+func _base_height(hex: Vector2i) -> float:
+	var row: Array = _board_height.get("row", [])
+	var col: Array = _board_height.get("col", [])
+	if row.is_empty() and col.is_empty():
+		return 0.0
+	var o := Hex.axial_to_offset(hex)
+	var h := 0.0
+	if not row.is_empty():
+		h += float(row[clampi(o.y, 0, row.size() - 1)])
+	if not col.is_empty():
+		h += float(col[clampi(o.x, 0, col.size() - 1)])
+	return h
 
 ## 立ち絵をタイル上面より沈める量（植生の厚み・既定0）。足元が下草・樹冠に隠れる量。
 func sprite_sink(hex: Vector2i) -> float:

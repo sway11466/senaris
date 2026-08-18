@@ -165,6 +165,43 @@ static func parse_terrain_skins(data: Dictionary) -> Dictionary:
 		out[hex] = String(e.get("skin", ""))
 	return out
 
+## 見た目レイヤー：盤の基準高さ。ステージ辞書の "height"（{row:[..], col:[..]}）→ { row, col }。
+## あるマスの見た目の高さ ＝ 行の基準 ＋ 列の基準 ＋ スキンの elevation（→ doc/gdd/terrain.md 盤の高さ）。
+## 移動にも戦闘にも視線にも入らない。書いていなければ平ら。書くなら盤の行数・列数と長さを合わせる
+## （足りない/多い配列は黙って0で埋めずに弾く＝どこまで指定したつもりかが分からなくなるため）。
+static func parse_board_height(data: Dictionary, cols: int, rows: int) -> Dictionary:
+	var out := { "row": [], "col": [] }
+	var h: Variant = data.get("height", null)
+	if typeof(h) != TYPE_DICTIONARY:
+		return out
+	out["row"] = _height_axis(h, "row", rows)
+	out["col"] = _height_axis(h, "col", cols)
+	return out
+
+## height の1軸ぶん。長さが合わなければ空（＝その軸は平ら）に倒し、理由をログに出す。
+static func _height_axis(h: Dictionary, key: String, want: int) -> Array:
+	var v: Variant = h.get(key, null)
+	if typeof(v) != TYPE_ARRAY:
+		return []
+	var arr: Array = v
+	if arr.size() != want:
+		push_error("stage: height.%s の長さ %d が盤の %d と違う" % [key, arr.size(), want])
+		return []
+	var out: Array = []
+	for e in arr:
+		out.append(float(e) if typeof(e) == TYPE_INT or typeof(e) == TYPE_FLOAT else 0.0)
+	return out
+
+## res:// パスの JSON から盤の基準高さを読む（load_file と対＝見た目を presentation へ渡すため）。
+static func load_board_height(path: String, cols: int, rows: int) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return { "row": [], "col": [] }
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return { "row": [], "col": [] }
+	return parse_board_height(data, cols, rows)
+
 ## res:// パスの JSON から terrain_skins を読む（load_file と対＝skin を presentation へ渡すため）。
 static func load_terrain_skins(path: String) -> Dictionary:
 	var text := FileAccess.get_file_as_string(path)

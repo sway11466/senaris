@@ -225,3 +225,21 @@ func test_parse_terrain_skins_maps_coords() -> void:
 func test_parse_terrain_skins_empty_when_absent() -> void:
 	# terrain_skins が無いステージは空マップ（既存ステージは skin 追記ゼロで現状描画）。
 	assert_eq(StageLoader.parse_terrain_skins({}).size(), 0, "未指定は空")
+
+func test_parse_board_height_reads_both_axes() -> void:
+	# 盤の基準高さは行と列の2本。あるマスの高さは 行＋列＋スキンの elevation（見た目のみ）。
+	var d := { "height": { "row": [0, 0.18, 0.36], "col": [0, 0.5] } }
+	var h := StageLoader.parse_board_height(d, 2, 3)
+	assert_eq(h["row"], [0.0, 0.18, 0.36], "行の基準")
+	assert_eq(h["col"], [0.0, 0.5], "列の基準")
+
+func test_parse_board_height_rejects_wrong_length() -> void:
+	# 長さが盤と違う配列を黙って0で埋めると、どこまで指定したつもりか分からなくなる。
+	var d := { "height": { "row": [0, 0.18], "col": [0, 0.5] } }
+	var h := StageLoader.parse_board_height(d, 2, 3)  # 盤は3行なのに2つしかない
+	assert_eq(h["row"], [], "長さ違いの軸は平らに倒す")
+	assert_eq(h["col"], [0.0, 0.5], "もう一方の軸は生きる")
+	assert_push_error_count(1, "理由をログに出す")
+
+func test_parse_board_height_absent_is_flat() -> void:
+	assert_eq(StageLoader.parse_board_height({}, 5, 5), { "row": [], "col": [] }, "未指定は平ら")

@@ -128,11 +128,11 @@ func _ready() -> void:
 	_menu.id_pressed.connect(_on_menu_id)
 	_menu.popup_hide.connect(_on_menu_closed)
 
-func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}) -> void:
+func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}, p_board_height: Dictionary = { "row": [], "col": [] }) -> void:
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain)
+	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_board_height)
 	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.sprite_sink)
 	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, _in_board, state, _sync, func(v: bool) -> void: _locked = v)
 	_reset_interaction()
@@ -342,21 +342,47 @@ func _plane_point_at_y(screen: Vector2, y: float) -> Vector3:
 func _plane_point_at(screen: Vector2) -> Vector3:
 	return _plane_point_at_y(screen, 0.0)
 
-## screen 直下のヘックス。標高対応＝高い標高の平面から順に判定し、実際にその高さのタイルを指す
-## 最初の hex を返す（上のタイルが下を隠す）。どの標高にも当たらなければ y=0 の素の hex。
+## screen 直下のヘックス。高い所にあるタイルが低い所を隠すので、高いほうから順に見て最初に
+## 当たったものを返す。どれにも当たらなければ y=0 の素の hex。
+##
+## 高さの候補を1つずつ平面として試すのではなく、レイが通るヘックスを高いほうから拾って、
+## そのヘックス自身の高さで当たるかを見る。盤が行と列の基準高さを持つと高さの種類は
+## 行数×列数まで増えるので、種類ぶん回すとピッキングが種類数に比例して重くなる
+## （14×11・52種で 0.78ms を実測）。この形なら高さの幅にしか比例しない。
 func _hex_at_mouse() -> Vector2i:
-	var screen := get_viewport().get_mouse_position()
-	for e in _terrain_renderer.elev_levels():
-		var p := _plane_point_at_y(screen, e)
-		if not p.is_finite():
-			continue
-		var hex := Hex.from_pixel(Vector2(p.x, p.z), TILE)
-		if _on_board(hex) and is_equal_approx(_terrain_renderer.elev(hex), e):
-			return hex
-	var p0 := _plane_point_at_y(screen, 0.0)
-	if not p0.is_finite():
+	return _hex_at_screen(get_viewport().get_mouse_position())
+
+## 画面座標の直下のヘックス（_hex_at_mouse の本体。検証から任意の点を投げられるように分けてある）。
+func _hex_at_screen(screen: Vector2) -> Vector2i:
+	var o := _board_cam.camera.project_ray_origin(screen)
+	var d := _board_cam.camera.project_ray_normal(screen)
+	if absf(d.y) < 1e-6:
 		return INVALID_HEX
-	return Hex.from_pixel(Vector2(p0.x, p0.z), TILE)
+	var levels := _terrain_renderer.elev_levels()  # 高い順・0 を必ず含む
+	var top: float = float(levels[0])
+	var bottom: float = float(levels[levels.size() - 1])
+	# 高さを Δ 下げるとレイの着地点は水平に Δ×|d.xz|/|d.y| ずれる。1マスを跨がない刻みで歩く。
+	var horiz := Vector2(d.x, d.z).length()
+	var step: float = TILE * 0.4 * absf(d.y) / maxf(horiz, 1e-6)
+	var seen := {}
+	var e := top
+	while e >= bottom - 0.001:
+		var hex := _hex_on_plane(o, d, e)
+		if hex != INVALID_HEX and not seen.has(hex):
+			seen[hex] = true
+			if _on_board(hex) and _hex_on_plane(o, d, _terrain_renderer.elev(hex)) == hex:
+				return hex
+		e -= step
+	var flat := _hex_on_plane(o, d, 0.0)
+	return flat if flat != INVALID_HEX else INVALID_HEX
+
+## レイと高さ y の水平面の交点が乗るヘックス。交差しなければ INVALID_HEX。
+func _hex_on_plane(o: Vector3, d: Vector3, y: float) -> Vector2i:
+	var t := (y - o.y) / d.y
+	if t < 0.0:
+		return INVALID_HEX
+	var p := o + d * t
+	return Hex.from_pixel(Vector2(p.x, p.z), TILE)
 
 ## hex が盤の中か（ホバー表示は盤上だけ）。
 func _on_board(hex: Vector2i) -> bool:
