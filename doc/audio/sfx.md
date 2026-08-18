@@ -362,6 +362,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `arrow_bolt` | 同ファイルの4テイク目 | 2019 p5 / 同上 |
 | `arrow_crossbow` | 同上（太矢とクロスボウは発射も着弾も共用する） | 2019 p5 / 同上 |
 | `arrow_hit` | `BOW Arrow Hit 05.wav` | 2020 p9 / SmartSoundFX – Medieval |
+| `thrust` | `SWORD Hit Metal 02.wav` | 2020 p9 / 同上 |
 | `arrow_bone_hit` | 同上 | 2020 p9 / 同上 |
 | `arrow_bolt_hit` | 同上 | 2020 p9 / 同上 |
 | `arrow_crossbow_hit` | 同上 | 2020 p9 / 同上 |
@@ -398,6 +399,8 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 `magic_dust`（魔法の粉＝ピクシーの攻撃・projectile）は粒の弾ける音を当てる。`holy` を決めるときに落とした素材を採り直したもので、冒険譚3 st2 の会話で籠の中の妖精が声を上げる合図にも同じ素材を鳴らす。
 
 `scream`（魔法の悲鳴＝マンドラゴラ・impact）は加工された非人間の叫びを当てる。生の人間の悲鳴は外した。盤で鳴るのは草が敵を攻撃する音なので、人の声そのものだと草ではなく人が倒れた音に聞こえる。素材は尾が10秒あり、どこで切ってもまだ音が大きい途中で終わるため、1.5秒で切って末尾に 0.40 秒のフェードを掛けている。
+
+`thrust`（刺突・impact）は剣が金属に当たる音を当てる。振る音（Weapon Swings の使い残し）も試聴したが、突きに弧の気配が残るため採らなかった。`cmb_hit_none`（弾き返し）を決めたときに落とした素材を採り直したもので、当たって止まる質感はそちらと近い。同時に鳴ることは無い＝弾き返しは損害0のときだけ、刺突は損害があるときだけ鳴る。
 
 `fire_breath`（火炎の息＝レッドドラゴン・impact）は松明を振る風切りを当てる。竜専門のライブラリ（2015 p5 / Varazuvi - Hollywood Dragons）の息づかい・咆哮も試聴したが、録音レベルが低く基準まで +10〜21 dB を要するため採らなかった。咆哮は絵が炎なので、鳴らすと絵にない出来事を音が語ることになる点でも外れる。
 

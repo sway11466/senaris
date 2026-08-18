@@ -67,6 +67,7 @@
 | `map_capture` | 占領成立（布の層） | Sonniss GDC 2026 / Epic Stock Media - Fantasy Game 2 `CLOTHFlp_Action Inventory Open Flip Cloth Canvas Bag Slide Light 02` | wav 96kHz/24bit | 同上 | 切り出しなし、0.45秒遅らせて -8.3 dB。鐘（自作）と重ねる。map_capture_recipe.txt |
 | `cannonball` | 砲弾の発射（飛空艇） | Sonniss GDC 2016 / Fascinated Sound - The Gun Locker SFX Pack `Automatic Cannon - MK44 - 03 - Single Shot with Report 03` | wav 96kHz/24bit | 同上 | 発砲だけ（0.24〜2.05秒・立ち上がりの手前を落とす）、-9.0 dB。cannonball_recipe.txt |
 | `cannonball_hit` | 砲弾の着弾（同じ収録の後半） | 同上 | 同上 | 同上 | Report だけ（2.18〜3.05秒）、-8.0 dB。cannonball_hit_recipe.txt。1本に発砲と着弾が両方入っている |
+| `thrust` | 刺突 | Sonniss GDC 2020 / SmartSoundFX – Medieval `SWORD Hit Metal 02` | wav 48kHz/24bit | 同上 | 切り出し（0.05〜0.55秒）、-7.0 dB。thrust_recipe.txt |
 | `fire_breath` | 竜の火炎の息（レッドドラゴン） | Sonniss GDC 2018 / Soundrangers - Whooshes And Transitions `torch_whoosh_20` | wav 96kHz/24bit | 同上 | 切り出し（0.05〜1.10秒・末尾 0.25 秒フェード）、-6.5 dB。fire_breath_recipe.txt |
 | `scream_female` | 会話で鳴らす女性の悲鳴 | Sonniss GDC 2017 / Soundopolis - Halloween 101 `SH101_Human_Female_Scream_Alien_OtherWorldly_Fienup_002` | wav 96kHz/24bit | 同上 | 切り出しなし、-5.9 dB。scream_female_recipe.txt |
 | `scream` | 魔法の悲鳴（マンドラゴラ） | Sonniss GDC 2015 / SoundMorph - Bloody Nightmare `Bloody Nightmare - Horror Impacts - Robotic Scream` | wav 96kHz/24bit | 同上 | 頭から（0.10〜1.60秒・末尾 0.40 秒フェード）、-6.8 dB。scream_recipe.txt |

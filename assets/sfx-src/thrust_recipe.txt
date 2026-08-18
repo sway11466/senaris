@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/thrust__2020__SWORD Hit Metal 02.wav" -af "atrim=0.05:0.55,asetpts=N/SR/TB,afade=t=in:st=0:d=0.005,afade=t=out:st=0.44:d=0.06,volume=-7.0dB" -c:a pcm_s24le thrust.wav
