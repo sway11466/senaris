@@ -336,20 +336,14 @@
 
 ### feature-57
 
-**地形の刷新で残った絵と盤**（優先度：高）
+**地形の刷新で残ったコード側の詰め**（優先度：中）
 
-- 背景：地形を足場とオブジェクトの二層に組み替え、盤の基準高さ（行＋列）まで実装した（2026-08-18）。考え方は [gdd/terrain.md](gdd/terrain.md)、絵の作法は [art/terrain.md](art/terrain.md)。残っているのは絵と盤で、コードは通っている。
-- 残り（絵）：
-  1. 足場の側面画像12枚。段差の壁に貼る、横から見た左右シームレスの帯。持っているのは岩地・城壁・壁の3枚だけで、道・平地・洞窟の床・墓地の草地・台地・荒地・森・茂み・川・石畳・橋・石積みの壁が無い。基準高さを使う盤では段差が至る所に出るので、無いとタイルの平均色＋粒ノイズのままになる。
-  2. オブジェクトの立ち絵。街区・菜園・墓標・瓦礫・罠・大岩・砦（町/詰所/納骨堂/礼拝堂）は、真上から描いた旧タイルのまま板として立っている＝寝た絵が起き上がった見た目。駒の作法（正面から・カメラに正対）で描き直す。
-  3. 柵の板（`assets/terrain/plain_fence_side.png`）は ImageMagick で描いた仮置き。同名で差し替えれば描画側は変わらない。
-- 残り（盤）：
-  4. 崖を面として敷いていた513マス（tutorial1 st5・tutorial3 st3/st5）。置き換え先は尾根（`rampart_ridge1`＝城壁タイプ・飛行と斥候だけが越え、視線を完全に遮る）と決めた。絵はまだ無い（上面と側面の2枚）。盤はそれから引き直す。
-  5. tutorial3 st2 の街区マスは識別文字が `P`（台地）のままで、スキンだけ建物になっている＝見た目と性能が食い違う。`B` に直す。
-- 残り（調整）：
-  6. オブジェクトの立ち絵の大きさ（`OBJECT_CANVAS_TILES = 2.2`）と、駒より奥へのずらし量（`-0.2`）は仮決め。絵ができてから実機で合わせる。
-  7. 帯で描く地形（道・川・橋）は高さを持たせない、という制約（[art/terrain.md](art/terrain.md) §1）と基準高さの関係を未確認。基準高さは道のマスも一緒に上下させるので、川と橋で段差が出ないか見る。
-- 該当：`assets/terrain/`・`assets/terrain-src/`・`data/stages/tutorial1-goblin-raid/st5.json`・`data/stages/tutorial3-dragon-hunt/st2.json`・`st3.json`・`st5.json`・`presentation/board/board_terrain_renderer.gd`。検証は `tests/manual/shot_board_height.gd`（高さ・当たり判定）と `tests/manual/shot_cliff.gd`（盤の撮影）。
+- 背景：地形を足場とオブジェクトの二層に組み替え、盤の基準高さ（行＋列）まで実装した（2026-08-18）。考え方は [gdd/terrain.md](gdd/terrain.md)、絵の作法は [art/terrain.md](art/terrain.md)。残っているのは、絵ができてからでないと決められない数値と、エディタの口。
+- 対応：
+  1. オブジェクトの立ち絵の大きさ（`OBJECT_CANVAS_TILES = 2.2`）と、駒より奥へのずらし量（`OBJECT_FOOT_Z = -0.2`）が仮決め。立ち絵ができてから実機で合わせる。
+  2. 帯で描く地形（道・川・橋）は高さを持たせない、という制約（[art/terrain.md](art/terrain.md) §1）と盤の基準高さの関係が未確認。基準高さは道のマスも一緒に上下させるので、川と橋のあるマスで段差が出ないか見る。
+  3. マップエディタに盤の基準高さを触る口が無い＝いまは手で JSON の `height` を書く。エディタは未知キーを温存する（`map_editor.gd:4-5`）ので壊れはしない。行ぶん・列ぶんの数値を並べるより、刻み幅と向きから一括生成して個別に直す形が実用的。
+- 該当：`presentation/board/board_terrain_renderer.gd`・`tools/map_editor/`。検証は `tests/manual/shot_board_height.gd`（高さ・当たり判定の往復チェック）と `tests/manual/shot_cliff.gd`（盤の撮影）。
 
 ### feature-58
 
