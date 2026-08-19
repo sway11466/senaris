@@ -3,14 +3,13 @@ class_name CombatGround3D
 ## 戦闘演出シーンの地面（3D）。盤と同じ地形タイルPNGを床に寝かせ、俯瞰カメラで撮った絵を
 ## 演出窓の背景にする。立ち絵とエフェクトは2Dのまま上に重なる。仕様 → doc/tech/combat_scene.md
 ##
-## 地面は盤の並びを写さず、地形（スキン）ごとのレシピで組む＝同じ地形なら毎回同じ構図になり読める。
-## レシピは terrain_skin.csv の2列（combat_ground＝下地スキン／combat_layout＝自分の絵の置き方）:
-##   fill   … そのスキンで一面に敷き詰める（既定＝表に書かないスキンは全部これ）
-##   line   … 下地を敷き、両隊列の間を縦に横切る1列だけそのスキン（柵・道・城壁）
-##   center … 下地だけをここで敷く。そのスキン自身は帯に混ぜず、地面を組んだ後に2Dで重ねる
-##            （CombatStage の feature レイヤー）＝帯の縮小と靄を受けない。拠点のような
-##            「立っているもの」は、帯に混ぜると奥で小さく暗くなるか手前で立ち絵に隠れるかしかない。
-## 既定が敷き詰めなので、レシピの無いスキンでも必ず何かは映る（背景画像方式のような穴が開かない）。
+## 地面は盤の並びを写さず、左右半分に分けて敷く＝左半分は左の駒のマスのスキン・右半分は右の駒の
+## マスのスキン。継ぎ目は画面中央（両隊列の間）。同じ組み合わせなら毎回同じ構図になり読める。
+## タイルの絵をそのまま敷けないスキン（オブジェクト・線地形）は terrain_skin.csv の combat_ground
+## 列が下地を指す（空＝自分自身で敷き詰める）。オブジェクトの立ち絵は帯に混ぜず、地面を組んだ後に
+## 2Dで重ねる（CombatStage の feature レイヤー＝_combat_back/line/front）。帯に混ぜると奥で小さく
+## 暗くなるか手前で立ち絵に隠れるかしかなく、重ねる側に出せば大きさが帯と切り離せる。
+## 既定が敷き詰めなので、combat_ground の無いスキンでも必ず何かは映る（穴が開かない）。
 
 ##
 ## 敷き方は盤のヘックス格子ではなく、手前から奥へ「帯」を積む。帯ごとにタイルを縮めていく＝
@@ -58,27 +57,27 @@ func _init() -> void:
 	_tiles = Node3D.new()
 	_vp.add_child(_tiles)
 
-## 守り手の地形スキンで地面を組む。def_side は守り手が画面のどちら側か（"L"/"R"）。
-## skin が null なら地面を空にする＝窓の地形色（CombatScene の下地）がそのまま出る。
-## center のスキン自身はここでは敷かない（地面を組んだ後に2Dで重ねる＝クラス冒頭の説明）。
-func build(skin: TerrainSkin, def_side: String) -> void:
-	var key := "%s|%s|%s" % [skin.skin_id if skin != null else "", def_side, str(size)]
+## 左右それぞれの駒のマスのスキンで地面を組む。left＝左の駒のマス・right＝右の駒のマス。
+## null の側は敷かない＝窓の地形色（CombatScene の下地）がそのまま出る。
+func build(left: TerrainSkin, right: TerrainSkin) -> void:
+	var key := "%s|%s|%s" % [left.skin_id if left != null else "",
+			right.skin_id if right != null else "", str(size)]
 	if key == _built:
 		return  # 同じ地形の連戦では組み直さない
 	_built = key
 	_clear()
 	_place_camera()
-	if skin == null:
-		return
-	var ground := TerrainSkinCatalog.skin_by_id(skin.combat_ground_id())
-	if ground == null:
-		ground = skin
-	var placement := skin.combat_placement()
-	# line は画面の中央を縦に走る列＝両隊列の間。center は帯に混ぜない（重ねる側で出す）。
-	var feat_col := 0 if placement == "line" else 9999
+	var grounds := { -1: _ground_of(left), 1: _ground_of(right) }
 	var bands := _bands()
 	for i in bands.size():
-		_add_band(i, bands[i], skin, ground, placement, feat_col)
+		_add_band(i, bands[i], grounds)
+
+## その半面に敷き詰めるスキン。タイルの絵をそのまま敷けないスキンは combat_ground（下地）で敷く。
+static func _ground_of(skin: TerrainSkin) -> TerrainSkin:
+	if skin == null:
+		return null
+	var g := TerrainSkinCatalog.skin_by_id(skin.combat_ground_id())
+	return g if g != null else skin
 
 ## 手前から奥への帯の並び（それぞれの奥行き z とタイルの大きさ）。
 ## 奥へ行くほどタイルを縮め、送り幅もそのぶん詰める＝カメラの遠近に強制遠近を上乗せする。
@@ -97,22 +96,25 @@ func _bands() -> Array:
 
 ## 帯1本（同じ大きさのタイルを横一列）。flat-top なので、列ごとに半マスぶん奥へずらして噛み合わせる。
 ## 手前の帯ほど y を高く置く＝重なった部分は手前が勝つ（瓦葺き＝大きさの違う帯の継ぎ目が見えない）。
-func _add_band(band: int, info: Dictionary, skin: TerrainSkin, ground: TerrainSkin,
-		placement: String, feat_col: int) -> void:
+## 列は中央から半列ずらして置く＝どのタイルも中心が x=0 を跨がず、左右の継ぎ目がちょうど
+## 画面中央（隊列の間）に来る。継ぎ目はヘックスの辺なりのジグザグでスパッと切り替わる。
+func _add_band(band: int, info: Dictionary, grounds: Dictionary) -> void:
 	var z: float = info["z"]
 	var tile: float = info["tile"]
 	var pitch := tile * 1.5
-	var n := int(ceil((_half_width_at(z) + tile) / pitch))
+	var n := int(ceil((_half_width_at(z) + tile) / pitch)) + 1
 	var y := float(BAND_MAX - band) * BAND_LIFT
-	for col in range(-n, n + 1):
+	for col in range(-n, n):
+		var x := (float(col) + 0.5) * pitch
+		var skin: TerrainSkin = grounds[-1 if x < 0.0 else 1]
+		if skin == null:
+			continue
 		var cell := Vector2i(col, band)
-		var is_feature := col == feat_col
-		var s := skin if is_feature else ground
-		var pos := Vector3(col * pitch, y, z + (SQRT3 * 0.5 * tile if col % 2 != 0 else 0.0))
-		_add_tile(cell, pos, tile, s, placement if is_feature else "")
+		var pos := Vector3(x, y, z + (SQRT3 * 0.5 * tile if col % 2 != 0 else 0.0))
+		_add_tile(cell, pos, tile, skin)
 
-func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin, placement: String) -> void:
-	var texs := TerrainTiles.variants(_image_path(skin, placement))
+func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin) -> void:
+	var texs := TerrainTiles.variants(skin.image_path())
 	if texs.is_empty():
 		return  # 絵が無いスキンは敷かない（窓の地形色が透ける＝どこが未整備か分かる）
 	var tex: Texture2D = texs[TerrainTiles.variant_index(cell, texs.size())]
@@ -131,17 +133,6 @@ func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin, pla
 	if skin.orients():
 		TerrainTiles.orient(mi, cell, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())
 	_tiles.add_child(mi)
-
-## 敷くPNG。line で置く線地形（柵・道）は、上下の帯へ繋がる直線の接続タイルを選ぶ。
-## 帯ごとにタイルが縮むので、線も奥へ行くほど細くなる＝1本の道/柵が遠ざかって見える。
-func _image_path(skin: TerrainSkin, placement: String) -> String:
-	if skin.connects() and placement == "line":
-		# Hex.DIRECTIONS の index 2 と 5 が縦の隣＝この2方向だけ繋がった直線タイル。
-		var connected := [false, false, true, false, false, true]
-		var p := skin.connected_image_path(connected)
-		if ResourceLoader.exists(p):
-			return p
-	return skin.image_path()
 
 ## カメラを窓のサイズに合わせて置く（俯角固定・原点を見る）。窓の横幅に VIEW_COLS 列ぶん入る距離。
 func _place_camera() -> void:

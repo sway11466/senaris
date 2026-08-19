@@ -29,8 +29,8 @@ const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずか
 const HAZE_ALPHA := 0.80                     # 最奥での濃さ
 const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
 const EDGE_WIDTH := 2.0
-## 地面（3D）は舞台に立つ側の地形スキンで組む。タイル画像が引けないスキンのための下地色＝どの地形かは
-## 分かるが「絵が無い」ことも分かる。仕様 → doc/tech/combat_scene.md
+## 地面（3D）は左右それぞれの駒の地形スキンで組む。タイル画像が引けないスキンのための下地色（守り手の
+## 地形で1色）＝どの地形かは分かるが「絵が無い」ことも分かる。仕様 → doc/tech/combat_scene.md
 const TERRAIN_COLOR := {  # terrain_type.csv の id と同順・全型
 	"road": Color(0.62, 0.56, 0.45), "plain": Color(0.56, 0.71, 0.42),
 	"wasteland": Color(0.71, 0.55, 0.40), "rampart": Color(0.54, 0.56, 0.60),
@@ -220,9 +220,10 @@ func bind_screen(screen: ScreenLighting) -> void:
 func bind_terrain_skins(terrain_skins: Dictionary) -> void:
 	_terrain_skins = terrain_skins
 
-## 舞台を開く。ground＝地面を組む側の駒（戦闘は守り手／スキルは対象）、ground_side＝その駒を置く側。
+## 舞台を開く。ground＝重ね絵を出す側の駒（戦闘は守り手／スキルは対象）、ground_side＝その駒を
+## 置く側、other＝反対側の駒。地面は左右半分に分け、それぞれの駒のマスのスキンで敷く。
 ## 進行（誰がいつ動くか）は継承側の play() が持つ。ここは幕が上がるところまで。
-func _open(ground: Dictionary, ground_side: String) -> void:
+func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 	_gen += 1
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
@@ -235,7 +236,11 @@ func _open(ground: Dictionary, ground_side: String) -> void:
 	_bg = TERRAIN_COLOR.get(String(ground.get("terrain", "")), Color(0.35, 0.38, 0.34))
 	_panel.queue_redraw()
 	var skin := _ground_skin_of(ground)
-	_ground.build(skin, ground_side)
+	var other_skin := _ground_skin_of(other)
+	if ground_side == "L":
+		_ground.build(skin, other_skin)
+	else:
+		_ground.build(other_skin, skin)
 	_clear(_feature)
 	_clear(_feature_front)
 	if skin != null:
@@ -263,7 +268,8 @@ func _start_open_anim() -> void:
 	_anim.tween_property(_fig["L"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 	_anim.tween_property(_fig["R"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 
-## 地形の重ね絵を2枚とも出す。置いてある絵だけを出し、無ければ何も重ねない（地面だけ）。
+## 地形の重ね絵を3枚とも出す（奥＝back／中央の継ぎ目＝line／手前＝front）。どれも守り手側の
+## スキンから引き、置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。
 ## 3Dの帯には混ぜない＝奥へ行くほど縮む帯の倍率と靄を受けないので、いつも同じ大きさで読める。
 ## 仕様 → doc/tech/combat_scene.md
 func _add_features(skin: TerrainSkin, side: String) -> void:
@@ -275,6 +281,14 @@ func _add_features(skin: TerrainSkin, side: String) -> void:
 		var w := h * (float(back.get_width()) / float(maxi(back.get_height(), 1)))
 		var cx := vp.x * (FEATURE_CX if side == "L" else 1.0 - FEATURE_CX)
 		_feature.add_child(_feature_rect(back, Vector2(cx - w * 0.5, vp.y * FEATURE_BOTTOM - h), Vector2(w, h)))
+	var line := _feature_texture(skin, "line")
+	if line != null:
+		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
+		# 手前（下）から奥（上）へ走るので窓の全高に渡し、幅は絵の縦横比が決める。
+		# 立ち絵より下のレイヤー＝隊列は柵の手前に出る。奥は靄が受けて沈む。
+		var vp1 := _size()
+		var lw := vp1.y * (float(line.get_width()) / float(maxi(line.get_height(), 1)))
+		_feature.add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
 	var front := _feature_texture(skin, "front")
 	if front != null:
 		# 手前の帯は窓の全幅に渡して下辺に接地させる＝味方側から敵側まで通る額縁になる。
@@ -283,7 +297,7 @@ func _add_features(skin: TerrainSkin, side: String) -> void:
 		var fh := vp2.x * (float(front.get_height()) / float(maxi(front.get_width(), 1)))
 		_feature_front.add_child(_feature_rect(front, Vector2(0.0, vp2.y - fh), Vector2(vp2.x, fh)))
 
-## 重ね絵のPNG（assets/terrain/{skin_id}_combat_{back|front}.png）。置いていなければ null。
+## 重ね絵のPNG（assets/terrain/{skin_id}_combat_{back|line|front}.png）。置いていなければ null。
 ## 盤の立ち絵は使わない＝戦闘は近景で要る絵が違う（→ doc/art/terrain.md）。絵を置けば出る。
 func _feature_texture(skin: TerrainSkin, slot: String) -> Texture2D:
 	var path := "res://assets/terrain/%s_combat_%s.png" % [skin.skin_id, slot]

@@ -1,35 +1,35 @@
-skin_id,terrain_type,name,orientable,connect,connect_to,elevation,floor,ignore_board_height,map_scale,object_foot_z,grid,map_ground,map_overlay,combat_ground,combat_layout,memo
-スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,駒の足元の高さ,盤の高さを無視,描画倍率,足元の奥行き,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,戦闘背景の置き方,備考
-road,road,道,none,area,road_stone1 road_bridge1 road_building_town1_v road_building_town1_r road_building_town1_l road_prop_garden1_v road_prop_garden1_r road_prop_garden1_l road_fort_guardhouse1,0,0,false,,,true,,,plain,line,隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園・詰所を片方向で書く＝その下を道がくぐる
-plain,plain,平地,full,false,,0,0,false,,,true,,,,,
-plain_cave1,plain,洞窟の床,full,false,,0,0,false,,,true,,,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
-plain_grave1,plain,墓地の草地,full,false,,0,0,false,,,true,,,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
-plateau,plateau,台地,full,false,,0.18,0.18,false,,,true,,,,,
-road_building_town1_v,building,街区,none,false,,0,0,false,1.33,0.2,true,road,,road,center,街の一区画。棟割りが縦。地面は焼き込まず道を下地に敷く
-road_building_town1_r,building,街区,none,false,,0,0,false,1.33,0.2,true,road,,road,center,同じ元絵を60°回した向き＝右上から左下
-road_building_town1_l,building,街区,none,false,,0,0,false,1.33,0.2,true,road,,road,center,同じ元絵を120°回した向き＝左上から右下
-wasteland,wasteland,荒地,full,false,,0,0,false,,,true,,,,,
-wasteland_prop_tomb1,prop,墓標の荒れ地,none,false,,0,0,false,0.61,0.2,true,wasteland,,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（納骨堂と対）
-forest,forest,森,full,false,,0.18,0,false,,,true,,,,,駒は木々の間の地面に立つ＝floor 0（上面より低い）
-bush,bush,茂み,flip_x,false,,0.12,0,false,,,true,,,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
-road_prop_garden1_v,prop,菜園,none,false,,0,0,false,0.41,0.2,true,road,,road,center,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦
-road_prop_garden1_r,prop,菜園,none,false,,0,0,false,0.41,0.2,true,road,,road,center,同じ元絵を回した向き＝右上から左下
-road_prop_garden1_l,prop,菜園,none,false,,0,0,false,0.41,0.2,true,road,,road,center,同じ元絵を回した向き＝左上から右下
-bedrock,bedrock,岩地,full,false,,0.36,0.36,false,,,true,,,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。尾根より明るい岩
-plain_fence,fence,柵,none,line,,0,0,false,0.23,,true,plain,,plain,line,隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
-plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,0.23,,true,plain_grave1,plain_fence,plain_grave1,line,柵の絵（map_overlay）を借り、墓地の草地の上に立てる
-plain_trap,trap,罠,none,false,,0,0,false,0.15,0.2,true,plain,,plain,center,
-rampart,rampart,城壁,full,false,,0.54,0.54,false,,,true,,,plain,line,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
-rampart_ridge1,rampart,尾根,full,false,,0.54,0.54,false,,,true,,,bedrock,line,山の背。上面は上向きに砕けた岩＝足場が無い・側面画像で縦に割れた岩壁を見せる。飛行と斥候だけが越え、視線を完全に遮る
-rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0.54,false,,,true,,,bedrock,line,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
-plain_grave1_rubble1,rubble,瓦礫の山,none,false,,0,0,false,0.51,0.2,true,plain_grave1,,plain_grave1,line,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
-river,river,川,full,false,,-0.18,0,true,,,true,,,plain,line,水面。盤の高さを無視して絶対 -0.18 に置く＝傾斜盤でも水平を保つ。floor 0 で駒は水面の上を飛ぶ。段差の側面は滝（river_side.png）＝マスごとの高さ上書きで水位を段にすると滝になる
-road_stone1,road,石畳,none,area,road road_bridge1,0,0,false,,,true,plain,,plain,line,石畳の道。地面は焼き込まず map_ground で敷く＝同じ絵を橋にも使う
-road_bridge1,road,橋,none,area,road road_stone1,0,0,false,,,true,river,road_stone1,plain,line,石畳の絵（map_overlay）を借り、川の上に架ける。川側が river に橋を書くので水は下をくぐる
-wall,wall,壁,none,false,,0.72,0.72,false,,,false,,,,,上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
-wall_stone1,wall,石積みの壁,none,false,,0,0,false,,,true,,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
-plain_fort,fort,拠点,none,false,,0,0,false,1.13,0.2,true,plain,,plain,center,
-road_fort_town1,fort,町,none,false,,0,0,false,1.33,0.2,true,road,,plain,center,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-road_fort_guardhouse1,fort,詰所,none,false,,0,0,false,1.02,0.2,true,road,,road,center,門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-plain_grave1_fort_crypt1,fort,納骨堂,none,false,,0,0,false,0.92,0.2,true,plain_grave1,,plain_grave1,center,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,false,1.23,0.2,true,plain_grave1,,plain_grave1,center,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+skin_id,terrain_type,name,orientable,connect,connect_to,elevation,floor,ignore_board_height,map_scale,object_foot_z,grid,map_ground,map_overlay,combat_ground,memo
+スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,駒の足元の高さ,盤の高さを無視,描画倍率,足元の奥行き,グリッド線,盤の下地,盤の重ね絵,戦闘背景の下地,備考
+road,road,道,none,area,road_stone1 road_bridge1 road_building_town1_v road_building_town1_r road_building_town1_l road_prop_garden1_v road_prop_garden1_r road_prop_garden1_l road_fort_guardhouse1,0,0,false,,,true,,,plain,隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園・詰所を片方向で書く＝その下を道がくぐる
+plain,plain,平地,full,false,,0,0,false,,,true,,,,
+plain_cave1,plain,洞窟の床,full,false,,0,0,false,,,true,,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
+plain_grave1,plain,墓地の草地,full,false,,0,0,false,,,true,,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
+plateau,plateau,台地,full,false,,0.18,0.18,false,,,true,,,,
+road_building_town1_v,building,街区,none,false,,0,0,false,1.33,0.2,true,road,,road,街の一区画。棟割りが縦。地面は焼き込まず道を下地に敷く
+road_building_town1_r,building,街区,none,false,,0,0,false,1.33,0.2,true,road,,road,同じ元絵を60°回した向き＝右上から左下
+road_building_town1_l,building,街区,none,false,,0,0,false,1.33,0.2,true,road,,road,同じ元絵を120°回した向き＝左上から右下
+wasteland,wasteland,荒地,full,false,,0,0,false,,,true,,,,
+wasteland_prop_tomb1,prop,墓標の荒れ地,none,false,,0,0,false,0.61,0.2,true,wasteland,,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（納骨堂と対）
+forest,forest,森,full,false,,0.18,0,false,,,true,,,,駒は木々の間の地面に立つ＝floor 0（上面より低い）
+bush,bush,茂み,flip_x,false,,0.12,0,false,,,true,,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
+road_prop_garden1_v,prop,菜園,none,false,,0,0,false,0.41,0.2,true,road,,road,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦
+road_prop_garden1_r,prop,菜園,none,false,,0,0,false,0.41,0.2,true,road,,road,同じ元絵を回した向き＝右上から左下
+road_prop_garden1_l,prop,菜園,none,false,,0,0,false,0.41,0.2,true,road,,road,同じ元絵を回した向き＝左上から右下
+bedrock,bedrock,岩地,full,false,,0.36,0.36,false,,,true,,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。尾根より明るい岩
+plain_fence,fence,柵,none,line,,0,0,false,0.23,,true,plain,,plain,隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
+plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,0.23,,true,plain_grave1,plain_fence,plain_grave1,柵の絵（map_overlay）を借り、墓地の草地の上に立てる
+plain_trap,trap,罠,none,false,,0,0,false,0.15,0.2,true,plain,,plain,
+rampart,rampart,城壁,full,false,,0.54,0.54,false,,,true,,,plain,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
+rampart_ridge1,rampart,尾根,full,false,,0.54,0.54,false,,,true,,,bedrock,山の背。上面は上向きに砕けた岩＝足場が無い・側面画像で縦に割れた岩壁を見せる。飛行と斥候だけが越え、視線を完全に遮る
+rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0.54,false,,,true,,,bedrock,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
+plain_grave1_rubble1,rubble,瓦礫の山,none,false,,0,0,false,0.51,0.2,true,plain_grave1,,plain_grave1,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
+river,river,川,full,false,,-0.18,0,true,,,true,,,plain,水面。盤の高さを無視して絶対 -0.18 に置く＝傾斜盤でも水平を保つ。floor 0 で駒は水面の上を飛ぶ。段差の側面は滝（river_side.png）＝マスごとの高さ上書きで水位を段にすると滝になる
+road_stone1,road,石畳,none,area,road road_bridge1,0,0,false,,,true,plain,,plain,石畳の道。地面は焼き込まず map_ground で敷く＝同じ絵を橋にも使う
+road_bridge1,road,橋,none,area,road road_stone1,0,0,false,,,true,river,road_stone1,plain,石畳の絵（map_overlay）を借り、川の上に架ける。川側が river に橋を書くので水は下をくぐる
+wall,wall,壁,none,false,,0.72,0.72,false,,,false,,,,上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
+wall_stone1,wall,石積みの壁,none,false,,0,0,false,,,true,,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
+plain_fort,fort,拠点,none,false,,0,0,false,1.13,0.2,true,plain,,plain,
+road_fort_town1,fort,町,none,false,,0,0,false,1.33,0.2,true,road,,plain,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+road_fort_guardhouse1,fort,詰所,none,false,,0,0,false,1.02,0.2,true,road,,road,門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+plain_grave1_fort_crypt1,fort,納骨堂,none,false,,0,0,false,0.92,0.2,true,plain_grave1,,plain_grave1,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,false,1.23,0.2,true,plain_grave1,,plain_grave1,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）

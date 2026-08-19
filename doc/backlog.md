@@ -348,18 +348,6 @@
   - doc 更新は実装コミットに含める：`doc/gdd/terrain.md`（置き方3種・橋）・`doc/art/terrain.md` §3.7。
 - 該当：`data/terrain/terrain_type.csv`・`terrain_skin.csv`・`data/movement/movement.csv`・`presentation/board/board_terrain_renderer.gd`・`data/stages/tutorial3-dragon-hunt/`・`tools/`（合成スクリプト）。
 
-### feature-60
-
-**戦闘の地面を左右それぞれの地形にする（combat_layout 廃止・重ね絵スロット化）**（優先度：中）
-
-- 背景：戦闘の地面は守り手の地形だけで組むため、川の上の飛行ユニットを平地の弓兵が撃つと弓兵まで水の上に立つ（攻守が逆なら飛行が平地に浮く）。また `line` は盤用のマップタイルを近景に立てており「戦闘は近景で要る絵が違うから盤の絵は使わない」という戦闘シーン自身の原則と矛盾。`center` は重ね絵（`_combat_back` / `_combat_front`）実装前の暫定が列に残った形。
-- 対応：地形は駒の足元に出す、を原則にする。
-  - 地面を左右半分に分け、それぞれの駒のマスのスキンで敷く。タイルの絵を持たないスキンは `combat_ground` で敷く（列は存続・空＝自分）。継ぎ目は中央。
-  - `combat_layout` 列を削除（CSV・convert.gd・terrain_skin.gd・combat_ground_3d.gd）。
-  - 重ね絵を3スロットに揃える：`_combat_back`（守り手側の奥）／`_combat_line`（中央の継ぎ目・守り手のスキンから引く・新設）／`_combat_front`（手前全幅）。いずれも絵を置けば出る。柵や城壁を壁越しの絵にするかは `_combat_line` の絵の有無で決まる＝コードでもCSVでも決めない。
-  - doc 更新は実装コミットに含める：`doc/tech/combat_scene.md`・`doc/art/terrain.md` §1。
-- 該当：`presentation/combat/combat_ground_3d.gd`・`combat_stage.gd`・`combat_scene.gd`・`data/terrain/terrain_skin.csv`・`data/terrain/convert.gd`・`data/terrain/terrain_skin.gd`。
-
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。

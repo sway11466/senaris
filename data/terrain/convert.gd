@@ -83,12 +83,11 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	# オブジェクトにだけ要る2列。層で必須が切り替わるので _invalid_amount（全行必須）とは分けて見る。
 	problems += _invalid_object_amount(rows, type_rows, "map_scale", true, false)
 	problems += _invalid_object_amount(rows, type_rows, "object_foot_z", false, true)
-	# 戦闘演出の地面（→ doc/tech/combat_scene.md）。下地は実在スキンだけ・置き方は既知の語だけ。
-	# 盤の重ね（map_ground＝下地 / map_overlay＝絵を借りる先）はどちらも skin_id への参照。
+	# 戦闘演出の地面（combat_ground＝→ doc/tech/combat_scene.md）と
+	# 盤の重ね（map_ground＝下地 / map_overlay＝絵を借りる先）は、どれも skin_id への参照。
 	problems += Csv.invalid_values(rows, "map_ground", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "map_overlay", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "combat_ground", Csv.value_set(rows, "skin_id"), "skin_id")
-	problems += Csv.invalid_values(rows, "combat_layout", ["fill", "line", "center"], "skin_id")
 	# オブジェクトは足場の上に置く＝下に敷く足場（map_ground）を必ず書く。空を許すと
 	# 「足場の書いていないオブジェクト」ができ、描く側が既定を勝手に決めることになる。
 	problems += _object_without_ground(rows, type_rows)

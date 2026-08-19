@@ -23,7 +23,7 @@ func play(detail: Dictionary) -> void:
 	var atk_side := "L" if int(a["team"]) == 0 else "R"
 	var def_side := "R" if int(a["team"]) == 0 else "L"
 
-	_open(t, def_side)  # 地面は守り手の地形（攻撃側の地形は使わない）
+	_open(t, def_side, a)  # 地面は左右それぞれの駒の地形。重ね絵は守り手側
 	SfxPlayer.play_event("cmb_open")  # 幕開け。盤から演出へ表示が切り替わった合図
 	var gen := _gen
 	_render_side("L", L, int(L["troops_before"]))

@@ -30,7 +30,7 @@ func play(detail: Dictionary) -> void:
 		cast_side = "L" if int(caster["team"]) == 0 else "R"
 	var to_side := _other_side(cast_side)
 
-	_open(victim, to_side)  # 地面は掛けられる側の地形（舞台は受ける側に置く）
+	_open(victim, to_side, caster)  # 地面は左右それぞれの駒の地形。重ね絵は掛けられる側
 	var gen := _gen
 	_render_side(cast_side, caster, _troops_of(caster))
 	_render_side(to_side, victim, _troops_of(victim))

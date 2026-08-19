@@ -51,9 +51,9 @@ var grid: bool             ## ヘックスの枠線を引くか。駒が入れ�
 ## 両方とも空＝1枚絵で完結する従来のタイル。既存スキンは全部これなので挙動は変わらない。
 var map_ground: String     ## 下に敷くスキンID。空＝敷かない
 var map_overlay: String    ## 上に重ねる絵を借りるスキンID。空＝自分の絵
-## 戦闘演出の地面の作り方（→ doc/tech/combat_scene.md）。マップ絵をそのまま敷いて組む。
-var combat_ground: String  ## 下地に敷くスキンID。空＝自分自身で敷き詰める（既定）
-var combat_layout: String  ## 自分の絵の置き方。fill(既定・空も同じ) / line(隊列の間を横断) / center(中央1マス)
+## 戦闘演出の地面に敷くスキンID（→ doc/tech/combat_scene.md）。空＝自分自身で敷き詰める（既定）。
+## タイルの絵をそのまま敷けないスキン（オブジェクト・線地形）が下地を指す。
+var combat_ground: String
 
 static func from_dict(d: Dictionary) -> TerrainSkin:
 	var s := TerrainSkin.new()
@@ -78,14 +78,9 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.map_ground = String(d.get("map_ground", ""))
 	s.map_overlay = String(d.get("map_overlay", ""))
 	s.combat_ground = String(d.get("combat_ground", ""))
-	s.combat_layout = String(d.get("combat_layout", ""))
 	return s
 
-## 戦闘演出の地面で、自分の絵をどう置くか（空を fill に畳んだ値）。
-func combat_placement() -> String:
-	return combat_layout if combat_layout != "" else "fill"
-
-## 戦闘演出の地面の下地スキンID（空なら自分自身＝敷き詰め）。
+## 戦闘演出の地面に敷くスキンID（空なら自分自身＝敷き詰め）。
 func combat_ground_id() -> String:
 	return combat_ground if combat_ground != "" else skin_id
 
