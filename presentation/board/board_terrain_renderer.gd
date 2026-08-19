@@ -39,7 +39,7 @@ var _height_overrides := {}
 # --- キャッシュ ---
 var _terrain_tex := {}     # base_path(String) -> Array[Texture2D]（基本＋連番 variant）
 var _side_tex := {}        # skin_id -> Texture2D|null（側面画像。置いていなければ null）
-var _obj_side_tex := {}    # art_id -> Texture2D|null（繋がるオブジェクトの板の絵）
+var _obj_side_tex := {}    # skin_id -> Texture2D|null（辺に沿って立てるオブジェクトの板の絵）
 var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
@@ -145,6 +145,25 @@ func _base_height(hex: Vector2i) -> float:
 ## elevation より低ければ地形に沈み（森）、高ければ浮く（水面の上を飛ぶ）。
 func unit_floor(hex: Vector2i) -> float:
 	return _skin_height(hex, "floor")
+
+## 水平の板（橋）のスキンか。マスの上面（読み取り・グリッド・ピッキングの高さ＝elev）は板のほうで、
+## 足場（map_ground）は板の下に潜る（→ doc/gdd/terrain.md）。
+func _is_flat(skin: TerrainSkin) -> bool:
+	return skin != null and skin.placement == TerrainSkin.PLACE_FLAT
+
+## 水平の板のマスで、下に敷く足場（map_ground）が実際に居る高さ。盤の高さの扱いは足場スキンの
+## 規則に従う＝川なら絶対水位。板の高さ（elev）とは独立に解決するので、橋の下の水が隣の水と揃う。
+func _ground_elev(hex: Vector2i) -> float:
+	var skin := _skin_at(hex)
+	var ground := TerrainSkinCatalog.resolve(skin.map_ground_id(), "") if skin != null else null
+	if ground == null:
+		return elev(hex)
+	return ground.elevation if ground.ignore_board_height else ground.elevation + _base_height(hex)
+
+## スカート（側面）の基準にする高さ。水平の板のマスは足場の高さで数える＝板の縁からは側面を
+## 下ろさず（堰堤に見せない）、高い岸のほうが板の下の水まで壁を下ろす（岸が橋の下でも続く）。
+func _skirt_elev(hex: Vector2i) -> float:
+	return _ground_elev(hex) if _is_flat(_skin_at(hex)) else elev(hex)
 
 ## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
 ## スキンはセルごとに違いうるので、定数表ではなく実際に敷かれた高さから集める。
@@ -318,7 +337,10 @@ func _add_tile(hex: Vector2i) -> void:
 	mi.mesh = _hex_mesh
 	mi.material_override = BoardMeshFactory.terrain_material(tex)
 	var p := Hex.to_pixel(hex, TILE)
-	mi.position = Vector3(p.x, elev(hex), p.y)
+	# 水平の板（橋）のマスだけ、足場（川）を足場自身の高さに敷く＝板（elev）はその上に浮き、
+	# 下の水は隣の水面と同じ絶対水位でつながる。他のマスは従来どおり elev に敷く。
+	var y := _ground_elev(hex) if _is_flat(skin) else elev(hex)
+	mi.position = Vector3(p.x, y, p.y)
 	if skin != null and skin.orients():
 		TerrainTiles.orient(mi, hex, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
@@ -343,8 +365,8 @@ func _ground_texture(hex: Vector2i, skin: TerrainSkin) -> Texture2D:
 		return null
 	return _variant_texture(_tile_image_path(ground, hex), hex)
 
-## オブジェクトを立てる。繋がるもの（柵）はワールドに向きを持った板、それ以外はカメラに
-## 正対する立ち絵1枚（→ doc/gdd/terrain.md）。板は絵ごとに1メッシュへまとめる。
+## オブジェクトを置く。置き方はスキンの placement（→ doc/gdd/terrain.md）＝辺に沿って立てた板
+## （柵）／水平の板（橋）／カメラに正対する立ち絵1枚（既定）。立てた板は絵ごとに1メッシュへまとめる。
 func _add_objects() -> void:
 	var panels := {}  # Texture2D -> SurfaceTool
 	for col in _state.cols:
@@ -353,10 +375,13 @@ func _add_objects() -> void:
 			var skin := _skin_at(hex)
 			if not _is_object(skin):
 				continue
-			if skin.connects():
-				_add_object_panels(panels, skin, hex)
-			else:
-				_add_object_standee(skin, hex)
+			match skin.placement:
+				TerrainSkin.PLACE_PANEL:
+					_add_object_panels(panels, skin, hex)
+				TerrainSkin.PLACE_FLAT:
+					_add_object_flat(skin, hex)
+				_:
+					_add_object_standee(skin, hex)
 	for tex: Texture2D in panels:
 		var mi := MeshInstance3D.new()
 		mi.mesh = panels[tex].commit()
@@ -401,6 +426,19 @@ func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) ->
 		st.set_uv(Vector2(1, 0)); st.add_vertex(b + up)
 		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
 
+## 水平の板（橋）。自分のタイル絵をヘックス形の板として自分の高さ（elev＝盤の読み取りの高さ）に
+## 敷く。足場（map_ground＝川）は _add_tile が足場自身の高さに敷くので、板の下を水がくぐる。
+func _add_object_flat(skin: TerrainSkin, hex: Vector2i) -> void:
+	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
+	if tex == null:
+		return
+	var mi := MeshInstance3D.new()
+	mi.mesh = _hex_mesh
+	mi.material_override = BoardMeshFactory.terrain_material(tex)
+	var p := Hex.to_pixel(hex, TILE)
+	mi.position = Vector3(p.x, elev(hex), p.y)
+	add_child(mi)
+
 ## 繋がらないオブジェクト（岩・建物・砦）。駒と同じ立ち絵1枚を、スキンが指す奥行きぶん奥に立てる。
 func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 	var spr := Sprite3D.new()
@@ -426,9 +464,9 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
 	return true
 
-## 繋がるオブジェクトの板の絵（assets/terrain/{art_id}_side.png）。無ければ声を上げて null。
+## 辺に沿って立てるオブジェクトの板の絵（assets/terrain/{skin_id}_side.png）。無ければ声を上げて null。
 func _object_side_texture(skin: TerrainSkin) -> Texture2D:
-	var id := skin.art_id()
+	var id := skin.skin_id
 	if _obj_side_tex.has(id):
 		return _obj_side_tex[id]
 	var path := "res://assets/terrain/%s_side.png" % id
@@ -499,14 +537,16 @@ func _add_skirt() -> void:
 				st = SurfaceTool.new()
 				st.begin(Mesh.PRIMITIVE_TRIANGLES)
 				tools[side] = st
-			var top := elev(hex)
+			# 水平の板（橋）のマスは足場（水面）の高さで数える＝板の縁は堰堤にならず、岸の壁が
+			# 橋の下の水まで下りる（_skirt_elev）。
+			var top := _skirt_elev(hex)
 			for i in 6:
 				var nb := hex + dirs[i]
 				var bottom: float
 				if not _on_board(nb):
 					bottom = -SKIRT_DEPTH         # 盤外＝ジオラマの縁（島の厚み）
-				elif elev(nb) < top - 0.001:
-					bottom = elev(nb)            # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）
+				elif _skirt_elev(nb) < top - 0.001:
+					bottom = _skirt_elev(nb)     # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）
 				else:
 					continue                      # 同高 or 高い隣にはスカート不要
 				var a0 := deg_to_rad(60.0 * i)

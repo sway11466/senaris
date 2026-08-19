@@ -390,10 +390,11 @@ func test_terrain_object_without_map_ground_blocks() -> void:
 	rows[2]["map_ground"] = "plain"
 	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "足場を書けば通る")
 
-## オブジェクトのスキン行（足場・描画倍率・足元の奥行きを埋めた、最小の有効な行）。
+## オブジェクトのスキン行（足場・置き方・描画倍率・足元の奥行きを埋めた、最小の有効な行）。
 func _object_terrain_skin(sid: String, tid: String) -> Dictionary:
 	var r := _valid_terrain_skin(sid, tid)
 	r["map_ground"] = "plain"
+	r["placement"] = "standee"
 	r["map_scale"] = 1.0
 	r["object_foot_z"] = 0.2
 	return r
@@ -422,8 +423,8 @@ func test_terrain_footing_with_object_column_blocks() -> void:
 		var r := Terrain.build_skin(rows, _terrain_types())
 		assert_null(r["json"], "足場に %s があれば json=null" % col)
 
-func test_terrain_object_foot_z_required_except_connected() -> void:
-	# 立ち絵は足元の奥行きが要る。柵は板で立てる＝この列を使わないので、逆に空でなければ弾く。
+func test_terrain_object_foot_z_required_for_standee_only() -> void:
+	# 立ち絵は足元の奥行きが要る。柵（panel）は板で立てる＝この列を使わないので、逆に空でなければ弾く。
 	var types := _terrain_types()
 	types.append(_valid_terrain_type("fort", "O", "object"))
 	types.append(_valid_terrain_type("fence", "+", "object"))
@@ -431,12 +432,58 @@ func test_terrain_object_foot_z_required_except_connected() -> void:
 		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
 		_object_terrain_skin("plain_fort", "fort"), _object_terrain_skin("plain_fence", "fence"),
 	]
+	rows[3]["placement"] = "panel"
 	rows[3]["connect"] = "line"
 	assert_null(Terrain.build_skin(rows, types)["json"], "柵に足元の奥行きがあれば json=null")
 	rows[3]["object_foot_z"] = ""
 	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "柵は空で通る")
 	rows[2].erase("object_foot_z")
 	assert_null(Terrain.build_skin(rows, types)["json"], "立ち絵で空なら json=null")
+
+func test_terrain_object_without_placement_blocks() -> void:
+	# 置き方はオブジェクト全行に明示する（空を standee に倒さない）。足場に書いても効かないので弾く。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("fort", "O", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_object_terrain_skin("plain_fort", "fort"),
+	]
+	rows[2].erase("placement")
+	assert_null(Terrain.build_skin(rows, types)["json"], "placement 欠落で json=null")
+	rows[2]["placement"] = "sideways"
+	assert_null(Terrain.build_skin(rows, types)["json"], "未知の置き方で json=null")
+	rows[2]["placement"] = "standee"
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "standee で通る")
+	rows[0]["placement"] = "standee"
+	assert_null(Terrain.build_skin(rows, types)["json"], "足場に書けば json=null")
+
+func test_terrain_flat_object_uses_no_scale_columns() -> void:
+	# 水平の板（橋）はタイル絵＝描画倍率も足元の奥行きも使わない。書いてあれば逆に弾く。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("bridge", "=", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_valid_terrain_skin("plain_bridge1", "bridge"),
+	]
+	rows[2]["placement"] = "flat"
+	rows[2]["map_ground"] = "plain"
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "倍率なしで通る")
+	rows[2]["map_scale"] = 1.0
+	assert_null(Terrain.build_skin(rows, types)["json"], "flat に倍率があれば json=null")
+
+func test_terrain_panel_requires_connect() -> void:
+	# panel は繋がり（connect）が板の向きを出す。繋がらない panel は板を置く向きが出せない＝弾く。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("fence", "+", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_object_terrain_skin("plain_fence", "fence"),
+	]
+	rows[2]["placement"] = "panel"
+	rows[2]["object_foot_z"] = ""
+	assert_null(Terrain.build_skin(rows, types)["json"], "connect なしの panel は json=null")
+	rows[2]["connect"] = "line"
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "line なら通る")
 
 func test_terrain_skin_unknown_orientable_blocks() -> void:
 	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]

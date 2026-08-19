@@ -56,6 +56,7 @@ const TERRAIN_COLORS := {  # terrain_type.csv の id と同順・全型
 	"rock": Color(0.44, 0.48, 0.53),
 	"building": Color(0.70, 0.52, 0.40),
 	"fort": Color(0.75, 0.47, 0.25),
+	"bridge": Color(0.66, 0.62, 0.55),
 	"keepout": Color(0.35, 0.32, 0.36),
 }
 const TEAM_COLORS := {

@@ -172,6 +172,16 @@
 		},
 		{
 			"atk": 1.0,
+			"char": "=",
+			"def": 0.8,
+			"id": "bridge",
+			"layer": "object",
+			"memo": "川に架ける橋。水平の板のオブジェクト。性能と移動は道相当",
+			"name": "橋",
+			"sight_cost": 1
+		},
+		{
+			"atk": 1.0,
 			"char": "X",
 			"def": 1.0,
 			"id": "keepout",

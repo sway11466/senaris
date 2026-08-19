@@ -65,7 +65,7 @@ static func variants(base_path: String) -> Array:
 	_variants[base_path] = texs
 	return texs
 
-## 下地の上に重ね絵を合成した1枚を返す（terrain_skin.csv の map_ground / map_overlay）。
+## 下地の上に重ね絵を合成した1枚を返す（terrain_skin.csv の map_ground）。
 ## 地面を絵に焼き込まないための仕組み。同じ絵を別の地面の上に置くたびに64枚を焼き直さずに済み、
 ## 下地側の variant 敷き分けもそのまま効く。合成は (下地, 重ね絵) の組ごとに1回でキャッシュする。
 ## どちらか欠けていれば在るほうをそのまま返す。詳細 → doc/art/terrain.md §3.6

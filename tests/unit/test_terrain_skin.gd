@@ -39,23 +39,23 @@ func test_connect_to_defaults_to_self_only() -> void:
 		assert_true(fence.connects_with(fence), "自分自身とは常に繋がる")
 		assert_false(fence.connects_with(road), "書いていない相手とは繋がらない")
 
-func test_bridge_does_not_connect_with_river() -> void:
-	# 川は水面に作り直して接続タイルをやめた（→ doc/art/terrain.md §1）。橋の下地に水を敷く
-	# 関係だけが残り、繋がり判定は道の側だけで閉じる。
+func test_bridge_is_a_flat_object_over_the_river() -> void:
+	# 橋は道スキンではなくオブジェクト（bridge型・水平の板）。下地の川は絶対水位のまま描かれる
+	# ＝橋の下を水がくぐる（→ doc/gdd/terrain.md）。帯を伸ばすのは道の側だけ（片方向）。
 	var river := TerrainSkinCatalog.skin_by_id("river")
-	var bridge := TerrainSkinCatalog.skin_by_id("road_bridge1")
+	var bridge := TerrainSkinCatalog.skin_by_id("river_bridge_stone1_v")
 	var stone := TerrainSkinCatalog.skin_by_id("road_stone1")
-	var road := TerrainSkinCatalog.skin_by_id("road")
-	assert_not_null(bridge, "road_bridge1 スキンが引ける")
+	var road := TerrainSkinCatalog.resolve("", "road")
+	assert_not_null(bridge, "river_bridge_stone1_v スキンが引ける")
 	if river == null or bridge == null or stone == null or road == null:
 		return
 	assert_eq(river.connect, "", "川は繋がらない＝1マス完結の水面（line/area 以外は空へ正規化）")
-	assert_false(bridge.connects_with(river), "橋は川へ石畳を伸ばさない")
-	assert_true(bridge.connects_with(road), "橋は道と繋がる")
-	assert_true(road.connects_with(bridge), "道は橋と繋がる")
-	assert_true(stone.connects_with(bridge), "石畳は橋と繋がる")
+	assert_eq(bridge.placement, TerrainSkin.PLACE_FLAT, "橋は水平の板")
 	assert_eq(bridge.map_ground_id(), "river", "橋の下地は川")
-	assert_eq(bridge.art_id(), "road_stone1", "橋は石畳の絵を借りる")
+	assert_false(bridge.connects(), "橋は接続タイルを持たない（幅の役×軸の12スキンで向きを出す）")
+	assert_false(bridge.connects_with(river), "橋は川へ床を伸ばさない")
+	assert_true(road.connects_with(bridge), "道は橋へ帯を伸ばす")
+	assert_true(stone.connects_with(bridge), "石畳は橋へ帯を伸ばす")
 
 func test_river_is_water_surface() -> void:
 	# 水面は盤の高さを無視して絶対の水位に置く。駒は水面より上（floor > elevation）に立つ＝浮く。
@@ -122,16 +122,16 @@ func test_orient_values_allow_exactly_what_they_name() -> void:
 		assert_eq(s.orients(), mode != TerrainSkin.ORIENT_NONE, "%s の散らし対象か" % mode)
 
 func test_objects_are_never_oriented() -> void:
-	# オブジェクトは立ち絵＝回しも反転もしない（→ doc/gdd/terrain.md）。
+	# オブジェクトは向きを持つ絵＝回しも反転もしない（→ doc/gdd/terrain.md）。
 	for s: TerrainSkin in TerrainSkinCatalog.all_skins():
 		if TerrainType.layer(s.terrain_type) != "object":
 			continue
 		assert_false(s.orients(), "%s はオブジェクト＝散らさない" % s.skin_id)
-		assert_eq(s.elevation, 0.0, "%s はオブジェクト＝高さは立ち絵が持つ" % s.skin_id)
-		if s.connects():
-			continue  # 柵は板で立てる＝足元の奥行きを使わない
+		assert_eq(s.elevation, 0.0, "%s はオブジェクト＝高さは絵が持つ" % s.skin_id)
+		if s.placement != TerrainSkin.PLACE_STANDEE:
+			continue  # 柵の板（panel）と橋の水平板（flat）は足元の奥行きを使わない
 		# 立ち絵は駒より奥に立つ（CSVの空欄は 0.0 として出るので、抜けもここで落ちる）。
-		assert_gt(s.object_foot_z, 0.0, "%s はオブジェクト＝足元の奥行きを持つ" % s.skin_id)
+		assert_gt(s.object_foot_z, 0.0, "%s は立ち絵＝足元の奥行きを持つ" % s.skin_id)
 
 func test_unknown_orientable_falls_back_to_none() -> void:
 	# 旧データの bool や打ち間違いが来ても、勝手に回して絵を倒すより散らさないほうが害が小さい。
@@ -151,25 +151,41 @@ func test_connect_is_line_or_area() -> void:
 		var s := TerrainSkinCatalog.skin_by_id(sid)
 		assert_false(s != null and s.connects(), "%s は繋がらない" % sid)
 
-func test_map_overlay_borrows_the_art_of_another_skin() -> void:
-	# 地面を絵に焼き込まないので、同じ柵の絵を別の地面の上に置ける＝画像を複製しない。
+func test_every_skin_draws_its_own_art() -> void:
+	# 絵は skin_id で直引き（別スキンの絵を借りる仕組みは消した）。墓地の柵は柵タイルの複製を
+	# 自前で持ち、下地（map_ground）だけが違う。
 	var grave := TerrainSkinCatalog.skin_by_id("plain_grave1_fence")
 	assert_not_null(grave, "墓地の柵スキン")
 	if grave == null:
 		return
-	assert_eq(grave.art_id(), "plain_fence", "絵は柵から借りる")
 	assert_eq(grave.map_ground_id(), "plain_grave1", "下地は墓地の草地")
-	assert_eq(grave.image_path(), "res://assets/terrain/plain_fence.png", "基本タイルも借りた絵")
+	assert_eq(grave.image_path(), "res://assets/terrain/plain_grave1_fence.png", "基本タイルは自前の絵")
 	assert_eq(grave.connected_image_path([false, false, true, false, false, true]),
-		"res://assets/terrain/plain_fence_c001001.png", "接続タイルも借りた絵")
+		"res://assets/terrain/plain_grave1_fence_c001001.png", "接続タイルも自前の絵")
 
-func test_art_id_defaults_to_self() -> void:
-	# map_overlay を書いていないスキンは自分の絵。既存スキンの引き方は変わらない。
+func test_map_ground_defaults_to_empty() -> void:
+	# 下地（map_ground）を書いていないスキンは1枚絵で完結する従来のタイル。
 	var fence := TerrainSkinCatalog.skin_by_id("plain_fence")
-	assert_true(fence != null and fence.art_id() == "plain_fence", "既定は自分自身")
 	assert_true(fence != null and fence.map_ground_id() == "plain", "柵の下地は平地")
 	var plain := TerrainSkinCatalog.resolve("plain", "")
 	assert_true(plain != null and plain.map_ground_id() == "", "下地を持たないスキンは空")
+
+func test_placement_says_how_an_object_is_placed() -> void:
+	# 置き方3種（→ doc/gdd/terrain.md）: 立ち絵（既定）／辺に沿って立てた板（柵）／水平の板（橋）。
+	var fort := TerrainSkinCatalog.skin_by_id("plain_fort")
+	assert_true(fort != null and fort.placement == TerrainSkin.PLACE_STANDEE, "拠点は立ち絵")
+	var fence := TerrainSkinCatalog.skin_by_id("plain_fence")
+	assert_true(fence != null and fence.placement == TerrainSkin.PLACE_PANEL, "柵は辺に沿って立てた板")
+	var bridge := TerrainSkinCatalog.skin_by_id("river_bridge_stone1_mid_v")
+	assert_true(bridge != null and bridge.placement == TerrainSkin.PLACE_FLAT, "橋は水平の板")
+	var plain := TerrainSkinCatalog.skin_by_id("plain")
+	assert_true(plain != null and plain.placement == "", "足場は置き方を持たない")
+
+func test_unknown_placement_falls_back_to_empty() -> void:
+	# 打ち間違いは空に倒し、描く側が立ち絵（既定）で扱う＝何も出ないより不備に気づける。
+	for bad in [true, "sideways", 1]:
+		var s := TerrainSkin.from_dict({ "skin_id": "x", "placement": bad })
+		assert_eq(s.placement, "", "不正値(%s)は空に倒す" % [bad])
 
 func test_connect_falls_back_when_the_value_is_unknown() -> void:
 	# 旧データの true/false や打ち間違いは「繋がらない」に倒す。false が真になる事故を防ぐ。

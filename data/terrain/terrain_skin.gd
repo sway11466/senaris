@@ -13,6 +13,12 @@ class_name TerrainSkin
 const CONNECT_LINE := "line"  ## 線の地形（柵）。端が盤の縁に来たら、その先へまっすぐ伸ばす
 const CONNECT_AREA := "area"  ## 面の地形（道）。盤の外は縁のマスがそのまま続いているものとして扱う
 
+## オブジェクトの置き方（→ doc/gdd/terrain.md）。足場のスキンはこの列を持たない（空）。
+const PLACE_STANDEE := "standee"  ## カメラに正対する立ち絵の板（既定の置き方）
+const PLACE_PANEL := "panel"      ## 辺に沿ってワールドに立てた板（柵）。向きは connect の繋がりが出す
+const PLACE_FLAT := "flat"        ## 水平の板（橋）。自分のタイル絵を自分の高さに敷く
+const PLACEMENTS := [PLACE_STANDEE, PLACE_PANEL, PLACE_FLAT]
+
 ## 同じ絵が隣り合ったときの見え方を散らす手段（→ orientable）。絵が向きを持つほど使える手が減る。
 ## 値は「何をしてよいか」をそのまま並べる＝名前を読めば効く操作が分かる。
 const ORIENT_NONE := "none"        ## 何もしない。向きが意味を持つ絵（道・壁）とオブジェクト全部
@@ -42,15 +48,15 @@ var floor: float
 ## 行・列の基準高さ（盤の高さ）を足さないか。true＝elevation / floor が絶対高さになる。
 ## 水面のように、盤の傾斜に乗らず一定の高さを保つスキンが使う（→ doc/gdd/terrain.md 盤の高さ）。
 var ignore_board_height: bool
+## オブジェクトの置き方（PLACE_* のどれか）。足場のスキンはこの列を持たない（空）。
+var placement: String
 ## オブジェクトの立ち絵を、ヘックス中心からどれだけ奥へ置くか（ワールド単位・TILE=1・正＝奥）。
 ## 駒は手前に立つので、同じマスなら駒が前に出る。足場のスキンはこの列を持たない（空）。
 ## 背丈のほうはここで読まない＝描画倍率(map_scale)は絵の書き出し専用（→ doc/art/terrain.md）。
 var object_foot_z: float
 var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
-## 盤に敷くときの重ね方。地面を絵に焼き込まず、描画時に下地＋重ね絵で組む（→ doc/art/terrain.md §3.6）。
-## 両方とも空＝1枚絵で完結する従来のタイル。既存スキンは全部これなので挙動は変わらない。
-var map_ground: String     ## 下に敷くスキンID。空＝敷かない
-var map_overlay: String    ## 上に重ねる絵を借りるスキンID。空＝自分の絵
+## 盤に敷くときの下地。地面を絵に焼き込まず、描画時に下地の上へ自分の絵を重ねる（→ doc/art/terrain.md §3.6）。
+var map_ground: String     ## 下に敷くスキンID。空＝敷かない＝1枚絵で完結する従来のタイル
 ## 戦闘演出の地面に敷くスキンID（→ doc/tech/combat_scene.md）。空＝自分自身で敷き詰める（既定）。
 ## タイルの絵をそのまま敷けないスキン（オブジェクト・線地形）が下地を指す。
 var combat_ground: String
@@ -73,21 +79,19 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.elevation = float(d.get("elevation", 0.0))
 	s.floor = float(d.get("floor", 0.0))
 	s.ignore_board_height = bool(d.get("ignore_board_height", false))
+	# 置き方はオブジェクトだけが持つ。未知の値（打ち間違い）は空に倒し、描く側が立ち絵（既定）で
+	# 扱う＝何も出ないより、立ち絵で出るほうが不備に気づける。
+	var pl: Variant = d.get("placement", "")
+	s.placement = String(pl) if typeof(pl) == TYPE_STRING and pl in PLACEMENTS else ""
 	s.object_foot_z = float(d.get("object_foot_z", 0.0))
 	s.grid = bool(d.get("grid", true))
 	s.map_ground = String(d.get("map_ground", ""))
-	s.map_overlay = String(d.get("map_overlay", ""))
 	s.combat_ground = String(d.get("combat_ground", ""))
 	return s
 
 ## 戦闘演出の地面に敷くスキンID（空なら自分自身＝敷き詰め）。
 func combat_ground_id() -> String:
 	return combat_ground if combat_ground != "" else skin_id
-
-## タイル画像を引くときの skin_id。map_overlay があればそちら＝絵を借りる。
-## 「同じ絵を別の地面の上に置く」スキン（墓地の柵など）は、これで絵を複製せずに済む。
-func art_id() -> String:
-	return map_overlay if map_overlay != "" else skin_id
 
 ## 盤で下に敷くスキンID（空＝敷かない＝自分の絵だけで完結する従来のタイル）。
 func map_ground_id() -> String:
@@ -101,7 +105,7 @@ func connects_with(other: TerrainSkin) -> bool:
 
 ## タイル画像（基本）のパス。ファイル名は skin_id 規約（変種 _2/_3 は描画側が連番で拾う）。
 func image_path() -> String:
-	return "res://assets/terrain/%s.png" % art_id()
+	return "res://assets/terrain/%s.png" % skin_id
 
 ## 接続タイル（connect=true 用）のパス。柵や道は「どの辺で隣と繋がっているか」で絵が変わる。
 ## connected は Hex.DIRECTIONS 順の6要素（true＝その方向の隣も同じスキン）で、そのまま 0/1 の
@@ -111,7 +115,7 @@ func connected_image_path(connected: Array) -> String:
 	var bits := ""
 	for c in connected:
 		bits += "1" if bool(c) else "0"
-	return "res://assets/terrain/%s_c%s.png" % [art_id(), bits]
+	return "res://assets/terrain/%s_c%s.png" % [skin_id, bits]
 
 ## 座標ハッシュで見た目を散らす対象か（none 以外）。呼び出し側はこれで orient() を呼ぶか決める。
 func orients() -> bool:

@@ -80,13 +80,14 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	problems += _invalid_amount(rows, "floor")
 	# 盤の高さ（行・列の基準）を足さないスキン（水面など）。全行に明示する＝空を既定に倒さない。
 	problems += Csv.invalid_values(rows, "ignore_board_height", ["true", "false"], "skin_id")
-	# オブジェクトにだけ要る2列。層で必須が切り替わるので _invalid_amount（全行必須）とは分けて見る。
-	problems += _invalid_object_amount(rows, type_rows, "map_scale", true, false)
-	problems += _invalid_object_amount(rows, type_rows, "object_foot_z", false, true)
+	# オブジェクトの置き方（standee/panel/flat）。全オブジェクトに明示する＝空を既定に倒さない。
+	problems += _invalid_placement(rows, type_rows)
+	# 置き方で必須が切り替わる2列。_invalid_amount（全行必須）とは分けて見る。
+	problems += _invalid_object_amount(rows, type_rows, "map_scale", true, [SkinDef.PLACE_STANDEE, SkinDef.PLACE_PANEL])
+	problems += _invalid_object_amount(rows, type_rows, "object_foot_z", false, [SkinDef.PLACE_STANDEE])
 	# 戦闘演出の地面（combat_ground＝→ doc/tech/combat_scene.md）と
-	# 盤の重ね（map_ground＝下地 / map_overlay＝絵を借りる先）は、どれも skin_id への参照。
+	# 盤の下地（map_ground）は、どちらも skin_id への参照。
 	problems += Csv.invalid_values(rows, "map_ground", Csv.value_set(rows, "skin_id"), "skin_id")
-	problems += Csv.invalid_values(rows, "map_overlay", Csv.value_set(rows, "skin_id"), "skin_id")
 	problems += Csv.invalid_values(rows, "combat_ground", Csv.value_set(rows, "skin_id"), "skin_id")
 	# オブジェクトは足場の上に置く＝下に敷く足場（map_ground）を必ず書く。空を許すと
 	# 「足場の書いていないオブジェクト」ができ、描く側が既定を勝手に決めることになる。
@@ -111,12 +112,34 @@ static func _object_without_ground(rows: Array, type_rows: Array) -> Array:
 			problems.append("行[%s] は object なのに map_ground（下に敷く足場）が空" % String(r.get("skin_id", "")))
 	return problems
 
+## オブジェクトの置き方（placement）。オブジェクトには PLACE_* のどれかを必ず書き、足場は空にする。
+## panel（辺に沿って立てた板）は繋がり（connect=line/area）が板の向きを出すので、繋がらない panel も弾く。
+static func _invalid_placement(rows: Array, type_rows: Array) -> Array:
+	var layer_of := {}
+	for t in type_rows:
+		layer_of[String(t.get("id", ""))] = String(t.get("layer", ""))
+	var problems: Array = []
+	for i in rows.size():
+		var r: Dictionary = rows[i]
+		var who := str(r.get("skin_id", i))
+		var v: Variant = r.get("placement")
+		var s := str(v).strip_edges() if v != null else ""
+		var is_object: bool = layer_of.get(str(r.get("terrain_type", "")), "") == "object"
+		if is_object:
+			if not (s in SkinDef.PLACEMENTS):
+				problems.append("行[%s] の placement が不正 '%s'（オブジェクトは standee/panel/flat のどれか）" % [who, s])
+			elif s == SkinDef.PLACE_PANEL and not (str(r.get("connect", "")) in [SkinDef.CONNECT_LINE, SkinDef.CONNECT_AREA]):
+				problems.append("行[%s] は panel なのに connect が line/area でない（板の向きが出せない）" % who)
+		elif s != "":
+			problems.append("行[%s] の placement '%s' は効かない（オブジェクトだけが持つ列）" % [who, s])
+	return problems
+
 ## オブジェクトの行にだけ要る量（map_scale＝描画倍率／object_foot_z＝足元の奥行き）。
-## オブジェクトの行は数値必須（positive なら0以下も弾く）、足場の行は空であること。
-## skip_connected＝繋がるオブジェクト（柵）を対象から外す。柵は板で立てる＝足元の奥行きを使わない。
+## 置き方が required_placements の行は数値必須（positive なら0以下も弾く）、それ以外の行は空であること。
+## 立ち絵（standee）と柵の板（panel）は絵の書き出しが倍率を読む。橋（flat）はタイル絵＝どちらも使わない。
 ## 空を黙って既定に倒さない。倒すと、書き忘れが「等倍の巨大な立ち絵」として盤に出る。
 static func _invalid_object_amount(rows: Array, type_rows: Array, col: String,
-		positive: bool, skip_connected: bool) -> Array:
+		positive: bool, required_placements: Array) -> Array:
 	var layer_of := {}
 	for t in type_rows:
 		layer_of[String(t.get("id", ""))] = String(t.get("layer", ""))
@@ -128,15 +151,14 @@ static func _invalid_object_amount(rows: Array, type_rows: Array, col: String,
 		# 旧データの bool が混じりうるので String() ではなく str() で文字にする。
 		var num: bool = typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT
 		var is_object: bool = layer_of.get(str(r.get("terrain_type", "")), "") == "object"
-		var connected: bool = str(r.get("connect", "")) in [SkinDef.CONNECT_LINE, SkinDef.CONNECT_AREA]
-		if is_object and not (skip_connected and connected):
+		if is_object and str(r.get("placement", "")) in required_placements:
 			if not num:
-				problems.append("行[%s] の %s が空/数値でない '%s'（オブジェクトには必須）" % [who, col, str(v)])
+				problems.append("行[%s] の %s が空/数値でない '%s'（この置き方には必須）" % [who, col, str(v)])
 			elif positive and float(v) <= 0.0:
 				problems.append("行[%s] の %s が不正 '%s'（0より大きい数値）" % [who, col, str(v)])
 		# 列そのものが無い行（null）は空と同じ扱い。str(null) は "<null>" になるので先に見る。
 		elif num or (v != null and str(v).strip_edges() != ""):
-			problems.append("行[%s] の %s '%s' は効かない（オブジェクトだけが持つ列）" % [who, col, str(v)])
+			problems.append("行[%s] の %s '%s' は効かない（この置き方では使わない列）" % [who, col, str(v)])
 	return problems
 
 ## layer が footing の地形タイプで、型IDと同名のスキンが無いもの。

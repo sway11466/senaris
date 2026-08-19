@@ -1,0 +1,26 @@
+SUBJECT: One straight run of the low stone parapet of an old footbridge, seen
+from DIRECTLY OVERHEAD -- looking straight down onto the flat top of the
+parapet wall, so the picture shows a narrow horizontal BAND of coping stones
+crossing the whole frame from the left edge to the right edge.
+
+THE BAND: the parapet runs perfectly straight and level across the middle of
+the frame, about one eighth of the frame tall, and runs off both the left and
+right edges -- no ends, no posts at the ends, no gate, no gap, no stairs, the
+same wall all the way. The OUTSIDE of the bridge (the drop to the water) is
+toward the TOP of the frame, the walking surface of the bridge toward the
+BOTTOM. Above and below the band, leave a plain flat single-colour background
+-- NO water, NO stone deck, NO grass, NO shadow on the ground.
+
+THE STONES: heavy weathered coping blocks laid end to end along the run, each
+block a slightly different length, their joints thin and dark. The band will
+be shrunk very small in the game, so keep the blocks BIG and SIMPLE -- roughly
+one twelfth of the frame long each, no carving, no ornament, no moss, no
+fine texture.
+
+COLOR: the same dry grey stone as the bridge deck, roughly hex #8C8A82, but a
+touch lighter on top so the parapet reads as raised above the deck. NO block
+may be white or near-white, none near-black.
+
+Lit dimly and evenly from straight above, with NO cast shadow and no light
+direction: any shading stays inside each block, the same along the whole run,
+so the band repeats seamlessly left to right.

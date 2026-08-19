@@ -1,0 +1,21 @@
+SUBJECT: A low stone parapet of an old footbridge, seen from the front and a
+little above, as a WIDE horizontal band for the foreground of a battle scene.
+
+SHAPE: a very wide picture -- the parapet crosses the ENTIRE frame from the
+left edge to the right edge and runs off both sides, one continuous straight
+wall with no ends, no posts at the ends, no gap, no gate. The wall is LOW: the
+band of wall fills only the lower part of the frame, and EVERYTHING above the
+coping line is fully TRANSPARENT (alpha), not sky and not background. The
+bottom edge of the wall touches the bottom edge of the frame.
+
+THE WALL: heavy weathered stone blocks with thin dark joints and a flat coping
+course on top. Big simple shapes, readable at a glance -- this band sits in
+front of the fighting troops, so keep it QUIET: dark, low-contrast, leaning
+toward silhouette, with only a hint of the block joints. NO carving, NO moss,
+NO ivy, NO lantern, NO fine texture, NO bright highlight anywhere.
+
+COLOR: the same dry grey stone family as the bridge deck (around hex #8C8A82)
+but noticeably DARKER, as a shaded foreground -- nothing in the band may be
+brighter than a mid grey, and nothing may be pure black.
+
+Lit dimly and evenly, with NO visible light direction and NO cast shadow.

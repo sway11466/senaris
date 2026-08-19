@@ -334,31 +334,9 @@
 - 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
 - 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
 
-### feature-59
-
-**橋をオブジェクトにする（水平板の置き方・絵の描き直し）**（優先度：中）
-
-- 背景：川を水面（盤高無視・絶対 -0.18）に作り直した結果、道スキンの橋（`road_bridge1`）が成立しなくなった。橋のマスの水だけ橋と同じ高さで描かれて周りの水と段差が出るうえ、橋マスと水マスの境に粒ノイズのスカートが下りて堰堤に見える。石畳の借用絵では欄干も描けない。
-- 対応：橋を足場からオブジェクトに変える。「オブジェクトのマスの足場は見た目専用」の既存規則に乗り、板は岸と同じ高さに浮き、下の水は絶対水位で隣とつながる。
-  - 地形タイプ `bridge` を新設（object層・性能と移動は道相当・識別文字 `=`）。スキンは `map_ground=river`。
-  - オブジェクトの置き方を3種にする：カメラ正対の板（既定）／辺に沿って立てた板（柵）／水平の板（橋・新設）。terrain_skin.csv に置き方の列を立て、柵の例外扱いもそこへ吸収する。
-  - 絵は石造りで描き直し（オーナー担当）。床板テクスチャ1枚＋欄干の帯1枚から、スクリプト合成で幅4役（単幅＝両欄干／左端／右端／中央＝床のみ）×3軸（`_v` `_r` `_l`）の12スキンを作る。地形の絵は光源方向を焼き込まない規則なので欄干の反転は可。
-  - 戦闘は地面＝床板（`combat_ground` 空＝自分。水平板はタイルの絵を持つので敷ける）、手前＝欄干の帯（`_combat_front`）。奥は置かない。
-  - 旧 `road_bridge1` を削除し、`road` / `road_stone1` の `connect_to` からも消す。tutorial3 st1/st2 の橋マスを `=` に書き換える。
-  - doc 更新は実装コミットに含める：`doc/gdd/terrain.md`（置き方3種・橋）・`doc/art/terrain.md` §3.7。
-- 該当：`data/terrain/terrain_type.csv`・`terrain_skin.csv`・`data/movement/movement.csv`・`presentation/board/board_terrain_renderer.gd`・`data/stages/tutorial3-dragon-hunt/`・`tools/`（合成スクリプト）。
-
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。
-
-### refactoring-11
-
-**旧地形システムの map_overlay（絵を借りる）を消す**（優先度：低）
-
-- 背景：`map_overlay` は二層化（足場とオブジェクト）前の旧地形システムで入れた仕組みで、スキンが別スキンの絵を借りて自前の画像を持たない。現在の利用は2スキン＝`plain_grave1_fence`（柵の接続タイル64枚を `plain_fence` から借用）と `road_bridge1`（石畳の接続タイル64枚を `road_stone1` から借用）。マップと絵は順次作り直し中で、この仕組みは残さない。
-- 対応：機能ごと削除し、CSVからも列を消す。絵は skin_id で直引きになるので、借りていた2スキンには自前の画像を持たせる（借り先のタイルの複製、または作り直し）。橋は feature-59（橋の下の水）で絵の作り直し自体が検討対象なので、同時に片付けるとよい。
-- 該当：`data/terrain/terrain_skin.csv`（列削除＋JSON再生成）・`data/terrain/terrain_skin.gd`（`map_overlay`・`art_id()`）・`data/terrain/convert.gd`（検証1行）・`presentation/board/board_terrain_renderer.gd`（`_object_side_texture`）・`tests/unit/test_terrain_skin.gd`（借用のテスト）・`doc/art/terrain.md`。着手の引き金＝墓地の柵か橋の絵を作り直すとき。
 
 ## parking lot
 

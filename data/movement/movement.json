@@ -11,6 +11,7 @@
 	"movement_types": {
 		"bush_walk": {
 			"bedrock": 3,
+			"bridge": 1,
 			"building": 1,
 			"bush": 1,
 			"fence": 3,
@@ -31,6 +32,7 @@
 		},
 		"fixed": {
 			"bedrock": 1,
+			"bridge": 1,
 			"building": 1,
 			"bush": 1,
 			"fence": "x",
@@ -51,6 +53,7 @@
 		},
 		"flight": {
 			"bedrock": 1,
+			"bridge": 1,
 			"building": 1,
 			"bush": 1,
 			"fence": 1,
@@ -71,6 +74,7 @@
 		},
 		"forest_walk": {
 			"bedrock": 3,
+			"bridge": 1,
 			"building": 1,
 			"bush": 2,
 			"fence": 3,
@@ -91,6 +95,7 @@
 		},
 		"ground": {
 			"bedrock": 3,
+			"bridge": 1,
 			"building": 1,
 			"bush": 2,
 			"fence": 3,
@@ -111,6 +116,7 @@
 		},
 		"light_foot": {
 			"bedrock": 2,
+			"bridge": 1,
 			"building": 1,
 			"bush": 1,
 			"fence": 1,
@@ -131,6 +137,7 @@
 		},
 		"mountain_walk": {
 			"bedrock": 1,
+			"bridge": 1,
 			"building": 1,
 			"bush": 2,
 			"fence": 3,

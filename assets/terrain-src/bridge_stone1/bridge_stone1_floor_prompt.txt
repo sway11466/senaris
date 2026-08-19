@@ -1,0 +1,36 @@
+SUBJECT: The stone deck of an old footbridge, seen from straight above --
+just the walking surface, filling the whole picture.
+
+FILL THE FRAME -- IMPORTANT: the stonework covers the ENTIRE square, edge to
+edge, corner to corner. This is a texture swatch, not a scene and not an
+object. NO background, NO grass, NO water, NO river, NO bank, NO parapet, NO
+railing, NO kerb, NO edge, NO border, NO frame, NO vignette, NO rounded
+corners. The deck runs off all four sides. Nothing stands on it and nothing
+lies on it.
+
+THE STONES: worn rectangular slabs and irregular flagstones fitted together by
+a mason, each one a slightly different size and shape. A stone is roughly a
+twelfth of the frame across, and none is bigger than an eighth of the frame.
+
+NO PATTERN -- CRITICAL: this same texture is cut into many map tiles and also
+rotated by 60 degrees, so any regularity shows up immediately as a repeat.
+NO rows, NO courses, NO grid, NO brickwork or running bond, NO herringbone,
+and NO joint line that runs straight across more than about a fifth of the
+frame. The stones sit at all angles and their joints wander. Nothing in the
+picture is distinctive enough to be recognised as a landmark when the square
+is laid down many times side by side.
+
+THE JOINTS: thin and dark -- narrow dark lines, a little darker than the stone
+itself. NO white or pale joints, NO wide mortar beds, NO bright grout.
+
+COLOR: dry grey stone, roughly hex #8C8A82 -- a calm, slightly warm mid grey,
+matching the game's stone-paved road so a road running onto the bridge reads
+as one surface. Each stone is a slightly different shade of that grey, some a
+touch warmer, some a touch cooler, scattered unevenly. NO stone may be white
+or near-white, and none may be near-black. NO moss, NO puddles, NO cracks big
+enough to notice, NO carved marks.
+
+Lit dimly and evenly from straight above, with NO cast shadow at all and no
+light direction: the stones are flat paving and throw no shadows. Shading
+stays inside each stone -- very slight, just enough to tell one stone from
+the next.
