@@ -52,6 +52,10 @@ func test_bridge_is_a_flat_object_over_the_river() -> void:
 	assert_eq(river.connect, "", "川は繋がらない＝1マス完結の水面（line/area 以外は空へ正規化）")
 	assert_eq(bridge.placement, TerrainSkin.PLACE_FLAT, "橋は水平の板")
 	assert_eq(bridge.map_ground_id(), "river", "橋の下地は川")
+	# 高さは2列で受け持ちが分かれる＝elevation の高さに足場（水）・floor の高さに板。
+	assert_eq(bridge.elevation, river.elevation, "elevation は水位＝川と同値")
+	assert_eq(bridge.ignore_board_height, river.ignore_board_height, "盤の高さの扱いも川と同じ＝絶対水位")
+	assert_gt(bridge.floor, bridge.elevation, "板（floor）は水位より上に浮く")
 	assert_false(bridge.connects(), "橋は接続タイルを持たない（幅の役×軸の12スキンで向きを出す）")
 	assert_false(bridge.connects_with(river), "橋は川へ床を伸ばさない")
 	assert_true(road.connects_with(bridge), "道は橋へ帯を伸ばす")
@@ -127,9 +131,15 @@ func test_objects_are_never_oriented() -> void:
 		if TerrainType.layer(s.terrain_type) != "object":
 			continue
 		assert_false(s.orients(), "%s はオブジェクト＝散らさない" % s.skin_id)
-		assert_eq(s.elevation, 0.0, "%s はオブジェクト＝高さは絵が持つ" % s.skin_id)
+		# 高さは elevation＝足場を敷く高さ／floor＝オブジェクトを置く高さ。地面の上に立つ
+		# standee / panel は両方0（背丈は絵が持つ）。flat（橋）は足場（水）より上に板が浮く。
+		if s.placement == TerrainSkin.PLACE_FLAT:
+			assert_gt(s.floor, s.elevation, "%s は水平の板＝足場より上に浮く" % s.skin_id)
+			continue
+		assert_eq(s.elevation, 0.0, "%s は地面の上に立つ＝足場は地面の高さ" % s.skin_id)
+		assert_eq(s.floor, 0.0, "%s は地面の上に立つ＝置く高さも地面" % s.skin_id)
 		if s.placement != TerrainSkin.PLACE_STANDEE:
-			continue  # 柵の板（panel）と橋の水平板（flat）は足元の奥行きを使わない
+			continue  # 柵の板（panel）は足元の奥行きを使わない
 		# 立ち絵は駒より奥に立つ（CSVの空欄は 0.0 として出るので、抜けもここで落ちる）。
 		assert_gt(s.object_foot_z, 0.0, "%s は立ち絵＝足元の奥行きを持つ" % s.skin_id)
 

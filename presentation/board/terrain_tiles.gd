@@ -5,10 +5,11 @@ class_name TerrainTiles
 ## 使うための土台。どのPNGを引くか（拠点のチーム別絵・線地形の接続タイル）は用途で違うので、
 ## パス解決は呼び出し側が持つ。キャッシュは static＝盤と演出で共有する。
 
-static var _mesh := {}      # 半径(float) -> ArrayMesh
-static var _mat := {}       # Texture2D -> StandardMaterial3D
-static var _variants := {}  # 基本パス(String) -> Array[Texture2D]
-static var _composed := {}  # "下地の id@重ね絵の id" -> Texture2D（合成結果）
+static var _mesh := {}       # 半径(float) -> ArrayMesh
+static var _mat := {}        # Texture2D -> StandardMaterial3D
+static var _cutout_mat := {} # Texture2D -> StandardMaterial3D（透過を描く版）
+static var _variants := {}   # 基本パス(String) -> Array[Texture2D]
+static var _composed := {}   # "下地の id@重ね絵の id" -> Texture2D（合成結果）
 
 ## UV の縦の係数。PNG はヘックスの外接矩形（256×222＝2R × √3R）で切ってあるので、
 ## 縦は横と同じ 0.5 ではなく 1/√3。0.5 は外接「正方形」（2R × 2R）用の値で、これを使うと
@@ -34,6 +35,7 @@ static func hex_mesh(size: float) -> ArrayMesh:
 	return m
 
 ## タイル材質（アンライト＝2D canvas と同じ発色）。テクスチャごとにキャッシュ。
+## 不透明で描く＝タイルの透過部分は下の色が抜けずに残る（通常のタイルは六角の中が全部絵）。
 static func material(tex: Texture2D) -> StandardMaterial3D:
 	if _mat.has(tex):
 		return _mat[tex]
@@ -42,6 +44,19 @@ static func material(tex: Texture2D) -> StandardMaterial3D:
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 左右反転タイル（scale.x=-1）でも描けるように
 	_mat[tex] = m
+	return m
+
+## 透過を描くタイル材質。絵の透過部分から下に敷かれたものが見える（橋の板＝床の帯の外から
+## 下の水を見せる）。通常のタイルに使わないのは、不透明描画のほうが並べ替えが要らず軽いから。
+static func cutout_material(tex: Texture2D) -> StandardMaterial3D:
+	if _cutout_mat.has(tex):
+		return _cutout_mat[tex]
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = tex
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_cutout_mat[tex] = m
 	return m
 
 ## 地形タイルを読む。基本 {name}.png ＋連番 variant（_2, _3 …）。無ければ空配列。

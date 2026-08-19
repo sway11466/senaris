@@ -104,12 +104,15 @@ func refresh_base_tiles() -> void:
 		if tex != null:
 			mi.material_override = BoardMeshFactory.terrain_material(tex)
 
-## そのヘックスの見た目の標高（スキン別・既定0）。ピッキング/配置/スカートで使う。
+## そのヘックスの読み取り面の標高（スキン別・既定0）。ピッキング/配置/グリッド/オーバーレイで使う。
+## 水平の板（橋）のマスだけ floor＝板の高さ。elevation はそのマスでは足場（水）の高さで、
+## タイル敷きとスカートが使う（→ _footing_elev）。
 ## 毎フレームのピッキングから何度も引かれるので、盤を組み直すまでキャッシュする。
 func elev(hex: Vector2i) -> float:
 	if _elev_cache.has(hex):
 		return _elev_cache[hex]
-	var e := _skin_height(hex, "elevation")
+	var key := "floor" if _is_flat(_skin_at(hex)) else "elevation"
+	var e := _skin_height(hex, key)
 	_elev_cache[hex] = e
 	return e
 
@@ -146,24 +149,16 @@ func _base_height(hex: Vector2i) -> float:
 func unit_floor(hex: Vector2i) -> float:
 	return _skin_height(hex, "floor")
 
-## 水平の板（橋）のスキンか。マスの上面（読み取り・グリッド・ピッキングの高さ＝elev）は板のほうで、
-## 足場（map_ground）は板の下に潜る（→ doc/gdd/terrain.md）。
+## 水平の板（橋）のスキンか。オブジェクトの高さは2列で受け持ちが分かれる＝elevation の高さに
+## 足場（map_ground）を敷き、floor の高さに板を置く（→ doc/gdd/terrain.md）。
 func _is_flat(skin: TerrainSkin) -> bool:
 	return skin != null and skin.placement == TerrainSkin.PLACE_FLAT
 
-## 水平の板のマスで、下に敷く足場（map_ground）が実際に居る高さ。盤の高さの扱いは足場スキンの
-## 規則に従う＝川なら絶対水位。板の高さ（elev）とは独立に解決するので、橋の下の水が隣の水と揃う。
-func _ground_elev(hex: Vector2i) -> float:
-	var skin := _skin_at(hex)
-	var ground := TerrainSkinCatalog.resolve(skin.map_ground_id(), "") if skin != null else null
-	if ground == null:
-		return elev(hex)
-	return ground.elevation if ground.ignore_board_height else ground.elevation + _base_height(hex)
-
-## スカート（側面）の基準にする高さ。水平の板のマスは足場の高さで数える＝板の縁からは側面を
-## 下ろさず（堰堤に見せない）、高い岸のほうが板の下の水まで壁を下ろす（岸が橋の下でも続く）。
-func _skirt_elev(hex: Vector2i) -> float:
-	return _ground_elev(hex) if _is_flat(_skin_at(hex)) else elev(hex)
+## 足場（タイル）を敷く高さ＝スキンの elevation。通常のマスでは elev()（読み取り面）と同じ値で、
+## 水平の板（橋）のマスだけ違う＝elevation は下の水の高さ・読み取り面（板）は floor に浮く。
+## マスごとの高さ上書きにもそのまま乗る＝ペアが「水位と板の高さ」になる。
+func _footing_elev(hex: Vector2i) -> float:
+	return _skin_height(hex, "elevation")
 
 ## 盤に存在する標高レベルを高い順で（ピッキングで上のタイルを先に判定）。0 を必ず含む。
 ## スキンはセルごとに違いうるので、定数表ではなく実際に敷かれた高さから集める。
@@ -337,10 +332,9 @@ func _add_tile(hex: Vector2i) -> void:
 	mi.mesh = _hex_mesh
 	mi.material_override = BoardMeshFactory.terrain_material(tex)
 	var p := Hex.to_pixel(hex, TILE)
-	# 水平の板（橋）のマスだけ、足場（川）を足場自身の高さに敷く＝板（elev）はその上に浮き、
-	# 下の水は隣の水面と同じ絶対水位でつながる。他のマスは従来どおり elev に敷く。
-	var y := _ground_elev(hex) if _is_flat(skin) else elev(hex)
-	mi.position = Vector3(p.x, y, p.y)
+	# タイルは足場の高さ（elevation）に敷く。水平の板（橋）のマスだけ読み取り面（elev＝floor の板）
+	# と違う高さになり、板の下に水が残る。他のマスでは elev() と同じ値。
+	mi.position = Vector3(p.x, _footing_elev(hex), p.y)
 	if skin != null and skin.orients():
 		TerrainTiles.orient(mi, hex, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
@@ -426,15 +420,18 @@ func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) ->
 		st.set_uv(Vector2(1, 0)); st.add_vertex(b + up)
 		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
 
-## 水平の板（橋）。自分のタイル絵をヘックス形の板として自分の高さ（elev＝盤の読み取りの高さ）に
-## 敷く。足場（map_ground＝川）は _add_tile が足場自身の高さに敷くので、板の下を水がくぐる。
+## 水平の板（橋）。自分のタイル絵をヘックス形の板として floor の高さ（＝elev。盤の読み取り面で、
+## 駒もここに立つ）に敷く。足場（map_ground＝川）は _add_tile が elevation の高さに敷くので、
+## 板の下を水がくぐる。
 func _add_object_flat(skin: TerrainSkin, hex: Vector2i) -> void:
 	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
 	if tex == null:
 		return
 	var mi := MeshInstance3D.new()
 	mi.mesh = _hex_mesh
-	mi.material_override = BoardMeshFactory.terrain_material(tex)
+	# 透過を描く材質で敷く。通常のタイル材質は不透明描画なので、床の帯の外（絵の透過部分）が
+	# 塗りつぶされて下の水が見えなくなる。
+	mi.material_override = TerrainTiles.cutout_material(tex)
 	var p := Hex.to_pixel(hex, TILE)
 	mi.position = Vector3(p.x, elev(hex), p.y)
 	add_child(mi)
@@ -537,16 +534,16 @@ func _add_skirt() -> void:
 				st = SurfaceTool.new()
 				st.begin(Mesh.PRIMITIVE_TRIANGLES)
 				tools[side] = st
-			# 水平の板（橋）のマスは足場（水面）の高さで数える＝板の縁は堰堤にならず、岸の壁が
-			# 橋の下の水まで下りる（_skirt_elev）。
-			var top := _skirt_elev(hex)
+			# スカートは足場の高さ（elevation）で数える。水平の板（橋）のマスは水面の高さになる
+			# ＝板の縁は堰堤にならず、岸の壁が橋の下の水まで下りる。
+			var top := _footing_elev(hex)
 			for i in 6:
 				var nb := hex + dirs[i]
 				var bottom: float
 				if not _on_board(nb):
 					bottom = -SKIRT_DEPTH         # 盤外＝ジオラマの縁（島の厚み）
-				elif _skirt_elev(nb) < top - 0.001:
-					bottom = _skirt_elev(nb)     # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）
+				elif _footing_elev(nb) < top - 0.001:
+					bottom = _footing_elev(nb)   # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）
 				else:
 					continue                      # 同高 or 高い隣にはスカート不要
 				var a0 := deg_to_rad(60.0 * i)
