@@ -1,0 +1,2 @@
+magick assets/terrain-src/bridge_stone1/bridge_stone1_combat_front_01_raw.jpg -crop 1584x213+0+397 +repage assets/terrain-src/bridge_stone1/bridge_stone1_combat_front_03_master.png
+powershell -File tools\gen_bridge_tiles.ps1 river_bridge_stone1 -Deck assets\terrain-src\bridge_stone1\bridge_stone1_floor_01_raw.jpg -DeckX 0 -DeckW 1024 -Rail assets\terrain-src\bridge_stone1\bridge_stone1_rail_01_raw.jpg -RailX 0 -RailY 458 -RailW 1024 -RailH 133 -CombatFront assets\terrain-src\bridge_stone1\bridge_stone1_combat_front_03_master.png
