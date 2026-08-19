@@ -11,16 +11,17 @@ brighten it to neon, cartoon primary blue or electric turquoise. This is the mos
 colourful thing on the game's map and it is meant to be — it has to lift the
 board beside the game's grass (#B4C6A0) and its dirt roads (#D8C39A).
 
-SURFACE: a FINE, DENSE, ALL-OVER SPARKLE — many small bright ripple highlights,
-the crowded net of light on the bottom of a sunlit swimming pool seen from
-straight above. Hundreds of them, small and close together: each highlight is
-about a fortieth of the frame across (roughly 25px in a 1024px picture) and never
-wider than a twentieth. They lie at all angles and are spaced unevenly, so the
-pattern has no grain, no rows, no grid and no direction. Drawn the game's way —
-crisp, flat, stylized shapes of light — NOT a photograph, NOT soft glowing
+SURFACE: an ALL-OVER net of BOLD ripple highlights — the net of light on the
+bottom of a sunlit swimming pool seen from straight above, drawn LARGE. A few
+dozen highlights across the whole frame, not hundreds: each one is a chunky,
+clearly readable shape about a sixteenth of the frame across (roughly 60px in a
+1024px picture), never smaller than a twenty-fifth (40px) and never wider than a
+tenth (100px). The strokes of the net are THICK — no hairlines, no fine lace, no
+speckle, no dust of tiny dots. They lie at all angles and are spaced unevenly, so
+the pattern has no grain, no rows, no grid and no direction. Drawn the game's way
+— crisp, flat, stylized shapes of light — NOT a photograph, NOT soft glowing
 photoreal caustics, NOT blurred. The highlights are a pale, light version of the
-same blue: bright enough to glitter, still clearly tinted blue, never pure white,
-and always small.
+same blue: bright enough to glitter, still clearly tinted blue, never pure white.
 
 NO DIRECTION — CRITICAL: the surface must look the same whichever way the picture
 is turned, because the same water is laid across the board and is rotated and
@@ -28,12 +29,13 @@ mirrored tile by tile. NO current, NO flow lines, NO streaks, NO wake, NO long
 wave crests, NO swirls, NO spray, and no mark of any kind that shows which way
 the water is moving.
 
-NO LANDMARKS — the single worst failure: anything wider than a twentieth of the
-frame reads as a feature and shows up as an obvious repeat when this water is cut
-into tiles and laid across the board. NO large soft blobs, NO big rounded patches
-of paler or deeper water, NO clouds, NO spots, NO stains, NO blotches, NO puddle
-shapes, NO single focal thing anywhere. Keep the large-scale colour even and
-low-contrast across the whole frame.
+NO LANDMARKS — the single worst failure: any single shape wider than a tenth of
+the frame reads as a feature and shows up as an obvious repeat when this water is
+cut into tiles and laid across the board. NO large soft blobs, NO big rounded
+patches of paler or deeper water, NO clouds, NO spots, NO stains, NO blotches,
+NO puddle shapes, NO single focal thing anywhere. Keep the large-scale colour
+even and low-contrast across the whole frame: the highlights vary, the water
+behind them does not.
 
 Lit brightly and evenly from straight above, with NO cast shadow at all and NO
 reflection of anything — no sky, no cloud, no bank, no tree. Flat water seen from
