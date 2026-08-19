@@ -40,6 +40,7 @@ var _terrain_tex := {}     # base_path(String) -> Array[Texture2D]（基本＋�
 var _side_tex := {}        # skin_id -> Texture2D|null（側面画像。置いていなければ null）
 var _obj_side_tex := {}    # art_id -> Texture2D|null（繋がるオブジェクトの板の絵）
 var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
+var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）
 var _avg_color := {}       # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
@@ -68,6 +69,7 @@ func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictio
 func build_tiles() -> void:
 	_clear_children()
 	_tile_nodes.clear()
+	_standee_nodes.clear()
 	_elev_cache.clear()
 	_elev_levels_cache.clear()
 	if _state == null:
@@ -81,11 +83,19 @@ func build_tiles() -> void:
 	_add_skirt()
 	_add_ground()
 
-## 拠点タイルを現在の所有チームの絵に貼り替える。占領で色が変わるので _sync_bases から毎回呼ぶ。
+## 拠点を現在の所有チームの絵に貼り替える。占領で色が変わるので _sync_bases から毎回呼ぶ。
+## 拠点がオブジェクト（fort＝立ち絵）のマスは立ち絵を貼り替える。平面タイルは足場のままで触らない
+## （_tile_texture を貼ると立ち絵の絵が地面にも合成され、二重に描かれる）。
 func refresh_base_tiles() -> void:
 	if _state == null:
 		return
 	for b in _state.bases():
+		var skin := _skin_at(b.hex)
+		if _is_object(skin):
+			var spr: Sprite3D = _standee_nodes.get(b.hex)
+			if spr != null:
+				_apply_standee_texture(spr, skin, b.hex)
+			continue
 		var mi: MeshInstance3D = _tile_nodes.get(b.hex)
 		if mi == null:
 			continue
@@ -202,8 +212,9 @@ func _base_team_at(hex: Vector2i) -> int:
 	return -1
 
 ## hex の地形タイルのテクスチャ（skin 解決＋variant 敷き分け＋キャッシュ）。無ければ null。
-## map_ground を持つスキン（地面を絵に焼き込んでいない柵など）は、下地を敷いてから重ねる。
-## 下地の variant もこのヘックスで選ぶので、柵のマスだけ地面が固定される、ということにならない。
+## map_ground を持つ足場スキン（橋＝川の上に石畳）は、下地を敷いてから重ねる。
+## 下地の variant もこのヘックスで選ぶので、橋のマスだけ川が固定される、ということにならない。
+## オブジェクトのマスの上面はここではなく _surface_texture（足場だけ）で引く。
 func _tile_texture(hex: Vector2i) -> Texture2D:
 	var skin := _skin_at(hex)
 	if skin == null:
@@ -298,8 +309,7 @@ func _tile_avg_color(tex: Texture2D) -> Color:
 
 func _add_tile(hex: Vector2i) -> void:
 	var skin := _skin_at(hex)
-	# オブジェクトのマスは床に足場だけを敷く（物そのものは _add_objects が立てる）。
-	var tex := _ground_texture(hex, skin) if _is_object(skin) else _tile_texture(hex)
+	var tex := _surface_texture(hex)
 	if tex == null:
 		return
 	var mi := MeshInstance3D.new()
@@ -311,6 +321,12 @@ func _add_tile(hex: Vector2i) -> void:
 		TerrainTiles.orient(mi, hex, skin.rotates(), skin.flips_horizontally(), skin.flips_vertically())  # 向きは座標ハッシュから決定的に選ぶ＝盤は毎回同じ
 	_tile_nodes[hex] = mi  # 占領でタイルを貼り替えるため、ヘックスから引けるようにしておく
 	add_child(mi)
+
+## マスの上面（平面タイル）に敷く絵。オブジェクトのマスは足場だけを敷く（物そのものは
+## _add_objects が立てる）。タイル敷きとスカートの断面色が同じ解決を使う。
+func _surface_texture(hex: Vector2i) -> Texture2D:
+	var skin := _skin_at(hex)
+	return _ground_texture(hex, skin) if _is_object(skin) else _tile_texture(hex)
 
 ## そのスキンがオブジェクト（足場の上に置くもの）か。→ doc/gdd/terrain.md
 func _is_object(skin: TerrainSkin) -> bool:
@@ -385,19 +401,28 @@ func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) ->
 
 ## 繋がらないオブジェクト（岩・建物・砦）。駒と同じ立ち絵1枚を、スキンが指す奥行きぶん奥に立てる。
 func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
-	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
-	if tex == null:
-		return
-	var p := Hex.to_pixel(hex, TILE)
 	var spr := Sprite3D.new()
-	spr.texture = tex
 	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	spr.shaded = false
 	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	if not _apply_standee_texture(spr, skin, hex):
+		spr.free()
+		return
+	var p := Hex.to_pixel(hex, TILE)
+	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y - skin.object_foot_z)
+	_standee_nodes[hex] = spr
+	add_child(spr)
+
+## 立ち絵の絵を貼る（チーム別の絵の解決込み＝占領で貼り替わる）。倍率と原点は絵の寸法に
+## 依存するので、絵と一緒にここで合わせる。絵が引けなければ false。
+func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> bool:
+	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
+	if tex == null:
+		return false
+	spr.texture = tex
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
-	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y - skin.object_foot_z)
-	add_child(spr)
+	return true
 
 ## 繋がるオブジェクトの板の絵（assets/terrain/{art_id}_side.png）。無ければ声を上げて null。
 func _object_side_texture(skin: TerrainSkin) -> Texture2D:
@@ -463,7 +488,7 @@ func _add_skirt() -> void:
 			else:
 				# 断面色＝そのタイルの平均色（草の下は緑土・砂の下は砂色＝地続きに見える）。
 				# べた塗り回避: 上端は明るめ→下端ほど暗い頂点グラデ＋粒状ノイズテクスチャを重ねる。
-				var tex := _tile_texture(hex)
+				var tex := _surface_texture(hex)
 				var base := _tile_avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
 				top_c = base.darkened(SKIRT_DARKEN - 0.20)
 				bot_c = base.darkened(SKIRT_DARKEN + 0.20)
