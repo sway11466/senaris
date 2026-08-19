@@ -31,8 +31,9 @@ var _margin_terrain := {}
 ## 盤の基準高さ（見た目のみ）。{ "row": [行数ぶん], "col": [列数ぶん] }。空＝その軸は平ら。
 ## あるマスの高さ ＝ 行の基準 ＋ 列の基準 ＋ スキンの elevation（→ doc/gdd/terrain.md 盤の高さ）。
 ## 盤の高さを無視するスキン（ignore_board_height）は基準を足さない＝elevation / floor が絶対高さ。
+## マスごとの高さ上書きがあるマスは、この計算をせず上書き値をそのまま使う。
 var _board_height := { "row": [], "col": [] }
-## Vector2i -> { "elevation": float, "floor": float }（マスごとの高さ上書き。スキンの値を差し替える）。
+## Vector2i -> { "elevation": float, "floor": float }（マスごとの高さ上書き。書いてあればそれが最終の高さ）。
 var _height_overrides := {}
 
 # --- キャッシュ ---
@@ -113,15 +114,16 @@ func elev(hex: Vector2i) -> float:
 	return e
 
 ## スキン由来の高さ（elevation / floor）を1本の規則で解決する。
-## マスに高さ上書きがあればスキンの値を差し替え、盤の高さ（行＋列の基準）は
-## 無視フラグの無いスキンだけに足す（→ doc/gdd/terrain.md 盤の高さ）。
+## マスに高さ上書きがあれば、その値がそのまま最終の高さ＝盤の高さ（行＋列の基準）もスキンの値も見ない。
+## 上書きの無いマスは、盤の高さを無視フラグの無いスキンだけに足す（→ doc/gdd/terrain.md 盤の高さ）。
 func _skin_height(hex: Vector2i, key: String) -> float:
 	var skin := _skin_at(hex)
 	if skin == null:
 		return _base_height(hex)
 	var ov: Variant = _height_overrides.get(hex)
-	var v: float = float(ov[key]) if typeof(ov) == TYPE_DICTIONARY else \
-		(skin.elevation if key == "elevation" else skin.floor)
+	if typeof(ov) == TYPE_DICTIONARY:
+		return float(ov[key])
+	var v: float = skin.elevation if key == "elevation" else skin.floor
 	return v if skin.ignore_board_height else v + _base_height(hex)
 
 ## 盤の基準高さ（行＋列）。ステージが書いていなければ0＝平ら。盤の外のセルは縁の値に丸める

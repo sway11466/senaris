@@ -74,3 +74,37 @@ func test_build_tiles_clears_caches() -> void:
 	renderer.build_tiles()
 	assert_eq(renderer._elev_cache.size(), 0, "build_tiles で標高キャッシュが空になる")
 	assert_eq(renderer._elev_levels_cache.size(), 0, "build_tiles で標高レベルキャッシュが空になる")
+
+# --- 高さの解決（盤の基準・スキン・マスごとの上書き）---
+
+## 盤だけ用意して高さの入力を差し替える（駒も地形も既定＝平地のまま）。
+func _setup_height(board_height: Dictionary, overrides: Dictionary, skins: Dictionary = {}) -> void:
+	renderer.setup(BattleState.new(4, 4), skins, {}, board_height, overrides)
+
+func test_elev_adds_row_and_col_base() -> void:
+	_setup_height({ "row": [0.0, 0.1, 0.0, 0.0], "col": [0.0, 0.2, 0.0, 0.0] }, {})
+	assert_almost_eq(renderer.elev(Hex.offset_to_axial(1, 1)), 0.3, 0.001, "行＋列の基準が足される")
+
+func test_elev_adds_base_to_skin_elevation() -> void:
+	_setup_height({ "row": [], "col": [0.0, 0.2, 0.0, 0.0] }, {}, { Hex.offset_to_axial(1, 1): "plateau" })
+	var e := renderer.elev(Hex.offset_to_axial(1, 1))
+	assert_almost_eq(e, 0.2 + TerrainSkinCatalog.resolve("plateau", "plateau").elevation, 0.001,
+		"上書きが無ければスキンの elevation に基準を足す")
+
+func test_height_override_ignores_board_base() -> void:
+	var hex := Hex.offset_to_axial(1, 1)
+	_setup_height({ "row": [0.0, 0.1, 0.0, 0.0], "col": [0.0, 0.2, 0.0, 0.0] },
+		{ hex: { "elevation": 0.5, "floor": 0.25 } })
+	assert_almost_eq(renderer.elev(hex), 0.5, 0.001, "上書きした値がそのまま最終の高さ")
+	assert_almost_eq(renderer.unit_floor(hex), 0.25, 0.001, "floor も上書きした値がそのまま")
+
+func test_height_override_ignores_skin_elevation() -> void:
+	var hex := Hex.offset_to_axial(1, 1)
+	_setup_height({ "row": [], "col": [] }, { hex: { "elevation": 0.5, "floor": 0.5 } },
+		{ hex: "plateau" })
+	assert_almost_eq(renderer.elev(hex), 0.5, 0.001, "スキンの elevation も見ない")
+
+func test_height_override_is_per_cell() -> void:
+	var hex := Hex.offset_to_axial(1, 1)
+	_setup_height({ "row": [], "col": [0.0, 0.2, 0.0, 0.0] }, { hex: { "elevation": 0.5, "floor": 0.5 } })
+	assert_almost_eq(renderer.elev(Hex.offset_to_axial(1, 2)), 0.2, 0.001, "隣のマスは基準のまま")
