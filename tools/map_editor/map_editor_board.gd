@@ -38,20 +38,25 @@ const UNIT_FOOT := 0.5  ## 立ち絵の足元（キャンバス下端）をヘ�
 const TEAM_INDEX := { "player": 0, "enemy": 1 }
 
 ## 画像が無いスキンのプレースホルダ色（区別が付けばよい）。
-const TERRAIN_COLORS := {
+const TERRAIN_COLORS := {  # terrain_type.csv の id と同順・全型
 	"road": Color(0.78, 0.70, 0.52),
 	"plain": Color(0.62, 0.75, 0.42),
-	"plateau": Color(0.76, 0.66, 0.40),
 	"wasteland": Color(0.71, 0.63, 0.52),
+	"rampart": Color(0.60, 0.64, 0.69),
+	"river": Color(0.45, 0.62, 0.78),
+	"wall": Color(0.25, 0.25, 0.28),
+	"plateau": Color(0.76, 0.66, 0.40),
 	"forest": Color(0.30, 0.48, 0.23),
 	"bush": Color(0.48, 0.63, 0.31),
-	"mountain": Color(0.54, 0.50, 0.46),
+	"bedrock": Color(0.54, 0.50, 0.46),
 	"fence": Color(0.63, 0.55, 0.35),
 	"trap": Color(0.69, 0.42, 0.35),
-	"rampart": Color(0.60, 0.64, 0.69),
-	"cliff": Color(0.44, 0.48, 0.53),
-	"wall": Color(0.25, 0.25, 0.28),
+	"prop": Color(0.62, 0.54, 0.60),
+	"rubble": Color(0.58, 0.55, 0.48),
+	"rock": Color(0.44, 0.48, 0.53),
+	"building": Color(0.70, 0.52, 0.40),
 	"fort": Color(0.75, 0.47, 0.25),
+	"keepout": Color(0.35, 0.32, 0.36),
 }
 const TEAM_COLORS := {
 	"player": Color(0.25, 0.45, 0.85),

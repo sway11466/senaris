@@ -23,7 +23,7 @@
 
 - **配置は独立フォルダ `data/movement/`**。移動コストは「移動タイプ（ユニット属性）×地形（マップ属性）→コスト」の関係（行列）で、units にも terrain にも属さない独立概念のため。
 - 正本 `data/movement/movement.csv`（行=移動タイプ、列=地形コスト、2行ヘッダ）→ 生成 `data/movement/movement.json`（[[csv-data-pipeline]] と同じ仕組み）。
-- 地形名は `Terrain.NAMES`（`plain`/`plateau`…）と一致させる。
+- 地形名は `terrain_type.csv` の `id`（`plain`/`plateau`…）と一致させる。過不足は movement の convert が完全表チェックで検出する（列忘れが黙ってコスト1になる罠を防ぐ）。
 - 現状の移動タイプ（全コストは `movement.csv` が正本）:
   - **ground**（地上・基準）／**flight**（飛行・地形をほぼ無視）／**light_foot**（軽歩行・斥候＝岩地や城壁も越える）
   - **forest_walk**（森を低コスト＝エルフ）／**bush_walk**（茂みを低コスト＝ハーフリング）／**mountain_walk**（岩地を低コスト＝ドワーフ）／**fixed**（移動0＝バリスタ/バリケード）

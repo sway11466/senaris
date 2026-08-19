@@ -16,24 +16,28 @@ const SS := 4             ## 1ピクセルあたりのスーパーサンプル�
 func _initialize() -> void:
 	var dir := DirAccess.open("res://")
 	dir.make_dir_recursive("assets/terrain")
-	_generate("res://assets/terrain/plain.png", Color.html("#CCEBC7"))      # 平地: ペールグリーン
-	_generate("res://assets/terrain/road.png", Color.html("#D8C9A8"))       # 道: 砂利のタン
-	_generate("res://assets/terrain/plateau.png", Color.html("#EBDBB8"))    # 台地: ペールベージュ
-	_generate("res://assets/terrain/wasteland.png", Color.html("#AE9F76"))  # 荒地: くすんだ土・枯草色
-	_generate("res://assets/terrain/forest.png", Color.html("#8FBF8F"))     # 森: 深めの緑
-	_generate("res://assets/terrain/bush.png", Color.html("#B6D98C"))       # 茂み: 明るい黄緑
-	_generate("res://assets/terrain/fence.png", Color.html("#C8A86A"))      # 柵: 木のタン
-	_generate("res://assets/terrain/trap.png", Color.html("#D9A99A"))       # 罠: くすんだ赤（危険）
-	_generate("res://assets/terrain/mountain.png", Color.html("#B7A892"))   # 山: 岩のグレータン
-	_generate("res://assets/terrain/cliff.png", Color.html("#998E7E"))      # 崖: 暗い岩
-	_generate("res://assets/terrain/rampart.png", Color.html("#B6AFA8"))    # 城壁: 石のグレー
-	_generate("res://assets/terrain/wall.png", Color.html("#5F584F"))       # 壁: 暗いダンジョン石
-	_generate("res://assets/terrain/fort.png", Color.html("#C7B27A"))       # 砦: 拠点の石・金茶
+	_generate("res://assets/terrain/plain.png", Color.html("#CCEBC7"))        # 平地: ペールグリーン
+	_generate("res://assets/terrain/road.png", Color.html("#D8C9A8"))         # 道: 砂利のタン
+	_generate("res://assets/terrain/plateau.png", Color.html("#EBDBB8"))      # 台地: ペールベージュ
+	_generate("res://assets/terrain/wasteland.png", Color.html("#AE9F76"))    # 荒地: くすんだ土・枯草色
+	_generate("res://assets/terrain/forest.png", Color.html("#8FBF8F"))       # 森: 深めの緑
+	_generate("res://assets/terrain/bush.png", Color.html("#B6D98C"))         # 茂み: 明るい黄緑
+	_generate("res://assets/terrain/bedrock.png", Color.html("#B7A892"))      # 岩地: 岩のグレータン
+	_generate("res://assets/terrain/rampart.png", Color.html("#B6AFA8"))      # 城壁: 石のグレー
+	_generate("res://assets/terrain/river.png", Color.html("#9CC4D8"))        # 川: 淡い水色
+	_generate("res://assets/terrain/wall.png", Color.html("#5F584F"))         # 壁: 暗いダンジョン石
+	_generate("res://assets/terrain/plain_fence.png", Color.html("#C8A86A"))  # 柵: 木のタン
+	_generate("res://assets/terrain/plain_trap.png", Color.html("#D9A99A"))   # 罠: くすんだ赤（危険）
+	_generate("res://assets/terrain/plain_fort.png", Color.html("#C7B27A"))   # 拠点: 石・金茶
 	print("terrain tiles generated.")
 	quit()
 
 ## fill 色のヘックス型ベタ塗りPNGを path に出力（外側は透過）。
+## 既にPNGがあるスキンは触らない＝本番の絵をベタ塗りで上書きしない（飛ばしたことは出力で見せる）。
 func _generate(path: String, fill: Color) -> void:
+	if FileAccess.file_exists(path):
+		print("  skip (既にある): %s" % path)
+		return
 	var w := int(2.0 * R)             # 幅 = 頂点〜頂点
 	var h := int(ceil(SQRT3 * R))     # 高さ = 上下の平辺間
 	var cx := w / 2.0

@@ -31,7 +31,7 @@ var _terrains := []
 var _terr_pattern := "fill"  # fill(塗りつぶし)/horizontal/vertical/diagonal/island
 var _ta := "plain"           # 分割の A（塗りつぶしの単一地形もこれ）
 var _tb := "forest"          # 分割の B
-var _tc := "mountain"        # 分割の C
+var _tc := "bedrock"         # 分割の C
 
 var _toolbar: HBoxContainer
 var _ctrlbar: HBoxContainer
@@ -158,7 +158,7 @@ func _scan_terrains() -> void:
 	if not _terrains.is_empty():  # A/B/C の初期値（無ければ在るもので埋める）
 		_ta = _default_terr("plain", 0)
 		_tb = _default_terr("forest", 1)
-		_tc = _default_terr("mountain", 2)
+		_tc = _default_terr("bedrock", 2)
 
 ## 線地形の接続タイルの接尾辞（_c000000〜_c111111）か。同じ柵の向き違いなので一覧では1つに畳む。
 static func _is_connect_suffix(s: String) -> bool:

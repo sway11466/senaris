@@ -31,14 +31,16 @@ const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
 const EDGE_WIDTH := 2.0
 ## 地面（3D）は舞台に立つ側の地形スキンで組む。タイル画像が引けないスキンのための下地色＝どの地形かは
 ## 分かるが「絵が無い」ことも分かる。仕様 → doc/tech/combat_scene.md
-const TERRAIN_COLOR := {
-	"plain": Color(0.56, 0.71, 0.42), "forest": Color(0.30, 0.49, 0.28),
-	"mountain": Color(0.60, 0.55, 0.47), "plateau": Color(0.72, 0.65, 0.42),
-	"wasteland": Color(0.71, 0.55, 0.40), "road": Color(0.62, 0.56, 0.45),
-	"bush": Color(0.50, 0.60, 0.35), "fence": Color(0.55, 0.55, 0.58),
-	"trap": Color(0.45, 0.42, 0.40), "rampart": Color(0.54, 0.56, 0.60),
-	"cliff": Color(0.58, 0.54, 0.50), "wall": Color(0.52, 0.54, 0.58),
-	"fort": Color(0.54, 0.57, 0.62),
+const TERRAIN_COLOR := {  # terrain_type.csv の id と同順・全型
+	"road": Color(0.62, 0.56, 0.45), "plain": Color(0.56, 0.71, 0.42),
+	"wasteland": Color(0.71, 0.55, 0.40), "rampart": Color(0.54, 0.56, 0.60),
+	"river": Color(0.38, 0.50, 0.62), "wall": Color(0.52, 0.54, 0.58),
+	"plateau": Color(0.72, 0.65, 0.42), "forest": Color(0.30, 0.49, 0.28),
+	"bush": Color(0.50, 0.60, 0.35), "bedrock": Color(0.60, 0.55, 0.47),
+	"fence": Color(0.55, 0.55, 0.58), "trap": Color(0.45, 0.42, 0.40),
+	"prop": Color(0.56, 0.50, 0.54), "rubble": Color(0.52, 0.50, 0.45),
+	"rock": Color(0.58, 0.54, 0.50), "building": Color(0.60, 0.48, 0.40),
+	"fort": Color(0.54, 0.57, 0.62), "keepout": Color(0.32, 0.32, 0.35),
 }
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
 const LEAD_IN := 0.95     # 突入から最初の着弾までの「ため」（秒）
