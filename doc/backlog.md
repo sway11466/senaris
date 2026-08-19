@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=60 / refactoring=12
+次回採番: bug=3 / feature=61 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -336,11 +336,29 @@
 
 ### feature-59
 
-**橋の下を水が流れて見える表現**（優先度：低）
+**橋をオブジェクトにする（水平板の置き方・絵の描き直し）**（優先度：中）
 
-- 背景：川を水面に作り直して、盤の高さを無視した絶対の水位に置くようにした。橋（`road_bridge1`）は道スキンなので盤の高さに乗り、下地に敷く水も橋と同じ高さで描かれる。橋のマスの水だけが周りの水より高く、境に段差が残る。橋の側面画像も無いので、そこは既定の粒ノイズになる。
-- 対応：橋の下の水を周りと同じ水位で描く手を決める。橋スキンにも高さ無視を持たせて水位に合わせる／橋のマスは下地を敷かず橋桁の絵で持たせる／橋を足場ではなくオブジェクトとして立てる、あたりが候補。橋の絵（石畳の借用）を作り直すかどうかもここで決まる。
-- 該当：`data/terrain/terrain_skin.csv`（`road_bridge1`）・`presentation/board/board_terrain_renderer.gd`・`doc/art/terrain.md` §3.7。着手の引き金＝橋を敷いたステージ（冒険譚3 st1・st2）の見た目を詰める回。
+- 背景：川を水面（盤高無視・絶対 -0.18）に作り直した結果、道スキンの橋（`road_bridge1`）が成立しなくなった。橋のマスの水だけ橋と同じ高さで描かれて周りの水と段差が出るうえ、橋マスと水マスの境に粒ノイズのスカートが下りて堰堤に見える。石畳の借用絵では欄干も描けない。
+- 対応：橋を足場からオブジェクトに変える。「オブジェクトのマスの足場は見た目専用」の既存規則に乗り、板は岸と同じ高さに浮き、下の水は絶対水位で隣とつながる。
+  - 地形タイプ `bridge` を新設（object層・性能と移動は道相当・識別文字 `=`）。スキンは `map_ground=river`。
+  - オブジェクトの置き方を3種にする：カメラ正対の板（既定）／辺に沿って立てた板（柵）／水平の板（橋・新設）。terrain_skin.csv に置き方の列を立て、柵の例外扱いもそこへ吸収する。
+  - 絵は石造りで描き直し（オーナー担当）。床板テクスチャ1枚＋欄干の帯1枚から、スクリプト合成で幅4役（単幅＝両欄干／左端／右端／中央＝床のみ）×3軸（`_v` `_r` `_l`）の12スキンを作る。地形の絵は光源方向を焼き込まない規則なので欄干の反転は可。
+  - 戦闘は地面＝床板（`combat_ground` 空＝自分。水平板はタイルの絵を持つので敷ける）、手前＝欄干の帯（`_combat_front`）。奥は置かない。
+  - 旧 `road_bridge1` を削除し、`road` / `road_stone1` の `connect_to` からも消す。tutorial3 st1/st2 の橋マスを `=` に書き換える。
+  - doc 更新は実装コミットに含める：`doc/gdd/terrain.md`（置き方3種・橋）・`doc/art/terrain.md` §3.7。
+- 該当：`data/terrain/terrain_type.csv`・`terrain_skin.csv`・`data/movement/movement.csv`・`presentation/board/board_terrain_renderer.gd`・`data/stages/tutorial3-dragon-hunt/`・`tools/`（合成スクリプト）。
+
+### feature-60
+
+**戦闘の地面を左右それぞれの地形にする（combat_layout 廃止・重ね絵スロット化）**（優先度：中）
+
+- 背景：戦闘の地面は守り手の地形だけで組むため、川の上の飛行ユニットを平地の弓兵が撃つと弓兵まで水の上に立つ（攻守が逆なら飛行が平地に浮く）。また `line` は盤用のマップタイルを近景に立てており「戦闘は近景で要る絵が違うから盤の絵は使わない」という戦闘シーン自身の原則と矛盾。`center` は重ね絵（`_combat_back` / `_combat_front`）実装前の暫定が列に残った形。
+- 対応：地形は駒の足元に出す、を原則にする。
+  - 地面を左右半分に分け、それぞれの駒のマスのスキンで敷く。タイルの絵を持たないスキンは `combat_ground` で敷く（列は存続・空＝自分）。継ぎ目は中央。
+  - `combat_layout` 列を削除（CSV・convert.gd・terrain_skin.gd・combat_ground_3d.gd）。
+  - 重ね絵を3スロットに揃える：`_combat_back`（守り手側の奥）／`_combat_line`（中央の継ぎ目・守り手のスキンから引く・新設）／`_combat_front`（手前全幅）。いずれも絵を置けば出る。柵や城壁を壁越しの絵にするかは `_combat_line` の絵の有無で決まる＝コードでもCSVでも決めない。
+  - doc 更新は実装コミットに含める：`doc/tech/combat_scene.md`・`doc/art/terrain.md` §1。
+- 該当：`presentation/combat/combat_ground_3d.gd`・`combat_stage.gd`・`combat_scene.gd`・`data/terrain/terrain_skin.csv`・`data/terrain/convert.gd`・`data/terrain/terrain_skin.gd`。
 
 ## リファクタリング
 
