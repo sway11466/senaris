@@ -343,7 +343,7 @@
 			"terrain_type": "trap"
 		},
 		{
-			"combat_ground": "plain",
+			"combat_ground": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
@@ -361,7 +361,7 @@
 			"terrain_type": "rampart"
 		},
 		{
-			"combat_ground": "bedrock",
+			"combat_ground": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
@@ -379,7 +379,7 @@
 			"terrain_type": "rampart"
 		},
 		{
-			"combat_ground": "bedrock",
+			"combat_ground": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
@@ -415,7 +415,7 @@
 			"terrain_type": "rubble"
 		},
 		{
-			"combat_ground": "plain",
+			"combat_ground": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,

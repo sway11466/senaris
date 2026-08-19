@@ -19,11 +19,11 @@ bedrock,bedrock,岩地,full,false,,0.36,0.36,false,,,true,,,,上面は割れた�
 plain_fence,fence,柵,none,line,,0,0,false,0.23,,true,plain,,plain,隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,0.23,,true,plain_grave1,plain_fence,plain_grave1,柵の絵（map_overlay）を借り、墓地の草地の上に立てる
 plain_trap,trap,罠,none,false,,0,0,false,0.15,0.2,true,plain,,plain,
-rampart,rampart,城壁,full,false,,0.54,0.54,false,,,true,,,plain,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
-rampart_ridge1,rampart,尾根,full,false,,0.54,0.54,false,,,true,,,bedrock,山の背。上面は上向きに砕けた岩＝足場が無い・側面画像で縦に割れた岩壁を見せる。飛行と斥候だけが越え、視線を完全に遮る
-rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0.54,false,,,true,,,bedrock,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
+rampart,rampart,城壁,full,false,,0.54,0.54,false,,,true,,,,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
+rampart_ridge1,rampart,尾根,full,false,,0.54,0.54,false,,,true,,,,山の背。上面は上向きに砕けた岩＝足場が無い・側面画像で縦に割れた岩壁を見せる。飛行と斥候だけが越え、視線を完全に遮る
+rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0.54,false,,,true,,,,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
 plain_grave1_rubble1,rubble,瓦礫の山,none,false,,0,0,false,0.51,0.2,true,plain_grave1,,plain_grave1,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
-river,river,川,full,false,,-0.18,0,true,,,true,,,plain,水面。盤の高さを無視して絶対 -0.18 に置く＝傾斜盤でも水平を保つ。floor 0 で駒は水面の上を飛ぶ。段差の側面は滝（river_side.png）＝マスごとの高さ上書きで水位を段にすると滝になる
+river,river,川,full,false,,-0.18,0,true,,,true,,,,水面。盤の高さを無視して絶対 -0.18 に置く＝傾斜盤でも水平を保つ。floor 0 で駒は水面の上を飛ぶ。段差の側面は滝（river_side.png）＝マスごとの高さ上書きで水位を段にすると滝になる
 road_stone1,road,石畳,none,area,road road_bridge1,0,0,false,,,true,plain,,plain,石畳の道。地面は焼き込まず map_ground で敷く＝同じ絵を橋にも使う
 road_bridge1,road,橋,none,area,road road_stone1,0,0,false,,,true,river,road_stone1,plain,石畳の絵（map_overlay）を借り、川の上に架ける。川側が river に橋を書くので水は下をくぐる
 wall,wall,壁,none,false,,0.72,0.72,false,,,false,,,,上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
