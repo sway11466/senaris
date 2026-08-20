@@ -283,8 +283,9 @@ func _charge_action(state: BattleState, u: Unit) -> AiAction:
 		return AiAction.attack(u.id, _safest_id(state, u, in_range))
 	return _advance_to_nearest_enemy(state, u)
 
-## raid（拠点攻略）の行動ルール。1〜3 は突撃と同じで、7〜9 の行き先が敵ではなく拠点。
-## 4/5 降ろす（輸送ユニットだけに当たる）／6 乗る（乗る側だけに当たる）。
+## raid（拠点攻略）の行動ルール。1/2 は突撃と同じで、8〜10 の行き先が敵ではなく拠点。
+## 3 撃てる位置へずれる／4 経路上の敵を殴る／5/6 降ろす（輸送ユニットだけに当たる）／
+## 7 乗る（乗る側だけに当たる）。
 ## 拠点への距離は拠点hexそのものまで測る（拠点は攻撃の標的ではない）。
 ## 向かう拠点が盤上に無ければ待機する＝敵を追わない。
 func _raid_action(state: BattleState, u: Unit) -> AiAction:
@@ -294,17 +295,22 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	row = _skill_row(state, u, PICK_NEAR)
 	if row != null:
 		return row
+	# 3 撃てる位置へずれる（隣接されて撃てない射程2以上の駒を、撃てるマスへ置く行）
+	row = _shift_to_shoot_row(state, u)
+	if row != null:
+		return row
+	# 4 経路上の敵を殴る
 	var blocker := _blocking_enemy_id(state, u, _attack_targets(state, u))
 	if blocker >= 0:
 		return AiAction.attack(u.id, blocker)
-	# 4/5 降ろす（乗員を持つ駒＝輸送ユニットにしか当たらない）
+	# 5/6 降ろす（乗員を持つ駒＝輸送ユニットにしか当たらない）
 	row = _unload_now_row(state, u)
 	if row != null:
 		return row
 	row = _unload_move_row(state, u)
 	if row != null:
 		return row
-	# 6 乗る（同じ部隊の輸送ユニットへ。便乗のほうが早いときだけ）
+	# 7 乗る（同じ部隊の輸送ユニットへ。便乗のほうが早いときだけ）
 	row = _board_row(state, u)
 	if row != null:
 		return row
@@ -313,7 +319,7 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	var goals := _hostile_base_hexes(state, u)
 	if goals.is_empty():
 		return null
-	# 4 移動距離／5 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
+	# 8 移動距離／9 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
 	var move_field := state.move_cost_field(u.id, u.pos)
 	var goal := _nearest_hex_in(move_field, goals)
 	if goal != NO_HEX:
@@ -322,7 +328,7 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	goal = _nearest_hex_in(terrain_field, goals)
 	if goal != NO_HEX:
 		return _advance(state, u, state.terrain_cost_field(u.id, goal), [goal])
-	# 6 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
+	# 10 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
 	return _advance_straight(state, u, _nearest_hex_by_board(u.pos, goals))
 
 ## weak（弱者狙い）の行動ルール。前衛を避けて柔らかい敵へ回り込む。
@@ -382,15 +388,18 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 ## swarm（群れ）の行動ルール。傷ついた敵へ集まり、無傷の敵には頭数が揃ってから手を出す。
 ## 1 間接攻撃できる駒で、移動範囲のどこかから手負いを撃てる → 手負いへ最大間合い
 ## 2 攻撃射程内に手負い → 手負いを攻撃（ここだけ包囲を条件にしない＝単独でも噛みつく）
-## 3 攻撃射程内に stack 条件を満たさない包囲可能な敵 → 損耗が最大の敵を攻撃
-## 4 スキル射程内に stack 条件を満たす包囲可能な対象 → 損耗が最大の対象にスキル
-## 5 攻撃射程内に包囲可能な敵 → 損耗が最大の敵を攻撃
-## 6/7 sight 範囲内の手負いへ 最大前進 → 見込前進
-## 8/9 移動距離／地形距離が最小の敵へ 最大前進 → 見込前進
-## 10 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+## 3 間接攻撃できる駒で、移動範囲のどこかから自分を除いても包囲可能な敵を撃てる
+##   → 損耗が最大のその敵へ最大間合い
+## 4 攻撃射程内に stack 条件を満たさない包囲可能な敵 → 損耗が最大の敵を攻撃
+## 5 スキル射程内に stack 条件を満たす包囲可能な対象 → 損耗が最大の対象にスキル
+## 6 攻撃射程内に包囲可能な敵 → 損耗が最大の敵を攻撃
+## 7/8 sight 範囲内の手負いへ 最大前進 → 見込前進
+## 9/10 移動距離／地形距離が最小の敵へ 最大前進 → 見込前進
+## 11 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
 ##
-## 1 で下がった駒は包囲の頭数から外れる（隣接しなくなる）。包囲は間接にも効くので、囲むのは
-## 近接の駒に任せ、間接の駒は外から撃つという住み分けになる。
+## 1・3 で下がった駒は包囲の頭数から外れる（隣接しなくなる）。包囲は間接にも効くので、囲むのは
+## 近接の駒に任せ、間接の駒は外から撃つという住み分けになる。3 が「自分を除いても包囲可能」を
+## 見るのはそのため＝数えたまま下がると、動いた先で包囲が崩れて 4・6 が不成立になる。
 ##
 ## 拠点は取らない（占領の行を持たない）。占領兵を混ぜても拠点へは向かわない。
 func _swarm_action(state: BattleState, u: Unit) -> AiAction:
@@ -403,6 +412,12 @@ func _swarm_action(state: BattleState, u: Unit) -> AiAction:
 	var in_range := _attack_targets(state, u)
 	if wounded != null and wounded.id in in_range:
 		return AiAction.attack(u.id, wounded.id)
+	# 3 自分を除いても包囲可能な敵へ最大間合い
+	var pinned := _surroundable_standoff_target(state, u)
+	if pinned != null:
+		var back := _standoff_row(state, u, pinned)
+		if back != null:
+			return back
 	var kind := _skill_kind_of(state, u)
 	var surroundable: Array[int] = []
 	var stacked: Array[int] = []  # stack 条件を満たさない＝もう重ねる価値がない相手
@@ -422,7 +437,7 @@ func _swarm_action(state: BattleState, u: Unit) -> AiAction:
 		return AiAction.attack(u.id, _most_damaged_id(state, u, surroundable))
 	if not _can_advance(state, u):
 		return null
-	# 6/7 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
+	# 7/8 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
 	if wounded != null and _in_sight(state, u, wounded):
 		var cells := state.attack_cells(u.id, wounded.id)
 		if state.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
@@ -515,6 +530,26 @@ func _standoff_row(state: BattleState, u: Unit, target: Unit = null) -> AiAction
 			best_d = d
 	return AiAction.move_to(u.id, best) if best != u.pos else null
 
+## swarm #3 の標的＝移動範囲のどこかから撃てて、自分を除いても包囲可能な敵のうち損耗が最大の
+## もの（doc/gdd/ai.md swarm #3）。同値は盤上距離 → col → row。
+##
+## 自分を除いて数えるのは、下がった先では隣接しなくなって包囲の頭数から外れるため。数えたまま
+## 下がると、動いた先で包囲が崩れて攻撃の行が不成立になり、撃たないまま前進の行へ落ちる。
+func _surroundable_standoff_target(state: BattleState, u: Unit) -> Unit:
+	if u.attack_range < 2 or _is_transport(u) or not _can_advance(state, u):
+		return null
+	var reach := state.reachable(u.id)
+	var ids: Array[int] = []
+	for e in _attackable_enemies(state, u):
+		if not _surround_able(state, u, e, true):
+			continue
+		if _standing_attack_cells(state, u, e, reach).is_empty():
+			continue  # 今ターン撃てる位置が無い敵は標的にしない（前進の行に任せる）
+		ids.append(e.id)
+	if ids.is_empty():
+		return null
+	return state.unit_by_id(_most_damaged_id(state, u, ids))
+
 ## target を攻撃できるマスのうち、今ターン実際に立てるもの。
 ## 駒の居るマス＝乗れる味方輸送は除く（前進と同じ理由＝踏むと乗るつもりのない乗車になる）。
 ## 自分が今いるマスは「動かない」という選択肢なので残す。
@@ -531,28 +566,95 @@ func _standing_attack_cells(state: BattleState, u: Unit, target: Unit,
 
 # --- 経路上の敵（doc/gdd/ai.md 経路上の敵） ---
 
-## 射程内の敵のうち、拠点への道を塞いでいる1体（居なければ -1）。
-## 塞いでいるかは、射程内の敵をまとめてどけたと仮定して道が良くなるかで見る。
+## raid の「撃てる位置へずれる行」＝経路上の敵を撃てるマスのうち、拠点へ最も近いマスへ動く
+## （doc/gdd/ai.md raid #3）。最大間合いにしないのは、下がると拠点から遠ざかって目の前の敵を
+## 素通りする圧が鈍るため。撃つのはこの行ではなく、移動後にもう一度表を上から当てた #4。
+##
+## 経路上の敵を選ぶときの「撃てる敵」は移動範囲のどこかから撃てる敵＝隣接されて撃てない
+## 射程2以上の駒でも、道を塞いでいる相手を見つけられる。
+##
+## 攻撃済みの駒は動かさない。ヒット&アウェイ持ち（move_after_attack）はもう撃てないので、
+## 撃てる位置を探すより前進の行に任せたほうが拠点へ寄る。
+func _shift_to_shoot_row(state: BattleState, u: Unit) -> AiAction:
+	if u.attack_range < 2 or _is_transport(u) or state.has_attacked(u.id) \
+			or not _can_advance(state, u):
+		return null
+	var goals := _hostile_base_hexes(state, u)
+	if goals.is_empty():
+		return null
+	var reach := state.reachable(u.id)
+	var shootable: Array[int] = []
+	var cells_of := {}
+	for e in _attackable_enemies(state, u):
+		var spots := _standing_attack_cells(state, u, e, reach)
+		if spots.is_empty():
+			continue
+		shootable.append(e.id)
+		cells_of[e.id] = spots
+	var blocker := _blocking_enemy_id(state, u, shootable)
+	if blocker < 0:
+		return null
+	var cells: Array[Vector2i] = cells_of[blocker]
+	var best := _nearest_cell_to_goals(state, u, cells, goals)
+	return AiAction.move_to(u.id, best) if best != NO_HEX and best != u.pos else null
+
+## cells のうち拠点へ最も近いマス（1つも測れなければ NO_HEX）。測る順は前進と同じ＝
+## 移動距離 → 地形距離 → 盤上距離。
+func _nearest_cell_to_goals(state: BattleState, u: Unit, cells: Array[Vector2i],
+		goals: Array[Vector2i]) -> Vector2i:
+	var goal := _nearest_hex_in(state.move_cost_field(u.id, u.pos), goals)
+	if goal != NO_HEX:
+		return _nearest_cell_in_field(u, cells, state.move_cost_field(u.id, goal))
+	goal = _nearest_hex_in(state.terrain_cost_field(u.id, u.pos), goals)
+	if goal != NO_HEX:
+		return _nearest_cell_in_field(u, cells, state.terrain_cost_field(u.id, goal))
+	goal = _nearest_hex_by_board(u.pos, goals)
+	var board := {}
+	for h in cells:
+		board[h] = Hex.distance(h, goal)
+	return _nearest_cell_in_field(u, cells, board)
+
+## 表 field で測って距離が最小のマス。同値は現在地を優先し、次に col → row の若い方
+## （最大間合いと同じ決め方＝動かずに済むならその手を選ぶ）。
+func _nearest_cell_in_field(u: Unit, cells: Array[Vector2i], field: Dictionary) -> Vector2i:
+	var best := NO_HEX
+	var best_c := BattleState.UNREACHABLE
+	for h in cells:
+		var c := int(field.get(h, BattleState.UNREACHABLE))
+		if c >= BattleState.UNREACHABLE:
+			continue
+		var better := best == NO_HEX or c < best_c
+		if not better and c == best_c and best != u.pos:
+			better = h == u.pos or _is_younger_hex(h, best)
+		if better:
+			best = h
+			best_c = c
+	return best
+
+## 渡した「撃てる敵」のうち、拠点への道を塞いでいる1体（居なければ -1）。どこまでを撃てる敵と
+## 数えるかは呼ぶ行が決める＝殴る行はいまの位置から撃てる敵、動く行は移動範囲のどこかから
+## 撃てる敵（doc/gdd/ai.md 経路上の敵）。
+## 塞いでいるかは、渡した敵をまとめてどけたと仮定して道が良くなるかで見る。
 ## 1体ずつ試さないのは、通路を2体で塞がれるとどちらを外しても道が開かないため。
 ##
 ## 良くなるのは2つ。移動距離が縮む（体で塞いでいる）か、迂回距離が測れないところから
 ## 測れるようになる（ZOCで足を止めている）か。迂回距離を縮んだかで見ないのは、隣に立って
 ## いるだけの敵でも、どければ避けるZOCが減って必ず短くなるため（それでは横の敵にもつられる）。
-func _blocking_enemy_id(state: BattleState, u: Unit, in_range: Array[int]) -> int:
-	if in_range.is_empty():
+func _blocking_enemy_id(state: BattleState, u: Unit, shootable: Array[int]) -> int:
+	if shootable.is_empty():
 		return -1
 	var goals := _hostile_base_hexes(state, u)
 	if goals.is_empty():
 		return -1
 	var ignore := {}
-	for id in in_range:
+	for id in shootable:
 		ignore[id] = true
 	if not _route_improves(state, u, goals, ignore):
 		return -1
 	# 一番前で塞いでいる駒＝拠点への地形距離が最小のもの。同値は盤上距離 → col → row。
 	var best := -1
 	var best_c := BattleState.UNREACHABLE
-	for id in in_range:
+	for id in shootable:
 		var e := state.unit_by_id(id)
 		var c := BattleState.UNREACHABLE
 		for g in goals:
@@ -1076,7 +1178,8 @@ func _skill_target_better(state: BattleState, u: Unit, c: Unit, best: Unit, pick
 ## target を包囲できるか＝いま隣接している自陣営の駒と、まだ行動しておらず今ターン target の隣へ
 ## 寄れる味方を合わせて包囲成立数（Surround.GATE）に届くか。行動ユニット自身も数に入る。
 ## すでに包囲されている相手は隣接数が成立数に達しているので、必ず包囲可能でもある。
-func _surround_able(state: BattleState, u: Unit, target: Unit) -> bool:
+## exclude_self＝行動ユニット自身を数えない（下がる行が使う。動いた先では隣接しないため）。
+func _surround_able(state: BattleState, u: Unit, target: Unit, exclude_self := false) -> bool:
 	if target == null or target.team == u.team:
 		return false
 	var ring := Hex.neighbors(target.pos)
@@ -1084,6 +1187,8 @@ func _surround_able(state: BattleState, u: Unit, target: Unit) -> bool:
 	for other in state.units():
 		if other.team != u.team:
 			continue
+		if exclude_self and other.id == u.id:
+			continue  # 下がる行が呼ぶ＝動いた先では隣接しない自分を頭数に入れない
 		if Hex.distance(other.pos, target.pos) == 1:
 			count += 1
 			continue
