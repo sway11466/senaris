@@ -67,13 +67,12 @@ const FIG_H := 0.41   # 立ち絵の高さ（窓内寸の高さに対する比�
                       # tools/gen_unit_combat.ps1 の $Canvas と対で、片方を変えたら同じ倍率でもう片方も直す
                       # （512→704 に広げたぶん 0.30→0.41）。実機で詰める値。
 const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サイズを揃える。旧前列サイズ相当）
-# 地形の重ね絵（奥＝守り手側に建つ塊）。いずれも窓内寸に対する比。
-## 描くのは絵の実体ではなくキャンバス全体で、オブジェクトごとの大小はその中の余白が持つ
-## （立ち絵と同じ仕組み → doc/art/terrain.md）。FIG_H と同値にしてあるので、駒と同じ作法で
-## 描いたキャンバスなら、倍率1.0のオブジェクトは倍率1.0の駒と同じ背丈で出る。
-const FEATURE_H := FIG_H
+# 地形の重ね絵（奥＝守り手側の背景）。いずれも窓内寸に対する比。
+## 守り手側の半面いっぱいに渡る帯として置く（大きさを絵の中の余白で持たせない）。塊を1個
+## 浮かべると、絵の端がどこにも接がらず宙に浮く＝背景として成立しないため。外側の端は窓の外へ
+## 抜け、内側の端だけが画の中で終わる＝絵はその向きに描いて、反対の陣営では左右反転して使う。
+const FEATURE_W := 0.5        # 帯の幅。守り手側の半面
 const FEATURE_BOTTOM := 0.44  # 下端。隊列の頭（約0.24）に少し被る＝奥に建っていると読める
-const FEATURE_CX := 0.24      # 中心x（左側の値。右側は 1-この値）＝その陣営の隊列の真上
 # 兵量バー（窓内寸に対する比）。両陣営に常時出す＝隊列が減る駒もバーだけの駒も損害の読み方を揃える。
 const BAR_W := 0.30
 const BAR_H := 0.028
@@ -275,12 +274,19 @@ func _start_open_anim() -> void:
 func _add_features(skin: TerrainSkin, side: String) -> void:
 	var back := _feature_texture(skin, "back")
 	if back != null:
-		# 隊列より奥に建つものとして、隊列の頭が少し被る高さに置く（前後関係が出る）。
+		# 守り手側の半面に渡す帯。幅で合わせ、高さは絵の縦横比が決める（横幅が決まっている以上、
+		# 縦を別に指定すると絵が歪む）。隊列の頭が下辺に少し被る高さに置く＝前後関係が出る。
 		var vp := _size()
-		var h := vp.y * FEATURE_H
-		var w := h * (float(back.get_width()) / float(maxi(back.get_height(), 1)))
-		var cx := vp.x * (FEATURE_CX if side == "L" else 1.0 - FEATURE_CX)
-		_feature.add_child(_feature_rect(back, Vector2(cx - w * 0.5, vp.y * FEATURE_BOTTOM - h), Vector2(w, h)))
+		var bottom := vp.y * FEATURE_BOTTOM
+		var w := vp.x * FEATURE_W
+		var h := w * (float(back.get_height()) / float(maxi(back.get_width(), 1)))
+		if h > bottom:   # 上が窓から出る絵は、出ない大きさまで縮める（屋根を切らない）
+			w *= bottom / h
+			h = bottom
+		var x := 0.0 if side == "L" else vp.x - w
+		var rect := _feature_rect(back, Vector2(x, bottom - h), Vector2(w, h))
+		rect.flip_h = side == "R"  # 絵は左陣営向きに描く＝外側（窓の端）へ抜ける側を左に
+		_feature.add_child(rect)
 	var line := _feature_texture(skin, "line")
 	if line != null:
 		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
