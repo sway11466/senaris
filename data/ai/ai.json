@@ -2,39 +2,45 @@
 	"presets": {
 		"ambush": {
 			"name": "待ち伏せ",
+			"retreat": "-",
 			"sight": 3,
-			"stack": "-",
-			"retreat": "-"
+			"stack": "-"
 		},
 		"charge": {
 			"name": "突撃",
+			"retreat": "-",
 			"sight": "-",
-			"stack": "-",
-			"retreat": "-"
+			"stack": "-"
 		},
 		"flee": {
 			"name": "逃走",
+			"retreat": 50,
 			"sight": "-",
-			"stack": "-",
-			"retreat": 50
+			"stack": "-"
+		},
+		"preempt": {
+			"name": "先制",
+			"retreat": "-",
+			"sight": "-",
+			"stack": "-"
 		},
 		"raid": {
 			"name": "拠点攻略",
+			"retreat": "-",
 			"sight": "-",
-			"stack": "-",
-			"retreat": "-"
+			"stack": "-"
 		},
 		"swarm": {
 			"name": "群れ",
+			"retreat": "-",
 			"sight": "*",
-			"stack": 1,
-			"retreat": "-"
+			"stack": 1
 		},
 		"weak": {
 			"name": "弱者狙い",
+			"retreat": "-",
 			"sight": "*",
-			"stack": "-",
-			"retreat": "-"
+			"stack": "-"
 		}
 	}
 }
