@@ -1,0 +1,45 @@
+{
+  "turn_limit": 99,
+  "name": "debug-height",
+  "cols": 28,
+  "rows": 12,
+  "margin": 0,
+  "height": { "row": [8, 0, 0, 0, 0, 0, 0, 0.5, 0.5, 0, 0, 8], "col": [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.25, 0.2, 0.15, 0.1, 0.05, 0, 0, 0, 0.5, 1, 1.5, 2, 2, 1.5, 1, 0.5, 0, 0, 0, 0, 8] },
+  "terrain": [
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "............................"
+  ],
+  "terrain_skins": [
+    { "col": 27, "row": 0, "skin": "plain", "elevation": 8, "floor": 8 },
+    { "col": 26, "row": 10, "skin": "plain", "elevation": 8, "floor": 8 },
+    { "col": 27, "row": 11, "skin": "plain", "elevation": 8, "floor": 8 }
+  ],
+  "player": [
+    { "type": "thief", "col": 0, "row": 2 },
+    { "type": "thief", "col": 0, "row": 3 },
+    { "type": "thief", "col": 0, "row": 4 },
+    { "type": "thief", "col": 0, "row": 5 },
+    { "type": "thief", "col": 0, "row": 6 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "案山子（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "type": "novice", "skin": "goblin", "col": 2, "row": 4 },
+        { "type": "novice", "skin": "goblin", "col": 5, "row": 4 },
+        { "type": "novice", "skin": "goblin", "col": 9, "row": 4 },
+        { "type": "novice", "skin": "goblin", "col": 10, "row": 4 },
+        { "type": "novice", "skin": "goblin", "col": 12, "row": 4 },
+        { "type": "novice", "skin": "goblin", "col": 13, "row": 4 }
+      ] }
+  ]
+}

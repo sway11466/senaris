@@ -4,6 +4,7 @@
   "debug": true,
   "stages": [
     { "id": "units", "file": "units.json", "title": "ユニット一覧（全スキン）" },
-    { "id": "terrain", "file": "terrain.json", "title": "地形見本（基本地形・7ヘクスずつ）" }
+    { "id": "terrain", "file": "terrain.json", "title": "地形見本（基本地形・7ヘクスずつ）" },
+    { "id": "height", "file": "height.json", "title": "高さ見本（徐々に上がる傾斜・崖）" }
   ]
 }
