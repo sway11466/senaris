@@ -7,7 +7,7 @@ class_name BgmPlayer
 ## ループは Godot のインポート設定（.import の loop）で持つ＝ここでは扱わない。
 
 const BUS := "Music"       ## 効果音と別に絞れるようにする（default_bus_layout.tres）
-const FADE_OUT_SEC := 1.0  ## 旧曲を落とす時間。新曲はフェードインしない＝頭のアタックを殺さない
+const FADE_OUT_SEC := 0.35 ## 旧曲を落とす時間。短く取る＝新旧の旋律がフル音量で重ならない
 const DUCK_SEC := 0.3      ## スティンガー時に現曲を素早く下げる時間（ファンファーレの頭に被せない）
 const FOLLOW_FADE_SEC := 2.0  ## スティンガーの後に続く曲だけはフェードインする（下記 _follow_stinger）
 const SILENCE_DB := -60.0  ## 実質無音。0.0 が通常音量
