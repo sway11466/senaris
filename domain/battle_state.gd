@@ -230,14 +230,18 @@ func unit_at(hex: Vector2i) -> Unit:
 			return u
 	return null
 
-# --- イベント（時限発生）。詳細 → doc/gdd/map.md イベント ---
+# --- イベント（途中で起きること）。詳細 → doc/gdd/map.md イベント ---
 #
-# 増援＝開始時に盤に存在しない駒が、指定のターンに加わること。拠点の控えを出す出撃や、
+# 引き金は turn（Nターン目）か on（盤の出来事＝いまは "capture" ＝拠点の占領）のどちらか。
+# 増援＝開始時に盤に存在しない駒が加わること。拠点の控えを出す出撃や、
 # 盤に居る敵部隊が動き出す起動（engage）とは別物で、これだけを「増援」と呼ぶ。
-# 駒は StageLoader が読み込み時に組んで（catalog 解決込み）ここへ預け、発生ターンに盤へ出す。
+# 駒は StageLoader が読み込み時に組んで（catalog 解決込み）ここへ預け、発生時に盤へ出す。
 
 ## 未発生のイベント。発生したものは取り除く＝残っているものが未発生。
-## 各要素 = { turn, team, label, dialogue, focus, squad, units: [ { unit: Unit, passengers: Array[Unit] } ] }
+## 各要素 = { turn, on, hex, team, label, once, dialogue, focus, squad,
+##            units: [ { unit: Unit, passengers: Array[Unit] } ] }
+## on が空＝turn 起点。"capture"＝hex の拠点を team が取った瞬間（turn は見ない）。
+## once＝排他の名前。同じ名前を持つイベントはどれか1つだけ起きる。
 ## 発生時に placed（実際に駒が出た hex の配列）が足される。
 var _events: Array = []
 
@@ -260,6 +264,8 @@ func next_event() -> Dictionary:
 	var out := {}
 	var best := -1
 	for e in _events:
+		if String(e.get("on", "")) != "":
+			continue  # 盤の出来事が引き金＝あと何ターンかを数えられない
 		var label := String(e.get("label", ""))
 		if label.is_empty():
 			continue
@@ -271,19 +277,57 @@ func next_event() -> Dictionary:
 
 ## 発生ターンが来たイベントを起こす。起きたものの配列を返す（演出・ログ用）。
 ## end_turn の最後と、ステージ開始直後（1ターン目の分）に呼ぶ。指定ターンを過ぎていても
-## 取りこぼさないよう「turn 以下」で見る。
+## 取りこぼさないよう「turn 以下」で見る。引き金が盤の出来事のイベントはここでは起きない。
 func fire_due_events() -> Array:
 	var fired: Array = []
-	var kept: Array = []
-	for e in _events:
+	for e in _events.duplicate():  # 発生ぶんを取り除きながら回すので控えを辿る
+		if not _is_pending(e):
+			continue  # 同じ once の兄弟が先に起きて捨てられた
+		if String(e.get("on", "")) != "":
+			continue
 		if int(e.get("turn", 0)) <= turn_number and int(e.get("team", -1)) == current_team:
-			_place_event_units(e)
+			_consume_event(e)
 			fired.append(e)
-		else:
-			kept.append(e)
-	_events = kept
 	last_fired_events = fired
 	return fired
+
+## hex の拠点の所属が team へ変わったときに起こすイベント（on: "capture"）。起きたものを返す。
+## 占領そのものは _try_capture が静かに書き換えるだけなので、前後の所属を見比べている
+## 呼び出し側（MatchController）から呼ぶ。last_fired_events は触らない＝そちらは end_turn 用。
+func fire_capture_events(hex: Vector2i, team: int) -> Array:
+	var fired: Array = []
+	for e in _events.duplicate():
+		if not _is_pending(e):
+			continue  # 同じ once の兄弟が先に起きて捨てられた
+		if String(e.get("on", "")) != "capture":
+			continue
+		if Vector2i(e.get("hex", Vector2i.MAX)) != hex or int(e.get("team", -1)) != team:
+			continue
+		_consume_event(e)
+		fired.append(e)
+	return fired
+
+## まだ未発生か（控えに残っているか）。同じ辞書そのものを探す＝中身の一致では見ない。
+func _is_pending(e: Dictionary) -> bool:
+	for other in _events:
+		if is_same(other, e):
+			return true
+	return false
+
+## イベントを1件起こす＝駒を盤へ出し、未発生の控えから取り除く。
+## once に名前があれば、同じ名前の未発生イベントもまとめて捨てる＝どれか1つだけが起きる
+## （中立拠点を味方が解放したときと敵に取られたときで、先に起きたほうだけを流す）。
+func _consume_event(e: Dictionary) -> void:
+	_place_event_units(e)
+	var once := String(e.get("once", ""))
+	var kept: Array = []
+	for other in _events:
+		if is_same(other, e):
+			continue
+		if not once.is_empty() and String(other.get("once", "")) == once:
+			continue
+		kept.append(other)
+	_events = kept
 
 ## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
 ## 実際に出た hex は placed に控える＝ずれて出ても、上（カメラ・演出）が本当の場所を見られる。
@@ -1499,6 +1543,8 @@ static func _event_from_dict(ed: Dictionary, catalog: Dictionary) -> Dictionary:
 		})
 	return {
 		"turn": int(ed.get("turn", 0)), "team": int(ed.get("team", -1)),
+		"on": String(ed.get("on", "")), "once": String(ed.get("once", "")),
+		"hex": Vector2i(int(ed.get("hex_q", 0)), int(ed.get("hex_r", 0))),
 		"label": String(ed.get("label", "")), "squad": int(ed.get("squad", -1)),
 		"dialogue": String(ed.get("dialogue", "")), "focus": bool(ed.get("focus", false)),
 		"units": units,
@@ -1517,8 +1563,11 @@ func _events_to_dicts() -> Array:
 			for p in item.get("passengers", []):
 				ps.append((p as Unit).to_full_dict())
 			units_out.append({ "unit": u.to_full_dict(), "passengers": ps })
+		var hex := Vector2i(e.get("hex", Vector2i.ZERO))
 		out.append({
 			"turn": int(e.get("turn", 0)), "team": int(e.get("team", -1)),
+			"on": String(e.get("on", "")), "once": String(e.get("once", "")),
+			"hex_q": hex.x, "hex_r": hex.y,
 			"label": String(e.get("label", "")), "squad": int(e.get("squad", -1)),
 			"dialogue": String(e.get("dialogue", "")), "focus": bool(e.get("focus", false)),
 			"units": units_out,

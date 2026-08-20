@@ -20,7 +20,7 @@ class_name StageLoader
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["type", "team", "turn", "label", "units", "dialogue", "focus"]
+const EVENT_KEYS := ["type", "team", "turn", "on", "col", "row", "once", "label", "units", "dialogue", "focus"]
 
 ## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/map.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
@@ -462,8 +462,10 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 			auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
 	return auto_id
 
-## events（時限発生）を読む。いまは増援（type: "reinforce"）だけを扱う。詳細 → doc/gdd/map.md イベント
-## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生ターンに盤へ出す＝domain は JSON を知らない。
+## events（途中で起きること）を読む。詳細 → doc/gdd/map.md イベント
+## 引き金は turn（Nターン目）か on（盤の出来事＝いまは "capture"＝拠点の占領・col/row で拠点を指す）。
+## 中身は type＝増援（"reinforce"）か会話だけ（"talk"）。
+## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生時に盤へ出す＝domain は JSON を知らない。
 ## team:"enemy" の増援は1つの部隊として登録し、その index をイベントに持たせる（発生時に assign_squad）。
 ## 部隊定義（ai・パラメーターの上書き・行動順 order）はイベント直下に書く＝EVENT_KEYS 以外を拾う。
 ## order は敵の増援にも要る（湧いた部隊も行動順の列に並ぶ）＝抜けは test_data_integrity が捕まえる。
@@ -476,12 +478,22 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 		if typeof(e) != TYPE_DICTIONARY:
 			continue
 		var type_id := String(e.get("type", "reinforce"))
-		if type_id != "reinforce":
+		if type_id != "reinforce" and type_id != "talk":
 			push_warning("StageLoader: 未知のイベント type '%s'（無視）" % type_id)
 			continue
+		var on := String(e.get("on", ""))
+		if on != "" and on != "capture":
+			push_warning("StageLoader: 未知のイベント引き金 on '%s'（無視）" % on)
+			continue
+		var hex := Vector2i.MAX
+		if on == "capture":
+			if not (e.has("col") and e.has("row")):
+				push_warning("StageLoader: on:\"capture\" のイベントに拠点の col/row が無い（無視）")
+				continue
+			hex = Hex.offset_to_axial(int(e["col"]), int(e["row"]))
 		var team := _parse_team(e.get("team"), 0)
 		var squad_index := -1
-		if team == 1:  # 敵の増援＝1部隊。AIプリセット等の上書きはイベント直下に書く（部隊定義と同じ流儀）
+		if team == 1 and type_id == "reinforce":  # 敵の増援＝1部隊。AIプリセット等の上書きはイベント直下に書く（部隊定義と同じ流儀）
 			var squad := {}
 			for key in e:
 				if not (key in EVENT_KEYS):
@@ -489,27 +501,35 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 			squad_index = state.squads.size()
 			state.squads.append(squad)
 		var units: Array = []
-		for ud in e.get("units", []):
-			if typeof(ud) != TYPE_DICTIONARY:
-				continue
-			var unit := _make_unit(ud, catalog, auto_id, team, skin_catalog)
-			auto_id += 1
-			var ps: Array = []
-			var plist: Variant = ud.get("passengers", [])
-			if typeof(plist) == TYPE_ARRAY and not plist.is_empty():
-				if unit.is_transport():
-					for pd in plist:
-						ps.append(_make_unit(pd, catalog, auto_id, team, skin_catalog))  # 搭乗は同陣営
-						auto_id += 1
-				else:
-					push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % unit.id)
-			units.append({ "unit": unit, "passengers": ps })
+		var raw_units: Variant = e.get("units", [])
+		var has_units := typeof(raw_units) == TYPE_ARRAY and not (raw_units as Array).is_empty()
+		if type_id == "talk":
+			if has_units:
+				push_warning("StageLoader: type:\"talk\" のイベントに units 指定（駒は出ない）")
+		elif has_units:
+			for ud in raw_units:
+				if typeof(ud) != TYPE_DICTIONARY:
+					continue
+				var unit := _make_unit(ud, catalog, auto_id, team, skin_catalog)
+				auto_id += 1
+				var ps: Array = []
+				var plist: Variant = ud.get("passengers", [])
+				if typeof(plist) == TYPE_ARRAY and not plist.is_empty():
+					if unit.is_transport():
+						for pd in plist:
+							ps.append(_make_unit(pd, catalog, auto_id, team, skin_catalog))  # 搭乗は同陣営
+							auto_id += 1
+					else:
+						push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % unit.id)
+				units.append({ "unit": unit, "passengers": ps })
 		var dialogue := String(e.get("dialogue", ""))
-		if dialogue != "" and team != 0:
-			# 敵ターンのイベントは AI が動いている最中に起きる＝会話で盤を止められない。
-			push_warning("StageLoader: dialogue は team:\"player\" のイベントで使う（この会話は流れない）: %s" % dialogue)
+		if dialogue != "" and on == "" and team != 0:
+			# turn 起点の敵イベントは敵の手番が始まる時点で起きる＝AI が動き出す前に盤を止められない。
+			# 占領（on:"capture"）は敵の1手の切れ目で起きるので、敵側でも会話を流せる。
+			push_warning("StageLoader: turn 起点の dialogue は team:\"player\" のイベントで使う（この会話は流れない）: %s" % dialogue)
 		state.add_event({
 			"turn": int(e.get("turn", 1)), "team": team,
+			"on": on, "hex": hex, "once": String(e.get("once", "")),
 			"label": String(e.get("label", "")), "squad": squad_index,
 			"dialogue": dialogue, "focus": bool(e.get("focus", false)), "units": units,
 		})

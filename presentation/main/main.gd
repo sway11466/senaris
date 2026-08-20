@@ -138,6 +138,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.move_pace = $HexBoard.await_move_animation  # 同上＝移動アニメも歩き切るまで待つ
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体をカメラに収めてから見せる
 	_controller.turn_start_pace = _await_turn_banner  # 敵ターンは頭の一拍（バナー）を見せてから動く
+	_controller.dialogue_pace = _await_dialogue  # 敵ターンの占領で入る会話は読み終えるまで待つ
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.event_fired.connect(_on_event_fired)
 	_controller.battle_finished.connect(_on_battle_finished)
@@ -386,27 +387,32 @@ func _maybe_start_intro() -> void:
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
 
-## 盤のイベント（増援）が起きたときの見せ方。focus 指定があれば、まず駒が出た場所へカメラを寄せ
-## （寄せ終わってから）台本があれば会話を挟む。駒はもう盤に出ている＝何が来たのかを見せてから
-## 喋らせる。会話の間は盤とターン終了を止める（intro/outro と同じ扱い）。
-## 敵ターンのイベントでは出さない＝AIが動いている最中は盤を止められない（doc/gdd/map.md イベント）。
+## 盤のイベントが起きたときの見せ方。台本があれば会話を挟み、focus 指定があれば先にその場所へ
+## カメラを寄せる（喋る相手が画面に居る状態で幕を引く）。会話の間は盤とターン終了を止める
+## （intro/outro と同じ扱い）。増援なら駒はもう盤に出ている＝何が来たのかを見せてから喋らせる。
+## 敵ターンに出せるのは占領（on:"capture"）だけ＝1手の切れ目で controller が待ってくれている。
+## turn 起点のイベントは敵の手番の頭で起きる＝AI が動き出す前に止める場所が無いので出さない
+## （doc/gdd/map.md イベント）。
 func _on_event_fired(info: Dictionary) -> void:
-	if _controller == null or _controller.is_ai_turn() or _conversation_phase != "":
+	if _controller == null or _conversation == null or _conversation_phase != "":
 		return
-	if bool(info.get("focus", false)):
-		var hex: Vector2i = info.get("hex", Vector2i.MAX)
-		if hex != Vector2i.MAX:
-			await $HexBoard.focus_camera_on(hex)  # 会話より先＝喋る相手が画面に居る状態で幕を引く
+	if _controller.is_ai_turn() and String(info.get("on", "")) != "capture":
+		return
 	var key := String(info.get("dialogue", ""))
-	if key.is_empty() or _conversation == null:
+	if key.is_empty():
 		return
 	var lines: Array = _dialogue.get(key, [])
 	if lines.is_empty():
 		push_warning("main: イベントの台本が見つからない: dialogue=%s" % key)
 		return
-	if _conversation_phase != "":
-		return  # カメラを寄せている間に別の会話が始まっていた（同じターンに複数イベント）
+	# 幕より先に phase を立てる＝AIターンの待ち（dialogue_pace）がこの会話を取りこぼさない。
 	_conversation_phase = "event"
+	if not _controller.is_ai_turn():
+		await $HexBoard.await_move_animation()  # 駒が歩き切ってから喋る（敵ターンは呼ぶ側が待っている）
+	if bool(info.get("focus", false)):
+		var hex: Vector2i = info.get("hex", Vector2i.MAX)
+		if hex != Vector2i.MAX:
+			await $HexBoard.focus_camera_on(hex)
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない
 	$Front/InfoPanel.hide()
@@ -414,6 +420,12 @@ func _on_event_fired(info: Dictionary) -> void:
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
 	_hud.set_player_turn(false)
 	_conversation.start(lines, "戦闘再開 ▶")
+
+## AIターンのテンポ制御（controller.dialogue_pace）：占領で会話が始まっていれば閉じるまで待つ。
+## 会話を始めるのは _on_event_fired ＝ここへ来た時点で phase は立っている（カメラ寄せの前に立てている）。
+func _await_dialogue() -> void:
+	if _conversation_phase == "event" and _conversation != null:
+		await _conversation.closed
 
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:

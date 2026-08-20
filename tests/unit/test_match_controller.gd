@@ -303,7 +303,7 @@ func test_end_turn_emits_event_fired() -> void:
 	mc.end_turn()  # ターン2 自軍＝発生
 	assert_signal_emitted_with_parameters(mc, "event_fired",
 		[{ "label": "ui.test.airship", "dialogue": "arrive", "focus": true,
-			"hex": Hex.offset_to_axial(4, 4) }], 0)
+			"on": "", "hex": Hex.offset_to_axial(4, 4) }], 0)  # on が空＝ターン起点
 
 ## イベントの無いターンは飛ばない（毎ターン鳴らさない）。
 func test_end_turn_without_event_is_silent() -> void:
@@ -497,3 +497,70 @@ func test_wipe_enemies_leaves_ongoing_when_garrison_remains() -> void:
 	mc.wipe_enemies()
 	assert_eq(s.team_unit_count(1), 0, "盤上の敵は消える")
 	assert_signal_not_emitted(mc, "battle_finished", "控えが出撃できる＝まだ決着しない")
+
+# --- 占領を引き金にしたイベント（event_fired）。仕様 → doc/gdd/map.md イベント ---
+
+## 盤: (4,4) に中立の砦、その隣に占領できる自軍駒と敵駒。決着しない配置（両軍とも駒が残る）。
+func _capture_board() -> BattleState:
+	var s := BattleState.new(12, 8)
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(base_hex))  # 中立の砦
+	var c := Unit.new(1, 0, Hex.neighbor(base_hex, 3), 3)
+	c.can_capture = true
+	s.add_unit(c)
+	var e := Unit.new(2, 1, Hex.neighbor(base_hex, 0), 3)
+	e.can_capture = true
+	s.add_unit(e)
+	return s
+
+## StageLoader が組むのと同じ形のイベント（domain は JSON を知らない＝辞書で預ける）。
+func _capture_event(hex: Vector2i, team: int, dialogue: String) -> Dictionary:
+	return { "turn": 0, "on": "capture", "hex": hex, "team": team, "once": "",
+		"label": "", "squad": -1, "dialogue": dialogue, "focus": true, "units": [] }
+
+func test_capture_fires_the_event_on_the_player_turn() -> void:
+	var s := _capture_board()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_event(_capture_event(base_hex, 0, "elf_join"))
+	var mc := _mc(s)
+	assert_true(mc.execute(MoveCommand.new(1, base_hex)), "拠点へ入って占領する")
+	assert_signal_emit_count(mc, "event_fired", 1, "占領した瞬間に1回流れる")
+	var info: Dictionary = get_signal_parameters(mc, "event_fired", 0)[0]
+	assert_eq(String(info.get("dialogue", "")), "elf_join", "台本キーを渡す")
+	assert_eq(String(info.get("on", "")), "capture", "引き金の別も渡す（敵ターンに出せるかの判断に使う）")
+	assert_eq(info.get("hex", Vector2i.MAX), base_hex, "カメラの行き先は拠点")
+
+## 敵が取ったぶんは、その1手を見せ切ってから流し、読了を待ってから次の手へ進む。
+func test_enemy_capture_talks_after_the_move_is_shown() -> void:
+	var s := _capture_board()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.add_event(_capture_event(base_hex, 1, "elf_lost"))
+	var mc := _mc(s)
+	var order: Array[String] = []
+	mc.move_pace = func() -> void: order.append("move")
+	mc.dialogue_pace = func() -> void: order.append("talk")
+	mc.event_fired.connect(func(_info: Dictionary) -> void: order.append("fired"))
+	var brain := QueueBrain.new()
+	brain.queue.append(AiAction.move_to(2, base_hex))
+	mc.ai_brain = brain
+	mc.end_turn()  # 敵ターン＝AIが拠点へ入って占領する
+	assert_eq(s.base_at(base_hex).team, 1, "敵が拠点を取る")
+	assert_eq(order, ["move", "fired", "talk"] as Array[String], "移動を見せ切ってから会話を流し、読了を待つ")
+	assert_signal_emit_count(mc, "event_fired", 1, "敵が取ったぶんも1回流れる")
+
+## 決着した占領では会話を出さない（戦果票と重ねない＝増援と同じ扱い）。
+func test_finishing_capture_does_not_talk() -> void:
+	var s := BattleState.new(12, 8)
+	s.victory_conditions = [{"type": "capture_hq"}]
+	var hq_hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(hq_hex, 1, "hq"))
+	var c := Unit.new(1, 0, Hex.neighbor(hq_hex, 3), 3)
+	c.can_capture = true
+	s.add_unit(c)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
+	s.add_event(_capture_event(hq_hex, 0, "taken"))
+	var mc := _mc(s)
+	assert_true(mc.execute(MoveCommand.new(1, hq_hex)), "本拠地への移動＝占領が成立")
+	assert_signal_emitted(mc, "battle_finished")
+	assert_signal_not_emitted(mc, "event_fired", "決着した占領では会話を出さない")
+

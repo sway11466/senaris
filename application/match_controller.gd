@@ -33,6 +33,7 @@ var combat_pace := Callable()  # AIターンで戦闘演出の完了を待つフ
 var move_pace := Callable()    # AIターンで移動アニメの完了を待つフック（同上）。空なら待たない
 var focus_pace := Callable()   # AIターンで次の行動主体(hex)をカメラに収めるフック（同上）。空なら何もしない
 var turn_start_pace := Callable()  # AIターンの頭で一拍置くフック（同上・ターンバナー）。空なら待たない
+var dialogue_pace := Callable()  # AIターンで会話の読了を待つフック（同上）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
@@ -126,6 +127,10 @@ func execute_unload(cmd: UnloadCommand) -> bool:
 		return true
 	return false
 
+## 敵ターンに占領で起きたイベントの控え（会話つきのぶん）。AI が動いている最中に盤を止めないよう、
+## 1手の切れ目（run_ai_turn）まで持ち越してから流す。自軍のターンでは控えずその場で流す。
+var _pending_events: Array = []
+
 ## 占領の検出。domain は所属を書き換えるだけでシグナルを持たない（_try_capture は移動・降車の
 ## 内側で静かに起きる）ため、行き先の拠点の所属を操作の前後で見比べて発火させる。
 ## 拠点が無いマスは NO_BASE。Base.NEUTRAL（中立）は -1 なので、それとは別の値にする＝
@@ -137,10 +142,22 @@ func _base_team_at(hex: Vector2i) -> int:
 	return b.team if b != null else NO_BASE
 
 ## before と変わっていれば占領。中立→自軍も敵→自軍も同じ扱い（どちらも盤の支配が動いた）。
+## 占領を引き金にしたイベント（on: "capture"）もここで起こす。決着した占領では知らせない
+## ＝戦果票と会話を重ねない（増援と同じ扱い。詳細 → doc/gdd/map.md イベント）。
 func _emit_if_captured(hex: Vector2i, before: int) -> void:
 	var after := _base_team_at(hex)
-	if after != NO_BASE and after != before:
-		base_captured.emit(hex, after)
+	if after == NO_BASE or after == before:
+		return
+	base_captured.emit(hex, after)
+	var fired := state.fire_capture_events(hex, after)
+	if state.is_over():
+		return
+	for e in fired:
+		var info := _event_info(e, hex)
+		if is_ai_turn():
+			_pending_events.append(info)
+		else:
+			event_fired.emit(info)
 
 ## 表示用: 輸送 transport_id の搭乗駒 index の降車先候補（状態は変えない）。
 func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
@@ -183,12 +200,27 @@ func end_turn() -> void:
 func _announce_fired_events() -> void:
 	for e in state.last_fired_events:
 		var placed: Array = e.get("placed", [])
-		event_fired.emit({
-			"label": String(e.get("label", "")),
-			"dialogue": String(e.get("dialogue", "")),
-			"focus": bool(e.get("focus", false)),
-			"hex": placed[0] if not placed.is_empty() else Vector2i.MAX,
-		})
+		event_fired.emit(_event_info(e, placed[0] if not placed.is_empty() else Vector2i.MAX))
+
+## イベント1件 → 上へ渡す素データ。focus_hex＝カメラの行き先（増援は実際に駒が出た場所、
+## 占領は拠点の hex）。on は引き金の別＝presentation が敵ターンに出してよいかの判断に使う。
+func _event_info(e: Dictionary, focus_hex: Vector2i) -> Dictionary:
+	return {
+		"label": String(e.get("label", "")),
+		"dialogue": String(e.get("dialogue", "")),
+		"focus": bool(e.get("focus", false)),
+		"on": String(e.get("on", "")),
+		"hex": focus_hex,
+	}
+
+## 敵ターンに溜めた占領イベントを1件ずつ流し、会話が閉じるまで待つ。
+## 呼ぶのは1手を見せ切った後＝駒が拠点に着いてから喋る。
+func _drain_pending_events() -> void:
+	while not _pending_events.is_empty():
+		var info: Dictionary = _pending_events.pop_front()
+		event_fired.emit(info)
+		if dialogue_pace.is_valid():
+			await dialogue_pace.call()
 
 ## AIのターンを実行。next_action が尽きるまで1手ずつ実行し、最後にターンを返す。
 func run_ai_turn() -> void:
@@ -212,6 +244,11 @@ func run_ai_turn() -> void:
 		# 攻撃なら演出の完了を待つ＝盤に戻ってから次の手へ（プレイヤーが流れを追える）。
 		if shown_combat and not _finished and combat_pace.is_valid():
 			await combat_pace.call()
+		# その手で拠点を取っていたら、ここで会話を挟む＝手を見せ切ってから盤を止める。
+		if not _finished and not _pending_events.is_empty():
+			await _drain_pending_events()
+		else:
+			_pending_events.clear()  # 決着した手のぶんは流さない
 		if is_inside_tree() and not _finished:  # 各手の間を置いて見せる
 			await get_tree().create_timer(ai_delay).timeout
 	if not _finished:

@@ -95,7 +95,10 @@ func test_stage_squads_and_ai_bases_have_order() -> void:
 		for event in data.get("events", []):
 			# 敵の増援も1部隊として squads に積まれる＝行動順の列に並ぶ（order はイベント直下に書く）。
 			# 自軍の増援に部隊は無い（行動を選ぶのはプレイヤー）ので team で絞る。
+			# 駒を出さないイベント（type:"talk"＝会話だけ）は部隊を持たない＝order も要らない。
 			if typeof(event) != TYPE_DICTIONARY or str(event.get("team", "")) != "enemy":
+				continue
+			if str(event.get("type", "reinforce")) != "reinforce":
 				continue
 			_assert_order(path, event, "event (turn %d)" % int(event.get("turn", 0)), seen)
 

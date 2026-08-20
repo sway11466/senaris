@@ -1,5 +1,6 @@
 extends GutTest
-## イベント（時限発生）＝増援。発生ターン・置き場所・搭載駒・残りターン・直列化を検証する。
+## イベント（途中で起きること）。引き金（ターン／拠点の占領）・排他（once）・置き場所・
+## 搭載駒・残りターン・直列化を検証する。
 ## 増援は「開始時に盤に存在しない駒が加わること」だけを指す（拠点の出撃・起動は別物）。
 ## 仕様 → doc/gdd/map.md イベント
 
@@ -17,7 +18,12 @@ func _catalog() -> Dictionary:
 	fighter.id = "fighter"
 	fighter.move = 6
 	fighter.move_type = "ground"
-	return { "airship": airship, "paladin": paladin, "fighter": fighter }
+	var cleric := UnitType.new()
+	cleric.id = "cleric"
+	cleric.move = 5
+	cleric.move_type = "ground"
+	cleric.can_capture = true
+	return { "airship": airship, "paladin": paladin, "fighter": fighter, "cleric": cleric }
 
 # 6x4 の平地。自軍1体だけ置いて、あとはイベントで足す。
 func _data(events: Array) -> Dictionary:
@@ -237,3 +243,136 @@ func test_fired_event_is_not_serialized() -> void:
 	var back := BattleState.from_dict(s.to_dict(), _catalog())
 	assert_true(back.pending_events().is_empty(), "発生済みは持ち越さない")
 	assert_eq(back.team_unit_count(0), 2, "盤の駒としては残る")
+
+# --- 引き金＝拠点の占領（on: "capture"） ---
+
+const BASE_COL := 3
+const BASE_ROW := 2
+
+func _base_hex() -> Vector2i:
+	return Hex.offset_to_axial(BASE_COL, BASE_ROW)
+
+## (3,2) に中立拠点、その隣（2,2）に占領できるクレリック。敵は置かない（決着はここでは見ない）。
+func _capture_state(events: Array) -> BattleState:
+	var data := _data(events)
+	data["player"] = [ { "type": "cleric", "col": 2, "row": 2 } ]
+	data["bases"] = [ { "col": BASE_COL, "row": BASE_ROW, "team": "neutral" } ]
+	return _build(data)
+
+func _capture_event(team: String, extra: Dictionary = {}) -> Dictionary:
+	var e := { "on": "capture", "col": BASE_COL, "row": BASE_ROW, "team": team,
+		"type": "talk", "dialogue": "taken_by_%s" % team }
+	for k in extra:
+		e[k] = extra[k]
+	return e
+
+## クレリックを拠点へ入れて占領する（所属が変わることを確かめてから返す）。
+func _capture_with_cleric(s: BattleState) -> void:
+	var u := s.unit_at(Hex.offset_to_axial(2, 2))
+	assert_not_null(u, "前提: クレリックが盤に居る")
+	assert_true(s.move_unit(u.id, _base_hex()), "前提: 拠点hexへ入れる")
+	assert_eq(s.base_at(_base_hex()).team, 0, "前提: 占領で自軍所属になる")
+
+## 引き金が占領のイベントは、ターンが進んでも起きない。
+func test_capture_event_does_not_fire_on_turns() -> void:
+	var s := _capture_state([_capture_event("player")])
+	s.end_turn(); s.end_turn(); s.end_turn(); s.end_turn()
+	assert_eq(s.pending_events().size(), 1, "ターンでは起きない")
+	assert_true(s.last_fired_events.is_empty(), "ターンの発火にも混ざらない")
+
+## 駒を出さないイベント（type: "talk"）は盤を変えない。
+func test_talk_event_places_no_units() -> void:
+	var s := _capture_state([_capture_event("player")])
+	assert_eq(s.team_unit_count(0), 1, "駒は増えない")
+	assert_true((s.pending_events()[0].get("units", []) as Array).is_empty(), "駒を持たない")
+
+func test_capture_event_fires_when_the_base_changes_hands() -> void:
+	var s := _capture_state([_capture_event("player")])
+	_capture_with_cleric(s)
+	var fired := s.fire_capture_events(_base_hex(), 0)
+	assert_eq(fired.size(), 1, "占領した瞬間に起きる")
+	assert_eq(String(fired[0].get("dialogue", "")), "taken_by_player", "台本キーごと渡す")
+	assert_true(s.pending_events().is_empty(), "起きたイベントは消える")
+
+func test_capture_event_fires_once() -> void:
+	var s := _capture_state([_capture_event("player")])
+	_capture_with_cleric(s)
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "1回起きる")
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 0, "取り返しても2回目は起きない")
+
+func test_capture_event_ignores_another_base() -> void:
+	var s := _capture_state([_capture_event("player")])
+	assert_eq(s.fire_capture_events(Hex.offset_to_axial(5, 3), 0).size(), 0, "別の拠点では起きない")
+	assert_eq(s.pending_events().size(), 1, "未発生のまま残る")
+
+func test_capture_event_ignores_the_other_team() -> void:
+	var s := _capture_state([_capture_event("player")])
+	assert_eq(s.fire_capture_events(_base_hex(), 1).size(), 0, "取った側が違えば起きない")
+	assert_eq(s.pending_events().size(), 1, "未発生のまま残る")
+
+## 敵が取ったときのイベントは team:"enemy" で書く（増援と違い、駒ではなく取った側を指す）。
+func test_enemy_capture_event_fires_for_the_enemy() -> void:
+	var s := _capture_state([_capture_event("enemy")])
+	var fired := s.fire_capture_events(_base_hex(), 1)
+	assert_eq(fired.size(), 1, "敵が取れば起きる")
+	assert_eq(String(fired[0].get("dialogue", "")), "taken_by_enemy", "敵側の台本キーを渡す")
+
+# --- 排他（once） ---
+
+## 味方版と敵版に同じ名前を書くと、先に起きたほうだけが流れる。
+func test_once_lets_only_one_of_them_fire() -> void:
+	var s := _capture_state([
+		_capture_event("player", { "once": "elf_village" }),
+		_capture_event("enemy", { "once": "elf_village" }),
+	])
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "味方が取ったぶんが起きる")
+	assert_true(s.pending_events().is_empty(), "敵版は以後起きない")
+	assert_eq(s.fire_capture_events(_base_hex(), 1).size(), 0, "後から敵に奪われても流れない")
+
+func test_once_does_not_touch_other_names() -> void:
+	var s := _capture_state([
+		_capture_event("player", { "once": "elf_village" }),
+		_capture_event("enemy", { "once": "dwarf_hall" }),
+	])
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "味方版が起きる")
+	assert_eq(s.pending_events().size(), 1, "名前が違うイベントは残る")
+
+## 排他はターン起点のイベントにも効く（引き金の種類は問わない）。
+func test_once_spans_triggers() -> void:
+	var s := _capture_state([
+		_capture_event("player", { "once": "elf_village" }),
+		{ "turn": 2, "type": "talk", "team": "player", "once": "elf_village", "dialogue": "too_late" },
+	])
+	_capture_with_cleric(s)
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "先に占領で起きる")
+	s.end_turn(); s.end_turn()  # ターン2 自軍
+	assert_true(s.last_fired_events.is_empty(), "同じ名前のターンイベントは起きない")
+
+## 同じ名前が同時に条件を満たしたら、先に書いたほうが起きる。
+func test_once_prefers_the_first_written() -> void:
+	var s := _capture_state([
+		_capture_event("player", { "once": "elf_village", "dialogue": "first" }),
+		_capture_event("player", { "once": "elf_village", "dialogue": "second" }),
+	])
+	var fired := s.fire_capture_events(_base_hex(), 0)
+	assert_eq(fired.size(), 1, "起きるのは1つだけ")
+	assert_eq(String(fired[0].get("dialogue", "")), "first", "先に書いたほう")
+
+# --- 中断セーブ（占領イベント） ---
+
+func test_capture_event_survives_serialization() -> void:
+	var s := _capture_state([_capture_event("player", { "once": "elf_village", "focus": true })])
+	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	back.set_movement(Movement.load_default())
+	assert_eq(back.pending_events().size(), 1, "未発生のまま復元される")
+	var e: Dictionary = back.pending_events()[0]
+	assert_eq(String(e.get("on", "")), "capture", "引き金が残る")
+	assert_eq(e.get("hex", Vector2i.MAX), _base_hex(), "拠点の hex が残る")
+	assert_eq(String(e.get("once", "")), "elf_village", "排他の名前が残る")
+	assert_eq(back.fire_capture_events(_base_hex(), 0).size(), 1, "復元後も占領で起きる")
+
+## 占領イベントは残りターン板に出さない（あと何ターンかを数えられない）。
+func test_capture_event_is_not_announced_as_a_countdown() -> void:
+	var s := _capture_state([_capture_event("player", { "label": "ui.test.village" })])
+	assert_true(s.next_event().is_empty(), "残りターンには出ない")
+
