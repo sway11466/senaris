@@ -13,7 +13,7 @@ class_name TraitBrain
 var presets := {}
 
 ## 実装済みの特性id。部隊が未知の値・特性なしなら charge として扱う。
-const TRAITS := ["charge", "ambush", "raid", "weak", "swarm", "flee"]
+const TRAITS := ["charge", "ambush", "raid", "weak", "swarm", "flee", "preempt"]
 const DEFAULT_TRAIT := "charge"
 
 ## 輸送ユニット（特殊特性）＝搭載数がこの値以上の駒。特性に重ねて働き、ステージデータには書かない
@@ -258,14 +258,16 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 			return _swarm_action(state, u)
 		"flee":
 			return _flee_action(state, u)
+		"preempt":
+			return _preempt_action(state, u)
 	return _charge_action(state, u)  # charge / ambush は動き出したあとの行が同じ
 
 ## charge（突撃）／ambush（待ち伏せ）の行動ルール。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
 ## 2 スキル射程内に stack 条件を満たす対象 → 盤上距離が最小の対象にスキル
-## 3 間接攻撃できる駒で、移動範囲のどこかから撃てる敵 → 盤上距離が最小のその敵へ最大間合い
-## 4 攻撃射程内に敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
-## 5 移動距離が測れる敵 → 移動距離が最小の敵へ最大前進
+## 3 間接攻撃できる駒で、移動範囲のどこかから撃てる敵 → 空敵を優先し、盤上距離が最小のその敵へ最大間合い
+## 4 攻撃射程内に敵 → 空敵を優先し、次に反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
+## 5 移動距離が測れる敵 → 空敵を優先し、その中で移動距離が最小の敵へ最大前進
 ## 6 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
 ## 7 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
 func _charge_action(state: BattleState, u: Unit) -> AiAction:
@@ -275,13 +277,16 @@ func _charge_action(state: BattleState, u: Unit) -> AiAction:
 	row = _skill_row(state, u, PICK_NEAR)
 	if row != null:
 		return row
-	row = _standoff_row(state, u)
+	var air := _air_prey(state, u)
+	row = _standoff_row(state, u, null, air)  # 3 空敵を優先（撃てる空敵が居なければ全体から）
+	if row == null:
+		row = _standoff_row(state, u)
 	if row != null:
 		return row
 	var in_range := _attack_targets(state, u)
 	if not in_range.is_empty():
-		return AiAction.attack(u.id, _safest_id(state, u, in_range))
-	return _advance_to_nearest_enemy(state, u)
+		return AiAction.attack(u.id, _safest_id(state, u, _air_first(air, in_range)))
+	return _advance_to_nearest_enemy(state, u, true)
 
 ## raid（拠点攻略）の行動ルール。1〜3 は突撃と同じで、7〜9 の行き先が敵ではなく拠点。
 ## 4/5 降ろす（輸送ユニットだけに当たる）／6 乗る（乗る側だけに当たる）。
@@ -483,7 +488,8 @@ func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := f
 ##
 ## 近接しかできない駒は撃てるマスがどれも距離1＝最大間合いが現在地と同じになるので、この行では
 ## 動かない。射程で先に弾いておくと、盤を流さずに済む。
-func _standoff_row(state: BattleState, u: Unit, target: Unit = null) -> AiAction:
+func _standoff_row(state: BattleState, u: Unit, target: Unit = null,
+		pool: Array[Unit] = []) -> AiAction:
 	if u.attack_range < 2 or _is_transport(u) or not _can_advance(state, u):
 		return null
 	var reach := state.reachable(u.id)
@@ -493,7 +499,7 @@ func _standoff_row(state: BattleState, u: Unit, target: Unit = null) -> AiAction
 		if cells.is_empty():
 			return null  # 今ターン撃てる位置が無い＝前進の行に任せる
 	else:
-		for e in _attackable_enemies(state, u):
+		for e in (pool if not pool.is_empty() else _attackable_enemies(state, u)):
 			if target != null and not _nearer_hex(u.pos, e.pos, target.pos):
 				continue
 			var spots := _standing_attack_cells(state, u, e, reach)
@@ -708,14 +714,20 @@ static func _turns_needed(cost: int, move: int) -> int:
 
 ## 前進の行（敵向け・突撃と群れの末尾が共有）。移動距離 → 地形距離 → 盤上距離の順に測り、
 ## 測れた時点でその行が成立する＝縮むマスが無ければ現在地に留まって待機になる。
-func _advance_to_nearest_enemy(state: BattleState, u: Unit) -> AiAction:
+func _advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false) -> AiAction:
 	if not _can_advance(state, u):
 		return null
 	var enemies := _attackable_enemies(state, u)
 	if enemies.is_empty():
 		return null
 	var move_field := state.move_cost_field(u.id, u.pos)
-	var target := _nearest_target(state, u, enemies, move_field)
+	# 空敵の優先は最大前進の行だけ。見込前進・直線寄せまで優先すると、今ターン届かない飛行1体に
+	# 盤上の対空得意が全員吸われる（doc/gdd/ai.md charge #6・#7 の注記）。
+	var target: Unit = null
+	if prefer_air:
+		target = _nearest_target(state, u, _air_prey(state, u), move_field)
+	if target == null:
+		target = _nearest_target(state, u, enemies, move_field)
 	if target != null:
 		return _advance(state, u, state.move_cost_field(u.id, target.pos),
 			state.attack_cells(u.id, target.id))
@@ -736,7 +748,9 @@ func _can_advance(state: BattleState, u: Unit) -> bool:
 ## goal_cells＝標的に攻撃可能なマス（拠点なら拠点hex）＝そこに立てば距離0。表は標的から流して
 ## いるので、そのままでは「標的のマスからの遠さ」になり、懐に死角のある駒（min_range≥2）が
 ## 攻撃できない位置へ詰めてしまう。攻撃可能なマスを0として読むことで距離の定義と揃える。
-func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array) -> AiAction:
+## allow＝止まってよいマス（空＝制限なし）。preempt が脅威圏の外だけに絞るために渡す。
+func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array,
+		allow: Dictionary = {}) -> AiAction:
 	var goals := {}
 	for c in goal_cells:
 		goals[c] = true
@@ -744,6 +758,8 @@ func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array)
 	var best := u.pos
 	var best_c := _advance_score(field, goals, u.pos)
 	for h in state.reachable(u.id):
+		if not allow.is_empty() and not allow.has(h):
+			continue
 		if forbidden.has(h) or state.unit_at(h) != null:
 			continue  # 駒の居るマス＝乗れる味方輸送。前進で踏むと乗るつもりのない乗車になる
 		var c := _advance_score(field, goals, h)
@@ -754,11 +770,14 @@ func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array)
 
 ## 直線寄せ＝盤上距離が縮むマスへ動く（距離が測れないときに使う）。壁の向こうの標的へ
 ## 壁際まで詰めて止まる動きになる。縮むマスが無ければ現在地。
-func _advance_straight(state: BattleState, u: Unit, goal: Vector2i) -> AiAction:
+func _advance_straight(state: BattleState, u: Unit, goal: Vector2i,
+		allow: Dictionary = {}) -> AiAction:
 	var forbidden := _forbidden_cells(state, u)
 	var best := u.pos
 	var best_d := Hex.distance(u.pos, goal)
 	for h in state.reachable(u.id):
+		if not allow.is_empty() and not allow.has(h):
+			continue
 		if forbidden.has(h) or state.unit_at(h) != null:
 			continue  # 前進では味方輸送のマスに止まらない（乗るかどうかは乗る行が決める）
 		var d := Hex.distance(h, goal)
@@ -772,6 +791,65 @@ static func _advance_score(field: Dictionary, goals: Dictionary, hex: Vector2i) 
 	if goals.has(hex):
 		return 0
 	return int(field.get(hex, BattleState.UNREACHABLE))
+
+# --- 脅威圏と間合取り（doc/gdd/ai.md 脅威圏・間合取り） ---
+
+## 脅威圏＝盤上の敵のどれかが移動力ぶん動いた先から u を攻撃できるマスの集合 { ヘックス: true }。
+## 敵ごとに移動距離で動ける範囲を測り、そこから射程を伸ばして重ねる。相手が u を攻撃できるか
+## （対空・対地）まで見る＝対空攻撃力の無い敵は飛行の駒を脅威圏に入れられない。
+##
+## ZOCは数えず、u 自身も敵の道を塞ぐ壁に数えない（ignore）。u はこれから動くので、いま自分が
+## 敵を縛っていることを当てにすると、隣接から下がる手がそもそも成立しなくなる。
+func _threat_cells(state: BattleState, u: Unit) -> Dictionary:
+	var out := {}
+	var ignore := { u.id: true }
+	for e in state.units():
+		if e.team == u.team or e.attack_against(u) <= 0:
+			continue
+		var field := state.move_cost_field_without(e.id, e.pos, ignore)
+		for r in field:
+			if int(field[r]) > e.move:
+				continue  # 移動距離の表は何ターンぶんでも載る＝1ターンで届く範囲に切る
+			for h in Hex.within_range(r, e.attack_range):
+				if out.has(h) or not state.in_field(h):
+					continue
+				if e.can_reach(Hex.distance(r, h)):
+					out[h] = true
+	return out
+
+## 移動範囲のうち脅威圏の外で、実際に止まれるマス { ヘックス: true }。preempt の行き先の母集合。
+func _safe_cells(state: BattleState, u: Unit) -> Dictionary:
+	var threat := _threat_cells(state, u)
+	var out := {}
+	for h in state.reachable(u.id):
+		if threat.has(h):
+			continue
+		if h != u.pos and state.unit_at(h) != null:
+			continue  # 駒の居るマス＝乗れる味方輸送。踏むと乗るつもりのない乗車になる
+		out[h] = true
+	return out
+
+## 間合取り＝safe のうち標的への距離が最小のマスへ動く1手。同値は現在地を優先し、次に col → row。
+## 前進と違って「距離が縮むマス」に限らない＝いま脅威圏の中にいれば行き先は後ろになる。
+## 測れるマスが1つも無ければ現在地に留まる（＝null＝次の行へ落ちる）。
+func _spacing_step(state: BattleState, u: Unit, safe: Dictionary,
+		field: Dictionary, goal_cells: Array) -> AiAction:
+	var goals := {}
+	for c in goal_cells:
+		goals[c] = true
+	var best := NO_HEX
+	var best_c := BattleState.UNREACHABLE
+	for h in safe:
+		var c := _advance_score(field, goals, h)
+		if c >= BattleState.UNREACHABLE:
+			continue
+		var better := best == NO_HEX or c < best_c
+		if not better and c == best_c and best != u.pos:
+			better = h == u.pos or _is_younger_hex(h, best)
+		if better:
+			best = h
+			best_c = c
+	return AiAction.move_to(u.id, best) if best != NO_HEX and best != u.pos else null
 
 # --- 標的の選び方 ---
 
@@ -909,6 +987,75 @@ func _detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiA
 	if goal == NO_HEX:
 		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている → 待機
 	return _advance(state, u, state.detour_cost_field(u.id, goal), [goal])
+
+## preempt（先制）の行動ルール。先手を取れる距離まで詰めて、そこを保つ。
+## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
+## 2 スキル射程内に stack 条件を満たす対象 → 盤上距離が最小の対象にスキル
+## 3 攻撃射程内に敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
+## 4 移動距離が測れる敵 → 移動距離が最小の敵へ間合取り
+## 5 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
+## 6 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+##
+## 移動先は脅威圏の外のマスに限る（1 占領を除く）。4〜6 はどれもこの制約の中で行き先を選ぶ。
+## 3 を 4 より上に置くのは、間合いに入ってきた敵を撃つのがこの特性の目的だから。
+## 最大間合いの行は持たない＝間合取りが詰めると下がるの両方を兼ねる。
+func _preempt_action(state: BattleState, u: Unit) -> AiAction:
+	var row := _capture_row(state, u)
+	if row != null:
+		return row
+	row = _skill_row(state, u, PICK_NEAR)
+	if row != null:
+		return row
+	var in_range := _attack_targets(state, u)
+	if not in_range.is_empty():
+		return AiAction.attack(u.id, _safest_id(state, u, in_range))
+	return _spacing_advance(state, u)
+
+## preempt の移動（4〜6）。行き先は脅威圏の外に限り、外に1マスも無ければ動かない。
+## 隣接されて撃てない駒（min_range≥2）はここで脅威圏の外へ出る。移動後にもう一度表を上から
+## 当てるので、同じ手番のうちに 3 が撃つ。
+func _spacing_advance(state: BattleState, u: Unit) -> AiAction:
+	if not _can_advance(state, u):
+		return null
+	var enemies := _attackable_enemies(state, u)
+	if enemies.is_empty():
+		return null
+	var safe := _safe_cells(state, u)
+	if safe.is_empty():
+		return null
+	var move_field := state.move_cost_field(u.id, u.pos)
+	var target := _nearest_target(state, u, enemies, move_field)
+	if target != null:
+		return _spacing_step(state, u, safe, state.move_cost_field(u.id, target.pos),
+			state.attack_cells(u.id, target.id))
+	target = _nearest_target(state, u, enemies, state.terrain_cost_field(u.id, u.pos))
+	if target != null:
+		return _advance(state, u, state.terrain_cost_field(u.id, target.pos),
+			state.attack_cells(u.id, target.id), safe)
+	return _advance_straight(state, u, _nearest_unit_by_board(u.pos, enemies).pos, safe)
+
+## 対空得意＝対地攻撃力が対空攻撃力以下（doc/gdd/ai.md 対空得意）。駒の性能だけで決まる。
+static func _air_hunter(u: Unit) -> bool:
+	return u.unit_attack <= u.atk_air
+
+## 空敵＝対空得意な駒が攻撃できる飛行の敵（集合）。対空得意でない駒には空敵がいない。
+## 対空も対地も0の駒（輸送・バリケード）は攻撃できる敵を持たないので、ここも空になる。
+func _air_prey(state: BattleState, u: Unit) -> Array[Unit]:
+	var out: Array[Unit] = []
+	if not _air_hunter(u):
+		return out
+	for e in _attackable_enemies(state, u):
+		if e.is_aerial():
+			out.append(e)
+	return out
+
+## ids を空敵だけに絞る（空敵が1体も入っていなければ ids のまま）＝「空敵を優先し」の実装。
+func _air_first(air: Array[Unit], ids: Array[int]) -> Array[int]:
+	var out: Array[int] = []
+	for e in air:
+		if e.id in ids:
+			out.append(e.id)
+	return out if not out.is_empty() else ids
 
 ## 獲物＝ u が攻撃できる敵のうち、防御力が最小の敵の防御力 +10 までにいるもの（集合）。
 ## 上限は必ず盤全体の敵から計算する。射程内など狭い範囲から計算し直すと、硬い前衛しか

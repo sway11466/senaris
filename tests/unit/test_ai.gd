@@ -1040,3 +1040,126 @@ func test_flee_waits_when_no_base_exists() -> void:
 	_ai(s, si, 10, 4, 2)
 	_pc(s, 1, 8, 2)
 	assert_null(_brain.next_action(s, 1), "拠点が無ければ待機")
+
+# --- 空敵（対空得意な駒の標的優先） ---
+
+## 飛行の駒（team 0）。対空攻撃力を持つ駒だけが触れる相手。
+func _air(s: BattleState, id: int, col: int, row: int) -> Unit:
+	var u := _u(id, 0, col, row)
+	u.move_type = "flight"
+	s.add_unit(u)
+	return u
+
+func test_charge_shoots_the_flier_first_when_good_at_air() -> void:
+	# 対空得意（対地 ≦ 対空）は空敵を優先する。どちらも距離2以上＝反撃されないので、
+	# 優先が無ければ盤上距離が最小の地上の駒が選ばれる（doc/gdd/ai.md charge #4）。
+	var s := BattleState.new(9, 9)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 4, 4, 0)  # 移動0＝最大間合いの行を素通りさせる
+	archer.attack_range = 3
+	archer.atk_air = 40                    # 対地20 ≦ 対空40 ＝ 対空得意
+	_pc(s, 1, 4, 2)                        # 地上・盤上距離2
+	var flier := _air(s, 2, 4, 1)          # 飛行・盤上距離3
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, flier.id, "近い地上より空敵を先に撃つ")
+
+func test_charge_ignores_the_flier_when_not_good_at_air() -> void:
+	# 対空攻撃力はあるが対空得意ではない（対地 > 対空）＝優先は働かない。
+	# 対空10 で殴りにいくのは損なので、対空を持つだけの駒は空へ向かわない。
+	var s := BattleState.new(9, 9)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 4, 4, 0)
+	archer.attack_range = 3
+	archer.atk_air = 10                    # 対地20 > 対空10 ＝ 対空得意ではない
+	var ground := _pc(s, 1, 4, 2)
+	_air(s, 2, 4, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, ground.id, "盤上距離が最小の敵をそのまま撃つ")
+
+func test_charge_advances_toward_the_flier_when_good_at_air() -> void:
+	# #5 最大前進の標的も空敵を優先＝手が届く範囲では空へ寄る。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 5, 2, 3)
+	u.atk_air = 20                         # 対地20 ≦ 対空20 ＝ 対空得意
+	_pc(s, 1, 3, 2)                        # 地上・西に盤上距離2
+	_air(s, 2, 9, 2)                       # 飛行・東に盤上距離4
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 5, "近い地上ではなく空敵（東）へ寄る")
+
+# --- preempt（先制） ---
+
+## 射程駒を1体作る（min_range 2＝懐に死角）。
+func _caster(s: BattleState, si: int, id: int, col: int, row: int,
+		move: int, max_range: int) -> Unit:
+	var u := _ai(s, si, id, col, row, move)
+	u.min_range = 2
+	u.attack_range = max_range
+	return u
+
+func test_preempt_shoots_when_the_enemy_walks_into_range() -> void:
+	# #3 を #4 より上に置いてある＝間合いに入ってきた敵は、脅威圏の中からでも撃つ。
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var si := _squad(s, "preempt")
+	_caster(s, si, 10, 5, 1, 2, 3)
+	var e := _pc(s, 1, 8, 1)  # 盤上距離3＝射程内。敵は移動3・射程1＝脅威圏4なので危険な距離
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "脅威圏の中でも撃てるなら撃つ")
+	assert_eq(a.target_id, e.id)
+
+func test_preempt_backs_out_of_the_threat_zone_then_shoots() -> void:
+	# 隣接されて撃てない（min_range 2）とき、脅威圏の外へ出てから同じ手番で撃つ。
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var si := _squad(s, "preempt")
+	_caster(s, si, 10, 5, 1, 6, 5)
+	var e := _pc(s, 1, 4, 1)  # 隣接＝射程の内側で撃てない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "撃てないので間合いを取り直す")
+	assert_gt(Hex.distance(a.to, e.pos), 4, "脅威圏（敵の移動3＋射程1）の外へ出る")
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
+	assert_eq(b.target_id, e.id)
+
+func test_preempt_closes_in_but_stops_outside_the_threat_zone() -> void:
+	# 遠ければ詰める。詰め先は脅威圏の外＝先手を取れる距離まで。
+	var s := BattleState.new(20, 3)
+	s.current_team = 1
+	var si := _squad(s, "preempt")
+	_caster(s, si, 10, 2, 1, 2, 5)
+	var e := _pc(s, 1, 15, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 2, "東の敵へ詰める")
+	assert_gt(Hex.distance(a.to, e.pos), 4, "脅威圏の外で止まる")
+
+func test_preempt_waits_when_nowhere_is_safe() -> void:
+	# 脅威圏の外に行き先が無ければ動かない。撃てもしなければ待機。
+	var s := BattleState.new(7, 3)
+	s.current_team = 1
+	var si := _squad(s, "preempt")
+	_caster(s, si, 10, 3, 1, 1, 5)
+	_pc(s, 1, 4, 1)  # 隣接＝撃てない。移動3・射程1の脅威圏が盤の端まで覆う
+	assert_null(_brain.next_action(s, 1), "逃げ場が無ければ待機")
+
+func test_preempt_ignores_the_threat_zone_of_enemies_that_cannot_reach_it() -> void:
+	# 脅威圏は「自分を攻撃できる敵」だけで作る＝対空攻撃力の無い敵は飛行の駒を止められない。
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var si := _squad(s, "preempt")
+	var flier := _caster(s, si, 10, 2, 1, 4, 5)
+	flier.move_type = "flight"
+	var e := _pc(s, 1, 10, 1, 10)
+	e.move = 6     # 脅威圏は半径7＝この駒に触れるなら射程5の駒は一度も撃てない距離
+	e.atk_air = 0  # 対空0＝飛行に触れない（_u の既定だが、この行が要点なので明示する）
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(Hex.distance(a.to, e.pos), 6, "触れない敵の脅威圏は避けない＝射程まで詰める")
