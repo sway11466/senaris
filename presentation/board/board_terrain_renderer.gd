@@ -14,11 +14,14 @@ const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の�
 ## floor < elevation で駒が地形に沈む（森＝木々の間の地面）、> で浮く（水面の上を飛ぶ）。
 const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこの割合で darkened）
 ## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。BoardUnitRenderer.UNIT_CANVAS_TILES と同値
-## ＝駒とオブジェクトで物差しを1本にする（背丈を「駒の何倍か」で読める）。大小の差はキャンバスに
-## 焼き込んだ余白が持つ＝倍率(terrain_skin.csv の map_scale)は絵の書き出しだけが読む。
+## ＝キャンバスの刻みは駒と共通（1タイル＝384px/3.75）。大小の差はキャンバスに焼き込んだ余白が持つ
+## ＝オブジェクトの大きさ(terrain_skin.csv の map_scale)は絵の書き出しだけが読む。ただし物差しは駒と
+## 別で、駒＝背丈がファイターの何倍か、オブジェクト＝絵の幅がヘックスの幅(2タイル)の何倍か
+## （→ doc/art/terrain.md）。盤の読みは「マスからはみ出さないか」で決まるので、幅を基準にする。
 const CANVAS_TILES := 3.75
-## 立ち絵の足元をヘックス中心から奥（上辺寄り）へずらす量はスキン側のデータ＝object_foot_z。
-## 駒は手前（+0.6）に立つので、同じマスなら駒が前に出る。
+## 立ち絵の足元をヘックス中心から手前（下辺寄り）へずらす量はスキン側のデータ＝object_foot_z。
+## 駒（+0.6）と同じ向きで、駒より小さくしておけば同じマスでも駒が手前に立つ。
+## ずらすのは、立ち絵が足元から上へ伸びる＝盤の俯角のぶん体が奥のマスに乗って見えるため。
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
 
 # --- 状態（setup で注入）---
@@ -45,6 +48,7 @@ var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵�
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）
 var _avg_color := {}       # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
+var _art_height := {}      # Texture2D -> float（立ち絵の絵の実体の高さ。キャンバスの余白を除く）
 
 # --- メッシュ（_ready で生成）---
 var _hex_mesh: ArrayMesh          # 床に寝かせたヘックス（タイル用・UVは外接矩形）
@@ -436,7 +440,7 @@ func _add_object_flat(skin: TerrainSkin, hex: Vector2i) -> void:
 	mi.position = Vector3(p.x, elev(hex), p.y)
 	add_child(mi)
 
-## 繋がらないオブジェクト（岩・建物・砦）。駒と同じ立ち絵1枚を、スキンが指す奥行きぶん奥に立てる。
+## 繋がらないオブジェクト（岩・建物・砦）。立ち絵1枚を、スキンが指すぶんマス中心より手前に立てる。
 func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 	var spr := Sprite3D.new()
 	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -446,7 +450,7 @@ func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 		spr.free()
 		return
 	var p := Hex.to_pixel(hex, TILE)
-	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y - skin.object_foot_z)
+	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y + skin.object_foot_z)
 	_standee_nodes[hex] = spr
 	add_child(spr)
 
@@ -460,6 +464,27 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
 	return true
+
+## 立ち絵の天辺（ワールド座標）。立ち絵はカメラに正対するので、画面で頭の上に来る点は、足元から
+## カメラの上方向へ絵の高さぶん進んだところ。立ち絵の無いマスは null（拠点の控え数の置き場に使う）。
+func standee_top(hex: Vector2i, up: Vector3) -> Variant:
+	var spr: Sprite3D = _standee_nodes.get(hex)
+	if spr == null or spr.texture == null:
+		return null
+	return spr.position + up * _standee_art_height(spr)
+
+## 立ち絵の「絵の実体」の高さ（ワールド）。キャンバスは下端揃えで上に余白があるので、テクスチャの
+## 高さをそのまま使うと頭上が余白のぶん高くなる。画像を読むのは重いのでテクスチャごとに覚える。
+func _standee_art_height(spr: Sprite3D) -> float:
+	var tex := spr.texture
+	if not _art_height.has(tex):
+		var img := tex.get_image()
+		if img == null:
+			return 0.0
+		if img.is_compressed():
+			img.decompress()
+		_art_height[tex] = float(img.get_used_rect().size.y)
+	return _art_height[tex] * spr.pixel_size
 
 ## 辺に沿って立てるオブジェクトの板の絵（assets/terrain/{skin_id}_side.png）。無ければ声を上げて null。
 func _object_side_texture(skin: TerrainSkin) -> Texture2D:

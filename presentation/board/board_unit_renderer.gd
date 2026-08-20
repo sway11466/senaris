@@ -206,19 +206,23 @@ func add_ring(wpos: Vector3, radius: float, width: float, color: Color, y: float
 	mi.position = Vector3(wpos.x, wpos.y + y, wpos.z)
 	root.add_child(mi)
 
-## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。マス左上に置く。
-func add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D) -> void:
+## 「+N」の小ラベル（輸送の搭載数・拠点の控え数）。既定はマス左上で、置き場を変えたい呼び側
+## （立ち絵の頭上に出す拠点）は offset を渡す。
+func add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D,
+		offset := Vector3(-TILE * 0.55, 0.8, -TILE * 0.3),
+		valign := VERTICAL_ALIGNMENT_CENTER) -> void:
 	var l := Label3D.new()
 	l.text = text
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.font_size = 48
 	l.pixel_size = 0.01
 	l.modulate = color
+	l.vertical_alignment = valign  # 頭上に出す呼び側は BOTTOM＝原点より上に字が出る
 	l.outline_size = 16  # 淡い地形の上でも読めるように
 	l.no_depth_test = true
 	l.render_priority = 2
 	l.outline_render_priority = 1
-	l.position = wpos + Vector3(-TILE * 0.55, 0.8, -TILE * 0.3)
+	l.position = wpos + offset
 	root.add_child(l)
 
 ## 攻撃対象マーカー（頭上の下向き三角）を1体ぶん置く。parent はオーバーレイ層。

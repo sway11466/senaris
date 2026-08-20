@@ -1,5 +1,5 @@
 skin_id,terrain_type,name,orientable,connect,connect_to,elevation,floor,ignore_board_height,placement,map_scale,object_foot_z,grid,map_ground,combat_ground,memo
-スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,駒の足元の高さ,盤の高さを無視,置き方,描画倍率,足元の奥行き,グリッド線,盤の下地,戦闘背景の下地,備考
+スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,駒の足元の高さ,盤の高さを無視,置き方,立ち絵の幅,足元の手前寄せ,グリッド線,盤の下地,戦闘背景の下地,備考
 bedrock,bedrock,岩地,full,false,,0.36,0.36,false,,,,true,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。尾根より明るい岩
 bush,bush,茂み,flip_x,false,,0.12,0,false,,,,true,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
 forest,forest,森,full,false,,0.18,0,false,,,,true,,,駒は木々の間の地面に立つ＝floor 0（上面より低い）
@@ -35,7 +35,7 @@ road_building_town1_l,building,街区,none,false,,0,0,false,standee,1.33,0.2,tru
 road_building_town1_r,building,街区,none,false,,0,0,false,standee,1.33,0.2,true,road,road,同じ元絵を60°回した向き＝右上から左下
 road_building_town1_v,building,街区,none,false,,0,0,false,standee,1.33,0.2,true,road,road,街の一区画。棟割りが縦。地面は焼き込まず道を下地に敷く
 road_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,1.02,0.2,true,road,road,門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-road_fort_town1,fort,町,none,false,,0,0,false,standee,1.33,0.2,true,road,plain,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+road_fort_town1,fort,町,none,false,,0,0,false,standee,0.79,0.5,true,road,plain,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 road_prop_garden1_l,prop,菜園,none,false,,0,0,false,standee,0.41,0.2,true,road,road,同じ元絵を回した向き＝左上から右下
 road_prop_garden1_r,prop,菜園,none,false,,0,0,false,standee,0.41,0.2,true,road,road,同じ元絵を回した向き＝右上から左下
 road_prop_garden1_v,prop,菜園,none,false,,0,0,false,standee,0.41,0.2,true,road,road,街の空き地の家庭菜園。木枠の畑を1つ置く。地面は焼き込まず道を下地に敷く。畝が縦

@@ -41,6 +41,7 @@ const COLOR_ATTACK_RING := Color(0.95, 0.25, 0.25)
 const COLOR_INSPECT_RING := Color(0.85, 0.90, 1.00)
 const COLOR_BASE_NEUTRAL := Color(0.80, 0.80, 0.80)  # 未占領拠点の縁取り
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
+const LABEL_GAP := TILE * 0.12  # 立ち絵の天辺から控え数ラベルの下までの隙間
 
 const INVALID_HEX := Vector2i(-9999, -9999)
 
@@ -942,9 +943,15 @@ func _sync_bases() -> void:
 		var by := _terrain_renderer.elev(b.hex)
 		mi.position = Vector3(p.x, by + 0.015, p.y)
 		_bases_root.add_child(mi)
-		# 控え数（出撃できる人数）を左上に小さく。
+		# 控え数（出撃できる人数）。立ち絵の拠点は建物の頭上、平らなタイルの拠点はマス左上に小さく。
 		if not b.garrison.is_empty():
-			_unit_renderer.add_count_label("+%d" % b.garrison.size(), Vector3(p.x, by, p.y), col, _bases_root)
+			var text := "+%d" % b.garrison.size()
+			var top = _terrain_renderer.standee_top(b.hex, _board_cam.cam_up)
+			if top == null:
+				_unit_renderer.add_count_label(text, Vector3(p.x, by, p.y), col, _bases_root)
+			else:
+				_unit_renderer.add_count_label(text, top, col, _bases_root,
+						_board_cam.cam_up * LABEL_GAP, VERTICAL_ALIGNMENT_BOTTOM)
 
 ## hex が盤の矩形（offset col/row）の中にあるか。
 func _in_board(hex: Vector2i) -> bool:

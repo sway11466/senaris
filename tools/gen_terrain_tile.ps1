@@ -36,12 +36,14 @@
   An object skin (a building, a rock, a fort) is not a tile at all: the board stands it up as a
   billboard, the same way it stands up a unit.
 
-  -Object writes that standee instead of a hex tile. The figure is scaled to
-  200px * map_scale (data/terrain/terrain_skin.csv) and dropped bottom-aligned on a 384px square
-  canvas. The board maps the CANVAS height to a fixed number of tiles, so the size difference
-  between objects is carried by the transparent padding, exactly as it is for units. Same ruler
-  as gen_unit_map.ps1, so map_scale 1.0 is one fighter tall. An empty map_scale is an error, not
-  a default. Cannot be combined with -Fit / -Upright (there is no hexagon to fit and no tile to
+  -Object writes that standee instead of a hex tile. The art is scaled to
+  204.8px * map_scale (data/terrain/terrain_skin.csv) WIDE and dropped bottom-aligned on a 384px
+  square canvas. The board maps the canvas height to 3.75 tiles, so 204.8px is exactly the width
+  of one hexagon (2 tiles) and map_scale is "how much of a hex width the art takes". Units are
+  measured the other way (height, in fighters); objects are measured by width because what the
+  board must read is whether the thing overflows its own hex. The size difference is carried by
+  the transparent padding, as it is for units. An empty map_scale is an error, not a default.
+  Cannot be combined with -Fit / -Upright (there is no hexagon to fit and no tile to
   pre-stretch). Rule of record: doc/art/terrain.md.
 
 .EXAMPLE
@@ -92,9 +94,10 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 # -Object: the standee ruler. Both numbers are shared with units (gen_unit_map.ps1) so that one
 # scale reads across the whole board; changing either means re-exporting everything and moving
 # CANVAS_TILES in presentation/board/board_terrain_renderer.gd with it.
-$ObjBase   = 200   # figure height (px) at map_scale = 1.0
-$ObjCanvas = 384   # output canvas (square). 384/200 = max scale 1.92
-$ObjHeight = 0
+$ObjCanvas = 384   # output canvas (square) = 3.75 tiles tall, the same ruler the board uses
+# Art width (px) at map_scale = 1.0 = one hexagon across (2 tiles) on that canvas: 384 * 2 / 3.75.
+$ObjBase   = $ObjCanvas * 2.0 / 3.75
+$ObjWidth  = 0
 if ($Object) {
   if ($Fit -or $Upright) { throw "-Object cannot be combined with -Fit / -Upright" }
   $csv = Join-Path $repo "data\terrain\terrain_skin.csv"
@@ -104,7 +107,7 @@ if ($Object) {
   if ($row.map_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.map_scale -le 0) {
     throw "$Name has no map_scale in terrain_skin.csv (found '$($row.map_scale)'). Fill the column."
   }
-  $ObjHeight = [int][math]::Round($ObjBase * [double]$row.map_scale)
+  $ObjWidth = [int][math]::Round($ObjBase * [double]$row.map_scale)
 }
 
 # Flat-top hexagon points on the 256x222 canvas (center 128,111; R=128; half-h=110.85).
@@ -170,24 +173,25 @@ foreach ($src in $Sources) {
     $note = " [fit {0}x{1} -> {2}sq]" -f [int]$cw, [int]$ch, $n
   }
 
-  # -Object: trim to the art, scale it to the height the csv asks for, and drop it bottom-aligned
+  # -Object: trim to the art, scale it to the width the csv asks for, and drop it bottom-aligned
   # on the square canvas. The padding left over is what carries the size difference. No hex mask:
   # nothing here is tiled, the board bills this up facing the camera.
   if ($Object) {
-    magick $stage -trim +repage -resize "x$ObjHeight" -background none -gravity south `
+    magick $stage -trim +repage -resize "${ObjWidth}x" -background none -gravity south `
       -extent "${ObjCanvas}x${ObjCanvas}" -colors $Colors -dither None $out
     # -extent crops silently when the art does not fit, so verify what actually landed.
-    $bb = (magick $out -trim -format "%w %h %X" info:) -split " "
+    $bb = (magick $out -trim -format "%w %h" info:) -split " "
     $bw = [int]$bb[0]
-    $bx = [int]($bb[2] -replace "\+", "")
-    if ([int]$bb[1] -lt $ObjHeight) {
-      Write-Warning "${Name}: cropped vertically (wanted ${ObjHeight}px, kept $($bb[1])px). Lower map_scale."
+    $bh = [int]$bb[1]
+    if ($bw -lt $ObjWidth) {
+      Write-Warning "${Name}: cropped horizontally (wanted ${ObjWidth}px, kept ${bw}px). Lower map_scale."
     }
-    if ($bx -le 0 -or ($bx + $bw) -ge $ObjCanvas) {
-      Write-Warning "${Name}: touches the ${ObjCanvas}px canvas edge (art $bw px at +$bx). Lower map_scale."
+    # Tall art can outgrow the canvas even when the width fits; the top is what gets cut.
+    if ($bh -ge $ObjCanvas) {
+      Write-Warning "${Name}: fills the ${ObjCanvas}px canvas height (art ${bh}px). Lower map_scale or draw it wider."
     }
     $kb = [int]((Get-Item $out).Length / 1KB)
-    Write-Output ("{0,-14} <- {1,-28} -> assets/terrain/{2}{3}.png ({4}KB) [standee H={5}]" -f $Name, (Split-Path $src -Leaf), $Name, $suffix, $kb, $ObjHeight)
+    Write-Output ("{0,-14} <- {1,-28} -> assets/terrain/{2}{3}.png ({4}KB) [standee W={5} H={6}]" -f $Name, (Split-Path $src -Leaf), $Name, $suffix, $kb, $ObjWidth, $bh)
     continue
   }
 

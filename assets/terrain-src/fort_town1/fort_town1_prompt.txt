@@ -1,19 +1,34 @@
-SUBJECT: A small walled TOWN as drawn on the world map of a classic 2D
-role-playing game: the ground seen from directly overhead, but the buildings
-drawn from the front and slightly above, all standing the same way up, facing
-the bottom of the frame — nothing lying flat, no perspective. Six to ten squat
-cottages of rough grey fieldstone with steep slate-and-timber roofs, packed
-shoulder to shoulder at varied sizes and angles (never in rows), one taller hall
-near the middle, cobblestone paving between them, and a low drystone wall around
-the cluster with a simple timber gate at the front. The stone and the slate are
-plain grey with almost no colour in them — neither warm nor cool — and only the
-door and window timbers are a weathered brown. NO ochre, NO warm tan, and NO
-strong red, blue or green anywhere (those colors mark who owns the town). Outside the wall is the same plain grassland as the surrounding
-map: calm short grass on light muted sage green, hex #B4C6A0 — use this exact
-green, carry it out to all four edges, keep it even and low-contrast, and
-scatter only a FEW small grass tufts and tiny pebbles over it, randomly and
-unevenly with bare gaps between them. NO cobbles, paving or bare earth there. Keep the town well inside the frame so
-nothing is lost when the image is cut to a hexagon. Read at thumbnail size, so a
-FEW large legible roof shapes, no fine detail: no picked-out windows, no flags,
-no signage, no people, no carts, no smoke. Flat shading, dim light from above
-and slightly in front, short soft shadows. Square 1:1.
+SUBJECT: A small walled TOWN, drawn as ONE compact block that stands upright and
+faces the viewer, the way a piece stands on a game board.
+
+A low drystone wall of rough grey fieldstone runs across the FRONT of the block,
+with one simple timber gate in the middle of it. Behind that wall, and rising
+well above it, stand six to eight squat cottages of the same rough grey
+fieldstone, packed shoulder to shoulder at varied sizes and slightly varied
+angles — never in a row — with one taller hall near the middle standing head and
+shoulders above the rest. Every building has a steep pitched roof of slate laid
+over timber beams.
+
+THE ROOFS are the most important shapes in the picture: three to five of them
+large and clearly readable, overlapping each other as the buildings step back, so
+that the town reads as a solid mass and not as a flat wall. The whole roofscape
+must be plainly visible from this angle — the game recolours these roofs to show
+who holds the town.
+
+THE FOOT — the base of the drystone wall is a clean, straight, level line across
+the bottom of the object. That line is where the game sets the town on the
+ground. Draw nothing below it.
+
+SIZE AND SHAPE — a chunky block, about as wide as it is tall and never more than
+1.3 times as wide as tall. It is the only object in the picture; it sits in the
+middle with clear space on all four sides and touches no edge.
+
+COLOR — the stone is plain grey with almost no colour in it, neither warm nor
+cool; the slate roofs are the same neutral grey. Only the gate, the doors and the
+roof timbers are weathered brown. NO ochre, NO warm tan, and NO strong red, blue
+or green anywhere: those colours mark who holds the town.
+
+NOTHING ELSE — no ground, no grass, no soil, no paving and no cobbles under or
+around the wall; no people, no animals, no carts, no barrels, no flags, no
+signage, no smoke, no fire. Read at thumbnail size: a few large legible shapes,
+no fine detail, no picked-out windows.
