@@ -5,8 +5,8 @@ class_name MapEditorBoard
 ## セル単位のマウス操作をシグナルで通知する。
 ##
 ## 見た目は実機と同じ画像を貼る（地形＝TerrainSkinCatalog / 駒＝SkinCatalog の autowire 規約）。
-## 画像が無いスキンは色と文字のプレースホルダで描く。編集に要る情報（地形の文字・部隊番号・id・
-## 拠点リング）は画像の上に重ねる。真上から見た平面表示＝段差や傾きは出ない（実機の絵は本体で見る）。
+## 画像が無いスキンは色と文字のプレースホルダで描く。編集に要る情報（地形の文字・マス個別の高さ・
+## 部隊番号・id・拠点リング）は画像の上に重ねる。真上から見た平面表示＝段差や傾きは出ない（実機の絵は本体で見る）。
 
 signal cell_pressed(col: int, row: int, button: int)
 signal cell_dragged(col: int, row: int, button: int)
@@ -290,6 +290,7 @@ func _draw() -> void:
 			_height_color(doc.row_height(row), hover_axis == "row" and hover_index == row))
 	# 地形（タイル画像。無ければ色＋skin_id の文字）。外周(margin)も描くが、盤外と分かるよう薄くする。
 	var skins := doc.terrain_skin_map()
+	var elevations := doc.elevation_override_map()
 	var base_teams := _base_team_map()
 	var m := doc.margin()
 	for row in range(-m, doc.rows() + m):
@@ -320,6 +321,11 @@ func _draw() -> void:
 				# 性能(TerrainType)は絵からは読めないので必ず重ねる。絵の邪魔をしないよう控えめに。
 				_text(font, center, hex_size * -0.35, ch,
 					maxi(8, int(hex_size * 0.42)), Color(1, 1, 1, 0.6 * dim))
+			if elevations.has(cell):
+				# マス個別の高さ上書き（elevation）。地形の文字の下に、番号帯の基準高さと同じ
+				# 琥珀色で出す＝上書きが入っているマスがひと目で分かる（floor は出さない）。
+				_text(font, center, hex_size * 0.14, _fmt_height(float(elevations[cell])),
+					maxi(7, int(hex_size * 0.3)), Color(COLOR_HEIGHT, 0.95 * dim))
 	_draw_board_edge()
 	# 拠点（リング＋種別＋控え数）
 	for b in doc.data["bases"]:

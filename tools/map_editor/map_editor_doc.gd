@@ -344,6 +344,17 @@ func terrain_skin_map() -> Dictionary:
 	return out
 
 
+## 座標→高さ上書きの elevation（float）。ペアが揃っているマスだけ載る。盤の表示用。
+func elevation_override_map() -> Dictionary:
+	var out := {}
+	for e in _skin_entries():
+		var ev: Variant = e.get("elevation")
+		var fl: Variant = e.get("floor")
+		if typeof(ev) in [TYPE_INT, TYPE_FLOAT] and typeof(fl) in [TYPE_INT, TYPE_FLOAT]:
+			out[Vector2i(int(e.get("col", -1)), int(e.get("row", -1)))] = float(ev)
+	return out
+
+
 ## セルの skin_id を設定する。"" は指定の削除＝type の既定スキンに戻す。
 ## 外周のセル（負の col/row・cols()以上）にも書ける＝盤外の座標がそのまま載る。
 ## ov＝マスごとの高さ上書き（{ elevation, floor }。空＝上書きなし＝キーを消す）。上書きはスキンの
