@@ -318,14 +318,6 @@
 - 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
 - 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
 
-### feature-61
-
-**ユニット情報パネルのページャー**（優先度：中）
-
-- 背景：板は固定寸法だが、入り切らない中身はクリップされず板の外へはみ出して描かれる（駒が拠点に乗った状態の地形タブで実測：中身502px に対し板の内側は408px。控えの行が板の下の縁を越えて背景の上に乗る）。控えは体数ぶん伸びるので、控え24件の拠点（`data/stages/tutorial2-undead-rush/st4.json`）では確実に溢れる。
-- 対応：[uiux.md](gdd/uiux.md) のページャーの節に沿って、中身を板の内側でクリップし、下端に木の ◀▶ とページ番号を置く。ページの割りは板に入る高さを実測して詰める（行数の決め打ちはしない）。ユニットのタブと空きマスの地形表示の両方が対象。
-- 該当：`presentation/ui/unit_info_panel.gd`・`presentation/select/tavern_theme.gd`（木のボタン）・`doc/gdd/uiux.md`。
-
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／対応／該当 で記す。

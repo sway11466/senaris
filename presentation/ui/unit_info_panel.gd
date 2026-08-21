@@ -17,6 +17,9 @@ const TAB_MIN_W := 96.0  # タブ1枚の最低幅（戦闘レポートと同じ�
 ## 項目名の欄の幅。タブをまたいで同じ値を使う＝どのタブでも値の頭が同じ位置に並ぶ。
 ## 空白で桁合わせしないのは、看板のフォントが等幅でないため（文字数を数えても揃わない）。
 const LABEL_W := 88.0
+const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
+const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
+const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
 
 ## タブ＝[id, 見出し]。id は _tab_lines の分岐と合わせる。
 const TABS := [["ability", "能力"], ["status", "状態"], ["terrain", "地形"]]
@@ -41,9 +44,16 @@ var _tabs_row: HBoxContainer
 var _tabs := {}         # id -> Button
 var _tab := "ability"   # いま選んでいるタブ。駒を選び直しても保つ＝同じ観点で駒を見比べられる
 var _shown_unit := -1   # タブ表示中の駒（タブを押したときに描き直す相手）。-1＝素のテキスト表示中
-var _rows: VBoxContainer  # ユニット表示の「項目名／値」2列。素のテキスト表示のときは引っ込める
-var _label: Label
-var _report: CombatReportView  # 戦闘レポート（サマリー/詳細タブ）。戦闘時だけ _label と入れ替えて表示
+var _content: Control     # 中身の器。板の内側で切り落とす＝行が板の外へはみ出して描かれない
+var _rows: VBoxContainer  # いま出ているページの行。器いっぱいに広げる
+var _pager: HBoxContainer  # 下端の ◀ 2/3 ▶。1ページのときも場所は空けたまま無効表示にする
+var _prev: Button
+var _next: Button
+var _page_label: Label
+var _items: Array = []  # いま表示している中身の全行（ページ割りの元）。→ _render
+var _page := 0          # 何ページ目を出しているか（0起点）
+var _pages: Array = []  # _items をページに割った結果。ページ数の表示にも使う
+var _report: CombatReportView  # 戦闘レポート（サマリー/詳細タブ）。戦闘時だけ中身と入れ替えて表示
 var _notify_token := 0  # 一時通知の世代。待っている間に別の表示へ変わったら戻さないための印
 
 func _ready() -> void:
@@ -107,22 +117,177 @@ func _ready() -> void:
 		b.pressed.connect(_on_tab_pressed.bind(String(t[0])))
 		_tabs_row.add_child(b)
 		_tabs[String(t[0])] = b
-	# ユニット表示は「項目名／値」の2列。値を同じ位置から始めるので、行ごとの控えではなく
+	# 中身の器。板の内側で切り落とす＝ページ割りが1行ぶんずれても板の外には描かれない。
+	_content = Control.new()
+	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_content.clip_contents = true
+	_content.mouse_filter = Control.MOUSE_FILTER_IGNORE  # ホイールは板（_gui_input）へ通す
+	box.add_child(_content)
+	# 中身は「項目名／値」の2列。値を同じ位置から始めるので、行ごとの控えではなく
 	# 幅を決めた欄に入れる（Label 1枚に空白で詰めても等幅フォントでないため揃わない）。
 	_rows = VBoxContainer.new()
-	_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_rows.add_theme_constant_override("separation", 4)
-	_rows.hide()
-	box.add_child(_rows)
-	_label = Label.new()
-	_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(_label)
+	_rows.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_rows.add_theme_constant_override("separation", ROW_SEP)
+	_rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content.add_child(_rows)
+	# 器の寸法が決まる／変わったら割り直す。板は固定寸法だが、最初の1回はここで確定する。
+	_content.resized.connect(_render)
+	_build_pager(box)
 	_report = CombatReportView.new()
 	_report.hide()
 	add_child(_report)
 	clear()
+
+## 板の下端に据え置く ◀ 2/3 ▶。タブと同じ木のボタンで作る（スクロールバーは材質から浮く）。
+## 1ページしかないときも場所は空けたまま無効表示にする＝駒を選び直すたびに下端が動かない。
+## 仕様 → doc/gdd/uiux.md ページャー
+func _build_pager(box: VBoxContainer) -> void:
+	_pager = HBoxContainer.new()
+	_pager.add_theme_constant_override("separation", 6)
+	_pager.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(_pager)
+	_prev = _pager_button("◀", -1)
+	_page_label = Label.new()
+	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_page_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_page_label.custom_minimum_size = Vector2(64.0, 0)
+	_pager.add_child(_page_label)
+	_next = _pager_button("▶", 1)
+
+func _pager_button(text: String, delta: int) -> Button:
+	var b := TavernTheme.wood_button(text)
+	b.add_theme_font_size_override("font_size", 14)
+	b.custom_minimum_size = Vector2(PAGER_MIN_W, 0)
+	b.pressed.connect(_turn_page.bind(delta))
+	_pager.add_child(b)
+	return b
+
+## ページを送る（範囲外は無視＝端でボタンは無効になっている）。
+func _turn_page(delta: int) -> void:
+	var to := _page + delta
+	if to < 0 or to >= _pages.size():
+		return
+	_page = to
+	_show_page()
+
+## パネルの上でのホイールはページ送り（盤のカメラが動くのはパネルの外だけ）。
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+		match (event as InputEventMouseButton).button_index:
+			MOUSE_BUTTON_WHEEL_DOWN:
+				_turn_page(1)
+				accept_event()
+			MOUSE_BUTTON_WHEEL_UP:
+				_turn_page(-1)
+				accept_event()
+
+# --- 中身とページ割り ---
+# 中身は行の配列（_items）で持ち、ページ1枚ぶんだけを Control にして _rows に並べる。
+# 全部を作ってから隠すのではなく作る行を絞るのは、控えが24体ある拠点でも作る量が一定になるため。
+
+## いまの中身を割り直して表示する。器の寸法が決まった／変わったときにも呼ばれる。
+func _render() -> void:
+	if _rows == null:
+		return
+	_pages = _paginate(_items)
+	_page = clampi(_page, 0, maxi(_pages.size() - 1, 0))
+	_show_page()
+
+## ページ1枚ぶんの行を作り直し、ページャーの表示を合わせる。
+func _show_page() -> void:
+	for c in _rows.get_children():
+		_rows.remove_child(c)  # queue_free 待ちの旧行が新行と同居して1フレーム崩れるのを避ける
+		c.queue_free()
+	if _page < _pages.size():
+		for it in _pages[_page]:
+			_rows.add_child(_make_row(it))
+	var total := maxi(_pages.size(), 1)
+	_page_label.text = "%d/%d" % [_page + 1, total]
+	_prev.disabled = _page <= 0
+	_next.disabled = _page >= total - 1
+
+## 器に入る高さを実測して、入るところまで詰めて次のページへ送る。行数の決め打ちはしない
+## （フォントか板の寸法を変えた時点で破綻する）。仕様 → doc/gdd/uiux.md ページャー
+func _paginate(items: Array) -> Array:
+	if items.is_empty():
+		return []
+	var avail := _content.size.y
+	if avail <= 0.0:
+		return [items]  # 器の寸法がまだ決まっていない（_content.resized で割り直す）
+	var pages: Array = []
+	var cur: Array = []
+	var used := 0.0
+	for it in items:
+		if cur.is_empty() and _is_blank(it):
+			continue  # ページの頭に空行は置かない（前のページとの間合いはページが変わること自体が示す）
+		var h := _item_height(it)
+		var add := h if cur.is_empty() else h + ROW_SEP
+		if not cur.is_empty() and used + add > avail:
+			# 見出し（区切り線・空行・【…】）がページの末尾に残るなら、見出しごと次のページへ送る。
+			var carry: Array = []
+			while cur.size() > 1 and bool((cur[cur.size() - 1] as Dictionary).get("keep", false)):
+				carry.push_front(cur.pop_back())
+			while not carry.is_empty() and _is_blank(carry[0]):
+				carry.pop_front()
+			pages.append(cur)
+			cur = carry
+			used = _stack_height(carry)
+			add = h if cur.is_empty() else h + ROW_SEP
+		cur.append(it)
+		used += add
+	if not cur.is_empty():
+		pages.append(cur)
+	return pages
+
+## 空行か（ページの頭では捨てる）。
+static func _is_blank(item: Dictionary) -> bool:
+	return String(item.get("t", "full")) == "full" and String(item.get("text", "")).is_empty()
+
+## 行を積んだときの高さ（行の間の余白ぶんを含む）。
+func _stack_height(items: Array) -> float:
+	var h := 0.0
+	for it in items:
+		h += _item_height(it)
+	if items.size() > 1:
+		h += ROW_SEP * (items.size() - 1)
+	return h
+
+## 行1つの高さ。折り返しも数える＝長い名前で2行になる行があってもページ割りがずれない。
+func _item_height(item: Dictionary) -> float:
+	var font := get_theme_font("font", "Label")
+	var fs := get_theme_font_size("font_size", "Label")
+	var line := font.get_height(fs)
+	var w := _rows.size.x
+	var text := String(item.get("text", ""))
+	if String(item.get("t", "full")) == "row":
+		w -= LABEL_W + ROW_LABEL_GAP  # 項目名の欄は短い前提＝値の欄の折り返しだけ数える
+		text = String(item.get("value", ""))
+	if text.is_empty() or w <= 0.0:
+		return line
+	var measured := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, w, fs,
+		-1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND).y
+	var count := maxi(1, roundi(measured / line))
+	return line * count + get_theme_constant("line_spacing", "Label") * (count - 1)
+
+## 行1つを Control にする。「項目名／値」の2列か、幅いっぱいの1行か。
+func _make_row(item: Dictionary) -> Control:
+	if String(item.get("t", "full")) != "row":
+		var full := Label.new()
+		full.text = String(item.get("text", ""))
+		full.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		return full
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", ROW_LABEL_GAP)
+	var l := Label.new()
+	l.text = String(item.get("label", ""))
+	l.custom_minimum_size = Vector2(LABEL_W, 0)
+	row.add_child(l)
+	var v := Label.new()
+	v.text = String(item.get("value", ""))
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.add_child(v)
+	return row
 
 ## 状態とスキン表を渡す（main から1回）。
 func bind(state: BattleState, skin_catalog: Dictionary) -> void:
@@ -157,9 +322,9 @@ func show_unit(unit_id: int) -> void:
 	var b: Button = _tabs[_tab]
 	b.button_pressed = true
 	_tabs_row.show()
-	_label.hide()
+	_content.show()
+	_pager.show()
 	_rebuild_rows(u, _tab)
-	_rows.show()
 
 ## タブを押した＝表示中の駒をそのタブで描き直す。
 func _on_tab_pressed(id: String) -> void:
@@ -188,17 +353,22 @@ func show_terrain(hex: Vector2i) -> void:
 	_show_text(_format_terrain(hex))
 
 ## 素のテキスト表示（未選択・通知・地形）。見出しとタブは引っ込める＝ユニット専用の器なので。
+## 1行ずつに割ってから積む＝長い地形の説明もページャーで送れる（表示の仕組みはタブと共通）。
 func _show_text(text: String) -> void:
-	if _label == null:
+	if _rows == null:
 		return
 	if _report != null:
 		_report.hide()
 	_shown_unit = -1
 	_header.hide()
 	_tabs_row.hide()
-	_rows.hide()
-	_label.text = text
-	_label.show()
+	_content.show()
+	_pager.show()
+	_items = []
+	for line in text.split("\n"):
+		_add_full_row(line)
+	_page = 0
+	_render()
 
 ## グループの切れ目。線の上に余白を1行取り、下は空けない＝線をその下のグループの見出し罫として
 ## 読ませる。板の高さは決め打ち（UiLayout.RIGHT_BOX）で、上下に空けると素の駒でも入りきらない。
@@ -242,8 +412,8 @@ func _format_terrain(hex: Vector2i) -> String:
 ## そのマスへの進入コストの一覧（見出し＋移動タイプ1行ずつ）。並びは movement.csv の行順で、
 ## 常に全移動タイプを出す＝行の並びがステージやマスで変わらない。仕様 → doc/gdd/uiux.md
 ## 項目名の欄は全角スペースで詰める（看板のフォントは等幅でないが、和文グリフは同幅なので揃う）。
-## ユニットの地形タブでもこの塊をそのまま1枚のラベルに流す＝字面が空きマスの表示と揃い、
-## 行ごとの余白も入らない（項目名／値の2列に割ると7行ぶんの余白で板からはみ出す）。
+## 2列の行ではなく1行のテキストにしているのは、ユニットの地形タブと空きマスの表示で
+## 同じ字面を使うため。ページ割りは1行ずつなので、途中で切れても次のページへ続く。
 func _movement_cost_lines(terrain_id: String) -> Array[String]:
 	var table := _state.movement_table()
 	var names: Array[String] = []
@@ -327,11 +497,9 @@ func _ai_icon_texture(id: String) -> Texture2D:
 
 # --- タブの中身（項目名／値の2列）。値の頭は LABEL_W でタブをまたいで揃う ---
 
-## いま選んでいるタブの行を組み直す。
+## いま選んでいるタブの中身を組み直して1ページ目から出す。
 func _rebuild_rows(u: Unit, tab: String) -> void:
-	for c in _rows.get_children():
-		_rows.remove_child(c)  # queue_free 待ちの旧行が新行と同居して1フレーム崩れるのを避ける
-		c.queue_free()
+	_items = []
 	match tab:
 		"status":
 			_build_status(u)
@@ -339,28 +507,22 @@ func _rebuild_rows(u: Unit, tab: String) -> void:
 			_build_terrain(u)
 		_:
 			_build_ability(u)
+	_page = 0
+	_render()
 
 ## 項目1つ＝「項目名（幅固定）／値」の1行。
 func _add_row(label: String, value: String) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	var l := Label.new()
-	l.text = label
-	l.custom_minimum_size = Vector2(LABEL_W, 0)
-	row.add_child(l)
-	var v := Label.new()
-	v.text = value
-	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	row.add_child(v)
-	_rows.add_child(row)
+	_items.append({"t": "row", "label": label, "value": value})
 
 ## 幅いっぱいの1行（区切り線・控えの箇条書きなど、項目名／値に割れないもの）。
 func _add_full_row(text: String) -> void:
-	var l := Label.new()
-	l.text = text
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_rows.add_child(l)
+	_items.append(_full_item(text))
+
+## 全幅1行の行データ。区切り線・その上の空行・【…】の見出しには、ページの末尾に
+## 取り残さない印（keep）を付ける＝入らなければ見出しごと次のページへ送られる。
+static func _full_item(text: String) -> Dictionary:
+	var keep := text.is_empty() or text == SEPARATOR or text.begins_with("【")
+	return {"t": "full", "text": text, "keep": keep}
 
 ## 能力＝駒そのものの性能（盤の状況で変わらない値）。
 func _build_ability(u: Unit) -> void:
@@ -411,7 +573,8 @@ func _build_terrain(u: Unit) -> void:
 	_add_row("防御補正", "×%.2f" % TerrainType.defense_factor(terr))
 	_add_full_row("")
 	_add_full_row(SEPARATOR)
-	_add_full_row("\n".join(_movement_cost_lines(terr)))
+	for line in _movement_cost_lines(terr):
+		_add_full_row(line)
 	# 控えは体数ぶん伸びるので最後（_format_terrain と同じ順序）。
 	var b := _state.base_at(u.pos)
 	if b == null:
@@ -447,6 +610,7 @@ func show_combat(detail: Dictionary) -> void:
 	_shown_unit = -1
 	_header.hide()
 	_tabs_row.hide()
-	_label.hide()
+	_content.hide()
+	_pager.hide()
 	_report.show()
 	_report.show_report(detail)
