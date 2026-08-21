@@ -1041,6 +1041,91 @@ func test_flee_waits_when_no_base_exists() -> void:
 	_pc(s, 1, 8, 2)
 	assert_null(_brain.next_action(s, 1), "拠点が無ければ待機")
 
+# --- withdraw（撤退） ---
+
+func test_withdraw_fights_like_charge_when_healthy() -> void:
+	# 損耗が retreat 未満なら突撃と同じ＝自陣営の拠点があっても前へ出て殴る。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	_ai(s, si, 10, 4, 2)
+	var e := _pc(s, 1, 4, 1)  # 隣接
+	s.add_base(Base.new(Hex.offset_to_axial(8, 2), 1))  # 自陣営の拠点
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "無傷なら殴る")
+	assert_eq(a.target_id, e.id)
+
+func test_withdraw_falls_back_before_attacking() -> void:
+	# 損耗 ≧ retreat（既定50）なら退く行が攻撃より上＝隣に敵がいても拠点へ下がる。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	var u := _ai(s, si, 10, 5, 1)
+	_hurt(u, 4)  # 満員8 → 4 = 損耗50%
+	_pc(s, 1, 4, 1)  # 隣接（拠点とは反対の西側）
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 1))  # 自陣営の拠点
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "殴らずに下がる")
+	assert_gt(_col(a.to), 5, "自陣営拠点（東）へ向かう")
+
+func test_withdraw_attacks_when_it_cannot_fall_back() -> void:
+	# 移動を使い切った駒は移動を伴う行を飛ばす＝退く行は通らず攻撃の行が拾う。
+	# 下がった先から届く敵を同じ手番で撃つのがこの落ち方（doc/gdd/ai.md withdraw の注記）。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	var u := _ai(s, si, 10, 5, 1, 0)  # 移動0
+	_hurt(u, 4)
+	var e := _pc(s, 1, 4, 1)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 1))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "下がれないなら殴る")
+	assert_eq(a.target_id, e.id)
+
+func test_withdraw_enters_friendly_base_when_damaged_and_on_base() -> void:
+	# 損耗状態で自陣営の拠点hexにいれば「入る」（回復して出直す）。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	s.add_base(Base.new(Hex.offset_to_axial(4, 2), 1))
+	var u := _ai(s, si, 10, 4, 2)
+	_hurt(u, 4)
+	_ai(s, si, 11, 6, 2)  # 盤上最後の1体＝入ると全滅になるので、もう1体置く
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入る")
+	assert_eq(a.unit_id, 10)
+
+func test_withdraw_fights_on_when_no_friendly_base_exists() -> void:
+	# 帰る先が無ければ退く行は通らない＝突撃として戦う。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	var u := _ai(s, si, 10, 4, 2)
+	_hurt(u, 4)
+	var e := _pc(s, 1, 4, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "退けないなら諦めて殴る")
+	assert_eq(a.target_id, e.id)
+
+## 幅2の通路の片側を敵が塞ぎ、残る1マスはその敵のZOC。西端に損耗50%の駒、東端に自陣営の拠点。
+func _zoc_lane(trait_id: String) -> BattleState:
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2, 3])
+	var si := _squad(s, trait_id)
+	_hurt(_ai(s, si, 10, 3, 2), 4)
+	_pc(s, 1, 5, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 1))
+	return s
+
+func test_withdraw_walks_into_zoc_unlike_flee() -> void:
+	# 帰り道は最大前進＝敵ZOCを避けない。踏み込めばそこで移動が終わる（＝帯で足を止められる）。
+	# 同じ盤で flee は迂回距離が測れず待機する。この差が2つの特性の性格の違い。
+	var a := _brain.next_action(_zoc_lane("withdraw"), 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "ZOCを避けずに進む")
+	assert_gt(_col(a.to), 3, "拠点（東）へ近づく")
+	assert_null(_brain.next_action(_zoc_lane("flee"), 1), "flee は同じ盤で待機する")
+
 # --- 空敵（対空得意な駒の標的優先） ---
 
 ## 飛行の駒（team 0）。対空攻撃力を持つ駒だけが触れる相手。

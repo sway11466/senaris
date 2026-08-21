@@ -41,6 +41,12 @@
 			"retreat": "-",
 			"sight": "*",
 			"stack": "-"
+		},
+		"withdraw": {
+			"name": "撤退",
+			"retreat": 50,
+			"sight": "-",
+			"stack": "-"
 		}
 	}
 }

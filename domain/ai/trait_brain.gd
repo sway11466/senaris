@@ -13,7 +13,7 @@ class_name TraitBrain
 var presets := {}
 
 ## 実装済みの特性id。部隊が未知の値・特性なしなら charge として扱う。
-const TRAITS := ["charge", "ambush", "raid", "weak", "swarm", "flee", "preempt"]
+const TRAITS := ["charge", "ambush", "raid", "weak", "swarm", "flee", "withdraw", "preempt"]
 const DEFAULT_TRAIT := "charge"
 
 ## 輸送ユニット（特殊特性）＝搭載数がこの値以上の駒。特性に重ねて働き、ステージデータには書かない
@@ -258,6 +258,8 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 			return _swarm_action(state, u)
 		"flee":
 			return _flee_action(state, u)
+		"withdraw":
+			return _withdraw_action(state, u)
 		"preempt":
 			return _preempt_action(state, u)
 	return _charge_action(state, u)  # charge / ambush は動き出したあとの行が同じ
@@ -987,6 +989,43 @@ func _detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiA
 	if goal == NO_HEX:
 		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている → 待機
 	return _advance(state, u, state.detour_cost_field(u.id, goal), [goal])
+
+# --- withdraw（撤退）の行動ルール（doc/gdd/ai.md withdraw） ---
+
+## withdraw（撤退）の行動ルール。突撃と同じく前へ出るが、削られたら拠点へ退いて回復し、また出てくる。
+## 1 占領兵で、移動範囲に自陣営以外の拠点 → 占領
+## 2 損耗 ≧ retreat で、自陣営の拠点hexにいる → 拠点に入る
+## 3 損耗 ≧ retreat で、移動距離が測れる自陣営拠点 → 移動距離が最小の自陣営拠点へ最大前進
+## 4〜9 突撃と同じ（_charge_action）
+##
+## 2・3 を攻撃より上に置くのは、下に置くと退けないため。攻撃した駒はその時点で手番が終わるので、
+## 退く行が攻撃より下だと、射程内に敵がいるかぎり殴り続けて拠点へ戻らない。上に置けば 3 で下がった
+## あとに表を上から当て直し、移動を伴う行は飛ばされて攻撃の行が拾う＝退きながら撃ち返す。
+##
+## 帰り道は最大前進（移動距離）で敵ZOCを避けない（flee の回り込みとの差）。ZOCマスに入れば移動が
+## 終わるので、プレイヤーはZOCの帯で足を止められる。自陣営の拠点が無い・道が塞がれて測れない・
+## 縮むマスが無いときは 2・3 が通らず突撃として戦う＝退けないなら諦めて殴る。
+func _withdraw_action(state: BattleState, u: Unit) -> AiAction:
+	var row := _capture_row(state, u)
+	if row != null:
+		return row
+	if _damage_percent(u) >= _retreat_percent(_param(state, u, "retreat")):
+		if state.can_enter_base(u.id):
+			return AiAction.enter_base(u.id)
+		if _can_advance(state, u):
+			row = _move_to_base(state, u, _friendly_base_hexes(state, u))
+			if row != null:
+				return row
+	return _charge_action(state, u)
+
+## 最大前進（移動距離）で拠点へ向かう1手。測れる拠点が無ければ null＝この行は通らない。
+func _move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
+	if goals.is_empty():
+		return null
+	var goal := _nearest_hex_in(state.move_cost_field(u.id, u.pos), goals)
+	if goal == NO_HEX:
+		return null  # 移動距離が測れない＝道が塞がれている
+	return _advance(state, u, state.move_cost_field(u.id, goal), [goal])
 
 ## preempt（先制）の行動ルール。先手を取れる距離まで詰めて、そこを保つ。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
