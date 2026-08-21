@@ -1,6 +1,7 @@
 SAME town as the previous image — identical layout, identical buildings, wall,
 gate and timbers, standing the same way on the same pure-white background, with
 the same straight line at the base of the wall. Change ONLY the roofs: recolour
-every roof to dark red-brown clay tile, clearly red-leaning but still muted and
-dark, not bright, not saturated. Leave the stonework and the timber exactly as
-they are.
+every roof to dark red-brown clay tile — base tone #6D584F, shadowed slopes
+#563E37, catch-light #856157. Clearly red-leaning but still muted and dark, not
+bright, not saturated. Hold those numbers exactly: a later picture in this set
+has to match this red. Leave the stonework and the timber exactly as they are.

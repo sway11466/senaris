@@ -28,7 +28,12 @@ var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（永続・
 var _current_stage_path := ""
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
-var _save_store: SaveStore = null  # 中断セーブ（盤の状態まるごと・1枠）。user://save.json
+var _saves: SaveSlots = null  # 中断セーブ5枠＋オートセーブ1枠。user://save_1.json … save_auto.json
+var _slot_panel: SaveSlotPanel = null  # 枠一覧（セーブ/ロード共通・盤とタイトルの両方から出す）
+var _slot_intent := ""  # 枠一覧をどちらの用で開いたか（"save"/"load"）＝選ばれた枠の使い道
+## 自ターン開始時点の盤（BattleState.to_dict）。中断セーブ・オートセーブはこれを書く
+## ＝操作の途中でセーブしてもターンの頭に戻る（実質的なアンドゥ）。仕様 → doc/tech/gamesystem.md
+var _turn_snapshot := {}
 var _select: SelectScreen = null
 var _title: TitleScreen = null  # 起動時のタイトル画面（酒場の扉）。閉じたらセレクトを開く
 ## タイトルを抜けるまで true。下敷きステージ（セレクトの背景）の曲がタイトルのざわめきを
@@ -82,8 +87,9 @@ func _ready() -> void:
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
-	_save_store = SaveStore.new()  # 中断セーブ（user://save.json）
-	_hud.set_load_available(_save_store.has_save())  # 起動時に中断セーブが在ればロードを有効化
+	_saves = SaveSlots.new()  # 中断セーブ5枠＋オートセーブ1枠
+	_install_slot_panel()  # 枠一覧（セーブ/ロード）。HUD・タイトルの両方から開く
+	_hud.set_load_available(_saves.has_any())  # 起動時にセーブが1枠でも在ればロードを有効化
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 生成と配線だけ。開くのはタイトルで扉をくぐってから
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
@@ -148,6 +154,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_update_aura()  # 加護の光（中断セーブ復元で効果が残っていることがある）
 	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
+	if state.current_team == 0:
+		_take_turn_snapshot()  # ステージの頭＝自ターン開始時点。ここでオートセーブも入る
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
 
 ## AIターンのテンポ制御（controller.combat_pace）：演出が出ていれば閉じるまで待つ。
@@ -171,6 +179,8 @@ func _on_turn_changed(team: int, turn_number: int) -> void:
 	_update_aura()  # ターン開始で持続が減る＝ここで切れることがある
 	SfxPlayer.play_event("map_turn_player" if team == 0 else "map_turn_enemy")
 	_show_turn_banner(team)
+	if team == 0:
+		_take_turn_snapshot()  # 自ターンの頭を控える＝以後のセーブはここへ戻る／オートセーブも入る
 
 ## ターンの切り替わりを見せる横帯。自分のターンは操作を受け付けたまま（クリック等で即消し）、
 ## 敵のターンは turn_start_pace で待たせる＝1手も動かないターンでも見える。仕様 → doc/gdd/uiux.md
@@ -611,24 +621,72 @@ func _on_wipe_enemies_requested() -> void:
 	_controller.wipe_enemies()
 	$HexBoard.refresh()  # 盤は攻撃イベントで作り直す作り＝殲滅はそれを経ないので明示的に更新する
 
-## 中断セーブ：現在の盤の状態まるごとを保存する（1枠・上書き）。文脈メタ（冒険譚/ステージ）も添える。
-## 状態が真実なのでターン・位置・損耗・行動フラグごと再現できる（BattleState.to_dict）。詳細 → doc/tech/gamesystem.md
-func _on_save_requested() -> void:
-	if _save_store == null or _controller == null:
+# --- 中断セーブ／オートセーブ。仕様 → doc/tech/gamesystem.md ---
+## 自ターン開始時点の盤を控える（＝セーブが書く中身）。同じ瞬間にオートセーブも上書きする。
+## 状態が真実なのでターン・位置・損耗・行動フラグごと再現できる（BattleState.to_dict）。
+## 冒険譚の外（セレクトの下敷き）ではオートセーブを書かない＝一覧に行き先の無い盤を並べない。
+func _take_turn_snapshot() -> void:
+	if _controller == null:
 		return
-	var meta := {
+	_turn_snapshot = _controller.state.to_dict()
+	if _saves == null or _current_campaign_id.is_empty():
+		return
+	_saves.save_slot(SaveSlots.AUTO, _turn_snapshot, _snapshot_meta())
+	_hud.set_load_available(true)
+
+## セーブに添える文脈メタ（一覧の表示材料＋再開に要るステージパス）。
+## 冒険譚名・ステージ名は翻訳キーのまま持つ＝言語を変えても一覧がその言語で出る。
+func _snapshot_meta() -> Dictionary:
+	var campaign := _progress.campaign(_current_campaign_id) if _progress != null else {}
+	var stage_title := ""
+	for s in campaign.get("stages", []):
+		if String(s.get("id", "")) == _current_stage_id:
+			stage_title = String(s.get("title", ""))
+			break
+	return {
 		"campaign_id": _current_campaign_id, "stage_id": _current_stage_id,
 		"stage_path": _current_stage_path,
+		"campaign_title": String(campaign.get("title", "")), "stage_title": stage_title,
+		"turn_number": int(_turn_snapshot.get("turn_number", 0)),
+		"saved_at": Time.get_datetime_string_from_system(false, true),
 	}
-	_save_store.save(_controller.state.to_dict(), meta)
+
+## システムメニュー「セーブ」＝保存先の枠を選ばせる（書くのは _write_slot）。
+func _on_save_requested() -> void:
+	if _saves == null or _turn_snapshot.is_empty():
+		return
+	_slot_intent = "save"
+	_slot_panel.open_save(_saves)
+
+## システムメニュー「ロード」＝読み出す枠を選ばせる。盤が出ているので失われる旨の確認を挟む。
+func _on_load_requested() -> void:
+	if _saves == null or not _saves.has_any():
+		return
+	_slot_intent = "load"
+	_slot_panel.open_load(_saves, "ロード", true)
+
+func _install_slot_panel() -> void:
+	_slot_panel = SaveSlotPanel.new()
+	_slot_panel.name = "SaveSlotPanel"
+	add_child(_slot_panel)
+	_slot_panel.slot_chosen.connect(_on_slot_chosen)
+
+func _on_slot_chosen(slot: String) -> void:
+	if _slot_intent == "save":
+		_write_slot(slot)
+	else:
+		_load_slot(slot)
+
+## 選ばれた枠へ書く。中身は自ターン開始時点のスナップショット（操作の途中でも頭に戻る）。
+func _write_slot(slot: String) -> void:
+	_saves.save_slot(slot, _turn_snapshot, _snapshot_meta())
 	_hud.set_load_available(true)  # 以後ロード可能に
 	$Front/InfoPanel.notify("セーブしました")  # 一時通知は右パネルへ（上端の情報バーは廃止）
 
-## 中断セーブから再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
-func _on_load_requested() -> void:
-	if _save_store == null:
-		return
-	var data := _save_store.load()
+## 選ばれた枠から再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
+## タイトルから来た場合はここでタイトルを畳む＝盤へ直行する。
+func _load_slot(slot: String) -> void:
+	var data := _saves.load_slot(slot)
 	if data.is_empty():
 		return
 	var state := BattleState.from_dict(data["state"], UnitCatalog.load_default())
@@ -637,6 +695,9 @@ func _on_load_requested() -> void:
 	var meta: Dictionary = data.get("meta", {})
 	_current_campaign_id = String(meta.get("campaign_id", ""))
 	_current_stage_id = String(meta.get("stage_id", ""))
+	if _title != null and _title.visible:
+		_title_pending = false  # 以後は盤の曲が主＝ざわめきのガードを解く
+		_title.close()
 	_install_state(state, String(meta.get("stage_path", "")))  # 盤・進行役を保存状態で据える（intro なし）
 
 # --- セレクト画面（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
@@ -666,7 +727,7 @@ func _install_title() -> void:
 	if _bgm != null:
 		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
 		_bgm.play(BgmDirector.TITLE_TRACK, TITLE_BGM_FADE_IN)
-	_title.play(_save_store != null and _save_store.has_save())
+	_title.play(_saves != null and _saves.has_any())
 
 ## 扉が開き始めた＝遮っていたものが無くなる。こもりを扉の動きと同じ時間で解く。
 func _on_title_door_opening() -> void:
@@ -680,15 +741,17 @@ func _on_title_menu_shown() -> void:
 	_bgm.open_up(0.0)  # スキップで開き切っていない場合の後始末（挿しっぱなしを残さない）
 	_bgm.play(BgmDirector.MENU_TRACK, TITLE_MENU_FADE, TITLE_MENU_FADE)
 
-## 冒険の続き＝中断セーブから盤へ直行（セレクトは開かない）。曲はステージのものに張り替わる。
-## 項目はセーブが在るときだけ出るが、読めなかったときは行き先が無くなるのでセレクトへ落とす。
+## 冒険の続き＝オートセーブ1枠＋中断5枠の一覧を出し、選ばれた枠から盤へ直行する（セレクトは開かない）。
+## タイトルは畳まずに一覧を重ねる＝やめれば元のメニューに戻る。畳むのは枠が決まってから（_load_slot）。
+## 項目はセーブが在るときだけ押せるが、その間に消えていれば行き先が無いのでセレクトへ落とす。
 func _on_title_continue() -> void:
-	_title_pending = false  # 以後は盤・セレクトの曲が主＝ざわめきのガードを解く
-	_title.close()
-	if _save_store != null and _save_store.has_save():
-		_on_load_requested()
-	else:
+	if _saves == null or not _saves.has_any():
+		_title_pending = false
+		_title.close()
 		_select.open()
+		return
+	_slot_intent = "load"
+	_slot_panel.open_load(_saves, "冒険の続き", false)  # 盤はまだ出ていない＝失う物が無いので確認は挟まない
 
 ## 新しい冒険譚＝セレクトへ。曲は既に menu なので _on_select_opened の play は空振りする。
 func _on_title_new_game() -> void:
@@ -705,7 +768,7 @@ func _on_title_quit() -> void:
 ## 中断セーブの有無はここで取り直す＝遊んでいる間にセーブしていれば「冒険の続き」が有効になる。
 func _on_select_title_requested() -> void:
 	_select.close()
-	_title.reopen(_save_store != null and _save_store.has_save())
+	_title.reopen(_saves != null and _saves.has_any())
 
 ## セレクトを開いた＝ステージ外の場面。盤（下敷き）は残るがBGMはメニュー曲に戻す。
 func _on_select_opened() -> void:

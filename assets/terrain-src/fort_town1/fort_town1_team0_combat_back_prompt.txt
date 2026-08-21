@@ -1,0 +1,8 @@
+SAME street as the previous image — identical houses, identical lane, identical
+layout, the same square frame with the town filling the bottom half edge to
+edge, the same white above the roofline. Change ONLY the roofs: recolour every
+roof to the SAME deep blue-grey slate the map piece was given — base tone
+#575A5E, shadowed slopes #3D454C, catch-light #6E747A. Match those numbers
+exactly; this street and that map piece must read as the same town in the same
+hands. Leave the stonework, the doors, the shutters and the timber exactly as
+they are.

@@ -1,6 +1,7 @@
 SAME town as the previous image — identical layout, identical buildings, wall,
 gate and timbers, standing the same way on the same pure-white background, with
 the same straight line at the base of the wall. Change ONLY the roofs: recolour
-every roof to deep blue-grey slate, clearly blue-leaning but still muted and
-dark, not bright, not saturated. Leave the stonework and the timber exactly as
-they are.
+every roof to deep blue-grey slate — base tone #575A5E, shadowed slopes #3D454C,
+catch-light #6E747A. Clearly blue-leaning but still muted and dark, not bright,
+not saturated. Hold those numbers exactly: a later picture in this set has to
+match this blue. Leave the stonework and the timber exactly as they are.

@@ -1,46 +1,73 @@
-SUBJECT: The same stone TOWN as the board piece, drawn as a WIDE BAND of
-backdrop that fills the defender's half of the battle window. It is not a
-single object standing in the middle of the frame — it is a stretch of the town
+SUBJECT: The INSIDE of the same stone TOWN, seen from the street — a WIDE BAND
+of backdrop that stands behind the fighting in a battle window. It is not a
+single object standing in the middle of the frame; it is a stretch of one street
 seen close, running off the left edge of the picture.
 
-Across the whole width runs the town's drystone wall of rough grey fieldstone,
-with one simple timber gate, shut, a little left of centre. Behind and above the
-wall the town rises: squat cottages of the same rough grey fieldstone, packed
-shoulder to shoulder at varied sizes and slightly varied angles — never in a row
-— with one taller hall standing head and shoulders above the rest. Every
-building has a steep pitched roof of slate laid over timber beams. Nothing
-pokes above the top edge; leave a little clear space over the highest roof.
+THERE IS NO TOWN WALL AND NO GATE in this picture. The battle happens inside the
+town, so what stands behind the soldiers is the houses that line the street.
+
+WHAT IS IN IT — a row of squat cottages of rough grey fieldstone, packed
+shoulder to shoulder along the far side of a street, their front walls facing
+the viewer. Each has a steep pitched roof of slate laid over timber beams, a
+plain timber door, and one or two small shuttered windows. Heights and widths
+vary and the fronts step slightly in and out — never a flat even row. One taller
+hall stands head and shoulders above the rest.
+
+THE LANE — a narrow lane runs back between the houses into the distance, its
+mouth about a third of the way in from the RIGHT end of the picture. Inside the
+lane the walls close in and the buildings get smaller and darker as they recede,
+so the town plainly continues past this row. This gap is what makes the picture
+read as a street rather than a solid wall of buildings. The floor of the lane
+may be seen inside the gap; nowhere else is any ground drawn.
+
+THE ROOFS are the most important shapes: three to five of them large and clearly
+readable, overlapping each other as the houses step back. The whole roofscape
+must be plainly visible from this angle — the game recolours these roofs to show
+who holds the town. Nothing pokes above the top of the band; leave a little
+clear space over the highest roof.
 
 THE TWO ENDS ARE DIFFERENT — this is the most important thing.
-- LEFT end: the wall and the town run straight off the edge of the picture and
-  are cut by it. Nothing tapers, nothing ends, nothing is rounded off there.
+- LEFT end: the row of houses runs straight off the edge of the picture and is
+  cut by it. Nothing tapers, nothing ends, nothing is rounded off there.
 - RIGHT end: the town has to finish inside the picture. Finish it honestly: the
-  wall turns a corner and runs away from the viewer, the cottages behind it get
-  smaller and lower as they recede, and the last of them fades out. Do NOT stop
-  the wall in mid-air with a raw broken end.
+  last house turns its corner and the row runs away from the viewer, the
+  buildings behind it getting smaller and lower as they recede, and the last of
+  them fading out. Do NOT stop the row in mid-air with a raw broken end.
 
-SHAPE — a wide band, about twice as wide as it is tall. Fill the frame side to
-side; do not leave white margins at the left or right.
+SHAPE AND PLACE IN THE FRAME — the picture is square. The band of town fills the
+BOTTOM HALF of it, edge to edge: twice as wide as it is tall. In a 1024-pixel
+picture the town is about 512 pixels tall and 1024 pixels wide. It touches the
+left edge, the right edge and the bottom edge. Everything above it is background
+(see below).
 
-THE BOTTOM EDGE — the base of the wall is cut flat by the bottom edge of the
-picture. Draw nothing below it: no ground, no grass, no soil, no paving, no cast
-shadow. Soldiers will stand in front of the wall and their heads will overlap
-its base.
+THE BOTTOM EDGE — the front walls of the houses are cut flat by the bottom edge
+of the picture. Draw nothing below them: no street surface, no cobbles, no
+paving, no ground, no grass, no soil, no cast shadow. The walls must run all the
+way down to the very bottom edge and be cut by it — no strip of background along
+the bottom. Soldiers will stand in front of the houses and their heads will
+overlap the bottom of the walls.
 
 VIEWING ANGLE — seen from a slight high three-quarter angle, as if looking down
-onto the battlefield from above and in front, but much closer than a map: the
-wall faces, the gate and the front walls of the nearest cottages are clearly
-readable, and the roofs are still fully in view above them.
+onto the street from above and in front, but much closer than a map: the front
+walls, the doors and the mouth of the lane are clearly readable, and the roofs
+are still fully in view above them.
 
 COLOR — the stone is plain grey with almost no colour in it, neither warm nor
-cool; the slate roofs are the same neutral grey. Only the gate, the doors and
-the roof timbers are weathered brown. NO ochre, NO warm tan, and NO strong red,
-blue or green anywhere.
+cool. The slate roofs are the SAME neutral grey as the town on the map piece:
+base tone #6E6D6B, lighter #9B9995 where the light catches the slope, darker
+#4D4C4A in shadow. Match those numbers. Only the doors, the shutters and the
+roof timbers are weathered brown. NO ochre, NO warm tan, and NO strong red, blue
+or green anywhere: those colours mark who holds the town.
+
+THE BACKGROUND — everything above the roofline is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO sky, NO clouds. This white is going to be
+deleted, so the roofline must be a hard, clean, crisp edge against it. Nothing in
+the town may be white or near-white.
 
 NOTHING ELSE — no people, no animals, no carts, no barrels, no flags, no
-signage, no smoke, no fire, no birds, no sky.
+signage, no smoke, no fire, no birds, no washing lines, no market stalls.
 
 This is a near view, so a little more detail than the map piece is welcome — the
-courses of the stonework, the boards of the gate, the ridge line of a roof — but
+courses of the stonework, the boards of a door, the ridge line of a roof — but
 keep it in bold flat shapes, with no fine texture that would fight with the
 figures standing in front of it.
