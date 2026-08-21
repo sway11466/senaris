@@ -101,11 +101,15 @@ $ObjWidth  = 0
 if ($Object) {
   if ($Fit -or $Upright) { throw "-Object cannot be combined with -Fit / -Upright" }
   $csv = Join-Path $repo "data\terrain\terrain_skin.csv"
-  $row = Import-Csv -Path $csv -Encoding UTF8 | Where-Object { $_.skin_id -eq $Name } | Select-Object -First 1
-  if (-not $row) { throw "$Name is not a skin_id in data/terrain/terrain_skin.csv" }
+  # A captured base has one image per owning team (<skin>_team0.png, _team1.png) but only one CSV
+  # row: the board swaps the image, not the skin. Look the scale up under the base name so every
+  # team image comes out at exactly the same size and the swap does not make the object jump.
+  $scaleKey = $Name -replace "_team[0-9]+$", ""
+  $row = Import-Csv -Path $csv -Encoding UTF8 | Where-Object { $_.skin_id -eq $scaleKey } | Select-Object -First 1
+  if (-not $row) { throw "$scaleKey is not a skin_id in data/terrain/terrain_skin.csv" }
   # No fallback on purpose: a missing scale would silently ship a full-size object.
   if ($row.map_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.map_scale -le 0) {
-    throw "$Name has no map_scale in terrain_skin.csv (found '$($row.map_scale)'). Fill the column."
+    throw "$scaleKey has no map_scale in terrain_skin.csv (found '$($row.map_scale)'). Fill the column."
   }
   $ObjWidth = [int][math]::Round($ObjBase * [double]$row.map_scale)
 }

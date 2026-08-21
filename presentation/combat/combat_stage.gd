@@ -84,6 +84,7 @@ const BAR_EDGE := Color(0, 0, 0, 0.65)
 
 var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
+var _state: BattleState = null  # 盤の状態（main が結線）。重ね絵を出すとき拠点の持ち主を引く
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。_open で暗転・_close_now で明ける
 var _panel: Control       # 中央のモーダル窓（角を丸めた横長の矩形。中身のクリップ元も兼ねる）
@@ -220,6 +221,11 @@ func bind_screen(screen: ScreenLighting) -> void:
 func bind_terrain_skins(terrain_skins: Dictionary) -> void:
 	_terrain_skins = terrain_skins
 
+## 盤の状態。重ね絵を「誰が持っている拠点か」で選ぶのに使う。占領で変わるので、
+## 読むのは開くたび＝ここでは参照だけ持つ（ステージごとに作り直すので load_stage が呼ぶ）。
+func bind_state(state: BattleState) -> void:
+	_state = state
+
 ## 舞台を開く。ground＝重ね絵を出す側の駒（戦闘は守り手／スキルは対象）、ground_side＝その駒を
 ## 置く側、other＝反対側の駒。地面は左右半分に分け、それぞれの駒のマスのスキンで敷く。
 ## 進行（誰がいつ動くか）は継承側の play() が持つ。ここは幕が上がるところまで。
@@ -244,7 +250,7 @@ func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 	_clear(_feature)
 	_clear(_feature_front)
 	if skin != null:
-		_add_features(skin, ground_side)
+		_add_features(skin, ground_side, _base_team_of(ground))
 	if _screen != null:
 		_screen.dim(self)  # 暗転は共通基盤（フェードはあちら持ち）。窓のワイプとほぼ同時に走る
 	_start_open_anim()
@@ -272,8 +278,8 @@ func _start_open_anim() -> void:
 ## スキンから引き、置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。
 ## 3Dの帯には混ぜない＝奥へ行くほど縮む帯の倍率と靄を受けないので、いつも同じ大きさで読める。
 ## 仕様 → doc/tech/combat_scene.md
-func _add_features(skin: TerrainSkin, side: String) -> void:
-	var back := _feature_texture(skin, "back")
+func _add_features(skin: TerrainSkin, side: String, team: int) -> void:
+	var back := _feature_texture(skin, "back", team)
 	if back != null:
 		# 守り手側の半面に渡す帯。幅で合わせ、高さは絵の縦横比が決める（横幅が決まっている以上、
 		# 縦を別に指定すると絵が歪む）。隊列の頭が下辺に少し被る高さに置く＝前後関係が出る。
@@ -288,7 +294,7 @@ func _add_features(skin: TerrainSkin, side: String) -> void:
 		var rect := _feature_rect(back, Vector2(x, bottom - h), Vector2(w, h))
 		rect.flip_h = side == "R"  # 絵は左陣営向きに描く＝外側（窓の端）へ抜ける側を左に
 		_feature.add_child(rect)
-	var line := _feature_texture(skin, "line")
+	var line := _feature_texture(skin, "line", team)
 	if line != null:
 		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
 		# 手前（下）から奥（上）へ走るので窓の全高に渡し、幅は絵の縦横比が決める。
@@ -296,7 +302,7 @@ func _add_features(skin: TerrainSkin, side: String) -> void:
 		var vp1 := _size()
 		var lw := vp1.y * (float(line.get_width()) / float(maxi(line.get_height(), 1)))
 		_feature.add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
-	var front := _feature_texture(skin, "front")
+	var front := _feature_texture(skin, "front", team)
 	if front != null:
 		# 手前の帯は窓の全幅に渡して下辺に接地させる＝味方側から敵側まで通る額縁になる。
 		# 高さは絵の縦横比が決める（横幅が決まっている以上、縦を別に指定すると絵が歪む）。
@@ -306,9 +312,28 @@ func _add_features(skin: TerrainSkin, side: String) -> void:
 
 ## 重ね絵のPNG（assets/terrain/{skin_id}_combat_{back|line|front}.png）。置いていなければ null。
 ## 盤の立ち絵は使わない＝戦闘は近景で要る絵が違う（→ doc/art/terrain.md）。絵を置けば出る。
-func _feature_texture(skin: TerrainSkin, slot: String) -> Texture2D:
+## 占領されている拠点は、所有チーム別の絵があればそれを使う＝盤のタイルと同じ作法
+## （{skin_id}_team{N}_combat_{slot}.png を置けば切り替わり、置かなければ中立の絵のまま）。
+func _feature_texture(skin: TerrainSkin, slot: String, team: int) -> Texture2D:
+	if team >= 0:
+		var tp := "res://assets/terrain/%s_team%d_combat_%s.png" % [skin.skin_id, team, slot]
+		if ResourceLoader.exists(tp):
+			return load(tp) as Texture2D
 	var path := "res://assets/terrain/%s_combat_%s.png" % [skin.skin_id, slot]
 	return load(path) as Texture2D if ResourceLoader.exists(path) else null
+
+## その駒が立っているマスにある拠点の所属チーム。拠点でない/中立/盤が未結線なら -1。
+## 拠点は数個なので線形で足りる（盤の board_terrain_renderer と同じ引き方）。
+func _base_team_of(comb: Dictionary) -> int:
+	if _state == null:
+		return -1
+	var pos: Variant = comb.get("pos")
+	if typeof(pos) != TYPE_VECTOR2I:
+		return -1
+	for b in _state.bases():
+		if b.hex == pos:
+			return b.team
+	return -1
 
 ## 重ね絵1枚ぶんの TextureRect（位置と大きさは呼び出し側が決める）。
 func _feature_rect(tex: Texture2D, pos: Vector2, size2: Vector2) -> TextureRect:
