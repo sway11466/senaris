@@ -104,14 +104,15 @@ func _ready() -> void:
 	_art.size_flags_stretch_ratio = 2.0  # 絵:リスト ≒ 2:1
 	_art.clip_contents = true  # 絵をパネル枠でトリミング
 	# 絵の無いときの下地も同じ丸みにする（絵だけ丸めると四隅に下地の直角が残る）。
-	TavernTheme.round_corners(_art, float(TavernTheme.ART_CORNER_RADIUS))
+	# 半径は彫り枠（signboard_frame）に合わせる＝直角のままだと四隅が枠線の外へ飛び出す。
+	TavernTheme.round_corners(_art, float(TavernTheme.FRAME_CORNER_RADIUS))
 	body.add_child(_art)
 
 	_art_texture = TextureRect.new()
 	_art_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_art_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_art_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED  # パネルを覆う（はみ出しは clip）
-	TavernTheme.round_corners(_art_texture, float(TavernTheme.ART_CORNER_RADIUS))
+	TavernTheme.round_corners(_art_texture, float(TavernTheme.FRAME_CORNER_RADIUS))
 	_art.add_child(_art_texture)
 
 	var center := CenterContainer.new()
@@ -121,6 +122,10 @@ func _ready() -> void:
 	_art_label = Label.new()
 	_art_label.add_theme_font_size_override("font_size", 32)
 	center.add_child(_art_label)
+
+	# 縁取りは勝利画面の扉絵と同じ彫り枠を流用する（新しい見た目を発明しない）。
+	# 絵の最後の子にする＝FULL_RECT アンカーでパネルの寸法に追従し、絵の上に重なる。
+	_art.add_child(TavernTheme.signboard_frame())
 
 	# --- 右: ステージの縦リスト（壁に掛かった背板の上に並べる） ---
 	# 板は左の絵パネルと同じ高さに伸びる＝左右が釣り合い、行の下の壁の空きも埋まる。
