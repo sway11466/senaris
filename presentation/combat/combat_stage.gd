@@ -24,7 +24,8 @@ const SINGLE_POS := Vector2(0.50, 0.55)  # single（複製しない駒）の立�
 const SINGLE_SCALE := 1.4  # single だけ一段大きく描く（隊列8体ぶんの面積を1体で受けるので、等倍だと画が空く）
 const MAX_TROOPS := 8  # 兵量バーの目盛り数＝戦闘ルールの上限（doc/gdd/combat.md）。POS の枠数と同じ
 const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
-const CORNER_CUT := 0.09   # 窓の角を落とす量（短辺に対する比）。横長八角形にする
+const CORNER_RADIUS := 0.09   # 窓の角を丸める半径（短辺に対する比）
+const CORNER_SEGMENTS := 6    # 角の四分円の分割数。これ未満だと円弧の折れが見える
 const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずかに寒色＝空気遠近）
 const HAZE_ALPHA := 0.80                     # 最奥での濃さ
 const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
@@ -85,7 +86,7 @@ var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。_open で暗転・_close_now で明ける
-var _panel: Control       # 中央のモーダル窓（横長八角形。中身のクリップ元も兼ねる）
+var _panel: Control       # 中央のモーダル窓（角を丸めた横長の矩形。中身のクリップ元も兼ねる）
 var _edge: Control        # 窓の縁取り（窓の上に重ねて描く＝地面に線が隠れない）
 var _bg := Color(0.35, 0.38, 0.34)  # 窓の下地色（地形色。地面が敷けないときに見える）
 var _inner: Control       # 窓の中身（地面＋図＋エフェクト）。シェイク対象
@@ -121,7 +122,7 @@ func _build() -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_STOP
 	_root.gui_input.connect(_on_root_input)
 	add_child(_root)
-	# 中央のモーダル窓。八角形を自分で描き、それをマスクに中身（地面・立ち絵・エフェクト）を
+	# 中央のモーダル窓。角丸の形を自分で描き、それをマスクに中身（地面・立ち絵・エフェクト）を
 	# 切り抜く＝角の外には盤の暗幕が覗く。シェイクのはみ出しもここで止まる。
 	_panel = Control.new()
 	_panel.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
@@ -484,21 +485,31 @@ func _placeholder_label(comb: Dictionary) -> String:
 	var skin := _skin_of(comb)
 	return skin.combat_label() if skin != null else String(comb.get("type_id", "?"))
 
-## 窓の形＝角を落とした横長八角形（左上から時計回り）。中身のクリップ形状も縁取りもこれ1つで決まる。
-func _window_shape(sz: Vector2) -> PackedVector2Array:
-	var c := minf(sz.x, sz.y) * CORNER_CUT
-	return PackedVector2Array([
-		Vector2(c, 0), Vector2(sz.x - c, 0), Vector2(sz.x, c), Vector2(sz.x, sz.y - c),
-		Vector2(sz.x - c, sz.y), Vector2(c, sz.y), Vector2(0, sz.y - c), Vector2(0, c),
-	])
+## 窓の形＝角を丸めた横長の矩形（左上から時計回り）。中身のクリップ形状も縁取りもこれ1つで決まる。
+## 角の四分円は折れ線で近似する＝返す形は多角形のままなので、塗り（マスク）も枠線も同じ点列で描ける。
+## 陣形スキルのカットイン（FormationCutin）も同じ窓の形を使うので static で公開する。
+static func window_shape(sz: Vector2) -> PackedVector2Array:
+	var r := minf(sz.x, sz.y) * CORNER_RADIUS
+	# 各角の円の中心。左上→右上→右下→左下＝画面座標（y は下向き）で時計回り。
+	var centers := [
+		Vector2(r, r), Vector2(sz.x - r, r), Vector2(sz.x - r, sz.y - r), Vector2(r, sz.y - r),
+	]
+	var pts := PackedVector2Array()
+	for i in 4:
+		var c: Vector2 = centers[i]
+		var a0 := PI + i * PI * 0.5  # 左上なら 180°（左辺との接点）から始めて 270°（上辺との接点）へ
+		for j in CORNER_SEGMENTS + 1:
+			var a := a0 + PI * 0.5 * (float(j) / float(CORNER_SEGMENTS))
+			pts.append(c + Vector2(cos(a), sin(a)) * r)
+	return pts
 
 ## 窓の下地（地形色）。この描画がそのまま中身のクリップ形状になる（CLIP_CHILDREN_AND_DRAW）。
 func _draw_window() -> void:
-	_panel.draw_colored_polygon(_window_shape(_panel.size), _bg)
+	_panel.draw_colored_polygon(window_shape(_panel.size), _bg)
 
-## 窓の縁取り（八角形の枠）。閉じるため始点を末尾にもう一度足す。
+## 窓の縁取り（角丸の枠）。閉じるため始点を末尾にもう一度足す。
 func _draw_edge() -> void:
-	var pts := _window_shape(_edge.size)
+	var pts := window_shape(_edge.size)
 	pts.append(pts[0])
 	_edge.draw_polyline(pts, EDGE_COLOR, EDGE_WIDTH, true)
 

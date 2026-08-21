@@ -2,7 +2,7 @@ extends Control
 class_name FormationCutin
 ## 陣形スキルの発動で挟む1枚絵のカットイン（presentation）。画面全体の暗転（ScreenLighting）の
 ## 上に絵を出し、留めて消える。本体は前面パネル層（45）＝幕より前。右の InfoPanel も同じ層で沈まない。
-## 窓は戦闘演出シーンと同じ位置・大きさ・形（八角形）＝盤が完全に消えない・演出の見た目を揃える。
+## 窓は戦闘演出シーンと同じ位置・大きさ・形（角丸）＝盤が完全に消えない・演出の見た目を揃える。
 ## 絵はレシピIDで規約解決＝assets/formations/{recipe_id}.png。無ければ何もせず false を返す
 ## （カットインを飛ばして盤の結果だけ見せる。音は main が鳴らす）。
 ## クリック／キーで即座に飛ばせる。頭はロックしない＝1ステージに何度も出るため。
@@ -18,7 +18,7 @@ const HOLD_SEC := 0.70    # 留める秒数。FADE*2+HOLD = 1.0 秒（仕様の�
 const ZOOM_FROM := 1.06   # 絵の入り＝わずかに寄った状態から等倍へ。動きを感じさせるだけの幅に留める
 
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。play で暗転・close で明ける
-var _window: Control      # 八角形の窓。絵はこの中に描く（_draw_art）
+var _window: Control      # 角丸の窓。絵はこの中に描く（_draw_art）
 var _edge: Control        # 窓の縁取り
 var _tween: Tween = null
 var _texture: Texture2D = null
@@ -116,7 +116,7 @@ func _set_art_scale(v: float) -> void:
 	_art_scale = v
 	_window.queue_redraw()
 
-## 窓は戦闘演出シーンと同じ位置・大きさ・形（盤エリア中央の八角形）に合わせる。
+## 窓は戦闘演出シーンと同じ位置・大きさ・形（盤エリア中央の角丸の窓）に合わせる。
 ## 暗転は共通基盤（画面全体）＝ここでは窓と縁取りだけを置く。
 func _layout() -> void:
 	if not visible:
@@ -133,7 +133,7 @@ func _layout() -> void:
 	_window.queue_redraw()
 	_edge.queue_redraw()
 
-## 絵を八角形の窓に流し込む（窓を覆う最大＝はみ出しは切る）。TextureRect では角を落とせないため直に描く。
+## 絵を角丸の窓に流し込む（窓を覆う最大＝はみ出しは切る）。TextureRect では角を丸められないため直に描く。
 func _draw_art() -> void:
 	if _texture == null:
 		return
@@ -144,21 +144,13 @@ func _draw_art() -> void:
 	var cover := maxf(sz.x / t.x, sz.y / t.y) * _art_scale  # COVERED＝短辺を満たす（余白を作らない）
 	var drawn := t * cover
 	var origin := (sz - drawn) * 0.5
-	var pts := _window_shape(sz)
+	var pts := CombatScene.window_shape(sz)
 	var uvs := PackedVector2Array()
 	for p in pts:  # 窓の頂点を絵のUVへ落とす＝ポリゴンで切り抜きながらテクスチャを貼る
 		uvs.append((p - origin) / drawn)
 	_window.draw_colored_polygon(pts, Color.WHITE, uvs, _texture)
 
 func _draw_edge() -> void:
-	var pts := _window_shape(_edge.size)
+	var pts := CombatScene.window_shape(_edge.size)
 	pts.append(pts[0])
 	_edge.draw_polyline(pts, CombatScene.EDGE_COLOR, CombatScene.EDGE_WIDTH, true)
-
-## 横長八角形（戦闘演出シーンと同じ角の落とし方）。
-func _window_shape(sz: Vector2) -> PackedVector2Array:
-	var c := minf(sz.x, sz.y) * CombatScene.CORNER_CUT
-	return PackedVector2Array([
-		Vector2(c, 0), Vector2(sz.x - c, 0), Vector2(sz.x, c), Vector2(sz.x, sz.y - c),
-		Vector2(sz.x - c, sz.y), Vector2(c, sz.y), Vector2(0, sz.y - c), Vector2(0, c),
-	])
