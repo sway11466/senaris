@@ -12,6 +12,7 @@ class_name UnitInfoPanel
 ## グループの区切り線。改行だけで離すと「どこまでが同じ話か」が読めないので線を引く。
 const SEPARATOR := "──────────────────────"
 const NONE := "—"
+const IMPASSABLE_TEXT := "不可"  # 進入不可（movement.csv の x）の表示
 const TAB_MIN_W := 96.0  # タブ1枚の最低幅（戦闘レポートと同じ考え方）
 ## 項目名の欄の幅。タブをまたいで同じ値を使う＝どのタブでも値の頭が同じ位置に並ぶ。
 ## 空白で桁合わせしないのは、看板のフォントが等幅でないため（文字数を数えても揃わない）。
@@ -219,6 +220,11 @@ func _format_terrain(hex: Vector2i) -> String:
 	lines.append("攻撃補正  ×%.2f" % TerrainType.attack_factor(terr))
 	lines.append("防御補正  ×%.2f" % TerrainType.defense_factor(terr))
 
+	_add_separator(lines)
+	lines += _movement_cost_lines(terr)
+
+	# 控えは体数ぶん伸びる（24体の拠点もある）ので最後に置く。行数の決まっている地形の話を
+	# 先に出し切る＝はみ出すとしても控えの尻尾だけにする。
 	var b := _state.base_at(hex)
 	if b != null:
 		_add_separator(lines)
@@ -232,6 +238,27 @@ func _format_terrain(hex: Vector2i) -> String:
 			for gu in b.garrison:
 				lines.append("  ・%s" % _garrison_line(gu, b))
 	return "\n".join(lines)
+
+## そのマスへの進入コストの一覧（見出し＋移動タイプ1行ずつ）。並びは movement.csv の行順で、
+## 常に全移動タイプを出す＝行の並びがステージやマスで変わらない。仕様 → doc/gdd/uiux.md
+## 項目名の欄は全角スペースで詰める（看板のフォントは等幅でないが、和文グリフは同幅なので揃う）。
+## ユニットの地形タブでもこの塊をそのまま1枚のラベルに流す＝字面が空きマスの表示と揃い、
+## 行ごとの余白も入らない（項目名／値の2列に割ると7行ぶんの余白で板からはみ出す）。
+func _movement_cost_lines(terrain_id: String) -> Array[String]:
+	var table := _state.movement_table()
+	var names: Array[String] = []
+	var values: Array[String] = []
+	var w := 0
+	for mt in Movement.display_order():
+		var c := Movement.cost(table, mt, terrain_id)
+		var nm := Movement.display_name(mt)
+		names.append(nm)
+		values.append(IMPASSABLE_TEXT if c == Movement.IMPASSABLE else str(c))
+		w = maxi(w, nm.length())
+	var out: Array[String] = ["【移動コスト】"]
+	for i in names.size():
+		out.append("%s%s  %s" % [names[i], "　".repeat(w - names[i].length()), values[i]])
+	return out
 
 ## 控え1体の1行表示（名前・兵数・レベル）。
 func _garrison_line(gu: Unit, b: Base) -> String:
@@ -382,6 +409,10 @@ func _build_terrain(u: Unit) -> void:
 	_add_row("地形", _terrain_name(u.pos, terr))
 	_add_row("攻撃補正", "×%.2f" % TerrainType.attack_factor(terr))
 	_add_row("防御補正", "×%.2f" % TerrainType.defense_factor(terr))
+	_add_full_row("")
+	_add_full_row(SEPARATOR)
+	_add_full_row("\n".join(_movement_cost_lines(terr)))
+	# 控えは体数ぶん伸びるので最後（_format_terrain と同じ順序）。
 	var b := _state.base_at(u.pos)
 	if b == null:
 		return

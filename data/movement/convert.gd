@@ -23,8 +23,10 @@ func _initialize() -> void:
 	quit()
 
 ## movement.csv 行 → { problems, json }。純関数＝IOなし・テスト容易。
-## json は { "movement_types": { move_type: { 地形: コスト } }, "move_type_names": { move_type: 表示名 } }。
+## json は { "movement_types": { move_type: { 地形: コスト } }, "move_type_names": { move_type: 表示名 },
+## "move_type_order": [move_type...] }。
 ## コスト表は地形キーだけの純辞書に保ち（Movement.cost の走査を汚さない）、表示名は別辞書で持つ。
+## 並び順は CSV の行順を配列で持つ（辞書のキー順は書き出しでソートされる＝表示の並びに使えない）。
 ## 必須列・move_type重複・列の過不足（完全表）・コスト値（int/x）を検証。問題があれば json は null。
 static func build(rows: Array, terrain_ids: Array) -> Dictionary:
 	var problems := Csv.missing_required(rows, REQUIRED, "move_type")
@@ -37,15 +39,18 @@ static func build(rows: Array, terrain_ids: Array) -> Dictionary:
 
 	var types := {}
 	var names := {}
+	var order: Array[String] = []
 	for r in rows:
 		var id := str(r["move_type"])
 		names[id] = str(r["name"])  # 表示名（歩行/飛行…）は別辞書へ
+		order.append(id)            # CSV の行順＝UI に並べる順
 		var costs := {}
 		for key in r:
 			if key != "move_type" and key != "name":  # 識別列は地形コストではない
 				costs[key] = r[key]  # int か "x"
 		types[id] = costs
-	return { "problems": problems, "json": { "movement_types": types, "move_type_names": names } }
+	return { "problems": problems, "json": {
+		"movement_types": types, "move_type_names": names, "move_type_order": order } }
 
 ## コスト列（move_type/name 以外）が terrain の id と過不足なく一致するか（完全表の担保）。
 ## 「terrain に無い列」「terrain にあるのに列が無い（新地形の入れ忘れ＝黙ってコスト1になる罠）」を両方拾う。

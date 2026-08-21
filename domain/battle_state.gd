@@ -493,6 +493,10 @@ func set_movement(table: Dictionary) -> void:
 	_movement = table
 	_travel_cache.clear()
 
+## いま使っている移動コスト表（読み取り用の写し）。情報パネルが地形のコスト一覧を出すのに使う。
+func movement_table() -> Dictionary:
+	return _movement.duplicate()
+
 ## hex が矩形フィールド内か。
 func in_field(hex: Vector2i) -> bool:
 	var off := Hex.axial_to_offset(hex)

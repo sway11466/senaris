@@ -514,6 +514,7 @@ func test_movement_valid_builds_json() -> void:
 	assert_not_null(r["json"])
 	assert_eq(r["json"]["movement_types"]["walk"], { "plain": 1, "forest": 2 }, "コストは地形キーだけの純辞書")
 	assert_eq(r["json"]["move_type_names"]["fly"], "飛行", "表示名は別辞書")
+	assert_eq(r["json"]["move_type_order"], ["walk", "fly"], "並び順は CSV の行順")
 
 func test_movement_each_required_column_pins_json_null() -> void:
 	for col in Movement.REQUIRED:

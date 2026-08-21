@@ -8,6 +8,15 @@
 		"light_foot": "軽歩行",
 		"mountain_walk": "山歩行"
 	},
+	"move_type_order": [
+		"ground",
+		"light_foot",
+		"forest_walk",
+		"bush_walk",
+		"mountain_walk",
+		"flight",
+		"fixed"
+	],
 	"movement_types": {
 		"bush_walk": {
 			"bedrock": 3,
