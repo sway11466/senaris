@@ -44,12 +44,12 @@
 
 **セーブ／ロード**（優先度：中）
 
-- 背景：盤の状態を永続化・復元する機能（[uiux.md](gdd/uiux.md) §フェーズ3・[gamesystem.md](tech/gamesystem.md) がセーブ仕様の正本）。中断セーブの単枠クイックセーブ/ロードは実装済み（Phase 4a/4b＝下記「進捗」）。残るのは複数スロットUI（4c）とターン毎オートセーブ（Phase 5）、および live 配線の実機確認（保留）。土台の `Unit` 直列化は戦力供給の持ち越し（carryover）と共有で、そちらは実装済み。
+- 背景：盤の状態を永続化・復元する機能（[gamesystem.md](tech/gamesystem.md) がセーブ仕様の正本）。中断セーブの単枠クイックセーブ/ロードは実装済み（Phase 4a/4b＝下記「進捗」）。残るのは中断セーブの5枠化とオートセーブの新設、および live 配線の実機確認（保留）。土台の `Unit` 直列化は戦力供給の持ち越し（carryover）と共有で、そちらは実装済み。
 - 対応（済・Phase 4a/4b）：`BattleState` 全状態の直列化（`to_dict/from_dict`）＋ `SaveStore`（`user://save.json`・1枠）＋ HUD の「セーブ」有効化・「ロード」を保存有無で切替。詳細は下記「進捗」。
-- 対応（残・4c/Phase 5）：複数スロットUI（枠一覧・上書き確認・スロット別ファイル）と、ターン毎オートセーブ（中断セーブの応用＝ターン開始/終了で自動保存・別枠）。
+- 対応（残）：中断セーブを5枠にする（スロット一覧UI・上書き確認・スロット別ファイル・保存内容は自ターン開始時点の盤面。実質的なアンドゥ＝乱数が無い完全情報ゲームのためセーブスカミングが起きず、アンドゥを許容する設計）。オートセーブを新設する（中断セーブとは別の安全網・1枠・自ターン開始時に自動上書き・クラッシュ復帰用）。タイトル画面の「冒険の続き」でオートセーブ＋中断5枠を一覧表示。プロファイル機能は不要（Steamアカウント／OSユーザーに委ねる）。
 - 前提：戦闘に乱数が無いので中断セーブはシード不要＝状態だけで完全再現。性能はデータ駆動なので、スナップショットは `type_id`・`skin_id`・`level`・`troops`・`max_troops` を持てば足りる（他は type から `UnitCatalog` で再構築＝数値を焼かない）。
 - 該当：`domain/battle_state.gd`（直列化）・`presentation/ui/hud.gd`（項目有効化）・`application/`（保存/読込の配線）・`doc/tech/gamesystem.md`。
-- 進捗（2026-07-18）：中断セーブの単枠クイックセーブ/ロードまで実装＝`BattleState.to_dict/from_dict`（全状態・盤情報つき `Unit.to_full_dict`／`Base.to_dict` 再利用）／`SaveStore`（`user://save.json`・version＋破損フォールバック）／HUD の「セーブ」有効化・「ロード」を保存有無で切替／main は `_install_state` を新規開始と復元で共有（復元は intro なし・movement 再適用）。直列化と SaveStore は round-trip テスト済み（`test_battle_state_serialization`・`test_save_store`）。残り＝複数スロットUI（4c）／ターン毎オートセーブ（Phase 5）。main/hud の live 配線（セーブ→ロードで盤が戻る）の実機確認は保留。
+- 進捗（2026-07-18）：中断セーブの単枠クイックセーブ/ロードまで実装＝`BattleState.to_dict/from_dict`（全状態・盤情報つき `Unit.to_full_dict`／`Base.to_dict` 再利用）／`SaveStore`（`user://save.json`・version＋破損フォールバック）／HUD の「セーブ」有効化・「ロード」を保存有無で切替／main は `_install_state` を新規開始と復元で共有（復元は intro なし・movement 再適用）。直列化と SaveStore は round-trip テスト済み（`test_battle_state_serialization`・`test_save_store`）。残り＝中断セーブの5枠化（スロット一覧UI・スロット別ファイル）／オートセーブの新設（1枠・自ターン開始時に自動上書き）。main/hud の live 配線（セーブ→ロードで盤が戻る）の実機確認は保留。
 
 ### feature-10
 
