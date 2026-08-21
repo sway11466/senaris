@@ -40,6 +40,10 @@
     { "col": 9, "row": 6, "team": "neutral",
       "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
   ],
+  "events": [
+    { "on": "capture", "col": 9, "row": 6, "type": "talk", "team": "player",
+      "dialogue": "free", "focus": true }
+  ],
   "terrain_skins": [
     { "col": 9, "row": 6, "skin": "road_fort_town1" },
     { "col": 5, "row": 0, "skin": "rampart_granite1" },
@@ -79,6 +83,12 @@
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.intro.3" },
       { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.intro.4" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.intro.5" }
+    ],
+    "free": [
+      { "speaker": "char.townsfolk.name", "skin": "novice", "text": "t1.st4.free.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.free.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.4" }
     ],
     "outro": [
       { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.outro.1" },

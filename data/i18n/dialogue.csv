@@ -10,6 +10,7 @@ talk.outro.2,ありがとうございます、隊長！,"Thank you, Captain!"
 char.scout.name,斥候,Scout
 char.cleric.name,神官,Priest
 char.archer.name,弓兵,Archer
+char.townsfolk.name,町人,Townsfolk
 t1.st1.intro.1,隊長！　町外れの平原にゴブリンども。数は多くない、先遣の斥候でしょう。,"Captain! Goblins on the plain outside town. Not many — a scouting party, I'd say."
 t1.st1.intro.2,数が増える前に叩く。出るぞ。,"We hit them before they multiply. Move out."
 t1.st1.intro.3,お、おれ初陣で……どう動けば。,"I-it's my first battle... how do I move?"
@@ -48,6 +49,10 @@ t1.st4.intro.2,間に合った、のか？,"Are we... in time?"
 t1.st4.intro.3,まだ燃え尽きてない。なら間に合う。神官、町を襲うゴブリンは俺達が引き受ける。あんたはけが人を助けてくれ。そして、戦える男手を募ってくれ。,"It hasn't burned out. Then we're in time. Priest, we'll take on the goblins raiding the town. You tend the wounded — and rally any who can still fight."
 t1.st4.intro.4,承知しました。皆を、お願いします。,"Understood. I leave the people to you."
 t1.st4.intro.5,町を救えば、立てる者は剣を取る。数で劣っても、取り返せる。行くぞ！,"Save the town and those who can stand will take up swords. Outnumbered or not, we can turn this around. Move!"
+t1.st4.free.1,ゴブリンから守っていただき、ありがとうございます。私たちも戦います。,"Thank you for defending us from the goblins. We will fight too."
+t1.st4.free.2,ありがたい。だが飛び出すな、町で待て。斥候、出し方を教えてやれ。,"We are glad of it. But do not go charging out — wait in the town. Scout, show them how to come out."
+t1.st4.free.3,町を選べば、中で待つ顔ぶれが出ます。出したい者を選んで、光ったマスへ——隣に一体ずつ。,"Select the town and it lists who waits inside. Pick the one you want out, then a lit tile — one at a time, beside the town."
+t1.st4.free.4,出たての者は息を整える。動かせるのは次のターンからだ。,"Anyone just out is catching their breath. You can move them from the next turn."
 t1.st4.outro.1,無事に町を解放しました。皆、無事です。そして、怪我のない者は、一緒に戦うと。,"The town is freed, everyone safe. And those unhurt say they'll fight alongside us."
 t1.st4.outro.2,助けた人たちが、僕らと一緒に！,"The people we saved — fighting with us!"
 t1.st4.outro.3,よく立った。お前たちの町だ、お前たちの手で守れ。斥候、湧き元は。,"Well stood. It's your town — guard it with your own hands. Scout, where's the source?"
