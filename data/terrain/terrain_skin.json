@@ -276,13 +276,32 @@
 			"grid": true,
 			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
-			"map_scale": 0.51,
-			"memo": "崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない",
-			"name": "瓦礫の山",
+			"map_scale": 0.61,
+			"memo": "墓地の草地に墓標が並ぶ。足場が悪い床＝移動2の屍を1マスに落とす。建物と入口を持たない＝湧かない側（納骨堂と対）",
+			"name": "墓標",
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"placement": "standee",
-			"skin_id": "plain_grave1_rubble1",
+			"skin_id": "plain_grave1_prop_tomb1",
+			"terrain_type": "prop"
+		},
+		{
+			"combat_ground": "plain_grave1",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"ignore_board_height": false,
+			"map_ground": "plain_grave1",
+			"map_scale": 1.0,
+			"memo": "崩れた納骨堂と墓石が積み上がった山。瓦礫＝地上は通れず飛行と斥候だけ越える壁。マスを埋めて見せる",
+			"name": "墓石の山",
+			"object_foot_z": 0.35,
+			"orientable": "none",
+			"placement": "standee",
+			"skin_id": "plain_grave1_rubble_tombstone1",
 			"terrain_type": "rubble"
 		},
 		{
@@ -873,25 +892,6 @@
 			"placement": "",
 			"skin_id": "wasteland",
 			"terrain_type": "wasteland"
-		},
-		{
-			"combat_ground": "",
-			"combat_scale": "",
-			"connect": false,
-			"connect_to": "",
-			"elevation": 0,
-			"floor": 0,
-			"grid": true,
-			"ignore_board_height": false,
-			"map_ground": "wasteland",
-			"map_scale": 0.61,
-			"memo": "墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（納骨堂と対）",
-			"name": "墓標の荒れ地",
-			"object_foot_z": 0.2,
-			"orientable": "none",
-			"placement": "standee",
-			"skin_id": "wasteland_prop_tomb1",
-			"terrain_type": "prop"
 		}
 	]
 }

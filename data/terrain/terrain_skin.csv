@@ -14,7 +14,8 @@ plain_grave1,plain,墓地の草地,full,false,,0,0,false,,,,,true,,,町外れの
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,panel,0.23,,,true,plain_grave1,plain_grave1,自前の柵タイル（plain_fence の複製）を墓地の草地の上に立てる
 plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,false,standee,1.23,0.2,,true,plain_grave1,plain_grave1,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1_fort_crypt1,fort,納骨堂,none,false,,0,0,false,standee,0.92,0.2,,true,plain_grave1,plain_grave1,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
-plain_grave1_rubble1,rubble,瓦礫の山,none,false,,0,0,false,standee,0.51,0.2,,true,plain_grave1,plain_grave1,崩れた納骨堂と墓石の瓦礫。城壁より低く積む＝越えられない高さではなく「足場が無い」で通さない
+plain_grave1_prop_tomb1,prop,墓標,none,false,,0,0,false,standee,0.61,0.2,,true,plain_grave1,plain_grave1,墓地の草地に墓標が並ぶ。足場が悪い床＝移動2の屍を1マスに落とす。建物と入口を持たない＝湧かない側（納骨堂と対）
+plain_grave1_rubble_tombstone1,rubble,墓石の山,none,false,,0,0,false,standee,1.0,0.35,,true,plain_grave1,plain_grave1,崩れた納骨堂と墓石が積み上がった山。瓦礫＝地上は通れず飛行と斥候だけ越える壁。マスを埋めて見せる
 plain_trap,trap,罠,none,false,,0,0,false,standee,0.15,0.2,,true,plain,plain,
 plateau,plateau,台地,full,false,,0.18,0.18,false,,,,,true,,,
 rampart,rampart,城壁,full,false,,0.54,0.54,false,,,,,true,,,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
@@ -46,4 +47,3 @@ road_stone1,road,石畳,none,area,road river_bridge_stone1_v river_bridge_stone1
 wall,wall,壁,none,false,,0.72,0.72,false,,,,,false,,,上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
 wall_stone1,wall,石積みの壁,none,false,,0,0,false,,,,,true,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 wasteland,wasteland,荒地,full,false,,0,0,false,,,,,true,,,
-wasteland_prop_tomb1,prop,墓標の荒れ地,none,false,,0,0,false,standee,0.61,0.2,,true,wasteland,,墓標が並ぶ墓地。建物と入口を持たない＝湧かない側（納骨堂と対）
