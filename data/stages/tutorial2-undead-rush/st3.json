@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "tutorial2-st3",
+  "backdrop": "sky_overcast",
   "haze": 0.80,
   "cols": 23,
   "rows": 9,

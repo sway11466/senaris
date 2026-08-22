@@ -1,0 +1,4 @@
+# 原画 1792x592（3.03:1）。窓が要る最大 3.46:1 より縦に余裕があるので、切り抜き・寸法変更なし。
+# 明度 平均61%/最小40%/最大80%、標準偏差12%、彩度 平均5%（HSL）、平均色 #979C9D。調整しない。
+# JPEG を PNG に変換するだけ（透過なし）。
+magick assets\backdrop-src\sky_overcast\sky_overcast_01_raw.jpg assets\backdrop\sky_overcast.png
