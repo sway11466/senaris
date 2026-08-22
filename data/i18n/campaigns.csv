@@ -1,13 +1,13 @@
 keys,ja,en
 t1.title,ゴブリンの襲撃,Goblin Raid
 t1.desc,町外れに現れたゴブリンの群れを討ち、襲われる町を救い、巣穴の主を断つ。移動・地形・包囲・支援・間接・占領といった戦術の基礎を、隊長と新兵の初陣を通してひとつずつ学ぶ、旅立ちの章。,"Rout the goblins at the town's edge, free the town, end their lord in his den. Movement, terrain, encirclement, support, indirect fire, capture — the basics, one battle at a time."
-t1.st1.title,町外れの平原,Plains at the Town's Edge
-t1.st2.title,高所の敵陣,The High Ground
-t1.st3.title,細道の包囲,Ambush in the Narrows
+t1.st1.title,先兵隊との遭遇,Encounter with the Goblins
+t1.st2.title,高台の布陣,Hold the High Ground
+t1.st3.title,隘路の包囲戦,Encirclement in the Pass
 t1.st4.title,町の解放,Liberating the Town
-t1.st5.title,巣穴への道,The Road to the Den
-t1.st6.title,潜む群れ,The Lurking Swarm
-t1.st7.title,最奥の主,Lord of the Deep
+t1.st5.title,巣穴へ進軍,March on the Den
+t1.st6.title,潜む伏兵,The Lurking Ambush
+t1.st7.title,ゴブリンの王,The Goblin King
 t2.title,アンデッドの群れ,The Undead Swarm
 t2.desc,墓地から湧き出すアンデッドとの戦い。騎士団・教会・魔法ギルドの混成調査隊が、魔法兵の長射程と輸送、陣形スキルを駆使し、屍の群れを押し返して元凶のネクロマンサーを討つ第二の章。,"The dead well up from the graveyard. Knights, clergy, and mages push back the swarm with long-range casters, transport, and formation skills, and cut down the necromancer behind it."
 t2.st1.title,墓地の骸骨,Bones in the Graveyard
