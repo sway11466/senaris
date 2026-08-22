@@ -1,5 +1,6 @@
 {
   "turn_limit": 40,
+  "rank": { "turn_s": 20, "turn_a": 30, "survival_s": 4, "survival_a": 2 },
   "name": "tutorial-st7",
   "haze": 0.30,
   "backdrop": "cave_wall",

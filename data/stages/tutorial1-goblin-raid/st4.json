@@ -1,5 +1,6 @@
 {
   "turn_limit": 30,
+  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 2, "survival_a": 1 },
   "name": "tutorial-st4",
   "haze": 0.80,
   "backdrop": "sky_clear",
