@@ -1,6 +1,8 @@
 {
   "turn_limit": 40,
   "name": "tutorial-st7",
+  "haze": 0.30,
+  "backdrop": "cave_wall",
   "cols": 30,
   "rows": 11,
   "margin": 0,

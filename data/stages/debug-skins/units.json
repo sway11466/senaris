@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "units",
+  "haze": 0.80,
   "cols": 10,
   "rows": 13,
   "margin": 0,

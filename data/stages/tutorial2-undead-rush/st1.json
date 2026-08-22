@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "tutorial2-st1",
+  "haze": 0.80,
   "cols": 16,
   "rows": 9,
   "margin": 1,

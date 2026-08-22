@@ -1,6 +1,7 @@
 {
   "turn_limit": 99,
   "name": "debug-height",
+  "haze": 0.80,
   "cols": 28,
   "rows": 12,
   "margin": 0,

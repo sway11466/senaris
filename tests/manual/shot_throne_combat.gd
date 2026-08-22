@@ -27,7 +27,8 @@ func _initialize() -> void:
 	_stage.bind(SkinCatalog.load_standard())
 	_stage.bind_terrain_skins({ THRONE: "plain_cave1_fence_throne1", FIELD: "plain_cave1" })
 	_stage.bind_state(state)
-	_stage.bind_backdrop("_tmp_sky")  # 検証用の仮の空
+	_stage.bind_backdrop("cave_wall")
+	_stage.bind_haze(0.30)
 
 func _process(_delta: float) -> bool:
 	_frames += 1

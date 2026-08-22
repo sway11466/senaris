@@ -1,6 +1,7 @@
 {
   "turn_limit": 99,
   "name": "debug-effect",
+  "haze": 0.80,
   "cols": 10,
   "rows": 15,
   "margin": 0,

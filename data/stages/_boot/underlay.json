@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "boot_underlay",
+  "haze": 0.80,
   "bgm": { "main": "menu" },
   "cols": 12,
   "rows": 8,

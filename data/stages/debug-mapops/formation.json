@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "debug-formation",
+  "haze": 0.80,
   "cols": 14,
   "rows": 8,
   "margin": 0,

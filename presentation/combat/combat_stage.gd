@@ -32,7 +32,6 @@ const CORNER_SEGMENTS := 6    # 角の四分円の分割数。これ未満だと
 ## すぐ上（0.40）だと奥の土台の下に背景が覗く。
 const HORIZON := 0.36
 const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずかに寒色＝空気遠近）
-const HAZE_ALPHA := 0.80                     # 最奥での濃さ
 const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
 const EDGE_WIDTH := 2.0
 ## 地面（3D）は左右それぞれの駒の地形スキンで組む。タイル画像が引けないスキンのための下地色（守り手の
@@ -94,6 +93,7 @@ var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
 var _state: BattleState = null  # 盤の状態（main が結線）。重ね絵を出すとき拠点の持ち主を引く
 var _backdrop_id := ""        # 奥の背景の絵ID（ステージが持つ・空＝水平線を引かない）
+var _haze_alpha := 0.0        # 靄の最奥（水平線）での濃さ（ステージが持つ・bind_haze で入る。0＝掛けない）
 var _backdrop: TextureRect    # 奥の背景（地面の上・重ね絵の下）。水平線から上に敷く1枚
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。_open で暗転・_close_now で明ける
@@ -265,6 +265,13 @@ func bind(skins: Dictionary) -> void:
 func bind_backdrop(backdrop_id: String) -> void:
 	_backdrop_id = backdrop_id
 
+## 靄の最奥での濃さ（ステージが持つ・0〜1）。屋外は濃く（0.80 前後）、洞窟は薄く（0.30 前後）。
+## 靄のテクスチャはこの値で作るので、変わったら作り直す。
+func bind_haze(alpha: float) -> void:
+	_haze_alpha = clampf(alpha, 0.0, 1.0)
+	if _haze != null:
+		_haze.texture = _make_haze()
+
 ## 画面の明暗の共通基盤（main が結線）。舞台の開閉に合わせて暗転を掛け外しする。
 func bind_screen(screen: ScreenLighting) -> void:
 	_screen = screen
@@ -302,6 +309,10 @@ func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 		_ground.build(other_skin, skin)
 	_clear(_feature)
 	_clear(_feature_front)
+	# 重ね絵は左右それぞれ自分の側の駒のマスのスキンから引く（地面を左右で分けるのと同じ理屈）。
+	# 中央の継ぎ目だけは1本しか立てられないので、守り手側に絵があればそれ、無ければ攻め手側の絵。
+	var other_side := "R" if ground_side == "L" else "L"
+	var line_done := false
 	if skin != null:
 		line_done = _add_features(skin, ground_side, _base_team_of(ground), _slot_pos(ground_side, _lead_pos(ground)), true)
 	if other_skin != null:
@@ -311,10 +322,6 @@ func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 	_start_open_anim()
 
 ## 幕開け：窓が上下に開く → 両軍の隊列が外側から中央へ寄る（暗転は _open が共通基盤に頼んでいる）。
-	# 重ね絵は左右それぞれ自分の側の駒のマスのスキンから引く（地面を左右で分けるのと同じ理屈）。
-	# 中央の継ぎ目だけは1本しか立てられないので、守り手側に絵があればそれ、無ければ攻め手側の絵。
-	var other_side := "R" if ground_side == "L" else "L"
-	var line_done := false
 ## 隊列は _open の直後（同フレーム）に _render_side が組むので、ここで先に図レイヤを外へ置いておける。
 ## バーと地形の重ね絵は動かさない＝窓に属する表示なので、隊列と一緒に流れると窓が滑って見える。
 func _start_open_anim() -> void:
@@ -375,6 +382,7 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, wi
 		var vp1 := _size()
 		var lw := vp1.y * (float(line.get_width()) / float(maxi(line.get_height(), 1)))
 		_feature.add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
+		line_done = true
 	var front := _feature_texture(skin, "front", team)
 	if front != null:
 		# 手前の帯＝足元に散らかる物。その側の半面の下辺に接地させ、高さは絵の縦横比が決める。
@@ -387,7 +395,6 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, wi
 		frect.flip_h = side == "R"
 		_feature_front.add_child(frect)
 	return line_done
-		line_done = true
 
 ## 重ね絵のPNG（assets/terrain/{skin_id}_combat_{back|line|front}.png）。置いていなければ null。
 ## 盤の立ち絵は使わない＝戦闘は近景で要る絵が違う（→ doc/art/terrain.md）。絵を置けば出る。
@@ -637,8 +644,8 @@ func _make_haze() -> GradientTexture2D:
 	var g := Gradient.new()
 	g.offsets = PackedFloat32Array([0.0, 0.30, 0.78])
 	g.colors = PackedColorArray([
-		Color(HAZE_COLOR, HAZE_ALPHA),          # 最奥
-		Color(HAZE_COLOR, HAZE_ALPHA * 0.55),   # 中景（落ち方を緩めて帯にしない）
+		Color(HAZE_COLOR, _haze_alpha),          # 最奥
+		Color(HAZE_COLOR, _haze_alpha * 0.55),   # 中景（落ち方を緩めて帯にしない）
 		Color(HAZE_COLOR, 0.0),                 # 手前は素通し
 	])
 	var t := GradientTexture2D.new()

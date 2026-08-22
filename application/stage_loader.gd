@@ -346,6 +346,26 @@ static func load_backdrop(path: String) -> String:
 		return ""
 	return parse_backdrop(data)
 
+## 靄：ステージ辞書の "haze" を取り出す。値は戦闘窓の奥（水平線）での靄の濃さ（0〜1）。
+## 必須＝書いていなければデータのバグ（省略時の既定は持たない）。見た目の関心なので BattleState には入れない。
+## 詳細 → doc/tech/combat_scene.md
+static func parse_haze(data: Dictionary, path: String) -> float:
+	var v: Variant = data.get("haze")
+	if typeof(v) != TYPE_FLOAT and typeof(v) != TYPE_INT:
+		push_error("StageLoader: haze（0〜1 の数値）は必須です（指定なし＝データのバグ）: %s" % path)
+		return 0.0
+	return clampf(float(v), 0.0, 1.0)
+
+## res:// パスの JSON から haze を読む（load_file と対＝戦闘演出へ渡すため）。
+static func load_haze(path: String) -> float:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return 0.0
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return 0.0
+	return parse_haze(data, path)
+
 ## 駒配置リスト（player セクション）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。

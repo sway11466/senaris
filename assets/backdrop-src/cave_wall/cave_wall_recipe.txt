@@ -1,0 +1,4 @@
+# 原画 1792x592（3.03:1）。窓が要る最大 3.46:1 より縦に余裕があるので、切り抜き・寸法変更なし。
+# 明度 平均30%/最小13%/最大44%、標準偏差5%、彩度 平均10%（HSL）、平均色 #534D44。低コントラストで、調整しない。
+# JPEG を PNG に変換するだけ（透過なし）。
+magick assets\backdrop-src\cave_wall\cave_wall_01_raw.jpg assets\backdrop\cave_wall.png

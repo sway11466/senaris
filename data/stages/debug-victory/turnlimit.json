@@ -1,6 +1,7 @@
 {
   "turn_limit": 10,
   "name": "debug-turnlimit",
+  "haze": 0.80,
   "cols": 8,
   "rows": 5,
   "margin": 0,

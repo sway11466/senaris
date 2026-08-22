@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "debug-spawn",
+  "haze": 0.80,
   "cols": 10,
   "rows": 7,
   "margin": 0,

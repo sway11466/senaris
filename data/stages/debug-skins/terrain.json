@@ -1,6 +1,7 @@
 {
   "turn_limit": 99,
   "name": "debug-terrain",
+  "haze": 0.80,
   "cols": 14,
   "rows": 11,
   "margin": 0,

@@ -19,6 +19,7 @@ func _initialize() -> void:
 	_stage.bind_terrain_skins({ L.pos: "plain", R.pos: "road_fort_town1" })
 	_stage.bind_state(BattleState.new())
 	_stage.bind_backdrop("sky_clear")
+	_stage.bind_haze(0.80)
 
 func _process(_delta: float) -> bool:
 	_frames += 1

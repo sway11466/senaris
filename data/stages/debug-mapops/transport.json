@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "debug-transport",
+  "haze": 0.80,
   "cols": 16,
   "rows": 7,
   "margin": 0,

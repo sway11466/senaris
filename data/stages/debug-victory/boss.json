@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "debug-boss",
+  "haze": 0.80,
   "cols": 12,
   "rows": 7,
   "margin": 0,

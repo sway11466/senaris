@@ -136,9 +136,12 @@ func _install_state(state: BattleState, path: String) -> void:
 	_combat_scene.bind_state(state)  # 重ね絵を拠点の持ち主で選ぶ（占領で絵が変わる）
 	var backdrop := StageLoader.load_backdrop(path)  # 水平線から上に敷く1枚（空・岩壁）。空文字＝引かない
 	_combat_scene.bind_backdrop(backdrop)
+	var haze := StageLoader.load_haze(path)  # 奥の靄の濃さ（ステージが持つ・必須）
+	_combat_scene.bind_haze(haze)
 	_skill_scene.bind_terrain_skins(terrain_skins)  # スキルの演出も同じ地面を組む
 	_skill_scene.bind_state(state)
 	_skill_scene.bind_backdrop(backdrop)
+	_skill_scene.bind_haze(haze)
 	$Front/InfoPanel.bind(state, _skins)
 	$Front/InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
 	$Front/InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先

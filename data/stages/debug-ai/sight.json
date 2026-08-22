@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "debug-sight",
+  "haze": 0.80,
   "cols": 13,
   "rows": 11,
   "margin": 0,
