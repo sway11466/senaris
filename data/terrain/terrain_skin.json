@@ -134,6 +134,25 @@
 			"terrain_type": "prop"
 		},
 		{
+			"combat_ground": "plain_cave1",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"ignore_board_height": false,
+			"map_ground": "plain_cave1",
+			"map_scale": 1.0,
+			"memo": "洞窟の崩落で積み上がった岩の山。瓦礫＝飛行と斥候だけ越えられる。戦闘は手前の帯（_combat_front）に岩を散らす",
+			"name": "岩山",
+			"object_foot_z": 0.35,
+			"orientable": "none",
+			"placement": "standee",
+			"skin_id": "plain_cave1_rubble1",
+			"terrain_type": "rubble"
+		},
+		{
 			"combat_ground": "plain",
 			"combat_scale": "",
 			"connect": "line",

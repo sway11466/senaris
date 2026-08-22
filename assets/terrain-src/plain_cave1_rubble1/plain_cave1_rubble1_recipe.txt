@@ -1,0 +1,12 @@
+盤の立ち絵 — map_scale は terrain_skin.csv の plain_cave1_rubble1 の行から引く（1.0＝ヘックス幅いっぱい。
+瓦礫＝通れないマスなので、マスを岩で埋めて見せる）。_03_master は白を抜いた状態で置いてある。
+
+powershell -File tools\gen_terrain_tile.ps1 plain_cave1_rubble1 assets\terrain-src\plain_cave1_rubble1\plain_cave1_rubble1_03_master.png -Object
+
+戦闘の手前の帯（_combat_front） — その側の半面（窓の半分）に渡る低い帯。トリムのみ＝1273x297 で
+帯の高さは窓の約23%。絵は左半面用（右半面では演出が左右反転する）。
+
+magick assets\terrain-src\plain_cave1_rubble1\plain_cave1_rubble1_combat_03_master.png -trim +repage assets\terrain\plain_cave1_rubble1_combat_front.png
+
+戦闘用の元絵は、盤用の画像を渡した同一セッションの続きで
+plain_cave1_rubble1_combat_front_prompt.txt を投げて出した。

@@ -1,0 +1,42 @@
+SUBJECT: A MOUND OF FALLEN ROCK inside a cave — a heap of broken boulders and
+rubble where part of the cave has come down — as drawn on the world map of a
+classic 2D role-playing game: seen from the front and slightly above, standing
+upright and facing the bottom of the frame — nothing lying flat, no
+perspective.
+
+ONE heap, wider than it is tall, made of rough broken cave rock: a few LARGE
+angular boulders (the biggest about a third of the heap's height) piled
+against and on top of each other, with smaller chunks, slabs and loose rubble
+filling the gaps and spilling out around the base. The pieces sit at every
+angle, wedged and unstable, so the heap reads as IMPASSABLE — no path, no
+ledge, no flat footing, nothing a person on foot could walk over without
+climbing. It is plain fallen rock, NOT stalagmites, NOT a cliff, NOT a wall,
+NOT worked stone: no columns, no blocks, no bricks, no carving.
+
+SIZE — the heap sits in the MIDDLE of the picture. In a 1024-pixel picture it
+is about 640 pixels wide and about 460 pixels tall, leaving at least 190
+pixels of white on every side. It must NOT touch any edge and must NOT be cut
+by any edge.
+
+COLOR — dull grey-brown cave rock, hex #6E655A, the same stone as the cave's
+walls; each boulder takes a slightly different flat tone somewhere between
+#7A7164 and #5E564C so the pieces separate from one another by tone alone.
+Everything muted, in the same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear dark outlines, a mature,
+slightly muted, limited color palette (NOT bright saturated, NOT painterly
+photorealism). NO moss, NO crystals, NO glow, NO water, NO strong red, blue or
+green anywhere.
+
+THE BACKGROUND — everything around the heap is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO drop
+shadow. This white is going to be deleted and the game will draw its own cave
+floor there, so the outline of the heap must be a hard, clean, crisp edge
+against it. Nothing in the rock itself may be white or near-white.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the rock itself; NOTHING casts a shadow onto the white.
+
+Nothing else: no creature, no bones, no mushrooms, no plants, no torches, no
+treasure, no tools, no lettering. Read at thumbnail size: a few large legible
+shapes, no fine detail. NO border, NO frame around the picture itself, NO
+vignette. Square 1:1.
