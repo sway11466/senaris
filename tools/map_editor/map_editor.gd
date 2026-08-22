@@ -36,16 +36,14 @@ var _categories: Array = []  # 分類（category）の一覧（出現順）
 var _skins: Array = []           # [{ skin_id, type_id, category }]（CSV順＝分類ごとに整列済み）
 var _skin_categories: Array = [] # 敵パレット用の分類一覧（基準を除く・出現順）
 var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]（CSV順）
-var _default_skin_by_type := {}      # terrain_type -> 既定スキンの skin_id（TerrainSkinCatalog と同じ規則）
 var _bgm_tracks: Array = []  # assets/bgm/ に実在するトラックID（BGM欄の選択肢。autowire と同じ規約）
 var _ai_presets: Array = []  # [特性id]
 var _ai_names := {}          # 特性id -> 表示名
 var _ai_params := {}         # 特性id -> パラメーター辞書（ai.csv の1行。sight の既定値を引く）
 
 # パレット選択状態
-var _sel_terrain := 0
-var _sel_terrain_category := ""  # 地形パレットの分類（空=基本＝地形タイプ一覧 / それ以外=その type のスキン一覧）
-var _sel_terrain_skin := ""      # 塗る見た目スキンの skin_id（分類が「基本」以外のとき有効）
+var _sel_terrain_category := "plain"  # 地形パレットの分類＝地形タイプの id（既定地形＝DEFAULT_CHAR に合わせる）
+var _sel_terrain_skin := ""      # 塗る見た目スキンの skin_id（空＝その分類にスキンが無い＝塗れない）
 var _ov_elevation := ""          # 高さ上書きの入力値（elevation）。空＝上書きなし。floor とペアでだけ塗れる
 var _ov_floor := ""              # 高さ上書きの入力値（floor）。空＝上書きなし
 var _paint_tool := "pen"         # 塗り方（pen=1マスずつ / fill=連結領域をまとめて）
@@ -139,9 +137,6 @@ func _load_catalogs() -> void:
 			"skin_id": sid, "terrain_type": type_id,
 			"name": String(r.get("name", sid)), "memo": String(r.get("memo", "")),
 		})
-		# 既定スキン＝skin_id == terrain_type を優先。無ければその type の最初の行（TerrainSkinCatalog と同じ）
-		if not _default_skin_by_type.has(type_id) or sid == type_id:
-			_default_skin_by_type[type_id] = sid
 	var bgm_dir := DirAccess.open(BgmCatalog.BGM_ROOT)
 	if bgm_dir != null:
 		for f in bgm_dir.get_files():
@@ -455,59 +450,48 @@ func _ai_options(with_none: bool) -> Array:
 	return [keys, displays]
 
 
-## 地形パレット。分類「基本」＝地形タイプ一覧（性能）／それ以外＝その地形の見た目バリエーション一覧。
+## 地形パレット。分類＝地形タイプ（性能）、一覧＝その terrain_type を持つスキン（見た目）。
 func _build_terrain_palette() -> void:
 	if _paint_tool == "fill":
-		_add_hint(_mode_box, "左クリック＝地続きをまとめて塗る / 右クリック＝地続きを平地に戻す。\n"
+		_add_hint(_mode_box, "左クリック＝地続きをまとめて塗る / 右クリック＝そのマスの設定を取り込む。\n"
 			+ "範囲は「いまの見た目が同じ」マス（地形＋スキン＋高さ上書きが一致）。誤爆は Ctrl+Z で戻せる。")
 	else:
-		_add_hint(_mode_box, "左ドラッグ＝塗る / 右ドラッグ＝平地に戻す")
+		_add_hint(_mode_box, "左ドラッグ＝塗る / 右クリック＝そのマスの設定を取り込む")
 	_mode_box.add_child(_labeled_option("塗り方", TOOL_LABELS.keys(), TOOL_LABELS.values(), _paint_tool,
 		func(k: String) -> void:
 			_paint_tool = k
 			_rebuild_mode()))
-	var cat_keys := [""]
-	var cat_names := ["基本（地形タイプ）"]
+	var cat_keys := []
+	var cat_names := []
 	for t in _terrains:
 		cat_keys.append(String(t["id"]))
-		cat_names.append("%s（%s）" % [_type_display(String(t["id"])), t["id"]])
+		cat_names.append("%s（%s）" % [t["name"], t["id"]])
 	_mode_box.add_child(_labeled_option("分類", cat_keys, cat_names, _sel_terrain_category,
 		func(k: String) -> void:
 			_sel_terrain_category = k
-			_sel_terrain_skin = String(_default_skin_by_type.get(k, ""))  # 分類を変えたら既定スキンから
+			_sel_terrain_skin = ""  # 分類を変えたら、その一覧の先頭を選び直す
 			_rebuild_mode()))
 	_mode_box.add_child(_height_override_row())
 	_add_hint(_mode_box, "高さ上書き＝elevation と floor をペアで（空欄＝スキンの高さのまま）。見た目だけ・ルールに入らない。")
 	var list := ItemList.new()
 	list.custom_minimum_size = Vector2(0, 160)
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL  # パネルの下端まで伸ばす
-	if _sel_terrain_category == "":
-		for t in _terrains:
-			list.add_item("%s  %s — %s" % [t["char"], t["name"], t["memo"]])
-		if _sel_terrain < _terrains.size():
-			list.select(_sel_terrain)
-		list.item_selected.connect(func(i: int) -> void: _sel_terrain = i)
-		_mode_box.add_child(list)
-		return
-	# 見た目バリエーション：既定スキンを選べば「差分なし＝type の既定」に戻せる
-	var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
 	var pool := []
 	for s in _terrain_skins:
 		if String(s["terrain_type"]) == _sel_terrain_category:
 			pool.append(s)
 	if pool.is_empty():
-		_add_hint(_mode_box, "この地形に登録されたスキンはありません（塗ると既定の見た目になります）。")
+		_add_hint(_mode_box, "この地形に登録されたスキンはありません（塗れません）。")
 		_sel_terrain_skin = ""
 		return
 	var ids := []
 	for s in pool:
 		ids.append(String(s["skin_id"]))
 	if not ids.has(_sel_terrain_skin):
-		_sel_terrain_skin = default_id if ids.has(default_id) else String(ids[0])
+		_sel_terrain_skin = String(ids[0])
 	for i in pool.size():
 		var s: Dictionary = pool[i]
-		var mark := "（既定）" if String(s["skin_id"]) == default_id else ""
-		list.add_item("%s%s — %s" % [s["name"], mark, s["skin_id"]])
+		list.add_item("%s — %s" % [s["name"], s["skin_id"]])
 		list.set_item_tooltip(i, String(s["memo"]))
 		if String(s["skin_id"]) == _sel_terrain_skin:
 			list.select(i)
@@ -533,14 +517,6 @@ func _height_override_row() -> HBoxContainer:
 	fl.text_changed.connect(func(t: String) -> void: _ov_floor = t)
 	box.add_child(fl)
 	return _labeled_row("高さ上書き", box)
-
-
-## 地形タイプの表示名（既定スキンの name。未登録の type は id をそのまま）。
-func _type_display(type_id: String) -> String:
-	for s in _terrain_skins:
-		if String(s["skin_id"]) == String(_default_skin_by_type.get(type_id, "")):
-			return String(s["name"])
-	return type_id
 
 
 ## 地形タイプの ASCII 1文字（terrain グリッド用）。未知なら既定地形。
@@ -984,11 +960,14 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 		return
 	match _mode:
 		"terrain":
+			if button == MOUSE_BUTTON_RIGHT:
+				_pick_terrain(col, row)
+				return
 			_doc.push_terrain_undo()  # 1手＝押してから離すまで（ドラッグの一筆もまとめて戻せる）
 			if _paint_tool == "fill":
-				_fill(col, row, button)
+				_fill(col, row)
 			else:
-				_paint(col, row, button)
+				_paint(col, row)
 		"player":
 			if button == MOUSE_BUTTON_LEFT:
 				if _pick_player(col, row):
@@ -1062,8 +1041,8 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 
 
 func _on_cell_dragged(col: int, row: int, button: int) -> void:
-	if _mode == "terrain" and _paint_tool == "pen":
-		_paint(col, row, button)
+	if _mode == "terrain" and _paint_tool == "pen" and button == MOUSE_BUTTON_LEFT:
+		_paint(col, row)
 
 
 ## 左ドラッグ＝掴んだものを離したマスへ動かす（「自軍」「敵」＝駒／「拠点」＝拠点）。
@@ -1094,25 +1073,18 @@ func _on_cell_released(col: int, row: int, button: int) -> void:
 				_say("(%d, %d) へは動かせません（外周か、既に拠点があります）。" % [to.x, to.y])
 
 
-## いま塗る内容 [地形の文字, skin_id, 高さ上書き]。右クリックは既定地形＋差分なしに戻す。
-## 既定スキンは差分に書かない＝未指定セルは type の既定へフォールバックする既存の解釈のまま。
-## ただし高さ上書きがあるときは既定スキンでも明示して書く（上書きはスキンのエントリにしか持てない）。
+## いま塗る内容 [地形の文字, skin_id, 高さ上書き]。
+## 選んだスキンは必ず書く（TerrainSkinCatalog の空欄フォールバック＝型IDと同名のスキンは、
+## object 系の地形には存在しない＝空で書くと描かれないマスになる）。
 ## 高さ上書きの入力が不正（片方だけ・数値でない）なら null＝塗れない。
-func _brush(button: int) -> Variant:
-	if button == MOUSE_BUTTON_RIGHT:
-		return [MapEditorDoc.DEFAULT_CHAR, "", {}]
+## スキンが1つも無い地形（大岩・立入禁止）は選べないので null＝塗れない。
+func _brush() -> Variant:
 	var ov: Variant = _brush_override()
 	if ov == null:
 		return null
-	if _sel_terrain_category == "":
-		var tid := String(_terrains[_sel_terrain]["id"])
-		return [String(_terrains[_sel_terrain]["char"]),
-			"" if ov.is_empty() else String(_default_skin_by_type.get(tid, "")), ov]
-	var default_id := String(_default_skin_by_type.get(_sel_terrain_category, ""))
-	var skin := _sel_terrain_skin
-	if ov.is_empty() and skin == default_id:
-		skin = ""  # 既定スキン＋上書きなし＝差分に書かない（従来どおり）
-	return [_char_of_type(_sel_terrain_category), skin, ov]
+	if _sel_terrain_skin == "":
+		return null
+	return [_char_of_type(_sel_terrain_category), _sel_terrain_skin, ov]
 
 
 ## 高さ上書きの入力値 → { elevation, floor }。両方空＝{}（上書きなし）。
@@ -1128,8 +1100,8 @@ func _brush_override() -> Variant:
 
 
 ## 地形を1マス塗る。性能（terrain の文字）と見た目（terrain_skins の差分＋高さ上書き）を同時に決める。
-func _paint(col: int, row: int, button: int) -> void:
-	var brush: Variant = _brush(button)
+func _paint(col: int, row: int) -> void:
+	var brush: Variant = _brush()
 	if brush == null:
 		_say("高さ上書きは elevation と floor を数値のペアで入れてください（空欄＝上書きなし）。")
 		return
@@ -1139,14 +1111,43 @@ func _paint(col: int, row: int, button: int) -> void:
 
 
 ## 地続き（いまの見た目が同じマス）をまとめて塗る。高さ上書きも込みで塗る。
-func _fill(col: int, row: int, button: int) -> void:
-	var brush: Variant = _brush(button)
+func _fill(col: int, row: int) -> void:
+	var brush: Variant = _brush()
 	if brush == null:
 		_say("高さ上書きは elevation と floor を数値のペアで入れてください（空欄＝上書きなし）。")
 		return
 	var n := _doc.fill_terrain(col, row, String(brush[0]), String(brush[1]), brush[2])
 	_board.queue_redraw()
 	_say("%d マスを塗りました（Ctrl+Z で戻せます）。" % n)
+
+
+## 右クリックしたマスの設定をパレットへ取り込む（スポイト）。分類・スキン・高さ上書きを
+## そのマスと同じにする＝そのまま左クリックで同じマスを複製できる。盤は変えない＝Undo に積まない。
+func _pick_terrain(col: int, row: int) -> void:
+	var tid := TerrainType.char_to_id(_doc.terrain_char(col, row))
+	var skin := _doc.terrain_skin(col, row)
+	if skin == "":
+		skin = tid  # 差分なし＝型IDと同名のスキン（TerrainSkinCatalog の解決と同じ）
+	var exact := _has_terrain_skin(tid, skin)  # 盤の文字とスキンの terrain_type が食い違うマスがある
+	_sel_terrain_category = tid
+	_sel_terrain_skin = skin if exact else ""
+	var ov := _doc.height_override(col, row)
+	_ov_elevation = "" if ov.is_empty() else str(ov["elevation"])
+	_ov_floor = "" if ov.is_empty() else str(ov["floor"])
+	_rebuild_mode()  # 取り込んだ値でパレットを開き直す（スキンが引けなければ一覧の先頭になる）
+	if exact:
+		_say("(%d, %d) の設定を取り込みました（%s / %s）。" % [col, row, tid, _sel_terrain_skin])
+	else:
+		_say("(%d, %d) のスキン '%s' は %s の一覧にありません。分類だけ取り込み、スキンは %s になりました。"
+				% [col, row, skin, tid, _sel_terrain_skin])
+
+
+## その地形タイプにその skin_id が登録されているか。
+func _has_terrain_skin(type_id: String, skin_id: String) -> bool:
+	for s in _terrain_skins:
+		if String(s["skin_id"]) == skin_id and String(s["terrain_type"]) == type_id:
+			return true
+	return false
 
 
 func _undo_terrain() -> void:
@@ -1168,7 +1169,7 @@ func _show_inspection(col: int, row: int) -> void:
 	var tid := TerrainType.char_to_id(_doc.terrain_char(col, row))
 	_add_info(_inspector, "マス (%d, %d)  地形: %s" % [col, row, tid])
 	var skin := _doc.terrain_skin(col, row)
-	_add_info(_inspector, "見た目: %s" % [skin if skin != "" else "%s（既定）" % _default_skin_by_type.get(tid, tid)])
+	_add_info(_inspector, "見た目: %s" % [skin if skin != "" else "%s（差分なし）" % tid])
 	var ov := _doc.height_override(col, row)
 	if not ov.is_empty():
 		_add_info(_inspector, "高さ上書き: elevation %s / floor %s" % [str(ov["elevation"]), str(ov["floor"])])
