@@ -75,6 +75,60 @@ func test_non_true_stage_values_are_dropped() -> void:
 	assert_false(store.is_cleared("tutorial", "st3"), "数値はクリア扱いしない")
 	assert_false(store._cleared.has("tutorial"), "全滅した冒険譚の空エントリは積まない")
 
+# --- ランクの読み書き ---
+
+func test_fresh_store_has_no_rank() -> void:
+	assert_eq(ProgressStore.new(PATH).best_rank("tutorial", "st1"), "")
+
+func test_mark_rank_persists() -> void:
+	ProgressStore.new(PATH).mark_rank("tutorial", "st1", "A")
+	assert_eq(ProgressStore.new(PATH).best_rank("tutorial", "st1"), "A")
+
+func test_mark_rank_upgrades() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_rank("tutorial", "st1", "B")
+	store.mark_rank("tutorial", "st1", "A")
+	assert_eq(ProgressStore.new(PATH).best_rank("tutorial", "st1"), "A")
+
+func test_mark_rank_does_not_downgrade() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_rank("tutorial", "st1", "S")
+	store.mark_rank("tutorial", "st1", "B")
+	assert_eq(ProgressStore.new(PATH).best_rank("tutorial", "st1"), "S")
+
+func test_mark_rank_empty_is_ignored() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_rank("tutorial", "st1", "")
+	assert_eq(store.best_rank("tutorial", "st1"), "")
+
+func test_ranks_survive_reload_with_cleared() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_cleared("tutorial", "st1")
+	store.mark_rank("tutorial", "st1", "S")
+	var reloaded := ProgressStore.new(PATH)
+	assert_true(reloaded.is_cleared("tutorial", "st1"), "クリア記録も残る")
+	assert_eq(reloaded.best_rank("tutorial", "st1"), "S", "ランクも残る")
+
+func test_invalid_rank_value_is_dropped() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION,
+		"cleared": {}, "ranks": { "tutorial": { "st1": "X", "st2": "A" } } }))
+	var store := ProgressStore.new(PATH)
+	assert_eq(store.best_rank("tutorial", "st1"), "", "不正なランク値は読まない")
+	assert_eq(store.best_rank("tutorial", "st2"), "A", "正常な値は残る")
+
+func test_ranks_not_dict_is_ignored() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION,
+		"cleared": {}, "ranks": "broken" }))
+	var store := ProgressStore.new(PATH)
+	assert_eq(store.best_rank("tutorial", "st1"), "")
+
+func test_old_save_without_ranks_loads_fine() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION,
+		"cleared": { "tutorial": { "st1": true } } }))
+	var store := ProgressStore.new(PATH)
+	assert_true(store.is_cleared("tutorial", "st1"), "クリア記録は読める")
+	assert_eq(store.best_rank("tutorial", "st1"), "", "ランクは無し")
+
 func _write(text: String) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	f.store_string(text)
