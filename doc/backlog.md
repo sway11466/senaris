@@ -68,13 +68,12 @@
 
 ### feature-19
 
-**戦果票の評価ランク（S/A/B/C）**（優先度：中）
+**戦果票の評価ランク表示（S/A/B）**（優先度：中）
 
-- 背景：決着の戦果票（[uiux.md](gdd/uiux.md) §決着の演出・`presentation/ui/result_banner.gd`）は ターン数／生存／撃破 の3行を出すところまで実装済み。ジャンルの定番である**評価ランク**（Advance Wars の S/A/B/C 型）が無い。ランクは「同じ勝ちでも上手い勝ちがある」を一目で示す指標で、再挑戦の動機になる（速攻を狙う・主力を死なせない）。実装より**評価式の設計**が本体で、ステージごとの妥当な閾値決めはバランス調整＝ステージが揃ってからでないと決められないため後回しにした。
-- 対応：評価式を決めてから実装する。(1) 指標の選定＝ターン数（速さ）・損害（生存率）・撃破率あたりの合成。(2) 閾値の持ち方＝ステージJSONに `rank` として書く（ステージごとに適正ターン数が違う）か、`turn_limit` からの相対で自動算出するか。データに書くならステージ数ぶんの調整作業が要るので、まずは相対算出で始めるのが軽い。(3) 表示＝戦果票の3行の下にランクを大きく出す（`_fill` に行を足すだけの構造にしてある）。印とは別要素なので、印の下に重ねない位置を選ぶ。
-- 該当：`presentation/ui/result_banner.gd`（`_fill` にランク行）・`presentation/main/main.gd`（`_result_rows` の隣に評価の算出）・評価式の置き場所は `application/`（ゲームルール＝presentation に式を持たせない）・`data/stages/*.json`（閾値をデータに置く場合）・`doc/gdd/uiux.md`。着手の引き金＝ステージが揃ってバランス調整に入るとき。
-- 関連：撃破数の集計は現状 presentation 側で「開始時の敵数 − 残存」で採っており、拠点の控え（garrison）が出撃してから倒された分を数え落とす（`main._result_rows` のコメント）。ランクの入力に撃破を使うなら、先に `domain` 側で撃破を正確に数える必要がある。
-- 関連（実績）：Steam 実績を冒険譚単位×3段（踏破／全ステージを上位ランク以上／全ステージを最上位ランク）で出す方針になった（[monetization.md](sales/monetization.md) 実績・計測）。ランクが実績の入力になるため、ここで決めることが増える：(1) 段の数と呼び方（S/A/B/C のままか、ブロンズ／シルバー／ゴールド系にするか）、(2) 実績が参照する段＝どこ以上を「上位」とするか。実績はリリース後に削除・改名できないので、評価式は 1.0 までに固める必要がある＝着手の引き金に「1.0 のストア提出前」が加わる。
+- 背景：評価ランクの判定・記録の仕組みは実装済み。ターン消費率と生存率それぞれで S/A/B を判定し、低い方が最終ランク。閾値はステージJSONの `rank` に明示（暗黙知を持たせない）。全21チュートリアルステージに 50%/75% 基準の叩き台を投入済み。仕様 → [rank.md](gdd/rank.md)。実装 → `domain/rank_evaluator.gd`・`infrastructure/save/progress_store.gd`・`application/campaign_progress.gd`・`presentation/main/main.gd`。残るのは戦果票（結果画面）への表示。
+- 対応：(1) 結果画面にランク基準のチェックリストを表示（ターン数と生存数の具体的な値・クリアした基準にチェック）。(2) メダル表示（S=金、A=銀、B=銅）。位置は印と重ならない場所を選ぶ（実物を見てから調整）。表示仕様 → [uiux.md](gdd/uiux.md)。(3) 閾値の調整＝実際にプレイしながらステージごとに詰める。
+- 該当：`presentation/ui/result_banner.gd`（`_fill` にランク行・メダル）・`data/stages/*.json`（閾値の調整）。
+- 関連（実績）：Steam 実績を冒険譚単位×3段（踏破／全ステージを A 以上／全ステージを S）で出す方針（[monetization.md](sales/monetization.md) 実績・計測）。実績はリリース後に削除・改名できないので、評価式は 1.0 までに固める。
 
 ### feature-21
 
@@ -162,7 +161,7 @@
 
 - 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
 - 対応：(1) GodotSteam を導入し `infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
-- 該当：`infrastructure/platform/`（GodotSteam の隔離・新規）・`application/campaign_progress.gd`（完走判定・ランク記録）・`infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）が先に要る。
+- 該当：`infrastructure/platform/`（GodotSteam の隔離・新規）・`application/campaign_progress.gd`（完走判定・ランク記録）・`infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）は実装済み。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
 
 ### feature-41
