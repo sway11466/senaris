@@ -10,19 +10,19 @@ t1.st6.title,潜む伏兵,Draw Them Out
 t1.st7.title,ゴブリンの王,The Goblin King
 t2.title,アンデッドの群れ,The Undead Swarm
 t2.desc,墓地から湧き出すアンデッドとの戦い。騎士団・教会・魔法ギルドの混成調査隊が、魔法兵の長射程と輸送、陣形スキルを駆使し、屍の群れを押し返して元凶のネクロマンサーを討つ第二の章。,"The dead well up from the graveyard. Knights, clergy, and mages push back the swarm with long-range casters, transport, and formation skills, and cut down the necromancer behind it."
-t2.st1.title,墓地の骸骨,Bones in the Graveyard
-t2.st2.title,馬車で救援,Rescue by Wagon
-t2.st3.title,三重詠唱,The Triple Chant
-t2.st4.title,墓地を鎮めよ,Silence the Graves
-t2.st5.title,聖なる加護,Sacred Aegis
-t2.st6.title,首無しの強敵,The Headless Terror
-t2.st7.title,神の裁き,Divine Judgment
+t2.st1.title,屍の迎撃,Shield the Casters
+t2.st2.title,集落の救援,Race to the Village
+t2.st3.title,屍の殲滅,Unleash the Trinity Spell
+t2.st4.title,墓地の浄化,Seal the Graves
+t2.st5.title,神の加護,Sing the Holy Aria
+t2.st6.title,首無し騎士の猛攻,Storm the Crypts
+t2.st7.title,屍の元凶,The Necromancer's End
 t3.title,竜狩り,The Dragon Hunt
 t3.desc,街を襲う魔獣の討伐を請け負ったベテラン冒険者たちが、黒幕を追い竜と対峙する第三の章。平原から火口へ舞台を移し、飛行と対空、異種族の勧誘、戦力を次へ持ち越す消耗の重みを学ぶ。,"Veterans hired to cull the beasts raiding the city follow the trail to its masters, and face the dragon. From plains to caldera: flight and anti-air, other peoples recruited, losses carried on."
-t3.st1.title,新米たちの窮地,Recruits in Peril
-t3.st2.title,南北の襲撃,Raid from Both Gates
-t3.st3.title,荒野の足止め,Pinned in the Badlands
-t3.st4.title,エルフの里,The Elven Village
-t3.st5.title,崖の道,The Cliff Road
-t3.st6.title,洞窟の追撃,Pursuit in the Caves
-t3.st7.title,火口の主,Lord of the Caldera
+t3.st1.title,駆け出し冒険者と魔獣,Bring Them Down
+t3.st2.title,南北の門の死守,Hold Both Gates
+t3.st3.title,荒野の争奪戦,Stall Them from Above
+t3.st4.title,エルフの里の攻防,Win Over the Elves
+t3.st5.title,山里の救出戦,Rescue the Fledglings
+t3.st6.title,洞窟の挟撃,Corner the Ringleader
+t3.st7.title,火竜との決戦,The Dragon's Wrath
