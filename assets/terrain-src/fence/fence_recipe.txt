@@ -1,1 +1,15 @@
 powershell -File tools\gen_connect_tiles.ps1 fence assets\terrain-src\fence\fence_01_raw.png -ArmFrom 136 -ArmTo 512 -BandX 460 -BandW 104 -PostHalf 32 -NoBase
+
+# --- 横から見た板（placement=panel の絵。assets/terrain/plain_fence_side.png）---
+# 元絵は「柱2本＋横木2本」の1区画。柱の中心（実測 x=231.5 / 791.5＝画像中心に対称）で切る。
+# 隣のマスは同じ絵を鏡に立てるので、半分ずつの柱が継ぎ目で1本になる。上下は絵の端（y=264〜758）。
+# 背景の白は明度70%で抜く（60%だと横木の上面のハイライトまで落ちる／82%だと縁に白い画素が137個残る）。
+# 抜いた先は輪郭色 #2E281C で埋める＝縮小時に白ではなく暗い色がにじむ（gen_connect_tiles.ps1 と同じ理屈）。
+magick assets\terrain-src\fence\fence_side_01_raw.jpg -crop 560x495+231+264 +repage "(" +clone -colorspace gray -threshold 70% -negate ")" -alpha off -compose CopyOpacity -composite -background '#2E281C' -alpha background -colors 64 -dither None assets\terrain-src\fence\fence_side_02_master.png
+copy assets\terrain-src\fence\fence_side_02_master.png assets\terrain\plain_fence_side.png
+copy assets\terrain-src\fence\fence_side_02_master.png assets\terrain\plain_grave1_fence_side.png
+
+# 板の幅は盤が決めていて動かせない（中心→辺の中点＝0.866タイル）ので、背丈は絵の縦横比が決める。
+# 560:495 で 0.766タイル＝盤の実測で柱33px（同じ絵のファイター約120px）。
+# .import は mipmaps/generate=true にする。横木が細いので、既定（OFF）だと縮小で輪郭が点線に割れる。
+# 画像を差し替えたら .godot/imported/ の当該 ctex/md5 を消してから --import。
