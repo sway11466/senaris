@@ -1,6 +1,6 @@
 extends SceneTree
-## 使い捨て：岩山 (plain_cave1_rubble1) の戦闘中の見え方を撮る。
-## 手前の帯（_combat_front）は岩山に立つ側の半面だけに出る。右の駒が立つ／左の駒が立つ の2通り。
+## 使い捨て：崩落跡 (plain_cave1_rubble1) の戦闘中の見え方を撮る。
+## 手前の帯（_combat_front）は崩落跡に立つ側の半面だけに出る。右の駒が立つ／左の駒が立つ の2通り。
 ## 実行: godot --path . -s res://tests/manual/shot_rubble_combat.gd -- <出力ディレクトリの絶対パス>
 ## （--headless は付けない＝描画されないと get_texture() が撮れない）
 
