@@ -30,4 +30,4 @@
 
 戦果票での見せ方は [uiux.md](uiux.md) §決着の演出。
 
-実装 → [../../application/rank_evaluator.gd](../../application/rank_evaluator.gd)（評価式・新規）
+実装 → [../../domain/rank_evaluator.gd](../../domain/rank_evaluator.gd)（評価式・新規）

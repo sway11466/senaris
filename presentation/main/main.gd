@@ -49,6 +49,7 @@ var _victory_overlay := false  # 完走イラストを outro 会話に重ねて�
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
 var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の基準）
+var _rank_data := {}   # ステージ JSON の "rank"（評価ランクの閾値）。空＝ランクなし
 var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/既定のフォールバック
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
@@ -162,6 +163,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_update_aura()  # 加護の光（中断セーブ復元で効果が残っていることがある）
 	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
+	_rank_data = StageLoader.load_rank(path)  # 評価ランクの閾値（無ければ空＝ランクなし）
 	if state.current_team == 0:
 		_take_turn_snapshot()  # ステージの頭＝自ターン開始時点。ここでオートセーブも入る
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
@@ -286,6 +288,9 @@ func _on_battle_finished(outcome: int) -> void:
 		BattleState.PLAYER_WIN:
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
 				_progress.record_clear(_current_campaign_id, _current_stage_id)
+				var rank := _evaluate_rank()
+				if not rank.is_empty():
+					_progress.record_rank(_current_campaign_id, _current_stage_id, rank)
 				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
 				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/map.md
 				if _roster_store != null and _controller != null:
@@ -361,6 +366,16 @@ func _result_rows() -> Array:
 		["生存", "%d / %d" % [alive_ally, _start_ally]],
 		["撃破", str(maxi(_start_enemy - alive_enemy, 0))],
 	]
+
+## 評価ランクを算出する（勝利時）。rank_data が空ならランクなし＝空文字。
+func _evaluate_rank() -> String:
+	if _rank_data.is_empty() or _controller == null:
+		return ""
+	var alive := 0
+	for u in _controller.state.units():
+		if u.team == 0:
+			alive += 1
+	return RankEvaluator.evaluate(_controller.state.turn_number, alive, _start_ally, _rank_data)
 
 ## 戦果票の見出し＝ステージ名（冒険譚マニフェストの翻訳キーを解決）。
 ## セレクト外（デバッグの直起動など）はステージJSONのファイル名で代用する。

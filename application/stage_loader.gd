@@ -366,6 +366,20 @@ static func load_haze(path: String) -> float:
 		return 0.0
 	return parse_haze(data, path)
 
+## res:// パスの JSON から rank（評価ランクの閾値）を読む（load_file と対＝評価を main へ渡すため）。
+## rank が無いステージでは空辞書を返す＝ランクを評価・表示しない。
+static func load_rank(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return {}
+	var rank: Variant = data.get("rank", {})
+	if typeof(rank) != TYPE_DICTIONARY:
+		return {}
+	return rank
+
 ## 駒配置リスト（player セクション）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。

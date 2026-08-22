@@ -108,6 +108,17 @@ func record_clear(campaign_id: String, stage_id: String) -> void:
 		return
 	_store.mark_cleared(campaign_id, stage_id)
 
+## ランクを記録する（勝利時に main が呼ぶ）。ベスト更新は ProgressStore が判定する。
+func record_rank(campaign_id: String, stage_id: String, rank: String) -> void:
+	if rank.is_empty():
+		return
+	var c := campaign(campaign_id)
+	if c.is_empty() or c["debug"]:
+		return
+	if _find_stage(c, stage_id).is_empty():
+		return
+	_store.mark_rank(campaign_id, stage_id, rank)
+
 ## マニフェスト順で stage_id の直後のステージを返す（無ければ {}）。クリア後の自動遷移に使う。
 ## 解放状態は見ない＝呼び出し側が stage_state で判定する（LOCKED なら進まない等）。
 func next_stage(campaign_id: String, stage_id: String) -> Dictionary:
