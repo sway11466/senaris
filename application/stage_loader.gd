@@ -329,6 +329,23 @@ static func load_bgm(path: String) -> Dictionary:
 		return {}
 	return parse_bgm(data)
 
+## 奥の背景：ステージ辞書の "backdrop" を取り出す。値は絵のID（assets/backdrop/{id}.png）。
+## 戦闘窓の水平線から上に敷く1枚で、空とは限らない（洞窟なら岩壁）。書かなければ空文字＝
+## 水平線を引かず地面が窓の上端まで続く。見た目の関心なので BattleState には入れない。
+## 詳細 → doc/tech/combat_scene.md
+static func parse_backdrop(data: Dictionary) -> String:
+	return String(data.get("backdrop", ""))
+
+## res:// パスの JSON から backdrop を読む（load_file と対＝戦闘演出へ渡すため）。
+static func load_backdrop(path: String) -> String:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return ""
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return ""
+	return parse_backdrop(data)
+
 ## 駒配置リスト（player セクション）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。

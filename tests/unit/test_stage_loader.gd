@@ -516,3 +516,30 @@ func _all_stage_files() -> Array[String]:
 			if f.ends_with(".json") and f != "campaign.json":
 				out.append("%s/%s/%s" % [root, sub, f])
 	return out
+
+# --- 奥の背景（水平線から上に敷く1枚・戦闘窓）。詳細 → doc/tech/combat_scene.md ---
+
+func test_backdrop_reads_id() -> void:
+	assert_eq(StageLoader.parse_backdrop({ "backdrop": "sky_overcast" }), "sky_overcast")
+
+func test_backdrop_missing_is_empty() -> void:
+	# 書かなければ空文字＝水平線を引かない（絵を置けば出る）。ここで既定の絵に倒さない。
+	assert_eq(StageLoader.parse_backdrop({}), "")
+
+func test_load_backdrop_from_file() -> void:
+	_write_stage('{ "cols": 4, "rows": 3, "margin": 0, "backdrop": "cave_wall1" }')
+	assert_eq(StageLoader.load_backdrop(TMP_PATH), "cave_wall1")
+
+func test_load_backdrop_missing_file_is_empty() -> void:
+	assert_eq(StageLoader.load_backdrop("user://no_such_stage.json"), "")
+
+## 背景に書いた絵が assets/backdrop/ に置いてあるか（書いたのに絵が無ければ黙って出ない）。
+func test_stage_backdrops_have_art() -> void:
+	var missing: Array[String] = []
+	for entry in _all_stage_files():
+		var id := StageLoader.load_backdrop(entry)
+		if id.is_empty():
+			continue
+		if not ResourceLoader.exists("res://assets/backdrop/%s.png" % id):
+			missing.append("%s -> %s" % [entry, id])
+	assert_eq(missing, [] as Array[String], "backdrop に書いた絵が assets/backdrop/ に無い")

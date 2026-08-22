@@ -52,6 +52,7 @@
 
 - [units.md](units.md) — ユニットの見た目方針（共通ルール・陣営ごと・制作スペック・STYLE）
 - [terrain.md](terrain.md) — 地形タイルの方針（TERRAIN STYLE・切り抜き・反復対策）
+- [backdrop.md](backdrop.md) — 奥の背景の方針（戦闘窓の水平線から上・BACKDROP STYLE）
 - [keyvisual.md](keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・透かし対策）
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [`../../data/units/unit_type.csv`](../../data/units/unit_type.csv) / [`../../data/units/unit_skin.csv`](../../data/units/unit_skin.csv) — ロスター正本

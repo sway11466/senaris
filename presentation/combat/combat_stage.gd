@@ -26,6 +26,10 @@ const MAX_TROOPS := 8  # 兵量バーの目盛り数＝戦闘ルールの上限�
 const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
 const CORNER_RADIUS := 0.09   # 窓の角を丸める半径（短辺に対する比）
 const CORNER_SEGMENTS := 6    # 角の四分円の分割数。これ未満だと円弧の折れが見える
+## 水平線の高さ（窓の高さに対する比）。奥の背景を持つステージだけ引く。固定値＝ステージや
+## 地形で動かさない。重ね絵の下端（FEATURE_BOTTOM）のすぐ上に置く＝守り手側に建つ塊が
+## 水平線に胴を横切られない（横切ると靄の境目で壁が明暗に割れる）。
+const HORIZON := 0.40
 const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずかに寒色＝空気遠近）
 const HAZE_ALPHA := 0.80                     # 最奥での濃さ
 const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
@@ -85,6 +89,8 @@ const BAR_EDGE := Color(0, 0, 0, 0.65)
 var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
 var _state: BattleState = null  # 盤の状態（main が結線）。重ね絵を出すとき拠点の持ち主を引く
+var _backdrop_id := ""        # 奥の背景の絵ID（ステージが持つ・空＝水平線を引かない）
+var _backdrop: TextureRect    # 奥の背景（地面の上・重ね絵の下）。水平線から上に敷く1枚
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（main が結線）。_open で暗転・_close_now で明ける
 var _panel: Control       # 中央のモーダル窓（角を丸めた横長の矩形。中身のクリップ元も兼ねる）
@@ -137,6 +143,14 @@ func _build() -> void:
 	# 地面はシェイク対象（_inner）の中＝立ち絵と一緒に揺れる（背景だけ止まって見えない）。
 	_ground = CombatGround3D.new()
 	_inner.add_child(_ground)
+	# 奥の背景は地面の上・地形の重ね絵の下＝拠点の屋根は背景に抜ける。靄より後面だが、
+	# 背景があるときは靄を水平線から下へ動かすので、背景そのものは靄を受けない。
+	_backdrop = TextureRect.new()
+	_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_backdrop.stretch_mode = TextureRect.STRETCH_SCALE
+	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_backdrop.visible = false
+	_inner.add_child(_backdrop)
 	# 地形の重ね絵は地面と靄の間。靄より前に置くと奥行きの減光を受けず、周りの地面より明るく
 	# 浮いて見える（実測で14ポイント差）。地形の一部なので、地面と同じだけ奥へ沈める。
 	# 立ち絵は靄より前＝隊列は暗くならない（下の _fig と同じ扱いにはしない）。
@@ -201,6 +215,7 @@ func _layout() -> void:
 	_ground.size = _area + bleed * 2.0
 	_haze.position = -bleed
 	_haze.size = _area + bleed * 2.0
+	_layout_backdrop(bleed)
 	_edge.position = _panel.position
 	_edge.size = _area
 	# 幕開けのワイプは窓と縁取りを縦に潰した状態から開く。中心を軸にする＝上下へ割れて見える。
@@ -209,8 +224,41 @@ func _layout() -> void:
 	_panel.queue_redraw()
 	_edge.queue_redraw()
 
+## 奥の背景（水平線から上に敷く1枚）を置き直し、靄の掛かる範囲を合わせる。
+## 背景があるステージだけ水平線を引く＝靄は水平線から下に掛け直す（背景まで靄で潰さない）。
+## 背景が無ければ今までどおり＝水平線を引かず、靄は窓の全高に掛かる。
+func _layout_backdrop(bleed: Vector2) -> void:
+	var tex := _backdrop_texture()
+	_backdrop.texture = tex
+	_backdrop.visible = tex != null
+	if tex == null:
+		return
+	# 下端を水平線に置き、幅は窓（はみ出しぶんを含む）に合わせる。高さは絵の縦横比が決める。
+	# 上に余ったぶんは窓が切る＝比率が足りない絵は上に隙間が出る（→ doc/art/backdrop.md）。
+	var w := _area.x + bleed.x * 2.0
+	var horizon := _area.y * HORIZON
+	var h := w * (float(tex.get_height()) / float(maxi(tex.get_width(), 1)))
+	# 下端は水平線を1px またがせる。ぴたり合わせると、どちらにも覆われない行が1本残って
+	# 素の地面が明るいまま抜ける（実測：窓を横切る明るい線が出た）。
+	_backdrop.position = Vector2(-bleed.x, horizon - h)
+	_backdrop.size = Vector2(w, h + 1.0)
+	_haze.position = Vector2(-bleed.x, horizon)
+	_haze.size = Vector2(w, _area.y + bleed.y - horizon)
+
+## 奥の背景のPNG（assets/backdrop/{id}.png）。ステージが書いていなければ null。
+func _backdrop_texture() -> Texture2D:
+	if _backdrop_id.is_empty():
+		return null
+	var path := "res://assets/backdrop/%s.png" % _backdrop_id
+	return load(path) as Texture2D if ResourceLoader.exists(path) else null
+
 func bind(skins: Dictionary) -> void:
 	_skins = skins
+
+## 奥の背景の絵ID（ステージが持つ）。空＝水平線を引かない。ステージごとに変わるので
+## load_stage が呼ぶ（地形スキンと同じ出どころ）。
+func bind_backdrop(backdrop_id: String) -> void:
+	_backdrop_id = backdrop_id
 
 ## 画面の明暗の共通基盤（main が結線）。舞台の開閉に合わせて暗転を掛け外しする。
 func bind_screen(screen: ScreenLighting) -> void:

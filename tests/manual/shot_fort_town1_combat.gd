@@ -2,7 +2,7 @@ extends SceneTree
 ## 使い捨て：拠点「町」(road_fort_town1) の戦闘中の見え方を撮る。
 ## 中立／味方が持つ／敵が持つ の3通り。拠点の持ち主は盤の状態から引くので、
 ## 町のマスに拠点を1つ置いた BattleState を作って結線する。
-## 実行: godot --path . -s res://tests/manual/shot_fort_town1_combat.gd -- <出力ディレクトリの絶対パス>
+## 実行: godot --path . -s res://tests/manual/shot_fort_town1_combat.gd -- <出力ディレクトリの絶対パス> [背景id]
 ## （--headless は付けない＝描画されないと get_texture() が撮れない）
 
 const TOWN := Vector2i(0, 0)   # 町のマス
@@ -30,6 +30,8 @@ func _initialize() -> void:
 	_stage.bind(SkinCatalog.load_standard())
 	_stage.bind_terrain_skins({ TOWN: "road_fort_town1" })
 	_stage.bind_state(state)
+	# 奥の背景は第2引数で渡す（`assets/backdrop/{id}.png` のid）。省略＝水平線を引かない。
+	_stage.bind_backdrop(String(args[1]) if args.size() > 1 else "")
 
 func _process(_delta: float) -> bool:
 	_frames += 1
