@@ -106,17 +106,12 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 - 敗北は同じ印だが**インクを灰墨に沈める**（色で語らせ、派手にしない）。リトライ前提の画面なので勝利より軽く扱う。
 - 戦果は ターン数／生存／撃破 の3行。生存は carryover の冒険譚で次に引き継がれる数＝意味のある数字。
 - 決着シグナルは戦闘結果の直後に飛ぶ（戦闘演出がまだ画面に出ている）ので、**演出が閉じるのを待ってから**戦果票を出す。戦闘中に勝敗を告げると気が早い。
-- 勝利時、戦果の下に**評価ランク**（**S** / **A** / **B** の3段階）を表示する。敗北にはランクを付けない。
-  - ターン消費率と生存率それぞれで S / A / B を判定し、**低い方**が最終ランクになる。
-  - ターン消費率＝使ったターン数 ÷ `turn_limit`。生存率＝残った自軍ユニット数 ÷ 開始時の自軍ユニット数（兵数が減っていてもユニットが生きていれば生存）。
-  - ターン消費率は S: 50% 未満・A: 75% 未満・B: 75% 以上。生存率は S: 50% 以上・A: 25% 以上・B: 25% 未満が基準。実際の閾値はステージ JSON の `rank` に書く（`turn_s` / `turn_a` / `survival_s` / `survival_a`）。`rank` が無いステージではランクを表示しない。
+- 勝利時、戦果の下に**評価ランク**（[rank.md](rank.md)）を表示する。敗北にはランクを付けない。
   - 戦果の各行の右にランク基準（具体的な数値）を S・A で並べ、達成した基準にチェックを付ける。撃破はランクに使わないので基準なし。プレイヤーは何を改善すれば上がるか一目でわかる。
   - 最終ランクに応じた**メダル**（S = 金・A = 銀・B = 銅）を出す。配置は実物を見て決める。
   - 印（ゴム印）とは重ねない。
-  - ベストランクを進捗セーブの `ranks` に記録する（`cleared` と並列・`version` 据え置き）。
-  - 評価式は `application/rank_evaluator.gd`（新規）に置く。
 
-実装 → [../../presentation/ui/result_banner.gd](../../presentation/ui/result_banner.gd)（戦果票）・[../../presentation/main/main.gd](../../presentation/main/main.gd)（`_show_result`・決着フロー）・[../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd)（`stamp` ＝印影の共通部品）・[../../application/rank_evaluator.gd](../../application/rank_evaluator.gd)（評価式・新規）
+実装 → [../../presentation/ui/result_banner.gd](../../presentation/ui/result_banner.gd)（戦果票）・[../../presentation/main/main.gd](../../presentation/main/main.gd)（`_show_result`・決着フロー）・[../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd)（`stamp` ＝印影の共通部品）
 
 ---
 
