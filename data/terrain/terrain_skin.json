@@ -2,6 +2,7 @@
 	"skins": [
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.36,
@@ -20,6 +21,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.12,
@@ -38,6 +40,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.18,
@@ -56,6 +59,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -74,6 +78,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -91,7 +96,27 @@
 			"terrain_type": "plain"
 		},
 		{
+			"combat_ground": "plain_cave1",
+			"combat_scale": 1.3,
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"ignore_board_height": false,
+			"map_ground": "plain_cave1",
+			"map_scale": 0.85,
+			"memo": "ゴブリンロードの玉座。繋がらない柵＝上に立つと防御1.5。戦闘の隊列の後ろの絵（_combat_rear）は横向きで自前",
+			"name": "玉座",
+			"object_foot_z": 0.2,
+			"orientable": "none",
+			"placement": "standee",
+			"skin_id": "plain_cave1_fence_throne1",
+			"terrain_type": "fence"
+		},
+		{
 			"combat_ground": "plain",
+			"combat_scale": "",
 			"connect": "line",
 			"connect_to": "",
 			"elevation": 0,
@@ -110,6 +135,7 @@
 		},
 		{
 			"combat_ground": "plain",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -128,6 +154,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -146,6 +173,7 @@
 		},
 		{
 			"combat_ground": "plain_grave1",
+			"combat_scale": "",
 			"connect": "line",
 			"connect_to": "",
 			"elevation": 0,
@@ -164,6 +192,7 @@
 		},
 		{
 			"combat_ground": "plain_grave1",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -182,6 +211,7 @@
 		},
 		{
 			"combat_ground": "plain_grave1",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -200,6 +230,7 @@
 		},
 		{
 			"combat_ground": "plain_grave1",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -218,6 +249,7 @@
 		},
 		{
 			"combat_ground": "plain",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -236,6 +268,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.18,
@@ -254,6 +287,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
@@ -272,6 +306,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
@@ -290,6 +325,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.54,
@@ -308,6 +344,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -326,6 +363,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -344,6 +382,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -362,6 +401,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -380,6 +420,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -398,6 +439,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -416,6 +458,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -434,6 +477,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -452,6 +496,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -470,6 +515,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -488,6 +534,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -506,6 +553,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -524,6 +572,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": -0.18,
@@ -542,6 +591,7 @@
 		},
 		{
 			"combat_ground": "plain",
+			"combat_scale": "",
 			"connect": "area",
 			"connect_to": "road_stone1 river_bridge_stone1_v river_bridge_stone1_r river_bridge_stone1_l river_bridge_stone1_left_v river_bridge_stone1_left_r river_bridge_stone1_left_l river_bridge_stone1_right_v river_bridge_stone1_right_r river_bridge_stone1_right_l river_bridge_stone1_mid_v river_bridge_stone1_mid_r river_bridge_stone1_mid_l road_building_town1_v road_building_town1_r road_building_town1_l road_prop_garden1_v road_prop_garden1_r road_prop_garden1_l road_fort_guardhouse1",
 			"elevation": 0,
@@ -560,6 +610,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -578,6 +629,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -596,6 +648,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -614,6 +667,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -632,6 +686,7 @@
 		},
 		{
 			"combat_ground": "plain",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -650,6 +705,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -668,6 +724,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -686,6 +743,7 @@
 		},
 		{
 			"combat_ground": "road",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -704,6 +762,7 @@
 		},
 		{
 			"combat_ground": "plain",
+			"combat_scale": "",
 			"connect": "area",
 			"connect_to": "road river_bridge_stone1_v river_bridge_stone1_r river_bridge_stone1_l river_bridge_stone1_left_v river_bridge_stone1_left_r river_bridge_stone1_left_l river_bridge_stone1_right_v river_bridge_stone1_right_r river_bridge_stone1_right_l river_bridge_stone1_mid_v river_bridge_stone1_mid_r river_bridge_stone1_mid_l",
 			"elevation": 0,
@@ -722,6 +781,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0.72,
@@ -740,6 +800,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -758,6 +819,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,
@@ -776,6 +838,7 @@
 		},
 		{
 			"combat_ground": "",
+			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
 			"elevation": 0,

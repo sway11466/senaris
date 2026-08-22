@@ -1,0 +1,52 @@
+SUBJECT: REDRAW the throne from the previous image from a COMPLETELY NEW
+viewpoint: in PROFILE, seen from its side. Do NOT return the previous image
+unchanged — the camera has moved a quarter turn around the chair, so every
+plank is drawn fresh.
+
+THE VIEWPOINT — the throne is turned to FACE THE RIGHT side of the frame, and
+the camera looks at it square from the side, at eye level, with no perspective:
+the tall crooked back rises at the LEFT of the silhouette, the seat points to
+the RIGHT, and the two flat stone steps descend to the right in front of it.
+The worn animal hide hangs over the seat and down its front (the right side).
+Of the pair of mounted TUSKS only the near one is fully seen, curving up from
+the top of the back; the far one peeks behind it. Nobody and nothing sits on
+the throne — it is EMPTY, waiting, seen exactly as a soldier standing to its
+side would see it.
+
+THE DETAIL — this is a close-up for a battle scene, so the parts carry more
+drawing than the distant map sprite: visible wood grain and splits in the
+planks, the individual windings of the rope lashings, dents in the bent nail
+heads, the fur texture of the hide — still in the same clean stylized
+cel-shaded look as the game's terrain and unit art: bold flat shading, clear
+dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism).
+
+WHAT STAYS — it is the SAME individual throne as the previous image, only seen
+from the side: the same rough scavenged planks, the same rope lashings and bent
+nails, the same two wide flat stones as steps, the same tusks, the same hide,
+the same colours. Do NOT add anything that is not in the previous image.
+
+SIZE — the throne is the only thing in the picture, in the MIDDLE of the frame.
+In a 1024-pixel picture it is about 700 pixels tall, with white on all sides.
+It must NOT touch any edge and must NOT be cut by any edge.
+
+COLOR — weathered mid-brown timber, hex #7A5C3C; the stone steps a dull warm
+grey, hex #8A8074; the hide a darker muted brown; the tusks a pale dull bone
+colour, never pure white. NO gold, NO jewels, NO glowing runes, NO torches, NO
+fire, and NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything around the throne is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO drop
+shadow. This white is going to be deleted and the throne laid over the game's
+own battle scene, so the outline must be a hard, clean, crisp edge against it.
+Nothing in the throne itself may be white or near-white.
+
+LIGHT — from directly above only, short soft shadows that fall only on the
+throne itself; NOTHING casts a shadow onto the white, and NO light comes from
+the left or the right — the picture is MIRRORED when the throne stands on the
+other side of the field, so a sideways highlight would flip with it and
+contradict the scene.
+
+Nothing else: no goblin, no creature, no weapons, no shields, no banner, no
+skulls, no bones, no coins, no smoke, no lettering. NO border, NO frame around
+the picture itself, NO vignette. Square 1:1.

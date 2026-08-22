@@ -1,0 +1,40 @@
+SUBJECT: The crude THRONE of a goblin warlord, cobbled together in its cave
+lair, as drawn on the world map of a classic 2D role-playing game: seen from
+the front and slightly above, standing upright and facing the bottom of the
+frame — nothing lying flat, no perspective.
+
+ONE heavy high-backed chair, EMPTY — nobody and nothing sits on it. It is
+goblin-built: a broad seat and a tall crooked back hacked from rough scavenged
+planks, lashed together with rope and studded with crude bent nails, standing
+on a low platform of two wide flat stones like steps. The back grows wider
+towards the top, and a pair of curved animal TUSKS is mounted at its top
+corners — the one detail that must still read at thumbnail size and say "the
+boss sits here". A worn animal hide is thrown over the seat and hangs down the
+front.
+
+SIZE — the throne sits in the MIDDLE of the picture, clearly taller than it is
+wide. In a 1024-pixel picture it is about 620 pixels tall and about 460 pixels
+wide, leaving at least 200 pixels of white on every side. It must NOT touch any
+edge and must NOT be cut by any edge.
+
+COLOR — weathered mid-brown timber, hex #7A5C3C; the stone steps a dull warm
+grey, hex #8A8074; the hide a darker muted brown; the tusks a pale dull bone
+colour, never pure white. Everything muted, in the same clean stylized
+cel-shaded look as the game's terrain and unit art: bold flat shading, clear
+dark outlines, a mature, slightly muted, limited color palette (NOT bright
+saturated, NOT painterly photorealism). NO gold, NO jewels, NO glowing runes,
+NO torches, NO fire, and NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything around the throne is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO drop
+shadow. This white is going to be deleted and the game will draw its own cave
+floor there, so the outline of the throne must be a hard, clean, crisp edge
+against it. Nothing in the throne itself may be white or near-white.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the throne itself; NOTHING casts a shadow onto the white.
+
+Nothing else: no goblin, no creature, no weapons, no shields, no banner, no
+skulls, no bones, no coins, no smoke, no lettering. Read at thumbnail size: a
+few large legible shapes, no fine detail. NO border, NO frame around the
+picture itself, NO vignette. Square 1:1.

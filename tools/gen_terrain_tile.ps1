@@ -46,6 +46,22 @@
   Cannot be combined with -Fit / -Upright (there is no hexagon to fit and no tile to
   pre-stretch). Rule of record: doc/art/terrain.md.
 
+  -CombatRear writes the combat-scene "rear" standee ({name}_combat_rear.png) instead: the
+  object that stands right behind the defending lead figure (a throne). It uses the UNIT
+  combat ruler (tools/gen_unit_combat.ps1): art height = 384px * combat_scale
+  (terrain_skin.csv, "how many fighters tall"), bottom-aligned on a 704px square canvas.
+  The scene draws this square at the same on-screen size as a unit figure, so size and
+  any lift off the feet line are carried by the canvas padding, not by scene constants.
+  Alpha kept, no colour reduction (same as unit combat images). An empty combat_scale is
+  an error, not a default. -RearShift <px> moves the art toward the BACK (away from the
+  battle line) inside the canvas, so it stands behind the lead figure instead of under it.
+  The art is drawn for a defender on the left (facing right), so back = left; the scene
+  mirrors the whole canvas for the right side. 0 = centred on the figure.
+  -RearDrop <px> makes the canvas that many px TALLER than the square (704 wide x 704+drop
+  tall) with the art still bottom-aligned. The scene pins the canvas TOP to the figure
+  canvas top, so the extra rows hang below the feet line = the object sits lower than the
+  figure's feet. 0 = feet on the feet line.
+
 .EXAMPLE
   powershell -File tools\gen_terrain_tile.ps1 plain art\plain_a.png
   powershell -File tools\gen_terrain_tile.ps1 plain art\p1.png art\p2.png art\p3.png
@@ -63,6 +79,9 @@ param(
   [int]$Fuzz = 10,                                # tolerance for -Transparent, percent
   [double]$Rotate = 0,                            # turn the art this many degrees clockwise before fitting
   [switch]$Object,                                # write a standee (see -Object above) instead of a hex tile
+  [switch]$CombatRear,                            # write the combat rear standee (see -CombatRear above)
+  [int]$RearShift = 0,                            # -CombatRear: px toward the back (left) on the canvas
+  [int]$RearDrop = 0,                             # -CombatRear: px the art hangs below the feet line
   [switch]$Fit,                                   # centre the art and scale it to the largest that fits the hexagon
   [double]$FitMargin = 1.0,                       # 1 = touch the hexagon; below 1 leaves a gap to the neighbours
   [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
@@ -98,6 +117,22 @@ $ObjCanvas = 384   # output canvas (square) = 3.75 tiles tall, the same ruler th
 # Art width (px) at map_scale = 1.0 = one hexagon across (2 tiles) on that canvas: 384 * 2 / 3.75.
 $ObjBase   = $ObjCanvas * 2.0 / 3.75
 $ObjWidth  = 0
+# -CombatRear: the unit combat ruler. Both numbers are gen_unit_combat.ps1's $Canvas / $BaseHeight;
+# the scene draws this square with FIG_H, so changing either means changing them there too.
+$RearCanvas = 704
+$RearBase   = 384
+$RearHeight = 0
+if ($CombatRear) {
+  if ($Object -or $Fit -or $Upright) { throw "-CombatRear cannot be combined with -Object / -Fit / -Upright" }
+  $csv = Join-Path $repo "data\terrain\terrain_skin.csv"
+  $row = Import-Csv -Path $csv -Encoding UTF8 | Where-Object { $_.skin_id -eq $Name } | Select-Object -First 1
+  if (-not $row) { throw "$Name is not a skin_id in data/terrain/terrain_skin.csv" }
+  # No fallback on purpose: a missing scale would silently ship a fighter-sized object.
+  if ($row.combat_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.combat_scale -le 0) {
+    throw "$Name has no combat_scale in terrain_skin.csv (found '$($row.combat_scale)'). Fill the column."
+  }
+  $RearHeight = [int][math]::Round($RearBase * [double]$row.combat_scale)
+}
 if ($Object) {
   if ($Fit -or $Upright) { throw "-Object cannot be combined with -Fit / -Upright" }
   $csv = Join-Path $repo "data\terrain\terrain_skin.csv"
@@ -175,6 +210,30 @@ foreach ($src in $Sources) {
     & magick $stage -trim +repage -background none -gravity center -extent "${n}x${n}" $fitted
     $stage = $fitted
     $note = " [fit {0}x{1} -> {2}sq]" -f [int]$cw, [int]$ch, $n
+  }
+
+  # -CombatRear: trim, set the height the csv asks for (width bounded by the canvas), bottom-align
+  # on the unit combat square. Same recipe as gen_unit_combat.ps1 so the object and the figures share
+  # one ruler. One source only (the scene has no variants for this slot).
+  if ($CombatRear) {
+    $out = Join-Path $outDir ("{0}_combat_rear.png" -f $Name)
+    $sized = Join-Path $work 'rear_sized.png'
+    magick $stage -trim +repage -resize "${RearCanvas}x${RearHeight}" $sized
+    # Compose onto the canvas (square, plus -RearDrop rows below the feet line): bottom-centred,
+    # then slid toward the back (left) by -RearShift.
+    $rearH = $RearCanvas + $RearDrop
+    magick -size "${RearCanvas}x${rearH}" xc:none $sized -gravity south -geometry "-${RearShift}+0" -composite $out
+    $sz = (magick $sized -format "%w %h" info:) -split " "
+    $bb = (magick $out -trim -format "%w %h" info:) -split " "
+    if ([int]$bb[1] -lt $RearHeight) {
+      Write-Warning "${Name}: cropped vertically (wanted ${RearHeight}px, kept $($bb[1])px). Lower combat_scale."
+    }
+    if ([int]$bb[0] -lt [int]$sz[0]) {
+      Write-Warning "${Name}: cropped horizontally (art $($sz[0])px, kept $($bb[0])px). Lower -RearShift."
+    }
+    $kb = [int]((Get-Item $out).Length / 1KB)
+    Write-Output ("{0,-14} <- {1,-28} -> assets/terrain/{0}_combat_rear.png ({2}KB) [rear H={3} shift={4} drop={5}]" -f $Name, (Split-Path $src -Leaf), $kb, $RearHeight, $RearShift, $RearDrop)
+    break
   }
 
   # -Object: trim to the art, scale it to the width the csv asks for, and drop it bottom-aligned
