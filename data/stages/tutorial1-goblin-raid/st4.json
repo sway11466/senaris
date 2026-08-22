@@ -1,6 +1,7 @@
 {
   "turn_limit": 30,
   "name": "tutorial-st4",
+  "backdrop": "sky_clear",
   "cols": 22,
   "rows": 11,
   "margin": 0,

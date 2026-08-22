@@ -27,9 +27,10 @@ const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイク
 const CORNER_RADIUS := 0.09   # 窓の角を丸める半径（短辺に対する比）
 const CORNER_SEGMENTS := 6    # 角の四分円の分割数。これ未満だと円弧の折れが見える
 ## 水平線の高さ（窓の高さに対する比）。奥の背景を持つステージだけ引く。固定値＝ステージや
-## 地形で動かさない。重ね絵の下端（FEATURE_BOTTOM）のすぐ上に置く＝守り手側に建つ塊が
-## 水平線に胴を横切られない（横切ると靄の境目で壁が明暗に割れる）。
-const HORIZON := 0.40
+## 地形で動かさない。重ね絵の下端（FEATURE_BOTTOM）より0.08上に置く＝守り手側に建つ塊が
+## 水平線に胴を横切られない。絵の中で奥に建つ建物は土台が下端より少し上（町で0.04）なので、
+## すぐ上（0.40）だと奥の土台の下に背景が覗く。
+const HORIZON := 0.36
 const HAZE_COLOR := Color(0.05, 0.06, 0.09)  # 奥に敷く靄の色（わずかに寒色＝空気遠近）
 const HAZE_ALPHA := 0.80                     # 最奥での濃さ
 const EDGE_COLOR := Color(0, 0, 0, 0.55)  # 窓の縁取り
@@ -78,6 +79,9 @@ const FIG_SCALE := 0.95  # 全図で一定の拡大率（列で変えず＝サ�
 ## 抜け、内側の端だけが画の中で終わる＝絵はその向きに描いて、反対の陣営では左右反転して使う。
 const FEATURE_W := 0.5        # 帯の幅。守り手側の半面
 const FEATURE_BOTTOM := 0.44  # 下端。隊列の頭（約0.24）に少し被る＝奥に建っていると読める
+# 本人の後ろの1枚（rear）は駒の立ち絵と同じ物差し＝駒と同じ幅のキャンバスを、上端を駒のキャンバスの
+# 上端に揃えて置く。大小・後ろへの引き・足元より下への垂れは絵のキャンバスの余白が持つ（駒と同じ。
+# tools/gen_terrain_tile.ps1 -CombatRear / -RearShift / -RearDrop が焼き込む）＝ここに定数を持たない。
 # 兵量バー（窓内寸に対する比）。両陣営に常時出す＝隊列が減る駒もバーだけの駒も損害の読み方を揃える。
 const BAR_W := 0.30
 const BAR_H := 0.028
@@ -143,7 +147,7 @@ func _build() -> void:
 	# 地面はシェイク対象（_inner）の中＝立ち絵と一緒に揺れる（背景だけ止まって見えない）。
 	_ground = CombatGround3D.new()
 	_inner.add_child(_ground)
-	# 奥の背景は地面の上・地形の重ね絵の下＝拠点の屋根は背景に抜ける。靄より後面だが、
+	# 奥の背景は地面の上・靄と地形の重ね絵の下＝拠点の屋根は背景に抜ける。靄より後面だが、
 	# 背景があるときは靄を水平線から下へ動かすので、背景そのものは靄を受けない。
 	_backdrop = TextureRect.new()
 	_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -151,19 +155,20 @@ func _build() -> void:
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_backdrop.visible = false
 	_inner.add_child(_backdrop)
-	# 地形の重ね絵は地面と靄の間。靄より前に置くと奥行きの減光を受けず、周りの地面より明るく
-	# 浮いて見える（実測で14ポイント差）。地形の一部なので、地面と同じだけ奥へ沈める。
-	# 立ち絵は靄より前＝隊列は暗くならない（下の _fig と同じ扱いにはしない）。
-	_feature = Control.new()
-	_feature.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_feature.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_inner.add_child(_feature)
+	# 靄は地面（と背景）だけに掛ける。地形の重ね絵より後面＝重ね絵は靄を受けない。
+	# かつては重ね絵を靄の下に置いていた（靄より前だと周りの地面より明るく浮く＝実測で14ポイント差）が、
+	# 背景を置くと靄は水平線で一番濃くなるので、水平線をまたぐ塊の足元だけが暗い帯で割れる。
+	# そちらのほうが目に付くので、重ね絵は靄より前に出す。
 	_haze = TextureRect.new()
 	_haze.texture = _make_haze()
 	_haze.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_haze.stretch_mode = TextureRect.STRETCH_SCALE
 	_haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_inner.add_child(_haze)
+	_feature = Control.new()
+	_feature.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_feature.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_inner.add_child(_feature)
 	for side in ["L", "R"]:
 		var f := Control.new()
 		f.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -298,7 +303,7 @@ func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 	_clear(_feature)
 	_clear(_feature_front)
 	if skin != null:
-		_add_features(skin, ground_side, _base_team_of(ground))
+		_add_features(skin, ground_side, _base_team_of(ground), _slot_pos(ground_side, _lead_pos(ground)))
 	if _screen != null:
 		_screen.dim(self)  # 暗転は共通基盤（フェードはあちら持ち）。窓のワイプとほぼ同時に走る
 	_start_open_anim()
@@ -326,7 +331,7 @@ func _start_open_anim() -> void:
 ## スキンから引き、置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。
 ## 3Dの帯には混ぜない＝奥へ行くほど縮む帯の倍率と靄を受けないので、いつも同じ大きさで読める。
 ## 仕様 → doc/tech/combat_scene.md
-func _add_features(skin: TerrainSkin, side: String, team: int) -> void:
+func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2) -> void:
 	var back := _feature_texture(skin, "back", team)
 	if back != null:
 		# 守り手側の半面に渡す帯。幅で合わせ、高さは絵の縦横比が決める（横幅が決まっている以上、
@@ -342,6 +347,18 @@ func _add_features(skin: TerrainSkin, side: String, team: int) -> void:
 		var rect := _feature_rect(back, Vector2(x, bottom - h), Vector2(w, h))
 		rect.flip_h = side == "R"  # 絵は左陣営向きに描く＝外側（窓の端）へ抜ける側を左に
 		_feature.add_child(rect)
+	var rear := _feature_texture(skin, "rear", team)
+	if rear != null:
+		# 守り手の本人の真後ろに立てる1枚（玉座など）。奥の帯と違い窓の端に寄せず、本人の
+		# 立ち位置（lead＝先頭スロットの中心x・足元y）に、駒と同じ正方キャンバスを同じ大きさで置く
+		# （_add_figure と同じ式）。立ち絵より下のレイヤー＝本人も従者も手前に出る。
+		# キャンバスは幅で駒と同じ倍率に合わせ、上端を駒のキャンバスの上端に揃える。高さが幅を
+		# 超えるぶん（-RearDrop）は足元の線より下へ垂れる＝絵側で「足元より下」を持てる。
+		var rw := _size().y * FIG_H * FIG_SCALE
+		var rh := rw * (float(rear.get_height()) / float(maxi(rear.get_width(), 1)))
+		var rrect := _feature_rect(rear, Vector2(lead.x - rw * 0.5, lead.y - rw), Vector2(rw, rh))
+		rrect.flip_h = side == "R"  # 絵は左陣営向きに描く＝物が右（戦場の方）を向く
+		_feature.add_child(rrect)
 	var line := _feature_texture(skin, "line", team)
 	if line != null:
 		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
@@ -550,6 +567,11 @@ func _skin_texture(skin: UnitSkin) -> Texture2D:
 	if p != "" and ResourceLoader.exists(p):
 		return load(p) as Texture2D
 	return null
+
+## 本人（先頭スロット）の隊列内の正規化座標。single は1体の立ち位置、それ以外は隊列の先頭。
+func _lead_pos(comb: Dictionary) -> Vector2:
+	var s := _skin_of(comb)
+	return SINGLE_POS if (s != null and s.is_single_figure()) else POS[0]
 
 func _skin_of(comb: Dictionary) -> UnitSkin:
 	return SkinCatalog.resolve(_skins, String(comb.get("skin_id", "")), String(comb["type_id"]), int(comb["team"]))
