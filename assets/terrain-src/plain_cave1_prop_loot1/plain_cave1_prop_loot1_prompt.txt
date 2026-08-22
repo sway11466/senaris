@@ -1,0 +1,49 @@
+SUBJECT: A heap of PLUNDER dumped in a goblin cave — food and goods carried
+off from a raided farming town and thrown into a pile by goblins who do not
+care for any of it — as drawn on the world map of a classic 2D role-playing
+game: seen from the front and slightly above, standing upright and facing the
+bottom of the frame — nothing lying flat, no perspective.
+
+ONE compact pile, everything dumped on top of everything else into a single
+sagging mound: two or three round wooden BARRELS bound with rusty iron hoops —
+one upright, one tipped on its side, one with its lid gone and a stave
+missing; a couple of slatted wooden CRATES, one smashed open at the corner with
+broken slats sticking out; and three or four burlap SACKS, lumpy and
+misshapen, one torn so that pale grain has run out down the front of the pile.
+The pile is CRUDE and CARELESS: nothing is stacked straight, nothing is tied
+down, things lean and slump and spill. Scraps lie in the gaps — a snapped
+board, a loose lid, a bit of rope, a gnawed bone or two. These are a farm
+town's stores, stolen and mistreated: NO gold, NO coins, NO treasure chest, NO
+jewels, NO weapons, NO armour.
+
+THE LOOK — battered and dirty, not neat: the timber is split, chipped, scuffed
+and stained, with grain and cracks showing; the hoops are rusted and one is
+sprung loose; the burlap is patched, frayed at the seams and smeared with
+grime. NOT a tidy merchant's stack, NOT new barrels, NOT clean sacks.
+
+SIZE — the pile sits in the MIDDLE of the picture, wider than it is tall. In a
+1024-pixel picture it is about 620 pixels wide and about 460 pixels tall,
+leaving at least 200 pixels of white on every side. It must NOT touch any edge
+and must NOT be cut by any edge.
+
+COLOR — weathered dull-brown timber, hex #6E5238, greyed with dirt; rust-brown
+iron hoops; undyed grey-tan burlap, hex #9A8C74, dirtier in the creases; the
+spilled grain a pale dull straw colour, never bright yellow. Everything muted,
+in the same clean stylized cel-shaded look as the game's terrain and unit art:
+bold flat shading, clear dark outlines, a mature, slightly muted, limited
+color palette (NOT bright saturated, NOT painterly photorealism). NO strong
+red, blue or green anywhere.
+
+THE BACKGROUND — everything around the pile is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO drop
+shadow. This white is going to be deleted and the game will draw its own cave
+floor there, so the outline of the pile must be a hard, clean, crisp edge
+against it. Nothing in the pile itself may be white or near-white.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the pile itself; NOTHING casts a shadow onto the white.
+
+Nothing else: no goblin, no creature, no people, no animals, no rats, no
+torches, no fire, no lettering, no signs. Read at thumbnail size: a few large
+legible shapes, no fine detail. NO border, NO frame around the picture itself,
+NO vignette. Square 1:1.

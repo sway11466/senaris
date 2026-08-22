@@ -115,6 +115,25 @@
 			"terrain_type": "fence"
 		},
 		{
+			"combat_ground": "plain_cave1",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"ignore_board_height": false,
+			"map_ground": "plain_cave1",
+			"map_scale": 0.8,
+			"memo": "ゴブリンが町から奪って雑に積んだ樽・木箱・袋。戦闘は手前の帯（_combat_front）に散らかす",
+			"name": "略奪品の山",
+			"object_foot_z": 0.3,
+			"orientable": "none",
+			"placement": "standee",
+			"skin_id": "plain_cave1_prop_loot1",
+			"terrain_type": "prop"
+		},
+		{
 			"combat_ground": "plain",
 			"combat_scale": "",
 			"connect": "line",

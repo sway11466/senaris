@@ -1,0 +1,59 @@
+SUBJECT: A NEW composition, not a crop or extension of any earlier picture:
+a short row of goblin plunder lying on the floor, drawn as ONE SELF-CONTAINED
+GROUP that sits well inside the frame with wide empty white margins on BOTH
+sides. The most important rule of this picture: NOTHING is cut by the frame.
+Every barrel, crate and sack is drawn COMPLETE and WHOLE with white space
+beyond it; no object touches the left edge, the right edge or the top edge;
+nothing continues off the picture.
+
+The plunder is the same battered kind as the game's map version — weathered
+wooden barrels with rusty hoops, smashed slatted crates, patched and grimy
+burlap sacks, crude and mistreated — SCATTERED LOOSELY along the floor in the
+FOREGROUND of a battle scene, seen from the front at eye level, for a wide
+landscape picture (16:9).
+
+LAYOUT — in a 1792 x 1024 picture, the clutter lies in a LOW STRIP about 240
+pixels tall resting on the bottom edge, split into TWO SEPARATE GROUPS with
+EMPTY FLOOR between them: a LEFT group about 600 pixels wide whose outer end
+stops about 80 pixels in from the left edge, and a RIGHT group about 600
+pixels wide whose outer end stops about 80 pixels in from the right edge. The
+middle of the picture — roughly the central 400 pixels — holds NOTHING but
+white. The two groups are different from each other (different mix of
+barrels, crates and sacks, different poses), not mirror copies. The margins at
+both ends and everything above the strip stay EMPTY WHITE. The objects may
+rest on the bottom edge. No object may rise above the strip.
+
+THE CLUTTER — spread out unevenly, not a single heap: a barrel on its side here,
+an upright barrel there, a crate tipped on its corner, two or three sacks
+slumped against each other, a burst sack with a little grain spilled, a snapped
+board and a loose lid, a gnawed bone, an empty gap of bare floor, then more. Vary the spacing: some pieces touching, some
+apart, NEVER evenly spaced, NEVER in a row. Keep the objects LOW — barrels on
+their sides and slumped sacks read best; anything standing tall must stay
+within the strip.
+
+STYLE — the same clean stylized cel-shaded look as the game's terrain and unit
+art: bold flat shading, clear dark outlines, a mature, slightly muted, limited
+color palette (NOT bright saturated, NOT painterly photorealism). Because this
+clutter sits CLOSE to the camera, in front of the soldiers' feet, draw it a
+shade DARKER and SIMPLER than the previous image — big plain shapes, little
+inner detail, dim in shadow — so it frames the scene rather than competing
+with the figures behind it.
+
+COLOR — weathered mid-brown timber, hex #6B4E32 (darker than before because it
+is in shadow); dull dark iron hoops; undyed grey-tan burlap, hex #8F816A; the
+spilled grain a pale dull straw colour, never bright yellow. NO gold, NO coins,
+NO treasure, NO weapons, NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything that is not an object is PURE FLAT WHITE, #FFFFFF:
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO drop
+shadow on the white. This white is going to be deleted and the strip laid over
+the game's own battle scene, so every outline must be a hard, clean, crisp edge
+against it. Nothing in the objects may be white or near-white.
+
+LIGHT — from directly above only, short soft shadows that fall only on the
+objects themselves; NOTHING casts a shadow onto the white, and NO light from
+the left or the right.
+
+Nothing else: no goblin, no creature, no people, no animals, no rats, no
+torches, no fire, no lettering, no signs. NO border, NO frame around the
+picture itself, NO vignette. Landscape 16:9.

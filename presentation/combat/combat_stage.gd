@@ -303,12 +303,18 @@ func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 	_clear(_feature)
 	_clear(_feature_front)
 	if skin != null:
-		_add_features(skin, ground_side, _base_team_of(ground), _slot_pos(ground_side, _lead_pos(ground)))
+		line_done = _add_features(skin, ground_side, _base_team_of(ground), _slot_pos(ground_side, _lead_pos(ground)), true)
+	if other_skin != null:
+		_add_features(other_skin, other_side, _base_team_of(other), _slot_pos(other_side, _lead_pos(other)), not line_done)
 	if _screen != null:
 		_screen.dim(self)  # 暗転は共通基盤（フェードはあちら持ち）。窓のワイプとほぼ同時に走る
 	_start_open_anim()
 
 ## 幕開け：窓が上下に開く → 両軍の隊列が外側から中央へ寄る（暗転は _open が共通基盤に頼んでいる）。
+	# 重ね絵は左右それぞれ自分の側の駒のマスのスキンから引く（地面を左右で分けるのと同じ理屈）。
+	# 中央の継ぎ目だけは1本しか立てられないので、守り手側に絵があればそれ、無ければ攻め手側の絵。
+	var other_side := "R" if ground_side == "L" else "L"
+	var line_done := false
 ## 隊列は _open の直後（同フレーム）に _render_side が組むので、ここで先に図レイヤを外へ置いておける。
 ## バーと地形の重ね絵は動かさない＝窓に属する表示なので、隊列と一緒に流れると窓が滑って見える。
 func _start_open_anim() -> void:
@@ -327,14 +333,16 @@ func _start_open_anim() -> void:
 	_anim.tween_property(_fig["L"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 	_anim.tween_property(_fig["R"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 
-## 地形の重ね絵を3枚とも出す（奥＝back／中央の継ぎ目＝line／手前＝front）。どれも守り手側の
-## スキンから引き、置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。
+## 片側の重ね絵を出す（奥＝back／本人の後ろ＝rear／中央の継ぎ目＝line／手前＝front）。その側の駒の
+## マスのスキンから引き、置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。中央は with_line の
+## ときだけ立て、立てたら true を返す（両側から1本ずつ立てない）。
 ## 3Dの帯には混ぜない＝奥へ行くほど縮む帯の倍率と靄を受けないので、いつも同じ大きさで読める。
 ## 仕様 → doc/tech/combat_scene.md
-func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2) -> void:
+func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, with_line: bool) -> bool:
+	var line_done := false
 	var back := _feature_texture(skin, "back", team)
 	if back != null:
-		# 守り手側の半面に渡す帯。幅で合わせ、高さは絵の縦横比が決める（横幅が決まっている以上、
+		# その側の半面に渡す帯。幅で合わせ、高さは絵の縦横比が決める（横幅が決まっている以上、
 		# 縦を別に指定すると絵が歪む）。隊列の頭が下辺に少し被る高さに置く＝前後関係が出る。
 		var vp := _size()
 		var bottom := vp.y * FEATURE_BOTTOM
@@ -349,7 +357,7 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2) ->
 		_feature.add_child(rect)
 	var rear := _feature_texture(skin, "rear", team)
 	if rear != null:
-		# 守り手の本人の真後ろに立てる1枚（玉座など）。奥の帯と違い窓の端に寄せず、本人の
+		# その側の本人の真後ろに立てる1枚（玉座など）。奥の帯と違い窓の端に寄せず、本人の
 		# 立ち位置（lead＝先頭スロットの中心x・足元y）に、駒と同じ正方キャンバスを同じ大きさで置く
 		# （_add_figure と同じ式）。立ち絵より下のレイヤー＝本人も従者も手前に出る。
 		# キャンバスは幅で駒と同じ倍率に合わせ、上端を駒のキャンバスの上端に揃える。高さが幅を
@@ -359,7 +367,7 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2) ->
 		var rrect := _feature_rect(rear, Vector2(lead.x - rw * 0.5, lead.y - rw), Vector2(rw, rh))
 		rrect.flip_h = side == "R"  # 絵は左陣営向きに描く＝物が右（戦場の方）を向く
 		_feature.add_child(rrect)
-	var line := _feature_texture(skin, "line", team)
+	var line := _feature_texture(skin, "line", team) if with_line else null
 	if line != null:
 		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
 		# 手前（下）から奥（上）へ走るので窓の全高に渡し、幅は絵の縦横比が決める。
@@ -369,11 +377,17 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2) ->
 		_feature.add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
 	var front := _feature_texture(skin, "front", team)
 	if front != null:
-		# 手前の帯は窓の全幅に渡して下辺に接地させる＝味方側から敵側まで通る額縁になる。
-		# 高さは絵の縦横比が決める（横幅が決まっている以上、縦を別に指定すると絵が歪む）。
+		# 手前の帯＝足元に散らかる物。その側の半面の下辺に接地させ、高さは絵の縦横比が決める。
+		# 絵は左半面用に描き、右半面では左右反転する。立ち絵より前面＝前列の足元に被って額縁になる。
 		var vp2 := _size()
-		var fh := vp2.x * (float(front.get_height()) / float(maxi(front.get_width(), 1)))
-		_feature_front.add_child(_feature_rect(front, Vector2(0.0, vp2.y - fh), Vector2(vp2.x, fh)))
+		var fw := vp2.x * 0.5
+		var fh := fw * (float(front.get_height()) / float(maxi(front.get_width(), 1)))
+		var fx := 0.0 if side == "L" else fw
+		var frect := _feature_rect(front, Vector2(fx, vp2.y - fh), Vector2(fw, fh))
+		frect.flip_h = side == "R"
+		_feature_front.add_child(frect)
+	return line_done
+		line_done = true
 
 ## 重ね絵のPNG（assets/terrain/{skin_id}_combat_{back|line|front}.png）。置いていなければ null。
 ## 盤の立ち絵は使わない＝戦闘は近景で要る絵が違う（→ doc/art/terrain.md）。絵を置けば出る。
