@@ -439,9 +439,30 @@ func test_raid_attacks_an_enemy_blocking_the_corridor() -> void:
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "通路を塞ぐ敵は殴る")
 	assert_eq(a.target_id, e.id)
 
+func test_raid_shifts_to_a_cell_where_it_can_shoot_the_blocker() -> void:
+	# #3 射程2-5 の駒は隣接されると撃てない。撃てるマスのうち拠点へ最も近いマスへ動き、
+	# 移動後にもう一度表を上から当てて同じ手番で撃つ。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2])
+	var si := _squad(s, "raid")
+	var gun := _ai(s, si, 10, 4, 2)
+	gun.min_range = 2
+	gun.attack_range = 3
+	var e := _pc(s, 1, 5, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	assert_false(s.can_attack(gun.id, e.id), "前提: 隣接した位置からは撃てない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "撃てる位置へずれる")
+	assert_eq(Hex.distance(a.to, e.pos), 2, "下がる幅は拠点へ最も近い撃てるマスまで＝最小限")
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: この移動は妥当")
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
+	assert_eq(b.target_id, e.id)
+
 func test_raid_does_not_back_off_from_the_enemy_in_its_way() -> void:
-	# raid は最大間合いの行を持たない＝間合いを取る移動は拠点から遠ざかるため。
-	# 間接攻撃できる駒も、塞がれた位置からそのまま殴る。
+	# #3 の行き先は拠点へ最も近い撃てるマス＝いまの位置から撃てるならそのまま殴る。
+	# 間合いを取って下がると拠点から遠ざかり、素通りする圧が鈍るため。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
 	_corridor(s, [2])
@@ -665,7 +686,7 @@ func test_swarm_leaves_a_healthy_enemy_and_goes_for_the_wounded() -> void:
 	assert_lt(Hex.distance(a.to, wounded.pos), Hex.distance(u.pos, wounded.pos), "手負いへ寄る")
 
 func test_swarm_attacks_a_healthy_enemy_once_the_numbers_are_there() -> void:
-	# #5 包囲可能な敵は殴る（行動ユニット自身も数に入る）。
+	# #6 包囲可能な敵は殴る（行動ユニット自身も数に入る）。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
 	var si := _squad(s, "swarm")
@@ -676,6 +697,43 @@ func test_swarm_attacks_a_healthy_enemy_once_the_numbers_are_there() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "頭数が揃えば無傷の敵にも手を出す")
 	assert_eq(a.target_id, healthy.id)
+
+func test_swarm_backs_off_to_shoot_a_surroundable_enemy() -> void:
+	# #3 手負いを撃てないターンでも、包囲可能な敵から間合いを取ってから撃つ。
+	var s := BattleState.new(16, 5)
+	s.current_team = 1
+	var si := _squad(s, "swarm")
+	var gun := _ai(s, si, 10, 3, 2)             # 最寄りの敵に一番近い＝先に動く
+	gun.min_range = 2
+	gun.attack_range = 3
+	_ai(s, si, 11, 4, 1)                        # X に隣接する味方2体＝自分を除いても包囲可能
+	_ai(s, si, 12, 4, 3)
+	var x := _pc(s, 1, 4, 2)                    # 隣接＝いまの位置からは撃てない
+	_hurt(_pc(s, 2, 15, 4), 2)                  # 手負いは遠い＝#1・#2 は成立しない
+	assert_false(s.can_attack(gun.id, x.id), "前提: 隣接した位置からは撃てない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
+	assert_eq(a.unit_id, gun.id, "前提: 先に動くのは間接の駒")
+	assert_eq(Hex.distance(a.to, x.pos), 3, "射程上限まで間合いを取る")
+	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.can_attack(gun.id, x.id), "下がった先から撃てる")
+
+func test_swarm_does_not_back_off_when_the_surround_needs_itself() -> void:
+	# #3 が「自分を除いても包囲可能」を見る理由。下がると自分が頭数から外れて包囲が崩れ、
+	# 攻撃の行が不成立になる＝手番を捨てることになるので、下がらずその場から撃つ。
+	var s := BattleState.new(16, 5)
+	s.current_team = 1
+	var si := _squad(s, "swarm")
+	var gun := _ai(s, si, 10, 2, 2)             # X まで距離2＝いまの位置から撃てる
+	gun.min_range = 2
+	gun.attack_range = 3
+	_ai(s, si, 11, 4, 4)                        # 今ターン X の隣へ寄れる味方は1体だけ
+	var x := _pc(s, 1, 4, 2)
+	_hurt(_pc(s, 2, 15, 4), 2)                  # 手負いは遠い＝#1・#2 は成立しない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.unit_id, gun.id, "前提: 先に動くのは間接の駒")
+	assert_eq(a.kind, AiAction.Kind.ATTACK, "頭数が自分込みでぎりぎりなら下がらない")
+	assert_eq(a.target_id, x.id)
 
 func test_swarm_does_not_take_bases() -> void:
 	var s := BattleState.new(12, 5)
@@ -690,7 +748,7 @@ func test_swarm_does_not_take_bases() -> void:
 	assert_ne(a.to, base_hex, "占領兵を混ぜても拠点へは向かわない")
 
 func test_swarm_switches_from_the_skill_to_attacking_when_stacked() -> void:
-	# #2 は #3 の裏返し＝効き切った相手に重ねる価値はないので殴りに切り替わる。
+	# #4 は #5 の裏返し＝効き切った相手に重ねる価値はないので殴りに切り替わる。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
 	var si := _squad(s, "swarm")  # 既定 stack 1
