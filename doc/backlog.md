@@ -32,19 +32,6 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-10
-
-**配布ビルドを作れる状態にする**（優先度：中）
-
-- 背景：エクスポートプリセットが無いため、実行ファイルを1つも作れない。itch のプロジェクトページの公開は、遊べる実体を置けることが関門になっている（[itch_page.md](sales/itch_page.md)）。設計は [build.md](tech/build.md) に置いた。作業は、そこに書いた仕組みを起こすこと。
-- 対応（プリセット）：`godot/export_presets.cfg` に `windows-itch-demo` を作り、`.gitignore` から同ファイルの行を削って git 管理に移す。非リソースのフィルタに `*.json` を書く（書かないとステージを1本も読めないビルドができる）。手で書く除外は `tools/` `tests/` `addons/gut/` の3つ。
-- 対応（同梱物の導出）：収録リスト `godot/tools/build/contents.json`（版 → 冒険譚ID）から必要な素材を導出し、除外フィルタを `export_presets.cfg` へ書き出すスクリプトを足す。落としたものの一覧も出す。既定値の解決は本体のカタログを呼ぶ（規約を書き写すとずれる）。デバッグ用の冒険譚と未収録の冒険譚は、これで一緒に落ちる。
-- 対応（識別子）：`project.godot` に `application/config/version` を足し、プリセットの機能タグと合わせて `godot/infrastructure/platform/build_info.gd` から読む。刻印はタイトル画面のメニュー状態の隅に出す（feature-62 の入口を兼ねる）。
-- 対応（ライセンス）：`godot/assets/fonts/RockSalt-NOTICE.txt` を置き、`godot/assets/licenses/THIRD-PARTY-LICENSES.txt` を生成してコミットする。ビルドは実行ファイルの隣にコピーする。
-- 対応（手順）：`godot/tools/build/build.ps1` にエクスポートとライセンス文の添付をまとめる。上げる工程は含めない。
-- 前提：エクスポートテンプレート（Godot エディタのエクスポートテンプレート管理から導入）。これが無いと実行ファイルを作れない。
-- 該当：`godot/export_presets.cfg`（新規）・`.gitignore`・`godot/project.godot`・`godot/infrastructure/platform/`・`godot/presentation/title/title_screen.gd`・`godot/tools/build/`（新規）・`godot/assets/licenses/`（新規）・`doc/tech/build.md`。関連＝feature-54（ライセンスの裏取り）・feature-62（チャネル分岐）。
-
 ### feature-64
 
 **ui.csv 新設＋タイトル画面の tr() 化**（優先度：高）
@@ -154,7 +141,7 @@
 
 **デバッグ用キャンペーン名の i18n 化**（優先度：低）
 
-- 背景：デバッグ冒険譚のタイトル・ステージ名（約35エントリ）が日本語直書き。`debug: true` なので製品ビルドには含まれない想定（feature-10）。旧 feature-12 の分割。
+- 背景：デバッグ冒険譚のタイトル・ステージ名が日本語直書き。収録リストに載せないので配布ビルドには入らない（[build.md](tech/build.md)）。旧 feature-12 の分割。
 - 対応：リリースビルドから除外するなら不要。含める場合は `campaigns.csv` にエントリを追加。
 - 該当：`godot/data/stages/debug-*/campaign.json`・`godot/data/i18n/campaigns.csv`。
 
@@ -282,8 +269,7 @@
 - 小さいアイコンはヘックス1枚に剣が刺さっているだけの版にする。7枚のクラスタは 32px 以下で塊に潰れる。どの寸法から切り替えるかは焼いて見て決める。
 - 紋章版は、タイルから文字を抜いているマスクを剣だけに絞って組み直す。文字のレイヤーを消すだけだと、タイルに文字型の切り欠きが残る。
 - 紋章は横 500 に対して縦 565（剣が上に伸びる分）で正方形ではない。左右に余白を足すか、アイコン版だけ剣を短くするかを選ぶ。
-- exe への焼き込みは `export_presets.cfg`（feature-10 で新規作成）が要る。それまでに作れるのはウィンドウ用の PNG と `.ico` まで。
-- 該当：`project.godot`（`godot/application/config/icon`）・`export_presets.cfg`（exe アイコン・feature-10 で新規作成）・`godot/assets/`（アイコン画像）。着手の引き金＝配布ビルドを作るとき。
+- 該当：`project.godot`（`godot/application/config/icon`）・`godot/export_presets.cfg`（exe アイコンの `application/icon`）・`godot/assets/`（アイコン画像）。着手の引き金＝配布ビルドを作るとき。
 
 ### feature-46
 
@@ -373,7 +359,7 @@
   - Google Gemini は出力物の権利帰属と商用利用条件。Steam の AI 開示（[monetization.md](sales/monetization.md)）とは別の論点
   - Godot は同梱サードパーティを含めた表示義務の範囲。`Engine.get_copyright_info()` の内容で足りるかを確認する
   - Pillow はバージョンによってライセンス表記が変わっている
-- 該当：`doc/sales/credits.md`（根拠列）。関連＝feature-46（クレジット画面）・feature-10（ライセンス文の同梱）。着手の引き金＝配布ビルドを作る前。
+- 該当：`doc/sales/credits.md`（根拠列）。関連＝feature-46（クレジット画面）・配布物に添えるライセンス文（[build.md](tech/build.md)）。着手の引き金＝配布ビルドを作る前。
 
 ### feature-55
 
