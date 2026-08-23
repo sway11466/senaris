@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=78 / refactoring=12
+次回採番: bug=3 / feature=79 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -133,6 +133,15 @@
 - 背景：`data/ai/ai.json` の特性名（"待ち伏せ"・"突撃"ほか）が日本語直書きで、`unit_info_panel.gd` が見出しの特性欄にそのまま表示する。情報パネルの文言をキー化した際（feature-66）に、ここだけデータ側なので残った。
 - 対応：規約キー `ai.{id}.name` で翻訳CSVから引き、`ai.json` の `name` を開発用メモに降格する。ユニット・地形の表示名（feature-70〜71）と同じ方式なので、置き先は `units.csv` に合わせるか `ui.csv` に置くかを決める。
 - 該当：`godot/data/ai/ai.json`・`godot/data/i18n/`・`godot/presentation/ui/unit_info_panel.gd`。関連＝feature-70〜72（表示名の i18n 化）。
+
+### feature-78
+
+**兵種名の i18n 化**（優先度：高）
+
+- ゴール：自軍の駒を選んだときの情報パネル見出しに、英語環境で英語の兵種名が出る。
+- 背景：`unit_type.csv` の `category` 列（"歩兵"・"占領兵"・"魔法兵"ほか）が日本語直書きで、`UnitCatalog.display_category()` がそのまま返し、情報パネルの見出し2行目に出る。feature-70 は `unit_skin.csv` の `name` 列が対象なので、こちらは漏れていた。
+- 対応：規約キー `category.{id}.name` で翻訳CSVから引く。`category` 列がいまは日本語そのものを id 兼表示名にしているので、英字の id を与えるところから決める。データCSVの列は開発用メモに降格する。
+- 該当：`godot/data/units/unit_type.csv`・`godot/data/units/unit_catalog.gd`・`godot/data/i18n/`。関連＝feature-70〜72（表示名の i18n 化）。
 
 ### feature-13
 
