@@ -199,12 +199,12 @@ func _build_menu() -> Control:
 	center.add_child(box)
 	box.add_theme_constant_override("separation", BUTTON_GAP)
 	# 中断セーブが無いときも項目は出す（押せないだけ）＝並びが変わらず、何が在るかも分かる
-	box.add_child(_menu_button("冒険の続き", continue_requested if _has_save else null))
-	box.add_child(_menu_button("新しい冒険譚", new_game_requested))
-	box.add_child(_menu_button("設定", null))      # 受け口が無い（doc/backlog.md feature-47）
-	box.add_child(_menu_button("マニュアル", null))  # 同上（feature-52）
-	box.add_child(_menu_button("クレジット", null))  # 同上（feature-46）
-	box.add_child(_menu_button("おわる", quit_requested))
+	box.add_child(_menu_button(tr("ui.title.continue"), continue_requested if _has_save else null))
+	box.add_child(_menu_button(tr("ui.title.new_adventure"), new_game_requested))
+	box.add_child(_menu_button(tr("ui.title.settings"), null))  # 受け口が無い（doc/backlog.md feature-47）
+	box.add_child(_menu_button(tr("ui.title.manual"), null))    # 同上（feature-52）
+	box.add_child(_menu_button(tr("ui.title.credits"), null))   # 同上（feature-46）
+	box.add_child(_menu_button(tr("ui.title.quit"), quit_requested))
 	layer.add_child(_stamp())
 	return layer
 
