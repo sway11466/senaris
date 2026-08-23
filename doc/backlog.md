@@ -301,11 +301,11 @@
 
 ### feature-63
 
-**キービジュアルの選定**（優先度：中）
+**このゲームの魅力を伝える画像セットの検討**（優先度：中）
 
-- 背景：仮ページのヒーロー・OGP 画像・Steam のカプセル・itch の cover が、どれも同じ1枚から切り出される（[marketing.md](sales/marketing.md) の素材の置き場）。元絵が決まらないとどの面も動かない。候補は `godot/assets/promo-src/dragon_breath/` の master 一式（炎ありと炎なし）。
-- 対応：候補から1枚を選ぶ。文字を重ねられるのは、絵の中で暗く細部の少ない領域＝測るとどの候補も上段が該当する（明度 53〜85・粗さ 20〜26。中段は明度 109〜141・粗さ 33〜50 で絵の主役になっている）。枠の比率は面ごとに違い、Steam のヘッダーカプセルが 2.14:1、itch の cover が 1.26:1、OGP が 1.91:1。元絵は 1376×768 なので、上下を 23px ずつ落とすと OGP の比率になる。
-- 該当：`godot/assets/promo-src/dragon_breath/`・[site.md](sales/site.md)・[marketing.md](sales/marketing.md)。前提＝feature-53（Steam のカプセル）と同じ元絵を使う。
+- 背景：Steam・itch・サイトの3面は素材が共通で、違うのは枠の寸法とレイアウトの自由度だけ（[site.md](sales/site.md)）。だが、そもそもどんな絵を持つべきかが決まっていない。枠の側から入ると、どこに何を切って貼るかの話に落ちて、何を伝える絵なのかが決まらないまま進む。
+- 対応：このゲームの魅力を伝える画像セットを検討する。見た人に何を感じさせたいか、そのために何が描かれている絵が要るかを決める。そのうえで、セットの中で顔となるキービジュアルを考える。枠への割り当てと切り出しはその後。
+- 該当：`godot/assets/promo-src/`（既存の候補＝`dragon_breath/` の master）・[promo.md](art/promo.md)・[marketing.md](sales/marketing.md)・[site.md](sales/site.md)。関連＝feature-53（Steam ストアページ）・feature-51（映像）。
 
 ## リファクタリング
 
