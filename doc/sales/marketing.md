@@ -63,7 +63,27 @@
 
 絵柄を名乗るタグ（`Hand-drawn` ほか）は使わない。本作はアートに AI 生成を含み、Steam ではそれがストアページに開示表示される（[monetization.md](monetization.md) の AI 生成コンテンツ）。手描きを名乗るタグと開示が同じページに並ぶと矛盾として突かれる。特徴リストでいう手作りのマップはレベルデザインの話で、こちらは抵触しない。
 
-枠は埋めきらない。迷う語を足すと並び順が濁る。実際に設定する語はチャネルごとに違う（[steam_page.md](steam_page.md)・[itch_page.md](itch_page.md)）。
+Steam に設定する語（20枠に対して12。埋めきらない＝迷う語を足すと並び順が濁る）。
+
+| 順 | タグ | 役割 |
+| --- | --- | --- |
+| 1 | Turn-Based Tactics | 棚の中心 |
+| 2 | Strategy | 母数の最大化 |
+| 3 | Turn-Based Strategy | 同上。Advance Wars 系の主戦場 |
+| 4 | Hex Grid | ニッチだが能動的に追う層へ確実に届く。本作の看板 |
+| 5 | Fantasy | ヘックス棚では珍しく、差別化がタグ側でも効く |
+| 6 | Turn-Based Combat | 取りこぼし回収 |
+| 7 | Tactical | 同上 |
+| 8 | Singleplayer | 期待値の設定（マルチを期待させない） |
+| 9 | Difficult | 歯ごたえを探す層。パズル側の濃度をここで代替する |
+| 10 | Medieval | 世界観 |
+| 11 | Indie | 規模の期待値 |
+| 12 | Wargame | 硬派側。低位に置いて弱く効かせる |
+
+- タグ名は Valve の固定リストに合わせる必要があるため、綴りは登録時に実在を確認する。
+- 開発者が設定できるのは初期値と初期の並びまで。最終的にユーザー投票で動く。
+- 日本語表示のタグは英語タグと同義ではなく、対応が一対一でない語がある。日本語圏へ出すときは別に決める。
+- itch のタグは上限10で、9語で止める（[itch_page.md](itch_page.md)）。推薦にもブラウズ導線にも効かないため、Steam ほど配分を作り込まない。
 
 ### 説明文
 
@@ -85,6 +105,33 @@
 ただし冒険譚の中では戦力が引き継がれる（[map.md](../gdd/map.md) の carryover）。「1ステージ完結」と言い切ると逆方向の誤解が出るため、ステージは短く区切られるが冒険譚を通して戦力が繋がる、というところまで含める。
 
 期待値を外すと返金とレビューに出る。恒久的な部隊育成や戦略マップを期待して買った人が外れる形が典型。一行目で押さず、特徴リストで確実に伝える。
+
+## 本文
+
+外に出す英語の実文の正本。形式は Markdown で持ち、チャネルごとの形式へ写す（itch は HTML＝[itch_page.md](itch_page.md)）。二重管理になるので、直すときは正本を先に直す。
+
+短い説明文。
+
+```
+Hex-grid fantasy tactics with no RNG and no unit production: you win with the squad you are handed.
+```
+
+ページ本文。
+
+````markdown
+Senaris is a turn-based tactics game on a hex grid. There are no random rolls and no unit production. Both sides start with a fixed force, and the whole game is how you interlock the units you already have. The same attack resolves the same way every time — when you lose a unit, the board can tell you why.
+
+## What to expect
+
+- Hand-crafted maps. Every stage is placed by hand, not generated.
+- Short stages, from about 10 minutes each, so you can stop at a clean break.
+- Single-player only.
+- No base building, no persistent army management, no strategic overworld.
+
+More about the game: [senaris.in](https://senaris.in)
+````
+
+一行目で差別化（乱数なし・生産なし）、`What to expect` で期待値の設定という分担にする。carryover はチュートリアル1が各話独立のため初回では書かない。継承の入るチュートリアル3を収録する回で足す。チャネル専用の段落（itch の `About this demo` など）は正本に置かず、チャネル側のファイルに持つ。
 
 ## 素材の置き場
 

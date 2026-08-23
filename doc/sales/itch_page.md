@@ -40,15 +40,15 @@ AI の開示は「出荷されるファイルに生成物が残っているか�
 
 ## 短い説明文
 
+正本は [marketing.md](marketing.md) の本文。そのまま貼る。
+
 ```
 Hex-grid fantasy tactics with no RNG and no unit production: you win with the squad you are handed.
 ```
 
-副題が `Deterministic` を使うため、ここは `no RNG` で言い換える（[marketing.md](marketing.md) の素材の方針）。
-
 ## 本文
 
-ソース編集（`<>`）に切り替えて貼る。
+正本は [marketing.md](marketing.md) の本文（Markdown）。itch はソース編集（`<>`）に切り替えて、下の HTML 版を貼る。正本を直したらこちらも直す。
 
 ```html
 <p>Senaris is a turn-based tactics game on a hex grid. There are no random rolls and no unit production. Both sides start with a fixed force, and the whole game is how you interlock the units you already have. The same attack resolves the same way every time &mdash; when you lose a unit, the board can tell you why.</p>
@@ -69,10 +69,8 @@ Hex-grid fantasy tactics with no RNG and no unit production: you win with the sq
 <p>More about the game: <a href="https://senaris.in">senaris.in</a></p>
 ```
 
-一行目で差別化（乱数なし・生産なし）、`What to expect` で期待値の設定という分担にする。carryover はチュートリアル1が各話独立のため初回では書かない。継承の入るチュートリアル3を収録する回で足す。
-
 ## 更新のたびにやること
 
 - ビルドを push する。
-- 本文の `About this demo` に、増えた冒険譚を反映する。
+- 本文の `About this demo` に、増えた冒険譚を反映する（正本＝[marketing.md](marketing.md)、貼るのは上の HTML 版）。
 - devlog を1本書く（[itch_devlog.md](itch_devlog.md)）。
