@@ -56,14 +56,6 @@
 - 考慮外：日本語の台詞は直さない。話者名（`char.*`）は feature-79 で扱う。
 - 該当：`godot/data/i18n/dialogue.csv`（`t2.*`の行）・`doc/campaign/`（内容の照合先）。
 
-### feature-67
-
-**戦闘レポートの UI 文言 tr() 化**（優先度：高）
-
-- 背景：戦闘レポートの約32文字列（タブ名"サマリー"・"攻撃側"・"守備側"、行ラベル"兵数"・"攻撃"・"防御"・"包囲"・"地形"等、ダメージ計算式の説明文、"反撃なし"・"対空"・"対地"）が直書き。旧 feature-12 の分割。
-- 対応：`ui.csv` にキーを追加し、`combat_report_view.gd` の直書きを `tr()` に差し替え。
-- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/combat_report_view.gd`。
-
 ### feature-68
 
 **会話パネル・セーブ画面の UI 文言 tr() 化**（優先度：高）
