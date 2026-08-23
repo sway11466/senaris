@@ -5,3 +5,11 @@ ui.title.settings,設定,Settings
 ui.title.manual,マニュアル,Manual
 ui.title.credits,クレジット,Credits
 ui.title.quit,おわる,Quit
+ui.hud.end_turn,ターン終了,End Turn
+ui.hud.menu,⚙ メニュー,⚙ Menu
+ui.hud.restart,リスタート,Restart Battle
+ui.hud.stage_select,ステージセレクト,Quest Board
+ui.hud.save,セーブ,Save
+ui.hud.load,ロード,Load
+ui.hud.settings,設定,Settings
+ui.hud.close,閉じる,Close

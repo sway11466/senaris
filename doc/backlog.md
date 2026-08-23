@@ -36,14 +36,6 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-65
-
-**HUD の UI 文言 tr() 化**（優先度：高）
-
-- 背景：HUD のボタン・メニュー項目10件（"ターン終了"・"⚙ メニュー"・"リスタート"・"ステージセレクト"・"セーブ"・"ロード"・"設定"・"閉じる"・"デバッグ"・"敵を殲滅"）が直書き。旧 feature-12 の分割。
-- 対応：`ui.csv` にキーを追加し、`hud.gd` の直書きを `tr()` に差し替え。
-- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/hud.gd`。
-
 ### feature-66
 
 **ユニット情報パネルの UI 文言 tr() 化**（優先度：高）
@@ -274,7 +266,7 @@
 - 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、メニューに項目だけ置いてあるクレジット画面。
 - クレジット：素材の権利表記。タイトルのメニューに項目は置いてあるが、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
 - クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。タイトルのメニューからのみ開く（ゲーム中のシステムメニューには足さない＝盤を止めてまで読むものではない）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は `ui.csv` に足す（キーは `ui.<画面>.<項目>` → [i18n.md](tech/i18n.md)）。
-- 該当：`godot/presentation/title/title_screen.gd`・`godot/presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-65〜69（UI文言の i18n キー化）・feature-47（同じ開き方）。着手の引き金＝配布ビルドが見えてきたとき。
+- 該当：`godot/presentation/title/title_screen.gd`・`godot/presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-66〜69（UI文言の i18n キー化）・feature-47（同じ開き方）。着手の引き金＝配布ビルドが見えてきたとき。
 
 ### feature-47
 
@@ -282,7 +274,7 @@
 
 - 背景：`godot/presentation/ui/hud.gd` のシステムメニューとタイトルのメニュー（[title.md](gdd/title.md)）に「設定」項目があるが、どちらも受け口が無く押せない状態で置いてある。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
 - 対応：1枚の設定シーンを作り、タイトル画面とゲーム中のシステムメニューの両方から開く。項目は 音量（マスター／BGM／SE）・言語（ja／en。翻訳は投入済み）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。永続化は `user://settings.json`（`ProgressStore` の隣・セーブデータとは別枠。設定は中断セーブに含めない）。音量は AudioServer のバスに反映、言語は `TranslationServer.set_locale`。
-- 該当：`godot/presentation/settings/`（新規）・`godot/presentation/ui/hud.gd`（`settings_requested` シグナル）・`godot/presentation/main/main.gd`（結線）・`godot/infrastructure/save/settings_store.gd`（新規）・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-65〜69（UI文言の i18n キー化）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
+- 該当：`godot/presentation/settings/`（新規）・`godot/presentation/ui/hud.gd`（`settings_requested` シグナル）・`godot/presentation/main/main.gd`（結線）・`godot/infrastructure/save/settings_store.gd`（新規）・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-66〜69（UI文言の i18n キー化）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
 
 ### feature-49
 
@@ -319,7 +311,7 @@
   2. CSV正本から生成する。敵AIも地形も移動タイプもユニット性能も `godot/data/**/*.csv` が正本なので、そこから表を機械的に起こす（CSV正本→JSON生成と同じ発想）。手書きすると必ず実装とズレる。生成先はゲーム内データとサイトのHTMLの両方。
   3. ゲーム内の画面を作る。タイトルとゲーム中のシステムメニューの両方から開く（設定画面＝feature-47 と同じ置き方）。タイトル側の項目名は「マニュアル」で、受け口が無いまま押せない状態で置いてある（[title.md](gdd/title.md)）。
   4. サイト側は別ページ（`senaris.in/rules` 相当）。ランディングは1ページのまま、そこからリンクする。
-  5. i18n。表の見出しと説明文は翻訳キーに載せる（feature-65〜69 と同じ扱い）。
+  5. i18n。表の見出しと説明文は翻訳キーに載せる（feature-66〜69 と同じ扱い）。
 - 該当：`godot/data/**/*.csv`・`godot/tools/`（生成スクリプト新規）・`presentation/`（図鑑画面・新規）・`doc/gdd/`（見せる範囲の記述）・feature-47（同じ開き方）。着手の引き金＝サイトを作るとき、または完全情報であることを説明する必要が出たとき。
 
 ### feature-53

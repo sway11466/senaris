@@ -23,28 +23,29 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤のクリックを通す（ボタンだけ拾う）
 
 	# wood_button は focus_mode=NONE 済み（＝Enter(ターン終了)で誤発火しない）
-	_gear = TavernTheme.wood_button("⚙ メニュー")
+	_gear = TavernTheme.wood_button(tr("ui.hud.menu"))
 	_gear.size = Vector2(110, 40)
 	_gear.pressed.connect(open_system_menu)
 	add_child(_gear)
 
-	_end_btn = TavernTheme.wood_button("ターン終了")
+	_end_btn = TavernTheme.wood_button(tr("ui.hud.end_turn"))
 	_end_btn.size = Vector2(140, 40)
 	_end_btn.pressed.connect(func() -> void: end_turn_requested.emit())
 	add_child(_end_btn)
 
 	_menu = PopupMenu.new()
-	_menu.add_item("リスタート", SYS_RESTART)
-	_menu.add_item("ステージセレクト", SYS_SELECT)
+	_menu.add_item(tr("ui.hud.restart"), SYS_RESTART)
+	_menu.add_item(tr("ui.hud.stage_select"), SYS_SELECT)
 	_menu.add_separator()
-	_menu.add_item("セーブ", SYS_SAVE)
-	_menu.add_item("ロード", SYS_LOAD)
-	_menu.add_item("設定", SYS_SETTINGS)
+	_menu.add_item(tr("ui.hud.save"), SYS_SAVE)
+	_menu.add_item(tr("ui.hud.load"), SYS_LOAD)
+	_menu.add_item(tr("ui.hud.settings"), SYS_SETTINGS)
 	_menu.set_item_disabled(_menu.get_item_index(SYS_SETTINGS), true)  # 設定は今後のフェーズ（今は無効表示）
 	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), true)  # ロードは中断セーブが在るときだけ有効（main が切替）
 	_menu.add_separator()
-	_menu.add_item("閉じる", SYS_CLOSE)
+	_menu.add_item(tr("ui.hud.close"), SYS_CLOSE)
 	# デバッグ区画は末尾＝製品ビルドには出ない（デバッグ冒険譚の表示と同じゲート）。仕様 → doc/gdd/uiux.md
+	# ここだけ直書きのままなのは、配布ビルドに出ない＝プレイヤーが読まないため（doc/tech/i18n.md）。
 	if OS.is_debug_build():
 		_menu.add_separator("デバッグ")
 		_menu.add_item("敵を殲滅", DBG_WIPE)
