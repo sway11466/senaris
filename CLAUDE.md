@@ -97,6 +97,7 @@
 - [doc/sales/credits.md](doc/sales/credits.md) — クレジット・第三者権利の正本（ライセンス別の一覧・クレジット画面に出すもの・ビルドから外すもの）
 - [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) — タイトル名「Senaris」の決定
 - [doc/sales/site.md](doc/sales/site.md) — 公式サイト senaris.in（役割・ページ・言語・素材・配信構成・ドメイン運用）
+- [doc/sales/itch_page.md](doc/sales/itch_page.md) — itch のプロジェクトページ（記入内容・英語の説明文・更新のたびにやること）
 
 ### 意思決定記録 — `adr/`
 
