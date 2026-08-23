@@ -70,7 +70,7 @@ SNS にリンクを貼ったときに出るカード。画像・タイトル・�
 
 ## 素材
 
-絵とロゴの正本は `godot/assets/promo-src/`（[../art/promo.md](../art/promo.md)）。`channels/web/` に置くのは配信用のコピーで、正本を描き直したら手で入れ直す。
+絵とロゴの正本は `godot/assets/promo-src/`（ロゴの方針は [../art/logo.md](../art/logo.md)）。`channels/web/` に置くのは配信用のコピーで、正本を描き直したら手で入れ直す。
 
 - 画像は WebP に変換し、1ページ合計 1MB 以内を目安にする
 - ロゴはパス化済みの SVG をそのまま使う＝フォントを配らない（[ADR-0004](../adr/ADR-0004-logo-typeface-ofl.md)）
@@ -123,5 +123,5 @@ senaris.in からメールを送り始めるなら、SPF の書き換えが先�
 - [marketing.md](marketing.md) — 届ける相手・伝える語彙・タグ・期待値の設定
 - [monetization.md](monetization.md) — IP・権利、販売チャネル
 - [naming_decision_senaris.md](naming_decision_senaris.md) — タイトル名とドメイン候補の選定
-- [../art/promo.md](../art/promo.md) — ロゴ・宣伝素材の正本
+- [../art/logo.md](../art/logo.md) — ロゴの正本
 - [../tech/i18n.md](../tech/i18n.md) — ゲーム本体の対応言語

@@ -52,7 +52,7 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
 | MuseScore Studio | 曲・楽音系の効果音の作曲と編曲 | 道具 | なし | |
-| Inkscape | ロゴまわりの SVG 編集（[promo.md](../art/promo.md)） | 道具 | なし | |
+| Inkscape | ロゴまわりの SVG 編集（[logo.md](../art/logo.md)） | 道具 | なし | |
 
 ### LGPL 系
 

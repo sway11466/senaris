@@ -107,7 +107,7 @@ channels/
   web/           公式サイト一式（[site.md](site.md)）
 ```
 
-絵の正本は `godot/assets/promo-src/`（[../art/promo.md](../art/promo.md)）。`channels/` に入るのは、そこから面ごとの枠に切り出したもの。枠の比率が面ごとに違う（Steam のヘッダーカプセルは 2.14:1、itch の cover は 1.26:1、OGP は 1.91:1）ため、共有できるのは切る前の master までで、切り出しは面ごとに持つ。切らずに同じものを回すのはスクリーンショットだけ。
+絵の正本は `godot/assets/promo-src/`（ロゴは [../art/logo.md](../art/logo.md)）。`channels/` に入るのは、そこから面ごとの枠に切り出したもの。枠の比率が面ごとに違う（Steam のヘッダーカプセルは 2.14:1、itch の cover は 1.26:1、OGP は 1.91:1）ため、共有できるのは切る前の master までで、切り出しは面ごとに持つ。切らずに同じものを回すのはスクリーンショットだけ。
 
 文はここに置かない。短い説明文・特徴・タグは本書、サイトの文言は [site.md](site.md)、devlog は `doc/devlog/`。会話本文を `doc/campaign/` に置くのと同じ扱いで、読んで判断するものは doc に集める。
 
