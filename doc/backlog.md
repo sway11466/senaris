@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=64 / refactoring=12
+次回採番: bug=3 / feature=77 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -42,13 +42,109 @@
 - 対応（同梱）：ビルド出力（exe と同じ階層＝Steam のデポにそのまま上がる場所）に `THIRD-PARTY-LICENSES.txt` を置く。中身は [credits.md](sales/credits.md) の義務がある行から起こす。preset の非リソースフィルタで pck に入れる手も取れるが、`export_presets.cfg` は `.gitignore` されていて preset を作り直すたびに設定が消え、消えたことに気づけないので、そちらには頼らない。exe の隣なら pck を解凍せずに読める利点もある。
 - 該当：`export_presets.cfg`（新規）・`godot/tools/`・`godot/data/stages/debug*/`・`godot/addons/gut/`・ステージ一覧の参照箇所・`doc/sales/credits.md`（同梱する文面の出どころ）。関連＝feature-54（ライセンスの裏取り）。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
 
-### feature-12
+### feature-64
 
-**表示名・UI文言の i18n キー化移行**（優先度：高）
+**ui.csv 新設＋タイトル画面の tr() 化**（優先度：高）
 
-- 背景：多言語対応の方針は [i18n.md](tech/i18n.md) で確定（海外販売必須のため ja+en）。会話・冒険譚名は翻訳キー化済みだが、(1) ユニット・地形・移動タイプの表示名がデータCSVの `name` 列（日本語直書き）のまま情報パネル等に表示され、(2) HUD・情報パネル・勝敗表示など GDScript 直書きの UI 文言が `tr()` を通っていない。(3) 敵の部隊名がステージJSONの `name`（日本語直書き）のまま情報パネルの見出しに出る。この3系統は現状英語にできない。
-- 対応：(1) `godot/data/i18n/units.csv` を新設し、規約キー（`unit.{skin_id}.name`・`terrain.{skin_id}.name`・`movement.{id}.name`）で表示名を解決。`UnitSkin`/`TerrainSkin`/`Movement` の表示名参照を `tr()` 経由に差し替え、データCSVの `name` 列は開発用メモに降格。(2) `godot/data/i18n/ui.csv` を新設し、presentation の直書き文言（`ui.*` キー）を一括キー化。対象の画面は HUD・情報パネル・勝敗表示に加えて、タイトルのメニュー（[title.md](gdd/title.md)）・セレクト（冒険譚選択とステージ一覧の戻る）・依頼書（「出撃する」「別のステージを選ぶ」）・クレジット画面（feature-46 で新規。固有名詞以外の見出し）。test_i18n_translation の検出範囲に新CSVを加える。(3) 部隊名はステージJSONの `name` をキーに差し替える（表示側は `tr()` を通してあるので置き換えるだけ）。キーの命名と、マップエディタで日本語を打つオーナーの手をどう受けるかをここで決める。
-- 該当：`godot/data/i18n/`（units.csv・ui.csv 新規）・`godot/data/units/unit_skin.gd`・`godot/data/terrain/terrain_skin.gd`・`godot/data/movement/movement.gd`・`godot/presentation/ui/`（hud・unit_info_panel ほか）・`godot/presentation/title/`・`godot/presentation/select/`・`godot/data/stages/**`（部隊 `name`）・`godot/tools/map_editor/`（部隊名の入力）・`project.godot`（translation 登録）・`godot/tests/unit/test_i18n_translation.gd`・`doc/tech/i18n.md`。
+- 背景：タイトル画面のメニュー項目6件（"冒険の続き"・"新しい冒険譚"・"設定"・"マニュアル"・"クレジット"・"おわる"）が GDScript に日本語直書きで、`tr()` を通っていない。体験版の英語圏リリースに必須。旧 feature-12 を作業単位に分割したもの。
+- 対応：`godot/data/i18n/ui.csv` を新設し（`keys,ja,en` の3列）、タイトル画面の6文字列を翻訳キー化。`title_screen.gd` の直書きを `tr()` 呼び出しに差し替え。`project.godot` に `.translation` を登録。`test_i18n_translation.gd` の検出範囲に追加。
+- 該当：`godot/data/i18n/ui.csv`（新規）・`godot/presentation/title/title_screen.gd`・`project.godot`・`godot/tests/unit/test_i18n_translation.gd`。
+
+### feature-65
+
+**HUD の UI 文言 tr() 化**（優先度：高）
+
+- 背景：HUD のボタン・メニュー項目10件（"ターン終了"・"⚙ メニュー"・"リスタート"・"ステージセレクト"・"セーブ"・"ロード"・"設定"・"閉じる"・"デバッグ"・"敵を殲滅"）が直書き。旧 feature-12 の分割。
+- 対応：`ui.csv` にキーを追加し、`hud.gd` の直書きを `tr()` に差し替え。
+- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/hud.gd`。
+
+### feature-66
+
+**ユニット情報パネルの UI 文言 tr() 化**（優先度：高）
+
+- 背景：情報パネルの約41文字列（タブ名"能力"・"状態"・"地形"、ステータスラベル"兵数"・"対地攻撃"・"防御"等、状態ラベル"行動完了"・"移動可"等、拠点ラベル"本拠地"・"拠点"等、ヘルプテキスト）が直書き。体験版で最も多くの日本語が露出する画面。旧 feature-12 の分割。
+- 対応：`ui.csv` にキーを追加し、`unit_info_panel.gd` の直書きを `tr()` に差し替え。
+- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/unit_info_panel.gd`。
+
+### feature-67
+
+**戦闘レポートの UI 文言 tr() 化**（優先度：高）
+
+- 背景：戦闘レポートの約32文字列（タブ名"サマリー"・"攻撃側"・"守備側"、行ラベル"兵数"・"攻撃"・"防御"・"包囲"・"地形"等、ダメージ計算式の説明文、"反撃なし"・"対空"・"対地"）が直書き。旧 feature-12 の分割。
+- 対応：`ui.csv` にキーを追加し、`combat_report_view.gd` の直書きを `tr()` に差し替え。
+- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/combat_report_view.gd`。
+
+### feature-68
+
+**会話パネル・セーブ画面の UI 文言 tr() 化**（優先度：高）
+
+- 背景：会話パネル（"次へ ▶"）とセーブ画面（"セーブ"・"オート"・"空き"・"ターン%d 開始時"・"やめる"・"はい"・確認プロンプト等、計約10文字列）が直書き。旧 feature-12 の分割。
+- 対応：`ui.csv` にキーを追加し、`conversation_panel.gd`・`save_slot_panel.gd` の直書きを `tr()` に差し替え。
+- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/conversation_panel.gd`・`godot/presentation/ui/save_slot_panel.gd`。
+
+### feature-69
+
+**依頼書・セレクト画面の UI 文言 tr() 化**（優先度：高）
+
+- 背景：依頼書（"出撃する"・"別のステージを選ぶ"・"出撃しますか？"・"閉じる"・"まだ受けられない依頼"等6件）とセレクト画面（"（開発ビルド限定）"・"危険度"等3件）が直書き。旧 feature-12 の分割。
+- 対応：`ui.csv` にキーを追加し、`quest_sheet.gd`・`campaign_select.gd` の直書きを `tr()` に差し替え。
+- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/select/quest_sheet.gd`・`godot/presentation/select/campaign_select.gd`。
+
+### feature-70
+
+**units.csv 新設＋ユニット表示名の i18n 化**（優先度：高）
+
+- 背景：`unit_skin.csv` の `name` 列（66エントリ："クレリック"・"ゴブリン"・"馬車"等）が日本語直書きで、マップ・戦闘・ポートレートのラベルに表示される。英語環境でも日本語名がそのまま出る。旧 feature-12 の分割。
+- 対応：`godot/data/i18n/units.csv` を新設し、規約キー `unit.{skin_id}.name` で表示名を解決。`UnitSkin` の表示名参照を `tr()` 経由に差し替え。データCSVの `name` 列は開発用メモに降格。`project.godot` に `.translation` を登録。`test_i18n_translation.gd` の検出範囲に追加。
+- 該当：`godot/data/i18n/units.csv`（新規）・`godot/data/units/unit_skin.gd`・`project.godot`・`godot/tests/unit/test_i18n_translation.gd`。
+
+### feature-71
+
+**地形表示名の i18n 化**（優先度：高）
+
+- 背景：`terrain_type.csv`（19エントリ）と `terrain_skin.csv`（約48エントリ）の `name` 列が日本語直書きで、情報パネルに表示される。旧 feature-12 の分割。
+- 対応：`units.csv` に `terrain.{skin_id}.name`・`terrain_type.{id}.name` のキーを追加。`TerrainType`・`TerrainSkin` の表示名参照を `tr()` 経由に差し替え。
+- 該当：`godot/data/i18n/units.csv`・`godot/data/terrain/terrain_skin.gd`・`godot/data/terrain/terrain_type.gd`。
+
+### feature-72
+
+**移動タイプ表示名の i18n 化**（優先度：高）
+
+- 背景：`movement.csv` の `name` 列（7エントリ："歩行"・"軽歩行"・"飛行"等）が日本語直書きで、情報パネルに表示される。旧 feature-12 の分割。
+- 対応：`units.csv` に `movement.{id}.name` のキーを追加。`Movement.display_name()` を `tr()` 経由に差し替え。
+- 該当：`godot/data/i18n/units.csv`・`godot/data/movement/movement.gd`。
+
+### feature-73
+
+**部隊名の i18n キー化**（優先度：中）
+
+- 背景：ステージJSON 30ファイルの部隊 `name` フィールド（77箇所）が日本語直書き。表示側（`unit_info_panel.gd`）は `tr()` を通しているが、入力値がキーではなく日本語文字列のため翻訳が効かない。旧 feature-12 の分割。
+- 対応：ステージJSON の部隊 `name` を翻訳キーに差し替え。キーの命名規則（`squad.{campaign}.{stage}.{id}` 等）を決め、`dialogue.csv` または新CSVにエントリを追加。マップエディタの部隊名入力がキーを扱えるようにする。
+- 該当：`godot/data/stages/**/*.json`（30ファイル）・`godot/data/i18n/`・`godot/tools/map_editor/`。
+
+### feature-74
+
+**イベントラベルの i18n キー化**（優先度：中）
+
+- 背景：ステージJSON のイベント `label` フィールドに日本語直書きがある（例："飛空艇の到着まであと{n}ターン"）。`event_plate.gd` は `tr()` を通しているが、値がキーではなく日本語文字列。旧 feature-12 の分割。
+- 対応：イベント `label` を翻訳キーに差し替え、`dialogue.csv` または `ui.csv` にエントリを追加。
+- 該当：`godot/data/stages/**/*.json`・`godot/data/i18n/`。
+
+### feature-75
+
+**campaign_progress の解放条件テキスト tr() 化**（優先度：低）
+
+- 背景：`campaign_progress.gd` の解放条件表示テキスト4件（"%d番めの依頼をクリアで解放"・"別の依頼をクリアで解放"・"「%s」クリアで解放"・"追加コンテンツ"）が直書き。ステージセレクトの未解放ステージに表示される。旧 feature-12 の分割。
+- 対応：`ui.csv` にキーを追加し、`campaign_progress.gd` の直書きを `tr()` に差し替え。
+- 該当：`godot/data/i18n/ui.csv`・`godot/application/campaign_progress.gd`。
+
+### feature-76
+
+**デバッグ用キャンペーン名の i18n 化**（優先度：低）
+
+- 背景：デバッグ冒険譚のタイトル・ステージ名（約35エントリ）が日本語直書き。`debug: true` なので製品ビルドには含まれない想定（feature-10）。旧 feature-12 の分割。
+- 対応：リリースビルドから除外するなら不要。含める場合は `campaigns.csv` にエントリを追加。
+- 該当：`godot/data/stages/debug-*/campaign.json`・`godot/data/i18n/campaigns.csv`。
 
 ### feature-13
 
@@ -192,7 +288,7 @@
 - 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、メニューに項目だけ置いてあるクレジット画面。
 - クレジット：素材の権利表記。タイトルのメニューに項目は置いてあるが、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
 - クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。タイトルのメニューからのみ開く（ゲーム中のシステムメニューには足さない＝盤を止めてまで読むものではない）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は当面 日本語直書きで、i18n は feature-12 に合流させる。
-- 該当：`godot/presentation/title/title_screen.gd`・`godot/presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-12（メニュー文言の i18n キー化。いま項目は直書き）・feature-47（同じ開き方）。着手の引き金＝配布ビルドが見えてきたとき。
+- 該当：`godot/presentation/title/title_screen.gd`・`godot/presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-64〜69（UI文言の i18n キー化）・feature-47（同じ開き方）。着手の引き金＝配布ビルドが見えてきたとき。
 
 ### feature-47
 
@@ -200,7 +296,7 @@
 
 - 背景：`godot/presentation/ui/hud.gd` のシステムメニューとタイトルのメニュー（[title.md](gdd/title.md)）に「設定」項目があるが、どちらも受け口が無く押せない状態で置いてある。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
 - 対応：1枚の設定シーンを作り、タイトル画面とゲーム中のシステムメニューの両方から開く。項目は 音量（マスター／BGM／SE）・言語（ja／en。翻訳は投入済み）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。永続化は `user://settings.json`（`ProgressStore` の隣・セーブデータとは別枠。設定は中断セーブに含めない）。音量は AudioServer のバスに反映、言語は `TranslationServer.set_locale`。
-- 該当：`godot/presentation/settings/`（新規）・`godot/presentation/ui/hud.gd`（`settings_requested` シグナル）・`godot/presentation/main/main.gd`（結線）・`godot/infrastructure/save/settings_store.gd`（新規）・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-12（項目名の i18n）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
+- 該当：`godot/presentation/settings/`（新規）・`godot/presentation/ui/hud.gd`（`settings_requested` シグナル）・`godot/presentation/main/main.gd`（結線）・`godot/infrastructure/save/settings_store.gd`（新規）・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-64〜69（UI文言の i18n キー化）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
 
 ### feature-49
 
@@ -237,14 +333,14 @@
   2. CSV正本から生成する。敵AIも地形も移動タイプもユニット性能も `godot/data/**/*.csv` が正本なので、そこから表を機械的に起こす（CSV正本→JSON生成と同じ発想）。手書きすると必ず実装とズレる。生成先はゲーム内データとサイトのHTMLの両方。
   3. ゲーム内の画面を作る。タイトルとゲーム中のシステムメニューの両方から開く（設定画面＝feature-47 と同じ置き方）。タイトル側の項目名は「マニュアル」で、受け口が無いまま押せない状態で置いてある（[title.md](gdd/title.md)）。
   4. サイト側は別ページ（`senaris.in/rules` 相当）。ランディングは1ページのまま、そこからリンクする。
-  5. i18n。表の見出しと説明文は翻訳キーに載せる（feature-12 と同じ扱い）。
+  5. i18n。表の見出しと説明文は翻訳キーに載せる（feature-64〜69 と同じ扱い）。
 - 該当：`godot/data/**/*.csv`・`godot/tools/`（生成スクリプト新規）・`presentation/`（図鑑画面・新規）・`doc/gdd/`（見せる範囲の記述）・feature-47（同じ開き方）。着手の引き金＝サイトを作るとき、または完全情報であることを説明する必要が出たとき。
 
 ### feature-53
 
 **Steam ストアページの作成**（優先度：中）
 
-- 背景：配布はまず Steam（[monetization.md](sales/monetization.md)）だが、ストアページを作る段取りが未整理だった。埋めるスロットが多く一度に全部は動かせないので、購入判断への効き方で順序を付ける。作画の方針は [marketing.md](sales/marketing.md) が正本で、ここには段取りだけ置く。
+- 背景：配布はまず Steam（[monetization.md](sales/monetization.md)）だが、ストアページを作る段取りが未整理だった。埋めるスロットが多く一度に全部は動かせないので、購入判断への効き方で順序を付ける。素材の方針は [marketing.md](sales/marketing.md)、ページへの入力は [steam_page.md](sales/steam_page.md) が正本で、ここには段取りだけ置く。
 - 埋めるスロット：
   - 画像＝カプセル5種（ヘッダー 460×215／小 231×87／メイン 616×353／縦 374×448／ページ背景 1438×810。寸法は提出時に Steamworks で最終確認）・ライブラリ用一式・スクリーンショット（1920×1080・5枚以上）
   - 動画＝順番付きで、1本目が自動再生される。ページ公開の必須要件ではない
@@ -268,7 +364,7 @@
   - 判断が要るもの＝`パズル`。乱数の無い完全情報という性質は Into the Breach に近く刺さる層はいるが、カジュアルなパズルを期待した客が来ると期待違いになる。
   - 外すもの＝ローグライク・自動生成（該当しない）、マルチプレイヤー系（無い）、ドット絵（絵柄が違う）。
   - 表示順は最終的にユーザー投票で並び替わる。開発者が設定した順が効くのは投票が溜まるまでの初期だけ。
-- 該当：`doc/sales/marketing.md`（作画方針）・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（アプリアイコン）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`doc/sales/steam_page.md`・`doc/sales/marketing.md`・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（アプリアイコン）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-54
 
