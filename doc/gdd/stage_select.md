@@ -112,7 +112,7 @@
 
 - 難易度★はそのボードの中での相対難易度。tier が粗い難易度・★が細かい難易度＝「Rookie の★4」で一組。★を帯の文脈から切り離してフラットに並べない限り混乱しない（Tutorial★5 と Veteran★1 の絶対比較はプレイヤーがしない比較）。
 - 各冒険譚の所属帯は `campaign.json` の `tier`（未指定は rookie）。帯の一覧（4つ）はコード側の定数で固定＝内容でなく構造。
-- 空の帯も常に表示（準備中の注記）＝カルーセルで巡れて今後の見通しが見える。ボード自体の解放条件はなし（全帯いつでも閲覧可・中身のステージ解放は従来どおり）。
+- ボードは中身のある帯だけ出す（Debug も同じ）。冒険譚の無い帯は板ごと出ない＝ボードが1枚のときは繰り矢印も現在地ドットも消える。ボード自体の解放条件はなし（出ている帯はいつでも閲覧可・中身のステージ解放は従来どおり）。
 - Debug ボードはデバッグビルドのみ・先頭（Tutorial の左）に置く。初期表示は最初の実 tier（Tutorial）。
 - ボード名は上梁に手書き風フォント（RockSalt・英語）で載せる。
 - 材質の棲み分け: 酒場の物（ボード・貼り紙・封蝋）はリアル系テクスチャ、カルーセルのUI（◁▷矢印・現在地ドット）はユーザー視点＝あえて無機質なグレーで描く。→ [../art/menu.md](../art/menu.md)
@@ -217,7 +217,7 @@ domain（戦闘ロジック）には手を入れない。
 ## 画面の配線
 
 - **配線**: 冒険譚マニフェスト（`godot/data/stages/*/campaign.json`・[campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../godot/application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../godot/infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`godot/presentation/select/`＝**2画面に分割**: [select_screen.gd](../../godot/presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../godot/presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../godot/presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../godot/presentation/victory/victory_screen.gd)・最終ステージ勝利で outro 会話に重ねて盤エリアに表示、outro が無ければ全画面）。
-- **難易度帯ボード**: tier カルーセル（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
+- **難易度帯ボード**: tier カルーセル（`campaign_select.gd`）。◁▷で帯を繰る／中身のある帯だけ出す／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）あり・カード用クロップ（card）は未配置で cover にフォールバック中。
 - **依頼書**: 羊皮紙のダイアログ（[quest_sheet.gd](../../godot/presentation/select/quest_sheet.gd)）＝ステージ名と「出撃する（右下）／別のステージを選ぶ（左下）」。出撃確認のワンクッションに徹する。左右の並びと文言の付け方は [uiux.md](uiux.md) ボタンの左右に従う。未解放の札を押したときは同じ紙を「まだ受けられない依頼」＋解放条件＋「閉じる」で出す（ステージ名は伏せたまま・出撃ボタンは出さない）。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。

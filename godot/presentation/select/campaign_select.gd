@@ -173,8 +173,7 @@ func _first_real_index() -> int:
 			return i
 	return 0
 
-## 冒険譚を tier ごとのボードへ振り分ける。4帯は空でも常に出す（カルーセルで巡れる＝今後の見通しを見せる）。
-## デバッグは末尾の Debug ボード（デバッグ冒険譚がある時だけ）。
+## 冒険譚を tier ごとのボードへ振り分ける。どのボードも中身があるときだけ出す（Debug も同じ規則）。
 func _build_boards() -> Array:
 	var by_tier := {}
 	var debugs: Array = []
@@ -190,7 +189,9 @@ func _build_boards() -> Array:
 	if not debugs.is_empty():
 		boards.append({ "name": DEBUG_BOARD_NAME, "campaigns": debugs })  # 先頭＝チュートリアルの左
 	for entry in TIERS:
-		boards.append({ "name": entry["name"], "campaigns": by_tier.get(entry["tier"], []) })
+		var tier_campaigns: Array = by_tier.get(entry["tier"], [])
+		if not tier_campaigns.is_empty():
+			boards.append({ "name": entry["name"], "campaigns": tier_campaigns })
 	return boards
 
 ## 現在のボードを描く（貼り紙・ボード名・矢印の有効/無効・ドット）。
@@ -205,8 +206,6 @@ func _render_current() -> void:
 		return
 	var board: Dictionary = _boards[_idx]
 	_board_name.text = String(board["name"])
-	if board["campaigns"].is_empty():
-		_posters.add_child(_empty_note())
 	for c in board["campaigns"]:
 		_posters.add_child(_poster(c))
 	_left_arrow.disabled = _idx <= 0
@@ -224,18 +223,6 @@ func _rebuild_dots() -> void:
 		dot.add_theme_color_override("font_color", DOT_COLOR)
 		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_dots.add_child(dot)
-
-## 空ボードの控えめな注記（貼り紙はまだ無い＝準備中を示す。焼き印色で板になじませる）。
-func _empty_note() -> Control:
-	var note := Label.new()
-	note.text = "― 準備中 ―"
-	note.custom_minimum_size = POSTER_SIZE
-	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	note.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	note.add_theme_font_size_override("font_size", 20)
-	note.add_theme_color_override("font_color", Color(BOARD_NAME_COLOR, 0.5))
-	note.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return note
 
 ## カルーセルの繰り矢印＝無機質なグレー矢印（酒場のオブジェクトではない＝UI視点。板ボタンにしない）。
 func _nav_arrow(glyph: String) -> Button:
