@@ -95,7 +95,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 | 近接・反撃で攻撃側が落ちた | （消滅） | +2 |
 | 間接・防御側生存（反撃なし） | +1 | +0 |
 
-実装は `domain/combat/combat.gd`（係数）／`domain/battle_state.gd`（入手）／`domain/unit/unit.gd`（保持）。
+実装は `godot/domain/combat/combat.gd`（係数）／`godot/domain/battle_state.gd`（入手）／`godot/domain/unit/unit.gd`（保持）。
 
 #### 包囲効果（乗算・被包囲ペナルティ）
 
@@ -115,7 +115,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 隣接する敵ユニット ≧ 2  → 包囲 ＝ clamp( 1 − (0.08 × 占有数 ＋ 0.04 × ZOC数), 0.10, 1.0 )
 ```
 
-**パラメータ**: 占有 **0.08** ／ ZOC **0.04** ／ 成立は隣接 **2体**以上 ／ 係数の下限 **0.10**。実装は `domain/surround/surround.gd`。
+**パラメータ**: 占有 **0.08** ／ ZOC **0.04** ／ 成立は隣接 **2体**以上 ／ 係数の下限 **0.10**。実装は `godot/domain/surround/surround.gd`。
 
 - 攻撃能力のないユニットでも、隣接すれば包囲の頭数になる（→陣形スキルで行動完了したユニットも盤面に居る限り寄与）。
 - **近接・間接の両方に効く**。包囲は「囲まれたユニット自身にかかる常時デバフ」で、攻撃種別に依存しない（囲んで止めた敵を間接で集中放火すると刺さる／囲まれた弓兵は射撃も弱る）。支援は近接のみ（後述）。
@@ -143,14 +143,14 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
   - **率は 0.25**（加算は隣接味方数ぶん積み上がり、放置すると乗算の包囲補正を食って全戦闘が一方的になるため、当初の0.5から下げた）。
 - **防御側の上限**: 支援後の実効防御力は **支援前の実効防御力の2倍** まで。
 - **近接攻撃のみ**。間接攻撃には乗らない（隣接していれば味方に支援を与える側にはなれる）。
-- **包囲と表裏一体**: 防御対象に隣接させた側面ユニットは、敵を**包囲**しつつ自軍の攻撃を**支援**もする（同じ1体が両方に効く）。逆に攻撃者に隣接する敵の味方は、攻撃者を包囲しつつ守備側を支援する。配置1つで包囲・支援が同時に動く。実装は `domain/combat/combat.gd`。
+- **包囲と表裏一体**: 防御対象に隣接させた側面ユニットは、敵を**包囲**しつつ自軍の攻撃を**支援**もする（同じ1体が両方に効く）。逆に攻撃者に隣接する敵の味方は、攻撃者を包囲しつつ守備側を支援する。配置1つで包囲・支援が同時に動く。実装は `godot/domain/combat/combat.gd`。
 
 #### 地形効果（乗算・攻防別）
 
 - **攻撃・防御の両方に地形係数を持たせる**（攻防別の2係数）。罠地形＝攻撃強化、穴ぐら＝防御強化…のように地形の性格づけで戦略を広げる狙い。
 - 各地形が `地形(攻)` と `地形(防)` を持つ。**ユニットが立っているヘックスの地形**が効く（攻撃側は自分の足元の地形(攻)、防御側は自分の足元の地形(防)）。
 
-**地形はデータ駆動**。正本 `data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形の考え方（足場とオブジェクト・スキン）は [terrain.md](terrain.md)。**地形を増やす＝terrain_type.csv に1行＋terrain_skin.csv に1行＋movement.csv に1列**（コード不変）。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
+**地形はデータ駆動**。正本 `godot/data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`godot/data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形の考え方（足場とオブジェクト・スキン）は [terrain.md](terrain.md)。**地形を増やす＝terrain_type.csv に1行＋terrain_skin.csv に1行＋movement.csv に1列**（コード不変）。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
 
 **地形の性格**（種類は `terrain_type.csv` が正本）。代表例:
 
@@ -166,9 +166,9 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 
 係数と移動コストの実数はここに書かない（調整で乖離するため）。`terrain_type.csv` / `movement.csv` を見る。川は攻防とも補正なしで、飛行だけが進入できる（低い水面なので視線は遮らない）。橋はオブジェクトの地形タイプ（`=`）で、性能と移動は道相当（作りは [../art/terrain.md](../art/terrain.md) §3.7）。
 
-- **拠点（fort/castle）は地形としては「防御の強いマス」**。占領・出撃（控えを出す）・回復（休憩）の挙動は地形補正とは別レイヤーで、`domain/capture/`＋`BattleState` が担う（[map.md](map.md) 拠点・占領）。
+- **拠点（fort/castle）は地形としては「防御の強いマス」**。占領・出撃（控えを出す）・回復（休憩）の挙動は地形補正とは別レイヤーで、`godot/domain/capture/`＋`BattleState` が担う（[map.md](map.md) 拠点・占領）。
 
-- 実装: `Terrain`（係数・`attack_factor`/`defense_factor`）／`domain/battle_state.gd`（盤面の地形保持 `terrain_at`/`set_terrain`、idは文字列）／戦闘での参照は `domain/combat/combat.gd`。移動コストは [movement.md](movement.md)。
+- 実装: `Terrain`（係数・`attack_factor`/`defense_factor`）／`godot/domain/battle_state.gd`（盤面の地形保持 `terrain_at`/`set_terrain`、idは文字列）／戦闘での参照は `godot/domain/combat/combat.gd`。移動コストは [movement.md](movement.md)。
 
 #### 防御貫通（貫通率・乗算・攻撃側依存）
 
@@ -181,10 +181,10 @@ D'_y ＝ D_y × (1 − pierce_x)
 - **魔法兵＝0.5＝防御半減**／物理（`pierce=0`）は据え置き。
 - 防御は単一値なので、**対地・対空どちらの相手にも同じく効く**。
 - 貫通は**攻撃した側の性質**＝反撃（Y→X）には **Y の貫通率**が同様に効く。
-- **支援(防)加算・2倍上限を適用した後の実効防御力 D に掛ける**（＝支援も貫通の影響を受ける。実装でこの順に確定し、`tests/unit/test_pierce.gd` が上限→貫通の順を期待値で固定済み）。
+- **支援(防)加算・2倍上限を適用した後の実効防御力 D に掛ける**（＝支援も貫通の影響を受ける。実装でこの順に確定し、`godot/tests/unit/test_pierce.gd` が上限→貫通の順を期待値で固定済み）。
 - 効果は相手の防御が高いほど伸びる（対アーマー）。**弓兵＝対空・機動／魔法兵＝対アーマー**で住み分ける。
 - **設計原則**：性能(type)は全スキンで共有されるため、貫通のような"術者らしさ"は**術者にしか化けない type（魔法兵）にのみ**載せる（→ [units.md](units.md) flavor-neutral 原則）。
-- 実装: `domain/combat/combat.gd` `defense_breakdown`＝内訳 dict の `pierce` に係数を保持／`unit_type.csv` の `pierce` 列＋JSON再生成／テスト `tests/unit/test_pierce.gd`。
+- 実装: `godot/domain/combat/combat.gd` `defense_breakdown`＝内訳 dict の `pierce` に係数を保持／`unit_type.csv` の `pierce` 列＋JSON再生成／テスト `godot/tests/unit/test_pierce.gd`。
 
 #### 状態補正（バフ/デバフ・持続）
 

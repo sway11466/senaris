@@ -22,7 +22,7 @@
 
 - 背景：水系の地形は川（`river`）だけで（橋は川の上に置くオブジェクト）、歩いて渡れる浅瀬と海が無い。移動タイプ側も騎乗・水棲が未整備（[movement.md](gdd/movement.md)）。
 - 対応：`terrain_type.csv` に浅瀬・海を足し、`movement.csv` に対応する列と騎乗・水棲の行を足す（CSV正本→JSON生成のパイプラインに乗せる）。関連する既定スキン画像も要る。浅瀬は川と繋がって見えてほしいので、スキンの `connect_to` に川を書く（[terrain.md](art/terrain.md) §3.1）。
-- 該当：`data/terrain/terrain_type.csv`・`data/terrain/terrain_skin.csv`・`data/movement/movement.csv`・`doc/gdd/movement.md`。
+- 該当：`godot/data/terrain/terrain_type.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/movement/movement.csv`・`doc/gdd/movement.md`。
 
 ### feature-8
 
@@ -30,25 +30,25 @@
 
 - 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
-- 該当：`presentation/board/hex_board_3d.gd`・`presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+- 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
 ### feature-10
 
 **製品ビルドの中身を整える（開発用アセットの除外・ライセンス文の同梱）**（優先度：中）
 
-- 背景：`tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）・デバッグ用ステージ（`data/stages/debug*/`）・`addons/gut/`（テストフレームワーク）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。GUT は本体（MIT）と同梱フォント（OFL）を抱えているので、含めたままだと不要な表記義務まで背負う（[credits.md](sales/credits.md)）。
-- 背景（同梱側）：逆に、含めなければならないものが落ちる。RockSalt（Apache 2.0）はライセンス文の同梱が義務だが、`assets/fonts/RockSalt-LICENSE.txt` は Godot がリソースとして扱わない素のファイルで、非リソースファイルのフィルタに指定しない限り pck に入らない。フォント本体（`.ttf`）は `.fontdata` に変換されて入るので、フォントだけ入ってライセンス文が無い、という一番まずい形になる。
-- 対応（除外）：export preset の非公開フィルタ（除外パターン）に `tools/`・デバッグステージのパス・`addons/gut/` を加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
+- 背景：`godot/tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）・デバッグ用ステージ（`godot/data/stages/debug*/`）・`godot/addons/gut/`（テストフレームワーク）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。GUT は本体（MIT）と同梱フォント（OFL）を抱えているので、含めたままだと不要な表記義務まで背負う（[credits.md](sales/credits.md)）。
+- 背景（同梱側）：逆に、含めなければならないものが落ちる。RockSalt（Apache 2.0）はライセンス文の同梱が義務だが、`godot/assets/fonts/RockSalt-LICENSE.txt` は Godot がリソースとして扱わない素のファイルで、非リソースファイルのフィルタに指定しない限り pck に入らない。フォント本体（`.ttf`）は `.fontdata` に変換されて入るので、フォントだけ入ってライセンス文が無い、という一番まずい形になる。
+- 対応（除外）：export preset の非公開フィルタ（除外パターン）に `godot/tools/`・デバッグステージのパス・`godot/addons/gut/` を加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
 - 対応（同梱）：ビルド出力（exe と同じ階層＝Steam のデポにそのまま上がる場所）に `THIRD-PARTY-LICENSES.txt` を置く。中身は [credits.md](sales/credits.md) の義務がある行から起こす。preset の非リソースフィルタで pck に入れる手も取れるが、`export_presets.cfg` は `.gitignore` されていて preset を作り直すたびに設定が消え、消えたことに気づけないので、そちらには頼らない。exe の隣なら pck を解凍せずに読める利点もある。
-- 該当：`export_presets.cfg`（新規）・`tools/`・`data/stages/debug*/`・`addons/gut/`・ステージ一覧の参照箇所・`doc/sales/credits.md`（同梱する文面の出どころ）。関連＝feature-54（ライセンスの裏取り）。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`export_presets.cfg`（新規）・`godot/tools/`・`godot/data/stages/debug*/`・`godot/addons/gut/`・ステージ一覧の参照箇所・`doc/sales/credits.md`（同梱する文面の出どころ）。関連＝feature-54（ライセンスの裏取り）。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-12
 
 **表示名・UI文言の i18n キー化移行**（優先度：高）
 
 - 背景：多言語対応の方針は [i18n.md](tech/i18n.md) で確定（海外販売必須のため ja+en）。会話・冒険譚名は翻訳キー化済みだが、(1) ユニット・地形・移動タイプの表示名がデータCSVの `name` 列（日本語直書き）のまま情報パネル等に表示され、(2) HUD・情報パネル・勝敗表示など GDScript 直書きの UI 文言が `tr()` を通っていない。(3) 敵の部隊名がステージJSONの `name`（日本語直書き）のまま情報パネルの見出しに出る。この3系統は現状英語にできない。
-- 対応：(1) `data/i18n/units.csv` を新設し、規約キー（`unit.{skin_id}.name`・`terrain.{skin_id}.name`・`movement.{id}.name`）で表示名を解決。`UnitSkin`/`TerrainSkin`/`Movement` の表示名参照を `tr()` 経由に差し替え、データCSVの `name` 列は開発用メモに降格。(2) `data/i18n/ui.csv` を新設し、presentation の直書き文言（`ui.*` キー）を一括キー化。対象の画面は HUD・情報パネル・勝敗表示に加えて、タイトルのメニュー（[title.md](gdd/title.md)）・セレクト（冒険譚選択とステージ一覧の戻る）・依頼書（「出撃する」「別のステージを選ぶ」）・クレジット画面（feature-46 で新規。固有名詞以外の見出し）。test_i18n_translation の検出範囲に新CSVを加える。(3) 部隊名はステージJSONの `name` をキーに差し替える（表示側は `tr()` を通してあるので置き換えるだけ）。キーの命名と、マップエディタで日本語を打つオーナーの手をどう受けるかをここで決める。
-- 該当：`data/i18n/`（units.csv・ui.csv 新規）・`data/units/unit_skin.gd`・`data/terrain/terrain_skin.gd`・`data/movement/movement.gd`・`presentation/ui/`（hud・unit_info_panel ほか）・`presentation/title/`・`presentation/select/`・`data/stages/**`（部隊 `name`）・`tools/map_editor/`（部隊名の入力）・`project.godot`（translation 登録）・`tests/unit/test_i18n_translation.gd`・`doc/tech/i18n.md`。
+- 対応：(1) `godot/data/i18n/units.csv` を新設し、規約キー（`unit.{skin_id}.name`・`terrain.{skin_id}.name`・`movement.{id}.name`）で表示名を解決。`UnitSkin`/`TerrainSkin`/`Movement` の表示名参照を `tr()` 経由に差し替え、データCSVの `name` 列は開発用メモに降格。(2) `godot/data/i18n/ui.csv` を新設し、presentation の直書き文言（`ui.*` キー）を一括キー化。対象の画面は HUD・情報パネル・勝敗表示に加えて、タイトルのメニュー（[title.md](gdd/title.md)）・セレクト（冒険譚選択とステージ一覧の戻る）・依頼書（「出撃する」「別のステージを選ぶ」）・クレジット画面（feature-46 で新規。固有名詞以外の見出し）。test_i18n_translation の検出範囲に新CSVを加える。(3) 部隊名はステージJSONの `name` をキーに差し替える（表示側は `tr()` を通してあるので置き換えるだけ）。キーの命名と、マップエディタで日本語を打つオーナーの手をどう受けるかをここで決める。
+- 該当：`godot/data/i18n/`（units.csv・ui.csv 新規）・`godot/data/units/unit_skin.gd`・`godot/data/terrain/terrain_skin.gd`・`godot/data/movement/movement.gd`・`godot/presentation/ui/`（hud・unit_info_panel ほか）・`godot/presentation/title/`・`godot/presentation/select/`・`godot/data/stages/**`（部隊 `name`）・`godot/tools/map_editor/`（部隊名の入力）・`project.godot`（translation 登録）・`godot/tests/unit/test_i18n_translation.gd`・`doc/tech/i18n.md`。
 
 ### feature-13
 
@@ -56,7 +56,7 @@
 
 - 背景：ステージセレクトの解放は現状「クリア連鎖」だけで、有料DLC（冒険譚）の所有チェック（entitlement）が未配線＝販売時に「持っていれば解放」を判定できない（[stage_select.md](gdd/stage_select.md)）。Steam DLC 連携が前提。解放ゲート `_is_satisfied` は `cleared` のみ対応で、entitlement を含む未知条件は locked 扱い。表示側の `unlock_text` には entitlement 条件を「追加コンテンツ」と示す分岐が既にあるが、実際の充足判定の口が無い。
 - 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線（それまではローカルで常時充足扱い等の切替）。
-- 該当：`application/campaign_progress.gd`・`presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝配布ビルド（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`godot/application/campaign_progress.gd`・`godot/presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝配布ビルド（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-16
 
@@ -64,15 +64,15 @@
 
 - 背景：敵の全行動を見せる（移動アニメ＋カメラ追従）ぶん、敵が多いターンは総時間が伸びる。アニメ速度の設定（高速／標準／オフ）と敵ターンのスキップは SLG の定番だが、設定画面もスキップ導線も未実装（[uiux.md](gdd/uiux.md) システムメニュー・敵ターンのカメラ）。また演出には未対応の隙間がいくつかある。
 - 対応：(1) 設定画面を作る段で、移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）とカメラ追従（`FOCUS_PAN_SEC`）を設定値から引く。戦闘演出の速度（[combat_scene.md](tech/combat_scene.md) テンポ・スキップの「フル／短縮／オフ」3段）も同じ設定に乗せる＝置き場所が決まっていないのはこれだけで、AIターンの短縮は仕様だけあって未実装。(2) 敵ターンのスキップ（キー／ボタンで残りを一気に最終状態へ）。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
-- 該当：`presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`application/match_controller.gd`（ターンのテンポ・スキップ）・設定の永続化（セーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき／敵ターンが長く感じ始めたら。
+- 該当：`godot/presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`godot/application/match_controller.gd`（ターンのテンポ・スキップ）・設定の永続化（セーブと同居）・`doc/gdd/uiux.md`。着手の引き金＝設定画面を作るとき／敵ターンが長く感じ始めたら。
 
 ### feature-19
 
 **戦果票の評価ランク表示（S/A/B）**（優先度：中）
 
-- 背景：評価ランクの判定・記録の仕組みは実装済み。ターン消費率と生存率それぞれで S/A/B を判定し、低い方が最終ランク。閾値はステージJSONの `rank` に明示（暗黙知を持たせない）。全21チュートリアルステージに 50%/75% 基準の叩き台を投入済み。仕様 → [rank.md](gdd/rank.md)。実装 → `domain/rank_evaluator.gd`・`infrastructure/save/progress_store.gd`・`application/campaign_progress.gd`・`presentation/main/main.gd`。残るのは戦果票（結果画面）への表示。
+- 背景：評価ランクの判定・記録の仕組みは実装済み。ターン消費率と生存率それぞれで S/A/B を判定し、低い方が最終ランク。閾値はステージJSONの `rank` に明示（暗黙知を持たせない）。全21チュートリアルステージに 50%/75% 基準の叩き台を投入済み。仕様 → [rank.md](gdd/rank.md)。実装 → `godot/domain/rank_evaluator.gd`・`godot/infrastructure/save/progress_store.gd`・`godot/application/campaign_progress.gd`・`godot/presentation/main/main.gd`。残るのは戦果票（結果画面）への表示。
 - 対応：(1) 結果画面にランク基準のチェックリストを表示（ターン数と生存数の具体的な値・クリアした基準にチェック）。(2) メダル表示（S=金、A=銀、B=銅）。位置は印と重ならない場所を選ぶ（実物を見てから調整）。表示仕様 → [uiux.md](gdd/uiux.md)。(3) 閾値の調整＝実際にプレイしながらステージごとに詰める。
-- 該当：`presentation/ui/result_banner.gd`（`_fill` にランク行・メダル）・`data/stages/*.json`（閾値の調整）。
+- 該当：`godot/presentation/ui/result_banner.gd`（`_fill` にランク行・メダル）・`godot/data/stages/*.json`（閾値の調整）。
 - 関連（実績）：Steam 実績を冒険譚単位×3段（踏破／全ステージを A 以上／全ステージを S）で出す方針（[monetization.md](sales/monetization.md) 実績・計測）。実績はリリース後に削除・改名できないので、評価式は 1.0 までに固める。
 
 ### feature-21
@@ -81,7 +81,7 @@
 
 - 背景：BGM の制作方針は [bgm.md](audio/bgm.md) で確定。たたき台のうち `graveyard`・`boss` は仕上げて `.ogg` 化済み（投入済みは afterglow／boss／defeat／dungeon／graveyard／journey／menu／raid／title／victory）。残りの下書き（`forest`／`ruins`／`temple`／`ritual`／`boss2`／`crisis`）が `.mscz` のまま仕上げ待ち。全体既定（`BgmDirector.DEFAULT_STAGE_TRACK`＝`map_calm`）は ID に対応する曲が無い＝ステージにも冒険譚にも `bgm` 指定が無いと無音になる（チュートリアル1は全ステージに指定済みのため現在は該当なし）。
 - 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
-- 該当：`assets/bgm-src/`・`assets/bgm/`・`application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
+- 該当：`godot/assets/bgm-src/`・`godot/assets/bgm/`・`godot/application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
 
 ### feature-26
 
@@ -95,7 +95,7 @@
   - mapops: 陣形②③／飛空艇・初期搭乗（2件。拠点は base.json で済）
   - skins: 構造物系タイル（1件）
   - misc: 追加の演出・UI検証（1件）
-- 該当：`data/stages/debug-*/`・`doc/tech/debug-stages.md`（台帳更新）。着手の引き金＝機能を足してデバッグステージが欲しくなったとき。
+- 該当：`godot/data/stages/debug-*/`・`doc/tech/debug-stages.md`（台帳更新）。着手の引き金＝機能を足してデバッグステージが欲しくなったとき。
 
 ### feature-27
 
@@ -114,7 +114,7 @@
 
 - 背景：ユニットスキルの器（単独発動・味方1体へ状態補正・移動後発動）は①ピクシーダストで実装済み（[skills.md](gdd/skills.md)）。カタログを増やす段で、次に入れる2つの方向まで決まっている＝(1) 貫通追加＝対象の攻撃に貫通率を乗せる、(2) 再行動＝行動を終えた味方をもう一度動かす。どちらもレシピは未設計（発動者・値・持続・射程が未定）でカタログにも載っていない。
 - 対応：(1) 貫通追加は既存の状態補正で足りるか要確認＝`StatusMod` は攻防への add/mul は持つが、貫通率（`Unit.pierce`）に効く経路が無いため、補正チェーンに貫通の口を足すかどうかから決める。(2) 再行動は「1ターンに各ユニット1回まで」の縛りを入れる方針まで決定済み（無制限だと1体を延々動かせて崩壊する）。縛りの持ち場は駒側のフラグ＝`BattleState` に再行動回数を持たせ、中断セーブの直列化にも載せる。レシピが固まったら skills.md のカタログへ②③として追記する。
-- 該当：`domain/formation/formation.gd`（RECIPES）・`domain/battle_state.gd`（再行動フラグ・直列化）・`domain/status/status_mod.gd`／`domain/combat/combat.gd`（貫通の口）・`tests/unit/test_skill.gd`・`doc/gdd/skills.md`。
+- 該当：`godot/domain/formation/formation.gd`（RECIPES）・`godot/domain/battle_state.gd`（再行動フラグ・直列化）・`godot/domain/status/status_mod.gd`／`godot/domain/combat/combat.gd`（貫通の口）・`godot/tests/unit/test_skill.gd`・`doc/gdd/skills.md`。
 
 ### feature-29
 
@@ -122,15 +122,15 @@
 
 - 背景：ユニットスキル（発動者1体）は敵も撃つようになった（特性の行動ルール＝[ai.md](gdd/ai.md)）。残るのは複数人の陣形スキルで、敵陣営向けのレシピが1つも無い。実行経路は `AiAction.SKILL` で共通なので、レシピを足せば同じ仕組みで飛ぶ。成立条件はスキンID照合（未指定は種別へフォールバック）＝データ面の下地はできている。
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) 撃つ価値の評価を足す＝ユニットスキルは「対象1体」で選べたが、面の陣形は着弾中心の選び方（面に入る敵の数・味方の巻き込み）が要る。`_pick_skill_target` は対象1体を前提にしているのでここを広げる。
-- 該当：`domain/ai/nearest_attacker_brain.gd`・`domain/formation/formation.gd`（敵レシピ）・`tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
+- 該当：`godot/domain/ai/nearest_attacker_brain.gd`・`godot/domain/formation/formation.gd`（敵レシピ）・`godot/tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
 ### feature-31
 
 **体験版ビルドの素材選別（収録ステージから必要素材を導出して除外）**（優先度：低）
 
 - 背景：体験版はチュートリアル3本のみを収録し、本編の冒険譚は入れない（[monetization.md](sales/monetization.md) 体験版の収録範囲）。収録しない冒険譚のユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
-- 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
-- 該当：`export_presets.cfg`（新規）・`tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝製品ビルドの中身を整えるのと同じ段・parking lot「Steam 配布の段取り」と連動）。
+- 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `godot/assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`godot/data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
+- 該当：`export_presets.cfg`（新規）・`godot/tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝製品ビルドの中身を整えるのと同じ段・parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-48
 
@@ -138,7 +138,7 @@
 
 - 背景：`move_flight` に当てている上着の布音（Modern Cloth Foley の Whoosh Flutter）が、羽ばたきに聞こえない。素材が 0.42 秒あるのに間隔が 0.30 秒で、常に 0.12 秒ぶん重なって連続音になるため。翼を打つ一打ずつには分かれない。飛空艇（`move_propeller`）はこの連続音の性質をそのまま利用して同じ素材から作ったので、飛行側だけが宙に浮いている。
 - 対応：一打で完結する素材に差し替える。Sonniss バンドルには使える羽ばたきが無いことが確認済み（[doc/audio/sfx.md](audio/sfx.md) の「バンドルに録音が無かったもの」）。外部の素材集を1本買うか、自録り（うちわ・厚紙・畳んだ布で空気を打つ）に切り替える。長さは 0.30 秒より短く収めて、重ならずに一打ずつ聞こえる形にする。ペガサスからレッドドラゴンまで1つで賄うので、翼の大きさが特定できない中庸な質感を狙う。
-- 該当：`assets/sfx-src/move_flight_recipe.txt`・`assets/sfx/move_flight.ogg`・`assets/sfx-src/credits.md`・`data/audio/sfx_catalog.gd`（間隔）・`doc/audio/sfx.md`。着手の引き金＝素材を調達したとき。
+- 該当：`godot/assets/sfx-src/move_flight_recipe.txt`・`godot/assets/sfx/move_flight.ogg`・`godot/assets/sfx-src/credits.md`・`godot/data/audio/sfx_catalog.gd`（間隔）・`doc/audio/sfx.md`。着手の引き金＝素材を調達したとき。
 
 ### feature-36
 
@@ -146,15 +146,15 @@
 
 - 背景：カットインの入り方は絵が無い時期に決めた暫定で、フェード＋わずかなズーム（`ZOOM_FROM=1.06`）を3レシピ共通で掛けている。絵が揃ったいま、構図と噛み合っているかを見ていない。トリニティスペルとディバインジャッジメントは光が上へ抜ける縦の構図、ホーリーアリアは横に広がる構図で、同じ入り方が3枚とも最適とは限らない。窓は角丸の横長矩形（最大740×520）で絵は4:3なので、上下が少し切れることも合わせて確認する。
 - 対応：3枚を実機で通しで見て、寄りの量・向き・秒数（`FADE_SEC`／`HOLD_SEC`）を詰める。レシピごとに変えるならレシピ側に持たせる。絵を差し替えたら見直す前提の調整なので、凝りすぎない。
-- 該当：`presentation/formation/formation_cutin.gd`・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝演出を通しで見て気になったとき。
+- 該当：`godot/presentation/formation/formation_cutin.gd`・`doc/gdd/formations.md`（発動の演出）。着手の引き金＝演出を通しで見て気になったとき。
 
 ### feature-40
 
 **Steam 実績・Stats の配線（GodotSteam 導入）**（優先度：低）
 
-- 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
-- 対応：(1) GodotSteam を導入し `infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
-- 該当：`infrastructure/platform/`（GodotSteam の隔離・新規）・`application/campaign_progress.gd`（完走判定・ランク記録）・`infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）は実装済み。
+- 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`godot/infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
+- 対応：(1) GodotSteam を導入し `godot/infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。Steam が居ない環境＝エディタ実行・BOOTH 版でも落ちないダミー実装を用意）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
+- 該当：`godot/infrastructure/platform/`（GodotSteam の隔離・新規）・`godot/application/campaign_progress.gd`（完走判定・ランク記録）・`godot/infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝feature-19（ランクの評価式）は実装済み。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
 
 ### feature-41
@@ -163,7 +163,7 @@
 
 - 背景：ユニットスキルの演出（[combat_scene.md](tech/combat_scene.md) ユニットスキルの演出）は兵量バーが動かないので、戦闘から「減る」という一番大きな動きが抜ける。残るのはシェイク・フラッシュ・数値だけで、弱体（ドレッドタッチ・ヴェノムファング）と強化（ピクシーダスト・ピュリファイ）に同じ動きを当てると、強化されたのに殴られたように見えるおそれがある。
 - 対応：レシピの `buff_harmful` で動きを分ける。有害なら被対象がひるむ（シェイク＋暗いフラッシュ）、そうでなければ光る（明るいフラッシュのみ・シェイクなし）、という向きが素直。数値の色も同じ基準で分けられる。分ける軸を新設せず既存のフラグを使うのは、値の符号から推測しないという [skills.md](gdd/skills.md) の方針と揃えるため。
-- 該当：ユニットスキルの演出モジュール（`presentation/combat/`）・`doc/tech/combat_scene.md`。着手の引き金＝実際に動くものを見て、手応えが足りないと感じたとき（先に数値を決めても当たらないので、通しで見てから調整する）。
+- 該当：ユニットスキルの演出モジュール（`godot/presentation/combat/`）・`doc/tech/combat_scene.md`。着手の引き金＝実際に動くものを見て、手応えが足りないと感じたとき（先に数値を決めても当たらないので、通しで見てから調整する）。
 
 ### feature-44
 
@@ -171,19 +171,19 @@
 
 - 背景：曲を途中で切り替える仕組みを `bgm` の `crisis` スロット＋永続フラグ＋`BgmDirector.enter_crisis()` として持っていたが、ゲームに配線されず使うステージも無かったため撤去した。BGM専用に状態をもう1本立てるより、既にあるイベント（`events`＝Nターン目に起きること・[map.md](gdd/map.md) イベント）の `type` を1つ足すほうが、状態の置き場もJSONの書き場所も1か所に寄る。
 - 対応：`events` に BGM 切替の type を足す（`turn` で発生・トラックIDを指定）。曲はライブラリの `crisis`（警報型・たたき台あり）が候補。必殺技やボス出現のような盤面イベントを引き金にしたくなったら、BGM専用の抜け道を作らず、イベント側に条件トリガーを足す形で設計する。
-- 該当：`doc/gdd/map.md`（イベント表）・`domain/battle_state.gd`（`fire_due_events`）・`application/stage_loader.gd`（`_apply_events`）・`presentation/main/main.gd`（曲の張り替え）・`doc/audio/bgm.md`。着手の引き金＝ステージ途中で曲を変えたくなったとき。
+- 該当：`doc/gdd/map.md`（イベント表）・`godot/domain/battle_state.gd`（`fire_due_events`）・`godot/application/stage_loader.gd`（`_apply_events`）・`godot/presentation/main/main.gd`（曲の張り替え）・`doc/audio/bgm.md`。着手の引き金＝ステージ途中で曲を変えたくなったとき。
 
 ### feature-45
 
 **アプリアイコンの差し替え**
 
-- 背景：ウィンドウ／タスクバーのアイコン（`application/config/icon`）が未設定で Godot のアイコンのまま。Godot は MIT でロゴの表示義務が無いため、フォークやカスタムビルドは不要＝プロジェクト設定と画像の差し替えだけで済む。起動スプラッシュは差し替え済み（2026-08-13。[menu.md](art/menu.md) §6）。
-- 対応：文字を落とした紋章だけの版を `tools/logo/build_logo.py` に足し、PNG へ焼いて `application/config/icon` に指定する。変換は `tools/rasterize_svg.gd`、`.ico`（16/24/32/48/64/128/256 を1ファイルに束ねる）は ImageMagick で組む。あわせて Windows export preset の exe アイコンも差し替える。
+- 背景：ウィンドウ／タスクバーのアイコン（`godot/application/config/icon`）が未設定で Godot のアイコンのまま。Godot は MIT でロゴの表示義務が無いため、フォークやカスタムビルドは不要＝プロジェクト設定と画像の差し替えだけで済む。起動スプラッシュは差し替え済み（2026-08-13。[menu.md](art/menu.md) §6）。
+- 対応：文字を落とした紋章だけの版を `godot/tools/logo/build_logo.py` に足し、PNG へ焼いて `godot/application/config/icon` に指定する。変換は `godot/tools/rasterize_svg.gd`、`.ico`（16/24/32/48/64/128/256 を1ファイルに束ねる）は ImageMagick で組む。あわせて Windows export preset の exe アイコンも差し替える。
 - 小さいアイコンはヘックス1枚に剣が刺さっているだけの版にする。7枚のクラスタは 32px 以下で塊に潰れる。どの寸法から切り替えるかは焼いて見て決める。
 - 紋章版は、タイルから文字を抜いているマスクを剣だけに絞って組み直す。文字のレイヤーを消すだけだと、タイルに文字型の切り欠きが残る。
 - 紋章は横 500 に対して縦 565（剣が上に伸びる分）で正方形ではない。左右に余白を足すか、アイコン版だけ剣を短くするかを選ぶ。
 - exe への焼き込みは `export_presets.cfg`（feature-10 で新規作成）が要る。それまでに作れるのはウィンドウ用の PNG と `.ico` まで。
-- 該当：`project.godot`（`application/config/icon`）・`export_presets.cfg`（exe アイコン・feature-10 で新規作成）・`assets/`（アイコン画像）。着手の引き金＝配布ビルドを作るとき。
+- 該当：`project.godot`（`godot/application/config/icon`）・`export_presets.cfg`（exe アイコン・feature-10 で新規作成）・`godot/assets/`（アイコン画像）。着手の引き金＝配布ビルドを作るとき。
 
 ### feature-46
 
@@ -191,16 +191,16 @@
 
 - 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、メニューに項目だけ置いてあるクレジット画面。
 - クレジット：素材の権利表記。タイトルのメニューに項目は置いてあるが、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
-- クレジット画面の作り（決めたこと）：新規シーン `presentation/credits/` を1枚。タイトルのメニューからのみ開く（ゲーム中のシステムメニューには足さない＝盤を止めてまで読むものではない）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は当面 日本語直書きで、i18n は feature-12 に合流させる。
-- 該当：`presentation/title/title_screen.gd`・`presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-12（メニュー文言の i18n キー化。いま項目は直書き）・feature-47（同じ開き方）。着手の引き金＝配布ビルドが見えてきたとき。
+- クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。タイトルのメニューからのみ開く（ゲーム中のシステムメニューには足さない＝盤を止めてまで読むものではない）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は当面 日本語直書きで、i18n は feature-12 に合流させる。
+- 該当：`godot/presentation/title/title_screen.gd`・`godot/presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-12（メニュー文言の i18n キー化。いま項目は直書き）・feature-47（同じ開き方）。着手の引き金＝配布ビルドが見えてきたとき。
 
 ### feature-47
 
 **設定画面**
 
-- 背景：`presentation/ui/hud.gd` のシステムメニューとタイトルのメニュー（[title.md](gdd/title.md)）に「設定」項目があるが、どちらも受け口が無く押せない状態で置いてある。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
+- 背景：`godot/presentation/ui/hud.gd` のシステムメニューとタイトルのメニュー（[title.md](gdd/title.md)）に「設定」項目があるが、どちらも受け口が無く押せない状態で置いてある。設定値を持つ機構も永続化も無い。feature-16（演出速度・敵ターンスキップ）が「設定画面を作る段で」を前提にしており、この項目が先に要る。
 - 対応：1枚の設定シーンを作り、タイトル画面とゲーム中のシステムメニューの両方から開く。項目は 音量（マスター／BGM／SE）・言語（ja／en。翻訳は投入済み）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。永続化は `user://settings.json`（`ProgressStore` の隣・セーブデータとは別枠。設定は中断セーブに含めない）。音量は AudioServer のバスに反映、言語は `TranslationServer.set_locale`。
-- 該当：`presentation/settings/`（新規）・`presentation/ui/hud.gd`（`settings_requested` シグナル）・`presentation/main/main.gd`（結線）・`infrastructure/save/settings_store.gd`（新規）・`presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-12（項目名の i18n）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
+- 該当：`godot/presentation/settings/`（新規）・`godot/presentation/ui/hud.gd`（`settings_requested` シグナル）・`godot/presentation/main/main.gd`（結線）・`godot/infrastructure/save/settings_store.gd`（新規）・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`（音量反映）・`doc/tech/gamesystem.md`（設定の永続化を追記）。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）・feature-12（項目名の i18n）。着手の引き金＝タイトル画面を作るとき、または敵ターンが長く感じ始めたとき。
 
 ### feature-49
 
@@ -208,7 +208,7 @@
 
 - 背景：ステージに入る経路が2種類ある。連戦（outro 会話 → `_advance_or_select` → 次ステージ）と、文脈の外から入る経路（ステージセレクト、およびタイトルの「冒険の続き」）。連戦では会話でステージ同士が繋がっており、区切りの音を入れると繋がっているものを切ってしまうので鳴らさない（現状すでに無音で、これが正しい）。外から入る経路にだけ区切りが要る。
 - 対応：`menu_sortie` を作り、外から入る経路でだけ鳴らす。いまセレクト経由では `menu_stage`（`ui_confirm`）が鳴っているので、置き換えるか後ろに重ねるかを決める。外から入る経路は2つ揃っている（セレクト経由とロード経由）＝比べる材料はある。
-- 該当：`assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`data/audio/sfx_catalog.gd`（BIND）・`presentation/select/stage_select.gd`（セレクト経由）・`presentation/main/main.gd`（`_load_slot`＝ロードで盤へ入る経路）・`doc/audio/sfx.md`（発火点カタログ）。
+- 該当：`godot/assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`godot/data/audio/sfx_catalog.gd`（BIND）・`godot/presentation/select/stage_select.gd`（セレクト経由）・`godot/presentation/main/main.gd`（`_load_slot`＝ロードで盤へ入る経路）・`doc/audio/sfx.md`（発火点カタログ）。
 
 ### feature-51
 
@@ -216,16 +216,16 @@
 
 - 背景：ストアページに置く映像がまだ無い。1本目はプレイ映像（何のゲームか数秒で伝わるもの）、2本目に世界観のティザー、という並びを想定している。ティザー用の素材は 2026-08-12 の Gemini の無料枠で確保した（枠は同日で終了。以後の生成は有料）。生成でしか作れないカットは押さえてあるので、残りは手持ちの素材と実機録画で組める。
 - 手元にあるもの：
-  - ドラゴンのキービジュアル2枚（`assets/promo-src/dragon_breath/`）。炎あり `dragon_breath_b_03_master.png` と、その直前＝炎なし `dragon_breath_pre_b_03_master.png`。1376×768・透かし除去済み。生成に使った文面は同フォルダの `*_prompt.txt`（自己完結・再生成可）。
+  - ドラゴンのキービジュアル2枚（`godot/assets/promo-src/dragon_breath/`）。炎あり `dragon_breath_b_03_master.png` と、その直前＝炎なし `dragon_breath_pre_b_03_master.png`。1376×768・透かし除去済み。生成に使った文面は同フォルダの `*_prompt.txt`（自己完結・再生成可）。
   - 上記から起こした動画2本（`dragon_breath_video_b1_01_raw.mp4` / `b2_01_raw.mp4`。各10秒・1280×720・24fps・音声つき）。b2 が良いほうで、使えるのは 5.0〜10.0 秒（それ以前は炎がバリアの内側に入る）。b1 は 0〜7 秒（溜めが長く空転する）。
-  - 酒場の扉が開くカット（`assets/menu/door_open.ogv`＝タイトル画面で使用中。採用しなかったテイクが `assets/menu-src/door/`）。ティザーの掴みに流用できる。
+  - 酒場の扉が開くカット（`godot/assets/menu/door_open.ogv`＝タイトル画面で使用中。採用しなかったテイクが `godot/assets/menu-src/door/`）。ティザーの掴みに流用できる。
 - 対応：
   1. 手持ち映像の整形。透かしは 1280×720 のフレームで中心 (1158, 600)・約55px角。`crop=1130:636:0:0` で左上基準に切れば16:9のまま枠外に出る（右と下を12%落とす。ドラゴンの尻尾の先が少し切れる）。あわせて使える区間だけ切り出す。
   2. プレイ映像の録画。ティザーの着地にも、ストア1本目にも要る。盤・戦闘演出・陣形カットインが揃ってから撮る。
   3. 構成を決めて編集。ティザーの想定は 掴み＝扉が開く／山場＝ドラゴンの炎／着地＝盤面。生成映像はイラスト調のまま使い、最後に実機の絵で落とすことで「本編と地続き」に見せる。
   4. 音。生成映像に付いてくる音声は捨てて、投入済みの BGM から当てる（[bgm.md](audio/bgm.md)）。
   5. Steam の AI 生成コンテンツ開示。生成物を使う以上、提出フォームでの申告が要る（[direction.md](art/direction.md) の配布注意）。
-- 該当：`assets/promo-src/dragon_breath/`・`assets/menu-src/door/`・`doc/sales/monetization.md`。着手の引き金＝ストアページを作るとき（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`godot/assets/promo-src/dragon_breath/`・`godot/assets/menu-src/door/`・`doc/sales/monetization.md`。着手の引き金＝ストアページを作るとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-52
 
@@ -234,11 +234,11 @@
 - 背景：本作は完全情報ゲーム＝戦闘に乱数が無く（中断セーブが状態だけで完全再現できる前提でもある）、敵の行動も特性ごとのルールで決まる（[ai.md](gdd/ai.md)）。負けた理由が必ず盤上にある、という設計が売りになるが、そのルールをプレイヤーが読める場所が今どこにも無い。feature-46 のメニュー項目一覧（つづきから／はじめる／設定／クレジット／おわる）にも入っていない。下地としては `unit_skin.csv` の分類が図鑑用として既に用意されている（[units.md](art/units.md)）。
 - 対応：
   1. 範囲を決める。候補は 敵AIの特性と行動ルール／地形コストと移動タイプ／戦闘の補正チェーン／ユニット性能表／陣形・ユニットスキルのカタログ。どこまで見せるかは「完全情報を主張する以上、隠す理由のあるものは無い」を基準に判断する。
-  2. CSV正本から生成する。敵AIも地形も移動タイプもユニット性能も `data/**/*.csv` が正本なので、そこから表を機械的に起こす（CSV正本→JSON生成と同じ発想）。手書きすると必ず実装とズレる。生成先はゲーム内データとサイトのHTMLの両方。
+  2. CSV正本から生成する。敵AIも地形も移動タイプもユニット性能も `godot/data/**/*.csv` が正本なので、そこから表を機械的に起こす（CSV正本→JSON生成と同じ発想）。手書きすると必ず実装とズレる。生成先はゲーム内データとサイトのHTMLの両方。
   3. ゲーム内の画面を作る。タイトルとゲーム中のシステムメニューの両方から開く（設定画面＝feature-47 と同じ置き方）。タイトル側の項目名は「マニュアル」で、受け口が無いまま押せない状態で置いてある（[title.md](gdd/title.md)）。
   4. サイト側は別ページ（`senaris.in/rules` 相当）。ランディングは1ページのまま、そこからリンクする。
   5. i18n。表の見出しと説明文は翻訳キーに載せる（feature-12 と同じ扱い）。
-- 該当：`data/**/*.csv`・`tools/`（生成スクリプト新規）・`presentation/`（図鑑画面・新規）・`doc/gdd/`（見せる範囲の記述）・feature-47（同じ開き方）。着手の引き金＝サイトを作るとき、または完全情報であることを説明する必要が出たとき。
+- 該当：`godot/data/**/*.csv`・`godot/tools/`（生成スクリプト新規）・`presentation/`（図鑑画面・新規）・`doc/gdd/`（見せる範囲の記述）・feature-47（同じ開き方）。着手の引き金＝サイトを作るとき、または完全情報であることを説明する必要が出たとき。
 
 ### feature-53
 
@@ -252,7 +252,7 @@
   - 手続き＝価格（¥1,000）・リリース日・動作環境・年齢区分と表現の申告・AI生成コンテンツの開示
 - 購入判断への効き方（この順で作る価値がある）：カプセル画像 ＞ スクリーンショット ＞ 短い説明 ＞ タグ ＞ 1本目の動画 ＞ 本文。判断は2段階で、一覧で開くかどうかを決めるのがカプセル・タイトル・タグ・価格、開いてから欲しくなるかを決めるのが動画・スクショ・短い説明・本文。発売前はレビューが無いぶん、前者の比重が大きい。
 - 作る順序（上から依存している）：
-  1. ロゴ。カプセル全種の前提。**作成済み**（2026-08-12。`assets/promo-src/logo/` に暗背景版・明背景版・小サイズ版の SVG、`tools/logo/` に生成スクリプト2本、方針と寸法は [promo.md](art/promo.md)）。PNG への変換は `tools/rasterize_svg.gd`。残るのは用途ごとの書き出し
+  1. ロゴ。カプセル全種の前提。**作成済み**（2026-08-12。`godot/assets/promo-src/logo/` に暗背景版・明背景版・小サイズ版の SVG、`godot/tools/logo/` に生成スクリプト2本、方針と寸法は [promo.md](art/promo.md)）。PNG への変換は `godot/tools/rasterize_svg.gd`。残るのは用途ごとの書き出し
   2. カプセル画像。ロゴ＋背景の絵。背景は冒険者＋竜の構図が候補で、王道ゆえに1秒で伝わる。ジャンル（戦術SLG）はロゴのヘックスとタグと短い説明で伝える分担にする
   3. 短い説明・タグ。素材が要らないので並行して進められる
   4. スクリーンショット。盤・戦闘演出・陣形カットインが揃ってから撮る
@@ -268,7 +268,7 @@
   - 判断が要るもの＝`パズル`。乱数の無い完全情報という性質は Into the Breach に近く刺さる層はいるが、カジュアルなパズルを期待した客が来ると期待違いになる。
   - 外すもの＝ローグライク・自動生成（該当しない）、マルチプレイヤー系（無い）、ドット絵（絵柄が違う）。
   - 表示順は最終的にユーザー投票で並び替わる。開発者が設定した順が効くのは投票が溜まるまでの初期だけ。
-- 該当：`doc/art/promo.md`（作画方針）・`assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（アプリアイコン）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`doc/art/promo.md`（作画方針）・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（アプリアイコン）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-54
 
@@ -287,17 +287,17 @@
 
 **ウィザードの絵を描き直す（＋冒険譚2のキービジュアル2枚）**（優先度：中）
 
-- 背景：元のウィザードの絵は顔が若く、見習いのメイジに流用した（`assets/units/mage/`）。ベテラン5の一員としてのウィザードは、年季の入った術者として描き直す必要がある。いまウィザードは絵が無く、盤でも戦闘でも陣営色の板で出る（冒険譚2 全7話・冒険譚3 全7話・デバッグステージ4本・会話の顔＝portrait 未用意で map を流用）。あわせて冒険譚2のキービジュアル2枚（cover・victory）は、プロンプトで術者を「a YOUNG mage（NOT an old man）」と名指して描いてあるため、ウィザードを大人にすると絵の中の術者だけ旧デザインで残る。
-- 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
-- 該当：`assets/units-src/player/wizard/`・`assets/units/wizard/`・`assets/campaign-src/tutorial2-undead-rush/`・`assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
+- 背景：元のウィザードの絵は顔が若く、見習いのメイジに流用した（`godot/assets/units/mage/`）。ベテラン5の一員としてのウィザードは、年季の入った術者として描き直す必要がある。いまウィザードは絵が無く、盤でも戦闘でも陣営色の板で出る（冒険譚2 全7話・冒険譚3 全7話・デバッグステージ4本・会話の顔＝portrait 未用意で map を流用）。あわせて冒険譚2のキービジュアル2枚（cover・victory）は、プロンプトで術者を「a YOUNG mage（NOT an old man）」と名指して描いてあるため、ウィザードを大人にすると絵の中の術者だけ旧デザインで残る。
+- 対応：ウィザードの map と combat を同じ生成セッションで作る（[art/units.md](art/units.md) §3.3。テキストアンカーだけでは別セッションで同一キャラにならない）。プロンプトは `godot/assets/units-src/player/wizard/wizard_prompt.txt` を新規に起こす（見習いのメイジと並べて別人に見えること＝年齢・杖・ローブの格で差を付ける）。書き出しは `tools\gen_unit_map.ps1 wizard` と `tools\gen_unit_combat.ps1 wizard`。続けて冒険譚2の cover・victory も新しいウィザードで作り直す。
+- 該当：`godot/assets/units-src/player/wizard/`・`godot/assets/units/wizard/`・`godot/assets/campaign-src/tutorial2-undead-rush/`・`godot/assets/campaign/tutorial2-undead-rush/`。着手の引き金＝絵を生成する回。
 
 ### feature-62
 
 **販売チャネルの判定と分岐の基盤**
 
 - 背景：ゲームが Steam / BOOTH / その他のどのチャネルで動いているかを実行時に判定する仕組みが無い。評価ランクの実績発火（feature-19 → feature-40）、entitlement による DLC 解放（feature-13）など、チャネルごとに振る舞いを変える機能が複数控えており、個別に分岐を書くと散らばる。共通の判定・分岐の土台を先に作る。
-- 対応：`infrastructure/platform/` にチャネル判定の入口を置く。起動時にどのチャネルか判定し（GodotSteam の有無・ビルドフラグなど）、以降は共通の問い合わせ口でチャネルを返す。チャネル固有の機能（実績・entitlement・Stats）はこの上に乗せる。
-- 該当：`infrastructure/platform/`（新規）・`doc/sales/monetization.md`（チャネルの定義）。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）が乗る先。
+- 対応：`godot/infrastructure/platform/` にチャネル判定の入口を置く。起動時にどのチャネルか判定し（GodotSteam の有無・ビルドフラグなど）、以降は共通の問い合わせ口でチャネルを返す。チャネル固有の機能（実績・entitlement・Stats）はこの上に乗せる。
+- 該当：`godot/infrastructure/platform/`（新規）・`doc/sales/monetization.md`（チャネルの定義）。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）が乗る先。
 
 ## リファクタリング
 

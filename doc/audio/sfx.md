@@ -25,7 +25,7 @@
 
 この構造は既存の管理と同型。BGM の「トラックライブラリ ↔ ステージJSONの `bgm` 欄」、絵の「スキン ↔ 画像スロット」と同じ考え方で、素材が無くても発火点の配線を先に済ませられる。
 
-素材は `assets/sfx/{sfx_id}.ogg` を規約で解決する（autowire）。ファイルがあれば鳴り、無ければ無音＋開発ログ1行でゲームは止めない。
+素材は `godot/assets/sfx/{sfx_id}.ogg` を規約で解決する（autowire）。ファイルがあれば鳴り、無ければ無音＋開発ログ1行でゲームは止めない。
 
 ## 基本音
 
@@ -78,7 +78,7 @@
 |---|---|---|---|
 | `map_talk` | 会話の文字送り | `ui_hover` | 性質が同じ極短クリックのため共用する |
 
-台本の1行に `sfx` を書くと、その素材IDをそのまま鳴らす（対応表を通らず `assets/sfx/{sfx_id}.ogg` を直に引く）。攻撃エフェクトでもUI操作でもない音を、物語の任意のタイミングで鳴らす手段はこれ。冒険譚3では、街道の先の交戦音に `slash_m`、敵襲の合図に `map_turn_enemy`、籠の中の妖精の声に `magic_dust` を当てている。`sfx` を書いた行は文字送り音を鳴らさないので、2音が重ならない。
+台本の1行に `sfx` を書くと、その素材IDをそのまま鳴らす（対応表を通らず `godot/assets/sfx/{sfx_id}.ogg` を直に引く）。攻撃エフェクトでもUI操作でもない音を、物語の任意のタイミングで鳴らす手段はこれ。冒険譚3では、街道の先の交戦音に `slash_m`、敵襲の合図に `map_turn_enemy`、籠の中の妖精の声に `magic_dust` を当てている。`sfx` を書いた行は文字送り音を鳴らさないので、2音が重ならない。
 
 この経路で鳴らす音は発火点を持たない＝素材を置くだけで使える。場面のためだけに用意した素材（`scream_female` ほか）もここに入る。
 
@@ -146,7 +146,7 @@
 
 ### 攻撃エフェクト
 
-攻撃エフェクトはスキンごとに決める。全スキンに個別の音を作ると量が過大になるため、エフェクトの種類を決めてスキンから参照する。エフェクトIDは絵と音の共通キーとし、同じIDで `combat_effect` の画像と `assets/sfx/{effect_id}.ogg` の両方を解決する（エフェクト＝絵と音のセット）。
+攻撃エフェクトはスキンごとに決める。全スキンに個別の音を作ると量が過大になるため、エフェクトの種類を決めてスキンから参照する。エフェクトIDは絵と音の共通キーとし、同じIDで `combat_effect` の画像と `godot/assets/sfx/{effect_id}.ogg` の両方を解決する（エフェクト＝絵と音のセット）。
 
 `unit_skin.csv` のエフェクトID列から素材を引く。種類は斬撃・打撃・刺突・射撃・魔法などの系統に、威力の段階（小・中・大）を掛けた粒度で持つ。実際のカタログは絵の制作と同時に決める（音だけ先に決めない）。
 
@@ -182,7 +182,7 @@
 
 飛行だけは既定の1つでは足りない。ピクシーとドラゴンが同じ音で飛ぶのは無理がある。
 
-分ける軸はスキンで、移動タイプは増やさない。`move_type` の正本は地形コスト表（`data/movement/movement.csv`）で、コストが1マスも違わない行を音のために増やすと、表から「この2つは何が違うのか」が読めなくなる。移動タイプは地形との噛み合いを決める軸であって見た目の軸ではない。型でも届かない＝ピクシーとゴーストは同じ `pixie` 型、グリフォンは `valkyrie` 型で、型を分けると性能まで割れる。
+分ける軸はスキンで、移動タイプは増やさない。`move_type` の正本は地形コスト表（`godot/data/movement/movement.csv`）で、コストが1マスも違わない行を音のために増やすと、表から「この2つは何が違うのか」が読めなくなる。移動タイプは地形との噛み合いを決める軸であって見た目の軸ではない。型でも届かない＝ピクシーとゴーストは同じ `pixie` 型、グリフォンは `valkyrie` 型で、型を分けると性能まで割れる。
 
 | sfx_id | スキン | 音の系統 |
 |---|---|---|
@@ -219,7 +219,7 @@
 
 ### スキル（陣形・ユニット）
 
-`map_formation` と `map_formation_hit` は、成立したレシピのID（[formations.md](../gdd/formations.md) の `recipe_id`）から引く。攻撃エフェクトと同じ規約解決で、`assets/sfx/{recipe_id}.ogg` が発動、`{recipe_id}_hit.ogg` が着弾。
+`map_formation` と `map_formation_hit` は、成立したレシピのID（[formations.md](../gdd/formations.md) の `recipe_id`）から引く。攻撃エフェクトと同じ規約解決で、`godot/assets/sfx/{recipe_id}.ogg` が発動、`{recipe_id}_hit.ogg` が着弾。
 
 | recipe_id | 起きること | 音の性格 |
 |---|---|---|
@@ -227,7 +227,7 @@
 | `holy_aria` | 全体バフ（攻防 ×1.3・1ターン） | 澄んだ和音。着弾ではなく発効 |
 | `divine_judgment` | 射程10の単体狙撃 | 遠くまで届く一条。着弾は点で鋭く |
 
-レシピIDは絵と音の共通キーで、`assets/formations/{recipe_id}.png` のカットインと同じIDを使う。素材の無いレシピは無音で進む（発火点カタログに載っていない発火点と同じ扱い）。
+レシピIDは絵と音の共通キーで、`godot/assets/formations/{recipe_id}.png` のカットインと同じIDを使う。素材の無いレシピは無音で進む（発火点カタログに載っていない発火点と同じ扱い）。
 
 `map_skill` も同じ規約で引く（[skills.md](../gdd/skills.md) の `recipe_id`）。着弾音は持たない＝1レシピ1音。
 
@@ -280,7 +280,7 @@ BGM と同じ流儀に揃える（[bgm.md](bgm.md)）。音量はミキサーの
 
 上の「ツールは触らない」は自作素材の話。外部素材にはフェーダーが無いので、切り出しの段階でゲインを当てて基準に寄せる。フェーダーの設定ミスを隠す心配は、そもそもフェーダーが無いため起きない。
 
-かわりにレシピを残す。`assets/sfx-src/{sfx_id}_recipe.txt` に、原本から `{sfx_id}.wav` を作った ffmpeg のコマンドをそのまま1行で書く。地形タイルの `{skin_id}_recipe.txt` と同じ流儀（[../art/terrain.md](../art/terrain.md)）で、狙いも同じ。切り出し位置とゲイン量は素材ごとに実測して決めるため、残さないと作り直しのたびに測り直しになる。どの原本を使ったかもレシピが示す。
+かわりにレシピを残す。`godot/assets/sfx-src/{sfx_id}_recipe.txt` に、原本から `{sfx_id}.wav` を作った ffmpeg のコマンドをそのまま1行で書く。地形タイルの `{skin_id}_recipe.txt` と同じ流儀（[../art/terrain.md](../art/terrain.md)）で、狙いも同じ。切り出し位置とゲイン量は素材ごとに実測して決めるため、残さないと作り直しのたびに測り直しになる。どの原本を使ったかもレシピが示す。
 
 ```
 ffmpeg -y -i "sonniss/magic_bolt__2026__WINDDsgn_....wav" -af "atrim=0.02:0.60,volume=6.8dB" -c:a pcm_s24le magic_bolt.wav
@@ -302,7 +302,7 @@ ffmpeg -y -i "sonniss/magic_bolt__2026__WINDDsgn_....wav" -af "atrim=0.02:0.60,v
 
 ### 書き出しの後処理
 
-MuseScore から書き出した `.wav` は、そのままでは使えない。`tools/gen_sfx.ps1` が2工程を処理する。
+MuseScore から書き出した `.wav` は、そのままでは使えない。`godot/tools/gen_sfx.ps1` が2工程を処理する。
 
 ```
 powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
@@ -319,7 +319,7 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 物音系の素材プールは Sonniss GDC バンドル（[sonniss.md](sonniss.md)）。索引を `sfx_id` ごとに引いた結果を候補として残す。
 
-採否が決まったら、その `sfx_id` の候補を1つに絞り、`assets/sfx-src/credits.md` に出典を記録する。候補の列が消えて素材が1つ書かれている状態が、決まった印になる。
+採否が決まったら、その `sfx_id` の候補を1つに絞り、`godot/assets/sfx-src/credits.md` に出典を記録する。候補の列が消えて素材が1つ書かれている状態が、決まった印になる。
 
 場所の表記は「年 パート番号 / ライブラリ名」。zip の URL は products 側の `raw/<年>_<パート>.json` にある。
 
@@ -388,7 +388,7 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `arrow_bolt`（バリスタの太矢）とハンターのクロスボウも同じ収録から採る。使い残しのテイクのうち一番太い4本目を当て、矢（6本目・0.23秒）より長い 0.31 秒にした。同じ盤にアーチャーとバリスタが並ぶ回があるので、どちらが撃ったかが耳で付く必要がある。
 
-`arrow_crossbow`（ハンター）は絵が `arrow` と同じで、音だけ `arrow_bolt` と同じ。エフェクトIDは絵と音のセットなので、絵だけ共有して音を変えることはできず、`assets/effects/arrow.png` を複製して置いている。ハンターの武器はクロスボウだが、飛んでいく矢の見た目は弓の矢と変わらないため、絵は新しく描かない。
+`arrow_crossbow`（ハンター）は絵が `arrow` と同じで、音だけ `arrow_bolt` と同じ。エフェクトIDは絵と音のセットなので、絵だけ共有して音を変えることはできず、`godot/assets/effects/arrow.png` を複製して置いている。ハンターの武器はクロスボウだが、飛んでいく矢の見た目は弓の矢と変わらないため、絵は新しく描かない。
 
 `claw`（爪痕）は板金鎧を叩く音を当てた。索引を claw で引いて出るのは動物の足音ライブラリだけで、爪の収録はバンドルに無い。裂く音や怪物の攻撃音も試聴したが、こちらを採った。
 
@@ -498,7 +498,7 @@ data/audio/
   sfx_bind.csv          ← 対応表（event_id → sfx_id）
 ```
 
-- 外部素材は3段で持つ。原本（`sonniss/`）→ 1テイクに絞ったもの（`sfx-src/{sfx_id}.wav`）→ ゲーム用（`sfx/{sfx_id}.ogg`）。絵の `_01_raw` → `_03_master` → `assets/units/` と同型。原本は多テイクの詰め合わせであることが多く、そのままでは鳴らせない。どちらの `.wav` も gitignore 済みで、Sonniss の素材は再配布不可なのでコミットしてはいけない。
+- 外部素材は3段で持つ。原本（`sonniss/`）→ 1テイクに絞ったもの（`sfx-src/{sfx_id}.wav`）→ ゲーム用（`sfx/{sfx_id}.ogg`）。絵の `_01_raw` → `_03_master` → `godot/assets/units/` と同型。原本は多テイクの詰め合わせであることが多く、そのままでは鳴らせない。どちらの `.wav` も gitignore 済みで、Sonniss の素材は再配布不可なのでコミットしてはいけない。
 - 形式は `.ogg`（Ogg Vorbis 限定）。同じ拡張子でも Ogg Opus は Godot が読めないため、書き出し時にコーデックを確認する（[bgm.md](bgm.md) と同じ罠）。
 - 効果音はループしない。`.import` の `loop` は false のままでよい。
 - 短い音が多く尺が総じて軽いため、圧縮率は BGM ほど攻めなくてよい。歯切れが鈍るようなら `.wav` のまま載せる判断もありうる。
@@ -510,9 +510,9 @@ BGM（[bgm.md](bgm.md)）と同じ責務分担に揃える。音の再生は pre
 
 | レイヤー | 実体 | 責務 |
 |---|---|---|
-| `data` | `data/audio/sfx_catalog.gd` | 素材カタログと対応表の読み取り（`event_id` → `sfx_id` 解決・autowire）。純ロジック |
+| `data` | `godot/data/audio/sfx_catalog.gd` | 素材カタログと対応表の読み取り（`event_id` → `sfx_id` 解決・autowire）。純ロジック |
 | `application` | — | 動的解決の引数（エフェクトID・移動タイプ・スキン）を渡す |
-| `presentation` | `presentation/ui/sfx_player.gd` | `AudioStreamPlayer` のプール。ID を受けて鳴らすだけ |
+| `presentation` | `godot/presentation/ui/sfx_player.gd` | `AudioStreamPlayer` のプール。ID を受けて鳴らすだけ |
 
 `domain` は事実をシグナルで発火するだけで、音の存在を知らない。
 
@@ -528,7 +528,7 @@ BGM に重ねたときの被り具合は `sound_check` で確かめる（[../tec
 
 ## 権利・ライセンス台帳
 
-商用（Steam）前提。BGM と同じく、使った素材は台帳（`assets/sfx-src/credits.md`）に記録する。記録項目は [bgm.md](bgm.md) の権利台帳に準じる（用途・出典・入手形式・ライセンス・改変度）。自作の楽音系も「自作」と明記して、外部素材との区別を残す。
+商用（Steam）前提。BGM と同じく、使った素材は台帳（`godot/assets/sfx-src/credits.md`）に記録する。記録項目は [bgm.md](bgm.md) の権利台帳に準じる（用途・出典・入手形式・ライセンス・改変度）。自作の楽音系も「自作」と明記して、外部素材との区別を残す。
 
 記録は2層で、素材ごとの台帳はその下の層。音に限らず全体を出所単位でまとめた正本は [../sales/credits.md](../sales/credits.md)。
 

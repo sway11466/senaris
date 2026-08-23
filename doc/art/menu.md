@@ -16,7 +16,7 @@
 
 ## 2. スロット（autowire）
 
-`assets/menu/{name}.png` を規約で自動解決する（[tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd) の `_tex`）。置けば材質に、無ければコードのプロシージャル／ベタ塗りへフォールバック＝ドロップイン（コード不変）。ユニットの skin 画像 autowire と同じ思想。
+`godot/assets/menu/{name}.png` を規約で自動解決する（[tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd) の `_tex`）。置けば材質に、無ければコードのプロシージャル／ベタ塗りへフォールバック＝ドロップイン（コード不変）。ユニットの skin 画像 autowire と同じ思想。
 
 | name | 用途 | 敷き方 | 縁（ナインパッチ） | 未配置時のフォールバック |
 |---|---|---|---|---|
@@ -50,7 +50,7 @@ big focal object. Keep large-scale contrast LOW so it tiles without an obvious
 repeat.
 ```
 
-SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu-src/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
+SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `godot/assets/menu-src/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
 
 透かし（生成サービスが付ける sparkle マーク）はプロンプトで禁止しない。"watermark" の語は生成エラーを誘発し、否定形で書いても消えない（サービスが必ず付与する）＝共通ルールの `_02_dew`（透かし除去ツール）で消し、必要なら手動 master で整える（[direction.md](direction.md) §3）。
 
@@ -60,9 +60,9 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 
 | 段階 | 置き場 | 例 |
 |---|---|---|
-| ① AI生成（原寸・作業） | `assets/menu-src/{name}/` に任意名で複数 | `menu-src/wall/wall_a.png` |
-| SUBJECT | `assets/menu-src/{name}/{name}_prompt.txt` | `menu-src/wall/wall_prompt.txt` |
-| ② ゲーム用（正・autowire） | `assets/menu/{name}.png` | `wall.png` / `board.png` / `parchment.png` / `grunge.png` |
+| ① AI生成（原寸・作業） | `godot/assets/menu-src/{name}/` に任意名で複数 | `menu-src/wall/wall_a.png` |
+| SUBJECT | `godot/assets/menu-src/{name}/{name}_prompt.txt` | `menu-src/wall/wall_prompt.txt` |
+| ② ゲーム用（正・autowire） | `godot/assets/menu/{name}.png` | `wall.png` / `board.png` / `parchment.png` / `grunge.png` |
 
 - ②を置けば `tavern_theme.gd` が規約で拾う。`source/` は `.gdignore` で Godot 非インポート。
 - タイル材（`wall` / `grunge`）は Godot のインポート設定で Repeat を Enabled にする（継ぎ目タイルに必須）。上下左右がつながるシームレス画像で作る。
@@ -76,18 +76,18 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 
 | 段階 | 置き場 | 例 |
 |---|---|---|
-| SUBJECT（静止画） | `assets/menu-src/door/door_prompt.txt` | |
-| ① AI生成 | `assets/menu-src/door/door_01_raw.png` | |
-| ② 透かし除去 | `assets/menu-src/door/door_02_dew.png` | |
-| MOTION（動画） | `assets/menu-src/door/door_open_prompt.txt` | |
-| ① AI生成 | `assets/menu-src/door/door_open_{letter}_01_raw.mp4` | `door_open_b_01_raw.mp4` |
-| ② 透かし切り落とし | `assets/menu-src/door/door_open_{letter}_02_crop.mp4` | `door_open_b_02_crop.mp4` |
-| ③ ゲーム用（動画） | `assets/menu/door_open.ogv` | |
-| ③ ゲーム用（静止画・扉） | `assets/menu/door.png` | ②の1コマ目を抜いたもの |
-| ③ ゲーム用（静止画・店内） | `assets/menu/room.png` | ②の最終コマを抜いたもの |
+| SUBJECT（静止画） | `godot/assets/menu-src/door/door_prompt.txt` | |
+| ① AI生成 | `godot/assets/menu-src/door/door_01_raw.png` | |
+| ② 透かし除去 | `godot/assets/menu-src/door/door_02_dew.png` | |
+| MOTION（動画） | `godot/assets/menu-src/door/door_open_prompt.txt` | |
+| ① AI生成 | `godot/assets/menu-src/door/door_open_{letter}_01_raw.mp4` | `door_open_b_01_raw.mp4` |
+| ② 透かし切り落とし | `godot/assets/menu-src/door/door_open_{letter}_02_crop.mp4` | `door_open_b_02_crop.mp4` |
+| ③ ゲーム用（動画） | `godot/assets/menu/door_open.ogv` | |
+| ③ ゲーム用（静止画・扉） | `godot/assets/menu/door.png` | ②の1コマ目を抜いたもの |
+| ③ ゲーム用（静止画・店内） | `godot/assets/menu/room.png` | ②の最終コマを抜いたもの |
 
 - 動画は同じ MOTION でも生成のたびに結果が大きく振れる（人物の描き分け・位置の飛び）ので、複数 take を撮って選ぶ前提。take ごとに変種letter（`_a`/`_b`…）を付け、採用した1本だけを ③ に焼く。`door_open_prompt.txt` は採用 take を生成した文面に合わせる。
-- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`assets/menu/` に置くのは他のメニュー資産と並べるため。読むのは [../../presentation/title/title_screen.gd](../../godot/presentation/title/title_screen.gd)。
+- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`godot/assets/menu/` に置くのは他のメニュー資産と並べるため。読むのは [../../presentation/title/title_screen.gd](../../godot/presentation/title/title_screen.gd)。
 - タイトル画面の静止画は、元の1枚絵ではなく動画のコマを抜いて作る（扉＝②の1コマ目・店内＝②の最終コマ）。元絵から切り出しを再現しようとすると、生成側が行った縮小と一致せず（実測 PSNR 26.1 dB＝目に見えて違う）、動画と静止画が切り替わる瞬間に画がジャンプする。店内は動画の終わりでそのまま止まって見える必要があるので、必ず最終コマから焼く。
 - 動画の透かしは除去ツールが使えない。ツールは半透明オーバーレイを逆算する仕組みで、非可逆圧縮された動画では画素値が戻らないため。右下ごと切り落とす。
 - 透かしの大きさと位置は生成のたびに変わる（実測: ある take は 24px 角・右下から48px、別の take は 48px 角・右下から96px）。毎回コマを抜いて測ってから切り出し範囲を決める。16:9 を保つには、透かしの左端より内側で幅を決め、その幅から高さを割り出して左上を原点に切り、元の解像度へ戻す。
@@ -100,20 +100,20 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 
 開発元名は控えめに。中央そろえで下に置くと副題に見えるので、右端を SENARIS の右端（字送り幅ではなく字の見た目の端）にそろえ、幅はロゴの 1/6、色も一段沈める。
 
-地の色は画像に焼かず `project.godot` の `boot_splash/bg_color` が持つ＝画像は透過。値は `#0d1925` で、[keyvisual.md](keyvisual.md) 系の扉の絵（`assets/menu/door.png`）の暗部を測った色（夜空 `#0d1929`／陰った石壁 `#0d1925`／石畳の影 `#0f1822`、いずれも輝度23前後）。画面が扉に切り替わったときに明るさが跳ねない。
+地の色は画像に焼かず `project.godot` の `boot_splash/bg_color` が持つ＝画像は透過。値は `#0d1925` で、[keyvisual.md](keyvisual.md) 系の扉の絵（`godot/assets/menu/door.png`）の暗部を測った色（夜空 `#0d1929`／陰った石壁 `#0d1925`／石畳の影 `#0f1822`、いずれも輝度23前後）。画面が扉に切り替わったときに明るさが跳ねない。
 
 画像は原寸中央（`boot_splash/stretch_mode=0`＝Disabled）。解像度が変わってもロゴが歪まない代わり、ウィンドウに対する見かけの大きさは変わる。横幅 760px は 1280×720 のウィンドウで約6割。
 
 | 段階 | 置き場 | 例 |
 |---|---|---|
-| ① 作業元（SVG） | `assets/menu-src/splash/splash.svg` | `build_logo.py` の出力 |
-| ② ゲーム用 | `assets/menu/splash.png` | 760×433・透過 |
+| ① 作業元（SVG） | `godot/assets/menu-src/splash/splash.svg` | `build_logo.py` の出力 |
+| ② ゲーム用 | `godot/assets/menu/splash.png` | 760×433・透過 |
 
 - 生成AIを使わないので、他のメニュー資産と違って段階名（`_01_raw` ほか）と `_prompt.txt` は無い。
 - ②は材質ではないので `tavern_theme.gd` の autowire は拾わない（スロット名で引くため）。読むのはエンジン本体。
 - 作り直す手順は、`build_logo.py` を走らせて①を出し、`rasterize_svg.gd`（[../tech/tools.md](../tech/tools.md)）で②へ変換する。寸法・開発元名の字間・地の色との関係は `build_logo.py` の `SPLASH_PX_W` / `DEV_*` が持つ。
 - エンジン起動前の静止画なのでフェードや動きは付けられない。動かしたくなったらタイトルシーン側の演出として作る。
-- 地の色と合わせた見え方は `assets/menu-src/splash/preview_1280x720.png` で見る（②を地の色の上に原寸中央で置いた合成）。②だけ見ても透過部分が分からないため。
+- 地の色と合わせた見え方は `godot/assets/menu-src/splash/preview_1280x720.png` で見る（②を地の色の上に原寸中央で置いた合成）。②だけ見ても透過部分が分からないため。
 
 ## 7. 未決事項
 

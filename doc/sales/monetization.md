@@ -51,12 +51,12 @@
 
 ### ステージ追加
 
-- ステージは `data/stages/*.tres` の**データ**。追加＝ファイルを足すだけ（コード不要）。
+- ステージは `godot/data/stages/*.tres` の**データ**。追加＝ファイルを足すだけ（コード不要）。
 
 ### キャラ追加 — 2 パターン
 
 1. **既存の仕組みで作れるキャラ（多数派）**
-   - ステータス・見た目が違うだけ → `data/units/*.tres`（UnitData）を 1 個足すだけ。コード不要。
+   - ステータス・見た目が違うだけ → `godot/data/units/*.tres`（UnitData）を 1 個足すだけ。コード不要。
    - テーマ差し替え（名前・スプライトのみ上書き）の発想と同じ（[architecture.md](../tech/architecture.md)）。
 2. **固有の新メカニクスを持つキャラ**
    - エンジンに無い挙動が必要 → コード（domain）が要る。
@@ -189,7 +189,7 @@ Steam＝コアゲーマー中心。**カジュアル層（アプリストア／W
 
 ### 設計：チャネル差を隔離する（★最重要）
 
-- **所有権チェックを `infrastructure/platform/` の裏に隔離**し、本体は `owns(content_id) -> bool` だけを見る（チャネル非依存）。
+- **所有権チェックを `godot/infrastructure/platform/` の裏に隔離**し、本体は `owns(content_id) -> bool` だけを見る（チャネル非依存）。
   Steam 固有のものを `domain`/`application`/`data` に焼き込まない。
   ```
   EntitlementService.owns(content_id) -> bool   # 本体はこれしか知らない
@@ -254,7 +254,7 @@ Steam＝コアゲーマー中心。**カジュアル層（アプリストア／W
 
 技術的にも、破綻しない粒度は**冒険譚まるごと**（`campaign.json` 単位）だけ:
 
-- ステージ選択は「`data/stages/` 以下の `campaign.json` を列挙 → カードを組み立てる」で動く（[stage_select.md](../gdd/stage_select.md)）。冒険譚ごと非同梱ならそもそも列挙されず、**UI に穴が出ない**。
+- ステージ選択は「`godot/data/stages/` 以下の `campaign.json` を列挙 → カードを組み立てる」で動く（[stage_select.md](../gdd/stage_select.md)）。冒険譚ごと非同梱ならそもそも列挙されず、**UI に穴が出ない**。
 - **ステージ単位で抜くのは不可**: `unlock` の `cleared` 連鎖（AND 評価）が切れて後続が永久 locked ／マニフェストに `file` の無い行が出る ／完走判定（マニフェスト順の最終ステージ勝利＝勝利イラスト）がずれる ／carryover の鎖が切れる。
 - チャネルで差をつけるなら**非ゲーム特典**（サントラ・設定資料・壁紙）か**時期差**で。本体の完結性を壊さない。
 
@@ -364,5 +364,5 @@ Steam が標準で出すのはストア単位・プレイヤー単位まで。�
   - データローダーの 1 か所集約
   - 有料／無料データの境界
   - アビリティ ID 設計
-  - 所有権チェックの `infrastructure/platform/` 隔離（`owns()→bool`）＋論理 ID/product ID マッピング
+  - 所有権チェックの `godot/infrastructure/platform/` 隔離（`owns()→bool`）＋論理 ID/product ID マッピング
 - **配信はまず 1 チャネル（Steam）で出す**。マルチストア配線を先に作り込まない（[ADR-0001](../adr/ADR-0001-adopt-godot.md) の「モバイルは後回し」と一致）。継ぎ目さえ切れていれば追加は後から足し算で済む。

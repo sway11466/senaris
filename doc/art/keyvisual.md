@@ -43,19 +43,19 @@ around it. Wide 4:3 composition.
 
 | 段階 | 置き場（`{id}`＝data/stages のフォルダ名＝冒険譚id） | 例 |
 |---|---|---|
-| ① AI生成直後（原寸・透かし入り） | `assets/campaign-src/{id}/{id}_01_raw.png` | `campaign-src/tutorial2-undead-rush/tutorial2-undead-rush_01_raw.png` |
-| ② 透かし除去（ツール自動・原寸） | `assets/campaign-src/{id}/{id}_02_dew.png` | 同上フォルダ |
-| ③ 手動調整マスター（任意・原寸） | `assets/campaign-src/{id}/{id}_03_master.png` | 同上フォルダ |
-| SUBJECT | `assets/campaign-src/{id}/{id}_cover_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用（`_03_master`＞`_02_dew` を cp・比率調整は不要） | `assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial2-undead-rush_cover.png` |
+| ① AI生成直後（原寸・透かし入り） | `godot/assets/campaign-src/{id}/{id}_01_raw.png` | `campaign-src/tutorial2-undead-rush/tutorial2-undead-rush_01_raw.png` |
+| ② 透かし除去（ツール自動・原寸） | `godot/assets/campaign-src/{id}/{id}_02_dew.png` | 同上フォルダ |
+| ③ 手動調整マスター（任意・原寸） | `godot/assets/campaign-src/{id}/{id}_03_master.png` | 同上フォルダ |
+| SUBJECT | `godot/assets/campaign-src/{id}/{id}_cover_prompt.txt` | 同上フォルダ |
+| ④ ゲーム用（`_03_master`＞`_02_dew` を cp・比率調整は不要） | `godot/assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial2-undead-rush_cover.png` |
 
 - 変種letter：1枚だけなら **付けない**（上表＝既定）。複数の cover 変種を出して表示ごとにランダムに1枚選ばせたいときだけ `_a`/`_b`/`_c`…（例: `{id}_a_01_raw.png`）を付ける（[campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd) の連番 `{id}_cover_2.png` はゲーム用側の変種）。チュートリアル1の cover は歴史的経緯で `_a` 付き。
 - 命名は他系統と揃える: slot（`_cover`/`_victory`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_NN_raw/dew/master`（複数変種時は `_a_NN…`）は羊皮紙流。
-- ②は `assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚の貼り紙に反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
+- ②は `godot/assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚の貼り紙に反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
 - 連番変種（`{id}_cover_2.png` …）を複数置くと、表示ごとにランダムで1枚選ぶ（[campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd) `_resolve_art_variants`／地形・羊皮紙と同思想）。1枚だけなら固定。
 - cover の元は `_03_master` があればそれ、無ければ `_02_dew`（[direction.md](direction.md) §3）。1枚を大パネルと貼り紙（276×230）で使い回す＝貼り紙用に切り直した別画像は持たない（比率はエンジンが合わせる）。押した紙とその先の大パネルが同じ絵であることを優先する。
 - 追加スロット（cover 以外の kind）：cover と同じ二層・同じ ILLUST STYLE（§2）で作り、-src ファイル名に kind トークンを前置して cover と共存させる（ユニットの map=既定／combat=トークン、と同じ思想）。単一絵なら変種letter `_a` は省く。`CampaignCatalog` は `{id}_{kind}.png` を規約解決するので、絵を置くだけで有効・無ければスキップ。
-  - `victory`＝キャンペーン完走（最終ステージ勝利）で出す扉絵（[../gdd/stage_select.md](../gdd/stage_select.md) 戦闘後フロー）。SUBJECT `{id}_victory_prompt.txt` → `{id}_victory_01_raw.png` →（透かし除去）`{id}_victory_02_dew.png` → ゲーム用 `assets/campaign/{id}/{id}_victory.png`。
+  - `victory`＝キャンペーン完走（最終ステージ勝利）で出す扉絵（[../gdd/stage_select.md](../gdd/stage_select.md) 戦闘後フロー）。SUBJECT `{id}_victory_prompt.txt` → `{id}_victory_01_raw.png` →（透かし除去）`{id}_victory_02_dew.png` → ゲーム用 `godot/assets/campaign/{id}/{id}_victory.png`。
 
 ### 陣形スキルの絵
 
@@ -65,11 +65,11 @@ around it. Wide 4:3 composition.
 
 | 段階 | 置き場（`{recipe_id}`＝Formation.RECIPES のキー） | 例（トリニティスペル） |
 |---|---|---|
-| ① AI生成直後 | `assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity_spell/trinity_spell_01_raw.png` |
-| ② 透かし除去 | `assets/formations-src/{recipe_id}/{recipe_id}_02_dew.png` | 同上フォルダ |
-| ③ 手動調整マスター（任意） | `assets/formations-src/{recipe_id}/{recipe_id}_03_master.png` | 同上フォルダ |
-| SUBJECT | `assets/formations-src/{recipe_id}/{recipe_id}_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用 | `assets/formations/{recipe_id}.png` | `assets/formations/trinity_spell.png` |
+| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity_spell/trinity_spell_01_raw.png` |
+| ② 透かし除去 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_02_dew.png` | 同上フォルダ |
+| ③ 手動調整マスター（任意） | `godot/assets/formations-src/{recipe_id}/{recipe_id}_03_master.png` | 同上フォルダ |
+| SUBJECT | `godot/assets/formations-src/{recipe_id}/{recipe_id}_prompt.txt` | 同上フォルダ |
+| ④ ゲーム用 | `godot/assets/formations/{recipe_id}.png` | `godot/assets/formations/trinity_spell.png` |
 
 - 絵柄は cover と同じ ILLUST STYLE（§2）。描くのは「機構が動く瞬間」＝獲得用キービジュアル（§1）と同じ狙いで、盤では見せられない一撃の迫力を1枚で見せる。
 - 規約解決。置けば出て、無ければカットインを飛ばす（コード不変）。`formations-src/` は `.gdignore` で Godot 非インポート。
@@ -80,13 +80,13 @@ around it. Wide 4:3 composition.
 
 | 段階 | 置き場 | 例（トリニティスペル） |
 |---|---|---|
-| ① AI生成直後 | `assets/formations-src/{recipe_id}/{recipe_id}_impact_01_raw.png` | `formations-src/trinity_spell/trinity_spell_impact_01_raw.png` |
-| ② 透かし除去 | `assets/formations-src/{recipe_id}/{recipe_id}_impact_02_dew.png` | 同上フォルダ |
-| ③ 透過マスター | `assets/formations-src/{recipe_id}/{recipe_id}_impact_03_master.png` | 同上フォルダ |
-| SUBJECT | `assets/formations-src/{recipe_id}/{recipe_id}_impact_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用 | `assets/formations/{recipe_id}_impact.png` | `assets/formations/trinity_spell_impact.png` |
+| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_01_raw.png` | `formations-src/trinity_spell/trinity_spell_impact_01_raw.png` |
+| ② 透かし除去 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_02_dew.png` | 同上フォルダ |
+| ③ 透過マスター | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_03_master.png` | 同上フォルダ |
+| SUBJECT | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_prompt.txt` | 同上フォルダ |
+| ④ ゲーム用 | `godot/assets/formations/{recipe_id}_impact.png` | `godot/assets/formations/trinity_spell_impact.png` |
 
-- ④は [`tools/gen_formation_impact.ps1`](../../godot/tools/gen_formation_impact.ps1)（`{recipe_id}` 複数可／`all`）で書き出す。③をトリムして長辺512に収めるだけ。
+- ④は [`godot/tools/gen_formation_impact.ps1`](../../godot/tools/gen_formation_impact.ps1)（`{recipe_id}` 複数可／`all`）で書き出す。③をトリムして長辺512に収めるだけ。
 - 絵柄はカットインの ILLUST STYLE ではなく、攻撃エフェクトの EFFECT STYLE（[units.md](units.md) §3.4）に寄せる。盤で30〜70px に縮む小さな絵なので、人・背景を描かず、フラットな2〜3色・硬い輪郭で痕跡そのものだけを描く。
 - 向きは下向き（上から落ちてくる形）で描く。盤でしか使わないので演出側は回転させない。攻撃エフェクトの「右へ向かう一撃」の約束は適用しない。
 - 大小の倍率は無い。キャンバスいっぱいに描いて釣り合わせる。

@@ -19,8 +19,8 @@
 
 ユニットの性能・別名は **CSV正本** で管理（表はここに持たない）。
 
-- 性能（ステータス・移動・射程など）: [`data/units/unit_type.csv`](../../godot/data/units/unit_type.csv)
-- 陣営別の名前（味方／敵の別ラベル）: [`data/units/unit_skin.csv`](../../godot/data/units/unit_skin.csv)
+- 性能（ステータス・移動・射程など）: [`godot/data/units/unit_type.csv`](../../godot/data/units/unit_type.csv)
+- 陣営別の名前（味方／敵の別ラベル）: [`godot/data/units/unit_skin.csv`](../../godot/data/units/unit_skin.csv)
 
 生成・運用は下記「データ構成」を参照。
 
@@ -30,27 +30,27 @@
 
 ### 1. 性能と見た目の分離
 
-- **性能 ＝ `UnitType`**（`data/units/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
-- **見た目＋識別 ＝ `UnitSkin`**（`data/units/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
+- **性能 ＝ `UnitType`**（`godot/data/units/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
+- **見た目＋識別 ＝ `UnitSkin`**（`godot/data/units/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
 - **同性能・別名**（プリースト↔ホブゴブリン↔スケルトン）は、その性能の `enemy`/`ally` 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚（ステージ）側が決める**＝ユニットデータは冒険譚/テーマ名を持たない（責務分離）。
-- **`skin_id` の付け方**：表示名と対応させ、`type_id` と同じ値にしない（レッドドラゴンの `dragon` は性能名と見分けが付かず `red_dragon` に改めた）。`skin_id` は素材フォルダ名と画像の解決パスに直結する（`assets/units-src/{group}/{skin_id}/`・`assets/units/{skin_id}/{skin_id}_{slot}.png`）ので、直すなら絵を書き出す前が最も安い。ステージJSONの `skin`・会話の話者名キー・`campaign.json` の `emblem` も同時に追う。駒を名指す `actor` は別の名前空間なので巻き込まない。
+- **`skin_id` の付け方**：表示名と対応させ、`type_id` と同じ値にしない（レッドドラゴンの `dragon` は性能名と見分けが付かず `red_dragon` に改めた）。`skin_id` は素材フォルダ名と画像の解決パスに直結する（`godot/assets/units-src/{group}/{skin_id}/`・`godot/assets/units/{skin_id}/{skin_id}_{slot}.png`）ので、直すなら絵を書き出す前が最も安い。ステージJSONの `skin`・会話の話者名キー・`campaign.json` の `emblem` も同時に追う。駒を名指す `actor` は別の名前空間なので巻き込まない。
 - **`skin_id` が主キー**：各スキンは一意な `skin_id` を持ち、`skin_id → type` は1:1（スキンが決まれば性能も一意）。引きは `SkinCatalog.skin_by_id(catalog, skin_id)`／`type_of_skin(catalog, skin_id)`、描画は `resolve(catalog, skin_id, type_id, team)`（skin_id 優先・無ければ type_id+team の先頭へフォールバック）。従来の `skin(catalog, type_id, team, index)` も残置。
 
 ### 2. ファイル・フォルダ配置
 
-- ユニットの型・データ・ローダーは `data/units/` に同居（機能フォルダ）。型とデータをセットで扱う。
-- `UnitType`: 種別表 `data/units/unit_type.json`（テーマ非依存の原型ロスター）。`UnitCatalog`（`data/units/unit_catalog.gd`）が `id → UnitType`。
-- `UnitSkin`: スキン表 `data/units/unit_skin.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}` ＋ `skin_id → UnitSkin` 索引を持つ。テーマが増えたら `data/units/unit_skin/<テーマ>.json` に割ってよい。
+- ユニットの型・データ・ローダーは `godot/data/units/` に同居（機能フォルダ）。型とデータをセットで扱う。
+- `UnitType`: 種別表 `godot/data/units/unit_type.json`（テーマ非依存の原型ロスター）。`UnitCatalog`（`godot/data/units/unit_catalog.gd`）が `id → UnitType`。
+- `UnitSkin`: スキン表 `godot/data/units/unit_skin.json`（性能とは別ファイル＝上書きレイヤー）。`SkinCatalog`（`godot/data/units/skin_catalog.gd`）が `type_id → {ally:[UnitSkin], enemy:[UnitSkin]}` ＋ `skin_id → UnitSkin` 索引を持つ。テーマが増えたら `godot/data/units/unit_skin/<テーマ>.json` に割ってよい。
 - 画像スロットと未用意時のプレースホルダはアート準備で扱う。
 
 ### 3. CSV正本パイプライン
 
-- **正本はCSV**（表計算で管理）: フラット/グリッドな表は CSV が正本（人間が表計算/VSCodeで編集）。CSV正本・生成JSON・変換ツールは機能フォルダに同居（`data/units/` にまるっと）。
-- `data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --script res://data/units/convert.gd`
+- **正本はCSV**（表計算で管理）: フラット/グリッドな表は CSV が正本（人間が表計算/VSCodeで編集）。CSV正本・生成JSON・変換ツールは機能フォルダに同居（`godot/data/units/` にまるっと）。
+- `godot/data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --script res://data/units/convert.gd`
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
-- `data/units/unit_type.csv` → `data/units/unit_type.json`（**生成物・手で触らない**）。
-- `data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id, category, map_scale, map_offset_x, combat_scale, retainers`**。`skin_id` が主キー／`category`＝管理分類: 基準・ゴブリン・アンデッド・デモ、この順に整列／`map_scale`・`combat_scale`＝書き出し時の背丈倍率（[../art/units.md](../art/units.md) §3）／`map_offset_x`＝書き出し時の横位置補正（体の中心をヘックス中心に合わせる。同§3.1）／`retainers`＝戦闘演出でボスの脇に並べる別スキン（`|` 区切り・空＝全部本人。[../tech/combat_scene.md](../tech/combat_scene.md)））→ `data/units/unit_skin.json`。`category` は JSON にも出力する参考データ（skin は見た目レイヤー＝ゲームロジックでは参照しない。マップエディタの絞り込み等ツール用）。画像・説明は当面空で、必要時にCSVへ列追加。
-- `data/movement/movement.csv` → `data/movement/movement.json`（移動タイプ×地形コスト表）。
+- `godot/data/units/unit_type.csv` → `godot/data/units/unit_type.json`（**生成物・手で触らない**）。
+- `godot/data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id, category, map_scale, map_offset_x, combat_scale, retainers`**。`skin_id` が主キー／`category`＝管理分類: 基準・ゴブリン・アンデッド・デモ、この順に整列／`map_scale`・`combat_scale`＝書き出し時の背丈倍率（[../art/units.md](../art/units.md) §3）／`map_offset_x`＝書き出し時の横位置補正（体の中心をヘックス中心に合わせる。同§3.1）／`retainers`＝戦闘演出でボスの脇に並べる別スキン（`|` 区切り・空＝全部本人。[../tech/combat_scene.md](../tech/combat_scene.md)））→ `godot/data/units/unit_skin.json`。`category` は JSON にも出力する参考データ（skin は見た目レイヤー＝ゲームロジックでは参照しない。マップエディタの絞り込み等ツール用）。画像・説明は当面空で、必要時にCSVへ列追加。
+- `godot/data/movement/movement.csv` → `godot/data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 
 ### 4. ステージからの参照
@@ -63,7 +63,7 @@
 
 - ロスター/スキンは CSV正本（`unit_type.csv` / `unit_skin.csv`）が実体。何がどれだけ在るかはCSVを見る（ドキュメントに総数は書かない＝同期コストに見合わない）。画像・説明は当面空（プレースホルダ）で順次。
 - `range`(下限`min_range`〜上限`attack_range`)・`move_type`・`atk_air`(対地/対空)。射程は攻撃距離1＝近接（反撃あり）／≥2＝間接（反撃なし）で、種別ではなく攻撃した距離で決まる。`min_range≥2`＝懐に死角（砲兵など近接不可）。攻撃側は相手が飛行なら `atk_air`、地上なら `atk_ground` を使い、`atk_air=0` の駒は飛行を攻撃・反撃できない。防御は単一値（`defense`）。
-- `capacity`（搭乗数）＝**輸送できる"ユニット数"**。`capacity ≥ 1` なら輸送ユニット（別途フラグは持たない）／非輸送＝0。現状: **馬車(wagon)=4・飛空艇(airship)=4**、他=0。乗降＝乗せる/降ろす操作・移動消費・降車後の行動可否は `BattleState`（`can_board`/`put_passenger`/`unload`）・`application/commands/unload_command.gd`。テスト `tests/unit/test_transport.gd`。ただし敵AIの乗降は未対応。
+- `capacity`（搭乗数）＝**輸送できる"ユニット数"**。`capacity ≥ 1` なら輸送ユニット（別途フラグは持たない）／非輸送＝0。現状: **馬車(wagon)=4・飛空艇(airship)=4**、他=0。乗降＝乗せる/降ろす操作・移動消費・降車後の行動可否は `BattleState`（`can_board`/`put_passenger`/`unload`）・`godot/application/commands/unload_command.gd`。テスト `godot/tests/unit/test_transport.gd`。ただし敵AIの乗降は未対応。
 - 移動タイプ＝地形移動コスト・地形適性（`movement.csv`＝移動タイプ×地形。例: エルフ=森歩行／ドワーフ=山歩行／ハーフリング=茂歩行／斥候=軽歩行）。
 - 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン。当面は JSON で回す。
 

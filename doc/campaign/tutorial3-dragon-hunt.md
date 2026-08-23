@@ -61,7 +61,7 @@ st3 以降の戦闘前には、ローグ側の場面（一味の企み）を挟�
 
 ## 登場ユニット（casting）
 
-性能は `data/units/unit_type.csv` 正本。
+性能は `godot/data/units/unit_type.csv` 正本。
 
 | ユニット | type | 役割 | 初登場 |
 |---|---|---|---|
@@ -445,13 +445,13 @@ st3 以降の戦闘前には、ローグ側の場面（一味の企み）を挟�
 | 回復拠点（休憩回復） | 2〜 | 味方・中立拠点で回復／敵拠点では回復しない |
 | 輸送（積載・運搬） | 2 | tutorial2 で導入。バリスタ運搬に隣接1マス特例を流用 |
 | バリスタ・バリケード（兵器） | 2 | バリスタ 90/対空30/射6/移0（対空も撃てる）、バリケード 防80/移0 |
-| ユニットスキル（ピクシーダスト） | 5 | `formation.gd` の `pixie_dust`。デバッグ: `data/stages/debug-combat/skill.json` |
+| ユニットスキル（ピクシーダスト） | 5 | `formation.gd` の `pixie_dust`。デバッグ: `godot/data/stages/debug-combat/skill.json` |
 | 戦力供給＝継承（carryover） | 全話 | `player` の `actor`／`RosterStore`この冒険譚の背骨。st1 だけ `supply: "join"` を付けて配給し、st2 以降は `actor` だけを書いて名簿から出す |
 | 名簿・`actor`・会話の分岐 | 4・5 中心 | `RosterService`／`Unit.actor`／会話の `when: joined:<actor>`仲間の加入と会話の出欠がここに乗る。実機での確認は最初の carryover ステージを組んだ時 |
 | 新 type（軽飛行） | 2・5 | 型 `birdman`＝鳥人・ハーピー共用。高速飛行は型 `valkyrie`＝グリフォン |
 | 新 type（ロックサーペント） | 3 | 型 `scout`＝斥候の下位 |
 | 弱者狙いAI（`weak`） | 7 | 獲物＝盤上最低防御を狙う。竜が対空の要から潰しにくる形に使う |
-| 敗北条件（拠点の喪失・複数対象のAND） | 6 | `lose_base` に泉3つを1条件で並べる。デバッグ: `data/stages/debug-victory/defend_two.json` |
+| 敗北条件（拠点の喪失・複数対象のAND） | 6 | `lose_base` に泉3つを1条件で並べる。デバッグ: `godot/data/stages/debug-victory/defend_two.json` |
 | ユニットスキル（ピュリファイ） | 3・6・7 | 対象1体の有害な補正を落とす。効果の型 `cleanse` |
 | ユニットスキル（ヴェノムファング） | 3 | 敵を対象にする仕組みはドレッドタッチで通っている。残るのはレシピ1本。backlog feature-35st3 の盤にはまだ毒が乗っていない |
 | ユニットスキル（ポイズンスティング） | 6・7 | 兵数を毎ターン減らす効果の型 `dot`＝既存の `buff` / `cleanse` / `spawn` とは別経路。スコーピオン部隊に `stack` を書き忘れると、`ambush` はスキルが攻撃より上の行なので毒を重ね続けて殴らなくなる |

@@ -8,7 +8,7 @@
 
 | 種別 | 置き場 | 出る場所 |
 |---|---|---|
-| 特性（敵AI） | `assets/ui/ai/{特性id}.png` | 情報パネルの見出し（→ [../gdd/uiux.md](../gdd/uiux.md) ユニット情報パネル） |
+| 特性（敵AI） | `godot/assets/ui/ai/{特性id}.png` | 情報パネルの見出し（→ [../gdd/uiux.md](../gdd/uiux.md) ユニット情報パネル） |
 
 - 絵は在れば出す。無ければ額ごと消えて特性名の文字だけになるので、絵を1枚ずつ足していける。
 - 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。
@@ -51,12 +51,12 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 
 | 段階 | 置き場（`{group}`＝種別フォルダ・`{id}`＝アイコンID） | 例 |
 |---|---|---|
-| ① SUBJECT | `assets/ui-src/{group}/{id}/{id}_prompt.txt` | `ui-src/ai/charge/charge_prompt.txt` |
-| ② AI生成直後（原寸） | `assets/ui-src/{group}/{id}/{id}_01_raw.png`（`.jpg` も可） | `ui-src/ai/charge/charge_01_raw.jpg` |
-| ③ ゲーム用（128px・透過） | `assets/ui/{group}/{id}.png` | `ui/ai/charge.png` |
+| ① SUBJECT | `godot/assets/ui-src/{group}/{id}/{id}_prompt.txt` | `ui-src/ai/charge/charge_prompt.txt` |
+| ② AI生成直後（原寸） | `godot/assets/ui-src/{group}/{id}/{id}_01_raw.png`（`.jpg` も可） | `ui-src/ai/charge/charge_01_raw.jpg` |
+| ③ ゲーム用（128px・透過） | `godot/assets/ui/{group}/{id}.png` | `ui/ai/charge.png` |
 
 - ③だけがゲームの読む正。`{group}` はそのままゲーム側のフォルダになるので、種別が増えてもツールは変えない。
-- ①②は作業ソース。`assets/ui-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。
+- ①②は作業ソース。`godot/assets/ui-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。
 - 手で抜きたい絵は `{id}_03_master.png`（透過済み）を同じフォルダに置く。ツールは master があればそちらを優先するので、自動の抜きで足りない1枚だけ差し替えられる。ユニットと違って master は常備しない＝背景が単色フラットなので、ふつうは②から直接書き出せる。
 
 書き出し:

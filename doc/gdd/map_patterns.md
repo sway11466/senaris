@@ -72,7 +72,7 @@ combat_power = (effective_atk × move_mult) × (effective_def × move_mult)
 
 ## 地形で足を選別する
 
-移動コストは「移動タイプ×地形」で決まる（[movement.md](movement.md)・`data/movement/movement.csv`）ので、**同じ地形でも駒の移動力しだいで意味が変わる**。盤に「遅い駒だけを止める床」「速い駒しか越えられない壁」を敷けるということで、敵の移動力が偏っている冒険譚ほど強く効く。型を選ぶ前にここで足を決める。
+移動コストは「移動タイプ×地形」で決まる（[movement.md](movement.md)・`godot/data/movement/movement.csv`）ので、**同じ地形でも駒の移動力しだいで意味が変わる**。盤に「遅い駒だけを止める床」「速い駒しか越えられない壁」を敷けるということで、敵の移動力が偏っている冒険譚ほど強く効く。型を選ぶ前にここで足を決める。
 
 | ground コスト | 効き | 地形 |
 |---|---|---|

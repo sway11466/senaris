@@ -12,7 +12,7 @@
 - `images = { "map": "res://...", "combat": "res://..." }`。未設定はプレースホルダ（盤は名前を描く）。アートが来たらパスを入れるだけで描画が画像へ切り替わる（コード不変）。
 - 行動前/行動後は当面 `map` 1枚＋盤側のグレー化（行動済みは暗くする処理が既にある）。専用画像が要るなら `map_active`/`map_done` にスロットを割ればよい。
 - 戦闘立ち絵（`combat`）は3/4俯瞰・陣営で向き固定（プレイヤー左＝右向き／敵右＝左向き）。作画スペックは [units.md](units.md) §3.3、演出シーン（左右配置・兵数→隊列・シェイク/フラッシュ/エフェクト）は [../tech/combat_scene.md](../tech/combat_scene.md)。
-- 攻撃エフェクト（`combat_effect`）は立ち絵と違いスキンに属さない＝武器の種類ごとに1枚を共有し、置き場も `assets/effects/` に分ける。向きは焼き込まず、飛ぶもの（矢・石）は演出側が左右反転して両陣営で使う。作画スペックは [units.md](units.md) §3.4。
+- 攻撃エフェクト（`combat_effect`）は立ち絵と違いスキンに属さない＝武器の種類ごとに1枚を共有し、置き場も `godot/assets/effects/` に分ける。向きは焼き込まず、飛ぶもの（矢・石）は演出側が左右反転して両陣営で使う。作画スペックは [units.md](units.md) §3.4。
 - 戦闘での並べ方は `unit_skin.csv` の `combat_lineup` 列（`squad`／`retinue`／`single`）。ボス系の「ボス＋手下」は絵を足さずに作る＝`retinue` にして `retainers` 列で既存スキンを従者に指定する（中央がボス・周りが従者）。→ [../tech/combat_scene.md](../tech/combat_scene.md)
 - 戦闘背景は地形ごと（守り手のタイル地形で選択・全ユニット共通）＝ユニットスロットではなく別系統。地形IDで autowire（[../tech/combat_scene.md](../tech/combat_scene.md)）。
 - 会話の顔は基本 `map` を流用する（透明余白を除いた外接矩形だけ切り出して表示）。`portrait` を使うのは、盤に出ないキャラのセリフがある場合と、`map` では出せない表情を見せたい場合。詳細 → [../campaign/authoring.md](../campaign/authoring.md)。
@@ -24,4 +24,4 @@
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
 - [units.md](units.md) — ユニットの見た目方針（画像スロットの参照元）
-- `assets/units-src/{group}/style.md` — 陣営ごとの個体特徴（味方＝[player/style.md](../../godot/assets/units-src/player/style.md)）
+- `godot/assets/units-src/{group}/style.md` — 陣営ごとの個体特徴（味方＝[player/style.md](../../godot/assets/units-src/player/style.md)）

@@ -26,7 +26,7 @@ Windows 同梱のフォント（Times New Roman ほか）は 3 の扱いが曖�
 
 - OFL は「フォント自体を売らない限り、出力の利用は自由」と明示しており、ロゴ化も商標登録も問題にならない
 - 取得元は Google Fonts のリポジトリ `github.com/google/fonts` の `ofl/ebgaramond`（可変フォント）
-- `assets/promo-src/logo/fonts/` に `EBGaramond-variable.ttf` と `OFL.txt` を同梱する。OFL は再配布時にライセンス文の同梱を求めるため、両者は必ず一緒に置く
+- `godot/assets/promo-src/logo/fonts/` に `EBGaramond-variable.ttf` と `OFL.txt` を同梱する。OFL は再配布時にライセンス文の同梱を求めるため、両者は必ず一緒に置く
 - 制作の流れは、フォントで打つ → 字間を広げる → **パス化（アウトライン化）**。パス化後はフォントファイルを配らないので、成果物の側に OFL の制約は残らない
 - 運用の詳細（字間・色・小サイズの扱い）は [../art/promo.md](../art/promo.md) が正本
 
@@ -47,13 +47,13 @@ Windows 同梱のフォント（Times New Roman ほか）は 3 の扱いが曖�
 
 - OFL のフォントは選択肢が有償フォントより狭い。ただし今回の比較では十分な候補が得られた（下記）
 - **`OFL.txt` を消さない。** フォントファイルをリポジトリに置いている以上、ライセンス文の同梱が条件になる
-- ゲーム内で描画するフォントはこの ADR の対象外。現状 `assets/fonts/RockSalt-Regular.ttf`（Apache License 2.0）を使っており、こちらは配布時の表記義務が別途ある
+- ゲーム内で描画するフォントはこの ADR の対象外。現状 `godot/assets/fonts/RockSalt-Regular.ttf`（Apache License 2.0）を使っており、こちらは配布時の表記義務が別途ある
 
 ---
 
 ## 検討した代替案
 
-比較結果の画像は生成時に `assets/promo-src/logo/font_test.png` として作成した（判断後に削除。同じものは再生成できる）。
+比較結果の画像は生成時に `godot/assets/promo-src/logo/font_test.png` として作成した（判断後に削除。同じものは再生成できる）。
 
 | 案 | 概要 | 不採用の理由 |
 | --- | --- | --- |

@@ -148,7 +148,7 @@ BGM は**ステージ単位**で流す。本作はマップそのものが戦場
 
 ## 管理・運用（ディレクトリ・トラックID・ステージ指定）
 
-絵の管理（[../art/overview.md](../art/overview.md)、`assets/units/` ＋ `assets/units-src/`、autowire）と同じ思想で揃える。効果音を作る時も `assets/sfx/`＋`assets/sfx-src/` を並べる。
+絵の管理（[../art/overview.md](../art/overview.md)、`godot/assets/units/` ＋ `godot/assets/units-src/`、autowire）と同じ思想で揃える。効果音を作る時も `godot/assets/sfx/`＋`godot/assets/sfx-src/` を並べる。
 
 ### ディレクトリ — `xxx` / `xxx-src` の対
 
@@ -167,7 +167,7 @@ assets/
 
 ### トラックID — 規約 autowire
 
-- 曲は**トラックID**（`journey` / `raid` / `title` / `victory` …＝上記ライブラリ表）で扱い、`assets/bgm/{track_id}.ogg` を規約で解決する（skin の画像 autowire と同型）。
+- 曲は**トラックID**（`journey` / `raid` / `title` / `victory` …＝上記ライブラリ表）で扱い、`godot/assets/bgm/{track_id}.ogg` を規約で解決する（skin の画像 autowire と同型）。
 - ファイルが**あれば**鳴る。**なければ無音＋開発ログ1行**（絵のプレースホルダの音版。ゲームは止めない）。曲が完成したら `.ogg` を置くだけで鳴り出す＝コード・データ変更なし。
 
 ### ステージ単位の指定 — ステージJSONの `bgm` 欄
@@ -184,11 +184,11 @@ assets/
 
 | レイヤー | 実体 | 責務 |
 |---|---|---|
-| `data` | `data/audio/bgm_catalog.gd` | トラックカタログ（ID→パス解決・autowire）と `bgm` 欄の読み取り。純ロジック |
-| `application` | `application/bgm_director.gd` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定（未指定なら全体既定） |
-| `presentation` | `presentation/ui/bgm_player.gd` | `AudioStreamPlayer`×2 の入れ替え。ID を受けて鳴らすだけ |
+| `data` | `godot/data/audio/bgm_catalog.gd` | トラックカタログ（ID→パス解決・autowire）と `bgm` 欄の読み取り。純ロジック |
+| `application` | `godot/application/bgm_director.gd` | ステージ開始時に `bgm` 欄から「鳴るべきトラックID」を決定（未指定なら全体既定） |
+| `presentation` | `godot/presentation/ui/bgm_player.gd` | `AudioStreamPlayer`×2 の入れ替え。ID を受けて鳴らすだけ |
 
-ステージJSON の `bgm` 欄は `StageLoader.parse_bgm` / `load_bgm` が読む（会話・skin と同じく `BattleState` には入れない）。`main`（`presentation/main/main.gd`）がそれを `BgmDirector` に渡し、決まったIDを `BgmPlayer` に流す。
+ステージJSON の `bgm` 欄は `StageLoader.parse_bgm` / `load_bgm` が読む（会話・skin と同じく `BattleState` には入れない）。`main`（`godot/presentation/main/main.gd`）がそれを `BgmDirector` に渡し、決まったIDを `BgmPlayer` に流す。
 
 場面の切り替わりは2箇所だけ。ステージ開始（`_install_state`＝新規ロードと中断セーブ復元で共通）と、セレクトを開いたとき（`SelectScreen.opened` → メニュー曲）。同じトラックIDを指す遷移では鳴り続ける（頭出しに戻らない）。
 
@@ -208,7 +208,7 @@ assets/
 
 ## 権利・ライセンス台帳
 
-商用（Steam）前提。曲ごとの出自を台帳（`assets/bgm-src/credits.md`）に記録する。有料データ保護の方針（[../adr/ADR-0002-paid-data-protection.md](../adr/ADR-0002-paid-data-protection.md)）とは別で、こちらは他者の権利を侵さないための管理。
+商用（Steam）前提。曲ごとの出自を台帳（`godot/assets/bgm-src/credits.md`）に記録する。有料データ保護の方針（[../adr/ADR-0002-paid-data-protection.md](../adr/ADR-0002-paid-data-protection.md)）とは別で、こちらは他者の権利を侵さないための管理。
 
 記録は2層で、曲ごとの台帳はその下の層。音に限らず全体を出所単位でまとめた正本は [../sales/credits.md](../sales/credits.md) で、クレジット画面とストアページの表記はそちらを引く。
 
@@ -221,8 +221,8 @@ assets/
 ## 現状
 
 - **たたき台あり（7曲・`.musicxml`／`.mid`）**: `forest`（旧 crisis v1 の転用）／ `ruins` ／ `temple` ／ `ritual` ／ `boss` ／ `boss2` ／ `crisis`（v2・警報型）＝各32小節。
-- 曲を追加したら本ドキュメントのライブラリ表と台帳（`assets/bgm-src/credits.md`）を更新する。
-- **投入済み（9本）**: `menu`（76.800秒）／ `journey`（71.111秒）／ `raid`（60.952秒）／ `dungeon`（96.000秒）／ `graveyard`（64.000秒）／ `afterglow`（41.739秒）＝いずれもループ長ちょうど・ラップアラウンド加算あり。`victory`（10.3秒）／ `defeat`（14.4秒）＝スティンガー（ループなし）。`title`（90.000秒・ループ）＝曲ではなく酒場のざわめき。自作でなく外部素材から作っており、MuseScore も `gen_bgm.ps1` も通らない（作り方は `assets/bgm-src/title_recipe.txt`）。ループは末尾と先頭を4秒重ねて繋いでいる。曲が未配置のステージは無音＋ログ1行で進む（autowire）。
+- 曲を追加したら本ドキュメントのライブラリ表と台帳（`godot/assets/bgm-src/credits.md`）を更新する。
+- **投入済み（9本）**: `menu`（76.800秒）／ `journey`（71.111秒）／ `raid`（60.952秒）／ `dungeon`（96.000秒）／ `graveyard`（64.000秒）／ `afterglow`（41.739秒）＝いずれもループ長ちょうど・ラップアラウンド加算あり。`victory`（10.3秒）／ `defeat`（14.4秒）＝スティンガー（ループなし）。`title`（90.000秒・ループ）＝曲ではなく酒場のざわめき。自作でなく外部素材から作っており、MuseScore も `gen_bgm.ps1` も通らない（作り方は `godot/assets/bgm-src/title_recipe.txt`）。ループは末尾と先頭を4秒重ねて繋いでいる。曲が未配置のステージは無音＋ログ1行で進む（autowire）。
 - **スティンガーの鳴らし方**: `main._on_battle_finished` が決着時に `BgmPlayer.play_stinger` で一発再生（ステージ曲を素早く下げ、フェードインなしで頭から出す）。戦果票の印が落ちる瞬間に合わせる（[../gdd/uiux.md](../gdd/uiux.md) §決着の演出）。勝利は鳴り終わってから `afterglow` へ繋ぐ＝ファンファーレは約10秒で終わるのに outro 会話はその後も続くため、繋がないと無音が居座る。敗北は繋がない（会話が無く、すぐ再挑戦かセレクトへ行く）。連結は待っている間に別の曲へ切り替わっていたら捨てる（会話を読み飛ばして次ステージが始まった後に割り込まない）。
 - **全体既定は `map_calm`**（`BgmDirector.DEFAULT_STAGE_TRACK`）で、この ID の曲は無い＝ステージに `bgm` 指定が無いと無音になる。チュートリアル1・2は全ステージに `bgm` を書いたので該当するのはデバッグステージだけ。
 

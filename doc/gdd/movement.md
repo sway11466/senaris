@@ -17,12 +17,12 @@
 - `reachable` はダイクストラ（`Hex.flood_reach_cost`）。起点から各ヘックスへの**最短コストが移動力以内**なら到達可能。
 - 進入コスト ＝ そのヘックスの地形に対する移動タイプのコスト。盤外・**敵ユニット占有**は進入不可。
 - **味方は通過できるが停止できない**：経路上の味方マスは通り抜けられる（地形コスト）が、移動終了（到達候補）にはできない。敵は従来どおり壁（通過も停止も不可）。
-- 実装: `data/movement/movement.gd`（`Movement`）／`domain/battle_state.gd`（`reachable`/`_enter_cost`）／`domain/hex/hex.gd`（`flood_reach_cost`）。
+- 実装: `godot/data/movement/movement.gd`（`Movement`）／`godot/domain/battle_state.gd`（`reachable`/`_enter_cost`）／`godot/domain/hex/hex.gd`（`flood_reach_cost`）。
 
 ### データ
 
-- **配置は独立フォルダ `data/movement/`**。移動コストは「移動タイプ（ユニット属性）×地形（マップ属性）→コスト」の関係（行列）で、units にも terrain にも属さない独立概念のため。
-- 正本 `data/movement/movement.csv`（行=移動タイプ、列=地形コスト、2行ヘッダ）→ 生成 `data/movement/movement.json`（[[csv-data-pipeline]] と同じ仕組み）。
+- **配置は独立フォルダ `godot/data/movement/`**。移動コストは「移動タイプ（ユニット属性）×地形（マップ属性）→コスト」の関係（行列）で、units にも terrain にも属さない独立概念のため。
+- 正本 `godot/data/movement/movement.csv`（行=移動タイプ、列=地形コスト、2行ヘッダ）→ 生成 `godot/data/movement/movement.json`（[[csv-data-pipeline]] と同じ仕組み）。
 - `movement.csv` の行順はそのまま情報パネルに移動コストを並べる順になる（→ [uiux.md](uiux.md)）。JSON の辞書はキー順が書き出しでソートされるため、行順は別の配列として持つ。
 - 地形名は `terrain_type.csv` の `id`（`plain`/`plateau`…）と一致させる。過不足は movement の convert が完全表チェックで検出する（列忘れが黙ってコスト1になる罠を防ぐ）。
 - 現状の移動タイプ（全コストは `movement.csv` が正本）:
@@ -58,11 +58,11 @@
 - **隣接1マスの特例**：乗車・降車は**輸送に隣接するマスとの間なら、移動力・地形コストに関係なく行える**（荷の積み降ろしは人手で行うイメージ）。移動力の数値は変えない（盤上を歩けるようにはならない）。降車先の進入不可チェック（`move_type` の x 地形）は特例でも維持＝地上駒を大岩には降ろせない。
   - 効くのはコスト計算だと乗降できないケースだけ：移動0のバリケード（馬車が隣に来て拾う／隣接マスへ降ろす）、移動1の駒が高コスト地形の上の輸送に乗る 等。移動力で届く範囲の乗降は現行どおり。
   - 副次効果＝置き間違えたバリケードの回収が可能（馬車を隣に寄せて積み直す）。
-  - 実装: 乗車＝`_reach_map` が隣接する乗れる輸送のマスを常に合流（`_adjacent_boardable`。移動0でも `_can_act_move` が通る）。降車＝`_unload_map` が隣接の進入可能な空きマスを常に合流（特例の降車は移動予算を使い切る扱い）。乗車したターンは降りられない制約は特例でも維持。テスト: `tests/unit/test_transport.gd`（隣接1マスの特例）。
+  - 実装: 乗車＝`_reach_map` が隣接する乗れる輸送のマスを常に合流（`_adjacent_boardable`。移動0でも `_can_act_move` が通る）。降車＝`_unload_map` が隣接の進入可能な空きマスを常に合流（特例の降車は移動予算を使い切る扱い）。乗車したターンは降りられない制約は特例でも維持。テスト: `godot/tests/unit/test_transport.gd`（隣接1マスの特例）。
 - **出撃→直接乗車**：拠点に隣接する「乗れる味方輸送」のマスは**出撃先に含まれる**＝garrison の駒をそのまま輸送に乗せられる（隣接1マスの特例の拠点版。盤上には出ない）。出撃＝行動完了なのでそのターンは降ろせない。輸送は輸送に乗れない・満員/敵の輸送は不可、は通常の乗車と同じ。
-  - 実装: `deploy_cells(base_hex, garrison_index)`／`deploy` が輸送のマスを受けたら `put_passenger`（`_deploy_boardable`）。UI は出撃候補ハイライトに輸送のマスが加わるだけ。テスト: `tests/unit/test_transport.gd`（出撃→直接乗車）。
+  - 実装: `deploy_cells(base_hex, garrison_index)`／`deploy` が輸送のマスを受けたら `put_passenger`（`_deploy_boardable`）。UI は出撃候補ハイライトに輸送のマスが加わるだけ。テスト: `godot/tests/unit/test_transport.gd`（出撃→直接乗車）。
 - **拠点に入ると積載は空になる**：輸送が自軍拠点に「入る」（駐留）と、**搭乗駒も一緒に garrison へ入る**＝拠点の中に積んだままの馬車は残らない。中では降ろせないため、そのままだと搭乗駒が回復も出撃もできなくなるのを避ける。搭乗駒にもそのターンの行動終了が付く（乗せて入り、その場で全員バラまく再配置を止める）。出撃で輸送を出すときは空＝積み直しは「出撃→直接乗車」で行う。→ [map.md](map.md)（回復）
-  - 実装: `enter_base` が `passengers` を garrison へ移して `_passengers` を消す。テスト: `tests/unit/test_transport.gd`（拠点に入ると積載が空）。
+  - 実装: `enter_base` が `passengers` を garrison へ移して `_passengers` を消す。テスト: `godot/tests/unit/test_transport.gd`（拠点に入ると積載が空）。
 - **運べる対象**：輸送の所有者と**同陣営の駒**（味方が味方を運ぶ）。**輸送は輸送に乗れない**。占領の `native`／拠点とは別軸。
 - **輸送の撃破**：搭乗中の駒も**巻き添えで失われる**（撃破扱い＝ボス撃破条件にも数える）。
 - **輸送自身の戦闘**：データ駆動（CSVの攻撃値どおり）。馬車は攻撃0＝殴られるだけ、飛空艇は10/10で砲撃できる。
@@ -79,8 +79,8 @@
 - 効くのはユニットの索敵起動と拠点の索敵起動（garrison 出撃トリガー）。自衛（射程内で起きる）・間接攻撃は視線非依存（据え置き）。
 - 決定的（`Hex.line` は端点を微小オフセットして一意化）＝中断セーブ/リプレイに影響なし。`sight_cost` 表は静的コンフィグ＝セーブに含めず復元後に再適用する（movement 表と同じ流儀）。
 - `sight` 値はデータで調整（森が2ぶん実効索敵が縮む前提で見直す）。
-- 実装: `TerrainType.sight_cost`／`BattleState.set_sight_cost`/`sight_reaches`/`visible_hexes`／`Hex.line`／`nearest_attacker_brain._enemy_within`・`_enemy_within_hex`。テスト: `tests/unit/test_sight.gd`・`test_hex.gd`・`test_ai.gd`。
-- 可視化: 待機中の見張り（sight で起きる・未起動）を選ぶと、検知域（`visible_hexes`）の外周を赤線でなぞる（塗らない＝移動範囲と紛れない・壁の影/森のへこみがそのまま輪郭に出る）。起動済み・突撃には出さない。`NearestAttackerBrain.detection_radius`→`MatchController.detection_radius`→`hex_board_3d._add_sight_boundary`。デバッグ: `data/stages/debug-ai/sight.json`。
+- 実装: `TerrainType.sight_cost`／`BattleState.set_sight_cost`/`sight_reaches`/`visible_hexes`／`Hex.line`／`nearest_attacker_brain._enemy_within`・`_enemy_within_hex`。テスト: `godot/tests/unit/test_sight.gd`・`test_hex.gd`・`test_ai.gd`。
+- 可視化: 待機中の見張り（sight で起きる・未起動）を選ぶと、検知域（`visible_hexes`）の外周を赤線でなぞる（塗らない＝移動範囲と紛れない・壁の影/森のへこみがそのまま輪郭に出る）。起動済み・突撃には出さない。`NearestAttackerBrain.detection_radius`→`MatchController.detection_radius`→`hex_board_3d._add_sight_boundary`。デバッグ: `godot/data/stages/debug-ai/sight.json`。
 
 ## 関連ドキュメント
 

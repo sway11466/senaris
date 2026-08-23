@@ -10,7 +10,7 @@
 
 ## 1. 形状・敷き方
 
-- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)）が terrain_id ごとに1枚を各ヘックスに敷く（3D盤でも同じPNGをヘックスメッシュに貼る＝この寸法は現行）。置き場は `assets/terrain/{skin_id}.png`（terrain_skin.csv の `skin_id` と同名）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../godot/tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
+- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)）が terrain_id ごとに1枚を各ヘックスに敷く（3D盤でも同じPNGをヘックスメッシュに貼る＝この寸法は現行）。置き場は `godot/assets/terrain/{skin_id}.png`（terrain_skin.csv の `skin_id` と同名）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../godot/tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
 - 3Dのヘックスメッシュに貼るUVは外接矩形（[terrain_tiles.gd](../../godot/presentation/board/terrain_tiles.gd)）。横の係数は 0.5、縦は 1/√3 で、横と同じ 0.5 にしてはいけない。0.5 は外接「正方形」（2R×2R）用の値で、PNGは 2R×√3R だから縦だけ 2/√3＝1.155倍に伸び、上下端6.7%が六角形の外へ出て描かれなくなる。自然テクスチャでは正しい縦横比が無いので気付けず、絵の中に位置の約束を持つ地形（§3の接続タイル＝腕の先が辺の中点に来る）で初めて斜めの継ぎ目がずれて見える。
 - 現状は「1地形1枚・接地による遷移なし」。各ヘックスが地形の自己完結アイコン（Into the Breach 系）。
 - 同じPNGを戦闘演出シーンの地面にも敷く（[../tech/combat_scene.md](../tech/combat_scene.md)）。盤より寄って映る＝繰り返しと継ぎ目が見えやすいので、反復対策（変種・回転）は盤のためだけの措置ではない。
@@ -73,9 +73,9 @@ vignette. Square 1:1.
 
 | 段階 | 置き場（`{name}`＝terrain_skin.csv の `skin_id`） | 例（平地） |
 |---|---|---|
-| ① AI生成（正方・原寸） | `assets/terrain-src/{name}/` に任意名で複数 | `terrain-src/plain/plain_a.png` |
-| SUBJECT | `assets/terrain-src/{name}/{name}_prompt.txt` | `terrain-src/plain/plain_prompt.txt` |
-| ② ゲーム用（ヘックス切り抜き・256×222・角透過） | `assets/terrain/{name}.png`（＋連番 `{name}_2.png` …） | `plain.png` / `plain_2.png` |
+| ① AI生成（正方・原寸） | `godot/assets/terrain-src/{name}/` に任意名で複数 | `terrain-src/plain/plain_a.png` |
+| SUBJECT | `godot/assets/terrain-src/{name}/{name}_prompt.txt` | `terrain-src/plain/plain_prompt.txt` |
+| ② ゲーム用（ヘックス切り抜き・256×222・角透過） | `godot/assets/terrain/{name}.png`（＋連番 `{name}_2.png` …） | `plain.png` / `plain_2.png` |
 
 - ②は正方の生成物を [`../../tools/gen_terrain_tile.ps1`](../../godot/tools/gen_terrain_tile.ps1) でヘックス切り抜き＝`powershell -File godot\tools\gen_terrain_tile.ps1 {name} <src1> <src2> …`（1枚目→`{name}.png`、以降→`_2`,`_3`）。`terrain-src/` は `.gdignore` で Godot 非インポート。
 - 面で覆う地形（平地・森）は一面テクスチャで作る（森で検証済み）。切り口は密な柄に紛れ、隣接ヘックスがひとつながりの地帯に見える。「ヘックス内に収まる塊＋周囲に地面」のアイコン方式は、塊が円形だと盤上で水玉に見えるため不採用。基準色は SUBJECT に HEX 指定で固定し、地面が覗く地形は平地の基準色（#B4C6A0）を使って地続きに見せる。
@@ -111,7 +111,7 @@ vignette. Square 1:1.
 
 ### 3.1 共通
 
-- ファイル名は `assets/terrain/{skin_id}_c{6桁}.png`。6桁は [Hex.DIRECTIONS](../../godot/domain/hex/hex.gd) の順で、1＝その方向の隣とも繋がっている。64通り。欠けている組み合わせは `{skin_id}.png` に落ちる（どちらの方式も直線 `_c001001` を複製して置く）。
+- ファイル名は `godot/assets/terrain/{skin_id}_c{6桁}.png`。6桁は [Hex.DIRECTIONS](../../godot/domain/hex/hex.gd) の順で、1＝その方向の隣とも繋がっている。64通り。欠けている組み合わせは `{skin_id}.png` に落ちる（どちらの方式も直線 `_c001001` を複製して置く）。
 - 繋がる相手は terrain_skin.csv の `connect_to`（skin_id を空白区切り・自分自身は常に含む）。空＝同じスキンとだけ繋がる。**片方向で書く**＝川に橋を書き、橋に川を書かなければ「川は橋へ帯を伸ばすが、橋は川へ伸びない」になる（→ §3.7）。
 - 64枚は手描きしない。元絵1枚から生成する。ヘックス中心から辺の中点までは6方向とも 110.85px、辺そのものの長さは 128px。この2つが寸法の基準。
 - 元絵の縦横比は問わない。スクリプトは元絵の寸法を読まず、渡した矩形だけを切る。
@@ -149,7 +149,7 @@ vignette. Square 1:1.
 
 ### 3.4 元絵とレシピの置き場
 
-`assets/terrain-src/{skin_id}/` に3点を置く。
+`godot/assets/terrain-src/{skin_id}/` に3点を置く。
 
 | ファイル | 中身 |
 |---|---|
@@ -173,7 +173,7 @@ vignette. Square 1:1.
 
 柵のような「地面の上に立つもの」は、地面を絵に焼き込まず、描画時に下地の上へ自分の絵を重ねて組む。terrain_skin.csv の `map_ground`（下に敷くスキンID）で指定する。空＝敷かない＝1枚絵で完結する従来のタイル。オブジェクトのスキンでは空にできない（→ [../gdd/terrain.md](../gdd/terrain.md)）。
 
-- 地面を焼き込むと、地面の種類ごとに64枚を焼き直すことになる。地面なしなら1組で済む。`assets/terrain` は全体でも数MBなので、この差の効き方は大きい。
+- 地面を焼き込むと、地面の種類ごとに64枚を焼き直すことになる。地面なしなら1組で済む。`godot/assets/terrain` は全体でも数MBなので、この差の効き方は大きい。
 - 合成は描画側（[TerrainTiles.composited](../../godot/presentation/board/terrain_tiles.gd)）が (下地, 重ね絵) の組ごとに1回だけ行ってキャッシュする。PNGには焼かない。
 - 下地も、繋がる地形なら向きの組み合わせ別タイルを引く。
 - **下地の変種（`_2` `_3`）はヘックスごとに選ばれる**。柵のマスだけ地面が固定されて浮く、ということにならない。

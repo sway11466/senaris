@@ -1,6 +1,6 @@
 # ユニットの見た目方針
 
-盤上のユニット画像を生成する前に決めておく設計。全陣営に共通するトーン・配色・制作メソッドは [direction.md](direction.md) が正本。本ファイルはユニット固有：全ユニット共通ルール・陣営ごとのルール・制作スペック（サイズ・命名・STYLE・SUBJECT雛形）。陣営ごとの個体特徴は各陣営フォルダの `assets/units-src/{group}/style.md`（§2）。
+盤上のユニット画像を生成する前に決めておく設計。全陣営に共通するトーン・配色・制作メソッドは [direction.md](direction.md) が正本。本ファイルはユニット固有：全ユニット共通ルール・陣営ごとのルール・制作スペック（サイズ・命名・STYLE・SUBJECT雛形）。陣営ごとの個体特徴は各陣営フォルダの `godot/assets/units-src/{group}/style.md`（§2）。
 
 凡例: 【暫定】 【指針】 【未決】（ラベルなし＝決定事項。ただし決定は覆りうる）
 
@@ -22,7 +22,7 @@
 
 ## 2. 陣営ごとのルール
 
-各陣営の見た目ルール（役割ごとの記号・ユニット個体の特徴）は、その陣営のソースフォルダ直下の `style.md` が正本：`assets/units-src/{group}/style.md`
+各陣営の見た目ルール（役割ごとの記号・ユニット個体の特徴）は、その陣営のソースフォルダ直下の `style.md` が正本：`godot/assets/units-src/{group}/style.md`
 
 グループ（フォルダ）と分類（`unit_skin.csv` の `category`）は別の軸で、揃える必要はない：
 
@@ -64,13 +64,13 @@
 
 | 段階 | 置き場（`{skin_id}`＝unit_skin のID・`{group}`＝陣営フォルダ） | 例（ファイター） |
 |---|---|---|
-| ① AI生成直後（原寸・SynthID入り） | `assets/units-src/{group}/{skin_id}/{skin_id}_01_raw.png` | `units-src/player/fighter/fighter_01_raw.png` |
-| ② トリミング＋透過（手動マスター・原寸） | `assets/units-src/{group}/{skin_id}/{skin_id}_03_master.png` | `units-src/player/fighter/fighter_03_master.png` |
-| ③ ゲーム用（384四方・透過・64色） | `assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
+| ① AI生成直後（原寸・SynthID入り） | `godot/assets/units-src/{group}/{skin_id}/{skin_id}_01_raw.png` | `units-src/player/fighter/fighter_01_raw.png` |
+| ② トリミング＋透過（手動マスター・原寸） | `godot/assets/units-src/{group}/{skin_id}/{skin_id}_03_master.png` | `units-src/player/fighter/fighter_03_master.png` |
+| ③ ゲーム用（384四方・透過・64色） | `godot/assets/units/{skin_id}/{skin_id}_map.png` | `fighter_map.png` |
 
 - `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `units-src/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
-- ③だけが `assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
-- ①②は `assets/units-src/`（作業ソース）。`assets/units-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
+- ③だけが `godot/assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
+- ①②は `godot/assets/units-src/`（作業ソース）。`godot/assets/units-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
 - 透かし: 共通ルールの `_02_dew`（[direction.md](direction.md) §3）はユニットでは②のトリミング＝透過で一緒に落ちる（透過切り抜きで sparkle も消える）ため専用 dew ファイルは作らず `_01_raw`→`_03_master` の2段。番号は master=03 で固定＝02 が無い＝dew を通していない、と読める（`gen_unit_map.ps1` は `_03_master` を読み、旧 `_02_master` もフォールバックで拾う）。
 
 手順（1体を追加するとき）:
@@ -81,8 +81,8 @@
    ```
    powershell -File godot\tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
    ```
-   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
-4. Godot 再実行 → `SkinCatalog` が `assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
+   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`godot/tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+4. Godot 再実行 → `SkinCatalog` が `godot/assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
 
 - ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
 
@@ -114,7 +114,7 @@
 
 アンカー方式の考え方は [direction.md](direction.md) §3。`SUBJECT:` はユニットごと、`STYLE:` は本節が持つ。i2i（参照画像）は使わず、同じ STYLE 文＋SUBJECT の言葉指定だけで一貫性を出す。SUBJECT に「same steel-blue palette / same face style as the fighter」等を明記するのがコツ。Nano Banana はタグ羅列より自然文の描写が効く。
 
-ただし STYLE は1本に固定しない。共通で守るのはテイスト（絵柄・視点・出力の形）だけで、造形の違うグループは自分の STYLE を `assets/units-src/{group}/style.md` に持ってよい。地形が壁・城壁で独自 STYLE を持つのと同じ運用（→ [terrain.md](terrain.md) §2）。
+ただし STYLE は1本に固定しない。共通で守るのはテイスト（絵柄・視点・出力の形）だけで、造形の違うグループは自分の STYLE を `godot/assets/units-src/{group}/style.md` に持ってよい。地形が壁・城壁で独自 STYLE を持つのと同じ運用（→ [terrain.md](terrain.md) §2）。
 
 分けた理由は、共通 STYLE が味方の人型で固めたものだから。頭身・表情・武器の構えといった条項は、竜・植物・魔法生物には当てはまらない。当てはまらない指示を渡し続けると、SUBJECT でそれを打ち消す文言が増え、狙いより打ち消しのほうが長い不安定なプロンプトになる。
 
@@ -150,7 +150,7 @@ one side.
 
 SUBJECT（生成プロンプト本体）の置き場：
 
-各ユニットの `SUBJECT:` は raw と同じ `assets/units-src/{group}/{skin_id}/{skin_id}_prompt.txt` に置く（共通の STYLE と作成ルールは本 doc が正本）。生成時は STYLE を先頭に付け、続けて `{skin_id}_prompt.txt` を貼る。参照画像（i2i）は使わない。
+各ユニットの `SUBJECT:` は raw と同じ `godot/assets/units-src/{group}/{skin_id}/{skin_id}_prompt.txt` に置く（共通の STYLE と作成ルールは本 doc が正本）。生成時は STYLE を先頭に付け、続けて `{skin_id}_prompt.txt` を貼る。参照画像（i2i）は使わない。
 
 - SUBJECT は §2（陣営色・共通ルール・各陣営 `style.md`）と [direction.md](direction.md) §2 のルールに沿って書く。
 - 歩兵ライン（ノービス／ファイター／ヴァンガード）は同一系統：剣のサイズ＋装甲の重さで段階化し、盾は持たせない（大盾はナイト専用）。系統感は SUBJECT 内の「same steel-blue palette / same face style as the fighter」で保つ。
@@ -167,10 +167,10 @@ SUBJECT（生成プロンプト本体）の置き場：
 - `single`（複製しない）を選ぶ基準は「その駒が群れないこと」。乗り物・兵器のほか、格の高い駒や大型の獣（レッドドラゴン・ワイアーム・トロール）も、8体並べると格が下がるので `single` にする。
 - 単体表示（`combat_lineup=single`・馬車／飛空艇／ドラゴン級）は複製せず1体だけ出る。作画の作りは同じ（1スキン1枚）だが、隣に自分のコピーが並ばないぶん1体で画が持つ必要がある。
 - 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../godot/presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。ただし戦闘シーンは地面を3Dで敷くため、流用する map の master は足元の影を消しておく（STYLE の `small soft ground shadow` を焼き込んだままにしない）。
-- 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `data/effects/combat_effect.csv`。→ §3.4
+- 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `godot/data/effects/combat_effect.csv`。→ §3.4
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
-  - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
-  - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 704四方・下端揃え・透過」で書き出す（減色はしない）。キャンバス値は演出側の `combat_stage.gd` の `FIG_H`（正方キャンバスを画面上どれだけの高さで描くか）と対で、片方を変えたら同じ倍率でもう片方も直し、`all` で全員を書き出し直す。揃っていないと、同じ倍率でも画面上の大きさが変わる。書き出しは [`tools/gen_unit_combat.ps1`](../../godot/tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
+  - 作業ソース `godot/assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
+  - ゲーム用 `godot/assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 704四方・下端揃え・透過」で書き出す（減色はしない）。キャンバス値は演出側の `combat_stage.gd` の `FIG_H`（正方キャンバスを画面上どれだけの高さで描くか）と対で、片方を変えたら同じ倍率でもう片方も直し、`all` で全員を書き出し直す。揃っていないと、同じ倍率でも画面上の大きさが変わる。書き出しは [`godot/tools/gen_unit_combat.ps1`](../../godot/tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
   - 倍率は `unit_skin.csv` の `combat_scale`（map の `map_scale` と対。今は同値だが、盤と戦闘で詰め方を変えられるよう列を分けてある）。相対サイズを担保しているのは固定キャンバスのほうで、演出側は全ユニットを同じ正方形に KEEP_ASPECT で描き、キャンバス下端を足元線に合わせる。トリムだけで書き出すと、どの駒も枠いっぱいに描かれて大小の差が消える。
   - 横に広い駒はキャンバス幅にも収める＝はみ出す代わりに縮む。
 - 生成順：combat は map と同じ生成セッションで一緒に出す（全スロットを一度に）。text アンカーだけでは既存キャラは再現できず、別セッションでは同一キャラにならないため（i2i は使わない方針＝[direction.md](direction.md) §3）。既存ユニットに後から足す場合は、そのユニットを map から作り直す。
@@ -236,7 +236,7 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
 - 人型でない静物（兵器・輸送・建造物）は、map と combat で同じ形にならないことがある。言葉のアンカーは顔・配色・持ち物のような属性は固定できるが、木組みの幾何（梁が何本で、どこで交差するか）は書き切れないため、角度を変えると別の構造に組み直される（バリスタで数回踏んだ）。手は2つ：部材を減らして「1本の梁＋上に載る主部＋脚」程度の単純な形にするか、combat を作らず map を流用する（`_skin_texture` が map へ落ちる。バリケードと同じ扱い。流用するときは map の master から足元の影を消す）。
 - 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない」（武装する駒は「武装はこの1門だけ」）と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない駒（バリケード・飛空艇等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
-- 兵器の静物は、地形タイルの柵（`assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。
+- 兵器の静物は、地形タイルの柵（`godot/assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。
 - 分担：佇まい＝POSE、キャラ・持ち物・特徴＝SUBJECT。SUBJECT には「same face / same steel-blue palette as the fighter（map と同一キャラ）」を明記して同一性を担保する（§3.2 と同じコツ）。
 
@@ -245,10 +245,10 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 被弾側の隊列に重ねる（または飛ばす）1枚絵。演出側の扱い（`impact` / `projectile`・タイミング）は [../tech/combat_scene.md](../tech/combat_scene.md)。
 
 - 単位はスキンではなく武器の種類。剣で斬った跡に陣営の個性は要らないので、味方とゴブリンが同じ斬撃を共有する。ユニットを増やしても、既存のIDを指すだけなら作画は増えない。
-- 割り当ては `unit_skin.csv` の `combat_effect` 列（空＝既定のスパーク＝どのスキンが未整備か盤面で分かる）。定義は `data/effects/combat_effect.csv`。
+- 割り当ては `unit_skin.csv` の `combat_effect` 列（空＝既定のスパーク＝どのスキンが未整備か盤面で分かる）。定義は `godot/data/effects/combat_effect.csv`。
 - キャラと違い、人・顔・背景は描かない。武器が当たった痕跡そのもの（斬り跡・矢・石・光）だけを、透過の1枚に描く。
 - 立ち絵と同じ絵柄に寄せる：フラットなセル塗り・限定色。細かい粒子・淡いグラデーション・強い発光は縮小で消えるか切り抜きが荒れるので使わない。
-- 例外＝靄・粉・煙のように、そもそも輪郭を持たないもの。この文法（輪郭線つきの平らな図形）で描かせると、必ず粒＝物体になる（胞子で豆・小石・スライムの塊と3回外した）。これに当たる効果は EFFECT STYLE から「輪郭線・平らなセル塗り・ぼかし禁止」の各行を外し、黒背景の上に柔らかい縁の靄として描いて、黒を輝度でアルファに変換する。[`tools/gen_effect.ps1`](../../godot/tools/gen_effect.ps1) はトリムと縮小しかせずアルファをそのまま通すので、半透明の縁は最後まで残る（立ち絵で溶けるのは、白背景を手で切っているから）。
+- 例外＝靄・粉・煙のように、そもそも輪郭を持たないもの。この文法（輪郭線つきの平らな図形）で描かせると、必ず粒＝物体になる（胞子で豆・小石・スライムの塊と3回外した）。これに当たる効果は EFFECT STYLE から「輪郭線・平らなセル塗り・ぼかし禁止」の各行を外し、黒背景の上に柔らかい縁の靄として描いて、黒を輝度でアルファに変換する。[`godot/tools/gen_effect.ps1`](../../godot/tools/gen_effect.ps1) はトリムと縮小しかせずアルファをそのまま通すので、半透明の縁は最後まで残る（立ち絵で溶けるのは、白背景を手で切っているから）。
 - 向きは「右へ向かう一撃」で統一して描く。左向きは演出側が水平反転するので描き分けない（`impact` も `projectile` も同じ規約）。飛ぶもの（`projectile`）は水平＝上下の傾きを付けない。被弾に重ねるもの（`impact`）は斜めに振ってよい（爪痕＝左上から右下、竜のブレス＝飛行から吹き下ろす）。
 - 味方とゴブリンが同じ絵を使うので、陣営色（青・赤）に寄せない中立色で描く。斬撃は銀白〜淡い水色。陣営が決まっているもの（聖光＝クレリック）は例外で、その陣営の色を使ってよい。
 - キャンバスいっぱいに描く（余白は最小）。ユニットと違い余白に大小を焼き込まない＝書き出しでトリムする。画面に出る大きさは `combat_effect.csv` の `scale` 列（1.0＝被弾側の立ち絵1体ぶん。絵の長辺が基準）で決めるので、斬撃（小）と（中）の差はこの数字で付ける。絵の側は弧の太さ・長さで質の差を出す。
@@ -278,7 +278,7 @@ in the subject) for easy cutout. Square 1:1 composition.
 - 向き。上の文は上下の傾きを禁じているが、これは飛ぶもの（`projectile`）の条項。`impact` は斜めに振ってよく、爪痕・竜のブレスは左上から右下に流している。
 - 色数。「2〜3色」は盤で小さく出る前提の数。竜のブレスは `single` 表示のボスが1発だけ出す絵で、大きく出るぶん階調が潰れないので5〜6色に増やしている。
 
-保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。書き出しは [`tools/gen_effect.ps1`](../../godot/tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
+保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `godot/assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `godot/assets/effects/{effect_id}.png`。書き出しは [`godot/tools/gen_effect.ps1`](../../godot/tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
 
 `effect_id` は武器の種類を接頭辞にし、変種を接尾辞で足す（`slash_s` / `slash_m` / `slash_l`、`arrow` / `arrow_bone`）。並べたときに同じ武器種が固まり、変種が増えても列が散らない。
 
@@ -301,4 +301,4 @@ in the subject) for easy cutout. Square 1:1 composition.
 - [../gdd/combat.md](../gdd/combat.md) — 対空機構（飛行の浮遊必須ルールの根拠）
 - [../campaign/tutorial1-goblin-raid.md](../campaign/tutorial1-goblin-raid.md) / [../campaign/tutorial2-undead-rush.md](../campaign/tutorial2-undead-rush.md) — 各陣営（§2 の根拠）
 - [../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd) — 盤面（3D・タイル敷き。`TILE=1.0` ワールド単位）
-- [`tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1) — ③ゲーム用画像の書き出しツール
+- [`godot/tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1) — ③ゲーム用画像の書き出しツール

@@ -28,14 +28,14 @@
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
 | Godot Engine | ゲームエンジン | 含む | ライセンス文の表示（同梱サードパーティを含む） | |
-| GUT | テストフレームワーク | 除外 | なし | `addons/gut/LICENSE.md` |
+| GUT | テストフレームワーク | 除外 | なし | `godot/addons/gut/LICENSE.md` |
 | fontTools | ロゴの SVG 生成（EB Garamond のパス化） | 道具 | なし | |
 
 ### Apache License 2.0
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・クリア済みの印 | 含む | ライセンス文の同梱と著作権表記 | `assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
+| Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・クリア済みの印 | 含む | ライセンス文の同梱と著作権表記 | `godot/assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
 | OpenCV | 画像処理スクリプト | 道具 | なし | |
 
 Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[backlog.md](../backlog.md) feature-10）。
@@ -44,8 +44,8 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| EB Garamond | タイトルロゴの文字 | 含まない（パス化するのでフォントは残らない） | なし | `assets/promo-src/logo/fonts/OFL.txt`・[ADR-0004](../adr/ADR-0004-logo-typeface-ofl.md) |
-| Anonymous Pro / Courier Prime / Lobster Two | GUT の同梱フォント | 除外 | なし | `addons/gut/fonts/OFL.txt` |
+| EB Garamond | タイトルロゴの文字 | 含まない（パス化するのでフォントは残らない） | なし | `godot/assets/promo-src/logo/fonts/OFL.txt`・[ADR-0004](../adr/ADR-0004-logo-typeface-ofl.md) |
+| Anonymous Pro / Courier Prime / Lobster Two | GUT の同梱フォント | 除外 | なし | `godot/addons/gut/fonts/OFL.txt` |
 
 ### GPL 系
 
@@ -64,7 +64,7 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| ImageMagick | 画像の生成スクリプト全般（`tools/gen_*.ps1`） | 道具 | なし | |
+| ImageMagick | 画像の生成スクリプト全般（`godot/tools/gen_*.ps1`） | 道具 | なし | |
 
 ### BSD 3-Clause
 
@@ -113,6 +113,6 @@ Godot はライセンス全文を画面に載せる。`Engine.get_license_text()
 
 次は開発専用で、製品ビルドに含めない。含めてしまうとそれぞれのライセンス義務が発生する。除外の設定は [backlog.md](../backlog.md) feature-10。
 
-- `addons/gut/`（GUT 本体と同梱フォント）
-- `tools/`（自作の開発ツール一式）
-- デバッグ用ステージ（`data/stages/debug*/`）
+- `godot/addons/gut/`（GUT 本体と同梱フォント）
+- `godot/tools/`（自作の開発ツール一式）
+- デバッグ用ステージ（`godot/data/stages/debug*/`）

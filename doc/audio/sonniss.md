@@ -8,7 +8,7 @@ Sonniss が毎年 GDC に合わせて無償配布している効果音バンド�
 
 全年共通で、無償・商用可・クレジット表記不要・再配布不可・AI学習利用禁止。
 
-表記不要だが、使った素材は `assets/sfx-src/credits.md` に記録する（[sfx.md](sfx.md) の権利台帳）。再配布不可のため、素材そのものをリポジトリに入れてはいけない。加工して書き出した `assets/sfx/*.ogg` はゲームの一部として扱う。
+表記不要だが、使った素材は `godot/assets/sfx-src/credits.md` に記録する（[sfx.md](sfx.md) の権利台帳）。再配布不可のため、素材そのものをリポジトリに入れてはいけない。加工して書き出した `godot/assets/sfx/*.ogg` はゲームの一部として扱う。
 
 ## 索引の読み方
 
@@ -66,7 +66,7 @@ awk -F'\t' '$1==2019 && tolower($3) ~ /footstep/' doc/audio/sonniss_index.tsv
 
 ## 素材を取り出す
 
-索引で当たりを付け、必要な数本だけを zip から抜いて試聴し、採用した1本を加工して `assets/sfx/` へ入れる。zip 本体は落とさない。
+索引で当たりを付け、必要な数本だけを zip から抜いて試聴し、採用した1本を加工して `godot/assets/sfx/` へ入れる。zip 本体は落とさない。
 
 ### 1. 用途の枠を決める
 
@@ -113,7 +113,7 @@ products 側の `picks.tsv` に候補を1行ずつ足す。列は 年 / パー�
 python tools/pick.py 2020 --dry
 ```
 
-問題なければ取り出す。`assets/sfx-src/sonniss/<用途>__<年>__<元のファイル名>.wav` に置かれる。年でフォルダを分けず、全部この1階層に並べる。取得済みは飛ばすので、途中で止めても繰り返し実行できる。
+問題なければ取り出す。`godot/assets/sfx-src/sonniss/<用途>__<年>__<元のファイル名>.wav` に置かれる。年でフォルダを分けず、全部この1階層に並べる。取得済みは飛ばすので、途中で止めても繰り返し実行できる。
 
 ```bash
 python tools/pick.py 2020
@@ -135,13 +135,13 @@ python tools/pick.py 2020
 
 ### 6. レシピを書いて組み込む
 
-採用が決まったら `assets/sfx-src/<sfx_id>_recipe.txt` に ffmpeg のコマンドを1行で残す。切り出し位置と当てたゲインが後から分かるようにするためで、原本を置けない（再配布不可）ぶんをこれで補う。
+採用が決まったら `godot/assets/sfx-src/<sfx_id>_recipe.txt` に ffmpeg のコマンドを1行で残す。切り出し位置と当てたゲインが後から分かるようにするためで、原本を置けない（再配布不可）ぶんをこれで補う。
 
 ```
 ffmpeg -y -i "sonniss/curse_wisp__2020__SFX_Ghost_Whoosh_Male_03.wav" -af "atrim=1.30:2.10,volume=-6.0dB" -c:a pcm_s24le curse_wisp.wav
 ```
 
-あとは `tools/gen_sfx.ps1 <sfx_id>` で ogg にし、`assets/sfx-src/credits.md` に1行足す。ゲインの決め方は [sfx.md](sfx.md) の「外部素材はゲインを当てて合わせる」。
+あとは `godot/tools/gen_sfx.ps1 <sfx_id>` で ogg にし、`godot/assets/sfx-src/credits.md` に1行足す。ゲインの決め方は [sfx.md](sfx.md) の「外部素材はゲインを当てて合わせる」。
 
 ## 入手元と索引の作り方
 
@@ -162,7 +162,7 @@ C:\Users\tappe\OneDrive\project\products\assets\audio\sfx\sonniss.com\
 | サブフォルダ | 中身 |
 | --- | --- |
 | `raw/` | 各 zip のセントラルディレクトリから読んだ生の一覧（JSON、年_パート単位）。zip の URL はここにある |
-| `tools/` | 索引を再生成するスクリプト |
+| `godot/tools/` | 索引を再生成するスクリプト |
 | `tracklists/` | 公式 Tracklist の原本（xlsx / CSV / 2015のみ PDF） |
 | `meta/` | 2026年版 zip に同梱の Readme / License / Filelist |
 

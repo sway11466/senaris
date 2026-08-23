@@ -91,7 +91,7 @@ res://
 - 下り：`presentation` が `MoveCommand{unit, from, to}` のようなコマンドを投げる
 - 上り：`application` が `unit_moved` / `combat_resolved` / `formation_triggered` などのシグナルを純データで発行 → `presentation` が受けてアニメ
 
-状態の真実は `domain/battle_state.gd` ひとつ。テスト・中断セーブ・将来のリプレイが全てこの一点に乗る。
+状態の真実は `godot/domain/battle_state.gd` ひとつ。テスト・中断セーブ・将来のリプレイが全てこの一点に乗る。
 
 ---
 
@@ -109,7 +109,7 @@ res://
 
 #### CSV→データ生成のバリデーション（基本方針）
 
-CSV正本からデータを生成するツールは複数ある（`data/*/convert.gd`：terrain / units / ai / movement …＋共有 `csv_util`）。壊れた生成物がそのままゲームに載らないよう、十分なバリデーションを各変換ツール＋共有ユーティリティの必須責務とする。
+CSV正本からデータを生成するツールは複数ある（`godot/data/*/convert.gd`：terrain / units / ai / movement …＋共有 `csv_util`）。壊れた生成物がそのままゲームに載らないよう、十分なバリデーションを各変換ツール＋共有ユーティリティの必須責務とする。
 
 - 検出対象: 列の過不足／必須列の空セル／ドメイン外の値（未知ラベル・型不一致・範囲外）。
 - 欠損・不正はデータのバグとして扱い、開発時に落とす（`push_error`／`assert`／GUT 失敗）。生成時（convert 実行）・読込時（`*_catalog`）・テストのいずれかで必ず検出し、プレイヤーに届く経路では出さない。export 版で消える `assert` は runtime 保険として低コスト。

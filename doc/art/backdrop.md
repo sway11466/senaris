@@ -57,9 +57,9 @@ stay readable. A wide band, three times as wide as it is tall.
 
 | 段階 | 置き場（`{id}`＝ステージJSONの `backdrop` に書く名前） | 例 |
 |---|---|---|
-| ① AI生成（原寸） | `assets/backdrop-src/{id}/` に任意名で複数 | `backdrop-src/sky_overcast/sky_overcast_01_raw.jpg` |
-| SUBJECT | `assets/backdrop-src/{id}/{id}_prompt.txt` | `backdrop-src/sky_overcast/sky_overcast_prompt.txt` |
-| ② ゲーム用 | `assets/backdrop/{id}.png` | `backdrop/sky_overcast.png` |
+| ① AI生成（原寸） | `godot/assets/backdrop-src/{id}/` に任意名で複数 | `backdrop-src/sky_overcast/sky_overcast_01_raw.jpg` |
+| SUBJECT | `godot/assets/backdrop-src/{id}/{id}_prompt.txt` | `backdrop-src/sky_overcast/sky_overcast_prompt.txt` |
+| ② ゲーム用 | `godot/assets/backdrop/{id}.png` | `backdrop/sky_overcast.png` |
 
 ②は原画をそのまま置く（切り抜きも余白調整も要らない＝大小は窓が決める）。透過は使わない。
 
