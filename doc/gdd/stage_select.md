@@ -27,7 +27,7 @@
 
 ## 戦闘後フロー
 
-戦闘の決着（battle_finished）からの遷移。判断（次に遊べるステージの決定）は application（[campaign_progress.gd](../../application/campaign_progress.gd) の `next_playable_stage`）、画面の切り替えは presentation（[main.gd](../../presentation/main/main.gd)）が担う。
+戦闘の決着（battle_finished）からの遷移。判断（次に遊べるステージの決定）は application（[campaign_progress.gd](../../godot/application/campaign_progress.gd) の `next_playable_stage`）、画面の切り替えは presentation（[main.gd](../../godot/presentation/main/main.gd)）が担う。
 
 ```
 勝利 → クリア記録 → outro 会話（あれば・完走＆勝利絵ありなら盤に勝利イラストを敷いた前で読む）
@@ -44,7 +44,7 @@
   - マニフェスト順で直後のステージが存在する（最終ステージでない）
   - そのステージが locked でない（entitlement 等で止まりうる）
 - 満たさない場合はステージセレクトへ戻る。
-- 「キャンペーン完走」＝非デバッグ冒険譚の最終ステージ（マニフェスト順で次が無い）を勝利し、その冒険譚に勝利イラスト（`victory` スロット）が在るときは勝利イラストを出す。出す場所は outro 会話と同時で、盤エリアの内側（余白を取って会話パネルから離す）にアスペクト維持で置く＝絵の前で最後の会話をさせる。絵の外は黒帯で埋めない＝周りはマップが（暗幕越しに）見えたままにする。絵には縁取りを付ける＝隣の会話パネルと同じ彫り枠（`TavernTheme.signboard_frame`）を流用する。会話を読み切ると絵も一緒に退いてセレクトへ戻る。絵はクリックでは閉じない（進行役は会話）。outro 会話が無い冒険譚では従来どおり全画面で1枚挟む（クリック/キーで閉じてセレクトへ）。完走判定は素の `next_stage` が空か（`next_playable_stage` は locked でも空になり最終判定に使えない）。勝利絵の無い冒険譚は素通り。演出は [victory_screen.gd](../../presentation/victory/victory_screen.gd)、絵の方針・命名は [../art/keyvisual.md](../art/keyvisual.md)。
+- 「キャンペーン完走」＝非デバッグ冒険譚の最終ステージ（マニフェスト順で次が無い）を勝利し、その冒険譚に勝利イラスト（`victory` スロット）が在るときは勝利イラストを出す。出す場所は outro 会話と同時で、盤エリアの内側（余白を取って会話パネルから離す）にアスペクト維持で置く＝絵の前で最後の会話をさせる。絵の外は黒帯で埋めない＝周りはマップが（暗幕越しに）見えたままにする。絵には縁取りを付ける＝隣の会話パネルと同じ彫り枠（`TavernTheme.signboard_frame`）を流用する。会話を読み切ると絵も一緒に退いてセレクトへ戻る。絵はクリックでは閉じない（進行役は会話）。outro 会話が無い冒険譚では従来どおり全画面で1枚挟む（クリック/キーで閉じてセレクトへ）。完走判定は素の `next_stage` が空か（`next_playable_stage` は locked でも空になり最終判定に使えない）。勝利絵の無い冒険譚は素通り。演出は [victory_screen.gd](../../godot/presentation/victory/victory_screen.gd)、絵の方針・命名は [../art/keyvisual.md](../art/keyvisual.md)。
 - 敗北時は遷移しない。ターン終了を無効化して盤面を残す。再挑戦はシステムメニューのリスタート、離脱は同メニューのステージセレクトで行う。
 
 ## 冒険譚カード
@@ -93,7 +93,7 @@
 セレクト画面のビジュアルは「酒場に飾られた木の依頼ボード」。冒険譚＝羊皮紙の貼り紙、ステージ＝その各節、という見立て（冒険者への依頼／吟遊詩人の語る冒険譚）。
 
 - 方式は材質だけ画像・構造と光はコードのハイブリッド。木壁・ボード板・羊皮紙・汚しはテクスチャ、枠線・ランタン光・ビネット・焼き印スタンプはコードで載せる。画面まるごと1枚の背景にはしない（ボード寸法・ポスター枚数が動くため材質だけ焼く）。
-- テクスチャは autowire スロット（`assets/menu/{wall,board,parchment,grunge}.png`）。置けば材質に、無ければプロシージャル／ベタ塗りへフォールバック＝コード不変。実装は [../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd)。
+- テクスチャは autowire スロット（`assets/menu/{wall,board,parchment,grunge}.png`）。置けば材質に、無ければプロシージャル／ベタ塗りへフォールバック＝コード不変。実装は [../../presentation/select/tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd)。
 - 既存データをテーマ化＝クリア済み→「討伐済」スタンプ／難易度→危険度★（焼き印）。
 - 材質テクスチャの生成仕様（サイズ・シームレス条件・ナインパッチ縁幅・色味・インポート設定）→ [../art/menu.md](../art/menu.md)。
 
@@ -173,7 +173,7 @@ locked    … それ以外
 - ステージ JSON 本体（盤面）には手を入れない。進行・表示のメタはマニフェスト側に寄せる。
 - ステージ選択画面は「`data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
 - 戦闘画面用メタ: `emblem`（代表ユニットの skin_id を `{ "ally": …, "enemy": … }` で指定）。ターン板の左右の枠と、ターン切り替わりのバナーの立ち絵に使う（→ [uiux.md](uiux.md)）。冒険譚では必須（デバッグ用は省略してよい）。未指定でも壊れず、ターン板は左右の枠を出さずターン数だけ・バナーは絵なしで出る。
-- カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`desc`（説明文の翻訳キー／未指定は空＝説明なし）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
+- カード表示用メタ（任意）: `tier`（所属ボード tutorial/rookie/adept/veteran／未指定は rookie）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`desc`（説明文の翻訳キー／未指定は空＝説明なし）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd) が `assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
 
 ## 多言語化（i18n）
 
@@ -182,7 +182,7 @@ locked    … それ以外
 - 正本: `data/i18n/campaigns.csv`（`keys,ja,en` の3列）。ドメイン別に会話（`dialogue.csv`）と分ける。
 - キー規約: キャンペーンの短コード接頭辞（例 `t1`）＝会話キーと揃える。`t1.title`／`t1.desc`／`t1.stN.title`。
 - 生成物（Godot インポートが作る・git 追跡・手編集しない）: `campaigns.ja/en.translation`＋`campaigns.csv.import`。`project.godot` の `locale/translations` に登録。
-- キーは `.translation` 横断でグローバル＝CSV を分けても `tr()` は同じに解決する。CSV を足したら [test_i18n_translation.gd](../../tests/unit/test_i18n_translation.gd)（正本↔生成物の整合＝翻訳コミット漏れガード）の対象にも足す。
+- キーは `.translation` 横断でグローバル＝CSV を分けても `tr()` は同じに解決する。CSV を足したら [test_i18n_translation.gd](../../godot/tests/unit/test_i18n_translation.gd)（正本↔生成物の整合＝翻訳コミット漏れガード）の対象にも足す。
 - 生成物の仕組み・importer=keep の罠は CSV データパイプラインの方針に従う。
 
 ## デバッグステージ
@@ -216,10 +216,10 @@ domain（戦闘ロジック）には手を入れない。
 
 ## 画面の配線
 
-- **配線**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../presentation/victory/victory_screen.gd)・最終ステージ勝利で outro 会話に重ねて盤エリアに表示、outro が無ければ全画面）。
+- **配線**: 冒険譚マニフェスト（`data/stages/*/campaign.json`・[campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd)・title/desc(翻訳キー)/tier/difficulty/cover_path/card_path/victory_path を解決）／解放判定（[campaign_progress.gd](../../godot/application/campaign_progress.gd)・cleared のAND評価、entitlement は未充足扱い）／進捗セーブ（[progress_store.gd](../../godot/infrastructure/save/progress_store.gd)・`user://progress.json`・検証フォールバック付き）／セレクト画面（`presentation/select/`＝**2画面に分割**: [select_screen.gd](../../godot/presentation/select/select_screen.gd)（コーディネーター・CanvasLayer・背景と遷移）＞ [campaign_select.gd](../../godot/presentation/select/campaign_select.gd)（キャンペーン選択＝カード＝絵＋情報帯）／[stage_select.gd](../../godot/presentation/select/stage_select.gd)（ステージ選択＝左に扉絵＋右にステージ縦リスト）。起動時に表示、システムメニュー「ステージセレクト」で再表示）／勝利時のクリア記録・戦闘後の自動遷移判定（campaign_progress の `next_playable_stage`）・キャンペーン完走時の勝利イラスト（[victory_screen.gd](../../godot/presentation/victory/victory_screen.gd)・最終ステージ勝利で outro 会話に重ねて盤エリアに表示、outro が無ければ全画面）。
 - **難易度帯ボード**: tier カルーセル（`campaign_select.gd`）。◁▷で帯を繰る／空帯は準備中表示／Debug は先頭／ボード名は RockSalt。UI（矢印・ドット）は無機質グレー。
 - **絵**: 冒険譚1の扉絵（cover）あり・カード用クロップ（card）は未配置で cover にフォールバック中。
-- **依頼書**: 羊皮紙のダイアログ（[quest_sheet.gd](../../presentation/select/quest_sheet.gd)）＝ステージ名と「出撃する（右下）／別のステージを選ぶ（左下）」。出撃確認のワンクッションに徹する。左右の並びと文言の付け方は [uiux.md](uiux.md) ボタンの左右に従う。未解放の札を押したときは同じ紙を「まだ受けられない依頼」＋解放条件＋「閉じる」で出す（ステージ名は伏せたまま・出撃ボタンは出さない）。
+- **依頼書**: 羊皮紙のダイアログ（[quest_sheet.gd](../../godot/presentation/select/quest_sheet.gd)）＝ステージ名と「出撃する（右下）／別のステージを選ぶ（左下）」。出撃確認のワンクッションに徹する。左右の並びと文言の付け方は [uiux.md](uiux.md) ボタンの左右に従う。未解放の札を押したときは同じ紙を「まだ受けられない依頼」＋解放条件＋「閉じる」で出す（ステージ名は伏せたまま・出撃ボタンは出さない）。
 - dev用ステージセレクタ（presentation/dev/）は**削除済み**＝ステージ読み込みはセレクト（＋システムメニューのリスタート）に一本化。デバッグステージは `debug` 冒険譚（`debug:true`）としてセレクトに出す。
 
 ## 関連ドキュメント

@@ -23,7 +23,7 @@
 
 - picking は物理エンジン不使用＝マウスレイ∩盤平面(y=0) の交差計算。
 - ジオラマ演出: 盤外周のスカート（タイル平均色由来の断面＋縦グラデ＋粒状ノイズ）・足元のブロブシャドウ・暗い下地。
-- 実装は [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) に閉じる。公開API・シグナルは旧2D版と同一にし、main はノード差し替えのみ。
+- 実装は [../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd) に閉じる。公開API・シグナルは旧2D版と同一にし、main はノード差し替えのみ。
 
 ---
 
@@ -58,4 +58,4 @@
 ## 補足
 
 - 経緯: オブリークと3Dハイブリッドを別ブランチで両方実装し、実機比較のうえ決定（2026-07-07〜08）。
-- 検証手段: [../../tools/capture_board3d.gd](../../tools/capture_board3d.gd)（盤単体のスクショ＋picking 往復チェック）。盤いじりの回帰確認に今後も使う。
+- 検証手段: [../../tools/capture_board3d.gd](../../godot/tools/capture_board3d.gd)（盤単体のスクショ＋picking 往復チェック）。盤いじりの回帰確認に今後も使う。

@@ -10,8 +10,8 @@
 
 - 正本（このファイル）＝出所単位。ライセンスと義務を持つ。ひとつのバンドルから何本素材を取り出しても1行のまま。
 - 素材台帳＝素材単位。出典のファイル名・切り出し秒・音量・レシピといった、制作を再現するための情報を持つ。
-  - BGM → [../../assets/bgm-src/credits.md](../../assets/bgm-src/credits.md)（方針は [bgm.md](../audio/bgm.md)）
-  - 効果音 → [../../assets/sfx-src/credits.md](../../assets/sfx-src/credits.md)（方針は [sfx.md](../audio/sfx.md)）
+  - BGM → [../../assets/bgm-src/credits.md](../../godot/assets/bgm-src/credits.md)（方針は [bgm.md](../audio/bgm.md)）
+  - 効果音 → [../../assets/sfx-src/credits.md](../../godot/assets/sfx-src/credits.md)（方針は [sfx.md](../audio/sfx.md)）
 
 素材を足したら素材台帳に1行足す。出所そのものが新しく増えたときだけ、あわせて正本にも1行足す。
 

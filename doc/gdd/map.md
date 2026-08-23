@@ -59,7 +59,7 @@
 
 - 拠点は **守りに寄せた地形タイプ**（`fort`＝砦）として `terrain_type.csv` に持つ。攻は下げ、防は上げる（係数は CSV 参照）。移動は地上コスト1（普通に入れて占領できる）。
 - 見た目・地形補正・移動コストは既存の地形システムに乗る（[combat.md](combat.md) 地形効果／[movement.md](movement.md)）。占領・出撃・回復のロジックは地形とは別レイヤー（後述）で持つ。
-- **「占領可能な拠点かどうか」は地形ではなく `Base` の有無で判定する**（`state.base_at(hex)`）。地形 `fort`/`castle` は防御＋見た目だけで、`Base` とは**自動連動させずステージで重ねて配置する**【現状維持の方針】＝`Base` の無い fort は単なる防御地形、平地の上の `Base` も占領可。実装は [base.gd](../../domain/capture/base.gd)・`BattleState`。
+- **「占領可能な拠点かどうか」は地形ではなく `Base` の有無で判定する**（`state.base_at(hex)`）。地形 `fort`/`castle` は防御＋見た目だけで、`Base` とは**自動連動させずステージで重ねて配置する**【現状維持の方針】＝`Base` の無い fort は単なる防御地形、平地の上の `Base` も占領可。実装は [base.gd](../../godot/domain/capture/base.gd)・`BattleState`。
 
 ### 拠点の種類（kind）・所有者（team）・ユニットの陣営（native / recruited）
 

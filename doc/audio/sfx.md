@@ -305,7 +305,7 @@ ffmpeg -y -i "sonniss/magic_bolt__2026__WINDDsgn_....wav" -af "atrim=0.02:0.60,v
 MuseScore から書き出した `.wav` は、そのままでは使えない。`tools/gen_sfx.ps1` が2工程を処理する。
 
 ```
-powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
+powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 ```
 
 - 前後の無音を切る。MuseScore は譜面の長さぶん余白を付けるため、0.3秒の打撃音が3.5秒のファイルになる。末尾の無音は鳴り終わった後もプールの発音枠を占有し、先頭の無音は入力の遅れとして聞こえる。
@@ -349,7 +349,7 @@ powershell -File tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 血肉系（Gore）のライブラリも各年にあるが、作風に対して生々しすぎるため候補から外した。
 
-攻撃エフェクトの音。エフェクトIDは絵と音の共通キーなので、候補も [combat_effect.csv](../../data/effects/combat_effect.csv) の `effect_id` で並べる。
+攻撃エフェクトの音。エフェクトIDは絵と音の共通キーなので、候補も [combat_effect.csv](../../godot/data/effects/combat_effect.csv) の `effect_id` で並べる。
 
 | effect_id | 候補 | 場所 |
 |---|---|---|

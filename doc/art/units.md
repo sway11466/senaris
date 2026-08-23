@@ -30,7 +30,7 @@
 - 分類＝生き物のくくり。ゲームロジックは読まず、マップエディタのパレット絞り込みと図鑑用（`unit_skin.gd` に明記）。CSV の行順がそのままパレットの並びになるので、分類ごとに行を固めておく。
 - **色の単位は増やさない**。陣営色（[direction.md](direction.md) §2）を与えるのは、1つの冒険譚を丸ごと担当する陣営（ゴブリン・アンデッド）だけ。同じ盤に混在する敵（魔獣・亜人・悪党など）は「敵＝赤黒」で通し、区別は形とシルエットで付ける。色で割ると、どちらが敵かが読みにくくなる。
 
-- 味方: [player/style.md](../../assets/units-src/player/style.md)
+- 味方: [player/style.md](../../godot/assets/units-src/player/style.md)
 - 敵陣営は着手時に作成（例: ゴブリン → `source/goblin/style.md`）。
 
 敵陣営に共通する方針：
@@ -46,7 +46,7 @@
 
 ## 3. 制作スペック（サイズ・ワークフロー）
 
-盤面（[../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）はフラットトップ六角の3D（タイルは `TILE=1.0` ワールド単位）。2D時代の `hex_size=36`（px）は撤去済み：
+盤面（[../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)）はフラットトップ六角の3D（タイルは `TILE=1.0` ワールド単位）。2D時代の `hex_size=36`（px）は撤去済み：
 
 - 制作は地形タイル（256×222px＝R=128）と解像度を揃えるのが基準。実機の1マス表示pxはカメラのズーム（ロード時のオートフィット）と盤サイズ・画面解像度で変わり固定値は無い。実測（1280×720・オートフィット・盤中央）＝小盤 st1(14×8) で幅約66px、大盤 st6(30×10) で幅約32px（高さは幅の約0.7＝俯角ぶん縮む）。手動ズームインでさらに拡大。解像度が上がれば比例して大きくなる。
 
@@ -79,9 +79,9 @@
 2. 手動でトリミング＋背景透過 → `{skin_id}_03_master.png`（同フォルダ）。全身を入れる（翼の先・尻尾を画面外で切らない）。以降は自動でトリム・縮小されるので余白の量は問わないが、master で欠けた部分だけは後段のどの設定でも復元できない。
 3. ③を書き出す：
    ```
-   powershell -File tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
+   powershell -File godot\tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
    ```
-   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
 4. Godot 再実行 → `SkinCatalog` が `assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
 
 - ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
@@ -166,11 +166,11 @@ SUBJECT（生成プロンプト本体）の置き場：
 - ボス系：絵は1枚のまま「ボス＋手下」に見せる。隊列の中央が本人で、残りは従者＝別スキンの `combat` を借りる（例：ネクロマンサー＋スケルトン／ゾンビ）。指定は `unit_skin.csv` の `combat_lineup=retinue` ＋ `retainers` 列＝作画側の作業は無い。→ [../tech/combat_scene.md](../tech/combat_scene.md)
 - `single`（複製しない）を選ぶ基準は「その駒が群れないこと」。乗り物・兵器のほか、格の高い駒や大型の獣（レッドドラゴン・ワイアーム・トロール）も、8体並べると格が下がるので `single` にする。
 - 単体表示（`combat_lineup=single`・馬車／飛空艇／ドラゴン級）は複製せず1体だけ出る。作画の作りは同じ（1スキン1枚）だが、隣に自分のコピーが並ばないぶん1体で画が持つ必要がある。
-- 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。ただし戦闘シーンは地面を3Dで敷くため、流用する map の master は足元の影を消しておく（STYLE の `small soft ground shadow` を焼き込んだままにしない）。
+- 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../godot/presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。ただし戦闘シーンは地面を3Dで敷くため、流用する map の master は足元の影を消しておく（STYLE の `small soft ground shadow` を焼き込んだままにしない）。
 - 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `data/effects/combat_effect.csv`。→ §3.4
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
   - 作業ソース `assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
-  - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 704四方・下端揃え・透過」で書き出す（減色はしない）。キャンバス値は演出側の `combat_stage.gd` の `FIG_H`（正方キャンバスを画面上どれだけの高さで描くか）と対で、片方を変えたら同じ倍率でもう片方も直し、`all` で全員を書き出し直す。揃っていないと、同じ倍率でも画面上の大きさが変わる。書き出しは [`tools/gen_unit_combat.ps1`](../../tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
+  - ゲーム用 `assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 704四方・下端揃え・透過」で書き出す（減色はしない）。キャンバス値は演出側の `combat_stage.gd` の `FIG_H`（正方キャンバスを画面上どれだけの高さで描くか）と対で、片方を変えたら同じ倍率でもう片方も直し、`all` で全員を書き出し直す。揃っていないと、同じ倍率でも画面上の大きさが変わる。書き出しは [`tools/gen_unit_combat.ps1`](../../godot/tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
   - 倍率は `unit_skin.csv` の `combat_scale`（map の `map_scale` と対。今は同値だが、盤と戦闘で詰め方を変えられるよう列を分けてある）。相対サイズを担保しているのは固定キャンバスのほうで、演出側は全ユニットを同じ正方形に KEEP_ASPECT で描き、キャンバス下端を足元線に合わせる。トリムだけで書き出すと、どの駒も枠いっぱいに描かれて大小の差が消える。
   - 横に広い駒はキャンバス幅にも収める＝はみ出す代わりに縮む。
 - 生成順：combat は map と同じ生成セッションで一緒に出す（全スロットを一度に）。text アンカーだけでは既存キャラは再現できず、別セッションでは同一キャラにならないため（i2i は使わない方針＝[direction.md](direction.md) §3）。既存ユニットに後から足す場合は、そのユニットを map から作り直す。
@@ -248,7 +248,7 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 - 割り当ては `unit_skin.csv` の `combat_effect` 列（空＝既定のスパーク＝どのスキンが未整備か盤面で分かる）。定義は `data/effects/combat_effect.csv`。
 - キャラと違い、人・顔・背景は描かない。武器が当たった痕跡そのもの（斬り跡・矢・石・光）だけを、透過の1枚に描く。
 - 立ち絵と同じ絵柄に寄せる：フラットなセル塗り・限定色。細かい粒子・淡いグラデーション・強い発光は縮小で消えるか切り抜きが荒れるので使わない。
-- 例外＝靄・粉・煙のように、そもそも輪郭を持たないもの。この文法（輪郭線つきの平らな図形）で描かせると、必ず粒＝物体になる（胞子で豆・小石・スライムの塊と3回外した）。これに当たる効果は EFFECT STYLE から「輪郭線・平らなセル塗り・ぼかし禁止」の各行を外し、黒背景の上に柔らかい縁の靄として描いて、黒を輝度でアルファに変換する。[`tools/gen_effect.ps1`](../../tools/gen_effect.ps1) はトリムと縮小しかせずアルファをそのまま通すので、半透明の縁は最後まで残る（立ち絵で溶けるのは、白背景を手で切っているから）。
+- 例外＝靄・粉・煙のように、そもそも輪郭を持たないもの。この文法（輪郭線つきの平らな図形）で描かせると、必ず粒＝物体になる（胞子で豆・小石・スライムの塊と3回外した）。これに当たる効果は EFFECT STYLE から「輪郭線・平らなセル塗り・ぼかし禁止」の各行を外し、黒背景の上に柔らかい縁の靄として描いて、黒を輝度でアルファに変換する。[`tools/gen_effect.ps1`](../../godot/tools/gen_effect.ps1) はトリムと縮小しかせずアルファをそのまま通すので、半透明の縁は最後まで残る（立ち絵で溶けるのは、白背景を手で切っているから）。
 - 向きは「右へ向かう一撃」で統一して描く。左向きは演出側が水平反転するので描き分けない（`impact` も `projectile` も同じ規約）。飛ぶもの（`projectile`）は水平＝上下の傾きを付けない。被弾に重ねるもの（`impact`）は斜めに振ってよい（爪痕＝左上から右下、竜のブレス＝飛行から吹き下ろす）。
 - 味方とゴブリンが同じ絵を使うので、陣営色（青・赤）に寄せない中立色で描く。斬撃は銀白〜淡い水色。陣営が決まっているもの（聖光＝クレリック）は例外で、その陣営の色を使ってよい。
 - キャンバスいっぱいに描く（余白は最小）。ユニットと違い余白に大小を焼き込まない＝書き出しでトリムする。画面に出る大きさは `combat_effect.csv` の `scale` 列（1.0＝被弾側の立ち絵1体ぶん。絵の長辺が基準）で決めるので、斬撃（小）と（中）の差はこの数字で付ける。絵の側は弧の太さ・長さで質の差を出す。
@@ -278,7 +278,7 @@ in the subject) for easy cutout. Square 1:1 composition.
 - 向き。上の文は上下の傾きを禁じているが、これは飛ぶもの（`projectile`）の条項。`impact` は斜めに振ってよく、爪痕・竜のブレスは左上から右下に流している。
 - 色数。「2〜3色」は盤で小さく出る前提の数。竜のブレスは `single` 表示のボスが1発だけ出す絵で、大きく出るぶん階調が潰れないので5〜6色に増やしている。
 
-保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。書き出しは [`tools/gen_effect.ps1`](../../tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
+保管はユニットと同じ二層だが、スキンに属さないので置き場を分ける：作業ソース `assets/effects-src/{effect_id}/{effect_id}_01_raw.png` → `_03_master.png`（SUBJECT は `{effect_id}_prompt.txt`）、ゲーム用 `assets/effects/{effect_id}.png`。書き出しは [`tools/gen_effect.ps1`](../../godot/tools/gen_effect.ps1)（`{effect_id}` 複数可／`all`）＝トリムして長辺512に収めるだけ。
 
 `effect_id` は武器の種類を接頭辞にし、変種を接尾辞で足す（`slash_s` / `slash_m` / `slash_l`、`arrow` / `arrow_bone`）。並べたときに同じ武器種が固まり、変種が増えても列が散らない。
 
@@ -295,10 +295,10 @@ in the subject) for easy cutout. Square 1:1 composition.
 ## 参考資料
 
 - [direction.md](direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
-- [assets/units-src/player/style.md](../../assets/units-src/player/style.md) — 味方陣営の見た目ルール（役割の記号・個体特徴）
+- [assets/units-src/player/style.md](../../godot/assets/units-src/player/style.md) — 味方陣営の見た目ルール（役割の記号・個体特徴）
 - [overview.md](overview.md) — 画像スロット（`map`/`combat`）・プレースホルダ
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [../gdd/combat.md](../gdd/combat.md) — 対空機構（飛行の浮遊必須ルールの根拠）
 - [../campaign/tutorial1-goblin-raid.md](../campaign/tutorial1-goblin-raid.md) / [../campaign/tutorial2-undead-rush.md](../campaign/tutorial2-undead-rush.md) — 各陣営（§2 の根拠）
-- [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) — 盤面（3D・タイル敷き。`TILE=1.0` ワールド単位）
-- [`tools/gen_unit_map.ps1`](../../tools/gen_unit_map.ps1) — ③ゲーム用画像の書き出しツール
+- [../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd) — 盤面（3D・タイル敷き。`TILE=1.0` ワールド単位）
+- [`tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1) — ③ゲーム用画像の書き出しツール

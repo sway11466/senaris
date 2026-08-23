@@ -16,7 +16,7 @@
 
 ## 2. スロット（autowire）
 
-`assets/menu/{name}.png` を規約で自動解決する（[tavern_theme.gd](../../presentation/select/tavern_theme.gd) の `_tex`）。置けば材質に、無ければコードのプロシージャル／ベタ塗りへフォールバック＝ドロップイン（コード不変）。ユニットの skin 画像 autowire と同じ思想。
+`assets/menu/{name}.png` を規約で自動解決する（[tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd) の `_tex`）。置けば材質に、無ければコードのプロシージャル／ベタ塗りへフォールバック＝ドロップイン（コード不変）。ユニットの skin 画像 autowire と同じ思想。
 
 | name | 用途 | 敷き方 | 縁（ナインパッチ） | 未配置時のフォールバック |
 |---|---|---|---|---|
@@ -87,7 +87,7 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 | ③ ゲーム用（静止画・店内） | `assets/menu/room.png` | ②の最終コマを抜いたもの |
 
 - 動画は同じ MOTION でも生成のたびに結果が大きく振れる（人物の描き分け・位置の飛び）ので、複数 take を撮って選ぶ前提。take ごとに変種letter（`_a`/`_b`…）を付け、採用した1本だけを ③ に焼く。`door_open_prompt.txt` は採用 take を生成した文面に合わせる。
-- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`assets/menu/` に置くのは他のメニュー資産と並べるため。読むのは [../../presentation/title/title_screen.gd](../../presentation/title/title_screen.gd)。
+- ③ は材質ではないので `tavern_theme.gd` の autowire は拾わない。`assets/menu/` に置くのは他のメニュー資産と並べるため。読むのは [../../presentation/title/title_screen.gd](../../godot/presentation/title/title_screen.gd)。
 - タイトル画面の静止画は、元の1枚絵ではなく動画のコマを抜いて作る（扉＝②の1コマ目・店内＝②の最終コマ）。元絵から切り出しを再現しようとすると、生成側が行った縮小と一致せず（実測 PSNR 26.1 dB＝目に見えて違う）、動画と静止画が切り替わる瞬間に画がジャンプする。店内は動画の終わりでそのまま止まって見える必要があるので、必ず最終コマから焼く。
 - 動画の透かしは除去ツールが使えない。ツールは半透明オーバーレイを逆算する仕組みで、非可逆圧縮された動画では画素値が戻らないため。右下ごと切り落とす。
 - 透かしの大きさと位置は生成のたびに変わる（実測: ある take は 24px 角・右下から48px、別の take は 48px 角・右下から96px）。毎回コマを抜いて測ってから切り出し範囲を決める。16:9 を保つには、透かしの左端より内側で幅を決め、その幅から高さを割り出して左上を原点に切り、元の解像度へ戻す。
@@ -129,4 +129,4 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `assets/menu
 - [keyvisual.md](keyvisual.md) — 扉絵・キービジュアル（ILLUST STYLE の正本。タイトル画面の扉もこれに従う）
 - [terrain.md](terrain.md) — 地形タイル（反復対策・タイル材の作法の原型）
 - [../gdd/stage_select.md](../gdd/stage_select.md) — セレクト画面の設計（酒場の依頼ボード）
-- [../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd) — 材質スロットの autowire＋フォールバック実装
+- [../../presentation/select/tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd) — 材質スロットの autowire＋フォールバック実装

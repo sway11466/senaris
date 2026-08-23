@@ -19,8 +19,8 @@
 
 ユニットの性能・別名は **CSV正本** で管理（表はここに持たない）。
 
-- 性能（ステータス・移動・射程など）: [`data/units/unit_type.csv`](../../data/units/unit_type.csv)
-- 陣営別の名前（味方／敵の別ラベル）: [`data/units/unit_skin.csv`](../../data/units/unit_skin.csv)
+- 性能（ステータス・移動・射程など）: [`data/units/unit_type.csv`](../../godot/data/units/unit_type.csv)
+- 陣営別の名前（味方／敵の別ラベル）: [`data/units/unit_skin.csv`](../../godot/data/units/unit_skin.csv)
 
 生成・運用は下記「データ構成」を参照。
 

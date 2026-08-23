@@ -55,4 +55,4 @@
 - [backdrop.md](backdrop.md) — 奥の背景の方針（戦闘窓の水平線から上・BACKDROP STYLE）
 - [keyvisual.md](keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・透かし対策）
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
-- [`../../data/units/unit_type.csv`](../../data/units/unit_type.csv) / [`../../data/units/unit_skin.csv`](../../data/units/unit_skin.csv) — ロスター正本
+- [`../../data/units/unit_type.csv`](../../godot/data/units/unit_type.csv) / [`../../data/units/unit_skin.csv`](../../godot/data/units/unit_skin.csv) — ロスター正本

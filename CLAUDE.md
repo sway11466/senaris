@@ -19,6 +19,7 @@
 ## 技術スタック
 
 - **エンジン**: Godot 4（GDScript・型付き）。盤は3Dハイブリッド描画＝2Dアセット流用（[doc/adr/ADR-0003-board-3d-hybrid.md](doc/adr/ADR-0003-board-3d-hybrid.md)）。テストは GUT。
+- **配置**: Godot プロジェクトは `godot/`（`res://` はここ）。`doc/` と `channels/`（Steam・itch・サイトへ出す素材）はその外。
 - **レイヤー**: `presentation → application → domain → data` の一方向依存。`domain` / `data` は Godot ノード非依存（純ロジック）。詳細 → [doc/tech/architecture.md](doc/tech/architecture.md)
 - **配布**: まず Steam（PC）。モバイルは後回し。
 

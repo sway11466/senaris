@@ -94,9 +94,9 @@
 
 ### 確定した寸法
 
-生成スクリプトは `tools/logo/` に2本。[`trace_sword.py`](../../tools/logo/trace_sword.py) が剣の PNG を SVG のパスに変換し、[`build_logo.py`](../../tools/logo/build_logo.py) がそれとフォントからロゴ一式を組む。剣を描き直したくなったら、`sword_01_raw.png` を差し替えて2本を順に走らせる。値を変えて走らせれば SVG 一式が出る。
+生成スクリプトは `tools/logo/` に2本。[`trace_sword.py`](../../godot/tools/logo/trace_sword.py) が剣の PNG を SVG のパスに変換し、[`build_logo.py`](../../godot/tools/logo/build_logo.py) がそれとフォントからロゴ一式を組む。剣を描き直したくなったら、`sword_01_raw.png` を差し替えて2本を順に走らせる。値を変えて走らせれば SVG 一式が出る。
 
-SVG を PNG にするのは [`rasterize_svg.gd`](../../tools/rasterize_svg.gd)（[../tech/tools.md](../tech/tools.md)）。Godot 内蔵の SVG 読み込みを使うので、外部のラスタライザは要らない。タイルから文字と剣を抜くマスクも描ける。
+SVG を PNG にするのは [`rasterize_svg.gd`](../../godot/tools/rasterize_svg.gd)（[../tech/tools.md](../tech/tools.md)）。Godot 内蔵の SVG 読み込みを使うので、外部のラスタライザは要らない。タイルから文字と剣を抜くマスクも描ける。
 
 | 項目 | 値 |
 | --- | --- |

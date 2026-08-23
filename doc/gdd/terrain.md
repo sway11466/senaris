@@ -12,8 +12,8 @@
 
 | 層 | 正本 | 受け持ち |
 |---|---|---|
-| 地形タイプ | [terrain_type.csv](../../data/terrain/terrain_type.csv) | ルール。地形攻・地形防・視線コスト・移動コスト |
-| スキン | [terrain_skin.csv](../../data/terrain/terrain_skin.csv) | 見た目。絵・高さ・向きのばらし方・繋がり方 |
+| 地形タイプ | [terrain_type.csv](../../godot/data/terrain/terrain_type.csv) | ルール。地形攻・地形防・視線コスト・移動コスト |
+| スキン | [terrain_skin.csv](../../godot/data/terrain/terrain_skin.csv) | 見た目。絵・高さ・向きのばらし方・繋がり方 |
 
 マップに書く1文字が1タイプ。1つのタイプに複数のスキンがぶら下がり、ステージ側でマスごとに選べる。同じルールを別の舞台の絵で出せる＝尾根と花崗岩の尾根、平地と洞窟の床。
 

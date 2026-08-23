@@ -32,12 +32,12 @@
 
 ## メニューの見せ方
 
-操作の道具は酒場の物にしない。設定・マニュアル・クレジット・おわる は作中の誰の行為でもなく、アプリケーションの操作なので、木の板や看板に載せると無い物語を主張することになる。キャンペーンセレクトで繰り矢印と現在地ドットを無機質なグレーにしている（[campaign_select.gd](../../presentation/select/campaign_select.gd) の `DOT_COLOR`）のと同じ判断。逆に依頼ボードと貼り紙が酒場の物なのは、依頼を選ぶのが作中の行為だから（[stage_select.md](stage_select.md)）。
+操作の道具は酒場の物にしない。設定・マニュアル・クレジット・おわる は作中の誰の行為でもなく、アプリケーションの操作なので、木の板や看板に載せると無い物語を主張することになる。キャンペーンセレクトで繰り矢印と現在地ドットを無機質なグレーにしている（[campaign_select.gd](../../godot/presentation/select/campaign_select.gd) の `DOT_COLOR`）のと同じ判断。逆に依頼ボードと貼り紙が酒場の物なのは、依頼を選ぶのが作中の行為だから（[stage_select.md](stage_select.md)）。
 
 - 画面左半分の中央に、ボタンを縦一列で並べる＝列の中心は上下中央・左半分の左右中央。
 - その下に中立の暗幕を敷く。左端から右へ抜ける横グラデーション1枚で、木目も枠も持たない。ボタンの帯を絵から分けるためだけのもの。
 - 文字はボタン（不透明）の上に載るので、暗幕は文字の可読性のためではない。暗幕の濃さは絵を見せる度合いで決める。
-- ボタンはセレクト画面・会話パネル・HUD と同じ木の板（[tavern_theme.gd](../../presentation/select/tavern_theme.gd)）。これは酒場の再現ではなく「押せる物は木の板」という作品共通の様式。
+- ボタンはセレクト画面・会話パネル・HUD と同じ木の板（[tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd)）。これは酒場の再現ではなく「押せる物は木の板」という作品共通の様式。
 - 置き場は画面比で持つ。窓の大きさが変わっても絵に対する位置が動かない。
 
 ## タイトルロゴ
@@ -58,4 +58,4 @@
 - [../audio/bgm.md](../audio/bgm.md) — ざわめきとメニュー曲の受け渡し
 - [stage_select.md](stage_select.md) — 「新しい冒険譚」の先
 - [../tech/gamesystem.md](../tech/gamesystem.md) — 中断セーブ（「冒険の続き」が読むもの）
-- [../../presentation/title/title_screen.gd](../../presentation/title/title_screen.gd) — 実装
+- [../../presentation/title/title_screen.gd](../../godot/presentation/title/title_screen.gd) — 実装

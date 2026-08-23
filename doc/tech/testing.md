@@ -31,8 +31,8 @@
 GUT 9.7.0 を `addons/gut` に vendoring。対象は `.gutconfig.json` で指定（`tests/unit/` 配下・`test_*.gd`）。
 
 ```
-godot --headless --path . --import        # 初回・class_name 追加後
-godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json
+godot --headless --path godot --import        # 初回・class_name 追加後
+godot --headless --path godot -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json
 ```
 
 - 単一ファイルだけ回す場合は `-gtest=res://tests/unit/test_xxx.gd` を足す。

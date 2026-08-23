@@ -20,12 +20,12 @@ jobs:
           godot --version
 
       - name: Import project
-        run: godot --headless --path . --import
+        run: godot --headless --path godot --import
 
       # GUT はテスト失敗時に非0で終了するが、class_name 未インポート等の
       # 早期終了は exit 0 になるため、ログの成功マーカーも検査する
       - name: Run GUT
         shell: bash
         run: |
-          godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json 2>&1 | tee gut_output.log
+          godot --headless --path godot -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json 2>&1 | tee gut_output.log
           grep -q "All tests passed" gut_output.log

@@ -75,7 +75,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 
 経路は移動を実行する前に domain 側で引く（移動後は位置と残り移動力が変わり、同じ経路を復元できない）。ZOC で止まるマスは経由地にならない＝実際に歩ける道だけを返す。
 
-実装 → [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)（アニメ）・[../../domain/battle_state.gd](../../domain/battle_state.gd) `path_to`（経路）
+実装 → [../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)（アニメ）・[../../domain/battle_state.gd](../../godot/domain/battle_state.gd) `path_to`（経路）
 
 ---
 
@@ -91,7 +91,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 
 敵が多いターンは総時間が伸びる。速度設定と敵ターンのスキップは別途（→ [backlog](../backlog.md)）。
 
-実装 → [../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd) `focus_camera_on`
+実装 → [../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd) `focus_camera_on`
 
 ---
 
@@ -111,7 +111,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
   - 最終ランクに応じた**メダル**（S = 金・A = 銀・B = 銅）を出す。配置は実物を見て決める。
   - 印（ゴム印）とは重ねない。
 
-実装 → [../../presentation/ui/result_banner.gd](../../presentation/ui/result_banner.gd)（戦果票）・[../../presentation/main/main.gd](../../presentation/main/main.gd)（`_show_result`・決着フロー）・[../../presentation/select/tavern_theme.gd](../../presentation/select/tavern_theme.gd)（`stamp` ＝印影の共通部品）
+実装 → [../../presentation/ui/result_banner.gd](../../godot/presentation/ui/result_banner.gd)（戦果票）・[../../presentation/main/main.gd](../../godot/presentation/main/main.gd)（`_show_result`・決着フロー）・[../../presentation/select/tavern_theme.gd](../../godot/presentation/select/tavern_theme.gd)（`stamp` ＝印影の共通部品）
 
 ---
 
@@ -122,7 +122,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 - 画面全体に半透明の暗幕をかけ、会話パネルだけをその前面に残す（周りが沈んで会話に目が行く）。盤・ターン表示・HUD はまとめて暗くなる。
 - 暗幕はフェードで出し入れする（唐突に暗転しない）。会話が終われば盤が主役に戻る。
 
-実装 → [../../presentation/ui/screen_lighting.gd](../../presentation/ui/screen_lighting.gd)（画面の明暗の共通基盤。暗幕は会話・戦闘演出・陣形カットインで同じもの）・[../../presentation/main/main.gd](../../presentation/main/main.gd)（`_set_scrim`・会話フローで出し入れ）・[../../presentation/ui/conversation_panel.gd](../../presentation/ui/conversation_panel.gd)（会話パネル）
+実装 → [../../presentation/ui/screen_lighting.gd](../../godot/presentation/ui/screen_lighting.gd)（画面の明暗の共通基盤。暗幕は会話・戦闘演出・陣形カットインで同じもの）・[../../presentation/main/main.gd](../../godot/presentation/main/main.gd)（`_set_scrim`・会話フローで出し入れ）・[../../presentation/ui/conversation_panel.gd](../../godot/presentation/ui/conversation_panel.gd)（会話パネル）
 
 ---
 
@@ -292,7 +292,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 作品名を見せる場所として盤を選ぶ。プレイヤーがスクリーンショットを貼るのも、配信で映るのも盤面であって、タイトル画面ではない。名前と体験が結び付くのはここになる。逆にタイトル画面の扉の絵には重ねない（→ [title.md](title.md)）。
 
 - 絵は小サイズ版のロゴ（紋章＋文字。作りは [../art/promo.md](../art/promo.md) §1）。ゲーム用の書き出しは `assets/ui/logo.png`。
-- 置き場は情報ボックスの矩形から算出する（[ui_layout.gd](../../presentation/ui/ui_layout.gd) の `LOGO_H` / `LOGO_TOP`）＝ボックスを動かせばロゴも付いてくる。
+- 置き場は情報ボックスの矩形から算出する（[ui_layout.gd](../../godot/presentation/ui/ui_layout.gd) の `LOGO_H` / `LOGO_TOP`）＝ボックスを動かせばロゴも付いてくる。
 - 絵は透明な余白を含むので、実体の矩形だけを切り出して置く。右端そろえが余白のぶんずれないようにする（ターン板の胸像と同じ処理）。
 - 会話中も出したままにする（暗幕より前面）。盤を覆う演出（戦闘・ユニットスキル・完走の勝利イラスト）とセレクト・タイトルの画面では隠れる。
 
@@ -336,7 +336,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 
 上記の操作モデルを、実際の入力に落とした内訳:
 
-- **カメラ操作**（[../../presentation/board/hex_board_3d.gd](../../presentation/board/hex_board_3d.gd)）
+- **カメラ操作**（[../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)）
   - パン＝**2本指スクロール**、または**空き地から左ドラッグ**（左ドラッグはクリック／ドラッグをしきい値 `DRAG_THRESHOLD` で判別。ユニット上からのドラッグはパンしない）。
   - ズーム＝**ピンチ**（カーソル基点）。全体表示＝**F**。読み込み時に自動フィット。
   - **Windows トラックパッドのイベント実測（Godot 4.7）**: ピンチ＝`Ctrl＋ホイール`、2本指スクロール＝`修飾なしホイール`（縦=WHEEL_UP/DOWN・横=WHEEL_LEFT/RIGHT）で届く。**Ctrl の有無で判別**し、修飾なし＝パン／Ctrl付き＝ズームに割り当てている（ブラウザの zoom と同じ流儀）。
@@ -355,7 +355,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
   - **拠点の上に駒がいるときは、その駒のコマンドメニューに `出撃: 〈駒〉` が合流**する（駒の行動と拠点の操作は**セパレーターで区切って**表示。出撃＝garrison の行動なので上の駒が未行動でも出せる＝輸送の降車と同じ扱い）。拠点へ移動するその足でも出せる（保留移動を確定してから出撃モードへ）。
   - **右クリック＝キャンセル・戻る**（Esc と同じ＝メニュー→選択→出撃モードを1段ずつ解除）。出撃モード入りの役割は廃止。
   - 長押し（タッチのキャンセル）はタッチ対応で入れる。
-- **ターン終了ボタン＋システムメニュー**（[../../presentation/ui/hud.gd](../../presentation/ui/hud.gd)）
+- **ターン終了ボタン＋システムメニュー**（[../../presentation/ui/hud.gd](../../godot/presentation/ui/hud.gd)）
   - 永続HUD（`presentation/ui/hud.gd`）を main が常設。盤の入力を邪魔しないよう自身は素通し（ボタンだけ拾う）。
   - **ターン終了ボタン**（右下・常時表示）＝ Enter と同機能。**自ターンのみ有効**（AIターン・決着後は無効化）。
   - **⚙ システムメニュー**（歯車ボタン、または盤の**最上位 Esc**＝戻る対象が無い時に開く）: `リスタート`（現ステージ再読込）／`ステージセレクト`（[stage_select.md](stage_select.md)）／`セーブ`（中断スロット5枠の一覧。保存内容は自ターン開始時点の盤面）／`ロード`（オートセーブ＋中断スロット5枠の一覧）／`設定`（無効表示）／`閉じる`／デバッグビルドのみ `敵を殲滅`。

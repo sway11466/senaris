@@ -62,10 +62,10 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 書き出し:
 
 ```
-powershell -File tools\gen_ui_icon.ps1 charge      # 複数可 / all で全アイコン
+powershell -File godot\tools\gen_ui_icon.ps1 charge      # 複数可 / all で全アイコン
 ```
 
-輝度からアルファを起こして背景を抜き（暗いほど透明・しきい値は6〜20%）、余白をトリムして128px四方に収める（[`../../tools/gen_ui_icon.ps1`](../../tools/gen_ui_icon.ps1)）。色は動かさない。抜いたあとは木の色に載せて拡大し、輪郭に黒い縁（ハロー）が残っていないかを見る。
+輝度からアルファを起こして背景を抜き（暗いほど透明・しきい値は6〜20%）、余白をトリムして128px四方に収める（[`../../tools/gen_ui_icon.ps1`](../../godot/tools/gen_ui_icon.ps1)）。色は動かさない。抜いたあとは木の色に載せて拡大し、輪郭に黒い縁（ハロー）が残っていないかを見る。
 
 ---
 
@@ -76,4 +76,4 @@ powershell -File tools\gen_ui_icon.ps1 charge      # 複数可 / all で全ア�
 - [menu.md](menu.md) — メニュー画面の材質（木の看板・羊皮紙）
 - [../gdd/uiux.md](../gdd/uiux.md) — 情報パネル（アイコンの出る場所）
 - [../gdd/ai.md](../gdd/ai.md) — 特性（アイコンにする対象）
-- [`../../tools/gen_ui_icon.ps1`](../../tools/gen_ui_icon.ps1) — 書き出しツール
+- [`../../tools/gen_ui_icon.ps1`](../../godot/tools/gen_ui_icon.ps1) — 書き出しツール
