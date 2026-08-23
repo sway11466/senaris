@@ -95,7 +95,7 @@
 ### 販売・ブランド — `sales/`
 
 - [doc/sales/monetization.md](doc/sales/monetization.md) — 体験版/製品版・DLC・有料データ保護・販売チャネル
-- [doc/sales/marketing.md](doc/sales/marketing.md) — マーケティング（届ける相手・素材の方針＝8要素それぞれの仕事・英語の本文の正本・素材の置き場・チャネルの方針）
+- [doc/sales/marketing.md](doc/sales/marketing.md) — マーケティング（届ける相手・素材の方針＝要素ごとの仕事・英語の本文の正本・素材の置き場・チャネルの方針）
 - [doc/sales/credits.md](doc/sales/credits.md) — クレジット・第三者権利の正本（ライセンス別の一覧・クレジット画面に出すもの・ビルドから外すもの）
 - [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) — タイトル名「Senaris」の決定
 - [doc/sales/site.md](doc/sales/site.md) — 公式サイト senaris.in（役割・ページ・言語・素材・配信構成・ドメイン運用）
