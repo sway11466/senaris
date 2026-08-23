@@ -35,7 +35,7 @@
 | `gen_terrain_tiles.gd` | 地形タイルのプレースホルダ（ベタ塗りヘックス）を生成する | `godot --headless --script res://tools/gen_terrain_tiles.gd` | [../art/terrain.md](../art/terrain.md) |
 | `logo/trace_sword.py` | 剣の黒シルエット PNG を SVG のパスに変換する（溝・柄頭の輪・巻きの隙間は穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_sword.py` | [../art/logo.md](../art/logo.md) |
 | `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣を刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版と、開発元名を足した起動スプラッシュ版を書き出す | `uv run --no-project --with fonttools python tools/logo/build_logo.py` | [../art/logo.md](../art/logo.md) |
-| `keyvisual/build_keyvisual.py` | キービジュアルを組む（ロゴの盤常設版と赤竜の立ち絵を地の上に置く。4倍で組んでから縮小）。寸法・配置は `SPECS` に段ごとに持つ | `uv run --no-project --with pillow python tools/keyvisual/build_keyvisual.py` | [../sales/marketing.md](../sales/marketing.md) |
+| `keyvisual/build_keyvisual.py` | キービジュアルを組む。小＝ロゴの盤常設版と赤竜の立ち絵を地の上に置く（4倍で組んでから縮小、寸法は `SPECS`）／中＝生成した1枚絵にフル版ロゴを重ねる（位置は `M_SPEC`。ロゴの PNG は `rasterize_svg.gd` で SVG から焼いた中間物） | `uv run --no-project --with pillow python tools/keyvisual/build_keyvisual.py` | [../sales/marketing.md](../sales/marketing.md) |
 | `rasterize_svg.gd` | SVG を PNG にする（Godot 内蔵の ThorVG。マスクも描ける） | `godot --headless --script res://tools/rasterize_svg.gd -- <in.svg> <out.png> [倍率]` | [../art/menu.md](../art/menu.md) |
 
 ループ長は `gen_bgm.ps1` が `.mscz` から算出する（小節数×1小節の拍数÷テンポ）。繰り返し記号やアウフタクトのある譜面はこの式が当たらないので、その時だけ `-LoopSec` で秒数を渡す。

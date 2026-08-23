@@ -1,14 +1,21 @@
 """Senaris のキービジュアルを組む。
 
-素材はロゴ（盤の常設版＝小サイズ版・暗背景の PNG）と赤竜のユニット立ち絵。
-どちらも既にある絵をそのまま置くだけで、絵そのものには手を入れない。
+段によって組み方が違う。
+- S … 素材（ロゴの盤常設版と赤竜のユニット立ち絵）を地の上に並べて作る。
+      4倍で組んでから縮小する＝縮小のたびに輪郭がなまらないようにするため。
+      寸法は SPECS に持つ。段を増やすときはここに足す。
+- M … 生成した1枚絵（keyvisual_m_01_raw.jpg）にフル版ロゴを重ねるだけ。
+      寸法は M_SPEC に持つ。
 
-いまは S（Steam の小カプセル 231x87）だけ。段を増やすときは SPECS に足す。
-4倍で組んでから縮小する＝縮小のたびに輪郭がなまらないようにするため。
+どちらも既にある絵をそのまま置く。絵そのものには手を入れない。
+
+LOGO_FULL_PNG は SVG から焼いた中間物。作り直すときは
+  godot --headless --script res://tools/rasterize_svg.gd --       res://assets/promo-src/logo/logo_dark.svg <出力先> 2
 """
 from PIL import Image, ImageDraw
 
-LOGO_PNG = "assets/ui/logo.png"
+LOGO_PNG = "assets/ui/logo.png"  # 盤の常設版＝小サイズ版・暗背景
+LOGO_FULL_PNG = "assets/promo-src/logo/logo_dark_2x.png"  # フル版・暗背景
 DRAGON_PNG = "assets/units/red_dragon/red_dragon_combat.png"
 OUT_DIR = "assets/promo-src/keyvisual"
 
@@ -24,6 +31,14 @@ SPECS = {
     "s": dict(frame=(231, 87), logo_h=0.60, logo_x=8, dragon_h=204, dragon_xy=(110, -10)),
 }
 
+# M: 元絵, ロゴの幅（元絵の幅に対する比）, ロゴの左上（元絵の左上からの px）。
+# 元絵は左40%・上半分を空けて生成してある（keyvisual_m_prompt.txt）＝そこに置く。
+M_SPEC = dict(
+    src="assets/promo-src/keyvisual/keyvisual_m_01_raw.jpg",
+    logo_w=0.40,
+    logo_xy=(65, 50),
+)
+
 
 def _background(w, h):
     im = Image.new("RGBA", (w, h))
@@ -37,6 +52,10 @@ def _background(w, h):
 
 def _fit_h(im, h):
     return im.resize((max(1, round(im.width * h / im.height)), h), Image.LANCZOS)
+
+
+def _fit_w(im, w):
+    return im.resize((w, max(1, round(im.height * w / im.width))), Image.LANCZOS)
 
 
 def build(size):
@@ -61,6 +80,18 @@ def build(size):
         "%s/keyvisual_%s.png" % (OUT_DIR, size))
 
 
+def build_m():
+    im = Image.open(M_SPEC["src"]).convert("RGBA")
+
+    logo = Image.open(LOGO_FULL_PNG).convert("RGBA")
+    logo = logo.crop(logo.getbbox())  # 余白を落として、寸法をロゴの実体で測る
+    logo = _fit_w(logo, round(im.width * M_SPEC["logo_w"]))
+    im.alpha_composite(logo, M_SPEC["logo_xy"])
+
+    im.convert("RGB").save("%s/keyvisual_m.png" % OUT_DIR)
+
+
 if __name__ == "__main__":
     for size in SPECS:
         build(size)
+    build_m()

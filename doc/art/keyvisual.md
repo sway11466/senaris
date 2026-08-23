@@ -18,6 +18,8 @@
 
 生成方式は共通のアンカー方式（[direction.md](direction.md) §3）。この ILLUST STYLE を先頭に付け、続けて各冒険譚の `cover_prompt.txt` を貼る（ユニットと同じ）。
 
+ストア用キービジュアルに使うときは、末尾の「主題を中央に据える」「4:3」の2文を外す。ロゴを載せる面を空けるために構図を指定するので、そのままだと衝突する。
+
 ILLUST STYLE（共通・固定）:
 ```
 STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game,
