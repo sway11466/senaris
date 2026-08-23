@@ -96,6 +96,7 @@
 - [doc/sales/marketing.md](doc/sales/marketing.md) — マーケティング（届ける相手＝英語圏・伝達の役割分担・カプセル画像・棚選び／タグ・短い説明文）
 - [doc/sales/credits.md](doc/sales/credits.md) — クレジット・第三者権利の正本（ライセンス別の一覧・クレジット画面に出すもの・ビルドから外すもの）
 - [doc/sales/naming_decision_senaris.md](doc/sales/naming_decision_senaris.md) — タイトル名「Senaris」の決定
+- [doc/sales/site.md](doc/sales/site.md) — 公式サイト senaris.in（役割・ページ・言語・素材・配信構成・ドメイン運用）
 
 ### 意思決定記録 — `adr/`
 
@@ -103,3 +104,4 @@
 - [doc/adr/ADR-0002-paid-data-protection.md](doc/adr/ADR-0002-paid-data-protection.md) — 有料データの保護（署名＋pck 暗号化）
 - [doc/adr/ADR-0003-board-3d-hybrid.md](doc/adr/ADR-0003-board-3d-hybrid.md) — 盤面の描画を3Dハイブリッド（傾けたカメラ＋2Dアセット）に
 - [doc/adr/ADR-0004-logo-typeface-ofl.md](doc/adr/ADR-0004-logo-typeface-ofl.md) — ロゴの書体を OFL のフォントから選ぶ（EB Garamond）
+- [doc/adr/ADR-0005-site-hosting-cloudflare-workers.md](doc/adr/ADR-0005-site-hosting-cloudflare-workers.md) — サイトの配信に Cloudflare Workers を使う
