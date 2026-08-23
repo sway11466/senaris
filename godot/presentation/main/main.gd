@@ -705,7 +705,7 @@ func _on_slot_chosen(slot: String) -> void:
 func _write_slot(slot: String) -> void:
 	_saves.save_slot(slot, _turn_snapshot, _snapshot_meta())
 	_hud.set_load_available(true)  # 以後ロード可能に
-	$Front/InfoPanel.notify("セーブしました")  # 一時通知は右パネルへ（上端の情報バーは廃止）
+	$Front/InfoPanel.notify(tr("ui.info.saved"))  # 一時通知は右パネルへ（上端の情報バーは廃止）
 
 ## 選ばれた枠から再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
 ## タイトルから来た場合はここでタイトルを畳む＝盤へ直行する。

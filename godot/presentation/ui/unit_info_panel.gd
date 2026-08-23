@@ -12,17 +12,21 @@ class_name UnitInfoPanel
 ## グループの区切り線。改行だけで離すと「どこまでが同じ話か」が読めないので線を引く。
 const SEPARATOR := "──────────────────────"
 const NONE := "—"
-const IMPASSABLE_TEXT := "不可"  # 進入不可（movement.csv の x）の表示
 const TAB_MIN_W := 96.0  # タブ1枚の最低幅（戦闘レポートと同じ考え方）
 ## 項目名の欄の幅。タブをまたいで同じ値を使う＝どのタブでも値の頭が同じ位置に並ぶ。
 ## 空白で桁合わせしないのは、看板のフォントが等幅でないため（文字数を数えても揃わない）。
-const LABEL_W := 88.0
+## 英語の項目名（`Atk vs Ground` ＝ 110px）が入る幅を採る。超えると欄が押し広げられ、
+## その行だけ値の頭がずれる。値の欄は 432 − 112 − 8 ＝ 312px 残り、最長の値（包囲の
+## 説明つき係数 ＝ 286px）が折り返さずに入る。
+const LABEL_W := 112.0
 const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
 const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
 
-## タブ＝[id, 見出し]。id は _tab_lines の分岐と合わせる。
-const TABS := [["ability", "能力"], ["status", "状態"], ["terrain", "地形"]]
+## タブ＝[id, 見出しの翻訳キー]。id は _rebuild_rows の分岐と合わせる。
+## 見出しは const に置けない（tr() は実行時）ので、キーだけ持って _ready で引く。
+const TABS := [["ability", "ui.info.tab_ability"], ["status", "ui.info.tab_status"],
+	["terrain", "ui.info.tab_terrain"]]
 
 ## 特性アイコン（`{特性id}.png`）。ユニット画像と同じ規約解決で、在れば出す・無ければ文字だけ。
 const AI_ICON_DIR := "res://assets/ui/ai/"
@@ -108,7 +112,7 @@ func _ready() -> void:
 	box.add_child(_tabs_row)
 	var group := ButtonGroup.new()
 	for t in TABS:
-		var b := TavernTheme.wood_button(String(t[1]))
+		var b := TavernTheme.wood_button(tr(String(t[1])))
 		b.toggle_mode = true
 		b.button_group = group
 		b.add_theme_font_size_override("font_size", 14)
@@ -332,8 +336,21 @@ func _on_tab_pressed(id: String) -> void:
 	if _shown_unit >= 0:
 		show_unit(_shown_unit)
 
+## 未選択の案内。1行1項目の箇条書きなので行ごとにキーを立てる（翻訳CSVに改行を持たせない）。
+## 空行は言語の話ではないのでここで持つ。
 func clear() -> void:
-	_show_text("ユニット未選択\n\n盤上のユニットを左クリックで選択\n空きマスをクリックで地形を確認\n\n［操作］\nEnter＝ターン終了\n2本指スクロール／空き地ドラッグ＝移動\nピンチ＝ズーム\nF＝全体表示")
+	_show_text("\n".join([
+		tr("ui.info.help_no_selection"),
+		"",
+		tr("ui.info.help_select_unit"),
+		tr("ui.info.help_inspect_tile"),
+		"",
+		tr("ui.info.help_controls"),
+		tr("ui.info.help_end_turn"),
+		tr("ui.info.help_pan"),
+		tr("ui.info.help_zoom"),
+		tr("ui.info.help_fit"),
+	]))
 
 ## 一時的な通知（セーブ完了など）。数秒だけ出して未選択表示へ戻す。
 ## 上端の情報バーを廃した代わりの置き場（doc/gdd/uiux.md「ターン表示」）。
@@ -345,18 +362,29 @@ func notify(text: String, seconds := 2.5) -> void:
 	if _notify_token == token and is_inside_tree():
 		clear()  # 後から別の表示に切り替わっていれば（token 不一致）何もしない
 
-## 空きマスの地形情報を表示（拠点なら控え＝garrison も一覧）。HexBoard.tile_inspected を受ける。
+## 空きマスの地形情報を表示（拠点なら控えも一覧）。HexBoard.tile_inspected を受ける。
 func show_terrain(hex: Vector2i) -> void:
-	if _state == null:
+	if _state == null or _rows == null:
 		clear()
 		return
-	_show_text(_format_terrain(hex))
+	_enter_text_view()
+	_build_terrain_lines(hex)
+	_page = 0
+	_render()
 
-## 素のテキスト表示（未選択・通知・地形）。見出しとタブは引っ込める＝ユニット専用の器なので。
-## 1行ずつに割ってから積む＝長い地形の説明もページャーで送れる（表示の仕組みはタブと共通）。
+## 素のテキスト表示（未選択・通知）。見出しとタブは引っ込める＝ユニット専用の器なので。
+## 1行ずつに割ってから積む＝長い案内もページャーで送れる（表示の仕組みはタブと共通）。
 func _show_text(text: String) -> void:
 	if _rows == null:
 		return
+	_enter_text_view()
+	for line in text.split("\n"):
+		_add_full_row(line)
+	_page = 0
+	_render()
+
+## 幅いっぱいの行だけを出す器にする（見出しとタブを引っ込め、中身を空にする）。
+func _enter_text_view() -> void:
 	if _report != null:
 		_report.hide()
 	_shown_unit = -1
@@ -365,16 +393,12 @@ func _show_text(text: String) -> void:
 	_content.show()
 	_pager.show()
 	_items = []
-	for line in text.split("\n"):
-		_add_full_row(line)
-	_page = 0
-	_render()
 
 ## グループの切れ目。線の上に余白を1行取り、下は空けない＝線をその下のグループの見出し罫として
 ## 読ませる。板の高さは決め打ち（UiLayout.RIGHT_BOX）で、上下に空けると素の駒でも入りきらない。
-static func _add_separator(lines: Array[String]) -> void:
-	lines.append("")
-	lines.append(SEPARATOR)
+func _add_separator() -> void:
+	_add_full_row("")
+	_add_full_row(SEPARATOR)
 
 ## そのマスの地形の表示名。ステージの見た目差分があればスキン名（「墓標の荒れ地」）、
 ## 無ければ地形タイプの既定スキン名（「荒地」）。盤に見えている絵と同じ言葉にする。
@@ -382,36 +406,45 @@ func _terrain_name(hex: Vector2i, type_id: String) -> String:
 	var skin := TerrainSkinCatalog.resolve(String(_terrain_skins.get(hex, "")), type_id)
 	return skin.name if skin != null else type_id
 
-func _format_terrain(hex: Vector2i) -> String:
+func _build_terrain_lines(hex: Vector2i) -> void:
 	var terr := _state.terrain_at(hex)
-	var lines: Array[String] = []
-	lines.append("【地形】 %s" % _terrain_name(hex, terr))
-	lines.append("")
-	lines.append("攻撃補正  ×%.2f" % TerrainType.attack_factor(terr))
-	lines.append("防御補正  ×%.2f" % TerrainType.defense_factor(terr))
+	_add_head_row(tr("ui.info.terrain_head") % _terrain_name(hex, terr))
+	_add_full_row("")
+	_add_full_row("%s  ×%.2f" % [tr("ui.info.atk_mod"), TerrainType.attack_factor(terr)])
+	_add_full_row("%s  ×%.2f" % [tr("ui.info.def_mod"), TerrainType.defense_factor(terr)])
 
-	_add_separator(lines)
-	lines += _movement_cost_lines(terr)
+	_add_separator()
+	_add_head_row(tr("ui.info.move_cost_head"))
+	for line in _movement_cost_lines(terr):
+		_add_full_row(line)
 
 	# 控えは体数ぶん伸びる（24体の拠点もある）ので最後に置く。行数の決まっている地形の話を
 	# 先に出し切る＝はみ出すとしても控えの尻尾だけにする。
 	var b := _state.base_at(hex)
-	if b != null:
-		_add_separator(lines)
-		var owner := "中立" if b.team < 0 else ("自軍" if b.team == 0 else "敵軍")
-		var kind_name := "本拠地" if b.is_hq() else "拠点"
-		lines.append("【%s】 所属:%s" % [kind_name, owner])
-		if b.garrison.is_empty():
-			lines.append("控え  なし")
-		else:
-			lines.append("控え  %d体" % b.garrison.size())
-			for gu in b.garrison:
-				lines.append("  ・%s" % _garrison_line(gu, b))
-	return "\n".join(lines)
+	if b == null:
+		return
+	_add_separator()
+	var kind_name := tr("ui.info.hq") if b.is_hq() else tr("ui.info.base")
+	_add_head_row(tr("ui.info.base_head") % [kind_name, _team_text(b.team)])
+	if b.garrison.is_empty():
+		_add_full_row("%s  %s" % [tr("ui.info.reserves"), tr("ui.info.reserves_none")])
+	else:
+		_add_full_row("%s  %s" % [tr("ui.info.reserves"),
+			tr("ui.info.reserves_count") % b.garrison.size()])
+		for gu in b.garrison:
+			_add_full_row(tr("ui.info.reserves_bullet") % _garrison_line(gu, b))
 
-## そのマスへの進入コストの一覧（見出し＋移動タイプ1行ずつ）。並びは movement.csv の行順で、
-## 常に全移動タイプを出す＝行の並びがステージやマスで変わらない。仕様 → doc/gdd/uiux.md
+## 陣営の表示名。拠点の所有者（中立あり）に使う。
+func _team_text(team: int) -> String:
+	if team < 0:
+		return tr("ui.info.team_neutral")
+	return tr("ui.info.team_ally") if team == 0 else tr("ui.info.team_enemy")
+
+## そのマスへの進入コストの一覧（移動タイプ1行ずつ。見出しは呼ぶ側が置く）。並びは
+## movement.csv の行順で、常に全移動タイプを出す＝行の並びがステージやマスで変わらない。
+## 仕様 → doc/gdd/uiux.md
 ## 項目名の欄は全角スペースで詰める（看板のフォントは等幅でないが、和文グリフは同幅なので揃う）。
+## 移動タイプ名を英語にすると桁合わせが崩れる＝表示名の i18n（backlog feature-72）と同時に直す。
 ## 2列の行ではなく1行のテキストにしているのは、ユニットの地形タブと空きマスの表示で
 ## 同じ字面を使うため。ページ割りは1行ずつなので、途中で切れても次のページへ続く。
 func _movement_cost_lines(terrain_id: String) -> Array[String]:
@@ -423,9 +456,9 @@ func _movement_cost_lines(terrain_id: String) -> Array[String]:
 		var c := Movement.cost(table, mt, terrain_id)
 		var nm := Movement.display_name(mt)
 		names.append(nm)
-		values.append(IMPASSABLE_TEXT if c == Movement.IMPASSABLE else str(c))
+		values.append(tr("ui.info.impassable") if c == Movement.IMPASSABLE else str(c))
 		w = maxi(w, nm.length())
-	var out: Array[String] = ["【移動コスト】"]
+	var out: Array[String] = []
 	for i in names.size():
 		out.append("%s%s  %s" % [names[i], "　".repeat(w - names[i].length()), values[i]])
 	return out
@@ -435,14 +468,15 @@ func _garrison_line(gu: Unit, b: Base) -> String:
 	var team_for_skin := gu.team if gu.team >= 0 else (b.team if b.team >= 0 else 0)
 	var sk := SkinCatalog.resolve(_skins, gu.skin_id, gu.type_id, team_for_skin)
 	var nm := sk.name if sk != null else gu.type_id
-	return "%s  兵%d/%d  Lv%d" % [nm, gu.troops, gu.max_troops, gu.level]
+	return tr("ui.info.reserves_line") % [nm, gu.troops, gu.max_troops, gu.level]
 
 ## タブの上に据え置く見出しを組み直す。仕様 → doc/gdd/uiux.md ユニット情報パネル
 ## 2行目は敵＝部隊名／自軍＝兵種。敵に兵種を出さないのはリスキン元（種別）が透けるため。
 func _update_header(u: Unit) -> void:
 	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)
 	var unit_name := skin.name if skin != null else u.type_id
-	_header_name.text = "%s （%s）" % [unit_name, "自軍" if u.team == 0 else "敵軍"]
+	var team_name := tr("ui.info.team_ally") if u.team == 0 else tr("ui.info.team_enemy")
+	_header_name.text = tr("ui.info.header_name") % [unit_name, team_name]
 	var sub := ""
 	if u.team == 0:
 		sub = UnitCatalog.display_category(u.type_id)  # 項目名は付けない（敵の部隊名と同じ扱い）
@@ -466,7 +500,7 @@ func _squad_name(u: Unit) -> String:
 	var n := _state.squad_index_of(u.id) + 1
 	if typeof(order) == TYPE_INT or typeof(order) == TYPE_FLOAT:
 		n = int(order)
-	return "第%d部隊" % n
+	return tr("ui.info.squad_n") % n
 
 ## 特性の欄（敵だけ）。アイコンは在れば出す＝未制作でも文字だけで成立する。
 func _update_ai(u: Unit) -> void:
@@ -518,86 +552,93 @@ func _add_row(label: String, value: String) -> void:
 func _add_full_row(text: String) -> void:
 	_items.append(_full_item(text))
 
-## 全幅1行の行データ。区切り線・その上の空行・【…】の見出しには、ページの末尾に
-## 取り残さない印（keep）を付ける＝入らなければ見出しごと次のページへ送られる。
+## 幅いっぱいの見出し行（【地形】など）。ページの末尾に取り残さない印を明示的に付ける。
+func _add_head_row(text: String) -> void:
+	_items.append({"t": "full", "text": text, "keep": true})
+
+## 全幅1行の行データ。区切り線とその上の空行には、ページの末尾に取り残さない印（keep）を
+## 付ける＝入らなければ次のページへ送られる。見出しは字面では見分けない（言語ごとに飾りが
+## 変わり、日本語の【…】だけを見ると英語で印が付かなくなる）＝_add_head_row で明示する。
 static func _full_item(text: String) -> Dictionary:
-	var keep := text.is_empty() or text == SEPARATOR or text.begins_with("【")
+	var keep := text.is_empty() or text == SEPARATOR
 	return {"t": "full", "text": text, "keep": keep}
 
 ## 能力＝駒そのものの性能（盤の状況で変わらない値）。
 func _build_ability(u: Unit) -> void:
-	_add_row("兵数", "%d / %d" % [u.troops, u.max_troops])
-	_add_row("Lv", str(u.level))
-	_add_row("対地攻撃", str(u.unit_attack))
-	_add_row("対空攻撃", str(u.atk_air) if u.atk_air > 0 else NONE)
-	_add_row("防御", str(u.unit_defense))
-	_add_row("移動", str(u.move))
-	_add_row("移動種別", Movement.display_name(u.move_type))
-	_add_row("射程", str(u.attack_range) if u.min_range == u.attack_range \
+	_add_row(tr("ui.info.strength"), "%d / %d" % [u.troops, u.max_troops])
+	_add_row(tr("ui.info.level"), str(u.level))
+	_add_row(tr("ui.info.atk_ground"), str(u.unit_attack))
+	_add_row(tr("ui.info.atk_air"), str(u.atk_air) if u.atk_air > 0 else NONE)
+	_add_row(tr("ui.info.defense"), str(u.unit_defense))
+	_add_row(tr("ui.info.move"), str(u.move))
+	_add_row(tr("ui.info.move_type"), Movement.display_name(u.move_type))
+	_add_row(tr("ui.info.range"), str(u.attack_range) if u.min_range == u.attack_range \
 		else "%d-%d" % [u.min_range, u.attack_range])
 	# 特性は「他の行を見ても分からないこと」だけ並べる。飛行は「移動種別」、遠隔・近接不可は
 	# 「射程」がそのまま示すので置かない（同じことを二度書かない）。詳細 → doc/gdd/units.md
 	var traits: Array[String] = []
 	if u.pierce > 0.0:
-		traits.append("防御貫通%d%%" % roundi(u.pierce * 100.0))  # 魔法兵50%＝相手の防御を半分無視
+		# 魔法兵50%＝相手の防御を半分無視
+		traits.append(tr("ui.info.trait_pierce") % roundi(u.pierce * 100.0))
 	if u.can_capture:
-		traits.append("占領可")
+		traits.append(tr("ui.info.trait_capture"))
 	if u.move_after_attack:
-		traits.append("攻撃後再移動")
+		traits.append(tr("ui.info.trait_move_after_attack"))
 	for t in traits:
-		_add_row("特性", t)
+		_add_row(tr("ui.info.trait"), t)
 
 ## 状態＝このターン何ができるか＋いま効いているバフ・デバフ。
 ## 包囲は地形ではなく「隣の敵に囲まれて弱っている」＝デバフなのでここに置く。
 func _build_status(u: Unit) -> void:
-	_add_row("行動", _action_state(u))
-	_add_full_row("")
-	_add_full_row(SEPARATOR)
+	_add_row(tr("ui.info.action"), _action_state(u))
+	_add_separator()
 	var mods := _state.status_mods_for(u)
 	var surround := Surround.factor(_state, u)
 	if mods.is_empty() and surround >= 1.0:
-		_add_row("補正", "なし")
+		_add_row(tr("ui.info.modifier"), tr("ui.info.modifier_none"))
 		return
 	# 表記は戦闘レポートと共通＝名前 攻/防 の順。残りは「掛けた側のターンがあと何回で切れるか」
 	# （敵ターンを跨いでも減らない＝BattleState._expire_status_mods）。
 	for m in mods:
-		_add_row("補正", "%s  残り%d" % [CombatReportView.status_text(m), int(m.get("remaining", 0))])
+		_add_row(tr("ui.info.modifier"), tr("ui.info.modifier_remaining") \
+			% [CombatReportView.status_text(m), int(m.get("remaining", 0))])
 	if surround < 1.0:
-		_add_row("包囲", "×%.2f（攻防とも弱体化）" % surround)
+		_add_row(tr("ui.info.encircled"), tr("ui.info.encircled_value") % surround)
 
 ## 地形＝いるマスの影響（拠点に乗っていればその情報も）。
 func _build_terrain(u: Unit) -> void:
 	var terr := _state.terrain_at(u.pos)
-	_add_row("地形", _terrain_name(u.pos, terr))
-	_add_row("攻撃補正", "×%.2f" % TerrainType.attack_factor(terr))
-	_add_row("防御補正", "×%.2f" % TerrainType.defense_factor(terr))
-	_add_full_row("")
-	_add_full_row(SEPARATOR)
+	_add_row(tr("ui.info.terrain"), _terrain_name(u.pos, terr))
+	_add_row(tr("ui.info.atk_mod"), "×%.2f" % TerrainType.attack_factor(terr))
+	_add_row(tr("ui.info.def_mod"), "×%.2f" % TerrainType.defense_factor(terr))
+	_add_separator()
+	_add_head_row(tr("ui.info.move_cost_head"))
 	for line in _movement_cost_lines(terr):
 		_add_full_row(line)
-	# 控えは体数ぶん伸びるので最後（_format_terrain と同じ順序）。
+	# 控えは体数ぶん伸びるので最後（_build_terrain_lines と同じ順序）。
 	var b := _state.base_at(u.pos)
 	if b == null:
 		return
-	_add_full_row("")
-	_add_full_row(SEPARATOR)
-	_add_row("本拠地" if b.is_hq() else "拠点",
-		"中立" if b.team < 0 else ("自軍" if b.team == 0 else "敵軍"))
-	_add_row("控え", "%d体" % b.garrison.size())
+	_add_separator()
+	_add_row(tr("ui.info.hq") if b.is_hq() else tr("ui.info.base"), _team_text(b.team))
+	_add_row(tr("ui.info.reserves"), tr("ui.info.reserves_count") % b.garrison.size())
 	for gu in b.garrison:
-		_add_full_row("  ・%s" % _garrison_line(gu, b))
+		_add_full_row(tr("ui.info.reserves_bullet") % _garrison_line(gu, b))
 
 ## 行動状態の短い説明。
 func _action_state(u: Unit) -> String:
 	if not _state.is_current_unit(u):
-		return "ターン外"
+		return tr("ui.info.act_awaiting_turn")
 	if _state.is_done(u.id):
-		return "行動完了"
+		return tr("ui.info.act_done")
 	if _state.is_stuck(u.id):
-		return "行き止まり"  # 行動は残っているが動く先も撃つ相手も無い（陣形には参加できる）
+		# 行動は残っているが動く先も撃つ相手も無い（陣形には参加できる）
+		return tr("ui.info.act_stuck")
 	var parts: Array[String] = []
-	parts.append("移動可" if _state.can_still_move(u.id) else "移動済")
-	parts.append("攻撃可" if not _state.has_attacked(u.id) else "攻撃済")
+	parts.append(tr("ui.info.act_can_move") if _state.can_still_move(u.id) \
+		else tr("ui.info.act_moved"))
+	parts.append(tr("ui.info.act_can_attack") if not _state.has_attacked(u.id) \
+		else tr("ui.info.act_attacked"))
 	return " / ".join(parts)
 
 # --- 戦闘結果ビュー（攻撃時に右パネルへ）。detail は BattleState.attack の "detail"。---

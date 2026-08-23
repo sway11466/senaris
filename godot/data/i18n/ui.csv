@@ -13,3 +13,59 @@ ui.hud.save,セーブ,Save
 ui.hud.load,ロード,Load
 ui.hud.settings,設定,Settings
 ui.hud.close,閉じる,Close
+ui.info.tab_ability,能力,Stats
+ui.info.tab_status,状態,Status
+ui.info.tab_terrain,地形,Terrain
+ui.info.header_name,%s （%s）,%s (%s)
+ui.info.team_ally,自軍,Ally
+ui.info.team_enemy,敵軍,Enemy
+ui.info.team_neutral,中立,Neutral
+ui.info.squad_n,第%d部隊,Squad %d
+ui.info.strength,兵数,Strength
+ui.info.level,Lv,Lv
+ui.info.atk_ground,対地攻撃,Atk vs Ground
+ui.info.atk_air,対空攻撃,Atk vs Air
+ui.info.defense,防御,Defense
+ui.info.move,移動,Move
+ui.info.move_type,移動種別,Move Type
+ui.info.range,射程,Range
+ui.info.trait,特性,Trait
+ui.info.trait_pierce,防御貫通%d%%,Ignores %d%% Defense
+ui.info.trait_capture,占領可,Can Capture Bases
+ui.info.trait_move_after_attack,攻撃後再移動,Move After Attack
+ui.info.action,行動,Action
+ui.info.act_awaiting_turn,ターン外,Awaiting Turn
+ui.info.act_done,行動完了,Done
+ui.info.act_stuck,行き止まり,No Moves or Targets
+ui.info.act_can_move,移動可,Can Move
+ui.info.act_moved,移動済,Moved
+ui.info.act_can_attack,攻撃可,Can Attack
+ui.info.act_attacked,攻撃済,Attacked
+ui.info.modifier,補正,Modifier
+ui.info.modifier_none,なし,None
+ui.info.modifier_remaining,%s  残り%d,%s  %d turns left
+ui.info.encircled,包囲,Encircled
+ui.info.encircled_value,×%.2f（攻防とも弱体化）,×%.2f (attack and defense weakened)
+ui.info.terrain,地形,Terrain
+ui.info.atk_mod,攻撃補正,Atk Mod.
+ui.info.def_mod,防御補正,Def Mod.
+ui.info.terrain_head,【地形】 %s,[ Terrain ]  %s
+ui.info.move_cost_head,【移動コスト】,[ Move Cost ]
+ui.info.impassable,不可,Impassable
+ui.info.hq,本拠地,HQ
+ui.info.base,拠点,Base
+ui.info.base_head,【%s】 所属:%s,[ %s ]  Owner: %s
+ui.info.reserves,控え,Reserves
+ui.info.reserves_none,なし,None
+ui.info.reserves_count,%d体,%d
+ui.info.reserves_bullet,"  ・%s","  • %s"
+ui.info.reserves_line,%s  兵%d/%d  Lv%d,%s  %d/%d  Lv%d
+ui.info.help_no_selection,ユニット未選択,No unit selected
+ui.info.help_select_unit,盤上のユニットを左クリックで選択,Left-click a unit on the board to select it
+ui.info.help_inspect_tile,空きマスをクリックで地形を確認,Click an empty hex to check its terrain
+ui.info.help_controls,［操作］,[ Controls ]
+ui.info.help_end_turn,Enter＝ターン終了,Enter — End Turn
+ui.info.help_pan,2本指スクロール／空き地ドラッグ＝移動,Two-finger scroll / drag empty ground — Pan
+ui.info.help_zoom,ピンチ＝ズーム,Pinch — Zoom
+ui.info.help_fit,F＝全体表示,F — Fit whole board
+ui.info.saved,セーブしました,Saved
