@@ -65,9 +65,14 @@ res://
 │   └── formations/ terrain/ themes/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
 ├── infrastructure/
 │   ├── save/          # 直列化(進捗＋中断)
-│   └── platform/      # Steam連携
+│   └── platform/      # 外界との境界: チャネル・版の識別(build_info)／所有権チェック／Steam連携
+├── assets/            # ゲームに載る素材。<種別>-src は元素材で .gdignore（Godotの走査外）
+│   └── licenses/      # 配布物に添えるライセンス文
+├── tools/             # 開発ツール（build/ にビルド一式）
 └── tests/             # GUT(主にdomain対象)
 ```
+
+`tools/` `tests/` と収録しない冒険譚の素材は配布ビルドに入らない。何が入るかの決め方は [build.md](build.md)。
 
 ---
 

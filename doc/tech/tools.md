@@ -2,7 +2,7 @@
 
 `godot/tools/` に置いた開発用の道具の索引。使い方と仕様は、その道具が仕える doc にある。ここは「何があるか・どう起動するか・詳細はどこか」だけを持つ。仕様をここに書き足すと各 doc と食い違うので書かない。
 
-ツールを足したらここに1行足す。製品ビルドには含めない（export preset の除外対象 → [../backlog.md](../backlog.md)）。
+ツールを足したらここに1行足す。配布ビルドには含めない（除外の設定 → [build.md](build.md)）。
 
 ## 画面ツール（Godot のシーン）
 
@@ -38,6 +38,16 @@
 | `rasterize_svg.gd` | SVG を PNG にする（Godot 内蔵の ThorVG。マスクも描ける） | `godot --headless --script res://tools/rasterize_svg.gd -- <in.svg> <out.png> [倍率]` | [../art/menu.md](../art/menu.md) |
 
 ループ長は `gen_bgm.ps1` が `.mscz` から算出する（小節数×1小節の拍数÷テンポ）。繰り返し記号やアウフタクトのある譜面はこの式が当たらないので、その時だけ `-LoopSec` で秒数を渡す。
+
+## ビルド
+
+配布ビルドを作る道具。設計と手順は [build.md](build.md)。
+
+| ツール | 何をする道具か | 起動 | 詳細 |
+|---|---|---|---|
+| `build/build.ps1` | 配布ビルドを作る（エクスポート → ライセンス文を添える → 出力の中身を一覧） | `powershell -File godot	oolsuilduild.ps1 <プリセット名>` | [build.md](build.md) |
+| `build/gen_export_filters.gd` | 収録リスト（`build/contents.json`）から必要な素材を導出し、除外フィルタを `export_presets.cfg` へ書き出す。落としたものの一覧も出す | `godot --headless --path godot --script res://tools/build/gen_export_filters.gd` | [build.md](build.md) |
+| `build/gen_licenses.gd` | 配布物に添えるライセンス文を組む（Godot のライセンスAPI＋素材の隣の LICENSE／NOTICE）。書き出し先は `assets/licenses/` | `godot --headless --path godot --script res://tools/build/gen_licenses.gd` | [build.md](build.md) |
 
 ## 使い捨ての検証スクリプト
 

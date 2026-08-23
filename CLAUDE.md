@@ -66,6 +66,7 @@
 - [doc/tech/development.md](doc/tech/development.md) — 開発の進め方（仕様駆動・何が錨か・変更の順序・ドリフト検出）
 - [doc/tech/tools.md](doc/tech/tools.md) — 開発ツール索引（`godot/tools/` の画面ツール・生成スクリプト・起動方法）
 - [doc/tech/architecture.md](doc/tech/architecture.md) — レイヤー／モジュール構成・依存ルール
+- [doc/tech/build.md](doc/tech/build.md) — 配布ビルド（プリセット・チャネルと版の識別・同梱物の決め方・ビルドの手順）
 - [doc/tech/gamesystem.md](doc/tech/gamesystem.md) — ゲームシステム仕様（セーブ ほか）
 - [doc/tech/combat_scene.md](doc/tech/combat_scene.md) — 戦闘演出シーン（左右固定・兵数→隊列・シェイク/フラッシュ/攻撃エフェクト）
 - [doc/tech/testing.md](doc/tech/testing.md) — テスト方針（目的・レイヤー別の線引き・運用・実行方法）
