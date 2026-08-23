@@ -97,6 +97,15 @@
 - 背景：`unit_skin.csv` の `name` 列（66エントリ："クレリック"・"ゴブリン"・"馬車"等）が日本語直書きで、マップ・戦闘・ポートレートのラベルに表示される。英語環境でも日本語名がそのまま出る。旧 feature-12 の分割。
 - 対応：`godot/data/i18n/units.csv` を新設し、規約キー `unit.{skin_id}.name` で表示名を解決。`UnitSkin` の表示名参照を `tr()` 経由に差し替え。データCSVの `name` 列は開発用メモに降格。`project.godot` に `.translation` を登録。`test_i18n_translation.gd` の検出範囲に追加。
 - 該当：`godot/data/i18n/units.csv`（新規）・`godot/data/units/unit_skin.gd`・`project.godot`・`godot/tests/unit/test_i18n_translation.gd`。
+- 英訳（決定済み。方針＝D&D準拠＋英語圏ファンタジーの一般名称）：
+  - 味方：cleric=Cleric / priest=Priest / bishop=Bishop / paladin=Paladin / archer=Archer / hunter=Ranger（日本語名もレンジャーに変更予定・別バックログ） / elf=Elf / slinger=Slinger / mage=Mage / wizard=Wizard / witch=Witch / thief=Thief / halfling=Halfling / ninja=Ninja / kunoichi=Kunoichi / pixie=Pixie / pegasus=Pegasus / birdman=Birdfolk / novice=Novice / fighter=Fighter / vanguard=Vanguard / samurai=Samurai / knight=Knight / dwarf=Dwarf / magic_knight=Arcane Knight / sorcerer=Sorcerer / sniper=Marksman / warlord=Warlord / wagon=Wagon / airship=Airship / barricade=Barricade / ballista=Ballista
+  - 敵ゴブリン：goblin=Goblin / hobgoblin=Hobgoblin / goblin_archer=Goblin Archer / goblin_lord=Goblin Lord
+  - 敵アンデッド：skeleton=Skeleton / zombie=Zombie / skeleton_archer=Skeleton Archer / ghoul=Ghoul / dullahan=Dullahan / ghost=Ghost / wraith=Wraith / necromancer=Necromancer
+  - 敵オーク：orc=Orc / orc_leader=Orc Warchief / orc_mage=Orc Shaman
+  - 敵魔獣：griffon=Griffon / chimera=Chimera / harpy=Harpy / dire_wolf=Dire Wolf / rock_serpent=Rock Serpent / wyrm=Wyrm / scorpion=Giant Scorpion / troll=Troll
+  - 敵植物：treant=Treant / matango=Myconid / mandragora=Mandragora
+  - 敵その他：red_dragon=Red Dragon / mimic=Mimic / slime=Slime
+  - 敵悪党：rogue=Bandit / rogue_axe=Thug / rogue_slinger=Bandit Slinger / rogue_head=Bandit Captain / rogue_wagon=Bandit Wagon
 
 ### feature-71
 
