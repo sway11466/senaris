@@ -32,8 +32,11 @@ and must contain NOTHING but plain empty sky. No smoke, no smoke column, no
 lightning, no arrow, no wing, no rock, no mountain, no ember, no bright cloud, no
 character, no part of any character. Not even a wisp. Everything in the picture
 is arranged around this empty rectangle: if an element would reach into it, move
-that element down or to the right until it is clear of it. Treat it as a solid
-block of sky that the composition is built around.
+that element down or to the right until it is clear of it. The rectangle is an
+instruction to you, not something to draw: the sky inside it is the same
+continuous sky as everywhere else, with the same colors and the same gradient. Do
+not lighten it, tint it, outline it or set it off in any way — as a region it must
+be invisible.
 
 1. UPPER LEFT — the reserved area above. Deep slate-blue dusk sky, flat and
    almost featureless, blending softly with no visible boundaries. Any volcanic
@@ -53,30 +56,39 @@ block of sky that the composition is built around.
    - FIGHTER: front-most, nearest the dragon, feet planted, braced low, sword
      raised across his body to shield the others behind him. He is NOT attacking
      the dragon.
-   - ELF: just behind the fighter, bow drawn and loosed upward to the right at the
-     dragon. Her arrow is an ordinary arrow — a plain dark wooden shaft with grey
-     feather fletching and a steel head, with NO glow, NO light trail and NO
-     sparks. It flies on a low, shallow line toward the dragon's chest.
-   - WIZARD: behind and left of the elf, staff raised in both hands. From the
-     crystal on his staff a bolt of pale blue-white lightning leaps out — a
-     jagged, branching arc of electricity, clearly magic and clearly NOT an
-     arrow. It leaves the staff heading RIGHT toward the dragon's head, climbing
-     above the arrow's path. The bolt travels only to the right — it never
-     reaches up or back to the left, and never enters the reserved area.
+   - ELF: behind the fighter but standing clear of him, her bow drawn and AIMED
+     STRAIGHT AT THE DRAGON — the bow, the nocked arrow and her line of sight all
+     point up and to the right, directly at the dragon's head. She is not aiming
+     level or off into empty sky. The arrow is still NOCKED on the string and has
+     NOT been released — nothing is flying through the air. Both of her arms are
+     fully visible and in front of the fighter, never hidden behind him: the bow
+     arm extended toward the dragon with a clear shoulder, elbow and forearm and
+     the hand closed around the grip; the drawing arm bent at the elbow, elbow
+     pointing back, the hand at the string beside her cheek with the fingers
+     hooked on it. Her bow and arrow are plain dark wood and steel, with NO glow
+     and NO light trail.
+   - WIZARD: behind and left of the elf, staff raised in both hands. A MAGIC BOLT
+     has just left the crystal on his staff and flies toward the dragon: a
+     compact oval orb of pale blue-white energy with a brighter white core and a
+     darker blue outline, with two or three short straight speed lines trailing
+     behind it. It is a dense projectile — NOT lightning, NOT a jagged electric
+     arc, NOT a beam, NOT a fireball, NOT a cloud of particles. It travels to the
+     RIGHT toward the dragon's head, staying below the dragon and clear of the
+     reserved area.
    - THIEF: at the far left edge of the frame, crouched low behind a rock with her
      daggers ready, watching the sky. She is NOT attacking.
-   The arrow and the lightning are two separate things travelling on two clearly
-   separated paths. They never touch, cross, overlap or merge into one streak,
-   and neither one turns into the other.
+   The wizard's magic bolt is the only thing flying through the air. There is no
+   arrow in flight anywhere in the picture.
 
 4. FOREGROUND — cracked black volcanic rock with thin veins of glowing orange
    lava and low smoke.
 
 LIGHT: the scene is dark, cool and dim overall. The only warm light is the
-dragon's throat glow and the lava veins underfoot. The wizard's lightning is the
-one cool bright accent in the sky; the arrow stays dark and unlit.
+dragon's throat glow and the lava veins underfoot. The wizard's magic bolt is the
+one cool bright accent in the sky.
 
 FORBIDDEN: no barrier, no dome, no shield bubble, no protective magic circle or
-wall of any kind — nothing is blocking the dragon. No straight-edged shadow,
+wall of any kind — nothing is blocking the dragon. No lightning and no electric
+arcs anywhere in the picture. No straight-edged shadow,
 wedge or light shaft cutting across the sky or across the dragon. Nothing at all
 in the reserved upper-left rectangle. No text, no title, no logo.

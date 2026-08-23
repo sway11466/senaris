@@ -35,7 +35,7 @@ SPECS = {
 # 元絵は左40%・上半分を空けて生成してある（keyvisual_m_prompt.txt）＝そこに置く。
 M_SPEC = dict(
     src="assets/promo-src/keyvisual/keyvisual_m_01_raw.jpg",
-    logo_w=0.40,
+    logo_w=0.36,
     logo_xy=(65, 50),
 )
 
