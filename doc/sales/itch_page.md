@@ -71,6 +71,13 @@ Hex-grid fantasy tactics with no RNG and no unit production: you win with the sq
 
 ## 更新のたびにやること
 
-- ビルドを push する。
+- 収録する冒険譚とビルドの版番号を上げ、ビルドを作る（[../tech/build.md](../tech/build.md)）。
+- 起動して確かめてから push する。作ることと出すことは分ける。
+
+  ```
+  butler push build/windows-itch-demo craftkobo/senaris:windows-demo --userversion <版番号>
+  ```
+
+  channel（`windows-demo`）はアップロード枠の名前で、ビルドに埋める刻印とは別物。
 - 本文の `About this demo` に、増えた冒険譚を反映する（正本＝[marketing.md](marketing.md)、貼るのは上の HTML 版）。
 - devlog を1本書く（[itch_devlog.md](itch_devlog.md)）。

@@ -57,7 +57,8 @@ var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（台�
 var _conversation_phase := ""  # "intro"/"outro"/"event"/""＝いま流している会話フェーズ
 
 func _ready() -> void:
-	print("Senaris booted.")
+	# 刻印はタイトル画面にも出すが、ログの1行目にも置く＝報告にログが添えられたとき版が分かる。
+	print("Senaris booted. build=%s" % BuildInfo.stamp())
 	_skins = SkinCatalog.load_standard()
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。

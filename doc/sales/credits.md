@@ -15,6 +15,8 @@
 
 素材を足したら素材台帳に1行足す。出所そのものが新しく増えたときだけ、あわせて正本にも1行足す。
 
+ライセンス文の同梱が義務の素材を足したときは、素材の隣に `<名前>-LICENSE.txt`（全文）と `<名前>-NOTICE.txt`（著作権表記）を置く。配布物に添える `THIRD-PARTY-LICENSES.txt` はこの2本を規約で拾って組む（[../tech/build.md](../tech/build.md)）。
+
 表の列の意味は次のとおり。
 
 - 頒布：製品ビルドに含まれるか。「含む」＝ファイルそのものが入る。「出力を含む」＝製品は入らないが、それで作ったものが入る。「道具」＝制作に使うだけで製品には入らない。「除外」＝リポジトリにはあるが製品ビルドから外す。
@@ -38,7 +40,9 @@
 | Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・クリア済みの印 | 含む | ライセンス文の同梱と著作権表記 | `godot/assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
 | OpenCV | 画像処理スクリプト | 道具 | なし | |
 
-Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[backlog.md](../backlog.md) feature-10）。
+Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[../tech/build.md](../tech/build.md)）。
+
+配布する Apache License 2.0 の全文は著作権者名がテンプレートのままなので、著作権表記は `RockSalt-NOTICE.txt` が持つ。
 
 ### SIL Open Font License
 
@@ -103,7 +107,7 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 - Google Gemini。AI 生成の開示はストア側の手続きが本体だが、画面にも出す
 - 制作に使った道具（MuseScore Studio・Inkscape・FFmpeg・ImageMagick・NumPy・Pillow・OpenCV・fontTools）。義務は無いが、本書冒頭の方針（義務が無い製品も載せる）を画面にも通す。義務のある表記と混ざらないよう末尾にまとめ、一段小さく置く
 
-Godot はライセンス全文を画面に載せる。`Engine.get_license_text()` の中身をそのまま流す＝ MIT の「ライセンス文の表示」を画面だけで満たせる（同梱ファイル `THIRD-PARTY-LICENSES.txt` は配布ビルドの話で、[backlog.md](../backlog.md) feature-10 待ち）。長いのでスクロールする領域に入れる。
+Godot はライセンス全文を画面に載せる。`Engine.get_license_text()` が Godot 本体の MIT、`Engine.get_license_info()` と `Engine.get_copyright_info()` が同梱している第三者の分を持つ。画面に流せば「ライセンス文の表示」を画面だけで満たせる。長いのでスクロールする領域に入れる。配布物に添えるファイルのほうは [../tech/build.md](../tech/build.md)。
 
 ## ストアページに出すもの
 
@@ -111,8 +115,9 @@ Godot はライセンス全文を画面に載せる。`Engine.get_license_text()
 
 ## 製品ビルドから外すもの
 
-次は開発専用で、製品ビルドに含めない。含めてしまうとそれぞれのライセンス義務が発生する。除外の設定は [backlog.md](../backlog.md) feature-10。
+次は開発専用で、製品ビルドに含めない。含めてしまうとそれぞれのライセンス義務が発生する。除外の設定は [../tech/build.md](../tech/build.md)。
 
 - `godot/addons/gut/`（GUT 本体と同梱フォント）
 - `godot/tools/`（自作の開発ツール一式）
-- デバッグ用ステージ（`godot/data/stages/debug*/`）
+- `godot/tests/`（テスト一式）
+- デバッグ用ステージ（`godot/data/stages/debug*/` と対応する `godot/assets/campaign/`）

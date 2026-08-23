@@ -34,13 +34,16 @@
 
 ### feature-10
 
-**製品ビルドの中身を整える（開発用アセットの除外・ライセンス文の同梱）**（優先度：中）
+**配布ビルドを作れる状態にする**（優先度：中）
 
-- 背景：`godot/tools/`（戦闘計算シミュレータ combat_sim ほか自作ツール一式）・デバッグ用ステージ（`godot/data/stages/debug*/`）・`godot/addons/gut/`（テストフレームワーク）は開発専用で、製品ビルドに含めるべきでない。現状 export preset が未作成のため除外設定もされておらず、このままビルドすると同梱される。GUT は本体（MIT）と同梱フォント（OFL）を抱えているので、含めたままだと不要な表記義務まで背負う（[credits.md](sales/credits.md)）。
-- 背景（同梱側）：逆に、含めなければならないものが落ちる。RockSalt（Apache 2.0）はライセンス文の同梱が義務だが、`godot/assets/fonts/RockSalt-LICENSE.txt` は Godot がリソースとして扱わない素のファイルで、非リソースファイルのフィルタに指定しない限り pck に入らない。フォント本体（`.ttf`）は `.fontdata` に変換されて入るので、フォントだけ入ってライセンス文が無い、という一番まずい形になる。
-- 対応（除外）：export preset の非公開フィルタ（除外パターン）に `godot/tools/`・デバッグステージのパス・`godot/addons/gut/` を加える。あわせてデバッグステージが実行時参照（ステージセレクトのマニフェスト／カタログ）に載らないことも確認する。
-- 対応（同梱）：ビルド出力（exe と同じ階層＝Steam のデポにそのまま上がる場所）に `THIRD-PARTY-LICENSES.txt` を置く。中身は [credits.md](sales/credits.md) の義務がある行から起こす。preset の非リソースフィルタで pck に入れる手も取れるが、`export_presets.cfg` は `.gitignore` されていて preset を作り直すたびに設定が消え、消えたことに気づけないので、そちらには頼らない。exe の隣なら pck を解凍せずに読める利点もある。
-- 該当：`export_presets.cfg`（新規）・`godot/tools/`・`godot/data/stages/debug*/`・`godot/addons/gut/`・ステージ一覧の参照箇所・`doc/sales/credits.md`（同梱する文面の出どころ）。関連＝feature-54（ライセンスの裏取り）。着手の引き金＝配布ビルドを作るとき（parking lot「Steam 配布の段取り」と連動）。
+- 背景：エクスポートプリセットが無いため、実行ファイルを1つも作れない。itch のプロジェクトページの公開は、遊べる実体を置けることが関門になっている（[itch_page.md](sales/itch_page.md)）。設計は [build.md](tech/build.md) に置いた。作業は、そこに書いた仕組みを起こすこと。
+- 対応（プリセット）：`godot/export_presets.cfg` に `windows-itch-demo` を作り、`.gitignore` から同ファイルの行を削って git 管理に移す。非リソースのフィルタに `*.json` を書く（書かないとステージを1本も読めないビルドができる）。手で書く除外は `tools/` `tests/` `addons/gut/` の3つ。
+- 対応（同梱物の導出）：収録リスト `godot/tools/build/contents.json`（版 → 冒険譚ID）から必要な素材を導出し、除外フィルタを `export_presets.cfg` へ書き出すスクリプトを足す。落としたものの一覧も出す。既定値の解決は本体のカタログを呼ぶ（規約を書き写すとずれる）。デバッグ用の冒険譚と未収録の冒険譚は、これで一緒に落ちる。
+- 対応（識別子）：`project.godot` に `application/config/version` を足し、プリセットの機能タグと合わせて `godot/infrastructure/platform/build_info.gd` から読む。刻印はタイトル画面のメニュー状態の隅に出す（feature-62 の入口を兼ねる）。
+- 対応（ライセンス）：`godot/assets/fonts/RockSalt-NOTICE.txt` を置き、`godot/assets/licenses/THIRD-PARTY-LICENSES.txt` を生成してコミットする。ビルドは実行ファイルの隣にコピーする。
+- 対応（手順）：`godot/tools/build/build.ps1` にエクスポートとライセンス文の添付をまとめる。上げる工程は含めない。
+- 前提：エクスポートテンプレート（Godot エディタのエクスポートテンプレート管理から導入）。これが無いと実行ファイルを作れない。
+- 該当：`godot/export_presets.cfg`（新規）・`.gitignore`・`godot/project.godot`・`godot/infrastructure/platform/`・`godot/presentation/title/title_screen.gd`・`godot/tools/build/`（新規）・`godot/assets/licenses/`（新規）・`doc/tech/build.md`。関連＝feature-54（ライセンスの裏取り）・feature-62（チャネル分岐）。
 
 ### feature-64
 
@@ -229,14 +232,6 @@
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) 撃つ価値の評価を足す＝ユニットスキルは「対象1体」で選べたが、面の陣形は着弾中心の選び方（面に入る敵の数・味方の巻き込み）が要る。`_pick_skill_target` は対象1体を前提にしているのでここを広げる。
 - 該当：`godot/domain/ai/trait_brain.gd`・`godot/domain/formation/formation.gd`（敵レシピ）・`godot/tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
-### feature-31
-
-**体験版ビルドの素材選別（収録ステージから必要素材を導出して除外）**（優先度：低）
-
-- 背景：体験版はチュートリアル3本のみを収録し、本編の冒険譚は入れない（[monetization.md](sales/monetization.md) 体験版の収録範囲）。収録しない冒険譚のユニット・地形・BGM・会話まで同梱するとサイズが無駄で、未収録分のネタバレにもなる。Godot のエクスポートプリセットは除外フィルタ（glob）・カスタム機能タグ（`OS.has_feature("demo")`）・CLI ビルドを備えるので機構は足りる。ただし素材は `skin_id` から文字列でパスを組み立てて `load()` する（`skin_catalog.gd`・`combat_scene.gd`・`hex_board_3d.gd`）ため、Godot の依存解決＝「選択したシーンと依存だけ」モードは効かない。必要素材の集合はこちらで計算して渡す必要がある。
-- 対応：収録ステージJSON → 出現ユニット/地形の `skin_id`・BGM の `track_id` → 必要な `godot/assets/**` パス集合、を導出して差集合を除外フィルタとして `export_presets.cfg` に書き出すスクリプトを足す（CSV正本→JSON生成と同じ発想＝正本から機械的に導出するので、収録ステージを足し引きしても壊れない）。代替は `EditorExportPlugin._export_file()` + `skip()` でエクスポート中に弾く方式＝フィルタ生成は不要だが何が落ちたか見えにくい。除外すると `ResourceLoader.exists()` が false になるので、未収録ステージがステージセレクトに載らないこと・参照が残る経路のフォールバックを併せて確認する。`godot/data/i18n` の翻訳と未収録の会話テキストも同じ仕組みに乗せられる。
-- 該当：`export_presets.cfg`（新規）・`godot/tools/`（フィルタ生成スクリプト新規）・`doc/tech/tools.md`・`doc/sales/monetization.md`。着手の引き金＝体験版ビルドを作るとき（feature-10＝製品ビルドの中身を整えるのと同じ段・parking lot「Steam 配布の段取り」と連動）。
-
 ### feature-48
 
 **羽ばたきの素材を採り直す**（優先度：中）
@@ -390,11 +385,11 @@
 
 ### feature-62
 
-**販売チャネルの判定と分岐の基盤**
+**販売チャネルごとの機能を乗せる**（優先度：低）
 
-- 背景：ゲームが Steam / BOOTH / その他のどのチャネルで動いているかを実行時に判定する仕組みが無い。評価ランクの実績発火（feature-19 → feature-40）、entitlement による DLC 解放（feature-13）など、チャネルごとに振る舞いを変える機能が複数控えており、個別に分岐を書くと散らばる。共通の判定・分岐の土台を先に作る。
-- 対応：`godot/infrastructure/platform/` にチャネル判定の入口を置く。起動時にどのチャネルか判定し（GodotSteam の有無・ビルドフラグなど）、以降は共通の問い合わせ口でチャネルを返す。チャネル固有の機能（実績・entitlement・Stats）はこの上に乗せる。
-- 該当：`godot/infrastructure/platform/`（新規）・`doc/sales/monetization.md`（チャネルの定義）。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）が乗る先。
+- 背景：チャネルの判定そのものは `godot/infrastructure/platform/build_info.gd` が持つ（[build.md](tech/build.md)）。その上に乗るチャネル固有の機能がまだ無い。評価ランクの実績発火（feature-19 → feature-40）、entitlement による DLC 解放（feature-13）が控えている。
+- 対応：`channel()` の戻り値で実装を選ぶ形にし、チャネルを持たない環境（エディタ実行・itch）には何もしない実装を置く。所有権チェックは `owns(content_id) -> bool` だけを本体に見せる（[monetization.md](sales/monetization.md) のチャネル差を隔離する）。
+- 該当：`godot/infrastructure/platform/`・`doc/sales/monetization.md`。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）。
 
 ### feature-63
 

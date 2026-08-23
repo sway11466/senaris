@@ -2,10 +2,9 @@
 .godot/
 .import/
 export.cfg
-export_presets.cfg
 
-# Godot exports
-build/
+# Godot exports（リポジトリ直下の出力先だけ。godot/tools/build/ はビルドの道具なので追跡する）
+/build/
 *.exe
 *.pck
 *.zip
