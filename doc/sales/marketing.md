@@ -95,6 +95,22 @@ itch のタグは推薦に効かず、ブラウズ導線も弱い。itch で仕�
 
 ステージ制に相当する Steam タグは無い（要確認）。Roguelike が付かないこと自体が答えになる。
 
+## 素材の置き場
+
+3面（Steam・itch・公式サイト）へ出すものは `channels/` に置く。Godot に読ませないため `.gdignore` を添える。
+
+```
+channels/
+  screenshots/   3面で同じものを使う。高解像度・無加工
+  steam/         カプセル各種の書き出し
+  itch/          cover 画像
+  web/           公式サイト一式（[site.md](site.md)）
+```
+
+絵の正本は `assets/promo-src/`（[../art/promo.md](../art/promo.md)）。`channels/` に入るのは、そこから面ごとの枠に切り出したもの。枠の比率が面ごとに違う（Steam のヘッダーカプセルは 2.14:1、itch の cover は 1.26:1、OGP は 1.91:1）ため、共有できるのは切る前の master までで、切り出しは面ごとに持つ。切らずに同じものを回すのはスクリーンショットだけ。
+
+文はここに置かない。短い説明文・特徴・タグは本書、サイトの文言は [site.md](site.md)、devlog は `doc/devlog/`。会話本文を `doc/campaign/` に置くのと同じ扱いで、読んで判断するものは doc に集める。
+
 ## itch のページ
 
 ページには必ず遊べる実体（ビルド）を置く。実質リンクだけのページは既定で de-index される。初回はチュートリアル1本の時点で出し、1本増えるごとにビルドを更新する（[monetization.md](monetization.md) の体験版の収録範囲）。
