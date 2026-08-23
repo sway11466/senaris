@@ -43,6 +43,11 @@ const SCRIM_ALPHA_EDGE := 0.80   # 画面左端
 const SCRIM_ALPHA_HOLD := 0.74   # ボタンの列を覆う範囲。ここから右へ抜けていく
 const SCRIM_HOLD_AT := 0.55      # 抜け始める位置（暗幕の幅に対する比）
 
+## ビルドの刻印（右下）。読めるだけでよく、絵の邪魔をしないところまで沈める。
+const STAMP_MARGIN := 12
+const STAMP_FONT_SIZE := 12
+const STAMP_COLOR := Color(1, 1, 1, 0.35)
+
 const BUTTON_WIDTH := 260
 const BUTTON_HEIGHT := 52
 const BUTTON_GAP := 18
@@ -200,7 +205,25 @@ func _build_menu() -> Control:
 	box.add_child(_menu_button("マニュアル", null))  # 同上（feature-52）
 	box.add_child(_menu_button("クレジット", null))  # 同上（feature-46）
 	box.add_child(_menu_button("おわる", quit_requested))
+	layer.add_child(_stamp())
 	return layer
+
+## ビルドの刻印（例: windows-itch-demo-0.1.0）。右下の隅に小さく置く。
+## サポートで版が特定できないとバグ報告を再現できないため、戻ってこられる画面に常時出す
+## （扉と動画は一瞬で飛ばせるので載せない。仕様 → doc/tech/build.md）。
+## メニューの列には混ぜない＝項目に見えると操作対象と誤解される。
+func _stamp() -> Control:
+	var label := Label.new()
+	label.text = BuildInfo.stamp()
+	label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	label.offset_right = -STAMP_MARGIN
+	label.offset_bottom = -STAMP_MARGIN
+	label.add_theme_font_size_override("font_size", STAMP_FONT_SIZE)
+	label.add_theme_color_override("font_color", STAMP_COLOR)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return label
 
 ## ボタンの帯を絵から分ける暗幕。左端から右へ抜ける横グラデーション1枚。
 func _scrim() -> Control:

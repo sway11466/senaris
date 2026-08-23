@@ -1,0 +1,14 @@
+{
+  "_readme": "版ごとの収録リスト。ここに載せた冒険譚だけがビルドに入る。仕様 → doc/tech/build.md",
+  "_readme2": "チャネルでは分けない（チャネル別に中身を変えない方針）。デバッグ用の冒険譚はどの版にも載せない。",
+  "editions": {
+    "demo": [
+      "tutorial1-goblin-raid"
+    ],
+    "full": [
+      "tutorial1-goblin-raid",
+      "tutorial2-undead-rush",
+      "tutorial3-dragon-hunt"
+    ]
+  }
+}
