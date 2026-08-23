@@ -125,7 +125,7 @@ SVG を PNG にするのは [`rasterize_svg.gd`](../../godot/tools/rasterize_svg
 
 ## 参考資料
 
-- [../sales/marketing.md](../sales/marketing.md) — ロゴを載せる枠の側（カプセル画像・棚選び）
+- [../sales/marketing.md](../sales/marketing.md) — ロゴを載せる素材の側（素材の方針・チャネルの方針）
 - [direction.md](direction.md) — アートの全体方針
 - [../adr/ADR-0004-logo-typeface-ofl.md](../adr/ADR-0004-logo-typeface-ofl.md) — 書体の決定
 - [../tech/tools.md](../tech/tools.md) — 生成スクリプトの起動方法

@@ -31,7 +31,7 @@
 | 状態 | 開発中であること。ストアページができたらここが Steam へのボタンになる |
 | フッター | 開発元・権利表記 |
 
-ロゴ・副題・一行は仕事が違う＝名前・ジャンル・引き。3つ並べても冗長にならない。一行に使う語は [marketing.md](marketing.md) の短い説明文に従う＝副題（`Senaris: Deterministic Fantasy Tactics`）が `Deterministic` を使うので、ここは別の語で言い換える。
+ロゴ・副題・一行は仕事が違う＝名前・ジャンル・引き。3つ並べても冗長にならない。一行に使う語は [marketing.md](marketing.md) の説明文に従う＝副題（`Senaris: Deterministic Fantasy Tactics`）が `Deterministic` を使うので、ここは別の語で言い換える。
 
 ヒーローの文字を載せる帯は、絵の中で暗く細部の少ない領域を測って選ぶ。
 
@@ -120,7 +120,7 @@ senaris.in からメールを送り始めるなら、SPF の書き換えが先�
 ## 参考資料
 
 - [ADR-0005](../adr/ADR-0005-site-hosting-cloudflare-workers.md) — 配信先とドメイン運用の決定
-- [marketing.md](marketing.md) — 届ける相手・伝える語彙・タグ・期待値の設定
+- [marketing.md](marketing.md) — 届ける相手・素材の方針・素材の置き場・チャネルの方針
 - [monetization.md](monetization.md) — IP・権利、販売チャネル
 - [naming_decision_senaris.md](naming_decision_senaris.md) — タイトル名とドメイン候補の選定
 - [../art/logo.md](../art/logo.md) — ロゴの正本
