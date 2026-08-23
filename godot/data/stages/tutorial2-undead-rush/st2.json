@@ -11,14 +11,14 @@
     "FFFFFFFFFF............LLLL",
     "FFFFFFFFFF......+...LLLLLL",
     "FFFFFFFFF.....++L+LLLLLL..",
-    "FFFFFFFF.....+LLLLLLLL..U%",
-    "FFFFFFFF.....+LLOLLL...UU%",
-    "FF.F.F......LLLLLLL+.....%",
-    "FF........LLLLLLLL++.....%",
-    "%.......LLLLLL.+++....F.FF",
-    "%.....LLLLLL.........FFFFF",
-    "%...LLLLLL..........FFFFFF",
-    "%.LLLLLL...........FFFFFFF"
+    "FFFFFFFF.....+LLLLLLLL..UU",
+    "FFFFFFFF.....+LLOLLL...UUU",
+    "FF.F.F......LLLLLLL+.....U",
+    "FF........LLLLLLLL++.....U",
+    "U.......LLLLLL.+++....F.FF",
+    "U.....LLLLLL.........FFFFF",
+    "U...LLLLLL..........FFFFFF",
+    "U.LLLLLL...........FFFFFFF"
   ],
   "terrain_skins": [
     { "col": 9, "row": -1, "skin": "plain_grave1" },
@@ -115,7 +115,15 @@
     { "col": 14, "row": 9, "skin": "plain_grave1" },
     { "col": 15, "row": 9, "skin": "plain_grave1" },
     { "col": 16, "row": 9, "skin": "plain_grave1" },
-    { "col": 17, "row": 9, "skin": "plain_grave1" }
+    { "col": 17, "row": 9, "skin": "plain_grave1" },
+    { "col": 24, "row": 2, "skin": "plain_grave1_prop_tomb1" },
+    { "col": 24, "row": 3, "skin": "plain_grave1_prop_tomb1" },
+    { "col": 24, "row": 4, "skin": "plain_grave1_prop_tomb1" },
+    { "col": 24, "row": 5, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 6, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 7, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 8, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 9, "skin": "plain_grave1_prop_tomb1" }
   ],
   "player": [
     { "type": "priest", "col": 6, "row": 8 },

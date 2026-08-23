@@ -12,10 +12,10 @@
     ".+++..U.GU.....UUGGG..UU..",
     "..++UU.GGG....GU.GGG.UGGG.",
     "++.....GGGUU.GGG.......G..",
-    "%......G...U.GGG.U..UUU...",
-    "%.......U.G......U.UUGGU..",
-    "%.....GU.GGG.U...U.UUOGU..",
-    "%...UGGU.GGG.U..G..UUGUU..",
+    "U......G...U.GGG.U..UUU...",
+    "U.......U.G......U.UUGGU..",
+    "U.....GU.GGG.U...U.UUOGU..",
+    "U...UGGU.GGG.U..G..UUGUU..",
     "+..UUU.......UGGG....U....",
     ".++UUU..G..U..GGG.U.G.....",
     "..++..GGGGG.UUGG.UUUGG.UU.",
@@ -356,7 +356,11 @@
     { "col": 21, "row": 11, "skin": "plain_grave1" },
     { "col": 22, "row": 11, "skin": "plain_grave1" },
     { "col": 23, "row": 11, "skin": "plain_grave1" },
-    { "col": 24, "row": 11, "skin": "plain_grave1" }
+    { "col": 24, "row": 11, "skin": "plain_grave1" },
+    { "col": -1, "row": 3, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 4, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 5, "skin": "plain_grave1_prop_tomb1" },
+    { "col": -1, "row": 6, "skin": "plain_grave1_prop_tomb1" }
   ],
   "player": [
     { "type": "knight", "col": 3, "row": 4 },
