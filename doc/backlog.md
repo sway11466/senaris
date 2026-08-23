@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=79 / refactoring=12
+次回採番: bug=3 / feature=81 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -35,6 +35,26 @@
 - 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+
+### feature-79
+
+**チュートリアル１の会話の英文を書き直す**（優先度：高）
+
+- ゴール：チュートリアル１の会話が、英語圏のプレイヤーにとって翻訳物ではなく英語で書かれた台詞として読め、教える内容は日本語と一致している。itch の初回リリースに間に合っている。
+- 背景：`dialogue.csv` の英文（チュートリアル１＝80キー・約1221語）は監修を通っていない。[i18n.md](tech/i18n.md) で「根拠にしない」と明記された側で、画面の用語（`Strength` など）と食い違う箇所が feature-66 で既に見つかっている。英語圏をメインターゲットにする方針（[marketing.md](sales/marketing.md)）では、優先度が高いのはストアページの一行目と会話パートで、UI ラベルより会話のほうが上。
+- 対応：日本語を正本にしたまま英文だけを書き直す。訳ではなく英語の台詞として書く（[authoring.md](campaign/authoring.md) の英題の考え方と同じ）。用語は [i18n.md](tech/i18n.md) の「英語の用語」に従う。feature-66 で持ち越した `strength`（腕力の意味）の手当てを吸収する。話者名 28 件（`char.*`）もここで併せて見る。
+- 考慮外：日本語の台詞は直さない。
+- 該当：`godot/data/i18n/dialogue.csv`（`t1.*`の行）・`doc/campaign/`（内容の照合先）。
+
+### feature-80
+
+**チュートリアル２の会話の英文を書き直す**（優先度：高）
+
+- ゴール：チュートリアル２の会話が、英語圏のプレイヤーにとって翻訳物ではなく英語で書かれた台詞として読め、教える内容は日本語と一致している。チュートリアル２を収録する itch の更新に間に合っている。
+- 背景：`dialogue.csv` の英文（チュートリアル２＝104キー・約1809語）は監修を通っていない。[i18n.md](tech/i18n.md) で「根拠にしない」と明記された側で、画面の用語（`Strength` など）と食い違う箇所が feature-66 で既に見つかっている。英語圏をメインターゲットにする方針（[marketing.md](sales/marketing.md)）では、優先度が高いのはストアページの一行目と会話パートで、UI ラベルより会話のほうが上。
+- 対応：日本語を正本にしたまま英文だけを書き直す。訳ではなく英語の台詞として書く（[authoring.md](campaign/authoring.md) の英題の考え方と同じ）。用語は [i18n.md](tech/i18n.md) の「英語の用語」に従う。`t2.st6.intro.2` の "its strength, defense, and speed" は画面の `Strength` ラベルと直接ぶつかるので必ず直す。
+- 考慮外：日本語の台詞は直さない。話者名（`char.*`）は feature-79 で扱う。
+- 該当：`godot/data/i18n/dialogue.csv`（`t2.*`の行）・`doc/campaign/`（内容の照合先）。
 
 ### feature-67
 
