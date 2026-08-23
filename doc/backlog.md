@@ -122,7 +122,7 @@
 
 - 背景：ユニットスキル（発動者1体）は敵も撃つようになった（特性の行動ルール＝[ai.md](gdd/ai.md)）。残るのは複数人の陣形スキルで、敵陣営向けのレシピが1つも無い。実行経路は `AiAction.SKILL` で共通なので、レシピを足せば同じ仕組みで飛ぶ。成立条件はスキンID照合（未指定は種別へフォールバック）＝データ面の下地はできている。
 - 対応：(1) 敵陣営向けのレシピをカタログに足す（どの敵に何を持たせるかは冒険譚側の設計）。(2) 撃つ価値の評価を足す＝ユニットスキルは「対象1体」で選べたが、面の陣形は着弾中心の選び方（面に入る敵の数・味方の巻き込み）が要る。`_pick_skill_target` は対象1体を前提にしているのでここを広げる。
-- 該当：`godot/domain/ai/nearest_attacker_brain.gd`・`godot/domain/formation/formation.gd`（敵レシピ）・`godot/tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
+- 該当：`godot/domain/ai/trait_brain.gd`・`godot/domain/formation/formation.gd`（敵レシピ）・`godot/tests/unit/test_ai.gd`・`doc/gdd/ai.md`・`doc/gdd/formations.md`（発動主体の記述を更新）。着手の引き金＝敵に陣形を持たせたい冒険譚を作るとき。
 
 ### feature-31
 

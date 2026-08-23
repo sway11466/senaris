@@ -16,7 +16,7 @@
 | data | 必須 | CSV正本→JSON生成の整合・カタログ読込。欠損・不正はデータのバグとして開発時に落とす（architecture.md のバリデーション方針） |
 | application | 対象 | コマンド実行・ステージ組み立て（StageLoader）・キャンペーン進行判定 |
 | infrastructure | 対象 | セーブの読み書き（progress_store） |
-| presentation | 原則対象外 | 見た目・入力・カメラは自動テストしない。tests/manual の使い捨てスクリプト（ヘッドレス再現・スクショ）と目視・プレイテストで補う |
+| presentation | 原則対象外 | 見た目・入力・カメラは自動テストしない。`godot/tests/manual/` の使い捨てスクリプト（ヘッドレス再現・スクショ）と目視・プレイテストで補う |
 
 ## 運用
 
