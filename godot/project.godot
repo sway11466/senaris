@@ -36,7 +36,7 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://data/i18n/dialogue.ja.translation", "res://data/i18n/dialogue.en.translation", "res://data/i18n/campaigns.ja.translation", "res://data/i18n/campaigns.en.translation")
+locale/translations=PackedStringArray("res://data/i18n/dialogue.ja.translation", "res://data/i18n/dialogue.en.translation", "res://data/i18n/campaigns.ja.translation", "res://data/i18n/campaigns.en.translation", "res://data/i18n/ui.ja.translation", "res://data/i18n/ui.en.translation")
 locale/fallback="en"
 
 [rendering]
