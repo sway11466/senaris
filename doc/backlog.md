@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=81 / refactoring=12
+次回採番: bug=3 / feature=82 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -55,6 +55,16 @@
 - 対応：日本語を正本にしたまま英文だけを書き直す。訳ではなく英語の台詞として書く（[authoring.md](campaign/authoring.md) の英題の考え方と同じ）。用語は [i18n.md](tech/i18n.md) の「英語の用語」に従う。`t2.st6.intro.2` の "its strength, defense, and speed" は画面の `Strength` ラベルと直接ぶつかるので必ず直す。
 - 考慮外：日本語の台詞は直さない。話者名（`char.*`）は feature-79 で扱う。
 - 該当：`godot/data/i18n/dialogue.csv`（`t2.*`の行）・`doc/campaign/`（内容の照合先）。
+
+### feature-81
+
+**チュートリアル1の素材だけで組む高難度ステージ**（優先度：高）
+
+- ゴール：チュートリアル1に登場済みの要素だけで組んだ歯ごたえのあるステージが1本、体験版の初回ビルドで遊べる。devlog 1本目の「難易度高めも1本入れた」が実体を持っている。
+- 背景：初回の体験版はチュートリアル1のみで、1ステージ1要素の教える章＝簡単。devlog 1本目（`channels/itch/devlog/2026-08-24-why-no-dice.md`）の設計で「腕試しに難易度高めのステージを1本入れた」と書くことにしたため、書く前に実体を作る。チュートリアル2の st6 に「総合①（腕試し）」があるのと同じ位置づけをチュートリアル1にも置く形。
+- 対応：新ユニット・新地形・新ルールを足さず、チュートリアル1の既出要素（移動・地形・包囲・支援・間接・占領・釣り）だけで1本組む。型と難易度の表し方は [map_patterns.md](gdd/map_patterns.md) に従い、ステージ一覧へ行を足す。冒険譚の中でどこに置くか（チュートリアル1の8本目にするか・別枠にするか）と解放条件（[stage_select.md](gdd/stage_select.md)）は着手時に決める。
+- 考慮外：陣形スキル・輸送・魔法兵などチュートリアル2以降の要素。会話パートの規模も本編ステージ並みを求めない。
+- 該当：`godot/data/stages/tutorial1-goblin-raid/`（または新設の置き場）・`doc/gdd/map_patterns.md`（ステージ一覧）・`doc/campaign/tutorial1-goblin-raid.md`。
 
 ### feature-68
 

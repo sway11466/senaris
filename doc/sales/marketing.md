@@ -183,7 +183,7 @@ channels/
 
 絵の正本は `godot/assets/promo-src/`（ロゴは [../art/logo.md](../art/logo.md)）。`channels/` に入るのは、そこから面ごとの枠に切り出したもの。枠の比率が面ごとに違うため、共有できるのは切る前の master までで、切り出しは面ごとに持つ。切らずに同じものを回すのはスクリーンショットだけ。
 
-文はここに置かない。素材の方針は本書、チャネルごとの入力は各チャネルのファイル、サイトの文言は [site.md](site.md)、devlog の原稿は `doc/devlog/`。会話本文を `doc/campaign/` に置くのと同じ扱いで、読んで判断するものは doc に集める。
+文はここに置かない。素材の方針は本書、チャネルごとの入力は各チャネルのファイル、サイトの文言は [site.md](site.md)。例外は devlog の原稿で、itch にしか出さないチャネル専用の文のため `channels/itch/devlog/` に置く（[itch_devlog.md](itch_devlog.md)）。
 
 ## チャネルの方針
 
