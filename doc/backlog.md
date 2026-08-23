@@ -36,14 +36,6 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-66
-
-**ユニット情報パネルの UI 文言 tr() 化**（優先度：高）
-
-- 背景：情報パネルの約41文字列（タブ名"能力"・"状態"・"地形"、ステータスラベル"兵数"・"対地攻撃"・"防御"等、状態ラベル"行動完了"・"移動可"等、拠点ラベル"本拠地"・"拠点"等、ヘルプテキスト）が直書き。体験版で最も多くの日本語が露出する画面。旧 feature-12 の分割。
-- 対応：`ui.csv` にキーを追加し、`unit_info_panel.gd` の直書きを `tr()` に差し替え。
-- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/unit_info_panel.gd`。
-
 ### feature-67
 
 **戦闘レポートの UI 文言 tr() 化**（優先度：高）
@@ -132,6 +124,15 @@
 - 背景：デバッグ冒険譚のタイトル・ステージ名が日本語直書き。収録リストに載せないので配布ビルドには入らない（[build.md](tech/build.md)）。旧 feature-12 の分割。
 - 対応：リリースビルドから除外するなら不要。含める場合は `campaigns.csv` にエントリを追加。
 - 該当：`godot/data/stages/debug-*/campaign.json`・`godot/data/i18n/campaigns.csv`。
+
+### feature-77
+
+**AI 特性名の i18n 化**（優先度：高）
+
+- ゴール：敵を選んだときの情報パネル見出しに、英語環境で英語の特性名が出る。
+- 背景：`data/ai/ai.json` の特性名（"待ち伏せ"・"突撃"ほか）が日本語直書きで、`unit_info_panel.gd` が見出しの特性欄にそのまま表示する。情報パネルの文言をキー化した際（feature-66）に、ここだけデータ側なので残った。
+- 対応：規約キー `ai.{id}.name` で翻訳CSVから引き、`ai.json` の `name` を開発用メモに降格する。ユニット・地形の表示名（feature-70〜71）と同じ方式なので、置き先は `units.csv` に合わせるか `ui.csv` に置くかを決める。
+- 該当：`godot/data/ai/ai.json`・`godot/data/i18n/`・`godot/presentation/ui/unit_info_panel.gd`。関連＝feature-70〜72（表示名の i18n 化）。
 
 ### feature-13
 
@@ -364,16 +365,6 @@
 - 背景：チャネルの判定そのものは `godot/infrastructure/platform/build_info.gd` が持つ（[build.md](tech/build.md)）。その上に乗るチャネル固有の機能がまだ無い。評価ランクの実績発火（feature-19 → feature-40）、entitlement による DLC 解放（feature-13）が控えている。
 - 対応：`channel()` の戻り値で実装を選ぶ形にし、チャネルを持たない環境（エディタ実行・itch）には何もしない実装を置く。所有権チェックは `owns(content_id) -> bool` だけを本体に見せる（[monetization.md](sales/monetization.md) のチャネル差を隔離する）。
 - 該当：`godot/infrastructure/platform/`・`doc/sales/monetization.md`。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）。
-
-### feature-63
-
-**キービジュアルの大の画題を決める**（優先度：中）
-
-- 背景：キービジュアルは小・中・大の3段で、段ごとに別の絵を用意する（[marketing.md](sales/marketing.md)）。小と中は組み上がっていて、大の画題が決まっていない。
-- ゴール：大の面に出す絵が決まり、ロゴを重ねた1枚が組み上がっている。
-- 対応：引くことだけを基準に画題を選ぶ。ロゴを置く面を先に矩形で確保させ、他の要素をその外へ寄せる指示にする（中で効いた順序）。組み立ては `build_keyvisual.py` に段を足す。
-- 考慮外：段どうしで絵柄を揃えること。どのチャネルのどの枠に出すか。
-- 該当：`godot/assets/promo-src/keyvisual/`・`godot/tools/keyvisual/build_keyvisual.py`・`doc/sales/marketing.md`。
 
 ## リファクタリング
 
