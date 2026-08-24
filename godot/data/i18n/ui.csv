@@ -128,21 +128,29 @@ movement.mountain_stride.name,山歩行,Mountain Stride
 movement.flight.name,飛行,Flight
 movement.stationary.name,固定,Stationary
 ui.quest.locked_title,まだ受けられない依頼,Quest Locked
-ui.quest.back,別のステージを選ぶ,Choose Another Stage
+ui.quest.back,別のステージを選ぶ,Choose Another Quest
 ui.quest.sortie,出撃する,Set Out
 ui.quest.confirm,出撃しますか？,Ready to set out?
 ui.quest.close,閉じる,Close
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
 ui.select.menu,← メニュー,← Menu
-ui.conv.close,閉じる,Close
-ui.conv.skip,会話をスキップ,Skip
-ui.conv.next,次へ ▶,Next ▶
+ui.talk.close,閉じる,Close
+ui.talk.skip,会話をスキップ,Skip
+ui.talk.next,次へ ▶,Next ▶
+ui.talk.start_battle,戦闘開始 ▶,To Battle ▶
+ui.talk.resume_battle,戦闘再開 ▶,Resume Battle ▶
+ui.talk.next_stage,次のステージへ ▶,Next Quest ▶
 ui.save.cancel,やめる,Cancel
-ui.save.heading,セーブ,Save
+ui.save.heading_save,セーブ,Save
+ui.save.heading_load,ロード,Load
+ui.save.heading_continue,冒険の続き,Continue
 ui.save.auto,オート,Auto
 ui.save.empty,空き,Empty
 ui.save.turn_start,ターン%d 開始時,Start of Turn %d
+ui.save.sep,"  ｜  ","  |  "
+ui.save.campaign_stage,%s — %s,%s — %s
 ui.save.confirm_overwrite,この枠に上書きしますか？,Overwrite this save?
+ui.save.confirm_overwrite_yes,はい,Overwrite
 ui.save.confirm_load,いまの盤面は失われます。読み込みますか？,The current battle will be lost. Load this save?
-ui.save.yes,はい,Yes
+ui.save.confirm_load_yes,はい,Load

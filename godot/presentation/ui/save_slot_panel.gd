@@ -19,8 +19,6 @@ const ROW_GAP := 10
 const HEADING_SIZE := 26
 const ROW_FONT_SIZE := 17
 
-const SEP := "  ｜  "  # 行の中の区切り（枠名・ステージ・ターン・日時）
-
 enum Mode { SAVE, LOAD }
 
 var _mode := Mode.LOAD
@@ -32,6 +30,7 @@ var _heading: Label
 var _rows: VBoxContainer
 var _confirm: Control
 var _confirm_text: Label
+var _confirm_yes: Button
 var _pending_slot := ""
 
 func _ready() -> void:
@@ -93,7 +92,7 @@ func _ready() -> void:
 
 ## セーブ先を選ばせる（中断5枠のみ選択可・オートは読み出し専用）。
 func open_save(slots: SaveSlots) -> void:
-	_open(Mode.SAVE, slots, tr("ui.save.heading"), false)
+	_open(Mode.SAVE, slots, tr("ui.save.heading_save"), false)
 
 ## ロード元を選ばせる。warn_board＝いまの盤面が失われる旨の確認を挟む（盤から開いたとき true）。
 func open_load(slots: SaveSlots, heading: String, warn_board: bool) -> void:
@@ -144,17 +143,18 @@ func _is_selectable(entry: Dictionary) -> bool:
 
 ## 行の文字列。中身が在れば「枠名｜冒険譚名 — ステージ名｜ターンN 開始時｜保存日時」。
 func _row_text(entry: Dictionary) -> String:
+	var sep := tr("ui.save.sep")  # 区切りも言語ごと（全角の｜は欧文の行で浮く）
 	var name := tr("ui.save.auto") if bool(entry["auto"]) else String(entry["slot"])
 	if not bool(entry["used"]):
-		return name + SEP + tr("ui.save.empty")
+		return name + sep + tr("ui.save.empty")
 	var meta: Dictionary = entry["meta"]
 	# 冒険譚名・ステージ名は翻訳キーで保存してある（言語を変えても一覧が追従する）
-	var where := "%s — %s" % [tr(String(meta.get("campaign_title", ""))), tr(String(meta.get("stage_title", "")))]
+	var where := tr("ui.save.campaign_stage") % [tr(String(meta.get("campaign_title", ""))), tr(String(meta.get("stage_title", "")))]
 	var parts: Array = [name, where, tr("ui.save.turn_start") % int(meta.get("turn_number", 0))]
 	var at := _short_datetime(String(meta.get("saved_at", "")))
 	if not at.is_empty():
 		parts.append(at)
-	return SEP.join(PackedStringArray(parts))
+	return sep.join(PackedStringArray(parts))
 
 ## 保存日時（"2026-08-22 14:03:22"）を分までに詰める。秒は一覧の判別に要らない。
 static func _short_datetime(raw: String) -> String:
@@ -163,11 +163,11 @@ static func _short_datetime(raw: String) -> String:
 func _on_row_pressed(slot: String, used: bool) -> void:
 	SfxPlayer.play_event("menu_command")
 	if _mode == Mode.SAVE and used:
-		_ask(tr("ui.save.confirm_overwrite"))  # 既存の枠を潰すときだけ確認（空き枠は素通し）
+		_ask(tr("ui.save.confirm_overwrite"), tr("ui.save.confirm_overwrite_yes"))  # 既存の枠を潰すときだけ確認（空き枠は素通し）
 		_pending_slot = slot
 		return
 	if _mode == Mode.LOAD and _warn_board:
-		_ask(tr("ui.save.confirm_load"))
+		_ask(tr("ui.save.confirm_load"), tr("ui.save.confirm_load_yes"))
 		_pending_slot = slot
 		return
 	_decide(slot)
@@ -176,8 +176,11 @@ func _decide(slot: String) -> void:
 	close()
 	slot_chosen.emit(slot)
 
-func _ask(text: String) -> void:
+## 確認の小窓を出す。yes_label＝進むボタンの文言（プロンプトと組で決める。
+## 英訳は Yes ではなく動詞＝Overwrite / Load。ja は「はい」のままなのでキーはプロンプトごとに持つ）。
+func _ask(text: String, yes_label: String) -> void:
 	_confirm_text.text = text
+	_confirm_yes.text = yes_label
 	_confirm.visible = true
 
 ## 確認の小窓（上書き・ロード）。一覧の上に重ねる＝どの枠を選んだかが背後に見えたまま答えられる。
@@ -228,10 +231,10 @@ func _build_confirm() -> Control:
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(gap)
-	var yes := TavernTheme.wood_button(tr("ui.save.yes"))
-	yes.custom_minimum_size = Vector2(150, 44)
-	yes.pressed.connect(_on_confirm_yes)
-	buttons.add_child(yes)
+	_confirm_yes = TavernTheme.wood_button("")  # 文言は _ask がプロンプトごとに入れる
+	_confirm_yes.custom_minimum_size = Vector2(150, 44)
+	_confirm_yes.pressed.connect(_on_confirm_yes)
+	buttons.add_child(_confirm_yes)
 	return layer_root
 
 func _on_confirm_yes() -> void:

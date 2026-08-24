@@ -316,7 +316,7 @@ func _on_battle_finished(outcome: int) -> void:
 			if _should_show_victory():
 				_victory_overlay = true
 				_victory_screen.play_over_board(_victory_path())
-			var label := "次のステージへ ▶" if not _next_playable_stage().is_empty() else "閉じる"
+			var label := "ui.talk.next_stage" if not _next_playable_stage().is_empty() else "ui.talk.close"
 			_conversation.start(_dialogue["outro"], label)  # 読了/スキップで次ステージ or セレクトへ
 		else:
 			_advance_or_select()  # 会話なし＝すぐ次へ（テンポ優先）
@@ -419,7 +419,7 @@ func _maybe_start_intro() -> void:
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
 	$Front/InfoPanel.hide()  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
 	_hud.set_player_turn(false)
-	_conversation.start(_dialogue["intro"], "戦闘開始 ▶")
+	_conversation.start(_dialogue["intro"], "ui.talk.start_battle")
 
 ## 盤のイベントが起きたときの見せ方。台本があれば会話を挟み、focus 指定があれば先にその場所へ
 ## カメラを寄せる（喋る相手が画面に居る状態で幕を引く）。会話の間は盤とターン終了を止める
@@ -453,7 +453,7 @@ func _on_event_fired(info: Dictionary) -> void:
 	$HexBoard.set_input_locked(true)
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
 	_hud.set_player_turn(false)
-	_conversation.start(lines, "戦闘再開 ▶")
+	_conversation.start(lines, "ui.talk.resume_battle")
 
 ## AIターンのテンポ制御（controller.dialogue_pace）：占領で会話が始まっていれば閉じるまで待つ。
 ## 会話を始めるのは _on_event_fired ＝ここへ来た時点で phase は立っている（カメラ寄せの前に立てている）。
@@ -687,7 +687,7 @@ func _on_load_requested() -> void:
 	if _saves == null or not _saves.has_any():
 		return
 	_slot_intent = "load"
-	_slot_panel.open_load(_saves, "ロード", true)
+	_slot_panel.open_load(_saves, tr("ui.save.heading_load"), true)
 
 func _install_slot_panel() -> void:
 	_slot_panel = SaveSlotPanel.new()
@@ -775,7 +775,7 @@ func _on_title_continue() -> void:
 		_select.open()
 		return
 	_slot_intent = "load"
-	_slot_panel.open_load(_saves, "冒険の続き", false)  # 盤はまだ出ていない＝失う物が無いので確認は挟まない
+	_slot_panel.open_load(_saves, tr("ui.save.heading_continue"), false)  # 盤はまだ出ていない＝失う物が無いので確認は挟まない
 
 ## 新しい冒険譚＝セレクトへ。曲は既に menu なので _on_select_opened の play は空振りする。
 func _on_title_new_game() -> void:

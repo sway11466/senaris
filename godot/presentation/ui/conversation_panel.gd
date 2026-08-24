@@ -53,10 +53,10 @@ func _ready() -> void:
 	bar.offset_bottom = -10
 	bar.add_theme_constant_override("separation", 8)
 	add_child(bar)
-	_skip_btn = TavernTheme.wood_button(tr("ui.conv.skip"))
+	_skip_btn = TavernTheme.wood_button(tr("ui.talk.skip"))
 	_skip_btn.pressed.connect(_on_skip)
 	bar.add_child(_skip_btn)
-	_next_btn = TavernTheme.wood_button(tr("ui.conv.next"))
+	_next_btn = TavernTheme.wood_button(tr("ui.talk.next"))
 	_next_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_next_btn.pressed.connect(_on_next)
 	bar.add_child(_next_btn)
@@ -72,7 +72,8 @@ func bind(skin_catalog: Dictionary) -> void:
 
 ## 会話を開始。lines＝[{ speaker, skin, text }]（speaker/text は翻訳キー）。
 ## 話者のいない行 { text, sfx } は効果音・ト書き（顔も名前も出さず中央に文字だけ）。
-## finish_label＝最後の1行を読んだ後のボタン文言（intro="戦闘開始" / outro="閉じる" 等）。
+## finish_label＝最後の1行を読んだ後のボタン文言の翻訳キー（intro="ui.talk.start_battle" / outro="ui.talk.close" 等）。
+## セリフ・話者名と同じくキーで受けてここで tr() する＝言語を切り替えても表示が追従する。
 func start(lines: Array, finish_label: String) -> void:
 	_lines = lines
 	_finish_label = finish_label
@@ -110,7 +111,7 @@ func _reveal_next() -> void:
 			SfxPlayer.play_event("map_talk")
 		if shown_here:
 			break
-	_next_btn.text = _finish_label if _shown >= _lines.size() else tr("ui.conv.next")
+	_next_btn.text = tr(_finish_label) if _shown >= _lines.size() else tr("ui.talk.next")
 	_scroll_to_last()
 
 ## 台本の1行。辞書でなければ空辞書に倒す（壊れたデータで会話を止めない）。
