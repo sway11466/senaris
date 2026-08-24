@@ -256,7 +256,7 @@
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "第一波", "ai": "charge",
+    { "order": 1, "name": "t2.st3.squad.1", "ai": "charge",
       "units": [
         { "skin": "skeleton", "col": 9, "row": 3 },
         { "skin": "skeleton", "col": 12, "row": 5 },
@@ -268,7 +268,7 @@
         { "skin": "skeleton_archer", "col": 12, "row": 6 },
         { "skin": "skeleton_archer", "col": 11, "row": 1 }
       ] },
-    { "order": 2, "name": "第二波", "ai": "charge",
+    { "order": 2, "name": "t2.st3.squad.2", "ai": "charge",
       "units": [
         { "skin": "skeleton_archer", "col": 15, "row": 1 },
         { "skin": "skeleton", "col": 15, "row": 6 },
@@ -280,7 +280,7 @@
         { "skin": "zombie", "col": 13, "row": 3 },
         { "skin": "zombie", "col": 14, "row": 3 }
       ] },
-    { "order": 3, "name": "第三波", "ai": "charge",
+    { "order": 3, "name": "t2.st3.squad.3", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 18, "row": 3 },
         { "skin": "skeleton", "col": 19, "row": 2 },
@@ -292,13 +292,13 @@
         { "skin": "skeleton", "col": 21, "row": 3 },
         { "skin": "skeleton_archer", "col": 18, "row": 6 }
       ] },
-    { "order": 4, "name": "ゴースト隊弱者狙い", "ai": "predator",
+    { "order": 4, "name": "t2.st3.squad.4", "ai": "predator",
       "units": [
         { "skin": "ghost", "col": 20, "row": 1 },
         { "skin": "ghost", "col": 21, "row": 0 },
         { "skin": "ghost", "col": 21, "row": 1 }
       ] },
-    { "order": 5, "name": "ゴースト隊特攻", "ai": "charge",
+    { "order": 5, "name": "t2.st3.squad.5", "ai": "charge",
       "units": [
         { "skin": "ghost", "col": 22, "row": 7 },
         { "skin": "ghost", "col": 21, "row": 6 },

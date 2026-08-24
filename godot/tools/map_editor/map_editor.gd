@@ -821,7 +821,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	var name_edit := LineEdit.new()
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_edit.text = String(sq.get("name", ""))
-	name_edit.placeholder_text = "部隊名（省略可）"
+	name_edit.placeholder_text = "部隊名の翻訳キー（省略可）"
 	name_edit.text_changed.connect(func(t: String) -> void:
 		if t == "":
 			sq.erase("name")
@@ -834,6 +834,23 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 			_sel_squad = 0
 			_rebuild_mode()
 			_board.refresh()))
+
+	# 部隊名の訳（ja・en）。イベント予告と同じ流儀＝ステージ保存時に dialogue.csv へ書く。
+	var tr_row := HBoxContainer.new()
+	item.add_child(tr_row)
+	var texts := _i18n_texts(String(sq.get("name", "")))
+	var tr_ja := LineEdit.new()
+	tr_ja.text = String(texts.get("ja", ""))
+	tr_ja.placeholder_text = "日本語"
+	tr_ja.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tr_ja.text_changed.connect(func(t: String) -> void: _stash_i18n(name_edit.text, "ja", t))
+	tr_row.add_child(tr_ja)
+	var tr_en := LineEdit.new()
+	tr_en.text = String(texts.get("en", ""))
+	tr_en.placeholder_text = "English"
+	tr_en.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tr_en.text_changed.connect(func(t: String) -> void: _stash_i18n(name_edit.text, "en", t))
+	tr_row.add_child(tr_en)
 
 	var row2 := HBoxContainer.new()
 	item.add_child(row2)
@@ -2113,12 +2130,12 @@ func _write(path: String) -> void:
 	f.store_string(_doc.to_text())
 	f.close()
 	_path = path
-	var i18n_msg := _save_event_i18n()
+	var i18n_msg := _save_i18n()
 	_sync_fields()
 	_say("保存しました: " + path + i18n_msg)
 
 
-## イベント予告の訳文の現在値（未保存の入力を優先し、無ければ dialogue.csv。どちらも無ければ空）。
+## 予告・部隊名の訳文の現在値（未保存の入力を優先し、無ければ dialogue.csv。どちらも無ければ空）。
 func _i18n_texts(key: String) -> Dictionary:
 	if key != "" and _i18n_pending.has(key):
 		return _i18n_pending[key]
@@ -2138,27 +2155,33 @@ func _stash_i18n(key: String, lang: String, text: String) -> void:
 	_i18n_pending[key][lang] = text
 
 
-## イベント予告の訳文を dialogue.csv へ書く。結果をステータス用のメッセージ断片で返す。
+## イベント予告・部隊名の訳文を dialogue.csv へ書く。結果をステータス用のメッセージ断片で返す。
 ## ja・en の両方が入っているときだけ書く（片方だけの中途半端な行を CSV に作らない）。
-## 書くのは「いまステージが使っているキー」だけ＝消したイベントの入力痕は書かない。
-func _save_event_i18n() -> String:
+## 書くのは「いまステージが使っているキー」だけ＝消したイベント・部隊の入力痕は書かない。
+func _save_i18n() -> String:
+	var used: Array = []  # [ [呼び名, キー], … ]（警告文でどの欄かを示す）
+	for raw in _doc.event_list():
+		if typeof(raw) == TYPE_DICTIONARY:
+			used.append(["予告", String((raw as Dictionary).get("label", ""))])
+	for raw in _doc.data.get("enemy", []):
+		if typeof(raw) == TYPE_DICTIONARY:
+			used.append(["部隊名", String((raw as Dictionary).get("name", ""))])
 	var wrote := 0
 	var warn: Array[String] = []
-	for raw in _doc.event_list():
-		if typeof(raw) != TYPE_DICTIONARY:
-			continue
-		var key := String((raw as Dictionary).get("label", "")).strip_edges()
+	for pair in used:
+		var what := String(pair[0])
+		var key := String(pair[1]).strip_edges()
 		if key == "":
 			continue
 		var p: Dictionary = _i18n_pending.get(key, {})
 		if p.is_empty():
 			if not _i18n_csv.has(key):
-				warn.append("予告 '%s' の訳文が未登録" % key)
+				warn.append("%s '%s' の訳文が未登録" % [what, key])
 			continue
 		var ja := String(p.get("ja", ""))
 		var en := String(p.get("en", ""))
 		if ja.strip_edges() == "" or en.strip_edges() == "":
-			warn.append("予告 '%s' は ja・en が揃うまで書き込まない" % key)
+			warn.append("%s '%s' は ja・en が揃うまで書き込まない" % [what, key])
 			continue
 		if DialogueCsvStore.upsert_file(key, ja, en):
 			_i18n_csv[key] = { "ja": ja, "en": en }

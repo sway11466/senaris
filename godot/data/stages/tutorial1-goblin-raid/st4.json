@@ -1,9 +1,6 @@
 {
   "turn_limit": 30,
-  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 2, "survival_a": 1 },
   "name": "tutorial-st4",
-  "haze": 0.80,
-  "backdrop": "sky_clear",
   "cols": 22,
   "rows": 11,
   "margin": 0,
@@ -20,35 +17,7 @@
     "....FFFFFFFFFFFFFFFF..",
     "...FFFFFFFFFFFFFFFFFFF"
   ],
-  "player": [
-    { "type": "fighter", "col": 2, "row": 5 },
-    { "type": "novice", "col": 2, "row": 4 },
-    { "type": "novice", "col": 2, "row": 6 },
-    { "type": "cleric", "col": 1, "row": 5 }
-  ],
-  "enemy": [
-    { "order": 1, "ai": "charge",
-      "units": [
-        { "skin": "goblin", "col": 15, "row": 4 },
-        { "skin": "hobgoblin", "col": 21, "row": 4 },
-        { "skin": "goblin", "col": 15, "row": 6 },
-        { "skin": "hobgoblin", "col": 17, "row": 5 },
-        { "skin": "goblin", "col": 19, "row": 7 },
-        { "skin": "goblin", "col": 19, "row": 3 },
-        { "skin": "hobgoblin", "col": 21, "row": 7 },
-        { "skin": "hobgoblin", "col": 20, "row": 6 }
-      ] }
-  ],
-  "bases": [
-    { "col": 9, "row": 6, "team": "neutral",
-      "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
-  ],
-  "events": [
-    { "on": "capture", "col": 9, "row": 6, "type": "talk", "team": "player",
-      "dialogue": "free", "focus": true }
-  ],
   "terrain_skins": [
-    { "col": 9, "row": 6, "skin": "road_fort_town1" },
     { "col": 5, "row": 0, "skin": "rampart_granite1" },
     { "col": 6, "row": 0, "skin": "rampart_granite1" },
     { "col": 7, "row": 0, "skin": "rampart_granite1" },
@@ -77,7 +46,37 @@
     { "col": 10, "row": 2, "skin": "rampart_granite1" },
     { "col": 8, "row": 3, "skin": "rampart_granite1" },
     { "col": 9, "row": 3, "skin": "rampart_granite1" },
-    { "col": 10, "row": 3, "skin": "rampart_granite1" }
+    { "col": 10, "row": 3, "skin": "rampart_granite1" },
+    { "col": 9, "row": 6, "skin": "road_fort_town1" }
+  ],
+  "player": [
+    { "type": "fighter", "col": 2, "row": 5 },
+    { "type": "novice", "col": 2, "row": 4 },
+    { "type": "novice", "col": 2, "row": 6 },
+    { "type": "cleric", "col": 1, "row": 5 }
+  ],
+  "enemy": [
+    { "order": 2, "name": "t1.st4.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "hobgoblin", "col": 21, "row": 4 },
+        { "skin": "goblin", "col": 19, "row": 7 },
+        { "skin": "goblin", "col": 19, "row": 3 },
+        { "skin": "hobgoblin", "col": 21, "row": 7 },
+        { "skin": "hobgoblin", "col": 20, "row": 6 }
+      ] },
+    { "order": 1, "name": "t1.st4.squad.2", "ai": "ambush",
+      "units": [
+        { "skin": "hobgoblin", "col": 17, "row": 5 },
+        { "skin": "goblin", "col": 15, "row": 4 },
+        { "skin": "goblin", "col": 15, "row": 6 }
+      ] }
+  ],
+  "bases": [
+    { "col": 9, "row": 6, "team": "neutral",
+      "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
+  ],
+  "events": [
+    { "type": "talk", "col": 9, "row": 6, "team": "player", "on": "capture", "dialogue": "free", "focus": true }
   ],
   "dialogue": {
     "intro": [
@@ -101,5 +100,8 @@
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.outro.5" }
     ]
   },
+  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 2, "survival_a": 1 },
+  "haze": 0.8,
+  "backdrop": "sky_clear",
   "bgm": { "main": "raid" }
 }

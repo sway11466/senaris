@@ -311,25 +311,25 @@
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "前線上段", "ai": "charge",
+    { "order": 1, "name": "t2.st5.squad.1", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 9, "row": 0 },
         { "skin": "ghoul", "col": 10, "row": 1 },
         { "skin": "skeleton_archer", "col": 10, "row": 0 }
       ] },
-    { "order": 2, "name": "前線中段", "ai": "charge",
+    { "order": 2, "name": "t2.st5.squad.2", "ai": "charge",
       "units": [
         { "skin": "ghoul", "col": 13, "row": 5 },
         { "skin": "ghoul", "col": 13, "row": 4 },
         { "skin": "skeleton_archer", "col": 14, "row": 5 }
       ] },
-    { "order": 3, "name": "前線下段", "ai": "predator",
+    { "order": 3, "name": "t2.st5.squad.3", "ai": "predator",
       "units": [
         { "skin": "zombie", "col": 11, "row": 8 },
         { "skin": "ghoul", "col": 12, "row": 8 },
         { "skin": "skeleton_archer", "col": 12, "row": 9 }
       ] },
-    { "order": 4, "name": "中衛上段", "ai": "charge",
+    { "order": 4, "name": "t2.st5.squad.4", "ai": "charge",
       "units": [
         { "skin": "ghoul", "col": 20, "row": 2 },
         { "skin": "wraith", "col": 17, "row": 1 },
@@ -338,7 +338,7 @@
         { "skin": "ghoul", "col": 14, "row": 2 },
         { "skin": "ghoul", "col": 13, "row": 1 }
       ] },
-    { "order": 5, "name": "中衛下段", "ai": "charge",
+    { "order": 5, "name": "t2.st5.squad.5", "ai": "charge",
       "units": [
         { "skin": "ghoul", "col": 18, "row": 6 },
         { "skin": "ghoul", "col": 16, "row": 6 },
@@ -347,7 +347,7 @@
         { "skin": "ghoul", "col": 19, "row": 5 },
         { "skin": "ghoul", "col": 16, "row": 7 }
       ] },
-    { "order": 6, "name": "後衛", "ai": "predator",
+    { "order": 6, "name": "t2.st5.squad.6", "ai": "predator",
       "units": [
         { "skin": "ghoul", "col": 25, "row": 4 },
         { "skin": "wraith", "col": 24, "row": 6 },

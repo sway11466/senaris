@@ -160,7 +160,7 @@
     { "type": "archer", "col": 1, "row": 5 }
   ],
   "enemy": [
-    { "order": 1, "name": "手前の部屋", "ai": "ambush", "sight": 3,
+    { "order": 1, "name": "t1.st6.squad.1", "ai": "ambush", "sight": 3,
       "units": [
         { "skin": "goblin", "col": 13, "row": 3 },
         { "skin": "goblin", "col": 13, "row": 5 },
@@ -168,7 +168,7 @@
         { "skin": "hobgoblin", "col": 15, "row": 4 },
         { "skin": "goblin_archer", "col": 16, "row": 6 }
       ] },
-    { "order": 2, "name": "奥の部屋", "ai": "ambush", "sight": 3,
+    { "order": 2, "name": "t1.st6.squad.2", "ai": "ambush", "sight": 3,
       "units": [
         { "skin": "hobgoblin", "col": 25, "row": 3 },
         { "skin": "hobgoblin", "col": 25, "row": 4 },

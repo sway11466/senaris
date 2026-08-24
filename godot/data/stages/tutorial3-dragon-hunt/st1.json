@@ -57,12 +57,12 @@
     { "type": "mage", "actor": "mage", "supply": "join", "col": 10, "row": 10 }
   ],
   "enemy": [
-    { "order": 2, "name": "グリフォン隊", "ai": "charge",
+    { "order": 2, "name": "t3.st1.squad.1", "ai": "charge",
       "units": [
         { "skin": "griffon", "col": 2, "row": 1 },
         { "skin": "griffon", "col": 1, "row": 1 }
       ] },
-    { "order": 1, "name": "オーク隊", "ai": "charge",
+    { "order": 1, "name": "t3.st1.squad.2", "ai": "charge",
       "units": [
         { "skin": "orc", "col": 10, "row": 3 },
         { "skin": "orc", "col": 11, "row": 5 },

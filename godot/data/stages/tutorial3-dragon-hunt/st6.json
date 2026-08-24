@@ -45,25 +45,25 @@
     {"type": "mage", "col": 9, "row": 15, "actor": "mage"}
   ],
   "enemy": [
-    { "order": 1, "name": "ローグ本隊", "ai": "raid",
+    { "order": 1, "name": "t3.st6.squad.1", "ai": "raid",
       "units": [
         {"skin": "rogue", "col": 5, "row": 5},
         {"skin": "rogue", "col": 10, "row": 4},
         {"skin": "rogue", "col": 3, "row": 9},
         {"skin": "rogue", "col": 12, "row": 11}
       ] },
-    { "order": 2, "name": "頭目", "ai": "raid",
+    { "order": 2, "name": "t3.st6.squad.2", "ai": "raid",
       "units": [
         {"skin": "rogue_head", "col": 8, "row": 3, "actor": "paladin"}
       ] },
-    { "order": 3, "name": "宝の間のミミック", "ai": "ambush", "sight": 1,
+    { "order": 3, "name": "t3.st6.squad.3", "ai": "ambush", "sight": 1,
       "units": [
         {"skin": "mimic", "col": 4, "row": 2},
         {"skin": "mimic", "col": 11, "row": 2},
         {"skin": "mimic", "col": 12, "row": 8},
         {"skin": "mimic", "col": 3, "row": 12}
       ] },
-    { "order": 4, "name": "坑道のスコーピオン", "ai": "ambush", "sight": 2, "stack": 1,
+    { "order": 4, "name": "t3.st6.squad.4", "ai": "ambush", "sight": 2, "stack": 1,
       "units": [
         {"skin": "scorpion", "col": 3, "row": 7},
         {"skin": "scorpion", "col": 11, "row": 7},

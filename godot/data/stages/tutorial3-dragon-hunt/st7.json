@@ -42,22 +42,22 @@
     {"type": "mage", "col": 2, "row": 14, "actor": "mage"}
   ],
   "enemy": [
-    { "order": 1, "name": "レッドドラゴン", "ai": "predator",
+    { "order": 1, "name": "t3.st7.squad.1", "ai": "predator",
       "units": [
         {"skin": "red_dragon", "col": 7, "row": 1, "actor": "dragon"}
       ] },
-    { "order": 2, "name": "山から追われた飛行", "ai": "charge",
+    { "order": 2, "name": "t3.st7.squad.2", "ai": "charge",
       "units": [
         {"skin": "griffon", "col": 1, "row": 0},
         {"skin": "griffon", "col": 12, "row": 0},
         {"skin": "griffon", "col": 7, "row": 3}
       ] },
-    { "order": 3, "name": "荒野のワイアーム", "ai": "charge",
+    { "order": 3, "name": "t3.st7.squad.3", "ai": "charge",
       "units": [
         {"skin": "wyrm", "col": 6, "row": 3},
         {"skin": "wyrm", "col": 8, "row": 3}
       ] },
-    { "order": 4, "name": "岩棚のスコーピオン", "ai": "ambush", "sight": 2, "stack": 1,
+    { "order": 4, "name": "t3.st7.squad.4", "ai": "ambush", "sight": 2, "stack": 1,
       "units": [
         {"skin": "scorpion", "col": 6, "row": 5},
         {"skin": "scorpion", "col": 8, "row": 6}

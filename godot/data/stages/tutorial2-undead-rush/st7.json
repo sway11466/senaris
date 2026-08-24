@@ -398,9 +398,9 @@
     { "type": "wizard", "col": 10, "row": 23 }
   ],
   "enemy": [
-    { "order": 50, "name": "ネクロマンサー", "ai": "ambush", "sight": 10,
+    { "order": 50, "name": "t2.st7.squad.1", "ai": "ambush", "sight": 10,
       "units": [ { "skin": "necromancer", "actor": "necromancer", "col": 6, "row": 2 } ] },
-    { "order": 1, "name": "前衛左舷", "ai": "charge",
+    { "order": 1, "name": "t2.st7.squad.2", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 4, "row": 20 },
         { "skin": "zombie", "col": 3, "row": 19 },
@@ -409,7 +409,7 @@
         { "skin": "skeleton_archer", "col": 4, "row": 17 },
         { "skin": "skeleton_archer", "col": 2, "row": 17 }
       ] },
-    { "order": 2, "name": "前衛右舷", "ai": "charge",
+    { "order": 2, "name": "t2.st7.squad.3", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 8, "row": 20 },
         { "skin": "zombie", "col": 9, "row": 19 },
@@ -418,7 +418,7 @@
         { "skin": "skeleton_archer", "col": 10, "row": 17 },
         { "skin": "skeleton_archer", "col": 9, "row": 16 }
       ] },
-    { "order": 3, "name": "中衛左舷", "ai": "charge",
+    { "order": 3, "name": "t2.st7.squad.4", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 4, "row": 8 },
         { "skin": "zombie", "col": 3, "row": 8 },
@@ -430,7 +430,7 @@
         { "skin": "ghoul", "col": 2, "row": 11 },
         { "skin": "ghoul", "col": 3, "row": 10 }
       ] },
-    { "order": 4, "name": "中衛右舷", "ai": "charge",
+    { "order": 4, "name": "t2.st7.squad.5", "ai": "charge",
       "units": [
         { "skin": "skeleton", "col": 8, "row": 8 },
         { "skin": "skeleton", "col": 9, "row": 8 },
@@ -442,19 +442,19 @@
         { "skin": "ghoul", "col": 10, "row": 11 },
         { "skin": "ghoul", "col": 11, "row": 11 }
       ] },
-    { "order": 5, "name": "後衛左舷", "ai": "charge",
+    { "order": 5, "name": "t2.st7.squad.6", "ai": "charge",
       "units": [
         { "skin": "ghost", "col": 1, "row": 4 },
         { "skin": "ghost", "col": 2, "row": 4 },
         { "skin": "ghost", "col": 3, "row": 4 }
       ] },
-    { "order": 6, "name": "後衛右舷", "ai": "charge",
+    { "order": 6, "name": "t2.st7.squad.7", "ai": "charge",
       "units": [
         { "skin": "ghost", "col": 9, "row": 4 },
         { "skin": "ghost", "col": 10, "row": 4 },
         { "skin": "ghost", "col": 11, "row": 4 }
       ] },
-    { "order": 7, "name": "レイス隊", "ai": "predator",
+    { "order": 7, "name": "t2.st7.squad.8", "ai": "predator",
       "units": [
         { "skin": "wraith", "col": 6, "row": 3 },
         { "skin": "wraith", "col": 6, "row": 4 },

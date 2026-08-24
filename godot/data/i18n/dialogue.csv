@@ -58,6 +58,8 @@ t1.st4.outro.2,助けた人たちが、僕らと一緒に！,"The people we save
 t1.st4.outro.3,よく立った。お前たちの町だ、お前たちの手で守れ。斥候、湧き元は。,"Well stood. It's your town — guard it with your own hands. Scout, where's the source?"
 t1.st4.outro.4,北の巣穴かと。元を断たねば、また襲ってきます。,"The nest to the north, I'd say. Cut off the source or they'll raid again."
 t1.st4.outro.5,なら巣穴を潰す。攻めるなら弓が要る、弓が扱えるやつはついてこい。,"Then we crush the nest. To assault it we'll need bows — any who can draw one, with me."
+t1.st4.squad.1,攻撃隊,Assault Squad
+t1.st4.squad.2,占領隊,Capture Squad
 t1.st5.intro.1,巣穴へ続く道、ゴブリンと重装が森に散らばって守っています。数は十三、こちらの倍近い。,"The road to the nest — goblins and heavies scattered through the woods. Thirteen of them, near twice our number."
 t1.st5.intro.2,数は多いですが、こちらには弓があります。離れて射れば、奴らの反撃は届きません。,"They're many, but we have bows. Shoot from range and their counters won't reach."
 t1.st5.intro.3,撃たれっぱなしになる、ってこと？,"You mean they just get shot without hitting back?"
@@ -80,6 +82,8 @@ t1.st6.outro.1,部屋をひとつずつ、概ね片付いた。,"Room by room �
 t1.st6.outro.2,お見事。手下の大半は断ちました。あとは、巣穴の奥にいるゴブリンロードを撃ちましょう。,"Splendid. Most of the underlings are cut down. Now for the Goblin Lord deep in the nest."
 t1.st6.outro.3,ここまで来た。全員、全部の力で元を断つ。突入だ。,"We've come this far. Everyone, everything we've got — we end this at its root. Charge in!"
 t1.st6.outro.4,行きましょう、隊長！,"Let's go, Captain!"
+t1.st6.squad.1,手前の部屋,Front Room
+t1.st6.squad.2,奥の部屋,Back Room
 t1.st7.intro.1,最奥がゴブリンロードの間。あれは別格です。脇にホブゴブリン二匹とアーチャー二匹、手前の部屋にも手下がうじゃうじゃ。,"The innermost chamber is the Goblin Lord's. It's in a class of its own. Two hobgoblins and two archers flank it, and the front rooms are crawling with underlings."
 t1.st7.intro.2,正面から、あれと戦うんですか？,"We fight that thing head-on?"
 t1.st7.intro.3,正面で殴り合えばロードは固い、こっちが保たん。斥候、抜け道はあるか？,"Trade blows head-on and the Lord's too tough — we won't hold. Scout, is there a way around?"
@@ -91,6 +95,10 @@ t1.st7.outro.2,巣の主は落ちた。これで群れは散る。町は——�
 t1.st7.outro.3,長い道でした。あの平原から、ここまで。,"It's been a long road. From that plain, all the way here."
 t1.st7.outro.4,お前もよく戦った。もう新兵じゃないな。,"You fought well too. You're no rookie anymore."
 t1.st7.outro.5,はいっ！みんなで、勝ったんです。,"Yes sir! We won — all of us together."
+t1.st7.squad.1,通路,Corridor
+t1.st7.squad.2,手下部屋,Minion Room
+t1.st7.squad.3,ボス部屋,Boss Room
+t1.st7.squad.4,ボス,Boss
 char.knight.name,騎士,Knight
 char.priest.name,司祭,Priest
 char.mage.name,魔導師,Mage
@@ -123,6 +131,7 @@ t2.st1.outro.2,数が増えても、魔法の間合いさえ保てば凌げま�
 t2.st1.outro.3,喜んでばかりもいられません。この墓地のすぐ先に、小さな集落があったはずです。,"We can't just celebrate. There should be a small settlement just past this graveyard."
 t2.st1.outro.5,走って追いかけるの？　聖職の足じゃ日が暮れるわ。,"On foot? At a priest's pace we'd get there by nightfall."
 t2.st1.outro.4,荷馬車を使おう。あれに乗れば、歩くより遥かに速い。,"Let's use the wagon. Ride it and we move far faster than on foot."
+t2.st1.squad.1,屍の群れ,Risen Dead
 t2.st2.intro.1,墓地近くの町が心配です。屍に囲まれてしまわないでしょうか。,"I worry for the town near the graveyard. What if the dead surround it?"
 t2.st2.intro.2,町までは距離があるわ。馬車に乗って、一刻も早く駆けましょう。,"The town is far. Board the wagon and let's race there at once."
 t2.st2.intro.5,乗るのは簡単よ。馬車のいるところまで歩けば、それで乗れる。降りるときは隣のマスへ、ひょいっと。,"Boarding is easy — just walk onto the wagon's hex. To get off, hop out to a hex beside it."
@@ -134,6 +143,8 @@ t2.st2.outro.1,集落は守れました。住民も、無事です。間に合�
 t2.st2.outro.2,でも、これだけの屍、どこから湧いてくるの？,"But this many dead — where are they welling up from?"
 t2.st2.outro.3,墓地だろうな。まだ奥から、次々と出てくるぞ。今度は群れの規模が違うな。,"The graveyard, surely. They keep pouring from deeper in. This swarm is on another scale."
 t2.st2.outro.4,あの量、普通の魔法だけでは焼ききれません。合体魔法の出番ですね、魔法ギルドに増援を頼みましょう。,"That many can't be burned away by ordinary spells. Time for combined magic — let's request reinforcements from the mage guild."
+t2.st2.squad.1,北西,Northwest
+t2.st2.squad.2,南東,Southeast
 t2.st3.intro.1,見て、あの数。地平まで屍で埋まってる。一体ずつ焼いていたら日が暮れるわ。,"Look at them all — dead to the horizon. Burn them one by one and night will fall first."
 t2.st3.intro.2,魔法ギルドからもう一人、術者を呼びました。術者が三角に組めば、合体魔法「トリニティノヴァ」が撃てます。,"I've called another caster from the guild. With three mages set in a triangle, we can loose the combined spell — the Trinity Nova."
 t2.st3.intro.5,三角とは、三人が互いに隣り合う形です。動いてしまった者は詠唱に加われません、その場で組んでください。,"A triangle means all three standing adjacent to one another. Anyone who has already moved cannot join the chant — form up where you stand."
@@ -150,6 +161,11 @@ t2.st3.outro.1,さすがの合体魔法ね。あれだけの群れも消し飛�
 t2.st3.outro.2,湧く元があります。離れた場所にある、屍を吐き出し続ける墓地を絶つ必要があります。,"There's a source. We must sever the graveyard that keeps spewing out the dead, off in the distance."
 t2.st3.outro.3,私たち聖職が墓地を祓えば、屍の発生を止められるはずです。,"If we clergy purify the graveyard, we should be able to stop the dead from rising."
 t2.st3.outro.4,教会に増援を頼もう。護衛の騎士と戦士、そして墓地を鎮める聖職者を。,"Let's request aid from the church — knights and fighters to guard, and clergy to lay the graveyard to rest."
+t2.st3.squad.1,第一波,First Wave
+t2.st3.squad.2,第二波,Second Wave
+t2.st3.squad.3,第三波,Third Wave
+t2.st3.squad.4,ゴースト隊弱者狙い,Prowling Ghosts
+t2.st3.squad.5,ゴースト隊特攻,Charging Ghosts
 t2.st4.intro.1,教会が応えてくれました。護衛の騎士と戦士、それに聖職の手が増えます。心強い。,"The church answered. More guarding knights and fighters, and more clergy hands. Reassuring."
 t2.st4.intro.2,広いな、奥に墓地から屍が湧き続けている。倒しても倒しても、あれがある限りキリがない。,"A wide field — the dead keep welling from the graves at the back. Kill as we might, it's endless while those remain."
 t2.st4.intro.3,やっぱり墓地を祓うしかなさそうね。,"Looks like there's no choice but to purify the graves after all."
@@ -165,6 +181,7 @@ t2.st4.outro.1,墓地を鎮めました。これで、ここから新たな屍�
 t2.st4.outro.2,元さえ断てば、こちらの領分だ。よく通した。,"Cut off the source and the field is ours. Well run."
 t2.st4.outro.3,でも、今回は雑魚とはいえないグールがいたわ。きっと、この先次はもっと厄介よ。,"But this time there were ghouls that were no mere fodder. Whatever's ahead will surely be nastier."
 t2.st4.outro.4,なら聖職の祈りを重ねましょう。聖職者を五人（いつたり）集めて加護を祈りましょう。,"Then let us layer the clergy's prayers. Gather five of the faithful and pray for a blessing."
+t2.st4.squad.1,前衛,Front Line
 t2.st5.intro.1,聖職が五人、揃いました。みなさん、手を貸してくれます。,"Five of the clergy have gathered. Everyone lends a hand."
 t2.st5.intro.2,助かる。だが見ろ、さっき厄介だったグールが群れている。まともに殴り合えば前衛が潰れる。,"A great help. But look — those troublesome ghouls are swarming. Trade blows head-on and the vanguard crumbles."
 t2.st5.intro.3,五人で身を寄せ、聖なる加護を祈ります。神の加護が、皆様を導いてくれるでしょう。,"The five of us draw close and pray the Sacred Aegis. The divine blessing will guide you all."
@@ -179,6 +196,12 @@ t2.st5.outro.1,祈りの加護が乗れば、質でも負けん。このまま�
 t2.st5.outro.2,ですが、墓地のさらに奥から、嫌な感じがするわ。,"Still, I get a bad feeling from even deeper in the graveyard."
 t2.st5.outro.3,今までの屍とは、格が違う何かがいます。,"There is something here of a wholly different order than the dead so far."
 t2.st5.outro.4,魔法ギルドと教会に、さらなる増援を頼もう。,"Let's call for still more reinforcements from the guild and the church."
+t2.st5.squad.1,前線上段,Upper Front
+t2.st5.squad.2,前線中段,Center Front
+t2.st5.squad.3,前線下段,Lower Front
+t2.st5.squad.4,中衛上段,Upper Middle
+t2.st5.squad.5,中衛下段,Lower Middle
+t2.st5.squad.6,後衛,Rear Guard
 t2.st6.intro.1,あの首無しの鎧、恐ろしい邪悪な気を放っているわ。,"That headless armor gives off a dreadful, wicked aura."
 t2.st6.intro.2,やつはデュラハン、力も守りも素早さも、すべてが精鋭の戦士と遜色がない。まともに打ち合ってはいけない。,"That's a dullahan — its strength, defense, and speed all rival an elite warrior's. Don't trade blows with it head-on."
 t2.st6.intro.5,あの首無し、まっすぐは来ないわ。弱ったところ、脆いところを選んで回り込んでくる。,"That headless one won't come straight at us. It circles around to whatever is wounded, whatever is frail."
@@ -192,6 +215,10 @@ t2.st6.outro.3,まだです。デュラハンには屍を作る力はありま�
 t2.st6.outro.4,まだ、これ以上の厄介な敵がいるの！ どうすればいいの。,"There's an even nastier foe still?! What are we to do?"
 t2.st6.outro.5,安心してください。少し前に都から連絡があり、聖騎士様がこちらに向かっているとのことです。飛空艇でくるそうなので、もうすぐに到着するはずです。,"Be at ease. Word came from the capital a while ago — a paladin is on the way to us. By airship, they say, so they should arrive very soon."
 t2.st6.outro.6,それは心強い。次こそ、最後の戦いだ。,"That's heartening. The next battle will be the last."
+t2.st6.squad.1,首無し,The Headless
+t2.st6.squad.2,上部グール達,Upper Ghouls
+t2.st6.squad.3,下部ゾンビ・スケルトン,Lower Undead
+t2.st6.squad.4,レイス隊,Wraiths
 t2.st7.intro.1,飛空艇が見えます、聖騎士様が間もなく到着します！,"I can see the airship — the paladin will arrive any moment!"
 t2.st7.intro.2,屍の量が圧倒的だわ、どうやってネクロマンサーに近づけば良いの。,"The sheer number of dead is overwhelming. How are we to reach the necromancer?"
 t2.st7.intro.3,聖騎士様は強力なディバインジャッジメントを落とすことができる。聖騎士様が到着するまで、持ちこたえるんだ。,"The paladin can bring down a mighty Divine Judgment. Hold out until they arrive."
@@ -216,6 +243,14 @@ t2.st7.outro.5,よかった……皆さん、誰ひとり欠けずに。ほん�
 t2.st7.outro.6,泣くな司祭殿、笑うところだ。これは、術師も、聖職も、騎士も、そして聖騎士様の一撃、すべてが一体となって成し遂げた勝利だ！,"Don't weep, Father — this is the moment to laugh. This is a victory won as one: casters, clergy, knights, and the paladin's strike, all together!"
 t2.st7.outro.7,君たちが前線を守り抜いたからこそ、私の一矢は届いた。……ふふ、これほど晴れやかな戦の後は久しぶりだ。,"It was because you held the line that my single shot reached its mark. ...Heh. It has been a long while since a battle ended this brightly."
 t2.st7.outro.8,さあ、帰りましょう。この地にも、ようやく平穏が訪れます。,"Now, let us go home. Peace comes to this land at last."
+t2.st7.squad.1,ネクロマンサー,Necromancer
+t2.st7.squad.2,前衛左舷,Front Left
+t2.st7.squad.3,前衛右舷,Front Right
+t2.st7.squad.4,中衛左舷,Middle Left
+t2.st7.squad.5,中衛右舷,Middle Right
+t2.st7.squad.6,後衛左舷,Rear Left
+t2.st7.squad.7,後衛右舷,Rear Right
+t2.st7.squad.8,レイス隊,Wraiths
 dbg.base.1,この盤で確認すること。町は三つ、左から味方・中立・敵。,"What to check on this board. Three towns: ours, neutral, theirs, left to right."
 dbg.base.2,中立の町を占領すると、中の控え二人が寝返って自軍に付く。占領後に出撃できるか。,"Capture the neutral town and its two reserves defect to us. Check you can deploy them afterwards."
 dbg.base.3,味方の町を敵に奪われると、中の控えは閉じ込められて出せない。奪い返せばまた出せる。,"If the enemy takes our town, the reserve inside is locked in and cannot deploy. Retake it and they can again."
@@ -244,6 +279,8 @@ t3.st1.outro.7,私たちも、一緒に連れて行ってもらえませんか�
 t3.st1.outro.8,いいだろう。,"Very well."
 t3.st1.outro.9,絶対に足手まといになるけど、良いの？,"They'll slow us down for certain. You're all right with that?"
 t3.st1.outro.10,若手を育てるのもベテランの仕事です。,"Raising the young ones is a veteran's work too."
+t3.st1.squad.1,グリフォン隊,Griffons
+t3.st1.squad.2,オーク隊,Orcs
 t3.st2.intro.1,街の連中に聞いて回ったわ。少し前まで、ならず者の一団が街をうろついてたって。,"I asked around town. Until a while back, a band of ruffians was loitering in the streets."
 t3.st2.intro.2,そいつらが姿を消した頃から、魔獣が出るようになったらしい。,"And the beasts started turning up right about when they vanished."
 t3.st2.intro.3,偶然にしては出来すぎだな。,"Too neat for coincidence."
@@ -271,6 +308,10 @@ t3.st2.outro.10,本体は別のところで活動中なんだろう。馬車の�
 t3.st2.outro.11,私も連れてって！ 魔法も使えるし、地上の相手には捕まらないわ！,"Take me with you! I can work magic, and nothing on the ground can catch me!"
 t3.st2.outro.12,いいだろう。ついてこい。,"Very well. Come along."
 t3.st2.outro.13,また、妙な仲間が増えたわね。,"Another odd one joins the party."
+t3.st2.squad.1,北門・ハーピー,North Gate Harpies
+t3.st2.squad.2,北門・ローグ,North Gate Bandits
+t3.st2.squad.3,南門・オークの群れ,South Gate Orcs
+t3.st2.squad.4,南門・ローグ,South Gate Bandits
 t3.st3.intro.1,馬車の跡を追って荒野まで来たが……ここはドワーフの鉱山のようだな。,"We followed the wagon tracks out to the badlands. This looks to be a dwarven mine."
 t3.st3.intro.2,坑道から魔物が這い出している。掘り当てたのは鉱石ではなく、地下の空洞か。,"Monsters are crawling out of the shaft. They struck a cavern instead of ore, it seems."
 t3.st3.intro.3,見て、あっちにローグの馬車があるわ。,"Look — there's a rogue wagon over there."
@@ -361,16 +402,36 @@ t3.st3.intro.9,岩のような大物にも、魔法は通りますか。,"Does m
 t3.st3.intro.10,硬い相手ほどよく効く。剣が滑る所へ撃て。,"The harder they are, the better it tells. Strike where a blade would slide off."
 t3.st4.intro.8,悲鳴を上げる草は、わたしより遠くまで届きます。,"The screaming roots reach farther than I do."
 t3.st4.intro.9,ならば近づくな。撃たれぬ間合いから道を選べ。,"Then stay out of it. Choose your road from beyond their reach."
+t3.st4.squad.1,道を塞ぐトレント,Treant Roadblock
+t3.st4.squad.2,マタンゴの群生,Myconid Colony
+t3.st4.squad.3,マンドラゴラ,Mandragora
+t3.st4.squad.4,ローグ一味,Bandit Gang
 t3.st5.intro.8,崖の上までは、わたしの魔法は届きません……。,"My magic will not reach the top of the cliffs…"
 t3.st5.intro.9,届く者が撃つ。君は道の獣を頼む。,"Those who can reach will shoot. You take the beasts on the path."
+t3.st5.squad.1,崖のハーピー,Cliff Harpies
+t3.st5.squad.2,降りてきたグリフォン,Swooping Griffon
+t3.st5.squad.3,山道の魔獣,Beasts of the Pass
+t3.st5.squad.4,ローグ一味,Bandit Gang
 t3.st6.intro.9,奥の宝箱、魔力の流れが妙です。……あれ、息をしています。,"That chest deeper in — the flow of magic is wrong. …It is breathing."
 t3.st6.intro.10,触らないでおきましょ。開けたら飛びついてくるやつよ。,"Best leave it alone. Open that and it leaps at you."
+t3.st6.squad.1,ローグ本隊,Bandit Main Force
+t3.st6.squad.2,頭目,Ringleader
+t3.st6.squad.3,宝の間のミミック,Treasure Room Mimic
+t3.st6.squad.4,坑道のスコーピオン,Tunnel Scorpions
 t3.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
 t3.st7.intro.12,細くとも数が要る。君の火も、あの翼に届く。,"Thin or not, we need every shot. Your flame reaches those wings too."
 t3.st7.outro.7,君の火も届いていた。もう見習いとは呼ばん。,"Your flame reached as well. I will not call you an apprentice again."
+t3.st7.squad.1,レッドドラゴン,Red Dragon
+t3.st7.squad.2,山から追われた飛行,Mountain Exiles
+t3.st7.squad.3,荒野のワイアーム,Wasteland Wyrms
+t3.st7.squad.4,岩棚のスコーピオン,Ledge Scorpions
 char.rogue_axe.name,ローグアックス,Thug
 t3.st3.intro.11,何やら騒がしいな。,"Something is stirring over there."
 t3.st3.intro.12,ドゴォンッ,"CRASH"
 t3.st3.intro.13,ローグたちがドワーフの集落へ向かっているぞ。,"The rogues are heading for the dwarven camp."
 t3.st3.intro.14,何か悪巧みをしているに違いない。魔物も倒しつつ向かうぞ。,"They are up to something, no question. We cut through the monsters and follow."
 t3.st3.intro.15,ここの魔物は毒を持っているみたいです。,"The monsters here seem to carry venom."
+t3.st3.squad.1,岩陰のロックサーペント,Lurking Rock Serpent
+t3.st3.squad.2,居座るトロール,Stubborn Troll
+t3.st3.squad.3,ワイアーム,Wyrm
+t3.st3.squad.4,ローグ一味,Bandit Gang

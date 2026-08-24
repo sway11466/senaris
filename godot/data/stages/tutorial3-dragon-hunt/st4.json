@@ -41,25 +41,25 @@
     {"type": "mage", "col": 10, "row": 14, "actor": "mage"}
   ],
   "enemy": [
-    { "order": 1, "name": "道を塞ぐトレント", "ai": "ambush", "sight": 3,
+    { "order": 1, "name": "t3.st4.squad.1", "ai": "ambush", "sight": 3,
       "units": [
         {"skin": "treant", "col": 2, "row": 10},
         {"skin": "treant", "col": 6, "row": 10},
         {"skin": "treant", "col": 10, "row": 10}
       ] },
-    { "order": 2, "name": "マタンゴの群生", "ai": "ambush", "sight": 2,
+    { "order": 2, "name": "t3.st4.squad.2", "ai": "ambush", "sight": 2,
       "units": [
         {"skin": "matango", "col": 2, "row": 12},
         {"skin": "matango", "col": 10, "row": 12},
         {"skin": "matango", "col": 6, "row": 8},
         {"skin": "matango", "col": 4, "row": 6}
       ] },
-    { "order": 3, "name": "マンドラゴラ", "ai": "charge",
+    { "order": 3, "name": "t3.st4.squad.3", "ai": "charge",
       "units": [
         {"skin": "mandragora", "col": 5, "row": 7},
         {"skin": "mandragora", "col": 7, "row": 7}
       ] },
-    { "order": 4, "name": "ローグ一味", "ai": "raid",
+    { "order": 4, "name": "t3.st4.squad.4", "ai": "raid",
       "units": [
         {"skin": "rogue", "col": 6, "row": 0},
         {"skin": "rogue", "col": 8, "row": 1}

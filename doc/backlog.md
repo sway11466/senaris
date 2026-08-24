@@ -81,14 +81,6 @@
 - 対応：`names.csv` に `terrain.{skin_id}.name`・`terrain_type.{id}.name` のキーを追加。`TerrainType`・`TerrainSkin` の表示名参照を `tr()` 経由に差し替え。
 - 該当：`godot/data/i18n/names.csv`・`godot/data/terrain/terrain_skin.gd`・`godot/data/terrain/terrain_type.gd`。
 
-### feature-73
-
-**部隊名の i18n キー化**（優先度：中）
-
-- 背景：ステージJSON 30ファイルの部隊 `name` フィールド（77箇所）が日本語直書き。表示側（`unit_info_panel.gd`）は `tr()` を通しているが、入力値がキーではなく日本語文字列のため翻訳が効かない。旧 feature-12 の分割。
-- 対応：ステージJSON の部隊 `name` を翻訳キーに差し替え。キーの命名規則（`squad.{campaign}.{stage}.{id}` 等）を決め、`dialogue.csv` または新CSVにエントリを追加。マップエディタの部隊名入力がキーを扱えるようにする。
-- 該当：`godot/data/stages/**/*.json`（30ファイル）・`godot/data/i18n/`・`godot/tools/map_editor/`。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**（優先度：低）

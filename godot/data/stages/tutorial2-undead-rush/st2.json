@@ -134,7 +134,7 @@
     { "type": "knight", "col": 8, "row": 8 }
   ],
   "enemy": [
-    { "order": 1, "name": "北西", "ai": "charge",
+    { "order": 1, "name": "t2.st2.squad.1", "ai": "charge",
       "units": [
         { "skin": "skeleton_archer", "col": 6, "row": 2 },
         { "skin": "skeleton", "col": 2, "row": 6 },
@@ -145,7 +145,7 @@
         { "skin": "skeleton", "col": 9, "row": 2 },
         { "skin": "skeleton", "col": 11, "row": 0 }
       ] },
-    { "order": 2, "name": "南東", "ai": "raid",
+    { "order": 2, "name": "t2.st2.squad.2", "ai": "raid",
       "units": [
         { "skin": "skeleton", "col": 23, "row": 4 },
         { "skin": "skeleton", "col": 19, "row": 5 },
