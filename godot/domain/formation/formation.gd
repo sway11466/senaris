@@ -5,7 +5,7 @@ class_name Formation
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
-## ①トリニティスペル(area)＋③ディバインジャッジメント(single)＝ダメージ系／②ホーリーアリア(buff)＝状態補正（乗算・全体・持続）。
+## ①トリニティノヴァ(area)＋③ディバインジャッジメント(single)＝ダメージ系／②ホーリーアリア(buff)＝状態補正（乗算・全体・持続）。
 ## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
@@ -21,8 +21,9 @@ class_name Formation
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 const RECIPES := {
-	"trinity_spell": {
-		"name": "トリニティスペル",
+	# name は開発用メモ。画面表示は tr("recipe.{id}.name")（正本 data/i18n/names.csv）で解決する。
+	"trinity_nova": {
+		"name": "トリニティノヴァ",
 		"leader_skins": ["wizard", "witch"],
 		"member_skins": ["wizard", "witch"],
 		"shape": "triangle",

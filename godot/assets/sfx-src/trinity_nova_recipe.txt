@@ -1,1 +1,1 @@
-ffmpeg -y -i "sonniss/trinity_spell__2018__water_blast_projectile_spell_03.wav" -af "volume=-9.0dB" -c:a pcm_s24le trinity_spell.wav
+ffmpeg -y -i "sonniss/trinity_nova__2018__water_blast_projectile_spell_03.wav" -af "volume=-9.0dB" -c:a pcm_s24le trinity_nova.wav

@@ -19,7 +19,7 @@
   Requires ImageMagick (magick). NOTE: keep this file ASCII-only (PowerShell 5.1).
 
 .EXAMPLE
-  powershell -File tools\gen_formation_impact.ps1 trinity_spell
+  powershell -File tools\gen_formation_impact.ps1 trinity_nova
   powershell -File tools\gen_formation_impact.ps1 all
 #>
 param(

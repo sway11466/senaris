@@ -65,28 +65,28 @@ around it. Wide 4:3 composition.
 
 #### カットイン
 
-| 段階 | 置き場（`{recipe_id}`＝Formation.RECIPES のキー） | 例（トリニティスペル） |
+| 段階 | 置き場（`{recipe_id}`＝Formation.RECIPES のキー） | 例（トリニティノヴァ） |
 |---|---|---|
-| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity_spell/trinity_spell_01_raw.png` |
+| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_01_raw.png` | `formations-src/trinity_nova/trinity_nova_01_raw.png` |
 | ② 透かし除去 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_02_dew.png` | 同上フォルダ |
 | ③ 手動調整マスター（任意） | `godot/assets/formations-src/{recipe_id}/{recipe_id}_03_master.png` | 同上フォルダ |
 | SUBJECT | `godot/assets/formations-src/{recipe_id}/{recipe_id}_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用 | `godot/assets/formations/{recipe_id}.png` | `godot/assets/formations/trinity_spell.png` |
+| ④ ゲーム用 | `godot/assets/formations/{recipe_id}.png` | `godot/assets/formations/trinity_nova.png` |
 
 - 絵柄は cover と同じ ILLUST STYLE（§2）。描くのは「機構が動く瞬間」＝獲得用キービジュアル（§1）と同じ狙いで、盤では見せられない一撃の迫力を1枚で見せる。
 - 規約解決。置けば出て、無ければカットインを飛ばす（コード不変）。`formations-src/` は `.gdignore` で Godot 非インポート。
-- 獲得用キービジュアルとは**共用しない**。冒険譚2の獲得絵は `trinity_spell` のカットインと画題が近い（どちらもトリニティスペル）が、狙う瞬間が違う＝カットインは詠唱が結実する一瞬、獲得絵は戦いが終わった後の景色。1枚で兼ねると、毎回挟むカットインと、クリア時に1度だけ出る絵が同じになって、どちらの効き目も落ちる。
-- 描く瞬間はレシピごとに変える。トリニティスペルとディバインジャッジメントは光が上へ抜ける縦の構図、ホーリーアリアは横へ広がる構図＝攻撃と祝福で画の方向を分ける。術者は目を閉じて詠唱に没入させ、暴れるのは魔法の側に任せる（静と動の対比）。
+- 獲得用キービジュアルとは**共用しない**。冒険譚2の獲得絵は `trinity_nova` のカットインと画題が近い（どちらもトリニティノヴァ）が、狙う瞬間が違う＝カットインは詠唱が結実する一瞬、獲得絵は戦いが終わった後の景色。1枚で兼ねると、毎回挟むカットインと、クリア時に1度だけ出る絵が同じになって、どちらの効き目も落ちる。
+- 描く瞬間はレシピごとに変える。トリニティノヴァとディバインジャッジメントは光が上へ抜ける縦の構図、ホーリーアリアは横へ広がる構図＝攻撃と祝福で画の方向を分ける。術者は目を閉じて詠唱に没入させ、暴れるのは魔法の側に任せる（静と動の対比）。
 
 #### 盤の着弾エフェクト
 
-| 段階 | 置き場 | 例（トリニティスペル） |
+| 段階 | 置き場 | 例（トリニティノヴァ） |
 |---|---|---|
-| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_01_raw.png` | `formations-src/trinity_spell/trinity_spell_impact_01_raw.png` |
+| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_01_raw.png` | `formations-src/trinity_nova/trinity_nova_impact_01_raw.png` |
 | ② 透かし除去 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_02_dew.png` | 同上フォルダ |
 | ③ 透過マスター | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_03_master.png` | 同上フォルダ |
 | SUBJECT | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_prompt.txt` | 同上フォルダ |
-| ④ ゲーム用 | `godot/assets/formations/{recipe_id}_impact.png` | `godot/assets/formations/trinity_spell_impact.png` |
+| ④ ゲーム用 | `godot/assets/formations/{recipe_id}_impact.png` | `godot/assets/formations/trinity_nova_impact.png` |
 
 - ④は [`godot/tools/gen_formation_impact.ps1`](../../godot/tools/gen_formation_impact.ps1)（`{recipe_id}` 複数可／`all`）で書き出す。③をトリムして長辺512に収めるだけ。
 - 絵柄はカットインの ILLUST STYLE ではなく、攻撃エフェクトの EFFECT STYLE（[units.md](units.md) §3.4）に寄せる。盤で30〜70px に縮む小さな絵なので、人・背景を描かず、フラットな2〜3色・硬い輪郭で痕跡そのものだけを描く。

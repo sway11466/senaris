@@ -1,5 +1,5 @@
 extends GutTest
-## 陣形スキル（スライスA＝フレームワーク＋①トリニティスペル）の検出・威力・適用を検証する。
+## 陣形スキル（スライスA＝フレームワーク＋①トリニティノヴァ）の検出・威力・適用を検証する。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 
 func _state() -> BattleState:
@@ -25,8 +25,8 @@ func _pick(opts: Array, recipe: String) -> Dictionary:
 func _triangle(c: Vector2i) -> Array:
 	return [c, Hex.neighbor(c, 0), Hex.neighbor(c, 1)]
 
-# トリニティスペルの成立盤：wizard 3体が三角形＋離れた位置に敵1体。leader=id1。
-func _trinity_spell_state(enemy_def := 20) -> Dictionary:
+# トリニティノヴァの成立盤：wizard 3体が三角形＋離れた位置に敵1体。leader=id1。
+func _trinity_nova_state(enemy_def := 20) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var tri := _triangle(c)
@@ -42,12 +42,12 @@ func _trinity_spell_state(enemy_def := 20) -> Dictionary:
 
 # --- 検出 ---
 
-func test_available_detects_trinity_spell_triangle() -> void:
-	var f := _trinity_spell_state()
+func test_available_detects_trinity_nova_triangle() -> void:
+	var f := _trinity_nova_state()
 	var opts := Formation.available_for(f["s"], f["leader"])
-	assert_eq(opts.size(), 1, "三角形のトリニティスペルが1つ検出される")
+	assert_eq(opts.size(), 1, "三角形のトリニティノヴァが1つ検出される")
 	var o: Dictionary = opts[0]
-	assert_eq(String(o["recipe"]), "trinity_spell", "レシピは trinity_spell")
+	assert_eq(String(o["recipe"]), "trinity_nova", "レシピは trinity_nova")
 	assert_eq((o["participants"] as Array).size(), 3, "参加3体")
 	assert_true(bool(o["needs_target"]), "面攻撃は対象指定が要る")
 
@@ -62,28 +62,28 @@ func test_no_triangle_when_not_adjacent() -> void:
 	assert_eq(Formation.available_for(s, w1).size(), 0, "三角形にならなければ検出0")
 
 func test_leader_type_gates_recipe() -> void:
-	# クレリックを選んでもトリニティスペル（魔法兵）は出ない。
-	var f := _trinity_spell_state()
+	# クレリックを選んでもトリニティノヴァ（魔法兵）は出ない。
+	var f := _trinity_nova_state()
 	var cleric := Unit.new(20, 0, Hex.offset_to_axial(1, 1), 3, 8, 20, 20, 1, "cleric")
 	f["s"].add_unit(cleric)
-	assert_eq(_count(Formation.available_for(f["s"], cleric), "trinity_spell"), 0, "leader_type 不一致は検出0")
+	assert_eq(_count(Formation.available_for(f["s"], cleric), "trinity_nova"), 0, "leader_type 不一致は検出0")
 
 func test_done_member_excluded() -> void:
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	f["s"].set_done(2)  # member を行動済みに
 	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 0, "行動済みメンバーは三角形に数えない")
 
 ## 発動に移動先も攻撃相手も要らない＝行き止まりのメンバーも参加できる。
 ## 囲まれて動けないだけの駒を除外すると、密集した盤で陣形が組めなくなる。
 func test_stuck_member_still_counts() -> void:
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	s.unit_by_id(2).move = 0  # 行ける先が無い（瓦礫や味方に囲まれた駒と同じ状態）
 	assert_true(s.is_stuck(2), "前提: メンバーに打つ手が無い")
 	assert_false(s.is_done(2), "前提: 行動は使っていない")
-	assert_eq(_count(Formation.available_for(s, f["leader"]), "trinity_spell"), 1,
+	assert_eq(_count(Formation.available_for(s, f["leader"]), "trinity_nova"), 1,
 		"動けないだけのメンバーも三角形に数える")
-	var opt := _pick(Formation.available_for(s, f["leader"]), "trinity_spell")
+	var opt := _pick(Formation.available_for(s, f["leader"]), "trinity_nova")
 	assert_false(s.resolve_formation(opt, f["enemy_hex"]).is_empty(), "そのまま発動できる")
 
 ## 発動者は移動してから発動してよい＝三角形の成立を移動先で判定する。
@@ -97,12 +97,12 @@ func test_triangle_forms_at_move_destination() -> void:
 	var w3 := Unit.new(3, 0, tri[2], 3, 8, 40, 30, 1, "wizard")
 	for u in [w1, w2, w3]:
 		s.add_unit(u)
-	assert_eq(_count(Formation.available_for(s, w1), "trinity_spell"), 0, "いまの位置では成立しない")
-	assert_eq(_count(Formation.available_for(s, w1, tri[0]), "trinity_spell"), 1,
+	assert_eq(_count(Formation.available_for(s, w1), "trinity_nova"), 0, "いまの位置では成立しない")
+	assert_eq(_count(Formation.available_for(s, w1, tri[0]), "trinity_nova"), 1,
 		"移動先に立てば三角形が成立する")
 	assert_true(s.move_unit(1, tri[0]), "そこへ移動する")
 	assert_true(s.has_action_left(1), "移動しただけでは行動を使い切らない")
-	var opt := _pick(Formation.available_for(s, w1), "trinity_spell")
+	var opt := _pick(Formation.available_for(s, w1), "trinity_nova")
 	assert_false(opt.is_empty(), "移動後の盤でも成立している")
 	assert_false(s.resolve_formation(opt, c + Hex.direction(0) * 3).is_empty(), "移動後に発動できる")
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
@@ -306,7 +306,7 @@ func test_single_out_of_range_fails() -> void:
 
 func test_resolve_uses_leader_attack() -> void:
 	# 面ダメージ＝発動者1体の実効攻撃力（合算しない）。単体の hit と一致する。
-	var f := _trinity_spell_state(100)  # 硬い敵＝非撃破で損害が兵数上限に張り付かない範囲
+	var f := _trinity_nova_state(100)  # 硬い敵＝非撃破で損害が兵数上限に張り付かない範囲
 	var s: BattleState = f["s"]
 	var enemy: Unit = f["enemy"]
 	var leader: Unit = f["leader"]
@@ -322,7 +322,7 @@ func test_resolve_uses_leader_attack() -> void:
 	assert_eq(enemy.troops, before - expect, "敵の兵数が損害ぶん減る")
 
 func test_resolve_marks_participants_done() -> void:
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	s.resolve_formation(opt, f["enemy_hex"])
@@ -330,7 +330,7 @@ func test_resolve_marks_participants_done() -> void:
 
 func test_area_hits_allies_too() -> void:
 	# フレンドリーファイア: 着弾中心の7hexに居る敵も味方も当たる（発動者3体は除外）。
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var center: Vector2i = f["enemy_hex"]
 	var enemy2 := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 20)  # 面内の別の敵
@@ -349,7 +349,7 @@ func test_area_hits_allies_too() -> void:
 
 func test_area_excludes_participants() -> void:
 	# 発動者3体が着弾範囲に入っても自傷しない（詠唱の源）。leader を中心に撃つ。
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var leader: Unit = f["leader"]
 	var w2_before := s.unit_by_id(2).troops
@@ -365,7 +365,7 @@ func test_area_excludes_participants() -> void:
 	assert_eq(s.unit_by_id(2).troops, w2_before, "発動者の兵数は不変")
 
 func test_resolve_out_of_range_fails() -> void:
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 全参加者から射程5超
@@ -373,7 +373,7 @@ func test_resolve_out_of_range_fails() -> void:
 
 func test_participants_gain_level() -> void:
 	# 撃破なし＝発動で全員+1（Lv1→Lv2）。硬い敵で一撃では死なせない。
-	var f := _trinity_spell_state(100)
+	var f := _trinity_nova_state(100)
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	s.resolve_formation(opt, f["enemy_hex"])
@@ -383,7 +383,7 @@ func test_participants_gain_level() -> void:
 
 func test_empty_cast_grants_no_level() -> void:
 	# 面に敵が1体も居ない空撃ちはLv+0（ただし参加者は行動完了）。
-	var f := _trinity_spell_state()
+	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var empty := Hex.offset_to_axial(3, 3) + Hex.direction(3) * 2  # 射程内・面に駒なし
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
@@ -395,7 +395,7 @@ func test_empty_cast_grants_no_level() -> void:
 
 func test_kill_grants_extra_level() -> void:
 	# 撃破が1体でもあれば +2（Lv1→Lv3）。
-	var f := _trinity_spell_state(1)  # 低防御＝撃破される
+	var f := _trinity_nova_state(1)  # 低防御＝撃破される
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	s.resolve_formation(opt, f["enemy_hex"])
@@ -404,7 +404,7 @@ func test_kill_grants_extra_level() -> void:
 
 func test_resolve_kills_when_lethal() -> void:
 	# 防御が薄い敵は撃破され盤から消える。
-	var f := _trinity_spell_state(1)  # 低防御
+	var f := _trinity_nova_state(1)  # 低防御
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	var res := s.resolve_formation(opt, f["enemy_hex"])
@@ -414,6 +414,6 @@ func test_resolve_kills_when_lethal() -> void:
 func test_is_unit_skill_splits_catalog_by_shape() -> void:
 	# 演出・効果音の出し分けが読む区別（陣形＝カットインあり／ユニットスキル＝音だけ）。
 	assert_true(Formation.is_unit_skill("pixie_dust"), "単独発動(shape=solo)はユニットスキル")
-	assert_false(Formation.is_unit_skill("trinity_spell"), "複数人のレシピは陣形")
+	assert_false(Formation.is_unit_skill("trinity_nova"), "複数人のレシピは陣形")
 	assert_false(Formation.is_unit_skill("holy_aria"), "クラスタも陣形")
 	assert_false(Formation.is_unit_skill("no_such_recipe"), "未知のIDは陣形扱い（落ちない）")

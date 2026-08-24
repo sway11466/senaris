@@ -494,8 +494,9 @@ func _open_command_menu(dest: Vector2i) -> void:
 			for i in _formation_opts.size():
 				var o: Dictionary = _formation_opts[i]
 				var label := tr("ui.board.unit_skill") if String(o.get("kind", "")) == "skill" else tr("ui.board.formation_skill")
-				# レシピ名（o["name"]）はデータ側の日本語のまま＝i18n は別途（backlog）
-				_menu.add_item(tr("ui.board.recipe_item") % [label, String(o["name"])], FORMATION_ID_BASE + i)
+				# レシピ名は規約キー（names.csv）で解決。RECIPES の name は開発用メモ
+				var recipe_name := tr("recipe." + String(o["recipe"]) + ".name")
+				_menu.add_item(tr("ui.board.recipe_item") % [label, recipe_name], FORMATION_ID_BASE + i)
 				if Formation.targetable_cells(state, o, dest).is_empty() and bool(o["needs_target"]):
 					_menu.set_item_disabled(_menu.get_item_index(FORMATION_ID_BASE + i), true)
 	_menu.add_separator()
