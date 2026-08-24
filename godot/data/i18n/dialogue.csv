@@ -8,7 +8,7 @@ talk.intro.4,わかりました、行きます！,"Understood, here I go!"
 talk.outro.1,よくやった。これで基本はつかんだな。,Well done. You've got the basics now.
 talk.outro.2,ありがとうございます、隊長！,"Thank you, Captain!"
 char.scout.name,斥候,Scout
-char.cleric.name,神官,Priest
+char.cleric.name,神官,Cleric
 char.archer.name,弓兵,Archer
 char.townsfolk.name,町人,Townsfolk
 t1.st1.intro.1,隊長！　町外れの平原にゴブリンども。数は多くない、先遣の斥候でしょう。,"Captain! Goblins on the plain outside town. Not many — a scouting party, I'd say."
@@ -98,7 +98,7 @@ char.witch.name,魔女,Witch
 char.paladin.name,聖騎士,Paladin
 char.vanguard.name,ヴァンガード,Vanguard
 char.thief.name,シーフ,Thief
-char.hunter.name,ハンター,Hunter
+char.hunter.name,ハンター,Ranger
 char.bishop.name,ビショップ,Bishop
 char.wizard.name,ウィザード,Wizard
 char.rookie_fighter.name,ファイター,Fighter
@@ -108,9 +108,9 @@ char.rookie_cleric.name,クレリック,Cleric
 char.pixie.name,ピクシー,Pixie
 char.dwarf.name,ドワーフ,Dwarf
 char.elf.name,エルフ,Elf
-char.birdman.name,バードマン,Birdman
-char.rogue.name,ローグ,Rogue
-char.rogue_head.name,ローグヘッド,Ringleader
+char.birdman.name,バードマン,Birdfolk
+char.rogue.name,ローグ,Bandit
+char.rogue_head.name,ローグヘッド,Bandit Captain
 t2.st1.intro.1,このあたりに動くスケルトンがいるという噂、半信半疑でしたが……,"We half-doubted the rumors of walking skeletons around here, but..."
 t2.st1.intro.2,噂通りだな。骨が、起き上がってくる。前へ出るぞ、隊列を崩すな。,"The rumors were true. The bones are rising. Advance — hold your formation."
 t2.st1.intro.3,慌てる必要はない。,"No need to panic."
@@ -367,7 +367,7 @@ t3.st6.intro.10,触らないでおきましょ。開けたら飛びついてく�
 t3.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
 t3.st7.intro.12,細くとも数が要る。君の火も、あの翼に届く。,"Thin or not, we need every shot. Your flame reaches those wings too."
 t3.st7.outro.7,君の火も届いていた。もう見習いとは呼ばん。,"Your flame reached as well. I will not call you an apprentice again."
-char.rogue_axe.name,ローグアックス,Rogue Axeman
+char.rogue_axe.name,ローグアックス,Thug
 t3.st3.intro.11,何やら騒がしいな。,"Something is stirring over there."
 t3.st3.intro.12,ドゴォンッ,"CRASH"
 t3.st3.intro.13,ローグたちがドワーフの集落へ向かっているぞ。,"The rogues are heading for the dwarven camp."
