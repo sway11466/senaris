@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=82 / refactoring=12
+次回採番: bug=3 / feature=83 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -56,6 +56,21 @@
 - 考慮外：陣形スキル・輸送・魔法兵などチュートリアル2以降の要素。会話パートの規模も本編ステージ並みを求めない。
 - 該当：`godot/data/stages/tutorial1-goblin-raid/`（または新設の置き場）・`doc/gdd/map_patterns.md`（ステージ一覧）・`doc/campaign/tutorial1-goblin-raid.md`。
 
+### feature-82
+
+**pck 暗号化の導入（エクスポートテンプレートの自前ビルド）**（優先度：中）
+
+- ゴール：配布ビルドの pck が暗号化されており、GDRE Tools 等でのカジュアルな展開・詰め直し（ユニット超強化・データ流用）が通らない。
+- 背景：方針は [ADR-0002](adr/ADR-0002-paid-data-protection.md) で決定済みだが実装は未着手（`export_presets.cfg` は `encrypt_pck=false`）。Godot の pck 暗号化は復号鍵をエクスポートテンプレートにビルド時に焼き込む方式のため、公式配布のテンプレートは使えず自前ビルドが要る（[build.md](tech/build.md) の注意）。締め切りは有料版の販売前。itch の初回体験版は暗号化なしで出してよい。
+- 決めたこと（2026-08-24）：
+  - 鍵は体験版と製品版で別にする（体験版は誰でも入手できる＝最も解析されやすいビルドなので、破られても失うのが体験版の中身だけになるよう分ける）。テンプレートは鍵ごとにビルドする。
+  - 鍵の定期的な入れ替えはしない。鍵は各ビルドの実行ファイルに同梱されるため、入れ替えても配布済みビルドは守れない。入れ替えるのは事故時（コミット・公開漏洩）のみ。
+  - 鍵はリポジトリ外（パスワードマネージャ等）で保管し、ビルド時に環境変数 `SCRIPT_AES256_ENCRYPTION_KEY` で流し込む。
+  - Godot ソースの置き場は `C:\Users\tappe\godot-src`（OneDrive 外＝同期対象にしない）。バージョンはエディタと同じものを使い、エディタを上げたら再ビルドする。
+- 対応：(1) ビルド環境の構築＝VS Build Tools 2022（C++ ワークロード）と SCons。(2) Godot ソースを取得し、鍵を環境変数に入れて Windows 用リリーステンプレートを鍵ごとにビルド。(3) `export_presets.cfg` に `encrypt_pck=true` とカスタムテンプレートを設定（鍵自体はファイルに書かない）。(4) 暗号化ビルドを実際に起動して確認し、手順を [build.md](tech/build.md) に記す。
+- 考慮外：ADR-0002 の残り2層（デジタル署名・所有権チェック）はこの作業に含めない。CI 化はローカルで一度通ってから。
+- 該当：`godot/export_presets.cfg`・`doc/tech/build.md`・`C:\Users\tappe\godot-src`（リポジトリ外・新規）。着手の引き金＝オーナーの合図。
+
 
 
 ### feature-71
@@ -63,8 +78,8 @@
 **地形表示名の i18n 化**（優先度：高）
 
 - 背景：`terrain_type.csv`（19エントリ）と `terrain_skin.csv`（約48エントリ）の `name` 列が日本語直書きで、情報パネルに表示される。旧 feature-12 の分割。
-- 対応：`units.csv` に `terrain.{skin_id}.name`・`terrain_type.{id}.name` のキーを追加。`TerrainType`・`TerrainSkin` の表示名参照を `tr()` 経由に差し替え。
-- 該当：`godot/data/i18n/units.csv`・`godot/data/terrain/terrain_skin.gd`・`godot/data/terrain/terrain_type.gd`。
+- 対応：`names.csv` に `terrain.{skin_id}.name`・`terrain_type.{id}.name` のキーを追加。`TerrainType`・`TerrainSkin` の表示名参照を `tr()` 経由に差し替え。
+- 該当：`godot/data/i18n/names.csv`・`godot/data/terrain/terrain_skin.gd`・`godot/data/terrain/terrain_type.gd`。
 
 ### feature-73
 

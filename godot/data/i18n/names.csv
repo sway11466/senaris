@@ -65,3 +65,28 @@ unit.rogue_axe.name,ローグアックス,Thug
 unit.rogue_slinger.name,ローグスリンガー,Bandit Slinger
 unit.rogue_head.name,ローグヘッド,Bandit Captain
 unit.rogue_wagon.name,ならず者の馬車,Bandit Wagon
+movement.foot.name,歩行,Foot
+movement.light_foot.name,軽歩行,Light Foot
+movement.forest_stride.name,森歩行,Forest Stride
+movement.brush_stride.name,茂歩行,Brush Stride
+movement.mountain_stride.name,山歩行,Mountain Stride
+movement.flight.name,飛行,Flight
+movement.stationary.name,固定,Stationary
+ai.charge.name,突撃,Charge
+ai.ambush.name,待ち伏せ,Ambush
+ai.predator.name,弱者狙い,Predator
+ai.raid.name,拠点攻略,Raid
+ai.swarm.name,群れ,Swarm
+ai.flee.name,逃走,Flee
+ai.withdraw.name,撤退,Withdraw
+ai.preempt.name,先制,Preempt
+category.infantry.name,歩兵,Infantry
+category.clergy.name,占領兵,Clergy
+category.archer.name,弓兵,Archer
+category.mage.name,魔法兵,Mage
+category.scout.name,斥候,Scout
+category.flier.name,飛行兵,Flier
+category.champion.name,精鋭,Champion
+category.transport.name,輸送,Transport
+category.emplacement.name,兵器,Emplacement
+category.monstrosity.name,魔法生物,Monstrosity
