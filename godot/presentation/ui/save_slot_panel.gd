@@ -13,7 +13,7 @@ class_name SaveSlotPanel
 signal slot_chosen(slot: String)  # 枠が決まった（確認を通ったあと）
 signal closed                     # 何も選ばずに閉じた（やめる・幕クリック・Esc）
 
-const PANEL_WIDTH := 760
+const PANEL_WIDTH := 880  # 一覧行の最長ケース（英語の冒険譚名—ステージ名）が収まる幅・実測771px＋余白
 const ROW_HEIGHT := 54
 const ROW_GAP := 10
 const HEADING_SIZE := 26
