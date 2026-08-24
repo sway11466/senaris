@@ -64,13 +64,6 @@
 - 対応：`ui.csv` にキーを追加し、`conversation_panel.gd`・`save_slot_panel.gd` の直書きを `tr()` に差し替え。
 - 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/conversation_panel.gd`・`godot/presentation/ui/save_slot_panel.gd`。
 
-### feature-69
-
-**依頼書・セレクト画面の UI 文言 tr() 化**（優先度：高）
-
-- 背景：依頼書（"出撃する"・"別のステージを選ぶ"・"出撃しますか？"・"閉じる"・"まだ受けられない依頼"等6件）とセレクト画面（"（開発ビルド限定）"・"危険度"等3件）が直書き。旧 feature-12 の分割。
-- 対応：`ui.csv` にキーを追加し、`quest_sheet.gd`・`campaign_select.gd` の直書きを `tr()` に差し替え。
-- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/select/quest_sheet.gd`・`godot/presentation/select/campaign_select.gd`。
 
 ### feature-71
 
