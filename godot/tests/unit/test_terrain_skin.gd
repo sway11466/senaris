@@ -125,12 +125,16 @@ func test_orient_values_allow_exactly_what_they_name() -> void:
 		assert_eq(s.flips_vertically(), want[2], "%s の上下反転" % mode)
 		assert_eq(s.orients(), mode != TerrainSkin.ORIENT_NONE, "%s の散らし対象か" % mode)
 
-func test_objects_are_never_oriented() -> void:
-	# オブジェクトは向きを持つ絵＝回しも反転もしない（→ doc/gdd/terrain.md）。
+func test_objects_rotate_never_and_flip_horizontally_at_most() -> void:
+	# オブジェクトは向きを持つ絵＝回さず・上下も返さない。カメラに正対する立ち絵の左右反転（flip_x）
+	# だけは許す（→ doc/gdd/terrain.md オブジェクト・doc/art/terrain.md 反復対策）。
 	for s: TerrainSkin in TerrainSkinCatalog.all_skins():
 		if TerrainType.layer(s.terrain_type) != "object":
 			continue
-		assert_false(s.orients(), "%s はオブジェクト＝散らさない" % s.skin_id)
+		assert_false(s.rotates(), "%s はオブジェクト＝回さない" % s.skin_id)
+		assert_false(s.flips_vertically(), "%s はオブジェクト＝上下は返さない" % s.skin_id)
+		if s.flips_horizontally():
+			assert_eq(s.placement, TerrainSkin.PLACE_STANDEE, "%s 左右反転を許すのは立ち絵だけ" % s.skin_id)
 		# 高さは elevation＝足場を敷く高さ／floor＝オブジェクトを置く高さ。地面の上に立つ
 		# standee / panel は両方0（背丈は絵が持つ）。flat（橋）は足場（水）より上に板が浮く。
 		if s.placement == TerrainSkin.PLACE_FLAT:
