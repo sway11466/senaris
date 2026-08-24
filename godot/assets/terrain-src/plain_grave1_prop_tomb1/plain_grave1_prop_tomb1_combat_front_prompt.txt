@@ -1,0 +1,71 @@
+SUBJECT: A NEW composition, not a crop or extension of any earlier picture:
+a CROWDED THICKET OF OLD GRAVE MARKERS standing on the ground in the FOREGROUND
+of a battle scene, seen from the front at eye level, for a wide landscape
+picture (16:9). Draw it as ONE SELF-CONTAINED band of stones that sits well
+inside the frame with empty white at both ends. The most important rule of this
+picture: NOTHING is cut by the frame. Every stone is drawn COMPLETE and WHOLE
+with white beyond it; no stone touches the left edge, the right edge or the top
+edge; nothing continues off the picture.
+
+The markers are the same weathered kind as the game's map version — slabs with
+rounded tops, squared-off slabs with chamfered heads, short stone crosses with
+thick stubby arms, snapped stubs, some half sunk into the ground up to their
+shoulders — each leaning at its own angle, never straight.
+
+LAYOUT — in a 1792 x 1024 picture, the stones stand in a LOW STRIP about 340
+pixels tall resting on the bottom edge, running the whole length of the strip
+with NO gap anywhere along it: it starts about 120 pixels in from the left edge
+and stops about 120 pixels in from the right edge, about 1550 pixels long. At
+each end the outermost stones are the shortest, and the band simply STOPS —
+nothing is cut, nothing continues off the frame. The margins at both ends and
+everything above the strip stay EMPTY WHITE. The stones rest on the bottom
+edge. NO stone may rise above the strip.
+
+DEPTH — the stones stand in TWO OR THREE RANKS, not a single line. The front
+rank is the tallest and its bases sit on the bottom edge. Behind it, a second
+rank is drawn smaller with its bases HIGHER up inside the strip, showing
+between and above the front stones; where a third rank appears, only the tops
+of those stones show. Ranks overlap so the eye cannot see a clear way through
+the band at any point. Fifteen to twenty stones in all.
+
+CROWDING — the gaps between neighbouring stones are narrower than the stones
+themselves, and some lean until they nearly touch a neighbour at the top while
+their bases stay apart. This is BAD FOOTING — stones everywhere, hardly
+anywhere left to put a foot down. But every stone STANDS ON THE FLAT GROUND at
+its own base: nothing is stacked on anything else, nothing rests on top of
+another stone, and there is NO mound, NO heap, NO pile, NO rubble, NO raised
+earth, NO kerb and NO wall. A thicket of upright stones, never a heap of stone.
+Vary the heights along the band, but NOT in order — no even row, no staircase
+of heights, no regular spacing, and the tallest stone somewhere in the middle
+stretch rather than at either end.
+
+STYLE — the same clean stylized cel-shaded look as the game's terrain and unit
+art: bold flat shading, clear dark outlines, a mature, slightly muted, limited
+color palette (NOT bright saturated, NOT painterly photorealism). Because these
+stones sit CLOSE to the camera, in front of the soldiers' feet, draw them a
+shade DARKER and SIMPLER than the map version — big plain shapes, little inner
+detail, dim in shadow — so they frame the scene rather than competing with the
+figures behind them.
+
+COLOR — weathered grey-green stone, hex #8E8A76 (darker than the map version
+because it is in shadow), each stone a slightly different flat tone between
+#9C9884 and #6E6A5A so the stones separate from one another by tone alone —
+this matters most where one stone stands in front of another. Draw the rear
+ranks a shade darker and flatter than the front rank so the depth reads. A
+little dull grey lichen low on a stone is welcome; NO bright green moss, NO
+strong red, blue or green anywhere.
+
+THE BACKGROUND — everything that is not stone is PURE FLAT WHITE, #FFFFFF: NO
+texture, NO shading, NO gradient, NO ground, NO grass, NO soil, NO drop shadow
+on the white. This white is going to be deleted and the strip laid over the
+game's own battle scene, so every outline must be a hard, clean, crisp edge
+against it. Nothing in the stones may be white or near-white.
+
+LIGHT — from directly above only, short soft shadows that fall only on the
+stones themselves; NOTHING casts a shadow onto the white, and NO light from the
+left or the right.
+
+Nothing else: no building, no doorway, no fence, no gate, no flowers, no
+candles, no bones, no skulls, no open graves, no creature, no people, no
+lettering and no inscriptions. NO glow, NO mist, NO magic. NO border, NO frame
+around the picture itself, NO vignette. Landscape 16:9.

@@ -122,16 +122,22 @@ static func variant_index(hex: Vector2i, count: int) -> int:
 		return 0
 	return absi(hash(hex)) % count
 
+## 左右反転を掛けるマスか（座標ハッシュ・決定的）。タイル（orient）と立ち絵で同じビットを使う＝
+## 同じ盤なら同じ並びになる。variant は別のハッシュ（variant_index）なので、絵の選択とは連動しない。
+static func flips_h_at(hex: Vector2i) -> bool:
+	return (absi(hash(Vector2i(hex.y, hex.x))) / 6) % 2 == 1
+
 ## 同じ絵が隣り合う見え方を、座標ハッシュで散らす（反復対策）。決定的＝作り直しても同じ並び。
 ## 何をしてよいかは絵が向きを持つかで決まる（TerrainSkin.ORIENT_*）。呼び出し側が3つの可否を渡す。
 ## 60°回転も上下左右の反転も正六角形を自分自身に写すので、絵が六角形に収まっていればはみ出さない。
-## 呼ぶかどうかは skin.orients() で判定する（道・壁・オブジェクトは向きが意味を持つので呼ばない）。
+## 呼ぶかどうかは skin.orients() で判定する（道・壁は向きが意味を持つので呼ばない）。立ち絵は
+## メッシュを持たないのでこれを呼ばず、flips_h_at を直に引く（→ board_terrain_renderer）。
 static func orient(mi: MeshInstance3D, hex: Vector2i, rotate: bool, flip_h: bool, flip_v: bool) -> void:
 	var o := absi(hash(Vector2i(hex.y, hex.x)))
 	if rotate:
 		mi.rotation.y = float(o % 6) * (PI / 3.0)
 	# cull無効なので裏面でも描ける。回転・左右・上下で別のビットを使う＝それぞれが連動しない。
-	var sx := -1.0 if flip_h and (o / 6) % 2 == 1 else 1.0
+	var sx := -1.0 if flip_h and flips_h_at(hex) else 1.0
 	var sz := -1.0 if flip_v and (o / 12) % 2 == 1 else 1.0
 	if sx < 0.0 or sz < 0.0:
 		mi.scale = Vector3(sx, 1.0, sz)

@@ -279,8 +279,8 @@
 			"map_scale": 0.61,
 			"memo": "墓地の草地に墓標が並ぶ。足場が悪い床＝移動2の屍を1マスに落とす。建物と入口を持たない＝湧かない側（納骨堂と対）",
 			"name": "墓標",
-			"object_foot_z": 0.2,
-			"orientable": "none",
+			"object_foot_z": 0.3,
+			"orientable": "flip_x",
 			"placement": "standee",
 			"skin_id": "plain_grave1_prop_tomb1",
 			"terrain_type": "prop"

@@ -21,7 +21,7 @@ const PLACEMENTS := [PLACE_STANDEE, PLACE_PANEL, PLACE_FLAT]
 
 ## 同じ絵が隣り合ったときの見え方を散らす手段（→ orientable）。絵が向きを持つほど使える手が減る。
 ## 値は「何をしてよいか」をそのまま並べる＝名前を読めば効く操作が分かる。
-const ORIENT_NONE := "none"        ## 何もしない。向きが意味を持つ絵（道・壁）とオブジェクト全部
+const ORIENT_NONE := "none"        ## 何もしない。向きが意味を持つ絵（道・壁・左右に意味のある立ち絵）
 const ORIENT_FLIP_X := "flip_x"    ## 左右反転だけ
 const ORIENT_FLIP_Y := "flip_y"    ## 上下反転だけ
 const ORIENT_FLIP_XY := "flip_xy"  ## 上下反転＋左右反転・回転なし

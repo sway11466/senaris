@@ -1,0 +1,65 @@
+SUBJECT: A CROWDED GROUP OF OLD GRAVE MARKERS standing in a neglected
+graveyard — five or six weathered headstones packed close together and nothing
+else — as drawn on the world map of a classic 2D role-playing game: seen from
+the front and slightly above, standing upright and facing the bottom of the
+frame — nothing lying flat, no perspective.
+
+THE ARRANGEMENT — the stones stand in TWO RANKS. Three or four of them stand in
+front, and two more stand BEHIND and BETWEEN them, drawn a little smaller and
+partly hidden by the front ones, so the group has depth and the eye cannot see
+a clear way through it. The stones are CLOSE together: the gaps between them
+are narrower than the stones themselves. One or two lean over until they nearly
+touch their neighbour at the top, while their bases stay apart.
+
+THIS IS BAD FOOTING, and the picture has to say so: stones everywhere, hardly
+anywhere left to put a foot down. But every stone still STANDS ON THE FLAT
+GROUND at its own base — nothing is stacked on anything else, nothing rests on
+top of another stone, and there is NO mound, NO heap, NO pile, NO rubble, NO
+raised earth, NO kerb, NO plinth and NO wall. This must read as a thicket of
+upright stones, never as a heap of stone.
+
+THE STONES — give every one a different shape and a different lean: a slab with
+a rounded top, a squared-off slab with a chamfered head, a short stone cross
+with thick stubby arms, a stub whose top has snapped off, one half sunk into the
+ground up to its shoulders. Vary the heights, but NOT in order: do NOT arrange
+them as an even row, and do NOT step the heights up or down across the picture
+like a staircase. The tallest should not stand at either end.
+
+SIZE — the group sits in the MIDDLE of the picture and is TALLER THAN IT IS
+WIDE. In a 1024-pixel picture it is about 520 pixels wide and about 600 pixels
+tall, the tallest stone about 560 pixels, leaving at least 200 pixels of white
+on every side. It must NOT touch any edge and must NOT be cut by any edge. Do
+NOT spread the stones out sideways into a wide low row: keep them packed
+together and let the group stand UP. The stones are tall slabs, not squat
+blocks — the tallest is about twice as tall as it is wide.
+
+COLOR — weathered dark grey-green stone, hex #8A8676, each marker a slightly
+different flat tone between #9A9686 and #6E6A5A so the stones separate from one
+another by tone alone — this matters most where one stone stands in front of
+another. The game draws its own dry khaki graveyard grass, hex #B0A888, behind
+this picture, and the stones must stand out plainly against it, so keep them
+CLEARLY DARKER and cooler than that grass — about as much darker as wet slate
+is against dry straw. Do NOT make the stone yellow, warm, golden, pale or
+brighter than #9A9686, and do NOT make it darker than #6E6A5A. A little dull
+grey lichen at the base of a stone is welcome; NO bright green moss.
+
+Everything muted, in the same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear dark outlines, a mature,
+slightly muted, limited color palette (NOT bright saturated, NOT painterly
+photorealism).
+
+THE BACKGROUND — everything around the markers is PURE FLAT WHITE, #FFFFFF,
+with NO texture, NO shading, NO gradient, NO ground, NO grass, NO soil, NO drop
+shadow. This white is going to be deleted and the game will draw its own
+graveyard grass there, so the outline of every stone must be a hard, clean,
+crisp edge against it. Nothing in the stones may be white or near-white.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the stones themselves; NOTHING casts a shadow onto the white.
+
+Nothing else: no building, no tomb, no mausoleum, no doorway, no fence, no
+gate, no path, no statues, no urns, no flowers, no candles, no bones, no
+skulls, no open graves, no creature, no people, no lettering and no
+inscriptions. NO glow, NO mist, NO magic. Read at thumbnail size: a few large
+legible shapes, no fine detail. NO border, NO frame around the picture itself,
+NO vignette. Square 1:1.

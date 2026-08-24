@@ -456,6 +456,8 @@ func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 
 ## 立ち絵の絵を貼る（チーム別の絵の解決込み＝占領で貼り替わる）。倍率と原点は絵の寸法に
 ## 依存するので、絵と一緒にここで合わせる。絵が引けなければ false。
+## 左右反転は絵の向きの話なのでここで掛ける。立ち絵が取れるのは flip_x まで（回すと足元が
+## 地面から外れ、上下反転は逆さに立つ）＝ orient は呼ばず flips_h_at だけを引く。
 func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> bool:
 	var tex := _variant_texture(_tile_image_path(skin, hex), hex)
 	if tex == null:
@@ -463,6 +465,7 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.texture = tex
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
+	spr.flip_h = skin.flips_horizontally() and TerrainTiles.flips_h_at(hex)
 	return true
 
 ## 立ち絵の天辺（ワールド座標）。立ち絵はカメラに正対するので、画面で頭の上に来る点は、足元から
