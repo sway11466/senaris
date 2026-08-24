@@ -81,7 +81,7 @@ func _ready() -> void:
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(gap)
-	var back := TavernTheme.wood_button("やめる")
+	var back := TavernTheme.wood_button(tr("ui.save.cancel"))
 	back.custom_minimum_size = Vector2(160, 44)
 	back.pressed.connect(_cancel)
 	footer.add_child(back)
@@ -93,7 +93,7 @@ func _ready() -> void:
 
 ## セーブ先を選ばせる（中断5枠のみ選択可・オートは読み出し専用）。
 func open_save(slots: SaveSlots) -> void:
-	_open(Mode.SAVE, slots, "セーブ", false)
+	_open(Mode.SAVE, slots, tr("ui.save.heading"), false)
 
 ## ロード元を選ばせる。warn_board＝いまの盤面が失われる旨の確認を挟む（盤から開いたとき true）。
 func open_load(slots: SaveSlots, heading: String, warn_board: bool) -> void:
@@ -144,13 +144,13 @@ func _is_selectable(entry: Dictionary) -> bool:
 
 ## 行の文字列。中身が在れば「枠名｜冒険譚名 — ステージ名｜ターンN 開始時｜保存日時」。
 func _row_text(entry: Dictionary) -> String:
-	var name := "オート" if bool(entry["auto"]) else String(entry["slot"])
+	var name := tr("ui.save.auto") if bool(entry["auto"]) else String(entry["slot"])
 	if not bool(entry["used"]):
-		return name + SEP + "空き"
+		return name + SEP + tr("ui.save.empty")
 	var meta: Dictionary = entry["meta"]
 	# 冒険譚名・ステージ名は翻訳キーで保存してある（言語を変えても一覧が追従する）
 	var where := "%s — %s" % [tr(String(meta.get("campaign_title", ""))), tr(String(meta.get("stage_title", "")))]
-	var parts: Array = [name, where, "ターン%d 開始時" % int(meta.get("turn_number", 0))]
+	var parts: Array = [name, where, tr("ui.save.turn_start") % int(meta.get("turn_number", 0))]
 	var at := _short_datetime(String(meta.get("saved_at", "")))
 	if not at.is_empty():
 		parts.append(at)
@@ -163,11 +163,11 @@ static func _short_datetime(raw: String) -> String:
 func _on_row_pressed(slot: String, used: bool) -> void:
 	SfxPlayer.play_event("menu_command")
 	if _mode == Mode.SAVE and used:
-		_ask("この枠に上書きしますか？")  # 既存の枠を潰すときだけ確認（空き枠は素通し）
+		_ask(tr("ui.save.confirm_overwrite"))  # 既存の枠を潰すときだけ確認（空き枠は素通し）
 		_pending_slot = slot
 		return
 	if _mode == Mode.LOAD and _warn_board:
-		_ask("いまの盤面は失われます。読み込みますか？")
+		_ask(tr("ui.save.confirm_load"))
 		_pending_slot = slot
 		return
 	_decide(slot)
@@ -221,14 +221,14 @@ func _build_confirm() -> Control:
 	# 左＝やめる／右＝進む（doc/gdd/uiux.md ボタンの左右）
 	var buttons := HBoxContainer.new()
 	box.add_child(buttons)
-	var no := TavernTheme.wood_button("やめる")
+	var no := TavernTheme.wood_button(tr("ui.save.cancel"))
 	no.custom_minimum_size = Vector2(150, 44)
 	no.pressed.connect(_on_confirm_no)
 	buttons.add_child(no)
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(gap)
-	var yes := TavernTheme.wood_button("はい")
+	var yes := TavernTheme.wood_button(tr("ui.save.yes"))
 	yes.custom_minimum_size = Vector2(150, 44)
 	yes.pressed.connect(_on_confirm_yes)
 	buttons.add_child(yes)

@@ -135,3 +135,14 @@ ui.quest.close,閉じる,Close
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
 ui.select.menu,← メニュー,← Menu
+ui.conv.close,閉じる,Close
+ui.conv.skip,会話をスキップ,Skip
+ui.conv.next,次へ ▶,Next ▶
+ui.save.cancel,やめる,Cancel
+ui.save.heading,セーブ,Save
+ui.save.auto,オート,Auto
+ui.save.empty,空き,Empty
+ui.save.turn_start,ターン%d 開始時,Start of Turn %d
+ui.save.confirm_overwrite,この枠に上書きしますか？,Overwrite this save?
+ui.save.confirm_load,いまの盤面は失われます。読み込みますか？,The current battle will be lost. Load this save?
+ui.save.yes,はい,Yes

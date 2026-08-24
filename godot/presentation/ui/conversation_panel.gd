@@ -24,7 +24,7 @@ var _skins := {}
 var _lines: Array = []
 var _shown := 0
 var _speakers := 0  # 話者のいる行だけを数える＝左右交互の順番（効果音の行を挟んでも左右が入れ替わらない）
-var _finish_label := "閉じる"
+var _finish_label := ""
 var _scroll: ScrollContainer
 var _messages: VBoxContainer
 var _next_btn: Button
@@ -53,10 +53,10 @@ func _ready() -> void:
 	bar.offset_bottom = -10
 	bar.add_theme_constant_override("separation", 8)
 	add_child(bar)
-	_skip_btn = TavernTheme.wood_button("会話をスキップ")
+	_skip_btn = TavernTheme.wood_button(tr("ui.conv.skip"))
 	_skip_btn.pressed.connect(_on_skip)
 	bar.add_child(_skip_btn)
-	_next_btn = TavernTheme.wood_button("次へ ▶")
+	_next_btn = TavernTheme.wood_button(tr("ui.conv.next"))
 	_next_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_next_btn.pressed.connect(_on_next)
 	bar.add_child(_next_btn)
@@ -110,7 +110,7 @@ func _reveal_next() -> void:
 			SfxPlayer.play_event("map_talk")
 		if shown_here:
 			break
-	_next_btn.text = _finish_label if _shown >= _lines.size() else "次へ ▶"
+	_next_btn.text = _finish_label if _shown >= _lines.size() else tr("ui.conv.next")
 	_scroll_to_last()
 
 ## 台本の1行。辞書でなければ空辞書に倒す（壊れたデータで会話を止めない）。
