@@ -5,7 +5,7 @@ extends GutTest
 func _archer_type() -> UnitType:
 	return UnitType.from_dict({
 		"id": "archer", "atk_ground": 8, "atk_air": 0, "defense": 5,
-		"move": 4, "move_type": "ground", "range": "1-2", "max_troops": 8,
+		"move": 4, "move_type": "foot", "range": "1-2", "max_troops": 8,
 	})
 
 func test_to_dict_only_snapshot_fields() -> void:

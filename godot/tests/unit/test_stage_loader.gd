@@ -155,7 +155,7 @@ func test_stage_cannot_override_type_stats() -> void:
 	var data := { "cols": 6, "rows": 4, "player": [
 		{ "type": "cleric", "col": 1, "row": 1,
 			"atk": 99, "def": 99, "move": 99, "range": 1, "capacity": 0, "atk_air": 0,
-			"pierce": 0.0, "move_type": "ground", "move_after_attack": false, "can_capture": false },
+			"pierce": 0.0, "move_type": "foot", "move_after_attack": false, "can_capture": false },
 	] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)

@@ -633,7 +633,7 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, s
 			push_warning("StageLoader: 未知のユニット種別: %s" % type_id)
 	# 未知 type の保険として無難な既定で作り、type があれば性能を丸ごと写す（数値を焼かない）。
 	var unit := Unit.new(id, team, pos, 3, 8, 10, 10, int(u.get("level", 1)), type_id)
-	unit.move_type = "ground"
+	unit.move_type = "foot"
 	if t != null:
 		unit.apply_type(t)
 	unit.troops = int(u.get("troops", unit.max_troops))  # 損耗（省略＝満員）。満員値は type のまま＝回復は type の上限まで戻る

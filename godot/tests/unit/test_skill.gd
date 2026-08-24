@@ -384,7 +384,7 @@ func _split_state() -> Dictionary:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()  # 敵ターン（team=1）に進める
 	s.set_charge(slime.id, "slime_split", 3)  # チャージ済み（即発動できる状態）
@@ -603,7 +603,7 @@ func test_charge_blocks_uncharged_skill() -> void:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()  # 敵ターン
 	# チャージ未設定（0）＝撃てない
@@ -619,7 +619,7 @@ func test_charge_allows_when_full() -> void:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()  # 敵ターン
 	s.set_charge(slime.id, "slime_split", 3)
@@ -635,7 +635,7 @@ func test_charge_blocks_when_short() -> void:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()
 	s.set_charge(slime.id, "slime_split", 2)  # 3 が必要だが 2 しか溜まっていない
@@ -651,7 +651,7 @@ func test_charge_increments_each_turn() -> void:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	assert_eq(s.get_charge(slime.id, "slime_split"), 0, "初期値は 0")
 	# team=0 のターンを終了 → team=1 のターン開始（敵ターン）＝敵駒のチャージが +1
@@ -688,7 +688,7 @@ func test_charge_accumulates_to_threshold() -> void:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	# 3ターンぶんのサイクルを回す（player→enemy→player→enemy→player→enemy）
 	for i in 3:
@@ -707,7 +707,7 @@ func test_charge_survives_serialization() -> void:
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
-	slime.move_type = "ground"
+	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.set_charge(slime.id, "slime_split", 2)
 	var restored := BattleState.from_dict(s.to_dict())

@@ -41,13 +41,13 @@ func test_path_of_event_chains_bind_and_autowire() -> void:
 
 func test_move_bind_collapses_move_types() -> void:
 	# 移動タイプは地形コストの都合で分かれているが、音としては足音（重）へ集約する。
-	assert_eq(SfxCatalog.move_sfx_of("ground"), "move_ground")
-	assert_eq(SfxCatalog.move_sfx_of("forest_walk"), "move_ground", "森歩きも同じ足音")
+	assert_eq(SfxCatalog.move_sfx_of("foot"), "move_ground")
+	assert_eq(SfxCatalog.move_sfx_of("forest_stride"), "move_ground", "森歩きも同じ足音")
 	assert_eq(SfxCatalog.move_sfx_of("light_foot"), "move_light_foot")
 	assert_eq(SfxCatalog.move_sfx_of("flight"), "move_flight")
 
 func test_move_sfx_of_unknown_type_is_silent() -> void:
-	assert_eq(SfxCatalog.move_sfx_of("fixed"), "", "動かない駒は無音")
+	assert_eq(SfxCatalog.move_sfx_of("stationary"), "", "動かない駒は無音")
 	assert_eq(SfxCatalog.move_sfx_of("no_such_type"), "", "未知の移動タイプも無音")
 
 func test_move_bind_targets_exist_in_move_sfx() -> void:

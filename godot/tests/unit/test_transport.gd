@@ -111,7 +111,7 @@ func test_unload_respects_move_type_and_occupancy() -> void:
 	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
 	s.add_unit(wagon)
 	var ground := Unit.new(2, 0, Vector2i.ZERO, 3)
-	ground.move_type = "ground"
+	ground.move_type = "foot"
 	s.put_passenger(1, ground)
 	var rock := Hex.offset_to_axial(3, 2)
 	s.set_terrain(rock, "rock")  # 地上は進入不可
@@ -221,10 +221,10 @@ func test_move0_passenger_unloads_to_adjacent() -> void:
 func test_move1_unit_boards_transport_on_costly_terrain() -> void:
 	var s := _state()
 	var wagon_hex := Hex.offset_to_axial(3, 3)
-	s.set_terrain(wagon_hex, "bedrock")  # ground の進入コスト3 ＞ 移動1
+	s.set_terrain(wagon_hex, "bedrock")  # foot の進入コスト3 ＞ 移動1
 	s.add_unit(_transport(1, 0, wagon_hex))
 	var rider := Unit.new(2, 0, Hex.offset_to_axial(2, 3), 1)
-	rider.move_type = "ground"
+	rider.move_type = "foot"
 	s.add_unit(rider)
 	assert_true(s.move_unit(2, wagon_hex), "高コスト地形上の輸送にも隣接からは乗れる")
 
@@ -233,7 +233,7 @@ func test_special_unload_respects_impassable_terrain() -> void:
 	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
 	s.add_unit(wagon)
 	var ground := Unit.new(2, 0, Vector2i.ZERO, 0)  # 移動0の地上駒
-	ground.move_type = "ground"
+	ground.move_type = "foot"
 	s.put_passenger(1, ground)
 	var rock := Hex.offset_to_axial(3, 2)
 	s.set_terrain(rock, "rock")  # 地上は進入不可

@@ -51,13 +51,13 @@ const BIND := {
 }
 
 ## 移動タイプ → 移動音の素材（既定）。移動タイプは地形コストの都合で分かれているが、
-## 音としては3系統に集約する（doc/audio/sfx.md 移動音）。未知値・fixed は ""＝無音。
+## 音としては3系統に集約する（doc/audio/sfx.md 移動音）。未知値・stationary は ""＝無音。
 ## 駒ごとの例外は unit_skin.csv の map_move_sfx 列で上書きする（飛行の飛び方の違いはこちら）。
 const MOVE_BIND := {
-	"ground": "move_ground",
-	"forest_walk": "move_ground",
-	"bush_walk": "move_ground",
-	"mountain_walk": "move_ground",
+	"foot": "move_ground",
+	"forest_stride": "move_ground",
+	"brush_stride": "move_ground",
+	"mountain_stride": "move_ground",
 	"light_foot": "move_light_foot",
 	"flight": "move_flight",
 }

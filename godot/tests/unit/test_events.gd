@@ -13,15 +13,15 @@ func _catalog() -> Dictionary:
 	var paladin := UnitType.new()
 	paladin.id = "paladin"
 	paladin.move = 5
-	paladin.move_type = "ground"
+	paladin.move_type = "foot"
 	var fighter := UnitType.new()
 	fighter.id = "fighter"
 	fighter.move = 6
-	fighter.move_type = "ground"
+	fighter.move_type = "foot"
 	var cleric := UnitType.new()
 	cleric.id = "cleric"
 	cleric.move = 5
-	cleric.move_type = "ground"
+	cleric.move_type = "foot"
 	cleric.can_capture = true
 	return { "airship": airship, "paladin": paladin, "fighter": fighter, "cleric": cleric }
 

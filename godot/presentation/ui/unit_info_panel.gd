@@ -454,7 +454,7 @@ func _movement_cost_lines(terrain_id: String) -> Array[String]:
 	var w := 0
 	for mt in Movement.display_order():
 		var c := Movement.cost(table, mt, terrain_id)
-		var nm := Movement.display_name(mt)
+		var nm := tr("movement." + mt + ".name")
 		names.append(nm)
 		values.append(tr("ui.info.impassable") if c == Movement.IMPASSABLE else str(c))
 		w = maxi(w, nm.length())
@@ -568,7 +568,7 @@ func _build_ability(u: Unit) -> void:
 	_add_row(tr("ui.info.atk_air"), str(u.atk_air) if u.atk_air > 0 else NONE)
 	_add_row(tr("ui.info.defense"), str(u.unit_defense))
 	_add_row(tr("ui.info.move"), str(u.move))
-	_add_row(tr("ui.info.move_type"), Movement.display_name(u.move_type))
+	_add_row(tr("ui.info.move_type"), tr("movement." + u.move_type + ".name"))
 	_add_row(tr("ui.info.range"), str(u.attack_range) if u.min_range == u.attack_range \
 		else "%d-%d" % [u.min_range, u.attack_range])
 	# 特性は「他の行を見ても分からないこと」だけ並べる。飛行は「移動種別」、遠隔・近接不可は

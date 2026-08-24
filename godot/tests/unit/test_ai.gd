@@ -9,7 +9,7 @@ extends GutTest
 ## 広がり、敵1体のZOCでは迂回距離が伸びないことがある（同じ長さの別ルートが残る）。
 ## 回り込みの効きを見るテストは壁で抜け道を絞った盤で書く。
 
-const PLAIN_WALL := { "ground": { "plain": 1, "wall": "x" } }
+const PLAIN_WALL := { "foot": { "plain": 1, "wall": "x" } }
 
 var _brain: TraitBrain
 
@@ -31,7 +31,7 @@ func _squad(s: BattleState, ai: String, overrides := {}) -> int:
 func _u(id: int, team: int, col: int, row: int, move := 3, troops := 8,
 		atk := 20, def := 10) -> Unit:
 	var u := Unit.new(id, team, Hex.offset_to_axial(col, row), move, troops, atk, def)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	return u
 
 ## 敵AIの駒（team 1）を部隊に入れて盤へ置く。

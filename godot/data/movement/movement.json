@@ -1,24 +1,24 @@
 {
 	"move_type_names": {
-		"bush_walk": "茂歩行",
-		"fixed": "固定",
+		"brush_stride": "茂歩行",
+		"stationary": "固定",
 		"flight": "飛行",
-		"forest_walk": "森歩行",
-		"ground": "歩行",
+		"forest_stride": "森歩行",
+		"foot": "歩行",
 		"light_foot": "軽歩行",
-		"mountain_walk": "山歩行"
+		"mountain_stride": "山歩行"
 	},
 	"move_type_order": [
-		"ground",
+		"foot",
 		"light_foot",
-		"forest_walk",
-		"bush_walk",
-		"mountain_walk",
+		"forest_stride",
+		"brush_stride",
+		"mountain_stride",
 		"flight",
-		"fixed"
+		"stationary"
 	],
 	"movement_types": {
-		"bush_walk": {
+		"brush_stride": {
 			"bedrock": 3,
 			"bridge": 1,
 			"building": 1,
@@ -39,7 +39,7 @@
 			"wall": "x",
 			"wasteland": 2
 		},
-		"fixed": {
+		"stationary": {
 			"bedrock": 1,
 			"bridge": 1,
 			"building": 1,
@@ -81,7 +81,7 @@
 			"wall": "x",
 			"wasteland": 1
 		},
-		"forest_walk": {
+		"forest_stride": {
 			"bedrock": 3,
 			"bridge": 1,
 			"building": 1,
@@ -102,7 +102,7 @@
 			"wall": "x",
 			"wasteland": 2
 		},
-		"ground": {
+		"foot": {
 			"bedrock": 3,
 			"bridge": 1,
 			"building": 1,
@@ -144,7 +144,7 @@
 			"wall": "x",
 			"wasteland": 1
 		},
-		"mountain_walk": {
+		"mountain_stride": {
 			"bedrock": 1,
 			"bridge": 1,
 			"building": 1,

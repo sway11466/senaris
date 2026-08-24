@@ -169,10 +169,10 @@
 
 | move_type | sfx_id | 音の系統 |
 |---|---|---|
-| `ground` / `forest_walk` / `bush_walk` / `mountain_walk` | `move_ground` | 足音（重） |
+| `foot` / `forest_stride` / `brush_stride` / `mountain_stride` | `move_ground` | 足音（重） |
 | `light_foot` | `move_light_foot` | 足音（軽） |
 | `flight` | `move_flight` | 羽ばたき |
-| `fixed` | （無し） | 無音（移動しない） |
+| `stationary` | （無し） | 無音（移動しない） |
 
 移動タイプは地形コストの都合で分かれており、音としては集約される。
 

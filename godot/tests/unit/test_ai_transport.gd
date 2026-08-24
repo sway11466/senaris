@@ -5,7 +5,7 @@ extends GutTest
 ## 輸送ユニット＝搭載数2以上。特性に重ねて働く制約（部隊内で最後・目的地hexに乗らない・攻撃しない）と、
 ## raid の行（降ろす・乗る）を分けて見る。盤は flat-top / odd-q（座標指定は offset）。
 
-const PLAIN_CLIFF := { "ground": { "plain": 1, "cliff": "x" }, "flight": { "plain": 1, "cliff": 1 } }
+const PLAIN_CLIFF := { "foot": { "plain": 1, "cliff": "x" }, "flight": { "plain": 1, "cliff": 1 } }
 
 var _brain: TraitBrain
 
@@ -27,7 +27,7 @@ func _squad(s: BattleState, ai: String) -> int:
 ## 敵(team 1)の駒を部隊に入れて盤へ置く。
 func _ai(s: BattleState, si: int, id: int, col: int, row: int, move := 3) -> Unit:
 	var u := Unit.new(id, 1, Hex.offset_to_axial(col, row), move)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	s.add_unit(u)
 	s.assign_squad(u.id, si)
 	return u
@@ -43,14 +43,14 @@ func _wagon(s: BattleState, si: int, id: int, col: int, row: int, cap := 4, move
 ## 占領兵（移動2）を輸送に積む。盤上には出さない。
 func _passenger(s: BattleState, transport_id: int, id: int, move := 2, capture := true) -> Unit:
 	var p := Unit.new(id, 1, Vector2i.ZERO, move)
-	p.move_type = "ground"
+	p.move_type = "foot"
 	p.can_capture = capture
 	s.put_passenger(transport_id, p)
 	return p
 
 func _pc(s: BattleState, id: int, col: int, row: int) -> Unit:
 	var u := Unit.new(id, 0, Hex.offset_to_axial(col, row), 3)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	s.add_unit(u)
 	return u
 

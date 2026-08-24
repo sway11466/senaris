@@ -4,19 +4,19 @@ extends GutTest
 func test_movement_table_loads() -> void:
 	# 既定の移動表が読めること＋安定な構造のみ検証（個別コストはCSVでチューニングされ変動する）。
 	var t := Movement.load_default()
-	assert_true(t.has("ground"), "ground 移動タイプがある")
+	assert_true(t.has("foot"), "foot 移動タイプがある")
 	assert_true(t.has("flight"), "flight 移動タイプがある")
-	assert_eq(Movement.cost(t, "ground", "plain"), 1, "平地=1（基準）")
-	assert_eq(Movement.cost(t, "ground", "wall"), Movement.IMPASSABLE, "壁は進入不可")
+	assert_eq(Movement.cost(t, "foot", "plain"), 1, "平地=1（基準）")
+	assert_eq(Movement.cost(t, "foot", "wall"), Movement.IMPASSABLE, "壁は進入不可")
 
 func test_travel_cost_field_measures_the_way_around() -> void:
 	# 道のり表: 壁の裏は直線距離より遠い（回り込むぶん）。AIの前進が参照する。
 	var s := BattleState.new(9, 5)
-	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	s.set_movement({ "foot": { "plain": 1, "wall": "x" } })
 	for row in 4:  # 3列目を上から4マス塞ぐ（南に隙間1）
 		s.set_terrain(Hex.offset_to_axial(3, row), "wall")
 	var goal := Hex.offset_to_axial(1, 1)
-	var field := s.travel_cost_field(goal, "ground")
+	var field := s.travel_cost_field(goal, "foot")
 	assert_eq(int(field[goal]), 0, "目標自身は0")
 	var behind := Hex.offset_to_axial(4, 1)
 	assert_gt(int(field[behind]), Hex.distance(behind, goal), "壁の裏は直線距離より遠い")
@@ -24,10 +24,10 @@ func test_travel_cost_field_measures_the_way_around() -> void:
 func test_travel_cost_field_omits_unreachable() -> void:
 	# 完全に分断された側と、進入不可の地形そのものは載らない（＝道が無い）。
 	var s := BattleState.new(9, 3)
-	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	s.set_movement({ "foot": { "plain": 1, "wall": "x" } })
 	for row in 3:
 		s.set_terrain(Hex.offset_to_axial(3, row), "wall")
-	var field := s.travel_cost_field(Hex.offset_to_axial(1, 1), "ground")
+	var field := s.travel_cost_field(Hex.offset_to_axial(1, 1), "foot")
 	assert_false(field.has(Hex.offset_to_axial(3, 1)), "壁そのものは載らない")
 	assert_false(field.has(Hex.offset_to_axial(5, 1)), "分断された向こう側は載らない")
 
@@ -35,48 +35,48 @@ func test_travel_cost_field_skips_hexes_the_unit_can_never_enter() -> void:
 	# 1マスの進入コストが移動力を超えるマスは、何ターンかけても入れない＝その駒には壁。
 	# 上限を渡すと道のりから外れ、遠回りの値になる（外さないと勾配が柵を指して前進が止まる）。
 	var s := BattleState.new(9, 5)
-	s.set_movement({ "ground": { "plain": 1, "fence": 3 } })
+	s.set_movement({ "foot": { "plain": 1, "fence": 3 } })
 	for row in 4:  # 3列目を上から4マス柵で塞ぐ（南に隙間1）
 		s.set_terrain(Hex.offset_to_axial(3, row), "fence")
 	var goal := Hex.offset_to_axial(1, 1)
 	var behind := Hex.offset_to_axial(4, 1)
-	var through := int(s.travel_cost_field(goal, "ground")[behind])
-	var around := int(s.travel_cost_field(goal, "ground", 2)[behind])
+	var through := int(s.travel_cost_field(goal, "foot")[behind])
+	var around := int(s.travel_cost_field(goal, "foot", 2)[behind])
 	assert_gt(around, through, "移動2の駒は柵を通れない＝迂回のぶん遠い")
-	assert_false(s.travel_cost_field(goal, "ground", 2).has(Hex.offset_to_axial(3, 1)),
+	assert_false(s.travel_cost_field(goal, "foot", 2).has(Hex.offset_to_axial(3, 1)),
 		"踏めない柵そのものは載らない")
-	assert_eq(int(s.travel_cost_field(goal, "ground", 3)[behind]), through,
+	assert_eq(int(s.travel_cost_field(goal, "foot", 3)[behind]), through,
 		"移動3なら柵を1歩で越えられる＝上限なしと同じ")
 
 func test_travel_cost_field_avoiding_units_walls_off_other_pieces() -> void:
 	# 標的以外の駒は敵味方を問わず壁＝止まれるマスだけを繋いだ「実際に歩けるルート」を測る。
 	# 測る側の駒がいま立っているマスだけは壁にしない（自分で道を塞がない）。
 	var s := BattleState.new(9, 5)
-	s.set_movement({ "ground": { "plain": 1 } })
+	s.set_movement({ "foot": { "plain": 1 } })
 	var goal := Hex.offset_to_axial(1, 2)
 	s.add_unit(Unit.new(1, 0, goal, 3))                      # 標的
 	var from := Hex.offset_to_axial(5, 2)
 	s.add_unit(Unit.new(10, 1, from, 3))                     # 測る側
 	for row in [1, 2, 3]:                                    # 間を塞ぐ壁（味方2体・敵1体）
 		s.add_unit(Unit.new(20 + row, 1 if row != 2 else 0, Hex.offset_to_axial(3, row), 3))
-	var field := s.travel_cost_field_avoiding_units(goal, "ground", 0, from)
+	var field := s.travel_cost_field_avoiding_units(goal, "foot", 0, from)
 	assert_true(field.has(from), "自分のマスは壁にしない")
 	assert_false(field.has(Hex.offset_to_axial(3, 2)), "敵の駒も壁")
 	assert_false(field.has(Hex.offset_to_axial(3, 1)), "味方の駒も壁")
-	assert_gt(int(field[from]), int(s.travel_cost_field(goal, "ground")[from]),
+	assert_gt(int(field[from]), int(s.travel_cost_field(goal, "foot")[from]),
 		"駒を避けるぶん、地形だけの道のりより遠い")
 
 func test_move_type_display_name() -> void:
 	# 表示名（movement.csv の name 列）が movement.json 経由で引けること。
-	assert_eq(Movement.display_name("ground"), "歩行", "ground の表示名")
+	assert_eq(Movement.display_name("foot"), "歩行", "foot の表示名")
 	assert_eq(Movement.display_name("flight"), "飛行", "flight の表示名")
 	assert_eq(Movement.display_name("no_such_type"), "no_such_type", "不明idは id をそのまま返す")
 
 func test_cost_impassable_and_default() -> void:
-	var t := { "ground": { "plain": 1, "plateau": "x" } }
-	assert_eq(Movement.cost(t, "ground", "plateau"), Movement.IMPASSABLE, "x は進入不可")
-	assert_eq(Movement.cost(t, "ground", "unknown"), 1, "表に無い地形は既定1")
-	assert_eq(Movement.cost({}, "ground", "plain"), 1, "空表は全地形1（従来挙動）")
+	var t := { "foot": { "plain": 1, "plateau": "x" } }
+	assert_eq(Movement.cost(t, "foot", "plateau"), Movement.IMPASSABLE, "x は進入不可")
+	assert_eq(Movement.cost(t, "foot", "unknown"), 1, "表に無い地形は既定1")
+	assert_eq(Movement.cost({}, "foot", "plain"), 1, "空表は全地形1（従来挙動）")
 
 func test_reachable_default_uniform() -> void:
 	# 移動表なし＝全地形コスト1。従来の一律移動と同じ。
@@ -90,10 +90,10 @@ func test_reachable_default_uniform() -> void:
 
 func test_reachable_terrain_cost_shrinks_range() -> void:
 	var s := BattleState.new(8, 8)
-	s.set_movement({ "ground": { "plain": 1, "plateau": 2 } })
+	s.set_movement({ "foot": { "plain": 1, "plateau": 2 } })
 	var ap := Hex.offset_to_axial(3, 3)
 	var u := Unit.new(1, 0, ap, 1)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	s.add_unit(u)
 	var plateau_hex := Hex.neighbor(ap, 0)
 	s.set_terrain(plateau_hex, "plateau")
@@ -103,10 +103,10 @@ func test_reachable_terrain_cost_shrinks_range() -> void:
 
 func test_reachable_impassable_blocks() -> void:
 	var s := BattleState.new(8, 8)
-	s.set_movement({ "ground": { "plain": 1, "plateau": "x" } })
+	s.set_movement({ "foot": { "plain": 1, "plateau": "x" } })
 	var ap := Hex.offset_to_axial(3, 3)
 	var u := Unit.new(1, 0, ap, 3)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	s.add_unit(u)
 	var wall := Hex.neighbor(ap, 0)
 	s.set_terrain(wall, "plateau")  # 進入不可
@@ -211,10 +211,10 @@ func test_path_to_rejects_unreachable_and_self() -> void:
 func test_path_to_detours_around_impassable() -> void:
 	# 直線上が進入不可なら、遠回りの経路を返す（＝コスト表ではなく実際に歩ける道）。
 	var s := BattleState.new(8, 8)
-	s.set_movement({ "ground": { "plain": 1, "wall": "x" } })
+	s.set_movement({ "foot": { "plain": 1, "wall": "x" } })
 	var p0 := Hex.offset_to_axial(3, 3)
 	var u := Unit.new(1, 0, p0, 3)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	s.add_unit(u)
 	var wall := Hex.neighbor(p0, 0)
 	var dest := Hex.neighbor(wall, 0)
@@ -255,7 +255,7 @@ func test_path_to_uses_remaining_move_after_attack() -> void:
 
 func test_flight_ignores_climb() -> void:
 	var s := BattleState.new(8, 8)
-	s.set_movement({ "ground": { "plain": 1, "plateau": 2 }, "flight": { "plain": 1, "plateau": 1 } })
+	s.set_movement({ "foot": { "plain": 1, "plateau": 2 }, "flight": { "plain": 1, "plateau": 1 } })
 	var ap := Hex.offset_to_axial(3, 3)
 	var u := Unit.new(1, 0, ap, 1)
 	u.move_type = "flight"

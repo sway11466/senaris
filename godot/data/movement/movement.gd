@@ -8,7 +8,7 @@ class_name Movement
 const MOVEMENT_PATH := "res://data/movement/movement.json"
 const IMPASSABLE := -1  ## 進入不可（reachable はこれを通行不能として扱う）
 
-static var _names := {}          # move_type -> 表示名（movement.csv の name 列）
+static var _names := {}          # move_type -> 表示名（movement.csv の name 列。表示には tr("movement." + id + ".name") を使う）
 static var _order: Array[String] = []  # movement.csv の行順（UI に並べる順）
 static var _meta_loaded := false
 
@@ -31,6 +31,7 @@ static func load_default() -> Dictionary:
 
 ## move_type の表示名（movement.csv の name 列。不明idは id をそのまま返す）。
 ## コスト表とは別に movement.json の move_type_names から遅延ロードする（TerrainType と同じ流儀）。
+## 表示には presentation 層で tr("movement." + id + ".name") を使うこと。
 static func display_name(move_type: String) -> String:
 	_ensure_meta()
 	return String(_names.get(move_type, move_type))

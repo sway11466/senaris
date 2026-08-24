@@ -15,7 +15,7 @@ var atk_air: int         ## 対空攻撃（0＝対空不可＝飛行を攻撃・
 var pierce: float        ## 防御貫通率（攻撃時に相手の実効防御を pierce ぶん減らす。0=なし・0.5=半減）
 var defense: int         ## 防御
 var move: int            ## 移動力
-var move_type: String    ## 移動タイプ（movement表のキー。"ground"/"flight"…）
+var move_type: String    ## 移動タイプ（movement表のキー。"foot"/"flight"…）
 var min_range: int = 1   ## 最短射程（下限）。≧2＝懐に死角（砲兵など近接不可）。CSV "range" から解く
 var attack_range: int    ## 最大射程（上限）。1=近接、>1=間接。CSV "range" から解く
 var move_after_attack: bool  ## 攻撃後に再移動できるか（ヒット&アウェイ）
@@ -32,7 +32,7 @@ static func from_dict(d: Dictionary) -> UnitType:
 	t.pierce = float(d.get("pierce", 0.0))
 	t.defense = int(d.get("defense", 0))
 	t.move = int(d.get("move", 0))
-	t.move_type = String(d.get("move_type", "ground"))
+	t.move_type = String(d.get("move_type", "foot"))
 	var r := parse_range(d.get("range", 1))
 	t.min_range = r.x
 	t.attack_range = r.y

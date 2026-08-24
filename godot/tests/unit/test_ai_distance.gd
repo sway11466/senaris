@@ -5,12 +5,12 @@ extends GutTest
 ## 移動そのもののルール（reachable・ZOC停止・地形コスト）は test_movement.gd の受け持ち。
 ## ここは「測れる／測れない」と、どのマスを数えるかだけを見る。
 
-const PLAIN_FENCE := { "ground": { "plain": 1, "fence": 3 }, "flight": { "plain": 1, "fence": 1 } }
-const PLAIN_WALL := { "ground": { "plain": 1, "wall": "x" } }
+const PLAIN_FENCE := { "foot": { "plain": 1, "fence": 3 }, "flight": { "plain": 1, "fence": 1 } }
+const PLAIN_WALL := { "foot": { "plain": 1, "wall": "x" } }
 
 func _melee(id: int, team: int, pos: Vector2i, move := 3) -> Unit:
 	var u := Unit.new(id, team, pos, move)
-	u.move_type = "ground"
+	u.move_type = "foot"
 	return u
 
 func _archer(id: int, team: int, pos: Vector2i, min_range := 2, max_range := 2) -> Unit:

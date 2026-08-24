@@ -56,7 +56,7 @@ static func display_category(type_id: String) -> String:
 static var _move_types := {}      # type_id -> 移動タイプ
 static var _move_types_loaded := false
 
-## 種別IDの移動タイプ（"ground"/"flight"…）。移動音の解決に使う（doc/audio/sfx.md 移動音）。
+## 種別IDの移動タイプ（"foot"/"flight"…）。移動音の解決に使う（doc/audio/sfx.md 移動音）。
 ## 不明idは ""。display_category と同じく、ロスター本体とは別に遅延ロードする。
 static func move_type_of(type_id: String) -> String:
 	if not _move_types_loaded:

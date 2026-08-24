@@ -107,14 +107,6 @@
 - 対応：`units.csv` に `terrain.{skin_id}.name`・`terrain_type.{id}.name` のキーを追加。`TerrainType`・`TerrainSkin` の表示名参照を `tr()` 経由に差し替え。
 - 該当：`godot/data/i18n/units.csv`・`godot/data/terrain/terrain_skin.gd`・`godot/data/terrain/terrain_type.gd`。
 
-### feature-72
-
-**移動タイプ表示名の i18n 化**（優先度：高）
-
-- 背景：`movement.csv` の `name` 列（7エントリ："歩行"・"軽歩行"・"飛行"等）が日本語直書きで、情報パネルに表示される。旧 feature-12 の分割。
-- 対応：`units.csv` に `movement.{id}.name` のキーを追加。`Movement.display_name()` を `tr()` 経由に差し替え。
-- 該当：`godot/data/i18n/units.csv`・`godot/data/movement/movement.gd`。
-
 ### feature-73
 
 **部隊名の i18n キー化**（優先度：中）
