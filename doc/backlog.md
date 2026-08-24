@@ -36,16 +36,6 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-79
-
-**チュートリアル１の会話の英文を書き直す**（優先度：高）
-
-- ゴール：チュートリアル１の会話が、英語圏のプレイヤーにとって翻訳物ではなく英語で書かれた台詞として読め、教える内容は日本語と一致している。itch の初回リリースに間に合っている。
-- 背景：`dialogue.csv` の英文（チュートリアル１＝80キー・約1221語）は監修を通っていない。[i18n.md](tech/i18n.md) で「根拠にしない」と明記された側で、画面の用語（`Strength` など）と食い違う箇所が feature-66 で既に見つかっている。英語圏をメインターゲットにする方針（[marketing.md](sales/marketing.md)）では、優先度が高いのはストアページの一行目と会話パートで、UI ラベルより会話のほうが上。
-- 対応：日本語を正本にしたまま英文だけを書き直す。訳ではなく英語の台詞として書く（[authoring.md](campaign/authoring.md) の英題の考え方と同じ）。用語は [i18n.md](tech/i18n.md) の「英語の用語」に従う。feature-66 で持ち越した `strength`（腕力の意味）の手当てを吸収する。話者名 28 件（`char.*`）もここで併せて見る。
-- 考慮外：日本語の台詞は直さない。
-- 該当：`godot/data/i18n/dialogue.csv`（`t1.*`の行）・`doc/campaign/`（内容の照合先）。
-
 ### feature-80
 
 **チュートリアル２の会話の英文を書き直す**（優先度：高）
