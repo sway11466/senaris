@@ -54,5 +54,5 @@ About the demo: the first build is the opening campaign, "The Goblin Raid". It i
 
 One last thing, about the name. "Senaris" comes from the Latin senarius — a set of six. On a hex grid, six is the number of hexes around any unit: a full encirclement. The game's favorite move is hidden in its name.
 
-Next devlog ships with the next chapter.
+New stages land in the demo every other week, and there will be a devlog to read along the way.
 
