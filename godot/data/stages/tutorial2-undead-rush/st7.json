@@ -572,7 +572,7 @@
     { "col": 6, "row": 12, "team": "player", "kind": "fort", "garrison": [] }
   ],
   "events": [
-    { "turn": 5, "type": "reinforce", "label": "飛空艇の到着まであと{n}ターン", "team": "player", "dialogue": "arrive", "focus": true,
+    { "turn": 5, "type": "reinforce", "label": "t2.st7.arrive.label", "team": "player", "dialogue": "arrive", "focus": true,
       "units": [
         { "type": "airship", "col": 6, "row": 25,
           "passengers": [

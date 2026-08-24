@@ -89,22 +89,6 @@
 - 対応：ステージJSON の部隊 `name` を翻訳キーに差し替え。キーの命名規則（`squad.{campaign}.{stage}.{id}` 等）を決め、`dialogue.csv` または新CSVにエントリを追加。マップエディタの部隊名入力がキーを扱えるようにする。
 - 該当：`godot/data/stages/**/*.json`（30ファイル）・`godot/data/i18n/`・`godot/tools/map_editor/`。
 
-### feature-74
-
-**イベントラベルの i18n キー化**（優先度：中）
-
-- 背景：ステージJSON のイベント `label` フィールドに日本語直書きがある（例："飛空艇の到着まであと{n}ターン"）。`event_plate.gd` は `tr()` を通しているが、値がキーではなく日本語文字列。旧 feature-12 の分割。
-- 対応：イベント `label` を翻訳キーに差し替え、`dialogue.csv` または `ui.csv` にエントリを追加。
-- 該当：`godot/data/stages/**/*.json`・`godot/data/i18n/`。
-
-### feature-76
-
-**デバッグ用キャンペーン名の i18n 化**（優先度：低）
-
-- 背景：デバッグ冒険譚のタイトル・ステージ名が日本語直書き。収録リストに載せないので配布ビルドには入らない（[build.md](tech/build.md)）。旧 feature-12 の分割。
-- 対応：リリースビルドから除外するなら不要。含める場合は `campaigns.csv` にエントリを追加。
-- 該当：`godot/data/stages/debug-*/campaign.json`・`godot/data/i18n/campaigns.csv`。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**（優先度：低）

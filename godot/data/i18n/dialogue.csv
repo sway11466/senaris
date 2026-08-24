@@ -201,6 +201,7 @@ t2.st7.intro.8,屍を残らず倒す必要はない。元凶さえ討てば、�
 t2.st7.intro.9,言っておくけど、あいつ自身も五つ先から撃ってくるわ。うかつに顔を出さないでね。,"Mind you, it strikes from five hexes away itself. Don't go poking your head out carelessly."
 t2.st7.intro.4,今まで通り、トリニティノヴァで薙ぎ払い、祈りの加護で耐えましょう。,"As before — sweep them with the Trinity Nova and endure with the prayer's blessing."
 t2.st7.intro.5,守り抜け。聖騎士様が撃つ、その一手のために。行くぞ、これで終わらせる。,"Hold the line — for the single strike the paladin will loose. Let's go; we end this here."
+t2.st7.arrive.label,飛空艇の到着まであと{n}ターン,Turns until the airship arrives: {n}
 t2.st7.arrive.1,飛空艇が着きました！　聖騎士様がお見えです！,"The airship has landed! The paladin is here!"
 t2.st7.arrive.2,待たせたな。戦況は？,"Sorry to keep you waiting. How stands the field?"
 t2.st7.arrive.3,ネクロマンサーは奥の高台です。屍は墓地から次々と湧いてきます。,"The necromancer is on the high ground at the far end. The dead keep rising from the graveyards."
