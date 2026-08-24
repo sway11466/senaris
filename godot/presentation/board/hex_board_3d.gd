@@ -460,18 +460,18 @@ func _open_command_menu(dest: Vector2i) -> void:
 	var will_capture := sel != null and sel.can_capture and base != null and base.team != sel.team
 	var can_enter := state.can_enter_base_at(_selected_id, dest)
 	_menu.clear()
-	_menu.add_item("攻撃", MENU_ATTACK)
+	_menu.add_item(tr("ui.board.attack"), MENU_ATTACK)
 	_menu.set_item_disabled(_menu.get_item_index(MENU_ATTACK), not can_attack)
-	_menu.add_item("占領" if will_capture else "待機", MENU_WAIT)
+	_menu.add_item(tr("ui.board.capture") if will_capture else tr("ui.board.wait"), MENU_WAIT)
 	if can_enter:
-		_menu.add_item("入る", MENU_ENTER)
+		_menu.add_item(tr("ui.board.enter"), MENU_ENTER)
 	var pas := state.passengers(_selected_id)
 	if not pas.is_empty():
 		_menu.add_separator()
 	for i in pas.size():
 		var pu: Unit = pas[i]
 		var sk := SkinCatalog.resolve(_skin_catalog, pu.skin_id, pu.type_id, pu.team)
-		_menu.add_item("降車: %s" % (tr("unit." + sk.skin_id + ".name") if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
+		_menu.add_item(tr("ui.board.unload") % (tr("unit." + sk.skin_id + ".name") if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
 		if state.has_moved(pu.id):
 			_menu.set_item_disabled(_menu.get_item_index(UNLOAD_ID_BASE + i), true)
 	if sel != null and base != null and base.team == sel.team and not base.garrison.is_empty():
@@ -480,7 +480,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 		for i in base.garrison.size():
 			var gu: Unit = base.garrison[i]
 			var gsk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
-			_menu.add_item("出撃: %s" % (tr("unit." + gsk.skin_id + ".name") if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
+			_menu.add_item(tr("ui.board.deploy") % (tr("unit." + gsk.skin_id + ".name") if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
 			if no_cells or not state.can_deploy_garrison(dest, i):
 				_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)
 	# 発動者は移動してから撃てる＝成立も射程も「移動先 dest に居るものとして」見る。
@@ -493,12 +493,13 @@ func _open_command_menu(dest: Vector2i) -> void:
 			_menu.add_separator()
 			for i in _formation_opts.size():
 				var o: Dictionary = _formation_opts[i]
-				var label := "ユニットスキル" if String(o.get("kind", "")) == "skill" else "陣形"
-				_menu.add_item("%s: %s" % [label, String(o["name"])], FORMATION_ID_BASE + i)
+				var label := tr("ui.board.unit_skill") if String(o.get("kind", "")) == "skill" else tr("ui.board.formation_skill")
+				# レシピ名（o["name"]）はデータ側の日本語のまま＝i18n は別途（backlog）
+				_menu.add_item(tr("ui.board.recipe_item") % [label, String(o["name"])], FORMATION_ID_BASE + i)
 				if Formation.targetable_cells(state, o, dest).is_empty() and bool(o["needs_target"]):
 					_menu.set_item_disabled(_menu.get_item_index(FORMATION_ID_BASE + i), true)
 	_menu.add_separator()
-	_menu.add_item("キャンセル", MENU_CANCEL)
+	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
 	_menu_handled = false
 	_menu.reset_size()
 	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)
@@ -634,9 +635,9 @@ func _open_board_menu(dest: Vector2i) -> void:
 	_pending_to = dest
 	_menu_base = INVALID_HEX
 	_menu.clear()
-	_menu.add_item("乗車", MENU_BOARD)
+	_menu.add_item(tr("ui.board.embark"), MENU_BOARD)
 	_menu.add_separator()
-	_menu.add_item("キャンセル", MENU_CANCEL)
+	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
 	_menu_handled = false
 	_menu.reset_size()
 	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)
@@ -664,11 +665,11 @@ func _open_unload_menu(dest: Vector2i) -> void:
 	var base := state.base_at(dest)
 	var will_capture := p.can_capture and base != null and base.team != p.team
 	_menu.clear()
-	_menu.add_item("攻撃", MENU_ATTACK)
+	_menu.add_item(tr("ui.board.attack"), MENU_ATTACK)
 	_menu.set_item_disabled(_menu.get_item_index(MENU_ATTACK), not can_attack)
-	_menu.add_item("占領" if will_capture else "待機", MENU_WAIT)
+	_menu.add_item(tr("ui.board.capture") if will_capture else tr("ui.board.wait"), MENU_WAIT)
 	_menu.add_separator()
-	_menu.add_item("キャンセル", MENU_CANCEL)
+	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
 	_menu_handled = false
 	_menu.reset_size()
 	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)
@@ -721,11 +722,11 @@ func _open_base_menu(base_hex: Vector2i) -> void:
 		var gu: Unit = b.garrison[i]
 		var sk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
 		var nm := tr("unit." + sk.skin_id + ".name") if sk != null else gu.type_id
-		_menu.add_item("出撃: %s" % nm, DEPLOY_ID_BASE + i)
+		_menu.add_item(tr("ui.board.deploy") % nm, DEPLOY_ID_BASE + i)
 		if not state.can_deploy_garrison(base_hex, i):
 			_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)
 	_menu.add_separator()
-	_menu.add_item("キャンセル", MENU_CANCEL)
+	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
 	_menu_handled = false
 	_menu.reset_size()
 	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)

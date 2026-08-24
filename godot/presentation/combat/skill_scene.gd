@@ -8,9 +8,10 @@ class_name SkillScene
 const OUTRO := 0.7  # 発動が終わってから幕を引くまで（秒）。戦闘の幕引きと同じ間
 const LABEL_OUTLINE := Color(0.16, 0.18, 0.24)  # 補正量の縁。損害数（赤）と混ぜない
 const LABEL_TOP := 0.14  # 補正量の出だし（窓内寸に対する比）。損害数（1行）より上＝2行が隊列に被らない
-## 補正の掛かる先（状態補正エントリの target）→ 表示する行の見出し。
+## 補正の掛かる先（状態補正エントリの target）→ 表示する行の見出し（翻訳キー。表示時に tr() する）。
 const TARGET_ROWS := {
-	"both": ["攻撃", "防御"], "attack": ["攻撃"], "defense": ["防御"],
+	"both": ["ui.combat.attack", "ui.combat.defense"],
+	"attack": ["ui.combat.attack"], "defense": ["ui.combat.defense"],
 }
 
 ## ユニットスキルの発動を演出する。detail が空・発動者か対象が欠けていれば何もしない。
@@ -91,10 +92,10 @@ func _effect_text(detail: Dictionary) -> String:
 	# その代わり、毎ターン何人減るかをここに出す。詳細 → doc/gdd/skills.md
 	if String(detail.get("effect", "")) == "dot":
 		var per_turn := int(detail.get("dot_troops", 0))
-		return "毒 -%d/ターン" % per_turn if per_turn > 0 else ""
+		return tr("ui.combat.poison") % per_turn if per_turn > 0 else ""
 	if String(detail.get("effect", "")) == "cleanse":
 		var n := int(detail.get("cleansed", 0))
-		return "解呪 %d" % n if n > 0 else ""
+		return tr("ui.combat.cleansed") % n if n > 0 else ""
 	var rows: Array = TARGET_ROWS.get(String(detail.get("buff_target", "both")), [])
 	if rows.is_empty():
 		return ""
@@ -102,5 +103,5 @@ func _effect_text(detail: Dictionary) -> String:
 	var body := ("×%.2f" % v) if String(detail.get("op", "mul")) == "mul" else ("%+d" % int(round(v)))
 	var lines: Array[String] = []
 	for r in rows:
-		lines.append("%s %s" % [r, body])
+		lines.append("%s %s" % [tr(r), body])
 	return "\n".join(lines)

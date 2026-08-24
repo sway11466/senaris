@@ -110,6 +110,7 @@ ui.quest.close,閉じる,Close
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
 ui.select.menu,← メニュー,← Menu
+ui.select.back_tales,← 冒険譚,← Tales
 ui.talk.close,閉じる,Close
 ui.talk.skip,会話をスキップ,Skip
 ui.talk.next,次へ ▶,Next ▶
@@ -129,3 +130,23 @@ ui.save.confirm_overwrite,この枠に上書きしますか？,Overwrite this sa
 ui.save.confirm_overwrite_yes,はい,Overwrite
 ui.save.confirm_load,いまの盤面は失われます。読み込みますか？,The current battle will be lost. Load this save?
 ui.save.confirm_load_yes,はい,Load
+ui.board.attack,攻撃,Attack
+ui.board.wait,待機,Wait
+ui.board.capture,占領,Capture
+ui.board.enter,入る,Enter
+ui.board.embark,乗車,Board
+ui.board.unload,降車: %s,Unload: %s
+ui.board.deploy,出撃: %s,Deploy: %s
+ui.board.unit_skill,ユニットスキル,Unit Skill
+ui.board.formation_skill,陣形スキル,Formation Skill
+ui.board.recipe_item,%s: %s,%s: %s
+ui.board.cancel,キャンセル,Cancel
+ui.banner.player_turn,自軍のターン,Your Turn
+ui.banner.enemy_turn,敵軍のターン,Enemy Turn
+ui.result.turns,ターン,Turns
+ui.result.survived,生存,Survived
+ui.result.defeated,撃破,Defeated
+ui.combat.attack,攻撃,Attack
+ui.combat.defense,防御,Defense
+ui.combat.poison,毒 -%d/ターン,Poison -%d/turn
+ui.combat.cleansed,解呪 %d,Cleansed %d

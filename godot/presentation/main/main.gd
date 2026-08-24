@@ -201,7 +201,7 @@ func _show_turn_banner(team: int) -> void:
 	var ally := team == 0
 	var skin := String(_emblem().get("ally" if ally else "enemy", ""))
 	# 文言は当面直書き（UI文言のキー化は backlog feature-12 で一括）。
-	_turn_banner.play(team, "自軍のターン" if ally else "敵軍のターン", _skins, skin, ally)
+	_turn_banner.play(team, tr("ui.banner.player_turn") if ally else tr("ui.banner.enemy_turn"), _skins, skin, ally)
 
 ## 敵ターンの頭で待つフック（controller に注入）。バナーが引き終わってから少し置いて最初の行動へ。
 func _await_turn_banner() -> void:
@@ -363,9 +363,9 @@ func _result_rows() -> Array:
 			alive_enemy += 1
 	var turns := "%d / %d" % [st.turn_number, st.turn_limit] if st.turn_limit > 0 else str(st.turn_number)
 	return [
-		["ターン", turns],
-		["生存", "%d / %d" % [alive_ally, _start_ally]],
-		["撃破", str(maxi(_start_enemy - alive_enemy, 0))],
+		[tr("ui.result.turns"), turns],
+		[tr("ui.result.survived"), "%d / %d" % [alive_ally, _start_ally]],
+		[tr("ui.result.defeated"), str(maxi(_start_enemy - alive_enemy, 0))],
 	]
 
 ## 評価ランクを算出する（勝利時）。rank_data が空ならランクなし＝空文字。

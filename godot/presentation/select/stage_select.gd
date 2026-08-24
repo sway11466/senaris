@@ -164,7 +164,7 @@ func _ready() -> void:
 	# （doc/gdd/stage_select.md）。絵に重ねず行として持つ＝余白は TavernTheme と同値で揃う。
 	var footer := HBoxContainer.new()
 	vbox.add_child(footer)
-	var back := TavernTheme.back_button("← 冒険譚")
+	var back := TavernTheme.back_button(tr("ui.select.back_tales"))
 	back.pressed.connect(func() -> void:
 		SfxPlayer.play_event("menu_back")
 		back_requested.emit())
