@@ -13,7 +13,7 @@ class_name TraitBrain
 var presets := {}
 
 ## 実装済みの特性id。部隊が未知の値・特性なしなら charge として扱う。
-const TRAITS := ["charge", "ambush", "raid", "predator", "swarm", "flee", "withdraw", "preempt"]
+const TRAITS := ["charge", "ambush", "raid", "predator", "swarm", "flee", "withdraw", "standoff"]
 const DEFAULT_TRAIT := "charge"
 
 ## 輸送ユニット（特殊特性）＝搭載数がこの値以上の駒。特性に重ねて働き、ステージデータには書かない
@@ -260,8 +260,8 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 			return _flee_action(state, u)
 		"withdraw":
 			return _withdraw_action(state, u)
-		"preempt":
-			return _preempt_action(state, u)
+		"standoff":
+			return _standoff_action(state, u)
 	return _charge_action(state, u)  # charge / ambush は動き出したあとの行が同じ
 
 ## charge（突撃）／ambush（待ち伏せ）の行動ルール。
@@ -852,7 +852,7 @@ func _can_advance(state: BattleState, u: Unit) -> bool:
 ## goal_cells＝標的に攻撃可能なマス（拠点なら拠点hex）＝そこに立てば距離0。表は標的から流して
 ## いるので、そのままでは「標的のマスからの遠さ」になり、懐に死角のある駒（min_range≥2）が
 ## 攻撃できない位置へ詰めてしまう。攻撃可能なマスを0として読むことで距離の定義と揃える。
-## allow＝止まってよいマス（空＝制限なし）。preempt が脅威圏の外だけに絞るために渡す。
+## allow＝止まってよいマス（空＝制限なし）。standoff が脅威圏の外だけに絞るために渡す。
 func _advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array,
 		allow: Dictionary = {}) -> AiAction:
 	var goals := {}
@@ -921,7 +921,7 @@ func _threat_cells(state: BattleState, u: Unit) -> Dictionary:
 					out[h] = true
 	return out
 
-## 移動範囲のうち脅威圏の外で、実際に止まれるマス { ヘックス: true }。preempt の行き先の母集合。
+## 移動範囲のうち脅威圏の外で、実際に止まれるマス { ヘックス: true }。standoff の行き先の母集合。
 func _safe_cells(state: BattleState, u: Unit) -> Dictionary:
 	var threat := _threat_cells(state, u)
 	var out := {}
@@ -1129,7 +1129,7 @@ func _move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAct
 		return null  # 移動距離が測れない＝道が塞がれている
 	return _advance(state, u, state.move_cost_field(u.id, goal), [goal])
 
-## preempt（先制）の行動ルール。先手を取れる距離まで詰めて、そこを保つ。
+## standoff（睨み合い）の行動ルール。先手を取れる距離まで詰めて、そこを保つ。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
 ## 2 スキル射程内に stack 条件を満たす対象 → 盤上距離が最小の対象にスキル
 ## 3 攻撃射程内に敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
@@ -1140,7 +1140,7 @@ func _move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAct
 ## 移動先は脅威圏の外のマスに限る（1 占領を除く）。4〜6 はどれもこの制約の中で行き先を選ぶ。
 ## 3 を 4 より上に置くのは、間合いに入ってきた敵を撃つのがこの特性の目的だから。
 ## 最大間合いの行は持たない＝間合取りが詰めると下がるの両方を兼ねる。
-func _preempt_action(state: BattleState, u: Unit) -> AiAction:
+func _standoff_action(state: BattleState, u: Unit) -> AiAction:
 	var row := _capture_row(state, u)
 	if row != null:
 		return row
@@ -1152,7 +1152,7 @@ func _preempt_action(state: BattleState, u: Unit) -> AiAction:
 		return AiAction.attack(u.id, _safest_id(state, u, in_range))
 	return _spacing_advance(state, u)
 
-## preempt の移動（4〜6）。行き先は脅威圏の外に限り、外に1マスも無ければ動かない。
+## standoff の移動（4〜6）。行き先は脅威圏の外に限り、外に1マスも無ければ動かない。
 ## 隣接されて撃てない駒（min_range≥2）はここで脅威圏の外へ出る。移動後にもう一度表を上から
 ## 当てるので、同じ手番のうちに 3 が撃つ。
 func _spacing_advance(state: BattleState, u: Unit) -> AiAction:

@@ -7,4 +7,4 @@ predator,弱者狙い,*,-,-
 swarm,群れ,*,1,-
 flee,逃走,-,-,50
 withdraw,撤退,-,-,50
-preempt,先制,-,-,-
+standoff,睨み合い,-,-,-

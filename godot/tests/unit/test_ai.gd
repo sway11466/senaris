@@ -1236,7 +1236,7 @@ func test_charge_advances_toward_the_flier_when_good_at_air() -> void:
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_gt(_col(a.to), 5, "近い地上ではなく空敵（東）へ寄る")
 
-# --- preempt（先制） ---
+# --- standoff（睨み合い） ---
 
 ## 射程駒を1体作る（min_range 2＝懐に死角）。
 func _caster(s: BattleState, si: int, id: int, col: int, row: int,
@@ -1246,22 +1246,22 @@ func _caster(s: BattleState, si: int, id: int, col: int, row: int,
 	u.attack_range = max_range
 	return u
 
-func test_preempt_shoots_when_the_enemy_walks_into_range() -> void:
+func test_standoff_shoots_when_the_enemy_walks_into_range() -> void:
 	# #3 を #4 より上に置いてある＝間合いに入ってきた敵は、脅威圏の中からでも撃つ。
 	var s := BattleState.new(16, 3)
 	s.current_team = 1
-	var si := _squad(s, "preempt")
+	var si := _squad(s, "standoff")
 	_caster(s, si, 10, 5, 1, 2, 3)
 	var e := _pc(s, 1, 8, 1)  # 盤上距離3＝射程内。敵は移動3・射程1＝脅威圏4なので危険な距離
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "脅威圏の中でも撃てるなら撃つ")
 	assert_eq(a.target_id, e.id)
 
-func test_preempt_backs_out_of_the_threat_zone_then_shoots() -> void:
+func test_standoff_backs_out_of_the_threat_zone_then_shoots() -> void:
 	# 隣接されて撃てない（min_range 2）とき、脅威圏の外へ出てから同じ手番で撃つ。
 	var s := BattleState.new(16, 3)
 	s.current_team = 1
-	var si := _squad(s, "preempt")
+	var si := _squad(s, "standoff")
 	_caster(s, si, 10, 5, 1, 6, 5)
 	var e := _pc(s, 1, 4, 1)  # 隣接＝射程の内側で撃てない
 	var a := _brain.next_action(s, 1)
@@ -1272,11 +1272,11 @@ func test_preempt_backs_out_of_the_threat_zone_then_shoots() -> void:
 	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
 	assert_eq(b.target_id, e.id)
 
-func test_preempt_closes_in_but_stops_outside_the_threat_zone() -> void:
+func test_standoff_closes_in_but_stops_outside_the_threat_zone() -> void:
 	# 遠ければ詰める。詰め先は脅威圏の外＝先手を取れる距離まで。
 	var s := BattleState.new(20, 3)
 	s.current_team = 1
-	var si := _squad(s, "preempt")
+	var si := _squad(s, "standoff")
 	_caster(s, si, 10, 2, 1, 2, 5)
 	var e := _pc(s, 1, 15, 1)
 	var a := _brain.next_action(s, 1)
@@ -1284,20 +1284,20 @@ func test_preempt_closes_in_but_stops_outside_the_threat_zone() -> void:
 	assert_gt(_col(a.to), 2, "東の敵へ詰める")
 	assert_gt(Hex.distance(a.to, e.pos), 4, "脅威圏の外で止まる")
 
-func test_preempt_waits_when_nowhere_is_safe() -> void:
+func test_standoff_waits_when_nowhere_is_safe() -> void:
 	# 脅威圏の外に行き先が無ければ動かない。撃てもしなければ待機。
 	var s := BattleState.new(7, 3)
 	s.current_team = 1
-	var si := _squad(s, "preempt")
+	var si := _squad(s, "standoff")
 	_caster(s, si, 10, 3, 1, 1, 5)
 	_pc(s, 1, 4, 1)  # 隣接＝撃てない。移動3・射程1の脅威圏が盤の端まで覆う
 	assert_null(_brain.next_action(s, 1), "逃げ場が無ければ待機")
 
-func test_preempt_ignores_the_threat_zone_of_enemies_that_cannot_reach_it() -> void:
+func test_standoff_ignores_the_threat_zone_of_enemies_that_cannot_reach_it() -> void:
 	# 脅威圏は「自分を攻撃できる敵」だけで作る＝対空攻撃力の無い敵は飛行の駒を止められない。
 	var s := BattleState.new(16, 3)
 	s.current_team = 1
-	var si := _squad(s, "preempt")
+	var si := _squad(s, "standoff")
 	var flier := _caster(s, si, 10, 2, 1, 4, 5)
 	flier.move_type = "flight"
 	var e := _pc(s, 1, 10, 1, 10)

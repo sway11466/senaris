@@ -782,7 +782,7 @@
       ] },
     { "order": 3, "name": "居座るトロール", "ai": "ambush", "sight": 2,
       "units": [ { "skin": "troll", "col": 13, "row": 10 } ] },
-    { "order": 2, "name": "ワイアーム", "ai": "preempt",
+    { "order": 2, "name": "ワイアーム", "ai": "standoff",
       "units": [
         { "skin": "wyrm", "col": 11, "row": 10 },
         { "skin": "wyrm", "col": 15, "row": 10 }

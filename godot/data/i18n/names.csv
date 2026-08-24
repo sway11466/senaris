@@ -79,7 +79,7 @@ ai.raid.name,拠点攻略,Raid
 ai.swarm.name,群れ,Swarm
 ai.flee.name,逃走,Flee
 ai.withdraw.name,撤退,Withdraw
-ai.preempt.name,先制,Preempt
+ai.standoff.name,睨み合い,Standoff
 category.infantry.name,歩兵,Infantry
 category.clergy.name,占領兵,Clergy
 category.archer.name,弓兵,Archer
