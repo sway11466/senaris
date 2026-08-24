@@ -56,13 +56,6 @@
 - 考慮外：陣形スキル・輸送・魔法兵などチュートリアル2以降の要素。会話パートの規模も本編ステージ並みを求めない。
 - 該当：`godot/data/stages/tutorial1-goblin-raid/`（または新設の置き場）・`doc/gdd/map_patterns.md`（ステージ一覧）・`doc/campaign/tutorial1-goblin-raid.md`。
 
-### feature-68
-
-**会話パネル・セーブ画面の UI 文言 tr() 化**（優先度：高）
-
-- 背景：会話パネル（"次へ ▶"）とセーブ画面（"セーブ"・"オート"・"空き"・"ターン%d 開始時"・"やめる"・"はい"・確認プロンプト等、計約10文字列）が直書き。旧 feature-12 の分割。
-- 対応：`ui.csv` にキーを追加し、`conversation_panel.gd`・`save_slot_panel.gd` の直書きを `tr()` に差し替え。
-- 該当：`godot/data/i18n/ui.csv`・`godot/presentation/ui/conversation_panel.gd`・`godot/presentation/ui/save_slot_panel.gd`。
 
 
 ### feature-71
