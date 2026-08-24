@@ -38,10 +38,10 @@ static func load_file(path: String) -> Dictionary:
 static func load_default() -> Dictionary:
 	return load_file(UNIT_TYPE_PATH)
 
-static var _categories := {}      # type_id -> 兵種名（unit_type.csv の category 列）
+static var _categories := {}      # type_id -> 兵種ID（unit_type.csv の category 列。英字id）
 static var _categories_loaded := false
 
-## 種別IDの兵種名（歩兵・弓兵・占領兵…）。表示専用＝ゲームロジックから参照しない。
+## 種別IDの兵種ID（infantry・archer・clergy…）。表示には tr("category." + id + ".name") を使う。
 ## 不明id・空欄は ""。ロスター本体とは別に遅延ロードする（Movement.display_name と同じ流儀）。
 static func display_category(type_id: String) -> String:
 	if not _categories_loaded:

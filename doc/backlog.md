@@ -147,15 +147,6 @@
 - 対応：リリースビルドから除外するなら不要。含める場合は `campaigns.csv` にエントリを追加。
 - 該当：`godot/data/stages/debug-*/campaign.json`・`godot/data/i18n/campaigns.csv`。
 
-### feature-78
-
-**兵種名の i18n 化**（優先度：高）
-
-- ゴール：自軍の駒を選んだときの情報パネル見出しに、英語環境で英語の兵種名が出る。
-- 背景：`unit_type.csv` の `category` 列（"歩兵"・"占領兵"・"魔法兵"ほか）が日本語直書きで、`UnitCatalog.display_category()` がそのまま返し、情報パネルの見出し2行目に出る。feature-70 は `unit_skin.csv` の `name` 列が対象なので、こちらは漏れていた。
-- 対応：規約キー `category.{id}.name` で翻訳CSVから引く。`category` 列がいまは日本語そのものを id 兼表示名にしているので、英字の id を与えるところから決める。データCSVの列は開発用メモに降格する。
-- 該当：`godot/data/units/unit_type.csv`・`godot/data/units/unit_catalog.gd`・`godot/data/i18n/`。関連＝feature-70〜72（表示名の i18n 化）。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**（優先度：低）

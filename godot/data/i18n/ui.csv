@@ -110,3 +110,13 @@ ai.swarm.name,群れ,Swarm
 ai.flee.name,逃走,Flee
 ai.withdraw.name,撤退,Withdraw
 ai.preempt.name,先制,Preempt
+category.infantry.name,歩兵,Infantry
+category.clergy.name,占領兵,Clergy
+category.archer.name,弓兵,Archer
+category.mage.name,魔法兵,Mage
+category.scout.name,斥候,Scout
+category.flier.name,飛行兵,Flier
+category.champion.name,精鋭,Champion
+category.transport.name,輸送,Transport
+category.emplacement.name,兵器,Emplacement
+category.monstrosity.name,魔法生物,Monstrosity

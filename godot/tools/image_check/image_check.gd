@@ -14,7 +14,7 @@ const TYPE_CSV := "res://data/units/unit_type.csv"
 const PIC_H := 300.0        # 立ち絵の表示高さ（全ユニット共通＝頭身比較の基準）
 const LABEL_H := 22.0
 const BG := Color(0.20, 0.22, 0.25)
-const CAT_ORDER := ["歩兵", "占領兵", "弓兵", "魔法兵", "斥候", "飛行兵", "精鋭", "輸送", "兵器"]
+const CAT_ORDER := ["infantry", "clergy", "archer", "mage", "scout", "flier", "champion", "transport", "emplacement"]
 
 var _mode := "character"
 var _img_kind := "map"       # 表示する画像（map / combat）

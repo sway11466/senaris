@@ -479,7 +479,8 @@ func _update_header(u: Unit) -> void:
 	_header_name.text = tr("ui.info.header_name") % [unit_name, team_name]
 	var sub := ""
 	if u.team == 0:
-		sub = UnitCatalog.display_category(u.type_id)  # 項目名は付けない（敵の部隊名と同じ扱い）
+		var cat := UnitCatalog.display_category(u.type_id)
+		sub = tr("category." + cat + ".name") if not cat.is_empty() else ""
 	else:
 		sub = _squad_name(u)
 	_header_sub.text = sub
