@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=83 / refactoring=12
+次回採番: bug=3 / feature=84 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -72,6 +72,20 @@
 - 該当：`godot/export_presets.cfg`・`doc/tech/build.md`・`C:\Users\tappe\godot-src`（リポジトリ外・新規）。着手の引き金＝オーナーの合図。
 
 
+
+### feature-83
+
+**残りの画面の UI 文言 tr() 化（盤メニュー・ターンバナー・戦果票・スキル演出・ステージ一覧）**（優先度：高）
+
+- ゴール：英語環境で全画面のプレイヤー向け文言が英語で出る（旧 feature-12 系の tr() 化がひと通り閉じる）。
+- 背景：feature-64〜69 の画面ごとの分割から漏れていた直書きが5画面に残っている（feature-68 のレビューで発見）。
+  - 盤のコマンドメニュー："攻撃"・"待機"・"占領"・"入る"・"乗車"・"降車: %s"・"出撃: %s"・"ユニットスキル"・"陣形"・"キャンセル"
+  - ターンバナー："自軍のターン"・"敵軍のターン"
+  - 戦果票："ターン"・"生存"・"撃破"
+  - スキル演出："攻撃"・"防御"・"毒 -%d/ターン"・"解呪 %d"
+  - ステージ一覧："← 冒険譚"
+- 対応：`ui.csv` にキーを追加して差し替え。キー規約の画面名は固定リスト（[i18n.md](tech/i18n.md)）のため、盤メニュー・ターンバナー・戦果票・スキル演出ぶんの画面名を決めて i18n.md に足す（ステージ一覧は既存の `select`）。
+- 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/main/main.gd`・`godot/presentation/combat/skill_scene.gd`・`godot/presentation/select/stage_select.gd`・`godot/data/i18n/ui.csv`・`doc/tech/i18n.md`。
 
 ### feature-71
 
