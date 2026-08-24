@@ -139,7 +139,7 @@ func _ready() -> void:
 
 	# タイトルのメニューへ戻る。ボードではなく画面の左下に置く＝どの画面でも戻るは同じ場所。
 	# 上梁はボード名の場所なので空けておく。Esc でも同じ入口を通る。
-	var to_menu := TavernTheme.back_button("← メニュー")
+	var to_menu := TavernTheme.back_button(tr("ui.select.menu"))
 	TavernTheme.place_bottom_left(to_menu)
 	to_menu.pressed.connect(_on_back_to_title)
 	add_child(to_menu)
@@ -332,7 +332,7 @@ func _poster_info(c: Dictionary) -> Control:
 
 	if c["debug"]:
 		var note := Label.new()
-		note.text = "（開発ビルド限定）"
+		note.text = tr("ui.select.debug_note")
 		note.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 		info.add_child(note)
 		return info
@@ -341,7 +341,7 @@ func _poster_info(c: Dictionary) -> Control:
 	var danger := HBoxContainer.new()
 	danger.add_theme_constant_override("separation", 6)
 	var danger_label := Label.new()
-	danger_label.text = "危険度"
+	danger_label.text = tr("ui.select.danger")
 	danger_label.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 	danger.add_child(danger_label)
 	danger.add_child(_make_stars(int(c.get("difficulty", 0))))

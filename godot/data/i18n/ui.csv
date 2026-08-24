@@ -127,3 +127,11 @@ movement.brush_stride.name,茂歩行,Brush Stride
 movement.mountain_stride.name,山歩行,Mountain Stride
 movement.flight.name,飛行,Flight
 movement.stationary.name,固定,Stationary
+ui.quest.locked_title,まだ受けられない依頼,Quest Locked
+ui.quest.back,別のステージを選ぶ,Choose Another Stage
+ui.quest.sortie,出撃する,Set Out
+ui.quest.confirm,出撃しますか？,Ready to set out?
+ui.quest.close,閉じる,Close
+ui.select.debug_note,（開発ビルド限定）,(Debug build only)
+ui.select.danger,危険度,Danger
+ui.select.menu,← メニュー,← Menu

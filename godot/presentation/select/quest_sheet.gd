@@ -10,7 +10,7 @@ signal confirmed
 
 const SHEET_SIZE := Vector2(560, 400)  # parchment_sheet.png と同寸（中央タイルが1:1）
 
-const LOCKED_TITLE := "まだ受けられない依頼"
+const LOCKED_TITLE_KEY := "ui.quest.locked_title"
 
 var _title: Label
 var _body: Label
@@ -79,7 +79,7 @@ func _ready() -> void:
 	buttons.add_theme_constant_override("separation", 24)
 	content.add_child(buttons)
 
-	_back = TavernTheme.ink_button("別のステージを選ぶ")
+	_back = TavernTheme.ink_button(tr("ui.quest.back"))
 	_back.pressed.connect(_cancel)
 	buttons.add_child(_back)
 
@@ -87,23 +87,23 @@ func _ready() -> void:
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(gap)
 
-	_sortie = TavernTheme.wax_button("出撃する")
+	_sortie = TavernTheme.wax_button(tr("ui.quest.sortie"))
 	_sortie.pressed.connect(_on_sortie_pressed)
 	buttons.add_child(_sortie)
 
 func open(stage_title: String) -> void:
 	_title.text = stage_title
-	_body.text = "出撃しますか？"
-	_back.text = "別のステージを選ぶ"
+	_body.text = tr("ui.quest.confirm")
+	_back.text = tr("ui.quest.back")
 	_sortie.visible = true
 	visible = true
 
 ## 未解放のステージを押したときの紙＝解放条件だけを書いて出す。ステージ名は伏せたまま
 ## （一覧では札を裏返している）＝紙が名前を漏らさない。出撃は無いので閉じるだけ。
 func open_locked(unlock_text: String) -> void:
-	_title.text = LOCKED_TITLE
+	_title.text = tr(LOCKED_TITLE_KEY)
 	_body.text = unlock_text
-	_back.text = "閉じる"
+	_back.text = tr("ui.quest.close")
 	_sortie.visible = false
 	visible = true
 
