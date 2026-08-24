@@ -1,0 +1,81 @@
+SUBJECT: The same small stone CHAPEL as the map piece, seen CLOSE — a WIDE
+BAND of backdrop that stands behind the fighting in a battle window. It is not
+a single object floating in the middle of the frame; it is a stretch of the
+graveyard seen near, running off the LEFT edge of the picture.
+
+WHAT IS IN IT — the chapel stands a little LEFT of the middle of the band, the
+tallest thing in the picture. It is one small country chapel of pale grey
+dressed stone: a single hall — one nave, no side wings, no cloister, no tower
+block — with a steep pitched roof, standing noticeably taller than it is wide.
+On the roof ridge above the front wall sits a small open bell-gable, and on top
+of that a plain stone CROSS: simple, thick, clearly upright, standing straight
+and whole — NOT tilted, NOT broken, NOT fallen, NOT desecrated. In the front
+wall is a tall arched TIMBER DOOR, plainly centred and firmly SHUT: a solid
+boarded door with heavy iron hinges, no opening, no gap, no darkness showing
+through — nothing comes out of here. Two or three worn steps run down from it.
+High on either side of the door is one narrow arched window with plain leaded
+glass, dark and unlit.
+
+THE ROOF is the second most important shape after the cross: the whole of it
+must be plainly visible from this angle, big and simple, because the game
+recolours it to show who holds the chapel.
+
+AROUND IT — old grave markers stand in the ground on both sides of the chapel:
+plain weathered slabs with rounded tops, short crosses with thick stubby arms,
+snapped stubs, each leaning at its own angle, scattered irregularly and never
+in a row. They are much lower than the chapel — the tallest reaches about a
+quarter of its height.
+
+THE TWO ENDS ARE DIFFERENT — this is the most important thing.
+- LEFT end: the graveyard runs straight off the edge of the picture and is cut
+  by it. The markers nearest the left edge are cut through by the frame.
+  Nothing tapers, nothing ends, nothing is rounded off there.
+- RIGHT end: the graveyard has to finish inside the picture. Finish it
+  honestly: past the chapel the markers get smaller and lower as the ground
+  recedes away from the viewer, and the last of them fade out. Do NOT stop the
+  row in mid-air with a raw broken end, and do NOT put a wall, fence, hedge,
+  kerb or gate there — there is no boundary anywhere in this picture.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square. The band fills the BOTTOM
+HALF of it, edge to edge: about twice as wide as it is tall. In a 1024-pixel
+picture the chapel is about 430 pixels tall including its cross, and everything
+else is lower. The band touches the left edge, the right edge and the bottom
+edge. Leave a little clear space above the cross; nothing rises higher than it.
+
+THE BOTTOM EDGE — the walls, the steps and the grave markers are cut flat by
+the bottom edge of the picture. Draw nothing below them: no grass, no soil, no
+path, no paving, no ground, no cast shadow. The stonework must run all the way
+down to the very bottom edge and be cut by it — no strip of background along
+the bottom. Soldiers will stand in front of this and their heads will overlap
+the bottom of it.
+
+VIEWING ANGLE — seen from the front and slightly above, much closer than the
+map piece: the front wall, the shut door, the steps and the bell-gable are all
+clearly readable, and the whole roof is still in view above them.
+
+COLOR — the chapel's stone is pale grey with almost no colour in it, neither
+warm nor cool: base tone #B1AC9B where the light catches it, #7A776C in shadow.
+The grave markers are a weathered grey-green, hex #8A8676. Only the door
+timber, its hinges and the roof timbers are weathered brown. The ROOF is plain
+grey slate, as colourless as the walls — base tone #97948A, shadowed slopes
+#7C796F, catch-light #B7B2A4. Match those numbers: this chapel and the map
+piece must read as the same building. NO ochre, NO warm tan, and NO strong red,
+blue or green anywhere: those colours are what marks who holds the place, and
+nobody holds it in this picture.
+
+THE BACKGROUND — everything above the roofline is PURE FLAT WHITE, #FFFFFF,
+with NO texture, NO shading, NO gradient, NO sky, NO clouds. This white is
+going to be deleted, so the roofline and the cross must be a hard, clean, crisp
+edge against it. Nothing in the picture may be white or near-white.
+
+NOTHING ELSE — no people, no animals, no birds, no bones, no skulls, no open
+graves, no flowers, no candles, no lanterns, no banners, no signage, no smoke,
+no fire, no lettering and no inscriptions. The mood is quiet, weathered and
+kept, NOT ruined and NOT haunted: NO glow of any kind, NO lit windows, NO mist,
+NO floating lights, NO magic circles.
+
+This is a near view, so a little more detail than the map piece is welcome —
+the courses of the stonework, the boards of the door, the ridge line of the
+roof — but keep it in bold flat shapes, in the same clean stylized cel-shaded
+look as the game's terrain and unit art, with no fine texture that would fight
+with the figures standing in front of it. Square 1:1.
