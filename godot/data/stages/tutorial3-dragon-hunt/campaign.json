@@ -2,7 +2,7 @@
   "id": "tutorial3-dragon-hunt",
   "title": "t3.title",
   "desc": "t3.desc",
-  "tier": "tutorial",
+  "board": "tutorial",
   "difficulty": 3,
   "emblem": { "ally": "vanguard", "enemy": "red_dragon" },
   "stages": [

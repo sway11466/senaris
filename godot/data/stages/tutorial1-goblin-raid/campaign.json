@@ -2,7 +2,7 @@
   "id": "tutorial1-goblin-raid",
   "title": "t1.title",
   "desc": "t1.desc",
-  "tier": "tutorial",
+  "board": "tutorial",
   "difficulty": 1,
   "emblem": { "ally": "fighter", "enemy": "goblin" },
   "stages": [

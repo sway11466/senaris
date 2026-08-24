@@ -2,7 +2,7 @@
   "id": "tutorial2-undead-rush",
   "title": "t2.title",
   "desc": "t2.desc",
-  "tier": "tutorial",
+  "board": "tutorial",
   "difficulty": 2,
   "emblem": { "ally": "knight", "enemy": "skeleton" },
   "stages": [

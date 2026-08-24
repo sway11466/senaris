@@ -2,7 +2,7 @@ extends Control
 class_name CampaignSelect
 ## キャンペーン選択画面＝酒場の依頼ボード。方向性 → doc/gdd/stage_select.md
 ## 木のボードに、冒険譚を縦長の依頼書（羊皮紙ポスター）として並べる。
-## ボードは難易度帯（tier）ごとに分かれ、◁▷ で1枚ずつ繰るカルーセル。ボード名は上梁に手書き風（Rock Salt）。
+## ボードはシリーズ（board）ごとに分かれ、◁▷ で1枚ずつ繰るカルーセル。ボード名は上梁に手書き風（Rock Salt）。
 ## 状態は持たず、refresh() のたびに CampaignProgress から導出して描く。空のボードは出さない。
 ## デバッグ冒険譚はデバッグビルドのみ「Debug」ボードにまとめる。選択はシグナルで SelectScreen へ委ねる。
 
@@ -23,19 +23,17 @@ const ARROW_SIZE := Vector2(48, 72)  # 繰り矢印の当たり判定サイズ
 const ARROW_INSET := 8.0             # ボード左右端からの距離（左右同値＝対称）
 const BOARD_MARGIN := 8              # ボードの外周に残す壁の幅（画面の縁からボードまで）
 
-# 難易度帯（表示順）＝ボード。名は英語固定（雰囲気優先・多言語化しない）。
-const TIERS := [
-	{ "tier": "tutorial", "name": "Tutorial" },
-	{ "tier": "rookie", "name": "Rookie" },
-	{ "tier": "adept", "name": "Adept" },
-	{ "tier": "veteran", "name": "Veteran" },
+# シリーズボード（表示順）。名は英語固定（雰囲気優先・多言語化しない）。シリーズを増やす段でここに足す。
+const BOARDS := [
+	{ "board": "tutorial", "name": "Tutorial" },
+	{ "board": "bounties", "name": "Bounties" },
 ]
 const DEBUG_BOARD_NAME := "Debug"
 
 var _progress: CampaignProgress
-var _boards: Array = []   # [{ name:String, campaigns:Array }]（tier順・Debugは先頭）
+var _boards: Array = []   # [{ name:String, campaigns:Array }]（BOARDS順・Debugは先頭）
 var _idx := 0
-var _positioned := false  # 初回だけ初期ボード（＝最初の実tier）に合わせる。以後はユーザーの繰り位置を保つ
+var _positioned := false  # 初回だけ初期ボード（＝最初の実ボード）に合わせる。以後はユーザーの繰り位置を保つ
 var _variant_by_id := {}   # campaign_id → カードで選んだ連番index。board→stage で同じ絵を出すため保持
 
 var _posters: HFlowContainer
@@ -161,7 +159,7 @@ func setup(progress: CampaignProgress) -> void:
 func refresh() -> void:
 	_boards = _build_boards()
 	if not _positioned:
-		_idx = _first_real_index()  # 初回はチュートリアル等の実tierを開く（Debugは左に控える）
+		_idx = _first_real_index()  # 初回はチュートリアル等の実ボードを開く（Debugは左に控える）
 		_positioned = true
 	_idx = clampi(_idx, 0, maxi(0, _boards.size() - 1))
 	_render_current()
@@ -173,25 +171,30 @@ func _first_real_index() -> int:
 			return i
 	return 0
 
-## 冒険譚を tier ごとのボードへ振り分ける。どのボードも中身があるときだけ出す（Debug も同じ規則）。
+## 冒険譚をシリーズボードへ振り分ける。どのボードも中身があるときだけ出す（Debug も同じ規則）。
+## BOARDS に無いボード名の冒険譚は出さず警告（データ側の打ち間違い・足し忘れを黙って飲まない）。
 func _build_boards() -> Array:
-	var by_tier := {}
+	var by_board := {}
 	var debugs: Array = []
 	for c in _progress.campaigns(OS.is_debug_build()):
 		if c["debug"]:
 			debugs.append(c)
 		else:
-			var t := String(c.get("tier", "rookie"))
-			if not by_tier.has(t):
-				by_tier[t] = []
-			by_tier[t].append(c)
+			var b := String(c.get("board", ""))
+			if not by_board.has(b):
+				by_board[b] = []
+			by_board[b].append(c)
 	var boards: Array = []
 	if not debugs.is_empty():
 		boards.append({ "name": DEBUG_BOARD_NAME, "campaigns": debugs })  # 先頭＝チュートリアルの左
-	for entry in TIERS:
-		var tier_campaigns: Array = by_tier.get(entry["tier"], [])
-		if not tier_campaigns.is_empty():
-			boards.append({ "name": entry["name"], "campaigns": tier_campaigns })
+	for entry in BOARDS:
+		var board_campaigns: Array = by_board.get(entry["board"], [])
+		if not board_campaigns.is_empty():
+			boards.append({ "name": entry["name"], "campaigns": board_campaigns })
+		by_board.erase(entry["board"])
+	for b in by_board:
+		for c in by_board[b]:
+			push_warning("CampaignSelect: 冒険譚 '%s' の board '%s' が BOARDS に無い＝どのボードにも出ない" % [c["id"], b])
 	return boards
 
 ## 現在のボードを描く（貼り紙・ボード名・矢印の有効/無効・ドット）。

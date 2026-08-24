@@ -20,7 +20,7 @@ const EXTS := [".ogg", ".wav"]
 ## 増えて手に負えなくなったら data/audio/sfx_bind.csv へ出す（doc/audio/sfx.md）。
 const BIND := {
 	# --- メニュー（タイトル・冒険譚選択・ステージセレクト）---
-	"menu_tier": "menu_slide",  # 難易度帯ボードを繰る。布が滑る音（map_capture と同じ収録）
+	"menu_tier": "menu_slide",  # シリーズボードを繰る。布が滑る音（map_capture と同じ収録）
 	"menu_command": "ui_confirm",  # タイトルのメニュー項目を選ぶ
 	"menu_campaign": "ui_confirm",
 	"menu_stage": "ui_confirm",

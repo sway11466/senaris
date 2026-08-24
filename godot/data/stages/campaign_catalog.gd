@@ -7,7 +7,7 @@ const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
-## { id, title, desc, debug, difficulty, tier, cover_paths, victory_paths,
+## { id, title, desc, debug, difficulty, board, cover_paths, victory_paths,
 ##   stages: [ { id, title, file, path, unlock: Array } ] }
 ## cover_paths/victory_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
@@ -41,13 +41,22 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"title": String(data.get("title", id)),  # 翻訳キー（表示側で tr()）。debug 等は生テキストでも tr() は素通し
 		"desc": String(data.get("desc", "")),     # 翻訳キー（貼り紙の説明文）。未指定は空＝説明なし
 		"debug": bool(data.get("debug", false)),
-		"tier": String(data.get("tier", "rookie")),  # 所属ボード（tutorial/rookie/adept/veteran）。未指定は rookie
+		"board": _parse_board(id, data),  # 所属ボード（シリーズ）。非デバッグは必須＝未指定は警告して空
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
 		"emblem": _parse_emblem(data.get("emblem", {})),  # ターン板の左右に出す代表ユニット（skin_id）。未指定は空＝枠を出さない
 		"cover_paths": _resolve_art_variants(id, "cover"),  # 貼り紙とステージ一覧の大パネルで共用（連番バリアント）
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
 		"stages": stages,
 	}
+
+## board（所属するシリーズボード）。デバッグ冒険譚は debug:true が Debug 行きを決めるので持たない。
+## 非デバッグで未指定は警告して空＝どのボードにも出ない（既定値で黙って拾わない）。
+## ボードの一覧（id・名前・並び順）は presentation 側の定数（campaign_select.gd BOARDS）。
+static func _parse_board(id: String, data: Dictionary) -> String:
+	var board := String(data.get("board", ""))
+	if board.is_empty() and not bool(data.get("debug", false)):
+		push_warning("CampaignCatalog[%s]: board 未指定＝どのボードにも出ない" % id)
+	return board
 
 ## party（そのステージに出る隊）を文字列の配列へ正規化。文字列1つは1要素、未指定・不正は空配列。
 ## 表示専用（ステージ一覧の連戦レーン）＝実際の編成は player に書いた actor が決める。

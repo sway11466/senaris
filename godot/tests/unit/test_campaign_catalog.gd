@@ -26,7 +26,7 @@ func test_tutorial_manifest() -> void:
 	assert_eq(c["id"], "tutorial1-goblin-raid")
 	assert_false(c["debug"], "debug 未指定は false")
 	assert_eq(c["difficulty"], 1, "星レーティング")
-	assert_eq(c["tier"], "tutorial", "所属ボード")
+	assert_eq(c["board"], "tutorial", "所属ボード")
 	assert_eq(c["title"], "t1.title", "title は翻訳キー")
 	assert_eq(c["desc"], "t1.desc", "desc は翻訳キー")
 	assert_eq(c["stages"][0]["title"], "t1.st1.title", "stage.title も翻訳キー")
@@ -61,6 +61,7 @@ func test_party_normalizes_to_array() -> void:
 	# party（連戦レーンの表示専用メタ）は文字列1つでも配列でも受ける。未指定・不正は空。
 	var c := CampaignCatalog.build({
 		"id": "a",
+		"board": "b",
 		"stages": [
 			{ "id": "s1", "file": "s1.json", "party": "A" },
 			{ "id": "s2", "file": "s2.json", "party": ["A", "B", "A"] },
@@ -83,15 +84,22 @@ func test_build_defaults_difficulty_and_desc() -> void:
 	var c := CampaignCatalog.build({ "id": "a", "stages": [] }, "res://x")
 	assert_eq(c["difficulty"], 0, "difficulty 未指定は 0")
 	assert_eq(c["desc"], "", "desc 未指定は空文字")
-	assert_eq(c["tier"], "rookie", "tier 未指定は rookie")
+	assert_eq(c["board"], "", "board 未指定は空＝どのボードにも出ない（既定値で拾わない）")
+	assert_push_warning("board 未指定")
+
+func test_build_debug_needs_no_board() -> void:
+	# デバッグ冒険譚は debug:true が Debug ボード行きを決める＝board を書かず、警告も出ない。
+	var c := CampaignCatalog.build({ "id": "a", "debug": true, "stages": [] }, "res://x")
+	assert_eq(c["board"], "", "debug は board を持たない")
 
 func test_build_clamps_difficulty() -> void:
-	var c := CampaignCatalog.build({ "id": "a", "stages": [], "difficulty": 9 }, "res://x")
+	var c := CampaignCatalog.build({ "id": "a", "board": "b", "stages": [], "difficulty": 9 }, "res://x")
 	assert_eq(c["difficulty"], 5, "0〜5 にクランプ")
 
 func test_build_skips_broken_stage_entries() -> void:
 	var c := CampaignCatalog.build({
 		"id": "a",
+		"board": "b",
 		"stages": [
 			{ "id": "s1", "file": "s1.json" },
 			{ "id": "", "file": "x.json" },
