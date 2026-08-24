@@ -20,7 +20,7 @@
     { "type": "wagon", "col": 1, "row": 4 }
   ],
   "enemy": [
-    { "order": 1, "name": "弱者狙い", "ai": "weak",
+    { "order": 1, "name": "弱者狙い", "ai": "predator",
       "units": [
         { "skin": "skeleton", "col": 10, "row": 2 },
         { "skin": "skeleton", "col": 10, "row": 4 },

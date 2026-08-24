@@ -36,7 +36,7 @@
 			"sight": "*",
 			"stack": 1
 		},
-		"weak": {
+		"predator": {
 			"name": "弱者狙い",
 			"retreat": "-",
 			"sight": "*",

@@ -454,7 +454,7 @@
         { "skin": "ghost", "col": 10, "row": 4 },
         { "skin": "ghost", "col": 11, "row": 4 }
       ] },
-    { "order": 7, "name": "レイス隊", "ai": "weak",
+    { "order": 7, "name": "レイス隊", "ai": "predator",
       "units": [
         { "skin": "wraith", "col": 6, "row": 3 },
         { "skin": "wraith", "col": 6, "row": 4 },

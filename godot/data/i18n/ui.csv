@@ -102,3 +102,11 @@ ui.report.no_counter_reason,"  反撃なし（距離2以上・対空を持たな
 ui.report.loss_rate_formula,"  損害率 ＝ 実効攻撃力² ÷ (実効攻撃力² ＋ 相手の実効防御力²)","  Loss rate = Effective Atk² ÷ (Effective Atk² + target's Effective Def²)"
 ui.report.loss_rate_values,"       ＝ %d×%d ÷ (%d×%d ＋ %d×%d) ＝ %d%%","       = %d×%d ÷ (%d×%d + %d×%d) = %d%%"
 ui.report.loss_line,"  %sが失う兵 ＝ 兵%d × %d%% ＝ %d","  %s loses: Strength %d × %d%% = %d"
+ai.charge.name,突撃,Charge
+ai.ambush.name,待ち伏せ,Ambush
+ai.predator.name,弱者狙い,Predator
+ai.raid.name,拠点攻略,Raid
+ai.swarm.name,群れ,Swarm
+ai.flee.name,逃走,Flee
+ai.withdraw.name,撤退,Withdraw
+ai.preempt.name,先制,Preempt

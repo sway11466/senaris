@@ -42,7 +42,7 @@
     {"type": "mage", "col": 2, "row": 14, "actor": "mage"}
   ],
   "enemy": [
-    { "order": 1, "name": "レッドドラゴン", "ai": "weak",
+    { "order": 1, "name": "レッドドラゴン", "ai": "predator",
       "units": [
         {"skin": "red_dragon", "col": 7, "row": 1, "actor": "dragon"}
       ] },

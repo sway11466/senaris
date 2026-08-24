@@ -292,7 +292,7 @@
         { "skin": "skeleton", "col": 21, "row": 3 },
         { "skin": "skeleton_archer", "col": 18, "row": 6 }
       ] },
-    { "order": 4, "name": "ゴースト隊弱者狙い", "ai": "weak",
+    { "order": 4, "name": "ゴースト隊弱者狙い", "ai": "predator",
       "units": [
         { "skin": "ghost", "col": 20, "row": 1 },
         { "skin": "ghost", "col": 21, "row": 0 },

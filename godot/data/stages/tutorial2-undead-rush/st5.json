@@ -323,7 +323,7 @@
         { "skin": "ghoul", "col": 13, "row": 4 },
         { "skin": "skeleton_archer", "col": 14, "row": 5 }
       ] },
-    { "order": 3, "name": "前線下段", "ai": "weak",
+    { "order": 3, "name": "前線下段", "ai": "predator",
       "units": [
         { "skin": "zombie", "col": 11, "row": 8 },
         { "skin": "ghoul", "col": 12, "row": 8 },
@@ -347,7 +347,7 @@
         { "skin": "ghoul", "col": 19, "row": 5 },
         { "skin": "ghoul", "col": 16, "row": 7 }
       ] },
-    { "order": 6, "name": "後衛", "ai": "weak",
+    { "order": 6, "name": "後衛", "ai": "predator",
       "units": [
         { "skin": "ghoul", "col": 25, "row": 4 },
         { "skin": "wraith", "col": 24, "row": 6 },

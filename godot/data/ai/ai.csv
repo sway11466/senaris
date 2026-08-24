@@ -3,7 +3,7 @@ ai,name,sight,stack,retreat
 charge,突撃,-,-,-
 ambush,待ち伏せ,3,-,-
 raid,拠点攻略,-,-,-
-weak,弱者狙い,*,-,-
+predator,弱者狙い,*,-,-
 swarm,群れ,*,1,-
 flee,逃走,-,-,50
 withdraw,撤退,-,-,50

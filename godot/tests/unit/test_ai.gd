@@ -373,11 +373,11 @@ func test_detection_radius_covers_weak_and_skips_swarm() -> void:
 	# weak も行動開始条件が視線で決まる＝寝ている間は検知域を描く（sight `*` は上限なしの予算）。
 	# swarm は sight を持つが行動開始条件は常時＝寝ている状態が無いので描かない。
 	var s := BattleState.new(12, 3)
-	var w := _ai(s, _squad(s, "weak"), 10, 1, 1)
+	var w := _ai(s, _squad(s, "predator"), 10, 1, 1)
 	var sw := _ai(s, _squad(s, "swarm"), 11, 2, 1)
 	assert_eq(_brain.detection_radius(s, w), TraitBrain.SIGHT_UNLIMITED, "寝ている弱者狙い＝上限なしの予算")
 	assert_eq(_brain.detection_radius(s, sw), 0, "群れは常時起動＝検知域なし")
-	assert_eq(_brain.detection_radius(s, _ai(s, _squad(s, "weak", { "sight": 4 }), 12, 3, 1)), 4,
+	assert_eq(_brain.detection_radius(s, _ai(s, _squad(s, "predator", { "sight": 4 }), 12, 3, 1)), 4,
 		"部隊の上書きがそのまま半径になる")
 	s.mark_engaged(w.id)
 	assert_eq(_brain.detection_radius(s, w), 0, "獲物を見つけたあとは0")
@@ -521,7 +521,7 @@ func test_raid_takes_the_nearest_base_including_neutral() -> void:
 func test_weak_sleeps_until_prey_is_in_sight() -> void:
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var si := _squad(s, "weak", { "sight": 2 })
+	var si := _squad(s, "predator", { "sight": 2 })
 	_ai(s, si, 10, 1, 1)
 	var e := _pc(s, 1, 6, 1)
 	assert_null(_brain.next_action(s, 1), "sight の外の獲物では起きない")
@@ -533,7 +533,7 @@ func test_weak_walks_past_the_hard_front_line() -> void:
 	# 入っていないターンにその前衛が獲物になり、弱者狙いが硬い相手と殴り合いはじめる。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var u := _ai(s, si, 10, 4, 2)
 	_pc(s, 1, 4, 1, 80)               # 硬い前衛（防御80）＝隣接
 	var soft := _pc(s, 2, 7, 2, 10)   # 柔らかい後衛（防御10）
@@ -545,7 +545,7 @@ func test_weak_attacks_the_prey_it_can_reduce_most() -> void:
 	# #4 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃する。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var u := _ai(s, si, 10, 4, 2)
 	u.attack_range = 2
 	_pc(s, 1, 4, 1, 10)                        # 隣接・満員
@@ -558,7 +558,7 @@ func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
 	# #5 獲物でなくても、一撃で倒せる相手なら殴る。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var u := _ai(s, si, 10, 4, 2)
 	var tough := _hurt(_pc(s, 1, 4, 1, 80), 1)  # 硬いが残り1
 	_pc(s, 2, 8, 2, 10)                         # 獲物は遠い
@@ -571,7 +571,7 @@ func test_weak_backs_off_before_shooting_the_prey() -> void:
 	# #3 間接攻撃できる駒は、狙う獲物から最大間合いを取ってから撃つ。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var archer := _ai(s, si, 10, 4, 2)
 	archer.attack_range = 2
 	var prey := _pc(s, 1, 4, 1, 10)             # 隣接・満員＝一撃では倒せない
@@ -588,7 +588,7 @@ func test_weak_does_not_back_off_from_a_finishing_blow() -> void:
 	# #3 は「いまの位置から一撃で倒せる敵がいない」ときだけ成立＝倒しきれる相手からは下がらない。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var archer := _ai(s, si, 10, 4, 2)
 	archer.attack_range = 2
 	var tough := _hurt(_pc(s, 1, 4, 1, 80), 1)  # 硬いが残り1＝一撃で倒せる
@@ -602,7 +602,7 @@ func test_weak_finishes_the_enemy_that_cannot_retaliate() -> void:
 	# #5 どちらも倒せるなら反撃を受けない相手から倒す。移動0＝下がる余地を消して行だけを見る。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var archer := _ai(s, si, 10, 4, 2, 0)
 	archer.attack_range = 2
 	_hurt(_pc(s, 1, 4, 1, 80), 1)               # 隣接＝殴れば反撃される
@@ -621,7 +621,7 @@ func test_weak_flanks_around_the_zoc_band() -> void:
 	s.set_movement(PLAIN_WALL)
 	for row in [0, 2, 3, 4, 5]:
 		s.set_terrain(Hex.offset_to_axial(4, row), "wall")  # 抜け道は row 1 と row 6
-	var si := _squad(s, "weak")
+	var si := _squad(s, "predator")
 	var u := _ai(s, si, 10, 1, 0)
 	var blocker := _pc(s, 1, 3, 1, 80)  # 近い抜け道の脇＝ZOCで蓋をする硬い駒
 	var prey := _pc(s, 2, 7, 0, 10)
@@ -636,7 +636,7 @@ func test_weak_stops_advancing_when_the_prey_leaves_sight() -> void:
 	# 行動開始は一度きりの判定、#6〜#9 の sight は毎ターンの判定＝視線から消えたら前進だけ止まる。
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
-	var si := _squad(s, "weak", { "sight": 2 })
+	var si := _squad(s, "predator", { "sight": 2 })
 	_ai(s, si, 10, 1, 1)
 	var prey := _pc(s, 1, 3, 1)
 	assert_not_null(_brain.next_action(s, 1), "前提: sight 内なら前進する")

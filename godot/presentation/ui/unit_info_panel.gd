@@ -510,11 +510,7 @@ func _update_ai(u: Unit) -> void:
 	if id.is_empty():
 		_ai_box.hide()
 		return
-	var preset: Variant = _ai_presets.get(id, {})
-	var display := id
-	if typeof(preset) == TYPE_DICTIONARY:
-		display = String((preset as Dictionary).get("name", id))
-	_ai_name.text = display
+	_ai_name.text = tr("ai." + id + ".name")
 	var tex := _ai_icon_texture(id)
 	_ai_icon.texture = tex
 	_ai_frame.visible = tex != null  # 絵が無ければ額ごと消す＝特性名の文字だけで成立させる

@@ -13,7 +13,7 @@ class_name TraitBrain
 var presets := {}
 
 ## 実装済みの特性id。部隊が未知の値・特性なしなら charge として扱う。
-const TRAITS := ["charge", "ambush", "raid", "weak", "swarm", "flee", "withdraw", "preempt"]
+const TRAITS := ["charge", "ambush", "raid", "predator", "swarm", "flee", "withdraw", "preempt"]
 const DEFAULT_TRAIT := "charge"
 
 ## 輸送ユニット（特殊特性）＝搭載数がこの値以上の駒。特性に重ねて働き、ステージデータには書かない
@@ -22,7 +22,7 @@ const DEFAULT_TRAIT := "charge"
 const TRANSPORT_CAPACITY_MIN := 2
 
 ## 行動開始条件が視線距離で決まる特性＝盤に検知域を描く対象（doc/gdd/ai.md 特性詳細）。
-const SIGHT_TRAITS := ["ambush", "weak"]
+const SIGHT_TRAITS := ["ambush", "predator"]
 
 ## sight `*`（上限なし）の視線予算。盤のどの距離にも届き、かつ壁（TerrainType.SIGHT_OPAQUE＝1<<20）
 ## 1枚で必ず遮られる大きさ。「上限なし・ただし壁は遮る」を1つの数で表す（doc/gdd/ai.md データ構成）。
@@ -116,7 +116,7 @@ func _ensure_engaged(state: BattleState, u: Unit) -> bool:
 		"ambush":  # 視線距離が sight 以内に敵 ／ 部隊の誰かが行動開始済み（一斉警戒）
 			engaged = _enemy_in_sight(state, u.pos, u.team, _sight_of(state, u)) \
 				or _squadmate_engaged(state, u)
-		"weak":  # 視線距離が sight 以内に獲物
+		"predator":  # 視線距離が sight 以内に獲物
 			engaged = not _prey_in_sight(state, u).is_empty()
 		_:  # charge / raid / swarm＝常時
 			engaged = true
@@ -252,7 +252,7 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 	match _trait_of(state, u):
 		"raid":
 			return _raid_action(state, u)
-		"weak":
+		"predator":
 			return _weak_action(state, u)
 		"swarm":
 			return _swarm_action(state, u)
@@ -1442,7 +1442,7 @@ func _base_engaged(state: BattleState, b: Base) -> bool:
 		match _base_trait(state, b):
 			"ambush":
 				engaged = _enemy_in_sight(state, b.hex, b.team, budget)
-			"weak":
+			"predator":
 				engaged = not _base_prey_in_sight(state, b, budget).is_empty()
 			_:  # charge / raid / swarm＝常時
 				engaged = true

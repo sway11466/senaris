@@ -147,15 +147,6 @@
 - 対応：リリースビルドから除外するなら不要。含める場合は `campaigns.csv` にエントリを追加。
 - 該当：`godot/data/stages/debug-*/campaign.json`・`godot/data/i18n/campaigns.csv`。
 
-### feature-77
-
-**AI 特性名の i18n 化**（優先度：高）
-
-- ゴール：敵を選んだときの情報パネル見出しに、英語環境で英語の特性名が出る。
-- 背景：`data/ai/ai.json` の特性名（"待ち伏せ"・"突撃"ほか）が日本語直書きで、`unit_info_panel.gd` が見出しの特性欄にそのまま表示する。情報パネルの文言をキー化した際（feature-66）に、ここだけデータ側なので残った。
-- 対応：規約キー `ai.{id}.name` で翻訳CSVから引き、`ai.json` の `name` を開発用メモに降格する。ユニット・地形の表示名（feature-70〜71）と同じ方式なので、置き先は `units.csv` に合わせるか `ui.csv` に置くかを決める。
-- 該当：`godot/data/ai/ai.json`・`godot/data/i18n/`・`godot/presentation/ui/unit_info_panel.gd`。関連＝feature-70〜72（表示名の i18n 化）。
-
 ### feature-78
 
 **兵種名の i18n 化**（優先度：高）
