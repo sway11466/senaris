@@ -15,6 +15,7 @@
 | `map_editor` | ステージJSONを盤面で編集する（地形・見た目スキン・ユニット・拠点・勝敗条件）。盤は実機と同じスキン画像で描く（画像が無いスキンは色と文字）。地形は塗り方をペン／ベタ塗りで切り替え（Ctrl+Z で直前の1操作を取り消し）。「ステージ」モードで盤の中身（地形・スキン・駒・拠点）をまとめてずらせる＝盤を広げたあと左上に描いたものを寄せ直せる（左右は2列単位。奇数列ずらすと odd-q の列の偶奇が入れ替わって形が崩れるため）。「勝敗」モードで常時ルールを含む勝利・敗北条件の一覧を見て、拠点クリックで防衛対象（奪われたら敗北）を指定できる。「イベント」モードで増援（指定ターンに盤へ加わる駒・搭載駒つき）をリストで編集できる。会話と未知キーは温存 | `godot --path godot res://tools/map_editor/map_editor.tscn` | [../gdd/map.md](../gdd/map.md) |
 | `combat_sim` | 戦闘計算シミュレータ。式は本体を呼ぶ＝画面の数字が実戦の数字 | `godot --path godot res://tools/combat_sim/combat_sim.tscn` | [../gdd/combat.md](../gdd/combat.md) |
 | `capture_board3d` | 盤だけをステージ単体で表示してPNG保存する（セレクト・HUD・会話を挟まない） | `godot --path godot res://tools/capture_board3d.tscn -- <出力PNG> [ステージjsonのres://パス]` | [../adr/ADR-0003-board-3d-hybrid.md](../adr/ADR-0003-board-3d-hybrid.md) |
+| `marketing/shot_stage` | marketing用スクリーンショット。盤を実機の見た目で表示し、駒を選択して移動範囲が出た状態を高解像度PNGで保存する（HUD・会話なし・盤全体をフィット・ロケール英語固定） | `godot --path godot res://tools/marketing/shot_stage.tscn -- <出力PNG> <ステージjsonのres://パス> [--select <col,row>] [--size <WxH>]` | [../sales/marketing.md](../sales/marketing.md) |
 
 ## 生成スクリプト
 
@@ -35,6 +36,7 @@
 | `gen_terrain_tiles.gd` | 地形タイルのプレースホルダ（ベタ塗りヘックス）を生成する | `godot --headless --script res://tools/gen_terrain_tiles.gd` | [../art/terrain.md](../art/terrain.md) |
 | `logo/trace_sword.py` | 剣の黒シルエット PNG を SVG のパスに変換する（溝・柄頭の輪・巻きの隙間は穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_sword.py` | [../art/logo.md](../art/logo.md) |
 | `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣を刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版と、開発元名を足した起動スプラッシュ版を書き出す | `uv run --no-project --with fonttools python tools/logo/build_logo.py` | [../art/logo.md](../art/logo.md) |
+| `marketing/build_lineup.py` | ユニットの戦闘立ち絵を横一列に向かい合わせで並べたPNGを組む（左＝プレイヤー陣営＝右向き・右＝敵陣営＝左向き。反転しない） | `uv run --no-project --with pillow python godot/tools/marketing/build_lineup.py --left <skin,…> --right <skin,…> -o <png>` | [../sales/marketing.md](../sales/marketing.md) |
 | `keyvisual/build_keyvisual.py` | キービジュアルを組む。小＝ロゴの盤常設版と赤竜の立ち絵を地の上に置く（4倍で組んでから縮小、寸法は `SPECS`）／中＝生成した1枚絵にフル版ロゴを重ねる（位置は `M_SPEC`。ロゴの PNG は `rasterize_svg.gd` で SVG から焼いた中間物） | `uv run --no-project --with pillow python tools/keyvisual/build_keyvisual.py` | [../sales/marketing.md](../sales/marketing.md) |
 | `rasterize_svg.gd` | SVG を PNG にする（Godot 内蔵の ThorVG。マスクも描ける） | `godot --headless --script res://tools/rasterize_svg.gd -- <in.svg> <out.png> [倍率]` | [../art/menu.md](../art/menu.md) |
 
