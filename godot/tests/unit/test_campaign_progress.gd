@@ -68,9 +68,13 @@ func test_campaigns_filters_debug() -> void:
 	assert_eq(p.campaigns(false).size(), 1, "デバッグ冒険譚を除外できる")
 	assert_eq(p.campaigns(true).size(), 2)
 
+## unlock_text は翻訳キー経由（i18n）なので、ja に固定して正本の文字列で検証する（test_i18n.gd と同じ流儀）。
 func test_unlock_text_uses_stage_title() -> void:
 	var p := _progress()
+	var prev := TranslationServer.get_locale()
+	TranslationServer.set_locale("ja")
 	assert_eq(p.unlock_text("camp", "st2"), "「一」クリアで解放")
+	TranslationServer.set_locale(prev)
 
 func test_next_stage_returns_following_entry() -> void:
 	var p := _progress()
@@ -115,13 +119,19 @@ func test_next_playable_stage_unknown_campaign_is_empty() -> void:
 func test_unlock_text_joins_entitlement_condition() -> void:
 	var p := _progress()
 	p.record_clear("camp", "st1")  # st2 を解放＝前提の名前を出してよい状態にする
+	var prev := TranslationServer.get_locale()
+	TranslationServer.set_locale("ja")
 	assert_eq(p.unlock_text("camp", "st3"), "「二」クリアで解放・追加コンテンツ",
 		"entitlement は「追加コンテンツ」、複数条件は「・」で連結")
+	TranslationServer.set_locale(prev)
 
 func test_unlock_text_hides_locked_prerequisite_name() -> void:
 	var p := _progress()
+	var prev := TranslationServer.get_locale()
+	TranslationServer.set_locale("ja")
 	assert_eq(p.unlock_text("camp", "st3"), "2番めの依頼をクリアで解放・追加コンテンツ",
 		"前提(st2)自身が locked なら名前を伏せて番号で指す")
+	TranslationServer.set_locale(prev)
 
 func test_unlock_text_unknown_stage_is_empty() -> void:
 	var p := _progress()

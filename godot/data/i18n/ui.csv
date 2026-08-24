@@ -107,6 +107,11 @@ ui.quest.back,別のステージを選ぶ,Choose Another Quest
 ui.quest.sortie,出撃する,Set Out
 ui.quest.confirm,出撃しますか？,Ready to set out?
 ui.quest.close,閉じる,Close
+ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
+ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock
+ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock
+ui.quest.unlock_dlc,追加コンテンツ,Additional Content
+ui.quest.unlock_sep,・,"; "
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
 ui.select.menu,← メニュー,← Menu

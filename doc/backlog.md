@@ -106,14 +106,6 @@
 - 対応：イベント `label` を翻訳キーに差し替え、`dialogue.csv` または `ui.csv` にエントリを追加。
 - 該当：`godot/data/stages/**/*.json`・`godot/data/i18n/`。
 
-### feature-75
-
-**campaign_progress の解放条件テキスト tr() 化**（優先度：低）
-
-- 背景：`campaign_progress.gd` の解放条件表示テキスト4件（"%d番めの依頼をクリアで解放"・"別の依頼をクリアで解放"・"「%s」クリアで解放"・"追加コンテンツ"）が直書き。ステージセレクトの未解放ステージに表示される。旧 feature-12 の分割。
-- 対応：`ui.csv` にキーを追加し、`campaign_progress.gd` の直書きを `tr()` に差し替え。
-- 該当：`godot/data/i18n/ui.csv`・`godot/application/campaign_progress.gd`。
-
 ### feature-76
 
 **デバッグ用キャンペーン名の i18n 化**（優先度：低）

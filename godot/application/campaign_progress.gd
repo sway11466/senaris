@@ -84,20 +84,21 @@ func unlock_text(campaign_id: String, stage_id: String) -> String:
 				var ref_id := String(cond.get("stage", ""))
 				if stage_state(campaign_id, ref_id) == LOCKED:
 					var n := _stage_number(c, ref_id)
+					# Node 外（RefCounted）なので tr() ではなく TranslationServer で解決する
 					if n > 0:
-						parts.append("%d番めの依頼をクリアで解放" % n)
+						parts.append(String(TranslationServer.translate("ui.quest.unlock_nth")) % n)
 					else:
-						parts.append("別の依頼をクリアで解放")
+						parts.append(String(TranslationServer.translate("ui.quest.unlock_other")))
 					continue
 				var ref := _find_stage(c, ref_id)
 				# title は翻訳キー（i18n）。TranslationServer で解決（生テキストは素通し）
 				var title := String(TranslationServer.translate(ref.get("title", ref_id)))
-				parts.append("「%s」クリアで解放" % title)
+				parts.append(String(TranslationServer.translate("ui.quest.unlock_stage")) % title)
 			"entitlement":
-				parts.append("追加コンテンツ")
+				parts.append(String(TranslationServer.translate("ui.quest.unlock_dlc")))
 			_:
 				pass
-	return "・".join(parts)
+	return String(TranslationServer.translate("ui.quest.unlock_sep")).join(parts)
 
 ## クリアを記録する（勝利時に main が呼ぶ）。デバッグ冒険譚・未知のステージは記録しない。
 func record_clear(campaign_id: String, stage_id: String) -> void:
