@@ -54,7 +54,7 @@
 
 | event_id | 鳴る瞬間 | 素材 | 望まれる音 |
 |---|---|---|---|
-| `menu_tier` | ◁▷ で難易度帯ボードを繰る | `menu_slide`（専用） | シャッ。布が滑る。`map_capture` の布と同じ収録を共用する |
+| `menu_tier` | ◁▷ でシリーズボードを繰る | `menu_slide`（専用） | シャッ。布が滑る。`map_capture` の布と同じ収録を共用する |
 | `menu_command` | タイトルのメニュー項目を選ぶ | `ui_confirm` | |
 | `menu_campaign` | 冒険譚カードを選ぶ | `ui_confirm` | |
 | `menu_stage` | ステージ行を選ぶ | `ui_confirm` | |
@@ -120,7 +120,7 @@
 
 陣形スキルは戦闘演出シーン（下記）を通らないため、着弾音を `cmb_hit` から借りられない。`map_formation_hit` を別に持つのはこのため。
 
-どちらも音はレシピごとに分ける。面殲滅（トリニティスペル）と全体バフ（ホーリーアリア）と単体狙撃（ディバインジャッジメント）は起きることが違うので、同じ音を鳴らすと何が起きたのかが音から分からない。ユニットスキルも同じで、掛けたのか掛けられたのかが音で分かる必要がある。
+どちらも音はレシピごとに分ける。面殲滅（トリニティノヴァ）と全体バフ（ホーリーアリア）と単体狙撃（ディバインジャッジメント）は起きることが違うので、同じ音を鳴らすと何が起きたのかが音から分からない。ユニットスキルも同じで、掛けたのか掛けられたのかが音で分かる必要がある。
 
 鳴らす瞬間は違う。陣形は発動の頭と着弾の2音なので、頭の音を発動と同時に出す。ユニットスキルは1音しかないため、演出シーンの「ため」（0.8秒）を待って一撃が出る瞬間に合わせる。発動と同時に鳴らすと、音だけが絵より0.8秒早く出る。
 
@@ -223,7 +223,7 @@
 
 | recipe_id | 起きること | 音の性格 |
 |---|---|---|
-| `trinity_spell` | 7ヘクスに間接ダメージ | 強力な魔法を撃ち出し、生成系の炸裂で着弾する |
+| `trinity_nova` | 7ヘクスに間接ダメージ | 強力な魔法を撃ち出し、生成系の炸裂で着弾する |
 | `holy_aria` | 全体バフ（攻防 ×1.3・1ターン） | 澄んだ和音。着弾ではなく発効 |
 | `divine_judgment` | 射程10の単体狙撃 | 遠くまで届く一条。着弾は点で鋭く |
 
@@ -422,8 +422,8 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 | recipe_id | 素材 | 場所 |
 |---|---|---|
-| `trinity_spell` | `water_blast_projectile_spell_03.wav` | 2018 p3 / Gamemaster Audio - Magic and Spell Sounds |
-| `trinity_spell_hit` | `Magic_Spells_Impact_Creation20.wav` | 2020 p3 / David Dumais Audio - Spells Magic 1 |
+| `trinity_nova` | `water_blast_projectile_spell_03.wav` | 2018 p3 / Gamemaster Audio - Magic and Spell Sounds |
+| `trinity_nova_hit` | `Magic_Spells_Impact_Creation20.wav` | 2020 p3 / David Dumais Audio - Spells Magic 1 |
 | `divine_judgment` | `DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav` | 2026 p2 / Epic Stock Media - Anime Game |
 | `divine_judgment_hit` | `Impact,Sound Design,Hit,Chime,Resonant Hit,Chime Accent,Tinkle,Fast.wav` の頭から 1.90 秒 | 2019 p1 / Airborne Sound - Crisis Accents |
 
