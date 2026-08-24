@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=85 / refactoring=12
+次回採番: bug=3 / feature=86 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。優先度は各エントリ見出しに 高（設計の背骨に関わる）／中／低（飾り・潜在）で記す。
 
@@ -72,6 +72,16 @@
 - 該当：`godot/export_presets.cfg`・`doc/tech/build.md`・`C:\Users\tappe\godot-src`（リポジトリ外・新規）。着手の引き金＝オーナーの合図。
 
 
+
+### feature-85
+
+**マップエディタ：イベント予告の訳文入力（キー＋ja＋en）**（優先度：中）
+
+- ゴール：イベントの予告文を、エディタだけで（dialogue.csv を手で開かずに）キー・日本語・英語まで入れられる。
+- 背景：予告欄は翻訳キーの手打ちで、訳文は dialogue.csv の手編集。typo・書き忘れがエディタ内で見えず、実機でキー文字列がそのまま出て初めて気づく（feature-74 の作業中の議論）。
+- 対応：予告行をキー／ja／en の3欄にし、開いたとき dialogue.csv から訳文を読み込む。ステージ保存時に dialogue.csv を更新（既存キーは行を置換・新規は同じステージ接頭辞のブロック末尾へ挿入・他の行に触らない）。ja・en が揃うまで書かない（中途半端な行を作らない）。`.translation` の再インポートは従来どおり手動＝保存メッセージで促す。
+- 関連：feature-73（部隊名）のエディタ対応はこの仕組みに乗せる。
+- 該当：`godot/tools/map_editor/map_editor.gd`・`godot/tools/map_editor/dialogue_csv_store.gd`（新規）・`godot/tests/unit/`。
 
 ### feature-71
 
