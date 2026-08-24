@@ -471,7 +471,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 	for i in pas.size():
 		var pu: Unit = pas[i]
 		var sk := SkinCatalog.resolve(_skin_catalog, pu.skin_id, pu.type_id, pu.team)
-		_menu.add_item("降車: %s" % (sk.name if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
+		_menu.add_item("降車: %s" % (tr("unit." + sk.skin_id + ".name") if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
 		if state.has_moved(pu.id):
 			_menu.set_item_disabled(_menu.get_item_index(UNLOAD_ID_BASE + i), true)
 	if sel != null and base != null and base.team == sel.team and not base.garrison.is_empty():
@@ -480,7 +480,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 		for i in base.garrison.size():
 			var gu: Unit = base.garrison[i]
 			var gsk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
-			_menu.add_item("出撃: %s" % (gsk.name if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
+			_menu.add_item("出撃: %s" % (tr("unit." + gsk.skin_id + ".name") if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
 			if no_cells or not state.can_deploy_garrison(dest, i):
 				_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)
 	# 発動者は移動してから撃てる＝成立も射程も「移動先 dest に居るものとして」見る。
@@ -720,7 +720,7 @@ func _open_base_menu(base_hex: Vector2i) -> void:
 	for i in b.garrison.size():
 		var gu: Unit = b.garrison[i]
 		var sk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
-		var nm := sk.name if sk != null else gu.type_id
+		var nm := tr("unit." + sk.skin_id + ".name") if sk != null else gu.type_id
 		_menu.add_item("出撃: %s" % nm, DEPLOY_ID_BASE + i)
 		if not state.can_deploy_garrison(base_hex, i):
 			_menu.set_item_disabled(_menu.get_item_index(DEPLOY_ID_BASE + i), true)

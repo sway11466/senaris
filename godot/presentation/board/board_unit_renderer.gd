@@ -292,7 +292,7 @@ func _add_unit_placeholder(u: Unit, done: bool, root: Node3D) -> void:
 	mi.position = Vector3(0, 0.05, 0)
 	root.add_child(mi)
 	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
-	var label := s.map_label() if s != null else u.type_id.substr(0, 2)
+	var label := tr("unit." + s.skin_id + ".name").substr(0, 2) if s != null else u.type_id.substr(0, 2)
 	if label.is_empty():
 		return
 	var l := Label3D.new()

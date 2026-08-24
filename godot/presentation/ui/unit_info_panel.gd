@@ -467,14 +467,14 @@ func _movement_cost_lines(terrain_id: String) -> Array[String]:
 func _garrison_line(gu: Unit, b: Base) -> String:
 	var team_for_skin := gu.team if gu.team >= 0 else (b.team if b.team >= 0 else 0)
 	var sk := SkinCatalog.resolve(_skins, gu.skin_id, gu.type_id, team_for_skin)
-	var nm := sk.name if sk != null else gu.type_id
+	var nm := tr("unit." + sk.skin_id + ".name") if sk != null else gu.type_id
 	return tr("ui.info.reserves_line") % [nm, gu.troops, gu.max_troops, gu.level]
 
 ## タブの上に据え置く見出しを組み直す。仕様 → doc/gdd/uiux.md ユニット情報パネル
 ## 2行目は敵＝部隊名／自軍＝兵種。敵に兵種を出さないのはリスキン元（種別）が透けるため。
 func _update_header(u: Unit) -> void:
 	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)
-	var unit_name := skin.name if skin != null else u.type_id
+	var unit_name := tr("unit." + skin.skin_id + ".name") if skin != null else u.type_id
 	var team_name := tr("ui.info.team_ally") if u.team == 0 else tr("ui.info.team_enemy")
 	_header_name.text = tr("ui.info.header_name") % [unit_name, team_name]
 	var sub := ""

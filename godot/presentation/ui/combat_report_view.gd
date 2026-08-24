@@ -211,7 +211,7 @@ func _texture_of(snap: Dictionary) -> Texture2D:
 
 func _display_name(snap: Dictionary) -> String:
 	var s: UnitSkin = SkinCatalog.resolve(_skins, String(snap.get("skin_id", "")), snap["type_id"], snap["team"])
-	return s.name if s != null else String(snap["type_id"])
+	return tr("unit." + s.skin_id + ".name") if s != null else String(snap["type_id"])
 
 func _name_lv(snap: Dictionary) -> String:
 	return tr("ui.report.name_lv") % [_display_name(snap), int(snap["level"])]

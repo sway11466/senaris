@@ -274,7 +274,7 @@ func _make_face(skin_id: String) -> Control:
 	st.set_corner_radius_all(6)
 	box.add_theme_stylebox_override("panel", st)
 	var lbl := Label.new()
-	lbl.text = sk.portrait_label() if sk != null else "？"
+	lbl.text = tr("unit." + sk.skin_id + ".name").substr(0, 2) if sk != null else "？"
 	lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER

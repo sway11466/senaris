@@ -19,7 +19,7 @@ const LINEUPS := [LINEUP_SQUAD, LINEUP_RETINUE, LINEUP_SINGLE]
 
 var skin_id: String       ## スキンID（主キー。ステージはこれで見た目を指定）。skin→type は1:1
 var type_id: String       ## 紐づく性能(UnitType)のID
-var name: String          ## 表示名（例: クレリック / ゴブリン）
+var name: String          ## 開発用メモ（CSV の name 列）。画面表示は tr("unit." + skin_id + ".name") を使う
 var category: String      ## 管理分類（基準/ゴブリン/アンデッド…）。参考データ＝ゲームロジックで参照しない（ツール・図鑑用）
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
 var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
@@ -48,15 +48,18 @@ static func from_dict(d: Dictionary) -> UnitSkin:
 func is_single_figure() -> bool:
 	return combat_lineup == LINEUP_SINGLE
 
-## マップ表示のプレースホルダ文字（名前の先頭2文字）。
+## マップ表示のプレースホルダ文字（開発用メモの先頭2文字）。
+## ※ 画面に出すときは tr("unit." + skin_id + ".name").substr(0, 2) を使うこと。
 func map_label() -> String:
 	return name.substr(0, 2)
 
-## 戦闘表示のプレースホルダ文字（フルネーム）。
+## 戦闘表示のプレースホルダ文字（開発用メモのフルネーム）。
+## ※ 画面に出すときは tr("unit." + skin_id + ".name") を使うこと。
 func combat_label() -> String:
 	return name
 
-## 会話の顔（portrait）のプレースホルダ文字（名前の先頭2文字）。未用意時に丸顔などへ描く合図。
+## 会話の顔（portrait）のプレースホルダ文字（開発用メモの先頭2文字）。未用意時に丸顔などへ描く合図。
+## ※ 画面に出すときは tr("unit." + skin_id + ".name").substr(0, 2) を使うこと。
 func portrait_label() -> String:
 	return name.substr(0, 2)
 

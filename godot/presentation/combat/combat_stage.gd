@@ -599,7 +599,7 @@ func _skin_of(comb: Dictionary) -> UnitSkin:
 
 func _placeholder_label(comb: Dictionary) -> String:
 	var skin := _skin_of(comb)
-	return skin.combat_label() if skin != null else String(comb.get("type_id", "?"))
+	return tr("unit." + skin.skin_id + ".name") if skin != null else String(comb.get("type_id", "?"))
 
 ## 窓の形＝角を丸めた横長の矩形（左上から時計回り）。中身のクリップ形状も縁取りもこれ1つで決まる。
 ## 角の四分円は折れ線で近似する＝返す形は多角形のままなので、塗り（マスク）も枠線も同じ点列で描ける。
