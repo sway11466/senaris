@@ -1,0 +1,58 @@
+SUBJECT: A NEW composition, not a crop or extension of any earlier picture:
+a long, DENSE heap of collapsed graveyard masonry lying across the ground in
+the FOREGROUND of a battle scene, seen from the front at eye level, for a wide
+landscape picture (16:9). Draw it as ONE SELF-CONTAINED object: the heap has a
+clear left end and a clear right end, both well inside the picture, with wide
+empty white on either side. The most important rule: NOTHING is cut by the
+frame — the heap tapers down to loose chunks at both ends and STOPS, and no
+stone touches the left edge, the right edge or the top edge.
+
+LAYOUT — in a 1792 x 1024 picture, the heap lies in a LOW STRIP about 240
+pixels tall resting on the bottom edge, about 1150 pixels long and CENTRED: its
+left end stops about 320 pixels in from the left edge and its right end stops
+about 320 pixels in from the right edge. Those margins stay EMPTY WHITE, as
+does everything above the strip. The stone may rest on the bottom edge. No
+stone may rise above the strip.
+
+THE RUBBLE — this is a COLLAPSED BURIAL VAULT, not a few stones on the grass:
+squared ashlar blocks, broken roof slabs and cracked lintels piled two or three
+deep along the whole length of the heap, wedged against and on top of each
+other at every angle, with smaller chips and grit filling every gap. Jammed in
+among them at wrong angles are TWO OR THREE old GRAVESTONES — slabs with
+rounded tops, one snapped in half — so the heap plainly reads as a graveyard's.
+There is NO bare ground anywhere along the heap, NO path through it, NO flat
+footing — a soldier on foot could not cross it; only something that flies could
+pass. The heap is uneven: higher in two or three places where big blocks stack,
+lower between them, ragged along the top, never a smooth bank and never a row.
+Fallen stone only: NOT a cliff, NOT a standing wall, NOT an intact building, no
+arch left standing, no column, no doorway.
+
+STYLE — the same clean stylized cel-shaded look as the game's terrain and unit
+art: bold flat shading, clear dark outlines, a mature, slightly muted, limited
+color palette (NOT bright saturated, NOT painterly photorealism). Because this
+rubble sits CLOSE to the camera, in front of the soldiers' feet, draw it a
+shade DARKER and SIMPLER than the map version — big plain shapes, little inner
+detail, dim in shadow — so it frames the scene rather than competing with the
+figures behind it.
+
+COLOR — dull grey building stone, hex #6C695E (darker than the map version
+because it is in shadow), each piece a slightly different flat tone between
+#7C7970 and #5A5750. The gravestones caught in the heap are a paler grey-green,
+hex #8E8A76 — the same stone as the grave markers in the game's other
+graveyard pictures. A little dull grey lichen is welcome; NO bright green moss, NO
+crystals, NO glow, NO water, NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything that is not stone is PURE FLAT WHITE, #FFFFFF: NO
+texture, NO shading, NO gradient, NO ground, NO grass, NO soil, NO drop shadow
+on the white. This white is going to be deleted and the strip laid over the
+game's own battle scene, so every outline must be a hard, clean, crisp edge
+against it. Nothing in the stone may be white or near-white.
+
+LIGHT — from directly above only, short soft shadows that fall only on the
+stone itself; NOTHING casts a shadow onto the white, and NO light from the left
+or the right.
+
+Nothing else: no creature, no people, no bones, no skulls, no coffins, no urns,
+no flowers, no candles, no plants, no torches, no treasure, no lettering and no
+inscriptions. NO glow, NO mist, NO magic. NO border, NO frame around the
+picture itself, NO vignette. Landscape 16:9.

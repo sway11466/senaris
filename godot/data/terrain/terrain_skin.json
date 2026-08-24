@@ -298,7 +298,7 @@
 			"map_scale": 1.0,
 			"memo": "崩れた納骨堂と墓石が積み上がった山。瓦礫＝地上は通れず飛行と斥候だけ越える壁。マスを埋めて見せる",
 			"name": "墓石の山",
-			"object_foot_z": 0.35,
+			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
 			"skin_id": "plain_grave1_rubble_tombstone1",

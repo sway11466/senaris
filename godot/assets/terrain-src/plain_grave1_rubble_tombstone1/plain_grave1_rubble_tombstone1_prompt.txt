@@ -1,0 +1,54 @@
+SUBJECT: A HEAP OF COLLAPSED MASONRY in an old graveyard — the stonework of a
+burial vault that has come down, piled together with the gravestones it took
+with it — as drawn on the world map of a classic 2D role-playing game: seen
+from the front and slightly above, standing upright and facing the bottom of
+the frame — nothing lying flat, no perspective.
+
+ONE heap, wider than it is tall, made mostly of DRESSED BUILDING STONE: squared
+ashlar blocks, broken roof slabs and cracked lintels stacked two or three deep,
+wedged against and on top of each other at every angle, with smaller chips and
+loose grit filling every gap. Jammed into the pile at wrong angles are THREE OR
+FOUR old GRAVESTONES — slabs with rounded tops, one snapped in half, one buried
+to its shoulders — so the heap plainly reads as a graveyard's, not a
+mountainside's.
+
+IT IS A WALL, NOT A PATH: the pieces sit unstable and interlocked, with NO gap
+through it, NO ledge, NO step, NO flat footing — a soldier on foot could not
+climb over it. It must NOT read as a few markers standing in open ground: this
+is a solid MASS of stone, packed from end to end, with no ground showing
+anywhere inside it. It is fallen rubble, NOT a cliff, NOT a standing wall, NOT
+an intact building, NOT a doorway: no arch left standing, no roof, no column.
+
+SIZE — the heap sits in the MIDDLE of the picture. In a 1024-pixel picture it
+is about 640 pixels wide and about 460 pixels tall, leaving at least 190 pixels
+of white on every side. It must NOT touch any edge and must NOT be cut by any
+edge.
+
+COLOR — dull grey building stone, hex #7F7B6E, each block a slightly different
+flat tone between #918D80 and #67635A so the pieces separate from one another
+by tone alone. The gravestones caught in the heap are the same weathered
+grey-green as the markers standing elsewhere in this graveyard, hex #8A8676.
+The game draws its own dry khaki graveyard grass, hex #B0A888, behind this
+picture, and the heap must stand out plainly against it, so keep the whole
+thing CLEARLY DARKER and cooler than that grass. Do NOT make the stone yellow,
+warm, golden, pale or brighter than #918D80. Everything muted, in the same
+clean stylized cel-shaded look as the game's terrain and unit art: bold flat
+shading, clear dark outlines, a mature, slightly muted, limited color palette
+(NOT bright saturated, NOT painterly photorealism). A little dull grey lichen
+is welcome; NO bright green moss, NO crystals, NO glow, NO water, NO strong
+red, blue or green anywhere.
+
+THE BACKGROUND — everything around the heap is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO grass, NO soil, NO drop
+shadow. This white is going to be deleted and the game will draw its own
+graveyard grass there, so the outline of the heap must be a hard, clean, crisp
+edge against it. Nothing in the stone may be white or near-white.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the stone itself; NOTHING casts a shadow onto the white.
+
+Nothing else: no creature, no people, no bones, no skulls, no coffins, no urns,
+no flowers, no candles, no plants, no torches, no treasure, no lettering and no
+inscriptions. NO glow, NO mist, NO magic. Read at thumbnail size: a few large
+legible shapes, no fine detail. NO border, NO frame around the picture itself,
+NO vignette. Square 1:1.
