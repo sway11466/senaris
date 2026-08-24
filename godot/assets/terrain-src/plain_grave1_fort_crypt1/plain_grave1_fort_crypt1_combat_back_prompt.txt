@@ -1,0 +1,100 @@
+SUBJECT: The same stone CRYPT as the map piece, seen CLOSE — a WIDE BAND of
+backdrop that stands behind the fighting in a battle window. It is not a single
+object floating in the middle of the frame; it is a stretch of the graveyard
+seen near, running off the LEFT edge of the picture.
+
+WHAT IS IN IT — the crypt stands a little LEFT of the middle of the band, the
+largest thing in the picture. It is one squat burial vault of rough grey
+blockwork: a single low chamber, plainly wider than it is tall, with a heavy
+pitched stone roof set straight on top of it and thick corner blocks. It has NO
+tower, NO bell, NO cross and NO spire — it is a place the dead are put, not a
+church.
+
+THE ENTRANCE is the point of the picture: a plain arched DOORWAY in the front
+wall, standing OPEN with no door in it, reading as a hole that goes back under
+the ground. Three or four worn steps run down from it, and the stone at the
+sides of the opening is chipped and shifted.
+
+A DIM COLD LIGHT comes up out of that hole. The top and the back of the opening
+are near-black, hex #20211F, and lower down, toward the threshold, the darkness
+turns to a dull blue-green: around hex #3A5A54, reaching hex #4F6E66 at its
+brightest just above the sill. It is faint and sickly, not a lamp and not a
+fire — a cold shine from something further down. Keep it INSIDE the opening and
+on the sill only: it does NOT spill onto the steps, the walls, the ground or the
+markers, and it casts NO glow, halo or bloom outside the doorway. The opening is
+otherwise plainly EMPTY — no eyes, no face, no creature, no mist, no smoke,
+nothing standing in it. Whatever comes out of this place is not in the picture.
+
+THE ROOF must be plainly visible from this angle, big and simple, because the
+game recolours it to show who holds the crypt.
+
+AROUND IT — old grave markers stand in the ground on both sides of the crypt:
+plain weathered slabs with rounded tops, short crosses with thick stubby arms,
+snapped stubs, each leaning at its own angle, scattered irregularly and never
+in a row. They are much lower than the crypt — the tallest reaches about a
+third of its height.
+
+THE TWO ENDS ARE DIFFERENT — this is the most important thing.
+- LEFT end: the graveyard runs straight off the edge of the picture and is cut
+  by it. The markers nearest the left edge are cut through by the frame.
+  Nothing tapers, nothing ends, nothing is rounded off there.
+- RIGHT end: the graveyard has to finish inside the picture. Finish it
+  honestly: past the crypt the markers get smaller and lower as the ground
+  recedes away from the viewer, and the last of them fade out. Do NOT stop the
+  row in mid-air with a raw broken end, and do NOT put a wall, fence, hedge,
+  kerb or gate there — there is no boundary anywhere in this picture.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square. The crypt and the markers
+sit in a WIDE LOW BAND across the middle of it: in a 1024-pixel picture the
+crypt is about 380 pixels tall to the ridge of its roof and about 520 pixels
+wide, and everything else is lower. The ONLY edge of the picture that may cut
+anything is the LEFT one. Nothing touches the top edge, the right edge or the
+bottom edge.
+
+THERE IS NO GROUND IN THIS PICTURE — this is the rule most easily broken, so
+read it twice. Do NOT draw a band of earth, a strip of soil, a ground plane, a
+horizon line, a patch of colour or a shelf of any kind under the buildings. The
+crypt, the steps and every marker stand DIRECTLY ON THE WHITE: each one simply
+ends at its own base with a hard, clean outline, and below that base there is
+nothing but #FFFFFF. No grass, no tufts, no pebbles, no dirt, no plinth, no
+foundation.
+
+AND NOTHING CASTS A SHADOW ONTO THE WHITE. The crypt casts no shadow, the steps
+cast no shadow, no marker casts a shadow — not a soft one, not a faint one, not
+a contact shadow where stone meets background. The shading ON the stone itself
+stays (the shadowed side wall, the dark inside the doorway, the shaded faces of
+the markers); only what would fall on the background is absent. The white must
+be one flat value everywhere.
+
+VIEWING ANGLE — seen from the front and slightly above, much closer than the
+map piece: the front wall, the open doorway and the steps are all clearly
+readable, and the whole roof is still in view above them.
+
+COLOR — the crypt's stone is a dull grey, rougher and darker than dressed
+masonry: base tone #948F80 where the light catches it, #7C796C in the mass,
+#575142 in shadow. The doorway is near-black #20211F at the back, going to the
+dull blue-green described above near the sill. The grave markers are a
+weathered grey-green, hex #8A8676. The ROOF is
+plain grey stone, as colourless as the walls — base tone #7F7B70, shadowed
+slopes #686458, catch-light #979386. Match those numbers: this crypt and the
+map piece must read as the same building. NO ochre, NO warm tan, and NO strong
+red, blue or green anywhere: those colours are what marks who holds the place,
+and nobody holds it in this picture.
+
+THE BACKGROUND — everything above the roofline is PURE FLAT WHITE, #FFFFFF,
+with NO texture, NO shading, NO gradient, NO sky, NO clouds. This white is
+going to be deleted, so the roofline must be a hard, clean, crisp edge against
+it. Nothing in the picture may be white or near-white.
+
+NOTHING ELSE — no people, no animals, no birds, no bones, no skulls, no
+coffins, no open graves, no flowers, no candles, no lanterns, no banners, no
+signage, no smoke, no fire, no lettering and no inscriptions. Apart from the
+cold light inside the doorway, the picture is quiet and weathered: NO mist, NO
+floating lights, NO magic circles, NO purple or green fire, NO glowing runes,
+and no light anywhere else in the picture.
+
+This is a near view, so a little more detail than the map piece is welcome —
+the courses of the blockwork, the worn edges of the steps, the ridge line of
+the roof — but keep it in bold flat shapes, in the same clean stylized
+cel-shaded look as the game's terrain and unit art, with no fine texture that
+would fight with the figures standing in front of it. Square 1:1.

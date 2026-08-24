@@ -1,0 +1,22 @@
+戦闘の奥の帯（_combat_back） — 白背景の raw.jpg から白を抜き（-fuzz 10%）、絵の下端を建物の足元に
+合わせて切り、トリムしてから上に透過の余白を 240px 足す。3枚（中立・team0・team1）とも同じ。
+
+magick assets\terrain-src\plain_grave1_fort_crypt1\plain_grave1_fort_crypt1_combat_01_raw.jpg -fuzz 10% -transparent white -crop 1024x726+0+0 +repage -trim +repage -background none -gravity north -splice 0x240 assets\terrain\plain_grave1_fort_crypt1_combat_back.png
+magick assets\terrain-src\plain_grave1_fort_crypt1\plain_grave1_fort_crypt1_combat_team0_01_raw.jpg -fuzz 10% -transparent white -crop 1024x726+0+0 +repage -trim +repage -background none -gravity north -splice 0x240 assets\terrain\plain_grave1_fort_crypt1_team0_combat_back.png
+magick assets\terrain-src\plain_grave1_fort_crypt1\plain_grave1_fort_crypt1_combat_team1_01_raw.jpg -fuzz 10% -transparent white -crop 1024x726+0+0 +repage -trim +repage -background none -gravity north -splice 0x240 assets\terrain\plain_grave1_fort_crypt1_team1_combat_back.png
+
+y=726 で切る理由 — この絵は手前の墓石を建物の足元より 65px 下まで描いている。そのままトリムすると
+帯の下端がその墓石になり、建物の足元が持ち上がって水平線（窓の0.36＝161px）より上へ出る。帯は下端を
+窓の 0.44（196px）に置くので、建物の足元が絵のいちばん下でなければいけない。切った手前の墓石は
+下端で切れる＝奥の帯の作法どおり。
+
+上に 240px 足す理由 — この絵は奥行きを描いていて、墓石の足元が 107px にわたって散っている（礼拝堂の
+絵は8px以内＝地面の線が1本なので、あちらは余白が要らない）。等倍で置くと奥の墓石の足元が水平線より
+上に来て、墓石が空に浮く。余白を足すと縦横比が 1.83:1 を割り、演出側が高さ上限196pxに合わせて帯ごと
+縮める＝絵が小さくなって全部が水平線の下に収まる。
+
+  余白240px → 944x706（1.34:1）→ 倍率 0.278 → 帯 262x196・建物の高さ129px
+  いちばん高い墓石の足元が画面の y=166（水平線161の5px下）
+
+余白を増やすほど安全側だが帯が小さくなる（余白133pxで足元がちょうど水平線・帯309px幅、
+余白340pxで足元y=170・帯230px幅）。ここを回すのがこの絵の唯一の調整点。

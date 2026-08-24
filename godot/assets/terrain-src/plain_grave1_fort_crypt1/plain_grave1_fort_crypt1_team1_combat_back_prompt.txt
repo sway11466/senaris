@@ -1,0 +1,37 @@
+SAME picture as the one provided. This is a RECOLOUR, not a redraw: think of it
+as laying a coloured glaze over the roof that is already there. If you put the
+two pictures side by side, every outline, every edge, every highlight and every
+crack must sit in exactly the same place — only the hue is different.
+
+Keep the crypt, the grave markers, the white background and the framing EXACTLY
+as they are: identical shapes, sizes, positions, angles, outlines and shading.
+
+Change TWO things, and nothing else.
+
+FIRST, THE COLOUR OF THE ROOF.
+
+The roof in the picture is made of LARGE FLAT STONE SLABS — a few big pieces
+with wide plain faces, a long straight ridge and plain eaves. It stays made of
+large flat stone slabs. Keep the same pieces, the same number of them, the same
+size, the same joints and the same plain faces. Do NOT add small repeating
+units of any kind: no rows of small overlapping pieces, no scallops, no
+half-round ridges, no fish-scale pattern, no grid, no courses that were not
+already drawn. If the roof ends up made of many small pieces, the picture is
+wrong. It is stone, and it stays stone — only the colour of the stone changes.
+
+The new colour is a dark, dusty, muted red-brown: base tone #6D584F, shadowed
+slopes #563E37, catch-light #856157. Match those numbers. Keep it dark and
+greyed, not bright, not orange, not terracotta.
+
+SECOND, TURN THE LIGHT UP. The dull blue-green shine coming up out of the
+doorway grows brighter and fills the whole opening, right up under the arch: the
+darkest part of it is about hex #406764 and it reaches hex #639F9D at its
+brightest near the sill. It stays the same cold, sickly blue-green — do NOT make
+it white, yellow, orange, purple or green, and do NOT make it a flame. Keep it
+INSIDE the opening and on the sill only: it must NOT spill onto the steps, the
+walls, the ground or the markers, and it casts NO glow, halo or bloom outside
+the doorway. Nothing stands in the opening — no eyes, no face, no creature, no
+mist, no smoke, only the light.
+
+The blockwork, the doorway's stone surround, the steps, the grave markers and
+the white background are all untouched.
