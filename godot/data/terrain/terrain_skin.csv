@@ -1,7 +1,7 @@
 skin_id,terrain_type,name,orientable,connect,connect_to,elevation,floor,ignore_board_height,placement,map_scale,object_foot_z,combat_scale,grid,map_ground,combat_ground,memo
 スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,駒の足元の高さ,盤の高さを無視,置き方,立ち絵の幅,足元の手前寄せ,戦闘の立ち絵の背丈,グリッド線,盤の下地,戦闘背景の下地,備考
 bedrock,bedrock,岩地,full,false,,0.36,0.36,false,,,,,true,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。尾根より明るい岩
-bush,bush,茂み,flip_x,false,,0.12,0,false,,,,,true,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
+brush,brush,茂み,flip_x,false,,0.12,0,false,,,,,true,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
 forest,forest,森,full,false,,0.18,0,false,,,,,true,,,駒は木々の間の地面に立つ＝floor 0（上面より低い）
 plain,plain,平地,full,false,,0,0,false,,,,,true,,,
 plain_cave1,plain,洞窟の床,full,false,,0,0,false,,,,,true,,,ダンジョンの踏み固めた土の床（性能は平地のまま）

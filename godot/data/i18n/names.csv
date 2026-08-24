@@ -65,6 +65,72 @@ unit.rogue_axe.name,ローグアックス,Thug
 unit.rogue_slinger.name,ローグスリンガー,Bandit Slinger
 unit.rogue_head.name,ローグヘッド,Bandit Captain
 unit.rogue_wagon.name,ならず者の馬車,Bandit Wagon
+terrain.bedrock.name,岩地,Bedrock
+terrain.brush.name,茂み,Brush
+terrain.forest.name,森,Forest
+terrain.plain.name,平地,Plain
+terrain.plain_cave1.name,洞窟の床,Cave Floor
+terrain.plain_cave1_fence_throne1.name,玉座,Throne
+terrain.plain_cave1_prop_loot1.name,略奪品の山,Pile of Loot
+terrain.plain_cave1_rubble1.name,崩落跡,Cave-in
+terrain.plain_fence.name,柵,Fence
+terrain.plain_fort.name,拠点,Base
+terrain.plain_grave1.name,墓地の草地,Graveyard Grass
+terrain.plain_grave1_fence.name,墓地の柵,Graveyard Fence
+terrain.plain_grave1_fort_chapel1.name,礼拝堂,Chapel
+terrain.plain_grave1_fort_crypt1.name,納骨堂,Crypt
+terrain.plain_grave1_prop_tomb1.name,墓標,Gravestone
+terrain.plain_grave1_rubble_tombstone1.name,墓石の山,Pile of Tombstones
+terrain.plain_trap.name,罠,Trap
+terrain.plateau.name,台地,Plateau
+terrain.rampart.name,城壁,Rampart
+terrain.rampart_granite1.name,花崗岩の尾根,Granite Ridge
+terrain.rampart_ridge1.name,尾根,Ridge
+terrain.river.name,川,River
+terrain.river_bridge_stone1_l.name,石橋（単幅）,Stone Bridge
+terrain.river_bridge_stone1_left_l.name,石橋（左端）,Stone Bridge
+terrain.river_bridge_stone1_left_r.name,石橋（左端）,Stone Bridge
+terrain.river_bridge_stone1_left_v.name,石橋（左端）,Stone Bridge
+terrain.river_bridge_stone1_mid_l.name,石橋（中央）,Stone Bridge
+terrain.river_bridge_stone1_mid_r.name,石橋（中央）,Stone Bridge
+terrain.river_bridge_stone1_mid_v.name,石橋（中央）,Stone Bridge
+terrain.river_bridge_stone1_r.name,石橋（単幅）,Stone Bridge
+terrain.river_bridge_stone1_right_l.name,石橋（右端）,Stone Bridge
+terrain.river_bridge_stone1_right_r.name,石橋（右端）,Stone Bridge
+terrain.river_bridge_stone1_right_v.name,石橋（右端）,Stone Bridge
+terrain.river_bridge_stone1_v.name,石橋（単幅）,Stone Bridge
+terrain.road.name,道,Road
+terrain.road_building_town1_l.name,街区,Town Block
+terrain.road_building_town1_r.name,街区,Town Block
+terrain.road_building_town1_v.name,街区,Town Block
+terrain.road_fort_guardhouse1.name,詰所,Guardhouse
+terrain.road_fort_town1.name,町,Town
+terrain.road_prop_garden1_l.name,菜園,Garden
+terrain.road_prop_garden1_r.name,菜園,Garden
+terrain.road_prop_garden1_v.name,菜園,Garden
+terrain.road_stone1.name,石畳,Cobblestones
+terrain.wall.name,壁,Wall
+terrain.wall_stone1.name,石積みの壁,Stone Wall
+terrain.wasteland.name,荒地,Wasteland
+terrain_type.road.name,道,Road
+terrain_type.plain.name,平地,Plain
+terrain_type.wasteland.name,荒地,Wasteland
+terrain_type.rampart.name,城壁,Rampart
+terrain_type.river.name,川,River
+terrain_type.wall.name,壁,Wall
+terrain_type.plateau.name,台地,Plateau
+terrain_type.forest.name,森,Forest
+terrain_type.brush.name,茂み,Brush
+terrain_type.bedrock.name,岩地,Bedrock
+terrain_type.fence.name,柵,Fence
+terrain_type.trap.name,罠,Trap
+terrain_type.prop.name,置物,Obstacle
+terrain_type.rubble.name,瓦礫,Rubble
+terrain_type.rock.name,大岩,Boulder
+terrain_type.building.name,建物,Building
+terrain_type.fort.name,砦,Fort
+terrain_type.bridge.name,橋,Bridge
+terrain_type.keepout.name,立入禁止,Off-Limits
 movement.foot.name,歩行,Foot
 movement.light_foot.name,軽歩行,Light Foot
 movement.forest_stride.name,森歩行,Forest Stride

@@ -47,7 +47,7 @@ const TERRAIN_COLORS := {  # terrain_type.csv の id と同順・全型
 	"wall": Color(0.25, 0.25, 0.28),
 	"plateau": Color(0.76, 0.66, 0.40),
 	"forest": Color(0.30, 0.48, 0.23),
-	"bush": Color(0.48, 0.63, 0.31),
+	"brush": Color(0.48, 0.63, 0.31),
 	"bedrock": Color(0.54, 0.50, 0.46),
 	"fence": Color(0.63, 0.55, 0.35),
 	"trap": Color(0.69, 0.42, 0.35),

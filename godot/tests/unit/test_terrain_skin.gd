@@ -101,12 +101,12 @@ func test_connecting_skins_are_never_oriented() -> void:
 
 func test_flip_x_skin_does_not_rotate() -> void:
 	# 塊に向きがある絵（茂み）は回すと1マスごとに向きが変わる。左右反転だけで散らす。
-	var bush := TerrainSkinCatalog.skin_by_id("bush")
-	assert_not_null(bush, "bush が引ける")
-	if bush != null:
-		assert_eq(bush.orientable, TerrainSkin.ORIENT_FLIP_X, "茂みは flip_x")
-		assert_true(bush.orients(), "散らしの対象ではある")
-		assert_false(bush.rotates(), "回してはいけない")
+	var brush := TerrainSkinCatalog.skin_by_id("brush")
+	assert_not_null(brush, "brush が引ける")
+	if brush != null:
+		assert_eq(brush.orientable, TerrainSkin.ORIENT_FLIP_X, "茂みは flip_x")
+		assert_true(brush.orients(), "散らしの対象ではある")
+		assert_false(brush.rotates(), "回してはいけない")
 
 func test_orient_values_allow_exactly_what_they_name() -> void:
 	# 値の名前と、効く操作（回転・左右・上下）を1対1で固定する。名前を読めば挙動が分かる状態を守る。
@@ -287,7 +287,7 @@ func test_floor_matches_elevation_when_units_stand_on_top() -> void:
 	for sid in ["plateau", "bedrock", "rampart", "wall"]:
 		var s := TerrainSkinCatalog.skin_by_id(sid)
 		assert_true(s != null and s.floor == s.elevation, "%s は上面に立つ" % sid)
-	for sid in ["forest", "bush"]:
+	for sid in ["forest", "brush"]:
 		var s := TerrainSkinCatalog.skin_by_id(sid)
 		assert_true(s != null and s.floor < s.elevation, "%s は地形に沈む" % sid)
 

@@ -41,7 +41,7 @@ const TERRAIN_COLOR := {  # terrain_type.csv の id と同順・全型
 	"wasteland": Color(0.71, 0.55, 0.40), "rampart": Color(0.54, 0.56, 0.60),
 	"river": Color(0.38, 0.50, 0.62), "wall": Color(0.52, 0.54, 0.58),
 	"plateau": Color(0.72, 0.65, 0.42), "forest": Color(0.30, 0.49, 0.28),
-	"bush": Color(0.50, 0.60, 0.35), "bedrock": Color(0.60, 0.55, 0.47),
+	"brush": Color(0.50, 0.60, 0.35), "bedrock": Color(0.60, 0.55, 0.47),
 	"fence": Color(0.55, 0.55, 0.58), "trap": Color(0.45, 0.42, 0.40),
 	"prop": Color(0.56, 0.50, 0.54), "rubble": Color(0.52, 0.50, 0.45),
 	"rock": Color(0.58, 0.54, 0.50), "building": Color(0.60, 0.48, 0.40),

@@ -35,8 +35,8 @@
 			"object_foot_z": "",
 			"orientable": "flip_x",
 			"placement": "",
-			"skin_id": "bush",
-			"terrain_type": "bush"
+			"skin_id": "brush",
+			"terrain_type": "brush"
 		},
 		{
 			"combat_ground": "",

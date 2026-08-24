@@ -30,7 +30,7 @@ const ORIENTS := [ORIENT_NONE, ORIENT_FLIP_X, ORIENT_FLIP_Y, ORIENT_FLIP_XY, ORI
 
 var skin_id: String        ## スキンID（主キー。ステージはこれで見た目を指定）
 var terrain_type: String   ## 紐づく性能(TerrainType)のid
-var name: String           ## 表示名（例: 平地 / 雪原）
+var name: String           ## 開発用メモ（CSV の name 列）。画面表示は tr("terrain." + skin_id + ".name") を使う
 ## 座標ハッシュで見た目をどこまで散らしてよいか（ORIENT_* のどれか）。絵の向きが持つ意味で決まる。
 var orientable: String
 ## 隣の同スキンと繋がる地形の繋がり方。空/false＝繋がらない、line＝線（柵）、area＝面（道）。

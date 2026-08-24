@@ -404,7 +404,7 @@ func _add_separator() -> void:
 ## 無ければ地形タイプの既定スキン名（「荒地」）。盤に見えている絵と同じ言葉にする。
 func _terrain_name(hex: Vector2i, type_id: String) -> String:
 	var skin := TerrainSkinCatalog.resolve(String(_terrain_skins.get(hex, "")), type_id)
-	return skin.name if skin != null else type_id
+	return tr("terrain." + skin.skin_id + ".name") if skin != null else type_id
 
 func _build_terrain_lines(hex: Vector2i) -> void:
 	var terr := _state.terrain_at(hex)

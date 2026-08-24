@@ -1,4 +1,4 @@
-move_type,name,road,plain,wasteland,rampart,river,wall,plateau,forest,bush,bedrock,fence,trap,prop,rubble,rock,building,fort,bridge,keepout
+move_type,name,road,plain,wasteland,rampart,river,wall,plateau,forest,brush,bedrock,fence,trap,prop,rubble,rock,building,fort,bridge,keepout
 移動タイプ,表示名,道,平地,荒地,城壁,川,壁,台地,森,茂み,岩地,柵,罠,置物,瓦礫,大岩,建物,砦,橋,立入禁止
 foot,歩行,1,1,2,x,x,x,1,2,2,3,3,3,2,x,x,1,1,1,x
 light_foot,軽歩行,1,1,1,4,x,x,1,1,1,2,1,1,1,4,x,1,1,1,x

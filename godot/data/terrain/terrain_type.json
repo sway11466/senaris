@@ -84,7 +84,7 @@
 			"atk": 1.2,
 			"char": "*",
 			"def": 1.0,
-			"id": "bush",
+			"id": "brush",
 			"layer": "footing",
 			"memo": "攻撃有利、移動コストやや高め、専用通過ユニット有",
 			"name": "茂み",

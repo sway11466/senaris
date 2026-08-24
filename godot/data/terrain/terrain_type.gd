@@ -61,8 +61,8 @@ static func sight_cost_table() -> Dictionary:
 		out[id] = sight_cost(id)
 	return out
 
-## 地形の管理名（terrain_type.csv の name 列。不明idは id をそのまま返す）。
-## 見た目の表示名はスキンが持つ（TerrainSkin.name）。地形タイプしか手元に無い場面はこちらを使う。
+## 地形の管理名（terrain_type.csv の name 列＝開発用メモ。不明idは id をそのまま返す）。
+## 画面表示は presentation 層で tr("terrain_type." + id + ".name") を使うこと（正本 data/i18n/names.csv）。
 static func display_name(id: String) -> String:
 	_ensure()
 	return String(_defs.get(id, {}).get("name", id))

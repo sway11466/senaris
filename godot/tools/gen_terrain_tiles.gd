@@ -21,7 +21,7 @@ func _initialize() -> void:
 	_generate("res://assets/terrain/plateau.png", Color.html("#EBDBB8"))      # 台地: ペールベージュ
 	_generate("res://assets/terrain/wasteland.png", Color.html("#AE9F76"))    # 荒地: くすんだ土・枯草色
 	_generate("res://assets/terrain/forest.png", Color.html("#8FBF8F"))       # 森: 深めの緑
-	_generate("res://assets/terrain/bush.png", Color.html("#B6D98C"))         # 茂み: 明るい黄緑
+	_generate("res://assets/terrain/brush.png", Color.html("#B6D98C"))         # 茂み: 明るい黄緑
 	_generate("res://assets/terrain/bedrock.png", Color.html("#B7A892"))      # 岩地: 岩のグレータン
 	_generate("res://assets/terrain/rampart.png", Color.html("#B6AFA8"))      # 城壁: 石のグレー
 	_generate("res://assets/terrain/river.png", Color.html("#9CC4D8"))        # 川: 淡い水色

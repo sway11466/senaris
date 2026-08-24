@@ -73,14 +73,6 @@
 
 
 
-### feature-71
-
-**地形表示名の i18n 化**（優先度：高）
-
-- 背景：`terrain_type.csv`（19エントリ）と `terrain_skin.csv`（約48エントリ）の `name` 列が日本語直書きで、情報パネルに表示される。旧 feature-12 の分割。
-- 対応：`names.csv` に `terrain.{skin_id}.name`・`terrain_type.{id}.name` のキーを追加。`TerrainType`・`TerrainSkin` の表示名参照を `tr()` 経由に差し替え。
-- 該当：`godot/data/i18n/names.csv`・`godot/data/terrain/terrain_skin.gd`・`godot/data/terrain/terrain_type.gd`。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**（優先度：低）
@@ -321,5 +313,5 @@
 
 後回し・いつかやる候補の置き場（特定の作業に紐付かない将来アイデア）。着手が決まった段で機能追加・リファクタリングへ引き上げる。
 
-- 茂み（bush）の高さの詰め：見た目の高さ（`terrain_skin.csv` の `elevation`）を 0.12 で仮置きしている（駒の足元 `floor` は地面＝0）。茂みの絵そのものが仮のため、いま詰めても絵の差し替えでやり直しになる。本番の茂みタイルができたら実機で見て決める（→ [terrain.md](art/terrain.md)）。
+- 茂み（brush）の高さの詰め：見た目の高さ（`terrain_skin.csv` の `elevation`）を 0.12 で仮置きしている（駒の足元 `floor` は地面＝0）。茂みの絵そのものが仮のため、いま詰めても絵の差し替えでやり直しになる。本番の茂みタイルができたら実機で見て決める（→ [terrain.md](art/terrain.md)）。
 - Steam 配布の段取り（費用・スケジュール）：まず Steam（PC）で出す。**Steam Direct** $100/タイトル（売上 $1,000 で返金）・ストアページは公開の 2 週間以上前から表示可・登録〜審査〜公開で約 30 日。**GodotSteam** アドオンは必要になった段階で導入。配布費用・税・所有権チェックの設計は [monetization.md](sales/monetization.md) が正本。着手は配布できるビルドが見えてきたら逆算して。
