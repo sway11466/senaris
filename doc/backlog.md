@@ -20,14 +20,6 @@
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### feature-7
-
-**地形・移動タイプの拡充（浅瀬・海・騎乗・水棲）**（優先度：低）
-
-- 背景：水系の地形は川（`river`）だけで（橋は川の上に置くオブジェクト）、歩いて渡れる浅瀬と海が無い。移動タイプ側も騎乗・水棲が未整備（[movement.md](gdd/movement.md)）。
-- 対応：`terrain_type.csv` に浅瀬・海を足し、`movement.csv` に対応する列と騎乗・水棲の行を足す（CSV正本→JSON生成のパイプラインに乗せる）。関連する既定スキン画像も要る。浅瀬は川と繋がって見えてほしいので、スキンの `connect_to` に川を書く（[terrain.md](art/terrain.md) §3.1）。
-- 該当：`godot/data/terrain/terrain_type.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/movement/movement.csv`・`doc/gdd/movement.md`。
-
 ### feature-8
 
 **タッチ操作対応（uiux フェーズ4）**（優先度：低）
