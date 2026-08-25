@@ -27,11 +27,9 @@ const LABEL_FONT_SIZE := 20
 const BUTTON_FONT_SIZE := 20
 const LABEL_WIDTH := 140      # 項目名の欄。項目が増えても選択子の左端が揃う
 const OPTION_SIZE := Vector2(150, 48)
-const BACK_SIZE := Vector2(160, 44)
 const TITLE_GAP := 40
 const ROW_GAP := 24
 const OPTION_GAP := 16
-const BACK_GAP := 48
 
 ## 言語の選択肢。名前は各言語の自称で書き、翻訳キーにしない
 ## ＝英語表示のときに Japanese と出ると、日本語で遊びたい人が自分の言語を見つけられない。
@@ -77,15 +75,12 @@ func _ready() -> void:
 
 	column.add_child(_language_row())
 
-	column.add_child(_gap(BACK_GAP))
-	var back_row := HBoxContainer.new()  # 戻るも列の一部＝中央に置く
-	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.add_child(back_row)
-	_back = TavernTheme.wood_button(tr("ui.settings.back"))
-	_back.custom_minimum_size = BACK_SIZE
-	_back.add_theme_font_size_override("font_size", BUTTON_FONT_SIZE)
+	# 戻るは画面の左下＝セレクト・貼り紙と同じ場所と大きさ（TavernTheme が1箇所で決める）。
+	# 項目の列には混ぜない＝戻る先はどの画面でも同じ隅にある。
+	_back = TavernTheme.back_button(tr("ui.settings.back"))
+	TavernTheme.place_bottom_left(_back)
 	_back.pressed.connect(_on_back)
-	back_row.add_child(_back)
+	_root.add_child(_back)
 
 	visible = false
 
