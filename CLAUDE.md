@@ -42,6 +42,7 @@
 - [doc/gdd/map_patterns.md](doc/gdd/map_patterns.md) — マップの型（パターンカタログ）・難易度の表し方・ステージ一覧
 - [doc/gdd/title.md](doc/gdd/title.md) — タイトル画面（入店の動画・店内のメニュー・項目と行き先）
 - [doc/gdd/stage_select.md](doc/gdd/stage_select.md) — ステージセレクト（カードUI・解放条件・クリア記録・冒険譚マニフェスト）
+- [doc/gdd/settings.md](doc/gdd/settings.md) — 設定画面（開き口・見せ方・言語の選び方）
 - [doc/gdd/ai.md](doc/gdd/ai.md) — 敵AI（特性ごとの行動開始条件・行動ルール・部隊割り当て）
 - [doc/gdd/rank.md](doc/gdd/rank.md) — 評価ランク（S/A/B の判定・閾値・記録）
 - [doc/gdd/uiux.md](doc/gdd/uiux.md) — UI/UX 操作モデル（選択→移動→コマンド・デバイス別操作・カメラ）
