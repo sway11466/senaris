@@ -163,6 +163,24 @@ func test_charge_melees_when_it_cannot_avoid_retaliation() -> void:
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, e.id)
 
+## 隣に仕留められる敵、距離2に無傷の敵。撃つ行の対象選びだけを見るため移動0・射程2で組む。
+func _kill_choice(trait_id: String) -> BattleState:
+	var s := BattleState.new(9, 9)
+	s.current_team = 1
+	var si := _squad(s, trait_id)
+	var archer := _ai(s, si, 10, 4, 4, 0)
+	archer.attack_range = 2
+	_hurt(_pc(s, 1, 4, 3), 1)  # 隣接＝殴れば反撃されるが、残り1＝仕留められる
+	_pc(s, 2, 4, 2)            # 盤上距離2＝反撃されないが倒しきれない
+	return s
+
+func test_charge_hits_the_nearest_without_looking_for_a_kill() -> void:
+	# 突撃の撃つ行は仕留めを見ない（盲目的に殴る特性）＝反撃されない敵をそのまま撃つ。
+	# 同じ盤で撤退は仕留められる敵を選ぶ（test_withdraw_finishes_the_enemy_it_can_kill）。
+	var a := _brain.next_action(_kill_choice("charge"), 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, 2, "仕留められる隣の敵ではなく、反撃されない敵を撃つ")
+
 func test_charge_captures_before_attacking() -> void:
 	# #1 占領兵で移動範囲に自陣営以外の拠点があれば、殴れる敵がいても取りに行く。
 	var s := BattleState.new(8, 8)
@@ -489,6 +507,38 @@ func test_raid_attacks_when_two_enemies_block_together() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "2体で塞がれていても殴る")
 	assert_eq(a.target_id, 1, "一番前＝拠点への地形距離が最小の駒を殴る")
+
+func test_raid_finishes_the_blocker_it_can_kill() -> void:
+	# #4〜#7 経路上の敵が複数いるなら、一番前でなくても仕留められる駒から消す。
+	# 削るだけでは道は開かない＝消せる駒を消したほうが翌ターン通れる。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2, 3])
+	var si := _squad(s, "raid")
+	var u := _ai(s, si, 10, 4, 3)
+	_pc(s, 1, 5, 2)            # 一番前＝拠点への地形距離が最小
+	_hurt(_pc(s, 2, 5, 3), 1)  # 後ろだが残り1＝仕留められる
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	assert_true(Combat.casualties(s, u, s.unit_by_id(2), true) >= 1, "前提: 後ろの敵は仕留められる")
+	assert_lt(Combat.casualties(s, u, s.unit_by_id(1), true), 8, "前提: 一番前の敵は倒しきれない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, 2, "一番前でなくても、いま消せる駒から消す")
+
+func test_raid_shoots_the_flying_blocker_first_when_good_at_air() -> void:
+	# #4〜#7 も空敵が最上段＝対空得意な駒だけが飛行に触れるため。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	_corridor(s, [2, 3])
+	var si := _squad(s, "raid")
+	var archer := _ai(s, si, 10, 4, 3)
+	archer.atk_air = 40  # 対地20 ≦ 対空40 ＝ 対空得意
+	_pc(s, 1, 5, 2)      # 地上・一番前
+	var flier := _air(s, 2, 5, 3)
+	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, flier.id, "一番前の地上より、道を塞ぐ空敵を先に撃つ")
 
 func test_raid_attacks_an_enemy_that_pins_it_with_zoc() -> void:
 	# 体では塞いでいないが、ZOCで通路が消えている＝迂回距離が測れなくなっている。
@@ -1184,6 +1234,17 @@ func test_withdraw_walks_into_zoc_unlike_flee() -> void:
 	assert_gt(_col(a.to), 3, "拠点（東）へ近づく")
 	assert_null(_brain.next_action(_zoc_lane("flee"), 1), "flee は同じ盤で待機する")
 
+func test_withdraw_finishes_the_enemy_it_can_kill() -> void:
+	# #6〜#9 仕留められる敵は反撃されない敵より上＝反撃を受けても、消せる相手から消す。
+	# 倒せば次のターン以降その駒から撃たれない＝退いて回復するまでに受ける被害が減る。
+	var s := _kill_choice("withdraw")
+	var u := s.unit_by_id(10)
+	assert_true(Combat.casualties(s, u, s.unit_by_id(1), true) >= 1, "前提: 隣の敵は仕留められる")
+	assert_lt(Combat.casualties(s, u, s.unit_by_id(2), false), 8, "前提: 距離2の敵は倒しきれない")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, 1, "反撃を受けても仕留められる敵を先に撃つ")
+
 # --- 空敵（対空得意な駒の標的優先） ---
 
 ## 飛行の駒（team 0）。対空攻撃力を持つ駒だけが触れる相手。
@@ -1235,6 +1296,20 @@ func test_charge_advances_toward_the_flier_when_good_at_air() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_gt(_col(a.to), 5, "近い地上ではなく空敵（東）へ寄る")
+
+func test_withdraw_shoots_the_flier_before_a_killable_ground() -> void:
+	# 空敵は仕留めより上＝撤退の撃つ行は 空敵 → 仕留められる敵 → 反撃されない敵 → 盤上距離。
+	var s := BattleState.new(9, 9)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	var archer := _ai(s, si, 10, 4, 4, 0)
+	archer.attack_range = 3
+	archer.atk_air = 40           # 対空得意
+	_hurt(_pc(s, 1, 4, 3), 1)     # 地上・隣接・残り1＝仕留められる
+	var flier := _air(s, 2, 4, 1)  # 飛行・無傷＝仕留められない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, flier.id, "仕留められる地上より空敵が先")
 
 # --- standoff（睨み合い） ---
 
@@ -1306,3 +1381,45 @@ func test_standoff_ignores_the_threat_zone_of_enemies_that_cannot_reach_it() -> 
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_lt(Hex.distance(a.to, e.pos), 6, "触れない敵の脅威圏は避けない＝射程まで詰める")
+
+func test_standoff_shoots_the_enemy_it_can_hurt_most() -> void:
+	# #3〜#6 最後の物差しは盤上距離ではなく戦果＝同じ1手でより多く削れる相手を撃つ。
+	# 反撃を受けない距離を保って削り続けるのがこの特性の稼ぎ方で、近さそのものに意味が無い。
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var si := _squad(s, "standoff")
+	var caster := _caster(s, si, 10, 5, 1, 0, 5)
+	var hard := _pc(s, 1, 7, 1, 40)  # 盤上距離2・硬い
+	var soft := _pc(s, 2, 9, 1, 10)  # 盤上距離4・柔らかい
+	assert_gt(Combat.casualties(s, caster, soft, false),
+		Combat.casualties(s, caster, hard, false), "前提: 遠い敵のほうが多く削れる")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, soft.id, "近い硬い敵ではなく、多く削れる敵を撃つ")
+
+func test_standoff_finishes_before_the_bigger_hit() -> void:
+	# 仕留められる敵は戦果より上＝削り量で勝る相手がいても、消せる相手から消す。
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var si := _squad(s, "standoff")
+	var caster := _caster(s, si, 10, 5, 1, 0, 5)
+	var weak := _hurt(_pc(s, 1, 7, 1), 1)  # 残り1＝仕留められる
+	var fat := _pc(s, 2, 9, 1)             # 無傷＝より多く削れる
+	assert_gt(Combat.casualties(s, caster, fat, false),
+		Combat.casualties(s, caster, weak, false), "前提: 無傷の敵のほうが多く削れる")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, weak.id, "戦果より仕留めが先")
+
+func test_standoff_shoots_the_flier_before_a_killable_ground() -> void:
+	# 空敵は仕留めより上＝睨み合いの撃つ行も最上段は空敵（対空得意な駒だけが飛行に触れる）。
+	var s := BattleState.new(16, 3)
+	s.current_team = 1
+	var si := _squad(s, "standoff")
+	var caster := _caster(s, si, 10, 5, 1, 0, 5)
+	caster.atk_air = 40                    # 対地20 ≦ 対空40 ＝ 対空得意
+	_hurt(_pc(s, 1, 7, 1), 1)              # 地上・近い・仕留められる
+	var flier := _air(s, 2, 9, 1)          # 飛行・遠い・仕留められない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ATTACK)
+	assert_eq(a.target_id, flier.id, "仕留められる地上より空敵が先")

@@ -262,7 +262,7 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 			return _withdraw_action(state, u)
 		"standoff":
 			return _standoff_action(state, u)
-	return _charge_action(state, u)  # charge / ambush は動き出したあとの行が同じ
+	return _charge_action(state, u, false)  # charge / ambush は動き出したあとの行が同じ
 
 ## charge（突撃）／ambush（待ち伏せ）の行動ルール。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
@@ -272,7 +272,10 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 ## 5 移動距離が測れる敵 → 空敵を優先し、その中で移動距離が最小の敵へ最大前進
 ## 6 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
 ## 7 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
-func _charge_action(state: BattleState, u: Unit) -> AiAction:
+##
+## prefer_kill＝撃つ行で仕留められる敵を先に見るか。突撃は見ない（盲目的に近い敵を殴る）、
+## 撤退は見る＝withdraw の 6〜9 はこの行を条件へ分けたもの（doc/gdd/ai.md withdraw）。
+func _charge_action(state: BattleState, u: Unit, prefer_kill: bool) -> AiAction:
 	var row := _capture_row(state, u)
 	if row != null:
 		return row
@@ -287,12 +290,18 @@ func _charge_action(state: BattleState, u: Unit) -> AiAction:
 		return row
 	var in_range := _attack_targets(state, u)
 	if not in_range.is_empty():
-		return AiAction.attack(u.id, _safest_id(state, u, _air_first(air, in_range)))
+		# 4 空敵を優先 → （撤退だけ）仕留められる敵を優先 → 反撃されない敵を優先 → 盤上距離が最小
+		var ids := _air_first(air, in_range)
+		if prefer_kill:
+			ids = _killable_first(state, u, ids)
+		return AiAction.attack(u.id, _safest_id(state, u, ids))
 	return _advance_to_nearest_enemy(state, u, true)
 
-## raid（拠点攻略）の行動ルール。1/2 は突撃と同じで、8〜10 の行き先が敵ではなく拠点。
-## 3 撃てる位置へずれる／4 経路上の敵を殴る／5/6 降ろす（輸送ユニットだけに当たる）／
-## 7 乗る（乗る側だけに当たる）。
+## raid（拠点攻略）の行動ルール。1/2 は突撃と同じで、11〜13 の行き先が敵ではなく拠点。
+## 3 撃てる位置へずれる／4〜7 経路上の敵を殴る／8/9 降ろす（輸送ユニットだけに当たる）／
+## 10 乗る（乗る側だけに当たる）。
+## 4〜7 は空敵を優先し、次に仕留められる敵を優先し、その中で地形距離が最小（＝一番前で塞ぐ駒）。
+## 仕留めを先に見るのは、削るだけでは道が開かないため＝一番前でなくても、いま消せる駒から消す。
 ## 拠点への距離は拠点hexそのものまで測る（拠点は攻撃の標的ではない）。
 ## 向かう拠点が盤上に無ければ待機する＝敵を追わない。
 func _raid_action(state: BattleState, u: Unit) -> AiAction:
@@ -306,18 +315,20 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	row = _shift_to_shoot_row(state, u)
 	if row != null:
 		return row
-	# 4 経路上の敵を殴る
-	var blocker := _blocking_enemy_id(state, u, _attack_targets(state, u))
-	if blocker >= 0:
-		return AiAction.attack(u.id, blocker)
-	# 5/6 降ろす（乗員を持つ駒＝輸送ユニットにしか当たらない）
+	# 4〜7 経路上の敵を殴る（集合を絞ってから1体を選ぶ＝どける判定は集合ぜんぶで見る）
+	var blockers := _blocking_enemy_ids(state, u, _attack_targets(state, u))
+	if not blockers.is_empty():
+		var pick := _air_first(_air_prey(state, u), blockers)
+		pick = _killable_first(state, u, pick)
+		return AiAction.attack(u.id, _frontmost_blocker_id(state, u, pick))
+	# 8/9 降ろす（乗員を持つ駒＝輸送ユニットにしか当たらない）
 	row = _unload_now_row(state, u)
 	if row != null:
 		return row
 	row = _unload_move_row(state, u)
 	if row != null:
 		return row
-	# 7 乗る（同じ部隊の輸送ユニットへ。便乗のほうが早いときだけ）
+	# 10 乗る（同じ部隊の輸送ユニットへ。便乗のほうが早いときだけ）
 	row = _board_row(state, u)
 	if row != null:
 		return row
@@ -326,7 +337,7 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	var goals := _hostile_base_hexes(state, u)
 	if goals.is_empty():
 		return null
-	# 8 移動距離／9 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
+	# 11 移動距離／12 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
 	var move_field := state.move_cost_field(u.id, u.pos)
 	var goal := _nearest_hex_in(move_field, goals)
 	if goal != NO_HEX:
@@ -335,21 +346,21 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	goal = _nearest_hex_in(terrain_field, goals)
 	if goal != NO_HEX:
 		return _advance(state, u, state.terrain_cost_field(u.id, goal), [goal])
-	# 10 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
+	# 13 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
 	return _advance_straight(state, u, _nearest_hex_by_board(u.pos, goals))
 
 ## weak（弱者狙い）の行動ルール。前衛を避けて柔らかい敵へ回り込む。
 ## 1 占領／2 防御力が最小の対象にスキル
-## 3 間接攻撃できる駒で、いま一撃で倒せる敵がおらず狙う獲物を撃てる → 狙う獲物へ最大間合い
+## 3 間接攻撃できる駒で、いま仕留められる敵がおらず狙う獲物を撃てる → 狙う獲物へ最大間合い
 ## 4 攻撃射程内に獲物 → 攻撃後の残兵が最小となる獲物を攻撃
-## 5 攻撃射程内に一撃で倒せる敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
+## 5 攻撃射程内に仕留められる敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
 ## 6〜9 狙う獲物へ 回り込み → 最大前進 → 見込前進 → 直線寄せ
 ##
 ## 狙う獲物＝ sight 範囲内の獲物のうち移動距離が最小のもの（測れる獲物がいなければ盤上距離が最小）。
 ## 3 と 6〜9 はどれもこの1体へ向かう＝行の間で行き先が入れ替わらない。sight の判定は毎ターン行う＝
 ## 起動後に獲物が視線から消えたら前進だけ止まる（攻撃とスキルは続く）。
 ##
-## 3 が「一撃で倒せる敵がいない」を条件に持つのは、倒しきれる相手から下がらないため。倒しても
+## 3 が「仕留められる敵がいない」を条件に持つのは、倒しきれる相手から下がらないため。倒しても
 ## 反撃は受ける（同時解決）が、獲物を1体減らす価値のほうが大きい。
 func _weak_action(state: BattleState, u: Unit) -> AiAction:
 	var row := _capture_row(state, u)
@@ -649,17 +660,27 @@ func _nearest_cell_in_field(u: Unit, cells: Array[Vector2i], field: Dictionary) 
 ## 測れるようになる（ZOCで足を止めている）か。迂回距離を縮んだかで見ないのは、隣に立って
 ## いるだけの敵でも、どければ避けるZOCが減って必ず短くなるため（それでは横の敵にもつられる）。
 func _blocking_enemy_id(state: BattleState, u: Unit, shootable: Array[int]) -> int:
+	var blockers := _blocking_enemy_ids(state, u, shootable)
+	return _frontmost_blocker_id(state, u, blockers) if not blockers.is_empty() else -1
+
+## 経路上の敵の集合（塞いでいなければ空）。渡した敵をまとめてどけて道が良くなるかで見るので、
+## 成立すれば渡した敵ぜんぶがこの集合になる。どれを狙うかは呼ぶ行が決める。
+func _blocking_enemy_ids(state: BattleState, u: Unit, shootable: Array[int]) -> Array[int]:
+	var none: Array[int] = []
 	if shootable.is_empty():
-		return -1
+		return none
 	var goals := _hostile_base_hexes(state, u)
 	if goals.is_empty():
-		return -1
+		return none
 	var ignore := {}
 	for id in shootable:
 		ignore[id] = true
-	if not _route_improves(state, u, goals, ignore):
-		return -1
-	# 一番前で塞いでいる駒＝拠点への地形距離が最小のもの。同値は盤上距離 → col → row。
+	return shootable if _route_improves(state, u, goals, ignore) else none
+
+## 経路上の敵のうち一番前で塞いでいる駒＝拠点への地形距離が最小のもの。
+## 同値は盤上距離 → col → row。
+func _frontmost_blocker_id(state: BattleState, u: Unit, shootable: Array[int]) -> int:
+	var goals := _hostile_base_hexes(state, u)
 	var best := -1
 	var best_c := BattleState.UNREACHABLE
 	for id in shootable:
@@ -996,11 +1017,39 @@ func _nearest_hex_in(field: Dictionary, cells: Array[Vector2i]) -> Vector2i:
 ## 同じ1手なら反撃を受けない相手を撃つほうが得なので、隣に敵がいても距離2で撃てる相手を先に見る。
 ## 反撃されない敵が1体もいなければ、これまで通り盤上距離が最小の敵を殴る。
 func _safest_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
-	var safe: Array[int] = []
+	return _nearest_id_by_board(state, u, _retaliation_free(state, u, ids))
+
+## 反撃されない敵を優先し、その中で戦果が最大の敵ID。同値は盤上距離が最小
+## （doc/gdd/ai.md 用語 > 戦果）。近さそのものではなく、同じ1手でより多く削れる相手を選ぶ。
+func _most_gain_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
+	var pool := _retaliation_free(state, u, ids)
+	var best := pool[0]
+	var best_gain := -1
+	for id in pool:
+		var t := state.unit_by_id(id)
+		var gain := Combat.casualties(state, u, t, Hex.distance(u.pos, t.pos) <= 1)
+		if gain > best_gain or (gain == best_gain 				and _nearer_hex(u.pos, t.pos, state.unit_by_id(best).pos)):
+			best = id
+			best_gain = gain
+	return best
+
+## ids を反撃されない敵だけに絞る（1体も居なければ ids のまま）＝「反撃されない敵を優先し」。
+func _retaliation_free(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
+	var out: Array[int] = []
 	for id in ids:
 		if not _retaliates(u, state.unit_by_id(id), u.pos):
-			safe.append(id)
-	return _nearest_id_by_board(state, u, safe if not safe.is_empty() else ids)
+			out.append(id)
+	return out if not out.is_empty() else ids
+
+## ids を仕留められる敵だけに絞る（1体も居なければ ids のまま）＝「仕留められる敵を優先し」。
+## いまの位置から撃った結果で数える＝包囲・支援・地形が乗ったあとの損失で決まる
+## （doc/gdd/ai.md 用語 > 仕留められる敵）。
+func _killable_first(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
+	var out: Array[int] = []
+	for id in ids:
+		if _can_kill_in_one_hit(state, u, state.unit_by_id(id)):
+			out.append(id)
+	return out if not out.is_empty() else ids
 
 ## from から t を攻撃したとき t が反撃してくるか。判定は戦闘解決（BattleState.attack）と同じ＝
 ## 距離1で、t が距離1を狙えて（min_range≤1）、t がこちらを攻撃できる（対空・対地）とき。
@@ -1098,7 +1147,9 @@ func _detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiA
 ## 1 占領兵で、移動範囲に自陣営以外の拠点 → 占領
 ## 2 損耗 ≧ retreat で、自陣営の拠点hexにいる → 拠点に入る
 ## 3 損耗 ≧ retreat で、移動距離が測れる自陣営拠点 → 移動距離が最小の自陣営拠点へ最大前進
-## 4〜9 突撃と同じ（_charge_action）
+## 4〜12 突撃と同じ（_charge_action）。撃つ行 6〜9 だけ仕留められる敵を先に見る＝
+## 空敵 → 仕留められる敵 → 反撃されない敵 → 盤上距離が最小。倒せば次のターン以降その駒から
+## 撃たれない＝退いて回復するまでに受ける被害が減るので、反撃1回ぶんより得になる。
 ##
 ## 2・3 を攻撃より上に置くのは、下に置くと退けないため。攻撃した駒はその時点で手番が終わるので、
 ## 退く行が攻撃より下だと、射程内に敵がいるかぎり殴り続けて拠点へ戻らない。上に置けば 3 で下がった
@@ -1118,7 +1169,7 @@ func _withdraw_action(state: BattleState, u: Unit) -> AiAction:
 			row = _move_to_base(state, u, _friendly_base_hexes(state, u))
 			if row != null:
 				return row
-	return _charge_action(state, u)
+	return _charge_action(state, u, true)
 
 ## 最大前進（移動距離）で拠点へ向かう1手。測れる拠点が無ければ null＝この行は通らない。
 func _move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
@@ -1132,13 +1183,16 @@ func _move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAct
 ## standoff（睨み合い）の行動ルール。先手を取れる距離まで詰めて、そこを保つ。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
 ## 2 スキル射程内に stack 条件を満たす対象 → 盤上距離が最小の対象にスキル
-## 3 攻撃射程内に敵 → 反撃されない敵を優先し、その中で盤上距離が最小の敵を攻撃
-## 4 移動距離が測れる敵 → 移動距離が最小の敵へ間合取り
-## 5 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
-## 6 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
+## 3〜6 攻撃射程内に敵 → 空敵を優先し、次に仕留められる敵、次に反撃されない敵を優先し、
+##   その中で戦果（減らせる兵数）が最大の敵を攻撃（同値は盤上距離が最小）
+## 7 移動距離が測れる敵 → 移動距離が最小の敵へ間合取り
+## 8 地形距離が測れる敵 → 地形距離が最小の敵へ見込前進
+## 9 盤上に攻撃できる敵 → 盤上距離が最小の敵へ直線寄せ
 ##
-## 移動先は脅威圏の外のマスに限る（1 占領を除く）。4〜6 はどれもこの制約の中で行き先を選ぶ。
-## 3 を 4 より上に置くのは、間合いに入ってきた敵を撃つのがこの特性の目的だから。
+## 移動先は脅威圏の外のマスに限る（1 占領を除く）。7〜9 はどれもこの制約の中で行き先を選ぶ。
+## 3〜6 を 7 より上に置くのは、間合いに入ってきた敵を撃つのがこの特性の目的だから。
+## 最後の物差しが盤上距離でなく戦果なのは、反撃を受けない位置を保って削り続けるのが
+## この特性の稼ぎ方で、近さそのものに意味が無いため。
 ## 最大間合いの行は持たない＝間合取りが詰めると下がるの両方を兼ねる。
 func _standoff_action(state: BattleState, u: Unit) -> AiAction:
 	var row := _capture_row(state, u)
@@ -1149,12 +1203,14 @@ func _standoff_action(state: BattleState, u: Unit) -> AiAction:
 		return row
 	var in_range := _attack_targets(state, u)
 	if not in_range.is_empty():
-		return AiAction.attack(u.id, _safest_id(state, u, in_range))
+		var ids := _air_first(_air_prey(state, u), in_range)
+		ids = _killable_first(state, u, ids)
+		return AiAction.attack(u.id, _most_gain_id(state, u, ids))
 	return _spacing_advance(state, u)
 
-## standoff の移動（4〜6）。行き先は脅威圏の外に限り、外に1マスも無ければ動かない。
+## standoff の移動（7〜9）。行き先は脅威圏の外に限り、外に1マスも無ければ動かない。
 ## 隣接されて撃てない駒（min_range≥2）はここで脅威圏の外へ出る。移動後にもう一度表を上から
-## 当てるので、同じ手番のうちに 3 が撃つ。
+## 当てるので、同じ手番のうちに 3〜6 が撃つ。
 func _spacing_advance(state: BattleState, u: Unit) -> AiAction:
 	if not _can_advance(state, u):
 		return null
@@ -1293,7 +1349,7 @@ func _fewest_left_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 			best_left = left
 	return best
 
-## u の一撃で倒しきれる相手か（与ダメは戦闘式で厳密計算＝combat.md は決定的）。
+## u が仕留められる相手か＝一撃で倒しきれるか（与ダメは戦闘式で厳密計算＝combat.md は決定的）。
 func _can_kill_in_one_hit(state: BattleState, u: Unit, t: Unit) -> bool:
 	if t == null:
 		return false
