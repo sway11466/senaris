@@ -12,10 +12,11 @@
 |---|---|---|---|
 | `sound_check` | BGMと効果音を組み合わせて鳴らす。曲の音量差・ループの継ぎ目・効果音の被りを聴く | `godot --path godot res://tools/sound_check/sound_check.tscn` | [../audio/bgm.md](../audio/bgm.md) ／ [../audio/sfx.md](../audio/sfx.md) |
 | `image_check` | 画像を並べて見比べる。ユニットの頭身と、地形タイルの継ぎ目・反復 | `godot --path godot res://tools/image_check/image_check.tscn` | [../art/units.md](../art/units.md) ／ [../art/terrain.md](../art/terrain.md) |
-| `map_editor` | ステージJSONを盤面で編集する（地形・見た目スキン・ユニット・拠点・勝敗条件）。盤は実機と同じスキン画像で描く（画像が無いスキンは色と文字）。地形は塗り方をペン／ベタ塗りで切り替え（Ctrl+Z で直前の1操作を取り消し）。「ステージ」モードで盤の中身（地形・スキン・駒・拠点）をまとめてずらせる＝盤を広げたあと左上に描いたものを寄せ直せる（左右は2列単位。奇数列ずらすと odd-q の列の偶奇が入れ替わって形が崩れるため）。「勝敗」モードで常時ルールを含む勝利・敗北条件の一覧を見て、拠点クリックで防衛対象（奪われたら敗北）を指定できる。「イベント」モードで増援（指定ターンに盤へ加わる駒・搭載駒つき）をリストで編集できる。会話と未知キーは温存 | `godot --path godot res://tools/map_editor/map_editor.tscn` | [../gdd/map.md](../gdd/map.md) |
+| `map_editor` | ステージJSONを盤面で編集する（地形・見た目スキン・ユニット・拠点・勝敗条件）。盤は実機と同じスキン画像で描く（画像が無いスキンは色と文字）。地形は塗り方をペン／ベタ塗りで切り替え（Ctrl+Z で直前の1操作を取り消し）。地形の分類は先頭が「基本地形」＝各地形タイプの素のスキンを横断で並べたもの（盤の下地を分類を切り替えずに塗れる）。「ステージ」モードで盤の中身（地形・スキン・駒・拠点）をまとめてずらせる＝盤を広げたあと左上に描いたものを寄せ直せる（左右は2列単位。奇数列ずらすと odd-q の列の偶奇が入れ替わって形が崩れるため）。「勝敗」モードで常時ルールを含む勝利・敗北条件の一覧を見て、拠点クリックで防衛対象（奪われたら敗北）を指定できる。「イベント」モードで増援（指定ターンに盤へ加わる駒・搭載駒つき）をリストで編集できる。会話と未知キーは温存 | `godot --path godot res://tools/map_editor/map_editor.tscn` | [../gdd/map.md](../gdd/map.md) |
 | `combat_sim` | 戦闘計算シミュレータ。式は本体を呼ぶ＝画面の数字が実戦の数字 | `godot --path godot res://tools/combat_sim/combat_sim.tscn` | [../gdd/combat.md](../gdd/combat.md) |
 | `capture_board3d` | 盤だけをステージ単体で表示してPNG保存する（セレクト・HUD・会話を挟まない） | `godot --path godot res://tools/capture_board3d.tscn -- <出力PNG> [ステージjsonのres://パス]` | [../adr/ADR-0003-board-3d-hybrid.md](../adr/ADR-0003-board-3d-hybrid.md) |
 | `marketing/shot_stage` | marketing用スクリーンショット。盤を実機の見た目で表示し、駒を選択して移動範囲が出た状態を高解像度PNGで保存する（HUD・会話なし・盤全体をフィット・ロケール英語固定） | `godot --path godot res://tools/marketing/shot_stage.tscn -- <出力PNG> <ステージjsonのres://パス> [--select <col,row>] [--size <WxH>]` | [../sales/marketing.md](../sales/marketing.md) |
+| `marketing/shot_combat` | marketing用スクリーンショット。戦闘演出を1回再生し、演出中を一定間隔で連写してPNG保存する（実機と同じ結線＝盤＋暗転＋演出窓。連番から良い瞬間を選ぶ） | `godot --path godot res://tools/marketing/shot_combat.tscn -- <出力フォルダ> <ステージjsonのres://パス> --attacker <col,row> --target <col,row> [--size <WxH>] [--count <枚数>] [--interval <秒>]` | [../sales/marketing.md](../sales/marketing.md) |
 
 ## 生成スクリプト
 

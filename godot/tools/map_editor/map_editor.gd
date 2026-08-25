@@ -10,6 +10,9 @@ const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを
 
 const STAGES_DIR := "res://data/stages"
 const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
+## 地形パレットの分類のうち、地形タイプでないもの＝各タイプの素のスキンを横断で並べる枠。
+## 盤の下地を塗る間、分類を切り替えずに済ませるためのもの（terrain_type の id とは衝突しない）。
+const BASIC_CATEGORY := "__basic__"
 const MODE_LABELS := { "stage": "ステージ", "select": "選択", "terrain": "地形", "player": "自軍",
 	"enemy": "敵", "squad": "敵グループ", "base": "拠点", "event": "イベント", "outcome": "勝敗" }
 const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
@@ -454,6 +457,7 @@ func _ai_options(with_none: bool) -> Array:
 
 
 ## 地形パレット。分類＝地形タイプ（性能）、一覧＝その terrain_type を持つスキン（見た目）。
+## 分類の先頭だけは例外で「基本地形」＝各タイプの素のスキンを横断で並べる（_terrain_pool）。
 func _build_terrain_palette() -> void:
 	if _paint_tool == "fill":
 		_add_hint(_mode_box, "左クリック＝地続きをまとめて塗る / 右クリック＝そのマスの設定を取り込む。\n"
@@ -464,8 +468,8 @@ func _build_terrain_palette() -> void:
 		func(k: String) -> void:
 			_paint_tool = k
 			_rebuild_mode()))
-	var cat_keys := []
-	var cat_names := []
+	var cat_keys := [BASIC_CATEGORY]
+	var cat_names := ["基本地形"]
 	for t in _terrains:
 		cat_keys.append(String(t["id"]))
 		cat_names.append("%s（%s）" % [t["name"], t["id"]])
@@ -479,10 +483,7 @@ func _build_terrain_palette() -> void:
 	var list := ItemList.new()
 	list.custom_minimum_size = Vector2(0, 160)
 	list.size_flags_vertical = Control.SIZE_EXPAND_FILL  # パネルの下端まで伸ばす
-	var pool := []
-	for s in _terrain_skins:
-		if String(s["terrain_type"]) == _sel_terrain_category:
-			pool.append(s)
+	var pool := _terrain_pool(_sel_terrain_category)
 	if pool.is_empty():
 		_add_hint(_mode_box, "この地形に登録されたスキンはありません（塗れません）。")
 		_sel_terrain_skin = ""
@@ -500,6 +501,23 @@ func _build_terrain_palette() -> void:
 			list.select(i)
 	list.item_selected.connect(func(i: int) -> void: _sel_terrain_skin = String(ids[i]))
 	_mode_box.add_child(list)
+
+
+## その分類で塗れるスキンの一覧。分類＝地形タイプならその terrain_type を持つスキン全部（CSV順）。
+## 「基本地形」なら各タイプの素のスキン（skin_id が terrain_type と同名）を terrain_type の定義順で。
+## 素のスキンが無いタイプ（fence・fort など object 系）は基本地形には出ない＝分類を選んで塗る。
+func _terrain_pool(category: String) -> Array:
+	var pool := []
+	if category == BASIC_CATEGORY:
+		for t in _terrains:
+			for s in _terrain_skins:
+				if String(s["skin_id"]) == String(t["id"]) and String(s["terrain_type"]) == String(t["id"]):
+					pool.append(s)
+		return pool
+	for s in _terrain_skins:
+		if String(s["terrain_type"]) == category:
+			pool.append(s)
+	return pool
 
 
 ## 高さ上書きの入力行（elevation / floor の2欄）。値はテキストのまま持ち、塗る瞬間に検証する
@@ -1054,7 +1072,8 @@ func _on_cell_released(col: int, row: int, button: int) -> void:
 				_say("(%d, %d) へは動かせません（外周か、既に拠点があります）。" % [to.x, to.y])
 
 
-## いま塗る内容 [地形の文字, skin_id, 高さ上書き]。
+## いま塗る内容 [地形の文字, skin_id, 高さ上書き]。地形の文字は選んだスキンの terrain_type から引く
+## （分類「基本地形」の一覧はタイプをまたぐ＝分類からは引けない）。
 ## 選んだスキンは必ず書く（TerrainSkinCatalog の空欄フォールバック＝型IDと同名のスキンは、
 ## object 系の地形には存在しない＝空で書くと描かれないマスになる）。
 ## 高さ上書きの入力が不正（片方だけ・数値でない）なら null＝塗れない。
@@ -1065,7 +1084,7 @@ func _brush() -> Variant:
 		return null
 	if _sel_terrain_skin == "":
 		return null
-	return [_char_of_type(_sel_terrain_category), _sel_terrain_skin, ov]
+	return [_char_of_type(_type_of_terrain_skin(_sel_terrain_skin)), _sel_terrain_skin, ov]
 
 
 ## 高さ上書きの入力値 → { elevation, floor }。両方空＝{}（上書きなし）。
@@ -1110,7 +1129,9 @@ func _pick_terrain(col: int, row: int) -> void:
 	if skin == "":
 		skin = tid  # 差分なし＝型IDと同名のスキン（TerrainSkinCatalog の解決と同じ）
 	var exact := _has_terrain_skin(tid, skin)  # 盤の文字とスキンの terrain_type が食い違うマスがある
-	_sel_terrain_category = tid
+	# 「基本地形」を開いていて拾ったのがその一覧のスキンなら、分類は動かさない＝続けて他のタイプも塗れる
+	if not (exact and skin == tid and _sel_terrain_category == BASIC_CATEGORY):
+		_sel_terrain_category = tid
 	_sel_terrain_skin = skin if exact else ""
 	var ov := _doc.height_override(col, row)
 	_ov_elevation = "" if ov.is_empty() else str(ov["elevation"])
@@ -1121,6 +1142,14 @@ func _pick_terrain(col: int, row: int) -> void:
 	else:
 		_say("(%d, %d) のスキン '%s' は %s の一覧にありません。分類だけ取り込み、スキンは %s になりました。"
 				% [col, row, skin, tid, _sel_terrain_skin])
+
+
+## その skin_id の地形タイプ。未知なら既定地形（DEFAULT_CHAR のタイプ）。
+func _type_of_terrain_skin(skin_id: String) -> String:
+	for s in _terrain_skins:
+		if String(s["skin_id"]) == skin_id:
+			return String(s["terrain_type"])
+	return TerrainType.char_to_id(MapEditorDoc.DEFAULT_CHAR)
 
 
 ## その地形タイプにその skin_id が登録されているか。
