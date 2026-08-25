@@ -154,6 +154,9 @@ ui.banner.enemy_turn,敵軍のターン,Enemy Turn
 ui.result.turns,ターン,Turns
 ui.result.survived,生存,Survived
 ui.result.defeated,撃破,Defeated
+ui.result.rank,ランク,Rank
+ui.result.goal_turn,%sランク　%dターン未満,Rank %s  under %d turns
+ui.result.goal_alive,%sランク　%d体以上,Rank %s  %d or more units
 ui.combat.attack,攻撃,Attack
 ui.combat.defense,防御,Defense
 ui.combat.poison,毒 -%d/ターン,Poison -%d/turn

@@ -37,10 +37,10 @@
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・クリア済みの印 | 含む | ライセンス文の同梱と著作権表記 | `godot/assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
+| Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・丸印の語（DONE・VICTORY・DEFEAT） | 含む | ライセンス文の同梱と著作権表記 | `godot/assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
 | OpenCV | 画像処理スクリプト | 道具 | なし | |
 
-Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[../tech/build.md](../tech/build.md)）。
+同梱するフォント（Rock Salt・IM Fell English）は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`・`IMFellEnglish-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[../tech/build.md](../tech/build.md)）。
 
 配布する Apache License 2.0 の全文は著作権者名がテンプレートのままなので、著作権表記は `RockSalt-NOTICE.txt` が持つ。
 
@@ -49,6 +49,7 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
 | EB Garamond | タイトルロゴの文字 | 含まない（パス化するのでフォントは残らない） | なし | `godot/assets/promo-src/logo/fonts/OFL.txt`・[ADR-0004](../adr/ADR-0004-logo-typeface-ofl.md) |
+| IM Fell English（Igino Marini） | 戦果票のランクの1文字（S/A/B） | 含む | ライセンス文と著作権表記の同梱・フォント単体では売らない | `godot/assets/fonts/IMFellEnglish-LICENSE.txt`・`IMFellEnglish-NOTICE.txt` |
 | Anonymous Pro / Courier Prime / Lobster Two | GUT の同梱フォント | 除外 | なし | `godot/addons/gut/fonts/OFL.txt` |
 
 ### GPL 系
@@ -102,6 +103,7 @@ Rock Salt は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品�
 
 - Godot Engine。ライセンス文は実行時に `Engine.get_license_text()` で取れるので、画面に流し込む。同梱サードパーティの分も `Engine.get_copyright_info()` に入っている
 - Rock Salt。`Copyright (c) 2010 by Font Diner, Inc DBA Sideshow.` と、Apache License 2.0 の下で使っている旨。ライセンス全文は `THIRD-PARTY-LICENSES.txt` で渡す
+- IM Fell English。`Copyright (c) 2010, Igino Marini (mail@iginomarini.com)` と、SIL Open Font License 1.1 の下で使っている旨。ライセンス全文は同じく `THIRD-PARTY-LICENSES.txt` で渡す
 - Sonniss GDC Game Audio Bundle。表記義務は無いが、効果音の土台なので名前を残す
 - Muse Sounds ／ MS Basic
 - Google Gemini。AI 生成の開示はストア側の手続きが本体だが、画面にも出す

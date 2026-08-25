@@ -15,9 +15,7 @@ const _ORDER := { "S": 0, "A": 1, "B": 2 }
 static func evaluate(turn_number: int, alive_allies: int, start_allies: int, rank_data: Dictionary) -> String:
 	if rank_data.is_empty():
 		return ""
-	var turn_rank := _turn_rank(turn_number, rank_data)
-	var survival_rank := _survival_rank(alive_allies, start_allies, rank_data)
-	return worse(turn_rank, survival_rank)
+	return worse(turn_rank(turn_number, rank_data), survival_rank(alive_allies, start_allies, rank_data))
 
 ## 2つのランクのうち低い方を返す。
 static func worse(a: String, b: String) -> String:
@@ -27,7 +25,8 @@ static func worse(a: String, b: String) -> String:
 static func is_better(a: String, b: String) -> bool:
 	return _ORDER.get(a, 99) < _ORDER.get(b, 99)
 
-static func _turn_rank(turn_number: int, rank_data: Dictionary) -> String:
+## ターン数だけで見たランク（戦果票の基準チェックが行ごとの達成を出すのに使う）。
+static func turn_rank(turn_number: int, rank_data: Dictionary) -> String:
 	var turn_s: int = int(rank_data.get("turn_s", 0))
 	var turn_a: int = int(rank_data.get("turn_a", 0))
 	if turn_s > 0 and turn_number < turn_s:
@@ -36,7 +35,8 @@ static func _turn_rank(turn_number: int, rank_data: Dictionary) -> String:
 		return RANK_A
 	return RANK_B
 
-static func _survival_rank(alive: int, start: int, rank_data: Dictionary) -> String:
+## 生存数だけで見たランク（同上）。
+static func survival_rank(alive: int, start: int, rank_data: Dictionary) -> String:
 	if start <= 0:
 		return RANK_B
 	var survival_s: int = int(rank_data.get("survival_s", 0))

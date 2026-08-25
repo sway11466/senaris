@@ -295,11 +295,12 @@ func _on_battle_finished(outcome: int) -> void:
 		_turn_banner.dismiss()  # ターン制限切れはターンの切り替わりと同時＝戦果票と重ねない
 	if _formation_cutin != null:
 		_formation_cutin.dismiss()  # 陣形でボスを倒した＝カットインの最中に決着しうる
+	# ランクは決着の直後に採る（この後の名簿更新より前＝盤の駒がまだ動いていない）。
+	var rank := _evaluate_rank() if outcome == BattleState.PLAYER_WIN else ""
 	match outcome:
 		BattleState.PLAYER_WIN:
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
 				_progress.record_clear(_current_campaign_id, _current_stage_id)
-				var rank := _evaluate_rank()
 				if not rank.is_empty():
 					_progress.record_rank(_current_campaign_id, _current_stage_id, rank)
 				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
@@ -314,7 +315,7 @@ func _on_battle_finished(outcome: int) -> void:
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
 	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
 	await _await_combat_view()
-	await _show_result(outcome)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
+	await _show_result(outcome, rank)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
 			_conversation_phase = "outro"
@@ -335,7 +336,7 @@ func _on_battle_finished(outcome: int) -> void:
 
 ## 戦果票を出し、プレイヤーが閉じるまで待つ。印が落ちた瞬間に勝敗スティンガーを鳴らす
 ## （演出と音を揃える）。曲が未配置でも無音で進む＝演出だけは出る。
-func _show_result(outcome: int) -> void:
+func _show_result(outcome: int, rank: String) -> void:
 	if _result == null or _controller == null:
 		return
 	var win := outcome == BattleState.PLAYER_WIN
@@ -345,8 +346,13 @@ func _show_result(outcome: int) -> void:
 		var track := "victory" if win else "defeat"
 		var follow := BgmDirector.AFTERGLOW_TRACK if win else ""
 		_result.stamped.connect(func() -> void: _bgm.play_stinger(track, follow), CONNECT_ONE_SHOT)
-	# 印の文言は英語（酒場ボードの表記に揃える）。丸印は語が長いと字が縮むので短い語を選ぶ。
-	_result.play(_stage_title(), "VICTORY" if win else "DEFEAT", win, _result_rows())
+	# 勝利の印はその回のランク（S/A/B）。ランクを持たないステージ（デバッグの直起動など）だけ
+	# VICTORY に戻す。敗北はランクを付けないので DEFEAT のまま。表記は英語＝酒場ボードに揃える。
+	var stamp_text := rank
+	if stamp_text.is_empty():
+		stamp_text = "VICTORY" if win else "DEFEAT"
+	# 印の上の欄名はランクを押す回だけ（VICTORY / DEFEAT の上に「ランク」と刷ると嘘になる）。
+	_result.play(_stage_title(), stamp_text, win, _result_rows(win), tr("ui.result.rank") if not rank.is_empty() else "")
 	await _result.finished
 
 ## ステージ開始時の兵力を控える（戦果票の分母）。盤上の駒だけを数える＝拠点の控え(garrison)は含めない。
@@ -360,9 +366,11 @@ func _count_start_forces(state: BattleState) -> void:
 			_start_enemy += 1
 
 ## 戦果の行（ターン数・生存・撃破）。集計は presentation 側＝domain に戦績を持たせない。
+## 勝利のときだけ、ターン数と生存にランク基準（S・A の具体値と達成の可否）を添える＝何を詰めれば
+## 上がるかを読ませる。敗北にランクは付かないので基準も出さない。撃破はランクに使わないので基準なし。
 ## 撃破は「開始時の敵数 − 残っている敵数」。控えが出撃してから倒された分は数え落とす
 ## （開始時に盤上に居ない）＝多く見せる側には振れない。厳密に採るなら domain 側で撃破を数える。
-func _result_rows() -> Array:
+func _result_rows(win: bool) -> Array:
 	var st := _controller.state
 	var alive_ally := 0
 	var alive_enemy := 0
@@ -372,11 +380,30 @@ func _result_rows() -> Array:
 		elif u.team == 1:
 			alive_enemy += 1
 	var turns := "%d / %d" % [st.turn_number, st.turn_limit] if st.turn_limit > 0 else str(st.turn_number)
+	var turn_row := {"label": tr("ui.result.turns"), "value": turns}
+	var alive_row := {"label": tr("ui.result.survived"), "value": "%d / %d" % [alive_ally, _start_ally]}
+	if win and not _rank_data.is_empty():
+		var turn_got := RankEvaluator.turn_rank(st.turn_number, _rank_data)
+		var alive_got := RankEvaluator.survival_rank(alive_ally, _start_ally, _rank_data)
+		_fill_goals(turn_row, "ui.result.goal_turn", "turn_s", "turn_a", turn_got)
+		_fill_goals(alive_row, "ui.result.goal_alive", "survival_s", "survival_a", alive_got)
 	return [
-		[tr("ui.result.turns"), turns],
-		[tr("ui.result.survived"), "%d / %d" % [alive_ally, _start_ally]],
-		[tr("ui.result.defeated"), str(maxi(_start_enemy - alive_enemy, 0))],
+		turn_row,
+		alive_row,
+		{"label": tr("ui.result.defeated"), "value": str(maxi(_start_enemy - alive_enemy, 0))},
 	]
+
+## 1行ぶんのランク基準を辞書に足す。閾値が 0（＝その軸に基準を置いていないステージ）の段は空欄。
+## 達成は「その軸のランクがその段以上か」で見る＝閾値の比べ方を presentation に写さない。
+func _fill_goals(row: Dictionary, fmt_key: String, s_key: String, a_key: String, got: String) -> void:
+	var s_val := int(_rank_data.get(s_key, 0))
+	var a_val := int(_rank_data.get(a_key, 0))
+	if s_val > 0:
+		row["s"] = tr(fmt_key) % [RankEvaluator.RANK_S, s_val]
+		row["s_ok"] = got == RankEvaluator.RANK_S
+	if a_val > 0:
+		row["a"] = tr(fmt_key) % [RankEvaluator.RANK_A, a_val]
+		row["a_ok"] = not RankEvaluator.is_better(RankEvaluator.RANK_A, got)
 
 ## 評価ランクを算出する（勝利時）。rank_data が空ならランクなし＝空文字。
 func _evaluate_rank() -> String:

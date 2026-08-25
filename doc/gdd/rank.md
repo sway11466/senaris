@@ -28,6 +28,8 @@
 
 ## 表示
 
-戦果票での見せ方は [uiux.md](uiux.md) §決着の演出。
+戦果票に押す印がランクそのもの（`S` / `A` / `B`）。行ごとの基準チェックと合わせて、見せ方は [uiux.md](uiux.md) §決着の演出。
+
+セレクト画面での見せ方（冒険譚の貼り紙・ステージの木札）は未定。
 
 実装 → [../../domain/rank_evaluator.gd](../../godot/domain/rank_evaluator.gd)（評価式・新規）

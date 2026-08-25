@@ -515,6 +515,8 @@ static func _ink_box(bg: Color) -> StyleBoxFlat:
 # --- 装飾パーツ ---
 
 const STAMP_FONT_PATH := "res://assets/fonts/RockSalt-Regular.ttf"  ## 印・ボード名の手書き風書体
+## 印の既定はこの手書き風。ただし1文字を押すときだけ呼び出し側が活版風（IM Fell English）を渡す
+## ＝崩れた手書きは語なら読めるが、1文字だと字の形が読み取れない（S が蛇に見える。実測で確認）。
 static var _stamp_font: Font = null
 
 ## 印の書体＝ボード名と同じ手書き風（RockSalt）。ボードに並ぶ文字と同じ手で書かれた感じにする。
@@ -541,7 +543,9 @@ static func stamp_font() -> Font:
 ## max_diameter > 0 なら円がそこに収まるまで字を縮める。丸印は直径が文字の長さで決まるので、
 ## 語が伸びても箱を割らないための歯止め（翻訳で "VICTORY"→"SIEG"/"勝利" と長さが変わる）。
 ## font は既定フォント以外を使いたいとき（null＝既定）。
-static func stamp(text: String, color: Color, tilt := -7.0, font_size := 44, ink_alpha := 0.66, max_diameter := 0.0, font: Font = null) -> Control:
+## fill は丸の大きさを据え置いたまま字だけ太らせる倍率、drop は字を下へずらす量（font_size 比）。
+## どちらも1文字を押すとき用＝語では字が枠に触るので 1.0 / 0.0 のまま使う。
+static func stamp(text: String, color: Color, tilt := -7.0, font_size := 44, ink_alpha := 0.66, max_diameter := 0.0, font: Font = null, fill := 1.0, drop := 0.0) -> Control:
 	var f: Font = font if font != null else stamp_font()
 	var fs := font_size
 	if max_diameter > 0.0:
@@ -551,7 +555,9 @@ static func stamp(text: String, color: Color, tilt := -7.0, font_size := 44, ink
 	var s := _Stamp.new()
 	s.text = text
 	s.ink = Color(color.r, color.g, color.b, ink_alpha)
-	s.font_size = fs
+	# 丸の寸法は箱（下の custom_minimum_size）で決まるので、描く字だけ fill 倍にできる。
+	s.font_size = int(fs * fill)
+	s.drop = fs * drop
 	s.font = f
 	s.ring_w = m["w"]
 	s.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -585,6 +591,7 @@ class _Stamp extends Control:
 	var font_size := 44
 	var font: Font = null
 	var ring_w := 0.0  # 外枠の太さ（stamp() が直径から決める。0＝字の大きさから導く）
+	var drop := 0.0    # 字を丸の中心からどれだけ下へずらすか（px）
 
 	func _draw() -> void:
 		var w := ring_w if ring_w > 0.0 else maxf(2.0, font_size * 0.11)
@@ -595,7 +602,7 @@ class _Stamp extends Control:
 		if font == null:
 			font = ThemeDB.fallback_font
 		var ts := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
-		var pos := Vector2((size.x - ts.x) * 0.5, (size.y + font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5)
+		var pos := Vector2((size.x - ts.x) * 0.5, (size.y + font.get_ascent(font_size) - font.get_descent(font_size)) * 0.5 + drop)
 		var ci := get_canvas_item()
 		font.draw_string_outline(ci, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, int(maxf(1.0, font_size * 0.05)), ink)
 		font.draw_string(ci, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, ink)

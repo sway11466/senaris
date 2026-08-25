@@ -47,7 +47,7 @@ Windows 同梱のフォント（Times New Roman ほか）は 3 の扱いが曖�
 
 - OFL のフォントは選択肢が有償フォントより狭い。ただし今回の比較では十分な候補が得られた（下記）
 - **`OFL.txt` を消さない。** フォントファイルをリポジトリに置いている以上、ライセンス文の同梱が条件になる
-- ゲーム内で描画するフォントはこの ADR の対象外。現状 `godot/assets/fonts/RockSalt-Regular.ttf`（Apache License 2.0）を使っており、こちらは配布時の表記義務が別途ある
+- ゲーム内で描画するフォントはこの ADR の対象外。現状 `godot/assets/fonts/RockSalt-Regular.ttf`（Apache License 2.0）と `godot/assets/fonts/IMFellEnglish-Regular.ttf`（SIL OFL 1.1）を使っており、こちらは配布時の表記義務が別途ある（[credits.md](../sales/credits.md)）
 
 ---
 
