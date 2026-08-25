@@ -1,0 +1,480 @@
+{
+  "turn_limit": 30,
+  "name": "debug-photo-devlog1-2",
+  "cols": 18,
+  "rows": 10,
+  "margin": 0,
+  "terrain": [
+    "FFFFFWWWWWWWWWFFFF",
+    "FFFFFFWWWWWWWFFFFF",
+    "FFFFFFFWWWWWFFF...",
+    "FFF.F.FFWWWWF.....",
+    "........WWW.......",
+    "..................",
+    ".......WWWWW......",
+    ".....WWWWWWW.FFFFF",
+    ".....WWWWWWWFFFFFF",
+    "...WWWWWWWWWWWFFFF"
+  ],
+  "terrain_skins": [
+    {
+      "col": 5,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 1.5,
+      "floor": 1.5
+    },
+    {
+      "col": 10,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 13,
+      "row": 0,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 7,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 1.5,
+      "floor": 1.5
+    },
+    {
+      "col": 10,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 12,
+      "row": 1,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 7,
+      "row": 2,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 2,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 2,
+      "skin": "rampart_granite1",
+      "elevation": 1.5,
+      "floor": 1.5
+    },
+    {
+      "col": 10,
+      "row": 2,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 2,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 3,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 3,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 10,
+      "row": 3,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 3,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 4,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 4,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 10,
+      "row": 4,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 7,
+      "row": 6,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 6,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 9,
+      "row": 6,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 10,
+      "row": 6,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 11,
+      "row": 6,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 5,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 6,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 7,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 10,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 7,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 5,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 6,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 7,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 1.5,
+      "floor": 1.5
+    },
+    {
+      "col": 10,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 8,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 3,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 4,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 5,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 6,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 7,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 8,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 9,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 1.5,
+      "floor": 1.5
+    },
+    {
+      "col": 10,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 1,
+      "floor": 1
+    },
+    {
+      "col": 11,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.75,
+      "floor": 0.75
+    },
+    {
+      "col": 12,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    },
+    {
+      "col": 13,
+      "row": 9,
+      "skin": "rampart_granite1",
+      "elevation": 0.5,
+      "floor": 0.5
+    }
+  ],
+  "player": [
+    {
+      "type": "fighter",
+      "col": 7,
+      "row": 4,
+      "troops": 5
+    },
+    {
+      "type": "novice",
+      "col": 6,
+      "row": 5
+    },
+    {
+      "type": "novice",
+      "col": 7,
+      "row": 5
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "ai": "charge",
+      "units": [
+        {
+          "skin": "goblin",
+          "col": 9,
+          "row": 5
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 8,
+          "row": 5
+        },
+        {
+          "skin": "goblin",
+          "col": 10,
+          "row": 5
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 11,
+          "row": 4
+        },
+        {
+          "skin": "goblin",
+          "col": 11,
+          "row": 5
+        }
+      ]
+    }
+  ],
+  "haze": 0.8,
+  "backdrop": "sky_clear"
+}

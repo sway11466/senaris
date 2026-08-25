@@ -25,7 +25,7 @@
 画像（3枚。スクリーンショット2枚は UI 英語化が終わるまで撮れないため、ファイルはプレースホルダ）：
 
 - `img/devlog1-1.png` … 2番（出発点）の直後。盤の全景。st3 の実マップで、細道の口をファイター＋ノービス2で塞ぎ、ゴブリンの群れが詰めている。ファイターを選択して移動範囲を表示。「全部盤の上に見えている」の証拠。撮影セット＝`debug-photo/devlog1-1.json`（[debug-stages.md](../../../doc/tech/debug-stages.md)）を `shot_stage --select 7,4` で撮る。
-- `img/combat_losses.png` … 3番（サイコロなし）の直後。戦闘演出シーン。左右に隊列が並び、攻撃が入って兵数（Strength）が減る瞬間。同じ攻撃が同じ結果になる＝数字が確定で減ることの絵。
+- `img/devlog1-2.png` … 3番（サイコロなし）の直後。戦闘演出シーン＋右の戦闘レポート（英語）。相打ちで両側の損害数が出て、レポートに Encircled ×0.76 など数字の根拠が読める画（一方的な全滅は選ばない＝損耗が残ることの絵）。撮影は `debug-photo/devlog1-2.json` のファイター(7,4)→ホブゴブリン(8,5)を `shot_combat` で連写し、着弾後の枚を選ぶ（確定済み・12枚目）。
 - `img/tutorial1_cast.png` … 4番（生産なし）の "the squad you are handed" の直後。チュートリアル1の両陣営を横一列で向かい合わせた絵。左に味方5体（ファイター・ノービス・アーチャー・クレリック・ハーフリング）＝右向き、右に敵4体（ゴブリン・ホブゴブリン・ゴブリンアーチャー・ゴブリンロード）＝左向き。配られる顔ぶれが両軍ともこれで全部、が伝わればよい。既存の combat スロットの絵の組み合わせで作る（新規生成しない）。
 
 用語：画面の語に合わせる（Strength / Encircled / hex）。乱数の語は副題が Deterministic を使うので、本文は no dice / no random rolls / the same attack resolves the same way で言い換える（marketing.md の説明文と同じ使い分け）。
@@ -42,7 +42,7 @@ That wish cost us two things most games in this genre keep.
 
 The first is dice. Combat has no random rolls. The same attack, from the same positions, resolves the same way every single time. Nobody whiffs a 95% shot here. If an attack goes badly, it is not bad luck — it is a unit standing where it should not have been, and that is something you can fix.
 
-![The combat scene: two lines of soldiers clash, and a unit's Strength counts down](img/combat_losses.png)
+![The combat scene: a worn fighter squad trades blows with a hobgoblin mob — both Strength bars drop, and the combat report on the right shows every number behind the result](img/devlog1-2.png)
 
 The second is production. There are no factories and no build queues. Both sides fight the whole battle with the squad they are handed at the start. When a fight costs you Strength, that cost is real — there is no stack of reserves waiting to paper over a bad trade. Committing a unit is a decision, not a transaction.
 
