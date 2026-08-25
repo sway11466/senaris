@@ -9,6 +9,7 @@ class_name SettingsScreen
 ## 値の適用と保存はここでは行わない。選ばれたことを signal で伝え、
 ## TranslationServer と SettingsStore を触るのは main（設定を持つのは1箇所）。
 
+signal closed                          # 畳み終わった（暗幕が抜けたところ）＝呼び出し元へ戻す
 signal locale_chosen(locale: String)   # 言語を選んだ
 
 const LAYER := 76  # タイトル(70)・セーブスロット(75)より前面＝タイトルに重ねて出す
@@ -92,11 +93,14 @@ func open(locale: String) -> void:
 	_root.modulate.a = 0.0
 	create_tween().tween_property(_root, "modulate:a", 1.0, FADE_SEC)
 
-## 畳む。暗幕が薄れてタイトルの絵とメニューが戻る。
+## 畳む。暗幕が薄れてタイトルの絵とメニューが戻る。closed は抜け切ってから出す
+## ＝呼び出し元が絵を戻すのが、暗幕がまだ濃いうちに見えない。
 func close() -> void:
 	var tween := create_tween()
 	tween.tween_property(_root, "modulate:a", 0.0, FADE_SEC)
-	tween.tween_callback(func() -> void: visible = false)
+	tween.tween_callback(func() -> void:
+		visible = false
+		closed.emit())
 
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
 ## 選択肢の名前は各言語の自称＝訳さないので触らない。

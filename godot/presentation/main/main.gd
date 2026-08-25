@@ -754,6 +754,7 @@ func _install_settings() -> void:
 	_settings = SettingsScreen.new()
 	_settings.name = "SettingsScreen"
 	_settings.locale_chosen.connect(_on_settings_locale_chosen)
+	_settings.closed.connect(_on_settings_closed)
 	add_child(_settings)
 
 func _install_title() -> void:
@@ -802,8 +803,14 @@ func _on_title_new_game() -> void:
 	_select.open()
 
 ## 設定＝タイトルに重ねて開く。タイトルは畳まない（暗幕の下に残り、戻れば同じ画が出る）。
+## ビルドの刻印だけは伏せる＝設定の戻るボタンと同じ左下の隅に出ているため（doc/tech/build.md）。
 func _on_title_settings() -> void:
+	_title.show_stamp(false)
 	_settings.open(_settings_store.locale())
+
+## 設定を畳み終えた＝タイトルへ戻った。伏せていた刻印を出し直す。
+func _on_settings_closed() -> void:
+	_title.show_stamp(true)
 
 ## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
 func _on_settings_locale_chosen(locale: String) -> void:

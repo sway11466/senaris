@@ -62,6 +62,8 @@ var _has_save := false   ## 中断セーブが在る＝「冒険の続き」を�
 var _playing := false    ## 動画を再生中＝入力はスキップになる
 var _opened := false     ## door_opening を出し終えた（1回だけ）
 var _menu_open := false  ## メニューを出した＝以後の入力は板のボタンが受ける
+var _stamp_label: Label = null  ## ビルドの刻印（メニューと一緒に作り直す）
+var _stamp_shown := true  ## 刻印を出すか。設定を開いている間だけ伏せる（戻るボタンと同じ隅なので重なる）
 
 func _ready() -> void:
 	layer = 70  # 勝利イラスト(60)より前面＝起動直後の最前面
@@ -125,6 +127,13 @@ func refresh_labels() -> void:
 	_menu.queue_free()
 	_menu = _build_menu()
 	_root.add_child(_menu)
+
+## 刻印を出す／伏せる。設定画面は同じ左下の隅に戻るボタンを置くので、開いている間は伏せる
+## （版が読めるのはメニューが出ている間、という約束は保つ。doc/tech/build.md）。
+func show_stamp(value: bool) -> void:
+	_stamp_shown = value
+	if _stamp_label != null:
+		_stamp_label.visible = value
 
 ## 動画を始める。読めなければ絵を出したままメニューへ進む。
 func _start_video() -> void:
@@ -235,6 +244,8 @@ func _stamp() -> Control:
 	label.add_theme_font_size_override("font_size", STAMP_FONT_SIZE)
 	label.add_theme_color_override("font_color", STAMP_COLOR)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.visible = _stamp_shown
+	_stamp_label = label
 	return label
 
 ## ボタンの帯を絵から分ける暗幕。左端から右へ抜ける横グラデーション1枚。
