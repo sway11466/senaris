@@ -24,7 +24,7 @@
 
 画像（3枚。スクリーンショット2枚は UI 英語化が終わるまで撮れないため、ファイルはプレースホルダ）：
 
-- `img/board_encirclement.png` … 2番（出発点）の直後。盤の全景。自駒を選んで移動範囲が表示され、敵1体を囲みかけている形が見えている（紹介画像1と同じ仕様。撮影は共用でよい）。「全部盤の上に見えている」の証拠。
+- `img/devlog1-1.png` … 2番（出発点）の直後。盤の全景。st3 の実マップで、細道の口をファイター＋ノービス2で塞ぎ、ゴブリンの群れが詰めている。ファイターを選択して移動範囲を表示。「全部盤の上に見えている」の証拠。撮影セット＝`debug-photo/devlog1-1.json`（[debug-stages.md](../../../doc/tech/debug-stages.md)）を `shot_stage --select 7,4` で撮る。
 - `img/combat_losses.png` … 3番（サイコロなし）の直後。戦闘演出シーン。左右に隊列が並び、攻撃が入って兵数（Strength）が減る瞬間。同じ攻撃が同じ結果になる＝数字が確定で減ることの絵。
 - `img/tutorial1_cast.png` … 4番（生産なし）の "the squad you are handed" の直後。チュートリアル1の両陣営を横一列で向かい合わせた絵。左に味方5体（ファイター・ノービス・アーチャー・クレリック・ハーフリング）＝右向き、右に敵4体（ゴブリン・ホブゴブリン・ゴブリンアーチャー・ゴブリンロード）＝左向き。配られる顔ぶれが両軍ともこれで全部、が伝わればよい。既存の combat スロットの絵の組み合わせで作る（新規生成しない）。
 
@@ -36,7 +36,7 @@ Hello — this is craftkobo. Senaris is a turn-based tactics game we are buildin
 
 Senaris started from one wish: a tactics game that feels like a chess problem. Everything you need to win is sitting on the board, in plain sight. No hidden modifiers, no luck to blame. When you lose, you can look at the final position and trace back the move where it went wrong — and the board will actually give you the answer.
 
-![A hex board with a selected unit, its movement range highlighted, closing in around an enemy](img/board_encirclement.png)
+![A hex board seen in full: a fighter and two novices plug a narrow pass while a goblin horde queues up, the selected unit's movement range highlighted](img/devlog1-1.png)
 
 That wish cost us two things most games in this genre keep.
 

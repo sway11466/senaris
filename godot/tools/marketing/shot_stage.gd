@@ -88,6 +88,8 @@ func _ready() -> void:
 	var vis := Rect2(margin, margin, vp.x - margin * 2.0, vp.y - margin * 2.0)
 	board._board_cam.fit_to_bounds(b.position, b.end, HexBoard3D.TILE, vis)
 
+	board.set_process(false)  # 盤の _process はホバー更新のみ＝止めて水色のホバーhexを写り込ませない
+
 	# 地形テクスチャ・シェーダのウォームアップに数フレーム回す。
 	for f in 6:
 		await get_tree().process_frame

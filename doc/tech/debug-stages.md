@@ -1,12 +1,22 @@
 # デバッグステージ一覧（カテゴリ別）
 
-動作確認用のデバッグ冒険譚は、機能別に6つへ分けている。各フォルダに `campaign.json`（`"debug": true`）を置くと、`CampaignCatalog.load_all()` がフォルダ走査で拾い、セレクト画面では `OS.is_debug_build()` のときだけ末尾のデバッグボードに並ぶ。デバッグ冒険譚は常時解放・クリア記録なし（進行に混ぜない）。仕組み → [../gdd/stage_select.md](../gdd/stage_select.md)。
+動作確認用のデバッグ冒険譚は、機能別に7つへ分けている。各フォルダに `campaign.json`（`"debug": true`）を置くと、`CampaignCatalog.load_all()` がフォルダ走査で拾い、セレクト画面では `OS.is_debug_build()` のときだけ末尾のデバッグボードに並ぶ。デバッグ冒険譚は常時解放・クリア記録なし（進行に混ぜない）。仕組み → [../gdd/stage_select.md](../gdd/stage_select.md)。
 
 このページは各カテゴリの既存ステージの台帳。構成見直しと不足ステージの追加は [backlog.md](../backlog.md)（feature-26）を参照。
 
 補足:
 - 起動時の下敷き（セレクトの裏に出る空盤）は `godot/data/stages/_boot/underlay.json`。どのデバッグ冒険譚にも属さない（`campaign.json` が無いのでセレクトには出ない）。
 - 基本動作の総合マップ（旧 `debug/debug.json`）は廃止。機能別に分けたため役割は各カテゴリへ吸収した。
+
+## debug-photo（撮影）
+
+外に出すスクリーンショット（devlog・紹介画像）の画を、開始配置でそのまま組んだ撮影セット。`tools/marketing/shot_stage`（[tools.md](tools.md)）で撮る前提＝動作確認ではなく構図が正本。撮りたい画が増えたらステージを足す。
+
+ステージ名は「devlog○-○」＝devlog の何本目の何枚目の画か。
+
+| ステージ | ファイル | 画 |
+| --- | --- | --- |
+| devlog1-1 | `debug-photo/devlog1-1.json` | st3 の地形そのまま・配置だけ差し替え。細道の口をファイター＋ノービス2で塞ぎ、ゴブリンの群れが詰めている。ファイターを選択して移動範囲を表示 |
 
 ## debug-combat（戦闘関連）
 

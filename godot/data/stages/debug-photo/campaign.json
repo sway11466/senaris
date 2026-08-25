@@ -1,0 +1,12 @@
+{
+  "id": "debug-photo",
+  "title": "デバッグ：撮影",
+  "debug": true,
+  "stages": [
+    {
+      "id": "devlog1-1",
+      "file": "devlog1-1.json",
+      "title": "devlog1-1 細道の栓（st3）"
+    }
+  ]
+}
