@@ -36,6 +36,8 @@ var _slot_intent := ""  # 枠一覧をどちらの用で開いたか（"save"/"l
 var _turn_snapshot := {}
 var _select: SelectScreen = null
 var _title: TitleScreen = null  # 起動時のタイトル画面（酒場の扉）。閉じたらセレクトを開く
+var _settings: SettingsScreen = null  # 設定画面（タイトルに重ねて開く）。仕様 → doc/gdd/settings.md
+var _settings_store: SettingsStore = null  # 設定値（user://settings.json）。触るのはここだけ
 ## タイトルを抜けるまで true。下敷きステージ（セレクトの背景）の曲がタイトルのざわめきを
 ## 上書きしないためのガード。下敷きの曲は盤が描き切ってから鳴る＝タイトルより後に割り込む。
 var _title_pending := true
@@ -55,6 +57,13 @@ var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）�
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（台本キー→行。presentation専用・案P）
 var _conversation_phase := ""  # "intro"/"outro"/"event"/""＝いま流している会話フェーズ
+
+## 設定を読んで言語を決める。_ready ではなく _init で行うのは、main.tscn の子（InfoPanel が
+## 抱える戦闘レポートのタブ）が親の _ready より先に文言を焼くため＝_ready で決めると起動時だけ
+## その画面が別の言語で組まれる。仕様 → doc/tech/gamesystem.md §設定
+func _init() -> void:
+	_settings_store = SettingsStore.new()
+	TranslationServer.set_locale(_settings_store.locale())
 
 func _ready() -> void:
 	# 刻印はタイトル画面にも出すが、ログの1行目にも置く＝報告にログが添えられたとき版が分かる。
@@ -94,6 +103,7 @@ func _ready() -> void:
 	_hud.set_load_available(_saves.has_any())  # 起動時にセーブが1枠でも在ればロードを有効化
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 生成と配線だけ。開くのはタイトルで扉をくぐってから
+	_install_settings()  # 設定画面。タイトルから開くので、タイトルより前に用意
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
@@ -739,6 +749,13 @@ func _install_select() -> void:
 ## 起動直後は酒場の扉が開いて店内へ入る動画を流す。この間は曲を鳴らさず、店から漏れるざわめき
 ## （title）だけをこもらせて流し、扉が開くのに合わせてこもりを解く＝音がひらける。
 ## 入り終わって（or スキップして）メニューが出たところで menu 曲へ渡す（_on_title_menu_shown）。
+## 設定画面（いまは言語だけ）。開き口はタイトルのメニューで、値の適用と保存はここが持つ。
+func _install_settings() -> void:
+	_settings = SettingsScreen.new()
+	_settings.name = "SettingsScreen"
+	_settings.locale_chosen.connect(_on_settings_locale_chosen)
+	add_child(_settings)
+
 func _install_title() -> void:
 	_title = TitleScreen.new()
 	_title.name = "TitleScreen"
@@ -747,6 +764,7 @@ func _install_title() -> void:
 	_title.menu_shown.connect(_on_title_menu_shown)
 	_title.continue_requested.connect(_on_title_continue)
 	_title.new_game_requested.connect(_on_title_new_game)
+	_title.settings_requested.connect(_on_title_settings)
 	_title.quit_requested.connect(_on_title_quit)
 	if _bgm != null:
 		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
@@ -782,6 +800,27 @@ func _on_title_new_game() -> void:
 	_title_pending = false
 	_title.close()
 	_select.open()
+
+## 設定＝タイトルに重ねて開く。タイトルは畳まない（暗幕の下に残り、戻れば同じ画が出る）。
+func _on_title_settings() -> void:
+	_settings.open(_settings_store.locale())
+
+## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
+func _on_settings_locale_chosen(locale: String) -> void:
+	TranslationServer.set_locale(locale)
+	_settings_store.set_locale(locale)
+	_refresh_labels()
+
+## 言語が変わったときに文言を貼り直す画面＝起動時に1度だけ作ってセッション中生き続ける物。
+## 開くたびに組み直す画面（情報パネルの中身・盤のコマンドメニュー・会話・戦果票）は要らない。
+## 一覧の根拠 → doc/tech/i18n.md 言語の切り替え。生き続ける画面を足したらここへも足す。
+func _refresh_labels() -> void:
+	_settings.refresh_labels()
+	_title.refresh_labels()
+	_hud.refresh_labels()
+	_select.refresh_labels()
+	_slot_panel.refresh_labels()
+	$Front/InfoPanel.refresh_labels()
 
 ## おわる。決定音（ui_confirm＝実測0.69秒）を鳴らし切ってから落とす＝即 quit だと音が切れる。
 func _on_title_quit() -> void:

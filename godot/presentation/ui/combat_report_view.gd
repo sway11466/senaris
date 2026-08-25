@@ -18,6 +18,10 @@ const TAB_MIN_W := 120.0      # タブ1枚の最低幅
 var _skins := {}
 var _detail := {}
 var _tabs := {}  # "summary"/"attacker"/"defender" -> Button
+
+## タブの id と文言キー。見出しは _ready で焼き込む＝言語が変わったら refresh_labels で貼り直す。
+const TABS := [["summary", "ui.report.tab_summary"], ["attacker", "ui.report.tab_attacker"],
+		["defender", "ui.report.tab_defender"]]
 var _summary: GridContainer
 var _side_head: Label
 var _detail_label: Label
@@ -39,7 +43,7 @@ func _ready() -> void:
 	tabs.add_theme_constant_override("separation", 6)
 	v.add_child(tabs)
 	var group := ButtonGroup.new()
-	for t in [["summary", "ui.report.tab_summary"], ["attacker", "ui.report.tab_attacker"], ["defender", "ui.report.tab_defender"]]:
+	for t in TABS:
 		var b := TavernTheme.wood_button(tr(t[1]))
 		b.toggle_mode = true
 		b.button_group = group
@@ -80,6 +84,13 @@ func show_report(detail: Dictionary) -> void:
 	var b: Button = _tabs["summary"]
 	b.button_pressed = true
 	_show_tab("summary")
+
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## 表示中の内訳は次に戦闘が起きれば組み直されるので、ここではタブ見出しだけを差し替える。
+func refresh_labels() -> void:
+	for t in TABS:
+		var b: Button = _tabs[String(t[0])]
+		b.text = tr(String(t[1]))
 
 func _show_tab(id: String) -> void:
 	if _detail.is_empty():

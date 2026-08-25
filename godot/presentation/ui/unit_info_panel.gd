@@ -338,6 +338,11 @@ func _on_tab_pressed(id: String) -> void:
 
 ## 未選択の案内。1行1項目の箇条書きなので行ごとにキーを立てる（翻訳CSVに改行を持たせない）。
 ## 空行は言語の話ではないのでここで持つ。
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## パネルの中身は表示のたびに組み直すので、焼き込みが残るのは戦闘レポートのタブ見出しだけ。
+func refresh_labels() -> void:
+	_report.refresh_labels()
+
 func clear() -> void:
 	_show_text("\n".join([
 		tr("ui.info.help_no_selection"),

@@ -31,6 +31,7 @@ var _rows: VBoxContainer
 var _confirm: Control
 var _confirm_text: Label
 var _confirm_yes: Button
+var _back: Button          # やめる（起動時に作って生き続ける＝refresh_labels の対象）
 var _pending_slot := ""
 
 func _ready() -> void:
@@ -80,10 +81,10 @@ func _ready() -> void:
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(gap)
-	var back := TavernTheme.wood_button(tr("ui.save.cancel"))
-	back.custom_minimum_size = Vector2(160, 44)
-	back.pressed.connect(_cancel)
-	footer.add_child(back)
+	_back = TavernTheme.wood_button(tr("ui.save.cancel"))
+	_back.custom_minimum_size = Vector2(160, 44)
+	_back.pressed.connect(_cancel)
+	footer.add_child(_back)
 
 	_confirm = _build_confirm()
 	_root.add_child(_confirm)
@@ -262,6 +263,11 @@ func _on_dim_input(event: InputEvent) -> void:
 		_cancel()
 
 ## 何も選ばずに閉じる（やめる・幕クリック・Esc）。
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## 見出しと行は開くたびに組み直すので、起動時から生き続けるのはやめるボタンだけ。
+func refresh_labels() -> void:
+	_back.text = tr("ui.save.cancel")
+
 func _cancel() -> void:
 	SfxPlayer.play_event("menu_back")
 	close()

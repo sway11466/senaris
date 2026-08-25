@@ -56,6 +56,17 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_reposition)
 
 ## ボタンをビューポート左下へ置き直す（起動時・リサイズ時）。
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## HUD は起動時に1度だけ作ってセッション中生き続けるので、作り直さずに文字だけ差し替える
+## （作り直すとターンの可否・ロードの可否を持ち直すことになる）。
+func refresh_labels() -> void:
+	_gear.text = tr("ui.hud.menu")
+	_end_btn.text = tr("ui.hud.end_turn")
+	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
+			[SYS_SAVE, "ui.hud.save"], [SYS_LOAD, "ui.hud.load"],
+			[SYS_SETTINGS, "ui.hud.settings"], [SYS_CLOSE, "ui.hud.close"]]:
+		_menu.set_item_text(_menu.get_item_index(int(pair[0])), tr(String(pair[1])))
+
 func _reposition() -> void:
 	var vp := get_viewport_rect().size
 	var y := vp.y - 52.0

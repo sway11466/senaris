@@ -36,6 +36,11 @@ func setup(progress: CampaignProgress) -> void:
 	_campaign_select.setup(progress)
 	_stage_select.setup(progress)
 
+## 言語が変わったので、抱えている2画面の文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+func refresh_labels() -> void:
+	_campaign_select.refresh_labels()
+	_stage_select.refresh_labels()
+
 ## セレクト画面を開く（キャンペーン一覧から）。
 func open() -> void:
 	visible = true

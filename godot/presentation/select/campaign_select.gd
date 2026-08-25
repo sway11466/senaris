@@ -41,6 +41,7 @@ var _board_name: Label
 var _left_arrow: Button
 var _right_arrow: Button
 var _dots: HBoxContainer
+var _to_menu: Button   # タイトルのメニューへ戻る（起動時に作って生き続ける＝refresh_labels の対象）
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -137,10 +138,10 @@ func _ready() -> void:
 
 	# タイトルのメニューへ戻る。ボードではなく画面の左下に置く＝どの画面でも戻るは同じ場所。
 	# 上梁はボード名の場所なので空けておく。Esc でも同じ入口を通る。
-	var to_menu := TavernTheme.back_button(tr("ui.select.menu"))
-	TavernTheme.place_bottom_left(to_menu)
-	to_menu.pressed.connect(_on_back_to_title)
-	add_child(to_menu)
+	_to_menu = TavernTheme.back_button(tr("ui.select.menu"))
+	TavernTheme.place_bottom_left(_to_menu)
+	_to_menu.pressed.connect(_on_back_to_title)
+	add_child(_to_menu)
 
 	# 現在地ドット＝カルーセルのUI。板の下梁にオーバーレイ（レイアウト幅を取らない）。1枚のときは隠す。
 	_dots = HBoxContainer.new()
@@ -237,6 +238,11 @@ func _on_back_to_title() -> void:
 	title_requested.emit()
 
 ## この画面が出ているときだけ Esc を拾う（ステージ選択・依頼書が前に出ているときは相手が受ける）。
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## 板と貼り紙は開くたびに組み直すので、起動時から生き続けるのは戻るボタンだけ。
+func refresh_labels() -> void:
+	_to_menu.text = tr("ui.select.menu")
+
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("ui_cancel"):
 		_on_back_to_title()

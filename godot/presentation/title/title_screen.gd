@@ -16,6 +16,7 @@ class_name TitleScreen
 signal door_opening        # 扉が開き始めた。main が BGM のこもりを解く合図（下記 OPEN_SEC 秒かけて）
 signal menu_shown          # メニューを出した。main が menu 曲へクロスフェードする合図
 signal continue_requested  # 冒険の続き＝中断セーブから盤へ直行
+signal settings_requested  # 設定＝タイトルに重ねて開く
 signal new_game_requested  # 新しい冒険譚＝セレクトへ
 signal quit_requested      # おわる
 
@@ -114,6 +115,17 @@ func reopen(has_save: bool) -> void:
 	visible = true
 	_show_menu()
 
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## 項目はラベルを差し替えるだけでは済まない（並びの可否も作り直す reopen と同じ手）ので、
+## メニューを組み直す。扉と動画は見せ直さず、浮かび上がりも入れない＝設定から戻った画が動かない。
+func refresh_labels() -> void:
+	if _menu == null:
+		return
+	_root.remove_child(_menu)  # 先に外す＝古い板が1フレーム重なって見えない
+	_menu.queue_free()
+	_menu = _build_menu()
+	_root.add_child(_menu)
+
 ## 動画を始める。読めなければ絵を出したままメニューへ進む。
 func _start_video() -> void:
 	var stream := ResourceLoader.load(VIDEO_PATH) as VideoStream
@@ -201,7 +213,7 @@ func _build_menu() -> Control:
 	# 中断セーブが無いときも項目は出す（押せないだけ）＝並びが変わらず、何が在るかも分かる
 	box.add_child(_menu_button(tr("ui.title.continue"), continue_requested if _has_save else null))
 	box.add_child(_menu_button(tr("ui.title.new_adventure"), new_game_requested))
-	box.add_child(_menu_button(tr("ui.title.settings"), null))  # 受け口が無い（doc/backlog.md feature-47）
+	box.add_child(_menu_button(tr("ui.title.settings"), settings_requested))
 	box.add_child(_menu_button(tr("ui.title.manual"), null))    # 同上（feature-52）
 	box.add_child(_menu_button(tr("ui.title.credits"), null))   # 同上（feature-46）
 	box.add_child(_menu_button(tr("ui.title.quit"), quit_requested))

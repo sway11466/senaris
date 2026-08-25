@@ -68,6 +68,7 @@ var _art_texture: TextureRect          # 冒険譚の扉絵（cover_path があ�
 var _stage_list: VBoxContainer         # 右＝縦リスト
 var _lanes: _Lanes                     # 縦リストの左に通す連戦の綴じ紐
 var _briefing: QuestSheet
+var _back: Button                      # 冒険譚選択へ戻る（起動時に作って生き続ける＝refresh_labels の対象）
 var _pending := {}  # ブリーフィング表示中のステージ { campaign_id, stage_id, path }
 
 func _ready() -> void:
@@ -164,15 +165,20 @@ func _ready() -> void:
 	# （doc/gdd/stage_select.md）。絵に重ねず行として持つ＝余白は TavernTheme と同値で揃う。
 	var footer := HBoxContainer.new()
 	vbox.add_child(footer)
-	var back := TavernTheme.back_button(tr("ui.select.back_tales"))
-	back.pressed.connect(func() -> void:
+	_back = TavernTheme.back_button(tr("ui.select.back_tales"))
+	_back.pressed.connect(func() -> void:
 		SfxPlayer.play_event("menu_back")
 		back_requested.emit())
-	footer.add_child(back)
+	footer.add_child(_back)
 
 	_briefing = QuestSheet.new()
 	_briefing.confirmed.connect(_on_sortie)
 	add_child(_briefing)
+
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## 貼り紙の行は開くたびに組み直すので、起動時から生き続けるのは戻るボタンだけ。
+func refresh_labels() -> void:
+	_back.text = tr("ui.select.back_tales")
 
 func setup(progress: CampaignProgress) -> void:
 	_progress = progress
