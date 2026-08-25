@@ -130,6 +130,12 @@ func _language_row() -> Control:
 		frame.add_child(b)
 		row.add_child(frame)
 		_frames[String(lang[0])] = frame
+	# 項目名と同じ幅の余白を右端にも置く＝選択肢の中心が画面の中心＝見出しの真下に来る。
+	# これが無いと、行の中央寄せが項目名を含めた幅で効いて、選択肢だけが右へずれる。
+	var mirror := Control.new()
+	mirror.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
+	mirror.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(mirror)
 	return row
 
 ## 選択中の板にだけ縁を出す。沈んだ板（dim_wood_button）は「押せるが選べない」を表す形なので使わない。
