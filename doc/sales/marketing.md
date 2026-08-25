@@ -149,20 +149,33 @@ Steam に設定する語（20枠に対して12。埋めきらない＝迷う語�
 短い説明文。
 
 ```
-Hex-grid fantasy tactics with no RNG and no unit production: you win with the squad you are handed.
+Hex-grid fantasy tactics with no RNG and no unit production.
+Reinforcements are not built — they are taken, one fort at a time.
 ```
 
 ページ本文。
 
 ````markdown
-Senaris is a turn-based tactics game on a hex grid. There are no random rolls and no unit production. Both sides start with a fixed force, and the whole game is how you interlock the units you already have. The same attack resolves the same way every time — when you lose a unit, the board can tell you why.
+Senaris is a turn-based tactics game on a hex grid. There are no random rolls — the same
+attack resolves the same way every time, and when you lose a unit, the board can tell you why.
+
+You never build units. Both sides begin with a fixed force, and the only way either side gets
+more is by taking forts: every stronghold holds a garrison, and whoever holds it can send that
+garrison out. A neutral fort may be holding something better than anything you brought with you.
+
+How you are given that force changes from campaign to campaign. Some hand you a fresh company
+each stage. Others give you a named party that carries its levels and its losses forward — and
+a companion worn down to nothing is out of the fighting, but not out of the story.
 
 ## What to expect
 
 - Hand-crafted maps. Every stage is placed by hand, not generated.
-- Short stages, from about 10 minutes each, so you can stop at a clean break.
+- Short stages — the early ones run about 10 minutes; later ones are longer sieges.
+- Some campaigns issue a fresh force each stage; others carry a named party forward, with its
+  levels and its losses. No roster screen and no equipment — companions join by being found on
+  the map, not picked from a menu.
 - Single-player only.
-- No base building, no persistent army management, no strategic overworld.
+- No base building and no strategic overworld.
 
 More about the game: [senaris.in](https://senaris.in)
 ````
