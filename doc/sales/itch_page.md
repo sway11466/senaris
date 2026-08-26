@@ -66,7 +66,8 @@ AI の開示は「出荷されるファイルに生成物が残っているか�
 正本は [marketing.md](marketing.md) の本文。そのまま貼る。
 
 ```
-Hex-grid fantasy tactics with no RNG and no unit production: you win with the squad you are handed.
+Hex-grid fantasy tactics with no RNG and no unit production.
+Reinforcements are not built — they are taken, one fort at a time.
 ```
 
 ## 本文
@@ -74,18 +75,23 @@ Hex-grid fantasy tactics with no RNG and no unit production: you win with the sq
 正本は [marketing.md](marketing.md) の本文（Markdown）。itch はソース編集（`<>`）に切り替えて、下の HTML 版を貼る。正本を直したらこちらも直す。
 
 ```html
-<p>Senaris is a turn-based tactics game on a hex grid. There are no random rolls and no unit production. Both sides start with a fixed force, and the whole game is how you interlock the units you already have. The same attack resolves the same way every time &mdash; when you lose a unit, the board can tell you why.</p>
+<p>Senaris is a turn-based tactics game on a hex grid. There are no random rolls &mdash; the same attack resolves the same way every time, and when you lose a unit, the board can tell you why.</p>
+
+<p>You never build units. Both sides begin with a fixed force, and the only way either side gets more is by taking forts: every stronghold holds a garrison, and whoever holds it can send that garrison out. A neutral fort may be holding something better than anything you brought with you.</p>
+
+<p>How you are given that force changes from campaign to campaign. Some hand you a fresh company each stage. Others give you a named party that carries its levels and its losses forward &mdash; and a companion worn down to nothing is out of the fighting, but not out of the story.</p>
 
 <h2>What to expect</h2>
 <ul>
 <li>Hand-crafted maps. Every stage is placed by hand, not generated.</li>
-<li>Short stages, from about 10 minutes each, so you can stop at a clean break.</li>
+<li>Short stages &mdash; the early ones run about 10 minutes; later ones are longer sieges.</li>
+<li>Some campaigns issue a fresh force each stage; others carry a named party forward, with its levels and its losses. No roster screen and no equipment &mdash; companions join by being found on the map, not picked from a menu.</li>
 <li>Single-player only.</li>
-<li>No base building, no persistent army management, no strategic overworld.</li>
+<li>No base building and no strategic overworld.</li>
 </ul>
 
 <h2>About this demo</h2>
-<p>This is a free demo that grows. The first build contains the opening campaign, &ldquo;The Goblin Raid&rdquo;, which teaches one idea per stage: movement, terrain, encirclement, support fire, indirect attack, capturing, and baiting an ambush. A new campaign chapter is added to the build as it is finished, and each update comes with a devlog explaining the design decision behind it.</p>
+<p>This is a free demo that grows. The first build contains the opening campaign, &ldquo;The Goblin Raid&rdquo;, which teaches one idea per stage: movement, terrain, encirclement, support fire, indirect attack, capturing, and baiting an ambush. It also includes one standalone challenge map, built from the same pieces and tuned to hurt. A new campaign chapter is added to the build as it is finished, and each update comes with a devlog explaining the design decision behind it.</p>
 
 <p>Coming to Steam later.</p>
 
