@@ -17,7 +17,7 @@
 3. 引き算その1：だからサイコロが無い。同じ攻撃は毎回同じ結果。
 4. 引き算その2：だから生産も無い。配られた駒で戦い、失った駒は戻らない。
 5. 残るもの＝位置取り：包囲（Encircled）・支援・地形。チュートリアル1で教える範囲だけを挙げる。
-6. 期待値の設定：今出す体験版はチュートリアル「The Goblin Raid」＝1ステージ1要素で教える章なので、とても簡単。ただし腕試しに、既出の要素だけで組んだ難易度高めのステージを1本入れてある（実体は feature-81 で作る。ビルドに入っていることが公開の前提）。章ができるたびにビルドへ足していく。
+6. 期待値の設定：今出す体験版はチュートリアル「The Goblin Raid」＝1ステージ1要素で教える章なので、とても簡単。ただし腕試しに、既出の要素だけで組んだ難易度高めのステージを1本入れてある。これは物語を持たない単発の板＝Bounties ボード（[roadmap.md](../../../doc/campaign/roadmap.md)）の1本目なので、「板の1本目」であることまで言う＝以後の更新で2本目を語れる。章ができるたびにビルドへ足していく。
 7. 締め：名前の由来＝ラテン語 senarius（6つ一組）＝敵を囲む隣接6ヘックス。次の章ができたらビルドと devlog を更新する。
 
 注意：chess problem の語は「解が1つ」の期待を作りすぎない範囲で使う（marketing.md のタグの節＝Puzzle の期待外れ問題と同じ理屈）。ステージが一本道の詰めではないことは、言い訳がましく否定せず、feels like / closer to の距離感で言う。
@@ -50,7 +50,7 @@ The second is production. There are no factories and no build queues. Both sides
 
 Take away dice and production, and what remains is position. Surround an enemy and it crumbles — the game calls that state Encircled, and it is the heart of Senaris. Stand allies next to each other and they hold. Terrain tilts every exchange. All of it is on the board, and all of it can be read before you commit to anything.
 
-About the demo: the first build is the opening campaign, "The Goblin Raid". It is a tutorial — each stage teaches one idea — so it is, frankly, very easy. That is by design; it exists to hand you the vocabulary. For anyone who wants an actual fight, the build also includes one extra stage built from the same pieces, tuned to hurt. That one is the real pitch.
+About the demo: the first build is the opening campaign, "The Goblin Raid". It is a tutorial — each stage teaches one idea — so it is, frankly, very easy. That is by design; it exists to hand you the vocabulary. For anyone who wants an actual fight, the build also includes one extra stage built from the same pieces and tuned to hurt — the first of a side board of standalone challenge maps. That one is the real pitch.
 
 One last thing, about the name. "Senaris" comes from the Latin senarius — a set of six. On a hex grid, six is the number of hexes around any unit: a full encirclement. The game's favorite move is hidden in its name.
 
