@@ -29,16 +29,16 @@
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| Godot Engine | ゲームエンジン | 含む | ライセンス文の表示（同梱サードパーティを含む） | |
+| Godot Engine | ゲームエンジン | 含む | ライセンス文の表示（同梱サードパーティを含む） | https://godotengine.org/license/ |
 | GUT | テストフレームワーク | 除外 | なし | `godot/addons/gut/LICENSE.md` |
-| fontTools | ロゴの SVG 生成（EB Garamond のパス化） | 道具 | なし | |
+| fontTools | ロゴの SVG 生成（EB Garamond のパス化） | 道具 | なし | https://github.com/fonttools/fonttools/blob/main/LICENSE |
 
 ### Apache License 2.0
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
 | Rock Salt（Font Diner, Inc DBA Sideshow） | セレクト画面のボード名・丸印の語（DONE・VICTORY・DEFEAT） | 含む | ライセンス文の同梱と著作権表記 | `godot/assets/fonts/RockSalt-LICENSE.txt`・TTF の name テーブル |
-| OpenCV | 画像処理スクリプト | 道具 | なし | |
+| OpenCV | 画像処理スクリプト | 道具 | なし | https://github.com/opencv/opencv/blob/4.x/LICENSE |
 
 同梱するフォント（Rock Salt・IM Fell English）は `.ttf` が `.godot/imported/*.fontdata` に変換されて製品ビルドに入る。ライセンス文（`RockSalt-LICENSE.txt`・`IMFellEnglish-LICENSE.txt`）は Godot がリソースとして扱わない素のファイルなので、何もしないと pck に入らず、フォントだけ入ってライセンス文が無い形になる。ビルド出力の exe と同じ階層に `THIRD-PARTY-LICENSES.txt` を置いて渡す（[../tech/build.md](../tech/build.md)）。
 
@@ -56,40 +56,40 @@
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| MuseScore Studio | 曲・楽音系の効果音の作曲と編曲 | 道具 | なし | |
-| Inkscape | ロゴまわりの SVG 編集（[logo.md](../art/logo.md)） | 道具 | なし | |
+| MuseScore Studio（GPL v3） | 曲・楽音系の効果音の作曲と編曲 | 道具 | なし | https://github.com/musescore/MuseScore/blob/master/LICENSE.txt |
+| Inkscape（GPL v2+） | ロゴまわりの SVG 編集（[logo.md](../art/logo.md)） | 道具 | なし | https://inkscape.org/about/license/ |
 
 ### LGPL 系
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| FFmpeg | 音の切り出し・変換・書き出し | 道具 | なし | |
+| FFmpeg（既定ビルドは LGPL v2.1） | 音の切り出し・変換・書き出し | 道具 | なし | https://ffmpeg.org/legal.html |
 
 ### ImageMagick License
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| ImageMagick | 画像の生成スクリプト全般（`godot/tools/gen_*.ps1`） | 道具 | なし | |
+| ImageMagick | 画像の生成スクリプト全般（`godot/tools/gen_*.ps1`） | 道具 | なし | https://imagemagick.org/script/license.php |
 
 ### BSD 3-Clause
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| NumPy | 画像処理スクリプト | 道具 | なし | |
+| NumPy | 画像処理スクリプト | 道具 | なし | https://github.com/numpy/numpy/blob/main/LICENSE.txt |
 
 ### MIT-CMU
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
-| Pillow | 画像処理スクリプト | 道具 | なし | |
+| Pillow | 画像処理スクリプト | 道具 | なし | https://github.com/python-pillow/Pillow/blob/main/LICENSE |
 
 ### 各社の独自規約
 
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
 | Sonniss GDC Game Audio Bundle | 効果音の物音系・`title` の酒場のざわめき | 含む | 表記不要。再配布不可・AI学習不可のため元の `.wav` はリポジトリに入れない | [sonniss.md](../audio/sonniss.md) |
-| Muse Sounds ／ MS Basic | 曲・楽音系の効果音の音源 | 出力を含む | | |
-| Google Gemini（Nano Banana・AI Studio） | ユニット・地形・扉・扉絵ほかの絵 | 出力を含む | Steam の提出時に AI 生成コンテンツを開示（[monetization.md](monetization.md)） | |
+| Muse Sounds ／ MS Basic | 曲・楽音系の効果音の音源 | 出力を含む | 書き出した音声の商用利用は可（サンプル単体の再配布は不可） | https://support.musehub.com/en/articles/15070610 （EULA 全文は https://www.musehub.com/terms だが要ブラウザ確認） |
+| Google Gemini（Nano Banana・AI Studio） | ユニット・地形・扉・扉絵ほかの絵 | 出力を含む | Steam の提出時に AI 生成コンテンツを開示（[monetization.md](monetization.md)） | https://ai.google.dev/gemini-api/terms |
 
 ### 自作
 
