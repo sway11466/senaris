@@ -88,7 +88,7 @@
 | 製品 | 用途 | 頒布 | 義務 | 根拠 |
 |---|---|---|---|---|
 | Sonniss GDC Game Audio Bundle | 効果音の物音系・`title` の酒場のざわめき | 含む | 表記不要。再配布不可・AI学習不可のため元の `.wav` はリポジトリに入れない | [sonniss.md](../audio/sonniss.md) |
-| Muse Sounds ／ MS Basic | 曲・楽音系の効果音の音源 | 出力を含む | 書き出した音声の商用利用は可（サンプル単体の再配布は不可） | https://support.musehub.com/en/articles/15070610 （EULA 全文は https://www.musehub.com/terms だが要ブラウザ確認） |
+| Muse Sounds ／ MS Basic | 曲・楽音系の効果音の音源 | 出力を含む | 書き出した音声の商用利用は可（サンプル単体の再配布は不可） | https://support.musehub.com/en/articles/15070610 |
 | Google Gemini（Nano Banana・AI Studio） | ユニット・地形・扉・扉絵ほかの絵 | 出力を含む | Steam の提出時に AI 生成コンテンツを開示（[monetization.md](monetization.md)） | https://ai.google.dev/gemini-api/terms |
 
 ### 自作
