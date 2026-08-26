@@ -39,6 +39,51 @@ itch のカバーは一覧でも大きく出るため細部が潰れず、実画
 
 元絵を描き直したらこの手順でやり直す。
 
+## ページの見た目（Theme）
+
+`Edit game` 画面上部の `Edit theme` で組む。CSS は書けず、用意された枠だけを埋める形。枠は次の通り。
+
+| 区分 | 枠 | 効き方 |
+| --- | --- | --- |
+| COLOR | BG | ページ全体の地色。背景画像が届かない外側もこの色になる |
+| COLOR | BG 2 | 本文ブロックの地色 |
+| COLOR | BG2 Alpha | 本文ブロックの不透明度。下げると背景画像が本文の裏に透ける |
+| COLOR | Text / Link / Headers / Buttons | 文字・リンク・見出し・ボタンの色 |
+| TEXT | Font / Size / Header font | 書体と本文の大きさ |
+| LAYOUT | Screenshots | 紹介画像の並べ方 |
+| IMAGES | Banner | ページ上部に出る帯。**幅いっぱいに広がり、高さは画像の縦横比が決める**ので、縦長の絵を置くと最初の画面が絵で埋まる。3:1 前後に切ってから上げる |
+| IMAGES | Background | ページ全体の背景。`Repeat`（敷き詰め）・`Align`・`Fixed`（スクロールで動かさない）を持つ |
+
+方針：暗い側に振り、背景に酒場の外（タイトル画面の扉）を敷く。本文ブロックは暗色にして Alpha を少し下げ、扉が裏に透ける状態にする。文字色はロゴと同じ系統から取る。
+
+### 入れた値
+
+| 枠 | 値 | 備考 |
+| --- | --- | --- |
+| BG | `#eeeeee` | 既定のまま。背景画像を横に敷き詰めているので、この色は画面に出ない |
+| BG 2 | `#0d1925` | 起動スプラッシュの地色と同じ（扉の絵の暗部の実測 → [../art/menu.md](../art/menu.md)）。扉と地続きに見える |
+| Text | `#E9E0EF` | |
+| Link | `#fa5c5c` | 既定のまま。itch では赤リンクが見慣れた形なので変えない |
+| Headers / Buttons | 空 | 指定なし＝既定 |
+| Font / Size | Lato / Large | |
+| Screenshots | Auto | |
+| Banner | 未設定 | 置くならキービジュアルを3:1前後に切る。キービジュアルの描き直し後に決める |
+| Background | `channels/itch/theme/background.png` | Repeat=`Horizontally`・Align=`Center`・Fixed=on |
+
+`Repeat` を横方向にしているのは、扉の絵（2560幅）より広い画面で左右が空くのを避けるため。縦は繰り返さない＝下は BG 2 の本文ブロックと背景の下端で埋まる。`Fixed` はスクロールしても背景を動かさない指定で、扉が画面に留まる。
+
+### 背景画像のレシピ
+
+タイトル画面の扉 `godot/assets/menu/door.png`（1280×720）を2倍にして使う。画面幅いっぱいに敷くには元の寸法では足りないため。
+
+```
+magick godot/assets/menu/door.png -filter Lanczos -resize 200% channels/itch/theme/background.png
+```
+
+- 出力は `channels/itch/theme/background.png`（2560×1440）。
+- 2倍までは線が保たれる。3倍はぼやけるだけでディテールは増えない（Lanczos は画素を創作しない）。背景は本文の裏に敷くもので、むしろ柔らかいほうが文字が読みやすいため2倍で足りる。生成AIの出力（1024前後）では画面を覆えないので、この拡大か、継ぎ目のないテクスチャを `Repeat` で敷くかの二択になる。
+- 元の扉の絵を描き直したら、この手順でやり直す。
+
 ## 記入内容
 
 | 項目 | 値 |
