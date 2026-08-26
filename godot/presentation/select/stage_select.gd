@@ -11,6 +11,13 @@ signal back_requested
 
 const ROW_HEIGHT := 48.0
 const LOCKED_TILTS := [-2.0, 1.4, -1.6, 2.2]  # 裏返した札の傾き（度）
+const RANK_MARK_D := 38.0    # 木札に押すランクの印の直径（札の高さ48に収まる大きさ）
+const RANK_MARK_FONT := 26   # 印の字の上限。実際の大きさは直径側で頭打ちになる
+const RANK_MARK_FILL := 1.15 # 丸の大きさは据え置いて字だけ太らせる（戦果票の印と同じ扱い）
+const RANK_MARK_DROP := 0.04 # 字を丸の中心より少し下げる（同上）
+const RANK_MARK_PAD := 10.0  # 札の右端から印までの余白
+
+var _rank_font_cache: Font = null
 
 ## 連戦の綴じ紐。ステージ行の左に、隊ごとの縦線を1本ずつ通す。仕様 → doc/gdd/stage_select.md 連戦の区間
 ## その隊が出る話は実線、初出から最後の登場までのあいだで出ない話は薄い線＝待機していて後で戻る。
@@ -239,9 +246,14 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Control:
 	var stage_state := _progress.stage_state(campaign_id, String(s["id"]))
 	var locked := stage_state == CampaignProgress.LOCKED
 	var text := label
+	var rank := ""
 	match stage_state:
 		CampaignProgress.CLEARED:
-			text = "✓ %s" % label
+			# ランクがあれば札の右端に焼き印で押す＝そちらがクリアの印になるので ✓ は出さない。
+			# ランクを持たないステージ（rank を書いていないデバッグ盤など）だけ ✓ のまま。
+			rank = _progress.best_rank(campaign_id, String(s["id"]))
+			if rank.is_empty():
+				text = "✓ %s" % label
 		CampaignProgress.LOCKED:
 			text = "%d." % number  # 名前は伏せる＝裏返した札。解放条件は押すと依頼書で出す
 	# 依頼ボードに下がる木札（focus_mode は wood_button 側で NONE 済み）。
@@ -256,7 +268,28 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Control:
 		row.pressed.connect(_open_locked.bind(campaign_id, String(s["id"])))
 		return _tilted(row, number)
 	row.pressed.connect(_open_briefing.bind(campaign_id, s))
+	if not rank.is_empty():
+		row.add_child(_rank_mark(rank))
 	return row
+
+## 木札の右端に押すランクの印＝戦果票の判子をそのまま小さくしたもの。暗い木の上なので
+## 封蝋の赤ではなく焼き印の琥珀で押す。字だけを置くと「文字が1つ増えた」に見えて押した感じが
+## 出ないので、丸枠ごと縮める（38px でも二重の枠と字は潰れない。実測で確認）。
+## 字は戦果票の印と同じ書体＝小さくても形が読める（手書き風は1文字だと崩れが形の全部になる）。
+func _rank_mark(rank: String) -> Control:
+	var mark := TavernTheme.stamp(rank, TavernTheme.BRAND, -6.0, RANK_MARK_FONT, 1.0,
+		RANK_MARK_D, _rank_font(), RANK_MARK_FILL, RANK_MARK_DROP)
+	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# 札の右端に縦中央で貼る（アンカーで置く＝札の幅が変わっても付いていく）。
+	mark.set_anchors_preset(Control.PRESET_CENTER_RIGHT, true)
+	mark.position = Vector2(-mark.size.x - RANK_MARK_PAD, -mark.size.y * 0.5)
+	return mark
+
+## 印の字の書体（戦果票と同じ）。無ければ既定のまま。
+func _rank_font() -> Font:
+	if _rank_font_cache == null and ResourceLoader.exists(ResultBanner.RANK_FONT_PATH):
+		_rank_font_cache = load(ResultBanner.RANK_FONT_PATH) as Font
+	return _rank_font_cache
 
 ## 裏返した札を少し傾ける＝掛け直されていない札に見せる。角度は番号で巡回＝並びが機械的にならない。
 ## Container は並べ直すたびに子の rotation を 0 に戻すので、素の Control で1枚くるんでその中で回す

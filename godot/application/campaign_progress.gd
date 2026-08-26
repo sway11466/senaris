@@ -120,6 +120,11 @@ func record_rank(campaign_id: String, stage_id: String, rank: String) -> void:
 		return
 	_store.mark_rank(campaign_id, stage_id, rank)
 
+## そのステージのベストランク（"S"/"A"/"B"）。まだ記録が無ければ空文字。
+## セレクトの木札に押す印が引く（記録は record_rank・保存は ProgressStore）。
+func best_rank(campaign_id: String, stage_id: String) -> String:
+	return _store.best_rank(campaign_id, stage_id)
+
 ## マニフェスト順で stage_id の直後のステージを返す（無ければ {}）。クリア後の自動遷移に使う。
 ## 解放状態は見ない＝呼び出し側が stage_state で判定する（LOCKED なら進まない等）。
 func next_stage(campaign_id: String, stage_id: String) -> Dictionary:
