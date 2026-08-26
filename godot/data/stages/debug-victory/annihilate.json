@@ -1,0 +1,15 @@
+{
+  "turn_limit": 30,
+  "name": "debug-annihilate",
+  "cols": 5,
+  "rows": 5,
+  "terrain": [
+    ".....",
+    ".....",
+    ".....",
+    ".....",
+    "....."
+  ],
+  "player": [],
+  "enemy": []
+}

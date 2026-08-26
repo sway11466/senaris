@@ -1,0 +1,12 @@
+{
+  "id": "debug-formation-skill",
+  "title": "デバッグ：陣形スキル",
+  "debug": true,
+  "stages": [
+    {
+      "id": "formation",
+      "file": "formation.json",
+      "title": "陣形スキル（味方）"
+    }
+  ]
+}

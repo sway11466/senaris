@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "debug-sight",
+  "name": "debug-ambush",
   "haze": 0.80,
   "cols": 13,
   "rows": 11,

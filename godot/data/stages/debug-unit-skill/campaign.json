@@ -1,0 +1,12 @@
+{
+  "id": "debug-unit-skill",
+  "title": "デバッグ：ユニットスキル",
+  "debug": true,
+  "stages": [
+    {
+      "id": "skill",
+      "file": "skill.json",
+      "title": "ユニットスキル（味方）"
+    }
+  ]
+}

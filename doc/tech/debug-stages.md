@@ -1,115 +1,121 @@
 # デバッグステージ一覧（カテゴリ別）
 
-動作確認用のデバッグ冒険譚は、機能別に7つへ分けている。各フォルダに `campaign.json`（`"debug": true`）を置くと、`CampaignCatalog.load_all()` がフォルダ走査で拾い、セレクト画面では `OS.is_debug_build()` のときだけ末尾のデバッグボードに並ぶ。デバッグ冒険譚は常時解放・クリア記録なし（進行に混ぜない）。仕組み → [../gdd/stage_select.md](../gdd/stage_select.md)。
+動作確認用のデバッグ冒険譚は、機能別に分けている。各フォルダに `campaign.json`（`"debug": true`）を置くと、`CampaignCatalog.load_all()` がフォルダ走査で拾い、セレクト画面では `OS.is_debug_build()` のときだけ末尾のデバッグボードに並ぶ。デバッグ冒険譚は常時解放・クリア記録なし（進行に混ぜない）。仕組み → [../gdd/stage_select.md](../gdd/stage_select.md)。
 
-このページは各カテゴリの既存ステージの台帳。構成見直しと不足ステージの追加は [backlog.md](../backlog.md)（feature-26）を参照。
+各ステージは目的と変更の引き金を記す。盤の配置の詳細はステージJSONが正本。
 
 補足:
 - 起動時の下敷き（セレクトの裏に出る空盤）は `godot/data/stages/_boot/underlay.json`。どのデバッグ冒険譚にも属さない（`campaign.json` が無いのでセレクトには出ない）。
-- 基本動作の総合マップ（旧 `debug/debug.json`）は廃止。機能別に分けたため役割は各カテゴリへ吸収した。
 
 ## debug-photo（撮影）
 
 外に出すスクリーンショット（devlog・紹介画像）の画を、開始配置でそのまま組んだ撮影セット。`tools/marketing/shot_stage`（[tools.md](tools.md)）で撮る前提＝動作確認ではなく構図が正本。撮りたい画が増えたらステージを足す。
 
-ステージ名は「devlog○-○」＝devlog の何本目の何枚目の画か。
-
-| ステージ | ファイル | 画 |
+| ステージ | ファイル | 目的 |
 | --- | --- | --- |
-| devlog1-1 | `debug-photo/devlog1-1.json` | st3 の地形そのまま・配置だけ差し替え。細道の口をファイター＋ノービス2で塞ぎ、ゴブリンの群れが詰めている。ファイターを選択して移動範囲を表示 |
-| devlog1-2 | `debug-photo/devlog1-2.json` | devlog1-1 の先頭をホブゴブリンに替え、ファイター（兵数5）で殴る。相打ちで両側が生き残る戦闘を `shot_combat` で連写する |
+| devlog1-1 | `debug-photo/devlog1-1.json` | devlog 1本目の1枚目の画 |
+| devlog1-2 | `debug-photo/devlog1-2.json` | devlog 1本目の2枚目の画（戦闘連写） |
 
-## debug-combat（戦闘関連）
+## debug-combat（戦闘シーンの見た目確認）
 
-戦闘解決の補正チェーンと戦闘演出を1機能ずつ切り分けて見る。設計 → [../gdd/combat.md](../gdd/combat.md)・[combat_scene.md](combat_scene.md)。
+戦闘シーンでのユニットとエフェクトの見た目をカテゴリ別に確認する。設計 → [../gdd/combat.md](../gdd/combat.md)・[combat_scene.md](combat_scene.md)。
 
-| ステージ | ファイル |
-| --- | --- |
-| ユニットスキル（ピクシーダスト） | `debug-combat/skill.json` |
-| 攻撃エフェクト（全種） | `debug-combat/effect.json` |
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| ally | `debug-combat/ally.json` | 味方ユニットの戦闘シーン確認 | 味方スキンを追加したとき |
+| goblin | `debug-combat/goblin.json` | ゴブリンの戦闘シーン確認 | ゴブリンスキンを追加したとき |
+| undead | `debug-combat/undead.json` | アンデッドの戦闘シーン確認 | アンデッドスキンを追加したとき |
+| orc | `debug-combat/orc.json` | オークの戦闘シーン確認 | オークスキンを追加したとき |
+| beast | `debug-combat/beast.json` | 魔獣の戦闘シーン確認 | 魔獣スキンを追加したとき |
+| giant | `debug-combat/giant.json` | 巨人の戦闘シーン確認 | 巨人スキンを追加したとき |
+| plant | `debug-combat/plant.json` | 植物の戦闘シーン確認 | 植物スキンを追加したとき |
+| dragon | `debug-combat/dragon.json` | ドラゴンの戦闘シーン確認 | ドラゴンスキンを追加したとき |
+| magic_creature | `debug-combat/magic_creature.json` | 魔法生物の戦闘シーン確認 | 魔法生物スキンを追加したとき |
+| rogue | `debug-combat/rogue.json` | 悪党の戦闘シーン確認 | 悪党スキンを追加したとき |
+| terrain | `debug-combat/terrain.json` | 地形ごとの戦闘背景確認 | 戦闘背景を追加したとき |
 
-ユニットスキルの盤は全面平地。ピクシー2体と、掛ける相手（ファイター2・アーチャー・ナイト）を左に固め、索敵0の待ち伏せユニットを右に置いた。自分・隣接の味方・離れた味方で対象の絞り込みを確かめ、そのまま殴って戦闘レポートの加算バフ表示（`ピクシーダスト +80/+80`）まで見られる。2体のピクシーで同じ相手に重ねがけもできる。
+## debug-unit-skill（ユニットスキル）
 
-攻撃エフェクトの盤も全面平地。`godot/data/effects/combat_effect.csv` のエフェクトのうち、スキンに割り当て済みのものが1種につき1回は出るよう、味方と敵を組にして隣接させた。スキンは本来の陣営のまま置く（味方スキンを敵として並べたりはしない）。1組を1回殴れば、味方のエフェクト（右向き＝反転なし）と敵の反撃エフェクト（左向き＝反転あり）が同じ画に出る。絵を「右へ向かう一撃」で描いて左向きだけ反転する規約 → [combat_scene.md](combat_scene.md)（攻撃エフェクト）。
+味方ユニットスキル全般の動作確認。設計 → [../gdd/skills.md](../gdd/skills.md)。
 
-| 味方（エフェクト） | 敵（エフェクト） | 距離 |
-| --- | --- | ---: |
-| ノービス（slash_s） | グール（claw） | 1 |
-| ファイター（slash_m） | ゾンビ（punch） | 1 |
-| クレリック（holy） | デュラハン（slash_l） | 1 |
-| アーチャー（arrow） | スケルトンアーチャー（arrow_bone） | 1 |
-| ハンター（arrow_crossbow） | レッドドラゴン（fire_breath） | 1 |
-| ピクシー（magic_dust） | ワイアーム（bite） | 1 |
-| ドワーフ（slash_l） | スコーピオン（pincer） | 1 |
-| ハーフリング（stone） | ゴースト（curse_wisp） | 1 |
-| 飛空艇（cannonball） | ゴブリンアーチャー（arrow） | 1 |
-| バードマン（punch） | マタンゴ（spore） | 1 |
-| バリスタ（arrow_bolt） | ゴブリンアーチャー（arrow） | 2 |
-| ウィザード（magic_bolt） | ネクロマンサー（curse） | 2 |
-| メイジ（magic_bolt） | オークメイジ（fire_ball） | 2 |
-| エルフ（arrow） | マンドラゴラ（scream） | 2 |
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| skill | `debug-unit-skill/skill.json` | 味方ユニットスキルの動作確認 | スキルを追加したとき |
 
-- 敵AIは `ambush`（待ち伏せ）・索敵0の1部隊。隣接した相手には自衛で反撃するので、待ち伏せのまま敵側のエフェクトも出る。
-- 反撃は距離1のときだけ成立する（[../../domain/battle_state.gd](../../godot/domain/battle_state.gd) の `attack`）。距離2に置いた4組は、こちらが撃っても敵のエフェクトが返らない。敵側はターンを終えて撃たせて見る（自衛起動で撃ってくる）。
-- 距離2に置く理由は組ごとに違う。ウィザード／ネクロマンサー・メイジ／オークメイジ・エルフ／マンドラゴラは敵が間接専用（射程が2から始まる）で距離1に撃てないため。バリスタは自分が移動0・射程2-6で距離1に撃てないため。
-- 飛行の味方（ピクシー・バードマン）は対空を持つ敵と組にする。対空0の敵は飛行を攻撃できず、エフェクトが返らない。ハンターとレッドドラゴンの組も同じ理由で、竜が飛行でもハンターの対空50が届く。
-- 飛空艇の相方も対空が要るためゴブリンアーチャー。バリスタはその相方を共用する。
-- arrow はアーチャー・ゴブリンアーチャー・エルフで重複するが、これは反転した側の見え方を兼ねる。arrow_crossbow は絵が arrow と同じものなので、見た目では区別が付かない（違うのは音だけ）。
-- `thrust` は割り当てられたスキンがまだ無いため盤に出ない。スキンに割り当てた時点でこの盤にも組を足す。
+## debug-formation-skill（陣形スキル）
+
+陣形スキルの動作確認。設計 → [../gdd/formations.md](../gdd/formations.md)。
+
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| formation | `debug-formation-skill/formation.json` | 陣形スキルの動作確認 | レシピを追加したとき |
 
 ## debug-ai（敵AI）
 
-特性ごとの振る舞いを見る。設計 → [../gdd/ai.md](../gdd/ai.md)。
+特性ごとの振る舞いを確認する。設計 → [../gdd/ai.md](../gdd/ai.md)。
 
-| ステージ | ファイル |
-| --- | --- |
-| 待ち伏せ・索敵（ambush＋視線） | `debug-ai/sight.json` |
-| 弱者狙いAI（predator） | `debug-ai/predator.json` |
-| 敵拠点の出撃（charge湧き） | `debug-ai/spawn.json` |
-| 輸送を使う敵AI（乗る・運ぶ・降ろす） | `debug-ai/transport.json` |
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| charge | `debug-ai/charge.json` | 突撃の動作確認 | charge の行動ルールを変えたとき |
+| ambush | `debug-ai/ambush.json` | 待ち伏せの動作確認 | ambush の行動ルールを変えたとき |
+| raid | `debug-ai/raid.json` | 拠点攻略の動作確認 | raid の行動ルールを変えたとき |
+| predator | `debug-ai/predator.json` | 弱者狙いの動作確認 | predator の行動ルールを変えたとき |
+| swarm | `debug-ai/swarm.json` | 群れの動作確認 | swarm の行動ルールを変えたとき |
+| flee | `debug-ai/flee.json` | 逃走の動作確認 | flee の行動ルールを変えたとき |
+| withdraw | `debug-ai/withdraw.json` | 撤退の動作確認 | withdraw の行動ルールを変えたとき |
+| standoff | `debug-ai/standoff.json` | 睨み合いの動作確認 | standoff の行動ルールを変えたとき |
+| transport | `debug-ai/transport.json` | 輸送ユニットの動作確認 | 輸送の行動ルールを変えたとき |
 
-## debug-victory（勝利条件）
+## debug-victory（勝敗条件）
 
-決着判定を条件ごとに見る。設計 → [../gdd/map.md](../gdd/map.md)。
+決着判定を条件ごとに確認する。設計 → [../gdd/map.md](../gdd/map.md)。
 
-| ステージ | ファイル |
-| --- | --- |
-| ボス撃破 | `debug-victory/boss.json` |
-| 本拠地占領（raid） | `debug-victory/hq.json` |
-| ターン制限（10で時間切れ敗北） | `debug-victory/turnlimit.json` |
-| 拠点防衛（奪われたら敗北） | `debug-victory/defend_base.json` |
-| 拠点防衛×2（両方失ったら敗北＝AND） | `debug-victory/defend_two.json` |
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| boss | `debug-victory/boss.json` | ボス撃破の勝利判定 | defeat_unit の判定を変えたとき |
+| hq | `debug-victory/hq.json` | 本拠地占領の勝利判定 | capture_hq の判定を変えたとき |
+| turnlimit | `debug-victory/turnlimit.json` | ターン制限の敗北判定 | turn_limit の判定を変えたとき |
+| defend_base | `debug-victory/defend_base.json` | 拠点防衛（1つ）の敗北判定 | lose_base の判定を変えたとき |
+| defend_two | `debug-victory/defend_two.json` | 拠点防衛（2つ・AND）の敗北判定 | lose_base の複数AND判定を変えたとき |
+| annihilate | `debug-victory/annihilate.json` | 殲滅の勝利判定 | 殲滅判定を変えたとき |
+| total_loss | `debug-victory/total_loss.json` | 自軍全滅の敗北判定 | 全滅判定を変えたとき |
+| lose_hq | `debug-victory/lose_hq.json` | 自軍本拠地喪失の敗北判定 | hq喪失判定を変えたとき |
+| lose_unit | `debug-victory/lose_unit.json` | 護衛対象喪失の敗北判定 | lose_unit の判定を変えたとき |
 
 ## debug-mapops（マップ操作）
 
-拠点・陣形・輸送などの盤上操作を見る。設計 → [../gdd/map.md](../gdd/map.md)・[../gdd/formations.md](../gdd/formations.md)・[../gdd/movement.md](../gdd/movement.md)。
+拠点・輸送などの盤上操作を確認する。設計 → [../gdd/map.md](../gdd/map.md)・[../gdd/movement.md](../gdd/movement.md)。
 
-| ステージ | ファイル |
-| --- | --- |
-| 拠点と勝敗（消滅判定・寝返り・閉じ込め・スキンの所有色） | `debug-mapops/base.json` |
-| 陣形スキル（味方ユニット） | `debug-mapops/formation.json` |
-| 輸送（乗車・運搬・降車） | `debug-mapops/transport.json` |
-| バリケード輸送（出撃→隣接乗降） | `debug-mapops/barricade.json` |
-| イベント＝増援（残りターン板・搭載駒ごと到着・壁指定は最寄りへずらす） | `debug-mapops/event.json` |
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| base | `debug-mapops/base.json` | 拠点と勝敗（消滅判定・寝返り・閉じ込め） | 拠点の仕様を変えたとき |
+| transport | `debug-mapops/transport.json` | 輸送（乗車・運搬・降車） | 輸送の仕様を変えたとき |
+| barricade | `debug-mapops/barricade.json` | バリケード輸送（出撃→隣接乗降） | バリケードの仕様を変えたとき |
+| event | `debug-mapops/event.json` | イベント＝増援 | イベントの仕様を変えたとき |
+
 ## debug-skins（ユニット/地形スキン）
 
 見た目レイヤー（skin）の一覧確認。設計 → [../art/units.md](../art/units.md)・[../art/terrain.md](../art/terrain.md)。
 
-| ステージ | ファイル |
-| --- | --- |
-| ユニット一覧（全スキン） | `debug-skins/units.json` |
-| 地形見本（基本地形・7ヘクスずつ） | `debug-skins/terrain.json` |
-| 高さ見本（徐々に上がる傾斜・崖） | `debug-skins/height.json` |
-
-地形見本は、全面平地の上に足場（道・台地・荒地・森・茂み・岩地）を7ヘクスの塊で1つずつ置いた盤。各塊の中心に索敵0の待ち伏せユニットを立てて、地形の上に駒が乗った見え方も一緒に確認できる。歩き回る側は移動8・軽歩行のシーフ5体。
-
-高さ見本は、地形を全面平地にして盤の基準高さ（列）だけを変えた盤。左から順に、0.05刻みで徐々に上がる傾斜・平坦・一段で上がる崖・一段で下がる崖が並ぶ。段差の大きさだけが違う場面を同じ画で見比べるためのもので、行の基準は書いていない（＝奥行き方向は水平）。崖の上下には待ち伏せの駒を隣り合わせに置き、同じ段差を駒の足元でも確かめられるようにした。高さの仕組み → [../gdd/terrain.md](../gdd/terrain.md)。
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| ally | `debug-skins/ally.json` | 味方ユニットのマップ表示確認 | 味方スキンを追加したとき |
+| goblin | `debug-skins/goblin.json` | ゴブリンのマップ表示確認 | ゴブリンスキンを追加したとき |
+| undead | `debug-skins/undead.json` | アンデッドのマップ表示確認 | アンデッドスキンを追加したとき |
+| orc | `debug-skins/orc.json` | オークのマップ表示確認 | オークスキンを追加したとき |
+| beast | `debug-skins/beast.json` | 魔獣のマップ表示確認 | 魔獣スキンを追加したとき |
+| giant | `debug-skins/giant.json` | 巨人のマップ表示確認 | 巨人スキンを追加したとき |
+| plant | `debug-skins/plant.json` | 植物のマップ表示確認 | 植物スキンを追加したとき |
+| dragon | `debug-skins/dragon.json` | ドラゴンのマップ表示確認 | ドラゴンスキンを追加したとき |
+| magic_creature | `debug-skins/magic_creature.json` | 魔法生物のマップ表示確認 | 魔法生物スキンを追加したとき |
+| rogue | `debug-skins/rogue.json` | 悪党のマップ表示確認 | 悪党スキンを追加したとき |
+| terrain | `debug-skins/terrain.json` | 地形見本（基本地形・7ヘクスずつ） | 地形スキンを追加したとき |
+| height | `debug-skins/height.json` | 高さ見本（徐々に上がる傾斜・崖） | 高さの仕様を変えたとき |
 
 ## debug-misc（その他）
 
 上のどれにも入らない演出・UI検証。
 
-| ステージ | ファイル |
-| --- | --- |
-| 会話シーン（前後・チャット風） | `debug-misc/talk.json` |
-
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| talk | `debug-misc/talk.json` | 会話シーンの動作確認 | 会話の仕様を変えたとき |

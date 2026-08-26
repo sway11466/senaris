@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "debug-spawn",
+  "name": "debug-charge",
   "haze": 0.80,
   "cols": 10,
   "rows": 7,

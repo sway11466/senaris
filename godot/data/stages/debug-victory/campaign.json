@@ -3,10 +3,50 @@
   "title": "デバッグ：勝利条件",
   "debug": true,
   "stages": [
-    { "id": "boss", "file": "boss.json", "title": "ボス撃破" },
-    { "id": "hq", "file": "hq.json", "title": "本拠地占領（raid）" },
-    { "id": "turnlimit", "file": "turnlimit.json", "title": "ターン制限（10で時間切れ敗北）" },
-    { "id": "defend_base", "file": "defend_base.json", "title": "拠点防衛（奪われたら敗北）" },
-    { "id": "defend_two", "file": "defend_two.json", "title": "拠点防衛×2（両方失ったら敗北）" }
+    {
+      "id": "boss",
+      "file": "boss.json",
+      "title": "ボス撃破"
+    },
+    {
+      "id": "hq",
+      "file": "hq.json",
+      "title": "本拠地占領"
+    },
+    {
+      "id": "turnlimit",
+      "file": "turnlimit.json",
+      "title": "ターン制限"
+    },
+    {
+      "id": "defend_base",
+      "file": "defend_base.json",
+      "title": "拠点防衛（1つ）"
+    },
+    {
+      "id": "defend_two",
+      "file": "defend_two.json",
+      "title": "拠点防衛（2つ・AND）"
+    },
+    {
+      "id": "annihilate",
+      "file": "annihilate.json",
+      "title": "殲滅"
+    },
+    {
+      "id": "total_loss",
+      "file": "total_loss.json",
+      "title": "自軍全滅"
+    },
+    {
+      "id": "lose_hq",
+      "file": "lose_hq.json",
+      "title": "自軍本拠地喪失"
+    },
+    {
+      "id": "lose_unit",
+      "file": "lose_unit.json",
+      "title": "護衛対象喪失"
+    }
   ]
 }

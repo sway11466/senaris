@@ -3,7 +3,60 @@
   "title": "デバッグ：戦闘関連",
   "debug": true,
   "stages": [
-    { "id": "skill", "file": "skill.json", "title": "ユニットスキル（ピクシーダスト）" },
-    { "id": "effect", "file": "effect.json", "title": "攻撃エフェクト（全種）" }
+    {
+      "id": "ally",
+      "file": "ally.json",
+      "title": "味方ユニット"
+    },
+    {
+      "id": "goblin",
+      "file": "goblin.json",
+      "title": "ゴブリン"
+    },
+    {
+      "id": "undead",
+      "file": "undead.json",
+      "title": "アンデッド"
+    },
+    {
+      "id": "orc",
+      "file": "orc.json",
+      "title": "オーク"
+    },
+    {
+      "id": "beast",
+      "file": "beast.json",
+      "title": "魔獣"
+    },
+    {
+      "id": "giant",
+      "file": "giant.json",
+      "title": "巨人"
+    },
+    {
+      "id": "plant",
+      "file": "plant.json",
+      "title": "植物"
+    },
+    {
+      "id": "dragon",
+      "file": "dragon.json",
+      "title": "ドラゴン"
+    },
+    {
+      "id": "magic_creature",
+      "file": "magic_creature.json",
+      "title": "魔法生物"
+    },
+    {
+      "id": "rogue",
+      "file": "rogue.json",
+      "title": "悪党"
+    },
+    {
+      "id": "terrain",
+      "file": "terrain.json",
+      "title": "地形"
+    }
   ]
 }
