@@ -1,7 +1,8 @@
 """Senaris のロゴ SVG を組む。
 
 盤と同じカメラ（俯角52度・画角42度＝board_camera.gd）で7ヘックスを投影し、
-中央ヘックスの中心に剣を刺し、その下に SENARIS を置く。
+中央ヘックスに剣と杖を X にクロスさせて刺し、その下に SENARIS を置く。
+剣が左から刺さって頭が右へ、杖が右から刺さって頭が左へ。剣が手前。
 
 起動スプラッシュ版はロゴの右下に開発元名を小さく足し、ピクセル寸法を焼いて書き出す
 （地の色は焼かない＝project.godot の boot_splash/bg_color が持つ）。
@@ -19,15 +20,20 @@ DIST = 6.0 * R
 CLUSTER_W = 500.0
 SHRINK = 0.94
 
-TILT = 15.0
+TILT = 20.0         # 剣と杖の傾き（度）。剣が＋（頭が右）・杖が−（頭が左）
 SWORD_TOTAL = 516.0
 SWORD_VISIBLE = 312.0
+STAFF_TOTAL = 504.0
+STAFF_VISIBLE = 306.0
 EMBLEM_DY = 24.0  # 紋章を縦へずらす量（ロゴ単位）。正＝下
 ALIGN_TO = "A"  # 紋章の横位置を、この文字の中心に合わせる（None なら語の中心）
-ENTRY_DY = 10.0  # 刺さり口を中央ヘックスの中心から下へずらす量（ロゴ単位）
-GROUND_SLANT = 8.0  # 剣を切る地面の線の傾き（度）。正＝右下がり
-LETTER_HALO = 12.0  # 文字と剣の周りをタイルから抜く余白（ロゴ単位）
-SWORD_HALO = 37.0   # 単色版のときだけ剣に使う太い抜き（同色なので広く取る）
+ENTRY_DX = 30.0  # 刺さり口を中央から左右へ離す量（ロゴ単位）。剣が左・杖が右
+ENTRY_DY = 14.0  # 刺さり口を中央ヘックスの中心から下へずらす量（ロゴ単位）。両者同じ高さ
+GROUND_SLANT = 8.0  # 武器を切る地面の線の傾き（度）。各自の刺さり口を通り、剣は右下がり（＼）・
+                    # 杖は右肩上がり（／）＝どちらも自分の軸と噛み合う向きに切る
+LETTER_HALO = 12.0  # 文字と武器の周りをタイルから抜く余白（ロゴ単位）
+WEAPON_HALO = 12.0  # 手前の剣を奥の杖から抜く余白（ロゴ単位）
+SWORD_HALO = 37.0   # 単色版のときだけ武器に使う太い抜き（同色なので広く取る）
 
 WORD = "SENARIS"
 TRACK = 0.12
@@ -42,7 +48,8 @@ DEV_INSET = 10.0     # 右端の微調整。字送り幅ではなく字の見た
 SPLASH_PX_W = 760.0  # スプラッシュ PNG の横幅（px）。1280x720 のウィンドウで約6割
 
 FONT_PATH = "assets/promo-src/logo/fonts/EBGaramond-variable.ttf"
-SWORD_SVG = "assets/promo-src/logo/sword.svg"  # tools/trace_sword.py が生成する
+SWORD_SVG = "assets/promo-src/logo/sword.svg"  # tools/logo/trace_sword.py が生成する
+STAFF_SVG = "assets/promo-src/logo/staff.svg"  # tools/logo/trace_staff.py が生成する
 
 CENTERS = [
     (0.0, 0.0),
@@ -57,7 +64,7 @@ PALETTE = {
     "light": dict(ramp=((0xAB, 0xBE, 0xD1), (0xBE, 0xBE, 0xC6), (0xDA, 0xAF, 0xB3)),
                   steel="#586270", ink="#333942", dev="#6b7482"),
     # 単色版（白1色・黒1色）は用途が見当たらないため生成していない。
-    # 必要になったら次の2行を戻すだけでよい（剣を抜く処理はそのまま残してある）。
+    # 必要になったら次の2行を戻すだけでよい（武器を抜く処理はそのまま残してある）。
     #   "mono-white": dict(flat="#ffffff"),
     #   "mono-black": dict(flat="#000000"),
 }
@@ -117,15 +124,17 @@ def tile_polys(shrink):
     return out
 
 
-def sword_bits():
-    src = open(SWORD_SVG, encoding="utf-8").read()
+def weapon_bits(svg_path, total, visible, dx, tilt):
+    """武器の SVG を読み、刺さり口 (dx, ENTRY_DY)・傾き tilt で置くパスと変換を返す。"""
+    src = open(svg_path, encoding="utf-8").read()
     d = re.search(r'\sd="([^"]+)"', src).group(1)
     vb = re.search(r'viewBox="([^"]+)"', src).group(1).split()
     w, h = float(vb[2]), float(vb[3])
-    scale = SWORD_TOTAL / h
-    buried_local = (SWORD_TOTAL - SWORD_VISIBLE) / scale
+    scale = total / h
+    buried_local = (total - visible) / scale
     ex, ey = w / 2.0, h - buried_local
-    return d, "translate(0,%.2f) rotate(%.3f) scale(%.5f) translate(%.3f,%.3f)" % (ENTRY_DY, TILT, scale, -ex, -ey)
+    return d, ("translate(%.2f,%.2f) rotate(%.3f) scale(%.5f) translate(%.3f,%.3f)"
+               % (dx, ENTRY_DY, tilt, scale, -ex, -ey))
 
 
 
@@ -169,10 +178,11 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None):
     pal = PALETTE[mode]
     flat = pal.get("flat")
     tiles = tile_polys(shrink)
-    sword_d, sword_tf = sword_bits()
+    sword_d, sword_tf = weapon_bits(SWORD_SVG, SWORD_TOTAL, SWORD_VISIBLE, -ENTRY_DX, +TILT)
+    staff_d, staff_tf = weapon_bits(STAFF_SVG, STAFF_TOTAL, STAFF_VISIBLE, +ENTRY_DX, -TILT)
     glyphs, gscale, cap_h, emblem_dx = glyph_paths(WORD, WORD_W, TRACK, ALIGN_TO)
 
-    top = min(CLUSTER_TOP, -SWORD_VISIBLE)
+    top = min(CLUSTER_TOP, -SWORD_VISIBLE, -STAFF_VISIBLE)
     word_top = CLUSTER_BOTTOM - cap_h * OVERLAP
     word_bottom = word_top + cap_h
     half_w = max(CLUSTER_W / 2.0, WORD_W / 2.0)
@@ -186,8 +196,11 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None):
 
     big = 4000.0
     m = math.tan(math.radians(GROUND_SLANT))
-    parts = ['<clipPath id="ground"><polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f"/></clipPath>'
-             % (-big, ENTRY_DY - big * m, big, ENTRY_DY + big * m, big, -big, -big, -big)]
+    parts = []
+    for cid, x0, mi in (("ground_l", -ENTRY_DX, +m), ("ground_r", +ENTRY_DX, -m)):
+        parts.append('<clipPath id="%s"><polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f"/></clipPath>'
+                     % (cid, -big, ENTRY_DY + (-big - x0) * mi, big, ENTRY_DY + (big - x0) * mi,
+                        big, -big, -big, -big))
     if not flat:
         lo, mid, hi = pal["ramp"]
         parts.append('<linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="%.1f" y1="0" x2="%.1f" y2="0">'
@@ -197,9 +210,10 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None):
         parts.append("</linearGradient>")
     parts.append('<mask id="cut" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
     parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
-    parts.append('<g clip-path="url(#ground)"><path d="%s" transform="%s" fill="#000" stroke="#000"'
-                 ' stroke-width="%.1f" stroke-linejoin="round"/></g>'
-                 % (sword_d, sword_tf, SWORD_HALO if flat else LETTER_HALO))
+    for d, tf, cid in ((sword_d, sword_tf, "ground_l"), (staff_d, staff_tf, "ground_r")):
+        parts.append('<g clip-path="url(#%s)"><path d="%s" transform="%s" fill="#000" stroke="#000"'
+                     ' stroke-width="%.1f" stroke-linejoin="round"/></g>'
+                     % (cid, d, tf, SWORD_HALO if flat else LETTER_HALO))
     # マスクはタイル群の座標系（紋章の移動が効いた後）で解釈されるので、その分を打ち消す
     parts.append('<g transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="#000" stroke="#000"'
                  ' stroke-width="%.1f" stroke-linejoin="round">'
@@ -209,12 +223,21 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None):
         parts.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
     parts.append("</g>")
     parts.append("</mask>")
+    # 手前の剣を、奥の杖から抜くマスク（重なりの分離＝文字の抜きと同じ流儀）
+    parts.append('<mask id="front" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
+    parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
+    parts.append('<path d="%s" transform="%s" fill="#000" stroke="#000" stroke-width="%.1f"'
+                 ' stroke-linejoin="round"/>' % (sword_d, sword_tf, SWORD_HALO if flat else WEAPON_HALO))
+    parts.append("</mask>")
     parts.append('<g id="emblem" transform="translate(%.2f,%.2f)">' % (emblem_dx, EMBLEM_DY))
     parts.append('<g id="tiles" mask="url(#cut)">')
     for t, pts in tiles:
         parts.append('<polygon points="%s" fill="%s"/>' % (pts, flat or "url(#sweep)"))
     parts.append("</g>")
-    parts.append('<g id="sword" clip-path="url(#ground)">')
+    parts.append('<g id="staff" clip-path="url(#ground_r)" mask="url(#front)">')
+    parts.append('<path d="%s" transform="%s" fill="%s"/>' % (staff_d, staff_tf, flat or pal["steel"]))
+    parts.append("</g>")
+    parts.append('<g id="sword" clip-path="url(#ground_l)">')
     parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or pal["steel"]))
     parts.append("</g>")
     parts.append("</g>")
