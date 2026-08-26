@@ -260,19 +260,6 @@
 - カプセルの検討結果（2026-08-12）：手持ちのドラゴンのキービジュアルを 460×215 に切って確認した。全幅を使って上下を16%落とす形なら構図がそのまま生きる。ただし小カプセル（231×87）まで縮めると読めるのは竜と炎だけで人物は潰れる＝5種を同じ絵から切り出すにしても、寄せ方は枠ごとに変えてよい。カプセル専用に絵を起こす場合は、最初から 460:215 の比で生成し、ロゴを置く余白（上部の空）を空けた構図にする。
 - 該当：`doc/sales/steam_page.md`・`doc/sales/marketing.md`・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（アプリアイコン）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
-### feature-54
-
-**クレジット正本のライセンス裏取り**（優先度：中）
-
-- 背景：[credits.md](sales/credits.md) を起こしたが、ライセンスの裏が取れているのはリポジトリ内に根拠ファイルがあるものだけ（Rock Salt・GUT とその同梱フォント・EB Garamond・Sonniss）。残りは一般知識で分類しただけで、正本の「根拠」列が空欄になっている。表記を確定する前に公式の記載で確認する必要がある。
-- 対応：空欄の行について公式サイトのライセンス記載を当たり、根拠列を埋める。対象は Godot Engine・MuseScore Studio・Muse Sounds／MS Basic・FFmpeg・ImageMagick・Inkscape・fontTools・Pillow・NumPy・OpenCV・Google Gemini。とくに注意する点：
-  - FFmpeg はビルドによって LGPL と GPL が変わる。使っているバイナリがどちらかを確認する
-  - Muse Sounds と MS Basic は、書き出した音声を商用作品に載せてよいかが規約本文の確認事項。ここが崩れると自作曲が全部影響を受ける
-  - Google Gemini は出力物の権利帰属と商用利用条件。Steam の AI 開示（[monetization.md](sales/monetization.md)）とは別の論点
-  - Godot は同梱サードパーティを含めた表示義務の範囲。`Engine.get_copyright_info()` の内容で足りるかを確認する
-  - Pillow はバージョンによってライセンス表記が変わっている
-- 該当：`doc/sales/credits.md`（根拠列）。関連＝feature-46（クレジット画面）・配布物に添えるライセンス文（[build.md](tech/build.md)）。着手の引き金＝配布ビルドを作る前。
-
 ### feature-55
 
 **ウィザードの絵を描き直す（＋冒険譚2のキービジュアル2枚）**（優先度：中）
