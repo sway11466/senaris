@@ -1,6 +1,6 @@
 skin_id,name,side,type_id,category,map_scale,map_offset_x,combat_scale,combat_lineup,retainers,combat_effect,map_move_sfx
 スキンID,表示名,陣営,種別ID,分類,描画倍率,横位置補正,戦闘倍率,表示パターン,従者,攻撃エフェクト,移動音
-cleric,クレリック,ally,cleric,基準,1.0,0,1.0,squad,,holy,
+cleric,クレリック,ally,cleric,基準,0.9,0,0.9,squad,,holy,
 priest,プリースト,ally,priest,基準,1.0,0,1.0,squad,,holy,
 bishop,ビショップ,ally,bishop,基準,1.0,7,1.0,squad,,holy,
 paladin,パラディン,ally,paladin,基準,1.05,0,1.05,squad,,slash_m,
