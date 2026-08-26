@@ -435,3 +435,18 @@ t3.st3.squad.1,岩陰のロックサーペント,Lurking Rock Serpent
 t3.st3.squad.2,居座るトロール,Stubborn Troll
 t3.st3.squad.3,ワイアーム,Wyrm
 t3.st3.squad.4,ローグ一味,Bandit Gang
+b1.st1.squad.1,先鋒の群れ,Vanguard Horde
+b1.st1.squad.2,側面の射手,Flanking Archers
+b1.st1.squad.3,陣地荒らし,Camp Raiders
+b1.st1.squad.4,頭目,The Chieftain
+b1.st1.intro.1,隊長、数が違います。丘の向こうまでゴブリンで埋まってる。,"Captain, this isn't the usual rabble. They're packed in past the hill and further."
+b1.st1.intro.2,数は数えるな。奴らの砦はこの道の先だ。あそこを押さえれば、残りは散る。,Don't count them. Their fort sits at the end of this road — take it and the rest scatter.
+b1.st1.intro.3,全部倒さなくてもいいんですか。,So we don't have to cut down every last one?
+b1.st1.intro.4,敵の砦を取れば勝ちだ。ただし、こちらの陣も同じ。取られたらそこで終わりだと思え。,Take their fort and it's over. But our camp works the same way — lose it and we're finished.
+b1.st1.intro.5,砦に入れるのは私だけです。道を開けてください。,I'm the only one who can claim a fort. Clear me a path.
+b1.st1.intro.6,それと、敵は選べば何をしてくる奴か分かる。「拠点攻略」と出た連中は、こちらの陣へ一直線だ。進路を塞がないかぎり手は出してこない。,And look one over before you meet it — it'll tell you how it fights. The ones marked Raid go straight for our camp. Stay off their path and they won't even swing at you.
+b1.st1.intro.7,放っておいたら……,And if we just let them walk past...?
+b1.st1.intro.8,陣を取られて負ける。潰すか、蓋をするか、お前たちが決めろ。,They take the camp and we lose. Put them down or cork the way in — your call.
+b1.st1.outro.1,陣も砦も、両方見ていないと勝てないんですね。,You have to keep an eye on both — their fort and our camp.
+b1.st1.outro.2,そういう依頼を選んだんだ。悪くない働きだった。,That's the job we took. Not bad work.
+b1.st1.outro.3,報酬、数えてきますね。,I'll go count the reward.
