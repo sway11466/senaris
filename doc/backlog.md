@@ -132,13 +132,6 @@
 - 対応：レシピの `buff_harmful` で動きを分ける。有害なら被対象がひるむ（シェイク＋暗いフラッシュ）、そうでなければ光る（明るいフラッシュのみ・シェイクなし）、という向きが素直。数値の色も同じ基準で分けられる。分ける軸を新設せず既存のフラグを使うのは、値の符号から推測しないという [skills.md](gdd/skills.md) の方針と揃えるため。
 - 該当：ユニットスキルの演出モジュール（`godot/presentation/combat/`）・`doc/tech/combat_scene.md`。着手の引き金＝実際に動くものを見て、手応えが足りないと感じたとき（先に数値を決めても当たらないので、通しで見てから調整する）。
 
-### feature-44
-
-**ステージ途中のBGM切替（イベント経由）**
-- 背景：曲を途中で切り替える仕組みを `bgm` の `crisis` スロット＋永続フラグ＋`BgmDirector.enter_crisis()` として持っていたが、ゲームに配線されず使うステージも無かったため撤去した。BGM専用に状態をもう1本立てるより、既にあるイベント（`events`＝Nターン目に起きること・[map.md](gdd/map.md) イベント）の `type` を1つ足すほうが、状態の置き場もJSONの書き場所も1か所に寄る。
-- 対応：`events` に BGM 切替の type を足す（`turn` で発生・トラックIDを指定）。曲はライブラリの `crisis`（警報型・たたき台あり）が候補。必殺技やボス出現のような盤面イベントを引き金にしたくなったら、BGM専用の抜け道を作らず、イベント側に条件トリガーを足す形で設計する。
-- 該当：`doc/gdd/map.md`（イベント表）・`godot/domain/battle_state.gd`（`fire_due_events`）・`godot/application/stage_loader.gd`（`_apply_events`）・`godot/presentation/main/main.gd`（曲の張り替え）・`doc/audio/bgm.md`。着手の引き金＝ステージ途中で曲を変えたくなったとき。
-
 ### feature-45
 
 **アプリアイコンの差し替え**
