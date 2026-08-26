@@ -80,19 +80,6 @@
 - 対応：(1) 残りの下書きの MuseScore 仕上げ（強弱・味付け・ループ点整備）と `.ogg` 化。`crisis` は切替機構を撤去したため当てる先が無い＝feature-44（イベント経由の切替）を入れるまで急がない。(2) 全体既定を投入済みの曲に変えるか `campaign.json` に既定を書くかを決定し反映。
 - 該当：`godot/assets/bgm-src/`・`godot/assets/bgm/`・`godot/application/bgm_director.gd`（`DEFAULT_STAGE_TRACK`）・`doc/audio/bgm.md`（ライブラリ表更新）。着手の引き金＝ステージに曲を当てたくなったとき。
 
-### feature-26
-
-**デバッグステージの構成見直しと拡充**
-- 背景：デバッグ冒険譚は機能別6カテゴリに分かれており、既存ステージは計18枚（台帳＝[debug-stages.md](tech/debug-stages.md)）。カテゴリの分け方と既存ステージの役割は見直し済み（旧 siege.json は base.json＝拠点と勝敗に統合、旧 debug.json の総合マップは廃止して各カテゴリへ吸収）ので、残るのはカバーの隙間を埋める追加のみ。戦闘の補正チェーンを1つずつ切り分ける盤がまだ無く、そこが一番厚い。
-- 対応：不足しているデバッグステージを追加する。対象は以下。
-  - combat: 地形補正／間接／魔法／対空・対地／包囲／支援／レベル補正（7件）
-  - ai: charge／raid（2件。起動トリガー見本は sight.json が担う）
-  - victory: 殲滅／自軍hq喪失で敗北／複数条件OR（3件。既存 defend_two は AND）
-  - mapops: 陣形②③／飛空艇・初期搭乗（2件。拠点は base.json で済）
-  - skins: 構造物系タイル（1件）
-  - misc: 追加の演出・UI検証（1件）
-- 該当：`godot/data/stages/debug-*/`・`doc/tech/debug-stages.md`（台帳更新）。着手の引き金＝機能を足してデバッグステージが欲しくなったとき。
-
 ### feature-27
 
 **タイトル名「Senaris」の確定手続き**
