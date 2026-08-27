@@ -22,7 +22,7 @@ const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
 const EVENT_KEYS := ["type", "team", "turn", "on", "col", "row", "once", "label", "units", "dialogue", "focus"]
 
-## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/map.md 配置
+## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/campaigns.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
 const SUPPLY_JOIN := "join"       # 名簿を見ずに配給（初登場）＝Lv も兵数も初期値
 const SUPPLY_REFILL := "refill"   # 名簿から出すが兵数は満員へ（Lv は名簿のまま）
@@ -385,7 +385,7 @@ static func load_rank(path: String) -> Dictionary:
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
 ##
-## carried（名簿）との突き合わせ＝戦力供給モデル。詳細 → doc/gdd/map.md 配置
+## carried（名簿）との突き合わせ＝戦力供給モデル。詳細 → doc/gdd/campaigns.md 配置
 ##   actor なし              → 配給。そのステージ限りの駒（名簿に載らない）
 ##   actor だけ              → 名簿から引く。居ない／兵力ゼロなら盤に出さない（その位置は空のまま）
 ##   supply:"join"           → 配給。名簿は見ない＝初登場（クリア時に名簿へ載る）
@@ -434,7 +434,7 @@ static func _resolve_player_unit(u: Dictionary, catalog: Dictionary, id: int, te
 ## 駒の "supply" を解決する。未知の値は警告して省略扱い（名簿のまま持ち越す）。
 static func _parse_supply(u: Dictionary) -> String:
 	if u.has("join"):  # 旧キー。黙って無視すると駒が盤から消えて気づけない
-		push_warning("StageLoader: 'join' は廃止＝\"supply\": \"join\" に書き換える（doc/gdd/map.md 配置）")
+		push_warning("StageLoader: 'join' は廃止＝\"supply\": \"join\" に書き換える（doc/gdd/campaigns.md 配置）")
 	var supply := String(u.get("supply", SUPPLY_CARRY))
 	if supply == SUPPLY_CARRY or SUPPLY_VALUES.has(supply):
 		return supply

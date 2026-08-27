@@ -6,7 +6,7 @@ class_name SaveStore
 ## ＝ここは素の永続化に徹する（ProgressStore/RosterStore と同流儀）。破損・手編集は「セーブ無し」にフォールバックしクラッシュしない。
 
 const DEFAULT_PATH := "user://save.json"
-## 2: roster を落とし sortied_actors を足した（doc/gdd/map.md 名簿の更新）。旧セーブは投入記録を持たず、
+## 2: roster を落とし sortied_actors を足した（doc/gdd/campaigns.md 名簿の更新）。旧セーブは投入記録を持たず、
 ## 復元して勝つと在籍者が全員「出番なし」扱いになるため、読まずに捨てる。
 const VERSION := 2
 

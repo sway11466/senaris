@@ -1,5 +1,5 @@
 extends GutTest
-## RosterStore（戦力スナップショット＝継承 carryover）のテスト。仕様 → doc/gdd/map.md / doc/tech/gamesystem.md
+## RosterStore（戦力スナップショット＝継承 carryover）のテスト。仕様 → doc/gdd/campaigns.md / doc/tech/gamesystem.md
 
 const PATH := "user://test_roster.json"
 

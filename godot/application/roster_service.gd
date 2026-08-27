@@ -1,6 +1,6 @@
 extends RefCounted
 class_name RosterService
-## 名簿（パーティ）の更新規則。仕様 → doc/gdd/map.md（名簿）／doc/tech/gamesystem.md（セーブ）
+## 名簿（パーティ）の更新規則。仕様 → doc/gdd/campaigns.md（名簿）／doc/tech/gamesystem.md（セーブ）
 ##
 ## 名簿は「盤上の生存者リスト」ではなく「いま誰が仲間か」の在籍者一覧。
 ## - 載るのは actor を持つ駒だけ。名前のない雑兵は同一性を持たないので名簿の対象外＝持ち越さず、
@@ -37,7 +37,7 @@ static func _enrolled(u: Unit) -> bool:
 ## クリア時の名簿を作る。previous＝前ステージ終了時の名簿、state＝決着した盤。
 ## 在籍者は名簿の並び順を保ち、更新するのはこの盤に出た者だけ。出た者が盤から消えていれば
 ## troops:0 の離脱として残し、そもそも出番の無かった者は前の状態のまま据え置く（別の隊として
-## 待機している＝失ってはいない。詳細 → doc/gdd/map.md 名簿の更新）。
+## 待機している＝失ってはいない。詳細 → doc/gdd/campaigns.md 名簿の更新）。
 ## 続けて、新たに加わった仲間（勧誘・そのステージで合流した名前つきの駒）を盤の順で加える。
 static func update_after_clear(previous: Array, state: BattleState) -> Array:
 	var current := collect(state)

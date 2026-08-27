@@ -107,7 +107,7 @@ func _ready() -> void:
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
-## ステージ配置（player の actor 突き合わせ）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/map.md
+## ステージ配置（player の actor 突き合わせ）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/campaigns.md
 func _load_roster() -> Array:
 	if _roster_store == null or _current_campaign_id.is_empty():
 		return []
@@ -304,7 +304,7 @@ func _on_battle_finished(outcome: int) -> void:
 				if not rank.is_empty():
 					_progress.record_rank(_current_campaign_id, _current_stage_id, rank)
 				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
-				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/map.md
+				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/campaigns.md
 				if _roster_store != null and _controller != null:
 					var updated := RosterService.update_after_clear(_load_roster(), _controller.state)
 					_roster_store.save_roster(_current_campaign_id, updated)

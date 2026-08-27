@@ -1,6 +1,6 @@
 extends RefCounted
 class_name RosterStore
-## 戦力スナップショット（継承 carryover）の読み書き。仕様 → doc/gdd/map.md / doc/tech/gamesystem.md
+## 戦力スナップショット（継承 carryover）の読み書き。仕様 → doc/gdd/campaigns.md / doc/tech/gamesystem.md
 ## 冒険譚ごとに「次ステージへ持ち越す生存ユニットの直列化リスト」を持つ。中身は Unit.to_dict() の配列＝
 ## 素性・成長・損耗だけ（性能は type から再構築・盤依存の状態は持たない）。Unit の復元・配置は application 層（Phase 2c/2d）。
 ## 素のJSON＋バージョン・形式チェック（不正・破損は空にフォールバックしクラッシュしない＝ProgressStore と同流儀）。

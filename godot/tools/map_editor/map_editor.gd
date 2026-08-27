@@ -1438,7 +1438,7 @@ func _add_actor_row(parent: VBoxContainer, u: Dictionary) -> void:
 ## 戦力供給(supply)の行。自軍の駒にだけ出す（名簿は自軍のもの）。
 ## 省略＝名簿から引く＝居なければ盤に出ない。join＝この盤で配給する＝クリアで名簿に載る。
 ## refill＝名簿から引いて兵数だけ満員に戻す。revive＝離脱者（兵力ゼロ）も満員で呼び戻す。
-## 詳細 → doc/gdd/map.md 配置
+## 詳細 → doc/gdd/campaigns.md 配置
 func _add_supply_row(parent: VBoxContainer, u: Dictionary) -> void:
 	var keys := ["", "join", "refill", "revive"]
 	var displays := ["名簿から（そのまま）", "この盤で初登場（配給）", "名簿から＋兵を満タン", "離脱者も呼び戻す"]

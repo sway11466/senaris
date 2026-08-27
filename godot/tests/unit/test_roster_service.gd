@@ -1,5 +1,5 @@
 extends GutTest
-## 名簿（パーティ）の更新規則。仕様 → doc/gdd/map.md（名簿）
+## 名簿（パーティ）の更新規則。仕様 → doc/gdd/campaigns.md（名簿）
 ## 兵力ゼロ＝離脱で在籍は続く／未加入は載らない／捕虜でも加入、を固定する。
 
 func _catalog() -> Dictionary:
@@ -42,7 +42,7 @@ func test_named_member_lost_stays_enrolled_with_zero_troops() -> void:
 
 func test_member_not_sortied_is_left_untouched() -> void:
 	# 出番の無かった在籍者は名簿を書き換えない（別の隊として待機している＝失ってはいない）。
-	# これが無いと、隊を分けて戦う冒険譚で待機中の隊が全滅扱いになる。詳細 → doc/gdd/map.md 名簿の更新
+	# これが無いと、隊を分けて戦う冒険譚で待機中の隊が全滅扱いになる。詳細 → doc/gdd/campaigns.md 名簿の更新
 	var previous: Array = [
 		{ "type": "knight", "skin": "knight", "level": 3, "troops": 6, "max_troops": 8, "actor": "t3.van" },
 		{ "type": "elf", "skin": "elf", "level": 2, "troops": 5, "max_troops": 8, "actor": "t3.elf" },

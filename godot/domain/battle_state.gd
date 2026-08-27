@@ -195,7 +195,7 @@ func _increment_charges() -> void:
 var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録）
 var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
 ## actor -> true（この戦闘に投入された名前つきの駒。初期配置・拠点の控え・搭乗・増援のすべてを含む）。
-## クリア後の名簿更新がここを見て「出た者」と「出番の無かった者」を分ける。詳細 → doc/gdd/map.md 名簿の更新
+## クリア後の名簿更新がここを見て「出た者」と「出番の無かった者」を分ける。詳細 → doc/gdd/campaigns.md 名簿の更新
 var _sortied_actors := {}
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:

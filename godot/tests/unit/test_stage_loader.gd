@@ -104,7 +104,7 @@ func test_build_wires_ai_bases_as_squads() -> void:
 	assert_eq(s.base_at(Hex.offset_to_axial(1, 1)).squad_index, -1, "ai 無しの拠点はAI出撃しない")
 
 func test_roster_without_matching_actor_means_independent() -> void:
-	# 継承を宣言するフィールドは持たない＝突き合う actor が無ければ名簿は盤に出ない。詳細 → doc/gdd/map.md
+	# 継承を宣言するフィールドは持たない＝突き合う actor が無ければ名簿は盤に出ない。詳細 → doc/gdd/campaigns.md
 	var carried: Array = [{ "type": "knight", "troops": 5, "actor": "t.van" }]
 	var s := StageLoader.build({ "cols": 4, "rows": 4 }, {}, {}, carried)
 	assert_eq(s.units().size(), 0, "player に書かなければ名簿は盤に出ない")
