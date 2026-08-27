@@ -1,6 +1,6 @@
 extends GutTest
 ## 継承(carryover)の受け渡しフロー結線テスト。main.gd が勝利時／ステージ開始時に呼ぶ手順を
-## 同じ公開APIで再現し、S1勝利→保存→S2開始→配置 が繋がることを固定する。詳細 → doc/gdd/map.md
+## 同じ公開APIで再現し、S1勝利→保存→S2開始→配置 が繋がることを固定する。詳細 → doc/gdd/campaigns.md
 ## （main.gd 自体は Node2D/シーン依存で単体テスト外＝ここでロジック経路を担保する。）
 
 const PATH := "user://test_carryover_flow.json"

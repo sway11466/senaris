@@ -848,7 +848,7 @@ func set_actor(unit: Dictionary, name: String) -> void:
 		return
 	if name == "":
 		unit.erase("actor")
-		unit.erase("supply")  # 名簿との突き合わせは名前つきの駒だけの話（doc/gdd/map.md 配置）
+		unit.erase("supply")  # 名簿との突き合わせは名前つきの駒だけの話（doc/gdd/campaigns.md 配置）
 	else:
 		unit["actor"] = name
 	if old != "":

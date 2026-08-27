@@ -1,6 +1,6 @@
 extends GutTest
 ## player の駒と名簿の突き合わせ（actor なし＝配給／actor だけ＝名簿から／supply＝join・refill・revive）。
-## 仕様 → doc/gdd/map.md（配置）
+## 仕様 → doc/gdd/campaigns.md（配置）
 
 func _catalog() -> Dictionary:
 	return {

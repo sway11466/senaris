@@ -2,7 +2,7 @@
 
 盤に敷く地形の考え方。ルール（攻防・視線・移動）と見た目（絵・高さ）の受け持ちを決める。
 
-係数と移動コストの中身は [combat.md](combat.md) 地形効果／[movement.md](movement.md)、絵の作り方は [../art/terrain.md](../art/terrain.md)。
+攻防の計算式は [combat.md](combat.md) 地形効果、移動コストは [movement.md](movement.md)、絵の作り方は [../art/terrain.md](../art/terrain.md)。
 
 ---
 
@@ -16,6 +16,24 @@
 | スキン | [terrain_skin.csv](../../godot/data/terrain/terrain_skin.csv) | 見た目。絵・高さ・向きのばらし方・繋がり方 |
 
 マップに書く1文字が1タイプ。1つのタイプに複数のスキンがぶら下がり、ステージ側でマスごとに選べる。同じルールを別の舞台の絵で出せる＝尾根と花崗岩の尾根、平地と洞窟の床。
+
+### 地形タイプの性格
+
+種類は `terrain_type.csv` が正本。代表例:
+
+| id | 地形 | char | 性格 |
+|---|---|---|---|
+| plain | 平地 | `.` | 補正なし（基準） |
+| plateau | 台地 | `P` | 高所（攻守ともに有利） |
+| forest | 森 | `F` | 守り寄り（地上は移動重い） |
+| trap | 罠 | `T` | 攻め強化 |
+| mountain | 岩地 | `M` | 戦いにくい障害（移動重い） |
+| wall | 壁 | `#` | 全ユニット進入不可（ダンジョン） |
+| fort | 砦 | `O` | 拠点（守り強）。占領/出撃/回復は別レイヤー → [map.md](map.md) |
+
+係数と移動コストの実数はここに書かない（調整で乖離するため）。`terrain_type.csv` / `movement.csv` を見る。川は攻防とも補正なしで、飛行だけが進入できる（低い水面なので視線は遮らない）。橋はオブジェクトの地形タイプ（`=`）で、性能と移動は道相当（作りは [../art/terrain.md](../art/terrain.md) §3.7）。
+
+地形を増やす＝`terrain_type.csv` に1行＋`terrain_skin.csv` に1行＋`movement.csv` に1列（コード不変）。
 
 ---
 
