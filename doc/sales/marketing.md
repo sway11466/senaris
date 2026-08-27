@@ -48,8 +48,8 @@
 
 | 区分 | 比率 | 準備済みのサイズ |
 | --- | --- | --- |
-| ultrawide | 8:3 | 231×87・924×348（`keyvisual_s`） |
-| wide | 16:9 | 1376×768（`keyvisual_m`） |
+| ultrawide | 8:3 | 231×87・924×348（`keyvisual_ultrawide`） |
+| wide | 16:9 | 1376×768（`keyvisual_wide`） |
 | standard | 5:4 | |
 | tall | 縦長 | |
 
@@ -67,7 +67,7 @@
 
 #### wide
 
-竜と対峙する一行を描き、ロゴを重ねる。竜はまだ吐いておらず、弓と魔法が飛んでいる瞬間で、大小の差が一目で読める。対空できるのは弓兵・魔法兵・飛行なので（[../gdd/combat.md](../gdd/combat.md)）、撃つのはエルフとウィザードだけ。前に立つ歩兵と隅の斥候は撃たない。画題と構図の指示は `godot/assets/promo-src/keyvisual/keyvisual_m_prompt.txt`。
+竜と対峙する一行を描き、ロゴを重ねる。竜はまだ吐いておらず、弓と魔法が飛んでいる瞬間で、大小の差が一目で読める。対空できるのは弓兵・魔法兵・飛行なので（[../gdd/combat.md](../gdd/combat.md)）、撃つのはエルフとウィザードだけ。前に立つ歩兵と隅の斥候は撃たない。画題と構図の指示は `godot/assets/promo-src/keyvisual/keyvisual_wide_prompt.txt`。
 
 #### standard
 

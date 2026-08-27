@@ -1,11 +1,11 @@
 """Senaris のキービジュアルを組む。
 
-段によって組み方が違う。
-- S … 素材（ロゴの盤常設版と赤竜のユニット立ち絵）を地の上に並べて作る。
+区分（縦横比）によって組み方が違う → doc/sales/marketing.md のキービジュアル。
+- ultrawide … 素材（ロゴの盤常設版と赤竜のユニット立ち絵）を地の上に並べて作る。
       4倍で組んでから縮小する＝縮小のたびに輪郭がなまらないようにするため。
-      寸法は SPECS に持つ。段を増やすときはここに足す。
-- M … 生成した1枚絵（keyvisual_m_01_raw.jpg）にフル版ロゴを重ねるだけ。
-      寸法は M_SPEC に持つ。
+      寸法は SPECS に持つ。区分を増やすときはここに足す。
+- wide … 生成した1枚絵（keyvisual_wide_01_raw.jpg）にフル版ロゴを重ねるだけ。
+      寸法は WIDE_SPEC に持つ。
 
 どちらも既にある絵をそのまま置く。絵そのものには手を入れない。
 
@@ -28,13 +28,13 @@ BG_RIGHT = (32, 29, 28)
 SPECS = {
     # size: 枠の寸法, ロゴの高さ（枠に対する比）, ロゴの左マージン,
     #       竜の高さ, 竜の左上（枠の左上から。負なら枠の外）
-    "s": dict(frame=(231, 87), logo_h=0.60, logo_x=8, dragon_h=204, dragon_xy=(110, -10)),
+    "ultrawide": dict(frame=(231, 87), logo_h=0.60, logo_x=8, dragon_h=204, dragon_xy=(110, -10)),
 }
 
-# M: 元絵, ロゴの幅（元絵の幅に対する比）, ロゴの左上（元絵の左上からの px）。
-# 元絵は左40%・上半分を空けて生成してある（keyvisual_m_prompt.txt）＝そこに置く。
-M_SPEC = dict(
-    src="assets/promo-src/keyvisual/keyvisual_m_01_raw.jpg",
+# wide: 元絵, ロゴの幅（元絵の幅に対する比）, ロゴの左上（元絵の左上からの px）。
+# 元絵は左40%・上半分を空けて生成してある（keyvisual_wide_prompt.txt）＝そこに置く。
+WIDE_SPEC = dict(
+    src="assets/promo-src/keyvisual/keyvisual_wide_01_raw.jpg",
     logo_w=0.36,
     logo_xy=(65, 50),
 )
@@ -58,8 +58,8 @@ def _fit_w(im, w):
     return im.resize((w, max(1, round(im.height * w / im.width))), Image.LANCZOS)
 
 
-def build(size):
-    spec = SPECS[size]
+def build(name):
+    spec = SPECS[name]
     fw, fh = spec["frame"]
     w, h = fw * SS, fh * SS
 
@@ -75,23 +75,23 @@ def build(size):
     l = _fit_h(logo, int(h * spec["logo_h"]))
     im.alpha_composite(l, (spec["logo_x"] * SS, (h - l.height) // 2))
 
-    im.convert("RGB").save("%s/keyvisual_%s_4x.png" % (OUT_DIR, size))
+    im.convert("RGB").save("%s/keyvisual_%s_4x.png" % (OUT_DIR, name))
     im.resize((fw, fh), Image.LANCZOS).convert("RGB").save(
-        "%s/keyvisual_%s.png" % (OUT_DIR, size))
+        "%s/keyvisual_%s.png" % (OUT_DIR, name))
 
 
-def build_m():
-    im = Image.open(M_SPEC["src"]).convert("RGBA")
+def build_wide():
+    im = Image.open(WIDE_SPEC["src"]).convert("RGBA")
 
     logo = Image.open(LOGO_FULL_PNG).convert("RGBA")
     logo = logo.crop(logo.getbbox())  # 余白を落として、寸法をロゴの実体で測る
-    logo = _fit_w(logo, round(im.width * M_SPEC["logo_w"]))
-    im.alpha_composite(logo, M_SPEC["logo_xy"])
+    logo = _fit_w(logo, round(im.width * WIDE_SPEC["logo_w"]))
+    im.alpha_composite(logo, WIDE_SPEC["logo_xy"])
 
-    im.convert("RGB").save("%s/keyvisual_m.png" % OUT_DIR)
+    im.convert("RGB").save("%s/keyvisual_wide.png" % OUT_DIR)
 
 
 if __name__ == "__main__":
-    for size in SPECS:
-        build(size)
-    build_m()
+    for name in SPECS:
+        build(name)
+    build_wide()
