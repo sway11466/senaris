@@ -150,21 +150,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 - **攻撃・防御の両方に地形係数を持たせる**（攻防別の2係数）。罠地形＝攻撃強化、穴ぐら＝防御強化…のように地形の性格づけで戦略を広げる狙い。
 - 各地形が `地形(攻)` と `地形(防)` を持つ。**ユニットが立っているヘックスの地形**が効く（攻撃側は自分の足元の地形(攻)、防御側は自分の足元の地形(防)）。
 
-**地形はデータ駆動**。正本 `godot/data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`godot/data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形の考え方（足場とオブジェクト・スキン）は [terrain.md](terrain.md)。**地形を増やす＝terrain_type.csv に1行＋terrain_skin.csv に1行＋movement.csv に1列**（コード不変）。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
-
-**地形の性格**（種類は `terrain_type.csv` が正本）。代表例:
-
-| id | 地形 | char | 性格 |
-|---|---|---|---|
-| plain | 平地 | `.` | 補正なし（基準） |
-| plateau | 台地 | `P` | 高所（攻守ともに有利） |
-| forest | 森 | `F` | 守り寄り（地上は移動重い） |
-| trap | 罠 | `T` | 攻め強化 |
-| mountain | 岩地 | `M` | 戦いにくい障害（移動重い） |
-| wall | 壁 | `#` | 全ユニット進入不可（ダンジョン） |
-| fort | 砦 | `O` | 拠点（守り強）。占領/出撃/回復は別レイヤー → [map.md](map.md) |
-
-係数と移動コストの実数はここに書かない（調整で乖離するため）。`terrain_type.csv` / `movement.csv` を見る。川は攻防とも補正なしで、飛行だけが進入できる（低い水面なので視線は遮らない）。橋はオブジェクトの地形タイプ（`=`）で、性能と移動は道相当（作りは [../art/terrain.md](../art/terrain.md) §3.7）。
+**地形はデータ駆動**。正本 `godot/data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`godot/data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形タイプの性格（攻め寄り・守り寄り・障害…）と代表例は [terrain.md](terrain.md) の「地形タイプの性格」が正本。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
 
 - **拠点（fort/castle）は地形としては「防御の強いマス」**。占領・出撃（控えを出す）・回復（休憩）の挙動は地形補正とは別レイヤーで、`godot/domain/capture/`＋`BattleState` が担う（[map.md](map.md) 拠点・占領）。
 

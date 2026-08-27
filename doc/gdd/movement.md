@@ -29,7 +29,7 @@
   - **foot**（地上・基準）／**flight**（飛行・地形をほぼ無視）／**light_foot**（軽歩行・斥候＝岩地や城壁も越える）
   - **forest_stride**（森を低コスト＝エルフ）／**brush_stride**（茂みを低コスト＝ハーフリング）／**mountain_stride**（岩地を低コスト＝ドワーフ）／**stationary**（移動0＝バリスタ/バリケード）
 
-- 地形は **データ駆動**（[terrain.md](terrain.md)／[combat.md](combat.md) 地形効果）。地形を増やす＝`terrain_type.csv` に1行＋この movement.csv に1列。
+- 地形は **データ駆動**（[terrain.md](terrain.md)）。地形を増やす手順は terrain.md「地形タイプの性格」を参照。
 
 ---
 
