@@ -38,8 +38,9 @@
 - [doc/gdd/units.md](doc/gdd/units.md) — ユニット性能設計・対応表
 - [doc/gdd/movement.md](doc/gdd/movement.md) — 移動タイプ・地形コスト・reachable
 - [doc/gdd/terrain.md](doc/gdd/terrain.md) — 地形（タイプとスキン・足場とオブジェクト・盤の高さ）
-- [doc/gdd/map.md](doc/gdd/map.md) — 拠点・占領・ステージ・用語
+- [doc/gdd/map.md](doc/gdd/map.md) — 拠点・占領・ステージデータ・ターン
 - [doc/gdd/map_patterns.md](doc/gdd/map_patterns.md) — マップの型（パターンカタログ）・難易度の表し方・ステージ一覧
+- [doc/gdd/campaigns.md](doc/gdd/campaigns.md) — 冒険譚（単位と用語・ステージの束ね方・戦力供給モデル＝独立／継承・名簿）
 - [doc/gdd/title.md](doc/gdd/title.md) — タイトル画面（入店の動画・店内のメニュー・項目と行き先）
 - [doc/gdd/stage_select.md](doc/gdd/stage_select.md) — ステージセレクト（カードUI・解放条件・クリア記録・冒険譚マニフェスト）
 - [doc/gdd/settings.md](doc/gdd/settings.md) — 設定画面（開き口・見せ方・言語の選び方）
@@ -54,7 +55,6 @@
 
 - [doc/campaign/roadmap.md](doc/campaign/roadmap.md) — キャンペーン全体の難易度帯・制作状況（一覧・入口）
 - [doc/campaign/authoring.md](doc/campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
-- [doc/campaign/supply.md](doc/campaign/supply.md) — 戦力供給モデル（独立／継承・名簿・配置・隊分け）
 - [doc/campaign/tutorial1-goblin-raid.md](doc/campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
 - [doc/campaign/tutorial2-undead-rush.md](doc/campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッドの群れ」全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
 - [doc/campaign/tutorial3-dragon-hunt.md](doc/campaign/tutorial3-dragon-hunt.md) — チュートリアル３「竜狩り」（飛行・対空／継承carryover／中立拠点／回復拠点・泉／ボス＝ドラゴン）
