@@ -179,6 +179,8 @@ SUBJECT（生成プロンプト本体）の置き場：
 
 カタログに載せるのは2体以上で使い回す POSE だけ。1体しか使わない姿勢（乗り物のように、その駒の形に固有のもの）はカタログに置かず、そのユニットの `{skin_id}_combat_prompt.txt` の先頭に直接書く。文面が doc と txt の両方にあると、片方だけ直したときにずれる。
 
+STYLE も同じ扱いにする。1体だけ別の STYLE で出すユニットは、本 doc の STYLE を書き換えず、**その全文をそのユニットの `{skin_id}_combat_prompt.txt` の先頭に置く**（STYLE → POSE → SUBJECT の順。生成時はそのファイルだけを貼る）。ファイルが STYLE 行で始まっていれば差し替え、`POSE` 行で始まっていれば本 doc の STYLE を頭に付ける、という読み分けになる。共有をやめる判断を doc 側でやると、他の全ユニットの絵を巻き込む。
+
 STYLE（共通・固定・ポーズ非依存）:
 ```
 STYLE: A single fantasy tactics-game battle piece of ONE unit, drawn in the
