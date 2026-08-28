@@ -14,14 +14,6 @@
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### bug-3
-
-**終了時に盤の資源が解放されない**
-- ゴール：ステージを開いたあとゲームを終了しても、解放されなかった資源の報告が出ない。
-- 背景：ステージを開いてからゲームを終了すると、GL バッファの leak と `RID allocations of type 'struct RendererSceneCull::Instance' were leaked at exit` が出る。終了時に残っている資源をエンジンが数えて報告するもので、リリースビルドでも無条件で出る（`drivers/gles3/storage/utilities.cpp` の `~Utilities`、`core/templates/rid_owner.h`）。`--quit-after` で終わらせた場合は出ないので、ゲーム側の終了経路で盤の3Dインスタンスが残っている。プリセットが `debug/export_console_wrapper=0` で GUI として起動するため、コンソール越しに起動しない限り目に入らない。
-- 対応：盤の3Dノードが終了時にどう畳まれるかを追い、残る原因を特定する。
-- 該当：`godot/presentation/board/hex_board_3d.gd`。
-
 ## 機能追加
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
