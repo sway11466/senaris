@@ -85,6 +85,7 @@
 - [doc/art/menu.md](doc/art/menu.md) — メニュー画面の材質（木壁・依頼ボード・羊皮紙・ナインパッチ）
 - [doc/art/ui.md](doc/art/ui.md) — UIアイコンの方針（ICON STYLE・額・保管と書き出し）
 - [doc/art/logo.md](doc/art/logo.md) — ロゴ（モチーフ・配色・寸法・作り方）
+- [doc/art/icon.md](doc/art/icon.md) — アプリアイコン（寸法で使い分ける2つの紋章・保管と書き出し・プロジェクトへの指定）
 - [doc/art/overview.md](doc/art/overview.md) — 画像スロット仕様（`map`/`combat`）
 
 ### サウンド — `audio/`（Audio Bible）

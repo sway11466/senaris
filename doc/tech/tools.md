@@ -37,10 +37,12 @@
 | `gen_terrain_tiles.gd` | 地形タイルのプレースホルダ（ベタ塗りヘックス）を生成する | `godot --headless --script res://tools/gen_terrain_tiles.gd` | [../art/terrain.md](../art/terrain.md) |
 | `logo/trace_sword.py` | 剣の黒シルエット PNG を SVG のパスに変換する（溝・柄頭の輪・巻きの隙間は穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_sword.py` | [../art/logo.md](../art/logo.md) |
 | `logo/trace_staff.py` | 杖の黒シルエット画像を SVG のパスに変換する（渦の抜けは穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_staff.py` | [../art/logo.md](../art/logo.md) |
-| `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣と杖をクロスさせて刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版と、開発元名を足した起動スプラッシュ版を書き出す | `uv run --no-project --with fonttools python tools/logo/build_logo.py` | [../art/logo.md](../art/logo.md) |
+| `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣と杖をクロスさせて刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版、開発元名を足した起動スプラッシュ版、文字を落としたアプリアイコン版を書き出す | `uv run --no-project --with fonttools python tools/logo/build_logo.py` | [../art/logo.md](../art/logo.md) |
 | `marketing/build_lineup.py` | ユニットの戦闘立ち絵を横一列に向かい合わせで並べたPNGを組む（左＝プレイヤー陣営＝右向き・右＝敵陣営＝左向き。反転しない） | `uv run --no-project --with pillow python godot/tools/marketing/build_lineup.py --left <skin,…> --right <skin,…> -o <png>` | [../sales/marketing.md](../sales/marketing.md) |
 | `keyvisual/build_keyvisual.py` | キービジュアルを組む。小＝ロゴの盤常設版と赤竜の立ち絵を地の上に置く（4倍で組んでから縮小、寸法は `SPECS`）／中＝生成した1枚絵にフル版ロゴを重ねる（位置は `M_SPEC`。ロゴの PNG は `rasterize_svg.gd` で SVG から焼いた中間物） | `uv run --no-project --with pillow python tools/keyvisual/build_keyvisual.py` | [../sales/marketing.md](../sales/marketing.md) |
 | `keyvisual/build_wanted_card.py` | 手配書の貼り紙の絵（card スロット）を組む。ユニットのマスター絵から顔を切り、`WANTED` を手前に重ねる（紙は敷かない＝背景は透明。下の羊皮紙が地になる） | `uv run --no-project --with pillow python godot/tools/keyvisual/build_wanted_card.py --skin <skin_id> --src <units-src の陣営フォルダ> -o <png>` | [../art/keyvisual.md](../art/keyvisual.md) |
+| `logo/build_icon.ps1` | アプリアイコンを焼く（`build_icon.gd` で各寸法の PNG にし、ImageMagick で `.ico` に束ねる） | `powershell -ExecutionPolicy Bypass -File godot	ools\logouild_icon.ps1` | [../art/icon.md](../art/icon.md) |
+| `logo/build_icon.gd` | アイコンの SVG を各寸法ちょうどの PNG に焼く（48px 以下は1枚版・64px 以上は7枚版）。見え方の確認用に暗い地と明るい地へ並べた1枚も出す | `godot --headless --path godot --script res://tools/logo/build_icon.gd` | [../art/icon.md](../art/icon.md) |
 | `rasterize_svg.gd` | SVG を PNG にする（Godot 内蔵の ThorVG。マスクも描ける） | `godot --headless --script res://tools/rasterize_svg.gd -- <in.svg> <out.png> [倍率]` | [../art/menu.md](../art/menu.md) |
 
 ループ長は `gen_bgm.ps1` が `.mscz` から算出する（小節数×1小節の拍数÷テンポ）。繰り返し記号やアウフタクトのある譜面はこの式が当たらないので、その時だけ `-LoopSec` で秒数を渡す。

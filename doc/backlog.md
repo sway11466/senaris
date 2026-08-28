@@ -96,17 +96,6 @@
 - 該当：`godot/infrastructure/platform/`（GodotSteam の隔離・新規）・`godot/application/campaign_progress.gd`（完走判定・ランク記録）・`godot/infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（parking lot「Steam 配布の段取り」と連動）。前提＝ランクの評価式（[rank.md](gdd/rank.md)）は実装済み。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
 
-### feature-45
-
-**アプリアイコンの差し替え**
-
-- 背景：ウィンドウ／タスクバーのアイコン（`godot/application/config/icon`）が未設定で Godot のアイコンのまま。Godot は MIT でロゴの表示義務が無いため、フォークやカスタムビルドは不要＝プロジェクト設定と画像の差し替えだけで済む。起動スプラッシュは差し替え済み（2026-08-13。[menu.md](art/menu.md) §6）。
-- 対応：文字を落とした紋章だけの版を `godot/tools/logo/build_logo.py` に足し、PNG へ焼いて `godot/application/config/icon` に指定する。変換は `godot/tools/rasterize_svg.gd`、`.ico`（16/24/32/48/64/128/256 を1ファイルに束ねる）は ImageMagick で組む。あわせて Windows export preset の exe アイコンも差し替える。
-- 小さいアイコンはヘックス1枚に剣が刺さっているだけの版にする。7枚のクラスタは 32px 以下で塊に潰れる。どの寸法から切り替えるかは焼いて見て決める。
-- 紋章版は、タイルから文字を抜いているマスクを剣と杖だけに絞って組み直す。文字のレイヤーを消すだけだと、タイルに文字型の切り欠きが残る。
-- 紋章は横 500 に対して縦 約530（剣と杖が上に伸びる分）で正方形ではない。左右に余白を足すか、アイコン版だけ武器を短くするかを選ぶ。
-- 該当：`project.godot`（`godot/application/config/icon`）・`godot/export_presets.cfg`（exe アイコンの `application/icon`）・`godot/assets/`（アイコン画像）。着手の引き金＝配布ビルドを作るとき。
-
 ### feature-46
 
 **タイトル画面の残り（クレジット画面）**
@@ -178,7 +167,7 @@
   6. 動画（1本目＝プレイ映像、2本目＝ティザー。feature-51）
 - Steamworks への登録（$100）は思ったより前に来る可能性がある。登録しないとページの入力欄が開かないため、素材を揃えてから登録するより、早めに登録して実際の入力欄を見たほうが作るものが具体的になる。[monetization.md](sales/monetization.md) の「体験版を先に出して出荷工程をリハーサルする」方針とも合う。前提＝支払い手段と本人確認、公開までに税務書類と銀行口座（feature-27 の開発元の項）。
 - カプセルの検討結果（2026-08-12）：手持ちのドラゴンのキービジュアルを 460×215 に切って確認した。全幅を使って上下を16%落とす形なら構図がそのまま生きる。ただし小カプセル（231×87）まで縮めると読めるのは竜と炎だけで人物は潰れる＝5種を同じ絵から切り出すにしても、寄せ方は枠ごとに変えてよい。カプセル専用に絵を起こす場合は、最初から 460:215 の比で生成し、ロゴを置く余白（上部の空）を空けた構図にする。
-- 該当：`doc/sales/steam_page.md`・`doc/sales/marketing.md`・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-45（アプリアイコン）・feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`doc/sales/steam_page.md`・`doc/sales/marketing.md`・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-55
 
