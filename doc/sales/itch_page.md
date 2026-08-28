@@ -30,14 +30,14 @@ itch のカバーは一覧でも大きく出るため細部が潰れず、実画
 
 ### 切り出しのレシピ
 
-キービジュアルの standard（[marketing.md](marketing.md)）を当てる。
+キービジュアルの standard（[marketing.md](marketing.md)）から切る。standard は 4:3 で作ってあるので、左右を削って 5:4 にしてから縮める。
 
-- 左端から 968×768 を切り、630×500 へ縮める。968:768 が 630:500 と同じ比なので、縦は落とさず横だけを詰める。
-- 出力は `channels/itch/cover_630x500.png`。中間ファイルを経由せず、切り出しと縮小を一度で通す。
-- 右の 408px が落ちる。竜は横幅 639px のうち 382px が枠外になり、頭・首・前脚が残る。ロゴ（左端 x=65）と一行（x 125–730）は無傷。
-- 右へずらせるのは 65px まで。それを超えるとロゴが切れる。ずらしても竜が余分に残るのは 65px で、半分は落ちる。
+```
+uv run --no-project --with pillow python -c "from PIL import Image; im=Image.open('godot/assets/promo-src/keyvisual/keyvisual_standard_03_master.png'); W,H=im.size; w=int(H*630/500); x=(W-w)//2; im.crop((x,0,x+w,H)).resize((630,500), Image.LANCZOS).save('channels/itch/cover_630x500.png')"
+```
 
-元絵を描き直したらこの手順でやり直す。
+- 1200×896 なら 1128×896 を切る＝左右36pxずつ落ちる。ロゴは中央、人物は端から離してあるので無傷。
+- 元絵を差し替えたらこの手順でやり直す。
 
 ## ページの見た目（Theme）
 
