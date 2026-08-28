@@ -29,3 +29,6 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+
+# pck 暗号化の鍵が入る。エディタがエクスポートダイアログを開くと勝手に作る（doc/tech/build.md）
+godot/export_credentials.cfg
