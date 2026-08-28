@@ -1,0 +1,11 @@
+SUBJECT: Cover art for the bounty contract "Warrant: The Goblin Lord" — a standalone challenge map with no story. The picture is nothing but GOBLINS: a horde charging straight at the viewer, packed from the far distance all the way into the immediate foreground. NO heroes, NO defenders, NO human soldiers anywhere in the image — the enemy is the whole subject.
+
+Broad daylight under a clear pale-blue sky, on a dry scrub road running between low brush and grass, dust kicked up by hundreds of feet. The camera is low, at the height of a charging goblin, looking down the road into the oncoming mass.
+
+Build the depth in layers:
+- Nearest, cropped by the bottom and side edges of the frame, one or two GOBLIN grunts almost on top of the viewer, mid-stride, blades raised — sickly olive-green skin, bald heads, long pointed ears, big sly eyes and snaggly teeth, patchwork brown scrap leather and rough rags, rusty scavenged blades. Faces clear and readable, whooping and grinning.
+- Just behind them, a dense front rank at full charge: more goblin grunts shoulder to shoulder with heavier HOBGOBLIN bruisers pushing through (the SAME goblin face and the same crude scrap gear, just bigger and thicker — NOT orcs, NO helmets, NO armor sets), and lean GOBLIN ARCHERS on the flanks with crude bent-wood short bows.
+- Behind that, rank after rank filling the road and spilling into the brush on both sides, growing smaller and looser until the far ranks blur into a green tide under the dust — the number should feel uncountable.
+- Far off on the ridge at the end of the road, a rough goblin stockade of stakes and scrap timber with crude banners, the place they came from.
+
+Mood and palette: bright daylight and dry earth tones; muted olive-green skin and rust-brown scrap against pale sky and tan road, with dust softening the distance. Cheerfully vicious, loud and unstoppable — a mob that already thinks it has won. No gore. Fill the whole frame edge to edge with the scene (no empty reserved corner).
