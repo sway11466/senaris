@@ -47,10 +47,14 @@ def draw_text(text: str) -> Image.Image:
 
 
 def build(master: Path, crop: tuple[int, int, int, int], head_w: int, text: str) -> Image.Image:
-    scale = head_w / (EARS[1] - EARS[0])
+    scale = head_w / (EARS[1] - EARS[0])  # 耳の左右は顔の大きさを決めるためだけに使う
     face = Image.open(master).convert("RGBA").crop(crop)
     face = face.resize((round(face.width * scale), round(face.height * scale)), Image.LANCZOS)
-    x = round(W / 2 - (EARS[0] + EARS[1]) / 2 * scale + crop[0] * scale)
+
+    # 横は絵の中身の幅で中心を取る。顔（耳の左右）だけで測ると、右へ張り出した
+    # 得物のぶん絵が右に寄って見えるため。
+    box = face.getbbox()
+    x = round(W / 2 - (box[0] + box[2]) / 2)
 
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     img.alpha_composite(face, (x, 30))  # 冠の先を上端の近くに置き、下端は絵の外へ流す
