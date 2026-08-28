@@ -59,6 +59,15 @@ around it. Wide 4:3 composition.
 - 追加スロット（cover 以外の kind）：cover と同じ二層・同じ ILLUST STYLE（§2）で作り、-src ファイル名に kind トークンを前置して cover と共存させる（ユニットの map=既定／combat=トークン、と同じ思想）。単一絵なら変種letter `_a` は省く。`CampaignCatalog` は `{id}_{kind}.png` を規約解決するので、絵を置くだけで有効・無ければスキップ。
   - `victory`＝キャンペーン完走（最終ステージ勝利）で出す扉絵（[../gdd/stage_select.md](../gdd/stage_select.md) 戦闘後フロー）。SUBJECT `{id}_victory_prompt.txt` → `{id}_victory_01_raw.png` →（透かし除去）`{id}_victory_02_dew.png` → ゲーム用 `godot/assets/campaign/{id}/{id}_victory.png`。
 
+### 手配書の扉絵
+
+賞金稼ぎの冒険譚は、生成せずに組む。ユニットのマスター絵から顔を切り、`WANTED` の字を重ねる＝賞金首の手配書に見立てる。盤に出る駒と同じ顔が貼り出されるので、誰を狩りに行くのかが一目で通じる。
+
+- 紙は敷かない＝背景は透明で出す。貼り紙も大パネルも下に羊皮紙を持っているため、絵にも紙を持たせると紙の上に紙になる。
+- 字は絵の手前に置く。顔を紙の幅いっぱいまで大きくすると冠や兜が字の高さまで届くので、重ねる前提で組む（重ねずに収めると顔が半分の大きさまでしか取れない）。
+- 字は `godot/assets/fonts/IMFellEnglish-Regular.ttf`（ゲーム内で使っている活版風の書体）。絵に焼くので翻訳されない＝飾りと割り切る。
+- 組むのは [build_wanted_cover.py](../../godot/tools/keyvisual/build_wanted_cover.py)。
+
 ### 陣形スキルの絵
 
 陣形スキルの絵は2種類ある（[../gdd/formations.md](../gdd/formations.md) 発動の演出）。発動で挟む1枚絵のカットインと、カットインが明けたあと盤の駒に落ちる着弾エフェクト。冒険譚ではなくレシピに紐づくので、冒険譚の絵とは別系統に置く。どちらも同じフォルダ・同じ `{recipe_id}` 起点で、着弾側に `_impact` が付く。
