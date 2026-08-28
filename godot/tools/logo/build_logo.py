@@ -110,12 +110,12 @@ def to_logo(p):
     return (p[0] * SCALE, (p[1] - ORIGIN_Y) * SCALE)
 
 
-def tile_polys(shrink):
-    """奥から手前の順に (色の位置t, 頂点列) を返す。"""
+def tile_polys(shrink, centers=CENTERS):
+    """奥から手前の順に (色の位置t, 頂点列) を返す。centers で描く枚数を絞れる。"""
     xs = [c[0] for c in CENTERS]
     lo, hi = min(xs), max(xs)
     out = []
-    for cx, cz in sorted(CENTERS, key=lambda c: -c[1]):
+    for cx, cz in sorted(centers, key=lambda c: -c[1]):
         pts = []
         for k in range(6):
             a = math.radians(60.0 * k)
@@ -174,78 +174,124 @@ def wordmark(gid, items, scale, target_w, baseline, fill, left=None):
     return out
 
 
-def build(mode, shrink=SHRINK, dev=False, px_w=None):
+def build(mode, shrink=SHRINK, dev=False, px_w=None, word=True, centers=CENTERS,
+          staff=True, weapon_scale=1.0, sweep="cluster", tile_fill=None, square=False,
+          entry_dx=None, tilt_deg=TILT, steel=None):
+    """ロゴを組む。word=False で文字を落とした紋章だけの版（アプリアイコン用）。
+
+    centers に中央1枚だけを渡し staff=False にすると、小さい寸法用の
+    「ヘックス1枚に剣が刺さっただけ」の版になる。weapon_scale は武器の長さの倍率、
+    square=True は viewBox を短いほうの辺に余白を足して正方形へ広げる。
+    """
     pal = PALETTE[mode]
     flat = pal.get("flat")
-    tiles = tile_polys(shrink)
-    sword_d, sword_tf = weapon_bits(SWORD_SVG, SWORD_TOTAL, SWORD_VISIBLE, -ENTRY_DX, +TILT)
-    staff_d, staff_tf = weapon_bits(STAFF_SVG, STAFF_TOTAL, STAFF_VISIBLE, +ENTRY_DX, -TILT)
+    steel = steel or pal["steel"]
+    tiles = tile_polys(shrink, centers)
+    if entry_dx is None:
+        entry_dx = ENTRY_DX if staff else 0.0
+    sword_d, sword_tf = weapon_bits(SWORD_SVG, SWORD_TOTAL * weapon_scale,
+                                    SWORD_VISIBLE * weapon_scale, -entry_dx, +tilt_deg)
+    staff_d, staff_tf = weapon_bits(STAFF_SVG, STAFF_TOTAL * weapon_scale,
+                                    STAFF_VISIBLE * weapon_scale, +entry_dx, -tilt_deg)
     glyphs, gscale, cap_h, emblem_dx = glyph_paths(WORD, WORD_W, TRACK, ALIGN_TO)
+    emblem_dy = EMBLEM_DY
+    if not word:
+        emblem_dx, emblem_dy = 0.0, 0.0
 
-    top = min(CLUSTER_TOP, -SWORD_VISIBLE, -STAFF_VISIBLE)
+    txs = [float(v.split(",")[0]) for _t, pts in tiles for v in pts.split()]
+    tys = [float(v.split(",")[1]) for _t, pts in tiles for v in pts.split()]
+    tilt = math.radians(tilt_deg)
+    tips = [(-entry_dx + SWORD_VISIBLE * weapon_scale * math.sin(tilt),
+             ENTRY_DY - SWORD_VISIBLE * weapon_scale * math.cos(tilt))]
+    if staff:
+        tips.append((entry_dx - STAFF_VISIBLE * weapon_scale * math.sin(tilt),
+                     ENTRY_DY - STAFF_VISIBLE * weapon_scale * math.cos(tilt)))
+
     word_top = CLUSTER_BOTTOM - cap_h * OVERLAP
     word_bottom = word_top + cap_h
-    half_w = max(CLUSTER_W / 2.0, WORD_W / 2.0)
-    pad = 24.0
-    bottom = word_bottom
     if dev:
         dev_glyphs, dscale, _dcap, _dx = glyph_paths(DEV_WORD, DEV_W, DEV_TRACK)
         dev_baseline = word_bottom + DEV_GAP
-        bottom = dev_baseline  # craftkobo に下へ出る字は無いのでベースラインが下端
-    vb = (-half_w - pad, top - pad, 2 * (half_w + pad), (bottom - top) + 2 * pad)
+    if word:
+        top = min(CLUSTER_TOP, -SWORD_VISIBLE, -STAFF_VISIBLE)
+        # craftkobo に下へ出る字は無いのでベースラインが下端
+        bottom = dev_baseline if dev else word_bottom
+        half_w = max(CLUSTER_W / 2.0, WORD_W / 2.0)
+        left, right = -half_w, half_w
+        pad = 24.0
+    else:
+        top = min(min(tys), min(t[1] for t in tips))
+        bottom = max(tys)
+        left = min(min(txs), min(t[0] for t in tips))
+        right = max(max(txs), max(t[0] for t in tips))
+        pad = 12.0
+    vb = [left - pad, top - pad, (right - left) + 2 * pad, (bottom - top) + 2 * pad]
+    if square:
+        side = max(vb[2], vb[3])
+        vb = [vb[0] - (side - vb[2]) / 2.0, vb[1] - (side - vb[3]) / 2.0, side, side]
+    vb = tuple(vb)
 
     big = 4000.0
     m = math.tan(math.radians(GROUND_SLANT))
     parts = []
-    for cid, x0, mi in (("ground_l", -ENTRY_DX, +m), ("ground_r", +ENTRY_DX, -m)):
+    for cid, x0, mi in (("ground_l", -entry_dx, +m), ("ground_r", +entry_dx, -m)):
         parts.append('<clipPath id="%s"><polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f"/></clipPath>'
                      % (cid, -big, ENTRY_DY + (-big - x0) * mi, big, ENTRY_DY + (big - x0) * mi,
                         big, -big, -big, -big))
-    if not flat:
+    if not flat and not tile_fill:
         lo, mid, hi = pal["ramp"]
+        # グラデはクラスタ全体を横切る。1枚版で sweep="tile" にすると、その1枚を横切る
+        gx = (min(txs), max(txs)) if sweep == "tile" else (-CLUSTER_W / 2.0, CLUSTER_W / 2.0)
         parts.append('<linearGradient id="sweep" gradientUnits="userSpaceOnUse" x1="%.1f" y1="0" x2="%.1f" y2="0">'
-                     % (-CLUSTER_W / 2.0, CLUSTER_W / 2.0))
+                     % gx)
         for off, c in ((0.0, lo), (1.0, hi)):
             parts.append('<stop offset="%.2f" stop-color="#%02x%02x%02x"/>' % ((off,) + c))
         parts.append("</linearGradient>")
     parts.append('<mask id="cut" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
     parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
-    for d, tf, cid in ((sword_d, sword_tf, "ground_l"), (staff_d, staff_tf, "ground_r")):
+    cuts = [(sword_d, sword_tf, "ground_l")]
+    if staff:
+        cuts.append((staff_d, staff_tf, "ground_r"))
+    for d, tf, cid in cuts:
         parts.append('<g clip-path="url(#%s)"><path d="%s" transform="%s" fill="#000" stroke="#000"'
                      ' stroke-width="%.1f" stroke-linejoin="round"/></g>'
                      % (cid, d, tf, SWORD_HALO if flat else LETTER_HALO))
-    # マスクはタイル群の座標系（紋章の移動が効いた後）で解釈されるので、その分を打ち消す
-    parts.append('<g transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="#000" stroke="#000"'
-                 ' stroke-width="%.1f" stroke-linejoin="round">'
-                 % (-WORD_W / 2.0 - emblem_dx, word_bottom - EMBLEM_DY, gscale, -gscale,
-                    LETTER_HALO / gscale))
-    for cmds, ox in glyphs:
-        parts.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
-    parts.append("</g>")
+    if word:
+        # マスクはタイル群の座標系（紋章の移動が効いた後）で解釈されるので、その分を打ち消す
+        parts.append('<g transform="translate(%.2f,%.2f) scale(%.5f,%.5f)" fill="#000" stroke="#000"'
+                     ' stroke-width="%.1f" stroke-linejoin="round">'
+                     % (-WORD_W / 2.0 - emblem_dx, word_bottom - EMBLEM_DY, gscale, -gscale,
+                        LETTER_HALO / gscale))
+        for cmds, ox in glyphs:
+            parts.append('<path d="%s" transform="translate(%.1f,0)"/>' % (cmds, ox))
+        parts.append("</g>")
     parts.append("</mask>")
-    # 手前の剣を、奥の杖から抜くマスク（重なりの分離＝文字の抜きと同じ流儀）
-    parts.append('<mask id="front" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
-    parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
-    parts.append('<path d="%s" transform="%s" fill="#000" stroke="#000" stroke-width="%.1f"'
-                 ' stroke-linejoin="round"/>' % (sword_d, sword_tf, SWORD_HALO if flat else WEAPON_HALO))
-    parts.append("</mask>")
-    parts.append('<g id="emblem" transform="translate(%.2f,%.2f)">' % (emblem_dx, EMBLEM_DY))
+    if staff:
+        # 手前の剣を、奥の杖から抜くマスク（重なりの分離＝文字の抜きと同じ流儀）
+        parts.append('<mask id="front" maskUnits="userSpaceOnUse" x="%.1f" y="%.1f" width="%.1f" height="%.1f">' % vb)
+        parts.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fff"/>' % vb)
+        parts.append('<path d="%s" transform="%s" fill="#000" stroke="#000" stroke-width="%.1f"'
+                     ' stroke-linejoin="round"/>' % (sword_d, sword_tf, SWORD_HALO if flat else WEAPON_HALO))
+        parts.append("</mask>")
+    parts.append('<g id="emblem" transform="translate(%.2f,%.2f)">' % (emblem_dx, emblem_dy))
     parts.append('<g id="tiles" mask="url(#cut)">')
     for t, pts in tiles:
-        parts.append('<polygon points="%s" fill="%s"/>' % (pts, flat or "url(#sweep)"))
+        parts.append('<polygon points="%s" fill="%s"/>' % (pts, flat or tile_fill or "url(#sweep)"))
     parts.append("</g>")
-    parts.append('<g id="staff" clip-path="url(#ground_r)" mask="url(#front)">')
-    parts.append('<path d="%s" transform="%s" fill="%s"/>' % (staff_d, staff_tf, flat or pal["steel"]))
-    parts.append("</g>")
+    if staff:
+        parts.append('<g id="staff" clip-path="url(#ground_r)" mask="url(#front)">')
+        parts.append('<path d="%s" transform="%s" fill="%s"/>' % (staff_d, staff_tf, flat or steel))
+        parts.append("</g>")
     parts.append('<g id="sword" clip-path="url(#ground_l)">')
-    parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or pal["steel"]))
+    parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or steel))
     parts.append("</g>")
     parts.append("</g>")
-    parts += wordmark("wordmark", glyphs, gscale, WORD_W, word_bottom, flat or pal["ink"])
-    if dev:
-        # ロゴの右下に寄せる（右端を SENARIS の右端にそろえる）。中央に置くと副題に見える。
-        parts += wordmark("devname", dev_glyphs, dscale, DEV_W, dev_baseline, flat or pal["dev"],
-                          left=WORD_W / 2.0 - DEV_W - DEV_INSET)
+    if word:
+        parts += wordmark("wordmark", glyphs, gscale, WORD_W, word_bottom, flat or pal["ink"])
+        if dev:
+            # ロゴの右下に寄せる（右端を SENARIS の右端にそろえる）。中央に置くと副題に見える。
+            parts += wordmark("devname", dev_glyphs, dscale, DEV_W, dev_baseline, flat or pal["dev"],
+                              left=WORD_W / 2.0 - DEV_W - DEV_INSET)
 
     w, h = vb[2], vb[3]
     if px_w:
@@ -269,3 +315,18 @@ if __name__ == "__main__":
     p = "assets/menu-src/splash/splash.svg"
     open(p, "w", encoding="utf-8").write(build("dark", dev=True, px_w=SPLASH_PX_W))
     print("wrote", p)
+
+    # アプリアイコン用（文字を落とした紋章だけの版）。寸法で2つを使い分ける
+    # （64px 以上＝7枚版・48px 以下＝1枚版）。仕様 → doc/art/icon.md
+    icons = {
+        # 7枚版は武器をそのままの長さで使い、正方形にする分を左右の余白で足す。
+        "icon_large": dict(word=False, square=True),
+        # 1枚版は中央ヘックスだけ。刺さり口±30・傾き28度・武器0.48倍＝小さい寸法でも
+        # クロスが X と読める組み合わせ。タイルはこの1枚を青から赤へ横切らせる。
+        "icon_small": dict(word=False, centers=[CENTERS[0]], entry_dx=30.0, tilt_deg=28.0,
+                           weapon_scale=0.48, sweep="tile", square=True),
+    }
+    for name, kw in icons.items():
+        p = "assets/icon-src/%s.svg" % name
+        open(p, "w", encoding="utf-8").write(build("dark", shrink=0.90, **kw))
+        print("wrote", p)
