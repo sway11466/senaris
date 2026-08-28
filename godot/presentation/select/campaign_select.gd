@@ -337,6 +337,7 @@ func _poster_info(c: Dictionary) -> Control:
 	title.add_theme_font_size_override("font_size", 20)
 	title.add_theme_color_override("font_color", TavernTheme.INK)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER  # 貼り紙の題＝中央（絵の下の見出しとして据える）
 	info.add_child(title)
 
 	if c["debug"]:
