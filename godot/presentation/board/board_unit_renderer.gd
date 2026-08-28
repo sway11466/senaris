@@ -379,3 +379,4 @@ func _unit_texture(u: Unit) -> Texture2D:
 func _clear_children() -> void:
 	for c in get_children():
 		remove_child(c)
+		c.free()
