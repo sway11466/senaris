@@ -28,8 +28,11 @@
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1.
 
 .EXAMPLE
-  powershell -File godot\tools\build\build.ps1 windows-itch-demo
-  powershell -File godot\tools\build\build.ps1 windows-itch-demo -Godot "C:\path\to\Godot.exe"
+  powershell -ExecutionPolicy Bypass -File godot\tools\build\build.ps1 windows-itch-demo
+  powershell -ExecutionPolicy Bypass -File godot\tools\build\build.ps1 windows-itch-demo -Godot "C:\path\to\Godot.exe"
+
+  Bypass is needed because the default execution policy refuses to load an
+  unsigned .ps1. Passing it per call leaves the machine-wide policy alone.
 #>
 
 [CmdletBinding()]

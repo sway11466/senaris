@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=3 / feature=87 / refactoring=12
+次回採番: bug=4 / feature=87 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -13,6 +13,14 @@
 ## バグ
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### bug-3
+
+**終了時に盤の資源が解放されない**
+- ゴール：ステージを開いたあとゲームを終了しても、解放されなかった資源の報告が出ない。
+- 背景：ステージを開いてからゲームを終了すると、GL バッファの leak と `RID allocations of type 'struct RendererSceneCull::Instance' were leaked at exit` が出る。終了時に残っている資源をエンジンが数えて報告するもので、リリースビルドでも無条件で出る（`drivers/gles3/storage/utilities.cpp` の `~Utilities`、`core/templates/rid_owner.h`）。`--quit-after` で終わらせた場合は出ないので、ゲーム側の終了経路で盤の3Dインスタンスが残っている。プリセットが `debug/export_console_wrapper=0` で GUI として起動するため、コンソール越しに起動しない限り目に入らない。
+- 対応：盤の3Dノードが終了時にどう畳まれるかを追い、残る原因を特定する。
+- 該当：`godot/presentation/board/hex_board_3d.gd`。
 
 ## 機能追加
 
@@ -33,22 +41,6 @@
 - 対応：日本語を正本にしたまま英文だけを書き直す。訳ではなく英語の台詞として書く（[authoring.md](campaign/authoring.md) の英題の考え方と同じ）。用語は [i18n.md](tech/i18n.md) の「英語の用語」に従う。`t2.st6.intro.2` の "its strength, defense, and speed" は画面の `Strength` ラベルと直接ぶつかるので必ず直す。話者名（`char.*`）の英語としての質もここで見る（ユニット名との整合は修正済み）。
 - 考慮外：日本語の台詞は直さない。
 - 該当：`godot/data/i18n/dialogue.csv`（`t2.*`の行）・`doc/campaign/`（内容の照合先）。
-
-### feature-82
-
-**pck 暗号化の導入（エクスポートテンプレートの自前ビルド）**
-- ゴール：配布ビルドの pck が暗号化されており、GDRE Tools 等でのカジュアルな展開・詰め直し（ユニット超強化・データ流用）が通らない。
-- 背景：方針は [ADR-0002](adr/ADR-0002-paid-data-protection.md) で決定済みだが実装は未着手（`export_presets.cfg` は `encrypt_pck=false`）。Godot の pck 暗号化は復号鍵をエクスポートテンプレートにビルド時に焼き込む方式のため、公式配布のテンプレートは使えず自前ビルドが要る（[build.md](tech/build.md) の注意）。締め切りは有料版の販売前。itch の初回体験版は暗号化なしで出してよい。
-- 決めたこと（2026-08-24）：
-  - 鍵は体験版と製品版で別にする（体験版は誰でも入手できる＝最も解析されやすいビルドなので、破られても失うのが体験版の中身だけになるよう分ける）。テンプレートは鍵ごとにビルドする。
-  - 鍵の定期的な入れ替えはしない。鍵は各ビルドの実行ファイルに同梱されるため、入れ替えても配布済みビルドは守れない。入れ替えるのは事故時（コミット・公開漏洩）のみ。
-  - 鍵はリポジトリ外（パスワードマネージャ等）で保管し、ビルド時に環境変数 `SCRIPT_AES256_ENCRYPTION_KEY` で流し込む。
-  - Godot ソースの置き場は `C:\Users\tappe\godot-src`（OneDrive 外＝同期対象にしない）。バージョンはエディタと同じものを使い、エディタを上げたら再ビルドする。
-- 対応：(1) ビルド環境の構築＝VS Build Tools 2022（C++ ワークロード）と SCons。(2) Godot ソースを取得し、鍵を環境変数に入れて Windows 用リリーステンプレートを鍵ごとにビルド。(3) `export_presets.cfg` に `encrypt_pck=true` とカスタムテンプレートを設定（鍵自体はファイルに書かない）。(4) 暗号化ビルドを実際に起動して確認し、手順を [build.md](tech/build.md) に記す。
-- 考慮外：ADR-0002 の残り2層（デジタル署名・所有権チェック）はこの作業に含めない。CI 化はローカルで一度通ってから。
-- 該当：`godot/export_presets.cfg`・`doc/tech/build.md`・`C:\Users\tappe\godot-src`（リポジトリ外・新規）。着手の引き金＝オーナーの合図。
-
-
 
 ### feature-86
 
