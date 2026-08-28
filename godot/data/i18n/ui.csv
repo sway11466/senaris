@@ -110,8 +110,10 @@ ui.quest.back,別のステージを選ぶ,Choose Another Quest
 ui.quest.sortie,出撃する,Set Out
 ui.quest.confirm,出撃しますか？,Ready to set out?
 ui.quest.close,閉じる,Close
-ui.quest.supply_carry,生き残りは次の依頼へ引き継がれる,Survivors carry over to the next quest
-ui.quest.supply_fresh,この依頼だけの隊＝持ち越しはない,A one-off band — nothing carries over
+ui.quest.party_sortie,以下のユニットが出撃します,The following units will set out
+ui.quest.party_carry,前のマップで生存しているユニットが出撃できます,Units that survived the previous map can set out
+ui.quest.party_oneoff,このマップ限りで出撃します,Sets out for this map only
+ui.quest.party_lost,前ステージまでに兵量がゼロとなっているため出撃できないユニット,At zero strength since an earlier map — cannot set out
 ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
 ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock
 ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock

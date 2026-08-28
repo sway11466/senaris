@@ -559,6 +559,7 @@ func test_preview_lists_player_units_in_order() -> void:
 	assert_eq(party[1]["skin_id"], "recruit", "同じユニットもまとめない")
 	assert_eq(party[2]["skin_id"], "archer")
 	assert_true(party[0]["available"], "配給の駒は出撃できる")
+	assert_false(party[0]["carried"], "actor が無い駒は名簿に載らない")
 
 func test_preview_marks_zero_troop_member_unavailable() -> void:
 	# 名簿に居るが兵力ゼロ＝盤に出ない。紙には沈めて並べる（隊に居たことは残す）。
@@ -574,6 +575,7 @@ func test_preview_marks_zero_troop_member_unavailable() -> void:
 	assert_eq(party[0]["skin_id"], "archer")
 	assert_false(party[0]["available"], "兵力ゼロは出撃できない")
 	assert_true(party[1]["available"])
+	assert_true(party[0]["carried"], "名簿に載る駒")
 
 func test_preview_revive_member_is_available() -> void:
 	# revive は兵力ゼロでも満員で盤に出る＝紙でも沈めない。
@@ -583,6 +585,16 @@ func test_preview_revive_member_is_available() -> void:
 	assert_eq(party.size(), 1)
 	assert_true(party[0]["available"], "呼び戻される駒は出撃できる")
 
+func test_preview_join_member_is_carried() -> void:
+	# supply:"join" は配給だがクリアで名簿に載る＝引き継ぐ側に並べる。
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "type": "recruit", "col": 1, "row": 1, "actor": "c.recruit", "supply": "join" },
+		{ "type": "archer", "col": 2, "row": 1 },
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog())
+	assert_true(party[0]["carried"], "初登場でも名簿に載る")
+	assert_false(party[1]["carried"], "その戦い限りの駒")
+
 func test_preview_skips_unjoined_member() -> void:
 	# 名簿に居ない駒（未加入）は盤に出ないので紙にも出さない。
 	var data := { "cols": 8, "rows": 6, "player": [
@@ -591,6 +603,7 @@ func test_preview_skips_unjoined_member() -> void:
 	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, [])
 	assert_eq(party.size(), 1, "未加入は並べない")
 	assert_eq(party[0]["skin_id"], "recruit")
+	assert_false(party[0]["carried"])
 
 func test_preview_includes_passengers() -> void:
 	# 輸送に乗っている駒も出撃する戦力＝輸送の直後に並べる。
@@ -601,6 +614,7 @@ func test_preview_includes_passengers() -> void:
 	var party := StageLoader.preview_player_units(data, _carry_catalog())
 	assert_eq(party.size(), 3)
 	assert_eq(party[1]["skin_id"], "recruit", "搭乗者は輸送の次")
+	assert_false(party[1]["carried"], "搭乗者は配給＝名簿に載らない")
 	assert_eq(party[2]["skin_id"], "archer")
 
 func test_preview_ignores_enemy_and_events() -> void:

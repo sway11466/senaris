@@ -8,19 +8,19 @@ class_name QuestSheet
 
 signal confirmed
 
-const SHEET_SIZE := Vector2(560, 400)  # parchment_sheet.png と同寸（中央タイルが1:1）
+const SHEET_SIZE := Vector2(560, 400)  # 紙の最小寸法（parchment_sheet.png と同寸）。顔ぶれの群が増えると縦に伸びる
 
 const LOCKED_TITLE_KEY := "ui.quest.locked_title"
 
-const PARTY_ICON_H := 54.0  # 顔ぶれ1体の高さ（絵は全員ぶんの帯で切ってから揃える）。2行でも紙が伸びない値
+const PARTY_ICON_H := 54.0  # 顔ぶれ1体の高さ（絵は全員ぶんの帯で切ってから揃える）
 const PARTY_SEP := 6        # 絵と絵の間
+const PARTY_ROW_SEP := 4    # 見出しと絵の行の間
 
 var _title: Label
 var _body: Label
 var _back: Button
 var _sortie: Button
-var _party: HFlowContainer
-var _supply: Label
+var _party_box: VBoxContainer
 var _skins: Dictionary
 
 func _ready() -> void:
@@ -77,20 +77,11 @@ func _ready() -> void:
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_body)
 
-	# 出撃する顔ぶれ＝盤と同じマップ絵を紙の幅で折り返して並べる。
-	_party = HFlowContainer.new()
-	_party.alignment = FlowContainer.ALIGNMENT_CENTER
-	_party.add_theme_constant_override("h_separation", PARTY_SEP)
-	_party.add_theme_constant_override("v_separation", PARTY_SEP)
-	content.add_child(_party)
-
-	# 戦力の供給（継承／独立）の一行。独立のときも書く＝無言を独立と読ませない。
-	_supply = Label.new()
-	_supply.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_supply.add_theme_font_size_override("font_size", 15)
-	_supply.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
-	_supply.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_supply)
+	# 出撃する顔ぶれ＝盤と同じマップ絵を紙の幅で折り返して並べる。継承のステージでは
+	# 「引き継ぐ隊」と「この戦い限りの駒」を別の行に分ける（混ぜると全部引き継ぐように読める）。
+	_party_box = VBoxContainer.new()
+	_party_box.add_theme_constant_override("separation", PARTY_ROW_SEP)
+	content.add_child(_party_box)
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -119,9 +110,7 @@ func open(stage_title: String, party: Array = [], carryover: bool = false) -> vo
 	_title.text = stage_title
 	_body.text = tr("ui.quest.confirm")
 	_back.text = tr("ui.quest.back")
-	_fill_party(party)
-	_supply.text = tr("ui.quest.supply_carry" if carryover else "ui.quest.supply_fresh")
-	_supply.visible = true
+	_fill_party(party, carryover)
 	_sortie.visible = true
 	visible = true
 
@@ -131,8 +120,7 @@ func open_locked(unlock_text: String) -> void:
 	_title.text = tr(LOCKED_TITLE_KEY)
 	_body.text = unlock_text
 	_back.text = tr("ui.quest.close")
-	_fill_party([])  # 顔ぶれも供給も出さない＝名前を伏せた紙が中身を漏らさない
-	_supply.visible = false
+	_fill_party([], false)  # 顔ぶれも出さない＝名前を伏せた紙が中身を漏らさない
 	_sortie.visible = false
 	visible = true
 
@@ -140,27 +128,57 @@ func close() -> void:
 	visible = false
 
 ## 顔ぶれを並べ直す。空なら行ごと消える（未解放の紙・自軍の駒が無いステージ）。
-func _fill_party(party: Array) -> void:
-	for child in _party.get_children():
-		_party.remove_child(child)
+## 群ごとに見出し＋絵の並び。継承のステージは「出撃できる生存者」「この戦い限りの駒」
+## 「兵力ゼロで出撃できない駒」の3群に分ける（居ない群は出さない）。
+## 絵の大きさを揃える帯は群をまたいで1つ＝群が変わっても駒の大小関係が変わらない。
+func _fill_party(party: Array, carryover: bool) -> void:
+	for child in _party_box.get_children():
+		_party_box.remove_child(child)
 		child.queue_free()
-	_party.visible = not party.is_empty()
+	_party_box.visible = not party.is_empty()
 	var entries: Array = []
 	var band := Vector2(INF, 0.0)  # 全員ぶんの絵が収まる縦の帯（キャンバス座標の上端・下端）
 	for e in party:
 		if typeof(e) != TYPE_DICTIONARY:
 			continue
-		var entry := _party_entry(String(e.get("skin_id", "")), bool(e.get("available", true)))
+		var entry := _party_entry(e)
 		entries.append(entry)
 		var used: Rect2 = entry["used"]
 		if used.size.y > 0.0:
 			band = Vector2(minf(band.x, used.position.y), maxf(band.y, used.end.y))
+	if not carryover:
+		_add_party_row("ui.quest.party_sortie", entries, band)  # 群は1つ＝出撃する顔ぶれ
+		return
+	_add_party_row("ui.quest.party_carry",
+		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and e["available"]), band)
+	_add_party_row("ui.quest.party_oneoff",
+		entries.filter(func(e: Dictionary) -> bool: return not e["carried"]), band)
+	_add_party_row("ui.quest.party_lost",
+		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and not e["available"]), band)
+
+## 1群ぶんの行（見出し＋絵の並び）。中身が無ければ何も足さない＝空の見出しを出さない。
+func _add_party_row(title_key: String, entries: Array, band: Vector2) -> void:
+	if entries.is_empty():
+		return
+	var head := Label.new()
+	head.text = tr(title_key)
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.add_theme_font_size_override("font_size", 14)
+	head.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_party_box.add_child(head)
+	var row := HFlowContainer.new()
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("h_separation", PARTY_SEP)
+	row.add_theme_constant_override("v_separation", PARTY_SEP)
+	_party_box.add_child(row)
 	for entry in entries:
-		_party.add_child(_party_figure(entry, band))
+		row.add_child(_party_figure(entry, band))
 
 ## 1体ぶんの材料。絵が無ければ tex=null（名前の先頭2文字で描く）。
 ## used＝絵の非透過部分の外接矩形（キャンバス座標）。
-func _party_entry(skin_id: String, available: bool) -> Dictionary:
+func _party_entry(e: Dictionary) -> Dictionary:
+	var skin_id := String(e.get("skin_id", ""))
 	var s: UnitSkin = SkinCatalog.skin_by_id(_skins, skin_id)
 	var path := s.image("map") if s != null else ""
 	var tex: Texture2D = load(path) if not path.is_empty() else null
@@ -172,7 +190,8 @@ func _party_entry(skin_id: String, available: bool) -> Dictionary:
 			var r := img.get_used_rect()
 			if r.size.x > 0 and r.size.y > 0:
 				used = Rect2(r.position, r.size)
-	return { "skin_id": skin_id, "available": available, "tex": tex, "used": used }
+	return { "skin_id": skin_id, "available": bool(e.get("available", true)),
+		"carried": bool(e.get("carried", false)), "tex": tex, "used": used }
 
 ## 1体ぶんの絵。左右は自分の外接、縦は全員ぶんの帯で切る＝キャンバスの余白が消えて絵が大きくなり、
 ## 駒どうしの大小関係は残る（大小はキャンバスに焼いてある。doc/art/overview.md）。

@@ -402,8 +402,9 @@ static func load_briefing(path: String, carried: Array = []) -> Dictionary:
 
 ## 出撃前に見せる自軍の顔ぶれ。盤を組むのと同じ駒解決を通し、player の記述順で返す。
 ## 輸送の passengers も出撃する戦力なので続けて並べる。増援（events）は見ない＝盤で出会うものを先に見せない。
-## 各要素: { "skin_id": 見た目のID, "available": 出撃できるか }
+## 各要素: { "skin_id": 見た目のID, "available": 出撃できるか, "carried": 名簿に載る駒か }
 ##   available=false … 名簿に居るが兵力ゼロで出撃しない（紙では沈めて並べる）
+##   carried=true    … actor を持つ＝この戦いのあと名簿に残る（紙では引き継ぐ隊として分ける）
 ## 名簿に居ない駒（未加入）は返さない＝盤に出ないものは紙にも出ない。
 static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {},
 		carried: Array = []) -> Array:
@@ -417,7 +418,7 @@ static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, ski
 			continue
 		var unit := _resolve_player_unit(u, catalog, 1, 0, skin_catalog, by_actor)
 		if unit != null:
-			out.append({ "skin_id": unit.skin_id, "available": true })
+			out.append({ "skin_id": unit.skin_id, "available": true, "carried": unit.actor != "" })
 			_append_preview_passengers(out, u.get("passengers", []), catalog, skin_catalog)
 			continue
 		# 盤に出ない駒のうち、名簿に居るもの＝兵力ゼロの離脱者。居ないものは未加入なので並べない。
@@ -425,10 +426,10 @@ static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, ski
 		if actor == "" or not by_actor.has(actor):
 			continue
 		var left := _make_carried_unit(u, by_actor[actor], catalog, 1, skin_catalog, false)
-		out.append({ "skin_id": left.skin_id, "available": false })
+		out.append({ "skin_id": left.skin_id, "available": false, "carried": true })
 	return out
 
-## 輸送に初めから乗っている駒を顔ぶれに足す（配給のみ＝名簿とは突き合わせない）。
+## 輸送に初めから乗っている駒を顔ぶれに足す（配給のみ＝名簿とは突き合わせない＝引き継がない）。
 static func _append_preview_passengers(out: Array, list: Variant, catalog: Dictionary, skin_catalog: Dictionary) -> void:
 	if typeof(list) != TYPE_ARRAY:
 		return
@@ -436,7 +437,7 @@ static func _append_preview_passengers(out: Array, list: Variant, catalog: Dicti
 		if typeof(pd) != TYPE_DICTIONARY:
 			continue
 		var p := _make_unit(pd, catalog, 1, 0, skin_catalog)
-		out.append({ "skin_id": p.skin_id, "available": true })
+		out.append({ "skin_id": p.skin_id, "available": true, "carried": false })
 
 ## 戦力を持ち越すステージか（継承／独立 → doc/gdd/campaigns.md 戦力供給モデル）。
 ## 名簿に載る駒（actor 持ち）が1つでもあれば継承＝この戦いの生き残りが次へ渡る。
