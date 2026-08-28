@@ -211,6 +211,8 @@ python misc\scripts\install_accesskit.py
 python misc\scripts\install_d3d12_sdk_windows.py
 ```
 
+取得スクリプトと scons は同じシェルから叩く。依存の置き場は環境変数 `MSYSTEM` の有無で `%LOCALAPPDATA%\Godot\build_deps` と `bin/build_deps` に分かれるため、別のシェルで入れると scons が見つけられない。
+
 この2つを入れないと、要るものが無いと言われて設定の段階で止まる。`accesskit=no` `d3d12=no` で切ることもできるが、切らない。公式配布のテンプレートには両方入っているので、切ると公式より機能の欠けたものを配ることになる。とくに Direct3D 12 を落とすと、Vulkan の動かない環境の逃げ道が消える。
 
 ### ソース
