@@ -51,26 +51,27 @@ uv run --no-project --with pillow python -c "from PIL import Image; im=Image.ope
 | COLOR | Text / Link / Headers / Buttons | 文字・リンク・見出し・ボタンの色 |
 | TEXT | Font / Size / Header font | 書体と本文の大きさ |
 | LAYOUT | Screenshots | 紹介画像の並べ方 |
-| IMAGES | Banner | ページ上部に出る帯。**幅いっぱいに広がり、高さは画像の縦横比が決める**ので、縦長の絵を置くと最初の画面が絵で埋まる。3:1 前後に切ってから上げる |
+| IMAGES | Banner | ページ上部に出る帯。幅いっぱいに広がり、高さは画像の縦横比が決める。透過PNGも置けるが、透明部分にページ背景は出ず本文ブロックの地色になる。置くと、説明文の上に出ていたタイトル文字が消えてこの画像に変わる。`Align`（寄せ）を持つ |
 | IMAGES | Background | ページ全体の背景。`Repeat`（敷き詰め）・`Align`・`Fixed`（スクロールで動かさない）を持つ |
 
-方針：暗い側に振り、背景に酒場の外（タイトル画面の扉）を敷く。本文ブロックは暗色にして Alpha を少し下げ、扉が裏に透ける状態にする。文字色はロゴと同じ系統から取る。
+方針：暗い側に振り、背景に酒場の外（タイトル画面の扉）を敷く。本文ブロックは扉の暗部と同じ色で塗り、扉はその左右に見せる。文字色はロゴと同じ系統から取る。
 
 ### 入れた値
 
 | 枠 | 値 | 備考 |
 | --- | --- | --- |
-| BG | `#eeeeee` | 既定のまま。背景画像を横に敷き詰めているので、この色は画面に出ない |
+| BG | `#eeeeee` | 既定のまま。背景画像を敷き詰めているので、この色は画面に出ない |
 | BG 2 | `#0d1925` | 起動スプラッシュの地色と同じ（扉の絵の暗部の実測 → [../art/menu.md](../art/menu.md)）。扉と地続きに見える |
+| BG2 Alpha | 最大 | 下げない。本文ブロックは塗りつぶす |
 | Text | `#E9E0EF` | |
 | Link | `#fa5c5c` | 既定のまま。itch では赤リンクが見慣れた形なので変えない |
 | Headers / Buttons | 空 | 指定なし＝既定 |
 | Font / Size | Lato / Large | |
 | Screenshots | Auto | |
-| Banner | 未設定 | 置くならキービジュアルを3:1前後に切る。キービジュアルの描き直し後に決める |
-| Background | `channels/itch/theme/background.png` | Repeat=`Horizontally`・Align=`Center`・Fixed=on |
+| Banner | `channels/itch/theme/banner.png` | ロゴを中央に置いた透過PNG。タイトル文字の代わりになる。Align=`Center` |
+| Background | `channels/itch/theme/background.png` | Repeat=`Both`・Align=`Right`・Fixed=on |
 
-`Repeat` を横方向にしているのは、扉の絵（2560幅）より広い画面で左右が空くのを避けるため。縦は繰り返さない＝下は BG 2 の本文ブロックと背景の下端で埋まる。`Fixed` はスクロールしても背景を動かさない指定で、扉が画面に留まる。
+`Repeat` を縦横とも敷き詰めにしているのは、扉の絵（2560×1440）より広い画面で余りが出るのを避けるため。`Fixed` はスクロールしても背景を動かさない指定で、扉が画面に留まる。
 
 ### 背景画像のレシピ
 
@@ -83,6 +84,18 @@ magick godot/assets/menu/door.png -filter Lanczos -resize 200% channels/itch/the
 - 出力は `channels/itch/theme/background.png`（2560×1440）。
 - 2倍までは線が保たれる。3倍はぼやけるだけでディテールは増えない（Lanczos は画素を創作しない）。背景は本文の裏に敷くもので、むしろ柔らかいほうが文字が読みやすいため2倍で足りる。生成AIの出力（1024前後）では画面を覆えないので、この拡大か、継ぎ目のないテクスチャを `Repeat` で敷くかの二択になる。
 - 元の扉の絵を描き直したら、この手順でやり直す。
+
+### バナーのレシピ
+
+ロゴを透明なキャンバスの中央に置く。バナーの透明部分にページ背景（扉）は出ず、本文ブロックの地色になるため、地の色は焼かない。ロゴは明るいインクの `logo_dark_2x.png`（暗い地用）を使う。
+
+```
+uv run --no-project --with pillow python -c "from PIL import Image; l=Image.open('godot/assets/promo-src/logo/logo_dark_2x.png').convert('RGBA'); l=l.crop(l.getbbox()); h=384; w=round(l.width*h/l.height); l=l.resize((w,h), Image.LANCZOS); c=Image.new('RGBA',(1920,480),(0,0,0,0)); c.alpha_composite(l,((1920-w)//2,(480-h)//2)); c.save('channels/itch/theme/banner.png')"
+```
+
+- 出力は `channels/itch/theme/banner.png`（1920×480）。表示幅は itch のページ幅 960px なので、その2倍で用意する＝表示上の帯は 960×240 になる。
+- `h=384` はロゴの高さ。キャンバス高 480 の8割で、上下に余白が残る。帯を厚くするなら 480 と `h` を同じ割合で変える。
+- ロゴの絵を描き直したら、この手順でやり直す。
 
 ## 記入内容
 
