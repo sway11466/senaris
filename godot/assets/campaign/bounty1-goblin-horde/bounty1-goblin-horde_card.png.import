@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cdbibebwpbj84"
-path="res://.godot/imported/bounty1-goblin-horde_cover.png-700083d8fde5450b1b85caeea4c2d7a6.ctex"
+uid="uid://crp3nsidlj2sf"
+path="res://.godot/imported/bounty1-goblin-horde_card.png-fd2a10a86e039207ddacd1dedacd4464.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/campaign/bounty1-goblin-horde/bounty1-goblin-horde_cover.png"
-dest_files=["res://.godot/imported/bounty1-goblin-horde_cover.png-700083d8fde5450b1b85caeea4c2d7a6.ctex"]
+source_file="res://assets/campaign/bounty1-goblin-horde/bounty1-goblin-horde_card.png"
+dest_files=["res://.godot/imported/bounty1-goblin-horde_card.png-fd2a10a86e039207ddacd1dedacd4464.ctex"]
 
 [params]
 

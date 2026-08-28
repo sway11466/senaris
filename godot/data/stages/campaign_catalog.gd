@@ -44,7 +44,8 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"board": _parse_board(id, data),  # 所属ボード（シリーズ）。非デバッグは必須＝未指定は警告して空
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
 		"emblem": _parse_emblem(data.get("emblem", {})),  # ターン板の左右に出す代表ユニット（skin_id）。未指定は空＝枠を出さない
-		"cover_paths": _resolve_art_variants(id, "cover"),  # 貼り紙とステージ一覧の大パネルで共用（連番バリアント）
+		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル。貼り紙も card が無ければこれを出す（連番バリアント）
+		"card_paths": _resolve_art_variants(id, "card"),  # 貼り紙だけに出す絵。置いたときだけ cover と別の絵になる
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
 		"stages": stages,
 	}

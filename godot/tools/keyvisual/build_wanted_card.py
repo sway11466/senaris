@@ -1,8 +1,8 @@
-"""手配書の扉絵（賞金稼ぎの冒険譚の cover）を組む。
+"""手配書の貼り紙の絵（賞金稼ぎの冒険譚の card）を組む。
 
 生成AIは使わず、ユニットのマスター絵の顔だけを切って `WANTED` の字を重ねる。
-紙は敷かない＝背景は透明。貼り紙（ステージセレクトのカード）とステージ一覧の
-大パネルが、どちらも下に羊皮紙を持っているため、絵まで紙を持つと紙の上に紙になる。
+紙は敷かない＝背景は透明。貼り紙が下に羊皮紙を持っているため、絵まで紙を持つと
+紙の上に紙になる。
 
 字は絵の手前に置く。顔を紙の幅いっぱいまで大きくすると冠が字の高さまで届くので、
 重ねる前提で組む（重ねずに収めると顔が半分の大きさまでしか取れない）。
@@ -10,7 +10,7 @@
 実行（リポジトリ直下）:
   uv run --no-project --with pillow python godot/tools/keyvisual/build_wanted_cover.py \
     --skin goblin_lord --src godot/assets/units-src/goblin/goblin_lord \
-    -o godot/assets/campaign/bounty1-goblin-horde/bounty1-goblin-horde_cover.png
+    -o godot/assets/campaign/bounty1-goblin-horde/bounty1-goblin-horde_card.png
 
 オプション:
   --text S      刷る言葉（既定 WANTED）
@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[3]  # リポジトリ直下
 FONT = ROOT / "godot" / "assets" / "fonts" / "IMFellEnglish-Regular.ttf"
-W, H = 1200, 896  # 他の冒険譚の cover と同じ寸法
+W, H = 1200, 896  # 他の冒険譚の絵と同じ寸法。貼り紙の枠 317×230 とほぼ同じ縦横比
 INK = (58, 40, 26)  # 羊皮紙に乗るインクの色
 EARS = (28, 410)  # マスター絵の上での耳の左右。顔の中心と大きさをここで測る
 TEXT_SIZE = 170

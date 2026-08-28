@@ -297,11 +297,16 @@ func _poster(c: Dictionary) -> Control:
 	TavernTheme.round_corners(art, float(TavernTheme.ART_CORNER_RADIUS))  # 紙に貼った写真の丸み
 	# 貼り紙とステージ一覧は同じ cover を使う＝押した紙がそのまま開く体験にする（専用クロップは持たない）。
 	# 連番バリアントから表示ごとに1枚選び、選んだ index を stage 側へ渡して同じ絵に固定する。
+	# 大パネルへ渡す cover の番号は、貼り紙に何を出すかに関わらずここで決める。
 	var art_paths: Array = c.get("cover_paths", [])
 	var art_idx := _pick_index(art_paths)
 	_variant_by_id[String(c["id"])] = art_idx
-	if art_idx >= 0:
-		art.texture = load(String(art_paths[art_idx])) as Texture2D
+	# 貼り紙は card があればそれを出す（無ければ cover＝押した紙とその先が同じ絵）。
+	var card_paths: Array = c.get("card_paths", [])
+	var shown: Array = card_paths if not card_paths.is_empty() else art_paths
+	var shown_idx := _pick_index(card_paths) if not card_paths.is_empty() else art_idx
+	if shown_idx >= 0:
+		art.texture = load(String(shown[shown_idx])) as Texture2D
 	content.add_child(art)
 	content.add_child(_poster_info(c))
 	_ignore_mouse(content)
