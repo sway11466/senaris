@@ -380,6 +380,75 @@ static func load_rank(path: String) -> Dictionary:
 		return {}
 	return rank
 
+## 依頼書（出撃確認の紙 → doc/gdd/stage_select.md 依頼書）に載せるステージ情報。
+## { "party": 出撃する顔ぶれ, "carryover": 戦力を持ち越すステージか }
+static func parse_briefing(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {},
+		carried: Array = []) -> Dictionary:
+	return {
+		"party": preview_player_units(data, catalog, skin_catalog, carried),
+		"carryover": is_carryover_stage(data),
+	}
+
+## res:// パスの JSON から依頼書の情報を読む（load_file と対＝セレクトへ渡すため）。
+static func load_briefing(path: String, carried: Array = []) -> Dictionary:
+	var empty := { "party": [], "carryover": false }
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return empty
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return empty
+	return parse_briefing(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
+
+## 出撃前に見せる自軍の顔ぶれ。盤を組むのと同じ駒解決を通し、player の記述順で返す。
+## 輸送の passengers も出撃する戦力なので続けて並べる。増援（events）は見ない＝盤で出会うものを先に見せない。
+## 各要素: { "skin_id": 見た目のID, "available": 出撃できるか }
+##   available=false … 名簿に居るが兵力ゼロで出撃しない（紙では沈めて並べる）
+## 名簿に居ない駒（未加入）は返さない＝盤に出ないものは紙にも出ない。
+static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {},
+		carried: Array = []) -> Array:
+	var out: Array = []
+	var units: Variant = data.get("player", [])
+	if typeof(units) != TYPE_ARRAY:
+		return out
+	var by_actor := _roster_by_actor(carried)
+	for u in units:
+		if typeof(u) != TYPE_DICTIONARY:
+			continue
+		var unit := _resolve_player_unit(u, catalog, 1, 0, skin_catalog, by_actor)
+		if unit != null:
+			out.append({ "skin_id": unit.skin_id, "available": true })
+			_append_preview_passengers(out, u.get("passengers", []), catalog, skin_catalog)
+			continue
+		# 盤に出ない駒のうち、名簿に居るもの＝兵力ゼロの離脱者。居ないものは未加入なので並べない。
+		var actor := String(u.get("actor", ""))
+		if actor == "" or not by_actor.has(actor):
+			continue
+		var left := _make_carried_unit(u, by_actor[actor], catalog, 1, skin_catalog, false)
+		out.append({ "skin_id": left.skin_id, "available": false })
+	return out
+
+## 輸送に初めから乗っている駒を顔ぶれに足す（配給のみ＝名簿とは突き合わせない）。
+static func _append_preview_passengers(out: Array, list: Variant, catalog: Dictionary, skin_catalog: Dictionary) -> void:
+	if typeof(list) != TYPE_ARRAY:
+		return
+	for pd in list:
+		if typeof(pd) != TYPE_DICTIONARY:
+			continue
+		var p := _make_unit(pd, catalog, 1, 0, skin_catalog)
+		out.append({ "skin_id": p.skin_id, "available": true })
+
+## 戦力を持ち越すステージか（継承／独立 → doc/gdd/campaigns.md 戦力供給モデル）。
+## 名簿に載る駒（actor 持ち）が1つでもあれば継承＝この戦いの生き残りが次へ渡る。
+static func is_carryover_stage(data: Dictionary) -> bool:
+	var units: Variant = data.get("player", [])
+	if typeof(units) != TYPE_ARRAY:
+		return false
+	for u in units:
+		if typeof(u) == TYPE_DICTIONARY and String(u.get("actor", "")) != "":
+			return true
+	return false
+
 ## 駒配置リスト（player セクション）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。

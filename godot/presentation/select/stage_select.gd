@@ -310,12 +310,16 @@ func _tilted(row: Button, number: int) -> Control:
 
 func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 	SfxPlayer.play_event("menu_stage")
+	var path := String(s["path"])
 	_pending = {
 		"campaign_id": campaign_id,
 		"stage_id": String(s["id"]),
-		"path": String(s["path"]),
+		"path": path,
 	}
-	_briefing.open(tr(String(s["title"])))
+	# 顔ぶれ・戦力の供給は紙を開くときだけステージJSONを1本読んで作る（一覧では読まない）。
+	# 名簿は毎回読み直す＝直前の戦いの損耗が紙に出る。
+	var brief := StageLoader.load_briefing(path, RosterStore.new().load_roster(campaign_id))
+	_briefing.open(tr(String(s["title"])), brief.get("party", []), bool(brief.get("carryover", false)))
 
 ## 未解放の札を押したとき＝拒否音＋解放条件だけを書いた紙を出す（ステージ名は出さない）。
 func _open_locked(campaign_id: String, stage_id: String) -> void:

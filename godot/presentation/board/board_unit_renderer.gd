@@ -8,6 +8,8 @@ class_name BoardUnitRenderer
 # HexBoard3D.TILE と同値。盤全体で共有する「ヘックスの大きさ」の定数。
 const TILE := 1.0
 const SPRITE_FOOT_Z := TILE * 0.6  # 立ち絵の足元をヘックス中心から手前（下辺寄り）へ
+## 動けない駒を沈める暗さ。行動終了の駒と、依頼書で出撃できない駒（doc/gdd/stage_select.md 依頼書）で共有する。
+const DONE_MODULATE := Color(0.55, 0.55, 0.55)
 ## 立ち絵PNGの「キャンバス高さ」が何タイルぶんに当たるか。絵そのものではなくキャンバスを基準に
 ## するのは、大小関係を余白として焼き込んでいるため（小さい駒＝同じ枠で絵が小さい）。
 const UNIT_CANVAS_TILES := 3.75
@@ -152,7 +154,7 @@ func build_unit_node(u: Unit) -> Node3D:
 		# 根ノードはタイル上面（elev）。立ち絵だけ floor へずらす＝影・バー・リングは上面のまま。
 		spr.position = Vector3(0, 0.02 + _floor_fn.call(u.pos) - _elev_fn.call(u.pos), SPRITE_FOOT_Z)
 		if done:
-			spr.modulate = Color(0.55, 0.55, 0.55)  # 行動終了は暗く
+			spr.modulate = DONE_MODULATE  # 行動終了は暗く
 		root.add_child(spr)
 		# 足元のブロブシャドウ（接地感）。
 		var sh := MeshInstance3D.new()

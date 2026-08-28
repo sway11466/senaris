@@ -543,3 +543,90 @@ func test_stage_backdrops_have_art() -> void:
 		if not ResourceLoader.exists("res://assets/backdrop/%s.png" % id):
 			missing.append("%s -> %s" % [entry, id])
 	assert_eq(missing, [] as Array[String], "backdrop に書いた絵が assets/backdrop/ に無い")
+
+## --- 依頼書（出撃前に紙で見せる顔ぶれ・戦力の供給）→ doc/gdd/stage_select.md 依頼書
+
+func test_preview_lists_player_units_in_order() -> void:
+	# 配給の駒は書いた順に、頭数ぶん並ぶ（同じユニットが2体なら2つ）。
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "type": "recruit", "col": 1, "row": 1 },
+		{ "type": "recruit", "col": 1, "row": 2 },
+		{ "type": "archer", "col": 2, "row": 1 },
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog())
+	assert_eq(party.size(), 3, "頭数ぶん並ぶ")
+	assert_eq(party[0]["skin_id"], "recruit")
+	assert_eq(party[1]["skin_id"], "recruit", "同じユニットもまとめない")
+	assert_eq(party[2]["skin_id"], "archer")
+	assert_true(party[0]["available"], "配給の駒は出撃できる")
+
+func test_preview_marks_zero_troop_member_unavailable() -> void:
+	# 名簿に居るが兵力ゼロ＝盤に出ない。紙には沈めて並べる（隊に居たことは残す）。
+	var carried := [
+		{ "type": "archer", "skin": "archer", "level": 2, "troops": 0, "max_troops": 8, "actor": "c.archer" },
+		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8, "actor": "c.knight" },
+	]
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "c.archer" }, { "col": 1, "row": 2, "actor": "c.knight" },
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
+	assert_eq(party.size(), 2, "離脱者も並べる")
+	assert_eq(party[0]["skin_id"], "archer")
+	assert_false(party[0]["available"], "兵力ゼロは出撃できない")
+	assert_true(party[1]["available"])
+
+func test_preview_revive_member_is_available() -> void:
+	# revive は兵力ゼロでも満員で盤に出る＝紙でも沈めない。
+	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 0, "max_troops": 8, "actor": "c.archer" }]
+	var data := { "cols": 8, "rows": 6, "player": [{ "col": 1, "row": 1, "actor": "c.archer", "supply": "revive" }] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
+	assert_eq(party.size(), 1)
+	assert_true(party[0]["available"], "呼び戻される駒は出撃できる")
+
+func test_preview_skips_unjoined_member() -> void:
+	# 名簿に居ない駒（未加入）は盤に出ないので紙にも出さない。
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "c.archer" }, { "type": "recruit", "col": 2, "row": 1 },
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, [])
+	assert_eq(party.size(), 1, "未加入は並べない")
+	assert_eq(party[0]["skin_id"], "recruit")
+
+func test_preview_includes_passengers() -> void:
+	# 輸送に乗っている駒も出撃する戦力＝輸送の直後に並べる。
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "type": "knight", "col": 1, "row": 1, "passengers": [{ "type": "recruit" }] },
+		{ "type": "archer", "col": 2, "row": 1 },
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog())
+	assert_eq(party.size(), 3)
+	assert_eq(party[1]["skin_id"], "recruit", "搭乗者は輸送の次")
+	assert_eq(party[2]["skin_id"], "archer")
+
+func test_preview_ignores_enemy_and_events() -> void:
+	# 敵と増援は紙に出さない（盤で出会うものを先に見せない）。
+	var data := { "cols": 8, "rows": 6,
+		"player": [{ "type": "recruit", "col": 1, "row": 1 }],
+		"enemy": [{ "ai": "charge", "units": [{ "type": "knight", "col": 5, "row": 1 }] }],
+		"events": [{ "type": "spawn", "team": "player", "turn": 3, "units": [{ "type": "archer", "col": 2, "row": 2 }] }],
+	}
+	var party := StageLoader.preview_player_units(data, _carry_catalog())
+	assert_eq(party.size(), 1, "自軍の初期配置だけ")
+
+func test_is_carryover_stage() -> void:
+	# 名簿に載る駒（actor 持ち）があれば継承、無ければ独立。
+	assert_true(StageLoader.is_carryover_stage({ "player": [
+		{ "type": "recruit", "col": 1, "row": 1 }, { "col": 1, "row": 2, "actor": "c.archer" }] }))
+	assert_false(StageLoader.is_carryover_stage({ "player": [{ "type": "recruit", "col": 1, "row": 1 }] }))
+	assert_false(StageLoader.is_carryover_stage({}), "player が無ければ独立")
+
+func test_load_briefing_from_file() -> void:
+	_write_stage('{ "cols": 4, "rows": 3, "margin": 0, "player": [{ "type": "novice", "col": 1, "row": 1 }] }')
+	var brief := StageLoader.load_briefing(TMP_PATH)
+	assert_eq((brief["party"] as Array).size(), 1)
+	assert_false(brief["carryover"], "actor が無ければ独立")
+
+func test_load_briefing_missing_file_is_empty() -> void:
+	var brief := StageLoader.load_briefing("user://no_such_stage.json")
+	assert_eq(brief["party"], [])
+	assert_false(brief["carryover"])
