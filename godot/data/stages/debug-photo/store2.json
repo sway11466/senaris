@@ -1,0 +1,614 @@
+{
+  "turn_limit": 20,
+  "name": "debug-photo-store2",
+  "cols": 8,
+  "rows": 13,
+  "margin": 0,
+  "terrain": [
+    "*O******",
+    "*LLL****",
+    "*L..LL**",
+    "*L.F..L*",
+    "*L.FF.L*",
+    "*L.FF.L*",
+    "*L.FF.L*",
+    "*L.FF.L*",
+    "*L.FF.L*",
+    "*L..F.L*",
+    "**LL..L*",
+    "****LLL*",
+    "******O*"
+  ],
+  "terrain_skins": [
+    {
+      "col": 0,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "skin": "road_fort_town1"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "skin": "road"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "skin": "road"
+    },
+    {
+      "col": 3,
+      "row": 1,
+      "skin": "road"
+    },
+    {
+      "col": 4,
+      "row": 1,
+      "skin": "brush"
+    },
+    {
+      "col": 5,
+      "row": 1,
+      "skin": "brush"
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "skin": "brush"
+    },
+    {
+      "col": 7,
+      "row": 1,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 2,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 2,
+      "skin": "road"
+    },
+    {
+      "col": 4,
+      "row": 2,
+      "skin": "road"
+    },
+    {
+      "col": 5,
+      "row": 2,
+      "skin": "road"
+    },
+    {
+      "col": 6,
+      "row": 2,
+      "skin": "brush"
+    },
+    {
+      "col": 7,
+      "row": 2,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 3,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 3,
+      "skin": "road"
+    },
+    {
+      "col": 3,
+      "row": 3,
+      "skin": "forest"
+    },
+    {
+      "col": 5,
+      "row": 3,
+      "skin": "plain"
+    },
+    {
+      "col": 6,
+      "row": 3,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 3,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 4,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 4,
+      "skin": "road"
+    },
+    {
+      "col": 3,
+      "row": 4,
+      "skin": "forest"
+    },
+    {
+      "col": 4,
+      "row": 4,
+      "skin": "forest"
+    },
+    {
+      "col": 5,
+      "row": 4,
+      "skin": "plain"
+    },
+    {
+      "col": 6,
+      "row": 4,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 4,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 5,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 5,
+      "skin": "road"
+    },
+    {
+      "col": 2,
+      "row": 5,
+      "skin": "plain"
+    },
+    {
+      "col": 3,
+      "row": 5,
+      "skin": "forest"
+    },
+    {
+      "col": 4,
+      "row": 5,
+      "skin": "forest"
+    },
+    {
+      "col": 5,
+      "row": 5,
+      "skin": "plain"
+    },
+    {
+      "col": 6,
+      "row": 5,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 5,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 6,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 6,
+      "skin": "road"
+    },
+    {
+      "col": 2,
+      "row": 6,
+      "skin": "plain"
+    },
+    {
+      "col": 3,
+      "row": 6,
+      "skin": "forest"
+    },
+    {
+      "col": 4,
+      "row": 6,
+      "skin": "forest"
+    },
+    {
+      "col": 5,
+      "row": 6,
+      "skin": "plain"
+    },
+    {
+      "col": 6,
+      "row": 6,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 6,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 7,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 7,
+      "skin": "road"
+    },
+    {
+      "col": 2,
+      "row": 7,
+      "skin": "plain"
+    },
+    {
+      "col": 3,
+      "row": 7,
+      "skin": "forest"
+    },
+    {
+      "col": 4,
+      "row": 7,
+      "skin": "forest"
+    },
+    {
+      "col": 5,
+      "row": 7,
+      "skin": "plain"
+    },
+    {
+      "col": 6,
+      "row": 7,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 7,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 8,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 8,
+      "skin": "road"
+    },
+    {
+      "col": 2,
+      "row": 8,
+      "skin": "plain"
+    },
+    {
+      "col": 3,
+      "row": 8,
+      "skin": "forest"
+    },
+    {
+      "col": 4,
+      "row": 8,
+      "skin": "forest"
+    },
+    {
+      "col": 5,
+      "row": 8,
+      "skin": "plain"
+    },
+    {
+      "col": 6,
+      "row": 8,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 8,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 9,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 9,
+      "skin": "road"
+    },
+    {
+      "col": 2,
+      "row": 9,
+      "skin": "plain"
+    },
+    {
+      "col": 4,
+      "row": 9,
+      "skin": "forest"
+    },
+    {
+      "col": 6,
+      "row": 9,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 9,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 10,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 10,
+      "skin": "brush"
+    },
+    {
+      "col": 2,
+      "row": 10,
+      "skin": "road"
+    },
+    {
+      "col": 3,
+      "row": 10,
+      "skin": "road"
+    },
+    {
+      "col": 6,
+      "row": 10,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 10,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 11,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 11,
+      "skin": "brush"
+    },
+    {
+      "col": 2,
+      "row": 11,
+      "skin": "brush"
+    },
+    {
+      "col": 3,
+      "row": 11,
+      "skin": "brush"
+    },
+    {
+      "col": 4,
+      "row": 11,
+      "skin": "road"
+    },
+    {
+      "col": 5,
+      "row": 11,
+      "skin": "road"
+    },
+    {
+      "col": 6,
+      "row": 11,
+      "skin": "road"
+    },
+    {
+      "col": 7,
+      "row": 11,
+      "skin": "brush"
+    },
+    {
+      "col": 0,
+      "row": 12,
+      "skin": "brush"
+    },
+    {
+      "col": 1,
+      "row": 12,
+      "skin": "brush"
+    },
+    {
+      "col": 2,
+      "row": 12,
+      "skin": "brush"
+    },
+    {
+      "col": 3,
+      "row": 12,
+      "skin": "brush"
+    },
+    {
+      "col": 4,
+      "row": 12,
+      "skin": "brush"
+    },
+    {
+      "col": 5,
+      "row": 12,
+      "skin": "brush"
+    },
+    {
+      "col": 6,
+      "row": 12,
+      "skin": "road_fort_town1"
+    },
+    {
+      "col": 7,
+      "row": 12,
+      "skin": "brush"
+    }
+  ],
+  "player": [
+    {
+      "type": "novice",
+      "col": 5,
+      "row": 7
+    },
+    {
+      "type": "fighter",
+      "col": 4,
+      "row": 7
+    },
+    {
+      "type": "novice",
+      "col": 5,
+      "row": 8
+    },
+    {
+      "type": "archer",
+      "col": 6,
+      "row": 8
+    },
+    {
+      "type": "cleric",
+      "col": 6,
+      "row": 9
+    },
+    {
+      "type": "halfling",
+      "col": 4,
+      "row": 8
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "ai": "charge",
+      "name": "b1.st1.squad.1",
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 5,
+          "row": 6
+        },
+        {
+          "skin": "goblin",
+          "col": 6,
+          "row": 6
+        },
+        {
+          "skin": "goblin",
+          "col": 5,
+          "row": 5
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 6,
+          "row": 5
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "ai": "charge",
+      "name": "b1.st1.squad.2",
+      "units": [
+        {
+          "skin": "goblin_archer",
+          "col": 2,
+          "row": 5
+        },
+        {
+          "skin": "goblin_archer",
+          "col": 2,
+          "row": 4
+        },
+        {
+          "skin": "goblin",
+          "col": 1,
+          "row": 4
+        }
+      ]
+    }
+  ],
+  "bases": [
+    {
+      "col": 1,
+      "row": 0,
+      "team": "enemy",
+      "kind": "hq",
+      "garrison": []
+    },
+    {
+      "col": 6,
+      "row": 12,
+      "team": "player",
+      "kind": "hq",
+      "garrison": []
+    }
+  ],
+  "victory": [
+    {
+      "type": "capture_hq"
+    }
+  ],
+  "rank": {
+    "turn_s": 10,
+    "turn_a": 15,
+    "survival_s": 5,
+    "survival_a": 3
+  },
+  "haze": 0.8,
+  "backdrop": "sky_clear",
+  "bgm": {
+    "main": "raid"
+  }
+}

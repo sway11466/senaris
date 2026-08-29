@@ -17,6 +17,11 @@
       "id": "store1",
       "file": "store1.json",
       "title": "store1 紹介画像の1枚目（盤の全景・包囲しかけ）"
+    },
+    {
+      "id": "store2",
+      "file": "store2.json",
+      "title": "store2 紹介画像の2枚目（戦闘の演出・ノービス対ホブゴブリン）"
     }
   ]
 }
