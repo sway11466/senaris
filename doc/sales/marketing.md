@@ -207,6 +207,8 @@ a companion worn down to nothing is out of the fighting, but not out of the stor
 More about the game: [senaris.in](https://senaris.in)
 ````
 
+ストアページに出る英語でも、AI 生成コンテンツの開示文だけは [monetization.md](monetization.md) が正本。方針と不可分なため、そちらに置く。
+
 一行目で差別化（乱数なし・生産なし）、`What to expect` で期待値の設定という分担にする。carryover はチュートリアル1が各話独立のため初回では書かない。継承の入るチュートリアル3を収録する回で足す。チャネル専用の段落（itch の `About this demo` など）は正本に置かず、チャネル側のファイルに持つ。
 
 ## 素材の置き場

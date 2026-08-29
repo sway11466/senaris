@@ -269,13 +269,51 @@ Steam＝コアゲーマー中心。**カジュアル層（アプリストア／W
   - **版をゲーム内に表示**する（サポートで版が特定できないと再現できない → 3章「追跡（事後特定）」の刻印）。
 - 1ファイルのサイズ上限がある。Godot のビルドが育つとぶつかる可能性 → 出品前に要確認。
 
-### AI 生成コンテンツ 【メモ】
+### AI 生成コンテンツ 【方針】
 
-本作はアートに AI 生成を含む。**出す前に確認が要る手続きが2つ**:
+本作は絵・音楽・文章の制作に生成 AI を使う。ゲームデザイン（規則・数値・マップ・戦闘システム・物語の骨子・ユニットの役割）には使わない。実装コードには使うが、Steam は出荷物を生まない補助ツールを開示対象から外しているため開示文には書かない。規則＝設計判断は人、実装は AI 併用、という切り分けを崩さない。
 
-- **Steam は提出時の開示が必須**。Steamworks の開示欄に記入し、内容は**ストアページに公開表示**される。申告漏れは審査で止まる。※開示区分（事前生成／実行時生成）の詳細は提出時に最新を要確認。
-- **BOOTH（pixiv 系）の AI ポリシーは要確認**。販売可否そのものが変わり得るため、BOOTH を計画に組み込む前に確認する。
-- 集客を絵に依存する前提は置かない。Steam では**ジャンル・タグで見つけてもらう**（`Turn-Based Tactics` / `Hex Grid` / `Wargame` 等）。この客層は絵の魅力ではなく盤面のゲーム性で買う。
+構えは3つ。宣伝しない。隠さない。理由を書かない。
+
+宣伝しないのは、AI を看板にすると紹介のされ方が「AI を使った戦術ゲーム」に固定されるため。隠さないのは、使っていないと言った後で崩れる壊れ方がいちばん被害が大きいため。理由を書かないのは、開示文に「これがないと完成しなかった」といった効率の説明を添えると引火点になるため（道徳的な非難に利便性で答える形になる）。
+
+#### 開示文
+
+Steamworks の開示欄に入れる文。これを正本とし、事実の記述だけを置く。弁明も価値観の表明もしない。
+
+```
+Senaris uses generative AI in its art, music, and text.
+It does not use AI in game design.
+
+Made with AI
+- Art — unit portraits, terrain tiles, menu materials, illustrations, UI icons,
+  the logo, and the animated title sequence — is generated with AI image and
+  video tools, then selected, edited, and assembled by hand.
+- Music starts from AI-generated melody sketches, then arranged and orchestrated
+  by hand in MuseScore.
+- Text is drafted with AI and edited by hand. The English text is AI-translated
+  from the Japanese original.
+
+Authored by hand
+- The combat system and every rule it resolves.
+- Unit stats, terrain types, and movement costs.
+- The cast of units — what each one is and what it does.
+- The story outline.
+- Every map. Stages are placed by hand, not generated, and difficulty is tuned
+  by playing them.
+
+Sound effects are licensed recordings, not generated.
+Nothing is generated while the game is running.
+```
+
+`Authored by hand` は「使っていない」ではなく著作の主張として書く。否定を並べると弁明に転ぶが、作ったものを並べるなら何項目あっても調子が変わらない。`the cast of units` は見た目ではなく役割を指す語として選んでいる（`unit design` は絵と混同される）。`placed by hand, not generated` は [marketing.md](marketing.md) の特徴リストと同じ表現に揃えてある。
+
+#### 手続き
+
+- 内容はストアページに公開表示される。申告漏れは審査で止まる。
+- 提出時に確認する：箇条書きの書式が保たれるか、言語ごとに出し分けられるか（本作は ja＋en）、開示区分（事前生成／実行時生成）の分類が変わっていないか。
+- BOOTH（pixiv 系）の AI ポリシーは要確認。販売可否そのものが変わり得るため、BOOTH を計画に組み込む前に確認する。
+- 集客を絵に依存する前提は置かない。Steam ではジャンル・タグで見つけてもらう（`Turn-Based Tactics` / `Hex Grid` / `Wargame` 等）。この客層は絵の魅力ではなく盤面のゲーム性で買う。
 
 ### コスト構造 【メモ】
 
