@@ -111,6 +111,7 @@ func open(stage_title: String, party: Array = [], carryover: bool = false) -> vo
 	_title.text = stage_title
 	_body.text = tr("ui.quest.confirm")
 	_back.text = tr("ui.quest.back")
+	_sortie.text = tr("ui.quest.sortie")  # 開くたびに貼り直す＝言語を変えたあとも紙の文字が揃う
 	_fill_party(party, carryover)
 	_sortie.visible = true
 	visible = true
