@@ -150,7 +150,7 @@ X失う兵数 ＝ clamp( round( k × X兵数 × A_y^p / (A_y^p + D_x^p) ), 0, X�
 - **攻撃・防御の両方に地形係数を持たせる**（攻防別の2係数）。罠地形＝攻撃強化、穴ぐら＝防御強化…のように地形の性格づけで戦略を広げる狙い。
 - 各地形が `地形(攻)` と `地形(防)` を持つ。**ユニットが立っているヘックスの地形**が効く（攻撃側は自分の足元の地形(攻)、防御側は自分の足元の地形(防)）。
 
-**地形はデータ駆動**。正本 `godot/data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`godot/data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形タイプの性格（攻め寄り・守り寄り・障害…）と代表例は [terrain.md](terrain.md) の「地形タイプの性格」が正本。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
+**地形はデータ駆動**。正本 `godot/data/terrain/terrain_type.csv` → `terrain_type.json`、`TerrainType` カタログ（`godot/data/terrain/terrain_type.gd`）が係数・ASCII文字を提供。地形タイプの性格（攻め寄り・守り寄り・障害…）の考え方は [terrain.md](terrain.md) の「地形タイプの性格」。個々の地形は `terrain_type.csv` を見る。地形idは文字列（`plain`/`plateau`/`forest`…）で、そのまま移動コスト表のキーになる。
 
 - **拠点（fort/castle）は地形としては「防御の強いマス」**。占領・出撃（控えを出す）・回復（休憩）の挙動は地形補正とは別レイヤーで、`godot/domain/capture/`＋`BattleState` が担う（[map.md](map.md) 拠点・占領）。
 
