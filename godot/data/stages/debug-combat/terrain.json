@@ -1,15 +1,58 @@
 {
-  "turn_limit": 30,
+  "turn_limit": 99,
   "name": "debug-combat-terrain",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 10,
+  "rows": 15,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "...L....+.",
+    "..........",
+    "........T.",
+    "..........",
+    "...%....U.",
+    "..........",
+    "...P....B.",
+    "..........",
+    "...F....O.",
+    "..........",
+    "...*....=.",
+    "..........",
+    "...M......",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "archer", "col": 1, "row": 1 },
+    { "type": "archer", "col": 6, "row": 1 },
+    { "type": "archer", "col": 1, "row": 3 },
+    { "type": "archer", "col": 6, "row": 3 },
+    { "type": "archer", "col": 1, "row": 5 },
+    { "type": "archer", "col": 6, "row": 5 },
+    { "type": "archer", "col": 1, "row": 7 },
+    { "type": "archer", "col": 6, "row": 7 },
+    { "type": "archer", "col": 1, "row": 9 },
+    { "type": "archer", "col": 6, "row": 9 },
+    { "type": "archer", "col": 1, "row": 11 },
+    { "type": "archer", "col": 6, "row": 11 },
+    { "type": "archer", "col": 1, "row": 13 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "案山子（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 1 },
+        { "type": "novice", "skin": "goblin", "col": 8, "row": 1 },
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 3 },
+        { "type": "novice", "skin": "goblin", "col": 8, "row": 3 },
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 5 },
+        { "type": "novice", "skin": "goblin", "col": 8, "row": 5 },
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 7 },
+        { "type": "novice", "skin": "goblin", "col": 8, "row": 7 },
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 9 },
+        { "type": "novice", "skin": "goblin", "col": 8, "row": 9 },
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 11 },
+        { "type": "novice", "skin": "goblin", "col": 8, "row": 11 },
+        { "type": "novice", "skin": "goblin", "col": 3, "row": 13 }
+      ] }
+  ]
 }

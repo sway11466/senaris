@@ -1,15 +1,24 @@
 {
   "turn_limit": 30,
   "name": "debug-skins-giant",
-  "cols": 5,
+  "haze": 0.80,
+  "cols": 10,
   "rows": 5,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 1, "row": 1 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "見本（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "troll", "col": 1, "row": 3 }
+      ] }
+  ]
 }

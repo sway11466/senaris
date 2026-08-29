@@ -1,15 +1,38 @@
 {
-  "turn_limit": 30,
+  "turn_limit": 99,
   "name": "debug-combat-rogue",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 10,
+  "rows": 11,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "archer", "col": 1, "row": 1 },
+    { "type": "archer", "col": 1, "row": 3 },
+    { "type": "archer", "col": 1, "row": 5 },
+    { "type": "archer", "col": 1, "row": 7 },
+    { "type": "archer", "col": 1, "row": 9 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "的（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "rogue", "col": 3, "row": 1 },
+        { "skin": "rogue_axe", "col": 3, "row": 3 },
+        { "skin": "rogue_slinger", "col": 3, "row": 5 },
+        { "skin": "rogue_head", "col": 3, "row": 7 },
+        { "skin": "rogue_wagon", "col": 3, "row": 9 }
+      ] }
+  ]
 }

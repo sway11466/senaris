@@ -1,15 +1,28 @@
 {
   "turn_limit": 30,
   "name": "debug-skins-rogue",
-  "cols": 5,
+  "haze": 0.80,
+  "cols": 10,
   "rows": 5,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 1, "row": 1 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "見本（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "rogue", "col": 1, "row": 3 },
+        { "skin": "rogue_axe", "col": 2, "row": 3 },
+        { "skin": "rogue_slinger", "col": 3, "row": 3 },
+        { "skin": "rogue_head", "col": 4, "row": 3 },
+        { "skin": "rogue_wagon", "col": 5, "row": 3 }
+      ] }
+  ]
 }

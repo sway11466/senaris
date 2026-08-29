@@ -1,15 +1,32 @@
 {
   "turn_limit": 30,
   "name": "debug-withdraw",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 12,
+  "rows": 7,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "............",
+    "............",
+    "............",
+    "..........O.",
+    "............",
+    "............",
+    "............"
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 2, "row": 2 },
+    { "type": "archer", "col": 1, "row": 3 },
+    { "type": "novice", "col": 2, "row": 4 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "撤退隊", "ai": "withdraw",
+      "units": [
+        { "skin": "orc", "col": 7, "row": 2 },
+        { "skin": "orc", "col": 7, "row": 4 }
+      ] }
+  ],
+  "bases": [
+    { "order": 2, "col": 10, "row": 3, "team": "enemy", "kind": "fort", "ai": "withdraw" }
+  ]
 }

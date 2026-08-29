@@ -1,15 +1,30 @@
 {
   "turn_limit": 30,
   "name": "debug-skins-beast",
-  "cols": 5,
+  "haze": 0.80,
+  "cols": 10,
   "rows": 5,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 1, "row": 1 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "見本（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "griffon", "col": 1, "row": 3 },
+        { "skin": "chimera", "col": 2, "row": 3 },
+        { "skin": "harpy", "col": 3, "row": 3 },
+        { "skin": "dire_wolf", "col": 4, "row": 3 },
+        { "skin": "rock_serpent", "col": 5, "row": 3 },
+        { "skin": "wyrm", "col": 6, "row": 3 },
+        { "skin": "scorpion", "col": 7, "row": 3 }
+      ] }
+  ]
 }

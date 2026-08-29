@@ -1,15 +1,64 @@
 {
   "turn_limit": 30,
   "name": "debug-skins-ally",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 10,
+  "rows": 11,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "skin": "cleric", "col": 1, "row": 1 },
+    { "skin": "priest", "col": 2, "row": 1 },
+    { "skin": "bishop", "col": 3, "row": 1 },
+    { "skin": "paladin", "col": 4, "row": 1 },
+    { "skin": "archer", "col": 5, "row": 1 },
+    { "skin": "hunter", "col": 6, "row": 1 },
+    { "skin": "elf", "col": 7, "row": 1 },
+    { "skin": "slinger", "col": 8, "row": 1 },
+
+    { "skin": "mage", "col": 1, "row": 3 },
+    { "skin": "wizard", "col": 2, "row": 3 },
+    { "skin": "witch", "col": 3, "row": 3 },
+    { "skin": "thief", "col": 4, "row": 3 },
+    { "skin": "halfling", "col": 5, "row": 3 },
+    { "skin": "ninja", "col": 6, "row": 3 },
+    { "skin": "kunoichi", "col": 7, "row": 3 },
+    { "skin": "pixie", "col": 8, "row": 3 },
+
+    { "skin": "pegasus", "col": 1, "row": 5 },
+    { "skin": "birdman", "col": 2, "row": 5 },
+    { "skin": "novice", "col": 3, "row": 5 },
+    { "skin": "fighter", "col": 4, "row": 5 },
+    { "skin": "vanguard", "col": 5, "row": 5 },
+    { "skin": "samurai", "col": 6, "row": 5 },
+    { "skin": "knight", "col": 7, "row": 5 },
+    { "skin": "dwarf", "col": 8, "row": 5 },
+
+    { "skin": "magic_knight", "col": 1, "row": 7 },
+    { "skin": "sorcerer", "col": 2, "row": 7 },
+    { "skin": "sniper", "col": 3, "row": 7 },
+    { "skin": "warlord", "col": 4, "row": 7 },
+    { "skin": "wagon", "col": 5, "row": 7 },
+    { "skin": "airship", "col": 6, "row": 7 },
+    { "skin": "barricade", "col": 7, "row": 7 },
+    { "skin": "ballista", "col": 8, "row": 7 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "見張り（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "goblin", "col": 8, "row": 9 }
+      ] }
+  ]
 }

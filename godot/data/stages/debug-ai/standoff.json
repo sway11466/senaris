@@ -1,15 +1,29 @@
 {
   "turn_limit": 30,
   "name": "debug-standoff",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 12,
+  "rows": 7,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............",
+    "............"
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 2, "row": 3 },
+    { "type": "archer", "col": 1, "row": 2 },
+    { "type": "novice", "col": 2, "row": 4 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "射手", "ai": "standoff",
+      "units": [
+        { "skin": "goblin_archer", "col": 9, "row": 2 },
+        { "skin": "goblin_archer", "col": 9, "row": 4 }
+      ] }
+  ]
 }

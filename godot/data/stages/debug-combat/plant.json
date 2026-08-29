@@ -1,15 +1,30 @@
 {
-  "turn_limit": 30,
+  "turn_limit": 99,
   "name": "debug-combat-plant",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 10,
+  "rows": 7,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "archer", "col": 1, "row": 1 },
+    { "type": "archer", "col": 1, "row": 3 },
+    { "type": "archer", "col": 1, "row": 5 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "的（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "treant", "col": 3, "row": 1 },
+        { "skin": "matango", "col": 3, "row": 3 },
+        { "skin": "mandragora", "col": 3, "row": 5 }
+      ] }
+  ]
 }

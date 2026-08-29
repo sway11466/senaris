@@ -1,15 +1,31 @@
 {
   "turn_limit": 30,
   "name": "debug-flee",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 12,
+  "rows": 7,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "............",
+    "............",
+    "............",
+    ".O........O.",
+    "............",
+    "............",
+    "............"
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 5, "row": 3 },
+    { "type": "archer", "col": 4, "row": 2 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "逃走者", "ai": "flee",
+      "units": [
+        { "skin": "rogue", "col": 7, "row": 3 }
+      ] }
+  ],
+  "bases": [
+    { "col": 1, "row": 3, "team": "player", "kind": "fort" },
+    { "order": 2, "col": 10, "row": 3, "team": "enemy", "kind": "fort", "ai": "flee" }
+  ]
 }

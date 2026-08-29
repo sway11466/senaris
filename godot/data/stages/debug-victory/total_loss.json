@@ -1,15 +1,25 @@
 {
   "turn_limit": 30,
   "name": "debug-total_loss",
-  "cols": 5,
+  "haze": 0.80,
+  "cols": 8,
   "rows": 5,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "........",
+    "........",
+    "........",
+    "........",
+    "........"
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "novice", "col": 1, "row": 2 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "討手", "ai": "charge",
+      "units": [
+        { "skin": "hobgoblin", "col": 5, "row": 1 },
+        { "skin": "hobgoblin", "col": 5, "row": 3 }
+      ] }
+  ]
 }

@@ -1,15 +1,27 @@
 {
   "turn_limit": 30,
   "name": "debug-lose_hq",
-  "cols": 5,
+  "haze": 0.80,
+  "cols": 10,
   "rows": 5,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    ".O........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 8, "row": 2 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "本拠地強襲", "ai": "raid",
+      "units": [
+        { "skin": "goblin", "col": 5, "row": 2 }
+      ] }
+  ],
+  "bases": [
+    { "col": 1, "row": 2, "team": "player", "kind": "hq" }
+  ]
 }

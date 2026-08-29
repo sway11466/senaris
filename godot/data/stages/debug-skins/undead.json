@@ -1,15 +1,31 @@
 {
   "turn_limit": 30,
   "name": "debug-skins-undead",
-  "cols": 5,
+  "haze": 0.80,
+  "cols": 10,
   "rows": 5,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 1, "row": 1 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "見本（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "skeleton", "col": 1, "row": 3 },
+        { "skin": "zombie", "col": 2, "row": 3 },
+        { "skin": "skeleton_archer", "col": 3, "row": 3 },
+        { "skin": "ghoul", "col": 4, "row": 3 },
+        { "skin": "dullahan", "col": 5, "row": 3 },
+        { "skin": "ghost", "col": 6, "row": 3 },
+        { "skin": "wraith", "col": 7, "row": 3 },
+        { "skin": "necromancer", "col": 8, "row": 3 }
+      ] }
+  ]
 }

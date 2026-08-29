@@ -1,15 +1,46 @@
 {
-  "turn_limit": 30,
+  "turn_limit": 99,
   "name": "debug-combat-beast",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 10,
+  "rows": 15,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    "..........",
+    ".........."
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "archer", "col": 1, "row": 1 },
+    { "type": "archer", "col": 1, "row": 3 },
+    { "type": "archer", "col": 1, "row": 5 },
+    { "type": "archer", "col": 1, "row": 7 },
+    { "type": "archer", "col": 1, "row": 9 },
+    { "type": "archer", "col": 1, "row": 11 },
+    { "type": "archer", "col": 1, "row": 13 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "的（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "griffon", "col": 3, "row": 1 },
+        { "skin": "chimera", "col": 3, "row": 3 },
+        { "skin": "harpy", "col": 3, "row": 5 },
+        { "skin": "dire_wolf", "col": 3, "row": 7 },
+        { "skin": "rock_serpent", "col": 3, "row": 9 },
+        { "skin": "wyrm", "col": 3, "row": 11 },
+        { "skin": "scorpion", "col": 3, "row": 13 }
+      ] }
+  ]
 }

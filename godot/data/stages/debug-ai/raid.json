@@ -1,15 +1,32 @@
 {
   "turn_limit": 30,
   "name": "debug-raid",
-  "cols": 5,
-  "rows": 5,
+  "haze": 0.80,
+  "cols": 12,
+  "rows": 7,
+  "margin": 0,
   "terrain": [
-    ".....",
-    ".....",
-    ".....",
-    ".....",
-    "....."
+    "............",
+    "............",
+    "............",
+    "...O........",
+    "............",
+    "............",
+    "............"
   ],
-  "player": [],
-  "enemy": []
+  "player": [
+    { "type": "fighter", "col": 4, "row": 3 },
+    { "type": "archer", "col": 3, "row": 2 }
+  ],
+  "enemy": [
+    { "order": 1, "name": "拠点強襲", "ai": "raid",
+      "units": [
+        { "skin": "goblin", "col": 9, "row": 2 },
+        { "skin": "goblin", "col": 9, "row": 4 },
+        { "skin": "hobgoblin", "col": 10, "row": 3 }
+      ] }
+  ],
+  "bases": [
+    { "col": 3, "row": 3, "team": "player", "kind": "fort" }
+  ]
 }
