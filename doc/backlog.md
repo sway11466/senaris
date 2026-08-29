@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=4 / feature=89 / refactoring=12
+次回採番: bug=4 / feature=90 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -24,6 +24,14 @@
 - 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+
+### feature-89
+
+**ホーリーアリアの効果を参加人数で伸ばす**
+- ゴール：隣接クラスタが5体より多いとき、多いぶんが効果の強さになっている（頭数を集めた判断が報われる）。
+- 背景：いまは5体以上で成立し、発動すると隣接クラスタ全員が行動完了になる＝人数が増えても効果は同じで、消費だけが増える。集まっているほど損をする形になっている。案は最低5体を据え置き、1体増えるごとに補正 +0.05（5体＝×1.30／8体＝×1.45）。
+- 対応：`Formation.RECIPES` の `holy_aria` に人数連動の値を持たせ、`_buff_entry` が参加人数から補正を決める。`count` 固定でないレシピは初なので、他のレシピへ波及しない形で入れる。formations.md ②の表と、レシピ表の「効果」の書き方も更新する。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/battle_state.gd`（`_buff_entry`）・`godot/tests/unit/test_formation.gd`・`doc/gdd/formations.md`。
 
 ### feature-88
 
