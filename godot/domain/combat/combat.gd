@@ -35,6 +35,8 @@ static func level_factor_at(level: int) -> float:
 ## 表示も戦闘解決もこの内訳から導くので、画面の数字と実処理が必ず一致する。
 ## 相手が飛行なら対空、地上なら対地（attack_against）。対空0で飛行を狙うと stat=0＝total0。
 ## 包囲は常時（囲まれた側は近接/間接問わず弱る）。支援(攻・加算)は melee のときだけ。
+## ここは「標準の係数の集め方」＝通常戦闘用。別の流儀（陣形スキル等）は呼び出し元が
+## 係数を選んで attack_breakdown_from を直接呼ぶ（例外のフラグをここに足さない）。
 static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> Dictionary:
 	var sf := state.status_aggregate(u, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := attack_breakdown_from(

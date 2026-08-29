@@ -288,6 +288,21 @@ func test_single_uses_leader_attack() -> void:
 	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
 	assert_eq(int(res["results"][0]["loss"]), expect, "発動者(パラディン)の実効攻撃力での損害")
 
+func test_single_hits_aerial_with_ground_attack() -> void:
+	# 陣形スキルの威力は常に対地値＝atk_air 0 のパラディンでも飛行の敵に同じ威力で通る。
+	# 詳細 → doc/gdd/formations.md「面・射程・持続で払わせ、威力では払わせない」
+	var ground := _judgment_state(100)  # 硬い敵で非撃破
+	var g_opt: Dictionary = Formation.available_for(ground["s"], ground["leader"])[0]
+	var g_res: Dictionary = ground["s"].resolve_formation(g_opt, ground["enemy_hex"])
+	var g_loss := int(g_res["results"][0]["loss"])
+	assert_gt(g_loss, 0, "対地の敵には損害が出る前提")
+	var air := _judgment_state(100)
+	var foe: Unit = air["enemy"]
+	foe.move_type = "flight"  # 同条件の敵を飛行にする（テストのパラディンも実データ同様 atk_air=0）
+	var a_opt: Dictionary = Formation.available_for(air["s"], air["leader"])[0]
+	var a_res: Dictionary = air["s"].resolve_formation(a_opt, air["enemy_hex"])
+	assert_eq(int(a_res["results"][0]["loss"]), g_loss, "飛行の敵にも対地と同じ損害")
+
 func test_single_out_of_range_fails() -> void:
 	var s := BattleState.new(20, 8)
 	var c := Hex.offset_to_axial(2, 3)

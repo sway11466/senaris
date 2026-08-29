@@ -438,11 +438,25 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
 static func _formation_hit(state: BattleState, option: Dictionary, victim: Unit) -> Dictionary:
 	var leader := state.unit_by_id(int(option["leader_id"]))
-	# 間接扱い＝melee=false（支援は乗らない）。発動者の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）。
-	var atk := float(Combat.attack_breakdown(state, leader, victim, false)["total"])
+	var atk := float(_skill_attack_breakdown(state, leader)["total"])
 	var synth_atk := {"kind": "attack", "total": atk}
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。
 	var df := Combat.defense_breakdown(state, victim, leader, false)
 	var hit := Combat.hit_from_breakdowns(synth_atk, df, victim.troops)
 	hit["target_id"] = victim.id
 	return hit
+
+## 発動者の実効攻撃力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.attack_breakdown_from）。
+## 通常戦闘（Combat.attack_breakdown）との違いはここに全部書く:
+##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）／支援なし（間接扱い）。
+## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md
+static func _skill_attack_breakdown(state: BattleState, leader: Unit) -> Dictionary:
+	var sf := state.status_aggregate(leader, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
+	return Combat.attack_breakdown_from(
+		leader.troops,
+		leader.unit_attack,  # 常に対地値
+		Combat.level_factor(leader),
+		Combat.surround_factor(state, leader),
+		TerrainType.attack_factor(state.terrain_at(leader.pos)),
+		0.0,  # 支援なし
+		float(sf["mul"]), float(sf["add"]))
