@@ -207,7 +207,7 @@ POSE カタログ（役割で選ぶ。増やしてよい）:
 POSE (melee): A dynamic battle-ready action pose — weapon raised or mid-strike, weight forward, leaning into the blow as the character presses toward the enemy on the right.
 ```
 ```
-POSE (channel): A calm, grounded channelling pose — standing composed with both feet planted, focused on working a spell or blessing rather than striking; not lunging, not advancing.
+POSE (channel): A calm, grounded channelling pose — standing composed with both feet planted, focused on working a spell or blessing rather than striking; not lunging, not advancing. Even while channelling, the body stays TURNED to the right edge of the frame — shoulders and hips angled that way, one foot ahead of the other; NOT square to the viewer.
 ```
 ```
 POSE (ranged): A poised shooting stance — bow drawn to the cheek (or crossbow/gun leveled), aiming toward the enemy on the right, weight balanced and steady, focused down the shot; not lunging into melee.
