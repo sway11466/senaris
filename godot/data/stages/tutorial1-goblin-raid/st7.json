@@ -169,8 +169,8 @@
     { "col": 28, "row": 9, "skin": "plain_cave1_prop_loot1" }
   ],
   "player": [
-    { "type": "halfling", "col": 3, "row": 5 },
     { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "halfling", "col": 3, "row": 5 },
     { "type": "novice", "col": 3, "row": 7 },
     { "type": "novice", "col": 3, "row": 3 },
     { "type": "novice", "col": 2, "row": 4 },
