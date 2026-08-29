@@ -375,7 +375,7 @@
     { "type": "wagon", "col": 2, "row": 5 }
   ],
   "enemy": [
-    { "order": 1, "name": "t2.st4.squad.1", "ai": "charge",
+    { "order": 1, "name": "t2.st4.squad.1", "ai": "charge", "stack": 1,
       "units": [
         { "skin": "skeleton", "col": 11, "row": 9 },
         { "skin": "skeleton", "col": 17, "row": 10 },

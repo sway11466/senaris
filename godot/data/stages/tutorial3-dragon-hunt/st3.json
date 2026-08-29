@@ -765,7 +765,7 @@
     { "type": "mage", "actor": "mage", "col": 22, "row": 22 }
   ],
   "enemy": [
-    { "order": 1, "name": "t3.st3.squad.1", "ai": "ambush", "sight": 3,
+    { "order": 1, "name": "t3.st3.squad.1", "ai": "ambush", "sight": 3, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 6, "row": 4 },
         { "skin": "rock_serpent", "col": 19, "row": 16 },

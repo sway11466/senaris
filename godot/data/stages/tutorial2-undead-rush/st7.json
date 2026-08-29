@@ -442,13 +442,13 @@
         { "skin": "ghoul", "col": 10, "row": 11 },
         { "skin": "ghoul", "col": 11, "row": 11 }
       ] },
-    { "order": 5, "name": "t2.st7.squad.6", "ai": "charge",
+    { "order": 5, "name": "t2.st7.squad.6", "ai": "charge", "stack": 1,
       "units": [
         { "skin": "ghost", "col": 1, "row": 4 },
         { "skin": "ghost", "col": 2, "row": 4 },
         { "skin": "ghost", "col": 3, "row": 4 }
       ] },
-    { "order": 6, "name": "t2.st7.squad.7", "ai": "charge",
+    { "order": 6, "name": "t2.st7.squad.7", "ai": "charge", "stack": 1,
       "units": [
         { "skin": "ghost", "col": 9, "row": 4 },
         { "skin": "ghost", "col": 10, "row": 4 },
@@ -519,7 +519,7 @@
         { "skin": "zombie", "count": 2 },
         { "skin": "ghoul", "count": 1 }
       ] },
-    { "order": 40, "ai": "charge", "col": 4, "row": 9, "team": "enemy", "kind": "fort",
+    { "order": 40, "ai": "charge", "stack": 1, "col": 4, "row": 9, "team": "enemy", "kind": "fort",
       "garrison": [
         { "skin": "zombie", "count": 2 },
         { "skin": "ghost", "count": 1 },

@@ -292,13 +292,13 @@
         { "skin": "skeleton", "col": 21, "row": 3 },
         { "skin": "skeleton_archer", "col": 18, "row": 6 }
       ] },
-    { "order": 4, "name": "t2.st3.squad.4", "ai": "predator",
+    { "order": 4, "name": "t2.st3.squad.4", "ai": "predator", "stack": 1,
       "units": [
         { "skin": "ghost", "col": 20, "row": 1 },
         { "skin": "ghost", "col": 21, "row": 0 },
         { "skin": "ghost", "col": 21, "row": 1 }
       ] },
-    { "order": 5, "name": "t2.st3.squad.5", "ai": "charge",
+    { "order": 5, "name": "t2.st3.squad.5", "ai": "charge", "stack": 1,
       "units": [
         { "skin": "ghost", "col": 22, "row": 7 },
         { "skin": "ghost", "col": 21, "row": 6 },

@@ -316,7 +316,7 @@
         {"skin": "griffon", "col": 1, "row": 5},
         {"skin": "griffon", "col": 13, "row": 10}
       ] },
-    { "order": 3, "name": "t3.st5.squad.3", "ai": "charge",
+    { "order": 3, "name": "t3.st5.squad.3", "ai": "charge", "stack": 1,
       "units": [
         {"skin": "wyrm", "col": 6, "row": 2},
         {"skin": "wyrm", "col": 7, "row": 3},
