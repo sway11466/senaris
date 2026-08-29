@@ -1,9 +1,11 @@
 extends Control
 class_name CombatReportView
 ## 戦闘レポート（右パネル）。演出シーンと同じ detail（BattleState.attack の "detail"）を
-## 「サマリー（表）／攻撃側詳細／守備側詳細」の3タブで見せる。
-## サマリー＝ユーザーが見える特徴の左右比較（式は出さない）、詳細＝数式チェーン（数字の根拠）。
-## 左右は陣営で固定（自軍左・敵右）＝戦闘演出シーンと同じ並び。仕様 → doc/tech/combat_scene.md
+## 「サマリー（表）／攻撃／反撃」の3タブで見せる。
+## サマリー＝ユーザーが見える特徴の左右比較（式は出さない）。左右は陣営で固定
+## （自軍左・敵右）＝戦闘演出シーンと同じ並び。仕様 → doc/tech/combat_scene.md
+## 攻撃・反撃＝打撃の向きごとの数式チェーン（左＝打つ側の攻撃力・右＝受ける側の防御力・下＝損害）。
+## こちらの左右は陣営でなく式の順（攻÷防）で固定＝攻撃する側が常に左。
 ## 攻/防のペア表記（地形・支援・バフ）は常に「攻/防」の順。
 
 const VALUE_COLOR := Color(0.96, 0.93, 0.86)
@@ -17,11 +19,11 @@ const TAB_MIN_W := 120.0      # タブ1枚の最低幅
 
 var _skins := {}
 var _detail := {}
-var _tabs := {}  # "summary"/"attacker"/"defender" -> Button
+var _tabs := {}  # "summary"/"attack"/"counter" -> Button
 
 ## タブの id と文言キー。見出しは _ready で焼き込む＝言語が変わったら refresh_labels で貼り直す。
-const TABS := [["summary", "ui.report.tab_summary"], ["attacker", "ui.report.tab_attacker"],
-		["defender", "ui.report.tab_defender"]]
+const TABS := [["summary", "ui.report.tab_summary"], ["attack", "ui.report.tab_attack"],
+		["counter", "ui.report.tab_counter"]]
 var _summary: GridContainer
 var _side_head: Label
 var _detail_label: Label
@@ -53,11 +55,11 @@ func _ready() -> void:
 		b.pressed.connect(_show_tab.bind(t[0]))
 		tabs.add_child(b)
 		_tabs[t[0]] = b
-	_side_head = Label.new()  # 攻撃側/守備側タブの見出し（誰の内訳か・兵の増減）
+	_side_head = Label.new()  # 攻撃/反撃タブの見出し（どの向きの打撃か）
 	_side_head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_side_head.hide()
 	v.add_child(_side_head)
-	# サマリーも攻撃側/守備側も同じ3列の表（左＝その駒の攻め／中＝項目／右＝その駒の守り）。
+	# サマリーも攻撃/反撃も同じ3列の表を使い回す（中＝項目名）。
 	_summary = GridContainer.new()
 	_summary.columns = 3
 	_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -100,7 +102,7 @@ func _show_tab(id: String) -> void:
 		_rebuild_summary()
 		_detail_label.text = ""
 	else:
-		_rebuild_side(id == "attacker")
+		_rebuild_direction(id == "attack")
 
 # --- 表示の左右解決 ---
 
@@ -283,38 +285,31 @@ static func status_text(m: Dictionary) -> String:
 	var def_part := eff if t != "attack" else NONE
 	return "%s %s/%s" % [nm, atk_part, def_part]
 
-# --- 攻撃側／守備側タブ（補正の内訳）。サマリーと同じ3列の表で、係数を1行1項目で並べる ---
-# 左＝その駒の攻め（攻撃 or 反撃）／中＝項目名／右＝その駒の守り。両側で係数の並びが同じなので、
-# 1つの表に収まる。1本の長い式にすると板の幅で3行に折り返して読めなくなる。
+# --- 攻撃／反撃タブ（1回の打撃の内訳）。サマリーと同じ3列の表で、係数を1行1項目で並べる ---
+# 左＝打つ側の攻撃力の積み上げ／中＝項目名／右＝受ける側の防御力の積み上げ。下の損害の式に
+# 入る2つの実効値が同じ画面に並ぶ＝1タブで「誰の攻撃 × 誰の防御 ＝ 結果」が完結する。
+# 攻撃タブ＝往路（攻撃側→守備側）、反撃タブ＝復路。
 
-func _rebuild_side(attacker_side: bool) -> void:
+func _rebuild_direction(forward: bool) -> void:
 	for c in _summary.get_children():
 		_summary.remove_child(c)
 		c.queue_free()
 	var a: Dictionary = _detail["attacker"]
 	var t: Dictionary = _detail["defender"]
-	var fwd: Dictionary = _detail["to_defender"]
-	var ret: Variant = _detail["to_attacker"]
-	var snap: Dictionary = a if attacker_side else t
-	var other: Dictionary = t if attacker_side else a
-	var nm := _display_name(snap)
-	var on := _display_name(other)
-	# 攻め＝攻撃側なら往路の攻撃、守備側なら反撃。守り＝その駒が受ける側の内訳。
-	var off: Dictionary = fwd["attack"] if attacker_side else (ret["attack"] if ret != null else {})
-	var def: Dictionary = (ret["defense"] if ret != null else {}) if attacker_side else fwd["defense"]
-	_side_head.text = tr("ui.report.side_head") % [nm, snap["level"],
-		snap["troops_before"], snap["max"], snap["troops_after"], snap["max"],
-		int(snap["troops_after"]) - int(snap["troops_before"])]
-
-	# 列の見出しは下の損害の説明でも使い回す＝どの列の話がどの説明かを同じ言葉で結ぶ。
-	var off_head := (tr("ui.report.attack_to") % on) if attacker_side else (tr("ui.report.counter_to") % on)
-	var def_head := tr("ui.report.defense_from") % on
-	_add_row(off_head, "", def_head)
+	var hit: Variant = _detail["to_defender"] if forward else _detail["to_attacker"]
+	var striker: Dictionary = a if forward else t
+	var victim: Dictionary = t if forward else a
+	var sn := _display_name(striker)
+	var vn := _display_name(victim)
+	_side_head.text = tr("ui.report.head_attack" if forward else "ui.report.head_counter") % [sn, vn]
+	if hit == null:
+		_detail_label.text = tr("ui.report.no_counter_reason")
+		return
+	var off: Dictionary = hit["attack"]
+	var def: Dictionary = hit["defense"]
+	_add_row(tr("ui.report.col_attack") % sn, "", tr("ui.report.col_defense") % vn)
 	_add_row(_num(off, "troops"), tr("ui.report.strength"), _num(def, "troops"))
-	# 攻撃力と防御力は別の行に分ける＝どちらの列がどちらの側の話か、行だけ見て分かるようにする。
-	# 効かない側は — にして行そのものは残す（行の有無で探させない）。
-	_add_row(_stat_text(off), tr("ui.report.attack"), NONE)
-	_add_row(NONE, tr("ui.report.defense"), _stat_text(def))
+	_add_row(_atk_stat_text(off), tr("ui.report.base_stat"), String.num_int64(int(def["stat"])))
 	_add_row(_mul(off, "level"), tr("ui.report.level"), _mul(def, "level"))
 	_add_row(_mul(off, "surround"), tr("ui.report.encircled"), _mul(def, "surround"))
 	_add_row(_mul(off, "terrain"), tr("ui.report.terrain"), _mul(def, "terrain"))
@@ -323,38 +318,38 @@ func _rebuild_side(attacker_side: bool) -> void:
 	# 貫通は防御側にだけ乗る（攻撃側の pierce が相手の防御を削る）。効いていなければ — 。
 	_add_row(NONE, tr("ui.report.pierce"), _mul(def, "pierce"))
 	_add_rule()  # ここまでが積み上げ、ここから下が出来上がった値
-	_add_row(_total_text(off, tr("ui.report.no_counter")), tr("ui.report.eff_atk"), NONE)
-	_add_row(NONE, tr("ui.report.eff_def"), _total_text(def, NONE))
-	# ぶつけ合った相手の値はもう一方のタブに同じ数字で出るので、表には載せない
-	# （攻撃側タブの「相手の実効防御力」＝守備側タブの「実効防御力」）。
-	# 損害の出し方は左右に割らず、幅いっぱいで式に数字を入れて見せる＝どちらが何兵失うのか、
-	# 列の位置ではなく文で分かるようにする。
-	# 損害はそのタブの駒が「与える側」の1本だけ書く。受ける側の損害は、その相手のタブに
-	# 同じ形で出る（攻撃側タブ＝ナイトが与える／守備側タブ＝スケルトンが反撃で与える）。
-	var own_hit: Variant = fwd if attacker_side else ret
+	_add_row(_total_text(off, NONE), tr("ui.report.eff_total"), _total_text(def, NONE))
+	# 実効値の下に用語を添える＝下の損害の式と同じ言葉で列を結ぶ。
+	_add_control_row(_term_label(tr("ui.report.eff_atk")), "", _term_label(tr("ui.report.eff_def")))
+	# 損害の出し方は左右に割らず、幅いっぱいで式に数字を入れて見せる＝表の2つの実効値が
+	# そのまま式に入るのを見せる。
 	var lines: Array[String] = []
-	if bool(def.get("capped", false)) or bool(off.get("capped", false)):
+	if bool(def.get("capped", false)):
 		lines.append(tr("ui.report.support_capped"))
-	if own_hit == null:
-		lines.append("%s" % off_head)
-		lines.append(tr("ui.report.no_counter_reason"))
-	else:
-		lines.append_array(_damage_block(off_head, on, own_hit, other))
+	lines.append_array(_damage_block(vn, hit, victim))
 	_detail_label.text = "\n".join(lines)
 
-## その駒が与える損害の説明。式の形を先に出し、次の行で実際の数字に置き換える。
+## この打撃の損害の説明。式の形を先に出し、次の行で実際の数字に置き換える。
 ## 2乗は「520×520」と展開する（13px では小さい ² が読めない）。
 ## victim＝兵を失う側／hit は Combat.hit_detail（攻/防の内訳と損害率・損害）。
-func _damage_block(head: String, victim_name: String, hit: Dictionary, victim_snap: Dictionary) -> Array[String]:
+func _damage_block(victim_name: String, hit: Dictionary, victim_snap: Dictionary) -> Array[String]:
 	var atk := roundi(float(hit["attack"]["total"]))
 	var def_total := roundi(float(hit["defense"]["total"]))
 	var pct := int(round(float(hit["fraction"]) * 100.0))
 	return [
-		head,
 		tr("ui.report.loss_rate_formula"),
 		tr("ui.report.loss_rate_values") % [atk, atk, atk, atk, def_total, def_total, pct],
 		tr("ui.report.loss_line") % [victim_name, int(victim_snap["troops_before"]), pct, int(hit["loss"])],
 	]
+
+## 実効値の行の下に置く用語ラベル（実効攻撃力／実効防御力）。中央のラベルと同じ型づかい。
+func _term_label(text: String) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.add_theme_font_size_override("font_size", 12)
+	l.add_theme_color_override("font_color", LABEL_COLOR)
+	return l
 
 
 ## 攻撃の素の値＝対地/対空の別を添える（同じ駒でも相手で変わる）。サマリーと詳細で同じ書式。
@@ -374,15 +369,6 @@ func _mul(b: Dictionary, key: String) -> String:
 ## 加算1つ（支援）。
 func _add_text(b: Dictionary, key: String) -> String:
 	return "%+d" % roundi(float(b.get(key, 0.0))) if not b.is_empty() else NONE
-
-## ユニットの素の値。攻撃は対地/対空の別を添える（同じ駒でも相手で変わる）。
-## 防御は単一値で、行のラベルが「防御」なので数字だけでよい。
-func _stat_text(b: Dictionary) -> String:
-	if b.is_empty():
-		return NONE
-	if String(b.get("kind", "")) == "attack":
-		return _atk_stat_text(b)
-	return String.num_int64(int(b["stat"]))
 
 ## 状態補正（バフ/デバフ）。倍率と加算の両方が効いていれば併記する。
 func _status_part(b: Dictionary) -> String:

@@ -23,7 +23,7 @@ func _initialize() -> void:
 	win.add_child(holder)
 	_holder = holder
 	for loc in ["ja", "en"]:
-		for tab in ["summary", "attacker", "defender"]:
+		for tab in ["summary", "attack", "counter"]:
 			_shots.append([loc, tab, "report_%s_%s.png" % [loc, tab]])
 
 func _detail() -> Dictionary:
