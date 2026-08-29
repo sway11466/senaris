@@ -355,15 +355,11 @@ func _show_result(outcome: int, rank: String) -> void:
 	_result.play(_stage_title(), stamp_text, win, _result_rows(win), tr("ui.result.rank") if not rank.is_empty() else "")
 	await _result.finished
 
-## ステージ開始時の兵力を控える（戦果票の分母）。盤上の駒だけを数える＝拠点の控え(garrison)は含めない。
+## ステージ開始時の兵力を控える（戦果票の分母）。数え方は決着時の生存と同じ＝盤上＋輸送の中＋
+## 拠点の中（doc/gdd/rank.md 生存）。同じ物差しで測らないと、拠点に入れただけで生存率が落ちる。
 func _count_start_forces(state: BattleState) -> void:
-	_start_ally = 0
-	_start_enemy = 0
-	for u in state.units():
-		if u.team == 0:
-			_start_ally += 1
-		elif u.team == 1:
-			_start_enemy += 1
+	_start_ally = state.team_survivor_count(0)
+	_start_enemy = state.team_survivor_count(1)
 
 ## 戦果の行（ターン数・生存・撃破）。集計は presentation 側＝domain に戦績を持たせない。
 ## 勝利のときだけ、ターン数と生存にランク基準（S・A の具体値と達成の可否）を添える＝何を詰めれば
@@ -372,13 +368,8 @@ func _count_start_forces(state: BattleState) -> void:
 ## （開始時に盤上に居ない）＝多く見せる側には振れない。厳密に採るなら domain 側で撃破を数える。
 func _result_rows(win: bool) -> Array:
 	var st := _controller.state
-	var alive_ally := 0
-	var alive_enemy := 0
-	for u in st.units():
-		if u.team == 0:
-			alive_ally += 1
-		elif u.team == 1:
-			alive_enemy += 1
+	var alive_ally := st.team_survivor_count(0)
+	var alive_enemy := st.team_survivor_count(1)
 	var turns := "%d / %d" % [st.turn_number, st.turn_limit] if st.turn_limit > 0 else str(st.turn_number)
 	var turn_row := {"label": tr("ui.result.turns"), "value": turns}
 	var alive_row := {"label": tr("ui.result.survived"), "value": "%d / %d" % [alive_ally, _start_ally]}
@@ -409,10 +400,7 @@ func _fill_goals(row: Dictionary, fmt_key: String, s_key: String, a_key: String,
 func _evaluate_rank() -> String:
 	if _rank_data.is_empty() or _controller == null:
 		return ""
-	var alive := 0
-	for u in _controller.state.units():
-		if u.team == 0:
-			alive += 1
+	var alive := _controller.state.team_survivor_count(0)
 	return RankEvaluator.evaluate(_controller.state.turn_number, alive, _start_ally, _rank_data)
 
 ## 戦果票の見出し＝ステージ名（冒険譚マニフェストの翻訳キーを解決）。

@@ -1351,6 +1351,22 @@ func team_unit_count(team: int) -> int:
 			n += 1
 	return n
 
+## team の生き残り数＝盤上＋輸送の中＋拠点の中。失われた駒だけが数から落ちる。
+## 勝敗（盤上0で判定）とは別の数え方＝評価ランクの生存が読む（詳細 → doc/gdd/rank.md）。
+## 拠点の控えは出撃まで team が決まらないので帰属先（recruited_team）で見る。
+## 帰属未確定の中立の控えはどちらにも数えない（まだどちらの戦力でもない）。
+func team_survivor_count(team: int) -> int:
+	var n := team_unit_count(team)
+	for list in _passengers.values():
+		for u in list:
+			if u.team == team:
+				n += 1
+	for b in _bases:
+		for gu in b.garrison:
+			if (gu as Unit).recruited_team == team:
+				n += 1
+	return n
+
 ## team が「復帰手段」を持つか＝所有拠点に、実際に盤上へ出せる控えが1体でもいる（案B）。
 ## 盤上0でもこれが真なら、その陣営はまだ消滅していない＝敗北/勝利にしない。
 ## 勝敗判定（Victory）と駐留の可否（can_enter_base_at）の両方が使う＝state 側に置く。
