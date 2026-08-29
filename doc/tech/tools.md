@@ -27,6 +27,7 @@
 |---|---|---|---|
 | `gen_unit_map.ps1` | ユニットの master から map 画像（384四方・透過・64色）を書き出す | `powershell -File godot\tools\gen_unit_map.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_unit_combat.ps1` | ユニットの master から combat 立ち絵（512四方・下端揃え・透過）を書き出す | `powershell -File godot\tools\gen_unit_combat.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
+| `gen_ui_icon.ps1` | UIアイコンの raw から表示用（長辺128・透過・正方の枠に収める）を書き出す。地の色を明度で抜く＝手描きの master を置けばそちらが勝つ | `powershell -File godot\tools\gen_ui_icon.ps1 <icon_id> … \| all` | [../art/ui.md](../art/ui.md) |
 | `gen_effect.ps1` | 攻撃エフェクトの master をトリムして長辺512に収める（大小は `combat_effect.csv` の `scale` が持つので余白は焼かない） | `powershell -File godot\tools\gen_effect.ps1 <effect_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_formation_impact.ps1` | 陣形スキルの盤の着弾エフェクトの master をトリムして長辺512に収める（絵は下向きに描く＝盤では回さない） | `powershell -File godot\tools\gen_formation_impact.ps1 <recipe_id> … \| all` | [../art/keyvisual.md](../art/keyvisual.md) |
 | `gen_terrain_tile.ps1` | 元絵をフラットトップのヘックスに切り抜いて地形タイルにする（2枚目以降は variant）。`-Object` はヘックスではなく立ち絵として書き出す（幅はヘックス幅比＝terrain_skin.csv の `map_scale`） | `powershell -File godot\tools\gen_terrain_tile.ps1 <name> <src1> <src2> …` | [../art/terrain.md](../art/terrain.md) |
@@ -36,13 +37,13 @@
 | `gen_sfx.ps1` | MuseScore の .wav から効果音 .ogg を作る（無音トリム・変換・ピーク実測）。音量は揃えず測って報告だけする。基準から外れていれば警告を出す | `powershell -File godot\tools\gen_sfx.ps1 <sfx_id> …` | [../audio/sfx.md](../audio/sfx.md) |
 | `gen_bgm.ps1` | MuseScore の .wav から BGM .ogg を作る（楽譜からループ長を算出・残響の折り返し・変換・loop=true でインポート） | `powershell -File godot\tools\gen_bgm.ps1 <track_id> … [-Stinger] [-LoopSec <秒>]` | [../audio/bgm.md](../audio/bgm.md) |
 | `gen_terrain_tiles.gd` | 地形タイルのプレースホルダ（ベタ塗りヘックス）を生成する | `godot --headless --script res://tools/gen_terrain_tiles.gd` | [../art/terrain.md](../art/terrain.md) |
-| `logo/trace_sword.py` | 剣の黒シルエット PNG を SVG のパスに変換する（溝・柄頭の輪・巻きの隙間は穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_sword.py` | [../art/logo.md](../art/logo.md) |
-| `logo/trace_staff.py` | 杖の黒シルエット画像を SVG のパスに変換する（渦の抜けは穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python tools/logo/trace_staff.py` | [../art/logo.md](../art/logo.md) |
-| `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣と杖をクロスさせて刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版、開発元名を足した起動スプラッシュ版、文字を落としたアプリアイコン版を書き出す | `uv run --no-project --with fonttools python tools/logo/build_logo.py` | [../art/logo.md](../art/logo.md) |
+| `logo/trace_sword.py` | 剣の黒シルエット PNG を SVG のパスに変換する（溝・柄頭の輪・巻きの隙間は穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python godot/tools/logo/trace_sword.py` | [../art/logo.md](../art/logo.md) |
+| `logo/trace_staff.py` | 杖の黒シルエット画像を SVG のパスに変換する（渦の抜けは穴として残る） | `uv run --no-project --with pillow --with numpy --with potracer python godot/tools/logo/trace_staff.py` | [../art/logo.md](../art/logo.md) |
+| `logo/build_logo.py` | タイトルロゴの SVG を組む（盤と同じカメラで7ヘックスを投影し、剣と杖をクロスさせて刺し、EB Garamond をパス化して配置）。暗背景版・明背景版・小サイズ版、開発元名を足した起動スプラッシュ版、文字を落としたアプリアイコン版を書き出す | `uv run --no-project --with fonttools python godot/tools/logo/build_logo.py` | [../art/logo.md](../art/logo.md) |
 | `marketing/build_lineup.py` | ユニットの戦闘立ち絵を横一列に向かい合わせで並べたPNGを組む（左＝プレイヤー陣営＝右向き・右＝敵陣営＝左向き。反転しない） | `uv run --no-project --with pillow python godot/tools/marketing/build_lineup.py --left <skin,…> --right <skin,…> -o <png>` | [../sales/marketing.md](../sales/marketing.md) |
-| `keyvisual/build_keyvisual.py` | キービジュアルを組む。小＝ロゴの盤常設版と赤竜の立ち絵を地の上に置く（4倍で組んでから縮小、寸法は `SPECS`）／中＝生成した1枚絵にフル版ロゴを重ねる（位置は `M_SPEC`。ロゴの PNG は `rasterize_svg.gd` で SVG から焼いた中間物） | `uv run --no-project --with pillow python tools/keyvisual/build_keyvisual.py` | [../sales/marketing.md](../sales/marketing.md) |
+| `keyvisual/build_keyvisual.py` | キービジュアルを組む。小＝ロゴの盤常設版と赤竜の立ち絵を地の上に置く（4倍で組んでから縮小、寸法は `SPECS`）／中＝生成した1枚絵にフル版ロゴを重ねる（位置は `M_SPEC`。ロゴの PNG は `rasterize_svg.gd` で SVG から焼いた中間物） | `uv run --no-project --with pillow python godot/tools/keyvisual/build_keyvisual.py` | [../sales/marketing.md](../sales/marketing.md) |
 | `keyvisual/build_wanted_card.py` | 手配書の貼り紙の絵（card スロット）を組む。ユニットのマスター絵から顔を切り、`WANTED` を手前に重ねる（紙は敷かない＝背景は透明。下の羊皮紙が地になる） | `uv run --no-project --with pillow python godot/tools/keyvisual/build_wanted_card.py --skin <skin_id> --src <units-src の陣営フォルダ> -o <png>` | [../art/keyvisual.md](../art/keyvisual.md) |
-| `logo/build_icon.ps1` | アプリアイコンを焼く（`build_icon.gd` で各寸法の PNG にし、ImageMagick で `.ico` に束ねる） | `powershell -ExecutionPolicy Bypass -File godot	ools\logouild_icon.ps1` | [../art/icon.md](../art/icon.md) |
+| `logo/build_icon.ps1` | アプリアイコンを焼く（`build_icon.gd` で各寸法の PNG にし、ImageMagick で `.ico` に束ねる） | `powershell -ExecutionPolicy Bypass -File godot\tools\logo\build_icon.ps1` | [../art/icon.md](../art/icon.md) |
 | `logo/build_icon.gd` | アイコンの SVG を各寸法ちょうどの PNG に焼く（48px 以下は1枚版・64px 以上は7枚版）。見え方の確認用に暗い地と明るい地へ並べた1枚も出す | `godot --headless --path godot --script res://tools/logo/build_icon.gd` | [../art/icon.md](../art/icon.md) |
 | `rasterize_svg.gd` | SVG を PNG にする（Godot 内蔵の ThorVG。マスクも描ける） | `godot --headless --script res://tools/rasterize_svg.gd -- <in.svg> <out.png> [倍率]` | [../art/menu.md](../art/menu.md) |
 
@@ -54,7 +55,7 @@
 
 | ツール | 何をする道具か | 起動 | 詳細 |
 |---|---|---|---|
-| `build/build.ps1` | 配布ビルドを作る（エクスポート → ライセンス文を添える → 出力の中身を一覧） | `powershell -File godot	oolsuilduild.ps1 <プリセット名>` | [build.md](build.md) |
+| `build/build.ps1` | 配布ビルドを作る（エクスポート → ライセンス文を添える → 出力の中身を一覧） | `powershell -File godot\tools\build\build.ps1 <プリセット名>` | [build.md](build.md) |
 | `build/gen_export_filters.gd` | 収録リスト（`build/contents.json`）から必要な素材を導出し、除外フィルタを `export_presets.cfg` へ書き出す。落としたものの一覧も出す | `godot --headless --path godot --script res://tools/build/gen_export_filters.gd` | [build.md](build.md) |
 | `build/gen_licenses.gd` | 配布物に添えるライセンス文を組む（Godot のライセンスAPI＋素材の隣の LICENSE／NOTICE）。書き出し先は `assets/licenses/` | `godot --headless --path godot --script res://tools/build/gen_licenses.gd` | [build.md](build.md) |
 
