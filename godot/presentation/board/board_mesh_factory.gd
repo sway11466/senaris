@@ -6,6 +6,46 @@ class_name BoardMeshFactory
 # --- キャッシュ ---
 static var _overlay_mat := {}  # Color -> StandardMaterial3D
 static var _bill_mat := {}     # Color -> StandardMaterial3D
+static var _standee_mat := {}  # "テクスチャpath|明暗" -> ShaderMaterial
+static var _standee_shader: Shader = null
+
+## 立ち絵（駒・地形オブジェクト）の前後判定を、足元より DEPTH_BIAS だけカメラ寄りで行う。
+## 立ち絵はカメラに正対する板なので、板ぜんぶが足元と同じ奥行きに居る。一方、奥の高いマスは
+## 上面の手前端が足元より camera 寄りに来るため、そのままだと頭が奥の地形に食われる。
+## 逆に手前のマスは、この寄せぶんより更に手前に居るので隠す側のまま＝岩の陰に立つ絵は残る。
+## 単位はワールド（1.0 ＝ ヘックスの半径）。高さの段差 1.4 マスぶんまでを頭が抜けられる値。
+const STANDEE_DEPTH_BIAS := 0.45
+
+## 立ち絵の材質。ビルボード・α抜き・明暗は Sprite3D の設定ではなくこのシェーダが持つ
+## （material_override を差すと Sprite3D 側の billboard / alpha_cut / modulate は効かない）。
+const _STANDEE_SHADER := """
+shader_type spatial;
+render_mode cull_disabled, unshaded, shadows_disabled, depth_draw_opaque;
+
+uniform sampler2D tex : source_color, filter_linear;
+uniform vec4 modulate : source_color = vec4(1.0);
+uniform float depth_bias = 0.45;
+
+void vertex() {
+	// 完全ビルボード＝板をカメラに正対させる（Sprite3D の BILLBOARD_ENABLED と同じ組み方）。
+	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+		INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
+	// 板ごとカメラ原点まわりで相似縮小する＝視線の上を滑らせる。画面上の位置と大きさは
+	// 変わらず、深度だけが depth_bias ぶん浅くなる（前後判定だけを手前に寄せる）。
+	float z0 = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).z;  // 足元のビュー空間 z（負）
+	float k = (z0 + depth_bias) / z0;
+	MODELVIEW_MATRIX = mat4(vec4(k, 0.0, 0.0, 0.0), vec4(0.0, k, 0.0, 0.0),
+		vec4(0.0, 0.0, k, 0.0), vec4(0.0, 0.0, 0.0, 1.0)) * MODELVIEW_MATRIX;
+}
+
+void fragment() {
+	vec4 c = texture(tex, UV) * modulate;
+	if (c.a < 0.5) {
+		discard;  // 半透明ソートを避ける（Sprite3D の ALPHA_CUT_DISCARD と同じ）
+	}
+	ALBEDO = c.rgb;
+}
+"""
 
 # =========================================================================
 # メッシュ生成
@@ -211,6 +251,23 @@ static func overlay_material(color: Color) -> StandardMaterial3D:
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	_overlay_mat[color] = m
+	return m
+
+## 立ち絵（駒・地形オブジェクト）の材質。テクスチャ×明暗ごとにキャッシュ。
+## Sprite3D.material_override に差して使う（呼び側は texture / pixel_size / offset だけ持つ）。
+static func standee_material(tex: Texture2D, modulate: Color = Color.WHITE) -> ShaderMaterial:
+	var key := "%s|%s" % [tex.resource_path, modulate]
+	if _standee_mat.has(key):
+		return _standee_mat[key]
+	if _standee_shader == null:
+		_standee_shader = Shader.new()
+		_standee_shader.code = _STANDEE_SHADER
+	var m := ShaderMaterial.new()
+	m.shader = _standee_shader
+	m.set_shader_parameter("tex", tex)
+	m.set_shader_parameter("modulate", modulate)
+	m.set_shader_parameter("depth_bias", STANDEE_DEPTH_BIAS)
+	_standee_mat[key] = m
 	return m
 
 ## ビルボード材質（兵数バー用・アンライト・半透明可）。色ごとにキャッシュ。
