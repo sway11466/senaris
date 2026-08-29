@@ -16,7 +16,8 @@
 | data | 必須 | CSV正本→JSON生成の整合・カタログ読込。欠損・不正はデータのバグとして開発時に落とす（architecture.md のバリデーション方針） |
 | application | 対象 | コマンド実行・ステージ組み立て（StageLoader）・キャンペーン進行判定 |
 | infrastructure | 対象 | セーブの読み書き（progress_store） |
-| presentation | 原則対象外 | 見た目・入力・カメラは自動テストしない。`godot/tests/manual/` の使い捨てスクリプト（ヘッドレス再現・スクショ）と目視・プレイテストで補う |
+| tools | 対象 | マップエディタの入出力（非編集キーの温存・StageLoader が読める JSON の書き出し） |
+| presentation | 原則対象外 | 絵づら・入力・操作感は自動テストしない。ただしヘッドレスで構造・数値を検証できるもの（メッシュ生成の純関数・レンダラーのノード構成・カメラの位置決め）は対象。残りは `godot/tests/manual/` の使い捨てスクリプト（ヘッドレス再現・スクショ）と目視・プレイテストで補う |
 
 ## 運用
 
@@ -44,6 +45,6 @@ GitHub Actions（`.github/workflows/tests.yml`）が main への push と pull r
 
 ## 構成
 
-- `godot/tests/unit/` — 1話題1ファイルで `test_<話題>.gd`。話題はレイヤーの単位に対応する＝domain（戦闘・移動・AI・陣形・占領・輸送・ターン・勝敗・盤の状態）／data（CSV正本→JSON生成の整合・各カタログ・多言語・会話）／application（試合進行・コマンド・ステージ読込・キャンペーン進行）／infrastructure（永続化）。どの話題があるかはディレクトリが正本＝ここに一覧を持たない。
+- `godot/tests/unit/` — 1話題1ファイルで `test_<話題>.gd`。話題はレイヤーの単位に対応する＝domain（戦闘・移動・AI・陣形・占領・輸送・ターン・勝敗・盤の状態）／data（CSV正本→JSON生成の整合・各カタログ・多言語・会話）／application（試合進行・コマンド・ステージ読込・キャンペーン進行）／infrastructure（永続化）／tools（マップエディタの入出力）／presentation（盤の描画・カメラの構造）。どの話題があるかはディレクトリが正本＝ここに一覧を持たない。
 - `godot/tests/manual/` — 使い捨てスクリプト置き場（セレクト画面のヘッドレス再現・スクショ）。自動実行の対象外。
 - 手動での機能確認は機能別のデバッグステージ（`godot/data/stages/debug-*/`）を使う。カテゴリ内訳 → [debug-stages.md](debug-stages.md)。
