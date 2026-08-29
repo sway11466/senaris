@@ -12,6 +12,11 @@
       "id": "devlog1-2",
       "file": "devlog1-2.json",
       "title": "devlog1-2 戦闘（ファイター対ホブゴブリン）"
+    },
+    {
+      "id": "store1",
+      "file": "store1.json",
+      "title": "store1 紹介画像の1枚目（盤の全景・包囲しかけ）"
     }
   ]
 }

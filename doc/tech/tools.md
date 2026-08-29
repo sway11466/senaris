@@ -16,6 +16,7 @@
 | `combat_sim` | 戦闘計算シミュレータ。式は本体を呼ぶ＝画面の数字が実戦の数字 | `godot --path godot res://tools/combat_sim/combat_sim.tscn` | [../gdd/combat.md](../gdd/combat.md) |
 | `capture_board3d` | 盤だけをステージ単体で表示してPNG保存する（セレクト・HUD・会話を挟まない） | `godot --path godot res://tools/capture_board3d.tscn -- <出力PNG> [ステージjsonのres://パス]` | [../adr/ADR-0003-board-3d-hybrid.md](../adr/ADR-0003-board-3d-hybrid.md) |
 | `marketing/shot_stage` | marketing用スクリーンショット。盤を実機の見た目で表示し、駒を選択して移動範囲が出た状態を高解像度PNGで保存する（HUD・会話なし・盤全体をフィット・ロケール英語固定） | `godot --path godot res://tools/marketing/shot_stage.tscn -- <出力PNG> <ステージjsonのres://パス> [--select <col,row>] [--size <WxH>]` | [../sales/marketing.md](../sales/marketing.md) |
+| `marketing/shot_screen` | marketing用スクリーンショット。`main.tscn` をそのまま起動し、タイトルだけ伏せて撮る＝実機の画面まるごと（盤＋HUD＋情報パネル＋ターン板＋ロゴ）。ロケール英語固定 | `godot --path godot res://tools/marketing/shot_screen.tscn -- <出力PNG> <ステージjsonのres://パス> [--select <col,row>] [--frame <c1,r1,c2,r2>] [--size <WxH>]` | [../sales/marketing.md](../sales/marketing.md) |
 | `marketing/shot_combat` | marketing用スクリーンショット。戦闘演出を1回再生し、演出中を一定間隔で連写してPNG保存する（実機と同じ結線＝盤＋暗転＋演出窓。連番から良い瞬間を選ぶ） | `godot --path godot res://tools/marketing/shot_combat.tscn -- <出力フォルダ> <ステージjsonのres://パス> --attacker <col,row> --target <col,row> [--size <WxH>] [--count <枚数>] [--interval <秒>]` | [../sales/marketing.md](../sales/marketing.md) |
 
 ## 生成スクリプト

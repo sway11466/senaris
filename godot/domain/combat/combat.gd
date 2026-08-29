@@ -4,7 +4,7 @@ class_name Combat
 ##
 ## 実効攻撃力 A ＝ 兵数 × ユニット攻撃力 × レベル × 包囲 × 地形(攻) ＋ 支援(攻)
 ## 実効防御力 D ＝ ( 兵数 × ユニット防御力 × レベル × 包囲 × 地形(防) ＋ 支援(防) ) ×(1 − 攻撃側pierce)
-##   ＝ 支援・2倍上限を適用した後に攻撃側の防御貫通を掛ける（魔法兵0.5＝防御半減／物理0＝据え置き）。
+##   ＝ 支援・2倍上限・下限0を適用した後に攻撃側の防御貫通を掛ける（魔法兵0.5＝防御半減／物理0＝据え置き）。
 ## 失う兵数 ＝ clamp( round( k × 相手兵数 × A^p/(A^p+D^p) ), 0, 相手兵数 )
 ##
 ## 補正のうち 包囲・支援・レベル・地形・貫通(pierce) は実装済み（地形は平地・台地の2種から順次追加）。
@@ -83,12 +83,13 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 	b["melee"] = melee
 	return b
 
-## 明示係数から実効防御力の内訳を組む（式の本体）。支援後に2倍上限、最後に攻撃側の貫通を掛ける。
+## 明示係数から実効防御力の内訳を組む（式の本体）。支援後に2倍上限と下限0、最後に攻撃側の貫通を掛ける。
 ## 盤ベースの defense_breakdown も開発ツールも、防御力の total 計算はここに集約する。
 static func defense_breakdown_from(troops: int, stat: int, lv: float, surround: float, terrain: float, support: float, pierce: float, status_mul := 1.0, status_add := 0.0) -> Dictionary:
 	var pre := float(troops) * float(stat) * lv * surround * terrain * status_mul
 	var supported := pre + support + status_add  # 加算群（支援・状態add）は素の2倍上限の対象
 	var capped := minf(supported, pre * DEFENSE_SUPPORT_CAP)  # 支援は素の2倍まで
+	var floored := maxf(capped, 0.0)  # 減算デバフで負なら0＝素通し（損害式は防²＝負が正に化けて逆に硬くなるため）
 	var pierce_factor := 1.0 - pierce  # 貫通後係数（1.0=貫通なし・0.5=防御半減）
 	return {
 		"kind": "defense",
@@ -102,7 +103,7 @@ static func defense_breakdown_from(troops: int, stat: int, lv: float, surround: 
 		"status_add": status_add,
 		"capped": supported > capped,  # 支援2倍上限が効いたか（貫通適用前で判定）
 		"pierce": pierce_factor,       # 攻撃側の貫通後係数（内訳表示用）
-		"total": capped * pierce_factor,
+		"total": floored * pierce_factor,
 	}
 
 ## u の味方（u自身を除く）で enemy に隣接しているものからの支援合計。

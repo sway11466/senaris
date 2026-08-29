@@ -15,6 +15,7 @@
 | --- | --- | --- |
 | devlog1-1 | `debug-photo/devlog1-1.json` | devlog 1本目の1枚目の画 |
 | devlog1-2 | `debug-photo/devlog1-2.json` | devlog 1本目の2枚目の画（戦闘連写） |
+| store1 | `debug-photo/store1.json` | 紹介画像の1枚目（ゴブリン討伐令の盤を移植し、駒を包囲の形に置き直したもの。会話は外す） |
 
 ## debug-combat（戦闘シーンの見た目確認）
 
