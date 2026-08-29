@@ -12,6 +12,8 @@ extends Node
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
 ##   --formation <recipe> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
 ##   --talk N … 会話パートを N 行ぶん進めた状態で撮る（intro を持つステージで使う）
+##   --select-screen … 盤ではなく酒場の冒険譚選択（依頼ボード）を開いた状態で撮る
+##   --fresh … 進捗を空の別ファイルに差し替えて撮る（「討伐済」の焼き印が絵に重ならない）
 ##   --count / --interval … 連写の枚数と間隔（既定 24枚 × 0.12秒）
 ##   --size WxH       … ウィンドウ＝出力の解像度（既定 1920x1080）
 
@@ -26,6 +28,8 @@ func _ready() -> void:
 	var attack := PackedInt32Array()
 	var recipe := ""
 	var talk := -1
+	var select_screen := false
+	var fresh := false
 	var leader_cell := Vector2i(-1, -1)
 	var target_cell := Vector2i(-1, -1)
 	var count := 24
@@ -61,6 +65,12 @@ func _ready() -> void:
 				return
 			attack = PackedInt32Array([int(t[0]), int(t[1]), int(t[2]), int(t[3])])
 			i += 2
+		elif a == "--fresh":
+			fresh = true
+			i += 1
+		elif a == "--select-screen":
+			select_screen = true
+			i += 1
 		elif a == "--talk" and i + 1 < uargs.size():
 			talk = int(uargs[i + 1])
 			i += 2
@@ -114,6 +124,22 @@ func _ready() -> void:
 	main._refresh_labels()
 
 	main._title.visible = false  # 酒場の扉。伏せるだけ＝_refresh_labels が参照するので消さない
+	if select_screen:
+		if fresh:
+			# 手元の進捗を触らずに未クリア状態を作る＝別パスの空ストアへ差し替える。
+			var store := ProgressStore.new("user://shot_fresh_progress.json")
+			main._progress = CampaignProgress.new(CampaignCatalog.load_all(), store)
+			main._select.setup(main._progress)
+		# 盤は _ready が読んだ下敷きのまま。実機と同じく扉をくぐった後の画面を開く。
+		main._select.open()
+		for f in 30:
+			await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		var sel_img := get_viewport().get_texture().get_image()
+		var sel_err := sel_img.save_png(out)
+		print("SHOT_SAVED err=", sel_err, " path=", out, " size=", sel_img.get_size())
+		get_tree().quit(0 if sel_err == OK else 1)
+		return
 	main.load_stage(stage_path)
 	for f in 12:
 		await get_tree().process_frame
