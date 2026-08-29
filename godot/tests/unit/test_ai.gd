@@ -694,6 +694,20 @@ func test_weak_stops_advancing_when_the_prey_leaves_sight() -> void:
 	assert_null(_brain.next_action(s, 1), "獲物が視線から消えたら前進を止める")
 	assert_true(s.is_engaged(10), "行動開始そのものは戻らない")
 
+func test_predator_wakes_when_a_squadmate_is_engaged() -> void:
+	# 一斉警戒＝部隊の誰かが行動開始済みなら、獲物が見えなくても自分も起きる。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "predator")
+	var near := _ai(s, si, 10, 1, 1)
+	var far := _ai(s, si, 11, 0, 0)  # 獲物まで視線が届かない
+	_pc(s, 1, 4, 1)
+	s.mark_engaged(near.id)
+	s.set_done(near.id)  # 先に動き終えた扱い
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a)
+	assert_eq(a.unit_id, far.id, "部隊ごと起きる")
+
 # --- swarm（群れ） ---
 
 func test_swarm_bites_a_wounded_enemy_alone() -> void:

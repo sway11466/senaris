@@ -116,8 +116,9 @@ func _ensure_engaged(state: BattleState, u: Unit) -> bool:
 		"ambush":  # 視線距離が sight 以内に敵 ／ 部隊の誰かが行動開始済み（一斉警戒）
 			engaged = _enemy_in_sight(state, u.pos, u.team, _sight_of(state, u)) \
 				or _squadmate_engaged(state, u)
-		"predator":  # 視線距離が sight 以内に獲物
-			engaged = not _prey_in_sight(state, u).is_empty()
+		"predator":  # 視線距離が sight 以内に獲物 ／ 部隊の誰かが行動開始済み（一斉警戒）
+			engaged = not _prey_in_sight(state, u).is_empty() \
+				or _squadmate_engaged(state, u)
 		_:  # charge / raid / swarm＝常時
 			engaged = true
 	if engaged:
