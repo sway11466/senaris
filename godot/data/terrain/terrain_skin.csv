@@ -4,18 +4,26 @@ bedrock,bedrock,岩地,full,false,,0.36,0.36,false,,,,,true,,,上面は割れた
 brush,brush,茂み,flip_x,false,,0.12,0,false,,,,,true,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
 forest,forest,森,full,false,,0.18,0,false,,,,,true,,,駒は木々の間の地面に立つ＝floor 0（上面より低い）
 plain,plain,平地,full,false,,0,0,false,,,,,true,,,
+plain_building_town1_l,building,街区,none,false,,0,0,false,standee,1.33,0.2,,true,plain,plain,同じ元絵を120°回した向き＝左上から右下
+plain_building_town1_r,building,街区,none,false,,0,0,false,standee,1.33,0.2,,true,plain,plain,同じ元絵を60°回した向き＝右上から左下
+plain_building_town1_v,building,街区,none,false,,0,0,false,standee,1.33,0.2,,true,plain,plain,道の街区（road_building_town1）の複製を平地の上に立てる。棟割りが縦
 plain_cave1,plain,洞窟の床,full,false,,0,0,false,,,,,true,,,ダンジョンの踏み固めた土の床（性能は平地のまま）
 plain_cave1_fence_throne1,fence,玉座,none,false,,0,0,false,standee,0.85,0.2,1.3,true,plain_cave1,plain_cave1,ゴブリンロードの玉座。繋がらない柵＝上に立つと防御1.5。戦闘の隊列の後ろの絵（_combat_rear）は横向きで自前
 plain_cave1_prop_loot1,prop,略奪品の山,none,false,,0,0,false,standee,0.8,0.3,,true,plain_cave1,plain_cave1,ゴブリンが町から奪って雑に積んだ樽・木箱・袋。戦闘は手前の帯（_combat_front）に散らかす
 plain_cave1_rubble1,rubble,崩落跡,none,false,,0,0,false,standee,1.0,0.35,,true,plain_cave1,plain_cave1,洞窟の崩落で積み上がった岩の山。瓦礫＝飛行と斥候だけ越えられる。戦闘は手前の帯（_combat_front）に岩を散らす
 plain_fence,fence,柵,none,line,,0,0,false,panel,0.23,,,true,plain,plain,隣の柵と繋がる向き別タイル（_c000000〜_c111111）。地面は焼き込まず map_ground で敷く
 plain_fort,fort,拠点,none,false,,0,0,false,standee,1.13,0.2,,true,plain,plain,
+plain_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,1.02,0.2,,true,plain,plain,道の詰所（road_fort_guardhouse1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+plain_fort_town1,fort,町,none,false,,0,0,false,standee,0.79,0.5,,true,plain,plain,道の町（road_fort_town1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1,plain,墓地の草地,full,false,,0,0,false,,,,,true,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,panel,0.23,,,true,plain_grave1,plain_grave1,自前の柵タイル（plain_fence の複製）を墓地の草地の上に立てる
 plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,false,standee,1.23,0.2,,true,plain_grave1,plain_grave1,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1_fort_crypt1,fort,納骨堂,none,false,,0,0,false,standee,0.92,0.2,,true,plain_grave1,plain_grave1,墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1_prop_tomb1,prop,墓標,flip_x,false,,0,0,false,standee,0.61,0.3,,true,plain_grave1,plain_grave1,墓地の草地に墓標が並ぶ。足場が悪い床＝移動2の屍を1マスに落とす。建物と入口を持たない＝湧かない側（納骨堂と対）
 plain_grave1_rubble_tombstone1,rubble,墓石の山,none,false,,0,0,false,standee,1.0,0.45,,true,plain_grave1,plain_grave1,崩れた納骨堂と墓石が積み上がった山。瓦礫＝地上は通れず飛行と斥候だけ越える壁。マスを埋めて見せる
+plain_prop_garden1_l,prop,菜園,none,false,,0,0,false,standee,0.41,0.2,,true,plain,plain,同じ元絵を回した向き＝左上から右下
+plain_prop_garden1_r,prop,菜園,none,false,,0,0,false,standee,0.41,0.2,,true,plain,plain,同じ元絵を回した向き＝右上から左下
+plain_prop_garden1_v,prop,菜園,none,false,,0,0,false,standee,0.41,0.2,,true,plain,plain,道の菜園（road_prop_garden1）の複製を平地の上に立てる。畝が縦
 plain_trap,trap,罠,none,false,,0,0,false,standee,0.15,0.2,,true,plain,plain,
 plateau,plateau,台地,full,false,,0.18,0.18,false,,,,,true,,,
 rampart,rampart,城壁,full,false,,0.54,0.54,false,,,,,true,,,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
@@ -34,7 +42,7 @@ river_bridge_stone1_right_l,bridge,石橋（右端）,none,false,,-0.18,0,true,f
 river_bridge_stone1_right_r,bridge,石橋（右端）,none,false,,-0.18,0,true,flat,,,,true,river,,同じ右端を回した向き＝右上から左下
 river_bridge_stone1_right_v,bridge,石橋（右端）,none,false,,-0.18,0,true,flat,,,,true,river,,幅のある橋の右端＝右側だけ欄干・床は左のマスへ続く
 river_bridge_stone1_v,bridge,石橋（単幅）,none,false,,-0.18,0,true,flat,,,,true,river,,elevation の高さ（＝川の水位）に水を敷き、floor の高さ（＝岸）に板を置く。単幅＝両側に欄干。左右は画面の上へ渡る向きで見る。12枚は床板と欄干の帯から tools/gen_bridge_tiles.ps1 が合成
-road,road,道,none,area,road_stone1 river_bridge_stone1_v river_bridge_stone1_r river_bridge_stone1_l river_bridge_stone1_left_v river_bridge_stone1_left_r river_bridge_stone1_left_l river_bridge_stone1_right_v river_bridge_stone1_right_r river_bridge_stone1_right_l river_bridge_stone1_mid_v river_bridge_stone1_mid_r river_bridge_stone1_mid_l road_building_town1_v road_building_town1_r road_building_town1_l road_prop_garden1_v road_prop_garden1_r road_prop_garden1_l road_fort_guardhouse1,0,0,false,,,,,true,,plain,隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園・詰所・橋を片方向で書く＝道の帯がその下／橋の床へ続く
+road,road,道,none,area,road_stone1 river_bridge_stone1_v river_bridge_stone1_r river_bridge_stone1_l river_bridge_stone1_left_v river_bridge_stone1_left_r river_bridge_stone1_left_l river_bridge_stone1_right_v river_bridge_stone1_right_r river_bridge_stone1_right_l river_bridge_stone1_mid_v river_bridge_stone1_mid_r river_bridge_stone1_mid_l road_building_town1_v road_building_town1_r road_building_town1_l road_prop_garden1_v road_prop_garden1_r road_prop_garden1_l road_fort_guardhouse1 road_fort_town1,0,0,false,,,,,true,,plain,隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園・詰所・町・橋を片方向で書く＝道の帯がその下／橋の床へ続く
 road_building_town1_l,building,街区,none,false,,0,0,false,standee,1.33,0.2,,true,road,road,同じ元絵を120°回した向き＝左上から右下
 road_building_town1_r,building,街区,none,false,,0,0,false,standee,1.33,0.2,,true,road,road,同じ元絵を60°回した向き＝右上から左下
 road_building_town1_v,building,街区,none,false,,0,0,false,standee,1.33,0.2,,true,road,road,街の一区画。棟割りが縦。地面は焼き込まず道を下地に敷く
