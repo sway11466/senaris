@@ -1437,3 +1437,65 @@ func test_standoff_shoots_the_flier_before_a_killable_ground() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, flier.id, "仕留められる地上より空敵が先")
+
+# --- 手詰まり（is_stuck）でも行の判定は打ち切らない ---
+
+## 指定した駒の全隣接マスを壁にする（手詰まりを作る道具）。
+func _wall_around(s: BattleState, u: Unit) -> void:
+	for nb in Hex.neighbors(u.pos):
+		if s.in_field(nb):
+			s.set_terrain(nb, "wall")
+
+func test_a_stuck_piece_still_casts_its_skill() -> void:
+	# 行ける先も撃てる相手も無い駒でも、スキルの行は移動も攻撃射程も要らない＝行の条件に任せる
+	# （doc/gdd/ai.md 行動ルール）。プレイヤー側は手詰まりでもスキルを撃てるのと同じ扱い。
+	var s := BattleState.new(4, 3)
+	s.current_team = 1
+	s.set_movement(PLAIN_WALL)
+	var si := _squad(s, "charge", { "stack": 1 })
+	var pixie := _skin(_ai(s, si, 10, 1, 1), "pixie")
+	_wall_around(s, pixie)
+	_pc(s, 1, 3, 0)  # 壁の外＝攻撃射程外
+	assert_true(s.is_stuck(pixie.id), "前提: 手詰まり")
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "手詰まりでもスキルの行は見る")
+	assert_eq(a.kind, AiAction.Kind.SKILL, "自分にピクシーダストを掛ける")
+	assert_eq(a.unit_id, pixie.id)
+
+func test_a_stuck_piece_still_enters_its_base() -> void:
+	# 手負いで自陣拠点hexに立つ駒は、囲まれて手詰まりでも「拠点に入る」行（flee #2）が成立する。
+	var s := BattleState.new(4, 3)
+	s.current_team = 1
+	s.set_movement(PLAIN_WALL)
+	var si := _squad(s, "flee")  # 既定 retreat 50
+	var runner := _hurt(_ai(s, si, 10, 1, 1), 3)  # 損耗 5/8 ＝ 62.5% ≥ 50%
+	_wall_around(s, runner)
+	var b := Base.new(runner.pos, 1)
+	b.squad_index = si
+	s.add_base(b)
+	assert_true(s.is_stuck(runner.id), "前提: 手詰まり")
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "手詰まりでも拠点に入る行は見る")
+	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入って回復に回る")
+	assert_eq(a.unit_id, runner.id)
+
+func test_a_stuck_piece_still_raises_the_alarm() -> void:
+	# 手詰まりでも行動開始判定は走る＝視線内の敵で起動し、一斉警戒の起点になる。
+	# 壁は視線も遮るので、手詰まりは味方の輪＋移動1で作る（すり抜けても降りる先が無い）。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "ambush")  # 既定 sight 3
+	var watcher := _ai(s, si, 10, 4, 1, 1)  # 移動1
+	var sj := _squad(s, "ambush", { "sight": 0 })  # 輪の味方は起きない別部隊
+	var nid := 20
+	for nb in Hex.neighbors(watcher.pos):
+		var off := Hex.axial_to_offset(nb)
+		_ai(s, sj, nid, off.x, off.y)
+		nid += 1
+	var far := _ai(s, si, 11, 0, 1)  # 敵まで視線距離6＝自分では気づかない
+	_pc(s, 1, 6, 1)  # watcher から視線距離2＝視線内・攻撃射程外
+	assert_true(s.is_stuck(watcher.id), "前提: 手詰まり")
+	var a := _brain.next_action(s, 1)
+	assert_true(s.is_engaged(watcher.id), "手詰まりでも視線内の敵で行動開始する")
+	assert_not_null(a, "一斉警戒で部隊の仲間が起きる")
+	assert_eq(a.unit_id, far.id, "動くのは輪の外の仲間")

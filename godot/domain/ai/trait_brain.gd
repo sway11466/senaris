@@ -240,11 +240,12 @@ func _board_distance_to_nearest_enemy(state: BattleState, u: Unit) -> int:
 # --- 行動ルール（doc/gdd/ai.md 特性詳細） ---
 
 ## u が今できる1手（無ければ null＝待機）。特性ごとの行を上から当てる。
+## 手詰まり（is_stuck＝行ける先も撃てる相手も無い）でも打ち切らない＝スキルの行と
+## 「拠点に入る」行は移動も攻撃射程も要らないため、行の条件に任せる（doc/gdd/ai.md 行動ルール）。
 func _unit_action(state: BattleState, u: Unit) -> AiAction:
-	if state.is_done(u.id) or state.is_stuck(u.id):
-		# 行動を終えた／打つ手が無い（囲まれて行ける先も撃てる相手も無い）。
-		# ただし輸送ユニットは動き終えていても降ろす行だけは見る＝降車は乗員の手番で、
-		# 運んだそのターンに降ろせる（doc/gdd/ai.md 輸送ユニット）。
+	if state.is_done(u.id):
+		# 行動を終えた駒。ただし輸送ユニットは動き終えていても降ろす行だけは見る＝降車は
+		# 乗員の手番で、運んだそのターンに降ろせる（doc/gdd/ai.md 輸送ユニット）。
 		if _is_transport(u) and _trait_of(state, u) == "raid" and _ensure_engaged(state, u):
 			return _unload_now_row(state, u)
 		return null
