@@ -14,7 +14,8 @@ const LOCKED_TITLE_KEY := "ui.quest.locked_title"
 
 const PARTY_ICON_H := 54.0  # 顔ぶれ1体の高さ（絵は全員ぶんの帯で切ってから揃える）
 const PARTY_SEP := 6        # 絵と絵の間
-const PARTY_ROW_SEP := 4    # 見出しと絵の行の間
+const PARTY_HEAD_SEP := 2   # 見出しと、その見出しが指す並びの間（塊の中）
+const PARTY_GROUP_SEP := 16  # 塊と塊の間。中より広く取る＝見出しがどの並びのものか一目で分かる
 
 var _title: Label
 var _body: Label
@@ -80,7 +81,7 @@ func _ready() -> void:
 	# 出撃する顔ぶれ＝盤と同じマップ絵を紙の幅で折り返して並べる。継承のステージでは
 	# 「引き継ぐ隊」と「この戦い限りの駒」を別の行に分ける（混ぜると全部引き継ぐように読める）。
 	_party_box = VBoxContainer.new()
-	_party_box.add_theme_constant_override("separation", PARTY_ROW_SEP)
+	_party_box.add_theme_constant_override("separation", PARTY_GROUP_SEP)
 	content.add_child(_party_box)
 
 	var spacer := Control.new()
@@ -130,50 +131,62 @@ func close() -> void:
 ## 顔ぶれを並べ直す。空なら行ごと消える（未解放の紙・自軍の駒が無いステージ）。
 ## 群ごとに見出し＋絵の並び。継承のステージは「出撃できる生存者」「この戦い限りの駒」
 ## 「兵力ゼロで出撃できない駒」の3群に分ける（居ない群は出さない）。
-## 絵の大きさを揃える帯は群をまたいで1つ＝群が変わっても駒の大小関係が変わらない。
+## 絵の縮尺は全員ぶんの帯から1つ決めて全群で共有する＝群が変わっても駒の大小関係が変わらない。
 func _fill_party(party: Array, carryover: bool) -> void:
 	for child in _party_box.get_children():
 		_party_box.remove_child(child)
 		child.queue_free()
 	_party_box.visible = not party.is_empty()
 	var entries: Array = []
-	var band := Vector2(INF, 0.0)  # 全員ぶんの絵が収まる縦の帯（キャンバス座標の上端・下端）
 	for e in party:
 		if typeof(e) != TYPE_DICTIONARY:
 			continue
-		var entry := _party_entry(e)
-		entries.append(entry)
+		entries.append(_party_entry(e))
+	var band := _band(entries)  # 全員ぶんの絵が収まる縦の帯（キャンバス座標の上端・下端）
+	var scale := PARTY_ICON_H / maxf(1.0, band.y - band.x)  # いちばん背の高い駒が PARTY_ICON_H
+	if not carryover:
+		_add_party_row("ui.quest.party_sortie", entries, scale)  # 群は1つ＝出撃する顔ぶれ
+		return
+	_add_party_row("ui.quest.party_carry",
+		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and e["available"]), scale)
+	_add_party_row("ui.quest.party_oneoff",
+		entries.filter(func(e: Dictionary) -> bool: return not e["carried"]), scale)
+	_add_party_row("ui.quest.party_lost",
+		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and not e["available"]), scale)
+
+## 渡された駒の絵が収まる縦の帯（キャンバス座標の上端・下端）。絵が1枚も無ければ空の帯。
+func _band(entries: Array) -> Vector2:
+	var band := Vector2(INF, 0.0)
+	for entry in entries:
 		var used: Rect2 = entry["used"]
 		if used.size.y > 0.0:
 			band = Vector2(minf(band.x, used.position.y), maxf(band.y, used.end.y))
-	if not carryover:
-		_add_party_row("ui.quest.party_sortie", entries, band)  # 群は1つ＝出撃する顔ぶれ
-		return
-	_add_party_row("ui.quest.party_carry",
-		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and e["available"]), band)
-	_add_party_row("ui.quest.party_oneoff",
-		entries.filter(func(e: Dictionary) -> bool: return not e["carried"]), band)
-	_add_party_row("ui.quest.party_lost",
-		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and not e["available"]), band)
+	return band if band.x < band.y else Vector2.ZERO
 
-## 1群ぶんの行（見出し＋絵の並び）。中身が無ければ何も足さない＝空の見出しを出さない。
-func _add_party_row(title_key: String, entries: Array, band: Vector2) -> void:
+## 1群ぶん（見出し＋絵の並び）を1つの塊として積む。中身が無ければ何も足さない＝空の見出しを出さない。
+## 切り出す帯はこの群のぶんだけ＝背の低い駒しか居ない群は行も低くなり、見出しがその並びに寄る。
+## 縮尺は全群で共通なので、行の高さが違っても駒の大小関係は変わらない。
+func _add_party_row(title_key: String, entries: Array, scale: float) -> void:
 	if entries.is_empty():
 		return
+	var group := VBoxContainer.new()
+	group.add_theme_constant_override("separation", PARTY_HEAD_SEP)
+	_party_box.add_child(group)
 	var head := Label.new()
 	head.text = tr(title_key)
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	head.add_theme_font_size_override("font_size", 14)
 	head.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_party_box.add_child(head)
+	group.add_child(head)
 	var row := HFlowContainer.new()
 	row.alignment = FlowContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("h_separation", PARTY_SEP)
 	row.add_theme_constant_override("v_separation", PARTY_SEP)
-	_party_box.add_child(row)
+	group.add_child(row)
+	var band := _band(entries)
 	for entry in entries:
-		row.add_child(_party_figure(entry, band))
+		row.add_child(_party_figure(entry, band, scale))
 
 ## 1体ぶんの材料。絵が無ければ tex=null（名前の先頭2文字で描く）。
 ## used＝絵の非透過部分の外接矩形（キャンバス座標）。
@@ -193,12 +206,13 @@ func _party_entry(e: Dictionary) -> Dictionary:
 	return { "skin_id": skin_id, "available": bool(e.get("available", true)),
 		"carried": bool(e.get("carried", false)), "tex": tex, "used": used }
 
-## 1体ぶんの絵。左右は自分の外接、縦は全員ぶんの帯で切る＝キャンバスの余白が消えて絵が大きくなり、
-## 駒どうしの大小関係は残る（大小はキャンバスに焼いてある。doc/art/overview.md）。
+## 1体ぶんの絵。左右は自分の外接、縦は同じ群の帯で切る＝キャンバスの余白が消える。
+## 大小関係はキャンバスに焼いてあるので（doc/art/overview.md）、切った絵を共通の縮尺で出す。
 ## 絵が無ければ名前の先頭2文字。出撃できない駒（兵力ゼロの離脱者）は盤の行動終了と同じ暗さで沈める。
-func _party_figure(entry: Dictionary, band: Vector2) -> Control:
+func _party_figure(entry: Dictionary, band: Vector2, scale: float) -> Control:
 	var tex: Texture2D = entry["tex"]
 	var node: Control
+	var height := (band.y - band.x) * scale
 	if tex == null:
 		var label := Label.new()
 		label.text = tr("unit.%s.name" % String(entry["skin_id"])).substr(0, 2)
@@ -206,20 +220,18 @@ func _party_figure(entry: Dictionary, band: Vector2) -> Control:
 		label.add_theme_color_override("font_color", TavernTheme.INK)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-		label.custom_minimum_size = Vector2(PARTY_ICON_H * 0.7, PARTY_ICON_H)
+		label.custom_minimum_size = Vector2(PARTY_ICON_H * 0.7, maxf(height, PARTY_ICON_H * 0.5))
 		node = label
 	else:
 		var used: Rect2 = entry["used"]
-		var top := band.x if band.x < band.y else 0.0                      # 帯が無い＝絵が1枚も無い
-		var bottom := band.y if band.x < band.y else float(tex.get_height())
 		var at := AtlasTexture.new()
 		at.atlas = tex
-		at.region = Rect2(used.position.x, top, used.size.x, bottom - top)
+		at.region = Rect2(used.position.x, band.x, used.size.x, band.y - band.x)
 		var rect := TextureRect.new()
 		rect.texture = at
 		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		rect.custom_minimum_size = Vector2(PARTY_ICON_H * used.size.x / (bottom - top), PARTY_ICON_H)
+		rect.custom_minimum_size = Vector2(used.size.x * scale, height)
 		node = rect
 	if not bool(entry["available"]):
 		node.modulate = BoardUnitRenderer.DONE_MODULATE

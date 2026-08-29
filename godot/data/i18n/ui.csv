@@ -73,8 +73,8 @@ ui.info.help_zoom,ピンチ＝ズーム,Pinch — Zoom
 ui.info.help_fit,F＝全体表示,F — Fit whole board
 ui.info.saved,セーブしました,Saved
 ui.report.tab_summary,サマリー,Summary
-ui.report.tab_attacker,攻撃側,Attacker
-ui.report.tab_defender,守備側,Defender
+ui.report.tab_attack,攻撃,Attack
+ui.report.tab_counter,反撃,Counter
 ui.report.name_lv,%s Lv%d,%s Lv%d
 ui.report.strength_change,兵量,Strength
 ui.report.total_atk,総攻撃,Effective Atk
@@ -90,10 +90,12 @@ ui.report.atk_vs_air,対空 %d,vs Air %d
 ui.report.no_counter,反撃なし,No Counter
 ui.report.modifier_unnamed,補正,Modifier
 ui.report.status_dot,%s 毒 -%d/ターン,%s Poison -%d/turn
-ui.report.side_head,%s Lv%d  兵 %d/%d → %d/%d (%+d),%s Lv%d  Strength %d/%d → %d/%d (%+d)
-ui.report.attack_to,攻撃 → %s,Attack → %s
-ui.report.counter_to,反撃 → %s,Counter → %s
-ui.report.defense_from,防御 ← %s,Defense ← %s
+ui.report.head_attack,%s → %s の攻撃,Attack: %s → %s
+ui.report.head_counter,%s → %s の反撃,Counter: %s → %s
+ui.report.col_attack,%sの攻撃,%s's Attack
+ui.report.col_defense,%sの防御,%s's Defense
+ui.report.base_stat,素の値,Base
+ui.report.eff_total,実効値,Effective
 ui.report.strength,兵数,Strength
 ui.report.level,レベル,Level
 ui.report.status,状態,Modifier
@@ -102,7 +104,7 @@ ui.report.eff_atk,実効攻撃力,Effective Atk
 ui.report.eff_def,実効防御力,Effective Def
 ui.report.support_capped,防御の支援は素の2倍が上限。上限に当たっている。,Defense support is capped at twice the base value. The cap was hit.
 ui.report.no_counter_reason,"  反撃なし（距離2以上・対空を持たない・懐に死角のいずれか）","  No counter (range 2+, no attack vs air, or a blind spot up close)"
-ui.report.loss_rate_formula,"  損害率 ＝ 実効攻撃力² ÷ (実効攻撃力² ＋ 相手の実効防御力²)","  Loss rate = Effective Atk² ÷ (Effective Atk² + target's Effective Def²)"
+ui.report.loss_rate_formula,"  損害率 ＝ 実効攻撃力² ÷ (実効攻撃力² ＋ 実効防御力²)","  Loss rate = Effective Atk² ÷ (Effective Atk² + Effective Def²)"
 ui.report.loss_rate_values,"       ＝ %d×%d ÷ (%d×%d ＋ %d×%d) ＝ %d%%","       = %d×%d ÷ (%d×%d + %d×%d) = %d%%"
 ui.report.loss_line,"  %sが失う兵 ＝ 兵%d × %d%% ＝ %d","  %s loses: Strength %d × %d%% = %d"
 ui.quest.locked_title,まだ受けられない依頼,Quest Locked
@@ -110,10 +112,10 @@ ui.quest.back,別のステージを選ぶ,Choose Another Quest
 ui.quest.sortie,出撃する,Set Out
 ui.quest.confirm,出撃しますか？,Ready to set out?
 ui.quest.close,閉じる,Close
-ui.quest.party_sortie,以下のユニットが出撃します,The following units will set out
-ui.quest.party_carry,前のマップで生存しているユニットが出撃できます,Units that survived the previous map can set out
-ui.quest.party_oneoff,このマップ限りで出撃します,Sets out for this map only
-ui.quest.party_lost,前ステージまでに兵量がゼロとなっているため出撃できないユニット,At zero strength since an earlier map — cannot set out
+ui.quest.party_sortie,以下のユニットが出撃します,Your party for this quest
+ui.quest.party_carry,前のマップで生存しているユニットが出撃できます,Survivors from your last battle
+ui.quest.party_oneoff,このマップ限りで出撃します,Provided for this quest only
+ui.quest.party_lost,前ステージまでに兵量がゼロとなっているため出撃できないユニット,Down to zero strength — can't set out
 ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
 ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock
 ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock

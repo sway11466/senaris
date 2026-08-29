@@ -5,12 +5,16 @@ extends SceneTree
 
 const SHOTS := [
 	{ "name": "t1st1", "path": "res://data/stages/tutorial1-goblin-raid/st1.json", "roster": false, "lost": 0 },
+	{ "name": "t1st1_en", "path": "res://data/stages/tutorial1-goblin-raid/st1.json", "roster": false, "lost": 0, "locale": "en" },
+	{ "name": "t1st1_ja", "path": "res://data/stages/tutorial1-goblin-raid/st1.json", "roster": false, "lost": 0, "locale": "ja" },
 	{ "name": "t2st7", "path": "res://data/stages/tutorial2-undead-rush/st7.json", "roster": false, "lost": 0 },
 	{ "name": "t3st2", "path": "res://data/stages/tutorial3-dragon-hunt/st2.json", "roster": true, "lost": 0 },
 	# 3群（出撃できる生存者・このマップ限り・兵力ゼロ）が同時に出る紙。
 	{ "name": "t3st2_lost", "path": "res://data/stages/tutorial3-dragon-hunt/st2.json", "roster": true, "lost": 3 },
 	# 兵力ゼロで出撃できない駒（沈めた絵）の見え方を見るため、名簿の先頭4体を離脱者にする。
 	{ "name": "t3st5_lost", "path": "res://data/stages/tutorial3-dragon-hunt/st5.json", "roster": true, "lost": 4 },
+	# 英語の見出しが紙の幅で折り返さないか（最後に撮る＝以降は英語のまま）。
+	{ "name": "t3st2_lost_en", "path": "res://data/stages/tutorial3-dragon-hunt/st2.json", "roster": true, "lost": 3, "locale": "en" },
 ]
 
 var _sheet: QuestSheet
@@ -42,6 +46,8 @@ func _process(_delta: float) -> bool:
 	if _index >= SHOTS.size():
 		return true
 	var shot: Dictionary = SHOTS[_index]
+	if shot.has("locale"):
+		TranslationServer.set_locale(String(shot["locale"]))
 	var brief := StageLoader.load_briefing(String(shot["path"]),
 		_fake_roster(String(shot["path"]), int(shot["lost"])) if shot["roster"] else [])
 	print(shot["name"], ": party=", (brief["party"] as Array).size(), " carryover=", brief["carryover"])
