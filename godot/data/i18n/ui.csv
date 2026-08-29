@@ -11,7 +11,7 @@ ui.settings.back,← メニュー,← Menu
 ui.hud.end_turn,ターン終了,End Turn
 ui.hud.menu,⚙ メニュー,⚙ Menu
 ui.hud.restart,リスタート,Restart Battle
-ui.hud.stage_select,ステージセレクト,Quest Board
+ui.hud.stage_select,依頼ボード,Quest Board
 ui.hud.save,セーブ,Save
 ui.hud.load,ロード,Load
 ui.hud.settings,設定,Settings
@@ -44,7 +44,7 @@ ui.info.act_can_move,移動可,Can Move
 ui.info.act_moved,移動済,Moved
 ui.info.act_can_attack,攻撃可,Can Attack
 ui.info.act_attacked,攻撃済,Attacked
-ui.info.modifier,補正,Modifier
+ui.info.modifier,状態補正,Modifier
 ui.info.modifier_none,なし,None
 ui.info.modifier_remaining,%s  残り%d,%s  %d turns left
 ui.info.encircled,包囲,Encircled
@@ -62,7 +62,7 @@ ui.info.reserves,控え,Reserves
 ui.info.reserves_none,なし,None
 ui.info.reserves_count,%d体,%d
 ui.info.reserves_bullet,"  ・%s","  • %s"
-ui.info.reserves_line,%s  兵%d/%d  Lv%d,%s  %d/%d  Lv%d
+ui.info.reserves_line,%s  兵数%d/%d  Lv%d,%s  %d/%d  Lv%d
 ui.info.help_no_selection,ユニット未選択,No unit selected
 ui.info.help_select_unit,盤上のユニットを左クリックで選択,Left-click a unit on the board to select it
 ui.info.help_inspect_tile,空きマスをクリックで地形を確認,Click an empty hex to check its terrain
@@ -76,7 +76,7 @@ ui.report.tab_summary,サマリー,Summary
 ui.report.tab_attack,攻撃,Attack
 ui.report.tab_counter,反撃,Counter
 ui.report.name_lv,%s Lv%d,%s Lv%d
-ui.report.strength_change,兵量,Strength
+ui.report.strength_change,兵数,Strength
 ui.report.total_atk,総攻撃,Effective Atk
 ui.report.total_def,総防御,Effective Def
 ui.report.attack,攻撃,Attack
@@ -84,11 +84,11 @@ ui.report.defense,防御,Defense
 ui.report.terrain,地形,Terrain
 ui.report.encircled,包囲,Encircled
 ui.report.support,支援,Support
-ui.report.buff,バフ,Modifier
+ui.report.buff,状態補正,Modifier
 ui.report.atk_vs_ground,対地 %d,vs Ground %d
 ui.report.atk_vs_air,対空 %d,vs Air %d
 ui.report.no_counter,反撃なし,No Counter
-ui.report.modifier_unnamed,補正,Modifier
+ui.report.modifier_unnamed,状態補正,Modifier
 ui.report.status_dot,%s 毒 -%d/ターン,%s Poison -%d/turn
 ui.report.head_attack,%s → %s の攻撃,Attack: %s → %s
 ui.report.head_counter,%s → %s の反撃,Counter: %s → %s
@@ -97,8 +97,8 @@ ui.report.col_defense,%sの防御,%s's Defense
 ui.report.base_stat,素の値,Base
 ui.report.eff_total,実効値,Effective
 ui.report.strength,兵数,Strength
-ui.report.level,レベル,Level
-ui.report.status,状態,Modifier
+ui.report.level,Lv,Lv
+ui.report.status,状態補正,Modifier
 ui.report.pierce,貫通,Pierce
 ui.report.eff_atk,実効攻撃力,Effective Atk
 ui.report.eff_def,実効防御力,Effective Def
@@ -106,16 +106,16 @@ ui.report.support_capped,防御の支援は素の2倍が上限。上限に当た
 ui.report.no_counter_reason,"  反撃なし（距離2以上・対空を持たない・懐に死角のいずれか）","  No counter (range 2+, no attack vs air, or a blind spot up close)"
 ui.report.loss_rate_formula,"  損害率 ＝ 実効攻撃力² ÷ (実効攻撃力² ＋ 実効防御力²)","  Loss rate = Effective Atk² ÷ (Effective Atk² + Effective Def²)"
 ui.report.loss_rate_values,"       ＝ %d×%d ÷ (%d×%d ＋ %d×%d) ＝ %d%%","       = %d×%d ÷ (%d×%d + %d×%d) = %d%%"
-ui.report.loss_line,"  %sが失う兵 ＝ 兵%d × %d%% ＝ %d","  %s loses: Strength %d × %d%% = %d"
+ui.report.loss_line,"  %sが失う兵数 ＝ 兵数%d × %d%% ＝ %d","  %s loses: Strength %d × %d%% = %d"
 ui.quest.locked_title,まだ受けられない依頼,Quest Locked
-ui.quest.back,別のステージを選ぶ,Choose Another Quest
-ui.quest.sortie,出撃する,Set Out
-ui.quest.confirm,出撃しますか？,Ready to set out?
+ui.quest.back,別の依頼を選ぶ,Choose Another Quest
+ui.quest.sortie,出発する,Set Out
+ui.quest.confirm,出発しますか？,Ready to set out?
 ui.quest.close,閉じる,Close
-ui.quest.party_sortie,以下のユニットが出撃します,Your party for this quest
-ui.quest.party_carry,前のマップで生存しているユニットが出撃できます,Survivors from your last battle
-ui.quest.party_oneoff,このマップ限りで出撃します,Provided for this quest only
-ui.quest.party_lost,前ステージまでに兵量がゼロとなっているため出撃できないユニット,Down to zero strength — can't set out
+ui.quest.party_sortie,以下のユニットが出発します,Your party for this quest
+ui.quest.party_carry,前の依頼で生存しているユニットが出発できます,Survivors from your last quest
+ui.quest.party_oneoff,この依頼限りで出発します,Provided for this quest only
+ui.quest.party_lost,前の依頼までに兵数がゼロとなっているため出発できないユニット,Down to zero strength — can't set out
 ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
 ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock
 ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock
@@ -130,7 +130,7 @@ ui.talk.skip,会話をスキップ,Skip
 ui.talk.next,次へ ▶,Next ▶
 ui.talk.start_battle,戦闘開始 ▶,To Battle ▶
 ui.talk.resume_battle,戦闘再開 ▶,Resume Battle ▶
-ui.talk.next_stage,次のステージへ ▶,Next Quest ▶
+ui.talk.next_stage,次の依頼へ ▶,Next Quest ▶
 ui.save.cancel,やめる,Cancel
 ui.save.heading_save,セーブ,Save
 ui.save.heading_load,ロード,Load

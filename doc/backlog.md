@@ -33,15 +33,6 @@
 - 対応：候補は そのまま／発動者を選択したまま残す／戦闘レポートと同じ形で着弾の損害を出す。決めてから実装する。
 - 該当：`godot/presentation/main/main.gd`（`_on_formation_resolved`）・`godot/presentation/ui/unit_info_panel.gd`・`channels/screenshots/03_cutin.png`。
 
-### feature-87
-
-**UI の文言を用語で揃え、英語の用語表を拠り所にする**
-- ゴール：`ui.csv` の日英が、同じ概念を画面をまたいで同じ語で指している。英語はその語が [i18n.md](tech/i18n.md)「英語の用語」の表に載っていて、迷ったら表を見れば決まる。
-- 背景：依頼書の見出しを英語圏向けに書き直したとき、同じ「ステージ1本」を `Survivors from your last battle` と `Provided for this quest only` で battle / quest と呼び分けた。`ui.csv` は既に `Choose Another Quest`・`Clear quest %d to unlock` で quest を使っているが、表にステージの訳語の行が無く、拠り所がキーごとの記憶になっている。日本語側も同じで、依頼書の「兵量」は他の画面の「兵」「兵数」と揃っていない。i18n.md は「同じ概念は画面をまたいで同じ語で訳す」と決めているので、その拠り所を表に置く。
-- 対応：ステージ（マップ・戦い・依頼）のように同じものを指す語の訳を決めて表に足す。`ui.csv` を日英とも表と突き合わせて直す。直すのは訳文と日本語の字面だけで、意味は変えない＝キーは立て直さない。
-- 考慮外：会話・冒険譚の英文（feature-80 の範囲）。
-- 該当：`godot/data/i18n/ui.csv`・`doc/tech/i18n.md`。
-
 ### feature-80
 
 **チュートリアル２の会話の英文を書き直す**
