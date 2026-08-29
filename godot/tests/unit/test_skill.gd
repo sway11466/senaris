@@ -451,6 +451,27 @@ func test_split_caster_is_done() -> void:
 	s.resolve_formation(_split_option(f), Vector2i.ZERO)
 	assert_true(s.is_done(f["slime"].id), "発動者は行動完了")
 
+func test_split_caster_gains_no_level() -> void:
+	# 共通ルール「発動者は Lv+1」の例外＝分裂ではレベルが上がらない。詳細 → doc/gdd/skills.md ⑤
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	assert_eq((f["slime"] as Unit).level, 1, "分裂ではレベルが上がらない")
+
+func test_split_result_cells_hold_spawned_hex() -> void:
+	# 湧いた位置は cells で返る＝盤はこれを光らせる（演出シーンは出さない）。詳細 → doc/gdd/skills.md ⑤
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	var result := s.resolve_formation(_split_option(f), Vector2i.ZERO)
+	var spawned: Unit = null
+	for u in s.units():
+		if u.id != f["slime"].id:
+			spawned = u
+	assert_not_null(spawned, "新しい駒が居る")
+	var cells: Array = result["cells"]
+	assert_eq(cells.size(), 1, "光らせる面は湧いた1マスだけ")
+	assert_true(spawned.pos in cells, "湧いた位置が cells に入る")
+
 func test_split_spawned_inherits_skin_and_type() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]

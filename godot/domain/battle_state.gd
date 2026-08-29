@@ -1102,6 +1102,7 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	# 発動前に撮る＝戦闘の detail（戦闘前スナップショット）と同じ流儀。
 	var skill_scope := String(option.get("buff_scope", "")) == "unit"
 	var skill_detail := _skill_snapshot(option, target) if skill_scope else {}
+	var spawn_cells: Array[Vector2i] = []  # 分裂で湧いた位置（cells に載せて盤で光らせる）
 	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
 		var entry := _buff_entry(option, target)
@@ -1119,12 +1120,11 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			if skill_scope:
 				skill_detail["cleansed"] = dropped
 	# スライムスプリット（⑤）は隣接する空きマスへ発動者の複製を1体置く。
-	# 着弾・兵数変化は起きない。詳細 → doc/gdd/skills.md
+	# 着弾・兵数変化は起きない。湧いた位置は cells で盤に返す＝光らせる。詳細 → doc/gdd/skills.md
 	elif String(option["effect"]) == "spawn":
 		var spawned := _do_spawn(option)
 		if spawned != null:
-			skill_detail["spawned_id"] = spawned.id
-			skill_detail["spawned_hex"] = spawned.pos
+			spawn_cells.append(spawned.pos)
 	# ポイズンスティング（⑥）は補正値を積むのではなく、持続の間ターン開始に兵数を減らすエントリを
 	# 置く。掛けた瞬間には減らない＝最初に減るのは次の対象ターン開始。詳細 → doc/gdd/skills.md
 	elif String(option["effect"]) == "dot":
@@ -1175,11 +1175,13 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		set_charge(int(option["leader_id"]), rid, 0)
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
+	var cells := Formation.blast_cells(option, target)
+	cells.append_array(spawn_cells)  # 分裂の湧き位置も光らせる（→ doc/gdd/skills.md ⑤）
 	var out := {
 		"recipe": option["recipe"],
 		"results": results,
 		"center": target,
-		"cells": Formation.blast_cells(option, target),
+		"cells": cells,
 		"leader_id": int(option.get("leader_id", -1)),
 	}
 	if skill_scope:

@@ -581,7 +581,10 @@ func _enter_formation(option: Dictionary) -> void:
 ## 保留する（撃たれる前の姿のまま置く）＝カットインの裏で駒が消えない。順番は main が持つ。
 ## 詳細 → doc/gdd/formations.md 発動の演出
 func _on_formation_resolved(result: Dictionary) -> void:
-	_impact_renderer.set_pending(not (result.get("results", []) as Array).is_empty())
+	# 着弾（results）が無くても、光らせる面（cells）があれば保留する＝光ってから盤を作り直す
+	# （スライムの複製は光の後に現れる。駒の居ない面への着弾も面を見せる）。
+	_impact_renderer.set_pending(not (result.get("results", []) as Array).is_empty()
+		or not (result.get("cells", []) as Array).is_empty())
 	_deselect()
 	if not _impact_renderer.is_impacting():
 		_sync()

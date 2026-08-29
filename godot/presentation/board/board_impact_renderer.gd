@@ -94,8 +94,7 @@ func play(result: Dictionary, is_locked: bool) -> void:
 		return  # 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み
 	var hits: Array = result.get("results", [])
 	if hits.is_empty():
-		_end_impact()
-		_sync_fn.call()
+		await _flash_cells_only(result.get("cells", []), is_locked)
 		return
 	var gen := _impact_gen
 	_impact_lock = not is_locked
@@ -121,6 +120,30 @@ func play(result: Dictionary, is_locked: bool) -> void:
 		if gen != _impact_gen:
 			_end_impact()
 			return
+	_end_impact()
+	_sync_fn.call()
+
+
+## 着弾は無いが光らせる面がある（スライムの湧き位置・駒の居ない面への着弾）。
+## 光の立ち上がりを見せてから盤を作り直す＝湧いた駒は光の後に現れる（→ doc/gdd/skills.md ⑤）。
+## 面が無いもの（バフ・解除）は光らせず盤を更新するだけ。引きの光は作り直しに重なって消えていく。
+func _flash_cells_only(cells: Array, is_locked: bool) -> void:
+	if cells.is_empty():
+		_end_impact()
+		_sync_fn.call()
+		return
+	var gen := _impact_gen
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)  # 光の間だけ盤を触らせない（play と同じ流儀）
+	await _wait(HIT_LEAD_SEC)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	_flash_cells(cells, HIT_CELL_HOLD)
+	await _wait(HIT_CELL_RISE + HIT_CELL_SETTLE + HIT_CELL_HOLD)
+	if gen != _impact_gen:
+		_end_impact()
+		return
 	_end_impact()
 	_sync_fn.call()
 
