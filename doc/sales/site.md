@@ -106,14 +106,28 @@ Cloudflare Workers の静的アセット。Worker スクリプト（`wrangler.js
 
 ### メール
 
-DNS には TXT を2件置いている。
+受信は Cloudflare Email Routing で賄う。senaris.in 宛に届いたものを既存の受信箱へ転送する仕組みで、メールボックスは持たない。アドレスは用途ごとに足す（Bluesky の登録に `bluesky@senaris.in`）。MX と DKIM のレコードは Cloudflare が置くので手で触らない。
+
+送信はできない。転送は受け取る方向だけなので、このドメインを差出人にして返す必要が出たら送信側の手当てを別に足す。
+
+DNS に置く TXT。
 
 | 名前 | 値 | 意味 |
 | --- | --- | --- |
-| `@` | `v=spf1 -all` | このドメインからメールを送らない |
+| `@` | `v=spf1 include:_spf.mx.cloudflare.net ~all` | 差出人として名乗れるのは Cloudflare 経由だけ |
 | `_dmarc` | `v=DMARC1; p=reject;` | 名を騙ったメールは受信側で捨てさせる |
 
-senaris.in からメールを送り始めるなら、SPF の書き換えが先に要る。忘れると自分が出したメールが全て弾かれる。受信（MX）はこの2件と無関係で、後から足せる。
+SPF は当初 `v=spf1 -all`（このドメインからメールを送らない）だったが、Email Routing を有効にした際に Cloudflare の値へ置き換えた。SPF は1ドメインに1件しか置けず、2件並ぶと受信側が判定不能として両方を無効にするため併存できない。緩んだのは SPF だけで、なりすまし対策の主役である DMARC の `p=reject` は変えていない。
+
+### Bluesky のハンドル
+
+`@senaris.in` を名乗るために TXT を置く。
+
+| 名前 | 値 |
+| --- | --- |
+| `_atproto` | `did=did:plc:feegge5lhdwqravcqa7zoz33` |
+
+ドメインの所有がそのまま本人証明になる方式で、他所の認証バッジにあたる。ドメインを手放すとハンドルも失われる。アカウントの方針は [marketing.md](marketing.md)。
 
 ---
 
