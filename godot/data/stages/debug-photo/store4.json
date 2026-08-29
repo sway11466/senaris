@@ -1,0 +1,364 @@
+{
+  "turn_limit": 30,
+  "name": "debug-photo-store4",
+  "cols": 22,
+  "rows": 11,
+  "margin": 0,
+  "terrain": [
+    "FFPPPWWWWWWWWWWWWPPFFF",
+    "FFFPPPWWWWWWWWWPPFFFFF",
+    "FFFFPPWWWWWPPPPPP...FF",
+    "F.F.FPPPWWWPP.........",
+    "......P.PPPP..........",
+    "..........P...........",
+    ".........O............",
+    ".......F.........F....",
+    ".....FFFFF.FFFFFFFF...",
+    "....FFFFFFFFFFFFFFFF..",
+    "...FFFFFFFFFFFFFFFFFFF"
+  ],
+  "terrain_skins": [
+    {
+      "col": 5,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 8,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 9,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 10,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 11,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 12,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 13,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 14,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 15,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 16,
+      "row": 0,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 7,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 8,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 9,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 10,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 11,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 12,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 13,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 14,
+      "row": 1,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 6,
+      "row": 2,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 7,
+      "row": 2,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 8,
+      "row": 2,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 9,
+      "row": 2,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 10,
+      "row": 2,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 8,
+      "row": 3,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 9,
+      "row": 3,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 10,
+      "row": 3,
+      "skin": "rampart_granite1"
+    },
+    {
+      "col": 9,
+      "row": 6,
+      "skin": "road_fort_town1"
+    }
+  ],
+  "player": [
+    {
+      "type": "fighter",
+      "col": 2,
+      "row": 5
+    },
+    {
+      "type": "novice",
+      "col": 2,
+      "row": 4
+    },
+    {
+      "type": "novice",
+      "col": 2,
+      "row": 6
+    },
+    {
+      "type": "cleric",
+      "col": 1,
+      "row": 5
+    }
+  ],
+  "enemy": [
+    {
+      "order": 2,
+      "name": "t1.st4.squad.1",
+      "ai": "charge",
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 21,
+          "row": 4
+        },
+        {
+          "skin": "goblin",
+          "col": 19,
+          "row": 7
+        },
+        {
+          "skin": "goblin",
+          "col": 19,
+          "row": 3
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 21,
+          "row": 7
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 20,
+          "row": 6
+        }
+      ]
+    },
+    {
+      "order": 1,
+      "name": "t1.st4.squad.2",
+      "ai": "ambush",
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 17,
+          "row": 5
+        },
+        {
+          "skin": "goblin",
+          "col": 15,
+          "row": 4
+        },
+        {
+          "skin": "goblin",
+          "col": 15,
+          "row": 6
+        }
+      ]
+    }
+  ],
+  "bases": [
+    {
+      "col": 9,
+      "row": 6,
+      "team": "neutral",
+      "garrison": [
+        {
+          "type": "novice",
+          "count": 2,
+          "native": "player"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "type": "talk",
+      "col": 9,
+      "row": 6,
+      "team": "player",
+      "on": "capture",
+      "dialogue": "free",
+      "focus": true
+    }
+  ],
+  "dialogue": {
+    "intro": [
+      {
+        "speaker": "char.scout.name",
+        "skin": "halfling",
+        "text": "t1.st4.intro.1"
+      },
+      {
+        "speaker": "char.rookie.name",
+        "skin": "novice",
+        "text": "t1.st4.intro.2"
+      },
+      {
+        "speaker": "char.cap.name",
+        "skin": "fighter",
+        "text": "t1.st4.intro.3"
+      },
+      {
+        "speaker": "char.cleric.name",
+        "skin": "cleric",
+        "text": "t1.st4.intro.4"
+      },
+      {
+        "speaker": "char.cap.name",
+        "skin": "fighter",
+        "text": "t1.st4.intro.5"
+      }
+    ],
+    "free": [
+      {
+        "speaker": "char.townsfolk.name",
+        "skin": "novice",
+        "text": "t1.st4.free.1"
+      },
+      {
+        "speaker": "char.cap.name",
+        "skin": "fighter",
+        "text": "t1.st4.free.2"
+      },
+      {
+        "speaker": "char.scout.name",
+        "skin": "halfling",
+        "text": "t1.st4.free.3"
+      },
+      {
+        "speaker": "char.cap.name",
+        "skin": "fighter",
+        "text": "t1.st4.free.4"
+      }
+    ],
+    "outro": [
+      {
+        "speaker": "char.cleric.name",
+        "skin": "cleric",
+        "text": "t1.st4.outro.1"
+      },
+      {
+        "speaker": "char.rookie.name",
+        "skin": "novice",
+        "text": "t1.st4.outro.2"
+      },
+      {
+        "speaker": "char.cap.name",
+        "skin": "fighter",
+        "text": "t1.st4.outro.3"
+      },
+      {
+        "speaker": "char.scout.name",
+        "skin": "halfling",
+        "text": "t1.st4.outro.4"
+      },
+      {
+        "speaker": "char.cap.name",
+        "skin": "fighter",
+        "text": "t1.st4.outro.5"
+      }
+    ]
+  },
+  "rank": {
+    "turn_s": 15,
+    "turn_a": 23,
+    "survival_s": 2,
+    "survival_a": 1
+  },
+  "haze": 0.8,
+  "backdrop": "sky_clear",
+  "bgm": {
+    "main": "raid"
+  }
+}

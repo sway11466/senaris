@@ -11,6 +11,7 @@ extends Node
 ##   --frame c1,r1,c2,r2 … 盤全体ではなく、この2マスが作る矩形に画角を寄せる（縦長の盤を横長の画に収める）
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
 ##   --formation <recipe> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
+##   --talk N … 会話パートを N 行ぶん進めた状態で撮る（intro を持つステージで使う）
 ##   --count / --interval … 連写の枚数と間隔（既定 24枚 × 0.12秒）
 ##   --size WxH       … ウィンドウ＝出力の解像度（既定 1920x1080）
 
@@ -24,6 +25,7 @@ func _ready() -> void:
 	var frame := PackedInt32Array()
 	var attack := PackedInt32Array()
 	var recipe := ""
+	var talk := -1
 	var leader_cell := Vector2i(-1, -1)
 	var target_cell := Vector2i(-1, -1)
 	var count := 24
@@ -58,6 +60,9 @@ func _ready() -> void:
 				get_tree().quit(1)
 				return
 			attack = PackedInt32Array([int(t[0]), int(t[1]), int(t[2]), int(t[3])])
+			i += 2
+		elif a == "--talk" and i + 1 < uargs.size():
+			talk = int(uargs[i + 1])
 			i += 2
 		elif a == "--formation" and i + 1 < uargs.size():
 			recipe = uargs[i + 1]
@@ -138,6 +143,14 @@ func _ready() -> void:
 	for f in 12:  # 地形テクスチャ・シェーダのウォームアップとパネルの整列
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
+
+	if talk >= 0:
+		# intro は load_stage が自動で始める。行送りは実機と同じ「次へ」を叩く。
+		for n in talk:
+			main._conversation._on_next()
+			await get_tree().process_frame
+		for f in 8:
+			await get_tree().process_frame
 
 	if recipe != "":
 		var fs: Variant = main._controller.state

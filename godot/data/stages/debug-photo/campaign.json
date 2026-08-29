@@ -27,6 +27,11 @@
       "id": "store3",
       "file": "store3.json",
       "title": "store3 紹介画像の3枚目（陣形スキルのカットイン＝トリニティノヴァ）"
+    },
+    {
+      "id": "store4",
+      "file": "store4.json",
+      "title": "store4 紹介画像の4枚目（会話パート＝チュートリアル1・第4話の導入）"
     }
   ]
 }
