@@ -8,9 +8,9 @@
 
 - 性能的な特性（移動力・攻撃／防御傾向・地形適性・レベルによる成長など）は**ネクタリスを下敷きにしつつ、本作の世界観に合わせて独自調整する**（対空の担い手・防御貫通など＝下記）。値の正本は CSV（`unit_type.csv`）で、Nectaris 参考値からは離れてよい。
 - **性能にラベルを貼る**：チューニング済みの性能（ステータス・役割）が実体。そこへ名前・見た目（ラベル）を貼って、世界観に合うユニットを提供する。同じ性能に味方／敵・テーマ別の別ラベルを貼れる。**敵スキンは冒険譚ごとに必要なぶんだけ用意する**（全味方ぶんのミラーは作らない＝出てくる部隊にふさわしい名前を都度置く）。
-- **type の受動ステータスは flavor-neutral**（重要）：性能(type)は**全スキンで共有**される（例 `priest` type＝プリースト／ホブゴブリン／スケルトン）。よって type に載る受動ステータス（`atk_ground`/`atk_air`/`pierce`/`defense`/`move`/`range`…）は、**その type を流用する全スキンに矛盾なく合う値**でなければならない。魔法・貫通のような"術者らしさ"は**必ず術者にしか化けない type（魔法兵）にだけ**載せ、ゴブリンや屍に化ける type（占領兵・歩兵）には**物理攻撃のみ**を持たせる。※陣形スキルはプレイヤー発動のレシピで敵スキンには載らないため、holy 等の味方風味はそちらの層に残せる。
+- **type の受動ステータスは flavor-neutral**（重要）：性能(type)は**全スキンで共有**される（例 `priest` type＝プリースト／ホブゴブリン／スケルトン）。よって type に載る受動ステータス（`atk_ground`/`atk_air`/`pierce`/`defense`/`move`/`range`…）は、**その type を流用する全スキンに矛盾なく合う値**でなければならない。魔法・貫通のような"術者らしさ"は**術者や精霊にしか化けない type にだけ**載せ、ゴブリンや屍に化ける type（占領兵・歩兵）には**物理攻撃のみ**を持たせる。※複数人で成立する陣形スキルのレシピは味方の顔ぶれでしか組めないため、holy 等の味方風味はそちらの層に残せる（単独で撃つユニットスキルは敵スキンにも載り、敵AIも撃つ → [skills.md](skills.md)）。
 - **type の名前も flavor-neutral**：`id` は味方に居てもおかしくない名前にする。性能は全スキンで共有されるので、特定の魔獣の名前を型に付けると他のスキンから流用しづらくなる（ハーピーの性能を味方の軽飛行に貸したいとき、型名が `harpy` だと据わりが悪い）。魔獣の名前はスキン側に置く＝型 `birdman`／スキン `harpy`、型 `valkyrie`／スキン `griffon`、型 `scout`／スキン `rock_serpent`。`dragon` のように味方側にも成立しうる名前は例外的に許容する。
-- **攻撃の種別（3軸）**：①**対地/対空**（飛行相手は `atk_air`、`atk_air=0`＝対空不可で攻撃対象に選べず反撃もしない）②**貫通率 `pierce`**（相手防御を無視する割合。魔法兵0.5＝防御半減／物理0＝対アーマー）③**射程 `range`**（下限`min_range`〜上限`attack_range`。CSVは `1`/`1-2`/`3-5` のレンジ表記。攻撃距離1＝近接・反撃あり／≥2＝間接・反撃なし。`min_range≥2`＝懐に死角＝近接不可）。**対空の担い手＝弓兵・飛行・魔法兵**、占領兵・歩兵の近接は対空なし（`atk_air=0`＝「近接が空を殴る」矛盾を避ける）。斥候は限定的に対空可（値は小＝チク）。**魔法兵＝対アーマー／弓兵＝対空・機動**で住み分け。貫通の戦闘適用は [combat.md](combat.md)。
+- **攻撃の種別（3軸）**：①**対地/対空**（飛行相手は `atk_air`、`atk_air=0`＝対空不可で攻撃対象に選べず反撃もしない）②**貫通率 `pierce`**（相手防御を無視する割合。魔法兵0.5＝防御半減／物理0＝対アーマー）③**射程 `range`**（下限`min_range`〜上限`attack_range`。CSVは `1`/`1-2`/`3-5` のレンジ表記。攻撃距離1＝近接・反撃あり／≥2＝間接・反撃なし。`min_range≥2`＝懐に死角＝近接不可）。**対空の担い手＝弓兵・飛行・魔法兵**、占領兵・歩兵の近接は対空なし（`atk_air=0`＝「近接が空を殴る」矛盾を避ける）。斥候は限定的に対空可。**魔法兵＝対アーマー／弓兵＝対空・機動**で住み分け。貫通の戦闘適用は [combat.md](combat.md)。
 - **ロスター調整の指針**：重装（サムライ／ナイト／ドワーフ）は攻防合計を揃え、配分で性格づけ（攻／守／均等）。地形機動の個性＝エルフ=森歩行・ドワーフ=山歩行・ハーフリング=茂歩行。固定壁バリケード・弱飛行ピクシー等を随時新設。独自値へ寄せた駒は `memo` の Nectaris 参考を撤去（値の正本は CSV／変更経緯は git 履歴）。
 
 ---
@@ -31,9 +31,9 @@
 ### 1. 性能と見た目の分離
 
 - **性能 ＝ `UnitType`**（`godot/data/units/unit_type.gd`）＝ステータスのみ。名前も画像も持たない。
-- **見た目＋識別 ＝ `UnitSkin`**（`godot/data/units/unit_skin.gd`）＝名前・説明・画像。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。
+- **見た目＋識別 ＝ `UnitSkin`**（`godot/data/units/unit_skin.gd`）＝画面に出る側。1性能に複数ぶら下がる（陣営別・テーマ別の別名）。表示名は i18n が正本（`unit.<skin_id>.name` → [../tech/i18n.md](../tech/i18n.md)）で、CSV の `name` 列は開発用メモ。
 - **同性能・別名**（プリースト↔ホブゴブリン↔スケルトン）は、その性能の `enemy`/`ally` 配列にスキンを並べるだけ。**どのスキンを使うかは冒険譚（ステージ）側が決める**＝ユニットデータは冒険譚/テーマ名を持たない（責務分離）。
-- **`skin_id` の付け方**：表示名と対応させ、`type_id` と同じ値にしない（レッドドラゴンの `dragon` は性能名と見分けが付かず `red_dragon` に改めた）。`skin_id` は素材フォルダ名と画像の解決パスに直結する（`godot/assets/units-src/{group}/{skin_id}/`・`godot/assets/units/{skin_id}/{skin_id}_{slot}.png`）ので、直すなら絵を書き出す前が最も安い。ステージJSONの `skin`・会話の話者名キー・`campaign.json` の `emblem` も同時に追う。駒を名指す `actor` は別の名前空間なので巻き込まない。
+- **`skin_id` の付け方**：表示名と対応させる。敵・魔物のスキンは `type_id` と同じ値にしない（レッドドラゴンの `dragon` は性能名と見分けが付かず `red_dragon` に改めた）。味方の基準スキンは同名でよい＝下記「`type` 指定の後方互換」が使う正規スキン。`skin_id` は素材フォルダ名と画像の解決パスに直結する（`godot/assets/units-src/{group}/{skin_id}/`・`godot/assets/units/{skin_id}/{skin_id}_{slot}.png`）ので、直すなら絵を書き出す前が最も安い。ステージJSONの `skin`・会話の話者名キー・`campaign.json` の `emblem` も同時に追う。駒を名指す `actor` は別の名前空間なので巻き込まない。
 - **`skin_id` が主キー**：各スキンは一意な `skin_id` を持ち、`skin_id → type` は1:1（スキンが決まれば性能も一意）。引きは `SkinCatalog.skin_by_id(catalog, skin_id)`／`type_of_skin(catalog, skin_id)`、描画は `resolve(catalog, skin_id, type_id, team)`（skin_id 優先・無ければ type_id+team の先頭へフォールバック）。従来の `skin(catalog, type_id, team, index)` も残置。
 
 ### 2. ファイル・フォルダ配置
@@ -46,10 +46,10 @@
 ### 3. CSV正本パイプライン
 
 - **正本はCSV**（表計算で管理）: フラット/グリッドな表は CSV が正本（人間が表計算/VSCodeで編集）。CSV正本・生成JSON・変換ツールは機能フォルダに同居（`godot/data/units/` にまるっと）。
-- `godot/data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --script res://data/units/convert.gd`
+- `godot/data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --path . --script res://data/units/convert.gd`
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
 - `godot/data/units/unit_type.csv` → `godot/data/units/unit_type.json`（**生成物・手で触らない**）。
-- `godot/data/units/unit_skin.csv`（1行=1スキン: **`skin_id, name, side, type_id, category, map_scale, map_offset_x, combat_scale, retainers`**。`skin_id` が主キー／`category`＝管理分類: 基準・ゴブリン・アンデッド・デモ、この順に整列／`map_scale`・`combat_scale`＝書き出し時の背丈倍率（[../art/units.md](../art/units.md) §3）／`map_offset_x`＝書き出し時の横位置補正（体の中心をヘックス中心に合わせる。同§3.1）／`retainers`＝戦闘演出でボスの脇に並べる別スキン（`|` 区切り・空＝全部本人。[../tech/combat_scene.md](../tech/combat_scene.md)））→ `godot/data/units/unit_skin.json`。`category` は JSON にも出力する参考データ（skin は見た目レイヤー＝ゲームロジックでは参照しない。マップエディタの絞り込み等ツール用）。画像・説明は当面空で、必要時にCSVへ列追加。
+- `godot/data/units/unit_skin.csv`（1行=1スキン・`skin_id` が主キー）→ `godot/data/units/unit_skin.json`。列の構成と意味は CSV の2行目（日本語ラベル）と `convert.gd` の検証を見る＝ここには写さない。書き出し倍率・横位置補正は [../art/units.md](../art/units.md) §3、戦闘演出の表示パターンと従者は [../tech/combat_scene.md](../tech/combat_scene.md)。`category`（管理分類）は JSON にも出す参考データで、ゲームロジックは参照しない（マップエディタの絞り込み等ツール用）。
 - `godot/data/movement/movement.csv` → `godot/data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 
@@ -63,7 +63,7 @@
 
 - ロスター/スキンは CSV正本（`unit_type.csv` / `unit_skin.csv`）が実体。何がどれだけ在るかはCSVを見る（ドキュメントに総数は書かない＝同期コストに見合わない）。画像・説明は当面空（プレースホルダ）で順次。
 - `range`(下限`min_range`〜上限`attack_range`)・`move_type`・`atk_air`(対地/対空)。射程は攻撃距離1＝近接（反撃あり）／≥2＝間接（反撃なし）で、種別ではなく攻撃した距離で決まる。`min_range≥2`＝懐に死角（砲兵など近接不可）。攻撃側は相手が飛行なら `atk_air`、地上なら `atk_ground` を使い、`atk_air=0` の駒は飛行を攻撃・反撃できない。防御は単一値（`defense`）。
-- `capacity`（搭乗数）＝**輸送できる"ユニット数"**。`capacity ≥ 1` なら輸送ユニット（別途フラグは持たない）／非輸送＝0。現状: **馬車(wagon)=4・飛空艇(airship)=4**、他=0。乗降＝乗せる/降ろす操作・移動消費・降車後の行動可否は `BattleState`（`can_board`/`put_passenger`/`unload`）・`godot/application/commands/unload_command.gd`。テスト `godot/tests/unit/test_transport.gd`。ただし敵AIの乗降は未対応。
+- `capacity`（搭乗数）＝**輸送できる"ユニット数"**。`capacity ≥ 1` なら輸送ユニット（別途フラグは持たない）／非輸送＝0。乗降＝乗せる/降ろす操作・移動消費・降車後の行動可否は `BattleState`（`can_board`/`put_passenger`/`unload`）・`godot/application/commands/unload_command.gd`。テスト `godot/tests/unit/test_transport.gd`。敵AIの乗降は [ai.md](ai.md)（輸送ユニット）。
 - 移動タイプ＝地形移動コスト・地形適性（`movement.csv`＝移動タイプ×地形。例: エルフ=森歩行／ドワーフ=山歩行／ハーフリング=茂歩行／斥候=軽歩行）。
 - 【将来】アーキ本筋の「原本＝スプレッドシート→CSV→.tres」量産パイプライン。当面は JSON で回す。
 
