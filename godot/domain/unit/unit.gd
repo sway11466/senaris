@@ -15,7 +15,7 @@ var native_team: int   ## 生来の陣営（不変）。-1(Base.NEUTRAL)=中立�
 var recruited_team: int  ## 帰属先＝どちらの戦力として世に出たか。既定は native_team と同じ。
                        ## 中立 native の駒が解放（出撃）された瞬間に出した側で確定し、以後は不変
                        ## ＝拠点ごと奪われても寝返らず捕虜になる。出撃・回復の可否はこの値で見る。
-var actor: String = ""   ## 永続キャラ識別子（冒険譚をまたいで一意。例 "t3.elf"）。空＝名前のない雑兵。
+var actor: String = ""   ## 永続キャラ識別子（冒険譚のなかで一意。名簿は冒険譚ごと。例 "elf"）。空＝名前のない雑兵。
                        ## 名簿の同一性・player の駒と名簿の突き合わせ・会話の分岐がこの値を見る
 var pos: Vector2i      ## axial 座標
 var move: int          ## 移動力（ヘックス数）

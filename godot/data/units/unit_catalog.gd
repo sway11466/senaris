@@ -3,8 +3,8 @@ class_name UnitCatalog
 ## ロスター表(JSON) → { id: UnitType } の組み立て（純ロジック・テスト対象）。
 ## 詳細 → doc/gdd/units.md
 ##
-## ステータスはテーマ非依存（標準ロスター＝テーマ0が唯一の出どころ）。
-## テーマはユニットの「名前」だけを切り替える（UnitType.names）。
+## UnitType が持つのはステータスだけ＝名前も画像も持たない。見た目と名前は UnitSkin 側
+## （SkinCatalog）で、1つの性能に陣営別・テーマ別のスキンがぶら下がる。
 
 const UNIT_TYPE_PATH := "res://data/units/unit_type.json"
 

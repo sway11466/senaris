@@ -119,7 +119,7 @@ func _ensure_engaged(state: BattleState, u: Unit) -> bool:
 		"predator":  # 視線距離が sight 以内に獲物 ／ 部隊の誰かが行動開始済み（一斉警戒）
 			engaged = not _prey_in_sight(state, u).is_empty() \
 				or _squadmate_engaged(state, u)
-		_:  # charge / raid / swarm＝常時
+		_:  # charge / raid / swarm / flee / withdraw / standoff＝常時
 			engaged = true
 	if engaged:
 		state.mark_engaged(u.id)
@@ -394,7 +394,7 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 	if not can_move or target == null:
 		return null  # 移動を使い切った／sight 範囲内に獲物がいない＝前進はしない
 	var cells := state.attack_cells(u.id, target.id)
-	# 5 回り込み（迂回距離）。標的自身のZOCは外して測る＝外さないと隣へ入れず必ず測れない。
+	# 6 回り込み（迂回距離）。標的自身のZOCは外して測る＝外さないと隣へ入れず必ず測れない。
 	# 表は標的から流して1枚だけ作り、自分のマスが載っているかで「測れる」を見る（両向きで一致する）。
 	var detour_field := state.detour_cost_field_to(u.id, target.pos, target.id)
 	if detour_field.has(u.pos):
@@ -709,12 +709,12 @@ func _route_improves(state: BattleState, u: Unit, goals: Array[Vector2i], ignore
 	return state.min_cost_in(state.detour_cost_field(u.id, u.pos, -1, ignore), goals) \
 		< BattleState.UNREACHABLE
 
-# --- 降ろす・乗る（doc/gdd/ai.md raid #4〜#6・輸送ユニット） ---
+# --- 降ろす・乗る（doc/gdd/ai.md raid #8〜#10・輸送ユニット） ---
 
-## 4/5行のうち「いまの位置から降ろす」部分。降車は乗員の手番なので、輸送が動き終えていても打てる
+## 8/9行のうち「いまの位置から降ろす」部分。降車は乗員の手番なので、輸送が動き終えていても打てる
 ## ＝運んだそのターンに降ろせる。1手で1体ずつ返し、次の手で残りを見る。
-## 4 占領兵の乗員を自陣営以外の拠点hexへ降ろす（＝降りた瞬間に占領）
-## 5 拠点に隣接する降車先へ降ろす。降りた先から拠点へたどり着けない乗員は乗せたまま
+## 8 占領兵の乗員を自陣営以外の拠点hexへ降ろす（＝降りた瞬間に占領）
+## 9 拠点に隣接する降車先へ降ろす。降りた先から拠点へたどり着けない乗員は乗せたまま
 func _unload_now_row(state: BattleState, u: Unit) -> AiAction:
 	var list := state.passengers(u.id)
 	var goals := _hostile_base_hexes(state, u)
@@ -744,7 +744,7 @@ func _unload_now_row(state: BattleState, u: Unit) -> AiAction:
 			return AiAction.unload(u.id, i, best)
 	return null
 
-## 4/5行のうち「降ろせるマスへ移動する」部分。降車は移動後に _unload_now_row が拾う。
+## 8/9行のうち「降ろせるマスへ移動する」部分。降車は移動後に _unload_now_row が拾う。
 ## 行き先は、乗員を降ろせるマスのうち拠点に最も近いもの（同値は col → row の若い方）。
 func _unload_move_row(state: BattleState, u: Unit) -> AiAction:
 	var list := state.passengers(u.id)
@@ -797,7 +797,7 @@ func _reaches(state: BattleState, p: Unit, from: Vector2i, goal: Vector2i) -> bo
 		return false
 	return state.travel_cost_field(goal, p.move_type, p.move).has(from)
 
-## 6行 乗る＝移動範囲に、同じ部隊で空きのある輸送ユニットがあり、便乗のほうが拠点へ早く着くなら乗る。
+## 10行 乗る＝移動範囲に、同じ部隊で空きのある輸送ユニットがあり、便乗のほうが拠点へ早く着くなら乗る。
 ## 乗車は移動そのもの（BattleState.move_unit が輸送のマスへの移動を搭乗に変える）。
 ## 目的地の違う部隊の輸送に乗ると見当違いの場所へ運ばれるので、同じ部隊の輸送だけを数える。
 func _board_row(state: BattleState, u: Unit) -> AiAction:
@@ -1487,7 +1487,7 @@ func _try_deploy(state: BattleState, b: Base) -> AiAction:
 	return null
 
 ## 拠点の行動開始条件＝ユニットと同じ条件を拠点hex基準で見る。
-## charge / raid / swarm＝常時、ambush＝拠点hexから sight 内に敵、weak＝拠点hexから sight 内に獲物。
+## ambush＝拠点hexから sight 内に敵、predator＝拠点hexから sight 内に獲物、他は常時。
 ## 一度成立したら以後は判定しない（部隊のフラグに焼く）＝敵が索敵から出ても拠点は眠り直さない。
 ## 一斉警戒はその部隊の中で閉じる＝同じ部隊の盤上の駒（その拠点から出した駒）が起きていれば拠点も
 ## 起きる。別部隊が起きても拠点は起きない（部隊のフラグしか見ないため）。
@@ -1502,7 +1502,7 @@ func _base_engaged(state: BattleState, b: Base) -> bool:
 				engaged = _enemy_in_sight(state, b.hex, b.team, budget)
 			"predator":
 				engaged = not _base_prey_in_sight(state, b, budget).is_empty()
-			_:  # charge / raid / swarm＝常時
+			_:  # charge / raid / swarm / flee / withdraw / standoff＝常時
 				engaged = true
 	if engaged:
 		state.mark_squad_engaged(b.squad_index)

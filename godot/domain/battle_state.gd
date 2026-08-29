@@ -26,7 +26,7 @@ var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 �
 var victory_conditions: Array = []
 
 ## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。
-## 要素は dict。現在対応: { "type": "lose_base", "col": <int>, "row": <int> } ＝ 指定拠点を敵に奪われる
+## 要素は dict。現在対応: { "type": "lose_base", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点を全て敵に奪われる
 ##                       { "type": "lose_unit", "actors": [<String>, …] } ＝ 護衛対象の喪失
 ## 本拠地(hq)喪失の常時ルールとは別軸＝あちらは陣営の要、こちらはステージが名指しする守り物。
 var defeat_conditions: Array = []
