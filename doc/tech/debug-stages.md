@@ -17,6 +17,7 @@
 | devlog1-2 | `debug-photo/devlog1-2.json` | devlog 1本目の2枚目の画（戦闘連写） |
 | store1 | `debug-photo/store1.json` | 紹介画像の1枚目（ゴブリン討伐令の盤を移植し、駒を包囲の形に置き直したもの。会話は外す） |
 | store2 | `debug-photo/store2.json` | 紹介画像の2枚目（同じ盤。攻め手をノービスにして、演出の左右に隊列が残る殴り合いにする） |
+| store3 | `debug-photo/store3.json` | 紹介画像の3枚目（同じ盤。魔法兵3体を相互隣接の三角に置き、トリニティノヴァを撃てる形にする） |
 
 ## debug-combat（戦闘シーンの見た目確認）
 

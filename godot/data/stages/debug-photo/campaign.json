@@ -22,6 +22,11 @@
       "id": "store2",
       "file": "store2.json",
       "title": "store2 紹介画像の2枚目（戦闘の演出・ノービス対ホブゴブリン）"
+    },
+    {
+      "id": "store3",
+      "file": "store3.json",
+      "title": "store3 紹介画像の3枚目（陣形スキルのカットイン＝トリニティノヴァ）"
     }
   ]
 }

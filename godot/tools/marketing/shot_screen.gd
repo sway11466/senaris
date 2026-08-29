@@ -10,6 +10,7 @@ extends Node
 ##   --select col,row … そのマスの駒を選択した状態で撮る（情報パネルにその駒が出る）
 ##   --frame c1,r1,c2,r2 … 盤全体ではなく、この2マスが作る矩形に画角を寄せる（縦長の盤を横長の画に収める）
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
+##   --formation <recipe> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
 ##   --count / --interval … 連写の枚数と間隔（既定 24枚 × 0.12秒）
 ##   --size WxH       … ウィンドウ＝出力の解像度（既定 1920x1080）
 
@@ -22,6 +23,9 @@ func _ready() -> void:
 	var has_select := false
 	var frame := PackedInt32Array()
 	var attack := PackedInt32Array()
+	var recipe := ""
+	var leader_cell := Vector2i(-1, -1)
+	var target_cell := Vector2i(-1, -1)
 	var count := 24
 	var interval := 0.12
 	var size := Vector2i(1920, 1080)
@@ -54,6 +58,20 @@ func _ready() -> void:
 				get_tree().quit(1)
 				return
 			attack = PackedInt32Array([int(t[0]), int(t[1]), int(t[2]), int(t[3])])
+			i += 2
+		elif a == "--formation" and i + 1 < uargs.size():
+			recipe = uargs[i + 1]
+			i += 2
+		elif a in ["--leader", "--target"] and i + 1 < uargs.size():
+			var c := uargs[i + 1].split(",")
+			if c.size() != 2:
+				push_error("shot_screen: %s は col,row 形式: %s" % [a, uargs[i + 1]])
+				get_tree().quit(1)
+				return
+			if a == "--leader":
+				leader_cell = Vector2i(int(c[0]), int(c[1]))
+			else:
+				target_cell = Vector2i(int(c[0]), int(c[1]))
 			i += 2
 		elif a == "--count" and i + 1 < uargs.size():
 			count = int(uargs[i + 1])
@@ -120,6 +138,38 @@ func _ready() -> void:
 	for f in 12:  # 地形テクスチャ・シェーダのウォームアップとパネルの整列
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
+
+	if recipe != "":
+		var fs: Variant = main._controller.state
+		var lead: Variant = fs.unit_at(Hex.offset_to_axial(leader_cell.x, leader_cell.y))
+		if lead == null:
+			push_error("shot_screen: --leader の指定マスに駒が居ない")
+			get_tree().quit(1)
+			return
+		var picked := {}
+		for o in Formation.available_for(fs, lead):
+			if String(o["recipe"]) == recipe:
+				picked = o
+				break
+		if picked.is_empty():
+			push_error("shot_screen: %s が発動できない（レシピの並びと射程を確認）" % recipe)
+			get_tree().quit(1)
+			return
+		DirAccess.make_dir_recursive_absolute(out)
+		if not main._controller.execute_formation(FormationCommand.new(picked, Hex.offset_to_axial(target_cell.x, target_cell.y))):
+			push_error("shot_screen: 陣形スキルが通らない")
+			get_tree().quit(1)
+			return
+		var fframes: Array[Image] = []
+		for shot in count:
+			await get_tree().create_timer(interval).timeout
+			await RenderingServer.frame_post_draw
+			fframes.append(get_viewport().get_texture().get_image())
+		for shot in fframes.size():
+			fframes[shot].save_png("%s/formation_%02d.png" % [out, shot])
+		print("SHOT_SAVED frames=", fframes.size(), " dir=", out)
+		get_tree().quit(0)
+		return
 
 	if attack.size() == 4:
 		var st: Variant = main._controller.state
