@@ -51,6 +51,7 @@ around it. Wide 4:3 composition.
 | SUBJECT | `godot/assets/campaign-src/{id}/{id}_cover_prompt.txt` | 同上フォルダ |
 | ④ ゲーム用（`_03_master`＞`_02_dew` を cp・比率調整は不要） | `godot/assets/campaign/{id}/{id}_cover.png`（＋連番 `{id}_cover_2.png` …） | `tutorial2-undead-rush_cover.png` |
 
+- `-src` の拡張子は生成物の形式のまま置く（png のことも jpg のこともある）。揃えるのはゲーム用（④）だけで、そちらは png。
 - 変種letter：1枚だけなら **付けない**（上表＝既定）。複数の cover 変種を出して表示ごとにランダムに1枚選ばせたいときだけ `_a`/`_b`/`_c`…（例: `{id}_a_01_raw.png`）を付ける（[campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd) の連番 `{id}_cover_2.png` はゲーム用側の変種）。チュートリアル1の cover は歴史的経緯で `_a` 付き。
 - 命名は他系統と揃える: slot（`_cover`/`_victory`）はユニット skin 流、連番変種（`_2`/`_3`…）は地形・羊皮紙流、-src の `_NN_raw/dew/master`（複数変種時は `_a_NN…`）は羊皮紙流。
 - ②は `godot/assets/campaign/{id}/` に置くと `CampaignCatalog` が規約で自動解決し、ステージ一覧の大パネル＋冒険譚の貼り紙に反映する（ユニットの skin 画像 autowire と同じ思想）。`campaign-src/` は `.gdignore` で Godot 非インポート。
