@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=4 / feature=87 / refactoring=12
+次回採番: bug=4 / feature=88 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -24,6 +24,15 @@
 - 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+
+### feature-87
+
+**UI の文言を用語で揃え、英語の用語表を拠り所にする**
+- ゴール：`ui.csv` の日英が、同じ概念を画面をまたいで同じ語で指している。英語はその語が [i18n.md](tech/i18n.md)「英語の用語」の表に載っていて、迷ったら表を見れば決まる。
+- 背景：依頼書の見出しを英語圏向けに書き直したとき、同じ「ステージ1本」を `Survivors from your last battle` と `Provided for this quest only` で battle / quest と呼び分けた。`ui.csv` は既に `Choose Another Quest`・`Clear quest %d to unlock` で quest を使っているが、表にステージの訳語の行が無く、拠り所がキーごとの記憶になっている。日本語側も同じで、依頼書の「兵量」は他の画面の「兵」「兵数」と揃っていない。i18n.md は「同じ概念は画面をまたいで同じ語で訳す」と決めているので、その拠り所を表に置く。
+- 対応：ステージ（マップ・戦い・依頼）のように同じものを指す語の訳を決めて表に足す。`ui.csv` を日英とも表と突き合わせて直す。直すのは訳文と日本語の字面だけで、意味は変えない＝キーは立て直さない。
+- 考慮外：会話・冒険譚の英文（feature-80 の範囲）。
+- 該当：`godot/data/i18n/ui.csv`・`doc/tech/i18n.md`。
 
 ### feature-80
 
