@@ -29,7 +29,7 @@
 ├─────────────────────────────────────┤
 │ Domain（純ロジック / Godot非依存）    │ 戦闘解決・包囲・陣形スキル・占領
 ├─────────────────────────────────────┤
-│ Data（リソース定義）                 │ ユニット表・陣形スキルレシピ・地形・テーマ
+│ Data（リソース定義）                 │ ユニット表・地形・移動コスト・翻訳・ステージ
 └─────────────────────────────────────┘
 ```
 
@@ -45,27 +45,34 @@ res://
 │   ├── hex/           # 座標・近傍・射程・経路
 │   ├── combat/        # 補正チェーン(レベル→包囲→支援→地形)
 │   ├── surround/      # 包囲
-│   ├── formation/     # 陣形スキル(レシピ判定・発動)
-│   ├── capture/       # 占領(三段階)
+│   ├── formation/     # 陣形スキル・ユニットスキル(レシピ定義・判定・発動)
+│   ├── capture/       # 占領
 │   ├── victory/       # 勝敗判定(殲滅・勝利条件・復帰手段)
 │   ├── sight/         # 視線(索敵の遮蔽・減衰)
+│   ├── status/        # 状態補正(バフ/デバフ・持続)
 │   ├── unit/          # ユニットの状態・型
-│   ├── map/           # マップ状態・地形ロジック
 │   ├── ai/            # 敵思考(domainクエリだけで完結)
-│   └── battle_state.gd  # 戦闘全体の状態＝中断セーブの本体
+│   ├── rank_evaluator.gd  # 評価ランク(ターン消費率・生存率)
+│   └── battle_state.gd  # 盤の状態＝中断セーブの本体。ターン進行もここ
 ├── application/       # ゲーム進行
-│   ├── turn/          # ターン・フェーズ
-│   ├── commands/      # 操作=コマンド(移動/攻撃/陣形スキル発動)
-│   └── match_controller.gd
+│   ├── commands/      # 操作=コマンド(移動/攻撃/スキル発動)
+│   ├── match_controller.gd  # ターン進行の駆動・敵AIの実行
+│   ├── stage_loader.gd      # ステージJSON → BattleState
+│   ├── campaign_progress.gd # 解放・クリア記録
+│   ├── roster_service.gd    # 名簿(継承の戦力)
+│   └── bgm_director.gd
 ├── presentation/      # ここだけノード/シーン
-│   ├── board/  units/  ui/  effects/
+│   ├── main/          # 画面の切り替え・演出の順番を持つ入口
+│   ├── board/  units/  ui/  effects/     # 盤・駒・UI部品・エフェクト
+│   └── combat/ formation/ select/ title/ settings/ victory/  # 画面ごと
 ├── data/              # 機能フォルダ: 型定義＋データ＋ローダーを同居（型とデータはセット）
 │   ├── units/         # 型(*.gd)＋ローダー(*_catalog.gd)＋正本CSV(*.csv)＋生成JSON(*.json)＋変換(convert.gd)
-│   ├── stages/        # ステージ定義(json)
-│   └── formations/ terrain/ themes/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
+│   ├── stages/        # ステージ定義(json)＋冒険譚マニフェスト(campaign.json)
+│   ├── i18n/          # 翻訳CSV(正本)＋生成 .translation
+│   └── terrain/ movement/ ai/ audio/ effects/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
 ├── infrastructure/
 │   ├── save/          # 直列化(進捗＋中断)
-│   └── platform/      # 外界との境界: チャネル・版の識別(build_info)／所有権チェック／Steam連携
+│   └── platform/      # 外界との境界: チャネル・版の識別(build_info)
 ├── assets/            # ゲームに載る素材。<種別>-src は元素材で .gdignore（Godotの走査外）
 │   └── licenses/      # 配布物に添えるライセンス文
 ├── tools/             # 開発ツール（build/ にビルド一式）
@@ -107,9 +114,9 @@ res://
 - Domain層からノードを触らない規約で層を守る（コンパイラの代わりに規約で担保）
 
 ### データ形式 【確定】
-- 原本＝スプレッドシートで管理 → CSV書き出し → 取り込みで型付きResourceに変換
-- 入れ子データ（陣形スキルレシピ等）＝ JSON か Resource
-- 実行時は常に型付きオブジェクト（custom Resource）を扱う
+- 原本＝スプレッドシートで管理 → CSV書き出し → `convert.gd` がコード用 JSON を生成
+- 実行時は常に型付きオブジェクト（`RefCounted` の型定義に `*_catalog.gd` が詰める）を扱う
+- 入れ子データ（陣形スキルのレシピ等）は表に馴染まないので CSV に載せず、domain のコードが持つ
 - テーマ差し替え＝ステータスは原型に1回だけ、名前・スプライトのみ上書きレイヤー（複製しない）
 
 #### CSV→データ生成のバリデーション（基本方針）
