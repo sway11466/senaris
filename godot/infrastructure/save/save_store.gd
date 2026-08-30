@@ -7,7 +7,7 @@ class_name SaveStore
 
 const DEFAULT_PATH := "user://save.json"
 ## 2: roster を落とし sortied_actors を足した（doc/gdd/campaigns.md 名簿の更新）。旧セーブは投入記録を持たず、
-## 復元して勝つと在籍者が全員「出番なし」扱いになるため、読まずに捨てる。
+## 復元して勝つと在籍者が全員「出番なし」扱いになるため読まない（退避はする）。
 const VERSION := 2
 
 var _path: String
@@ -26,26 +26,28 @@ func load() -> Dictionary:
 
 ## 盤状態 dict ＋メタを保存する（1枠＝上書き）。state_dict は BattleState.to_dict の戻り値。
 func save(state_dict: Dictionary, meta: Dictionary = {}) -> void:
+	SaveFile.rotate(_path)
 	var f := FileAccess.open(_path, FileAccess.WRITE)
 	if f == null:
 		push_error("SaveStore: 書き込めない: %s" % _path)
 		return
 	f.store_string(JSON.stringify({ "version": VERSION, "meta": meta, "state": state_dict }, "  "))
 
-## 中断セーブを消す（再開後・破棄時）。
+## 中断セーブを消す（再開後・破棄時）。消す前に世代を残す＝取り違えて消しても戻せる。
 func clear() -> void:
 	if FileAccess.file_exists(_path):
+		SaveFile.rotate(_path)
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(_path))
 
 func _read() -> Dictionary:
-	if not FileAccess.file_exists(_path):
+	# 破損・手編集・版違いの判定と退避は SaveFile が持つ（doc/tech/gamesystem.md §バックアップ）
+	var result := SaveFile.read(_path, VERSION)
+	var status := int(result["status"])
+	if status != SaveFile.VALID:
+		if status != SaveFile.MISSING:
+			push_warning("SaveStore: 中断セーブが不正のため無視: %s" % _path)
 		return {}
-	# 破損・手編集がありうるので、エンジンエラーを出さない JSON.parse で静かに検証する
-	var json := JSON.new()
-	var data: Variant = json.data if json.parse(FileAccess.get_file_as_string(_path)) == OK else null
-	if typeof(data) != TYPE_DICTIONARY or int(data.get("version", 0)) != VERSION:
-		push_warning("SaveStore: 中断セーブが不正のため無視: %s" % _path)
-		return {}
+	var data: Dictionary = result["data"]
 	var state: Variant = data.get("state", {})
 	if typeof(state) != TYPE_DICTIONARY or state.is_empty():
 		return {}  # 盤状態が無い/壊れている＝セーブとして無効

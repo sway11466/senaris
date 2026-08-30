@@ -42,14 +42,14 @@ func mark_rank(campaign_id: String, stage_id: String, rank: String) -> void:
 	_save()
 
 func _load() -> void:
-	if not FileAccess.file_exists(_path):
+	# 破損・手編集・版違いの判定と退避は SaveFile が持つ（doc/tech/gamesystem.md §バックアップ）
+	var result := SaveFile.read(_path, VERSION)
+	var status := int(result["status"])
+	if status != SaveFile.VALID:
+		if status != SaveFile.MISSING:
+			push_warning("ProgressStore: 進捗ファイルが不正のため新規扱い: %s" % _path)
 		return
-	# 破損・手編集がありうるファイルなので、エンジンエラーを出さない JSON.parse で静かに検証する
-	var json := JSON.new()
-	var data: Variant = json.data if json.parse(FileAccess.get_file_as_string(_path)) == OK else null
-	if typeof(data) != TYPE_DICTIONARY or int(data.get("version", 0)) != VERSION:
-		push_warning("ProgressStore: 進捗ファイルが不正のため新規扱い: %s" % _path)
-		return
+	var data: Dictionary = result["data"]
 	var cleared: Variant = data.get("cleared", {})
 	if typeof(cleared) == TYPE_DICTIONARY:
 		for c in cleared:
@@ -78,6 +78,7 @@ func _load() -> void:
 				_ranks[String(c)] = entry
 
 func _save() -> void:
+	SaveFile.rotate(_path)
 	var f := FileAccess.open(_path, FileAccess.WRITE)
 	if f == null:
 		push_error("ProgressStore: 書き込めない: %s" % _path)

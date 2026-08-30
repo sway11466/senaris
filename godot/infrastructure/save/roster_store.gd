@@ -31,14 +31,14 @@ func clear_roster(campaign_id: String) -> void:
 		_save()
 
 func _load() -> void:
-	if not FileAccess.file_exists(_path):
+	# 破損・手編集・版違いの判定と退避は SaveFile が持つ（doc/tech/gamesystem.md §バックアップ）
+	var result := SaveFile.read(_path, VERSION)
+	var status := int(result["status"])
+	if status != SaveFile.VALID:
+		if status != SaveFile.MISSING:
+			push_warning("RosterStore: スナップショットが不正のため空扱い: %s" % _path)
 		return
-	# 破損・手編集がありうるファイルなので、エンジンエラーを出さない JSON.parse で静かに検証する
-	var json := JSON.new()
-	var data: Variant = json.data if json.parse(FileAccess.get_file_as_string(_path)) == OK else null
-	if typeof(data) != TYPE_DICTIONARY or int(data.get("version", 0)) != VERSION:
-		push_warning("RosterStore: スナップショットが不正のため空扱い: %s" % _path)
-		return
+	var data: Dictionary = result["data"]
 	var rosters: Variant = data.get("rosters", {})
 	if typeof(rosters) != TYPE_DICTIONARY:
 		return
@@ -54,6 +54,7 @@ func _load() -> void:
 			_rosters[String(c)] = units
 
 func _save() -> void:
+	SaveFile.rotate(_path)
 	var f := FileAccess.open(_path, FileAccess.WRITE)
 	if f == null:
 		push_error("RosterStore: 書き込めない: %s" % _path)
