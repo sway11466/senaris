@@ -1,0 +1,75 @@
+SUBJECT: The same BROKEN-OPEN CRYPT as the map piece, seen from FAR AWAY and
+almost EDGE-ON — a very thin, very wide BAND of ground that lies behind the
+fighting in a battle window. It is not a single object floating in the middle of
+the frame; it is a stretch of the graveyard seen from a distance, running off the
+LEFT edge of the picture.
+
+VIEWING ANGLE — this is the whole point of the picture. The ground is seen from
+the SIDE at a very low, grazing angle, almost level with it. NOTHING is seen from
+above. The ground reads as a nearly flat line, and everything on it is squashed
+down into that line. This is the opposite of the map piece, which looked down into
+the hole; here the hole is far away and nearly edge-on, so its mouth is only a
+thin dark slot.
+
+WHAT IS IN IT, from left to right along the strip:
+- A long stretch of bare, trodden graveyard earth, low and level.
+- A little LEFT of the middle, the mouth of the crypt: a low line of flat kerb
+  slabs laid in the ground, and immediately above and behind them a THIN
+  HORIZONTAL BLACK SLOT — the opening, seen almost edge-on. The slot is the
+  darkest thing in the picture and the widest single feature in it, but it stays
+  low: it must never become a tall rectangle or a doorway.
+- Beside the mouth, the pushed-aside stone lid lying flat on the ground, seen
+  edge-on as a thin pale stone bar with a shadowed side.
+- A scattering of small broken stones, clods and low stubs of stone along the
+  strip, irregularly placed, never in a row, all of them low.
+
+NOTHING STANDS UP. There is NO mound, NO hill, NO bank, NO raised earth, NO wall,
+NO doorway, NO door frame, NO gravestone, NO headstone, NO cross, NO post and NO
+building anywhere in this picture. The tallest thing in it is a broken stone stub
+no higher than about a fifth of the strip's height.
+
+THE TWO ENDS ARE DIFFERENT — this matters.
+- LEFT end: the ground runs straight off the edge of the picture and is cut by it.
+  Whatever lies nearest the left edge is cut through by the frame. Nothing tapers,
+  nothing ends, nothing is rounded off there.
+- RIGHT end: the ground has to finish inside the picture. Finish it honestly: past
+  the crypt the earth thins out and the last stones fade away as the ground
+  recedes. Do NOT stop it with a raw broken end, and do NOT put a wall, fence,
+  hedge, kerb or gate there — there is no boundary anywhere in this picture.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square, and almost all of it is
+empty. The strip of ground lies along the very BOTTOM edge, running edge to edge
+from left to right. In a 1024-pixel picture the strip is about 130 pixels tall —
+roughly one eighth as tall as it is wide — and everything above it is empty white.
+The strip touches the left edge, the right edge and the bottom edge.
+
+THE BOTTOM EDGE — the earth and the stones are cut flat by the bottom edge of the
+picture. Draw nothing below them: no grass, no soil, no path, no ground, no cast
+shadow, no strip of background along the bottom. Soldiers will stand in front of
+this and will overlap it.
+
+COLOR — the kerb slabs, the lid and the loose stones are weathered grey-green
+stone, hex #8A8676, each piece a slightly different flat tone between #9A9686 and
+#6E6A5A. The earth is a dull, desaturated brown-grey, base #8A7F6A, with #6B6255
+in the hollows and #9C9179 where the light catches it. The slot of the opening is
+BLACK, hex #16191C. Match those numbers: this and the map piece must read as the
+same place. Do NOT make the earth warm, orange, rust, golden or sandy, and do NOT
+make it brighter than #9C9179.
+
+THE BACKGROUND — everything above the strip is PURE FLAT WHITE, #FFFFFF, with NO
+texture, NO shading, NO gradient, NO sky, NO clouds, NO horizon line. This white is
+going to be deleted, so the top edge of the strip must be a hard, clean, crisp edge
+against it. Nothing in the picture may be white or near-white.
+
+LIGHT — dim light from above. Short soft shadows that fall only on the stones and
+the earth themselves. NOTHING casts a shadow onto the white. NO glow, NO light of
+any colour anywhere in this picture.
+
+NOTHING ELSE — no people, no animals, no birds, no bones, no skulls, no coffins,
+no urns, no flowers, no candles, no lanterns, no banners, no smoke, no fire, no
+lettering and no inscriptions. NO mist, NO magic, NO particles.
+
+Keep it in bold flat shapes, in the same clean stylized cel-shaded look as the
+game's terrain and unit art, with no fine texture that would fight with the figures
+standing in front of it. It will be seen very small and very thin, so a few large
+legible shapes only. Square 1:1.

@@ -352,7 +352,7 @@
 			"grid": true,
 			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
-			"map_scale": 0.6,
+			"map_scale": 0.85,
 			"memo": "墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "納骨堂",
 			"object_foot_z": 0.5,

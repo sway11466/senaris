@@ -1,0 +1,82 @@
+SUBJECT: A HOLE IN THE GROUND — the mouth of an underground burial vault, broken
+open — drawn as ONE object seen from ABOVE at a steep angle, about 50 degrees down
+from the horizon (much closer to looking straight down than to looking from the
+side). The opening lies FLAT IN THE GROUND and faces the sky. The viewer looks
+down into it.
+
+SQUARE TO THE VIEWER — the hole is a rectangle set straight in front of the viewer,
+not turned. Its FRONT edge runs horizontally across the picture, parallel to the
+bottom of the frame, and its BACK edge runs horizontally too, directly behind it.
+The left and right edges are mirror images of each other and lean inward by the same
+amount. Do NOT rotate the hole so that a corner points toward the viewer. This is NOT
+an isometric view, NOT a three-quarter view and NOT a diamond shape: it is a
+head-on, symmetrical view of a rectangular pit.
+
+THIS IS NOT A BUILDING AND NOT A DOORWAY IN A WALL. There is NO mound, NO hill, NO
+heap, NO raised earth, NO barrow, NO wall, NO upright door frame, NO jamb stones
+standing on end, NO lintel, NO roof, NO tomb standing above the ground. Nothing in
+this picture stands up. If any part of it reads as a structure built on top of the
+ground, it is wrong.
+
+THE OPENING — a rectangular hole cut down into flat earth, wider than it is deep
+from front to back. Because of the steep viewing angle its shape is a wide
+rectangle whose height on the page is about four fifths of its width. The inside
+is BLACK, hex #16191C, and reads as depth, not as a flat painted panel.
+
+THE KERB — the four edges of the hole are lined with flat slabs of weathered
+stone laid INTO the ground, level with the earth around them, framing the mouth
+like the rim of a well. The slabs are chipped and uneven, and one or two have
+shifted out of line. They lie flat: none of them stands upright.
+
+THE STEPS — worn stone steps drop away from the FRONT edge of the opening and go
+down into it. Only the first two or three treads are visible before the darkness
+swallows them. The rest of the hole is black.
+
+THE DISTURBED EARTH — a low ring of loose, freshly turned soil is heaped around
+the outside of the kerb, thinning out to nothing a short way from the stones, with
+a few small broken stones and clods lying in it, scattered irregularly and never in
+rows. This ring is what tells the viewer the hole is cut into ground; it is LOW and
+FLAT, never a mound, and it must not rise higher than the thickness of the kerb
+slabs.
+
+THE PUSHED-ASIDE LID — one large flat stone slab, plainly the lid that once covered
+the hole, lies FLAT ON THE GROUND beside the opening, shoved off to one side. Its
+edges stay roughly parallel to the edges of the hole — it has slid sideways off the
+mouth, not spun around — and only one corner has dropped out of line, riding up onto
+the heaped soil. It is clearly the right size and shape to cover the opening. It
+lies down: it does NOT lean, and it does NOT stand.
+
+SIZE AND SHAPE — WIDE AND LOW. In a 1024-pixel picture the whole object is about
+720 pixels wide and about 340 pixels tall, leaving at least 140 pixels of white on
+every side. It must NOT touch any edge and must NOT be cut by any edge. It must be
+clearly wider than it is tall.
+
+COLOR — the kerb slabs, the lid and the loose stones are weathered grey-green
+stone, hex #8A8676, each piece a slightly different flat tone between #9A9686 and
+#6E6A5A so the stones separate from one another by tone alone. The turned soil is a
+dull, desaturated brown-grey, base #8A7F6A, with #6B6255 in the hollows and #9C9179
+where the light catches it. The game draws its own dry khaki graveyard grass, hex
+#B2B28E, behind this picture, and the whole object must sit CLEARLY DARKER and less
+colourful than that grass so its outline reads against it. Do NOT make the soil
+warm, orange, rust, golden or sandy, and do NOT make it brighter than #9C9179.
+
+LIGHT — dim light from above, short soft shadows that fall only on the object
+itself. NOTHING casts a shadow onto the background. NO glow, NO light of any colour
+anywhere in this picture.
+
+THE BACKGROUND — everything around the object is PURE FLAT WHITE, #FFFFFF, with NO
+texture, NO shading, NO gradient, NO ground, NO grass, NO soil, NO drop shadow. This
+white is going to be deleted and the game will draw its own graveyard grass there,
+so the outline of the object must be a hard, clean, crisp edge against it. Nothing
+in the object may be white or near-white.
+
+Everything muted, in the same clean stylized cel-shaded look as the game's terrain
+and unit art: bold flat shading, clear dark outlines, a mature, slightly muted,
+limited color palette (NOT bright saturated, NOT painterly photorealism).
+
+NOTHING ELSE — no gravestones, no headstones, no grave markers, no crosses, no
+statues, no urns, no coffins, no bones, no skulls, no fence, no gate, no path, no
+ladder, no rope, no flowers, no candles, no lanterns, no creature, no people, no
+lettering and NO inscriptions of any kind. NO mist, NO magic, NO particles. Read at
+thumbnail size: a few large legible shapes, no fine detail. NO border, NO frame
+around the picture itself, NO vignette. Square 1:1.

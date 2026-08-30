@@ -1,0 +1,33 @@
+盤の立ち絵（standee）— gen_terrain_tile.ps1 -Object を使わず、magick を直に書く。理由は3枚の縮尺を
+揃えるため。-Object は絵ごとにトリムしてから map_scale の幅へ正規化するので、蓋を閉じた team0 だけ
+外接矩形が 53px 狭く（806x550 → 753x550）、同じ穴が7%大きく出てしまう。共通の矩形で切り出せば、
+縮尺も左右の位置も3枚で完全に一致する。切り出し枠は白を抜いた後の外接矩形の和＝806x550+135+249。
+
+幅174px は -Object と同じ物差し＝384 * 2 / 3.75 * map_scale。map_scale は terrain_skin.csv の
+plain_grave1_fort_crypt1 の行が持つ（0.85＝ヘックス幅の85%）。CSVを変えたらここの174も直す。
+
+-gravity south の中央合わせにせず +6px 右へ寄せるのは、絵の重心と穴の中心がずれているため。蓋が右に
+寝ているぶん外接矩形の中心は穴より右にあり、中央合わせだと穴がヘックス中心から6px左に落ちる（実測）。
+盤で目が合わせるのは穴なので、穴の中心をキャンバス中心（192）に合わせる。3枚とも同じ +6。
+2手に分けるのは、-extent が中央合わせしか持たないため（-geometry で寄せるには -composite が要る）。
+
+magick assets\terrain-src\fort_crypt1\fort_crypt1_01_raw.jpg -fuzz 10% -transparent white -crop 806x550+135+249 +repage -resize 174x -background none %TEMP%\sized.png
+magick -size 384x384 xc:none %TEMP%\sized.png -gravity south -geometry +6+0 -composite -colors 64 -dither None assets\terrain\plain_grave1_fort_crypt1.png
+
+team0 / team1 も同じ2手。1手目の元絵を fort_crypt1_team0_01_raw.jpg / fort_crypt1_team1_01_raw.jpg に、
+2手目の書き出し先を plain_grave1_fort_crypt1_team0.png / _team1.png に替えるだけで、数字は全部同じ。
+
+出力は 384四方のキャンバスに 幅174（＝ヘックス幅の85%）× 高さ119。地面に寝た穴なので背は低く、
+ファイター 200px の 0.6 体ぶん。同じ墓地の墓石の山（205x117）と同じ土俵に乗る。
+足元をマス中心より手前へ出す量は object_foot_z＝0.50。orientable は none＝左右反転させない。
+
+戦闘の奥の帯（_combat_back）— 白を抜いて共通の矩形で切り出すだけ。余白は足さない＝トリム後の
+縦横比 1011:102（9.9:1）がそのまま帯の高さを決める。画面では 360x36px になり、帯の上端が水平線
+（窓の高さ0.36）にちょうど載る＝地面に寝た穴が空へはみ出さない。礼拝堂・町の帯（2.2〜2.3:1）と
+違って薄いのは、立ち上がる物を持たないため。
+
+magick assets\terrain-src\fort_crypt1\fort_crypt1_combat_01_raw.jpg -fuzz 10% -transparent white -crop 1011x102+6+582 +repage assets\terrain\plain_grave1_fort_crypt1_combat_back.png
+magick assets\terrain-src\fort_crypt1\fort_crypt1_combat_team0_01_raw.jpg -fuzz 10% -transparent white -crop 1011x102+6+582 +repage assets\terrain\plain_grave1_fort_crypt1_team0_combat_back.png
+magick assets\terrain-src\fort_crypt1\fort_crypt1_combat_team1_01_raw.jpg -fuzz 10% -transparent white -crop 1011x102+6+582 +repage assets\terrain\plain_grave1_fort_crypt1_team1_combat_back.png
+
+絵は左陣営向き（左端が窓の外へ抜け、右端が画の中で終わる）。右陣営では演出側が左右反転する。
