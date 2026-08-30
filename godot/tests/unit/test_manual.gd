@@ -41,6 +41,7 @@ func test_structure_has_chapters() -> void:
 	assert_gt(ManualToc.CHAPTERS.size(), 0, "章が1つ以上あること")
 
 ## 章idと節idは重複しない。重なると同じ翻訳キーを2箇所が指す。
+## タブは節と同じキー空間に居るので、節idと同じ入れ物で見る。
 func test_ids_are_unique() -> void:
 	var seen_chapters := {}
 	for chapter in ManualToc.CHAPTERS:
@@ -52,6 +53,21 @@ func test_ids_are_unique() -> void:
 			var section_id := String(section["id"])
 			assert_false(seen_sections.has(section_id), "節idが章の中で重複しないこと: %s.%s" % [chapter_id, section_id])
 			seen_sections[section_id] = true
+			if not ManualToc.has_tabs(section):
+				continue
+			for tab in section["tabs"]:
+				var tab_id := String(tab["id"])
+				assert_false(seen_sections.has(tab_id), "タブidが節idと重複しないこと: %s.%s" % [chapter_id, tab_id])
+				seen_sections[tab_id] = true
+
+## 節は本文かタブのどちらか一方を持つ。両方だと画面がどちらを出すか決まらない。
+func test_section_holds_blocks_or_tabs() -> void:
+	for chapter in ManualToc.CHAPTERS:
+		for section in chapter["sections"]:
+			var id := "%s.%s" % [String(chapter["id"]), String(section["id"])]
+			assert_ne(section.has("blocks"), section.has("tabs"), "本文かタブのどちらか一方を持つこと: %s" % id)
+			if ManualToc.has_tabs(section):
+				assert_gt(section["tabs"].size(), 1, "タブは2枚以上あること: %s" % id)
 
 ## 章は必ず節を1つ以上持つ。0だと目次から開いても本文が無い。
 func test_every_chapter_has_a_section() -> void:
@@ -87,11 +103,11 @@ func test_both_languages_are_filled() -> void:
 		assert_false(String(row["ja"]).strip_edges().is_empty(), "ja が埋まっていること: %s" % key)
 		assert_false(String(row["en"]).strip_edges().is_empty(), "en が埋まっていること: %s" % key)
 
-## 画面の枠（見出し・戻る・章の一覧へ戻る行）は ui.csv 側にある。
+## 画面の枠（見出し・戻る）は ui.csv 側にある。
 func test_screen_chrome_keys_resolve() -> void:
 	var prev := TranslationServer.get_locale()
 	TranslationServer.set_locale("ja")
-	for key in ["ui.manual.title", "ui.manual.back", "ui.manual.chapters"]:
+	for key in ["ui.manual.title", "ui.manual.back"]:
 		assert_ne(TranslationServer.translate(key), key, "画面の文言が引けること: %s" % key)
 	TranslationServer.set_locale(prev)
 

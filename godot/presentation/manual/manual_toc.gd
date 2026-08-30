@@ -16,8 +16,12 @@ class_name ManualToc
 ##   dl    用語と説明の並び。"e"＝要素名の配列。各要素が .term と .desc を持つ
 ##   rules 敵AIの行動ルール表。"n"＝行数。各行が rule<N>.cond と rule<N>.act を持つ
 ##
-## 節が2つ以上ある章は、目次で1段潜って節の一覧になる（いまは敵AIだけ）。
+## 節が2つ以上ある章は、目次でその章の下に節が開く（いまは敵AIだけ）。
 ## 節が1つの章は章を選べばそのまま本文が出る。
+##
+## 節は本文（"blocks"）を持つか、タブ（"tabs"）を持つかのどちらか。タブは本文ペインの上に
+## 横並びで出す切り替えで、いまは敵AIの「特性ごとの行動」だけが持つ。タブは節と同じ
+## キー空間に居る＝要素キーは manual.<章id>.<タブid>.<要素> になり、節idと重複させない。
 
 const KEY_PREFIX := "manual"
 
@@ -136,77 +140,79 @@ const CHAPTERS: Array = [
 			{ "t": "h", "e": "params" },
 			{ "t": "dl", "e": ["sight", "retreat", "stack_cond"] },
 		] },
-		{ "id": "charge", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 7 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
-		] },
-		{ "id": "ambush", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 7 },
-			{ "t": "p", "e": "note1" },
-		] },
-		{ "id": "raid", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 13 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
-			{ "t": "p", "e": "note3" },
-		] },
-		{ "id": "predator", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 9 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
-		] },
-		{ "id": "swarm", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 11 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
-		] },
-		{ "id": "flee", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 4 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
-		] },
-		{ "id": "withdraw", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 12 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
-		] },
-		{ "id": "standoff", "blocks": [
-			{ "t": "p", "e": "desc" },
-			{ "t": "h", "e": "start" },
-			{ "t": "p", "e": "start1" },
-			{ "t": "h", "e": "rules" },
-			{ "t": "rules", "n": 9 },
-			{ "t": "p", "e": "note1" },
-			{ "t": "p", "e": "note2" },
+		{ "id": "traits", "tabs": [
+			{ "id": "charge", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 7 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+			] },
+			{ "id": "ambush", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 7 },
+				{ "t": "p", "e": "note1" },
+			] },
+			{ "id": "raid", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 13 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+				{ "t": "p", "e": "note3" },
+			] },
+			{ "id": "predator", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 9 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+			] },
+			{ "id": "swarm", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 11 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+			] },
+			{ "id": "flee", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 4 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+			] },
+			{ "id": "withdraw", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 12 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+			] },
+			{ "id": "standoff", "blocks": [
+				{ "t": "p", "e": "desc" },
+				{ "t": "h", "e": "start" },
+				{ "t": "p", "e": "start1" },
+				{ "t": "h", "e": "rules" },
+				{ "t": "rules", "n": 9 },
+				{ "t": "p", "e": "note1" },
+				{ "t": "p", "e": "note2" },
+			] },
 		] },
 		{ "id": "transport", "blocks": [
 			{ "t": "p", "e": "desc" },
@@ -283,9 +289,21 @@ static func all_keys() -> Array:
 		for section in chapter["sections"]:
 			var section_id := String(section["id"])
 			keys.append(section_title_key(chapter_id, section_id))
-			for block in section["blocks"]:
-				keys.append_array(block_keys(chapter_id, section_id, block))
+			for holder in leaves(section):
+				var leaf_id := String(holder["id"])
+				if leaf_id != section_id:
+					keys.append(section_title_key(chapter_id, leaf_id))  # タブの見出し
+				for block in holder["blocks"]:
+					keys.append_array(block_keys(chapter_id, leaf_id, block))
 	return keys
+
+## 節の中で本文を持つもの＝節そのもの（"blocks"）か、その節のタブ（"tabs"）の並び。
+static func leaves(section: Dictionary) -> Array:
+	return section["tabs"] if section.has("tabs") else [section]
+
+## 節がタブを持つか。
+static func has_tabs(section: Dictionary) -> bool:
+	return section.has("tabs")
 
 ## 章を id で引く（見つからなければ空の辞書）。
 static func chapter(chapter_id: String) -> Dictionary:

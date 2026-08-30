@@ -170,6 +170,7 @@ manual.ai.terms.retreat.term,撤退閾値,Retreat Threshold
 manual.ai.terms.retreat.desc,損耗の割合。これ以上に削られると退きに転じる。逃走では行き先が敵の拠点から自分の陣営の拠点へ切り替わり、撤退では拠点へ退く。,"A share of attrition. Past it the unit turns to withdrawing: under Flee the destination switches from an enemy base to one of its own, and under Withdraw it pulls back to a base."
 manual.ai.terms.stack_cond.term,stack 条件,Stack Condition
 manual.ai.terms.stack_cond.desc,同じ相手にスキルを重ねすぎないための条件。強化と弱体は「効いている本数が上限より少ないこと」、解除は逆に「刺さっている弱体が閾値以上あること」を見る。上限が無ければ強化と弱体は常に成立する。,"What keeps the enemy from piling skills onto one target forever. For buffs and debuffs it asks whether fewer than the limit are already in place; for cleansing it asks the opposite — whether at least the threshold number of debuffs are stuck on. With no limit set, buffs and debuffs always qualify."
+manual.ai.traits.title,特性ごとの行動,Traits
 manual.ai.charge.title,突撃,Charge
 manual.ai.charge.desc,前へ出て積極的に攻撃する。手番をためらいなく使う。読み合いの要素が無く、必ず前へ来ると分かっている特性なので、地形で受ける・包囲で潰すといった基本の練習になる。,"Pushes forward and attacks without hesitation. There is nothing to read here — it will always come at you — which makes it the trait to practise the basics against: receiving on good terrain and crushing with an encirclement."
 manual.ai.charge.start,行動開始条件,Activation
