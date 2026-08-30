@@ -3,11 +3,11 @@ manual.unit.title,ユニットの能力値,Unit Stats
 manual.unit.main.title,ユニットの能力値,Unit Stats
 manual.unit.main.intro,盤の駒はそれぞれ性能を持つ。ここではその項目が何を指すのかを説明する。実際の数値は、駒を選んだときの情報パネルに出る。,Every unit on the board has its own stats. This chapter explains what each of them means. The actual numbers appear in the info panel when you select a unit.
 manual.unit.main.troops.term,兵数,Strength
-manual.unit.main.troops.desc,その駒に残っている兵の数。満員は8で、0になると駒が盤から消える。攻撃力も防御力も兵数に比例するので、削られた駒は攻めも守りも弱くなる。補充はできない。,"How many soldiers the unit has left. Full strength is 8, and at 0 the unit is gone from the board. Both attack and defense scale with strength, so a worn-down unit is weaker at everything. There is no way to replenish it."
+manual.unit.main.troops.desc,その駒に残っている兵の数。満員は8で、0になると駒が盤から消える。攻撃力も防御力も兵数に比例するので、削られた駒は攻めも守りも弱くなる。補充はできない。ドラゴンや馬車のように頭数を持たない駒もあるが、それらも同じ兵数で数える＝減れば同じように弱り、0で盤から消える。,"How many soldiers the unit has left. Full strength is 8, and at 0 the unit is gone from the board. Both attack and defense scale with strength, so a worn-down unit is weaker at everything. There is no way to replenish it. Some units are a single creature or vehicle rather than a squad — a dragon or a wagon — and their Strength is counted the same way: it weakens them as it falls and removes them at 0."
 manual.unit.main.atk_ground.term,対地,Atk vs Ground
 manual.unit.main.atk_ground.desc,地上の敵を攻撃するときに使う攻撃力。兵1体あたりの値で、実際の攻撃力はこれに兵数を掛けたものから始まる。,The attack power used against ground units. It is the value per soldier — actual attack power starts from this multiplied by strength.
 manual.unit.main.atk_air.term,対空,Atk vs Air
-manual.unit.main.atk_air.desc,飛行の敵を攻撃するときに使う攻撃力。0の駒は飛行を攻撃対象に選べず、飛行に殴られても反撃しない。対空を持つのは弓兵・飛行兵・魔法兵で、歩兵と占領兵の近接は空に届かない。,"The attack power used against fliers. A unit with 0 here cannot target fliers at all, and does not counter when a flier attacks it. Archers, fliers and mages carry this — infantry and clergy cannot reach the air in melee."
+manual.unit.main.atk_air.desc,飛行の敵を攻撃するときに使う攻撃力。0の駒は飛行を攻撃対象に選べず、飛行に殴られても反撃できない。対空を持つのは弓兵・飛行兵・魔法兵で、歩兵と占領兵の近接は空に届かない。,"The attack power used against fliers. A unit with 0 here cannot target fliers at all, and cannot counter when a flier attacks it. Archers, fliers and mages carry this — infantry and clergy cannot reach the air in melee."
 manual.unit.main.defense.term,防御,Defense
 manual.unit.main.defense.desc,攻撃を受けたときの固さ。物理と魔法で分かれておらず、相手が地上か飛行かでも分かれない単一の値になる。,"How tough the unit is when attacked. It is a single value — not split into physical and magical, and not split by whether the attacker is on the ground or in the air."
 manual.unit.main.pierce.term,防御貫通,Pierce
