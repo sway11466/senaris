@@ -139,13 +139,20 @@ vignette. Square 1:1.
 
 ### 3.4 元絵とレシピの置き場
 
-`godot/assets/terrain-src/{skin_id}/` に3点を置く。
+`godot/assets/terrain-src/{name}/` に3点を置く。`{name}` は型ID、または型ID＋バリエーション名。
+
+```
+{型ID}                    plain / road / fence / prop
+{型ID}_{バリエーション名}   plain_cave1 / prop_tomb1 / bridge_stone1
+```
 
 | ファイル | 中身 |
 |---|---|
-| `{skin_id}_prompt.txt` | 生成プロンプト（STYLE＋SUBJECT） |
-| `{skin_id}_01_raw.png` ／ `_03_master.png` | 元絵。手を入れたものが master |
-| `{skin_id}_recipe.txt` | タイルを書き出したコマンドそのもの（1行） |
+| `{name}_prompt.txt` | 生成プロンプト（STYLE＋SUBJECT） |
+| `{name}_01_raw.png` ／ `_03_master.png` | 元絵。手を入れたものが master |
+| `{name}_recipe.txt` | タイルを書き出したコマンドそのもの（1行） |
+
+スキンIDと対応させない。1枚の元絵が向き違い・足場違いで何スキンにもなり、代表を1つ選べないため。オブジェクトのフォルダ名はスキンIDの後半とそのまま一致する（→ [../gdd/terrain.md](../gdd/terrain.md) スキンの命名）。
 
 レシピを残すのは、生成パラメータ（切り出し位置・閾値・食い込み量）が元絵ごとに違い、実測して決めるため。残さないと作り直しのたびに測り直しになる。コミットメッセージに書くだけでは追えない。どちらの元絵を使ったかもレシピが示す（道は面方式に変えた際 `_03_master` から `_01_raw` に戻した）。
 
