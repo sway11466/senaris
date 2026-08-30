@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=4 / feature=95 / refactoring=12
+次回採番: bug=4 / feature=96 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -86,7 +86,7 @@
 - 背景：[naming_decision_senaris.md](sales/naming_decision_senaris.md) でタイトル名は「Senaris」に決定済みだが、確定前の手続きが残っている。すべてオーナー側の手作業。
 - 開発元（2026-08-12 決定）：屋号は `craftkobo`。法人ではなく個人事業主として出品する＝Steam の契約名義は本名、公開される表示名は屋号。開業届は提出済み。ドメイン `craftkobo.com` は空きを確認済みで取得予定＝開発元用（プロダクト用の `senaris.in` とは別。問い合わせ先メールは開発元側に置く＝ゲームが増えても窓口が1つで済む）。銀行口座は未開設で、Steam の受取名義と一致すること・海外送金を受け取れることを確認してから作る。米国向けの税務書類はマイナンバーを外国TINとして出すと源泉徴収が下がる。
 - Steam の名前まわり（2026-08-12 調査）：`steamcommunity.com/id/senaris` は他者が使用中だが、これは一般ユーザーがプロフィールページに付ける短縮URLで、ゲームとは無関係＝実害なし。ゲームのストアページは `store.steampowered.com/app/<AppID>/…` の形で、AppID は Valve が採番するため他者のユーザー名に影響されない。開発元ページ `store.steampowered.com/publisher/senaris` は未使用だが、これは早い者勝ちで押さえるものではなく登録後に申請して作るページ。実際に競合しうるのはゲーム名そのもので、Steamworks 登録時の審査に掛かる＝下記 (1) の商標クリアランスと同じ話。
-- サイト：仕様は [site.md](sales/site.md)、配信先の決定は [ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)。ドメイン取得・DNS・配信構成は済んでいる。残るのは中身で、ストアページ（feature-53）の文と絵が決まってから流用して作る。
+- サイト：仕様は [site.md](sales/site.md)、配信先の決定は [ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)。ドメイン取得・DNS・配信構成は済んでいる。中身を作るのは feature-95。
 - 対応：(1) 商標クリアランス＝第9類・第41類で US(USPTO)／EU(EUIPO)／日本(J-PlatPat) の各DBを正式確認（ドメインとは別作業。ドメインが空いていても商標が先に取られていることはある）。(2) SNSハンドル確保（X／Bluesky／Discord 等）。(3) Steam アプリ名予約（Steamworks 登録時・Steam Direct $100）。確定したら naming_decision_senaris.md のステータスを更新。
 - 該当：`doc/sales/naming_decision_senaris.md`・`doc/sales/site.md`・`site/`。着手の引き金＝配布が見えてきたとき（parking lot「Steam 配布の段取り」と連動）。サイトのランディングページはストアページ（feature-53 と同じ段）のあと。
 
@@ -131,15 +131,11 @@
 
 ### feature-52
 
-**仕様リファレンス（ゲーム内マニュアルとサイトの仕様ページ）**
-- ゴール：完全情報ゲームのルール（敵の行動ルールを含む）を、プレイヤーが読める場所がある。
-- 背景：本作は完全情報ゲーム＝戦闘に乱数が無く、敵の行動も特性ごとのルールで決まる（[ai.md](gdd/ai.md)）が、そのルールをプレイヤーが読める場所が無い。ゲーム内側の仕様は検討済みで [manual.md](gdd/manual.md) が正本。数値表を CSV から機械生成する当初案はゲーム内側では採らず、用語と仕組みの説明に絞った。
-- 対応：
-  1. ゲーム内：[manual.md](gdd/manual.md) に従って実装する（`manual.csv` 新設・構造の GDScript 定数・2ペインの画面・タイトルの「マニュアル」からの開き口・構造とCSVの突き合わせテスト）。
-  2. 本文を書く（ja・en）。敵AIの章は [ai.md](gdd/ai.md) の行動ルール表と用語をプレイヤー向けの言葉に書き直す。
-  3. サイト側は別ページ（`senaris.in/rules` 相当）。ランディングは1ページのまま、そこからリンクする。構造定数と `manual.csv` から生成できる想定。範囲と見せ方は未検討。
-- 該当：`godot/data/i18n/`（`manual.csv` 新規）・`godot/presentation/`（マニュアル画面・新規）・`doc/gdd/manual.md`・`doc/sales/site.md`。関連＝feature-93（盤中のヘルプ）。着手の引き金＝完全情報であることを見せる必要が出たとき（サイト側はサイトを作るとき）。
-
+**ゲーム内マニュアルの敵AIの章を読みやすくする**
+- ゴール：敵AIの章が、特性ごとの行動ルールを追いながら読める形になっている。
+- 背景：マニュアルの画面と本文（ja・en）は入った。敵AIの章だけ行動ルールが縦に長い表になり、目次もこの章だけ節の一覧へ1段潜る。実機で見て、見せ方を詰めたい。
+- 対応：未検討。
+- 該当：`godot/presentation/manual/`・`godot/data/i18n/manual.csv`。関連＝feature-93（盤中のヘルプ）。
 ### feature-53
 
 **Steam ストアページの作成**
@@ -170,6 +166,14 @@
 - 背景：マニュアル（[manual.md](gdd/manual.md)）は用語と仕組みの説明に徹していて、個々のユニットやスキルの一覧を持たない。個体の性能や見た目を確かめる場と、集める楽しみの受け皿が無い。
 - 対応：載せるのはユニット（味方・敵の両方）とスキル（陣形スキル・ユニットスキル）。プレイで遭遇したものが埋まる形式なので、解放状態をセーブに持つ。【未決】名前・開き口（タイトル画面か、マニュアルの中の章か）・枠が埋まる条件（見た／戦った／使った）・未解放の枠の見せ方。
 - 該当：`doc/gdd/` に新規1本・`godot/presentation/`・解放状態のセーブは [gamesystem.md](tech/gamesystem.md)。
+
+### feature-95
+
+**サイトの中身を作る**
+- ゴール：senaris.in を開くと、ゲームの紹介とルールが読める。
+- 背景：ドメイン取得・DNS・配信構成は済んでいる（[site.md](sales/site.md)・[ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)）。残るのは中身で、いま置くものが無い。
+- 対応：(1) ランディングは1ページ。ストアページ（feature-53）の文と絵が決まってから流用して作る。(2) ルールのページ（`senaris.in/rules` 相当）をランディングからリンクする。マニュアルの構造定数と `manual.csv` から生成できる想定で、範囲と見せ方は未検討。
+- 該当：`site/`・`doc/sales/site.md`・`godot/data/i18n/manual.csv`。着手の引き金＝配布が見えてきたとき。
 
 ## リファクタリング
 
