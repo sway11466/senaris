@@ -135,12 +135,12 @@
     { "col": 17, "row": 9, "skin": "plain_grave1" }
   ],
   "player": [
+    { "type": "knight", "col": 8, "row": 8 },
     { "type": "priest", "col": 6, "row": 8 },
-    { "type": "wagon", "col": 7, "row": 7 },
     { "type": "wizard", "col": 5, "row": 7 },
     { "type": "witch", "col": 7, "row": 8 },
     { "type": "fighter", "col": 6, "row": 7 },
-    { "type": "knight", "col": 8, "row": 8 }
+    { "type": "wagon", "col": 7, "row": 7 }
   ],
   "enemy": [
     { "order": 1, "name": "t2.st2.squad.1", "ai": "charge",

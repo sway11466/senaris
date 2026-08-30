@@ -1,9 +1,6 @@
 {
   "turn_limit": 30,
-  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 5, "survival_a": 3 },
   "name": "tutorial2-st4",
-  "backdrop": "sky_overcast",
-  "haze": 0.80,
   "cols": 24,
   "rows": 11,
   "margin": 1,
@@ -127,6 +124,7 @@
     { "col": 22, "row": 2, "skin": "plain_grave1_rubble_tombstone1" },
     { "col": 23, "row": 2, "skin": "plain_grave1" },
     { "col": 24, "row": 2, "skin": "plain_grave1" },
+    { "col": -1, "row": 3, "skin": "plain_grave1_prop_tomb1" },
     { "col": 0, "row": 3, "skin": "plain_grave1" },
     { "col": 1, "row": 3, "skin": "plain_grave1" },
     { "col": 2, "row": 3, "skin": "plain_grave1" },
@@ -152,6 +150,7 @@
     { "col": 22, "row": 3, "skin": "plain_grave1" },
     { "col": 23, "row": 3, "skin": "plain_grave1" },
     { "col": 24, "row": 3, "skin": "plain_grave1" },
+    { "col": -1, "row": 4, "skin": "plain_grave1_prop_tomb1" },
     { "col": 0, "row": 4, "skin": "plain_grave1" },
     { "col": 1, "row": 4, "skin": "plain_grave1" },
     { "col": 2, "row": 4, "skin": "plain_grave1" },
@@ -177,6 +176,7 @@
     { "col": 22, "row": 4, "skin": "plain_grave1_prop_tomb1" },
     { "col": 23, "row": 4, "skin": "plain_grave1" },
     { "col": 24, "row": 4, "skin": "plain_grave1" },
+    { "col": -1, "row": 5, "skin": "plain_grave1_prop_tomb1" },
     { "col": 0, "row": 5, "skin": "plain_grave1" },
     { "col": 1, "row": 5, "skin": "plain_grave1" },
     { "col": 2, "row": 5, "skin": "plain_grave1" },
@@ -202,6 +202,7 @@
     { "col": 22, "row": 5, "skin": "plain_grave1_prop_tomb1" },
     { "col": 23, "row": 5, "skin": "plain_grave1" },
     { "col": 24, "row": 5, "skin": "plain_grave1" },
+    { "col": -1, "row": 6, "skin": "plain_grave1_prop_tomb1" },
     { "col": 0, "row": 6, "skin": "plain_grave1" },
     { "col": 1, "row": 6, "skin": "plain_grave1" },
     { "col": 2, "row": 6, "skin": "plain_grave1" },
@@ -356,23 +357,23 @@
     { "col": 21, "row": 11, "skin": "plain_grave1" },
     { "col": 22, "row": 11, "skin": "plain_grave1" },
     { "col": 23, "row": 11, "skin": "plain_grave1" },
-    { "col": 24, "row": 11, "skin": "plain_grave1" },
-    { "col": -1, "row": 3, "skin": "plain_grave1_prop_tomb1" },
-    { "col": -1, "row": 4, "skin": "plain_grave1_prop_tomb1" },
-    { "col": -1, "row": 5, "skin": "plain_grave1_prop_tomb1" },
-    { "col": -1, "row": 6, "skin": "plain_grave1_prop_tomb1" }
+    { "col": 24, "row": 11, "skin": "plain_grave1" }
   ],
   "player": [
     { "type": "knight", "col": 3, "row": 4 },
     { "type": "knight", "col": 3, "row": 5 },
-    { "type": "fighter", "col": 2, "row": 4 },
-    { "type": "fighter", "col": 2, "row": 6 },
     { "type": "priest", "col": 0, "row": 6 },
     { "type": "cleric", "col": 0, "row": 4 },
     { "type": "wizard", "col": 1, "row": 4 },
     { "type": "wizard", "col": 1, "row": 5 },
     { "type": "witch", "col": 0, "row": 5 },
-    { "type": "wagon", "col": 2, "row": 5 }
+    { "type": "fighter", "col": 2, "row": 4 },
+    { "type": "fighter", "col": 2, "row": 6 },
+    { "type": "wagon", "col": 2, "row": 5,
+      "passengers": [
+        { "type": "barricade" },
+        { "type": "barricade" }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "t2.st4.squad.1", "ai": "charge", "stack": 1,
@@ -445,5 +446,8 @@
       { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st4.outro.4" }
     ]
   },
+  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 5, "survival_a": 3 },
+  "backdrop": "sky_overcast",
+  "haze": 0.8,
   "bgm": { "main": "graveyard" }
 }

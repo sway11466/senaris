@@ -376,26 +376,26 @@
     { "col": 12, "row": 25, "skin": "plain_grave1_prop_tomb1" }
   ],
   "player": [
+    { "type": "knight", "col": 3, "row": 22 },
+    { "type": "knight", "col": 4, "row": 22 },
+    { "type": "knight", "col": 2, "row": 22 },
     { "type": "bishop", "col": 6, "row": 24 },
-    { "type": "cleric", "col": 5, "row": 23 },
-    { "type": "cleric", "col": 5, "row": 22 },
     { "type": "priest", "col": 7, "row": 22 },
     { "type": "priest", "col": 7, "row": 23 },
+    { "type": "cleric", "col": 5, "row": 23 },
+    { "type": "cleric", "col": 5, "row": 22 },
+    { "type": "fighter", "col": 8, "row": 22 },
+    { "type": "fighter", "col": 9, "row": 22 },
+    { "type": "fighter", "col": 10, "row": 22 },
+    { "type": "wizard", "col": 8, "row": 23 },
+    { "type": "wizard", "col": 10, "row": 23 },
+    { "type": "witch", "col": 2, "row": 23 },
+    { "type": "witch", "col": 4, "row": 23 },
     { "type": "wagon", "col": 6, "row": 22,
       "passengers": [
         { "type": "barricade" },
         { "type": "barricade" }
-      ] },
-    { "type": "fighter", "col": 8, "row": 22 },
-    { "type": "fighter", "col": 9, "row": 22 },
-    { "type": "fighter", "col": 10, "row": 22 },
-    { "type": "knight", "col": 3, "row": 22 },
-    { "type": "knight", "col": 4, "row": 22 },
-    { "type": "knight", "col": 2, "row": 22 },
-    { "type": "witch", "col": 2, "row": 23 },
-    { "type": "witch", "col": 4, "row": 23 },
-    { "type": "wizard", "col": 8, "row": 23 },
-    { "type": "wizard", "col": 10, "row": 23 }
+      ] }
   ],
   "enemy": [
     { "order": 50, "name": "t2.st7.squad.1", "ai": "ambush", "sight": 10,

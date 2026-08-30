@@ -115,10 +115,10 @@
   ],
   "player": [
     { "type": "knight", "col": 6, "row": 7 },
-    { "type": "fighter", "col": 8, "row": 8 },
     { "type": "priest", "col": 6, "row": 8 },
     { "type": "wizard", "col": 5, "row": 7 },
-    { "type": "witch", "col": 7, "row": 8 }
+    { "type": "witch", "col": 7, "row": 8 },
+    { "type": "fighter", "col": 8, "row": 8 }
   ],
   "enemy": [
     { "order": 1, "name": "t2.st1.squad.1", "ai": "charge",
