@@ -34,8 +34,8 @@ var name: String           ## 開発用メモ（CSV の name 列）。画面表�
 ## 座標ハッシュで見た目をどこまで散らしてよいか（ORIENT_* のどれか）。絵の向きが持つ意味で決まる。
 var orientable: String
 ## 隣の同スキンと繋がる地形の繋がり方。空/false＝繋がらない、line＝線（柵）、area＝面（道）。
-## line/area なら向きの組み合わせ別タイル（_c000000〜_c111111）を引く。この2つで違うのは盤の縁の
-## 扱いだけで、タイルの命名も枚数も同じ（→ doc/art/terrain.md §3）。
+## 繋がり判定は共通で、絵の作りが違う＝area は向きの組み合わせ別タイル（_c000000〜_c111111）を
+## 引き、line は盤が箱組みで立てる。盤の縁の扱いも line/area で分かれる（→ doc/art/terrain.md §3）。
 var connect: String
 ## 繋がる相手の skin_id（空白区切り・自分自身は常に含む）。既定の空＝同じスキンとだけ繋がる。
 ## 片方向で書ける＝川に橋を書き、橋に川を書かなければ「川は橋へ帯を伸ばすが、橋は川へ伸びない」に
@@ -107,10 +107,10 @@ func connects_with(other: TerrainSkin) -> bool:
 func image_path() -> String:
 	return "res://assets/terrain/%s.png" % skin_id
 
-## 接続タイル（connect=true 用）のパス。柵や道は「どの辺で隣と繋がっているか」で絵が変わる。
+## 接続タイル（connect=area 用）のパス。道や石畳は「どの辺で隣と繋がっているか」で絵が変わる。
 ## connected は Hex.DIRECTIONS 順の6要素（true＝その方向の隣も同じスキン）で、そのまま 0/1 の
 ## 6桁になる＝assets/terrain/{skin_id}_c{6桁}.png。無ければ描画側が image_path() に落ちる。
-## 一式は tools/gen_connect_tiles.ps1 が原画1枚から生成する（→ doc/art/terrain.md）。
+## 一式は tools/gen_area_tiles.ps1 が原画1枚から生成する（→ doc/art/terrain.md §3.3）。
 func connected_image_path(connected: Array) -> String:
 	var bits := ""
 	for c in connected:
