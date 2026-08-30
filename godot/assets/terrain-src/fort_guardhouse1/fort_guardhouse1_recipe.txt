@@ -1,0 +1,9 @@
+powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_01_raw.jpg -Transparent white -Fuzz 8 -Fit
+powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1_team0 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team0_01_raw.jpg -Transparent white -Fuzz 8 -Fit
+powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1_team1 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team1_01_raw.jpg -Transparent white -Fuzz 8 -Fit
+
+-Fuzz は既定の10ではなく8。庭の敷石が明るい灰色（#A9AAA4前後）で、既定だと明るい目地を
+拾って穴が開きかねないため。3枚とも同じ値で抜く。
+
+陣営別の2枚はスキンではなく画像だけ（_team0/_team1）。盤が占領時に貼り替えるので
+terrain_skin.csv の行は road_fort_guardhouse1 の1行だけ。

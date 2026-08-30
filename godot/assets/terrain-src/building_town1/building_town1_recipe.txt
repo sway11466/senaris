@@ -1,0 +1,7 @@
+powershell -File tools\gen_terrain_tile.ps1 road_building_town1_v assets\terrain-src\building_town1\building_town1_01_raw.jpg -Transparent white -Fit
+powershell -File tools\gen_terrain_tile.ps1 road_building_town1_r assets\terrain-src\building_town1\building_town1_01_raw.jpg -Transparent white -Fit -Rotate 60
+powershell -File tools\gen_terrain_tile.ps1 road_building_town1_l assets\terrain-src\building_town1\building_town1_01_raw.jpg -Transparent white -Fit -Rotate 120
+
+3スキンとも元絵は1枚。フラットトップ六角形の軸が 0°/60°/120° の3本なので、縦の絵を回せば
+右（右上から左下）と左（左上から右下）になる。-Fit が回したあとに六角形いっぱいへ合わせ直すので、
+3枚とも盤の上では同じ縮尺になる（余白追加後のサイズが 909/892/888 と違うのはそのため）。

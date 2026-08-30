@@ -1,0 +1,23 @@
+盤の立ち絵 — map_scale は terrain_skin.csv の plain_grave1_prop_tomb1 の行から引く（0.61＝ヘックス幅の
+6割。通れるマスなのでマスを埋めない）。元絵は白背景の raw.jpg のまま＝白をツールで抜く（-Fuzz 10）。
+変種3枚を一度に渡す（1枚目→{name}.png、以降→_2、_3）。
+
+powershell -File tools\gen_terrain_tile.ps1 plain_grave1_prop_tomb1 assets\terrain-src\prop_tomb1\prop_tomb1_01_raw.jpg assets\terrain-src\prop_tomb1\prop_tomb1_02_raw.jpg assets\terrain-src\prop_tomb1\prop_tomb1_03_raw.jpg -Transparent white -Fuzz 10 -Object
+
+出力は 384四方のキャンバスに 幅125 × 高さ103／85／81（＝いちばん高い石がファイター 200px の
+0.52／0.43／0.41 体ぶん）。
+
+足元をマス中心より手前へ出す量は terrain_skin.csv の object_foot_z＝0.3（駒の 0.6 より小さい＝同じマスに
+駒が入れば駒が手前に立つ）。左右反転は同じ行の orientable＝flip_x（立ち絵が取れるのはこの値まで）。
+変種3枚×反転2通り＝6通りが座標から決まる。
+
+戦闘の手前の帯（_combat_front） — その側の半面（窓の半分）に渡る低い帯。白を抜いてトリムし、
+下に透過の余白を 140px 足して帯を持ち上げる（絵は窓の下端に合わせて置かれるので、位置は余白が持つ＝
+隊列の後ろ用 -RearDrop と同じ考え方）。1261x336 → 1261x476。画面では石の根元が窓の下端から40px上、
+石の頭が前列の脛に少し掛かる。絵は左半面用（右半面では演出が左右反転する）。帯は変種を持たない
+（演出側が {skin_id}_combat_front.png の1枚しか引かない）。
+
+magick assets\terrain-src\prop_tomb1\prop_tomb1_combat_front_01_raw.jpg -fuzz 10% -transparent white -trim +repage -background none -gravity south -splice 0x140 assets\terrain\plain_grave1_prop_tomb1_combat_front.png
+
+戦闘用の元絵は、盤用の画像を渡した同一セッションの続きで
+prop_tomb1_combat_front_prompt.txt を投げて出した。
