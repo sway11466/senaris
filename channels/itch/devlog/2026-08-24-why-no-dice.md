@@ -1,4 +1,4 @@
-公開:
+公開: https://craftkobo.itch.io/senaris/devlog/1644942/why-senaris-rolls-no-dice （2026-08-30）
 
 # devlog #1 — Why Senaris rolls no dice
 
