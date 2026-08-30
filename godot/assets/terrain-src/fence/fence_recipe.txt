@@ -1,18 +1,18 @@
 # --- 箱組みの帯4枚（placement=panel の絵。盤が柱と横木を直方体で組み、面に貼る）---
-# 元絵は横から見た1区画（柱2本＋横木2本・fence_side_03_raw.jpg・茶色の古材版）。
+# 元絵は横から見た1区画（柱2本＋横木2本・fence_01_raw.jpg）。
 # 実測: 柱の中心 x=175.5/847.5（左右対称）・柱幅104px・横木の帯 y=326-427 / 541-642。
 # この絵は横木が柱の手前を通るので、柱の帯は横木がかかっていない3区間（上・中・下）を
 # 縦に継いで作る。背景の白は明度82%で抜き、抜いた跡は木の実測色 #78654E で埋める
 # （帯は不透明で使うため）。上面・天面は前面の帯を明るく（118%）して輪郭の枠を足したもの。
-magick assets	errain-srcenceence_side_03_raw.jpg -crop 540x102+240+326 +repage "(" +clone -colorspace gray -threshold 82% -negate ")" -alpha off -compose CopyOpacity -composite -background '#78654E' -alpha remove -alpha off -colors 32 -dither None assets	errain\plain_fence_rail_front.png
-magick "(" assets	errain-srcenceence_side_03_raw.jpg -crop 104x69+124+253 +repage ")" "(" assets	errain-srcenceence_side_03_raw.jpg -crop 104x106+124+432 +repage ")" "(" assets	errain-srcenceence_side_03_raw.jpg -crop 104x116+124+647 +repage ")" -append "(" +clone -colorspace gray -threshold 82% -negate ")" -alpha off -compose CopyOpacity -composite -background '#78654E' -alpha remove -alpha off -colors 32 -dither None assets	errain\plain_fence_post_side.png
-magick assets	errain\plain_fence_rail_front.png -modulate 118,92 -bordercolor '#2A211A' -border 5 assets	errain\plain_fence_rail_top.png
-magick assets	errain\plain_fence_post_side.png -crop 104x104+0+80 +repage -modulate 118,92 -bordercolor '#2A211A' -border 6 assets	errain\plain_fence_post_top.png
+magick assets\terrain-src\fence\fence_01_raw.jpg -crop 540x102+240+326 +repage "(" +clone -colorspace gray -threshold 82% -negate ")" -alpha off -compose CopyOpacity -composite -background '#78654E' -alpha remove -alpha off -colors 32 -dither None assets\terrain\plain_fence_rail_front.png
+magick "(" assets\terrain-src\fence\fence_01_raw.jpg -crop 104x69+124+253 +repage ")" "(" assets\terrain-src\fence\fence_01_raw.jpg -crop 104x106+124+432 +repage ")" "(" assets\terrain-src\fence\fence_01_raw.jpg -crop 104x116+124+647 +repage ")" -append "(" +clone -colorspace gray -threshold 82% -negate ")" -alpha off -compose CopyOpacity -composite -background '#78654E' -alpha remove -alpha off -colors 32 -dither None assets\terrain\plain_fence_post_side.png
+magick assets\terrain\plain_fence_rail_front.png -modulate 118,92 -bordercolor '#2A211A' -border 5 assets\terrain\plain_fence_rail_top.png
+magick assets\terrain\plain_fence_post_side.png -crop 104x104+0+80 +repage -modulate 118,92 -bordercolor '#2A211A' -border 6 assets\terrain\plain_fence_post_top.png
 # 墓地の柵は同じ絵の複製（絵はスキンごとに自前で持つ → doc/art/terrain.md）
-copy assets	errain\plain_fence_rail_front.png assets	errain\plain_grave1_fence_rail_front.png
-copy assets	errain\plain_fence_rail_top.png assets	errain\plain_grave1_fence_rail_top.png
-copy assets	errain\plain_fence_post_side.png assets	errain\plain_grave1_fence_post_side.png
-copy assets	errain\plain_fence_post_top.png assets	errain\plain_grave1_fence_post_top.png
+copy assets\terrain\plain_fence_rail_front.png assets\terrain\plain_grave1_fence_rail_front.png
+copy assets\terrain\plain_fence_rail_top.png assets\terrain\plain_grave1_fence_rail_top.png
+copy assets\terrain\plain_fence_post_side.png assets\terrain\plain_grave1_fence_post_side.png
+copy assets\terrain\plain_fence_post_top.png assets\terrain\plain_grave1_fence_post_top.png
 
 # 柵の寸法（柱の高さ・横木の太さ）は絵ではなく盤の定数（board_terrain_renderer.gd の FENCE_*）。
 # 帯8枚の .import は mipmaps/generate=true（横木が細く、縮小で輪郭が点線に割れるため）。
