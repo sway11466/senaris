@@ -75,7 +75,7 @@ terrain.plain_building_town1_v.name,街区,Town Block
 terrain.plain_cave1.name,洞窟の床,Cave Floor
 terrain.plain_cave1_fence_throne1.name,玉座,Throne
 terrain.plain_cave1_prop_loot1.name,略奪品の山,Pile of Loot
-terrain.plain_cave1_rubble1.name,崩落跡,Cave-in
+terrain.plain_cave1_rubble_cave1.name,崩落跡,Cave-in
 terrain.plain_fence.name,柵,Fence
 terrain.plain_fort.name,拠点,Base
 terrain.plain_fort_guardhouse1.name,詰所,Guardhouse

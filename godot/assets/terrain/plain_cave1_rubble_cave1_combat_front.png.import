@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dnxj66uyd2eh3"
-path="res://.godot/imported/plain_cave1_rubble1.png-080629d899352877180f44b168a24a2a.ctex"
+uid="uid://k8if3waywsgq"
+path="res://.godot/imported/plain_cave1_rubble_cave1_combat_front.png-2693906090333576413be0d4f03b78ce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_cave1_rubble1.png"
-dest_files=["res://.godot/imported/plain_cave1_rubble1.png-080629d899352877180f44b168a24a2a.ctex"]
+source_file="res://assets/terrain/plain_cave1_rubble_cave1_combat_front.png"
+dest_files=["res://.godot/imported/plain_cave1_rubble_cave1_combat_front.png-2693906090333576413be0d4f03b78ce.ctex"]
 
 [params]
 

@@ -206,7 +206,7 @@
 			"object_foot_z": 0.35,
 			"orientable": "none",
 			"placement": "standee",
-			"skin_id": "plain_cave1_rubble1",
+			"skin_id": "plain_cave1_rubble_cave1",
 			"terrain_type": "rubble"
 		},
 		{
@@ -352,10 +352,10 @@
 			"grid": true,
 			"ignore_board_height": false,
 			"map_ground": "plain_grave1",
-			"map_scale": 0.92,
+			"map_scale": 0.6,
 			"memo": "墓地の拠点＝敵の湧き元。開いた入口が目印。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
 			"name": "納骨堂",
-			"object_foot_z": 0.2,
+			"object_foot_z": 0.5,
 			"orientable": "none",
 			"placement": "standee",
 			"skin_id": "plain_grave1_fort_crypt1",
