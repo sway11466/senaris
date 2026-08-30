@@ -36,7 +36,7 @@
 			"def": 1.0,
 			"id": "rampart",
 			"layer": "footing",
-			"memo": "飛行ユニットと斥候が移動可能",
+			"memo": "飛行ユニットと斥候が移動可能、兵器（stationary）は設置可能",
 			"name": "城壁",
 			"sight_cost": "x"
 		},
@@ -136,7 +136,7 @@
 			"def": 0.6,
 			"id": "rubble",
 			"layer": "object",
-			"memo": "飛行ユニットと斥候が移動可能",
+			"memo": "飛行ユニットと斥候が移動可能、兵器（stationary）は設置可能",
 			"name": "瓦礫",
 			"sight_cost": 3
 		},
