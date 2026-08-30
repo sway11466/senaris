@@ -180,20 +180,21 @@ t2.st4.intro.9,なら正面で受ける。俺と戦士が壁になる。術者�
 t2.st4.intro.4,前衛と術師で道を作って、馬車で聖職者を通しましょう。,"The vanguard and casters clear a path, and we run the clergy through by wagon."
 t2.st4.intro.7,湧き口は瓦礫に挟まれた二ヘックスだけです。そこを塞いでしまえば、湧いた屍も外へは出られません。,"They can only emerge from two hexes between the rubble. Block those and whatever rises cannot get out."
 t2.st4.intro.11,待って、その壁が効かないのも居るわ。あの浮いてるの……ゴーストじゃない、レイスよ。,"Wait — there's one that wall won't stop. That thing drifting out there... not a ghost. A wraith."
-t2.st4.intro.12,呪って回るゴーストと違って、正面から削ってきます。実体がないのは同じです——剣も槍も届かないまま、こちらだけが減る。,"Unlike the ghost that flits about cursing, this one comes to cut you down. And it is just as bodiless — sword and spear pass through while only our side bleeds."
+t2.st4.intro.12,呪って回るゴーストと違って、前衛を避けて脆いところへ回り込んできます。実体がないのは同じです——剣も槍も届かないまま、こちらだけが減る。,"Unlike the ghost that flits about cursing, this one slips past the vanguard and circles to whatever is soft. And it is just as bodiless — sword and spear pass through while only our side bleeds."
 t2.st4.intro.13,おまけに浮いてるから足場が要らないの。瓦礫も柵も、そのまま越えてくるわ。遠回りするのは私たちだけよ。,"And it floats, so it needs no footing. Rubble, fences — it comes straight over them. We're the only ones taking the long way around."
 t2.st4.outro.1,墓地を鎮めました。これで、ここから新たな屍は出てこないでしょう。,"The graves are silenced. No new dead will rise from here now."
 t2.st4.outro.2,元さえ断てば、こちらの領分だ。よく通した。,"Cut off the source and the field is ours. Well run."
 t2.st4.outro.3,でも、今回は雑魚とはいえないグールがいたわ。きっと、この先次はもっと厄介よ。,"But this time there were ghouls that were no mere fodder. Whatever's ahead will surely be nastier."
 t2.st4.outro.4,なら聖職の祈りを重ねましょう。聖職者を五人（いつたり）集めて加護を祈りましょう。,"Then let us layer the clergy's prayers. Gather five of the faithful and pray for a blessing."
 t2.st4.squad.1,前衛,Front Line
+t2.st4.squad.2,レイス隊,Wraiths
 t2.st5.intro.1,聖職が五人、揃いました。みなさん、手を貸してくれます。,"Five of the clergy have gathered. Everyone lends a hand."
 t2.st5.intro.2,助かる。だが見ろ、さっき厄介だったグールが群れている。まともに殴り合えば前衛が潰れる。,"A great help. But look — those troublesome ghouls are swarming. Trade blows head-on and the vanguard crumbles."
 t2.st5.intro.3,五人で身を寄せ、聖なる加護を祈ります。神の加護が、皆様を導いてくれるでしょう。,"The five of us draw close and pray the Sacred Aegis. The divine blessing will guide you all."
 t2.st5.intro.4,そうね。術師の魔法と違って、聖職の祈りは私たち自身を強くしてくれる。,"Right. Unlike a mage's spells, the clergy's prayers strengthen us ourselves."
 t2.st5.intro.7,加護は盤の端にいる者にまで届きます。ただし、続くのは次に私たちの番が巡ってくるまで。,"The blessing reaches even those at the far edge of the field — but it lasts only until our turn comes around again."
 t2.st5.intro.5,ただ、祈りを捧げている聖職は脆い。バリケードをうまく使って守らないといけない。,"But clergy at prayer are fragile. We must use the barricades well to protect them."
-t2.st5.intro.8,厄介なのはレイスだけじゃないわ。群れの端の連中も同じ動きをするの。まっすぐ来ないで、弱ったところ脆いところを選んで回り込んでくる。飛べないぶん遅いけど、目を離せば同じよ。,"And it isn't only the wraiths. The ones at the edge of the horde move the same way — they don't come straight at us, they pick out the weak and the frail and circle around. Slower without wings, but look away and it comes to the same thing."
+t2.st5.intro.8,またレイスが居るわ。あれはまっすぐ来ないの。前衛が噛み合っている隙に、弱ったところ脆いところを選んで回り込んでくる。祈っている聖職なんて、格好の獲物よ。,"The wraiths are here again. They never come straight at us — while the front lines are locked together, they pick out the weak and the frail and circle around. Clergy at prayer are perfect prey."
 t2.st5.intro.9,後方に礼拝堂があります。深手を負った方は中へ入って休んでください。次に私たちの番が巡る頃には、兵は満員まで戻ります。,"There is a chapel to our rear. Anyone badly hurt, go inside and rest — by the time our turn comes around again, your ranks will be back to full."
 t2.st5.intro.10,積み上げた練度は、休んでも落ちません。ただ中に居る間は盤から離れます。出るときは一歩ぶん外へ出るだけで、その手番は終わりです。,"Resting costs none of the experience you have earned. But while inside you are off the field, and stepping back out is a single step that ends your turn."
 t2.st5.intro.6,聖職と術師を中に、バリケードと前衛で壁になるぞ。,"Clergy and casters inside; barricades and vanguard form the wall."
@@ -207,6 +208,8 @@ t2.st5.squad.3,前線下段,Lower Front
 t2.st5.squad.4,中衛上段,Upper Middle
 t2.st5.squad.5,中衛下段,Lower Middle
 t2.st5.squad.6,後衛,Rear Guard
+t2.st5.squad.7,前線レイス隊,Front Wraiths
+t2.st5.squad.8,後衛レイス隊,Rear Wraiths
 t2.st6.intro.1,あの首無しの鎧、恐ろしい邪悪な気を放っているわ。,"That headless armor gives off a dreadful, wicked aura."
 t2.st6.intro.2,やつはデュラハン、力も守りも素早さも、すべてが精鋭の戦士と遜色がない。まともに打ち合ってはいけない。,"That's a dullahan — its strength, defense, and speed all rival an elite warrior's. Don't trade blows with it head-on."
 t2.st6.intro.5,あの首無し、まっすぐは来ないわ。弱ったところ、脆いところを選んで回り込んでくる。,"That headless one won't come straight at us. It circles around to whatever is wounded, whatever is frail."

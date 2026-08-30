@@ -323,7 +323,7 @@
         { "skin": "ghoul", "col": 13, "row": 4 },
         { "skin": "skeleton_archer", "col": 14, "row": 5 }
       ] },
-    { "order": 3, "name": "t2.st5.squad.3", "ai": "predator",
+    { "order": 3, "name": "t2.st5.squad.3", "ai": "charge",
       "units": [
         { "skin": "zombie", "col": 11, "row": 8 },
         { "skin": "ghoul", "col": 12, "row": 8 },
@@ -332,9 +332,7 @@
     { "order": 4, "name": "t2.st5.squad.4", "ai": "charge",
       "units": [
         { "skin": "ghoul", "col": 20, "row": 2 },
-        { "skin": "wraith", "col": 17, "row": 1 },
         { "skin": "ghoul", "col": 21, "row": 2 },
-        { "skin": "wraith", "col": 18, "row": 1 },
         { "skin": "ghoul", "col": 14, "row": 2 },
         { "skin": "ghoul", "col": 13, "row": 1 }
       ] },
@@ -347,12 +345,20 @@
         { "skin": "ghoul", "col": 19, "row": 5 },
         { "skin": "ghoul", "col": 16, "row": 7 }
       ] },
-    { "order": 6, "name": "t2.st5.squad.6", "ai": "predator",
+    { "order": 6, "name": "t2.st5.squad.6", "ai": "charge",
       "units": [
         { "skin": "ghoul", "col": 25, "row": 4 },
-        { "skin": "wraith", "col": 24, "row": 6 },
-        { "skin": "wraith", "col": 24, "row": 7 },
         { "skin": "ghoul", "col": 25, "row": 3 }
+      ] },
+    { "order": 7, "name": "t2.st5.squad.7", "ai": "predator",
+      "units": [
+        { "skin": "wraith", "col": 17, "row": 1 },
+        { "skin": "wraith", "col": 18, "row": 1 }
+      ] },
+    { "order": 8, "name": "t2.st5.squad.8", "ai": "predator",
+      "units": [
+        { "skin": "wraith", "col": 24, "row": 6 },
+        { "skin": "wraith", "col": 24, "row": 7 }
       ] }
   ],
   "bases": [

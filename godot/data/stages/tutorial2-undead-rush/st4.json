@@ -387,10 +387,13 @@
         { "skin": "ghoul", "col": 17, "row": 8 },
         { "skin": "ghoul", "col": 10, "row": 2 },
         { "skin": "ghost", "col": 20, "row": 1 },
-        { "skin": "wraith", "col": 22, "row": 9 },
-        { "skin": "wraith", "col": 18, "row": 4 },
         { "skin": "ghost", "col": 12, "row": 7 },
         { "skin": "ghost", "col": 19, "row": 6 }
+      ] },
+    { "order": 2, "name": "t2.st4.squad.2", "ai": "predator", "stack": 1,
+      "units": [
+        { "skin": "wraith", "col": 22, "row": 9 },
+        { "skin": "wraith", "col": 18, "row": 4 }
       ] }
   ],
   "bases": [

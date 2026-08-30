@@ -129,13 +129,6 @@
 - 対応：(1) 項目を足す＝音量（マスター／BGM／SE。AudioServer のバスへ反映）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。値は `SettingsStore` に足す。(2) HUD のシステムメニューから開く＝`settings_requested` を出し、`main` が盤の上に重ねる。あわせて、盤の中で言語を変えたときに追従しない画面（ターンバナー・戦果票など、盤に入ってから作って残る物）を洗い出し、`refresh_labels()` を持たせる（[i18n.md](tech/i18n.md) 言語の切り替え）。
 - 該当：`godot/presentation/settings/settings_screen.gd`・`godot/infrastructure/save/settings_store.gd`・`godot/presentation/ui/hud.gd`・`godot/presentation/main/main.gd`・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`・`doc/gdd/settings.md`。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）。着手の引き金＝敵ターンが長く感じ始めたとき、または音量を触りたくなったとき。
 
-### feature-52
-
-**ゲーム内マニュアルの敵AIの章を読みやすくする**
-- ゴール：敵AIの章が、特性ごとの行動ルールを追いながら読める形になっている。
-- 背景：マニュアルの画面と本文（ja・en）は入った。敵AIの章だけ行動ルールが縦に長い表になり、目次もこの章だけ節の一覧へ1段潜る。実機で見て、見せ方を詰めたい。
-- 対応：未検討。
-- 該当：`godot/presentation/manual/`・`godot/data/i18n/manual.csv`。関連＝feature-93（盤中のヘルプ）。
 ### feature-53
 
 **Steam ストアページの作成**
@@ -155,9 +148,9 @@
 
 **盤中のヘルプ（その場で用語を引く）**
 - ゴール：盤の中で、いま選んでいる物の用語（敵の特性名・能力値の項目名など）の意味がその場で読める。
-- 背景：マニュアル（feature-52）はタイトル専用の通読画面と決め、盤中からは開かない。盤で「弱者狙いって何」「貫通率はどこに効く」と詰まったとき、その場で引く手段が無い。
+- 背景：マニュアル（[manual.md](gdd/manual.md)）はタイトル専用の通読画面と決め、盤中からは開かない。盤で「弱者狙いって何」「貫通率はどこに効く」と詰まったとき、その場で引く手段が無い。
 - 対応：形は未検討。情報パネルの用語から短い説明を出す類を想定。説明文をマニュアルの本文と共有するかもここで決める。
-- 該当：`godot/presentation/ui/`（情報パネル）・feature-52（マニュアル本文）。着手の引き金＝マニュアルの本文が書けたとき、または実プレイで用語に詰まったとき。
+- 該当：`godot/presentation/ui/`（情報パネル）・`godot/data/i18n/manual.csv`（マニュアル本文）。着手の引き金＝実プレイで用語に詰まったとき。
 
 ### feature-94
 
