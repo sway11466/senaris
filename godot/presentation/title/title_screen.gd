@@ -17,6 +17,7 @@ signal door_opening        # 扉が開き始めた。main が BGM のこもり�
 signal menu_shown          # メニューを出した。main が menu 曲へクロスフェードする合図
 signal continue_requested  # 冒険の続き＝中断セーブから盤へ直行
 signal settings_requested  # 設定＝タイトルに重ねて開く
+signal manual_requested    # マニュアル＝タイトルに重ねて開く
 signal new_game_requested  # 新しい冒険譚＝セレクトへ
 signal quit_requested      # おわる
 
@@ -223,7 +224,7 @@ func _build_menu() -> Control:
 	box.add_child(_menu_button(tr("ui.title.continue"), continue_requested if _has_save else null))
 	box.add_child(_menu_button(tr("ui.title.new_adventure"), new_game_requested))
 	box.add_child(_menu_button(tr("ui.title.settings"), settings_requested))
-	box.add_child(_menu_button(tr("ui.title.manual"), null))    # 同上（feature-52）
+	box.add_child(_menu_button(tr("ui.title.manual"), manual_requested))
 	box.add_child(_menu_button(tr("ui.title.credits"), null))   # 同上（feature-46）
 	box.add_child(_menu_button(tr("ui.title.quit"), quit_requested))
 	layer.add_child(_stamp())

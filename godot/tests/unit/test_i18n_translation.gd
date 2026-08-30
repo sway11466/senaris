@@ -24,6 +24,10 @@ const SOURCES := [
 		"ja": "res://data/i18n/names.ja.translation",
 		"en": "res://data/i18n/names.en.translation",
 	} },
+	{ "csv": "res://data/i18n/manual.csv", "tr": {
+		"ja": "res://data/i18n/manual.ja.translation",
+		"en": "res://data/i18n/manual.en.translation",
+	} },
 ]
 
 ## CSV を [{ "keys": ..., "ja": ..., "en": ... }, ...] に読む。

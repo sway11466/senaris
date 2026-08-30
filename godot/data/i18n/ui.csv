@@ -8,6 +8,9 @@ ui.title.quit,おわる,Quit
 ui.settings.title,設定,Settings
 ui.settings.language,言語,Language
 ui.settings.back,← メニュー,← Menu
+ui.manual.title,マニュアル,Manual
+ui.manual.back,← メニュー,← Menu
+ui.manual.chapters,← 章の一覧,← All Chapters
 ui.hud.end_turn,ターン終了,End Turn
 ui.hud.menu,⚙ メニュー,⚙ Menu
 ui.hud.restart,リスタート,Restart Battle

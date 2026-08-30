@@ -37,6 +37,7 @@ var _turn_snapshot := {}
 var _select: SelectScreen = null
 var _title: TitleScreen = null  # 起動時のタイトル画面（酒場の扉）。閉じたらセレクトを開く
 var _settings: SettingsScreen = null  # 設定画面（タイトルに重ねて開く）。仕様 → doc/gdd/settings.md
+var _manual: ManualScreen = null  # マニュアル（タイトルに重ねて開く）。仕様 → doc/gdd/manual.md
 var _settings_store: SettingsStore = null  # 設定値（user://settings.json）。触るのはここだけ
 ## タイトルを抜けるまで true。下敷きステージ（セレクトの背景）の曲がタイトルのざわめきを
 ## 上書きしないためのガード。下敷きの曲は盤が描き切ってから鳴る＝タイトルより後に割り込む。
@@ -104,6 +105,7 @@ func _ready() -> void:
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
 	_install_select()  # 生成と配線だけ。開くのはタイトルで扉をくぐってから
 	_install_settings()  # 設定画面。タイトルから開くので、タイトルより前に用意
+	_install_manual()  # マニュアル。同上
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
@@ -809,6 +811,14 @@ func _install_settings() -> void:
 	_settings.closed.connect(_on_settings_closed)
 	add_child(_settings)
 
+## マニュアル（仕様リファレンス）。開き口はタイトルのメニューだけで、盤の中からは開かない。
+## 読むだけで何も変えないので、設定と違い main は値を受け取らない。
+func _install_manual() -> void:
+	_manual = ManualScreen.new()
+	_manual.name = "ManualScreen"
+	_manual.closed.connect(_on_manual_closed)
+	add_child(_manual)
+
 func _install_title() -> void:
 	_title = TitleScreen.new()
 	_title.name = "TitleScreen"
@@ -818,6 +828,7 @@ func _install_title() -> void:
 	_title.continue_requested.connect(_on_title_continue)
 	_title.new_game_requested.connect(_on_title_new_game)
 	_title.settings_requested.connect(_on_title_settings)
+	_title.manual_requested.connect(_on_title_manual)
 	_title.quit_requested.connect(_on_title_quit)
 	if _bgm != null:
 		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
@@ -864,6 +875,14 @@ func _on_title_settings() -> void:
 func _on_settings_closed() -> void:
 	_title.show_stamp(true)
 
+## マニュアル＝タイトルに重ねて開く。畳み方も刻印の扱いも設定と同じ（戻るが同じ左下の隅に出る）。
+func _on_title_manual() -> void:
+	_title.show_stamp(false)
+	_manual.open()
+
+func _on_manual_closed() -> void:
+	_title.show_stamp(true)
+
 ## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
 func _on_settings_locale_chosen(locale: String) -> void:
 	TranslationServer.set_locale(locale)
@@ -875,6 +894,7 @@ func _on_settings_locale_chosen(locale: String) -> void:
 ## 一覧の根拠 → doc/tech/i18n.md 言語の切り替え。生き続ける画面を足したらここへも足す。
 func _refresh_labels() -> void:
 	_settings.refresh_labels()
+	_manual.refresh_labels()
 	_title.refresh_labels()
 	_hud.refresh_labels()
 	_select.refresh_labels()
