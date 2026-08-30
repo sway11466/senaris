@@ -11,13 +11,13 @@ manual.unit.main.atk_air.desc,飛行の敵を攻撃するときに使う攻撃�
 manual.unit.main.defense.term,防御,Defense
 manual.unit.main.defense.desc,攻撃を受けたときの固さ。物理と魔法で分かれておらず、相手が地上か飛行かでも分かれない単一の値になる。,"How tough the unit is when attacked. It is a single value — not split into physical and magical, and not split by whether the attacker is on the ground or in the air."
 manual.unit.main.pierce.term,防御貫通,Pierce
-manual.unit.main.pierce.desc,相手の防御を無視する割合。魔法兵は50%＝相手の防御を半分にして計算する。相手が硬いほど効きが伸びるので、貫通を持つ駒は重装の相手にぶつける。撃った側の性質なので、反撃にはその相手の貫通が効く。,"The share of the target's defense that is ignored. Mages have 50%, halving the target's defense. The harder the target, the more it pays off, so send piercing units against heavy armor. It belongs to whoever is attacking, so a counterattack applies the counterattacker's own pierce."
+manual.unit.main.pierce.desc,相手の防御を無視する割合。割合のぶんだけ相手の防御を減らして計算する。相手が硬いほど効きが伸びるので、貫通を持つ駒は重装の相手にぶつける。撃った側の性質なので、反撃にはその相手の貫通が効く。,"The share of the target's defense that is ignored. The target's defense is reduced by that share before damage is worked out. The harder the target, the more it pays off, so send piercing units against heavy armor. It belongs to whoever is attacking, so a counterattack applies the counterattacker's own pierce."
 manual.unit.main.range.term,射程,Range
 manual.unit.main.range.desc,攻撃できる距離の下限と上限。1なら近接だけ。1-2の弓は隣接した相手も撃てる。3-5の砲兵は下限が3なので、懐に入られると撃てず反撃もできない。,"The lowest and highest distance the unit can attack at. Range 1 means melee only. An archer at 1-2 can still shoot an adjacent enemy. Artillery at 3-5 has a floor of 3, so an enemy in its face cannot be hit — or countered."
 manual.unit.main.move.term,移動,Move
 manual.unit.main.move.desc,1ターンに使える移動力。地形ごとの進入コストを足していき、この値を超えない範囲まで動ける。,The movement allowance for one turn. Entry costs for each terrain are added up along the path and the unit can go as far as this value allows.
 manual.unit.main.move_type.term,移動種別,Move Type
-manual.unit.main.move_type.desc,地形ごとの進入コストを決める表。同じ移動力でも、種別が違えば通れる地形も要る手数も変わる。,The table of entry costs per terrain. Two units with the same Move can still differ in what they can cross and how many steps it takes.
+manual.unit.main.move_type.desc,地形ごとの進入コストを決める表。同じ移動力でも、種別が違えば通れる地形も進める距離も変わる。,The table of entry costs per terrain. Two units with the same Move can still differ in what they can cross and how far they can get.
 manual.unit.main.move_after_attack.term,攻撃後再移動,Move After Attack
 manual.unit.main.move_after_attack.desc,攻撃したあと、残っている移動力でもう一度動けるかどうか。移動力は攻撃前と合わせて1ターンぶんを分け合う。撃ってから下がる動きができる。,"Whether the unit can move again after attacking, using whatever Move it has left. The allowance is shared across the whole turn, before and after. It allows hit-and-run."
 manual.unit.main.can_capture.term,占領可,Can Capture
@@ -44,7 +44,7 @@ manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増�
 manual.combat.main.surround.term,包囲,Encircled
 manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighbouring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so edges and corners are hard to encircle."
 manual.combat.main.support.term,支援,Support
-manual.combat.main.support.desc,隣接する味方による底上げ。攻めるときは標的に隣接している味方が、守るときは攻撃者に隣接している味方が足してくれる。支援する側の兵数に比例するので、削られた味方の支援は薄い。近接攻撃のときだけ乗る。,"A boost from adjacent allies. When attacking, allies adjacent to the target contribute; when defending, allies adjacent to the attacker do. The amount scales with the supporter's strength, so a worn-down ally gives little. It applies to melee only."
+manual.combat.main.support.desc,隣接する味方による底上げ。攻守どちらも、相手側の駒に隣接している味方が足してくれる。攻めるときは標的に隣接している味方が、守るときは攻撃者に隣接している味方が支援に入る。相手を囲んだ駒が、そのまま支援も兼ねる形になる。支援する側の兵数に比例するので、削られた味方の支援は薄い。近接攻撃のときだけ乗る。,"A boost from adjacent allies. Either way, the allies who contribute are the ones standing next to the unit on the other side: attacking, that means allies adjacent to the target; defending, allies adjacent to the attacker. A unit that surrounds an enemy doubles as a supporter. The amount scales with the supporter's strength, so a worn-down ally gives little. It applies to melee only."
 manual.combat.main.terrain.term,地形,Terrain
 manual.combat.main.terrain.desc,立っているマスの地形が、攻撃と防御にそれぞれ別の係数で掛かる。攻める側は自分の足元の攻撃係数、守る側は自分の足元の防御係数を使う。,"The terrain a unit stands on applies its own factors, one for attack and one for defense. The attacker uses the attack factor of the hex under itself, and the defender uses the defense factor of the hex under itself."
 manual.combat.main.pierce.term,防御貫通,Pierce
@@ -84,7 +84,7 @@ manual.move.main.tr2,降りた駒がまだ行動していなければ、降り�
 manual.move.main.tr3,輸送が倒されると、乗っている駒も一緒に失われる。運んでいる中身は降りる前に潰されうる、ということでもある。,"If the transport is destroyed its passengers go down with it. What it carries can be wiped out before it ever gets to disembark."
 manual.skill.title,スキル,Skills
 manual.skill.main.title,スキル,Skills
-manual.skill.main.intro,スキルは2種類ある。複数の駒の配置が揃うと撃てる陣形スキルと、1体で撃てるユニットスキル。仕組みは同じで、必要な人数と効果の広さが違うだけになる。,"There are two kinds of skill: formation skills, which need several units arranged a particular way, and unit skills, which one unit casts alone. They run on the same machinery — only the number of participants and the reach of the effect differ."
+manual.skill.main.intro,スキルは2種類ある。複数の駒の配置が揃うと撃てる陣形スキルと、1体で撃てるユニットスキル。,"There are two kinds of skill: formation skills, which need several units arranged a particular way, and unit skills, which one unit casts alone."
 manual.skill.main.recipe,レシピ,Recipes
 manual.skill.main.recipe1,どのスキルが撃てるかはレシピが決める。レシピは必要な駒とその並びを指定していて、盤の上でそれが揃うと撃てるようになる。照合は見た目で行うので、性能が同じでも見た目が違えば別物として扱う。,"A recipe decides what can be cast. It names the units required and how they must be arranged, and once that shape exists on the board the skill becomes available. Matching goes by appearance, so two units with identical stats but different looks are not interchangeable."
 manual.skill.main.recipe2,条件が揃っても自動では出ない。撃つかどうかは常にこちらが選ぶ。,Meeting the conditions never fires a skill by itself. Casting is always your call.
@@ -155,7 +155,7 @@ manual.ai.terms.blocker.term,経路上の敵,Blocker
 manual.ai.terms.blocker.desc,行き先への道を塞いでいる敵。撃てる敵をまとめてどけたと仮定して、移動距離が縮むか、通れなかった迂回の道が通れるようになるかで判定する。1体ずつ試さないのは、通路を2体で塞がれているとどちらか片方をどけても道が開かないため。,"An enemy standing in the way. It is judged by imagining every shootable enemy removed at once and asking whether the Move Distance shortens or a previously impossible detour becomes possible. They are not tested one at a time, because a corridor held by two units does not open when only one is taken away."
 manual.ai.terms.lethal.term,仕留められる敵,Lethal Target
 manual.ai.terms.lethal.desc,その攻撃で兵数が0になる敵。いまの位置から撃った結果で数えるので、包囲・支援・地形が乗ったあとの損害で決まる＝味方の並びが変われば入れ替わる。攻撃は同時解決なので、倒しても反撃は受ける。,"An enemy that the attack would reduce to zero strength. It is counted from shooting where the unit currently stands, so Encircled, Support and Terrain are already in the figure — change your formation and the answer changes. Combat is simultaneous, so the kill still draws a counterattack."
-manual.ai.terms.gain.term,戦果,Gain
+manual.ai.terms.gain.term,戦果,Damage
 manual.ai.terms.gain.desc,その攻撃で相手から減らせる兵数。兵数の上限はどの駒も同じなので割合では測らない。,How many soldiers the attack would take off the target. Maximum strength is the same for every unit so it is counted outright rather than as a share.
 manual.ai.terms.encircle_ok.term,包囲可能,Can Encircle
 manual.ai.terms.encircle_ok.desc,対象にいま隣接している味方と、まだ動いていない味方でこのターン隣へ寄れる駒を合わせて、包囲が成立する数に届くこと。行動する駒自身も数に入る。すでに囲まれている相手は必ず当てはまる。,"That the allies already adjacent to the target, plus those yet to act that could reach a neighbouring hex this turn, add up to the number needed for Encircled. The acting unit counts itself. Anything already surrounded always qualifies."
@@ -355,13 +355,13 @@ manual.ai.standoff.rule1.act,盤上距離が最小の拠点へ移動して占領
 manual.ai.standoff.rule2.cond,スキルを持っていて、スキル射程内に stack 条件を満たす対象がいる,It has a skill and a target meeting the stack condition is in range
 manual.ai.standoff.rule2.act,盤上距離が最小の対象にスキルを掛ける,Cast on the nearest such target by Hex Distance
 manual.ai.standoff.rule3.cond,攻撃射程内に仕留められる空敵がいる,A lethal air target is within attack range
-manual.ai.standoff.rule3.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Gain"
+manual.ai.standoff.rule3.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Damage"
 manual.ai.standoff.rule4.cond,攻撃射程内に空敵がいる,An air target is within attack range
-manual.ai.standoff.rule4.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Gain"
+manual.ai.standoff.rule4.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Damage"
 manual.ai.standoff.rule5.cond,攻撃射程内に仕留められる敵がいる,A lethal target is within attack range
-manual.ai.standoff.rule5.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Gain"
+manual.ai.standoff.rule5.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Damage"
 manual.ai.standoff.rule6.cond,攻撃射程内に敵がいる,An enemy is within attack range
-manual.ai.standoff.rule6.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Gain"
+manual.ai.standoff.rule6.act,反撃されない敵を優先し、その中で戦果が最大の敵を攻撃する,"Prefer those that cannot counter, then attack whichever yields the greatest Damage"
 manual.ai.standoff.rule7.cond,移動距離が測れる敵がいる,Some enemy has a measurable Move Distance
 manual.ai.standoff.rule7.act,移動距離が最小の敵へ間合取りする,Take Spacing against the nearest by Move Distance
 manual.ai.standoff.rule8.cond,地形距離が測れる敵がいる,Some enemy has a measurable Terrain Distance
