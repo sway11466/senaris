@@ -1,6 +1,5 @@
 {
   "turn_limit": 40,
-  "rank": { "turn_s": 20, "turn_a": 30, "survival_s": 4, "survival_a": 2 },
   "name": "tutorial-st7",
   "cols": 30,
   "rows": 11,
@@ -200,7 +199,10 @@
         { "skin": "hobgoblin", "col": 23, "row": 4 }
       ] },
     { "order": 4, "name": "t1.st7.squad.4", "ai": "ambush", "sight": 0,
-      "units": [ { "skin": "goblin_lord", "col": 25, "row": 5 } ] }
+      "units": [ { "skin": "goblin_lord", "actor": "goblin_load", "col": 25, "row": 5 } ] }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "actor": "goblin_load" }
   ],
   "dialogue": {
     "intro": [
@@ -219,6 +221,7 @@
       { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st7.outro.5" }
     ]
   },
+  "rank": { "turn_s": 20, "turn_a": 30, "survival_s": 4, "survival_a": 2 },
   "haze": 0.3,
   "backdrop": "cave_wall",
   "bgm": { "main": "dungeon" }

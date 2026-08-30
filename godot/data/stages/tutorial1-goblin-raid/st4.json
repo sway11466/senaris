@@ -47,28 +47,28 @@
     { "col": 8, "row": 3, "skin": "rampart_granite1" },
     { "col": 9, "row": 3, "skin": "rampart_granite1" },
     { "col": 10, "row": 3, "skin": "rampart_granite1" },
-    { "col": 9, "row": 6, "skin": "road_fort_town1" }
+    { "col": 9, "row": 6, "skin": "plain_fort_town1" }
   ],
   "player": [
-    { "type": "fighter", "col": 2, "row": 5 },
-    { "type": "novice", "col": 2, "row": 4 },
+    { "type": "fighter", "col": 3, "row": 6 },
     { "type": "novice", "col": 2, "row": 6 },
-    { "type": "cleric", "col": 1, "row": 5 }
+    { "type": "novice", "col": 2, "row": 7 },
+    { "type": "cleric", "col": 1, "row": 6 }
   ],
   "enemy": [
     { "order": 2, "name": "t1.st4.squad.1", "ai": "charge",
       "units": [
         { "skin": "hobgoblin", "col": 21, "row": 4 },
-        { "skin": "goblin", "col": 19, "row": 7 },
+        { "skin": "goblin", "col": 19, "row": 8 },
         { "skin": "goblin", "col": 19, "row": 3 },
         { "skin": "hobgoblin", "col": 21, "row": 7 },
         { "skin": "hobgoblin", "col": 20, "row": 6 }
       ] },
-    { "order": 1, "name": "t1.st4.squad.2", "ai": "ambush",
+    { "order": 1, "name": "t1.st4.squad.2", "ai": "raid",
       "units": [
-        { "skin": "hobgoblin", "col": 17, "row": 5 },
-        { "skin": "goblin", "col": 15, "row": 4 },
-        { "skin": "goblin", "col": 15, "row": 6 }
+        { "skin": "hobgoblin", "col": 16, "row": 5 },
+        { "skin": "goblin", "col": 14, "row": 4 },
+        { "skin": "goblin", "col": 14, "row": 6 }
       ] }
   ],
   "bases": [
