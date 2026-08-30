@@ -21,7 +21,7 @@
 | 冒険の続き | オートセーブ＋中断スロット5枠の一覧から選んで盤へ（[../tech/gamesystem.md](../tech/gamesystem.md) §タイトル画面からの再開） |
 | 新しい冒険譚 | 冒険譚選択（[stage_select.md](stage_select.md)） |
 | 設定 | 設定画面（[settings.md](settings.md)） |
-| マニュアル | 仕様リファレンス（ゲーム内の図鑑） |
+| マニュアル | ゲーム内マニュアル（[manual.md](manual.md)） |
 | クレジット | 素材の権利表記（[../sales/credits.md](../sales/credits.md) の「ゲーム内クレジットに出すもの」を並べる） |
 | おわる | 終了 |
 
@@ -58,5 +58,6 @@
 - [../audio/bgm.md](../audio/bgm.md) — ざわめきとメニュー曲の受け渡し
 - [stage_select.md](stage_select.md) — 「新しい冒険譚」の先
 - [settings.md](settings.md) — 「設定」の先
+- [manual.md](manual.md) — 「マニュアル」の先
 - [../tech/gamesystem.md](../tech/gamesystem.md) — 中断セーブ（「冒険の続き」が読むもの）
 - [../../presentation/title/title_screen.gd](../../godot/presentation/title/title_screen.gd) — 実装
