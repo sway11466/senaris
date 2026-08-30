@@ -42,7 +42,10 @@ const TOC_FONT_SIZE := 16
 const EDGE := 48          # 画面の左右の余白
 const TOP := 18           # 見出しの上
 const HEAD_GAP := 14      # 見出しと中身の間
-const BOTTOM := 96        # 戻るボタン（左下）の高さぶん空ける
+## 画面下の余白。戻るボタン（左下）と横に重なるのは目次の列だけなので、本文はもっと下まで
+## 使える＝目次だけ戻るボタンのぶん空け、本文は画面下の余白まで伸ばす。
+const BOTTOM := 24        # 本文の下＝画面下の余白（戻るボタンの余白と同じ）
+const TOC_BOTTOM := 96    # 目次の下＝戻るボタンの高さぶん
 const TOC_WIDTH := 268
 const PANE_GAP := 32
 
@@ -155,7 +158,10 @@ func _panes() -> Control:
 	_toc_box.add_theme_constant_override("separation", TOC_GAP)
 	_toc_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toc_scroll.add_child(_toc_box)
-	row.add_child(toc_scroll)
+	var toc_col := MarginContainer.new()  # 目次だけ戻るボタンのぶん下を空ける
+	toc_col.add_theme_constant_override("margin_bottom", TOC_BOTTOM - BOTTOM)
+	toc_col.add_child(toc_scroll)
+	row.add_child(toc_col)
 
 	var body_col := VBoxContainer.new()
 	body_col.add_theme_constant_override("separation", HEAD_BOTTOM_GAP)
