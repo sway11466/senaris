@@ -124,7 +124,7 @@ ui.quest.unlock_sep,・,"; "
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
 ui.select.menu,← メニュー,← Menu
-ui.select.back_tales,← 冒険譚,← Tales
+ui.select.back_tales,← 冒険譚,← Adventures
 ui.talk.close,閉じる,Close
 ui.talk.skip,会話をスキップ,Skip
 ui.talk.next,次へ ▶,Next ▶
