@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bc6c3wvwf7bvb"
-path="res://.godot/imported/weak.png-3def39c7212363629a775eddc31d1f23.ctex"
+uid="uid://bqwrsekoh6ywo"
+path="res://.godot/imported/predator.png-d89318eec5876e5e9f1d87302d26e840.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/ai/weak.png"
-dest_files=["res://.godot/imported/weak.png-3def39c7212363629a775eddc31d1f23.ctex"]
+source_file="res://assets/ui/ai/predator.png"
+dest_files=["res://.godot/imported/predator.png-d89318eec5876e5e9f1d87302d26e840.ctex"]
 
 [params]
 
