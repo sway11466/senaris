@@ -53,6 +53,7 @@ t1.st4.free.1,ゴブリンから守っていただき、ありがとうござい
 t1.st4.free.2,ありがたい。だが飛び出すな、町で待て。斥候、出し方を教えてやれ。,"We are glad of it. But do not go charging out — wait in the town. Scout, show them how to come out."
 t1.st4.free.3,町を選べば、中で待つ顔ぶれが出ます。出したい者を選んで、光ったマスへ——隣に一体ずつ。,"Select the town and it lists who waits inside. Pick the one you want out, then a lit tile — one at a time, beside the town."
 t1.st4.free.4,出たての者は息を整える。動かせるのは次のターンからだ。,"Anyone just out is catching their breath. You can move them from the next turn."
+t1.st4.free.5,傷ついた者は町へ入れてください。中で休めば、兵は戻ります。,"Send the wounded into the town. Rest inside and their ranks fill back up."
 t1.st4.outro.1,無事に町を解放しました。皆、無事です。そして、怪我のない者は、一緒に戦うと。,"The town is freed, everyone safe. And those unhurt say they'll fight alongside us."
 t1.st4.outro.2,助けた人たちが、僕らと一緒に！,"The people we saved — fighting with us!"
 t1.st4.outro.3,よく立った。お前たちの町だ、お前たちの手で守れ。斥候、湧き元は。,"Well stood. It's your town — guard it with your own hands. Scout, where's the source?"
@@ -103,6 +104,7 @@ char.knight.name,騎士,Knight
 char.priest.name,司祭,Priest
 char.mage.name,魔導師,Mage
 char.witch.name,魔女,Witch
+char.guard.name,衛士,Guard
 char.paladin.name,聖騎士,Paladin
 char.vanguard.name,ヴァンガード,Vanguard
 char.thief.name,シーフ,Thief
@@ -137,8 +139,11 @@ t2.st2.intro.2,町までは距離があるわ。馬車に乗って、一刻も�
 t2.st2.intro.5,乗るのは簡単よ。馬車のいるところまで歩けば、それで乗れる。降りるときは隣のマスへ、ひょいっと。,"Boarding is easy — just walk onto the wagon's hex. To get off, hop out to a hex beside it."
 t2.st2.intro.3,馬車は無防備です。道中にも屍が居るかもしれません。,"The wagon is defenseless. There may be dead along the road as well."
 t2.st2.intro.6,壊されれば、乗っている者もろとも失われます。必ず前衛の後ろを走らせてください。,"If it is destroyed, everyone aboard is lost with it. Keep it running behind the front line."
-t2.st2.intro.7,それに、集落の詰所を守るのは若い衛士が二人だけ。あそこを奪われれば、私たちの負けです。,"And only two young guards hold the hamlet's post. If it is taken, we lose."
+t2.st2.intro.7,それに、集落の詰所を守るのは若い衛士が三人だけ。あそこを奪われれば、私たちの負けです。,"And only three young guards hold the hamlet's post. If it is taken, we lose."
 t2.st2.intro.4,よし、司祭は馬車にのってくれ。それ以外のメンバーは護衛をする。,"Right — Priest, you ride the wagon. The rest of us escort it."
+t2.st2.free.1,助かりました！　この詰所は自分たちが守ります。,"You saved us! We will hold this post ourselves."
+t2.st2.free.2,傷を負った方は詰所へ入れてください。中で休めば、兵は戻ります。,"Send anyone wounded into the post. Rest inside and their ranks fill back up."
+t2.st2.free.3,助かる。無理はするな、削られたら下がって休め。,"Good. Don't push it — if you are worn down, fall back and rest."
 t2.st2.outro.1,集落は守れました。住民も、無事です。間に合って、よかった。,"The settlement is safe, the people unharmed. Thank goodness we made it in time."
 t2.st2.outro.2,でも、これだけの屍、どこから湧いてくるの？,"But this many dead — where are they welling up from?"
 t2.st2.outro.3,墓地だろうな。まだ奥から、次々と出てくるぞ。今度は群れの規模が違うな。,"The graveyard, surely. They keep pouring from deeper in. This swarm is on another scale."
@@ -447,6 +452,7 @@ b1.st1.intro.5,砦に入れるのは私だけです。道を開けてくださ�
 b1.st1.intro.6,それと、敵は選べば何をしてくる奴か分かる。「拠点攻略」と出た連中は、こちらの陣へ一直線だ。進路を塞がないかぎり手は出してこない。,And look one over before you meet it — it'll tell you how it fights. The ones marked Raid go straight for our camp. Stay off their path and they won't even swing at you.
 b1.st1.intro.7,放っておいたら……,And if we just let them walk past...?
 b1.st1.intro.8,陣を取られて負ける。潰すか、蓋をするか、お前たちが決めろ。,They take the camp and we lose. Put them down or cork the way in — your call.
+b1.st1.intro.9,深手を負ったら陣へ下がってください。中で休めば、兵は戻ります。,"If you take a bad wound, fall back to the camp. Rest inside and your ranks fill back up."
 b1.st1.outro.1,陣も砦も、両方見ていないと勝てないんですね。,You have to keep an eye on both — their fort and our camp.
 b1.st1.outro.2,そういう依頼を選んだんだ。悪くない働きだった。,That's the job we took. Not bad work.
 b1.st1.outro.3,報酬、数えてきますね。,I'll go count the reward.

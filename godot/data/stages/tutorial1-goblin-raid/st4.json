@@ -90,7 +90,8 @@
       { "speaker": "char.townsfolk.name", "skin": "novice", "text": "t1.st4.free.1" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.2" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.free.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.4" }
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.4" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.free.5" }
     ],
     "outro": [
       { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.outro.1" },

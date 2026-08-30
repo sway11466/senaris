@@ -175,6 +175,7 @@
       { "speaker": "char.rookie.name", "skin": "novice", "text": "b1.st1.intro.3" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.4" },
       { "speaker": "char.cleric.name", "skin": "cleric", "text": "b1.st1.intro.5" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "b1.st1.intro.9" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.6" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "b1.st1.intro.7" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.8" }
