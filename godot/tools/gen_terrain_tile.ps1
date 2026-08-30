@@ -65,8 +65,10 @@
 .EXAMPLE
   powershell -File tools\gen_terrain_tile.ps1 plain art\plain_a.png
   powershell -File tools\gen_terrain_tile.ps1 plain art\p1.png art\p2.png art\p3.png
-  powershell -File tools\gen_terrain_tile.ps1 bush_garden1 `
-    assets\terrain-src\bush_garden1\bush_garden1_01_raw.png -Transparent white -Fit
+  powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1_v `
+    assets\terrain-src\prop_garden1\prop_garden1_01_raw.jpg -Transparent white -Fit
+  The first argument is the skin id to write, the source lives under the object's own
+  folder name = they differ for objects (doc/art/terrain.md 3.4).
 #>
 # PositionalBinding is off so that the optional switches below cannot swallow a source path:
 # with the default binding, -Transparent would claim position 1 and Sources would come up empty.
