@@ -69,18 +69,26 @@ terrain.bedrock.name,岩地,Bedrock
 terrain.brush.name,茂み,Brush
 terrain.forest.name,森,Forest
 terrain.plain.name,平地,Plain
+terrain.plain_building_town1_l.name,街区,Town Block
+terrain.plain_building_town1_r.name,街区,Town Block
+terrain.plain_building_town1_v.name,街区,Town Block
 terrain.plain_cave1.name,洞窟の床,Cave Floor
 terrain.plain_cave1_fence_throne1.name,玉座,Throne
 terrain.plain_cave1_prop_loot1.name,略奪品の山,Pile of Loot
 terrain.plain_cave1_rubble1.name,崩落跡,Cave-in
 terrain.plain_fence.name,柵,Fence
 terrain.plain_fort.name,拠点,Base
+terrain.plain_fort_guardhouse1.name,詰所,Guardhouse
+terrain.plain_fort_town1.name,町,Town
 terrain.plain_grave1.name,墓地の草地,Graveyard Grass
 terrain.plain_grave1_fence.name,墓地の柵,Graveyard Fence
 terrain.plain_grave1_fort_chapel1.name,礼拝堂,Chapel
 terrain.plain_grave1_fort_crypt1.name,納骨堂,Crypt
 terrain.plain_grave1_prop_tomb1.name,墓標,Gravestone
 terrain.plain_grave1_rubble_tombstone1.name,墓石の山,Pile of Tombstones
+terrain.plain_prop_garden1_l.name,菜園,Garden
+terrain.plain_prop_garden1_r.name,菜園,Garden
+terrain.plain_prop_garden1_v.name,菜園,Garden
 terrain.plain_trap.name,罠,Trap
 terrain.plateau.name,台地,Plateau
 terrain.rampart.name,城壁,Rampart
