@@ -25,21 +25,13 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-90
-
-**保存データにバージョンを持つ**
-- ゴール：版を上げても旧版のセーブが変換されて読め、読めなかったファイルも失われない。
-- 背景：進捗・名簿・中断・設定の4ファイルは版番号を持つが、読み込みは一致しなければファイルごと捨てる。体験版を出した以上、版を上げた瞬間にプレイヤーの進捗と仲間が消える作りは残せない。読めなかったファイルを黙って上書きするのも同じで、こちらのバグで壊した場合にサポートで復旧手順を伝える手立てが無くなる（[gamesystem.md](tech/gamesystem.md) §版と移行・§バックアップ）。
-- 対応：(1) 各ストアに旧版から新版への変換を通す経路を敷く。現行より新しい版は現行として読む。変換で追随するのは構造の変化と識別子の改名で、`catalog` に無い `type` を既定性能の駒として黙って通さない点もここで潰す。この段では版を上げないので、変換に入るのは仕組みだけになる。(2) 保存ファイルの退避を敷く＝平常時は書き込みのたびに時刻入りで過去5世代を残し、読み込めなかったファイルと変換を流す直前のファイルは別枠で退避して自動では消さない。プレイヤーには見せず、復旧はサポートで手順を伝える。
-- 該当：`godot/infrastructure/save/`（`progress_store.gd`・`roster_store.gd`・`save_store.gd`・`save_slots.gd`・`settings_store.gd`）・`godot/domain/unit/unit.gd`・`doc/tech/gamesystem.md`。
-
 ### feature-91
 
 **中断セーブをステージ参照＋動的差分にする**
 - ゴール：ステージを直しても進行中の中断セーブが読めて、盤に効く変更が届いている。
 - 背景：`BattleState.to_dict` が盤サイズ・地形・拠点・勝敗条件・部隊定義・増援の中身まで丸ごと書いている。地形は戦闘中に変化せず（`set_terrain` を呼ぶのは `stage_loader` だけ）、ステージJSONから引き直せるものをセーブが正本にしてしまっている。難易度調整が進行中のセーブに一切届かない。
 - 対応：(1) 中断セーブを v3 とし、ステージJSONから引き直すもの（盤の広さ・地形・勝敗条件・ターン上限・部隊定義・拠点の位置と種別・増援の中身）を落として動的差分だけを持つ。復元はステージJSONで盤を組んでから差分を被せる。(2) ステージ定義の印（除外キー以外から算出）をセーブへ記録する。(3) v2→v3 の変換＝盤丸ごとから動的差分を抜き出し、体験版に同梱したステージの印を表から埋める（今のステージJSONから計算しない）。(4) 復元して盤に居られない駒（拠点が消えた・盤外・入れない地形）は盤へ出さない。
-- 該当：`godot/domain/battle_state.gd`・`godot/domain/capture/base.gd`・`godot/application/stage_loader.gd`・`godot/infrastructure/save/save_store.gd`・`godot/presentation/main/main.gd`・`doc/tech/gamesystem.md`。前提＝feature-90。
+- 該当：`godot/domain/battle_state.gd`・`godot/domain/capture/base.gd`・`godot/application/stage_loader.gd`・`godot/infrastructure/save/save_store.gd`・`godot/presentation/main/main.gd`・`doc/tech/gamesystem.md`。旧版から新版への変換（`_v2_to_v3`）を書く最初の作業になる（[gamesystem.md](tech/gamesystem.md) §版と移行）。
 
 ### feature-92
 
