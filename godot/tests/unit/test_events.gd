@@ -376,3 +376,43 @@ func test_capture_event_is_not_announced_as_a_countdown() -> void:
 	var s := _capture_state([_capture_event("player", { "label": "ui.test.village" })])
 	assert_true(s.next_event().is_empty(), "残りターンには出ない")
 
+
+# --- デバッグ発火（fire_event）。引き金を問わず1件を起こす。仕様 → doc/gdd/uiux.md デバッグメニュー ---
+
+## ターン起点のイベントを、発生ターン前でも起こせる。
+func test_fire_event_ignores_the_turn_trigger() -> void:
+	var s := _state([_reinforce(5)])
+	assert_true(s.fire_event(s.pending_events()[0]), "起こせた")
+	assert_eq(s.team_unit_count(0), 2, "増援が盤に出る")
+	assert_true(s.pending_events().is_empty(), "未発生から消える")
+
+## 占領起点のイベントも、拠点を取らずに起こせる。ただし拠点の所属は動かない
+## ＝会話だけが流れる（デバッグの用途＝台本の確認）。
+func test_fire_event_does_not_change_the_board() -> void:
+	var s := _capture_state([_capture_event("player")])
+	assert_true(s.fire_event(s.pending_events()[0]), "起こせた")
+	assert_eq(s.base_at(_base_hex()).team, Base.NEUTRAL, "拠点は中立のまま")
+	assert_true(s.pending_events().is_empty(), "未発生から消える")
+
+## 同じ once の兄弟は道連れに捨てられる（通常の発火と同じ）。
+func test_fire_event_discards_the_once_siblings() -> void:
+	var s := _capture_state([
+		_capture_event("player", { "once": "village" }),
+		_capture_event("enemy", { "once": "village" }),
+	])
+	assert_true(s.fire_event(s.pending_events()[0]), "味方版が起きる")
+	assert_true(s.pending_events().is_empty(), "敵版は以後起きない")
+
+## 既に起きたイベントは2度目を起こせない。
+func test_fire_event_rejects_a_fired_event() -> void:
+	var s := _state([_reinforce(5)])
+	var e: Dictionary = s.pending_events()[0]
+	assert_true(s.fire_event(e), "1回目は起きる")
+	assert_false(s.fire_event(e), "2回目は起きない")
+	assert_eq(s.team_unit_count(0), 2, "駒も増えない")
+
+## デバッグ発火は last_fired_events を触らない（そちらは end_turn 用の控え）。
+func test_fire_event_leaves_last_fired_events_alone() -> void:
+	var s := _state([_reinforce(5)])
+	s.fire_event(s.pending_events()[0])
+	assert_true(s.last_fired_events.is_empty(), "ターンの控えには混ざらない")

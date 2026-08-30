@@ -320,3 +320,17 @@ func wipe_enemies() -> void:
 		if state.remove_unit(u.id):
 			unit_died.emit(u.id)  # 撃破と同じ経路で盤から駒を消す
 	_check_finished()
+
+## デバッグ: 未発生イベント e を引き金を待たずに起こす。中身（増援・会話・カメラ寄せ）は通常の
+## 発火と同じ経路（event_fired）へ流すが、引き金そのものは成立させない＝占領起点でも拠点の
+## 所属は動かないまま会話だけが流れる。台本と増援の見た目を確かめるための道。
+## 決着は既存の判定に委ねる＝増援で兵力が変われば通常どおり決着する。詳細 → doc/gdd/uiux.md
+func force_event(e: Dictionary) -> void:
+	if _finished:
+		return
+	if not state.fire_event(e):
+		return  # 既に起きている（同じ once の兄弟が先に起きた等）
+	var placed: Array = e.get("placed", [])
+	var focus: Vector2i = placed[0] if not placed.is_empty() else Vector2i(e.get("hex", Vector2i.MAX))
+	event_fired.emit(_event_info(e, focus))
+	_check_finished()

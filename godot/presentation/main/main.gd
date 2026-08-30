@@ -584,6 +584,8 @@ func _install_hud() -> void:
 	_hud.save_requested.connect(_on_save_requested)
 	_hud.load_requested.connect(_on_load_requested)
 	_hud.wipe_enemies_requested.connect(_on_wipe_enemies_requested)  # デバッグ項目（製品ビルドでは出ない）
+	_hud.debug_event_requested.connect(_on_debug_event_requested)  # 同上
+	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 
 # --- ターン板（盤エリア上端中央）。presentation/ui/turn_plate.gd。仕様 → doc/gdd/uiux.md ---
@@ -669,6 +671,41 @@ func _on_wipe_enemies_requested() -> void:
 		return
 	_controller.wipe_enemies()
 	$HexBoard.refresh()  # 盤は攻撃イベントで作り直す作り＝殲滅はそれを経ないので明示的に更新する
+
+## デバッグメニュー「イベントを起こす」に並べる未発生イベントの表示名。引き金・陣営・中身が
+## 一目で分かればよい＝翻訳キーは切らず直書き（デバッグ区画の流儀。doc/tech/i18n.md）。
+## 自ターンで決着前のときだけ並べる。敵ターン中は会話が流れない門（_on_event_fired）があり、
+## 会話の最中は盤を止めている＝どちらも起こしても見えないため。
+func _debug_event_labels() -> PackedStringArray:
+	var out := PackedStringArray()
+	if _controller == null or _controller.is_ai_turn() or _controller.state.is_over():
+		return out
+	if _conversation_phase != "":
+		return out
+	for e in _controller.state.pending_events():
+		var side := "味方" if int(e.get("team", 0)) == 0 else "敵"
+		var trigger := "T%d" % int(e.get("turn", 0))
+		if String(e.get("on", "")) == "capture":
+			var off := Hex.axial_to_offset(Vector2i(e.get("hex", Vector2i.MAX)))
+			trigger = "占領(%d,%d)" % [off.x, off.y]
+		var units: Array = e.get("units", [])
+		var body := "会話" if units.is_empty() else "増援%d" % units.size()
+		var key := String(e.get("dialogue", ""))
+		if key.is_empty():
+			key = String(e.get("label", ""))
+		out.append("%s %s %s%s" % [trigger, side, body, "" if key.is_empty() else " " + key])
+	return out
+
+## デバッグメニュー「イベントを起こす」。一覧はメニューを開いた時点の未発生イベントの並び順
+## そのままなので、押された番号で取り直す（並びが変わるのは起こした後）。
+func _on_debug_event_requested(index: int) -> void:
+	if _controller == null:
+		return
+	var pending: Array = _controller.state.pending_events()
+	if index < 0 or index >= pending.size():
+		return
+	_controller.force_event(pending[index])
+	$HexBoard.refresh()  # 盤は攻撃イベントで作り直す作り＝増援はそれを経ないので明示的に更新する
 
 # --- 中断セーブ／オートセーブ。仕様 → doc/tech/gamesystem.md ---
 ## 自ターン開始時点の盤を控える（＝セーブが書く中身）。同じ瞬間にオートセーブも上書きする。

@@ -13,11 +13,17 @@ signal stage_select_requested    # システムメニュー: ステージセレ�
 signal save_requested            # システムメニュー: 中断セーブ
 signal load_requested            # システムメニュー: 中断セーブから再開
 signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲滅（デバッグビルドのみ出る項目）
+signal debug_event_requested(index: int)  # デバッグメニュー: 未発生イベントを起こす（一覧の何番目か）
 
 var _end_btn: Button
 var _gear: Button
 var _menu: PopupMenu
-enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE }
+var _dbg_events: PopupMenu = null  # デバッグ区画のサブメニュー（製品ビルドでは作らない＝null）
+enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
+
+## デバッグ: 未発生イベントの表示名を返す Callable（main が挿す）。一覧は起こすたびに減るので
+## 作り置きせず、メニューを開くたびに聞き直す。空を返せば「イベントを起こす」は無効表示。
+var debug_events_provider: Callable
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤のクリックを通す（ボタンだけ拾う）
@@ -49,6 +55,9 @@ func _ready() -> void:
 	if OS.is_debug_build():
 		_menu.add_separator("デバッグ")
 		_menu.add_item("敵を殲滅", DBG_WIPE)
+		_dbg_events = PopupMenu.new()
+		_dbg_events.id_pressed.connect(func(i: int) -> void: debug_event_requested.emit(i))
+		_menu.add_submenu_node_item("イベントを起こす", _dbg_events, DBG_EVENTS)
 	_menu.id_pressed.connect(_on_sys_id)
 	add_child(_menu)
 
@@ -83,9 +92,24 @@ func set_load_available(available: bool) -> void:
 
 ## システムメニューを開く（歯車ボタン／盤の最上位 Esc から）。
 func open_system_menu() -> void:
+	_refresh_debug_events()
 	_menu.reset_size()
 	_menu.position = Vector2i(get_viewport().get_mouse_position())
 	_menu.popup()
+
+## デバッグ: サブメニューへ未発生イベントの一覧を貼り直す（開くたび）。
+## 起こせるものが無ければ親の項目を無効表示にする＝押しても何も起きない項目を残さない。
+func _refresh_debug_events() -> void:
+	if _dbg_events == null:
+		return
+	var labels := PackedStringArray()
+	if debug_events_provider.is_valid():
+		labels = debug_events_provider.call()
+	_dbg_events.clear()
+	for i in labels.size():
+		_dbg_events.add_item(labels[i], i)
+	_dbg_events.reset_size()
+	_menu.set_item_disabled(_menu.get_item_index(DBG_EVENTS), labels.is_empty())
 
 func _on_sys_id(id: int) -> void:
 	match id:

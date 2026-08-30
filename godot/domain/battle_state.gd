@@ -307,6 +307,16 @@ func fire_capture_events(hex: Vector2i, team: int) -> Array:
 		fired.append(e)
 	return fired
 
+## デバッグ: 未発生イベント e を引き金を問わず起こす（起こせたら true）。引き金の成否を見ないので
+## 引き金の種類が増えてもここは変わらない。盤は動かさない＝占領起点でも拠点の所属はそのまま
+## （会話と増援だけが流れる）。last_fired_events は触らない＝そちらは end_turn 用。
+## 呼ぶのはデバッグメニューだけ。詳細 → doc/gdd/uiux.md デバッグメニュー
+func fire_event(e: Dictionary) -> bool:
+	if not _is_pending(e):
+		return false
+	_consume_event(e)
+	return true
+
 ## まだ未発生か（控えに残っているか）。同じ辞書そのものを探す＝中身の一致では見ない。
 func _is_pending(e: Dictionary) -> bool:
 	for other in _events:
