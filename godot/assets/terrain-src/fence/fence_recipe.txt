@@ -1,5 +1,3 @@
-powershell -File tools\gen_connect_tiles.ps1 fence assets\terrain-src\fence\fence_01_raw.png -ArmFrom 136 -ArmTo 512 -BandX 460 -BandW 104 -PostHalf 32 -NoBase
-
 # --- 箱組みの帯4枚（placement=panel の絵。盤が柱と横木を直方体で組み、面に貼る）---
 # 元絵は横から見た1区画（柱2本＋横木2本・fence_side_03_raw.jpg・茶色の古材版）。
 # 実測: 柱の中心 x=175.5/847.5（左右対称）・柱幅104px・横木の帯 y=326-427 / 541-642。
