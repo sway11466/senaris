@@ -94,9 +94,9 @@
 - 背景：[naming_decision_senaris.md](sales/naming_decision_senaris.md) でタイトル名は「Senaris」に決定済みだが、確定前の手続きが残っている。すべてオーナー側の手作業。
 - 開発元（2026-08-12 決定）：屋号は `craftkobo`。法人ではなく個人事業主として出品する＝Steam の契約名義は本名、公開される表示名は屋号。開業届は提出済み。ドメイン `craftkobo.com` は空きを確認済みで取得予定＝開発元用（プロダクト用の `senaris.in` とは別。問い合わせ先メールは開発元側に置く＝ゲームが増えても窓口が1つで済む）。銀行口座は未開設で、Steam の受取名義と一致すること・海外送金を受け取れることを確認してから作る。米国向けの税務書類はマイナンバーを外国TINとして出すと源泉徴収が下がる。
 - Steam の名前まわり（2026-08-12 調査）：`steamcommunity.com/id/senaris` は他者が使用中だが、これは一般ユーザーがプロフィールページに付ける短縮URLで、ゲームとは無関係＝実害なし。ゲームのストアページは `store.steampowered.com/app/<AppID>/…` の形で、AppID は Valve が採番するため他者のユーザー名に影響されない。開発元ページ `store.steampowered.com/publisher/senaris` は未使用だが、これは早い者勝ちで押さえるものではなく登録後に申請して作るページ。実際に競合しうるのはゲーム名そのもので、Steamworks 登録時の審査に掛かる＝下記 (1) の商標クリアランスと同じ話。
-- サイト：仕様は [site.md](sales/site.md)、配信先の決定は [ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)。ドメイン取得・DNS・配信構成は済んでいる。残るのは中身で、ストアページ（feature-51）の文と絵が決まってから流用して作る。
+- サイト：仕様は [site.md](sales/site.md)、配信先の決定は [ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)。ドメイン取得・DNS・配信構成は済んでいる。残るのは中身で、ストアページ（feature-53）の文と絵が決まってから流用して作る。
 - 対応：(1) 商標クリアランス＝第9類・第41類で US(USPTO)／EU(EUIPO)／日本(J-PlatPat) の各DBを正式確認（ドメインとは別作業。ドメインが空いていても商標が先に取られていることはある）。(2) SNSハンドル確保（X／Bluesky／Discord 等）。(3) Steam アプリ名予約（Steamworks 登録時・Steam Direct $100）。確定したら naming_decision_senaris.md のステータスを更新。
-- 該当：`doc/sales/naming_decision_senaris.md`・`doc/sales/site.md`・`site/`。着手の引き金＝配布が見えてきたとき（parking lot「Steam 配布の段取り」と連動）。サイトのランディングページはストアページ（feature-51 と同じ段）のあと。
+- 該当：`doc/sales/naming_decision_senaris.md`・`doc/sales/site.md`・`site/`。着手の引き金＝配布が見えてきたとき（parking lot「Steam 配布の段取り」と連動）。サイトのランディングページはストアページ（feature-53 と同じ段）のあと。
 
 ### feature-48
 
@@ -144,22 +144,6 @@
 - 対応：`menu_sortie` を作り、外から入る経路でだけ鳴らす。いまセレクト経由では `menu_stage`（`ui_confirm`）が鳴っているので、置き換えるか後ろに重ねるかを決める。外から入る経路は2つ揃っている（セレクト経由とロード経由）＝比べる材料はある。
 - 該当：`godot/assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`godot/data/audio/sfx_catalog.gd`（BIND）・`godot/presentation/select/stage_select.gd`（セレクト経由）・`godot/presentation/main/main.gd`（`_load_slot`＝ロードで盤へ入る経路）・`doc/audio/sfx.md`（発火点カタログ）。
 
-### feature-51
-
-**プロモーション映像の制作**
-- 背景：ストアページに置く映像がまだ無い。1本目はプレイ映像（何のゲームか数秒で伝わるもの）、2本目に世界観のティザー、という並びを想定している。ティザー用の素材は 2026-08-12 の Gemini の無料枠で確保した（枠は同日で終了。以後の生成は有料）。生成でしか作れないカットは押さえてあるので、残りは手持ちの素材と実機録画で組める。
-- 手元にあるもの：
-  - ドラゴンのキービジュアル2枚（`godot/assets/promo-src/dragon_breath/`）。炎あり `dragon_breath_b_03_master.png` と、その直前＝炎なし `dragon_breath_pre_b_03_master.png`。1376×768・透かし除去済み。生成に使った文面は同フォルダの `*_prompt.txt`（自己完結・再生成可）。
-  - 上記から起こした動画2本（`dragon_breath_video_b1_01_raw.mp4` / `b2_01_raw.mp4`。各10秒・1280×720・24fps・音声つき）。b2 が良いほうで、使えるのは 5.0〜10.0 秒（それ以前は炎がバリアの内側に入る）。b1 は 0〜7 秒（溜めが長く空転する）。
-  - 酒場の扉が開くカット（`godot/assets/menu/door_open.ogv`＝タイトル画面で使用中。採用しなかったテイクが `godot/assets/menu-src/door/`）。ティザーの掴みに流用できる。
-- 対応：
-  1. 手持ち映像の整形。透かしは 1280×720 のフレームで中心 (1158, 600)・約55px角。`crop=1130:636:0:0` で左上基準に切れば16:9のまま枠外に出る（右と下を12%落とす。ドラゴンの尻尾の先が少し切れる）。あわせて使える区間だけ切り出す。
-  2. プレイ映像の録画。ティザーの着地にも、ストア1本目にも要る。盤・戦闘演出・陣形カットインが揃ってから撮る。
-  3. 構成を決めて編集。ティザーの想定は 掴み＝扉が開く／山場＝ドラゴンの炎／着地＝盤面。生成映像はイラスト調のまま使い、最後に実機の絵で落とすことで「本編と地続き」に見せる。
-  4. 音。生成映像に付いてくる音声は捨てて、投入済みの BGM から当てる（[bgm.md](audio/bgm.md)）。
-  5. Steam の AI 生成コンテンツ開示。生成物を使う以上、提出フォームでの申告が要る（[direction.md](art/direction.md) の配布注意）。
-- 該当：`godot/assets/promo-src/dragon_breath/`・`godot/assets/menu-src/door/`・`doc/sales/monetization.md`。着手の引き金＝ストアページを作るとき（parking lot「Steam 配布の段取り」と連動）。
-
 ### feature-52
 
 **仕様リファレンス（ゲーム内の図鑑とサイトの仕様ページ）**
@@ -188,10 +172,10 @@
   3. 短い説明・タグ。素材が要らないので並行して進められる
   4. スクリーンショット。盤・戦闘演出・陣形カットインが揃ってから撮る
   5. 本文。スクショと一緒に組む
-  6. 動画（1本目＝プレイ映像、2本目＝ティザー。feature-51）
+  6. 動画。必要になったら考えて作る
 - Steamworks への登録（$100）は思ったより前に来る可能性がある。登録しないとページの入力欄が開かないため、素材を揃えてから登録するより、早めに登録して実際の入力欄を見たほうが作るものが具体的になる。[monetization.md](sales/monetization.md) の「体験版を先に出して出荷工程をリハーサルする」方針とも合う。前提＝支払い手段と本人確認、公開までに税務書類と銀行口座（feature-27 の開発元の項）。
 - カプセルの検討結果（2026-08-12）：手持ちのドラゴンのキービジュアルを 460×215 に切って確認した。全幅を使って上下を16%落とす形なら構図がそのまま生きる。ただし小カプセル（231×87）まで縮めると読めるのは竜と炎だけで人物は潰れる＝5種を同じ絵から切り出すにしても、寄せ方は枠ごとに変えてよい。カプセル専用に絵を起こす場合は、最初から 460:215 の比で生成し、ロゴを置く余白（上部の空）を空けた構図にする。
-- 該当：`doc/sales/steam_page.md`・`doc/sales/marketing.md`・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-51（映像）・feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
+- 該当：`doc/sales/steam_page.md`・`doc/sales/marketing.md`・`godot/assets/promo-src/`・`doc/sales/monetization.md`。関連＝feature-52（仕様リファレンスへのリンク）・feature-27（サイトへ文と絵を流用）。着手の引き金＝配布ビルドが見えてきたとき（parking lot「Steam 配布の段取り」と連動）。
 
 ### feature-55
 
