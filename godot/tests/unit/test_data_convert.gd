@@ -390,6 +390,28 @@ func test_terrain_object_without_map_ground_blocks() -> void:
 	rows[2]["map_ground"] = "plain"
 	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "足場を書けば通る")
 
+func test_terrain_object_orient_limited_to_standee_flip_x() -> void:
+	# 回すと足元がマスから外れ、上下反転は逆さに立つ＝立ち絵だけ左右反転まで許す。
+	# 詳細 → doc/gdd/terrain.md オブジェクト
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("rock", "C", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_object_terrain_skin("plain_rock", "rock"),
+	]
+	rows[2]["orientable"] = "flip_x"
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "立ち絵の左右反転は通る")
+	rows[2]["orientable"] = "full"
+	assert_null(Terrain.build_skin(rows, types)["json"], "立ち絵でも回転は弾く")
+	# 置き方を panel に替える＝立ち絵専用の列（object_foot_z）を外し、板の向きを出す connect を足す。
+	rows[2]["orientable"] = "flip_x"
+	rows[2]["placement"] = "panel"
+	rows[2].erase("object_foot_z")
+	rows[2]["connect"] = "line"
+	assert_null(Terrain.build_skin(rows, types)["json"], "立ち絵でなければ左右反転も弾く")
+	rows[2]["orientable"] = "none"
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "none は置き方によらず通る")
+
 ## オブジェクトのスキン行（足場・置き方・描画倍率・足元の奥行きを埋めた、最小の有効な行）。
 func _object_terrain_skin(sid: String, tid: String) -> Dictionary:
 	var r := _valid_terrain_skin(sid, tid)

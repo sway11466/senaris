@@ -95,9 +95,32 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	# 足場は型IDと同名のスキンを1枚持つ（ステージが指定しないセルはこれを引く）。
 	# オブジェクトは足場を名前に含む＝同名は存在しないので、ステージが必ず指定する。
 	problems += _footing_without_same_name_skin(rows, type_rows)
+	# オブジェクトの向きは none が既定で、立ち絵（standee）だけ flip_x まで許す。回すと足元が
+	# マスから外れ、上下反転は逆さに立つ（→ doc/gdd/terrain.md オブジェクト）。
+	problems += _invalid_object_orient(rows, type_rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "skins": rows } }
+
+## layer が object のスキンで、許されない向きのばらし方を書いている行。
+## 立ち絵（standee）だけ flip_x まで許し、それ以外のオブジェクトは none のみ。
+static func _invalid_object_orient(rows: Array, type_rows: Array) -> Array:
+	var layer_of := {}
+	for t in type_rows:
+		layer_of[String(t.get("id", ""))] = String(t.get("layer", ""))
+	var problems: Array = []
+	for r in rows:
+		if layer_of.get(String(r.get("terrain_type", "")), "") != "object":
+			continue
+		var orient := String(r.get("orientable", "")).strip_edges()
+		if orient == "" or orient == SkinDef.ORIENT_NONE:
+			continue
+		var placement := String(r.get("placement", "")).strip_edges()
+		if orient == SkinDef.ORIENT_FLIP_X and placement == SkinDef.PLACE_STANDEE:
+			continue
+		problems.append("行[%s] の orientable '%s' はオブジェクトに使えない（standee は flip_x まで／他は none）"
+			% [String(r.get("skin_id", "")), orient])
+	return problems
 
 ## layer が object の地形タイプに属するスキンで、map_ground（下に敷く足場）が空の行。
 static func _object_without_ground(rows: Array, type_rows: Array) -> Array:

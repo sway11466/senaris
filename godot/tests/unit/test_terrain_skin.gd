@@ -246,8 +246,10 @@ func test_extend_off_board_skips_non_ends() -> void:
 
 func test_connect_tiles_all_present() -> void:
 	# connect スキンは64通りぜんぶ揃っている必要がある（1つでも欠けるとそのマスだけ絵が化ける）。
+	# ただし板を立てて組む panel（柵）は絵を繋がりで選ばない＝タイルを持たない。connect は
+	# 板の向きを出すために書いてある（→ doc/gdd/terrain.md オブジェクト）。
 	for s: TerrainSkin in TerrainSkinCatalog.all_skins():
-		if not s.connects():
+		if not s.connects() or s.placement == TerrainSkin.PLACE_PANEL:
 			continue
 		for mask in 64:
 			var bits: Array = []
