@@ -17,3 +17,8 @@ copy assets\terrain\plain_fence_post_top.png assets\terrain\plain_grave1_fence_p
 # 柵の寸法（柱の高さ・横木の太さ）は絵ではなく盤の定数（board_terrain_renderer.gd の FENCE_*）。
 # 帯8枚の .import は mipmaps/generate=true（横木が細く、縮小で輪郭が点線に割れるため）。
 # 画像を差し替えたら .godot/imported/ の当該 ctex/md5 を消してから --import。
+
+# マップエディタの目印（基本の1枚）。元絵の1区画を透過にして納めるだけ＝繋がる向きの絵は作らない。
+# CopyOpacity の後に -compose Over へ戻すこと（戻さないと -extent が CopyOpacity で走って壊れる）。
+magick assets\terrain-src\fence\fence_01_raw.jpg -crop 828x511+98+252 +repage "(" +clone -colorspace gray -threshold 82% -negate ")" -alpha off -compose CopyOpacity -composite -compose Over -resize 236x -background none -gravity center -extent 256x222 -colors 64 -dither None assets\terrain\plain_fence.png
+copy assets\terrain\plain_fence.png assets\terrain\plain_grave1_fence.png
