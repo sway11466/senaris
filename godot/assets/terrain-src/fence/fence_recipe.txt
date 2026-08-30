@@ -16,8 +16,6 @@ copy assets	errain\plain_fence_rail_top.png assets	errain\plain_grave1_fence_rai
 copy assets	errain\plain_fence_post_side.png assets	errain\plain_grave1_fence_post_side.png
 copy assets	errain\plain_fence_post_top.png assets	errain\plain_grave1_fence_post_top.png
 
-# 旧版: fence_side_01_raw.jpg（灰色・横木が柱の裏）と fence_side_02_master.png
-# （柱の中心で切った1区画。板1枚方式の名残＝箱組みでは使わない）。
 # 柵の寸法（柱の高さ・横木の太さ）は絵ではなく盤の定数（board_terrain_renderer.gd の FENCE_*）。
 # 帯8枚の .import は mipmaps/generate=true（横木が細く、縮小で輪郭が点線に割れるため）。
 # 画像を差し替えたら .godot/imported/ の当該 ctex/md5 を消してから --import。
