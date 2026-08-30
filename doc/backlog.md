@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=4 / feature=93 / refactoring=12
+次回採番: bug=4 / feature=94 / refactoring=12
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -137,13 +137,6 @@
 - 対応：(1) 項目を足す＝音量（マスター／BGM／SE。AudioServer のバスへ反映）・画面モード（全画面／ウィンドウ）・演出速度（移動アニメ／カメラ追従／敵ターンスキップ＝feature-16）。値は `SettingsStore` に足す。(2) HUD のシステムメニューから開く＝`settings_requested` を出し、`main` が盤の上に重ねる。あわせて、盤の中で言語を変えたときに追従しない画面（ターンバナー・戦果票など、盤に入ってから作って残る物）を洗い出し、`refresh_labels()` を持たせる（[i18n.md](tech/i18n.md) 言語の切り替え）。
 - 該当：`godot/presentation/settings/settings_screen.gd`・`godot/infrastructure/save/settings_store.gd`・`godot/presentation/ui/hud.gd`・`godot/presentation/main/main.gd`・`godot/presentation/ui/bgm_player.gd`／`sfx_player.gd`・`doc/gdd/settings.md`。関連＝feature-16（移動・カメラ・戦闘演出の速度の設定値化）。着手の引き金＝敵ターンが長く感じ始めたとき、または音量を触りたくなったとき。
 
-### feature-49
-
-**ステージ開始の区切り音（`menu_sortie`）**
-- 背景：ステージに入る経路が2種類ある。連戦（outro 会話 → `_advance_or_select` → 次ステージ）と、文脈の外から入る経路（ステージセレクト、およびタイトルの「冒険の続き」）。連戦では会話でステージ同士が繋がっており、区切りの音を入れると繋がっているものを切ってしまうので鳴らさない（現状すでに無音で、これが正しい）。外から入る経路にだけ区切りが要る。
-- 対応：`menu_sortie` を作り、外から入る経路でだけ鳴らす。いまセレクト経由では `menu_stage`（`ui_confirm`）が鳴っているので、置き換えるか後ろに重ねるかを決める。外から入る経路は2つ揃っている（セレクト経由とロード経由）＝比べる材料はある。
-- 該当：`godot/assets/sfx-src/menu_sortie.mscz`（新規・MuseScore で短いファンファーレ）・`godot/data/audio/sfx_catalog.gd`（BIND）・`godot/presentation/select/stage_select.gd`（セレクト経由）・`godot/presentation/main/main.gd`（`_load_slot`＝ロードで盤へ入る経路）・`doc/audio/sfx.md`（発火点カタログ）。
-
 ### feature-52
 
 **仕様リファレンス（ゲーム内の図鑑とサイトの仕様ページ）**
@@ -170,6 +163,14 @@
 - 背景：チャネルの判定そのものは `godot/infrastructure/platform/build_info.gd` が持つ（[build.md](tech/build.md)）。その上に乗るチャネル固有の機能がまだ無い。評価ランクの実績発火（feature-40）、entitlement による DLC 解放（feature-13）が控えている。
 - 対応：`channel()` の戻り値で実装を選ぶ形にし、チャネルを持たない環境（エディタ実行・itch）には何もしない実装を置く。所有権チェックは `owns(content_id) -> bool` だけを本体に見せる（[monetization.md](sales/monetization.md) のチャネル差を隔離する）。
 - 該当：`godot/infrastructure/platform/`・`doc/sales/monetization.md`。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）。
+
+### feature-93
+
+**盤中のヘルプ（その場で用語を引く）**
+- ゴール：盤の中で、いま選んでいる物の用語（敵の特性名・能力値の項目名など）の意味がその場で読める。
+- 背景：マニュアル（feature-52）はタイトル専用の通読画面と決め、盤中からは開かない。盤で「弱者狙いって何」「貫通率はどこに効く」と詰まったとき、その場で引く手段が無い。
+- 対応：形は未検討。情報パネルの用語から短い説明を出す類を想定。説明文をマニュアルの本文と共有するかもここで決める。
+- 該当：`godot/presentation/ui/`（情報パネル）・feature-52（マニュアル本文）。着手の引き金＝マニュアルの本文が書けたとき、または実プレイで用語に詰まったとき。
 
 ## リファクタリング
 
