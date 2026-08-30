@@ -109,8 +109,9 @@ func refresh_base_tiles() -> void:
 			mi.material_override = BoardMeshFactory.terrain_material(tex)
 
 ## そのヘックスの読み取り面の標高（スキン別・既定0）。ピッキング/配置/グリッド/オーバーレイで使う。
+## マスの読み取り面の高さ（グリッド・オーバーレイ・影・兵数バーが乗る面）。
 ## 水平の板（橋）のマスだけ floor＝板の高さ。elevation はそのマスでは足場（水）の高さで、
-## タイル敷きとスカートが使う（→ _footing_elev）。
+## タイル敷きとスカートが使う（→ _footing_elev）。駒とオブジェクトは unit_floor を使う。
 ## 毎フレームのピッキングから何度も引かれるので、盤を組み直すまでキャッシュする。
 func elev(hex: Vector2i) -> float:
 	if _elev_cache.has(hex):
@@ -415,7 +416,7 @@ func _fence_face_texture(skin: TerrainSkin, face: String) -> Texture2D:
 
 func _add_fence_boxes(boxes: Dictionary, skin: TerrainSkin, hex: Vector2i) -> void:
 	var p := Hex.to_pixel(hex, TILE)
-	var y := elev(hex)
+	var y := unit_floor(hex)  # オブジェクトは駒と同じ floor に置く（→ doc/gdd/terrain.md 盤の高さ）
 	var a := Vector3(p.x, y, p.y)
 	var conn := _connected_dirs(skin, hex)
 	var any := false
@@ -498,7 +499,7 @@ func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 		spr.free()
 		return
 	var p := Hex.to_pixel(hex, TILE)
-	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y + skin.object_foot_z)
+	spr.position = Vector3(p.x, unit_floor(hex) + 0.02, p.y + skin.object_foot_z)  # 駒と同じ floor
 	_standee_nodes[hex] = spr
 	add_child(spr)
 
