@@ -486,7 +486,8 @@ func _capture_row(state: BattleState, u: Unit) -> AiAction:
 
 ## スキルの行＝掛けられる対象のうち stack 条件を満たすものを集め、pick で1体に絞って放つ。
 ## 放つと発動者は行動完了になるので攻撃より前に置く。移動後でも放てる（doc/gdd/skills.md）。
-## require_surround＝対象が包囲可能であることも条件に足す（swarm）。
+## require_surround＝対象が敵のときだけ、包囲可能であることも条件に足す（swarm）。味方に掛ける
+## 強化・解除に包囲可能を課すと永久に成立しない（包囲は敵にしか成り立たないため）。
 func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := false) -> AiAction:
 	for option in Formation.available_for(state, u):
 		if not bool(option.get("needs_target", true)):
@@ -496,8 +497,8 @@ func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := f
 		for other in state.units():
 			if not Formation.can_target(state, option, other.pos):
 				continue
-			if require_surround and not _surround_able(state, u, other):
-				continue
+			if require_surround and other.team != u.team and not _surround_able(state, u, other):
+				continue  # 包囲可能を課すのは敵対象のときだけ（doc/gdd/ai.md swarm #5）
 			if not _stack_passes(state, u, kind, other):
 				continue
 			candidates.append(other)

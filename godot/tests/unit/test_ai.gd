@@ -811,6 +811,19 @@ func test_swarm_does_not_take_bases() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_ne(a.to, base_hex, "占領兵を混ぜても拠点へは向かわない")
 
+func test_swarm_casts_an_ally_skill_without_needing_surround() -> void:
+	# #5 の「包囲可能」は敵に掛けるスキルだけの条件＝味方向きの強化・解除には課さない
+	# （包囲は敵にしか成り立たないので、課すと永久に撃てない）。詳細 → doc/gdd/ai.md 包囲可能
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "swarm", { "stack": 1 })
+	_skin(_ai(s, si, 10, 4, 2), "pixie")   # 味方に掛ける強化を持つ（先に動く）
+	_ai(s, si, 11, 4, 3)                   # 掛けられる味方
+	_hurt(_pc(s, 1, 9, 2), 2)              # 手負いは遠い＝殴る行は成立しない
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "味方に掛けるスキルでも行が成立する")
+	assert_eq(a.kind, AiAction.Kind.SKILL, "包囲可能を課されずに放つ")
+
 func test_swarm_switches_from_the_skill_to_attacking_when_stacked() -> void:
 	# #4 は #5 の裏返し＝効き切った相手に重ねる価値はないので殴りに切り替わる。
 	var s := BattleState.new(12, 5)
