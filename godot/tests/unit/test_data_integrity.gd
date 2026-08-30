@@ -75,6 +75,26 @@ func test_stage_enemy_pieces_all_belong_to_squads() -> void:
 				assert_false(squad.has(key), "%s の enemy 直下に駒キー '%s' が無い（部隊の外に駒を直書きしない）" \
 					% [path, key])
 
+func test_stage_rank_has_all_four_thresholds() -> void:
+	# rank を書くなら4キーとも書く（doc/gdd/rank.md 判定）。低い方を最終ランクにするので、
+	# 片方の軸を空けるとその軸が常に B を返し、もう片方をどれだけ詰めても B に落ちる。
+	# 戦果票は空けた軸の基準を出さないので、画面とランクで食い違ったまま気づけない。
+	const RANK_KEYS := ["turn_s", "turn_a", "survival_s", "survival_a"]
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY or not (data as Dictionary).has("rank"):
+			continue  # rank 無し＝ランクを評価しないステージ
+		var rank: Variant = data["rank"]
+		assert_eq(typeof(rank), TYPE_DICTIONARY, "%s の rank は辞書" % path)
+		if typeof(rank) != TYPE_DICTIONARY:
+			continue
+		for key in RANK_KEYS:
+			var v: Variant = (rank as Dictionary).get(key)
+			assert_true(typeof(v) == TYPE_FLOAT or typeof(v) == TYPE_INT,
+				"%s の rank に '%s' がある" % [path, key])
+			if typeof(v) == TYPE_FLOAT or typeof(v) == TYPE_INT:
+				assert_gt(int(v), 0, "%s の rank '%s' は1以上（0＝基準なしにしない）" % [path, key])
+
 func test_stage_squads_and_ai_bases_have_order() -> void:
 	# 行動順 order は全部隊・AI出撃する全拠点に書く（doc/gdd/ai.md 行動順）。
 	# 省略はコード側では登録順にフォールバックするので黙って通ってしまう＝ここで抜けを捕まえる。
