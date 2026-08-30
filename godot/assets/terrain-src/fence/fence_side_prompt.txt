@@ -1,0 +1,65 @@
+STYLE: A single object drawn face-on for a fantasy tactics game, in the same
+clean stylized cel-shaded look as the game's terrain and unit art: bold flat
+shading, clear dark outlines, a mature, slightly muted, limited color palette
+(NOT bright saturated, NOT painterly photorealism). Viewed straight from the
+SIDE, face-on and level with it -- a flat elevation with NO perspective, NO
+foreshortening, NO horizon, NO sky, NO ground, NO floor. The object floats on a
+plain PURE WHITE background that fills every part of the frame it does not
+cover, including every gap inside it; that background is cut away in the game,
+so it must stay clean, even and empty, with NO shadow, NO gradient, NO texture,
+NO vignette. Read at thumbnail size: a few large legible shapes, no fine detail.
+Square 1:1.
+
+SUBJECT: ONE straight bay of an old wooden fence, seen from the SIDE, face-on and
+level with it -- two upright posts with two horizontal rails running between
+them, and nothing else.
+
+THE SHAPE, exactly: the posts stand perfectly vertical, the rails perfectly
+level, the whole bay drawn head-on across the middle of the frame with clean
+empty background on all four sides. The two posts are IDENTICAL and the picture
+is SYMMETRIC left to right: in the game this bay is repeated and mirrored end to
+end to build a long fence, so anything that differs between the left half and the
+right half turns into a visible pattern. NO gate, NO opening, NO end, NO corner,
+NO diagonal brace, NO upright palings between the posts, NO wire, NO rope, NO
+nails, NO sign, NO lantern, NO plants growing on it, NO objects leaning against
+it.
+
+THE PROPORTIONS: measured between the centres of the two posts, the bay is TWICE
+as wide as the fence is tall. Each post is a squat square timber about one eighth
+of the bay width thick, cut off flat at the top, standing a little above the top
+rail. There are exactly two rails: the top rail just under the post tops, the
+lower rail about halfway down. Each rail is thick -- about a fifth of the fence
+height -- and runs the full way between the posts. The gap between the two rails,
+and the gap below the lower rail, are LARGE and completely EMPTY: in the game the
+ground and the soldiers behind the fence show through them.
+
+THE FOOT: the two posts end flat at the bottom, both at exactly the same height,
+and that line is where the fence meets the ground. The rails never reach below the
+posts' feet. Below and around the feet there is NOTHING -- NO ground, NO soil, NO
+grass, NO tufts, NO stones, NO shadow, no dark smear or soft dark band of any kind.
+
+THE TIMBER: rough-sawn, dry, weathered old wood, and it must LOOK like wood even
+when shrunk very small. Draw the grain BOLD and CHUNKY: a few long dark streaks
+running along each rail and down each post, a dark knot or two on each rail, a
+deep split at the top of each post -- big marks, cel-shaded flat, not fine
+hatching and not noise (fine grain disappears when shrunk and just greys the
+color out). The corners are knocked off. Keep it heavy: this must read as solid
+carpentry, NOT a thin line, NOT a ladder, NOT railway track. Both posts are
+weathered the same way.
+
+COLOR: weathered BROWN timber, roughly hex #77604A -- a dry, muted, warm brown
+that is unmistakably wood, NOT grey and NOT orange, and clearly darker than the
+pale sage grass (#B4C6A0) it will stand on so it reads against it. Shade each
+piece as ONE FLAT TONE with cel shading, two or three tones in all, between about
+#8A7258 (lit) and #453626 (shaded), the grain streaks and knots a step darker
+still, and outline the timber with a dark line, roughly #2A211A. No part
+near-white, none near-black.
+
+THE LIGHT comes from DIRECTLY ABOVE and from nowhere else. In the game this fence
+is stood up facing all six directions and is also seen from behind (mirrored), so
+any sideways light would contradict itself: NO light from the left, NO light from
+the right, NO highlight or gradient running sideways, NO cast shadow anywhere --
+not on the background, not from one post onto the other, not from the rails onto
+anything. The only shading allowed is the top face of each piece a little lighter
+and its underside a little darker, the same on both posts and along the whole
+length of both rails.

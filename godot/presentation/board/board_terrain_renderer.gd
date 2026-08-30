@@ -42,7 +42,7 @@ var _height_overrides := {}
 # --- キャッシュ ---
 var _terrain_tex := {}     # base_path(String) -> Array[Texture2D]（基本＋連番 variant）
 var _side_tex := {}        # skin_id -> Texture2D|null（側面画像。置いていなければ null）
-var _obj_side_tex := {}    # skin_id -> Texture2D|null（辺に沿って立てるオブジェクトの板の絵）
+var _fence_tex := {}       # res://パス -> Texture2D|null（柵の面に貼る帯）
 var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
@@ -366,7 +366,7 @@ func _ground_texture(hex: Vector2i, skin: TerrainSkin) -> Texture2D:
 ## オブジェクトを置く。置き方はスキンの placement（→ doc/gdd/terrain.md）＝辺に沿って立てた板
 ## （柵）／水平の板（橋）／カメラに正対する立ち絵1枚（既定）。立てた板は絵ごとに1メッシュへまとめる。
 func _add_objects() -> void:
-	var panels := {}  # Texture2D -> SurfaceTool
+	var boxes := {}  # Texture2D -> SurfaceTool（柵の箱組み。絵ごとに1メッシュへまとめる）
 	for col in _state.cols:
 		for row in _state.rows:
 			var hex := Hex.offset_to_axial(col, row)
@@ -375,54 +375,102 @@ func _add_objects() -> void:
 				continue
 			match skin.placement:
 				TerrainSkin.PLACE_PANEL:
-					_add_object_panels(panels, skin, hex)
+					_add_fence_boxes(boxes, skin, hex)
 				TerrainSkin.PLACE_FLAT:
 					_add_object_flat(skin, hex)
 				_:
 					_add_object_standee(skin, hex)
-	for tex: Texture2D in panels:
+	for tex: Texture2D in boxes:
 		var mi := MeshInstance3D.new()
-		mi.mesh = panels[tex].commit()
+		mi.mesh = boxes[tex].commit()
 		var m := StandardMaterial3D.new()
 		m.albedo_texture = tex
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 裏から見ても描く
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 面数が少なく、巻き順を固定する価値がない
 		mi.material_override = m
 		add_child(mi)
 
-## 繋がるオブジェクト（柵）。ヘックス中心から、繋がる隣との辺の中点まで板を立てる。
-## 向きは板の置き方が出すので、絵は横から見た1枚で足りる（繋がり方別に64枚を持たない）。
-## 板の幅は盤の形が決めている（中心→辺の中点＝0.866タイル）ので、高さは絵の縦横比から出す。
-## 絵をその幅に合わせた細長いキャンバスで書き出せば、背丈は立ち絵と同じ物差しに乗る
-## （→ doc/art/terrain.md）。ここでスキンの倍率を読まないのはそのため。
-func _add_object_panels(panels: Dictionary, skin: TerrainSkin, hex: Vector2i) -> void:
-	var tex := _object_side_texture(skin)
+## 柵（placement=panel）。板1枚ではなく、柱と横木の直方体を立体で組む（橋・段差の側面と同じ
+## 「形は3D・絵は2D」の分担 → doc/gdd/terrain.md）。柱はヘックス中心と繋がる辺の中点に立ち、
+## 横木2本がその間を渡る。辺の柱は隣のマスと同じ位置になるので1本に見える＝板版の鏡写しトリックが要らない。
+## 面にはスキンごとの帯（assets/terrain/{skin_id}_{面}.png・→ _fence_face_texture）を貼る。
+## 寸法はここの定数＝柵スキンが全部同じプロポーションのうちは絵もデータも寸法を持たない。
+const FENCE_POST_H := 0.62      # 柱の高さ（TILE）
+const FENCE_POST_HW := 0.09     # 柱の半幅
+const FENCE_RAIL_HH := 0.08     # 横木の半分の高さ
+const FENCE_RAIL_HD := 0.05     # 横木の半分の奥行き
+const FENCE_RAIL_TOP_Y := 0.50  # 上の横木の中心高さ
+const FENCE_RAIL_LOW_Y := 0.26  # 下の横木の中心高さ
+
+## 柵の面の帯（assets/terrain/{skin_id}_{face}.png）。無ければ声を上げて null。
+func _fence_face_texture(skin: TerrainSkin, face: String) -> Texture2D:
+	var path := "res://assets/terrain/%s_%s.png" % [skin.skin_id, face]
+	if _fence_tex.has(path):
+		return _fence_tex[path]
+	var tex := load(path) as Texture2D if ResourceLoader.exists(path) else null
 	if tex == null:
-		return
-	var st: SurfaceTool = panels.get(tex)
-	if st == null:
-		st = SurfaceTool.new()
-		st.begin(Mesh.PRIMITIVE_TRIANGLES)
-		panels[tex] = st
+		push_error("BoardTerrainRenderer: 柵の帯が無い %s" % path)
+	_fence_tex[path] = tex
+	return tex
+
+func _add_fence_boxes(boxes: Dictionary, skin: TerrainSkin, hex: Vector2i) -> void:
 	var p := Hex.to_pixel(hex, TILE)
 	var y := elev(hex)
+	var a := Vector3(p.x, y, p.y)
 	var conn := _connected_dirs(skin, hex)
-	var half := TILE * sqrt(3.0) * 0.5  # 中心から辺の中点まで
-	var h := half * (float(tex.get_height()) / maxf(float(tex.get_width()), 1.0))
+	var any := false
 	for i in 6:
 		if not bool(conn[i]):
 			continue
+		any = true
 		var q := Hex.to_pixel(hex + Hex.DIRECTIONS[i], TILE)
-		var a := Vector3(p.x, y, p.y)
-		var b := Vector3((p.x + q.x) * 0.5, y, (p.y + q.y) * 0.5)
-		var up := Vector3(0.0, h, 0.0)
-		st.set_uv(Vector2(0, 1)); st.add_vertex(a)
-		st.set_uv(Vector2(1, 1)); st.add_vertex(b)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
-		st.set_uv(Vector2(1, 1)); st.add_vertex(b)
-		st.set_uv(Vector2(1, 0)); st.add_vertex(b + up)
-		st.set_uv(Vector2(0, 0)); st.add_vertex(a + up)
+		var mid := Vector3((p.x + q.x) * 0.5, y, (p.y + q.y) * 0.5)
+		var dirv := (mid - a).normalized()
+		var half_len := a.distance_to(mid) * 0.5
+		for cy in [FENCE_RAIL_TOP_Y, FENCE_RAIL_LOW_Y]:
+			_fbox_add(boxes, skin, (a + mid) * 0.5 + Vector3(0, cy, 0), dirv,
+				half_len, FENCE_RAIL_HD, FENCE_RAIL_HH, "rail_front", "rail_top")
+		# 辺の柱。隣も同じ位置に描くと面が重なってちらつくので、方向 0..2 のときだけ描く
+		#（同じ辺は相手から見ると方向 3..5）。盤外へ伸びた腕の先は相手がいないので常に描く。
+		if i < 3 or not _in_board(hex + Hex.DIRECTIONS[i]):
+			_fbox_add(boxes, skin, mid + Vector3(0, FENCE_POST_H * 0.5, 0), dirv,
+				FENCE_POST_HW, FENCE_POST_HW, FENCE_POST_H * 0.5, "post_side", "post_top")
+	if any:
+		_fbox_add(boxes, skin, a + Vector3(0, FENCE_POST_H * 0.5, 0), Vector3.RIGHT,
+			FENCE_POST_HW, FENCE_POST_HW, FENCE_POST_H * 0.5, "post_side", "post_top")
+
+## 直方体1個を SurfaceTool へ足す。c=中心 / axis=長さ方向（水平の単位ベクトル）/
+## hl=半長 / hd=半奥行 / hh=半高。側面と端面に side、上下面に top の帯を貼る。
+func _fbox_add(boxes: Dictionary, skin: TerrainSkin, c: Vector3, axis: Vector3,
+		hl: float, hd: float, hh: float, side: String, top: String) -> void:
+	var d := Vector3(-axis.z, 0.0, axis.x)
+	var u := axis * hl
+	var v := d * hd
+	var h := Vector3(0.0, hh, 0.0)
+	var side_tex := _fence_face_texture(skin, side)
+	var top_tex := _fence_face_texture(skin, top)
+	if side_tex == null or top_tex == null:
+		return
+	_fbox_quad(boxes, side_tex, c - u + v + h, c + u + v + h, c + u + v - h, c - u + v - h)
+	_fbox_quad(boxes, side_tex, c + u - v + h, c - u - v + h, c - u - v - h, c + u - v - h)
+	_fbox_quad(boxes, side_tex, c + u + v + h, c + u - v + h, c + u - v - h, c + u + v - h)
+	_fbox_quad(boxes, side_tex, c - u - v + h, c - u + v + h, c - u + v - h, c - u - v - h)
+	_fbox_quad(boxes, top_tex, c - u - v + h, c + u - v + h, c + u + v + h, c - u + v + h)
+	_fbox_quad(boxes, top_tex, c - u + v - h, c + u + v - h, c + u - v - h, c - u - v - h)
+
+func _fbox_quad(boxes: Dictionary, tex: Texture2D,
+		p1: Vector3, p2: Vector3, p3: Vector3, p4: Vector3) -> void:
+	var st: SurfaceTool = boxes.get(tex)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		boxes[tex] = st
+	st.set_uv(Vector2(0, 0)); st.add_vertex(p1)
+	st.set_uv(Vector2(1, 0)); st.add_vertex(p2)
+	st.set_uv(Vector2(1, 1)); st.add_vertex(p3)
+	st.set_uv(Vector2(0, 0)); st.add_vertex(p1)
+	st.set_uv(Vector2(1, 1)); st.add_vertex(p3)
+	st.set_uv(Vector2(0, 1)); st.add_vertex(p4)
 
 ## 水平の板（橋）。自分のタイル絵をヘックス形の板として floor の高さ（＝elev。盤の読み取り面で、
 ## 駒もここに立つ）に敷く。足場（map_ground＝川）は _add_tile が elevation の高さに敷くので、
@@ -488,18 +536,6 @@ func _standee_art_height(spr: Sprite3D) -> float:
 			img.decompress()
 		_art_height[tex] = float(img.get_used_rect().size.y)
 	return _art_height[tex] * spr.pixel_size
-
-## 辺に沿って立てるオブジェクトの板の絵（assets/terrain/{skin_id}_side.png）。無ければ声を上げて null。
-func _object_side_texture(skin: TerrainSkin) -> Texture2D:
-	var id := skin.skin_id
-	if _obj_side_tex.has(id):
-		return _obj_side_tex[id]
-	var path := "res://assets/terrain/%s_side.png" % id
-	var tex := load(path) as Texture2D if ResourceLoader.exists(path) else null
-	if tex == null:
-		push_error("BoardTerrainRenderer: 板の絵が無い %s" % path)
-	_obj_side_tex[id] = tex
-	return tex
 
 ## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
 ## スキンが grid=false のマスは引かない＝駒が入れない地形が枠で刻まれず、一つの塊として読める。

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://n475jvwhlam2"
-path="res://.godot/imported/plain_grave1_fence_side.png-6056fde118bb90cca313bacebb6e4d1f.ctex"
+uid="uid://bg7v7n8n1ydx6"
+path="res://.godot/imported/plain_grave1_fence_rail_front.png-353f3a5dfd2a5abd1f050adeab9faa6c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_grave1_fence_side.png"
-dest_files=["res://.godot/imported/plain_grave1_fence_side.png-6056fde118bb90cca313bacebb6e4d1f.ctex"]
+source_file="res://assets/terrain/plain_grave1_fence_rail_front.png"
+dest_files=["res://.godot/imported/plain_grave1_fence_rail_front.png-353f3a5dfd2a5abd1f050adeab9faa6c.ctex"]
 
 [params]
 
