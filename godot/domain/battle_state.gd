@@ -1373,15 +1373,20 @@ func team_unit_count(team: int) -> int:
 ## 勝敗（盤上0で判定）とは別の数え方＝評価ランクの生存が読む（詳細 → doc/gdd/rank.md）。
 ## 拠点の控えは出撃まで team が決まらないので帰属先（recruited_team）で見る。
 ## 帰属未確定の中立の控えはどちらにも数えない（まだどちらの戦力でもない）。
+## 兵器は数えない（置いて壊させる駒で、移動0だから退避もできない）＝頭数を数える
+## team_unit_count とは別物になったので、盤上のぶんもここで数え直す。
 func team_survivor_count(team: int) -> int:
-	var n := team_unit_count(team)
+	var n := 0
+	for u in _units:
+		if u.team == team and not u.is_emplacement():
+			n += 1
 	for list in _passengers.values():
 		for u in list:
-			if u.team == team:
+			if u.team == team and not (u as Unit).is_emplacement():
 				n += 1
 	for b in _bases:
 		for gu in b.garrison:
-			if (gu as Unit).recruited_team == team:
+			if (gu as Unit).recruited_team == team and not (gu as Unit).is_emplacement():
 				n += 1
 	return n
 

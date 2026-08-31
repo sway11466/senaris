@@ -165,6 +165,8 @@ ui.result.defeated,撃破,Defeated
 ui.result.rank,ランク,Rank
 ui.result.goal_turn,%sランク　%dターン未満,Rank %s  under %d turns
 ui.result.goal_alive,%sランク　%d体以上,Rank %s  %d or more units
+ui.result.note_mark,※,*
+ui.result.note_weapons,※兵器は数に入りません,* War Machines are not counted
 ui.combat.attack,攻撃,Attack
 ui.combat.defense,防御,Defense
 ui.combat.poison,毒 -%d/ターン,Poison -%d/turn

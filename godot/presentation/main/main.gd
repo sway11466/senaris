@@ -356,7 +356,8 @@ func _show_result(outcome: int, rank: String) -> void:
 	if stamp_text.is_empty():
 		stamp_text = "VICTORY" if win else "DEFEAT"
 	# 印の上の欄名はランクを押す回だけ（VICTORY / DEFEAT の上に「ランク」と刷ると嘘になる）。
-	_result.play(_stage_title(), stamp_text, win, _result_rows(win), tr("ui.result.rank") if not rank.is_empty() else "")
+	_result.play(_stage_title(), stamp_text, win, _result_rows(win),
+		tr("ui.result.rank") if not rank.is_empty() else "", tr("ui.result.note_weapons"))
 	await _result.finished
 
 ## ステージ開始時の兵力を控える（戦果票の分母）。数え方は決着時の生存と同じ＝盤上＋輸送の中＋
@@ -370,13 +371,15 @@ func _count_start_forces(state: BattleState) -> void:
 ## 上がるかを読ませる。敗北にランクは付かないので基準も出さない。撃破はランクに使わないので基準なし。
 ## 撃破は「開始時の敵数 − 残っている敵数」。控えが出撃してから倒された分は数え落とす
 ## （開始時に盤上に居ない）＝多く見せる側には振れない。厳密に採るなら domain 側で撃破を数える。
+## 生存・撃破は兵器を数えない（doc/gdd/rank.md）＝その2行の見出しに印を付け、脚注で受ける。
 func _result_rows(win: bool) -> Array:
 	var st := _controller.state
 	var alive_ally := st.team_survivor_count(0)
 	var alive_enemy := st.team_survivor_count(1)
+	var mark := tr("ui.result.note_mark")
 	var turns := "%d / %d" % [st.turn_number, st.turn_limit] if st.turn_limit > 0 else str(st.turn_number)
 	var turn_row := {"label": tr("ui.result.turns"), "value": turns}
-	var alive_row := {"label": tr("ui.result.survived"), "value": "%d / %d" % [alive_ally, _start_ally]}
+	var alive_row := {"label": tr("ui.result.survived") + mark, "value": "%d / %d" % [alive_ally, _start_ally]}
 	if win and not _rank_data.is_empty():
 		var turn_got := RankEvaluator.turn_rank(st.turn_number, _rank_data)
 		var alive_got := RankEvaluator.survival_rank(alive_ally, _start_ally, _rank_data)
@@ -385,7 +388,7 @@ func _result_rows(win: bool) -> Array:
 	return [
 		turn_row,
 		alive_row,
-		{"label": tr("ui.result.defeated"), "value": str(maxi(_start_enemy - alive_enemy, 0))},
+		{"label": tr("ui.result.defeated") + mark, "value": str(maxi(_start_enemy - alive_enemy, 0))},
 	]
 
 ## 1行ぶんのランク基準を辞書に足す。閾値が 0（＝その軸に基準を置いていないステージ）の段は空欄。

@@ -44,6 +44,11 @@ func is_transport() -> bool:
 func is_aerial() -> bool:
 	return move_type == "flight"
 
+## 兵器（バリケード・バリスタ）か。判定は移動タイプ（stationary）で行う＝据え置き＝兵器、
+## と一元化する。戦果の生存・撃破が数から外す（doc/gdd/rank.md）。
+func is_emplacement() -> bool:
+	return move_type == "stationary"
+
 ## target を攻撃するときに使うユニット攻撃力。相手が飛行なら対空、地上なら対地。
 ## 0 なら「その相手を攻撃できない」（対空0＝飛行を狙えない）。詳細 → doc/gdd/combat.md
 func attack_against(target: Unit) -> int:

@@ -148,6 +148,29 @@ func test_survivor_count_ignores_unclaimed_garrison() -> void:
 	assert_eq(s.team_survivor_count(0), 1, "自軍の控えだけ数える")
 	assert_eq(s.team_survivor_count(1), 0, "中立の控えは敵の数にも入らない")
 
+## 兵器は生存に数えない（doc/gdd/rank.md）。盤上・輸送の中・拠点の控えのどこに居ても外れる。
+func test_survivor_count_excludes_emplacements() -> void:
+	var s := _state()
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	var barricade := Unit.new(2, 0, Hex.offset_to_axial(2, 3), 3)
+	barricade.move_type = "stationary"
+	s.add_unit(barricade)
+	assert_eq(s.team_unit_count(0), 2, "頭数（勝敗が読む）には兵器も入る")
+	assert_eq(s.team_survivor_count(0), 1, "盤上の兵器は生存に数えない")
+	var wagon := Unit.new(3, 0, Hex.offset_to_axial(1, 1), 3)
+	wagon.capacity = 4
+	s.add_unit(wagon)
+	var cargo := Unit.new(4, 0, Hex.offset_to_axial(1, 2), 3)
+	cargo.move_type = "stationary"
+	s.put_passenger(wagon.id, cargo)
+	assert_eq(s.team_survivor_count(0), 2, "積荷の兵器も数えない（兵と馬車だけ）")
+	var b := Base.new(Hex.offset_to_axial(3, 2), 0)
+	var stored := Unit.new(5, 0, Vector2i.ZERO, 3)
+	stored.move_type = "stationary"
+	b.garrison.append(stored)
+	s.add_base(b)
+	assert_eq(s.team_survivor_count(0), 2, "拠点の控えの兵器も数えない")
+
 func test_remove_unit_unknown_or_twice_is_false() -> void:
 	var s := _state()
 	s.add_unit(Unit.new(1, 1, Hex.offset_to_axial(2, 2), 3))

@@ -49,19 +49,20 @@ func _process(_delta: float) -> bool:
 	if stamp.is_empty():
 		stamp = "VICTORY" if win else "DEFEAT"
 	_banner.play("森の追撃", stamp, win, _rows(int(s[1]), int(s[2]), rank_data),
-		tr("ui.result.rank") if not rank.is_empty() else "")
+		tr("ui.result.rank") if not rank.is_empty() else "", tr("ui.result.note_weapons"))
 	return false
 
 ## main.gd の _result_rows と同じ組み立て（あちらは盤の状態から数える）。
 func _rows(turn: int, alive: int, rank_data: Dictionary) -> Array:
+	var mark := tr("ui.result.note_mark")
 	var turn_row := {"label": tr("ui.result.turns"), "value": "%d / %d" % [turn, 30]}
-	var alive_row := {"label": tr("ui.result.survived"), "value": "%d / %d" % [alive, 5]}
+	var alive_row := {"label": tr("ui.result.survived") + mark, "value": "%d / %d" % [alive, 5]}
 	if not rank_data.is_empty():
 		_goals(turn_row, "ui.result.goal_turn", rank_data["turn_s"], rank_data["turn_a"],
 			RankEvaluator.turn_rank(turn, rank_data))
 		_goals(alive_row, "ui.result.goal_alive", rank_data["survival_s"], rank_data["survival_a"],
 			RankEvaluator.survival_rank(alive, 5, rank_data))
-	return [turn_row, alive_row, {"label": tr("ui.result.defeated"), "value": "6"}]
+	return [turn_row, alive_row, {"label": tr("ui.result.defeated") + mark, "value": "6"}]
 
 func _goals(row: Dictionary, fmt_key: String, s_val: int, a_val: int, got: String) -> void:
 	row["s"] = tr(fmt_key) % [RankEvaluator.RANK_S, s_val]

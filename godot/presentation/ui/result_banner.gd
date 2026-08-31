@@ -32,6 +32,7 @@ const STAMP_DROP := 0.04                   ## 字を丸の中心より少し下�
 const LABEL_W := 110.0                     ## 見出しの桁（ターン／生存／撃破）
 const VALUE_W := 120.0                     ## 値の桁（"12 / 30" が入る＝右揃えで桁が縦に揃う）
 const GOAL_INDENT := 36.0                  ## ランク基準の字下げ（見出しの下にぶら下げる）
+const NOTE_GAP := 6.0                      ## 脚注と明細のあいだ（直前の行の続きに見えないよう空ける）
 const GOAL_CHECK := "✓"                    ## 達成した基準の印
 const SCRIM_A := 0.55                      ## 盤を沈める暗幕の濃さ
 const SHEET_IN := 0.22                     ## 紙が浮かび上がる
@@ -99,9 +100,10 @@ func _build() -> void:
 ## rows＝戦果の行。1行は辞書で
 ## { "label": 見出し, "value": 値, "s": S基準の文言, "s_ok": 達成したか, "a": A基準, "a_ok": … }。
 ## 基準の文言が空の行（撃破など）は基準の欄を空けたまま並べる。
-func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "") -> void:
+## note＝明細の下に置く脚注（空＝出さない）。掛かる先は見出しに付けた印で示す＝呼び出し側の管轄。
+func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "", note := "") -> void:
 	_build()
-	_fill(title, rows)
+	_fill(title, rows, note)
 	_can_close = false
 	visible = true
 	if _tween != null and _tween.is_valid():
@@ -157,7 +159,7 @@ func _rank_font() -> Font:
 ## 見出しと戦果の行を作り直す（前回の中身は捨てる）。
 ## 1つの戦果につき「見出し＋値」の行を1本、その下にランク基準を字下げしてぶら下げる。
 ## 横に並べると1行が長くなって読む順が分からなくなる＝縦に積んで、上から順に読ませる。
-func _fill(title: String, rows: Array) -> void:
+func _fill(title: String, rows: Array, note: String) -> void:
 	for c in _body.get_children():
 		c.queue_free()
 	var head := Label.new()
@@ -171,6 +173,11 @@ func _fill(title: String, rows: Array) -> void:
 		if typeof(r) != TYPE_DICTIONARY:
 			continue
 		_body.add_child(_row_block(r))
+	if not note.is_empty():
+		var gap := Control.new()
+		gap.custom_minimum_size.y = NOTE_GAP
+		_body.add_child(gap)
+		_body.add_child(_cell(note, 17, HORIZONTAL_ALIGNMENT_LEFT, 0.0))
 
 ## 戦果1つぶんの塊（見出し＋値の行と、その下のランク基準）。
 func _row_block(r: Dictionary) -> VBoxContainer:
