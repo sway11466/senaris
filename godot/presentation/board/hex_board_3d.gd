@@ -992,6 +992,11 @@ func _sync_overlay() -> void:
 		_unit_renderer.add_target_marker(state.unit_by_id(int(_targets[pos])), _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
+		# 対象を1体選ぶスキル（single＝単体狙撃／buff_scope=unit＝1体に掛ける）は駒の居るhexしか
+		# 選べない＝攻撃と同じ頭上マーカーを出す。色も攻撃と共通＝「マーク＝いま選べる対象」の記号。
+		if _choosing_formation and (String(_formation_active.get("effect", "")) == "single"
+				or String(_formation_active.get("buff_scope", "")) == "unit"):
+			_unit_renderer.add_target_marker(state.unit_at(h), _overlay_root)
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
 		for h in Hex.within_range(_hover, int(_formation_active.get("radius", 0))):
 			_add_cell(h, COLOR_FORMATION_BLAST, 0.035)
