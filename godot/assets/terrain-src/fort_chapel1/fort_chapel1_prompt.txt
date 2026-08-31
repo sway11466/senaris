@@ -1,0 +1,30 @@
+SUBJECT: One small rural stone chapel, standing alone on a flat pure white
+background (#FFFFFF) — no ground, no grass, no path, no cast shadow on the
+ground, no other objects. Seen from slightly above eye level. The front
+gable wall with its door faces the viewer almost square-on, the building
+turned only a LITTLE to one side — much closer to a straight front view
+than to a corner view: the right side wall with its windows is visible
+but strongly compressed, taking up far less of the picture than the front
+wall. Keep the turn small.
+
+DESIGN (follow exactly, every count and position):
+- One rectangular nave only. Strictly symmetrical building. NO tower, NO
+  transept, NO side annex, NO porch, NO chimney.
+- One steep gabled saddle roof covering the whole nave.
+- Front gable wall: one pointed-arch double door centered at ground level,
+  and one round window centered directly above the door. Nothing else on
+  this wall.
+- On the roof ridge, at its front end: one small stone bell-cote (an open
+  stone frame) holding one bell, topped by one cross.
+- Each side wall: three pointed-arch windows evenly spaced, and four
+  buttresses at equal intervals — one at each corner of the wall and one
+  between each pair of windows.
+- Walls: rough-cut stone, base colour #B1AC9B, shaded side #7A776C.
+- Roof: flat stone slabs in one uniform colour — base #97948A, shaded
+  areas #7C796F, lit areas #B7B2A4. Every slab is the SAME colour as its
+  neighbours — do NOT alternate lighter and darker slabs, NO patchwork,
+  NO stripes, NO checker pattern, NO decorative bands, and NO part of the
+  roof darker than #7C796F. Shading may follow only the slope of the
+  roof, never individual slabs.
+
+Square 1:1.
