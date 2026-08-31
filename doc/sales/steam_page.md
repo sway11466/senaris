@@ -1,6 +1,6 @@
 # Steam のストアページ
 
-対象：Steam のストアページに入力する内容。素材の方針は [marketing.md](marketing.md)、チャネルとしての位置づけと出す順序は [monetization.md](monetization.md)。埋めるスロットの一覧と登録の段取りは backlog の feature-53。
+対象：Steam のストアページに入力する内容。素材の方針は [marketing.md](marketing.md)、チャネルとしての位置づけと出す順序は [monetization.md](monetization.md)。登録の段取りは backlog の feature-53。
 
 ---
 
