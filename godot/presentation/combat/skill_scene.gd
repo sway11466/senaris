@@ -26,21 +26,29 @@ func play(detail: Dictionary) -> void:
 
 	# 陣営が違えば戦闘と同じ左右（team0=左／team1=右）。同陣営どうしは陣営で決まらないので
 	# 発動者を左・対象を右に置く。立ち絵の反転は舞台側（_face_mirror）が引き受ける。
+	# 自分掛け（発動者＝対象）は同じ駒を左右に2組出さず、陣営の側に1組だけ置いて
+	# 自分の隊列に着弾させる。反対側は空にする（→ CombatStage._blank_side）。
+	var self_cast := int(caster.get("id", -1)) == int(victim.get("id", -2))
 	var cast_side := "L"
-	if int(caster["team"]) != int(victim["team"]):
+	if self_cast or int(caster["team"]) != int(victim["team"]):
 		cast_side = "L" if int(caster["team"]) == 0 else "R"
-	var to_side := _other_side(cast_side)
+	var to_side := cast_side if self_cast else _other_side(cast_side)
 
 	_open(victim, to_side, caster)  # 地面は左右それぞれの駒の地形。重ね絵は掛けられる側
 	var gen := _gen
 	_render_side(cast_side, caster, _troops_of(caster))
-	_render_side(to_side, victim, _troops_of(victim))
+	if self_cast:
+		_blank_side(_other_side(cast_side))
+	else:
+		_render_side(to_side, victim, _troops_of(victim))
 
 	# ため：まず両者を見せてから放つ（突入直後に即着弾しない）。兵量バーは動かないので、
 	# 幕引きまでの長さは「放ってから最後の1発が届く」時間だけで決まる。
 	var eff := _skill_effect(detail, caster)
 	var shots := clampi(_troops_of(caster), 1, POS.size())
-	var reach := float(shots - 1) * STAGGER + (FLIGHT if eff != null and eff.is_projectile() else 0.0)
+	# 自分掛けは飛ばさない（同じ場所への飛行は絵にならない）＝その場で弾けさせる。_cast も同じ条件で見る。
+	var fly := eff != null and eff.is_projectile() and cast_side != to_side
+	var reach := float(shots - 1) * STAGGER + (FLIGHT if fly else 0.0)
 	_tween = create_tween()
 	_tween.tween_interval(LEAD_IN)
 	_tween.tween_callback(func() -> void:
@@ -59,7 +67,7 @@ func _cast(cast_side: String, to_side: String, victim: Dictionary, eff: CombatEf
 	# 無ければ無音で進む。詳細 → doc/audio/sfx.md
 	SfxPlayer.play_sfx(String(detail.get("recipe", "")))
 	var targets := _troops_of(victim)
-	var fly := eff != null and eff.is_projectile()
+	var fly := eff != null and eff.is_projectile() and cast_side != to_side  # 自分掛けは飛ばさない（play と同条件）
 	for i in shots:
 		var to := _slot_pos(to_side, POS[i % targets])
 		var delay := float(i) * STAGGER

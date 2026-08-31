@@ -447,6 +447,9 @@ func _render_side(side: String, comb: Dictionary, count: int, animate: bool = fa
 	var team := int(comb.get("team", 0))
 	_shown[side] = count
 	_mirror[side] = _face_mirror(side, team)
+	var bar: Control = _bar[side]
+	if bar != null:
+		bar.visible = true  # 前の演出の _blank_side が消していたら戻す
 	_set_bar(side, count, team, animate)
 	var skin := _skin_of(comb)
 	if skin != null and skin.is_single_figure():
@@ -462,6 +465,15 @@ func _render_side(side: String, comb: Dictionary, count: int, animate: bool = fa
 	figs.sort_custom(func(u, v): return u["feet"] < v["feet"])  # 手前（下）を後に＝前面
 	for f in figs:
 		_add_figure(layer, f["cx"], f["feet"], f["s"], f["tex"], team, comb, _mirror[side])
+
+## 片側を空にする（隊列を描かず兵量バーも隠す）。自分掛けのユニットスキル＝駒が1組しか
+## 出ない演出で使う。バーの visible は次の _render_side が戻す。
+func _blank_side(side: String) -> void:
+	_clear(_fig[side])
+	_shown[side] = 0
+	var bar: Control = _bar[side]
+	if bar != null:
+		bar.visible = false
 
 ## その側の立ち絵を水平反転するか。立ち絵は向きを陣営に焼き込んである（プレイヤー＝右向き／
 ## 敵＝左向き）ので、陣営が左右に分かれる戦闘では反転は要らない。同陣営どうしが並ぶ
