@@ -16,15 +16,28 @@ const V3_COPIED_KEYS := ["current_team", "turn_number", "units", "status_mods", 
 	"defeated", "defeated_actors", "sortied_actors", "spent", "squad_of", "charges"]
 
 ## SaveStore.load の生データ（{ version, meta, state }）→ 現行版の { meta, state }。
-## 現行版はそのまま、旧版は変換して返す。変換できない版は空 dict（読まない）。
+## 現行版はそのまま、旧版は1段ずつ上げて返す。変換できない版は空 dict（読まない）。
 static func migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("version", 0))
-	if version == SaveStore.VERSION:
-		return { "meta": data.get("meta", {}), "state": data.get("state", {}) }
+	var record := { "meta": data.get("meta", {}), "state": data.get("state", {}) }
 	if version == 2:
-		return _v2_to_v3(data)
-	push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
-	return {}
+		record = _v2_to_v3(data)
+		version = 3
+	if version == 3:
+		record = _v3_to_v4(record)
+		version = 4
+	if version != SaveStore.VERSION:
+		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
+		return {}
+	return record
+
+## v3 → v4（meta に開始時刻を足した）。旧セーブは測っていないので 0＝不明を入れる。
+## 不明のまま勝った回は戦果票に所要時間を出さず、ベストタイムも記録しない
+## （doc/tech/gamesystem.md §所要時間）。測っていない時間を 0 秒として記録に混ぜないため。
+static func _v3_to_v4(record: Dictionary) -> Dictionary:
+	var meta: Dictionary = (record.get("meta", {}) as Dictionary).duplicate()
+	meta["started_at"] = 0
+	return { "meta": meta, "state": record.get("state", {}) }
 
 ## v2（盤の丸ごと直列化）→ v3（動的差分）。盤サイズ・地形・勝敗条件・ターン上限・部隊定義は
 ## ステージJSONから引き直すので落とす。詳細 → doc/backlog.md feature-91・doc/tech/gamesystem.md

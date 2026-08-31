@@ -129,6 +129,39 @@ func test_old_save_without_ranks_loads_fine() -> void:
 	assert_true(store.is_cleared("tutorial", "st1"), "クリア記録は読める")
 	assert_eq(store.best_rank("tutorial", "st1"), "", "ランクは無し")
 
+## 所要時間（doc/tech/gamesystem.md §所要時間）
+
+func test_mark_time_keeps_shortest() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_time("tutorial", "st1", 600)
+	store.mark_time("tutorial", "st1", 900)
+	assert_eq(ProgressStore.new(PATH).best_time("tutorial", "st1"), 600, "遅い回では上書きしない")
+	store.mark_time("tutorial", "st1", 300)
+	assert_eq(ProgressStore.new(PATH).best_time("tutorial", "st1"), 300, "短い回で更新する")
+
+func test_mark_time_ignores_unmeasured() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_time("tutorial", "st1", 0)
+	assert_eq(store.best_time("tutorial", "st1"), 0, "測れていない回は記録しない")
+
+func test_time_zero_or_negative_in_file_is_ignored() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION,
+		"cleared": {}, "times": { "tutorial": { "st1": 0, "st2": -5, "st3": 120 } } }))
+	var store := ProgressStore.new(PATH)
+	assert_eq(store.best_time("tutorial", "st1"), 0, "0 は記録として読まない")
+	assert_eq(store.best_time("tutorial", "st2"), 0, "負の値は読まない")
+	assert_eq(store.best_time("tutorial", "st3"), 120)
+
+func test_v1_file_is_migrated() -> void:
+	_write(JSON.stringify({ "version": 1, "cleared": { "tutorial": { "st1": true } },
+		"ranks": { "tutorial": { "st1": "A" } } }))
+	var store := ProgressStore.new(PATH)
+	assert_true(store.is_cleared("tutorial", "st1"), "旧版のクリア記録は消えない")
+	assert_eq(store.best_rank("tutorial", "st1"), "A", "旧版のランクも残る")
+	assert_eq(store.best_time("tutorial", "st1"), 0, "旧版は所要時間を持たない")
+	store.mark_time("tutorial", "st1", 480)
+	assert_eq(ProgressStore.new(PATH).best_time("tutorial", "st1"), 480, "以後のクリアから埋まる")
+
 func _write(text: String) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	f.store_string(text)

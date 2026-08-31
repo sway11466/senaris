@@ -115,7 +115,7 @@ func test_survivor_count_includes_garrison_and_passengers() -> void:
 	var s := _state()
 	var pos := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, pos, 3))
-	assert_eq(s.team_survivor_count(0), 1, "盤上の駒を数える")
+	assert_eq(s.ally_survivor_count(), 1, "盤上の駒を数える")
 	# 拠点の中（自陣拠点へ退避した駒）
 	var base_hex := Hex.offset_to_axial(3, 2)
 	var b := Base.new(base_hex, 0)
@@ -123,20 +123,20 @@ func test_survivor_count_includes_garrison_and_passengers() -> void:
 	assert_true(s.move_unit(1, base_hex))
 	assert_true(s.enter_base(1), "自陣拠点に入る")
 	assert_eq(s.team_unit_count(0), 0, "盤上からは消える")
-	assert_eq(s.team_survivor_count(0), 1, "拠点に退避しても生存に数える")
+	assert_eq(s.ally_survivor_count(), 1, "拠点に退避しても生存に数える")
 	# 輸送の中
 	var wagon := Unit.new(2, 0, Hex.offset_to_axial(1, 1), 3)
 	wagon.capacity = 4
 	s.add_unit(wagon)
 	var rider := Unit.new(3, 0, Hex.offset_to_axial(1, 2), 3)
 	s.put_passenger(wagon.id, rider)
-	assert_eq(s.team_survivor_count(0), 3, "搭乗中の駒も生存に数える")
+	assert_eq(s.ally_survivor_count(), 3, "搭乗中の駒も生存に数える")
 	# 失われた駒だけが落ちる
 	assert_true(s.remove_unit(wagon.id), "輸送を撃破（搭乗駒も巻き添え）")
-	assert_eq(s.team_survivor_count(0), 1, "撃破された駒と搭乗駒は数から落ちる")
+	assert_eq(s.ally_survivor_count(), 1, "撃破された駒と搭乗駒は数から落ちる")
 
-func test_survivor_count_ignores_unclaimed_garrison() -> void:
-	# 拠点の控えは帰属先で数える＝まだ解放されていない中立の控えはどちらにも数えない。
+func test_survivor_count_includes_unclaimed_garrison() -> void:
+	# まだ解放されていない中立の控えは自軍の生存に数える（doc/gdd/rank.md 生存）。
 	var s := _state()
 	var b := Base.new(Hex.offset_to_axial(3, 2), 0)
 	var neutral := Unit.new(1, 0, Vector2i.ZERO, 3)
@@ -144,9 +144,12 @@ func test_survivor_count_ignores_unclaimed_garrison() -> void:
 	b.garrison.append(neutral)
 	var ours := Unit.new(2, 0, Vector2i.ZERO, 3)  # native 0＝自軍の控え
 	b.garrison.append(ours)
+	var theirs := Unit.new(3, 1, Vector2i.ZERO, 3)  # native 1＝敵の控え（閉じ込め）
+	b.garrison.append(theirs)
 	s.add_base(b)
-	assert_eq(s.team_survivor_count(0), 1, "自軍の控えだけ数える")
-	assert_eq(s.team_survivor_count(1), 0, "中立の控えは敵の数にも入らない")
+	assert_eq(s.ally_survivor_count(), 2, "自軍の控えと未解放の中立を数える")
+	neutral.recruited_team = 1  # 敵に解放された＝ここで自軍の生存から落ちる
+	assert_eq(s.ally_survivor_count(), 1, "敵に解放された中立は落ちる")
 
 ## 兵器は生存に数えない（doc/gdd/rank.md）。盤上・輸送の中・拠点の控えのどこに居ても外れる。
 func test_survivor_count_excludes_emplacements() -> void:
@@ -156,20 +159,66 @@ func test_survivor_count_excludes_emplacements() -> void:
 	barricade.move_type = "stationary"
 	s.add_unit(barricade)
 	assert_eq(s.team_unit_count(0), 2, "頭数（勝敗が読む）には兵器も入る")
-	assert_eq(s.team_survivor_count(0), 1, "盤上の兵器は生存に数えない")
+	assert_eq(s.ally_survivor_count(), 1, "盤上の兵器は生存に数えない")
 	var wagon := Unit.new(3, 0, Hex.offset_to_axial(1, 1), 3)
 	wagon.capacity = 4
 	s.add_unit(wagon)
 	var cargo := Unit.new(4, 0, Hex.offset_to_axial(1, 2), 3)
 	cargo.move_type = "stationary"
 	s.put_passenger(wagon.id, cargo)
-	assert_eq(s.team_survivor_count(0), 2, "積荷の兵器も数えない（兵と馬車だけ）")
+	assert_eq(s.ally_survivor_count(), 2, "積荷の兵器も数えない（兵と馬車だけ）")
 	var b := Base.new(Hex.offset_to_axial(3, 2), 0)
 	var stored := Unit.new(5, 0, Vector2i.ZERO, 3)
 	stored.move_type = "stationary"
 	b.garrison.append(stored)
 	s.add_base(b)
-	assert_eq(s.team_survivor_count(0), 2, "拠点の控えの兵器も数えない")
+	assert_eq(s.ally_survivor_count(), 2, "拠点の控えの兵器も数えない")
+
+## 未発火の自軍増援も生存に数える（来ていないだけで失われていない）。詳細 → doc/gdd/rank.md
+func test_survivor_count_includes_pending_reinforcements() -> void:
+	var s := _state()
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	var wagon := Unit.new(2, 0, Hex.offset_to_axial(0, 0), 3)
+	wagon.capacity = 4
+	var barricade := Unit.new(4, 0, Hex.offset_to_axial(0, 1), 3)
+	barricade.move_type = "stationary"
+	s.add_event({
+		"id": "help", "turn": 5, "team": 0, "on": "", "hex": Vector2i.MAX,
+		"units": [
+			{ "unit": wagon, "passengers": [Unit.new(3, 0, Vector2i.ZERO, 3)] },
+			{ "unit": barricade, "passengers": [] },
+		],
+	})
+	s.add_event({
+		"id": "foes", "turn": 6, "team": 1, "on": "", "hex": Vector2i.MAX,
+		"units": [{ "unit": Unit.new(5, 1, Vector2i.ZERO, 3), "passengers": [] }],
+	})
+	assert_eq(s.ally_survivor_count(), 3, "盤上1＋未発火の増援2（兵器と敵の増援は数えない）")
+
+## 撃破は実際に倒した駒の累積（戦果票が敵側を読む）。詳細 → doc/gdd/rank.md
+func test_losses_count_defeated_units() -> void:
+	var s := _state()
+	var foe := Unit.new(1, 1, Hex.offset_to_axial(2, 2), 3)
+	s.add_unit(foe)
+	var wagon := Unit.new(2, 1, Hex.offset_to_axial(3, 2), 3)
+	wagon.capacity = 4
+	s.add_unit(wagon)
+	s.put_passenger(wagon.id, Unit.new(3, 1, Vector2i.ZERO, 3))
+	var barricade := Unit.new(4, 1, Hex.offset_to_axial(4, 2), 3)
+	barricade.move_type = "stationary"
+	s.add_unit(barricade)
+	var ally := Unit.new(5, 0, Hex.offset_to_axial(1, 1), 3)
+	s.add_unit(ally)
+	assert_eq(s.losses(1), 0, "まだ何も倒していない")
+	assert_true(s.remove_unit(foe.id))
+	assert_eq(s.losses(1), 1, "倒した敵を数える")
+	assert_true(s.remove_unit(wagon.id))
+	assert_eq(s.losses(1), 3, "巻き添えの搭乗駒も数える")
+	assert_true(s.remove_unit(barricade.id))
+	assert_eq(s.losses(1), 3, "敵の兵器は撃破に乗らない")
+	assert_true(s.remove_unit(ally.id))
+	assert_eq(s.losses(1), 3, "自軍の損失は敵の撃破に混ざらない")
+	assert_eq(s.losses(0), 1, "陣営ごとに数える")
 
 func test_remove_unit_unknown_or_twice_is_false() -> void:
 	var s := _state()

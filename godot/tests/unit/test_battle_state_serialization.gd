@@ -45,6 +45,7 @@ func _rich_state(data: Dictionary) -> BattleState:
 	s._spent[1] = 2
 	s._defeated[42] = true                 # 盤外で撃破済みの駒
 	s._defeated_actors["ghost"] = true     # 名指しの撃破記録（ボス撃破・護衛対象の判定用）
+	s._losses[1] = 3                       # 戦果票の撃破数（累積・導出できないので差分が持つ）
 	s.add_status_mod({ "scope": "team", "team": 0, "op": "mul", "target": "attack", "value": 1.3, "owner_team": 0, "remaining": 2 })
 	return s
 
@@ -97,6 +98,7 @@ func test_action_flags_roundtrip() -> void:
 	assert_eq(int(s2._spent.get(1, 0)), 2, "使った移動コスト")
 	assert_true(s2._defeated.has(42), "撃破記録")
 	assert_true(s2.is_actor_defeated("ghost"), "名指しの撃破記録（ボス撃破・護衛対象の判定用）")
+	assert_eq(s2.losses(1), 3, "撃破数（陣営ごとの損失）＝再開後も数え直しにならない")
 
 func test_terrain_comes_from_stage() -> void:
 	var s2 := _rich_roundtrip()

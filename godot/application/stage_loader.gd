@@ -380,6 +380,77 @@ static func load_rank(path: String) -> Dictionary:
 		return {}
 	return rank
 
+## 戦果の分母＝ステージ開始時の自軍戦力（→ doc/gdd/rank.md 生存）。数えるのは生来の陣営が
+## 自軍か中立の駒と、自軍の増援イベントの駒（未発火も含む）。兵器は数えない。
+## 盤の現況ではなくステージ定義から導出する＝中断セーブから再開しても同じ値になる。
+## 名簿で出撃が決まる駒（actor 持ち）は state.has_sortied で見る＝未加入・離脱者は数えない。
+static func count_start_allies(data: Dictionary, state: BattleState, catalog: Dictionary,
+		skin_catalog: Dictionary = {}) -> int:
+	var n := 0
+	for u in _as_dicts(data.get("player", [])):
+		if not _starts_in_force(u, state):
+			continue
+		n += _force_size(u, catalog, skin_catalog)
+	for b in _as_dicts(data.get("bases", [])):
+		var base_native := _parse_team(b.get("team"), Base.NEUTRAL)  # 控えの既定 native＝拠点の初期所属
+		for g in _as_dicts(b.get("garrison", [])):
+			if _parse_team(g.get("native"), base_native) == 1:
+				continue  # 敵 native の控えは自軍の戦力ではない
+			n += maxi(int(g.get("count", 1)), 1) * _force_size(g, catalog, skin_catalog)
+	for e in _as_dicts(data.get("events", [])):
+		if String(e.get("type", "reinforce")) != "reinforce":
+			continue
+		if _parse_team(e.get("team"), 0) != 0:
+			continue
+		for u in _as_dicts(e.get("units", [])):
+			n += _force_size(u, catalog, skin_catalog)
+	return n
+
+## res:// パスから戦果の分母を数える（load_rank と対＝main は state と path だけで呼べる）。
+static func count_start_allies_at(path: String, state: BattleState) -> int:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return 0
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return 0
+	return count_start_allies(data, state, UnitCatalog.load_default(), SkinCatalog.load_standard())
+
+## その駒はこの戦いで盤に出たか（_resolve_player_unit と同じ判定を数える側から見たもの）。
+static func _starts_in_force(u: Dictionary, state: BattleState) -> bool:
+	var actor := String(u.get("actor", ""))
+	if actor == "" or _parse_supply(u) == SUPPLY_JOIN:
+		return true  # 配給＝名簿を見ずに必ず出る
+	return state.has_sortied(actor)
+
+## 駒1つぶんの戦力の数＝本体（兵器なら0）＋搭乗している駒。
+static func _force_size(u: Dictionary, catalog: Dictionary, skin_catalog: Dictionary) -> int:
+	var n := 0 if _is_emplacement_data(u, catalog, skin_catalog) else 1
+	for p in _as_dicts(u.get("passengers", [])):
+		n += _force_size(p, catalog, skin_catalog)
+	return n
+
+## 駒の記法（type / skin）から兵器かどうかを引く。未知の type は兵器でないものとして扱う。
+static func _is_emplacement_data(u: Dictionary, catalog: Dictionary, skin_catalog: Dictionary) -> bool:
+	var type_id := String(u.get("type", ""))
+	if type_id == "":
+		var skin_id := String(u.get("skin", ""))
+		if skin_id == "" or skin_catalog.is_empty():
+			return false
+		type_id = SkinCatalog.type_of_skin(skin_catalog, skin_id)
+	var t: UnitType = catalog.get(type_id)
+	return t != null and t.move_type == "stationary"
+
+## Variant を辞書の配列として読む（ステージJSONを数えるときの共通の入口）。
+static func _as_dicts(value: Variant) -> Array:
+	var out: Array = []
+	if typeof(value) != TYPE_ARRAY:
+		return out
+	for e in value:
+		if typeof(e) == TYPE_DICTIONARY:
+			out.append(e)
+	return out
+
 ## 依頼書（出撃確認の紙 → doc/gdd/stage_select.md 依頼書）に載せるステージ情報。
 ## { "party": 出撃する顔ぶれ, "carryover": 戦力を持ち越すステージか }
 static func parse_briefing(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {},

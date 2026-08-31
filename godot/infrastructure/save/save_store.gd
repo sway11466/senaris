@@ -11,7 +11,9 @@ const DEFAULT_PATH := "user://save.json"
 ##    持たず、復元して勝つと在籍者が全員「出番なし」扱いになるため読まない（退避はする）。
 ## 3: 盤の丸ごと直列化をやめ、ステージJSONから引き直せるものを落として動的差分だけを持つ。
 ##    meta にステージ定義の印（stage_digest）を足した（doc/tech/gamesystem.md §中断セーブが持つもの）。
-const VERSION := 3
+## 4: meta にステージ開始の実時刻（started_at）を足した。戦果票の所要時間がこれを引く
+##    （doc/tech/gamesystem.md §所要時間）。旧セーブは測っていない＝変換で 0（不明）を入れる。
+const VERSION := 4
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

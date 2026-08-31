@@ -69,6 +69,17 @@ func test_unknown_version_is_rejected() -> void:
 	assert_eq(SaveMigration.migrate({ "version": 1, "meta": {}, "state": {} }), {}, "変換を持たない版は読まない")
 	assert_push_warning("変換を持たない版")
 
+func test_v3_start_time_is_unknown() -> void:
+	var got := SaveMigration.migrate({ "version": 3, "meta": { "stage_id": "a" }, "state": { "turn_number": 2 } })
+	var meta: Dictionary = got["meta"]
+	assert_eq(int(meta["started_at"]), 0, "旧セーブは開始時刻を持たない＝不明（所要時間を測れない回）")
+	assert_eq(String(meta["stage_id"]), "a", "他のメタはそのまま")
+	assert_eq(got["state"], { "turn_number": 2 }, "盤の差分は触らない")
+
+func test_v2_climbs_to_current_version() -> void:
+	var meta: Dictionary = SaveMigration.migrate(_v2_record())["meta"]
+	assert_true(meta.has("started_at"), "v2 は v3 を経て現行版まで上がる")
+
 func test_v2_drops_stage_side_keys() -> void:
 	var got := SaveMigration.migrate(_v2_record())
 	var state: Dictionary = got["state"]

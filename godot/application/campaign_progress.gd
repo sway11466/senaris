@@ -125,6 +125,21 @@ func record_rank(campaign_id: String, stage_id: String, rank: String) -> void:
 func best_rank(campaign_id: String, stage_id: String) -> String:
 	return _store.best_rank(campaign_id, stage_id)
 
+## クリアまでの所要時間（秒）を記録する（勝利時に main が呼ぶ）。ベスト更新は ProgressStore が判定する。
+func record_time(campaign_id: String, stage_id: String, seconds: int) -> void:
+	if seconds <= 0:
+		return
+	var c := campaign(campaign_id)
+	if c.is_empty() or c["debug"]:
+		return
+	if _find_stage(c, stage_id).is_empty():
+		return
+	_store.mark_time(campaign_id, stage_id, seconds)
+
+## そのステージのベストタイム（秒）。まだ記録が無ければ 0。戦果票の「最速」が引く。
+func best_time(campaign_id: String, stage_id: String) -> int:
+	return _store.best_time(campaign_id, stage_id)
+
 ## マニフェスト順で stage_id の直後のステージを返す（無ければ {}）。クリア後の自動遷移に使う。
 ## 解放状態は見ない＝呼び出し側が stage_state で判定する（LOCKED なら進まない等）。
 func next_stage(campaign_id: String, stage_id: String) -> Dictionary:

@@ -52,8 +52,11 @@ var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利�
 var _victory_overlay := false  # 完走イラストを outro 会話に重ねて出した＝会話後に全画面で出し直さない印
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
-var _start_enemy := 0  # ステージ開始時の敵数（同・「撃破」の基準）
 var _rank_data := {}   # ステージ JSON の "rank"（評価ランクの閾値）。空＝ランクなし
+## 所要時間（戦果票の「所要時間」→ doc/tech/gamesystem.md §所要時間）。
+var _started_at := 0   # ステージを始めた実時刻（Unix秒）。中断セーブに持ち越す。0＝不明（旧セーブから再開）
+var _elapsed := 0      # 決着までの所要秒。0＝測れていない＝票に出さず記録もしない
+var _best_time := 0    # この回を記録する前の自己ベスト（秒）。0＝記録なし
 var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/既定のフォールバック
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
@@ -123,6 +126,9 @@ func load_stage(path: String) -> void:
 	if state == null:
 		push_error("main: ステージを読めない: %s" % path)
 		return
+	# 所要時間の起点。ここから勝敗が決まるまでを測る（intro 会話も含む＝ステージを始めた時刻）。
+	# 実時刻で持ち、中断セーブにも書く＝閉じていた間も含めた「クリアまでにかかった時間」になる。
+	_started_at = int(Time.get_unix_time_from_system())
 	_install_state(state, path)
 	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す（新規開始のみ）
 
@@ -177,7 +183,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_update_turn_plate(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_update_aura()  # 加護の光（中断セーブ復元で効果が残っていることがある）
-	_count_start_forces(state)  # 戦果票の基準（開始時の兵力）を控える
+	_count_start_forces(state, path)  # 戦果票の基準（開始時の兵力）を控える
 	_rank_data = StageLoader.load_rank(path)  # 評価ランクの閾値（無ければ空＝ランクなし）
 	if state.current_team == 0:
 		_take_turn_snapshot()  # ステージの頭＝自ターン開始時点。ここでオートセーブも入る
@@ -301,12 +307,18 @@ func _on_battle_finished(outcome: int) -> void:
 		_formation_cutin.dismiss()  # 陣形でボスを倒した＝カットインの最中に決着しうる
 	# ランクは決着の直後に採る（この後の名簿更新より前＝盤の駒がまだ動いていない）。
 	var rank := _evaluate_rank() if outcome == BattleState.PLAYER_WIN else ""
+	# 所要時間も同じ瞬間に採る。自己ベストは記録より前に控える＝票には「この回の前のベスト」を出す。
+	_elapsed = _elapsed_seconds()
+	_best_time = 0
+	if _progress != null and not _current_campaign_id.is_empty():
+		_best_time = _progress.best_time(_current_campaign_id, _current_stage_id)
 	match outcome:
 		BattleState.PLAYER_WIN:
 			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
 				_progress.record_clear(_current_campaign_id, _current_stage_id)
 				if not rank.is_empty():
 					_progress.record_rank(_current_campaign_id, _current_stage_id, rank)
+				_progress.record_time(_current_campaign_id, _current_stage_id, _elapsed)
 				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
 				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/campaigns.md
 				if _roster_store != null and _controller != null:
@@ -360,22 +372,19 @@ func _show_result(outcome: int, rank: String) -> void:
 		tr("ui.result.rank") if not rank.is_empty() else "", tr("ui.result.note_weapons"))
 	await _result.finished
 
-## ステージ開始時の兵力を控える（戦果票の分母）。数え方は決着時の生存と同じ＝盤上＋輸送の中＋
-## 拠点の中（doc/gdd/rank.md 生存）。同じ物差しで測らないと、拠点に入れただけで生存率が落ちる。
-func _count_start_forces(state: BattleState) -> void:
-	_start_ally = state.team_survivor_count(0)
-	_start_enemy = state.team_survivor_count(1)
+## ステージ開始時の兵力を控える（戦果票の分母）。盤の現況ではなくステージ定義から導出する
+## ＝中断セーブから再開しても同じ値になる（doc/gdd/rank.md 生存）。
+func _count_start_forces(state: BattleState, path: String) -> void:
+	_start_ally = StageLoader.count_start_allies_at(path, state)
 
 ## 戦果の行（ターン数・生存・撃破）。集計は presentation 側＝domain に戦績を持たせない。
 ## 勝利のときだけ、ターン数と生存にランク基準（S・A の具体値と達成の可否）を添える＝何を詰めれば
 ## 上がるかを読ませる。敗北にランクは付かないので基準も出さない。撃破はランクに使わないので基準なし。
-## 撃破は「開始時の敵数 − 残っている敵数」。控えが出撃してから倒された分は数え落とす
-## （開始時に盤上に居ない）＝多く見せる側には振れない。厳密に採るなら domain 側で撃破を数える。
+## 撃破は実際に倒した敵の駒の数＝domain が数えた敵の損失をそのまま出す。
 ## 生存・撃破は兵器を数えない（doc/gdd/rank.md）＝その2行の見出しに印を付け、脚注で受ける。
 func _result_rows(win: bool) -> Array:
 	var st := _controller.state
-	var alive_ally := st.team_survivor_count(0)
-	var alive_enemy := st.team_survivor_count(1)
+	var alive_ally := st.ally_survivor_count()
 	var mark := tr("ui.result.note_mark")
 	var turns := "%d / %d" % [st.turn_number, st.turn_limit] if st.turn_limit > 0 else str(st.turn_number)
 	var turn_row := {"label": tr("ui.result.turns"), "value": turns}
@@ -385,11 +394,42 @@ func _result_rows(win: bool) -> Array:
 		var alive_got := RankEvaluator.survival_rank(alive_ally, _start_ally, _rank_data)
 		_fill_goals(turn_row, "ui.result.goal_turn", "turn_s", "turn_a", turn_got)
 		_fill_goals(alive_row, "ui.result.goal_alive", "survival_s", "survival_a", alive_got)
-	return [
-		turn_row,
-		alive_row,
-		{"label": tr("ui.result.defeated") + mark, "value": str(maxi(_start_enemy - alive_enemy, 0))},
-	]
+	var rows := [turn_row, alive_row,
+		{"label": tr("ui.result.defeated") + mark, "value": str(st.losses(1))}]
+	if _elapsed > 0:
+		rows.append(_time_row(win))  # 測れていない回（開始時刻を持たない旧セーブ）は行ごと出さない
+	return rows
+
+## 所要時間の行。下に自己ベストをぶら下げ、更新した回はチェックを付ける（ランク基準と同じ見せ方）。
+## ベストを添えるのは勝った回だけ＝負けた回は記録に触らないので、比べる相手を出さない。
+func _time_row(win: bool) -> Dictionary:
+	var row := {"label": tr("ui.result.time"), "value": _format_duration(_elapsed)}
+	if not win or _current_campaign_id.is_empty():
+		return row
+	var updated := _best_time <= 0 or _elapsed < _best_time
+	row["sub"] = tr("ui.result.best_time") % _format_duration(_elapsed if updated else _best_time)
+	row["sub_ok"] = updated
+	return row
+
+## ステージを始めてから決着までの秒数。0＝測れていない（開始時刻を持たない旧セーブから再開した回）。
+## 時計が巻き戻ったとき（システム時刻の変更）も 0 に倒す＝負の時間を記録に混ぜない。
+func _elapsed_seconds() -> int:
+	if _started_at <= 0:
+		return 0
+	return maxi(int(Time.get_unix_time_from_system()) - _started_at, 0)
+
+## 所要時間の表記。1時間未満は "12:34"、1時間以上は "1:02:34"、1日以上は "3日 2:15"。
+## 中断を挟めば日をまたぐ（閉じていた間も含める）ので、日は捨てずに出す。
+func _format_duration(seconds: int) -> String:
+	var total := maxi(seconds, 0)
+	var days := total / 86400
+	var hours := (total % 86400) / 3600
+	var minutes := (total % 3600) / 60
+	if days > 0:
+		return tr("ui.result.time_days") % [days, hours, minutes]
+	if hours > 0:
+		return "%d:%02d:%02d" % [hours, minutes, total % 60]
+	return "%d:%02d" % [minutes, total % 60]
 
 ## 1行ぶんのランク基準を辞書に足す。閾値が 0（＝その軸に基準を置いていないステージ）の段は空欄。
 ## 達成は「その軸のランクがその段以上か」で見る＝閾値の比べ方を presentation に写さない。
@@ -407,7 +447,7 @@ func _fill_goals(row: Dictionary, fmt_key: String, s_key: String, a_key: String,
 func _evaluate_rank() -> String:
 	if _rank_data.is_empty() or _controller == null:
 		return ""
-	var alive := _controller.state.team_survivor_count(0)
+	var alive := _controller.state.ally_survivor_count()
 	return RankEvaluator.evaluate(_controller.state.turn_number, alive, _start_ally, _rank_data)
 
 ## 戦果票の見出し＝ステージ名（冒険譚マニフェストの翻訳キーを解決）。
@@ -652,7 +692,7 @@ func _install_screen() -> void:
 	_screen.name = "ScreenLighting"
 	add_child(_screen)
 
-## 陣営全体バフ（ホーリーアリア）が効いている間だけ加護の光を出す。
+## 陣営全体バフ（グレイス）が効いている間だけ加護の光を出す。
 ## ターンの切り替わりで満了するので、turn_changed と陣形の解決で見直す。
 func _update_aura() -> void:
 	if _screen == null or _controller == null:
@@ -743,6 +783,7 @@ func _snapshot_meta() -> Dictionary:
 		"campaign_title": String(campaign.get("title", "")), "stage_title": stage_title,
 		"turn_number": int(_turn_snapshot.get("turn_number", 0)),
 		"saved_at": Time.get_datetime_string_from_system(false, true),
+		"started_at": _started_at,  # ステージを始めた実時刻＝再開しても所要時間が続く
 	}
 
 ## システムメニュー「セーブ」＝保存先の枠を選ばせる（書くのは _write_slot）。
@@ -793,6 +834,7 @@ func _load_slot(slot: String) -> void:
 		return  # ステージJSONが無い/読めない＝復元できない（エラーは SaveRestore が出す）
 	_current_campaign_id = String(meta.get("campaign_id", ""))
 	_current_stage_id = String(meta.get("stage_id", ""))
+	_started_at = int(meta.get("started_at", 0))  # 所要時間は測り直さず続きを測る（0＝不明な旧セーブ）
 	if _title != null and _title.visible:
 		_title_pending = false  # 以後は盤の曲が主＝ざわめきのガードを解く
 		_title.close()

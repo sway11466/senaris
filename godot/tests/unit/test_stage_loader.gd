@@ -644,3 +644,45 @@ func test_load_briefing_missing_file_is_empty() -> void:
 	var brief := StageLoader.load_briefing("user://no_such_stage.json")
 	assert_eq(brief["party"], [])
 	assert_false(brief["carryover"])
+
+## 戦果の分母＝ステージ定義から導出する（→ doc/gdd/rank.md 生存）。
+func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> void:
+	var catalog := UnitCatalog.load_default()
+	var skins := SkinCatalog.load_standard()
+	var data := {
+		"cols": 6, "rows": 4,
+		"player": [
+			{ "type": "knight", "col": 1, "row": 2 },
+			{ "type": "barricade", "col": 2, "row": 2 },
+			{ "type": "wagon", "col": 1, "row": 1, "passengers": [ { "type": "knight" } ] },
+		],
+		"bases": [
+			{ "col": 4, "row": 1, "team": "neutral", "garrison": [ { "type": "knight", "count": 2 } ] },
+			{ "col": 5, "row": 1, "team": "enemy", "garrison": [ { "type": "knight", "count": 3 } ] },
+		],
+		"events": [
+			{ "id": "help", "turn": 5, "team": "player", "units": [ { "type": "knight", "col": 0, "row": 0 } ] },
+			{ "id": "foes", "turn": 6, "team": "enemy", "order": 1, "units": [ { "type": "knight", "col": 0, "row": 1 } ] },
+		],
+	}
+	var s := StageLoader.build(data, catalog, skins)
+	assert_eq(StageLoader.count_start_allies(data, s, catalog, skins), 6,
+			"盤上1＋輸送1＋搭乗1＋中立の控え2＋未発火の味方増援1（兵器・敵側は数えない）")
+
+## 名簿で出撃が決まる駒は「この戦いに出たか」で数える＝未加入の actor は分母に入らない。
+func test_count_start_allies_skips_units_that_did_not_sortie() -> void:
+	var catalog := UnitCatalog.load_default()
+	var skins := SkinCatalog.load_standard()
+	var data := {
+		"cols": 6, "rows": 4,
+		"player": [
+			{ "type": "knight", "col": 1, "row": 2, "actor": "hero" },
+			{ "type": "knight", "col": 2, "row": 2, "actor": "absent" },
+			{ "type": "knight", "col": 3, "row": 2 },
+		],
+	}
+	var roster := [ { "actor": "hero", "type": "knight", "troops": 8, "level": 1 } ]
+	var s := StageLoader.build(data, catalog, skins, roster)
+	assert_eq(s.units().size(), 2, "名簿に居ない actor の駒は盤に出ない")
+	assert_eq(StageLoader.count_start_allies(data, s, catalog, skins), 2,
+			"名簿に居る actor と配給の駒だけ数える")

@@ -12,8 +12,9 @@ class_name ResultBanner
 signal stamped   ## 印が落ちた瞬間（main がスティンガーを鳴らす合図＝演出と音を揃える）
 signal finished  ## 入力で閉じた（main が outro会話／次ステージへ進む）
 
-const SHEET := Vector2(640, 400)           ## 羊皮紙の大きさ。高さは素材（560x400）と同じ＝縦はタイルの継ぎ目が出ない。
-                                           ## 横は明細の右に印を置ける幅（素材より広いぶんは引き伸ばす）
+const SHEET := Vector2(640, 480)           ## 羊皮紙の大きさ。素材は 560x400 で、縦横とも引き伸ばして使う
+                                           ## （タイルだと中途半端な繰り返しの継ぎ目が出る）。横は明細の右に
+                                           ## 印を置ける幅、縦は明細4行＋脚注が収まる高さ（実測 → tests/manual）
 const INK_WIN := Color(0.56, 0.13, 0.11)   ## 封蝋の赤（TavernTheme.WAX と同じインク）
 const INK_LOSS := Color(0.26, 0.24, 0.25)  ## 灰墨（敗北は色で沈める＝派手にしない）
 const STAMP_FONT := 200                    ## 印の字の上限。実際の大きさは STAMP_MAX_D の側で決まる
@@ -74,9 +75,9 @@ func _build() -> void:
 	_sheet = Panel.new()
 	_sheet.custom_minimum_size = SHEET
 	_sheet.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# 紙は横だけ引き伸ばす。素材（parchment_sheet.png）は 560 幅で、戦果票はランク基準の列ぶん
-	# それより広い＝タイルのままだと中央が繰り返して継ぎ目が右寄りに出る（実測）。
-	# 1.14 倍の伸びなら繊維は目に付かない（貼り紙で同じ手を使っている＝parchment_stylebox）。
+	# 紙は縦横とも引き伸ばす。素材（parchment_sheet.png）は 560x400 で、戦果票はランク基準の列ぶん
+	# 横に広く、所要時間の行ぶん縦に高い＝タイルのままだと繰り返しの継ぎ目が出る（実測）。
+	# 横 1.14・縦 1.2 の伸びなら繊維は目に付かない（縦の伸びは sheet_stylebox が既に持っている）。
 	var sheet_box := TavernTheme.sheet_stylebox()
 	if sheet_box is StyleBoxTexture:
 		(sheet_box as StyleBoxTexture).axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
@@ -100,6 +101,7 @@ func _build() -> void:
 ## rows＝戦果の行。1行は辞書で
 ## { "label": 見出し, "value": 値, "s": S基準の文言, "s_ok": 達成したか, "a": A基準, "a_ok": … }。
 ## 基準の文言が空の行（撃破など）は基準の欄を空けたまま並べる。
+## "sub"／"sub_ok" はランク基準ではない添え行（所要時間の「最速」）。同じ字下げとチェックで並ぶ。
 ## note＝明細の下に置く脚注（空＝出さない）。掛かる先は見出しに付けた印で示す＝呼び出し側の管轄。
 func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "", note := "") -> void:
 	_build()
@@ -188,14 +190,15 @@ func _row_block(r: Dictionary) -> VBoxContainer:
 	line.add_child(_cell(String(r.get("label", "")), 22, HORIZONTAL_ALIGNMENT_LEFT, LABEL_W))
 	line.add_child(_cell(String(r.get("value", "")), 24, HORIZONTAL_ALIGNMENT_RIGHT, VALUE_W))
 	block.add_child(line)
-	for key in ["s", "a"]:
+	for key in ["s", "a", "sub"]:
 		var text := String(r.get(key, ""))
 		if text.is_empty():
 			continue
 		block.add_child(_goal_line(text, bool(r.get("%s_ok" % key, false))))
 	return block
 
-## ランク基準の1行。達成した基準にチェックを付ける（達成の有無は印ではなくここで読ませる）。
+## 見出しの下にぶら下げる1行（ランク基準・所要時間の「最速」）。達成／更新にチェックを付ける
+## （達成の有無は印ではなくここで読ませる）。
 ## 未達も色は落とさない＝薄墨は紙に沈んで読みにくいので、違いはチェックの有無だけで示す。
 func _goal_line(text: String, ok: bool) -> HBoxContainer:
 	var line := HBoxContainer.new()

@@ -101,7 +101,7 @@ func debuff_count(unit: Unit) -> int:
 	return StatusMod.debuff_count(_status_mods, unit)
 
 ## unit 1体に効いている強化（バフ）の本数。敵AIの stack 条件（強化を重ねる上限）が読む。
-## 弱体と同じく対象1体に掛かったものだけ＝陣営全体の補正（ホーリーアリア）は数えない。
+## 弱体と同じく対象1体に掛かったものだけ＝陣営全体の補正（グレイス）は数えない。
 func buff_count(unit: Unit) -> int:
 	return StatusMod.buff_count(_status_mods, unit)
 
@@ -120,7 +120,7 @@ func clear_debuffs(unit: Unit) -> int:
 	return removed
 
 ## 陣営全体に効いていて盤の見た目（fx）を宣言している補正の名前。無ければ空文字。
-## 盤全体のエフェクト（ホーリーアリアの加護の光）を出すかの判定に presentation が使う。
+## 盤全体のエフェクト（グレイスの加護の光）を出すかの判定に presentation が使う。
 func team_aura_fx() -> String:
 	for m in _status_mods:
 		if String(m.get("scope", "")) == "team" and not String(m.get("fx", "")).is_empty():
@@ -193,6 +193,8 @@ func _increment_charges() -> void:
 			set_charge(u.id, rid, cur + 1)
 
 var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録）
+## team -> 失った駒の数（累積・兵器は数えない）。戦果票の撃破数が敵側の値を読む。doc/gdd/rank.md
+var _losses := {}
 var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
 ## actor -> true（この戦闘に投入された名前つきの駒。初期配置・拠点の控え・搭乗・増援のすべてを含む）。
 ## クリア後の名簿更新がここを見て「出た者」と「出番の無かった者」を分ける。詳細 → doc/gdd/campaigns.md 名簿の更新
@@ -1121,7 +1123,7 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	var skill_scope := String(option.get("buff_scope", "")) == "unit"
 	var skill_detail := _skill_snapshot(option, target) if skill_scope else {}
 	var spawn_cells: Array[Vector2i] = []  # 分裂で湧いた位置（cells に載せて盤で光らせる）
-	# バフ系（②ホーリーアリア）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
+	# バフ系（②グレイス）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
 		var entry := _buff_entry(option, target)
 		add_status_mod(entry)
@@ -1293,7 +1295,7 @@ func _dot_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 		"kind": String(option.get("buff_kind", StatusMod.KIND_DEBUFF)),
 	}
 
-## バフ系レシピの状態補正エントリを組む。陣営全体（②ホーリーアリア）と、対象1体
+## バフ系レシピの状態補正エントリを組む。陣営全体（②グレイス）と、対象1体
 ## （ユニットスキル＝buff_scope "unit"・target のhexに居る駒。味方＝ピクシーダスト／敵＝ドレッドタッチ）の両方を作る。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
@@ -1339,12 +1341,21 @@ func _unit_snapshot(u: Unit) -> Dictionary:
 ## 輸送が撃破された場合、搭乗中の駒も失われる（ネクタリス準拠）。
 func _remove_unit(unit_id: int) -> void:
 	_defeated[unit_id] = true
-	_mark_actor_defeated(unit_by_id(unit_id))
+	var lost := unit_by_id(unit_id)
+	_mark_actor_defeated(lost)
+	_count_loss(lost)
 	for p in passengers(unit_id):
 		_defeated[p.id] = true  # 巻き添え（盤上には居ないのでリストから消すだけ）
 		_mark_actor_defeated(p)
+		_count_loss(p)
 	_passengers.erase(unit_id)
 	_take_off_board(unit_id)
+
+## 失った駒を陣営ごとに数える。兵器は数えない（→ doc/gdd/rank.md）＝敵の兵器を壊しても撃破に乗らない。
+func _count_loss(u: Unit) -> void:
+	if u == null or u.is_emplacement():
+		return
+	_losses[u.team] = int(_losses.get(u.team, 0)) + 1
 
 ## 名前つきの駒（actor）の撃破を記録する。名前の無い駒は素通し。
 func _mark_actor_defeated(u: Unit) -> void:
@@ -1369,26 +1380,46 @@ func team_unit_count(team: int) -> int:
 			n += 1
 	return n
 
-## team の生き残り数＝盤上＋輸送の中＋拠点の中。失われた駒だけが数から落ちる。
+## 自軍の生き残り数＝盤上＋輸送の中＋拠点の中。失われた駒だけが数から落ちる。
 ## 勝敗（盤上0で判定）とは別の数え方＝評価ランクの生存が読む（詳細 → doc/gdd/rank.md）。
-## 拠点の控えは出撃まで team が決まらないので帰属先（recruited_team）で見る。
-## 帰属未確定の中立の控えはどちらにも数えない（まだどちらの戦力でもない）。
+## 拠点の控えは出撃まで team が決まらないので帰属先（recruited_team）で見る。まだ解放されて
+## いない中立の控えも自軍に数える＝取りに行かなくても損はせず、敵に取られたときだけ落ちる。
+## 中立を敵側で数えることはしない（両陣営に重複して数えないため）＝敵の頭数はここで数えない。
+## まだ発火していない自軍の増援も数える＝来ていないだけで失われてはいない（早く勝つほど
+## 生存率が落ちる、を避ける）。発火済みの増援は盤上に居るので二重には数えない。
 ## 兵器は数えない（置いて壊させる駒で、移動0だから退避もできない）＝頭数を数える
 ## team_unit_count とは別物になったので、盤上のぶんもここで数え直す。
-func team_survivor_count(team: int) -> int:
+func ally_survivor_count() -> int:
 	var n := 0
 	for u in _units:
-		if u.team == team and not u.is_emplacement():
+		if u.team == 0 and not u.is_emplacement():
 			n += 1
 	for list in _passengers.values():
 		for u in list:
-			if u.team == team and not (u as Unit).is_emplacement():
+			if (u as Unit).team == 0 and not (u as Unit).is_emplacement():
 				n += 1
 	for b in _bases:
 		for gu in b.garrison:
-			if (gu as Unit).recruited_team == team and not (gu as Unit).is_emplacement():
+			var g := gu as Unit
+			if g.is_emplacement():
+				continue
+			if g.recruited_team == 0 or g.is_unclaimed():
 				n += 1
+	for e in _events:
+		if int(e.get("team", 0)) != 0:
+			continue
+		for item in e.get("units", []):
+			var eu: Unit = item.get("unit")
+			if eu != null and not eu.is_emplacement():
+				n += 1
+			for p in item.get("passengers", []):
+				if not (p as Unit).is_emplacement():
+					n += 1
 	return n
+
+## team が失った駒の数（累積）。戦果票の撃破数＝敵陣営の損失（詳細 → doc/gdd/rank.md）。
+func losses(team: int) -> int:
+	return int(_losses.get(team, 0))
 
 ## team が「復帰手段」を持つか＝所有拠点に、実際に盤上へ出せる控えが1体でもいる（案B）。
 ## 盤上0でもこれが真なら、その陣営はまだ消滅していない＝敗北/勝利にしない。
@@ -1556,6 +1587,7 @@ func to_save_diff() -> Dictionary:
 		"attacked": _attacked.keys(), "done": _done.keys(),
 		"engaged": _engaged.keys(), "engaged_squads": _engaged_squads.keys(),
 		"defeated": _defeated.keys(),
+		"losses": _int_keyed_to_str(_losses),
 		"defeated_actors": _defeated_actors.keys(),
 		"sortied_actors": _sortied_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
@@ -1582,6 +1614,7 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	_engaged = _ids_to_set(diff.get("engaged", []))
 	_engaged_squads = _ids_to_set(diff.get("engaged_squads", []))
 	_defeated = _ids_to_set(diff.get("defeated", []))
+	_losses = _str_keyed_to_int(diff.get("losses", {}))
 	_defeated_actors = _names_to_set(diff.get("defeated_actors", []))
 	_sortied_actors = _names_to_set(diff.get("sortied_actors", []))
 	for b in fresh_bases:  # ステージ更新で足された拠点の控えは今この盤に出た＝投入記録を立て直す
