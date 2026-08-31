@@ -25,21 +25,13 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-91
-
-**中断セーブをステージ参照＋動的差分にする**
-- ゴール：ステージを直しても進行中の中断セーブが読めて、盤に効く変更が届いている。
-- 背景：`BattleState.to_dict` が盤サイズ・地形・拠点・勝敗条件・部隊定義・増援の中身まで丸ごと書いている。地形は戦闘中に変化せず（`set_terrain` を呼ぶのは `stage_loader` だけ）、ステージJSONから引き直せるものをセーブが正本にしてしまっている。難易度調整が進行中のセーブに一切届かない。
-- 対応：(1) 中断セーブを v3 とし、ステージJSONから引き直すもの（盤の広さ・地形・勝敗条件・ターン上限・部隊定義・拠点の位置と種別・増援の中身）を落として動的差分だけを持つ。復元はステージJSONで盤を組んでから差分を被せる。(2) ステージ定義の印（除外キー以外から算出）をセーブへ記録する。(3) v2→v3 の変換＝盤丸ごとから動的差分を抜き出し、体験版に同梱したステージの印を表から埋める（今のステージJSONから計算しない）。(4) 復元して盤に居られない駒（拠点が消えた・盤外・入れない地形）は盤へ出さない。
-- 該当：`godot/domain/battle_state.gd`・`godot/domain/capture/base.gd`・`godot/application/stage_loader.gd`・`godot/infrastructure/save/save_store.gd`・`godot/presentation/main/main.gd`・`doc/tech/gamesystem.md`。旧版から新版への変換（`_v2_to_v3`）を書く最初の作業になる（[gamesystem.md](tech/gamesystem.md) §版と移行）。
-
 ### feature-92
 
 **ステージが更新されている中断セーブをプレイヤーに知らせる**
 - ゴール：セーブを作ったあとにステージを直した枠が、選ぶ前に見て分かり、選んだときにも一度確認が入る。
 - 背景：ステージ定義が変わっても差分はそのまま適用して再開を妨げない方針だが、黙って適用すると盤が前と違う理由がプレイヤーに分からない。枠の一覧表示は `_row_text` 一本で、ロード時の確認はいまタイトルの「冒険の続き」経由では出ない（失う盤が無いため）。
 - 対応：セーブの印と今のステージ定義の印を比べ、違う枠は一覧の行に更新されている旨を添える。その枠を選んだときだけ確認を挟む（印が一致する枠のロードは今のまま）。
-- 該当：`godot/presentation/ui/save_slot_panel.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`doc/tech/gamesystem.md`。前提＝feature-91。
+- 該当：`godot/presentation/ui/save_slot_panel.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`doc/tech/gamesystem.md`。セーブの印は meta の `stage_digest`、今の定義の印は `StageDigest.of_file`。
 
 ### feature-89
 

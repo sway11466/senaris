@@ -45,6 +45,15 @@ func _build(data: Dictionary) -> BattleState:
 func _state(events: Array) -> BattleState:
 	return _build(_data(events))
 
+## 中断セーブの往復＝動的差分を JSON に通し、同じステージ定義 data で組み直した盤へ被せる
+## （実際の再開と同じ経路。fire_due_events は呼ばない＝発火済みは pending_events に無い）。
+func _roundtrip(s: BattleState, data: Dictionary) -> BattleState:
+	var diff: Dictionary = JSON.parse_string(JSON.stringify(s.to_save_diff()))
+	var back := StageLoader.build(data, _catalog())
+	back.set_movement(Movement.load_default())
+	back.apply_save_diff(diff, _catalog())
+	return back
+
 ## イベントの id（必須・ステージ内で一意）をフィクスチャ用に連番で振る。
 var _id_seq := 0
 func _next_id() -> String:
@@ -217,8 +226,8 @@ func test_placed_hex_follows_the_shift() -> void:
 	assert_eq(Hex.distance(placed[0], Hex.offset_to_axial(5, 3)), 1, "ずれた先＝隣を控える")
 
 func test_focus_survives_serialization() -> void:
-	var s := _state([_reinforce(4, { "focus": true })])
-	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	var data := _data([_reinforce(4, { "focus": true })])
+	var back := _roundtrip(_build(data), data)
 	assert_true(bool(back.pending_events()[0].get("focus", false)), "中断セーブでもカメラ指定は残る")
 
 # --- 中断セーブ ---
@@ -227,9 +236,8 @@ func test_pending_event_survives_serialization() -> void:
 	var e := { "id": "airship", "turn": 4, "type": "reinforce", "team": "player", "label": "ui.test.airship",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
-	var s := _state([e])
-	var back := BattleState.from_dict(s.to_dict(), _catalog())
-	back.set_movement(Movement.load_default())
+	var data := _data([e])
+	var back := _roundtrip(_build(data), data)
 	assert_eq(back.pending_events().size(), 1, "未発生のまま復元される")
 	assert_eq(int(back.next_event()["turns"]), 3, "残りターンも復元される")
 	back.end_turn(); back.end_turn(); back.end_turn(); back.end_turn()
@@ -240,18 +248,18 @@ func test_pending_event_survives_serialization() -> void:
 		assert_eq(back.passengers(ship.id).size(), 1, "搭載駒も復元される")
 
 func test_dialogue_key_survives_serialization() -> void:
-	var s := _state([_reinforce(4, { "dialogue": "arrive" })])
-	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	var data := _data([_reinforce(4, { "dialogue": "arrive" })])
+	var back := _roundtrip(_build(data), data)
 	assert_eq(String(back.pending_events()[0].get("dialogue", "")), "arrive", "中断セーブでも台本キーは残る")
 
 func test_event_id_survives_serialization() -> void:
-	var s := _state([_reinforce(4, { "id": "wave2" })])
-	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	var data := _data([_reinforce(4, { "id": "wave2" })])
+	var back := _roundtrip(_build(data), data)
 	assert_eq(String(back.pending_events()[0].get("id", "")), "wave2", "中断セーブでも id は残る")
 
 func test_fired_event_is_not_serialized() -> void:
-	var s := _state([_reinforce(1)])
-	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	var data := _data([_reinforce(1)])
+	var back := _roundtrip(_build(data), data)
 	assert_true(back.pending_events().is_empty(), "発生済みは持ち越さない")
 	assert_eq(back.team_unit_count(0), 2, "盤の駒としては残る")
 
@@ -264,11 +272,14 @@ func _base_hex() -> Vector2i:
 	return Hex.offset_to_axial(BASE_COL, BASE_ROW)
 
 ## (3,2) に中立拠点、その隣（2,2）に占領できるクレリック。敵は置かない（決着はここでは見ない）。
-func _capture_state(events: Array) -> BattleState:
+func _capture_data(events: Array) -> Dictionary:
 	var data := _data(events)
 	data["player"] = [ { "type": "cleric", "col": 2, "row": 2 } ]
 	data["bases"] = [ { "col": BASE_COL, "row": BASE_ROW, "team": "neutral" } ]
-	return _build(data)
+	return data
+
+func _capture_state(events: Array) -> BattleState:
+	return _build(_capture_data(events))
 
 func _capture_event(team: String, extra: Dictionary = {}) -> Dictionary:
 	var e := { "id": _next_id(), "on": "capture", "col": BASE_COL, "row": BASE_ROW, "team": team,
@@ -372,9 +383,8 @@ func test_once_prefers_the_first_written() -> void:
 # --- 中断セーブ（占領イベント） ---
 
 func test_capture_event_survives_serialization() -> void:
-	var s := _capture_state([_capture_event("player", { "once": "elf_village", "focus": true })])
-	var back := BattleState.from_dict(s.to_dict(), _catalog())
-	back.set_movement(Movement.load_default())
+	var data := _capture_data([_capture_event("player", { "once": "elf_village", "focus": true })])
+	var back := _roundtrip(_build(data), data)
 	assert_eq(back.pending_events().size(), 1, "未発生のまま復元される")
 	var e: Dictionary = back.pending_events()[0]
 	assert_eq(String(e.get("on", "")), "capture", "引き金が残る")

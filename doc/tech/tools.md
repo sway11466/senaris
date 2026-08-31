@@ -45,6 +45,7 @@
 | `logo/build_icon.ps1` | アプリアイコンを焼く（`build_icon.gd` で各寸法の PNG にし、ImageMagick で `.ico` に束ねる） | `powershell -ExecutionPolicy Bypass -File godot\tools\logo\build_icon.ps1` | [../art/icon.md](../art/icon.md) |
 | `logo/build_icon.gd` | アイコンの SVG を各寸法ちょうどの PNG に焼く（48px 以下は1枚版・64px 以上は7枚版）。見え方の確認用に暗い地と明るい地へ並べた1枚も出す | `godot --headless --path godot --script res://tools/logo/build_icon.gd` | [../art/icon.md](../art/icon.md) |
 | `rasterize_svg.gd` | SVG を PNG にする（Godot 内蔵の ThorVG。マスクも描ける） | `godot --headless --script res://tools/rasterize_svg.gd -- <in.svg> <out.png> [倍率]` | [../art/menu.md](../art/menu.md) |
+| `save_migration/gen_demo_digests.gd` | 体験版 demo-v0.1.0 のステージ定義から、中断セーブ移行用の印の表（`data/save/demo-v0.1.0_digests.json`）を作る。入力はタグの展開物＝今のステージJSONからは計算しない | `git archive demo-v0.1.0 godot/data/stages \| tar -x -C <展開先>` のあと `godot --headless --path godot -s res://tools/save_migration/gen_demo_digests.gd -- <展開先>/godot/data/stages` | [gamesystem.md](gamesystem.md) |
 
 ループ長は `gen_bgm.ps1` が `.mscz` から算出する（小節数×1小節の拍数÷テンポ）。繰り返し記号やアウフタクトのある譜面はこの式が当たらないので、その時だけ `-LoopSec` で秒数を渡す。
 

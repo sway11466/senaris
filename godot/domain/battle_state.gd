@@ -1514,38 +1514,35 @@ func _heal_garrisons() -> void:
 			if u.recruited_team == current_team or u.is_unclaimed():
 				u.troops = u.max_troops
 
-# --- 中断セーブ（状態の丸ごと直列化）。バージョン枠・ファイルIOは infrastructure/save 側。詳細 → doc/tech/gamesystem.md ---
+# --- 中断セーブ（動的差分の直列化）。バージョン枠・ファイルIOは infrastructure/save 側。詳細 → doc/tech/gamesystem.md ---
 
-## 盤の状態をすべて素データ（JSON化可能）に直列化する。見た目・movement 表（静的コンフィグ）は含めない
-## ＝復元後に呼び出し側が set_movement(Movement.load_default()) を再適用する（load_file と同じ流儀）。
-func to_dict() -> Dictionary:
+## 盤の動的差分を素データ（JSON化可能）に直列化する。ステージJSONから引き直せるもの
+## （盤の広さ・地形・勝敗条件・ターン上限・部隊定義・増援の中身）は含めない＝復元は
+## ステージJSONで盤を組んでから apply_save_diff で被せる。見た目・movement 表（静的コンフィグ）も
+## 含めない（load_file と同じ流儀）。
+func to_save_diff() -> Dictionary:
 	var units_out: Array = []
 	for u in _units:
 		units_out.append(u.to_full_dict())
-	var terrain_out: Array = []
-	for h in _terrain:
-		terrain_out.append({ "q": h.x, "r": h.y, "t": _terrain[h] })
 	var bases_out: Array = []
 	for b in _bases:
-		bases_out.append(b.to_dict())
+		bases_out.append(b.to_save_diff())
 	var pass_out := {}
 	for tid in _passengers:
 		var arr: Array = []
 		for p in _passengers[tid]:
 			arr.append(p.to_full_dict())
 		pass_out[str(tid)] = arr
+	var pending: Array = []
+	for e in _events:  # 未発火のイベントを id で控える（発火済みは配列から消えているので載らない）
+		pending.append(String(e.get("id", "")))
 	return {
-		"cols": cols, "rows": rows,
 		"current_team": current_team, "turn_number": turn_number,
-		"turn_limit": turn_limit,
 		"units": units_out,
-		"terrain": terrain_out,
 		"bases": bases_out,
-		"victory_conditions": victory_conditions,
-		"defeat_conditions": defeat_conditions,
-		"squads": squads,
 		"status_mods": _status_mods,
 		"passengers": pass_out,
+		"pending_events": pending,
 		"moved": _moved.keys(), "post_moved": _post_moved.keys(),
 		"attacked": _attacked.keys(), "done": _done.keys(),
 		"engaged": _engaged.keys(), "engaged_squads": _engaged_squads.keys(),
@@ -1554,113 +1551,123 @@ func to_dict() -> Dictionary:
 		"sortied_actors": _sortied_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
 		"charges": _charges_to_dict(),
-		"events": _events_to_dicts(),
 	}
 
-## 素データ1件 → イベント（駒を復元）。to_dict の逆。
-static func _event_from_dict(ed: Dictionary, catalog: Dictionary) -> Dictionary:
-	var units: Array = []
-	for item in ed.get("units", []):
-		if typeof(item) != TYPE_DICTIONARY:
-			continue
-		var ud: Variant = item.get("unit")
+## ステージJSONで組み立てた盤に、中断セーブの動的差分を被せる。ユニットの性能は catalog
+## （{id: UnitType}）から再構築する。呼び出し順は StageLoader.build → set_movement/set_sight_cost
+## → ここ（盤に立てない駒の判定に移動コスト表が要る）。fire_due_events は呼ばない＝発火済みの
+## イベントはセーブの pending_events から抜けている。ステージ定義がセーブ後に変わっていても
+## 差分はそのまま適用する（→ doc/tech/gamesystem.md §ステージ更新の検出）。
+func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
+	current_team = int(diff.get("current_team", 0))
+	turn_number = int(diff.get("turn_number", 1))
+	_apply_diff_events(diff)
+	_apply_diff_units(diff, catalog)
+	var fresh_bases := _apply_diff_bases(diff, catalog)
+	var sm: Variant = diff.get("status_mods", [])
+	_status_mods = sm if typeof(sm) == TYPE_ARRAY else []
+	_moved = _ids_to_set(diff.get("moved", []))
+	_post_moved = _ids_to_set(diff.get("post_moved", []))
+	_attacked = _ids_to_set(diff.get("attacked", []))
+	_done = _ids_to_set(diff.get("done", []))
+	_engaged = _ids_to_set(diff.get("engaged", []))
+	_engaged_squads = _ids_to_set(diff.get("engaged_squads", []))
+	_defeated = _ids_to_set(diff.get("defeated", []))
+	_defeated_actors = _names_to_set(diff.get("defeated_actors", []))
+	_sortied_actors = _names_to_set(diff.get("sortied_actors", []))
+	for b in fresh_bases:  # ステージ更新で足された拠点の控えは今この盤に出た＝投入記録を立て直す
+		for gu in b.garrison:
+			_mark_sortied(gu as Unit)
+	_spent = _str_keyed_to_int(diff.get("spent", {}))
+	_squad_of = _str_keyed_to_int(diff.get("squad_of", {}))
+	_charges = _charges_from_dict(diff.get("charges", {}))
+	_renumber_stage_units(fresh_bases)
+
+## 増援・会話イベントはステージ定義を正本に、セーブの「未発火の id 一覧」に在るものだけ残す。
+## 発火済み・once の兄弟として捨てられたものはここで消える。ステージ更新で足されたイベントも
+## 一覧に無いので出ない＝進行中のセーブに新しい駒を湧かせない（盤上の顔ぶれと同じ扱い）。
+func _apply_diff_events(diff: Dictionary) -> void:
+	var pending := _names_to_set(diff.get("pending_events", []))
+	var kept: Array = []
+	for e in _events:
+		if pending.has(String(e.get("id", ""))):
+			kept.append(e)
+	_events = kept
+
+## 盤上の駒と搭乗をセーブの顔ぶれへ置き換える（ステージ組み立てで出た駒は捨てる＝駒はセーブが正本）。
+## 盤に居られない駒（盤外・その移動タイプで進入できない地形）は盤へ出さず、近くへ寄せない
+## （→ doc/tech/gamesystem.md §復元して居場所を失った駒）。落とした輸送の搭乗者も出さない。
+func _apply_diff_units(diff: Dictionary, catalog: Dictionary) -> void:
+	_units.clear()
+	_passengers.clear()
+	for ud in diff.get("units", []):
 		if typeof(ud) != TYPE_DICTIONARY:
 			continue
-		var ps: Array = []
-		for pd in item.get("passengers", []):
-			if typeof(pd) == TYPE_DICTIONARY:
-				ps.append(Unit.from_full_dict(pd, catalog.get(String(pd.get("type", "")))))
-		units.append({
-			"unit": Unit.from_full_dict(ud, catalog.get(String(ud.get("type", "")))),
-			"passengers": ps,
-		})
-	return {
-		"id": String(ed.get("id", "")),
-		"turn": int(ed.get("turn", 0)), "team": int(ed.get("team", -1)),
-		"on": String(ed.get("on", "")), "once": String(ed.get("once", "")),
-		"hex": Vector2i(int(ed.get("hex_q", 0)), int(ed.get("hex_r", 0))),
-		"label": String(ed.get("label", "")), "squad": int(ed.get("squad", -1)),
-		"dialogue": String(ed.get("dialogue", "")), "focus": bool(ed.get("focus", false)),
-		"units": units,
-	}
-
-## 未発生イベントを素データへ（駒は to_full_dict）。発生済みは配列から消えているので出ない。
-func _events_to_dicts() -> Array:
-	var out: Array = []
-	for e in _events:
-		var units_out: Array = []
-		for item in e.get("units", []):
-			var u: Unit = item.get("unit")
-			if u == null:
-				continue
-			var ps: Array = []
-			for p in item.get("passengers", []):
-				ps.append((p as Unit).to_full_dict())
-			units_out.append({ "unit": u.to_full_dict(), "passengers": ps })
-		var hex := Vector2i(e.get("hex", Vector2i.ZERO))
-		out.append({
-			"id": String(e.get("id", "")),
-			"turn": int(e.get("turn", 0)), "team": int(e.get("team", -1)),
-			"on": String(e.get("on", "")), "once": String(e.get("once", "")),
-			"hex_q": hex.x, "hex_r": hex.y,
-			"label": String(e.get("label", "")), "squad": int(e.get("squad", -1)),
-			"dialogue": String(e.get("dialogue", "")), "focus": bool(e.get("focus", false)),
-			"units": units_out,
-		})
-	return out
-
-## to_dict からの復元。ユニット/拠点の性能は catalog（{id: UnitType}）から再構築する。
-## movement 表は復元しない＝呼び出し側が set_movement で再適用する（doc の "見た目・コンフィグはセーブに含めない"）。
-static func from_dict(data: Dictionary, catalog: Dictionary = {}) -> BattleState:
-	var s := BattleState.new(int(data.get("cols", 12)), int(data.get("rows", 8)))
-	s.current_team = int(data.get("current_team", 0))
-	s.turn_number = int(data.get("turn_number", 1))
-	s.turn_limit = int(data.get("turn_limit", 0))
-	for ud in data.get("units", []):
-		if typeof(ud) == TYPE_DICTIONARY:
-			s._units.append(Unit.from_full_dict(ud, catalog.get(String(ud.get("type", "")))))
-	for td in data.get("terrain", []):
-		if typeof(td) == TYPE_DICTIONARY:
-			s._terrain[Vector2i(int(td.get("q", 0)), int(td.get("r", 0)))] = String(td.get("t", ""))
-	for bd in data.get("bases", []):
-		if typeof(bd) == TYPE_DICTIONARY:
-			s._bases.append(Base.from_dict(bd, catalog))
-	var vc: Variant = data.get("victory_conditions", [])
-	s.victory_conditions = vc if typeof(vc) == TYPE_ARRAY else []
-	var dc: Variant = data.get("defeat_conditions", [])
-	s.defeat_conditions = dc if typeof(dc) == TYPE_ARRAY else []
-	var sq: Variant = data.get("squads", [])
-	s.squads = sq if typeof(sq) == TYPE_ARRAY else []
-	var sm: Variant = data.get("status_mods", [])
-	s._status_mods = sm if typeof(sm) == TYPE_ARRAY else []
-	for tid in _as_dict(data.get("passengers", {})):
+		var u := Unit.from_full_dict(ud, catalog.get(String(ud.get("type", ""))))
+		if not in_field(u.pos) or not can_enter_terrain(u, u.pos):
+			continue
+		_units.append(u)
+	for tid in _as_dict(diff.get("passengers", {})):
+		if unit_by_id(int(tid)) == null:
+			continue  # 輸送ごと盤から落ちた＝搭乗者も出さない
 		var arr: Array[Unit] = []
-		for pd in data["passengers"][tid]:
+		for pd in diff["passengers"][tid]:
 			if typeof(pd) == TYPE_DICTIONARY:
 				arr.append(Unit.from_full_dict(pd, catalog.get(String(pd.get("type", "")))))
-		s._passengers[int(tid)] = arr
-	for ed in data.get("events", []):
-		if typeof(ed) == TYPE_DICTIONARY:
-			s._events.append(_event_from_dict(ed, catalog))
-	s._moved = _ids_to_set(data.get("moved", []))
-	s._post_moved = _ids_to_set(data.get("post_moved", []))
-	s._attacked = _ids_to_set(data.get("attacked", []))
-	s._done = _ids_to_set(data.get("done", []))
-	s._engaged = _ids_to_set(data.get("engaged", []))
-	s._engaged_squads = _ids_to_set(data.get("engaged_squads", []))
-	s._defeated = _ids_to_set(data.get("defeated", []))
-	var actors: Variant = data.get("defeated_actors", [])
-	if typeof(actors) == TYPE_ARRAY:
-		for a in actors:
-			s._defeated_actors[String(a)] = true
-	var sortied: Variant = data.get("sortied_actors", [])
-	if typeof(sortied) == TYPE_ARRAY:
-		for a in sortied:
-			s._sortied_actors[String(a)] = true
-	s._spent = _str_keyed_to_int(data.get("spent", {}))
-	s._squad_of = _str_keyed_to_int(data.get("squad_of", {}))
-	s._charges = _charges_from_dict(data.get("charges", {}))
-	return s
+		_passengers[int(tid)] = arr
+
+## 拠点は位置・種別・本来の帰属をステージ定義から、現在の帰属と駐留兵をセーブから（位置で突き合わせ）。
+## セーブ側にあってステージから消えた拠点は駐留兵ごと出さない。ステージ更新で足された拠点は
+## ステージ定義のまま出る。戻り値＝セーブに無かった（足された）拠点の一覧。
+func _apply_diff_bases(diff: Dictionary, catalog: Dictionary) -> Array:
+	var overlaid := {}
+	for bd in diff.get("bases", []):
+		if typeof(bd) != TYPE_DICTIONARY:
+			continue
+		var b := base_at(Vector2i(int(bd.get("q", 0)), int(bd.get("r", 0))))
+		if b == null:
+			continue  # 拠点が消えた＝この駐留兵は盤へ出さない
+		b.team = int(bd.get("team", b.team))
+		var g: Array[Unit] = []
+		for gd in bd.get("garrison", []):
+			if typeof(gd) == TYPE_DICTIONARY:
+				g.append(Unit.from_full_dict(gd, catalog.get(String(gd.get("type", "")))))
+		b.garrison = g
+		overlaid[b.hex] = true
+	var fresh: Array = []
+	for b in _bases:
+		if not overlaid.has(b.hex):
+			fresh.append(b)
+	return fresh
+
+## ステージ組み立て由来で盤に残った駒（未発火イベントの駒・足された拠点の駐留兵）の id を、
+## セーブの駒より上へ振り直す。ステージ更新で採番がずれてもセーブの駒と id が衝突しないため。
+## セーブ由来の id は行動記録・チャージが参照しているので動かさない。
+func _renumber_stage_units(fresh_bases: Array) -> void:
+	var next_id := 1
+	for u in _units:
+		next_id = maxi(next_id, u.id + 1)
+	for tid in _passengers:
+		for p in _passengers[tid]:
+			next_id = maxi(next_id, (p as Unit).id + 1)
+	for b in _bases:
+		if b in fresh_bases:
+			continue
+		for gu in b.garrison:
+			next_id = maxi(next_id, (gu as Unit).id + 1)
+	for b in fresh_bases:
+		for gu in b.garrison:
+			(gu as Unit).id = next_id
+			next_id += 1
+	for e in _events:
+		for item in e.get("units", []):
+			var u: Unit = item.get("unit")
+			if u != null:
+				u.id = next_id
+				next_id += 1
+			for p in item.get("passengers", []):
+				(p as Unit).id = next_id
+				next_id += 1
 
 ## int キーの dict → 文字列キーの dict（JSON はキーを文字列化するので保存時に明示変換）。
 static func _int_keyed_to_str(d: Dictionary) -> Dictionary:
@@ -1683,6 +1690,14 @@ static func _ids_to_set(src: Variant) -> Dictionary:
 	if typeof(src) == TYPE_ARRAY:
 		for id in src:
 			out[int(id)] = true
+	return out
+
+## 文字列の配列 → { 名前: true } の集合 dict（actor の記録・未発火イベント id の復元）。
+static func _names_to_set(src: Variant) -> Dictionary:
+	var out := {}
+	if typeof(src) == TYPE_ARRAY:
+		for name in src:
+			out[String(name)] = true
 	return out
 
 static func _as_dict(v: Variant) -> Dictionary:

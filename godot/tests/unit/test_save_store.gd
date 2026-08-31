@@ -33,17 +33,20 @@ func test_save_and_load_persists() -> void:
 	assert_eq(String(got["meta"]["stage_id"]), "st2")
 
 func test_roundtrips_real_battle_state() -> void:
-	# 実 BattleState を to_dict→保存→読出→from_dict で復元できる（中断→再開の経路）。
+	# 実 BattleState を to_save_diff→保存→読出→apply_save_diff で復元できる（中断→再開の経路）。
 	var cat := { "knight": UnitType.from_dict({ "id": "knight", "atk_ground": 12, "defense": 8, "move": 3, "max_troops": 8 }) }
-	var s := StageLoader.build({ "cols": 6, "rows": 4, "turn_limit": 10,
-		"player": [{ "type": "knight", "col": 1, "row": 1 }] }, cat)
+	var stage := { "cols": 6, "rows": 4, "turn_limit": 10,
+		"player": [{ "type": "knight", "col": 1, "row": 1 }] }
+	var s := StageLoader.build(stage, cat)
 	s.current_team = 1
 	s.turn_number = 4
 	s.unit_by_id(1).troops = 3
-	SaveStore.new(PATH).save(s.to_dict(), { "stage_path": "res://data/stages/x.json" })
+	SaveStore.new(PATH).save(s.to_save_diff(), { "stage_path": "res://data/stages/x.json" })
 
 	var got := SaveStore.new(PATH).load()
-	var s2 := BattleState.from_dict(got["state"], cat)
+	assert_eq(int(got["version"]), SaveStore.VERSION, "現行版で保存される")
+	var s2 := StageLoader.build(stage, cat)  # 再開＝ステージJSONで盤を組み直して差分を被せる
+	s2.apply_save_diff(got["state"], cat)
 	assert_eq(s2.current_team, 1, "ターンを復元")
 	assert_eq(s2.turn_number, 4)
 	assert_eq(s2.unit_by_id(1).troops, 3, "損耗を復元")
@@ -75,6 +78,19 @@ func test_garbage_file_falls_back_to_none() -> void:
 func test_wrong_version_falls_back_to_none() -> void:
 	_write(JSON.stringify({ "version": 999, "meta": {}, "state": { "cols": 4 } }))
 	assert_false(SaveStore.new(PATH).has_save(), "未知バージョンは読まない")
+	assert_push_warning("中断セーブが不正")
+
+func test_supported_old_version_is_returned_raw() -> void:
+	_write(JSON.stringify({ "version": 2, "meta": { "stage_id": "a" }, "state": { "cols": 4 } }))
+	var store := SaveStore.new(PATH)
+	assert_true(store.has_save(), "変換を持つ旧版(v2)はセーブとして有効")
+	var got := store.load()
+	assert_eq(int(got["version"]), 2, "版は生のまま返す（変換は呼び出し側の SaveMigration）")
+	assert_eq(int(got["state"]["cols"]), 4, "中身も生のまま")
+
+func test_version_below_oldest_falls_back_to_none() -> void:
+	_write(JSON.stringify({ "version": 1, "meta": {}, "state": { "cols": 4 } }))
+	assert_false(SaveStore.new(PATH).has_save(), "変換を持たない旧版(v1)は読まない")
 	assert_push_warning("中断セーブが不正")
 
 func test_missing_version_falls_back_to_none() -> void:

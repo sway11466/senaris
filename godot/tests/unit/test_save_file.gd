@@ -69,6 +69,27 @@ func test_newer_version_is_treated_like_an_unreadable_file() -> void:
 	assert_eq(int(result["status"]), SaveFile.MISMATCHED, "現行より新しい版も読まない")
 	assert_eq(_matching("v9-").size(), 1)
 
+# --- 変換を持つ旧版（oldest）の受け入れ。仕様 → doc/tech/gamesystem.md §版と移行 ---
+
+func test_supported_old_version_reads_data_without_set_aside() -> void:
+	_write(PATH, '{ "version": 2, "cleared": {} }')
+	var result := SaveFile.read(PATH, 3, 2)
+	assert_eq(int(result["status"]), SaveFile.VALID, "変換を持つ旧版は VALID として中身を返す")
+	assert_eq(int((result["data"] as Dictionary)["version"]), 2, "版はファイルの中身に残っている")
+	assert_true(FileAccess.file_exists(PATH), "退避せず元の場所に残す＝版が違うだけのファイルを捨てない")
+
+func test_version_below_oldest_is_set_aside() -> void:
+	_write(PATH, '{ "version": 1 }')
+	var result := SaveFile.read(PATH, 3, 2)
+	assert_eq(int(result["status"]), SaveFile.MISMATCHED, "変換を持たない版は読まない")
+	assert_eq(_matching("v1-").size(), 1, "版番号を名前に入れて退避する")
+
+func test_newer_version_is_set_aside_even_with_oldest() -> void:
+	_write(PATH, '{ "version": 9 }')
+	var result := SaveFile.read(PATH, 3, 2)
+	assert_eq(int(result["status"]), SaveFile.MISMATCHED, "現行より新しい版は oldest 指定でも読まない")
+	assert_eq(_matching("v9-").size(), 1)
+
 func test_reading_twice_does_not_stack_backups() -> void:
 	_write(PATH, "壊れている")
 	SaveFile.read(PATH, 1)

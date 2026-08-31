@@ -16,9 +16,13 @@ enum {
 }
 
 ## ファイルを読んで版まで確かめる。{ "status": int, "data": Dictionary } を返す。
-## 中身を使ってよいのは status == VALID のときだけ。使えないファイルはここで退避して元の場所から消す
+## 中身を使ってよいのは status == VALID のときだけ。
+## oldest ＝変換を持ついちばん古い版（省略＝現行版のみ）。[oldest, version] の範囲の版は VALID として
+## 中身をそのまま返す＝旧版の変換（doc/tech/gamesystem.md §版と移行）は読み込み側の管轄で、
+## 版はファイルの "version" に残っている。版が違うだけのファイルを捨てない。
+## 変換を持たない版・読めないファイルはここで退避して元の場所から消す
 ## ＝同じファイルを読み直しても退避が重ならない。
-static func read(path: String, version: int) -> Dictionary:
+static func read(path: String, version: int, oldest: int = -1) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return { "status": MISSING, "data": {} }
 	# 破損・手編集がありうるファイルなので、エンジンエラーを出さない JSON.parse で静かに検証する
@@ -29,7 +33,8 @@ static func read(path: String, version: int) -> Dictionary:
 		return { "status": UNREADABLE, "data": {} }
 	var data: Dictionary = parsed
 	var found := int(data.get("version", 0))
-	if found != version:
+	var floor_version := version if oldest < 0 else oldest
+	if found < floor_version or found > version:
 		# 版が読み取れた側は形が保たれている＝復旧の手の入れ方が broken と違うので、名前で分ける
 		_set_aside(path, "v%d" % found)
 		return { "status": MISMATCHED, "data": {} }

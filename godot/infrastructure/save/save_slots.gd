@@ -47,12 +47,12 @@ func has_any() -> bool:
 			return true
 	return false
 
-## 枠を読む。{ "meta": Dictionary, "state": Dictionary }。無効/無ければ空 dict。
+## 枠を読む。{ "version": int, "meta": Dictionary, "state": Dictionary }。無効/無ければ空 dict。
 func load_slot(slot: String) -> Dictionary:
 	var store: SaveStore = _stores.get(slot)
 	return {} if store == null else store.load()
 
-## 枠へ保存する（上書き）。state_dict は BattleState.to_dict の戻り値。
+## 枠へ保存する（上書き）。state_dict は BattleState.to_save_diff の戻り値。
 func save_slot(slot: String, state_dict: Dictionary, meta: Dictionary = {}) -> void:
 	var store: SaveStore = _stores.get(slot)
 	if store == null:

@@ -722,7 +722,7 @@ func test_charge_accumulates_to_threshold() -> void:
 			found = true
 	assert_true(found, "必要量に達したので発動できる")
 
-## チャージ量は中断セーブに乗る（to_dict → from_dict で往復）。
+## チャージ量は中断セーブに乗る（to_save_diff → apply_save_diff で往復）。
 func test_charge_survives_serialization() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -731,7 +731,8 @@ func test_charge_survives_serialization() -> void:
 	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.set_charge(slime.id, "slime_split", 2)
-	var restored := BattleState.from_dict(s.to_dict())
+	var restored := _state()  # 同じ器（盤サイズ）を組み直して差分を被せる＝実際の再開と同じ形
+	restored.apply_save_diff(s.to_save_diff())
 	assert_eq(restored.get_charge(slime.id, "slime_split"), 2, "復元後もチャージ量が保たれる")
 
 # --- ⑥ポイズンスティング（継続ダメージ）。詳細 → doc/gdd/skills.md ---
@@ -867,6 +868,7 @@ func test_sting_survives_serialization() -> void:
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
 	assert_false(s.resolve_formation(_sting_option(f), foe.pos).is_empty(), "発動成功")
-	var restored := BattleState.from_dict(s.to_dict())
+	var restored := _state()  # 同じ器（盤サイズ）を組み直して差分を被せる＝実際の再開と同じ形
+	restored.apply_save_diff(s.to_save_diff())
 	restored.end_turn()
 	assert_eq(restored.unit_by_id(foe.id).troops, 7, "復元後もターン開始で減る")

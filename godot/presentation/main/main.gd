@@ -26,12 +26,13 @@ const TITLE_MENU_FADE := 3.0
 const QUIT_SFX_SEC := 0.7
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（永続・層40）。暗幕と加護の光を持つ
 var _current_stage_path := ""
+var _current_stage_digest := ""  # 今のステージ定義の印（StageDigest）。セーブの meta に載せる
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _saves: SaveSlots = null  # 中断セーブ5枠＋オートセーブ1枠。user://save_1.json … save_auto.json
 var _slot_panel: SaveSlotPanel = null  # 枠一覧（セーブ/ロード共通・盤とタイトルの両方から出す）
 var _slot_intent := ""  # 枠一覧をどちらの用で開いたか（"save"/"load"）＝選ばれた枠の使い道
-## 自ターン開始時点の盤（BattleState.to_dict）。中断セーブ・オートセーブはこれを書く
+## 自ターン開始時点の盤の動的差分（BattleState.to_save_diff）。中断セーブ・オートセーブはこれを書く
 ## ＝操作の途中でセーブしてもターンの頭に戻る（実質的なアンドゥ）。仕様 → doc/tech/gamesystem.md
 var _turn_snapshot := {}
 var _select: SelectScreen = null
@@ -129,6 +130,7 @@ func load_stage(path: String) -> void:
 ## intro 会話の再生は含めない＝新規開始（load_stage）だけが呼ぶ。詳細 → doc/tech/gamesystem.md
 func _install_state(state: BattleState, path: String) -> void:
 	_current_stage_path = path  # システムメニューのリスタート用
+	_current_stage_digest = StageDigest.of_file(path)  # ステージ定義の印＝セーブの meta へ（更新検出用）
 	_victory_overlay = false  # 前ステージの完走演出を持ち越さない
 	_dialogue = StageLoader.load_dialogue(path, _load_roster())  # 会話（intro/outro）を presentation へ（案P・名簿で when を評価）
 	if _controller != null:
@@ -716,7 +718,7 @@ func _on_debug_event_requested(index: int) -> void:
 func _take_turn_snapshot() -> void:
 	if _controller == null:
 		return
-	_turn_snapshot = _controller.state.to_dict()
+	_turn_snapshot = _controller.state.to_save_diff()
 	if _saves == null or _current_campaign_id.is_empty():
 		return
 	_saves.save_slot(SaveSlots.AUTO, _turn_snapshot, _snapshot_meta())
@@ -734,6 +736,7 @@ func _snapshot_meta() -> Dictionary:
 	return {
 		"campaign_id": _current_campaign_id, "stage_id": _current_stage_id,
 		"stage_path": _current_stage_path,
+		"stage_digest": _current_stage_digest,  # ステージ定義の印（更新検出 → doc/tech/gamesystem.md）
 		"campaign_title": String(campaign.get("title", "")), "stage_title": stage_title,
 		"turn_number": int(_turn_snapshot.get("turn_number", 0)),
 		"saved_at": Time.get_datetime_string_from_system(false, true),
@@ -771,16 +774,20 @@ func _write_slot(slot: String) -> void:
 	_hud.set_load_available(true)  # 以後ロード可能に
 	$Front/InfoPanel.notify(tr("ui.info.saved"))  # 一時通知は右パネルへ（上端の情報バーは廃止）
 
-## 選ばれた枠から再開：保存した状態から盤を組み直す（intro は流さない）。movement 表は復元後に再適用。
+## 選ばれた枠から再開：ステージJSONで盤を組み直し、セーブの動的差分を被せる（intro は流さない）。
+## 旧版のセーブはここで現行版へ変換してから使う（版と移行 → doc/tech/gamesystem.md）。
 ## タイトルから来た場合はここでタイトルを畳む＝盤へ直行する。
 func _load_slot(slot: String) -> void:
 	var data := _saves.load_slot(slot)
 	if data.is_empty():
 		return
-	var state := BattleState.from_dict(data["state"], UnitCatalog.load_default())
-	state.set_movement(Movement.load_default())  # 静的コンフィグ＝セーブに含めず復元後に再適用（load_file と同じ）
-	state.set_sight_cost(TerrainType.sight_cost_table())  # 視線コストも静的コンフィグ＝復元後に再適用
+	data = SaveMigration.migrate(data)
+	if data.is_empty():
+		return  # 変換を持たない版（SaveFile が弾くのでここには来ないはず）
 	var meta: Dictionary = data.get("meta", {})
+	var state := SaveRestore.restore(String(meta.get("stage_path", "")), data["state"])
+	if state == null:
+		return  # ステージJSONが無い/読めない＝復元できない（エラーは SaveRestore が出す）
 	_current_campaign_id = String(meta.get("campaign_id", ""))
 	_current_stage_id = String(meta.get("stage_id", ""))
 	if _title != null and _title.visible:
