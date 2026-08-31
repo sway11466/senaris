@@ -13,7 +13,7 @@ manual.unit.main.defense.desc,攻撃を受けたときの固さ。物理と魔�
 manual.unit.main.pierce.term,防御貫通,Pierce
 manual.unit.main.pierce.desc,相手の防御を無視する割合。割合のぶんだけ相手の防御を減らして計算する。相手が硬いほど効きが伸びるので、貫通を持つ駒は重装の相手にぶつける。撃った側の性質なので、反撃にはその相手の貫通が効く。,"The share of the target's defense that is ignored. The target's defense is reduced by that share before damage is worked out. The harder the target, the more it pays off, so send piercing units against heavy armor. It belongs to whoever is attacking, so a counterattack applies the counterattacker's own pierce."
 manual.unit.main.range.term,射程,Range
-manual.unit.main.range.desc,攻撃できる距離の下限と上限。1なら近接だけ。1-2の弓は隣接した相手も撃てる。3-5の砲兵は下限が3なので、懐に入られると撃てず反撃もできない。,"The lowest and highest distance the unit can attack at. Range 1 means melee only. An archer at 1-2 can still shoot an adjacent enemy. Artillery at 3-5 has a floor of 3, so an enemy in its face cannot be hit — or countered."
+manual.unit.main.range.desc,攻撃できる距離の下限と上限。1なら近接だけ。1-2の弓は隣接した相手も撃てる。3-5の砲兵は下限が3なので、懐に入られると撃てず反撃もできない。,"The lowest and highest distance the unit can attack at. Range 1 means melee only. An archer at 1-2 can still shoot an adjacent enemy. Artillery at 3-5 has a minimum range of 3, so an enemy in its face cannot be hit — or countered."
 manual.unit.main.move.term,移動,Move
 manual.unit.main.move.desc,1ターンに使える移動力。地形ごとの進入コストを足していき、この値を超えない範囲まで動ける。,The movement allowance for one turn. Entry costs for each terrain are added up along the path and the unit can go as far as this value allows.
 manual.unit.main.move_type.term,移動種別,Move Type
@@ -25,7 +25,7 @@ manual.unit.main.can_capture.desc,拠点を占領できるかどうか。持っ�
 manual.unit.main.capacity.term,搭乗数,Capacity
 manual.unit.main.capacity.desc,中に乗せられる味方の数。1以上なら輸送として使える。,How many friendly units it can carry. Anything from 1 up can be used as transport.
 manual.unit.main.level.term,レベル,Lv
-manual.unit.main.level.desc,戦うたびに上がる強さ。初期値は1で、1上がるごとに攻撃力と防御力が1%増える。上限は99。,"Strength earned by fighting. Units start at 1, and every level adds 1% to both attack and defense. The cap is 99."
+manual.unit.main.level.desc,戦うたびに上がる強さ。初期値は1で、1上がるごとに攻撃力と防御力が1%増える。上限は99。,"Power earned by fighting. Units start at 1, and every level adds 1% to both attack and defense. The cap is 99."
 manual.unit.main.category.term,兵種,Class
 manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器・魔法生物がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport, emplacement and monstrosity. Formation skill recipes are written in terms of these too."
 manual.combat.title,戦闘,Combat
@@ -33,7 +33,7 @@ manual.combat.main.title,戦闘,Combat
 manual.combat.main.intro,戦闘に乱数は無い。同じ盤面で同じ手を打てば、結果は必ず同じになる。運で駒を失うことはないかわりに、負けたなら理由は必ず盤の上にある。,"There is no randomness in combat. The same board and the same move always give the same result. You never lose a unit to bad luck — but when you lose, the reason is always somewhere on the board."
 manual.combat.main.simultaneous,同時に解決する,Resolved Simultaneously
 manual.combat.main.sim1,攻撃側と防御側は同時に攻撃する。先制は無い。損害はどちらも戦闘前の兵数をもとに計算してから同時に適用するので、1回の戦闘で両方が全滅することもある。,"Attacker and defender strike at the same time. There is no initiative. Losses for both sides are worked out from the strength each had before the fight and then applied together, so a single fight can wipe out both units."
-manual.combat.main.sim2,反撃が起きるのは、距離1で攻撃され、その距離を自分も撃てるときだけ。距離2以上の攻撃には反撃が無い。下限が2以上の砲兵は隣に入られると反撃できず、対空を持たない駒は飛行に殴られても反撃しない。,"A counterattack happens only when the unit is attacked at distance 1 and can shoot that distance itself. Attacks from distance 2 or more are never countered. Artillery with a floor of 2 or more cannot counter an adjacent enemy, and a unit without Atk vs Air cannot counter a flier."
+manual.combat.main.sim2,反撃が起きるのは、距離1で攻撃され、その距離を自分も撃てるときだけ。距離2以上の攻撃には反撃が無い。下限が2以上の砲兵は隣に入られると反撃できず、対空を持たない駒は飛行に殴られても反撃しない。,"A counterattack happens only when the unit is attacked at distance 1 and can shoot that distance itself. Attacks from distance 2 or more are never countered. Artillery with a minimum range of 2 or more cannot counter an adjacent enemy, and a unit without Atk vs Air cannot counter a flier."
 manual.combat.main.chain,攻撃力と防御力,Attack and Defense
 manual.combat.main.chain1,駒はそのままの数値で戦うわけではない。兵数を掛けたものに補正が順に乗り、実効攻撃力・実効防御力になる。戦闘レポートはこの内訳をそのまま見せている。,"A unit does not fight with its raw numbers. Strength is applied first, then a chain of modifiers, producing Effective Atk and Effective Def. The battle report lays out that same breakdown."
 manual.combat.main.chain2,掛け算で効くのはレベル・包囲・地形・状態補正。足し算で効くのは支援と状態補正。掛け算をすべて済ませてから、足し算を足す。,"Lv, Encircled, Terrain and Modifiers multiply. Support and Modifiers add. Every multiplication is applied first, then the additions go on top."
@@ -42,13 +42,13 @@ manual.combat.main.mods,補正,Modifiers
 manual.combat.main.level.term,レベル,Lv
 manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増える。戦えば+1、倒せばさらに+1。反撃できなかった側は上がらない。拠点を占領した占領兵は+10で、戦う機会の少なさを1回で補う。上限は99。,"Each level adds 1% to attack and defense. Fighting gives +1, and destroying the enemy gives another +1. A unit that could not counter gains nothing. Clergy that capture a base gain +10, making up in one go for how rarely they fight. The cap is 99."
 manual.combat.main.surround.term,包囲,Encircled
-manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighbouring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so edges and corners are hard to encircle."
+manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighboring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so units on edges and corners are hard to encircle."
 manual.combat.main.support.term,支援,Support
 manual.combat.main.support.desc,隣接する味方による底上げ。攻守どちらも、相手側の駒に隣接している味方が足してくれる。攻めるときは標的に隣接している味方が、守るときは攻撃者に隣接している味方が支援に入る。相手を囲んだ駒が、そのまま支援も兼ねる形になる。支援する側の兵数に比例するので、削られた味方の支援は薄い。近接攻撃のときだけ乗る。,"A boost from adjacent allies. Either way, the allies who contribute are the ones standing next to the unit on the other side: attacking, that means allies adjacent to the target; defending, allies adjacent to the attacker. A unit that surrounds an enemy doubles as a supporter. The amount scales with the supporter's strength, so a worn-down ally gives little. It applies to melee only."
 manual.combat.main.terrain.term,地形,Terrain
 manual.combat.main.terrain.desc,立っているマスの地形が、攻撃と防御にそれぞれ別の係数で掛かる。攻める側は自分の足元の攻撃係数、守る側は自分の足元の防御係数を使う。,"The terrain a unit stands on applies its own factors, one for attack and one for defense. The attacker uses the attack factor of the hex under itself, and the defender uses the defense factor of the hex under itself."
 manual.combat.main.pierce.term,防御貫通,Pierce
-manual.combat.main.pierce.desc,撃った側が持つ、相手の防御を無視する割合。相手が硬いほど効きが伸びる。,The share of the target's defense that the attacker ignores. The harder the target the more it does.
+manual.combat.main.pierce.desc,撃った側が持つ、相手の防御を無視する割合。相手が硬いほど効きが伸びる。,"The share of the target's defense that the attacker ignores. The harder the target, the more it pays off."
 manual.combat.main.status.term,状態補正,Modifier
 manual.combat.main.status.desc,スキルで掛かる強化と弱体。掛け算で効くものと足し算で効くものがあり、それぞれの列に加わる。掛かっている駒は足元に輪が出る（弱体＝内側の太い輪／強化＝外側の細い輪）。,"Buffs and debuffs from skills. Some multiply and some add, joining the chain in their own group. A unit carrying one shows a ring at its feet — a thick inner ring for debuffs, a thin outer ring for buffs."
 manual.combat.main.mods_note,包囲と支援は同じ配置から同時に出る。敵の横に味方を置けば、その敵を弱らせながら自分の攻撃を底上げする。1体の置き場所が両方に効く。,"Encircled and Support come out of the same placement. Put an ally beside an enemy and it weakens that enemy while boosting your own attack. One unit's position does both."
@@ -59,7 +59,7 @@ manual.terrain.title,地形,Terrain
 manual.terrain.main.title,地形,Terrain
 manual.terrain.main.intro,盤のマスにはそれぞれ地形が置かれている。地形はルールを持つ層と見た目の層に分かれていて、絵が違っても同じ層のものなら同じルールで動く。尾根と花崗岩の尾根、平地と洞窟の床が同じ扱いになるのはこのため。,"Every hex on the board carries a terrain. Terrain is split into a layer that holds the rules and a layer that holds the look, so two hexes that look different behave identically if their rule layer is the same. That is why a ridge and a granite ridge, or a plain and a cave floor, play the same."
 manual.terrain.main.stats,地形の攻防,Attack and Defense
-manual.terrain.main.stats1,地形は攻撃と防御に別々の係数を持つ。立っているマスの係数が、その駒の攻撃力・防御力に掛かる。攻めに向く地形と守りに向く地形があるので、どこで受けてどこから撃つかが読み合いになる。,"Terrain carries separate factors for attack and for defense. The factors of the hex a unit stands on apply to that unit. Some terrain favours attacking and some favours holding, so where you receive an attack and where you shoot from is part of the puzzle."
+manual.terrain.main.stats1,地形は攻撃と防御に別々の係数を持つ。立っているマスの係数が、その駒の攻撃力・防御力に掛かる。攻めに向く地形と守りに向く地形があるので、どこで受けてどこから撃つかが読み合いになる。,"Terrain carries separate factors for attack and for defense. The factors of the hex a unit stands on apply to that unit. Some terrain favors attacking and some favors holding, so where you receive an attack and where you shoot from is part of the puzzle."
 manual.terrain.main.sight,視線,Line of Sight
 manual.terrain.main.sight1,敵が近づいたことに気づくかどうかは、まっすぐの距離ではなく地形ごとの視線コストの積み上げで決まる。開けた土地は1、森や低い障害は2、高い障害は3、壁は通さない。,"Whether an enemy is noticed is not a matter of straight distance but of adding up a sight cost per terrain. Open ground is 1, woods and low obstacles are 2, high obstacles are 3, and walls block entirely."
 manual.terrain.main.sight2,森ごしには見通しが落ち、壁の裏には影ができる。柵は柱と横木なのでマスを埋めず、視線は遮らない。前衛で視線を切れば、後ろの駒が気づかれずに済むこともある。,"Sight fades through woods and a wall casts a blind spot behind it. A fence is posts and rails — it does not fill the hex and does not block sight. Screening with your front line can keep the units behind it unnoticed."
@@ -90,7 +90,7 @@ manual.skill.main.recipe1,どのスキルが撃てるかはレシピが決める
 manual.skill.main.recipe2,条件が揃っても自動では出ない。撃つかどうかは常にこちらが選ぶ。,Meeting the conditions never fires a skill by itself. Casting is always your call.
 manual.skill.main.cost,コスト,Cost
 manual.skill.main.cost1,参加した駒はその時点で行動が終わる。1体が1ターンに参加できるスキルは1つだけ。つまりスキルの値段は行動そのもので、この駒を殴らせるか供出するかという二択になる。,"Every participant is finished for the turn, and a unit can join only one skill per turn. The price of a skill is therefore action itself: for each unit you choose between letting it fight and spending it."
-manual.skill.main.cost2,発動する駒は移動してから撃ってよい。レシピが揃っているかも射程も、移動先の位置で見る。残りの参加者はその場に留まる＝寄ってきた1体が号令をかける形になる。,"The caster may move first. Whether the recipe is satisfied, and what is in range, are judged from where it ends up. The other participants stay put — one unit walks over and gives the call."
+manual.skill.main.cost2,発動する駒は移動してから撃ってよい。レシピが揃っているかも射程も、移動先の位置で見る。残りの参加者はその場に留まる＝寄ってきた1体が号令をかける形になる。,"The caster may move first. Whether the recipe is satisfied, and what is in range, are judged from where it ends up. The other participants stay put — one unit walks over and gives the order."
 manual.skill.main.kinds,効果の種類,Kinds of Effect
 manual.skill.main.kinds1,効果には、当てて削るもの・味方を強化するもの・敵を弱らせるもの・掛かっている弱体を落とすもの・盤に駒を足すものがある。,"Effects come in several kinds: ones that land and do damage, ones that strengthen an ally, ones that weaken an enemy, ones that strip debuffs already in place, and ones that put a new unit on the board."
 manual.skill.main.kinds2,当てて削るものは間接攻撃として扱う＝支援は乗らず、包囲は乗る。囲むほど威力は上がるが、囲むほど自軍が着弾面に入る。参加していない味方は巻き込まれる。,"Damaging effects count as ranged attacks: Support does not apply, but Encircled does. The more you surround the target the harder it hits — and the more of your own units stand inside the blast. Allies that did not participate are caught in it."
@@ -100,7 +100,7 @@ manual.skill.main.stack2,持続はスキルごとに決まっていて、掛け�
 manual.skill.main.stack3,再使用に間隔を持つスキルもある。毎ターン1ずつ溜まり、必要量に達すると撃てる。撃つと0に戻り、盤に出た直後も0から始まる。,"Some skills have a recharge. It fills by 1 each turn and the skill becomes available once it reaches what the recipe needs. Casting resets it to 0, and a unit that has just entered the board starts at 0 as well."
 manual.ai.title,敵AI,Enemy AI
 manual.ai.common.title,共通の仕組み,How It Works
-manual.ai.common.intro,敵の動きは特性で決まっている。特性ごとに、いつ動き出すか（行動開始条件）と、1手番で何をするか（行動ルール）が書き下してあり、そこに乱数は入らない。,"Enemy behaviour is fixed by its trait. Each trait spells out when the unit wakes up (its activation) and what it does on its turn (its action rules). No randomness enters anywhere."
+manual.ai.common.intro,敵の動きは特性で決まっている。特性ごとに、いつ動き出すか（行動開始条件）と、1手番で何をするか（行動ルール）が書き下してあり、そこに乱数は入らない。,"Enemy behavior is fixed by its trait. Each trait spells out when the unit wakes up (its activation) and what it does on its turn (its action rules). No randomness enters anywhere."
 manual.ai.common.read,敵が使う情報は、こちらが盤から読めるものに限られる。手の内を覗いて動くことはない。敵を選べば、情報パネルにその駒の特性と部隊が出る。,"The enemy only uses information you can read off the board yourself. It never peeks at anything hidden. Select an enemy and the info panel names its trait and its squad."
 manual.ai.common.rules,行動ルールの読み方,Reading the Action Rules
 manual.ai.common.rules1,行動ルールは上から順に条件を当てて、最初に当てはまった行を実行する。どの行も当てはまらなければ待機する。移動を使い切った駒は、移動を伴う行を飛ばして次の行を見る。,"The rules are checked from the top and the first one that fits is what the unit does. If none fit, it waits. A unit that has spent its Move skips rules that involve moving and reads on."
@@ -114,7 +114,7 @@ manual.ai.common.squad2,どこまでが同じ部隊かは盤の絵からは読�
 manual.ai.common.order,行動順,Turn Order
 manual.ai.common.order1,敵のターンは部隊ごとに順番が決まっている。部隊の中では、最寄りの敵に近い駒から動く。前の駒から動かすのは、後ろが先に動くと前に塞がれて進めなくなるため。順番は毎ターン計算し直す。,"The enemy turn runs squad by squad in a fixed order. Within a squad, the unit closest to its nearest foe goes first — if the rear moved first it would be blocked by its own front. The ordering is recomputed every turn."
 manual.ai.common.sortie,拠点出撃,Deploying from Bases
-manual.ai.common.sortie1,控えを抱えた拠点も1つの部隊として扱う。行動開始条件を満たすと、拠点の隣が埋まるか控えが尽きるまで駒を出し続ける。出す先は、いちばん近い敵に最も近い空きマスになる。,"A base holding reserves counts as a squad of its own. Once its activation is met it keeps deploying until the hexes around it are full or the reserves run out. Each unit goes to the empty hex nearest the closest enemy."
+manual.ai.common.sortie1,控えを抱えた拠点も1つの部隊として扱う。行動開始条件を満たすと、拠点の隣が埋まるか控えが尽きるまで駒を出し続ける。出す先は、いちばん近い敵に最も近い空きマスになる。,"A base holding reserves counts as a squad of its own. Once its activation is met it keeps deploying until the hexes around it are full or the reserves run out. Each unit goes to whichever empty hex is closest to the nearest enemy."
 manual.ai.common.sortie2,出した駒はそのターン行動が終わり、次のターンからその部隊の特性で戦う。特性を持たない拠点は出撃しない＝控えを抱えたまま動かない拠点もある。,"A deployed unit is done for that turn and fights under the base's trait from the next one. A base with no trait never deploys, so some bases sit on their reserves and never open."
 manual.ai.terms.title,用語,Glossary
 manual.ai.terms.intro,行動ルールの表で使う言葉をまとめる。,The terms used in the action rule tables.
@@ -135,7 +135,7 @@ manual.ai.terms.moving,動き方,Movement
 manual.ai.terms.reach.term,移動範囲,Move Range
 manual.ai.terms.reach.desc,今ターンその駒が止まれるマスの集合。足止めで切り詰められ、足止めのマス自体は入る。乗れる味方輸送のマスもここに入る。,"The set of hexes the unit can end its turn on. Zones of control cut it short, though the stopping hex itself is included. Hexes with a friendly transport it can board are in the set too."
 manual.ai.terms.advance.term,前進,Advance
-manual.ai.terms.advance.desc,移動範囲のうち、標的への距離がいちばん縮むマスへ動くこと。使う距離が4種類ある。最大前進は移動距離、回り込みは迂回距離、見込前進は地形距離、直線寄せは盤上距離を使う。縮むマスが無ければその場に留まる。,"Moving to whichever hex in Move Range shortens the distance to the target most. It comes in four flavours by which distance it uses: full advance uses Move Distance, flanking uses Detour Distance, projected advance uses Terrain Distance, and straight approach uses Hex Distance. If nothing shortens it, the unit stays put."
+manual.ai.terms.advance.desc,移動範囲のうち、標的への距離がいちばん縮むマスへ動くこと。使う距離が4種類ある。最大前進は移動距離、回り込みは迂回距離、見込前進は地形距離、直線寄せは盤上距離を使う。縮むマスが無ければその場に留まる。,"Moving to whichever hex in Move Range shortens the distance to the target most. It comes in four flavors by which distance it uses: full advance uses Move Distance, flanking uses Detour Distance, projected advance uses Terrain Distance, and straight approach uses Hex Distance. If nothing shortens it, the unit stays put."
 manual.ai.terms.keep_range.term,最大間合い,Max Standoff
 manual.ai.terms.keep_range.desc,移動範囲のうち標的を撃てるマスで、標的からいちばん遠いマスへ動くこと。射程の上限より遠くへは行かない（行くと撃てなくなるため）。敵の移動力は見ないので、翌ターン詰められることはある。,"Moving to the hex in Move Range from which the target can still be hit and which is furthest from it. It never goes beyond its own maximum range, since that would mean it cannot shoot. Enemy Move is not taken into account, so it can still be closed down next turn."
 manual.ai.terms.threat.term,脅威圏,Threat Range
@@ -150,7 +150,7 @@ manual.ai.terms.wounded.desc,その駒が攻撃できる敵のうち、失った
 manual.ai.terms.prey.term,獲物,Prey
 manual.ai.terms.prey.desc,その駒が攻撃できる敵のうち、いちばん柔らかい敵の防御力に10を足したところまでに収まるもの。1体ではなく集合で、兵数は見ない＝能力だけで決まるので、どの駒が狙われているかを読める。上限は盤全体の敵から計算する。,"Among the enemies the unit can attack, those whose defense falls within ten of the softest one. It is a set rather than a single unit, and strength is not considered — it depends on stats alone, so you can tell who is being hunted. The threshold is worked out from every enemy on the board."
 manual.ai.terms.air_target.term,空敵,Air Target
-manual.ai.terms.air_target.desc,対空が得意な駒（対地が対空以下の駒）が攻撃できる飛行の敵。対空が得意でない駒に空敵はいない＝対地70・対空10 の駒を空へ向かわせないための線引き。,"A flying enemy that a unit good against air — one whose Atk vs Ground is no higher than its Atk vs Air — can attack. Units that are not good against air have no air targets, which keeps something like 70 ground against 10 air from being sent skyward."
+manual.ai.terms.air_target.desc,対空が得意な駒（対地が対空以下の駒）が攻撃できる飛行の敵。対空が得意でない駒に空敵はいない＝対地70・対空10 の駒を空へ向かわせないための線引き。,"A flying enemy that can be attacked by a unit good against air — one whose Atk vs Air is at least its Atk vs Ground. Units that are not good against air have no air targets, which keeps something like 70 ground against 10 air from being sent skyward."
 manual.ai.terms.blocker.term,経路上の敵,Blocker
 manual.ai.terms.blocker.desc,行き先への道を塞いでいる敵。撃てる敵をまとめてどけたと仮定して、移動距離が縮むか、通れなかった迂回の道が通れるようになるかで判定する。1体ずつ試さないのは、通路を2体で塞がれているとどちらか片方をどけても道が開かないため。,"An enemy standing in the way. It is judged by imagining every shootable enemy removed at once and asking whether the Move Distance shortens or a previously impossible detour becomes possible. They are not tested one at a time, because a corridor held by two units does not open when only one is taken away."
 manual.ai.terms.lethal.term,仕留められる敵,Lethal Target
@@ -158,7 +158,7 @@ manual.ai.terms.lethal.desc,その攻撃で兵数が0になる敵。いまの位
 manual.ai.terms.gain.term,戦果,Damage
 manual.ai.terms.gain.desc,その攻撃で相手から減らせる兵数。兵数の上限はどの駒も同じなので割合では測らない。,How many soldiers the attack would take off the target. Maximum strength is the same for every unit so it is counted outright rather than as a share.
 manual.ai.terms.encircle_ok.term,包囲可能,Can Encircle
-manual.ai.terms.encircle_ok.desc,対象にいま隣接している味方と、まだ動いていない味方でこのターン隣へ寄れる駒を合わせて、包囲が成立する数に届くこと。行動する駒自身も数に入る。すでに囲まれている相手は必ず当てはまる。,"That the allies already adjacent to the target, plus those yet to act that could reach a neighbouring hex this turn, add up to the number needed for Encircled. The acting unit counts itself. Anything already surrounded always qualifies."
+manual.ai.terms.encircle_ok.desc,対象にいま隣接している味方と、まだ動いていない味方でこのターン隣へ寄れる駒を合わせて、包囲が成立する数に届くこと。行動する駒自身も数に入る。すでに囲まれている相手は必ず当てはまる。,"That the allies already adjacent to the target, plus those yet to act that could reach a neighboring hex this turn, add up to the number needed for Encircled. The acting unit counts itself. Anything already surrounded always qualifies."
 manual.ai.terms.loss.term,損耗,Attrition
 manual.ai.terms.loss.desc,失った兵の割合。残りの数ではなく割合で見るので、満員の数が違う駒どうしでも並べられる。,"The share of strength lost. It is read as a proportion rather than a remainder, so units with different maximums can be compared."
 manual.ai.terms.ride.term,便乗,Hitching a Ride
@@ -172,7 +172,7 @@ manual.ai.terms.stack_cond.term,stack 条件,Stack Condition
 manual.ai.terms.stack_cond.desc,同じ相手にスキルを重ねすぎないための条件。強化と弱体は「効いている本数が上限より少ないこと」、解除は逆に「刺さっている弱体が閾値以上あること」を見る。上限が無ければ強化と弱体は常に成立する。,"What keeps the enemy from piling skills onto one target forever. For buffs and debuffs it asks whether fewer than the limit are already in place; for cleansing it asks the opposite — whether at least the threshold number of debuffs are stuck on. With no limit set, buffs and debuffs always qualify."
 manual.ai.traits.title,特性ごとの行動,Traits
 manual.ai.charge.title,突撃,Charge
-manual.ai.charge.desc,前へ出て積極的に攻撃する。手番をためらいなく使う。読み合いの要素が無く、必ず前へ来ると分かっている特性なので、地形で受ける・包囲で潰すといった基本の練習になる。,"Pushes forward and attacks without hesitation. There is nothing to read here — it will always come at you — which makes it the trait to practise the basics against: receiving on good terrain and crushing with an encirclement."
+manual.ai.charge.desc,前へ出て積極的に攻撃する。手番をためらいなく使う。読み合いの要素が無く、必ず前へ来ると分かっている特性なので、地形で受ける・包囲で潰すといった基本の練習になる。,"Pushes forward and attacks without hesitation. There is nothing to read here — it will always come at you — which makes it the trait to practice the basics against: receiving on good terrain and crushing with an encirclement."
 manual.ai.charge.start,行動開始条件,Activation
 manual.ai.charge.start1,常時（最初から動いている）,Always — active from the first turn.
 manual.ai.charge.rules,行動ルール,Action Rules
@@ -298,7 +298,7 @@ manual.ai.swarm.rule10.cond,地形距離が測れる敵がいる,Some enemy has 
 manual.ai.swarm.rule10.act,地形距離が最小の敵へ見込前進する,Make a projected advance toward the nearest by Terrain Distance
 manual.ai.swarm.rule11.cond,盤上に攻撃できる敵がいる,There is some attackable enemy on the board
 manual.ai.swarm.rule11.act,盤上距離が最小の敵へ直線寄せする,Make a straight approach toward the nearest by Hex Distance
-manual.ai.swarm.note1,2行目だけ包囲を条件にしない。手負いには単独でも噛みつく。誰も傷ついていないターンはいちばん近い敵が手負いになるので、そこで最初の一噛みが起きる。以後はその相手が損耗最大であり続け、群れが集まる。,"Rule 2 alone does not require an encirclement — a wounded unit gets bitten by a single attacker. On a turn when nobody is hurt the nearest enemy counts as wounded, which is where the first bite comes from. After that the same unit stays the most attritted and the swarm converges on it."
+manual.ai.swarm.note1,2行目だけ包囲を条件にしない。手負いには単独でも噛みつく。誰も傷ついていないターンはいちばん近い敵が手負いになるので、そこで最初の一噛みが起きる。以後はその相手が損耗最大であり続け、群れが集まる。,"Rule 2 alone does not require an encirclement — a wounded unit gets bitten by a single attacker. On a turn when nobody is hurt the nearest enemy counts as wounded, which is where the first bite comes from. After that the same unit stays the most worn down and the swarm converges on it."
 manual.ai.swarm.note2,拠点は取らない。占領兵を混ぜても拠点へは向かわない。,"It does not take bases. Mixing in a unit that can capture will not send it toward one."
 manual.ai.flee.title,逃走,Flee
 manual.ai.flee.desc,戦わずに拠点へ走る。元気なら敵の拠点、削られたら自分の陣営の拠点へ逃げて回復する。足止め範囲には入らないので、正面から追っても捕まらない。回り込んで挟むか、足止めの帯で逃げ道を塞ぐことになる。,"Runs for a base instead of fighting — an enemy base while healthy, one of its own to heal once worn down. It refuses to enter a zone of control, so chasing it head-on never catches it. You have to cut it off or seal the route with a belt."
