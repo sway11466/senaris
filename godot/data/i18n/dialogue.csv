@@ -221,17 +221,19 @@ t2.st6.outro.1,やりきったわ。私たち。,"We pulled it off. We really di
 t2.st6.outro.2,ああ、すべての手札を出し切った。,"Aye. We played every card we had."
 t2.st6.outro.3,まだです。デュラハンには屍を作る力はありません。元凶が、この奥にいるはずです。,"Not yet. A dullahan has no power to create the dead. The true source must lie deeper in."
 t2.st6.outro.4,まだ、これ以上の厄介な敵がいるの！ どうすればいいの。,"There's an even nastier foe still?! What are we to do?"
-t2.st6.outro.5,安心してください。少し前に都から連絡があり、聖騎士様がこちらに向かっているとのことです。飛空艇でくるそうなので、もうすぐに到着するはずです。,"Be at ease. Word came from the capital a while ago — a paladin is on the way to us. By airship, they say, so they should arrive very soon."
+t2.st6.outro.5,安心してください。少し前に聖都から連絡があり、聖騎士様がこちらに向かっているとのことです。飛空艇でくるそうなので、もうすぐに到着するはずです。,"Be at ease. Word came from the Holy City a while ago — a paladin is on the way to us. By airship, they say, so they should arrive very soon."
 t2.st6.outro.6,それは心強い。次こそ、最後の戦いだ。,"That's heartening. The next battle will be the last."
 t2.st6.squad.1,首無し,The Headless
 t2.st6.squad.2,上部グール達,Upper Ghouls
 t2.st6.squad.3,下部ゾンビ・スケルトン,Lower Undead
 t2.st6.squad.4,レイス隊,Wraiths
+t2.st7.intro.10,墓地の奥から、禍々しい気配を感じます。屍のものではありません、生きた者の気配です。,"I feel a foul presence deep in the graveyard. It is not that of the dead — it is something alive."
+t2.st7.intro.11,死者を操る術者――ネクロマンサーですね。屍を生み出していたのは、あれです。,"A caster who commands the dead — a necromancer. That is what has been raising the corpses."
+t2.st7.intro.12,あれが元凶ってわけ。道理で、倒しても倒しても切りがないはずだわ。,"So that's the source. No wonder there was no end to them, however many we cut down."
 t2.st7.intro.1,飛空艇が見えます、聖騎士様が間もなく到着します！,"I can see the airship — the paladin will arrive any moment!"
 t2.st7.intro.2,屍の量が圧倒的だわ、どうやってネクロマンサーに近づけば良いの。,"The sheer number of dead is overwhelming. How are we to reach the necromancer?"
 t2.st7.intro.3,聖騎士様は強力なディバインジャッジメントを落とすことができる。聖騎士様が到着するまで、持ちこたえるんだ。,"The paladin can bring down a mighty Divine Judgment. Hold out until they arrive."
 t2.st7.intro.6,ディバインジャッジメントは、聖騎士様と聖職二人が三角に組んで放つ一撃です。十ヘックス先まで届き、狙えるのはただ一体。,"The Divine Judgment is a single strike loosed by the paladin and two of the clergy formed in a triangle. It carries ten hexes, and strikes one target alone."
-t2.st7.intro.7,聖騎士様は飛空艇の中です。私たち聖職も一緒に運んでいただきましょう、あの方おひとりでは裁きは放てません。,"The paladin is aboard the airship. Let it carry us clergy along as well — they cannot loose the judgment alone."
 t2.st7.intro.8,屍を残らず倒す必要はない。元凶さえ討てば、この群れは崩れる。,"We don't need to fell every last corpse. Strike down the source and this horde falls apart."
 t2.st7.intro.9,言っておくけど、あいつ自身も五つ先から撃ってくるわ。うかつに顔を出さないでね。,"Mind you, it strikes from five hexes away itself. Don't go poking your head out carelessly."
 t2.st7.intro.4,今まで通り、トリニティノヴァで薙ぎ払い、祈りの加護で耐えましょう。,"As before — sweep them with the Trinity Nova and endure with the prayer's blessing."
@@ -242,7 +244,7 @@ t2.st7.arrive.2,待たせたな。戦況は？,"Sorry to keep you waiting. How s
 t2.st7.arrive.3,ネクロマンサーは奥の高台です。屍は墓地から次々と湧いてきます。,"The necromancer is on the high ground at the far end. The dead keep rising from the graveyards."
 t2.st7.arrive.4,任せろ。ディバインジャッジメントで、あれを撃ち抜く。,"Leave it to me. I will pierce it through with the Divine Judgment."
 t2.st7.arrive.5,中央の、瓦礫の中の礼拝堂まで押し上げよう。あそこからならネクロマンサーに裁きが届くはずだ。,"Let's push up to the chapel among the rubble, at the center. From there the judgment should reach the necromancer."
-t2.st7.arrive.6,放つには、聖騎士様と私たち聖職二人が互いに寄り添い、三角に組まなければなりません。,"To loose it, the paladin and two of us clergy must stand close together, forming a triangle."
+t2.st7.arrive.6,放つには、聖騎士様と聖職二人が互いに寄り添い、三角に組まなければなりません。,"To loose it, the paladin and two of the clergy must stand close together, forming a triangle."
 t2.st7.outro.1,ディバインジャッジメントを。,"Divine Judgment."
 t2.st7.outro.2,貫いた！　ネクロマンサーが、崩れ落ちていく。,"It pierced through! The necromancer is crumbling away."
 t2.st7.outro.3,見てください、屍の海が光に還っていく！　術者が斃れれば骸に還る——知識では知っていましたが、この目で見るのは全く違う！,"Look — the sea of the dead is returning to the light! With the caster fallen they become mere corpses. I knew it as knowledge, but seeing it with my own eyes is another thing entirely!"
