@@ -17,7 +17,8 @@ class_name Formation
 ## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
 ## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
-## shape: "triangle"（count 体が相互隣接）／"cluster"（count 体以上の隣接クラスタ）。
+## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
+##        "cluster"（count 体以上の隣接クラスタ）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 const RECIPES := {
@@ -37,7 +38,7 @@ const RECIPES := {
 		"name": "ディバインジャッジメント",
 		"leader_skins": ["paladin"],
 		"member_skins": ["cleric", "priest", "bishop"],
-		"shape": "triangle",
+		"shape": "escort",
 		"count": 3,
 		"effect": "single",
 		"range": 10,
@@ -202,6 +203,9 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 			"triangle":
 				for members in _triangle_sets(state, unit, r, lead_pos):
 					out.append(_option(rid, r, [unit, members[0], members[1]]))
+			"escort":
+				for members in _escort_sets(state, unit, r, lead_pos):
+					out.append(_option(rid, r, [unit, members[0], members[1]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
 				if String(r["effect"]) == "spawn":
@@ -346,9 +350,9 @@ static func _in_range_cells(state: BattleState, option: Dictionary, from_hex: Ve
 				out.append(h)
 	return out
 
-## leader（lead_pos に居るものとする）に隣接する member_skins の候補（同陣営・未行動）から、
-## 互いに隣接する2体組を全列挙。lead_pos は移動先のこともある＝発動者だけ仮の位置で測る。
-static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
+## leader（lead_pos に居るものとする）に隣接する member_skins の候補（同陣営・未行動）。
+## lead_pos は移動先のこともある＝発動者だけ仮の位置で測る。
+static func _adjacent_members(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
 		if u.id == leader.id or u.team != leader.team or not state.has_action_left(u.id):
@@ -357,11 +361,26 @@ static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead
 			continue
 		if Hex.distance(u.pos, lead_pos) == 1:
 			cand.append(u)
+	return cand
+
+## ①トリニティノヴァ＝三角形。leader に隣接する候補のうち、互いにも隣接する2体組を全列挙。
+static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
+	var cand := _adjacent_members(state, leader, r, lead_pos)
 	var sets: Array = []
 	for i in cand.size():
 		for j in range(i + 1, cand.size()):
 			if Hex.distance(cand[i].pos, cand[j].pos) == 1:
 				sets.append([cand[i], cand[j]])
+	return sets
+
+## ③ディバインジャッジメント＝発動者を中心に、周囲の2体。メンバー同士の隣接は問わない
+## （発動者を挟んで左右対称でも成立する）＝leader に隣接する候補の2体組を全列挙。
+static func _escort_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
+	var cand := _adjacent_members(state, leader, r, lead_pos)
+	var sets: Array = []
+	for i in cand.size():
+		for j in range(i + 1, cand.size()):
+			sets.append([cand[i], cand[j]])
 	return sets
 
 ## leader を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。

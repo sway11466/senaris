@@ -61,6 +61,18 @@ func test_no_triangle_when_not_adjacent() -> void:
 		s.add_unit(u)
 	assert_eq(Formation.available_for(s, w1).size(), 0, "三角形にならなければ検出0")
 
+## ①は三角形のまま＝発動者を挟んで左右対称（dir0 と dir3）では成立しない（③との違い）。
+func test_trinity_nova_rejects_flanking_members() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var w1 := Unit.new(1, 0, c, 3, 8, 40, 30, 1, "wizard")
+	var w2 := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 40, 30, 1, "wizard")
+	var w3 := Unit.new(3, 0, Hex.neighbor(c, 3), 3, 8, 40, 30, 1, "wizard")
+	for u in [w1, w2, w3]:
+		s.add_unit(u)
+	assert_eq(_count(Formation.available_for(s, w1), "trinity_nova"), 0,
+		"メンバー同士が隣接していなければ三角形にならない")
+
 func test_leader_type_gates_recipe() -> void:
 	# クレリックを選んでもトリニティノヴァ（魔法兵）は出ない。
 	var f := _trinity_nova_state()
@@ -204,7 +216,8 @@ func test_holy_aria_lasts_one_round() -> void:
 	s.end_turn()  # 次の自軍ターンへ＝ここで満了
 	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before, 1.0, "次の自軍ターン開始で切れる")
 
-# ③ディバインジャッジメントの成立盤：paladin＋聖職2の三角形＋射程内(距離 enemy_dist)の敵1体。leader=paladin(id1)。
+# ③ディバインジャッジメントの成立盤：paladin の周囲に聖職2体＋射程内(距離 enemy_dist)の敵1体。
+# leader=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、③の条件は発動者への隣接だけ。
 func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -232,6 +245,31 @@ func test_divine_judgment_leader_must_be_paladin() -> void:
 	var f := _judgment_state()
 	var cleric: Unit = f["s"].unit_by_id(2)
 	assert_eq(_count(Formation.available_for(f["s"], cleric), "divine_judgment"), 0, "発動者がパラディンでなければ未提示")
+
+## ③は「パラディンを中心に、周囲に聖職2体」＝聖職同士の隣接は問わない。
+## 発動者を挟んで左右（dir0 と dir3）に置く形でも成立する。詳細 → doc/gdd/formations.md
+func test_divine_judgment_allows_flanking_members() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var pal := Unit.new(1, 0, c, 3, 8, 50, 50, 1, "paladin")
+	var c1 := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 20, 20, 1, "cleric")
+	var c2 := Unit.new(3, 0, Hex.neighbor(c, 3), 3, 8, 20, 20, 1, "priest")
+	for u in [pal, c1, c2]:
+		s.add_unit(u)
+	assert_eq(Hex.distance(c1.pos, c2.pos), 2, "前提: 聖職同士は隣接していない")
+	assert_eq(_count(Formation.available_for(s, pal), "divine_judgment"), 1,
+		"発動者を挟んで左右でも成立する")
+
+func test_divine_judgment_needs_two_adjacent_clergy() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var pal := Unit.new(1, 0, c, 3, 8, 50, 50, 1, "paladin")
+	var c1 := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 20, 20, 1, "cleric")
+	var c2 := Unit.new(3, 0, c + Hex.direction(3) * 2, 3, 8, 20, 20, 1, "priest")  # 発動者に隣接しない
+	for u in [pal, c1, c2]:
+		s.add_unit(u)
+	assert_eq(_count(Formation.available_for(s, pal), "divine_judgment"), 0,
+		"発動者に隣接する聖職が1体では不成立")
 
 ## 着弾中心に選べるhex＝コマンドメニューの有効/無効の材料。空なら項目を無効化する
 ## （攻撃と同じ流儀 → doc/gdd/uiux.md）。単体狙撃は駒の居るhexだけ＝地面には撃てない。
