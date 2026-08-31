@@ -36,7 +36,7 @@ manual.combat.main.sim1,攻撃側と防御側は同時に攻撃する。先制�
 manual.combat.main.sim2,反撃が起きるのは、距離1で攻撃され、その距離を自分も撃てるときだけ。距離2以上の攻撃には反撃が無い。下限が2以上の砲兵は隣に入られると反撃できず、対空を持たない駒は飛行に殴られても反撃しない。,"A counterattack happens only when the unit is attacked at distance 1 and can shoot that distance itself. Attacks from distance 2 or more are never countered. Artillery with a minimum range of 2 or more cannot counter an adjacent enemy, and a unit without Atk vs Air cannot counter a flier."
 manual.combat.main.chain,攻撃力と防御力,Attack and Defense
 manual.combat.main.chain1,駒はそのままの数値で戦うわけではない。兵数を掛けたものに補正が順に乗り、実効攻撃力・実効防御力になる。戦闘レポートはこの内訳をそのまま見せている。,"A unit does not fight with its raw numbers. Strength is applied first, then a chain of modifiers, producing Effective Atk and Effective Def. The battle report lays out that same breakdown."
-manual.combat.main.chain2,掛け算で効くのはレベル・包囲・地形・状態補正。足し算で効くのは支援と状態補正。掛け算をすべて済ませてから、足し算を足す。,"Lv, Encircled, Terrain and Modifiers multiply. Support and Modifiers add. Every multiplication is applied first, then the additions go on top."
+manual.combat.main.chain2,掛け算で効くのはレベル・包囲・地形・状態補正。足し算で効くのは支援と状態補正。掛け算をすべて済ませてから、足し算を足す。,"Lv, Encircled, Terrain and Status Effects multiply. Support and Status Effects add. Every multiplication is applied first, then the additions go on top."
 manual.combat.main.chain3,最後に防御貫通が防御側にだけ掛かる。支援を足したあとの防御力に掛かるので、支援も貫通の影響を受ける。,"Pierce is applied last, and only to the defender. It hits the defense after Support has been added, so Support is reduced by it as well."
 manual.combat.main.mods,補正,Modifiers
 manual.combat.main.level.term,レベル,Lv
@@ -49,7 +49,7 @@ manual.combat.main.terrain.term,地形,Terrain
 manual.combat.main.terrain.desc,立っているマスの地形が、攻撃と防御にそれぞれ別の係数で掛かる。攻める側は自分の足元の攻撃係数、守る側は自分の足元の防御係数を使う。,"The terrain a unit stands on applies its own factors, one for attack and one for defense. The attacker uses the attack factor of the hex under itself, and the defender uses the defense factor of the hex under itself."
 manual.combat.main.pierce.term,防御貫通,Pierce
 manual.combat.main.pierce.desc,撃った側が持つ、相手の防御を無視する割合。相手が硬いほど効きが伸びる。,"The share of the target's defense that the attacker ignores. The harder the target, the more it pays off."
-manual.combat.main.status.term,状態補正,Modifier
+manual.combat.main.status.term,状態補正,Status Effect
 manual.combat.main.status.desc,スキルで掛かる強化と弱体。掛け算で効くものと足し算で効くものがあり、それぞれの列に加わる。掛かっている駒は足元に輪が出る（弱体＝内側の太い輪／強化＝外側の細い輪）。,"Buffs and debuffs from skills. Some multiply and some add, joining the chain in their own group. A unit carrying one shows a ring at its feet — a thick inner ring for debuffs, a thin outer ring for buffs."
 manual.combat.main.mods_note,包囲と支援は同じ配置から同時に出る。敵の横に味方を置けば、その敵を弱らせながら自分の攻撃を底上げする。1体の置き場所が両方に効く。,"Encircled and Support come out of the same placement. Put an ally beside an enemy and it weakens that enemy while boosting your own attack. One unit's position does both."
 manual.combat.main.damage,損害の決まり方,How Losses Are Decided

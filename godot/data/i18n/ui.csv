@@ -46,7 +46,7 @@ ui.info.act_can_move,移動可,Can Move
 ui.info.act_moved,移動済,Moved
 ui.info.act_can_attack,攻撃可,Can Attack
 ui.info.act_attacked,攻撃済,Attacked
-ui.info.modifier,状態補正,Modifier
+ui.info.modifier,状態補正,Status Effect
 ui.info.modifier_none,なし,None
 ui.info.modifier_remaining,%s  残り%d,%s  %d turns left
 ui.info.encircled,包囲,Encircled
@@ -86,11 +86,11 @@ ui.report.defense,防御,Defense
 ui.report.terrain,地形,Terrain
 ui.report.encircled,包囲,Encircled
 ui.report.support,支援,Support
-ui.report.buff,状態補正,Modifier
+ui.report.buff,状態補正,Status Effect
 ui.report.atk_vs_ground,対地 %d,vs Ground %d
 ui.report.atk_vs_air,対空 %d,vs Air %d
 ui.report.no_counter,反撃なし,No Counter
-ui.report.modifier_unnamed,状態補正,Modifier
+ui.report.modifier_unnamed,状態補正,Status Effect
 ui.report.status_dot,%s 毒 -%d/ターン,%s Poison -%d/turn
 ui.report.head_attack,%s → %s の攻撃,Attack: %s → %s
 ui.report.head_counter,%s → %s の反撃,Counter: %s → %s
@@ -100,7 +100,7 @@ ui.report.base_stat,素の値,Base
 ui.report.eff_total,実効値,Effective
 ui.report.strength,兵数,Strength
 ui.report.level,Lv,Lv
-ui.report.status,状態補正,Modifier
+ui.report.status,状態補正,Status Effect
 ui.report.pierce,貫通,Pierce
 ui.report.eff_atk,実効攻撃力,Effective Atk
 ui.report.eff_def,実効防御力,Effective Def
