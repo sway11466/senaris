@@ -7,7 +7,7 @@ manual.unit.main.troops.desc,その駒に残っている兵の数。満員は8�
 manual.unit.main.atk_ground.term,対地,Atk vs Ground
 manual.unit.main.atk_ground.desc,地上の敵を攻撃するときに使う攻撃力。兵1体あたりの値で、実際の攻撃力はこれに兵数を掛けたものから始まる。,The attack power used against ground units. It is the value per soldier — actual attack power starts from this multiplied by strength.
 manual.unit.main.atk_air.term,対空,Atk vs Air
-manual.unit.main.atk_air.desc,飛行の敵を攻撃するときに使う攻撃力。0の駒は飛行を攻撃対象に選べず、飛行に殴られても反撃できない。対空を持つのは弓兵・飛行兵・魔法兵で、歩兵と占領兵の近接は空に届かない。,"The attack power used against fliers. A unit with 0 here cannot target fliers at all, and cannot counter when a flier attacks it. Archers, fliers and mages carry this — infantry and clergy cannot reach the air in melee."
+manual.unit.main.atk_air.desc,飛行の敵を攻撃するときに使う攻撃力。0の駒は飛行を攻撃対象に選べず、飛行に殴られても反撃できない。対空を持つのは弓兵・飛行兵・魔法兵で、歩兵と占領兵の近接は空に届かない。,"The attack power used against fliers. A unit with 0 here cannot target fliers at all, and cannot counter when a flier attacks it. Archers, fliers and mages carry this — infantry and the clergy cannot reach the air in melee."
 manual.unit.main.defense.term,防御,Defense
 manual.unit.main.defense.desc,攻撃を受けたときの固さ。物理と魔法で分かれておらず、相手が地上か飛行かでも分かれない単一の値になる。,"How tough the unit is when attacked. It is a single value — not split into physical and magical, and not split by whether the attacker is on the ground or in the air."
 manual.unit.main.pierce.term,防御貫通,Pierce
@@ -21,13 +21,13 @@ manual.unit.main.move_type.desc,地形ごとの進入コストを決める表。
 manual.unit.main.move_after_attack.term,攻撃後再移動,Move After Attack
 manual.unit.main.move_after_attack.desc,攻撃したあと、残っている移動力でもう一度動けるかどうか。移動力は攻撃前と合わせて1ターンぶんを分け合う。撃ってから下がる動きができる。,"Whether the unit can move again after attacking, using whatever Move it has left. The allowance is shared across the whole turn, before and after. It allows hit-and-run."
 manual.unit.main.can_capture.term,占領可,Can Capture
-manual.unit.main.can_capture.desc,拠点を占領できるかどうか。持っているのは占領兵だけになる。,Whether the unit can capture a base. Only clergy have it.
+manual.unit.main.can_capture.desc,拠点を占領できるかどうか。持っているのは占領兵だけになる。,Whether the unit can capture a base. Only the clergy have it.
 manual.unit.main.capacity.term,搭乗数,Capacity
 manual.unit.main.capacity.desc,中に乗せられる味方の数。1以上なら輸送として使える。,How many friendly units it can carry. Anything from 1 up can be used as transport.
 manual.unit.main.level.term,レベル,Lv
 manual.unit.main.level.desc,戦うたびに上がる強さ。初期値は1で、1上がるごとに攻撃力と防御力が1%増える。上限は99。,"Power earned by fighting. Units start at 1, and every level adds 1% to both attack and defense. The cap is 99."
 manual.unit.main.category.term,兵種,Class
-manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器・魔法生物がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport, emplacement and monstrosity. Formation skill recipes are written in terms of these too."
+manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器・魔法生物がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport, war machine and monstrosity. Formation skill recipes are written in terms of these too."
 manual.combat.title,戦闘,Combat
 manual.combat.main.title,戦闘,Combat
 manual.combat.main.intro,戦闘に乱数は無い。同じ盤面で同じ手を打てば、結果は必ず同じになる。運で駒を失うことはないかわりに、負けたなら理由は必ず盤の上にある。,"There is no randomness in combat. The same board and the same move always give the same result. You never lose a unit to bad luck — but when you lose, the reason is always somewhere on the board."
@@ -40,7 +40,7 @@ manual.combat.main.chain2,掛け算で効くのはレベル・包囲・地形・
 manual.combat.main.chain3,最後に防御貫通が防御側にだけ掛かる。支援を足したあとの防御力に掛かるので、支援も貫通の影響を受ける。,"Pierce is applied last, and only to the defender. It hits the defense after Support has been added, so Support is reduced by it as well."
 manual.combat.main.mods,補正,Modifiers
 manual.combat.main.level.term,レベル,Lv
-manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増える。戦えば+1、倒せばさらに+1。反撃できなかった側は上がらない。拠点を占領した占領兵は+10で、戦う機会の少なさを1回で補う。上限は99。,"Each level adds 1% to attack and defense. Fighting gives +1, and destroying the enemy gives another +1. A unit that could not counter gains nothing. Clergy that capture a base gain +10, making up in one go for how rarely they fight. The cap is 99."
+manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増える。戦えば+1、倒せばさらに+1。反撃できなかった側は上がらない。拠点を占領した占領兵は+10で、戦う機会の少なさを1回で補う。上限は99。,"Each level adds 1% to attack and defense. Fighting gives +1, and destroying the enemy gives another +1. A unit that could not counter gains nothing. A clergy unit that captures a base gains +10, making up in one go for how rarely it fights. The cap is 99."
 manual.combat.main.surround.term,包囲,Encircled
 manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighboring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so units on edges and corners are hard to encircle."
 manual.combat.main.support.term,支援,Support
@@ -379,7 +379,7 @@ manual.base.title,拠点・占領,Bases and Capture
 manual.base.main.title,拠点・占領,Bases and Capture
 manual.base.main.intro,拠点は盤の上の城や砦で、守りに強い地形であると同時に、占領・出撃・回復の3つの働きを持つ。町・礼拝堂・詰所の見た目のものもあるが、扱いは同じになる。,"Bases are the castles and forts on the board. They are strong defensive terrain and they also do three other things: they can be captured, they deploy reserves, and they heal. Some look like towns, chapels or guardhouses, but they all work the same way."
 manual.base.main.capture,占領,Capture
-manual.base.main.capture1,占領できるのは占領兵だけ。敵か中立の拠点のマスへ入ると、待機のかわりに占領が選べるようになり、選んだ時点でその拠点は自軍のものになる。占領した占領兵はレベルが10上がる。,"Only clergy can capture. Move one onto an enemy or neutral base hex and the Wait command becomes Capture; choosing it hands the base to you on the spot. The unit that captures gains 10 levels."
+manual.base.main.capture1,占領できるのは占領兵だけ。敵か中立の拠点のマスへ入ると、待機のかわりに占領が選べるようになり、選んだ時点でその拠点は自軍のものになる。占領した占領兵はレベルが10上がる。,"Only the clergy can capture. Move one onto an enemy or neutral base hex and the Wait command becomes Capture; choosing it hands the base to you on the spot. The unit that captures gains 10 levels."
 manual.base.main.capture2,拠点のマスに敵が立っている間は入れない。倒してから入ることになる。,You cannot enter a base hex while an enemy is standing on it. It has to be destroyed first.
 manual.base.main.deploy,出撃,Deploying
 manual.base.main.deploy1,拠点は中に控えの駒を抱えている。所有者はその中から1体を選び、拠点に隣接する空きマスへ出せる。出した駒はそのターン行動が終わり、次のターンから動ける。,"A base holds reserves inside it. Whoever owns the base picks one and puts it on an empty hex beside it. The unit is finished for that turn and acts normally from the next one."
