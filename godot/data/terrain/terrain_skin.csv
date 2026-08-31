@@ -17,7 +17,7 @@ plain_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,1.02,0.2,,true,
 plain_fort_town1,fort,町,none,false,,0,0,false,standee,0.79,0.5,,true,plain,plain,道の町（road_fort_town1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1,plain,墓地の草地,full,false,,0,0,false,,,,,true,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,panel,0.23,,,true,plain_grave1,plain_grave1,自前の帯4枚（plain_fence の複製）を墓地の草地の上に立てる
-plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,false,standee,1.23,0.2,,true,plain_grave1,plain_grave1,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,false,standee,0.75,0.45,,true,plain_grave1,plain_grave1,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1_fort_crypt1,fort,納骨堂,none,false,,0,0,false,standee,0.85,0.50,,true,plain_grave1,plain_grave1,墓地の拠点＝敵の湧き元。地面に開いた穴＝暴かれた墓。占領で蓋が戻って塞がり（_team0=味方）、敵が持つと奥に青緑の光（_team1）
 plain_grave1_prop_tomb1,prop,墓標,flip_x,false,,0,0,false,standee,0.61,0.3,,true,plain_grave1,plain_grave1,墓地の草地に墓標が並ぶ。足場が悪い床＝移動2の屍を1マスに落とす。建物と入口を持たない＝湧かない側（納骨堂と対）
 plain_grave1_rubble_tombstone1,rubble,墓石の山,none,false,,0,0,false,standee,1.0,0.45,,true,plain_grave1,plain_grave1,崩れた納骨堂と墓石が積み上がった山。瓦礫＝地上は通れず飛行と斥候だけ越える壁。マスを埋めて見せる

@@ -6,12 +6,16 @@ powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_grave1
 powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_grave1_fort_chapel1_team0 assets\terrain-src\fort_chapel1\fort_chapel1_team0_03_master.png -Object
 powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_grave1_fort_chapel1_team1 assets\terrain-src\fort_chapel1\fort_chapel1_team1_03_master.png -Object
 
-戦闘の奥絵 — トリム後、内側（右）へ透過の余白を足して比率 2.25:1 の帯にする。
+-Object のあと、キャンバス内で右へ 8px ずらす（マスの中で気持ち右下に置くオーナー指定。
+下方向は CSV の object_foot_z=0.45 が受け持つ。ツールに横ずらしは無いのでこの1手で持つ）:
+magick -size 384x384 xc:none assets\terrain\plain_grave1_fort_chapel1.png -geometry +8+0 -composite （同名へ上書き。team0/team1 も同様）
+
+戦闘の奥絵 — トリム後、左右へ透過の余白を足して比率 2.25:1 の帯の中央に置く。
 独立1棟の建物は fort_town の「トリムのみ」だと窓に対して大きく出過ぎるため、
 余白で大きさを決める（帯の下端が水平線より下に来ることは実機で確認済み）。
 
 magick assets\terrain-src\fort_chapel1\fort_chapel1_combat_03_master.png -trim +repage tmp.png
-magick tmp.png -background none -gravity West -extent {H*2.25}x{H} assets\terrain\plain_grave1_fort_chapel1_combat_back.png
+magick tmp.png -background none -gravity Center -extent {H*2.25}x{H} assets\terrain\plain_grave1_fort_chapel1_combat_back.png
 （team0/team1 も同様に fort_chapel1_combat_team{N}_03_master.png -> plain_grave1_fort_chapel1_team{N}_combat_back.png）
 
 _03_master は _01_raw(jpg) から四隅フラッドフィル（fuzz 7%）で白を抜いたもの:
