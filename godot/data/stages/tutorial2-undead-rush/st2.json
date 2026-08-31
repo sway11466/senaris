@@ -175,7 +175,7 @@
       "bases": [ { "col": 15, "row": 3 } ] }
   ],
   "events": [
-    { "type": "talk", "col": 15, "row": 3, "team": "player", "on": "capture", "dialogue": "free", "focus": true }
+    { "id": "town-freed", "type": "talk", "col": 15, "row": 3, "team": "player", "on": "capture", "dialogue": "free", "focus": true }
   ],
   "dialogue": {
     "intro": [

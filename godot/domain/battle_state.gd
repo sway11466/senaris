@@ -238,8 +238,9 @@ func unit_at(hex: Vector2i) -> Unit:
 # 駒は StageLoader が読み込み時に組んで（catalog 解決込み）ここへ預け、発生時に盤へ出す。
 
 ## 未発生のイベント。発生したものは取り除く＝残っているものが未発生。
-## 各要素 = { turn, on, hex, team, label, once, dialogue, focus, squad,
+## 各要素 = { id, turn, on, hex, team, label, once, dialogue, focus, squad,
 ##            units: [ { unit: Unit, passengers: Array[Unit] } ] }
+## id＝イベントの名前（ステージ内で一意）。セーブが未発火のイベントを識別するのに使う。
 ## on が空＝turn 起点。"capture"＝hex の拠点を team が取った瞬間（turn は見ない）。
 ## once＝排他の名前。同じ名前を持つイベントはどれか1つだけ起きる。
 ## 発生時に placed（実際に駒が出た hex の配列）が足される。
@@ -1574,6 +1575,7 @@ static func _event_from_dict(ed: Dictionary, catalog: Dictionary) -> Dictionary:
 			"passengers": ps,
 		})
 	return {
+		"id": String(ed.get("id", "")),
 		"turn": int(ed.get("turn", 0)), "team": int(ed.get("team", -1)),
 		"on": String(ed.get("on", "")), "once": String(ed.get("once", "")),
 		"hex": Vector2i(int(ed.get("hex_q", 0)), int(ed.get("hex_r", 0))),
@@ -1597,6 +1599,7 @@ func _events_to_dicts() -> Array:
 			units_out.append({ "unit": u.to_full_dict(), "passengers": ps })
 		var hex := Vector2i(e.get("hex", Vector2i.ZERO))
 		out.append({
+			"id": String(e.get("id", "")),
 			"turn": int(e.get("turn", 0)), "team": int(e.get("team", -1)),
 			"on": String(e.get("on", "")), "once": String(e.get("once", "")),
 			"hex_q": hex.x, "hex_r": hex.y,

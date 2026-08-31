@@ -263,6 +263,7 @@
   ],
   "events": [
     {
+      "id": "town-freed",
       "type": "talk",
       "col": 9,
       "row": 6,

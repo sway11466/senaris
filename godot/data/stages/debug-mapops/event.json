@@ -30,13 +30,13 @@
     { "type": "capture_hq" }
   ],
   "events": [
-    { "turn": 3, "type": "reinforce", "team": "player",
+    { "id": "airship", "turn": 3, "type": "reinforce", "team": "player",
       "label": "dbg.event.airship",
       "units": [
         { "type": "airship", "col": 0, "row": 6,
           "passengers": [ { "type": "paladin" } ] }
       ] },
-    { "turn": 5, "type": "reinforce", "team": "enemy", "ai": "charge", "order": 2,
+    { "id": "goblins", "turn": 5, "type": "reinforce", "team": "enemy", "ai": "charge", "order": 2,
       "label": "dbg.event.goblins",
       "units": [
         { "skin": "goblin", "col": 15, "row": 6 },

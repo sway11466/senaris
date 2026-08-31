@@ -45,8 +45,14 @@ func _build(data: Dictionary) -> BattleState:
 func _state(events: Array) -> BattleState:
 	return _build(_data(events))
 
+## イベントの id（必須・ステージ内で一意）をフィクスチャ用に連番で振る。
+var _id_seq := 0
+func _next_id() -> String:
+	_id_seq += 1
+	return "e%d" % _id_seq
+
 func _reinforce(turn: int, extra: Dictionary = {}) -> Dictionary:
-	var e := { "turn": turn, "type": "reinforce", "team": "player",
+	var e := { "id": _next_id(), "turn": turn, "type": "reinforce", "team": "player",
 		"units": [ { "type": "fighter", "col": 5, "row": 3 } ] }
 	for k in extra:
 		e[k] = extra[k]
@@ -130,7 +136,7 @@ func test_shifts_off_impassable_terrain() -> void:
 # --- 搭載駒 ---
 
 func test_transport_arrives_loaded() -> void:
-	var e := { "turn": 2, "type": "reinforce", "team": "player",
+	var e := { "id": "airship", "turn": 2, "type": "reinforce", "team": "player",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
 	var s := _state([e])
@@ -144,7 +150,7 @@ func test_transport_arrives_loaded() -> void:
 
 ## 搭載駒は盤上に居ない＝殲滅の数には入らない（既存の輸送と同じ扱い）。
 func test_passengers_are_not_on_board() -> void:
-	var e := { "turn": 1, "type": "reinforce", "team": "player",
+	var e := { "id": "airship", "turn": 1, "type": "reinforce", "team": "player",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
 	var s := _state([e])
@@ -218,7 +224,7 @@ func test_focus_survives_serialization() -> void:
 # --- 中断セーブ ---
 
 func test_pending_event_survives_serialization() -> void:
-	var e := { "turn": 4, "type": "reinforce", "team": "player", "label": "ui.test.airship",
+	var e := { "id": "airship", "turn": 4, "type": "reinforce", "team": "player", "label": "ui.test.airship",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
 	var s := _state([e])
@@ -237,6 +243,11 @@ func test_dialogue_key_survives_serialization() -> void:
 	var s := _state([_reinforce(4, { "dialogue": "arrive" })])
 	var back := BattleState.from_dict(s.to_dict(), _catalog())
 	assert_eq(String(back.pending_events()[0].get("dialogue", "")), "arrive", "中断セーブでも台本キーは残る")
+
+func test_event_id_survives_serialization() -> void:
+	var s := _state([_reinforce(4, { "id": "wave2" })])
+	var back := BattleState.from_dict(s.to_dict(), _catalog())
+	assert_eq(String(back.pending_events()[0].get("id", "")), "wave2", "中断セーブでも id は残る")
 
 func test_fired_event_is_not_serialized() -> void:
 	var s := _state([_reinforce(1)])
@@ -260,7 +271,7 @@ func _capture_state(events: Array) -> BattleState:
 	return _build(data)
 
 func _capture_event(team: String, extra: Dictionary = {}) -> Dictionary:
-	var e := { "on": "capture", "col": BASE_COL, "row": BASE_ROW, "team": team,
+	var e := { "id": _next_id(), "on": "capture", "col": BASE_COL, "row": BASE_ROW, "team": team,
 		"type": "talk", "dialogue": "taken_by_%s" % team }
 	for k in extra:
 		e[k] = extra[k]
@@ -341,7 +352,7 @@ func test_once_does_not_touch_other_names() -> void:
 func test_once_spans_triggers() -> void:
 	var s := _capture_state([
 		_capture_event("player", { "once": "elf_village" }),
-		{ "turn": 2, "type": "talk", "team": "player", "once": "elf_village", "dialogue": "too_late" },
+		{ "id": "too-late", "turn": 2, "type": "talk", "team": "player", "once": "elf_village", "dialogue": "too_late" },
 	])
 	_capture_with_cleric(s)
 	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "先に占領で起きる")

@@ -122,6 +122,24 @@ func test_stage_squads_and_ai_bases_have_order() -> void:
 				continue
 			_assert_order(path, event, "event (turn %d)" % int(event.get("turn", 0)), seen)
 
+func test_stage_events_have_unique_ids() -> void:
+	# イベントの id は必須・ステージ内で一意（doc/gdd/map.md イベント）。
+	# セーブが未発火のイベントを id で覚えるので、欠落・重複は復元先を見失う。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var seen := {}
+		for event in data.get("events", []):
+			if typeof(event) != TYPE_DICTIONARY:
+				continue
+			var v: Variant = event.get("id")
+			if typeof(v) != TYPE_STRING or String(v).is_empty():
+				assert_true(false, "%s のイベントに id（非空の文字列）がある" % path)
+				continue
+			assert_false(seen.has(v), "%s のイベント id '%s' が他と重複しない" % [path, v])
+			seen[v] = true
+
 func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictionary) -> void:
 	var v: Variant = holder.get("order")
 	if typeof(v) != TYPE_FLOAT and typeof(v) != TYPE_INT:

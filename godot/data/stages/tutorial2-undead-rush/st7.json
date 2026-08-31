@@ -572,7 +572,7 @@
     { "col": 6, "row": 12, "team": "player", "kind": "fort", "garrison": [] }
   ],
   "events": [
-    { "turn": 5, "type": "reinforce", "label": "t2.st7.arrive.label", "team": "player", "dialogue": "arrive", "focus": true,
+    { "id": "airship-arrive", "turn": 5, "type": "reinforce", "label": "t2.st7.arrive.label", "team": "player", "dialogue": "arrive", "focus": true,
       "units": [
         { "type": "airship", "col": 6, "row": 25,
           "passengers": [

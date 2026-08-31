@@ -20,7 +20,7 @@ class_name StageLoader
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["type", "team", "turn", "on", "col", "row", "once", "label", "units", "dialogue", "focus"]
+const EVENT_KEYS := ["id", "type", "team", "turn", "on", "col", "row", "once", "label", "units", "dialogue", "focus"]
 
 ## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/campaigns.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
@@ -590,14 +590,24 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 ## team:"enemy" の増援は1つの部隊として登録し、その index をイベントに持たせる（発生時に assign_squad）。
 ## 部隊定義（ai・パラメーターの上書き・行動順 order）はイベント直下に書く＝EVENT_KEYS 以外を拾う。
 ## order は敵の増援にも要る（湧いた部隊も行動順の列に並ぶ）＝抜けは test_data_integrity が捕まえる。
+## id はイベントの名前（必須・ステージ内で一意）＝セーブが未発火のイベントを識別するのに使う。
+## 欠落・重複は push_error（turn_limit と同じ扱い）＝ test_data_integrity も同じ検査を持つ。
 ## 採番は他のセクションの続き。搭載駒（passengers）も同じ列で採番する。
 static func _apply_events(state: BattleState, events: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(events) != TYPE_ARRAY:
 		return start_id
 	var auto_id := start_id
+	var seen_ids := {}
 	for e in events:
 		if typeof(e) != TYPE_DICTIONARY:
 			continue
+		var event_id := String(e.get("id", ""))
+		if event_id.is_empty():
+			push_error("StageLoader: イベントの id（文字列）は必須です（指定なし＝データのバグ）")
+		elif seen_ids.has(event_id):
+			push_error("StageLoader: イベントの id '%s' がステージ内で重複（＝データのバグ）" % event_id)
+		else:
+			seen_ids[event_id] = true
 		var type_id := String(e.get("type", "reinforce"))
 		if type_id != "reinforce" and type_id != "talk":
 			push_warning("StageLoader: 未知のイベント type '%s'（無視）" % type_id)
@@ -649,6 +659,7 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 			# 占領（on:"capture"）は敵の1手の切れ目で起きるので、敵側でも会話を流せる。
 			push_warning("StageLoader: turn 起点の dialogue は team:\"player\" のイベントで使う（この会話は流れない）: %s" % dialogue)
 		state.add_event({
+			"id": event_id,
 			"turn": int(e.get("turn", 1)), "team": team,
 			"on": on, "hex": hex, "once": String(e.get("once", "")),
 			"label": String(e.get("label", "")), "squad": squad_index,
