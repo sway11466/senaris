@@ -246,6 +246,11 @@ func unit_at(hex: Vector2i) -> Unit:
 ## 発生時に placed（実際に駒が出た hex の配列）が足される。
 var _events: Array = []
 
+## 発火済み（once の兄弟として捨てたものを含む）のイベント id。中断セーブに乗る
+## ＝復元はステージ定義のイベントからこの id を除いた残りを未発火とする。
+## 未発火の側を持たないのは、ステージ更新で足したイベントを既存のセーブへ届かせるため。
+var _fired_events := {}  # id -> true
+
 ## 直近の fire_due_events で起きたイベント（上へ知らせるための控え）。end_turn が内側で発火するので、
 ## 戻り値だけでは呼び出し側に届かない。保存はしない＝復元直後は空。
 var last_fired_events: Array = []
@@ -334,8 +339,10 @@ func _consume_event(e: Dictionary) -> void:
 	var kept: Array = []
 	for other in _events:
 		if is_same(other, e):
+			_fired_events[String(other.get("id", ""))] = true
 			continue
 		if not once.is_empty() and String(other.get("once", "")) == once:
+			_fired_events[String(other.get("id", ""))] = true  # 捨てた兄弟も済み＝復元で蘇らせない
 			continue
 		kept.append(other)
 	_events = kept
@@ -1533,16 +1540,13 @@ func to_save_diff() -> Dictionary:
 		for p in _passengers[tid]:
 			arr.append(p.to_full_dict())
 		pass_out[str(tid)] = arr
-	var pending: Array = []
-	for e in _events:  # 未発火のイベントを id で控える（発火済みは配列から消えているので載らない）
-		pending.append(String(e.get("id", "")))
 	return {
 		"current_team": current_team, "turn_number": turn_number,
 		"units": units_out,
 		"bases": bases_out,
 		"status_mods": _status_mods,
 		"passengers": pass_out,
-		"pending_events": pending,
+		"fired_events": _fired_events.keys(),
 		"moved": _moved.keys(), "post_moved": _post_moved.keys(),
 		"attacked": _attacked.keys(), "done": _done.keys(),
 		"engaged": _engaged.keys(), "engaged_squads": _engaged_squads.keys(),
@@ -1556,7 +1560,7 @@ func to_save_diff() -> Dictionary:
 ## ステージJSONで組み立てた盤に、中断セーブの動的差分を被せる。ユニットの性能は catalog
 ## （{id: UnitType}）から再構築する。呼び出し順は StageLoader.build → set_movement/set_sight_cost
 ## → ここ（盤に立てない駒の判定に移動コスト表が要る）。fire_due_events は呼ばない＝発火済みの
-## イベントはセーブの pending_events から抜けている。ステージ定義がセーブ後に変わっていても
+## イベントはセーブの fired_events で除かれる。ステージ定義がセーブ後に変わっていても
 ## 差分はそのまま適用する（→ doc/tech/gamesystem.md §ステージ更新の検出）。
 func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	current_team = int(diff.get("current_team", 0))
@@ -1583,14 +1587,14 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	_charges = _charges_from_dict(diff.get("charges", {}))
 	_renumber_stage_units(fresh_bases)
 
-## 増援・会話イベントはステージ定義を正本に、セーブの「未発火の id 一覧」に在るものだけ残す。
-## 発火済み・once の兄弟として捨てられたものはここで消える。ステージ更新で足されたイベントも
-## 一覧に無いので出ない＝進行中のセーブに新しい駒を湧かせない（盤上の顔ぶれと同じ扱い）。
+## 増援・会話イベントはステージ定義を正本に、セーブの「発火済み（once で捨てた兄弟を含む）の id」
+## を除いた残りを未発火とする＝ステージ更新で足したイベントも既存のセーブで発火する
+## （増援の増減は盤に効く変更として届く）。
 func _apply_diff_events(diff: Dictionary) -> void:
-	var pending := _names_to_set(diff.get("pending_events", []))
+	_fired_events = _names_to_set(diff.get("fired_events", []))
 	var kept: Array = []
 	for e in _events:
-		if pending.has(String(e.get("id", ""))):
+		if not _fired_events.has(String(e.get("id", ""))):
 			kept.append(e)
 	_events = kept
 

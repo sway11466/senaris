@@ -212,12 +212,13 @@ func test_restore_keeps_added_base_and_renumbers_its_garrison() -> void:
 		used[gu.id] = true
 	assert_false(used.has(b.garrison[0].id), "足された拠点の駐留兵はセーブの駒と id が衝突しない")
 
-## ステージ更新で足されたイベントは、セーブの未発火一覧に無いので出ない（顔ぶれはセーブが正本）。
-func test_restore_ignores_added_events() -> void:
+## ステージ更新で足されたイベントは、発火済みの記録に無いので既存のセーブでも発火できる。
+func test_restore_picks_up_added_events() -> void:
 	var data := _stage_data()
 	var s := _rich_state(data)
 	var added := _stage_data()
 	added["events"] = [{ "id": "late-wave", "turn": 5, "type": "reinforce", "team": "enemy", "order": 2, "ai": "charge",
 		"units": [{ "type": "knight", "col": 7, "row": 5 }] }]
 	var s2 := _roundtrip(s, data, added)
-	assert_true(s2.pending_events().is_empty(), "足されたイベントは進行中のセーブには現れない")
+	assert_eq(s2.pending_events().size(), 1, "足されたイベントが未発火として現れる")
+	assert_eq(String(s2.pending_events()[0].get("id", "")), "late-wave")

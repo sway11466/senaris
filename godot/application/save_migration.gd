@@ -36,7 +36,7 @@ static func _v2_to_v3(data: Dictionary) -> Dictionary:
 		if old.has(key):
 			state[key] = old[key]
 	state["bases"] = _v2_bases(old.get("bases", []))
-	state["pending_events"] = _v2_pending_events(old.get("events", []), String(meta.get("stage_path", "")))
+	state["fired_events"] = _v2_fired_events(old.get("events", []), String(meta.get("stage_path", "")))
 	var digest := _demo_digest(meta)
 	if digest != "":
 		meta["stage_digest"] = digest
@@ -57,24 +57,27 @@ static func _v2_bases(src: Variant) -> Array:
 		})
 	return out
 
-## v2 の未発火イベント（丸ごと直列化）→ id の一覧。旧セーブは id を持たないので、今のステージJSONの
-## イベントと内容（turn・陣営・引き金・拠点位置・once・label）で突き合わせて引く。同じ内容が複数
-## あれば書かれた順に消し込む。突き合わないものは警告して落とす（ステージ更新で消えたイベント）。
-static func _v2_pending_events(saved: Variant, stage_path: String) -> Array:
-	var out: Array = []
-	if typeof(saved) != TYPE_ARRAY or (saved as Array).is_empty():
-		return out
+## v2 の未発火イベント（丸ごと直列化）→ v3 の発火済み id の一覧。旧セーブは id を持たないので、
+## 今のステージJSONのイベントと内容（turn・陣営・引き金・拠点位置・once・label）で突き合わせて
+## 未発火を消し込み、残った id ＝発火済みとして記録する。同じ内容が複数あれば書かれた順に消し込む。
+## 突き合わないセーブ側イベントは警告して無視する（ステージ更新で消えた・変わったイベント）。
+static func _v2_fired_events(saved: Variant, stage_path: String) -> Array:
 	var pool := _stage_event_ids_by_identity(stage_path)
-	for ed in saved:
-		if typeof(ed) != TYPE_DICTIONARY:
-			continue
-		var key := _identity_of_saved(ed)
-		var ids: Array = pool.get(key, [])
-		if ids.is_empty():
-			push_warning("SaveMigration: 旧セーブの未発火イベントが今のステージに見当たらない＝落とす: %s" % key)
-			continue
-		out.append(ids.pop_front())
-	return out
+	if typeof(saved) == TYPE_ARRAY:
+		for ed in saved:
+			if typeof(ed) != TYPE_DICTIONARY:
+				continue
+			var key := _identity_of_saved(ed)
+			var ids: Array = pool.get(key, [])
+			if ids.is_empty():
+				push_warning("SaveMigration: 旧セーブの未発火イベントが今のステージに見当たらない＝無視: %s" % key)
+				continue
+			ids.pop_front()  # 未発火として消し込む＝発火済みに残らない
+	var fired: Array = []
+	for key in pool:
+		for id in pool[key]:
+			fired.append(String(id))
+	return fired
 
 ## 今のステージJSONのイベントを内容の鍵で索引化（{ 鍵: [id, ...] }）。読めなければ空。
 static func _stage_event_ids_by_identity(stage_path: String) -> Dictionary:

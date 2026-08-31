@@ -46,7 +46,7 @@ func _state(events: Array) -> BattleState:
 	return _build(_data(events))
 
 ## 中断セーブの往復＝動的差分を JSON に通し、同じステージ定義 data で組み直した盤へ被せる
-## （実際の再開と同じ経路。fire_due_events は呼ばない＝発火済みは pending_events に無い）。
+## （実際の再開と同じ経路。fire_due_events は呼ばない＝発火済みは fired_events で除かれる）。
 func _roundtrip(s: BattleState, data: Dictionary) -> BattleState:
 	var diff: Dictionary = JSON.parse_string(JSON.stringify(s.to_save_diff()))
 	var back := StageLoader.build(data, _catalog())
@@ -381,6 +381,18 @@ func test_once_prefers_the_first_written() -> void:
 	assert_eq(String(fired[0].get("dialogue", "")), "first", "先に書いたほう")
 
 # --- 中断セーブ（占領イベント） ---
+
+## once で捨てられた兄弟は、復元しても蘇らない（発火済みと同じく記録される）。
+func test_once_sibling_stays_dead_after_roundtrip() -> void:
+	var data := _capture_data([
+		_capture_event("player", { "once": "elf_village" }),
+		_capture_event("enemy", { "once": "elf_village" }),
+	])
+	var s := _build(data)
+	_capture_with_cleric(s)
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "前提: 片方が起きる")
+	var back := _roundtrip(s, data)
+	assert_true(back.pending_events().is_empty(), "起きたほうも once の兄弟も戻らない")
 
 func test_capture_event_survives_serialization() -> void:
 	var data := _capture_data([_capture_event("player", { "once": "elf_village", "focus": true })])

@@ -93,16 +93,17 @@ func test_v2_bases_become_diff_form() -> void:
 	assert_false(b.has("kind"))
 	assert_false(b.has("squad_index"))
 
-func test_v2_events_become_pending_ids() -> void:
-	# 旧セーブは id を持たないので、今のステージJSONのイベントと内容で突き合わせて id に変換する。
+func test_v2_events_become_fired_ids() -> void:
+	# 旧セーブは未発火を丸ごと持つ（id なし）。今のステージJSONと内容で突き合わせて未発火を
+	# 消し込み、残り＝発火済みの id として記録する（v3 は発火済みの側を持つ）。
 	var state: Dictionary = SaveMigration.migrate(_v2_record())["state"]
-	assert_eq(state["pending_events"], ["w2", "cap"], "未発火の2件が id で残る（発火済み w1 は載らない）")
+	assert_eq(state["fired_events"], ["w1"], "未発火(w2/cap)に突き合わなかった w1 が発火済み")
 
-func test_v2_event_missing_from_stage_is_dropped() -> void:
+func test_v2_event_missing_from_stage_is_ignored() -> void:
 	var record := _v2_record()
 	record["state"]["events"].append(_v2_event(7, 1, "", Vector2i.MAX, "", ""))  # 今のステージに無い
 	var state: Dictionary = SaveMigration.migrate(record)["state"]
-	assert_eq(state["pending_events"], ["w2", "cap"], "突き合わないイベントは落とす")
+	assert_eq(state["fired_events"], ["w1"], "突き合わないイベントは無視（発火済みの算出に影響しない）")
 	assert_push_warning("見当たらない")
 
 func test_v2_fills_digest_from_demo_table() -> void:
