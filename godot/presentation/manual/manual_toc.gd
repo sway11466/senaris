@@ -98,6 +98,7 @@ const CHAPTERS: Array = [
 			{ "t": "h", "e": "kinds" },
 			{ "t": "p", "e": "kinds1" },
 			{ "t": "p", "e": "kinds2" },
+			{ "t": "p", "e": "kinds3" },
 			{ "t": "h", "e": "stack" },
 			{ "t": "p", "e": "stack1" },
 			{ "t": "p", "e": "stack2" },

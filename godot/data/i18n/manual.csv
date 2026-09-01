@@ -94,6 +94,7 @@ manual.skill.main.cost2,発動する駒は移動してから撃ってよい。�
 manual.skill.main.kinds,効果の種類,Kinds of Effect
 manual.skill.main.kinds1,効果には、当てて削るもの・味方を強化するもの・敵を弱らせるもの・掛かっている弱体を落とすもの・盤に駒を足すものがある。,"Effects come in several kinds: ones that land and do damage, ones that strengthen an ally, ones that weaken an enemy, ones that strip debuffs already in place, and ones that put a new unit on the board."
 manual.skill.main.kinds2,当てて削るものは間接攻撃として扱う＝支援は乗らず、包囲は乗る。囲むほど威力は上がるが、囲むほど自軍が着弾面に入る。参加していない味方は巻き込まれる。,"Damaging effects count as ranged attacks: Support does not apply, but Encircled does. The more you surround the target the harder it hits — and the more of your own units stand inside the blast. Allies that did not participate are caught in it."
+manual.skill.main.kinds3,撃った結果は右の情報パネルにスキルレポートとして残る。対象ごとの損害と、戦闘レポートと同じ形の内訳をページで読める。,"The result stays in the right-hand panel as a skill report: losses per target, with the same breakdown the battle report shows, one page each."
 manual.skill.main.stack,重ねがけと持続,Stacking and Duration
 manual.skill.main.stack1,ユニットスキルは重ねがけできる。2体が同じ相手に掛ければ効果は足し合わさり、同じスキルを重ねてもよい。,"Unit skills stack. Two casters on the same target add up, and the same skill may be layered on itself."
 manual.skill.main.stack2,持続はスキルごとに決まっていて、掛けた側のターン開始で数える。間にはさまる相手のターンでは減らない。,"Duration is set per skill and counts down at the start of the caster's own turn. The opponent's turns in between do not reduce it."
