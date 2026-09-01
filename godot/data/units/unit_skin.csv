@@ -2,7 +2,7 @@ skin_id,name,side,type_id,category,map_scale,map_offset_x,combat_scale,combat_li
 スキンID,表示名,陣営,種別ID,分類,描画倍率,横位置補正,戦闘倍率,表示パターン,従者,攻撃エフェクト,移動音
 cleric,クレリック,ally,cleric,基準,0.9,0,0.9,squad,,holy,
 priest,プリースト,ally,priest,基準,1.0,0,1.0,squad,,holy,
-bishop,ビショップ,ally,bishop,基準,1.0,7,1.0,squad,,holy,
+bishop,ビショップ,ally,bishop,基準,1.0,0,1.0,squad,,holy,
 paladin,パラディン,ally,paladin,基準,1.05,0,1.05,squad,,slash_m,
 archer,アーチャー,ally,archer,基準,1.0,14,1.0,squad,,arrow,
 hunter,ハンター,ally,hunter,基準,1.05,0,1.05,squad,,arrow_crossbow,
