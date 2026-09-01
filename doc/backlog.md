@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=5 / feature=96 / refactoring=1.
+次回採番: bug=5 / feature=97 / refactoring=1.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -38,6 +38,14 @@
 - 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+
+### feature-96
+
+**勝ち確定のフィニッシュ演出**
+- ゴール：どの勝ち方（戦闘・陣形スキル・本拠占領）でも「寄る→スロー→白フラッシュ→戦果票」の同じ型で決着が締まり、勝ちの瞬間に手応えがある。
+- 背景：いまはとどめの一手も通常と同じ演出で流れ、閉じた直後に戦果票が出る＝あっさり終わる。仕様 → [uiux.md](gdd/uiux.md) §決着の合図。
+- 対応：domain の決着判定を演出開始前に presentation へ渡し、戦闘シーン（最後の一斉射のスロー＋寄せ）・盤の着弾（スロー＋カメラ寄せ）・占領（カメラ寄せ＋旗＋白フラッシュ）に締めの型を実装する。白フラッシュから戦果票へ繋ぐ入りも合わせて直す。
+- 該当：`godot/presentation/combat/combat_scene.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/result_banner.gd`・`godot/presentation/main/main.gd`・[uiux.md](gdd/uiux.md)。
 
 ### feature-92
 
