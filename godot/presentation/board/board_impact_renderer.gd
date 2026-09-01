@@ -2,6 +2,7 @@ extends Node3D
 class_name BoardImpactRenderer
 ## 陣形スキル／ユニットスキルの着弾演出（hex_board_3d.gd から切り出し）。
 ## 面の光 → 被弾した駒を1体ずつ（エフェクト→フラッシュ→兵数、撃破はフェード）。
+## ディバインジャッジメントだけ単体対象の専用シーケンス（ため→光の柱→残光）＝_play_divine_judgment。
 ## このノード自身が一時的な演出メッシュ（着弾の光・駒に重ねるエフェクト）の入れ物になる。
 ## オーバーレイの作り直しで消えない層＝hex_board_3d の旧 _fx_root に相当する。
 ## 詳細 → doc/gdd/formations.md 発動の演出
@@ -30,6 +31,18 @@ const HIT_BURST_OPEN := 1.35      # 同・着弾で開く倍率
 const HIT_FLASH_SEC := 0.14       # 被弾フラッシュ（立ち絵を白く飛ばす）の片道
 const HIT_FLASH_GAIN := 2.2       # 同・明るさの倍率
 const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
+
+# --- ディバインジャッジメント専用 ---
+# 単体対象＝面の広さで見せられないぶん、1発の重さ（柱の大きさと時間）で見せる。
+# 共通の「落として弾ける」より、ため→ゆっくり降りる→立ったまま残る、で長く見せる。
+const DJ_CHARGE_SEC := 0.30        # ため＝対象ヘクスが光ってから柱が降り始めるまで（狙われた間）
+const DJ_CHARGE_ALPHA_HOLD := 0.22 # ための光の居座りの濃さ（共通より強め。白飛びしない範囲）
+const DJ_DROP_SEC := 0.65          # 柱の降下時間（共通の落下より遅く＝何が降りてきたか見える）
+const DJ_DROP_FROM := TILE * 10.0  # 降下開始の高さ（着地位置からの上乗せ）。柱の裾が画面の上端より
+                                   # 外から入ってくる高さ＝「真上から落ちてくる」に見える
+const DJ_WIDTH_TILES := 1.6        # 柱の幅（ヘックス幅の何倍か）。縦長の絵なので幅基準で釣り合わせる
+const DJ_HOLD_SEC := 0.40          # 着弾後に柱を立たせておく時間（この間に被弾フラッシュ・撃破フェードが進む）
+const DJ_FADE_SEC := 0.40          # 柱の引き
 
 # --- 外部依存（setup で注入）---
 var _unit_renderer: BoardUnitRenderer
@@ -96,6 +109,13 @@ func play(result: Dictionary, is_locked: bool) -> void:
 	if hits.is_empty():
 		await _flash_cells_only(result.get("cells", []), is_locked)
 		return
+	# ディバインジャッジメントは単体対象＝共通の3段では見せ場が無いので専用シーケンスへ。
+	# 絵が無ければ共通へ落とす（面の光と被弾フラッシュだけ＝穴が開かない）。
+	if String(result.get("recipe", "")) == "divine_judgment":
+		var dj_tex := _impact_texture("divine_judgment")
+		if dj_tex != null:
+			await _play_divine_judgment(hits[0], dj_tex, is_locked)
+			return
 	var gen := _impact_gen
 	_impact_lock = not is_locked
 	_set_locked_fn.call(true)  # 演出中に盤を触らせない（別の作り直しが割り込むと消えかけの駒が飛ぶ）
@@ -120,6 +140,36 @@ func play(result: Dictionary, is_locked: bool) -> void:
 		if gen != _impact_gen:
 			_end_impact()
 			return
+	_end_impact()
+	_sync_fn.call()
+
+
+## ディバインジャッジメント専用：ため（対象ヘクスの光）→ 光の柱がゆっくり降りて着弾 → 残光 → 引き。
+## 対象は1体だけなので hit を直接受ける。被弾の処理（フラッシュ・兵数・撃破フェード）は
+## 柱が着地した瞬間に共通の _land_hit で起こす。
+func _play_divine_judgment(hit: Dictionary, tex: Texture2D, is_locked: bool) -> void:
+	var gen := _impact_gen
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)  # 共通シーケンスと同じ流儀＝演出中に盤を触らせない
+	await _wait(HIT_LEAD_SEC)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	var hex := Vector2i(hit["hex"])
+	# ための光は柱が引き始めるまで居座らせる＝どこに落ちるのか・落ちているのかが見えたまま進む。
+	_flash_cells([hex], DJ_CHARGE_SEC + DJ_DROP_SEC + DJ_HOLD_SEC - HIT_CELL_RISE - HIT_CELL_SETTLE,
+		HIT_CELL_ALPHA, DJ_CHARGE_ALPHA_HOLD)
+	await _wait(DJ_CHARGE_SEC)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	_spawn_pillar(hex, tex, func() -> void:
+		if gen == _impact_gen:
+			_land_hit(hit))
+	await _wait(DJ_DROP_SEC + DJ_HOLD_SEC + DJ_FADE_SEC)
+	if gen != _impact_gen:
+		_end_impact()
+		return
 	_end_impact()
 	_sync_fn.call()
 
@@ -215,7 +265,9 @@ func _fade_out_unit(node: Node3D) -> void:
 
 ## 着弾した面を光らせる。駒の居ない空ヘックスも光らせる＝面の広さが伝わる。
 ## 盤の外へはみ出したヘックスは出さない。材質は1枚ごとに作る（アルファを個別に動かすため）。
-func _flash_cells(cells: Array, hold: float) -> void:
+## 濃さは呼び出し側で選べる（ディバインジャッジメントのためは居座りを強めに出す）。
+func _flash_cells(cells: Array, hold: float,
+		alpha_rise := HIT_CELL_ALPHA, alpha_hold := HIT_CELL_ALPHA_HOLD) -> void:
 	for c in cells:
 		var hex := Vector2i(c)
 		if not _in_board_fn.call(hex):
@@ -234,8 +286,8 @@ func _flash_cells(cells: Array, hold: float) -> void:
 		# 立ち上がりで一度強く光らせ、駒を処理している間は薄く居座らせる（面は見えたまま・
 		# 駒に重ねるエフェクトは埋もれない）。最後に引く。
 		var tw := create_tween()
-		tw.tween_property(m, "albedo_color:a", HIT_CELL_ALPHA, HIT_CELL_RISE)
-		tw.tween_property(m, "albedo_color:a", HIT_CELL_ALPHA_HOLD, HIT_CELL_SETTLE)
+		tw.tween_property(m, "albedo_color:a", alpha_rise, HIT_CELL_RISE)
+		tw.tween_property(m, "albedo_color:a", alpha_hold, HIT_CELL_SETTLE)
 		tw.tween_interval(hold)
 		tw.tween_property(m, "albedo_color:a", 0.0, HIT_CELL_FADE)
 		tw.tween_callback(mi.queue_free)
@@ -270,6 +322,31 @@ func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable) -> void:
 	tw.tween_property(spr, "scale", Vector3.ONE * HIT_BURST_OPEN, HIT_BURST_SEC)
 	tw.tween_property(spr, "modulate:a", 0.0, HIT_BURST_SEC)
 	tw.chain().tween_callback(spr.queue_free)
+
+
+## 光の柱1本。幅基準で大きく出し（縦長の絵＝長辺基準だと痩せる）、上からゆっくり降ろして
+## 着地の瞬間に on_land を呼ぶ。着地後もしばらく立たせてから引く＝共通の「弾けて消える」とは別の見せ方。
+func _spawn_pillar(hex: Vector2i, tex: Texture2D, on_land: Callable) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
+	spr.render_priority = 6
+	spr.pixel_size = (DJ_WIDTH_TILES * TILE) / float(maxi(tex.get_width(), 1))
+	var height := float(tex.get_height()) * spr.pixel_size
+	var p := Hex.to_pixel(hex, TILE)
+	# Sprite3D の原点は絵の中央＝柱の裾が地面に着く高さへ中心を置く。
+	var land := Vector3(p.x, _elev_fn.call(hex) + height * 0.5, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	spr.position = land + Vector3(0, DJ_DROP_FROM, 0)
+	add_child(spr)
+	var tw := create_tween()
+	tw.tween_property(spr, "position", land, DJ_DROP_SEC).set_ease(Tween.EASE_IN)  # 降下＝加速
+	tw.tween_callback(on_land)
+	tw.tween_interval(DJ_HOLD_SEC)
+	tw.tween_property(spr, "modulate:a", 0.0, DJ_FADE_SEC)
+	tw.tween_callback(spr.queue_free)
 
 
 ## 着弾に使う絵（キャッシュ）。レシピIDで規約解決する＝assets/formations/{recipe_id}_impact.png。
