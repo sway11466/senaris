@@ -857,7 +857,7 @@ func test_stack_caps_buffs_on_the_same_ally() -> void:
 	assert_ne(a.kind, AiAction.Kind.SKILL, "強化は上限＝stack 本未満のときだけ掛ける")
 
 func test_stack_does_not_count_buffs_cast_on_the_whole_team() -> void:
-	# 数えるのは対象1体に掛かった補正だけ（陣営全体のホーリーアリアは数えない）。
+	# 数えるのは対象1体に掛かった補正だけ（陣営全体のグレイスは数えない）。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
 	var si := _squad(s, "charge", { "stack": 1 })

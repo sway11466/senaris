@@ -11,7 +11,7 @@ class_name StatusMod
 ##   target: "attack" | "defense" | "both"
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
 ##   owner_team / remaining: 持続管理（残り自軍ターン数。BattleState.end_turn が減算）
-##   name: String … 表示名（例: "ホーリーアリア"）。表示専用・省略可（name 無しの旧セーブも読める）
+##   name: String … 表示名（例: "グレイス"）。表示専用・省略可（name 無しの旧セーブも読める）
 ##   kind: "buff" | "debuff" … その補正が掛かった側にとって良いものか悪いものか。省略＝"buff"。
 ##     ピュリファイが落とす対象と、盤の見た目（強化＝黄緑／弱体＝紫）の出し分けがこれを見る。
 ##     値の符号からは判断しない＝「攻撃は下がるが防御は上がる」ようなスキルで破綻するため。
@@ -84,7 +84,7 @@ static func is_unit_buff(m: Dictionary, unit: Unit) -> bool:
 	return not is_debuff(m) and String(m.get("scope", "")) == "unit" and applies_to(m, unit)
 
 ## unit 1体に効いている強化（バフ）の本数。敵AIの stack 条件（同じ相手に強化を重ねる上限）が読む。
-## 陣営全体に掛かった補正（ホーリーアリア）は数えない＝debuff_count と対称。詳細 → doc/gdd/ai.md
+## 陣営全体に掛かった補正（グレイス）は数えない＝debuff_count と対称。詳細 → doc/gdd/ai.md
 static func buff_count(mods: Array, unit: Unit) -> int:
 	var n := 0
 	for m in mods:

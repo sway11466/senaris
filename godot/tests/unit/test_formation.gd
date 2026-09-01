@@ -119,7 +119,7 @@ func test_triangle_forms_at_move_destination() -> void:
 	assert_false(s.resolve_formation(opt, c + Hex.direction(0) * 3).is_empty(), "移動後に発動できる")
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
-# ②ホーリーアリアの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
+# ②グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
 func _aria_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
@@ -134,16 +134,16 @@ func _aria_state() -> Dictionary:
 	s.add_unit(foe)
 	return {"s": s, "leader": clerics[0], "ally": ally, "foe": foe}
 
-func test_holy_aria_offered_with_five_clustered() -> void:
+func test_grace_offered_with_five_clustered() -> void:
 	var f := _aria_state()
 	var opts := Formation.available_for(f["s"], f["leader"])
-	assert_eq(_count(opts, "holy_aria"), 1, "占領兵5体クラスタでホーリーアリア")
-	var o := _pick(opts, "holy_aria")
-	assert_eq(String(o["recipe"]), "holy_aria", "レシピは holy_aria")
+	assert_eq(_count(opts, "grace"), 1, "占領兵5体クラスタでグレイス")
+	var o := _pick(opts, "grace")
+	assert_eq(String(o["recipe"]), "grace", "レシピは grace")
 	assert_eq(String(o["effect"]), "buff", "バフ効果")
 	assert_false(bool(o["needs_target"]), "バフは対象指定不要")
 
-func test_holy_aria_needs_five() -> void:
+func test_grace_needs_five() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
 	var leader: Unit = null
@@ -152,7 +152,7 @@ func test_holy_aria_needs_five() -> void:
 		s.add_unit(u)
 		if i == 0:
 			leader = u
-	assert_eq(_count(Formation.available_for(s, leader), "holy_aria"), 0, "4体では不成立")
+	assert_eq(_count(Formation.available_for(s, leader), "grace"), 0, "4体では不成立")
 
 ## クラスタも三角形と同じ＝発動者が移動先で列に加われば成立する。
 func test_cluster_forms_at_move_destination() -> void:
@@ -162,11 +162,11 @@ func test_cluster_forms_at_move_destination() -> void:
 		s.add_unit(Unit.new(i + 2, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric"))
 	var leader := Unit.new(1, 0, c + Hex.direction(0) * 5, 3, 8, 20, 20, 1, "cleric")  # 列から離れている
 	s.add_unit(leader)
-	assert_eq(_count(Formation.available_for(s, leader), "holy_aria"), 0, "離れていれば不成立")
+	assert_eq(_count(Formation.available_for(s, leader), "grace"), 0, "離れていれば不成立")
 	var join := c + Hex.direction(0) * 4  # 列の端に隣接する空きマス
 	var opts := Formation.available_for(s, leader, join)
-	assert_eq(_count(opts, "holy_aria"), 1, "移動先で列に加われば5体クラスタが成立する")
-	assert_eq((_pick(opts, "holy_aria")["participants"] as Array).size(), 5, "参加は5体")
+	assert_eq(_count(opts, "grace"), 1, "移動先で列に加われば5体クラスタが成立する")
+	assert_eq((_pick(opts, "grace")["participants"] as Array).size(), 5, "参加は5体")
 
 ## レシピの照合はスキンID。性能(type)が cleric でも見た目がゴブリンなら聖歌隊にならない。
 ## 詳細 → doc/gdd/formations.md 共通ルール
@@ -180,7 +180,7 @@ func test_recipe_matches_by_skin_not_type() -> void:
 		s.add_unit(u)
 		if i == 0:
 			leader = u
-	assert_eq(Formation.available_for(s, leader).size(), 0, "スキンが違えばホーリーアリアは成立しない")
+	assert_eq(Formation.available_for(s, leader).size(), 0, "スキンが違えばグレイスは成立しない")
 
 ## スキンID明示でも成立する（skin_id 未指定＝type_id へフォールバックは _aria_state 側で担保）。
 func test_recipe_matches_with_explicit_skin() -> void:
@@ -188,9 +188,9 @@ func test_recipe_matches_with_explicit_skin() -> void:
 	for u in f["s"].units():
 		if u.type_id == "cleric":
 			u.skin_id = "cleric"
-	assert_eq(_count(Formation.available_for(f["s"], f["leader"]), "holy_aria"), 1, "基準スキン指定でも成立")
+	assert_eq(_count(Formation.available_for(f["s"], f["leader"]), "grace"), 1, "基準スキン指定でも成立")
 
-func test_holy_aria_buffs_whole_team() -> void:
+func test_grace_buffs_whole_team() -> void:
 	var f := _aria_state()
 	var s: BattleState = f["s"]
 	var ally: Unit = f["ally"]
@@ -202,8 +202,8 @@ func test_holy_aria_buffs_whole_team() -> void:
 	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
 	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
-## ホーリーアリアの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
-func test_holy_aria_lasts_one_round() -> void:
+## グレイスの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
+func test_grace_lasts_one_round() -> void:
 	var f := _aria_state()
 	var s: BattleState = f["s"]
 	var ally: Unit = f["ally"]
@@ -468,5 +468,5 @@ func test_is_unit_skill_splits_catalog_by_shape() -> void:
 	# 演出・効果音の出し分けが読む区別（陣形＝カットインあり／ユニットスキル＝音だけ）。
 	assert_true(Formation.is_unit_skill("pixie_dust"), "単独発動(shape=solo)はユニットスキル")
 	assert_false(Formation.is_unit_skill("trinity_nova"), "複数人のレシピは陣形")
-	assert_false(Formation.is_unit_skill("holy_aria"), "クラスタも陣形")
+	assert_false(Formation.is_unit_skill("grace"), "クラスタも陣形")
 	assert_false(Formation.is_unit_skill("no_such_recipe"), "未知のIDは陣形扱い（落ちない）")

@@ -19,7 +19,7 @@
 | `ui_hover` | ホバー強調・文字送り | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
 | `map_turn_player` | 自軍ターン開始 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
 | `map_turn_enemy` | 敵ターン開始 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
-| `holy_aria` | ホーリーアリアの発動 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
+| `grace` | グレイスの発動 | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作 |
 | `map_capture` | 占領成立（鐘の層） | 自作 | MuseScore（MS Basic 音源） | 自作物＝商用可・改変可・表記不要 | 全部自作。原本 map_capture_bell.mscz。布と重ねる |
 
 ## 第三者素材

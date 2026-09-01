@@ -1379,7 +1379,7 @@ func _skill_kind_of(state: BattleState, u: Unit) -> String:
 
 ## target が stack 条件を満たすか（＝そのスキルを掛ける価値があるか）。
 ## 強化・弱体は上限（stack 本未満なら掛ける）、解除は下限（stack 本以上なら掛ける）。
-## 数えるのは対象1体に掛かった補正だけ＝陣営全体に掛かった補正（ホーリーアリア）は数えない。
+## 数えるのは対象1体に掛かった補正だけ＝陣営全体に掛かった補正（グレイス）は数えない。
 func _stack_passes(state: BattleState, u: Unit, kind: String, target: Unit) -> bool:
 	var limit := _stack_limit(_param(state, u, "stack"))
 	if kind == "cleanse":

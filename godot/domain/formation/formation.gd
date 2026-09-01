@@ -5,7 +5,7 @@ class_name Formation
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
-## ①トリニティノヴァ(area)＋③ディバインジャッジメント(single)＝ダメージ系／②ホーリーアリア(buff)＝状態補正（乗算・全体・持続）。
+## ①トリニティノヴァ(area)＋③ディバインジャッジメント(single)＝ダメージ系／②グレイス(buff)＝状態補正（乗算・全体・持続）。
 ## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
@@ -44,8 +44,8 @@ const RECIPES := {
 		"range": 10,
 		"range_from": "leader",
 	},
-	"holy_aria": {
-		"name": "ホーリーアリア",
+	"grace": {
+		"name": "グレイス",
 		"leader_skins": ["cleric", "priest", "bishop"],
 		"member_skins": ["cleric", "priest", "bishop"],
 		"shape": "cluster",
@@ -309,7 +309,7 @@ static func targetable_cells(state: BattleState, option: Dictionary, from_hex :=
 # --- 内部 ---
 
 ## unit がレシピの候補スキン列に当てはまるか。照合は skin_id、未指定なら type_id へフォールバック。
-## 見た目が違えば別ユニット＝種別が同じでもゴブリンでホーリーアリアは成立しない。
+## 見た目が違えば別ユニット＝種別が同じでもゴブリンでグレイスは成立しない。
 ## 詳細 → doc/gdd/formations.md
 static func _matches(unit: Unit, skins: Array) -> bool:
 	var key := unit.skin_id if unit.skin_id != "" else unit.type_id
@@ -384,7 +384,7 @@ static func _escort_sets(state: BattleState, leader: Unit, r: Dictionary, lead_p
 	return sets
 
 ## leader を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
-## ②ホーリーアリア＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
+## ②グレイス＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
 ## leader は lead_pos に居るものとする（移動先のこともある）＝探索は位置で持ち回る。
 static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
 	var seen := {leader.id: leader}

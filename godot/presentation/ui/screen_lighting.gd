@@ -68,7 +68,7 @@ func _apply() -> void:
 	if not on:
 		_tween.tween_callback(_scrim.hide)
 
-## 加護の光（ホーリーアリア等の陣営全体バフ）。暗幕より前＝暗転中も縁の光が生きる。
+## 加護の光（グレイス等の陣営全体バフ）。暗幕より前＝暗転中も縁の光が生きる。
 func aura_play(color: Color) -> void:
 	_aura.play(color, get_viewport().get_visible_rect().size)
 

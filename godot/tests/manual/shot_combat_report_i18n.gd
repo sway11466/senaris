@@ -44,7 +44,7 @@ func _detail() -> Dictionary:
 		"attacker": {
 			"id": 1, "type_id": "Holy Knight", "skin_id": "", "team": 0, "level": 3,
 			"troops_before": 12, "troops_after": 12 - loss2, "max": 12, "terrain": "forest", "pos": Vector2i(0, 0),
-			"statuses": [{"name": "Holy Aria", "op": "mul", "value": 1.3, "target": "both"}],
+			"statuses": [{"name": "Grace", "op": "mul", "value": 1.3, "target": "both"}],
 		},
 		"defender": {
 			"id": 2, "type_id": "Skeleton Warrior", "skin_id": "", "team": 1, "level": 2,

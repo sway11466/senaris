@@ -75,13 +75,13 @@ func test_cluster_recipe_is_a_formation() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var leader: Unit = null
-	for i in 5:  # ホーリーアリア＝聖職5体の隣接クラスタ
+	for i in 5:  # グレイス＝聖職5体の隣接クラスタ
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		s.add_unit(u)
 		if i == 0:
 			leader = u
 	var opts := Formation.available_for(s, leader)
-	assert_gt(opts.size(), 0, "ホーリーアリアが成立している前提")
+	assert_gt(opts.size(), 0, "グレイスが成立している前提")
 	assert_eq(String(opts[0]["kind"]), "formation", "陣形スキル扱い（表示ラベルの出し分け）")
 
 # --- 適用 ---
