@@ -457,11 +457,11 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
 static func _formation_hit(state: BattleState, option: Dictionary, victim: Unit) -> Dictionary:
 	var leader := state.unit_by_id(int(option["leader_id"]))
-	var atk := float(_skill_attack_breakdown(state, leader)["total"])
-	var synth_atk := {"kind": "attack", "total": atk}
+	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
+	var atk := _skill_attack_breakdown(state, leader)
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。
 	var df := Combat.defense_breakdown(state, victim, leader, false)
-	var hit := Combat.hit_from_breakdowns(synth_atk, df, victim.troops)
+	var hit := Combat.hit_from_breakdowns(atk, df, victim.troops)
 	hit["target_id"] = victim.id
 	return hit
 

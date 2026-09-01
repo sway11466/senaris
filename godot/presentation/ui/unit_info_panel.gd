@@ -58,6 +58,7 @@ var _items: Array = []  # いま表示している中身の全行（ページ割
 var _page := 0          # 何ページ目を出しているか（0起点）
 var _pages: Array = []  # _items をページに割った結果。ページ数の表示にも使う
 var _report: CombatReportView  # 戦闘レポート（サマリー/詳細タブ）。戦闘時だけ中身と入れ替えて表示
+var _skill_report: SkillReportView  # スキルレポート（陣形・ユニットスキルの解決後）。同じく入れ替えて表示
 var _notify_token := 0  # 一時通知の世代。待っている間に別の表示へ変わったら戻さないための印
 
 func _ready() -> void:
@@ -140,6 +141,9 @@ func _ready() -> void:
 	_report = CombatReportView.new()
 	_report.hide()
 	add_child(_report)
+	_skill_report = SkillReportView.new()
+	_skill_report.hide()
+	add_child(_skill_report)
 	clear()
 
 ## 板の下端に据え置く ◀ 2/3 ▶。タブと同じ木のボタンで作る（スクロールバーは材質から浮く）。
@@ -179,11 +183,18 @@ func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
 		match (event as InputEventMouseButton).button_index:
 			MOUSE_BUTTON_WHEEL_DOWN:
-				_turn_page(1)
+				_wheel_page(1)
 				accept_event()
 			MOUSE_BUTTON_WHEEL_UP:
-				_turn_page(-1)
+				_wheel_page(-1)
 				accept_event()
+
+## ホイール1段ぶんのページ送り。スキルレポート表示中はそちらのページャーへ届ける。
+func _wheel_page(delta: int) -> void:
+	if _skill_report != null and _skill_report.visible:
+		_skill_report.turn_page(delta)
+	else:
+		_turn_page(delta)
 
 # --- 中身とページ割り ---
 # 中身は行の配列（_items）で持ち、ページ1枚ぶんだけを Control にして _rows に並べる。
@@ -298,6 +309,7 @@ func bind(state: BattleState, skin_catalog: Dictionary) -> void:
 	_state = state
 	_skins = skin_catalog
 	_report.bind(skin_catalog)
+	_skill_report.bind(skin_catalog)
 	clear()
 
 ## ステージの地形見た目差分（座標→skin_id）を渡す。盤・戦闘演出と同じものを受ける。
@@ -321,6 +333,8 @@ func show_unit(unit_id: int) -> void:
 	_shown_unit = unit_id
 	if _report != null:
 		_report.hide()
+	if _skill_report != null:
+		_skill_report.hide()
 	_update_header(u)
 	_header.show()
 	var b: Button = _tabs[_tab]
@@ -392,6 +406,8 @@ func _show_text(text: String) -> void:
 func _enter_text_view() -> void:
 	if _report != null:
 		_report.hide()
+	if _skill_report != null:
+		_skill_report.hide()
 	_shown_unit = -1
 	_header.hide()
 	_tabs_row.hide()
@@ -655,5 +671,21 @@ func show_combat(detail: Dictionary) -> void:
 	_tabs_row.hide()
 	_content.hide()
 	_pager.hide()
+	_skill_report.hide()
 	_report.show()
 	_report.show_report(detail)
+
+## 陣形・ユニットスキルの解決後はスキルレポート。攻撃の戦闘レポートと同じ扱いで、発動と同時に
+## 出して次の選択まで残す。result は MatchController.formation_resolved のもの。
+## 仕様 → doc/tech/combat_scene.md 右パネル（スキルレポート）
+func show_skill_report(result: Dictionary) -> void:
+	if result == null or result.is_empty():
+		return
+	_shown_unit = -1
+	_header.hide()
+	_tabs_row.hide()
+	_content.hide()
+	_pager.hide()
+	_report.hide()
+	_skill_report.show()
+	_skill_report.show_result(result)

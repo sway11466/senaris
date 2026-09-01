@@ -8,13 +8,10 @@ class_name CombatReportView
 ## こちらの左右は陣営でなく式の順（攻÷防）で固定＝攻撃する側が常に左。
 ## 攻/防のペア表記（地形・支援・バフ）は常に「攻/防」の順。
 
-const VALUE_COLOR := Color(0.96, 0.93, 0.86)
-const LABEL_COLOR := Color(0.72, 0.64, 0.50)
+## 3列の表の組み立てと値の整形は StrikeTable（スキルレポートと共通部品）。色・列幅もそちらが持つ。
 const TEAM_COLOR := { 0: Color(0.18, 0.48, 0.84), 1: Color(0.86, 0.29, 0.29) }
-const NONE := "—"
+const NONE := StrikeTable.NONE
 const FIG_SIZE := 96.0        # ユニットの絵の一辺
-const VALUE_MIN_W := 170.0    # 値セルの最低幅＝伸長フラグと二段構えで看板幅を使い切る
-const MID_MIN_W := 48.0       # 中央の行ラベル列の最低幅
 const TAB_MIN_W := 120.0      # タブ1枚の最低幅
 
 var _skins := {}
@@ -72,7 +69,7 @@ func _ready() -> void:
 	_detail_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	# 表の下の補足＝表より一段小さく（中央のラベル12・値14と同じ型づかい）。
 	_detail_label.add_theme_font_size_override("font_size", 13)
-	_detail_label.add_theme_color_override("font_color", VALUE_COLOR)
+	_detail_label.add_theme_color_override("font_color", StrikeTable.VALUE_COLOR)
 	v.add_child(_detail_label)
 
 func bind(skins: Dictionary) -> void:
@@ -161,40 +158,10 @@ func _add_status_rows(ls: Dictionary, rs: Dictionary) -> void:
 		_add_row(lt, tr("ui.report.buff") if i == 0 else "", rt)
 
 func _add_row(lt: String, label: String, rt: String) -> void:
-	_add_control_row(_value_label(lt), label, _value_label(rt))
-
-## 表の区切り線（3列ぶんの細い線）。積み上げと結果を分ける。
-func _add_rule() -> void:
-	for i in 3:
-		var sep := HSeparator.new()
-		sep.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_summary.add_child(sep)
+	StrikeTable.add_row(_summary, lt, label, rt)
 
 func _add_control_row(left: Control, label: String, right: Control) -> void:
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_summary.add_child(left)
-	_summary.add_child(_mid_label(label))
-	_summary.add_child(right)
-
-func _value_label(text: String) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.custom_minimum_size = Vector2(VALUE_MIN_W, 0)
-	l.add_theme_font_size_override("font_size", 14)
-	l.add_theme_color_override("font_color", VALUE_COLOR)
-	return l
-
-func _mid_label(text: String) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.custom_minimum_size = Vector2(MID_MIN_W, 0)
-	l.add_theme_font_size_override("font_size", 12)
-	l.add_theme_color_override("font_color", LABEL_COLOR)
-	return l
+	StrikeTable.add_control_row(_summary, left, label, right)
 
 ## ユニットの絵（combat スロット優先・map 代用＝演出シーンと同じ解決）。無ければ陣営色の板。
 func _figure(snap: Dictionary) -> Control:
@@ -223,8 +190,7 @@ func _texture_of(snap: Dictionary) -> Texture2D:
 	return null
 
 func _display_name(snap: Dictionary) -> String:
-	var s: UnitSkin = SkinCatalog.resolve(_skins, String(snap.get("skin_id", "")), snap["type_id"], snap["team"])
-	return tr("unit." + s.skin_id + ".name") if s != null else String(snap["type_id"])
+	return StrikeTable.display_name(_skins, snap)
 
 func _name_lv(snap: Dictionary) -> String:
 	return tr("ui.report.name_lv") % [_display_name(snap), int(snap["level"])]
@@ -233,12 +199,12 @@ func _troops_text(snap: Dictionary) -> String:
 	return "%d/%d → %d/%d" % [snap["troops_before"], snap["max"], snap["troops_after"], snap["max"]]
 
 func _total_text(bd: Dictionary, empty_text: String) -> String:
-	return String.num_int64(roundi(bd["total"])) if not bd.is_empty() else empty_text
+	return StrikeTable.total_text(bd, empty_text)
 
 func _base_atk_text(bd: Dictionary) -> String:
 	if bd.is_empty():
 		return NONE
-	return _atk_stat_text(bd)
+	return StrikeTable.atk_stat_text(bd)
 
 func _base_def_text(bd: Dictionary) -> String:
 	return String.num_int64(int(bd["stat"])) if not bd.is_empty() else NONE
@@ -305,81 +271,8 @@ func _rebuild_direction(forward: bool) -> void:
 	if hit == null:
 		_detail_label.text = tr("ui.report.no_counter_reason")
 		return
-	var off: Dictionary = hit["attack"]
-	var def: Dictionary = hit["defense"]
-	_add_row(tr("ui.report.col_attack") % sn, "", tr("ui.report.col_defense") % vn)
-	_add_row(_num(off, "troops"), tr("ui.report.strength"), _num(def, "troops"))
-	_add_row(_atk_stat_text(off), tr("ui.report.base_stat"), String.num_int64(int(def["stat"])))
-	_add_row(_mul(off, "level"), tr("ui.report.level"), _mul(def, "level"))
-	_add_row(_mul(off, "surround"), tr("ui.report.encircled"), _mul(def, "surround"))
-	_add_row(_mul(off, "terrain"), tr("ui.report.terrain"), _mul(def, "terrain"))
-	_add_row(_status_part(off), tr("ui.report.status"), _status_part(def))
-	_add_row(_add_text(off, "support"), tr("ui.report.support"), _add_text(def, "support"))
-	# 貫通は防御側にだけ乗る（攻撃側の pierce が相手の防御を削る）。効いていなければ — 。
-	_add_row(NONE, tr("ui.report.pierce"), _mul(def, "pierce"))
-	_add_rule()  # ここまでが積み上げ、ここから下が出来上がった値
-	_add_row(_total_text(off, NONE), tr("ui.report.eff_total"), _total_text(def, NONE))
-	# 実効値の下に用語を添える＝下の損害の式と同じ言葉で列を結ぶ。
-	_add_control_row(_term_label(tr("ui.report.eff_atk")), "", _term_label(tr("ui.report.eff_def")))
-	# 損害の出し方は左右に割らず、幅いっぱいで式に数字を入れて見せる＝表の2つの実効値が
-	# そのまま式に入るのを見せる。
-	var lines: Array[String] = []
-	if bool(def.get("capped", false)):
-		lines.append(tr("ui.report.support_capped"))
-	lines.append_array(_damage_block(vn, hit, victim))
-	_detail_label.text = "\n".join(lines)
-
-## この打撃の損害の説明。式の形を先に出し、次の行で実際の数字に置き換える。
-## 2乗は「520×520」と展開する（13px では小さい ² が読めない）。
-## victim＝兵を失う側／hit は Combat.hit_detail（攻/防の内訳と損害率・損害）。
-func _damage_block(victim_name: String, hit: Dictionary, victim_snap: Dictionary) -> Array[String]:
-	var atk := roundi(float(hit["attack"]["total"]))
-	var def_total := roundi(float(hit["defense"]["total"]))
-	var pct := int(round(float(hit["fraction"]) * 100.0))
-	return [
-		tr("ui.report.loss_rate_formula"),
-		tr("ui.report.loss_rate_values") % [atk, atk, atk, atk, def_total, def_total, pct],
-		tr("ui.report.loss_line") % [victim_name, int(victim_snap["troops_before"]), pct, int(hit["loss"])],
-	]
-
-## 実効値の行の下に置く用語ラベル（実効攻撃力／実効防御力）。中央のラベルと同じ型づかい。
-func _term_label(text: String) -> Label:
-	var l := Label.new()
-	l.text = text
-	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	l.add_theme_font_size_override("font_size", 12)
-	l.add_theme_color_override("font_color", LABEL_COLOR)
-	return l
-
-
-## 攻撃の素の値＝対地/対空の別を添える（同じ駒でも相手で変わる）。サマリーと詳細で同じ書式。
-func _atk_stat_text(b: Dictionary) -> String:
-	return tr("ui.report.atk_vs_air" if b.get("vs_aerial", false) else "ui.report.atk_vs_ground") % int(b["stat"])
-
-## 内訳の整数値（兵数など）。内訳が空＝その向きは起きていない（反撃なし）。
-func _num(b: Dictionary, key: String) -> String:
-	return String.num_int64(int(b.get(key, 0))) if not b.is_empty() else NONE
-
-## 係数1つ。1.00（＝効いていない）も表に残す＝行の有無で「効いたか」を探させない。
-func _mul(b: Dictionary, key: String) -> String:
-	if b.is_empty() or not b.has(key):
-		return NONE
-	return "×%.2f" % float(b[key])
-
-## 加算1つ（支援）。
-func _add_text(b: Dictionary, key: String) -> String:
-	return "%+d" % roundi(float(b.get(key, 0.0))) if not b.is_empty() else NONE
-
-## 状態補正（バフ/デバフ）。倍率と加算の両方が効いていれば併記する。
-func _status_part(b: Dictionary) -> String:
-	if b.is_empty():
-		return NONE
-	var parts: Array[String] = []
-	var smul := float(b.get("status_mul", 1.0))
-	var sadd := float(b.get("status_add", 0.0))
-	if not is_equal_approx(smul, 1.0):
-		parts.append("×%.2f" % smul)
-	if not is_zero_approx(sadd):
-		parts.append("%+d" % roundi(sadd))
-	return " ".join(parts) if not parts.is_empty() else NONE
+	# 表と損害の式は StrikeTable（スキルレポートと共通部品）。損害の出し方は左右に割らず、
+	# 幅いっぱいで式に数字を入れて見せる＝表の2つの実効値がそのまま式に入るのを見せる。
+	StrikeTable.fill(_summary, sn, vn, hit)
+	_detail_label.text = "\n".join(StrikeTable.damage_lines(vn, hit, int(victim["troops_before"])))
 

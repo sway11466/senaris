@@ -1123,10 +1123,20 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	var skill_scope := String(option.get("buff_scope", "")) == "unit"
 	var skill_detail := _skill_snapshot(option, target) if skill_scope else {}
 	var spawn_cells: Array[Vector2i] = []  # 分裂で湧いた位置（cells に載せて盤で光らせる）
+	# レポートの見出し・攻撃列に出す発動者（発動前に固める＝attack のスナップショットと同じ流儀。
+	# 兵数は動かないので troops_after は troops_before と同じ）。詳細 → doc/tech/combat_scene.md
+	var caster_snap := {}
+	var caster := unit_by_id(int(option.get("leader_id", -1)))
+	if caster != null:
+		caster_snap = _unit_snapshot(caster)
+		caster_snap["troops_after"] = int(caster_snap["troops_before"])
+	# 損害の出ないレシピの効果表示用に、積んだ状態補正エントリを result にも載せる（レポートが読む）。
+	var status_entry := {}
 	# バフ系（②グレイス）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝results空）。
 	if String(option["effect"]) == "buff":
 		var entry := _buff_entry(option, target)
 		add_status_mod(entry)
+		status_entry = entry
 		if skill_scope:
 			skill_detail["op"] = String(entry.get("op", "mul"))
 			skill_detail["value"] = float(entry.get("value", 0.0))
@@ -1150,6 +1160,7 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 	elif String(option["effect"]) == "dot":
 		var dot := _dot_entry(option, target)
 		add_status_mod(dot)
+		status_entry = dot
 		if skill_scope:
 			skill_detail["dot_troops"] = int(dot.get("value", 0))
 			skill_detail["kind"] = String(dot.get("kind", StatusMod.KIND_DEBUFF))
@@ -1162,12 +1173,15 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 			continue
 		var loss := int(hit["loss"])
 		var vhex := victim.pos  # 撃破すると盤から外れる＝消える前に控える（演出が当たった場所を出す）
+		var v_snap := _unit_snapshot(victim)  # 撃破で盤から消えてもレポートに名前と兵数を出せるよう固める
 		victim.troops -= loss
 		var killed := victim.troops <= 0
+		v_snap["troops_after"] = maxi(victim.troops, 0)
 		mark_engaged(victim.id)  # 被弾＝起動トリガー（待ち伏せAIが立つ）
 		if killed:
 			_remove_unit(victim.id)
-		results.append({"target_id": victim.id, "hex": vhex, "loss": loss, "killed": killed, "detail": hit})
+		results.append({"target_id": victim.id, "hex": vhex, "loss": loss, "killed": killed,
+			"detail": hit, "victim": v_snap})
 	# レベル: attack と同じ「戦ったら+1・倒したらさらに+1」を陣形1発の単位で（面で複数撃破でも+2止まり）。
 	# 対象に1体も当たらなかった空撃ちは0（戦っていない＝上がらない）。
 	var any_killed := false
@@ -1203,7 +1217,10 @@ func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
 		"center": target,
 		"cells": cells,
 		"leader_id": int(option.get("leader_id", -1)),
+		"caster": caster_snap,
 	}
+	if not status_entry.is_empty():
+		out["status"] = status_entry
 	if skill_scope:
 		out["skill"] = skill_detail
 	return out

@@ -470,3 +470,36 @@ func test_is_unit_skill_splits_catalog_by_shape() -> void:
 	assert_false(Formation.is_unit_skill("trinity_nova"), "複数人のレシピは陣形")
 	assert_false(Formation.is_unit_skill("grace"), "クラスタも陣形")
 	assert_false(Formation.is_unit_skill("no_such_recipe"), "未知のIDは陣形扱い（落ちない）")
+
+# --- スキルレポート用の result（→ doc/tech/combat_scene.md 右パネル（スキルレポート）） ---
+
+func test_result_carries_snapshots_and_attack_breakdown() -> void:
+	# 撃破で盤から消えても名前と兵数を出せるよう、発動者・対象のスナップショットを result に載せる。
+	# 攻撃側の内訳は total だけでなく係数ごと＝レポートが戦闘と同じ3列表を出せる。
+	var f := _trinity_nova_state(1)  # 低防御＝撃破
+	var s: BattleState = f["s"]
+	var leader: Unit = f["leader"]
+	var opt: Dictionary = Formation.available_for(s, leader)[0]
+	var res := s.resolve_formation(opt, f["enemy_hex"])
+	var caster: Dictionary = res["caster"]
+	assert_eq(int(caster["id"]), leader.id, "発動者のスナップショット")
+	assert_eq(int(caster["level"]), 1, "スナップショットは発動前（Lv加算前）に固める")
+	var r: Dictionary = res["results"][0]
+	var v: Dictionary = r["victim"]
+	assert_eq(int(v["troops_before"]), 8, "対象の発動前兵数")
+	assert_eq(int(v["troops_after"]), 0, "撃破＝0")
+	var atk: Dictionary = r["detail"]["attack"]
+	for key in ["troops", "stat", "level", "surround", "terrain", "total"]:
+		assert_true(atk.has(key), "攻撃側の内訳に %s が載る" % key)
+
+func test_grace_result_carries_status_entry() -> void:
+	# 損害の出ないレシピはレポートが効果と持続を出す＝積んだ状態補正エントリを result にも載せる。
+	var f := _aria_state()
+	var s: BattleState = f["s"]
+	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
+	var res := s.resolve_formation(opt, Vector2i(-9999, -9999))
+	var st: Dictionary = res["status"]
+	assert_eq(String(st["op"]), "mul", "グレイスは乗算バフ")
+	assert_almost_eq(float(st["value"]), 1.3, 0.001, "×1.3")
+	assert_eq(int(st["remaining"]), 1, "持続1ターン")
+	assert_false((res["caster"] as Dictionary).is_empty(), "バフでも発動者スナップショットが載る")

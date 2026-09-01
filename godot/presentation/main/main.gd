@@ -235,6 +235,9 @@ func _await_turn_banner() -> void:
 ## （効果対象が1体のものだけ＝doc/tech/combat_scene.md）を出す。
 ## 絵が無いレシピはカットインを飛ばす＝音と盤の結果は同じに出る。仕様 → doc/gdd/formations.md
 func _on_formation_resolved(result: Dictionary) -> void:
+	# 発動と同時にスキルレポート（カットイン・着弾の間も右パネルに出ている）。盤側の選択解除
+	# （clear）が先に走る＝HexBoard.bind の接続がこのハンドラより先。仕様 → doc/tech/combat_scene.md
+	$Front/InfoPanel.show_skill_report(result)
 	var recipe := String(result.get("recipe", ""))
 	if Formation.is_unit_skill(recipe):
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
