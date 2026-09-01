@@ -55,14 +55,6 @@
 - 対応：`Formation.RECIPES` の `grace` に人数連動の値を持たせ、`_buff_entry` が参加人数から補正を決める。`count` 固定でないレシピは初なので、他のレシピへ波及しない形で入れる。formations.md ②の表と、レシピ表の「効果」の書き方も更新する。
 - 該当：`godot/domain/formation/formation.gd`・`godot/domain/battle_state.gd`（`_buff_entry`）・`godot/tests/unit/test_formation.gd`・`doc/gdd/formations.md`。
 
-### feature-88
-
-**陣形スキルを撃った後に情報パネルが何を出すかを決める**
-- ゴール：陣形スキルの発動直後に右のパネルへ出すものが決まっていて、そのとおり出ている。
-- 背景：発動すると選択が外れ、パネルが「No unit selected」＋操作の説明に戻る。実機の挙動として正しいが、撃った直後に読みたいのは着弾の結果か発動者の性能のはずで、操作説明ではない。紹介画像の3枚目（カットイン）を撮ったときに、店頭に出す絵へ操作説明が写ることで気づいた。
-- 対応：候補は そのまま／発動者を選択したまま残す／戦闘レポートと同じ形で着弾の損害を出す。決めてから実装する。
-- 該当：`godot/presentation/main/main.gd`（`_on_formation_resolved`）・`godot/presentation/ui/unit_info_panel.gd`・`channels/screenshots/03_cutin.png`。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**
