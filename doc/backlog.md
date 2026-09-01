@@ -63,15 +63,6 @@
 - 対応：候補は そのまま／発動者を選択したまま残す／戦闘レポートと同じ形で着弾の損害を出す。決めてから実装する。
 - 該当：`godot/presentation/main/main.gd`（`_on_formation_resolved`）・`godot/presentation/ui/unit_info_panel.gd`・`channels/screenshots/03_cutin.png`。
 
-### feature-80
-
-**チュートリアル２の会話の英文を書き直す**
-- ゴール：チュートリアル２の会話が、英語圏のプレイヤーにとって翻訳物ではなく英語で書かれた台詞として読め、教える内容は日本語と一致している。チュートリアル２を収録する itch の更新に間に合っている。
-- 背景：`dialogue.csv` の英文（チュートリアル２＝104キー・約1809語）は監修を通っていない。[i18n.md](tech/i18n.md) で「根拠にしない」と明記された側で、画面の用語（`Strength` など）と食い違う箇所が feature-66 で既に見つかっている。英語圏をメインターゲットにする方針（[marketing.md](sales/marketing.md)）では、優先度が高いのはストアページの一行目と会話パートで、UI ラベルより会話のほうが上。
-- 対応：日本語を正本にしたまま英文だけを書き直す。訳ではなく英語の台詞として書く（[authoring.md](campaign/authoring.md) の英題の考え方と同じ）。用語は [i18n.md](tech/i18n.md) の「英語の用語」に従う。`t2.st6.intro.2` の "its strength, defense, and speed" は画面の `Strength` ラベルと直接ぶつかるので必ず直す。話者名（`char.*`）の英語としての質もここで見る（ユニット名との整合は修正済み）。
-- 考慮外：日本語の台詞は直さない。
-- 該当：`godot/data/i18n/dialogue.csv`（`t2.*`の行）・`doc/campaign/`（内容の照合先）。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**
