@@ -563,11 +563,57 @@ func test_purify_targets_self_and_adjacent_ally_only() -> void:
 	var f := _purify_state()
 	var s: BattleState = f["s"]
 	var o := _purify_option(f)
-	assert_true(Formation.can_target(s, o, f["priest"].pos), "自分自身に掛けられる")
-	assert_true(Formation.can_target(s, o, f["near"].pos), "隣接する味方に掛けられる")
+	# 弱体が掛かっていなければ味方でも対象にならない（落とすものが無い）
+	assert_false(Formation.can_target(s, o, f["priest"].pos), "弱体の無い自分には掛けられない")
+	assert_false(Formation.can_target(s, o, f["near"].pos), "弱体の無い味方には掛けられない")
+	for u in [f["priest"], f["near"], f["far"], f["foe"]]:
+		_afflict(s, u)
+	assert_true(Formation.can_target(s, o, f["priest"].pos), "弱体の掛かった自分自身に掛けられる")
+	assert_true(Formation.can_target(s, o, f["near"].pos), "弱体の掛かった隣接する味方に掛けられる")
 	assert_false(Formation.can_target(s, o, f["far"].pos), "離れた味方には掛けられない")
-	assert_false(Formation.can_target(s, o, f["foe"].pos), "敵には掛けられない")
+	assert_false(Formation.can_target(s, o, f["foe"].pos), "敵には掛けられない（弱体があっても）")
 	assert_false(Formation.can_target(s, o, Hex.neighbor(f["priest"].pos, 1)), "空きマスには掛けられない")
+
+## 撃てる先＝弱体の掛かった味方だけ。誰にも掛かっていなければ空＝メニューは項目を無効化する。
+func test_purify_targetable_cells_only_debuffed_allies() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var o := _purify_option(f)
+	assert_true(Formation.targetable_cells(s, o).is_empty(), "弱体が誰にも無ければ撃てる先は無い")
+	_afflict(s, f["near"])
+	var cells := Formation.targetable_cells(s, o)
+	assert_eq(cells.size(), 1, "弱体の掛かった味方1体だけ")
+	assert_true(f["near"].pos in cells, "それは near")
+
+## 味方から掛かった強化しか無い駒は対象にならない（落とすのは弱体だけ）。
+func test_purify_ignores_buff_only_ally() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var near: Unit = f["near"]
+	s.add_status_mod({"scope": "unit", "unit_id": near.id, "op": "add", "target": "both",
+		"value": 80.0, "owner_team": 0, "remaining": 1, "kind": "buff"})
+	assert_false(Formation.can_target(s, _purify_option(f), near.pos), "強化だけの味方には掛けられない")
+
+## 移動先を仮定した判定でも弱体の有無を見る（自分に掛かった弱体は移動先でも付いてくる）。
+func test_purify_can_target_self_from_move_destination() -> void:
+	var f := _purify_state()
+	var s: BattleState = f["s"]
+	var priest: Unit = f["priest"]
+	var o := _purify_option(f)
+	var dest: Vector2i = Hex.neighbor(priest.pos, 1)
+	assert_false(Formation.can_target(s, o, dest, dest), "弱体が無ければ移動先の自分にも掛けられない")
+	_afflict(s, priest)
+	assert_true(Formation.can_target(s, o, dest, dest), "弱体があれば移動先の自分に掛けられる")
+
+# --- ユニットスキルの一覧（情報パネルの能力タブが読む）---
+
+func test_unit_skills_of_lists_solo_recipes_by_skin() -> void:
+	var f := _purify_state()
+	assert_eq(Formation.unit_skills_of(f["priest"]), ["purify"] as Array[String], "プリーストはピュリファイ")
+	assert_true(Formation.unit_skills_of(f["near"]).is_empty(), "ファイターは持たない")
+	var pixie := Unit.new(9, 0, Hex.offset_to_axial(1, 1), 8, 8, 10, 10, 5, "pixie")
+	assert_eq(Formation.unit_skills_of(pixie), ["pixie_dust"] as Array[String], "ピクシーはピクシーダスト")
+	assert_true(Formation.unit_skills_of(null).is_empty(), "null は空")
 
 func test_purify_drops_debuffs_and_keeps_buffs() -> void:
 	var f := _purify_state()

@@ -592,6 +592,18 @@ func _build_ability(u: Unit) -> void:
 		traits.append(tr("ui.info.trait_move_after_attack"))
 	for t in traits:
 		_add_row(tr("ui.info.trait"), t)
+	# ユニットスキル＝この駒が撃てる単独発動のスキルと、その効果の説明。盤の状況（対象の有無・
+	# 行動済み）には依らない＝能力タブの「駒そのものの性能」に合わせる。敵の駒でも出す（ゴーストを
+	# 選んでドレッドタッチが何をするか読める）。名前と説明は規約キー（names.csv）で引く。
+	# 仕様 → doc/gdd/uiux.md ユニット情報パネル
+	var skills := Formation.unit_skills_of(u)
+	if skills.is_empty():
+		return
+	_add_separator()
+	_add_head_row(tr("ui.info.skills_head"))
+	for rid in skills:
+		_add_head_row(tr("recipe." + rid + ".name"))  # 名前を説明と離してページ末尾に残さない
+		_add_full_row(tr("recipe." + rid + ".desc"))
 
 ## 状態＝このターン何ができるか＋いま効いているバフ・デバフ。
 ## 包囲は地形ではなく「隣の敵に囲まれて弱っている」＝デバフなのでここに置く。

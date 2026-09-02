@@ -173,3 +173,9 @@ recipe.dread_touch.name,ドレッドタッチ,Dread Touch
 recipe.venom_fang.name,ヴェノムファング,Venom Fang
 recipe.poison_sting.name,ポイズンスティング,Poison Sting
 recipe.slime_split.name,スライムスプリット,Slime Split
+recipe.pixie_dust.desc,自分か隣の味方1体の攻撃力・防御力に、発動したピクシーの残兵数×10 を足す。自軍ターン3回ぶん続く。,"Adds 10 × the caster's remaining troops to the Attack and Defense of itself or one adjacent ally. Lasts 3 of your turns."
+recipe.purify.desc,自分か隣の味方1体から、掛かっている弱体をすべて取り除く。弱体の無い相手には撃てない。,Removes every debuff from itself or one adjacent ally. Cannot target a unit that has no debuff.
+recipe.dread_touch.desc,隣の敵1体の攻撃力・防御力から、発動したゴーストの残兵数×10 を引く。発動側ターン3回ぶん続く。,"Subtracts 10 × the caster's remaining troops from the Attack and Defense of one adjacent enemy. Lasts 3 of the caster's turns."
+recipe.venom_fang.desc,隣の敵1体の攻撃力・防御力に 0.9 を掛ける。重ねると掛け合わさる。発動側ターン3回ぶん続く。,Multiplies the Attack and Defense of one adjacent enemy by 0.9. Stacks multiply together. Lasts 3 of the caster's turns.
+recipe.poison_sting.desc,隣の敵1体の兵数を、相手のターン開始ごとに1減らす。残兵1で止まる。発動側ターン3回ぶん続く。,"One adjacent enemy loses 1 troop at the start of each of its turns, down to a minimum of 1. Lasts 3 of the caster's turns."
+recipe.slime_split.desc,自分の複製を1体、隣の空きマスに生む。兵数は発動時の自分と同じ。3ターン溜めると撃てる。,Spawns a copy of itself on an adjacent empty hex with the same troop count. Needs 3 turns to recharge.

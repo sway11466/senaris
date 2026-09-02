@@ -58,6 +58,7 @@ ui.info.atk_mod,攻撃補正,Atk Mod.
 ui.info.def_mod,防御補正,Def Mod.
 ui.info.terrain_head,【地形】 %s,[ Terrain ]  %s
 ui.info.move_cost_head,【移動コスト】,[ Move Cost ]
+ui.info.skills_head,【ユニットスキル】,[ Unit Skills ]
 ui.info.impassable,不可,Impassable
 ui.info.hq,本拠地,HQ
 ui.info.base,拠点,Base

@@ -176,6 +176,21 @@ static func is_unit_skill(recipe_id: String) -> bool:
 	var r: Dictionary = RECIPES.get(recipe_id, {})
 	return String(r.get("shape", "")) == "solo"
 
+## unit が持つユニットスキル（単独発動レシピ）の id 一覧。盤の状況（対象の有無・行動済み）には
+## 依らない＝「この駒は何を撃てる駒か」。情報パネルの能力タブが説明を並べるのに読む。
+## いま撃てるかは available_for が見る（→ doc/gdd/uiux.md ユニット情報パネル）。
+static func unit_skills_of(unit: Unit) -> Array[String]:
+	var out: Array[String] = []
+	if unit == null:
+		return out
+	for rid in RECIPES:
+		var r: Dictionary = RECIPES[rid]
+		if String(r["shape"]) != "solo" or not (r["effect"] in IMPLEMENTED_EFFECTS):
+			continue
+		if _matches(unit, r["leader_skins"]):
+			out.append(rid)
+	return out
+
 ## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
 ## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
 ## from_hex＝発動者がそこに居ると仮定して成立を見る（移動を確定する前のコマンドメニュー用）。
@@ -281,7 +296,13 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i,
 		var same_team := u.team == leader.team
 		if String(option.get("buff_side", "ally")) == "enemy":
 			return not same_team
-		return same_team
+		if not same_team:
+			return false
+		# 解除（ピュリファイ）は落とすものが無ければ撃てない＝弱体の掛かっていない味方は対象に
+		# ならない。撃てる先が無ければメニューは項目を無効化する。詳細 → doc/gdd/skills.md ③
+		if String(option["effect"]) == "cleanse":
+			return state.debuff_count(u) > 0
+		return true
 	return true
 
 ## option の着弾中心に選べるhex（発動条件の射程内・盤上）。空＝いま撃てる先が無い＝コマンド
