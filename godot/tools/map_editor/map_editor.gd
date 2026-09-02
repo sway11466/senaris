@@ -2036,10 +2036,10 @@ func _no_actor_message() -> String:
 
 
 ## 自軍 native の本拠地が盤にあるか（＝「本拠地の喪失で敗北」が効くステージか）。
-## 拠点の native は初期所属＝ステージJSONの team そのまま（StageLoader）。
+## 拠点の native は省略時＝ステージJSONの team と同じ（StageLoader）。
 func _has_own_hq() -> bool:
 	for b in _doc.data.get("bases", []):
-		if String(b.get("kind", "fort")) == "hq" and String(b.get("team", "neutral")) == "player":
+		if String(b.get("kind", "fort")) == "hq" and String(b.get("native", b.get("team", "neutral"))) == "player":
 			return true
 	return false
 

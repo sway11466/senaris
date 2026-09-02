@@ -392,7 +392,7 @@ static func count_start_allies(data: Dictionary, state: BattleState, catalog: Di
 			continue
 		n += _force_size(u, catalog, skin_catalog)
 	for b in _as_dicts(data.get("bases", [])):
-		var base_native := _parse_team(b.get("team"), Base.NEUTRAL)  # 控えの既定 native＝拠点の初期所属
+		var base_native := _parse_team(b.get("native"), _parse_team(b.get("team"), Base.NEUTRAL))  # 控えの既定 native＝拠点の生来の所属
 		for g in _as_dicts(b.get("garrison", [])):
 			if _parse_team(g.get("native"), base_native) == 1:
 				continue  # 敵 native の控えは自軍の戦力ではない
@@ -738,10 +738,11 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 		})
 	return auto_id
 
-## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。
+## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・生来の所属(native, 既定は team)・
+## kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。native≠team＝開始時点で占領されている拠点。
 ## garrison の各要素は { type, count } ＋ 個体の状態（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
-## garrison の生来陣営（native）は拠点の初期所属が既定（中立拠点の駒＝中立＝取った側に寝返る）。
+## garrison の生来陣営（native）は拠点の生来の所属が既定（中立拠点の駒＝中立＝取った側に寝返る）。
 static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(bases) != TYPE_ARRAY:
 		return start_id
@@ -749,6 +750,7 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
 		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL), String(b.get("kind", "fort")))
+		base.native_team = _parse_team(b.get("native"), base.team)  # 生来の所属（省略時は初期所属と同じ）
 		if b.has("ai"):  # 拠点そのものが1部隊（garrison を出す）。ai 未指定の拠点はAI出撃しない
 			var squad := {}
 			for key in b:

@@ -14,14 +14,6 @@
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### bug-4
-
-**拠点の `native` キーが読まれない**
-- ゴール：拠点の生来の所属をどう決めるかが doc と実装で一致していて、`native` と `team` が食い違う拠点を作れるのか作れないのかがはっきりしている。
-- 背景：[map.md](gdd/map.md) は `Base.native_team` の JSONキーを `native` としているが、`StageLoader._apply_bases` は拠点の `team` だけを `Base.new` に渡し、`Base._init` が `native_team = team` にしている。拠点直下の `native` はどこからも読まれない（garrison の駒に書く `native` は読まれる）。生来の所属は回復の可否と `capture_hq` の判定が見るので、開始時点で敵に占領されている自軍の砦のような盤が作れない。バグと決まったわけではなく、拠点の生来の所属を `team` で決める設計だったのかもしれない。
-- 対応：まず調査＝どちらを正としたいかを決める。実装を doc に合わせる（`Base.new` に `native` を渡す）か、doc を実装に合わせる（拠点の生来の所属は `team` が決めると書き直す）。既存のステージデータで拠点直下に `native` を書いているものは無い。
-- 該当：`godot/application/stage_loader.gd`（`_apply_bases`）・`godot/domain/capture/base.gd`・[map.md](gdd/map.md) §拠点の所有者。
-
 ## 機能追加
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。

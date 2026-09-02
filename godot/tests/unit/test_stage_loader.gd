@@ -306,6 +306,25 @@ func test_team_names_resolve_to_internal_ints() -> void:
 	assert_eq(b.native_team, -1, "拠点 native も初期所属の中立")
 	assert_eq(b.garrison[0].native_team, 0, "garrison native=player → 0（中立拠点でも寝返らない）")
 
+func test_base_native_key_overrides_initial_team() -> void:
+	# 拠点直下の "native"＝生来の所属。team と食い違わせると「開始時点で占領されている拠点」になる
+	# （例: 敵に奪われた自軍の砦）。→ doc/gdd/map.md §拠点の所有者
+	var data := {
+		"cols": 6, "rows": 6,
+		"player": [ { "col": 1, "row": 1 } ],
+		"bases": [
+			{ "col": 2, "row": 2, "team": "enemy", "native": "player", "kind": "hq",
+				"garrison": [ { "count": 1 } ] },
+			{ "col": 4, "row": 4, "team": "enemy" },
+		],
+	}
+	var s := StageLoader.build(data)
+	var b := s.base_at(Hex.offset_to_axial(2, 2))
+	assert_eq(b.team, 1, "初期所属は敵（奪われた状態で始まる）")
+	assert_eq(b.native_team, 0, "生来の所属は native キーから読む")
+	assert_eq(b.garrison[0].native_team, 0, "garrison の既定 native は拠点の生来の所属に従う")
+	assert_eq(s.base_at(Hex.offset_to_axial(4, 4)).native_team, 1, "native 省略時は team と同じ")
+
 func test_load_boot_underlay() -> void:
 	# 起動時の下敷き（セレクトの裏に出る空盤）。ユニット0・地形のみで実読み込みできる。
 	var s := StageLoader.load_file("res://data/stages/_boot/underlay.json")
@@ -668,6 +687,26 @@ func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> voi
 	var s := StageLoader.build(data, catalog, skins)
 	assert_eq(StageLoader.count_start_allies(data, s, catalog, skins), 6,
 			"盤上1＋輸送1＋搭乗1＋中立の控え2＋未発火の味方増援1（兵器・敵側は数えない）")
+
+## 拠点直下の native がある場合、控えの既定 native はそちらに従う（team ではなく）。
+func test_count_start_allies_follows_base_native_key() -> void:
+	var catalog := UnitCatalog.load_default()
+	var skins := SkinCatalog.load_standard()
+	var data := {
+		"cols": 6, "rows": 4,
+		"player": [ { "type": "knight", "col": 1, "row": 2 } ],
+		"bases": [
+			# 敵に奪われた自軍の砦＝中の控えは自軍の戦力
+			{ "col": 4, "row": 1, "team": "enemy", "native": "player",
+				"garrison": [ { "type": "knight", "count": 2 } ] },
+			# 逆＝自軍が奪っている敵の砦。中の控えは敵 native なので数えない
+			{ "col": 5, "row": 1, "team": "player", "native": "enemy",
+				"garrison": [ { "type": "knight", "count": 3 } ] },
+		],
+	}
+	var s := StageLoader.build(data, catalog, skins)
+	assert_eq(StageLoader.count_start_allies(data, s, catalog, skins), 3,
+			"盤上1＋自軍 native の控え2（敵 native の控えは数えない）")
 
 ## 名簿で出撃が決まる駒は「この戦いに出たか」で数える＝未加入の actor は分母に入らない。
 func test_count_start_allies_skips_units_that_did_not_sortie() -> void:
