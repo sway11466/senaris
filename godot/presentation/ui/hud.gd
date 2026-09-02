@@ -44,7 +44,7 @@ func _ready() -> void:
 	_end_btn.pressed.connect(func() -> void: end_turn_requested.emit())
 	add_child(_end_btn)
 
-	# 情報板の畳む／開く。ターン終了の右。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
+	# 情報板の畳む／開く。左下のメニューの右。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
 	_info_btn = TavernTheme.wood_button(tr("ui.hud.info_panel"))
 	_info_btn.size = Vector2(110, 40)
 	_info_btn.pressed.connect(func() -> void: info_panel_toggle_requested.emit())
@@ -80,7 +80,9 @@ func _ready() -> void:
 	_reposition()
 	get_viewport().size_changed.connect(_reposition)
 
-## ボタンをビューポート左下へ置き直す（起動時・リサイズ時）。
+## ボタンを置き直す（起動時・リサイズ時）。左下にメニューと情報板、盤エリアの右下にターン終了。
+## ターン終了を単独にするのは、毎ターン押すぶん押し間違いのダメージが大きく、距離で守るため
+## （doc/gdd/uiux.md ボタンの左右・ターン終了）。
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
 ## HUD は起動時に1度だけ作ってセッション中生き続けるので、作り直さずに文字だけ差し替える
 ## （作り直すとターンの可否・ロードの可否を持ち直すことになる）。
@@ -99,8 +101,8 @@ func _reposition() -> void:
 	var vp := get_viewport_rect().size
 	var y := vp.y - 52.0
 	_gear.position = Vector2(16.0, y)
-	_end_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
-	_info_btn.position = Vector2(_end_btn.position.x + _end_btn.size.x + 8.0, y)
+	_info_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
+	_end_btn.position = Vector2(UiLayout.board_area(vp).end.x - 16.0 - _end_btn.size.x, y)
 
 ## ターン終了ボタンの有効/無効（自ターンのみ有効・AIターン/決着後は無効）。
 func set_player_turn(enabled: bool) -> void:

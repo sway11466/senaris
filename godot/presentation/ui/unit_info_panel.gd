@@ -22,7 +22,6 @@ const LABEL_W := 128.0
 const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
 const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
-const MINIMIZE_LABEL := "▁"  # 最小化ボタン（ページャー行の右端）。仕様 → doc/gdd/uiux.md 最小化
 
 signal minimized_changed(minimized: bool)  # 畳んだ／開いた（main が設定に書く）
 signal moved(pos: Vector2)  # 掴んで動かし、離した（板の左上。main が設定に書く）
@@ -54,9 +53,7 @@ var _tab := "ability"   # いま選んでいるタブ。駒を選び直しても
 var _shown_unit := -1   # タブ表示中の駒（タブを押したときに描き直す相手）。-1＝素のテキスト表示中
 var _content: Control     # 中身の器。板の内側で切り落とす＝行が板の外へはみ出して描かれない
 var _rows: VBoxContainer  # いま出ているページの行。器いっぱいに広げる
-var _pager: MarginContainer  # 下端の行。中央に ◀ 2/3 ▶・右端に最小化。1ページのときも場所は空けたまま
-var _pager_row: HBoxContainer  # ◀ 2/3 ▶ の並び
-var _minimize_btn: Button
+var _pager: HBoxContainer  # 下端の ◀ 2/3 ▶。1ページのときも場所は空けたまま無効表示にする
 var _minimized := false  # 畳んでいる（プレイヤーの選択。設定に残る）
 var _covered := false    # 会話パネルに覆われている（同じ箱に会話を出す間）。畳みとは別の理由で隠れる
 var _dragging := false   # 木の地を掴んで引きずっている
@@ -165,41 +162,32 @@ func _ready() -> void:
 	add_child(_skill_report)
 	clear()
 
-## 板の下端に据え置く行。中央に ◀ 2/3 ▶、右端に最小化ボタン。タブと同じ木のボタンで作る
-## （スクロールバーは材質から浮く）。1ページしかないときも場所は空けたまま無効表示にする
-## ＝駒を選び直すたびに下端が動かない。MarginContainer は子を全部同じ矩形に重ねるので、
-## 中央寄せの並びと右寄せのボタンを1段に同居させられる（ボタンの幅ぶん中央がずれない）。
-## 仕様 → doc/gdd/uiux.md ページャー・最小化
+## 板の下端に据え置く ◀ 2/3 ▶。タブと同じ木のボタンで作る（スクロールバーは材質から浮く）。
+## 1ページしかないときも場所は空けたまま無効表示にする＝駒を選び直すたびに下端が動かない。
+## 仕様 → doc/gdd/uiux.md ページャー
 func _build_pager(box: VBoxContainer) -> void:
-	_pager = MarginContainer.new()
+	_pager = HBoxContainer.new()
+	_pager.add_theme_constant_override("separation", 6)
+	_pager.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(_pager)
-	_pager_row = HBoxContainer.new()
-	_pager_row.add_theme_constant_override("separation", 6)
-	_pager_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_pager.add_child(_pager_row)
 	_prev = _pager_button("◀", -1)
 	_page_label = Label.new()
 	_page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_page_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_page_label.custom_minimum_size = Vector2(64.0, 0)
-	_pager_row.add_child(_page_label)
+	_pager.add_child(_page_label)
 	_next = _pager_button("▶", 1)
-	_minimize_btn = TavernTheme.wood_button(MINIMIZE_LABEL)
-	_minimize_btn.add_theme_font_size_override("font_size", 14)
-	_minimize_btn.custom_minimum_size = Vector2(PAGER_MIN_W, 0)
-	_minimize_btn.size_flags_horizontal = Control.SIZE_SHRINK_END
-	_minimize_btn.pressed.connect(set_minimized.bind(true))
-	_pager.add_child(_minimize_btn)
 
 func _pager_button(text: String, delta: int) -> Button:
 	var b := TavernTheme.wood_button(text)
 	b.add_theme_font_size_override("font_size", 14)
 	b.custom_minimum_size = Vector2(PAGER_MIN_W, 0)
 	b.pressed.connect(_turn_page.bind(delta))
-	_pager_row.add_child(b)
+	_pager.add_child(b)
 	return b
 
 # --- 最小化。仕様 → doc/gdd/uiux.md 最小化 ---
+# 入口は HUD の「情報板」ボタンだけ（板に最小化ボタンは置かない）。
 # 畳むと板は画面から消え、下にあった盤がそのまま見える。情報板以外（カメラ・盤エリア）は動かさない。
 # 畳んでいる間に来た表示（駒の選択・レポート・通知）は中身を更新するだけで、板は開かない。
 
@@ -234,8 +222,8 @@ func _turn_page(delta: int) -> void:
 	_show_page()
 
 ## パネルの上でのホイールはページ送り（盤のカメラが動くのはパネルの外だけ）。
-## 木の地の左ボタンは板の移動（仕様 → doc/gdd/uiux.md 移動）。ここへ届くのはタブ・ページャー・
-## 最小化ボタン以外＝ボタンは自分で押下を止め、ラベルと中身の器は素通しなので、板の地だけが残る。
+## 木の地の左ボタンは板の移動（仕様 → doc/gdd/uiux.md 移動）。ここへ届くのはタブ・ページャー以外
+## ＝ボタンは自分で押下を止め、ラベルと中身の器は素通しなので、板の地だけが残る。
 ## 引きずり中の motion は、押した Control に届き続ける（Viewport のマウスフォーカス）＝板の外へ
 ## 速く振っても追従が切れない。動ける範囲は決めない＝画面からはみ出してよい。
 func _gui_input(event: InputEvent) -> void:
