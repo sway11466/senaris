@@ -157,14 +157,6 @@
 - 対応：(1) ランディングは1ページ。ストアページ（feature-53）の文と絵が決まってから流用して作る。(2) ルールのページ（`senaris.in/rules` 相当）をランディングからリンクする。マニュアルの構造定数と `manual.csv` から生成できる想定で、範囲と見せ方は未検討。
 - 該当：`site/`・`doc/sales/site.md`・`godot/data/i18n/manual.csv`。着手の引き金＝配布が見えてきたとき。
 
-### feature-98
-
-**情報パネルを小さくする（コンパクトモードの検討含む）**
-- ゴール：右の情報パネルが盤を狭めず、読みたい情報は今までどおり読める。
-- 背景：右の情報パネルは固定寸法（`UiLayout.RIGHT_BOX`＝464×608）で、盤エリアの右側を常時占めている。盤を広く見たい場面で大きさが気になる。常時小さくするほか、畳む・縮める切り替え式（コンパクトモード）も候補。パネルの矩形から位置を算出している物（タイトルロゴ）は矩形を動かせば追従する作りになっている（[uiux.md](gdd/uiux.md) タイトルロゴ）。
-- 対応：畳める（最小化）にする。仕様は [uiux.md](gdd/uiux.md) 最小化。常時小さくするのは、畳めるようにして実プレイしてから要るか決める。
-- 該当：`godot/presentation/ui/unit_info_panel.gd`・`godot/presentation/ui/hud.gd`・`godot/infrastructure/save/settings_store.gd`・`doc/gdd/uiux.md`。
-
 ### feature-99
 
 **プレスキットを用意する**
