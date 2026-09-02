@@ -27,10 +27,12 @@
 
 画像（4枚）：
 
-- `img/devlog2-cast.png` … 3番（魔法兵の紹介）の直後。ウィザードとウィッチの戦闘立ち絵の2体並び。整列ツール（build_lineup.py）で組む。原寸 781px。
-- `img/devlog2-1.png` … 4番（トリニティノヴァ）の直後。発動時のカットイン＋スキルレポートの損害一覧。`debug-photo/devlog2-1` を `shot_screen --formation trinity_nova` で連写した03枚目。
-- `img/devlog2-3.png` … 5番（盤の絵面）の直後。t2.st3 の実盤面コピー（`debug-photo/devlog2-2`）を `--frame 2,0,14,8` で撮る。バリケードで関門を塞ぎ、屍の群れが詰まり、ゴーストが脇から回り込む中盤。
-- `img/devlog2-2.png` … 6番（二択）の直後。着弾範囲7ヘックスに魔法弾が落ちる盤面。カットインと同じ連写の08枚目。
+番号は記事の貼り順。撮影はいずれも t2.st3 の実盤面コピー（`debug-photo/devlog2-2`）を `shot_screen --formation trinity_nova --frame 2,0,14,8` で連写したもの。
+
+- `img/devlog2-1.png` … 3番（魔法兵の紹介）の直後。ウィザードとウィッチの戦闘立ち絵の2体並び。整列ツール（build_lineup.py）で組む。原寸 781px。
+- `img/devlog2-2.png` … 4番（トリニティノヴァ）の直後。発動時のカットイン＋スキルレポートの損害一覧。連写の03枚目。
+- `img/devlog2-3.png` … 5番（盤の絵面）の直後。バリケードで関門を塞ぎ、屍の群れが詰まり、ゴーストが脇から回り込む中盤の盤面。
+- `img/devlog2-4.png` … 6番（二択）の直後。着弾範囲7ヘックスに魔法弾が落ちる盤面。連写の08枚目。
 
 用語：画面の語に合わせる（hex / Strength）。陣形スキルは Formation Skill、レシピ名は Trinity Nova。
 

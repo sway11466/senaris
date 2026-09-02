@@ -14,7 +14,7 @@
   uv run --no-project --with pillow python godot/tools/marketing/build_lineup.py \
     --left fighter,novice,archer,cleric,halfling \
     --right goblin,hobgoblin,goblin_archer,goblin_lord \
-    -o channels/itch/devlog/img/tutorial1_cast.png
+    -o channels/itch/devlog/img/devlog1-3.png
 
 オプション:
   --step N   同グループ内の駒の中心間隔px（既定 380。704キャンバスを少し重ねて隊列に見せる）
