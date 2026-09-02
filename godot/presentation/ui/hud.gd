@@ -12,6 +12,8 @@ signal restart_requested         # システムメニュー: リスタート（�
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 signal save_requested            # システムメニュー: 中断セーブ
 signal load_requested            # システムメニュー: 中断セーブから再開
+signal zoom_in_requested         # システムメニュー: ズームイン（1段階）
+signal zoom_out_requested        # システムメニュー: ズームアウト（1段階）
 signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲滅（デバッグビルドのみ出る項目）
 signal debug_event_requested(index: int)  # デバッグメニュー: 未発生イベントを起こす（一覧の何番目か）
 
@@ -19,7 +21,7 @@ var _end_btn: Button
 var _gear: Button
 var _menu: PopupMenu
 var _dbg_events: PopupMenu = null  # デバッグ区画のサブメニュー（製品ビルドでは作らない＝null）
-enum { SYS_RESTART, SYS_SELECT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
+enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
 
 ## デバッグ: 未発生イベントの表示名を返す Callable（main が挿す）。一覧は起こすたびに減るので
 ## 作り置きせず、メニューを開くたびに聞き直す。空を返せば「イベントを起こす」は無効表示。
@@ -42,6 +44,10 @@ func _ready() -> void:
 	_menu = PopupMenu.new()
 	_menu.add_item(tr("ui.hud.restart"), SYS_RESTART)
 	_menu.add_item(tr("ui.hud.stage_select"), SYS_SELECT)
+	_menu.add_separator()
+	# ズームはラベルの括弧書きで本来の操作（Ctrl＋ホイール）も周知する。仕様 → doc/gdd/uiux.md
+	_menu.add_item(tr("ui.hud.zoom_in"), SYS_ZOOM_IN)
+	_menu.add_item(tr("ui.hud.zoom_out"), SYS_ZOOM_OUT)
 	_menu.add_separator()
 	_menu.add_item(tr("ui.hud.save"), SYS_SAVE)
 	_menu.add_item(tr("ui.hud.load"), SYS_LOAD)
@@ -72,6 +78,7 @@ func refresh_labels() -> void:
 	_gear.text = tr("ui.hud.menu")
 	_end_btn.text = tr("ui.hud.end_turn")
 	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
+			[SYS_ZOOM_IN, "ui.hud.zoom_in"], [SYS_ZOOM_OUT, "ui.hud.zoom_out"],
 			[SYS_SAVE, "ui.hud.save"], [SYS_LOAD, "ui.hud.load"],
 			[SYS_SETTINGS, "ui.hud.settings"], [SYS_CLOSE, "ui.hud.close"]]:
 		_menu.set_item_text(_menu.get_item_index(int(pair[0])), tr(String(pair[1])))
@@ -121,6 +128,10 @@ func _on_sys_id(id: int) -> void:
 			save_requested.emit()
 		SYS_LOAD:
 			load_requested.emit()
+		SYS_ZOOM_IN:
+			zoom_in_requested.emit()
+		SYS_ZOOM_OUT:
+			zoom_out_requested.emit()
 		SYS_CLOSE:
 			pass  # 閉じるだけ（popup は自動で閉じる）
 		DBG_WIPE:

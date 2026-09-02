@@ -279,6 +279,11 @@ func _handle_camera_scroll(event: InputEvent) -> bool:
 		return true
 	return false
 
+## システムメニューのズームイン／アウト（doc/gdd/uiux.md）。カーソル位置に依らず盤エリア中央を基点に1段階。
+func zoom_step(zoom_in: bool) -> void:
+	var f := BoardCamera.ZOOM_STEP if zoom_in else 1.0 / BoardCamera.ZOOM_STEP
+	_board_cam.zoom_at_point(f, _vis_rect().get_center())
+
 ## 盤全体が HUD を避けた表示領域に収まるよう距離と注視点を合わせる。
 func fit_to_view() -> void:
 	if state == null:

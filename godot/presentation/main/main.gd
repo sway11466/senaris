@@ -633,6 +633,8 @@ func _install_hud() -> void:
 	_hud.restart_requested.connect(_on_restart_requested)
 	_hud.save_requested.connect(_on_save_requested)
 	_hud.load_requested.connect(_on_load_requested)
+	_hud.zoom_in_requested.connect(func() -> void: $HexBoard.zoom_step(true))
+	_hud.zoom_out_requested.connect(func() -> void: $HexBoard.zoom_step(false))
 	_hud.wipe_enemies_requested.connect(_on_wipe_enemies_requested)  # デバッグ項目（製品ビルドでは出ない）
 	_hud.debug_event_requested.connect(_on_debug_event_requested)  # 同上
 	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
