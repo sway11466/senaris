@@ -36,6 +36,16 @@ func set_locale(value: String) -> void:
 	_values["locale"] = value
 	_save()
 
+## 情報板を畳んでいるか。まだ選ばれていなければ開いている。仕様 → doc/gdd/uiux.md 最小化
+func info_panel_minimized() -> bool:
+	var v: Variant = _values.get("info_panel_minimized", null)
+	return v is bool and bool(v)
+
+## 情報板を畳んだ／開いた。板の操作そのものが設定＝押すたびに書く（設定画面に項目は無い）。
+func set_info_panel_minimized(value: bool) -> void:
+	_values["info_panel_minimized"] = value
+	_save()
+
 func _load() -> void:
 	# 破損・手編集・版違いの判定と退避は SaveFile が持つ（doc/tech/gamesystem.md §バックアップ）
 	var result := SaveFile.read(_path, VERSION)
@@ -48,6 +58,9 @@ func _load() -> void:
 	var loc: Variant = data.get("locale", null)
 	if loc is String and LOCALES.has(loc):
 		_values["locale"] = String(loc)
+	var minimized: Variant = data.get("info_panel_minimized", null)
+	if minimized is bool:
+		_values["info_panel_minimized"] = bool(minimized)
 
 func _save() -> void:
 	SaveFile.rotate(_path)

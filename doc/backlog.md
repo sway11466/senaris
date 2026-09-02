@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=5 / feature=100 / refactoring=1.
+次回採番: bug=5 / feature=101 / refactoring=1.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -162,8 +162,8 @@
 **情報パネルを小さくする（コンパクトモードの検討含む）**
 - ゴール：右の情報パネルが盤を狭めず、読みたい情報は今までどおり読める。
 - 背景：右の情報パネルは固定寸法（`UiLayout.RIGHT_BOX`＝464×608）で、盤エリアの右側を常時占めている。盤を広く見たい場面で大きさが気になる。常時小さくするほか、畳む・縮める切り替え式（コンパクトモード）も候補。パネルの矩形から位置を算出している物（タイトルロゴ）は矩形を動かせば追従する作りになっている（[uiux.md](gdd/uiux.md) タイトルロゴ）。
-- 対応：未検討。まず「常時小さくする」か「切り替え式」かを決める。縮めた場合にタブ／ページャー構成（[uiux.md](gdd/uiux.md) ユニット情報パネル）のページ割りがどう変わるかも合わせて見る。
-- 該当：`godot/presentation/ui/ui_layout.gd`・`godot/presentation/ui/unit_info_panel.gd`・`doc/gdd/uiux.md`。
+- 対応：畳める（最小化）にする。仕様は [uiux.md](gdd/uiux.md) 最小化。常時小さくするのは、畳めるようにして実プレイしてから要るか決める。
+- 該当：`godot/presentation/ui/unit_info_panel.gd`・`godot/presentation/ui/hud.gd`・`godot/infrastructure/save/settings_store.gd`・`doc/gdd/uiux.md`。
 
 ### feature-99
 
@@ -172,6 +172,14 @@
 - 背景：体験版の公開後、こちらの許可なく紹介動画が出た（[sales/youtube.md](sales/youtube.md) の記録）。使われたサムネイルは実際の画面ではない生成画像で、期待と実物の落差が視聴者コメントに出た。渡せる素材が手元に無いと、第一接触の絵を他人の生成物に握られる。[site.md](sales/site.md) はランディングページのフッターに置くリンク項目として名前を挙げているだけで、中身も置き場も決めていない。
 - 対応：中身と置き場を決める。素材は3面と共通のものを流用できる（[marketing.md](sales/marketing.md) の素材の置き場）。ストアページ（feature-53）を待たずに出せる範囲で先に組む。【未決】置き場（`senaris.in/press` か itch のページ内か）・同梱物（ロゴ・スクリーンショット・キービジュアル・説明文・権利表記・連絡先）・配り方（zip か個別ダウンロードか）。
 - 該当：`channels/`・`doc/sales/site.md`・`doc/sales/marketing.md`・`doc/sales/youtube.md`。着手の引き金＝次に紹介の話が来たとき、またはサイトの中身を作るとき（feature-95）。
+
+### feature-100
+
+**情報板を自動で開く場面を設定で選べるようにする**
+- ゴール：畳んだ情報板を、プレイヤーが選んだ場面（会話の前後・戦闘レポートなど）でだけ自動で開ける。
+- 背景：最小化（[uiux.md](gdd/uiux.md) 最小化）は「畳んでいる間は何が起きても開かない」と決めた。会話の前後だけは開いてほしい人が居そうだが、勝手に開く規則を板に持たせると、覚える状態が増える。
+- 対応：設定画面（[settings.md](gdd/settings.md)）に「情報板を開く場面」の項目を足し、選んだ場面でだけ開く。場面の候補と既定は着手時に決める。
+- 該当：`doc/gdd/settings.md`・`godot/presentation/ui/unit_info_panel.gd`・`godot/infrastructure/save/settings_store.gd`。着手の引き金＝畳んで遊んで「ここで開いてほしい」が出たとき。
 
 ## リファクタリング
 

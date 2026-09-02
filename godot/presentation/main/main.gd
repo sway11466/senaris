@@ -78,6 +78,10 @@ func _ready() -> void:
 	# InfoPanel は前面パネル層 $Front（層45）＝暗転（ScreenLighting・層40）で沈まない側。
 	$HexBoard.selection_changed.connect($Front/InfoPanel.show_unit)
 	$HexBoard.tile_inspected.connect($Front/InfoPanel.show_terrain)  # 空きマス選択→地形/拠点情報
+	# 畳んでいるかは設定に残る（doc/gdd/uiux.md 最小化）。先に状態を入れてから配線する＝起動時の
+	# 復元で設定を書き直さない。
+	$Front/InfoPanel.set_minimized(_settings_store.info_panel_minimized())
+	$Front/InfoPanel.minimized_changed.connect(_settings_store.set_info_panel_minimized)
 	_install_screen()  # 画面の明暗の共通基盤（暗幕＋加護の光）。暗転を頼む演出より先に用意
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
 	_combat_scene.bind(_skins)
@@ -336,7 +340,7 @@ func _on_battle_finished(outcome: int) -> void:
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
 			_conversation_phase = "outro"
-			$Front/InfoPanel.hide()
+			$Front/InfoPanel.set_covered(true)
 			$HexBoard.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
 			_set_scrim(true)  # 盤を沈めて会話に注視させる
 			# 冒険譚を完走した回だけ、盤の代わりに勝利イラストを敷いて outro を読ませる
@@ -490,7 +494,7 @@ func _maybe_start_intro() -> void:
 	_conversation_phase = "intro"
 	$HexBoard.set_input_locked(true)
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
-	$Front/InfoPanel.hide()  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
+	$Front/InfoPanel.set_covered(true)  # 会話中は情報パネルを隠す（同じ箱に会話を出す）
 	_hud.set_player_turn(false)
 	_conversation.start(_dialogue["intro"], "ui.talk.start_battle")
 
@@ -522,7 +526,7 @@ func _on_event_fired(info: Dictionary) -> void:
 			await $HexBoard.focus_camera_on(hex)
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない
-	$Front/InfoPanel.hide()
+	$Front/InfoPanel.set_covered(true)
 	$HexBoard.set_input_locked(true)
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
 	_hud.set_player_turn(false)
@@ -536,7 +540,7 @@ func _await_dialogue() -> void:
 
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:
-	$Front/InfoPanel.show()  # 会話が終わったら情報パネルを戻す
+	$Front/InfoPanel.set_covered(false)  # 会話が終わったら情報パネルを戻す（畳んでいたなら畳んだまま）
 	$HexBoard.set_input_locked(false)  # 盤の凍結を解除（intro/outro 共通）
 	_set_scrim(false)  # 暗幕を戻す（盤が主役に戻る）
 	match _conversation_phase:
@@ -628,6 +632,7 @@ func _install_hud() -> void:
 	_hud = preload("res://presentation/ui/hud.gd").new()
 	add_child(_hud)
 	_hud.end_turn_requested.connect(_on_end_turn_requested)
+	_hud.info_panel_toggle_requested.connect($Front/InfoPanel.toggle_minimized)
 	_hud.restart_requested.connect(_on_restart_requested)
 	_hud.save_requested.connect(_on_save_requested)
 	_hud.load_requested.connect(_on_load_requested)

@@ -25,6 +25,19 @@ func test_chosen_locale_persists() -> void:
 	SettingsStore.new(PATH).set_locale("ja")
 	assert_eq(SettingsStore.new(PATH).locale(), "ja", "選び直しは上書きされる")
 
+func test_unset_info_panel_is_open() -> void:
+	var store := SettingsStore.new(PATH)
+	assert_false(store.info_panel_minimized(), "選ばれるまでは開いている")
+	assert_false(FileAccess.file_exists(PATH), "選ぶまではファイルを作らない")
+
+func test_info_panel_minimized_persists() -> void:
+	SettingsStore.new(PATH).set_info_panel_minimized(true)
+	assert_true(SettingsStore.new(PATH).info_panel_minimized(), "畳んだ状態は別インスタンスで読み直しても残る")
+	assert_eq(SettingsStore.new(PATH).locale(), "ja" if OS.get_locale_language() == "ja" else "en",
+		"言語は選んでいないので環境のまま")
+	SettingsStore.new(PATH).set_info_panel_minimized(false)
+	assert_false(SettingsStore.new(PATH).info_panel_minimized(), "開き直しは上書きされる")
+
 func test_unknown_locale_is_rejected() -> void:
 	var store := SettingsStore.new(PATH)
 	store.set_locale("fr")

@@ -8,6 +8,7 @@ class_name Hud
 ## 効かず見えなくなるのを避ける）。ウィンドウリサイズ時は size_changed で置き直す。
 
 signal end_turn_requested        # ターン終了ボタン
+signal info_panel_toggle_requested  # 情報板ボタン＝右の情報板を畳む／開く
 signal restart_requested         # システムメニュー: リスタート（現ステージ再読込）
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 signal save_requested            # システムメニュー: 中断セーブ
@@ -18,6 +19,7 @@ signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲�
 signal debug_event_requested(index: int)  # デバッグメニュー: 未発生イベントを起こす（一覧の何番目か）
 
 var _end_btn: Button
+var _info_btn: Button
 var _gear: Button
 var _menu: PopupMenu
 var _dbg_events: PopupMenu = null  # デバッグ区画のサブメニュー（製品ビルドでは作らない＝null）
@@ -40,6 +42,12 @@ func _ready() -> void:
 	_end_btn.size = Vector2(140, 40)
 	_end_btn.pressed.connect(func() -> void: end_turn_requested.emit())
 	add_child(_end_btn)
+
+	# 情報板の畳む／開く。ターン終了の右。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
+	_info_btn = TavernTheme.wood_button(tr("ui.hud.info_panel"))
+	_info_btn.size = Vector2(110, 40)
+	_info_btn.pressed.connect(func() -> void: info_panel_toggle_requested.emit())
+	add_child(_info_btn)
 
 	_menu = PopupMenu.new()
 	_menu.add_item(tr("ui.hud.restart"), SYS_RESTART)
@@ -77,6 +85,7 @@ func _ready() -> void:
 func refresh_labels() -> void:
 	_gear.text = tr("ui.hud.menu")
 	_end_btn.text = tr("ui.hud.end_turn")
+	_info_btn.text = tr("ui.hud.info_panel")
 	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
 			[SYS_ZOOM_IN, "ui.hud.zoom_in"], [SYS_ZOOM_OUT, "ui.hud.zoom_out"],
 			[SYS_SAVE, "ui.hud.save"], [SYS_LOAD, "ui.hud.load"],
@@ -88,6 +97,7 @@ func _reposition() -> void:
 	var y := vp.y - 52.0
 	_gear.position = Vector2(16.0, y)
 	_end_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
+	_info_btn.position = Vector2(_end_btn.position.x + _end_btn.size.x + 8.0, y)
 
 ## ターン終了ボタンの有効/無効（自ターンのみ有効・AIターン/決着後は無効）。
 func set_player_turn(enabled: bool) -> void:

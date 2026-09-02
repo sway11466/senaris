@@ -11,6 +11,7 @@ ui.settings.back,← メニュー,← Menu
 ui.manual.title,マニュアル,Manual
 ui.manual.back,← メニュー,← Menu
 ui.hud.end_turn,ターン終了（Enter）,End Turn (Enter)
+ui.hud.info_panel,情報板,Info Panel
 ui.hud.menu,⚙ メニュー,⚙ Menu
 ui.hud.restart,リスタート,Restart Battle
 ui.hud.stage_select,依頼ボード,Quest Board
