@@ -25,6 +25,7 @@ const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
 const MINIMIZE_LABEL := "▁"  # 最小化ボタン（ページャー行の右端）。仕様 → doc/gdd/uiux.md 最小化
 
 signal minimized_changed(minimized: bool)  # 畳んだ／開いた（main が設定に書く）
+signal moved(pos: Vector2)  # 掴んで動かし、離した（板の左上。main が設定に書く）
 
 ## タブ＝[id, 見出しの翻訳キー]。id は _rebuild_rows の分岐と合わせる。
 ## 見出しは const に置けない（tr() は実行時）ので、キーだけ持って _ready で引く。
@@ -58,6 +59,9 @@ var _pager_row: HBoxContainer  # ◀ 2/3 ▶ の並び
 var _minimize_btn: Button
 var _minimized := false  # 畳んでいる（プレイヤーの選択。設定に残る）
 var _covered := false    # 会話パネルに覆われている（同じ箱に会話を出す間）。畳みとは別の理由で隠れる
+var _dragging := false   # 木の地を掴んで引きずっている
+var _drag_grip := Vector2.ZERO  # 掴んだ点の、板の左上からのずれ（引きずり中は板がこの点に追従する）
+var _drag_from := Vector2.ZERO  # 掴んだときの板の位置（動いていなければ離しても設定を書かない）
 var _prev: Button
 var _next: Button
 var _page_label: Label
@@ -230,15 +234,43 @@ func _turn_page(delta: int) -> void:
 	_show_page()
 
 ## パネルの上でのホイールはページ送り（盤のカメラが動くのはパネルの外だけ）。
+## 木の地の左ボタンは板の移動（仕様 → doc/gdd/uiux.md 移動）。ここへ届くのはタブ・ページャー・
+## 最小化ボタン以外＝ボタンは自分で押下を止め、ラベルと中身の器は素通しなので、板の地だけが残る。
+## 引きずり中の motion は、押した Control に届き続ける（Viewport のマウスフォーカス）＝板の外へ
+## 速く振っても追従が切れない。動ける範囲は決めない＝画面からはみ出してよい。
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
-		match (event as InputEventMouseButton).button_index:
-			MOUSE_BUTTON_WHEEL_DOWN:
-				_wheel_page(1)
-				accept_event()
-			MOUSE_BUTTON_WHEEL_UP:
-				_wheel_page(-1)
-				accept_event()
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				_dragging = true
+				_drag_grip = mb.global_position - global_position
+				_drag_from = position
+			elif _dragging:
+				_dragging = false
+				if position != _drag_from:
+					moved.emit(position)  # 押して離しただけ（動いていない）では設定を書かない
+			accept_event()
+			return
+		if mb.pressed:
+			match mb.button_index:
+				MOUSE_BUTTON_WHEEL_DOWN:
+					_wheel_page(1)
+					accept_event()
+				MOUSE_BUTTON_WHEEL_UP:
+					_wheel_page(-1)
+					accept_event()
+	elif event is InputEventMouseMotion and _dragging:
+		# 位置は event から取る（実カーソルを読むと、タッチや合成イベントで追従しない）。
+		global_position = (event as InputEventMouseMotion).global_position - _drag_grip
+		accept_event()
+
+## 既定の場所（UiLayout.RIGHT_BOX）へ戻す。畳んでいれば開く＝戻したのに見えない、を作らない。
+## 設定の消し込みは呼ぶ側（main）が行う。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
+func reset_position() -> void:
+	_dragging = false
+	position = UiLayout.RIGHT_BOX.position
+	set_minimized(false)
 
 ## ホイール1段ぶんのページ送り。スキルレポート表示中はそちらのページャーへ届ける。
 func _wheel_page(delta: int) -> void:

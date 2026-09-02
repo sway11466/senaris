@@ -9,6 +9,7 @@ class_name Hud
 
 signal end_turn_requested        # ターン終了ボタン
 signal info_panel_toggle_requested  # 情報板ボタン＝右の情報板を畳む／開く
+signal info_panel_reset_requested   # システムメニュー: 情報板の位置を戻す
 signal restart_requested         # システムメニュー: リスタート（現ステージ再読込）
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 signal save_requested            # システムメニュー: 中断セーブ
@@ -23,7 +24,7 @@ var _info_btn: Button
 var _gear: Button
 var _menu: PopupMenu
 var _dbg_events: PopupMenu = null  # デバッグ区画のサブメニュー（製品ビルドでは作らない＝null）
-enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
+enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_INFO_RESET, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
 
 ## デバッグ: 未発生イベントの表示名を返す Callable（main が挿す）。一覧は起こすたびに減るので
 ## 作り置きせず、メニューを開くたびに聞き直す。空を返せば「イベントを起こす」は無効表示。
@@ -56,6 +57,7 @@ func _ready() -> void:
 	# ズームはラベルの括弧書きで本来の操作（Ctrl＋ホイール）も周知する。仕様 → doc/gdd/uiux.md
 	_menu.add_item(tr("ui.hud.zoom_in"), SYS_ZOOM_IN)
 	_menu.add_item(tr("ui.hud.zoom_out"), SYS_ZOOM_OUT)
+	_menu.add_item(tr("ui.hud.info_panel_reset"), SYS_INFO_RESET)  # 動かした情報板を既定の場所へ
 	_menu.add_separator()
 	_menu.add_item(tr("ui.hud.save"), SYS_SAVE)
 	_menu.add_item(tr("ui.hud.load"), SYS_LOAD)
@@ -88,6 +90,7 @@ func refresh_labels() -> void:
 	_info_btn.text = tr("ui.hud.info_panel")
 	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
 			[SYS_ZOOM_IN, "ui.hud.zoom_in"], [SYS_ZOOM_OUT, "ui.hud.zoom_out"],
+			[SYS_INFO_RESET, "ui.hud.info_panel_reset"],
 			[SYS_SAVE, "ui.hud.save"], [SYS_LOAD, "ui.hud.load"],
 			[SYS_SETTINGS, "ui.hud.settings"], [SYS_CLOSE, "ui.hud.close"]]:
 		_menu.set_item_text(_menu.get_item_index(int(pair[0])), tr(String(pair[1])))
@@ -142,6 +145,8 @@ func _on_sys_id(id: int) -> void:
 			zoom_in_requested.emit()
 		SYS_ZOOM_OUT:
 			zoom_out_requested.emit()
+		SYS_INFO_RESET:
+			info_panel_reset_requested.emit()
 		SYS_CLOSE:
 			pass  # 閉じるだけ（popup は自動で閉じる）
 		DBG_WIPE:

@@ -82,6 +82,10 @@ func _ready() -> void:
 	# 復元で設定を書き直さない。
 	$Front/InfoPanel.set_minimized(_settings_store.info_panel_minimized())
 	$Front/InfoPanel.minimized_changed.connect(_settings_store.set_info_panel_minimized)
+	# 動かした位置も同じく設定から復元（doc/gdd/uiux.md 移動）。動かしていなければ main.tscn の置き場のまま。
+	if _settings_store.has_info_panel_position():
+		$Front/InfoPanel.position = _settings_store.info_panel_position()
+	$Front/InfoPanel.moved.connect(_settings_store.set_info_panel_position)
 	_install_screen()  # 画面の明暗の共通基盤（暗幕＋加護の光）。暗転を頼む演出より先に用意
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
 	_combat_scene.bind(_skins)
@@ -286,6 +290,12 @@ func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0
 	_turn_plate.set_turn(team, turn_number, limit)
 	_update_event()
+
+## 情報板の位置を戻す（システムメニュー）。板を既定の場所へ戻し、設定の位置は項目ごと消す
+## ＝「動かしていない」に戻す。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
+func _on_info_panel_reset_requested() -> void:
+	$Front/InfoPanel.reset_position()
+	_settings_store.clear_info_panel_position()
 
 ## 残りターン（増援の予告）を情報パネルへ流し込む。未発生のイベントが無ければ行が隠れる。
 ## 仕様 → doc/gdd/uiux.md 残りターン
@@ -633,6 +643,7 @@ func _install_hud() -> void:
 	add_child(_hud)
 	_hud.end_turn_requested.connect(_on_end_turn_requested)
 	_hud.info_panel_toggle_requested.connect($Front/InfoPanel.toggle_minimized)
+	_hud.info_panel_reset_requested.connect(_on_info_panel_reset_requested)
 	_hud.restart_requested.connect(_on_restart_requested)
 	_hud.save_requested.connect(_on_save_requested)
 	_hud.load_requested.connect(_on_load_requested)

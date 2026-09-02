@@ -17,6 +17,7 @@ ui.hud.restart,リスタート,Restart Battle
 ui.hud.stage_select,依頼ボード,Quest Board
 ui.hud.zoom_in,ズームイン（Ctrl＋ホイール上）,Zoom In (Ctrl+Wheel Up)
 ui.hud.zoom_out,ズームアウト（Ctrl＋ホイール下）,Zoom Out (Ctrl+Wheel Down)
+ui.hud.info_panel_reset,情報板の位置を戻す,Reset Info Panel Position
 ui.hud.save,セーブ,Save
 ui.hud.load,ロード,Load
 ui.hud.settings,設定,Settings

@@ -38,6 +38,25 @@ func test_info_panel_minimized_persists() -> void:
 	SettingsStore.new(PATH).set_info_panel_minimized(false)
 	assert_false(SettingsStore.new(PATH).info_panel_minimized(), "開き直しは上書きされる")
 
+func test_unset_info_panel_position_is_absent() -> void:
+	var store := SettingsStore.new(PATH)
+	assert_false(store.has_info_panel_position(), "動かすまでは位置を持たない")
+	assert_false(FileAccess.file_exists(PATH), "動かすまではファイルを作らない")
+
+func test_info_panel_position_persists_and_clears() -> void:
+	SettingsStore.new(PATH).set_info_panel_position(Vector2(120.5, 40))
+	var store := SettingsStore.new(PATH)
+	assert_true(store.has_info_panel_position(), "動かした位置は別インスタンスで読み直しても残る")
+	assert_eq(store.info_panel_position(), Vector2(120.5, 40))
+	store.clear_info_panel_position()
+	assert_false(SettingsStore.new(PATH).has_info_panel_position(), "戻すと項目ごと消える")
+
+func test_broken_info_panel_position_is_ignored() -> void:
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({ "version": SettingsStore.VERSION, "info_panel_position": { "x": "a" } }))
+	f.close()
+	assert_false(SettingsStore.new(PATH).has_info_panel_position(), "数でない位置は無いものとして扱う")
+
 func test_unknown_locale_is_rejected() -> void:
 	var store := SettingsStore.new(PATH)
 	store.set_locale("fr")

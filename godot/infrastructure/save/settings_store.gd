@@ -46,6 +46,29 @@ func set_info_panel_minimized(value: bool) -> void:
 	_values["info_panel_minimized"] = value
 	_save()
 
+## 情報板を動かした位置（板の左上・1280×720 の論理座標）があるか。無ければ既定の場所。
+## 仕様 → doc/gdd/uiux.md 移動
+func has_info_panel_position() -> bool:
+	return _values.has("info_panel_position")
+
+func info_panel_position() -> Vector2:
+	var v: Variant = _values.get("info_panel_position", null)
+	if v is Dictionary:
+		return Vector2(float(v["x"]), float(v["y"]))
+	return Vector2.ZERO
+
+## 情報板を動かした。位置は辞書 { x, y } で書く（JSON に Vector2 は無い）。
+func set_info_panel_position(pos: Vector2) -> void:
+	_values["info_panel_position"] = { "x": pos.x, "y": pos.y }
+	_save()
+
+## 情報板の位置を既定へ戻した＝動かしていない状態に戻す（項目ごと消す）。
+func clear_info_panel_position() -> void:
+	if not _values.has("info_panel_position"):
+		return
+	_values.erase("info_panel_position")
+	_save()
+
 func _load() -> void:
 	# 破損・手編集・版違いの判定と退避は SaveFile が持つ（doc/tech/gamesystem.md §バックアップ）
 	var result := SaveFile.read(_path, VERSION)
@@ -61,6 +84,12 @@ func _load() -> void:
 	var minimized: Variant = data.get("info_panel_minimized", null)
 	if minimized is bool:
 		_values["info_panel_minimized"] = bool(minimized)
+	var pos: Variant = data.get("info_panel_position", null)
+	if pos is Dictionary and _is_number(pos.get("x")) and _is_number(pos.get("y")):
+		_values["info_panel_position"] = { "x": float(pos["x"]), "y": float(pos["y"]) }
+
+static func _is_number(v: Variant) -> bool:
+	return typeof(v) == TYPE_FLOAT or typeof(v) == TYPE_INT
 
 func _save() -> void:
 	SaveFile.rotate(_path)
