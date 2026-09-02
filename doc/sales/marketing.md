@@ -234,7 +234,10 @@ channels/
 | Steam | 本命の売り場。一覧で開かせて、開いてから買わせる | [steam_page.md](steam_page.md) |
 | itch | 体験版を置いて英語圏に見つけてもらう。導線は itch から Steam への一方向 | [itch_page.md](itch_page.md)・[itch_devlog.md](itch_devlog.md) |
 | 公式サイト | 名前で検索した人の受け皿。詳しく知りたい人に渡す | [site.md](site.md) |
+| YouTube | 動画の置き場。他人の紹介動画に開発者として出ていく場 | [youtube.md](youtube.md) |
 | Bluesky | 節目の告知先。名前で辿った人がもう一つ見つける場所 | 下記「SNS」 |
+
+表に並ぶのは露出の面で、自分から出す面と、他人に取り上げられる面の両方を含む。
 
 売り場の選定理由と出す順序は [monetization.md](monetization.md) が正本。本書はそこで決まったチャネルに、何をどう載せるかだけを扱う。SNS は売り場ではないので本書で決める。
 
