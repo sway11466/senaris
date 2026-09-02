@@ -15,10 +15,10 @@ const NONE := "—"
 const TAB_MIN_W := 96.0  # タブ1枚の最低幅（戦闘レポートと同じ考え方）
 ## 項目名の欄の幅。タブをまたいで同じ値を使う＝どのタブでも値の頭が同じ位置に並ぶ。
 ## 空白で桁合わせしないのは、看板のフォントが等幅でないため（文字数を数えても揃わない）。
-## 英語の項目名（`Atk vs Ground` ＝ 110px）が入る幅を採る。超えると欄が押し広げられ、
-## その行だけ値の頭がずれる。値の欄は 432 − 112 − 8 ＝ 312px 残り、最長の値（包囲の
-## 説明つき係数 ＝ 286px）が折り返さずに入る。
-const LABEL_W := 112.0
+## 英語の項目名（移動コストの `Mountain Stride` ＝ 125px）が入る幅を採る。超えると欄が
+## 押し広げられ、その行だけ値の頭がずれる。値の欄は 432 − 128 − 8 ＝ 296px 残り、最長の値
+## （包囲の説明つき係数 ＝ 286px）が折り返さずに入る。
+const LABEL_W := 128.0
 const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
 const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
@@ -436,8 +436,7 @@ func _build_terrain_lines(hex: Vector2i) -> void:
 
 	_add_separator()
 	_add_head_row(tr("ui.info.move_cost_head"))
-	for line in _movement_cost_lines(terr):
-		_add_full_row(line)
+	_add_movement_cost_rows(terr)
 
 	# 控えは体数ぶん伸びる（24体の拠点もある）ので最後に置く。行数の決まっている地形の話を
 	# 先に出し切る＝はみ出すとしても控えの尻尾だけにする。
@@ -461,28 +460,17 @@ func _team_text(team: int) -> String:
 		return tr("ui.info.team_neutral")
 	return tr("ui.info.team_ally") if team == 0 else tr("ui.info.team_enemy")
 
-## そのマスへの進入コストの一覧（移動タイプ1行ずつ。見出しは呼ぶ側が置く）。並びは
-## movement.csv の行順で、常に全移動タイプを出す＝行の並びがステージやマスで変わらない。
-## 仕様 → doc/gdd/uiux.md
-## 項目名の欄は全角スペースで詰める（看板のフォントは等幅でないが、和文グリフは同幅なので揃う）。
-## 移動タイプ名を英語にすると桁合わせが崩れる＝表示名の i18n（backlog feature-72）と同時に直す。
-## 2列の行ではなく1行のテキストにしているのは、ユニットの地形タブと空きマスの表示で
-## 同じ字面を使うため。ページ割りは1行ずつなので、途中で切れても次のページへ続く。
-func _movement_cost_lines(terrain_id: String) -> Array[String]:
+## そのマスへの進入コストを「項目名／値」の行として足す（移動タイプ1行ずつ。見出しは呼ぶ側が
+## 置く）。並びは movement.csv の行順で、常に全移動タイプを出す＝行の並びがステージやマスで
+## 変わらない。仕様 → doc/gdd/uiux.md
+## 桁合わせは他の項目と同じ LABEL_W の欄に任せる。空白で詰めると英語（文字ごとに幅が違う）で
+## 崩れる。ユニットの地形タブと空きマスの表示の両方から呼ぶ＝同じ字面になる。
+func _add_movement_cost_rows(terrain_id: String) -> void:
 	var table := _state.movement_table()
-	var names: Array[String] = []
-	var values: Array[String] = []
-	var w := 0
 	for mt in Movement.display_order():
 		var c := Movement.cost(table, mt, terrain_id)
-		var nm := tr("movement." + mt + ".name")
-		names.append(nm)
-		values.append(tr("ui.info.impassable") if c == Movement.IMPASSABLE else str(c))
-		w = maxi(w, nm.length())
-	var out: Array[String] = []
-	for i in names.size():
-		out.append("%s%s  %s" % [names[i], "　".repeat(w - names[i].length()), values[i]])
-	return out
+		_add_row(tr("movement." + mt + ".name"),
+			tr("ui.info.impassable") if c == Movement.IMPASSABLE else str(c))
 
 ## 控え1体の1行表示（名前・兵数・レベル）。
 func _garrison_line(gu: Unit, b: Base) -> String:
@@ -631,8 +619,7 @@ func _build_terrain(u: Unit) -> void:
 	_add_row(tr("ui.info.def_mod"), "×%.2f" % TerrainType.defense_factor(terr))
 	_add_separator()
 	_add_head_row(tr("ui.info.move_cost_head"))
-	for line in _movement_cost_lines(terr):
-		_add_full_row(line)
+	_add_movement_cost_rows(terr)
 	# 控えは体数ぶん伸びるので最後（_build_terrain_lines と同じ順序）。
 	var b := _state.base_at(u.pos)
 	if b == null:
