@@ -1,4 +1,4 @@
-公開:
+公開: https://craftkobo.itch.io/senaris/devlog/1649777/three-shots-or-one-blast （2026-09-02）
 
 # devlog #2 — 陣形スキル
 
@@ -54,5 +54,5 @@ Three shots or one blast
 <p>But those three mages could have fired three separate shots &mdash; long-range, armor-piercing shots, each aimed wherever it needed to go. Trinity Nova&rsquo;s damage equals one caster, not all three combined. Against a couple of scattered targets, three individual shots do more. The skill is not always the right call, and that is the point: it is a choice, not an upgrade.</p>
 <p><img src=""></p>
 <p>The real price is the setup: lining up the formation binds your moves. A triangle on a hex grid means all three mages touching each other &mdash; tighter than it looks. Only the caster can move on the turn the skill fires; the other two must already be standing in place, their earlier moves spent getting there. You read where the enemy will clump next turn and set the shape there a turn early. Get it right and a wave disappears in one action. Get it wrong and two mages spent a turn walking into a formation that hit nothing &mdash; not bad luck, a misread you can trace on the board.</p>
-<p>The next update adds the full Undead Rush chapter to the demo. There is more in it, but the rest is better played than previewed &mdash; that devlog comes with the build.</p>
+<p>The next update adds the full Undead Rush chapter to the demo. There is more in it, but the rest is better played than previewed &mdash; that devlog comes once the build is out.</p>
 ```
