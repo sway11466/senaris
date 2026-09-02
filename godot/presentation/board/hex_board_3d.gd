@@ -78,6 +78,8 @@ var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を�
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
+var _preview_unit := -1           # 移動プレビューで歩かせた駒（見た目だけ移動先に居る）
+var _preview_from := INVALID_HEX  # その駒の盤上の実位置（キャンセルで戻す先）
 var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
 var _choosing_formation := false  # 陣形スキルの着弾中心クリック待ち
 var _formation_active := {}     # 発動中の陣形 option（着弾待ち）
@@ -168,6 +170,8 @@ func _reset_interaction() -> void:
 	_locked = false
 	_frozen = false
 	_pending_to = INVALID_HEX
+	_preview_unit = -1
+	_preview_from = INVALID_HEX
 	_choosing_target = false
 	_clear_formation()
 	_impact_renderer.reset()
@@ -459,6 +463,7 @@ func _on_click(hex: Vector2i) -> void:
 func _open_command_menu(dest: Vector2i) -> void:
 	_pending_to = dest
 	_menu_base = INVALID_HEX
+	_preview_move(dest)
 	var can_attack := not controller.attack_targets_from(_selected_id, dest).is_empty()
 	var sel := state.unit_by_id(_selected_id)
 	var base := state.base_at(dest)
@@ -611,6 +616,7 @@ func _after_menu_closed() -> void:
 	if not _menu_handled:
 		_pending_to = INVALID_HEX
 		_unload_to = INVALID_HEX
+		_revert_preview()
 		_sync_overlay()
 
 ## 保留中の移動を確定（自マスのままなら移動しない）。
@@ -619,6 +625,34 @@ func _commit_pending_move() -> void:
 	if sel != null and _pending_to != INVALID_HEX and _pending_to != sel.pos:
 		controller.execute(MoveCommand.new(_selected_id, _pending_to))
 	_pending_to = INVALID_HEX
+
+## 移動先をクリックした時点で駒を歩かせる（見た目だけ。盤の状態は未確定）。
+## 駒が動いて見えないと「移動が起きていない」と読まれる → doc/gdd/uiux.md 移動の見せ方
+func _preview_move(dest: Vector2i) -> void:
+	var sel := state.unit_by_id(_selected_id)
+	if sel == null or dest == sel.pos:
+		return
+	var path := state.path_to(_selected_id, dest)
+	if path.size() < 2:
+		return
+	_preview_unit = _selected_id
+	_preview_from = sel.pos
+	_animate_move(_selected_id, path)
+
+## プレビューで歩かせた駒を実位置へ瞬時に戻す（取り消しに演出は要らない）。
+func _revert_preview() -> void:
+	if _preview_unit == -1:
+		return
+	var uid := _preview_unit
+	var from := _preview_from
+	_preview_unit = -1
+	_preview_from = INVALID_HEX
+	_kill_move_tween()
+	var node: Node3D = _unit_renderer.get_unit_node(uid)
+	if node == null:
+		_sync()
+		return
+	node.position = _hex_world(from)
 
 ## 「戻る」。メニュー→選択→出撃モードの順に1段ずつ解除。
 func _on_cancel(from_esc: bool) -> void:
@@ -767,6 +801,7 @@ func _select(id: int) -> void:
 	_clear_formation()
 	_reachable.clear()
 	_targets.clear()
+	_revert_preview()
 	if state.can_still_move(id):
 		for h in controller.reachable_for(id):
 			_reachable[h] = true
@@ -785,6 +820,7 @@ func _deselect() -> void:
 	_targets.clear()
 	if _menu != null and _menu.visible:
 		_menu.hide()
+	_revert_preview()
 	if had != -1:
 		selection_changed.emit(-1)
 	_sync_overlay()
@@ -804,6 +840,7 @@ func _inspect_unit(id: int) -> void:
 	_clear_formation()
 	_reachable.clear()
 	_targets.clear()
+	_revert_preview()
 	_inspected_id = id
 	_inspect_reach.clear()
 	for h in controller.reachable_for(id):
@@ -812,11 +849,17 @@ func _inspect_unit(id: int) -> void:
 	_sync_overlay()
 
 func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i, path: Array[Vector2i]) -> void:
+	# プレビューで既に歩かせた駒の確定＝歩き直さない（歩き途中なら _sync が移動先へスナップする）。
+	var previewed := unit_id == _preview_unit
+	_preview_unit = -1
+	_preview_from = INVALID_HEX
 	_sync()  # 盤は真実（＝移動先）で作り直す
 	# 乗車には専用のシグナルが無い。輸送のマスへ入った駒は盤から外れる＝作り直した後に
 	# ノードが残っていなければ乗ったと分かる（降車は _on_unit_unloaded 側で鳴らす）。
 	if not _unit_renderer.has_unit_node(unit_id):
 		SfxPlayer.play_event("map_board")
+	if previewed:
+		return
 	_animate_move(unit_id, path)
 
 ## 移動した駒を経路の起点へ戻し、マスを1つずつ辿らせる（見た目だけ後追い）。
