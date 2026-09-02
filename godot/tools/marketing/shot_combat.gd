@@ -107,7 +107,7 @@ func _ready() -> void:
 	info.offset_left = 800.0
 	info.offset_top = 96.0
 	info.offset_right = 1264.0
-	info.offset_bottom = 628.0
+	info.offset_bottom = 704.0
 	front.add_child(info)
 	info.bind(state, skins)
 	info.bind_terrain_skins(terrain_skins)

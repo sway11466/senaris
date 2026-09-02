@@ -54,6 +54,8 @@ var _pager: HBoxContainer  # 下端の ◀ 2/3 ▶。1ページのときも場�
 var _prev: Button
 var _next: Button
 var _page_label: Label
+var _event_row: Label   # 残りターン（増援の予告）。ページャーの直上に据え置く全幅1行。無ければ隠す
+var _event_text := ""   # いま出す文言（空＝出さない）。レポートで隠している間も覚えておく
 var _items: Array = []  # いま表示している中身の全行（ページ割りの元）。→ _render
 var _page := 0          # 何ページ目を出しているか（0起点）
 var _pages: Array = []  # _items をページに割った結果。ページ数の表示にも使う
@@ -137,6 +139,12 @@ func _ready() -> void:
 	_content.add_child(_rows)
 	# 器の寸法が決まる／変わったら割り直す。板は固定寸法だが、最初の1回はここで確定する。
 	_content.resized.connect(_render)
+	# 残りターン（増援の予告）。ページには乗せない＝どのページでも同じ場所に居る。出ている間は
+	# 器がそのぶん狭くなり、ページ割りは器の resized で組み直される。仕様 → doc/gdd/uiux.md 残りターン
+	_event_row = Label.new()
+	_event_row.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_event_row.hide()
+	box.add_child(_event_row)
 	_build_pager(box)
 	_report = CombatReportView.new()
 	_report.hide()
@@ -350,6 +358,7 @@ func show_unit(unit_id: int) -> void:
 	_tabs_row.show()
 	_content.show()
 	_pager.show()
+	_sync_event_row()
 	_rebuild_rows(u, _tab)
 
 ## タブを押した＝表示中の駒をそのタブで描き直す。
@@ -378,6 +387,19 @@ func clear() -> void:
 		tr("ui.info.help_zoom"),
 		tr("ui.info.help_fit"),
 	]))
+
+## 残りターン（増援の予告）を流し込む。event＝BattleState.next_event() の戻り（{ label, turns }）。
+## 文言は label（翻訳キー）の訳文が全部を持ち、{n} に残りターン数が入る＝言語ごとに語順を変えられる。
+## 空なら行ごと隠れ、中身の器がそのぶん広がる。仕様 → doc/gdd/uiux.md 残りターン
+func set_event(event: Dictionary) -> void:
+	var key := String(event.get("label", ""))
+	_event_text = "" if key.is_empty() else tr(key).format({ "n": int(event.get("turns", 0)) })
+	_event_row.text = _event_text
+	_sync_event_row()
+
+## 行を出すか＝文言があり、かつ板の中身（ページャー）が出ているとき。レポート中は隠す。
+func _sync_event_row() -> void:
+	_event_row.visible = not _event_text.is_empty() and _pager.visible
 
 ## 一時的な通知（セーブ完了など）。数秒だけ出して未選択表示へ戻す。
 ## 上端の情報バーを廃した代わりの置き場（doc/gdd/uiux.md「ターン表示」）。
@@ -421,6 +443,7 @@ func _enter_text_view() -> void:
 	_tabs_row.hide()
 	_content.show()
 	_pager.show()
+	_sync_event_row()
 	_items = []
 
 ## グループの切れ目。線の上に余白を1行取り、下は空けない＝線をその下のグループの見出し罫として
@@ -611,7 +634,7 @@ func _build_ability(u: Unit) -> void:
 	# 仕様 → doc/gdd/uiux.md ユニット情報パネル
 	# 特性と同じ「項目名／値」の1行に名前を出し、説明は名前の頭に揃えて字下げした全幅行で続ける。
 	# 区切り線や見出しを置かないのは、置くと1ページ目に入らず、ページ2の存在に気づかれないため
-	# （板の高さ 368px に対し、兵数〜特性で 239px・見出し付きの節は 161px＝2026-09 実測）。
+	# （2026-09 実測＝器の高さが 368px だった時点で、兵数〜特性で 239px・見出し付きの節は 161px）。
 	for rid in Formation.unit_skills_of(u):
 		_add_row(tr("ui.info.skill"), tr("recipe." + rid + ".name"))
 		_add_indent_row(tr("recipe." + rid + ".desc"), LABEL_W + ROW_LABEL_GAP)
@@ -681,6 +704,7 @@ func show_combat(detail: Dictionary) -> void:
 	_tabs_row.hide()
 	_content.hide()
 	_pager.hide()
+	_event_row.hide()
 	_skill_report.hide()
 	_report.show()
 	_report.show_report(detail)
@@ -696,6 +720,7 @@ func show_skill_report(result: Dictionary) -> void:
 	_tabs_row.hide()
 	_content.hide()
 	_pager.hide()
+	_event_row.hide()
 	_report.hide()
 	_skill_report.show()
 	_skill_report.show_result(result)

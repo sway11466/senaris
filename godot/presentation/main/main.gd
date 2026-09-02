@@ -12,7 +12,6 @@ var _ai_presets := {}  # 特性表（data/ai/ai.json）。特性id -> パラメ�
 var _controller: MatchController = null
 var _hud: Hud = null
 var _turn_plate: TurnPlate = null  # ターン板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
-var _event_plate: EventPlate = null  # 残りターン板（右ボックスの直下）。仕様 → doc/gdd/uiux.md
 var _turn_banner: TurnBanner = null  # ターンの切り替わりを見せる横帯（永続・画面中央）。同上
 var _formation_cutin: FormationCutin = null  # 陣形スキルの1枚絵カットイン（永続）。仕様 → doc/gdd/formations.md
 const TURN_BANNER_GAP := 0.3  # 敵ターンでバナーが引けてから最初の行動までの間（秒）
@@ -282,13 +281,12 @@ func _shake_prop(target: Object, prop: String) -> void:
 func _update_turn_plate(team: int, turn_number: int) -> void:
 	var limit := _controller.state.turn_limit if _controller != null else 0
 	_turn_plate.set_turn(team, turn_number, limit)
-	_update_event_plate()
+	_update_event()
 
-## 残りターン板（増援の予告）。未発生のイベントが無ければ隠れる。仕様 → doc/gdd/uiux.md
-func _update_event_plate() -> void:
-	if _event_plate == null:
-		return
-	_event_plate.set_event(_controller.state.next_event() if _controller != null else {})
+## 残りターン（増援の予告）を情報パネルへ流し込む。未発生のイベントが無ければ行が隠れる。
+## 仕様 → doc/gdd/uiux.md 残りターン
+func _update_event() -> void:
+	$Front/InfoPanel.set_event(_controller.state.next_event() if _controller != null else {})
 
 ## 冒険譚マニフェストの emblem（代表ユニットの skin_id）。ターン板とバナーが使う。
 ## セレクトを経ないステージ（デバッグ直起動・起動時の下敷き）は指定が無い＝空辞書。
@@ -645,9 +643,6 @@ func _install_turn_plate() -> void:
 	_turn_plate = TurnPlate.new()
 	_turn_plate.name = "TurnPlate"
 	add_child(_turn_plate)
-	_event_plate = EventPlate.new()
-	_event_plate.name = "EventPlate"
-	add_child(_event_plate)
 
 # --- タイトルロゴ（盤の右上・常設）。仕様 → doc/gdd/uiux.md ---
 ## 情報ボックスの上に空く帯へ、右端をボックスの右端にそろえて置く。盤にもボックスにも掛からない。
