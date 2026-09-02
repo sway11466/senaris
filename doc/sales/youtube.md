@@ -26,6 +26,7 @@
 - 先行作の固有名詞は出さない。公開コメントは宣伝文と同じ扱いにする（理由は [monetization.md](monetization.md) の IP・権利）。ジャンルと年代で言い換える。
 - 期日を約束するのは、すでに手が動いているものだけ。着手していないものは時期を紐付けない。守れなかったときに失うものが、書いて得るものより大きい。
 - 未公開の devlog へリンクしない。公開してから投稿する。
+- 外部リンクは貼らない。実績のないアカウントがリンク付きで投稿すると自動で弾かれ、保留にもならず消える。記事名を本文に書いて、動画の概要欄や itch のページから辿らせる。
 - コメントは折りたたまれる。1行目に名乗りと、一番具体的な情報を置く。
 - 優劣を主張しない。まだ入っていないと述べるにとどめる。独自性を主張すると先例を挙げて反論される。
 
@@ -37,7 +38,7 @@
 
 ### 2026-08-31 Richard Yorke「This NEW Fantasy Wargame Has NO DICE?! | Senaris Demo」
 
-投稿: https://www.youtube.com/watch?v=lEoUeTVAuCs （2026-09-02・`@craftkobo-w3i`）
+投稿: https://www.youtube.com/watch?v=lEoUeTVAuCs （2026-09-02・`@game.craftkobo`）
 
 動画は https://www.youtube.com/watch?v=lEoUeTVAuCs 、14分04秒。チャンネルは Richard Yorke（`@RichardYorke1945`）で、登録者3,730人。RTS・ウォーゲーム・戦略ゲームの実況とレビューを1日1〜3本出している。
 
@@ -52,8 +53,8 @@
 ```
 Dev here — thanks for playing! The movement is confusing right now;
 a fix ships this weekend. The mechanics that give the battles their
-depth are still in development. Devlog #2 covers what's next:
-https://craftkobo.itch.io/senaris/devlog/1649777/three-shots-or-one-blast
+depth are still in development — devlog #2 on the itch page
+("Three shots or one blast") covers what's next.
 ```
 
 ---
