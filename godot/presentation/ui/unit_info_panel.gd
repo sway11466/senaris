@@ -277,6 +277,8 @@ func _item_height(item: Dictionary) -> float:
 	if String(item.get("t", "full")) == "row":
 		w -= LABEL_W + ROW_LABEL_GAP  # 項目名の欄は短い前提＝値の欄の折り返しだけ数える
 		text = String(item.get("value", ""))
+	else:
+		w -= float(item.get("indent", 0.0))  # 字下げした行は左が空くぶん狭く折り返す
 	if text.is_empty() or w <= 0.0:
 		return line
 	var measured := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, w, fs,
@@ -290,7 +292,13 @@ func _make_row(item: Dictionary) -> Control:
 		var full := Label.new()
 		full.text = String(item.get("text", ""))
 		full.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		return full
+		var indent := float(item.get("indent", 0.0))
+		if indent <= 0.0:
+			return full
+		var box := MarginContainer.new()
+		box.add_theme_constant_override("margin_left", int(indent))
+		box.add_child(full)
+		return box
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", ROW_LABEL_GAP)
 	var l := Label.new()
@@ -562,6 +570,11 @@ func _add_full_row(text: String) -> void:
 func _add_head_row(text: String) -> void:
 	_items.append({"t": "full", "text": text, "keep": true})
 
+## 左を indent px 空けた全幅の行（スキルの説明など、直前の行に従属する文）。折り返しの幅も
+## そのぶん狭く数える＝ページ割りがずれない。
+func _add_indent_row(text: String, indent: float) -> void:
+	_items.append({"t": "full", "text": text, "keep": false, "indent": indent})
+
 ## 全幅1行の行データ。区切り線とその上の空行には、ページの末尾に取り残さない印（keep）を
 ## 付ける＝入らなければ次のページへ送られる。見出しは字面では見分けない（言語ごとに飾りが
 ## 変わり、日本語の【…】だけを見ると英語で印が付かなくなる）＝_add_head_row で明示する。
@@ -596,14 +609,12 @@ func _build_ability(u: Unit) -> void:
 	# 行動済み）には依らない＝能力タブの「駒そのものの性能」に合わせる。敵の駒でも出す（ゴーストを
 	# 選んでドレッドタッチが何をするか読める）。名前と説明は規約キー（names.csv）で引く。
 	# 仕様 → doc/gdd/uiux.md ユニット情報パネル
-	var skills := Formation.unit_skills_of(u)
-	if skills.is_empty():
-		return
-	_add_separator()
-	_add_head_row(tr("ui.info.skills_head"))
-	for rid in skills:
-		_add_head_row(tr("recipe." + rid + ".name"))  # 名前を説明と離してページ末尾に残さない
-		_add_full_row(tr("recipe." + rid + ".desc"))
+	# 特性と同じ「項目名／値」の1行に名前を出し、説明は名前の頭に揃えて字下げした全幅行で続ける。
+	# 区切り線や見出しを置かないのは、置くと1ページ目に入らず、ページ2の存在に気づかれないため
+	# （板の高さ 368px に対し、兵数〜特性で 239px・見出し付きの節は 161px＝2026-09 実測）。
+	for rid in Formation.unit_skills_of(u):
+		_add_row(tr("ui.info.skill"), tr("recipe." + rid + ".name"))
+		_add_indent_row(tr("recipe." + rid + ".desc"), LABEL_W + ROW_LABEL_GAP)
 
 ## 状態＝このターン何ができるか＋いま効いているバフ・デバフ。
 ## 包囲は地形ではなく「隣の敵に囲まれて弱っている」＝デバフなのでここに置く。
