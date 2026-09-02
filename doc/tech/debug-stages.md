@@ -20,6 +20,7 @@
 | store3 | `debug-photo/store3.json` | 紹介画像の3枚目（同じ盤。魔法兵3体を相互隣接の三角に置き、トリニティノヴァを撃てる形にする） |
 | store4 | `debug-photo/store4.json` | 紹介画像の4枚目（会話パート。チュートリアル1・第4話をそのまま移植＝盤も会話も本物） |
 | devlog2-1 | `debug-photo/devlog2-1.json` | devlog 2本目の画（墓地の関門にバリケード＋魔法兵の三角＋アンデッドの群れ。`shot_screen --formation trinity_nova` で連写） |
+| devlog2-2 | `debug-photo/devlog2-2.json` | devlog 2本目のマップの画（t2.st3 の実盤面コピー。関門をバリケードで塞ぎ、アンデッドの群れが詰まり、脇からゴーストが回り込む中盤の配置） |
 
 ## debug-combat（戦闘シーンの見た目確認）
 

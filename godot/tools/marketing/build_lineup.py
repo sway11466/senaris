@@ -57,7 +57,7 @@ def load_standee(skin_id: str, lineups: dict[str, str]) -> Image.Image:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--left", required=True, help="左グループ（右向き＝プレイヤー陣営）のskin_idをカンマ区切り")
-    ap.add_argument("--right", required=True, help="右グループ（左向き＝敵陣営）のskin_idをカンマ区切り")
+    ap.add_argument("--right", default="", help="右グループ（左向き＝敵陣営）のskin_idをカンマ区切り。省略で左グループのみ")
     ap.add_argument("-o", "--out", required=True, help="出力PNG（リポジトリ直下からの相対 or 絶対）")
     ap.add_argument("--step", type=int, default=380)
     ap.add_argument("--gap", type=int, default=300)
@@ -66,7 +66,7 @@ def main() -> None:
 
     lineups = load_lineups()
     left = [load_standee(s, lineups) for s in args.left.split(",")]
-    right = [load_standee(s, lineups) for s in args.right.split(",")]
+    right = [load_standee(s, lineups) for s in args.right.split(",") if s]
     all_imgs = left + right
 
     canvas_h = max(im.height for im in all_imgs)
