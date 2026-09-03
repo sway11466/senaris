@@ -36,6 +36,12 @@ func play(detail: Dictionary) -> void:
 	var def_after := int(t["troops_after"])
 	var atk_after := int(a["troops_after"])
 
+	# 決着のとどめ（勝ちが確定した回＝main が arm_finisher 済み）。スローを掛けるのは
+	# 敵側（team1）を消し飛ばす一撃だけ＝攻めなら1撃目、反撃で決まったなら反撃側。
+	# 仕様 → doc/gdd/uiux.md 決着の合図
+	var st1 := FINISH_STRETCH if _finisher and int(t["team"]) == 1 and def_after == 0 else 1.0
+	var st2 := FINISH_STRETCH if _finisher and counter and int(a["team"]) == 1 and atk_after == 0 else 1.0
+
 	# ため：まず隊列を見せてから斬りかかる（突入直後に即着弾しない）。
 	# 一撃は放ってから着弾するまで時間がかかる（飛翔＋発数ぶんの時差）。この遅れを後続にも
 	# 足して、「攻撃側が着弾 → 反撃 → 幕引き」の順番が入れ替わらないようにする。
@@ -43,15 +49,15 @@ func play(detail: Dictionary) -> void:
 	_tween.tween_interval(LEAD_IN)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
-			_strike_side(def_side, def_dmg, def_after, def_comb, atk_comb, gen))
+			_strike_side(def_side, def_dmg, def_after, def_comb, atk_comb, gen, st1))
 	if counter:
-		_tween.tween_interval(COUNTER_GAP + _strike_time(atk_comb, int(a["troops_before"])))
+		_tween.tween_interval(COUNTER_GAP + _strike_time(atk_comb, int(a["troops_before"])) * st1)
 		_tween.tween_callback(func() -> void:
 			if gen == _gen:
-				_strike_side(atk_side, atk_dmg, atk_after, atk_comb, def_comb, gen))
-		_tween.tween_interval(0.7 + _strike_time(def_comb, def_after))
+				_strike_side(atk_side, atk_dmg, atk_after, atk_comb, def_comb, gen, st2))
+		_tween.tween_interval(0.7 + _strike_time(def_comb, def_after) * st2)
 	else:
-		_tween.tween_interval(0.7 + _strike_time(atk_comb, int(a["troops_before"])))
+		_tween.tween_interval(0.7 + _strike_time(atk_comb, int(a["troops_before"])) * st1)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
 			_dismiss())
@@ -60,7 +66,9 @@ func play(detail: Dictionary) -> void:
 ## エフェクトは殴った側の兵量ぶん出し、被弾側の隊列スロットへ配る（1発が1体に当たって見える）。
 ## 殴った側のほうが多いときはスロットを先頭から巡回する＝誰も居ない場所を斬らない。
 ## シェイク・フラッシュ・損害数・兵量バーは最後の1発が届いた時点に揃える。
-func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dictionary, gen: int) -> void:
+## stretch＝尺に掛ける倍率。1.0 より大きい＝決着のとどめ（スロー再生＋被弾側へ寄る）。
+## 着弾の瞬間の反応（シェイク・フラッシュ・損害数）は等速のまま＝飛翔と時差だけが伸びる。
+func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dictionary, gen: int, stretch := 1.0) -> void:
 	var eff := _effect_of(by)
 	# 命中音。1発ずつではなく一撃につき鳴らす＝8体並ぶと8連射になって潰れる。
 	# 近接は1音（ここだけ）。遠距離は発射をここで鳴らし、着弾は最後の1発が届く時点に回す。
@@ -75,15 +83,18 @@ func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dict
 	var shots := clampi(int(_shown.get(_other_side(side), 1)), 1, POS.size())
 	var targets := _troops_of(comb)
 	var fly := eff != null and eff.is_projectile()
+	if stretch > 1.0:
+		# とどめ＝一斉射の間だけ、窓の中身を被弾側へ寄せる（寄り切りは最後の1発の着弾）。
+		_start_finish_zoom(side, _strike_time(by, shots) * stretch)
 	for i in shots:
 		var to := _slot_pos(side, POS[i % targets])
-		var delay := float(i) * STAGGER
+		var delay := float(i) * STAGGER * stretch
 		if fly:
-			_spawn_fly(_slot_pos(_other_side(side), POS[i]), to, eff, delay, gen)
+			_spawn_fly(_slot_pos(_other_side(side), POS[i]), to, eff, delay, gen, stretch)
 		else:
-			_spawn_burst(to, side == "L", eff, delay, gen)
+			_spawn_burst(to, side == "L", eff, delay, gen, stretch)
 	var tw := create_tween()
-	tw.tween_interval(_strike_time(by, shots))
+	tw.tween_interval(_strike_time(by, shots) * stretch)
 	tw.tween_callback(func() -> void:
 		if gen != _gen:
 			return  # スキップで閉じた後に飛来物が届いても何もしない

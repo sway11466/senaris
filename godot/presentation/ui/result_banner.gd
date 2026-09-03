@@ -38,6 +38,7 @@ const GOAL_CHECK := "✓"                    ## 達成した基準の印
 const SCRIM_A := 0.55                      ## 盤を沈める暗幕の濃さ
 const SHEET_IN := 0.22                     ## 紙が浮かび上がる
 const STAMP_WAIT := 0.30                   ## 紙が出てから印が落ちるまでの溜め
+const STAMP_WAIT_FLASH := 0.55             ## 白フラッシュから受ける回の溜め＝白が引き切るあたりで印が落ちる
 const STAMP_IN := 0.20                     ## 印が落ちる（叩きつけ）
 
 var _root: Control        # 全画面の入力キャッチ（モーダル）
@@ -103,7 +104,10 @@ func _build() -> void:
 ## 基準の文言が空の行（撃破など）は基準の欄を空けたまま並べる。
 ## "sub"／"sub_ok" はランク基準ではない添え行（所要時間の「最速」）。同じ字下げとチェックで並ぶ。
 ## note＝明細の下に置く脚注（空＝出さない）。掛かる先は見出しに付けた印で示す＝呼び出し側の管轄。
-func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "", note := "") -> void:
+## from_flash＝決着の白フラッシュから受ける回（勝利）。白が画面を覆っている間に呼ばれる前提で、
+## 暗幕と紙をフェードさせず最初から据える＝白が引くと票が既に出ている（doc/gdd/uiux.md 決着の合図）。
+## 溜めは白の引きに合わせて長めに取る＝白が引き切るあたりで印が落ちる。
+func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "", note := "", from_flash := false) -> void:
 	_build()
 	_fill(title, rows, note)
 	_can_close = false
@@ -111,9 +115,9 @@ func play(title: String, stamp_text: String, win: bool, rows: Array, caption := 
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	# 紙が浮かぶ → 溜め → 印が落ちる（落ちた瞬間に stamped＝スティンガーと同時）
-	_scrim.modulate.a = 0.0
-	_sheet.modulate.a = 0.0
-	_sheet.scale = Vector2(0.97, 0.97)
+	_scrim.modulate.a = 1.0 if from_flash else 0.0
+	_sheet.modulate.a = 1.0 if from_flash else 0.0
+	_sheet.scale = Vector2.ONE if from_flash else Vector2(0.97, 0.97)
 	_sheet.pivot_offset = SHEET / 2.0
 	# 字を太らせる／下げるのはランクの1文字のときだけ。VICTORY のような語に効かせると
 	# 字が丸枠に触る（実測）。語は元の比率のまま押す。
@@ -134,12 +138,13 @@ func play(title: String, stamp_text: String, win: bool, rows: Array, caption := 
 	_stamp.modulate.a = 0.0
 	_sheet.add_child(_stamp)
 	_tween = create_tween()
-	_tween.set_parallel(true)
-	_tween.tween_property(_scrim, "modulate:a", 1.0, SHEET_IN)
-	_tween.tween_property(_sheet, "modulate:a", 1.0, SHEET_IN)
-	_tween.tween_property(_sheet, "scale", Vector2.ONE, SHEET_IN)
-	_tween.set_parallel(false)
-	_tween.tween_interval(STAMP_WAIT)
+	if not from_flash:
+		_tween.set_parallel(true)
+		_tween.tween_property(_scrim, "modulate:a", 1.0, SHEET_IN)
+		_tween.tween_property(_sheet, "modulate:a", 1.0, SHEET_IN)
+		_tween.tween_property(_sheet, "scale", Vector2.ONE, SHEET_IN)
+		_tween.set_parallel(false)
+	_tween.tween_interval(STAMP_WAIT_FLASH if from_flash else STAMP_WAIT)
 	_tween.set_parallel(true)
 	_tween.tween_property(_stamp, "modulate:a", 1.0, STAMP_IN * 0.5)
 	_tween.tween_property(_stamp, "scale", Vector2.ONE, STAMP_IN)\

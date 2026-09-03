@@ -65,6 +65,11 @@ const SFX_DEFLECT := "cmb_hit_none"
 ## 飛ぶ距離は窓の幅の約0.7倍あるので、0.2 だと 3500px/秒＝12フレームしか映らず「飛んだ」と読めない。
 ## 重ねる型の 0.30 よりやや長いあたりが下限。
 const FLIGHT := 0.45
+## 決着のとどめ（勝ちが確定した回）＝一斉射の尺に掛けるスロー倍率と、窓の中身を激突点へ
+## 寄せる倍率。仕様 → doc/gdd/uiux.md 決着の合図。値は実機で詰める前提の初期値。
+const FINISH_STRETCH := 2.2
+const FINISH_ZOOM := 1.16
+const FINISH_ZOOM_Y := 0.55  # 寄りの中心の高さ（窓内寸の高さに対する比）＝隊列の胴のあたり
 const BURST := 0.30       # 重ねるエフェクトの拡大フェード時間（秒）
 const STAGGER := 0.025    # エフェクト1発ごとの時差（秒）。同時に出すと1枚の大きな絵に見えて斉射・乱戦にならない
 const FIG_H := 0.41   # 立ち絵の高さ（窓内寸の高さに対する比）。描くのは立ち絵PNGの正方キャンバス全体で、
@@ -118,6 +123,11 @@ var _tween: Tween
 var _anim: Tween   # 幕開け・幕引きのアニメ（進行 _tween とは別。連戦で前のぶんが残らないよう都度 kill）
 var _closing := false  # 幕引きのフェード中。この間はもう進行しない（クリックで飛ばせる）
 var _gen := 0  # play 世代（連続戦闘で古い自動クローズを無効化）
+## 決着のとどめ（勝ちが確定した回）。main が play の直前に arm_finisher で立てる。
+## 立っている間は幕引きのフェードをしない＝白フラッシュ（FinishFlash）が幕を引き、
+## 窓は白の下で close_under_flash が畳む。仕様 → doc/gdd/uiux.md 決着の合図
+var _finisher := false
+var _finisher_done := false  # とどめを見せ終えて白フラッシュ待ち＝以後の入力は無視
 
 func _ready() -> void:
 	_build()
@@ -286,11 +296,27 @@ func bind_terrain_skins(terrain_skins: Dictionary) -> void:
 func bind_state(state: BattleState) -> void:
 	_state = state
 
+## 決着のとどめとして次の play を演出する（勝ちが確定した回だけ main が呼ぶ）。
+## 何をスローにするかは継承側（CombatScene）が決める。舞台側は幕引きの形だけ変える。
+func arm_finisher() -> void:
+	_finisher = true
+
+## 白フラッシュが画面を覆っている間に窓を畳む（フェード無し・finished は出し直さない）。
+## とどめの回だけ main が呼ぶ＝幕引きの役は白が担っている。
+func close_under_flash() -> void:
+	_finisher = false
+	_finisher_done = false
+	_closing = false
+	_close_now(false)
+
 ## 舞台を開く。ground＝重ね絵を出す側の駒（戦闘は守り手／スキルは対象）、ground_side＝その駒を
 ## 置く側、other＝反対側の駒。地面は左右半分に分け、それぞれの駒のマスのスキンで敷く。
 ## 進行（誰がいつ動くか）は継承側の play() が持つ。ここは幕が上がるところまで。
 func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 	_gen += 1
+	_finisher_done = false
+	if _inner != null:
+		_inner.scale = Vector2.ONE  # 前の回のとどめの寄りを持ち越さない
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	if _anim != null and _anim.is_valid():
@@ -716,7 +742,8 @@ func _effect_node(eff: CombatEffect) -> Node2D:
 ## 重ねる型を1発：受ける側のスロットの上で拡大しながら消える。
 ## 絵は「右へ向かう一撃」で描く約束なので、左を殴るとき（＝放つ側が右）だけ水平反転する。
 ## 飛ぶ型と同じ向きの規約＝どちらも1枚で両陣営に使える。
-func _spawn_burst(at: Vector2, mirror: bool, eff: CombatEffect, delay: float, gen: int) -> void:
+## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
+func _spawn_burst(at: Vector2, mirror: bool, eff: CombatEffect, delay: float, gen: int, stretch := 1.0) -> void:
 	var tw := create_tween()
 	tw.tween_interval(delay)
 	tw.tween_callback(func() -> void:
@@ -731,13 +758,14 @@ func _spawn_burst(at: Vector2, mirror: bool, eff: CombatEffect, delay: float, ge
 		_fx.add_child(node)
 		var t2 := create_tween()
 		t2.set_parallel(true)
-		t2.tween_property(node, "scale", base * 1.6, BURST)
-		t2.tween_property(node, "modulate:a", 0.0, BURST)
+		t2.tween_property(node, "scale", base * 1.6, BURST * stretch)
+		t2.tween_property(node, "modulate:a", 0.0, BURST * stretch)
 		t2.chain().tween_callback(node.queue_free))
 
 ## 飛ぶ型を1発：放った側のスロットから受ける側のスロットへ飛び、着弾で消える。
 ## 絵は右向きに描く約束なので、左へ飛ぶときだけ水平反転する（1枚で両陣営に使える）。
-func _spawn_fly(from: Vector2, to: Vector2, eff: CombatEffect, delay: float, gen: int) -> void:
+## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
+func _spawn_fly(from: Vector2, to: Vector2, eff: CombatEffect, delay: float, gen: int, stretch := 1.0) -> void:
 	var tw := create_tween()
 	tw.tween_interval(delay)
 	tw.tween_callback(func() -> void:
@@ -749,8 +777,18 @@ func _spawn_fly(from: Vector2, to: Vector2, eff: CombatEffect, delay: float, gen
 			node.scale.x = -node.scale.x
 		_fx.add_child(node)
 		var t2 := create_tween()
-		t2.tween_property(node, "position", to, FLIGHT)
+		t2.tween_property(node, "position", to, FLIGHT * stretch)
 		t2.tween_callback(node.queue_free))
+
+## とどめの寄り＝窓の中身（_inner）を被弾側の隊列へ向けて少し拡大する。
+## 窓・縁取り・入力矩形は動かさない＝中の絵だけが寄る（カットインの入りと同じ考え方）。
+func _start_finish_zoom(side: String, dur: float) -> void:
+	var vp := _size()
+	var cx := vp.x * 0.28 if side == "L" else vp.x * 0.72  # 被弾側の隊列の中心あたり（損害数と同じ物差し）
+	_inner.pivot_offset = Vector2(cx, vp.y * FINISH_ZOOM_Y)
+	var tw := create_tween()
+	tw.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(_inner, "scale", Vector2.ONE * FINISH_ZOOM, dur)
 
 ## その側の上に浮かび上がって消える文字（損害数・補正量）。縁の色で意味を分ける。
 ## top は出だしの高さ（窓内寸に対する比）。複数行の補正量は隊列に被るので、呼ぶ側が上へ逃がす。
@@ -788,6 +826,8 @@ func _star_points(outer: float, inner: float) -> PackedVector2Array:
 	return pts
 
 func _on_root_input(e: InputEvent) -> void:
+	if _finisher_done:
+		return  # とどめを見せ終えて白フラッシュ待ち＝連打で窓を先に消さない
 	if e is InputEventMouseButton and e.pressed:
 		if _closing:
 			# 幕引きの最中のクリック＝余韻も飛ばす（連打で待たされない）
@@ -799,6 +839,8 @@ func _on_root_input(e: InputEvent) -> void:
 
 ## 幕引きを始める。演出はここで止まり、あとは薄れて消えるだけ。
 ## finished はフェードが終わってから出す＝盤は幕が引き切るまで動かない。
+## 決着のとどめ（_finisher）はフェードしない＝窓を出したまま finished を出し、
+## 白フラッシュが幕を引く（畳むのは main が呼ぶ close_under_flash）。スキップのクリックも同じ道。
 func _dismiss() -> void:
 	if not visible or _closing:
 		return  # 二重クローズ（クリック＋自動）で finished を重ねない
@@ -808,22 +850,30 @@ func _dismiss() -> void:
 		_tween.kill()
 	if _anim != null and _anim.is_valid():
 		_anim.kill()
+	if _finisher:
+		_finisher_done = true
+		finished.emit()
+		return
 	_anim = create_tween()
 	_anim.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	_anim.tween_property(_root, "modulate:a", 0.0, CLOSE_FADE)
 	_anim.tween_callback(_close_now)
 
 ## 実際に消す。フェード完了とスキップの両方から来るので、見た目の後始末はここに集約する。
-func _close_now() -> void:
+## announce=false は白フラッシュの下で畳むとき（close_under_flash）＝finished は既に出している。
+func _close_now(announce := true) -> void:
 	if not visible:
 		return
 	_closing = false
+	_finisher = false
 	_inner.position = Vector2.ZERO
+	_inner.scale = Vector2.ONE  # とどめの寄りを戻す
 	_root.modulate.a = 1.0
 	visible = false
 	if _screen != null:
 		_screen.undim(self)  # 暗転を明ける（窓が消えてから共通基盤のフェードで戻る）
-	finished.emit()
+	if announce:
+		finished.emit()
 
 func _clear(node: Node) -> void:
 	for c in node.get_children():

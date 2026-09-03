@@ -50,6 +50,10 @@ var _skill_scene: SkillScene = null  # ユニットスキルの演出（永続�
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
 var _victory_overlay := false  # 完走イラストを outro 会話に重ねて出した＝会話後に全画面で出し直さない印
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
+var _flash: FinishFlash = null  # 決着の白フラッシュ（永続・勝ちの回だけ）。仕様 → doc/gdd/uiux.md 決着の合図
+## 勝ちを確定させた一手の演出経路（"combat"＝戦闘シーン／"formation"＝盤の着弾／""＝どちらでもない
+## ＝占領など）。決着の合図をどの器で見せたかの印＝盤側のとどめ（カメラ寄せ）を重ねて出さない。
+var _finisher_route := ""
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
 var _rank_data := {}   # ステージ JSON の "rank"（評価ランクの閾値）。空＝ランクなし
 ## 所要時間（戦果票の「所要時間」→ doc/tech/gamesystem.md §所要時間）。
@@ -72,6 +76,10 @@ func _init() -> void:
 func _ready() -> void:
 	# 刻印はタイトル画面にも出すが、ログの1行目にも置く＝報告にログが添えられたとき版が分かる。
 	print("Senaris booted. build=%s" % BuildInfo.stamp())
+	# 音量と画面モードは設定から起こす。曲が鳴り出す（_install_bgm）より前に当てる。
+	for bus in SettingsStore.VOLUME_BUSES:
+		_apply_volume(String(bus), _settings_store.volume(String(bus)))
+	_apply_window_mode(_settings_store.window_mode())
 	_skins = SkinCatalog.load_standard()
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
@@ -100,6 +108,9 @@ func _ready() -> void:
 	_result = ResultBanner.new()  # 決着の戦果票（永続）。load_stage より前に用意
 	_result.name = "ResultBanner"
 	add_child(_result)
+	_flash = FinishFlash.new()  # 決着の白フラッシュ（永続）。勝ちの回に戦果票への幕として使う
+	_flash.name = "FinishFlash"
+	add_child(_flash)
 	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
@@ -174,9 +185,10 @@ func _install_state(state: BattleState, path: String) -> void:
 	$Front/InfoPanel.bind(state, _skins)
 	$Front/InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
 	$Front/InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先
+	_finisher_route = ""  # 前ステージの決着の印を持ち越さない
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($Front/InfoPanel.show_combat)
-	_controller.combat_resolved.connect(_combat_scene.play)  # 演出シーン（結果＝シーン／根拠＝右パネル）
+	_controller.combat_resolved.connect(_on_combat_resolved)  # 演出シーン（結果＝シーン／根拠＝右パネル）
 	_controller.combat_pace = _await_combat_view  # AIターンは演出の完了を待ってから次へ
 	_controller.move_pace = $HexBoard.await_move_animation  # 同上＝移動アニメも歩き切るまで待つ
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体をカメラに収めてから見せる
@@ -195,6 +207,21 @@ func _install_state(state: BattleState, path: String) -> void:
 	if state.current_team == 0:
 		_take_turn_snapshot()  # ステージの頭＝自ターン開始時点。ここでオートセーブも入る
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
+
+## 戦闘結果 → 演出シーンへ。この一撃で勝ちが確定していれば（domain は解決済み＝演出より先に
+## 分かる）、とどめの演出（スロー＋寄り＋白フラッシュへの繋ぎ）として見せる。
+## 仕様 → doc/gdd/uiux.md 決着の合図
+func _on_combat_resolved(detail: Dictionary) -> void:
+	if _win_decided():
+		_finisher_route = "combat"
+		_combat_scene.arm_finisher()
+	_combat_scene.play(detail)
+
+## この時点で勝ちが確定しているか。combat_resolved / formation_resolved は盤の状態が確定した後・
+## battle_finished より前に飛ぶ＝演出を組む前に決着を読める。
+func _win_decided() -> bool:
+	return _controller != null and _controller.state.is_over() \
+		and _controller.state.outcome() == BattleState.PLAYER_WIN
 
 ## AIターンのテンポ制御（controller.combat_pace）：演出が出ていれば閉じるまで待つ。
 ## 戦闘とユニットスキルは別のシーンだが同時には出ない（1手＝どちらか一方）。
@@ -245,6 +272,10 @@ func _on_formation_resolved(result: Dictionary) -> void:
 	# 発動と同時にスキルレポート（カットイン・着弾の間も右パネルに出ている）。盤側の選択解除
 	# （clear）が先に走る＝HexBoard.bind の接続がこのハンドラより先。仕様 → doc/tech/combat_scene.md
 	$Front/InfoPanel.show_skill_report(result)
+	# このスキルで勝ちが確定していれば、盤の着弾をとどめ（スロー＋カメラ寄せ）として見せる。
+	if _win_decided():
+		_finisher_route = "formation"
+		$HexBoard.arm_finisher_impact()
 	var recipe := String(result.get("recipe", ""))
 	if Formation.is_unit_skill(recipe):
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
@@ -346,6 +377,8 @@ func _on_battle_finished(outcome: int) -> void:
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
 	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
 	await _await_combat_view()
+	if outcome == BattleState.PLAYER_WIN and _finisher_route.is_empty():
+		await _play_board_finisher()  # 盤の上で決まった勝ち（本拠の占領など）＝寄せてから白へ
 	await _show_result(outcome, rank)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
@@ -363,10 +396,37 @@ func _on_battle_finished(outcome: int) -> void:
 		else:
 			_advance_or_select()  # 会話なし＝すぐ次へ（テンポ優先）
 
+# --- 決着の合図（勝ちが決まる瞬間）。仕様 → doc/gdd/uiux.md ---
+
+## 本拠へ寄ってから白フラッシュまでの一拍（秒）＝旗の変わった本拠と決着の光を見せる間。
+const CAPTURE_BEAT := 0.6
+
+## 盤の上で決まった勝ち（本拠の占領など＝とどめの一撃が無い）の決着の合図。
+## カメラを本拠へ寄せ、決着の光を置き、一拍見せてから白フラッシュへ渡す。
+## 占領した本拠が見つからない勝ち（デバッグの殲滅など）は寄せずに白へ直行する。
+func _play_board_finisher() -> void:
+	await $HexBoard.await_move_animation()  # 占領の駒が歩き切ってから（旗はもう変わっている）
+	var hex := _captured_enemy_hq()
+	if hex == Vector2i.MAX:
+		return
+	await $HexBoard.zoom_to_finisher(hex)
+	$HexBoard.flash_finisher_cell(hex)
+	if is_inside_tree():
+		await get_tree().create_timer(CAPTURE_BEAT).timeout
+
+## 自軍が奪った敵の本拠（hq が敵の陣営で、いま自軍所属）。無ければ Vector2i.MAX。
+func _captured_enemy_hq() -> Vector2i:
+	for b in _controller.state.bases():
+		if b.is_hq_of(1) and b.team == 0:
+			return b.hex
+	return Vector2i.MAX
+
 # --- 決着の戦果票（羊皮紙＋ゴム印）。presentation/ui/result_banner.gd ---
 
 ## 戦果票を出し、プレイヤーが閉じるまで待つ。印が落ちた瞬間に勝敗スティンガーを鳴らす
 ## （演出と音を揃える）。曲が未配置でも無音で進む＝演出だけは出る。
+## 勝利は白フラッシュを幕にする＝白が覆ってから戦闘の窓を畳んで票を敷き、白が引くと票が
+## 出ている（doc/gdd/uiux.md 決着の合図）。敗北は現行のまま暗幕から。
 func _show_result(outcome: int, rank: String) -> void:
 	if _result == null or _controller == null:
 		return
@@ -383,8 +443,19 @@ func _show_result(outcome: int, rank: String) -> void:
 	if stamp_text.is_empty():
 		stamp_text = "VICTORY" if win else "DEFEAT"
 	# 印の上の欄名はランクを押す回だけ（VICTORY / DEFEAT の上に「ランク」と刷ると嘘になる）。
-	_result.play(_stage_title(), stamp_text, win, _result_rows(win),
-		tr("ui.result.rank") if not rank.is_empty() else "", tr("ui.result.note_weapons"))
+	var caption := tr("ui.result.rank") if not rank.is_empty() else ""
+	if win:
+		# 白フラッシュ＝決着の光がそのまま票への幕になる。白が覆っている間に戦闘の窓を畳み
+		# （出ていなければ何もしない）、票を白の下に敷いてから白を引く。
+		await _flash.rise()
+		_combat_scene.close_under_flash()
+		_result.play(_stage_title(), stamp_text, win, _result_rows(win), caption,
+			tr("ui.result.note_weapons"), true)
+		_flash.fall()
+	else:
+		_result.play(_stage_title(), stamp_text, win, _result_rows(win), caption,
+			tr("ui.result.note_weapons"))
+	_finisher_route = ""
 	await _result.finished
 
 ## ステージ開始時の兵力を控える（戦果票の分母）。盤の現況ではなくステージ定義から導出する
@@ -871,13 +942,18 @@ func _install_select() -> void:
 ## 起動直後は酒場の扉が開いて店内へ入る動画を流す。この間は曲を鳴らさず、店から漏れるざわめき
 ## （title）だけをこもらせて流し、扉が開くのに合わせてこもりを解く＝音がひらける。
 ## 入り終わって（or スキップして）メニューが出たところで menu 曲へ渡す（_on_title_menu_shown）。
-## 設定画面（いまは言語だけ）。開き口はタイトルのメニューで、値の適用と保存はここが持つ。
+## 設定画面。開き口はタイトルのメニューと盤のシステムメニューの2つで、同じ1枚を重ねて出す。
+## 値の適用と保存はここ（main）が持つ。仕様 → doc/gdd/settings.md
 func _install_settings() -> void:
 	_settings = SettingsScreen.new()
 	_settings.name = "SettingsScreen"
 	_settings.locale_chosen.connect(_on_settings_locale_chosen)
+	_settings.volume_changed.connect(_apply_volume)
+	_settings.volume_settled.connect(_settings_store.set_volume)
+	_settings.window_mode_chosen.connect(_on_settings_window_mode_chosen)
 	_settings.closed.connect(_on_settings_closed)
 	add_child(_settings)
+	_hud.settings_requested.connect(_open_settings)
 
 ## マニュアル（仕様リファレンス）。開き口はタイトルのメニューだけで、盤の中からは開かない。
 ## 読むだけで何も変えないので、設定と違い main は値を受け取らない。
@@ -936,12 +1012,22 @@ func _on_title_new_game() -> void:
 ## 設定＝タイトルに重ねて開く。タイトルは畳まない（暗幕の下に残り、戻れば同じ画が出る）。
 ## ビルドの刻印だけは伏せる＝設定の戻るボタンと同じ左下の隅に出ているため（doc/tech/build.md）。
 func _on_title_settings() -> void:
-	_title.show_stamp(false)
-	_settings.open(_settings_store.locale())
+	_open_settings()
 
-## 設定を畳み終えた＝タイトルへ戻った。伏せていた刻印を出し直す。
+## 設定画面を重ねる（タイトルのメニュー・盤のシステムメニューの両方から）。いまの値を渡して
+## 選択中の印とつまみの位置に反映させる。タイトルの上に出すときは刻印を伏せる（左下で戻ると重なる）。
+func _open_settings() -> void:
+	if _title.visible:
+		_title.show_stamp(false)
+	var volumes := {}
+	for bus in SettingsStore.VOLUME_BUSES:
+		volumes[bus] = _settings_store.volume(String(bus))
+	_settings.open(_settings_store.locale(), volumes, _settings_store.window_mode())
+
+## 設定を畳み終えた。タイトルへ戻ったなら伏せていた刻印を出し直す（盤へ戻るなら何も無い）。
 func _on_settings_closed() -> void:
-	_title.show_stamp(true)
+	if _title.visible:
+		_title.show_stamp(true)
 
 ## マニュアル＝タイトルに重ねて開く。畳み方も刻印の扱いも設定と同じ（戻るが同じ左下の隅に出る）。
 func _on_title_manual() -> void:
@@ -968,6 +1054,36 @@ func _refresh_labels() -> void:
 	_select.refresh_labels()
 	_slot_panel.refresh_labels()
 	$Front/InfoPanel.refresh_labels()
+	_conversation.refresh_labels()
+
+## 設定の音量の系統 -> AudioServer のバス名（default_bus_layout.tres）。
+const VOLUME_BUS_NAMES := { "master": "Master", "music": BgmPlayer.BUS, "sfx": SfxPlayer.BUS }
+
+## 音量（0〜100）をバスに当てる。100＝0 dB（素材そのまま）、0＝ミュート。間は振幅に比例させる。
+## 起動時の復元と、設定画面でつまみが動くたび（引きずり中も）の両方がここを通る。
+func _apply_volume(bus: String, value: int) -> void:
+	var idx := AudioServer.get_bus_index(String(VOLUME_BUS_NAMES[bus]))
+	if idx < 0:
+		push_error("main: 音量のバスが無い: %s" % bus)
+		return
+	AudioServer.set_bus_mute(idx, value == 0)
+	if value > 0:
+		AudioServer.set_bus_volume_linear(idx, float(value) / float(SettingsStore.VOLUME_MAX))
+
+## 画面モードを選んだ＝その場で切り替えて保存する。
+func _on_settings_window_mode_chosen(mode: String) -> void:
+	_settings_store.set_window_mode(mode)
+	_apply_window_mode(mode)
+
+## 画面モードを窓に当てる。全画面は枠なしの全画面（排他ではない＝Alt+Tab で崩れない）。
+func _apply_window_mode(mode: String) -> void:
+	match mode:
+		"windowed":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		"fullscreen":
+			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		_:
+			push_error("main: 知らない画面モード: %s" % mode)
 
 ## おわる。決定音（ui_confirm＝実測0.69秒）を鳴らし切ってから落とす＝即 quit だと音が切れる。
 func _on_title_quit() -> void:

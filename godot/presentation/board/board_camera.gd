@@ -14,6 +14,10 @@ const FOCUS_MARGIN := 96.0           # 追従デッドゾーン＝可視域の�
 const FOCUS_PULL_IN := 40.0          # 追従時は安全域の少し内側まで入れる
 const SHAKE_PX := 7.0                # 着弾の揺れ幅（画面px）
 const SHAKE_STEP := 0.05             # 同・1振りの秒数
+## 決着のとどめの寄せ（仕様 → doc/gdd/uiux.md 決着の合図）。追従（focus_on）と違い距離も詰める。
+const FINISH_ZOOM_SEC := 0.45        # 寄せの所要秒数
+const FINISH_ZOOM_FACTOR := 0.55     # 距離に掛ける倍率（現在の画角から相対で寄る）
+const FINISH_MIN_DIST := 8.0         # 寄り過ぎない下限（1ヘックスで画面が埋まらない距離）
 const PAN_GESTURE_SPEED := 24.0      # パンジェスチャの感度
 const PAN_WHEEL_STEP := 50.0         # 2本指スクロール1ノッチのパン量(px)
 
@@ -152,6 +156,20 @@ func pan_target_to(dest: Vector3) -> void:
 	_tween = t
 	await t.finished
 
+## 決着のとどめの寄せ＝注視点を world_pos へ移しつつ距離も詰める。完了まで待てる。
+## プレイヤーの画角を奪う操作なので、使うのは決着した回だけ（以後の操作は無い）。
+func zoom_to_finish(world_pos: Vector3) -> void:
+	if _tween != null and _tween.is_valid():
+		_tween.kill()
+	var nd := clampf(dist * FINISH_ZOOM_FACTOR, FINISH_MIN_DIST, MAX_DIST)
+	var t := create_tween()
+	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	t.set_parallel(true)
+	t.tween_method(_set_target, target, Vector3(world_pos.x, 0.0, world_pos.z), FINISH_ZOOM_SEC)
+	t.tween_method(_set_dist, dist, nd, FINISH_ZOOM_SEC)
+	_tween = t
+	await t.finished
+
 ## 着弾の揺れ（盤ぶん）。frustum offset で揺らす＝注視点は動かさない。
 func shake(px: float = SHAKE_PX) -> void:
 	if camera == null:
@@ -169,6 +187,10 @@ func shake(px: float = SHAKE_PX) -> void:
 
 func _set_target(p: Vector3) -> void:
 	target = p
+	update_rig()
+
+func _set_dist(v: float) -> void:
+	dist = v
 	update_rig()
 
 func _set_shake(v: Vector2) -> void:

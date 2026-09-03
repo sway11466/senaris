@@ -604,13 +604,28 @@ func _on_formation_resolved(result: Dictionary) -> void:
 	if not _impact_renderer.is_impacting():
 		_sync()
 
-## 着弾を見せる（BoardImpactRenderer に委譲）。
+## 着弾を見せる（BoardImpactRenderer に委譲）。決着のとどめ（main が arm_finisher_impact 済み）は
+## 先にカメラを着弾の中心へ寄せてから、スローの着弾を見せる。仕様 → doc/gdd/uiux.md 決着の合図
 func play_formation_impact(result: Dictionary) -> void:
+	if _impact_renderer.finisher_armed() and result.has("center"):
+		await zoom_to_finisher(Vector2i(result["center"]))
 	await _impact_renderer.play(result, _locked)
 
 ## 着弾演出が進行中か（盤が撃たれる前の姿を保持している間）。決着の告知はこれが終わるまで待つ。
 func is_impacting() -> bool:
 	return _impact_renderer.is_impacting()
+
+## 次の着弾を決着のとどめ（スロー＋カメラ寄せ）として見せる。勝ちが確定した回だけ main が呼ぶ。
+func arm_finisher_impact() -> void:
+	_impact_renderer.set_finisher(true)
+
+## 決着のとどめの寄せ＝カメラを hex へ寄せる（注視点を移しつつ距離も詰める）。完了まで待てる。
+func zoom_to_finisher(hex: Vector2i) -> void:
+	await _board_cam.zoom_to_finish(_hex_world(hex))
+
+## 決着の光＝1マスだけ長めに光らせる（本拠占領のとどめ）。決着した後に main が呼ぶ。
+func flash_finisher_cell(hex: Vector2i) -> void:
+	_impact_renderer.flash_finisher_cell(hex)
 
 ## メニューが閉じた。id_pressed と popup_hide の発火順は環境差があるため、
 ## 判定を1フレーム遅らせ、項目選択（_on_menu_id）が先に処理されるようにする。
