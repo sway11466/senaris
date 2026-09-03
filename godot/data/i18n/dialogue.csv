@@ -362,7 +362,7 @@ t3.st5.outro.4,追いつくぞ。ここまで来て取り逃がすわけには�
 t3.st6.intro.1,この先に、大きな洞がある。奥から獣の匂いがする。,"There's a great hollow ahead. The smell of a beast comes from deep inside."
 t3.st6.intro.2,奥から地鳴りだ。……咆哮。あれは獣の声じゃない。,"The ground is rumbling below. …A roar. That is no ordinary beast."
 t3.st6.intro.3,あんなものを起こすつもりはなかった！ 宝だけのはずだったんだ！,"We never meant to wake that thing! It was supposed to be the treasure, nothing more!"
-t3.st6.intro.4,手負いね。逃げる先は水場でしょうね。,"They're wounded. They'll run for water."
+t3.st6.intro.4,誰かが逃げてきたわね。泉のほうへ走っている。,"Someone's running this way. They're heading for the springs."
 t3.st6.intro.5,洞窟には泉が三つ。休めるのは自分たちが押さえた泉だけです。,"Three springs in these caves. You can only rest at the ones you hold."
 t3.st6.intro.6,相手も同じ物を欲している。追うだけでは捕まらんぞ。,"They want the same thing we do. Chasing alone will not catch them."
 t3.st6.intro.7,部屋を回り込んで挟む。泉も渡すな。,"Circle through the chambers and pincer them. And do not give up a spring."
@@ -399,9 +399,9 @@ t3.st5.rogue.1,頭、山が深すぎまさあ。巣の入口なんぞ、どこ�
 t3.st5.rogue.2,鳥どもは巣から山を見下ろしている。探させればいい。,"The birdfolk look down on these mountains from their eyries. Let them do the searching."
 t3.st5.rogue.3,素直に案内しますかね。,"Think they'll show us willingly?"
 t3.st5.rogue.4,こっそり里に忍び込んで、ガキをさらう。親は言うことを聞くさ。,"We sneak into the village and grab the young ones. The parents will do as they're told."
-t3.st6.rogue.1,頭、傷が……。水場だ、水場まで戻らねえと。,"Boss, the wounds… we have to get back to the water. The water."
+t3.st6.rogue.1,あれは、いってえ……。,"What in the world was that…"
 t3.st6.rogue.2,泉を伝って抜ける。奥へは戻れん、あんなものが居座っていては。,"We go out by way of the springs. We cannot go back in, not with that thing sitting there."
-t3.st6.rogue.3,あれは、いってえ……。,"What in the world was that…"
+t3.st6.rogue.3,あんなものを起こすつもりはなかった！ 宝だけのはずだったんだ！,"We never meant to wake that thing! It was supposed to be the treasure, nothing more!"
 t3.st6.intro.8,掘り広げた跡がある。この洞、人の手が入っておるぞ。,"Someone has widened this. There are hands at work in this hollow."
 t3.st6.outro.7,森を荒らした者たちは、これで償いました。……でも、竜は別です。,"Those who despoiled the forest have paid. …But the dragon is another matter."
 t3.st7.intro.8,私の矢は空へ届きます。狙いは翼の付け根。,"My arrows reach the sky. I will aim for the wing root."
@@ -423,11 +423,8 @@ t3.st5.squad.1,崖のハーピー,Cliff Harpies
 t3.st5.squad.2,降りてきたグリフォン,Swooping Griffon
 t3.st5.squad.3,山道の魔獣,Beasts of the Pass
 t3.st5.squad.4,ローグ一味,Bandit Gang
-t3.st6.intro.9,奥の宝箱、魔力の流れが妙です。……あれ、息をしています。,"That chest deeper in — the flow of magic is wrong. …It is breathing."
-t3.st6.intro.10,触らないでおきましょ。開けたら飛びついてくるやつよ。,"Best leave it alone. Open that and it leaps at you."
 t3.st6.squad.1,ローグ本隊,Bandit Main Force
 t3.st6.squad.2,頭目,Ringleader
-t3.st6.squad.3,宝の間のミミック,Treasure Room Mimic
 t3.st6.squad.4,坑道のスコーピオン,Tunnel Scorpions
 t3.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
 t3.st7.intro.12,細くとも数が要る。君の火も、あの翼に届く。,"Thin or not, we need every shot. Your flame reaches those wings too."
