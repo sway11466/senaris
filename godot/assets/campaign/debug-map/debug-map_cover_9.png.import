@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdi0lss77pvib"
-path="res://.godot/imported/debug-map_cover_9.png-3cb73d316afe80557d852c3fcd7fe8fe.ctex"
+path="res://.godot/imported/debug-map_cover_9.png-0847510e6d58221a8f4dd0a0979f97b4.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/campaign/debug-map/debug-map_cover_9.png"
-dest_files=["res://.godot/imported/debug-map_cover_9.png-3cb73d316afe80557d852c3fcd7fe8fe.ctex"]
+dest_files=["res://.godot/imported/debug-map_cover_9.png-0847510e6d58221a8f4dd0a0979f97b4.ctex"]
 
 [params]
 

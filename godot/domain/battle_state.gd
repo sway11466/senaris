@@ -1451,11 +1451,7 @@ func has_reinforcement(team: int) -> bool:
 
 ## 拠点 b の控えに、帰属ルールで出撃できる駒が1体でもいるか（未確定、または所有者と同じ帰属先）。
 func _base_has_deployable_garrison(b: Base) -> bool:
-	for gu in b.garrison:
-		var u := gu as Unit
-		if u.is_unclaimed() or u.recruited_team == b.team:
-			return true
-	return false
+	return b.has_deployable_garrison()
 
 ## 拠点 b の周囲に、盤上へ出せる空きマスが1つでもあるか（＝盤上復帰の余地）。
 ## 盤上0の判定用なので味方輸送は考慮不要（盤上に味方が居ない＝味方輸送も盤上に無い）。

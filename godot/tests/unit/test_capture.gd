@@ -269,6 +269,28 @@ func test_cannot_enter_or_heal_where_rest_excludes_team() -> void:
 	assert_eq(g.troops, 3, "rest が自軍を含まない拠点では回復しない")
 	assert_true(s.can_deploy_garrison(base_hex, 0), "出撃拠点にはなる（rest は出撃を縛らない）")
 
+func test_base_deployable_by_owner_and_counts() -> void:
+	# 出撃メニューの絞り込みと盤上の「+N」（帰属ごと）が使う判定。→ doc/gdd/uiux.md
+	var b := Base.new(Hex.offset_to_axial(4, 4), 0)  # 自軍所有
+	var ally := Unit.new(10, 0, Vector2i.ZERO, 3)
+	var foe := Unit.new(11, 1, Vector2i.ZERO, 3)
+	var free := Unit.new(12, Base.NEUTRAL, Vector2i.ZERO, 3)
+	b.garrison.append(ally)
+	b.garrison.append(foe)
+	b.garrison.append(free)
+	assert_true(b.deployable_by_owner(ally), "自軍帰属は出せる")
+	assert_false(b.deployable_by_owner(foe), "敵帰属は閉じ込め＝出せない")
+	assert_true(b.deployable_by_owner(free), "未確定の中立は取った側が出せる")
+	assert_true(b.has_deployable_garrison())
+	assert_eq_deep(b.garrison_counts(), { 0: 1, 1: 1, Base.NEUTRAL: 1 })
+	b.team = 1  # 敵に奪われた
+	assert_false(b.deployable_by_owner(ally), "奪われると自軍の控えは閉じ込め")
+	assert_true(b.deployable_by_owner(foe), "敵の控えは敵が出せる")
+	b.garrison.clear()
+	b.garrison.append(ally)
+	assert_false(b.has_deployable_garrison(), "閉じ込めしか無い拠点＝出せる控えなし")
+	assert_eq_deep(b.garrison_counts(), { 0: 1 }, "0体の陣営はキーを持たない")
+
 # --- native（生来の陣営）と出撃・閉じ込め ---
 
 func test_locked_garrison_cannot_deploy() -> void:

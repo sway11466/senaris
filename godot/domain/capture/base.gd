@@ -51,6 +51,27 @@ func can_rest(p_team: int) -> bool:
 		_:
 			return true
 
+## 控え u を所有者が出撃させられるか＝帰属が未確定（中立）か、所有者と同じ。閉じ込め（捕虜）は false。
+## 行動済みかは見ない（それは BattleState.can_deploy_garrison）。出撃メニューはこれで出す項目を絞る。
+func deployable_by_owner(u: Unit) -> bool:
+	return u.is_unclaimed() or u.recruited_team == team
+
+## 所有者が出せる控えが1体でもいるか（閉じ込めだけの拠点は false＝出撃メニューを開かない）。
+func has_deployable_garrison() -> bool:
+	for u in garrison:
+		if deployable_by_owner(u):
+			return true
+	return false
+
+## 控えの内訳＝帰属先ごとの人数 { 0: 自軍, 1: 敵, NEUTRAL: 未確定 }。0体の陣営はキーを持たない。
+## 盤上の「+N」表示が帰属ごとに色分けするために使う（doc/gdd/uiux.md 盤上の印）。
+func garrison_counts() -> Dictionary:
+	var out := {}
+	for u in garrison:
+		var key := NEUTRAL if u.is_unclaimed() else u.recruited_team
+		out[key] = int(out.get(key, 0)) + 1
+	return out
+
 ## 中断セーブ用の直列化（動的差分）。位置 axial(q,r) は復元時の突き合わせの鍵。持つのは戦闘中に
 ## 動くもの＝現在の帰属と駐留兵（full 直列化）だけで、hq/rest/squad_index はステージJSONから
 ## 引き直す。復元は BattleState.apply_save_diff。詳細 → doc/tech/gamesystem.md

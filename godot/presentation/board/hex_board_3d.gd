@@ -42,6 +42,7 @@ const COLOR_INSPECT_RING := Color(0.85, 0.90, 1.00)
 const COLOR_BASE_NEUTRAL := Color(0.80, 0.80, 0.80)  # 未占領拠点の縁取り
 const TEAM_COLORS: Array[Color] = [Color(0.30, 0.55, 0.95), Color(0.92, 0.40, 0.35)]
 const LABEL_GAP := TILE * 0.12  # 立ち絵の天辺から控え数ラベルの下までの隙間
+const LABEL_STACK := TILE * 0.5  # 控え数ラベルを帰属ごとに積むときの1段の高さ（字の高さ＝48px×0.01 に少し余白）
 
 const INVALID_HEX := Vector2i(-9999, -9999)
 
@@ -447,9 +448,10 @@ func _on_click(hex: Vector2i) -> void:
 	if clicked != null and state.can_select(clicked.id):
 		_select(clicked.id)
 		return
-	# 自軍の出撃可能な拠点をクリック → 拠点メニュー（出撃）。
+	# 自軍の出撃可能な拠点をクリック → 拠点メニュー（出撃）。閉じ込めの控えしか無い拠点は開かない。
 	var b := state.base_at(hex)
-	if b != null and b.team == state.current_team and not controller.deploy_cells_for(hex).is_empty():
+	if b != null and b.team == state.current_team and b.has_deployable_garrison() \
+			and not controller.deploy_cells_for(hex).is_empty():
 		_open_base_menu(hex)
 		return
 	if clicked != null:
@@ -484,11 +486,13 @@ func _open_command_menu(dest: Vector2i) -> void:
 		_menu.add_item(tr("ui.board.unload") % (tr("unit." + sk.skin_id + ".name") if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
 		if state.has_moved(pu.id):
 			_menu.set_item_disabled(_menu.get_item_index(UNLOAD_ID_BASE + i), true)
-	if sel != null and base != null and base.team == sel.team and not base.garrison.is_empty():
+	if sel != null and base != null and base.team == sel.team and base.has_deployable_garrison():
 		_menu.add_separator()
 		var no_cells := controller.deploy_cells_for(dest).is_empty()
 		for i in base.garrison.size():
 			var gu: Unit = base.garrison[i]
+			if not base.deployable_by_owner(gu):
+				continue  # 閉じ込め（相手の帰属の控え）は項目ごと出さない。項目 id は garrison の添字のまま
 			var gsk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
 			_menu.add_item(tr("ui.board.deploy") % (tr("unit." + gsk.skin_id + ".name") if gsk != null else gu.type_id), DEPLOY_ID_BASE + i)
 			if no_cells or not state.can_deploy_garrison(dest, i):
@@ -763,6 +767,8 @@ func _open_base_menu(base_hex: Vector2i) -> void:
 	var b := state.base_at(base_hex)
 	for i in b.garrison.size():
 		var gu: Unit = b.garrison[i]
+		if not b.deployable_by_owner(gu):
+			continue  # 閉じ込め（相手の帰属の控え）は項目ごと出さない。項目 id は garrison の添字のまま
 		var sk := SkinCatalog.resolve(_skin_catalog, gu.skin_id, gu.type_id, state.current_team)
 		var nm := tr("unit." + sk.skin_id + ".name") if sk != null else gu.type_id
 		_menu.add_item(tr("ui.board.deploy") % nm, DEPLOY_ID_BASE + i)
@@ -996,15 +1002,25 @@ func _sync_bases() -> void:
 		var by := _terrain_renderer.elev(b.hex)
 		mi.position = Vector3(p.x, by + 0.015, p.y)
 		_bases_root.add_child(mi)
-		# 控え数（出撃できる人数）。立ち絵の拠点は建物の頭上、平らなタイルの拠点はマス左上に小さく。
-		if not b.garrison.is_empty():
-			var text := "+%d" % b.garrison.size()
-			var top = _terrain_renderer.standee_top(b.hex, _board_cam.cam_up)
+		# 控え数。帰属ごとに1つずつ「+N」を出す＝自軍（青）・敵（赤）・未確定の中立（灰）。所有者に関わらず
+		# 中身が誰の駒かが読める（奪った拠点に閉じ込めた敵、囚われた味方）。下から自軍→敵→中立の順に積む。
+		# 立ち絵の拠点は建物の頭上、平らなタイルの拠点はマス左上に小さく。
+		var counts := b.garrison_counts()
+		var top = _terrain_renderer.standee_top(b.hex, _board_cam.cam_up)
+		var stack := 0
+		for key in [0, 1, Base.NEUTRAL]:
+			if not counts.has(key):
+				continue
+			var text := "+%d" % int(counts[key])
+			var lcol: Color = COLOR_BASE_NEUTRAL if key == Base.NEUTRAL else TEAM_COLORS[key]
+			var lift := _board_cam.cam_up * (LABEL_STACK * stack)
 			if top == null:
-				_unit_renderer.add_count_label(text, Vector3(p.x, by, p.y), col, _bases_root)
+				_unit_renderer.add_count_label(text, Vector3(p.x, by, p.y), lcol, _bases_root,
+						Vector3(-TILE * 0.55, 0.8, -TILE * 0.3) + lift)
 			else:
-				_unit_renderer.add_count_label(text, top, col, _bases_root,
-						_board_cam.cam_up * LABEL_GAP, VERTICAL_ALIGNMENT_BOTTOM)
+				_unit_renderer.add_count_label(text, top, lcol, _bases_root,
+						_board_cam.cam_up * LABEL_GAP + lift, VERTICAL_ALIGNMENT_BOTTOM)
+			stack += 1
 
 ## hex が盤の矩形（offset col/row）の中にあるか。
 func _in_board(hex: Vector2i) -> bool:
