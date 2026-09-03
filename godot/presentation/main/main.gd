@@ -11,7 +11,7 @@ var _skins := {}
 var _ai_presets := {}  # 特性表（data/ai/ai.json）。特性id -> パラメーター辞書（既定値）
 var _controller: MatchController = null
 var _hud: Hud = null
-var _turn_plate: TurnPlate = null  # ターン板（永続・盤エリア上端中央）。仕様 → doc/gdd/uiux.md
+var _turn_plate: TurnPlate = null  # ターン板（永続・画面上端中央）。仕様 → doc/gdd/uiux.md
 var _turn_banner: TurnBanner = null  # ターンの切り替わりを見せる横帯（永続・画面中央）。同上
 var _formation_cutin: FormationCutin = null  # 陣形スキルの1枚絵カットイン（永続）。仕様 → doc/gdd/formations.md
 const TURN_BANNER_GAP := 0.3  # 敵ターンでバナーが引けてから最初の行動までの間（秒）
@@ -103,7 +103,7 @@ func _ready() -> void:
 	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
-	_install_turn_plate()  # 永続のターン板（盤エリア上端中央）。load_stage がターン・代表ユニットを流し込む
+	_install_turn_plate()  # 永続のターン板（画面上端中央）。load_stage がターン・代表ユニットを流し込む
 	_install_board_logo()  # 永続のタイトルロゴ（右上・情報ボックスの上の帯）
 	_install_turn_banner()  # 永続のターンバナー（画面中央・ターンが移った瞬間だけ出る）
 	_install_formation_cutin()  # 永続の陣形カットイン（絵が在るレシピの発動時だけ出る）
@@ -654,7 +654,7 @@ func _install_hud() -> void:
 	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 
-# --- ターン板（盤エリア上端中央）。presentation/ui/turn_plate.gd。仕様 → doc/gdd/uiux.md ---
+# --- ターン板（画面上端中央）。presentation/ui/turn_plate.gd。仕様 → doc/gdd/uiux.md ---
 func _install_turn_plate() -> void:
 	_turn_plate = TurnPlate.new()
 	_turn_plate.name = "TurnPlate"

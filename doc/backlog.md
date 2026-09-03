@@ -167,14 +167,6 @@
 - 対応：自前で作る。[ui.md](art/ui.md) に HUD 用の STYLE（焼き印のまま、敵の禍々しさを外した中立の道具の記号）を1段落足し、`assets/ui/hud/{id}.png` をボタンの文字の左に出す（在れば出す・無ければ文字だけ＝特性アイコンと同じ規約）。モチーフ案：メニュー＝歯車、ターン終了＝砂時計、情報板＝立て看板。ライブラリ（game-icons.net、CC BY 3.0）は生成で形が決まらないときの逃げ道で、使うなら [credits.md](sales/credits.md) に表記を足す。◀▶ も絵にするかは着手時に決める。
 - 該当：`doc/art/ui.md`・`godot/assets/ui/hud/`・`godot/assets/ui-src/hud/`・`godot/presentation/ui/hud.gd`・`godot/data/i18n/ui.csv`（⚙ を文字から外す）。
 
-### feature-102
-
-**ターン板を画面の中央に置く**
-- ゴール：ターン板（[uiux.md](gdd/uiux.md) ターン表示）が画面幅の中央に出る。
-- 背景：いまは盤エリア（板を除いた左 800px）の中央＝画面全体では左寄り（x=400）。情報板を畳める・動かせるようになり、板が右に居る前提が常には成り立たなくなった。画面の中央（x=640）のほうが据わりがよいのではないか。
-- 対応：ターン板の基準を盤エリアから画面幅に変える。ターン切り替えのバナーも同じ基準にするかを合わせて見る。
-- 該当：`godot/presentation/ui/turn_plate.gd`（`UiLayout.board_area` で中央を出している）・`godot/presentation/ui/turn_banner.gd`・`doc/gdd/uiux.md`。
-
 ### feature-103
 
 **畳んだ情報板とステージ開始・終了の会話、初期表示の盤の大きさ**

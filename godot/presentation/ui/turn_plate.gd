@@ -1,6 +1,6 @@
 extends Control
 class_name TurnPlate
-## ターン表示の板（presentation）。盤エリアの上端中央に置き、[味方][turn n / limit][敵] を横に並べる。
+## ターン表示の板（presentation）。画面の上端中央に置き、[味方][turn n / limit][敵] を横に並べる。
 ## ターン側の枠を活性化する（非活性は暗く落とし、活性は陣営色の縁）。状態は持たず main から set_* で流し込む。
 ## 左右の絵は冒険譚マニフェストの emblem（skin_id）。未指定なら枠を出さず中央だけ見せる。
 ## 仕様 → doc/gdd/uiux.md（ターン表示）
@@ -128,11 +128,13 @@ func _bust(skin_catalog: Dictionary, skin_id: String) -> Texture2D:
 		side, side)
 	return at
 
-## 盤エリア（右の情報ボックスを除いた領域）の上端中央へ置き直す。リサイズでも呼ばれる。
+## 画面幅の上端中央へ置き直す。リサイズでも呼ばれる。
+## 基準は盤エリア（UiLayout.board_area）ではなく画面幅。情報板は畳める・動かせるので、
+## 板が右に居る前提で盤エリアの中央に寄せると、板が無いときに左寄りに見える。
 func _layout() -> void:
-	var area := UiLayout.board_area(get_viewport().get_visible_rect().size)
+	var vp := get_viewport().get_visible_rect().size
 	var w := CENTER_W + (FRAME + GAP) * 2.0 if _has_emblem else CENTER_W
-	position = Vector2(area.position.x + (area.size.x - w) * 0.5, TOP)
+	position = Vector2((vp.x - w) * 0.5, TOP)
 	size = Vector2(w, FRAME)
 	var x := 0.0
 	if _has_emblem:
