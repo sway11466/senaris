@@ -1,6 +1,6 @@
 {
-  "id": "debug-mapops",
-  "title": "デバッグ：マップ操作",
+  "id": "debug-map",
+  "title": "デバッグ：マップ",
   "debug": true,
   "stages": [
     {
@@ -22,6 +22,11 @@
       "id": "event",
       "file": "event.json",
       "title": "イベント＝増援"
+    },
+    {
+      "id": "move",
+      "file": "move.json",
+      "title": "移動（移動タイプ・地形コスト・移動音）"
     }
   ]
 }

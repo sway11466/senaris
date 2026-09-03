@@ -5,7 +5,7 @@ extends SceneTree
 ## 実行: godot --path . -s res://tests/manual/shot_info_moved.gd（--headless 不可）
 
 const MAIN := preload("res://presentation/main/main.tscn")
-const STAGE := "res://data/stages/debug-mapops/event.json"
+const STAGE := "res://data/stages/debug-map/event.json"
 const OUT := "res://tests/manual/out/info_moved.png"
 const LOG := "res://tests/manual/out/info_moved.txt"
 

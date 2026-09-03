@@ -88,16 +88,17 @@
 | lose_hq | `debug-victory/lose_hq.json` | 自軍本拠地喪失の敗北判定 | hq喪失判定を変えたとき |
 | lose_unit | `debug-victory/lose_unit.json` | 護衛対象喪失の敗北判定 | lose_unit の判定を変えたとき |
 
-## debug-mapops（マップ操作）
+## debug-map（マップ）
 
-拠点・輸送などの盤上操作を確認する。設計 → [../gdd/map.md](../gdd/map.md)・[../gdd/movement.md](../gdd/movement.md)。
+盤の上で起きること全般＝拠点・輸送・イベント・移動を確認する。移動音は音だけを切り出さず、移動タイプと地形コストの確認に畳み込んで、絵と一緒に聞く。設計 → [../gdd/map.md](../gdd/map.md)・[../gdd/movement.md](../gdd/movement.md)・[../audio/sfx.md](../audio/sfx.md)。
 
 | ステージ | ファイル | 目的 | 変更の引き金 |
 | --- | --- | --- | --- |
-| base | `debug-mapops/base.json` | 拠点と勝敗（消滅判定・寝返り・閉じ込め） | 拠点の仕様を変えたとき |
-| transport | `debug-mapops/transport.json` | 輸送（乗車・運搬・降車） | 輸送の仕様を変えたとき |
-| barricade | `debug-mapops/barricade.json` | バリケード輸送（出撃→隣接乗降） | バリケードの仕様を変えたとき |
-| event | `debug-mapops/event.json` | イベント＝増援 | イベントの仕様を変えたとき |
+| base | `debug-map/base.json` | 拠点と勝敗（消滅判定・寝返り・閉じ込め） | 拠点の仕様を変えたとき |
+| transport | `debug-map/transport.json` | 輸送（乗車・運搬・降車） | 輸送の仕様を変えたとき |
+| barricade | `debug-map/barricade.json` | バリケード輸送（出撃→隣接乗降） | バリケードの仕様を変えたとき |
+| event | `debug-map/event.json` | イベント＝増援 | イベントの仕様を変えたとき |
+| move | `debug-map/move.json` | 移動（移動タイプ・地形コスト・移動音）。地面・軽い足音・羽ばたき・浮遊・プロペラの味方を1体ずつ置き、森・墓標・柵・墓石の山の帯を横切らせる。敵はゴーストとレイスの突撃＝敵の手番に飛んで来る浮遊音を実戦の文脈で聞く | 移動タイプ・地形コスト・移動音を変えたとき |
 
 ## debug-skins（ユニット/地形スキン）
 

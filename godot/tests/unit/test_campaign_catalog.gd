@@ -18,7 +18,7 @@ func test_load_all_groups_debug_last() -> void:
 	for c in all:
 		if c["debug"]:
 			debug_ids[c["id"]] = true
-	for want in ["debug-combat", "debug-ai", "debug-victory", "debug-mapops", "debug-skins", "debug-misc"]:
+	for want in ["debug-combat", "debug-ai", "debug-victory", "debug-map", "debug-skins", "debug-misc"]:
 		assert_true(debug_ids.has(want), "デバッグ冒険譚が存在: %s" % want)
 
 func test_tutorial_manifest() -> void:
