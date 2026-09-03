@@ -252,6 +252,7 @@
       "col": 9,
       "row": 6,
       "team": "neutral",
+      "rest": "both",
       "garrison": [
         {
           "type": "novice",

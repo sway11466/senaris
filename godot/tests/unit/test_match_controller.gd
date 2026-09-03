@@ -89,7 +89,7 @@ func test_move_capture_hq_finishes_once() -> void:
 	var s := BattleState.new(12, 8)
 	s.victory_conditions = [{"type": "capture_hq"}]
 	var hq_hex := Hex.offset_to_axial(4, 4)
-	s.add_base(Base.new(hq_hex, 1, "hq"))
+	s.add_base(Base.new(hq_hex, 1, 1))  # 敵の本拠地
 	var c := Unit.new(1, 0, Hex.neighbor(hq_hex, 3), 3)
 	c.can_capture = true
 	s.add_unit(c)
@@ -141,7 +141,7 @@ func test_unload_capture_finishes_once() -> void:
 	p.can_capture = true
 	s.put_passenger(t.id, p)
 	var hq_hex := Hex.neighbor(t.pos, 0)
-	s.add_base(Base.new(hq_hex, 1, "hq"))
+	s.add_base(Base.new(hq_hex, 1, 1))  # 敵の本拠地
 	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
 	var mc := _mc(s)
 	assert_true(mc.execute_unload(UnloadCommand.new(1, 0, hq_hex)), "本拠地への降車＝占領が成立")
@@ -553,7 +553,7 @@ func test_finishing_capture_does_not_talk() -> void:
 	var s := BattleState.new(12, 8)
 	s.victory_conditions = [{"type": "capture_hq"}]
 	var hq_hex := Hex.offset_to_axial(4, 4)
-	s.add_base(Base.new(hq_hex, 1, "hq"))
+	s.add_base(Base.new(hq_hex, 1, 1))  # 敵の本拠地
 	var c := Unit.new(1, 0, Hex.neighbor(hq_hex, 3), 3)
 	c.can_capture = true
 	s.add_unit(c)

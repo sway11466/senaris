@@ -14,7 +14,7 @@ func _stage(player_col: int = 1) -> BattleState:
 		"cols": 8, "rows": 4,
 		"player": [{ "type": "cleric", "col": player_col, "row": 1 }],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
-			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }],
+			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }],
 	}, _catalog())
 
 func test_neutral_garrison_starts_unclaimed() -> void:

@@ -39,6 +39,7 @@ static func from_text(text: String) -> MapEditorDoc:
 			doc.data[key] = []
 	if not doc.data.has("margin"):
 		doc.data["margin"] = 0  # 既定値に頼らず必ず書き出す（保存でキーが増える＝意図した挙動）
+	doc._migrate_legacy_bases()
 	doc._normalize_terrain()
 	return doc
 
@@ -673,11 +674,15 @@ func remove_squad(squad_idx: int) -> void:
 		data["enemy"].remove_at(squad_idx)
 
 
-## 拠点を置く（既に拠点があれば false）。ai は空文字＝AI出撃なし（キー自体を書かない）。
-func add_base(col: int, row: int, team: String, kind: String, ai: String = "") -> bool:
+## 拠点を置く（既に拠点があれば false）。hq は空文字＝普通の砦（キー自体を書かない）。
+## rest は常に書く（既定に頼らない）。ai は空文字＝AI出撃なし（キー自体を書かない）。
+func add_base(col: int, row: int, team: String, hq: String = "", rest: String = "both", ai: String = "") -> bool:
 	if not base_at(col, row).is_empty():
 		return false
-	var b := { "col": col, "row": row, "team": team, "kind": kind }
+	var b := { "col": col, "row": row, "team": team }
+	if hq != "":
+		b["hq"] = hq
+	b["rest"] = rest
 	if ai != "":
 		b["ai"] = ai
 	b["garrison"] = []
@@ -1021,3 +1026,22 @@ func to_text() -> String:
 	_normalize_terrain()
 	_normalize_height()
 	return MapEditorDocSerializer.serialize(data, _keys_in_source)
+
+
+## 旧キーの拠点（kind:"hq" と native）を hq / rest に読み替える。読み込み時だけの片道変換＝保存で新キーになる。
+## 詳細 → doc/gdd/map.md 拠点の値。控えの native は既定を持たないので、無い行は拠点の開始時の所有者に倒す。
+func _migrate_legacy_bases() -> void:
+	for b in data.get("bases", []):
+		if typeof(b) != TYPE_DICTIONARY:
+			continue
+		var team := String(b.get("team", "neutral"))
+		var native := String(b.get("native", team))
+		if String(b.get("kind", "")) == "hq" and not b.has("hq") and native in ["player", "enemy"]:
+			b["hq"] = native
+		b.erase("kind")
+		b.erase("native")
+		if not b.has("rest"):
+			b["rest"] = "both"
+		for g in b.get("garrison", []):
+			if typeof(g) == TYPE_DICTIONARY and not g.has("native"):
+				g["native"] = team if team in ["player", "enemy"] else "neutral"

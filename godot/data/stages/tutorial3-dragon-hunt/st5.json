@@ -330,8 +330,8 @@
       ] }
   ],
   "bases": [
-    {"col": 11, "row": 9, "team": "neutral", "kind": "fort", "garrison": [{"type": "birdman", "actor": "birdman"}]},
-    {"col": 2, "row": 15, "team": "neutral", "kind": "fort"}
+    {"col": 11, "row": 9, "team": "neutral", "rest": "both", "garrison": [{"type": "birdman", "actor": "birdman", "native": "neutral"}]},
+    {"col": 2, "row": 15, "team": "neutral", "rest": "both"}
   ],
   "dialogue": {
     "intro": [

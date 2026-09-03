@@ -72,9 +72,9 @@
       ] }
   ],
   "bases": [
-    {"col": 7, "row": 16, "team": "player", "kind": "fort"},
-    {"col": 3, "row": 10, "team": "neutral", "kind": "fort"},
-    {"col": 7, "row": 3, "team": "neutral", "kind": "fort"}
+    {"col": 7, "row": 16, "team": "player", "rest": "player"},
+    {"col": 3, "row": 10, "team": "neutral", "rest": "both"},
+    {"col": 7, "row": 3, "team": "neutral", "rest": "both"}
   ],
   "victory": [
     {"type": "defeat_unit", "actor": "paladin"}

@@ -159,8 +159,8 @@
       "units": [ { "skin": "goblin_lord", "col": 1, "row": 0 } ] }
   ],
   "bases": [
-    { "col": 1, "row": 0, "team": "enemy", "kind": "hq", "garrison": [] },
-    { "col": 6, "row": 12, "team": "player", "kind": "hq", "garrison": [] }
+    { "col": 1, "row": 0, "team": "enemy", "hq": "enemy", "rest": "enemy", "garrison": [] },
+    { "col": 6, "row": 12, "team": "player", "hq": "player", "rest": "player", "garrison": [] }
   ],
   "victory": [
     { "type": "capture_hq" }

@@ -175,10 +175,10 @@
       ] }
   ],
   "bases": [
-    { "col": 7, "row": 6, "team": "player", "kind": "fort",
-      "garrison": [ { "skin": "barricade", "count": 1 } ] },
-    { "col": 7, "row": 17, "team": "player", "kind": "fort",
-      "garrison": [ { "skin": "barricade", "count": 1 } ] }
+    { "col": 7, "row": 6, "team": "player", "rest": "player",
+      "garrison": [ { "skin": "barricade", "count": 1, "native": "player" } ] },
+    { "col": 7, "row": 17, "team": "player", "rest": "player",
+      "garrison": [ { "skin": "barricade", "count": 1, "native": "player" } ] }
   ],
   "defeat": [
     { "type": "lose_base",

@@ -26,8 +26,8 @@ const SAMPLE := """
     ] }
   ],
   "bases": [
-    { "order": 2, "col": 5, "row": 3, "team": "enemy", "ai": "charge",
-      "garrison": [ { "skin": "goblin", "count": 4 } ] }
+    { "order": 2, "col": 5, "row": 3, "team": "enemy", "rest": "enemy", "ai": "charge",
+      "garrison": [ { "skin": "goblin", "count": 4, "native": "enemy" } ] }
   ],
   "victory": [
     { "type": "defeat_unit", "actor": "hobgoblin" }
@@ -87,6 +87,35 @@ func test_roundtrip_keeps_all_data() -> void:
 	var out := _roundtrip(SAMPLE)
 	var src: Dictionary = JSON.parse_string(SAMPLE)
 	assert_eq_deep(out, src)  # 編集なしの読込→保存で内容が変わらない
+
+
+func test_from_text_migrates_legacy_base_keys() -> void:
+	# 旧キー（kind:"hq" / 拠点の native）は読み込みで hq / rest に読み替え、控えの native を補う
+	# （doc/gdd/map.md 拠点の値）。保存すると新キーになる。
+	var doc := MapEditorDoc.from_text("""{
+  "turn_limit": 30, "name": "legacy", "cols": 6, "rows": 4, "margin": 0,
+  "terrain": ["......", "......", "......", "......"],
+  "player": [], "enemy": [],
+  "bases": [
+    { "col": 1, "row": 1, "team": "enemy", "native": "player", "kind": "hq",
+      "garrison": [ { "skin": "novice", "count": 1 } ] },
+    { "col": 4, "row": 1, "team": "neutral", "kind": "fort",
+      "garrison": [ { "skin": "goblin", "count": 2 }, { "skin": "novice", "count": 1, "native": "player" } ] }
+  ]
+}""")
+	assert_not_null(doc)
+	var b0: Dictionary = doc.base_at(1, 1)["base"]
+	assert_eq(String(b0.get("hq", "")), "player", "kind:hq ＋ native:player → hq:player（奪われている自軍本拠地）")
+	assert_false(b0.has("kind") or b0.has("native"), "旧キーは消える")
+	assert_eq(String(b0["rest"]), "both", "rest は無ければ both を書く")
+	assert_eq(String(b0["garrison"][0]["native"]), "enemy", "控えの native が無ければ拠点の開始時の所有者に倒す")
+	var b1: Dictionary = doc.base_at(4, 1)["base"]
+	assert_false(b1.has("hq"), "kind:fort → hq 無し")
+	assert_eq(String(b1["garrison"][0]["native"]), "neutral", "中立拠点の控え → 中立")
+	assert_eq(String(b1["garrison"][1]["native"]), "player", "書いてある native はそのまま")
+	var text := doc.to_text()
+	assert_false(text.contains("\"kind\""), "保存すると kind は出ない")
+	assert_true(text.contains("\"hq\": \"player\""), "保存すると hq が出る")
 
 
 func test_roundtrip_keeps_dialogue_untouched() -> void:

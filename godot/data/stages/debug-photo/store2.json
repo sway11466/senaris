@@ -584,14 +584,16 @@
       "col": 1,
       "row": 0,
       "team": "enemy",
-      "kind": "hq",
+      "hq": "enemy",
+      "rest": "enemy",
       "garrison": []
     },
     {
       "col": 6,
       "row": 12,
       "team": "player",
-      "kind": "hq",
+      "hq": "player",
+      "rest": "player",
       "garrison": []
     }
   ],

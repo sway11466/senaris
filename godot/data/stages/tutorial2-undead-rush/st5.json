@@ -362,7 +362,7 @@
       ] }
   ],
   "bases": [
-    { "col": 5, "row": 5, "team": "player", "kind": "hq", "garrison": [] }
+    { "col": 5, "row": 5, "team": "player", "hq": "player", "rest": "player", "garrison": [] }
   ],
   "dialogue": {
     "intro": [

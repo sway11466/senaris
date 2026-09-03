@@ -89,8 +89,8 @@ func test_build_wires_ai_bases_as_squads() -> void:
 		"cols": 8, "rows": 4,
 		"bases": [
 			{ "col": 6, "row": 1, "team": "enemy", "ai": "ambush", "sight": 2, "order": 3,
-				"garrison": [ { "count": 1 } ] },
-			{ "col": 1, "row": 1, "team": "player", "garrison": [ { "count": 1 } ] },
+				"garrison": [ { "count": 1, "native": "enemy" } ] },
+			{ "col": 1, "row": 1, "team": "player", "garrison": [ { "count": 1, "native": "player" } ] },
 		],
 	}
 	var s := StageLoader.build(data)
@@ -267,7 +267,7 @@ func test_build_bases_with_garrison() -> void:
 			{ "type": "cleric", "col": 1, "row": 1 },
 		],
 		"bases": [
-			{ "col": 4, "row": 3, "team": "enemy", "garrison": [ { "type": "novice", "count": 2 } ] },
+			{ "col": 4, "row": 3, "team": "enemy", "garrison": [ { "type": "novice", "count": 2, "native": "enemy" } ] },
 		],
 	}
 	var s := StageLoader.build(data, catalog)
@@ -284,7 +284,7 @@ func test_build_bases_with_garrison() -> void:
 	assert_ne(b.garrison[0].id, s.unit_by_id(1).id)
 
 func test_team_names_resolve_to_internal_ints() -> void:
-	# 駒の陣営はセクション（player/enemy）で決まり内部 int(0/1) に。拠点/native は可読表記→int(-1/0)。
+	# 駒の陣営はセクション（player/enemy）で決まり内部 int(0/1) に。拠点の team／控えの native は可読表記→int(-1/0)。
 	var data := {
 		"cols": 6, "rows": 6,
 		"player": [
@@ -303,27 +303,47 @@ func test_team_names_resolve_to_internal_ints() -> void:
 	assert_eq(s.unit_by_id(2).team, 1, "enemy セクション → 1")
 	var b := s.base_at(Hex.offset_to_axial(2, 2))
 	assert_eq(b.team, -1, "neutral → -1")
-	assert_eq(b.native_team, -1, "拠点 native も初期所属の中立")
+	assert_false(b.is_hq(), "hq 省略＝普通の砦")
+	assert_eq(b.rest, Base.REST_BOTH, "rest 省略＝両方")
 	assert_eq(b.garrison[0].native_team, 0, "garrison native=player → 0（中立拠点でも寝返らない）")
 
-func test_base_native_key_overrides_initial_team() -> void:
-	# 拠点直下の "native"＝生来の所属。team と食い違わせると「開始時点で占領されている拠点」になる
-	# （例: 敵に奪われた自軍の砦）。→ doc/gdd/map.md §拠点の所有者
+func test_base_hq_and_rest_keys() -> void:
+	# 拠点直下の "hq"＝本拠地の印と陣営。team と食い違わせると「開始時点で奪われている本拠地」になる。
+	# "rest"＝誰が休めるか（占領しても変わらない）。→ doc/gdd/map.md §拠点の値
 	var data := {
 		"cols": 6, "rows": 6,
 		"player": [ { "col": 1, "row": 1 } ],
 		"bases": [
-			{ "col": 2, "row": 2, "team": "enemy", "native": "player", "kind": "hq",
-				"garrison": [ { "count": 1 } ] },
-			{ "col": 4, "row": 4, "team": "enemy" },
+			{ "col": 2, "row": 2, "team": "enemy", "hq": "player", "rest": "player",
+				"garrison": [ { "count": 1, "native": "player" } ] },
+			{ "col": 4, "row": 4, "team": "enemy", "rest": "enemy" },
 		],
 	}
 	var s := StageLoader.build(data)
 	var b := s.base_at(Hex.offset_to_axial(2, 2))
 	assert_eq(b.team, 1, "初期所属は敵（奪われた状態で始まる）")
-	assert_eq(b.native_team, 0, "生来の所属は native キーから読む")
-	assert_eq(b.garrison[0].native_team, 0, "garrison の既定 native は拠点の生来の所属に従う")
-	assert_eq(s.base_at(Hex.offset_to_axial(4, 4)).native_team, 1, "native 省略時は team と同じ")
+	assert_true(b.is_hq_of(0), "hq:player＝自軍の本拠地")
+	assert_false(b.is_hq_of(1), "敵の本拠地ではない")
+	assert_eq(b.rest, Base.REST_PLAYER)
+	assert_true(b.can_rest(0) and not b.can_rest(1), "rest:player＝自軍だけ休める")
+	assert_eq(b.garrison[0].native_team, 0, "garrison の native は駒ごとに読む")
+	var c := s.base_at(Hex.offset_to_axial(4, 4))
+	assert_false(c.is_hq(), "hq 省略＝普通の砦")
+	assert_true(c.can_rest(1) and not c.can_rest(0), "rest:enemy＝敵だけ休める")
+
+func test_garrison_without_native_falls_back_to_base_team() -> void:
+	# native は必須（既定なし）。書き忘れは警告して、拠点の開始時の所有者に倒す＝中立拠点なら中立。
+	var data := {
+		"cols": 6, "rows": 6,
+		"player": [ { "col": 1, "row": 1 } ],
+		"bases": [
+			{ "col": 2, "row": 2, "team": "enemy", "garrison": [ { "count": 1 } ] },
+			{ "col": 4, "row": 4, "team": "neutral", "garrison": [ { "count": 1 } ] },
+		],
+	}
+	var s := StageLoader.build(data)
+	assert_eq(s.base_at(Hex.offset_to_axial(2, 2)).garrison[0].native_team, 1, "敵拠点の控え → 敵")
+	assert_eq(s.base_at(Hex.offset_to_axial(4, 4)).garrison[0].native_team, Base.NEUTRAL, "中立拠点の控え → 中立（未確定）")
 
 func test_load_boot_underlay() -> void:
 	# 起動時の下敷き（セレクトの裏に出る空盤）。ユニット0・地形のみで実読み込みできる。
@@ -676,8 +696,8 @@ func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> voi
 			{ "type": "wagon", "col": 1, "row": 1, "passengers": [ { "type": "knight" } ] },
 		],
 		"bases": [
-			{ "col": 4, "row": 1, "team": "neutral", "garrison": [ { "type": "knight", "count": 2 } ] },
-			{ "col": 5, "row": 1, "team": "enemy", "garrison": [ { "type": "knight", "count": 3 } ] },
+			{ "col": 4, "row": 1, "team": "neutral", "garrison": [ { "type": "knight", "count": 2, "native": "neutral" } ] },
+			{ "col": 5, "row": 1, "team": "enemy", "garrison": [ { "type": "knight", "count": 3, "native": "enemy" } ] },
 		],
 		"events": [
 			{ "id": "help", "turn": 5, "team": "player", "units": [ { "type": "knight", "col": 0, "row": 0 } ] },
@@ -688,20 +708,20 @@ func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> voi
 	assert_eq(StageLoader.count_start_allies(data, s, catalog, skins), 6,
 			"盤上1＋輸送1＋搭乗1＋中立の控え2＋未発火の味方増援1（兵器・敵側は数えない）")
 
-## 拠点直下の native がある場合、控えの既定 native はそちらに従う（team ではなく）。
-func test_count_start_allies_follows_base_native_key() -> void:
+## 控えの native は駒ごと＝拠点の所有者ではなく駒の native で数える。
+func test_count_start_allies_follows_garrison_native() -> void:
 	var catalog := UnitCatalog.load_default()
 	var skins := SkinCatalog.load_standard()
 	var data := {
 		"cols": 6, "rows": 4,
 		"player": [ { "type": "knight", "col": 1, "row": 2 } ],
 		"bases": [
-			# 敵に奪われた自軍の砦＝中の控えは自軍の戦力
-			{ "col": 4, "row": 1, "team": "enemy", "native": "player",
-				"garrison": [ { "type": "knight", "count": 2 } ] },
-			# 逆＝自軍が奪っている敵の砦。中の控えは敵 native なので数えない
-			{ "col": 5, "row": 1, "team": "player", "native": "enemy",
-				"garrison": [ { "type": "knight", "count": 3 } ] },
+			# 敵に奪われている砦に閉じ込められた自軍の控え＝自軍の戦力
+			{ "col": 4, "row": 1, "team": "enemy",
+				"garrison": [ { "type": "knight", "count": 2, "native": "player" } ] },
+			# 逆＝自軍が押さえている砦の中の敵 native の控えは数えない
+			{ "col": 5, "row": 1, "team": "player",
+				"garrison": [ { "type": "knight", "count": 3, "native": "enemy" } ] },
 		],
 	}
 	var s := StageLoader.build(data, catalog, skins)

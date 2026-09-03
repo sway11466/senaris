@@ -234,20 +234,40 @@ func test_last_unit_cannot_enter_when_blockaded() -> void:
 	assert_false(s.can_enter_base(1), "全周封鎖では最後の1体は入れない（入れば即敗北）")
 	assert_false(s.enter_base(1), "enter_base も拒否される")
 
-func test_no_heal_in_captured_enemy_native_base() -> void:
-	# 奪った敵 native の拠点は出撃拠点にはなるが回復しない。
+func test_captured_base_heals_when_rest_allows() -> void:
+	# 拠点は「生来の持ち主」を持たない＝敵から奪った拠点でも rest が両方なら休める。
 	var s := _state()
 	var base_hex := Hex.offset_to_axial(4, 4)
-	var b := Base.new(base_hex, 1)  # 敵 native
+	var b := Base.new(base_hex, 1)  # 敵所属で始まる（rest は既定＝both）
 	s.add_base(b)
 	b.team = 0  # 自軍が占領済み
-	var u := Unit.new(1, 0, base_hex, 3); u.troops = 3
+	var u := Unit.new(1, 0, base_hex, 3, 8, 10, 10); u.troops = 3
 	s.add_unit(u)
 	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(6, 6), 3))
 	assert_true(s.enter_base(1), "奪った拠点にも入れる")
 	s.end_turn()
 	s.end_turn()
-	assert_eq(b.garrison[0].troops, 3, "敵 native の拠点では回復しない")
+	assert_eq(b.garrison[0].troops, 8, "rest:both なら奪った拠点でも回復する")
+
+func test_cannot_enter_or_heal_where_rest_excludes_team() -> void:
+	# rest:"enemy"（納骨堂など）は味方が奪っても休めない＝入れない。出撃拠点にはなる。
+	var s := _state()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	var b := Base.new(base_hex, 1, Base.NO_HQ, Base.REST_ENEMY)
+	s.add_base(b)
+	b.team = 0  # 自軍が占領済み
+	var u := Unit.new(1, 0, base_hex, 3, 8, 10, 10); u.troops = 3
+	s.add_unit(u)
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(6, 6), 3))
+	assert_false(s.can_enter_base(1), "休めない拠点には入れない")
+	assert_false(s.enter_base(1), "enter_base も拒否される")
+	# 中に居る味方の控え（例: 初期配置で損耗した駒）も回復しない
+	var g := Unit.new(10, 0, Vector2i.ZERO, 3, 8, 10, 10); g.troops = 3
+	b.garrison.append(g)
+	s.end_turn()
+	s.end_turn()
+	assert_eq(g.troops, 3, "rest が自軍を含まない拠点では回復しない")
+	assert_true(s.can_deploy_garrison(base_hex, 0), "出撃拠点にはなる（rest は出撃を縛らない）")
 
 # --- native（生来の陣営）と出撃・閉じ込め ---
 

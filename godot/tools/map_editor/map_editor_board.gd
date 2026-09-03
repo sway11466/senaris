@@ -332,7 +332,7 @@ func _draw() -> void:
 		var center := cell_center(int(b.get("col", 0)), int(b.get("row", 0)))
 		var color: Color = TEAM_COLORS.get(String(b.get("team", "neutral")), TEAM_COLORS["neutral"])
 		draw_arc(center, hex_size * 0.74, 0.0, TAU, 32, color, 3.0)
-		var label := "HQ" if String(b.get("kind", "fort")) == "hq" else "F"
+		var label := "HQ" if b.has("hq") else "F"
 		var g_count := MapEditorDoc.garrison_count(b)
 		if g_count > 0:
 			label += " x%d" % g_count

@@ -12,7 +12,7 @@ const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "height", "t
 const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers", "bases", "actors"]
 
 ## 辞書内キーの並び（既存ステージの手書き順に寄せる）。残りは元の順、BLOCK_ARRAY_KEYS は常に末尾。
-const ENTITY_KEY_ORDER := ["turn", "order", "name", "ai", "speaker", "type", "skin", "actor", "text", "label", "col", "row", "team", "kind", "count", "native"]
+const ENTITY_KEY_ORDER := ["turn", "order", "name", "ai", "speaker", "type", "skin", "actor", "text", "label", "col", "row", "team", "hq", "rest", "count", "native"]
 
 
 ## data と keys_in_source（読み込み時に元ファイルに存在したキーの記録）を受け取り、

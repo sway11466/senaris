@@ -856,6 +856,8 @@ func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
 	var b := base_at(dest_hex)
 	if b == null or b.team != u.team:
 		return false
+	if not b.can_rest(u.team):
+		return false  # 休めない拠点には入れない（rest → doc/gdd/map.md 回復）
 	if team_unit_count(u.team) > 1:
 		return true  # 入っても盤上に他の駒が残る
 	# 盤上最後の1体：入った駒自身が b の出せる控えになる＝b に空き隣接があれば復帰可。
@@ -1562,14 +1564,15 @@ func end_turn() -> void:
 	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
 
 ## ターンが始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・Lvは据え置き）。
-## 回復できるのは native が自陣営/中立の拠点だけ＝奪った敵 native 拠点は出撃拠点にはなるが回復しない。
-## 閉じ込め駒（帰属先≠所有者）も回復しない。hexの上に立っている駒は回復しない（中に入るモデル）。
+## 回復できるのは rest がその陣営を含む拠点だけ＝奪っても休めない拠点（rest:"enemy" の納骨堂など）は
+## 出撃拠点にはなるが回復しない。閉じ込め駒（帰属先≠所有者）も回復しない。
+## hexの上に立っている駒は回復しない（中に入るモデル）。
 func _heal_garrisons() -> void:
 	for b in _bases:
 		if b.team != current_team:
 			continue
-		if b.native_team != current_team and b.native_team != Base.NEUTRAL:
-			continue  # 敵 native の拠点では回復しない
+		if not b.can_rest(current_team):
+			continue  # この陣営が休めない拠点
 		for u in b.garrison:
 			if u.recruited_team == current_team or u.is_unclaimed():
 				u.troops = u.max_troops

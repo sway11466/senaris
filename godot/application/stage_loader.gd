@@ -392,9 +392,9 @@ static func count_start_allies(data: Dictionary, state: BattleState, catalog: Di
 			continue
 		n += _force_size(u, catalog, skin_catalog)
 	for b in _as_dicts(data.get("bases", [])):
-		var base_native := _parse_team(b.get("native"), _parse_team(b.get("team"), Base.NEUTRAL))  # 控えの既定 native＝拠点の生来の所属
+		var base_team := _parse_team(b.get("team"), Base.NEUTRAL)  # native 書き忘れの保険＝_apply_bases と同じ倒し方
 		for g in _as_dicts(b.get("garrison", [])):
-			if _parse_team(g.get("native"), base_native) == 1:
+			if _parse_team(g.get("native"), base_team) == 1:
 				continue  # 敵 native の控えは自軍の戦力ではない
 			n += maxi(int(g.get("count", 1)), 1) * _force_size(g, catalog, skin_catalog)
 	for e in _as_dicts(data.get("events", [])):
@@ -738,30 +738,39 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 		})
 	return auto_id
 
-## 拠点リストを盤に追加。各拠点は位置(col/row)・所属(team, 既定は中立)・生来の所属(native, 既定は team)・
-## kind("fort"/"hq", 既定fort)・garrison(控えユニット)を持つ。native≠team＝開始時点で占領されている拠点。
-## garrison の各要素は { type, count } ＋ 個体の状態（troops 省略＝満員 / level 省略＝1）。
+## 拠点リストを盤に追加。各拠点は位置(col/row)・開始時の所有者(team, 既定は中立)・
+## 誰が休めるか(rest: "player"/"enemy"/"both", 既定 both)・本拠地の印(hq: "player"/"enemy", 無ければ普通の砦)・
+## garrison(控えユニット)を持つ。hq≠team＝開始時点で奪われている本拠地。
+## garrison の各要素は { type, count, native } ＋ 個体の状態（troops 省略＝満員 / level 省略＝1）。
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
-## garrison の生来陣営（native）は拠点の生来の所属が既定（中立拠点の駒＝中立＝取った側に寝返る）。
+## garrison の生来陣営（native）は必須＝拠点からの既定は無い。書き忘れは警告し、開始時の所有者に倒す
+## （中立拠点なら中立＝取った側に寝返る）。詳細 → doc/gdd/map.md（拠点の値・帰属）。
 static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(bases) != TYPE_ARRAY:
 		return start_id
 	var auto_id := start_id
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
-		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL), String(b.get("kind", "fort")))
-		base.native_team = _parse_team(b.get("native"), base.team)  # 生来の所属（省略時は初期所属と同じ）
+		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL),
+			_parse_team(b.get("hq"), Base.NO_HQ), String(b.get("rest", Base.REST_BOTH)))
+		if b.has("rest") and not Base.REST_VALUES.has(String(b["rest"])):
+			push_warning("StageLoader: 拠点(%d,%d) の rest が不正: %s（both 扱い）" % [int(b["col"]), int(b["row"]), str(b["rest"])])
+		if b.has("kind") or b.has("native"):
+			push_warning("StageLoader: 拠点(%d,%d) の kind/native は廃止＝hq/rest に書き換える（doc/gdd/map.md）" % [int(b["col"]), int(b["row"])])
 		if b.has("ai"):  # 拠点そのものが1部隊（garrison を出す）。ai 未指定の拠点はAI出撃しない
 			var squad := {}
 			for key in b:
-				if not (key in ["col", "row", "team", "kind", "garrison", "native"]):
+				if not (key in ["col", "row", "team", "hq", "rest", "garrison", "kind", "native"]):
 					squad[key] = b[key]  # ai＋パラメーターの上書き（sight/stack）＋行動順 order を部隊定義に
 			base.squad_index = state.squads.size()
 			state.squads.append(squad)
 		for g in b.get("garrison", []):
+			if not g.has("native"):
+				push_warning("StageLoader: 拠点(%d,%d) の控え %s に native が無い（開始時の所有者に倒す）"
+					% [int(b["col"]), int(b["row"]), String(g.get("skin", g.get("type", "?")))])
 			for _i in maxi(int(g.get("count", 1)), 1):
 				var gu := _make_unit(g, catalog, auto_id, 0, skin_catalog)  # team は出撃時に決まる（deploy で captor 陣営へ）
-				gu.set_native_team(_parse_team(g.get("native"), base.native_team))  # 帰属先も揃う（中立＝未確定）
+				gu.set_native_team(_parse_team(g.get("native"), base.team))  # 帰属先も揃う（中立＝未確定）
 				base.garrison.append(gu)
 				auto_id += 1
 		state.add_base(base)

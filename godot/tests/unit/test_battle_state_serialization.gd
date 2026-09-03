@@ -24,7 +24,7 @@ func _stage_data() -> Dictionary:
 		],
 		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "ambush", "sight": 4,
 			"units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
-		"bases": [{ "col": 4, "row": 3, "team": "player", "kind": "hq", "garrison": [{ "type": "archer", "count": 1 }] }],
+		"bases": [{ "col": 4, "row": 3, "team": "player", "hq": "player", "rest": "player", "garrison": [{ "type": "archer", "count": 1, "native": "player" }] }],
 		"victory": [{ "type": "defeat_unit", "actor": "boss" }],
 		"defeat": [{ "type": "lose_base", "bases": [{ "col": 4, "row": 3 }] }],
 	}
@@ -112,8 +112,8 @@ func test_bases_and_garrison_roundtrip() -> void:
 	var b := s2.bases()[0]
 	assert_eq(b.hex, Hex.offset_to_axial(4, 3), "拠点位置")
 	assert_eq(b.team, 0, "所属")
-	assert_eq(b.native_team, 0, "本来の持ち主（ステージJSONから）")
-	assert_true(b.is_hq(), "hq 種別（ステージJSONから）")
+	assert_true(b.is_hq_of(0), "本拠地の印（ステージJSONから）")
+	assert_eq(b.rest, Base.REST_PLAYER, "rest（ステージJSONから）")
 	assert_eq(b.garrison.size(), 1, "garrison 1体")
 	assert_eq(b.garrison[0].type_id, "archer", "garrison の type を再構築")
 
@@ -200,7 +200,7 @@ func test_restore_keeps_added_base_and_renumbers_its_garrison() -> void:
 	var data := _stage_data()
 	var s := _rich_state(data)
 	var added := _stage_data()
-	added["bases"].append({ "col": 6, "row": 4, "team": "enemy", "garrison": [{ "type": "knight", "count": 1 }] })
+	added["bases"].append({ "col": 6, "row": 4, "team": "enemy", "garrison": [{ "type": "knight", "count": 1, "native": "enemy" }] })
 	var s2 := _roundtrip(s, data, added)
 	assert_eq(s2.bases().size(), 2, "足された拠点はステージ定義のまま出る")
 	var b := s2.base_at(Hex.offset_to_axial(6, 4))

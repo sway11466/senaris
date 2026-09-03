@@ -72,7 +72,7 @@
       ] }
   ],
   "bases": [
-    { "col": 9, "row": 6, "team": "neutral",
+    { "col": 9, "row": 6, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
   ],
   "events": [
