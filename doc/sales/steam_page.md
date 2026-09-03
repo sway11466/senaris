@@ -1,8 +1,14 @@
 # Steam のストアページ
 
-対象：Steam のストアページに入力する内容。素材の方針は [marketing.md](marketing.md)、チャネルとしての位置づけと出す順序は [monetization.md](monetization.md)。登録の段取りは backlog の feature-53。
+対象：Steam のストアページに入力する内容。素材の方針は [marketing.md](marketing.md)、チャネルとしての位置づけ・出す順序・登録の費用と日程は [monetization.md](monetization.md)。
 
 ---
+
+## 作る順序
+
+入力欄は Steamworks に登録しないと開かない。素材を揃えてから登録するのではなく、先に登録して実物の欄を見る。
+
+素材はカプセル画像→スクリーンショット→本文の順に作る。上から順に依存している。
 
 ## ページ上部の作り
 
