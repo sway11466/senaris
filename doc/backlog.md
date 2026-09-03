@@ -31,14 +31,6 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-96
-
-**勝ち確定のフィニッシュ演出**
-- ゴール：どの勝ち方（戦闘・陣形スキル・本拠占領）でも「寄る→スロー→白フラッシュ→戦果票」の同じ型で決着が締まり、勝ちの瞬間に手応えがある。
-- 背景：いまはとどめの一手も通常と同じ演出で流れ、閉じた直後に戦果票が出る＝あっさり終わる。仕様 → [uiux.md](gdd/uiux.md) §決着の合図。
-- 対応：domain の決着判定を演出開始前に presentation へ渡し、戦闘シーン（最後の一斉射のスロー＋寄せ）・盤の着弾（スロー＋カメラ寄せ）・占領（カメラ寄せ＋旗＋白フラッシュ）に締めの型を実装する。白フラッシュから戦果票へ繋ぐ入りも合わせて直す。
-- 該当：`godot/presentation/combat/combat_scene.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/result_banner.gd`・`godot/presentation/main/main.gd`・[uiux.md](gdd/uiux.md)。
-
 ### feature-104
 
 **敗北の戦果票に再挑戦・セレクトの導線を置く**
