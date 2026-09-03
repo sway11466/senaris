@@ -143,14 +143,6 @@
 - 対応：設定画面（[settings.md](gdd/settings.md)）に「情報板を開く場面」の項目を足し、選んだ場面でだけ開く。場面の候補と既定は着手時に決める。
 - 該当：`doc/gdd/settings.md`・`godot/presentation/ui/unit_info_panel.gd`・`godot/infrastructure/save/settings_store.gd`。着手の引き金＝畳んで遊んで「ここで開いてほしい」が出たとき。
 
-### feature-101
-
-**HUD のボタンにアイコンを付ける（メニュー・ターン終了・情報板）**
-- ゴール：下のボタン群の3つに木の板の焼き印の絵が付き、どの OS でも同じ形で出る。
-- 背景：メニューの歯車は Unicode の記号「⚙」を文字として置いている（`ui.csv` の `ui.hud.menu`）。UI 用のフォントを指定していないので、この記号は OS の代替フォントで描かれ、形が環境で変わる。ページャーの ◀▶ も同じ作り。特性アイコンの作り方（[icons.md](art/icons.md)：ICON STYLE で生成 → `gen_icon.ps1` で書き出し）がそのまま使える。
-- 対応：自前で作る。[icons.md](art/icons.md) に HUD 用の STYLE（焼き印のまま、敵の禍々しさを外した中立の道具の記号）を1段落足し、`assets/icons/hud/{id}.png` をボタンの文字の左に出す（在れば出す・無ければ文字だけ＝特性アイコンと同じ規約）。モチーフ案：メニュー＝歯車、ターン終了＝砂時計、情報板＝立て看板。ライブラリ（game-icons.net、CC BY 3.0）は生成で形が決まらないときの逃げ道で、使うなら [credits.md](sales/credits.md) に表記を足す。◀▶ も絵にするかは着手時に決める。
-- 該当：`doc/art/icons.md`・`godot/assets/icons/hud/`・`godot/assets/icons-src/hud/`・`godot/presentation/ui/hud.gd`・`godot/data/i18n/ui.csv`（⚙ を文字から外す）。
-
 ### feature-103
 
 **畳んだ情報板とステージ開始・終了の会話、初期表示の盤の大きさ**
