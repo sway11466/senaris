@@ -14,10 +14,16 @@ signal restart_requested         # システムメニュー: リスタート（�
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 signal save_requested            # システムメニュー: 中断セーブ
 signal load_requested            # システムメニュー: 中断セーブから再開
+signal settings_requested        # システムメニュー: 設定画面を盤の上に開く
 signal zoom_in_requested         # システムメニュー: ズームイン（1段階）
 signal zoom_out_requested        # システムメニュー: ズームアウト（1段階）
 signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲滅（デバッグビルドのみ出る項目）
 signal debug_event_requested(index: int)  # デバッグメニュー: 未発生イベントを起こす（一覧の何番目か）
+
+## ボタンの絵。`{id}.png` が在れば文字の左に出し、無ければ文字だけ（特性アイコンと同じ規約）。
+## 記号を文字（⚙）で置かない＝UI のフォントを決めていないので OS の代替フォントで形が変わる。作りは doc/art/icons.md
+const ICON_DIR := "res://assets/icons/hud/"
+const ICON_SIZE := 24  # 板の高さ40から上下の余白6ずつを引いた中身28に収める
 
 var _end_btn: Button
 var _info_btn: Button
@@ -34,19 +40,16 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 盤のクリックを通す（ボタンだけ拾う）
 
 	# wood_button は focus_mode=NONE 済み（＝Enter(ターン終了)で誤発火しない）
-	_gear = TavernTheme.wood_button(tr("ui.hud.menu"))
-	_gear.size = Vector2(110, 40)
+	_gear = _button("ui.hud.menu", "menu", 110.0)
 	_gear.pressed.connect(open_system_menu)
 	add_child(_gear)
 
-	_end_btn = TavernTheme.wood_button(tr("ui.hud.end_turn"))
-	_end_btn.size = Vector2(140, 40)
+	_end_btn = _button("ui.hud.end_turn", "end_turn", 140.0)
 	_end_btn.pressed.connect(func() -> void: end_turn_requested.emit())
 	add_child(_end_btn)
 
 	# 情報板の畳む／開く。左下のメニューの右。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
-	_info_btn = TavernTheme.wood_button(tr("ui.hud.info_panel"))
-	_info_btn.size = Vector2(110, 40)
+	_info_btn = _button("ui.hud.info_panel", "info_panel", 110.0)
 	_info_btn.pressed.connect(func() -> void: info_panel_toggle_requested.emit())
 	add_child(_info_btn)
 
@@ -61,8 +64,7 @@ func _ready() -> void:
 	_menu.add_separator()
 	_menu.add_item(tr("ui.hud.save"), SYS_SAVE)
 	_menu.add_item(tr("ui.hud.load"), SYS_LOAD)
-	_menu.add_item(tr("ui.hud.settings"), SYS_SETTINGS)
-	_menu.set_item_disabled(_menu.get_item_index(SYS_SETTINGS), true)  # 設定は今後のフェーズ（今は無効表示）
+	_menu.add_item(tr("ui.hud.settings"), SYS_SETTINGS)  # タイトルと同じ設定画面を盤の上に開く（doc/gdd/settings.md）
 	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), true)  # ロードは中断セーブが在るときだけ有効（main が切替）
 	_menu.add_separator()
 	_menu.add_item(tr("ui.hud.close"), SYS_CLOSE)
@@ -79,6 +81,18 @@ func _ready() -> void:
 
 	_reposition()
 	get_viewport().size_changed.connect(_reposition)
+
+## 木の板ボタンを作る。絵（ICON_DIR/{icon_id}.png）が在れば文字の左に載せる。
+## 幅は文字が収まる目安で、実幅は最小サイズで広がりうる（_reposition は実幅で並べる）。
+func _button(key: String, icon_id: String, width: float) -> Button:
+	var b := TavernTheme.wood_button(tr(key))
+	b.size = Vector2(width, 40)
+	var path := ICON_DIR + icon_id + ".png"
+	if ResourceLoader.exists(path):
+		b.icon = load(path)
+		b.add_theme_constant_override("icon_max_width", ICON_SIZE)
+		b.add_theme_constant_override("h_separation", 6)
+	return b
 
 ## ボタンを置き直す（起動時・リサイズ時）。左下にメニューと情報板、盤エリアの右下にターン終了。
 ## ターン終了を単独にするのは、毎ターン押すぶん押し間違いのダメージが大きく、距離で守るため
@@ -143,6 +157,8 @@ func _on_sys_id(id: int) -> void:
 			save_requested.emit()
 		SYS_LOAD:
 			load_requested.emit()
+		SYS_SETTINGS:
+			settings_requested.emit()
 		SYS_ZOOM_IN:
 			zoom_in_requested.emit()
 		SYS_ZOOM_OUT:

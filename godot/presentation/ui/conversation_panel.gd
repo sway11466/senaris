@@ -114,6 +114,13 @@ func _reveal_next() -> void:
 	_next_btn.text = tr(_finish_label) if _shown >= _lines.size() else tr("ui.talk.next")
 	_scroll_to_last()
 
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## パネルは起動時に1度だけ作って生き続けるので、板に焼いたボタンの文字だけ差し替える。
+## 会話の本文は流すたびに組むので触らない。
+func refresh_labels() -> void:
+	_skip_btn.text = tr("ui.talk.skip")
+	_next_btn.text = tr(_finish_label) if not _finish_label.is_empty() and _shown >= _lines.size() else tr("ui.talk.next")
+
 ## 台本の1行。辞書でなければ空辞書に倒す（壊れたデータで会話を止めない）。
 func _line_at(index: int) -> Dictionary:
 	var v: Variant = _lines[index]

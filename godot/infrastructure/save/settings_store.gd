@@ -13,6 +13,13 @@ const VERSION := 1
 ## 選べる言語。翻訳CSVの列（doc/tech/i18n.md）と対応する。
 const LOCALES := ["ja", "en"]
 
+## 音量の系統。ファイルの項目名は "volume_<系統>"。どの AudioServer のバスに当てるかは main が決める。
+const VOLUME_BUSES := ["master", "music", "sfx"]
+const VOLUME_MAX := 100  # 0〜100 の整数。100＝素材そのままの音量（バス 0 dB）
+
+## 画面モード。仕様 → doc/gdd/settings.md 画面
+const WINDOW_MODES := ["windowed", "fullscreen"]
+
 var _path: String
 var _values := {}  # 項目 -> 値（プレイヤーが選んだものだけ）
 
@@ -34,6 +41,41 @@ func set_locale(value: String) -> void:
 		push_error("SettingsStore: 知らない言語: %s" % value)
 		return
 	_values["locale"] = value
+	_save()
+
+## 音量（0〜100）。まだ選ばれていなければ 100＝素材そのままの音量。
+func volume(bus: String) -> int:
+	if not VOLUME_BUSES.has(bus):
+		push_error("SettingsStore: 知らない音量の系統: %s" % bus)
+		return VOLUME_MAX
+	var v: Variant = _values.get("volume_" + bus, null)
+	if v is int:
+		return int(v)
+	return VOLUME_MAX
+
+## 音量を選んだ。範囲外は書かない（スライダーの範囲が正本＝ここで丸めて誤魔化さない）。
+func set_volume(bus: String, value: int) -> void:
+	if not VOLUME_BUSES.has(bus):
+		push_error("SettingsStore: 知らない音量の系統: %s" % bus)
+		return
+	if value < 0 or value > VOLUME_MAX:
+		push_error("SettingsStore: 音量が範囲外: %s=%d" % [bus, value])
+		return
+	_values["volume_" + bus] = value
+	_save()
+
+## 画面モード。まだ選ばれていなければウィンドウ（project.godot の起動時の形と同じ）。
+func window_mode() -> String:
+	var v: Variant = _values.get("window_mode", null)
+	if v is String and WINDOW_MODES.has(v):
+		return String(v)
+	return "windowed"
+
+func set_window_mode(value: String) -> void:
+	if not WINDOW_MODES.has(value):
+		push_error("SettingsStore: 知らない画面モード: %s" % value)
+		return
+	_values["window_mode"] = value
 	_save()
 
 ## 情報板を畳んでいるか。まだ選ばれていなければ開いている。仕様 → doc/gdd/uiux.md 最小化
@@ -81,6 +123,14 @@ func _load() -> void:
 	var loc: Variant = data.get("locale", null)
 	if loc is String and LOCALES.has(loc):
 		_values["locale"] = String(loc)
+	for bus in VOLUME_BUSES:
+		var vol: Variant = data.get("volume_" + bus, null)
+		# JSON の数は float で読まれる。整数値で範囲内のものだけ採る（手編集の 50.5 や 200 は無視）。
+		if _is_number(vol) and float(vol) == floor(float(vol)) and int(vol) >= 0 and int(vol) <= VOLUME_MAX:
+			_values["volume_" + bus] = int(vol)
+	var mode: Variant = data.get("window_mode", null)
+	if mode is String and WINDOW_MODES.has(mode):
+		_values["window_mode"] = String(mode)
 	var minimized: Variant = data.get("info_panel_minimized", null)
 	if minimized is bool:
 		_values["info_panel_minimized"] = bool(minimized)

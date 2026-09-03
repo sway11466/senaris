@@ -89,3 +89,64 @@ func test_unknown_locale_in_file_is_ignored() -> void:
 	f = null
 	var expected := "ja" if OS.get_locale_language() == "ja" else "en"
 	assert_eq(SettingsStore.new(PATH).locale(), expected, "手編集で入った知らない言語は無視する")
+
+func test_unset_volume_is_full() -> void:
+	var store := SettingsStore.new(PATH)
+	for bus in SettingsStore.VOLUME_BUSES:
+		assert_eq(store.volume(bus), 100, "選ばれるまでは素材そのまま（100）: %s" % bus)
+	assert_false(FileAccess.file_exists(PATH), "選ぶまではファイルを作らない")
+
+func test_volume_persists_per_bus() -> void:
+	SettingsStore.new(PATH).set_volume("music", 35)
+	SettingsStore.new(PATH).set_volume("sfx", 0)
+	var store := SettingsStore.new(PATH)
+	assert_eq(store.volume("music"), 35, "別インスタンスで読み直しても残る")
+	assert_eq(store.volume("sfx"), 0, "0（無音）も選んだ値として残る")
+	assert_eq(store.volume("master"), 100, "選んでいない系統は素材そのまま")
+
+func test_volume_out_of_range_is_rejected() -> void:
+	var store := SettingsStore.new(PATH)
+	store.set_volume("master", 101)
+	assert_push_error("音量が範囲外")
+	store.set_volume("master", -1)
+	assert_push_error("音量が範囲外")
+	store.set_volume("voice", 50)
+	assert_push_error("知らない音量の系統")
+	assert_false(FileAccess.file_exists(PATH), "範囲外・知らない系統は書かない")
+
+func test_broken_volume_in_file_is_ignored() -> void:
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({ "version": SettingsStore.VERSION,
+		"volume_master": 200, "volume_music": 50.5, "volume_sfx": "loud" }))
+	f = null
+	var store := SettingsStore.new(PATH)
+	assert_eq(store.volume("master"), 100, "範囲外は無いものとして扱う")
+	assert_eq(store.volume("music"), 100, "整数でない値は無いものとして扱う")
+	assert_eq(store.volume("sfx"), 100, "文字列は無いものとして扱う")
+
+func test_whole_float_volume_in_file_is_read_as_int() -> void:
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({ "version": SettingsStore.VERSION, "volume_music": 40.0 }))
+	f = null
+	assert_eq(SettingsStore.new(PATH).volume("music"), 40, "JSON の 40.0（float）は 40 として読む")
+
+func test_unset_window_mode_is_windowed() -> void:
+	var store := SettingsStore.new(PATH)
+	assert_eq(store.window_mode(), "windowed", "選ばれるまではウィンドウ")
+	assert_false(FileAccess.file_exists(PATH), "選ぶまではファイルを作らない")
+
+func test_window_mode_persists() -> void:
+	SettingsStore.new(PATH).set_window_mode("fullscreen")
+	assert_eq(SettingsStore.new(PATH).window_mode(), "fullscreen", "別インスタンスで読み直しても残る")
+	SettingsStore.new(PATH).set_window_mode("windowed")
+	assert_eq(SettingsStore.new(PATH).window_mode(), "windowed", "選び直しは上書きされる")
+
+func test_unknown_window_mode_is_rejected() -> void:
+	var store := SettingsStore.new(PATH)
+	store.set_window_mode("borderless")
+	assert_push_error("知らない画面モード")
+	assert_false(FileAccess.file_exists(PATH), "知らない画面モードは書かない")
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({ "version": SettingsStore.VERSION, "window_mode": "borderless" }))
+	f = null
+	assert_eq(SettingsStore.new(PATH).window_mode(), "windowed", "手編集で入った知らないモードは無視する")
