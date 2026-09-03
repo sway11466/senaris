@@ -349,12 +349,12 @@ t3.st4.outro.3,山には鳥人の里があるわ。崖に棲む連中よ。,"The
 t3.st4.outro.4,山へ登る。先に里へ着くぞ。,"We climb. And we reach that village first."
 t3.st4.outro.5,森を荒らすなんて許せないわ。二度と同じ事ができないようにしないと。,"Tearing up the forest — I will not have it. They must never be able to do this again."
 t3.st5.intro.1,山の空気が濁っています。獣たちが降りてきている。,"The mountain air is fouled. The beasts are coming down."
-t3.st5.intro.2,巣が空だ。あの騒ぎようは、子を取られた親の声だ。,"The nests are empty. That clamor is parents whose young were taken."
-t3.st5.intro.3,ならば急ぐぞ。あいつらが親を使い切る前に、こちらが先に手を貸す。,"Then we hurry. We lend a hand before those villains use the parents up."
-t3.st5.intro.4,空はやりたい放題ね。こっちは崖を回り込むしかないのに。,"The sky does as it pleases, while we have to go the long way around the cliffs."
-t3.st5.intro.5,崖の途中に小屋があるわ。屋根は落ちてるけど、休むぶんには十分。,"There's a hut partway up the cliff. The roof is gone, but it's enough to rest in."
-t3.st5.intro.6,山道はわしに任せろ。岩の上は庭のようなものだ。,"Leave the mountain paths to me. Rock is a garden to a dwarf."
-t3.st5.intro.7,受けるだけでは里を取られます。押さえながら、進みましょう。,"Only weathering the attacks loses us the village. Hold them, and keep moving."
+t3.st5.intro.2,荒らされた山から魔獣が降りてきているな。崖の上に鳥人の里が見える。,"Beasts driven down from the ravaged mountains. I can see a birdfolk village up on the cliffs."
+t3.st5.intro.3,竜の巣の在処を知っている者がいるとすれば、空から山を見下ろしている連中だ。頼みに行こう。,"If anyone knows where the dragon's nest lies, it is those who look down on these mountains from the sky. Let us go and ask."
+t3.st5.intro.4,ローグたちも山に入っているはずです。里に近づいているかもしれません。,"The rogues must have entered the mountains as well. They may be closing on the village."
+t3.st5.intro.5,ただし道中は魔獣だらけよ。山から降りてきた連中が崖にたかっている。,"The road is crawling with beasts, though. The ones driven down are swarming the cliffs."
+t3.st5.intro.6,崖の途中に小屋があるわ。屋根は落ちてるけど、休むぶんには十分。,"There's a hut partway up the cliff. The roof is gone, but it's enough to rest in."
+t3.st5.intro.7,山道はわしに任せろ。岩の上は庭のようなものだ。,"Leave the mountain paths to me. Rock is a garden to a dwarf."
 t3.st5.outro.1,子供たちは無事です！ 親のところへ返しました。,"The children are safe! We've returned them to their parents."
 t3.st5.outro.2,律儀な連中ね。恩は返す、って顔してるわ。,"Dutiful sorts. They have the look of people who repay a debt."
 t3.st5.outro.3,悪党どもが探していたのは、竜の巣の入口だ。場所は洞窟で間違いない。,"What the villains were hunting for is the entrance to the dragon's nest. It's the caves, no question."
@@ -398,7 +398,7 @@ t3.st4.rogue.4,森を荒らしに来た連中が後から来る、と言えば�
 t3.st5.rogue.1,頭、山が深すぎまさあ。巣の入口なんぞ、どこにも見当たらねえ。,"Boss, the mountains run too deep. There's no sign of the nest's mouth anywhere."
 t3.st5.rogue.2,鳥どもは巣から山を見下ろしている。探させればいい。,"The birdfolk look down on these mountains from their eyries. Let them do the searching."
 t3.st5.rogue.3,素直に案内しますかね。,"Think they'll show us willingly?"
-t3.st5.rogue.4,子を預かっている。それで十分だ。,"We are holding their young. That will be enough."
+t3.st5.rogue.4,こっそり里に忍び込んで、ガキをさらう。親は言うことを聞くさ。,"We sneak into the village and grab the young ones. The parents will do as they're told."
 t3.st6.rogue.1,頭、傷が……。水場だ、水場まで戻らねえと。,"Boss, the wounds… we have to get back to the water. The water."
 t3.st6.rogue.2,泉を伝って抜ける。奥へは戻れん、あんなものが居座っていては。,"We go out by way of the springs. We cannot go back in, not with that thing sitting there."
 t3.st6.rogue.3,あれは、いってえ……。,"What in the world was that…"
@@ -418,6 +418,7 @@ t3.st4.squad.3,マンドラゴラ,Mandragora
 t3.st4.squad.4,ローグ一味,Bandit Gang
 t3.st5.intro.8,崖の上までは、わたしの魔法は届きません……。,"My magic will not reach the top of the cliffs…"
 t3.st5.intro.9,届く者が撃つ。君は道の獣を頼む。,"Those who can reach will shoot. You take the beasts on the path."
+t3.st5.intro.10,魔獣を片付けながら里を目指すぞ。あいつらより先に着く。,"We clear the beasts as we go and make for the village. We arrive before they do."
 t3.st5.squad.1,崖のハーピー,Cliff Harpies
 t3.st5.squad.2,降りてきたグリフォン,Swooping Griffon
 t3.st5.squad.3,山道の魔獣,Beasts of the Pass
