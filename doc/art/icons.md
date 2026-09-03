@@ -9,10 +9,11 @@
 | 種別 | 置き場 | 出る場所 |
 |---|---|---|
 | 特性（敵AI） | `godot/assets/icons/ai/{特性id}.png` | 情報パネルの見出し（→ [../gdd/uiux.md](../gdd/uiux.md) ユニット情報パネル） |
+| HUD のボタン | `godot/assets/icons/hud/{ボタンid}.png` | 下のボタン群（メニュー・情報板・ターン終了）の文字の左（→ [../gdd/uiux.md](../gdd/uiux.md) ターン終了・システムメニュー） |
 
 - 絵は在れば出す。無ければ額ごと消えて特性名の文字だけになるので、絵を1枚ずつ足していける。
-- 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。
-- 表示寸法は額の外寸44px・内側36px。書き出しは128pxで、拡大表示が要るようになってもそのまま使える。
+- 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。HUD のボタンは額なしで板に直に載せる。
+- 表示寸法は特性が額の外寸44px・内側36px、HUD のボタンが高さ24px。書き出しは128pxで、拡大表示が要るようになってもそのまま使える。
 
 ## 2. 生成方式（ICON STYLE）
 
@@ -36,6 +37,25 @@ border, and no photographic rendering, bloom, gradients, particles or metallic
 sheen.
 ```
 
+HUD のボタン用（HUD ICON STYLE）。プレイヤーの道具の記号なので、敵の印の一文（grim and menacing）を道具の一文に替え、読める寸法を24pxにする。それ以外は同じ:
+
+```
+STYLE: A single fantasy game UI icon: ONE isolated emblem on an empty
+background, drawn as a branding-iron mark burned into a dark wooden signboard —
+a bold flat shape in warm amber-gold, one light tone plus at most one slightly
+darker tone of the same amber, with hard flat edges. Clean stylized vector-like
+shapes, the same slightly muted look as the game's unit pieces. This mark labels
+a TOOL the player uses, so it reads as plain, sturdy and calm: a familiar
+everyday object, tidy and honest, neither menacing nor ornate. Follow the
+arrangement the subject describes exactly, including which way each element
+points and where each element sits. A crisp, bold silhouette that still reads
+when shrunk to 24 pixels tall. The mark fills the square canvas edge to edge,
+leaving only a thin margin. Square 1:1 composition. Keep the frame clean: the
+emblem alone, no characters, no hands, no ground, no scenery, no text, no
+border, and no photographic rendering, bloom, gradients, particles or metallic
+sheen.
+```
+
 SUBJECT を書くときの勘所（実地で効いたもの）:
 
 - 画角いっぱいに描かせる。放っておくと黒地の中央に小さく置かれる。「左右の辺に触れる」「余白は数パーセント」と辺を基準に指定する。
@@ -44,7 +64,7 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 - 語がモチーフを呼ぶ。`wings` は鳥の翼を呼ぶので、コウモリなら膜・リブ・鉤爪という部品で描写する。
 - 禁止を並べるより、位置と向きを肯定文で言い切る。「鏡像にするな」は効かないが、「鼻面が左の辺を指し、耳は頭蓋の右側にある」と書けば反転は起きない。禁止したい語を書くほど、その像が絵に出る。
 - 対称は SUBJECT に持たせる。共通STYLEに「左右対称」と書くと、同じ向きの複製を3つ並べる絵で下の2つが鏡像になる（群れで踏んだ）。STYLE 側は「SUBJECT の配置と向きにそのまま従う」までにする。
-- 輪郭の型を5種で散らす。色は全部同じなので、横長・縦長・丸・反復のように外形の型を分けておくと、名前を読まなくても取り違えない。
+- 輪郭の型を5種で散らす。色は全部同じなので、横長・縦長・丸・反復のように外形の型を分けておくと、名前を読まなくても取り違えない。HUD も同じ（歯車＝丸・砂時計＝縦長・立て看板＝横長）。
 - 背景は切り抜きのコントラストで選ぶ。明るい印なら黒。暗い輪郭を持たせるなら黒どうしで分離できないので白にする。
 
 ## 3. 保管・書き出し
