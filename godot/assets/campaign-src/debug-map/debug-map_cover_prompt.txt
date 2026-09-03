@@ -1,8 +1,8 @@
-# debug-mapops（デバッグ：マップ操作）の冒険譚カード用プロンプト＝完全版（STYLE込み・自己完結）。
+# debug-map（デバッグ：マップ操作）の冒険譚カード用プロンプト＝完全版（STYLE込み・自己完結）。
 # このデバッグカードだけは共通 ILLUST STYLE（2〜2.5頭身・NOT moe）から意図的に外す
 # ＝可愛い＋色気のモチベ絵。よって STYLE を含む完全版をここに置き、貼るのはこの1ファイルで済む。
 # 生成後: 透かし（右下の sparkle）だけ局所的に消す（右端の帯クロップはしない＝全面を活かす）
-#   → assets/campaign/debug-mapops/debug-mapops_cover*.png（連番＝表示ごとにランダム）。
+#   → assets/campaign/debug-map/debug-map_cover*.png（連番＝表示ごとにランダム）。
 # 意味付け: マップ操作＝輸送・陣形・移動＝盤上でコマを動かすこと。ヘックス地図で駒を動かす女軍師のメタ。
 
 STYLE: A dramatic fantasy key-art illustration for a hex-grid tactics game, in

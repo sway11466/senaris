@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bh2nxp7hd12hx"
-path="res://.godot/imported/debug-mapops_cover_3.png-cb243e9d5bc1eeed7873e9a64fd27572.ctex"
+uid="uid://cdi0lss77pvib"
+path="res://.godot/imported/debug-map_cover_9.png-3cb73d316afe80557d852c3fcd7fe8fe.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/campaign/debug-mapops/debug-mapops_cover_3.png"
-dest_files=["res://.godot/imported/debug-mapops_cover_3.png-cb243e9d5bc1eeed7873e9a64fd27572.ctex"]
+source_file="res://assets/campaign/debug-map/debug-map_cover_9.png"
+dest_files=["res://.godot/imported/debug-map_cover_9.png-3cb73d316afe80557d852c3fcd7fe8fe.ctex"]
 
 [params]
 
