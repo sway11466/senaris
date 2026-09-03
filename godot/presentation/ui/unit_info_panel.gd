@@ -32,7 +32,7 @@ const TABS := [["ability", "ui.info.tab_ability"], ["status", "ui.info.tab_statu
 	["terrain", "ui.info.tab_terrain"]]
 
 ## 特性アイコン（`{特性id}.png`）。ユニット画像と同じ規約解決で、在れば出す・無ければ文字だけ。
-const AI_ICON_DIR := "res://assets/ui/ai/"
+const AI_ICON_DIR := "res://assets/icons/ai/"
 const AI_FRAME_SIZE := 44.0  # 額の外寸（見出し2行ぶん）。絵は縁と余白のぶん内側に入る
 
 var _state: BattleState

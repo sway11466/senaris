@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqwrsekoh6ywo"
-path="res://.godot/imported/predator.png-d89318eec5876e5e9f1d87302d26e840.ctex"
+path="res://.godot/imported/predator.png-0cdbe77228cf3f0154124f7d2ce9d179.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/ai/predator.png"
-dest_files=["res://.godot/imported/predator.png-d89318eec5876e5e9f1d87302d26e840.ctex"]
+source_file="res://assets/icons/ai/predator.png"
+dest_files=["res://.godot/imported/predator.png-0cdbe77228cf3f0154124f7d2ce9d179.ctex"]
 
 [params]
 

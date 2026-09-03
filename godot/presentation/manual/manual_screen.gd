@@ -64,7 +64,7 @@ const TAB_HEIGHT := 30
 const TAB_FONT_SIZE := 15
 ## タブのアイコン。情報パネル（unit_info_panel.gd）と同じ場所・同じ規約＝`{特性id}.png` が
 ## 在れば出し、無ければ文字だけで並ぶ。タブを持つ節がいまは敵AIの特性だけなのでここを見る。
-const TAB_ICON_DIR := "res://assets/ui/ai/"
+const TAB_ICON_DIR := "res://assets/icons/ai/"
 const TAB_ICON_SIZE := 20
 const TAB_ICON_GAP := 6
 const HEAD_BOTTOM_GAP := 10     # 見出し・タブと本文の間

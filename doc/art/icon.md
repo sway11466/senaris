@@ -1,6 +1,6 @@
 # アプリアイコン
 
-ウィンドウ・タスクバー・実行ファイルに出る絵の正本。ロゴの紋章から文字を落としたもので、モチーフ・配色・幾何は [logo.md](logo.md) が正本。作業ソースは `godot/assets/icon-src/`。
+ウィンドウ・タスクバー・実行ファイルに出る絵の正本。ロゴの紋章から文字を落としたもので、モチーフ・配色・幾何は [logo.md](logo.md) が正本。作業ソースは `godot/assets/appicon-src/`。
 
 ---
 
@@ -42,10 +42,10 @@
 
 | 段階 | 置き場 | 例 |
 | --- | --- | --- |
-| ① 作業元（SVG） | `godot/assets/icon-src/icon_large.svg` / `icon_small.svg` | `build_logo.py` の出力 |
-| ② 中間の PNG | `godot/assets/icon-src/png/icon_<寸法>.png` | 16〜256 |
-| ③ ゲーム用 | `godot/assets/icon/icon.png` / `icon.ico` | 256px の PNG と、②を束ねた ICO |
-| ④ 見え方の確認 | `godot/assets/icon-src/preview.png` | ②を暗い地と明るい地に並べた1枚 |
+| ① 作業元（SVG） | `godot/assets/appicon-src/icon_large.svg` / `icon_small.svg` | `build_logo.py` の出力 |
+| ② 中間の PNG | `godot/assets/appicon-src/png/icon_<寸法>.png` | 16〜256 |
+| ③ ゲーム用 | `godot/assets/appicon/icon.png` / `icon.ico` | 256px の PNG と、②を束ねた ICO |
+| ④ 見え方の確認 | `godot/assets/appicon-src/preview.png` | ②を暗い地と明るい地に並べた1枚 |
 
 作り直す手順は、`build_logo.py` を走らせて①を出し、`build_icon.ps1` で②〜④を焼く（[../tech/tools.md](../tech/tools.md)）。ICO は Godot が書けないので ImageMagick で束ねる。透過は残す（地の色は焼かない）。
 
@@ -53,9 +53,9 @@
 
 | 設定 | 値 |
 | --- | --- |
-| `application/config/icon` | `res://assets/icon/icon.png` |
-| `application/config/windows_native_icon` | `res://assets/icon/icon.ico` |
-| エクスポートプリセットの `application/icon` | `res://assets/icon/icon.ico` |
+| `application/config/icon` | `res://assets/appicon/icon.png` |
+| `application/config/windows_native_icon` | `res://assets/appicon/icon.ico` |
+| エクスポートプリセットの `application/icon` | `res://assets/appicon/icon.ico` |
 
 `config/icon` はエディタとプロジェクトマネージャが使い、ネイティブアイコンが無いときのウィンドウにも使われる。`windows_native_icon` を指すと、実行中のウィンドウとタスクバーが ICO の中から寸法に合う絵を選ぶ＝小さいときに1枚版が出る。ICO は Godot のリソースではないので、pck に入れるには非リソースのフィルタが要る（[../tech/build.md](../tech/build.md)）。実行ファイルに焼くアイコンはエクスポートプリセット側が持つ。
 

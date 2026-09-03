@@ -8,7 +8,7 @@
 
 | 種別 | 置き場 | 出る場所 |
 |---|---|---|
-| 特性（敵AI） | `godot/assets/ui/ai/{特性id}.png` | 情報パネルの見出し（→ [../gdd/uiux.md](../gdd/uiux.md) ユニット情報パネル） |
+| 特性（敵AI） | `godot/assets/icons/ai/{特性id}.png` | 情報パネルの見出し（→ [../gdd/uiux.md](../gdd/uiux.md) ユニット情報パネル） |
 
 - 絵は在れば出す。無ければ額ごと消えて特性名の文字だけになるので、絵を1枚ずつ足していける。
 - 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。
@@ -51,21 +51,21 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 
 | 段階 | 置き場（`{group}`＝種別フォルダ・`{id}`＝アイコンID） | 例 |
 |---|---|---|
-| ① SUBJECT | `godot/assets/ui-src/{group}/{id}/{id}_prompt.txt` | `ui-src/ai/charge/charge_prompt.txt` |
-| ② AI生成直後（原寸） | `godot/assets/ui-src/{group}/{id}/{id}_01_raw.png`（`.jpg` も可） | `ui-src/ai/charge/charge_01_raw.jpg` |
-| ③ ゲーム用（128px・透過） | `godot/assets/ui/{group}/{id}.png` | `ui/ai/charge.png` |
+| ① SUBJECT | `godot/assets/icons-src/{group}/{id}/{id}_prompt.txt` | `icons-src/ai/charge/charge_prompt.txt` |
+| ② AI生成直後（原寸） | `godot/assets/icons-src/{group}/{id}/{id}_01_raw.png`（`.jpg` も可） | `icons-src/ai/charge/charge_01_raw.jpg` |
+| ③ ゲーム用（128px・透過） | `godot/assets/icons/{group}/{id}.png` | `icons/ai/charge.png` |
 
 - ③だけがゲームの読む正。`{group}` はそのままゲーム側のフォルダになるので、種別が増えてもツールは変えない。
-- ①②は作業ソース。`godot/assets/ui-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。
+- ①②は作業ソース。`godot/assets/icons-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。
 - 手で抜きたい絵は `{id}_03_master.png`（透過済み）を同じフォルダに置く。ツールは master があればそちらを優先するので、自動の抜きで足りない1枚だけ差し替えられる。ユニットと違って master は常備しない＝背景が単色フラットなので、ふつうは②から直接書き出せる。
 
 書き出し:
 
 ```
-powershell -File godot\tools\gen_ui_icon.ps1 charge      # 複数可 / all で全アイコン
+powershell -File godot\tools\gen_icon.ps1 charge      # 複数可 / all で全アイコン
 ```
 
-輝度からアルファを起こして背景を抜き（暗いほど透明・しきい値は6〜20%）、余白をトリムして128px四方に収める（[`../../tools/gen_ui_icon.ps1`](../../godot/tools/gen_ui_icon.ps1)）。色は動かさない。抜いたあとは木の色に載せて拡大し、輪郭に黒い縁（ハロー）が残っていないかを見る。
+輝度からアルファを起こして背景を抜き（暗いほど透明・しきい値は6〜20%）、余白をトリムして128px四方に収める（[`../../tools/gen_icon.ps1`](../../godot/tools/gen_icon.ps1)）。色は動かさない。抜いたあとは木の色に載せて拡大し、輪郭に黒い縁（ハロー）が残っていないかを見る。
 
 ---
 
@@ -76,4 +76,4 @@ powershell -File godot\tools\gen_ui_icon.ps1 charge      # 複数可 / all で�
 - [menu.md](menu.md) — メニュー画面の材質（木の看板・羊皮紙）
 - [../gdd/uiux.md](../gdd/uiux.md) — 情報パネル（アイコンの出る場所）
 - [../gdd/ai.md](../gdd/ai.md) — 特性（アイコンにする対象）
-- [`../../tools/gen_ui_icon.ps1`](../../godot/tools/gen_ui_icon.ps1) — 書き出しツール
+- [`../../tools/gen_icon.ps1`](../../godot/tools/gen_icon.ps1) — 書き出しツール

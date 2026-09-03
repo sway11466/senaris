@@ -5,7 +5,7 @@ extends Node2D
 ## 進行管理（解放判定・クリア記録）は application/campaign_progress.gd。仕様 → doc/gdd/stage_select.md
 ## デバッグ用ステージは data/stages/debug-*/（機能別の debug:true 冒険譚としてセレクトに出る）。一覧 → doc/tech/debug-stages.md
 
-const BOARD_LOGO_PATH := "res://assets/ui/logo.png"  # 盤の右上に常設するタイトルロゴ
+const BOARD_LOGO_PATH := "res://assets/logo/logo.png"  # 盤の右上に常設するタイトルロゴ
 
 var _skins := {}
 var _ai_presets := {}  # 特性表（data/ai/ai.json）。特性id -> パラメーター辞書（既定値）

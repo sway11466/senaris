@@ -8,8 +8,8 @@ extends SceneTree
 ##
 ## .ico に束ねるのは ImageMagick なので、通しで作り直すときは build_icon.ps1 を使う。
 
-const SRC_DIR := "res://assets/icon-src"
-const OUT_DIR := "res://assets/icon"
+const SRC_DIR := "res://assets/appicon-src"
+const OUT_DIR := "res://assets/appicon"
 const SMALL := [16, 24, 32, 48]  # 1枚版（icon_small.svg）
 const LARGE := [64, 128, 256]    # 7枚版（icon_large.svg）
 const APP_ICON_PX := 256         # project.godot の config/icon に指す PNG

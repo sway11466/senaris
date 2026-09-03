@@ -327,6 +327,6 @@ if __name__ == "__main__":
                            weapon_scale=0.48, sweep="tile", square=True),
     }
     for name, kw in icons.items():
-        p = "assets/icon-src/%s.svg" % name
+        p = "assets/appicon-src/%s.svg" % name
         open(p, "w", encoding="utf-8").write(build("dark", shrink=0.90, **kw))
         print("wrote", p)

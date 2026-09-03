@@ -14,7 +14,7 @@ LOGO_FULL_PNG は SVG から焼いた中間物。作り直すときは
 """
 from PIL import Image, ImageDraw
 
-LOGO_PNG = "assets/ui/logo.png"  # 盤の常設版＝小サイズ版・暗背景
+LOGO_PNG = "assets/logo/logo.png"  # 盤の常設版＝小サイズ版・暗背景
 LOGO_FULL_PNG = "assets/promo-src/logo/logo_dark_2x.png"  # フル版・暗背景
 DRAGON_PNG = "assets/units/red_dragon/red_dragon_combat.png"
 OUT_DIR = "assets/promo-src/keyvisual"

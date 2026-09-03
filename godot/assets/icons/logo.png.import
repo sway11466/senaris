@@ -2,16 +2,12 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://celha4stxgmlf"
-path="res://.godot/imported/charge.png-efdcbbf3e051dc8a556a9c61d57f9bdb.ctex"
-metadata={
-"vram_texture": false
-}
+uid="uid://bl1h24e376yxc"
+valid=false
 
 [deps]
 
-source_file="res://assets/ui/ai/charge.png"
-dest_files=["res://.godot/imported/charge.png-efdcbbf3e051dc8a556a9c61d57f9bdb.ctex"]
+source_file="res://assets/icons/logo.png"
 
 [params]
 

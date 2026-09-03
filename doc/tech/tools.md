@@ -27,7 +27,7 @@
 |---|---|---|---|
 | `gen_unit_map.ps1` | ユニットの master から map 画像（384四方・透過・64色）を書き出す | `powershell -File godot\tools\gen_unit_map.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_unit_combat.ps1` | ユニットの master から combat 立ち絵（512四方・下端揃え・透過）を書き出す | `powershell -File godot\tools\gen_unit_combat.ps1 <skin_id> … \| all` | [../art/units.md](../art/units.md) |
-| `gen_ui_icon.ps1` | UIアイコンの raw から表示用（長辺128・透過・正方の枠に収める）を書き出す。地の色を明度で抜く＝手描きの master を置けばそちらが勝つ | `powershell -File godot\tools\gen_ui_icon.ps1 <icon_id> … \| all` | [../art/ui.md](../art/ui.md) |
+| `gen_icon.ps1` | UIアイコンの raw から表示用（長辺128・透過・正方の枠に収める）を書き出す。地の色を明度で抜く＝手描きの master を置けばそちらが勝つ | `powershell -File godot\tools\gen_icon.ps1 <icon_id> … \| all` | [../art/icons.md](../art/icons.md) |
 | `gen_effect.ps1` | 攻撃エフェクトの master をトリムして長辺512に収める（大小は `combat_effect.csv` の `scale` が持つので余白は焼かない） | `powershell -File godot\tools\gen_effect.ps1 <effect_id> … \| all` | [../art/units.md](../art/units.md) |
 | `gen_formation_impact.ps1` | 陣形スキルの盤の着弾エフェクトの master をトリムして長辺512に収める（絵は下向きに描く＝盤では回さない） | `powershell -File godot\tools\gen_formation_impact.ps1 <recipe_id> … \| all` | [../art/keyvisual.md](../art/keyvisual.md) |
 | `gen_terrain_tile.ps1` | 元絵をフラットトップのヘックスに切り抜いて地形タイルにする（2枚目以降は variant）。`-Object` はヘックスではなく立ち絵として書き出す（幅はヘックス幅比＝terrain_skin.csv の `map_scale`） | `powershell -File godot\tools\gen_terrain_tile.ps1 <name> <src1> <src2> …` | [../art/terrain.md](../art/terrain.md) |

@@ -111,7 +111,9 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 
 - 戦闘でとどめ（殲滅・ボス撃破）：最後の一斉射をスロー再生し、窓の中身を激突点へ寄せる。
 - 陣形スキルでとどめ：カットインは現行のまま、盤の着弾（撃破の出る側）をスローにし、カメラを着弾ヘックスへ寄せる。
-- 本拠の占領：一撃が無いのでスローは無し。カメラが本拠へ寄る → 旗が変わる → 白フラッシュ、の並びで代える。
+- 本拠の占領：一撃が無いのでスローは無し。カメラが本拠へ寄る → 決着の光（旗の変わった本拠を光らせる）→ 白フラッシュ、の並びで代える。旗そのものは占領が成立した瞬間に変わっている（盤は状態を偽らない）＝寄った後に変えて見せる嘘はつかない。
+
+実装 → [../../godot/presentation/ui/finish_flash.gd](../../godot/presentation/ui/finish_flash.gd)（白フラッシュ）・[../../godot/presentation/main/main.gd](../../godot/presentation/main/main.gd)（`_on_combat_resolved`・`_play_board_finisher`・`_show_result`＝経路の振り分け）・[../../godot/presentation/combat/combat_scene.gd](../../godot/presentation/combat/combat_scene.gd)（とどめの一斉射のスロー＋寄り）・[../../godot/presentation/board/board_impact_renderer.gd](../../godot/presentation/board/board_impact_renderer.gd)（着弾のスロー）・[../../godot/presentation/board/board_camera.gd](../../godot/presentation/board/board_camera.gd)（`zoom_to_finish`）
 
 ---
 
@@ -344,7 +346,7 @@ Senaris の入力・画面操作の設計。基本は本ジャンルの定番（
 
 作品名を見せる場所として盤を選ぶ。プレイヤーがスクリーンショットを貼るのも、配信で映るのも盤面であって、タイトル画面ではない。名前と体験が結び付くのはここになる。逆にタイトル画面の扉の絵には重ねない（→ [title.md](title.md)）。
 
-- 絵は小サイズ版のロゴ（紋章＋文字。作りは [../art/logo.md](../art/logo.md)）。ゲーム用の書き出しは `godot/assets/ui/logo.png`。
+- 絵は小サイズ版のロゴ（紋章＋文字。作りは [../art/logo.md](../art/logo.md)）。ゲーム用の書き出しは `godot/assets/logo/logo.png`。
 - 置き場は情報ボックスの矩形から算出する（[ui_layout.gd](../../godot/presentation/ui/ui_layout.gd) の `LOGO_H` / `LOGO_TOP`）＝ボックスを動かせばロゴも付いてくる。
 - 絵は透明な余白を含むので、実体の矩形だけを切り出して置く。右端そろえが余白のぶんずれないようにする（ターン板の胸像と同じ処理）。
 - 会話中も出したままにする（暗幕より前面）。盤を覆う演出（戦闘・ユニットスキル・完走の勝利イラスト）とセレクト・タイトルの画面では隠れる。

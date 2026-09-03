@@ -5,11 +5,11 @@
 .DESCRIPTION
   Two steps that must not drift apart:
 
-    1. Rasterize assets/icon-src/icon_{small,large}.svg to every size Windows
+    1. Rasterize assets/appicon-src/icon_{small,large}.svg to every size Windows
        asks for (tools/logo/build_icon.gd). The small emblem is used at 48px and
        below, the seven-tile one from 64px up. This also writes the PNG that
        project.godot points at, and a preview strip on a dark and a light ground.
-    2. Bundle those PNGs into assets/icon/icon.ico with ImageMagick. Godot can
+    2. Bundle those PNGs into assets/appicon/icon.ico with ImageMagick. Godot can
        write PNG but not ICO, and Windows wants one file holding every size.
 
   The SVGs themselves come from tools/logo/build_logo.py. Run that first if the
@@ -50,8 +50,8 @@ function Find-Godot([string]$explicit) {
 # Repo root is three levels above godot/tools/logo/.
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $project = Join-Path $repo 'godot'
-$pngDir = Join-Path $project 'assets\icon-src\png'
-$ico = Join-Path $project 'assets\icon\icon.ico'
+$pngDir = Join-Path $project 'assets\appicon-src\png'
+$ico = Join-Path $project 'assets\appicon\icon.ico'
 # Smallest first: Explorer reads the order as a hint when it picks an entry.
 $sizes = 16, 24, 32, 48, 64, 128, 256
 

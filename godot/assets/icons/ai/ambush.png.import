@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cabt8mdr71vl"
-path="res://.godot/imported/swarm.png-3347da553b43c71bf603d53df597d746.ctex"
+uid="uid://cxoed5rewel2t"
+path="res://.godot/imported/ambush.png-9f9960650e80fab4d74e569f2e08b81d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/ai/swarm.png"
-dest_files=["res://.godot/imported/swarm.png-3347da553b43c71bf603d53df597d746.ctex"]
+source_file="res://assets/icons/ai/ambush.png"
+dest_files=["res://.godot/imported/ambush.png-9f9960650e80fab4d74e569f2e08b81d.ctex"]
 
 [params]
 
