@@ -1094,11 +1094,12 @@ func _hostile_base_hexes(state: BattleState, u: Unit) -> Array[Vector2i]:
 			out.append(b.hex)
 	return out
 
-## 自陣営の拠点hex。
+## 自陣営の拠点のうち、この駒が入って休める（rest がその陣営を含む）拠点hex。退く先＝回復しに行く先なので、
+## 休めない拠点（奪っただけの rest:"player" の砦など）は数えない＝着いても入れない拠点へ歩かせない。
 func _friendly_base_hexes(state: BattleState, u: Unit) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	for b in state.bases():
-		if b.team == u.team:
+		if b.team == u.team and b.can_rest(u.team):
 			out.append(b.hex)
 	return out
 

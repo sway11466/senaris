@@ -167,8 +167,8 @@
       ] }
   ],
   "bases": [
-    { "col": 15, "row": 3, "team": "neutral", "kind": "fort",
-      "garrison": [ { "skin": "novice", "count": 2 }, { "skin": "archer", "count": 1 } ] }
+    { "col": 15, "row": 3, "team": "neutral", "rest": "both",
+      "garrison": [ { "skin": "novice", "count": 2, "native": "player" }, { "skin": "archer", "count": 1, "native": "player" } ] }
   ],
   "defeat": [
     { "type": "lose_base",

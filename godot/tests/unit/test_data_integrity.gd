@@ -149,6 +149,31 @@ func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictio
 	assert_false(seen.has(n), "%s の %s の order %d が他と重複しない" % [path, label, n])
 	seen[n] = true
 
+func test_stage_bases_use_hq_rest_and_garrison_native() -> void:
+	# 拠点の kind/native は廃止（hq/rest に置き換え）。控えの native は駒ごとに必須＝既定に頼らない
+	# （doc/gdd/map.md 拠点の値・帰属）。書き忘れは読み込みで倒されるが、データとしては不備。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var bases: Variant = (data as Dictionary).get("bases", [])
+		if typeof(bases) != TYPE_ARRAY:
+			continue
+		for b in bases:
+			if typeof(b) != TYPE_DICTIONARY:
+				continue
+			var where := "%s の拠点(%s,%s)" % [path, str(b.get("col")), str(b.get("row"))]
+			assert_false(b.has("kind") or b.has("native"), "%s: kind/native は廃止＝hq/rest に書き換える" % where)
+			if b.has("hq"):
+				assert_true(String(b["hq"]) in ["player", "enemy"], "%s: hq は player/enemy" % where)
+			if b.has("rest"):
+				assert_true(String(b["rest"]) in ["player", "enemy", "both"], "%s: rest は player/enemy/both" % where)
+			for g in b.get("garrison", []):
+				if typeof(g) != TYPE_DICTIONARY:
+					continue
+				assert_true(String(g.get("native", "")) in ["player", "enemy", "neutral"],
+					"%s: 控え %s に native（player/enemy/neutral）が要る" % [where, str(g.get("skin", g.get("type", "?")))])
+
 ## data/stages 以下を再帰し、ステージJSON（campaign.json マニフェストは除く）のパス配列を返す。
 func _all_stage_files(root: String) -> Array:
 	var out: Array = []

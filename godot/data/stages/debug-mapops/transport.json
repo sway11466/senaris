@@ -25,7 +25,7 @@
     ] }
   ],
   "bases": [
-    { "col": 13, "row": 3, "team": "enemy", "kind": "hq" }
+    { "col": 13, "row": 3, "team": "enemy", "hq": "enemy", "rest": "enemy" }
   ],
   "victory": [
     { "type": "capture_hq" }

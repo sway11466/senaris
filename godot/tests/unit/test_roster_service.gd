@@ -63,7 +63,7 @@ func test_garrison_member_counts_as_sortied() -> void:
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
 		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }],
 		"bases": [{ "col": 4, "row": 1, "team": "player",
-			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
+			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "player" }] }] }, _catalog())
 	assert_true(s.has_sortied("t3.elf"), "控えも投入済みとして数える")
 
 func test_anonymous_units_are_not_enrolled() -> void:
@@ -80,7 +80,7 @@ func test_unreleased_neutral_is_not_enrolled() -> void:
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
 		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
-			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
+			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }] }, _catalog())
 	var updated := RosterService.update_after_clear([], s)
 	assert_eq(_actors(updated), ["t3.van"], "解放していないエルフは加入しない")
 
@@ -89,7 +89,7 @@ func test_enemy_released_neutral_is_not_enrolled() -> void:
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
 		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
-			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
+			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }] }, _catalog())
 	var base_hex := Hex.offset_to_axial(4, 1)
 	s.base_at(base_hex).team = 1
 	s.current_team = 1
@@ -102,7 +102,7 @@ func test_captive_after_release_is_still_enrolled() -> void:
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
 		"player": [{ "type": "cleric", "col": 3, "row": 1 }],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
-			"garrison": [{ "type": "elf", "actor": "t3.elf" }] }] }, _catalog())
+			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }] }, _catalog())
 	var base_hex := Hex.offset_to_axial(4, 1)
 	s.move_unit(1, base_hex)  # 占領
 	assert_true(s.deploy(base_hex, 0, Hex.offset_to_axial(4, 0)), "味方が解放")

@@ -794,8 +794,8 @@
       ] }
   ],
   "bases": [
-    { "col": 13, "row": 17, "team": "neutral", "kind": "fort",
-      "garrison": [ { "type": "dwarf", "actor": "dwarf" } ] }
+    { "col": 13, "row": 17, "team": "neutral", "rest": "both",
+      "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
   ],
   "dialogue": {
     "intro": [

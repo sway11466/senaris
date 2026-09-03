@@ -27,6 +27,6 @@
       ] }
   ],
   "bases": [
-    { "col": 3, "row": 3, "team": "player", "kind": "fort" }
+    { "col": 3, "row": 3, "team": "player", "rest": "player" }
   ]
 }

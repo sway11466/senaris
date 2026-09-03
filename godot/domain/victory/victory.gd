@@ -81,18 +81,18 @@ static func _base_taken_by_enemy(state: BattleState, col: int, row: int) -> bool
 	var b := state.base_at(Hex.offset_to_axial(col, row))
 	return b != null and b.team > 0
 
-## 自軍 native の本拠地（hq）が敵の手に落ちているか。hq が無いステージでは常に false。
+## 自軍の本拠地（hq:"player"）が敵の手に落ちているか。hq が無いステージでは常に false。
 static func _own_hq_lost(state: BattleState) -> bool:
 	for b in state.bases():
-		if b.is_hq() and b.native_team == 0 and b.team != 0:
+		if b.is_hq_of(0) and b.team != 0:
 			return true
 	return false
 
-## 敵 native の本拠地（hq）がすべて自軍所属になっているか。該当 hq が1つも無ければ false（空勝ち防止）。
+## 敵の本拠地（hq:"enemy"）がすべて自軍所属になっているか。該当 hq が1つも無ければ false（空勝ち防止）。
 static func _enemy_hq_all_captured(state: BattleState) -> bool:
 	var found := false
 	for b in state.bases():
-		if b.is_hq() and b.native_team == 1:
+		if b.is_hq_of(1):
 			found = true
 			if b.team != 0:
 				return false

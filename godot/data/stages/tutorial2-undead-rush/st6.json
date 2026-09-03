@@ -432,39 +432,39 @@
       ] }
   ],
   "bases": [
-    { "order": 5, "ai": "charge", "col": 17, "row": 6, "team": "enemy", "kind": "hq",
+    { "order": 5, "ai": "charge", "col": 17, "row": 6, "team": "enemy", "hq": "enemy", "rest": "enemy",
       "garrison": [
-        { "skin": "skeleton_archer", "count": 3 },
-        { "skin": "skeleton", "count": 3 },
-        { "skin": "skeleton_archer", "count": 3 },
-        { "skin": "skeleton", "count": 3 },
-        { "skin": "skeleton_archer", "count": 3 },
-        { "skin": "skeleton", "count": 3 },
-        { "skin": "skeleton_archer", "count": 3 },
-        { "skin": "skeleton", "count": 3 },
-        { "skin": "skeleton_archer", "count": 3 },
-        { "skin": "skeleton", "count": 3 },
-        { "skin": "skeleton_archer", "count": 3 },
-        { "skin": "skeleton", "count": 3 }
+        { "skin": "skeleton_archer", "count": 3, "native": "enemy" },
+        { "skin": "skeleton", "count": 3, "native": "enemy" },
+        { "skin": "skeleton_archer", "count": 3, "native": "enemy" },
+        { "skin": "skeleton", "count": 3, "native": "enemy" },
+        { "skin": "skeleton_archer", "count": 3, "native": "enemy" },
+        { "skin": "skeleton", "count": 3, "native": "enemy" },
+        { "skin": "skeleton_archer", "count": 3, "native": "enemy" },
+        { "skin": "skeleton", "count": 3, "native": "enemy" },
+        { "skin": "skeleton_archer", "count": 3, "native": "enemy" },
+        { "skin": "skeleton", "count": 3, "native": "enemy" },
+        { "skin": "skeleton_archer", "count": 3, "native": "enemy" },
+        { "skin": "skeleton", "count": 3, "native": "enemy" }
       ] },
-    { "order": 4, "ai": "charge", "col": 9, "row": 4, "team": "enemy", "kind": "hq",
+    { "order": 4, "ai": "charge", "col": 9, "row": 4, "team": "enemy", "hq": "enemy", "rest": "enemy",
       "garrison": [
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 },
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 },
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 },
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 },
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 },
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 },
-        { "skin": "ghoul", "count": 1 },
-        { "skin": "zombie", "count": 2 }
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" },
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" },
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" },
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" },
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" },
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" },
+        { "skin": "ghoul", "count": 1, "native": "enemy" },
+        { "skin": "zombie", "count": 2, "native": "enemy" }
       ] },
-    { "col": 3, "row": 10, "team": "player", "kind": "hq", "garrison": [] }
+    { "col": 3, "row": 10, "team": "player", "hq": "player", "rest": "player", "garrison": [] }
   ],
   "victory": [
     { "type": "capture_hq" }

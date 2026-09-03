@@ -138,6 +138,6 @@ func test_v2_migrated_save_restores_on_the_stage() -> void:
 	assert_eq(s.turn_number, 3, "ターンを復元")
 	assert_eq(s.units().size(), 1, "駒はセーブの顔ぶれ")
 	assert_eq(s.base_at(Hex.offset_to_axial(1, 1)).team, 0, "拠点の帰属はセーブから")
-	assert_eq(s.base_at(Hex.offset_to_axial(1, 1)).native_team, Base.NEUTRAL, "本来の持ち主はステージJSONから")
+	assert_false(s.base_at(Hex.offset_to_axial(1, 1)).is_hq(), "本拠地の印はステージJSONから（セーブには無い）")
 	assert_eq(s.pending_events().size(), 2, "未発火イベントだけ残る")
 	assert_eq(s.turn_limit, 9, "ターン上限はステージJSONから")

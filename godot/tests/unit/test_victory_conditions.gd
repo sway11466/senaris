@@ -74,7 +74,7 @@ func _hq_state() -> BattleState:
 	cap.can_capture = true
 	s.add_unit(cap)
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(7, 7), 3, 8, 10, 4))  # 離れた敵
-	s.add_base(Base.new(hq_hex, 1, "hq"))  # 敵本拠地
+	s.add_base(Base.new(hq_hex, 1, 1))  # 敵本拠地
 	return s
 
 func test_capture_enemy_hq_wins_even_with_enemies_left() -> void:
@@ -89,12 +89,12 @@ func test_capture_enemy_hq_wins_even_with_enemies_left() -> void:
 func test_capture_normal_fort_does_not_win() -> void:
 	var s := _hq_state()
 	var fort_hex := Hex.offset_to_axial(2, 2)
-	s.add_base(Base.new(fort_hex, 1, "fort"))  # 通常の砦
+	s.add_base(Base.new(fort_hex, 1))  # 通常の砦
 	s.base_at(fort_hex).team = 0  # 砦を奪っても…
 	assert_eq(s.outcome(), BattleState.ONGOING, "通常砦(fort)の占領では勝たない（hqのみ）")
 
 func test_capture_hq_without_enemy_hq_never_wins() -> void:
-	# 敵 native の hq が存在しないステージで capture_hq を書いても空勝ちしない。
+	# 敵の本拠地（hq:"enemy"）が存在しないステージで capture_hq を書いても空勝ちしない。
 	var s := BattleState.new(8, 8)
 	s.victory_conditions = [{ "type": "capture_hq" }]
 	var ap := Hex.offset_to_axial(2, 2)
@@ -103,10 +103,10 @@ func test_capture_hq_without_enemy_hq_never_wins() -> void:
 	assert_eq(s.outcome(), BattleState.ONGOING, "敵hqが無ければ条件は不成立（空勝ち防止）")
 
 func test_losing_own_hq_is_defeat() -> void:
-	# 自軍 native の hq を敵に奪われたら敗北（勝利条件リストと無関係の常時ルール）。
+	# 自軍の本拠地（hq:"player"）を敵に奪われたら敗北（勝利条件リストと無関係の常時ルール）。
 	var s := BattleState.new(8, 8)
 	var hq_hex := Hex.offset_to_axial(3, 3)
-	s.add_base(Base.new(hq_hex, 0, "hq"))  # 自軍本拠地
+	s.add_base(Base.new(hq_hex, 0, 0))  # 自軍本拠地
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 6), 3))
 	var raider := Unit.new(2, 1, Hex.neighbor(hq_hex, 0), 3)
 	raider.can_capture = true
@@ -115,34 +115,45 @@ func test_losing_own_hq_is_defeat() -> void:
 	assert_true(s.move_unit(2, hq_hex), "敵の占領役が自軍hqへ進入")
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "本拠地を奪われて敗北")
 
-func test_recapture_restores_native_and_clears_loss() -> void:
-	# native_team は占領で変わらない＝奪還すれば敗北状態が解消される。
+func test_recapture_clears_loss() -> void:
+	# 本拠地の印（hq）は占領で変わらない＝奪還すれば敗北状態が解消される。
 	var s := BattleState.new(8, 8)
 	var hq_hex := Hex.offset_to_axial(3, 3)
-	var b := Base.new(hq_hex, 0, "hq")
+	var b := Base.new(hq_hex, 0, 0)
 	s.add_base(b)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(6, 6), 3))
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(7, 7), 3))
 	b.team = 1  # 奪われた…
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS)
 	b.team = 0  # 奪還
-	assert_eq(b.native_team, 0, "native_team は不変")
+	assert_true(b.is_hq_of(0), "本拠地の印は不変")
 	assert_eq(s.outcome(), BattleState.ONGOING, "奪還すれば継続に戻る")
 
 # --- StageLoader 配線 ---
 
-func test_loader_wires_base_kind_and_native() -> void:
+func test_loader_wires_base_hq() -> void:
 	var data := { "cols": 6, "rows": 6,
 		"bases": [
-			{ "col": 4, "row": 4, "team": "enemy", "kind": "hq" },
+			{ "col": 4, "row": 4, "team": "enemy", "hq": "enemy" },
 			{ "col": 1, "row": 1, "team": "player" },
 		],
 	}
 	var s := StageLoader.build(data)
 	var hq := s.base_at(Hex.offset_to_axial(4, 4))
-	assert_true(hq.is_hq(), "kind=hq が載る")
-	assert_eq(hq.native_team, 1, "native_team＝初期所属")
-	assert_false(s.base_at(Hex.offset_to_axial(1, 1)).is_hq(), "kind 省略＝fort")
+	assert_true(hq.is_hq_of(1), "hq:enemy が載る")
+	assert_false(s.base_at(Hex.offset_to_axial(1, 1)).is_hq(), "hq 省略＝普通の砦")
+
+func test_own_hq_held_by_enemy_at_start_is_loss_until_retaken() -> void:
+	# 本拠地の印は所有者と独立＝開始時に奪われている自軍の本拠地（hq:player, team:enemy）を書ける。
+	var data := { "cols": 6, "rows": 6,
+		"player": [ { "col": 1, "row": 1 } ],
+		"enemy": [ { "ai": "charge", "units": [ { "col": 5, "row": 5 } ] } ],
+		"bases": [ { "col": 4, "row": 4, "team": "enemy", "hq": "player" } ],
+	}
+	var s := StageLoader.build(data)
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "奪われた自軍本拠地は敗北扱い（奪還で解消）")
+	s.base_at(Hex.offset_to_axial(4, 4)).team = 0
+	assert_eq(s.outcome(), BattleState.ONGOING, "奪還すれば継続")
 
 func test_loader_wires_victory_and_actor() -> void:
 	var data := { "cols": 6, "rows": 6,
@@ -199,7 +210,7 @@ func _defend_state() -> BattleState:
 	var raider := Unit.new(2, 1, Hex.neighbor(hex, 3), 3)  # 拠点の隣に敵の占領役
 	raider.can_capture = true
 	s.add_unit(raider)
-	s.add_base(Base.new(hex, Base.NEUTRAL, "fort"))  # 中立の砦＝hqではない
+	s.add_base(Base.new(hex, Base.NEUTRAL))  # 中立の砦＝hqではない
 	return s
 
 func test_lose_base_defeat_when_enemy_takes_it() -> void:
@@ -247,8 +258,8 @@ func _defend_two_state() -> BattleState:
 	var s := BattleState.new(8, 8)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(7, 7), 3))
-	s.add_base(Base.new(Hex.offset_to_axial(4, 4), Base.NEUTRAL, "fort"))
-	s.add_base(Base.new(Hex.offset_to_axial(2, 6), Base.NEUTRAL, "fort"))
+	s.add_base(Base.new(Hex.offset_to_axial(4, 4), Base.NEUTRAL))
+	s.add_base(Base.new(Hex.offset_to_axial(2, 6), Base.NEUTRAL))
 	return s
 
 func test_lose_base_and_needs_all_targets() -> void:
@@ -320,7 +331,7 @@ func test_loader_reads_defeat_list() -> void:
 	var s := StageLoader.build({
 		"cols": 6, "rows": 6,
 		"player": [ { "type": "cleric", "col": 0, "row": 0 } ],
-		"bases": [ { "col": 3, "row": 3, "team": "neutral", "kind": "fort" } ],
+		"bases": [ { "col": 3, "row": 3, "team": "neutral", "rest": "both" } ],
 		"defeat": [ { "type": "lose_base", "bases": [ { "col": 3, "row": 3 } ] } ],
 	})
 	assert_eq(s.defeat_conditions.size(), 1, "defeat リストが載る")

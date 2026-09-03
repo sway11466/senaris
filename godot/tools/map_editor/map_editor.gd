@@ -17,7 +17,10 @@ const MODE_LABELS := { "stage": "ステージ", "select": "選択", "terrain": "
 	"enemy": "敵", "squad": "敵グループ", "base": "拠点", "event": "イベント", "outcome": "勝敗" }
 const TOOL_LABELS := { "pen": "ペン（1マスずつ）", "fill": "ベタ塗り（地続きをまとめて）" }
 const TEAM_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立" }
-const KIND_LABELS := { "fort": "砦 (fort)", "hq": "本拠地 (hq)" }
+## 本拠地の印（JSON の hq。空＝キーを書かない＝普通の砦）・回復（rest）・控えの生来の陣営（native）。詳細 → doc/gdd/map.md 拠点の値
+const HQ_LABELS := { "": "なし（砦）", "player": "自軍の本拠地", "enemy": "敵の本拠地" }
+const REST_LABELS := { "both": "両方", "player": "自軍だけ", "enemy": "敵だけ" }
+const NATIVE_LABELS := { "player": "自軍", "enemy": "敵", "neutral": "中立（取った側に付く）" }
 ## sight の記号（ai.csv・ステージJSON 共通。詳細 → doc/gdd/ai.md データ構成）。
 const SIGHT_UNUSED := "-"     ## その特性は sight を使わない
 const SIGHT_UNLIMITED := "*"  ## 上限なし＝盤全体（視線コスト x の壁は遮る）
@@ -56,7 +59,8 @@ var _sel_skin_id := ""       # 配置する敵ユニットの skin_id
 var _sel_skin_category := "" # 敵パレットの分類絞り込み（空=すべて）
 var _sel_squad := 0
 var _base_team := "enemy"
-var _base_kind := "fort"
+var _base_hq := ""
+var _base_rest := "both"
 var _base_ai := ""
 
 # UI参照
@@ -402,8 +406,10 @@ func _rebuild_mode() -> void:
 			_add_hint(_mode_box, "左クリック＝設置 or 選択\n右クリック＝削除\nドラッグ＝移動")
 			_mode_box.add_child(_labeled_option("所属", TEAM_LABELS.keys(), TEAM_LABELS.values(), _base_team,
 				func(k: String) -> void: _base_team = k))
-			_mode_box.add_child(_labeled_option("種別", KIND_LABELS.keys(), KIND_LABELS.values(), _base_kind,
-				func(k: String) -> void: _base_kind = k))
+			_mode_box.add_child(_labeled_option("本拠地", HQ_LABELS.keys(), HQ_LABELS.values(), _base_hq,
+				func(k: String) -> void: _base_hq = k))
+			_mode_box.add_child(_labeled_option("回復", REST_LABELS.keys(), REST_LABELS.values(), _base_rest,
+				func(k: String) -> void: _base_rest = k))
 			var ai_opts := _ai_options(true)
 			_mode_box.add_child(_labeled_option("AI出撃", ai_opts[0], ai_opts[1], _base_ai,
 				func(k: String) -> void: _base_ai = k))
@@ -1019,7 +1025,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 		"base":
 			if button == MOUSE_BUTTON_LEFT:
 				# 空きマス＝設置、拠点の上＝それを選ぶ（どちらも下段の編集UIがその拠点を指す）
-				if _doc.add_base(col, row, _base_team, _base_kind, _base_ai):
+				if _doc.add_base(col, row, _base_team, _base_hq, _base_rest, _base_ai):
 					_board.refresh()
 					_say("(%d, %d) に拠点を置きました。" % [col, row])
 				else:
@@ -1211,9 +1217,9 @@ func _inspect_unit(hit: Dictionary) -> void:
 ## （同じ設定が2箇所にあると、どちらが効くのか分からなくなるため）。
 func _inspect_base(hit: Dictionary) -> void:
 	var b: Dictionary = hit["base"]
-	_add_info(_inspector, "拠点: %s / %s" % [
+	_add_info(_inspector, "拠点: %s / %s / 回復: %s" % [
 		String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))),
-		String(KIND_LABELS.get(String(b.get("kind", "fort")), b.get("kind", "?")))])
+		_hq_text(b), String(REST_LABELS.get(String(b.get("rest", "both")), b.get("rest", "?")))])
 	var ai := String(b.get("ai", ""))
 	if ai == "":
 		_add_info(_inspector, "AI出撃: （なし）")
@@ -1228,8 +1234,9 @@ func _inspect_base(hit: Dictionary) -> void:
 	if typeof(g) == TYPE_ARRAY and not (g as Array).is_empty():
 		_add_info(_inspector, "控え（garrison）: 計 %d 体" % MapEditorDoc.garrison_count(b))
 		for e in g:
-			_add_info(_inspector, "  ・%s ×%d"
-				% [String(e.get("skin", e.get("type", "?"))), maxi(int(e.get("count", 1)), 1)])
+			_add_info(_inspector, "  ・%s ×%d（%s）"
+				% [String(e.get("skin", e.get("type", "?"))), maxi(int(e.get("count", 1)), 1),
+					String(NATIVE_LABELS.get(String(e.get("native", "")), "native 未設定"))])
 	else:
 		_add_info(_inspector, "控え（garrison）: （なし）")
 	_add_hint(_inspector, "拠点の編集は「拠点」モードで。")
@@ -1508,11 +1515,21 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 		func(k: String) -> void:
 			b["team"] = k
 			_board.refresh()))
-	parent.add_child(_labeled_option("種別", KIND_LABELS.keys(), KIND_LABELS.values(),
-		String(b.get("kind", "fort")),
+	parent.add_child(_labeled_option("本拠地", HQ_LABELS.keys(), HQ_LABELS.values(),
+		String(b.get("hq", "")),
 		func(k: String) -> void:
-			b["kind"] = k
+			if k == "":
+				b.erase("hq")  # 普通の砦＝キー自体を書かない
+			else:
+				b["hq"] = k
 			_board.refresh()))
+	parent.add_child(_labeled_option("回復", REST_LABELS.keys(), REST_LABELS.values(),
+		String(b.get("rest", "both")),
+		func(k: String) -> void:
+			b["rest"] = k  # 既定に頼らず常に書く
+			_board.refresh()))
+	if not b.has("rest"):
+		b["rest"] = "both"
 	var ai_opts := _ai_options(true)
 	parent.add_child(_labeled_option("AI出撃", ai_opts[0], ai_opts[1], String(b.get("ai", "")),
 		func(k: String) -> void:
@@ -1548,6 +1565,19 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 			entry.erase("type")
 			_board.refresh())
 		row.add_child(ob)
+		# 生来の陣営（必須＝既定なし）。無い行は拠点の所有者に倒して書き込む（読み込み側の倒し方と同じ）
+		if not entry.has("native"):
+			entry["native"] = _default_garrison_native(b)
+		var nat := _make_option()
+		var nat_keys: Array = NATIVE_LABELS.keys()
+		for j in nat_keys.size():
+			nat.add_item(String(NATIVE_LABELS[nat_keys[j]]))
+			if String(nat_keys[j]) == String(entry["native"]):
+				nat.select(j)
+		nat.item_selected.connect(func(j: int) -> void:
+			entry["native"] = String(nat_keys[j])
+			_board.refresh())
+		row.add_child(nat)
 		var count := _make_spin(1, 20, maxi(int(entry.get("count", 1)), 1))
 		count.custom_minimum_size = Vector2(70, 0)
 		count.value_changed.connect(func(v: float) -> void:
@@ -1560,7 +1590,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 			_board.refresh()
 			_refresh_base_box())
 	_add_button(parent, "控えを追加", func() -> void:
-		g.append({ "skin": _skins[0]["skin_id"], "count": 1 })
+		g.append({ "skin": _skins[0]["skin_id"], "count": 1, "native": _default_garrison_native(b) })
 		_board.refresh()
 		_refresh_base_box())
 	_add_button(parent, "この拠点を削除", func() -> void:
@@ -1934,8 +1964,7 @@ func _add_base_target_row(parent: Control, t: Dictionary, on_remove: Callable) -
 		var r := int(b.get("row", 0))
 		keys.append(_base_target_key(col, r))
 		displays.append("(%d, %d) %s / %s" % [col, r,
-			String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))),
-			String(KIND_LABELS.get(String(b.get("kind", "fort")), b.get("kind", "?")))])
+			String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))), _hq_text(b)])
 	var cur_col := int(t.get("col", -1))
 	var cur_row := int(t.get("row", -1))
 	var cur_key := _base_target_key(cur_col, cur_row)
@@ -2035,13 +2064,23 @@ func _no_actor_message() -> String:
 	return "名前(actor)の付いた駒は、すべて既にどれかの条件が指しています。"
 
 
-## 自軍 native の本拠地が盤にあるか（＝「本拠地の喪失で敗北」が効くステージか）。
-## 拠点の native は省略時＝ステージJSONの team と同じ（StageLoader）。
+## 自軍の本拠地（hq:"player"）が盤にあるか（＝「本拠地の喪失で敗北」が効くステージか）。
 func _has_own_hq() -> bool:
 	for b in _doc.data.get("bases", []):
-		if String(b.get("kind", "fort")) == "hq" and String(b.get("native", b.get("team", "neutral"))) == "player":
+		if String(b.get("hq", "")) == "player":
 			return true
 	return false
+
+
+## 拠点の本拠地表示（hq キーが無ければ砦）。
+func _hq_text(b: Dictionary) -> String:
+	return String(HQ_LABELS.get(String(b.get("hq", "")), "本拠地: %s" % str(b.get("hq"))))
+
+
+## 控えの native を書き忘れた行の倒し先＝拠点の開始時の所有者（StageLoader と同じ）。
+func _default_garrison_native(b: Dictionary) -> String:
+	var t := String(b.get("team", "neutral"))
+	return t if NATIVE_LABELS.has(t) else "neutral"
 
 
 # --- ファイル操作 ---
