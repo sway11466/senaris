@@ -1326,6 +1326,12 @@ func _buff_entry(option: Dictionary, target: Vector2i) -> Dictionary:
 	if not is_zero_approx(per_troop):
 		var caster := unit_by_id(int(option.get("leader_id", -1)))
 		value = per_troop * float(caster.troops if caster != null else 0)
+	# 参加人数で伸びるレシピ（グレイス）は、基準人数（count）を超えた参加者1体ごとに加算する。
+	# 5体 ×1.30／6体 ×1.35／8体 ×1.45。発動時の人数で焼き込む＝以後クラスタが崩れても変わらない。
+	var per_extra := float(option.get("buff_value_per_extra", 0.0))
+	if not is_zero_approx(per_extra):
+		var extra := (option.get("participants", []) as Array).size() - int(option.get("count", 1))
+		value += per_extra * float(maxi(extra, 0))
 	var e := {
 		"owner_team": current_team,
 		"op": String(option.get("buff_op", "mul")),

@@ -55,14 +55,6 @@
 - 対応：セーブの印と今のステージ定義の印を比べ、違う枠は一覧の行に更新されている旨を添える。その枠を選んだときだけ確認を挟む（印が一致する枠のロードは今のまま）。
 - 該当：`godot/presentation/ui/save_slot_panel.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`doc/tech/gamesystem.md`。セーブの印は meta の `stage_digest`、今の定義の印は `StageDigest.of_file`。
 
-### feature-89
-
-**グレイスの効果を参加人数で伸ばす**
-- ゴール：隣接クラスタが5体より多いとき、多いぶんが効果の強さになっている（頭数を集めた判断が報われる）。
-- 背景：いまは5体以上で成立し、発動すると隣接クラスタ全員が行動完了になる＝人数が増えても効果は同じで、消費だけが増える。集まっているほど損をする形になっている。案は最低5体を据え置き、1体増えるごとに補正 +0.05（5体＝×1.30／8体＝×1.45）。
-- 対応：`Formation.RECIPES` の `grace` に人数連動の値を持たせ、`_buff_entry` が参加人数から補正を決める。`count` 固定でないレシピは初なので、他のレシピへ波及しない形で入れる。formations.md ②の表と、レシピ表の「効果」の書き方も更新する。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/battle_state.gd`（`_buff_entry`）・`godot/tests/unit/test_formation.gd`・`doc/gdd/formations.md`。
-
 ### feature-13
 
 **entitlement（DLC所有）判定によるステージ解放**

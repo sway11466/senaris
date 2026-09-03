@@ -143,6 +143,48 @@ func test_grace_offered_with_five_clustered() -> void:
 	assert_eq(String(o["effect"]), "buff", "バフ効果")
 	assert_false(bool(o["needs_target"]), "バフは対象指定不要")
 
+## 占領兵 n 体を一列に並べた盤。先頭（id 1）が発動者。全体バフ確認用の fighter と敵も置く。
+func _cluster_state(n: int) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var leader: Unit = null
+	for i in n:
+		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
+		s.add_unit(u)
+		if i == 0:
+			leader = u
+	var ally := Unit.new(10, 0, Hex.offset_to_axial(4, 6), 3, 8, 40, 40, 1, "fighter")
+	var foe := Unit.new(11, 1, Hex.neighbor(ally.pos, 0), 3, 8, 30, 30)
+	s.add_unit(ally)
+	s.add_unit(foe)
+	return {"s": s, "leader": leader, "ally": ally, "foe": foe}
+
+## 補正は参加人数で伸びる＝基準5体 ×1.30、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md ②
+func test_grace_value_grows_with_participants() -> void:
+	for pair in [[5, 1.30], [6, 1.35], [8, 1.45]]:
+		var n: int = pair[0]
+		var expected: float = pair[1]
+		var f := _cluster_state(n)
+		var s: BattleState = f["s"]
+		var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
+		assert_eq((opt["participants"] as Array).size(), n, "%d体全員が参加" % n)
+		var before := float(Combat.attack_breakdown(s, f["ally"], f["foe"], true)["total"])
+		var res := s.resolve_formation(opt, Vector2i(-9999, -9999))
+		assert_almost_eq(float(res["status"]["value"]), expected, 0.001, "%d体で ×%.2f" % [n, expected])
+		assert_almost_eq(float(Combat.attack_breakdown(s, f["ally"], f["foe"], true)["total"]),
+			before * expected, 1.0, "%d体のグレイスで味方の攻撃が ×%.2f" % [n, expected])
+
+## 発動後にクラスタが減っても、掛かった補正は発動時の人数のまま。
+func test_grace_value_is_baked_at_cast() -> void:
+	var f := _cluster_state(6)
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
+	assert_false(s.resolve_formation(opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
+	s.remove_unit(6)  # 参加者を1体失う
+	var mods := s.status_mods_for(f["ally"])
+	assert_eq(mods.size(), 1, "味方に掛かっている補正は1件")
+	assert_almost_eq(float(mods[0]["value"]), 1.35, 0.001, "6体で発動した ×1.35 のまま")
+
 func test_grace_needs_five() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)

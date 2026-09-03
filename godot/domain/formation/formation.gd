@@ -52,7 +52,11 @@ const RECIPES := {
 		"count": 5,
 		"effect": "buff",
 		"buff_op": "mul",
+		# 最低人数（count）で成立したときの補正。参加者が count を超えた1体ごとに buff_value_per_extra を
+		# 足す＝5体 ×1.30／6体 ×1.35／8体 ×1.45。人数を集めた判断が報われる形（頭数が増えるほど
+		# 消費だけ増える、を避ける）。人数で伸びるのはこのレシピだけ。詳細 → doc/gdd/formations.md ②
 		"buff_value": 1.3,
+		"buff_value_per_extra": 0.05,
 		"buff_fx": "aura",  # 盤全体の見た目（外周から差し込む金の光）。詳細 → doc/gdd/formations.md
 		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
 	},
@@ -461,6 +465,10 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
 		opt["buff_value"] = float(r.get("buff_value", 1.0))
 		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))
+		# 参加人数で伸びるレシピ（グレイス）の値。基準人数（count）を超えた1体ごとに buff_value に
+		# 足す。0＝人数に依らない（既定）。実際の参加者数は participants が持つ。
+		opt["buff_value_per_extra"] = float(r.get("buff_value_per_extra", 0.0))
+		opt["count"] = int(r.get("count", 1))
 		opt["buff_fx"] = String(r.get("buff_fx", ""))
 		opt["buff_target"] = String(r.get("buff_target", "both"))
 		opt["duration_turns"] = int(r.get("duration_turns", 1))
