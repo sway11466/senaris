@@ -21,8 +21,7 @@ signal move_animation_finished
 signal formation_impact_finished
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
-const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速。速いほうが好まれる）
-const MOVE_ANIM_MAX_SEC := 0.6       # 経路が長くてもここで頭打ち＝足の速い駒で待たされない
+const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速・上限なし＝時間はマス数に比例。doc/gdd/uiux.md 移動アニメ）
 const INFOPANEL_LEFT := UiLayout.RIGHT_BOX_LEFT    # InfoPanel の左端（レイアウト定数は ui_layout.gd に集約）
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
 
@@ -76,6 +75,8 @@ var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
+var _move_voice: AudioStreamPlayer = null  # 進行中の移動音の口（続く型のループ／周期の型の直近の一打）。到着・中断で止める
+var _move_voice_sfx := ""                  # その素材ID（止めるときの照合とフェード秒の取得に使う）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
@@ -878,24 +879,29 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 	if node == null or path.size() < 2:
 		move_animation_finished.emit()
 		return
-	var steps := path.size() - 1
-	var per_hex := minf(MOVE_ANIM_SEC_PER_HEX, MOVE_ANIM_MAX_SEC / float(steps))
+	var per_hex := MOVE_ANIM_SEC_PER_HEX  # 経路が長くても縮めない＝時間はマス数に比例（doc/gdd/uiux.md 移動アニメ）
 	# map_move（doc/audio/sfx.md 移動音）。素材は移動タイプ＋スキンで決まり、未配置なら無音で進む。
-	# 鳴らす頻度は素材ごとの最小間隔で決める。0＝1マス踏むごと（足音）、飛行は数マスに1回。
-	# per_hex は経路が長いほど縮む＝マス数で間引くと長い経路で羽ばたきが速まるため、時間で見る。
+	# 鳴らし方は素材の型で決まる。刻む＝マスごとに1発、続く＝開始でループし到着で止める、
+	# 周期＝開始で1発・every マスごとに1発・到着で鳴っている一打を止める。
 	var move_sfx := _move_sfx_of(unit_id)
-	var move_interval := SfxCatalog.move_interval_of(move_sfx)
-	var last_sfx_sec := -1.0  # 直近に鳴らした時刻（アニメ開始から）。負＝まだ鳴らしていない
+	var kind := SfxCatalog.move_kind_of(move_sfx)
+	var every := SfxCatalog.move_every_of(move_sfx)
+	_stop_move_voice()  # 前の移動音が残っていれば畳む（同時に動く駒は1体）
+	_move_voice_sfx = move_sfx
 	node.position = _hex_world(path[0])
+	if move_sfx != "" and kind == SfxCatalog.MOVE_SUSTAIN:
+		_move_voice = SfxPlayer.play_move_loop(move_sfx)
 	var t := create_tween()  # 既定は等速（TRANS_LINEAR）＝マスを一定の速さで歩く
 	for i in range(1, path.size()):
-		var at_sec := per_hex * float(i - 1)  # このマスへ踏み出す時刻
-		# 1マス目（last < 0）は間隔によらず必ず鳴らす＝短い移動でも無音にしない。
-		if move_sfx != "" and (last_sfx_sec < 0.0 or at_sec - last_sfx_sec >= move_interval):
-			last_sfx_sec = at_sec
-			t.tween_callback(func() -> void: SfxPlayer.play_sfx(move_sfx))
+		var step_index := i - 1  # 0 起点＝踏み出す順番。周期の型は 0, every, 2*every, … で鳴る
+		if move_sfx != "":
+			if kind == SfxCatalog.MOVE_STEP:
+				t.tween_callback(func() -> void: SfxPlayer.play_sfx(move_sfx))
+			elif kind == SfxCatalog.MOVE_BEAT and step_index % every == 0:
+				t.tween_callback(func() -> void: _move_voice = SfxPlayer.play_sfx(move_sfx))
 		t.tween_property(node, "position", _hex_world(path[i]), per_hex)
 	t.finished.connect(func() -> void:
+		_stop_move_voice()
 		if _move_tween == t:
 			_move_tween = null
 		move_animation_finished.emit())
@@ -920,6 +926,13 @@ func _hex_world(hex: Vector2i) -> Vector3:
 	var p := Hex.to_pixel(hex, TILE)
 	return Vector3(p.x, _terrain_renderer.elev(hex), p.y)
 
+## 進行中の移動音を止める（続く型・周期の型）。素材ごとのフェードで下げて止める。刻む型は口を持たないので何もしない。
+func _stop_move_voice() -> void:
+	if _move_voice != null:
+		SfxPlayer.stop_move(_move_voice, _move_voice_sfx, SfxCatalog.move_fade_of(_move_voice_sfx))
+	_move_voice = null
+	_move_voice_sfx = ""
+
 ## 進行中の移動アニメを畳む。待っている側（AIターン）を取り残さないため完了を必ず知らせる。
 func _kill_move_tween() -> void:
 	if _move_tween == null:
@@ -928,6 +941,7 @@ func _kill_move_tween() -> void:
 	_move_tween = null
 	if t.is_valid():
 		t.kill()
+	_stop_move_voice()  # 駒がスナップするのに音だけ続かない
 	move_animation_finished.emit()
 
 ## AIターンのテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。

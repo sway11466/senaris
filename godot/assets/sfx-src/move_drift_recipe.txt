@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/move_drift__2018__wind_harsh_mountain_02_30_loop.wav" -af "atrim=30.70:32.20,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.03,afade=t=out:st=1.47:d=0.03,volume=-1.5dB" -c:a pcm_s24le move_drift.wav

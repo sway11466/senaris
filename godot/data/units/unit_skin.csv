@@ -41,8 +41,8 @@ zombie,ゾンビ,enemy,bishop,アンデッド,1.0,0,1.0,squad,,punch,
 skeleton_archer,スケルトンアーチャー,enemy,slinger,アンデッド,1.0,16,1.0,squad,,arrow_bone,
 ghoul,グール,enemy,fighter,アンデッド,1.05,0,1.05,squad,,claw,
 dullahan,デュラハン,enemy,warlord,アンデッド,1.1,0,1.1,squad,,slash_l,
-ghost,ゴースト,enemy,pixie,アンデッド,0.9,0,0.9,squad,,curse_wisp,move_float
-wraith,レイス,enemy,birdman,アンデッド,1.05,16,1.05,squad,,slash_m,move_float
+ghost,ゴースト,enemy,pixie,アンデッド,0.9,0,0.9,squad,,curse_wisp,move_drift
+wraith,レイス,enemy,birdman,アンデッド,1.05,16,1.05,squad,,slash_m,move_drift
 necromancer,ネクロマンサー,enemy,sorcerer,アンデッド,1.05,0,1.26,retinue,skeleton|zombie|skeleton|zombie|skeleton|skeleton|zombie,curse,
 orc,オーク,enemy,fighter,オーク,1.05,0,1.05,squad,,slash_m,
 orc_leader,オークリーダー,enemy,vanguard,オーク,1.15,0,1.15,squad,,slash_m,
