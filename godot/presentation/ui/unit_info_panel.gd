@@ -446,6 +446,7 @@ func clear() -> void:
 		"",
 		tr("ui.info.help_controls"),
 		tr("ui.info.help_end_turn"),
+		tr("ui.info.help_info_panel"),
 		tr("ui.info.help_pan"),
 		tr("ui.info.help_zoom"),
 		tr("ui.info.help_fit"),

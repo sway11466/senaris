@@ -12,6 +12,9 @@ signal selection_changed(unit_id: int)
 signal tile_inspected(hex: Vector2i)
 ## 戻る対象が無い最上位で Esc を押したとき発行（HUD がシステムメニューを開く）。
 signal system_menu_requested
+## 情報板を畳む／開くキー（Space）を押したとき発行（main が情報板へ繋ぐ）。見るだけの操作なので
+## カメラと同じく AIターン・決着後も効く。
+signal info_panel_toggle_requested
 ## 移動アニメが終わった（歩き切った・割り込みでスナップした のどちらも）。
 ## AIターンのテンポ制御に使う（main が controller.move_pace へ注入）。待ち手を取り残さないため
 ## 中断でも必ず発行する。
@@ -224,6 +227,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	# --- カメラ（パン/ズーム/全体表示）。AIターン・決着後も見渡せるよう常時受ける。---
 	if _handle_camera_scroll(event):
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
+		info_panel_toggle_requested.emit()  # 情報板を畳む／開く（doc/gdd/uiux.md 情報板）
+		return
 	# 左ボタン: 押下で起点を記録し、離した時にクリック/パンを判別（しきい値）。
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
@@ -248,7 +254,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_on_cancel(false)  # 右クリック＝キャンセル・戻る
 	elif event.is_action_pressed("ui_cancel"):
 		_on_cancel(true)
-	elif event.is_action_pressed("ui_accept"):
+	elif event is InputEventKey and event.pressed and not event.echo \
+			and (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER):
+		# ui_accept は使わない＝Godot 既定ではスペースも含み、スペースは情報板に割り当てるため
 		_deselect()
 		SfxPlayer.play_event("map_turn_end")
 		controller.end_turn()

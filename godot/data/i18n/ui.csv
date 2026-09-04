@@ -17,7 +17,7 @@ ui.settings.back,← 戻る,← Back
 ui.manual.title,マニュアル,Manual
 ui.manual.back,← メニュー,← Menu
 ui.hud.end_turn,ターン終了（Enter）,End Turn (Enter)
-ui.hud.info_panel,情報板,Info Panel
+ui.hud.info_panel,情報板（Space）,Info Panel (Space)
 ui.hud.menu,メニュー（Esc）,Menu (Esc)
 ui.hud.restart,リスタート,Restart Battle
 ui.hud.stage_select,依頼ボード,Quest Board
@@ -81,6 +81,7 @@ ui.info.help_select_unit,盤上のユニットを左クリックで選択,Left-c
 ui.info.help_inspect_tile,空きマスをクリックで地形を確認,Click an empty hex to check its terrain
 ui.info.help_controls,［操作］,[ Controls ]
 ui.info.help_end_turn,Enter＝ターン終了,Enter — End Turn
+ui.info.help_info_panel,Space＝情報板を畳む／開く,Space — Toggle info panel
 ui.info.help_pan,2本指スクロール／空き地ドラッグ＝移動,Two-finger scroll / drag empty ground — Pan
 ui.info.help_zoom,ピンチ＝ズーム,Pinch — Zoom
 ui.info.help_fit,F＝全体表示,F — Fit whole board

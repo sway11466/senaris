@@ -724,6 +724,7 @@ func _install_hud() -> void:
 	_hud.debug_event_requested.connect(_on_debug_event_requested)  # 同上
 	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
+	$HexBoard.info_panel_toggle_requested.connect($Front/InfoPanel.toggle_minimized)  # Space＝情報板ボタンと同じ
 
 # --- ターン板（画面上端中央）。presentation/ui/turn_plate.gd。仕様 → doc/gdd/uiux.md ---
 func _install_turn_plate() -> void:
