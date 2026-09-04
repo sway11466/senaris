@@ -86,6 +86,7 @@ func _ready() -> void:
 ## 幅は文字が収まる目安で、実幅は最小サイズで広がりうる（_reposition は実幅で並べる）。
 func _button(key: String, icon_id: String, width: float) -> Button:
 	var b := TavernTheme.wood_button(tr(key))
+	b.set_meta("base_width", width)  # 貼り直しで幅を戻すために控える（refresh_labels）
 	b.size = Vector2(width, 40)
 	var path := ICON_DIR + icon_id + ".png"
 	if ResourceLoader.exists(path):
@@ -104,12 +105,15 @@ func refresh_labels() -> void:
 	_gear.text = tr("ui.hud.menu")
 	_end_btn.text = tr("ui.hud.end_turn")
 	_info_btn.text = tr("ui.hud.info_panel")
+	for b: Button in [_gear, _end_btn, _info_btn]:
+		b.size.x = float(b.get_meta("base_width"))  # 広がった幅は自動では戻らない＝目安の幅に戻し、文字に合わせて広げ直す
 	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
 			[SYS_ZOOM_IN, "ui.hud.zoom_in"], [SYS_ZOOM_OUT, "ui.hud.zoom_out"],
 			[SYS_INFO_RESET, "ui.hud.info_panel_reset"],
 			[SYS_SAVE, "ui.hud.save"], [SYS_LOAD, "ui.hud.load"],
 			[SYS_SETTINGS, "ui.hud.settings"], [SYS_CLOSE, "ui.hud.close"]]:
 		_menu.set_item_text(_menu.get_item_index(int(pair[0])), tr(String(pair[1])))
+	_reposition()  # 文字の長さが変わるとボタンの実幅も変わる＝並べ直さないと隣のボタンが重なる
 
 func _reposition() -> void:
 	var vp := get_viewport_rect().size
@@ -127,10 +131,11 @@ func set_load_available(available: bool) -> void:
 	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), not available)
 
 ## システムメニューを開く（歯車ボタン／盤の最上位 Esc から）。
+## 出る場所はメニューボタンの真上（左端を揃える）。Esc でも同じ場所＝マウスの位置には出さない。
 func open_system_menu() -> void:
 	_refresh_debug_events()
 	_menu.reset_size()
-	_menu.position = Vector2i(get_viewport().get_mouse_position())
+	_menu.position = Vector2i(_gear.global_position) - Vector2i(0, _menu.size.y)
 	_menu.popup()
 
 ## デバッグ: サブメニューへ未発生イベントの一覧を貼り直す（開くたび）。
