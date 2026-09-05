@@ -17,6 +17,7 @@ const TAB_MIN_W := 120.0      # タブ1枚の最低幅
 var _skins := {}
 var _detail := {}
 var _tabs := {}  # "summary"/"attack"/"counter" -> Button
+var _tab := "summary"  # いま出しているタブ。言語が変わったとき同じタブで描き直すのに使う
 
 ## タブの id と文言キー。見出しは _ready で焼き込む＝言語が変わったら refresh_labels で貼り直す。
 const TABS := [["summary", "ui.report.tab_summary"], ["attack", "ui.report.tab_attack"],
@@ -85,15 +86,17 @@ func show_report(detail: Dictionary) -> void:
 	_show_tab("summary")
 
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
-## 表示中の内訳は次に戦闘が起きれば組み直されるので、ここではタブ見出しだけを差し替える。
+## タブ見出しに加え、出している内訳も同じ detail から組み直す（作り直しはしない）。
 func refresh_labels() -> void:
 	for t in TABS:
 		var b: Button = _tabs[String(t[0])]
 		b.text = tr(String(t[1]))
+	_show_tab(_tab)
 
 func _show_tab(id: String) -> void:
 	if _detail.is_empty():
 		return
+	_tab = id
 	_side_head.visible = id != "summary"
 	if id == "summary":
 		_rebuild_summary()

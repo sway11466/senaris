@@ -51,6 +51,10 @@ var _tabs_row: HBoxContainer
 var _tabs := {}         # id -> Button
 var _tab := "ability"   # いま選んでいるタブ。駒を選び直しても保つ＝同じ観点で駒を見比べられる
 var _shown_unit := -1   # タブ表示中の駒（タブを押したときに描き直す相手）。-1＝素のテキスト表示中
+## いま板に出しているもの（help＝未選択の案内／unit／terrain／combat／skill／notify＝一時通知）。
+## 言語が変わったときに同じ中身で描き直すために控える。→ refresh_labels
+var _view := "help"
+var _shown_hex := Vector2i.ZERO  # 地形を出しているマス（_view == "terrain" のときだけ意味を持つ）
 var _content: Control     # 中身の器。板の内側で切り落とす＝行が板の外へはみ出して描かれない
 var _rows: VBoxContainer  # いま出ているページの行。器いっぱいに広げる
 var _pager: HBoxContainer  # 下端の ◀ 2/3 ▶。1ページのときも場所は空けたまま無効表示にする
@@ -64,6 +68,7 @@ var _next: Button
 var _page_label: Label
 var _event_row: Label   # 残りターン（増援の予告）。ページャーの直上に据え置く全幅1行。無ければ隠す
 var _event_text := ""   # いま出す文言（空＝出さない）。レポートで隠している間も覚えておく
+var _event := {}        # 上の元になった中身（{ label, turns }）。言語が変わったら同じ中身で組み直す
 var _items: Array = []  # いま表示している中身の全行（ページ割りの元）。→ _render
 var _page := 0          # 何ページ目を出しているか（0起点）
 var _pages: Array = []  # _items をページに割った結果。ページ数の表示にも使う
@@ -410,6 +415,7 @@ func show_unit(unit_id: int) -> void:
 		clear()
 		return
 	_shown_unit = unit_id
+	_view = "unit"
 	if _report != null:
 		_report.hide()
 	if _skill_report != null:
@@ -430,13 +436,21 @@ func _on_tab_pressed(id: String) -> void:
 	if _shown_unit >= 0:
 		show_unit(_shown_unit)
 
-## 未選択の案内。1行1項目の箇条書きなので行ごとにキーを立てる（翻訳CSVに改行を持たせない）。
-## 空行は言語の話ではないのでここで持つ。
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
-## パネルの中身は表示のたびに組み直すので、焼き込みが残るのは戦闘レポートのタブ見出しだけ。
+## 板の中身は描いた文字列をそのまま持っているので、いま出しているもの（_view）を同じ中身で
+## 描き直す＝作り直しはしない。一時通知（notify）は数秒で消えるので触らない。
+## 戦闘結果・スキル結果は各ビューが自分の控え（detail／result）から組み直す。
 func refresh_labels() -> void:
 	_report.refresh_labels()
+	_skill_report.refresh_labels()
+	set_event(_event)
+	match _view:
+		"help": clear()
+		"unit": show_unit(_shown_unit)
+		"terrain": show_terrain(_shown_hex)
 
+## 未選択の案内。1行1項目の箇条書きなので行ごとにキーを立てる（翻訳CSVに改行を持たせない）。
+## 空行は言語の話ではないのでここで持つ。
 func clear() -> void:
 	_show_text("\n".join([
 		tr("ui.info.help_no_selection"),
@@ -451,11 +465,13 @@ func clear() -> void:
 		tr("ui.info.help_zoom"),
 		tr("ui.info.help_fit"),
 	]))
+	_view = "help"
 
 ## 残りターン（増援の予告）を流し込む。event＝BattleState.next_event() の戻り（{ label, turns }）。
 ## 文言は label（翻訳キー）の訳文が全部を持ち、{n} に残りターン数が入る＝言語ごとに語順を変えられる。
 ## 空なら行ごと隠れ、中身の器がそのぶん広がる。仕様 → doc/gdd/uiux.md 残りターン
 func set_event(event: Dictionary) -> void:
+	_event = event
 	var key := String(event.get("label", ""))
 	_event_text = "" if key.is_empty() else tr(key).format({ "n": int(event.get("turns", 0)) })
 	_event_row.text = _event_text
@@ -469,6 +485,7 @@ func _sync_event_row() -> void:
 ## 上端の情報バーを廃した代わりの置き場（doc/gdd/uiux.md「ターン表示」）。
 func notify(text: String, seconds := 2.5) -> void:
 	_show_text(text)
+	_view = "notify"
 	var token := _notify_token + 1
 	_notify_token = token
 	await get_tree().create_timer(seconds).timeout
@@ -481,6 +498,8 @@ func show_terrain(hex: Vector2i) -> void:
 		clear()
 		return
 	_enter_text_view()
+	_shown_hex = hex
+	_view = "terrain"
 	_build_terrain_lines(hex)
 	_page = 0
 	_render()
@@ -770,6 +789,7 @@ func show_combat(detail: Dictionary) -> void:
 	_pager.hide()
 	_event_row.hide()
 	_skill_report.hide()
+	_view = "combat"
 	_report.show()
 	_report.show_report(detail)
 
@@ -786,5 +806,6 @@ func show_skill_report(result: Dictionary) -> void:
 	_pager.hide()
 	_event_row.hide()
 	_report.hide()
+	_view = "skill"
 	_skill_report.show()
 	_skill_report.show_result(result)

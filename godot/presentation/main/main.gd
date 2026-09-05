@@ -1045,7 +1045,7 @@ func _on_settings_locale_chosen(locale: String) -> void:
 	_refresh_labels()
 
 ## 言語が変わったときに文言を貼り直す画面＝起動時に1度だけ作ってセッション中生き続ける物。
-## 開くたびに組み直す画面（情報パネルの中身・盤のコマンドメニュー・会話・戦果票）は要らない。
+## 開くたびに組み直す画面（盤のコマンドメニュー・会話・戦果票）は要らない。
 ## 一覧の根拠 → doc/tech/i18n.md 言語の切り替え。生き続ける画面を足したらここへも足す。
 func _refresh_labels() -> void:
 	_settings.refresh_labels()

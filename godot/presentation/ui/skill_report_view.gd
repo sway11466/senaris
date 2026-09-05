@@ -83,6 +83,12 @@ func show_result(result: Dictionary) -> void:
 	_page = 0
 	_render()
 
+## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
+## 出しているページを同じ result から組み直す（作り直しはしない）。
+func refresh_labels() -> void:
+	if not _result.is_empty():
+		_render()
+
 ## ページを送る（範囲外は無視＝端でボタンは無効になっている）。UnitInfoPanel のホイールも呼ぶ。
 func turn_page(delta: int) -> void:
 	var to := _page + delta
