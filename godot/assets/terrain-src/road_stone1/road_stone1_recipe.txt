@@ -1,3 +1,6 @@
-powershell -File tools\gen_area_tiles.ps1 road_stone1 assets\terrain-src\road_stone1\road_stone1_01_raw.png -BandX 162 -BandY 162 -BandW 700 -BandH 700 -Bite 46 -CutTransparent -EdgeWidth 3 -EdgeColor "#42423D"
-# -CutTransparent＝切り取った側を透過のまま残す。下地は terrain_skin.csv の map_ground（石畳=plain / 橋=river）。
-# 元絵の中央700px四方をテクスチャに使う＝ヘックス1枚あたり石が約10個。EdgeColor は元絵の目地の実測値。
+powershell -File tools\gen_area_tiles.ps1 road_stone1 assets\terrain-src\bridge_stone1\bridge_stone1_floor_01_raw.jpg -BandX 0 -BandY 0 -BandW 1024 -BandH 1024 -Bite 46 -CutTransparent -EdgeWidth 3 -EdgeColor "#3E3F3A"
+# 元絵は橋の床（assets/terrain-src/bridge_stone1/bridge_stone1_floor_01_raw.jpg）＝橋と同じ石を道にも敷き、道が橋へ乗る所をひと続きの面に見せる。
+# 元絵の全面（1024四方）を1ヘックスに使う＝gen_bridge_tiles.ps1 の -DeckW 1024 と同じ縮尺。石はヘックス幅の約1/12。
+# -CutTransparent＝切り取った側は透過のまま。下地は terrain_skin.csv の map_ground（plain）。
+# EdgeColor は橋の床の目地の実測値（8色に減色したときの最暗クラスタ #3E3F3A）。
+# 旧 road_stone1 の絵は road_stone2 として残してある（assets/terrain-src/road_stone2/）。

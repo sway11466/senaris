@@ -117,6 +117,7 @@ terrain.road_prop_garden1_l.name,菜園,Garden
 terrain.road_prop_garden1_r.name,菜園,Garden
 terrain.road_prop_garden1_v.name,菜園,Garden
 terrain.road_stone1.name,石畳,Cobblestones
+terrain.road_stone2.name,石畳,Cobblestones
 terrain.wall.name,壁,Wall
 terrain.wall_stone1.name,石積みの壁,Stone Wall
 terrain.wasteland.name,荒地,Wasteland
