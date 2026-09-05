@@ -10,7 +10,8 @@ class_name ResultBanner
 ## main が play(...) を呼び、印が落ちた瞬間に stamped、入力で閉じて finished を出す。
 
 signal stamped   ## 印が落ちた瞬間（main がスティンガーを鳴らす合図＝演出と音を揃える）
-signal finished  ## 入力で閉じた（main が outro会話／次ステージへ進む）
+signal finished(action: String)  ## 入力で閉じた（main が outro会話／次ステージ／敗北の行き先へ進む）
+                                 ## action＝敗北の票で選ばれた行き先。空＝選ばずに閉じた＝盤に戻る
 
 const SHEET := Vector2(640, 480)           ## 羊皮紙の大きさ。素材は 560x400 で、縦横とも引き伸ばして使う
                                            ## （タイルだと中途半端な繰り返しの継ぎ目が出る）。横は明細の右に
@@ -41,6 +42,13 @@ const STAMP_WAIT := 0.30                   ## 紙が出てから印が落ちる�
 const STAMP_WAIT_FLASH := 0.55             ## 白フラッシュから受ける回の溜め＝白が引き切るあたりで印が落ちる
 const STAMP_IN := 0.20                     ## 印が落ちる（叩きつけ）
 
+## 敗北の票に置く行き先（finished が返す値）。
+const ACT_RETRY := "retry"                 ## もう一度挑む＝同じステージを読み直す
+const ACT_SELECT := "select"               ## 依頼ボードへ戻る＝ステージセレクトを開く
+const CHOICE_H := 44.0                     ## 行き先のボタンの高さ（TavernTheme のボタンの最小寸法）
+const CHOICE_SIDE := 30.0                  ## 紙の左右端からボタンまで（明細の余白と同じ）
+const CHOICE_BOTTOM := 26.0                ## 紙の下端からボタンまで
+
 var _root: Control        # 全画面の入力キャッチ（モーダル）
 var _scrim: ColorRect     # 盤を沈める暗幕
 var _sheet: Panel         # 羊皮紙（非コンテナ＝印を好きな位置に重ねられる）
@@ -50,6 +58,9 @@ var _caption: Label       # 印の上の「ランク」（ランクを押す回�
 var _rank_font_cache: Font = null  # ランクの1文字を押す書体（初回に読む）
 var _tween: Tween
 var _can_close := false   # 印が落ちるまでは入力で閉じない（演出を飛ばさせない）
+var _choices: HBoxContainer  # 敗北の回だけ出す行き先（左＝依頼ボードへ戻る／右＝もう一度挑む）
+var _retry: Button
+var _to_select: Button
 
 func _ready() -> void:
 	_build()
@@ -95,6 +106,29 @@ func _build() -> void:
 	_body.add_theme_constant_override("separation", 10)
 	_body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_sheet.add_child(_body)
+	# 敗北の回だけ出す行き先。左＝やめる／右＝進む（doc/gdd/uiux.md ボタンの左右）＝依頼書と同じ並び。
+	# 印は紙の左・縦中央なので、紙の下辺は勝敗どちらの票でも空いている。
+	_choices = HBoxContainer.new()
+	_choices.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	_choices.offset_left = CHOICE_SIDE
+	_choices.offset_right = -CHOICE_SIDE
+	_choices.offset_top = -(CHOICE_BOTTOM + CHOICE_H)
+	_choices.offset_bottom = -CHOICE_BOTTOM
+	_choices.visible = false
+	_sheet.add_child(_choices)
+	_to_select = TavernTheme.ink_button("")
+	_to_select.pressed.connect(_dismiss.bind(ACT_SELECT))
+	_choices.add_child(_to_select)
+	var gap := Control.new()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_choices.add_child(gap)
+	_retry = TavernTheme.wax_button("")
+	_retry.pressed.connect(_dismiss.bind(ACT_RETRY))
+	_choices.add_child(_retry)
+	# 焦点を当てられるようにして（既定は「もう一度挑む」）、当たっている側をホバーと同じ濃さで示す。
+	for b: Button in [_to_select, _retry]:
+		b.focus_mode = Control.FOCUS_ALL
+		b.add_theme_stylebox_override("focus", b.get_theme_stylebox("hover"))
 	visible = false
 
 ## 戦果票を出す。title＝ステージ名、stamp_text＝印の文言（勝利はランク S/A/B、無ければ VICTORY）、
@@ -107,9 +141,11 @@ func _build() -> void:
 ## from_flash＝決着の白フラッシュから受ける回（勝利）。白が画面を覆っている間に呼ばれる前提で、
 ## 暗幕と紙をフェードさせず最初から据える＝白が引くと票が既に出ている（doc/gdd/uiux.md 決着の合図）。
 ## 溜めは白の引きに合わせて長めに取る＝白が引き切るあたりで印が落ちる。
-func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "", note := "", from_flash := false) -> void:
+## choices＝紙の下辺に行き先（もう一度挑む／依頼ボードへ戻る）を置く回＝敗北。
+func play(title: String, stamp_text: String, win: bool, rows: Array, caption := "", note := "", from_flash := false, choices := false) -> void:
 	_build()
 	_fill(title, rows, note)
+	_set_choices(choices)
 	_can_close = false
 	visible = true
 	if _tween != null and _tween.is_valid():
@@ -156,6 +192,15 @@ func play(title: String, stamp_text: String, win: bool, rows: Array, caption := 
 	# tween すると中央揃えを奪って紙が左上に寄る）。scale はコンテナが触らない。
 	_tween.tween_property(_sheet, "scale", Vector2(1.03, 0.96), 0.05)
 	_tween.tween_property(_sheet, "scale", Vector2.ONE, 0.10)
+
+## 行き先のボタンを出す／消す。文言は出すたびに貼り直す＝言語を変えたあとも紙の字が揃う。
+## 出している間は紙がクリックを食う＝明細を読もうとして紙に触っただけでは閉じない。
+func _set_choices(on: bool) -> void:
+	_choices.visible = on
+	_sheet.mouse_filter = Control.MOUSE_FILTER_STOP if on else Control.MOUSE_FILTER_IGNORE
+	if on:
+		_retry.text = tr("ui.result.retry")
+		_to_select.text = tr("ui.result.to_select")
 
 ## ランクの1文字用の書体（読み取れる字形が要る。語には使わない）。無ければ既定の印の書体で押す。
 func _rank_font() -> Font:
@@ -229,18 +274,36 @@ func _cell(text: String, fsize: int, align: int, min_w: float) -> Label:
 ## 印が落ちた＝スティンガーを鳴らす合図を出し、以後は入力で閉じられる。
 func _on_stamped() -> void:
 	_can_close = true
+	if _choices.visible:
+		_retry.grab_focus()  # 既定は再挑戦＝Enter 一発でやり直せる（リトライ前提の画面）
 	stamped.emit()
 
 func _on_input(e: InputEvent) -> void:
 	if not _can_close:
 		return
+	# 行き先を出している回は入口を絞る＝暗幕クリックだけが「閉じて盤に戻る」。紙とボタンの上の
+	# クリックはここへ来ない（紙が食う）＝読もうとして触っただけで票が消えない。
+	if _choices.visible:
+		if e is InputEventMouseButton and e.pressed:
+			_dismiss()
+		return
 	if (e is InputEventMouseButton and e.pressed) or (e is InputEventKey and e.pressed):
 		_dismiss()
 
-func _dismiss() -> void:
+## Esc も「閉じて盤に戻る」（依頼書と同じ流儀）。ボタンに焦点があると鍵盤の入力は紙の側へ
+## 降りてこないので、盤へ渡る前のここで受ける。
+func _unhandled_input(e: InputEvent) -> void:
+	if not visible or not _can_close or not _choices.visible:
+		return
+	if e.is_action_pressed("ui_cancel"):
+		_dismiss()
+		get_viewport().set_input_as_handled()
+
+func _dismiss(action := "") -> void:
 	if not visible:
 		return
 	visible = false
+	_set_choices(false)
 	if _tween != null and _tween.is_valid():
 		_tween.kill()
 	if _stamp != null:
@@ -249,4 +312,4 @@ func _dismiss() -> void:
 	if _caption != null:
 		_caption.queue_free()
 		_caption = null
-	finished.emit()
+	finished.emit(action)

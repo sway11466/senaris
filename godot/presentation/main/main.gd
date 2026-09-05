@@ -379,7 +379,7 @@ func _on_battle_finished(outcome: int) -> void:
 	await _await_combat_view()
 	if outcome == BattleState.PLAYER_WIN and _finisher_route.is_empty():
 		await _play_board_finisher()  # 盤の上で決まった勝ち（本拠の占領など）＝寄せてから白へ
-	await _show_result(outcome, rank)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
+	var choice := await _show_result(outcome, rank)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
 	if outcome == BattleState.PLAYER_WIN:
 		if not _dialogue.get("outro", []).is_empty():
 			_conversation_phase = "outro"
@@ -395,6 +395,8 @@ func _on_battle_finished(outcome: int) -> void:
 			_conversation.start(_dialogue["outro"], label)  # 読了/スキップで次ステージ or セレクトへ
 		else:
 			_advance_or_select()  # 会話なし＝すぐ次へ（テンポ優先）
+	else:
+		_take_defeat_route(choice)  # 敗北＝票で選ばれた行き先へ
 
 # --- 決着の合図（勝ちが決まる瞬間）。仕様 → doc/gdd/uiux.md ---
 
@@ -427,9 +429,10 @@ func _captured_enemy_hq() -> Vector2i:
 ## （演出と音を揃える）。曲が未配置でも無音で進む＝演出だけは出る。
 ## 勝利は白フラッシュを幕にする＝白が覆ってから戦闘の窓を畳んで票を敷き、白が引くと票が
 ## 出ている（doc/gdd/uiux.md 決着の合図）。敗北は現行のまま暗幕から。
-func _show_result(outcome: int, rank: String) -> void:
+## 返り値＝敗北の票で選ばれた行き先（ResultBanner.ACT_*）。勝利と、選ばずに閉じた回は空。
+func _show_result(outcome: int, rank: String) -> String:
 	if _result == null or _controller == null:
-		return
+		return ""
 	var win := outcome == BattleState.PLAYER_WIN
 	if _bgm != null:
 		# 勝利は余韻曲へ繋ぐ＝ファンファーレ（約10秒）が終わった後、outro 会話を読む間が無音にならない。
@@ -453,10 +456,20 @@ func _show_result(outcome: int, rank: String) -> void:
 			tr("ui.result.note_weapons"), true)
 		_flash.fall()
 	else:
+		# 敗北の票には行き先を2つ置く＝盤に戻らず再挑戦かセレクトへ進める（doc/gdd/uiux.md 決着の演出）。
 		_result.play(_stage_title(), stamp_text, win, _result_rows(win), caption,
-			tr("ui.result.note_weapons"))
+			tr("ui.result.note_weapons"), false, true)
 	_finisher_route = ""
-	await _result.finished
+	return await _result.finished
+
+## 敗北の戦果票で選ばれた行き先へ進む。空＝選ばずに閉じた＝そのまま盤に戻る（負けた盤を見直せる）。
+## 再挑戦は controller を作り直すので、票を閉じた入力の処理から抜けてから走らせる。
+func _take_defeat_route(action: String) -> void:
+	match action:
+		ResultBanner.ACT_RETRY:
+			call_deferred("_on_restart_requested")
+		ResultBanner.ACT_SELECT:
+			_select.open()
 
 ## ステージ開始時の兵力を控える（戦果票の分母）。盤の現況ではなくステージ定義から導出する
 ## ＝中断セーブから再開しても同じ値になる（doc/gdd/rank.md 生存）。

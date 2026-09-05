@@ -191,6 +191,8 @@ ui.result.note_weapons,※兵器は数に入りません,* War Machines are not 
 ui.result.time,所要時間,Time
 ui.result.best_time,最速 %s,Best %s
 ui.result.time_days,%d日 %d:%02d,%dd %d:%02d
+ui.result.retry,もう一度挑む,Set Out Again
+ui.result.to_select,依頼ボードへ戻る,Back to the Quest Board
 ui.combat.attack,攻撃,Attack
 ui.combat.defense,防御,Defense
 ui.combat.poison,毒 -%d/ターン,Poison -%d/turn

@@ -31,14 +31,6 @@
 - 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
 - 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
 
-### feature-104
-
-**敗北の戦果票に再挑戦・セレクトの導線を置く**
-- ゴール：負けた回は戦果票から、盤に戻らず再挑戦かセレクトへ直接進める。
-- 背景：いまは敗北の戦果票を閉じると盤に戻り、再挑戦・セレクトへ戻るにはシステムメニュー（歯車）を自分で開く必要がある。敗北はリトライ前提で軽く扱う方針（[uiux.md](gdd/uiux.md) §決着の演出）なのに、再挑戦までの手数が多い。
-- 対応：敗北の回だけ、戦果票の入力待ちに「再挑戦」「セレクトへ」の選択肢を置く（勝利の回は現行どおりクリックで閉じる）。遷移は既存のリスタート（`restart_requested`）・セレクト復帰の経路に繋ぐ。uiux.md §決着の演出にも敗北の入力待ちの仕様を1行足す。
-- 該当：`godot/presentation/ui/result_banner.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・[uiux.md](gdd/uiux.md)。
-
 ### feature-92
 
 **ステージが更新されている中断セーブをプレイヤーに知らせる**
