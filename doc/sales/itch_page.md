@@ -154,6 +154,8 @@ Reinforcements are not built — they are taken, one fort at a time.
 <p>Coming to Steam later.</p>
 
 <p>More about the game: <a href="https://senaris.in">senaris.in</a></p>
+
+<p>Join the community on <a href="https://discord.gg/qbzPUBdzYg">Discord</a>.</p>
 ```
 
 ## 更新のたびにやること

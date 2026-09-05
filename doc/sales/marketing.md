@@ -205,6 +205,8 @@ a companion worn down to nothing is out of the fighting, but not out of the stor
 - No base building and no strategic overworld.
 
 More about the game: [senaris.in](https://senaris.in)
+
+Join the community on [Discord](https://discord.gg/qbzPUBdzYg).
 ````
 
 ストアページに出る英語でも、AI 生成コンテンツの開示文だけは [monetization.md](monetization.md) が正本。方針と不可分なため、そちらに置く。
@@ -236,6 +238,7 @@ channels/
 | 公式サイト | 名前で検索した人の受け皿。詳しく知りたい人に渡す | [site.md](site.md) |
 | YouTube | 動画の置き場。他人の紹介動画に開発者として出ていく場 | [youtube.md](youtube.md) |
 | Bluesky | 節目の告知先。名前で辿った人がもう一つ見つける場所 | 下記「SNS」 |
+| Discord | プレイヤーの居場所。質問・不具合報告・感想を受ける | 下記「Discord」 |
 
 表に並ぶのは露出の面で、自分から出す面と、他人に取り上げられる面の両方を含む。
 
@@ -258,6 +261,12 @@ Bluesky と Reddit で能動的に露出を取りに行くかは、生成 AI の
 避け続ける判断ではなく、時期の判断とする。目安は Steam で AI 開示付きの新作が過半を占めるあたり（2027〜28年の推計）。札が多数派になれば、札そのものは目印として働かなくなる。
 
 Reddit は板ごとに宣伝の規則が違い、カルマと開設日数の下限を設けている板がある。出ると決めてから作ると条件を満たせないので、アカウントだけは先に取る。人格に紐づく場なので、作品名義ではなく開発元名義で持つ。
+
+### Discord
+
+Discord は人が集まる単位がサーバーで、アカウントは運営者の名札にすぎない。作品ごとにアカウントを作らず、開発元のゲーム全体で1つのサーバー「CraftKobo Games」を持ち、その中に作品ごとのカテゴリを置く。ゲーム同士は客層が近いので1か所に集めて場を生かし、ゲーム以外の制作物は客層が違うので別サーバーにする。招待は期限なしのリンク `https://discord.gg/qbzPUBdzYg`。短縮 URL（discord.gg/senaris）はサーバーの Boost レベルが要るので使わない。
+
+Senaris のカテゴリには `senaris-welcome`（リンク集、書けるのは運営者だけ）、`senaris`（英語の雑談・質問・感想）、`senaris-jp`（日本語）を置く。サーバー全体の `welcome` は各作品のカテゴリへの案内だけを書く。招待リンクは itch の本文（[itch_page.md](itch_page.md)）と、できたらストアページ・サイトに置く。
 
 ## 参考資料
 
