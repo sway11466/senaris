@@ -25,7 +25,6 @@ signal formation_impact_finished
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速・上限なし＝時間はマス数に比例。doc/gdd/uiux.md 移動アニメ）
-const INFOPANEL_LEFT := UiLayout.RIGHT_BOX_LEFT    # InfoPanel の左端（レイアウト定数は ui_layout.gd に集約）
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
 
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
@@ -339,7 +338,7 @@ func _vis_rect() -> Rect2:
 	var vp := get_viewport().get_visible_rect().size
 	var x := 16.0
 	var y := 64.0
-	var w := minf(vp.x, INFOPANEL_LEFT) - 32.0
+	var w := UiLayout.board_area(vp).size.x - 32.0  # 盤エリア＝情報板が塞いでいない側（doc/gdd/uiux.md 盤エリア）
 	var h := vp.y - 96.0
 	return Rect2(x, y, w, h)
 

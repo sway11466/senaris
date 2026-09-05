@@ -146,3 +146,38 @@ func test_shake_does_not_crash() -> void:
 
 func test_fov_matches() -> void:
 	assert_eq(cam.camera.fov, BoardCamera.FOV, "FOV が設定されている")
+
+# --- 全体フィット（doc/gdd/uiux.md 盤エリア） ---
+
+## 盤のヘックスサイズ（ワールド）。hex_board_3d.gd の TILE と同じ値で測る。
+const BOARD_TILE := 1.0
+
+## 盤の四隅（タイル半径ぶん外まで）が可視域に収まるか。傾いたカメラの遠近は距離に比例しないので、
+## 寸法の計算ではなく実際に画面へ投影して確かめる。
+func _fits(hex_min: Vector2, hex_max: Vector2, tile: float, vis: Rect2) -> bool:
+	cam.fit_to_bounds(hex_min, hex_max, tile, vis)
+	var mn := hex_min - Vector2(tile, tile)
+	var mx := hex_max + Vector2(tile, tile)
+	for p in [mn, Vector2(mx.x, mn.y), Vector2(mn.x, mx.y), mx]:
+		var w := Vector3(p.x, 0.0, p.y)
+		if cam.camera.is_position_behind(w):
+			return false
+		if not vis.has_point(cam.camera.unproject_position(w)):
+			return false
+	return true
+
+func test_fit_contains_a_wide_board() -> void:
+	assert_true(_fits(Vector2.ZERO, Vector2(30.0, 12.0), BOARD_TILE, _vis()), "横長の盤が収まる")
+
+func test_fit_contains_a_tall_board() -> void:
+	assert_true(_fits(Vector2.ZERO, Vector2(12.0, 30.0), BOARD_TILE, _vis()), "縦長の盤が収まる")
+
+func test_fit_contains_a_board_in_a_narrow_visible_area() -> void:
+	# 情報板を開いているとき＝可視域が画面の左側だけ（doc/gdd/uiux.md 盤エリア）。
+	var vp := cam.get_viewport().get_visible_rect().size
+	var vis := Rect2(16.0, 64.0, minf(vp.x, 800.0) - 32.0, vp.y - 96.0)
+	assert_true(_fits(Vector2.ZERO, Vector2(30.0, 12.0), BOARD_TILE, vis), "板を避けた側にも収まる")
+
+func test_fit_does_not_shrink_a_small_board_below_the_minimum() -> void:
+	cam.fit_to_bounds(Vector2.ZERO, Vector2(1.0, 1.0), BOARD_TILE, _vis())
+	assert_gte(cam.dist, BoardCamera.MIN_DIST, "寄り過ぎない下限は守る")

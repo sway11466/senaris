@@ -100,6 +100,10 @@ func _ready() -> void:
 	if _settings_store.has_info_panel_position():
 		$Front/InfoPanel.position = _settings_store.info_panel_position()
 	$Front/InfoPanel.moved.connect(_settings_store.set_info_panel_position)
+	# 盤エリアは板が塞いでいない側＝畳む／開く／動かすのたびに押し直す（設定へ書いた後に読む）。
+	$Front/InfoPanel.minimized_changed.connect(func(_v: bool) -> void: _sync_board_area())
+	$Front/InfoPanel.moved.connect(func(_p: Vector2) -> void: _sync_board_area())
+	_sync_board_area()
 	_install_screen()  # 画面の明暗の共通基盤（暗幕＋加護の光）。暗転を頼む演出より先に用意
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
 	_combat_scene.bind(_skins)
@@ -337,6 +341,14 @@ func _update_turn_plate(team: int, turn_number: int) -> void:
 func _on_info_panel_reset_requested() -> void:
 	$Front/InfoPanel.reset_position()
 	_settings_store.clear_info_panel_position()
+	_sync_board_area()  # 既定の場所へ戻した＝また板が右ボックスを塞ぐ
+
+## 盤エリア（→ doc/gdd/uiux.md 盤エリア）は情報板が塞いでいない側。板の状態を知っているのは
+## ここだけなので、変わるたびに UiLayout へ押す。カメラはここでは動かさない＝畳む・開く・動かすで
+## 見ている場所を失わせない（合わせ直すのはステージを開いたときだけ）。
+func _sync_board_area() -> void:
+	var holds: bool = not $Front/InfoPanel.is_minimized() and not _settings_store.has_info_panel_position()
+	UiLayout.set_panel_holds_right_box(holds)
 
 ## 残りターン（増援の予告）を情報パネルへ流し込む。未発生のイベントが無ければ行が隠れる。
 ## 仕様 → doc/gdd/uiux.md 残りターン

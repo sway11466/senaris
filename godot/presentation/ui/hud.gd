@@ -133,7 +133,8 @@ func _reposition() -> void:
 	var y := vp.y - 52.0
 	_gear.position = Vector2(16.0, y)
 	_info_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
-	_end_btn.position = Vector2(UiLayout.board_area(vp).end.x - 16.0 - _end_btn.size.x, y)
+	# ターン終了は盤エリアを見ない＝板を畳んでも動かしても場所が変わらない（doc/gdd/uiux.md 盤エリア）。
+	_end_btn.position = Vector2(UiLayout.end_turn_left(vp, _end_btn.size.x), y)
 	if _badge != null:
 		# 情報板ボタンの右上角に半分ほど重ね、しっぽの先がボタンの中に入るように置く。
 		_badge.position = Vector2(

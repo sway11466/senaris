@@ -78,25 +78,64 @@ func zoom_at_point(factor: float, screen: Vector2) -> void:
 		update_rig()
 
 ## 盤全体が vis_rect（使用可能な画面領域 px）に収まるよう距離と注視点を合わせる。
-## hex_min / hex_max はピクセル座標（Hex.to_pixel の結果）。tile はヘックスサイズ。
+## hex_min / hex_max はヘックス中心のピクセル座標（Hex.to_pixel の結果）。tile はヘックスサイズ。
+##
+## 傾いたカメラの遠近は距離に比例しない＝手前の列ほど大きく映るので、寸法から一発で解くと
+## 手前側がはみ出す。ここでは概算の距離から始めて、四隅を実際に画面へ投影し、はみ出したぶんだけ
+## 引く、を数回くり返す。画面上の大きさは距離にほぼ反比例するので数回で収まる。
+const FIT_STEPS := 6      # 投影して詰め直す回数
+const FIT_MARGIN := 1.02  # 収めたうえで残す余白（1.0 ちょうどだと縁が可視域の線に触れる）
+
 func fit_to_bounds(hex_min: Vector2, hex_max: Vector2, tile: float, vis_rect: Rect2) -> void:
-	var c := (hex_min + hex_max) * 0.5
-	var half := (hex_max - hex_min) * 0.5 + Vector2(tile * 1.5, tile * 1.5)
+	# 描かれるのはヘックスの中心より半径ぶん外まで＝外周を1タイル広げた矩形を収める。
+	var mn := hex_min - Vector2(tile, tile)
+	var mx := hex_max + Vector2(tile, tile)
+	var c := (mn + mx) * 0.5
+	target = Vector3(c.x, 0.0, c.y)
+	dist = clampf(_rough_dist(mn, mx, vis_rect), MIN_DIST, MAX_DIST)
+	update_rig()
+	_center_on(mn, mx, vis_rect)
+	for _i in FIT_STEPS:
+		var r := _projected_rect(mn, mx)
+		if r.size.x <= 0.0 or r.size.y <= 0.0:
+			break
+		var k := maxf(r.size.x / vis_rect.size.x, r.size.y / vis_rect.size.y) * FIT_MARGIN
+		var nd := clampf(dist * k, MIN_DIST, MAX_DIST)
+		var moved := absf(nd - dist) > 0.01
+		dist = nd
+		update_rig()
+		_center_on(mn, mx, vis_rect)
+		if not moved:
+			break
+
+## 投影で詰める前の当たり＝寸法から解く近似（そのままだと手前がはみ出すので出発点にだけ使う）。
+func _rough_dist(mn: Vector2, mx: Vector2, vis_rect: Rect2) -> float:
+	var half := (mx - mn) * 0.5
 	var vp := get_viewport().get_visible_rect().size
 	var tanf := tan(deg_to_rad(FOV) * 0.5)
 	var sp := sin(deg_to_rad(PITCH_DEG))
-	var vis_w := vis_rect.size.x
-	var vis_h := vis_rect.size.y
-	var d_h := half.x / (tanf * vis_w / vp.y)
-	var d_v := half.y * sp / (tanf * vis_h / vp.y)
-	dist = clampf(maxf(d_h, d_v) * 1.05, MIN_DIST, MAX_DIST)
-	var wpp := world_per_pixel()
-	# 可視域の中心が画面中心からどれだけずれているか → 注視点をその逆方向にずらす。
-	var vis_center := vis_rect.position + vis_rect.size * 0.5
-	var screen_center := vp * 0.5
-	var dx_px := screen_center.x - vis_center.x
-	var dy_px := screen_center.y - vis_center.y
-	target = Vector3(c.x + dx_px * wpp, 0.0, c.y + dy_px * wpp / sp)
+	var d_h := half.x / (tanf * vis_rect.size.x / vp.y)
+	var d_v := half.y * sp / (tanf * vis_rect.size.y / vp.y)
+	return maxf(d_h, d_v) * 1.05
+
+## 盤の外周（ワールドxz）を画面へ投影した矩形。
+func _projected_rect(mn: Vector2, mx: Vector2) -> Rect2:
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for p in [mn, Vector2(mx.x, mn.y), Vector2(mn.x, mx.y), mx]:
+		var s := camera.unproject_position(Vector3(p.x, 0.0, p.y))
+		lo = lo.min(s)
+		hi = hi.max(s)
+	return Rect2(lo, hi - lo)
+
+## 投影した盤の中心を可視域の中心へ合わせる。px×world_per_pixel の線形換算ではなく、
+## 「その画面位置の真下にある盤上の点」の差で動かす（zoom_at_point と同じ手）。
+func _center_on(mn: Vector2, mx: Vector2, vis_rect: Rect2) -> void:
+	var have := _plane_point(_projected_rect(mn, mx).get_center())
+	var want := _plane_point(vis_rect.get_center())
+	if not (have.is_finite() and want.is_finite()):
+		return
+	target += Vector3(have.x - want.x, 0.0, have.z - want.z)
 	update_rig()
 
 ## 追従の行き先を収める範囲を hex ピクセル座標＋余白で渡す（保険＝盤の外へ飛ばさない）。
