@@ -148,8 +148,8 @@ t2.st2.outro.1,集落は守れました。住民も、無事です。間に合�
 t2.st2.outro.2,でも、これだけの屍、どこから湧いてくるの？,"But this many dead — where are they all coming from?"
 t2.st2.outro.3,墓地だろうな。まだ奥から、次々と出てくるぞ。今度は群れの規模が違うな。,"The graveyard, surely. They keep pouring from deeper in. This swarm is on another scale."
 t2.st2.outro.4,あの量、普通の魔法だけでは焼ききれません。合体魔法の出番ですね、魔法ギルドに増援を頼みましょう。,"That many can't be burned away by ordinary spells. Time for combined magic — let's request reinforcements from the mage guild."
-t2.st2.squad.1,北西,Northwest
-t2.st2.squad.2,南東,Southeast
+t2.st2.squad.1,突撃する群れ,Charging Horde
+t2.st2.squad.2,町を狙う群れ,Town Raiders
 t2.st3.intro.1,見て、あの数。地平まで屍で埋まってる。一体ずつ焼いていたら日が暮れるわ。,"Look at them all — dead to the horizon. Burn them one by one and night will fall first."
 t2.st3.intro.2,魔法ギルドからもう一人、術者を呼びました。術者が三角に組めば、合体魔法「トリニティノヴァ」が撃てます。,"I've called another caster from the guild. With three mages set in a triangle, we can cast the combined spell — the Trinity Nova."
 t2.st3.intro.5,三角とは、三人が互いに隣り合う形です。動いてしまった者は詠唱に加われません、その場で組んでください。,"A triangle means all three standing adjacent to one another. Anyone who has already moved cannot join the chant — form up where you stand."
@@ -166,11 +166,11 @@ t2.st3.outro.1,さすがの合体魔法ね。あれだけの群れも消し飛�
 t2.st3.outro.2,湧く元があります。離れた場所にある、屍を吐き出し続ける墓地を絶つ必要があります。,"There's a source. We need to cut off the graveyard that keeps spewing out the dead — the one in the distance."
 t2.st3.outro.3,私たち聖職が墓地を祓えば、屍の発生を止められるはずです。,"If we clergy purify the graveyard, we should be able to stop the dead from rising."
 t2.st3.outro.4,教会に増援を頼もう。護衛の騎士と戦士、そして墓地を鎮める聖職者を。,"Let's request aid from the church — knights and fighters to guard, and clergy to lay the graveyard to rest."
-t2.st3.squad.1,第一波,First Wave
-t2.st3.squad.2,第二波,Second Wave
-t2.st3.squad.3,第三波,Third Wave
-t2.st3.squad.4,ゴースト隊弱者狙い,Prowling Ghosts
-t2.st3.squad.5,ゴースト隊特攻,Charging Ghosts
+t2.st3.squad.1,入口近くの群れ,Horde at the Gate
+t2.st3.squad.2,中ほどの群れ,Middle Horde
+t2.st3.squad.3,奥の群れ,Far Horde
+t2.st3.squad.4,術者狙いのゴースト,Ghost Stalkers
+t2.st3.squad.5,突撃ゴースト,Charging Ghosts
 t2.st4.intro.1,教会が応えてくれました。護衛の騎士と戦士、それに聖職の手が増えます。心強い。,"The church answered. More knights and fighters to guard us, and more clergy besides. Reassuring."
 t2.st4.intro.2,広いな、奥に墓地から屍が湧き続けている。倒しても倒しても、あれがある限りキリがない。,"A wide field — the dead keep rising from the graves at the back. Kill as we might, there is no end while those remain."
 t2.st4.intro.3,やっぱり墓地を祓うしかなさそうね。,"Looks like there's no choice but to purify the graves after all."
@@ -186,8 +186,8 @@ t2.st4.outro.1,墓地を鎮めました。これで、ここから新たな屍�
 t2.st4.outro.2,元さえ断てば、こちらの領分だ。よく通した。,"Cut off the source and the field is ours. Well run."
 t2.st4.outro.3,でも、今回は雑魚とはいえないグールがいたわ。きっと、この先次はもっと厄介よ。,"But this time there were ghouls that were no mere fodder. Whatever's ahead will surely be nastier."
 t2.st4.outro.4,なら聖職の祈りを重ねましょう。聖職者を五人（いつたり）集めて加護を祈りましょう。,"Then let us layer the clergy's prayers. Gather five of the faithful and pray for a blessing."
-t2.st4.squad.1,前衛,Front Line
-t2.st4.squad.2,レイス隊,Wraiths
+t2.st4.squad.1,押し寄せる屍,Onrushing Dead
+t2.st4.squad.2,弱者狙いのレイス,Wraith Stalkers
 t2.st5.intro.1,聖職が五人、揃いました。みなさん、手を貸してくれます。,"Five of the clergy have gathered. Everyone lends a hand."
 t2.st5.intro.2,助かる。だが見ろ、さっき厄介だったグールが群れている。まともに殴り合えば前衛が潰れる。,"A great help. But look — those troublesome ghouls are swarming. Trade blows head-on and the vanguard crumbles."
 t2.st5.intro.3,五人で身を寄せ、神の加護「グレイス」を祈ります。その光が、皆様を導いてくれるでしょう。,"The five of us draw close and pray the divine blessing — the Grace. Its light will guide you all."
@@ -202,14 +202,14 @@ t2.st5.outro.1,グレイスが乗れば、質でも負けん。このまま、�
 t2.st5.outro.2,ですが、墓地のさらに奥から、嫌な感じがするわ。,"Still, I get a bad feeling from even deeper in the graveyard."
 t2.st5.outro.3,今までの屍とは、格が違う何かがいます。,"There is something here of a wholly different order than the dead so far."
 t2.st5.outro.4,魔法ギルドと教会に、さらなる増援を頼もう。,"Let's call for still more reinforcements from the guild and the church."
-t2.st5.squad.1,前線上段,Upper Front
-t2.st5.squad.2,前線中段,Center Front
-t2.st5.squad.3,前線下段,Lower Front
-t2.st5.squad.4,中衛上段,Upper Middle
-t2.st5.squad.5,中衛下段,Lower Middle
-t2.st5.squad.6,後衛,Rear Guard
-t2.st5.squad.7,前線レイス隊,Front Wraiths
-t2.st5.squad.8,後衛レイス隊,Rear Wraiths
+t2.st5.squad.1,北の前線,North Front
+t2.st5.squad.2,中央の前線,Center Front
+t2.st5.squad.3,南の前線,South Front
+t2.st5.squad.4,北のグール群,North Ghouls
+t2.st5.squad.5,南のグール群,South Ghouls
+t2.st5.squad.6,後詰め,Rear Guard
+t2.st5.squad.7,弱者狙いのレイス（前）,Wraith Stalkers (Front)
+t2.st5.squad.8,弱者狙いのレイス（後）,Wraith Stalkers (Rear)
 t2.st6.intro.1,あの首無しの鎧、恐ろしい邪悪な気を放っているわ。,"That headless armor gives off a dreadful, wicked aura."
 t2.st6.intro.2,やつはデュラハン、力も守りも素早さも、すべてが精鋭の戦士と遜色がない。まともに打ち合ってはいけない。,"That's a dullahan — its attack, defense, and speed all rival an elite warrior's. Do not trade blows with it head-on."
 t2.st6.intro.5,あの首無し、まっすぐは来ないわ。弱ったところ、脆いところを選んで回り込んでくる。,"That headless one won't come straight at us. It circles around to whatever is wounded, whatever is frail."
@@ -223,10 +223,10 @@ t2.st6.outro.3,まだです。デュラハンには屍を作る力はありま�
 t2.st6.outro.4,まだ、これ以上の厄介な敵がいるの！ どうすればいいの。,"There's an even nastier foe still?! What are we to do?"
 t2.st6.outro.5,安心してください。少し前に聖都から連絡があり、聖騎士様がこちらに向かっているとのことです。飛空艇でくるそうなので、もうすぐに到着するはずです。,"Be at ease. Word came from the Holy City a while ago — a paladin is on the way to us. By airship, they say, so they should arrive very soon."
 t2.st6.outro.6,それは心強い。次こそ、最後の戦いだ。,"That's heartening. The next battle will be the last."
-t2.st6.squad.1,首無し,The Headless
-t2.st6.squad.2,上部グール達,Upper Ghouls
-t2.st6.squad.3,下部ゾンビ・スケルトン,Lower Undead
-t2.st6.squad.4,レイス隊,Wraiths
+t2.st6.squad.1,首無し騎士,The Headless Knight
+t2.st6.squad.2,北のグール群,North Ghouls
+t2.st6.squad.3,南の屍,Southern Dead
+t2.st6.squad.4,弱者狙いのレイス,Wraith Stalkers
 t2.st7.intro.10,墓地の奥から、禍々しい気配を感じます。屍のものではありません、生きた者の気配です。,"I feel a foul presence deep in the graveyard. It is not that of the dead — it is something alive."
 t2.st7.intro.11,死者を操る術者――ネクロマンサーですね。屍を生み出していたのは、あれです。,"A caster who commands the dead — a necromancer. That is what has been raising the corpses."
 t2.st7.intro.12,あれが元凶ってわけ。道理で、倒しても倒しても切りがないはずだわ。,"So that's the source. No wonder there was no end to them, however many we cut down."
@@ -254,13 +254,13 @@ t2.st7.outro.6,はは、いい顔をしている！　これは、術師も、�
 t2.st7.outro.7,君たちが前線を守り抜いたからこそ、私の一矢は届いた。……ふふ、これほど晴れやかな戦の後は久しぶりだ。,"It was because you held the line that my single shot reached its mark. ...Heh. It has been a long while since a battle ended this brightly."
 t2.st7.outro.8,さあ、帰りましょう。この地にも、ようやく平穏が訪れます。,"Now, let us go home. Peace comes to this land at last."
 t2.st7.squad.1,ネクロマンサー,Necromancer
-t2.st7.squad.2,前衛左舷,Front Left
-t2.st7.squad.3,前衛右舷,Front Right
-t2.st7.squad.4,中衛左舷,Middle Left
-t2.st7.squad.5,中衛右舷,Middle Right
-t2.st7.squad.6,後衛左舷,Rear Left
-t2.st7.squad.7,後衛右舷,Rear Right
-t2.st7.squad.8,レイス隊,Wraiths
+t2.st7.squad.2,南寄りの西,South West Line
+t2.st7.squad.3,南寄りの東,South East Line
+t2.st7.squad.4,中腹の西,Midslope West
+t2.st7.squad.5,中腹の東,Midslope East
+t2.st7.squad.6,高台の西,Highground West
+t2.st7.squad.7,高台の東,Highground East
+t2.st7.squad.8,弱者狙いのレイス,Wraith Stalkers
 dbg.base.1,この盤で確認すること。町は三つ、左から味方・中立・敵。,"What to check on this board. Three towns: ours, neutral, theirs, left to right."
 dbg.base.2,中立の町を占領すると、中の控え二人が寝返って自軍に付く。占領後に出撃できるか。,"Capture the neutral town and its two reserves defect to us. Check you can deploy them afterwards."
 dbg.base.3,味方の町を敵に奪われると、中の控えは閉じ込められて出せない。奪い返せばまた出せる。,"If the enemy takes our town, the reserve inside is locked in and cannot deploy. Retake it and they can again."
