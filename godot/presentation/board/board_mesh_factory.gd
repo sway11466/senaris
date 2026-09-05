@@ -12,32 +12,34 @@ static var _standee_shader: Shader = null
 ## 立ち絵の材質。ビルボード・α抜き・明暗は Sprite3D の設定ではなくこのシェーダが持つ
 ## （material_override を差すと Sprite3D 側の billboard / alpha_cut / modulate は効かない）。
 ##
-## 前後判定は「足元に立てた垂直な板」で行う（絵はカメラ正対のまま）。カメラに正対する板は
-## 板ぜんぶが足元と同じ奥行きに居るため、奥の高いマスの上面の手前端が足元よりカメラ寄りに
-## 来ると、立ち絵の頭が奥の地形に食われる。深度だけを垂直な板のものに差し替えると、隠れ方が
-## 「その場所に薄い板を立てたらどう見えるか」と一致する＝頭は食われず、自分が乗っているマスの
-## 手前側（森・茂みの葉）は足元を隠す＝仕様どおり駒が沈む（→ doc/gdd/terrain.md 盤の高さ）。
+## 前後判定は画素の高さで2段に分ける（絵はカメラ正対のまま・→ doc/gdd/terrain.md 盤の高さ）。
+## - 足元から GROUND_BAND までの帯: 足元と同じ奥行き。自分が乗っているマスの手前側（森・茂みの
+##   葉）や手前の物が足元を隠す＝駒が地形に埋もれて見える。
+## - それより上: 足元に立てた垂直な板と同じ奥行き＝高い画素ほど手前。奥の高いマスの上面の
+##   手前端は、頭より奥に回るので頭を食わない。
+## 境目で奥行きの差はゼロなので継ぎ目は出ない。帯の高さはワールド単位＝ズームで変わらない。
+## 奥のマスは画面上では足元より 1 マス以上うえに描かれる（1行奥＝画面で 1.36 マスぶん上）ので、
+## 帯に入ってくるのは自分のマスと手前隣のマス・手前の物だけ。
+const GROUND_BAND := 0.15
 const _STANDEE_SHADER := """
 shader_type spatial;
 render_mode cull_disabled, unshaded, shadows_disabled, depth_draw_opaque;
 
 uniform sampler2D tex : source_color, filter_linear;
 uniform vec4 modulate : source_color = vec4(1.0);
+uniform float ground_band = 0.15;  // 足元と同じ奥行きで前後を決める帯の高さ（ワールド）
+
+varying vec3 v_foot;      // 足元のビュー空間位置
+varying float v_height;   // その画素の足元からの高さ（ワールド）
 
 void vertex() {
 	// 完全ビルボード＝板をカメラに正対させる（Sprite3D の BILLBOARD_ENABLED と同じ組み方）。
 	mat4 mv = VIEW_MATRIX * mat4(
 		INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
 	vec4 v = mv * vec4(VERTEX, 1.0);   // ビュー空間。板は像面と平行なので z は全頂点同じ
-	vec4 p = PROJECTION_MATRIX * v;    // 画面位置と w はこのまま使う（絵は正対のまま）
-	// 深度だけを、足元に立てた垂直な板と視線の交点のものに差し替える。板の法線は水平方向の
-	// 視線＝盤のカメラはヨーを持たない（俯角固定）ので、ワールドの +Z をビュー空間へ写せばよい。
-	vec3 n = (VIEW_MATRIX * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
-	float t = dot(mv[3].xyz, n) / dot(v.xyz, n);
-	float zb = min(t * v.z, -0.2);     // 寄せがカメラを越えないよう手前で止める（近接ズーム）
-	vec4 pb = PROJECTION_MATRIX * vec4(v.xy, zb, 1.0);
-	p.z = pb.z / pb.w * p.w;           // NDC 深度だけ差し替え（x・y・w は元のまま）
-	POSITION = p;
+	v_foot = mv[3].xyz;
+	v_height = VERTEX.y;               // Sprite3D の offset で足元がローカル原点
+	POSITION = PROJECTION_MATRIX * v;  // 画面位置は正対の板のまま
 	MODELVIEW_MATRIX = mv;
 }
 
@@ -47,6 +49,12 @@ void fragment() {
 		discard;  // 半透明ソートを避ける（Sprite3D の ALPHA_CUT_DISCARD と同じ）
 	}
 	ALBEDO = c.rgb;
+	// 帯より上だけ、高さぶんカメラへ寄せた奥行きにする（ワールドの上向きをビュー空間へ写す）。
+	vec3 up_v = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+	float h = max(0.0, v_height - ground_band);
+	float z = min(v_foot.z + h * up_v.z, -0.2);  // 寄せがカメラを越えないよう手前で止める
+	vec4 clip = PROJECTION_MATRIX * vec4(0.0, 0.0, z, 1.0);
+	DEPTH = (clip.z / clip.w) * 0.5 + 0.5;
 }
 """
 
@@ -269,6 +277,7 @@ static func standee_material(tex: Texture2D, modulate: Color = Color.WHITE) -> S
 	m.shader = _standee_shader
 	m.set_shader_parameter("tex", tex)
 	m.set_shader_parameter("modulate", modulate)
+	m.set_shader_parameter("ground_band", GROUND_BAND)
 	_standee_mat[key] = m
 	return m
 
