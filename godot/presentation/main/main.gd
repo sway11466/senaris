@@ -63,7 +63,13 @@ var _best_time := 0    # この回を記録する前の自己ベスト（秒）�
 var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
 var _bgm_director: BgmDirector = null  # 場面→曲の決定（application）。ステージ/既定のフォールバック
 var _sfx: SfxPlayer = null  # 効果音の再生（永続・プール）。各画面は SfxPlayer.play_event で鳴らす
+## 畳んでいて会話を出さないイベントで、カメラ寄せを見せ切ったことを知らせる
+## （AIターンの待ち＝_await_dialogue が、会話の代わりにこれを待つ）。
+signal event_skip_finished
+
 var _dialogue := { "intro": [], "outro": [] }  # 現ステージの会話（台本キー→行。presentation専用・案P）
+var _event_talks := {}  # 会話つきイベント id -> { name, dialogue }（「ストーリーを確認」の目次用）
+var _turn_enabled_before_review := false  # 読み直しの前のターン終了の可否（読み終えたら戻す）
 var _conversation_phase := ""  # "intro"/"outro"/"event"/""＝いま流している会話フェーズ
 
 ## 設定を読んで言語を決める。_ready ではなく _init で行うのは、main.tscn の子（InfoPanel が
@@ -148,6 +154,7 @@ func load_stage(path: String) -> void:
 	# 実時刻で持ち、中断セーブにも書く＝閉じていた間も含めた「クリアまでにかかった時間」になる。
 	_started_at = int(Time.get_unix_time_from_system())
 	_install_state(state, path)
+	_record_story_start()  # 開始時の在籍 actor を控える＝あとで当時の顔ぶれで会話を組み直せる
 	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す（新規開始のみ）
 
 ## 与えられた BattleState を盤・進行役に据える（新規ロードと中断セーブ復元で共有）。
@@ -157,6 +164,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_current_stage_digest = StageDigest.of_file(path)  # ステージ定義の印＝セーブの meta へ（更新検出用）
 	_victory_overlay = false  # 前ステージの完走演出を持ち越さない
 	_dialogue = StageLoader.load_dialogue(path, _load_roster())  # 会話（intro/outro）を presentation へ（案P・名簿で when を評価）
+	_event_talks = StageLoader.load_event_talks(path)  # 会話つきイベントの見出しと台本キー（目次用・同じく presentation へ）
+	_hud.hide_dialogue_badge()  # 前ステージの吹き出しを持ち越さない
 	if _controller != null:
 		_controller.free()  # 旧マッチを破棄（旧 controller のシグナル接続も消える）
 		_controller = null
@@ -204,6 +213,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_update_aura()  # 加護の光（中断セーブ復元で効果が残っていることがある）
 	_count_start_forces(state, path)  # 戦果票の基準（開始時の兵力）を控える
 	_rank_data = StageLoader.load_rank(path)  # 評価ランクの閾値（無ければ空＝ランクなし）
+	_refresh_story_menu()  # 目次はステージごと＝新規ロードでも中断セーブ復元でも貼り直す
 	if state.current_team == 0:
 		_take_turn_snapshot()  # ステージの頭＝自ターン開始時点。ここでオートセーブも入る
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
@@ -373,6 +383,10 @@ func _on_battle_finished(outcome: int) -> void:
 					# 戦闘後の会話は「クリア後の名簿」で条件を見る＝この回で仲間になった駒が喋れる。
 					# 読み込み時の名簿のままだと、加入が確定するのはクリア時なので合流の台詞が落ちる。
 					_dialogue = StageLoader.load_dialogue(_current_stage_path, updated)
+				# 決着の会話が読めるようになる＝クリア後の名簿を控える（doc/tech/gamesystem.md 経験した会話）。
+				# 名簿の保存より後＝この回で仲間になった駒を含んだ顔ぶれが残る。
+				_progress.record_story_clear(_current_campaign_id, _current_stage_id, _load_roster())
+				_refresh_story_menu()
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
 	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
@@ -381,7 +395,10 @@ func _on_battle_finished(outcome: int) -> void:
 		await _play_board_finisher()  # 盤の上で決まった勝ち（本拠の占領など）＝寄せてから白へ
 	var choice := await _show_result(outcome, rank)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
 	if outcome == BattleState.PLAYER_WIN:
-		if not _dialogue.get("outro", []).is_empty():
+		# 畳んでいて会話を出さないなら、そのまま次へ。決着の会話に吹き出しは出さない
+		# ＝閉じた瞬間に次のステージか依頼ボードへ移るので、知らせる場所が無い
+		# （読むのはクリア後に入り直してから。doc/gdd/uiux.md 畳んでいるときの会話）。
+		if not _dialogue.get("outro", []).is_empty() and _shows_dialogue():
 			_conversation_phase = "outro"
 			$Front/InfoPanel.set_covered(true)
 			$HexBoard.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
@@ -585,6 +602,9 @@ func _set_scrim(on: bool) -> void:
 func _maybe_start_intro() -> void:
 	if _dialogue.get("intro", []).is_empty():
 		return
+	if not _shows_dialogue():
+		_hud.show_dialogue_badge()  # 開幕の会話があったことだけ知らせる（読むのはメニューから）
+		return
 	_conversation_phase = "intro"
 	$HexBoard.set_input_locked(true)
 	_set_scrim(true)  # 盤を沈めて会話に注視させる
@@ -610,6 +630,10 @@ func _on_event_fired(info: Dictionary) -> void:
 	if lines.is_empty():
 		push_warning("main: イベントの台本が見つからない: dialogue=%s" % key)
 		return
+	_record_story_event(String(info.get("id", "")))  # 起きた＝あとで読み直せる（会話を出すかに関わらず）
+	if not _shows_dialogue():
+		await _skip_event_dialogue(info)
+		return
 	# 幕より先に phase を立てる＝AIターンの待ち（dialogue_pace）がこの会話を取りこぼさない。
 	_conversation_phase = "event"
 	if not _controller.is_ai_turn():
@@ -626,11 +650,106 @@ func _on_event_fired(info: Dictionary) -> void:
 	_hud.set_player_turn(false)
 	_conversation.start(lines, "ui.talk.resume_battle")
 
+## 畳んでいて会話を出さないとき。盤は止めず暗幕も降ろさないが、カメラ寄せだけは見せる
+## ＝何がどこで起きたかは戦況で、会話と一緒に切ってよいものではない
+## （doc/gdd/uiux.md 畳んでいるときの会話）。見せ終えたら吹き出しで知らせる。
+func _skip_event_dialogue(info: Dictionary) -> void:
+	# 幕より先に phase を立てるのと同じ理由＝AIターンの待ちがカメラ寄せを取りこぼさない。
+	_conversation_phase = "event_skip"
+	if not _controller.is_ai_turn():
+		await $HexBoard.await_move_animation()  # 駒が歩き切ってから寄せる（敵ターンは呼ぶ側が待っている）
+	if bool(info.get("focus", false)):
+		var hex: Vector2i = info.get("hex", Vector2i.MAX)
+		if hex != Vector2i.MAX:
+			await $HexBoard.focus_camera_on(hex)
+	_hud.show_dialogue_badge()
+	_conversation_phase = ""
+	event_skip_finished.emit()
+
 ## AIターンのテンポ制御（controller.dialogue_pace）：占領で会話が始まっていれば閉じるまで待つ。
 ## 会話を始めるのは _on_event_fired ＝ここへ来た時点で phase は立っている（カメラ寄せの前に立てている）。
 func _await_dialogue() -> void:
 	if _conversation_phase == "event" and _conversation != null:
 		await _conversation.closed
+	elif _conversation_phase == "event_skip":
+		await event_skip_finished  # 会話は出さないが、カメラ寄せは見せ切ってから次の手へ
+
+## 情報板を畳んでいるときに会話を出すか（設定 → doc/gdd/settings.md 会話）。
+## 開いていれば常に出す＝この設定は畳んでいるときだけ効く。
+func _shows_dialogue() -> bool:
+	if not $Front/InfoPanel.is_minimized():
+		return true
+	return _settings_store.dialogue_when_minimized() == "show"
+
+## 経験した会話の記録（doc/tech/gamesystem.md 経験した会話）。記録するかの判定は
+## CampaignProgress が持つ＝デバッグ冒険譚と未知のステージには残らない。
+func _record_story_start() -> void:
+	if _progress == null or _current_campaign_id.is_empty():
+		return
+	_progress.record_story_start(_current_campaign_id, _current_stage_id, _load_roster())
+	_refresh_story_menu()
+
+func _record_story_event(event_id: String) -> void:
+	if _progress == null or _current_campaign_id.is_empty() or event_id.is_empty():
+		return
+	_progress.record_story_event(_current_campaign_id, _current_stage_id, event_id)
+	_refresh_story_menu()
+
+## そのステージで経験した会話の記録（無ければ空）。
+func _story_record() -> Dictionary:
+	if _progress == null or _current_campaign_id.is_empty():
+		return {}
+	return _progress.story(_current_campaign_id, _current_stage_id)
+
+## 「ストーリーを確認」の目次を貼り直す。経験していないものは並べない
+## ＝まだ見ていない出来事の存在を目次で匂わせない（doc/gdd/uiux.md ターン終了・システムメニュー）。
+func _refresh_story_menu() -> void:
+	var record := _story_record()
+	var entries: Array = []
+	if record.has("start") and not _dialogue.get("intro", []).is_empty():
+		entries.append(["intro", tr("ui.hud.story_intro")])
+	for id in record.get("events", []):
+		var talk: Dictionary = _event_talks.get(String(id), {})
+		if not talk.is_empty():  # ステージを直してイベントごと消えた記録は出さない
+			entries.append([String(id), tr(String(talk["name"]))])
+	if record.has("clear") and not _dialogue.get("outro", []).is_empty():
+		entries.append(["outro", tr("ui.hud.story_outro")])
+	_hud.set_story_entries(entries)
+
+## 目次から選ばれた会話を出す。当時の顔ぶれで台本を組み直す＝記録した在籍 actor を名簿の
+## 代わりに渡す（会話の when が見るのは在籍だけ）。読み終えたら割り込む前の状態へ戻す。
+func _on_story_requested(key: String) -> void:
+	if _conversation == null or _conversation_phase != "":
+		return
+	var record := _story_record()
+	var actors: Array = record.get("clear", []) if key == "outro" else record.get("start", [])
+	var script := StageLoader.load_dialogue(_current_stage_path, _actors_as_roster(actors))
+	var talk_key := key
+	if key != "intro" and key != "outro":
+		var talk: Dictionary = _event_talks.get(key, {})
+		if talk.is_empty():
+			return
+		talk_key = String(talk["dialogue"])
+	var lines: Array = script.get(talk_key, [])
+	if lines.is_empty():
+		push_warning("main: 読み直す台本が見つからない: %s" % talk_key)
+		return
+	_turn_enabled_before_review = _hud.player_turn_enabled()
+	_conversation_phase = "review"
+	$Front/InfoPanel.set_covered(true)
+	$HexBoard.set_input_locked(true)
+	_set_scrim(true)  # 盤を沈めて会話に注視させる（いつもの会話と同じ見せ方）
+	_hud.set_player_turn(false)
+	_hud.hide_dialogue_badge()
+	_conversation.start(lines, "ui.talk.close")
+
+## 記録した actor の並びを、会話の条件（when: joined:<actor>）が見るだけの名簿に仕立てる。
+## StageLoader が見るのは actor だけ＝素性も損耗も要らない。
+static func _actors_as_roster(actors: Array) -> Array:
+	var out: Array = []
+	for a in actors:
+		out.append({ "actor": String(a) })
+	return out
 
 ## 会話終了（読了 or スキップ）。intro→戦闘、outro→セレクトへ。
 func _on_conversation_closed() -> void:
@@ -642,6 +761,9 @@ func _on_conversation_closed() -> void:
 			_conversation_phase = ""
 			if _controller != null:
 				_hud.set_player_turn(_controller.state.current_team == 0)
+		"review":  # 「ストーリーを確認」の読み直し＝盤は何も進めない。割り込む前の状態へ戻すだけ
+			_conversation_phase = ""
+			_hud.set_player_turn(_turn_enabled_before_review)
 		"outro":
 			_conversation_phase = ""
 			if _victory_overlay:
@@ -736,6 +858,7 @@ func _install_hud() -> void:
 	_hud.wipe_enemies_requested.connect(_on_wipe_enemies_requested)  # デバッグ項目（製品ビルドでは出ない）
 	_hud.debug_event_requested.connect(_on_debug_event_requested)  # 同上
 	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
+	_hud.story_requested.connect(_on_story_requested)  # 経験した会話の読み直し
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 	$HexBoard.info_panel_toggle_requested.connect($Front/InfoPanel.toggle_minimized)  # Space＝情報板ボタンと同じ
 
@@ -965,6 +1088,7 @@ func _install_settings() -> void:
 	_settings.volume_changed.connect(_apply_volume)
 	_settings.volume_settled.connect(_settings_store.set_volume)
 	_settings.window_mode_chosen.connect(_on_settings_window_mode_chosen)
+	_settings.dialogue_mode_chosen.connect(_settings_store.set_dialogue_when_minimized)
 	_settings.closed.connect(_on_settings_closed)
 	add_child(_settings)
 	_hud.settings_requested.connect(_open_settings)
@@ -1036,7 +1160,7 @@ func _open_settings() -> void:
 	var volumes := {}
 	for bus in SettingsStore.VOLUME_BUSES:
 		volumes[bus] = _settings_store.volume(String(bus))
-	_settings.open(_settings_store.locale(), volumes, _settings_store.window_mode())
+	_settings.open(_settings_store.locale(), volumes, _settings_store.window_mode(), _settings_store.dialogue_when_minimized())
 
 ## 設定を畳み終えた。タイトルへ戻ったなら伏せていた刻印を出し直す（盤へ戻るなら何も無い）。
 func _on_settings_closed() -> void:
@@ -1065,6 +1189,7 @@ func _refresh_labels() -> void:
 	_manual.refresh_labels()
 	_title.refresh_labels()
 	_hud.refresh_labels()
+	_refresh_story_menu()  # 目次の見出しは main が訳して渡す＝言語が変われば貼り直す
 	_select.refresh_labels()
 	_slot_panel.refresh_labels()
 	$Front/InfoPanel.refresh_labels()

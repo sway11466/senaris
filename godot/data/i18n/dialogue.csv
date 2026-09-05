@@ -49,6 +49,7 @@ t1.st4.intro.2,間に合った、のか？,"Are we... in time?"
 t1.st4.intro.3,まだ燃え尽きてない。なら間に合う。神官、町を襲うゴブリンは俺達が引き受ける。あんたはけが人を助けてくれ。そして、戦える男手を募ってくれ。,"It hasn't burned out. Then we're in time. Priest, we'll take on the goblins raiding the town. You tend the wounded — and rally any who can still fight."
 t1.st4.intro.4,承知しました。皆を、お願いします。,"Understood. I leave the people to you."
 t1.st4.intro.5,町を救えば、立てる者は剣を取る。数で劣っても、取り返せる。行くぞ！,"Save the town and those who can stand will take up swords. Outnumbered or not, we can turn this around. Move!"
+t1.st4.free.name,町の解放,Freeing the Town
 t1.st4.free.1,ゴブリンから守っていただき、ありがとうございます。私たちも戦います。,"Thank you for defending us from the goblins. We will fight too."
 t1.st4.free.2,ありがたい。だが飛び出すな、町で待て。斥候、出し方を教えてやれ。,"We are glad of it. But do not go charging out — wait in the town. Scout, show them how to come out."
 t1.st4.free.3,町を選べば、中で待つ顔ぶれが出ます。出したい者を選んで、光ったマスへ——隣に一体ずつ。,"Select the town and it lists who waits inside. Pick the one you want out, then a lit tile — one at a time, beside the town."
@@ -141,6 +142,7 @@ t2.st2.intro.3,馬車は無防備です。道中にも屍が居るかもしれ�
 t2.st2.intro.6,壊されれば、乗っている者もろとも失われます。必ず前衛の後ろを走らせてください。,"If it is destroyed, everyone aboard is lost with it. Keep it running behind the front line."
 t2.st2.intro.7,それに、集落の詰所を守るのは若い衛士が三人だけ。あそこを奪われれば、私たちの負けです。,"And only three young guards hold the hamlet's post. If it is taken, we lose."
 t2.st2.intro.4,よし、司祭は馬車にのってくれ。それ以外のメンバーは護衛をする。,"Right — Priest, you ride the wagon. The rest of us escort it."
+t2.st2.free.name,詰所の解放,Freeing the Guard Post
 t2.st2.free.1,助かりました！　この詰所は自分たちが守ります。,"You saved us! We will hold this post ourselves."
 t2.st2.free.2,傷を負った方は詰所へ入れてください。中で休めば、兵は戻ります。,"Send anyone wounded into the post. Rest inside and their ranks fill back up."
 t2.st2.free.3,助かる。無理はするな、削られたら下がって休め。,"Good. Don't push it — if you are worn down, fall back and rest."
@@ -239,6 +241,7 @@ t2.st7.intro.9,言っておくけど、あいつ自身も五つ先から撃っ�
 t2.st7.intro.4,今まで通り、トリニティノヴァで薙ぎ払い、グレイスで耐えましょう。,"As before — sweep them with the Trinity Nova and endure with the Grace."
 t2.st7.intro.5,守り抜け。聖騎士様が撃つ、その一手のために。行くぞ、これで終わらせる。,"Hold the line — for the single strike the paladin will loose. Let's go; we end this here."
 t2.st7.arrive.label,飛空艇の到着まであと{n}ターン,Turns until the airship arrives: {n}
+t2.st7.arrive.name,飛空艇の到着,The Airship Arrives
 t2.st7.arrive.1,飛空艇が着きました！　聖騎士様がお見えです！,"The airship has landed! The paladin is here!"
 t2.st7.arrive.2,待たせたな。戦況は？,"Sorry to keep you waiting. How stands the field?"
 t2.st7.arrive.3,ネクロマンサーは奥の高台です。屍は墓地から次々と湧いてきます。,"The necromancer is on the high ground at the far end. The dead keep rising from the graveyards."

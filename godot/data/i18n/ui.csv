@@ -13,6 +13,10 @@ ui.settings.volume_sfx,効果音の音量,SFX Volume
 ui.settings.window_mode,画面,Display
 ui.settings.windowed,ウィンドウ,Windowed
 ui.settings.fullscreen,全画面,Fullscreen
+ui.settings.dialogue,会話,Dialogue
+ui.settings.dialogue_note,情報板を畳んでいるとき,While the panel is folded
+ui.settings.dialogue_show,会話のみ表示する,Dialogue only
+ui.settings.dialogue_hide,表示しない,Hide
 ui.settings.back,← 戻る,← Back
 ui.manual.title,マニュアル,Manual
 ui.manual.back,← メニュー,← Menu
@@ -24,6 +28,9 @@ ui.hud.stage_select,依頼ボード,Quest Board
 ui.hud.zoom_in,ズームイン（Ctrl＋ホイール上）,Zoom In (Ctrl+Wheel Up)
 ui.hud.zoom_out,ズームアウト（Ctrl＋ホイール下）,Zoom Out (Ctrl+Wheel Down)
 ui.hud.info_panel_reset,情報板の位置を戻す,Reset Info Panel Position
+ui.hud.story,ストーリーを確認,Review Story
+ui.hud.story_intro,開幕,Opening
+ui.hud.story_outro,決着,Ending
 ui.hud.save,セーブ,Save
 ui.hud.load,ロード,Load
 ui.hud.settings,設定,Settings

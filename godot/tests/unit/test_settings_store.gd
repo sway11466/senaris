@@ -150,3 +150,18 @@ func test_unknown_window_mode_is_rejected() -> void:
 	f.store_string(JSON.stringify({ "version": SettingsStore.VERSION, "window_mode": "borderless" }))
 	f = null
 	assert_eq(SettingsStore.new(PATH).window_mode(), "windowed", "手編集で入った知らないモードは無視する")
+
+## 情報板を畳んでいるときの会話（doc/gdd/settings.md 会話）
+
+func test_unset_dialogue_mode_is_hide() -> void:
+	assert_eq(SettingsStore.new(PATH).dialogue_when_minimized(), "hide", "選ばれるまでは表示しない")
+
+func test_dialogue_mode_persists() -> void:
+	SettingsStore.new(PATH).set_dialogue_when_minimized("show")
+	assert_eq(SettingsStore.new(PATH).dialogue_when_minimized(), "show", "別インスタンスで読み直しても残る")
+
+func test_unknown_dialogue_mode_is_rejected() -> void:
+	var store := SettingsStore.new(PATH)
+	store.set_dialogue_when_minimized("sometimes")
+	assert_push_error("知らない会話の出し方")
+	assert_eq(store.dialogue_when_minimized(), "hide", "知らない値は書かない")

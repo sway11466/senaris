@@ -162,6 +162,49 @@ func test_v1_file_is_migrated() -> void:
 	store.mark_time("tutorial", "st1", 480)
 	assert_eq(ProgressStore.new(PATH).best_time("tutorial", "st1"), 480, "以後のクリアから埋まる")
 
+## 経験した会話（doc/tech/gamesystem.md 経験した会話）
+
+func test_story_is_empty_before_playing() -> void:
+	assert_eq(ProgressStore.new(PATH).story("tutorial", "st1"), {})
+
+func test_story_start_and_clear_persist() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_story_start("tutorial", "st1", [{ "actor": "cap" }, { "actor": "rookie" }])
+	var opened := ProgressStore.new(PATH).story("tutorial", "st1")
+	assert_eq(opened["start"], ["cap", "rookie"], "開始時の在籍 actor を覚える")
+	assert_false(opened.has("clear"), "まだクリアしていない＝決着の会話は読めない")
+	store.mark_story_clear("tutorial", "st1", [{ "actor": "cap" }, { "actor": "rookie" }, { "actor": "scout" }])
+	var cleared := ProgressStore.new(PATH).story("tutorial", "st1")
+	assert_eq(cleared["clear"], ["cap", "rookie", "scout"], "クリア後の顔ぶれは別に覚える")
+
+func test_story_start_is_overwritten_on_replay() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_story_start("tutorial", "st1", [{ "actor": "cap" }])
+	store.mark_story_start("tutorial", "st1", [{ "actor": "cap" }, { "actor": "scout" }])
+	assert_eq(store.story("tutorial", "st1")["start"], ["cap", "scout"], "遊び直したら最後の顔ぶれ")
+
+func test_story_events_accumulate_in_order() -> void:
+	var store := ProgressStore.new(PATH)
+	store.mark_story_event("tutorial", "st1", "town-freed")
+	store.mark_story_event("tutorial", "st1", "airship")
+	store.mark_story_event("tutorial", "st1", "town-freed")  # 同じイベントは足さない
+	assert_eq(ProgressStore.new(PATH).story("tutorial", "st1")["events"], ["town-freed", "airship"])
+
+func test_story_ignores_broken_entries() -> void:
+	_write(JSON.stringify({ "version": ProgressStore.VERSION, "cleared": {},
+		"story": { "tutorial": { "st1": { "start": ["cap", 7, null], "events": "文字列ではない" } } } }))
+	var record := ProgressStore.new(PATH).story("tutorial", "st1")
+	assert_eq(record["start"], ["cap"], "文字列でない要素は落とす")
+	assert_eq(record["events"], [], "配列でなければ空として読む")
+
+func test_v2_file_is_migrated() -> void:
+	_write(JSON.stringify({ "version": 2, "cleared": { "tutorial": { "st1": true } },
+		"times": { "tutorial": { "st1": 300 } } }))
+	var store := ProgressStore.new(PATH)
+	assert_true(store.is_cleared("tutorial", "st1"), "旧版のクリア記録は消えない")
+	assert_eq(store.best_time("tutorial", "st1"), 300, "旧版の所要時間も残る")
+	assert_eq(store.story("tutorial", "st1"), {}, "この仕組みより前のクリアは会話を覚えていない")
+
 func _write(text: String) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	f.store_string(text)

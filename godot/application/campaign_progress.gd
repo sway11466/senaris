@@ -140,6 +140,36 @@ func record_time(campaign_id: String, stage_id: String, seconds: int) -> void:
 func best_time(campaign_id: String, stage_id: String) -> int:
 	return _store.best_time(campaign_id, stage_id)
 
+## そのステージで経験した会話の記録（無ければ空）。「ストーリーを確認」の目次が引く。
+func story(campaign_id: String, stage_id: String) -> Dictionary:
+	return _store.story(campaign_id, stage_id)
+
+## ステージを開始した＝開始時の在籍 actor を記録する。クリア記録と同じく、デバッグ冒険譚と
+## 未知のステージは記録しない（進捗ファイルに試し撃ちの跡を残さない）。
+func record_story_start(campaign_id: String, stage_id: String, roster: Array) -> void:
+	if not _records(campaign_id, stage_id):
+		return
+	_store.mark_story_start(campaign_id, stage_id, roster)
+
+## クリアした＝クリア後の在籍 actor を記録する（決着の会話が読めるようになる）。
+func record_story_clear(campaign_id: String, stage_id: String, roster: Array) -> void:
+	if not _records(campaign_id, stage_id):
+		return
+	_store.mark_story_clear(campaign_id, stage_id, roster)
+
+## 会話つきイベントが起きた＝そのイベント id を記録する。
+func record_story_event(campaign_id: String, stage_id: String, event_id: String) -> void:
+	if not _records(campaign_id, stage_id):
+		return
+	_store.mark_story_event(campaign_id, stage_id, event_id)
+
+## 記録を残す冒険譚・ステージか（record_clear などと同じ判定）。
+func _records(campaign_id: String, stage_id: String) -> bool:
+	var c := campaign(campaign_id)
+	if c.is_empty() or c["debug"]:
+		return false
+	return not _find_stage(c, stage_id).is_empty()
+
 ## マニフェスト順で stage_id の直後のステージを返す（無ければ {}）。クリア後の自動遷移に使う。
 ## 解放状態は見ない＝呼び出し側が stage_state で判定する（LOCKED なら進まない等）。
 func next_stage(campaign_id: String, stage_id: String) -> Dictionary:

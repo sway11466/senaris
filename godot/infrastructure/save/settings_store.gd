@@ -20,6 +20,10 @@ const VOLUME_MAX := 100  # 0〜100 の整数。100＝素材そのままの音量
 ## 画面モード。仕様 → doc/gdd/settings.md 画面
 const WINDOW_MODES := ["windowed", "fullscreen"]
 
+## 情報板を畳んでいるときに会話を出すか。仕様 → doc/gdd/settings.md 会話
+const DIALOGUE_MODES := ["show", "hide"]
+const DIALOGUE_DEFAULT := "hide"  # 畳んだのは板を見たくないという意思＝既定はそれに合わせる
+
 var _path: String
 var _values := {}  # 項目 -> 値（プレイヤーが選んだものだけ）
 
@@ -78,6 +82,21 @@ func set_window_mode(value: String) -> void:
 	_values["window_mode"] = value
 	_save()
 
+## 情報板を畳んでいるときの会話の出し方（"show"＝会話のみ表示する／"hide"＝表示しない）。
+## 板を開いているときは効かない。仕様 → doc/gdd/settings.md 会話
+func dialogue_when_minimized() -> String:
+	var v: Variant = _values.get("dialogue_when_minimized", null)
+	if v is String and DIALOGUE_MODES.has(v):
+		return String(v)
+	return DIALOGUE_DEFAULT
+
+func set_dialogue_when_minimized(value: String) -> void:
+	if not DIALOGUE_MODES.has(value):
+		push_error("SettingsStore: 知らない会話の出し方: %s" % value)
+		return
+	_values["dialogue_when_minimized"] = value
+	_save()
+
 ## 情報板を畳んでいるか。まだ選ばれていなければ開いている。仕様 → doc/gdd/uiux.md 最小化
 func info_panel_minimized() -> bool:
 	var v: Variant = _values.get("info_panel_minimized", null)
@@ -131,6 +150,9 @@ func _load() -> void:
 	var mode: Variant = data.get("window_mode", null)
 	if mode is String and WINDOW_MODES.has(mode):
 		_values["window_mode"] = String(mode)
+	var dialogue: Variant = data.get("dialogue_when_minimized", null)
+	if dialogue is String and DIALOGUE_MODES.has(dialogue):
+		_values["dialogue_when_minimized"] = String(dialogue)
 	var minimized: Variant = data.get("info_panel_minimized", null)
 	if minimized is bool:
 		_values["info_panel_minimized"] = bool(minimized)

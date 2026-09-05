@@ -65,6 +65,12 @@ func _reinforce(turn: int, extra: Dictionary = {}) -> Dictionary:
 		"units": [ { "type": "fighter", "col": 5, "row": 3 } ] }
 	for k in extra:
 		e[k] = extra[k]
+	return _with_name(e)
+
+## 会話つきのイベントは見出しの翻訳キーが必須（doc/gdd/map.md イベントの name）＝雛形で添える。
+static func _with_name(e: Dictionary) -> Dictionary:
+	if not String(e.get("dialogue", "")).is_empty() and not e.has("name"):
+		e["name"] = "ui.test.event_name"
 	return e
 
 # --- 発生ターン ---
@@ -286,7 +292,7 @@ func _capture_event(team: String, extra: Dictionary = {}) -> Dictionary:
 		"type": "talk", "dialogue": "taken_by_%s" % team }
 	for k in extra:
 		e[k] = extra[k]
-	return e
+	return _with_name(e)
 
 ## クレリックを拠点へ入れて占領する（所属が変わることを確かめてから返す）。
 func _capture_with_cleric(s: BattleState) -> void:
@@ -363,7 +369,8 @@ func test_once_does_not_touch_other_names() -> void:
 func test_once_spans_triggers() -> void:
 	var s := _capture_state([
 		_capture_event("player", { "once": "elf_village" }),
-		{ "id": "too-late", "turn": 2, "type": "talk", "team": "player", "once": "elf_village", "dialogue": "too_late" },
+		{ "id": "too-late", "turn": 2, "type": "talk", "team": "player", "once": "elf_village",
+			"dialogue": "too_late", "name": "ui.test.event_name" },
 	])
 	_capture_with_cleric(s)
 	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "先に占領で起きる")

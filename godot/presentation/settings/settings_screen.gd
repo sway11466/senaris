@@ -15,6 +15,7 @@ signal locale_chosen(locale: String)   # 言語を選んだ
 signal volume_changed(bus: String, value: int)  # 音量が動いた（つまみを引きずっている最中も）＝音に反映する用
 signal volume_settled(bus: String, value: int)  # 音量が決まった（つまみを離した・欄を確定した）＝保存する用
 signal window_mode_chosen(mode: String)  # 画面モードを選んだ（SettingsStore.WINDOW_MODES の値）
+signal dialogue_mode_chosen(mode: String)  # 畳んでいるときの会話の出し方を選んだ（SettingsStore.DIALOGUE_MODES の値）
 
 const LAYER := 76  # タイトル(70)・セーブスロット(75)より前面＝タイトルにも盤にも重ねて出す
 
@@ -29,6 +30,8 @@ const FRAME_PAD := 6
 
 const TITLE_FONT_SIZE := 30
 const LABEL_FONT_SIZE := 20
+const NOTE_FONT_SIZE := 14    # 項目名に添える条件の一行（「情報板を畳んでいるとき」）
+const NOTE_COLOR := Color(0.82, 0.82, 0.82, 0.7)
 const BUTTON_FONT_SIZE := 20
 const LABEL_WIDTH := 160      # 項目名の欄。項目が増えても選択子の左端が揃う（英語の Master Volume が収まる幅）
 const OPTION_SIZE := Vector2(150, 48)
@@ -46,6 +49,8 @@ const LANGUAGES := [["ja", "日本語"], ["en", "English"]]
 const VOLUME_ROWS := [["master", "ui.settings.volume_master"], ["music", "ui.settings.volume_music"], ["sfx", "ui.settings.volume_sfx"]]
 ## 画面モードの選択肢。id（SettingsStore.WINDOW_MODES）と板の文字の翻訳キー。
 const WINDOW_MODES := [["windowed", "ui.settings.windowed"], ["fullscreen", "ui.settings.fullscreen"]]
+## 畳んでいるときの会話の選択肢。id（SettingsStore.DIALOGUE_MODES）と板の文字の翻訳キー。
+const DIALOGUE_MODES := [["show", "ui.settings.dialogue_show"], ["hide", "ui.settings.dialogue_hide"]]
 
 var _root: Control
 var _heading: Label
@@ -58,6 +63,7 @@ var _spins := {}           # 系統 -> SpinBox
 var _dragging := {}        # 系統 -> つまみを引きずっている最中か
 var _locale := ""          # いま選ばれている言語
 var _window_mode := ""     # いま選ばれている画面モード
+var _dialogue_mode := ""   # いま選ばれている会話の出し方
 
 func _ready() -> void:
 	layer = LAYER
@@ -94,6 +100,8 @@ func _ready() -> void:
 	for row in VOLUME_ROWS:
 		column.add_child(_volume_row(String(row[0]), String(row[1])))
 	column.add_child(_choice_row("window_mode", "ui.settings.window_mode", WINDOW_MODES, true, _on_window_mode))
+	# ここから下は遊び方の設定＝システムの操作（言語・音量・画面）の後ろに並べる（doc/gdd/settings.md 見せ方）。
+	column.add_child(_choice_row("dialogue", "ui.settings.dialogue", DIALOGUE_MODES, true, _on_dialogue_mode, "ui.settings.dialogue_note"))
 
 	# 戻るは画面の左下＝セレクト・貼り紙と同じ場所と大きさ（TavernTheme が1箇所で決める）。
 	# 項目の列には混ぜない＝戻る先はどの画面でも同じ隅にある。
@@ -106,11 +114,13 @@ func _ready() -> void:
 
 ## 設定を開く。locale＝いま使っている言語、volumes＝系統 -> 0〜100、window_mode＝いまの画面モード
 ## （それぞれ選択中の印・つまみの位置に反映する）。
-func open(locale: String, volumes: Dictionary, window_mode: String) -> void:
+func open(locale: String, volumes: Dictionary, window_mode: String, dialogue_mode: String) -> void:
 	_locale = locale
 	_window_mode = window_mode
+	_dialogue_mode = dialogue_mode
 	_mark_choice("locale", _locale)
 	_mark_choice("window_mode", _window_mode)
+	_mark_choice("dialogue", _dialogue_mode)
 	for bus in _sliders:
 		var value := int(volumes[bus])
 		(_sliders[bus] as HSlider).set_value_no_signal(value)
@@ -136,6 +146,8 @@ func refresh_labels() -> void:
 		(_labels[key] as Label).text = tr(String(key))
 	for mode in WINDOW_MODES:
 		(_choice_buttons["window_mode"][String(mode[0])] as Button).text = tr(String(mode[1]))
+	for mode in DIALOGUE_MODES:
+		(_choice_buttons["dialogue"][String(mode[0])] as Button).text = tr(String(mode[1]))
 	_back.text = tr("ui.settings.back")
 
 ## 項目名の欄（左端。幅を揃えて選択子の左端を揃える）。
@@ -148,12 +160,33 @@ func _label(key: String) -> Label:
 	_labels[key] = label
 	return label
 
+## 項目名に添える条件の一行（項目名より小さく淡く）。項目名の列の長さを揃えたまま、
+## 条件つきの設定であることを示す（doc/gdd/settings.md 会話）。
+func _note(key: String) -> Label:
+	var label := Label.new()
+	label.text = tr(key)
+	label.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("font_size", NOTE_FONT_SIZE)
+	label.add_theme_color_override("font_color", NOTE_COLOR)
+	_labels[key] = label
+	return label
+
 ## 行の器＝項目名＋選択子を横に並べ、画面の中央に寄せる。
-func _row(label_key: String) -> HBoxContainer:
+## note_key を渡すと、項目名の下に条件の一行を添える（項目名の欄の幅は変えない）。
+func _row(label_key: String, note_key := "") -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", OPTION_GAP)
-	row.add_child(_label(label_key))
+	if note_key.is_empty():
+		row.add_child(_label(label_key))
+	else:
+		var column := VBoxContainer.new()
+		column.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
+		column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		column.add_child(_label(label_key))
+		column.add_child(_note(note_key))
+		row.add_child(column)
 	return row
 
 ## 行を閉じる＝項目名と同じ幅の余白を右端にも置く。選択子の中心が画面の中心＝見出しの真下に来る。
@@ -167,8 +200,8 @@ func _finish_row(row: HBoxContainer) -> HBoxContainer:
 
 ## 2択の行＝項目名＋横並びの木の板。options＝[[id, 文字]]。translated＝文字を翻訳キーとして引くか
 ## （言語の行は各言語の自称なので引かない）。on_pick＝板を押したときに id を渡す先。
-func _choice_row(row_id: String, label_key: String, options: Array, translated: bool, on_pick: Callable) -> Control:
-	var row := _row(label_key)
+func _choice_row(row_id: String, label_key: String, options: Array, translated: bool, on_pick: Callable, note_key := "") -> Control:
+	var row := _row(label_key, note_key)
 	var frames := {}
 	var buttons := {}
 	for option in options:
@@ -253,6 +286,14 @@ func _on_window_mode(mode: String) -> void:
 	_window_mode = mode
 	_mark_choice("window_mode", _window_mode)
 	window_mode_chosen.emit(mode)
+
+func _on_dialogue_mode(mode: String) -> void:
+	SfxPlayer.play_event("menu_command")
+	if mode == _dialogue_mode:
+		return
+	_dialogue_mode = mode
+	_mark_choice("dialogue", _dialogue_mode)
+	dialogue_mode_chosen.emit(mode)
 
 ## つまみが動いた。引きずっている最中は音に反映するだけで、決まった値は離したときに出す
 ## （SettingsStore は書くたびに世代退避するので、1ピクセルごとに書かせない）。

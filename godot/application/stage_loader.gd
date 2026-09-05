@@ -20,7 +20,7 @@ class_name StageLoader
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["id", "type", "team", "turn", "on", "col", "row", "once", "label", "units", "dialogue", "focus"]
+const EVENT_KEYS := ["id", "type", "team", "turn", "on", "col", "row", "once", "label", "name", "units", "dialogue", "focus"]
 
 ## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/campaigns.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
@@ -301,6 +301,33 @@ static func _when_holds(cond: Variant, joined: Dictionary) -> bool:
 	var actor := s.substr("joined:".length()).strip_edges()
 	var has: bool = joined.has(actor)
 	return not has if negate else has
+
+## 会話つきイベントの索引（イベント id → { name＝見出しの翻訳キー, dialogue＝台本のキー }）。
+## 「ストーリーを確認」の目次と読み直しが引く（doc/gdd/uiux.md ターン終了・システムメニュー）。
+## 発火したイベントは BattleState から消えるので、盤の状態ではなくステージ JSON から引く
+## ＝会話と同じく presentation 専用（案P）。
+static func parse_event_talks(data: Dictionary) -> Dictionary:
+	var out := {}
+	for e in _as_dicts(data.get("events", [])):
+		var talk := String(e.get("dialogue", ""))
+		if talk.is_empty():
+			continue  # 会話を持たないイベントは読み直すものが無い＝目次に出さない
+		var id := String(e.get("id", ""))
+		var name_key := String(e.get("name", ""))
+		if id.is_empty() or name_key.is_empty():
+			continue  # 欠落は _apply_events が push_error で知らせる＝ここでは黙って落とす
+		out[id] = { "name": name_key, "dialogue": talk }
+	return out
+
+## res:// パスの JSON から会話つきイベントの索引を読む（load_dialogue と対）。
+static func load_event_talks(path: String) -> Dictionary:
+	var text := FileAccess.get_file_as_string(path)
+	if text.is_empty():
+		return {}
+	var data: Variant = JSON.parse_string(text)
+	if typeof(data) != TYPE_DICTIONARY:
+		return {}
+	return parse_event_talks(data)
 
 ## res:// パスの JSON から dialogue を読む（load_file と対＝会話を presentation へ渡すため）。
 ## roster を渡すと when 条件で行を絞る（省略＝条件つきの行は在籍なしとして扱われる）。
@@ -725,6 +752,10 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 						push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % unit.id)
 				units.append({ "unit": unit, "passengers": ps })
 		var dialogue := String(e.get("dialogue", ""))
+		if dialogue != "" and String(e.get("name", "")).is_empty():
+			# 会話つきのイベントは「ストーリーを確認」の目次に並ぶ＝見出しの名前が要る
+			# （doc/gdd/map.md イベントの name）。書き忘れは turn_limit と同じ扱いで止める。
+			push_error("StageLoader: dialogue を持つイベント '%s' に name（見出しの翻訳キー）が無い（＝データのバグ）" % event_id)
 		if dialogue != "" and on == "" and team != 0:
 			# turn 起点の敵イベントは敵の手番が始まる時点で起きる＝AI が動き出す前に盤を止められない。
 			# 占領（on:"capture"）は敵の1手の切れ目で起きるので、敵側でも会話を流せる。

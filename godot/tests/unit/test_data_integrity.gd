@@ -140,6 +140,23 @@ func test_stage_events_have_unique_ids() -> void:
 			assert_false(seen.has(v), "%s のイベント id '%s' が他と重複しない" % [path, v])
 			seen[v] = true
 
+func test_stage_events_with_dialogue_have_name() -> void:
+	# 会話つきのイベントは「ストーリーを確認」の目次に並ぶ＝見出しの翻訳キーが要る
+	# （doc/gdd/map.md イベントの name）。無いと、あとから選びようがない。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		for event in data.get("events", []):
+			if typeof(event) != TYPE_DICTIONARY:
+				continue
+			var talk: Variant = event.get("dialogue", "")
+			if typeof(talk) != TYPE_STRING or String(talk).is_empty():
+				continue
+			var v: Variant = event.get("name")
+			assert_true(typeof(v) == TYPE_STRING and not String(v).is_empty(),
+				"%s のイベント '%s' に name（見出しの翻訳キー）がある" % [path, String(event.get("id", ""))])
+
 func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictionary) -> void:
 	var v: Variant = holder.get("order")
 	if typeof(v) != TYPE_FLOAT and typeof(v) != TYPE_INT:

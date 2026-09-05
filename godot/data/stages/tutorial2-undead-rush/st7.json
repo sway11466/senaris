@@ -552,7 +552,7 @@
       "garrison": [ { "skin": "zombie", "count": 10, "native": "enemy" } ] }
   ],
   "events": [
-    { "turn": 5, "type": "reinforce", "label": "t2.st7.arrive.label", "team": "player", "id": "airship-arrive", "dialogue": "arrive", "focus": true,
+    { "turn": 5, "type": "reinforce", "label": "t2.st7.arrive.label", "team": "player", "id": "airship-arrive", "dialogue": "arrive", "name": "t2.st7.arrive.name", "focus": true,
       "units": [
         { "type": "airship", "col": 6, "row": 25,
           "passengers": [

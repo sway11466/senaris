@@ -6,7 +6,8 @@ class_name ProgressStore
 
 const DEFAULT_PATH := "user://progress.json"
 ## 2: ステージごとのベストタイム（times＝クリアまでの所要秒）を足した。
-const VERSION := 2
+## 3: ステージごとに経験した会話（story）を足した。
+const VERSION := 3
 ## 変換を持ついちばん古い版。v1 は所要時間を測っていないので times を持たないまま読む。
 const OLDEST_SUPPORTED := 1
 
@@ -14,6 +15,10 @@ var _path: String
 var _cleared := {}  # 冒険譚ID -> { ステージID: true }
 var _ranks := {}    # 冒険譚ID -> { ステージID: "S"/"A"/"B" }（ベストランク）
 var _times := {}    # 冒険譚ID -> { ステージID: 秒 }（ベストタイム＝いちばん短いクリア）
+## 経験した会話。冒険譚ID -> { ステージID: { start: [actor], clear: [actor], events: [イベントid] } }
+## start＝開始時の在籍 actor・clear＝クリア後の在籍 actor（無ければ未クリア）・events＝起きた順。
+## 「ストーリーを確認」が当時の顔ぶれで台本を組み直すのに使う。仕様 → doc/tech/gamesystem.md 経験した会話
+var _story := {}
 
 func _init(path: String = DEFAULT_PATH) -> void:
 	_path = path
@@ -62,6 +67,54 @@ func mark_time(campaign_id: String, stage_id: String, seconds: int) -> void:
 	_times[campaign_id][stage_id] = seconds
 	_save()
 
+## そのステージで経験した会話の記録（無ければ空）。中身は _story のコメントを参照。
+func story(campaign_id: String, stage_id: String) -> Dictionary:
+	return _story.get(campaign_id, {}).get(stage_id, {})
+
+## ステージを開始した＝開始時の在籍 actor を書き換える（遊び直すたびに上書き）。
+func mark_story_start(campaign_id: String, stage_id: String, actors: Array) -> void:
+	_story_entry(campaign_id, stage_id)["start"] = _actor_names(actors)
+	_save()
+
+## クリアした＝クリア後の在籍 actor を書き換える。この項目の有無がクリア済みかを表す。
+func mark_story_clear(campaign_id: String, stage_id: String, actors: Array) -> void:
+	_story_entry(campaign_id, stage_id)["clear"] = _actor_names(actors)
+	_save()
+
+## イベントが起きた＝起きた順に足す。同じイベントは1回だけ（遊び直しでも消さない
+## ＝前に読み逃した会話を、もう一度起こすまで読めなくしない）。
+func mark_story_event(campaign_id: String, stage_id: String, event_id: String) -> void:
+	if event_id.is_empty():
+		return
+	var entry := _story_entry(campaign_id, stage_id)
+	var events: Array = entry["events"]
+	if events.has(event_id):
+		return
+	events.append(event_id)
+	_save()
+
+## そのステージの記録を作って返す（無ければ空の形で置く）。
+func _story_entry(campaign_id: String, stage_id: String) -> Dictionary:
+	if not _story.has(campaign_id):
+		_story[campaign_id] = {}
+	var stages: Dictionary = _story[campaign_id]
+	if not stages.has(stage_id):
+		# clear は「無い＝未クリア＝決着の会話は読めない」を表す＝mark_story_clear まで置かない。
+		stages[stage_id] = { "start": [], "events": [] }
+	return stages[stage_id]
+
+## 名簿（Unit の直列化）から actor の名前だけを取り出す。会話の when が見るのは在籍だけ
+## （doc/campaign/authoring.md 会話の分岐）＝素性も損耗も持たない。
+static func _actor_names(units: Array) -> Array:
+	var out: Array = []
+	for u in units:
+		if typeof(u) != TYPE_DICTIONARY:
+			continue
+		var a := String((u as Dictionary).get("actor", ""))
+		if a != "" and not out.has(a):
+			out.append(a)
+	return out
+
 func _load() -> void:
 	# 破損・手編集・版違いの判定と退避は SaveFile が持つ（doc/tech/gamesystem.md §バックアップ）
 	var result := SaveFile.read(_path, VERSION, OLDEST_SUPPORTED)
@@ -99,6 +152,24 @@ func _load() -> void:
 					entry[String(s)] = String(v)
 			if not entry.is_empty():
 				_ranks[String(c)] = entry
+	var story: Variant = data.get("story", {})
+	if typeof(story) == TYPE_DICTIONARY:
+		for c in story:
+			var stages: Variant = story[c]
+			if typeof(stages) != TYPE_DICTIONARY:
+				continue
+			var entry := {}
+			for s in stages:
+				var rec: Variant = stages[s]
+				if typeof(rec) != TYPE_DICTIONARY:
+					continue
+				var one := { "start": _string_list(rec.get("start")), "events": _string_list(rec.get("events")) }
+				# clear は「無い＝未クリア」を表すので、書かれていないときは足さない（空配列と区別する）。
+				if (rec as Dictionary).has("clear"):
+					one["clear"] = _string_list(rec.get("clear"))
+				entry[String(s)] = one
+			if not entry.is_empty():
+				_story[String(c)] = entry
 	var times: Variant = data.get("times", {})
 	if typeof(times) == TYPE_DICTIONARY:
 		for c in times:
@@ -114,22 +185,45 @@ func _load() -> void:
 			if not entry.is_empty():
 				_times[String(c)] = entry
 
+## JSON から文字列の配列だけを取り出す（手編集・破損対策）。文字列でない要素は落とす。
+static func _string_list(v: Variant) -> Array:
+	var out: Array = []
+	if typeof(v) != TYPE_ARRAY:
+		return out
+	for e in v:
+		if e is String and not out.has(e):
+			out.append(String(e))
+	return out
+
 ## 旧版を現行版の形へ直す（doc/tech/gamesystem.md §版と移行）。読めない版は空 dict＝新規扱い。
 static func _migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("version", 0))
-	if version == VERSION:
-		return data
+	var out := data
 	if version == 1:
-		return _v1_to_v2(data)
-	push_warning("ProgressStore: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
-	return {}
+		out = _v1_to_v2(out)
+		version = 2
+	if version == 2:
+		out = _v2_to_v3(out)
+		version = 3
+	if version != VERSION:
+		push_warning("ProgressStore: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
+		return {}
+	return out
 
 ## v1（クリア記録とベストランク）→ v2（ベストタイムを足した）。v1 は所要時間を測っていないので
 ## times は空のまま＝次にクリアした回から埋まる。
 static func _v1_to_v2(data: Dictionary) -> Dictionary:
 	var out := data.duplicate()
-	out["version"] = VERSION
+	out["version"] = 2
 	out.erase("times")
+	return out
+
+## v2（ベストタイムまで）→ v3（経験した会話を足した）。v2 は会話を覚えていないので story は空のまま
+## ＝この仕組みより前にクリアしたステージは「ストーリーを確認」に出ない（遊び直せば埋まる）。
+static func _v2_to_v3(data: Dictionary) -> Dictionary:
+	var out := data.duplicate()
+	out["version"] = 3
+	out.erase("story")
 	return out
 
 func _save() -> void:
@@ -143,4 +237,6 @@ func _save() -> void:
 		out["ranks"] = _ranks
 	if not _times.is_empty():
 		out["times"] = _times
+	if not _story.is_empty():
+		out["story"] = _story
 	f.store_string(JSON.stringify(out, "  "))

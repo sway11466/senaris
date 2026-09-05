@@ -17,6 +17,7 @@ signal load_requested            # システムメニュー: 中断セーブか�
 signal settings_requested        # システムメニュー: 設定画面を盤の上に開く
 signal zoom_in_requested         # システムメニュー: ズームイン（1段階）
 signal zoom_out_requested        # システムメニュー: ズームアウト（1段階）
+signal story_requested(key: String)  # システムメニュー: ストーリーを確認（key＝intro/outro またはイベントid）
 signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲滅（デバッグビルドのみ出る項目）
 signal debug_event_requested(index: int)  # デバッグメニュー: 未発生イベントを起こす（一覧の何番目か）
 
@@ -30,7 +31,10 @@ var _info_btn: Button
 var _gear: Button
 var _menu: PopupMenu
 var _dbg_events: PopupMenu = null  # デバッグ区画のサブメニュー（製品ビルドでは作らない＝null）
-enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_INFO_RESET, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
+var _story_menu: PopupMenu = null  # ストーリーを確認のサブメニュー（経験した会話の目次）
+var _story_keys: Array = []        # サブメニューの並び順 -> 会話のキー（main へ返す）
+var _badge: DialogueBadge = null   # 畳んでいる間に会話が起きたことを知らせる吹き出し
+enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_INFO_RESET, SYS_STORY, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
 
 ## デバッグ: 未発生イベントの表示名を返す Callable（main が挿す）。一覧は起こすたびに減るので
 ## 作り置きせず、メニューを開くたびに聞き直す。空を返せば「イベントを起こす」は無効表示。
@@ -61,6 +65,11 @@ func _ready() -> void:
 	_menu.add_item(tr("ui.hud.zoom_in"), SYS_ZOOM_IN)
 	_menu.add_item(tr("ui.hud.zoom_out"), SYS_ZOOM_OUT)
 	_menu.add_item(tr("ui.hud.info_panel_reset"), SYS_INFO_RESET)  # 動かした情報板を既定の場所へ
+	# ストーリーを確認＝そのステージで経験した会話の目次。中身は main が set_story_entries で貼る。
+	_story_menu = PopupMenu.new()
+	_story_menu.id_pressed.connect(_on_story_id)
+	_menu.add_submenu_node_item(tr("ui.hud.story"), _story_menu, SYS_STORY)
+	_menu.set_item_disabled(_menu.get_item_index(SYS_STORY), true)  # 経験した会話が無いうちは押せない
 	_menu.add_separator()
 	_menu.add_item(tr("ui.hud.save"), SYS_SAVE)
 	_menu.add_item(tr("ui.hud.load"), SYS_LOAD)
@@ -78,6 +87,9 @@ func _ready() -> void:
 		_menu.add_submenu_node_item("イベントを起こす", _dbg_events, DBG_EVENTS)
 	_menu.id_pressed.connect(_on_sys_id)
 	add_child(_menu)
+
+	_badge = DialogueBadge.new()
+	add_child(_badge)
 
 	_reposition()
 	get_viewport().size_changed.connect(_reposition)
@@ -103,6 +115,7 @@ func _button(key: String, icon_id: String, width: float) -> Button:
 ## （作り直すとターンの可否・ロードの可否を持ち直すことになる）。
 func refresh_labels() -> void:
 	_gear.text = tr("ui.hud.menu")
+	_menu.set_item_text(_menu.get_item_index(SYS_STORY), tr("ui.hud.story"))
 	_end_btn.text = tr("ui.hud.end_turn")
 	_info_btn.text = tr("ui.hud.info_panel")
 	for b: Button in [_gear, _end_btn, _info_btn]:
@@ -121,14 +134,49 @@ func _reposition() -> void:
 	_gear.position = Vector2(16.0, y)
 	_info_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
 	_end_btn.position = Vector2(UiLayout.board_area(vp).end.x - 16.0 - _end_btn.size.x, y)
+	if _badge != null:
+		# 情報板ボタンの右上角に半分ほど重ね、しっぽの先がボタンの中に入るように置く。
+		_badge.position = Vector2(
+			_info_btn.position.x + _info_btn.size.x - DialogueBadge.SIZE.x * 0.6,
+			y - (DialogueBadge.SIZE.y + DialogueBadge.TAIL_H) + 6.0)
 
 ## ターン終了ボタンの有効/無効（自ターンのみ有効・AIターン/決着後は無効）。
 func set_player_turn(enabled: bool) -> void:
 	_end_btn.disabled = not enabled
 
+## いまターン終了を押せるか。会話を割り込ませる側が、割り込む前の状態へ戻すために聞く。
+func player_turn_enabled() -> bool:
+	return not _end_btn.disabled
+
 ## 「ロード」項目の有効/無効（中断セーブが在るときだけ有効）。main が保存有無で切り替える。
 func set_load_available(available: bool) -> void:
 	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), not available)
+
+## 畳んでいる間に会話が起きた＝吹き出しを出す（一定時間で消える。押せない）。
+func show_dialogue_badge() -> void:
+	_badge.pop()
+
+## 吹き出しを引っ込める（ステージを離れる・会話を読んだ）。
+func hide_dialogue_badge() -> void:
+	_badge.dismiss()
+
+## ストーリーを確認の目次を貼り直す。entries＝[[会話のキー, 表示名]]（並び順そのまま）。
+## 空なら親の項目を無効表示にする＝押しても何も出ない項目を残さない。
+func set_story_entries(entries: Array) -> void:
+	if _story_menu == null:
+		return
+	_story_keys.clear()
+	_story_menu.clear()
+	for e in entries:
+		_story_menu.add_item(String(e[1]), _story_keys.size())
+		_story_keys.append(String(e[0]))
+	_story_menu.reset_size()
+	_menu.set_item_disabled(_menu.get_item_index(SYS_STORY), _story_keys.is_empty())
+
+func _on_story_id(index: int) -> void:
+	if index < 0 or index >= _story_keys.size():
+		return
+	story_requested.emit(String(_story_keys[index]))
 
 ## システムメニューを開く（歯車ボタン／盤の最上位 Esc から）。
 ## 出る場所はメニューボタンの真上（左端を揃える）。Esc でも同じ場所＝マウスの位置には出さない。

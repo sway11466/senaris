@@ -271,6 +271,7 @@
       "team": "player",
       "on": "capture",
       "dialogue": "free",
+      "name": "t1.st4.free.name",
       "focus": true
     }
   ],

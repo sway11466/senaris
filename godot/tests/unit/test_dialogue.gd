@@ -132,3 +132,21 @@ func test_conversation_panel_empty_closes() -> void:
 	watch_signals(panel)
 	panel.start([], "戦闘開始")
 	assert_signal_emitted(panel, "closed", "空の会話は即 closed（フローを止めない）")
+
+## 「ストーリーを確認」の目次＝会話つきイベントの索引（doc/gdd/uiux.md ターン終了・システムメニュー）。
+func test_parse_event_talks_indexes_events_with_dialogue() -> void:
+	var talks := StageLoader.parse_event_talks({
+		"events": [
+			{ "id": "town-freed", "type": "talk", "dialogue": "free", "name": "t1.st4.free.name" },
+			{ "id": "airship", "type": "reinforce" },
+		]
+	})
+	assert_eq(talks.size(), 1, "会話を持たないイベントは目次に出さない")
+	assert_eq(String(talks["town-freed"]["name"]), "t1.st4.free.name")
+	assert_eq(String(talks["town-freed"]["dialogue"]), "free", "読み直す台本のキーも引ける")
+
+func test_parse_event_talks_skips_events_without_name() -> void:
+	var talks := StageLoader.parse_event_talks({
+		"events": [ { "id": "town-freed", "type": "talk", "dialogue": "free" } ]
+	})
+	assert_eq(talks, {}, "見出しが無ければ目次に出せない（欠落は _apply_events が知らせる）")
