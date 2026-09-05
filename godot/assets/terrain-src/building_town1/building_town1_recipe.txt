@@ -1,7 +1,13 @@
-powershell -File tools\gen_terrain_tile.ps1 road_building_town1_v assets\terrain-src\building_town1\building_town1_01_raw.jpg -Transparent white -Fit
-powershell -File tools\gen_terrain_tile.ps1 road_building_town1_r assets\terrain-src\building_town1\building_town1_01_raw.jpg -Transparent white -Fit -Rotate 60
-powershell -File tools\gen_terrain_tile.ps1 road_building_town1_l assets\terrain-src\building_town1\building_town1_01_raw.jpg -Transparent white -Fit -Rotate 120
+盤の立ち絵 — map_scale は terrain_skin.csv の road_building_town1 / plain_building_town1 の行から引く。
+正面向きの立ち絵になったので向き別スキン（_v / _r / _l）は無い＝回さない。同じ絵を道の上と平地の上に立てる2スキン。
 
-3スキンとも元絵は1枚。フラットトップ六角形の軸が 0°/60°/120° の3本なので、縦の絵を回せば
-右（右上から左下）と左（左上から右下）になる。-Fit が回したあとに六角形いっぱいへ合わせ直すので、
-3枚とも盤の上では同じ縮尺になる（余白追加後のサイズが 909/892/888 と違うのはそのため）。
+powershell -File tools\gen_terrain_tile.ps1 road_building_town1 assets\terrain-src\building_town1\building_town1_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 plain_building_town1 assets\terrain-src\building_town1\building_town1_03_master.png -Object
+
+戦闘の奥の帯 — 大小は窓が決めるのでキャンバスの余白は持たせない＝トリムのみ。
+窓の半面（横360px）を埋めるには 1.83:1 より横長が要る。
+
+magick assets\terrain-src\building_town1\building_town1_combat_03_master.png -trim +repage assets\terrain\road_building_town1_combat_back.png
+magick assets\terrain-src\building_town1\building_town1_combat_03_master.png -trim +repage assets\terrain\plain_building_town1_combat_back.png
+
+-Transparent は使わない。_03_master は白を抜いた状態で置いてある。

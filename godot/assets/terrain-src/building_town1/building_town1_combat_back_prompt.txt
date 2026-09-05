@@ -1,0 +1,108 @@
+DESIGN — the town's houses. This block is repeated word for word in every slot
+of this skin (the board object and the combat band), so that the small clump on
+the board and the big houses in the battle window are plainly the same town.
+
+- Every house is a single-storey cottage with a steep gabled roof. The roof is
+  as tall as the wall beneath it: half the height of the house is roof.
+- Walls are rough grey fieldstone, #8C8A82, laid without courses, with paler
+  mortar between the stones. The triangular gable carries exposed timber framing
+  in weathered brown, #6E5A42 — three or four straight members, no carving, no
+  curves.
+- EVERY roof is grey slate and nothing else: base tone #7E8388, each house a
+  slightly different shade of that same grey, some a touch lighter, some a touch
+  darker. NO red, NO terracotta, NO orange, NO brown, NO ochre, NO blue, NO
+  green, NO thatch, NO straw, NO reed, NO wooden shingles, NO turf. Red and blue
+  roofs mark who holds a fortified place in this game, so an ordinary house may
+  never wear them.
+- Each roof has a plain straight ridge and eaves that overhang the wall by about
+  a tenth of the house's width. No dormers, no gables added on the slope, no
+  tiles picked out one by one.
+- One plain plank door per house, weathered brown #6E5A42. Windows are small
+  squares with shutters, at most two to a house, no glass and no lattice.
+- About half the houses carry a square stone chimney at the ridge.
+- NEVER in this skin: a tower, a gate, a town wall, a church, a belfry, an
+  arcade, a shop front, a sign, a flag, a banner. Those belong to the town's
+  fort, which has to stay tellable apart from ordinary houses.
+- NEVER: people, animals, carts, barrels, crates, washing lines, smoke, fire.
+
+SUBJECT: An ordinary STREET of that town, seen close — a WIDE BAND of backdrop
+that stands behind the fighting in a battle window. It is not a single object in
+the middle of the frame; it is one stretch of street, running off the left edge
+of the picture.
+
+THIS IS NOT THE TOWN'S STRONGHOLD. There is no town wall, no gate, no tower and
+no hall here — those belong to the fort, and a player has to be able to tell at a
+glance that this fight is happening among ordinary houses. Every roof in this
+picture is a low cottage roof and they are all about the same height: NO building
+stands head and shoulders above the rest.
+
+WHAT IS IN IT — a row of four or five squat cottages packed shoulder to shoulder
+along the far side of the street, their front walls facing the viewer. Widths and
+depths vary and the fronts step slightly in and out, so the row is never a flat
+even wall, but the ridges stay within a hand's breadth of each other.
+
+THE LANE — a narrow lane runs back between the houses, its mouth about a third of
+the way in from the RIGHT end of the picture. Inside the lane the walls close in
+and the buildings get smaller and darker as they recede, so the town plainly
+continues past this row. This gap is what makes the picture read as a street
+rather than a solid wall of building. The floor of the lane may be seen inside
+the gap; nowhere else is any ground drawn.
+
+THE ROOFS are the most important shapes: four or five of them large and clearly
+readable, overlapping each other as the houses step back. Nothing pokes above the
+top of the band; leave a little clear space over the highest ridge.
+
+THE TWO ENDS ARE DIFFERENT — this is the most important thing.
+- LEFT end: the row of houses runs straight off the edge of the picture and is
+  cut by it. Nothing tapers, nothing ends, nothing is rounded off there.
+- RIGHT end: the street has to finish inside the picture. Finish it honestly: the
+  last cottage turns its corner and the row runs away from the viewer, the
+  buildings behind it getting smaller and lower as they recede, and the last of
+  them fading out. Do NOT stop the row in mid-air with a raw broken end.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square. The band of street fills
+the BOTTOM HALF of it, edge to edge: twice as wide as it is tall. In a
+1024-pixel picture the street is about 512 pixels tall and 1024 pixels wide. It
+touches the left edge, the right edge and the bottom edge. Everything above it is
+background.
+
+THE BOTTOM EDGE — the front walls of the houses are cut flat by the bottom edge
+of the picture. Draw nothing below them: no street surface, no cobbles, no
+paving, no ground, no grass, no soil, no cast shadow. The walls must run all the
+way down to the very bottom edge and be cut by it — no strip of background along
+the bottom. Soldiers will stand in front of the houses and their heads will
+overlap the bottom of the walls.
+
+VIEWING ANGLE — seen from a slight high three-quarter angle, as if looking down
+onto the street from above and in front, but much closer than a map: the front
+walls, the doors and the mouth of the lane are clearly readable, and the roofs
+are still fully in view above them.
+
+THE BACKGROUND — everything above the roofline is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO sky, NO clouds. This white is going to be
+deleted, so the roofline must be a hard, clean, crisp edge against it. Nothing in
+the street may be white or near-white.
+
+NO SHADOWS AND NO LIGHT DIRECTION — read this twice, it was broken last time.
+There is NO light source anywhere in this picture.
+
+- A wall is ONE flat tone across its whole face: no gradient, no darker corner,
+  no dirt or shading at the base, no glow along the top.
+- A roof has exactly TWO tones — the two slopes either side of the ridge, one a
+  little lighter than the other — and the lighter slope is on the SAME side on
+  every roof in the picture.
+- NOTHING casts a shadow onto anything: no shadow under the eaves, no shadow in
+  the angle where two houses meet, no shadow of a near house falling on a far
+  wall, no shadow on the ground (there is no ground). Where a near cottage
+  overlaps a far one, the far wall is simply hidden behind it — draw no dark
+  band at the join.
+- The gable timbers, the door and the shutters are flat brown shapes, not lit
+  ones. The stones of a wall may differ slightly in tone from one another, but
+  no group of them may darken together into a shaded patch.
+- This picture is mirrored left to right when the game lays it down, so a baked
+  light direction would end up pointing both ways on the same board.
+
+This is a near view, so a little more detail than the map piece is welcome — the
+courses of the stonework, the boards of a door, the ridge line of a roof — but
+keep it in bold flat shapes, with no fine texture that would fight with the
+figures standing in front of it.

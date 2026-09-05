@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c8vy68j4shx8u"
-path="res://.godot/imported/plain_building_town1_r.png-04074e7bafd05683f0bc3b76ad26f5fa.ctex"
+uid="uid://dgce6t88cax8o"
+path="res://.godot/imported/plain_building_town1.png-f31097d2117320359fb191a4f968c335.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_building_town1_r.png"
-dest_files=["res://.godot/imported/plain_building_town1_r.png-04074e7bafd05683f0bc3b76ad26f5fa.ctex"]
+source_file="res://assets/terrain/plain_building_town1.png"
+dest_files=["res://.godot/imported/plain_building_town1.png-f31097d2117320359fb191a4f968c335.ctex"]
 
 [params]
 

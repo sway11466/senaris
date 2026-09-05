@@ -69,9 +69,7 @@ terrain.bedrock.name,岩地,Bedrock
 terrain.brush.name,茂み,Brush
 terrain.forest.name,森,Forest
 terrain.plain.name,平地,Plain
-terrain.plain_building_town1_l.name,街区,Town Block
-terrain.plain_building_town1_r.name,街区,Town Block
-terrain.plain_building_town1_v.name,街区,Town Block
+terrain.plain_building_town1.name,街区,Town Block
 terrain.plain_cave1.name,洞窟の床,Cave Floor
 terrain.plain_cave1_fence_throne1.name,玉座,Throne
 terrain.plain_cave1_prop_loot1.name,略奪品の山,Pile of Loot
@@ -108,9 +106,7 @@ terrain.river_bridge_stone1_right_r.name,石橋（右端）,Stone Bridge
 terrain.river_bridge_stone1_right_v.name,石橋（右端）,Stone Bridge
 terrain.river_bridge_stone1_v.name,石橋（単幅）,Stone Bridge
 terrain.road.name,道,Road
-terrain.road_building_town1_l.name,街区,Town Block
-terrain.road_building_town1_r.name,街区,Town Block
-terrain.road_building_town1_v.name,街区,Town Block
+terrain.road_building_town1.name,街区,Town Block
 terrain.road_fort_guardhouse1.name,詰所,Guardhouse
 terrain.road_fort_town1.name,町,Town
 terrain.road_prop_garden1_l.name,菜園,Garden

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bd05u8hbxgirc"
-path="res://.godot/imported/road_building_town1_r.png-21f12625005cbc500693f55fa1dacc29.ctex"
+uid="uid://dy7sx0cxohfyj"
+path="res://.godot/imported/road_building_town1.png-0eb8e4c51e918266954e00e14da44894.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/road_building_town1_r.png"
-dest_files=["res://.godot/imported/road_building_town1_r.png-21f12625005cbc500693f55fa1dacc29.ctex"]
+source_file="res://assets/terrain/road_building_town1.png"
+dest_files=["res://.godot/imported/road_building_town1.png-0eb8e4c51e918266954e00e14da44894.ctex"]
 
 [params]
 

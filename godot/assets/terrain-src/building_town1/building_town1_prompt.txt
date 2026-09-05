@@ -1,79 +1,85 @@
-STYLE: A map tile object for a fantasy tactics game, in the same clean stylized
-cel-shaded look as the game's terrain and unit art: bold flat shading, clear
-dark outlines, a mature, slightly muted, limited color palette (NOT bright
-saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
-role-playing game, seen from DIRECTLY OVERHEAD — a flat lay with NO perspective,
-NO isometric or three-quarter view, no horizon, no sky, no depth, nothing
-standing up and nothing leaning towards the viewer. Read at thumbnail size: a
-few large legible shapes, no fine detail. Square 1:1.
+DESIGN — the town's houses. This block is repeated word for word in every slot
+of this skin (the board object and the combat band), so that the small clump on
+the board and the big houses in the battle window are plainly the same town.
 
-SUBJECT: ONE block of a town — eight to ten small houses standing in two or
-three short terraces with lanes between them — seen from straight above, sitting
-alone on a plain white background so that it can be cut out and laid over the
-game's own ground.
+- Every house is a single-storey cottage with a steep gabled roof. The roof is
+  as tall as the wall beneath it: half the height of the house is roof.
+- Walls are rough grey fieldstone, #8C8A82, laid without courses, with paler
+  mortar between the stones. The triangular gable carries exposed timber framing
+  in weathered brown, #6E5A42 — three or four straight members, no carving, no
+  curves.
+- EVERY roof is grey slate and nothing else: base tone #7E8388, each house a
+  slightly different shade of that same grey, some a touch lighter, some a touch
+  darker. NO red, NO terracotta, NO orange, NO brown, NO ochre, NO blue, NO
+  green, NO thatch, NO straw, NO reed, NO wooden shingles, NO turf. Red and blue
+  roofs mark who holds a fortified place in this game, so an ordinary house may
+  never wear them.
+- Each roof has a plain straight ridge and eaves that overhang the wall by about
+  a tenth of the house's width. No dormers, no gables added on the slope, no
+  tiles picked out one by one.
+- One plain plank door per house, weathered brown #6E5A42. Windows are small
+  squares with shutters, at most two to a house, no glass and no lattice.
+- About half the houses carry a square stone chimney at the ridge.
+- NEVER in this skin: a tower, a gate, a town wall, a church, a belfry, an
+  arcade, a shop front, a sign, a flag, a banner. Those belong to the town's
+  fort, which has to stay tellable apart from ordinary houses.
+- NEVER: people, animals, carts, barrels, crates, washing lines, smoke, fire.
 
-VIEWPOINT — CRITICAL: you are looking straight DOWN at the roofs. Draw the ROOF
-SURFACES, not the front of the buildings. Each house is a simple gabled roof: an
-oblong split down its middle by a ridge line into two sloping halves, one half a
-shade lighter than the other. NO walls, NO windows, NO doors, NO facades,
-nothing standing up. A few small square chimneys seen from above are fine.
+SUBJECT: ONE clump of four or five of those cottages, standing in TWO RANKS —
+some near, some further back — drawn as a single object that stands upright the
+way a piece stands on a game board. This is one corner of a town, not a whole
+town: no wall around it, no gate, no square, no street drawn under it.
 
-SIZE AND PLACEMENT — the block is a single clump in the MIDDLE of the picture.
-In a 1024-pixel picture it is about 660 pixels wide and 500 pixels tall, leaving
-about 180 pixels of white to its left and right and about 260 pixels of white
-above and below. It must NOT touch any edge and must NOT be cut by any edge.
-There is exactly ONE block: no second cluster, no stray hut out on its own, no
-road, no wall, no fence around it.
+SQUARE-ON — CRITICAL. Every house is seen STRAIGHT FROM THE FRONT, like a flat
+elevation drawing: the wall facing you is a plain rectangle, square to the
+picture, and the gable above it is an upright triangle. NO house is turned so
+that a corner points at you. NO side wall, NO end wall and NO receding edge is
+visible on any house. This is NOT an isometric view, NOT a three-quarter view,
+NOT a perspective view. The only thing seen from above is the roof itself, and
+only a little: each roof shows as a shallow band of slate above its wall, its
+ridge running level across the picture.
 
-THE LANES — MOST IMPORTANT: people have to be able to walk to every house.
-Narrow lanes thread through the block, about a twelfth of the block's width
-across (roughly 55 pixels in a 1024-pixel picture). At least two of them open
-from the outside of the block and run right into the middle, and one small
-square opens out where they meet. EVERY house has a lane along at least one of
-its sides. NO house is sealed in on all four sides by other houses.
+THE TWO RANKS — depth is made by HEIGHT ON THE PAGE AND SIZE, never by turning a
+house.
 
-THE LANES ARE WHITE — draw the lanes in exactly the same pure white as the
-background, not as a paved or earthen street. They are cut out along with the
-background, and the game draws its own ground through them, so a lane must join
-the outside white without a break.
+- The NEAR rank is one or two cottages standing on the bottom line of the
+  picture. They are the largest houses in the clump and they sit in the middle
+  of the width, spanning only about six tenths of it — narrow, because the near
+  edge of the hexagonal tile they stand on is narrow.
+- The FAR rank is three cottages whose wall bottoms are drawn about a quarter of
+  the picture's height ABOVE the bottom line, so they read as standing further
+  back. They are drawn ten to twenty per cent smaller than the near ones, and
+  they spread across the FULL width of the clump, wider than the near rank,
+  because the tile is at its widest through the middle.
+- The far rank is partly hidden: the near cottages overlap the bottoms of the
+  far walls, so the two ranks read as one mass and the ground between them is
+  never shown.
+- That is the whole depth. NO third rank, no houses shrinking away into the
+  distance, no street running back between them.
 
-OUTLINES — each house is outlined on its own. Do NOT draw an outline around the
-block as a whole. Where a lane opens to the outside, NOTHING closes it off: no
-line, no kerb, no bar, no gate, no dotted line across the mouth of the lane. A
-lane is empty white that joins the white outside without a single stroke
-crossing it. No line may run through white where there is no building.
+THE SILHOUETTE is therefore a low diamond: narrow along the bottom, widest
+across the middle, and closing again at the ridges of the far roofs. Neighbouring
+clumps interlock like brickwork when this shape is laid across the map, so do
+not square the outline off.
 
-THE CLUMP — within a terrace the houses stand shoulder to shoulder and share
-walls, all squared up to the same lane, the way a row of town houses does. The
-terraces themselves sit at slightly different angles to each other. The OUTLINE
-of the block is IRREGULAR: houses of different depths, so the edge steps in and
-out and no side of the block is one long straight wall. Overall it is a chunky
-mass, wider than it is tall — NOT a perfect rectangle, NOT a circle, NOT a star,
-NOT a ring closed all the way round a courtyard.
+THE FOOT — the bottoms of the NEAR walls sit on ONE straight level line across
+the bottom of the picture. That line is where the game sets the clump on the
+ground. Draw nothing below it: no ground, no grass, no paving, no step, no
+shadow. The far rank's raised bases are part of the picture and stay well above
+that line.
 
-COLOR — muted and limited. Most roofs are weathered terracotta tile, hex
-#A9705C; a good number are grey slate, hex #8C8A82; one or two are straw thatch,
-hex #B39A6E. Mix the three kinds across the block so no side of it is all one
-colour. Each roof is a slightly different shade of its own material. NO roof may
-be white, near-white or near-black — the white is reserved for the background.
+SIZE AND SHAPE — low and wide: about 1.8 times as wide as it is tall, and never
+taller than 0.55 of its width. It has to sit inside one hexagon of the map
+without hiding the tiles behind it, so height is the thing to hold down. The
+clump is the only object in the picture, sits in the middle, and touches no edge
+— leave clear white on all four sides.
 
-THE BACKGROUND — everything outside the block is PURE FLAT WHITE, #FFFFFF, with
-NO texture, NO shading, NO gradient, NO speckles, NO grey, NO grass, NO soil, NO
-street, NO drop shadow. This white is going to be deleted and the game will draw
-its own ground there, so the outside of the block must be a hard, clean, crisp
-edge against it.
+THE BACKGROUND is PURE FLAT WHITE, #FFFFFF, with NO texture, NO shading, NO
+gradient, NO speckle, NO grey, NO drop shadow. The white is deleted and the game
+draws its own road under the clump, so the edge against the white must be hard
+and clean.
 
-NO SHADOWS — this rule was broken last time, so read it twice. NO house has a
-dark edge along one side and a pale edge along the other. NO house drops a
-shadow into a lane, onto the white, or onto the house beside it. There is NO
-light direction in this picture at all: a roof looks exactly the same whichever
-way it is turned. This tile is rotated and mirrored when it is laid on the map,
-so a baked light direction would end up pointing several different ways across
-the board. Shading
-stays inside each roof: the two slopes of a gable differ slightly, and that is
-all.
-
-Nothing else: no people, no animals, no carts, no market stalls, no laundry, no
-smoke, no trees, no gardens, no wells, no city wall, no tower, no church, no
-gate, no signboards, no lettering. NO border, NO frame around the picture
-itself, NO vignette, NO caption, NO logo.
+NO LIGHT DIRECTION — no house has a bright side and a dark side, and no house
+casts a shadow onto the house beside it. Shading stays inside a surface: the
+roof is a shade darker than the wall, and that is all. Read at thumbnail size: a
+few large legible shapes, no fine detail, no picked-out stones.
