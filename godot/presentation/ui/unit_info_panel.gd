@@ -114,6 +114,7 @@ func _ready() -> void:
 	_ai_box.add_child(_ai_name)
 	# 額はアプリ側で描いて絵を嵌める（絵に枠を描き込ませると生成のたびに形が揺らぐ）。
 	_ai_frame = PanelContainer.new()
+	_ai_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 絵を嵌める額＝押す物ではない（掴んだら板が動く）
 	_ai_frame.add_theme_stylebox_override("panel", TavernTheme.icon_frame_stylebox())
 	_ai_frame.custom_minimum_size = Vector2(AI_FRAME_SIZE, AI_FRAME_SIZE)
 	_ai_box.add_child(_ai_frame)

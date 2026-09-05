@@ -21,6 +21,7 @@ var _page := 0
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE  # 押下は板（UnitInfoPanel）へ通す＝レポートの上を掴んでも板が動く
 	var v := VBoxContainer.new()
 	add_child(v)
 	# アンカーは add_child 後に明示設定（親 Panel の看板幅いっぱいに広げる）＝戦闘レポートと同じ余白
