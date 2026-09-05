@@ -9,33 +9,36 @@ static var _bill_mat := {}     # Color -> StandardMaterial3D
 static var _standee_mat := {}  # "テクスチャpath|明暗" -> ShaderMaterial
 static var _standee_shader: Shader = null
 
-## 立ち絵（駒・地形オブジェクト）の前後判定を、足元より DEPTH_BIAS だけカメラ寄りで行う。
-## 立ち絵はカメラに正対する板なので、板ぜんぶが足元と同じ奥行きに居る。一方、奥の高いマスは
-## 上面の手前端が足元より camera 寄りに来るため、そのままだと頭が奥の地形に食われる。
-## 逆に手前のマスは、この寄せぶんより更に手前に居るので隠す側のまま＝岩の陰に立つ絵は残る。
-## 単位はワールド（1.0 ＝ ヘックスの半径）。高さの段差 1.4 マスぶんまでを頭が抜けられる値。
-const STANDEE_DEPTH_BIAS := 0.45
-
 ## 立ち絵の材質。ビルボード・α抜き・明暗は Sprite3D の設定ではなくこのシェーダが持つ
 ## （material_override を差すと Sprite3D 側の billboard / alpha_cut / modulate は効かない）。
+##
+## 前後判定は「足元に立てた垂直な板」で行う（絵はカメラ正対のまま）。カメラに正対する板は
+## 板ぜんぶが足元と同じ奥行きに居るため、奥の高いマスの上面の手前端が足元よりカメラ寄りに
+## 来ると、立ち絵の頭が奥の地形に食われる。深度だけを垂直な板のものに差し替えると、隠れ方が
+## 「その場所に薄い板を立てたらどう見えるか」と一致する＝頭は食われず、自分が乗っているマスの
+## 手前側（森・茂みの葉）は足元を隠す＝仕様どおり駒が沈む（→ doc/gdd/terrain.md 盤の高さ）。
 const _STANDEE_SHADER := """
 shader_type spatial;
 render_mode cull_disabled, unshaded, shadows_disabled, depth_draw_opaque;
 
 uniform sampler2D tex : source_color, filter_linear;
 uniform vec4 modulate : source_color = vec4(1.0);
-uniform float depth_bias = 0.45;
 
 void vertex() {
 	// 完全ビルボード＝板をカメラに正対させる（Sprite3D の BILLBOARD_ENABLED と同じ組み方）。
-	MODELVIEW_MATRIX = VIEW_MATRIX * mat4(
+	mat4 mv = VIEW_MATRIX * mat4(
 		INV_VIEW_MATRIX[0], INV_VIEW_MATRIX[1], INV_VIEW_MATRIX[2], MODEL_MATRIX[3]);
-	// 板ごとカメラ原点まわりで相似縮小する＝視線の上を滑らせる。画面上の位置と大きさは
-	// 変わらず、深度だけが depth_bias ぶん浅くなる（前後判定だけを手前に寄せる）。
-	float z0 = (MODELVIEW_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).z;  // 足元のビュー空間 z（負）
-	float k = (z0 + depth_bias) / z0;
-	MODELVIEW_MATRIX = mat4(vec4(k, 0.0, 0.0, 0.0), vec4(0.0, k, 0.0, 0.0),
-		vec4(0.0, 0.0, k, 0.0), vec4(0.0, 0.0, 0.0, 1.0)) * MODELVIEW_MATRIX;
+	vec4 v = mv * vec4(VERTEX, 1.0);   // ビュー空間。板は像面と平行なので z は全頂点同じ
+	vec4 p = PROJECTION_MATRIX * v;    // 画面位置と w はこのまま使う（絵は正対のまま）
+	// 深度だけを、足元に立てた垂直な板と視線の交点のものに差し替える。板の法線は水平方向の
+	// 視線＝盤のカメラはヨーを持たない（俯角固定）ので、ワールドの +Z をビュー空間へ写せばよい。
+	vec3 n = (VIEW_MATRIX * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
+	float t = dot(mv[3].xyz, n) / dot(v.xyz, n);
+	float zb = min(t * v.z, -0.2);     // 寄せがカメラを越えないよう手前で止める（近接ズーム）
+	vec4 pb = PROJECTION_MATRIX * vec4(v.xy, zb, 1.0);
+	p.z = pb.z / pb.w * p.w;           // NDC 深度だけ差し替え（x・y・w は元のまま）
+	POSITION = p;
+	MODELVIEW_MATRIX = mv;
 }
 
 void fragment() {
@@ -266,7 +269,6 @@ static func standee_material(tex: Texture2D, modulate: Color = Color.WHITE) -> S
 	m.shader = _standee_shader
 	m.set_shader_parameter("tex", tex)
 	m.set_shader_parameter("modulate", modulate)
-	m.set_shader_parameter("depth_bias", STANDEE_DEPTH_BIAS)
 	_standee_mat[key] = m
 	return m
 

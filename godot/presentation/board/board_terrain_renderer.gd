@@ -491,10 +491,7 @@ func _add_object_flat(skin: TerrainSkin, hex: Vector2i) -> void:
 
 ## 繋がらないオブジェクト（岩・建物・砦）。立ち絵1枚を、スキンが指すぶんマス中心より手前に立てる。
 func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
-	var spr := Sprite3D.new()
-	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	spr.shaded = false
-	spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
+	var spr := Sprite3D.new()  # 正対・α抜き・明暗・前後判定は材質側（standee_material）が持つ
 	if not _apply_standee_texture(spr, skin, hex):
 		spr.free()
 		return
@@ -512,6 +509,9 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	if tex == null:
 		return false
 	spr.texture = tex
+	# 絵はシェーダ側の uniform から引くので、材質もテクスチャと一緒に張り替える
+	# （占領で絵が変わる拠点は、texture だけ差し替えても見た目が変わらない）。
+	spr.material_override = BoardMeshFactory.standee_material(tex)
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
 	spr.flip_h = skin.flips_horizontally() and TerrainTiles.flips_h_at(hex)

@@ -148,8 +148,8 @@ func build_unit_node(u: Unit) -> Node3D:
 		spr.texture = tex
 		spr.pixel_size = (UNIT_CANVAS_TILES * TILE) / float(tex.get_height())
 		spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元
-		# 正対・α抜き・明暗は材質側（standee_material）が持つ。前後判定を足元より少し
-		# カメラ寄りで行い、奥の高いマスに頭が食われないようにするため。
+		# 正対・α抜き・明暗は材質側（standee_material）が持つ。前後判定を「足元に立てた
+		# 垂直な板」で行い、奥の高いマスに頭が食われないようにするため。
 		spr.material_override = BoardMeshFactory.standee_material(tex,
 			DONE_MODULATE if done else Color.WHITE)
 		# 根ノードはタイル上面（elev）。立ち絵だけ floor へずらす＝影・バー・リングは上面のまま。
