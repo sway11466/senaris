@@ -1,6 +1,16 @@
-powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1_v assets\terrain-src\prop_garden1\prop_garden1_01_raw.jpg -Transparent white -Fit -Rotate 90
-powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1_r assets\terrain-src\prop_garden1\prop_garden1_01_raw.jpg -Transparent white -Fit -Rotate 150
-powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1_l assets\terrain-src\prop_garden1\prop_garden1_01_raw.jpg -Transparent white -Fit -Rotate 210
+盤の立ち絵 — map_scale は terrain_skin.csv の road_prop_garden1 / plain_prop_garden1 の行から引く。
+正面向きの立ち絵になったので向き別スキン（_v / _r / _l）は無い＝回さない。同じ絵を道の上と平地の上に置く2スキン。
+map_scale 0.6 は、街区（1.0・高さ0.59）より低く見えるところから決めた（0.6×絵の縦横比0.83＝高さ0.50）。
 
-元絵は畝が横向きなので、縦は90°回したもの。そこから60°ずつで右（右上から左下）と
-左（左上から右下）になり、街区の3方向と同じ軸に乗る。
+powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1 assets\terrain-src\prop_garden1\prop_garden1_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 plain_prop_garden1 assets\terrain-src\prop_garden1\prop_garden1_03_master.png -Object
+
+戦闘の帯 — 手前（畝とキャベツ）と奥（豆の支柱）の2枚で、駒が菜園の中に立つ絵にする。
+大小は窓が決めるのでキャンバスの余白は持たせない＝トリムのみ。
+
+magick assets\terrain-src\prop_garden1\prop_garden1_front_03_master.png -trim +repage assets\terrain\road_prop_garden1_combat_front.png
+magick assets\terrain-src\prop_garden1\prop_garden1_back_03_master.png  -trim +repage assets\terrain\road_prop_garden1_combat_back.png
+magick assets\terrain-src\prop_garden1\prop_garden1_front_03_master.png -trim +repage assets\terrain\plain_prop_garden1_combat_front.png
+magick assets\terrain-src\prop_garden1\prop_garden1_back_03_master.png  -trim +repage assets\terrain\plain_prop_garden1_combat_back.png
+
+-Transparent は使わない。_03_master は白を抜いた状態で置いてある。

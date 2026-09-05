@@ -1,50 +1,70 @@
-STYLE: A map tile object for a fantasy tactics game, in the same clean stylized
-cel-shaded look as the game's terrain and unit art: bold flat shading, clear
-dark outlines, a mature, slightly muted, limited color palette (NOT bright
-saturated, NOT painterly photorealism). Drawn like the world map of a classic 2D
-role-playing game, seen from DIRECTLY OVERHEAD — a flat lay with NO perspective,
-NO isometric or three-quarter view, no horizon, no sky, no depth, nothing
-standing up and nothing leaning towards the viewer. Read at thumbnail size: a
-few large legible shapes, no fine detail. Square 1:1.
+DESIGN — the town's kitchen garden. This block is repeated word for word in every
+slot of this skin, so that the little plot on the board and any later close-up in
+the battle window are plainly the same garden.
 
-SUBJECT: ONE rectangular raised vegetable bed — a plot of garden soil boxed in
-by low wooden planks — seen from straight above, sitting alone on a plain white
-background so that it can be cut out and laid over the game's own ground.
+- The plot is FLAT GROUND: turned soil, dark brown #4E3B2A, level with the road
+  around it. It has NO THICKNESS — no slab of earth, no raised bed, no cut face
+  of soil along the front, no step down to the road, and no edging of any kind
+  (no plank, no board, no kerb, no stones, no box, no frame). The soil simply
+  ends where the plot ends, in a soft slightly irregular line.
+- The soil is worked into three or four low ridges running left to right.
+- BEAN POLES are the shape that has to read from far away: THREE A-frames of
+  peeled sticks, each one two poles crossed and tied near the top, standing along
+  the plot at slightly different sizes and spacings. Bean vines wind up them, and
+  a few leaves hang off the vines, so each A-frame reads as a leafy triangle
+  rather than as bare sticks.
+- Vegetables grow in the rows: round cabbages, onion tops, carrot tops, in a
+  muted mid green #7E9660, one kind to a ridge. Bare soil shows between them.
+- NEVER: a fence, a hedge, a wall, a gate, a trellis panel, a shed, a scarecrow,
+  a well, a water butt, a cart, tools, baskets, flowers, fruit, people, animals.
+  A fence is its own terrain in this game and must never appear here.
 
-SIZE AND PLACEMENT — the bed is a single landscape rectangle in the MIDDLE of
-the picture. In a 1024-pixel picture it is about 660 pixels wide and 500 pixels
-tall, leaving about 180 pixels of white to its left and right and about 260
-pixels of white above and below. It must NOT touch any edge and must NOT be cut
-by any edge. There is exactly ONE bed: no second plot, no row of plots, no path,
-no plants outside the frame of the bed.
+SUBJECT: ONE such kitchen garden, drawn as a single object that stands on the
+board the way a piece stands on a game board — a small plot on a scrap of ground
+between the houses of a town, cut out and set down on the game's own road.
 
-THE FRAME — four straight wooden boards laid on edge around the plot, seen from
-directly above, so the frame reads as a rectangular band about 40 pixels thick
-in a 1024-pixel picture. Weathered mid-brown timber, hex #7A5C3C, with the grain
-running along each board. Square corners, straight sides. NO posts sticking up,
-NO fence, NO trellis, NO gate, NO label or sign.
+SIZE ON SCREEN — READ THIS FIRST, it decides the whole picture. On the map this
+object is drawn about 70 pixels wide. Anything smaller than a twelfth of the
+picture's width disappears at that size. So the picture is built around the three
+bean-pole A-frames: they carry the silhouette. The soil, the ridges and the rows
+are the ground the poles stand in, not the subject.
 
-INSIDE THE BED — dark turned soil, hex #4E3B2A, with THREE or FOUR low ridges
-running the long way across the plot, evenly spaced and parallel. Along the crest
-of each ridge sits a row of small leafy vegetables — cabbages, onion tops,
-carrot tops, bean leaves — one kind per ridge and a different kind from the
-ridge beside it, each plant about 45 pixels across in a 1024-pixel picture, set
-along the row with small irregular gaps. The plants are a muted mid green, hex
-#7E9660. Some bare soil shows at the ends of the rows. Do NOT draw fruit,
-flowers, tall stalks, stakes, trellises, poles or vines.
+WHAT IS BIG AND WHAT IS SMALL:
+- The A-frames stand about TWO THIRDS of the picture's height, and each one is
+  about a quarter of the picture's width across its feet.
+- The cabbages in the FRONT row are big and simple: about an eighth of the
+  picture's width each, four or five of them across the front, drawn as plain
+  round leafy balls.
+- Everything further back — the other rows, the onion and carrot tops — is small
+  and reads as texture on the soil. Do not spend detail there.
+- The soil patch itself is a SHALLOW BAND across the bottom of the picture,
+  about a third of the picture's height and no more. It is a flat surface seen
+  from above, NOT a block of earth: it has no front face, no side face and no
+  visible depth. The only timber in the picture is the bean poles.
 
-THE BACKGROUND — everything outside the wooden frame is PURE FLAT WHITE,
-#FFFFFF, with NO texture, NO shading, NO gradient, NO speckles, NO grey, NO
-grass, NO soil, NO drop shadow. This white is going to be deleted, so the
-outside of the frame must be a hard, clean, crisp edge against it. Nothing in
-the bed itself may be white, near-white or pale.
+SQUARE-ON — CRITICAL. The plot is seen STRAIGHT FROM THE FRONT and only a little
+from above, exactly as the town's houses are drawn: the soil shows as a shallow
+band with its ridges running level across the picture. NO corner points at you. NO receding side edge
+is visible. This is NOT an isometric view, NOT a three-quarter view, NOT a
+perspective view.
 
-NO SHADOWS — the bed casts nothing onto the white, and there is NO light
-direction in this picture at all. This tile gets rotated and mirrored when it is
-laid on the map, so a baked light direction would end up pointing several
-different ways across the board.
+THE FOOT — the near edge of the soil patch runs across the bottom of the
+picture, and that is where the game sets the plot on the ground. Draw nothing
+below it: no grass, no paving, no path, no shadow, and above all no cut edge of
+earth.
 
-Nothing else: no scarecrow, no tools, no baskets, no watering can, no well, no
-water, no people, no animals, no buildings, no stones, no signboards, no
-lettering. NO border, NO frame around the picture itself, NO vignette, NO
-caption, NO logo.
+SHAPE — low and wide: about twice as wide as it is tall, counting the poles. It
+stands beside the houses of the town and must read as smaller and lower than they
+are. The plot is the only object in the picture, sits in the middle, and touches
+no edge — leave clear white on all four sides.
+
+THE BACKGROUND is PURE FLAT WHITE, #FFFFFF, with NO texture, NO shading, NO
+gradient, NO speckle, NO grey, NO drop shadow. The white is deleted and the game
+draws its own road under the plot, so the edge against the white must be hard
+and clean.
+
+NO LIGHT DIRECTION — nothing has a bright side and a dark side, and nothing casts
+a shadow onto anything else: no shadow of a pole on the soil, none along the
+near edge. Shading stays inside a surface: the soil is a shade darker than the
+poles, and that is all. Read at thumbnail size: a few large legible shapes, no
+fine detail, no picked-out leaves.

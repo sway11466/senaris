@@ -1,0 +1,65 @@
+DESIGN — the town's kitchen garden. This block is repeated word for word in every
+slot of this skin, so that the little plot on the board and the band in the
+battle window are plainly the same garden.
+
+- The plot is FLAT GROUND: turned soil, dark brown #4E3B2A, level with the road
+  around it. It has NO THICKNESS — no slab of earth, no raised bed, no cut face
+  of soil along the front, no step down to the road, and no edging of any kind
+  (no plank, no board, no kerb, no stones, no box, no frame).
+- The soil is worked into low ridges running left to right.
+- Bean poles: A-frames of peeled sticks, brown #6E5A42, two poles crossed and
+  tied near the top, with bean vines winding up them so each reads as a leafy
+  triangle rather than as bare sticks.
+- Vegetables grow in the rows: round cabbages, onion tops, carrot tops, in a
+  muted mid green #7E9660, one kind to a ridge. Bare soil shows between them.
+- NEVER: a fence, a hedge, a wall, a gate, a trellis panel, a shed, a scarecrow,
+  a well, a water butt, a cart, tools, baskets, flowers, fruit, people, animals.
+  A fence is its own terrain in this game and must never appear here.
+
+SUBJECT: A NEW composition, not a crop or an extension of the map picture: a LOW
+BAND of that kitchen garden lying in the FOREGROUND of a battle scene, seen from
+the front at eye level, for a wide landscape picture (16:9). The soldiers stand
+just behind it and their feet are hidden by it, so this band is the bottom edge
+of the battle window — a frame at the very front, not scenery in the distance.
+
+LAYOUT — in a 1792 x 1024 picture the garden is a VERY SHALLOW strip about 170
+pixels tall resting on the BOTTOM edge, running from about 120 pixels in from
+the left edge to about 120 pixels in from the right edge. Shallow is the whole
+point: this is only the NEAR EDGE of the plot — the first row of vegetables and
+a sliver of soil behind them — not a field. The rest of the garden is drawn in
+the other slots, and the game draws its own ground behind this band. The margins at both ends, and
+everything above the strip, stay EMPTY WHITE. NOTHING is cut by the frame:
+nothing touches the left, right or top edge, and nothing continues off the
+picture. The band simply starts and stops, with the smallest plants at its two
+ends.
+
+WHAT IS IN IT — ONE row and no more:
+- SIX to EIGHT round cabbages, big and simple, sitting on the bottom edge and cut
+  by it, each one about a tenth of the strip's length across and nearly as tall
+  as the whole strip. They are the picture.
+- Behind them, only a narrow band of turned soil with ONE ridge line in it,
+  perhaps a couple of small onion or carrot tops poking up between the cabbages.
+  Its top is a soft slightly irregular line where the soil ends.
+- NO second row, NO third row, NO rows receding into the distance, NO field
+  stretching back, NO horizon. Drawing depth here would fight with the ground the
+  game already draws behind this band.
+- NO bean poles in this picture. The poles of this same garden stand BEHIND the
+  fighters and are drawn in the other slot, at their proper height; a stunted
+  A-frame down here would contradict them. Nothing in this band rises above the
+  top of the strip.
+
+KEEP IT QUIET — this band sits under the fighters' feet and must not compete
+with them. Draw it darker and simpler than the map piece: leaves as flat masses
+with no veins and no highlights, soil as flat tone with only the ridge lines
+picked out, and no small scattered detail. A silhouette that reads in one glance.
+
+NO LIGHT DIRECTION — nothing has a bright side and a dark side, and nothing
+casts a shadow onto anything else: no shadow of the poles on the soil, none
+under a cabbage. Shading stays inside a surface. This band is mirrored left to
+right when the game lays it down, so a baked light direction would end up
+pointing both ways in the same window.
+
+THE BACKGROUND — everything outside the band is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO speckle, NO grey, NO drop shadow. The
+white is deleted, so the top edge of the band must be a hard, clean, crisp line
+against it. Nothing in the garden may be white or near-white.
