@@ -4,9 +4,10 @@ magick assets\terrain-src\rampart\rampart_01_raw.jpg -crop 460x460+282+282 +repa
 powershell -File tools\gen_terrain_tile.ps1 rampart tmp_walk.png
 
 # 側面＝切石積みの壁面。左右シームレスは全幅を保つ限り生きるので、行だけを切る。
-# 高さ0.54の段差は盤で約12pxしかないので、帯を薄く切って段を大きく見せる（280px=4段では潰れた／140px=2段で読める）。
-# +384 は明度が画像全体の平均(46.7)に最も近い帯を14候補から選んだもの。
-magick assets\terrain-src\rampart\rampart_side_01_raw.jpg -crop 1024x140+0+384 +repage -colors 64 -dither None assets\terrain\rampart_side.png
+# 石の大きさは上面の敷石に合わせる＝盤に貼るとヘックス幅に5.5個。そのために元絵を1段15個・15段で描き直した
+# （前の絵 rampart_side_01_raw.jpg は1段9個で、盤では3.3個＝上面の1.7倍の大きさに見えていた）。
+# 切り出しは段の境目から境目まで＝2段ぶん。+381 は明度が画像全体の平均にちょうど一致する帯を13候補から選んだもの。
+magick assets\terrain-src\rampart\rampart_side_02_raw.jpg -crop 1024x130+0+381 +repage -colors 64 -dither None assets\terrain\rampart_side.png
 
 # terrain_skin.csv: elevation 0.54（0.18刻み×3。台地0.18・崖0.36の系列）/ orientable full（1枚しか無いので、回転と反転で繰り返しを散らす）。
 # CSV を直したら JSON を焼き直す:

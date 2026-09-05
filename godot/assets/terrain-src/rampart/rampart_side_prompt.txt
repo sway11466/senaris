@@ -11,26 +11,40 @@ low-contrast. Square 1:1.
 
 SUBJECT: The outer FACE of a fortress wall built of dressed ashlar masonry, seen
 face-on — a human kingdom's stonework, cut and squared by masons, not a natural
-rock face and not a rubble heap.
+rock face and not a rubble heap. The blocks are SMALL and neatly laid: a
+well-built royal wall of small dressed stone, not a rough keep of boulders.
+
+HOW MANY BLOCKS — CRITICAL, this is the point of the picture: count them. Each
+course holds about FIFTEEN blocks across the width of the frame, and there are
+about FOURTEEN courses from the top edge to the bottom edge. So a single block is
+roughly a fifteenth of the frame wide and a fourteenth of the frame tall —
+small, close to square, and there are around two hundred of them in the picture.
+Do NOT draw big blocks: nothing may be as much as a sixth of the frame across.
+Only a narrow horizontal strip of this picture is used on the map, so a wall face
+that is drawn with a few large stones ends up as three or four huge slabs sliding
+past on screen.
 
 THE COURSES: the blocks are laid in LEVEL HORIZONTAL COURSES, one row sitting on
 the next, all the way up and across. Horizontal is correct here and is the one
 regularity this picture is allowed: a wall face reads the same whichever way the
-wall runs. Course height is about a ninth of the frame — so a horizontal strip
-cut out of this picture shows two or three courses of block. Keep every course
-the same height; do NOT let the rows sag, tilt, taper or fan.
+wall runs. Keep every course the same height; do NOT let the rows sag, tilt,
+taper or fan. Any horizontal strip cut out of this picture must show two whole
+courses of block.
 
-THE BLOCKS: within each course the blocks vary in LENGTH — some twice as long as
-they are tall, some nearly square, a short one wedged in here and there. The
-vertical joints are STAGGERED from course to course: never let two of them line
-up into a continuous vertical seam, and never repeat the same run of block
-lengths twice. Corners are worn round, faces are faintly pitted, a few blocks
-have a chipped edge or a hairline crack. Weathered but sound and maintained —
-this wall still stands and is still defended.
+THE BLOCKS: within each course the blocks vary in LENGTH — most a little wider
+than they are tall, a few nearly square, a short one wedged in here and there,
+but none longer than twice its height. The vertical joints are STAGGERED from
+course to course: never let two of them line up into a continuous vertical seam,
+and never repeat the same run of block lengths twice. Corners are worn round and
+faces are faintly pitted; keep the wear small and even — at this size a big chip
+or a long crack reads as damage to the whole wall. Weathered but sound and
+maintained — this wall still stands and is still defended.
 
 THE JOINTS: the gaps between blocks are THIN and DARK — narrow recessed lines, a
 little darker than the stone. NO white or pale mortar, NO wide mortar beds, NO
-bright grout. The joints must never become the loudest thing in the picture.
+bright grout. With this many blocks the joints are the busiest thing in the
+frame, so keep them fine and quiet: they must never become the loudest thing in
+the picture, and the wall must still read as one grey surface from a distance.
 
 COLOR: cool grey granite, roughly hex #7F868A — a faintly blue-grey stone, a
 shade deeper than the wall's sunlit top surfaces (#8E9498 capping, #A9AEB0
