@@ -533,10 +533,9 @@ func threat_cells(state: BattleState, u: Unit) -> Dictionary:
 	for e in state.units():
 		if e.team == u.team or e.attack_against(u) <= 0:
 			continue
-		var field := AiDistance.move_cost_field_without(state, e.id, e.pos, ignore)
+		# 1ターンで届く範囲（移動力）で切って流す＝盤全体を流してから捨てるより敵の数ぶん軽い
+		var field := AiDistance.move_cost_field_within(state, e.id, e.pos, ignore, e.move)
 		for r in field:
-			if int(field[r]) > e.move:
-				continue  # 移動距離の表は何ターンぶんでも載る＝1ターンで届く範囲に切る
 			for h in Hex.within_range(r, e.attack_range):
 				if out.has(h) or not state.in_field(h):
 					continue

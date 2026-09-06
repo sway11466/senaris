@@ -59,7 +59,7 @@ func test_travel_cost_field_avoiding_units_walls_off_other_pieces() -> void:
 	s.add_unit(Unit.new(10, 1, from, 3))                     # 測る側
 	for row in [1, 2, 3]:                                    # 間を塞ぐ壁（味方2体・敵1体）
 		s.add_unit(Unit.new(20 + row, 1 if row != 2 else 0, Hex.offset_to_axial(3, row), 3))
-	var field := s.travel_cost_field_avoiding_units(goal, "foot", 0, from)
+	var field := s.travel_cost_field_avoiding_units(goal, "foot", 1 << 24, 0, from)
 	assert_true(field.has(from), "自分のマスは壁にしない")
 	assert_false(field.has(Hex.offset_to_axial(3, 2)), "敵の駒も壁")
 	assert_false(field.has(Hex.offset_to_axial(3, 1)), "味方の駒も壁")

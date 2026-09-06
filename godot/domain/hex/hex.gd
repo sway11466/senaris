@@ -167,22 +167,21 @@ static func flood_reach_prev_map(start: Vector2i, budget: int, cost_fn: Callable
 	return _flood(start, budget, cost_fn, stop_fn)[1]
 
 ## ダイクストラ本体。[{ヘックス: 最短コスト}, {ヘックス: 直前のヘックス}] を返す。
+## 未確定の最小コストは二分ヒープで取る（辞書を毎回なめると盤の広さの2乗で効く）。
+## 確定の順番は「コストが小さい順 → 同コストは dist に先に載った順」＝seq で決め、
+## この順番が prev（同じ長さの道のどれを記録するか）と dist のキー順を決める。
 static func _flood(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := Callable()) -> Array[Dictionary]:
 	var dist := {start: 0}
 	var prev := {}
 	var done := {}
-	while true:
-		# 未確定のうち最小コストのヘックスを選ぶ
-		var cur := start
-		var best := 1 << 30
-		var found := false
-		for k in dist:
-			if not done.has(k) and int(dist[k]) < best:
-				best = int(dist[k])
-				cur = k
-				found = true
-		if not found:
-			break
+	var seq := {start: 0}  # ヘックス -> dist に最初に載った順番（同コストの確定順）
+	var hex_of: Array[Vector2i] = [start]  # seq -> ヘックス
+	var heap: Array[int] = [0]  # (コスト << SEQ_BITS) | seq。安く積み直した古い項目は done で読み飛ばす
+	while not heap.is_empty():
+		var key := _heap_pop(heap)
+		var cur: Vector2i = hex_of[key & SEQ_MASK]
+		if done.has(cur):
+			continue  # 同じヘックスの古い（高いコストの）項目
 		done[cur] = true
 		# 終端ヘックス（ZOC等）は到達済みだが、ここから先へは展開しない（start は除く）。
 		if cur != start and stop_fn.is_valid() and stop_fn.call(cur):
@@ -197,4 +196,47 @@ static func _flood(start: Vector2i, budget: int, cost_fn: Callable, stop_fn := C
 			if nd <= budget and (not dist.has(n) or nd < int(dist[n])):
 				dist[n] = nd
 				prev[n] = cur  # cur は確定済み＝終端でない（＝実際にここを経由できる）
+				if not seq.has(n):
+					seq[n] = hex_of.size()
+					hex_of.append(n)
+				_heap_push(heap, (nd << SEQ_BITS) | int(seq[n]))
 	return [dist, prev]
+
+const SEQ_BITS := 20  # 1盤のヘックス数の上限＝約100万。コストは残りの上位ビットに載る
+const SEQ_MASK := (1 << SEQ_BITS) - 1
+
+## 最小ヒープ（整数キー）。_flood 専用。
+static func _heap_push(heap: Array[int], key: int) -> void:
+	heap.append(key)
+	var i := heap.size() - 1
+	while i > 0:
+		var p := (i - 1) >> 1
+		if heap[p] <= heap[i]:
+			break
+		var t := heap[p]
+		heap[p] = heap[i]
+		heap[i] = t
+		i = p
+
+static func _heap_pop(heap: Array[int]) -> int:
+	var top := heap[0]
+	var last: int = heap.pop_back()
+	var n := heap.size()
+	if n > 0:
+		heap[0] = last
+		var i := 0
+		while true:
+			var l := 2 * i + 1
+			var r := l + 1
+			var m := i
+			if l < n and heap[l] < heap[m]:
+				m = l
+			if r < n and heap[r] < heap[m]:
+				m = r
+			if m == i:
+				break
+			var t := heap[m]
+			heap[m] = heap[i]
+			heap[i] = t
+			i = m
+	return top

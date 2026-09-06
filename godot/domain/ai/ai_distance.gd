@@ -19,14 +19,23 @@ class_name AiDistance
 static func move_cost_field(state: BattleState, unit_id: int, from: Vector2i) -> Dictionary:
 	return move_cost_field_without(state, unit_id, from, {})
 
+## 盤全体を流す予算（何ターンぶんでも載る）。
+const WHOLE_BOARD := 1 << 24
+
 ## 移動距離の表を、ignore_ids の駒が居ないものとして流したもの。
 ## AIが「その敵をどければ道が良くなるか」を測るのに使う（doc/gdd/ai.md 経路上の敵）。
 static func move_cost_field_without(state: BattleState, unit_id: int, from: Vector2i,
 		ignore_ids: Dictionary) -> Dictionary:
+	return move_cost_field_within(state, unit_id, from, ignore_ids, WHOLE_BOARD)
+
+## 移動距離の表を budget（コスト上限）で切って流したもの。載る範囲の値は WHOLE_BOARD と同じで、
+## 1ターンで届く範囲（budget＝移動力）だけ要るときに盤全体を流さずに済む（脅威圏が使う）。
+static func move_cost_field_within(state: BattleState, unit_id: int, from: Vector2i,
+		ignore_ids: Dictionary, budget: int) -> Dictionary:
 	var u := state.unit_by_id(unit_id)
 	if u == null:
 		return {}
-	return state.travel_cost_field_avoiding_units(from, u.move_type, u.move, u.pos, ignore_ids)
+	return state.travel_cost_field_avoiding_units(from, u.move_type, budget, u.move, u.pos, ignore_ids)
 
 ## 地形距離の表＝駒を壁として数えず、地形だけで測った道のり表。
 ## 仲間や敵に塞がれていても、その駒がどいたあとに通れる道を測る（見込前進が使う）。
@@ -66,7 +75,7 @@ static func detour_cost_field(state: BattleState, unit_id: int, from: Vector2i,
 		if u.move > 0 and c > u.move:
 			return Movement.IMPASSABLE  # 何ターンかけても入れない＝この駒には壁
 		return c
-	return Hex.flood_reach_cost_map(from, 1 << 24, cost_fn)
+	return Hex.flood_reach_cost_map(from, WHOLE_BOARD, cost_fn)
 
 ## field 上で cells に届く最小コスト。1マスも載っていなければ UNREACHABLE（＝測れない）。
 ## 同値をどう捌くか（col → row の若い方）は行き先を選ぶ側の話なので、ここでは値だけ返す。
