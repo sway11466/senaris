@@ -14,3 +14,6 @@ magick assets\terrain-src\fort_town1\fort_town1_combat_team0_03_master.png -trim
 magick assets\terrain-src\fort_town1\fort_town1_combat_team1_03_master.png -trim +repage assets\terrain\road_fort_town1_team1_combat_back.png
 
 -Transparent は使わない。_03_master は白を抜いた状態で置いてある。
+
+平地の町（plain_fort_town1）と荒地の町（wasteland_fort_town1）は上の6枚をそのまま複製したもの。絵は同じで、下地（terrain_skin.csv の map_ground / combat_ground）だけ違う。
+copy assets\terrain\road_fort_town1*.png -> assets\terrain\wasteland_fort_town1*.png（_team0/_team1/_combat_back を含む6枚）

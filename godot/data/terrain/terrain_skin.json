@@ -959,6 +959,26 @@
 			"side_tiling": "stretch",
 			"skin_id": "wasteland",
 			"terrain_type": "wasteland"
+		},
+		{
+			"combat_ground": "wasteland",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"ignore_board_height": false,
+			"map_ground": "wasteland",
+			"map_scale": 0.79,
+			"memo": "道の町（road_fort_town1）の複製を荒地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "町",
+			"object_foot_z": 0.5,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "wasteland_fort_town1",
+			"terrain_type": "fort"
 		}
 	]
 }

@@ -567,7 +567,7 @@
     { "col": 10, "row": 17, "skin": "plateau", "elevation": 0.25, "floor": 0.25 },
     { "col": 11, "row": 17, "skin": "plateau", "elevation": 0.25, "floor": 0.25 },
     { "col": 12, "row": 17, "skin": "plateau", "elevation": 0.25, "floor": 0.25 },
-    { "col": 13, "row": 17, "skin": "road_fort_town1" },
+    { "col": 13, "row": 17, "skin": "wasteland_fort_town1" },
     { "col": 14, "row": 17, "skin": "plateau", "elevation": 0.25, "floor": 0.25 },
     { "col": 15, "row": 17, "skin": "plateau", "elevation": 0.25, "floor": 0.25 },
     { "col": 16, "row": 17, "skin": "plateau", "elevation": 0.25, "floor": 0.25 },
