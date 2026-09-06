@@ -141,7 +141,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	_skin_catalog = p_skin_catalog
 	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_board_height, p_height_overrides)
 	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.unit_floor)
-	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, _in_board, state, _sync, func(v: bool) -> void: _locked = v)
+	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, state.in_field, state, _sync, func(v: bool) -> void: _locked = v)
 	_reset_interaction()
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -208,7 +208,7 @@ func _process(_delta: float) -> void:
 ## ホバー音は駒と拠点の上でだけ鳴らす。盤は空きマスが大半で、全マスで鳴らすとカーソルを
 ## 動かすだけで鳴り続け、音が「そこに何かある」という情報を失う。→ doc/audio/sfx.md
 func _play_hover_sfx(hex: Vector2i) -> void:
-	if not _on_board(hex):
+	if not state.in_field(hex):
 		return
 	if state.unit_at(hex) == null and state.base_at(hex) == null:
 		return
@@ -389,7 +389,7 @@ func _hex_at_screen(screen: Vector2) -> Vector2i:
 		var hex := _hex_on_plane(o, d, e)
 		if hex != INVALID_HEX and not seen.has(hex):
 			seen[hex] = true
-			if _on_board(hex) and _hex_on_plane(o, d, _terrain_renderer.elev(hex)) == hex:
+			if state.in_field(hex) and _hex_on_plane(o, d, _terrain_renderer.elev(hex)) == hex:
 				return hex
 		e -= step
 	var flat := _hex_on_plane(o, d, 0.0)
@@ -402,11 +402,6 @@ func _hex_on_plane(o: Vector3, d: Vector3, y: float) -> Vector2i:
 		return INVALID_HEX
 	var p := o + d * t
 	return Hex.from_pixel(Vector2(p.x, p.z), TILE)
-
-## hex が盤の中か（ホバー表示は盤上だけ）。
-func _on_board(hex: Vector2i) -> bool:
-	var o := Hex.axial_to_offset(hex)
-	return o.x >= 0 and o.x < state.cols and o.y >= 0 and o.y < state.rows
 
 # =========================================================================
 # クリック→選択→移動→コマンドメニュー
@@ -1058,13 +1053,6 @@ func _sync_bases() -> void:
 						_board_cam.cam_up * LABEL_GAP + lift, VERTICAL_ALIGNMENT_BOTTOM)
 			stack += 1
 
-## hex が盤の矩形（offset col/row）の中にあるか。
-func _in_board(hex: Vector2i) -> bool:
-	if state == null:
-		return false
-	var c := Hex.axial_to_offset(hex)
-	return c.x >= 0 and c.x < state.cols and c.y >= 0 and c.y < state.rows
-
 ## オーバーレイ（範囲・候補・プレビュー・選択・攻撃対象・ホバー）を作り直す。
 ## 種類ごとに高さをずらして重なりのZファイトを避ける。
 func _sync_overlay() -> void:
@@ -1113,7 +1101,7 @@ func _sync_overlay() -> void:
 			var det: int = controller.detection_radius(ins)
 			if det > 0:
 				_add_sight_boundary(state.visible_hexes(ins.pos, det))
-	if _hover != INVALID_HEX and _on_board(_hover):
+	if _hover != INVALID_HEX and state.in_field(_hover):
 		_add_cell(_hover, COLOR_HOVER, 0.04)
 
 func _add_cell(hex: Vector2i, color: Color, y: float) -> void:

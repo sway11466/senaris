@@ -202,35 +202,12 @@ func _side_texture(skin: TerrainSkin) -> Texture2D:
 	_side_tex[skin.skin_id] = tex
 	return tex
 
-## hex が盤の中か。
-func _on_board(hex: Vector2i) -> bool:
-	if _state == null:
-		return false
-	var o := Hex.axial_to_offset(hex)
-	return o.x >= 0 and o.x < _state.cols and o.y >= 0 and o.y < _state.rows
-
-## hex が盤の矩形（offset col/row）の中にあるか。
-func _in_board(hex: Vector2i) -> bool:
-	if _state == null:
-		return false
-	var c := Hex.axial_to_offset(hex)
-	return c.x >= 0 and c.x < _state.cols and c.y >= 0 and c.y < _state.rows
-
 ## 盤の矩形（offset col/row）へ丸め込む。盤内はそのまま返る。
 func _clamp_to_board(hex: Vector2i) -> Vector2i:
 	if _state == null:
 		return hex
 	var c := Hex.axial_to_offset(hex)
 	return Hex.offset_to_axial(clampi(c.x, 0, _state.cols - 1), clampi(c.y, 0, _state.rows - 1))
-
-## そのヘックスにある拠点の所属チーム。拠点でない/中立なら -1。拠点は数個なので線形で足りる。
-func _base_team_at(hex: Vector2i) -> int:
-	if _state == null:
-		return -1
-	for b in _state.bases():
-		if b.hex == hex:
-			return b.team
-	return -1
 
 ## hex の地形タイルのテクスチャ（skin 解決＋variant 敷き分け＋キャッシュ）。無ければ null。
 ## map_ground を持つ足場スキン（橋＝川の上に石畳）は、下地を敷いてから重ねる。
@@ -264,7 +241,8 @@ func _variant_texture(path: String, hex: Vector2i) -> Texture2D:
 ## assets/terrain/{skin_id}_team{N}.png を置けば切り替わり、置かなければ中立の絵のまま（コード不変）。
 ## 線地形（connect＝柵・道）は、隣り合う同スキンの向きの組み合わせで絵を選ぶ。
 func _tile_image_path(skin: TerrainSkin, hex: Vector2i) -> String:
-	var team := _base_team_at(hex)
+	var base := _state.base_at(hex)
+	var team := base.team if base != null else -1  # 拠点でない/中立なら -1
 	if team >= 0:
 		var p := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
 		if ResourceLoader.exists(p):
@@ -290,7 +268,7 @@ func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
 		var n := hex + d
 		var s: TerrainSkin = null
 		var covered := true
-		if _in_board(n):
+		if _state.in_field(n):
 			s = _skin_at(n)
 		elif _margin_terrain.has(n):
 			# 外周のセル。見た目差分(terrain_skins)は盤外の座標でも書けるので盤内と同じ引き方をする。
@@ -433,7 +411,7 @@ func _add_fence_boxes(boxes: Dictionary, skin: TerrainSkin, hex: Vector2i) -> vo
 				half_len, FENCE_RAIL_HD, FENCE_RAIL_HH, "rail_front", "rail_top")
 		# 辺の柱。隣も同じ位置に描くと面が重なってちらつくので、方向 0..2 のときだけ描く
 		#（同じ辺は相手から見ると方向 3..5）。盤外へ伸びた腕の先は相手がいないので常に描く。
-		if i < 3 or not _in_board(hex + Hex.DIRECTIONS[i]):
+		if i < 3 or not _state.in_field(hex + Hex.DIRECTIONS[i]):
 			_fbox_add(boxes, skin, mid + Vector3(0, FENCE_POST_H * 0.5, 0), dirv,
 				FENCE_POST_HW, FENCE_POST_HW, FENCE_POST_H * 0.5, "post_side", "post_top")
 	if any:
@@ -605,7 +583,7 @@ func _add_skirt() -> void:
 			for i in 6:
 				var nb := hex + dirs[i]
 				var bottom: float
-				if not _on_board(nb):
+				if not _state.in_field(nb):
 					bottom = -SKIRT_DEPTH         # 盤外＝ジオラマの縁（島の厚み）
 				elif _footing_elev(nb) < top - 0.001:
 					bottom = _footing_elev(nb)   # 低い隣接＝台地の崖面（段差ぶんだけ下ろす）

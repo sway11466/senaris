@@ -435,17 +435,14 @@ func _feature_texture(skin: TerrainSkin, slot: String, team: int) -> Texture2D:
 	return load(path) as Texture2D if ResourceLoader.exists(path) else null
 
 ## その駒が立っているマスにある拠点の所属チーム。拠点でない/中立/盤が未結線なら -1。
-## 拠点は数個なので線形で足りる（盤の board_terrain_renderer と同じ引き方）。
 func _base_team_of(comb: Dictionary) -> int:
 	if _state == null:
 		return -1
 	var pos: Variant = comb.get("pos")
 	if typeof(pos) != TYPE_VECTOR2I:
 		return -1
-	for b in _state.bases():
-		if b.hex == pos:
-			return b.team
-	return -1
+	var base := _state.base_at(pos)
+	return base.team if base != null else -1
 
 ## 重ね絵1枚ぶんの TextureRect（位置と大きさは呼び出し側が決める）。
 func _feature_rect(tex: Texture2D, pos: Vector2, size2: Vector2) -> TextureRect:
