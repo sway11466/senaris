@@ -22,9 +22,12 @@ the front at eye level, for a wide landscape picture (16:9). The soldiers stand
 just behind it and their feet are hidden by it, so this band is the bottom edge
 of the battle window — a frame at the very front, not scenery in the distance.
 
-LAYOUT — in a 1792 x 1024 picture the garden is a VERY SHALLOW strip about 170
-pixels tall resting on the BOTTOM edge, running from about 120 pixels in from
-the left edge to about 120 pixels in from the right edge. Shallow is the whole
+LAYOUT — the strip is TWELVE TIMES AS LONG AS IT IS TALL. Measure it: in a
+1792 x 1024 picture it runs from about 120 pixels in from the left edge to about
+120 pixels in from the right edge — about 1550 pixels long — and is therefore
+only about 130 pixels tall, resting on the BOTTOM edge. A taller strip is wrong
+at once: in the game a bar of numbers sits just above the bottom of the window,
+and anything taller than a twelfth of its own length runs into it. Shallow is the whole
 point: this is only the NEAR EDGE of the plot — the first row of vegetables and
 a sliver of soil behind them — not a field. The rest of the garden is drawn in
 the other slots, and the game draws its own ground behind this band. The margins at both ends, and
@@ -35,8 +38,8 @@ ends.
 
 WHAT IS IN IT — ONE row and no more:
 - SIX to EIGHT round cabbages, big and simple, sitting on the bottom edge and cut
-  by it, each one about a tenth of the strip's length across and nearly as tall
-  as the whole strip. They are the picture.
+  by it. Each is about a twelfth of the strip's length across and as tall as the
+  strip, so a cabbage is roughly as wide as it is tall — they are the picture.
 - Behind them, only a narrow band of turned soil with ONE ridge line in it,
   perhaps a couple of small onion or carrot tops poking up between the cabbages.
   Its top is a soft slightly irregular line where the soil ends.

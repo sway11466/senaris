@@ -6,12 +6,18 @@ map_scale 0.7・object_foot_z 0.45。大きさは街区（1.0・高さ0.59）と
 powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1 assets\terrain-src\prop_garden1\prop_garden1_03_master.png -Object
 powershell -File tools\gen_terrain_tile.ps1 plain_prop_garden1 assets\terrain-src\prop_garden1\prop_garden1_03_master.png -Object
 
-戦闘の帯 — 手前（畝とキャベツ）と奥（豆の支柱）の2枚で、駒が菜園の中に立つ絵にする。
+戦闘の帯 — 奥（豆の支柱）だけを使う。駒はその手前に立つ。
 大小は窓が決めるのでキャンバスの余白は持たせない＝トリムのみ。
 
-magick assets\terrain-src\prop_garden1\prop_garden1_front_03_master.png -trim +repage assets\terrain\road_prop_garden1_combat_front.png
 magick assets\terrain-src\prop_garden1\prop_garden1_back_03_master.png  -trim +repage assets\terrain\road_prop_garden1_combat_back.png
-magick assets\terrain-src\prop_garden1\prop_garden1_front_03_master.png -trim +repage assets\terrain\plain_prop_garden1_combat_front.png
 magick assets\terrain-src\prop_garden1\prop_garden1_back_03_master.png  -trim +repage assets\terrain\plain_prop_garden1_combat_back.png
 
 -Transparent は使わない。_03_master は白を抜いた状態で置いてある。
+
+
+手前の帯（畝とキャベツ）は作ったが使わない。この絵だと帯の上端＝畑の切れ目が、兵量バーの下端と
+ちょうど重なって見分けにくかった（帯は幅＝窓の半分で置かれ、高さは絵の縦横比が決める＝8.5:1 で
+窓の高さの9.9%。バーは 0.90〜0.928）。バーに重なること自体が悪いのではなく、切れ目とバーの縁が
+同じ高さに来るのが悪い。盤と奥の帯が固まった後に手前だけ描き直すと整合が取りにくいので、使わない
+判断にした。元絵と SUBJECT は prop_garden1_front_01_raw.jpg / _front_03_master.png /
+prop_garden1_combat_front_prompt.txt に残してある。
