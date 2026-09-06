@@ -8,6 +8,9 @@ class_name BoardTerrainRenderer
 # HexBoard3D.TILE と同値。盤全体で共有する「ヘックスの大きさ」の定数。
 const TILE := 1.0
 const SKIRT_DEPTH := TILE * 0.45   # 盤外周の側面（ジオラマの島の厚み）
+## 側面の帯1枚がカバーする横幅（ワールド・TILE=1）。石の見かけの大きさはこの値と、絵の中の
+## 石の数で決まる＝ヘックス幅(2タイル)の2つぶんで帯1周。小さくすると石が大きくなる。
+const SIDE_TEX_WIDTH := TILE * 4.0
 ## 見た目の高さ（elevation）と駒の足元の高さ（floor）はスキン側のデータ＝terrain_skin.csv。
 ## 高さは段差辺に側面スカートを生やす（崖は台地より高い＝登れる高台と登れない絶壁を序列で見せる）。
 ## floor が動かすのは立ち絵だけ（影・兵数バー・リングは上面のまま）＝盤の読み取りは従来どおり。
@@ -558,7 +561,8 @@ func _add_skirt() -> void:
 		for row in _state.rows:
 			var hex := Hex.offset_to_axial(col, row)
 			var p := Hex.to_pixel(hex, TILE)
-			var side := _side_texture(_skin_at(hex))
+			var skin := _skin_at(hex)
+			var side := _side_texture(skin)
 			var top_c: Color
 			var bot_c: Color
 			if side != null:
@@ -596,14 +600,29 @@ func _add_skirt() -> void:
 				var d0 := Vector3(c0.x, bottom, c0.z)
 				var d1 := Vector3(c1.x, bottom, c1.z)
 				# UVのuはコーナーのワールド座標から取る＝隣り合う辺と連続（継ぎ目が出ない）。
-				var u0 := (c0.x * 0.31 + c0.z * 0.53) * 0.8
-				var u1 := (c1.x * 0.31 + c1.z * 0.53) * 0.8
-				st.set_color(top_c); st.set_uv(Vector2(u0, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c0)
-				st.set_color(top_c); st.set_uv(Vector2(u1, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c1)
-				st.set_color(bot_c); st.set_uv(Vector2(u0, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d0)
-				st.set_color(bot_c); st.set_uv(Vector2(u1, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d1)
-				st.set_color(bot_c); st.set_uv(Vector2(u0, 0.95)); st.set_normal(Vector3.UP); st.add_vertex(d0)
-				st.set_color(top_c); st.set_uv(Vector2(u1, 0.05)); st.set_normal(Vector3.UP); st.add_vertex(c1)
+				# u は「辺に沿った長さ」で測る＝どの向きの辺でも石の大きさが同じになる。辺の向きへ
+				# 射影した座標なので、まっすぐ続く壁（同じ向きの辺が並ぶ）では隣とぴたり続く。向きは
+				# 正負をそろえてから使う＝同じ直線上の辺が、巻き方向で裏返らない。
+				var dir := Vector2(c1.x - c0.x, c1.z - c0.z).normalized()
+				if dir.x < 0.0 or (is_zero_approx(dir.x) and dir.y < 0.0):
+					dir = -dir
+				var u0 := (c0.x * dir.x + c0.z * dir.y) / SIDE_TEX_WIDTH
+				var u1 := (c1.x * dir.x + c1.z * dir.y) / SIDE_TEX_WIDTH
+				# v は貼り方で変わる（→ TerrainSkin.SIDE_*）。引き伸ばし＝帯1枚を段差いっぱいに伸ばす
+				# （滝は全長どこも同じ姿）。繰り返し＝帯の縮尺を保って縦に並べる（石積みは段数が増える）。
+				# 繰り返しのとき帯が世界で持つ高さは、u の幅と絵の縦横比が決める＝石の縦横比が保たれる。
+				var v_top := 0.05
+				var v_bot := 0.95
+				if side != null and skin != null and skin.side_repeats():
+					var band_h := SIDE_TEX_WIDTH * float(side.get_height()) / float(maxi(side.get_width(), 1))
+					v_top = 0.0
+					v_bot = (top - bottom) / band_h
+				st.set_color(top_c); st.set_uv(Vector2(u0, v_top)); st.set_normal(Vector3.UP); st.add_vertex(c0)
+				st.set_color(top_c); st.set_uv(Vector2(u1, v_top)); st.set_normal(Vector3.UP); st.add_vertex(c1)
+				st.set_color(bot_c); st.set_uv(Vector2(u0, v_bot)); st.set_normal(Vector3.UP); st.add_vertex(d0)
+				st.set_color(bot_c); st.set_uv(Vector2(u1, v_bot)); st.set_normal(Vector3.UP); st.add_vertex(d1)
+				st.set_color(bot_c); st.set_uv(Vector2(u0, v_bot)); st.set_normal(Vector3.UP); st.add_vertex(d0)
+				st.set_color(top_c); st.set_uv(Vector2(u1, v_top)); st.set_normal(Vector3.UP); st.add_vertex(c1)
 	for side in tools:
 		var mi := MeshInstance3D.new()
 		mi.mesh = tools[side].commit()

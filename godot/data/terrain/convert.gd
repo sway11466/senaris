@@ -80,6 +80,8 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	problems += _invalid_amount(rows, "floor")
 	# 盤の高さ（行・列の基準）を足さないスキン（水面など）。全行に明示する＝空を既定に倒さない。
 	problems += Csv.invalid_values(rows, "ignore_board_height", ["true", "false"], "skin_id")
+	# 側面の帯の貼り方（stretch/repeat）。全足場に明示する＝空を既定に倒さない。オブジェクトは空。
+	problems += _invalid_side_tiling(rows, type_rows)
 	# オブジェクトの置き方（standee/panel/flat）。全オブジェクトに明示する＝空を既定に倒さない。
 	problems += _invalid_placement(rows, type_rows)
 	# 置き方で必須が切り替わる2列。_invalid_amount（全行必須）とは分けて見る。
@@ -101,6 +103,25 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "skins": rows } }
+
+## 足場は側面の貼り方（side_tiling）を必ず書く。オブジェクトは側面を持たないので空。
+## 段差の高さは場所ごとに違うので、引き伸ばすのか繰り返すのかを絵ごとに決めておかないと、
+## 高い段差で石が縦に伸びる（→ doc/gdd/terrain.md 足場）。
+static func _invalid_side_tiling(rows: Array, type_rows: Array) -> Array:
+	var layer_of := {}
+	for t in type_rows:
+		layer_of[String(t.get("id", ""))] = String(t.get("layer", ""))
+	var problems: Array = []
+	for r in rows:
+		var id := String(r.get("skin_id", ""))
+		var v := String(r.get("side_tiling", "")).strip_edges()
+		var layer: String = layer_of.get(String(r.get("terrain_type", "")), "")
+		if layer == "footing":
+			if not v in SkinDef.SIDE_TILINGS:
+				problems.append("skin_id[%s] の side_tiling が不正 '%s'（%s のどれか）" % [id, v, str(SkinDef.SIDE_TILINGS)])
+		elif v != "":
+			problems.append("skin_id[%s] はオブジェクトなので side_tiling は空にする（'%s'）" % [id, v])
+	return problems
 
 ## layer が object のスキンで、許されない向きのばらし方を書いている行。
 ## 立ち絵（standee）だけ flip_x まで許し、それ以外のオブジェクトは none のみ。

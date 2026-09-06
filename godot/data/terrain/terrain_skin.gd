@@ -19,6 +19,12 @@ const PLACE_PANEL := "panel"      ## 辺に沿ってワールドに立てた板�
 const PLACE_FLAT := "flat"        ## 水平の板（橋）。自分のタイル絵を自分の高さに敷く
 const PLACEMENTS := [PLACE_STANDEE, PLACE_PANEL, PLACE_FLAT]
 
+## 側面（段差に貼る帯）の貼り方（→ doc/gdd/terrain.md 足場）。足場のスキンだけが持つ。
+## 段差の高さは場所ごとに違うので、1枚の帯をどう当てるかで石の大きさの意味が変わる。
+const SIDE_STRETCH := "stretch"  ## 帯1枚を段差の高さいっぱいに引き伸ばす。滝（川）＝落ちる水は全長どこも同じ姿
+const SIDE_REPEAT := "repeat"    ## 帯の縮尺を保ったまま縦に繰り返す。石積み＝高い段差は段数が増える
+const SIDE_TILINGS := [SIDE_STRETCH, SIDE_REPEAT]
+
 ## 同じ絵が隣り合ったときの見え方を散らす手段（→ orientable）。絵が向きを持つほど使える手が減る。
 ## 値は「何をしてよいか」をそのまま並べる＝名前を読めば効く操作が分かる。
 const ORIENT_NONE := "none"        ## 何もしない。向きが意味を持つ絵（道・壁・左右に意味のある立ち絵）
@@ -48,6 +54,8 @@ var floor: float
 ## 行・列の基準高さ（盤の高さ）を足さないか。true＝elevation / floor が絶対高さになる。
 ## 水面のように、盤の傾斜に乗らず一定の高さを保つスキンが使う（→ doc/gdd/terrain.md 盤の高さ）。
 var ignore_board_height: bool
+## 側面の帯の貼り方（SIDE_* のどれか）。足場のスキンだけが持つ（オブジェクトは空）。
+var side_tiling: String
 ## オブジェクトの置き方（PLACE_* のどれか）。足場のスキンはこの列を持たない（空）。
 var placement: String
 ## オブジェクトの立ち絵を、ヘックス中心からどれだけ手前へ置くか（ワールド単位・TILE=1・正＝手前）。
@@ -79,6 +87,10 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.elevation = float(d.get("elevation", 0.0))
 	s.floor = float(d.get("floor", 0.0))
 	s.ignore_board_height = bool(d.get("ignore_board_height", false))
+	# 側面の貼り方は足場だけが持つ。未知の値は引き伸ばしに倒す＝繰り返しで縦に潰れるより、
+	# 従来の見え方のほうが「直っていない」と気づきやすい。
+	var sd: Variant = d.get("side_tiling", "")
+	s.side_tiling = String(sd) if typeof(sd) == TYPE_STRING and sd in SIDE_TILINGS else SIDE_STRETCH
 	# 置き方はオブジェクトだけが持つ。未知の値（打ち間違い）は空に倒し、描く側が立ち絵（既定）で
 	# 扱う＝何も出ないより、立ち絵で出るほうが不備に気づける。
 	var pl: Variant = d.get("placement", "")
@@ -88,6 +100,11 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.map_ground = String(d.get("map_ground", ""))
 	s.combat_ground = String(d.get("combat_ground", ""))
 	return s
+
+## 側面の帯を縦に繰り返すか（false＝段差の高さいっぱいに引き伸ばす）。
+func side_repeats() -> bool:
+	return side_tiling == SIDE_REPEAT
+
 
 ## 戦闘演出の地面に敷くスキンID（空なら自分自身＝敷き詰め）。
 func combat_ground_id() -> String:

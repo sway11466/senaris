@@ -16,6 +16,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "repeat",
 			"skin_id": "bedrock",
 			"terrain_type": "bedrock"
 		},
@@ -35,6 +36,7 @@
 			"object_foot_z": "",
 			"orientable": "flip_x",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "brush",
 			"terrain_type": "brush"
 		},
@@ -54,6 +56,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "forest",
 			"terrain_type": "forest"
 		},
@@ -73,6 +76,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "plain",
 			"terrain_type": "plain"
 		},
@@ -92,6 +96,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_building_town1",
 			"terrain_type": "building"
 		},
@@ -111,6 +116,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "plain_cave1",
 			"terrain_type": "plain"
 		},
@@ -130,6 +136,7 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_cave1_fence_throne1",
 			"terrain_type": "fence"
 		},
@@ -149,6 +156,7 @@
 			"object_foot_z": 0.3,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_cave1_prop_loot1",
 			"terrain_type": "prop"
 		},
@@ -168,6 +176,7 @@
 			"object_foot_z": 0.35,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_cave1_rubble_cave1",
 			"terrain_type": "rubble"
 		},
@@ -187,6 +196,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "panel",
+			"side_tiling": "",
 			"skin_id": "plain_fence",
 			"terrain_type": "fence"
 		},
@@ -206,6 +216,7 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_fort",
 			"terrain_type": "fort"
 		},
@@ -225,6 +236,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_fort_guardhouse1",
 			"terrain_type": "fort"
 		},
@@ -244,6 +256,7 @@
 			"object_foot_z": 0.5,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_fort_town1",
 			"terrain_type": "fort"
 		},
@@ -263,6 +276,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "plain_grave1",
 			"terrain_type": "plain"
 		},
@@ -282,6 +296,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "panel",
+			"side_tiling": "",
 			"skin_id": "plain_grave1_fence",
 			"terrain_type": "fence"
 		},
@@ -301,6 +316,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_grave1_fort_chapel1",
 			"terrain_type": "fort"
 		},
@@ -320,6 +336,7 @@
 			"object_foot_z": 0.5,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_grave1_fort_crypt1",
 			"terrain_type": "fort"
 		},
@@ -339,6 +356,7 @@
 			"object_foot_z": 0.3,
 			"orientable": "flip_x",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_grave1_prop_tomb1",
 			"terrain_type": "prop"
 		},
@@ -358,6 +376,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_grave1_rubble_tombstone1",
 			"terrain_type": "rubble"
 		},
@@ -377,6 +396,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_prop_garden1",
 			"terrain_type": "prop"
 		},
@@ -396,6 +416,7 @@
 			"object_foot_z": 0.2,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "plain_trap",
 			"terrain_type": "trap"
 		},
@@ -415,6 +436,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "plateau",
 			"terrain_type": "plateau"
 		},
@@ -434,6 +456,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "repeat",
 			"skin_id": "rampart",
 			"terrain_type": "rampart"
 		},
@@ -453,6 +476,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "repeat",
 			"skin_id": "rampart_granite1",
 			"terrain_type": "rampart"
 		},
@@ -472,6 +496,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "repeat",
 			"skin_id": "rampart_ridge1",
 			"terrain_type": "rampart"
 		},
@@ -491,6 +516,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "river",
 			"terrain_type": "river"
 		},
@@ -510,6 +536,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_l",
 			"terrain_type": "bridge"
 		},
@@ -529,6 +556,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_left_l",
 			"terrain_type": "bridge"
 		},
@@ -548,6 +576,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_left_r",
 			"terrain_type": "bridge"
 		},
@@ -567,6 +596,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_left_v",
 			"terrain_type": "bridge"
 		},
@@ -586,6 +616,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_mid_l",
 			"terrain_type": "bridge"
 		},
@@ -605,6 +636,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_mid_r",
 			"terrain_type": "bridge"
 		},
@@ -624,6 +656,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_mid_v",
 			"terrain_type": "bridge"
 		},
@@ -643,6 +676,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_r",
 			"terrain_type": "bridge"
 		},
@@ -662,6 +696,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_right_l",
 			"terrain_type": "bridge"
 		},
@@ -681,6 +716,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_right_r",
 			"terrain_type": "bridge"
 		},
@@ -700,6 +736,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_right_v",
 			"terrain_type": "bridge"
 		},
@@ -719,6 +756,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "flat",
+			"side_tiling": "",
 			"skin_id": "river_bridge_stone1_v",
 			"terrain_type": "bridge"
 		},
@@ -738,6 +776,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "road",
 			"terrain_type": "road"
 		},
@@ -757,6 +796,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "road_building_town1",
 			"terrain_type": "building"
 		},
@@ -776,6 +816,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "road_fort_guardhouse1",
 			"terrain_type": "fort"
 		},
@@ -795,6 +836,7 @@
 			"object_foot_z": 0.5,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "road_fort_town1",
 			"terrain_type": "fort"
 		},
@@ -814,6 +856,7 @@
 			"object_foot_z": 0.45,
 			"orientable": "none",
 			"placement": "standee",
+			"side_tiling": "",
 			"skin_id": "road_prop_garden1",
 			"terrain_type": "prop"
 		},
@@ -833,6 +876,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "road_stone1",
 			"terrain_type": "road"
 		},
@@ -852,6 +896,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "road_stone2",
 			"terrain_type": "road"
 		},
@@ -871,6 +916,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "",
+			"side_tiling": "repeat",
 			"skin_id": "wall",
 			"terrain_type": "wall"
 		},
@@ -890,6 +936,7 @@
 			"object_foot_z": "",
 			"orientable": "none",
 			"placement": "",
+			"side_tiling": "repeat",
 			"skin_id": "wall_stone1",
 			"terrain_type": "wall"
 		},
@@ -909,6 +956,7 @@
 			"object_foot_z": "",
 			"orientable": "full",
 			"placement": "",
+			"side_tiling": "stretch",
 			"skin_id": "wasteland",
 			"terrain_type": "wasteland"
 		}

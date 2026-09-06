@@ -2,38 +2,36 @@
 map_scale 0.8・object_foot_z 0.45。街区（1.0・高さ0.59）より背が高く、町の砦より小さいところで決めた。
 白抜きは済ませてある（_03_master）ので -Transparent は使わない。
 
-powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1 assets	errain-srcort_guardhouse1ort_guardhouse1_03_master.png -Object
-powershell -File tools\gen_terrain_tile.ps1 plain_fort_guardhouse1 assets	errain-srcort_guardhouse1ort_guardhouse1_03_master.png -Object
-
-戦闘 — 奥の帯は詰所1棟（左右に余白を残した島）。トリムのみ＝縦横比がほぼ1:1で、窓側が
-「上が出るなら縮める」規則で高さ0.44に収める。
-
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_combat_03_master.png -trim +repage assets	errain
-oad_fort_guardhouse1_combat_back.png
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_combat_03_master.png -trim +repage assets	errain\plain_fort_guardhouse1_combat_back.png
-
-手前の帯は庭の塀。トリムしない＝右端の余白（塀が絵の中で終わる側）を残す必要があるため、
-中身の行だけを切り、幅は右端から 5.6:1 になるところで切る（塀の天端が窓の高さ0.85に来て、
-兵量バー 0.90〜0.928 が石積みの平らな面に重なる＝線どうしがぶつからない）。
-
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_front_01_raw.jpg -alpha set -fuzz 12% -fill none -draw "alpha 0,0 floodfill" -draw "alpha 1375,0 floodfill" -draw "alpha 0,767 floodfill" -draw "alpha 1375,767 floodfill" -crop 1376x167+0+601 +repage -gravity East -crop 935x167+0+0 +repage assets	errain-srcort_guardhouse1ort_guardhouse1_front_03_master.png
-copy assets	errain-srcort_guardhouse1ort_guardhouse1_front_03_master.png assets	errain
-oad_fort_guardhouse1_combat_front.png
-copy assets	errain-srcort_guardhouse1ort_guardhouse1_front_03_master.png assets	errain\plain_fort_guardhouse1_combat_front.png
-
-白抜きは四隅からのフラッドフィル（-fuzz 12%）。全面の色置換だと妻壁の明るい面まで抜ける。
+powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 plain_fort_guardhouse1 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_03_master.png -Object
 
 陣営別（_team0/_team1）は、中立を採用したチャットを分岐して屋根の色だけ差し替えたもの。
 色の指定に素材名を混ぜない（「赤褐色の瓦」と書くと石葺きから瓦に葺き替わる）。盤・帯とも同じ手順。
 
-powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1_team0 assets	errain-srcort_guardhouse1ort_guardhouse1_team0_03_master.png -Object
-powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1_team1 assets	errain-srcort_guardhouse1ort_guardhouse1_team1_03_master.png -Object
-powershell -File tools\gen_terrain_tile.ps1 plain_fort_guardhouse1_team0 assets	errain-srcort_guardhouse1ort_guardhouse1_team0_03_master.png -Object
-powershell -File tools\gen_terrain_tile.ps1 plain_fort_guardhouse1_team1 assets	errain-srcort_guardhouse1ort_guardhouse1_team1_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1_team0 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team0_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 road_fort_guardhouse1_team1 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team1_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 plain_fort_guardhouse1_team0 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team0_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 plain_fort_guardhouse1_team1 assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team1_03_master.png -Object
 
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_team0_combat_03_master.png -trim +repage assets	errainoad_fort_guardhouse1_team0_combat_back.png
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_team1_combat_03_master.png -trim +repage assets	errainoad_fort_guardhouse1_team1_combat_back.png
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_team0_combat_03_master.png -trim +repage assets	errain\plain_fort_guardhouse1_team0_combat_back.png
-magick assets	errain-srcort_guardhouse1ort_guardhouse1_team1_combat_03_master.png -trim +repage assets	errain\plain_fort_guardhouse1_team1_combat_back.png
+戦闘の奥の帯 — 詰所1棟を、左右に透明の余白を持たせて縦横比 3:1 にする。帯は「幅＝窓の半分」で
+置かれ、高さは絵の縦横比が決めるので、1:1 のまま置くと高さいっぱい（窓の0.44）まで拡大され、
+遠くの地面に立つ位置に近景の大きさで出る＝浮いて見える。3:1 にすると建物が小さく置かれ、
+基部が水平線の下に来る。トリムしてから余白を足す（トリムのみだと 1:1 に戻る）。
 
-手前の帯（塀）は塗り替え対象ではないので1枚だけ。
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_combat_03_master.png -trim +repage -background none -gravity center -extent 1602x534 assets\terrain\road_fort_guardhouse1_combat_back.png
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team0_combat_03_master.png -trim +repage -background none -gravity center -extent 1602x534 assets\terrain\road_fort_guardhouse1_team0_combat_back.png
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team1_combat_03_master.png -trim +repage -background none -gravity center -extent 1602x534 assets\terrain\road_fort_guardhouse1_team1_combat_back.png
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_combat_03_master.png -trim +repage -background none -gravity center -extent 1602x534 assets\terrain\plain_fort_guardhouse1_combat_back.png
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team0_combat_03_master.png -trim +repage -background none -gravity center -extent 1602x534 assets\terrain\plain_fort_guardhouse1_team0_combat_back.png
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_team1_combat_03_master.png -trim +repage -background none -gravity center -extent 1602x534 assets\terrain\plain_fort_guardhouse1_team1_combat_back.png
+
+手前の帯は庭の塀。トリムしない＝右端の余白（塀が絵の中で終わる側）を残す必要があるため、
+中身の行だけを切り、幅は右端から 5.6:1 になるところで切る（塀の天端が窓の高さ0.85に来て、
+兵量バー 0.90〜0.928 が石積みの平らな面に重なる＝線どうしがぶつからない）。塗り替え対象では
+ないので1枚だけ。
+
+magick assets\terrain-src\fort_guardhouse1\fort_guardhouse1_front_01_raw.jpg -alpha set -fuzz 12% -fill none -draw "alpha 0,0 floodfill" -draw "alpha 1375,0 floodfill" -draw "alpha 0,767 floodfill" -draw "alpha 1375,767 floodfill" -crop 1376x167+0+601 +repage -gravity East -crop 935x167+0+0 +repage assets\terrain-src\fort_guardhouse1\fort_guardhouse1_front_03_master.png
+copy assets\terrain-src\fort_guardhouse1\fort_guardhouse1_front_03_master.png assets\terrain\road_fort_guardhouse1_combat_front.png
+copy assets\terrain-src\fort_guardhouse1\fort_guardhouse1_front_03_master.png assets\terrain\plain_fort_guardhouse1_combat_front.png
+
+白抜きは四隅からのフラッドフィル（-fuzz 12%）。全面の色置換だと妻壁の明るい面まで抜ける。
