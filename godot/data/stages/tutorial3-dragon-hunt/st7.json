@@ -91,5 +91,5 @@
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "t3.st7.outro.7" }
     ]
   },
-  "bgm": { "main": "boss" }
+  "bgm": { "main": "boss2" }
 }
