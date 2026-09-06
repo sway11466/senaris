@@ -44,6 +44,7 @@ ui.info.team_enemy,敵軍,Enemy
 ui.info.team_neutral,中立,Neutral
 ui.info.squad_n,第%d部隊,Squad %d
 ui.info.strength,兵数,Strength
+ui.info.shield,シールド,Shield
 ui.info.level,Lv,Lv
 ui.info.atk_ground,対地攻撃,Atk vs Ground
 ui.info.atk_air,対空攻撃,Atk vs Air
@@ -98,6 +99,7 @@ ui.report.tab_attack,攻撃,Attack
 ui.report.tab_counter,反撃,Counter
 ui.report.name_lv,%s Lv%d,%s Lv%d
 ui.report.strength_change,兵数,Strength
+ui.report.shield_change,シールド,Shield
 ui.report.total_atk,総攻撃,Effective Atk
 ui.report.total_def,総防御,Effective Def
 ui.report.attack,攻撃,Attack

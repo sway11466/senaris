@@ -692,6 +692,8 @@ static func _full_item(text: String) -> Dictionary:
 ## 能力＝駒そのものの性能（盤の状況で変わらない値）。
 func _build_ability(u: Unit) -> void:
 	_add_row(tr("ui.info.strength"), "%d / %d" % [u.troops, u.max_troops])
+	if u.max_shield > 0:
+		_add_row(tr("ui.info.shield"), "%d / %d" % [u.shield, u.max_shield])  # 持つ駒だけ（doc/gdd/combat.md）
 	_add_row(tr("ui.info.level"), str(u.level))
 	_add_row(tr("ui.info.atk_ground"), str(u.unit_attack))
 	_add_row(tr("ui.info.atk_air"), str(u.atk_air) if u.atk_air > 0 else NONE)

@@ -30,6 +30,7 @@ const SKILL_GLOW_CYCLE := 1.6            # 明滅の周期（秒）
 const COLOR_SURROUNDED := Color(0.95, 0.55, 0.15)
 const COLOR_TROOPS_BG := Color(0, 0, 0, 0.6)
 const COLOR_TROOPS_FILL := Color(0.30, 0.90, 0.40)
+const COLOR_SHIELD := Color(0.91, 0.93, 0.96)  # 兵数バーの上に乗せるシールドの帯（白）。doc/gdd/uiux.md
 const COLOR_UNIT_LABEL := Color(1, 1, 1, 0.95)
 
 ## 攻撃対象マーカー＝対象の頭上に浮かぶ下向きの三角
@@ -328,6 +329,23 @@ func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	fill.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_FILL)
 	fill.position = base_pos + Vector3(0, 0, 0.01)
 	root.add_child(fill)
+	_add_shield_strip(u, root, base_pos, w, h)
+
+## シールドの帯。兵数バーの真上に細い白の帯を1本、長さ＝残量／初期値。0 なら出さない。
+## 仕様 → doc/gdd/uiux.md（駒に付くもの）・doc/gdd/combat.md シールド
+func _add_shield_strip(u: Unit, root: Node3D, base_pos: Vector3, w: float, h: float) -> void:
+	if u.max_shield <= 0 or u.shield <= 0:
+		return
+	var ratio := clampf(float(u.shield) / float(u.max_shield), 0.0, 1.0)
+	var sh := h * 0.4
+	var strip := MeshInstance3D.new()
+	var q := QuadMesh.new()
+	q.size = Vector2(w * ratio, sh)
+	q.center_offset = Vector3(-w * (1.0 - ratio) * 0.5, 0.0, 0.0)
+	strip.mesh = q
+	strip.material_override = BoardMeshFactory.bill_material(COLOR_SHIELD)
+	strip.position = base_pos + Vector3(0, h * 0.5 + sh * 0.5 + h * 0.15, 0.01)
+	root.add_child(strip)
 
 ## 頭上マーカーの倍率。画面上で MARK_MIN_PX を割り込むぶんだけ拡大する。
 func _mark_scale() -> float:

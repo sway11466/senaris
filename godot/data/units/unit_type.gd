@@ -22,6 +22,7 @@ var move_after_attack: bool  ## 攻撃後に再移動できるか（ヒット&�
 var can_capture: bool    ## 占領可否
 var max_troops: int      ## 満員兵数
 var capacity: int        ## 輸送の搭載数（0=輸送不可）
+var shield: int = 0      ## シールドの初期値（兵数の手前で損害を受ける器。0＝無し）。詳細 → doc/gdd/combat.md
 
 ## 辞書（JSONの1要素）から UnitType を作る。欠けたキーは無難な既定値。
 static func from_dict(d: Dictionary) -> UnitType:
@@ -40,6 +41,7 @@ static func from_dict(d: Dictionary) -> UnitType:
 	t.can_capture = bool(d.get("can_capture", false))
 	t.max_troops = int(d.get("max_troops", 8))
 	t.capacity = int(d.get("capacity", 0))
+	t.shield = int(d.get("shield", 0))
 	return t
 
 ## CSV "range" 表記を (min, max) に解く。

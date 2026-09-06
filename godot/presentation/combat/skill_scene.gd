@@ -36,11 +36,11 @@ func play(detail: SkillCast) -> void:
 
 	_open(victim, to_side, caster)  # 地面は左右それぞれの駒の地形。重ね絵は掛けられる側
 	var gen := _gen
-	_render_side(cast_side, caster, _troops_of(caster))
+	_render_side(cast_side, caster, _troops_of(caster), caster.shield_before)
 	if self_cast:
 		_blank_side(_other_side(cast_side))
 	else:
-		_render_side(to_side, victim, _troops_of(victim))
+		_render_side(to_side, victim, _troops_of(victim), victim.shield_before)
 
 	# ため：まず両者を見せてから放つ（突入直後に即着弾しない）。兵量バーは動かないので、
 	# 幕引きまでの長さは「放ってから最後の1発が届く」時間だけで決まる。

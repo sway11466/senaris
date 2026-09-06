@@ -15,7 +15,7 @@ func _valid_type_row() -> Dictionary:
 	return {
 		"id": "knight", "atk_ground": 8, "atk_air": 0, "pierce": 0, "defense": 5,
 		"move": 3, "move_type": "walk", "range": 1, "move_after_attack": false,
-		"can_capture": true, "max_troops": 10, "capacity": 0,
+		"can_capture": true, "max_troops": 10, "capacity": 0, "shield": 0,
 	}
 
 func test_unit_type_valid_builds_json() -> void:
@@ -334,7 +334,7 @@ func test_terrain_sight_cost_from_real_data() -> void:
 
 func _valid_terrain_skin(sid: String, tid: String) -> Dictionary:
 	return { "skin_id": sid, "terrain_type": tid, "name": "名", "orientable": "none",
-		"elevation": 0, "floor": 0, "ignore_board_height": "false" }
+		"elevation": 0, "floor": 0, "ignore_board_height": "false", "side_tiling": "stretch" }
 
 func test_terrain_skin_valid_builds_json() -> void:
 	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
@@ -371,6 +371,29 @@ func test_terrain_skin_ignore_board_height_must_be_bool_word() -> void:
 	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "未知の語は弾く")
 	rows[0].erase("ignore_board_height")
 	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "空/欠落も弾く")
+
+func test_terrain_side_tiling_is_required_on_footings_only() -> void:
+	# 側面の帯を引き伸ばすか繰り返すかは、足場ごとに明示する（空を既定に倒さない）。
+	# 段差の高さは場所ごとに違うので、決めておかないと高い段差で石が縦に伸びる。
+	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
+	rows[0]["side_tiling"] = "repeat"
+	assert_eq(Terrain.build_skin(rows, _terrain_types())["problems"].size(), 0, "repeat は通る")
+	rows[0]["side_tiling"] = "yes"
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "未知の語は弾く")
+	rows[0].erase("side_tiling")
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "空/欠落も弾く")
+
+func test_terrain_object_side_tiling_must_be_empty() -> void:
+	# オブジェクトは側面を持たない＝書いてあれば取り違えなので弾く。
+	var types := _terrain_types()
+	types.append(_valid_terrain_type("fence", "+", "object"))
+	var rows := [
+		_valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest"),
+		_object_terrain_skin("plain_fence", "fence"),
+	]
+	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "空なら通る")
+	rows[2]["side_tiling"] = "repeat"
+	assert_null(Terrain.build_skin(rows, types)["json"], "オブジェクトに書いたら json=null")
 
 func test_terrain_footing_without_same_name_skin_blocks() -> void:
 	# 足場は型IDと同名のスキンで引く（ステージが指定しないセル）。同名が無いと引けない。
@@ -415,6 +438,7 @@ func test_terrain_object_orient_limited_to_standee_flip_x() -> void:
 ## オブジェクトのスキン行（足場・置き方・描画倍率・足元の奥行きを埋めた、最小の有効な行）。
 func _object_terrain_skin(sid: String, tid: String) -> Dictionary:
 	var r := _valid_terrain_skin(sid, tid)
+	r["side_tiling"] = ""   # 側面は足場だけが持つ
 	r["map_ground"] = "plain"
 	r["placement"] = "standee"
 	r["map_scale"] = 1.0
@@ -489,6 +513,7 @@ func test_terrain_flat_object_uses_no_scale_columns() -> void:
 	]
 	rows[2]["placement"] = "flat"
 	rows[2]["map_ground"] = "plain"
+	rows[2]["side_tiling"] = ""   # 側面は足場だけが持つ
 	assert_eq(Terrain.build_skin(rows, types)["problems"].size(), 0, "倍率なしで通る")
 	rows[2]["map_scale"] = 1.0
 	assert_null(Terrain.build_skin(rows, types)["json"], "flat に倍率があれば json=null")

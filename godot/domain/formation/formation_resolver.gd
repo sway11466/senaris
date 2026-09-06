@@ -82,9 +82,10 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		h.victim = state.unit_snapshot(victim)  # 撃破で盤から消えてもレポートに名前と兵数を出せるよう固める
 		h.loss = hit.loss
 		h.detail = hit
-		victim.troops -= hit.loss
+		victim.take_loss(hit.loss)  # シールドから先に減る（兵数が減る唯一の入口）。詳細 → doc/gdd/combat.md
 		h.killed = victim.troops <= 0
-		h.victim.troops_after = maxi(victim.troops, 0)
+		h.victim.troops_after = victim.troops
+		h.victim.shield_after = victim.shield
 		state.mark_engaged(victim.id)  # 被弾＝起動トリガー（待ち伏せAIが立つ）
 		if h.killed:
 			state.remove_unit(victim.id)

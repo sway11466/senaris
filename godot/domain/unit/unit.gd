@@ -21,6 +21,8 @@ var pos: Vector2i      ## axial 座標
 var move: int          ## 移動力（ヘックス数）
 var troops: int        ## 兵数（1〜8）。残存兵数。0で消滅
 var max_troops: int    ## 満員時の兵数
+var shield: int = 0    ## シールド＝兵数の手前で損害を受ける器の現在値。0＝無し。減るのは take_loss だけ。詳細 → combat.md
+var max_shield: int = 0  ## シールドの初期値（UnitType から設定）。盤の残量表示の分母。回復では戻らない
 var unit_attack: int   ## ユニット攻撃力＝対地（兵1体あたり。原典 BuA 相当）
 var atk_air: int = 0   ## 対空攻撃力（0＝対空不可＝飛行ユニットを攻撃・反撃できない）。UnitType から設定
 var unit_defense: int  ## ユニット防御力（兵1体あたり。原典 BuD 相当。対地/対空で分けない単一値）
@@ -79,6 +81,18 @@ func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
 func gain_level(n: int) -> void:
 	level = clampi(level + n, 1, MAX_LEVEL)
 
+## 損害 n を受ける＝兵数が減る唯一の入口（攻撃・反撃・スキルの着弾・毒がここを通る）。
+## まずシールドから引き、シールドを超えたぶんだけ兵数が減る。兵数は 0 で止まる。
+## 返り値は実際に減った兵数（0＝シールドで受け切った）。詳細 → doc/gdd/combat.md シールド
+func take_loss(n: int) -> int:
+	if n <= 0:
+		return 0
+	var absorbed := mini(shield, n)
+	shield -= absorbed
+	var to_troops := mini(n - absorbed, troops)
+	troops -= to_troops
+	return to_troops
+
 ## 生来の陣営を設定する。帰属先も同じ値に揃える（生成時＝まだ解放されていない状態のため）。
 ## 解放後の帰属確定は BattleState.deploy が行う（そちらは native を触らない）。
 func set_native_team(t: int) -> void:
@@ -92,6 +106,7 @@ func is_unclaimed() -> bool:
 ## 種別(UnitType)の性能をこの駒に写す（type が唯一の出どころ＝数値を焼かない）。
 ## 成長・損耗（level/troops）と盤依存の状態（id/team/pos）は触らない＝呼び出し側の管轄。
 ## max_troops は type の満員値にするので、損耗を保つ用途では呼び出し後に上書きする。
+## シールドは初期値と現在値の両方を type の値にする（満員と同じ扱い）＝損耗を保つ用途では shield を上書きする。
 ## ステージ読み込み（StageLoader._make_unit）・セーブ復元（from_dict）とも、性能はこの写しだけで決まる。
 func apply_type(t: UnitType) -> void:
 	move = t.move
@@ -106,6 +121,8 @@ func apply_type(t: UnitType) -> void:
 	can_capture = t.can_capture
 	capacity = t.capacity
 	max_troops = t.max_troops
+	max_shield = t.shield
+	shield = t.shield
 
 ## 直列化（セーブの土台）。素性・成長・損耗だけを出す＝type/skin/level/troops/max_troops。
 ## 性能値（攻防・射程…）は type から再構築するので焼かない。盤依存の状態（id/team/pos/行動済み）も持たない
@@ -118,6 +135,8 @@ func to_dict() -> Dictionary:
 		"troops": troops,
 		"max_troops": max_troops,
 	}
+	if max_shield > 0:
+		d["shield"] = shield  # シールドを持つ種別だけ出す（大半の駒ではキーを増やさない）
 	if actor != "":
 		d["actor"] = actor  # 名前のない駒では出さない（名簿の対象外＝キーを増やさない）
 	return d
@@ -137,6 +156,7 @@ static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
 		push_warning("Unit.from_dict: type '%s' 未解決＝既定性能で復元" % type_id)
 	unit.troops = troops        # apply_type が max_troops を type 既定に戻すので損耗を再適用
 	unit.max_troops = max_troops
+	unit.shield = int(data.get("shield", unit.max_shield))  # 損耗を再適用（キーの無い旧データは初期値＝無傷）
 	unit.skin_id = String(data.get("skin", type_id))
 	unit.actor = String(data.get("actor", ""))
 	return unit

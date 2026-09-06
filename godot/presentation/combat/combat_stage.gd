@@ -92,6 +92,9 @@ const BAR_H := 0.028
 const BAR_Y := 0.90
 const BAR_FALL := 0.35  # 目盛りが減っていく時間（秒）
 const BAR_BG := Color(0, 0, 0, 0.50)
+const BAR_SHIELD := Color(0.81, 0.85, 0.89)  # シールドの列（陣営色ではなく白銀）。doc/tech/combat_scene.md 兵量バー
+const BAR_SHIELD_H := 0.7  # シールドの列の高さ（兵量バーに対する比＝本体を主役に残す）
+const BAR_ROW_GAP := 3.0   # 列と列の間（px）
 const BAR_EDGE := Color(0, 0, 0, 0.65)
 
 var _skins := {}
@@ -113,6 +116,8 @@ var _feature_front: Control  # 手前の重ね絵（立ち絵の上・バーの�
 var _fig := { "L": null, "R": null }  # 各サイドの図レイヤ（Control）
 var _bar := { "L": null, "R": null }  # 各サイドの兵量バー（Control・立ち絵の上に重ねる）
 var _bar_val := { "L": 0.0, "R": 0.0 }   # バーの表示値（減少をアニメさせるので float）
+var _bar_shield := { "L": 0.0, "R": 0.0 }  # シールドの表示値（兵量と同じ tween で落とす）
+var _bar_shield_max := { "L": 0, "R": 0 }  # シールドの初期値＝列の数を決める（0＝列を出さない）
 var _bar_team := { "L": 0, "R": 1 }      # バーの色（陣営）
 var _bar_tween := { "L": null, "R": null }  # 減少アニメ（連戦で前の戦闘のぶんが残らないよう都度 kill）
 var _shown := { "L": 0, "R": 0 }  # いま隊列に並んでいる数。エフェクトの発数はこれに合わせる（絵と食い違わせない）
@@ -459,18 +464,19 @@ func _troops_of(comb: UnitSnapshot) -> int:
 func _other_side(side: String) -> String:
 	return "R" if side == "L" else "L"
 
-## 片側の隊列＋兵量バーを count 兵ぶんで描き直す。animate=true は着弾時（バーが減っていく）。
+## 片側の隊列＋兵量バーを count 兵・shield ぶんで描き直す。animate=true は着弾時（バーが減っていく）。
 ## 並べ方はスキンの combat_lineup：single は複製せず1体だけ（馬車・ドラゴン級＝兵として数えない駒）。
-func _render_side(side: String, comb: UnitSnapshot, count: int, animate: bool = false) -> void:
+func _render_side(side: String, comb: UnitSnapshot, count: int, shield: int, animate: bool = false) -> void:
 	var layer: Control = _fig[side]
 	_clear(layer)
 	var team := comb.team
 	_shown[side] = count
 	_mirror[side] = _face_mirror(side, team)
+	_bar_shield_max[side] = comb.max_shield
 	var bar: Control = _bar[side]
 	if bar != null:
 		bar.visible = true  # 前の演出の _blank_side が消していたら戻す
-	_set_bar(side, count, team, animate)
+	_set_bar(side, count, shield, team, animate)
 	var skin := _skin_of(comb)
 	if skin != null and skin.is_single_figure():
 		# 1体だけ＝損害で絵が減らないので、減り方は兵量バーが受け持つ。
@@ -510,22 +516,28 @@ func _slot_pos(side: String, p: Vector2) -> Vector2:
 	var feet := vp.y * 0.38 + p.y * vp.y * 0.42 + p.x * vp.y * 0.16
 	return Vector2(cx, feet)
 
-## 兵量バーを count へ更新。animate なら現在値からアニメで落とす（着弾の手応え）。
+## 兵量バーを count・shield へ更新。animate なら現在値からアニメで落とす（着弾の手応え）。
 ## 開幕は snap＝前の戦闘の値から動かない（連戦で前のバーが残らないよう既存アニメは kill）。
-func _set_bar(side: String, count: int, team: int, animate: bool) -> void:
+## 兵量とシールドは同じ1本の tween で同時に落とす＝「シールドが尽きて本体へ流れる」一撃も一度に見せる。
+func _set_bar(side: String, count: int, shield: int, team: int, animate: bool) -> void:
 	_bar_team[side] = team
 	var prev: Tween = _bar_tween[side]
 	if prev != null and prev.is_valid():
 		prev.kill()
 	if not animate:
-		_set_bar_val(side, float(count))
+		_set_bar_val(side, float(count), float(shield))
 		return
+	var from_troops := float(_bar_val[side])
+	var from_shield := float(_bar_shield[side])
 	var tw := create_tween()
-	tw.tween_method(func(v: float) -> void: _set_bar_val(side, v), float(_bar_val[side]), float(count), BAR_FALL)
+	tw.tween_method(func(k: float) -> void:
+		_set_bar_val(side, lerpf(from_troops, float(count), k), lerpf(from_shield, float(shield), k)),
+		0.0, 1.0, BAR_FALL)
 	_bar_tween[side] = tw
 
-func _set_bar_val(side: String, v: float) -> void:
+func _set_bar_val(side: String, v: float, sv: float) -> void:
 	_bar_val[side] = v
+	_bar_shield[side] = sv
 	var c: Control = _bar[side]
 	if c != null:
 		c.queue_redraw()
@@ -552,6 +564,20 @@ func _draw_bar(side: String) -> void:
 		if f > 0.0:
 			c.draw_rect(Rect2(slot.position, Vector2(cell * f, h)), col.lightened(0.15))
 		c.draw_rect(slot, BAR_EDGE, false, 1.0)
+	# シールドの列。兵量バーの真上に同じ8マス割りで積む（1列＝8、初期値ぶんの列数）。
+	# 下の列が 1〜8・その上が 9〜16 …＝値が減ると上の列から空く。仕様 → doc/tech/combat_scene.md 兵量バー
+	var rows := ceili(float(_bar_shield_max[side]) / float(MAX_TROOPS))
+	var sh := h * BAR_SHIELD_H
+	var sval := float(_bar_shield[side])
+	for r in rows:
+		var y := origin.y - float(r + 1) * (sh + BAR_ROW_GAP)
+		for i in MAX_TROOPS:
+			var slot := Rect2(Vector2(origin.x + i * (cell + gap), y), Vector2(cell, sh))
+			c.draw_rect(slot, BAR_BG)
+			var f := clampf(sval - float(r * MAX_TROOPS + i), 0.0, 1.0)
+			if f > 0.0:
+				c.draw_rect(Rect2(slot.position, Vector2(cell * f, sh)), BAR_SHIELD)
+			c.draw_rect(slot, BAR_EDGE, false, 1.0)
 
 func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2D, team: int, comb: UnitSnapshot, mirror: bool = false) -> void:
 	var vp := _size()

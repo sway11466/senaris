@@ -154,7 +154,9 @@ func _tick_dots() -> void:
 		var n := StatusMod.dot_amount(_status_mods, u)
 		if n <= 0:
 			continue
-		u.troops = maxi(u.troops - n, DOT_TROOPS_FLOOR)
+		# シールドは 0 まで減り、残兵の下限は本体にだけ掛かる＝減らせる量を先に切ってから入口を通す。
+		var room := u.shield + maxi(u.troops - DOT_TROOPS_FLOOR, 0)
+		u.take_loss(mini(n, room))
 
 # --- チャージ（再使用間隔）。詳細 → doc/gdd/skills.md ---
 #
@@ -937,12 +939,14 @@ func attack(attacker_id: int, target_id: int) -> AttackResult:
 	var t_snap := unit_snapshot(t)
 	var dmg_to_target := fwd.loss
 	var dmg_to_attacker := ret.loss if ret != null else 0
-	t.troops -= dmg_to_target
-	a.troops -= dmg_to_attacker
+	t.take_loss(dmg_to_target)  # シールドから先に減る（兵数が減る唯一の入口）。詳細 → doc/gdd/combat.md
+	a.take_loss(dmg_to_attacker)
 	var target_killed := t.troops <= 0
 	var attacker_killed := a.troops <= 0
-	a_snap.troops_after = maxi(a.troops, 0)
-	t_snap.troops_after = maxi(t.troops, 0)
+	a_snap.troops_after = a.troops
+	t_snap.troops_after = t.troops
+	a_snap.shield_after = a.shield
+	t_snap.shield_after = t.shield
 	# レベル: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
 	# 防御側は反撃が成立したときだけ+1（間接で撃たれた側／対空なしで飛行に撃たれた側は+0）。
 	a.gain_level(1 + (1 if target_killed else 0))
@@ -1022,6 +1026,8 @@ func spawn_unit(caster_id: int) -> Unit:
 	var spawned := Unit.new(new_id, caster.team, spawn_hex, caster.move,
 		caster.troops, caster.unit_attack, caster.unit_defense, 1, caster.type_id)
 	spawned.max_troops = caster.max_troops
+	spawned.max_shield = caster.max_shield
+	spawned.shield = caster.shield  # 兵数と同じく現在の損耗ごと写す
 	spawned.skin_id = caster.skin_id
 	spawned.move_type = caster.move_type
 	spawned.atk_air = caster.atk_air
@@ -1049,6 +1055,9 @@ func unit_snapshot(u: Unit) -> UnitSnapshot:
 	s.troops_before = u.troops
 	s.troops_after = u.troops
 	s.max_troops = u.max_troops
+	s.shield_before = u.shield
+	s.shield_after = u.shield
+	s.max_shield = u.max_shield
 	s.terrain = terrain_at(u.pos)
 	s.pos = u.pos
 	s.statuses = StatusMod.applied(_status_mods, u)

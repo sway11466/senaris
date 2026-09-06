@@ -142,6 +142,8 @@ func _rebuild_summary() -> void:
 	_add_control_row(_figure(ls), "", _figure(rs))
 	_add_row(_name_lv(ls), "", _name_lv(rs))
 	_add_row(_troops_text(ls), tr("ui.report.strength_change"), _troops_text(rs))
+	if ls.max_shield > 0 or rs.max_shield > 0:
+		_add_row(_shield_text(ls), tr("ui.report.shield_change"), _shield_text(rs))  # どちらかが持つときだけ行を出す
 	_add_row(_total_text(L["atk"], tr("ui.report.no_counter")), tr("ui.report.total_atk"), _total_text(R["atk"], tr("ui.report.no_counter")))
 	_add_row(_total_text(L["def"], NONE), tr("ui.report.total_def"), _total_text(R["def"], NONE))
 	_add_row(_base_atk_text(L["atk"]), tr("ui.report.attack"), _base_atk_text(R["atk"]))
@@ -201,6 +203,12 @@ func _name_lv(snap: UnitSnapshot) -> String:
 
 func _troops_text(snap: UnitSnapshot) -> String:
 	return "%d/%d → %d/%d" % [snap.troops_before, snap.max_troops, snap.troops_after, snap.max_troops]
+
+## シールドの前後。持たない側は — 。詳細 → doc/gdd/combat.md シールド
+func _shield_text(snap: UnitSnapshot) -> String:
+	if snap.max_shield <= 0:
+		return NONE
+	return "%d → %d" % [snap.shield_before, snap.shield_after]
 
 func _total_text(bd: StatBreakdown, empty_text: String) -> String:
 	return StrikeTable.total_text(bd, empty_text)

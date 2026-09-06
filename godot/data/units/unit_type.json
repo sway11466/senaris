@@ -14,7 +14,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -30,7 +31,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -46,7 +48,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -62,7 +65,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 20,
@@ -78,7 +82,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": "1-2"
+			"range": "1-2",
+			"shield": 0
 		},
 		{
 			"atk_air": 40,
@@ -94,7 +99,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": "1-3"
+			"range": "1-3",
+			"shield": 0
 		},
 		{
 			"atk_air": 50,
@@ -110,7 +116,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": "1-4"
+			"range": "1-4",
+			"shield": 0
 		},
 		{
 			"atk_air": 60,
@@ -126,7 +133,8 @@
 			"move_after_attack": false,
 			"move_type": "forest_stride",
 			"pierce": 0,
-			"range": "1-5"
+			"range": "1-5",
+			"shield": 0
 		},
 		{
 			"atk_air": 20,
@@ -142,7 +150,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0.5,
-			"range": "2-3"
+			"range": "2-3",
+			"shield": 0
 		},
 		{
 			"atk_air": 40,
@@ -158,7 +167,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0.5,
-			"range": "2-4"
+			"range": "2-4",
+			"shield": 0
 		},
 		{
 			"atk_air": 30,
@@ -174,7 +184,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0.5,
-			"range": "2-5"
+			"range": "2-5",
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -190,7 +201,8 @@
 			"move_after_attack": true,
 			"move_type": "light_foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 10,
@@ -206,7 +218,8 @@
 			"move_after_attack": true,
 			"move_type": "light_foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 10,
@@ -222,7 +235,8 @@
 			"move_after_attack": true,
 			"move_type": "brush_stride",
 			"pierce": 0,
-			"range": "1-2"
+			"range": "1-2",
+			"shield": 0
 		},
 		{
 			"atk_air": 10,
@@ -238,7 +252,8 @@
 			"move_after_attack": true,
 			"move_type": "light_foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 30,
@@ -254,7 +269,8 @@
 			"move_after_attack": true,
 			"move_type": "light_foot",
 			"pierce": 0.5,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 10,
@@ -270,7 +286,8 @@
 			"move_after_attack": false,
 			"move_type": "flight",
 			"pierce": 0.5,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 30,
@@ -286,7 +303,8 @@
 			"move_after_attack": false,
 			"move_type": "flight",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 90,
@@ -302,7 +320,8 @@
 			"move_after_attack": false,
 			"move_type": "flight",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 20,
@@ -318,7 +337,8 @@
 			"move_after_attack": false,
 			"move_type": "flight",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -334,7 +354,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -350,7 +371,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -366,7 +388,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -382,7 +405,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -398,7 +422,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -414,7 +439,8 @@
 			"move_after_attack": false,
 			"move_type": "mountain_stride",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -430,7 +456,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0.5,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 50,
@@ -446,7 +473,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0.5,
-			"range": "2-5"
+			"range": "2-5",
+			"shield": 0
 		},
 		{
 			"atk_air": 80,
@@ -462,7 +490,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": "2-5"
+			"range": "2-5",
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -478,7 +507,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -494,7 +524,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 70,
@@ -510,7 +541,8 @@
 			"move_after_attack": false,
 			"move_type": "flight",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 16
 		},
 		{
 			"atk_air": 0,
@@ -526,7 +558,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 10,
@@ -542,7 +575,8 @@
 			"move_after_attack": false,
 			"move_type": "flight",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -558,7 +592,8 @@
 			"move_after_attack": false,
 			"move_type": "stationary",
 			"pierce": 0,
-			"range": 0
+			"range": 0,
+			"shield": 0
 		},
 		{
 			"atk_air": 30,
@@ -574,7 +609,8 @@
 			"move_after_attack": false,
 			"move_type": "stationary",
 			"pierce": 0,
-			"range": "2-6"
+			"range": "2-6",
+			"shield": 0
 		},
 		{
 			"atk_air": 0,
@@ -590,7 +626,8 @@
 			"move_after_attack": false,
 			"move_type": "foot",
 			"pierce": 0,
-			"range": 1
+			"range": 1,
+			"shield": 0
 		}
 	]
 }

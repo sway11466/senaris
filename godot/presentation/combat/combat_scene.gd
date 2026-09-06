@@ -26,11 +26,12 @@ func play(result: AttackResult) -> void:
 	_open(t, def_side, a)  # 地面は左右それぞれの駒の地形。重ね絵は守り手側
 	SfxPlayer.play_event("cmb_open")  # 幕開け。盤から演出へ表示が切り替わった合図
 	var gen := _gen
-	_render_side("L", L, L.troops_before)
-	_render_side("R", R, R.troops_before)
+	_render_side("L", L, L.troops_before, L.shield_before)
+	_render_side("R", R, R.troops_before, R.shield_before)
 
-	var def_dmg := t.troops_before - t.troops_after
-	var atk_dmg := a.troops_before - a.troops_after
+	# 損害数はシールドぶんを含めた総量＝バーから消えるマスの数（どこへ流れたかはバーが示す）。
+	var def_dmg := t.lost() + t.shield_lost()
+	var atk_dmg := a.lost() + a.shield_lost()
 	var def_comb := R if def_side == "R" else L
 	var atk_comb := L if atk_side == "L" else R
 	var def_after := t.troops_after
@@ -49,12 +50,12 @@ func play(result: AttackResult) -> void:
 	_tween.tween_interval(LEAD_IN)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
-			_strike_side(def_side, def_dmg, def_after, def_comb, atk_comb, gen, st1))
+			_strike_side(def_side, def_dmg, def_after, t.shield_after, def_comb, atk_comb, gen, st1))
 	if counter:
 		_tween.tween_interval(COUNTER_GAP + _strike_time(atk_comb, a.troops_before) * st1)
 		_tween.tween_callback(func() -> void:
 			if gen == _gen:
-				_strike_side(atk_side, atk_dmg, atk_after, atk_comb, def_comb, gen, st2))
+				_strike_side(atk_side, atk_dmg, atk_after, a.shield_after, atk_comb, def_comb, gen, st2))
 		_tween.tween_interval(0.7 + _strike_time(def_comb, def_after) * st2)
 	else:
 		_tween.tween_interval(0.7 + _strike_time(atk_comb, a.troops_before) * st1)
@@ -68,7 +69,7 @@ func play(result: AttackResult) -> void:
 ## シェイク・フラッシュ・損害数・兵量バーは最後の1発が届いた時点に揃える。
 ## stretch＝尺に掛ける倍率。1.0 より大きい＝決着のとどめ（スロー再生＋被弾側へ寄る）。
 ## 着弾の瞬間の反応（シェイク・フラッシュ・損害数）は等速のまま＝飛翔と時差だけが伸びる。
-func _strike_side(side: String, dmg: int, after: int, comb: UnitSnapshot, by: UnitSnapshot, gen: int, stretch := 1.0) -> void:
+func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: UnitSnapshot, by: UnitSnapshot, gen: int, stretch := 1.0) -> void:
 	var eff := _effect_of(by)
 	# 命中音。1発ずつではなく一撃につき鳴らす＝8体並ぶと8連射になって潰れる。
 	# 近接は1音（ここだけ）。遠距離は発射をここで鳴らし、着弾は最後の1発が届く時点に回す。
@@ -101,7 +102,7 @@ func _strike_side(side: String, dmg: int, after: int, comb: UnitSnapshot, by: Un
 		if eff != null and eff.is_projectile():
 			SfxPlayer.play_sfx(SFX_DEFLECT if dmg <= 0 else "%s_hit" % eff.effect_id)
 		_shake()
-		_render_side(side, comb, after, true)
+		_render_side(side, comb, after, shield_after, true)
 		_flash(side)
 		if dmg > 0:
 			_float_label(side, "-%d" % dmg, DAMAGE_OUTLINE))

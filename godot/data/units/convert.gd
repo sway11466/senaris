@@ -11,7 +11,7 @@ const SfxDef = preload("res://data/audio/sfx_catalog.gd")
 ## 非空で必ず要る性能列（category/memo は任意）。
 const TYPE_REQUIRED := [
 	"id", "atk_ground", "atk_air", "pierce", "defense", "move", "move_type",
-	"range", "move_after_attack", "can_capture", "max_troops", "capacity",
+	"range", "move_after_attack", "can_capture", "max_troops", "capacity", "shield",
 ]
 ## スキンの必須列。combat_lineup は既定値を持たせず必ず書かせる（空＝squad の暗黙既定にすると
 ## 「書き忘れ」と「squad と決めた」が区別できなくなる）。
