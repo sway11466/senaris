@@ -69,7 +69,7 @@ func _run() -> void:
 	# 戻す。言語は表示だけ戻し、ファイルは控えた中身をそのまま書き戻す（無かったなら消す）。
 	TranslationServer.set_locale(locale0)
 	for bus in SettingsStore.VOLUME_BUSES:
-		main._apply_volume(bus, 100)
+		SettingsApplier.apply_volume(bus, 100)
 	if had_file:
 		var f := FileAccess.open(SettingsStore.DEFAULT_PATH, FileAccess.WRITE)
 		f.store_string(raw0)

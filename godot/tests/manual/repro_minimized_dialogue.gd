@@ -35,14 +35,14 @@ func _run() -> void:
 	var was_mode: String = _main._settings_store.dialogue_when_minimized()
 	panel.set_minimized(true)
 	_main._settings_store.set_dialogue_when_minimized("hide")
-	_main._current_campaign_id = "tutorial1-goblin-raid"
-	_main._current_stage_id = "st4"
+	_main._context.campaign_id = "tutorial1-goblin-raid"
+	_main._context.stage_id = "st4"
 	_main.load_stage(STAGE)
-	_say("intro を持つステージか: %s" % str(not _main._dialogue["intro"].is_empty()))
+	_say("intro を持つステージか: %s" % str(not _main._story._dialogue["intro"].is_empty()))
 	_say("会話パネルが出ていない: %s" % str(not _main._conversation.visible))
 	_say("情報板が畳まれたまま: %s" % str(panel.is_minimized() and not panel.visible))
 	_say("吹き出しが出た: %s" % str(hud._badge.visible))
-	_say("イベントの見出しを読めた: %s" % str(_main._event_talks))
+	_say("イベントの見出しを読めた: %s" % str(_main._story._event_talks))
 	_say("目次: %s" % str(_menu_labels(hud)))
 	# 会話を出す設定に切り替えて開き直すと、いつもどおり会話が出る。
 	_main._settings_store.set_dialogue_when_minimized("show")

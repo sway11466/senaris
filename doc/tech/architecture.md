@@ -65,6 +65,12 @@ res://
 │   └── bgm_director.gd
 ├── presentation/      # ここだけノード/シーン
 │   ├── main/          # 画面の切り替え・演出の順番を持つ入口
+│   │   ├── main.gd              # 永続ノードの生成と配線・ステージの据え付け・ターンと決着の順番・画面の行き来とBGM
+│   │   ├── stage_context.gd     # 挑んでいるステージの文脈(冒険譚・ステージ・パス・印・開始時刻)。下の3つに渡す
+│   │   ├── settings_applier.gd  # 設定値を音量バス・窓・言語に当てる。AudioServer/DisplayServer/TranslationServer を触るのはここだけ
+│   │   ├── stage_tally.gd       # 戦果の集計(開始兵力・ランク・所要時間)と戦果票の行
+│   │   ├── save_coordinator.gd  # 中断セーブ/オートセーブ(スナップショット・枠一覧・復元)
+│   │   └── story_director.gd    # 会話の進行(intro/イベント/outro/読み直し)と経験した会話の記録
 │   ├── board/  units/  ui/  effects/     # 盤・駒・UI部品・エフェクト
 │   └── combat/ formation/ select/ title/ settings/ victory/  # 画面ごと
 ├── data/              # 機能フォルダ: 型定義＋データ＋ローダーを同居（型とデータはセット）
