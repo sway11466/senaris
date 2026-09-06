@@ -302,7 +302,7 @@ func test_end_turn_emits_event_fired() -> void:
 	assert_signal_not_emitted(mc, "event_fired", "陣営が違えば飛ばない")
 	mc.end_turn()  # ターン2 自軍＝発生
 	assert_signal_emitted_with_parameters(mc, "event_fired",
-		[{ "label": "ui.test.airship", "dialogue": "arrive", "focus": true,
+		[{ "id": "", "label": "ui.test.airship", "dialogue": "arrive", "focus": true,
 			"on": "", "hex": Hex.offset_to_axial(4, 4) }], 0)  # on が空＝ターン起点
 
 ## イベントの無いターンは飛ばない（毎ターン鳴らさない）。
@@ -515,7 +515,7 @@ func _capture_board() -> BattleState:
 
 ## StageLoader が組むのと同じ形のイベント（domain は JSON を知らない＝辞書で預ける）。
 func _capture_event(hex: Vector2i, team: int, dialogue: String) -> Dictionary:
-	return { "turn": 0, "on": "capture", "hex": hex, "team": team, "once": "",
+	return { "id": "ev-" + dialogue, "turn": 0, "on": "capture", "hex": hex, "team": team, "once": "",
 		"label": "", "squad": -1, "dialogue": dialogue, "focus": true, "units": [] }
 
 func test_capture_fires_the_event_on_the_player_turn() -> void:
@@ -526,6 +526,7 @@ func test_capture_fires_the_event_on_the_player_turn() -> void:
 	assert_true(mc.execute(MoveCommand.new(1, base_hex)), "拠点へ入って占領する")
 	assert_signal_emit_count(mc, "event_fired", 1, "占領した瞬間に1回流れる")
 	var info: Dictionary = get_signal_parameters(mc, "event_fired", 0)[0]
+	assert_eq(String(info.get("id", "")), "ev-elf_join", "イベント id を渡す（ストーリー目次の記録に使う）")
 	assert_eq(String(info.get("dialogue", "")), "elf_join", "台本キーを渡す")
 	assert_eq(String(info.get("on", "")), "capture", "引き金の別も渡す（敵ターンに出せるかの判断に使う）")
 	assert_eq(info.get("hex", Vector2i.MAX), base_hex, "カメラの行き先は拠点")

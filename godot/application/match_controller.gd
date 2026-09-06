@@ -206,6 +206,7 @@ func _announce_fired_events() -> void:
 ## 占領は拠点の hex）。on は引き金の別＝presentation が敵ターンに出してよいかの判断に使う。
 func _event_info(e: Dictionary, focus_hex: Vector2i) -> Dictionary:
 	return {
+		"id": String(e.get("id", "")),
 		"label": String(e.get("label", "")),
 		"dialogue": String(e.get("dialogue", "")),
 		"focus": bool(e.get("focus", false)),
