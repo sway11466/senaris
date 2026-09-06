@@ -289,7 +289,7 @@ func test_base_deployable_by_owner_and_counts() -> void:
 	b.garrison.clear()
 	b.garrison.append(ally)
 	assert_false(b.has_deployable_garrison(), "閉じ込めしか無い拠点＝出せる控えなし")
-	assert_eq_deep(b.garrison_counts(), { 0: 1 }, "0体の陣営はキーを持たない")
+	assert_eq_deep(b.garrison_counts(), { 0: 1 })  # 0体の陣営はキーを持たない
 
 # --- native（生来の陣営）と出撃・閉じ込め ---
 
