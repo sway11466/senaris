@@ -246,7 +246,7 @@ func unit_at(hex: Vector2i) -> Unit:
 ## on が空＝turn 起点。"capture"＝hex の拠点を team が取った瞬間（turn は見ない）。
 ## once＝排他の名前。同じ名前を持つイベントはどれか1つだけ起きる。
 ## 発生時に placed（実際に駒が出た hex の配列）が足される。
-var _events: Array = []
+var _events: Array[StageEvent] = []
 
 ## 発火済み（once の兄弟として捨てたものを含む）のイベント id。中断セーブに乗る
 ## ＝復元はステージ定義のイベントからこの id を除いた残りを未発火とする。
@@ -255,14 +255,14 @@ var _fired_events := {}  # id -> true
 
 ## 直近の fire_due_events で起きたイベント（上へ知らせるための控え）。end_turn が内側で発火するので、
 ## 戻り値だけでは呼び出し側に届かない。保存はしない＝復元直後は空。
-var last_fired_events: Array = []
+var last_fired_events: Array[StageEvent] = []
 
 ## イベントを積む（StageLoader が組んで渡す）。
-func add_event(entry: Dictionary) -> void:
-	_events.append(entry)
+func add_event(e: StageEvent) -> void:
+	_events.append(e)
 
 ## 未発生のイベント一覧（読み取り専用）。
-func pending_events() -> Array:
+func pending_events() -> Array[StageEvent]:
 	return _events
 
 ## いちばん近い未発生の増援の { label, turns }。turns＝あと何ターンで来るか（0＝このターン）。
@@ -272,44 +272,42 @@ func next_event() -> Dictionary:
 	var out := {}
 	var best := -1
 	for e in _events:
-		if String(e.get("on", "")) != "":
+		if e.is_capture():
 			continue  # 盤の出来事が引き金＝あと何ターンかを数えられない
-		var label := String(e.get("label", ""))
-		if label.is_empty():
+		if e.label.is_empty():
 			continue
-		var t := int(e.get("turn", 0))
-		if best < 0 or t < best:
-			best = t
-			out = { "label": label, "turns": maxi(t - turn_number, 0) }
+		if best < 0 or e.turn < best:
+			best = e.turn
+			out = { "label": e.label, "turns": maxi(e.turn - turn_number, 0) }
 	return out
 
 ## 発生ターンが来たイベントを起こす。起きたものの配列を返す（演出・ログ用）。
 ## end_turn の最後と、ステージ開始直後（1ターン目の分）に呼ぶ。指定ターンを過ぎていても
 ## 取りこぼさないよう「turn 以下」で見る。引き金が盤の出来事のイベントはここでは起きない。
-func fire_due_events() -> Array:
-	var fired: Array = []
+func fire_due_events() -> Array[StageEvent]:
+	var fired: Array[StageEvent] = []
 	for e in _events.duplicate():  # 発生ぶんを取り除きながら回すので控えを辿る
 		if not _is_pending(e):
 			continue  # 同じ once の兄弟が先に起きて捨てられた
-		if String(e.get("on", "")) != "":
+		if e.is_capture():
 			continue
-		if int(e.get("turn", 0)) <= turn_number and int(e.get("team", -1)) == current_team:
+		if e.turn <= turn_number and e.team == current_team:
 			_consume_event(e)
 			fired.append(e)
 	last_fired_events = fired
 	return fired
 
-## hex の拠点の所属が team へ変わったときに起こすイベント（on: "capture"）。起きたものを返す。
+## hex の拠点の所属が team へ変わったときに起こすイベント（引き金＝占領）。起きたものを返す。
 ## 占領そのものは _try_capture が静かに書き換えるだけなので、前後の所属を見比べている
 ## 呼び出し側（MatchController）から呼ぶ。last_fired_events は触らない＝そちらは end_turn 用。
-func fire_capture_events(hex: Vector2i, team: int) -> Array:
-	var fired: Array = []
+func fire_capture_events(hex: Vector2i, team: int) -> Array[StageEvent]:
+	var fired: Array[StageEvent] = []
 	for e in _events.duplicate():
 		if not _is_pending(e):
 			continue  # 同じ once の兄弟が先に起きて捨てられた
-		if String(e.get("on", "")) != "capture":
+		if not e.is_capture():
 			continue
-		if Vector2i(e.get("hex", Vector2i.MAX)) != hex or int(e.get("team", -1)) != team:
+		if e.hex != hex or e.team != team:
 			continue
 		_consume_event(e)
 		fired.append(e)
@@ -319,44 +317,38 @@ func fire_capture_events(hex: Vector2i, team: int) -> Array:
 ## 引き金の種類が増えてもここは変わらない。盤は動かさない＝占領起点でも拠点の所属はそのまま
 ## （会話と増援だけが流れる）。last_fired_events は触らない＝そちらは end_turn 用。
 ## 呼ぶのはデバッグメニューだけ。詳細 → doc/gdd/uiux.md デバッグメニュー
-func fire_event(e: Dictionary) -> bool:
+func fire_event(e: StageEvent) -> bool:
 	if not _is_pending(e):
 		return false
 	_consume_event(e)
 	return true
 
-## まだ未発生か（控えに残っているか）。同じ辞書そのものを探す＝中身の一致では見ない。
-func _is_pending(e: Dictionary) -> bool:
-	for other in _events:
-		if is_same(other, e):
-			return true
-	return false
+## まだ未発生か（控えに残っているか）。同じイベントそのものを探す＝中身の一致では見ない。
+func _is_pending(e: StageEvent) -> bool:
+	return e in _events
 
 ## イベントを1件起こす＝駒を盤へ出し、未発生の控えから取り除く。
 ## once に名前があれば、同じ名前の未発生イベントもまとめて捨てる＝どれか1つだけが起きる
 ## （中立拠点を味方が解放したときと敵に取られたときで、先に起きたほうだけを流す）。
-func _consume_event(e: Dictionary) -> void:
+func _consume_event(e: StageEvent) -> void:
 	_place_event_units(e)
-	var once := String(e.get("once", ""))
-	var kept: Array = []
+	var kept: Array[StageEvent] = []
 	for other in _events:
-		if is_same(other, e):
-			_fired_events[String(other.get("id", ""))] = true
+		if other == e:
+			_fired_events[other.id] = true
 			continue
-		if not once.is_empty() and String(other.get("once", "")) == once:
-			_fired_events[String(other.get("id", ""))] = true  # 捨てた兄弟も済み＝復元で蘇らせない
+		if not e.once.is_empty() and other.once == e.once:
+			_fired_events[other.id] = true  # 捨てた兄弟も済み＝復元で蘇らせない
 			continue
 		kept.append(other)
 	_events = kept
 
 ## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
 ## 実際に出た hex は placed に控える＝ずれて出ても、上（カメラ・演出）が本当の場所を見られる。
-func _place_event_units(e: Dictionary) -> void:
-	var squad_index := int(e.get("squad", -1))
-	var placed: Array[Vector2i] = []
-	e["placed"] = placed
-	for item in e.get("units", []):
-		var u: Unit = item.get("unit")
+func _place_event_units(e: StageEvent) -> void:
+	e.placed.clear()
+	for item in e.units:
+		var u := item.unit
 		if u == null:
 			continue
 		var hex := _free_hex_for(u, u.pos)
@@ -364,11 +356,11 @@ func _place_event_units(e: Dictionary) -> void:
 			push_warning("BattleState: 増援を置く空きが無い（この駒は出さない）: id=%d" % u.id)
 			continue
 		u.pos = hex
-		placed.append(hex)
+		e.placed.append(hex)
 		add_unit(u)
-		if squad_index >= 0:
-			assign_squad(u.id, squad_index)
-		for p in item.get("passengers", []):
+		if e.squad_index >= 0:
+			assign_squad(u.id, e.squad_index)
+		for p in item.passengers:
 			put_passenger(u.id, p)
 
 ## u を置くヘックス。希望位置が埋まっている／その駒が入れない地形なら最寄りの空きへずらす。
@@ -1131,14 +1123,13 @@ func ally_survivor_count() -> int:
 			if g.recruited_team == 0 or g.is_unclaimed():
 				n += 1
 	for e in _events:
-		if int(e.get("team", 0)) != 0:
+		if e.team != 0:
 			continue
-		for item in e.get("units", []):
-			var eu: Unit = item.get("unit")
-			if eu != null and not eu.is_emplacement():
+		for item in e.units:
+			if item.unit != null and not item.unit.is_emplacement():
 				n += 1
-			for p in item.get("passengers", []):
-				if not (p as Unit).is_emplacement():
+			for p in item.passengers:
+				if not p.is_emplacement():
 					n += 1
 	return n
 
@@ -1352,9 +1343,9 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 ## （増援の増減は盤に効く変更として届く）。
 func _apply_diff_events(diff: Dictionary) -> void:
 	_fired_events = _names_to_set(diff.get("fired_events", []))
-	var kept: Array = []
+	var kept: Array[StageEvent] = []
 	for e in _events:
-		if not _fired_events.has(String(e.get("id", ""))):
+		if not _fired_events.has(e.id):
 			kept.append(e)
 	_events = kept
 
@@ -1424,13 +1415,12 @@ func _renumber_stage_units(fresh_bases: Array) -> void:
 			(gu as Unit).id = next_id
 			next_id += 1
 	for e in _events:
-		for item in e.get("units", []):
-			var u: Unit = item.get("unit")
-			if u != null:
-				u.id = next_id
+		for item in e.units:
+			if item.unit != null:
+				item.unit.id = next_id
 				next_id += 1
-			for p in item.get("passengers", []):
-				(p as Unit).id = next_id
+			for p in item.passengers:
+				p.id = next_id
 				next_id += 1
 
 ## int キーの dict → 文字列キーの dict（JSON はキーを文字列化するので保存時に明示変換）。

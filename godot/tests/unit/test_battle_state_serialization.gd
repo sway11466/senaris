@@ -223,4 +223,4 @@ func test_restore_picks_up_added_events() -> void:
 		"units": [{ "type": "knight", "col": 7, "row": 5 }] }]
 	var s2 := _roundtrip(s, data, added)
 	assert_eq(s2.pending_events().size(), 1, "足されたイベントが未発火として現れる")
-	assert_eq(String(s2.pending_events()[0].get("id", "")), "late-wave")
+	assert_eq(s2.pending_events()[0].id, "late-wave")

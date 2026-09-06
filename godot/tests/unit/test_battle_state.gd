@@ -182,17 +182,8 @@ func test_survivor_count_includes_pending_reinforcements() -> void:
 	wagon.capacity = 4
 	var barricade := Unit.new(4, 0, Hex.offset_to_axial(0, 1), 3)
 	barricade.move_type = "stationary"
-	s.add_event({
-		"id": "help", "turn": 5, "team": 0, "on": "", "hex": Vector2i.MAX,
-		"units": [
-			{ "unit": wagon, "passengers": [Unit.new(3, 0, Vector2i.ZERO, 3)] },
-			{ "unit": barricade, "passengers": [] },
-		],
-	})
-	s.add_event({
-		"id": "foes", "turn": 6, "team": 1, "on": "", "hex": Vector2i.MAX,
-		"units": [{ "unit": Unit.new(5, 1, Vector2i.ZERO, 3), "passengers": [] }],
-	})
+	s.add_event(_event("help", 5, 0, [_event_unit(wagon, [Unit.new(3, 0, Vector2i.ZERO, 3)]), _event_unit(barricade, [])]))
+	s.add_event(_event("foes", 6, 1, [_event_unit(Unit.new(5, 1, Vector2i.ZERO, 3), [])]))
 	assert_eq(s.ally_survivor_count(), 3, "盤上1＋未発火の増援2（兵器と敵の増援は数えない）")
 
 ## 撃破は実際に倒した駒の累積（戦果票が敵側を読む）。詳細 → doc/gdd/rank.md
@@ -226,3 +217,18 @@ func test_remove_unit_unknown_or_twice_is_false() -> void:
 	assert_false(s.remove_unit(99), "盤に居ない id は false")
 	assert_true(s.remove_unit(1))
 	assert_false(s.remove_unit(1), "二度目は false（既に盤に居ない）")
+
+## 増援イベント（ターン起点）のフィクスチャ。
+func _event(id: String, turn: int, team: int, units: Array[EventUnit]) -> StageEvent:
+	var e := StageEvent.new()
+	e.id = id
+	e.turn = turn
+	e.team = team
+	e.units = units
+	return e
+
+func _event_unit(u: Unit, passengers: Array[Unit]) -> EventUnit:
+	var item := EventUnit.new()
+	item.unit = u
+	item.passengers = passengers
+	return item

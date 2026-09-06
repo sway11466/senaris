@@ -294,9 +294,16 @@ func test_end_turn_emits_event_fired() -> void:
 	s.set_movement(Movement.load_default())
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
-	s.add_event({ "turn": 2, "team": 0, "label": "ui.test.airship", "dialogue": "arrive",
-		"focus": true, "squad": -1,
-		"units": [ { "unit": Unit.new(3, 0, Hex.offset_to_axial(4, 4), 3), "passengers": [] } ] })
+	var ev := StageEvent.new()
+	ev.turn = 2
+	ev.team = 0
+	ev.label = "ui.test.airship"
+	ev.dialogue = "arrive"
+	ev.focus = true
+	var item := EventUnit.new()
+	item.unit = Unit.new(3, 0, Hex.offset_to_axial(4, 4), 3)
+	ev.units = [item]
+	s.add_event(ev)
 	var mc := _mc(s)
 	mc.end_turn()  # ターン1 敵＝自軍のイベントは起きない
 	assert_signal_not_emitted(mc, "event_fired", "陣営が違えば飛ばない")
@@ -514,9 +521,16 @@ func _capture_board() -> BattleState:
 	return s
 
 ## StageLoader が組むのと同じ形のイベント（domain は JSON を知らない＝辞書で預ける）。
-func _capture_event(hex: Vector2i, team: int, dialogue: String) -> Dictionary:
-	return { "id": "ev-" + dialogue, "turn": 0, "on": "capture", "hex": hex, "team": team, "once": "",
-		"label": "", "squad": -1, "dialogue": dialogue, "focus": true, "units": [] }
+func _capture_event(hex: Vector2i, team: int, dialogue: String) -> StageEvent:
+	var e := StageEvent.new()
+	e.id = "ev-" + dialogue
+	e.turn = 0
+	e.trigger = StageEvent.Trigger.CAPTURE
+	e.hex = hex
+	e.team = team
+	e.dialogue = dialogue
+	e.focus = true
+	return e
 
 func test_capture_fires_the_event_on_the_player_turn() -> void:
 	var s := _capture_board()

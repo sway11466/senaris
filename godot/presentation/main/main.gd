@@ -691,16 +691,15 @@ func _debug_event_labels() -> PackedStringArray:
 	if _story.is_talking():
 		return out
 	for e in _controller.state.pending_events():
-		var side := "味方" if int(e.get("team", 0)) == 0 else "敵"
-		var trigger := "T%d" % int(e.get("turn", 0))
-		if String(e.get("on", "")) == "capture":
-			var off := Hex.axial_to_offset(Vector2i(e.get("hex", Vector2i.MAX)))
+		var side := "味方" if e.team == 0 else "敵"
+		var trigger := "T%d" % e.turn
+		if e.is_capture():
+			var off := Hex.axial_to_offset(e.hex)
 			trigger = "占領(%d,%d)" % [off.x, off.y]
-		var units: Array = e.get("units", [])
-		var body := "会話" if units.is_empty() else "増援%d" % units.size()
-		var key := String(e.get("dialogue", ""))
+		var body := "会話" if e.units.is_empty() else "増援%d" % e.units.size()
+		var key := e.dialogue
 		if key.is_empty():
-			key = String(e.get("label", ""))
+			key = e.label
 		out.append("%s %s %s%s" % [trigger, side, body, "" if key.is_empty() else " " + key])
 	return out
 
@@ -709,7 +708,7 @@ func _debug_event_labels() -> PackedStringArray:
 func _on_debug_event_requested(index: int) -> void:
 	if _controller == null:
 		return
-	var pending: Array = _controller.state.pending_events()
+	var pending := _controller.state.pending_events()
 	if index < 0 or index >= pending.size():
 		return
 	_controller.force_event(pending[index])

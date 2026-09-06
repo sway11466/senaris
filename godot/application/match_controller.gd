@@ -199,18 +199,17 @@ func end_turn() -> void:
 ## （置けずに1体も出なければ Vector2i.MAX）。詳細 → doc/gdd/map.md イベント
 func _announce_fired_events() -> void:
 	for e in state.last_fired_events:
-		var placed: Array = e.get("placed", [])
-		event_fired.emit(_event_info(e, placed[0] if not placed.is_empty() else Vector2i.MAX))
+		event_fired.emit(_event_info(e, e.placed[0] if not e.placed.is_empty() else Vector2i.MAX))
 
 ## イベント1件 → 上へ渡す素データ。focus_hex＝カメラの行き先（増援は実際に駒が出た場所、
 ## 占領は拠点の hex）。on は引き金の別＝presentation が敵ターンに出してよいかの判断に使う。
-func _event_info(e: Dictionary, focus_hex: Vector2i) -> Dictionary:
+func _event_info(e: StageEvent, focus_hex: Vector2i) -> Dictionary:
 	return {
-		"id": String(e.get("id", "")),
-		"label": String(e.get("label", "")),
-		"dialogue": String(e.get("dialogue", "")),
-		"focus": bool(e.get("focus", false)),
-		"on": String(e.get("on", "")),
+		"id": e.id,
+		"label": e.label,
+		"dialogue": e.dialogue,
+		"focus": e.focus,
+		"on": e.trigger_id(),
 		"hex": focus_hex,
 	}
 
@@ -326,12 +325,11 @@ func wipe_enemies() -> void:
 ## 発火と同じ経路（event_fired）へ流すが、引き金そのものは成立させない＝占領起点でも拠点の
 ## 所属は動かないまま会話だけが流れる。台本と増援の見た目を確かめるための道。
 ## 決着は既存の判定に委ねる＝増援で兵力が変われば通常どおり決着する。詳細 → doc/gdd/uiux.md
-func force_event(e: Dictionary) -> void:
+func force_event(e: StageEvent) -> void:
 	if _finished:
 		return
 	if not state.fire_event(e):
 		return  # 既に起きている（同じ once の兄弟が先に起きた等）
-	var placed: Array = e.get("placed", [])
-	var focus: Vector2i = placed[0] if not placed.is_empty() else Vector2i(e.get("hex", Vector2i.MAX))
+	var focus := e.placed[0] if not e.placed.is_empty() else e.hex
 	event_fired.emit(_event_info(e, focus))
 	_check_finished()

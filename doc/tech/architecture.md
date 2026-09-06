@@ -52,6 +52,9 @@ res://
 │   │   ├── formation_option.gd    # 盤上で成立した選択肢1つ(レシピの値＋参加者。対象が要るか等の判断はここ)
 │   │   ├── skill_result.gd        # 発動結果(着弾 SkillHit の列・光らせる面・発動者・状態補正・演出用の SkillCast)
 │   │   └── formation_resolver.gd  # 発動の適用(盤を書き換える側。検出と威力は formation.gd)
+│   ├── map/           # ステージのイベント(増援・会話)
+│   │   ├── stage_event.gd     # 途中で起きること1件(引き金・陣営・ターン・台本・出す駒。BattleState が未発生の控えとして持つ)
+│   │   └── event_unit.gd      # 増援で出す駒1体と搭乗者
 │   ├── capture/       # 占領
 │   ├── victory/       # 勝敗判定(殲滅・勝利条件・復帰手段)
 │   ├── sight/         # 視線(索敵の遮蔽・減衰)

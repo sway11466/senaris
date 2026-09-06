@@ -200,33 +200,33 @@ func test_next_event_picks_the_soonest() -> void:
 ## 起きたイベントは last_fired_events に控える＝end_turn の内側で発火しても上へ届く。
 func test_event_carries_dialogue_key() -> void:
 	var s := _state([_reinforce(2, { "dialogue": "arrive" })])
-	assert_eq(String(s.pending_events()[0].get("dialogue", "")), "arrive", "台本キーを預かる")
+	assert_eq(s.pending_events()[0].dialogue, "arrive", "台本キーを預かる")
 	assert_true(s.last_fired_events.is_empty(), "まだ起きていない")
 	s.end_turn(); s.end_turn()  # ターン2 自軍＝発生
 	assert_eq(s.last_fired_events.size(), 1, "起きたイベントを控える")
-	assert_eq(String(s.last_fired_events[0].get("dialogue", "")), "arrive", "台本キーごと渡す")
+	assert_eq(s.last_fired_events[0].dialogue, "arrive", "台本キーごと渡す")
 
 ## 台本キーを書かないイベントは空のまま（会話なしで黙って加わる）。カメラも既定は寄せない。
 func test_event_without_dialogue_key_is_empty() -> void:
 	var s := _state([_reinforce(1)])
-	assert_eq(String(s.last_fired_events[0].get("dialogue", "")), "", "既定は会話なし")
-	assert_false(bool(s.last_fired_events[0].get("focus", false)), "既定はカメラを寄せない")
+	assert_eq(s.last_fired_events[0].dialogue, "", "既定は会話なし")
+	assert_false(s.last_fired_events[0].focus, "既定はカメラを寄せない")
 
 # --- カメラ（focus）と、実際に駒が出た場所 ---
 
 ## focus は指定をそのまま預かり、placed に「実際に出た hex」が入る＝カメラの行き先になる。
 func test_event_records_where_units_landed() -> void:
 	var s := _state([_reinforce(1, { "focus": true })])
-	var fired: Dictionary = s.last_fired_events[0]
-	assert_true(bool(fired.get("focus", false)), "カメラ指定を預かる")
-	assert_eq(fired.get("placed", []), [Hex.offset_to_axial(5, 3)], "出た hex を控える")
+	var fired := s.last_fired_events[0]
+	assert_true(fired.focus, "カメラ指定を預かる")
+	assert_eq(fired.placed, [Hex.offset_to_axial(5, 3)], "出た hex を控える")
 
 ## ずれて出たときは、指定座標ではなくずれた先を控える（カメラは本当の場所を見る）。
 func test_placed_hex_follows_the_shift() -> void:
 	var data := _data([_reinforce(1, { "focus": true })])
 	data["player"].append({ "type": "fighter", "col": 5, "row": 3 })  # 指定先を先に埋める
 	var s := _build(data)
-	var placed: Array = s.last_fired_events[0].get("placed", [])
+	var placed: Array = s.last_fired_events[0].placed
 	assert_eq(placed.size(), 1, "1体ぶん控える")
 	assert_ne(placed[0], Hex.offset_to_axial(5, 3), "指定座標ではない")
 	assert_eq(Hex.distance(placed[0], Hex.offset_to_axial(5, 3)), 1, "ずれた先＝隣を控える")
@@ -234,7 +234,7 @@ func test_placed_hex_follows_the_shift() -> void:
 func test_focus_survives_serialization() -> void:
 	var data := _data([_reinforce(4, { "focus": true })])
 	var back := _roundtrip(_build(data), data)
-	assert_true(bool(back.pending_events()[0].get("focus", false)), "中断セーブでもカメラ指定は残る")
+	assert_true(back.pending_events()[0].focus, "中断セーブでもカメラ指定は残る")
 
 # --- 中断セーブ ---
 
@@ -256,12 +256,12 @@ func test_pending_event_survives_serialization() -> void:
 func test_dialogue_key_survives_serialization() -> void:
 	var data := _data([_reinforce(4, { "dialogue": "arrive" })])
 	var back := _roundtrip(_build(data), data)
-	assert_eq(String(back.pending_events()[0].get("dialogue", "")), "arrive", "中断セーブでも台本キーは残る")
+	assert_eq(back.pending_events()[0].dialogue, "arrive", "中断セーブでも台本キーは残る")
 
 func test_event_id_survives_serialization() -> void:
 	var data := _data([_reinforce(4, { "id": "wave2" })])
 	var back := _roundtrip(_build(data), data)
-	assert_eq(String(back.pending_events()[0].get("id", "")), "wave2", "中断セーブでも id は残る")
+	assert_eq(back.pending_events()[0].id, "wave2", "中断セーブでも id は残る")
 
 func test_fired_event_is_not_serialized() -> void:
 	var data := _data([_reinforce(1)])
@@ -312,14 +312,14 @@ func test_capture_event_does_not_fire_on_turns() -> void:
 func test_talk_event_places_no_units() -> void:
 	var s := _capture_state([_capture_event("player")])
 	assert_eq(s.team_unit_count(0), 1, "駒は増えない")
-	assert_true((s.pending_events()[0].get("units", []) as Array).is_empty(), "駒を持たない")
+	assert_true(s.pending_events()[0].units.is_empty(), "駒を持たない")
 
 func test_capture_event_fires_when_the_base_changes_hands() -> void:
 	var s := _capture_state([_capture_event("player")])
 	_capture_with_cleric(s)
 	var fired := s.fire_capture_events(_base_hex(), 0)
 	assert_eq(fired.size(), 1, "占領した瞬間に起きる")
-	assert_eq(String(fired[0].get("dialogue", "")), "taken_by_player", "台本キーごと渡す")
+	assert_eq(fired[0].dialogue, "taken_by_player", "台本キーごと渡す")
 	assert_true(s.pending_events().is_empty(), "起きたイベントは消える")
 
 func test_capture_event_fires_once() -> void:
@@ -343,7 +343,7 @@ func test_enemy_capture_event_fires_for_the_enemy() -> void:
 	var s := _capture_state([_capture_event("enemy")])
 	var fired := s.fire_capture_events(_base_hex(), 1)
 	assert_eq(fired.size(), 1, "敵が取れば起きる")
-	assert_eq(String(fired[0].get("dialogue", "")), "taken_by_enemy", "敵側の台本キーを渡す")
+	assert_eq(fired[0].dialogue, "taken_by_enemy", "敵側の台本キーを渡す")
 
 # --- 排他（once） ---
 
@@ -385,7 +385,7 @@ func test_once_prefers_the_first_written() -> void:
 	])
 	var fired := s.fire_capture_events(_base_hex(), 0)
 	assert_eq(fired.size(), 1, "起きるのは1つだけ")
-	assert_eq(String(fired[0].get("dialogue", "")), "first", "先に書いたほう")
+	assert_eq(fired[0].dialogue, "first", "先に書いたほう")
 
 # --- 中断セーブ（占領イベント） ---
 
@@ -405,10 +405,10 @@ func test_capture_event_survives_serialization() -> void:
 	var data := _capture_data([_capture_event("player", { "once": "elf_village", "focus": true })])
 	var back := _roundtrip(_build(data), data)
 	assert_eq(back.pending_events().size(), 1, "未発生のまま復元される")
-	var e: Dictionary = back.pending_events()[0]
-	assert_eq(String(e.get("on", "")), "capture", "引き金が残る")
-	assert_eq(e.get("hex", Vector2i.MAX), _base_hex(), "拠点の hex が残る")
-	assert_eq(String(e.get("once", "")), "elf_village", "排他の名前が残る")
+	var e := back.pending_events()[0]
+	assert_eq(e.trigger_id(), "capture", "引き金が残る")
+	assert_eq(e.hex, _base_hex(), "拠点の hex が残る")
+	assert_eq(e.once, "elf_village", "排他の名前が残る")
 	assert_eq(back.fire_capture_events(_base_hex(), 0).size(), 1, "復元後も占領で起きる")
 
 ## 占領イベントは残りターン板に出さない（あと何ターンかを数えられない）。
@@ -446,7 +446,7 @@ func test_fire_event_discards_the_once_siblings() -> void:
 ## 既に起きたイベントは2度目を起こせない。
 func test_fire_event_rejects_a_fired_event() -> void:
 	var s := _state([_reinforce(5)])
-	var e: Dictionary = s.pending_events()[0]
+	var e := s.pending_events()[0]
 	assert_true(s.fire_event(e), "1回目は起きる")
 	assert_false(s.fire_event(e), "2回目は起きない")
 	assert_eq(s.team_unit_count(0), 2, "駒も増えない")
