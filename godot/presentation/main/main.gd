@@ -24,8 +24,8 @@ const TITLE_MENU_FADE := 3.0
 ## 「おわる」で決定音を聞かせてから窓を閉じるまでの待ち（秒）。
 const QUIT_SFX_SEC := 0.7
 var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（永続・層40）。暗幕と加護の光を持つ
-var _current_stage_path := ""
-var _current_stage_digest := ""  # 今のステージ定義の印（StageDigest）。セーブの meta に載せる
+## いま挑んでいるステージの文脈（冒険譚・ステージ・パス・印・開始時刻）。戦果・セーブ・会話へ渡す
+var _context := StageContext.new()
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _saves: SaveSlots = null  # 中断セーブ5枠＋オートセーブ1枠。user://save_1.json … save_auto.json
@@ -42,8 +42,6 @@ var _settings_store: SettingsStore = null  # 設定値（user://settings.json）
 ## タイトルを抜けるまで true。下敷きステージ（セレクトの背景）の曲がタイトルのざわめきを
 ## 上書きしないためのガード。下敷きの曲は盤が描き切ってから鳴る＝タイトルより後に割り込む。
 var _title_pending := true
-var _current_campaign_id := ""  # セレクト経由で選んだ現ステージ（勝利時のクリア記録・carryover のキー用）
-var _current_stage_id := ""
 var _conversation: ConversationPanel = null
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _skill_scene: SkillScene = null  # ユニットスキルの演出（永続・formation_resolved のスキル分を受ける）
@@ -56,8 +54,7 @@ var _flash: FinishFlash = null  # 決着の白フラッシュ（永続・勝ち�
 var _finisher_route := ""
 var _start_ally := 0   # ステージ開始時の自軍数（戦果票の「生存 n/N」の分母）
 var _rank_data := {}   # ステージ JSON の "rank"（評価ランクの閾値）。空＝ランクなし
-## 所要時間（戦果票の「所要時間」→ doc/tech/gamesystem.md §所要時間）。
-var _started_at := 0   # ステージを始めた実時刻（Unix秒）。中断セーブに持ち越す。0＝不明（旧セーブから再開）
+## 所要時間（戦果票の「所要時間」→ doc/tech/gamesystem.md §所要時間）。起点は _context.started_at
 var _elapsed := 0      # 決着までの所要秒。0＝測れていない＝票に出さず記録もしない
 var _best_time := 0    # この回を記録する前の自己ベスト（秒）。0＝記録なし
 var _bgm: BgmPlayer = null  # BGM の再生（永続・旧曲フェードアウト＋新曲は頭出し）。曲の決定は _bgm_director
@@ -77,15 +74,15 @@ var _conversation_phase := ""  # "intro"/"outro"/"event"/""＝いま流してい
 ## その画面が別の言語で組まれる。仕様 → doc/tech/gamesystem.md §設定
 func _init() -> void:
 	_settings_store = SettingsStore.new()
-	TranslationServer.set_locale(_settings_store.locale())
+	SettingsApplier.apply_locale(_settings_store.locale())
 
 func _ready() -> void:
 	# 刻印はタイトル画面にも出すが、ログの1行目にも置く＝報告にログが添えられたとき版が分かる。
 	print("Senaris booted. build=%s" % BuildInfo.stamp())
 	# 音量と画面モードは設定から起こす。曲が鳴り出す（_install_bgm）より前に当てる。
 	for bus in SettingsStore.VOLUME_BUSES:
-		_apply_volume(String(bus), _settings_store.volume(String(bus)))
-	_apply_window_mode(_settings_store.window_mode())
+		SettingsApplier.apply_volume(String(bus), _settings_store.volume(String(bus)))
+	SettingsApplier.apply_window_mode(_settings_store.window_mode())
 	_skins = SkinCatalog.load_standard()
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
@@ -143,9 +140,9 @@ func _ready() -> void:
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
 ## ステージ配置（player の actor 突き合わせ）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/campaigns.md
 func _load_roster() -> Array:
-	if _roster_store == null or _current_campaign_id.is_empty():
+	if _roster_store == null or _context.campaign_id.is_empty():
 		return []
-	return _roster_store.load_roster(_current_campaign_id)
+	return _roster_store.load_roster(_context.campaign_id)
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:
@@ -156,7 +153,7 @@ func load_stage(path: String) -> void:
 		return
 	# 所要時間の起点。ここから勝敗が決まるまでを測る（intro 会話も含む＝ステージを始めた時刻）。
 	# 実時刻で持ち、中断セーブにも書く＝閉じていた間も含めた「クリアまでにかかった時間」になる。
-	_started_at = int(Time.get_unix_time_from_system())
+	_context.started_at = int(Time.get_unix_time_from_system())
 	_install_state(state, path)
 	_record_story_start()  # 開始時の在籍 actor を控える＝あとで当時の顔ぶれで会話を組み直せる
 	_maybe_start_intro()  # intro 会話があれば盤をロックして先に流す（新規開始のみ）
@@ -164,8 +161,8 @@ func load_stage(path: String) -> void:
 ## 与えられた BattleState を盤・進行役に据える（新規ロードと中断セーブ復元で共有）。
 ## intro 会話の再生は含めない＝新規開始（load_stage）だけが呼ぶ。詳細 → doc/tech/gamesystem.md
 func _install_state(state: BattleState, path: String) -> void:
-	_current_stage_path = path  # システムメニューのリスタート用
-	_current_stage_digest = StageDigest.of_file(path)  # ステージ定義の印＝セーブの meta へ（更新検出用）
+	_context.stage_path = path  # システムメニューのリスタート用
+	_context.stage_digest = StageDigest.of_file(path)  # ステージ定義の印＝セーブの meta へ（更新検出用）
 	_victory_overlay = false  # 前ステージの完走演出を持ち越さない
 	_dialogue = StageLoader.load_dialogue(path, _load_roster())  # 会話（intro/outro）を presentation へ（案P・名簿で when を評価）
 	_event_talks = StageLoader.load_event_talks(path)  # 会話つきイベントの見出しと台本キー（目次用・同じく presentation へ）
@@ -358,9 +355,9 @@ func _update_event() -> void:
 ## 冒険譚マニフェストの emblem（代表ユニットの skin_id）。ターン板とバナーが使う。
 ## セレクトを経ないステージ（デバッグ直起動・起動時の下敷き）は指定が無い＝空辞書。
 func _emblem() -> Dictionary:
-	if _progress == null or _current_campaign_id.is_empty():
+	if _progress == null or _context.campaign_id.is_empty():
 		return {}
-	return _progress.campaign(_current_campaign_id).get("emblem", {})
+	return _progress.campaign(_context.campaign_id).get("emblem", {})
 
 ## ターン板の左右に出す代表ユニット。指定が無ければ枠を出さない。
 func _apply_emblem() -> void:
@@ -378,26 +375,26 @@ func _on_battle_finished(outcome: int) -> void:
 	# 所要時間も同じ瞬間に採る。自己ベストは記録より前に控える＝票には「この回の前のベスト」を出す。
 	_elapsed = _elapsed_seconds()
 	_best_time = 0
-	if _progress != null and not _current_campaign_id.is_empty():
-		_best_time = _progress.best_time(_current_campaign_id, _current_stage_id)
+	if _progress != null and _context.in_campaign():
+		_best_time = _progress.best_time(_context.campaign_id, _context.stage_id)
 	match outcome:
 		BattleState.PLAYER_WIN:
-			if not _current_campaign_id.is_empty():  # セレクト経由のステージだけクリア記録
-				_progress.record_clear(_current_campaign_id, _current_stage_id)
+			if _context.in_campaign():  # セレクト経由のステージだけクリア記録
+				_progress.record_clear(_context.campaign_id, _context.stage_id)
 				if not rank.is_empty():
-					_progress.record_rank(_current_campaign_id, _current_stage_id, rank)
-				_progress.record_time(_current_campaign_id, _current_stage_id, _elapsed)
+					_progress.record_rank(_context.campaign_id, _context.stage_id, rank)
+				_progress.record_time(_context.campaign_id, _context.stage_id, _elapsed)
 				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
 				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/campaigns.md
 				if _roster_store != null and _controller != null:
 					var updated := RosterService.update_after_clear(_load_roster(), _controller.state)
-					_roster_store.save_roster(_current_campaign_id, updated)
+					_roster_store.save_roster(_context.campaign_id, updated)
 					# 戦闘後の会話は「クリア後の名簿」で条件を見る＝この回で仲間になった駒が喋れる。
 					# 読み込み時の名簿のままだと、加入が確定するのはクリア時なので合流の台詞が落ちる。
-					_dialogue = StageLoader.load_dialogue(_current_stage_path, updated)
+					_dialogue = StageLoader.load_dialogue(_context.stage_path, updated)
 				# 決着の会話が読めるようになる＝クリア後の名簿を控える（doc/tech/gamesystem.md 経験した会話）。
 				# 名簿の保存より後＝この回で仲間になった駒を含んだ顔ぶれが残る。
-				_progress.record_story_clear(_current_campaign_id, _current_stage_id, _load_roster())
+				_progress.record_story_clear(_context.campaign_id, _context.stage_id, _load_roster())
 				_refresh_story_menu()
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
@@ -532,7 +529,7 @@ func _result_rows(win: bool) -> Array:
 ## ベストを添えるのは勝った回だけ＝負けた回は記録に触らないので、比べる相手を出さない。
 func _time_row(win: bool) -> Dictionary:
 	var row := {"label": tr("ui.result.time"), "value": _format_duration(_elapsed)}
-	if not win or _current_campaign_id.is_empty():
+	if not win or _context.campaign_id.is_empty():
 		return row
 	var updated := _best_time <= 0 or _elapsed < _best_time
 	row["sub"] = tr("ui.result.best_time") % _format_duration(_elapsed if updated else _best_time)
@@ -542,9 +539,9 @@ func _time_row(win: bool) -> Dictionary:
 ## ステージを始めてから決着までの秒数。0＝測れていない（開始時刻を持たない旧セーブから再開した回）。
 ## 時計が巻き戻ったとき（システム時刻の変更）も 0 に倒す＝負の時間を記録に混ぜない。
 func _elapsed_seconds() -> int:
-	if _started_at <= 0:
+	if _context.started_at <= 0:
 		return 0
-	return maxi(int(Time.get_unix_time_from_system()) - _started_at, 0)
+	return maxi(int(Time.get_unix_time_from_system()) - _context.started_at, 0)
 
 ## 所要時間の表記。1時間未満は "12:34"、1時間以上は "1:02:34"、1日以上は "3日 2:15"。
 ## 中断を挟めば日をまたぐ（閉じていた間も含める）ので、日は捨てずに出す。
@@ -581,12 +578,12 @@ func _evaluate_rank() -> String:
 ## 戦果票の見出し＝ステージ名（冒険譚マニフェストの翻訳キーを解決）。
 ## セレクト外（デバッグの直起動など）はステージJSONのファイル名で代用する。
 func _stage_title() -> String:
-	if _progress != null and not _current_campaign_id.is_empty():
-		var c := _progress.campaign(_current_campaign_id)
+	if _progress != null and _context.in_campaign():
+		var c := _progress.campaign(_context.campaign_id)
 		for s in c.get("stages", []):
-			if String(s.get("id", "")) == _current_stage_id:
+			if String(s.get("id", "")) == _context.stage_id:
 				return tr(String(s.get("title", "")))
-	return _current_stage_path.get_file().get_basename()
+	return _context.stage_path.get_file().get_basename()
 
 # --- 会話（ステージ前後のチャット風シーン）。presentation/ui/conversation_panel.gd ---
 func _install_conversation() -> void:
@@ -696,22 +693,22 @@ func _shows_dialogue() -> bool:
 ## 経験した会話の記録（doc/tech/gamesystem.md 経験した会話）。記録するかの判定は
 ## CampaignProgress が持つ＝デバッグ冒険譚と未知のステージには残らない。
 func _record_story_start() -> void:
-	if _progress == null or _current_campaign_id.is_empty():
+	if _progress == null or _context.campaign_id.is_empty():
 		return
-	_progress.record_story_start(_current_campaign_id, _current_stage_id, _load_roster())
+	_progress.record_story_start(_context.campaign_id, _context.stage_id, _load_roster())
 	_refresh_story_menu()
 
 func _record_story_event(event_id: String) -> void:
-	if _progress == null or _current_campaign_id.is_empty() or event_id.is_empty():
+	if _progress == null or _context.campaign_id.is_empty() or event_id.is_empty():
 		return
-	_progress.record_story_event(_current_campaign_id, _current_stage_id, event_id)
+	_progress.record_story_event(_context.campaign_id, _context.stage_id, event_id)
 	_refresh_story_menu()
 
 ## そのステージで経験した会話の記録（無ければ空）。
 func _story_record() -> Dictionary:
-	if _progress == null or _current_campaign_id.is_empty():
+	if _progress == null or _context.campaign_id.is_empty():
 		return {}
-	return _progress.story(_current_campaign_id, _current_stage_id)
+	return _progress.story(_context.campaign_id, _context.stage_id)
 
 ## 「ストーリーを確認」の目次を貼り直す。経験していないものは並べない
 ## ＝まだ見ていない出来事の存在を目次で匂わせない（doc/gdd/uiux.md ターン終了・システムメニュー）。
@@ -735,7 +732,7 @@ func _on_story_requested(key: String) -> void:
 		return
 	var record := _story_record()
 	var actors: Array = record.get("clear", []) if key == "outro" else record.get("start", [])
-	var script := StageLoader.load_dialogue(_current_stage_path, _actors_as_roster(actors))
+	var script := StageLoader.load_dialogue(_context.stage_path, _actors_as_roster(actors))
 	var talk_key := key
 	if key != "intro" and key != "outro":
 		var talk: Dictionary = _event_talks.get(key, {})
@@ -788,7 +785,7 @@ func _on_conversation_closed() -> void:
 func _advance_or_select() -> void:
 	var nxt := _next_playable_stage()
 	if not nxt.is_empty():
-		_current_stage_id = nxt["id"]  # 冒険譚は同じまま＝次ステージのクリア記録が正しく付く
+		_context.stage_id = nxt["id"]  # 冒険譚は同じまま＝次ステージのクリア記録が正しく付く
 		call_deferred("load_stage", String(nxt["path"]))
 		return
 	# 次が無い＝セレクトへ戻る。ただしキャンペーン完走（最終ステージ勝利）なら勝利イラストを1枚挟む。
@@ -799,25 +796,25 @@ func _advance_or_select() -> void:
 		_select.open()
 
 func _next_playable_stage() -> Dictionary:
-	return _progress.next_playable_stage(_current_campaign_id, _current_stage_id)
+	return _progress.next_playable_stage(_context.campaign_id, _context.stage_id)
 
 ## いまクリアしたのがキャンペーン完走（＝非デバッグ冒険譚の最終ステージ）で、勝利イラストが在るか。
 ## 最終判定は素の next_stage（マニフェスト順で次が無い）を使う＝next_playable は locked でも空になり不可。
 func _should_show_victory() -> bool:
 	if _victory_overlay:
 		return false  # outro 会話に重ねて出し切った＝会話後に全画面で出し直さない
-	if _current_campaign_id.is_empty():
+	if _context.campaign_id.is_empty():
 		return false
-	var c := _progress.campaign(_current_campaign_id)
+	var c := _progress.campaign(_context.campaign_id)
 	if c.is_empty() or c["debug"]:
 		return false
-	if not _progress.next_stage(_current_campaign_id, _current_stage_id).is_empty():
+	if not _progress.next_stage(_context.campaign_id, _context.stage_id).is_empty():
 		return false  # まだ最終ステージではない
 	return not _victory_path().is_empty()
 
 ## 現冒険譚の勝利イラストのパス（連番バリアントがあればランダムに1枚・無ければ ""）。
 func _victory_path() -> String:
-	var c := _progress.campaign(_current_campaign_id)
+	var c := _progress.campaign(_context.campaign_id)
 	var paths: Array = c.get("victory_paths", [])
 	return String(paths[randi() % paths.size()]) if not paths.is_empty() else ""
 
@@ -841,7 +838,7 @@ func _install_sfx() -> void:
 ## 待っている間に別ステージへ切り替わったら捨てる（連戦は call_deferred で load_stage が重なる）。
 func _start_stage_bgm_when_drawn(path: String) -> void:
 	await RenderingServer.frame_post_draw
-	if _current_stage_path != path:
+	if _context.stage_path != path:
 		return
 	_start_stage_bgm(path)
 
@@ -944,8 +941,8 @@ func _on_end_turn_requested() -> void:
 		_controller.end_turn()
 
 func _on_restart_requested() -> void:
-	if not _current_stage_path.is_empty():
-		load_stage(_current_stage_path)
+	if not _context.stage_path.is_empty():
+		load_stage(_context.stage_path)
 
 ## デバッグメニュー「敵を殲滅」。controller はステージごとに作り直すので、押された時点の
 ## controller へ流す（結線の張り替えをしない）。決着後・盤なしでは controller 側が弾く。
@@ -998,7 +995,7 @@ func _take_turn_snapshot() -> void:
 	if _controller == null:
 		return
 	_turn_snapshot = _controller.state.to_save_diff()
-	if _saves == null or _current_campaign_id.is_empty():
+	if _saves == null or _context.campaign_id.is_empty():
 		return
 	_saves.save_slot(SaveSlots.AUTO, _turn_snapshot, _snapshot_meta())
 	_hud.set_load_available(true)
@@ -1006,20 +1003,20 @@ func _take_turn_snapshot() -> void:
 ## セーブに添える文脈メタ（一覧の表示材料＋再開に要るステージパス）。
 ## 冒険譚名・ステージ名は翻訳キーのまま持つ＝言語を変えても一覧がその言語で出る。
 func _snapshot_meta() -> Dictionary:
-	var campaign := _progress.campaign(_current_campaign_id) if _progress != null else {}
+	var campaign := _progress.campaign(_context.campaign_id) if _progress != null else {}
 	var stage_title := ""
 	for s in campaign.get("stages", []):
-		if String(s.get("id", "")) == _current_stage_id:
+		if String(s.get("id", "")) == _context.stage_id:
 			stage_title = String(s.get("title", ""))
 			break
 	return {
-		"campaign_id": _current_campaign_id, "stage_id": _current_stage_id,
-		"stage_path": _current_stage_path,
-		"stage_digest": _current_stage_digest,  # ステージ定義の印（更新検出 → doc/tech/gamesystem.md）
+		"campaign_id": _context.campaign_id, "stage_id": _context.stage_id,
+		"stage_path": _context.stage_path,
+		"stage_digest": _context.stage_digest,  # ステージ定義の印（更新検出 → doc/tech/gamesystem.md）
 		"campaign_title": String(campaign.get("title", "")), "stage_title": stage_title,
 		"turn_number": int(_turn_snapshot.get("turn_number", 0)),
 		"saved_at": Time.get_datetime_string_from_system(false, true),
-		"started_at": _started_at,  # ステージを始めた実時刻＝再開しても所要時間が続く
+		"started_at": _context.started_at,  # ステージを始めた実時刻＝再開しても所要時間が続く
 	}
 
 ## システムメニュー「セーブ」＝保存先の枠を選ばせる（書くのは _write_slot）。
@@ -1068,9 +1065,9 @@ func _load_slot(slot: String) -> void:
 	var state := SaveRestore.restore(String(meta.get("stage_path", "")), data["state"])
 	if state == null:
 		return  # ステージJSONが無い/読めない＝復元できない（エラーは SaveRestore が出す）
-	_current_campaign_id = String(meta.get("campaign_id", ""))
-	_current_stage_id = String(meta.get("stage_id", ""))
-	_started_at = int(meta.get("started_at", 0))  # 所要時間は測り直さず続きを測る（0＝不明な旧セーブ）
+	_context.campaign_id = String(meta.get("campaign_id", ""))
+	_context.stage_id = String(meta.get("stage_id", ""))
+	_context.started_at = int(meta.get("started_at", 0))  # 所要時間は測り直さず続きを測る（0＝不明な旧セーブ）
 	if _title != null and _title.visible:
 		_title_pending = false  # 以後は盤の曲が主＝ざわめきのガードを解く
 		_title.close()
@@ -1092,12 +1089,12 @@ func _install_select() -> void:
 ## （title）だけをこもらせて流し、扉が開くのに合わせてこもりを解く＝音がひらける。
 ## 入り終わって（or スキップして）メニューが出たところで menu 曲へ渡す（_on_title_menu_shown）。
 ## 設定画面。開き口はタイトルのメニューと盤のシステムメニューの2つで、同じ1枚を重ねて出す。
-## 値の適用と保存はここ（main）が持つ。仕様 → doc/gdd/settings.md
+## 値の保存はここ（main）、実機への適用は SettingsApplier。仕様 → doc/gdd/settings.md
 func _install_settings() -> void:
 	_settings = SettingsScreen.new()
 	_settings.name = "SettingsScreen"
 	_settings.locale_chosen.connect(_on_settings_locale_chosen)
-	_settings.volume_changed.connect(_apply_volume)
+	_settings.volume_changed.connect(SettingsApplier.apply_volume)
 	_settings.volume_settled.connect(_settings_store.set_volume)
 	_settings.window_mode_chosen.connect(_on_settings_window_mode_chosen)
 	_settings.dialogue_mode_chosen.connect(_settings_store.set_dialogue_when_minimized)
@@ -1189,7 +1186,7 @@ func _on_manual_closed() -> void:
 
 ## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
 func _on_settings_locale_chosen(locale: String) -> void:
-	TranslationServer.set_locale(locale)
+	SettingsApplier.apply_locale(locale)
 	_settings_store.set_locale(locale)
 	_refresh_labels()
 
@@ -1207,34 +1204,10 @@ func _refresh_labels() -> void:
 	$Front/InfoPanel.refresh_labels()
 	_conversation.refresh_labels()
 
-## 設定の音量の系統 -> AudioServer のバス名（default_bus_layout.tres）。
-const VOLUME_BUS_NAMES := { "master": "Master", "music": BgmPlayer.BUS, "sfx": SfxPlayer.BUS }
-
-## 音量（0〜100）をバスに当てる。100＝0 dB（素材そのまま）、0＝ミュート。間は振幅に比例させる。
-## 起動時の復元と、設定画面でつまみが動くたび（引きずり中も）の両方がここを通る。
-func _apply_volume(bus: String, value: int) -> void:
-	var idx := AudioServer.get_bus_index(String(VOLUME_BUS_NAMES[bus]))
-	if idx < 0:
-		push_error("main: 音量のバスが無い: %s" % bus)
-		return
-	AudioServer.set_bus_mute(idx, value == 0)
-	if value > 0:
-		AudioServer.set_bus_volume_linear(idx, float(value) / float(SettingsStore.VOLUME_MAX))
-
 ## 画面モードを選んだ＝その場で切り替えて保存する。
 func _on_settings_window_mode_chosen(mode: String) -> void:
 	_settings_store.set_window_mode(mode)
-	_apply_window_mode(mode)
-
-## 画面モードを窓に当てる。全画面は枠なしの全画面（排他ではない＝Alt+Tab で崩れない）。
-func _apply_window_mode(mode: String) -> void:
-	match mode:
-		"windowed":
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		"fullscreen":
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-		_:
-			push_error("main: 知らない画面モード: %s" % mode)
+	SettingsApplier.apply_window_mode(mode)
 
 ## おわる。決定音（ui_confirm＝実測0.69秒）を鳴らし切ってから落とす＝即 quit だと音が切れる。
 func _on_title_quit() -> void:
@@ -1253,6 +1226,6 @@ func _on_select_opened() -> void:
 		_bgm.play(BgmDirector.MENU_TRACK)
 
 func _on_stage_chosen(campaign_id: String, stage_id: String, path: String) -> void:
-	_current_campaign_id = campaign_id
-	_current_stage_id = stage_id
+	_context.campaign_id = campaign_id
+	_context.stage_id = stage_id
 	load_stage(path)

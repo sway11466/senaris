@@ -35,8 +35,8 @@ func _run() -> void:
 	var was_mode: String = _main._settings_store.dialogue_when_minimized()
 	panel.set_minimized(true)
 	_main._settings_store.set_dialogue_when_minimized("hide")
-	_main._current_campaign_id = "tutorial1-goblin-raid"
-	_main._current_stage_id = "st4"
+	_main._context.campaign_id = "tutorial1-goblin-raid"
+	_main._context.stage_id = "st4"
 	_main.load_stage(STAGE)
 	_say("intro を持つステージか: %s" % str(not _main._dialogue["intro"].is_empty()))
 	_say("会話パネルが出ていない: %s" % str(not _main._conversation.visible))

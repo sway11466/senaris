@@ -35,7 +35,7 @@ func _process(_delta: float) -> bool:
 			_main._result._retry.emit_signal("pressed")  # もう一度挑む
 		3:
 			_log.append("再挑戦後: 盤のステージ=%s / ターン=%d / 票=%s / セレクト=%s" % [
-				_main._current_stage_path.get_file(), _main._controller.state.turn_number, _main._result.visible, _main._select.visible])
+				_main._context.stage_path.get_file(), _main._controller.state.turn_number, _main._result.visible, _main._select.visible])
 			_main._on_battle_finished(BattleState.PLAYER_LOSS)
 		4:
 			_main._result._to_select.emit_signal("pressed")  # 依頼ボードへ戻る
@@ -49,7 +49,7 @@ func _process(_delta: float) -> bool:
 			_main._result._dismiss()  # 暗幕クリック相当＝選ばずに閉じる
 		8:
 			_log.append("閉じただけ: 票=%s / セレクト=%s / 盤のステージ=%s" % [
-				_main._result.visible, _main._select.visible, _main._current_stage_path.get_file()])
+				_main._result.visible, _main._select.visible, _main._context.stage_path.get_file()])
 			FileAccess.open(OUT, FileAccess.WRITE).store_string("\n".join(_log))
 			quit()
 			return true
