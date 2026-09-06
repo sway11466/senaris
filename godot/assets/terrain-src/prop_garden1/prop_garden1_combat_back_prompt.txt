@@ -1,0 +1,75 @@
+DESIGN — the town's kitchen garden. This block is repeated word for word in every
+slot of this skin, so that the little plot on the board and the two bands in the
+battle window are plainly the same garden.
+
+- The plot is FLAT GROUND: turned soil, dark brown #4E3B2A, level with the road
+  around it. It has NO THICKNESS — no slab of earth, no raised bed, no cut face
+  of soil along the front, no step down to the road, and no edging of any kind
+  (no plank, no board, no kerb, no stones, no box, no frame).
+- The soil is worked into low ridges running left to right.
+- Bean poles: A-frames of peeled sticks, brown #6E5A42, two poles crossed and
+  tied near the top, with bean vines winding up them so each reads as a leafy
+  triangle rather than as bare sticks.
+- Vegetables grow in the rows: round cabbages, onion tops, carrot tops, in a
+  muted mid green #7E9660, one kind to a ridge. Bare soil shows between them.
+- NEVER: a fence, a hedge, a wall, a gate, a trellis panel, a shed, a scarecrow,
+  a well, a water butt, a cart, tools, baskets, flowers, fruit, people, animals.
+  A fence is its own terrain in this game and must never appear here.
+
+SUBJECT: The BEAN POLES of that garden, standing BEHIND the fighting in a battle
+window — a WIDE BAND of backdrop, seen close and from the front at eye level. The
+soldiers fight among these poles: the rows of vegetables are drawn in the other
+slot, down at their feet, and this picture is what stands up behind them.
+
+WHAT IS IN IT — FIVE or SIX A-frames of bean poles in a line across the band,
+each one leaning at its own slight angle, at slightly different heights and
+spacings, never evenly spaced. EVERY frame is thickly covered in bean vines and
+leaves, from the ground to the tie at the top: each one reads as a leafy
+triangle. There are gaps of clear white BETWEEN the frames so the row never
+becomes a solid hedge, but no frame anywhere in the picture is bare. NEVER draw
+naked sticks, dead vines, wilted leaves or an empty frame.
+
+THE SOIL at the foot of the poles is a shallow strip, no more than a fifth of the
+band's height, with one or two ridge lines and a few small vegetable tops. It is
+FLAT GROUND seen from a little above: NO thickness, NO slab of earth, NO cut face
+along the front or the side, NO step, NO platform. The poles stand on it with
+their feet all at about the same level, the way posts stand on level ground.
+
+THE TWO ENDS ARE DIFFERENT.
+- LEFT end: the row of poles runs straight off the edge of the picture and is cut
+  by it. Nothing tapers and nothing is rounded off there.
+- RIGHT end: the garden has to finish inside the picture. The last two A-frames
+  are drawn SMALLER and set a little higher up in the band, as things do when they
+  stand further away — but they are just as leafy as the others, and the soil
+  under them narrows and ends in a soft irregular edge. Smaller and further away,
+  NEVER balder, NEVER dying, NEVER a straight cut edge of earth. Do NOT stop the
+  row in mid-air with a raw broken end.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square. The band fills the BOTTOM
+HALF of it, edge to edge: twice as wide as it is tall. In a 1024-pixel picture
+the garden occupies the bottom 512 pixels and the full 1024 of width. The tallest
+A-frame reaches near the top of that half; the top half of the picture is empty
+white.
+
+THE BOTTOM EDGE — THIS WAS WRONG LAST TIME, so read it twice. The soil runs all
+the way down to the very bottom edge of the picture and is CUT by it. There is NO
+strip of white under the garden, NO gap, NO margin, and the band does not float
+in the middle of the frame: its lowest pixel is the bottom row of the picture.
+Draw nothing below the soil — no path, no paving, no grass, no cast shadow. The
+soldiers stand in front of this band and their heads overlap its lower part.
+
+KEEP IT READABLE AT SMALL SIZE — the poles are thin, so draw them boldly: clear
+dark outlines, flat leaf masses with no veins and no highlights, no fine twigs,
+no small scattered detail. A few large legible shapes.
+
+NO LIGHT DIRECTION — nothing has a bright side and a dark side, and nothing casts
+a shadow onto anything else: no shadow of one frame on another, none on the soil.
+Shading stays inside a surface. This band is mirrored left to right when the game
+lays it down, so a baked light direction would end up pointing both ways in the
+same window.
+
+THE BACKGROUND — everything above and between the poles is PURE FLAT WHITE,
+#FFFFFF, with NO texture, NO shading, NO gradient, NO sky, NO clouds. This white
+is deleted, so every outline against it must be hard, clean and crisp — including
+the gaps between the frames and the holes between the vines. Nothing in the
+garden may be white or near-white.
