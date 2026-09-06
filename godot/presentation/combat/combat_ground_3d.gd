@@ -113,8 +113,20 @@ func _add_band(band: int, info: Dictionary, grounds: Dictionary) -> void:
 		var pos := Vector3(x, y, z + (SQRT3 * 0.5 * tile if col % 2 != 0 else 0.0))
 		_add_tile(cell, pos, tile, skin)
 
+## 戦闘の地面に敷く絵。面地形（connect=area）は全周版（_c111111）を引く＝窓の半面はぜんぶその
+## 地形なので、六方すべてが同じ地形として繋がっているのが正しい。盤と同じ既定の絵（{skin_id}.png
+## ＝1本だけ通った帯）を並べると、道が何本も走り、両脇の下地も一緒に繰り返されて見える。
+## 全周版が置かれていなければ既定の絵に戻す（絵の無い地形で穴を開けない）。
+static func _ground_variants(skin: TerrainSkin) -> Array:
+	if skin.connects_as_area():
+		var texs := TerrainTiles.variants(skin.connected_image_path([true, true, true, true, true, true]))
+		if not texs.is_empty():
+			return texs
+	return TerrainTiles.variants(skin.image_path())
+
+
 func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin) -> void:
-	var texs := TerrainTiles.variants(skin.image_path())
+	var texs := _ground_variants(skin)
 	if texs.is_empty():
 		return  # 絵が無いスキンは敷かない（窓の地形色が透ける＝どこが未整備か分かる）
 	var tex: Texture2D = texs[TerrainTiles.variant_index(cell, texs.size())]
@@ -123,7 +135,7 @@ func _add_tile(cell: Vector2i, pos: Vector3, tile: float, skin: TerrainSkin) -> 
 	if not ground_id.is_empty():
 		var g := TerrainSkinCatalog.resolve(ground_id, "")
 		if g != null:
-			var gt := TerrainTiles.variants(g.image_path())
+			var gt := _ground_variants(g)
 			if not gt.is_empty():
 				tex = TerrainTiles.composited(gt[TerrainTiles.variant_index(cell, gt.size())], tex)
 	var mi := MeshInstance3D.new()

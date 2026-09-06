@@ -1,6 +1,7 @@
 盤の立ち絵 — map_scale は terrain_skin.csv の road_prop_garden1 / plain_prop_garden1 の行から引く。
 正面向きの立ち絵になったので向き別スキン（_v / _r / _l）は無い＝回さない。同じ絵を道の上と平地の上に置く2スキン。
-map_scale 0.6 は、街区（1.0・高さ0.59）より低く見えるところから決めた（0.6×絵の縦横比0.83＝高さ0.50）。
+map_scale 0.7・object_foot_z 0.45。大きさは街区（1.0・高さ0.59）と並べて決めた（0.7×絵の縦横比0.83＝高さ0.58）。
+足元の手前寄せは街区と同じ0.45＝マスの中心より手前に降ろす（駒の0.6より小さいので、同じマスなら駒が手前に立つ）。
 
 powershell -File tools\gen_terrain_tile.ps1 road_prop_garden1 assets\terrain-src\prop_garden1\prop_garden1_03_master.png -Object
 powershell -File tools\gen_terrain_tile.ps1 plain_prop_garden1 assets\terrain-src\prop_garden1\prop_garden1_03_master.png -Object
