@@ -18,9 +18,9 @@ func test_pierce_halves_effective_defense() -> void:
 	s.add_unit(mage)
 	s.add_unit(zombie)
 	var df := Combat.defense_breakdown(s, zombie, mage)  # 防御側=zombie / 攻撃側=mage
-	assert_almost_eq(float(df["pierce"]), 0.5, 0.001, "貫通後係数0.5（内訳dict）")
-	assert_false(bool(df["capped"]), "支援なし＝2倍上限は効かない（capped=false）")
-	assert_almost_eq(float(df["total"]), 8.0 * 40.0 * 0.5, 0.01, "実効防御が半減（兵8×防40×0.5＝160）")
+	assert_almost_eq(df.pierce, 0.5, 0.001, "貫通後係数0.5（内訳dict）")
+	assert_false(df.capped, "支援なし＝2倍上限は効かない（capped=false）")
+	assert_almost_eq(df.total, 8.0 * 40.0 * 0.5, 0.01, "実効防御が半減（兵8×防40×0.5＝160）")
 
 func test_pierce_increases_damage_vs_high_defense() -> void:
 	# 同条件で pierce=0.5 の攻撃は pierce=0 より高防御相手への損害が大きい。
@@ -30,9 +30,9 @@ func test_pierce_increases_damage_vs_high_defense() -> void:
 	var zombie := Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 40)
 	s.add_unit(atk)
 	s.add_unit(zombie)
-	var loss_phys := int(Combat.hit_detail(s, atk, zombie)["loss"])  # pierce=0
+	var loss_phys := int(Combat.hit_detail(s, atk, zombie).loss)  # pierce=0
 	atk.pierce = 0.5
-	var loss_mage := int(Combat.hit_detail(s, atk, zombie)["loss"])
+	var loss_mage := int(Combat.hit_detail(s, atk, zombie).loss)
 	assert_gt(loss_mage, loss_phys, "貫通ありの方が高防御相手に損害が大きい（%d>%d）" % [loss_mage, loss_phys])
 
 func test_no_pierce_is_regression() -> void:
@@ -44,8 +44,8 @@ func test_no_pierce_is_regression() -> void:
 	s.add_unit(atk)
 	s.add_unit(foe)
 	var df := Combat.defense_breakdown(s, foe, atk)
-	assert_almost_eq(float(df["pierce"]), 1.0, 0.001, "貫通なし＝係数1.0")
-	assert_almost_eq(float(df["total"]), 8.0 * 40.0, 0.01, "pierce0は実効防御そのまま（320）")
+	assert_almost_eq(df.pierce, 1.0, 0.001, "貫通なし＝係数1.0")
+	assert_almost_eq(df.total, 8.0 * 40.0, 0.01, "pierce0は実効防御そのまま（320）")
 
 func test_pierce_applies_after_support_cap() -> void:
 	# 判定順の固定: D = min(支援後, 素×2) × (1−pierce)＝2倍上限→貫通の順。
@@ -59,8 +59,8 @@ func test_pierce_applies_after_support_cap() -> void:
 	s.add_unit(Unit.new(2, 0, Hex.neighbor(ap, 0), 3, 8, 10, 10))    # 防御側: 素防 8×10=80
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 2), 3, 8, 0, 50))     # 味方: 支援 8×50×0.25=100
 	var df := Combat.defense_breakdown(s, s.unit_by_id(2), atk)
-	assert_true(bool(df["capped"]), "支援(+100)で2倍上限(80→160)が効く")
-	assert_almost_eq(float(df["total"]), 80.0, 0.01, "min(180,160)×0.5＝80（上限→貫通の順）")
+	assert_true(df.capped, "支援(+100)で2倍上限(80→160)が効く")
+	assert_almost_eq(df.total, 80.0, 0.01, "min(180,160)×0.5＝80（上限→貫通の順）")
 
 func test_pierce_reflected_in_attack_detail() -> void:
 	# 実際の攻撃でも、防御内訳(detail)に貫通係数が出て損害に効く（表示と実処理の一致）。
@@ -73,7 +73,7 @@ func test_pierce_reflected_in_attack_detail() -> void:
 	s.add_unit(zombie)
 	var r := s.attack(1, 2)
 	var d: Dictionary = r["detail"]
-	assert_almost_eq(float(d["to_defender"]["defense"]["pierce"]), 0.5, 0.001, "detail の防御内訳に貫通係数0.5が出る")
+	assert_almost_eq(d["to_defender"].defense.pierce, 0.5, 0.001, "detail の防御内訳に貫通係数0.5が出る")
 
 # --- 再調整後ロスター: 対空の担い手（弓兵・飛行・魔法兵に集約） ---
 

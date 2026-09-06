@@ -15,7 +15,7 @@ func test_casualties_delegates_to_hit_detail() -> void:
 	var t := Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 7, 12, 10)
 	s.add_unit(a)
 	s.add_unit(t)
-	assert_eq(Combat.casualties(s, a, t), Combat.hit_detail(s, a, t)["loss"], "casualties＝hit_detail.loss")
+	assert_eq(Combat.casualties(s, a, t), Combat.hit_detail(s, a, t).loss, "casualties＝hit_detail.loss")
 
 func test_attack_breakdown_factors() -> void:
 	var s := _state()
@@ -26,14 +26,14 @@ func test_attack_breakdown_factors() -> void:
 	s.add_unit(a)
 	s.add_unit(t)
 	var b := Combat.attack_breakdown(s, a, t)
-	assert_eq(b["kind"], "attack")
-	assert_eq(b["troops"], 8)
-	assert_eq(b["stat"], 50, "地上相手は対地")
-	assert_false(b["vs_aerial"])
-	assert_almost_eq(float(b["level"]), 1.0, 0.001)
+	assert_eq(b.kind, StatBreakdown.Kind.ATTACK)
+	assert_eq(b.troops, 8)
+	assert_eq(b.stat, 50, "地上相手は対地")
+	assert_false(b.vs_aerial)
+	assert_almost_eq(b.level, 1.0, 0.001)
 	var plateau := TerrainType.attack_factor("plateau")
-	assert_almost_eq(float(b["terrain"]), plateau, 0.001)
-	assert_almost_eq(float(b["total"]), 8.0 * 50.0 * plateau, 0.01, "兵8×対地50×台地の地形係数")
+	assert_almost_eq(b.terrain, plateau, 0.001)
+	assert_almost_eq(b.total, 8.0 * 50.0 * plateau, 0.01, "兵8×対地50×台地の地形係数")
 
 func test_attack_breakdown_uses_atk_air_vs_flyer() -> void:
 	var s := _state()
@@ -45,8 +45,8 @@ func test_attack_breakdown_uses_atk_air_vs_flyer() -> void:
 	s.add_unit(a)
 	s.add_unit(fly)
 	var b := Combat.attack_breakdown(s, a, fly)
-	assert_true(b["vs_aerial"], "相手が飛行")
-	assert_eq(b["stat"], 20, "飛行相手は対空(atk_air)を使う")
+	assert_true(b.vs_aerial, "相手が飛行")
+	assert_eq(b.stat, 20, "飛行相手は対空(atk_air)を使う")
 
 func test_defense_breakdown_reflects_surround() -> void:
 	var s := _state()
@@ -56,8 +56,8 @@ func test_defense_breakdown_reflects_surround() -> void:
 	s.add_unit(Unit.new(2, 0, Hex.neighbor(c, 0), 3))    # 囲み1
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(c, 3), 3))    # 囲み2（対角）→ 包囲0.68
 	var b := Combat.defense_breakdown(s, t, s.unit_by_id(2))
-	assert_almost_eq(float(b["surround"]), 0.68, 0.001, "対角2体で包囲0.68が防御に乗る")
-	assert_lt(float(b["total"]), 80.0, "包囲で実効防御が素の80未満")
+	assert_almost_eq(b.surround, 0.68, 0.001, "対角2体で包囲0.68が防御に乗る")
+	assert_lt(b.total, 80.0, "包囲で実効防御が素の80未満")
 
 func test_hit_detail_fraction_and_loss() -> void:
 	# 互角(攻80/防80) → 割合0.5 → 兵8×0.5=4。
@@ -68,8 +68,8 @@ func test_hit_detail_fraction_and_loss() -> void:
 	s.add_unit(a)
 	s.add_unit(t)
 	var h := Combat.hit_detail(s, a, t)
-	assert_almost_eq(float(h["fraction"]), 0.5, 0.001, "互角は割合0.5")
-	assert_eq(h["loss"], 4, "兵8×0.5=4")
+	assert_almost_eq(h.fraction, 0.5, 0.001, "互角は割合0.5")
+	assert_eq(h.loss, 4, "兵8×0.5=4")
 
 # --- 表示と実処理の一致（最重要のガード） ---
 
@@ -84,8 +84,8 @@ func test_attack_detail_matches_applied_damage() -> void:
 	# 盤の兵数の増減＝detail の loss＝戻り値の damage/retaliation（式が1か所だから必ず一致）
 	assert_eq(d["defender"]["troops_before"] - d["defender"]["troops_after"], r["damage"], "防御側の兵減＝damage")
 	assert_eq(d["attacker"]["troops_before"] - d["attacker"]["troops_after"], r["retaliation"], "攻撃側の兵減＝retaliation")
-	assert_eq(d["to_defender"]["loss"], r["damage"], "to_defender.loss＝damage")
-	assert_eq(d["to_attacker"]["loss"], r["retaliation"], "to_attacker.loss＝retaliation")
+	assert_eq(d["to_defender"].loss, r["damage"], "to_defender.loss＝damage")
+	assert_eq(d["to_attacker"].loss, r["retaliation"], "to_attacker.loss＝retaliation")
 	# スナップショットは戦闘前の値（撃破後も表示できるよう固める）
 	assert_eq(d["attacker"]["level"], 1, "戦闘前レベルを保持（加算前）")
 	assert_eq(d["attacker"]["max"], 8)

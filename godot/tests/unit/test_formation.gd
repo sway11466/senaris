@@ -168,10 +168,10 @@ func test_grace_value_grows_with_participants() -> void:
 		var s: BattleState = f["s"]
 		var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
 		assert_eq(opt.participants.size(), n, "%d体全員が参加" % n)
-		var before := float(Combat.attack_breakdown(s, f["ally"], f["foe"], true)["total"])
+		var before := Combat.attack_breakdown(s, f["ally"], f["foe"], true).total
 		var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 		assert_almost_eq(float(res["status"]["value"]), expected, 0.001, "%d体で ×%.2f" % [n, expected])
-		assert_almost_eq(float(Combat.attack_breakdown(s, f["ally"], f["foe"], true)["total"]),
+		assert_almost_eq(Combat.attack_breakdown(s, f["ally"], f["foe"], true).total,
 			before * expected, 1.0, "%d体のグレイスで味方の攻撃が ×%.2f" % [n, expected])
 
 ## 発動後にクラスタが減っても、掛かった補正は発動時の人数のまま。
@@ -237,11 +237,11 @@ func test_grace_buffs_whole_team() -> void:
 	var s: BattleState = f["s"]
 	var ally: Unit = f["ally"]
 	var foe: Unit = f["foe"]
-	var before := float(Combat.attack_breakdown(s, ally, foe, true)["total"])
+	var before := Combat.attack_breakdown(s, ally, foe, true).total
 	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_false(res.is_empty(), "対象なしでも発動成功")
-	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
+	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
 	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
 ## グレイスの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
@@ -250,13 +250,13 @@ func test_grace_lasts_one_round() -> void:
 	var s: BattleState = f["s"]
 	var ally: Unit = f["ally"]
 	var foe: Unit = f["foe"]
-	var before := float(Combat.attack_breakdown(s, ally, foe, true)["total"])
+	var before := Combat.attack_breakdown(s, ally, foe, true).total
 	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
 	assert_false(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
 	s.end_turn()  # 敵ターンへ
-	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before * 1.3, 1.0, "敵ターン中はまだ効く")
+	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before * 1.3, 1.0, "敵ターン中はまだ効く")
 	s.end_turn()  # 次の自軍ターンへ＝ここで満了
-	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before, 1.0, "次の自軍ターン開始で切れる")
+	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before, 1.0, "次の自軍ターン開始で切れる")
 
 # ③ディバインジャッジメントの成立盤：paladin の周囲に聖職2体＋射程内(距離 enemy_dist)の敵1体。
 # leader=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、③の条件は発動者への隣接だけ。
@@ -361,9 +361,9 @@ func test_single_uses_leader_attack() -> void:
 	var enemy: Unit = f["enemy"]
 	var leader: Unit = f["leader"]
 	var opt: FormationOption = Formation.available_for(s, leader)[0]
-	var single := {"kind": "attack", "total": float(Combat.attack_breakdown(s, leader, enemy, false)["total"])}
+	var single := Combat.attack_breakdown(s, leader, enemy, false)
 	var df := Combat.defense_breakdown(s, enemy, leader, false)
-	var expect := int(Combat.hit_from_breakdowns(single, df, enemy.troops)["loss"])
+	var expect := Combat.hit_from_breakdowns(single, df, enemy.troops).loss
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
 	assert_eq(int(res["results"][0]["loss"]), expect, "発動者(パラディン)の実効攻撃力での損害")
@@ -406,9 +406,9 @@ func test_resolve_uses_leader_attack() -> void:
 	var enemy: Unit = f["enemy"]
 	var leader: Unit = f["leader"]
 	var opt: FormationOption = Formation.available_for(s, leader)[0]
-	var single := {"kind": "attack", "total": float(Combat.attack_breakdown(s, leader, enemy, false)["total"])}
+	var single := Combat.attack_breakdown(s, leader, enemy, false)
 	var df := Combat.defense_breakdown(s, enemy, leader, false)
-	var expect := int(Combat.hit_from_breakdowns(single, df, enemy.troops)["loss"])
+	var expect := Combat.hit_from_breakdowns(single, df, enemy.troops).loss
 	var before := enemy.troops
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_eq((res["results"] as Array).size(), 1, "敵1体に着弾")
@@ -530,9 +530,9 @@ func test_result_carries_snapshots_and_attack_breakdown() -> void:
 	var v: Dictionary = r["victim"]
 	assert_eq(int(v["troops_before"]), 8, "対象の発動前兵数")
 	assert_eq(int(v["troops_after"]), 0, "撃破＝0")
-	var atk: Dictionary = r["detail"]["attack"]
+	var atk: StatBreakdown = r["detail"].attack
 	for key in ["troops", "stat", "level", "surround", "terrain", "total"]:
-		assert_true(atk.has(key), "攻撃側の内訳に %s が載る" % key)
+		assert_not_null(atk.get(key), "攻撃側の内訳に %s が載る" % key)
 
 func test_grace_result_carries_status_entry() -> void:
 	# 損害の出ないレシピはレポートが効果と持続を出す＝積んだ状態補正エントリを result にも載せる。

@@ -108,21 +108,21 @@ func _show_tab(id: String) -> void:
 # --- 表示の左右解決 ---
 
 ## 表示サイドの束を組む。snap＝スナップショット／atk・def＝その側が実際に使った内訳
-## （反撃なしの向きは空 dict＝表示は「反撃なし」や「—」で描き分ける）。
+## （反撃なしの向きは null＝表示は「反撃なし」や「—」で描き分ける）。
 func _sides() -> Dictionary:
 	var a: Dictionary = _detail["attacker"]
 	var t: Dictionary = _detail["defender"]
-	var fwd: Dictionary = _detail["to_defender"]
-	var ret: Variant = _detail["to_attacker"]
+	var fwd: HitDetail = _detail["to_defender"]
+	var ret: HitDetail = _detail["to_attacker"]
 	var atk_side := {
 		"snap": a, "is_attacker": true,
-		"atk": fwd["attack"],
-		"def": (ret["defense"] if ret != null else {}),
+		"atk": fwd.attack,
+		"def": (ret.defense if ret != null else null),
 	}
 	var def_side := {
 		"snap": t, "is_attacker": false,
-		"atk": (ret["attack"] if ret != null else {}),
-		"def": fwd["defense"],
+		"atk": (ret.attack if ret != null else null),
+		"def": fwd.defense,
 	}
 	var left := atk_side if int(a["team"]) == 0 else def_side
 	var right := def_side if int(a["team"]) == 0 else atk_side
@@ -202,36 +202,36 @@ func _name_lv(snap: Dictionary) -> String:
 func _troops_text(snap: Dictionary) -> String:
 	return "%d/%d → %d/%d" % [snap["troops_before"], snap["max"], snap["troops_after"], snap["max"]]
 
-func _total_text(bd: Dictionary, empty_text: String) -> String:
+func _total_text(bd: StatBreakdown, empty_text: String) -> String:
 	return StrikeTable.total_text(bd, empty_text)
 
-func _base_atk_text(bd: Dictionary) -> String:
-	if bd.is_empty():
+func _base_atk_text(bd: StatBreakdown) -> String:
+	if bd == null:
 		return NONE
 	return StrikeTable.atk_stat_text(bd)
 
-func _base_def_text(bd: Dictionary) -> String:
-	return String.num_int64(int(bd["stat"])) if not bd.is_empty() else NONE
+func _base_def_text(bd: StatBreakdown) -> String:
+	return String.num_int64(bd.stat) if bd != null else NONE
 
 func _terrain_text(snap: Dictionary) -> String:
 	var terr := String(snap["terrain"])
 	return "%s ×%.2f/×%.2f" % [tr("terrain_type." + terr + ".name"), TerrainType.attack_factor(terr), TerrainType.defense_factor(terr)]
 
-## 包囲は攻防共通の係数＝どちらかの内訳から取り出す（反撃なし側は攻が空）。
+## 包囲は攻防共通の係数＝どちらかの内訳から取り出す（反撃なし側は攻が無い）。
 func _surround_of(side: Dictionary) -> float:
-	var atk: Dictionary = side["atk"]
-	var bd: Dictionary = atk if not atk.is_empty() else side["def"]
-	return float(bd.get("surround", 1.0))
+	var atk: StatBreakdown = side["atk"]
+	var bd: StatBreakdown = atk if atk != null else side["def"]
+	return bd.surround
 
 func _factor_text(f: float) -> String:
 	return "×%.2f" % f if not is_equal_approx(f, 1.0) else NONE
 
 ## 支援（攻/防の加算ペア）。両方 0 なら NONE（行は常設＝効果なしの表示）。
 func _support_text(side: Dictionary) -> String:
-	var atk: Dictionary = side["atk"]
-	var def: Dictionary = side["def"]
-	var sa := roundi(float(atk.get("support", 0.0)))
-	var sd := roundi(float(def.get("support", 0.0)))
+	var atk: StatBreakdown = side["atk"]
+	var def: StatBreakdown = side["def"]
+	var sa := roundi(atk.support) if atk != null else 0
+	var sd := roundi(def.support) if def != null else 0
 	if sa == 0 and sd == 0:
 		return NONE
 	return "%s/%s" % [("+%d" % sa) if sa != 0 else NONE, ("+%d" % sd) if sd != 0 else NONE]
@@ -266,7 +266,7 @@ func _rebuild_direction(forward: bool) -> void:
 		c.queue_free()
 	var a: Dictionary = _detail["attacker"]
 	var t: Dictionary = _detail["defender"]
-	var hit: Variant = _detail["to_defender"] if forward else _detail["to_attacker"]
+	var hit: HitDetail = _detail["to_defender"] if forward else _detail["to_attacker"]
 	var striker: Dictionary = a if forward else t
 	var victim: Dictionary = t if forward else a
 	var sn := _display_name(striker)

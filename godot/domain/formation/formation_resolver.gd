@@ -71,11 +71,11 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(state, option, target)
 	var results: Array = []
-	for hit in pv["hits"]:
-		var victim := state.unit_by_id(int(hit["target_id"]))
+	for hit: HitDetail in pv["hits"]:
+		var victim := state.unit_by_id(hit.target_id)
 		if victim == null:
 			continue
-		var loss := int(hit["loss"])
+		var loss := hit.loss
 		var vhex := victim.pos  # 撃破すると盤から外れる＝消える前に控える（演出が当たった場所を出す）
 		var v_snap := state.unit_snapshot(victim)  # 撃破で盤から消えてもレポートに名前と兵数を出せるよう固める
 		victim.troops -= loss

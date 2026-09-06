@@ -64,9 +64,9 @@ func test_mul_scales_effective_attack() -> void:
 	var foe := Unit.new(2, 1, Hex.neighbor(atk.pos, 0), 3, 8, 30, 30)
 	s.add_unit(atk)
 	s.add_unit(foe)
-	var before := float(Combat.attack_breakdown(s, atk, foe, false)["total"])
+	var before := Combat.attack_breakdown(s, atk, foe, false).total
 	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "remaining": 2})
-	assert_almost_eq(float(Combat.attack_breakdown(s, atk, foe, false)["total"]), before * 1.3, 0.01, "実効攻撃力が×1.3")
+	assert_almost_eq(Combat.attack_breakdown(s, atk, foe, false).total, before * 1.3, 0.01, "実効攻撃力が×1.3")
 
 func test_add_debuff_floors_defense_at_zero() -> void:
 	# 減算デバフで実効防御が負になっても 0 で打ち止め＝素通し。
@@ -77,9 +77,9 @@ func test_add_debuff_floors_defense_at_zero() -> void:
 	s.add_unit(atk)
 	s.add_unit(foe)
 	s.add_status_mod({"scope": "unit", "unit_id": 2, "owner_team": 0, "op": "add", "target": "defense", "value": -80, "kind": "debuff", "remaining": 3})
-	assert_almost_eq(float(Combat.defense_breakdown(s, foe, atk)["total"]), 0.0, 0.001, "40−80 は 0 に切り上げ（−40 のままだと防御40と等価になる）")
+	assert_almost_eq(Combat.defense_breakdown(s, foe, atk).total, 0.0, 0.001, "40−80 は 0 に切り上げ（−40 のままだと防御40と等価になる）")
 	var df := Combat.defense_breakdown_from(4, 10, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, -200.0)
-	assert_almost_eq(float(df["total"]), 0.0, 0.001, "さらに深い減算でも 0 のまま（硬くならない）")
+	assert_almost_eq(df.total, 0.0, 0.001, "さらに深い減算でも 0 のまま（硬くならない）")
 	var r := s.attack(1, 2)
 	assert_true(r["killed"], "防御0＝素通しで全滅する")
 

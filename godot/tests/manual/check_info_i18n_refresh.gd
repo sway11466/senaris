@@ -85,14 +85,10 @@ func _detail() -> Dictionary:
 	var def_fwd := Combat.defense_breakdown_from(10, 9, 1.01, 0.68, 1.2, 8.0, 0.5, 1.0, 80.0)
 	var atk_ret := Combat.attack_breakdown_from(10, 11, 1.01, 0.68, 1.2, 0.0, 1.0, 80.0)
 	var def_ret := Combat.defense_breakdown_from(12, 8, 1.02, 1.0, 0.9, 0.0, 0.0, 1.3, 0.0)
-	var ap := pow(float(atk_fwd["total"]), 2.0)
-	var dp := pow(float(def_fwd["total"]), 2.0)
-	var frac := ap / (ap + dp)
-	var loss := clampi(int(round(10.0 * frac)), 0, 10)
-	var ap2 := pow(float(atk_ret["total"]), 2.0)
-	var dp2 := pow(float(def_ret["total"]), 2.0)
-	var frac2 := ap2 / (ap2 + dp2)
-	var loss2 := clampi(int(round(12.0 * frac2)), 0, 12)
+	var fwd := Combat.hit_from_breakdowns(atk_fwd, def_fwd, 10)
+	var ret := Combat.hit_from_breakdowns(atk_ret, def_ret, 12)
+	var loss := fwd.loss
+	var loss2 := ret.loss
 	return {
 		"attacker": {
 			"id": 1, "type_id": "Holy Knight", "skin_id": "", "team": 0, "level": 3,
@@ -107,7 +103,7 @@ func _detail() -> Dictionary:
 				{"name": "Serpent Fang", "op": "dot", "value": 1},
 			],
 		},
-		"to_defender": {"attack": atk_fwd, "defense": def_fwd, "fraction": frac, "loss": loss},
-		"to_attacker": {"attack": atk_ret, "defense": def_ret, "fraction": frac2, "loss": loss2},
+		"to_defender": fwd,
+		"to_attacker": ret,
 		"melee": true,
 	}

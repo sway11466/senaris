@@ -939,12 +939,12 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	var can_retaliate := melee and t.can_reach(1) and t.attack_against(a) > 0
 	# 同時攻撃: 戦闘前の状態で内訳ごと確定してから適用（決定的）。表示はこの内訳をそのまま使う。
 	var fwd := Combat.hit_detail(self, a, t, melee)
-	var ret: Variant = Combat.hit_detail(self, t, a, melee) if can_retaliate else null
+	var ret: HitDetail = Combat.hit_detail(self, t, a, melee) if can_retaliate else null
 	# 戦闘前スナップショット（撃破で盤から消えても結果表示できるよう値を固める）。
 	var a_snap := unit_snapshot(a)
 	var t_snap := unit_snapshot(t)
-	var dmg_to_target: int = fwd["loss"]
-	var dmg_to_attacker: int = (ret["loss"] if ret != null else 0)
+	var dmg_to_target := fwd.loss
+	var dmg_to_attacker := ret.loss if ret != null else 0
 	t.troops -= dmg_to_target
 	a.troops -= dmg_to_attacker
 	var target_killed := t.troops <= 0

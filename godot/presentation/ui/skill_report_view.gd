@@ -186,7 +186,7 @@ func _build_target(r: Dictionary) -> void:
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 4)
 	_body.add_child(grid)
-	var hit: Dictionary = r["detail"]
+	var hit: HitDetail = r["detail"]
 	StrikeTable.fill(grid, sn, vn, hit)
 	var detail := Label.new()
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

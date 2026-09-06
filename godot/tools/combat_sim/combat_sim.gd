@@ -145,7 +145,7 @@ func _read(inputs: Dictionary) -> Dictionary:
 
 
 ## この陣営が「殴る」ときの実効攻撃力の内訳（本体の式に委譲）。
-func _side_attack_bd(side: Dictionary) -> Dictionary:
+func _side_attack_bd(side: Dictionary) -> StatBreakdown:
 	return Combat.attack_breakdown_from(
 		side["troops"], side["attack"],
 		Combat.level_factor_at(side["level"]),
@@ -155,7 +155,7 @@ func _side_attack_bd(side: Dictionary) -> Dictionary:
 
 
 ## この陣営が「受ける」ときの実効防御力の内訳（本体の式に委譲）。attacker_pierce＝殴る側の貫通。
-func _side_defense_bd(side: Dictionary, attacker_pierce: float) -> Dictionary:
+func _side_defense_bd(side: Dictionary, attacker_pierce: float) -> StatBreakdown:
 	return Combat.defense_breakdown_from(
 		side["troops"], side["defense"],
 		Combat.level_factor_at(side["level"]),
@@ -173,32 +173,32 @@ func _on_attack() -> void:
 	var fwd := Combat.hit_from_breakdowns(_side_attack_bd(atk), _side_defense_bd(df, atk["pierce"]), df["troops"])
 
 	# 反撃（防御側の攻撃力が0なら成立しない＝本体 can_retaliate と同じ条件）
-	var ret: Variant = null
+	var ret: HitDetail = null
 	if df["attack"] > 0:
 		ret = Combat.hit_from_breakdowns(_side_attack_bd(df), _side_defense_bd(atk, df["pierce"]), atk["troops"])
 
 	_render(atk, df, fwd, ret)
 
 
-func _render(atk: Dictionary, df: Dictionary, fwd: Dictionary, ret: Variant) -> void:
+func _render(atk: Dictionary, df: Dictionary, fwd: HitDetail, ret: HitDetail) -> void:
 	var out := ""
 	out += "[color=#ff9088][b]▼ 攻撃側 → 防御側[/b][/color]\n"
-	out += "[u]攻撃側 実効攻撃力[/u]\n" + _fmt_attack(fwd["attack"])
-	out += "[u]防御側 実効防御力[/u]\n" + _fmt_defense(fwd["defense"])
+	out += "[u]攻撃側 実効攻撃力[/u]\n" + _fmt_attack(fwd.attack)
+	out += "[u]防御側 実効防御力[/u]\n" + _fmt_defense(fwd.defense)
 	out += _fmt_hit(fwd)
 	out += "\n"
 
 	if ret != null:
 		out += "[color=#88a8ff][b]▼ 反撃：防御側 → 攻撃側[/b][/color]\n"
-		out += "[u]防御側 実効攻撃力[/u]\n" + _fmt_attack(ret["attack"])
-		out += "[u]攻撃側 実効防御力[/u]\n" + _fmt_defense(ret["defense"])
+		out += "[u]防御側 実効攻撃力[/u]\n" + _fmt_attack(ret.attack)
+		out += "[u]攻撃側 実効防御力[/u]\n" + _fmt_defense(ret.defense)
 		out += _fmt_hit(ret)
 		out += "\n"
 	else:
 		out += "[color=#999999]反撃なし（防御側のユニット攻撃力が 0）[/color]\n\n"
 
-	var d_loss: int = fwd["loss"]
-	var a_loss: int = (ret["loss"] if ret != null else 0)
+	var d_loss := fwd.loss
+	var a_loss := ret.loss if ret != null else 0
 	out += "[b]━━━ 結果 ━━━[/b]\n"
 	out += _fmt_result("防御側", df["troops"], d_loss)
 	out += _fmt_result("攻撃側", atk["troops"], a_loss)
@@ -206,40 +206,40 @@ func _render(atk: Dictionary, df: Dictionary, fwd: Dictionary, ret: Variant) -> 
 
 
 ## 実効攻撃力の内訳を「素 → 支援 → 実効」の順で文字列化。
-func _fmt_attack(bd: Dictionary) -> String:
-	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["level"]) * float(bd["surround"]) * float(bd["terrain"])
+func _fmt_attack(bd: StatBreakdown) -> String:
+	var pre := bd.base()
 	var s := "  兵%d × 攻%d × レベル%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
-		bd["troops"], bd["stat"], bd["level"], bd["surround"], bd["terrain"], pre]
-	if float(bd["support"]) > 0.0:
-		s += "  ＋ 支援 %.1f\n" % bd["support"]
-	s += "  → 実効攻撃力 [b]%.1f[/b]\n" % bd["total"]
+		bd.troops, bd.stat, bd.level, bd.surround, bd.terrain, pre]
+	if bd.support > 0.0:
+		s += "  ＋ 支援 %.1f\n" % bd.support
+	s += "  → 実効攻撃力 [b]%.1f[/b]\n" % bd.total
 	return s
 
 
 ## 実効防御力の内訳を「素 → 支援(2倍上限) → 貫通 → 実効」の順で文字列化。
-func _fmt_defense(bd: Dictionary) -> String:
-	var pre := float(bd["troops"]) * float(bd["stat"]) * float(bd["level"]) * float(bd["surround"]) * float(bd["terrain"])
-	var supported := pre + float(bd["support"])
+func _fmt_defense(bd: StatBreakdown) -> String:
+	var pre := bd.base()
+	var supported := pre + bd.support
 	var capped_val: float = min(supported, pre * Combat.DEFENSE_SUPPORT_CAP)
 	var s := "  兵%d × 防%d × レベル%.2f × 包囲%.2f × 地形%.2f = %.1f\n" % [
-		bd["troops"], bd["stat"], bd["level"], bd["surround"], bd["terrain"], pre]
-	if float(bd["support"]) > 0.0:
-		var note := "  (2倍上限で頭打ち)" if bd["capped"] else ""
-		s += "  ＋ 支援 %.1f → %.1f%s\n" % [bd["support"], capped_val, note]
-	if float(bd["pierce"]) < 1.0:
-		s += "  × 貫通後 %.2f\n" % bd["pierce"]
-	s += "  → 実効防御力 [b]%.1f[/b]\n" % bd["total"]
+		bd.troops, bd.stat, bd.level, bd.surround, bd.terrain, pre]
+	if bd.support > 0.0:
+		var note := "  (2倍上限で頭打ち)" if bd.capped else ""
+		s += "  ＋ 支援 %.1f → %.1f%s\n" % [bd.support, capped_val, note]
+	if bd.pierce < 1.0:
+		s += "  × 貫通後 %.2f\n" % bd.pierce
+	s += "  → 実効防御力 [b]%.1f[/b]\n" % bd.total
 	return s
 
 
 ## 割合と失う兵の確定過程を文字列化。
-func _fmt_hit(hit: Dictionary) -> String:
-	var a := float(hit["attack"]["total"])
-	var d := float(hit["defense"]["total"])
-	var troops := int(hit["defense"]["troops"])
-	var frac := float(hit["fraction"])
+func _fmt_hit(hit: HitDetail) -> String:
+	var a := hit.attack.total
+	var d := hit.defense.total
+	var troops := hit.defense.troops
+	var frac := hit.fraction
 	var s := "  割合 = %.1f² ÷ (%.1f² + %.1f²) = [b]%.4f[/b]\n" % [a, a, d, frac]
-	s += "  失う兵 = round(%.4f × %d) = round(%.2f) = [b]%d[/b]\n" % [frac, troops, frac * troops, hit["loss"]]
+	s += "  失う兵 = round(%.4f × %d) = round(%.2f) = [b]%d[/b]\n" % [frac, troops, frac * troops, hit.loss]
 	return s
 
 

@@ -38,7 +38,7 @@ func _snap(id: int, type_id: String, team: int, level: int, troops: int, max_tro
 		"terrain": "plain", "pos": Vector2i(0, 0), "statuses": [],
 	}
 
-func _hit(v_troops: int, v_def: int) -> Dictionary:
+func _hit(v_troops: int, v_def: int) -> HitDetail:
 	# 数字は手組み（式の検算はテストの仕事＝ここは文言と幅だけ見る）。
 	var atk := Combat.attack_breakdown_from(6, 40, 1.02, 1.0, 0.9, 0.0, 1.3, 0.0)
 	var df := Combat.defense_breakdown_from(v_troops, v_def, 1.01, 0.68, 1.2, 0.0, 0.5, 1.0, 0.0)
@@ -48,14 +48,14 @@ func _nova() -> Dictionary:
 	var caster := _snap(1, "Wizard", 0, 2, 6, 8)
 	var h1 := _hit(8, 20)
 	var v1 := _snap(9, "Goblin Grunt", 1, 1, 8, 8)
-	v1["troops_after"] = 8 - int(h1["loss"])
+	v1["troops_after"] = 8 - h1.loss
 	var h2 := _hit(3, 8)
 	var v2 := _snap(10, "Goblin Archer", 1, 1, 3, 8)
-	v2["troops_after"] = maxi(3 - int(h2["loss"]), 0)
+	v2["troops_after"] = maxi(3 - h2.loss, 0)
 	return {
 		"recipe": "trinity_nova",
 		"results": [
-			{"target_id": 9, "hex": Vector2i(4, 3), "loss": int(h1["loss"]), "killed": false, "detail": h1, "victim": v1},
+			{"target_id": 9, "hex": Vector2i(4, 3), "loss": h1.loss, "killed": false, "detail": h1, "victim": v1},
 			{"target_id": 10, "hex": Vector2i(5, 3), "loss": 3, "killed": true, "detail": h2, "victim": v2},
 		],
 		"center": Vector2i(4, 3), "cells": [], "leader_id": 1,

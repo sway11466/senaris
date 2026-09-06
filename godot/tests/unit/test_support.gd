@@ -11,7 +11,7 @@ func test_attack_support_from_ally_next_to_defender() -> void:
 	s.add_unit(Unit.new(2, 1, dp, 3, 8, 10, 10))  # 防御側
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(dp, 2), 3, 6, 8, 10))  # 味方: 兵6 攻8 → 支援 6×8×0.25=12
 	# 攻撃側の包囲は不成立（隣接敵は防御側1体のみ）→ base 80、支援 +12
-	var ea := float(Combat.attack_breakdown(s, s.unit_by_id(1), s.unit_by_id(2))["total"])
+	var ea := Combat.attack_breakdown(s, s.unit_by_id(1), s.unit_by_id(2)).total
 	assert_almost_eq(ea, 92.0, 0.001, "隣接味方の攻撃支援 +12")
 
 func test_defense_support_from_ally_next_to_attacker() -> void:
@@ -23,8 +23,8 @@ func test_defense_support_from_ally_next_to_attacker() -> void:
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 2), 3, 4, 0, 10))  # 味方: 兵4 防10 → 支援 4×10×0.25=10
 	# 防御側の包囲は不成立（隣接敵は攻撃側1体）→ base 80、支援 +10
 	var df := Combat.defense_breakdown(s, s.unit_by_id(2), s.unit_by_id(1))
-	assert_almost_eq(float(df["total"]), 90.0, 0.001, "攻撃者に隣接する味方の防御支援 +10")
-	assert_false(bool(df["capped"]), "支援+10は2倍上限(160)に届かない＝capped=false")
+	assert_almost_eq(df.total, 90.0, 0.001, "攻撃者に隣接する味方の防御支援 +10")
+	assert_false(df.capped, "支援+10は2倍上限(160)に届かない＝capped=false")
 
 func test_defense_support_capped_at_double() -> void:
 	var s := BattleState.new(8, 8)
@@ -34,8 +34,8 @@ func test_defense_support_capped_at_double() -> void:
 	s.add_unit(Unit.new(2, 0, dp, 3, 8, 10, 10))                  # base 防 80
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 2), 3, 8, 0, 100))  # 巨大支援 8×100×0.25=200
 	var df := Combat.defense_breakdown(s, s.unit_by_id(2), s.unit_by_id(1))
-	assert_almost_eq(float(df["total"]), 160.0, 0.001, "支援後でも支援前の2倍(80→160)が上限")
-	assert_true(bool(df["capped"]), "上限が効いたことを内訳が示す＝capped=true")
+	assert_almost_eq(df.total, 160.0, 0.001, "支援後でも支援前の2倍(80→160)が上限")
+	assert_true(df.capped, "上限が効いたことを内訳が示す＝capped=true")
 
 func test_flanker_boosts_attack_and_cuts_retaliation() -> void:
 	# 包囲と支援の複合: 側面ユニットZは Yを包囲しつつ Xの攻撃を支援し Xの防御も支援する。

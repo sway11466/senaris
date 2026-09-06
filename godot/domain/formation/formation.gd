@@ -247,7 +247,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 	return out
 
 ## target を着弾中心としたときの効果プレビュー（純ロジック・非破壊）。
-## 対象ごとの hit 内訳（Combat.hit_from_breakdowns 形式＋target_id）を返す。適用は FormationResolver。
+## 対象ごとの hit 内訳（HitDetail。target_id に対象の駒番号）を返す。適用は FormationResolver。
 static func preview(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	var hits: Array = []
 	var participants := option.participants
@@ -432,21 +432,21 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: 
 ## 威力＝発動者(leader)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。
 ## 面の広さ（最大7hex）そのものが強み。合算は割合式が飽和してオーバーキルのため見送り（旧feature-11）。
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
-static func _formation_hit(state: BattleState, option: FormationOption, victim: Unit) -> Dictionary:
+static func _formation_hit(state: BattleState, option: FormationOption, victim: Unit) -> HitDetail:
 	var leader := state.unit_by_id(option.leader_id)
 	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
 	var atk := _skill_attack_breakdown(state, leader)
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。
 	var df := Combat.defense_breakdown(state, victim, leader, false)
 	var hit := Combat.hit_from_breakdowns(atk, df, victim.troops)
-	hit["target_id"] = victim.id
+	hit.target_id = victim.id
 	return hit
 
 ## 発動者の実効攻撃力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.attack_breakdown_from）。
 ## 通常戦闘（Combat.attack_breakdown）との違いはここに全部書く:
 ##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）／支援なし（間接扱い）。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md
-static func _skill_attack_breakdown(state: BattleState, leader: Unit) -> Dictionary:
+static func _skill_attack_breakdown(state: BattleState, leader: Unit) -> StatBreakdown:
 	var sf := state.status_aggregate(leader, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	return Combat.attack_breakdown_from(
 		leader.troops,

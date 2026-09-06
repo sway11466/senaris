@@ -22,10 +22,10 @@ func test_from_matches_board_plain() -> void:
 	var df := Combat.defense_breakdown_from(8, 80, Combat.level_factor_at(1), Surround.factor_from_counts(0, 0), TerrainType.defense_factor("plain"), 0.0, 0.0)
 	var sim := Combat.hit_from_breakdowns(atk, df, 8)
 
-	assert_almost_eq(float(sim["attack"]["total"]), float(board["attack"]["total"]), 0.001, "実効攻撃が一致")
-	assert_almost_eq(float(sim["defense"]["total"]), float(board["defense"]["total"]), 0.001, "実効防御が一致")
-	assert_almost_eq(float(sim["fraction"]), float(board["fraction"]), 0.0001, "割合が一致")
-	assert_eq(sim["loss"], board["loss"], "失う兵が一致")
+	assert_almost_eq(sim.attack.total, board.attack.total, 0.001, "実効攻撃が一致")
+	assert_almost_eq(sim.defense.total, board.defense.total, 0.001, "実効防御が一致")
+	assert_almost_eq(sim.fraction, board.fraction, 0.0001, "割合が一致")
+	assert_eq(sim.loss, board.loss, "失う兵が一致")
 
 func test_from_matches_board_with_terrain_and_level() -> void:
 	# 台地(攻防×1.15)・攻撃側Lv6(＋1%/Lv＝×1.05)を絡める。
@@ -42,9 +42,9 @@ func test_from_matches_board_with_terrain_and_level() -> void:
 	var df := Combat.defense_breakdown_from(7, 40, Combat.level_factor_at(1), Surround.factor_from_counts(0, 0), TerrainType.defense_factor("plain"), 0.0, 0.0)
 	var sim := Combat.hit_from_breakdowns(atk, df, 7)
 
-	assert_almost_eq(float(sim["attack"]["total"]), float(board["attack"]["total"]), 0.001, "台地×Lv6の実効攻撃が一致")
-	assert_almost_eq(float(sim["defense"]["total"]), float(board["defense"]["total"]), 0.001, "実効防御が一致")
-	assert_eq(sim["loss"], board["loss"], "失う兵が一致")
+	assert_almost_eq(sim.attack.total, board.attack.total, 0.001, "台地×Lv6の実効攻撃が一致")
+	assert_almost_eq(sim.defense.total, board.defense.total, 0.001, "実効防御が一致")
+	assert_eq(sim.loss, board.loss, "失う兵が一致")
 
 func test_surround_from_counts_matches_board() -> void:
 	# 対角2体で囲んだ状況（占有2）を、盤の包囲係数と counts 版で突き合わせ。

@@ -137,8 +137,8 @@ func test_terrain_plateau_boosts_attacker() -> void:
 	s.add_unit(d)
 	# 係数の実数は terrain_type.csv が持つ（調整で動く）ので、丸めた損害ではなく実効値の向きを見る。
 	# 小さい兵数だと係数の差が損害の丸めに埋もれ、CSV調整のたびにテストが嘘になる。
-	assert_gt(Combat.attack_breakdown(s, a, d)["terrain"], 1.0, "台地は攻撃側の地形係数を上げる")
-	assert_gt(Combat.defense_breakdown(s, a, d)["terrain"], 1.0, "台地は同じマスの防御係数も上げる")
+	assert_gt(Combat.attack_breakdown(s, a, d).terrain, 1.0, "台地は攻撃側の地形係数を上げる")
+	assert_gt(Combat.defense_breakdown(s, a, d).terrain, 1.0, "台地は同じマスの防御係数も上げる")
 
 func test_terrain_plateau_boosts_defender() -> void:
 	var s := _state()
@@ -149,8 +149,8 @@ func test_terrain_plateau_boosts_defender() -> void:
 	var d := Unit.new(2, 1, dp, 3, 8, 10, 10)
 	s.add_unit(a)
 	s.add_unit(d)
-	assert_gt(Combat.defense_breakdown(s, d, a)["terrain"], 1.0, "台地の防御側は地形係数が上がる")
-	assert_eq(Combat.attack_breakdown(s, a, d)["terrain"], 1.0, "平地の攻撃側は補正なし")
+	assert_gt(Combat.defense_breakdown(s, d, a).terrain, 1.0, "台地の防御側は地形係数が上がる")
+	assert_eq(Combat.attack_breakdown(s, a, d).terrain, 1.0, "平地の攻撃側は補正なし")
 
 func test_indirect_no_retaliation() -> void:
 	var s := _state()
