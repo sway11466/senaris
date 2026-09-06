@@ -340,14 +340,14 @@ func _raid_action(state: BattleState, u: Unit) -> AiAction:
 	if goals.is_empty():
 		return null
 	# 11 移動距離／12 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
-	var move_field := state.move_cost_field(u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
 	var goal := _nearest_hex_in(move_field, goals)
 	if goal != NO_HEX:
-		return _advance(state, u, state.move_cost_field(u.id, goal), [goal])
-	var terrain_field := state.terrain_cost_field(u.id, u.pos)
+		return _advance(state, u, AiDistance.move_cost_field(state, u.id, goal), [goal])
+	var terrain_field := AiDistance.terrain_cost_field(state, u.id, u.pos)
 	goal = _nearest_hex_in(terrain_field, goals)
 	if goal != NO_HEX:
-		return _advance(state, u, state.terrain_cost_field(u.id, goal), [goal])
+		return _advance(state, u, AiDistance.terrain_cost_field(state, u.id, goal), [goal])
 	# 13 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
 	return _advance_straight(state, u, _nearest_hex_by_board(u.pos, goals))
 
@@ -381,7 +381,7 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 		if _can_kill_in_one_hit(state, u, state.unit_by_id(id)):
 			killable.append(id)
 	var can_move := _can_advance(state, u)
-	var move_field := state.move_cost_field(u.id, u.pos) if can_move else {}
+	var move_field := AiDistance.move_cost_field(state, u.id, u.pos) if can_move else {}
 	var target := _hunted_prey(state, u, move_field) if can_move else null
 	if killable.is_empty() and target != null:
 		row = _standoff_row(state, u, target)
@@ -396,13 +396,13 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 	var cells := state.attack_cells(u.id, target.id)
 	# 6 回り込み（迂回距離）。標的自身のZOCは外して測る＝外さないと隣へ入れず必ず測れない。
 	# 表は標的から流して1枚だけ作り、自分のマスが載っているかで「測れる」を見る（両向きで一致する）。
-	var detour_field := state.detour_cost_field_to(u.id, target.pos, target.id)
+	var detour_field := AiDistance.detour_cost_field_to(state, u.id, target.pos, target.id)
 	if detour_field.has(u.pos):
 		return _advance(state, u, detour_field, cells)
-	if state.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
-		return _advance(state, u, state.move_cost_field(u.id, target.pos), cells)
-	if state.terrain_distance(u.id, cells) < BattleState.UNREACHABLE:
-		return _advance(state, u, state.terrain_cost_field(u.id, target.pos), cells)
+	if AiDistance.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
+		return _advance(state, u, AiDistance.move_cost_field(state, u.id, target.pos), cells)
+	if AiDistance.terrain_distance(state, u.id, cells) < BattleState.UNREACHABLE:
+		return _advance(state, u, AiDistance.terrain_cost_field(state, u.id, target.pos), cells)
 	return _advance_straight(state, u, target.pos)
 
 ## swarm（群れ）の行動ルール。傷ついた敵へ集まり、無傷の敵には頭数が揃ってから手を出す。
@@ -423,7 +423,7 @@ func _weak_action(state: BattleState, u: Unit) -> AiAction:
 ##
 ## 拠点は取らない（占領の行を持たない）。占領兵を混ぜても拠点へは向かわない。
 func _swarm_action(state: BattleState, u: Unit) -> AiAction:
-	var move_field := state.move_cost_field(u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
 	var wounded := _wounded_of(state, u, move_field)
 	if wounded != null:
 		var standoff := _standoff_row(state, u, wounded)
@@ -460,10 +460,10 @@ func _swarm_action(state: BattleState, u: Unit) -> AiAction:
 	# 7/8 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
 	if wounded != null and _in_sight(state, u, wounded):
 		var cells := state.attack_cells(u.id, wounded.id)
-		if state.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
-			return _advance(state, u, state.move_cost_field(u.id, wounded.pos), cells)
-		if state.terrain_distance(u.id, cells) < BattleState.UNREACHABLE:
-			return _advance(state, u, state.terrain_cost_field(u.id, wounded.pos), cells)
+		if AiDistance.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
+			return _advance(state, u, AiDistance.move_cost_field(state, u.id, wounded.pos), cells)
+		if AiDistance.terrain_distance(state, u.id, cells) < BattleState.UNREACHABLE:
+			return _advance(state, u, AiDistance.terrain_cost_field(state, u.id, wounded.pos), cells)
 	return _advance_to_nearest_enemy(state, u)
 
 # --- 行の部品 ---
@@ -624,12 +624,12 @@ func _shift_to_shoot_row(state: BattleState, u: Unit) -> AiAction:
 ## 移動距離 → 地形距離 → 盤上距離。
 func _nearest_cell_to_goals(state: BattleState, u: Unit, cells: Array[Vector2i],
 		goals: Array[Vector2i]) -> Vector2i:
-	var goal := _nearest_hex_in(state.move_cost_field(u.id, u.pos), goals)
+	var goal := _nearest_hex_in(AiDistance.move_cost_field(state, u.id, u.pos), goals)
 	if goal != NO_HEX:
-		return _nearest_cell_in_field(u, cells, state.move_cost_field(u.id, goal))
-	goal = _nearest_hex_in(state.terrain_cost_field(u.id, u.pos), goals)
+		return _nearest_cell_in_field(u, cells, AiDistance.move_cost_field(state, u.id, goal))
+	goal = _nearest_hex_in(AiDistance.terrain_cost_field(state, u.id, u.pos), goals)
 	if goal != NO_HEX:
-		return _nearest_cell_in_field(u, cells, state.terrain_cost_field(u.id, goal))
+		return _nearest_cell_in_field(u, cells, AiDistance.terrain_cost_field(state, u.id, goal))
 	goal = _nearest_hex_by_board(u.pos, goals)
 	var board := {}
 	for h in cells:
@@ -700,14 +700,14 @@ func _frontmost_blocker_id(state: BattleState, u: Unit, shootable: Array[int]) -
 
 ## ignore の駒をどけると拠点への道が良くなるか。
 func _route_improves(state: BattleState, u: Unit, goals: Array[Vector2i], ignore: Dictionary) -> bool:
-	var before := state.min_cost_in(state.move_cost_field(u.id, u.pos), goals)
-	var after := state.min_cost_in(state.move_cost_field_without(u.id, u.pos, ignore), goals)
+	var before := AiDistance.min_cost_in(AiDistance.move_cost_field(state, u.id, u.pos), goals)
+	var after := AiDistance.min_cost_in(AiDistance.move_cost_field_without(state, u.id, u.pos, ignore), goals)
 	if after < before:
 		return true  # 体で道を塞いでいる（測れるようになった場合も含む）
-	var zoc_before := state.min_cost_in(state.detour_cost_field(u.id, u.pos), goals)
+	var zoc_before := AiDistance.min_cost_in(AiDistance.detour_cost_field(state, u.id, u.pos), goals)
 	if zoc_before < BattleState.UNREACHABLE:
 		return false  # ZOCを避ける道が残っている＝足は止まっていない
-	return state.min_cost_in(state.detour_cost_field(u.id, u.pos, -1, ignore), goals) \
+	return AiDistance.min_cost_in(AiDistance.detour_cost_field(state, u.id, u.pos, -1, ignore), goals) \
 		< BattleState.UNREACHABLE
 
 # --- 降ろす・乗る（doc/gdd/ai.md raid #8〜#10・輸送ユニット） ---
@@ -829,7 +829,7 @@ func _board_row(state: BattleState, u: Unit) -> AiAction:
 ## goals のいずれかへ着くまでのターン数＝地形距離 ÷ 移動力の切り上げ（最寄りの拠点で測る）。
 ## extra は便乗の +1。測れない・移動力0は UNREACHABLE＝徒歩が測れなければ便乗が必ず勝つ。
 func _arrival_turns(state: BattleState, u: Unit, goals: Array[Vector2i], extra: int) -> int:
-	var field := state.terrain_cost_field(u.id, u.pos)
+	var field := AiDistance.terrain_cost_field(state, u.id, u.pos)
 	var best := BattleState.UNREACHABLE
 	for g in goals:
 		best = mini(best, _turns_needed(int(field.get(g, BattleState.UNREACHABLE)), u.move))
@@ -848,7 +848,7 @@ func _advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false)
 	var enemies := _attackable_enemies(state, u)
 	if enemies.is_empty():
 		return null
-	var move_field := state.move_cost_field(u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
 	# 空敵の優先は最大前進の行だけ。見込前進・直線寄せまで優先すると、今ターン届かない飛行1体に
 	# 盤上の対空得意が全員吸われる（doc/gdd/ai.md charge #6・#7 の注記）。
 	var target: Unit = null
@@ -857,11 +857,11 @@ func _advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false)
 	if target == null:
 		target = _nearest_target(state, u, enemies, move_field)
 	if target != null:
-		return _advance(state, u, state.move_cost_field(u.id, target.pos),
+		return _advance(state, u, AiDistance.move_cost_field(state, u.id, target.pos),
 			state.attack_cells(u.id, target.id))
-	target = _nearest_target(state, u, enemies, state.terrain_cost_field(u.id, u.pos))
+	target = _nearest_target(state, u, enemies, AiDistance.terrain_cost_field(state, u.id, u.pos))
 	if target != null:
-		return _advance(state, u, state.terrain_cost_field(u.id, target.pos),
+		return _advance(state, u, AiDistance.terrain_cost_field(state, u.id, target.pos),
 			state.attack_cells(u.id, target.id))
 	return _advance_straight(state, u, _nearest_unit_by_board(u.pos, enemies).pos)
 
@@ -934,7 +934,7 @@ func _threat_cells(state: BattleState, u: Unit) -> Dictionary:
 	for e in state.units():
 		if e.team == u.team or e.attack_against(u) <= 0:
 			continue
-		var field := state.move_cost_field_without(e.id, e.pos, ignore)
+		var field := AiDistance.move_cost_field_without(state, e.id, e.pos, ignore)
 		for r in field:
 			if int(field[r]) > e.move:
 				continue  # 移動距離の表は何ターンぶんでも載る＝1ターンで届く範囲に切る
@@ -995,7 +995,7 @@ func _nearest_target(state: BattleState, u: Unit, enemies: Array[Unit], field: D
 	var best: Unit = null
 	var best_c := BattleState.UNREACHABLE
 	for e in enemies:
-		var c := state.min_cost_in(field, state.attack_cells(u.id, e.id))
+		var c := AiDistance.min_cost_in(field, state.attack_cells(u.id, e.id))
 		if c >= BattleState.UNREACHABLE:
 			continue
 		if best == null or c < best_c or (c == best_c and _is_younger_hex(e.pos, best.pos)):
@@ -1139,11 +1139,11 @@ func _flee_action(state: BattleState, u: Unit) -> AiAction:
 func _detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
 	if goals.is_empty():
 		return null
-	var detour_field := state.detour_cost_field(u.id, u.pos)
+	var detour_field := AiDistance.detour_cost_field(state, u.id, u.pos)
 	var goal := _nearest_hex_in(detour_field, goals)
 	if goal == NO_HEX:
 		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている → 待機
-	return _advance(state, u, state.detour_cost_field(u.id, goal), [goal])
+	return _advance(state, u, AiDistance.detour_cost_field(state, u.id, goal), [goal])
 
 # --- withdraw（撤退）の行動ルール（doc/gdd/ai.md withdraw） ---
 
@@ -1179,10 +1179,10 @@ func _withdraw_action(state: BattleState, u: Unit) -> AiAction:
 func _move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
 	if goals.is_empty():
 		return null
-	var goal := _nearest_hex_in(state.move_cost_field(u.id, u.pos), goals)
+	var goal := _nearest_hex_in(AiDistance.move_cost_field(state, u.id, u.pos), goals)
 	if goal == NO_HEX:
 		return null  # 移動距離が測れない＝道が塞がれている
-	return _advance(state, u, state.move_cost_field(u.id, goal), [goal])
+	return _advance(state, u, AiDistance.move_cost_field(state, u.id, goal), [goal])
 
 ## standoff（睨み合い）の行動ルール。先手を取れる距離まで詰めて、そこを保つ。
 ## 1 占領兵で移動範囲に自陣営以外の拠点 → 盤上距離が最小の拠点へ移動して占領
@@ -1224,14 +1224,14 @@ func _spacing_advance(state: BattleState, u: Unit) -> AiAction:
 	var safe := _safe_cells(state, u)
 	if safe.is_empty():
 		return null
-	var move_field := state.move_cost_field(u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
 	var target := _nearest_target(state, u, enemies, move_field)
 	if target != null:
-		return _spacing_step(state, u, safe, state.move_cost_field(u.id, target.pos),
+		return _spacing_step(state, u, safe, AiDistance.move_cost_field(state, u.id, target.pos),
 			state.attack_cells(u.id, target.id))
-	target = _nearest_target(state, u, enemies, state.terrain_cost_field(u.id, u.pos))
+	target = _nearest_target(state, u, enemies, AiDistance.terrain_cost_field(state, u.id, u.pos))
 	if target != null:
-		return _advance(state, u, state.terrain_cost_field(u.id, target.pos),
+		return _advance(state, u, AiDistance.terrain_cost_field(state, u.id, target.pos),
 			state.attack_cells(u.id, target.id), safe)
 	return _advance_straight(state, u, _nearest_unit_by_board(u.pos, enemies).pos, safe)
 
@@ -1307,7 +1307,7 @@ func _wounded_of(state: BattleState, u: Unit, move_field: Dictionary) -> Unit:
 	var best_c := BattleState.UNREACHABLE
 	for e in _attackable_enemies(state, u):
 		var pct := _damage_percent(e)
-		var c := state.min_cost_in(move_field, state.attack_cells(u.id, e.id))
+		var c := AiDistance.min_cost_in(move_field, state.attack_cells(u.id, e.id))
 		if best == null or pct > best_pct \
 				or (pct == best_pct and (c < best_c \
 					or (c == best_c and _is_younger_hex(e.pos, best.pos)))):

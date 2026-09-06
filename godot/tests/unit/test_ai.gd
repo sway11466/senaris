@@ -231,7 +231,7 @@ func test_charge_uses_terrain_distance_when_pieces_block_the_way() -> void:
 		var blocker := _ai(s, si, id, o.x, o.y)
 		s.set_done(blocker.id)  # もう動かない駒＝行動順で飛ばされる
 		id += 1
-	assert_eq(s.move_distance(10, s.attack_cells(10, 1)), BattleState.UNREACHABLE,
+	assert_eq(AiDistance.move_distance(s, 10, s.attack_cells(10, 1)), BattleState.UNREACHABLE,
 		"前提: 攻撃可能なマスが全部埋まっている＝移動距離は測れない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "地形距離で詰める")
@@ -247,7 +247,7 @@ func test_charge_closes_in_a_straight_line_when_walled_off() -> void:
 	var si := _squad(s, "charge")
 	var u := _ai(s, si, 10, 1, 2)
 	_pc(s, 1, 7, 2)
-	assert_eq(s.move_distance(10, s.attack_cells(10, 1)), BattleState.UNREACHABLE, "前提: 道が無い")
+	assert_eq(AiDistance.move_distance(s, 10, s.attack_cells(10, 1)), BattleState.UNREACHABLE, "前提: 道が無い")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_eq(_col(a.to), 3, "壁の手前まで詰める")
@@ -549,7 +549,7 @@ func test_raid_attacks_an_enemy_that_pins_it_with_zoc() -> void:
 	_ai(s, si, 10, 4, 3)
 	var e := _pc(s, 1, 5, 3)
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
-	assert_lt(s.min_cost_in(s.move_cost_field(10, s.unit_by_id(10).pos),
+	assert_lt(AiDistance.min_cost_in(AiDistance.move_cost_field(s, 10, s.unit_by_id(10).pos),
 		[Hex.offset_to_axial(9, 2)]), BattleState.UNREACHABLE, "体では塞がれていない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "ZOCで足を止めている敵は殴る")
@@ -675,7 +675,7 @@ func test_weak_flanks_around_the_zoc_band() -> void:
 	var u := _ai(s, si, 10, 1, 0)
 	var blocker := _pc(s, 1, 3, 1, 80)  # 近い抜け道の脇＝ZOCで蓋をする硬い駒
 	var prey := _pc(s, 2, 7, 0, 10)
-	assert_lt(s.detour_distance_to(10, prey.id), BattleState.UNREACHABLE,
+	assert_lt(AiDistance.detour_distance_to(s, 10, prey.id), BattleState.UNREACHABLE,
 		"前提: 遠い抜け道があるので迂回距離は測れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)

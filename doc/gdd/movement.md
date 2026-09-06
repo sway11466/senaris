@@ -38,7 +38,7 @@
 - **敵の足止め範囲（敵ユニットに隣接するマス）に入ると、そこで移動終了**＝その先へは進めない。マス自体には入れる。
 - **飛行を含む全移動タイプに適用**（移動タイプ非依存）。包囲（戦闘補正＝[combat.md](combat.md)）とは別軸。
 - **起点が足止め範囲内でも動き出せる**（起点には停止判定を適用しない）。
-- 実装: `BattleState.reachable`/`_in_enemy_zoc`、`Hex.flood_reach_cost` の `stop_fn`（終端ヘックス＝到達可だが非展開）。
+- 実装: `BattleState.reachable`/`in_enemy_zoc`、`Hex.flood_reach_cost` の `stop_fn`（終端ヘックス＝到達可だが非展開）。
 
 ## 攻撃後の再移動（ヒット&アウェイ）
 

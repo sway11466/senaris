@@ -70,7 +70,7 @@ func test_attack_cells_empty_without_antiair() -> void:
 	s.add_unit(ground)
 	s.add_unit(_flyer(2, 1, Hex.offset_to_axial(4, 4)))
 	assert_true(s.attack_cells(1, 2).is_empty(), "対空0は飛行を狙えない")
-	assert_eq(s.move_distance(1, s.attack_cells(1, 2)), BattleState.UNREACHABLE,
+	assert_eq(AiDistance.move_distance(s, 1, s.attack_cells(1, 2)), BattleState.UNREACHABLE,
 		"攻撃可能なマスが無い＝移動距離も測れない")
 
 func test_attack_cells_present_with_antiair() -> void:
@@ -82,7 +82,7 @@ func test_attack_cells_present_with_antiair() -> void:
 	s.add_unit(aa)
 	s.add_unit(_flyer(2, 1, Hex.offset_to_axial(4, 4)))
 	assert_eq(s.attack_cells(1, 2).size(), 6, "対空ありなら隣接6マス")
-	assert_lt(s.move_distance(1, s.attack_cells(1, 2)), BattleState.UNREACHABLE, "距離が測れる")
+	assert_lt(AiDistance.move_distance(s, 1, s.attack_cells(1, 2)), BattleState.UNREACHABLE, "距離が測れる")
 
 func test_attack_cells_ignore_turn_state() -> void:
 	# 距離は盤の形の話＝手番でない駒・攻撃済みの駒でも測れる。
@@ -120,7 +120,7 @@ func test_move_distance_measures_to_the_attack_cell() -> void:
 	var tp := Hex.offset_to_axial(6, 2)
 	s.add_unit(_melee(1, 0, from))
 	s.add_unit(_melee(2, 1, tp))
-	assert_eq(s.move_distance(1, s.attack_cells(1, 2)), Hex.distance(from, tp) - 1,
+	assert_eq(AiDistance.move_distance(s, 1, s.attack_cells(1, 2)), Hex.distance(from, tp) - 1,
 		"隣まで歩くぶんの地形コスト")
 
 func test_move_distance_blocked_by_pieces_but_terrain_distance_measures() -> void:
@@ -135,8 +135,8 @@ func test_move_distance_blocked_by_pieces_but_terrain_distance_measures() -> voi
 	for row in 3:  # 3列目を駒で塞ぐ（味方2体・敵1体）
 		s.add_unit(_melee(20 + row, 1 if row == 1 else 0, Hex.offset_to_axial(3, row)))
 	var cells := s.attack_cells(1, 2)
-	assert_eq(s.move_distance(1, cells), BattleState.UNREACHABLE, "駒の壁で道が無い")
-	assert_eq(s.terrain_distance(1, cells), Hex.distance(from, tp) - 1, "地形だけなら測れる")
+	assert_eq(AiDistance.move_distance(s, 1, cells), BattleState.UNREACHABLE, "駒の壁で道が無い")
+	assert_eq(AiDistance.terrain_distance(s, 1, cells), Hex.distance(from, tp) - 1, "地形だけなら測れる")
 
 func test_move_distance_unreachable_when_target_is_walled_in() -> void:
 	# 攻撃可能なマスが全部進入不可の地形＝標的の隣に立てない＝測れない。
@@ -149,8 +149,8 @@ func test_move_distance_unreachable_when_target_is_walled_in() -> void:
 	s.add_unit(_melee(1, 0, Hex.offset_to_axial(1, 2)))
 	s.add_unit(_melee(2, 1, tp))
 	var cells := s.attack_cells(1, 2)
-	assert_eq(s.move_distance(1, cells), BattleState.UNREACHABLE, "隣に立てない")
-	assert_eq(s.terrain_distance(1, cells), BattleState.UNREACHABLE, "地形距離も測れない")
+	assert_eq(AiDistance.move_distance(s, 1, cells), BattleState.UNREACHABLE, "隣に立てない")
+	assert_eq(AiDistance.terrain_distance(s, 1, cells), BattleState.UNREACHABLE, "地形距離も測れない")
 
 ## 3列目を柵で塞いだ盤（南に隙間1）。行動ユニットの移動力だけを変えて比べるための素。
 func _fence_state(move: int) -> BattleState:
@@ -167,8 +167,8 @@ func test_move_distance_excludes_steps_costlier_than_move() -> void:
 	# 柵＝コスト3は移動2の駒だけを締め出す。詳細 → doc/gdd/ai.md（用語 > 距離）
 	var slow := _fence_state(2)
 	var fast := _fence_state(3)
-	var slow_d := slow.move_distance(1, slow.attack_cells(1, 2))
-	var fast_d := fast.move_distance(1, fast.attack_cells(1, 2))
+	var slow_d := AiDistance.move_distance(slow, 1, slow.attack_cells(1, 2))
+	var fast_d := AiDistance.move_distance(fast, 1, fast.attack_cells(1, 2))
 	assert_gt(slow_d, fast_d, "移動2の駒は柵を通れない＝迂回のぶん遠い")
 	assert_lt(slow_d, BattleState.UNREACHABLE, "南の隙間から回れるので測れはする")
 
@@ -181,7 +181,7 @@ func test_distance_to_a_base_hex() -> void:
 	var base_hex := Hex.offset_to_axial(5, 2)
 	s.add_unit(_melee(1, 0, from))
 	var cells: Array[Vector2i] = [base_hex]
-	assert_eq(s.move_distance(1, cells), Hex.distance(from, base_hex), "拠点hexまで")
+	assert_eq(AiDistance.move_distance(s, 1, cells), Hex.distance(from, base_hex), "拠点hexまで")
 
 # --- 迂回距離 ---
 
@@ -198,8 +198,8 @@ func test_detour_distance_avoids_enemy_zoc() -> void:
 	s.add_unit(_melee(2, 1, tp))
 	s.add_unit(_melee(3, 1, Hex.offset_to_axial(3, 1)))  # 近い抜け道の脇に立つ別の敵
 	var cells := s.attack_cells(1, 2)
-	var straight := s.move_distance(1, cells)
-	var detour := s.detour_distance(1, cells, 2)
+	var straight := AiDistance.move_distance(s, 1, cells)
+	var detour := AiDistance.detour_distance(s, 1, cells, 2)
 	assert_lt(straight, BattleState.UNREACHABLE, "素の移動距離は近い抜け道を通る（対照）")
 	assert_lt(detour, BattleState.UNREACHABLE, "遠い抜け道があるので測れる")
 	assert_gt(detour, straight, "ZOCの帯を避けるぶん遠い")
@@ -213,9 +213,9 @@ func test_detour_distance_keeps_the_targets_own_zoc() -> void:
 	s.add_unit(_melee(1, 0, from))
 	s.add_unit(_melee(2, 1, tp))
 	var cells := s.attack_cells(1, 2)
-	assert_eq(s.detour_distance(1, cells, 2), s.move_distance(1, cells),
+	assert_eq(AiDistance.detour_distance(s, 1, cells, 2), AiDistance.move_distance(s, 1, cells),
 		"他に敵がいなければ移動距離と同じ＝標的の隣までは入れる")
-	assert_eq(s.detour_distance(1, cells), BattleState.UNREACHABLE,
+	assert_eq(AiDistance.detour_distance(s, 1, cells), BattleState.UNREACHABLE,
 		"標的のZOCまで避けると隣に入れない（除外しない理由）")
 
 func test_detour_distance_unreachable_when_zoc_seals_the_gap() -> void:
@@ -228,8 +228,8 @@ func test_detour_distance_unreachable_when_zoc_seals_the_gap() -> void:
 	s.add_unit(_melee(2, 1, tp))
 	s.add_unit(_melee(3, 1, Hex.offset_to_axial(3, 1)))  # 盤の高さ3＝この駒のZOCが盤を横切る
 	var cells := s.attack_cells(1, 2)
-	assert_lt(s.move_distance(1, cells), BattleState.UNREACHABLE, "移動距離は測れる")
-	assert_eq(s.detour_distance(1, cells, 2), BattleState.UNREACHABLE, "ZOCの帯で道が消える")
+	assert_lt(AiDistance.move_distance(s, 1, cells), BattleState.UNREACHABLE, "移動距離は測れる")
+	assert_eq(AiDistance.detour_distance(s, 1, cells, 2), BattleState.UNREACHABLE, "ZOCの帯で道が消える")
 
 func test_detour_distance_measurable_from_inside_zoc() -> void:
 	# すでに敵ZOC内に立っている駒でも測れる＝行動ユニットが今いるマスは避ける対象にしない。
@@ -241,9 +241,9 @@ func test_detour_distance_measurable_from_inside_zoc() -> void:
 	s.add_unit(_melee(1, 0, from))
 	s.add_unit(_melee(2, 1, tp))
 	s.add_unit(_melee(3, 1, Hex.neighbor(from, 0)))  # 起点に隣接する別の敵
-	assert_lt(s.detour_distance(1, s.attack_cells(1, 2), 2), BattleState.UNREACHABLE,
+	assert_lt(AiDistance.detour_distance(s, 1, s.attack_cells(1, 2), 2), BattleState.UNREACHABLE,
 		"起点から流す＝ZOC内から歩き出せる")
-	assert_true(s.detour_cost_field(1, tp, 2).has(from), "標的から流す＝自分のマスまで届く")
+	assert_true(AiDistance.detour_cost_field(s, 1, tp, 2).has(from), "標的から流す＝自分のマスまで届く")
 
 # --- 表（どちらから流すか） ---
 
@@ -257,9 +257,9 @@ func test_cost_fields_agree_in_both_directions() -> void:
 	s.add_unit(_melee(1, 0, from))
 	s.add_unit(_melee(2, 1, tp))
 	var cells := s.attack_cells(1, 2)
-	var mine := s.move_cost_field(1, from)
-	var theirs := s.move_cost_field(1, tp)
-	assert_eq(s.min_cost_in(mine, cells), s.min_cost_in(theirs, [from]) - 1,
+	var mine := AiDistance.move_cost_field(s, 1, from)
+	var theirs := AiDistance.move_cost_field(s, 1, tp)
+	assert_eq(AiDistance.min_cost_in(mine, cells), AiDistance.min_cost_in(theirs, [from]) - 1,
 		"標的から流した表で自分のマスを読むと、隣まで＋1マスぶん")
 	assert_true(theirs.has(from), "標的から流した表に自分のマスが載る（自分は壁にしない）")
 
@@ -272,7 +272,7 @@ func test_terrain_cost_field_ignores_pieces_in_both_directions() -> void:
 	s.add_unit(_melee(1, 0, from))
 	s.add_unit(_melee(2, 1, tp))
 	s.add_unit(_melee(3, 0, Hex.offset_to_axial(3, 1)))  # 間を塞ぐ味方
-	assert_eq(int(s.terrain_cost_field(1, from)[tp]), int(s.terrain_cost_field(1, tp)[from]),
+	assert_eq(int(AiDistance.terrain_cost_field(s, 1, from)[tp]), int(AiDistance.terrain_cost_field(s, 1, tp)[from]),
 		"駒を数えないので向きによらず同じ")
 
 func test_detour_cost_field_from_the_target() -> void:
@@ -283,17 +283,17 @@ func test_detour_cost_field_from_the_target() -> void:
 	var tp := Hex.offset_to_axial(6, 2)
 	s.add_unit(_melee(1, 0, from))
 	s.add_unit(_melee(2, 1, tp))
-	var field := s.detour_cost_field(1, tp, 2)
+	var field := AiDistance.detour_cost_field(s, 1, tp, 2)
 	for nb in Hex.neighbors(tp):
 		assert_true(field.has(nb), "標的の隣は載る（標的のZOCは避けない）")
-	assert_eq(int(field[from]), s.detour_distance(1, s.attack_cells(1, 2), 2) + 1,
+	assert_eq(int(field[from]), AiDistance.detour_distance(s, 1, s.attack_cells(1, 2), 2) + 1,
 		"標的から流した表で自分のマスを読むと、隣まで＋1マスぶん")
 
 func test_cost_fields_are_empty_for_unknown_unit() -> void:
 	# 居ない駒を渡したら空表・測れない（AIが撃破直後のIDを掴んでも落ちない）。
 	var s := BattleState.new(5, 5)
-	assert_true(s.move_cost_field(99, Hex.offset_to_axial(1, 1)).is_empty(), "移動の表は空")
-	assert_true(s.terrain_cost_field(99, Hex.offset_to_axial(1, 1)).is_empty(), "地形の表は空")
-	assert_true(s.detour_cost_field(99, Hex.offset_to_axial(1, 1)).is_empty(), "迂回の表は空")
-	assert_eq(s.move_distance(99, [Hex.offset_to_axial(1, 1)]), BattleState.UNREACHABLE, "測れない")
+	assert_true(AiDistance.move_cost_field(s, 99, Hex.offset_to_axial(1, 1)).is_empty(), "移動の表は空")
+	assert_true(AiDistance.terrain_cost_field(s, 99, Hex.offset_to_axial(1, 1)).is_empty(), "地形の表は空")
+	assert_true(AiDistance.detour_cost_field(s, 99, Hex.offset_to_axial(1, 1)).is_empty(), "迂回の表は空")
+	assert_eq(AiDistance.move_distance(s, 99, [Hex.offset_to_axial(1, 1)]), BattleState.UNREACHABLE, "測れない")
 	assert_true(s.attack_cells(99, 98).is_empty(), "攻撃可能なマスも空")
