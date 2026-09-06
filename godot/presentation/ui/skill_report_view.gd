@@ -9,7 +9,7 @@ class_name SkillReportView
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅（ユニット情報パネルのページャーと同じ）
 
 var _skins := {}
-var _result := {}
+var _result: SkillResult = null
 var _head: Label          # 据え置きの見出し（スキル名）＝どのページでも何のスキルかが見える
 var _side_head: Label     # 対象ページの見出し（%s → %s の攻撃）。サマリーでは隠す
 var _body: VBoxContainer  # ページの中身の器（ページ送りのたびに作り直す）
@@ -77,8 +77,8 @@ func bind(skins: Dictionary) -> void:
 	_skins = skins
 
 ## 解決結果を表示する（毎回サマリーページへリセット）。
-func show_result(result: Dictionary) -> void:
-	if result == null or result.is_empty():
+func show_result(result: SkillResult) -> void:
+	if result == null:
 		return
 	_result = result
 	_page = 0
@@ -87,7 +87,7 @@ func show_result(result: Dictionary) -> void:
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
 ## 出しているページを同じ result から組み直す（作り直しはしない）。
 func refresh_labels() -> void:
-	if not _result.is_empty():
+	if _result != null:
 		_render()
 
 ## ページを送る（範囲外は無視＝端でボタンは無効になっている）。UnitInfoPanel のホイールも呼ぶ。
@@ -100,18 +100,18 @@ func turn_page(delta: int) -> void:
 
 ## サマリー1枚＋着弾した対象ごとに1枚。
 func _page_count() -> int:
-	return 1 + (_result.get("results", []) as Array).size()
+	return 1 + _result.hits.size()
 
 func _render() -> void:
 	for c in _body.get_children():
 		_body.remove_child(c)  # queue_free 待ちの旧行が新行と同居して1フレーム崩れるのを避ける
 		c.queue_free()
-	_head.text = tr("recipe.%s.name" % String(_result.get("recipe", "")))
+	_head.text = tr("recipe.%s.name" % _result.recipe)
 	if _page == 0:
 		_side_head.hide()
 		_build_summary()
 	else:
-		_build_target(_result["results"][_page - 1])
+		_build_target(_result.hits[_page - 1])
 	var total := _page_count()
 	_page_label.text = "%d/%d" % [_page + 1, total]
 	_prev.disabled = _page <= 0
@@ -120,50 +120,48 @@ func _render() -> void:
 # --- サマリー（1ページ目） ---
 
 func _build_summary() -> void:
-	var caster: Dictionary = _result.get("caster", {})
-	if not caster.is_empty():
-		var team_text := tr("ui.info.team_ally") if int(caster.get("team", 0)) == 0 else tr("ui.info.team_enemy")
+	var caster := _result.caster
+	if caster != null:
+		var team_text := tr("ui.info.team_ally") if caster.team == 0 else tr("ui.info.team_enemy")
 		var caster_name := tr("ui.info.header_name") % [StrikeTable.display_name(_skins, caster), team_text]
 		_add_line(tr("ui.skillreport.caster") % caster_name)
 	var sep := HSeparator.new()
 	_body.add_child(sep)
-	var results: Array = _result.get("results", [])
-	if not results.is_empty():
-		for r in results:
-			var nm := StrikeTable.display_name(_skins, r["victim"])
-			var key := "ui.skillreport.loss_line_killed" if bool(r["killed"]) else "ui.skillreport.loss_line"
-			_add_line(tr(key) % [nm, int(r["loss"])])
+	var hits := _result.hits
+	if not hits.is_empty():
+		for h in hits:
+			var nm := StrikeTable.display_name(_skins, h.victim)
+			var key := "ui.skillreport.loss_line_killed" if h.killed else "ui.skillreport.loss_line"
+			_add_line(tr(key) % [nm, h.loss])
 		return
 	_build_no_damage_lines()
 
 ## 損害の出ないレシピ（バフ・解除・分裂・毒）と空撃ちのサマリー。効果と持続を、状態タブ・
 ## 戦闘レポートのバフ行と同じ書式（CombatReportView.status_text）で出す＝画面ごとに言葉を変えない。
 func _build_no_damage_lines() -> void:
-	var effect := String(Formation.RECIPES.get(String(_result.get("recipe", "")), {}).get("effect", ""))
-	var skill: Dictionary = _result.get("skill", {})
+	var effect := String(Formation.RECIPES.get(_result.recipe, {}).get("effect", ""))
+	var cast := _result.cast
 	match effect:
 		"buff", "dot":
-			_add_line(tr("ui.skillreport.target") % _buff_target_name(skill))
-			var status: Dictionary = _result.get("status", {})
+			_add_line(tr("ui.skillreport.target") % _buff_target_name(cast))
+			var status := _result.status
 			_add_line(tr("ui.info.modifier_remaining") % [CombatReportView.status_text(status),
 				int(status.get("remaining", 0))])
 		"cleanse":
-			var snap: Dictionary = skill.get("target", {})
-			var nm := StrikeTable.display_name(_skins, snap) if not snap.is_empty() else ""
-			var n := int(skill.get("cleansed", 0))
+			var snap: UnitSnapshot = cast.target if cast != null else null
+			var nm := StrikeTable.display_name(_skins, snap) if snap != null else ""
+			var n := cast.cleansed if cast != null else 0
 			_add_line(tr("ui.skillreport.cleansed") % [nm, n] if n > 0 \
 				else tr("ui.skillreport.cleansed_none") % nm)
 		"spawn":
-			var caster: Dictionary = _result.get("caster", {})
-			_add_line(tr("ui.skillreport.spawned") % StrikeTable.display_name(_skins, caster))
+			_add_line(tr("ui.skillreport.spawned") % StrikeTable.display_name(_skins, _result.caster))
 		_:
 			_add_line(tr("ui.skillreport.no_hits"))  # 面の中に対象が1体も居ない空撃ち
 
 ## バフ・毒の掛かり先。ユニットスキル＝対象1体の名前／陣形（グレイス）＝味方全体。
-func _buff_target_name(skill: Dictionary) -> String:
-	var snap: Dictionary = skill.get("target", {})
-	if not snap.is_empty():
-		return StrikeTable.display_name(_skins, snap)
+func _buff_target_name(cast: SkillCast) -> String:
+	if cast != null and cast.target != null:
+		return StrikeTable.display_name(_skins, cast.target)
 	return tr("ui.skillreport.target_all_allies")
 
 func _add_line(text: String) -> void:
@@ -174,10 +172,10 @@ func _add_line(text: String) -> void:
 
 # --- 対象ごと（2ページ目以降）。戦闘レポートの攻撃タブと同じ3列表（StrikeTable） ---
 
-func _build_target(r: Dictionary) -> void:
-	var caster: Dictionary = _result.get("caster", {})
-	var sn := StrikeTable.display_name(_skins, caster) if not caster.is_empty() else ""
-	var vn := StrikeTable.display_name(_skins, r["victim"])
+func _build_target(r: SkillHit) -> void:
+	var caster := _result.caster
+	var sn := StrikeTable.display_name(_skins, caster) if caster != null else ""
+	var vn := StrikeTable.display_name(_skins, r.victim)
 	_side_head.text = tr("ui.report.head_attack") % [sn, vn]
 	_side_head.show()
 	var grid := GridContainer.new()
@@ -186,12 +184,12 @@ func _build_target(r: Dictionary) -> void:
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 4)
 	_body.add_child(grid)
-	var hit: HitDetail = r["detail"]
+	var hit := r.detail
 	StrikeTable.fill(grid, sn, vn, hit)
 	var detail := Label.new()
 	detail.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# 表の下の補足＝表より一段小さく（戦闘レポートと同じ型づかい）。
 	detail.add_theme_font_size_override("font_size", 13)
 	detail.add_theme_color_override("font_color", StrikeTable.VALUE_COLOR)
-	detail.text = "\n".join(StrikeTable.damage_lines(vn, hit, int(r["victim"]["troops_before"])))
+	detail.text = "\n".join(StrikeTable.damage_lines(vn, hit, r.victim.troops_before))
 	_body.add_child(detail)

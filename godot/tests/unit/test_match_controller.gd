@@ -232,7 +232,7 @@ func test_attack_mutual_kill_emits_unit_died_twice_in_order() -> void:
 	var order: Array = []
 	mc.unit_attacked.connect(func(_a: int, _t: int, _d: int, _k: bool) -> void: order.append("attacked"))
 	mc.unit_died.connect(func(uid: int) -> void: order.append("died:%d" % uid))
-	mc.combat_resolved.connect(func(_d: Dictionary) -> void: order.append("resolved"))
+	mc.combat_resolved.connect(func(_d: AttackResult) -> void: order.append("resolved"))
 	assert_true(mc.execute_attack(AttackCommand.new(1, 2)))
 	assert_eq(order, ["attacked", "died:2", "died:1", "resolved"],
 			"unit_attacked → 撃破(標的) → 反撃死(攻撃側) → combat_resolved の順")
@@ -262,8 +262,8 @@ func test_execute_formation_emits_died_per_kill() -> void:
 	died.sort()
 	assert_eq(died, [9, 10], "撃破された id が届く")
 	assert_signal_emit_count(mc, "formation_resolved", 1)
-	var result: Dictionary = get_signal_parameters(mc, "formation_resolved")[0]
-	assert_eq((result["results"] as Array).size(), 2, "着弾結果が2件")
+	var result: SkillResult = get_signal_parameters(mc, "formation_resolved")[0]
+	assert_eq(result.hits.size(), 2, "着弾結果が2件")
 	assert_signal_not_emitted(mc, "battle_finished")
 
 func test_execute_formation_invalid_fails_without_signals() -> void:

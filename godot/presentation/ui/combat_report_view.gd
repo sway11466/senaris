@@ -15,7 +15,7 @@ const FIG_SIZE := 96.0        # ユニットの絵の一辺
 const TAB_MIN_W := 120.0      # タブ1枚の最低幅
 
 var _skins := {}
-var _detail := {}
+var _detail: AttackResult = null
 var _tabs := {}  # "summary"/"attack"/"counter" -> Button
 var _tab := "summary"  # いま出しているタブ。言語が変わったとき同じタブで描き直すのに使う
 
@@ -77,11 +77,11 @@ func _ready() -> void:
 func bind(skins: Dictionary) -> void:
 	_skins = skins
 
-## 戦闘結果 detail を表示する（毎回サマリータブへリセット）。
-func show_report(detail: Dictionary) -> void:
-	if detail == null or detail.is_empty():
+## 戦闘結果 result を表示する（毎回サマリータブへリセット）。
+func show_report(result: AttackResult) -> void:
+	if result == null:
 		return
-	_detail = detail
+	_detail = result
 	var b: Button = _tabs["summary"]
 	b.button_pressed = true
 	_show_tab("summary")
@@ -95,7 +95,7 @@ func refresh_labels() -> void:
 	_show_tab(_tab)
 
 func _show_tab(id: String) -> void:
-	if _detail.is_empty():
+	if _detail == null:
 		return
 	_tab = id
 	_side_head.visible = id != "summary"
@@ -110,10 +110,10 @@ func _show_tab(id: String) -> void:
 ## 表示サイドの束を組む。snap＝スナップショット／atk・def＝その側が実際に使った内訳
 ## （反撃なしの向きは null＝表示は「反撃なし」や「—」で描き分ける）。
 func _sides() -> Dictionary:
-	var a: Dictionary = _detail["attacker"]
-	var t: Dictionary = _detail["defender"]
-	var fwd: HitDetail = _detail["to_defender"]
-	var ret: HitDetail = _detail["to_attacker"]
+	var a := _detail.attacker
+	var t := _detail.defender
+	var fwd := _detail.to_defender
+	var ret := _detail.to_attacker
 	var atk_side := {
 		"snap": a, "is_attacker": true,
 		"atk": fwd.attack,
@@ -124,8 +124,8 @@ func _sides() -> Dictionary:
 		"atk": (ret.attack if ret != null else null),
 		"def": fwd.defense,
 	}
-	var left := atk_side if int(a["team"]) == 0 else def_side
-	var right := def_side if int(a["team"]) == 0 else atk_side
+	var left := atk_side if a.team == 0 else def_side
+	var right := def_side if a.team == 0 else atk_side
 	return {"left": left, "right": right}
 
 # --- サマリー（表） ---
@@ -137,8 +137,8 @@ func _rebuild_summary() -> void:
 	var s := _sides()
 	var L: Dictionary = s["left"]
 	var R: Dictionary = s["right"]
-	var ls: Dictionary = L["snap"]
-	var rs: Dictionary = R["snap"]
+	var ls: UnitSnapshot = L["snap"]
+	var rs: UnitSnapshot = R["snap"]
 	_add_control_row(_figure(ls), "", _figure(rs))
 	_add_row(_name_lv(ls), "", _name_lv(rs))
 	_add_row(_troops_text(ls), tr("ui.report.strength_change"), _troops_text(rs))
@@ -153,9 +153,9 @@ func _rebuild_summary() -> void:
 	_add_status_rows(ls, rs)
 
 ## バフ行（両側の statuses を行単位でペアにする。数が違う側は空欄）。
-func _add_status_rows(ls: Dictionary, rs: Dictionary) -> void:
-	var lst: Array = ls.get("statuses", [])
-	var rst: Array = rs.get("statuses", [])
+func _add_status_rows(ls: UnitSnapshot, rs: UnitSnapshot) -> void:
+	var lst := ls.statuses
+	var rst := rs.statuses
 	for i in maxi(lst.size(), rst.size()):
 		var lt: String = status_text(lst[i]) if i < lst.size() else ""
 		var rt: String = status_text(rst[i]) if i < rst.size() else ""
@@ -168,7 +168,7 @@ func _add_control_row(left: Control, label: String, right: Control) -> void:
 	StrikeTable.add_control_row(_summary, left, label, right)
 
 ## ユニットの絵（combat スロット優先・map 代用＝演出シーンと同じ解決）。無ければ陣営色の板。
-func _figure(snap: Dictionary) -> Control:
+func _figure(snap: UnitSnapshot) -> Control:
 	var tex := _texture_of(snap)
 	if tex != null:
 		var tr := TextureRect.new()
@@ -178,12 +178,12 @@ func _figure(snap: Dictionary) -> Control:
 		tr.custom_minimum_size = Vector2(FIG_SIZE, FIG_SIZE)
 		return tr
 	var box := ColorRect.new()
-	box.color = TEAM_COLOR.get(int(snap.get("team", 0)), Color(0.5, 0.5, 0.5))
+	box.color = TEAM_COLOR.get(snap.team, Color(0.5, 0.5, 0.5))
 	box.custom_minimum_size = Vector2(FIG_SIZE, FIG_SIZE)
 	return box
 
-func _texture_of(snap: Dictionary) -> Texture2D:
-	var skin: UnitSkin = SkinCatalog.resolve(_skins, String(snap.get("skin_id", "")), String(snap["type_id"]), int(snap["team"]))
+func _texture_of(snap: UnitSnapshot) -> Texture2D:
+	var skin: UnitSkin = SkinCatalog.resolve(_skins, snap.skin_id, snap.type_id, snap.team)
 	if skin == null:
 		return null
 	var p := skin.image("combat")
@@ -193,14 +193,14 @@ func _texture_of(snap: Dictionary) -> Texture2D:
 		return load(p) as Texture2D
 	return null
 
-func _display_name(snap: Dictionary) -> String:
+func _display_name(snap: UnitSnapshot) -> String:
 	return StrikeTable.display_name(_skins, snap)
 
-func _name_lv(snap: Dictionary) -> String:
-	return tr("ui.report.name_lv") % [_display_name(snap), int(snap["level"])]
+func _name_lv(snap: UnitSnapshot) -> String:
+	return tr("ui.report.name_lv") % [_display_name(snap), snap.level]
 
-func _troops_text(snap: Dictionary) -> String:
-	return "%d/%d → %d/%d" % [snap["troops_before"], snap["max"], snap["troops_after"], snap["max"]]
+func _troops_text(snap: UnitSnapshot) -> String:
+	return "%d/%d → %d/%d" % [snap.troops_before, snap.max_troops, snap.troops_after, snap.max_troops]
 
 func _total_text(bd: StatBreakdown, empty_text: String) -> String:
 	return StrikeTable.total_text(bd, empty_text)
@@ -213,8 +213,8 @@ func _base_atk_text(bd: StatBreakdown) -> String:
 func _base_def_text(bd: StatBreakdown) -> String:
 	return String.num_int64(bd.stat) if bd != null else NONE
 
-func _terrain_text(snap: Dictionary) -> String:
-	var terr := String(snap["terrain"])
+func _terrain_text(snap: UnitSnapshot) -> String:
+	var terr := snap.terrain
 	return "%s ×%.2f/×%.2f" % [tr("terrain_type." + terr + ".name"), TerrainType.attack_factor(terr), TerrainType.defense_factor(terr)]
 
 ## 包囲は攻防共通の係数＝どちらかの内訳から取り出す（反撃なし側は攻が無い）。
@@ -264,11 +264,11 @@ func _rebuild_direction(forward: bool) -> void:
 	for c in _summary.get_children():
 		_summary.remove_child(c)
 		c.queue_free()
-	var a: Dictionary = _detail["attacker"]
-	var t: Dictionary = _detail["defender"]
-	var hit: HitDetail = _detail["to_defender"] if forward else _detail["to_attacker"]
-	var striker: Dictionary = a if forward else t
-	var victim: Dictionary = t if forward else a
+	var a := _detail.attacker
+	var t := _detail.defender
+	var hit := _detail.to_defender if forward else _detail.to_attacker
+	var striker := a if forward else t
+	var victim := t if forward else a
 	var sn := _display_name(striker)
 	var vn := _display_name(victim)
 	_side_head.text = tr("ui.report.head_attack" if forward else "ui.report.head_counter") % [sn, vn]
@@ -278,5 +278,5 @@ func _rebuild_direction(forward: bool) -> void:
 	# 表と損害の式は StrikeTable（スキルレポートと共通部品）。損害の出し方は左右に割らず、
 	# 幅いっぱいで式に数字を入れて見せる＝表の2つの実効値がそのまま式に入るのを見せる。
 	StrikeTable.fill(_summary, sn, vn, hit)
-	_detail_label.text = "\n".join(StrikeTable.damage_lines(vn, hit, int(victim["troops_before"])))
+	_detail_label.text = "\n".join(StrikeTable.damage_lines(vn, hit, victim.troops_before))
 

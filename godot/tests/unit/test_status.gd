@@ -81,7 +81,7 @@ func test_add_debuff_floors_defense_at_zero() -> void:
 	var df := Combat.defense_breakdown_from(4, 10, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, -200.0)
 	assert_almost_eq(df.total, 0.0, 0.001, "さらに深い減算でも 0 のまま（硬くならない）")
 	var r := s.attack(1, 2)
-	assert_true(r["killed"], "防御0＝素通しで全滅する")
+	assert_true(r.killed(), "防御0＝素通しで全滅する")
 
 func test_no_mods_is_regression() -> void:
 	# 状態補正が無ければ mul=1.0・add=0＝従来の計算と一致（回帰防止）。
@@ -115,11 +115,11 @@ func test_combat_detail_snapshot_includes_statuses() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 30, 30))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 30, 30))
 	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "remaining": 2, "name": "グレイス"})
-	var d: Dictionary = s.attack(1, 2)["detail"]
-	var a_statuses: Array = d["attacker"]["statuses"]
+	var d := s.attack(1, 2)
+	var a_statuses := d.attacker.statuses
 	assert_eq(a_statuses.size(), 1, "攻撃側(team0)にバフ1件")
 	assert_eq(String(a_statuses[0]["name"]), "グレイス", "表示名まで届く")
-	assert_eq((d["defender"]["statuses"] as Array).size(), 0, "防御側(team1)には効いていない")
+	assert_eq(d.defender.statuses.size(), 0, "防御側(team1)には効いていない")
 
 func test_formation_buff_entry_carries_recipe_name() -> void:
 	# FormationResolver.resolve の buff 経路で、エントリに陣形レシピの表示名が焼き込まれる。
@@ -132,7 +132,7 @@ func test_formation_buff_entry_carries_recipe_name() -> void:
 		members.append(u)
 	var options := Formation.available_for(s, members[0])
 	assert_gt(options.size(), 0, "グレイスが成立している前提")
-	assert_true(FormationResolver.resolve(s, options[0], c).size() > 0, "発動成功")
+	assert_not_null(FormationResolver.resolve(s, options[0], c), "発動成功")
 	var lead := members[0]
 	var applied := StatusMod.applied(s._status_mods, lead)
 	assert_eq(applied.size(), 1, "バフエントリが積まれる")

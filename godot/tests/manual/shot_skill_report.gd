@@ -31,12 +31,17 @@ func _initialize() -> void:
 		_shots.append([loc, "pixie", 0, "skill_%s_pixie.png" % loc])
 		_shots.append([loc, "empty", 0, "skill_%s_empty.png" % loc])
 
-func _snap(id: int, type_id: String, team: int, level: int, troops: int, max_troops: int) -> Dictionary:
-	return {
-		"id": id, "type_id": type_id, "skin_id": "", "team": team, "level": level,
-		"troops_before": troops, "troops_after": troops, "max": max_troops,
-		"terrain": "plain", "pos": Vector2i(0, 0), "statuses": [],
-	}
+func _snap(id: int, type_id: String, team: int, level: int, troops: int, max_troops: int) -> UnitSnapshot:
+	var s := UnitSnapshot.new()
+	s.id = id
+	s.type_id = type_id
+	s.team = team
+	s.level = level
+	s.troops_before = troops
+	s.troops_after = troops
+	s.max_troops = max_troops
+	s.terrain = "plain"
+	return s
 
 func _hit(v_troops: int, v_def: int) -> HitDetail:
 	# 数字は手組み（式の検算はテストの仕事＝ここは文言と幅だけ見る）。
@@ -44,49 +49,56 @@ func _hit(v_troops: int, v_def: int) -> HitDetail:
 	var df := Combat.defense_breakdown_from(v_troops, v_def, 1.01, 0.68, 1.2, 0.0, 0.5, 1.0, 0.0)
 	return Combat.hit_from_breakdowns(atk, df, v_troops)
 
-func _nova() -> Dictionary:
-	var caster := _snap(1, "Wizard", 0, 2, 6, 8)
+func _skill_hit(target_id: int, hex: Vector2i, h: HitDetail, victim: UnitSnapshot, killed: bool) -> SkillHit:
+	var sh := SkillHit.new()
+	sh.target_id = target_id
+	sh.hex = hex
+	sh.loss = h.loss
+	sh.killed = killed
+	sh.detail = h
+	sh.victim = victim
+	return sh
+
+func _base(recipe: String, caster: UnitSnapshot, center: Vector2i, leader_id: int) -> SkillResult:
+	var r := SkillResult.new()
+	r.recipe = recipe
+	r.caster = caster
+	r.center = center
+	r.leader_id = leader_id
+	return r
+
+func _nova() -> SkillResult:
+	var r := _base("trinity_nova", _snap(1, "Wizard", 0, 2, 6, 8), Vector2i(4, 3), 1)
 	var h1 := _hit(8, 20)
 	var v1 := _snap(9, "Goblin Grunt", 1, 1, 8, 8)
-	v1["troops_after"] = 8 - h1.loss
+	v1.troops_after = 8 - h1.loss
 	var h2 := _hit(3, 8)
 	var v2 := _snap(10, "Goblin Archer", 1, 1, 3, 8)
-	v2["troops_after"] = maxi(3 - h2.loss, 0)
-	return {
-		"recipe": "trinity_nova",
-		"results": [
-			{"target_id": 9, "hex": Vector2i(4, 3), "loss": h1.loss, "killed": false, "detail": h1, "victim": v1},
-			{"target_id": 10, "hex": Vector2i(5, 3), "loss": 3, "killed": true, "detail": h2, "victim": v2},
-		],
-		"center": Vector2i(4, 3), "cells": [], "leader_id": 1,
-		"caster": caster,
-	}
+	v2.troops_after = maxi(3 - h2.loss, 0)
+	r.hits = [_skill_hit(9, Vector2i(4, 3), h1, v1, false), _skill_hit(10, Vector2i(5, 3), h2, v2, true)]
+	return r
 
-func _grace() -> Dictionary:
-	return {
-		"recipe": "grace", "results": [], "center": Vector2i(0, 0), "cells": [], "leader_id": 1,
-		"caster": _snap(1, "Cleric", 0, 3, 5, 8),
-		"status": {"scope": "team", "team": 0, "op": "mul", "target": "both", "value": 1.3,
-			"remaining": 1, "name": "グレイス", "kind": "buff"},
-	}
+func _grace() -> SkillResult:
+	var r := _base("grace", _snap(1, "Cleric", 0, 3, 5, 8), Vector2i(0, 0), 1)
+	r.status = {"scope": "team", "team": 0, "op": "mul", "target": "both", "value": 1.3,
+		"remaining": 1, "name": "グレイス", "kind": "buff"}
+	return r
 
-func _pixie() -> Dictionary:
-	var target := _snap(5, "Holy Knight", 0, 3, 7, 8)
-	return {
-		"recipe": "pixie_dust", "results": [], "center": Vector2i(0, 0), "cells": [], "leader_id": 2,
-		"caster": _snap(2, "Pixie", 0, 1, 8, 8),
-		"status": {"scope": "unit", "unit_id": 5, "op": "add", "target": "both", "value": 80.0,
-			"remaining": 3, "name": "ピクシーダスト", "kind": "buff"},
-		"skill": {"recipe": "pixie_dust", "caster": _snap(2, "Pixie", 0, 1, 8, 8), "target": target},
-	}
+func _pixie() -> SkillResult:
+	var r := _base("pixie_dust", _snap(2, "Pixie", 0, 1, 8, 8), Vector2i(0, 0), 2)
+	r.status = {"scope": "unit", "unit_id": 5, "op": "add", "target": "both", "value": 80.0,
+		"remaining": 3, "name": "ピクシーダスト", "kind": "buff"}
+	var c := SkillCast.new()
+	c.recipe = "pixie_dust"
+	c.caster = _snap(2, "Pixie", 0, 1, 8, 8)
+	c.target = _snap(5, "Holy Knight", 0, 3, 7, 8)
+	r.cast = c
+	return r
 
-func _empty() -> Dictionary:
-	return {
-		"recipe": "trinity_nova", "results": [], "center": Vector2i(4, 3), "cells": [], "leader_id": 1,
-		"caster": _snap(1, "Wizard", 0, 2, 6, 8),
-	}
+func _empty() -> SkillResult:
+	return _base("trinity_nova", _snap(1, "Wizard", 0, 2, 6, 8), Vector2i(4, 3), 1)
 
-func _result_of(key: String) -> Dictionary:
+func _result_of(key: String) -> SkillResult:
 	match key:
 		"nova": return _nova()
 		"grace": return _grace()

@@ -100,7 +100,7 @@ func test_play_without_pending_does_nothing() -> void:
 	var called := { "sync": false }
 	renderer.setup(null, null, Callable(), Callable(), null,
 		func() -> void: called["sync"] = true, Callable())
-	await renderer.play({}, false)
+	await renderer.play(SkillResult.new(), false)
 	assert_false(called["sync"], "pending でなければ sync は呼ばれない")
 
 func test_play_with_empty_hits_syncs() -> void:
@@ -108,7 +108,7 @@ func test_play_with_empty_hits_syncs() -> void:
 	var called := { "sync": false }
 	renderer.setup(null, null, Callable(), Callable(), null,
 		func() -> void: called["sync"] = true, Callable())
-	await renderer.play({"results": []}, false)
+	await renderer.play(SkillResult.new(), false)
 	assert_true(called["sync"], "空の hits で sync が呼ばれる")
 	assert_false(renderer.is_impacting(), "演出後は pending が解除される")
 
@@ -120,5 +120,5 @@ func test_impact_finished_emitted_on_empty_hits() -> void:
 		func() -> void: pass, Callable())
 	var called := { "emitted": false }
 	renderer.impact_finished.connect(func() -> void: called["emitted"] = true)
-	await renderer.play({"results": []}, false)
+	await renderer.play(SkillResult.new(), false)
 	assert_true(called["emitted"], "impact_finished が発行される")

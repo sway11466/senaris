@@ -44,15 +44,20 @@ res://
 ├── domain/            # 純ロジック・ノード非依存・テスト対象
 │   ├── hex/           # 座標・近傍・射程・経路
 │   ├── combat/        # 補正チェーン(レベル→包囲→支援→地形)
+│   │   ├── stat_breakdown.gd  # 実効攻撃力／防御力の内訳(係数ごとの値と total)
+│   │   ├── hit_detail.gd      # 1回の打撃(攻・防の内訳・割合・失う兵)
+│   │   └── attack_result.gd   # 1回の攻撃の結果(スナップショット＋往路・反撃の打撃。損害・撃破はここから導く)
 │   ├── surround/      # 包囲
 │   ├── formation/     # 陣形スキル・ユニットスキル(レシピ定義・判定・発動)
 │   │   ├── formation_option.gd    # 盤上で成立した選択肢1つ(レシピの値＋参加者。対象が要るか等の判断はここ)
+│   │   ├── skill_result.gd        # 発動結果(着弾 SkillHit の列・光らせる面・発動者・状態補正・演出用の SkillCast)
 │   │   └── formation_resolver.gd  # 発動の適用(盤を書き換える側。検出と威力は formation.gd)
 │   ├── capture/       # 占領
 │   ├── victory/       # 勝敗判定(殲滅・勝利条件・復帰手段)
 │   ├── sight/         # 視線(索敵の遮蔽・減衰)
 │   ├── status/        # 状態補正(バフ/デバフ・持続)
 │   ├── unit/          # ユニットの状態・型
+│   │   └── unit_snapshot.gd   # 戦闘前に固めた駒の姿(撃破後も演出・レポートが名前と兵数を出せる)
 │   ├── ai/            # 敵思考(domainクエリだけで完結)
 │   │   ├── trait_brain.gd  # 特性ベースの敵AI(行動順・起動判定・拠点出撃・特性への振り分け)
 │   │   ├── traits/         # 特性ごとの行動ルール(AiTrait を継承。charge/ambush/raid/predator/swarm/flee/withdraw/standoff)

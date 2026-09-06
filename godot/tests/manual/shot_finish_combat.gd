@@ -32,13 +32,10 @@ func _initialize() -> void:
 
 func _run() -> void:
 	await create_timer(0.2).timeout
-	var detail := {
-		"attacker": { "team": 0, "type_id": "fighter", "troops_before": 5, "troops_after": 5,
-			"terrain": "plain", "pos": Vector2i(0, 0) },
-		"defender": { "team": 1, "type_id": "fighter", "troops_before": 3, "troops_after": 0,
-			"terrain": "plain", "pos": Vector2i(1, 0) },
-		"to_attacker": null,
-	}
+	var detail := AttackResult.new()
+	detail.attacker = _snap(1, "fighter", 0, 1, 5, 5, 8, "plain", Vector2i(0, 0), [])
+	detail.defender = _snap(2, "fighter", 1, 1, 3, 0, 8, "plain", Vector2i(1, 0), [])
+	detail.to_attacker = null
 	_scene.arm_finisher()  # main._on_combat_resolved と同じ順（勝ち確定 → arm → play）
 	_scene.play(detail)
 	await create_timer(1.35).timeout  # LEAD_IN(0.95) 明け＝とどめの一斉射の直後
@@ -72,3 +69,18 @@ func _note(s: String) -> void:
 func _shot(fname: String) -> void:
 	root.get_texture().get_image().save_png(OUT.path_join(fname))
 	_note("shot: %s" % fname)
+
+func _snap(id: int, type_id: String, team: int, level: int, before: int, after: int, max_troops: int,
+		terrain: String, pos: Vector2i, statuses: Array) -> UnitSnapshot:
+	var s := UnitSnapshot.new()
+	s.id = id
+	s.type_id = type_id
+	s.team = team
+	s.level = level
+	s.troops_before = before
+	s.troops_after = after
+	s.max_troops = max_troops
+	s.terrain = terrain
+	s.pos = pos
+	s.statuses = statuses
+	return s

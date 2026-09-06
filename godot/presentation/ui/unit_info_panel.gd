@@ -780,8 +780,8 @@ func _action_state(u: Unit) -> String:
 # 表示は CombatReportView（サマリー/攻撃側/守備側の3タブ）へ委譲。
 # 式の整形も同ビューに集約している＝盤の数字と一致する根拠は combat_report_view.gd 参照。
 
-func show_combat(detail: Dictionary) -> void:
-	if detail == null or detail.is_empty():
+func show_combat(result: AttackResult) -> void:
+	if result == null:
 		return
 	_shown_unit = -1
 	_header.hide()
@@ -792,13 +792,13 @@ func show_combat(detail: Dictionary) -> void:
 	_skill_report.hide()
 	_view = "combat"
 	_report.show()
-	_report.show_report(detail)
+	_report.show_report(result)
 
 ## 陣形・ユニットスキルの解決後はスキルレポート。攻撃の戦闘レポートと同じ扱いで、発動と同時に
 ## 出して次の選択まで残す。result は MatchController.formation_resolved のもの。
 ## 仕様 → doc/tech/combat_scene.md 右パネル（スキルレポート）
-func show_skill_report(result: Dictionary) -> void:
-	if result == null or result.is_empty():
+func show_skill_report(result: SkillResult) -> void:
+	if result == null:
 		return
 	_shown_unit = -1
 	_header.hide()

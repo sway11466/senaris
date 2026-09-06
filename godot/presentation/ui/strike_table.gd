@@ -102,9 +102,9 @@ static func term_label(text: String) -> Label:
 # --- 値の整形 ---
 
 ## スナップショット（BattleState.unit_snapshot）の表示名。skin が引けなければ type_id。
-static func display_name(skins: Dictionary, snap: Dictionary) -> String:
-	var s: UnitSkin = SkinCatalog.resolve(skins, String(snap.get("skin_id", "")), snap["type_id"], snap["team"])
-	return TranslationServer.translate("unit." + s.skin_id + ".name") if s != null else String(snap["type_id"])
+static func display_name(skins: Dictionary, snap: UnitSnapshot) -> String:
+	var s: UnitSkin = SkinCatalog.resolve(skins, snap.skin_id, snap.type_id, snap.team)
+	return TranslationServer.translate("unit." + s.skin_id + ".name") if s != null else snap.type_id
 
 ## 攻撃の素の値＝対地/対空の別を添える（同じ駒でも相手で変わる）。サマリーと詳細で同じ書式。
 static func atk_stat_text(b: StatBreakdown) -> String:

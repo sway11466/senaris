@@ -80,16 +80,16 @@ func test_attack_detail_matches_applied_damage() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 50, 40, 1, "fighter"))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 50, 40, 1, "fighter"))
 	var r := s.attack(1, 2)
-	var d: Dictionary = r["detail"]
+	var d := r
 	# 盤の兵数の増減＝detail の loss＝戻り値の damage/retaliation（式が1か所だから必ず一致）
-	assert_eq(d["defender"]["troops_before"] - d["defender"]["troops_after"], r["damage"], "防御側の兵減＝damage")
-	assert_eq(d["attacker"]["troops_before"] - d["attacker"]["troops_after"], r["retaliation"], "攻撃側の兵減＝retaliation")
-	assert_eq(d["to_defender"].loss, r["damage"], "to_defender.loss＝damage")
-	assert_eq(d["to_attacker"].loss, r["retaliation"], "to_attacker.loss＝retaliation")
+	assert_eq(d.defender.troops_before - d.defender.troops_after, r.damage(), "防御側の兵減＝damage")
+	assert_eq(d.attacker.troops_before - d.attacker.troops_after, r.retaliation(), "攻撃側の兵減＝retaliation")
+	assert_eq(d.to_defender.loss, r.damage(), "to_defender.loss＝damage")
+	assert_eq(d.to_attacker.loss, r.retaliation(), "to_attacker.loss＝retaliation")
 	# スナップショットは戦闘前の値（撃破後も表示できるよう固める）
-	assert_eq(d["attacker"]["level"], 1, "戦闘前レベルを保持（加算前）")
-	assert_eq(d["attacker"]["max"], 8)
-	assert_eq(d["attacker"]["terrain"], "plateau", "足元の地形を保持")
+	assert_eq(d.attacker.level, 1, "戦闘前レベルを保持（加算前）")
+	assert_eq(d.attacker.max_troops, 8)
+	assert_eq(d.attacker.terrain, "plateau", "足元の地形を保持")
 
 func test_ranged_detail_has_no_retaliation() -> void:
 	var s := _state()
@@ -99,7 +99,7 @@ func test_ranged_detail_has_no_retaliation() -> void:
 	s.add_unit(a)
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))  # 距離2
 	var r := s.attack(1, 2)
-	var d: Dictionary = r["detail"]
-	assert_null(d["to_attacker"], "間接は反撃なし→ to_attacker は null")
-	assert_not_null(d["to_defender"], "前進ぶんは常にある")
-	assert_eq(d["attacker"]["troops_before"] - d["attacker"]["troops_after"], 0, "攻撃側は無傷")
+	var d := r
+	assert_null(d.to_attacker, "間接は反撃なし→ to_attacker は null")
+	assert_not_null(d.to_defender, "前進ぶんは常にある")
+	assert_eq(d.attacker.troops_before - d.attacker.troops_after, 0, "攻撃側は無傷")

@@ -26,7 +26,7 @@ func _initialize() -> void:
 		for tab in ["summary", "attack", "counter"]:
 			_shots.append([loc, tab, "report_%s_%s.png" % [loc, tab]])
 
-func _detail() -> Dictionary:
+func _detail() -> AttackResult:
 	# 数字は手組み（式の検算はテストの仕事＝ここは文言と幅だけ見る）。
 	var atk_fwd := Combat.attack_breakdown_from(12, 14, 1.02, 1.0, 0.9, 12.0, 1.3, 0.0)
 	var def_fwd := Combat.defense_breakdown_from(10, 9, 1.01, 0.68, 1.2, 8.0, 0.5, 1.0, 80.0)
@@ -36,24 +36,32 @@ func _detail() -> Dictionary:
 	var ret := Combat.hit_from_breakdowns(atk_ret, def_ret, 12)
 	var loss := fwd.loss
 	var loss2 := ret.loss
-	return {
-		"attacker": {
-			"id": 1, "type_id": "Holy Knight", "skin_id": "", "team": 0, "level": 3,
-			"troops_before": 12, "troops_after": 12 - loss2, "max": 12, "terrain": "forest", "pos": Vector2i(0, 0),
-			"statuses": [{"name": "Grace", "op": "mul", "value": 1.3, "target": "both"}],
-		},
-		"defender": {
-			"id": 2, "type_id": "Skeleton Warrior", "skin_id": "", "team": 1, "level": 2,
-			"troops_before": 10, "troops_after": 10 - loss, "max": 10, "terrain": "plateau", "pos": Vector2i(1, 0),
-			"statuses": [
-				{"name": "Pixie Dust", "op": "add", "value": 80.0, "target": "both"},
-				{"name": "Serpent Fang", "op": "dot", "value": 1},
-			],
-		},
-		"to_defender": fwd,
-		"to_attacker": ret,
-		"melee": true,
-	}
+	var out := AttackResult.new()
+	out.attacker = _snap(1, "Holy Knight", 0, 3, 12, 12 - loss2, 12, "forest", Vector2i(0, 0),
+		[{"name": "Grace", "op": "mul", "value": 1.3, "target": "both"}])
+	out.defender = _snap(2, "Skeleton Warrior", 1, 2, 10, 10 - loss, 10, "plateau", Vector2i(1, 0), [
+		{"name": "Pixie Dust", "op": "add", "value": 80.0, "target": "both"},
+		{"name": "Serpent Fang", "op": "dot", "value": 1},
+	])
+	out.to_defender = fwd
+	out.to_attacker = ret
+	out.melee = true
+	return out
+
+func _snap(id: int, type_id: String, team: int, level: int, before: int, after: int, max_troops: int,
+		terrain: String, pos: Vector2i, statuses: Array) -> UnitSnapshot:
+	var s := UnitSnapshot.new()
+	s.id = id
+	s.type_id = type_id
+	s.team = team
+	s.level = level
+	s.troops_before = before
+	s.troops_after = after
+	s.max_troops = max_troops
+	s.terrain = terrain
+	s.pos = pos
+	s.statuses = statuses
+	return s
 
 func _process(_delta: float) -> bool:
 	_frame += 1

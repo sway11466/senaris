@@ -357,6 +357,6 @@ func test_transport_death_kills_passengers() -> void:
 	s.add_unit(Unit.new(3, 0, Hex.offset_to_axial(0, 0), 3))  # 全滅回避用の自軍
 	s.current_team = 1
 	var r := s.attack(9, 1)
-	assert_true(bool(r["killed"]), "輸送が落ちる")
+	assert_true(r.killed(), "輸送が落ちる")
 	assert_eq(s.passengers(1).size(), 0, "中の駒も失われる")
 	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "巻き添えは撃破扱い（defeat_unit が成立）")

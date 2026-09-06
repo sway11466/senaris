@@ -205,11 +205,11 @@ func _install_state(state: BattleState, path: String) -> void:
 ## 戦闘結果 → 演出シーンへ。この一撃で勝ちが確定していれば（domain は解決済み＝演出より先に
 ## 分かる）、とどめの演出（スロー＋寄り＋白フラッシュへの繋ぎ）として見せる。
 ## 仕様 → doc/gdd/uiux.md 決着の合図
-func _on_combat_resolved(detail: Dictionary) -> void:
+func _on_combat_resolved(result: AttackResult) -> void:
 	if _win_decided():
 		_finisher_route = "combat"
 		_combat_scene.arm_finisher()
-	_combat_scene.play(detail)
+	_combat_scene.play(result)
 
 ## この時点で勝ちが確定しているか。combat_resolved / formation_resolved は盤の状態が確定した後・
 ## battle_finished より前に飛ぶ＝演出を組む前に決着を読める。
@@ -262,7 +262,7 @@ func _await_turn_banner() -> void:
 ## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインではなく演出シーン
 ## （効果対象が1体のものだけ＝doc/tech/combat_scene.md）を出す。
 ## 絵が無いレシピはカットインを飛ばす＝音と盤の結果は同じに出る。仕様 → doc/gdd/formations.md
-func _on_formation_resolved(result: Dictionary) -> void:
+func _on_formation_resolved(result: SkillResult) -> void:
 	# 発動と同時にスキルレポート（カットイン・着弾の間も右パネルに出ている）。盤側の選択解除
 	# （clear）が先に走る＝HexBoard.bind の接続がこのハンドラより先。仕様 → doc/tech/combat_scene.md
 	$Front/InfoPanel.show_skill_report(result)
@@ -270,15 +270,14 @@ func _on_formation_resolved(result: Dictionary) -> void:
 	if _win_decided():
 		_finisher_route = "formation"
 		$HexBoard.arm_finisher_impact()
-	var recipe := String(result.get("recipe", ""))
+	var recipe := result.recipe
 	if Formation.is_unit_skill(recipe):
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
 		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
 		_update_aura()
 		$HexBoard.play_formation_impact(result)  # 効果対象が1体＝着弾があれば盤にも出す
-		var skill: Dictionary = result.get("skill", {})
-		if _skill_scene != null and not skill.is_empty():
-			_skill_scene.play(skill)
+		if _skill_scene != null and result.cast != null:
+			_skill_scene.play(result.cast)
 		return
 	# 陣形の音はレシピごとに違う＝規約解決（assets/sfx/{recipe_id}.ogg と {recipe_id}_hit.ogg）。
 	# 面殲滅と全体バフで同じ音を鳴らすと、何が起きたのかが音から分からない。

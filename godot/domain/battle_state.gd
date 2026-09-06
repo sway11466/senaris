@@ -927,10 +927,10 @@ func attack_targets_from(attacker_id: int, from_hex: Vector2i) -> Array[int]:
 	return ids
 
 ## 攻撃を解決。両軍同時攻撃（防御側は反撃する）。
-## 成功なら {damage, killed, retaliation, attacker_killed, target_troops, attacker_troops}、不正なら空。
-func attack(attacker_id: int, target_id: int) -> Dictionary:
+## 成功なら AttackResult（損害・撃破はスナップショットと打撃の内訳から導く）、不正なら null。
+func attack(attacker_id: int, target_id: int) -> AttackResult:
 	if not can_attack(attacker_id, target_id):
-		return {}
+		return null
 	var a := unit_by_id(attacker_id)
 	var t := unit_by_id(target_id)
 	var melee := Hex.distance(a.pos, t.pos) <= 1  # 距離1の攻撃＝近接（反撃あり）、距離≥2＝遠隔（反撃なし）
@@ -949,8 +949,8 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	a.troops -= dmg_to_attacker
 	var target_killed := t.troops <= 0
 	var attacker_killed := a.troops <= 0
-	a_snap["troops_after"] = maxi(a.troops, 0)
-	t_snap["troops_after"] = maxi(t.troops, 0)
+	a_snap.troops_after = maxi(a.troops, 0)
+	t_snap.troops_after = maxi(t.troops, 0)
 	# レベル: 戦ったら+1・倒したらさらに+1。攻撃側は常に参加。
 	# 防御側は反撃が成立したときだけ+1（間接で撃たれた側／対空なしで飛行に撃たれた側は+0）。
 	a.gain_level(1 + (1 if target_killed else 0))
@@ -964,21 +964,13 @@ func attack(attacker_id: int, target_id: int) -> Dictionary:
 	# 被ダメは待ち伏せAIの確定起動トリガー（攻撃した側も当然起動済み）。詳細 → doc/gdd/ai.md
 	mark_engaged(attacker_id)
 	mark_engaged(target_id)
-	return {
-		"damage": dmg_to_target,
-		"killed": target_killed,
-		"retaliation": dmg_to_attacker,
-		"attacker_killed": attacker_killed,
-		"target_troops": maxi(t.troops, 0),
-		"attacker_troops": maxi(a.troops, 0),
-		"detail": {  # 戦闘結果ビュー用（式は Combat.hit_detail の1か所＝盤の兵数と一致）
-			"attacker": a_snap,
-			"defender": t_snap,
-			"to_defender": fwd,
-			"to_attacker": ret,
-			"melee": melee,
-		},
-	}
+	var out := AttackResult.new()
+	out.attacker = a_snap
+	out.defender = t_snap
+	out.to_defender = fwd
+	out.to_attacker = ret  # 戦闘結果ビュー用（式は Combat.hit_detail の1か所＝盤の兵数と一致）
+	out.melee = melee
+	return out
 
 # --- AIの距離の材料（測れない番兵・攻撃可能なマス）。距離そのものは AiDistance。詳細 → doc/gdd/ai.md（用語 > 距離） ---
 
@@ -1051,15 +1043,24 @@ func spawn_unit(caster_id: int) -> Unit:
 	set_done(new_id)  # 生まれたターンは行動済み
 	return spawned
 
-## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので dict に固める。attack と FormationResolver が撮る。
+## 表示用のユニットスナップショット（戦闘前）。撃破後も値が要るので UnitSnapshot に固める。attack と FormationResolver が撮る。
 ## statuses＝この時点で効いている状態補正エントリの一覧（戦闘レポートのバフ表示用）。
 ## pos は演出シーンが地面を組むのに要る（terrain＝性能IDだけでは平地/雪原の別＝スキンが決まらない）。
-func unit_snapshot(u: Unit) -> Dictionary:
-	return {
-		"id": u.id, "type_id": u.type_id, "skin_id": u.skin_id, "team": u.team, "level": u.level,
-		"troops_before": u.troops, "max": u.max_troops, "terrain": terrain_at(u.pos), "pos": u.pos,
-		"statuses": StatusMod.applied(_status_mods, u),
-	}
+## troops_after は troops_before と同じ値で返す＝兵数が動く呼び手が上書きする。
+func unit_snapshot(u: Unit) -> UnitSnapshot:
+	var s := UnitSnapshot.new()
+	s.id = u.id
+	s.type_id = u.type_id
+	s.skin_id = u.skin_id
+	s.team = u.team
+	s.level = u.level
+	s.troops_before = u.troops
+	s.troops_after = u.troops
+	s.max_troops = u.max_troops
+	s.terrain = terrain_at(u.pos)
+	s.pos = u.pos
+	s.statuses = StatusMod.applied(_status_mods, u)
+	return s
 
 ## 撃破された駒を盤から除去し、撃破済みとして記録（勝利条件「ボス撃破」の判定材料）。
 ## 輸送が撃破された場合、搭乗中の駒も失われる（ネクタリス準拠）。

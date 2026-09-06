@@ -298,9 +298,9 @@ func _run_turn(s: BattleState, team: int) -> void:
 			AiAction.Kind.MOVE:
 				assert_true(s.move_unit(a.unit_id, a.to), "AIの移動は妥当であるべき")
 			AiAction.Kind.ATTACK:
-				assert_false(s.attack(a.unit_id, a.target_id).is_empty(), "AIの攻撃は妥当であるべき")
+				assert_not_null(s.attack(a.unit_id, a.target_id), "AIの攻撃は妥当であるべき")
 			AiAction.Kind.SKILL:
-				assert_false(FormationResolver.resolve(s, a.option, a.to).is_empty(), "AIのスキルは妥当であるべき")
+				assert_not_null(FormationResolver.resolve(s, a.option, a.to), "AIのスキルは妥当であるべき")
 			AiAction.Kind.DEPLOY:
 				assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
 	fail_test("AIのターンが終了しなかった（無限ループの疑い）")
@@ -352,7 +352,7 @@ func test_ambush_wakes_when_shot_from_outside_its_sight() -> void:
 	var shooter := _pc(s, 1, 1, 1)
 	shooter.attack_range = 4  # 視線3の外から届く
 	s.current_team = 0
-	assert_false(s.attack(shooter.id, 10).is_empty(), "前提: sight の外から撃てる")
+	assert_not_null(s.attack(shooter.id, 10), "前提: sight の外から撃てる")
 	s.current_team = 1
 	assert_true(s.is_engaged(10), "撃たれたら起きる")
 	assert_not_null(_brain.next_action(s, 1))

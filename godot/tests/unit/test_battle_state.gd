@@ -46,7 +46,7 @@ func test_hit_and_run_move_after_attack() -> void:
 	rabbit.move_after_attack = true
 	s.add_unit(rabbit)
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 隣接敵
-	assert_false(s.attack(1, 2).is_empty(), "攻撃成功")
+	assert_not_null(s.attack(1, 2), "攻撃成功")
 	assert_true(s.can_still_move(1), "再移動ユニットは攻撃後も動ける")
 	assert_false(s.is_done(1), "攻撃後もまだ完了しない")
 	var away := Hex.neighbor(ap, 3)  # 敵の反対側へ離脱
@@ -86,7 +86,7 @@ func test_move_budget_shared_across_attack() -> void:
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(Hex.neighbor(ap, 0), 0), 3, 8, 10, 10))  # 2マス先
 	var adj := Hex.neighbor(ap, 0)
 	assert_true(s.move_unit(1, adj), "前進1（予算1を消費）")
-	assert_false(s.attack(1, 2).is_empty(), "隣接して攻撃")
+	assert_not_null(s.attack(1, 2), "隣接して攻撃")
 	assert_false(s.can_still_move(1), "予算を使い切ったので再移動不可（予算は移動と共有）")
 	assert_true(s.is_done(1))
 

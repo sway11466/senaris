@@ -10,8 +10,8 @@ class_name MatchController
 signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i, path: Array[Vector2i])
 signal move_rejected(unit_id: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
-signal combat_resolved(detail: Dictionary)  # 戦闘結果ビュー用の内訳（攻防の導出・損害）
-signal formation_resolved(result: Dictionary)  # 陣形スキルの解決結果（着弾ごとの損害・撃破）
+signal combat_resolved(result: AttackResult)  # 戦闘結果（スナップショット・攻防の内訳・損害）
+signal formation_resolved(result: SkillResult)  # 陣形スキルの解決結果（着弾ごとの損害・撃破）
 signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
 signal unit_unloaded(unit_id: int, transport_id: int, to: Vector2i)
 signal unit_entered_base(unit_id: int, base_hex: Vector2i)
@@ -70,14 +70,14 @@ func execute_attack(cmd: AttackCommand) -> bool:
 	if _finished:
 		return false
 	var result := state.attack(cmd.attacker_id, cmd.target_id)
-	if result.is_empty():
+	if result == null:
 		return false
-	unit_attacked.emit(cmd.attacker_id, cmd.target_id, result["damage"], result["killed"])
-	if result["killed"]:
+	unit_attacked.emit(cmd.attacker_id, cmd.target_id, result.damage(), result.killed())
+	if result.killed():
 		unit_died.emit(cmd.target_id)
-	if result["attacker_killed"]:  # 反撃で攻撃側も倒れうる
+	if result.attacker_killed():  # 反撃で攻撃側も倒れうる
 		unit_died.emit(cmd.attacker_id)
-	combat_resolved.emit(result["detail"])  # unit_attacked の後＝盤の選択解除より後に結果表示
+	combat_resolved.emit(result)  # unit_attacked の後＝盤の選択解除より後に結果表示
 	_check_finished()
 	return true
 
@@ -86,11 +86,11 @@ func execute_formation(cmd: FormationCommand) -> bool:
 	if _finished:
 		return false
 	var result := FormationResolver.resolve(state, cmd.option, cmd.target)
-	if result.is_empty():
+	if result == null:
 		return false
-	for r in result["results"]:
-		if bool(r["killed"]):
-			unit_died.emit(int(r["target_id"]))
+	for h in result.hits:
+		if h.killed:
+			unit_died.emit(h.target_id)
 	formation_resolved.emit(result)
 	_check_finished()  # 陣形でボスを撃破しうる（勝利条件）
 	return true

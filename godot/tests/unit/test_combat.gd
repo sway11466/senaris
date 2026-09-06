@@ -10,8 +10,8 @@ func test_even_fight_simultaneous() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
 	var r := s.attack(1, 2)
-	assert_eq(r["damage"], 4, "互角(8/10/10)同士は4減らす（A=D→割合0.5）")
-	assert_eq(r["retaliation"], 4, "同時攻撃なので反撃も4")
+	assert_eq(r.damage(), 4, "互角(8/10/10)同士は4減らす（A=D→割合0.5）")
+	assert_eq(r.retaliation(), 4, "同時攻撃なので反撃も4")
 	assert_eq(s.unit_by_id(2).troops, 4)
 	assert_eq(s.unit_by_id(1).troops, 4)
 
@@ -21,8 +21,8 @@ func test_attack_advantage_hits_harder() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 20, 10))               # 攻撃2倍
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
 	var r := s.attack(1, 2)
-	assert_eq(r["damage"], 6, "攻撃2倍(p=2)で割合0.8→6減らす")
-	assert_eq(r["retaliation"], 4, "防御は同じなので反撃は互角時と同じ4（攻防は独立）")
+	assert_eq(r.damage(), 6, "攻撃2倍(p=2)で割合0.8→6減らす")
+	assert_eq(r.retaliation(), 4, "防御は同じなので反撃は互角時と同じ4（攻防は独立）")
 
 func test_overwhelming_kills_without_loss() -> void:
 	var s := _state()
@@ -30,8 +30,8 @@ func test_overwhelming_kills_without_loss() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 100, 10))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 2, 1, 1))
 	var r := s.attack(1, 2)
-	assert_true(r["killed"], "圧倒的攻撃で撃破")
-	assert_false(r["attacker_killed"], "弱い反撃では落ちない")
+	assert_true(r.killed(), "圧倒的攻撃で撃破")
+	assert_false(r.attacker_killed(), "弱い反撃では落ちない")
 	assert_eq(s.unit_by_id(1).troops, 8, "微小な反撃は兵数を減らさない")
 	assert_null(s.unit_by_id(2), "倒した敵は盤から消える")
 
@@ -41,7 +41,7 @@ func test_simultaneous_mutual_kill() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 2, 100, 1))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 2, 100, 1))
 	var r := s.attack(1, 2)
-	assert_true(r["killed"] and r["attacker_killed"], "相討ちで両者撃破")
+	assert_true(r.killed() and r.attacker_killed(), "相討ちで両者撃破")
 	assert_null(s.unit_by_id(1))
 	assert_null(s.unit_by_id(2))
 
@@ -59,16 +59,16 @@ func test_attack_requires_adjacent_enemy() -> void:
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3, 8, 10, 10))  # 遠い
-	assert_true(s.attack(1, 2).is_empty(), "非隣接は攻撃不可")
+	assert_null(s.attack(1, 2), "非隣接は攻撃不可")
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 1), 3, 8, 10, 10))  # 味方が隣接
-	assert_true(s.attack(1, 3).is_empty(), "味方は攻撃不可")
+	assert_null(s.attack(1, 3), "味方は攻撃不可")
 
 func test_cannot_attack_off_turn() -> void:
 	var s := _state()
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
-	assert_true(s.attack(2, 1).is_empty(), "ターン外の陣営は攻撃できない")
+	assert_null(s.attack(2, 1), "ターン外の陣営は攻撃できない")
 
 func test_cannot_attack_twice() -> void:
 	var s := _state()
@@ -76,8 +76,8 @@ func test_cannot_attack_twice() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
 	s.add_unit(Unit.new(3, 1, Hex.neighbor(ap, 1), 3, 8, 10, 10))
-	assert_false(s.attack(1, 2).is_empty(), "1回目は成功")
-	assert_true(s.attack(1, 3).is_empty(), "同ターン2回目は不可")
+	assert_not_null(s.attack(1, 2), "1回目は成功")
+	assert_null(s.attack(1, 3), "同ターン2回目は不可")
 
 func test_attack_targets_lists_adjacent_enemies() -> void:
 	var s := _state()
@@ -97,8 +97,8 @@ func test_level_boosts_attack_and_defense() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10, 41))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10, 1))
 	var r := s.attack(1, 2)
-	assert_eq(r["damage"], 5, "Lv41攻撃(×1.40)で互角時の4より多く削る")
-	assert_eq(r["retaliation"], 3, "Lv41で防御も上がり被反撃は4より少ない")
+	assert_eq(r.damage(), 5, "Lv41攻撃(×1.40)で互角時の4より多く削る")
+	assert_eq(r.retaliation(), 3, "Lv41で防御も上がり被反撃は4より少ない")
 
 func test_level_gained_on_survived_fight() -> void:
 	var s := _state()
@@ -160,8 +160,8 @@ func test_indirect_no_retaliation() -> void:
 	s.add_unit(a)
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))  # 距離2
 	var r := s.attack(1, 2)
-	assert_true(r["damage"] > 0, "間接でも相手は削れる")
-	assert_eq(r["retaliation"], 0, "間接攻撃は反撃を受けない")
+	assert_true(r.damage() > 0, "間接でも相手は削れる")
+	assert_eq(r.retaliation(), 0, "間接攻撃は反撃を受けない")
 	assert_eq(s.unit_by_id(1).troops, 8, "攻撃側は無傷")
 
 func test_indirect_defender_gains_no_exp() -> void:
@@ -183,7 +183,7 @@ func test_indirect_benefits_from_surround_but_not_support() -> void:
 	var arch0 := Unit.new(1, 0, d + Vector2i(2, 0), 3, 8, 10, 10); arch0.attack_range = 2
 	control.add_unit(arch0)
 	control.add_unit(Unit.new(2, 1, d, 3, 8, 10, 10))
-	assert_eq(control.attack(1, 2)["damage"], 4, "包囲なし間接は4（A=D→0.5）")
+	assert_eq(control.attack(1, 2).damage(), 4, "包囲なし間接は4（A=D→0.5）")
 	# 包囲あり: 標的を team0 の2体（対角）で囲む → 包囲0.68。
 	var s := _state()
 	var arch := Unit.new(1, 0, d + Vector2i(2, 0), 3, 8, 10, 10); arch.attack_range = 2
@@ -192,7 +192,7 @@ func test_indirect_benefits_from_surround_but_not_support() -> void:
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(d, 0), 3))      # 囲み1
 	s.add_unit(Unit.new(4, 0, Hex.neighbor(d, 3), 3))      # 囲み2（対角）→ 包囲成立
 	# 防御 80×0.68=54.4、攻撃80 → 0.684 → 5。支援が乗っていれば 7 になるはず。
-	assert_eq(s.attack(1, 2)["damage"], 5, "間接でも包囲は効く（4→5）。ただし支援は乗らない（7ではない）")
+	assert_eq(s.attack(1, 2).damage(), 5, "間接でも包囲は効く（4→5）。ただし支援は乗らない（7ではない）")
 
 func test_can_attack_at_range() -> void:
 	var s := _state()
@@ -218,7 +218,7 @@ func test_ranged_unit_meleeing_at_distance1_is_melee() -> void:
 	s.add_unit(a)
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 距離1
 	var r := s.attack(1, 2)
-	assert_eq(r["retaliation"], 4, "距離1で殴った弓は近接扱い＝反撃4を受ける")
+	assert_eq(r.retaliation(), 4, "距離1で殴った弓は近接扱い＝反撃4を受ける")
 	assert_eq(s.unit_by_id(1).level, 2, "近接した攻撃側は+1")
 	assert_eq(s.unit_by_id(2).level, 2, "反撃した近接防御側も+1")
 
@@ -232,7 +232,7 @@ func test_min_range_dead_zone_cannot_hit_adjacent() -> void:
 	s.add_unit(a)
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 距離1＝死角
 	assert_false(s.can_attack(1, 2), "min_range2は隣接(距離1)を撃てない")
-	assert_true(s.attack(1, 2).is_empty(), "死角の敵への攻撃は不成立")
+	assert_null(s.attack(1, 2), "死角の敵への攻撃は不成立")
 	var s2 := _state()
 	var b := Unit.new(1, 0, ap, 3, 8, 10, 10)
 	b.min_range = 2
@@ -251,8 +251,8 @@ func test_min_range_defender_cannot_retaliate_in_melee() -> void:
 	d.attack_range = 3
 	s.add_unit(d)
 	var r := s.attack(1, 2)
-	assert_true(r["damage"] > 0, "攻撃側は当てる")
-	assert_eq(r["retaliation"], 0, "懐に死角の砲兵は距離1に反撃できない")
+	assert_true(r.damage() > 0, "攻撃側は当てる")
+	assert_eq(r.retaliation(), 0, "懐に死角の砲兵は距離1に反撃できない")
 	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は Lv+0")
 
 func test_combat_is_deterministic() -> void:
@@ -265,5 +265,5 @@ func test_combat_is_deterministic() -> void:
 		s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 6, 9, 12))
 		var r := s.attack(1, 2)
 		if first == -999:
-			first = r["damage"]
-		assert_eq(r["damage"], first, "毎回同じ結果（乱数なし）")
+			first = r.damage()
+		assert_eq(r.damage(), first, "毎回同じ結果（乱数なし）")

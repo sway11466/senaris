@@ -2,45 +2,45 @@ extends CombatStage
 class_name CombatScene
 ## 戦闘の進行。舞台（窓・地面・隊列・立ち絵・兵量バー・エフェクト）は CombatStage が持ち、
 ## ここは「ため→着弾→反撃→幕引き」の順番だけを組む。仕様 → doc/tech/combat_scene.md
-## MatchController.combat_resolved(detail) を受け、プレイヤー左／敵右で隊列を並べ、
-## シェイク＋フラッシュ＋損害数を出す。detail は BattleState.attack の "detail"。
+## MatchController.combat_resolved(result) を受け、プレイヤー左／敵右で隊列を並べ、
+## シェイク＋フラッシュ＋損害数を出す。result は BattleState.attack の AttackResult。
 
 const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
 const DAMAGE_OUTLINE := Color(0.47, 0.12, 0.12)  # 損害数の縁（赤＝減った）
 
-## 戦闘結果 detail を演出する。detail が空なら何もしない。
-func play(detail: Dictionary) -> void:
-	if detail == null or detail.is_empty():
+## 戦闘結果 result を演出する。result が無ければ何もしない。
+func play(result: AttackResult) -> void:
+	if result == null:
 		return
 	_build()  # 未生成なら組む（結線タイミングに依存しない）
-	var a: Dictionary = detail["attacker"]
-	var t: Dictionary = detail["defender"]
-	var counter: bool = detail.get("to_attacker") != null
+	var a := result.attacker
+	var t := result.defender
+	var counter := result.has_counter()
 
 	# 陣営で左右を固定（team0=左／team1=右）。攻撃側/防御側では入れ替えない。
-	var L: Dictionary = a if int(a["team"]) == 0 else t
-	var R: Dictionary = t if int(a["team"]) == 0 else a
-	var atk_side := "L" if int(a["team"]) == 0 else "R"
-	var def_side := "R" if int(a["team"]) == 0 else "L"
+	var L := a if a.team == 0 else t
+	var R := t if a.team == 0 else a
+	var atk_side := "L" if a.team == 0 else "R"
+	var def_side := "R" if a.team == 0 else "L"
 
 	_open(t, def_side, a)  # 地面は左右それぞれの駒の地形。重ね絵は守り手側
 	SfxPlayer.play_event("cmb_open")  # 幕開け。盤から演出へ表示が切り替わった合図
 	var gen := _gen
-	_render_side("L", L, int(L["troops_before"]))
-	_render_side("R", R, int(R["troops_before"]))
+	_render_side("L", L, L.troops_before)
+	_render_side("R", R, R.troops_before)
 
-	var def_dmg := int(t["troops_before"]) - int(t["troops_after"])
-	var atk_dmg := int(a["troops_before"]) - int(a["troops_after"])
-	var def_comb: Dictionary = R if def_side == "R" else L
-	var atk_comb: Dictionary = L if atk_side == "L" else R
-	var def_after := int(t["troops_after"])
-	var atk_after := int(a["troops_after"])
+	var def_dmg := t.troops_before - t.troops_after
+	var atk_dmg := a.troops_before - a.troops_after
+	var def_comb := R if def_side == "R" else L
+	var atk_comb := L if atk_side == "L" else R
+	var def_after := t.troops_after
+	var atk_after := a.troops_after
 
 	# 決着のとどめ（勝ちが確定した回＝main が arm_finisher 済み）。スローを掛けるのは
 	# 敵側（team1）を消し飛ばす一撃だけ＝攻めなら1撃目、反撃で決まったなら反撃側。
 	# 仕様 → doc/gdd/uiux.md 決着の合図
-	var st1 := FINISH_STRETCH if _finisher and int(t["team"]) == 1 and def_after == 0 else 1.0
-	var st2 := FINISH_STRETCH if _finisher and counter and int(a["team"]) == 1 and atk_after == 0 else 1.0
+	var st1 := FINISH_STRETCH if _finisher and t.team == 1 and def_after == 0 else 1.0
+	var st2 := FINISH_STRETCH if _finisher and counter and a.team == 1 and atk_after == 0 else 1.0
 
 	# ため：まず隊列を見せてから斬りかかる（突入直後に即着弾しない）。
 	# 一撃は放ってから着弾するまで時間がかかる（飛翔＋発数ぶんの時差）。この遅れを後続にも
@@ -51,13 +51,13 @@ func play(detail: Dictionary) -> void:
 		if gen == _gen:
 			_strike_side(def_side, def_dmg, def_after, def_comb, atk_comb, gen, st1))
 	if counter:
-		_tween.tween_interval(COUNTER_GAP + _strike_time(atk_comb, int(a["troops_before"])) * st1)
+		_tween.tween_interval(COUNTER_GAP + _strike_time(atk_comb, a.troops_before) * st1)
 		_tween.tween_callback(func() -> void:
 			if gen == _gen:
 				_strike_side(atk_side, atk_dmg, atk_after, atk_comb, def_comb, gen, st2))
 		_tween.tween_interval(0.7 + _strike_time(def_comb, def_after) * st2)
 	else:
-		_tween.tween_interval(0.7 + _strike_time(atk_comb, int(a["troops_before"])) * st1)
+		_tween.tween_interval(0.7 + _strike_time(atk_comb, a.troops_before) * st1)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
 			_dismiss())
@@ -68,7 +68,7 @@ func play(detail: Dictionary) -> void:
 ## シェイク・フラッシュ・損害数・兵量バーは最後の1発が届いた時点に揃える。
 ## stretch＝尺に掛ける倍率。1.0 より大きい＝決着のとどめ（スロー再生＋被弾側へ寄る）。
 ## 着弾の瞬間の反応（シェイク・フラッシュ・損害数）は等速のまま＝飛翔と時差だけが伸びる。
-func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dictionary, gen: int, stretch := 1.0) -> void:
+func _strike_side(side: String, dmg: int, after: int, comb: UnitSnapshot, by: UnitSnapshot, gen: int, stretch := 1.0) -> void:
 	var eff := _effect_of(by)
 	# 命中音。1発ずつではなく一撃につき鳴らす＝8体並ぶと8連射になって潰れる。
 	# 近接は1音（ここだけ）。遠距離は発射をここで鳴らし、着弾は最後の1発が届く時点に回す。
@@ -108,6 +108,6 @@ func _strike_side(side: String, dmg: int, after: int, comb: Dictionary, by: Dict
 
 ## その一撃が「放ってから最後の1発が届く」までの時間。飛翔＋発数ぶんの時差。
 ## shots は殴る時点で並んでいる数（反撃は減った後の数）＝play が先に見積もって幕引きを合わせる。
-func _strike_time(by: Dictionary, shots: int) -> float:
+func _strike_time(by: UnitSnapshot, shots: int) -> float:
 	var stagger := float(clampi(shots, 1, POS.size()) - 1) * STAGGER
 	return stagger + (FLIGHT if _is_projectile(by) else 0.0)

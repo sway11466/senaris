@@ -72,8 +72,8 @@ func test_pierce_reflected_in_attack_detail() -> void:
 	s.add_unit(mage)
 	s.add_unit(zombie)
 	var r := s.attack(1, 2)
-	var d: Dictionary = r["detail"]
-	assert_almost_eq(d["to_defender"].defense.pierce, 0.5, 0.001, "detail の防御内訳に貫通係数0.5が出る")
+	var d := r
+	assert_almost_eq(d.to_defender.defense.pierce, 0.5, 0.001, "detail の防御内訳に貫通係数0.5が出る")
 
 # --- 再調整後ロスター: 対空の担い手（弓兵・飛行・魔法兵に集約） ---
 

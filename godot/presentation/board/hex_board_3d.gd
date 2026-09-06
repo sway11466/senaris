@@ -597,20 +597,19 @@ func _enter_formation(option: FormationOption) -> void:
 ## 陣形スキルが解決した＝選択を解く。着弾がある場合、盤の作り直しは play_formation_impact まで
 ## 保留する（撃たれる前の姿のまま置く）＝カットインの裏で駒が消えない。順番は main が持つ。
 ## 詳細 → doc/gdd/formations.md 発動の演出
-func _on_formation_resolved(result: Dictionary) -> void:
-	# 着弾（results）が無くても、光らせる面（cells）があれば保留する＝光ってから盤を作り直す
+func _on_formation_resolved(result: SkillResult) -> void:
+	# 着弾（hits）が無くても、光らせる面（cells）があれば保留する＝光ってから盤を作り直す
 	# （スライムの複製は光の後に現れる。駒の居ない面への着弾も面を見せる）。
-	_impact_renderer.set_pending(not (result.get("results", []) as Array).is_empty()
-		or not (result.get("cells", []) as Array).is_empty())
+	_impact_renderer.set_pending(result.has_impact())
 	_deselect()
 	if not _impact_renderer.is_impacting():
 		_sync()
 
 ## 着弾を見せる（BoardImpactRenderer に委譲）。決着のとどめ（main が arm_finisher_impact 済み）は
 ## 先にカメラを着弾の中心へ寄せてから、スローの着弾を見せる。仕様 → doc/gdd/uiux.md 決着の合図
-func play_formation_impact(result: Dictionary) -> void:
-	if _impact_renderer.finisher_armed() and result.has("center"):
-		await zoom_to_finisher(Vector2i(result["center"]))
+func play_formation_impact(result: SkillResult) -> void:
+	if _impact_renderer.finisher_armed():
+		await zoom_to_finisher(result.center)
 	await _impact_renderer.play(result, _locked)
 
 ## 着弾演出が進行中か（盤が撃たれる前の姿を保持している間）。決着の告知はこれが終わるまで待つ。

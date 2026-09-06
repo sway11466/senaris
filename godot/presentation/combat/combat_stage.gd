@@ -312,7 +312,7 @@ func close_under_flash() -> void:
 ## 舞台を開く。ground＝重ね絵を出す側の駒（戦闘は守り手／スキルは対象）、ground_side＝その駒を
 ## 置く側、other＝反対側の駒。地面は左右半分に分け、それぞれの駒のマスのスキンで敷く。
 ## 進行（誰がいつ動くか）は継承側の play() が持つ。ここは幕が上がるところまで。
-func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
+func _open(ground: UnitSnapshot, ground_side: String, other: UnitSnapshot) -> void:
 	_gen += 1
 	_finisher_done = false
 	if _inner != null:
@@ -325,7 +325,7 @@ func _open(ground: Dictionary, ground_side: String, other: Dictionary) -> void:
 		_close_now()  # 前の幕引きの途中で次が来たら畳んでおく＝finished を待つ側を取り残さない
 	_clear(_fx)
 	_layout()
-	_bg = TERRAIN_COLOR.get(String(ground.get("terrain", "")), Color(0.35, 0.38, 0.34))
+	_bg = TERRAIN_COLOR.get(ground.terrain, Color(0.35, 0.38, 0.34))
 	_panel.queue_redraw()
 	var skin := _ground_skin_of(ground)
 	var other_skin := _ground_skin_of(other)
@@ -435,13 +435,10 @@ func _feature_texture(skin: TerrainSkin, slot: String, team: int) -> Texture2D:
 	return load(path) as Texture2D if ResourceLoader.exists(path) else null
 
 ## その駒が立っているマスにある拠点の所属チーム。拠点でない/中立/盤が未結線なら -1。
-func _base_team_of(comb: Dictionary) -> int:
+func _base_team_of(comb: UnitSnapshot) -> int:
 	if _state == null:
 		return -1
-	var pos: Variant = comb.get("pos")
-	if typeof(pos) != TYPE_VECTOR2I:
-		return -1
-	var base := _state.base_at(pos)
+	var base := _state.base_at(comb.pos)
 	return base.team if base != null else -1
 
 ## 重ね絵1枚ぶんの TextureRect（位置と大きさは呼び出し側が決める）。
@@ -456,18 +453,18 @@ func _feature_rect(tex: Texture2D, pos: Vector2, size2: Vector2) -> TextureRect:
 	return tr
 
 ## 隊列スロットに収まる兵量（1〜8）。値をそのまま信じず枠内に丸める。
-func _troops_of(comb: Dictionary) -> int:
-	return clampi(int(comb.get("troops_before", 1)), 1, POS.size())
+func _troops_of(comb: UnitSnapshot) -> int:
+	return clampi(comb.troops_before, 1, POS.size())
 
 func _other_side(side: String) -> String:
 	return "R" if side == "L" else "L"
 
 ## 片側の隊列＋兵量バーを count 兵ぶんで描き直す。animate=true は着弾時（バーが減っていく）。
 ## 並べ方はスキンの combat_lineup：single は複製せず1体だけ（馬車・ドラゴン級＝兵として数えない駒）。
-func _render_side(side: String, comb: Dictionary, count: int, animate: bool = false) -> void:
+func _render_side(side: String, comb: UnitSnapshot, count: int, animate: bool = false) -> void:
 	var layer: Control = _fig[side]
 	_clear(layer)
-	var team := int(comb.get("team", 0))
+	var team := comb.team
 	_shown[side] = count
 	_mirror[side] = _face_mirror(side, team)
 	var bar: Control = _bar[side]
@@ -556,7 +553,7 @@ func _draw_bar(side: String) -> void:
 			c.draw_rect(Rect2(slot.position, Vector2(cell * f, h)), col.lightened(0.15))
 		c.draw_rect(slot, BAR_EDGE, false, 1.0)
 
-func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2D, team: int, comb: Dictionary, mirror: bool = false) -> void:
+func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2D, team: int, comb: UnitSnapshot, mirror: bool = false) -> void:
 	var vp := _size()
 	var w := vp.y * FIG_H * s
 	if tex != null:
@@ -591,7 +588,7 @@ func _add_figure(layer: Control, cx: float, feet: float, s: float, tex: Texture2
 ## 隊列スロットごとの立ち絵。先頭は必ず本人で、2体目以降は従者（スキンの retainers）を
 ## 順に巡回して割り当てる。retainers が空なら全部本人＝従来どおりの見た目。
 ## ボス＋手下の一団を、絵を足さずに既存スキンの組み合わせで作るための仕組み。仕様 → doc/tech/combat_scene.md
-func _textures_for(comb: Dictionary, count: int) -> Array:
+func _textures_for(comb: UnitSnapshot, count: int) -> Array:
 	var own := _texture_for(comb)
 	var skin := _skin_of(comb)
 	var list: Array = skin.retainers if skin != null else []
@@ -611,7 +608,7 @@ func _retainer_texture(skin_id: String, fallback: Texture2D) -> Texture2D:
 	var tex := _skin_texture(s)
 	return tex if tex != null else fallback
 
-func _texture_for(comb: Dictionary) -> Texture2D:
+func _texture_for(comb: UnitSnapshot) -> Texture2D:
 	var skin := _skin_of(comb)
 	return _skin_texture(skin) if skin != null else null
 
@@ -625,16 +622,16 @@ func _skin_texture(skin: UnitSkin) -> Texture2D:
 	return null
 
 ## 本人（先頭スロット）の隊列内の正規化座標。single は1体の立ち位置、それ以外は隊列の先頭。
-func _lead_pos(comb: Dictionary) -> Vector2:
+func _lead_pos(comb: UnitSnapshot) -> Vector2:
 	var s := _skin_of(comb)
 	return SINGLE_POS if (s != null and s.is_single_figure()) else POS[0]
 
-func _skin_of(comb: Dictionary) -> UnitSkin:
-	return SkinCatalog.resolve(_skins, String(comb.get("skin_id", "")), String(comb["type_id"]), int(comb["team"]))
+func _skin_of(comb: UnitSnapshot) -> UnitSkin:
+	return SkinCatalog.resolve(_skins, comb.skin_id, comb.type_id, comb.team)
 
-func _placeholder_label(comb: Dictionary) -> String:
+func _placeholder_label(comb: UnitSnapshot) -> String:
 	var skin := _skin_of(comb)
-	return tr("unit." + skin.skin_id + ".name") if skin != null else String(comb.get("type_id", "?"))
+	return tr("unit." + skin.skin_id + ".name") if skin != null else comb.type_id
 
 ## 窓の形＝角を丸めた横長の矩形（左上から時計回り）。中身のクリップ形状も縁取りもこれ1つで決まる。
 ## 角の四分円は折れ線で近似する＝返す形は多角形のままなので、塗り（マスク）も枠線も同じ点列で描ける。
@@ -666,12 +663,9 @@ func _draw_edge() -> void:
 
 ## 地面の材料になる地形スキン。ステージの見た目差分を優先し、無ければ地形の既定スキン。
 ## pos が来ない古いデータでも既定スキンには落ちる（平地/雪原の別は付かないが地面は出る）。
-func _ground_skin_of(comb: Dictionary) -> TerrainSkin:
-	var pos: Variant = comb.get("pos")
-	var skin_id := ""
-	if typeof(pos) == TYPE_VECTOR2I:
-		skin_id = String(_terrain_skins.get(pos, ""))
-	return TerrainSkinCatalog.resolve(skin_id, String(comb.get("terrain", "")))
+func _ground_skin_of(comb: UnitSnapshot) -> TerrainSkin:
+	var skin_id := String(_terrain_skins.get(comb.pos, ""))
+	return TerrainSkinCatalog.resolve(skin_id, comb.terrain)
 
 ## 奥（画面上）を落とす縦グラデ。距離感を出しつつ、遠くのタイルの繰り返しを目立たせない。
 ## 立ち絵より下のレイヤーに敷くので、隊列は暗くならず地面だけが奥へ沈む。
@@ -704,13 +698,13 @@ func _flash(side: String, col: Color = Color(1, 1, 1, 0.55)) -> void:
 	tw.tween_callback(r.queue_free)
 
 ## 放つ側のエフェクト定義。スキン未設定・未定義IDなら null＝既定のスパークで出す。
-func _effect_of(comb: Dictionary) -> CombatEffect:
+func _effect_of(comb: UnitSnapshot) -> CombatEffect:
 	var skin := _skin_of(comb)
 	if skin == null:
 		return null
 	return CombatEffectCatalog.by_id(skin.combat_effect)
 
-func _is_projectile(comb: Dictionary) -> bool:
+func _is_projectile(comb: UnitSnapshot) -> bool:
 	var e := _effect_of(comb)
 	return e != null and e.is_projectile()
 

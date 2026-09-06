@@ -122,16 +122,16 @@ func reset() -> void:
 ## 画面全体の揺れは main が持つ（盤だけを揺らしても画面全体にはならない）。
 ## 着弾が無いもの（バフ・解除）は光らせず盤を更新するだけ＝呼び出し側で分岐しなくていい。
 ## is_locked は呼び出し元の現在のロック状態（演出終了後に元に戻すか判定するため）。
-func play(result: Dictionary, is_locked: bool) -> void:
+func play(result: SkillResult, is_locked: bool) -> void:
 	if not _impact_pending:
 		return  # 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み
-	var hits: Array = result.get("results", [])
+	var hits := result.hits
 	if hits.is_empty():
-		await _flash_cells_only(result.get("cells", []), is_locked)
+		await _flash_cells_only(result.cells, is_locked)
 		return
 	# ディバインジャッジメントは単体対象＝共通の3段では見せ場が無いので専用シーケンスへ。
 	# 絵が無ければ共通へ落とす（面の光と被弾フラッシュだけ＝穴が開かない）。
-	if String(result.get("recipe", "")) == "divine_judgment":
+	if result.recipe == "divine_judgment":
 		var dj_tex := _impact_texture("divine_judgment")
 		if dj_tex != null:
 			await _play_divine_judgment(hits[0], dj_tex, is_locked)
@@ -145,16 +145,16 @@ func play(result: Dictionary, is_locked: bool) -> void:
 	if gen != _impact_gen:
 		_end_impact()
 		return
-	var center := Vector2i(result.get("center", Vector2i.ZERO))
+	var center := result.center
 	# 面の光は駒の処理が終わるまで保たせる＝どの範囲の中で起きているのかが見えたまま進む。
-	_flash_cells(result.get("cells", []), HIT_CELL_HOLD + (HIT_DROP_SEC + HIT_STEP_SEC * float(hits.size())) * st)
-	var tex := _impact_texture(String(result.get("recipe", "")))
+	_flash_cells(result.cells, HIT_CELL_HOLD + (HIT_DROP_SEC + HIT_STEP_SEC * float(hits.size())) * st)
+	var tex := _impact_texture(result.recipe)
 	# 着弾中心に近い駒から外へ。同距離は id 順＝毎回同じ順で出る（見え方が揺れない）。
-	var order: Array = hits.duplicate()
-	order.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var da := Hex.distance(Vector2i(a["hex"]), center)
-		var db := Hex.distance(Vector2i(b["hex"]), center)
-		return da < db if da != db else int(a["target_id"]) < int(b["target_id"]))
+	var order := hits.duplicate()
+	order.sort_custom(func(a: SkillHit, b: SkillHit) -> bool:
+		var da := Hex.distance(a.hex, center)
+		var db := Hex.distance(b.hex, center)
+		return da < db if da != db else a.target_id < b.target_id)
 	for i in order.size():
 		_hit_unit(order[i], tex, st)
 		# 最後の1発は落ちて当たって消えるまで待ってから盤を作り直す（消えかけの駒を飛ばさない）。
@@ -169,7 +169,7 @@ func play(result: Dictionary, is_locked: bool) -> void:
 ## ディバインジャッジメント専用：ため（対象ヘクスの光）→ 光の柱がゆっくり降りて着弾 → 残光 → 引き。
 ## 対象は1体だけなので hit を直接受ける。被弾の処理（フラッシュ・兵数・撃破フェード）は
 ## 柱が着地した瞬間に共通の _land_hit で起こす。
-func _play_divine_judgment(hit: Dictionary, tex: Texture2D, is_locked: bool) -> void:
+func _play_divine_judgment(hit: SkillHit, tex: Texture2D, is_locked: bool) -> void:
 	var gen := _impact_gen
 	# 決着のとどめ＝柱の降下・残光・撃破フェードをスローで見せる（ためはそのまま）。
 	var st := FINISH_STRETCH if _finisher else 1.0
@@ -179,7 +179,7 @@ func _play_divine_judgment(hit: Dictionary, tex: Texture2D, is_locked: bool) -> 
 	if gen != _impact_gen:
 		_end_impact()
 		return
-	var hex := Vector2i(hit["hex"])
+	var hex := hit.hex
 	# ための光は柱が引き始めるまで居座らせる＝どこに落ちるのか・落ちているのかが見えたまま進む。
 	_flash_cells([hex], DJ_CHARGE_SEC + (DJ_DROP_SEC + DJ_HOLD_SEC) * st - HIT_CELL_RISE - HIT_CELL_SETTLE,
 		HIT_CELL_ALPHA, DJ_CHARGE_ALPHA_HOLD)
@@ -237,20 +237,20 @@ func _end_impact() -> void:
 ## 被弾した駒1体ぶん。エフェクトが上から落ちきった瞬間に駒が反応する
 ## （撃破ならその場でフェードアウト、生き残りは新しい兵数で組み直して光らせる）。
 ## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
-func _hit_unit(hit: Dictionary, tex: Texture2D, stretch := 1.0) -> void:
+func _hit_unit(hit: SkillHit, tex: Texture2D, stretch := 1.0) -> void:
 	var gen := _impact_gen
 	var on_land := func() -> void:
 		if gen == _impact_gen:
 			_land_hit(hit, stretch)
-	_spawn_burst(Vector2i(hit["hex"]), tex, on_land, stretch)
+	_spawn_burst(hit.hex, tex, on_land, stretch)
 
 
-func _land_hit(hit: Dictionary, stretch := 1.0) -> void:
-	var uid := int(hit["target_id"])
+func _land_hit(hit: SkillHit, stretch := 1.0) -> void:
+	var uid := hit.target_id
 	var node: Node3D = _unit_renderer.get_unit_node(uid)
 	if node == null:
 		return
-	if bool(hit["killed"]):
+	if hit.killed:
 		_unit_renderer.forget_unit(uid)
 		_fade_out_unit(node, stretch)
 		return

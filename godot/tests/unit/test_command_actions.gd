@@ -33,7 +33,7 @@ func test_attack_targets_from_empty_after_attacked() -> void:
 	var enemy_axial := Hex.offset_to_axial(ENEMY.x, ENEMY.y)
 	var adj := _closest_adj(enemy_axial, Hex.offset_to_axial(ATTACKER.x, ATTACKER.y))
 	assert_true(s.move_unit(1, adj), "隣接マスへ移動できる")
-	assert_true(s.attack(1, 2).size() > 0, "隣接で攻撃成立")
+	assert_not_null(s.attack(1, 2), "隣接で攻撃成立")
 	assert_true(s.attack_targets_from(1, adj).is_empty(), "攻撃済みなら仮移動でも対象は出ない")
 
 func test_set_done_ends_unit_turn() -> void:

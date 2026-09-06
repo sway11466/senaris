@@ -46,5 +46,5 @@ func test_flanker_boosts_attack_and_cuts_retaliation() -> void:
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(c, 0), 3, 8, 10, 10))  # 攻撃 X
 	s.add_unit(Unit.new(3, 1, Hex.neighbor(c, 3), 3, 8, 10, 10))  # 側面 Z（対角）
 	var r := s.attack(2, 1)
-	assert_eq(r["damage"], 6, "Y包囲(対角=防0.68)＋Zの攻撃支援(+20)で 6 削る")
-	assert_eq(r["retaliation"], 2, "Yは弱るが、Xも反撃を 2 受ける（タダではない）")
+	assert_eq(r.damage(), 6, "Y包囲(対角=防0.68)＋Zの攻撃支援(+20)で 6 削る")
+	assert_eq(r.retaliation(), 2, "Yは弱るが、Xも反撃を 2 受ける（タダではない）")

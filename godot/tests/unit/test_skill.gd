@@ -68,7 +68,7 @@ func test_can_cast_after_moving() -> void:
 	assert_true(s.move_unit(1, far.pos + Vector2i(-1, 0)), "far の隣へ飛ぶ")
 	assert_true(Formation.can_target(s, o, far.pos), "移動先から隣接になれば掛けられる")
 	assert_true(s.has_action_left(1), "移動しただけでは行動を使い切らない")
-	assert_false(FormationResolver.resolve(s, o, far.pos).is_empty(), "移動後に発動できる")
+	assert_not_null(FormationResolver.resolve(s, o, far.pos), "移動後に発動できる")
 	assert_true(s.is_done(1), "発動者は行動完了")
 
 func test_cluster_recipe_is_a_formation() -> void:
@@ -94,7 +94,7 @@ func test_buffs_only_the_chosen_unit() -> void:
 	var foe: Unit = f["foe"]
 	var near_before := Combat.attack_breakdown(s, near, foe, true).total
 	var far_before := Combat.attack_breakdown(s, far, foe, true).total
-	assert_false(FormationResolver.resolve(s, _dust_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), near.pos), "発動成功")
 	assert_almost_eq(Combat.attack_breakdown(s, near, foe, true).total, near_before + 10.0 * near.troops, 0.001,
 		"対象の実効攻撃力に 10×残兵数 が乗る")
 	assert_almost_eq(Combat.attack_breakdown(s, far, foe, true).total, far_before, 0.001, "他の味方には乗らない")
@@ -105,14 +105,14 @@ func test_buffs_defense_too() -> void:
 	var near: Unit = f["near"]
 	var foe: Unit = f["foe"]
 	var before := Combat.defense_breakdown(s, near, foe, true).total
-	assert_false(FormationResolver.resolve(s, _dust_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), near.pos), "発動成功")
 	assert_almost_eq(Combat.defense_breakdown(s, near, foe, true).total, before + 10.0 * near.troops, 0.001,
 		"防御にも同じだけ乗る")
 
 func test_caster_is_done() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
-	assert_false(FormationResolver.resolve(s, _dust_option(f), f["near"].pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), f["near"].pos), "発動成功")
 	assert_true(s.is_done(1), "発動者は行動完了")
 	assert_false(s.is_done(2), "掛けられた側は行動を消費しない")
 
@@ -120,7 +120,7 @@ func test_self_target() -> void:
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var pixie: Unit = f["pixie"]
-	assert_false(FormationResolver.resolve(s, _dust_option(f), pixie.pos).is_empty(), "自分に掛けられる")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), pixie.pos), "自分に掛けられる")
 	# 掛けた本人は発動で Lv も+1されるので、実効防御の前後差にはレベル補正が混ざる。
 	# 見たいのは粉が自分に乗ったかどうかなので、状態補正の集計で測る。
 	assert_almost_eq(float(s.status_aggregate(pixie, "defense")["add"]), 10.0 * pixie.troops, 0.001,
@@ -136,7 +136,7 @@ func test_bonus_scales_with_caster_troops() -> void:
 	var near: Unit = f["near"]
 	pixie.troops = 4  # 損耗したピクシーが撒く粉は薄い
 	near.troops = 2   # 掛けられる側の兵数は効果に影響しない
-	assert_false(FormationResolver.resolve(s, _dust_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), near.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 40.0, 0.001, "ピクシー4体なら +40")
 	assert_almost_eq(float(s.status_aggregate(near, "defense")["add"]), 40.0, 0.001, "防御側も同じ")
 
@@ -146,7 +146,7 @@ func test_bonus_fixed_at_cast() -> void:
 	var s: BattleState = f["s"]
 	var pixie: Unit = f["pixie"]
 	var near: Unit = f["near"]
-	assert_false(FormationResolver.resolve(s, _dust_option(f), near.pos).is_empty(), "満員8体で発動")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), near.pos), "満員8体で発動")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "+80")
 	pixie.troops = 2  # 発動後に損耗
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "掛けた後は動かない")
@@ -159,10 +159,10 @@ func test_stacking_adds_up() -> void:
 	var before := Combat.attack_breakdown(s, near, foe, true).total
 	var second := Unit.new(5, 0, Hex.neighbor(near.pos, 2), 5, 8, 10, 10, 1, "pixie")  # near の隣の2体目
 	s.add_unit(second)
-	assert_false(FormationResolver.resolve(s, _dust_option(f), near.pos).is_empty(), "1体目が発動")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), near.pos), "1体目が発動")
 	var opts := Formation.available_for(s, second)
 	assert_gt(opts.size(), 0, "2体目も撃てる")
-	assert_false(FormationResolver.resolve(s, opts[0], near.pos).is_empty(), "同じ相手に重ねられる")
+	assert_not_null(FormationResolver.resolve(s, opts[0], near.pos), "同じ相手に重ねられる")
 	assert_almost_eq(Combat.attack_breakdown(s, near, foe, true).total, before + 160.0, 0.001, "+80 が2つで +160")
 
 func test_expires_after_three_rounds() -> void:
@@ -172,7 +172,7 @@ func test_expires_after_three_rounds() -> void:
 	var near: Unit = f["near"]
 	var foe: Unit = f["foe"]
 	var before := Combat.attack_breakdown(s, near, foe, true).total
-	assert_false(FormationResolver.resolve(s, _dust_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dust_option(f), near.pos), "発動成功")
 	for round_index in 3:
 		s.end_turn()  # 敵ターンへ
 		assert_almost_eq(Combat.attack_breakdown(s, near, foe, true).total, before + 80.0, 0.001,
@@ -239,7 +239,7 @@ func test_dread_lowers_attack_and_defense() -> void:
 	var ghost: Unit = f["ghost"]
 	var atk_before := Combat.attack_breakdown(s, foe, ghost, true).total
 	var def_before := Combat.defense_breakdown(s, foe, ghost, true).total
-	assert_false(FormationResolver.resolve(s, _dread_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dread_option(f), foe.pos), "発動成功")
 	assert_almost_eq(Combat.attack_breakdown(s, foe, ghost, true).total, atk_before - 80.0, 0.001,
 		"満員のゴーストなら実効攻撃力が -80")
 	assert_almost_eq(Combat.defense_breakdown(s, foe, ghost, true).total, def_before - 80.0, 0.001,
@@ -251,7 +251,7 @@ func test_dread_scales_with_caster_troops() -> void:
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
 	f["ghost"].troops = 3
-	assert_false(FormationResolver.resolve(s, _dread_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dread_option(f), foe.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["add"]), -30.0, 0.001, "ゴースト3体なら -30")
 	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), -30.0, 0.001, "防御側も同じ")
 
@@ -262,7 +262,7 @@ func test_dread_expires_after_three_rounds() -> void:
 	var foe: Unit = f["foe"]
 	var ghost: Unit = f["ghost"]
 	var before := Combat.attack_breakdown(s, foe, ghost, true).total
-	assert_false(FormationResolver.resolve(s, _dread_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _dread_option(f), foe.pos), "発動成功")
 	for round_index in 3:
 		s.end_turn()  # 相手ターンへ
 		assert_almost_eq(Combat.attack_breakdown(s, foe, ghost, true).total, before - 80.0, 0.001,
@@ -323,7 +323,7 @@ func test_venom_lowers_attack_and_defense_by_mul() -> void:
 	var f := _venom_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _venom_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _venom_option(f), foe.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
 		"1本で攻撃に ×0.9")
 	assert_almost_eq(float(s.status_aggregate(foe, "defense")["mul"]), 0.9, 0.001,
@@ -335,7 +335,7 @@ func test_venom_value_independent_of_caster_troops() -> void:
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
 	f["serpent"].troops = 3  # 損耗しても係数は変わらない
-	assert_false(FormationResolver.resolve(s, _venom_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _venom_option(f), foe.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
 		"3体でも ×0.9（残兵に依らない）")
 
@@ -347,14 +347,14 @@ func test_venom_stacking_multiplies() -> void:
 	var second := Unit.new(5, 0, Hex.neighbor(foe.pos, 2), 7, 8, 20, 20, 1, "scout")
 	second.skin_id = "rock_serpent"
 	s.add_unit(second)
-	assert_false(FormationResolver.resolve(s, _venom_option(f), foe.pos).is_empty(), "1体目が発動")
+	assert_not_null(FormationResolver.resolve(s, _venom_option(f), foe.pos), "1体目が発動")
 	var opts := Formation.available_for(s, second)
 	var o2: FormationOption = null
 	for o in opts:
 		if o.recipe == "venom_fang":
 			o2 = o
 	assert_not_null(o2, "2体目も撃てる")
-	assert_false(FormationResolver.resolve(s, o2, foe.pos).is_empty(), "同じ相手に重ねられる")
+	assert_not_null(FormationResolver.resolve(s, o2, foe.pos), "同じ相手に重ねられる")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.81, 0.001,
 		"2本で ×0.81（0.9×0.9）")
 
@@ -362,7 +362,7 @@ func test_venom_expires_after_three_rounds() -> void:
 	var f := _venom_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _venom_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _venom_option(f), foe.pos), "発動成功")
 	for round_index in 3:
 		s.end_turn()  # 相手ターンへ
 		assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.9, 0.001,
@@ -418,7 +418,7 @@ func test_split_spawns_a_unit() -> void:
 	var s: BattleState = f["s"]
 	var before_count := s.units().size()
 	var result := FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_false(result.is_empty(), "発動成功")
+	assert_not_null(result, "発動成功")
 	assert_eq(s.units().size(), before_count + 1, "駒が1体増える")
 
 func test_split_inherits_troops() -> void:
@@ -468,7 +468,7 @@ func test_split_result_cells_hold_spawned_hex() -> void:
 		if u.id != f["slime"].id:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
-	var cells: Array = result["cells"]
+	var cells := result.cells
 	assert_eq(cells.size(), 1, "光らせる面は湧いた1マスだけ")
 	assert_true(spawned.pos in cells, "湧いた位置が cells に入る")
 
@@ -621,7 +621,7 @@ func test_purify_drops_debuffs_and_keeps_buffs() -> void:
 	var near: Unit = f["near"]
 	_afflict(s, near)
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 0.0, 0.001, "掛ける前は -80 と +80 で相殺")
-	assert_false(FormationResolver.resolve(s, _purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _purify_option(f), near.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "弱体だけ落ちて強化は残る")
 	assert_almost_eq(float(s.status_aggregate(near, "defense")["add"]), 80.0, 0.001, "防御側も同じ")
 
@@ -634,7 +634,7 @@ func test_purify_drops_every_debuff_at_once() -> void:
 		s.add_status_mod({"scope": "unit", "unit_id": near.id, "op": "add", "target": "both",
 			"value": -50.0, "owner_team": 1, "remaining": 1, "kind": "debuff"})
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), -150.0, 0.001, "3本で -150")
-	assert_false(FormationResolver.resolve(s, _purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _purify_option(f), near.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 0.0, 0.001, "1回で全部落ちる")
 
 ## 落とすのは対象1体ぶんだけ＝他の味方に掛かった弱体や、陣営全体の補正は動かさない。
@@ -647,7 +647,7 @@ func test_purify_touches_only_the_target() -> void:
 	_afflict(s, far)
 	s.add_status_mod({"scope": "team", "team": 0, "op": "mul", "target": "both",
 		"value": 0.7, "owner_team": 1, "remaining": 1, "kind": "debuff"})
-	assert_false(FormationResolver.resolve(s, _purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _purify_option(f), near.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), 80.0, 0.001, "対象の弱体は落ちる")
 	assert_almost_eq(float(s.status_aggregate(far, "attack")["add"]), 0.0, 0.001, "離れた味方の弱体は残る")
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["mul"]), 0.7, 0.001, "陣営全体の補正は1人のピュリファイでは落ちない")
@@ -657,7 +657,7 @@ func test_purify_consumes_the_casters_action() -> void:
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	_afflict(s, near)
-	assert_false(FormationResolver.resolve(s, _purify_option(f), near.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _purify_option(f), near.pos), "発動成功")
 	assert_true(s.is_done(1), "発動者は行動完了")
 	assert_false(s.is_done(2), "掛けられた側は行動を消費しない")
 	assert_eq(f["priest"].level, 2, "発動者に Lv+1（撃破は起きないので前半だけ）")
@@ -833,14 +833,14 @@ func test_sting_does_not_reduce_on_cast() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	assert_eq(foe.troops, 8, "発動した瞬間は兵数が動かない")
 
 func test_sting_reduces_one_troop_at_target_turn_start() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	s.end_turn()  # 対象側（プレイヤー）のターン開始
 	assert_eq(foe.troops, 7, "対象側のターン開始で1減る")
 
@@ -849,7 +849,7 @@ func test_sting_does_not_touch_attack_or_defense() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001, "攻撃に係数は乗らない")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["add"]), 0.0, 0.001, "攻撃に加算もない")
 	assert_almost_eq(float(s.status_aggregate(foe, "defense")["mul"]), 1.0, 0.001, "防御に係数は乗らない")
@@ -860,7 +860,7 @@ func test_sting_ticks_three_times_then_expires() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	for round_index in 3:
 		s.end_turn()  # 対象側のターン開始＝毒が入る
 		assert_eq(foe.troops, 8 - (round_index + 1), "%d回目で %d 減っている" % [round_index + 1, round_index + 1])
@@ -876,13 +876,13 @@ func test_sting_stacking_adds_up() -> void:
 	var second := Unit.new(5, 1, Hex.neighbor(foe.pos, 2), 5, 8, 50, 70, 1, "knight")
 	second.skin_id = "scorpion"
 	s.add_unit(second)
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "1体目が発動")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "1体目が発動")
 	var o2: FormationOption = null
 	for o in Formation.available_for(s, second):
 		if o.recipe == "poison_sting":
 			o2 = o
 	assert_not_null(o2, "2体目も撃てる")
-	assert_false(FormationResolver.resolve(s, o2, foe.pos).is_empty(), "同じ相手に重ねられる")
+	assert_not_null(FormationResolver.resolve(s, o2, foe.pos), "同じ相手に重ねられる")
 	s.end_turn()
 	assert_eq(foe.troops, 6, "2本で毎ターン2減る")
 
@@ -892,7 +892,7 @@ func test_sting_never_kills() -> void:
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
 	foe.troops = 1
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	s.end_turn()
 	assert_eq(foe.troops, 1, "残兵1は減らない")
 	assert_not_null(s.unit_by_id(foe.id), "盤から消えない")
@@ -902,7 +902,7 @@ func test_sting_is_cleansable() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	assert_eq(s.debuff_count(foe), 1, "弱体1本として数える")
 	assert_eq(s.clear_debuffs(foe), 1, "ピュリファイが落とす")
 	s.end_turn()
@@ -913,7 +913,7 @@ func test_sting_survives_serialization() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
-	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "発動成功")
+	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	var restored := _state()  # 同じ器（盤サイズ）を組み直して差分を被せる＝実際の再開と同じ形
 	restored.apply_save_diff(s.to_save_diff())
 	restored.end_turn()

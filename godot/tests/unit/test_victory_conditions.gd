@@ -24,7 +24,7 @@ func test_defeat_boss_wins_even_with_enemies_left() -> void:
 	var s := _boss_state()
 	assert_eq(s.outcome(), BattleState.ONGOING, "開戦時は継続")
 	var r := s.attack(1, BOSS_ID)
-	assert_true(bool(r["killed"]), "ボス（兵1）は一撃で落ちる")
+	assert_true(r.killed(), "ボス（兵1）は一撃で落ちる")
 	assert_eq(s.team_unit_count(1), 1, "雑魚が盤上に残っている")
 	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "敵が残っていてもボス撃破で勝利")
 	assert_true(s.is_over())
@@ -55,7 +55,7 @@ func test_mutual_destruction_on_boss_kill_is_loss() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 1, 50, 4))                          # 自軍最後の1体・兵1・紙防御
 	s.add_unit(_named(Unit.new(BOSS_ID, 1, Hex.neighbor(ap, 0), 3, 1, 90, 4), BOSS))  # ボス・兵1・高火力
 	var r := s.attack(1, BOSS_ID)
-	assert_true(bool(r["killed"]) and bool(r["attacker_killed"]), "相討ちが成立")
+	assert_true(r.killed() and r.attacker_killed(), "相討ちが成立")
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "自軍が盤上から消えていれば敗北優先")
 
 func test_unknown_condition_type_is_ignored() -> void:

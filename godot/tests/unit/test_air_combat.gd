@@ -19,7 +19,7 @@ func test_no_antiair_cannot_target_flyer() -> void:
 	s.add_unit(_flyer(2, 1, Hex.neighbor(ap, 0)))
 	assert_false(s.can_attack(1, 2), "対空0は飛行を攻撃対象にできない")
 	assert_true(s.attack_targets(1).is_empty(), "攻撃対象リストに飛行は出ない")
-	assert_true(s.attack(1, 2).is_empty(), "攻撃そのものが不成立")
+	assert_null(s.attack(1, 2), "攻撃そのものが不成立")
 
 func test_attack_uses_atk_air_against_flyer() -> void:
 	var s := _state()
@@ -30,7 +30,7 @@ func test_attack_uses_atk_air_against_flyer() -> void:
 	s.add_unit(_flyer(2, 1, Hex.neighbor(ap, 0), 10, 10))
 	var r := s.attack(1, 2)
 	# 対空20 vs 防御10 → 0.8 → 6。対地50を使っていたら 8 になるはず。
-	assert_eq(r["damage"], 6, "飛行相手には atk_air(20) を使う（atk_ground 50 ではない）")
+	assert_eq(r.damage(), 6, "飛行相手には atk_air(20) を使う（atk_ground 50 ではない）")
 
 func test_flyer_hits_ground_no_retaliation_when_no_antiair() -> void:
 	var s := _state()
@@ -42,8 +42,8 @@ func test_flyer_hits_ground_no_retaliation_when_no_antiair() -> void:
 	s.add_unit(ground)
 	s.current_team = 1  # 飛行側(team1)のターン
 	var r := s.attack(1, 2)
-	assert_gt(r["damage"], 0, "飛行は地上を攻撃できる（対地で）")
-	assert_eq(r["retaliation"], 0, "対空0の地上は反撃できない")
+	assert_gt(r.damage(), 0, "飛行は地上を攻撃できる（対地で）")
+	assert_eq(r.retaliation(), 0, "対空0の地上は反撃できない")
 	assert_eq(s.unit_by_id(2).level, 1, "反撃不成立→防御側は Lv+0")
 	assert_eq(s.unit_by_id(1).level, 2, "攻撃側は参加で+1")
 
@@ -57,7 +57,7 @@ func test_ground_with_antiair_retaliates_against_flyer() -> void:
 	s.add_unit(aa)
 	s.current_team = 1
 	var r := s.attack(1, 2)
-	assert_gt(r["retaliation"], 0, "対空ありの地上は飛行に反撃できる")
+	assert_gt(r.retaliation(), 0, "対空ありの地上は飛行に反撃できる")
 	assert_eq(s.unit_by_id(2).level, 2, "反撃成立で防御側+1")
 
 func test_loader_sets_aerial_and_atk_air_from_type() -> void:
