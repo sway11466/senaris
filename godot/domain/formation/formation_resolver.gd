@@ -2,7 +2,7 @@ extends RefCounted
 class_name FormationResolver
 ## 陣形スキル・ユニットスキルの発動を盤に適用する（純ロジック・Node非依存）。state を引数に取る static ヘルパー。
 ## 検出と威力の計算は Formation（非破壊）が担い、盤を書き換えるのはここだけ。
-## 入口は BattleState.resolve_formation＝ここへ委譲する（呼び手の参照名を変えない）。
+## 呼び手は MatchController.execute_formation（とテスト）。BattleState は呼ばない＝盤を書き換える側はここだけ。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 
 ## 陣形スキルを解決して盤に適用する。option＝Formation.available_for の1要素。

@@ -96,7 +96,7 @@ func test_stuck_member_still_counts() -> void:
 	assert_eq(_count(Formation.available_for(s, f["leader"]), "trinity_nova"), 1,
 		"動けないだけのメンバーも三角形に数える")
 	var opt := _pick(Formation.available_for(s, f["leader"]), "trinity_nova")
-	assert_false(s.resolve_formation(opt, f["enemy_hex"]).is_empty(), "そのまま発動できる")
+	assert_false(FormationResolver.resolve(s, opt, f["enemy_hex"]).is_empty(), "そのまま発動できる")
 
 ## 発動者は移動してから発動してよい＝三角形の成立を移動先で判定する。
 ## 詳細 → doc/gdd/formations.md 発動ルール
@@ -116,7 +116,7 @@ func test_triangle_forms_at_move_destination() -> void:
 	assert_true(s.has_action_left(1), "移動しただけでは行動を使い切らない")
 	var opt := _pick(Formation.available_for(s, w1), "trinity_nova")
 	assert_false(opt.is_empty(), "移動後の盤でも成立している")
-	assert_false(s.resolve_formation(opt, c + Hex.direction(0) * 3).is_empty(), "移動後に発動できる")
+	assert_false(FormationResolver.resolve(s, opt, c + Hex.direction(0) * 3).is_empty(), "移動後に発動できる")
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
 # ②グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
@@ -169,7 +169,7 @@ func test_grace_value_grows_with_participants() -> void:
 		var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
 		assert_eq((opt["participants"] as Array).size(), n, "%d体全員が参加" % n)
 		var before := float(Combat.attack_breakdown(s, f["ally"], f["foe"], true)["total"])
-		var res := s.resolve_formation(opt, Vector2i(-9999, -9999))
+		var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 		assert_almost_eq(float(res["status"]["value"]), expected, 0.001, "%d体で ×%.2f" % [n, expected])
 		assert_almost_eq(float(Combat.attack_breakdown(s, f["ally"], f["foe"], true)["total"]),
 			before * expected, 1.0, "%d体のグレイスで味方の攻撃が ×%.2f" % [n, expected])
@@ -179,7 +179,7 @@ func test_grace_value_is_baked_at_cast() -> void:
 	var f := _cluster_state(6)
 	var s: BattleState = f["s"]
 	var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
-	assert_false(s.resolve_formation(opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
+	assert_false(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
 	s.remove_unit(6)  # 参加者を1体失う
 	var mods := s.status_mods_for(f["ally"])
 	assert_eq(mods.size(), 1, "味方に掛かっている補正は1件")
@@ -239,7 +239,7 @@ func test_grace_buffs_whole_team() -> void:
 	var foe: Unit = f["foe"]
 	var before := float(Combat.attack_breakdown(s, ally, foe, true)["total"])
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var res := s.resolve_formation(opt, Vector2i(-9999, -9999))
+	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_false(res.is_empty(), "対象なしでも発動成功")
 	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
 	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
@@ -252,7 +252,7 @@ func test_grace_lasts_one_round() -> void:
 	var foe: Unit = f["foe"]
 	var before := float(Combat.attack_breakdown(s, ally, foe, true)["total"])
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	assert_false(s.resolve_formation(opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
+	assert_false(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)).is_empty(), "発動成功")
 	s.end_turn()  # 敵ターンへ
 	assert_almost_eq(float(Combat.attack_breakdown(s, ally, foe, true)["total"]), before * 1.3, 1.0, "敵ターン中はまだ効く")
 	s.end_turn()  # 次の自軍ターンへ＝ここで満了
@@ -348,7 +348,7 @@ func test_single_hits_only_target_hex() -> void:
 	var enemy2 := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 20)
 	s.add_unit(enemy2)
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var res := s.resolve_formation(opt, center)
+	var res := FormationResolver.resolve(s, opt, center)
 	var ids: Array = []
 	for r in res["results"]:
 		ids.append(int(r["target_id"]))
@@ -364,7 +364,7 @@ func test_single_uses_leader_attack() -> void:
 	var single := {"kind": "attack", "total": float(Combat.attack_breakdown(s, leader, enemy, false)["total"])}
 	var df := Combat.defense_breakdown(s, enemy, leader, false)
 	var expect := int(Combat.hit_from_breakdowns(single, df, enemy.troops)["loss"])
-	var res := s.resolve_formation(opt, f["enemy_hex"])
+	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
 	assert_eq(int(res["results"][0]["loss"]), expect, "発動者(パラディン)の実効攻撃力での損害")
 
@@ -373,14 +373,14 @@ func test_single_hits_aerial_with_ground_attack() -> void:
 	# 詳細 → doc/gdd/formations.md「面・射程・持続で払わせ、威力では払わせない」
 	var ground := _judgment_state(100)  # 硬い敵で非撃破
 	var g_opt: Dictionary = Formation.available_for(ground["s"], ground["leader"])[0]
-	var g_res: Dictionary = ground["s"].resolve_formation(g_opt, ground["enemy_hex"])
+	var g_res: Dictionary = FormationResolver.resolve(ground["s"], g_opt, ground["enemy_hex"])
 	var g_loss := int(g_res["results"][0]["loss"])
 	assert_gt(g_loss, 0, "対地の敵には損害が出る前提")
 	var air := _judgment_state(100)
 	var foe: Unit = air["enemy"]
 	foe.move_type = "flight"  # 同条件の敵を飛行にする（テストのパラディンも実データ同様 atk_air=0）
 	var a_opt: Dictionary = Formation.available_for(air["s"], air["leader"])[0]
-	var a_res: Dictionary = air["s"].resolve_formation(a_opt, air["enemy_hex"])
+	var a_res: Dictionary = FormationResolver.resolve(air["s"], a_opt, air["enemy_hex"])
 	assert_eq(int(a_res["results"][0]["loss"]), g_loss, "飛行の敵にも対地と同じ損害")
 
 func test_single_out_of_range_fails() -> void:
@@ -395,7 +395,7 @@ func test_single_out_of_range_fails() -> void:
 	for u in [pal, c1, c2, enemy]:
 		s.add_unit(u)
 	var opt: Dictionary = Formation.available_for(s, pal)[0]
-	assert_true(s.resolve_formation(opt, far_hex).is_empty(), "射程外は不成立（空dict）")
+	assert_true(FormationResolver.resolve(s, opt, far_hex).is_empty(), "射程外は不成立（空dict）")
 
 # --- 威力・適用 ---
 
@@ -410,7 +410,7 @@ func test_resolve_uses_leader_attack() -> void:
 	var df := Combat.defense_breakdown(s, enemy, leader, false)
 	var expect := int(Combat.hit_from_breakdowns(single, df, enemy.troops)["loss"])
 	var before := enemy.troops
-	var res := s.resolve_formation(opt, f["enemy_hex"])
+	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_eq((res["results"] as Array).size(), 1, "敵1体に着弾")
 	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
 	assert_eq(int(res["results"][0]["loss"]), expect, "発動者1体の実効攻撃力での損害と一致（合算しない）")
@@ -420,7 +420,7 @@ func test_resolve_marks_participants_done() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	s.resolve_formation(opt, f["enemy_hex"])
+	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
 func test_area_hits_allies_too() -> void:
@@ -434,7 +434,7 @@ func test_area_hits_allies_too() -> void:
 	s.add_unit(ally)
 	var ally_before := ally.troops
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var res := s.resolve_formation(opt, center)
+	var res := FormationResolver.resolve(s, opt, center)
 	var hit_ids: Array = []
 	for r in res["results"]:
 		hit_ids.append(int(r["target_id"]))
@@ -451,7 +451,7 @@ func test_area_excludes_participants() -> void:
 	var enemy := Unit.new(12, 1, Hex.neighbor(leader.pos, 2), 3, 8, 10, 20)  # leader隣接の敵
 	s.add_unit(enemy)
 	var opt: Dictionary = Formation.available_for(s, leader)[0]
-	var res := s.resolve_formation(opt, leader.pos)  # 中心＝leader＝面に発動者3体が入る
+	var res := FormationResolver.resolve(s, opt, leader.pos)  # 中心＝leader＝面に発動者3体が入る
 	var hit_ids: Array = []
 	for r in res["results"]:
 		hit_ids.append(int(r["target_id"]))
@@ -464,14 +464,14 @@ func test_resolve_out_of_range_fails() -> void:
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 全参加者から射程5超
-	assert_true(s.resolve_formation(opt, far).is_empty(), "射程外は不成立（空dict）")
+	assert_true(FormationResolver.resolve(s, opt, far).is_empty(), "射程外は不成立（空dict）")
 
 func test_participants_gain_level() -> void:
 	# 撃破なし＝発動で全員+1（Lv1→Lv2）。硬い敵で一撃では死なせない。
 	var f := _trinity_nova_state(100)
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	s.resolve_formation(opt, f["enemy_hex"])
+	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_not_null(s.unit_by_id(9), "硬い敵は生存（非撃破ケースの前提）")
 	for pid in [1, 2, 3]:
 		assert_eq(s.unit_by_id(pid).level, 2, "参加者%d は発動でLv+1" % pid)
@@ -482,7 +482,7 @@ func test_empty_cast_grants_no_level() -> void:
 	var s: BattleState = f["s"]
 	var empty := Hex.offset_to_axial(3, 3) + Hex.direction(3) * 2  # 射程内・面に駒なし
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var res := s.resolve_formation(opt, empty)
+	var res := FormationResolver.resolve(s, opt, empty)
 	assert_eq((res["results"] as Array).size(), 0, "空撃ち＝着弾なし")
 	for pid in [1, 2, 3]:
 		assert_eq(s.unit_by_id(pid).level, 1, "空撃ちはLv+0（Lv1のまま）")
@@ -493,7 +493,7 @@ func test_kill_grants_extra_level() -> void:
 	var f := _trinity_nova_state(1)  # 低防御＝撃破される
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	s.resolve_formation(opt, f["enemy_hex"])
+	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	for pid in [1, 2, 3]:
 		assert_eq(s.unit_by_id(pid).level, 3, "撃破時は参加者%d がLv+2" % pid)
 
@@ -502,7 +502,7 @@ func test_resolve_kills_when_lethal() -> void:
 	var f := _trinity_nova_state(1)  # 低防御
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var res := s.resolve_formation(opt, f["enemy_hex"])
+	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_true(bool(res["results"][0]["killed"]), "撃破フラグ")
 	assert_null(s.unit_by_id(9), "撃破された敵は盤から消える")
 
@@ -522,7 +522,7 @@ func test_result_carries_snapshots_and_attack_breakdown() -> void:
 	var s: BattleState = f["s"]
 	var leader: Unit = f["leader"]
 	var opt: Dictionary = Formation.available_for(s, leader)[0]
-	var res := s.resolve_formation(opt, f["enemy_hex"])
+	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	var caster: Dictionary = res["caster"]
 	assert_eq(int(caster["id"]), leader.id, "発動者のスナップショット")
 	assert_eq(int(caster["level"]), 1, "スナップショットは発動前（Lv加算前）に固める")
@@ -539,7 +539,7 @@ func test_grace_result_carries_status_entry() -> void:
 	var f := _aria_state()
 	var s: BattleState = f["s"]
 	var opt: Dictionary = Formation.available_for(s, f["leader"])[0]
-	var res := s.resolve_formation(opt, Vector2i(-9999, -9999))
+	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	var st: Dictionary = res["status"]
 	assert_eq(String(st["op"]), "mul", "グレイスは乗算バフ")
 	assert_almost_eq(float(st["value"]), 1.3, 0.001, "×1.3")

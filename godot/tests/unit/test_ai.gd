@@ -300,7 +300,7 @@ func _run_turn(s: BattleState, team: int) -> void:
 			AiAction.Kind.ATTACK:
 				assert_false(s.attack(a.unit_id, a.target_id).is_empty(), "AIの攻撃は妥当であるべき")
 			AiAction.Kind.SKILL:
-				assert_false(s.resolve_formation(a.option, a.to).is_empty(), "AIのスキルは妥当であるべき")
+				assert_false(FormationResolver.resolve(s, a.option, a.to).is_empty(), "AIのスキルは妥当であるべき")
 			AiAction.Kind.DEPLOY:
 				assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
 	fail_test("AIのターンが終了しなかった（無限ループの疑い）")

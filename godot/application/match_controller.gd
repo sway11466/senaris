@@ -85,7 +85,7 @@ func execute_attack(cmd: AttackCommand) -> bool:
 func execute_formation(cmd: FormationCommand) -> bool:
 	if _finished:
 		return false
-	var result := state.resolve_formation(cmd.option, cmd.target)
+	var result := FormationResolver.resolve(state, cmd.option, cmd.target)
 	if result.is_empty():
 		return false
 	for r in result["results"]:

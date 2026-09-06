@@ -1003,11 +1003,6 @@ func attack_cells(unit_id: int, target_id: int) -> Array[Vector2i]:
 			cells.append(hex)
 	return cells
 
-## 陣形スキル・ユニットスキルを解決して盤に適用する。中身は FormationResolver.resolve＝
-## この口は呼び手（application・テスト）の参照名を変えないために残す。詳細 → doc/gdd/formations.md
-func resolve_formation(option: Dictionary, target: Vector2i) -> Dictionary:
-	return FormationResolver.resolve(self, option, target)
-
 ## 盤上＋搭乗＋garrison の全駒から最大の unit id を返す。分裂で新駒を作るときの採番に使う。
 func _max_unit_id() -> int:
 	var m := 0

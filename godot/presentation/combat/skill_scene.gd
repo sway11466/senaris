@@ -3,7 +3,7 @@ class_name SkillScene
 ## ユニットスキルの進行。舞台（窓・地面・隊列・立ち絵・兵量バー・エフェクト）は CombatStage が持ち、
 ## ここは「ため→発動→幕引き」の順番だけを組む。仕様 → doc/tech/combat_scene.md ユニットスキルの演出
 ## 起きることは攻撃とほぼ同じで、違うのは兵数が減らず補正が乗る点だけ。反撃は無い。
-## detail は BattleState.resolve_formation の "skill"。
+## detail は FormationResolver.resolve の "skill"。
 
 const OUTRO := 0.7  # 発動が終わってから幕を引くまで（秒）。戦闘の幕引きと同じ間
 const LABEL_OUTLINE := Color(0.16, 0.18, 0.24)  # 補正量の縁。損害数（赤）と混ぜない

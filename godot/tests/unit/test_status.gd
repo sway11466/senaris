@@ -122,7 +122,7 @@ func test_combat_detail_snapshot_includes_statuses() -> void:
 	assert_eq((d["defender"]["statuses"] as Array).size(), 0, "防御側(team1)には効いていない")
 
 func test_formation_buff_entry_carries_recipe_name() -> void:
-	# resolve_formation の buff 経路で、エントリに陣形レシピの表示名が焼き込まれる。
+	# FormationResolver.resolve の buff 経路で、エントリに陣形レシピの表示名が焼き込まれる。
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var members: Array[Unit] = []
@@ -132,7 +132,7 @@ func test_formation_buff_entry_carries_recipe_name() -> void:
 		members.append(u)
 	var options := Formation.available_for(s, members[0])
 	assert_gt(options.size(), 0, "グレイスが成立している前提")
-	assert_true(s.resolve_formation(options[0], c).size() > 0, "発動成功")
+	assert_true(FormationResolver.resolve(s, options[0], c).size() > 0, "発動成功")
 	var lead := members[0]
 	var applied := StatusMod.applied(s._status_mods, lead)
 	assert_eq(applied.size(), 1, "バフエントリが積まれる")
