@@ -521,7 +521,7 @@
 			"terrain_type": "river"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -541,7 +541,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -561,7 +561,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -581,7 +581,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -601,7 +601,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -621,7 +621,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -641,7 +641,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -661,7 +661,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -681,7 +681,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -701,7 +701,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -721,7 +721,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
@@ -741,7 +741,7 @@
 			"terrain_type": "bridge"
 		},
 		{
-			"combat_ground": "",
+			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,
 			"connect_to": "",
