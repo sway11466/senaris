@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dofgigkbqf0n1"
-path="res://.godot/imported/plain_fort_guardhouse1_team0.png-d1dc5b47dfc507661b5de68668428fe5.ctex"
+uid="uid://cmomj0atsskvm"
+path="res://.godot/imported/road_fort_guardhouse1_combat_front.png-461b5cb5f88611d496052f644fbe8588.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_fort_guardhouse1_team0.png"
-dest_files=["res://.godot/imported/plain_fort_guardhouse1_team0.png-d1dc5b47dfc507661b5de68668428fe5.ctex"]
+source_file="res://assets/terrain/road_fort_guardhouse1_combat_front.png"
+dest_files=["res://.godot/imported/road_fort_guardhouse1_combat_front.png-461b5cb5f88611d496052f644fbe8588.ctex"]
 
 [params]
 

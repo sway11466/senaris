@@ -1,0 +1,48 @@
+SUBJECT: The town's GUARD POST, standing behind the fighting in a battle window —
+ONE building, drawn whole, seen close from the front. The soldiers stand in the
+street in front of it.
+
+THE BUILDING — one single-storey building of rough grey fieldstone #8C8A82 laid
+without courses, with exposed timber framing in weathered brown #6E5A42 in its
+gable. A stout timber double door in the middle of its front wall, one small
+shuttered window beside it, and a timber rack with three or four spears leaning
+against the wall by the door. Its roof is one steep gabled slate roof, the biggest
+shape in the picture, and its ridge and both slopes are fully in view. Neutral
+slate: base tone #6E6D6B, catch-light #9B9995, shadow #4D4C4A — hold those numbers,
+the game recolours this roof to show who holds the post. One flat colour per slope:
+no stripes, no chequer, no tile picked out, nothing sitting on it.
+
+NOTHING IS CUT EXCEPT THE BOTTOM — this is the rule that keeps being broken, so
+read it twice. The building is drawn COMPLETE, standing well inside the frame with
+empty white to the left of it and empty white to the right of it. It must NOT be
+stretched to reach the sides. Only the BOTTOM edge cuts it: the front wall runs
+down to the very bottom edge and is cut flat by it, with no strip of white beneath.
+
+NOTHING ELSE STANDS IN THE PICTURE — no second building, no cottages, no yard
+wall, no boundary wall, no fence, no gate, no lane, no street furniture, no
+people, animals, carts, barrels, flags or smoke. If a run of stone appears with no
+roof above it, the picture is wrong.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square. The building sits in the
+BOTTOM HALF: it is about half the width of the picture across, its ridge reaches
+near the middle of the picture, and it stands slightly right of centre. The whole
+top half, and both side margins, stay empty white.
+
+VIEWING ANGLE — seen from a slight high three-quarter angle, close: the front wall,
+the door and the window are clearly readable, the roof is fully in view above them,
+and the building's right corner turns just enough to show a hand's breadth of side
+wall. Draw no ground anywhere.
+
+THE BACKGROUND — everything around the building is PURE FLAT WHITE #FFFFFF, with no
+texture, no shading, no gradient, no sky, no clouds. This white is deleted, so
+every outline against it must be hard, clean and crisp. Nothing in the building may
+be white or near-white.
+
+NO LIGHT DIRECTION and no cast shadows: none under the eaves, none from the spear
+rack, none on the ground. The band is mirrored left to right when the game lays it
+down. The two slopes of the roof may differ slightly; that is all the shading.
+
+This is a near view, so a little more detail than the map piece is welcome — the
+courses of the stonework, the boards of the door, the ridge line of the roof — but
+keep it in bold flat shapes, with no fine texture that would fight with the figures
+standing in front of it.

@@ -1,0 +1,40 @@
+SUBJECT: The low stone WALL of the guard post's yard, lying across the FOREGROUND
+of a battle scene — a band that runs along the very bottom of the battle window.
+The soldiers stand behind it and it hides their feet, so this is a frame at the
+very front, not scenery in the distance.
+
+THE WALL — waist-high, built of the same rough grey fieldstone as the guard post,
+#8C8A82, laid without courses, with a flat coping of squared stones along its top.
+It is a plain run of wall: no gate, no posts, no railing, no plants, no moss, no
+lettering, and nothing standing on it or leaning against it.
+
+LAYOUT — in a 1792 x 1024 picture the wall is a band about 320 pixels tall resting
+on the BOTTOM edge. Everything above it is EMPTY WHITE. The coping is a straight,
+clearly readable horizontal line — that line is the top of the band, and the only
+strong line in it.
+
+THE TWO ENDS ARE DIFFERENT.
+- LEFT end: the wall runs straight off the left edge of the picture and is cut by
+  it. Nothing tapers and nothing is rounded off there.
+- RIGHT end: the wall STOPS well inside the picture, a FIFTH of the picture's width
+  in from the right edge — in a 1024-pixel picture that is about 200 pixels of
+  empty white to the right of it, a plainly visible gap and not a sliver. The end
+  is plain and squared off: the coping stops with it and the end face of the
+  stonework shows. Do not let it fade out and do not run it off the right edge.
+
+KEEP THE FACE QUIET — the stonework below the coping is flat and even: small
+stones, thin dark joints, no large stones, no pattern, no cracks, no holes, no
+shading and no dirt. Numbers and bars are drawn on top of this face in the game,
+so it must stay calm enough to read them against.
+
+NO LIGHT DIRECTION and no cast shadows: no shadow under the coping, none along the
+bottom, none on the ground (no ground is drawn at all). The band is mirrored left
+to right when the game lays it down.
+
+THE BACKGROUND — everything above the wall is PURE FLAT WHITE #FFFFFF, with no
+texture, no shading, no gradient. The white is deleted, so the coping line must be
+a hard, clean, crisp edge against it. Nothing in the wall may be white or
+near-white.
+
+STYLE NOTE — bold flat shapes, clear dark outlines, muted limited palette, the same
+clean cel-shaded look as the rest of the game's terrain.

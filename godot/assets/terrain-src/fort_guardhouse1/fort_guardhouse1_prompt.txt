@@ -1,39 +1,68 @@
-SUBJECT: A small GUARDHOUSE beside a town gate, as drawn on the world map of a
-classic 2D role-playing game: the ground seen from directly overhead, but the
-building drawn from the front and slightly above, standing upright and facing
-the bottom of the frame — nothing lying flat, no perspective.
+DESIGN — the town's guard post. This block is repeated word for word in every slot
+of this skin (the board object, the two captured colours, the combat band), so
+that the small piece on the board and the big building in the battle window are
+plainly the same place.
 
-ONE squat single-storey guardhouse of rough grey fieldstone with a steep
-slate-and-timber roof and a plain timber door in the middle of its front wall.
-There is no second building. It stands at the BACK of a small square yard. A low
-drystone wall runs all the way round the yard, with a simple timber gate in the
-middle of the front side. The yard is cobbled.
+- ONE single-storey building, no more. Walls of the same rough grey fieldstone as
+  the town's houses, #8C8A82, laid without courses; the gable carries exposed
+  timber framing in weathered brown, #6E5A42.
+- Its ROOF is the biggest shape in the picture: one steep gabled slate roof,
+  taller and broader than a cottage's, unbroken from ridge to eaves. Neutral
+  slate: base tone #6E6D6B, catch-light #9B9995 on the lit slope, shadow #4D4C4A.
+  Hold those numbers exactly — the game recolours this roof to show who holds the
+  post, and the later pictures in this set have to match.
+- The roof is ONE flat colour per slope: NO stripes, NO chequer, NO tile picked
+  out light and dark, NO patch of another material, and nothing sitting on it.
+  The only shading allowed is the two slopes differing slightly.
+- A stout timber double door stands in the middle of the front wall, with one
+  small shuttered window beside it.
+- In FRONT of the building, a LOW stone wall about waist high runs to the left and
+  to the right, closing a small yard. It ENDS inside the picture at both sides
+  with a plain squared-off stub — it never runs off the frame. A simple timber
+  gate stands open in the middle of it.
+- Leaning against the front wall of the building, a RACK OF SPEARS: a plain timber
+  frame with three or four spears in it. This is the one thing that says soldiers
+  keep this place.
+- NEVER: a tower, a belfry, an upper storey, a portcullis, a drawbridge, a moat,
+  a town wall running off the picture, a second building, a market stall, a cart,
+  barrels, banners, flags, torches, people, animals, smoke.
+- It must be tellable apart from the two other town pieces at a glance: the town's
+  FORT is a cluster of six to eight buildings with a tall hall behind a high wall;
+  an ordinary town BLOCK is four or five cottages with no wall and no yard. This
+  is ONE building with a low walled yard and a spear rack.
 
-IN THE YARD — exactly two things, both large enough to read: a wooden weapon
-rack standing against the wall with three or four spears in it, and a
-two-wheeled hand cart parked to one side. Nothing else: no people, no animals,
-no barrels, no fire, no laundry, no crates, no flags, no signage, no smoke.
+SUBJECT: That guard post, drawn as a single object that stands upright the way a
+piece stands on a game board, cut out and set down on the game's own road.
 
-SIZE — the whole compound is a chunky block, roughly as wide as it is tall,
-sitting in the MIDDLE of the picture. In a 1024-pixel picture it is about 700
-pixels across, leaving about 160 pixels of white on all four sides. It must NOT
-touch any edge and must NOT be cut by any edge. This is a guardhouse, not a
-town: one building, one yard.
+SQUARE-ON — CRITICAL. The building and the wall are seen STRAIGHT FROM THE FRONT
+and only a little from above, exactly as the town's houses are drawn: the front
+wall is a plain rectangle square to the picture, the gable above it is an upright
+triangle, and the roof shows as a band of slate above them with its ridge running
+level. NO corner points at you. NO side wall, NO end wall and NO receding edge is
+visible. This is NOT an isometric view, NOT a three-quarter view, NOT a
+perspective view.
 
-COLOR — the stone and the slate are plain grey with almost no colour in them,
-neither warm nor cool; only the door, the gate, the rack and the cart are
-weathered brown timber. NO ochre, NO warm tan, and NO strong red, blue or green
-anywhere — those colours mark who holds the post.
+DEPTH — the low yard wall stands in FRONT of the building: draw it lower down in
+the picture and let it overlap the bottom of the building's wall, so the two read
+as one mass with the yard between them. That is the whole depth; the yard floor
+is not drawn.
 
-THE BACKGROUND — everything outside the drystone wall is PURE FLAT WHITE,
-#FFFFFF, with NO texture, NO shading, NO gradient, NO grass, NO soil, NO road,
-NO paving. This white is going to be deleted and the game will draw its own
-street there, so the outside of the wall must be a hard, clean, crisp edge
-against it. Nothing inside the compound may be white or near-white.
+THE FOOT — the bottom of the yard wall sits on ONE straight level line across the
+bottom of the picture. That line is where the game sets the post on the ground.
+Draw nothing below it: no ground, no grass, no paving, no step, no shadow.
 
-LIGHT — dim light from above and slightly in front, with short soft shadows.
-Every shadow falls INSIDE the yard or against the wall; NOTHING casts a shadow
-out onto the white.
+SIZE AND SHAPE — about 1.4 times as wide as it is tall, counting the yard wall.
+It stands among the houses of a town and should read as one notch bigger and
+taller than a single cottage, but far smaller than the town's fort. The post is
+the only object in the picture, sits in the middle, and touches no edge — leave
+clear white on all four sides.
 
-Read at thumbnail size: a few large legible shapes, no fine detail, no
-picked-out windows. Square 1:1.
+THE BACKGROUND is PURE FLAT WHITE, #FFFFFF, with NO texture, NO shading, NO
+gradient, NO speckle, NO grey, NO drop shadow. The white is deleted and the game
+draws its own road under the post, so the edge against the white must be hard and
+clean.
+
+NO LIGHT DIRECTION — no wall has a bright side and a dark side, and nothing casts
+a shadow onto anything else: none under the eaves, none from the yard wall onto
+the building, none on the ground. Shading stays inside a surface. Read at
+thumbnail size: a few large legible shapes, no fine detail, no picked-out stones.

@@ -11,7 +11,7 @@ plain_cave1_prop_loot1,prop,略奪品の山,none,false,,0,0,false,standee,0.8,0.
 plain_cave1_rubble_cave1,rubble,崩落跡,none,false,,0,0,false,standee,1.0,0.35,,true,plain_cave1,plain_cave1,洞窟の崩落で積み上がった岩の山。瓦礫＝飛行と斥候だけ越えられる。戦闘は手前の帯（_combat_front）に岩を散らす
 plain_fence,fence,柵,none,line,,0,0,false,panel,0.23,,,true,plain,plain,盤が柱と横木の箱組みで立てる（帯4枚 → doc/art/terrain.md §3.2）。地面は焼き込まず map_ground で敷く
 plain_fort,fort,拠点,none,false,,0,0,false,standee,1.13,0.2,,true,plain,plain,
-plain_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,1.02,0.2,,true,plain,plain,道の詰所（road_fort_guardhouse1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+plain_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,0.8,0.45,,true,plain,plain,道の詰所（road_fort_guardhouse1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_fort_town1,fort,町,none,false,,0,0,false,standee,0.79,0.5,,true,plain,plain,道の町（road_fort_town1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_grave1,plain,墓地の草地,full,false,,0,0,false,,,,,true,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,false,panel,0.23,,,true,plain_grave1,plain_grave1,自前の帯4枚（plain_fence の複製）を墓地の草地の上に立てる
@@ -40,7 +40,7 @@ river_bridge_stone1_right_v,bridge,石橋（右端）,none,false,,-0.18,0,true,f
 river_bridge_stone1_v,bridge,石橋（単幅）,none,false,,-0.18,0,true,flat,,,,true,river,,elevation の高さ（＝川の水位）に水を敷き、floor の高さ（＝岸）に板を置く。単幅＝両側に欄干。左右は画面の上へ渡る向きで見る。12枚は床板と欄干の帯から tools/gen_bridge_tiles.ps1 が合成
 road,road,道,none,area,road_stone1 river_bridge_stone1_v river_bridge_stone1_r river_bridge_stone1_l river_bridge_stone1_left_v river_bridge_stone1_left_r river_bridge_stone1_left_l river_bridge_stone1_right_v river_bridge_stone1_right_r river_bridge_stone1_right_l river_bridge_stone1_mid_v river_bridge_stone1_mid_r river_bridge_stone1_mid_l road_building_town1 road_prop_garden1 road_fort_guardhouse1 road_fort_town1,0,0,false,,,,,true,,,隣の道と繋がる向き別タイル（_c000000〜_c111111）。街区・菜園・詰所・町・橋を片方向で書く＝道の帯がその下／橋の床へ続く
 road_building_town1,building,街区,none,false,,0,0,false,standee,1.0,0.45,,true,road,road,街の家並み。正面向きの立ち絵で、手前と奥の2列。地面は焼き込まず道を下地に敷く
-road_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,1.02,0.2,,true,road,road,門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+road_fort_guardhouse1,fort,詰所,none,false,,0,0,false,standee,0.8,0.45,,true,road,road,門の内側で門番が休む詰所。石塀で囲った庭に武器架と荷車。地面は焼き込まず道を下地に敷く。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 road_fort_town1,fort,町,none,false,,0,0,false,standee,0.79,0.5,,true,road,road,石組みの町。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 road_prop_garden1,prop,菜園,none,false,,0,0,false,standee,0.7,0.45,,true,road,road,街の空き地の家庭菜園。豆の支柱が立つ地面の畑。戦闘は手前の帯（畝）と奥の帯（支柱）の2枚
 road_stone1,road,石畳,none,area,road river_bridge_stone1_v river_bridge_stone1_r river_bridge_stone1_l river_bridge_stone1_left_v river_bridge_stone1_left_r river_bridge_stone1_left_l river_bridge_stone1_right_v river_bridge_stone1_right_r river_bridge_stone1_right_l river_bridge_stone1_mid_v river_bridge_stone1_mid_r river_bridge_stone1_mid_l,0,0,false,,,,,true,plain,,石畳の道。地面は焼き込まず map_ground で敷く

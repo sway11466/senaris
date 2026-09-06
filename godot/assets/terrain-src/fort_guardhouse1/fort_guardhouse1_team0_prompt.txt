@@ -1,5 +1,9 @@
-SAME guardhouse as the previous image — identical layout, identical building,
-wall, gate, cobbles, weapon rack and cart, identical pure white outside. Change
-ONLY the roof: recolour it to deep blue-grey slate, clearly blue-leaning but
-still muted and dark, not bright, not saturated. Leave the stonework, the
-timber, the paving and the white background exactly as they are.
+SAME guard post as the previous image — identical building, identical yard wall, gate,
+spear rack and timbers, in the same places, at the same angle, on the same
+pure-white background, cut by the same edges. The roof is the SAME ROOF: same
+slate, same laying, same ridge, same eaves, same outline, same shapes — not
+rebuilt, not re-covered, not swapped for another material. Change ONLY ITS
+COLOUR: base tone #575A5E, shadowed slope #3D454C, catch-light #6E747A. Clearly blue-leaning
+but still muted and dark, not bright, not saturated. Hold those numbers exactly:
+they are the same colour the game already uses for a captured town, and the two
+have to match. Leave the stonework and the timber exactly as they are.
