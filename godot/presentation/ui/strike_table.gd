@@ -101,7 +101,7 @@ static func term_label(text: String) -> Label:
 
 # --- 値の整形 ---
 
-## スナップショット（BattleState._unit_snapshot）の表示名。skin が引けなければ type_id。
+## スナップショット（BattleState.unit_snapshot）の表示名。skin が引けなければ type_id。
 static func display_name(skins: Dictionary, snap: Dictionary) -> String:
 	var s: UnitSkin = SkinCatalog.resolve(skins, String(snap.get("skin_id", "")), snap["type_id"], snap["team"])
 	return TranslationServer.translate("unit." + s.skin_id + ".name") if s != null else String(snap["type_id"])

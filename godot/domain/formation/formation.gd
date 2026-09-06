@@ -1,7 +1,7 @@
 extends RefCounted
 class_name Formation
 ## 陣形スキル（純ロジック・Node非依存）。配置レシピの検出とダメージ計算。
-## 発動＝プレイヤーの明示操作／参加ユニットは行動完了（適用は BattleState.resolve_formation）。
+## 発動＝プレイヤーの明示操作／参加ユニットは行動完了（適用は FormationResolver）。
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
@@ -12,7 +12,7 @@ class_name Formation
 ## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
 ## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(leader)の性質を使う（①魔法兵0.5／③聖職0）。
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし参加者は全員除外（発動側は自分たちの術で焼けない）。
-## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は BattleState.resolve_formation。
+## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は FormationResolver。
 
 ## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
 ## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
@@ -247,7 +247,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 	return out
 
 ## target を着弾中心としたときの効果プレビュー（純ロジック・非破壊）。
-## 対象ごとの hit 内訳（Combat.hit_from_breakdowns 形式＋target_id）を返す。適用は resolve_formation。
+## 対象ごとの hit 内訳（Combat.hit_from_breakdowns 形式＋target_id）を返す。適用は FormationResolver。
 static func preview(state: BattleState, option: Dictionary, target: Vector2i) -> Dictionary:
 	var hits: Array = []
 	var participants: Array = option["participants"]
@@ -459,7 +459,7 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 	# ピュリファイはクレリックが撃ってもビショップが撃っても同じ絵になる。詳細 → doc/gdd/skills.md 実装方針
 	# 陣形の盤の着弾はこれを見ない（レシピ専用の絵を規約解決する → doc/gdd/formations.md 発動の演出）。
 	opt["combat_effect"] = String(r.get("combat_effect", ""))
-	if effect == "buff":  # 状態補正の値を option に載せる（BattleState._buff_entry が読む）
+	if effect == "buff":  # 状態補正の値を option に載せる（FormationResolver が読む）
 		# 強化か弱体か（ピュリファイが落とす対象・盤の見た目）。値の符号から推測しない＝レシピが明示する。
 		opt["buff_kind"] = String(r.get("buff_kind", StatusMod.KIND_BUFF))
 		opt["buff_op"] = String(r.get("buff_op", "mul"))
@@ -472,7 +472,7 @@ static func _option(rid: String, r: Dictionary, participants: Array) -> Dictiona
 		opt["buff_fx"] = String(r.get("buff_fx", ""))
 		opt["buff_target"] = String(r.get("buff_target", "both"))
 		opt["duration_turns"] = int(r.get("duration_turns", 1))
-	elif effect == "dot":  # 継続ダメージの値を option に載せる（BattleState._dot_entry が読む）
+	elif effect == "dot":  # 継続ダメージの値を option に載せる（FormationResolver が読む）
 		# 弱体であることは明示する＝ピュリファイが落とす対象・盤の見た目・敵AIの stack 条件が読む。
 		opt["buff_kind"] = String(r.get("buff_kind", StatusMod.KIND_DEBUFF))
 		opt["buff_fx"] = String(r.get("buff_fx", ""))
