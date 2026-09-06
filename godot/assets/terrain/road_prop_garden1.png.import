@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dlviicax7kbxh"
-path="res://.godot/imported/road_prop_garden1_l.png-d6142680370a061ec0b25288c8940ffd.ctex"
+uid="uid://wwncomr7ingx"
+path="res://.godot/imported/road_prop_garden1.png-f4517597c195d29720f80c4dc2704517.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/road_prop_garden1_l.png"
-dest_files=["res://.godot/imported/road_prop_garden1_l.png-d6142680370a061ec0b25288c8940ffd.ctex"]
+source_file="res://assets/terrain/road_prop_garden1.png"
+dest_files=["res://.godot/imported/road_prop_garden1.png-f4517597c195d29720f80c4dc2704517.ctex"]
 
 [params]
 

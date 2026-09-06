@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bmfo3uiy5gxtg"
-path="res://.godot/imported/plain_prop_garden1_l.png-4196709bc3d0016411983e764e8d55fd.ctex"
+uid="uid://1t866ebv8clf"
+path="res://.godot/imported/plain_prop_garden1_combat_front.png-e12b6b67a2085c2fee1a79f30ed5bf63.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_prop_garden1_l.png"
-dest_files=["res://.godot/imported/plain_prop_garden1_l.png-4196709bc3d0016411983e764e8d55fd.ctex"]
+source_file="res://assets/terrain/plain_prop_garden1_combat_front.png"
+dest_files=["res://.godot/imported/plain_prop_garden1_combat_front.png-e12b6b67a2085c2fee1a79f30ed5bf63.ctex"]
 
 [params]
 

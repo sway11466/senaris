@@ -84,9 +84,7 @@ terrain.plain_grave1_fort_chapel1.name,礼拝堂,Chapel
 terrain.plain_grave1_fort_crypt1.name,納骨堂,Crypt
 terrain.plain_grave1_prop_tomb1.name,墓標,Gravestone
 terrain.plain_grave1_rubble_tombstone1.name,墓石の山,Pile of Tombstones
-terrain.plain_prop_garden1_l.name,菜園,Garden
-terrain.plain_prop_garden1_r.name,菜園,Garden
-terrain.plain_prop_garden1_v.name,菜園,Garden
+terrain.plain_prop_garden1.name,菜園,Garden
 terrain.plain_trap.name,罠,Trap
 terrain.plateau.name,台地,Plateau
 terrain.rampart.name,城壁,Rampart
@@ -109,9 +107,7 @@ terrain.road.name,道,Road
 terrain.road_building_town1.name,街区,Town Block
 terrain.road_fort_guardhouse1.name,詰所,Guardhouse
 terrain.road_fort_town1.name,町,Town
-terrain.road_prop_garden1_l.name,菜園,Garden
-terrain.road_prop_garden1_r.name,菜園,Garden
-terrain.road_prop_garden1_v.name,菜園,Garden
+terrain.road_prop_garden1.name,菜園,Garden
 terrain.road_stone1.name,石畳,Cobblestones
 terrain.road_stone2.name,石畳,Cobblestones
 terrain.wall.name,壁,Wall
