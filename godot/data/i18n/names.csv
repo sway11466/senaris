@@ -90,6 +90,7 @@ terrain.plateau.name,台地,Plateau
 terrain.rampart.name,城壁,Rampart
 terrain.rampart_granite1.name,花崗岩の尾根,Granite Ridge
 terrain.rampart_ridge1.name,尾根,Ridge
+terrain.rampart_scree1.name,ガレ場,Scree
 terrain.river.name,川,River
 terrain.river_bridge_stone1_l.name,石橋（単幅）,Stone Bridge
 terrain.river_bridge_stone1_left_l.name,石橋（左端）,Stone Bridge

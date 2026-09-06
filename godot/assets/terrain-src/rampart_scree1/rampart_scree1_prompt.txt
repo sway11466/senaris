@@ -1,0 +1,9 @@
+SUBJECT: An impassable field of SCREE — loose, angular broken stones heaped on top of each other, seen straight from directly overhead. The stones are separate pieces of rock, fist-sized to head-sized, sharp-edged and irregular, lying at every angle and stacked two or three deep so that stone rests on stone and the whole square is nothing but rock: there is NOWHERE FLAT to set a foot. Looking down we see each stone as a few flat facets meeting at a sharp edge, and a narrow dark gap where it touches its neighbours. The gaps form an irregular network across the whole frame; they are the darkest part of the picture, but they are a dark grey-brown, hex #6B6255 — never black and never a heavy inked outline. Keep every line THIN, the weight of a hairline crack, never a bold cartoon contour.
+
+Stones vary in size, the largest about 1/10 of the frame across (about 100px in a 1000px image), with smaller chips wedged between the big ones; pack them irregularly, NEVER in rows, NEVER sorted by size, NEVER radiating from one centre, and NEVER one single boulder dominating the frame. The heap runs off all four edges of the frame.
+
+Dry warm grey-tan stone, hex #A89574 — this is the same colour as the dry earth of the surrounding wasteland, and the stones must use this exact colour and keep it consistent. Do NOT drift cooler, bluer, more purple, more yellow or more saturated than it, and do NOT make it lighter or darker either. Shade each facet as ONE FLAT TONE — a bright top facet, a mid side facet, a dark gap — flat cel shading of the rock's own faces, NOT a cast shadow, NOT a light direction.
+
+Keep the large-scale colour even and low-contrast so it tiles without an obvious repeat.
+
+Every part of the surface is rock: NO soil, NO cracked earth, NO sand or gravel showing between the stones, NO grass, NO moss, NO water, NO path, NO props of any kind.

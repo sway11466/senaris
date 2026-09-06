@@ -1,0 +1,16 @@
+# 上面＝角張った石が積み重なったガレ場（足場が無い）。1024px の原寸をそのまま切り抜く。
+# 候補10枚（rampart_scree1_a〜j.jpg＝生成時のファイル名順）から c・d・g を採った。
+# 選定: 変種どうしの明度差 0.5（採用ライン1以内）・彩度 15.6〜16.2・明暗むら 2.2〜2.5。
+# 大きな暗い穴のある e/f/i（むら 3.7〜5.9）と、1.3 以上暗い j は外した。
+powershell -File tools\gen_terrain_tile.ps1 rampart_scree1 assets\terrain-src\rampart_scree1\rampart_scree1_c.jpg assets\terrain-src\rampart_scree1\rampart_scree1_d.jpg assets\terrain-src\rampart_scree1\rampart_scree1_g.jpg
+
+# 色: 石の色を荒地の基準色 #A89574 にそろえ、石の隙間の影で落とす。切り抜き後の明度 48.0〜48.9
+# （荒地 52.6 より約4ポイント暗い＝同じ色味のまま通れる／通れないが分かれる）。
+
+# 側面＝上面と同じ元絵（c）から帯を切る。ガレ場は向きの無い模様なので、横から見た石の山として読める。
+# 512 幅で切って左右反転の写しを繋ぐ＝継ぎ目が出ず、石の大きさが上面と同じ縮尺になる（1024 幅で切ると半分の大きさ）。
+# 厚みは 140px＝岩地（高さ 0.36）と同じ。+850 は明度が切り抜き後の上面（48.3）に最も近い帯。
+magick assets\terrain-src\rampart_scree1\rampart_scree1_c.jpg -crop 512x140+0+850 +repage ( +clone -flop ) +append -colors 64 -dither None assets\terrain\rampart_scree1_side.png
+
+# terrain_skin.csv: elevation 0.36（岩地と同じ＝尾根 0.54 より低い盛り上がり）/ orientable full / side_tiling repeat。
+# CSV を直したら JSON を焼き直す: godot --headless --path . --script res://data/terrain/convert.gd

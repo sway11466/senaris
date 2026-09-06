@@ -1,0 +1,39 @@
+STYLE: A side-on rock texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette, and no single big focal object. It must tile SEAMLESSLY LEFT TO RIGHT:
+the left and right edges continue into each other. CRITICAL: vary the stones
+RANDOMLY and UNEVENLY — never a repeated motif, never the same shape twice,
+never in columns of equal width. Avoid large, high-contrast patches (they repeat
+visibly when tiled); keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The front of a heap of SCREE — loose, angular broken stones piled on
+top of each other, seen face-on. The stones are separate pieces of rock,
+fist-sized to head-sized, sharp-edged and irregular, resting on one another at
+every angle, with narrow dark gaps between them where they touch. Some gaps open
+into small dark hollows where a stone is missing. The pile is the same broken
+rock as the top of the scree field, seen from the side.
+
+The stones reach the TOP EDGE of the frame evenly, with no skyline, no crest and
+no single stone breaking the top: the heap has been cut off flat where the frame
+ends. The bottom edge is cut off the same way — the stones simply continue past
+it, with NO ground and NO base.
+
+Dry warm grey-tan stone, hex #A89574 — the stones must use this exact colour and
+keep it consistent. Do NOT drift cooler, bluer, more purple, more yellow or more
+saturated than it, and do NOT make it lighter or darker either. Shade every facet
+as ONE FLAT TONE — a lighter top facet, a mid side facet, a dark gap — flat cel
+shading of the rock's own faces, NOT a cast shadow and NOT a light direction,
+and no gap near-black: the gaps are dark grey-brown, hex #6B6255.
+
+Read at thumbnail size: the whole face is only a narrow strip on screen, so keep
+the stones CHUNKY and few — about eight to twelve of them across the width of
+the frame — with no fine detail that would disappear. Spread them evenly from
+top to bottom, with no single large feature that sits at one height only.
+
+NOT masonry — NO stacked bricks, NO mortar lines, NO worked edges, NO tool
+marks. NO vegetation of any kind — NO grass, NO moss, NO lichen, NO soil. NO
+water, NO caves, NO objects of any kind.
