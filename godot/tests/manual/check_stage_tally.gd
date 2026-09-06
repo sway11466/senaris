@@ -56,7 +56,7 @@ func _run() -> void:
 	main._result._dismiss()
 	for f in 30:
 		await process_frame
-	_say("after dismiss: conversation=%s phase=%s" % [main._conversation.visible, main._conversation_phase])
+	_say("after dismiss: conversation=%s phase=%s" % [main._conversation.visible, main._story._phase])
 	for p in KEEP:
 		if _backup[p] == null:
 			if FileAccess.file_exists(p):
