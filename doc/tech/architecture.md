@@ -54,6 +54,11 @@ res://
 │   ├── status/        # 状態補正(バフ/デバフ・持続)
 │   ├── unit/          # ユニットの状態・型
 │   ├── ai/            # 敵思考(domainクエリだけで完結)
+│   │   ├── trait_brain.gd  # 特性ベースの敵AI(行動順・起動判定・拠点出撃・特性への振り分け)
+│   │   ├── traits/         # 特性ごとの行動ルール(AiTrait を継承。charge/ambush/raid/predator/swarm/flee/withdraw/standoff)
+│   │   ├── ai_rows.gd      # 行の部品(占領・スキル・最大間合い・降ろす・乗る・前進・間合取り)
+│   │   ├── ai_pick.gd      # 標的の物差し(獲物・手負い・空敵・反撃されない・仕留められる・stack 条件・包囲可能)
+│   │   ├── ai_params.gd    # パラメーター解決(部隊の上書き＞特性の既定。sight/stack/retreat の読み替え)
 │   │   └── ai_distance.gd  # AIが使う距離(移動・地形・迂回の道のり表。BattleState を引数に取る静的関数)
 │   ├── rank_evaluator.gd  # 評価ランク(ターン消費率・生存率)
 │   └── battle_state.gd  # 盤の状態＝中断セーブの本体。ターン進行もここ
