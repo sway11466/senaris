@@ -78,12 +78,12 @@ func _ready() -> void:
 	$Front/InfoPanel.set_minimized(_settings_store.info_panel_minimized())
 	$Front/InfoPanel.minimized_changed.connect(_settings_store.set_info_panel_minimized)
 	# 動かした位置も同じく設定から復元（doc/gdd/uiux.md 移動）。動かしていなければ main.tscn の置き場のまま。
+	# 会話板も同じ位置に出る（板は1枚）＝ _install_conversation が同じ設定から置く。
 	if _settings_store.has_info_panel_position():
 		$Front/InfoPanel.position = _settings_store.info_panel_position()
-	$Front/InfoPanel.moved.connect(_settings_store.set_info_panel_position)
+	$Front/InfoPanel.moved.connect(_on_panel_moved)
 	# 盤エリアは板が塞いでいない側＝畳む／開く／動かすのたびに押し直す（設定へ書いた後に読む）。
 	$Front/InfoPanel.minimized_changed.connect(func(_v: bool) -> void: _sync_board_area())
-	$Front/InfoPanel.moved.connect(func(_p: Vector2) -> void: _sync_board_area())
 	_sync_board_area()
 	_install_screen()  # 画面の明暗の共通基盤（暗幕＋加護の光）。暗転を頼む演出より先に用意
 	_combat_scene = CombatScene.new()  # 戦闘演出オーバーレイ（永続）。load_stage で controller に結線
@@ -319,8 +319,17 @@ func _update_turn_plate(team: int, turn_number: int) -> void:
 ## ＝「動かしていない」に戻す。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
 func _on_info_panel_reset_requested() -> void:
 	$Front/InfoPanel.reset_position()
+	_conversation.reset_position()  # 板は1枚＝会話の最中でも両方戻る
 	_settings_store.clear_info_panel_position()
 	_sync_board_area()  # 既定の場所へ戻した＝また板が右ボックスを塞ぐ
+
+## 板（情報板か会話板のどちらか）を掴んで動かした。板は1枚なので、もう一方も同じ場所へ写し、
+## 位置を設定に書き、盤エリアを押し直す。仕様 → doc/gdd/uiux.md 移動
+func _on_panel_moved(pos: Vector2) -> void:
+	$Front/InfoPanel.position = pos
+	_conversation.position = pos
+	_settings_store.set_info_panel_position(pos)
+	_sync_board_area()
 
 ## 盤エリア（→ doc/gdd/uiux.md 盤エリア）は情報板が塞いでいない側。板の状態を知っているのは
 ## ここだけなので、変わるたびに UiLayout へ押す。カメラはここでは動かさない＝畳む・開く・動かすで
@@ -483,10 +492,10 @@ func _take_defeat_route(action: String) -> void:
 func _install_conversation() -> void:
 	# パネルは前面パネル層 $Front（層45）＝暗転で沈まない側。暗幕は共通基盤（_screen）に頼む。
 	_conversation = preload("res://presentation/ui/conversation_panel.gd").new()
-	_conversation.offset_left = UiLayout.RIGHT_BOX.position.x  # InfoPanel と同じ箱に重ねる（会話中は InfoPanel を隠す）
-	_conversation.offset_top = UiLayout.RIGHT_BOX.position.y
-	_conversation.offset_right = UiLayout.RIGHT_BOX.end.x
-	_conversation.offset_bottom = UiLayout.RIGHT_BOX.end.y
+	# InfoPanel と同じ箱・同じ位置に重ねる（会話中は InfoPanel を隠す）。板は1枚＝動かしてあれば同じ先へ。
+	_conversation.size = UiLayout.RIGHT_BOX.size
+	_conversation.position = $Front/InfoPanel.position
+	_conversation.moved.connect(_on_panel_moved)
 	_conversation.bind(_skins)
 	$Front.add_child(_conversation)
 

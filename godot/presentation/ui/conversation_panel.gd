@@ -1,4 +1,4 @@
-extends Panel
+extends DraggablePanel
 class_name ConversationPanel
 ## ステージ前後の会話（チャット風）。右エリアに顔＋ふきだしを上から積み、
 ## 「次へ」で1行ずつ追加、「会話をスキップ」で丸ごと飛ばす。presentation 専用（盤面に触れない・案P）。
@@ -7,6 +7,9 @@ class_name ConversationPanel
 ## 詳細 → doc/campaign/authoring.md
 ##
 ## 顔は UnitSkin の portrait スロット（未用意は名前2文字のプレースホルダ）。
+##
+## 板は情報板と同じ手つきで掴んで動かせる（DraggablePanel）。吹き出しも顔も押下を止めない＝
+## ボタン以外のどこを押して引きずっても板が動く（仕様 → doc/gdd/uiux.md 移動）。
 
 signal closed  # 会話終了（読了 or スキップ）。呼び出し側が次（戦闘/セレクト）へ進む。
 
@@ -39,6 +42,7 @@ func _ready() -> void:
 	_scroll.offset_bottom = -52
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_RESERVE  # バー分の幅を常に確保＝出現で幅が変わり折返しがズレるのを防ぐ（バーは必要時のみ表示）
+	_scroll.mouse_filter = Control.MOUSE_FILTER_PASS  # ホイールは自分で使い、左ボタンは板へ通す（＝吹き出しの上でも板を掴める）
 	add_child(_scroll)
 	_messages = VBoxContainer.new()
 	_messages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -176,6 +180,7 @@ func _add_message(line: Dictionary, index: int) -> void:
 	bubble.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bubble.size_flags_stretch_ratio = BUBBLE_RATIO
 	var gap := Control.new()  # 反対側の余白＝チャットらしく片側を空ける
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 余白の上でも板を掴める
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	gap.size_flags_stretch_ratio = 1.0
 	if right:
@@ -224,6 +229,7 @@ func _make_tail(right: bool) -> Control:
 ## ふきだし＝丸角バルーン（話者名＋セリフ）。翻訳キーは tr() で解決。左右で色を変える。
 func _make_bubble(line: Dictionary, right: bool) -> Control:
 	var balloon := PanelContainer.new()
+	balloon.mouse_filter = Control.MOUSE_FILTER_PASS  # 吹き出しの上でも板を掴める
 	var st := StyleBoxFlat.new()
 	st.bg_color = COLOR_BUBBLE_R if right else COLOR_BUBBLE_L
 	st.set_corner_radius_all(12)  # 丸角＝吹き出しらしさ
@@ -266,6 +272,7 @@ func _make_face(skin_id: String) -> Control:
 		atlas.atlas = src
 		atlas.region = bbox
 		var tex := TextureRect.new()
+		tex.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 顔の上でも板を掴める
 		tex.texture = atlas
 		tex.custom_minimum_size = bbox.size * FACE_SCALE  # 固定倍率＝相対サイズ維持・左右の隙間なし
 		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -275,6 +282,7 @@ func _make_face(skin_id: String) -> Control:
 		return tex
 	# プレースホルダ（絵が無い時だけ）: 小さな色枠＋名前2文字
 	var box := Panel.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 顔の上でも板を掴める
 	box.custom_minimum_size = Vector2(64, 64)
 	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	var st := StyleBoxFlat.new()
@@ -305,6 +313,7 @@ class _Tail extends Control:
 	var points_left := true
 
 	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE  # しっぽの上でも板を掴める
 		resized.connect(queue_redraw)  # コンテナにサイズを与えられたら描き直す
 
 	func _draw() -> void:
