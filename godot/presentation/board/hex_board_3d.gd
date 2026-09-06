@@ -86,9 +86,9 @@ var _preview_unit := -1           # 移動プレビューで歩かせた駒（�
 var _preview_from := INVALID_HEX  # その駒の盤上の実位置（キャンセルで戻す先）
 var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリック待ち
 var _choosing_formation := false  # 陣形スキルの着弾中心クリック待ち
-var _formation_active := {}     # 発動中の陣形 option（着弾待ち）
+var _formation_active: FormationOption = null  # 発動中の陣形 option（着弾待ち）
 var _formation_cells := {}      # Vector2i -> true（着弾可能な射程内hex）
-var _formation_opts: Array = [] # 現メニューで提示中の陣形 option 一覧
+var _formation_opts: Array[FormationOption] = []  # 現メニューで提示中の陣形 option 一覧
 # 着弾演出の状態は BoardImpactRenderer に移設。
 var _menu: PopupMenu = null
 var _menu_handled := false
@@ -509,12 +509,12 @@ func _open_command_menu(dest: Vector2i) -> void:
 		if not _formation_opts.is_empty():
 			_menu.add_separator()
 			for i in _formation_opts.size():
-				var o: Dictionary = _formation_opts[i]
-				var label := tr("ui.board.unit_skill") if String(o.get("kind", "")) == "skill" else tr("ui.board.formation_skill")
+				var o: FormationOption = _formation_opts[i]
+				var label := tr("ui.board.unit_skill") if o.is_unit_skill() else tr("ui.board.formation_skill")
 				# レシピ名は規約キー（names.csv）で解決。RECIPES の name は開発用メモ
-				var recipe_name := tr("recipe." + String(o["recipe"]) + ".name")
+				var recipe_name := tr("recipe." + o.recipe + ".name")
 				_menu.add_item(tr("ui.board.recipe_item") % [label, recipe_name], FORMATION_ID_BASE + i)
-				if Formation.targetable_cells(state, o, dest).is_empty() and bool(o["needs_target"]):
+				if Formation.targetable_cells(state, o, dest).is_empty() and o.needs_target():
 					_menu.set_item_disabled(_menu.get_item_index(FORMATION_ID_BASE + i), true)
 	_menu.add_separator()
 	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
@@ -531,7 +531,7 @@ func _on_menu_id(id: int) -> void:
 		_handle_unload_menu(id)
 		return
 	if id >= FORMATION_ID_BASE:  # 300以上＝UNLOAD/DEPLOYより先に判定（範囲が重ならないよう最上位）
-		var opt: Dictionary = _formation_opts[id - FORMATION_ID_BASE]
+		var opt: FormationOption = _formation_opts[id - FORMATION_ID_BASE]
 		# 陣形もユニットスキルも、先に移動を確定してから対象を選ぶ（射程は移動先から測る）。
 		# 動かずに開いた場合は保留移動が無いので素通り。
 		_commit_pending_move()
@@ -579,8 +579,8 @@ func _on_menu_id(id: int) -> void:
 
 ## 陣形スキルの着弾中心クリック待ちモードに入る。射程内hexをハイライトする。
 ## 対象を取らないバフ系（②）は即発動（クリック待ちに入らない）。
-func _enter_formation(option: Dictionary) -> void:
-	if not bool(option["needs_target"]):
+func _enter_formation(option: FormationOption) -> void:
+	if not option.needs_target():
 		controller.execute_formation(FormationCommand.new(option, INVALID_HEX))
 		return
 	_commit_pending_move()  # 移動してから撃つ＝先に確定させる（自マスなら no-op）
@@ -852,7 +852,7 @@ func _deselect() -> void:
 ## 陣形スキルの発動・着弾待ち状態を解除する。
 func _clear_formation() -> void:
 	_choosing_formation = false
-	_formation_active = {}
+	_formation_active = null
 	_formation_cells.clear()
 	_formation_opts = []
 
@@ -1082,11 +1082,10 @@ func _sync_overlay() -> void:
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 		# 対象を1体選ぶスキル（single＝単体狙撃／buff_scope=unit＝1体に掛ける）は駒の居るhexしか
 		# 選べない＝攻撃と同じ頭上マーカーを出す。色も攻撃と共通＝「マーク＝いま選べる対象」の記号。
-		if _choosing_formation and (String(_formation_active.get("effect", "")) == "single"
-				or String(_formation_active.get("buff_scope", "")) == "unit"):
+		if _choosing_formation and _formation_active.targets_unit():
 			_unit_renderer.add_target_marker(state.unit_at(h), _overlay_root)
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
-		for h in Hex.within_range(_hover, int(_formation_active.get("radius", 0))):
+		for h in Hex.within_range(_hover, _formation_active.radius):
 			_add_cell(h, COLOR_FORMATION_BLAST, 0.035)
 	var sel := state.unit_by_id(_selected_id) if _selected_id != -1 else null
 	if sel != null:

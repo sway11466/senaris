@@ -490,9 +490,9 @@ func _capture_row(state: BattleState, u: Unit) -> AiAction:
 ## 強化・解除に包囲可能を課すと永久に成立しない（包囲は敵にしか成り立たないため）。
 func _skill_row(state: BattleState, u: Unit, pick: String, require_surround := false) -> AiAction:
 	for option in Formation.available_for(state, u):
-		if not bool(option.get("needs_target", true)):
+		if not option.needs_target():
 			return AiAction.skill(u.id, option, u.pos)  # 陣営全体＝対象を選ばない
-		var kind := _skill_kind(option)
+		var kind := option.stack_kind()
 		var candidates: Array[Unit] = []
 		for other in state.units():
 			if not Formation.can_target(state, option, other.pos):
@@ -1362,20 +1362,11 @@ func _can_kill_in_one_hit(state: BattleState, u: Unit, t: Unit) -> bool:
 
 # --- stack 条件（doc/gdd/ai.md stack 条件） ---
 
-## option のスキルが強化・弱体・解除のどれか。判別はレシピのフラグから決める
-## （effect が cleanse なら解除、buff_kind が debuff なら弱体、それ以外は強化）。
-static func _skill_kind(option: Dictionary) -> String:
-	if String(option.get("effect", "")) == "cleanse":
-		return "cleanse"
-	if String(option.get("buff_kind", "")) == StatusMod.KIND_DEBUFF:
-		return StatusMod.KIND_DEBUFF
-	return StatusMod.KIND_BUFF
-
 ## u がいま放てるスキルの種類（複数あれば最初の1つ。持たなければ弱体扱い）。
 ## swarm の「stack 条件を満たさない敵は殴りに切り替える」行が、掛ける側の種類を知るために読む。
 func _skill_kind_of(state: BattleState, u: Unit) -> String:
 	for option in Formation.available_for(state, u):
-		return _skill_kind(option)
+		return option.stack_kind()
 	return StatusMod.KIND_DEBUFF
 
 ## target が stack 条件を満たすか（＝そのスキルを掛ける価値があるか）。

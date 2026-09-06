@@ -196,11 +196,11 @@ static func unit_skills_of(unit: Unit) -> Array[String]:
 	return out
 
 ## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
-## 各要素＝ _option の dict（recipe/participants/needs_target/range 等）。
+## 各要素＝ FormationOption（レシピの値＋参加者。対象が要るか等の判断もそこに持つ）。
 ## from_hex＝発動者がそこに居ると仮定して成立を見る（移動を確定する前のコマンドメニュー用）。
 ## 発動者は移動してから発動してよい＝隣接の判定は移動先で行う。詳細 → doc/gdd/formations.md
-static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> Array:
-	var out: Array = []
+static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> Array[FormationOption]:
+	var out: Array[FormationOption] = []
 	if unit == null:
 		return out
 	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
@@ -221,10 +221,10 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 		match String(r["shape"]):
 			"triangle":
 				for members in _triangle_sets(state, unit, r, lead_pos):
-					out.append(_option(rid, r, [unit, members[0], members[1]]))
+					out.append(FormationOption.from_recipe(rid, r, [unit, members[0], members[1]]))
 			"escort":
 				for members in _escort_sets(state, unit, r, lead_pos):
-					out.append(_option(rid, r, [unit, members[0], members[1]]))
+					out.append(FormationOption.from_recipe(rid, r, [unit, members[0], members[1]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
 				if String(r["effect"]) == "spawn":
@@ -235,7 +235,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 							break
 					if not has_empty:
 						continue
-				out.append(_option(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
+				out.append(FormationOption.from_recipe(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
 				var members := _cluster(state, unit, r, lead_pos)
 				if not members.is_empty():
@@ -243,41 +243,41 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 					for m in members:
 						if m.id != unit.id:
 							ordered.append(m)
-					out.append(_option(rid, r, ordered))
+					out.append(FormationOption.from_recipe(rid, r, ordered))
 	return out
 
 ## target を着弾中心としたときの効果プレビュー（純ロジック・非破壊）。
 ## 対象ごとの hit 内訳（Combat.hit_from_breakdowns 形式＋target_id）を返す。適用は FormationResolver。
-static func preview(state: BattleState, option: Dictionary, target: Vector2i) -> Dictionary:
+static func preview(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	var hits: Array = []
-	var participants: Array = option["participants"]
+	var participants := option.participants
 	for hx in blast_cells(option, target):
 		var victim := state.unit_at(hx)
 		if victim != null and not (victim.id in participants):
 			hits.append(_formation_hit(state, option, victim))
-	return {"recipe": option["recipe"], "hits": hits}
+	return {"recipe": option.recipe, "hits": hits}
 
 ## 着弾する面＝効果が及ぶヘックス（駒の有無によらない）。着弾の無いもの（バフ・解除）は空。
 ## 盤の演出が「どこに当たったか」を光らせるのに使う。詳細 → doc/gdd/formations.md 発動の演出
-static func blast_cells(option: Dictionary, target: Vector2i) -> Array[Vector2i]:
-	match String(option["effect"]):
-		"area":
-			return Hex.within_range(target, int(option.get("radius", 0)))
-		"single":
+static func blast_cells(option: FormationOption, target: Vector2i) -> Array[Vector2i]:
+	match option.effect:
+		FormationOption.Effect.AREA:
+			return Hex.within_range(target, option.radius)
+		FormationOption.Effect.SINGLE:
 			return [target] as Array[Vector2i]
 	return [] as Array[Vector2i]
 
 ## target が発動条件の射程内か（"any"＝参加者のどれか／"leader"＝発動者から）。
 ## from_hex＝発動者がそこに居ると仮定する（移動を確定する前の判定）。省略すると盤の実位置。
-static func can_target(state: BattleState, option: Dictionary, target: Vector2i, from_hex := NO_HEX) -> bool:
-	if not bool(option["needs_target"]):
+static func can_target(state: BattleState, option: FormationOption, target: Vector2i, from_hex := NO_HEX) -> bool:
+	if not option.needs_target():
 		return true
-	var rng := int(option["range"])
-	var lead_id := int(option["leader_id"])
+	var rng := option.max_range
+	var lead_id := option.leader_id
 	var leader := state.unit_by_id(lead_id)
 	var within := false
-	if String(option["range_from"]) == "any":
-		for pid in option["participants"]:
+	if option.range_from == FormationOption.RangeFrom.ANY:
+		for pid in option.participants:
 			var p := state.unit_by_id(int(pid))
 			if p == null:
 				continue
@@ -293,18 +293,18 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i,
 		return false
 	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（ピクシーダスト）は発動者
 	# 自身も選べ、敵を弱らせるもの（ドレッドタッチ）は敵だけを選べる。詳細 → doc/gdd/skills.md
-	if String(option.get("buff_scope", "")) == "unit":
+	if option.scope == FormationOption.Scope.UNIT:
 		var u := _unit_at_assumed(state, leader, from_hex, target)
 		if u == null or leader == null:
 			return false
 		var same_team := u.team == leader.team
-		if String(option.get("buff_side", "ally")) == "enemy":
+		if option.side == FormationOption.Side.ENEMY:
 			return not same_team
 		if not same_team:
 			return false
 		# 解除（ピュリファイ）は落とすものが無ければ撃てない＝弱体の掛かっていない味方は対象に
 		# ならない。撃てる先が無ければメニューは項目を無効化する。詳細 → doc/gdd/skills.md ③
-		if String(option["effect"]) == "cleanse":
+		if option.effect == FormationOption.Effect.CLEANSE:
 			return state.debuff_count(u) > 0
 		return true
 	return true
@@ -314,13 +314,13 @@ static func can_target(state: BattleState, option: Dictionary, target: Vector2i,
 ## from_hex＝発動者がそこに居ると仮定する（移動を確定する前のメニュー判定）。省略すると実位置。
 ## single（単体狙撃）は「参加者以外の駒が居るhex」だけ＝空撃ちさせない。area（面）は地面にも撃てる。
 ## 陣営の絞り込み（味方向き／敵向き）は can_target が持つ＝ここには二重に書かない。
-static func targetable_cells(state: BattleState, option: Dictionary, from_hex := NO_HEX) -> Array[Vector2i]:
+static func targetable_cells(state: BattleState, option: FormationOption, from_hex := NO_HEX) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
-	if not bool(option["needs_target"]):
+	if not option.needs_target():
 		return out
-	var leader := state.unit_by_id(int(option["leader_id"]))
-	var single := String(option["effect"]) == "single"
-	var participants: Array = option["participants"]
+	var leader := state.unit_by_id(option.leader_id)
+	var single := option.effect == FormationOption.Effect.SINGLE
+	var participants := option.participants
 	for h in _in_range_cells(state, option, from_hex):
 		if not can_target(state, option, h, from_hex):
 			continue
@@ -351,12 +351,12 @@ static func _unit_at_assumed(state: BattleState, leader: Unit, from_hex: Vector2
 	return state.unit_at(hex)
 
 ## 射程内かつ盤上のhex（重複なし）。起点は "any" なら参加者ぜんぶ／"leader" なら発動者だけ。
-static func _in_range_cells(state: BattleState, option: Dictionary, from_hex: Vector2i) -> Array[Vector2i]:
-	var rng := int(option["range"])
-	var lead_id := int(option["leader_id"])
+static func _in_range_cells(state: BattleState, option: FormationOption, from_hex: Vector2i) -> Array[Vector2i]:
+	var rng := option.max_range
+	var lead_id := option.leader_id
 	var origins: Array[Vector2i] = []
-	if String(option["range_from"]) == "any":
-		for pid in option["participants"]:
+	if option.range_from == FormationOption.RangeFrom.ANY:
+		for pid in option.participants:
 			var p := state.unit_by_id(int(pid))
 			if p != null:
 				origins.append(from_hex if (from_hex != NO_HEX and p.id == lead_id) else p.pos)
@@ -428,64 +428,12 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: 
 		return []
 	return seen.values()
 
-## 参加ユニット配列（先頭＝発動者）から選択肢 dict を組む。
-static func _option(rid: String, r: Dictionary, participants: Array) -> Dictionary:
-	var ids: Array[int] = []
-	for u in participants:
-		ids.append(u.id)
-	var effect := String(r["effect"])
-	var buff_scope := String(r.get("buff_scope", "team"))
-	var opt := {
-		"recipe": rid,
-		"name": String(r["name"]),
-		"leader_id": participants[0].id,
-		"participants": ids,
-		"effect": effect,
-		# ユニットスキル（単独発動）と陣形スキル（複数人）の区別。表示ラベルの出し分けに使う。
-		# 発動者が移動してから撃てるのは両方とも同じ＝ここでは分けない。詳細 → doc/gdd/formations.md
-		"kind": "skill" if String(r["shape"]) == "solo" else "formation",
-		# 対象1体のバフ（ユニットスキル）は掛ける相手を選ぶ＝陣営全体バフと違って対象指定が要る。
-		"needs_target": effect in ["area", "single"] or buff_scope == "unit",
-		"range": int(r.get("range", 0)),
-		"range_from": String(r.get("range_from", "leader")),
-		"radius": int(r.get("radius", 0)),
-	}
-	# 対象の絞り込みは効果の種類と独立に載せる（積む buff も落とす cleanse も同じ選び方をする）。
-	opt["buff_scope"] = buff_scope
-	# 対象1体のスキルが味方向きか敵向きか（can_target の絞り込み）。既定は味方。
-	opt["buff_side"] = String(r.get("buff_side", "ally"))
-	# ユニットスキルの演出シーンで使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる
-	# （presentation 側で解決）。エフェクトの単位を「誰が撃ったか」ではなく「何を撃ったか」にする列＝
-	# ピュリファイはクレリックが撃ってもビショップが撃っても同じ絵になる。詳細 → doc/gdd/skills.md 実装方針
-	# 陣形の盤の着弾はこれを見ない（レシピ専用の絵を規約解決する → doc/gdd/formations.md 発動の演出）。
-	opt["combat_effect"] = String(r.get("combat_effect", ""))
-	if effect == "buff":  # 状態補正の値を option に載せる（FormationResolver が読む）
-		# 強化か弱体か（ピュリファイが落とす対象・盤の見た目）。値の符号から推測しない＝レシピが明示する。
-		opt["buff_kind"] = String(r.get("buff_kind", StatusMod.KIND_BUFF))
-		opt["buff_op"] = String(r.get("buff_op", "mul"))
-		opt["buff_value"] = float(r.get("buff_value", 1.0))
-		opt["buff_value_per_troop"] = float(r.get("buff_value_per_troop", 0.0))
-		# 参加人数で伸びるレシピ（グレイス）の値。基準人数（count）を超えた1体ごとに buff_value に
-		# 足す。0＝人数に依らない（既定）。実際の参加者数は participants が持つ。
-		opt["buff_value_per_extra"] = float(r.get("buff_value_per_extra", 0.0))
-		opt["count"] = int(r.get("count", 1))
-		opt["buff_fx"] = String(r.get("buff_fx", ""))
-		opt["buff_target"] = String(r.get("buff_target", "both"))
-		opt["duration_turns"] = int(r.get("duration_turns", 1))
-	elif effect == "dot":  # 継続ダメージの値を option に載せる（FormationResolver が読む）
-		# 弱体であることは明示する＝ピュリファイが落とす対象・盤の見た目・敵AIの stack 条件が読む。
-		opt["buff_kind"] = String(r.get("buff_kind", StatusMod.KIND_DEBUFF))
-		opt["buff_fx"] = String(r.get("buff_fx", ""))
-		opt["dot_troops"] = int(r.get("dot_troops", 1))
-		opt["duration_turns"] = int(r.get("duration_turns", 1))
-	return opt
-
 ## victim 1体への陣形ダメージ内訳（発動者1体の実効攻撃力・間接扱い）。非破壊。
 ## 威力＝発動者(leader)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。
 ## 面の広さ（最大7hex）そのものが強み。合算は割合式が飽和してオーバーキルのため見送り（旧feature-11）。
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
-static func _formation_hit(state: BattleState, option: Dictionary, victim: Unit) -> Dictionary:
-	var leader := state.unit_by_id(int(option["leader_id"]))
+static func _formation_hit(state: BattleState, option: FormationOption, victim: Unit) -> Dictionary:
+	var leader := state.unit_by_id(option.leader_id)
 	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
 	var atk := _skill_attack_breakdown(state, leader)
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。

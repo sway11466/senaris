@@ -1021,8 +1021,8 @@ func _max_unit_id() -> int:
 
 ## 分裂スキル（⑤スライムスプリット）の実行。発動者の隣接する空きマスへ複製を1体置く。
 ## 空きマスが無ければ null を返す（発動失敗）。呼ぶのは FormationResolver。詳細 → doc/gdd/skills.md
-func spawn_unit(option: Dictionary) -> Unit:
-	var caster := unit_by_id(int(option.get("leader_id", -1)))
+func spawn_unit(caster_id: int) -> Unit:
+	var caster := unit_by_id(caster_id)
 	if caster == null:
 		return null
 	# 隣接する空きマス（盤内かつ駒が居ない）を探す

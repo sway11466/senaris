@@ -46,6 +46,7 @@ res://
 │   ├── combat/        # 補正チェーン(レベル→包囲→支援→地形)
 │   ├── surround/      # 包囲
 │   ├── formation/     # 陣形スキル・ユニットスキル(レシピ定義・判定・発動)
+│   │   ├── formation_option.gd    # 盤上で成立した選択肢1つ(レシピの値＋参加者。対象が要るか等の判断はここ)
 │   │   └── formation_resolver.gd  # 発動の適用(盤を書き換える側。検出と威力は formation.gd)
 │   ├── capture/       # 占領
 │   ├── victory/       # 勝敗判定(殲滅・勝利条件・復帰手段)

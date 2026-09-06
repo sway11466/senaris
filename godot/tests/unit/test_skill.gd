@@ -17,27 +17,27 @@ func _dust_state() -> Dictionary:
 		s.add_unit(u)
 	return {"s": s, "pixie": pixie, "near": near, "far": far, "foe": foe}
 
-func _dust_option(f: Dictionary) -> Dictionary:
+func _dust_option(f: Dictionary) -> FormationOption:
 	for o in Formation.available_for(f["s"], f["pixie"]):
-		if String(o["recipe"]) == "pixie_dust":
+		if o.recipe == "pixie_dust":
 			return o
-	return {}
+	return null
 
 # --- 成立と対象の絞り込み ---
 
 func test_offered_by_pixie_alone() -> void:
 	var f := _dust_state()
 	var o := _dust_option(f)
-	assert_false(o.is_empty(), "ピクシー単独で成立する")
-	assert_eq(int(o["leader_id"]), 1, "発動者はピクシー")
-	assert_eq((o["participants"] as Array).size(), 1, "参加者は発動者だけ")
-	assert_true(bool(o["needs_target"]), "掛ける相手を選ぶ")
+	assert_not_null(o, "ピクシー単独で成立する")
+	assert_eq(o.leader_id, 1, "発動者はピクシー")
+	assert_eq(o.participants.size(), 1, "参加者は発動者だけ")
+	assert_true(o.needs_target(), "掛ける相手を選ぶ")
 
 func test_not_offered_by_other_types() -> void:
 	var f := _dust_state()
 	var found := false
 	for o in Formation.available_for(f["s"], f["near"]):  # fighter（ピクシーの隣に居る）
-		if String(o["recipe"]) == "pixie_dust":
+		if o.recipe == "pixie_dust":
 			found = true
 	assert_false(found, "ピクシー以外は撃てない")
 
@@ -45,7 +45,7 @@ func test_not_offered_by_other_types() -> void:
 func test_not_offered_by_other_skin() -> void:
 	var f := _dust_state()
 	f["pixie"].skin_id = "harpy"
-	assert_true(_dust_option(f).is_empty(), "pixie 性能でも別スキンなら撃てない")
+	assert_null(_dust_option(f), "pixie 性能でも別スキンなら撃てない")
 
 func test_target_self_and_adjacent_ally_only() -> void:
 	var f := _dust_state()
@@ -63,7 +63,7 @@ func test_can_cast_after_moving() -> void:
 	var s: BattleState = f["s"]
 	var far: Unit = f["far"]
 	var o := _dust_option(f)
-	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
 	assert_false(Formation.can_target(s, o, far.pos), "移動前は離れた味方に届かない")
 	assert_true(s.move_unit(1, far.pos + Vector2i(-1, 0)), "far の隣へ飛ぶ")
 	assert_true(Formation.can_target(s, o, far.pos), "移動先から隣接になれば掛けられる")
@@ -82,7 +82,7 @@ func test_cluster_recipe_is_a_formation() -> void:
 			leader = u
 	var opts := Formation.available_for(s, leader)
 	assert_gt(opts.size(), 0, "グレイスが成立している前提")
-	assert_eq(String(opts[0]["kind"]), "formation", "陣形スキル扱い（表示ラベルの出し分け）")
+	assert_false(opts[0].is_unit_skill(), "陣形スキル扱い（表示ラベルの出し分け）")
 
 # --- 適用 ---
 
@@ -200,25 +200,25 @@ func _dread_state() -> Dictionary:
 		s.add_unit(u)
 	return {"s": s, "ghost": ghost, "foe": foe, "far_foe": far_foe, "ally": ally}
 
-func _dread_option(f: Dictionary) -> Dictionary:
+func _dread_option(f: Dictionary) -> FormationOption:
 	for o in Formation.available_for(f["s"], f["ghost"]):
-		if String(o["recipe"]) == "dread_touch":
+		if o.recipe == "dread_touch":
 			return o
-	return {}
+	return null
 
 func test_dread_offered_by_ghost_alone() -> void:
 	var f := _dread_state()
 	var o := _dread_option(f)
-	assert_false(o.is_empty(), "ゴースト単独で成立する")
-	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
+	assert_not_null(o, "ゴースト単独で成立する")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
+	assert_eq(o.buff_kind, "debuff", "弱体＝ピュリファイが落とす対象")
 
 ## ピクシー性能を借りているだけなので、ピクシーダストは撃てない（照合はスキンID）。
 func test_ghost_cannot_cast_pixie_dust() -> void:
 	var f := _dread_state()
 	var found := false
 	for o in Formation.available_for(f["s"], f["ghost"]):
-		if String(o["recipe"]) == "pixie_dust":
+		if o.recipe == "pixie_dust":
 			found = true
 	assert_false(found, "ゴーストはピクシーダストを撃てない")
 
@@ -289,24 +289,24 @@ func _venom_state() -> Dictionary:
 		s.add_unit(u)
 	return {"s": s, "serpent": serpent, "foe": foe, "far_foe": far_foe, "ally": ally}
 
-func _venom_option(f: Dictionary) -> Dictionary:
+func _venom_option(f: Dictionary) -> FormationOption:
 	for o in Formation.available_for(f["s"], f["serpent"]):
-		if String(o["recipe"]) == "venom_fang":
+		if o.recipe == "venom_fang":
 			return o
-	return {}
+	return null
 
 func test_venom_offered_by_rock_serpent_alone() -> void:
 	var f := _venom_state()
 	var o := _venom_option(f)
-	assert_false(o.is_empty(), "ロックサーペント単独で成立する")
-	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
+	assert_not_null(o, "ロックサーペント単独で成立する")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
+	assert_eq(o.buff_kind, "debuff", "弱体＝ピュリファイが落とす対象")
 
 func test_venom_not_offered_by_other_skins() -> void:
 	var f := _venom_state()
 	var found := false
 	for o in Formation.available_for(f["s"], f["ally"]):  # fighter
-		if String(o["recipe"]) == "venom_fang":
+		if o.recipe == "venom_fang":
 			found = true
 	assert_false(found, "ロックサーペント以外は撃てない")
 
@@ -349,11 +349,11 @@ func test_venom_stacking_multiplies() -> void:
 	s.add_unit(second)
 	assert_false(FormationResolver.resolve(s, _venom_option(f), foe.pos).is_empty(), "1体目が発動")
 	var opts := Formation.available_for(s, second)
-	var o2 := {}
+	var o2: FormationOption = null
 	for o in opts:
-		if String(o["recipe"]) == "venom_fang":
+		if o.recipe == "venom_fang":
 			o2 = o
-	assert_false(o2.is_empty(), "2体目も撃てる")
+	assert_not_null(o2, "2体目も撃てる")
 	assert_false(FormationResolver.resolve(s, o2, foe.pos).is_empty(), "同じ相手に重ねられる")
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 0.81, 0.001,
 		"2本で ×0.81（0.9×0.9）")
@@ -390,18 +390,18 @@ func _split_state() -> Dictionary:
 	s.set_charge(slime.id, "slime_split", 3)  # チャージ済み（即発動できる状態）
 	return {"s": s, "slime": slime}
 
-func _split_option(f: Dictionary) -> Dictionary:
+func _split_option(f: Dictionary) -> FormationOption:
 	for o in Formation.available_for(f["s"], f["slime"]):
-		if String(o["recipe"]) == "slime_split":
+		if o.recipe == "slime_split":
 			return o
-	return {}
+	return null
 
 func test_split_offered_by_slime_alone() -> void:
 	var f := _split_state()
 	var o := _split_option(f)
-	assert_false(o.is_empty(), "スライム単独で成立する")
-	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_false(bool(o["needs_target"]), "対象選択は不要")
+	assert_not_null(o, "スライム単独で成立する")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
+	assert_false(o.needs_target(), "対象選択は不要")
 
 func test_split_not_offered_by_other_skins() -> void:
 	var f := _split_state()
@@ -409,7 +409,7 @@ func test_split_not_offered_by_other_skins() -> void:
 	f["s"].add_unit(fighter)
 	var found := false
 	for o in Formation.available_for(f["s"], fighter):
-		if String(o["recipe"]) == "slime_split":
+		if o.recipe == "slime_split":
 			found = true
 	assert_false(found, "スライム以外は撃てない")
 
@@ -508,7 +508,7 @@ func test_split_not_offered_when_surrounded() -> void:
 	for dir in 6:
 		var nb := Hex.neighbor(slime.pos, dir)
 		s.add_unit(Unit.new(10 + dir, 1, nb, 2, 8, 20, 20, 1, "fighter"))
-	assert_true(_split_option(f).is_empty(), "隣接が全部埋まっていると成立しない")
+	assert_null(_split_option(f), "隣接が全部埋まっていると成立しない")
 
 ## 殲滅勝利の判定に分裂で増えた駒が含まれる（全滅させないと勝てない）。
 func test_split_spawned_counts_for_annihilation() -> void:
@@ -531,11 +531,11 @@ func _purify_state() -> Dictionary:
 		s.add_unit(u)
 	return {"s": s, "priest": priest, "near": near, "far": far, "foe": foe}
 
-func _purify_option(f: Dictionary) -> Dictionary:
+func _purify_option(f: Dictionary) -> FormationOption:
 	for o in Formation.available_for(f["s"], f["priest"]):
-		if String(o["recipe"]) == "purify":
+		if o.recipe == "purify":
 			return o
-	return {}
+	return null
 
 ## near に有害な弱体（ドレッドタッチ相当）と無害な強化（ピクシーダスト相当）を1つずつ掛ける。
 func _afflict(s: BattleState, u: Unit) -> void:
@@ -547,15 +547,15 @@ func _afflict(s: BattleState, u: Unit) -> void:
 func test_purify_offered_by_clergy_alone() -> void:
 	var f := _purify_state()
 	var o := _purify_option(f)
-	assert_false(o.is_empty(), "聖職単独で成立する")
-	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_true(bool(o["needs_target"]), "掛ける相手を選ぶ")
+	assert_not_null(o, "聖職単独で成立する")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
+	assert_true(o.needs_target(), "掛ける相手を選ぶ")
 
 func test_purify_not_offered_by_others() -> void:
 	var f := _purify_state()
 	var found := false
 	for o in Formation.available_for(f["s"], f["near"]):  # fighter
-		if String(o["recipe"]) == "purify":
+		if o.recipe == "purify":
 			found = true
 	assert_false(found, "聖職以外は撃てない")
 
@@ -676,7 +676,7 @@ func test_charge_blocks_uncharged_skill() -> void:
 	# チャージ未設定（0）＝撃てない
 	var found := false
 	for o in Formation.available_for(s, slime):
-		if String(o["recipe"]) == "slime_split":
+		if o.recipe == "slime_split":
 			found = true
 	assert_false(found, "チャージ量 0 では成立しない")
 
@@ -692,7 +692,7 @@ func test_charge_allows_when_full() -> void:
 	s.set_charge(slime.id, "slime_split", 3)
 	var found := false
 	for o in Formation.available_for(s, slime):
-		if String(o["recipe"]) == "slime_split":
+		if o.recipe == "slime_split":
 			found = true
 	assert_true(found, "チャージ量が必要量に達すれば成立する")
 
@@ -708,7 +708,7 @@ func test_charge_blocks_when_short() -> void:
 	s.set_charge(slime.id, "slime_split", 2)  # 3 が必要だが 2 しか溜まっていない
 	var found := false
 	for o in Formation.available_for(s, slime):
-		if String(o["recipe"]) == "slime_split":
+		if o.recipe == "slime_split":
 			found = true
 	assert_false(found, "チャージ量が足りなければ成立しない")
 
@@ -764,7 +764,7 @@ func test_charge_accumulates_to_threshold() -> void:
 	assert_eq(s.get_charge(slime.id, "slime_split"), 3, "3ターンで必要量に達する")
 	var found := false
 	for o in Formation.available_for(s, slime):
-		if String(o["recipe"]) == "slime_split":
+		if o.recipe == "slime_split":
 			found = true
 	assert_true(found, "必要量に達したので発動できる")
 
@@ -798,24 +798,24 @@ func _sting_state() -> Dictionary:
 	s.end_turn()  # 敵ターン（team=1）へ
 	return {"s": s, "scorpion": scorpion, "foe": foe, "far_foe": far_foe, "ally": ally}
 
-func _sting_option(f: Dictionary) -> Dictionary:
+func _sting_option(f: Dictionary) -> FormationOption:
 	for o in Formation.available_for(f["s"], f["scorpion"]):
-		if String(o["recipe"]) == "poison_sting":
+		if o.recipe == "poison_sting":
 			return o
-	return {}
+	return null
 
 func test_sting_offered_by_scorpion_alone() -> void:
 	var f := _sting_state()
 	var o := _sting_option(f)
-	assert_false(o.is_empty(), "スコーピオン単独で成立する")
-	assert_eq(String(o["kind"]), "skill", "ユニットスキル扱い")
-	assert_eq(String(o["buff_kind"]), "debuff", "弱体＝ピュリファイが落とす対象")
+	assert_not_null(o, "スコーピオン単独で成立する")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
+	assert_eq(o.buff_kind, "debuff", "弱体＝ピュリファイが落とす対象")
 
 func test_sting_not_offered_by_other_skins() -> void:
 	var f := _sting_state()
 	var found := false
 	for o in Formation.available_for(f["s"], f["ally"]):  # fighter
-		if String(o["recipe"]) == "poison_sting":
+		if o.recipe == "poison_sting":
 			found = true
 	assert_false(found, "スコーピオン以外は撃てない")
 
@@ -877,11 +877,11 @@ func test_sting_stacking_adds_up() -> void:
 	second.skin_id = "scorpion"
 	s.add_unit(second)
 	assert_false(FormationResolver.resolve(s, _sting_option(f), foe.pos).is_empty(), "1体目が発動")
-	var o2 := {}
+	var o2: FormationOption = null
 	for o in Formation.available_for(s, second):
-		if String(o["recipe"]) == "poison_sting":
+		if o.recipe == "poison_sting":
 			o2 = o
-	assert_false(o2.is_empty(), "2体目も撃てる")
+	assert_not_null(o2, "2体目も撃てる")
 	assert_false(FormationResolver.resolve(s, o2, foe.pos).is_empty(), "同じ相手に重ねられる")
 	s.end_turn()
 	assert_eq(foe.troops, 6, "2本で毎ターン2減る")

@@ -13,7 +13,7 @@ var target_id: int       ## ATTACK のとき有効
 var base_hex: Vector2i   ## DEPLOY のとき有効（出撃元の拠点hex）
 var garrison_index: int  ## DEPLOY のとき有効（出す控えの index）
 var passenger_index: int ## UNLOAD のとき有効（降ろす搭乗駒の index）
-var option: Dictionary   ## SKILL のとき有効（Formation.available_for の1要素）
+var option: FormationOption  ## SKILL のとき有効（Formation.available_for の1要素）
 
 static func move_to(unit_id: int, to: Vector2i) -> AiAction:
 	var a := AiAction.new()
@@ -30,8 +30,8 @@ static func attack(unit_id: int, target_id: int) -> AiAction:
 	return a
 
 ## unit_id が option のユニットスキルを target へ放つ1手（詳細 → doc/gdd/ai.md 特性詳細のスキルの行）。
-## option は Formation.available_for が返す辞書そのまま＝application が FormationCommand へ翻訳する。
-static func skill(unit_id: int, option: Dictionary, target: Vector2i) -> AiAction:
+## option は Formation.available_for が返すものそのまま＝application が FormationCommand へ翻訳する。
+static func skill(unit_id: int, option: FormationOption, target: Vector2i) -> AiAction:
 	var a := AiAction.new()
 	a.kind = Kind.SKILL
 	a.unit_id = unit_id

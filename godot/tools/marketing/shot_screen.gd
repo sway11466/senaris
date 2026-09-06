@@ -185,12 +185,12 @@ func _ready() -> void:
 			push_error("shot_screen: --leader の指定マスに駒が居ない")
 			get_tree().quit(1)
 			return
-		var picked := {}
+		var picked: FormationOption = null
 		for o in Formation.available_for(fs, lead):
-			if String(o["recipe"]) == recipe:
+			if o.recipe == recipe:
 				picked = o
 				break
-		if picked.is_empty():
+		if picked == null:
 			push_error("shot_screen: %s が発動できない（レシピの並びと射程を確認）" % recipe)
 			get_tree().quit(1)
 			return

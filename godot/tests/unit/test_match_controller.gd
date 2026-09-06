@@ -69,7 +69,7 @@ func test_finished_latch_blocks_all_commands() -> void:
 	# 決着後は全コマンドが no-op（false）でシグナルも出ない。
 	assert_false(mc.execute(MoveCommand.new(1, move_to)), "決着後の移動は no-op")
 	assert_false(mc.execute_attack(AttackCommand.new(1, 2)), "決着後の攻撃は no-op")
-	assert_false(mc.execute_formation(FormationCommand.new({}, Vector2i.ZERO)), "決着後の陣形は no-op")
+	assert_false(mc.execute_formation(FormationCommand.new(null, Vector2i.ZERO)), "決着後の陣形は no-op")
 	assert_false(mc.execute_deploy(DeployCommand.new(b.hex, 0, Hex.neighbor(b.hex, 0))), "決着後の出撃は no-op")
 	assert_false(mc.execute_unload(UnloadCommand.new(4, 0, unload_to)), "決着後の降車は no-op")
 	assert_false(mc.enter_base(3), "決着後の駐留は no-op")
