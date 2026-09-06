@@ -92,5 +92,5 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st4.outro.4" }
     ]
   },
-  "bgm": { "main": "journey" }
+  "bgm": { "main": "raid" }
 }

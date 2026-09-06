@@ -829,5 +829,5 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st3.outro.5" }
     ]
   },
-  "bgm": { "main": "journey" }
+  "bgm": { "main": "raid" }
 }
