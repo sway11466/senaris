@@ -46,12 +46,14 @@ res://
 │   ├── combat/        # 補正チェーン(レベル→包囲→支援→地形)
 │   ├── surround/      # 包囲
 │   ├── formation/     # 陣形スキル・ユニットスキル(レシピ定義・判定・発動)
+│   │   └── formation_resolver.gd  # 発動の適用(盤を書き換える側。BattleState.resolve_formation の中身)
 │   ├── capture/       # 占領
 │   ├── victory/       # 勝敗判定(殲滅・勝利条件・復帰手段)
 │   ├── sight/         # 視線(索敵の遮蔽・減衰)
 │   ├── status/        # 状態補正(バフ/デバフ・持続)
 │   ├── unit/          # ユニットの状態・型
 │   ├── ai/            # 敵思考(domainクエリだけで完結)
+│   │   └── ai_distance.gd  # AIが使う距離(移動・地形・迂回の道のり表。BattleState を引数に取る静的関数)
 │   ├── rank_evaluator.gd  # 評価ランク(ターン消費率・生存率)
 │   └── battle_state.gd  # 盤の状態＝中断セーブの本体。ターン進行もここ
 ├── application/       # ゲーム進行
