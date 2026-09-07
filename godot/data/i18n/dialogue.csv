@@ -445,10 +445,15 @@ t3.st3.intro.12,ドゴォンッ,"CRASH"
 t3.st3.intro.13,ローグたちがドワーフの集落へ向かっているぞ。,"The rogues are heading for the dwarven camp."
 t3.st3.intro.14,何か悪巧みをしているに違いない。魔物も倒しつつ向かうぞ。,"They are up to something, no question. We cut through the monsters and follow."
 t3.st3.intro.15,ここの魔物は毒を持っているみたいです。,"The monsters here seem to carry venom."
-t3.st3.squad.1,岩陰のロックサーペント,Lurking Rock Serpent
-t3.st3.squad.2,居座るトロール,Stubborn Troll
-t3.st3.squad.3,ワイアーム,Wyrm
-t3.st3.squad.4,ローグ一味,Bandit Gang
+t3.st3.squad.1,岩陰のロックサーペント１,Lurking Rock Serpent 1
+t3.st3.squad.2,岩陰のロックサーペント２,Lurking Rock Serpent 2
+t3.st3.squad.3,岩陰のロックサーペント３,Lurking Rock Serpent 3
+t3.st3.squad.4,岩陰のロックサーペント４,Lurking Rock Serpent 4
+t3.st3.squad.5,岩陰のロックサーペント５,Lurking Rock Serpent 5
+t3.st3.squad.6,岩陰のロックサーペント６,Lurking Rock Serpent 6
+t3.st3.squad.7,ワイアーム,Wyrm
+t3.st3.squad.8,居座るトロール,Stubborn Troll
+t3.st3.squad.9,ローグ一味,Bandit Gang
 t3.st3.scene.1,鉱脈の深部。鉱石を手にしたローグ一味,"Deep in the mine. The rogues, ore in hand."
 t3.st3.scene.2,冒険者たち,"Back with the adventurers."
 b1.st1.squad.1,先鋒の群れ,Vanguard Horde
