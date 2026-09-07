@@ -69,6 +69,7 @@ terrain.bedrock.name,岩地,Bedrock
 terrain.brush.name,茂み,Brush
 terrain.forest.name,森,Forest
 terrain.plain.name,平地,Plain
+terrain.plain_basalt1.name,玄武岩,Basalt
 terrain.plain_building_town1.name,街区,Town Block
 terrain.plain_cave1.name,洞窟の床,Cave Floor
 terrain.plain_cave1_fence_throne1.name,玉座,Throne

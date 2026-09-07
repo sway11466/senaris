@@ -1,0 +1,14 @@
+# 上面＝真上から見た完全に冷えた溶岩の岩盤（暗い板の間に暗い割れ目）。1024px の原寸をそのまま切り抜く。
+# orientable full＝回転と反転で散らす。平地タイプ＝平地のルールで歩ける。
+# 候補8枚（plain_basalt1_a〜h.jpg）から a・c・g を採った。選定の軸は「溶岩原（wasteland_lavafield1）と板の大きさが近い」
+# （オーナー指定）。板の等価直径の中央値（割れ目で切った連結成分・1024px 基準）は溶岩原 c=145 / e=155 に対し、
+# a=130 / c=149 / g=146。b=156 も近いが明度が 23.4 で他より 1.5 以上明るく外した。d/f/h は板が小さい（83〜117）。
+# 切り抜き後の明度 21.3 / 21.5 / 21.1（差 0.4）・彩度 11.9〜12.5・明暗むら 0.7〜2.8。
+# 板の計測は scratchpad の measure_plates.py（割れ目の明暗で閾値を切り、板の連結成分を数える）。
+powershell -File tools\gen_terrain_tile.ps1 plain_basalt1 assets\terrain-src\plain_basalt1\plain_basalt1_a.jpg assets\terrain-src\plain_basalt1\plain_basalt1_c.jpg assets\terrain-src\plain_basalt1\plain_basalt1_g.jpg
+
+# プロンプトは溶岩原のものから割れ目の光を外し、割れ目を暗い色（#211C19）、板の上面をわずかに明るく（#4A413A）して
+# 「穴ではなく板」に見せた。溶岩原（明度 26.5）より暗く、盤ではいちばん暗い足場になる。
+
+# terrain_skin.csv: plain と同じ elevation 0 / floor 0 / side_tiling stretch。側面の帯は持たない（高さ0）。
+# CSV を直したら JSON を焼き直す: godot --headless --path . --script res://data/terrain/convert.gd
