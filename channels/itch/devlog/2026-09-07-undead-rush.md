@@ -37,7 +37,7 @@
 
 - `img/devlog4-3.png` … 4番（グレイス）の直後。発動して盤全体に金の光が差した瞬間＋スキルレポート。撮影セットは `debug-photo/devlog4-1.json`（t2 st5 の実盤面を写す）を新規に作り、聖職5体を隣接クラスタに置いて `shot_screen --formation grace --leader <c,r> --target <c,r> --frame ...` で連写、光が最も乗った1枚を選ぶ。
 - `img/devlog4-4.png` … 7番（ユニットスキル）の直後。ドレッドタッチの発動とスキルレポート、削られた駒に弱体の印が乗っている画。撮影セットは `debug-photo/devlog4-2.json`（t2 st3 の実盤面）を新規に作り、ゴーストを味方の隣に置いて同じ手順で撮る（unit skill もレシピIDで指定できる想定。撮るときに確認する）。
-- `img/devlog4-5.png` … 8番（乗り物）の直後。**馬車と飛空艇を同じ盤に入れた1枚。**聖職を乗せた馬車が街道を進み、その先で飛空艇が墓石の山と柵の列の上を越えている画。撮影セットは `debug-photo/devlog4-3.json` を新規に作る。**st7 の盤は使わない。**盤に置くのは馬車・飛空艇と運ばれる聖職だけで、パラディンは置かない（3つ目の陣形スキルの構成員が写るため）。盤の地の絵は t2 st2 の街道と、墓石の山・柵のある区画を組み合わせて作る。
+- `img/devlog4-5.png` … 8番（乗り物）の直後。**馬車と飛空艇を同じ盤に入れた1枚。**手前に隊と2つの乗り物、その奥に墓石の山の帯・礼拝堂・納骨堂とスケルトンの列＝飛空艇が越える相手が同じ画に入る。撮影セットは `debug-photo/devlog4-3.json`（t2 st7 の盤のコピー）で、`--frame 0,9,12,18`、駒は選ばない（情報板は未選択の案内のまま）。**パラディンは盤に置かない**（3つ目の陣形スキルの構成員が写るため）。
 
 用語：画面の語に合わせる（hex / Formation Skill / Unit Skill / Board / Unload / Strength）。レシピ名は Grace・Trinity Nova・Purify・Dread Touch。乗り物は Wagon・Airship。章の名前は Undead Rush。
 
@@ -62,7 +62,7 @@ Three mages, five clergy, one wagon
 <p>There is a third Formation Skill in this chapter. I am not going to say what it does. It is waiting near the end.</p>
 <p><strong>Unit Skills</strong> are the same machine at its smallest size: one caster, no formation to arrange, the skill sitting in the same menu. Priests carry Purify, which strips every debuff off themselves or an adjacent ally. Ghosts &mdash; on the other side of the board &mdash; carry Dread Touch, which takes 10 points of Attack and Defense per remaining ghost off the unit it touches, and holds it there for three turns. This is the chapter where the board starts carrying state: buffs and debuffs sit on units where you can see them, with numbers you can read, and Purify becomes the answer to a Ghost that already got through.</p>
 <p><img src=""></p>
-<p><strong>And some units carry others.</strong> The Wagon has no attack at all. What it has is a move of 6 and room for four passengers, in a chapter where the clergy who hold your line together move 2. Board them, drive, unload, and a prayer that would have taken four turns to walk into place happens now. The Airship does the same work in the air: it moves 9, and it goes straight over the fences and the piled stone that stop anything on foot, so its passengers step off in a place nobody could have walked to this turn. Transports are the first units in Senaris that are worth nothing in a fight and decide it anyway.</p>
+<p><strong>And some units carry others.</strong> The Wagon has no attack at all. What it has is a move of 6 and room for four passengers, in a chapter where the clergy who hold your line together move 2. Board them, drive, unload, and a prayer that would have taken four turns to walk into place happens now. The Airship does the same work in the air: it moves 9, and it goes straight over the piled gravestones that stop anything on foot, so its passengers step off in a place nobody could have walked to this turn. Transports are the first units in Senaris that are worth nothing in a fight and decide it anyway.</p>
 <p><img src=""></p>
 <p>That is Undead Rush. The next update brings the third chapter, The Dragon Hunt &mdash; more about that before it lands.</p>
 ```
