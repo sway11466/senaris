@@ -11,6 +11,7 @@ extends Node
 ##   --frame c1,r1,c2,r2 … 盤全体ではなく、この2マスが作る矩形に画角を寄せる（縦長の盤を横長の画に収める）
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
 ##   --formation <recipe> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
+##   --enemy-turn … 敵の手番に渡してから撮る（敵のスキル・敵の攻撃を実機と同じ手番で撮る）
 ##   --talk N … 会話パートを N 行ぶん進めた状態で撮る（intro を持つステージで使う）
 ##   --select-screen … 盤ではなく酒場の冒険譚選択（依頼ボード）を開いた状態で撮る
 ##   --fresh … 進捗を空の別ファイルに差し替えて撮る（「討伐済」の焼き印が絵に重ならない）
@@ -30,6 +31,7 @@ func _ready() -> void:
 	var talk := -1
 	var select_screen := false
 	var fresh := false
+	var enemy_turn := false
 	var leader_cell := Vector2i(-1, -1)
 	var target_cell := Vector2i(-1, -1)
 	var count := 24
@@ -70,6 +72,9 @@ func _ready() -> void:
 			i += 1
 		elif a == "--select-screen":
 			select_screen = true
+			i += 1
+		elif a == "--enemy-turn":
+			enemy_turn = true
 			i += 1
 		elif a == "--talk" and i + 1 < uargs.size():
 			talk = int(uargs[i + 1])
@@ -143,6 +148,15 @@ func _ready() -> void:
 	main.load_stage(stage_path)
 	for f in 12:
 		await get_tree().process_frame
+
+	if enemy_turn:
+		# 敵の技・敵の攻撃は、発動者の陣営が手番でないと通らない（FormationResolver.resolve）。
+		# AI を外してからターンを渡す＝敵の手番に入っても思考が走らず、組んだ配置が動かない
+		# （is_ai_turn は ai_brain を見る）。盤・ターン板は実機の敵ターンと同じ状態になる。
+		main._controller.ai_brain = null
+		main._controller.end_turn()
+		for f in 12:
+			await get_tree().process_frame
 
 	if has_select:
 		var hex := Hex.offset_to_axial(select_cell.x, select_cell.y)
