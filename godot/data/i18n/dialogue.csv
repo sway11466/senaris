@@ -419,6 +419,7 @@ t3.st4.squad.1,道を塞ぐトレント,Treant Roadblock
 t3.st4.squad.2,マタンゴの群生,Myconid Colony
 t3.st4.squad.3,マンドラゴラ,Mandragora
 t3.st4.squad.4,ローグ一味,Bandit Gang
+t3.st4.scene.1,森の入口。里へ至る道が何本かに分かれている,"The forest edge. Several paths lead toward the village."
 t3.st5.intro.8,崖の上までは、わたしの魔法は届きません……。,"My magic will not reach the top of the cliffs…"
 t3.st5.intro.9,届く者が撃つ。君は道の獣を頼む。,"Those who can reach will shoot. You take the beasts on the path."
 t3.st5.intro.10,魔獣を片付けながら里を目指すぞ。あいつらより先に着く。,"We clear the beasts as we go and make for the village. We arrive before they do."
@@ -426,9 +427,11 @@ t3.st5.squad.1,崖のハーピー,Cliff Harpies
 t3.st5.squad.2,降りてきたグリフォン,Swooping Griffon
 t3.st5.squad.3,山道の魔獣,Beasts of the Pass
 t3.st5.squad.4,ローグ一味,Bandit Gang
+t3.st5.scene.1,山の入口。崖の上に鳥人の里が見える,"The foot of the mountain. The birdfolk village sits atop the cliffs."
 t3.st6.squad.1,ローグ本隊,Bandit Main Force
 t3.st6.squad.2,頭目,Ringleader
 t3.st6.squad.4,坑道のスコーピオン,Tunnel Scorpions
+t3.st6.scene.1,洞窟の入口。奥から咆哮と地鳴りが響く,"The cave mouth. A roar and a rumbling echo from deep within."
 t3.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
 t3.st7.intro.12,細くとも数が要る。君の火も、あの翼に届く。,"Thin or not, we need every shot. Your flame reaches those wings too."
 t3.st7.outro.7,君の火も届いていた。もう見習いとは呼ばん。,"Your flame reached as well. I will not call you an apprentice again."
@@ -446,6 +449,8 @@ t3.st3.squad.1,岩陰のロックサーペント,Lurking Rock Serpent
 t3.st3.squad.2,居座るトロール,Stubborn Troll
 t3.st3.squad.3,ワイアーム,Wyrm
 t3.st3.squad.4,ローグ一味,Bandit Gang
+t3.st3.scene.1,鉱脈の外れ。ローグ一味が荷を積み終えている,"The edge of the vein. The rogue band has finished loading their haul."
+t3.st3.scene.2,冒険者たち,"The adventurers"
 b1.st1.squad.1,先鋒の群れ,Vanguard Horde
 b1.st1.squad.2,側面の射手,Flanking Archers
 b1.st1.squad.3,陣地荒らし,Camp Raiders

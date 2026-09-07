@@ -88,6 +88,7 @@
       { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st6.rogue.2" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st6.rogue.3" },
       { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st6.intro.3" },
+      { "scene": "t3.st6.scene.1" },
       { "speaker": "char.birdman.name", "skin": "birdman", "text": "t3.st6.intro.1", "when": "joined:birdman" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "t3.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st6.intro.2" },

@@ -4,6 +4,7 @@ class_name ConversationPanel
 ## 「次へ」で1行ずつ追加、「会話をスキップ」で丸ごと飛ばす。presentation 専用（盤面に触れない・案P）。
 ## 話者は左右交互で出す。セリフ/話者名は翻訳キー＝tr() で解決（i18n・正本 data/i18n/dialogue.csv）。
 ## 話者のいない行（効果音・ト書き）も1行として挟める＝顔を出さず中央に文字だけ、`sfx` があればその音を鳴らす。
+## 場面の切り替え（`scene`）は横線の真ん中にト書きを小さく置く区切り＝以後の話者は左から始め直す。
 ## 詳細 → doc/campaign/authoring.md
 ##
 ## 顔は UnitSkin の portrait スロット（未用意は名前2文字のプレースホルダ）。
@@ -22,6 +23,11 @@ const COLOR_NARRATION := Color(0.72, 0.70, 0.62)  # 話者のいない行（効�
 const BUBBLE_RATIO := 6.0   # 吹き出しと余白の幅比（余白を詰めて吹き出しを広めに）
 const NARRATION_FONT_SIZE := 22    # 擬音は大きく出す（音そのものの大きさを字で見せる）
 const NARRATION_MARGIN := 18       # 上下に1行ぶんの空き＝前後の吹き出しから離して間を作る
+const COLOR_SCENE := Color(0.84, 0.82, 0.74)   # 場面の区切りのト書き。小さめの字なので色は落とさず読ませる
+const COLOR_SCENE_RULE := Color(0.55, 0.53, 0.47)  # 区切りの横線。文字より落として線は脇役に
+const SCENE_FONT_SIZE := 16        # ト書き＝台詞よりやや小さい程度に留める（13 では読みにくかった）
+const SCENE_MARGIN := 14           # 上下の空き。擬音ほど間は取らない
+const SCENE_TEXT_RATIO := 5.0      # ト書きと左右の横線の幅比（線1：文5：線1）。長い英文でも2行に収める
 
 var _skins := {}
 var _lines: Array = []
@@ -76,6 +82,7 @@ func bind(skin_catalog: Dictionary) -> void:
 
 ## 会話を開始。lines＝[{ speaker, skin, text }]（speaker/text は翻訳キー）。
 ## 話者のいない行 { text, sfx } は効果音・ト書き（顔も名前も出さず中央に文字だけ）。
+## { scene } は場面の切り替え（横線＋ト書き。以後の話者は左から）。
 ## finish_label＝最後の1行を読んだ後のボタン文言の翻訳キー（intro="ui.talk.start_battle" / outro="ui.talk.close" 等）。
 ## セリフ・話者名と同じくキーで受けてここで tr() する＝言語を切り替えても表示が追従する。
 func start(lines: Array, finish_label: String) -> void:
@@ -93,6 +100,7 @@ func start(lines: Array, finish_label: String) -> void:
 
 ## 次の1行を出す。行の作りで見た目と音が決まる。
 ## - speaker あり＝顔＋吹き出し（左右交互）
+## - scene あり＝場面の区切り（横線の真ん中にト書き）。左右交互を最初に戻す
 ## - speaker なし・text あり＝中央に文字だけ（効果音・ト書き）
 ## - sfx あり＝その行が出るときにその音を鳴らす（文字送り音の代わり）
 ## 表示するものが何も無い行（sfx だけ）は「次へ」を消費させず、続けて次の行まで進める。
@@ -104,6 +112,9 @@ func _reveal_next() -> void:
 		if line.has("speaker"):
 			_add_message(line, _speakers)
 			_speakers += 1
+		elif line.has("scene"):
+			_add_scene(line)
+			_speakers = 0  # 場面が変わる＝新しい場面の最初の話者は左から
 		elif String(line.get("text", "")) != "":
 			_add_narration(line)
 		else:
@@ -212,6 +223,42 @@ func _add_narration(line: Dictionary) -> void:
 	lbl.add_theme_color_override("font_color", COLOR_NARRATION)
 	mc.add_child(lbl)
 	_messages.add_child(mc)
+
+## 場面の切り替え＝区切り。横線の真ん中にト書き（場所・状況）を小さく置く。
+## 味方と敵で場面が入れ替わるとき、同じ流れの続きに見えないように線で断つ。
+## 文字は吹き出しでも擬音でもない色と大きさ＝札として読ませる。
+func _add_scene(line: Dictionary) -> void:
+	var mc := MarginContainer.new()
+	mc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mc.add_theme_constant_override("margin_top", SCENE_MARGIN)
+	mc.add_theme_constant_override("margin_bottom", SCENE_MARGIN)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.add_child(_make_rule())
+	var lbl := Label.new()
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 文字の上でも板を掴める
+	lbl.text = tr(String(line.get("scene", "")))
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.size_flags_stretch_ratio = SCENE_TEXT_RATIO
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", SCENE_FONT_SIZE)
+	lbl.add_theme_color_override("font_color", COLOR_SCENE)
+	row.add_child(lbl)
+	row.add_child(_make_rule())
+	mc.add_child(row)
+	_messages.add_child(mc)
+
+## 区切りの横線（1px）。行の高さの中央に置く。
+func _make_rule() -> Control:
+	var r := ColorRect.new()
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.color = COLOR_SCENE_RULE
+	r.custom_minimum_size = Vector2(0, 1)
+	r.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	r.size_flags_stretch_ratio = 1.0
+	r.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return r
 
 ## 吹き出しのしっぽ（三角）。バルーンの顔側の縁に付け、顔の方向を指す。色はバルーンと同じ。
 ## MarginContainer の上マージンで少し下げる（名前の下＝本文あたりに付く）。
