@@ -1,68 +1,61 @@
 公開: 
 
-区分: General Update or Announcement（投稿画面の「Updates, announcements, or changelogs」の項。更新・告知向け）
+区分: Game Design（投稿画面の Long-form discussion の項。「作るときの判断・過程・学び」を語る枠）。更新の告知が主題に見えると枠から外れるので、章が入ったことは末尾の1行だけにする。
 
-# devlog #4 — チュートリアル2追加
+# devlog #4 — 必殺技は強いだけじゃない（チュートリアル2追加の回）
 
 ## 設計
 
-狙い：**「スキルは並び方が入力になっている」を1つ持ち帰らせる。**#2 で語ったトリニティノヴァ（3人の三角形）に、グレイス（聖職5人が固まる）とユニットスキル（1体で撃つ最小形）を並べ、同じ仕組みが人数と形だけを変えて置かれていると見せる。強さの階段を上るのではなく、盤の上に形を作ると技が使えるようになる、という一点。
+狙い：**「senaris の必殺技は、強いだけではなく代償がある」を1つ持ち帰らせる。**盲目的に撃つと盤面が不利に傾く＝撃つ場面を見極める技になっている、というところまで。値付けの理屈を体系立てて語る回ではない（それは [formations.md](../../../doc/gdd/formations.md) の設計原則にある）。代償の中身を具体で見せて、あとはユニットスキルと輸送を紹介する。
 
-方針：リリース回（[itch_devlog.md](../../../doc/sales/itch_devlog.md) のネタの型1）。#2 で「次の更新で Undead Rush が入る」、#3 で「次の内容更新は Undead Rush」と2回言い切っているので、まずそれが入ったと告げる。柱は3本＝陣形スキル（グレイス）／ユニットスキル／乗り物（輸送）。**3つ目の陣形スキル（ディバインジャッジメント）は名前も効果も構成員も出さない**＝在ることだけ書いて、遊んで見つける余地に残す。
+方針：Game Design の枠に載せる回。itch の投稿画面は「changelog・更新・告知なら Blogging を選べ」と書いているので、**更新の告知を主題にしない**＝チュートリアル2が入ったことは最後の1行に落とす。前半＝陣形スキルの代償、後半＝ユニットスキルと輸送の紹介（#2・#3 と同じ調子）。
 
 語り口：#1〜#3 と同じ。CraftKobo。主語は Senaris・the game に寄せる。
 
 話の順序：
 
-1. Undead Rush が入った。7ステージ。#2・#3 で予告した章。
-2. 敵の押し方が前章と違う。ゴブリンは数えられる数で来たが、屍は湧き続ける。だから新しい3つ＝陣形スキル・ユニットスキル・運ぶユニットが要る、と柱を予告する。そのまま両陣営の顔見せへ繋ぎ、一覧の画像2枚を出す（本文で1体ずつ説明はしない＝絵で見せる）。
-3. 陣形スキルとは何か（1文で再定義）。解禁するものではなく、正しい駒が正しい形に立っている間だけ使え、1体でも離れれば消える。#2 のトリニティノヴァは1行のおさらいに留める（絵は再掲しない）。
-4. グレイス：聖職（クレリック／プリースト／ビショップ）5体が1つの隣接クラスタに固まると、自軍全体が攻防 1.3 倍。5体を超えると1体ごとに伸びる（6体 1.35／7体 1.4）。持続は次の自軍ターンまで。画像はここ。
-5. 代金：聖職は回復役で、占領できる唯一の兵種。5人が祈っている間はどれもしていない。加えて5人が固まる＝同じ面攻撃に5人まとめて入る形で、移動2では抜けられない。強くなるのは軍ではなく「1ターンの軍」で、そのターンを選ぶのがプレイヤー。
-6. 3つ目がもう1つある。何をするかは書かない。
-7. ユニットスキル：同じ仕組みの最小形＝発動者1体・形は要らない。プリーストのピュリファイ（弱体を落とす）、ゴーストのドレッドタッチ（隣接1体の攻防を残兵数×10 削る・3ターン）。この章で初めて盤に状態（強化・弱体）が乗る。画像はここ。
-8. 乗り物：馬車は攻撃を持たない。移動6・定員4で、移動2の聖職を前線へ運ぶ。乗車と降車のコマンド。飛空艇は移動9で、地上を止める地形の上を越えて降ろす。画像は1枚＝馬車と飛空艇を同じ盤に入れて撮る。
-9. 締め：次の更新は The Dragon Hunt。中身はまだ書かない。
+1. senaris には「陣形スキル」という必殺技がある。特定の駒が特定の形に立つと使える。解禁もマナもクールダウンも無い。形が立っている間だけ使え、1体離れれば消える。
+2. **ただし強いだけではない。**参加した駒はそのターンを使い切る。さらに威力は発動者1体ぶんで、参加者ぶんを合算しない。だから敵が1〜2体なら、3人が個別に撃つほうが強い。
+3. 盲目的に撃つと盤面が不利になる。撃った3人はそのターン殴っていないし、前に出てもいない。技のほうが弱い場面で撃てば、手数を1ターンぶん捨てただけになる。見極めて放つ技になっている。
+4. グレイスで具体を見せる。聖職5人が固まって祈ると自軍全体が攻防1.3倍、次の自軍ターンまで。人数が増えれば伸びる（1体ごとに+0.05）。ここで画像。
+5. その代償。**占領兵が固まって動けない**のが本体＝祈るには5人が互いに隣接して立つ必要があり、移動2の駒を寄せるだけで前のターンから足を使う。祈っている間は誰も目的地へ歩いていないし、面攻撃が探しているのはまさにその塊。1ターンの倍率を買うのに、その前後の数ターンを払う。
+6. ここからは紹介。ユニットスキル＝同じ仕組みの最小形（発動者1体・形は要らない）。プリーストのピュリファイ、ゴーストのドレッドタッチ。敵も同じ仕組みを使う。ここで画像。
+7. 輸送＝戦闘力ゼロの駒。馬車は移動6・定員4で、移動2の聖職を運ぶ。飛空艇は移動9で、地上を止める墓石の山の上を越える。ここで画像。
+8. 3つ目の陣形スキルは在るとだけ書く。締めに、これらが動いているのが第2章 Undead Rush で、体験版に入っている、と1行。
 
-新要素の列挙（箇条書き）は置かない。柱の3本に絞る。飛行の敵・弱者狙いのAI・バリケード・柵は、柱の本文で触れる範囲だけに留める。
+両陣営の顔ぶれの一覧は2番の直前（1番の直後）に置く＝どの駒の話をしているかを先に見せる。新要素の列挙は置かない。
 
-画像（5枚）：
+画像（5枚。番号＝貼り順）：
 
-- `img/devlog4-1.png` … 2番（章の紹介）の直後。この章で戦う味方の立ち絵の一覧。整列ツール（build_lineup.py）で組む。並びは左から ウィッチ・ウィザード・ビショップ・プリースト・クレリック・ファイター・ナイトの7体＝術者が後ろ、前衛が前（立ち絵は右向き＝右が前）。ファイターとクレリックは前章から続投だが、この章の隊の顔ぶれなので入れる。**パラディンは入れない**（3つ目の陣形スキルの構成員）。
-- `img/devlog4-2.png` … 1枚目の直後。敵の立ち絵の一覧。左から スケルトン・ゾンビ・スケルトンアーチャー・グール・ゴースト・レイス・デュラハンの7体＝一番右がデュラハン（立ち絵は左向き＝左が前で、重い駒が後ろに構える）。**ネクロマンサーは入れない**（この回では出さない）。
-
-  一覧を味方と敵の2枚に割るのは、1枚に並べると1体あたりの表示幅が落ちるため（devlog #1 の一覧は9体で102px／7体なら 131px）。向きは立ち絵に焼き込み済みで、敵だけを `--left` に渡しても左を向いたまま並ぶ。
-
-  馬車・飛空艇・バリケードは一覧に入れない。乗り物の立ち絵は人の約2倍幅（戦闘演出と同じ ×1.4 が焼き込まれる駒）で、同じ行に混ぜると人が小さくなり馬車と飛空艇も重なる。乗り物は5枚目の盤の絵で、運んでいる姿として見せる。
-
-- `img/devlog4-3.png` … 4番（グレイス）の直後。発動して盤全体に金の光が差した瞬間＋スキルレポート。撮影セットは `debug-photo/devlog4-1.json`（t2 st5 の実盤面を写す）を新規に作り、聖職5体を隣接クラスタに置いて `shot_screen --formation grace --leader <c,r> --target <c,r> --frame ...` で連写、光が最も乗った1枚を選ぶ。
-- `img/devlog4-4.png` … 7番（ユニットスキル）の直後。ドレッドタッチの発動とスキルレポート、削られた駒に弱体の印が乗っている画。撮影セットは `debug-photo/devlog4-2.json`（t2 st3 の実盤面）を新規に作り、ゴーストを味方の隣に置いて同じ手順で撮る（unit skill もレシピIDで指定できる想定。撮るときに確認する）。
-- `img/devlog4-5.png` … 8番（乗り物）の直後。**馬車と飛空艇を同じ盤に入れた1枚。**手前に隊と2つの乗り物、その奥に墓石の山の帯・礼拝堂・納骨堂とスケルトンの列＝飛空艇が越える相手が同じ画に入る。撮影セットは `debug-photo/devlog4-3.json`（t2 st7 の盤のコピー）で、`--frame 0,9,12,18`、駒は選ばない（情報板は未選択の案内のまま）。**パラディンは盤に置かない**（3つ目の陣形スキルの構成員が写るため）。
+- `img/devlog4-1.png` … 1番（陣形スキルとは何か）の直後。この章で戦う味方の立ち絵の一覧。整列ツール（build_lineup.py）で組む。左から クレリック・プリースト・ビショップ・ウィッチ・ウィザード・ファイター・ナイトの7体＝占領兵が左、前衛が右。**パラディンは入れない**（3つ目の陣形スキルの構成員）。
+- `img/devlog4-2.png` … 1枚目の直後。敵の立ち絵の一覧。左から スケルトン・ゾンビ・スケルトンアーチャー・グール・ゴースト・レイス・デュラハンの7体＝一番右がデュラハン。**ネクロマンサーは入れない**。
+- `img/devlog4-3.png` … 4番（グレイス）の直後。発動のカットイン＝5人が光の十字の下で祈る画＋スキルレポート。撮影セットは `debug-photo/devlog4-1.json`（t2 st5 の盤）、`--formation grace --leader 2,5 --target 2,5 --frame 0,2,14,9` の連写から4枚目。
+- `img/devlog4-4.png` … 6番（ユニットスキル）の直後。ドレッドタッチの演出とスキルレポート。撮影セットは `debug-photo/devlog4-2.json`（t2 st3 の盤）、`--enemy-turn --formation dread_touch --leader 4,4 --target 5,4 --frame 0,1,14,8` の連写から9枚目。
+- `img/devlog4-5.png` … 7番（輸送）の直後。馬車と飛空艇を同じ盤に入れた1枚。手前に隊と2つの乗り物、奥に墓石の山の帯・礼拝堂・納骨堂とスケルトンの列＝飛空艇が越える相手が同じ画に入る。撮影セットは `debug-photo/devlog4-3.json`（t2 st7 の盤のコピー）、`--frame 0,9,12,18`、駒は選ばない。**パラディンは盤に置かない。**
 
 用語：画面の語に合わせる（hex / Formation Skill / Unit Skill / Board / Unload / Strength）。レシピ名は Grace・Trinity Nova・Purify・Dread Touch。乗り物は Wagon・Airship。章の名前は Undead Rush。
 
-注意：3つ目の陣形スキルは、名前・効果・構成員（パラディン）・登場するステージのどれも書かない。飛空艇は在ることと何ができるかだけ書き、いつどこで手に入るかは書かない。**墓地から屍が湧くこと・墓地を占領すれば止まることは、今回は書かない**（次の devlog に取っておく＝絵も含めてそこで見せる）。ネクロマンサーもこの回では出さない。グレイスの倍率は書くが、トリニティノヴァの威力の話は #2 で済んでいるので繰り返さない。
+注意：3つ目の陣形スキルは、名前・効果・構成員（パラディン）・登場するステージのどれも書かない。墓地から屍が湧くこと・墓地を占領すれば止まることは今回書かない（次の devlog に取っておく）。ネクロマンサーも出さない。数値は画面に出るものだけ（1.3倍・+0.05・移動2/6/9・3ターン）。パッチノートの調子にしない＝「入りました」の列挙をしない。
 
 ## タイトル
 
-Three mages, five clergy, one wagon
+Your special ability is not always the best move
 
 ## 本文
 
 ```html
-<p>The second chapter, <strong>Undead Rush</strong>, is in the demo. Seven stages, on the same board in the tavern as the first one.</p>
-<p>The goblins of the first chapter came in a number you could count. The dead do not: clear a wave and the next one is already walking, and the pressure never quite lifts. Three new things exist to answer that: Formation Skills, Unit Skills, and units whose job is to carry other units.</p>
-<p>Both sides bring a new cast for it. A city sends what a city has &mdash; knights, clergy, and mages of the guild &mdash; and the ground sends back everything that was buried in it.</p>
+<p>Senaris has a special ability, and it is called a Formation Skill. Put specific units in a specific shape on the board and the skill becomes available to them: three mages standing in a triangle can fire Trinity Nova, a blast that covers seven hexes at once. There is no research, no mana, no cooldown. The skill is live while the shape is live, and it is gone the moment one of those three steps away.</p>
 <p><img src=""></p>
 <p><img src=""></p>
-<p><strong>A Formation Skill is not something you unlock.</strong> There is no research, no cost, no cooldown. It is simply available while the right units are standing in the right shape, and it is gone the moment one of them steps away. Last time I showed Trinity Nova: three mages in a triangle, seven hexes in a single action. Here is another one.</p>
-<p><strong>Grace.</strong> Five clergy &mdash; Clerics, Priests and Bishops, in any mix &mdash; standing in one connected cluster can pray instead of fighting, and every unit in your army attacks and defends at 1.3&times; until your next turn. Gather more than five and the blessing grows: six make it 1.35&times;, seven 1.4&times;.</p>
+<p><strong>What it is not is free power.</strong> Every unit in the formation is spent for that turn &mdash; three mages fired, and those three mages did not attack, did not move up, did not do anything else. And the blast lands for exactly one caster's worth of attack, not three. Against a couple of scattered enemies, three separate shots do more damage than the skill does.</p>
+<p>So firing it because it is available will quietly cost you the board. You spent your three best attackers to do the work of one, and you are a turn behind where you would have been. The skill is not a button that is always right; it is a thing you save for the turn when the enemy has bunched up and one blast is worth more than three swings. Reading that turn is the game.</p>
+<p><strong>The new skill in this chapter is Grace</strong>, and it charges for itself in a different currency. Five clergy &mdash; Clerics, Priests and Bishops, in any mix &mdash; standing in one connected cluster can pray instead of fighting, and every unit in your army attacks and defends at 1.3&times; until your next turn. Walk more of them into the huddle and the blessing grows: 1.35&times; with six, 1.4&times; with seven.</p>
 <p><img src=""></p>
-<p>The price is what turns it into a decision. Clergy are your healers, and they are the only units that can capture. Five of them praying are five of them not healing anyone, not taking anything, not standing anywhere they were needed. And five clergy pressed into one cluster is five clergy inside the same area attack, with a move of 2 to get back out. Grace does not make your army stronger; it makes one turn of your army stronger, and choosing which turn is the whole game.</p>
-<p>There is a third Formation Skill in this chapter. I am not going to say what it does. It is waiting near the end.</p>
-<p><strong>Unit Skills</strong> are the same machine at its smallest size: one caster, no formation to arrange, the skill sitting in the same menu. Priests carry Purify, which strips every debuff off themselves or an adjacent ally. Ghosts &mdash; on the other side of the board &mdash; carry Dread Touch, which takes 10 points of Attack and Defense per remaining ghost off the unit it touches, and holds it there for three turns. This is the chapter where the board starts carrying state: buffs and debuffs sit on units where you can see them, with numbers you can read, and Purify becomes the answer to a Ghost that already got through.</p>
+<p>And the bill is heavier than one turn of prayer. To pray, all five have to be touching each other and standing still &mdash; and clergy move 2. Gathering five of them into one cluster costs turns before the skill is ever cast, holding the cluster costs the turn it is cast on, and every one of those turns is a turn your capture units spent not walking toward anything you needed taken. Clergy are your healers and the only units that can take a position; Grace freezes all five of them in a huddle, which happens to be the exact shape an enemy area attack is looking for. You buy one multiplied turn and you pay for it with several of your slowest ones.</p>
+<p><strong>Unit Skills</strong> are the same idea at its smallest size: one caster, no shape to arrange, and the same price of that unit's turn. Priests carry Purify, which strips every debuff off themselves or an adjacent ally. The enemy uses the same machinery &mdash; a Ghost's Dread Touch takes 10 points of Attack and Defense per remaining ghost off whatever it touches, and holds it there for three turns. This is the chapter where the board starts carrying state you can read: buffs and debuffs sit on units with their numbers and their remaining turns shown.</p>
 <p><img src=""></p>
-<p><strong>And some units carry others.</strong> The Wagon has no attack at all. What it has is a move of 6 and room for four passengers, in a chapter where the clergy who hold your line together move 2. Board them, drive, unload, and a prayer that would have taken four turns to walk into place happens now. The Airship does the same work in the air: it moves 9, and it goes straight over the piled gravestones that stop anything on foot, so its passengers step off in a place nobody could have walked to this turn. Transports are the first units in Senaris that are worth nothing in a fight and decide it anyway.</p>
+<p><strong>And some units cannot fight at all.</strong> The Wagon has no attack value. What it has is a move of 6 and room for four passengers, in a chapter where the clergy holding your line together move 2. Board them, drive, unload, and a prayer that would have taken four turns to walk into place happens now. The Airship does the same work in the air: move 9, straight over the piled gravestones that stop anything on foot, so its passengers step off somewhere nobody could have walked to. They are the first units in Senaris that are worth nothing in a fight and decide it anyway.</p>
 <p><img src=""></p>
-<p>That is Undead Rush. The next update brings the third chapter, The Dragon Hunt &mdash; more about that before it lands.</p>
+<p>There is a third Formation Skill in this chapter. I am not going to say what it does; it is waiting near the end, and it asks for its own price.</p>
+<p>All of this is live: the second chapter, Undead Rush, is in the demo now.</p>
 ```
