@@ -2171,24 +2171,65 @@ func _on_height_edited(axis: String, index: int, value: float) -> void:
 		% ["列" if axis == "col" else "行", index, MapEditorBoard._fmt_height(value)])
 
 
-## 「実機で確認」＝編集中の内容を一時ファイルへ書き、ゲーム本体を別プロセスで起動して読ませる。
-## 保存済みファイルには触らない。起動の中身は preview_launch.gd（shot スクリプトと同じ流儀）。
+## 「実機で確認」＝編集中の内容と、でっち上げた名簿を一時ファイルへ書き、ゲーム本体を別プロセスで
+## 起動して読ませる。保存済みファイル・実物の名簿には触らない。起動の中身は preview_launch.gd
+## （shot スクリプトと同じ流儀）。
 func _on_preview() -> void:
 	var tmp := "user://map_editor_preview.json"
-	var f := FileAccess.open(tmp, FileAccess.WRITE)
-	if f == null:
-		_say("一時ファイルを書けませんでした: " + tmp)
+	var tmp_roster := "user://map_editor_preview_roster.json"
+	if not _write_temp(tmp, _doc.to_text()) \
+			or not _write_temp(tmp_roster, JSON.stringify(_preview_roster(), "  ")):
 		return
-	f.store_string(_doc.to_text())
-	f.close()
 	var pid := OS.create_process(OS.get_executable_path(), [
 		"--path", ProjectSettings.globalize_path("res://"),
 		"-s", "res://tools/map_editor/preview_launch.gd",
-		"--", ProjectSettings.globalize_path(tmp)])
+		"--", ProjectSettings.globalize_path(tmp), ProjectSettings.globalize_path(tmp_roster)])
 	if pid == -1:
 		_say("実機の起動に失敗しました。")
 	else:
-		_say("実機を別ウィンドウで起動しました（いまの編集内容のコピーを読ませています）。")
+		_say("実機を別ウィンドウで起動しました（いまの編集内容のコピーを読ませています。継承の駒は全員 Lv1・満員）。")
+
+
+func _write_temp(path: String, text: String) -> bool:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		_say("一時ファイルを書けませんでした: " + path)
+		return false
+	f.store_string(text)
+	f.close()
+	return true
+
+
+## 実機確認に渡す名簿をでっち上げる。継承の駒（actor 持ちで、「この盤で初登場」でないもの）を
+## 全員 Lv1・満員で載せる＝実物の名簿（user://roster.json）は見ない。1体の形は Unit.to_dict() と同じ。
+## type も skin も無い駒は性能を決められないので載せない（実機では「未加入」として盤に出ない）。
+func _preview_roster() -> Array:
+	var out: Array = []
+	var catalog := UnitCatalog.load_default()
+	var skins := SkinCatalog.load_standard()
+	for u in _doc.data.get("player", []):
+		if typeof(u) != TYPE_DICTIONARY:
+			continue
+		var actor := String(u.get("actor", ""))
+		if actor == "" or String(u.get("supply", "")) == "join":
+			continue
+		var type_id := String(u.get("type", ""))
+		var skin_id := String(u.get("skin", ""))
+		if type_id == "" and skin_id != "":
+			type_id = SkinCatalog.type_of_skin(skins, skin_id)
+		var t: UnitType = catalog.get(type_id)
+		if t == null:
+			_say("\"%s\" は type/skin から性能を引けないので、実機では盤に出ません。" % actor)
+			continue
+		out.append({
+			"actor": actor,
+			"type": type_id,
+			"skin": skin_id if skin_id != "" else type_id,
+			"level": 1,
+			"troops": t.max_troops,
+			"max_troops": t.max_troops,
+		})
+	return out
 
 
 func _on_save() -> void:
