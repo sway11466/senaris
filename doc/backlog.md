@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=105 / refactoring=15.
+次回採番: bug=6 / feature=106 / refactoring=15.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -130,6 +130,15 @@
 - 背景：盤エリア（ステージ読み込み時のカメラのフィット・戦闘窓・陣形カットイン・完走の勝利イラストの置き場）を板の既定の矩形で固定していたので、畳んでも盤は左800pxの中に小さく出て、右は空いたままだった。仕様は決めてある（[uiux.md](gdd/uiux.md) 盤エリア）。
 - 対応：`UiLayout.board_area` を板の状態（既定の場所で開いているか）で切り替える。ターン終了ボタンは盤エリアから外し、板の既定の矩形のすぐ左に固定する。戦果票は元から画面中央＝変更なし。
 - 該当：`godot/presentation/ui/ui_layout.gd`・`godot/presentation/board/hex_board_3d.gd`（`_vis_rect`）・`godot/presentation/ui/hud.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/formation/formation_cutin.gd`・`godot/presentation/victory/victory_screen.gd`。
+
+### feature-105
+
+**依頼書で兵が補充されるかを示す**
+- ゴール：出撃前の依頼書を見て、引き継ぐ駒の兵が満員に戻って出るのかどうかが分かる。戦力の引き継ぎは紙だけで伝わっていて、ステージ板に線は無い。
+- 背景：継承のステージは駒ごとに `supply` で戦力の出し方が変わる（省略＝損耗のまま／`refill`＝兵数だけ満員／`revive`＝離脱者も満員）。依頼書は生存者・この戦い限り・兵力ゼロの3群に分けて見出しを付けるが、兵が補充されるかは書いていないので、盤に出るまで分からない（[campaigns.md](gdd/campaigns.md) 配置）。
+- 対応：`StageLoader.preview_player_units` の各要素に補充されるかを足し、依頼書の生存者の群を補充あり／なしに分けて見出しを書き分ける。見出しにはアイコンを添える（アイコンは [icons.md](art/icons.md) の方針で起こす）。駒ごとの設定なので、混ざるステージでは生存者の群が2つに割れる＝どの駒が補充されるかも読める。
+- 対応：ステージ板の左に通した綴じ紐（連戦の区間の縦線）は外す。引き継ぎは紙で示すので板にも描くと二重になる。線を引くためだけに `campaign.json` が持っていた `party`（作者用の識別子・ゲームの動きには関与しない）と、その取り込みも一緒に落とす。
+- 該当：`godot/application/stage_loader.gd`・`godot/presentation/select/quest_sheet.gd`・`godot/data/i18n/ui.csv`・`godot/assets/icons/`・`doc/gdd/stage_select.md` 依頼書。綴じ紐は `godot/presentation/select/stage_select.gd`（`_Lanes`・`lanes_of`）・`godot/data/stages/campaign_catalog.gd`（`_parse_party`）・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`（`party` を持つ唯一の冒険譚）・`godot/tests/unit/test_stage_lanes.gd`（ファイルごと）・`test_campaign_catalog.gd`（party の検証）・`doc/gdd/stage_select.md` 連戦の区間。
 
 ## リファクタリング
 
