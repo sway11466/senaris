@@ -7,10 +7,15 @@ powershell -File tools\gen_terrain_tile.ps1 rampart_scree1 assets\terrain-src\ra
 # 色: 石の色を荒地の基準色 #A89574 にそろえ、石の隙間の影で落とす。切り抜き後の明度 48.0〜48.9
 # （荒地 52.6 より約4ポイント暗い＝同じ色味のまま通れる／通れないが分かれる）。
 
-# 側面＝上面と同じ元絵（c）から帯を切る。ガレ場は向きの無い模様なので、横から見た石の山として読める。
-# 512 幅で切って左右反転の写しを繋ぐ＝継ぎ目が出ず、石の大きさが上面と同じ縮尺になる（1024 幅で切ると半分の大きさ）。
-# 厚みは 140px＝岩地（高さ 0.36）と同じ。+850 は明度が切り抜き後の上面（48.3）に最も近い帯。
-magick assets\terrain-src\rampart_scree1\rampart_scree1_c.jpg -crop 512x140+0+850 +repage ( +clone -flop ) +append -colors 64 -dither None assets\terrain\rampart_scree1_side.png
+# 側面＝上面と同じ元絵 c と d を横に継いだ 1920×1024 の帯（tools/gen_side_band.py）。
+# ガレ場は向きの無い模様なので、横から見た石の山として読める。
+# 石の大きさ: 側面の帯は 1024px＝ヘックス幅2つに貼られ、上面は元絵 1024px＝ヘックス幅1つ。上面と同じ大きさに
+# するには帯を元絵2枚ぶんの幅にする（最初 512 幅で切ったら石が上面の2倍に見えた）。
+# 継ぎ目: 2枚の間と左右の端を 64px ずつ羽根合成＝石を切らずに横シームレス。
+# 縦の繰り返し: 帯の高さは世界で 4×1024/1920≒2.1。盤の縁の落差（0.36＋0.45=0.81）より高いので繰り返しが
+# 起きない（城壁は段の境目で切って繰り返しを隠すが、ガレ場には段が無い）。帯は上端から貼られる。
+uv run --no-project --with pillow --with numpy python tools\gen_side_band.py assets\terrain-src\rampart_scree1\rampart_scree1_c.jpg assets\terrain-src\rampart_scree1\rampart_scree1_d.jpg tmp_scree_side.png
+magick tmp_scree_side.png -colors 64 -dither None assets\terrain\rampart_scree1_side.png
 
 # terrain_skin.csv: elevation 0.36（岩地と同じ＝尾根 0.54 より低い盛り上がり）/ orientable full / side_tiling repeat。
 # CSV を直したら JSON を焼き直す: godot --headless --path . --script res://data/terrain/convert.gd
