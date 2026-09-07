@@ -247,9 +247,11 @@ func _support_text(side: Dictionary) -> String:
 ## バフ1件の表記（例: グレイス ×1.30/×1.30、ピクシーダスト +80/+80）。
 ## target で攻/防の効き先を描き分ける。
 static func status_text(m: Dictionary) -> String:
-	var nm := String(m.get("name", ""))
-	if nm.is_empty():
-		nm = TranslationServer.translate("ui.report.modifier_unnamed")  # static なので tr() は使えない
+	# 表示名はレシピIDから引く（エントリは表示文字列を持たない → formation_resolver.gd）。
+	# レシピを持たない状態補正は用語で出す。static なので tr() は使えない。
+	var rid := String(m.get("recipe", ""))
+	var nm := TranslationServer.translate("recipe.%s.name" % rid) if not rid.is_empty() \
+		else TranslationServer.translate("ui.report.modifier_unnamed")
 	# 継続ダメージは攻防に効かない＝攻/防の2列に置けない。毎ターン何人減るかをそのまま出す。
 	if StatusMod.is_dot(m):
 		return TranslationServer.translate("ui.report.status_dot") % [nm, int(m.get("value", 0))]

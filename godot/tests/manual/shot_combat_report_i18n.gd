@@ -38,10 +38,10 @@ func _detail() -> AttackResult:
 	var loss2 := ret.loss
 	var out := AttackResult.new()
 	out.attacker = _snap(1, "Holy Knight", 0, 3, 12, 12 - loss2, 12, "forest", Vector2i(0, 0),
-		[{"name": "Grace", "op": "mul", "value": 1.3, "target": "both"}])
+		[{"recipe": "grace", "op": "mul", "value": 1.3, "target": "both"}])
 	out.defender = _snap(2, "Skeleton Warrior", 1, 2, 10, 10 - loss, 10, "plateau", Vector2i(1, 0), [
-		{"name": "Pixie Dust", "op": "add", "value": 80.0, "target": "both"},
-		{"name": "Serpent Fang", "op": "dot", "value": 1},
+		{"recipe": "pixie_dust", "op": "add", "value": 80.0, "target": "both"},
+		{"recipe": "venom_fang", "op": "dot", "value": 1},
 	])
 	out.to_defender = fwd
 	out.to_attacker = ret

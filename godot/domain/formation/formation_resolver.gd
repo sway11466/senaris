@@ -150,7 +150,7 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 		"op": StatusMod.OP_DOT,
 		"value": option.dot_troops,
 		"remaining": option.duration_turns,
-		"name": option.name,
+		"recipe": option.recipe,  # 表示名は読む側が recipe.<id>.name を引く（domain は表示文字列を持たない）
 		"fx": option.buff_fx,
 		"kind": option.buff_kind,
 	}
@@ -177,7 +177,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 		"target": option.buff_target,
 		"value": value,
 		"remaining": option.duration_turns,
-		"name": option.name,  # 戦闘レポートの表示用（レシピ表示名）
+		"recipe": option.recipe,  # 表示名は読む側が recipe.<id>.name を引く（domain は表示文字列を持たない）
 		"fx": option.buff_fx,  # 盤の見た目（presentation が読む。空＝見た目なし）
 		# 強化か弱体か。ピュリファイが落とす対象と盤の見た目をこれで決める＝値の符号から推測しない。
 		"kind": option.buff_kind,
