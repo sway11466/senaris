@@ -51,9 +51,6 @@ var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1�
 ## 駒の足元の高さ（ワールド単位・TILE=1）。elevation と同じ座標系で、駒の立ち絵だけがこの高さに立つ。
 ## elevation より低ければ地形に沈む（森＝木々の間の地面）、高ければ浮く（水面の上を飛ぶ）。
 var floor: float
-## 行・列の基準高さ（盤の高さ）を足さないか。true＝elevation / floor が絶対高さになる。
-## 水面のように、盤の傾斜に乗らず一定の高さを保つスキンが使う（→ doc/gdd/terrain.md 盤の高さ）。
-var ignore_board_height: bool
 ## 側面の帯の貼り方（SIDE_* のどれか）。足場のスキンだけが持つ（オブジェクトは空）。
 var side_tiling: String
 ## オブジェクトの置き方（PLACE_* のどれか）。足場のスキンはこの列を持たない（空）。
@@ -86,7 +83,6 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.connect_to = String(ct).split(" ", false) if typeof(ct) == TYPE_STRING else PackedStringArray()
 	s.elevation = float(d.get("elevation", 0.0))
 	s.floor = float(d.get("floor", 0.0))
-	s.ignore_board_height = bool(d.get("ignore_board_height", false))
 	# 側面の貼り方は足場だけが持つ。未知の値は引き伸ばしに倒す＝繰り返しで縦に潰れるより、
 	# 従来の見え方のほうが「直っていない」と気づきやすい。
 	var sd: Variant = d.get("side_tiling", "")

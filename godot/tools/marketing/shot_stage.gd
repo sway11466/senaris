@@ -68,8 +68,7 @@ func _ready() -> void:
 	var board: HexBoard3D = preload("res://presentation/board/hex_board_3d.gd").new()
 	add_child(board)
 	board.bind(state, controller, skins, StageLoader.load_terrain_skins(stage_path),
-		StageLoader.load_margin_terrain(stage_path), StageLoader.load_board_height(stage_path, state.cols, state.rows),
-		StageLoader.load_height_overrides(stage_path))
+		StageLoader.load_margin_terrain(stage_path), StageLoader.load_height_overrides(stage_path))
 
 	if has_select:
 		var hex := Hex.offset_to_axial(select_cell.x, select_cell.y)

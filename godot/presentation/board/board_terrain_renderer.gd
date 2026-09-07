@@ -34,12 +34,8 @@ var _terrain_skins := {}   # Vector2i -> skin_id（ステージの見た目差�
 ## 描かないし駒も入らない＝接続タイル（柵・道）が「盤の外に何があるか」を引くためだけのデータ。
 ## 空＝外周なしで、そのときだけ縁の推測（面は丸め込み／線は腕を伸ばす）に落ちる。
 var _margin_terrain := {}
-## 盤の基準高さ（見た目のみ）。{ "row": [行数ぶん], "col": [列数ぶん] }。空＝その軸は平ら。
-## あるマスの高さ ＝ 行の基準 ＋ 列の基準 ＋ スキンの elevation（→ doc/gdd/terrain.md 盤の高さ）。
-## 盤の高さを無視するスキン（ignore_board_height）は基準を足さない＝elevation / floor が絶対高さ。
-## マスごとの高さ上書きがあるマスは、この計算をせず上書き値をそのまま使う。
-var _board_height := { "row": [], "col": [] }
-## Vector2i -> { "elevation": float, "floor": float }（マスごとの高さ上書き。書いてあればそれが最終の高さ）。
+## Vector2i -> { "elevation": float, "floor": float }（マスごとの高さ上書き。書いてあればそれが最終の高さ
+## ＝スキンの elevation / floor の代わりになる → doc/gdd/terrain.md 盤の高さ）。
 var _height_overrides := {}
 
 # --- キャッシュ ---
@@ -61,12 +57,10 @@ func _ready() -> void:
 	_hex_mesh = BoardMeshFactory.make_hex_mesh(TILE)
 	_skirt_tex = BoardMeshFactory.make_skirt_texture()
 
-func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictionary,
-		board_height: Dictionary = { "row": [], "col": [] }, height_overrides: Dictionary = {}) -> void:
+func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictionary, height_overrides: Dictionary = {}) -> void:
 	_state = state
 	_terrain_skins = terrain_skins
 	_margin_terrain = margin_terrain
-	_board_height = board_height
 	_height_overrides = height_overrides
 
 # =========================================================================
@@ -125,32 +119,15 @@ func elev(hex: Vector2i) -> float:
 	return e
 
 ## スキン由来の高さ（elevation / floor）を1本の規則で解決する。
-## マスに高さ上書きがあれば、その値がそのまま最終の高さ＝盤の高さ（行＋列の基準）もスキンの値も見ない。
-## 上書きの無いマスは、盤の高さを無視フラグの無いスキンだけに足す（→ doc/gdd/terrain.md 盤の高さ）。
+## マスに高さ上書きがあれば、その値がそのまま最終の高さ＝スキンの値は見ない（→ doc/gdd/terrain.md 盤の高さ）。
 func _skin_height(hex: Vector2i, key: String) -> float:
 	var skin := _skin_at(hex)
 	if skin == null:
-		return _base_height(hex)
+		return 0.0
 	var ov: Variant = _height_overrides.get(hex)
 	if typeof(ov) == TYPE_DICTIONARY:
 		return float(ov[key])
-	var v: float = skin.elevation if key == "elevation" else skin.floor
-	return v if skin.ignore_board_height else v + _base_height(hex)
-
-## 盤の基準高さ（行＋列）。ステージが書いていなければ0＝平ら。盤の外のセルは縁の値に丸める
-## （外周のスカートが盤の縁と地続きに見えるように）。
-func _base_height(hex: Vector2i) -> float:
-	var row: Array = _board_height.get("row", [])
-	var col: Array = _board_height.get("col", [])
-	if row.is_empty() and col.is_empty():
-		return 0.0
-	var o := Hex.axial_to_offset(hex)
-	var h := 0.0
-	if not row.is_empty():
-		h += float(row[clampi(o.y, 0, row.size() - 1)])
-	if not col.is_empty():
-		h += float(col[clampi(o.x, 0, col.size() - 1)])
-	return h
+	return skin.elevation if key == "elevation" else skin.floor
 
 ## 駒の足元の高さ（floor・既定＝上面と同じ）。立ち絵だけがこの高さに立つ。
 ## elevation より低ければ地形に沈み（森）、高ければ浮く（水面の上を飛ぶ）。

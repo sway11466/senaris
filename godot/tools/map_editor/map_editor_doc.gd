@@ -138,7 +138,7 @@ func set_margin(new_margin: int) -> void:
 
 ## クリックしたマスと地続きのマスを返す。同じ見た目＝地形の文字・skin_id・高さ上書きの全部が
 ## 一致するマスだけを辿る（同じ平地でも既定スキンと plain_cave1 は別領域。同じ水でも高さ違いは別領域）。
-## 高さの比較はエントリのデータ同士＝行・列の基準高さは見ない（傾斜盤でも同じ塗りは1領域）。
+## 高さの比較はエントリのデータ同士。
 ## 隣接は六方向（Hex と同じ定義）。
 ## 盤と外周は跨がない＝盤で始めた塗りが外周へ漏れず、外周で始めた塗りが盤を塗り潰さない。
 func connected_cells(col: int, row: int) -> Array[Vector2i]:
@@ -221,109 +221,6 @@ func undo_terrain() -> bool:
 		data.erase("terrain_skins")  # 操作前は差分自体が無かった＝キーごと消す
 	_terrain_undo = {}
 	return true
-
-
-# --- 盤の高さ（height＝{row:[..], col:[..]}。見た目だけ＝ルールに入らない。→ doc/gdd/terrain.md 盤の高さ） ---
-
-
-## 行 index の基準高さ。キーが無い・配列が短い・数値でないところは 0。
-func row_height(index: int) -> float:
-	return _axis_height("row", index)
-
-
-## 列 index の基準高さ。
-func col_height(index: int) -> float:
-	return _axis_height("col", index)
-
-
-func _axis_height(key: String, index: int) -> float:
-	var h: Variant = data.get("height")
-	if typeof(h) != TYPE_DICTIONARY:
-		return 0.0
-	var arr: Variant = (h as Dictionary).get(key)
-	if typeof(arr) != TYPE_ARRAY or index < 0 or index >= (arr as Array).size():
-		return 0.0
-	var v: Variant = arr[index]
-	return float(v) if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT else 0.0
-
-
-func set_row_height(index: int, v: float) -> void:
-	_set_axis_height("row", index, rows(), v)
-
-
-func set_col_height(index: int, v: float) -> void:
-	_set_axis_height("col", index, cols(), v)
-
-
-## 書くときに配列を盤の長さに整える（StageLoader は長さ違いを弾く＝正しい長さでしか書かない）。
-func _set_axis_height(key: String, index: int, want: int, v: float) -> void:
-	if index < 0 or index >= want:
-		return
-	if typeof(data.get("height")) != TYPE_DICTIONARY:
-		data["height"] = {}  # 書くときだけキーを作る（読むだけで生やさない）
-	var h: Dictionary = data["height"]
-	var arr: Array = h[key] if typeof(h.get(key)) == TYPE_ARRAY else []
-	while arr.size() < want:
-		arr.append(0.0)
-	arr.resize(want)
-	arr[index] = v
-	h[key] = arr
-
-
-## height を保存できる形に整える。配列は盤の行数・列数に合わせ（伸びた分0・はみ出しは切る）、
-## 全部0なら省略と同義（doc/gdd/terrain.md）なのでキーごと消す。
-## ただし元ファイルにあったキーは温存＝開いて保存しただけでは内容を変えない。
-func _normalize_height() -> void:
-	var h: Variant = data.get("height")
-	if typeof(h) != TYPE_DICTIONARY:
-		return
-	var flat := true
-	for pair: Array in [["row", rows()], ["col", cols()]]:
-		var key := String(pair[0])
-		var arr: Variant = (h as Dictionary).get(key)
-		if typeof(arr) != TYPE_ARRAY:
-			continue
-		var out: Array = []
-		for i in int(pair[1]):
-			var v: Variant = (arr as Array)[i] if i < (arr as Array).size() else 0.0
-			var f := float(v) if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT else 0.0
-			if f != 0.0:
-				flat = false
-			out.append(f)
-		h[key] = out
-	if flat and not _keys_in_source.has("height"):
-		data.erase("height")
-
-
-## 高さの1軸を delta ぶん送る（shift 用）。押し出された端は捨て、空いた端は 0。
-static func _shift_height_axis(h: Dictionary, key: String, delta: int, want: int) -> void:
-	var arr: Variant = h.get(key)
-	if typeof(arr) != TYPE_ARRAY:
-		return
-	var out: Array = []
-	out.resize(want)
-	out.fill(0.0)
-	for i in mini((arr as Array).size(), want):
-		var ni := i + delta
-		if ni >= 0 and ni < want:
-			out[ni] = arr[i]
-	h[key] = out
-
-
-## 1軸で、送ると盤の外へ出る 0 以外の値の数（shift_losses 用）。
-static func _height_axis_losses(h: Variant, key: String, delta: int, want: int) -> int:
-	if typeof(h) != TYPE_DICTIONARY:
-		return 0
-	var arr: Variant = (h as Dictionary).get(key)
-	if typeof(arr) != TYPE_ARRAY:
-		return 0
-	var lost := 0
-	for i in mini((arr as Array).size(), want):
-		var v: Variant = arr[i]
-		var f := float(v) if typeof(v) == TYPE_INT or typeof(v) == TYPE_FLOAT else 0.0
-		if f != 0.0 and (i + delta < 0 or i + delta >= want):
-			lost += 1
-	return lost
 
 
 # --- 見た目レイヤー（terrain_skins＝座標→skin_id の差分列挙。未指定セルは type の既定スキン） ---
@@ -425,7 +322,6 @@ func resize(new_cols: int, new_rows: int) -> int:
 	data["cols"] = new_cols
 	data["rows"] = new_rows
 	_normalize_terrain()
-	_normalize_height()
 	_terrain_undo = {}  # 旧サイズのスナップショットは戻せない（盤とズレる）
 	var dropped := 0
 	dropped += _drop_out_of_range(data["player"])
@@ -503,11 +399,6 @@ func shift_losses(dcol: int, drow: int) -> Dictionary:
 			bases_lost += 1
 	if bases_lost > 0:
 		out["bases"] = bases_lost
-	# 高さは行・列に付く値＝中身と一緒に送る。0以外が端からこぼれるなら失うものに数える。
-	var height_lost := _height_axis_losses(data.get("height"), "row", drow, rows()) \
-		+ _height_axis_losses(data.get("height"), "col", dcol, cols())
-	if height_lost > 0:
-		out["height"] = height_lost
 	return out
 
 
@@ -545,9 +436,6 @@ func shift(dcol: int, drow: int) -> bool:
 			if typeof(t) == TYPE_DICTIONARY:
 				t["col"] = int(t.get("col", 0)) + dcol
 				t["row"] = int(t.get("row", 0)) + drow
-	if typeof(data.get("height")) == TYPE_DICTIONARY:  # 高さも中身と一緒に送る（置き去りにしない）
-		_shift_height_axis(data["height"], "row", drow, rows())
-		_shift_height_axis(data["height"], "col", dcol, cols())
 	_terrain_undo = {}  # 駒ごと動いた後に地形だけ戻すと辻褄が合わない
 	return true
 
@@ -1024,7 +912,6 @@ func remove_defeat(index: int) -> void:
 
 func to_text() -> String:
 	_normalize_terrain()
-	_normalize_height()
 	return MapEditorDocSerializer.serialize(data, _keys_in_source)
 
 

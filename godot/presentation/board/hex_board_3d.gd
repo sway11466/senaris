@@ -135,11 +135,11 @@ func _ready() -> void:
 	_menu.id_pressed.connect(_on_menu_id)
 	_menu.popup_hide.connect(_on_menu_closed)
 
-func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}, p_board_height: Dictionary = { "row": [], "col": [] }, p_height_overrides: Dictionary = {}) -> void:
+func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: Dictionary = {}, p_terrain_skins: Dictionary = {}, p_margin_terrain: Dictionary = {}, p_height_overrides: Dictionary = {}) -> void:
 	state = p_state
 	controller = p_controller
 	_skin_catalog = p_skin_catalog
-	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_board_height, p_height_overrides)
+	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_height_overrides)
 	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.unit_floor)
 	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, state.in_field, state, _sync, func(v: bool) -> void: _locked = v)
 	_reset_interaction()
@@ -365,8 +365,8 @@ func _plane_point_at(screen: Vector2) -> Vector3:
 ## 当たったものを返す。どれにも当たらなければ y=0 の素の hex。
 ##
 ## 高さの候補を1つずつ平面として試すのではなく、レイが通るヘックスを高いほうから拾って、
-## そのヘックス自身の高さで当たるかを見る。盤が行と列の基準高さを持つと高さの種類は
-## 行数×列数まで増えるので、種類ぶん回すとピッキングが種類数に比例して重くなる
+## そのヘックス自身の高さで当たるかを見る。マスごとの高さ上書きで高さの種類はマス数まで
+## 増えうるので、種類ぶん回すとピッキングが種類数に比例して重くなる
 ## （14×11・52種で 0.78ms を実測）。この形なら高さの幅にしか比例しない。
 func _hex_at_mouse() -> Vector2i:
 	return _hex_at_screen(get_viewport().get_mouse_position())

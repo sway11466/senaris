@@ -28,8 +28,7 @@ const SIGHT_UNLIMITED := "*"  ## 上限なし＝盤全体（視線コスト x �
 ## 数値を取る特性は ambush だけなので、その ai.csv 既定に合わせる。
 const SIGHT_SPIN_DEFAULT := 3
 ## 「全体をずらす」で盤の外に出るものの言い方（MapEditorDoc.shift_losses のキー → 表示名）。
-const SHIFT_LOSS_LABELS := { "terrain": "地形", "skins": "スキン指定", "units": "駒", "bases": "拠点",
-	"height": "基準高さ" }
+const SHIFT_LOSS_LABELS := { "terrain": "地形", "skins": "スキン指定", "units": "駒", "bases": "拠点" }
 
 var _doc: MapEditorDoc
 var _path := ""  # 現在のファイル（グローバルパス。空=未保存）
@@ -226,7 +225,6 @@ func _build_ui() -> void:
 	_board.cell_dragged.connect(_on_cell_dragged)
 	_board.cell_released.connect(_on_cell_released)
 	_board.zoom_requested.connect(func(step: int) -> void: zoom.value += step * zoom.step)
-	_board.height_edited.connect(_on_height_edited)
 	scroll.add_child(_board)
 	_board.refresh()
 
@@ -2157,18 +2155,6 @@ func _shift_label(delta: Vector2i) -> String:
 	if delta.x != 0:
 		return "右へ %d 列" % delta.x if delta.x > 0 else "左へ %d 列" % -delta.x
 	return "下へ %d 行" % delta.y if delta.y > 0 else "上へ %d 行" % -delta.y
-
-
-## 盤の番号帯の高さ入力欄で確定（→ MapEditorBoard.height_edited）。見た目だけの値なので
-## 地形の取り消し（Ctrl+Z）の対象にはしない＝もう一度クリックして打ち直す。
-func _on_height_edited(axis: String, index: int, value: float) -> void:
-	if axis == "col":
-		_doc.set_col_height(index, value)
-	else:
-		_doc.set_row_height(index, value)
-	_board.refresh()
-	_say("%s %d の基準高さを %s にしました（見た目だけ・ルールに入らない）。"
-		% ["列" if axis == "col" else "行", index, MapEditorBoard._fmt_height(value)])
 
 
 ## 「実機で確認」＝編集中の内容と、でっち上げた名簿を一時ファイルへ書き、ゲーム本体を別プロセスで

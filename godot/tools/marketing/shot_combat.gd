@@ -74,8 +74,7 @@ func _ready() -> void:
 	add_child(board)
 	var terrain_skins := StageLoader.load_terrain_skins(stage_path)
 	board.bind(state, controller, skins, terrain_skins,
-		StageLoader.load_margin_terrain(stage_path), StageLoader.load_board_height(stage_path, state.cols, state.rows),
-		StageLoader.load_height_overrides(stage_path))
+		StageLoader.load_margin_terrain(stage_path), StageLoader.load_height_overrides(stage_path))
 	board.set_process(false)  # ホバーの写り込み防止（shot_stage と同じ）
 
 	# 盤全体を収める（背景に写る側）。可視矩形はストレッチ解像度基準。

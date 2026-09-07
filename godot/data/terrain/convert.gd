@@ -15,8 +15,8 @@ const SkinDef = preload("res://data/terrain/terrain_skin.gd")
 const TYPE_REQUIRED := ["id", "name", "layer", "char", "atk", "def", "sight_cost"]
 ## 地形の層（→ doc/gdd/terrain.md）。足場＝面や線で敷くもの／オブジェクト＝点として置くもの。
 const LAYERS := ["footing", "object"]
-## スキンで必ず要る列（memo は任意）。ignore_board_height は空を既定に倒さず全行に明示させる。
-const SKIN_REQUIRED := ["skin_id", "terrain_type", "name", "ignore_board_height"]
+## スキンで必ず要る列（memo は任意）。
+const SKIN_REQUIRED := ["skin_id", "terrain_type", "name"]
 
 func _initialize() -> void:
 	var type_rows := Csv.read_table("res://data/terrain/terrain_type.csv")
@@ -78,8 +78,6 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	problems += Csv.invalid_values(rows, "grid", ["true", "false"], "skin_id")
 	problems += _invalid_amount(rows, "elevation")   # 打ち間違いが「高さ0」に化けて黙って平らになるのを防ぐ
 	problems += _invalid_amount(rows, "floor")
-	# 盤の高さ（行・列の基準）を足さないスキン（水面など）。全行に明示する＝空を既定に倒さない。
-	problems += Csv.invalid_values(rows, "ignore_board_height", ["true", "false"], "skin_id")
 	# 側面の帯の貼り方（stretch/repeat）。全足場に明示する＝空を既定に倒さない。オブジェクトは空。
 	problems += _invalid_side_tiling(rows, type_rows)
 	# オブジェクトの置き方（standee/panel/flat）。全オブジェクトに明示する＝空を既定に倒さない。

@@ -54,7 +54,6 @@ func test_bridge_is_a_flat_object_over_the_river() -> void:
 	assert_eq(bridge.map_ground_id(), "river", "橋の下地は川")
 	# 高さは2列で受け持ちが分かれる＝elevation の高さに足場（水）・floor の高さに板。
 	assert_eq(bridge.elevation, river.elevation, "elevation は水位＝川と同値")
-	assert_eq(bridge.ignore_board_height, river.ignore_board_height, "盤の高さの扱いも川と同じ＝絶対水位")
 	assert_gt(bridge.floor, bridge.elevation, "板（floor）は水位より上に浮く")
 	assert_false(bridge.connects(), "橋は接続タイルを持たない（幅の役×軸の12スキンで向きを出す）")
 	assert_false(bridge.connects_with(river), "橋は川へ床を伸ばさない")
@@ -62,12 +61,11 @@ func test_bridge_is_a_flat_object_over_the_river() -> void:
 	assert_true(stone.connects_with(bridge), "石畳は橋へ帯を伸ばす")
 
 func test_river_is_water_surface() -> void:
-	# 水面は盤の高さを無視して絶対の水位に置く。駒は水面より上（floor > elevation）に立つ＝浮く。
+	# 水面は地面より低い水位に置く。駒は水面より上（floor > elevation）に立つ＝浮く。
 	var river := TerrainSkinCatalog.skin_by_id("river")
 	assert_not_null(river, "river スキンが引ける")
 	if river == null:
 		return
-	assert_true(river.ignore_board_height, "盤の高さを無視する＝傾斜盤でも水平")
 	assert_lt(river.elevation, 0.0, "水面は地面より低い")
 	assert_gt(river.floor, river.elevation, "駒は水面の上に浮く")
 
@@ -273,20 +271,11 @@ func test_parse_terrain_skins_empty_when_absent() -> void:
 	# terrain_skins が無いステージは空マップ（既存ステージは skin 追記ゼロで現状描画）。
 	assert_eq(StageLoader.parse_terrain_skins({}).size(), 0, "未指定は空")
 
-func test_parse_board_height_reads_both_axes() -> void:
-	# 盤の基準高さは行と列の2本。あるマスの高さは 行＋列＋スキンの elevation（見た目のみ）。
-	var d := { "height": { "row": [0, 0.18, 0.36], "col": [0, 0.5] } }
-	var h := StageLoader.parse_board_height(d, 2, 3)
-	assert_eq(h["row"], [0.0, 0.18, 0.36], "行の基準")
-	assert_eq(h["col"], [0.0, 0.5], "列の基準")
-
-func test_from_dict_reads_floor_and_ignore_board_height() -> void:
-	# floor＝駒の足元の高さ（elevation と同じ座標系）。ignore_board_height＝行・列の基準を足さない。
-	var s := TerrainSkin.from_dict({ "skin_id": "x", "elevation": -0.18, "floor": 0.0,
-		"ignore_board_height": true })
+func test_from_dict_reads_floor() -> void:
+	# floor＝駒の足元の高さ（elevation と同じ座標系）。
+	var s := TerrainSkin.from_dict({ "skin_id": "x", "elevation": -0.18, "floor": 0.0 })
 	assert_eq(s.elevation, -0.18, "elevation は負も可（水面）")
 	assert_eq(s.floor, 0.0, "floor は独立の値")
-	assert_true(s.ignore_board_height, "盤の高さを無視")
 
 func test_floor_matches_elevation_when_units_stand_on_top() -> void:
 	# 上に立つ地形は floor ＝ elevation。沈む地形（森・茂み）は floor < elevation。
@@ -328,13 +317,3 @@ func test_parse_height_overrides_rejects_non_numbers() -> void:
 func test_parse_height_overrides_empty_when_absent() -> void:
 	assert_eq(StageLoader.parse_height_overrides({}).size(), 0, "未指定は空")
 
-func test_parse_board_height_rejects_wrong_length() -> void:
-	# 長さが盤と違う配列を黙って0で埋めると、どこまで指定したつもりか分からなくなる。
-	var d := { "height": { "row": [0, 0.18], "col": [0, 0.5] } }
-	var h := StageLoader.parse_board_height(d, 2, 3)  # 盤は3行なのに2つしかない
-	assert_eq(h["row"], [], "長さ違いの軸は平らに倒す")
-	assert_eq(h["col"], [0.0, 0.5], "もう一方の軸は生きる")
-	assert_push_error_count(1, "理由をログに出す")
-
-func test_parse_board_height_absent_is_flat() -> void:
-	assert_eq(StageLoader.parse_board_height({}, 5, 5), { "row": [], "col": [] }, "未指定は平ら")

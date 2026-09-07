@@ -37,7 +37,7 @@ func _process(_delta: float) -> bool:
 	if _main == null:
 		return true
 	_frames += 1
-	if _frames == 20:  # タイトル画面の初期化が済むのを待つ（shot_board_height.gd と同じ待ち方）
+	if _frames == 20:  # タイトル画面の初期化が済むのを待つ
 		_main._title.close()
 		_main._select.close()
 		_load_with_roster()
