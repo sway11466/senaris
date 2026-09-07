@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1lmlg6x3y2uo"
-path="res://.godot/imported/rampart_scree1.png-627124cb07857fe54dbf521e40274d7e.ctex"
+uid="uid://indn3ox03x3f"
+path="res://.godot/imported/bedrock_scree1_2.png-999475e7347d6daead76a968f73e6d82.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/rampart_scree1.png"
-dest_files=["res://.godot/imported/rampart_scree1.png-627124cb07857fe54dbf521e40274d7e.ctex"]
+source_file="res://assets/terrain/bedrock_scree1_2.png"
+dest_files=["res://.godot/imported/bedrock_scree1_2.png-999475e7347d6daead76a968f73e6d82.ctex"]
 
 [params]
 

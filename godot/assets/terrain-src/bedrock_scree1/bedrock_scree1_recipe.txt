@@ -1,8 +1,8 @@
 # 上面＝角張った石が積み重なったガレ場（足場が無い）。1024px の原寸をそのまま切り抜く。
-# 候補10枚（rampart_scree1_a〜j.jpg＝生成時のファイル名順）から c・d・g を採った。
+# 候補10枚（bedrock_scree1_a〜j.jpg＝生成時のファイル名順）から c・d・g を採った。
 # 選定: 変種どうしの明度差 0.5（採用ライン1以内）・彩度 15.6〜16.2・明暗むら 2.2〜2.5。
 # 大きな暗い穴のある e/f/i（むら 3.7〜5.9）と、1.3 以上暗い j は外した。
-powershell -File tools\gen_terrain_tile.ps1 rampart_scree1 assets\terrain-src\rampart_scree1\rampart_scree1_c.jpg assets\terrain-src\rampart_scree1\rampart_scree1_d.jpg assets\terrain-src\rampart_scree1\rampart_scree1_g.jpg
+powershell -File tools\gen_terrain_tile.ps1 bedrock_scree1 assets\terrain-src\bedrock_scree1\bedrock_scree1_c.jpg assets\terrain-src\bedrock_scree1\bedrock_scree1_d.jpg assets\terrain-src\bedrock_scree1\bedrock_scree1_g.jpg
 
 # 色: 石の色を荒地の基準色 #A89574 にそろえ、石の隙間の影で落とす。切り抜き後の明度 48.0〜48.9
 # （荒地 52.6 より約4ポイント暗い＝同じ色味のまま通れる／通れないが分かれる）。
@@ -14,8 +14,8 @@ powershell -File tools\gen_terrain_tile.ps1 rampart_scree1 assets\terrain-src\ra
 # 継ぎ目: 2枚の間と左右の端を 64px ずつ羽根合成＝石を切らずに横シームレス。
 # 縦の繰り返し: 帯の高さは世界で 4×1024/1920≒2.1。盤の縁の落差（0.36＋0.45=0.81）より高いので繰り返しが
 # 起きない（城壁は段の境目で切って繰り返しを隠すが、ガレ場には段が無い）。帯は上端から貼られる。
-uv run --no-project --with pillow --with numpy python tools\gen_side_band.py assets\terrain-src\rampart_scree1\rampart_scree1_c.jpg assets\terrain-src\rampart_scree1\rampart_scree1_d.jpg tmp_scree_side.png
-magick tmp_scree_side.png -colors 64 -dither None assets\terrain\rampart_scree1_side.png
+uv run --no-project --with pillow --with numpy python tools\gen_side_band.py assets\terrain-src\bedrock_scree1\bedrock_scree1_c.jpg assets\terrain-src\bedrock_scree1\bedrock_scree1_d.jpg tmp_scree_side.png
+magick tmp_scree_side.png -colors 64 -dither None assets\terrain\bedrock_scree1_side.png
 
 # terrain_skin.csv: elevation 0.36（岩地と同じ＝尾根 0.54 より低い盛り上がり）/ orientable full / side_tiling repeat。
 # CSV を直したら JSON を焼き直す: godot --headless --path . --script res://data/terrain/convert.gd
