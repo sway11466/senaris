@@ -951,6 +951,25 @@
 			"terrain_type": "fort"
 		},
 		{
+			"combat_ground": "",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"map_ground": "",
+			"map_scale": "",
+			"memo": "冷えて固まった溶岩の平原。暗い殻の板の間に光る割れ目。歩ける（荒地のルール）",
+			"name": "溶岩原",
+			"object_foot_z": "",
+			"orientable": "full",
+			"placement": "",
+			"side_tiling": "stretch",
+			"skin_id": "wasteland_lavafield1",
+			"terrain_type": "wasteland"
+		},
+		{
 			"combat_ground": "wasteland",
 			"combat_scale": "",
 			"connect": false,

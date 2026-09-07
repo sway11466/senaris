@@ -50,4 +50,5 @@ wall,wall,壁,none,false,,0.72,0.72,repeat,,,,,false,,,上面は黒＝天井ま�
 wall_stone1,wall,石積みの壁,none,false,,0,0,repeat,,,,,true,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 wasteland,wasteland,荒地,full,false,,0,0,stretch,,,,,true,,,
 wasteland_fort_town1,fort,町,none,false,,0,0,,standee,0.79,0.5,,true,wasteland,wasteland,道の町（road_fort_town1）の複製を荒地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+wasteland_lavafield1,wasteland,溶岩原,full,false,,0,0,stretch,,,,,true,,,冷えて固まった溶岩の平原。暗い殻の板の間に光る割れ目。歩ける（荒地のルール）
 wasteland_prop_ore1,prop,掘り出された鉱石,none,false,,0,0,,standee,0.9,0.45,,true,wasteland,wasteland,ドワーフが掘り当てた鉱石の山とトロッコ。戦闘は手前の帯（_combat_front）に散らかす
