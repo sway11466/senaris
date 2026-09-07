@@ -1,6 +1,7 @@
 extends GutTest
 ## BattleState の視線（索敵の遮蔽・減衰）テスト。詳細 → doc/gdd/movement.md（視線）, doc/gdd/ai.md（起動）
-## sight_reaches＝from→to のヘックス直線の視線コスト積算 ≤ budget。全地形1なら距離判定に一致。
+## visible_hexes＝範囲内の各マスへ引いた直線上で、累積視線コストが budget 以内のマス全部（検知域）。
+## sight_reaches＝to がその検知域に入っているか。全地形1なら距離判定に一致。
 
 # 視線コスト表（テスト用・地形id→コスト）。wall は完全遮蔽。
 const COST := { "plain": 1, "forest": 2, "wall": 1 << 20 }
@@ -99,3 +100,51 @@ func test_visible_hexes_is_bounded_by_the_board() -> void:
 		assert_true(s.in_field(h), "盤外は含めない")
 	assert_lt(huge.size(), 6 * 4 + 1, "壁の影のぶんだけ盤の全マスより少ない")
 	assert_false(huge.has(Vector2i(3, 0)), "壁の裏は上限なしでも見えない")
+
+# --- 検知域はひと続き（線の途中のマスも見える） ---
+
+func test_hex_on_a_seen_line_is_seen() -> void:
+	# 奥のマスへの線が通っている途中のマスは、自分宛ての線が壁に当たっていても見える（飛び地の回帰）。
+	# 竜狩り st3 で出た実例: (11,14) の見張りから (5,9) への線は (6,11)→(6,10)→(5,9) と抜けるが、
+	# (6,10) 宛ての線は角度が少し違い (7,10) を通る。(7,10) が壁だと、マスごとの判定では (6,10) だけ見えず飛び地になった。
+	var s := _state(13, 16)
+	s.set_terrain(Hex.offset_to_axial(7, 10), "wall")
+	var vis := s.visible_hexes(Hex.offset_to_axial(11, 14), 9)
+	assert_true(vis.has(Hex.offset_to_axial(5, 9)), "奥の (5,9) は見える")
+	assert_true(vis.has(Hex.offset_to_axial(6, 10)), "その線の途中 (6,10) も見える")
+	assert_false(vis.has(Hex.offset_to_axial(7, 10)), "壁自身は見えない")
+
+func test_visible_hexes_is_connected() -> void:
+	# 検知域は見張りからひと続き＝見えるマスは全部、見えるマスだけを隣にたどって見張りへ戻れる。
+	var s := _state(13, 16)
+	for o in [Vector2i(7, 10), Vector2i(8, 12), Vector2i(9, 9), Vector2i(6, 13), Vector2i(10, 11), Vector2i(12, 9)]:
+		s.set_terrain(Hex.offset_to_axial(o.x, o.y), "wall")
+	var g := Hex.offset_to_axial(11, 14)
+	var vis := s.visible_hexes(g, 9)
+	var linked := Hex.flood_reach(g, 99, func(h: Vector2i) -> bool: return vis.has(h))
+	assert_eq(linked.size(), vis.size(), "見えるマスは全部つながっている")
+
+func test_shadow_directly_behind_wall_stays_hidden() -> void:
+	# 線の途中を拾うようにしても、壁の真後ろは見えない＝真後ろへ向かうどの線も壁を通る。
+	var s := _state(8, 4)
+	s.set_terrain(Vector2i(1, 0), "wall")
+	var vis := s.visible_hexes(Vector2i(0, 0), 6)
+	assert_false(vis.has(Vector2i(2, 0)), "壁の真後ろ")
+	assert_false(vis.has(Vector2i(3, 0)), "その先も")
+
+# --- 位置ごとの記憶（地形・視線コスト表が変わるまで有効） ---
+
+func test_visible_hexes_is_remembered_per_position() -> void:
+	var s := _state(8, 4)
+	var first := s.visible_hexes(Vector2i(0, 0), 4)
+	assert_true(is_same(first, s.visible_hexes(Vector2i(0, 0), 4)), "同じ位置・同じ sight は同じ辞書を返す")
+	assert_false(is_same(first, s.visible_hexes(Vector2i(0, 0), 3)), "sight が違えば別の集合")
+	assert_false(is_same(first, s.visible_hexes(Vector2i(1, 0), 4)), "位置が違えば別の集合")
+
+func test_remembered_sight_is_dropped_when_terrain_changes() -> void:
+	var s := _state(8, 4)
+	assert_true(s.visible_hexes(Vector2i(0, 0), 4).has(Vector2i(3, 0)), "壁が無ければ (3,0) は見える")
+	s.set_terrain(Vector2i(2, 0), "wall")
+	assert_false(s.visible_hexes(Vector2i(0, 0), 4).has(Vector2i(3, 0)), "壁を置くと記憶を捨てて見えなくなる")
+	s.set_sight_cost({})
+	assert_true(s.visible_hexes(Vector2i(0, 0), 4).has(Vector2i(3, 0)), "表を差し替えると記憶を捨てる（表なし＝壁もコスト1）")

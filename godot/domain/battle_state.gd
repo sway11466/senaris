@@ -501,6 +501,7 @@ func can_enter_terrain(u: Unit, hex: Vector2i) -> bool:
 func set_terrain(hex: Vector2i, terrain_id: String) -> void:
 	_terrain[hex] = terrain_id
 	_travel_cache.clear()
+	_sight_cache.clear()
 
 ## 移動コスト表を設定する（move_type -> {地形名: コスト}）。
 func set_movement(table: Dictionary) -> void:
@@ -576,20 +577,34 @@ var _travel_cache := {}
 
 var _sight_cost := {}  # 地形id -> 視線コスト（空＝全地形1＝純距離の索敵と一致）。TerrainType から注入
 
+## visible_hexes のメモ（位置と sight ごと。地形・視線コスト表が変わるまで有効）。
+## 見張りは起きるまで動かず、地形は戦闘中に変わらないので、1体につき実質1回の計算で済む。
+## 地形を1マスでも書き換えたら全部捨てる（set_terrain / set_sight_cost）＝部分的に消す仕組みは持たない。
+## 直列化しない（to_dict に載せない）＝復元後に作り直せる導出物。返る辞書は共有＝呼び出し側で書き換えない。
+var _sight_cache := {}  # Vector3i(from.x, from.y, budget) -> { hex: true }
+
 ## 視線コスト表を注入する（movement 表と同型＝domain を data 非依存に保つ）。
 func set_sight_cost(table: Dictionary) -> void:
 	_sight_cost = table
+	_sight_cache.clear()
 
 ## hex の視線コスト（未登録は1＝開地相当）。壁など `x` は TerrainType.SIGHT_OPAQUE の大きな値。
 func sight_cost_at(hex: Vector2i) -> int:
 	return int(_sight_cost.get(terrain_at(hex), 1))
 
-## 視線の規則計算は Sight（static ヘルパー）が持つ＝ここは表の持ち主として口だけ残す。
+## 視線の規則計算は Sight（static ヘルパー）が持つ＝ここは表と記憶の持ち主。
+## from から視線が to に届くか＝from の検知域に to が入っているか。
 func sight_reaches(from: Vector2i, to: Vector2i, budget: int) -> bool:
-	return Sight.reaches(self, from, to, budget)
+	return visible_hexes(from, budget).has(to)
 
+## from の検知域（budget 以内で見える盤内ヘックス。from 含む）。位置と budget ごとに記憶する。
 func visible_hexes(from: Vector2i, budget: int) -> Dictionary:
-	return Sight.visible_hexes(self, from, budget)
+	var key := Vector3i(from.x, from.y, budget)
+	if _sight_cache.has(key):
+		return _sight_cache[key]
+	var vis := Sight.visible_hexes(self, from, budget)
+	_sight_cache[key] = vis
+	return vis
 
 ## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
 ## 味方のマスは通過できるが停止できない（到達候補には含めない）。
