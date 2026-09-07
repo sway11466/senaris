@@ -431,7 +431,7 @@ t3.st5.scene.1,山の入口。崖の上に鳥人の里が見える,"The foot of 
 t3.st6.squad.1,ローグ本隊,Bandit Main Force
 t3.st6.squad.2,頭目,Ringleader
 t3.st6.squad.4,坑道のスコーピオン,Tunnel Scorpions
-t3.st6.scene.1,洞窟の入口。奥から咆哮と地鳴りが響く,"The cave mouth. A roar and a rumbling echo from deep within."
+t3.st6.scene.1,洞窟の入口。奥から咆哮と地鳴りが響く,"The mouth of the cave. From deep within, a roar and the rumble of the earth."
 t3.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
 t3.st7.intro.12,細くとも数が要る。君の火も、あの翼に届く。,"Thin or not, we need every shot. Your flame reaches those wings too."
 t3.st7.outro.7,君の火も届いていた。もう見習いとは呼ばん。,"Your flame reached as well. I will not call you an apprentice again."
@@ -449,8 +449,8 @@ t3.st3.squad.1,岩陰のロックサーペント,Lurking Rock Serpent
 t3.st3.squad.2,居座るトロール,Stubborn Troll
 t3.st3.squad.3,ワイアーム,Wyrm
 t3.st3.squad.4,ローグ一味,Bandit Gang
-t3.st3.scene.1,鉱脈の外れ。ローグ一味が荷を積み終えている,"The edge of the vein. The rogue band has finished loading their haul."
-t3.st3.scene.2,冒険者たち,"The adventurers"
+t3.st3.scene.1,鉱脈の外れ。ローグ一味が荷を積み終えている,"Just outside the mine. The rogues have finished loading their haul."
+t3.st3.scene.2,冒険者たち,"Back with the adventurers."
 b1.st1.squad.1,先鋒の群れ,Vanguard Horde
 b1.st1.squad.2,側面の射手,Flanking Archers
 b1.st1.squad.3,陣地荒らし,Camp Raiders
