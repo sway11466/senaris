@@ -32,6 +32,21 @@
       "id": "store4",
       "file": "store4.json",
       "title": "store4 紹介画像の4枚目（会話パート＝チュートリアル1・第4話の導入）"
+    },
+    {
+      "id": "devlog4-1",
+      "file": "devlog4-1.json",
+      "title": "devlog4-1 グレイス（st5 の盤）"
+    },
+    {
+      "id": "devlog4-2",
+      "file": "devlog4-2.json",
+      "title": "devlog4-2 ドレッドタッチ（st3 の盤）"
+    },
+    {
+      "id": "devlog4-3",
+      "file": "devlog4-3.json",
+      "title": "devlog4-3 乗り物＝馬車と飛空艇（st7 の盤のコピー）"
     }
   ]
 }
