@@ -495,6 +495,25 @@
 			"terrain_type": "river"
 		},
 		{
+			"combat_ground": "",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": -0.18,
+			"floor": 0,
+			"grid": true,
+			"map_ground": "",
+			"map_scale": "",
+			"memo": "火口の溶岩。川と同じく地面より低く沈み、飛行だけが越える。上面は溶岩の面に冷えた殻の欠片が浮く絵＝足場が無い",
+			"name": "溶岩だまり",
+			"object_foot_z": "",
+			"orientable": "full",
+			"placement": "",
+			"side_tiling": "stretch",
+			"skin_id": "river_lava1",
+			"terrain_type": "river"
+		},
+		{
 			"combat_ground": "road_stone1",
 			"combat_scale": "",
 			"connect": false,

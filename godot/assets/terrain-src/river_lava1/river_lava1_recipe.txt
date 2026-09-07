@@ -1,0 +1,12 @@
+# 上面＝真上から見た溶岩の面。1024px の原寸をそのまま切り抜く。川と同じく orientable full＝回転と反転で散らす。
+# 候補4枚（river_lava1_a〜d.jpg）から a・b・c を採った。切り抜き後の明度 58.4 / 58.4 / 58.7（差 0.3）・彩度 82.6〜85.6。
+# d（明度 57.6）は差 1.1 で採用ライン（1以内）を外れる。
+powershell -File tools\gen_terrain_tile.ps1 river_lava1 assets\terrain-src\river_lava1\river_lava1_a.jpg assets\terrain-src\river_lava1\river_lava1_b.jpg assets\terrain-src\river_lava1\river_lava1_c.jpg
+
+# 経緯: 最初のプロンプト（暗い殻の板に光る割れ目）は殻が多く「注意深く歩けそう」に見えたため溶岩だまりには不採用。
+# その絵は荒地タイプの wasteland_lava1（冷えた溶岩）として別に取ってある。
+# 次に「溶岩の面に殻の欠片が浮く」版を出したが、盤では欠片が黒い点にしか見えず、欠片の指示を削った版で出し直した。
+# 側面の帯は持たない。溶岩は周りの足場より低い（-0.18）ので、段差の面は隣の足場が描く。溶岩を段にする使い方をしたら足す。
+
+# terrain_skin.csv: river と同じ elevation -0.18 / floor 0 / side_tiling stretch。飛行だけが越える（terrain_type は river）。
+# CSV を直したら JSON を焼き直す: godot --headless --path . --script res://data/terrain/convert.gd

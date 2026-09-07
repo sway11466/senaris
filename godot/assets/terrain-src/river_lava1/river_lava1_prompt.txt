@@ -1,0 +1,31 @@
+SUBJECT: The surface of a LAVA POOL in a volcanic crater, seen from DIRECTLY
+OVERHEAD, filling the entire frame edge to edge. Nothing but the lava surface:
+NO bank, NO rim, NO rock shore, NO ash beach, NO smoke, NO fire, NO sparks, and
+nothing floating on it. This is the open middle of the pool, nowhere near its
+edges.
+
+WHAT IT LOOKS LIKE: MOLTEN LAVA is the whole ground of the picture — a
+continuous glowing surface that covers the entire frame, with NOWHERE a
+person could stand.
+
+COLOUR: the molten lava is a deep glowing orange, hex #E0702A, with broad
+softer swells of a hotter pale yellow-orange, hex #F2B04A, drifting across it
+in no particular direction. Keep these colours: do NOT push the glow toward
+pink or magenta. The tile must read as BRIGHT ORANGE. Drawn the game's way —
+crisp, flat, stylized shapes — NOT a photograph, NOT soft blurred glow, NOT
+smoke.
+
+NO DIRECTION — CRITICAL: the surface must look the same whichever way the
+picture is turned, because the same lava is laid across the board and is
+rotated and mirrored tile by tile. NO flow lines, NO streaks, NO current, NO
+long parallel bands, and no mark of any kind that shows a direction.
+
+NO LANDMARKS — the single worst failure: any single shape wider than a tenth
+of the frame reads as a feature and shows up as an obvious repeat when this
+lava is cut into tiles and laid across the board. NO single bright pool, NO
+single focal thing anywhere. Keep the large-scale colour even across the
+whole frame: the swells vary, the balance of bright and deep does not.
+
+Lit only by its own glow, evenly across the frame, with NO cast shadow, NO
+light direction, and NO reflection of anything. Flat surface seen from
+directly overhead. Square 1:1.

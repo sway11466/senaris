@@ -26,6 +26,7 @@ plateau,plateau,台地,full,false,,0.18,0.18,stretch,,,,,true,,,
 rampart,rampart,城壁,full,false,,0.54,0.54,repeat,,,,,true,,,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
 rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0.54,repeat,,,,,true,,,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
 river,river,川,full,false,,-0.18,0,stretch,,,,,true,,,水面。elevation -0.18 で地面より低い。floor 0 で駒は水面の上を飛ぶ。段差の側面は滝（river_side.png）＝マスごとの高さ上書きで水位を段にすると滝になる
+river_lava1,river,溶岩だまり,full,false,,-0.18,0,stretch,,,,,true,,,火口の溶岩。川と同じく地面より低く沈み、飛行だけが越える。上面は溶岩の面に冷えた殻の欠片が浮く絵＝足場が無い
 river_bridge_stone1_l,bridge,石橋（単幅）,none,false,,-0.18,0,,flat,,,,true,river,road_stone1,同じ橋を回した向き＝左上から右下
 river_bridge_stone1_left_l,bridge,石橋（左端）,none,false,,-0.18,0,,flat,,,,true,river,road_stone1,同じ左端を回した向き＝左上から右下
 river_bridge_stone1_left_r,bridge,石橋（左端）,none,false,,-0.18,0,,flat,,,,true,river,road_stone1,同じ左端を回した向き＝右上から左下
