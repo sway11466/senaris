@@ -5,12 +5,14 @@ priest,40,0,0,20,2,foot,1,false,true,8,0,0,clergy,
 bishop,20,0,0,40,2,foot,1,false,true,8,0,0,clergy,
 paladin,50,0,0,50,5,foot,1,false,true,8,0,0,clergy,
 slinger,20,20,0,20,3,foot,1-2,false,false,8,0,0,archer,見習い
+forest_slinger,20,20,0,20,3,forest_stride,1-2,false,false,8,0,0,archer,slinger の森歩き版
 archer,30,40,0,30,4,foot,1-3,false,false,8,0,0,archer,
 hunter,30,50,0,30,5,foot,1-4,false,false,8,0,0,archer,
 elf,30,60,0,20,4,forest_stride,1-5,false,false,8,0,0,archer,
 mage,20,20,0.5,20,4,foot,2-3,false,false,8,0,0,mage,見習い
 wizard,40,40,0.5,30,4,foot,2-4,false,false,8,0,0,mage,
 witch,30,30,0.5,30,4,foot,2-5,false,false,8,0,0,mage,
+forest_witch,30,30,0.5,30,4,forest_stride,2-5,false,false,8,0,0,mage,witch の森歩き版
 scout,20,0,0,20,7,light_foot,1,true,false,8,0,0,scout,見習い
 thief,50,10,0,20,7,light_foot,1,true,false,8,0,0,scout,
 halfling,40,10,0,20,7,brush_stride,1-2,true,false,8,0,0,scout,
@@ -25,6 +27,7 @@ fighter,50,0,0,40,6,foot,1,false,false,8,0,0,infantry,
 vanguard,55,0,0,50,6,foot,1,false,false,8,0,0,infantry,
 samurai,70,0,0,50,5,foot,1,false,false,8,0,0,infantry,
 knight,50,0,0,70,5,foot,1,false,false,8,0,0,infantry,
+forest_knight,50,0,0,70,5,forest_stride,1,false,false,8,0,0,infantry,knight の森歩き版
 dwarf,60,0,0,60,4,mountain_stride,1,false,false,8,0,0,infantry,
 magic_knight,45,0,0.5,40,6,foot,1,false,false,8,0,0,infantry,短距離の魔法扱いの魔法剣を使う
 sorcerer,50,50,0.5,10,2,foot,2-5,false,false,8,0,0,champion,

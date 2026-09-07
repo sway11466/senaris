@@ -275,6 +275,57 @@
 				}
 			]
 		},
+		"forest_knight": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "植物",
+					"combat_effect": "punch",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "トレント",
+					"retainers": [],
+					"skin_id": "treant",
+					"type_id": "forest_knight"
+				}
+			]
+		},
+		"forest_slinger": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "植物",
+					"combat_effect": "spore",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "マタンゴ",
+					"retainers": [],
+					"skin_id": "matango",
+					"type_id": "forest_slinger"
+				}
+			]
+		},
+		"forest_witch": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "植物",
+					"combat_effect": "scream",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "マンドラゴラ",
+					"retainers": [],
+					"skin_id": "mandragora",
+					"type_id": "forest_witch"
+				}
+			]
+		},
 		"halfling": {
 			"ally": [
 				{
@@ -352,18 +403,6 @@
 					"name": "スコーピオン",
 					"retainers": [],
 					"skin_id": "scorpion",
-					"type_id": "knight"
-				},
-				{
-					"category": "植物",
-					"combat_effect": "punch",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "トレント",
-					"retainers": [],
-					"skin_id": "treant",
 					"type_id": "knight"
 				}
 			]
@@ -731,18 +770,6 @@
 					"type_id": "slinger"
 				},
 				{
-					"category": "植物",
-					"combat_effect": "spore",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "マタンゴ",
-					"retainers": [],
-					"skin_id": "matango",
-					"type_id": "slinger"
-				},
-				{
 					"category": "悪党",
 					"combat_effect": "stone",
 					"combat_lineup": "squad",
@@ -975,20 +1002,7 @@
 					"type_id": "witch"
 				}
 			],
-			"enemy": [
-				{
-					"category": "植物",
-					"combat_effect": "scream",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "マンドラゴラ",
-					"retainers": [],
-					"skin_id": "mandragora",
-					"type_id": "witch"
-				}
-			]
+			"enemy": []
 		},
 		"wizard": {
 			"ally": [
