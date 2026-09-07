@@ -114,6 +114,7 @@ terrain.wall.name,壁,Wall
 terrain.wall_stone1.name,石積みの壁,Stone Wall
 terrain.wasteland.name,荒地,Wasteland
 terrain.wasteland_fort_town1.name,町,Town
+terrain.wasteland_prop_ore1.name,掘り出された鉱石,Unearthed Ore
 terrain_type.road.name,道,Road
 terrain_type.plain.name,平地,Plain
 terrain_type.wasteland.name,荒地,Wasteland

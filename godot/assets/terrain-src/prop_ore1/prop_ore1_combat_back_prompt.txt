@@ -1,0 +1,67 @@
+DESIGN — a dwarven mine's ore dump. This block is repeated word for word in
+every slot of this skin, so that the pile on the board and the band in the
+battle window are plainly the same place.
+
+- The ORE: rough, angular chunks of dark grey-brown rock, hex #5C554D, fist-
+  sized to head-sized, with pale dull pewter streaks and specks on the broken
+  faces, hex #B8B2A4 — never bright silver, never gold.
+- The MINE CART: a squat wooden box on four small iron wheels, weathered dull-
+  brown planks, hex #6E5238, bound with dark iron straps, heaped over the brim
+  with the same ore.
+- The PICK: a miner's pick with a long timber handle in the same brown and a
+  dark iron head, always standing with the head UP so it reads at a glance.
+- Everything muted, in the game's clean stylized cel-shaded look: bold flat
+  shading, clear dark outlines, a limited palette. NO strong red, blue or
+  green anywhere. NO gold, NO gems, NO lanterns, NO fire, NO people.
+
+SUBJECT: The ore dump standing BEHIND the fighting in a battle window — a
+WIDE BAND of backdrop, seen close and from the front at eye level. The
+soldiers fight in front of this; loose ore at their feet is drawn in another
+slot, and this picture is what stands up behind them.
+
+WHAT IS IN IT, from left to right, with clear white gaps between the things:
+a MINE CART heaped with ore, standing on a short length of iron rail on
+wooden sleepers; a tall heap of ore beside it; a second MINE CART, this one
+tipped up on its end, spilling ore; a wooden RACK of tools — two picks and a
+shovel, heads up, leaning in a row; and a low heap of ore at the end. The two
+carts are the biggest things in the picture and read first. Vary the heights
+and spacing; nothing evenly spaced, nothing in a neat row.
+
+THE GROUND at the foot of the things is a shallow strip of the same ore-strewn
+earth, no more than a fifth of the band's height, FLAT and seen from a little
+above: NO thickness, NO slab, NO cut face along the front, NO step, NO
+platform. Everything stands on it with its feet at about the same level.
+
+THE TWO ENDS ARE DIFFERENT.
+- LEFT end: the rail and the ground run straight off the edge of the picture
+  and are cut by it. Nothing tapers there.
+- RIGHT end: the dump finishes inside the picture. The last heap is drawn
+  SMALLER and set a little higher in the band, as things do when they stand
+  further away, and the ground under it narrows and ends in a soft irregular
+  edge. Do NOT stop the band with a raw broken end.
+
+SHAPE AND PLACE IN THE FRAME — the picture is square. The band fills the
+BOTTOM HALF of it, edge to edge: twice as wide as it is tall. In a 1024-pixel
+picture the dump occupies the bottom 512 pixels and the full 1024 of width.
+The tallest thing (the tipped cart or the tool rack) reaches near the top of
+that half; the top half of the picture is empty white.
+
+THE BOTTOM EDGE — the ground runs all the way down to the very bottom edge of
+the picture and is CUT by it. There is NO strip of white under the band, NO
+gap, NO margin: its lowest pixel is the bottom row of the picture. Draw
+nothing below the ground. The soldiers stand in front of this band and their
+heads overlap its lower part.
+
+KEEP IT READABLE AT SMALL SIZE — big plain shapes, clear dark outlines, flat
+colour areas, no fine planking detail, no small scattered stones.
+
+NO LIGHT DIRECTION — nothing has a bright side and a dark side, and nothing
+casts a shadow onto anything else. Shading stays inside a surface. This band
+is mirrored left to right when the game lays it down, so a baked light
+direction would end up pointing both ways in the same window.
+
+THE BACKGROUND — everything above and between the things is PURE FLAT WHITE,
+#FFFFFF, with NO texture, NO shading, NO gradient, NO sky, NO rock wall, NO
+mine entrance. This white is deleted, so every outline against it must be
+hard, clean and crisp — including the gaps between the carts and the rack.
+Nothing in the dump may be white or near-white.

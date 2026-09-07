@@ -1,0 +1,25 @@
+盤の立ち絵 — map_scale は terrain_skin.csv の wasteland_prop_ore1 の行から引く（0.9・足元の手前寄せ 0.45＝菜園と同じ）。
+元絵は白背景の raw.jpg のまま＝白をツールで抜く（-Fuzz 12）。
+絵は一度出したあと「トロッコとツルハシを主張する」方向で出し直した（prompt.txt は出し直し後のもの。
+盤と奥の帯の頭に同じ DESIGN 文を入れて造形を揃えている）。出し直しで横長になったので 0.8 では高さが
+81px まで下がり、1.0 では幅がヘックスいっぱいになった。0.9（幅 184・高さ 91px）を採った。
+
+powershell -File tools\gen_terrain_tile.ps1 wasteland_prop_ore1 assets\terrain-src\prop_ore1\prop_ore1_01_raw.jpg -Transparent white -Fuzz 12 -Object
+
+戦闘の奥の帯（_combat_back） — 正方形の下半分に描かせた帯。白抜きは全面の色置換（-fuzz 12% -transparent white）。
+四隅からのフラッドフィルだと道具立ての脚の間の閉じた白が残った。鉱石の明部（#B8B2A4）は白から遠いので抜けない。
+トリムだけで書き出す（大小は窓が決める）。絵は帯が下半分ではなく約22%の高さに収まったため、全幅で
+切ると 1010×217（4.7:1）＝窓では駒の頭の高さの小さな帯になる。左3点で切って 3:1 にする案は
+「絵がぶつ切れに見える」で不採用（オーナー判断）＝切らずに全幅で使う。
+
+magick assets\terrain-src\prop_ore1\prop_ore1_combat_back_01_raw.jpg -fuzz 12% -transparent white assets\terrain-src\prop_ore1\prop_ore1_combat_back_03_master.png
+magick assets\terrain-src\prop_ore1\prop_ore1_combat_back_03_master.png -trim +repage assets\terrain\wasteland_prop_ore1_combat_back.png
+
+戦闘の手前の帯（_combat_front） — 四隅からのフラッドフィル（-fuzz 12%）で白を抜き、トリムだけで書き出す。
+絵は左半面用（右半面では演出が左右反転する）。
+
+magick assets\terrain-src\prop_ore1\prop_ore1_combat_front_01_raw.jpg -alpha set -fuzz 12% -fill none -draw "alpha 0,0 floodfill" -draw "alpha 1375,0 floodfill" -draw "alpha 0,767 floodfill" -draw "alpha 1375,767 floodfill" assets\terrain-src\prop_ore1\prop_ore1_combat_front_03_master.png
+magick assets\terrain-src\prop_ore1\prop_ore1_combat_front_03_master.png -trim +repage assets\terrain\wasteland_prop_ore1_combat_front.png
+
+戦闘用の元絵2枚は、盤用の画像を渡した同一セッションの続きでそれぞれの prompt.txt を投げて出した。
+水平線（空）は st3 に backdrop が無いので出ない。確認の撮影では sky_overcast を一時的に指定した。

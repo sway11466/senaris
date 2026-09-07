@@ -930,6 +930,25 @@
 			"side_tiling": "",
 			"skin_id": "wasteland_fort_town1",
 			"terrain_type": "fort"
+		},
+		{
+			"combat_ground": "wasteland",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"map_ground": "wasteland",
+			"map_scale": 0.9,
+			"memo": "ドワーフが掘り当てた鉱石の山とトロッコ。戦闘は手前の帯（_combat_front）に散らかす",
+			"name": "掘り出された鉱石",
+			"object_foot_z": 0.45,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "wasteland_prop_ore1",
+			"terrain_type": "prop"
 		}
 	]
 }

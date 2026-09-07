@@ -1,0 +1,55 @@
+SUBJECT: A NEW composition, not a crop or extension of any earlier picture:
+dug-out ORE lying on the ground, drawn as ONE SELF-CONTAINED GROUP that sits
+well inside the frame with wide empty white margins on BOTH sides. The most
+important rule of this picture: NOTHING is cut by the frame. Every chunk of
+ore, every tool is drawn COMPLETE and WHOLE with white space beyond it; no
+object touches the left edge, the right edge or the top edge; nothing
+continues off the picture.
+
+The ore is the same kind as the game's map version — rough, angular chunks of
+dark rock with pale metallic streaks on the broken faces — SCATTERED LOOSELY
+along the ground in the FOREGROUND of a battle scene, seen from the front at
+eye level, for a wide landscape picture (16:9).
+
+LAYOUT — in a 1792 x 1024 picture, the ore lies in a LOW STRIP about 220
+pixels tall resting on the bottom edge, split into TWO SEPARATE GROUPS with
+EMPTY GROUND between them: a LEFT group about 600 pixels wide whose outer end
+stops about 80 pixels in from the left edge, and a RIGHT group about 600
+pixels wide whose outer end stops about 80 pixels in from the right edge. The
+middle of the picture — roughly the central 400 pixels — holds NOTHING but
+white. The two groups are different from each other, not mirror copies. The
+margins at both ends and everything above the strip stay EMPTY WHITE. The
+objects may rest on the bottom edge. No object may rise above the strip.
+
+THE CLUTTER — a low spill of ore chunks, some in small heaps, some lying
+alone, a miner's pick dropped flat on the ground, a wooden bucket tipped over
+with ore spilling out, an empty gap of bare ground, then more. Vary the
+spacing: some pieces touching, some apart, NEVER evenly spaced, NEVER in a row.
+Keep everything LOW.
+
+STYLE — the same clean stylized cel-shaded look as the game's terrain and unit
+art: bold flat shading, clear dark outlines, a mature, slightly muted, limited
+color palette (NOT bright saturated, NOT painterly photorealism). Because this
+clutter sits CLOSE to the camera, in front of the soldiers' feet, draw it a
+shade DARKER and SIMPLER than the map version — big plain shapes, little inner
+detail, dim in shadow — so it frames the scene rather than competing with the
+figures behind it.
+
+COLOR — the ore dark grey-brown rock, hex #4F4942 (darker than the map version
+because it is in shadow), its metallic streaks a dull pewter, hex #A8A295,
+never bright silver and never gold; timber weathered mid-brown, hex #6B4E32;
+iron dark and dull. NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything that is not an object is PURE FLAT WHITE, #FFFFFF:
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO drop shadow on the
+white. This white is going to be deleted and the strip laid over the game's
+own battle scene, so every outline must be a hard, clean, crisp edge against
+it. Nothing in the objects may be white or near-white.
+
+LIGHT — from directly above only, short soft shadows that fall only on the
+objects themselves; NOTHING casts a shadow onto the white, and NO light from
+the left or the right.
+
+Nothing else: no dwarf, no people, no animals, no lantern, no fire, no
+lettering, no signs. NO border, NO frame around the picture itself, NO
+vignette. Landscape 16:9.

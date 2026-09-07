@@ -1,0 +1,44 @@
+DESIGN — a dwarven mine's ore dump. This block is repeated word for word in
+every slot of this skin, so that the pile on the board and the band in the
+battle window are plainly the same place.
+
+- The ORE: rough, angular chunks of dark grey-brown rock, hex #5C554D, fist-
+  sized to head-sized, with pale dull pewter streaks and specks on the broken
+  faces, hex #B8B2A4 — never bright silver, never gold.
+- The MINE CART: a squat wooden box on four small iron wheels, weathered dull-
+  brown planks, hex #6E5238, bound with dark iron straps, heaped over the brim
+  with the same ore.
+- The PICK: a miner's pick with a long timber handle in the same brown and a
+  dark iron head, always standing with the head UP so it reads at a glance.
+- Everything muted, in the game's clean stylized cel-shaded look: bold flat
+  shading, clear dark outlines, a limited palette. NO strong red, blue or
+  green anywhere. NO gold, NO gems, NO lanterns, NO fire, NO people.
+
+SUBJECT: The ore dump as ONE compact group, as drawn on the world map of a
+classic 2D role-playing game: seen from the front and slightly above, standing
+upright and facing the bottom of the frame — nothing lying flat, no
+perspective.
+
+THE THREE THINGS, all of them large and plainly legible: on the left a heap
+of ore; on the right the MINE CART, drawn nearly as tall as the heap and about
+as wide, its wheels clearly visible, heaped with ore; and the PICK leaning
+against the cart, its head up above the cart's rim and its handle nearly as
+long as the cart is tall. The cart and the pick are the things a player
+should recognise first; the heap is the ground they sit in.
+
+SIZE — the group sits in the MIDDLE of the picture, wider than it is tall. In
+a 1024-pixel picture it is about 660 pixels wide and about 440 pixels tall,
+leaving at least 180 pixels of white on every side. It must NOT touch any edge
+and must NOT be cut by any edge.
+
+THE BACKGROUND — everything around the group is PURE FLAT WHITE, #FFFFFF,
+with NO texture, NO shading, NO gradient, NO ground, NO floor, NO rails, NO
+drop shadow. This white is going to be deleted and the game will draw its own
+ground there, so the outline of the group must be a hard, clean, crisp edge
+against it. Nothing in the group itself may be white or near-white.
+
+LIGHT — soft light from above and slightly in front, short soft shadows that
+fall only on the objects themselves; NOTHING casts a shadow onto the white.
+
+Read at thumbnail size: a few large legible shapes, no fine detail. NO
+border, NO frame around the picture itself, NO vignette. Square 1:1.
