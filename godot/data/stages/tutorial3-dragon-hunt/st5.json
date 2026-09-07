@@ -289,19 +289,19 @@
     { "col": 15, "row": 18, "skin": "rampart_granite1" }
   ],
   "player": [
-    {"type": "bishop", "col": 6, "row": 17, "actor": "bishop"},
-    {"type": "vanguard", "col": 7, "row": 17, "actor": "vanguard"},
-    {"type": "wizard", "col": 5, "row": 17, "actor": "wizard"},
-    {"type": "cleric", "col": 8, "row": 17, "actor": "cleric"},
-    {"type": "thief", "col": 6, "row": 16, "actor": "thief"},
-    {"type": "hunter", "col": 7, "row": 16, "actor": "hunter"},
-    {"type": "fighter", "col": 5, "row": 16, "actor": "fighter"},
-    {"type": "archer", "col": 8, "row": 16, "actor": "archer"},
-    {"type": "halfling", "col": 6, "row": 15, "actor": "halfling"},
-    {"type": "pixie", "col": 7, "row": 15, "actor": "pixie"},
-    {"type": "dwarf", "col": 3, "row": 15, "actor": "dwarf"},
-    {"type": "elf", "col": 4, "row": 15, "actor": "elf"},
-    {"type": "mage", "col": 8, "row": 15, "actor": "mage"}
+    {"type": "bishop", "col": 6, "row": 17, "actor": "bishop", "supply": "refill"},
+    {"type": "vanguard", "col": 7, "row": 17, "actor": "vanguard", "supply": "refill"},
+    {"type": "wizard", "col": 5, "row": 17, "actor": "wizard", "supply": "refill"},
+    {"type": "cleric", "col": 8, "row": 17, "actor": "cleric", "supply": "refill"},
+    {"type": "thief", "col": 6, "row": 16, "actor": "thief", "supply": "refill"},
+    {"type": "hunter", "col": 7, "row": 16, "actor": "hunter", "supply": "refill"},
+    {"type": "fighter", "col": 5, "row": 16, "actor": "fighter", "supply": "refill"},
+    {"type": "archer", "col": 8, "row": 16, "actor": "archer", "supply": "refill"},
+    {"type": "halfling", "col": 6, "row": 15, "actor": "halfling", "supply": "refill"},
+    {"type": "pixie", "col": 7, "row": 15, "actor": "pixie", "supply": "refill"},
+    {"type": "dwarf", "col": 3, "row": 15, "actor": "dwarf", "supply": "refill"},
+    {"type": "elf", "col": 4, "row": 15, "actor": "elf", "supply": "refill"},
+    {"type": "mage", "col": 8, "row": 15, "actor": "mage", "supply": "refill"}
   ],
   "enemy": [
     { "order": 1, "name": "t3.st5.squad.1", "ai": "charge",

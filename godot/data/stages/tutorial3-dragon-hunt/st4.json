@@ -389,18 +389,18 @@
     { "col": 19, "row": 24, "skin": "forest" }
   ],
   "player": [
-    { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 20 },
-    { "type": "thief", "actor": "thief", "col": 4, "row": 22 },
-    { "type": "hunter", "actor": "hunter", "col": 3, "row": 23 },
-    { "type": "bishop", "actor": "bishop", "col": 3, "row": 21 },
-    { "type": "wizard", "actor": "wizard", "col": 4, "row": 21 },
-    { "type": "fighter", "actor": "fighter", "col": 2, "row": 23 },
-    { "type": "halfling", "actor": "halfling", "col": 2, "row": 21 },
-    { "type": "archer", "actor": "archer", "col": 4, "row": 23 },
-    { "type": "cleric", "actor": "cleric", "col": 2, "row": 20 },
-    { "type": "pixie", "actor": "pixie", "col": 3, "row": 22 },
-    { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 22 },
-    { "type": "mage", "actor": "mage", "col": 4, "row": 20 }
+    { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 20, "supply": "refill" },
+    { "type": "thief", "actor": "thief", "col": 4, "row": 22, "supply": "refill" },
+    { "type": "hunter", "actor": "hunter", "col": 3, "row": 23, "supply": "refill" },
+    { "type": "bishop", "actor": "bishop", "col": 3, "row": 21, "supply": "refill" },
+    { "type": "wizard", "actor": "wizard", "col": 4, "row": 21, "supply": "refill" },
+    { "type": "fighter", "actor": "fighter", "col": 2, "row": 23, "supply": "refill" },
+    { "type": "halfling", "actor": "halfling", "col": 2, "row": 21, "supply": "refill" },
+    { "type": "archer", "actor": "archer", "col": 4, "row": 23, "supply": "refill" },
+    { "type": "cleric", "actor": "cleric", "col": 2, "row": 20, "supply": "refill" },
+    { "type": "pixie", "actor": "pixie", "col": 3, "row": 22, "supply": "refill" },
+    { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 22, "supply": "refill" },
+    { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" }
   ],
   "enemy": [
     { "order": 1, "name": "t3.st4.squad.1", "ai": "ambush", "sight": 3,
