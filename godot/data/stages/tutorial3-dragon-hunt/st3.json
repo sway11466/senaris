@@ -219,7 +219,7 @@
     { "col": 9, "row": 5, "skin": "wasteland", "elevation": 2.5, "floor": 2.5 },
     { "col": 10, "row": 5, "skin": "wasteland", "elevation": 2.5, "floor": 2.5 },
     { "col": 11, "row": 5, "skin": "wasteland", "elevation": 2.5, "floor": 2.5 },
-    { "col": 12, "row": 5, "skin": "wasteland_fort_town1", "elevation": 1.25, "floor": 1.25 },
+    { "col": 12, "row": 5, "skin": "wasteland_fort_town1", "elevation": 2.5, "floor": 2.5 },
     { "col": 13, "row": 5, "skin": "bedrock_scree1", "elevation": 2.25, "floor": 2.25 },
     { "col": 14, "row": 5, "skin": "bedrock_scree1", "elevation": 2.25, "floor": 2.25 },
     { "col": 15, "row": 5, "skin": "wasteland", "elevation": 2, "floor": 2 },
@@ -772,7 +772,7 @@
     { "type": "mage", "actor": "mage", "col": 4, "row": 20 }
   ],
   "enemy": [
-    { "order": 1, "name": "t3.st3.squad.1", "ai": "ambush", "sight": 9, "stack": 1,
+    { "order": 1, "name": "t3.st3.squad.1", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 3 },
         { "skin": "rock_serpent", "col": 16, "row": 16 },
@@ -794,7 +794,7 @@
         { "skin": "rock_serpent", "col": 23, "row": 20 },
         { "skin": "rock_serpent", "col": 23, "row": 19 }
       ] },
-    { "order": 3, "name": "t3.st3.squad.2", "ai": "ambush", "sight": 7,
+    { "order": 3, "name": "t3.st3.squad.2", "ai": "ambush", "sight": 12,
       "units": [ { "skin": "troll", "col": 23, "row": 11 } ] },
     { "order": 2, "name": "t3.st3.squad.3", "ai": "ambush", "sight": 9,
       "units": [
