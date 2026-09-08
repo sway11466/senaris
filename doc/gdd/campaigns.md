@@ -118,5 +118,5 @@
 - [../campaign/authoring.md](../campaign/authoring.md) — 冒険譚の制作方針（会話の出欠・分岐は名簿の在籍を見る）
 - [../campaign/roadmap.md](../campaign/roadmap.md) — 冒険譚の一覧・難度帯
 - [map.md](map.md) — 拠点・占領・ステージデータの構成
-- [stage_select.md](stage_select.md) — ステージ選択・連戦の区間（マニフェスト）
+- [stage_select.md](stage_select.md) — ステージ選択・依頼書（マニフェスト）
 - [../tech/gamesystem.md](../tech/gamesystem.md) — セーブ設計

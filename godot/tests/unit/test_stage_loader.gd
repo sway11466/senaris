@@ -634,6 +634,43 @@ func test_preview_join_member_is_carried() -> void:
 	assert_true(party[0]["carried"], "初登場でも名簿に載る")
 	assert_false(party[1]["carried"], "その戦い限りの駒")
 
+func test_preview_badges_mark_how_troops_are_supplied() -> void:
+	# 兵がどう用意されるかは駒ごとの印で出す（→ doc/gdd/stage_select.md 依頼書）。
+	var carried := [
+		{ "type": "archer", "skin": "archer", "level": 1, "troops": 3, "max_troops": 8, "actor": "c.archer" },
+		{ "type": "knight", "skin": "knight", "level": 1, "troops": 3, "max_troops": 8, "actor": "c.knight" },
+		{ "type": "recruit", "skin": "recruit", "level": 1, "troops": 8, "max_troops": 8, "actor": "c.full" },
+		{ "type": "archer", "skin": "archer", "level": 1, "troops": 0, "max_troops": 8, "actor": "c.down" },
+	]
+	var data := { "cols": 8, "rows": 8, "player": [
+		{ "col": 1, "row": 1, "actor": "c.archer" },                                  # 損耗のまま
+		{ "col": 1, "row": 2, "actor": "c.knight", "supply": "refill" },              # 兵数だけ満員へ
+		{ "col": 1, "row": 3, "actor": "c.full", "supply": "refill" },                # すでに満員
+		{ "col": 1, "row": 4, "actor": "c.down", "supply": "revive" },                # 兵力ゼロから戻る
+		{ "type": "recruit", "col": 1, "row": 5, "actor": "c.new", "supply": "join" },  # 初登場
+		{ "type": "recruit", "col": 1, "row": 6 },                                    # この依頼限り
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
+	assert_eq(party.size(), 6)
+	assert_eq(party[0]["badge"], StageLoader.BADGE_DAMAGED, "損耗したまま出る")
+	assert_eq(party[1]["badge"], StageLoader.BADGE_REFILL, "兵数が満員へ戻る")
+	assert_eq(party[2]["badge"], StageLoader.BADGE_NONE, "満員なら補充するものが無い＝印を出さない")
+	assert_eq(party[3]["badge"], StageLoader.BADGE_REVIVE, "兵力ゼロから満員で戻る")
+	assert_eq(party[4]["badge"], StageLoader.BADGE_NEW, "初登場")
+	assert_eq(party[5]["badge"], StageLoader.BADGE_NONE, "この依頼限りの駒は印を持たない")
+
+func test_preview_unavailable_and_passengers_have_no_badge() -> void:
+	# 出撃できない駒は沈めた色が言う／輸送の乗員はこの依頼限り＝どちらも印を持たない。
+	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 0, "max_troops": 8, "actor": "c.archer" }]
+	var data := { "cols": 8, "rows": 6, "player": [
+		{ "col": 1, "row": 1, "actor": "c.archer" },
+		{ "type": "knight", "col": 2, "row": 1, "passengers": [{ "type": "recruit" }] },
+	] }
+	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
+	assert_false(party[0]["available"], "兵力ゼロは出撃できない")
+	assert_eq(party[0]["badge"], StageLoader.BADGE_NONE, "出撃できない駒は印を持たない")
+	assert_eq(party[2]["badge"], StageLoader.BADGE_NONE, "搭乗者も印を持たない")
+
 func test_preview_skips_unjoined_member() -> void:
 	# 名簿に居ない駒（未加入）は盤に出ないので紙にも出さない。
 	var data := { "cols": 8, "rows": 6, "player": [

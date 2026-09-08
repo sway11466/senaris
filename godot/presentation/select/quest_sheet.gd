@@ -17,6 +17,11 @@ const PARTY_SEP := 6        # 絵と絵の間
 const PARTY_HEAD_SEP := 2   # 見出しと、その見出しが指す並びの間（塊の中）
 const PARTY_GROUP_SEP := 16  # 塊と塊の間。中より広く取る＝見出しがどの並びのものか一目で分かる
 
+## 駒の右上に重ねる印（兵の出方）。ファイル名は StageLoader.BADGE_* の値。
+## 絵は在れば出す＝無い印は何も出ないだけなので、1枚ずつ足していける（→ doc/art/icons.md）。
+const BADGE_DIR := "res://assets/icons/quest/"
+const BADGE_SIZE := 16.0
+
 var _title: Label
 var _body: Label
 var _back: Button
@@ -105,7 +110,7 @@ func _ready() -> void:
 	_sortie.pressed.connect(_on_sortie_pressed)
 	buttons.add_child(_sortie)
 
-## party＝StageLoader.preview_player_units の配列（{ skin_id, available }）。
+## party＝StageLoader.preview_player_units の配列（{ skin_id, available, carried, badge }）。
 ## carryover＝この戦いの生き残りが次へ渡るか（doc/gdd/campaigns.md 戦力供給モデル）。
 func open(stage_title: String, party: Array = [], carryover: bool = false) -> void:
 	_title.text = stage_title
@@ -205,7 +210,8 @@ func _party_entry(e: Dictionary) -> Dictionary:
 			if r.size.x > 0 and r.size.y > 0:
 				used = Rect2(r.position, r.size)
 	return { "skin_id": skin_id, "available": bool(e.get("available", true)),
-		"carried": bool(e.get("carried", false)), "tex": tex, "used": used }
+		"carried": bool(e.get("carried", false)), "badge": String(e.get("badge", "")),
+		"tex": tex, "used": used }
 
 ## 1体ぶんの絵。左右は自分の外接、縦は同じ群の帯で切る＝キャンバスの余白が消える。
 ## 大小関係はキャンバスに焼いてあるので（doc/art/overview.md）、切った絵を共通の縮尺で出す。
@@ -236,7 +242,33 @@ func _party_figure(entry: Dictionary, band: Vector2, scale: float) -> Control:
 		node = rect
 	if not bool(entry["available"]):
 		node.modulate = BoardUnitRenderer.DONE_MODULATE
-	return node
+	# 印はこの駒自身の頭の高さに置く。行の枠は群でいちばん背の高い駒に合わせてあるので、
+	# 枠の上端に置くと背の低い駒では絵から浮いて、誰の印か分からなくなる。
+	var own: Rect2 = entry["used"]
+	var top := (own.position.y - band.x) * scale if tex != null else 0.0
+	return _with_badge(node, String(entry["badge"]), top)
+
+## 駒の絵に兵の出方の印を重ねる（右上）。印が無い／絵が置かれていなければ駒をそのまま返す。
+## 器を挟むのは印を出すときだけ＝印の無い駒は今までと同じ1ノードのまま並ぶ。
+func _with_badge(node: Control, badge: String, top: float) -> Control:
+	var path := BADGE_DIR + badge + ".png"
+	if badge.is_empty() or not ResourceLoader.exists(path):
+		return node
+	var wrap := Control.new()
+	wrap.custom_minimum_size = node.custom_minimum_size
+	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	wrap.add_child(node)
+	var mark := TextureRect.new()
+	mark.texture = load(path)
+	mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	mark.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	mark.offset_left = -BADGE_SIZE
+	mark.offset_right = 0.0
+	mark.offset_top = -BADGE_SIZE
+	mark.offset_bottom = 0.0
+	wrap.add_child(mark)
+	return wrap
 
 ## 取り消して閉じる（「別のステージを選ぶ」・幕クリック・Esc の共通入口）。開くときに音が鳴るので、
 ## 閉じるときも鳴らないと非対称になる。出撃は確定音が鳴るので、こちらは通さない。

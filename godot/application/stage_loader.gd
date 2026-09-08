@@ -29,6 +29,13 @@ const SUPPLY_REFILL := "refill"   # 名簿から出すが兵数は満員へ（Lv
 const SUPPLY_REVIVE := "revive"   # refill に加えて、兵力ゼロの離脱者も満員で呼び戻す
 const SUPPLY_VALUES := [SUPPLY_JOIN, SUPPLY_REFILL, SUPPLY_REVIVE]
 
+## 依頼書で駒に重ねる印（兵がどう用意されるか）。仕様 → doc/gdd/stage_select.md 依頼書
+const BADGE_NONE := ""            # 満員のまま持ち越す＝印を出さない
+const BADGE_NEW := "new"          # 初登場（supply: join）
+const BADGE_REVIVE := "revive"    # 兵力ゼロから満員で戻る（supply: revive）
+const BADGE_REFILL := "refill"    # 損耗した兵数が満員へ戻る（supply: refill/revive）
+const BADGE_DAMAGED := "damaged"  # 損耗したまま出る（supply 省略）
+
 ## 陣営値を int に解決する。キー省略（null）は default_team、未知の表記は警告して default_team。
 static func _parse_team(value: Variant, default_team: int) -> int:
 	if value == null:
@@ -462,9 +469,10 @@ static func load_briefing(path: String, carried: Array = []) -> Dictionary:
 
 ## 出撃前に見せる自軍の顔ぶれ。盤を組むのと同じ駒解決を通し、player の記述順で返す。
 ## 輸送の passengers も出撃する戦力なので続けて並べる。増援（events）は見ない＝盤で出会うものを先に見せない。
-## 各要素: { "skin_id": 見た目のID, "available": 出撃できるか, "carried": 名簿に載る駒か }
+## 各要素: { "skin_id": 見た目のID, "available": 出撃できるか, "carried": 名簿に載る駒か, "badge": 兵の出方 }
 ##   available=false … 名簿に居るが兵力ゼロで出撃しない（紙では沈めて並べる）
 ##   carried=true    … actor を持つ＝この戦いのあと名簿に残る（紙では引き継ぐ隊として分ける）
+##   badge           … 兵がどう用意されるか（BADGE_*）。空＝印を出さない
 ## 名簿に居ない駒（未加入）は返さない＝盤に出ないものは紙にも出ない。
 static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {},
 		carried: Array = []) -> Array:
@@ -478,7 +486,8 @@ static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, ski
 			continue
 		var unit := _resolve_player_unit(u, catalog, 1, 0, skin_catalog, by_actor)
 		if unit != null:
-			out.append({ "skin_id": unit.skin_id, "available": true, "carried": unit.actor != "" })
+			out.append({ "skin_id": unit.skin_id, "available": true, "carried": unit.actor != "",
+				"badge": _preview_badge(u, unit, by_actor) })
 			_append_preview_passengers(out, u.get("passengers", []), catalog, skin_catalog)
 			continue
 		# 盤に出ない駒のうち、名簿に居るもの＝兵力ゼロの離脱者。居ないものは未加入なので並べない。
@@ -486,8 +495,26 @@ static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, ski
 		if actor == "" or not by_actor.has(actor):
 			continue
 		var left := _make_carried_unit(u, by_actor[actor], catalog, 1, skin_catalog, false)
-		out.append({ "skin_id": left.skin_id, "available": false, "carried": true })
+		out.append({ "skin_id": left.skin_id, "available": false, "carried": true, "badge": BADGE_NONE })
 	return out
+
+## 盤に出る駒1つぶんの印を選ぶ。仕様 → doc/gdd/stage_select.md 依頼書
+## 名簿を見ない駒（配給・初登場）は損耗を持たないので、供給の指定だけで決まる。
+## 名簿から引く駒は名簿の兵数と盤に出るときの満員値を比べる＝補充するものが無ければ印を出さない。
+static func _preview_badge(u: Dictionary, unit: Unit, by_actor: Dictionary) -> String:
+	var actor := String(u.get("actor", ""))
+	if actor == "":
+		return BADGE_NONE  # この依頼限りの駒。引き継がないことは群の見出しが言う
+	var supply := _parse_supply(u)
+	if supply == SUPPLY_JOIN:
+		return BADGE_NEW
+	var snap: Dictionary = by_actor.get(actor, {})
+	var troops := int(snap.get("troops", 0))
+	if troops <= 0:
+		return BADGE_REVIVE  # 兵力ゼロで盤に出るのは revive だけ（他は出ない＝ここに来ない）
+	if troops >= unit.max_troops:
+		return BADGE_NONE  # 満員＝補充しても変わらない
+	return BADGE_DAMAGED if supply == SUPPLY_CARRY else BADGE_REFILL
 
 ## 輸送に初めから乗っている駒を顔ぶれに足す（配給のみ＝名簿とは突き合わせない＝引き継がない）。
 static func _append_preview_passengers(out: Array, list: Variant, catalog: Dictionary, skin_catalog: Dictionary) -> void:
@@ -497,7 +524,7 @@ static func _append_preview_passengers(out: Array, list: Variant, catalog: Dicti
 		if typeof(pd) != TYPE_DICTIONARY:
 			continue
 		var p := _make_unit(pd, catalog, 1, 0, skin_catalog)
-		out.append({ "skin_id": p.skin_id, "available": true, "carried": false })
+		out.append({ "skin_id": p.skin_id, "available": true, "carried": false, "badge": BADGE_NONE })
 
 ## 戦力を持ち越すステージか（継承／独立 → doc/gdd/campaigns.md 戦力供給モデル）。
 ## 名簿に載る駒（actor 持ち）が1つでもあれば継承＝この戦いの生き残りが次へ渡る。

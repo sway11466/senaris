@@ -145,9 +145,9 @@ ui.quest.sortie,出発する,Set Out
 ui.quest.confirm,出発しますか？,Ready to set out?
 ui.quest.close,閉じる,Close
 ui.quest.party_sortie,以下のユニットが出発します,Your party for this quest
-ui.quest.party_carry,前の依頼で生存しているユニットが出発できます,Survivors from your last quest
-ui.quest.party_oneoff,この依頼限りで出発します,Provided for this quest only
-ui.quest.party_lost,前の依頼までに兵数がゼロとなっているため出発できないユニット,Down to zero strength — can't set out
+ui.quest.party_carry,この先も共に戦うユニット,Units that stay with you
+ui.quest.party_oneoff,この依頼限りのユニット,Units provided for this quest only
+ui.quest.party_lost,兵数がゼロで出撃できないユニット,Units at zero strength — can't set out
 ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
 ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock
 ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock
