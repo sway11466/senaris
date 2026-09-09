@@ -1,7 +1,7 @@
 {
   "turn_limit": 30,
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 7, "survival_a": 4 },
-  "name": "tutorial3-st5",
+  "name": "dragon-hunt-st5",
   "haze": 0.80,
   "cols": 15,
   "rows": 18,
@@ -304,26 +304,26 @@
     {"type": "mage", "col": 8, "row": 15, "actor": "mage", "supply": "refill"}
   ],
   "enemy": [
-    { "order": 1, "name": "t3.st5.squad.1", "ai": "charge",
+    { "order": 1, "name": "dragon-hunt.st5.squad.1", "ai": "charge",
       "units": [
         {"skin": "harpy", "col": 2, "row": 2},
         {"skin": "harpy", "col": 12, "row": 4},
         {"skin": "harpy", "col": 3, "row": 8},
         {"skin": "harpy", "col": 11, "row": 12}
       ] },
-    { "order": 2, "name": "t3.st5.squad.2", "ai": "charge",
+    { "order": 2, "name": "dragon-hunt.st5.squad.2", "ai": "charge",
       "units": [
         {"skin": "griffon", "col": 1, "row": 5},
         {"skin": "griffon", "col": 13, "row": 10}
       ] },
-    { "order": 3, "name": "t3.st5.squad.3", "ai": "charge", "stack": 1,
+    { "order": 3, "name": "dragon-hunt.st5.squad.3", "ai": "charge", "stack": 1,
       "units": [
         {"skin": "wyrm", "col": 6, "row": 2},
         {"skin": "wyrm", "col": 7, "row": 3},
         {"skin": "rock_serpent", "col": 6, "row": 5},
         {"skin": "rock_serpent", "col": 7, "row": 6}
       ] },
-    { "order": 4, "name": "t3.st5.squad.4", "ai": "raid",
+    { "order": 4, "name": "dragon-hunt.st5.squad.4", "ai": "raid",
       "units": [
         {"skin": "rogue", "col": 6, "row": 0},
         {"skin": "rogue", "col": 7, "row": 1}
@@ -335,26 +335,26 @@
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st5.rogue.1" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st5.rogue.2" },
-      { "speaker": "char.rogue.name", "skin": "rogue", "text": "t3.st5.rogue.3" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "t3.st5.rogue.4" },
-      { "scene": "t3.st5.scene.1" },
-      { "speaker": "char.elf.name", "skin": "elf", "text": "t3.st5.intro.1", "when": "joined:elf" },
-      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.intro.2" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st5.intro.3" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st5.intro.4" },
-      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "t3.st5.intro.8" },
-      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.intro.9" },
-      { "speaker": "char.pixie.name", "skin": "pixie", "text": "t3.st5.intro.5" },
-      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "t3.st5.intro.6", "when": "joined:dwarf" },
-      { "speaker": "char.bishop.name", "skin": "bishop", "text": "t3.st5.intro.7" }
+      { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st5.rogue.1" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st5.rogue.2" },
+      { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st5.rogue.3" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st5.rogue.4" },
+      { "scene": "dragon-hunt.st5.scene.1" },
+      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st5.intro.1", "when": "joined:elf" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.2" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.intro.3" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st5.intro.4" },
+      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st5.intro.8" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.9" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "dragon-hunt.st5.intro.5" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st5.intro.6", "when": "joined:dwarf" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st5.intro.7" }
     ],
     "outro": [
-      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "t3.st5.outro.1" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "t3.st5.outro.2" },
-      { "speaker": "char.hunter.name", "skin": "hunter", "text": "t3.st5.outro.3" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "t3.st5.outro.4" }
+      { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "dragon-hunt.st5.outro.1" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st5.outro.2" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.outro.3" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.outro.4" }
     ]
   },
   "bgm": { "main": "raid" }

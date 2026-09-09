@@ -17,15 +17,15 @@ undead-rush.st4.title,墓地の浄化,Seal the Graves
 undead-rush.st5.title,神の加護,Invoke the Grace
 undead-rush.st6.title,首無し騎士の猛攻,Storm the Crypts
 undead-rush.st7.title,屍の元凶,The Necromancer's End
-t3.title,竜狩り,The Dragon Hunt
-t3.desc,街を襲う魔獣の討伐を請け負ったベテラン冒険者たちが、黒幕を追い竜と対峙する第三の章。平原から火口へ舞台を移し、飛行と対空、異種族の勧誘、戦力を次へ持ち越す消耗の重みを学ぶ。,"Veterans hired to cull the beasts raiding the city follow the trail to its masters, and face the dragon. From plains to caldera: flight and anti-air, other peoples recruited, losses carried on."
-t3.st1.title,駆け出し冒険者と魔獣,Bring Them Down
-t3.st2.title,南北の門の死守,Hold Both Gates
-t3.st3.title,荒野の争奪戦,Stall Them from Above
-t3.st4.title,エルフの里の攻防,Win Over the Elves
-t3.st5.title,山里の救出戦,Rescue the Fledglings
-t3.st6.title,洞窟の挟撃,Corner the Ringleader
-t3.st7.title,火竜との決戦,The Dragon's Wrath
+dragon-hunt.title,竜狩り,The Dragon Hunt
+dragon-hunt.desc,街を襲う魔獣の討伐を請け負ったベテラン冒険者たちが、黒幕を追い竜と対峙する第三の章。平原から火口へ舞台を移し、飛行と対空、異種族の勧誘、戦力を次へ持ち越す消耗の重みを学ぶ。,"Veterans hired to cull the beasts raiding the city follow the trail to its masters, and face the dragon. From plains to caldera: flight and anti-air, other peoples recruited, losses carried on."
+dragon-hunt.st1.title,駆け出し冒険者と魔獣,Bring Them Down
+dragon-hunt.st2.title,南北の門の死守,Hold Both Gates
+dragon-hunt.st3.title,荒野の争奪戦,Stall Them from Above
+dragon-hunt.st4.title,エルフの里の攻防,Win Over the Elves
+dragon-hunt.st5.title,山里の救出戦,Rescue the Fledglings
+dragon-hunt.st6.title,洞窟の挟撃,Corner the Ringleader
+dragon-hunt.st7.title,火竜との決戦,The Dragon's Wrath
 b1.title,ゴブリン討伐令,Warrant: The Goblin Lord
 b1.desc,腕に覚えのある者へ。押し寄せるゴブリンの大群を、限られた手勢で討ち払え。物語はない。報酬と名誉、そして本気の腕試しがあるだけだ。,"For those who trust their skill: rout the goblin horde with a handful of troops. No tale to tell — just coin, glory, and a real fight."
 b1.st1.title,ゴブリン討伐令,Warrant: The Goblin Lord
