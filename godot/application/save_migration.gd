@@ -19,6 +19,7 @@ const V3_COPIED_KEYS := ["current_team", "turn_number", "units", "status_mods", 
 ## 現行版はそのまま、旧版は1段ずつ上げて返す。変換できない版は空 dict（読まない）。
 static func migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("version", 0))
+	data = _renamed_path(data)
 	var record := { "meta": data.get("meta", {}), "state": data.get("state", {}) }
 	if version == 2:
 		record = _v2_to_v3(data)
@@ -29,7 +30,20 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
+	record["meta"] = StageRenames.meta(record.get("meta", {}))
 	return record
+
+## 改名前のステージを指すセーブの stage_path を新しいファイル名へ（StageRenames）。版に関わらず
+## 通す＝現行版のセーブも旧名で書かれている。v2 の変換がこのパスでステージJSONを開く（イベントの
+## 同定）ので、どの変換よりも前に直す。ステージIDと翻訳キーは逆に最後＝印を引いた後に読み替える。
+static func _renamed_path(data: Dictionary) -> Dictionary:
+	var meta: Dictionary = (data.get("meta", {}) as Dictionary).duplicate()
+	if not meta.has("stage_path"):
+		return data
+	meta["stage_path"] = StageRenames.path(String(meta["stage_path"]))
+	var out := data.duplicate()
+	out["meta"] = meta
+	return out
 
 ## v3 → v4（meta に開始時刻を足した）。旧セーブは測っていないので 0＝不明を入れる。
 ## 不明のまま勝った回は戦果票に所要時間を出さず、ベストタイムも記録しない

@@ -124,6 +124,35 @@ func test_v2_fills_digest_from_demo_table() -> void:
 	assert_eq(String(got["meta"]["stage_digest"]), String(table["tutorial1-goblin-raid/st1"]),
 		"表の印がそのまま meta に入る")
 
+func test_v2_renames_stage_id_after_the_digest_lookup() -> void:
+	# 印の表は旧IDのまま据え置き＝先に読み替えると引けなくなる。引いた後に新IDへ直す。
+	var table: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(SaveMigration.DEMO_DIGESTS_PATH))
+	var meta: Dictionary = SaveMigration.migrate(_v2_record())["meta"]
+	assert_eq(String(meta["stage_id"]), "goblin-raid-st1", "ステージIDは改名後の名前で返る")
+	assert_eq(String(meta["stage_digest"]), String(table["tutorial1-goblin-raid/st1"]), "印は旧IDで引けている")
+
+func test_renamed_stage_is_read_in_the_new_names() -> void:
+	# 改名前に保存した現行版のセーブ（ファイル名・ステージID・翻訳キーが旧名）。
+	var got := SaveMigration.migrate({ "version": SaveStore.VERSION, "state": { "turn_number": 2 },
+		"meta": { "campaign_id": "tutorial1-goblin-raid", "stage_id": "st2",
+			"stage_path": "res://data/stages/tutorial1-goblin-raid/st2.json",
+			"campaign_title": "t1.title", "stage_title": "t1.st2.title" } })
+	var meta: Dictionary = got["meta"]
+	assert_eq(String(meta["stage_path"]), "res://data/stages/tutorial1-goblin-raid/goblin-raid-st2.json",
+		"ステージJSONは新しいファイル名で開き直す")
+	assert_eq(String(meta["stage_id"]), "goblin-raid-st2")
+	assert_eq(String(meta["campaign_title"]), "goblin-raid.title", "一覧の見出しの翻訳キーも新しい語へ")
+	assert_eq(String(meta["stage_title"]), "goblin-raid.st2.title")
+
+func test_stage_outside_the_rename_table_is_untouched() -> void:
+	var got := SaveMigration.migrate({ "version": SaveStore.VERSION, "state": {},
+		"meta": { "campaign_id": "debug-ai", "stage_id": "charge",
+			"stage_path": "res://data/stages/debug-ai/charge.json", "stage_title": "突撃" } })
+	var meta: Dictionary = got["meta"]
+	assert_eq(String(meta["stage_path"]), "res://data/stages/debug-ai/charge.json", "改名していないものは素通し")
+	assert_eq(String(meta["stage_id"]), "charge")
+	assert_eq(String(meta["stage_title"]), "突撃")
+
 func test_v2_without_table_entry_leaves_digest_absent() -> void:
 	var record := _v2_record()
 	record["meta"]["campaign_id"] = "no-such-campaign"

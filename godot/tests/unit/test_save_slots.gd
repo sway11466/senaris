@@ -61,6 +61,16 @@ func test_list_reports_meta_and_order() -> void:
 	assert_true(rows[2]["used"])
 	assert_eq(int(rows[2]["meta"]["turn_number"]), 3, "一覧の表示材料はメタから取れる")
 
+func test_list_renames_older_stage_names() -> void:
+	# 一覧は版の変換を通らない＝ここでも改名を通さないと、見出しが訳せない翻訳キーのまま並ぶ。
+	var slots := SaveSlots.new(DIR)
+	slots.save_slot("1", { "cols": 4 }, { "campaign_id": "tutorial2-undead-rush", "stage_id": "st5",
+		"campaign_title": "t2.title", "stage_title": "t2.st5.title" })
+	var meta: Dictionary = SaveSlots.new(DIR).list()[1]["meta"]
+	assert_eq(String(meta["stage_id"]), "undead-rush-st5")
+	assert_eq(String(meta["campaign_title"]), "undead-rush.title")
+	assert_eq(String(meta["stage_title"]), "undead-rush.st5.title")
+
 func test_clear_removes_only_that_slot() -> void:
 	var slots := SaveSlots.new(DIR)
 	slots.save_slot("1", { "cols": 4 }, {})

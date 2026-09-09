@@ -164,6 +164,24 @@ func test_v1_file_is_migrated() -> void:
 
 ## 経験した会話（doc/tech/gamesystem.md 経験した会話）
 
+func test_v3_file_renames_stage_ids() -> void:
+	# ステージIDを冒険譚名付きへ改名した回。4ブロックとも内側のキーが差し替わる。
+	_write(JSON.stringify({ "version": 3,
+		"cleared": { "tutorial1-goblin-raid": { "st1": true } },
+		"ranks": { "tutorial1-goblin-raid": { "st1": "A" } },
+		"times": { "tutorial1-goblin-raid": { "st1": 120 } },
+		"story": { "tutorial1-goblin-raid": { "st1": { "start": ["cap"], "events": [] } } } }))
+	var store := ProgressStore.new(PATH)
+	assert_true(store.is_cleared("tutorial1-goblin-raid", "goblin-raid-st1"), "クリア記録が新IDで引ける")
+	assert_eq(store.best_rank("tutorial1-goblin-raid", "goblin-raid-st1"), "A", "ランクも新IDへ")
+	assert_eq(store.best_time("tutorial1-goblin-raid", "goblin-raid-st1"), 120, "タイムも新IDへ")
+	assert_eq(store.story("tutorial1-goblin-raid", "goblin-raid-st1")["start"], ["cap"], "会話記録も新IDへ")
+	assert_false(store.is_cleared("tutorial1-goblin-raid", "st1"), "旧IDでは引けない＝二重に残さない")
+
+func test_v3_file_keeps_stages_outside_the_rename_table() -> void:
+	_write(JSON.stringify({ "version": 3, "cleared": { "debug-ai": { "charge": true } } }))
+	assert_true(ProgressStore.new(PATH).is_cleared("debug-ai", "charge"), "改名していないものは素通し")
+
 func test_story_is_empty_before_playing() -> void:
 	assert_eq(ProgressStore.new(PATH).story("tutorial", "st1"), {})
 

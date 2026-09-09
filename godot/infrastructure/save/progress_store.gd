@@ -7,7 +7,8 @@ class_name ProgressStore
 const DEFAULT_PATH := "user://progress.json"
 ## 2: ステージごとのベストタイム（times＝クリアまでの所要秒）を足した。
 ## 3: ステージごとに経験した会話（story）を足した。
-const VERSION := 3
+## 4: ステージIDを冒険譚名付き（goblin-raid-st1）へ改名した。
+const VERSION := 4
 ## 変換を持ついちばん古い版。v1 は所要時間を測っていないので times を持たないまま読む。
 const OLDEST_SUPPORTED := 1
 
@@ -205,6 +206,9 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	if version == 2:
 		out = _v2_to_v3(out)
 		version = 3
+	if version == 3:
+		out = _v3_to_v4(out)
+		version = 4
 	if version != VERSION:
 		push_warning("ProgressStore: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -224,6 +228,29 @@ static func _v2_to_v3(data: Dictionary) -> Dictionary:
 	var out := data.duplicate()
 	out["version"] = 3
 	out.erase("story")
+	return out
+
+## v3（ステージIDが st1）→ v4（冒険譚名付きのステージID）。クリア記録・ランク・タイム・会話の
+## 4ブロックとも「冒険譚ID → { ステージID: 値 }」の形なので、内側のキーだけを StageRenames で
+## 差し替える。表に無いステージ（デバッグ・改名していない冒険譚）は素通しでそのまま残る。
+static func _v3_to_v4(data: Dictionary) -> Dictionary:
+	var out := data.duplicate()
+	out["version"] = 4
+	for block in ["cleared", "ranks", "times", "story"]:
+		var src: Variant = out.get(block)
+		if typeof(src) != TYPE_DICTIONARY:
+			continue
+		var renamed := {}
+		for campaign in (src as Dictionary):
+			var stages: Variant = (src as Dictionary)[campaign]
+			if typeof(stages) != TYPE_DICTIONARY:
+				renamed[campaign] = stages
+				continue
+			var entry := {}
+			for stage in (stages as Dictionary):
+				entry[StageRenames.stage_id(String(campaign), String(stage))] = (stages as Dictionary)[stage]
+			renamed[campaign] = entry
+		out[block] = renamed
 	return out
 
 func _save() -> void:

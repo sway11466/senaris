@@ -69,6 +69,8 @@ func clear_slot(slot: String) -> void:
 ## 一覧表示用の全枠。並びは slot_ids（オート→1〜5）。
 ## [ { "slot": String, "auto": bool, "used": bool, "meta": Dictionary } ]
 ## 空き枠も used=false で必ず並べる＝枠の数と位置が保存状況で動かない。
+## meta は StageRenames を通す＝一覧は版の変換（SaveMigration）を通らない生の meta を見出しに
+## 使うので、改名前のセーブの冒険譚名・ステージ名が訳されない翻訳キーのまま並ばないように。
 func list() -> Array:
 	var out: Array = []
 	for slot in slot_ids():
@@ -77,6 +79,6 @@ func list() -> Array:
 			"slot": slot,
 			"auto": is_auto(slot),
 			"used": not data.is_empty(),
-			"meta": data.get("meta", {}) as Dictionary,
+			"meta": StageRenames.meta(data.get("meta", {}) as Dictionary),
 		})
 	return out
