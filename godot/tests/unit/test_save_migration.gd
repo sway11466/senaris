@@ -131,6 +131,13 @@ func test_v2_renames_stage_id_after_the_digest_lookup() -> void:
 	assert_eq(String(meta["stage_id"]), "goblin-raid-st1", "ステージIDは改名後の名前で返る")
 	assert_eq(String(meta["stage_digest"]), String(table["tutorial1-goblin-raid/st1"]), "印は旧IDで引けている")
 
+func test_rename_table_points_at_stages_that_exist() -> void:
+	# 表の打ち間違いはセーブの復元が失敗して初めて分かるので、実在を先に見る。
+	for old_path in StageRenames.PATHS:
+		var new_path := String(StageRenames.PATHS[old_path])
+		assert_file_exists(new_path)
+		assert_file_does_not_exist(String(old_path))
+
 func test_renamed_stage_is_read_in_the_new_names() -> void:
 	# 改名前に保存した現行版のセーブ（ファイル名・ステージID・翻訳キーが旧名）。
 	var got := SaveMigration.migrate({ "version": SaveStore.VERSION, "state": { "turn_number": 2 },
