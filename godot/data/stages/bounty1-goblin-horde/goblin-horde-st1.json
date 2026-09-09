@@ -1,6 +1,6 @@
 {
   "turn_limit": 20,
-  "name": "bounty1-st1",
+  "name": "goblin-horde-st1",
   "cols": 8,
   "rows": 13,
   "margin": 0,
@@ -128,7 +128,7 @@
     { "type": "cleric", "col": 6, "row": 12 }
   ],
   "enemy": [
-    { "order": 1, "name": "b1.st1.squad.1", "ai": "charge",
+    { "order": 1, "name": "goblin-horde.st1.squad.1", "ai": "charge",
       "units": [
         { "skin": "hobgoblin", "col": 2, "row": 4 },
         { "skin": "hobgoblin", "col": 3, "row": 3 },
@@ -137,14 +137,14 @@
         { "skin": "goblin", "col": 3, "row": 2 },
         { "skin": "goblin", "col": 2, "row": 2 }
       ] },
-    { "order": 2, "name": "b1.st1.squad.2", "ai": "charge",
+    { "order": 2, "name": "goblin-horde.st1.squad.2", "ai": "charge",
       "units": [
         { "skin": "goblin_archer", "col": 0, "row": 2 },
         { "skin": "goblin_archer", "col": 0, "row": 1 },
         { "skin": "goblin_archer", "col": 2, "row": 0 },
         { "skin": "goblin_archer", "col": 3, "row": 0 }
       ] },
-    { "order": 3, "name": "b1.st1.squad.3", "ai": "raid",
+    { "order": 3, "name": "goblin-horde.st1.squad.3", "ai": "raid",
       "units": [
         { "skin": "goblin", "col": 1, "row": 2 },
         { "skin": "goblin", "col": 3, "row": 1 },
@@ -155,7 +155,7 @@
         { "skin": "hobgoblin", "col": 4, "row": 2 },
         { "skin": "hobgoblin", "col": 5, "row": 2 }
       ] },
-    { "order": 4, "name": "b1.st1.squad.4", "ai": "raid",
+    { "order": 4, "name": "goblin-horde.st1.squad.4", "ai": "raid",
       "units": [ { "skin": "goblin_lord", "col": 1, "row": 0 } ] }
   ],
   "bases": [
@@ -170,20 +170,20 @@
   "backdrop": "sky_clear",
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "b1.st1.intro.1" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.2" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "b1.st1.intro.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.4" },
-      { "speaker": "char.cleric.name", "skin": "cleric", "text": "b1.st1.intro.5" },
-      { "speaker": "char.cleric.name", "skin": "cleric", "text": "b1.st1.intro.9" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.6" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "b1.st1.intro.7" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.intro.8" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-horde.st1.intro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st1.intro.2" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-horde.st1.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st1.intro.4" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-horde.st1.intro.5" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-horde.st1.intro.9" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st1.intro.6" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-horde.st1.intro.7" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st1.intro.8" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "b1.st1.outro.1" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "b1.st1.outro.2" },
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "b1.st1.outro.3" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-horde.st1.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st1.outro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-horde.st1.outro.3" }
     ]
   },
   "bgm": { "main": "raid" }

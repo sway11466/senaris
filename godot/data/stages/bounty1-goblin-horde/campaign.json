@@ -1,11 +1,11 @@
 {
   "id": "bounty1-goblin-horde",
-  "title": "b1.title",
-  "desc": "b1.desc",
+  "title": "goblin-horde.title",
+  "desc": "goblin-horde.desc",
   "board": "bounties",
   "difficulty": 3,
   "emblem": { "ally": "fighter", "enemy": "goblin" },
   "stages": [
-    { "id": "st1", "file": "st1.json", "title": "b1.st1.title" }
+    { "id": "goblin-horde-st1", "file": "goblin-horde-st1.json", "title": "goblin-horde.st1.title" }
   ]
 }
