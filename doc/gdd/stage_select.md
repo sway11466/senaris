@@ -160,15 +160,15 @@ locked    … それ以外
 ```json
 {
   "id": "tutorial1-goblin-raid",
-  "title": "t1.title",
-  "desc": "t1.desc",
+  "title": "goblin-raid.title",
+  "desc": "goblin-raid.desc",
   "board": "tutorial",
   "difficulty": 1,
   "emblem": { "ally": "cleric", "enemy": "goblin" },
   "stages": [
-    { "id": "st1", "file": "st1.json", "title": "t1.st1.title" },
-    { "id": "st2", "file": "st2.json", "title": "t1.st2.title",
-      "unlock": [ { "type": "cleared", "stage": "st1" } ] }
+    { "id": "goblin-raid-st1", "file": "goblin-raid-st1.json", "title": "goblin-raid.st1.title" },
+    { "id": "goblin-raid-st2", "file": "goblin-raid-st2.json", "title": "goblin-raid.st2.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st1" } ] }
   ]
 }
 ```
@@ -184,7 +184,7 @@ locked    … それ以外
 冒険譚名・説明・ステージ名は生テキストを持たず翻訳キーで管理する。会話（dialogue）と同じ CSV→`.translation` パイプライン（`csv_translation` インポータ）に乗せる。
 
 - 正本: `godot/data/i18n/campaigns.csv`（`keys,ja,en` の3列）。ドメイン別に会話（`dialogue.csv`）と分ける。
-- キー規約: キャンペーンの短コード接頭辞（例 `t1`）＝会話キーと揃える。`t1.title`／`t1.desc`／`t1.stN.title`。
+- キー規約: 冒険譚を識別できる語（例 `goblin-raid`）を接頭辞にする＝会話キー・ファイル名と揃える（[campaigns.md](campaigns.md) ステージの束ね方）。`goblin-raid.title`／`goblin-raid.desc`／`goblin-raid.stN.title`。
 - 生成物（Godot インポートが作る・git 追跡・手編集しない）: `campaigns.ja/en.translation`＋`campaigns.csv.import`。`project.godot` の `locale/translations` に登録。
 - キーは `.translation` 横断でグローバル＝CSV を分けても `tr()` は同じに解決する。CSV を足したら [test_i18n_translation.gd](../../godot/tests/unit/test_i18n_translation.gd)（正本↔生成物の整合＝翻訳コミット漏れガード）の対象にも足す。
 - 生成物の仕組み・importer=keep の罠は CSV データパイプラインの方針に従う。

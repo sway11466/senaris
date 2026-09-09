@@ -256,7 +256,7 @@
   ```json
   "events": [
     { "turn": 5, "type": "reinforce", "team": "player",
-      "label": "t2.st7.event.airship",
+      "label": "undead-rush.st7.event.airship",
       "dialogue": "arrive", "focus": true,
       "units": [
         { "type": "airship", "col": 0, "row": 10,

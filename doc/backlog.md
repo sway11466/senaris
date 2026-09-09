@@ -135,23 +135,6 @@
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### refactoring-14
-
-**既存の冒険譚のステージファイル名に冒険譚の名前を付ける**
-- ゴール：`godot/data/stages/` 以下のどのステージ JSON も、フォルダを外してファイル名だけを見て、どの冒険譚のステージか分かる。
-- 背景：既存の冒険譚（tutorial1〜3・bounty1）はステージファイルが全部 `st1.json`〜`st7.json` で、ファイル名だけでは冒険譚を特定できない（2026-09-07、行列の高さを使うステージを列挙した際に「st2」「st5」がどの冒険譚か分からず困った）。新しく作る冒険譚は [campaigns.md](gdd/campaigns.md) ステージの束ね方の規則（冒険譚を識別できる端的な名前を接頭辞に付ける）に従う。既存分の改名は今はやらない＝将来まとめてやる候補。
-- 影響範囲（2026-09-09 調査）：ファイル名・マニフェストの `id`（`st2`）・翻訳キーの接頭辞（`t1.st2.`）の3層はコード上は独立で、結び付きは慣習で揃えているだけ。id から翻訳キーを導出するコードは無く、ステージ JSON の `name`（`tutorial-st2`）はコードが使わない。影響は保存データの移行と、データ・doc の一括置換に集約される。
-  - ファイル名：`campaign.json` の `file` 欄が唯一の結び。ビルドの収録・export フィルタは冒険譚フォルダ単位、map editor はダイアログ、テストはマニフェスト経由か全走査＝自動で追従する。壊れるのは中断セーブの `meta.stage_path` と、v2 中断セーブの移行がそのパスでステージ JSON を開き直す処理（`save_migration.gd`）。
-  - `id`：進捗（cleared／ranks／times／story）・中断セーブの `meta.stage_id`・体験版の印の表（`data/save/demo-v0.1.0_digests.json`）のキー。移行しなくても動くが、クリア記録・ランク・タイム・会話記録がプレイヤーから見えなくなる。[gamesystem.md](tech/gamesystem.md) 版と移行は id の改名を変換で追随すると定めている。[campaigns.md](gdd/campaigns.md) は「id は `st2` のままでよい」と定めているので、変えるなら条文ごと。
-  - 翻訳キー：campaigns.csv・dialogue.csv・ステージ JSON 内の参照（text／name／scene／label）・中断セーブの meta（`campaign_title`／`stage_title`、枠一覧で tr() する）。CSV の改名は `.translation` の再 import まで1セット。map editor の `dialogue_csv_store.gd` はキーの先頭2セグメント（冒険譚.ステージ）で会話を束ねるので、改名後もこの2セグメントの形を保つ。
-  - 出回っているセーブ：demo-v0.1.0（進捗 v1・中断 v2）と demo-v0.1.1（進捗 v2・中断 v4）。体験版のセーブは製品版と Steam Cloud を共有する方針（[monetization.md](sales/monetization.md)）なので、旧 id → 新 id の対応表は製品版以降も残る恒久コード。進捗と中断セーブの変換は別ファイル＝対応表は共通の1か所に置く。v2 中断セーブは、パスは移行の前に読み替え、id は印の表を引いた後に読み替える。
-  - 先例：`debug-mapops` → `debug-map` の改名（be25bb6）は移行を書かず、印の表の旧キー・空の `assets/campaign/debug-mapops/`・`export_presets.cfg` の旧名が残っている。今回の見積もりの材料。
-  - `bounty1-goblin-horde/st2.json` はマニフェスト未登録＝改名するか消すかを決める。
-  - 記述の追従先：doc の例示（stage_select.md・i18n.md・authoring.md・map.md・map_patterns.md ほか）、campaign の構想メモと itch の devlog は `st3`／`t2.st3` でステージを呼ぶ。tests/unit のフルパス断言と id・表キーの直書き（`test_campaign_catalog.gd`・`test_save_migration.gd`）、tests/manual のパス定数と `stage_id` 直指定。
-- 対応：各冒険譚の `campaign.json` の `file` 欄とファイル名を `goblin-raid-st2.json` のように改名し、doc・テスト・ツールのパス参照を追従させる。中断セーブの `stage_path` は移行で読み替える。
-- 設計の未確定：`id` と翻訳キーまで揃えるか。揃えるなら、以後の冒険譚（邪神三部作の構想メモも `st1` で書いている）も同じ形にし、campaigns.md の条文を書き換える。ファイル名だけなら、ファイル名は冒険譚名付き・id と翻訳キーは `st2`／`t1` の略号という2体系が併存する。
-- 該当：`godot/data/stages/tutorial1-goblin-raid/`・`tutorial2-undead-rush/`・`tutorial3-dragon-hunt/`・`bounty1-goblin-horde/`、各 `campaign.json`、`godot/application/save_migration.gd`・`godot/infrastructure/save/progress_store.gd`・`godot/data/save/demo-v0.1.0_digests.json`、`godot/data/i18n/campaigns.csv`・`dialogue.csv`、パスや id を持つ doc・`godot/tests/`。
-
 ## parking lot
 
 後回し・いつかやる候補の置き場（特定の作業に紐付かない将来アイデア）。着手が決まった段で機能追加・リファクタリングへ引き上げる。
