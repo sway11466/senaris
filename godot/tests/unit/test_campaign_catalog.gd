@@ -27,14 +27,14 @@ func test_tutorial_manifest() -> void:
 	assert_false(c["debug"], "debug 未指定は false")
 	assert_eq(c["difficulty"], 1, "星レーティング")
 	assert_eq(c["board"], "tutorial", "所属ボード")
-	assert_eq(c["title"], "t1.title", "title は翻訳キー")
-	assert_eq(c["desc"], "t1.desc", "desc は翻訳キー")
-	assert_eq(c["stages"][0]["title"], "t1.st1.title", "stage.title も翻訳キー")
+	assert_eq(c["title"], "goblin-raid.title", "title は翻訳キー")
+	assert_eq(c["desc"], "goblin-raid.desc", "desc は翻訳キー")
+	assert_eq(c["stages"][0]["title"], "goblin-raid.st1.title", "stage.title も翻訳キー")
 	assert_eq(c["stages"].size(), 7)
 	assert_eq(c["stages"][0]["unlock"], [], "1面は無条件解放")
 	assert_eq(c["stages"][1]["unlock"][0]["type"], "cleared")
-	assert_eq(c["stages"][1]["unlock"][0]["stage"], "st1")
-	assert_eq(c["stages"][1]["path"], "res://data/stages/tutorial1-goblin-raid/st2.json", "path はフォルダ＋file")
+	assert_eq(c["stages"][1]["unlock"][0]["stage"], "goblin-raid-st1")
+	assert_eq(c["stages"][1]["path"], "res://data/stages/tutorial1-goblin-raid/goblin-raid-st2.json", "path はフォルダ＋file")
 
 func test_all_manifest_stage_files_exist() -> void:
 	# マニフェストが指す先のステージJSONが実在する（消し忘れ・打ち間違いの検出）

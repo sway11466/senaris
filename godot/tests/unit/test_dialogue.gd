@@ -137,12 +137,12 @@ func test_conversation_panel_empty_closes() -> void:
 func test_parse_event_talks_indexes_events_with_dialogue() -> void:
 	var talks := StageLoader.parse_event_talks({
 		"events": [
-			{ "id": "town-freed", "type": "talk", "dialogue": "free", "name": "t1.st4.free.name" },
+			{ "id": "town-freed", "type": "talk", "dialogue": "free", "name": "goblin-raid.st4.free.name" },
 			{ "id": "airship", "type": "reinforce" },
 		]
 	})
 	assert_eq(talks.size(), 1, "会話を持たないイベントは目次に出さない")
-	assert_eq(String(talks["town-freed"]["name"]), "t1.st4.free.name")
+	assert_eq(String(talks["town-freed"]["name"]), "goblin-raid.st4.free.name")
 	assert_eq(String(talks["town-freed"]["dialogue"]), "free", "読み直す台本のキーも引ける")
 
 func test_parse_event_talks_skips_events_without_name() -> void:

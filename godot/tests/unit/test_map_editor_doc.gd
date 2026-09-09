@@ -34,10 +34,10 @@ const SAMPLE := """
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.intro.1" }
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st1.intro.1" }
     ],
     "outro": [
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st1.outro.1" }
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st1.outro.1" }
     ]
   }
 }
@@ -64,7 +64,7 @@ const EVENT_SAMPLE := """
   "enemy": [],
   "events": [
     { "turn": 5, "type": "reinforce", "team": "player",
-      "label": "t2.st7.event.airship",
+      "label": "undead-rush.st7.event.airship",
       "units": [
         { "type": "airship", "col": 0, "row": 3,
           "passengers": [ { "type": "paladin" } ] }
@@ -786,7 +786,7 @@ func test_events_round_trip_untouched() -> void:
 	var e: Array = back.event_list()
 	assert_eq(e.size(), 1, "イベントが1件残る")
 	assert_eq(int((e[0] as Dictionary)["turn"]), 5, "ターンが保たれる")
-	assert_eq(String((e[0] as Dictionary)["label"]), "t2.st7.event.airship", "予告キーが保たれる")
+	assert_eq(String((e[0] as Dictionary)["label"]), "undead-rush.st7.event.airship", "予告キーが保たれる")
 	var units: Array = (e[0] as Dictionary)["units"]
 	assert_eq(String((units[0] as Dictionary)["type"]), "airship", "駒が保たれる")
 	assert_eq(((units[0] as Dictionary)["passengers"] as Array).size(), 1, "同乗も保たれる")
