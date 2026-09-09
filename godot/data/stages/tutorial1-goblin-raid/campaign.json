@@ -1,23 +1,23 @@
 {
   "id": "tutorial1-goblin-raid",
-  "title": "t1.title",
-  "desc": "t1.desc",
+  "title": "goblin-raid.title",
+  "desc": "goblin-raid.desc",
   "board": "tutorial",
   "difficulty": 1,
   "emblem": { "ally": "fighter", "enemy": "goblin" },
   "stages": [
-    { "id": "st1", "file": "st1.json", "title": "t1.st1.title" },
-    { "id": "st2", "file": "st2.json", "title": "t1.st2.title",
-      "unlock": [ { "type": "cleared", "stage": "st1" } ] },
-    { "id": "st3", "file": "st3.json", "title": "t1.st3.title",
-      "unlock": [ { "type": "cleared", "stage": "st2" } ] },
-    { "id": "st4", "file": "st4.json", "title": "t1.st4.title",
-      "unlock": [ { "type": "cleared", "stage": "st3" } ] },
-    { "id": "st5", "file": "st5.json", "title": "t1.st5.title",
-      "unlock": [ { "type": "cleared", "stage": "st4" } ] },
-    { "id": "st6", "file": "st6.json", "title": "t1.st6.title",
-      "unlock": [ { "type": "cleared", "stage": "st5" } ] },
-    { "id": "st7", "file": "st7.json", "title": "t1.st7.title",
-      "unlock": [ { "type": "cleared", "stage": "st6" } ] }
+    { "id": "goblin-raid-st1", "file": "goblin-raid-st1.json", "title": "goblin-raid.st1.title" },
+    { "id": "goblin-raid-st2", "file": "goblin-raid-st2.json", "title": "goblin-raid.st2.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st1" } ] },
+    { "id": "goblin-raid-st3", "file": "goblin-raid-st3.json", "title": "goblin-raid.st3.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st2" } ] },
+    { "id": "goblin-raid-st4", "file": "goblin-raid-st4.json", "title": "goblin-raid.st4.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st3" } ] },
+    { "id": "goblin-raid-st5", "file": "goblin-raid-st5.json", "title": "goblin-raid.st5.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st4" } ] },
+    { "id": "goblin-raid-st6", "file": "goblin-raid-st6.json", "title": "goblin-raid.st6.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st5" } ] },
+    { "id": "goblin-raid-st7", "file": "goblin-raid-st7.json", "title": "goblin-raid.st7.title",
+      "unlock": [ { "type": "cleared", "stage": "goblin-raid-st6" } ] }
   ]
 }

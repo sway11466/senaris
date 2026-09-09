@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "tutorial-st5",
+  "name": "goblin-raid-st5",
   "cols": 22,
   "rows": 9,
   "margin": 0,
@@ -111,18 +111,18 @@
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st5.intro.1" },
-      { "speaker": "char.archer.name", "skin": "archer", "text": "t1.st5.intro.2" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.intro.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.intro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st5.intro.1" },
+      { "speaker": "char.archer.name", "skin": "archer", "text": "goblin-raid.st5.intro.2" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st5.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st5.intro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st5.intro.5" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.outro.1" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.outro.2" },
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st5.outro.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st5.outro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st5.outro.5" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st5.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st5.outro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st5.outro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st5.outro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st5.outro.5" }
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 4, "survival_a": 2 },

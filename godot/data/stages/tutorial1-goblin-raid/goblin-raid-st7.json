@@ -1,6 +1,6 @@
 {
   "turn_limit": 40,
-  "name": "tutorial-st7",
+  "name": "goblin-raid-st7",
   "cols": 30,
   "rows": 11,
   "margin": 0,
@@ -178,9 +178,9 @@
     { "type": "archer", "col": 2, "row": 7 }
   ],
   "enemy": [
-    { "order": 1, "name": "t1.st7.squad.1", "ai": "ambush", "sight": 3,
+    { "order": 1, "name": "goblin-raid.st7.squad.1", "ai": "ambush", "sight": 3,
       "units": [ { "skin": "goblin", "col": 18, "row": 9 } ] },
-    { "order": 2, "name": "t1.st7.squad.2", "ai": "ambush", "sight": 3,
+    { "order": 2, "name": "goblin-raid.st7.squad.2", "ai": "ambush", "sight": 3,
       "units": [
         { "skin": "goblin", "col": 12, "row": 3 },
         { "skin": "goblin", "col": 12, "row": 4 },
@@ -191,14 +191,14 @@
         { "skin": "goblin", "col": 15, "row": 9 },
         { "skin": "hobgoblin", "col": 11, "row": 3 }
       ] },
-    { "order": 3, "name": "t1.st7.squad.3", "ai": "ambush", "sight": 3,
+    { "order": 3, "name": "goblin-raid.st7.squad.3", "ai": "ambush", "sight": 3,
       "units": [
         { "skin": "goblin_archer", "col": 25, "row": 6 },
         { "skin": "goblin_archer", "col": 25, "row": 4 },
         { "skin": "hobgoblin", "col": 23, "row": 6 },
         { "skin": "hobgoblin", "col": 23, "row": 4 }
       ] },
-    { "order": 4, "name": "t1.st7.squad.4", "ai": "ambush", "sight": 0,
+    { "order": 4, "name": "goblin-raid.st7.squad.4", "ai": "ambush", "sight": 0,
       "units": [ { "skin": "goblin_lord", "actor": "goblin_load", "col": 25, "row": 5 } ] }
   ],
   "victory": [
@@ -206,19 +206,19 @@
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st7.intro.1" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st7.intro.2" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st7.intro.3" },
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st7.intro.4" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st7.intro.5" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st7.intro.6" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st7.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st7.intro.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st7.intro.3" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st7.intro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st7.intro.5" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st7.intro.6" }
     ],
     "outro": [
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st7.outro.1" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st7.outro.2" },
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st7.outro.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st7.outro.4" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st7.outro.5" }
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st7.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st7.outro.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st7.outro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st7.outro.4" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st7.outro.5" }
     ]
   },
   "rank": { "turn_s": 20, "turn_a": 30, "survival_s": 4, "survival_a": 2 },

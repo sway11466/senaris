@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "tutorial-st4",
+  "name": "goblin-raid-st4",
   "cols": 22,
   "rows": 11,
   "margin": 0,
@@ -56,7 +56,7 @@
     { "type": "cleric", "col": 1, "row": 6 }
   ],
   "enemy": [
-    { "order": 2, "name": "t1.st4.squad.1", "ai": "charge",
+    { "order": 2, "name": "goblin-raid.st4.squad.1", "ai": "charge",
       "units": [
         { "skin": "hobgoblin", "col": 21, "row": 4 },
         { "skin": "goblin", "col": 19, "row": 8 },
@@ -64,7 +64,7 @@
         { "skin": "hobgoblin", "col": 21, "row": 7 },
         { "skin": "hobgoblin", "col": 20, "row": 6 }
       ] },
-    { "order": 1, "name": "t1.st4.squad.2", "ai": "raid",
+    { "order": 1, "name": "goblin-raid.st4.squad.2", "ai": "raid",
       "units": [
         { "skin": "hobgoblin", "col": 16, "row": 5 },
         { "skin": "goblin", "col": 14, "row": 4 },
@@ -76,29 +76,29 @@
       "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
   ],
   "events": [
-    { "id": "town-freed", "type": "talk", "col": 9, "row": 6, "team": "player", "on": "capture", "dialogue": "free", "name": "t1.st4.free.name", "focus": true }
+    { "id": "town-freed", "type": "talk", "col": 9, "row": 6, "team": "player", "on": "capture", "dialogue": "free", "name": "goblin-raid.st4.free.name", "focus": true }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.intro.1" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st4.intro.2" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.intro.3" },
-      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.intro.4" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.intro.5" }
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st4.intro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st4.intro.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st4.intro.3" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-raid.st4.intro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st4.intro.5" }
     ],
     "free": [
-      { "speaker": "char.townsfolk.name", "skin": "novice", "text": "t1.st4.free.1" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.2" },
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.free.3" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.free.4" },
-      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.free.5" }
+      { "speaker": "char.townsfolk.name", "skin": "novice", "text": "goblin-raid.st4.free.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st4.free.2" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st4.free.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st4.free.4" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-raid.st4.free.5" }
     ],
     "outro": [
-      { "speaker": "char.cleric.name", "skin": "cleric", "text": "t1.st4.outro.1" },
-      { "speaker": "char.rookie.name", "skin": "novice", "text": "t1.st4.outro.2" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.outro.3" },
-      { "speaker": "char.scout.name", "skin": "halfling", "text": "t1.st4.outro.4" },
-      { "speaker": "char.cap.name", "skin": "fighter", "text": "t1.st4.outro.5" }
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-raid.st4.outro.1" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st4.outro.2" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st4.outro.3" },
+      { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st4.outro.4" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st4.outro.5" }
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 2, "survival_a": 1 },
