@@ -8,15 +8,15 @@ goblin-raid.st4.title,町の解放,Free the Town
 goblin-raid.st5.title,巣穴へ進軍,Strike from Afar
 goblin-raid.st6.title,潜む伏兵,Draw Them Out
 goblin-raid.st7.title,ゴブリンの王,The Goblin King
-t2.title,アンデッドの群れ,The Undead Swarm
-t2.desc,墓地から湧き出すアンデッドとの戦い。騎士団・教会・魔法ギルドの混成調査隊が、魔法兵の長射程と輸送、陣形スキルを駆使し、屍の群れを押し返して元凶のネクロマンサーを討つ第二の章。,"The dead well up from the graveyard. Knights, clergy, and mages push back the swarm with long-range casters, transport, and formation skills, and cut down the necromancer behind it."
-t2.st1.title,屍の迎撃,Shield the Casters
-t2.st2.title,集落の救援,Race to the Village
-t2.st3.title,屍の殲滅,Unleash the Trinity Nova
-t2.st4.title,墓地の浄化,Seal the Graves
-t2.st5.title,神の加護,Invoke the Grace
-t2.st6.title,首無し騎士の猛攻,Storm the Crypts
-t2.st7.title,屍の元凶,The Necromancer's End
+undead-rush.title,アンデッドの群れ,The Undead Swarm
+undead-rush.desc,墓地から湧き出すアンデッドとの戦い。騎士団・教会・魔法ギルドの混成調査隊が、魔法兵の長射程と輸送、陣形スキルを駆使し、屍の群れを押し返して元凶のネクロマンサーを討つ第二の章。,"The dead well up from the graveyard. Knights, clergy, and mages push back the swarm with long-range casters, transport, and formation skills, and cut down the necromancer behind it."
+undead-rush.st1.title,屍の迎撃,Shield the Casters
+undead-rush.st2.title,集落の救援,Race to the Village
+undead-rush.st3.title,屍の殲滅,Unleash the Trinity Nova
+undead-rush.st4.title,墓地の浄化,Seal the Graves
+undead-rush.st5.title,神の加護,Invoke the Grace
+undead-rush.st6.title,首無し騎士の猛攻,Storm the Crypts
+undead-rush.st7.title,屍の元凶,The Necromancer's End
 t3.title,竜狩り,The Dragon Hunt
 t3.desc,街を襲う魔獣の討伐を請け負ったベテラン冒険者たちが、黒幕を追い竜と対峙する第三の章。平原から火口へ舞台を移し、飛行と対空、異種族の勧誘、戦力を次へ持ち越す消耗の重みを学ぶ。,"Veterans hired to cull the beasts raiding the city follow the trail to its masters, and face the dragon. From plains to caldera: flight and anti-air, other peoples recruited, losses carried on."
 t3.st1.title,駆け出し冒険者と魔獣,Bring Them Down

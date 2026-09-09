@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "tutorial2-st2",
+  "name": "undead-rush-st2",
   "cols": 24,
   "rows": 9,
   "margin": 1,
@@ -143,7 +143,7 @@
     { "type": "wagon", "col": 7, "row": 7 }
   ],
   "enemy": [
-    { "order": 1, "name": "t2.st2.squad.1", "ai": "charge",
+    { "order": 1, "name": "undead-rush.st2.squad.1", "ai": "charge",
       "units": [
         { "skin": "skeleton_archer", "col": 6, "row": 2 },
         { "skin": "skeleton", "col": 2, "row": 6 },
@@ -154,7 +154,7 @@
         { "skin": "skeleton", "col": 9, "row": 2 },
         { "skin": "skeleton", "col": 11, "row": 0 }
       ] },
-    { "order": 2, "name": "t2.st2.squad.2", "ai": "raid",
+    { "order": 2, "name": "undead-rush.st2.squad.2", "ai": "raid",
       "units": [
         { "skin": "skeleton", "col": 23, "row": 4 },
         { "skin": "skeleton", "col": 19, "row": 5 },
@@ -175,28 +175,28 @@
       "bases": [ { "col": 15, "row": 3 } ] }
   ],
   "events": [
-    { "id": "town-freed", "type": "talk", "col": 15, "row": 3, "team": "player", "on": "capture", "dialogue": "free", "name": "t2.st2.free.name", "focus": true }
+    { "id": "town-freed", "type": "talk", "col": 15, "row": 3, "team": "player", "on": "capture", "dialogue": "free", "name": "undead-rush.st2.free.name", "focus": true }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st2.intro.1" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st2.intro.2" },
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st2.intro.3" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st2.intro.5" },
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st2.intro.6" },
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st2.intro.7" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st2.intro.4" }
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st2.intro.1" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st2.intro.2" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st2.intro.3" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st2.intro.5" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st2.intro.6" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st2.intro.7" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st2.intro.4" }
     ],
     "free": [
-      { "speaker": "char.guard.name", "skin": "novice", "text": "t2.st2.free.1" },
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st2.free.2" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st2.free.3" }
+      { "speaker": "char.guard.name", "skin": "novice", "text": "undead-rush.st2.free.1" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st2.free.2" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st2.free.3" }
     ],
     "outro": [
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st2.outro.1" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st2.outro.2" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st2.outro.3" },
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st2.outro.4" }
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st2.outro.1" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st2.outro.2" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st2.outro.3" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st2.outro.4" }
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 3, "survival_a": 2 },

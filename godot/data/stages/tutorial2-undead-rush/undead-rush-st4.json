@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "tutorial2-st4",
+  "name": "undead-rush-st4",
   "cols": 24,
   "rows": 11,
   "margin": 1,
@@ -376,7 +376,7 @@
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "t2.st4.squad.1", "ai": "charge", "stack": 1,
+    { "order": 1, "name": "undead-rush.st4.squad.1", "ai": "charge", "stack": 1,
       "units": [
         { "skin": "skeleton", "col": 11, "row": 9 },
         { "skin": "skeleton", "col": 17, "row": 10 },
@@ -390,7 +390,7 @@
         { "skin": "ghost", "col": 12, "row": 7 },
         { "skin": "ghost", "col": 19, "row": 6 }
       ] },
-    { "order": 2, "name": "t2.st4.squad.2", "ai": "predator", "stack": 1,
+    { "order": 2, "name": "undead-rush.st4.squad.2", "ai": "predator", "stack": 1,
       "units": [
         { "skin": "wraith", "col": 22, "row": 9 },
         { "skin": "wraith", "col": 18, "row": 4 }
@@ -430,23 +430,23 @@
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st4.intro.1" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st4.intro.2" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.3" },
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st4.intro.5" },
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.intro.7" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.10" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st4.intro.9" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.11" },
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.intro.12" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.intro.13" },
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.intro.4" }
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st4.intro.1" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st4.intro.2" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.3" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st4.intro.5" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st4.intro.7" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.10" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st4.intro.9" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.11" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st4.intro.12" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.13" },
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st4.intro.4" }
     ],
     "outro": [
-      { "speaker": "char.mage.name", "skin": "wizard", "text": "t2.st4.outro.1" },
-      { "speaker": "char.knight.name", "skin": "knight", "text": "t2.st4.outro.2" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "t2.st4.outro.3" },
-      { "speaker": "char.priest.name", "skin": "priest", "text": "t2.st4.outro.4" }
+      { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st4.outro.1" },
+      { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st4.outro.2" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.outro.3" },
+      { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st4.outro.4" }
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 5, "survival_a": 3 },
