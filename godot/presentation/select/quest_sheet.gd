@@ -17,10 +17,18 @@ const PARTY_SEP := 6        # 絵と絵の間
 const PARTY_HEAD_SEP := 2   # 見出しと、その見出しが指す並びの間（塊の中）
 const PARTY_GROUP_SEP := 16  # 塊と塊の間。中より広く取る＝見出しがどの並びのものか一目で分かる
 
-## 駒の右上に重ねる印（兵の出方）。ファイル名は StageLoader.BADGE_* の値。
-## 絵は在れば出す＝無い印は何も出ないだけなので、1枚ずつ足していける（→ doc/art/icons.md）。
+## 駒の下に置く印（兵の出方）＝絵＋語。絵のファイル名は StageLoader.BADGE_* の値。
+## 絵は座標から焼いた図形（doc/art/icons.md 依頼書の印）＝どれも 128px 四方・塗り面積を
+## 揃えてあるので、同じ枠に入れれば1つだけ重く見えることはない。
 const BADGE_DIR := "res://assets/icons/quest/"
-const BADGE_SIZE := 16.0
+const BADGE_SIZE := 12.0  # 語の左に置く絵の一辺
+const BADGE_FONT := 10    # 語の大きさ。群の見出し（14）より小さい＝見出しと読み違えない
+const BADGE_GAP := 3      # 絵と語の間
+const BADGE_SEP := 2      # 駒と、その下の印の間
+## 印が付く群のセルの最小幅。印は器から張り出して描くので、これが狭いと隣の語とぶつかる。
+## 語の長さで決めず定数で持つ＝駒の間隔が言語で変わらない。いちばん長い語（英語 Revived）が
+## 収まる幅にしてある。訳を足して溢れるようになったら、ここを広げる。
+const BADGE_CELL := 52.0
 
 var _title: Label
 var _body: Label
@@ -191,8 +199,22 @@ func _add_party_row(title_key: String, entries: Array, scale: float) -> void:
 	row.add_theme_constant_override("v_separation", PARTY_SEP)
 	group.add_child(row)
 	var band := _band(entries)
+	var cells: Array[Control] = []
 	for entry in entries:
-		row.add_child(_party_figure(entry, band, scale))
+		var cell := _party_figure(entry, band, scale)
+		cells.append(cell)
+		row.add_child(cell)
+	# セルの幅をこの群でいちばん広いものに揃える＝駒が等間隔に並ぶ。揃えないと、
+	# 印の語が長い駒のセルだけ広がって、上の駒の間隔がばらつく（英語で目立つ）。
+	var w := 0.0
+	for cell in cells:
+		w = maxf(w, cell.get_combined_minimum_size().x)  # 器自身は最小寸法を持たない＝駒の絵の幅
+	for entry in entries:
+		if not String(entry["badge"]).is_empty():
+			w = maxf(w, BADGE_CELL)  # 印が1つでも出る群は、語が収まる幅まで広げる
+			break
+	for cell in cells:
+		cell.custom_minimum_size.x = w
 
 ## 1体ぶんの材料。絵が無ければ tex=null（名前の先頭2文字で描く）。
 ## used＝絵の非透過部分の外接矩形（キャンバス座標）。
@@ -242,33 +264,55 @@ func _party_figure(entry: Dictionary, band: Vector2, scale: float) -> Control:
 		node = rect
 	if not bool(entry["available"]):
 		node.modulate = BoardUnitRenderer.DONE_MODULATE
-	# 印はこの駒自身の頭の高さに置く。行の枠は群でいちばん背の高い駒に合わせてあるので、
-	# 枠の上端に置くと背の低い駒では絵から浮いて、誰の印か分からなくなる。
-	var own: Rect2 = entry["used"]
-	var top := (own.position.y - band.x) * scale if tex != null else 0.0
-	return _with_badge(node, String(entry["badge"]), top)
+	return _with_badge(node, String(entry["badge"]))
 
-## 駒の絵に兵の出方の印を重ねる（右上）。印が無い／絵が置かれていなければ駒をそのまま返す。
-## 器を挟むのは印を出すときだけ＝印の無い駒は今までと同じ1ノードのまま並ぶ。
-func _with_badge(node: Control, badge: String, top: float) -> Control:
+## 駒の絵の下に兵の出方の印（絵＋語）を積む。絵に重ねず下に置くのは、重ねると顔か足元の
+## どちらかを潰すため。語が意味を言い、絵は目印。
+## 印の無い駒も同じ器に入れ、空の行を持たせる＝行の高さが揃い、足元が1本の線に並ぶ。
+## 駒の絵より印のほうが広ければ、駒は印の幅の中央に寄る。
+func _with_badge(node: Control, badge: String) -> Control:
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", BADGE_SEP)
+	box.add_child(node)
+	# 印と語は、幅を持たない器（Control）に載せて中央から吊る。器に幅を持たせると、
+	# 語の長さがセルの幅になり、駒の間隔が語の長さで変わってしまう（言語でも変わる）。
+	var slot := Control.new()
+	box.add_child(slot)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", BADGE_GAP)
+	slot.add_child(row)
 	var path := BADGE_DIR + badge + ".png"
-	if badge.is_empty() or not ResourceLoader.exists(path):
-		return node
-	var wrap := Control.new()
-	wrap.custom_minimum_size = node.custom_minimum_size
-	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	wrap.add_child(node)
-	var mark := TextureRect.new()
-	mark.texture = load(path)
-	mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	mark.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	mark.offset_left = -BADGE_SIZE
-	mark.offset_right = 0.0
-	mark.offset_top = -BADGE_SIZE
-	mark.offset_bottom = 0.0
-	wrap.add_child(mark)
-	return wrap
+	if not badge.is_empty() and ResourceLoader.exists(path):
+		var mark := TextureRect.new()
+		mark.texture = load(path)
+		mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		mark.custom_minimum_size = Vector2(BADGE_SIZE, BADGE_SIZE)
+		mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER  # 行に合わせて縦へ伸ばさない＝正方形を保つ
+		row.add_child(mark)
+	var text := Label.new()
+	text.text = tr("ui.quest.badge_%s" % badge) if not badge.is_empty() else ""
+	text.add_theme_font_size_override("font_size", BADGE_FONT)
+	text.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+	row.add_child(text)
+	# 語の右に、印と同じ幅の空きを置く＝中央に来るのは印＋語ではなく語だけになり、印は
+	# その左へ張り出す。印は小さくて語は長いので、両方まとめて中央に置くと目には語が
+	# 右へ寄って見える。駒の真下に来てほしいのは語のほう。
+	var pad := Control.new()
+	pad.custom_minimum_size.x = BADGE_SIZE
+	row.add_child(pad)
+	# 器の高さだけは行に合わせる（幅は持たせない）。行は中央に吊る＝上の pad と合わせて、
+	# 駒の真下に来るのは語の中心になる。
+	var need := row.get_combined_minimum_size()
+	slot.custom_minimum_size.y = need.y
+	row.anchor_left = 0.5
+	row.anchor_right = 0.5
+	row.offset_left = -need.x * 0.5
+	row.offset_right = need.x * 0.5
+	row.offset_top = 0.0
+	row.offset_bottom = need.y
+	return box
 
 ## 取り消して閉じる（「別のステージを選ぶ」・幕クリック・Esc の共通入口）。開くときに音が鳴るので、
 ## 閉じるときも鳴らないと非対称になる。出撃は確定音が鳴るので、こちらは通さない。

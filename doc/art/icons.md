@@ -1,6 +1,6 @@
 # UIアイコンの方針
 
-画面に出す小さな記号の生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルはUIアイコン固有：スロット・ICON STYLE・SUBJECT の書き方・保管と書き出し。
+画面に出す小さな記号の生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルはUIアイコン固有：スロット・ICON STYLE・SUBJECT の書き方・依頼書の印（生成を使わず座標で作る）・保管と書き出し。
 
 ---
 
@@ -10,11 +10,11 @@
 |---|---|---|
 | 特性（敵AI） | `godot/assets/icons/ai/{特性id}.png` | 情報パネルの見出し（→ [../gdd/uiux.md](../gdd/uiux.md) ユニット情報パネル） |
 | HUD のボタン | `godot/assets/icons/hud/{ボタンid}.png` | 下のボタン群（メニュー・情報板・ターン終了）の文字の左（→ [../gdd/uiux.md](../gdd/uiux.md) ターン終了・システムメニュー） |
-| 依頼書の印 | `godot/assets/icons/quest/{印id}.png` | 依頼書の駒の絵の右下（→ [../gdd/stage_select.md](../gdd/stage_select.md) 依頼書） |
+| 依頼書の印 | `godot/assets/icons/quest/{印id}.png` | 依頼書の駒の絵の下（語の左）（→ [../gdd/stage_select.md](../gdd/stage_select.md) 依頼書） |
 
-- 絵は在れば出す。無ければ額ごと消えて特性名の文字だけになるので、絵を1枚ずつ足していける。
-- 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。HUD のボタンと依頼書の印は額なしで載せる（前者は板に、後者は駒の絵に重ねて）。
-- 表示寸法は特性が額の外寸44px・内側36px、HUD のボタンが高さ24px、依頼書の印が16px四方。書き出しは128pxで、拡大表示が要るようになってもそのまま使える。
+- 絵は在れば出す。無ければ額ごと消えて特性名の文字だけになるので、絵を1枚ずつ足していける（依頼書の印は語だけが残る）。
+- 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。HUD のボタンと依頼書の印は額なしで載せる（前者は板に、後者は紙に）。
+- 表示寸法は特性が額の外寸44px・内側36px、HUD のボタンが高さ24px、依頼書の印が12px四方（語の左）。書き出しは128pxで、拡大表示が要るようになってもそのまま使える。
 
 ## 2. 生成方式（ICON STYLE）
 
@@ -57,25 +57,6 @@ border, and no photographic rendering, bloom, gradients, particles or metallic
 sheen.
 ```
 
-依頼書の印用（BADGE ICON STYLE）。プレイヤーの駒の状態に押す印なので、道具の一文を状態の一文に替え、読める寸法を16pxにする。`New!` のように語を焼く印があるので、文字の禁止だけ外す。それ以外は同じ:
-
-```
-STYLE: A single fantasy game UI icon: ONE isolated emblem on an empty
-background, drawn as a branding-iron mark burned into a dark wooden signboard —
-a bold flat shape in warm amber-gold, one light tone plus at most one slightly
-darker tone of the same amber, with hard flat edges. Clean stylized vector-like
-shapes, the same slightly muted look as the game's unit pieces. This mark is
-stamped on one of the player's own units to say how its ranks were filled, so it
-reads as plain and matter-of-fact: blunt, sturdy and honest, neither menacing nor
-ornate. Follow the arrangement the subject describes exactly, including which way
-each element points and where each element sits. A crisp, bold silhouette that
-still reads when shrunk to 16 pixels tall. The mark fills the square canvas edge
-to edge, leaving only a thin margin. Square 1:1 composition. Keep the frame
-clean: the emblem alone, no characters, no hands, no ground, no scenery, no
-border, and no photographic rendering, bloom, gradients, particles or metallic
-sheen. Words appear only where the subject asks for them.
-```
-
 SUBJECT を書くときの勘所（実地で効いたもの）:
 
 - 画角いっぱいに描かせる。放っておくと黒地の中央に小さく置かれる。「左右の辺に触れる」「余白は数パーセント」と辺を基準に指定する。
@@ -85,11 +66,35 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 - 禁止を並べるより、位置と向きを肯定文で言い切る。「鏡像にするな」は効かないが、「鼻面が左の辺を指し、耳は頭蓋の右側にある」と書けば反転は起きない。禁止したい語を書くほど、その像が絵に出る。
 - 対称は SUBJECT に持たせる。共通STYLEに「左右対称」と書くと、同じ向きの複製を3つ並べる絵で下の2つが鏡像になる（群れで踏んだ）。STYLE 側は「SUBJECT の配置と向きにそのまま従う」までにする。
 - 輪郭の型を5種で散らす。色は全部同じなので、横長・縦長・丸・反復のように外形の型を分けておくと、名前を読まなくても取り違えない。HUD も同じ（歯車＝丸・砂時計＝縦長・立て看板＝横長）。
-- 依頼書の印は駒の絵に重なる。輪郭が下の絵に食われるので、外形は太く単純にし、細い線と小さな模様は置かない（16pxでは消える）。内側の模様を出したいときは切り抜き（地が透ける空きの形）で作る。
-- 依頼書の4つは外形の型で分ける＝`new`＝棘の出た丸・`revive`＝丸・`refill`＝水平の帯・`damaged`＝斜めの筋。`new` と `revive` はどちらも丸に寄るので、棘の有無を効かせる。
-- 背景は切り抜きのコントラストで選ぶ。明るい印なら黒。暗い輪郭を持たせるなら黒どうしで分離できないので白にする。
+- 背景は切り抜きのコントラストで選ぶ。明るい印なら黒。暗い輪郭を持たせるなら黒どうしで分離できないので白にする。地は「まっ黒・木目なし」と言い切る＝「dark wooden signboard に焼き付ける」とだけ書くと木目の出る回がある（2026-09-08 に踏んだ。木目の明るい筋が抜きのしきい値6%を超えると半透明で残る）。
 
-## 3. 保管・書き出し
+## 3. 依頼書の印（座標で作る）
+
+依頼書の印（`quest`）は**生成AIを使わない**。十字・楔・紡錘といった幾何図形で絵としての情報を持たず、しかも12pxまで縮めて出す。生成 → 抜き → トリミング → 縮小の4段では、寸法も太さも塗ってある面積も最後まで決まらない（実際に、4つのうち1つだけ重く見えるのを絵の側で直せなかった）。ロゴと同じく座標で持つ（[logo.md](logo.md) 作り方）。
+
+- 形の正本は `godot/assets/icons-src/quest/{id}/{id}.svg`。手で書き、手で直す（Inkscape で開いてもよい）。座標は 100×100 の正方形で書く。
+- PNG は [`rasterize_svg.gd`](../../godot/tools/rasterize_svg.gd) で焼く。ロゴと同じ道具・同じ経路なので、この用途のための道具は持たない。
+
+```
+godot --headless --path godot --script res://tools/rasterize_svg.gd -- assets/icons-src/quest/new/new.svg assets/icons/quest/new.png 1.28
+```
+
+倍率 1.28＝SVG の 100 が 128px になる。
+
+- 色は種類ごとに変え、羊皮紙（`#DEC99E`）とのコントラスト比で選ぶ。見出しのインク `#664D33` が 4.84、下限の目安は 3.0。明るい黄は紙と明度が近く `#C9A227` で 1.49＝ほぼ見えないので `#8C6A12` まで落とした（2026-09-09 実測）。
+- 塗ってある面積を4つで揃える＝並べたとき1つだけ重く見えない。`magick <png> -alpha extract -format "%[fx:mean]" info:` で測る。
+- 12pxまで縮むので、細い線と小さな模様は置かない。1px幅になる部品（ラッパの吹き口・旗）は形を粒に割るだけなので落とす。意味は隣の語が言うので、印は外形が分かればよい。
+- 部品を足すのではなく輪郭で言う。ラッパは「一様な太さの管＋左右対称に開く杯」にするとラバーカップになる。吹き口から鐘まで連続して太くし、開きを内側へえぐると角笛になる。
+- 外形の型を散らす＝横長の楔・十字・縦長の瓶・斜めの筋。色が違っても形で取り違えないようにする。
+
+| id | 形 | 色 | 塗り | 意味（→ [../gdd/stage_select.md](../gdd/stage_select.md) 依頼書） |
+|---|---|---|---|---|
+| `new` | ラッパ | `#8C6A12` | 34% | 新加入 |
+| `revive` | 十字 | `#4E7A3A` | 44% | 復帰 |
+| `refill` | ポーション | `#3C5F8A` | 34% | 補充 |
+| `damaged` | 裂け目 | `#9A3B2E` | 24% | 損耗 |
+
+## 4. 保管・書き出し
 
 | 段階 | 置き場（`{group}`＝種別フォルダ・`{id}`＝アイコンID） | 例 |
 |---|---|---|
@@ -99,6 +104,7 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 
 - ③だけがゲームの読む正。`{group}` はそのままゲーム側のフォルダになるので、種別が増えてもツールは変えない。
 - ①②は作業ソース。`godot/assets/icons-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。
+- ここは生成で作る印（`ai`・`hud`）の話。依頼書の印（`quest`）は①②を持たず、正本の SVG が `icons-src/quest/{id}/{id}.svg`、③は同じく `icons/quest/{id}.png`（§3）。
 - 手で抜きたい絵は `{id}_03_master.png`（透過済み）を同じフォルダに置く。ツールは master があればそちらを優先するので、自動の抜きで足りない1枚だけ差し替えられる。ユニットと違って master は常備しない＝背景が単色フラットなので、ふつうは②から直接書き出せる。
 
 書き出し:
