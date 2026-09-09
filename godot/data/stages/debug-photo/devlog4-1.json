@@ -1446,7 +1446,7 @@
   "enemy": [
     {
       "order": 1,
-      "name": "t2.st5.squad.1",
+      "name": "undead-rush.st5.squad.1",
       "ai": "charge",
       "units": [
         {
@@ -1468,7 +1468,7 @@
     },
     {
       "order": 2,
-      "name": "t2.st5.squad.2",
+      "name": "undead-rush.st5.squad.2",
       "ai": "charge",
       "units": [
         {
@@ -1490,7 +1490,7 @@
     },
     {
       "order": 3,
-      "name": "t2.st5.squad.3",
+      "name": "undead-rush.st5.squad.3",
       "ai": "charge",
       "units": [
         {
@@ -1512,7 +1512,7 @@
     },
     {
       "order": 4,
-      "name": "t2.st5.squad.4",
+      "name": "undead-rush.st5.squad.4",
       "ai": "charge",
       "units": [
         {
@@ -1539,7 +1539,7 @@
     },
     {
       "order": 5,
-      "name": "t2.st5.squad.5",
+      "name": "undead-rush.st5.squad.5",
       "ai": "charge",
       "units": [
         {
@@ -1576,7 +1576,7 @@
     },
     {
       "order": 6,
-      "name": "t2.st5.squad.6",
+      "name": "undead-rush.st5.squad.6",
       "ai": "charge",
       "units": [
         {
@@ -1593,7 +1593,7 @@
     },
     {
       "order": 7,
-      "name": "t2.st5.squad.7",
+      "name": "undead-rush.st5.squad.7",
       "ai": "predator",
       "units": [
         {
@@ -1610,7 +1610,7 @@
     },
     {
       "order": 8,
-      "name": "t2.st5.squad.8",
+      "name": "undead-rush.st5.squad.8",
       "ai": "predator",
       "units": [
         {

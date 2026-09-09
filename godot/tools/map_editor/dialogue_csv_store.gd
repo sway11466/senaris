@@ -53,7 +53,7 @@ static func upsert_file(key: String, ja: String, en: String) -> bool:
 	w.close()
 	return true
 
-## キーの先頭2セグメント（"t2.st7." 等）。3セグメント未満は ""＝ブロックを持たない。
+## キーの先頭2セグメント（"undead-rush.st7." 等）。3セグメント未満は ""＝ブロックを持たない。
 static func _stage_prefix(key: String) -> String:
 	var parts := key.split(".")
 	return "" if parts.size() < 3 else parts[0] + "." + parts[1] + "."

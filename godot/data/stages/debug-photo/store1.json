@@ -532,7 +532,7 @@
     {
       "order": 1,
       "ai": "charge",
-      "name": "b1.st1.squad.1",
+      "name": "goblin-horde.st1.squad.1",
       "units": [
         {
           "skin": "hobgoblin",
@@ -559,7 +559,7 @@
     {
       "order": 2,
       "ai": "charge",
-      "name": "b1.st1.squad.2",
+      "name": "goblin-horde.st1.squad.2",
       "units": [
         {
           "skin": "goblin_archer",

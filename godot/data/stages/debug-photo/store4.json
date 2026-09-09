@@ -194,7 +194,7 @@
   "enemy": [
     {
       "order": 2,
-      "name": "t1.st4.squad.1",
+      "name": "goblin-raid.st4.squad.1",
       "ai": "charge",
       "units": [
         {
@@ -226,7 +226,7 @@
     },
     {
       "order": 1,
-      "name": "t1.st4.squad.2",
+      "name": "goblin-raid.st4.squad.2",
       "ai": "ambush",
       "units": [
         {
@@ -271,7 +271,7 @@
       "team": "player",
       "on": "capture",
       "dialogue": "free",
-      "name": "t1.st4.free.name",
+      "name": "goblin-raid.st4.free.name",
       "focus": true
     }
   ],
@@ -280,76 +280,76 @@
       {
         "speaker": "char.scout.name",
         "skin": "halfling",
-        "text": "t1.st4.intro.1"
+        "text": "goblin-raid.st4.intro.1"
       },
       {
         "speaker": "char.rookie.name",
         "skin": "novice",
-        "text": "t1.st4.intro.2"
+        "text": "goblin-raid.st4.intro.2"
       },
       {
         "speaker": "char.cap.name",
         "skin": "fighter",
-        "text": "t1.st4.intro.3"
+        "text": "goblin-raid.st4.intro.3"
       },
       {
         "speaker": "char.cleric.name",
         "skin": "cleric",
-        "text": "t1.st4.intro.4"
+        "text": "goblin-raid.st4.intro.4"
       },
       {
         "speaker": "char.cap.name",
         "skin": "fighter",
-        "text": "t1.st4.intro.5"
+        "text": "goblin-raid.st4.intro.5"
       }
     ],
     "free": [
       {
         "speaker": "char.townsfolk.name",
         "skin": "novice",
-        "text": "t1.st4.free.1"
+        "text": "goblin-raid.st4.free.1"
       },
       {
         "speaker": "char.cap.name",
         "skin": "fighter",
-        "text": "t1.st4.free.2"
+        "text": "goblin-raid.st4.free.2"
       },
       {
         "speaker": "char.scout.name",
         "skin": "halfling",
-        "text": "t1.st4.free.3"
+        "text": "goblin-raid.st4.free.3"
       },
       {
         "speaker": "char.cap.name",
         "skin": "fighter",
-        "text": "t1.st4.free.4"
+        "text": "goblin-raid.st4.free.4"
       }
     ],
     "outro": [
       {
         "speaker": "char.cleric.name",
         "skin": "cleric",
-        "text": "t1.st4.outro.1"
+        "text": "goblin-raid.st4.outro.1"
       },
       {
         "speaker": "char.rookie.name",
         "skin": "novice",
-        "text": "t1.st4.outro.2"
+        "text": "goblin-raid.st4.outro.2"
       },
       {
         "speaker": "char.cap.name",
         "skin": "fighter",
-        "text": "t1.st4.outro.3"
+        "text": "goblin-raid.st4.outro.3"
       },
       {
         "speaker": "char.scout.name",
         "skin": "halfling",
-        "text": "t1.st4.outro.4"
+        "text": "goblin-raid.st4.outro.4"
       },
       {
         "speaker": "char.cap.name",
         "skin": "fighter",
-        "text": "t1.st4.outro.5"
+        "text": "goblin-raid.st4.outro.5"
       }
     ]
   },

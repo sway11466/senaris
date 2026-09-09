@@ -396,24 +396,24 @@
     { "type": "airship", "col": 8, "row": 17 }
   ],
   "enemy": [
-    { "order": 50, "name": "t2.st7.squad.1", "ai": "ambush", "sight": 10, "units": [] },
-    { "order": 1, "name": "t2.st7.squad.2", "ai": "charge", "units": [] },
-    { "order": 2, "name": "t2.st7.squad.3", "ai": "charge", "units": [] },
-    { "order": 3, "name": "t2.st7.squad.4", "ai": "charge",
+    { "order": 50, "name": "undead-rush.st7.squad.1", "ai": "ambush", "sight": 10, "units": [] },
+    { "order": 1, "name": "undead-rush.st7.squad.2", "ai": "charge", "units": [] },
+    { "order": 2, "name": "undead-rush.st7.squad.3", "ai": "charge", "units": [] },
+    { "order": 3, "name": "undead-rush.st7.squad.4", "ai": "charge",
       "units": [
         { "skin": "skeleton_archer", "col": 1, "row": 11 },
         { "skin": "skeleton_archer", "col": 2, "row": 11 },
         { "skin": "skeleton_archer", "col": 3, "row": 10 }
       ] },
-    { "order": 4, "name": "t2.st7.squad.5", "ai": "charge",
+    { "order": 4, "name": "undead-rush.st7.squad.5", "ai": "charge",
       "units": [
         { "skin": "skeleton_archer", "col": 9, "row": 10 },
         { "skin": "skeleton_archer", "col": 10, "row": 11 },
         { "skin": "skeleton_archer", "col": 11, "row": 11 }
       ] },
-    { "order": 5, "name": "t2.st7.squad.6", "ai": "charge", "stack": 1, "units": [] },
-    { "order": 6, "name": "t2.st7.squad.7", "ai": "charge", "stack": 1, "units": [] },
-    { "order": 7, "name": "t2.st7.squad.8", "ai": "predator", "units": [] }
+    { "order": 5, "name": "undead-rush.st7.squad.6", "ai": "charge", "stack": 1, "units": [] },
+    { "order": 6, "name": "undead-rush.st7.squad.7", "ai": "charge", "stack": 1, "units": [] },
+    { "order": 7, "name": "undead-rush.st7.squad.8", "ai": "predator", "units": [] }
   ],
   "bases": [
     { "order": 43, "ai": "charge", "col": 10, "row": 3, "team": "enemy", "rest": "enemy",
