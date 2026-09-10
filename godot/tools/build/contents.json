@@ -4,6 +4,7 @@
   "editions": {
     "demo": [
       "tutorial1-goblin-raid",
+      "tutorial2-undead-rush",
       "bounty1-goblin-horde"
     ],
     "full": [
