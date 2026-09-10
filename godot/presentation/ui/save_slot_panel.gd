@@ -31,7 +31,8 @@ var _rows: VBoxContainer
 var _confirm: Control
 var _confirm_text: Label
 var _confirm_yes: Button
-var _back: Button          # やめる（起動時に作って生き続ける＝refresh_labels の対象）
+var _confirm_no: Button    # 確認小窓のやめる（起動時に作って生き続ける＝refresh_labels の対象）
+var _back: Button          # 一覧のやめる（同上）
 var _pending_slot := ""
 
 func _ready() -> void:
@@ -225,10 +226,10 @@ func _build_confirm() -> Control:
 	# 左＝やめる／右＝進む（doc/gdd/uiux.md ボタンの左右）
 	var buttons := HBoxContainer.new()
 	box.add_child(buttons)
-	var no := TavernTheme.wood_button(tr("ui.save.cancel"))
-	no.custom_minimum_size = Vector2(150, 44)
-	no.pressed.connect(_on_confirm_no)
-	buttons.add_child(no)
+	_confirm_no = TavernTheme.wood_button(tr("ui.save.cancel"))
+	_confirm_no.custom_minimum_size = Vector2(150, 44)
+	_confirm_no.pressed.connect(_on_confirm_no)
+	buttons.add_child(_confirm_no)
 	var gap := Control.new()
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(gap)
@@ -262,12 +263,13 @@ func _on_dim_input(event: InputEvent) -> void:
 	if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
 		_cancel()
 
-## 何も選ばずに閉じる（やめる・幕クリック・Esc）。
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
-## 見出しと行は開くたびに組み直すので、起動時から生き続けるのはやめるボタンだけ。
+## 見出し・行・確認小窓の文言は開くたびに入れ直すので、対象は起動時から生き続ける2つのやめるボタン。
 func refresh_labels() -> void:
 	_back.text = tr("ui.save.cancel")
+	_confirm_no.text = tr("ui.save.cancel")
 
+## 何も選ばずに閉じる（やめる・幕クリック・Esc）。
 func _cancel() -> void:
 	SfxPlayer.play_event("menu_back")
 	close()

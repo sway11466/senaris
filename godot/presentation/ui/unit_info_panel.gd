@@ -419,7 +419,10 @@ func _on_tab_pressed(id: String) -> void:
 ## 板の中身は描いた文字列をそのまま持っているので、いま出しているもの（_view）を同じ中身で
 ## 描き直す＝作り直しはしない。一時通知（notify）は数秒で消えるので触らない。
 ## 戦闘結果・スキル結果は各ビューが自分の控え（detail／result）から組み直す。
+## タブ見出しだけは _ready で1度引いたきりなので、ここで貼り直す。
 func refresh_labels() -> void:
+	for t in TABS:
+		(_tabs[String(t[0])] as Button).text = tr(String(t[1]))
 	_report.refresh_labels()
 	_skill_report.refresh_labels()
 	set_event(_event)
