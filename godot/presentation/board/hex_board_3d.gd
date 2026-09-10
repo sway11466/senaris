@@ -336,11 +336,9 @@ func shake(px: float = BoardCamera.SHAKE_PX) -> void:
 ## HUD を避けた可視域を Rect2 で返す（fit / focus の共通パラメータ）。
 func _vis_rect() -> Rect2:
 	var vp := get_viewport().get_visible_rect().size
-	var x := 16.0
-	var y := 64.0
-	var w := UiLayout.board_area(vp).size.x - 32.0  # 盤エリア＝情報板が塞いでいない側（doc/gdd/uiux.md 盤エリア）
-	var h := vp.y - 96.0
-	return Rect2(x, y, w, h)
+	# 情報板の裏は見えない＝板の無い側だけを使う（doc/gdd/uiux.md カメラの可視域）。
+	var a := UiLayout.camera_area(vp)
+	return Rect2(a.position.x + 16.0, 64.0, a.size.x - 32.0, vp.y - 96.0)
 
 # =========================================================================
 # picking（マウスレイ ∩ 盤平面 y=0。物理・コリジョン不要）

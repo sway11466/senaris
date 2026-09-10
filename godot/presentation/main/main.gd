@@ -335,8 +335,11 @@ func _on_panel_moved(pos: Vector2) -> void:
 ## ここだけなので、変わるたびに UiLayout へ押す。カメラはここでは動かさない＝畳む・開く・動かすで
 ## 見ている場所を失わせない（合わせ直すのはステージを開いたときだけ）。
 func _sync_board_area() -> void:
-	var holds: bool = not $Front/InfoPanel.is_minimized() and not _settings_store.has_info_panel_position()
+	var panel: UnitInfoPanel = $Front/InfoPanel
+	var holds: bool = not panel.is_minimized() and not _settings_store.has_info_panel_position()
 	UiLayout.set_panel_holds_right_box(holds)
+	# カメラは板がどこにあっても裏を避ける＝いまの矩形をそのまま渡す（畳んでいれば空＝塞いでいない）。
+	UiLayout.set_panel_rect(Rect2() if panel.is_minimized() else Rect2(panel.position, panel.size))
 
 ## 残りターン（増援の予告）を情報パネルへ流し込む。未発生のイベントが無ければ行が隠れる。
 ## 仕様 → doc/gdd/uiux.md 残りターン

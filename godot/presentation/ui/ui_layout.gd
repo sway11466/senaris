@@ -29,6 +29,26 @@ static func board_area(vp: Vector2) -> Rect2:
 	var w := minf(vp.x, RIGHT_BOX_LEFT) if _panel_holds_right_box else vp.x
 	return Rect2(0.0, 0.0, w, vp.y)
 
+## 情報板がいま塞いでいる矩形（画面座標）。畳んでいる間は空＝何も塞いでいない。main が押す。
+static var _panel_rect := RIGHT_BOX
+
+## 情報板の矩形が変わった（畳む／開く／動かす／既定へ戻す）。main が押す。
+static func set_panel_rect(rect: Rect2) -> void:
+	_panel_rect = rect
+
+## カメラの可視域＝盤が実際に見えている側。盤エリア（board_area）と分けてあるのは、演出は板より
+## 前に出るので板を避ける必要が無いのに対し、盤の駒は板の後ろに隠れて見えなくなるため。
+## 板はどこへでも動かせるので、板の左右に空く帯のうち広いほうを採る（畳んでいれば画面全体）。
+## 仕様 → doc/gdd/uiux.md カメラの可視域
+static func camera_area(vp: Vector2) -> Rect2:
+	if _panel_rect.size.x <= 0.0 or _panel_rect.size.y <= 0.0:
+		return Rect2(0.0, 0.0, vp.x, vp.y)
+	var left := clampf(_panel_rect.position.x, 0.0, vp.x)
+	var right := clampf(vp.x - _panel_rect.end.x, 0.0, vp.x)
+	if left >= right:
+		return Rect2(0.0, 0.0, left, vp.y)
+	return Rect2(vp.x - right, 0.0, right, vp.y)
+
 ## ターン終了ボタンの左端（幅 w のボタンを置く x）。盤エリアではなく右ボックスの既定の場所を見る
 ## ＝板を畳んでも動かしても場所が変わらない（毎ターン押す物はいつも同じ所にある）。
 static func end_turn_left(vp: Vector2, w: float) -> float:
