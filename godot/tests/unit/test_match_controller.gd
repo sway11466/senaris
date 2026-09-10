@@ -383,6 +383,7 @@ func test_ai_turn_without_move_pace_still_completes() -> void:
 
 func test_ai_turn_focuses_each_action_before_applying() -> void:
 	# 行動を見せる前にカメラ用フックへ「見るべき hex」を渡す＝主体はまだ動いていない位置。
+	# 移動は歩き切った先も渡す＝出発点だけ見せて着地を見失う、を作らない。
 	var s := BattleState.new(10, 10)
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
 	var e := Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3)
@@ -392,10 +393,12 @@ func test_ai_turn_focuses_each_action_before_applying() -> void:
 	var seen: Array[Vector2i] = []
 	mc.focus_pace = func(hex: Vector2i) -> void: seen.append(hex)
 	var brain := QueueBrain.new()
-	brain.queue.append(AiAction.move_to(2, Hex.neighbor(from, 0)))
+	var to := Hex.neighbor(from, 0)
+	brain.queue.append(AiAction.move_to(2, to))
 	mc.ai_brain = brain
 	mc.end_turn()
-	assert_eq(seen, [from] as Array[Vector2i], "移動の前に、移動元(まだ動く前の位置)を注視対象として渡す")
+	assert_eq(seen, [from, to] as Array[Vector2i],
+		"移動元(まだ動く前の位置)を先に、歩き終わった移動先を後に渡す")
 
 func test_ai_turn_focus_hex_by_action_kind() -> void:
 	# 種類ごとの注視 hex: 攻撃=攻撃元／出撃=出撃先。_action_focus_hex を直接確かめる。

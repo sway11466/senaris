@@ -241,6 +241,10 @@ func run_ai_turn() -> void:
 		# アニメが無ければ即戻る。攻撃より先＝移動→攻撃の順に見せる。
 		if not _finished and move_pace.is_valid():
 			await move_pace.call()
+		# 歩き切った先も見せる。出発点しか見ないと、着地が情報板の裏や画面外でも追わない
+		# （doc/gdd/uiux.md 敵ターンのカメラ）。すでに見えていれば追従側が即返る。
+		if action.kind == AiAction.Kind.MOVE and not _finished and focus_pace.is_valid():
+			await focus_pace.call(action.to)
 		# 攻撃なら演出の完了を待つ＝盤に戻ってから次の手へ（プレイヤーが流れを追える）。
 		if shown_combat and not _finished and combat_pace.is_valid():
 			await combat_pace.call()
@@ -256,6 +260,7 @@ func run_ai_turn() -> void:
 
 ## その1手でカメラが見るべき hex。移動・攻撃は主体の現在位置（歩き出し・攻撃元を見せる）、
 ## 出撃は駒が現れる出撃先。行動を適用する前に呼ぶ＝主体はまだ動いていない。
+## 移動はこれに加えて、歩き終わった先を run_ai_turn がもう一度渡す。
 func _action_focus_hex(action: AiAction) -> Vector2i:
 	match action.kind:
 		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL, AiAction.Kind.ENTER_BASE:
