@@ -23,7 +23,9 @@ const ARROW_SIZE := Vector2(48, 72)  # 繰り矢印の当たり判定サイズ
 const ARROW_INSET := 8.0             # ボード左右端からの距離（左右同値＝対称）
 const BOARD_MARGIN := 8              # ボードの外周に残す壁の幅（画面の縁からボードまで）
 
-# シリーズボード（表示順）。名は英語固定（雰囲気優先・多言語化しない）。シリーズを増やす段でここに足す。
+# シリーズボード（表示順）。シリーズを増やす段でここに足す。
+# 名は訳さない＝掲示板に貼られた札そのもの（作中の世界に在る物）で、プレイヤーへ向けた案内ではない。
+# doc/tech/i18n.md「UI 文言」の tr() 必須の例外。
 const BOARDS := [
 	{ "board": "tutorial", "name": "Tutorial" },
 	{ "board": "bounties", "name": "Bounties" },
