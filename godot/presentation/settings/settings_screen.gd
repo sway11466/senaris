@@ -33,14 +33,20 @@ const LABEL_FONT_SIZE := 20
 const NOTE_FONT_SIZE := 14    # 項目名に添える条件の一行（「情報板を畳んでいるとき」）
 const NOTE_COLOR := Color(0.82, 0.82, 0.82, 0.7)
 const BUTTON_FONT_SIZE := 20
-const LABEL_WIDTH := 160      # 項目名の欄。項目が増えても選択子の左端が揃う（英語の Master Volume が収まる幅）
-const OPTION_SIZE := Vector2(150, 48)
+## 項目名の欄。いちばん長い訳が1行で収まる幅にする＝言語を変えても行の高さも左端も動かない
+## （決めているのは項目名ではなく添え書きの "While the panel is folded"）。
+const LABEL_WIDTH := 180
+## 選択肢の板。いちばん長い訳（「会話のみ表示する」）が収まる幅で固定する。文字の長さで板が伸びると、
+## 言語を変えたときに行の幅が変わり、項目の位置が動く（doc/gdd/settings.md 見せ方）。
+const OPTION_WIDTH := 200
+const OPTION_SIZE := Vector2(OPTION_WIDTH, 48)
 const TITLE_GAP := 40
 const ROW_GAP := 24
 const OPTION_GAP := 16
-## 音量の行（つまみ＋間＋数値の欄）の幅は2択の行（板2枚＋枠の余白＋間＝340）と同じにして右端を揃える。
+## 音量の行（つまみ＋間＋数値の欄）の幅は2択の行（板2枚＋枠の余白＋間）と同じにして右端を揃える。
+const CHOICE_ROW_WIDTH := (OPTION_WIDTH + FRAME_PAD * 2) * 2 + OPTION_GAP
 const SPIN_BOX_WIDTH := 80
-const SLIDER_WIDTH := 340 - OPTION_GAP - SPIN_BOX_WIDTH  # 244
+const SLIDER_WIDTH := CHOICE_ROW_WIDTH - OPTION_GAP - SPIN_BOX_WIDTH
 
 ## 言語の選択肢。名前は各言語の自称で書き、翻訳キーにしない
 ## ＝英語表示のときに Japanese と出ると、日本語で遊びたい人が自分の言語を見つけられない。
@@ -172,11 +178,12 @@ func _note(key: String) -> Label:
 	_labels[key] = label
 	return label
 
-## 行の器＝項目名＋選択子を横に並べ、画面の中央に寄せる。
+## 行の器＝項目名＋選択子を左端から横に並べる。項目名の欄も板も幅が決まっているので、
+## どの行も同じ幅になり、列の中で項目名の左端と選択子の左端が揃う。
 ## note_key を渡すと、項目名の下に条件の一行を添える（項目名の欄の幅は変えない）。
 func _row(label_key: String, note_key := "") -> HBoxContainer:
 	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.alignment = BoxContainer.ALIGNMENT_BEGIN
 	row.add_theme_constant_override("separation", OPTION_GAP)
 	if note_key.is_empty():
 		row.add_child(_label(label_key))
@@ -187,15 +194,6 @@ func _row(label_key: String, note_key := "") -> HBoxContainer:
 		column.add_child(_label(label_key))
 		column.add_child(_note(note_key))
 		row.add_child(column)
-	return row
-
-## 行を閉じる＝項目名と同じ幅の余白を右端にも置く。選択子の中心が画面の中心＝見出しの真下に来る。
-## これが無いと、行の中央寄せが項目名を含めた幅で効いて、選択子だけが右へずれる。
-func _finish_row(row: HBoxContainer) -> HBoxContainer:
-	var mirror := Control.new()
-	mirror.custom_minimum_size = Vector2(LABEL_WIDTH, 0)
-	mirror.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(mirror)
 	return row
 
 ## 2択の行＝項目名＋横並びの木の板。options＝[[id, 文字]]。translated＝文字を翻訳キーとして引くか
@@ -219,7 +217,7 @@ func _choice_row(row_id: String, label_key: String, options: Array, translated: 
 		buttons[id] = b
 	_choice_frames[row_id] = frames
 	_choice_buttons[row_id] = buttons
-	return _finish_row(row)
+	return row
 
 ## 音量の行＝項目名＋つまみ（0〜100）＋数値の欄。同じ値を2つの部品で持ち、片方を動かすともう片方が追う。
 ## 細かく合わせたいときは欄に直に打つ（doc/gdd/settings.md 音量）。
@@ -249,7 +247,7 @@ func _volume_row(bus: String, label_key: String) -> Control:
 	_sliders[bus] = slider
 	_spins[bus] = spin
 	_dragging[bus] = false
-	return _finish_row(row)
+	return row
 
 ## 選択中の板にだけ縁を出す。沈んだ板（dim_wood_button）は「押せるが選べない」を表す形なので使わない。
 func _mark_choice(row_id: String, selected: String) -> void:
