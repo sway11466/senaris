@@ -12,6 +12,10 @@ signal closed(phase: String)
 ## 畳んでいて会話を出さないイベントで、カメラ寄せを見せ切ったことを知らせる
 ## （AIターンの待ち＝await_dialogue が、会話の代わりにこれを待つ）。
 signal event_skip_finished
+## イベントの会話板をこれから出す（カメラ寄せの前）。寄せは会話板が出る前に走るので、main は
+## これを受けて「出る予定の板」を可視域から外す＝寄せ先が会話板の裏にならない
+## （情報板を畳んで「会話のみ表示する」のとき。doc/gdd/uiux.md カメラの可視域）。
+signal talk_opening
 
 var _board: HexBoard3D = null
 var _info_panel: UnitInfoPanel = null
@@ -121,6 +125,7 @@ func on_event_fired(info: Dictionary) -> void:
 		return
 	# 幕より先に phase を立てる＝AIターンの待ち（dialogue_pace）がこの会話を取りこぼさない。
 	_phase = "event"
+	talk_opening.emit()  # 寄せる前に、会話板の出る場所を可視域から外してもらう
 	if not _controller.is_ai_turn():
 		await _board.await_move_animation()  # 駒が歩き切ってから喋る（敵ターンは呼ぶ側が待っている）
 	if bool(info.get("focus", false)):

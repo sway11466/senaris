@@ -337,10 +337,18 @@ func _on_panel_moved(pos: Vector2) -> void:
 ## ここだけなので、変わるたびに UiLayout へ押す。カメラはここでは動かさない＝畳む・開く・動かすで
 ## 見ている場所を失わせない（合わせ直すのはステージを開いたときだけ）。
 func _sync_board_area() -> void:
+	_apply_board_area(_conversation != null and _conversation.visible)
+
+## イベントの会話板をこれから出す（story_director.talk_opening）。板が出る前にカメラ寄せが走るので、
+## 出る予定の板を先に塞いでいる扱いにする。板が出れば visibility_changed で同じ値に押し直される。
+func _on_talk_opening() -> void:
+	_apply_board_area(true)
+
+## talking＝会話板が出ている（または出る直前）。
+func _apply_board_area(talking: bool) -> void:
 	var panel: UnitInfoPanel = $Front/InfoPanel
 	# 板は1枚＝情報板を畳んでいても、「会話のみ表示する」で会話板が出ている間はその板が塞いでいる
 	# （さもないと完走イラスト等の演出が画面全体に広がり、読ませたい会話板を覆う）。
-	var talking: bool = _conversation != null and _conversation.visible
 	var open: bool = talking or not panel.is_minimized()
 	var holds: bool = open and not _settings_store.has_info_panel_position()
 	UiLayout.set_panel_holds_right_box(holds)
@@ -523,6 +531,7 @@ func _install_story() -> void:
 	_story = StoryDirector.new()
 	_story.bind($HexBoard, $Front/InfoPanel, _hud, _screen, _conversation, _turn_banner, _progress, _settings_store)
 	_story.closed.connect(_on_story_closed)
+	_story.talk_opening.connect(_on_talk_opening)
 
 ## 会話終了（読了 or スキップ）。intro・event→戦闘へ戻る、outro→次ステージ or セレクトへ。
 ## review（読み直し）は盤を何も進めない＝director が割り込む前の状態へ戻して終わる。
