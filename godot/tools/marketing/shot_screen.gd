@@ -12,6 +12,8 @@ extends Node
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
 ##   --formation <recipe> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
 ##   --enemy-turn … 敵の手番に渡してから撮る（敵のスキル・敵の攻撃を実機と同じ手番で撮る）
+##   --pre-formation <recipe> --pre-leader c,r --pre-target c,r … 本命の前に技を1つ通し、手番を戻す
+##       （相手が掛けた状態が無いと発動できない技＝ピュリファイ等を撮るため。--enemy-turn と併せて使う）
 ##   --talk N … 会話パートを N 行ぶん進めた状態で撮る（intro を持つステージで使う）
 ##   --select-screen … 盤ではなく酒場の冒険譚選択（依頼ボード）を開いた状態で撮る
 ##   --fresh … 進捗を空の別ファイルに差し替えて撮る（「討伐済」の焼き印が絵に重ならない）
@@ -28,12 +30,15 @@ func _ready() -> void:
 	var frame := PackedInt32Array()
 	var attack := PackedInt32Array()
 	var recipe := ""
+	var pre_recipe := ""
 	var talk := -1
 	var select_screen := false
 	var fresh := false
 	var enemy_turn := false
 	var leader_cell := Vector2i(-1, -1)
 	var target_cell := Vector2i(-1, -1)
+	var pre_leader_cell := Vector2i(-1, -1)
+	var pre_target_cell := Vector2i(-1, -1)
 	var count := 24
 	var interval := 0.12
 	var size := Vector2i(1920, 1080)
@@ -82,16 +87,25 @@ func _ready() -> void:
 		elif a == "--formation" and i + 1 < uargs.size():
 			recipe = uargs[i + 1]
 			i += 2
-		elif a in ["--leader", "--target"] and i + 1 < uargs.size():
+		elif a == "--pre-formation" and i + 1 < uargs.size():
+			pre_recipe = uargs[i + 1]
+			i += 2
+		elif a in ["--leader", "--target", "--pre-leader", "--pre-target"] and i + 1 < uargs.size():
 			var c := uargs[i + 1].split(",")
 			if c.size() != 2:
 				push_error("shot_screen: %s は col,row 形式: %s" % [a, uargs[i + 1]])
 				get_tree().quit(1)
 				return
-			if a == "--leader":
-				leader_cell = Vector2i(int(c[0]), int(c[1]))
-			else:
-				target_cell = Vector2i(int(c[0]), int(c[1]))
+			var cell := Vector2i(int(c[0]), int(c[1]))
+			match a:
+				"--leader":
+					leader_cell = cell
+				"--target":
+					target_cell = cell
+				"--pre-leader":
+					pre_leader_cell = cell
+				_:
+					pre_target_cell = cell
 			i += 2
 		elif a == "--count" and i + 1 < uargs.size():
 			count = int(uargs[i + 1])
@@ -154,6 +168,17 @@ func _ready() -> void:
 		# AI を外してからターンを渡す＝敵の手番に入っても思考が走らず、組んだ配置が動かない
 		# （is_ai_turn は ai_brain を見る）。盤・ターン板は実機の敵ターンと同じ状態になる。
 		main._controller.ai_brain = null
+		main._controller.end_turn()
+		for f in 12:
+			await get_tree().process_frame
+
+	if pre_recipe != "":
+		# 前段＝本命の前に技を1つ通す。相手が掛けた状態が無いと発動できない技（ピュリファイ）は、
+		# 盤の初期配置では作れない＝ステージJSONが駒に書けるのは troops と level だけのため。
+		# 通し終えたら手番を戻す＝この後の本命は、掛けられた側の陣営の手番で撮ることになる。
+		if not await _fire_recipe(main, pre_recipe, pre_leader_cell, pre_target_cell):
+			get_tree().quit(1)
+			return
 		main._controller.end_turn()
 		for f in 12:
 			await get_tree().process_frame
@@ -253,3 +278,31 @@ func _ready() -> void:
 	var err := img.save_png(out)
 	print("SHOT_SAVED err=", err, " path=", out, " size=", img.get_size())
 	get_tree().quit(0 if err == OK else 1)
+
+
+## 技を1つ通し、演出が閉じるまで待つ（前段の1手ぶん）。連写はしない＝撮るのは本命だけ。
+## 陣形スキルとユニットスキルは同じ経路（Formation.available_for → execute_formation）で通る。
+func _fire_recipe(main: Node, recipe: String, leader_cell: Vector2i, target_cell: Vector2i) -> bool:
+	var st: Variant = main._controller.state
+	var lead: Variant = st.unit_at(Hex.offset_to_axial(leader_cell.x, leader_cell.y))
+	if lead == null:
+		push_error("shot_screen: --pre-leader の指定マスに駒が居ない")
+		return false
+	var picked: FormationOption = null
+	for o in Formation.available_for(st, lead):
+		if o.recipe == recipe:
+			picked = o
+			break
+	if picked == null:
+		push_error("shot_screen: %s が発動できない（レシピの並びと射程・手番を確認）" % recipe)
+		return false
+	if not main._controller.execute_formation(FormationCommand.new(picked, Hex.offset_to_axial(target_cell.x, target_cell.y))):
+		push_error("shot_screen: 前段のスキルが通らない")
+		return false
+	for f in 6:  # 演出が立ち上がるまで（visible になる前に抜けると待たずに進む）
+		await get_tree().process_frame
+	if main._combat_scene != null and main._combat_scene.visible:
+		await main._combat_scene.finished
+	for f in 12:
+		await get_tree().process_frame
+	return true
