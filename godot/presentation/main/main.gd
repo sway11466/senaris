@@ -419,11 +419,14 @@ func _on_battle_finished(outcome: int) -> void:
 		if not outro.is_empty() and _story.shows_dialogue():
 			# 冒険譚を完走した回だけ、盤の代わりに勝利イラストを敷いて outro を読ませる
 			# （絵を見せ終えてから会話、ではなく絵の前で会話＝フィナーレを一続きにする）。
-			if _should_show_victory():
-				_victory_overlay = true
-				_victory_screen.play_over_board(_victory_path())
+			# 順序は会話板→絵。絵は敷く瞬間の盤エリアに収まるので、会話板を先に出して
+			# 盤エリアを右ボックスの左へ押してから敷く（畳んでいて会話だけ出す設定で、絵が会話板を覆わない）。
+			var show_victory := _should_show_victory()
 			var label := "ui.talk.next_stage" if not _next_playable_stage().is_empty() else "ui.talk.close"
 			_story.start_outro(outro, label)  # 読了/スキップで次ステージ or セレクトへ（_on_story_closed）
+			if show_victory:
+				_victory_overlay = true
+				_victory_screen.play_over_board(_victory_path())
 		else:
 			_advance_or_select()  # 会話なし＝すぐ次へ（テンポ優先）
 	else:
