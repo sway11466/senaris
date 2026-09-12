@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=113 / refactoring=15.
+次回採番: bug=6 / feature=114 / refactoring=15.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -193,6 +193,15 @@
 - 対応：(1) ステージ JSON `cult-stirrings-st6.json`＝床下の階段から母屋の廊下へ、両脇に私兵の部屋（待ち伏せ・索敵2）、廊下の先に中庭、2階の回廊に投石3（待ち伏せ）、中庭に私兵頭1（突撃）、中庭の先に祈り所（拠点・`team: enemy`・`rest: player`）と渡り廊下の扉（敵hq・`rest: enemy`）、その手前に見習い教徒3（突撃）と術者2（睨み合い）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`capture_hq` か殲滅、敗北＝全滅、`turn_limit` 20。(2) `campaign.json` に st6 を足す（解放条件＝st5 クリア・`interlude: continuous`）。(3) 翻訳 CSV＝`campaigns.csv`（st6 の題）と `dialogue.csv`（戦闘前・戦闘後の台本）。(4) 地形スキン＝別荘の床（絨毯＝`road` か `plain` の見た目違い）・別荘の壁（`wall` 型）・中庭（`plain` の見た目違い）・2階の回廊（`plateau` の見た目違い＝撃ち下ろす高み）・祈り所（`fort` 型の見た目違い）・渡り廊下の扉（`fort` 型の見た目違い）。
 - 考慮外：st7。使用人などの支援ユニット（出さない）。
 - 該当：`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/terrain/terrain_skin.csv`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜110。
+
+### feature-113
+
+**邪神三部作 第1部 st7「離れの決戦」のステージ実装（twingods1-7）**
+- ゴール：第1部が st1 から st7 まで通しで遊べる（連戦の一行7人が離れに踏み込み、壁と高みに守られた邪神官を落として幕。完走の勝利絵と outro）。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st7 が設計・台本まで決まった。ボス撃破（`defeat_unit`）・待ち伏せ・睨み合い・突撃・台地は既存。無いのは敵スキン2つと離れの地形スキン。
+- 対応：(1) 敵スキン「邪教兵」（type `novice`・`cult_soldier`）と「商人」（type `civilian`・`merchant`＝有力者。攻撃0の非戦闘員で、倒れる＝取り押さえた）を `unit_skin.csv` に足す。絵は仮でよい。(2) ステージ JSON `cult-stirrings-st7.json`＝渡り廊下から離れの一室へ。奥の祭壇に邪神官（`actor: cult_priest`・`standoff`）、左右の台地に邪教徒3（`standoff`）、手前に邪教兵4（`ambush`・索敵1）、邪教見習い2（`charge`）、祭壇の脇に商人（`actor: patron`・`ambush`・索敵0）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`defeat_unit`（cult_priest）のみ、敗北＝全滅、`turn_limit` 20。逃げ切り拠点は置かない。(3) `campaign.json` に st7 を足す（解放条件＝st6 クリア・`interlude: continuous`）。(4) 翻訳 CSV＝`campaigns.csv`（st7 の題・冒険譚の説明）と `dialogue.csv`（戦闘前・戦闘後の台本・話者「邪神官」「有力者」「有力者の娘」＝町娘のスキンの顔を流用）。(5) 地形スキン＝離れの床・壁・祭壇（st5 の祭壇と同じでよい）・高み（`plateau` の見た目違い）。(6) 完走の勝利絵 `{id}_victory.png` と扉絵 `{id}_cover.png`（[keyvisual.md](art/keyvisual.md)）は別途。
+- 考慮外：第2部。有力者を勝敗条件に入れること。
+- 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧は記入済み。実装後に数を合わせる）。前提＝feature-106〜110・112。
 
 ## リファクタリング
 
