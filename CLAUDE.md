@@ -48,7 +48,8 @@
 - [doc/gdd/ai.md](doc/gdd/ai.md) — 敵AI（特性ごとの行動開始条件・行動ルール・部隊割り当て）
 - [doc/gdd/rank.md](doc/gdd/rank.md) — 評価ランク（S/A/B の判定・閾値・記録）
 - [doc/gdd/uiux.md](doc/gdd/uiux.md) — UI/UX 操作モデル（選択→移動→コマンド・デバイス別操作・カメラ）
-- [doc/gdd/world.md](doc/gdd/world.md) — 世界観・設定
+- [doc/gdd/worldbuilding.md](doc/gdd/worldbuilding.md) — 世界の作り方（役割で世界を見せる＝固有名を持たせない・陣営の色付け・国は厚い組織と主神で描く・世界地図は描かない）
+- [doc/gdd/world.md](doc/gdd/world.md) — 世界観・設定（国・神々・種族・脅威）
 
 ### 冒険譚（キャンペーン） — `campaign/`
 
