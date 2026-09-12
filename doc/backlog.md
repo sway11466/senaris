@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=106 / refactoring=15.
+次回採番: bug=6 / feature=112 / refactoring=15.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -131,6 +131,60 @@
 - 対応：`UiLayout.board_area` を板の状態（既定の場所で開いているか）で切り替える。ターン終了ボタンは盤エリアから外し、板の既定の矩形のすぐ左に固定する。戦果票は元から画面中央＝変更なし。
 - 該当：`godot/presentation/ui/ui_layout.gd`・`godot/presentation/board/hex_board_3d.gd`（`_vis_rect`）・`godot/presentation/ui/hud.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/formation/formation_cutin.gd`・`godot/presentation/victory/victory_screen.gd`。
 
+### feature-106
+
+**邪神三部作 第1部 st1「路地の人さらい」のステージ実装（twingods1-1）**
+- ゴール：第1部の st1 が通しで遊べる（会話→路地の盤で娘を守り切る→会話）。娘が倒れたら敗北になり、一行7人がクリア時に名簿へ載る。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st1 が設計・台本まで決まった。護衛対象の敗北条件（`lose_unit`）と弱者狙い（`predator`）は実装済みだが、娘を置く型と人さらいの絵、冒険譚の器（フォルダ・マニフェスト・ボード）が無い。
+- 対応：(1) 新 type `civilian`（攻0／防10／移3／射程0／占領不可／兵数1）を `unit_type.csv` に足し、ally スキン「娘」を `unit_skin.csv` に足す。(2) 敵スキン「人さらい」（type `novice`）を足す。新 type `lancer`（40／0／貫通0／防40／移5／歩行／射程1-2／占領不可＝[twingods.md](campaign/twingods.md) ランサー）と ally スキン「ランサー」を足す。娘・人さらい・ランサーの絵は仮でよい。(3) 冒険譚フォルダ `godot/data/stages/twingods1-cult-stirrings/` と `campaign.json`（board は新設 `twingods`＝[stage_select.md](gdd/stage_select.md) シリーズボードの表とコードの定数に行を足す）。(4) ステージ JSON `cult-stirrings-st1.json`＝路地の盤（壁で区切った幅2の路地・北の広場・南西の酒場）、一行7人（`actor`＋`supply: "join"`）、娘（`actor: girl`）、人さらい4体を2部隊（`predator`）、勝利＝殲滅、敗北＝`lose_unit`（girl）、`turn_limit` 15。距離の目安は設計ドキュメントのとおり（初手の敵ターンでは届かず、2ターン目で届く）。(5) 翻訳 CSV＝`campaigns.csv`（冒険譚名・説明・st1 の題）と `dialogue.csv`（戦闘前・戦闘後の台本・話者名）。(6) 効果音 `scream`（悲鳴）の素材調達と発火点（[sfx.md](audio/sfx.md)）。(7) 地形スキン＝路地の絵にする2つ（町家の壁＝`wall` 型・酒場＝`building` 型）を `terrain_skin.csv` に足す。露店（`prop` 型）と北門（`road` 型の見た目違い）は任意。地形タイプは既存（壁・道・街区・石畳）で足りる。
+- 考慮外：st2 以降の盤・台本。
+- 該当：`godot/data/units/unit_type.csv`・`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`godot/presentation/select/campaign_select.gd`（ボード定数）・`doc/gdd/stage_select.md`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。
+
+### feature-107
+
+**邪神三部作 第1部 st2「倉庫の奇襲」のステージ実装（twingods1-2）**
+- ゴール：第1部の st2 が st1 から続けて遊べる（名簿から一行7人が出て、衛士4人が加わり、倉庫の敵13体を殲滅して会話へ）。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st2 が設計・台本まで決まった。待ち伏せ（`ambush`）・突撃（`charge`）・敵側バリケードは既存で、無いのは敵スキンと倉庫の地形スキン。冒険譚の器（フォルダ・マニフェスト・ボード）は feature-106 が作る。
+- 対応：(1) 敵スキン「人さらいの投石」（type `slinger`）・「人さらいの頭」（type `vanguard`）・「積み荷」（type `barricade`・崩せる荷）を `unit_skin.csv` に足す。絵は仮でよい。(2) ステージ JSON `cult-stirrings-st2.json`＝西の入口から東の奥へ幅3の通路、両脇に積み荷の塊（`rock` 型）と北南で対になる窪み。一行7人は `actor` のみ（名簿から）、衛士4人（ノービス2・アーチャー2）は `actor` 無しの配給。敵は窪みの対ごとに待ち伏せ部隊（人さらい2＋投石1・索敵2）×3、奥に突撃2、頭1（索敵小・最後の order）、崩せる積み荷を北列と南列に各1〜2か所。勝利＝殲滅、敗北＝全滅、`turn_limit` 20。(3) `campaign.json` に st2 を足す（解放条件＝st1 クリア）。(4) 翻訳 CSV＝`campaigns.csv`（st2 の題）と `dialogue.csv`（戦闘前・戦闘後の台本・話者「衛士」「人さらいの頭」）。(5) 地形スキン＝倉庫の床（`plain` か `road` の見た目違い）と倉庫の壁（`wall` 型）。積み荷の塊は `rock` 型の見た目違いで1つ。
+- 考慮外：st3 以降。人さらいの頭の撤退（`withdraw`）は使わない（殲滅で決着する盤）。
+- 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106。
+
+### feature-108
+
+**邪神三部作 第1部 st3「集会の館」のステージ実装（twingods1-3）**
+- ゴール：第1部の st3 が st2 から続けて遊べる（一行7人で大広間へ踏み込み、神官が裏口へ走って消え、説教壇の占領か殲滅で決着して会話へ）。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st3 が設計・台本まで決まった。群れ（`swarm`）・睨み合い（`standoff`）・逃走（`flee`）・敵hq占領・戦闘中の会話イベントは既存。無いのは「逃げ切り拠点」の仕組みと、敵スキン・館の地形スキン。
+- 対応：(1) **逃げ切り拠点**＝`bases[]` に任意の印（仮 `exit: true`）を足す。その拠点に敵の駒が入ると盤から消え、控え（garrison）にも残らない。占領できない（味方は入れない）。殲滅の判定（盤上＋復帰手段）に影響しない。仕様は [map.md](gdd/map.md) 拠点の値に1項目足し、`Base`・`BattleState` の入る処理と `StageLoader` で受ける。デバッグステージを `debug-victory/` か `debug-ai/` に1枚。(2) 敵スキン「見習い教徒」（type `cleric`）・「術者」（type `mage`）・「神官」（type `witch`）を `unit_skin.csv` に足す。絵は仮でよい。神官は st5・st7 でも使う。(3) ステージ JSON `cult-stirrings-st3.json`＝南の正門と西の扉から入る大広間、南寄りに柱の列（進入不可）、北に説教壇（敵hq・`rest: enemy`）、その背後に裏口（逃げ切り拠点）。一行7人は `actor` のみ。敵は見習い教徒10（`swarm`）・術者3（`standoff`）・神官1（`flee`・`retreat` 0・裏口まで2〜3マス）。勝利＝`capture_hq` か殲滅、敗北＝全滅、`turn_limit` 20。3ターン目の自軍ターン頭に `talk` イベント（`name` 付き・`focus` で裏口へ寄せる）。(4) `campaign.json` に st3 を足す（解放条件＝st2 クリア）。(5) 翻訳 CSV＝`campaigns.csv`（st3 の題）と `dialogue.csv`（戦闘前・戦闘中・戦闘後の台本・話者「神官」「見習い教徒」・イベントの見出し）。(6) 地形スキン＝館の床（`plain` か `road` の見た目違い）・館の壁（`wall` 型）・柱（`rock` 型の見た目違い）・説教壇（`fort` 型の見た目違い）・裏口（`fort` 型の見た目違い）。
+- 考慮外：st4 以降。神官を捕まえられる盤にはしない（距離で必ず逃げ切る）。
+- 該当：`doc/gdd/map.md`・`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/application/stage_loader.gd`（拠点の読み込み）・`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106・107。
+
+### feature-109
+
+**邪神三部作 第1部 st4「下水道の縄張り」のステージ実装（twingods1-4）**
+- ゴール：第1部の st4 が st3 から続けて遊べる（兵を戻さない連戦で一行7人が下水へ降り、盗賊3人が加わり、水路の盤を抜けて奥の扉を押さえて会話へ）。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st4 が設計・台本まで決まった。群れ（`swarm`）・突撃（`charge`）・待ち伏せ（`ambush`）・睨み合い（`standoff`）・敵hq占領・飛行・瓦礫（軽歩行だけ越える）・川と橋はすべて既存。無いのはスキンと下水の地形スキン。
+- 対応：(1) 敵スキン「大ネズミ」（type `scout`）・「地下コウモリの群れ」（type `birdman`）と、ally スキン「盗賊」（type `scout`）を `unit_skin.csv` に足す。絵は仮でよい。(2) ステージ JSON `cult-stirrings-st4.json`＝南の格子から北の奥の扉（敵hq・`rest: enemy`）へ。中央を水路（`river`）が縦に走り、橋2本で両岸をつなぐ。西に瓦礫（`rubble`）の抜け道、東に脇部屋。西岸の中ほど（最初の橋の先）に味方所有の拠点「盗賊のアジト」（`team: player`・`rest: player`・回復拠点）。一行7人は `actor` のみ（`supply` 無し＝連戦）、盗賊3人（スカウト2・ハーフリング1）は `actor` 無しの配給。敵は大ネズミ4（`swarm`・東の脇部屋）、コウモリ3（`charge`・水路の上）、見張り＝見習い教徒4（`ambush`）＋術者2（`standoff`・扉の前）。勝利＝`capture_hq` か殲滅、敗北＝全滅、`turn_limit` 20。(3) `campaign.json` に st4 を足す（解放条件＝st3 クリア）。(4) 翻訳 CSV＝`campaigns.csv`（st4 の題）と `dialogue.csv`（戦闘前・戦闘後の台本・話者「盗賊」）。(5) 地形スキン＝下水の足場（`road` か `plain` の見た目違い）・下水の壁（`wall` 型）・水路（`river` の見た目違い＝汚水）・下水の橋（`bridge` の見た目違い）・崩れた抜け道（`rubble` の見た目違い）・奥の扉（`fort` 型の見た目違い）・盗賊のアジト（`fort` 型の見た目違い）。
+- 考慮外：st5 以降。3人の名簿への加入（載せない）。
+- 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜108。
+
+### feature-110
+
+**邪神三部作 第1部 st5「下水道の祭壇」のステージ実装（twingods1-5）**
+- ゴール：第1部の st5 が st4 から続けて遊べる（一行7人と選別中の娘3人が盤に居て、娘を南の扉へ逃がしながら祭壇を押さえ、神官は隠し扉へ消え、会話へ）。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st5 が設計・台本まで決まった。弱者狙い（`predator`）・睨み合い（`standoff`）・逃走（`flee`）・護衛対象の喪失（`lose_unit`）・敵hq占領・台地は既存。逃げ切り拠点は feature-108 が敵側で作る。ここでは味方側にも効かせる。
+- 対応：(1) 逃げ切り拠点（`exit`）を味方の駒にも効かせる＝南の扉に娘が入ると盤から消える（名簿にも残らない）。敵側と同じ印で、入った駒の陣営を問わない形にする。消えた駒は `lose_unit` の対象から外れる（倒れたのではない）。(2) ステージ JSON `cult-stirrings-st5.json`＝南の扉（味方側の逃げ切り拠点）から北の祭壇（敵hq・`rest: enemy`）へ。祭壇と両脇に台地（`plateau`）、登り口は幅1、左右に石柱で仕切った回廊。隠し扉（敵側の逃げ切り拠点）は祭壇の背後。一行7人は `actor` のみ（連戦・`supply` 無し）。娘3人は `civilian`・`actor: girl1`〜`girl3`・祭壇の前。敵は見習い教徒6（`predator`・娘から3マス以上離す）、術者3（`standoff`・両脇の台地）、神官1（`flee`・`retreat` 0）。湧き無し。勝利＝`capture_hq` か殲滅、敗北＝全滅と `lose_unit` を娘ごとに3条件、`turn_limit` 20。3ターン目の自軍ターン頭に `talk` イベント（`focus` で隠し扉へ）。(3) `campaign.json` に st5 を足す（解放条件＝st4 クリア）。(4) 翻訳 CSV＝`campaigns.csv`（st5 の題）と `dialogue.csv`（戦闘前・戦闘中・戦闘後の台本・話者「娘」「盗賊」「神官」）。(5) 地形スキン＝石室の床（`plain` の見た目違い）・石室の壁（`wall` 型）・高み（`plateau` の見た目違い）・石柱（`rock` 型の見た目違い）・祭壇（`fort` 型の見た目違い）・隠し扉（st3 の裏口と同じでよい）。
+- 考慮外：st6 以降。娘を勝利条件に入れること（外へ出すのは手段）。
+- 該当：`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/domain/victory/victory.gd`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/terrain/terrain_skin.csv`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map.md`（逃げ切り拠点の陣営の扱い）・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜109。
+
+### feature-111
+
+**幕間の印と挿絵（連戦／休息／復帰をプレイヤーに知らせる）**
+- ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かり、連続プレイでは休息と復帰のときだけ一枚絵で知らされる。
+- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st5 が連戦）が最初の使い手。
+- 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗＝[icons.md](art/icons.md)）。(3) 戦闘後の自動遷移（[main.gd](../godot/presentation/main/main.gd)）で、次の `interlude` が `rest`／`revive` なら次の intro の前に挿絵＋一文を挟む。挿絵2枚（[keyvisual.md](art/keyvisual.md)）、文は翻訳キー。セレクトから直接始めたときは挟まない。(4) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
+- 考慮外：独立（各話配給）の冒険譚への印（出さない）。
+- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）。
+
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
@@ -138,3 +192,5 @@
 ## parking lot
 
 後回し・いつかやる候補の置き場（特定の作業に紐付かない将来アイデア）。着手が決まった段で機能追加・リファクタリングへ引き上げる。
+
+- **隠し駒（視線に入るまで盤に出ない敵）。** 荷の陰・物陰に潜む敵を、味方の索敵に入るまで盤に出さない。出た瞬間は動かず、次の敵ターンから襲う＝1発は必ず受けるが、受けるのは兵数だけ。確定ゲームの方針（[ai.md](gdd/ai.md) 特性と部隊はプレイヤーに見せる）に穴を開けるので、入れるなら条件を守る＝食らっても駒を失わない／覚えた後にも選択が残る／やり直しが安い／潜んでいたことが物語の絵になる／冒険譚の中で1回だけの手口にする。戦闘前の会話で警告を1行置く。実装は駒の不可視・視線で露見・露見まで AI が動かない・描画の4点。邪神三部作 第1部 st2（倉庫）の検討で出た案。今回は見送り、崩せる積み荷（既存のバリケード型）で代替した。
