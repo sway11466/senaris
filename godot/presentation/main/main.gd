@@ -336,10 +336,19 @@ func _on_panel_moved(pos: Vector2) -> void:
 ## 見ている場所を失わせない（合わせ直すのはステージを開いたときだけ）。
 func _sync_board_area() -> void:
 	var panel: UnitInfoPanel = $Front/InfoPanel
-	var holds: bool = not panel.is_minimized() and not _settings_store.has_info_panel_position()
+	# 板は1枚＝情報板を畳んでいても、「会話のみ表示する」で会話板が出ている間はその板が塞いでいる
+	# （さもないと完走イラスト等の演出が画面全体に広がり、読ませたい会話板を覆う）。
+	var talking: bool = _conversation != null and _conversation.visible
+	var open: bool = talking or not panel.is_minimized()
+	var holds: bool = open and not _settings_store.has_info_panel_position()
 	UiLayout.set_panel_holds_right_box(holds)
-	# カメラは板がどこにあっても裏を避ける＝いまの矩形をそのまま渡す（畳んでいれば空＝塞いでいない）。
-	UiLayout.set_panel_rect(Rect2() if panel.is_minimized() else Rect2(panel.position, panel.size))
+	# カメラは板がどこにあっても裏を避ける＝いま出ている板の矩形をそのまま渡す（何も出ていなければ空）。
+	var rect := Rect2()
+	if talking:
+		rect = Rect2(_conversation.position, _conversation.size)
+	elif not panel.is_minimized():
+		rect = Rect2(panel.position, panel.size)
+	UiLayout.set_panel_rect(rect)
 
 ## 残りターン（増援の予告）を情報パネルへ流し込む。未発生のイベントが無ければ行が隠れる。
 ## 仕様 → doc/gdd/uiux.md 残りターン
@@ -499,6 +508,8 @@ func _install_conversation() -> void:
 	_conversation.size = UiLayout.RIGHT_BOX.size
 	_conversation.position = $Front/InfoPanel.position
 	_conversation.moved.connect(_on_panel_moved)
+	# 会話板の出入りでも盤エリアを押し直す＝畳んでいて会話だけ出す設定のとき、会話中は板が塞ぐ側になる。
+	_conversation.visibility_changed.connect(_sync_board_area)
 	_conversation.bind(_skins)
 	$Front.add_child(_conversation)
 
