@@ -29,6 +29,7 @@ var _context := StageContext.new()
 var _progress: CampaignProgress = null
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _save: SaveCoordinator = null  # 中断セーブ／オートセーブの段取り（枠・一覧・復元）。仕様 → doc/tech/gamesystem.md
+var _save_panel: SaveSlotPanel = null  # 枠一覧（セーブ/ロード共通）。盤を覆う画面の一つとして表示を見張る
 var _select: SelectScreen = null
 var _title: TitleScreen = null  # 起動時のタイトル画面（酒場の扉）。閉じたらセレクトを開く
 var _settings: SettingsScreen = null  # 設定画面（タイトルに重ねて開く）。仕様 → doc/gdd/settings.md
@@ -120,6 +121,7 @@ func _ready() -> void:
 	_install_settings()  # 設定画面。タイトルから開くので、タイトルより前に用意
 	_install_manual()  # マニュアル。同上
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
+	_install_board_cover()  # 盤を覆う画面が全部揃ってから＝どれかが出ている間は盤に入力を通さない
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
 ## ステージ配置（player の actor 突き合わせ）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/campaigns.md
@@ -729,7 +731,8 @@ func _on_debug_event_requested(index: int) -> void:
 # --- 中断セーブ／オートセーブ（段取り＝presentation/main/save_coordinator.gd）。仕様 → doc/tech/gamesystem.md ---
 func _install_save() -> void:
 	_save = SaveCoordinator.new()
-	add_child(_save.install_slot_panel())  # 枠一覧（セーブ/ロード共通）
+	_save_panel = _save.install_slot_panel()  # 枠一覧（セーブ/ロード共通）
+	add_child(_save_panel)
 	_save.saved.connect(_on_saved)
 	_save.restored.connect(_on_save_restored)
 
@@ -757,6 +760,19 @@ func _on_save_restored(state: BattleState, path: String, meta: Dictionary) -> vo
 		_title_pending = false  # 以後は盤の曲が主＝ざわめきのガードを解く
 		_title.close()
 	_install_state(state, path)  # 盤・進行役を保存状態で据える（intro なし）
+
+## 盤を覆う画面（タイトル・セレクト・設定・マニュアル・セーブ枠一覧）のどれかが出ている間は、盤に入力を
+## 通さない（doc/gdd/uiux.md デバイス別 操作表）。各画面の根はマウスを止めるが鍵盤は止まらず盤へ落ちる
+## ＝Esc でシステムメニューが開き、Enter でターンが終わり、Space で情報板が畳まれる。
+## 画面ごとに鍵盤を食う作りにはしない＝重なり順（設定はタイトルの上）に依存して Esc の取り合いになる。
+func _install_board_cover() -> void:
+	for screen in [_title, _select, _settings, _manual, _save_panel]:
+		screen.visibility_changed.connect(_sync_board_cover)
+	_sync_board_cover()
+
+func _sync_board_cover() -> void:
+	$HexBoard.set_covered(_title.visible or _select.visible or _settings.visible
+			or _manual.visible or _save_panel.visible)
 
 # --- セレクト画面（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
 func _install_select() -> void:

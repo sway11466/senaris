@@ -245,8 +245,10 @@ func _on_back_to_title() -> void:
 func refresh_labels() -> void:
 	_to_menu.text = tr("ui.select.menu")
 
+## visible でなく is_visible_in_tree＝SelectScreen ごと畳まれている間（タイトルやセーブ枠一覧の下）に
+## 自分の visible が立ったまま残るので、それを見ると畳まれた画面が Esc を横取りする。
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed("ui_cancel"):
+	if is_visible_in_tree() and event.is_action_pressed("ui_cancel"):
 		_on_back_to_title()
 		get_viewport().set_input_as_handled()
 

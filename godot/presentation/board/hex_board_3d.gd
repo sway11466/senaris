@@ -77,6 +77,7 @@ var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
+var _covered := false    # 盤の上に画面（タイトル・依頼ボード・設定…）が出ている＝入力を受けない（set_covered で制御）
 var _move_voice: AudioStreamPlayer = null  # 進行中の移動音の口（続く型のループ／周期の型の直近の一打）。到着・中断で止める
 var _move_voice_sfx := ""                  # その素材ID（止めるときの照合とフェード秒の取得に使う）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
@@ -190,6 +191,12 @@ func _reset_interaction() -> void:
 func set_input_locked(v: bool) -> void:
 	_frozen = v
 
+## 盤の上に画面（タイトル・依頼ボード・設定・マニュアル・セーブ枠一覧）が出ている間は入力を受けない。
+## 各画面の根はマウスを止めるが鍵盤は止まらず盤へ落ちる＝Esc がシステムメニューを開き、Enter が
+## ターンを終え、Space が情報板を畳む。何か出ているかは main が画面の表示の変化ごとに伝える。
+func set_covered(v: bool) -> void:
+	_covered = v
+
 ## 盤の見た目を今の状態から作り直す（外からの強制更新）。
 ## 通常の更新は controller のイベント（移動・攻撃・出撃…）で走るので、それを経ない状態変更＝
 ## デバッグメニューの「敵を殲滅」だけがこれを呼ぶ。仕様 → doc/gdd/uiux.md
@@ -223,6 +230,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _frozen:
 		return  # 会話中＝盤の入力を全て止める（スクロールを会話エリアだけに閉じる）
+	if _covered:
+		return  # 上に画面が出ている＝鍵盤を含め全て止める（set_covered）
 	# --- カメラ（パン/ズーム/全体表示）。AIターン・決着後も見渡せるよう常時受ける。---
 	if _handle_camera_scroll(event):
 		return

@@ -110,14 +110,24 @@ func _ready() -> void:
 	var footer := HBoxContainer.new()
 	vbox.add_child(footer)
 	_back = TavernTheme.back_button(tr("ui.select.back_tales"))
-	_back.pressed.connect(func() -> void:
-		SfxPlayer.play_event("menu_back")
-		back_requested.emit())
+	_back.pressed.connect(_on_back)
 	footer.add_child(_back)
 
 	_briefing = QuestSheet.new()
 	_briefing.confirmed.connect(_on_sortie)
 	add_child(_briefing)
+
+func _on_back() -> void:
+	SfxPlayer.play_event("menu_back")
+	back_requested.emit()
+
+## Esc は「← 冒険譚」と同じ入口（doc/gdd/stage_select.md 画面の骨格）。依頼書が出ているときは
+## 依頼書が先に受けて閉じる（木の札は焦点を持たないので、鍵盤はここまで降りてくる）。
+## visible でなく is_visible_in_tree（campaign_select.gd と同じ理由）。
+func _unhandled_input(event: InputEvent) -> void:
+	if is_visible_in_tree() and not _briefing.visible and event.is_action_pressed("ui_cancel"):
+		_on_back()
+		get_viewport().set_input_as_handled()
 
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
 ## 貼り紙の行は開くたびに組み直すので、起動時から生き続けるのは戻るボタンだけ。
