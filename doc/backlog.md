@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=111 / refactoring=15.
+次回採番: bug=6 / feature=112 / refactoring=15.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -175,6 +175,15 @@
 - 対応：(1) 逃げ切り拠点（`exit`）を味方の駒にも効かせる＝南の扉に娘が入ると盤から消える（名簿にも残らない）。敵側と同じ印で、入った駒の陣営を問わない形にする。消えた駒は `lose_unit` の対象から外れる（倒れたのではない）。(2) ステージ JSON `cult-stirrings-st5.json`＝南の扉（味方側の逃げ切り拠点）から北の祭壇（敵hq・`rest: enemy`）へ。祭壇と両脇に台地（`plateau`）、登り口は幅1、左右に石柱で仕切った回廊。隠し扉（敵側の逃げ切り拠点）は祭壇の背後。一行7人は `actor` のみ（連戦・`supply` 無し）。娘3人は `civilian`・`actor: girl1`〜`girl3`・祭壇の前。敵は見習い教徒6（`predator`・娘から3マス以上離す）、術者3（`standoff`・両脇の台地）、神官1（`flee`・`retreat` 0）。湧き無し。勝利＝`capture_hq` か殲滅、敗北＝全滅と `lose_unit` を娘ごとに3条件、`turn_limit` 20。3ターン目の自軍ターン頭に `talk` イベント（`focus` で隠し扉へ）。(3) `campaign.json` に st5 を足す（解放条件＝st4 クリア）。(4) 翻訳 CSV＝`campaigns.csv`（st5 の題）と `dialogue.csv`（戦闘前・戦闘中・戦闘後の台本・話者「娘」「盗賊」「神官」）。(5) 地形スキン＝石室の床（`plain` の見た目違い）・石室の壁（`wall` 型）・高み（`plateau` の見た目違い）・石柱（`rock` 型の見た目違い）・祭壇（`fort` 型の見た目違い）・隠し扉（st3 の裏口と同じでよい）。
 - 考慮外：st6 以降。娘を勝利条件に入れること（外へ出すのは手段）。
 - 該当：`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/domain/victory/victory.gd`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/terrain/terrain_skin.csv`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map.md`（逃げ切り拠点の陣営の扱い）・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜109。
+
+### feature-111
+
+**幕間の印と挿絵（連戦／休息／復帰をプレイヤーに知らせる）**
+- ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かり、連続プレイでは休息と復帰のときだけ一枚絵で知らされる。
+- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st5 が連戦）が最初の使い手。
+- 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗＝[icons.md](art/icons.md)）。(3) 戦闘後の自動遷移（[main.gd](../godot/presentation/main/main.gd)）で、次の `interlude` が `rest`／`revive` なら次の intro の前に挿絵＋一文を挟む。挿絵2枚（[keyvisual.md](art/keyvisual.md)）、文は翻訳キー。セレクトから直接始めたときは挟まない。(4) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
+- 考慮外：独立（各話配給）の冒険譚への印（出さない）。
+- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）。
 
 ## リファクタリング
 
