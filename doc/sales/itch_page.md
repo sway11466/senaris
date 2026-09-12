@@ -149,7 +149,7 @@ Reinforcements are not built — they are taken, one fort at a time.
 </ul>
 
 <h2>About this demo</h2>
-<p>This is a free demo that grows. The first build contains the opening campaign, &ldquo;The Goblin Raid&rdquo;, which teaches one idea per stage: movement, terrain, encirclement, support fire, indirect attack, capturing, and baiting an ambush. It also includes one standalone challenge map, built from the same pieces and tuned to hurt. A new campaign chapter is added to the build as it is finished, and each update comes with a devlog explaining the design decision behind it.</p>
+<p>This is a free demo that grows. It currently holds two campaign chapters and one standalone challenge map. The opening chapter, &ldquo;The Goblin Raid&rdquo;, teaches one idea per stage: movement, terrain, encirclement, support fire, indirect attack, capturing, and baiting an ambush. The second chapter, &ldquo;Undead Rush&rdquo;, adds mages, transports and Formation Skills &mdash; special abilities that come alive when specific units stand in a specific shape &mdash; against a horde that keeps climbing out of its graveyards until you take them. The challenge map is built from the same pieces and tuned to hurt. A new chapter is added to the build as it is finished, and each update comes with a devlog explaining the design decision behind it.</p>
 
 <p>Coming to Steam later.</p>
 

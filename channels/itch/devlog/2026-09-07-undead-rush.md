@@ -1,4 +1,4 @@
-公開: 
+公開: https://craftkobo.itch.io/senaris/devlog/1656851/your-special-ability-is-not-always-the-best-move （2026-09-12）
 
 区分: Game Design（投稿画面の Long-form discussion の項。「作るときの判断・過程・学び」を語る枠）。更新の告知が主題に見えると枠から外れるので、章が入ったことは末尾の1行だけにする。
 
