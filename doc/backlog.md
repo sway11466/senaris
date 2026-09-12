@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=112 / refactoring=15.
+次回採番: bug=6 / feature=113 / refactoring=15.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -184,6 +184,15 @@
 - 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗＝[icons.md](art/icons.md)）。(3) 戦闘後の自動遷移（[main.gd](../godot/presentation/main/main.gd)）で、次の `interlude` が `rest`／`revive` なら次の intro の前に挿絵＋一文を挟む。挿絵2枚（[keyvisual.md](art/keyvisual.md)）、文は翻訳キー。セレクトから直接始めたときは挟まない。(4) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
 - 考慮外：独立（各話配給）の冒険譚への印（出さない）。
 - 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）。
+
+### feature-112
+
+**邪神三部作 第1部 st6「別荘の床下から」のステージ実装（twingods1-6）**
+- ゴール：第1部の st6 が st5 から続けて遊べる（連戦の一行7人が床下から別荘へ上がり、寝ている私兵を起こさずに通るか選び、祈り所で休めて、渡り廊下の扉を押さえて会話へ）。
+- 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st6 が設計・台本まで決まった。待ち伏せ・突撃・睨み合い・敵hq占領・拠点の回復（`rest: player`）は既存。敵スキンは st2 の人さらい3種と st3 の邪信徒2種を流用＝新規なし。無いのは別荘の地形スキン。
+- 対応：(1) ステージ JSON `cult-stirrings-st6.json`＝床下の階段から母屋の廊下へ、両脇に私兵の部屋（待ち伏せ・索敵2）、廊下の先に中庭、2階の回廊に投石3（待ち伏せ）、中庭に私兵頭1（突撃）、中庭の先に祈り所（拠点・`team: enemy`・`rest: player`）と渡り廊下の扉（敵hq・`rest: enemy`）、その手前に見習い教徒3（突撃）と術者2（睨み合い）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`capture_hq` か殲滅、敗北＝全滅、`turn_limit` 20。(2) `campaign.json` に st6 を足す（解放条件＝st5 クリア・`interlude: continuous`）。(3) 翻訳 CSV＝`campaigns.csv`（st6 の題）と `dialogue.csv`（戦闘前・戦闘後の台本）。(4) 地形スキン＝別荘の床（絨毯＝`road` か `plain` の見た目違い）・別荘の壁（`wall` 型）・中庭（`plain` の見た目違い）・2階の回廊（`plateau` の見た目違い＝撃ち下ろす高み）・祈り所（`fort` 型の見た目違い）・渡り廊下の扉（`fort` 型の見た目違い）。
+- 考慮外：st7。使用人などの支援ユニット（出さない）。
+- 該当：`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/terrain/terrain_skin.csv`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜110。
 
 ## リファクタリング
 
