@@ -25,7 +25,7 @@
 
 | 冒険譚 | 難易度 | シナリオ | データ |
 |---|---|---|---|
-| [邪神徒の蠢き](twingods1-cult-stirrings.md)（①） | ★★☆☆☆ | ドラフト | 未着手 |
+| [邪神徒の蠢き](twingods1-cult-stirrings.md)（①） | ★★☆☆☆ | 完了（全7話） | 未着手（backlog feature-106〜110・112・113） |
 | [邪神の神殿](twingods2-hidden-temple.md)（②） | ★★★☆☆ | ドラフト | 未着手 |
 | [邪神復活](twingods3-advent.md)（③） | ★★★★★ | ドラフト | 未着手 |
 
