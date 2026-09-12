@@ -464,13 +464,10 @@
   | 積み荷 | barricade | Cargo | `cargo` | st2 |
   | 大ネズミ | scout | Giant Rat | `giant_rat` | st4 |
   | 地下コウモリの群れ | birdman | Cave Bats | `cave_bats` | st4 |
-  | 邪教見習い | cleric | Cult Acolyte | `cult_acolyte` | st3〜st7 |
-  | 邪教兵 | novice | Cult Soldier | `cult_soldier` | st7 |
-  | 邪教徒 | mage | Cultist | `cultist` | st3〜st7 |
-  | 邪神官 | witch | Cult Priest | `cult_priest` | st3・st5・st7 |
+  | 邪教見習い・邪教兵・邪教徒・邪神官 | → [twingods.md](twingods.md) 邪教側の兵 | | | st3〜st7 |
   | 商人（有力者） | civilian | Merchant | `merchant` | st7 |
 
-  邪教側の並びは三部作で共通にする（第2部・第3部で増える分は [twingods.md](twingods.md) にまとめる）。英語名は仮。
+  邪教側の並びは三部作で共通（[twingods.md](twingods.md) 邪教側の兵）。英語名は仮。
 - 会話の登場人物と台本（st1〜st6 は決定済み）
 - 支援ユニットの顔ぶれ（自警団・酒場の傭兵・案内役・館の使用人など）
 - 戦力供給が継承なので、st6 以降の `supply`（兵を満たす `refill` は st2・st3 の頭。st3〜st5 は一晩の連戦で戻らない）。マニフェストの `interlude` は st2・st3＝`rest`、st4・st5＝`continuous`（[../gdd/stage_select.md](../gdd/stage_select.md) 幕間の印）
