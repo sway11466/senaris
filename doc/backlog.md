@@ -180,7 +180,7 @@
 
 **幕間の印と挿絵（連戦／休息／復帰をプレイヤーに知らせる）**
 - ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かり、連続プレイでは休息と復帰のときだけ一枚絵で知らされる。
-- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st5 が連戦）が最初の使い手。
+- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st7 が連戦）が最初の使い手。
 - 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗＝[icons.md](art/icons.md)）。(3) 戦闘後の自動遷移（[main.gd](../godot/presentation/main/main.gd)）で、次の `interlude` が `rest`／`revive` なら次の intro の前に挿絵＋一文を挟む。挿絵2枚（[keyvisual.md](art/keyvisual.md)）、文は翻訳キー。セレクトから直接始めたときは挟まない。(4) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
 - 考慮外：独立（各話配給）の冒険譚への印（出さない）。
 - 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）。
