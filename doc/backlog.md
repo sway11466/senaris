@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=115 / refactoring=15.
+次回採番: bug=6 / feature=116 / refactoring=15.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -93,11 +93,11 @@
 
 ### feature-94
 
-**収集図鑑（名前は未決）**
-- ゴール：出会ったユニットと見たスキルが図鑑に溜まり、まだ埋まっていない枠があることがプレイヤーに分かる。
-- 背景：マニュアル（[manual.md](gdd/manual.md)）は用語と仕組みの説明に徹していて、個々のユニットやスキルの一覧を持たない。個体の性能や見た目を確かめる場と、集める楽しみの受け皿が無い。
-- 対応：載せるのはユニット（味方・敵の両方）とスキル（陣形スキル・ユニットスキル）。プレイで遭遇したものが埋まる形式なので、解放状態をセーブに持つ。【未決】名前・開き口（タイトル画面か、マニュアルの中の章か）・枠が埋まる条件（見た／戦った／使った）・未解放の枠の見せ方。
-- 該当：`doc/gdd/` に新規1本・`godot/presentation/`・解放状態のセーブは [gamesystem.md](tech/gamesystem.md)。
+**クロニクル（設計済み・実装待ち）**
+- ゴール：出会ったユニットと見た陣形スキルが溜まり、冒険譚ごとに戦果・物語（会話の通し読み）・設定集が読める。
+- 背景：マニュアル（[manual.md](gdd/manual.md)）は用語と仕組みの説明に徹していて、個々のユニットやスキルの一覧も物語も持たない。
+- 対応：仕様は [chronicle.md](gdd/chronicle.md) に確定。開き口はタイトルの新項目、記録は `user://chronicle.json`（進捗と別ファイル）、経験した会話は顔ぶれを足す形へ変更（進捗の版上げ）、設定集は `lore.csv`＋マニフェストの `lore`。
+- 該当：`godot/presentation/chronicle/`（新規）・`godot/data/i18n/lore.csv`（新規）・`names.csv` の説明文・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル。
 
 ### feature-95
 
@@ -205,13 +205,26 @@
 
 ### feature-114
 
-**継承の一行を戦闘演出で1体として描く（マニフェスト `actor_lineup`）**
-- ゴール：継承（carryover）の冒険譚で、名簿に載る一行の駒が戦闘演出に1体だけ立ち、兵数は兵量バーで読める。支援ユニット（配給）と敵は隊列のまま＝「一行は個人、軍は隊列」が絵で分かれる。
-- 背景：継承の冒険譚は駒に名前こそ無いが個人として見せているので、戦闘演出で同じ顔が8体並ぶと違和感が出る。演出には既に `single`（1体だけ描き損害は兵量バー）があるが `unit_skin.csv` のスキン単位で、一行のスキンはチュートリアルの兵と共用＝スキンでは切り替えられない。個人として描くかは冒険譚の性質なので、冒険譚のマニフェストで宣言する。
-- 対応：(1) `campaign.json` に `actor_lineup`（`""`＝スキン任せ／`"single"`）を足し、`CampaignCatalog.build` で正規化（`UnitSkin.LINEUPS` で検証）。(2) `UnitSnapshot` に `actor` を写す（`BattleState.unit_snapshot`）。(3) `CombatStage` に `bind_actor_lineup` と `_lineup_of(comb)` を足し、味方（team 0）かつ `actor` 付きなら上書き。隊列を見ている3箇所（`_render_side`・`_textures_for`・`_lead_pos`）をこの1関数経由に寄せる＝戦闘・ユニットスキル・自分掛けが同じ判断を通る。(4) `main.gd` の演出部品への配線に `emblem` と同じ流れで1行ずつ。(5) 上書き時の倍率は 1.0（`SINGLE_SCALE` 1.4 は馬車・竜級のための値。味方の大きさは `combat_scale` で焼き込み済み）。発数は兵数のまま＝集中砲火として読ませ、着弾点は隊列スロットではなく本人の位置へ寄せる。倍率と発数は実機で見てから最終判断。(6) 使う冒険譚＝チュートリアル３「竜狩り」から（`tutorial3-dragon-hunt/campaign.json` に `"actor_lineup": "single"`）。三部作にも同じ1行。(7) `test_campaign_catalog.gd` に既定とパースのテスト。(8) 仕様の追記＝[combat_scene.md](tech/combat_scene.md) 兵数の表示・[stage_select.md](gdd/stage_select.md) マニフェスト・[campaigns.md](gdd/campaigns.md)。
-- 副作用：地形の後ろ絵（玉座など）の立ち位置が本人の位置から決まるので味方側で動く。フラグが効かない経路＝起動時の下敷き・撮影ツール（`shot_combat.gd`・`shot_screen.gd` は冒険譚を通さず戦闘を組む）・devlog 用の並び絵 `build_lineup.py`＝撮影物と実機の見た目が食い違う。撮りたければ各々に引数を足す。
-- 考慮外：スキン単位の `single`（聖女・ユニコーンのように常に1人の駒は従来どおり `unit_skin.csv` で決める）。retinue の上書き。
-- 該当：`godot/data/stages/campaign_catalog.gd`・`godot/domain/unit/unit_snapshot.gd`・`godot/domain/battle_state.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/main/main.gd`・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`・`godot/tests/unit/test_campaign_catalog.gd`。難易度は小〜中（配管は既存の前例どおり。重いのは見た目の判断）。
+**会話の途中で駒を盤に出す（`enter` 行と `on: "dialogue"` イベント）**
+- ゴール：戦闘前の会話の任意の行で、味方でも敵でも、指定した駒だけを盤に出せる（会話の前から居る／途中で出る／会話の直後に出る、をステージデータで選べる）。
+- 背景：駒は開始時に全部置かれ、その上で intro が流れる。途中で出す手段は `events` の増援（`turn`／`on: "capture"`）だけで、1ターン目のイベントは会話を流せないため「音や台詞で気づいてから敵が現れる」「合流の台詞で仲間が現れる」が書けない（[map.md](gdd/map.md) イベント）。チュートリアル１〜３の台本には効果音やト書きで登場を告げる行が既にあり、盤が先に見せてしまっている。
+- 対応：(1) 仕様＝[map.md](gdd/map.md) の引き金に `on: "dialogue"` を足す（`turn`／`capture` と並ぶ3つ目。`units`／`team`／`ai`／`order`／`focus` は増援と同じ。`label` は持たない。`dialogue` キーは書かない＝呼ぶ側が台本）。[authoring.md](campaign/authoring.md) の会話パートに行 `{ "enter": "<イベントid>" }` を足す＝その行に来たとき名指しのイベントの駒を出し（`focus` ならカメラを寄せ）てから会話を続ける。intro 内に複数置ける。出た駒は1ターン目からふつうに動ける。(2) 実装＝`StageLoader` で `on: "dialogue"` を読み、`parse_dialogue` で `enter` 行を通す。`StoryDirector`／`ConversationPanel` が `enter` 行で `MatchController` に発火を頼み、盤へ反映してから次の行へ進む。中断セーブは未発火イベントの扱いをそのまま使う（intro の途中では保存しない）。(3) データ整合テスト＝`enter` が指すイベントの存在・`on: "dialogue"` のイベントがどこかの台本から呼ばれていること・敵側の `order` 必須。
+- 考慮外：outro での登場（ステージが終わるので意味がない）。会話の途中で駒を消すこと。
+- 該当：`doc/gdd/map.md`・`doc/campaign/authoring.md`・`godot/application/stage_loader.gd`・`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/ui/conversation_panel.gd`・`godot/tools/map_editor/`（イベントの引き金の選択肢）。
+
+### feature-115
+
+**チュートリアル１〜３の登場タイミングを会話に合わせる（feature-114 の適用）**
+- ゴール：効果音やト書きで登場を告げる行のあとに、その駒が盤に現れる（会話の前から盤に見えていない）。
+- 背景：feature-114 を決めたときに台本を洗った候補。いずれも台本に「気づく」行が既にあり、駒を後出しにするだけで噛み合う。
+- 対応：各ステージの `dialogue.intro` に `enter` 行を置き、該当の駒を `player[]`／`enemy[]` から `events`（`on: "dialogue"`）へ移す。campaign doc の「会話（戦闘前）」にも登場の位置をメモする。
+  - チュートリアル１ st3：斥候「来ます！」→ 敵8体。st6：斥候「私が先に入りましょう」→ ハーフリング（会話だけの人物が初めて駒になる場面）。
+  - チュートリアル２ st3：魔導師「もう一人、術者を呼びました」→ 3人目の術者／魔女「ゴーストよ」→ ゴースト。st4：司祭「教会が応えてくれました」→ 教会の増援／魔女「レイスよ」→ レイス。st5：司祭「聖職が五人、揃いました」→ 聖職の追加分。
+  - チュートリアル３ st2：効果音「敵襲だーっ！」→ 北にハーピー・南にオーク（一番の候補）。st3：効果音「ドゴォンッ」→ 坑道の魔物／ト書き「鉱脈の外れ」→ ローグ一味。st6：シーフ「誰かが逃げてきたわね」→ 逃げるローグ本隊。
+  - 見送り：チュートリアル２ st6 デュラハン・チュートリアル３ st7 竜（最初から見えている形のほうが自然）。
+- 考慮外：邪神三部作への適用（別途、台本を見直すときに拾う）。
+- 該当：`godot/data/stages/tutorial1-goblin-raid/`・`godot/data/stages/tutorial2-undead-rush/`・`godot/data/stages/tutorial3-dragon-hunt/`・`doc/campaign/tutorial1-goblin-raid.md`・`doc/campaign/tutorial2-undead-rush.md`・`doc/campaign/tutorial3-dragon-hunt.md`。前提＝feature-114。
+
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
