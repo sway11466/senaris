@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=123 / refactoring=16.
+次回採番: bug=6 / feature=124 / refactoring=16.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -180,10 +180,10 @@
 
 **幕間の印と挿絵（連戦／休息／復帰をプレイヤーに知らせる）**
 - ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かり、連続プレイでは休息と復帰のときだけ一枚絵で知らされる。
-- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st7 が連戦）が最初の使い手。
+- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st7 が連戦）が最初の使い手。チュートリアル３「竜狩り」も継承で、st2 以降の全話が名簿の駒に `refill` を書いている＝`campaign.json` に `interlude: rest` を入れ、整合テストの対象にする。
 - 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗＝[icons.md](art/icons.md)）。(3) 戦闘後の自動遷移（[main.gd](../godot/presentation/main/main.gd)）で、次の `interlude` が `rest`／`revive` なら次の intro の前に挿絵＋一文を挟む。挿絵2枚（[keyvisual.md](art/keyvisual.md)）、文は翻訳キー。セレクトから直接始めたときは挟まない。(4) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
 - 考慮外：独立（各話配給）の冒険譚への印（出さない）。
-- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）。
+- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`（`interlude` の記入）。
 
 ### feature-112
 
@@ -283,6 +283,14 @@
 - 対応：(1) `RECIPES` に `backstab`（leader＝thief、member＝任意（`member_skins` 空＝種別不問の印）、shape `backstab`、count 2、effect `single`、`range` 1、`pierce_override` 0.5、`attack_vs` "target"、`return_to_origin` true）。(2) `FormationOption.Shape` に `BACKSTAB`：対象候補は発動者の隣接する敵のうち、`target + (target - leader_pos)` に味方が居るもの。相方はその1体。(3) `FormationResolver.resolve` の最後に、`return_to_origin` なら発動者を移動開始位置へ戻す（経路・コスト・足止め不問。`MatchController` が持つ移動前の位置を `SkillCast` に渡す）。中断セーブとリプレイで位置が一致することを確認。(4) 演出＝跳んで刺して戻る（駒の移動アニメを2回。絵は `backstab_impact.png`）。(5) `names.csv`。(6) テスト＝対角の判定（隣り合う2体は不成立）・相方が幾何で決まる・戻り・飛行相手は対空10。
 - 考慮外：他の斥候（ハーフリング等）への拡張。撃破後の再攻撃（検討して不採用）。
 - 該当：feature-117 と同じ＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。前提＝feature-117。
+
+### feature-123
+
+**回復の泉の見た目（拠点スキン）**
+- ゴール：チュートリアル３ st6 の泉3つが、盤の上で泉に見える（回復・争奪の動きは今のまま）。
+- 背景：拠点の地形スキンは町・詰所・礼拝堂・納骨堂などの建物だけで、泉が無い。[tutorial3-dragon-hunt.md](campaign/tutorial3-dragon-hunt.md) st6 は泉3つを汎用 fort で置いてあり、回復ローテと争奪は動くが「泉を取り合う」絵にならない。会話も泉と呼んでいるので、盤とのずれが目に付く。
+- 対応：`terrain_skin.csv` に `fort` 型の見た目違いを1つ足す（洞窟の地面の上に立てる泉。占領で色が変わる `_team0`／`_team1` の規則は他の拠点と同じ＝[terrain.md](art/terrain.md)）。st6 の該当マスをそのスキンに差し替える。
+- 該当：`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json`・`doc/art/terrain.md`。着手の引き金＝竜狩りの通し確認で st6 を触るとき。
 
 ## リファクタリング
 
