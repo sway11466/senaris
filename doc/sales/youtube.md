@@ -34,11 +34,9 @@
 
 紹介された事実と、こちらが投稿したコメントを時系列で積む。視聴者のコメントは、返答の書き方を決める材料に使ったものだけ残す。
 
-各項の `投稿:` 行に URL が入っていれば投稿済み、空なら未投稿。判定基準はこれ一つに絞る（[itch_devlog.md](itch_devlog.md) の原稿と同じ流儀）。
+各コメントの `投稿:` 行に URL が入っていれば投稿済み、空なら未投稿。判定基準はこれ一つに絞る（[itch_devlog.md](itch_devlog.md) の原稿と同じ流儀）。同じ動画に続けて投稿する場合は、項を分けずにコメントを積む。
 
 ### 2026-08-31 Richard Yorke「This NEW Fantasy Wargame Has NO DICE?! | Senaris Demo」
-
-投稿: https://www.youtube.com/watch?v=lEoUeTVAuCs （2026-09-02・`@game.craftkobo`）
 
 動画は https://www.youtube.com/watch?v=lEoUeTVAuCs 、14分04秒。チャンネルは Richard Yorke（`@RichardYorke1945`）で、登録者3,730人。RTS・ウォーゲーム・戦略ゲームの実況とレビューを1日1〜3本出している。
 
@@ -48,13 +46,26 @@
 
 - `No dice is a big plus / But battles seem way too simplistic` … 返答の一文を battles の語で受けた。独自性を主張せず、まだ入っていないと述べるだけの形に寄せた。
 
-投稿したコメント。
+投稿したコメント。1本目。
+
+投稿: https://www.youtube.com/watch?v=lEoUeTVAuCs （2026-09-02・`@game.craftkobo`）
 
 ```
 Dev here — thanks for playing! The movement is confusing right now;
 a fix ships this weekend. The mechanics that give the battles their
 depth are still in development — devlog #2 on the itch page
 ("Three shots or one blast") covers what's next.
+```
+
+2本目。1本目で書いた2つ（移動の修正・深みを与える仕組み）が両方入ったことを報せる回。1本目への返信として置くため名乗りを省き、Formation Skill の語は出さずに記事へ預けた。深みは新しく主張せず、1本目の `the mechanics that give the battles their depth` を受ける形にした。
+
+投稿: https://www.youtube.com/watch?v=lEoUeTVAuCs （2026-09-15・`@game.craftkobo`）
+
+```
+Update: the movement fix shipped, and the special abilities that give the
+battles their depth are in — the demo has a new second chapter, Undead
+Rush, built around them. More in devlog #4 on the itch page ("Your special
+ability is not always the best move").
 ```
 
 ---
