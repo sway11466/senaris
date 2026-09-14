@@ -225,19 +225,6 @@
 - 考慮外：第2部。有力者を勝敗条件に入れること。
 - 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧は記入済み。実装後に数を合わせる）。前提＝feature-106〜110・112。
 
-### feature-115
-
-**チュートリアル１〜３の登場タイミングを会話に合わせる（会話の `enter` 行の適用）**
-- ゴール：効果音やト書きで登場を告げる行のあとに、その駒が盤に現れる（会話の前から盤に見えていない）。
-- 背景：会話の `enter` 行（[map.md](gdd/map.md) イベント）を決めたときに台本を洗った候補。いずれも台本に「気づく」行が既にあり、駒を後出しにするだけで噛み合う。
-- 対応：各ステージの `dialogue.intro` に `enter` 行を置き、該当の駒を `player[]`／`enemy[]` から `events`（`on: "dialogue"`）へ移す。campaign doc の「会話（戦闘前）」にも登場の位置をメモする。
-  - チュートリアル１ st3：斥候「来ます！」→ 敵8体。st6：斥候「私が先に入りましょう」→ ハーフリング（会話だけの人物が初めて駒になる場面）。
-  - チュートリアル２ st3：魔導師「もう一人、術者を呼びました」→ 3人目の術者／魔女「ゴーストよ」→ ゴースト。st4：司祭「教会が応えてくれました」→ 教会の増援／魔女「レイスよ」→ レイス。st5：司祭「聖職が五人、揃いました」→ 聖職の追加分。
-  - チュートリアル３ st2：効果音「敵襲だーっ！」→ 北にハーピー・南にオーク（一番の候補）。st3：効果音「ドゴォンッ」→ 坑道の魔物／ト書き「鉱脈の外れ」→ ローグ一味。st6：シーフ「誰かが逃げてきたわね」→ 逃げるローグ本隊。
-  - 見送り：チュートリアル２ st6 デュラハン・チュートリアル３ st7 竜（最初から見えている形のほうが自然）。
-- 考慮外：邪神三部作への適用（別途、台本を見直すときに拾う）。
-- 該当：`godot/data/stages/tutorial1-goblin-raid/`・`godot/data/stages/tutorial2-undead-rush/`・`godot/data/stages/tutorial3-dragon-hunt/`・`doc/campaign/tutorial1-goblin-raid.md`・`doc/campaign/tutorial2-undead-rush.md`・`doc/campaign/tutorial3-dragon-hunt.md`。
-
 ### feature-116
 
 **継承の一行を戦闘演出で1体として描く（マニフェスト `actor_lineup`）**
@@ -316,6 +303,15 @@
 - 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `names.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
 - 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
+
+### feature-125
+
+**増援の登場を入口から見せる（イベントの `entry` と `from`）**
+- ゴール：増援の駒が所定位置に突然現れず、ステージが決めた入口から出てきて自分の位置まで歩く。大群は一斉に散り、盤の外から来ない駒はその場に浮かび上がる。
+- 背景：いまは指定座標にポンと現れるだけで、どこから来たのかが読めない。とくに会話の `enter` 行で出す駒は台詞の直後に湧くので「現れた」以上の情報が無い。仕様は [map.md](gdd/map.md) イベントの `entry`／`from` と [uiux.md](gdd/uiux.md) 移動の見せ方に書いた。歩かせる道具は既にある＝`HexBoard3D._animate_move` が経路を1マスずつ辿らせ、盤の状態は先に確定して見た目だけが後追いする。
+- 対応：(1) `StageEvent` に `entry`（`march`／`scatter`／`fade`）と `from`（Vector2i）。`StageLoader` で読み、駒を持つイベントに `entry` が無い・`march`／`scatter` に `from` が無い・`fade` に `from` がある、は push_error（データのバグ）。(2) 移動力と敵ZOCを見ない経路探索を `BattleState` に足す＝`path_to` は残り移動力で頭打ちになるので盤外から入る駒には使えない。進入できるかの判定は移動タイプごとの既存のものをそのまま使う。(3) `HexBoard3D` に登場の演出。`march` は `units` の順に1体ずつ、`scatter` は少しずつ時刻をずらして同時に（同じ1ヘックスから出るので出口で重なる）、`fade` は所定位置でアルファを上げる。(4) 移動音を同時に複数鳴らせる形にする＝いまは `_move_voice` と `_move_tween` が単数で、次を始めると前を畳む。`scatter` で全員ぶん鳴らすと団子になるので鳴らし方を決める（[sfx.md](audio/sfx.md) 移動音）。(5) 会話のスキップ・「会話を表示しない」・中断セーブの復元では演出を出さず置くだけ（`fire_pending_dialogue_events` の経路）。(6) 既存の増援に `entry`／`from` を書く＝チュートリアル２ st7 の飛空艇、チュートリアル１〜３の会話起点のイベント、デバッグステージ。(7) データ整合テスト＝`entry` の必須・`from` の有無・`march`／`scatter` の駒が `from` から地形をたどって到達できること。
+- 考慮外：拠点からの出撃・輸送からの降車（盤の中の操作＝入口を持たない）。入口を盤のルールに載せること（塞げる・押さえられる・そこから出撃できる）。マップエディタでの入口の編集（引き金が `on` のイベントは元から JSON 直書き）。
+- 該当：`doc/gdd/map.md`・`doc/gdd/uiux.md`・`godot/domain/map/stage_event.gd`・`godot/domain/battle_state.gd`・`godot/application/stage_loader.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/data/stages/`・`godot/tests/unit/test_data_integrity.gd`。
 
 ### refactoring-15
 
