@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=124 / refactoring=16.
+次回採番: bug=7 / feature=124 / refactoring=16.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -13,6 +13,15 @@
 ## バグ
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### bug-6
+
+**陣形スキルの成立する組が複数あるとき、どの組かを示せない（同名の項目が並ぶ）**
+- ゴール：レシピごとにメニュー項目が1つで、組が複数あるときはプレイヤーが盤の上で参加者を選べる。組が1つなら選ぶ段は出ない。③で聖職が3体隣接している盤で確認できる。
+- 背景：`Formation.available_for` が成立する組を全部列挙し、`hex_board_3d.gd` の行動メニューがそれを組の数だけ同じ名前で並べる（③のパラディンの隣に聖職が3体＝「ディバインジャッジメント」が3行）。どれがどの組かは読めない。2体固定のレシピ（④⑨⑩・feature-117/118/123）が入ると常態化する。仕様は [uiux.md](gdd/uiux.md)「陣形スキルの参加者を選ぶ」・[formations.md](gdd/formations.md) 共通ルール（記入済み）。
+- 対応：(1) `available_for` の返りをレシピ単位にまとめる（`FormationOption` に候補の組 `member_sets` を持たせるか、レシピ単位の `FormationChoice` を新設して組を内包）。AI（`ai_rows.gd`・`ai_pick.gd`）と撮影ツールは組を列挙する既存の形を使い続けてよいので、列挙する関数は残し、UI 向けにまとめる関数を足す。(2) `hex_board_3d.gd`：メニューはレシピごとに1項目。ホバーで候補の駒を橙で光らせる。選択後、組が1つなら従来どおり `_enter_formation`、複数なら参加者選びの状態（`_choosing_members`）に入り、クリックで1体ずつ確定（残りの候補は確定済みと組める駒に絞る）。揃ったら `_enter_formation`。④は着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ。(3) キャンセルは1段ずつ戻す（着弾先 → 参加者 → メニュー）。(4) 橙のオーバーレイを色の表に足す（`board overlay`）。(5) `test_formation.gd` にレシピ単位のまとめ（組が1つ／複数）のテスト。UI の段は実機で確認。
+- 考慮外：AI の組の選び方（既存のまま）。タッチ操作。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/board/`（オーバーレイの色）・`godot/tests/unit/test_formation.gd`・`doc/gdd/uiux.md`。feature-117/118/123 の前提。
 
 ## 機能追加
 
@@ -241,7 +250,7 @@
 - 背景：[formations.md](gdd/formations.md) ④ で仕様確定。既存の陣形は「参加者の形」（triangle／escort／cluster）だけを見るが、これは「対象の周りに参加者が居るか」を見る初めての形。威力の計算も既存は常に対地値・貫通は発動者依存で、矢のレシピ（④⑥⑨）は相手が飛行なら対空値・貫通はレシピ側で上書き、が要る。⑥⑨がこの下地を使うので最初に作る。
 - 対応：(1) `Formation.RECIPES` に `trick_shot`（leader＝archer/hunter/elf、member＝scout/thief/halfling/ninja/kunoichi、shape `spotter`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"＝相手で対地／対空を切り替え）。(2) `FormationOption.Shape` に `SPOTTER` を足し、`available_for` は対象候補ごとに「その対象に隣接する member」を組で持つ（対象を選んだ時点で相方が決まる。複数なら1体を選ぶ＝option を対象×相方で複数出す）。射程は発動者の通常射程（`min_range`〜`attack_range`）。(3) `_skill_attack_breakdown` に対地／対空の切り替え、`_formation_hit` にレシピの貫通上書きを通す（`attack_vs` 未指定のレシピは従来どおり対地固定・発動者依存）。(4) 演出は③と同じ単体シーケンス（絵は `assets/formations/trick_shot_impact.png` の規約解決、無ければ共通3段）。(5) `names.csv` に `recipe.trick_shot.name/desc`。(6) `test_formation.gd` に成立（斥候が対象に隣接／弓兵が射程内）・不成立（斥候が発動者にだけ隣接）・貫通・対空の切り替えのテスト。
 - 考慮外：敵AIの使用（敵スキンはレシピに書かない）。教えるステージの追加。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/names.csv`・`godot/tests/unit/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/names.csv`・`godot/tests/unit/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。前提＝bug-6（参加者を選ぶ段）。
 
 ### feature-118
 
@@ -249,7 +258,7 @@
 - ゴール：弓兵と魔法兵が隣接しているとき、弓兵から「2体の攻撃力の大きい方＋10・貫通0.5」の単体射撃が「2体の射程上限の長い方＋1」まで届く。届かなかった相手に魔法兵級の一撃が届く。
 - 背景：[formations.md](gdd/formations.md) ⑨ で仕様確定。escort（count 2）の流用だが、威力の元と射程を「発動者」ではなく「参加者の性能から引く」のが新しい。対空／対地の切り替えと貫通の上書きは feature-117 の下地。
 - 対応：(1) `RECIPES` に `magic_arrow`（leader＝archer/hunter/elf、member＝wizard/witch、shape `escort`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"、`attack_from` "max_plus"（値 10）、`range_from_stats` "max_plus"（値 1）、下限なし）。(2) `_skill_attack_breakdown` に「参加者の攻撃力の最大＋定数」を元にする経路（兵数・レベル・包囲・地形は発動者のもの）。(3) `available_for`／`_in_range_cells` で射程を参加者の `attack_range` の最大＋1 から求める（レシピの固定 `range` と排他）。(4) 演出は④と同じ単体シーケンス（`magic_arrow_impact.png`）。(5) `names.csv`。(6) テスト＝威力の元の選び方（地上はウィザード40＋10／空はエルフ60＋10）・射程（アーチャー＋ウィザード＝5・エルフ＝6）。
-- 該当：feature-117 と同じ。前提＝feature-117。
+- 該当：feature-117 と同じ。前提＝feature-117・bug-6。
 
 ### feature-119
 
@@ -294,7 +303,7 @@
 - ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
 - 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `names.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
-- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120。
+- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
 
 ### refactoring-15
 
