@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=6 / feature=123 / refactoring=15.
+次回採番: bug=6 / feature=123 / refactoring=16.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -287,6 +287,15 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### refactoring-15
+
+**陣形スキルのドリフト検出（formations.md の一覧 ⇄ `Formation.RECIPES` ⇄ `names.csv`）**
+- ゴール：レシピが doc・code・翻訳のどれか1つにだけ増減したとき、テストが落ちて気づける。
+- 背景：正本は [formations.md](gdd/formations.md)「一覧（決まった項目）」の表A/表B、実行時は `godot/domain/formation/formation.gd` の `RECIPES`（ハードコード）、表示名は `godot/data/i18n/names.csv` の `recipe.<id>.name/desc`。3か所が別々に育つ（④〜⑨は doc だけ、陣形①〜③の `desc` が無い、混沌の2本は code に無い）。CSV/JSON 化は見送り（[architecture.md](tech/architecture.md) 入れ子データはコードが持つ）なので、照合で守る。
+- 対応：(1) `godot/tools/` に formations.md の表A/表Bを読む小さなパーサ（`| # | id | …` の行を拾い、id・人数・形・射程・実装列を辞書に）。(2) GUT テスト `test_formation_catalog.gd`：表の id のうち実装列が「済」のものは `RECIPES` に在り、`count`・`shape`・`range` が一致すること／`RECIPES` の id はすべて表に在ること／`names.csv` に `recipe.<id>.name` と `.desc` が在ること（ユニットスキルは skills.md の見出しで同様に）。(3) 陣形①〜③の `desc` を `names.csv` に足す。(4) 表の書式を崩すと落ちるので、formations.md の一覧の冒頭に「列は固定」の注意を置く（記入済み）。
+- 考慮外：効果の数値（威力・倍率）の照合＝表現が文なので見ない。CSV/JSON 化。
+- 該当：`godot/tools/`・`godot/tests/unit/test_formation_catalog.gd`・`godot/data/i18n/names.csv`・`doc/gdd/formations.md`・`doc/tech/testing.md`（テストの位置づけを1行）。
 
 ## parking lot
 
