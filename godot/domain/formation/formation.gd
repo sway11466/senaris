@@ -46,8 +46,8 @@ const RECIPES := {
 	},
 	"grace": {
 		"name": "グレイス",
-		"leader_skins": ["cleric", "priest", "bishop"],
-		"member_skins": ["cleric", "priest", "bishop"],
+		"leader_skins": ["cleric", "priest", "bishop", "paladin"],
+		"member_skins": ["cleric", "priest", "bishop", "paladin"],
 		"shape": "cluster",
 		"count": 5,
 		"effect": "buff",

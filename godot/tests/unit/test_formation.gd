@@ -196,6 +196,21 @@ func test_grace_needs_five() -> void:
 			leader = u
 	assert_eq(_count(Formation.available_for(s, leader), "grace"), 0, "4体では不成立")
 
+## パラディンも占領兵＝グレイスの頭数に入る（クレリック4＋パラディン1で成立）。詳細 → doc/gdd/formations.md ②
+func test_grace_counts_paladin() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var leader: Unit = null
+	for i in 4:
+		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
+		s.add_unit(u)
+		if i == 0:
+			leader = u
+	s.add_unit(Unit.new(5, 0, c + Hex.direction(0) * 4, 3, 8, 50, 50, 1, "paladin"))
+	var opt := _pick(Formation.available_for(s, leader), "grace")
+	assert_not_null(opt, "クレリック4＋パラディン1でグレイス")
+	assert_eq(opt.participants.size(), 5, "パラディンを含む5体が参加")
+
 ## クラスタも三角形と同じ＝発動者が移動先で列に加われば成立する。
 func test_cluster_forms_at_move_destination() -> void:
 	var s := _state()
