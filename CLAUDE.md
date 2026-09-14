@@ -61,6 +61,7 @@
 - [doc/campaign/tutorial1-goblin-raid.md](doc/campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
 - [doc/campaign/tutorial2-undead-rush.md](doc/campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッドの群れ」全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
 - [doc/campaign/tutorial3-dragon-hunt.md](doc/campaign/tutorial3-dragon-hunt.md) — チュートリアル３「竜狩り」（飛行・対空／継承carryover／中立拠点／回復拠点・泉／ボス＝ドラゴン）
+- [doc/campaign/ancientruins.md](doc/campaign/ancientruins.md) — 古代遺跡（仮・構想中）共通設定（国境の山・ドワーフの鉱山・未決）
 - [doc/campaign/twingods.md](doc/campaign/twingods.md) — 邪神三部作「双子の神」共通設定（秩序と混沌・前史・冒険者一行・2人の聖女・悪役）
 - [doc/campaign/twingods1-cult-stirrings.md](doc/campaign/twingods1-cult-stirrings.md) — 三部作 第1部「邪神徒の蠢き」（かけだし向け・街／追跡もの）
 - [doc/campaign/twingods2-hidden-temple.md](doc/campaign/twingods2-hidden-temple.md) — 三部作 第2部「邪神の神殿」（中堅向け・国家／迷いの森と護衛戦）
