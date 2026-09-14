@@ -225,27 +225,18 @@
 - 考慮外：第2部。有力者を勝敗条件に入れること。
 - 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧は記入済み。実装後に数を合わせる）。前提＝feature-106〜110・112。
 
-### feature-114
-
-**会話の途中で駒を盤に出す（`enter` 行と `on: "dialogue"` イベント）**
-- ゴール：戦闘前の会話の任意の行で、味方でも敵でも、指定した駒だけを盤に出せる（会話の前から居る／途中で出る／会話の直後に出る、をステージデータで選べる）。
-- 背景：駒は開始時に全部置かれ、その上で intro が流れる。途中で出す手段は `events` の増援（`turn`／`on: "capture"`）だけで、1ターン目のイベントは会話を流せないため「音や台詞で気づいてから敵が現れる」「合流の台詞で仲間が現れる」が書けない（[map.md](gdd/map.md) イベント）。チュートリアル１〜３の台本には効果音やト書きで登場を告げる行が既にあり、盤が先に見せてしまっている。
-- 対応：(1) 仕様＝[map.md](gdd/map.md) の引き金に `on: "dialogue"` を足す（`turn`／`capture` と並ぶ3つ目。`units`／`team`／`ai`／`order`／`focus` は増援と同じ。`label` は持たない。`dialogue` キーは書かない＝呼ぶ側が台本）。[authoring.md](campaign/authoring.md) の会話パートに行 `{ "enter": "<イベントid>" }` を足す＝その行に来たとき名指しのイベントの駒を出し（`focus` ならカメラを寄せ）てから会話を続ける。intro 内に複数置ける。出た駒は1ターン目からふつうに動ける。(2) 実装＝`StageLoader` で `on: "dialogue"` を読み、`parse_dialogue` で `enter` 行を通す。`StoryDirector`／`ConversationPanel` が `enter` 行で `MatchController` に発火を頼み、盤へ反映してから次の行へ進む。中断セーブは未発火イベントの扱いをそのまま使う（intro の途中では保存しない）。(3) データ整合テスト＝`enter` が指すイベントの存在・`on: "dialogue"` のイベントがどこかの台本から呼ばれていること・敵側の `order` 必須。
-- 考慮外：outro での登場（ステージが終わるので意味がない）。会話の途中で駒を消すこと。
-- 該当：`doc/gdd/map.md`・`doc/campaign/authoring.md`・`godot/application/stage_loader.gd`・`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/ui/conversation_panel.gd`・`godot/tools/map_editor/`（イベントの引き金の選択肢）。
-
 ### feature-115
 
-**チュートリアル１〜３の登場タイミングを会話に合わせる（feature-114 の適用）**
+**チュートリアル１〜３の登場タイミングを会話に合わせる（会話の `enter` 行の適用）**
 - ゴール：効果音やト書きで登場を告げる行のあとに、その駒が盤に現れる（会話の前から盤に見えていない）。
-- 背景：feature-114 を決めたときに台本を洗った候補。いずれも台本に「気づく」行が既にあり、駒を後出しにするだけで噛み合う。
+- 背景：会話の `enter` 行（[map.md](gdd/map.md) イベント）を決めたときに台本を洗った候補。いずれも台本に「気づく」行が既にあり、駒を後出しにするだけで噛み合う。
 - 対応：各ステージの `dialogue.intro` に `enter` 行を置き、該当の駒を `player[]`／`enemy[]` から `events`（`on: "dialogue"`）へ移す。campaign doc の「会話（戦闘前）」にも登場の位置をメモする。
   - チュートリアル１ st3：斥候「来ます！」→ 敵8体。st6：斥候「私が先に入りましょう」→ ハーフリング（会話だけの人物が初めて駒になる場面）。
   - チュートリアル２ st3：魔導師「もう一人、術者を呼びました」→ 3人目の術者／魔女「ゴーストよ」→ ゴースト。st4：司祭「教会が応えてくれました」→ 教会の増援／魔女「レイスよ」→ レイス。st5：司祭「聖職が五人、揃いました」→ 聖職の追加分。
   - チュートリアル３ st2：効果音「敵襲だーっ！」→ 北にハーピー・南にオーク（一番の候補）。st3：効果音「ドゴォンッ」→ 坑道の魔物／ト書き「鉱脈の外れ」→ ローグ一味。st6：シーフ「誰かが逃げてきたわね」→ 逃げるローグ本隊。
   - 見送り：チュートリアル２ st6 デュラハン・チュートリアル３ st7 竜（最初から見えている形のほうが自然）。
 - 考慮外：邪神三部作への適用（別途、台本を見直すときに拾う）。
-- 該当：`godot/data/stages/tutorial1-goblin-raid/`・`godot/data/stages/tutorial2-undead-rush/`・`godot/data/stages/tutorial3-dragon-hunt/`・`doc/campaign/tutorial1-goblin-raid.md`・`doc/campaign/tutorial2-undead-rush.md`・`doc/campaign/tutorial3-dragon-hunt.md`。前提＝feature-114。
+- 該当：`godot/data/stages/tutorial1-goblin-raid/`・`godot/data/stages/tutorial2-undead-rush/`・`godot/data/stages/tutorial3-dragon-hunt/`・`doc/campaign/tutorial1-goblin-raid.md`・`doc/campaign/tutorial2-undead-rush.md`・`doc/campaign/tutorial3-dragon-hunt.md`。
 
 ### feature-116
 

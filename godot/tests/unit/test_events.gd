@@ -456,3 +456,69 @@ func test_fire_event_leaves_last_fired_events_alone() -> void:
 	var s := _state([_reinforce(5)])
 	s.fire_event(s.pending_events()[0])
 	assert_true(s.last_fired_events.is_empty(), "ターンの控えには混ざらない")
+
+# --- 会話が引き金（on: "dialogue"）。台本の enter 行が名指しで起こす。仕様 → doc/gdd/map.md イベント ---
+
+func _dialogue_event(extra: Dictionary = {}) -> Dictionary:
+	var e := { "id": _next_id(), "on": "dialogue", "type": "reinforce", "team": "player",
+		"units": [ { "type": "fighter", "col": 5, "row": 3 } ] }
+	for k in extra:
+		e[k] = extra[k]
+	return e
+
+## 盤の側からは決して起きない＝ターンが進んでも出てこない。
+func test_dialogue_event_never_fires_on_a_turn() -> void:
+	var s := _state([_dialogue_event()])
+	for _i in range(8):
+		s.end_turn()
+	assert_eq(s.team_unit_count(0), 1, "ターンが進んでも出ない")
+	assert_eq(s.pending_events().size(), 1, "未発生のまま残る")
+
+## 台本が名指ししたときに駒が出る。
+func test_dialogue_event_fires_by_id() -> void:
+	var data := _data([_dialogue_event()])
+	var s := _build(data)
+	var event_id: String = data["events"][0]["id"]
+	assert_not_null(s.fire_dialogue_event(event_id), "名指しで起きる")
+	assert_eq(s.team_unit_count(0), 2, "駒が盤に出る")
+	assert_true(s.pending_events().is_empty(), "未発生から消える")
+
+## 二度目は起きない（同じ台本を読み直しても駒は増えない）。
+func test_dialogue_event_fires_only_once() -> void:
+	var data := _data([_dialogue_event()])
+	var s := _build(data)
+	var event_id: String = data["events"][0]["id"]
+	s.fire_dialogue_event(event_id)
+	assert_null(s.fire_dialogue_event(event_id), "2回目は起きない")
+	assert_eq(s.team_unit_count(0), 2, "駒も増えない")
+
+## 名前が合わないイベントは起こさない（ターン起点のものを巻き込まない）。
+func test_dialogue_event_does_not_fire_other_triggers() -> void:
+	var data := _data([_reinforce(5)])
+	var s := _build(data)
+	assert_null(s.fire_dialogue_event(String(data["events"][0]["id"])), "ターン起点は名指しでも起きない")
+	assert_eq(s.pending_events().size(), 1, "未発生のまま残る")
+
+## 中断セーブの復元用＝待ったままのものをまとめて起こす。
+func test_pending_dialogue_events_fire_together() -> void:
+	var s := _state([_dialogue_event(), _dialogue_event(), _reinforce(5)])
+	assert_eq(s.fire_pending_dialogue_events().size(), 2, "会話待ちの2件が起きる")
+	assert_eq(s.team_unit_count(0), 3, "駒が2体とも盤に出る")
+	assert_eq(s.pending_events().size(), 1, "ターン起点は残る")
+
+## 起きたことは中断セーブに乗る＝復元しても駒は二重に出ない。
+func test_dialogue_event_survives_the_save_roundtrip() -> void:
+	var data := _data([_dialogue_event()])
+	var s := _build(data)
+	s.fire_dialogue_event(String(data["events"][0]["id"]))
+	var back := _roundtrip(s, data)
+	assert_true(back.pending_events().is_empty(), "発火済みとして復元される")
+	assert_eq(back.team_unit_count(0), 2, "出た駒は盤に居る")
+
+## 予告（label）と会話（dialogue）は持てない＝書いてあっても捨てる（doc/gdd/map.md イベント）。
+func test_dialogue_event_drops_label_and_dialogue() -> void:
+	var s := _state([_dialogue_event({ "label": "x.label", "dialogue": "talk", "name": "x.name" })])
+	var e := s.pending_events()[0]
+	assert_eq(e.label, "", "予告は持たない")
+	assert_eq(e.dialogue, "", "会話は持たない")
+	assert_true(s.next_event().is_empty(), "残りターン板にも出ない")

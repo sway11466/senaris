@@ -46,6 +46,7 @@ func bind(board: HexBoard3D, info_panel: UnitInfoPanel, hud: Hud, screen: Screen
 	_progress = progress
 	_settings_store = settings_store
 	_conversation.closed.connect(_on_conversation_closed)
+	_conversation.enter_pace = _on_enter_line  # 台本の enter 行＝名指しのイベントを起こす
 	_hud.story_requested.connect(_on_story_requested)
 
 ## ステージごとの台本と文脈。新規ロードでも中断セーブ復元でも呼ぶ。
@@ -93,6 +94,7 @@ func maybe_start_intro() -> void:
 		return
 	if not shows_dialogue():
 		_hud.show_dialogue_badge()  # 開幕の会話があったことだけ知らせる（読むのはメニューから）
+		await _enter_without_reading(_dialogue["intro"])
 		return
 	_open_talk("intro", _dialogue["intro"], "ui.talk.start_battle")
 
@@ -100,6 +102,35 @@ func maybe_start_intro() -> void:
 ## （次ステージがあるか無いかで変わる＝呼ぶ側が決める）。
 func start_outro(lines: Array, label: String) -> void:
 	_open_talk("outro", lines, label)
+
+## 台本の enter 行（ConversationPanel から）＝名指しのイベントを起こし、駒を盤へ出す。
+## 会話はもう出ている最中なので、ここでするのは盤の貼り直しとカメラ寄せだけ
+## （イベント側の会話・ターン板の予告は on:"dialogue" には書けない＝StageLoader が弾く）。
+## reading＝読み進めている最中（focus 指定があれば寄せて見せる）／false＝スキップの後始末で
+## 出すだけ。すでに起きていれば何も起きない＝会話を読み直しても駒は二重に出ない。
+## 詳細 → doc/gdd/map.md イベント・doc/campaign/authoring.md 会話パート
+func _on_enter_line(event_id: String, reading: bool) -> void:
+	if _controller == null:
+		return
+	var info := _controller.fire_dialogue_event(event_id)
+	if info.is_empty():
+		return
+	_board.refresh()  # 盤は攻撃イベントで作り直す作り＝会話で出た駒は明示的に貼り直す
+	if not reading:
+		return
+	var hex: Vector2i = info.get("hex", Vector2i.MAX)
+	if bool(info.get("focus", false)) and hex != Vector2i.MAX:
+		await _board.focus_camera_on(hex)
+
+## 会話を出さないとき（情報板を畳んで「会話を表示しない」）の後始末＝台本の enter 行だけ起こす。
+## 読まなくても盤は台本どおりの顔ぶれで始まる（doc/gdd/uiux.md 畳んでいるときの会話）。
+func _enter_without_reading(lines: Array) -> void:
+	for line in lines:
+		if typeof(line) != TYPE_DICTIONARY:
+			continue
+		var event_id := String((line as Dictionary).get("enter", ""))
+		if not event_id.is_empty():
+			await _on_enter_line(event_id, false)
 
 ## 盤のイベントが起きたときの見せ方。台本があれば会話を挟み、focus 指定があれば先にその場所へ
 ## カメラを寄せる（喋る相手が画面に居る状態で幕を引く）。会話の間は盤とターン終了を止める
