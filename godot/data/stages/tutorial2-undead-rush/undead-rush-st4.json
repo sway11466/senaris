@@ -361,14 +361,11 @@
   ],
   "player": [
     { "type": "knight", "col": 3, "row": 4 },
-    { "type": "knight", "col": 3, "row": 5 },
     { "type": "priest", "col": 0, "row": 6 },
-    { "type": "cleric", "col": 0, "row": 4 },
     { "type": "wizard", "col": 1, "row": 4 },
     { "type": "wizard", "col": 1, "row": 5 },
     { "type": "witch", "col": 0, "row": 5 },
     { "type": "fighter", "col": 2, "row": 4 },
-    { "type": "fighter", "col": 2, "row": 6 },
     { "type": "wagon", "col": 2, "row": 5,
       "passengers": [
         { "type": "barricade" },
@@ -389,11 +386,6 @@
         { "skin": "ghost", "col": 20, "row": 1 },
         { "skin": "ghost", "col": 12, "row": 7 },
         { "skin": "ghost", "col": 19, "row": 6 }
-      ] },
-    { "order": 2, "name": "undead-rush.st4.squad.2", "ai": "predator", "stack": 1,
-      "units": [
-        { "skin": "wraith", "col": 22, "row": 9 },
-        { "skin": "wraith", "col": 18, "row": 4 }
       ] }
   ],
   "bases": [
@@ -428,9 +420,24 @@
   "victory": [
     { "type": "capture_hq" }
   ],
+  "events": [
+    { "id": "church-aid", "on": "dialogue", "type": "reinforce", "team": "player",
+      "units": [
+        { "type": "knight", "col": 3, "row": 5 },
+        { "type": "cleric", "col": 0, "row": 4 },
+        { "type": "fighter", "col": 2, "row": 6 }
+      ] },
+    { "id": "wraiths-appear", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "order": 2, "ai": "predator", "stack": 1,
+      "units": [
+        { "skin": "wraith", "col": 22, "row": 9 },
+        { "skin": "wraith", "col": 18, "row": 4 }
+      ] }
+  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st4.intro.1" },
+      { "enter": "church-aid" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st4.intro.2" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.3" },
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st4.intro.5" },
@@ -438,6 +445,7 @@
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.10" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st4.intro.9" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.11" },
+      { "enter": "wraiths-appear" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st4.intro.12" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st4.intro.13" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st4.intro.4" }

@@ -84,8 +84,10 @@
     { "type": "novice", "col": 2, "row": 7 },
     { "type": "novice", "col": 2, "row": 6 }
   ],
-  "enemy": [
-    { "order": 1, "ai": "charge",
+  "enemy": [],
+  "events": [
+    { "id": "goblins-come", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "order": 1, "ai": "charge",
       "units": [
         { "skin": "goblin", "col": 12, "row": 4 },
         { "skin": "goblin", "col": 12, "row": 5 },
@@ -100,6 +102,7 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st3.intro.1" },
+      { "enter": "goblins-come" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st3.intro.2" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st3.intro.3" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st3.intro.4" },

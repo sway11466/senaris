@@ -45,13 +45,6 @@
     {"type": "mage", "col": 9, "row": 15, "actor": "mage", "supply": "refill"}
   ],
   "enemy": [
-    { "order": 1, "name": "dragon-hunt.st6.squad.1", "ai": "raid",
-      "units": [
-        {"skin": "rogue", "col": 5, "row": 5},
-        {"skin": "rogue", "col": 10, "row": 4},
-        {"skin": "rogue", "col": 3, "row": 9},
-        {"skin": "rogue", "col": 12, "row": 11}
-      ] },
     { "order": 2, "name": "dragon-hunt.st6.squad.2", "ai": "raid",
       "units": [
         {"skin": "rogue_head", "col": 8, "row": 3, "actor": "paladin"}
@@ -82,6 +75,16 @@
   "defeat": [
     {"type": "lose_base", "bases": [{"col": 7, "row": 16}, {"col": 3, "row": 10}, {"col": 7, "row": 3}]}
   ],
+  "events": [
+    { "id": "rogues-flee", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "order": 1, "ai": "raid",
+      "units": [
+        {"skin": "rogue", "col": 5, "row": 5},
+        {"skin": "rogue", "col": 10, "row": 4},
+        {"skin": "rogue", "col": 3, "row": 9},
+        {"skin": "rogue", "col": 12, "row": 11}
+      ] }
+  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st6.rogue.1" },
@@ -93,6 +96,7 @@
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.4" },
+      { "enter": "rogues-flee" },
       { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st6.intro.9" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.10" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st6.intro.5" },
