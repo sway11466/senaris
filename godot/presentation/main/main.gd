@@ -748,8 +748,7 @@ func _on_debug_event_requested(index: int) -> void:
 	var pending := _controller.state.pending_events()
 	if index < 0 or index >= pending.size():
 		return
-	_controller.force_event(pending[index])
-	$HexBoard.refresh()  # 盤は攻撃イベントで作り直す作り＝増援はそれを経ないので明示的に更新する
+	_controller.force_event(pending[index])  # 盤の貼り直しと登場の演出は StoryDirector.on_event_fired
 
 # --- 中断セーブ／オートセーブ（段取り＝presentation/main/save_coordinator.gd）。仕様 → doc/tech/gamesystem.md ---
 func _install_save() -> void:

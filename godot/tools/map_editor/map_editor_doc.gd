@@ -831,7 +831,10 @@ func event_list() -> Array:
 func add_event(turn: int, team: String) -> void:
 	if typeof(data.get("events")) != TYPE_ARRAY:
 		data["events"] = []
-	data["events"].append({ "turn": maxi(turn, 1), "type": "reinforce", "team": team, "units": [] })
+	# 登場の仕方は駒を出すイベントの必須キー（doc/gdd/map.md イベント）。入口を持たない fade で
+	# 作っておき、歩かせたければエディタで march／scatter に変える＝入口の欄がそこで出る。
+	data["events"].append({ "turn": maxi(turn, 1), "type": "reinforce", "team": team,
+		"entry": "fade", "units": [] })
 
 
 func remove_event(index: int) -> void:

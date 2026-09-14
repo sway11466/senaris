@@ -169,6 +169,7 @@
   ],
   "events": [
     { "id": "harpies-north", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "scatter", "from": { "col": 6, "row": 0 },
       "order": 1, "ai": "charge",
       "units": [
         { "skin": "harpy", "col": 2, "row": 3 },
@@ -179,6 +180,7 @@
         { "skin": "harpy", "col": 13, "row": 1 }
       ] },
     { "id": "orcs-south", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "march", "from": { "col": 7, "row": 25 },
       "order": 3, "ai": "charge",
       "units": [
         { "skin": "orc", "col": 6, "row": 23 },

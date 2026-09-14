@@ -363,6 +363,7 @@
   ],
   "events": [
     { "id": "clergy-five", "on": "dialogue", "type": "reinforce", "team": "player",
+      "entry": "march", "from": { "col": 0, "row": 5 },
       "units": [
         { "type": "bishop", "col": 1, "row": 5 },
         { "type": "priest", "col": 2, "row": 5 },

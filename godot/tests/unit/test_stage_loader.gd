@@ -737,8 +737,10 @@ func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> voi
 			{ "col": 5, "row": 1, "team": "enemy", "garrison": [ { "type": "knight", "count": 3, "native": "enemy" } ] },
 		],
 		"events": [
-			{ "id": "help", "turn": 5, "team": "player", "units": [ { "type": "knight", "col": 0, "row": 0 } ] },
-			{ "id": "foes", "turn": 6, "team": "enemy", "order": 1, "units": [ { "type": "knight", "col": 0, "row": 1 } ] },
+			{ "id": "help", "turn": 5, "team": "player", "entry": "fade",
+				"units": [ { "type": "knight", "col": 0, "row": 0 } ] },
+			{ "id": "foes", "turn": 6, "team": "enemy", "order": 1, "entry": "fade",
+				"units": [ { "type": "knight", "col": 0, "row": 1 } ] },
 		],
 	}
 	var s := StageLoader.build(data, catalog, skins)

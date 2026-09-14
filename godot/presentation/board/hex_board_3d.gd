@@ -25,6 +25,8 @@ signal formation_impact_finished
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速・上限なし＝時間はマス数に比例。doc/gdd/uiux.md 移動アニメ）
+const ENTRY_STAGGER_SEC := 0.10  # 一斉に散る登場＝次の駒が入口を出るまでの間（同じ1ヘックスから出るので重ねない）
+const ENTRY_FADE_SEC := 0.30     # その場に浮かび上がる登場＝薄いところから戻すのにかける秒数
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
 
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
@@ -81,6 +83,8 @@ var _covered := false    # 盤の上に画面（タイトル・依頼ボード�
 var _move_voice: AudioStreamPlayer = null  # 進行中の移動音の口（続く型のループ／周期の型の直近の一打）。到着・中断で止める
 var _move_voice_sfx := ""                  # その素材ID（止めるときの照合とフェード秒の取得に使う）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
+var _entry_tweens: Array[Tween] = []  # 進行中の登場の演出（一斉に散る＝同時に何本も走る）
+var _entry_until_msec := 0            # その演出が終わる時刻（0＝走っていない）。テンポ制御が待つ
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
 var _preview_unit := -1           # 移動プレビューで歩かせた駒（見た目だけ移動先に居る）
@@ -930,6 +934,135 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 		move_animation_finished.emit())
 	_move_tween = t
 
+## 増援の登場を見せる（doc/gdd/map.md イベントの entry・doc/gdd/uiux.md 移動の見せ方）。
+## 盤を先に作り直す＝駒はもう所定位置に居る。演出は見た目だけの後追いで、途中で切れても盤は
+## 嘘をつかない（移動アニメと同じ流儀）。animate が false なら作り直すだけ＝演出を出さない
+## （会話のスキップ・会話を出さない設定・中断セーブの復元）。
+func play_entry(info: Dictionary, animate := true) -> void:
+	var ids: Array = info.get("units", [])
+	if ids.is_empty():
+		return  # 駒を出さないイベント（会話・占領）＝盤は触らない（歩いている駒を止めない）
+	_sync()
+	if not animate:
+		return
+	var from: Vector2i = info.get("from", Vector2i.MAX)
+	match String(info.get("entry", "")):
+		"march":
+			await _entry_walk(ids, from, true)
+		"scatter":
+			await _entry_walk(ids, from, false)
+		"fade":
+			await _entry_fade(ids)
+
+## 入口から歩いてくる登場。sequential＝1体ずつ順に（march）／false＝少しずつずらして同時に（scatter）。
+## 経路を持たない駒（入口からたどり着けない・入口に立っている）は歩かせずその場に出す
+## ＝データのバグはデータ整合テストが先に捕まえる（doc/gdd/map.md イベント）。
+## 移動音は march なら駒ごとに、scatter なら先頭の1体だけ鳴らす＝全員ぶんは団子になる。
+func _entry_walk(ids: Array, from: Vector2i, sequential: bool) -> void:
+	_kill_entry_tweens()
+	var at := 0.0     # 次の駒が入口を出る時刻
+	var total := 0.0  # 全員が着くまで
+	var lead := true
+	for id in ids:
+		var uid := int(id)
+		var node: Node3D = _unit_renderer.get_unit_node(uid)
+		var path := state.entry_path(uid, from)
+		if node == null:
+			continue
+		if path.size() < 2:
+			var u := state.unit_by_id(uid)
+			if u != null and u.pos != from:
+				push_warning("HexBoard3D: 入口から歩いてこられない駒（その場に出す）: id=%d" % uid)
+			continue
+		var walk := float(path.size() - 1) * MOVE_ANIM_SEC_PER_HEX
+		var sfx := _move_sfx_of(uid) if sequential or lead else ""
+		_entry_tweens.append(_walk_in_tween(node, path, at, sfx))
+		total = maxf(total, at + walk)
+		at += walk if sequential else ENTRY_STAGGER_SEC
+		lead = false
+	await _await_entry(total)
+
+## 1体ぶんの歩く演出。delay 秒だけ待ってから入口を出る＝出番が来るまで駒は隠す
+## （入口は1ヘックスなので、隠さないと全員がそこに重なって待つ）。
+## 移動音の鳴らし方は素材の型で決まる＝_animate_move と同じ物差し（doc/audio/sfx.md 移動音）。
+func _walk_in_tween(node: Node3D, path: Array[Vector2i], delay: float, sfx: String) -> Tween:
+	var kind := SfxCatalog.move_kind_of(sfx)
+	var every: int = maxi(SfxCatalog.move_every_of(sfx), 1)
+	node.visible = false
+	node.position = _hex_world(path[0])
+	var t := create_tween()
+	if delay > 0.0:
+		t.tween_interval(delay)
+	t.tween_callback(func() -> void:
+		node.visible = true
+		if sfx != "" and kind == SfxCatalog.MOVE_SUSTAIN:
+			_stop_move_voice()
+			_move_voice_sfx = sfx
+			_move_voice = SfxPlayer.play_move_loop(sfx))
+	for i in range(1, path.size()):
+		var step_index := i - 1  # 0 起点＝踏み出す順番（周期の型は 0, every, 2*every, … で鳴る）
+		if sfx != "":
+			if kind == SfxCatalog.MOVE_STEP:
+				t.tween_callback(func() -> void: SfxPlayer.play_sfx(sfx))
+			elif kind == SfxCatalog.MOVE_BEAT and step_index % every == 0:
+				t.tween_callback(func() -> void:
+					_move_voice_sfx = sfx
+					_move_voice = SfxPlayer.play_sfx(sfx))
+		t.tween_property(node, "position", _hex_world(path[i]), MOVE_ANIM_SEC_PER_HEX)
+	if sfx != "":
+		t.tween_callback(_stop_move_voice)
+	return t
+
+## その場に浮かび上がる登場（入口を持たない駒）。立ち絵と文字は薄いところから戻し、
+## 影・バー・輪は共有材質なので隠しておいて最後に出す（薄くすると他の駒まで巻き込む）。
+func _entry_fade(ids: Array) -> void:
+	_kill_entry_tweens()
+	var shown := false
+	for id in ids:
+		var node: Node3D = _unit_renderer.get_unit_node(int(id))
+		if node == null:
+			continue
+		var t := create_tween()
+		t.set_parallel(true)
+		var hidden: Array[Node3D] = []
+		for c in node.get_children():
+			if c is Sprite3D:
+				var spr := c as Sprite3D
+				spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED  # discard のままでは薄くならない
+				spr.modulate.a = 0.0
+				t.tween_property(spr, "modulate:a", 1.0, ENTRY_FADE_SEC)
+			elif c is Label3D:
+				var lbl := c as Label3D
+				lbl.modulate.a = 0.0
+				t.tween_property(lbl, "modulate:a", 1.0, ENTRY_FADE_SEC)
+			elif c is Node3D:
+				var n3 := c as Node3D
+				n3.hide()
+				hidden.append(n3)
+		t.chain().tween_callback(func() -> void:
+			for n3 in hidden:
+				n3.show())
+		_entry_tweens.append(t)
+		shown = true
+	await _await_entry(ENTRY_FADE_SEC if shown else 0.0)
+
+## 登場の演出が終わるまで待つ（秒で待つ＝途中で盤が作り直されて演出が消えても待ち手は返る）。
+## 終わる時刻を控える＝AIターンのテンポ制御（await_move_animation）も同じ時刻まで待つ。
+func _await_entry(seconds: float) -> void:
+	if seconds <= 0.0:
+		return
+	_entry_until_msec = Time.get_ticks_msec() + int(seconds * 1000.0)
+	await get_tree().create_timer(seconds).timeout
+	_entry_until_msec = 0
+
+## 進行中の登場の演出を畳む（盤を作り直すとき）。駒は作り直しで真実の位置へ戻る。
+func _kill_entry_tweens() -> void:
+	for t in _entry_tweens:
+		if t != null and t.is_valid():
+			t.kill()
+	_entry_tweens.clear()
+	_entry_until_msec = 0
+
 ## その駒の移動音の素材ID。スキンの指定（map_move_sfx）を優先し、無ければ移動タイプの既定。
 ## 飛行の飛び方の違い（羽ばたき／浮遊／プロペラ）はスキン側で分かれる（doc/audio/sfx.md 移動音）。
 ## 盤に居ない・移動タイプ不明なら ""＝無音。
@@ -968,9 +1101,13 @@ func _kill_move_tween() -> void:
 	move_animation_finished.emit()
 
 ## AIターンのテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。
+## 増援の登場も同じ待ちに乗せる＝湧いた駒が歩いている最中に AI が次の手を指さない。
 func await_move_animation() -> void:
 	if _move_tween != null and _move_tween.is_valid() and _move_tween.is_running():
 		await move_animation_finished
+	var left := _entry_until_msec - Time.get_ticks_msec()
+	if left > 0:
+		await get_tree().create_timer(left / 1000.0).timeout
 
 func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed: bool) -> void:
 	_deselect()  # 攻撃したユニットは行動終了
@@ -1019,6 +1156,7 @@ func _on_battle_finished(_winner: int) -> void:
 func _sync() -> void:
 	_sync_bases()
 	_kill_move_tween()
+	_kill_entry_tweens()
 	_unit_renderer.sync_units()
 	_sync_overlay()
 

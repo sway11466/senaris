@@ -310,7 +310,8 @@ func test_end_turn_emits_event_fired() -> void:
 	mc.end_turn()  # ターン2 自軍＝発生
 	assert_signal_emitted_with_parameters(mc, "event_fired",
 		[{ "id": "", "label": "ui.test.airship", "dialogue": "arrive", "focus": true,
-			"on": "", "hex": Hex.offset_to_axial(4, 4) }], 0)  # on が空＝ターン起点
+			"on": "", "hex": Hex.offset_to_axial(4, 4),
+			"entry": "fade", "from": Vector2i.MAX, "units": [3] }], 0)  # on が空＝ターン起点
 
 ## イベントの無いターンは飛ばない（毎ターン鳴らさない）。
 func test_end_turn_without_event_is_silent() -> void:

@@ -553,6 +553,7 @@
   ],
   "events": [
     { "turn": 5, "type": "reinforce", "label": "undead-rush.st7.arrive.label", "team": "player", "id": "airship-arrive", "dialogue": "arrive", "name": "undead-rush.st7.arrive.name", "focus": true,
+      "entry": "march", "from": { "col": 0, "row": 25 },
       "units": [
         { "type": "airship", "col": 6, "row": 25,
           "passengers": [

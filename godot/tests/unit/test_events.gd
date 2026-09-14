@@ -60,8 +60,11 @@ func _next_id() -> String:
 	_id_seq += 1
 	return "e%d" % _id_seq
 
+## 登場の仕方は駒を出すイベントの必須キー（doc/gdd/map.md）。ここの関心は発火なので
+## 入口を持たない fade を既定にする（歩かせ方を見るテストは extra で上書きする）。
 func _reinforce(turn: int, extra: Dictionary = {}) -> Dictionary:
 	var e := { "id": _next_id(), "turn": turn, "type": "reinforce", "team": "player",
+		"entry": "fade",
 		"units": [ { "type": "fighter", "col": 5, "row": 3 } ] }
 	for k in extra:
 		e[k] = extra[k]
@@ -151,7 +154,7 @@ func test_shifts_off_impassable_terrain() -> void:
 # --- 搭載駒 ---
 
 func test_transport_arrives_loaded() -> void:
-	var e := { "id": "airship", "turn": 2, "type": "reinforce", "team": "player",
+	var e := { "id": "airship", "turn": 2, "type": "reinforce", "team": "player", "entry": "fade",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
 	var s := _state([e])
@@ -165,7 +168,7 @@ func test_transport_arrives_loaded() -> void:
 
 ## 搭載駒は盤上に居ない＝殲滅の数には入らない（既存の輸送と同じ扱い）。
 func test_passengers_are_not_on_board() -> void:
-	var e := { "id": "airship", "turn": 1, "type": "reinforce", "team": "player",
+	var e := { "id": "airship", "turn": 1, "type": "reinforce", "team": "player", "entry": "fade",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
 	var s := _state([e])
@@ -240,6 +243,7 @@ func test_focus_survives_serialization() -> void:
 
 func test_pending_event_survives_serialization() -> void:
 	var e := { "id": "airship", "turn": 4, "type": "reinforce", "team": "player", "label": "ui.test.airship",
+		"entry": "fade",
 		"units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] }
 	var data := _data([e])
@@ -457,10 +461,69 @@ func test_fire_event_leaves_last_fired_events_alone() -> void:
 	s.fire_event(s.pending_events()[0])
 	assert_true(s.last_fired_events.is_empty(), "ターンの控えには混ざらない")
 
+# --- 登場の仕方（entry）と入口（from）。仕様 → doc/gdd/map.md イベント ---
+
+## 歩いてくる登場は入口を持ち、その場に出る登場は持たない。
+func test_entry_and_from_are_read() -> void:
+	var s := _state([
+		_reinforce(2, { "entry": "march", "from": { "col": 0, "row": 3 } }),
+		_reinforce(3, { "entry": "scatter", "from": { "col": 5, "row": 0 } }),
+		_reinforce(4, { "entry": "fade" }),
+	])
+	var evs := s.pending_events()
+	assert_eq(evs.size(), 3, "前提: 3件とも未発生のまま")
+	assert_eq(evs[0].entry_id(), "march")
+	assert_true(evs[0].walks_in(), "march は歩いてくる")
+	assert_eq(evs[0].from, Hex.offset_to_axial(0, 3), "入口は col/row で読む")
+	assert_eq(evs[1].entry_id(), "scatter")
+	assert_true(evs[1].walks_in(), "scatter も歩いてくる")
+	assert_eq(evs[2].entry_id(), "fade")
+	assert_false(evs[2].walks_in(), "fade は歩かない")
+	assert_eq(evs[2].from, Vector2i.MAX, "その場に出る登場は入口を持たない")
+
+## 駒を出すイベントに登場の仕方が無いのはデータのバグ＝既定は置かない。
+func test_entry_is_required_for_events_with_units() -> void:
+	var e := _reinforce(2)
+	e.erase("entry")
+	_state([e])
+	assert_push_error("entry")
+
+## 歩いてくる登場に入口が無いのはデータのバグ。
+func test_walking_entry_requires_from() -> void:
+	_state([_reinforce(2, { "entry": "march" })])
+	assert_push_error("from")
+
+## その場に出る登場に入口を書くのはデータのバグ（どこから来たのかを持たない登場）。
+func test_fade_entry_rejects_from() -> void:
+	_state([_reinforce(2, { "entry": "fade", "from": { "col": 0, "row": 0 } })])
+	assert_push_error("from")
+
+## 入口からの通り道は地形をたどるだけ＝移動力の予算も、ほかの駒も見ない（見た目だけの道）。
+func test_entry_path_ignores_the_move_budget_and_units() -> void:
+	var s := _state([_reinforce(1, { "entry": "march", "from": { "col": 0, "row": 0 } })])
+	var goal := Hex.offset_to_axial(5, 3)
+	var u := s.unit_at(goal)
+	assert_not_null(u, "前提: 増援が所定位置に出ている")
+	u.move = 2  # 1手では届かない移動力にしても道は出る（予算で切らない）
+	var path := s.entry_path(u.id, Hex.offset_to_axial(0, 0))
+	assert_eq(path.front(), Hex.offset_to_axial(0, 0), "入口から始まる")
+	assert_eq(path.back(), goal, "所定位置で終わる")
+	assert_gt(path.size() - 1, u.move, "移動力では届かない距離でも道が出る")
+
+## 入れない地形は通さない＝たどり着けなければ道は出ない（呼んだ側はその場に出す）。
+func test_entry_path_is_empty_when_the_terrain_blocks_it() -> void:
+	var data := _data([_reinforce(1, { "entry": "march", "from": { "col": 0, "row": 0 } })])
+	data["terrain"] = ["...#..", "...#..", "...#..", "...#.."]  # 盤を縦に割る壁
+	var s := _build(data)
+	var u := s.unit_at(Hex.offset_to_axial(5, 3))
+	assert_not_null(u, "前提: 増援は所定位置に出ている（歩けなくても盤には出る）")
+	assert_true(s.entry_path(u.id, Hex.offset_to_axial(0, 0)).is_empty(), "壁の向こうへは道が出ない")
+
 # --- 会話が引き金（on: "dialogue"）。台本の enter 行が名指しで起こす。仕様 → doc/gdd/map.md イベント ---
 
 func _dialogue_event(extra: Dictionary = {}) -> Dictionary:
 	var e := { "id": _next_id(), "on": "dialogue", "type": "reinforce", "team": "player",
+		"entry": "fade",
 		"units": [ { "type": "fighter", "col": 5, "row": 3 } ] }
 	for k in extra:
 		e[k] = extra[k]

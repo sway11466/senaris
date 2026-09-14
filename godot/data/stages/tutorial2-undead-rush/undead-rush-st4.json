@@ -422,12 +422,14 @@
   ],
   "events": [
     { "id": "church-aid", "on": "dialogue", "type": "reinforce", "team": "player",
+      "entry": "march", "from": { "col": 0, "row": 5 },
       "units": [
         { "type": "knight", "col": 3, "row": 5 },
         { "type": "cleric", "col": 0, "row": 4 },
         { "type": "fighter", "col": 2, "row": 6 }
       ] },
     { "id": "wraiths-appear", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 2, "ai": "predator", "stack": 1,
       "units": [
         { "skin": "wraith", "col": 22, "row": 9 },

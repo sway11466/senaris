@@ -10,9 +10,9 @@ const STAGE := {
 	"player": [{ "type": "fighter", "col": 0, "row": 0 }],
 	"bases": [{ "col": 1, "row": 1, "team": "neutral" }],
 	"events": [
-		{ "id": "w1", "turn": 2, "type": "reinforce", "team": "enemy", "order": 1, "ai": "charge",
+		{ "id": "w1", "turn": 2, "type": "reinforce", "team": "enemy", "order": 1, "ai": "charge", "entry": "fade",
 			"units": [{ "type": "fighter", "col": 5, "row": 3 }] },
-		{ "id": "w2", "turn": 4, "type": "reinforce", "team": "enemy", "order": 2, "ai": "charge",
+		{ "id": "w2", "turn": 4, "type": "reinforce", "team": "enemy", "order": 2, "ai": "charge", "entry": "fade",
 			"units": [{ "type": "fighter", "col": 5, "row": 3 }] },
 		{ "id": "cap", "on": "capture", "col": 1, "row": 1, "team": "player", "type": "talk",
 			"once": "village", "dialogue": "taken", "name": "ui.test.event_name" },

@@ -181,6 +181,7 @@
   ],
   "events": [
     { "id": "scout-enters", "on": "dialogue", "type": "reinforce", "team": "player",
+      "entry": "march", "from": { "col": 0, "row": 5 },
       "units": [
         { "type": "halfling", "col": 3, "row": 5 }
       ] }

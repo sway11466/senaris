@@ -115,12 +115,13 @@ func _on_enter_line(event_id: String, reading: bool) -> void:
 	var info := _controller.fire_dialogue_event(event_id)
 	if info.is_empty():
 		return
-	_board.refresh()  # 盤は攻撃イベントで作り直す作り＝会話で出た駒は明示的に貼り直す
-	if not reading:
-		return
-	var hex: Vector2i = info.get("hex", Vector2i.MAX)
-	if bool(info.get("focus", false)) and hex != Vector2i.MAX:
-		await _board.focus_camera_on(hex)
+	if reading:
+		var hex: Vector2i = info.get("hex", Vector2i.MAX)
+		if bool(info.get("focus", false)) and hex != Vector2i.MAX:
+			await _board.focus_camera_on(hex)  # 出てくる場所を見せてから出す
+	# 盤は攻撃イベントで作り直す作り＝会話で出た駒は明示的に貼り直す。
+	# reading が false（スキップ・会話を出さない設定）なら演出は出さず置くだけ。
+	await _board.play_entry(info, reading)
 
 ## 会話を出さないとき（情報板を畳んで「会話を表示しない」）の後始末＝台本の enter 行だけ起こす。
 ## 読まなくても盤は台本どおりの顔ぶれで始まる（doc/gdd/uiux.md 畳んでいるときの会話）。
@@ -139,7 +140,11 @@ func _enter_without_reading(lines: Array) -> void:
 ## turn 起点のイベントは敵の手番の頭で起きる＝AI が動き出す前に止める場所が無いので出さない
 ## （doc/gdd/map.md イベント）。
 func on_event_fired(info: Dictionary) -> void:
-	if _controller == null or _conversation == null or _phase != "":
+	if _controller == null or _conversation == null:
+		return
+	# 登場は会話の有無・陣営を問わず見せる＝台本が無い増援も入口から出てくる。
+	await _board.play_entry(info)
+	if _phase != "":
 		return
 	if _controller.is_ai_turn() and String(info.get("on", "")) != "capture":
 		return

@@ -375,6 +375,7 @@ func _consume_event(e: StageEvent) -> void:
 ## 実際に出た hex は placed に控える＝ずれて出ても、上（カメラ・演出）が本当の場所を見られる。
 func _place_event_units(e: StageEvent) -> void:
 	e.placed.clear()
+	e.placed_ids.clear()
 	for item in e.units:
 		var u := item.unit
 		if u == null:
@@ -385,6 +386,7 @@ func _place_event_units(e: StageEvent) -> void:
 			continue
 		u.pos = hex
 		e.placed.append(hex)
+		e.placed_ids.append(u.id)
 		add_unit(u)
 		if e.squad_index >= 0:
 			assign_squad(u.id, e.squad_index)
@@ -660,6 +662,36 @@ func path_to(unit_id: int, to: Vector2i) -> Array[Vector2i]:
 	var cur := to
 	while cur != u.pos:
 		cur = prev[cur]  # prev は確定済みノードだけを指す＝閉路にならず必ず start へ着く
+		path.append(cur)
+	path.reverse()
+	return path
+
+## 入口 from から unit_id がいま立っているヘックスまでの通り道（見た目だけの経路）。
+## 移動力の予算・敵ZOC・ほかの駒は見ない＝地形の進入可否だけをたどる（駒どうしはすり抜ける）。
+## 1マスの進入コストがその駒の移動力を超えるヘックスは通さない＝何ターンかけても入れないマスは
+## その駒の道ではない（移動2の駒にとっての柵。travel_cost_field と同じ線引き）。
+## 移動力0の駒（据え置き）は上限を課さない＝運び込まれた体で歩かせる。
+## 増援の登場の演出が使う。たどり着けなければ空配列＝呼んだ側はその駒をその場に出す。
+## 詳細 → doc/gdd/map.md イベント（entry／from）・doc/gdd/uiux.md 移動の見せ方
+func entry_path(unit_id: int, from: Vector2i) -> Array[Vector2i]:
+	var u := unit_by_id(unit_id)
+	if u == null or not in_field(from) or from == u.pos:
+		return []
+	var max_step := u.move
+	var cost_fn := func(hex: Vector2i) -> int:
+		if not in_field(hex):
+			return Movement.IMPASSABLE
+		var c := Movement.cost(_movement, u.move_type, terrain_at(hex))
+		if max_step > 0 and c > max_step:
+			return Movement.IMPASSABLE
+		return c
+	var prev := Hex.flood_reach_prev_map(from, 1 << 24, cost_fn)
+	if not prev.has(u.pos):
+		return []
+	var path: Array[Vector2i] = [u.pos]
+	var cur := u.pos
+	while cur != from:
+		cur = prev[cur]
 		path.append(cur)
 	path.reverse()
 	return path

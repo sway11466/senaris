@@ -198,6 +198,61 @@ func test_stage_dialogue_enter_lines_match_dialogue_events() -> void:
 			assert_true(wanted.has(event_id),
 				"%s の on:\"dialogue\" のイベント '%s' が台本の enter 行から呼ばれている" % [path, event_id])
 
+func test_stage_events_declare_entry_and_from() -> void:
+	# 駒を出すイベントは登場の仕方（entry）を必ず持ち、歩いてくる登場だけが入口（from）を持つ
+	# （doc/gdd/map.md イベント）。既定を置かない決まりなので、書き忘れは
+	# 「所定位置にポンと現れる」に黙って戻る＝遊んでみるまで気づけない。
+	var files := _all_stage_files("res://data/stages")
+	assert_gt(files.size(), 0, "ステージJSONが見つかる")
+	for path in files:
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		for event in (data as Dictionary).get("events", []):
+			if typeof(event) != TYPE_DICTIONARY:
+				continue
+			var e: Dictionary = event
+			var units: Variant = e.get("units", [])
+			if typeof(units) != TYPE_ARRAY or (units as Array).is_empty():
+				continue
+			var id := String(e.get("id", ""))
+			var entry := String(e.get("entry", ""))
+			assert_true(StageEvent.ENTRY_IDS.has(entry),
+				"%s のイベント '%s' に entry（march／scatter／fade）がある" % [path, id])
+			var from: Variant = e.get("from")
+			if entry == "march" or entry == "scatter":
+				assert_true(typeof(from) == TYPE_DICTIONARY
+						and (from as Dictionary).has("col") and (from as Dictionary).has("row"),
+					"%s のイベント '%s' に入口 from（col/row）がある" % [path, id])
+			else:
+				assert_null(from, "%s のイベント '%s' は入口 from を持たない" % [path, id])
+
+func test_walking_entries_can_reach_their_places() -> void:
+	# 歩いてくる登場は、入口から所定位置まで地形をたどれること（doc/gdd/map.md イベント）。
+	# たどり着けない駒は歩かずその場に出る＝「入口から出てくる」が黙って崩れる。
+	# 読み込むのは歩いてくる登場を持つステージだけ＝全ステージを組み立てない。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var walks := false
+		for event in (data as Dictionary).get("events", []):
+			if typeof(event) == TYPE_DICTIONARY 					and String((event as Dictionary).get("entry", "")) in ["march", "scatter"]:
+				walks = true
+		if not walks:
+			continue
+		var state := StageLoader.load_file(path)
+		assert_not_null(state, "%s が読める" % path)
+		if state == null:
+			continue
+		for e in state.pending_events().duplicate():
+			if not e.walks_in():
+				continue
+			state.fire_event(e)  # 引き金を待たずに出す＝並びも座標も本番と同じ
+			for uid in e.placed_ids:
+				assert_false(state.entry_path(uid, e.from).is_empty(),
+					"%s のイベント '%s' の駒 id=%d が入口から歩いてこられる" % [path, e.id, uid])
+
 func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictionary) -> void:
 	var v: Variant = holder.get("order")
 	if typeof(v) != TYPE_FLOAT and typeof(v) != TYPE_INT:

@@ -20,7 +20,7 @@ class_name StageLoader
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
 ## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["id", "type", "team", "turn", "on", "col", "row", "once", "label", "name", "units", "dialogue", "focus"]
+const EVENT_KEYS := ["id", "type", "team", "turn", "on", "col", "row", "once", "label", "name", "units", "dialogue", "focus", "entry", "from"]
 
 ## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/campaigns.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
@@ -724,6 +724,7 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	ev.focus = bool(e.get("focus", false))
 	_check_event_dialogue(e, ev)
 	_check_dialogue_trigger(ev)
+	_parse_entry(e, ev)
 	return ev
 
 ## イベントの id（文字列）は必須でステージ内で一意。書き忘れ・重複はデータのバグ＝止める。
@@ -767,6 +768,34 @@ static func _check_dialogue_trigger(ev: StageEvent) -> void:
 	if not ev.dialogue.is_empty():
 		push_warning("StageLoader: on:\"dialogue\" のイベント '%s' は dialogue を持てない（無視）＝呼ぶ側が台本" % ev.id)
 		ev.dialogue = ""
+
+## 登場の仕方（entry）と入口（from）。駒を出すイベントには entry が必ず要る＝既定は置かない
+## （どこから盤に入ったかは次の一手の読みに直結する）。march／scatter は入口を持ち、fade は持たない。
+## 書き間違いは push_error（turn_limit と同じ扱い）。詳細 → doc/gdd/map.md イベント
+static func _parse_entry(e: Dictionary, ev: StageEvent) -> void:
+	var raw_units: Variant = e.get("units", [])
+	var has_units := typeof(raw_units) == TYPE_ARRAY and not (raw_units as Array).is_empty()
+	var entry_id := String(e.get("entry", ""))
+	if not has_units:
+		if not entry_id.is_empty() or e.has("from"):
+			push_warning("StageLoader: 駒を出さないイベント '%s' の entry／from は効かない（無視）" % ev.id)
+		return
+	if not StageEvent.ENTRY_IDS.has(entry_id):
+		push_error("StageLoader: イベント '%s' の entry が無い／読めない（march／scatter／fade）: '%s'"
+			% [ev.id, entry_id])
+		return
+	ev.entry = StageEvent.ENTRY_IDS[entry_id]
+	var raw_from: Variant = e.get("from")
+	var has_from := typeof(raw_from) == TYPE_DICTIONARY 		and (raw_from as Dictionary).has("col") and (raw_from as Dictionary).has("row")
+	if not ev.walks_in():
+		if raw_from != null:
+			push_error("StageLoader: entry:\"fade\" のイベント '%s' は入口 from を持たない" % ev.id)
+		return
+	if not has_from:
+		push_error("StageLoader: entry:\"%s\" のイベント '%s' に入口 from（col/row）が無い" % [entry_id, ev.id])
+		return
+	var f: Dictionary = raw_from
+	ev.from = Hex.offset_to_axial(int(f["col"]), int(f["row"]))
 
 ## 敵の増援＝1部隊。AIプリセット等の上書きはイベント直下に書く（部隊定義と同じ流儀）＝EVENT_KEYS 以外を拾う。
 ## 登録した部隊の index を返す。

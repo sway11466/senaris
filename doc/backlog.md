@@ -304,15 +304,6 @@
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `names.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
 - 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
 
-### feature-125
-
-**増援の登場を入口から見せる（イベントの `entry` と `from`）**
-- ゴール：増援の駒が所定位置に突然現れず、ステージが決めた入口から出てきて自分の位置まで歩く。大群は一斉に散り、盤の外から来ない駒はその場に浮かび上がる。
-- 背景：いまは指定座標にポンと現れるだけで、どこから来たのかが読めない。とくに会話の `enter` 行で出す駒は台詞の直後に湧くので「現れた」以上の情報が無い。仕様は [map.md](gdd/map.md) イベントの `entry`／`from` と [uiux.md](gdd/uiux.md) 移動の見せ方に書いた。歩かせる道具は既にある＝`HexBoard3D._animate_move` が経路を1マスずつ辿らせ、盤の状態は先に確定して見た目だけが後追いする。
-- 対応：(1) `StageEvent` に `entry`（`march`／`scatter`／`fade`）と `from`（Vector2i）。`StageLoader` で読み、駒を持つイベントに `entry` が無い・`march`／`scatter` に `from` が無い・`fade` に `from` がある、は push_error（データのバグ）。(2) 移動力と敵ZOCを見ない経路探索を `BattleState` に足す＝`path_to` は残り移動力で頭打ちになるので盤外から入る駒には使えない。進入できるかの判定は移動タイプごとの既存のものをそのまま使う。(3) `HexBoard3D` に登場の演出。`march` は `units` の順に1体ずつ、`scatter` は少しずつ時刻をずらして同時に（同じ1ヘックスから出るので出口で重なる）、`fade` は所定位置でアルファを上げる。(4) 移動音を同時に複数鳴らせる形にする＝いまは `_move_voice` と `_move_tween` が単数で、次を始めると前を畳む。`scatter` で全員ぶん鳴らすと団子になるので鳴らし方を決める（[sfx.md](audio/sfx.md) 移動音）。(5) 会話のスキップ・「会話を表示しない」・中断セーブの復元では演出を出さず置くだけ（`fire_pending_dialogue_events` の経路）。(6) 既存の増援に `entry`／`from` を書く＝チュートリアル２ st7 の飛空艇、チュートリアル１〜３の会話起点のイベント、デバッグステージ。(7) データ整合テスト＝`entry` の必須・`from` の有無・`march`／`scatter` の駒が `from` から地形をたどって到達できること。
-- 考慮外：拠点からの出撃・輸送からの降車（盤の中の操作＝入口を持たない）。入口を盤のルールに載せること（塞げる・押さえられる・そこから出撃できる）。マップエディタでの入口の編集（引き金が `on` のイベントは元から JSON 直書き）。
-- 該当：`doc/gdd/map.md`・`doc/gdd/uiux.md`・`godot/domain/map/stage_event.gd`・`godot/domain/battle_state.gd`・`godot/application/stage_loader.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/data/stages/`・`godot/tests/unit/test_data_integrity.gd`。
-
 ### refactoring-15
 
 **陣形スキルのドリフト検出（formations.md の一覧 ⇄ `Formation.RECIPES` ⇄ `names.csv`）**

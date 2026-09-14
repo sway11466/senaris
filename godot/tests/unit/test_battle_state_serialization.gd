@@ -220,6 +220,7 @@ func test_restore_picks_up_added_events() -> void:
 	var s := _rich_state(data)
 	var added := _stage_data()
 	added["events"] = [{ "id": "late-wave", "turn": 5, "type": "reinforce", "team": "enemy", "order": 2, "ai": "charge",
+		"entry": "fade",
 		"units": [{ "type": "knight", "col": 7, "row": 5 }] }]
 	var s2 := _roundtrip(s, data, added)
 	assert_eq(s2.pending_events().size(), 1, "足されたイベントが未発火として現れる")

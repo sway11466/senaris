@@ -778,6 +778,7 @@
   ],
   "events": [
     { "id": "serpents-1", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 1, "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 14 },
@@ -785,6 +786,7 @@
         { "skin": "rock_serpent", "col": 11, "row": 13 }
       ] },
     { "id": "serpents-2", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 2, "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 16, "row": 16 },
@@ -792,6 +794,7 @@
         { "skin": "rock_serpent", "col": 17, "row": 15 }
       ] },
     { "id": "serpents-3", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 3, "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 7 },
@@ -799,6 +802,7 @@
         { "skin": "rock_serpent", "col": 10, "row": 7 }
       ] },
     { "id": "serpents-4", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 4, "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 16, "row": 8 },
@@ -806,6 +810,7 @@
         { "skin": "rock_serpent", "col": 16, "row": 9 }
       ] },
     { "id": "serpents-5", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 5, "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 3 },
@@ -813,6 +818,7 @@
         { "skin": "rock_serpent", "col": 10, "row": 3 }
       ] },
     { "id": "serpents-6", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 6, "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 22, "row": 20 },
@@ -820,18 +826,22 @@
         { "skin": "rock_serpent", "col": 23, "row": 19 }
       ] },
     { "id": "wyrms", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 7, "ai": "ambush", "sight": 9,
       "units": [
         { "skin": "wyrm", "col": 17, "row": 2 },
         { "skin": "wyrm", "col": 23, "row": 15 }
       ] },
     { "id": "troll", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 8, "ai": "ambush", "sight": 12,
       "units": [ { "skin": "troll", "col": 23, "row": 11 } ] },
     { "id": "rogue-wagon", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 10, "ai": "ambush", "sight": 0,
       "units": [ { "skin": "rogue_wagon", "col": 6, "row": 1 } ] },
     { "id": "rogue-gang", "on": "dialogue", "type": "reinforce", "team": "enemy",
+      "entry": "fade",
       "order": 9, "ai": "raid",
       "units": [
         { "skin": "rogue_axe", "col": 23, "row": 4 },

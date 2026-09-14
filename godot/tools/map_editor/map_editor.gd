@@ -1679,6 +1679,28 @@ func _add_event_rows(index: int, ev: Dictionary) -> void:
 		var ai_opts := _ai_options(false)
 		box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(ev.get("ai", "")),
 			func(k: String) -> void: ev["ai"] = k))
+	# 登場の仕方（必須）と入口。march／scatter は入口から歩いて出てくる＝入口の座標を持つ。
+	# fade はその場に浮かぶ＝入口を持たない（doc/gdd/map.md イベント）。
+	box.add_child(_labeled_option("登場", ["march", "scatter", "fade"],
+		["入口から順に歩く", "入口から一斉に散る", "その場に浮かぶ"],
+		String(ev.get("entry", "fade")),
+		func(k: String) -> void:
+			ev["entry"] = k
+			if k == "fade":
+				ev.erase("from")
+			elif typeof(ev.get("from")) != TYPE_DICTIONARY:
+				ev["from"] = { "col": 0, "row": 0 }
+			_refresh_events()))
+	if String(ev.get("entry", "")) in ["march", "scatter"]:
+		var from: Dictionary = ev["from"]
+		var from_row := HBoxContainer.new()
+		box.add_child(from_row)
+		var from_col := _make_spin(0, int(_doc.data.get("cols", 12)) - 1, int(from.get("col", 0)))
+		from_col.value_changed.connect(func(v: float) -> void: from["col"] = int(v))
+		from_row.add_child(_labeled_row("入口 col", from_col))
+		var from_r := _make_spin(0, int(_doc.data.get("rows", 8)) - 1, int(from.get("row", 0)))
+		from_r.value_changed.connect(func(v: float) -> void: from["row"] = int(v))
+		from_row.add_child(_labeled_row("row", from_r))
 	var label := LineEdit.new()
 	label.text = String(ev.get("label", ""))
 	label.placeholder_text = "翻訳キー（空＝予告を出さない）"

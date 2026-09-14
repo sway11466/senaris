@@ -64,7 +64,7 @@ const EVENT_SAMPLE := """
   "enemy": [],
   "events": [
     { "turn": 5, "type": "reinforce", "team": "player",
-      "label": "undead-rush.st7.event.airship",
+      "label": "undead-rush.st7.event.airship", "entry": "fade",
       "units": [
         { "type": "airship", "col": 0, "row": 3,
           "passengers": [ { "type": "paladin" } ] }
