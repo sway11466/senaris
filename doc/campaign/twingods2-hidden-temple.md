@@ -483,5 +483,16 @@
 
 - 各ステージの型・難易度・戦力比（[../gdd/map_patterns.md](../gdd/map_patterns.md) の一覧に載せる）
 - 盤の具体（地形・配置・勝敗条件・`turn_limit`）。「迷う」は盤の仕組みにしないと決めた（上記「迷いの森を盤でどう扱うか」）
-- 登場ユニット（casting）と敵スキン。混沌側は [twingods.md](twingods.md) 混沌の神の軍勢（インプ・マンティコアが新規）。味方側の新スキン: ユニコーン（st3）。st7 で盤に出す司教の型（`cult_bishop` を使うか、逃げるだけの仮の型か）は未決
+- 登場ユニット（casting）とスキン。**味方側は既存スキンをそのまま使う**（聖騎士団のパラディン・ナイト・アーチャー・クレリック・ウィッチ・バリスタ、腕の立つ兵のナイト・ハンター・スカウト、町娘は第1部の `girl`）。第2部で新しく要るもの:
+
+  | 日本語 | 型 | 英語名 | skin_id | 出る回 |
+  |---|---|---|---|---|
+  | 森の聖女 | saint（新 type） | → [twingods.md](twingods.md) 森の聖女 | `saint`（ally） | st3〜st7 |
+  | ユニコーン | forest_knight | Unicorn | `unicorn`（ally） | st3 |
+  | 黒衣の女（混沌の聖女） | 未決（新 type） | → [twingods.md](twingods.md) 混沌の聖女。絵は森の聖女の色違い（黒） | `chaos_saint` | st2・st4・st7 |
+  | 邪教弓兵・邪教刺客・邪司祭 | → [twingods.md](twingods.md) 邪教側の兵 | | | st1〜／st5〜／st7 |
+  | 邪司教 | 未決（`cult_bishop` か、逃げるだけの仮の型） | Cult Bishop | `cult_bishop` | st7（逃走のみ） |
+  | キメラ・インプ・マンティコア・スライム | → [twingods.md](twingods.md) 混沌の神の軍勢 | | | st4〜st6 |
+
+  地形スキン: 深い森（`forest` に貼る・st1〜st4）、光の道（`road` に貼る・st4）、神殿の外壁（`rampart`・st6）と大伽藍の内部（st7）。英語名と skin_id は仮
 - 演出の要望: 会話の冒頭の暗転と閃光／会話の後に味方が隊列に並ぶ演出（st7 で使いたい。他のステージにも合う場面があるか、通しで見直す）
