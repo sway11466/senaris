@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=7 / feature=125 / refactoring=17.
+次回採番: bug=7 / feature=125 / refactoring=18.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -342,6 +342,14 @@
 - 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `names.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
 - 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
+
+### refactoring-17
+
+**`names.csv` を他と同じ単位に割る（ユニット・地形 …）**
+- ゴール：翻訳CSV のファイル名を見れば、そこに何の文字列が入っているかが分かる。
+- 背景：翻訳CSV は用途で分かれている（`dialogue` / `campaigns` / `ui` / `manual` / `chronicle`）が、`names.csv` だけが「データに付いた用語」を全部抱えている＝ `ai` / `category` / `movement` / `recipe` / `terrain` / `terrain_type` / `unit` の7系統。何の name なのかをファイル名が言えていない。データ側は `godot/data/units/` `terrain/` `movement/` `ai/` のように機能フォルダで割れているので、翻訳も同じ単位にできる。
+- 対応：`names.csv` を系統ごとの CSV に割る（ユニット・地形・移動・AI・陣形スキル …）。`project.godot` の `locale/translations` と [i18n.md](tech/i18n.md) のキー命名規約を合わせて直す。キー（`unit.<id>.name` 等）は変えない＝ファイルの割り方だけの変更で、コードは触らない。
+- 該当：`godot/data/i18n/names.csv`・`godot/project.godot`・[i18n.md](tech/i18n.md)・`godot/tests/unit/`（CSV を名指ししているテスト）。
 
 ### refactoring-15
 
