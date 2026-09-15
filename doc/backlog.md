@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=7 / feature=130 / refactoring=18.
+次回採番: bug=8 / feature=130 / refactoring=18.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -13,6 +13,28 @@
 ## バグ
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### bug-7
+
+**イベント（`events`）のキーが用途を兼ねていて、1件読んでも意味が取れない**
+- ゴール：イベントを1件読めば「いつ起きるか」「何が起きるか」「誰に起きるか」がキーの名前だけで分かる。同じキーが場所によって違う意味を持たない。
+- 背景：いま書ける形は2つある。ターン起点の増援（[undead-rush-st7.json](../godot/data/stages/tutorial2-undead-rush/undead-rush-st7.json)）と、占領が引き金の会話（[goblin-raid-st4.json](../godot/data/stages/tutorial1-goblin-raid/goblin-raid-st4.json)）。
+  ```json
+  { "id": "airship-arrive", "turn": 5, "type": "reinforce", "team": "player",
+    "entry": "march", "from": { "col": 0, "row": 25 },
+    "label": "…", "dialogue": "arrive", "name": "…", "focus": true,
+    "units": [ { "type": "airship", "col": 6, "row": 25, "passengers": [ … ] } ] }
+
+  { "id": "town-freed", "type": "talk", "col": 9, "row": 6, "team": "player",
+    "on": "capture", "dialogue": "free", "name": "…", "focus": true }
+  ```
+  - 引き金（`turn` / `on`）と起きること（`type`）が別の軸なのに、`type` が後者だけを名乗っている。`on` を書かなければターン起点、という暗黙の規則になっている。
+  - `type` の2値（`reinforce` / `talk`）は実態と合っていない。飛空艇のイベントは駒が増えて会話も流れる＝両方やっている。
+  - `team` が2つの意味を兼ねる。増援では加わる駒の陣営、占領の会話では「どちらが取ったら起きるか」。たまたま同じ値を取るだけの別物。
+  - `name` はイベントの名前だが、[stage_loader.gd](../godot/application/stage_loader.gd) のコメントとエラーメッセージ、[map.md](gdd/map.md) のイベント表が「会話の見出しの翻訳キー」と書いている。読んだ側が意味を取り違える。
+  - 敵の増援は部隊の設定（`ai` / `order` / `sight`）をイベント直下に書き、ローダーは `EVENT_KEYS` に並べたキー以外を部隊定義として拾う。イベントに新しいキーを足して `EVENT_KEYS` への追記を忘れると、黙って部隊の設定に化ける。
+- 対応：(1) 引き金を `type` に寄せる（`turn` / `capture`）。起きることは中身で決まる＝駒があれば増援、`dialogue` があれば会話、両方あれば両方。(2) 加わる駒は盤と同じ陣営セクション（`player` / `enemy`）に入れ、そのセクションが部隊の入れ物になる＝敵の `ai` / `order` も部隊の中に収まり、残余拾いが要らなくなる。味方の増援には部隊名が書ける（[map.md](gdd/map.md) 駒の配置＝味方部隊）。(3) 占領の条件（取った側）は引き金側のキーに移し、`team` を廃止する。(4) `name` の説明をイベント名に直す（コメント・エラーメッセージ・doc）。(5) イベントを持つステージJSON（`debug-map/event.json`・`debug-photo/store4.json`・`goblin-raid-st4`・`undead-rush-st2`・`undead-rush-st7`）を書き換える。(6) マップエディタのイベント編集（陣営の選択・増援の駒の置き方）を新しい形に合わせる。(7) 整合テストの `order` の検査を部隊の中を見る形に直す。
+- 該当：`godot/application/stage_loader.gd`・`godot/domain/map/stage_event.gd`・`godot/domain/battle_state.gd`（イベントの保持）・`godot/tools/map_editor/map_editor.gd`・`godot/tests/small/data/test_data_integrity.gd`・`godot/tests/small/domain/test_events.gd`・`doc/gdd/map.md`。味方の増援がどの味方部隊に属するかはここで決まる。
 
 ### bug-6
 
