@@ -7,13 +7,9 @@ class_name SaveRestore
 
 ## stage_path のステージJSONで盤を組み、diff を被せた BattleState を返す。失敗時は null。
 static func restore(stage_path: String, diff: Dictionary) -> BattleState:
-	var text := FileAccess.get_file_as_string(stage_path)
-	if text.is_empty():
-		push_error("SaveRestore: ステージを読めない/空: %s" % stage_path)
-		return null
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
-		push_error("SaveRestore: ステージJSONが不正: %s" % stage_path)
+	var data := StageLoader.read_stage(stage_path)  # 地形ファイルの合流・盤の広さの算出ごと（load_file と同じ口）
+	if data.is_empty():
+		push_error("SaveRestore: ステージを読めない/不正: %s" % stage_path)
 		return null
 	var catalog := UnitCatalog.load_default()
 	var state := StageLoader.build(data, catalog, SkinCatalog.load_standard())

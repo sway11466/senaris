@@ -4,11 +4,16 @@ extends GutTest
 const TMP_PATH := "user://test_stage_tmp.json"
 
 func after_each() -> void:
-	if FileAccess.file_exists(TMP_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(TMP_PATH))
+	for p in [TMP_PATH, StageLoader.terrain_path(TMP_PATH)]:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
 
 func _write_stage(text: String) -> void:
 	var f := FileAccess.open(TMP_PATH, FileAccess.WRITE)
+	f.store_string(text)
+
+func _write_terrain(text: String) -> void:
+	var f := FileAccess.open(StageLoader.terrain_path(TMP_PATH), FileAccess.WRITE)
 	f.store_string(text)
 
 func test_build_reads_size_terrain_units() -> void:
@@ -239,7 +244,7 @@ func test_roster_collect_returns_player_only() -> void:
 func test_load_file_places_carried_units() -> void:
 	# load_file(path, carried) で名簿の仲間が player の actor に嵌る（main の受け渡し経路）。
 	_write_stage(JSON.stringify({
-		"cols": 8, "rows": 6, "turn_limit": 20,
+		"terrain": ["........", "........", "........", "........", "........", "........"], "turn_limit": 20,
 		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }],
 	}))
 	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8, "actor": "c.knight" }]
@@ -397,11 +402,11 @@ func test_load_file_empty_returns_null() -> void:
 func test_load_file_non_dict_json_returns_null() -> void:
 	_write_stage("[1, 2, 3]")  # 正しいJSONだが dict でない
 	assert_null(StageLoader.load_file(TMP_PATH))
-	assert_push_error("JSON が不正")
+	assert_push_error("読み込めない/不正")
 
 func test_load_file_missing_turn_limit_errors_but_builds() -> void:
 	# turn_limit 欠損はデータのバグとして push_error するが、build は続行して state を返す（現仕様）
-	_write_stage(JSON.stringify({ "cols": 4, "rows": 3, "player": [ { "col": 0, "row": 0 } ] }))
+	_write_stage(JSON.stringify({ "terrain": ["....", "....", "...."], "player": [ { "col": 0, "row": 0 } ] }))
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_push_error("turn_limit")
 	assert_not_null(s, "エラーは出すが読み込みは成立する")
@@ -409,7 +414,7 @@ func test_load_file_missing_turn_limit_errors_but_builds() -> void:
 	assert_eq(s.units().size(), 1)
 
 func test_load_file_non_positive_turn_limit_errors_but_builds() -> void:
-	_write_stage(JSON.stringify({ "cols": 4, "rows": 3, "turn_limit": 0,
+	_write_stage(JSON.stringify({ "terrain": ["....", "....", "...."], "turn_limit": 0,
 		"player": [ { "col": 0, "row": 0 } ] }))
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_push_error("turn_limit")
@@ -566,7 +571,7 @@ func test_backdrop_missing_is_empty() -> void:
 	assert_eq(StageLoader.parse_backdrop({}), "")
 
 func test_load_backdrop_from_file() -> void:
-	_write_stage('{ "cols": 4, "rows": 3, "margin": 0, "backdrop": "cave_wall1" }')
+	_write_stage('{ "terrain": ["....", "....", "...."], "margin": 0, "backdrop": "cave_wall1" }')
 	assert_eq(StageLoader.load_backdrop(TMP_PATH), "cave_wall1")
 
 func test_load_backdrop_missing_file_is_empty() -> void:
@@ -711,7 +716,7 @@ func test_is_carryover_stage() -> void:
 	assert_false(StageLoader.is_carryover_stage({}), "player が無ければ独立")
 
 func test_load_briefing_from_file() -> void:
-	_write_stage('{ "cols": 4, "rows": 3, "margin": 0, "player": [{ "type": "novice", "col": 1, "row": 1 }] }')
+	_write_stage('{ "terrain": ["....", "....", "...."], "margin": 0, "player": [{ "type": "novice", "col": 1, "row": 1 }] }')
 	var brief := StageLoader.load_briefing(TMP_PATH)
 	assert_eq((brief["party"] as Array).size(), 1)
 	assert_false(brief["carryover"], "actor が無ければ独立")
@@ -784,3 +789,64 @@ func test_count_start_allies_skips_units_that_did_not_sortie() -> void:
 	assert_eq(s.units().size(), 2, "名簿に居ない actor の駒は盤に出ない")
 	assert_eq(StageLoader.count_start_allies(data, s, catalog, skins), 2,
 			"名簿に居る actor と配給の駒だけ数える")
+
+
+# --- 地形ファイルの合流（<ステージ>.json ↔ <ステージ>.terrain.json） ---
+
+func test_terrain_path_is_the_sibling_of_the_stage() -> void:
+	assert_eq(StageLoader.terrain_path("res://data/stages/x/st2.json"),
+		"res://data/stages/x/st2.terrain.json", "拡張子を差し替えた隣のファイル")
+
+func test_read_stage_merges_the_terrain_file() -> void:
+	_write_stage('{ "turn_limit": 10, "name": "合流" }')
+	_write_terrain('{ "terrain": ["....", "..PP", "...."], "terrain_skins": [{ "col": 0, "row": 0, "skin": "snow1" }] }')
+	var data := StageLoader.read_stage(TMP_PATH)
+	assert_eq(int(data["turn_limit"]), 10, "本体のキーはそのまま")
+	assert_eq((data["terrain"] as Array).size(), 3, "地形は地形ファイルから載る")
+	assert_eq((data["terrain_skins"] as Array).size(), 1, "見た目の差分も地形ファイル側")
+
+func test_read_stage_counts_the_board_from_the_grid() -> void:
+	# 盤の広さはファイルに書かない＝グリッドの寸法から数える。
+	_write_stage('{ "turn_limit": 10 }')
+	_write_terrain('{ "terrain": ["......", "......", "......", "......"] }')
+	var data := StageLoader.read_stage(TMP_PATH)
+	assert_eq(int(data["cols"]), 6, "盤の幅＝1行の文字数")
+	assert_eq(int(data["rows"]), 4, "盤の高さ＝行数")
+
+func test_read_stage_counts_the_board_inside_the_margin() -> void:
+	# 外周は盤に入らない＝グリッドの寸法から margin の2周ぶんを引く。
+	_write_stage('{ "turn_limit": 10 }')
+	_write_terrain('{ "margin": 1, "terrain": ["......", "......", "......", "......"] }')
+	var data := StageLoader.read_stage(TMP_PATH)
+	assert_eq(int(data["cols"]), 4, "外周1周ぶん内側が盤")
+	assert_eq(int(data["rows"]), 2)
+
+func test_read_stage_ragged_grid_errors() -> void:
+	# 行の長さが揃っていなければ盤の形が決まらない＝黙って縮ませない。
+	_write_stage('{ "turn_limit": 10 }')
+	_write_terrain('{ "terrain": ["......", "....."] }')
+	var data := StageLoader.read_stage(TMP_PATH)
+	assert_push_error("行の長さ")
+	assert_false(data.has("cols"), "形が決まらないので数えない")
+
+func test_read_stage_without_terrain_errors() -> void:
+	_write_stage('{ "turn_limit": 10 }')
+	var data := StageLoader.read_stage(TMP_PATH)
+	assert_push_error("terrain")
+	assert_false(data.has("cols"), "地形が無ければ盤の広さも出せない")
+
+func test_load_file_builds_the_board_from_the_terrain_file() -> void:
+	_write_stage('{ "turn_limit": 10, "player": [ { "type": "novice", "col": 0, "row": 0 } ] }')
+	_write_terrain('{ "terrain": ["....", "..PP", "...."] }')
+	var s := StageLoader.load_file(TMP_PATH)
+	assert_not_null(s)
+	assert_eq(s.cols, 4, "盤の広さは地形ファイルのグリッドから")
+	assert_eq(s.rows, 3)
+	assert_eq(s.terrain_at(Hex.offset_to_axial(2, 1)), TerrainType.char_to_id("P"), "地形も反映される")
+	assert_eq(s.units().size(), 1, "駒は本体から")
+
+func test_load_terrain_skins_reads_the_terrain_file() -> void:
+	_write_stage('{ "turn_limit": 10 }')
+	_write_terrain('{ "terrain": ["....", "....", "...."], "terrain_skins": [{ "col": 1, "row": 2, "skin": "snow1" }] }')
+	var skins := StageLoader.load_terrain_skins(TMP_PATH)
+	assert_eq(skins.get(Hex.offset_to_axial(1, 2), ""), "snow1")

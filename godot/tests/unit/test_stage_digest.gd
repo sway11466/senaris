@@ -52,3 +52,42 @@ func test_board_affecting_change_changes_the_digest() -> void:
 
 func test_unreadable_file_gives_no_digest() -> void:
 	assert_eq(StageDigest.of_file("res://data/stages/no_such_stage.json"), "", "読めない＝印なし（不明として通知側へ）")
+
+
+# --- 地形を別ファイルに割っても印は変わらない ---
+
+const TMP_STAGE := "user://test_digest_tmp.json"
+
+func after_each() -> void:
+	for p in [TMP_STAGE, StageLoader.terrain_path(TMP_STAGE)]:
+		if FileAccess.file_exists(p):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
+
+func _write(path: String, data: Dictionary) -> void:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	f.store_string(JSON.stringify(data))
+
+func test_splitting_the_terrain_out_keeps_the_digest() -> void:
+	# 地形を別ファイルへ移す作業そのもので印が変わると、既存の中断セーブに
+	# 「ステージが更新された」の誤通知が出る。分割の前後で同じ印になることを守る。
+	var whole := _stage()
+	var body := whole.duplicate()
+	var terrain := {}
+	for k in ["terrain", "terrain_skins", "margin"]:
+		if body.has(k):
+			terrain[k] = body[k]
+			body.erase(k)
+	body.erase("cols")  # 盤の広さはファイルに書かない＝読むときにグリッドから数える
+	body.erase("rows")
+	_write(TMP_STAGE, body)
+	_write(StageLoader.terrain_path(TMP_STAGE), terrain)
+	assert_eq(StageDigest.of_file(TMP_STAGE), StageDigest.compute(whole), "分割しても印は同じ")
+
+func test_editing_the_terrain_file_changes_the_digest() -> void:
+	# 地形ファイルが印の対象から外れていると、地形を直しても通知が出なくなる。
+	var body := { "turn_limit": 10, "player": [] }
+	_write(TMP_STAGE, body)
+	_write(StageLoader.terrain_path(TMP_STAGE), { "terrain": ["......", "......", "......", "......"] })
+	var before := StageDigest.of_file(TMP_STAGE)
+	_write(StageLoader.terrain_path(TMP_STAGE), { "terrain": ["......", "..PP..", "......", "......"] })
+	assert_ne(StageDigest.of_file(TMP_STAGE), before, "地形を直せば印が変わる")

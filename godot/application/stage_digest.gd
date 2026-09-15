@@ -17,13 +17,11 @@ static func compute(data: Dictionary) -> String:
 		pruned.erase(k)
 	return _canonical(pruned).sha256_text()
 
-## res:// パスの JSON から印を計算する。読めない/不正 → ""（印なし＝不明として通知側へ倒れる）。
+## res:// パスのステージから印を計算する。読めない/不正 → ""（印なし＝不明として通知側へ倒れる）。
+## 地形は別ファイルなので StageLoader 経由で読む＝地形を直したときも印が変わる。
 static func of_file(path: String) -> String:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return ""
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := StageLoader.read_stage(path)
+	if data.is_empty():
 		return ""
 	return compute(data)
 

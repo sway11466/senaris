@@ -10,6 +10,12 @@ class_name StageLoader
 ## skin は presentation 専用（案P）＝ここでは BattleState に入れず、parse_terrain_skins/load_terrain_skins で
 ## 別途 {Vector2i: skin_id} として取り出し、main→hex_board へ渡す（domain は skin を知らない）。
 ##
+## 地形は本体とは別ファイルに持つ（<ステージ>.json ↔ <ステージ>.terrain.json）。地形ファイルが持つのは
+## terrain / terrain_skins / margin の3キー。大半を占める見た目の差分を本体から追い出して
+## 本体を読めるようにするため（地形の編集はマップエディタが受け持つ）。
+## 盤の広さ（cols/rows）はどちらのファイルにも書かない＝地形グリッドの寸法から数える（二重に書けば食い違うため）。
+## 合流と算出は read_stage() だけが行い、build() から先が受け取る辞書は cols/rows を持つ（形は従来どおり）。
+##
 ## build(dict) はファイルIOを伴わず辞書から組み立てる（テスト対象）。
 ## load_file(path) はファイルを読んで build に渡す薄いラッパ。
 ##
@@ -81,14 +87,64 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 ## res:// パスの JSON を読み込んで BattleState を返す。失敗時は null。
 ## ユニット種別は標準ロスター(UnitCatalog)で解決する。
 ## carried = 継承ユニットの直列化リスト（名簿）。player の actor 付きの駒がここから引かれる。
-static func load_file(path: String, carried: Array = []) -> BattleState:
+## 地形ファイルの綴り（<ステージ>.json の相棒＝<ステージ>.terrain.json）。
+const TERRAIN_SUFFIX := ".terrain.json"
+
+## 地形ファイル側のキー（本体には書かない）。合流で本体に重ねる。
+const TERRAIN_KEYS := ["terrain", "terrain_skins", "margin"]
+
+## ステージのパス → 相棒の地形ファイルのパス。
+static func terrain_path(path: String) -> String:
+	return path.get_basename() + TERRAIN_SUFFIX
+
+## res:// パスのステージを読む。本体と地形ファイルを合流させ、盤の広さ（cols/rows）を
+## 地形グリッドから数えて入れた辞書を返す。読めない／辞書でなければ空辞書。
+## ファイルを読む口はここ1つ＝load_* はすべてこれを通る（二重に読み方を書かない）。
+static func read_stage(path: String) -> Dictionary:
+	var data := _read_json(path)
+	if data.is_empty():
+		return data
+	var terrain := _read_json(terrain_path(path))
+	for k in TERRAIN_KEYS:
+		if terrain.has(k):
+			data[k] = terrain[k]
+	_apply_board_size(data, path)
+	return data
+
+## res:// パスの JSON を辞書で読む。無い／空／辞書でない → 空辞書。
+static func _read_json(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
-		push_error("StageLoader: 読み込めない/空: %s" % path)
-		return null
+		return {}
 	var data: Variant = JSON.parse_string(text)
 	if typeof(data) != TYPE_DICTIONARY:
-		push_error("StageLoader: JSON が不正: %s" % path)
+		return {}
+	return data
+
+## 地形グリッドから盤の広さを数えて辞書に入れる。グリッドは (cols + 2*margin) 文字 × (rows + 2*margin) 行。
+## 行の長さが揃っていなければ盤の形が決まらない＝エラーにして数えない（黙って盤が縮むのを防ぐ）。
+static func _apply_board_size(data: Dictionary, path: String) -> void:
+	var grid: Variant = data.get("terrain", [])
+	if typeof(grid) != TYPE_ARRAY or (grid as Array).is_empty():
+		push_error("StageLoader: terrain（地形グリッド）が要る＝盤の広さを数えられない: %s" % path)
+		return
+	var lines: Array = grid
+	var width := String(lines[0]).length()
+	for line in lines:
+		if String(line).length() != width:
+			push_error("StageLoader: terrain の行の長さが揃っていない（%d 文字と %d 文字の行がある）: %s"
+					% [width, String(line).length(), path])
+			return
+	var margin := _parse_margin(data)
+	data["cols"] = width - 2 * margin
+	data["rows"] = lines.size() - 2 * margin
+
+static func load_file(path: String, carried: Array = []) -> BattleState:
+	var data := read_stage(path)
+	if data.is_empty():
+		push_error("StageLoader: ステージを読み込めない/不正: %s" % path)
 		return null
 	if not data.has("turn_limit") or int(data.get("turn_limit", 0)) <= 0:
 		push_error("StageLoader: turn_limit（>0）は必須です（指定なし＝データのバグ）: %s" % path)  # doc/gdd/map.md
@@ -149,11 +205,8 @@ static func parse_margin_terrain(data: Dictionary) -> Dictionary:
 
 ## res:// パスの JSON から外周の地形を読む（load_terrain_skins と対＝盤の縁の判定を presentation へ）。
 static func load_margin_terrain(path: String) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return {}
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return {}
 	return parse_margin_terrain(data)
 
@@ -202,21 +255,15 @@ static func parse_height_overrides(data: Dictionary) -> Dictionary:
 
 ## res:// パスの JSON から terrain_skins を読む（load_file と対＝skin を presentation へ渡すため）。
 static func load_terrain_skins(path: String) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return {}
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return {}
 	return parse_terrain_skins(data)
 
 ## res:// パスの JSON からマスごとの高さ上書きを読む（load_terrain_skins と対）。
 static func load_height_overrides(path: String) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return {}
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return {}
 	return parse_height_overrides(data)
 
@@ -290,22 +337,16 @@ static func parse_event_talks(data: Dictionary) -> Dictionary:
 
 ## res:// パスの JSON から会話つきイベントの索引を読む（load_dialogue と対）。
 static func load_event_talks(path: String) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return {}
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return {}
 	return parse_event_talks(data)
 
 ## res:// パスの JSON から dialogue を読む（load_file と対＝会話を presentation へ渡すため）。
 ## roster を渡すと when 条件で行を絞る（省略＝条件つきの行は在籍なしとして扱われる）。
 static func load_dialogue(path: String, roster: Array = []) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return { "intro": [], "outro": [] }
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return { "intro": [], "outro": [] }
 	return parse_dialogue(data, roster)
 
@@ -317,11 +358,8 @@ static func parse_bgm(data: Dictionary) -> Dictionary:
 
 ## res:// パスの JSON から bgm を読む（load_file と対＝曲の決定を BgmDirector へ渡すため）。
 static func load_bgm(path: String) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return {}
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return {}
 	return parse_bgm(data)
 
@@ -334,11 +372,8 @@ static func parse_backdrop(data: Dictionary) -> String:
 
 ## res:// パスの JSON から backdrop を読む（load_file と対＝戦闘演出へ渡すため）。
 static func load_backdrop(path: String) -> String:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return ""
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return ""
 	return parse_backdrop(data)
 
@@ -354,22 +389,16 @@ static func parse_haze(data: Dictionary, path: String) -> float:
 
 ## res:// パスの JSON から haze を読む（load_file と対＝戦闘演出へ渡すため）。
 static func load_haze(path: String) -> float:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return 0.0
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return 0.0
 	return parse_haze(data, path)
 
 ## res:// パスの JSON から rank（評価ランクの閾値）を読む（load_file と対＝評価を main へ渡すため）。
 ## rank が無いステージでは空辞書を返す＝ランクを評価・表示しない。
 static func load_rank(path: String) -> Dictionary:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return {}
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return {}
 	var rank: Variant = data.get("rank", {})
 	if typeof(rank) != TYPE_DICTIONARY:
@@ -404,11 +433,8 @@ static func count_start_allies(data: Dictionary, state: BattleState, catalog: Di
 
 ## res:// パスから戦果の分母を数える（load_rank と対＝main は state と path だけで呼べる）。
 static func count_start_allies_at(path: String, state: BattleState) -> int:
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return 0
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return 0
 	return count_start_allies(data, state, UnitCatalog.load_default(), SkinCatalog.load_standard())
 
@@ -459,11 +485,8 @@ static func parse_briefing(data: Dictionary, catalog: Dictionary = {}, skin_cata
 ## res:// パスの JSON から依頼書の情報を読む（load_file と対＝セレクトへ渡すため）。
 static func load_briefing(path: String, carried: Array = []) -> Dictionary:
 	var empty := { "party": [], "carryover": false }
-	var text := FileAccess.get_file_as_string(path)
-	if text.is_empty():
-		return empty
-	var data: Variant = JSON.parse_string(text)
-	if typeof(data) != TYPE_DICTIONARY:
+	var data := read_stage(path)
+	if data.is_empty():
 		return empty
 	return parse_briefing(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
 

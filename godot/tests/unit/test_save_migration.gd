@@ -6,7 +6,7 @@ const STAGE_PATH := "user://test_migration_stage.json"
 
 ## v2 セーブの復元先として使うステージ定義（イベント3つ・拠点1つ）。
 const STAGE := {
-	"cols": 6, "rows": 4, "turn_limit": 9,
+	"terrain": ["......", "......", "......", "......"], "turn_limit": 9,
 	"player": [{ "type": "fighter", "col": 0, "row": 0 }],
 	"bases": [{ "col": 1, "row": 1, "team": "neutral" }],
 	"events": [
