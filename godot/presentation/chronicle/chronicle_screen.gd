@@ -281,7 +281,7 @@ func _rebuild_content() -> void:
 					CampaignSection.STORY:
 						_build_placeholder(tr("ui.chronicle.story"))
 					CampaignSection.LORE:
-						_build_placeholder(tr("ui.chronicle.lore"))
+						_build_campaign_lore()
 
 func _build_placeholder(title: String) -> void:
 	var label := Label.new()
@@ -759,6 +759,67 @@ func _build_campaign_results() -> void:
 				row.add_child(time_label)
 
 		_content_box.add_child(row)
+
+# ---------------------------------------------------------------------------
+# 設定集（冒険譚2段目・LORE）
+# ---------------------------------------------------------------------------
+
+## 選択中の冒険譚の設定集を出す。解放された節を順に出し、未解放があれば末尾に1行。
+func _build_campaign_lore() -> void:
+	if _progress == null:
+		return
+	var c := _progress.campaign(_selected_campaign_id)
+	if c.is_empty():
+		return
+	var lore: Array = c.get("lore", [])
+	if lore.is_empty():
+		_build_placeholder(tr("ui.chronicle.lore"))
+		return
+
+	var has_locked := false
+	for section in lore:
+		if not _progress.is_lore_unlocked(_selected_campaign_id, section):
+			has_locked = true
+			break
+		_build_lore_section(_selected_campaign_id, String(section["id"]))
+
+	if has_locked:
+		var locked_label := Label.new()
+		locked_label.text = tr("ui.chronicle.lore_locked")
+		locked_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+		locked_label.add_theme_color_override("font_color", DIM_GRAY)
+		locked_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_content_box.add_child(locked_label)
+
+## 設定集の1節を出す。見出し＋段落（連番のキーが在るぶんだけ）。
+func _build_lore_section(campaign_id: String, section_id: String) -> void:
+	# 節見出し
+	var title_key := "lore.%s.%s.title" % [campaign_id, section_id]
+	var title_text := tr(title_key)
+	if title_text != title_key:
+		var head := Label.new()
+		head.text = title_text
+		head.add_theme_font_size_override("font_size", HEAD_FONT_SIZE)
+		head.add_theme_color_override("font_color", ACCENT)
+		_content_box.add_child(head)
+	# 段落：lore.<冒険譚>.<節>.1, .2, .3 …
+	var p := 1
+	while true:
+		var key := "lore.%s.%s.%d" % [campaign_id, section_id, p]
+		var text := tr(key)
+		if text == key:
+			break
+		var label := Label.new()
+		label.text = text
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+		label.add_theme_color_override("font_color", UI_GRAY)
+		_content_box.add_child(label)
+		p += 1
+	# 節間の余白
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, CATEGORY_GAP)
+	_content_box.add_child(spacer)
 
 ## 冒険譚ランク＝全ステージのベストランクのうち最も低いもの。未ランクがあれば空。
 func _campaign_rank(campaign_id: String, stages: Array) -> String:

@@ -232,6 +232,7 @@ ui.chronicle.results,戦果,Results
 ui.chronicle.story,物語,Story
 ui.chronicle.lore,設定集,Lore
 ui.chronicle.back_campaigns,← 冒険譚,← Adventures
+ui.chronicle.lore_locked,続きは冒険のあとで,More to come after your adventure
 ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
 ui.chronicle.campaign_rank,ランク %s,Rank %s
 ui.chronicle.total_time,合計 %s,Total %s

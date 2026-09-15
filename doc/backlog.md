@@ -117,7 +117,13 @@
   2. ユニット章＝`unit_skin.csv` の分類と行順で束ね、黒シルエットと「埋まった数／全部」、選ぶと性能とユニットスキルと説明文。`names.csv` に `unit.<skin_id>.desc`。タイトルのメニューに項目を足し、画面の骨（目次・戻る・暗幕）はここで作る。 ✅ 実装済み（実機確認待ち）
   3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`。 ✅ 実装済み（実機確認待ち）
   4. 冒険譚の一覧と戦果＝冒険譚ランク（全ステージのベストの最低）・クリア時間の合計・「クリア数／ステージ数」、ステージごとの行。新しい記録は持たない。 ✅ 実装済み（実機確認待ち）
-  5. 物語＝経験した会話を顔ぶれを足す形へ（`ProgressStore` の版上げと変換）、盤を挿絵にした通し読み、分岐の切り替え。
+  5. 物語＝挿絵は事前撮影の静止画（`assets/campaign/` に配置）、`ConversationPanel` を再利用した通し読み。分岐の切り替え（`ProgressStore` 版上げ＋顔ぶれ累積）は後回し。
+    - 5a. 対話データの読み出し（どの会話をどの順で出すか組み立て）
+    - 5b. 静的挿絵の表示（ステージ画像を読み込んで背景に敷く）
+    - 5c. `ConversationPanel` の再利用（クロニクル文脈で会話を再生）
+    - 5d. ステージ順の通し読みフロー（章題・次へ・スキップ・停止）
+    - 5e. `ProgressStore` 版上げ＋顔ぶれ累積（分岐切り替えの土台）← 後回し
+    - 5f. 分岐の切り替えUI ← 後回し
   6. 設定集＝`lore.csv`（新規）とマニフェストの `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
 - 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/i18n/lore.csv`（新規）・`names.csv` の説明文・`ui.csv`（`ui.chronicle.*`）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。前提＝refactoring-16。
 

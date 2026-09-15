@@ -170,6 +170,14 @@ func _records(campaign_id: String, stage_id: String) -> bool:
 		return false
 	return not _find_stage(c, stage_id).is_empty()
 
+## 設定集の節が解放されているか。全条件を AND 評価する（ステージ解放と同じ判定）。
+## lore_section は campaign.json の lore 配列の1要素（{ id, unlock }）。
+func is_lore_unlocked(campaign_id: String, lore_section: Dictionary) -> bool:
+	for cond in lore_section.get("unlock", []):
+		if not _is_satisfied(campaign_id, cond):
+			return false
+	return true
+
 ## マニフェスト順で stage_id の直後のステージを返す（無ければ {}）。クリア後の自動遷移に使う。
 ## 解放状態は見ない＝呼び出し側が stage_state で判定する（LOCKED なら進まない等）。
 func next_stage(campaign_id: String, stage_id: String) -> Dictionary:
