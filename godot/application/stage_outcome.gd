@@ -2,6 +2,8 @@ extends RefCounted
 class_name StageOutcome
 ## 決着時の記録（application 層）。presentation が ProgressStore / RosterStore を直接
 ## 書き換えないための門番。3つの入口で受け、進捗・名簿・経験した会話を正しい順序で書く。
+## 経験した会話は2か所に書く＝進捗は最後に遊んだ回（上書き）、クロニクルは遊んだ回を足す
+## （doc/gdd/chronicle.md 分岐の切り替え）。
 ## 冒険譚の外（デバッグ・直接起動）なら書かない。
 ## 仕様 → doc/tech/gamesystem.md / doc/gdd/rank.md / doc/gdd/campaigns.md
 ##
@@ -12,22 +14,27 @@ class_name StageOutcome
 
 var _progress: CampaignProgress
 var _roster_store: RosterStore
+var _chronicle: ChronicleService
 
-func _init(progress: CampaignProgress, roster_store: RosterStore) -> void:
+func _init(progress: CampaignProgress, roster_store: RosterStore,
+		chronicle: ChronicleService) -> void:
 	_progress = progress
 	_roster_store = roster_store
+	_chronicle = chronicle
 
 ## ステージ開始＝開始時の在籍 actor を記録する。
 func stage_started(campaign_id: String, stage_id: String, roster: Array) -> void:
 	if not _records(campaign_id, stage_id):
 		return
 	_progress.record_story_start(campaign_id, stage_id, roster)
+	_chronicle.note_story_start(campaign_id, stage_id, roster)
 
 ## イベント発生＝イベント id を記録する。
 func event_fired(campaign_id: String, stage_id: String, event_id: String) -> void:
 	if event_id.is_empty() or not _records(campaign_id, stage_id):
 		return
 	_progress.record_story_event(campaign_id, stage_id, event_id)
+	_chronicle.note_story_event(campaign_id, stage_id, event_id)
 
 ## 決着。記録して結果を返す。
 ## 返り値の辞書:
@@ -58,6 +65,7 @@ func battle_finished(campaign_id: String, stage_id: String, outcome: int,
 		var clear_roster := _roster_store.load_roster(campaign_id) \
 				if _roster_store != null else []
 		_progress.record_story_clear(campaign_id, stage_id, clear_roster)       # ⑤
+		_chronicle.note_story_clear(campaign_id, stage_id, clear_roster)
 
 	return {
 		"rank": rank,

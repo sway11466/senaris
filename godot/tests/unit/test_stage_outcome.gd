@@ -5,6 +5,10 @@ extends GutTest
 
 const PROGRESS_PATH := "user://test_outcome_progress.json"
 const ROSTER_PATH := "user://test_outcome_roster.json"
+const CHRONICLE_PATH := "user://test_outcome_chronicle.json"
+
+## 経験した会話の検証で覗く。_outcome() が作ったものを取っておく。
+var _last_chronicle_store: ChronicleStore = null
 
 ## テスト用の最小限の冒険譚マニフェスト。
 func _campaign() -> Array:
@@ -42,7 +46,8 @@ func _outcome(progress: CampaignProgress = null, roster: RosterStore = null) -> 
 		progress = _progress()
 	if roster == null:
 		roster = _roster_store()
-	return StageOutcome.new(progress, roster)
+	_last_chronicle_store = ChronicleStore.new(CHRONICLE_PATH)
+	return StageOutcome.new(progress, roster, ChronicleService.new(_last_chronicle_store))
 
 ## 最小限の BattleState（自軍1・敵1）。勝利判定に使う。
 func _state() -> BattleState:
@@ -53,7 +58,7 @@ func _state() -> BattleState:
 
 func after_each() -> void:
 	# テスト用の一時ファイルを消す。
-	for path in [PROGRESS_PATH, ROSTER_PATH]:
+	for path: String in [PROGRESS_PATH, ROSTER_PATH, CHRONICLE_PATH]:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(path)
 		# ProgressStore のバックアップ（.bak）も消す。
@@ -106,7 +111,7 @@ func test_event_fired_empty_id_does_nothing() -> void:
 func test_defeat_does_not_record() -> void:
 	var p := _progress()
 	var o := _outcome(p)
-	var result := o.battle_finished("tc", "st1", BattleState.PLAYER_LOSE,
+	var result := o.battle_finished("tc", "st1", BattleState.PLAYER_LOSS,
 			_state(), int(Time.get_unix_time_from_system()) - 60, "", [])
 	assert_false(p.stage_state("tc", "st1") == "cleared", "敗北ではクリアしない")
 	assert_true(result["updated_roster"].is_empty(), "敗北では名簿を更新しない")
@@ -179,3 +184,40 @@ func test_elapsed_positive_for_past_start() -> void:
 	var started := int(Time.get_unix_time_from_system()) - 120
 	var elapsed := StageOutcome._compute_elapsed(started)
 	assert_true(elapsed >= 119 and elapsed <= 121, "120秒前の開始で ≈120 秒")
+
+# ---------------------------------------------------------------------------
+# 経験した会話（クロニクル側）＝遊んだ回を足す
+# ---------------------------------------------------------------------------
+
+func test_stage_started_accumulates_rosters_in_chronicle() -> void:
+	var p := _progress()
+	var o := _outcome(p)
+	o.stage_started("tc", "st1", [{"actor": "cap"}, {"actor": "elf"}])
+	o.stage_started("tc", "st1", [{"actor": "cap"}])  # 仲間を連れずに遊び直した回
+	var got := _last_chronicle_store.story("tc", "st1")
+	assert_eq(got["start"].size(), 2, "進捗は上書きでも、クロニクルには両方の顔ぶれが残る")
+
+func test_event_fired_accumulates_events_in_chronicle() -> void:
+	var p := _progress()
+	var o := _outcome(p)
+	o.event_fired("tc", "st1", "town-freed")
+	o.event_fired("tc", "st1", "town-lost")
+	assert_eq(_last_chronicle_store.story("tc", "st1")["events"],
+			["town-freed", "town-lost"], "起きたイベントは消さずに足す")
+
+func test_win_records_clear_roster_in_chronicle() -> void:
+	var p := _progress()
+	var o := _outcome(p)
+	o.battle_finished("tc", "st1", BattleState.PLAYER_WIN, _state(),
+			int(Time.get_unix_time_from_system()) - 10, "", [])
+	var got := _last_chronicle_store.story("tc", "st1")
+	assert_eq(got["clear"].size(), 1, "クリア後の顔ぶれが1通り記録される")
+
+func test_outside_campaign_does_not_touch_chronicle() -> void:
+	var p := _progress()
+	var o := _outcome(p)
+	o.stage_started("", "", [{"actor": "cap"}])
+	o.event_fired("", "", "ev1")
+	assert_eq(_last_chronicle_store.story("", "")["start"], [],
+			"冒険譚の外はクロニクルにも書かない")
+

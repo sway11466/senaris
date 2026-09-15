@@ -203,3 +203,110 @@ func test_recipes_returns_copy() -> void:
 	got["trinity_nova"]["first"] = "tampered"
 	assert_eq(store.recipes()["trinity_nova"]["first"], "tc",
 			"recipes() の返り値を変えても内部状態は汚れない")
+
+# ---------------------------------------------------------------------------
+# 経験した会話：顔ぶれを足す
+# ---------------------------------------------------------------------------
+
+func test_story_roster_accumulates_patterns() -> void:
+	var store := ChronicleStore.new(PATH)
+	assert_true(store.record_story_roster("tc", "st1", "start", ["cap", "elf"]),
+			"初めての顔ぶれは記録される")
+	assert_true(store.record_story_roster("tc", "st1", "start", ["cap"]),
+			"別の顔ぶれの回も足される")
+	var got := store.story("tc", "st1")
+	assert_eq(got["start"].size(), 2, "2通りの顔ぶれを経験した")
+
+func test_story_roster_folds_same_pattern() -> void:
+	var store := ChronicleStore.new(PATH)
+	store.record_story_roster("tc", "st1", "start", ["cap", "elf"])
+	assert_false(store.record_story_roster("tc", "st1", "start", ["elf", "cap"]),
+			"並び順が違っても同じ顔ぶれは畳む")
+	assert_eq(store.story("tc", "st1")["start"].size(), 1)
+
+func test_story_roster_start_and_clear_are_separate() -> void:
+	var store := ChronicleStore.new(PATH)
+	store.record_story_roster("tc", "st1", "start", ["cap"])
+	store.record_story_roster("tc", "st1", "clear", ["cap", "elf"])
+	var got := store.story("tc", "st1")
+	assert_eq(got["start"], [["cap"]], "開始時の顔ぶれ")
+	assert_eq(got["clear"], [["cap", "elf"]], "クリア後の顔ぶれ＝この回で仲間になった駒を含む")
+
+func test_story_roster_rejects_unknown_phase() -> void:
+	var store := ChronicleStore.new(PATH)
+	assert_false(store.record_story_roster("tc", "st1", "middle", ["cap"]),
+			"start / clear 以外は記録しない")
+	assert_false(store.record_story_roster("", "st1", "start", ["cap"]),
+			"冒険譚の外は記録しない")
+	assert_false(store.record_story_roster("tc", "", "start", ["cap"]),
+			"ステージ不明は記録しない")
+
+func test_story_roster_empty_is_a_pattern() -> void:
+	var store := ChronicleStore.new(PATH)
+	assert_true(store.record_story_roster("tc", "st1", "start", []),
+			"誰も居ない回も1つの顔ぶれ＝「居なかった」を表す")
+	store.record_story_roster("tc", "st1", "start", ["cap"])
+	assert_eq(store.story("tc", "st1")["start"].size(), 2,
+			"居なかった回と居た回の両方が残る")
+
+# ---------------------------------------------------------------------------
+# 経験した会話：イベントを足す
+# ---------------------------------------------------------------------------
+
+func test_story_events_accumulate() -> void:
+	var store := ChronicleStore.new(PATH)
+	assert_true(store.record_story_event("tc", "st1", "town-freed"))
+	assert_false(store.record_story_event("tc", "st1", "town-freed"), "同じイベントは1つ")
+	assert_true(store.record_story_event("tc", "st1", "town-lost"),
+			"どちらか一方しか起きないイベントも、両方を経験すれば両方残る")
+	assert_eq(store.story("tc", "st1")["events"], ["town-freed", "town-lost"])
+
+func test_story_event_ignores_empty() -> void:
+	var store := ChronicleStore.new(PATH)
+	assert_false(store.record_story_event("tc", "st1", ""), "空のイベント id は記録しない")
+
+# ---------------------------------------------------------------------------
+# 経験した会話：保存と読み直し
+# ---------------------------------------------------------------------------
+
+func test_story_survives_save_and_load() -> void:
+	var store := ChronicleStore.new(PATH)
+	store.record_story_roster("tc", "st1", "start", ["cap", "elf"])
+	store.record_story_roster("tc", "st1", "start", ["cap"])
+	store.record_story_roster("tc", "st1", "clear", ["cap"])
+	store.record_story_event("tc", "st1", "town-freed")
+	store.save()
+	var reloaded := ChronicleStore.new(PATH)
+	var got := reloaded.story("tc", "st1")
+	assert_eq(got["start"].size(), 2, "顔ぶれ2通りが残る")
+	assert_eq(got["clear"], [["cap"]])
+	assert_eq(got["events"], ["town-freed"])
+
+func test_story_missing_returns_empty_shape() -> void:
+	var store := ChronicleStore.new(PATH)
+	var got := store.story("tc", "st1")
+	assert_eq(got["start"], [], "記録が無ければ空の形")
+	assert_eq(got["clear"], [])
+	assert_eq(got["events"], [])
+
+func test_story_returns_copy() -> void:
+	var store := ChronicleStore.new(PATH)
+	store.record_story_event("tc", "st1", "town-freed")
+	var got := store.story("tc", "st1")
+	got["events"].append("tampered")
+	assert_eq(store.story("tc", "st1")["events"], ["town-freed"],
+			"story() の返り値を変えても内部状態は汚れない")
+
+func test_story_broken_shape_is_skipped() -> void:
+	_write('{"version": 1, "stories": {"tc": {"st1": {"start": "garbage", "events": ["ok", 7]}}}}')
+	var store := ChronicleStore.new(PATH)
+	var got := store.story("tc", "st1")
+	assert_eq(got["start"], [], "読めない枝は捨てる")
+	assert_eq(got["events"], ["ok"], "文字列でない要素は捨てる")
+
+func test_old_file_without_stories_loads() -> void:
+	_write('{"version": 1, "skins": {"archer": {"first": "tc"}}}')
+	var store := ChronicleStore.new(PATH)
+	assert_true(store.has_skin("archer"), "stories を持たない旧ファイルもそのまま読める")
+	assert_eq(store.story("tc", "st1")["start"], [])
+

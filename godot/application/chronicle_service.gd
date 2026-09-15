@@ -8,6 +8,7 @@ class_name ChronicleService
 ##   begin       — ステージ開始（盤の初期配置を走査して全駒を記録）
 ##   note_unit   — 駒が盤に現れた（出撃・増援）
 ##   note_recipe — 陣形スキルが発動した
+##   note_story_* — 遊んだ回の顔ぶれ・起きたイベントを足す（StageOutcome から呼ぶ）
 ##   flush       — 盤を離れる（ファイルに書く）
 ##
 ## デバッグ冒険譚や冒険譚の外では記録しない。呼び出し側が campaign_id を空にして渡す
@@ -40,6 +41,19 @@ func note_recipe(recipe_id: String) -> void:
 		return
 	_store.record_recipe(recipe_id, _campaign_id)
 
+## ステージを始めた＝開始時の在籍 actor を足す。同じ顔ぶれの回は畳まれる。
+## 駒・レシピと違い冒険譚とステージを引数で受ける＝StageOutcome と同じ規約で呼ばれるため。
+func note_story_start(campaign_id: String, stage_id: String, roster: Array) -> void:
+	_store.record_story_roster(campaign_id, stage_id, "start", _actor_names(roster))
+
+## クリアした＝クリア後の在籍 actor を足す。
+func note_story_clear(campaign_id: String, stage_id: String, roster: Array) -> void:
+	_store.record_story_roster(campaign_id, stage_id, "clear", _actor_names(roster))
+
+## 会話つきイベントが起きた＝そのイベント id を足す。
+func note_story_event(campaign_id: String, stage_id: String, event_id: String) -> void:
+	_store.record_story_event(campaign_id, stage_id, event_id)
+
 ## 盤を離れるとき（決着・中断・タイトルへ戻る）にファイルへ書き出す。
 ## 変更がなければ何もしない（ChronicleStore が判断する）。
 func flush() -> void:
@@ -56,3 +70,15 @@ func _records() -> bool:
 func _note_skin(unit: Unit) -> void:
 	var sid := unit.skin_id if unit.skin_id != "" else unit.type_id
 	_store.record_skin(sid, _campaign_id)
+
+## 名簿（Unit の直列化）から actor の名前だけを取り出す。会話の when が見るのは在籍だけ
+## （doc/campaign/authoring.md 会話の分岐）＝素性も損耗も持たない。ProgressStore と同じ規約。
+static func _actor_names(units: Array) -> Array:
+	var out: Array = []
+	for u in units:
+		if typeof(u) != TYPE_DICTIONARY:
+			continue
+		var a := String((u as Dictionary).get("actor", ""))
+		if a != "" and not out.has(a):
+			out.append(a)
+	return out
