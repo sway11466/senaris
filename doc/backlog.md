@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=7 / feature=125 / refactoring=18.
+次回採番: bug=7 / feature=130 / refactoring=18.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -99,40 +99,6 @@
 - 背景：マニュアル（[manual.md](gdd/manual.md)）はタイトル専用の通読画面と決め、盤中からは開かない。盤で「弱者狙いって何」「貫通率はどこに効く」と詰まったとき、その場で引く手段が無い。
 - 対応：形は未検討。情報パネルの用語から短い説明を出す類を想定。説明文をマニュアルの本文と共有するかもここで決める。
 - 該当：`godot/presentation/ui/`（情報パネル）・`godot/data/i18n/manual.csv`（マニュアル本文）。着手の引き金＝実プレイで用語に詰まったとき。
-
-### feature-94
-
-**クロニクル（設計済み・実装待ち）**
-- ゴール：出会ったユニットと見た陣形スキルが溜まり、冒険譚ごとに戦果・物語（会話の通し読み）・設定集が読める。
-- 背景：マニュアル（[manual.md](gdd/manual.md)）は用語と仕組みの説明に徹していて、個々のユニットやスキルの一覧も物語も持たない。
-- 対応：仕様は [chronicle.md](gdd/chronicle.md) に確定。開き口はタイトルの新項目、記録は `user://chronicle.json`（進捗と別ファイル）、経験した会話は顔ぶれを足す形へ変更（進捗の版上げ）。
-- データ分離の方針（決めたこと）：クロニクル専用の構造はゲーム進行ファイルから分離し、`godot/data/chronicle/` に集める。本文は翻訳CSVに置いたまま（構造とテキストで置き場を分ける）。
-  - 設定集・物語のマニフェスト → `godot/data/chronicle/<冒険譚 id>.json`（`campaign.json` には載せない）。読み込みは `ChronicleLoader`（ファイル名が冒険譚 id）。
-  - 設定集の本文とユニット説明文（`unit.*.desc`）→ `godot/data/i18n/chronicle.csv`（`names.csv` には載せない）。ゲーム中に使わず、クロニクル画面だけが読むテキスト。
-  - レシピ説明文（`recipe.*.desc`）→ `names.csv` に残す。`unit_info_panel.gd` がゲーム中に参照するため分離不可。
-  - 設定集の解放判定 → `chronicle_screen.gd` 内の `_is_lore_section_unlocked()`。`CampaignProgress` の公開 API（`stage_state()`）だけで判定し、進行データ側にクロニクル専用メソッドを持たない。
-- 層の置き場（決めたこと）：presentation は描画だけ。記録と導出は下の層に置く（[architecture.md](tech/architecture.md) 依存ルール）。
-  - `godot/infrastructure/save/chronicle_store.gd`（新規）＝`chronicle.json` の読み書き（スキン id の集合・レシピ id の集合・初出の冒険譚 id・版・バックアップ）。前例＝`progress_store.gd`。
-  - `godot/application/chronicle_service.gd`（新規）＝記録を溜める口（盤に出た駒・発動したレシピ）と、画面に出す一覧の導出（ユニット章・陣形章の埋まり具合、冒険譚ランク・クリア時間の合計）。戦果は `ProgressStore` と `campaign.json` から毎回導き、クロニクルのファイルに重ねて持たない。前例＝`campaign_progress.gd`。
-  - 記録の発火点は `MatchController` のシグナル（`unit_deployed`／`event_fired`／`base_captured`／`formation_resolved`）と開始時の盤＝application の中で完結させ、presentation を通さない。
-  - `godot/presentation/chronicle/`（新規）＝画面と `ChronicleLoader`（`chronicle.json` 読み込み）。目次・2ペイン・物語の通し読み。前例＝設定画面・マニュアル画面。
-- 手順（1つずつ動かして進める）：
-  0. refactoring-16＝決着時の記録を application に寄せる。クロニクルの記録はその口に足す形にするため、先にやる。 ✅ 完了
-  1. 記録の土台＝`ChronicleStore`（版・バックアップ・壊れていれば空）と `ChronicleService` の記録側（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）。テスト＝`test_chronicle_store.gd`・`test_chronicle_service.gd`。画面はまだ無い。 ✅ 実装済み
-  2. ユニット章＝`unit_skin.csv` の分類と行順で束ね、黒シルエットと「埋まった数／全部」、選ぶと性能とユニットスキルと説明文。`lore.csv` に `unit.<skin_id>.desc`（クロニクル専用）。タイトルのメニューに項目を足し、画面の骨（目次・戻る・暗幕）はここで作る。 ✅ 実装済み（実機確認待ち）
-  3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`（ゲーム中も参照）。 ✅ 実装済み（実機確認待ち）
-  4. 冒険譚の一覧と戦果＝冒険譚ランク（全ステージのベストの最低）・クリア時間の合計・「クリア数／ステージ数」、ステージごとの行。新しい記録は持たない。 ✅ 実装済み（実機確認待ち）
-  5. 物語＝挿絵は事前撮影の静止画（`assets/campaign/` に配置）、`ConversationPanel` を再利用した通し読み。分岐の切り替え（`ProgressStore` 版上げ＋顔ぶれ累積）は後回し。
-    - 5a. 対話データの読み出し（どの会話をどの順で出すか組み立て）
-    - 5b. 静的挿絵の表示（ステージ画像を読み込んで背景に敷く）
-    - 5c. `ConversationPanel` の再利用（クロニクル文脈で会話を再生）
-    - 5d. ステージ順の通し読みフロー（章題・次へ・スキップ・停止）
-    - 5e. `ProgressStore` 版上げ＋顔ぶれ累積（分岐切り替えの土台）← 後回し
-    - 5f. 分岐の切り替えUI ← 後回し
-  6. 設定集＝`chronicle.csv`（新規）とマニフェストの `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
-  7. データ分離＝設定集・物語マニフェストを `campaign.json` から `chronicle.json` に移設。`unit.*.desc` を `names.csv` から `chronicle.csv` に移動。`CampaignCatalog` と `CampaignProgress` からクロニクル専用コードを除去し、`ChronicleLoader` と画面内インライン判定に置き換え。テスト＝`test_chronicle_loader.gd`。 ✅ 実装済み（実機確認待ち）
-  8. フォルダ集約＝`chronicle.json` を `godot/data/chronicle/<冒険譚 id>.json` に移す。`ChronicleLoader` はフォルダ走査ではなく `*.json` のファイル名で冒険譚を引く。翻訳CSV は用途で名付け直して `lore.csv` → `chronicle.csv`（置き場は `data/i18n/` のまま）。 ✅ 実装済み（実機確認待ち）
-- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規＝画面＋`ChronicleLoader`）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/chronicle/`（新規＝`<冒険譚 id>.json`）・`godot/data/i18n/chronicle.csv`（新規＝設定集＋`unit.*.desc`）・`names.csv`（`recipe.*.desc` のみ残留）・`ui.csv`（`ui.chronicle.*`）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。
 
 ### feature-95
 
@@ -330,6 +296,46 @@
 - 背景：拠点の地形スキンは町・詰所・礼拝堂・納骨堂などの建物だけで、泉が無い。[tutorial3-dragon-hunt.md](campaign/tutorial3-dragon-hunt.md) st6 は泉3つを汎用 fort で置いてあり、回復ローテと争奪は動くが「泉を取り合う」絵にならない。会話も泉と呼んでいるので、盤とのずれが目に付く。
 - 対応：`terrain_skin.csv` に `fort` 型の見た目違いを1つ足す（洞窟の地面の上に立てる泉。占領で色が変わる `_team0`／`_team1` の規則は他の拠点と同じ＝[terrain.md](art/terrain.md)）。st6 の該当マスをそのスキンに差し替える。
 - 該当：`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json`・`doc/art/terrain.md`。着手の引き金＝竜狩りの通し確認で st6 を触るとき。
+
+### feature-125
+
+**経験した会話の記録を「足す」形にする**
+- ゴール：仲間 X が「居た回」と「居なかった回」を両方遊んだことが、進捗セーブに残る。
+- 背景：いまの進捗セーブは、在籍した仲間と発生したイベントを最後に遊んだ回で上書きしている（[gamesystem.md](tech/gamesystem.md) 経験した会話）。上書きのままだと「両方を経験した」という事実が残らず、クロニクルの通し読みで展開を切り替える材料（feature-129）が作れない。記録の形を変えた後の回からしか貯まらないので、通し読み本体より先に置く。
+- 対応：在籍 actor を仲間ごとに「居た回を経験した／居なかった回を経験した」の両方で持ち、発生したイベントは消さずに足す。最後に遊んだ回の顔ぶれは別に持つ（既定の読み口はここ）。旧版のセーブは「1回分の顔ぶれ」として版の変換で読み替える。
+- 該当：`godot/infrastructure/save/progress_store.gd`・`godot/application/campaign_progress.gd`・`godot/presentation/main/story_director.gd`・`godot/tests/unit/`・[gamesystem.md](tech/gamesystem.md)。
+
+### feature-126
+
+**クロニクルの通し読みの仕組み**
+- ゴール：クロニクルの冒険譚から「物語」を選ぶと、その冒険譚の会話を最初から最後まで読み返せる。
+- 背景：クロニクルの他の章（ユニット・陣形スキル・戦果・設定集）は動いていて、物語だけがプレースホルダのまま。材料は揃っている＝順序は `godot/data/chronicle/<冒険譚 id>.json` の `story`、本文は `dialogue.csv`、表示は盤で使っている `ConversationPanel`。冒険譚が増えても作り直さない共通の仕組みなので、中身（feature-127・128）とは分ける。
+- 対応：(1) `story` の並びに沿って、どの会話をどの順で出すかを組み立てる。(2) ステージの挿絵を背景に敷く（盤は組み直さず、`assets/campaign/` の静止画を読む）。(3) `ConversationPanel` を盤の外でも動かす。(4) 通し読みの操作＝章題・次へ・スキップ・停止。どの回の内容を出すかは最後に遊んだ回で固定（切り替えは feature-129）。
+- 該当：`godot/presentation/chronicle/`・`godot/presentation/ui/conversation_panel.gd`・`godot/data/i18n/ui.csv`（`ui.chronicle.*`）・[chronicle.md](gdd/chronicle.md) 物語。
+
+### feature-127
+
+**チュートリアル１のクロニクルの中身**
+- ゴール：チュートリアル１を遊んだ人が、設定集を読み切れて、物語を通して読める。
+- 背景：設定集は5節ぶんを書いてあるが、[chronicle.md](gdd/chronicle.md) 設定集の構成（前半＝舞台・依頼の経緯・一行の顔ぶれ・相手は何者か、後半＝読み物）に照らすと後半が薄い。正本は [tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) と [world.md](gdd/world.md) で、メモに無い裏設定は載せない。
+- 対応：`godot/data/i18n/chronicle.csv` に節を書き足し、`godot/data/chronicle/tutorial1-goblin-raid.json` の `lore` に節と解放条件を並べる。`story` の並び（ステージ順とイベント）も実際の台本と突き合わせる。
+- 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial1-goblin-raid.json`。前提＝feature-126。
+
+### feature-128
+
+**チュートリアル２のクロニクルの中身**
+- ゴール：チュートリアル２を遊んだ人が、設定集を読み切れて、物語を通して読める。
+- 背景：`godot/data/chronicle/` にファイルが無く、設定集も `story` の並びもまだ無い。正本は [tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) と [world.md](gdd/world.md)。
+- 対応：feature-127 と同じ形で `godot/data/chronicle/tutorial2-undead-rush.json` を作り、`chronicle.csv` に本文を足す。
+- 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial2-undead-rush.json`。前提＝feature-126。
+
+### feature-129
+
+**クロニクルの分岐の切り替え**
+- ゴール：両方の展開を経験している箇所で、通し読みの途中にどちらを読むか切り替えられる。
+- 背景：台本には在籍による行の出し入れ（`joined:<actor>`）と、どちらか一方しか起きないイベントがある（[chronicle.md](gdd/chronicle.md) 分岐の切り替え）。既定は最後に遊んだ回で、切り替えは両方を経験している箇所だけに出す＝読み始める前に顔ぶれを選ばせない。
+- 対応：通し読みが分岐に差しかかったとき、パネル脇に切り替えを出す。切り替えは仲間ごとに独立。
+- 該当：`godot/presentation/chronicle/`・[chronicle.md](gdd/chronicle.md) 分岐の切り替え。前提＝feature-125・feature-126。
 
 ## リファクタリング
 
