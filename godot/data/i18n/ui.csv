@@ -210,3 +210,12 @@ ui.combat.attack,攻撃,Attack
 ui.combat.defense,防御,Defense
 ui.combat.poison,毒 -%d/ターン,Poison -%d/turn
 ui.combat.cleansed,解呪 %d,Cleansed %d
+ui.title.chronicle,クロニクル,Chronicle
+ui.chronicle.title,クロニクル,Chronicle
+ui.chronicle.back,← メニュー,← Menu
+ui.chronicle.units,ユニット,Units
+ui.chronicle.formations,陣形スキル,Formations
+ui.chronicle.campaigns,冒険譚,Adventures
+ui.chronicle.count,%d / %d,%d / %d
+ui.chronicle.unknown,？,?
+ui.chronicle.first_seen,初出,First seen in

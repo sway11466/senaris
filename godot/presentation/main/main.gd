@@ -28,6 +28,8 @@ var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（永続・
 var _context := StageContext.new()
 var _progress: CampaignProgress = null
 var _outcome: StageOutcome = null  # 決着時の記録の門番（application 層）。presentation は状態を直接書き換えない
+var _chronicle_store: ChronicleStore = null  # クロニクル永続化（user://chronicle.json）
+var _chronicle: ChronicleService = null  # クロニクルの記録（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _save: SaveCoordinator = null  # 中断セーブ／オートセーブの段取り（枠・一覧・復元）。仕様 → doc/tech/gamesystem.md
 var _save_panel: SaveSlotPanel = null  # 枠一覧（セーブ/ロード共通）。盤を覆う画面の一つとして表示を見張る
@@ -115,6 +117,8 @@ func _ready() -> void:
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
 	_outcome = StageOutcome.new(_progress, _roster_store)  # 決着時の記録の門番
+	_chronicle_store = ChronicleStore.new()  # クロニクル（user://chronicle.json）
+	_chronicle = ChronicleService.new(_chronicle_store)  # 記録 API（盤を離れるときに書く）
 	_install_story()  # 会話の進行。盤・HUD・暗幕・会話パネル・進行記録が揃ってから
 	_install_save()  # 中断セーブ／オートセーブ＋枠一覧（HUD・タイトルの両方から開く）
 	_hud.set_load_available(_save.has_any())  # 起動時にセーブが1枠でも在ればロードを有効化
@@ -122,6 +126,7 @@ func _ready() -> void:
 	_install_select()  # 生成と配線だけ。開くのはタイトルで扉をくぐってから
 	_install_settings()  # 設定画面。タイトルから開くので、タイトルより前に用意
 	_install_manual()  # マニュアル。同上
+	_install_chronicle()  # クロニクル。同上
 	_install_title()  # 起動直後はタイトル（酒場の扉）。閉じたら _select.open()
 	_install_board_cover()  # 盤を覆う画面が全部揃ってから＝どれかが出ている間は盤に入力を通さない
 
@@ -195,13 +200,16 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.dialogue_pace = _story.await_dialogue  # 敵ターンの占領で入る会話は読み終えるまで待つ
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.event_fired.connect(_story.on_event_fired)  # 台本があれば会話を挟む
+	_controller.event_fired.connect(_on_event_fired_chronicle)  # 増援の駒をクロニクルに記録
 	_controller.battle_finished.connect(_on_battle_finished)
 	_controller.formation_resolved.connect(_on_formation_resolved)
+	_controller.unit_deployed.connect(_on_unit_deployed_chronicle)  # 拠点から出撃した駒をクロニクルに記録
 	_apply_emblem()  # ターン板の左右（冒険譚の代表ユニット）。ステージが変われば差し替わる
 	_update_turn_plate(state.current_team, state.turn_number)
 	_hud.set_player_turn(state.current_team == 0)  # ターン終了ボタンの有効/無効
 	_update_aura()  # 加護の光（中断セーブ復元で効果が残っていることがある）
 	_tally.begin(state, path, _context)  # 戦果票の基準（開始時の兵力・ランクの閾値）を控える
+	_chronicle.begin(_context.campaign_id, state)  # クロニクル＝盤の初期配置を走査して全駒を記録
 	if state.current_team == 0:
 		_save.snapshot(state, _context, _campaign())  # ステージの頭＝自ターン開始時点。ここでオートセーブも入る
 	_start_stage_bgm_when_drawn(path)  # 盤が出てから鳴らす（新規ロード・中断セーブ復元で共通）
@@ -270,6 +278,7 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	# 発動と同時にスキルレポート（カットイン・着弾の間も右パネルに出ている）。盤側の選択解除
 	# （clear）が先に走る＝HexBoard.bind の接続がこのハンドラより先。仕様 → doc/tech/combat_scene.md
 	$Front/InfoPanel.show_skill_report(result)
+	_chronicle.note_recipe(result.recipe)  # クロニクルにレシピを記録
 	# このスキルで勝ちが確定していれば、盤の着弾をとどめ（スロー＋カメラ寄せ）として見せる。
 	if _win_decided():
 		_finisher_route = "formation"
@@ -295,6 +304,24 @@ func _on_formation_resolved(result: SkillResult) -> void:
 		_shake_screen()
 	await $HexBoard.play_formation_impact(result)
 	_update_aura()
+
+## クロニクル：拠点から出撃した駒を記録する。自軍の出撃も敵の拠点配備も含む。
+func _on_unit_deployed_chronicle(unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> void:
+	if _controller == null:
+		return
+	var unit := _controller.state.unit_by_id(unit_id)
+	if unit != null:
+		_chronicle.note_unit(unit)
+
+## クロニクル：イベントで盤に出た増援の駒を記録する。info["units"] は配置された駒の id の配列。
+func _on_event_fired_chronicle(info: Dictionary) -> void:
+	if _controller == null:
+		return
+	var ids: Array = info.get("units", [])
+	for uid in ids:
+		var unit := _controller.state.unit_by_id(int(uid))
+		if unit != null:
+			_chronicle.note_unit(unit)
 
 ## 着弾の揺れ（2D側）。このノードごと振る＝盤の上に載る UI・オーバーレイが一緒に動く。
 ## 前面パネル層 $Front（CanvasLayer）はこのノードの移動に乗らないので offset を同じ量で振る
@@ -390,6 +417,8 @@ func _on_battle_finished(outcome: int) -> void:
 		_turn_banner.dismiss()  # ターン制限切れはターンの切り替わりと同時＝戦果票と重ねない
 	if _formation_cutin != null:
 		_formation_cutin.dismiss()  # 陣形でボスを倒した＝カットインの最中に決着しうる
+	# クロニクルは盤を離れるときにまとめて書く。決着＝盤を離れる。
+	_chronicle.flush()
 	# 記録は application 層（StageOutcome）に委ねる。ランク・所要時間・自己ベストも向こうで採る。
 	var result := _outcome.battle_finished(
 			_context.campaign_id, _context.stage_id, outcome,
@@ -700,6 +729,7 @@ func _on_end_turn_requested() -> void:
 
 func _on_restart_requested() -> void:
 	if not _context.stage_path.is_empty():
+		_chronicle.flush()  # 盤を離れる＝クロニクルを書き出す
 		load_stage(_context.stage_path)
 
 ## デバッグメニュー「敵を殲滅」。controller はステージごとに作り直すので、押された時点の
@@ -768,6 +798,7 @@ func _on_saved(slot: String) -> void:
 ## 枠から盤が組み上がった＝文脈を差し替えて盤・進行役に据える（intro は流さない）。
 ## タイトルから来た場合はここでタイトルを畳む＝盤へ直行する。
 func _on_save_restored(state: BattleState, path: String, meta: Dictionary) -> void:
+	_chronicle.flush()  # 前の盤を離れる＝クロニクルを書き出す（タイトルから来た初回は空振り）
 	_context.campaign_id = String(meta.get("campaign_id", ""))
 	_context.stage_id = String(meta.get("stage_id", ""))
 	_context.started_at = int(meta.get("started_at", 0))  # 所要時間は測り直さず続きを測る（0＝不明な旧セーブ）
@@ -786,13 +817,13 @@ func _on_save_restored(state: BattleState, path: String, meta: Dictionary) -> vo
 ## ＝Esc でシステムメニューが開き、Enter でターンが終わり、Space で情報板が畳まれる。
 ## 画面ごとに鍵盤を食う作りにはしない＝重なり順（設定はタイトルの上）に依存して Esc の取り合いになる。
 func _install_board_cover() -> void:
-	for screen in [_title, _select, _settings, _manual, _save_panel]:
+	for screen in [_title, _select, _settings, _manual, _chronicle_screen, _save_panel]:
 		screen.visibility_changed.connect(_sync_board_cover)
 	_sync_board_cover()
 
 func _sync_board_cover() -> void:
 	$HexBoard.set_covered(_title.visible or _select.visible or _settings.visible
-			or _manual.visible or _save_panel.visible)
+			or _manual.visible or _chronicle_screen.visible or _save_panel.visible)
 
 # --- セレクト画面（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
 func _install_select() -> void:
@@ -831,6 +862,14 @@ func _install_manual() -> void:
 	_manual.closed.connect(_on_manual_closed)
 	add_child(_manual)
 
+## クロニクル（冒険の記録）。開き口はタイトルのメニューだけ。仕様 → doc/gdd/chronicle.md
+var _chronicle_screen: ChronicleScreen = null
+func _install_chronicle() -> void:
+	_chronicle_screen = ChronicleScreen.new()
+	_chronicle_screen.name = "ChronicleScreen"
+	_chronicle_screen.closed.connect(_on_chronicle_closed)
+	add_child(_chronicle_screen)
+
 func _install_title() -> void:
 	_title = TitleScreen.new()
 	_title.name = "TitleScreen"
@@ -841,6 +880,7 @@ func _install_title() -> void:
 	_title.new_game_requested.connect(_on_title_new_game)
 	_title.settings_requested.connect(_on_title_settings)
 	_title.manual_requested.connect(_on_title_manual)
+	_title.chronicle_requested.connect(_on_title_chronicle)
 	_title.quit_requested.connect(_on_title_quit)
 	if _bgm != null:
 		_bgm.muffle()  # 曲を張る前に挿す＝鳴り出した瞬間からこもっている
@@ -904,6 +944,14 @@ func _on_title_manual() -> void:
 func _on_manual_closed() -> void:
 	_title.show_stamp(true)
 
+## クロニクル＝タイトルに重ねて開く。マニュアルと同じ扱い。仕様 → doc/gdd/chronicle.md
+func _on_title_chronicle() -> void:
+	_title.show_stamp(false)
+	_chronicle_screen.open(_chronicle_store, _progress)
+
+func _on_chronicle_closed() -> void:
+	_title.show_stamp(true)
+
 ## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
 func _on_settings_locale_chosen(locale: String) -> void:
 	SettingsApplier.apply_locale(locale)
@@ -916,6 +964,7 @@ func _on_settings_locale_chosen(locale: String) -> void:
 func _refresh_labels() -> void:
 	_settings.refresh_labels()
 	_manual.refresh_labels()
+	_chronicle_screen.refresh_labels()
 	_title.refresh_labels()
 	_hud.refresh_labels()
 	_story.refresh_menu()  # 目次の見出しは director が訳して渡す＝言語が変われば貼り直す
