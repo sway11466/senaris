@@ -246,7 +246,6 @@ func unit_at(hex: Vector2i) -> Unit:
 ##            units: [ { unit: Unit, passengers: Array[Unit] } ] }
 ## id＝イベントの名前（ステージ内で一意）。セーブが未発火のイベントを識別するのに使う。
 ## on が空＝turn 起点。"capture"＝hex の拠点を team が取った瞬間（turn は見ない）。
-## "dialogue"＝会話の enter 行が名指しで呼んだとき（turn も盤も見ない）。
 ## once＝排他の名前。同じ名前を持つイベントはどれか1つだけ起きる。
 ## 発生時に placed（実際に駒が出た hex の配列）が足される。
 var _events: Array[StageEvent] = []
@@ -275,8 +274,8 @@ func next_event() -> Dictionary:
 	var out := {}
 	var best := -1
 	for e in _events:
-		if not e.is_turn():
-			continue  # 盤の出来事・会話が引き金＝あと何ターンかを数えられない
+		if e.is_capture():
+			continue  # 盤の出来事が引き金＝あと何ターンかを数えられない
 		if e.label.is_empty():
 			continue
 		if best < 0 or e.turn < best:
@@ -292,8 +291,8 @@ func fire_due_events() -> Array[StageEvent]:
 	for e in _events.duplicate():  # 発生ぶんを取り除きながら回すので控えを辿る
 		if not _is_pending(e):
 			continue  # 同じ once の兄弟が先に起きて捨てられた
-		if not e.is_turn():
-			continue  # 引き金が盤の出来事・会話＝ターンの頭では起きない
+		if e.is_capture():
+			continue
 		if e.turn <= turn_number and e.team == current_team:
 			_consume_event(e)
 			fired.append(e)
@@ -311,31 +310,6 @@ func fire_capture_events(hex: Vector2i, team: int) -> Array[StageEvent]:
 		if not e.is_capture():
 			continue
 		if e.hex != hex or e.team != team:
-			continue
-		_consume_event(e)
-		fired.append(e)
-	return fired
-
-## 会話の enter 行が名指しで起こすイベント（引き金＝会話）。起きたイベントを返す（無ければ null）。
-## 未発火のものだけを探す＝同じ台本を読み直しても二度は起きない。ターンも盤の出来事も見ない
-## ＝いつ呼ばれても成立する。last_fired_events は触らない＝そちらは end_turn 用。
-func fire_dialogue_event(event_id: String) -> StageEvent:
-	for e in _events.duplicate():
-		if not e.is_dialogue() or e.id != event_id:
-			continue
-		_consume_event(e)
-		return e
-	return null
-
-## 会話の enter 行で起きるはずだったのに、まだ起きていないイベントを全部起こす。起きたものを返す。
-## 中断セーブの復元が呼ぶ＝復元では intro を流し直さないので、台本から呼ばれる機会がもう無い
-## （doc/gdd/map.md イベント／doc/tech/gamesystem.md 中断セーブ）。
-func fire_pending_dialogue_events() -> Array[StageEvent]:
-	var fired: Array[StageEvent] = []
-	for e in _events.duplicate():
-		if not _is_pending(e):
-			continue  # 同じ once の兄弟が先に起きて捨てられた
-		if not e.is_dialogue():
 			continue
 		_consume_event(e)
 		fired.append(e)

@@ -4,12 +4,11 @@ class_name StageEvent
 ## StageLoader がステージJSONから組み、BattleState が未発生の控えとして持ち、引き金が成立したら
 ## 駒を盤に出して控えから外す。詳細 → doc/gdd/map.md イベント
 
-## 引き金。TURN＝発生ターンが来た（自分の陣営の手番の頭）／CAPTURE＝拠点の所属が変わった／
-## DIALOGUE＝会話の enter 行が名指しで呼んだ（ターンも盤も見ない）。
-enum Trigger { TURN, CAPTURE, DIALOGUE }
+## 引き金。TURN＝発生ターンが来た（自分の陣営の手番の頭）／CAPTURE＝拠点の所属が変わった。
+enum Trigger { TURN, CAPTURE }
 
 ## ステージJSONの "on" と1対1。省略（""）＝ターン。
-const TRIGGER_IDS := { "": Trigger.TURN, "capture": Trigger.CAPTURE, "dialogue": Trigger.DIALOGUE }
+const TRIGGER_IDS := { "": Trigger.TURN, "capture": Trigger.CAPTURE }
 
 ## 登場の仕方。MARCH＝入口から1体ずつ順に出て所定位置まで歩く／SCATTER＝入口から全員が続けて
 ## 出て同時に散る／FADE＝所定位置にその場で浮かび上がる（入口を持たない）。
@@ -34,19 +33,11 @@ var placed_ids: Array[int] = []    ## 実際に出た駒の id（placed と同�
 var entry: Entry = Entry.FADE      ## 登場の仕方（駒を出すイベントだけが意味を持つ）
 var from := Vector2i.MAX           ## 入口＝駒が盤に入ってくる hex（MARCH/SCATTER のとき。FADE は持たない）
 
-## 引き金が発生ターンの到来か。ターン板の予告と、ターンの頭の発火が見る。
-func is_turn() -> bool:
-	return trigger == Trigger.TURN
-
 ## 引き金が拠点の占領か。
 func is_capture() -> bool:
 	return trigger == Trigger.CAPTURE
 
-## 引き金が会話の enter 行か。盤の側からは決して起きない＝台本が名指ししたときだけ起きる。
-func is_dialogue() -> bool:
-	return trigger == Trigger.DIALOGUE
-
-## 引き金の JSON 表記（"" / "capture" / "dialogue"）。上へ渡す素データと、旧セーブとの突き合わせが読む。
+## 引き金の JSON 表記（"" / "capture"）。上へ渡す素データと、旧セーブとの突き合わせが読む。
 func trigger_id() -> String:
 	return String(TRIGGER_IDS.find_key(trigger))
 

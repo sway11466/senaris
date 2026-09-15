@@ -809,11 +809,6 @@ func _on_save_restored(state: BattleState, path: String, meta: Dictionary) -> vo
 		_title_pending = false  # 以後は盤の曲が主＝ざわめきのガードを解く
 		_title.close()
 	_install_state(state, path)  # 盤・進行役を保存状態で据える（intro なし）
-	# intro を流し直さない＝会話の enter 行を待ったままのイベントは呼ばれる機会がもう無い。
-	# ここで盤へ出す＝復元した盤は、その会話を読み終えた盤と同じ顔ぶれになる
-	# （doc/gdd/map.md イベント・doc/tech/gamesystem.md 中断セーブ）。
-	if _controller.place_pending_dialogue_events() > 0:
-		$HexBoard.refresh()
 
 ## 盤を覆う画面（タイトル・セレクト・設定・マニュアル・セーブ枠一覧）のどれかが出ている間は、盤に入力を
 ## 通さない（doc/gdd/uiux.md デバイス別 操作表）。各画面の根はマウスを止めるが鍵盤は止まらず盤へ落ちる

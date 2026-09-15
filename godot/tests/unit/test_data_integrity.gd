@@ -157,47 +157,6 @@ func test_stage_events_with_dialogue_have_name() -> void:
 			assert_true(typeof(v) == TYPE_STRING and not String(v).is_empty(),
 				"%s のイベント '%s' に name（見出しの翻訳キー）がある" % [path, String(event.get("id", ""))])
 
-func test_stage_dialogue_enter_lines_match_dialogue_events() -> void:
-	# 台本の enter 行と、引き金が会話（on:"dialogue"）のイベントは1対1で噛み合う
-	# （doc/gdd/map.md イベント・doc/campaign/authoring.md 会話パート）。
-	# 指す先が無い enter 行は駒が出ないまま黙って素通りし、呼ばれないイベントは
-	# 駒が永久に盤へ出ない＝どちらも遊んでみるまで気づけない。
-	# enter を書けるのは戦闘前の会話（intro）だけ＝戦闘中・戦闘後の台本に置いても呼ばれる場所が無い。
-	var files := _all_stage_files("res://data/stages")
-	assert_gt(files.size(), 0, "ステージJSONが見つかる")
-	for path in files:
-		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if typeof(data) != TYPE_DICTIONARY:
-			continue
-		var wanted := {}  # イベント id -> true（台本が呼んでいる）
-		var scripts: Variant = (data as Dictionary).get("dialogue", {})
-		if typeof(scripts) == TYPE_DICTIONARY:
-			for phase in (scripts as Dictionary):
-				var lines: Variant = scripts[phase]
-				if typeof(lines) != TYPE_ARRAY:
-					continue
-				for line in lines:
-					if typeof(line) != TYPE_DICTIONARY:
-						continue
-					var event_id := String((line as Dictionary).get("enter", ""))
-					if event_id.is_empty():
-						continue
-					assert_eq(String(phase), "intro",
-						"%s の enter 行 '%s' は intro の台本にある" % [path, event_id])
-					wanted[event_id] = true
-		var offered := {}  # イベント id -> true（引き金が会話）
-		for event in (data as Dictionary).get("events", []):
-			if typeof(event) != TYPE_DICTIONARY:
-				continue
-			if String(event.get("on", "")) == "dialogue":
-				offered[String(event.get("id", ""))] = true
-		for event_id in wanted:
-			assert_true(offered.has(event_id),
-				"%s の enter 行が指す '%s' が on:\"dialogue\" のイベントとして居る" % [path, event_id])
-		for event_id in offered:
-			assert_true(wanted.has(event_id),
-				"%s の on:\"dialogue\" のイベント '%s' が台本の enter 行から呼ばれている" % [path, event_id])
-
 func test_stage_events_declare_entry_and_from() -> void:
 	# 駒を出すイベントは登場の仕方（entry）を必ず持ち、歩いてくる登場だけが入口（from）を持つ
 	# （doc/gdd/map.md イベント）。既定を置かない決まりなので、書き忘れは

@@ -5,7 +5,6 @@ class_name ConversationPanel
 ## 話者は左右交互で出す。セリフ/話者名は翻訳キー＝tr() で解決（i18n・正本 data/i18n/dialogue.csv）。
 ## 話者のいない行（効果音・ト書き）も1行として挟める＝顔を出さず中央に文字だけ、`sfx` があればその音を鳴らす。
 ## 場面の切り替え（`scene`）は横線の真ん中にト書きを小さく置く区切り＝以後の話者は左から始め直す。
-## 駒の登場（`enter`）は何も表示しない行＝名指しのイベントを起こして盤に駒を出し、続けて次の行へ進む。
 ## 詳細 → doc/campaign/authoring.md
 ##
 ## 顔は UnitSkin の portrait スロット（未用意は名前2文字のプレースホルダ）。
@@ -35,13 +34,6 @@ var _lines: Array = []
 var _shown := 0
 var _speakers := 0  # 話者のいる行だけを数える＝左右交互の順番（効果音の行を挟んでも左右が入れ替わらない）
 var _finish_label := ""
-
-## 会話の enter 行で呼ぶフック（StoryDirector が注入）＝ call(event_id: String, reading: bool)。
-## reading＝1行ずつ読み進めている最中（カメラ寄せまで見せ切る）／false＝スキップの後始末
-## （駒は出すが見せない）。未注入＝enter 行は素通りする。詳細 → doc/campaign/authoring.md
-var enter_pace: Callable = Callable()
-
-var _revealing := false  ## enter 行の待ちの最中＝「次へ」の連打で二重に進めない
 var _scroll: ScrollContainer
 var _messages: VBoxContainer
 var _next_btn: Button
@@ -98,7 +90,6 @@ func start(lines: Array, finish_label: String) -> void:
 	_finish_label = finish_label
 	_shown = 0
 	_speakers = 0
-	_revealing = false  # 前の会話が enter 行の待ちのまま閉じられていても、新しい会話は進められる
 	for c in _messages.get_children():
 		c.queue_free()
 	show()
@@ -112,12 +103,8 @@ func start(lines: Array, finish_label: String) -> void:
 ## - scene あり＝場面の区切り（横線の真ん中にト書き）。左右交互を最初に戻す
 ## - speaker なし・text あり＝中央に文字だけ（効果音・ト書き）
 ## - sfx あり＝その行が出るときにその音を鳴らす（文字送り音の代わり）
-## - enter あり＝名指しのイベントの駒が盤に出る（表示は無い＝出し切るまで待ってから次の行へ）
-## 表示するものが何も無い行（sfx・enter だけ）は「次へ」を消費させず、続けて次の行まで進める。
+## 表示するものが何も無い行（sfx だけ）は「次へ」を消費させず、続けて次の行まで進める。
 func _reveal_next() -> void:
-	if _revealing:
-		return  # enter 行の待ちの最中＝連打を捨てる（1行ぶんが二度進むのを防ぐ）
-	_revealing = true
 	while _shown < _lines.size():
 		var line := _line_at(_shown)
 		_shown += 1
@@ -137,28 +124,10 @@ func _reveal_next() -> void:
 			SfxPlayer.play_sfx(sfx)  # 効果音の行＝文字送り音は鳴らさない（音が重ならないように）
 		elif shown_here:
 			SfxPlayer.play_event("map_talk")
-		await _run_enter(line, true)  # 駒の登場は表示より後＝物音の行の「次へ」で出てくる
 		if shown_here:
 			break
-	_revealing = false
 	_next_btn.text = tr(_finish_label) if _shown >= _lines.size() else tr("ui.talk.next")
 	_scroll_to_last()
-
-## 行が enter を持っていれば、その駒を盤に出してもらう（出し切るまで待つ）。
-## reading＝読み進めている最中か（スキップの後始末では見せずに出すだけ）。
-func _run_enter(line: Dictionary, reading: bool) -> void:
-	var event_id := String(line.get("enter", ""))
-	if event_id.is_empty() or not enter_pace.is_valid():
-		return
-	await enter_pace.call(event_id, reading)
-
-## 読み残した enter 行を全部起こす（スキップ・会話を出さないときの後始末）。
-## 読まなくても盤は台本どおりの顔ぶれで始まる＝出てくるはずの駒が消えない。
-func drain_enters() -> void:
-	while _shown < _lines.size():
-		var line := _line_at(_shown)
-		_shown += 1
-		await _run_enter(line, false)
 
 ## 言語が変わったので文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
 ## パネルは起動時に1度だけ作って生き続けるので、板に焼いたボタンの文字だけ差し替える。
@@ -197,17 +166,12 @@ func _scroll_to_last() -> void:
 		_scroll.scroll_vertical = int(top)
 
 func _on_next() -> void:
-	if _revealing:
-		return  # enter 行の待ちの最中＝連打で先へ進めない（駒が出る前に閉じさせない）
 	if _shown >= _lines.size():
 		_close()
 	else:
 		_reveal_next()
 
 func _on_skip() -> void:
-	if _revealing:
-		return  # enter 行の待ちの最中＝出し切ってから閉じさせる（駒の取りこぼしを防ぐ）
-	await drain_enters()  # 読まずに飛ばした登場も盤には出す
 	_close()
 
 func _close() -> void:

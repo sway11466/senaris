@@ -331,24 +331,6 @@ func wipe_enemies() -> void:
 			unit_died.emit(u.id)  # 撃破と同じ経路で盤から駒を消す
 	_check_finished()
 
-## 会話の enter 行から名指しでイベントを起こす（引き金＝on:"dialogue"）。駒を盤へ出し、
-## 上へ渡す素データを返す（そのイベントが無い／すでに起きていれば空）。event_fired は通さない
-## ＝会話はもう出ている最中で、カメラ寄せと盤の貼り直しは呼んだ側（StoryDirector）が段取る。
-## 詳細 → doc/gdd/map.md イベント・doc/campaign/authoring.md 会話パート
-func fire_dialogue_event(event_id: String) -> Dictionary:
-	if _finished:
-		return {}
-	var e := state.fire_dialogue_event(event_id)
-	if e == null:
-		return {}
-	return _event_info(e, e.placed[0] if not e.placed.is_empty() else Vector2i.MAX)
-
-## 中断セーブの復元で、会話の enter 行を待ったまま残っているイベントを全部起こす（起きた件数）。
-## 復元は intro を流し直さない＝呼ばれる機会がもう無いので、ここで盤へ出す。
-## 会話もカメラ寄せも伴わない＝復元した盤は、その会話を読み終えた盤と同じ顔ぶれになる。
-func place_pending_dialogue_events() -> int:
-	return state.fire_pending_dialogue_events().size()
-
 ## デバッグ: 未発生イベント e を引き金を待たずに起こす。中身（増援・会話・カメラ寄せ）は通常の
 ## 発火と同じ経路（event_fired）へ流すが、引き金そのものは成立させない＝占領起点でも拠点の
 ## 所属は動かないまま会話だけが流れる。台本と増援の見た目を確かめるための道。

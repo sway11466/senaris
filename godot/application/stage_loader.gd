@@ -723,7 +723,6 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	ev.dialogue = String(e.get("dialogue", ""))
 	ev.focus = bool(e.get("focus", false))
 	_check_event_dialogue(e, ev)
-	_check_dialogue_trigger(ev)
 	_parse_entry(e, ev)
 	return ev
 
@@ -754,20 +753,6 @@ static func _check_event_dialogue(e: Dictionary, ev: StageEvent) -> void:
 		push_error("StageLoader: dialogue を持つイベント '%s' に name（見出しの翻訳キー）が無い（＝データのバグ）" % ev.id)
 	if not ev.is_capture() and ev.team != 0:
 		push_warning("StageLoader: turn 起点の dialogue は team:\"player\" のイベントで使う（この会話は流れない）: %s" % ev.dialogue)
-
-## 会話（on:"dialogue"）が引き金のイベントの書き方の検査。呼ぶのは台本の enter 行だけなので、
-## 盤の側の道具は持てない＝残りターンの予告（label）は数える起点が無く、会話（dialogue）は
-## 呼んだ会話の最中に始まる二重の会話になる。どちらも書き間違い＝警告して無視する。
-## 詳細 → doc/gdd/map.md イベント
-static func _check_dialogue_trigger(ev: StageEvent) -> void:
-	if not ev.is_dialogue():
-		return
-	if not ev.label.is_empty():
-		push_warning("StageLoader: on:\"dialogue\" のイベント '%s' は label を持てない（無視）" % ev.id)
-		ev.label = ""
-	if not ev.dialogue.is_empty():
-		push_warning("StageLoader: on:\"dialogue\" のイベント '%s' は dialogue を持てない（無視）＝呼ぶ側が台本" % ev.id)
-		ev.dialogue = ""
 
 ## 登場の仕方（entry）と入口（from）。駒を出すイベントには entry が必ず要る＝既定は置かない
 ## （どこから盤に入ったかは次の一手の読みに直結する）。march／scatter は入口を持ち、fade は持たない。

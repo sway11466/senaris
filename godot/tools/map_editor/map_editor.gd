@@ -1657,7 +1657,7 @@ func _add_event_rows(index: int, ev: Dictionary) -> void:
 		return
 	var on := String(ev.get("on", ""))
 	if on != "":
-		# ターン以外の引き金（拠点の占領・会話の enter 行）はここでは編集しない＝ターン欄で
+		# ターン以外の引き金（拠点の占領）はここでは編集しない＝ターン欄で
 		# 上書きすると引き金が読めなくなる。doc/gdd/map.md イベント
 		_add_warn(box, "引き金が on:\"%s\" のイベント（JSONを直接見る）" % on)
 		return
