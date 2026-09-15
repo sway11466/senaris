@@ -1,8 +1,9 @@
 extends RefCounted
 class_name StageTally
-## 戦果の集計（presentation/main）。ステージ開始時の兵力とランク閾値を控え、決着でランクと
-## 所要時間を確定し、戦果票（ResultBanner）に載せる行を組む。集計は presentation 側＝domain に
-## 戦績を持たせない。仕様 → doc/gdd/rank.md・doc/tech/gamesystem.md §所要時間
+## 戦果票の行を組む（presentation/main）。ステージ開始時の兵力とランク閾値を控え、
+## 決着の結果（ランク・所要時間）を受け取り、戦果票（ResultBanner）に載せる行を組む。
+## ランク評価と所要時間の計算は application/stage_outcome.gd が持つ。
+## 仕様 → doc/gdd/rank.md・doc/tech/gamesystem.md §所要時間
 
 var _state: BattleState = null
 var _context: StageContext = null
@@ -21,32 +22,11 @@ func begin(state: BattleState, path: String, context: StageContext) -> void:
 	_elapsed = 0
 	_best_time = 0
 
-## 決着。ランク（勝利でランクを持つステージだけ。ほかは空文字）を返し、所要秒を確定する。
-## 決着の直後＝名簿更新より前（盤の駒がまだ動いていない）に呼ぶ。
-## best_time＝この回を記録する前の自己ベスト（秒・0＝記録なし）＝票には「この回の前のベスト」を出す。
-func finish(outcome: int, best_time: int) -> String:
-	_elapsed = _elapsed_seconds()
+## 決着の結果を受け取る（application/stage_outcome.gd が計算した値）。
+## 戦果票の行（rows）で使う。
+func set_result(elapsed: int, best_time: int) -> void:
+	_elapsed = elapsed
 	_best_time = best_time
-	if outcome != BattleState.PLAYER_WIN:
-		return ""
-	return _evaluate_rank()
-
-## 決着までの所要秒（finish の後）。0＝測れていない。
-func elapsed() -> int:
-	return _elapsed
-
-## 評価ランクを算出する（勝利時）。rank_data が空ならランクなし＝空文字。
-func _evaluate_rank() -> String:
-	if _rank_data.is_empty() or _state == null:
-		return ""
-	return RankEvaluator.evaluate(_state.turn_number, _state.ally_survivor_count(), _start_ally, _rank_data)
-
-## ステージを始めてから決着までの秒数。0＝測れていない（開始時刻を持たない旧セーブから再開した回）。
-## 時計が巻き戻ったとき（システム時刻の変更）も 0 に倒す＝負の時間を記録に混ぜない。
-func _elapsed_seconds() -> int:
-	if _context == null or _context.started_at <= 0:
-		return 0
-	return maxi(int(Time.get_unix_time_from_system()) - _context.started_at, 0)
 
 ## 戦果の行（ターン数・生存・撃破・所要時間）。
 ## 勝利のときだけ、ターン数と生存にランク基準（S・A の具体値と達成の可否）を添える＝何を詰めれば

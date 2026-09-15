@@ -322,6 +322,7 @@
 - 注意：決着処理は演出の待ち（`await`）と絡む。記録は決着シグナルの直後（演出より前・名簿更新より前に盤を読む）という今の順序を崩さない。
 - 考慮外：中断セーブ（`save_coordinator.gd`）＝盤のスナップショットは「記録」ではなく「退避」なので対象にしない。設定の保存。
 - 該当：`godot/application/stage_outcome.gd`（新規）・`godot/presentation/main/main.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/main/stage_tally.gd`・`godot/tests/unit/`・[architecture.md](tech/architecture.md)（構成図）。着手の引き金＝クロニクル（feature-94）の手順0。
+- **実装済み（実機確認待ち）**：コード修正とテストは完了。`grep record_ godot/presentation` が空であることを確認。実機確認＝竜狩り（tutorial3）で以下を通しで確認すること: (1) 勝利時の戦果票（ランク・所要時間・撃破数） (2) クリア記録とステージ解放 (3) 名簿の引き継ぎ（兵数の反映） (4) 敗北時に名簿が更新されていないこと (5) デバッグステージで進捗に影響しないこと。
 
 ## parking lot
 

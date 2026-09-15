@@ -2,7 +2,7 @@ extends Node2D
 ## Presentation 層のエントリポイント。
 ## ステージ(data/stages/*.json)を読み込み、進行役(MatchController)と盤(HexBoard)を組む。
 ## load_stage(path) が本体＝ステージセレクト（presentation/select/）がこれを駆動する（再呼び出しで切替可）。
-## 進行管理（解放判定・クリア記録）は application/campaign_progress.gd。仕様 → doc/gdd/stage_select.md
+## 進行管理（解放判定）は application/campaign_progress.gd。決着時の記録は application/stage_outcome.gd。仕様 → doc/gdd/stage_select.md
 ## デバッグ用ステージは data/stages/debug-*/（機能別の debug:true 冒険譚としてセレクトに出る）。一覧 → doc/tech/debug-stages.md
 
 const BOARD_LOGO_PATH := "res://assets/logo/logo.png"  # 盤の右上に常設するタイトルロゴ
@@ -27,6 +27,7 @@ var _screen: ScreenLighting = null  # 画面の明暗の共通基盤（永続・
 ## いま挑んでいるステージの文脈（冒険譚・ステージ・パス・印・開始時刻）。戦果・セーブ・会話へ渡す
 var _context := StageContext.new()
 var _progress: CampaignProgress = null
+var _outcome: StageOutcome = null  # 決着時の記録の門番（application 層）。presentation は状態を直接書き換えない
 var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
 var _save: SaveCoordinator = null  # 中断セーブ／オートセーブの段取り（枠・一覧・復元）。仕様 → doc/tech/gamesystem.md
 var _save_panel: SaveSlotPanel = null  # 枠一覧（セーブ/ロード共通）。盤を覆う画面の一つとして表示を見張る
@@ -112,8 +113,9 @@ func _ready() -> void:
 	_install_formation_cutin()  # 永続の陣形カットイン（絵が在るレシピの発動時だけ出る）
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
-	_install_story()  # 会話の進行。盤・HUD・暗幕・会話パネル・進行記録が揃ってから
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
+	_outcome = StageOutcome.new(_progress, _roster_store)  # 決着時の記録の門番
+	_install_story()  # 会話の進行。盤・HUD・暗幕・会話パネル・進行記録が揃ってから
 	_install_save()  # 中断セーブ／オートセーブ＋枠一覧（HUD・タイトルの両方から開く）
 	_hud.set_load_available(_save.has_any())  # 起動時にセーブが1枠でも在ればロードを有効化
 	load_stage("res://data/stages/_boot/underlay.json")  # セレクトの下敷き（盤を空にしない）。選択で差し替わる
@@ -141,7 +143,7 @@ func load_stage(path: String) -> void:
 	# 実時刻で持ち、中断セーブにも書く＝閉じていた間も含めた「クリアまでにかかった時間」になる。
 	_context.started_at = int(Time.get_unix_time_from_system())
 	_install_state(state, path)
-	_story.record_start(_load_roster())  # 開始時の在籍 actor を控える＝あとで当時の顔ぶれで会話を組み直せる
+	_story.on_stage_started(_load_roster())  # 開始時の在籍 actor を控える＝あとで当時の顔ぶれで会話を組み直せる
 	_story.maybe_start_intro()  # intro 会話があれば盤をロックして先に流す（新規開始のみ）
 
 ## 与えられた BattleState を盤・進行役に据える（新規ロードと中断セーブ復元で共有）。
@@ -381,36 +383,27 @@ func _apply_emblem() -> void:
 	var emblem := _emblem()
 	_turn_plate.set_emblem(_skins, String(emblem.get("ally", "")), String(emblem.get("enemy", "")))
 
-## 決着の告知は戦果票（ResultBanner）が担う＝ここでは記録と後続の演出だけ進める。
+## 決着の告知は戦果票（ResultBanner）が担う＝ここでは後続の演出だけ進める。
+## 記録（クリア・ランク・所要時間・名簿・経験した会話）は application/stage_outcome.gd に委ねる。
 func _on_battle_finished(outcome: int) -> void:
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターン制限切れはターンの切り替わりと同時＝戦果票と重ねない
 	if _formation_cutin != null:
 		_formation_cutin.dismiss()  # 陣形でボスを倒した＝カットインの最中に決着しうる
-	# ランクと所要時間は決着の直後に採る（この後の名簿更新より前＝盤の駒がまだ動いていない）。
-	# 自己ベストは記録より前に控える＝票には「この回の前のベスト」を出す。
-	var best_time := 0
-	if _progress != null and _context.in_campaign():
-		best_time = _progress.best_time(_context.campaign_id, _context.stage_id)
-	var rank := _tally.finish(outcome, best_time)
+	# 記録は application 層（StageOutcome）に委ねる。ランク・所要時間・自己ベストも向こうで採る。
+	var result := _outcome.battle_finished(
+			_context.campaign_id, _context.stage_id, outcome,
+			_controller.state if _controller != null else null,
+			_context.started_at, _context.stage_path, _load_roster())
+	var rank: String = result["rank"]
+	_tally.set_result(int(result["elapsed"]), int(result["best_time"]))
 	match outcome:
 		BattleState.PLAYER_WIN:
-			if _context.in_campaign():  # セレクト経由のステージだけクリア記録
-				_progress.record_clear(_context.campaign_id, _context.stage_id)
-				if not rank.is_empty():
-					_progress.record_rank(_context.campaign_id, _context.stage_id, rank)
-				_progress.record_time(_context.campaign_id, _context.stage_id, _tally.elapsed())
-				# carryover: 勝利時に名簿を更新＝次の継承ステージが引き継ぐ。保存は勝利時のみなので
-				# 負けて再挑戦しても「前ステージ勝利時の戦力」からやり直せる（ソフトロック救済）。詳細 → doc/gdd/campaigns.md
-				if _roster_store != null and _controller != null:
-					var updated := RosterService.update_after_clear(_load_roster(), _controller.state)
-					_roster_store.save_roster(_context.campaign_id, updated)
-					# 戦闘後の会話は「クリア後の名簿」で条件を見る＝この回で仲間になった駒が喋れる。
-					# 読み込み時の名簿のままだと、加入が確定するのはクリア時なので合流の台詞が落ちる。
+			if _context.in_campaign():
+				# 戦闘後の会話は「クリア後の名簿」で条件を見る＝この回で仲間になった駒が喋れる。
+				var updated: Array = result["updated_roster"]
+				if not updated.is_empty():
 					_story.set_dialogue(StageLoader.load_dialogue(_context.stage_path, updated))
-				# 決着の会話が読めるようになる＝クリア後の名簿を控える（doc/tech/gamesystem.md 経験した会話）。
-				# 名簿の保存より後＝この回で仲間になった駒を含んだ顔ぶれが残る。
-				_progress.record_story_clear(_context.campaign_id, _context.stage_id, _load_roster())
 				_story.refresh_menu()
 	_hud.set_player_turn(false)  # 決着後はターン終了を無効化
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
@@ -529,7 +522,7 @@ func _install_conversation() -> void:
 ## 会話の進行（presentation/main/story_director.gd）。協力者を渡し、会話の終わりを受けて次へ進める。
 func _install_story() -> void:
 	_story = StoryDirector.new()
-	_story.bind($HexBoard, $Front/InfoPanel, _hud, _screen, _conversation, _turn_banner, _progress, _settings_store)
+	_story.bind($HexBoard, $Front/InfoPanel, _hud, _screen, _conversation, _turn_banner, _progress, _settings_store, _outcome)
 	_story.closed.connect(_on_story_closed)
 	_story.talk_opening.connect(_on_talk_opening)
 

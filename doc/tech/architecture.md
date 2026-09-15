@@ -74,7 +74,8 @@ res://
 │   ├── commands/      # 操作=コマンド(移動/攻撃/スキル発動)
 │   ├── match_controller.gd  # ターン進行の駆動・敵AIの実行
 │   ├── stage_loader.gd      # ステージJSON → BattleState
-│   ├── campaign_progress.gd # 解放・クリア記録
+│   ├── campaign_progress.gd # 解放判定・記録の書き先
+│   ├── stage_outcome.gd     # 決着時の記録(クリア・ランク・所要時間・名簿・会話)
 │   ├── roster_service.gd    # 名簿(継承の戦力)
 │   └── bgm_director.gd
 ├── presentation/      # ここだけノード/シーン
@@ -82,9 +83,9 @@ res://
 │   │   ├── main.gd              # 永続ノードの生成と配線・ステージの据え付け・ターンと決着の順番・画面の行き来とBGM
 │   │   ├── stage_context.gd     # 挑んでいるステージの文脈(冒険譚・ステージ・パス・印・開始時刻)。下の3つに渡す
 │   │   ├── settings_applier.gd  # 設定値を音量バス・窓・言語に当てる。AudioServer/DisplayServer/TranslationServer を触るのはここだけ
-│   │   ├── stage_tally.gd       # 戦果の集計(開始兵力・ランク・所要時間)と戦果票の行
+│   │   ├── stage_tally.gd       # 戦果票の行(開始兵力・ランク閾値を控え、結果を受けて表示行を組む)
 │   │   ├── save_coordinator.gd  # 中断セーブ/オートセーブ(スナップショット・枠一覧・復元)
-│   │   └── story_director.gd    # 会話の進行(intro/イベント/outro/読み直し)と経験した会話の記録
+│   │   └── story_director.gd    # 会話の進行(intro/イベント/outro/読み直し)と目次の管理
 │   ├── board/  units/  ui/  effects/     # 盤・駒・UI部品・エフェクト
 │   └── combat/ formation/ select/ title/ settings/ victory/  # 画面ごと
 ├── data/              # 機能フォルダ: 型定義＋データ＋ローダーを同居（型とデータはセット）

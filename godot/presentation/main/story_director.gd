@@ -23,7 +23,8 @@ var _hud: Hud = null
 var _screen: ScreenLighting = null  # 暗幕（共通基盤）。フェード・重ね掛けの管理は ScreenLighting 持ち
 var _conversation: ConversationPanel = null
 var _turn_banner: TurnBanner = null  # ターンの頭で起きる会話と重ねない＝始める前に引く
-var _progress: CampaignProgress = null
+var _progress: CampaignProgress = null  # 読み取りのみ（story の目次・会話の記録の参照）
+var _outcome: StageOutcome = null  # 書き込みの門番（stage_started / event_fired）
 var _settings_store: SettingsStore = null
 
 var _context: StageContext = null
@@ -36,7 +37,7 @@ var _turn_enabled_before_review := false  # 読み直しの前のターン終了
 ## 協力者を受ける（起動時に1回）。会話パネルの closed はここで受け、closed(phase) に変えて返す。
 func bind(board: HexBoard3D, info_panel: UnitInfoPanel, hud: Hud, screen: ScreenLighting,
 		conversation: ConversationPanel, turn_banner: TurnBanner, progress: CampaignProgress,
-		settings_store: SettingsStore) -> void:
+		settings_store: SettingsStore, outcome: StageOutcome) -> void:
 	_board = board
 	_info_panel = info_panel
 	_hud = hud
@@ -44,6 +45,7 @@ func bind(board: HexBoard3D, info_panel: UnitInfoPanel, hud: Hud, screen: Screen
 	_conversation = conversation
 	_turn_banner = turn_banner
 	_progress = progress
+	_outcome = outcome
 	_settings_store = settings_store
 	_conversation.closed.connect(_on_conversation_closed)
 	_conversation.enter_pace = _on_enter_line  # 台本の enter 行＝名指しのイベントを起こす
@@ -155,7 +157,7 @@ func on_event_fired(info: Dictionary) -> void:
 	if lines.is_empty():
 		push_warning("story_director: イベントの台本が見つからない: dialogue=%s" % key)
 		return
-	_record_event(String(info.get("id", "")))  # 起きた＝あとで読み直せる（会話を出すかに関わらず）
+	_note_event(String(info.get("id", "")))  # 起きた＝あとで読み直せる（会話を出すかに関わらず）
 	if not shows_dialogue():
 		await _skip_event_dialogue(info)
 		return
@@ -203,19 +205,19 @@ func shows_dialogue() -> bool:
 		return true
 	return _settings_store.dialogue_when_minimized() == "show"
 
-## 経験した会話の記録（doc/tech/gamesystem.md 経験した会話）。記録するかの判定は
-## CampaignProgress が持つ＝デバッグ冒険譚と未知のステージには残らない。
+## 経験した会話の記録（doc/tech/gamesystem.md 経験した会話）。書き込みは
+## application/stage_outcome.gd に委ねる＝presentation は状態を直接書き換えない。
 ## roster＝開始時の在籍（あとで当時の顔ぶれで会話を組み直せる）。
-func record_start(roster: Array) -> void:
-	if _progress == null or not _context.in_campaign():
+func on_stage_started(roster: Array) -> void:
+	if _outcome == null or not _context.in_campaign():
 		return
-	_progress.record_story_start(_context.campaign_id, _context.stage_id, roster)
+	_outcome.stage_started(_context.campaign_id, _context.stage_id, roster)
 	refresh_menu()
 
-func _record_event(event_id: String) -> void:
-	if _progress == null or not _context.in_campaign() or event_id.is_empty():
+func _note_event(event_id: String) -> void:
+	if _outcome == null or not _context.in_campaign() or event_id.is_empty():
 		return
-	_progress.record_story_event(_context.campaign_id, _context.stage_id, event_id)
+	_outcome.event_fired(_context.campaign_id, _context.stage_id, event_id)
 	refresh_menu()
 
 ## そのステージで経験した会話の記録（無ければ空）。
