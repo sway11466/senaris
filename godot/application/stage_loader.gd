@@ -322,7 +322,7 @@ static func _when_holds(cond: Variant, joined: Dictionary) -> bool:
 	var has: bool = joined.has(actor)
 	return not has if negate else has
 
-## 会話つきイベントの索引（イベント id → { name＝見出しの翻訳キー, dialogue＝台本のキー }）。
+## 会話つきイベントの索引（イベント id → { name＝イベント名の翻訳キー, dialogue＝台本のキー }）。
 ## 「ストーリーを確認」の目次と読み直しが引く（doc/gdd/uiux.md ターン終了・システムメニュー）。
 ## 発火したイベントは BattleState から消えるので、盤の状態ではなくステージ JSON から引く
 ## ＝会話と同じく presentation 専用（案P）。
@@ -769,7 +769,8 @@ static func _event_type(e: Dictionary) -> String:
 	return String(e.get("type", "reinforce"))
 
 ## 会話つきのイベントの書き方の検査。
-## 会話つきは「ストーリーを確認」の目次に並ぶ＝見出しの名前（name）が要る（doc/gdd/map.md イベントの name）。
+## name はイベントの名前（doc/gdd/map.md イベントの name）。会話つきのイベントは
+## 「ストーリーを確認」の目次にこの名前で並ぶので、会話を持つなら name が要る。
 ## 書き忘れは turn_limit と同じ扱いで止める。
 ## turn 起点の敵イベントは敵の手番が始まる時点で起きる＝AI が動き出す前に盤を止められない。
 ## 占領（on:"capture"）は敵の1手の切れ目で起きるので、敵側でも会話を流せる。
@@ -777,7 +778,7 @@ static func _check_event_dialogue(e: Dictionary, ev: StageEvent) -> void:
 	if ev.dialogue.is_empty():
 		return
 	if String(e.get("name", "")).is_empty():
-		push_error("StageLoader: dialogue を持つイベント '%s' に name（見出しの翻訳キー）が無い（＝データのバグ）" % ev.id)
+		push_error("StageLoader: dialogue を持つイベント '%s' に name（イベント名の翻訳キー）が無い（＝データのバグ）" % ev.id)
 	if not ev.is_capture() and ev.team != 0:
 		push_warning("StageLoader: turn 起点の dialogue は team:\"player\" のイベントで使う（この会話は流れない）: %s" % ev.dialogue)
 
