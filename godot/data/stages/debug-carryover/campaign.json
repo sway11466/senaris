@@ -1,0 +1,17 @@
+{
+  "id": "debug-carryover",
+  "title": "デバッグ：戦力継承",
+  "debug": true,
+  "stages": [
+    {
+      "id": "seed",
+      "file": "seed.json",
+      "title": "名簿を作る"
+    },
+    {
+      "id": "inherit",
+      "file": "inherit.json",
+      "title": "名簿から出す"
+    }
+  ]
+}

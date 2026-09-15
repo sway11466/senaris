@@ -117,7 +117,7 @@
   - 記録の発火点は `MatchController` のシグナル（`unit_deployed`／`event_fired`／`base_captured`／`formation_resolved`）と開始時の盤＝application の中で完結させ、presentation を通さない。
   - `godot/presentation/chronicle/`（新規）＝画面と `ChronicleLoader`（`chronicle.json` 読み込み）。目次・2ペイン・物語の通し読み。前例＝設定画面・マニュアル画面。
 - 手順（1つずつ動かして進める）：
-  0. refactoring-16＝決着時の記録を application に寄せる。クロニクルの記録はその口に足す形にするため、先にやる。 ✅ 実装済み（実機確認待ち）
+  0. refactoring-16＝決着時の記録を application に寄せる。クロニクルの記録はその口に足す形にするため、先にやる。 ✅ 完了
   1. 記録の土台＝`ChronicleStore`（版・バックアップ・壊れていれば空）と `ChronicleService` の記録側（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）。テスト＝`test_chronicle_store.gd`・`test_chronicle_service.gd`。画面はまだ無い。 ✅ 実装済み
   2. ユニット章＝`unit_skin.csv` の分類と行順で束ね、黒シルエットと「埋まった数／全部」、選ぶと性能とユニットスキルと説明文。`lore.csv` に `unit.<skin_id>.desc`（クロニクル専用）。タイトルのメニューに項目を足し、画面の骨（目次・戻る・暗幕）はここで作る。 ✅ 実装済み（実機確認待ち）
   3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`（ゲーム中も参照）。 ✅ 実装済み（実機確認待ち）
@@ -131,7 +131,7 @@
     - 5f. 分岐の切り替えUI ← 後回し
   6. 設定集＝`lore.csv`（新規）と `chronicle.json` の `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
   7. データ分離＝設定集・物語マニフェストを `campaign.json` から `chronicle.json` に移設。`unit.*.desc` を `names.csv` から `lore.csv` に移動。`CampaignCatalog` と `CampaignProgress` からクロニクル専用コードを除去し、`ChronicleLoader` と画面内インライン判定に置き換え。テスト＝`test_chronicle_loader.gd`。 ✅ 実装済み（実機確認待ち）
-- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規＝画面＋`ChronicleLoader`）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/i18n/lore.csv`（新規＝設定集＋`unit.*.desc`）・`names.csv`（`recipe.*.desc` のみ残留）・`ui.csv`（`ui.chronicle.*`）・各冒険譚フォルダの `chronicle.json`（新規）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。前提＝refactoring-16。
+- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規＝画面＋`ChronicleLoader`）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/i18n/lore.csv`（新規＝設定集＋`unit.*.desc`）・`names.csv`（`recipe.*.desc` のみ残留）・`ui.csv`（`ui.chronicle.*`）・各冒険譚フォルダの `chronicle.json`（新規）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。
 
 ### feature-95
 
@@ -237,6 +237,16 @@
 - 考慮外：第2部。有力者を勝敗条件に入れること。
 - 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧は記入済み。実装後に数を合わせる）。前提＝feature-106〜110・112。
 
+### feature-114
+
+**会話の途中で駒を盤に出す（`enter` 行と `on: "dialogue"` イベント）**
+- ゴール：戦闘前の会話の任意の行で、味方でも敵でも、指定した駒だけを盤に出せる（会話の前から居る／途中で出る／会話の直後に出る、をステージデータで選べる）。
+- 背景：駒は開始時に全部置かれ、その上で intro が流れる。途中で出す手段は `events` の増援（`turn`／`on: "capture"`）だけで、1ターン目のイベントは会話を流せないため「音や台詞で気づいてから敵が現れる」「合流の台詞で仲間が現れる」が書けない（[map.md](gdd/map.md) イベント）。チュートリアル１〜３の台本には効果音やト書きで登場を告げる行が既にあり、盤が先に見せてしまっている。
+- 方式は未決：`events`（増援）に相乗りする形で一度実装したが取り消した（2026-09-15）。会話の途中の登場は盤の顔ぶれを変えない見た目の話なので、盤面データを書き換える `events` に載せるのが誤り。駒と部隊の定義は陣営セクション（`player[]`／`enemy[]`）に置いたまま、presentation が intro の間だけ見せ方を変える形にする。なお `player[]` は駒の配列・`enemy[]` は部隊の配列で構造が違うため、同じ書き方で敵味方を名指せない。そこをどう揃えるかが先。
+
+- 考慮外：outro での登場（ステージが終わるので意味がない）。会話の途中で駒を消すこと。
+- 該当：`doc/gdd/map.md`・`doc/campaign/authoring.md`・`godot/application/stage_loader.gd`・`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/ui/conversation_panel.gd`・`godot/tools/map_editor/`（イベントの引き金の選択肢）。
+
 ### feature-115
 
 **チュートリアル１〜３の登場タイミングを会話に合わせる（会話の `enter` 行の適用）**
@@ -340,17 +350,6 @@
 - 対応：(1) `godot/tools/` に formations.md の表A/表Bを読む小さなパーサ（`| # | id | …` の行を拾い、id・人数・形・射程・実装列を辞書に）。(2) GUT テスト `test_formation_catalog.gd`：表の id のうち実装列が「済」のものは `RECIPES` に在り、`count`・`shape`・`range` が一致すること／`RECIPES` の id はすべて表に在ること／`names.csv` に `recipe.<id>.name` と `.desc` が在ること（ユニットスキルは skills.md の見出しで同様に）。(3) 陣形①〜③の `desc` を `names.csv` に足す。(4) 表の書式を崩すと落ちるので、formations.md の一覧の冒頭に「列は固定」の注意を置く（記入済み）。
 - 考慮外：効果の数値（威力・倍率）の照合＝表現が文なので見ない。CSV/JSON 化。
 - 該当：`godot/tools/`・`godot/tests/unit/test_formation_catalog.gd`・`godot/data/i18n/names.csv`・`doc/gdd/formations.md`・`doc/tech/testing.md`（テストの位置づけを1行）。
-
-### refactoring-16
-
-**決着時の記録を application に寄せる（presentation は描画だけにする）**
-- ゴール：クリア記録・ランク・所要時間・名簿の更新・経験した会話を書く順番が application の1か所にあり、presentation はタイミングを告げて戦果票の値を受け取るだけになっている。
-- 背景：黄金ルールは「presentation は状態を書き換えない」（[architecture.md](tech/architecture.md) 依存ルール）だが、記録の書き込みは presentation に散っている。`main.gd` の `_on_battle_finished` がクリア記録→ランク→所要時間→名簿更新→クリア後の顔ぶれの順で `ProgressStore`／`RosterStore` へ書き（順序に意味がある＝名簿更新の後に顔ぶれを控える）、`story_director.gd` が開始時の在籍と起きたイベントを `ProgressStore` へ書き、`stage_tally.gd` がランクと所要時間の計算（純ロジック）を持つ。クロニクル（feature-94）の記録を足すと、同じ散らばりがもう1系統増える。
-- 対応：(1) `godot/application/stage_outcome.gd`（新規）＝「開始した（盤・名簿・時刻）／イベントが起きた／決着した（勝敗）」の3つを受け、進捗・名簿・経験した会話を今と同じ順で書く。冒険譚の外（デバッグ・直接起動）なら書かない判断もここ。(2) `stage_tally.gd` のランク評価と所要時間の計算を (1) へ移し、presentation には戦果票の行を組む部分（翻訳キー・書式）だけ残す。(3) `main.gd`／`story_director.gd` は (1) を呼ぶだけにし、`ProgressStore`／`RosterStore` への直接の書き込みを消す（`grep record_ godot/presentation` が空になるのが終わりの印）。(4) テスト＝`test_stage_outcome.gd`（書く順序・冒険譚の外では書かない・負けでは名簿を更新しない）。既存の `test_progress_store.gd`・`test_roster_service.gd`・`test_stage_tally.gd` は通したまま。
-- 注意：決着処理は演出の待ち（`await`）と絡む。記録は決着シグナルの直後（演出より前・名簿更新より前に盤を読む）という今の順序を崩さない。
-- 考慮外：中断セーブ（`save_coordinator.gd`）＝盤のスナップショットは「記録」ではなく「退避」なので対象にしない。設定の保存。
-- 該当：`godot/application/stage_outcome.gd`（新規）・`godot/presentation/main/main.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/main/stage_tally.gd`・`godot/tests/unit/`・[architecture.md](tech/architecture.md)（構成図）。着手の引き金＝クロニクル（feature-94）の手順0。
-- **実装済み（実機確認待ち）**：コード修正とテストは完了。`grep record_ godot/presentation` が空であることを確認。実機確認＝竜狩り（tutorial3）で以下を通しで確認すること: (1) 勝利時の戦果票（ランク・所要時間・撃破数） (2) クリア記録とステージ解放 (3) 名簿の引き継ぎ（兵数の反映） (4) 敗北時に名簿が更新されていないこと (5) デバッグステージで進捗に影響しないこと。
 
 ## parking lot
 

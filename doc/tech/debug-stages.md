@@ -88,6 +88,15 @@
 | lose_hq | `debug-victory/lose_hq.json` | 自軍本拠地喪失の敗北判定 | hq喪失判定を変えたとき |
 | lose_unit | `debug-victory/lose_unit.json` | 護衛対象喪失の敗北判定 | lose_unit の判定を変えたとき |
 
+## debug-carryover（戦力継承）
+
+冒険譚をまたいで名簿が引き継がれるかを、2話で確認する。デバッグ冒険譚はクリア記録を残さないが、名簿（`user://roster.json`）は冒険譚 id ごとに書かれる＝継承だけを切り出して見られる。設計 → [../gdd/campaigns.md](../gdd/campaigns.md) 戦力供給モデル。
+
+| ステージ | ファイル | 目的 | 変更の引き金 |
+| --- | --- | --- | --- |
+| seed | `debug-carryover/seed.json` | 名簿を作る。Lv・兵数を書いた味方3体で勝ち、その値が名簿に載ることを見る（`keeper` Lv7/3・`refiller` Lv4/5・`faller` Lv9/1）。ターンを1回渡すと `faller` が倒れ、離脱者（兵数0・在籍は継続）も作れる | 決着時の名簿更新を変えたとき |
+| inherit | `debug-carryover/inherit.json` | 名簿から出す。同じ3体を `supply` 違いで置く＝省略（そのまま）・`refill`（兵数だけ満員）・`revive`（離脱者も満員で復帰）。Lv が名簿のまま残ることが見分けの軸 | supply の解釈を変えたとき |
+
 ## debug-map（マップ）
 
 盤の上で起きること全般＝拠点・輸送・イベント・移動を確認する。移動音は音だけを切り出さず、移動タイプと地形コストの確認に畳み込んで、絵と一緒に聞く。設計 → [../gdd/map.md](../gdd/map.md)・[../gdd/movement.md](../gdd/movement.md)・[../audio/sfx.md](../audio/sfx.md)。
