@@ -118,7 +118,7 @@
   3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`。 ✅ 実装済み（実機確認待ち）
   4. 冒険譚の一覧と戦果＝冒険譚ランク（全ステージのベストの最低）・クリア時間の合計・「クリア数／ステージ数」、ステージごとの行。新しい記録は持たない。 ✅ 実装済み（実機確認待ち）
   5. 物語＝経験した会話を顔ぶれを足す形へ（`ProgressStore` の版上げと変換）、盤を挿絵にした通し読み、分岐の切り替え。
-  6. 設定集＝`lore.csv`（新規）とマニフェストの `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。
+  6. 設定集＝`lore.csv`（新規）とマニフェストの `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
 - 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/i18n/lore.csv`（新規）・`names.csv` の説明文・`ui.csv`（`ui.chronicle.*`）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。前提＝refactoring-16。
 
 ### feature-95
@@ -234,6 +234,8 @@
 - 副作用：地形の後ろ絵（玉座など）の立ち位置が本人の位置から決まるので味方側で動く。フラグが効かない経路＝起動時の下敷き・撮影ツール（`shot_combat.gd`・`shot_screen.gd` は冒険譚を通さず戦闘を組む）・devlog 用の並び絵 `build_lineup.py`＝撮影物と実機の見た目が食い違う。撮りたければ各々に引数を足す。
 - 考慮外：スキン単位の `single`（聖女・ユニコーンのように常に1人の駒は従来どおり `unit_skin.csv` で決める）。retinue の上書き。
 - 該当：`godot/data/stages/campaign_catalog.gd`・`godot/domain/unit/unit_snapshot.gd`・`godot/domain/battle_state.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/main/main.gd`・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`・`godot/tests/unit/test_campaign_catalog.gd`。難易度は小〜中（配管は既存の前例どおり。重いのは見た目の判断）。
+- **実装済み（実機確認待ち）**：コード・テスト・仕様追記は完了（(1)〜(8) すべて）。三部作の `campaign.json` は冒険譚が未作成のため対象外。実機確認＝竜狩り（tutorial3）で以下を確認すること: (1) actor 付き味方が1体で描かれる（配給・敵は隊列のまま） (2) 倍率が等倍で違和感がないか (3) 着弾点が SINGLE_POS に寄っているか (4) 発数が兵数どおりか (5) ユニットスキル・自分掛けでも同じ描き方になるか。
+
 ### feature-117
 
 **陣形スキル④トリックショット（弓兵＋斥候・貫通0.5の単体射撃）**

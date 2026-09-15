@@ -5,6 +5,7 @@
   "board": "tutorial",
   "difficulty": 3,
   "emblem": { "ally": "vanguard", "enemy": "red_dragon" },
+  "actor_lineup": "single",
   "stages": [
     { "id": "dragon-hunt-st1", "file": "dragon-hunt-st1.json", "title": "dragon-hunt.st1.title" },
     { "id": "dragon-hunt-st2", "file": "dragon-hunt-st2.json", "title": "dragon-hunt.st2.title",

@@ -1124,6 +1124,7 @@ func unit_snapshot(u: Unit) -> UnitSnapshot:
 	s.id = u.id
 	s.type_id = u.type_id
 	s.skin_id = u.skin_id
+	s.actor = u.actor
 	s.team = u.team
 	s.level = u.level
 	s.troops_before = u.troops

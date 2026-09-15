@@ -7,8 +7,10 @@ const STAGES_ROOT := "res://data/stages"
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
-## { id, title, desc, debug, difficulty, board, cover_paths, victory_paths,
-##   stages: [ { id, title, file, path, unlock: Array } ] }
+## { id, title, desc, debug, difficulty, board, actor_lineup, cover_paths, victory_paths,
+##   stages: [ { id, title, file, path, unlock: Array } ],
+##   lore: [ { id, unlock: Array } ] }
+## actor_lineup＝継承の一行（actor 付き味方）を戦闘演出で1体として描くか。""＝スキン任せ、"single"＝1体。
 ## cover_paths/victory_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
 	var id := String(data.get("id", ""))
@@ -43,10 +45,12 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"board": _parse_board(id, data),  # 所属ボード（シリーズ）。非デバッグは必須＝未指定は警告して空
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
 		"emblem": _parse_emblem(data.get("emblem", {})),  # ターン板の左右に出す代表ユニット（skin_id）。未指定は空＝枠を出さない
+		"actor_lineup": _parse_actor_lineup(data.get("actor_lineup", "")),  # 一行の戦闘演出（""＝スキン任せ/"single"）
 		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル。貼り紙も card が無ければこれを出す（連番バリアント）
 		"card_paths": _resolve_art_variants(id, "card"),  # 貼り紙だけに出す絵。置いたときだけ cover と別の絵になる
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
 		"stages": stages,
+		"lore": _parse_lore(data.get("lore", [])),  # 設定集の節リスト。無ければ空＝設定集タブは空になる
 	}
 
 ## board（所属するシリーズボード）。デバッグ冒険譚は debug:true が Debug 行きを決めるので持たない。
@@ -70,6 +74,14 @@ static func _parse_emblem(raw: Variant) -> Dictionary:
 			out[side] = v
 	return out
 
+## actor_lineup（一行の戦闘演出での並べ方）を正規化。""（スキン任せ）か UnitSkin.LINEUPS のどれか。
+## それ以外は空＝スキン任せに倒す（描かない事故にしない）。
+static func _parse_actor_lineup(raw: Variant) -> String:
+	var v := String(raw) if raw != null else ""
+	if v.is_empty():
+		return ""
+	return v if UnitSkin.LINEUPS.has(v) else ""
+
 ## unlock の解放条件が指す stage が同じ冒険譚に実在するか検証し、dangling を警告。
 ## 打ち間違い・ステージ消し忘れで「永久に解放されないステージ」が黙って生まれるのを防ぐ。
 ## stage を参照しない条件（entitlement 等＝"stage" キー無し）は対象外。
@@ -86,6 +98,24 @@ static func _warn_dangling_unlock(campaign_id: String, stages: Array) -> void:
 				continue
 			if not ids.has(ref):
 				push_warning("CampaignCatalog[%s]: stage '%s' の unlock が未定義の stage '%s' を参照" % [campaign_id, s["id"], ref])
+
+## 設定集の節リストを正規化。各エントリは { id, unlock: Array }。
+static func _parse_lore(raw: Variant) -> Array:
+	if typeof(raw) != TYPE_ARRAY:
+		return []
+	var out: Array = []
+	for entry in raw:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var id := String(entry.get("id", ""))
+		if id.is_empty():
+			continue
+		var unlock: Variant = entry.get("unlock", [])
+		out.append({
+			"id": id,
+			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
+		})
+	return out
 
 ## 絵を規約で自動解決＝連番バリアントを集める：{id}_{kind}.png（＋_2/_3…）の在るものを順に。
 ## 1枚だけなら従来どおり固定、複数置けば表示側がランダムに1枚選ぶ（羊皮紙・地形の連番と同思想）。

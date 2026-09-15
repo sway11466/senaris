@@ -87,11 +87,16 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 	if stretch > 1.0:
 		# とどめ＝一斉射の間だけ、窓の中身を被弾側へ寄せる（寄り切りは最後の1発の着弾）。
 		_start_finish_zoom(side, _strike_time(by, shots) * stretch)
+	# actor_lineup single の駒は着弾点を本人の位置（SINGLE_POS）へ寄せる＝集中砲火として読ませる。
+	# 飛び道具の始点も同様（1体から放つ絵にする）。スキン由来の single も同じ扱い。
+	var target_single := _lineup_of(comb) == UnitSkin.LINEUP_SINGLE
+	var by_single := _lineup_of(by) == UnitSkin.LINEUP_SINGLE
 	for i in shots:
-		var to := _slot_pos(side, POS[i % targets])
+		var to := _slot_pos(side, SINGLE_POS if target_single else POS[i % targets])
 		var delay := float(i) * STAGGER * stretch
 		if fly:
-			_spawn_fly(_slot_pos(_other_side(side), POS[i]), to, eff, delay, gen, stretch)
+			var from := _slot_pos(_other_side(side), SINGLE_POS if by_single else POS[i])
+			_spawn_fly(from, to, eff, delay, gen, stretch)
 		else:
 			_spawn_burst(to, side == "L", eff, delay, gen, stretch)
 	var tw := create_tween()

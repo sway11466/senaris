@@ -99,6 +99,7 @@ const BAR_EDGE := Color(0, 0, 0, 0.65)
 
 var _skins := {}
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地面のスキン解決に使う）
+var _actor_lineup := ""   # 冒険譚マニフェストの actor_lineup（""＝スキン任せ/"single"）。bind_actor_lineup で入る
 var _state: BattleState = null  # 盤の状態（main が結線）。重ね絵を出すとき拠点の持ち主を引く
 var _backdrop_id := ""        # 奥の背景の絵ID（ステージが持つ・空＝水平線を引かない）
 var _haze_alpha := 0.0        # 靄の最奥（水平線）での濃さ（ステージが持つ・bind_haze で入る。0＝掛けない）
@@ -291,6 +292,11 @@ func bind_haze(alpha: float) -> void:
 func bind_screen(screen: ScreenLighting) -> void:
 	_screen = screen
 
+## 冒険譚マニフェストの actor_lineup。味方の actor 付き駒の戦闘演出での並べ方を上書きする。
+## ""＝スキン任せ（上書きしない）。"single"＝1体だけ描く。冒険譚ごとに変わるので load_stage が呼ぶ。
+func bind_actor_lineup(lineup: String) -> void:
+	_actor_lineup = lineup
+
 ## ステージの地形の見た目差分（座標→skin_id）。地面をどのスキンで組むかの解決に使う。
 ## ステージごとに変わるので load_stage が呼ぶ（盤の bind と同じ出どころ）。
 func bind_terrain_skins(terrain_skins: Dictionary) -> void:
@@ -465,7 +471,8 @@ func _other_side(side: String) -> String:
 	return "R" if side == "L" else "L"
 
 ## 片側の隊列＋兵量バーを count 兵・shield ぶんで描き直す。animate=true は着弾時（バーが減っていく）。
-## 並べ方はスキンの combat_lineup：single は複製せず1体だけ（馬車・ドラゴン級＝兵として数えない駒）。
+## 並べ方は _lineup_of で決まる：スキン由来の single（馬車・ドラゴン級）、冒険譚の actor_lineup
+## 由来の single（一行の個人描写）、それ以外は隊列（squad/retinue）。
 func _render_side(side: String, comb: UnitSnapshot, count: int, shield: int, animate: bool = false) -> void:
 	var layer: Control = _fig[side]
 	_clear(layer)
@@ -477,11 +484,14 @@ func _render_side(side: String, comb: UnitSnapshot, count: int, shield: int, ani
 	if bar != null:
 		bar.visible = true  # 前の演出の _blank_side が消していたら戻す
 	_set_bar(side, count, shield, team, animate)
-	var skin := _skin_of(comb)
-	if skin != null and skin.is_single_figure():
+	if _lineup_of(comb) == UnitSkin.LINEUP_SINGLE:
 		# 1体だけ＝損害で絵が減らないので、減り方は兵量バーが受け持つ。
+		# スキン由来は SINGLE_SCALE（馬車・竜級＝画を埋める）、actor_lineup 由来は等倍
+		#（味方の大きさは combat_scale で焼き込み済み）。
+		var skin := _skin_of(comb)
+		var scale := SINGLE_SCALE if (skin != null and skin.is_single_figure()) else 1.0
 		var at := _slot_pos(side, SINGLE_POS)
-		_add_figure(layer, at.x, at.y, FIG_SCALE * SINGLE_SCALE, _texture_for(comb), team, comb, _mirror[side])
+		_add_figure(layer, at.x, at.y, FIG_SCALE * scale, _texture_for(comb), team, comb, _mirror[side])
 		return
 	var texs := _textures_for(comb, count)  # スロットごとの絵（先頭＝本人・以降は従者）
 	var figs := []
@@ -649,11 +659,19 @@ func _skin_texture(skin: UnitSkin) -> Texture2D:
 
 ## 本人（先頭スロット）の隊列内の正規化座標。single は1体の立ち位置、それ以外は隊列の先頭。
 func _lead_pos(comb: UnitSnapshot) -> Vector2:
-	var s := _skin_of(comb)
-	return SINGLE_POS if (s != null and s.is_single_figure()) else POS[0]
+	return SINGLE_POS if _lineup_of(comb) == UnitSkin.LINEUP_SINGLE else POS[0]
 
 func _skin_of(comb: UnitSnapshot) -> UnitSkin:
 	return SkinCatalog.resolve(_skins, comb.skin_id, comb.type_id, comb.team)
+
+## この駒の戦闘演出での並べ方。冒険譚の actor_lineup が指定されていて、味方（team 0）の
+## actor 付き駒なら冒険譚の値で上書きする。それ以外はスキンの combat_lineup に従う。
+## _render_side・_lead_pos がこの1関数を通る＝戦闘・ユニットスキル・自分掛けが同じ判断。
+func _lineup_of(comb: UnitSnapshot) -> String:
+	if not _actor_lineup.is_empty() and comb.team == 0 and not comb.actor.is_empty():
+		return _actor_lineup
+	var s := _skin_of(comb)
+	return s.combat_lineup if s != null else UnitSkin.LINEUP_SQUAD
 
 func _placeholder_label(comb: UnitSnapshot) -> String:
 	var skin := _skin_of(comb)

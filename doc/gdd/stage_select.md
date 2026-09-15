@@ -195,6 +195,7 @@ locked    … それ以外
 - `interlude`（任意・ステージ項目）: その話の前の幕間＝`continuous`（連戦）／`rest`（休息）／`revive`（復帰）。見せ方専用の印で、兵が実際にどう戻るかはステージ JSON の `supply`（[campaigns.md](campaigns.md) 配置）が決める。`rest` の話は名簿の駒に `refill`、`revive` の話は `revive` が書かれているはずで、食い違いはデータ整合テストで検出する。ステージ一覧の[幕間の印](#幕間の印ステージとステージのあいだ)と、自動遷移の[幕間の挿絵](#戦闘後フロー)がこれを見る。
 - ステージ選択画面は「`godot/data/stages/` 以下の `campaign.json` を列挙 → 各冒険譚のカードを組み立てる」だけで動く。
 - 戦闘画面用メタ: `emblem`（代表ユニットの skin_id を `{ "ally": …, "enemy": … }` で指定）。ターン板の左右の枠と、ターン切り替わりのバナーの立ち絵に使う（→ [uiux.md](uiux.md)）。冒険譚では必須（デバッグ用は省略してよい）。未指定でも壊れず、ターン板は左右の枠を出さずターン数だけ・バナーは絵なしで出る。
+- 戦闘演出メタ: `actor_lineup`（`""` or `"single"`）。継承の一行（actor 付き味方）の戦闘演出での並べ方を上書きする。`"single"` で1体だけ描く（個人として見せる）。未指定＝スキン任せ。スキン由来の `single`（馬車・竜級）とは倍率が異なる（actor_lineup 由来は等倍・スキン由来は SINGLE_SCALE）。→ [combat_scene.md](../tech/combat_scene.md)
 - カード表示用メタ: `board`（所属ボード・[シリーズボード](#シリーズボードカルーセル)参照）・`difficulty`（0〜5・範囲外はクランプ／未指定は 0）・`desc`（説明文の翻訳キー／未指定は空＝説明なし）。絵（`cover_path` / `card_path`）は [campaign_catalog.gd](../../godot/data/stages/campaign_catalog.gd) が `godot/assets/campaign/{id}/{id}_{cover,card}.png` の有無で規約解決する（マニフェストに書かない）。
 
 ## 多言語化（i18n）

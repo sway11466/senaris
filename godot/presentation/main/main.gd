@@ -182,10 +182,13 @@ func _install_state(state: BattleState, path: String) -> void:
 	_combat_scene.bind_backdrop(backdrop)
 	var haze := StageLoader.load_haze(path)  # 奥の靄の濃さ（ステージが持つ・必須）
 	_combat_scene.bind_haze(haze)
+	var actor_lineup := String(_campaign().get("actor_lineup", ""))
+	_combat_scene.bind_actor_lineup(actor_lineup)  # 一行を1体で描くか（冒険譚の宣言）
 	_skill_scene.bind_terrain_skins(terrain_skins)  # スキルの演出も同じ地面を組む
 	_skill_scene.bind_state(state)
 	_skill_scene.bind_backdrop(backdrop)
 	_skill_scene.bind_haze(haze)
+	_skill_scene.bind_actor_lineup(actor_lineup)
 	$Front/InfoPanel.bind(state, _skins)
 	$Front/InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
 	$Front/InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先

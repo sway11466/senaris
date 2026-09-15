@@ -16,6 +16,7 @@ var max_troops: int
 var shield_before: int = 0  ## 戦闘前のシールド（0＝無し）。詳細 → doc/gdd/combat.md
 var shield_after: int = 0   ## 戦闘後のシールド。troops_after と同じく呼び出し側が入れる
 var max_shield: int = 0     ## シールドの初期値（0＝この駒はシールドを持たない＝表示しない）
+var actor: String = ""  ## 永続キャラ識別子（冒険譚の名簿の駒。空＝雑兵）。actor_lineup 上書きの判定に使う
 var terrain: String     ## 足元の地形id
 var pos: Vector2i       ## 盤の位置（演出シーンが地面のスキンを引くのに要る）
 var statuses: Array = []  ## この時点で効いている状態補正エントリ（StatusMod の辞書）の一覧
