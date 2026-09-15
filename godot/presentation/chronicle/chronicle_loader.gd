@@ -1,32 +1,32 @@
 extends RefCounted
 class_name ChronicleLoader
-## クロニクル専用データ（chronicle.json）の読み込み。
+## クロニクル専用データの読み込み。
 ## ゲーム進行（campaign.json / CampaignCatalog）とは分離し、クロニクル画面だけが使う。
-## 各冒険譚フォルダに chronicle.json を置き、設定集（lore）と物語（story）のマニフェストを持つ。
+## res://data/chronicle/<冒険譚 id>.json に、設定集（lore）と物語（story）のマニフェストを持つ。
 
-const STAGES_ROOT := "res://data/stages"
+const CHRONICLE_ROOT := "res://data/chronicle"
 
-## 全冒険譚の chronicle.json をまとめて読む。
+## 全冒険譚のクロニクルデータをまとめて読む。
 ## 返り値: { campaign_id: { lore: [{ id, unlock }], story: [{ stage, events }] } }
-## campaign_id はフォルダ名（campaign.json の id と一致する規約）。
-static func load_all(root: String = STAGES_ROOT) -> Dictionary:
+## campaign_id はファイル名（campaign.json の id と一致する規約）。
+static func load_all(root: String = CHRONICLE_ROOT) -> Dictionary:
 	var out := {}
 	var dir := DirAccess.open(root)
 	if dir == null:
 		return out
-	for sub in dir.get_directories():
-		var path := "%s/%s/chronicle.json" % [root, sub]
-		if not FileAccess.file_exists(path):
+	for file_name in dir.get_files():
+		if not file_name.ends_with(".json"):
 			continue
-		var data := _load_json(path)
+		var campaign_id := file_name.get_basename()
+		var data := _load_json("%s/%s" % [root, file_name])
 		if data.is_empty():
 			continue
-		out[sub] = _parse(data)
+		out[campaign_id] = _parse(data)
 	return out
 
-## 1冒険譚ぶんの chronicle.json を読む。無ければ空のデフォルトを返す。
-static func load_for(campaign_id: String, root: String = STAGES_ROOT) -> Dictionary:
-	var path := "%s/%s/chronicle.json" % [root, campaign_id]
+## 1冒険譚ぶんのクロニクルデータを読む。無ければ空のデフォルトを返す。
+static func load_for(campaign_id: String, root: String = CHRONICLE_ROOT) -> Dictionary:
+	var path := "%s/%s.json" % [root, campaign_id]
 	if not FileAccess.file_exists(path):
 		return { "lore": [], "story": [] }
 	var data := _load_json(path)

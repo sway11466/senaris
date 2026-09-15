@@ -765,7 +765,7 @@ func _build_campaign_results() -> void:
 # ---------------------------------------------------------------------------
 
 ## 選択中の冒険譚の設定集を出す。解放された節を順に出し、未解放があれば末尾に1行。
-## 設定集データは chronicle.json（ChronicleLoader）から取得する＝ゲーム進行データとは分離。
+## 設定集データは data/chronicle/<冒険譚 id>.json（ChronicleLoader）から取得する＝ゲーム進行データとは分離。
 func _build_campaign_lore() -> void:
 	if _progress == null:
 		return
@@ -872,7 +872,7 @@ func _format_duration(seconds: int) -> String:
 # ---------------------------------------------------------------------------
 
 ## desc 翻訳キーが存在すれば説明文ラベルを _detail_box に追加する。
-## unit.*.desc は lore.csv、recipe.*.desc は names.csv。tr() はまとめて解決する。
+## unit.*.desc は chronicle.csv、recipe.*.desc は names.csv。tr() はまとめて解決する。
 func _add_desc_label(desc_key: String) -> void:
 	var desc_text := tr(desc_key)
 	if desc_text != desc_key:

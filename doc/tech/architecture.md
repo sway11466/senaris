@@ -92,6 +92,7 @@ res://
 ├── data/              # 機能フォルダ: 型定義＋データ＋ローダーを同居（型とデータはセット）
 │   ├── units/         # 型(*.gd)＋ローダー(*_catalog.gd)＋正本CSV(*.csv)＋生成JSON(*.json)＋変換(convert.gd)
 │   ├── stages/        # ステージ定義(json)＋冒険譚マニフェスト(campaign.json)
+│   ├── chronicle/     # クロニクルのマニフェスト(<冒険譚 id>.json・設定集/物語の並びと解放)
 │   ├── i18n/          # 翻訳CSV(正本)＋生成 .translation
 │   └── terrain/ movement/ ai/ audio/ effects/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
 ├── infrastructure/

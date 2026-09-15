@@ -70,7 +70,7 @@ func test_all_lore_unlock_refs_resolve() -> void:
 				assert_true(stage_ids.has(ref), "%s/lore.%s の unlock 参照 '%s' が campaign.json に実在" % [campaign_id, section["id"], ref])
 
 func test_lore_csv_matches_chronicle() -> void:
-	# chronicle.json の設定集の節に対応する翻訳キーが lore.csv に在る。
+	# クロニクルのマニフェストの節に対応する翻訳キーが chronicle.csv に在る。
 	var chronicles := ChronicleLoader.load_all()
 	for campaign_id in chronicles:
 		var chronicle: Dictionary = chronicles[campaign_id]

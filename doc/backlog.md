@@ -106,9 +106,9 @@
 - ゴール：出会ったユニットと見た陣形スキルが溜まり、冒険譚ごとに戦果・物語（会話の通し読み）・設定集が読める。
 - 背景：マニュアル（[manual.md](gdd/manual.md)）は用語と仕組みの説明に徹していて、個々のユニットやスキルの一覧も物語も持たない。
 - 対応：仕様は [chronicle.md](gdd/chronicle.md) に確定。開き口はタイトルの新項目、記録は `user://chronicle.json`（進捗と別ファイル）、経験した会話は顔ぶれを足す形へ変更（進捗の版上げ）。
-- データ分離の方針（決めたこと）：クロニクル専用のデータはゲーム進行ファイルから分離し、`godot/data/chronicle/` に集める。
+- データ分離の方針（決めたこと）：クロニクル専用の構造はゲーム進行ファイルから分離し、`godot/data/chronicle/` に集める。本文は翻訳CSVに置いたまま（構造とテキストで置き場を分ける）。
   - 設定集・物語のマニフェスト → `godot/data/chronicle/<冒険譚 id>.json`（`campaign.json` には載せない）。読み込みは `ChronicleLoader`（ファイル名が冒険譚 id）。
-  - 設定集の本文とユニット説明文（`unit.*.desc`）→ `godot/data/chronicle/lore.csv`（`names.csv`・`data/i18n/` には載せない）。ゲーム中に使わないクロニクル専用テキスト。
+  - 設定集の本文とユニット説明文（`unit.*.desc`）→ `godot/data/i18n/chronicle.csv`（`names.csv` には載せない）。ゲーム中に使わず、クロニクル画面だけが読むテキスト。
   - レシピ説明文（`recipe.*.desc`）→ `names.csv` に残す。`unit_info_panel.gd` がゲーム中に参照するため分離不可。
   - 設定集の解放判定 → `chronicle_screen.gd` 内の `_is_lore_section_unlocked()`。`CampaignProgress` の公開 API（`stage_state()`）だけで判定し、進行データ側にクロニクル専用メソッドを持たない。
 - 層の置き場（決めたこと）：presentation は描画だけ。記録と導出は下の層に置く（[architecture.md](tech/architecture.md) 依存ルール）。
@@ -129,10 +129,10 @@
     - 5d. ステージ順の通し読みフロー（章題・次へ・スキップ・停止）
     - 5e. `ProgressStore` 版上げ＋顔ぶれ累積（分岐切り替えの土台）← 後回し
     - 5f. 分岐の切り替えUI ← 後回し
-  6. 設定集＝`lore.csv`（新規）と `chronicle.json` の `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
-  7. データ分離＝設定集・物語マニフェストを `campaign.json` から `chronicle.json` に移設。`unit.*.desc` を `names.csv` から `lore.csv` に移動。`CampaignCatalog` と `CampaignProgress` からクロニクル専用コードを除去し、`ChronicleLoader` と画面内インライン判定に置き換え。テスト＝`test_chronicle_loader.gd`。 ✅ 実装済み（実機確認待ち）
-  8. フォルダ集約＝`chronicle.json` を `godot/data/chronicle/<冒険譚 id>.json` に、`lore.csv` を `godot/data/chronicle/` に移す。`ChronicleLoader` はフォルダ走査ではなく `*.json` のファイル名で冒険譚を引く。 ✅ 実装済み（実機確認待ち）
-- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規＝画面＋`ChronicleLoader`）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/chronicle/`（新規＝`<冒険譚 id>.json` と設定集 `lore.csv`）・`names.csv`（`recipe.*.desc` のみ残留）・`ui.csv`（`ui.chronicle.*`）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。
+  6. 設定集＝`chronicle.csv`（新規）とマニフェストの `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
+  7. データ分離＝設定集・物語マニフェストを `campaign.json` から `chronicle.json` に移設。`unit.*.desc` を `names.csv` から `chronicle.csv` に移動。`CampaignCatalog` と `CampaignProgress` からクロニクル専用コードを除去し、`ChronicleLoader` と画面内インライン判定に置き換え。テスト＝`test_chronicle_loader.gd`。 ✅ 実装済み（実機確認待ち）
+  8. フォルダ集約＝`chronicle.json` を `godot/data/chronicle/<冒険譚 id>.json` に移す。`ChronicleLoader` はフォルダ走査ではなく `*.json` のファイル名で冒険譚を引く。翻訳CSV は用途で名付け直して `lore.csv` → `chronicle.csv`（置き場は `data/i18n/` のまま）。 ✅ 実装済み（実機確認待ち）
+- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規＝画面＋`ChronicleLoader`）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/chronicle/`（新規＝`<冒険譚 id>.json`）・`godot/data/i18n/chronicle.csv`（新規＝設定集＋`unit.*.desc`）・`names.csv`（`recipe.*.desc` のみ残留）・`ui.csv`（`ui.chronicle.*`）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。
 
 ### feature-95
 

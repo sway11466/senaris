@@ -16,6 +16,7 @@ extends SceneTree
 const CONTENTS_PATH := "res://tools/build/contents.json"
 const PRESETS_PATH := "res://export_presets.cfg"
 const STAGES_ROOT := "res://data/stages"
+const CHRONICLE_ROOT := "res://data/chronicle"
 const CAMPAIGN_ART_ROOT := "res://assets/campaign"
 const UNIT_ART_ROOT := "res://assets/units"
 
@@ -117,6 +118,9 @@ func _build_exclusions(campaigns: Array) -> PackedStringArray:
 		if id.begins_with(NON_CAMPAIGN_PREFIX) or keep_campaigns.has(id):
 			continue
 		out.append("data/stages/%s/*" % id)
+		# クロニクル専用データは冒険譚フォルダの外（data/chronicle/<id>.json）にある。
+		if FileAccess.file_exists("%s/%s.json" % [CHRONICLE_ROOT, id]):
+			out.append("data/chronicle/%s.json" % id)
 
 	for id in _dirs(CAMPAIGN_ART_ROOT):
 		if not keep_campaigns.has(id):

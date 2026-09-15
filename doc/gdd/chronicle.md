@@ -31,7 +31,7 @@
   - 名前（`unit.<skin_id>.name`）と分類。
   - 性能の数値：対地攻撃・対空攻撃・貫通率・防御・移動（タイプ）・射程・攻撃後移動・兵数・搭乗・占領。**数値の一覧はここが担う**（マニュアルは数値を載せない方針）。
   - ユニットスキル（[skills.md](skills.md)）：その駒が撃てるものを性能の一部として載せる。発動者が1体なので駒の枠に属し、駒が埋まれば読める＝別枠にしない。
-  - 短い説明文（新規・`unit.<skin_id>.desc`・`names.csv`）。
+  - 短い説明文（`unit.<skin_id>.desc`・`chronicle.csv`）。
   - 初めて出会った冒険譚。
 - **未解放の枠**：黒いシルエットで置き、分類ごとに「埋まった数／全部」を出す。総数を見せるのが「まだある」の合図。
 - 一覧は分類ごとに束ねて絵を並べ、選ぶと右に詳細を出す（2ペイン）。
@@ -97,9 +97,12 @@
 
 ## 本文の持ち方
 
-- 説明文（ユニット・レシピ）は `names.csv` に `unit.<skin_id>.desc`／`recipe.<id>.desc`（[../tech/i18n.md](../tech/i18n.md)）。名前と同じ1語の並びで、どの画面でも同じ文。
-- 設定集は翻訳CSV `lore.csv`（新規）。キーは `lore.<冒険譚>.<節>.<段落>`。1行1キーで段落ごとに振る。
-- 設定集の節の並びと解放条件は冒険譚マニフェスト `campaign.json` に `lore` として持つ（[stage_select.md](stage_select.md) 冒険譚マニフェスト）＝ステージ順と同じ場所。
+クロニクル専用の構造（どの節をどの順で出すか）は `godot/data/chronicle/` に集める。ゲーム進行（`campaign.json`）には載せない。本文そのものは他と同じく翻訳CSV（`godot/data/i18n/`）に置く。
+
+- 冒険譚ごとのマニフェストは `godot/data/chronicle/<冒険譚 id>.json`。設定集（`lore`）と物語（`story`）の並びと解放条件を持つ。読むのは `ChronicleLoader` で、ファイル名が冒険譚 id。
+- 設定集の本文は翻訳CSV `godot/data/i18n/chronicle.csv`。キーは `lore.<冒険譚>.<節>.<段落>`。1行1キーで段落ごとに振る。
+- ユニットの説明文（`unit.<skin_id>.desc`）も `chronicle.csv`。ゲーム中は読まず、クロニクル画面だけが読むため。
+- レシピの説明文（`recipe.<id>.desc`）は `names.csv` に残す。情報パネルがゲーム中に読む（[../tech/i18n.md](../tech/i18n.md)）。
 
 ```json
 "lore": [
@@ -110,8 +113,8 @@
 ]
 ```
 
-- 節の `id` が翻訳キーの `<節>`。段落は `lore.goblin-raid.origin.1` から連番で、CSV に在るぶんだけ順に出す（段落数を JSON に書かない）。
-- 構造（マニフェストの節）と `lore.csv` のキーの突き合わせはテストで見る（[../tech/testing.md](../tech/testing.md)）。マニュアルの `manual.csv` と同じ。
+- 節の `id` が翻訳キーの `<節>`。段落は `lore.tutorial1-goblin-raid.origin.1` から連番で、CSV に在るぶんだけ順に出す（段落数を JSON に書かない）。
+- 構造（マニフェストの節）と `chronicle.csv` のキーの突き合わせはテストで見る（[../tech/testing.md](../tech/testing.md)）。マニュアルの `manual.csv` と同じ。
 - 画面の文言は `ui.csv` の `ui.chronicle.*`。
 
 ## 記録の持ち方
@@ -140,5 +143,5 @@
 - [uiux.md](uiux.md) — 盤中の「ストーリーを確認」
 - [../campaign/authoring.md](../campaign/authoring.md) — 会話の分岐（`when`）
 - [../tech/gamesystem.md](../tech/gamesystem.md) — クロニクルのファイル・経験した会話・所要時間
-- [../tech/i18n.md](../tech/i18n.md) — `lore.csv`・説明文のキー
+- [../tech/i18n.md](../tech/i18n.md) — `chronicle.csv`・説明文のキー
 - [../sales/site.md](../sales/site.md) — 仕様リファレンス
