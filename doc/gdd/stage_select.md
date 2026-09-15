@@ -204,7 +204,7 @@ locked    … それ以外
 - 正本: `godot/data/i18n/campaigns.csv`（`keys,ja,en` の3列）。ドメイン別に会話（`dialogue.csv`）と分ける。
 - キー規約: 冒険譚を識別できる語（例 `goblin-raid`）を接頭辞にする＝会話キー・ファイル名と揃える（[campaigns.md](campaigns.md) ステージの束ね方）。`goblin-raid.title`／`goblin-raid.desc`／`goblin-raid.stN.title`。
 - 生成物（Godot インポートが作る・git 追跡・手編集しない）: `campaigns.ja/en.translation`＋`campaigns.csv.import`。`project.godot` の `locale/translations` に登録。
-- キーは `.translation` 横断でグローバル＝CSV を分けても `tr()` は同じに解決する。CSV を足したら [test_i18n_translation.gd](../../godot/tests/unit/test_i18n_translation.gd)（正本↔生成物の整合＝翻訳コミット漏れガード）の対象にも足す。
+- キーは `.translation` 横断でグローバル＝CSV を分けても `tr()` は同じに解決する。CSV を足したら [test_i18n_translation.gd](../../godot/tests/small/data/test_i18n_translation.gd)（正本↔生成物の整合＝翻訳コミット漏れガード）の対象にも足す。
 - 生成物の仕組み・importer=keep の罠は CSV データパイプラインの方針に従う。
 
 ## デバッグステージ

@@ -169,10 +169,10 @@ D'_y ＝ D_y × (1 − pierce_x)
 - **魔法兵＝0.5＝防御半減**／物理（`pierce=0`）は据え置き。
 - 防御は単一値なので、**対地・対空どちらの相手にも同じく効く**。
 - 貫通は**攻撃した側の性質**＝反撃（Y→X）には **Y の貫通率**が同様に効く。
-- **支援(防)加算・2倍上限を適用した後の実効防御力 D に掛ける**（＝支援も貫通の影響を受ける。実装でこの順に確定し、`godot/tests/unit/test_pierce.gd` が上限→貫通の順を期待値で固定済み）。
+- **支援(防)加算・2倍上限を適用した後の実効防御力 D に掛ける**（＝支援も貫通の影響を受ける。実装でこの順に確定し、`godot/tests/small/domain/test_pierce.gd` が上限→貫通の順を期待値で固定済み）。
 - 効果は相手の防御が高いほど伸びる（対アーマー）。**弓兵＝対空・機動／魔法兵＝対アーマー**で住み分ける。
 - **設計原則**：性能(type)は全スキンで共有されるため、貫通のような"術者らしさ"は**術者にしか化けない type（魔法兵）にのみ**載せる（→ [units.md](units.md) flavor-neutral 原則）。
-- 実装: `godot/domain/combat/combat.gd` `defense_breakdown`＝内訳 dict の `pierce` に係数を保持／`unit_type.csv` の `pierce` 列＋JSON再生成／テスト `godot/tests/unit/test_pierce.gd`。
+- 実装: `godot/domain/combat/combat.gd` `defense_breakdown`＝内訳 dict の `pierce` に係数を保持／`unit_type.csv` の `pierce` 列＋JSON再生成／テスト `godot/tests/small/domain/test_pierce.gd`。
 
 #### 状態補正（バフ/デバフ・持続）
 
@@ -202,7 +202,7 @@ D'_y ＝ D_y × (1 − pierce_x)
 - レベルの上昇・撃破判定（兵数 0）・反撃の成立は兵数の側だけを見る。シールドしか削れなかった攻撃も「戦った」＝+1。
 - 拠点の回復では戻らない。一度剥がれたら、そのステージ中は復活しない。
 - 表示: 戦闘窓では兵量バーの真上に8マス1列で積む（[../tech/combat_scene.md](../tech/combat_scene.md) 兵量バー）。盤では足元の兵数バーの上に白い帯（[uiux.md](uiux.md)）。駒の情報パネルと戦闘レポートには数値で出す。
-- 実装: 入口は `Unit.take_loss`。`BattleState.attack`・`FormationResolver`・毒の tick がそれを呼ぶ。敵AIの確殺・残兵の見積もり（`godot/domain/ai/ai_pick.gd`）はシールド込みで読む。テスト `godot/tests/unit/test_shield.gd`。
+- 実装: 入口は `Unit.take_loss`。`BattleState.attack`・`FormationResolver`・毒の tick がそれを呼ぶ。敵AIの確殺・残兵の見積もり（`godot/domain/ai/ai_pick.gd`）はシールド込みで読む。テスト `godot/tests/small/domain/test_shield.gd`。
 
 ### 2. 陣形スキル
 

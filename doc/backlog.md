@@ -21,7 +21,7 @@
 - 背景：`Formation.available_for` が成立する組を全部列挙し、`hex_board_3d.gd` の行動メニューがそれを組の数だけ同じ名前で並べる（③のパラディンの隣に聖職が3体＝「ディバインジャッジメント」が3行）。どれがどの組かは読めない。2体固定のレシピ（④⑨⑩・feature-117/118/123）が入ると常態化する。仕様は [uiux.md](gdd/uiux.md)「陣形スキルの参加者を選ぶ」・[formations.md](gdd/formations.md) 共通ルール（記入済み）。
 - 対応：(1) `available_for` の返りをレシピ単位にまとめる（`FormationOption` に候補の組 `member_sets` を持たせるか、レシピ単位の `FormationChoice` を新設して組を内包）。AI（`ai_rows.gd`・`ai_pick.gd`）と撮影ツールは組を列挙する既存の形を使い続けてよいので、列挙する関数は残し、UI 向けにまとめる関数を足す。(2) `hex_board_3d.gd`：メニューはレシピごとに1項目。ホバーで候補の駒を橙で光らせる。選択後、組が1つなら従来どおり `_enter_formation`、複数なら参加者選びの状態（`_choosing_members`）に入り、クリックで1体ずつ確定（残りの候補は確定済みと組める駒に絞る）。揃ったら `_enter_formation`。④は着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ。(3) キャンセルは1段ずつ戻す（着弾先 → 参加者 → メニュー）。(4) 橙のオーバーレイを色の表に足す（`board overlay`）。(5) `test_formation.gd` にレシピ単位のまとめ（組が1つ／複数）のテスト。UI の段は実機で確認。
 - 考慮外：AI の組の選び方（既存のまま）。タッチ操作。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/board/`（オーバーレイの色）・`godot/tests/unit/test_formation.gd`・`doc/gdd/uiux.md`。feature-117/118/123 の前提。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/board/`（オーバーレイの色）・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/uiux.md`。feature-117/118/123 の前提。
 
 ## 機能追加
 
@@ -236,7 +236,7 @@
 - 対応：(1) `campaign.json` に `actor_lineup`（`""`＝スキン任せ／`"single"`）を足し、`CampaignCatalog.build` で正規化（`UnitSkin.LINEUPS` で検証）。(2) `UnitSnapshot` に `actor` を写す（`BattleState.unit_snapshot`）。(3) `CombatStage` に `bind_actor_lineup` と `_lineup_of(comb)` を足し、味方（team 0）かつ `actor` 付きなら上書き。隊列を見ている3箇所（`_render_side`・`_textures_for`・`_lead_pos`）をこの1関数経由に寄せる＝戦闘・ユニットスキル・自分掛けが同じ判断を通る。(4) `main.gd` の演出部品への配線に `emblem` と同じ流れで1行ずつ。(5) 上書き時の倍率は 1.0（`SINGLE_SCALE` 1.4 は馬車・竜級のための値。味方の大きさは `combat_scale` で焼き込み済み）。発数は兵数のまま＝集中砲火として読ませ、着弾点は隊列スロットではなく本人の位置へ寄せる。倍率と発数は実機で見てから最終判断。(6) 使う冒険譚＝チュートリアル３「竜狩り」から（`tutorial3-dragon-hunt/campaign.json` に `"actor_lineup": "single"`）。三部作にも同じ1行。(7) `test_campaign_catalog.gd` に既定とパースのテスト。(8) 仕様の追記＝[combat_scene.md](tech/combat_scene.md) 兵数の表示・[stage_select.md](gdd/stage_select.md) マニフェスト・[campaigns.md](gdd/campaigns.md)。
 - 副作用：地形の後ろ絵（玉座など）の立ち位置が本人の位置から決まるので味方側で動く。フラグが効かない経路＝起動時の下敷き・撮影ツール（`shot_combat.gd`・`shot_screen.gd` は冒険譚を通さず戦闘を組む）・devlog 用の並び絵 `build_lineup.py`＝撮影物と実機の見た目が食い違う。撮りたければ各々に引数を足す。
 - 考慮外：スキン単位の `single`（聖女・ユニコーンのように常に1人の駒は従来どおり `unit_skin.csv` で決める）。retinue の上書き。
-- 該当：`godot/data/stages/campaign_catalog.gd`・`godot/domain/unit/unit_snapshot.gd`・`godot/domain/battle_state.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/main/main.gd`・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`・`godot/tests/unit/test_campaign_catalog.gd`。難易度は小〜中（配管は既存の前例どおり。重いのは見た目の判断）。
+- 該当：`godot/data/stages/campaign_catalog.gd`・`godot/domain/unit/unit_snapshot.gd`・`godot/domain/battle_state.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/main/main.gd`・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`・`godot/tests/small/data/test_campaign_catalog.gd`。難易度は小〜中（配管は既存の前例どおり。重いのは見た目の判断）。
 - **実装済み（実機確認待ち）**：コード・テスト・仕様追記は完了（(1)〜(8) すべて）。三部作の `campaign.json` は冒険譚が未作成のため対象外。実機確認＝竜狩り（tutorial3）で以下を確認すること: (1) actor 付き味方が1体で描かれる（配給・敵は隊列のまま） (2) 倍率が等倍で違和感がないか (3) 着弾点が SINGLE_POS に寄っているか (4) 発数が兵数どおりか (5) ユニットスキル・自分掛けでも同じ描き方になるか。
 
 ### feature-117
@@ -246,7 +246,7 @@
 - 背景：[formations.md](gdd/formations.md) ④ で仕様確定。既存の陣形は「参加者の形」（triangle／escort／cluster）だけを見るが、これは「対象の周りに参加者が居るか」を見る初めての形。威力の計算も既存は常に対地値・貫通は発動者依存で、矢のレシピ（④⑥⑨）は相手が飛行なら対空値・貫通はレシピ側で上書き、が要る。⑥⑨がこの下地を使うので最初に作る。
 - 対応：(1) `Formation.RECIPES` に `trick_shot`（leader＝archer/hunter/elf、member＝scout/thief/halfling/ninja/kunoichi、shape `spotter`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"＝相手で対地／対空を切り替え）。(2) `FormationOption.Shape` に `SPOTTER` を足し、`available_for` は対象候補ごとに「その対象に隣接する member」を組で持つ（対象を選んだ時点で相方が決まる。複数なら1体を選ぶ＝option を対象×相方で複数出す）。射程は発動者の通常射程（`min_range`〜`attack_range`）。(3) `_skill_attack_breakdown` に対地／対空の切り替え、`_formation_hit` にレシピの貫通上書きを通す（`attack_vs` 未指定のレシピは従来どおり対地固定・発動者依存）。(4) 演出は③と同じ単体シーケンス（絵は `assets/formations/trick_shot_impact.png` の規約解決、無ければ共通3段）。(5) `names.csv` に `recipe.trick_shot.name/desc`。(6) `test_formation.gd` に成立（斥候が対象に隣接／弓兵が射程内）・不成立（斥候が発動者にだけ隣接）・貫通・対空の切り替えのテスト。
 - 考慮外：敵AIの使用（敵スキンはレシピに書かない）。教えるステージの追加。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/names.csv`・`godot/tests/unit/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。前提＝bug-6（参加者を選ぶ段）。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/names.csv`・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。前提＝bug-6（参加者を選ぶ段）。
 
 ### feature-118
 
@@ -270,7 +270,7 @@
 - ゴール：歩兵が3体以上一直線に並んでいるとき、列のどれからでも撃てて、列の全員の防御が人数ぶん上がる（3体 ×1.15）。次の自軍ターン開始まで。膠着の待機の上位互換で、効果は薄くてよい。
 - 背景：[formations.md](gdd/formations.md) ⑤ で仕様確定。②グレイスの持続バフの器（状態補正エントリ）に、スコープ「参加者だけ」と対象「防御だけ」を足す。形は `cluster` の直線版。
 - 対応：(1) `RECIPES` に `shield_wall`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer（type が入ったら）、shape `line`、count 3、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "def"、`buff_value` 1.15、`buff_value_per_extra` 0.05、`duration_turns` 1）。(2) `FormationOption.Shape` に `LINE`：発動者を含むヘックスの3軸のどれかで途切れず連なる参加者を集める（人数は選べない）。(3) `_buff_entry`／`BattleState` の状態補正に `scope: participants`（駒の集合）と `target: def` を通す＝②は `team`・`both` のまま。(4) 見た目は列の駒の足元の光（`aura_overlay` の駒単位の光を流用）。カットインは規約解決。(5) `names.csv`。(6) テスト＝直線の判定（3軸・折れ線は不成立・ノービス除外）・人数で伸びる補正・参加者以外に乗らないこと。
-- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/battle_state.gd`・`godot/domain/combat/combat.gd`（集計の scope）・`godot/presentation/ui/aura_overlay.gd`・`godot/data/i18n/names.csv`・`godot/tests/unit/test_formation.gd`。
+- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/battle_state.gd`・`godot/domain/combat/combat.gd`（集計の scope）・`godot/presentation/ui/aura_overlay.gd`・`godot/data/i18n/names.csv`・`godot/tests/small/domain/test_formation.gd`。
 
 ### feature-121
 
@@ -303,7 +303,7 @@
 - ゴール：仲間 X が「居た回」と「居なかった回」を両方遊んだことが、進捗セーブに残る。
 - 背景：いまの進捗セーブは、在籍した仲間と発生したイベントを最後に遊んだ回で上書きしている（[gamesystem.md](tech/gamesystem.md) 経験した会話）。上書きのままだと「両方を経験した」という事実が残らず、クロニクルの通し読みで展開を切り替える材料（feature-129）が作れない。記録の形を変えた後の回からしか貯まらないので、通し読み本体より先に置く。
 - 対応：累積は進捗ではなく `user://chronicle.json` に持つ＝冒険譚→ステージごとに、遊んだ回の在籍 actor（開始時・クリア後）と起きたイベントを足す。同じ顔ぶれの回は畳む。進捗セーブは最後に遊んだ回の上書きのままで、版も構造も変えない（盤の中の読み直しが読む）。記録の口は `StageOutcome` の3入口に並べる。
-- 該当：`godot/infrastructure/save/chronicle_store.gd`・`godot/application/chronicle_service.gd`・`godot/application/stage_outcome.gd`・`godot/tests/unit/`・[gamesystem.md](tech/gamesystem.md)・[chronicle.md](gdd/chronicle.md)。
+- 該当：`godot/infrastructure/save/chronicle_store.gd`・`godot/application/chronicle_service.gd`・`godot/application/stage_outcome.gd`・`godot/tests/`・[gamesystem.md](tech/gamesystem.md)・[chronicle.md](gdd/chronicle.md)。
 
 ### feature-126
 
@@ -355,7 +355,7 @@
 - ゴール：翻訳CSV のファイル名を見れば、そこに何の文字列が入っているかが分かる。
 - 背景：翻訳CSV は用途で分かれている（`dialogue` / `campaigns` / `ui` / `manual` / `chronicle`）が、`names.csv` だけが「データに付いた用語」を全部抱えている＝ `ai` / `category` / `movement` / `recipe` / `terrain` / `terrain_type` / `unit` の7系統。何の name なのかをファイル名が言えていない。データ側は `godot/data/units/` `terrain/` `movement/` `ai/` のように機能フォルダで割れているので、翻訳も同じ単位にできる。
 - 対応：`names.csv` を系統ごとの CSV に割る（ユニット・地形・移動・AI・陣形スキル …）。`project.godot` の `locale/translations` と [i18n.md](tech/i18n.md) のキー命名規約を合わせて直す。キー（`unit.<id>.name` 等）は変えない＝ファイルの割り方だけの変更で、コードは触らない。
-- 該当：`godot/data/i18n/names.csv`・`godot/project.godot`・[i18n.md](tech/i18n.md)・`godot/tests/unit/`（CSV を名指ししているテスト）。
+- 該当：`godot/data/i18n/names.csv`・`godot/project.godot`・[i18n.md](tech/i18n.md)・`godot/tests/`（CSV を名指ししているテスト）。
 
 ### refactoring-15
 
@@ -364,7 +364,7 @@
 - 背景：正本は [formations.md](gdd/formations.md)「一覧（決まった項目）」の表A/表B、実行時は `godot/domain/formation/formation.gd` の `RECIPES`（ハードコード）、表示名は `godot/data/i18n/names.csv` の `recipe.<id>.name/desc`。3か所が別々に育つ（④〜⑨は doc だけ、陣形①〜③の `desc` が無い、混沌の2本は code に無い）。CSV/JSON 化は見送り（[architecture.md](tech/architecture.md) 入れ子データはコードが持つ）なので、照合で守る。
 - 対応：(1) `godot/tools/` に formations.md の表A/表Bを読む小さなパーサ（`| # | id | …` の行を拾い、id・人数・形・射程・実装列を辞書に）。(2) GUT テスト `test_formation_catalog.gd`：表の id のうち実装列が「済」のものは `RECIPES` に在り、`count`・`shape`・`range` が一致すること／`RECIPES` の id はすべて表に在ること／`names.csv` に `recipe.<id>.name` と `.desc` が在ること（ユニットスキルは skills.md の見出しで同様に）。(3) 陣形①〜③の `desc` を `names.csv` に足す。(4) 表の書式を崩すと落ちるので、formations.md の一覧の冒頭に「列は固定」の注意を置く（記入済み）。
 - 考慮外：効果の数値（威力・倍率）の照合＝表現が文なので見ない。CSV/JSON 化。
-- 該当：`godot/tools/`・`godot/tests/unit/test_formation_catalog.gd`・`godot/data/i18n/names.csv`・`doc/gdd/formations.md`・`doc/tech/testing.md`（テストの位置づけを1行）。
+- 該当：`godot/tools/`・`godot/tests/small/domain/test_formation_catalog.gd`・`godot/data/i18n/names.csv`・`doc/gdd/formations.md`・`doc/tech/testing.md`（テストの位置づけを1行）。
 
 ## parking lot
 

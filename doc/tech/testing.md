@@ -19,7 +19,7 @@
 | Large | 制約なし（複数マシン・外部サービス） | 作らない。外部サービスに依存するものが無い |
 
 - Small を既定とし、Medium にするのは資源が本当に要るときだけ。Medium が増えるほど全件実行の回転が落ちる。
-- サイズで置き場は分けない（`godot/tests/unit/` にまとめる）。サイズは各テストが守る制約として書き、名前や場所では表さない。
+- 置き場はサイズで分ける＝`godot/tests/small/` と `godot/tests/medium/`。さらにその下を対象のレイヤー（domain / data / application / infrastructure / tools / presentation）で割る。どのサイズかを名前や本文で宣言せず、置いた場所が宣言になる。
 - 実ファイルを触る Medium は、使ったファイルを必ず片付ける。実セーブ（`user://progress.json` ほか）を書き換えるものは、退避して戻すところまでテストの責任。
 
 ## 自動テストで捕まらないもの
@@ -53,14 +53,14 @@
 
 ## 実行方法
 
-GUT 9.7.0 を `godot/addons/gut` に vendoring。対象は `.gutconfig.json` で指定（`godot/tests/unit/` 配下・`test_*.gd`）。
+GUT 9.7.0 を `godot/addons/gut` に vendoring。対象は `.gutconfig.json` で指定（`godot/tests/small/` と `godot/tests/medium/` の配下・`test_*.gd`）。
 
 ```
 godot --headless --path godot --import        # 初回・class_name 追加後
 godot --headless --path godot -s res://addons/gut/gut_cmdln.gd -gconfig=res://.gutconfig.json
 ```
 
-- 単一ファイルだけ回す場合は `-gtest=res://tests/unit/test_xxx.gd` を足す。
+- 単一ファイルだけ回す場合は `-gtest=res://tests/small/<レイヤー>/test_xxx.gd` を足す。
 - GUT のバージョンは Godot 本体に追従が必要（起動時に非互換警告が出たら推奨版へ上げる）。
 
 ## CI
@@ -69,6 +69,6 @@ GitHub Actions（`.github/workflows/tests.yml`）が main への push と pull r
 
 ## 構成
 
-- `godot/tests/unit/` — 1話題1ファイルで `test_<話題>.gd`。話題はレイヤーの単位に対応する＝domain（戦闘・移動・AI・陣形・占領・輸送・ターン・勝敗・盤の状態）／data（CSV正本→JSON生成の整合・各カタログ・多言語・会話）／application（試合進行・コマンド・ステージ読込・キャンペーン進行）／infrastructure（永続化）／tools（マップエディタの入出力）／presentation（盤の描画・カメラの構造）。どの話題があるかはディレクトリが正本＝ここに一覧を持たない。
+- `godot/tests/small/<レイヤー>/`・`godot/tests/medium/<レイヤー>/` — 1話題1ファイルで `test_<話題>.gd`。レイヤーは domain（戦闘・移動・AI・陣形・占領・輸送・ターン・勝敗・盤の状態）／data（CSV正本→JSON生成の整合・各カタログ・多言語）／application（試合進行・コマンド・ステージ読込・キャンペーン進行・決着時の記録）／infrastructure（永続化）／tools（マップエディタの入出力）／presentation（盤の描画・カメラの構造・起動から勝利までの導線）。どの話題があるかはディレクトリが正本＝ここに一覧を持たない。
 - `godot/tests/manual/` — 使い捨てスクリプト置き場（セレクト画面のヘッドレス再現・スクショ）。自動実行の対象外。
 - 手動での機能確認は機能別のデバッグステージ（`godot/data/stages/debug-*/`）を使う。カテゴリ内訳 → [debug-stages.md](debug-stages.md)。
