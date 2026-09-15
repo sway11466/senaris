@@ -246,6 +246,7 @@
     { "type": "knight", "col": 1, "row": 6 },
     { "type": "priest", "col": 0, "row": 8 },
     { "type": "wizard", "col": 1, "row": 7 },
+    { "type": "wizard", "col": 1, "row": 8 },
     { "type": "witch", "col": 0, "row": 7 },
     { "type": "fighter", "col": 2, "row": 8 },
     { "type": "wagon", "col": 2, "row": 7,
@@ -290,25 +291,14 @@
         { "skin": "skeleton_archer", "col": 19, "row": 6 },
         { "skin": "skeleton", "col": 21, "row": 3 },
         { "skin": "skeleton_archer", "col": 18, "row": 6 }
-      ] }
-  ],
-  "events": [
-    { "id": "third-caster", "on": "dialogue", "type": "reinforce", "team": "player",
-      "entry": "march", "from": { "col": 0, "row": 8 },
-      "units": [
-        { "type": "wizard", "col": 1, "row": 8 }
       ] },
-    { "id": "ghosts-stalk", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 4, "ai": "predator", "stack": 1,
+    { "order": 4, "name": "undead-rush.st3.squad.4", "ai": "predator", "stack": 1,
       "units": [
         { "skin": "ghost", "col": 20, "row": 1 },
         { "skin": "ghost", "col": 21, "row": 0 },
         { "skin": "ghost", "col": 21, "row": 1 }
       ] },
-    { "id": "ghosts-charge", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 5, "ai": "charge", "stack": 1,
+    { "order": 5, "name": "undead-rush.st3.squad.5", "ai": "charge", "stack": 1,
       "units": [
         { "skin": "ghost", "col": 22, "row": 7 },
         { "skin": "ghost", "col": 21, "row": 6 },
@@ -319,7 +309,6 @@
     "intro": [
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.1" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st3.intro.2" },
-      { "enter": "third-caster" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.6" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st3.intro.9" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st3.intro.5" },
@@ -327,8 +316,6 @@
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.7" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st3.intro.10" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.11" },
-      { "enter": "ghosts-stalk" },
-      { "enter": "ghosts-charge" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st3.intro.12" },
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st3.intro.14" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st3.intro.13" }

@@ -294,7 +294,10 @@
   "player": [
     { "type": "knight", "col": 6, "row": 5 },
     { "type": "knight", "col": 6, "row": 6 },
+    { "type": "bishop", "col": 1, "row": 5 },
     { "type": "priest", "col": 2, "row": 6 },
+    { "type": "priest", "col": 2, "row": 5 },
+    { "type": "cleric", "col": 1, "row": 4 },
     { "type": "cleric", "col": 1, "row": 6 },
     { "type": "wizard", "col": 4, "row": 5 },
     { "type": "wizard", "col": 4, "row": 6 },
@@ -361,19 +364,9 @@
   "bases": [
     { "col": 5, "row": 5, "team": "player", "hq": "player", "rest": "player", "garrison": [] }
   ],
-  "events": [
-    { "id": "clergy-five", "on": "dialogue", "type": "reinforce", "team": "player",
-      "entry": "march", "from": { "col": 0, "row": 5 },
-      "units": [
-        { "type": "bishop", "col": 1, "row": 5 },
-        { "type": "priest", "col": 2, "row": 5 },
-        { "type": "cleric", "col": 1, "row": 4 }
-      ] }
-  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st5.intro.1" },
-      { "enter": "clergy-five" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st5.intro.2" },
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st5.intro.9" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st5.intro.10" },

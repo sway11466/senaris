@@ -147,8 +147,27 @@
     { "type": "barricade", "col": 8, "row": 19 }
   ],
   "enemy": [
+    { "order": 1, "name": "dragon-hunt.st2.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "harpy", "col": 2, "row": 3 },
+        { "skin": "harpy", "col": 11, "row": 1 },
+        { "skin": "harpy", "col": 10, "row": 0 },
+        { "skin": "harpy", "col": 4, "row": 1 },
+        { "skin": "harpy", "col": 7, "row": 0 },
+        { "skin": "harpy", "col": 13, "row": 1 }
+      ] },
     { "order": 2, "name": "dragon-hunt.st2.squad.2", "ai": "raid",
       "units": [ { "skin": "rogue", "col": 1, "row": 1 } ] },
+    { "order": 3, "name": "dragon-hunt.st2.squad.3", "ai": "charge",
+      "units": [
+        { "skin": "orc", "col": 6, "row": 23 },
+        { "skin": "orc", "col": 8, "row": 23 },
+        { "skin": "orc", "col": 7, "row": 22 },
+        { "skin": "orc_leader", "col": 7, "row": 23 },
+        { "skin": "orc_mage", "col": 6, "row": 24 },
+        { "skin": "orc_mage", "col": 8, "row": 24 },
+        { "skin": "orc_mage", "col": 7, "row": 24 }
+      ] },
     { "order": 4, "name": "dragon-hunt.st2.squad.4", "ai": "raid",
       "units": [
         { "skin": "rogue_wagon", "col": 12, "row": 24 },
@@ -167,39 +186,12 @@
     { "type": "lose_base",
       "bases": [ { "col": 7, "row": 17 } ] }
   ],
-  "events": [
-    { "id": "harpies-north", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "scatter", "from": { "col": 6, "row": 0 },
-      "order": 1, "ai": "charge",
-      "units": [
-        { "skin": "harpy", "col": 2, "row": 3 },
-        { "skin": "harpy", "col": 11, "row": 1 },
-        { "skin": "harpy", "col": 10, "row": 0 },
-        { "skin": "harpy", "col": 4, "row": 1 },
-        { "skin": "harpy", "col": 7, "row": 0 },
-        { "skin": "harpy", "col": 13, "row": 1 }
-      ] },
-    { "id": "orcs-south", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "march", "from": { "col": 7, "row": 25 },
-      "order": 3, "ai": "charge",
-      "units": [
-        { "skin": "orc", "col": 6, "row": 23 },
-        { "skin": "orc", "col": 8, "row": 23 },
-        { "skin": "orc", "col": 7, "row": 22 },
-        { "skin": "orc_leader", "col": 7, "row": 23 },
-        { "skin": "orc_mage", "col": 6, "row": 24 },
-        { "skin": "orc_mage", "col": 8, "row": 24 },
-        { "skin": "orc_mage", "col": 7, "row": 24 }
-      ] }
-  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st2.intro.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st2.intro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st2.intro.3" },
       { "text": "dragon-hunt.st2.intro.4", "sfx": "map_turn_enemy" },
-      { "enter": "harpies-north" },
-      { "enter": "orcs-south" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st2.intro.5" },
       { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "dragon-hunt.st2.intro.6" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st2.intro.7" },

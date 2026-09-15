@@ -771,102 +771,71 @@
     { "type": "cleric", "actor": "cleric", "col": 3, "row": 20, "supply": "refill" },
     { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" }
   ],
-  "enemy": [],
-  "bases": [
-    { "col": 12, "row": 5, "team": "neutral", "rest": "both",
-      "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
-  ],
-  "events": [
-    { "id": "serpents-1", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 1, "ai": "ambush", "sight": 8, "stack": 1,
+  "enemy": [
+    { "order": 1, "name": "dragon-hunt.st3.squad.1", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 14 },
         { "skin": "rock_serpent", "col": 10, "row": 14 },
         { "skin": "rock_serpent", "col": 11, "row": 13 }
       ] },
-    { "id": "serpents-2", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 2, "ai": "ambush", "sight": 8, "stack": 1,
+    { "order": 2, "name": "dragon-hunt.st3.squad.2", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 16, "row": 16 },
         { "skin": "rock_serpent", "col": 17, "row": 16 },
         { "skin": "rock_serpent", "col": 17, "row": 15 }
       ] },
-    { "id": "serpents-3", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 3, "ai": "ambush", "sight": 8, "stack": 1,
+    { "order": 3, "name": "dragon-hunt.st3.squad.3", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 7 },
         { "skin": "rock_serpent", "col": 10, "row": 8 },
         { "skin": "rock_serpent", "col": 10, "row": 7 }
       ] },
-    { "id": "serpents-4", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 4, "ai": "ambush", "sight": 8, "stack": 1,
+    { "order": 4, "name": "dragon-hunt.st3.squad.4", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 16, "row": 8 },
         { "skin": "rock_serpent", "col": 17, "row": 8 },
         { "skin": "rock_serpent", "col": 16, "row": 9 }
       ] },
-    { "id": "serpents-5", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 5, "ai": "ambush", "sight": 8, "stack": 1,
+    { "order": 5, "name": "dragon-hunt.st3.squad.5", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 3 },
         { "skin": "rock_serpent", "col": 11, "row": 2 },
         { "skin": "rock_serpent", "col": 10, "row": 3 }
       ] },
-    { "id": "serpents-6", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 6, "ai": "ambush", "sight": 8, "stack": 1,
+    { "order": 6, "name": "dragon-hunt.st3.squad.6", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 22, "row": 20 },
         { "skin": "rock_serpent", "col": 23, "row": 20 },
         { "skin": "rock_serpent", "col": 23, "row": 19 }
       ] },
-    { "id": "wyrms", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 7, "ai": "ambush", "sight": 9,
+    { "order": 7, "name": "dragon-hunt.st3.squad.7", "ai": "ambush", "sight": 9,
       "units": [
         { "skin": "wyrm", "col": 17, "row": 2 },
         { "skin": "wyrm", "col": 23, "row": 15 }
       ] },
-    { "id": "troll", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 8, "ai": "ambush", "sight": 12,
+    { "order": 8, "name": "dragon-hunt.st3.squad.8", "ai": "ambush", "sight": 12,
       "units": [ { "skin": "troll", "col": 23, "row": 11 } ] },
-    { "id": "rogue-wagon", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 10, "ai": "ambush", "sight": 0,
-      "units": [ { "skin": "rogue_wagon", "col": 6, "row": 1 } ] },
-    { "id": "rogue-gang", "on": "dialogue", "type": "reinforce", "team": "enemy",
-      "entry": "fade",
-      "order": 9, "ai": "raid",
+    { "order": 9, "name": "dragon-hunt.st3.squad.9", "ai": "raid",
       "units": [
         { "skin": "rogue_axe", "col": 23, "row": 4 },
         { "skin": "rogue", "col": 22, "row": 5 },
         { "skin": "rogue_slinger", "col": 23, "row": 5 }
-      ] }
+      ] },
+    { "order": 10, "ai": "ambush", "sight": 0,
+      "units": [ { "skin": "rogue_wagon", "col": 6, "row": 1 } ] }
+  ],
+  "bases": [
+    { "col": 12, "row": 5, "team": "neutral", "rest": "both",
+      "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
   ],
   "dialogue": {
     "intro": [
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st3.intro.1" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.intro.11" },
       { "text": "dragon-hunt.st3.intro.12", "sfx": "quake" },
-      { "enter": "serpents-1" },
-      { "enter": "serpents-2" },
-      { "enter": "serpents-3" },
-      { "enter": "serpents-4" },
-      { "enter": "serpents-5" },
-      { "enter": "serpents-6" },
-      { "enter": "wyrms" },
-      { "enter": "troll" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st3.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st3.intro.3" },
-      { "enter": "rogue-wagon" },
       { "scene": "dragon-hunt.st3.scene.1" },
-      { "enter": "rogue-gang" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st3.rogue.1" },
       { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st3.rogue.2" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st3.rogue.3" },

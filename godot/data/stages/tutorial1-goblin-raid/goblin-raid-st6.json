@@ -151,6 +151,7 @@
   ],
   "player": [
     { "type": "fighter", "col": 3, "row": 4 },
+    { "type": "halfling", "col": 3, "row": 5 },
     { "type": "novice", "col": 2, "row": 4 },
     { "type": "novice", "col": 2, "row": 5 },
     { "type": "novice", "col": 2, "row": 6 },
@@ -179,17 +180,9 @@
         { "skin": "goblin_archer", "col": 27, "row": 5 }
       ] }
   ],
-  "events": [
-    { "id": "scout-enters", "on": "dialogue", "type": "reinforce", "team": "player",
-      "entry": "march", "from": { "col": 0, "row": 5 },
-      "units": [
-        { "type": "halfling", "col": 3, "row": 5 }
-      ] }
-  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st6.intro.1" },
-      { "enter": "scout-enters" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st6.intro.2" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st6.intro.3" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st6.intro.7" },
