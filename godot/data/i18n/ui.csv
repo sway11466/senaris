@@ -219,3 +219,12 @@ ui.chronicle.campaigns,冒険譚,Adventures
 ui.chronicle.count,%d / %d,%d / %d
 ui.chronicle.unknown,？,?
 ui.chronicle.first_seen,初出,First seen in
+ui.chronicle.shape_triangle,三角（相互隣接）,Triangle (mutual adjacency)
+ui.chronicle.shape_escort,護衛（発動者に随伴）,Escort (flanking the leader)
+ui.chronicle.shape_cluster,集団（隣接の連鎖）,Cluster (connected chain)
+ui.chronicle.recipe_leader,発動者: %s,Leader: %s
+ui.chronicle.recipe_members,参加者: %s,Members: %s
+ui.chronicle.recipe_range,射程 %d,Range %d
+ui.chronicle.recipe_effect_area,範囲攻撃（半径%d）,Area attack (radius %d)
+ui.chronicle.recipe_effect_single,単体攻撃,Single-target attack
+ui.chronicle.recipe_effect_buff,状態補正（味方全体）,Status effect (all allies)
