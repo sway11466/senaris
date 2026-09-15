@@ -1,6 +1,6 @@
 # 地形タイルの方針
 
-盤面に敷く地形タイルの生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルは地形固有：形状・反復対策・TERRAIN STYLE・切り抜きと保管・線地形の接続タイル。
+盤面に敷く地形タイルの生成設計。全アセット共通のトーン・制作メソッド（アンカー方式・二層保管・ドロップイン差し替え）は [direction.md](direction.md) が正本。本ファイルは地形固有：形状・敷き方・接続地形・生成方式・元絵の保管・下地の合成。
 
 地形の考え方（タイプとスキン・足場とオブジェクト・盤の高さ）は [../gdd/terrain.md](../gdd/terrain.md) が正本。本ファイルはそれぞれをどう描くか。
 
@@ -10,7 +10,7 @@
 
 ## 1. 形状・敷き方
 
-- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)）が terrain_id ごとに1枚を各ヘックスに敷く（3D盤でも同じPNGをヘックスメッシュに貼る＝この寸法は現行）。置き場は `godot/assets/terrain/{skin_id}.png`（terrain_skin.csv の `skin_id` と同名）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../godot/tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
+- 形状: フラットトップ六角形・256×222px（中心〜頂点 R=128／上下平辺間 √3R）・角は透過。盤（[../../presentation/board/hex_board_3d.gd](../../godot/presentation/board/hex_board_3d.gd)）が terrain_id ごとに1枚を各ヘックスに敷く（3D盤でも同じPNGをヘックスメッシュに貼る＝この寸法は現行）。
 - 3Dのヘックスメッシュに貼るUVは外接矩形（[terrain_tiles.gd](../../godot/presentation/board/terrain_tiles.gd)）。横の係数は 0.5、縦は 1/√3 で、横と同じ 0.5 にしてはいけない。0.5 は外接「正方形」（2R×2R）用の値で、PNGは 2R×√3R だから縦だけ 2/√3＝1.155倍に伸び、上下端6.7%が六角形の外へ出て描かれなくなる。自然テクスチャでは正しい縦横比が無いので気付けず、絵の中に位置の約束を持つ地形（§2の接続タイル＝腕の先が辺の中点に来る）で初めて斜めの継ぎ目がずれて見える。
 - 現状は「1地形1枚・接地による遷移なし」。各ヘックスが地形の自己完結アイコン（Into the Breach 系）。
 - 同じPNGを戦闘演出シーンの地面にも敷く（[../tech/combat_scene.md](../tech/combat_scene.md)）。盤より寄って映る＝繰り返しと継ぎ目が見えやすいので、反復対策（変種・回転）は盤のためだけの措置ではない。
@@ -177,7 +177,9 @@ vignette. Square 1:1.
 
 ## 4. 元絵とレシピの置き場
 
-`godot/assets/terrain-src/{name}/` に3点を置く。`{name}` は型ID、または型ID＋バリエーション名。
+ゲーム用タイルの置き場は `godot/assets/terrain/{skin_id}.png`（terrain_skin.csv の `skin_id` と同名）。プレースホルダ生成は [../../tools/gen_terrain_tiles.gd](../../godot/tools/gen_terrain_tiles.gd)、アート確定後は同名で差し替えるだけ（描画コード不変）。
+
+元絵は `godot/assets/terrain-src/{name}/` に3点を置く。`{name}` は型ID、または型ID＋バリエーション名。
 
 ```
 {型ID}                    plain / road / fence / prop
