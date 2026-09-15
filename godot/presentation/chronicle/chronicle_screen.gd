@@ -765,20 +765,19 @@ func _build_campaign_results() -> void:
 # ---------------------------------------------------------------------------
 
 ## 選択中の冒険譚の設定集を出す。解放された節を順に出し、未解放があれば末尾に1行。
+## 設定集データは chronicle.json（ChronicleLoader）から取得する＝ゲーム進行データとは分離。
 func _build_campaign_lore() -> void:
 	if _progress == null:
 		return
-	var c := _progress.campaign(_selected_campaign_id)
-	if c.is_empty():
-		return
-	var lore: Array = c.get("lore", [])
+	var chronicle := ChronicleLoader.load_for(_selected_campaign_id)
+	var lore: Array = chronicle["lore"]
 	if lore.is_empty():
 		_build_placeholder(tr("ui.chronicle.lore"))
 		return
 
 	var has_locked := false
 	for section in lore:
-		if not _progress.is_lore_unlocked(_selected_campaign_id, section):
+		if not _is_lore_section_unlocked(_selected_campaign_id, section):
 			has_locked = true
 			break
 		_build_lore_section(_selected_campaign_id, String(section["id"]))
@@ -790,6 +789,20 @@ func _build_campaign_lore() -> void:
 		locked_label.add_theme_color_override("font_color", DIM_GRAY)
 		locked_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_content_box.add_child(locked_label)
+
+## 設定集の節が解放済みかを判定。unlock 条件をすべて満たしていれば解放（AND評価）。
+## CampaignProgress.stage_state() の公開 API だけで判定する＝進行データへの依存を最小に。
+func _is_lore_section_unlocked(campaign_id: String, section: Dictionary) -> bool:
+	for cond in section["unlock"]:
+		if typeof(cond) != TYPE_DICTIONARY:
+			continue
+		match String(cond.get("type", "")):
+			"cleared":
+				if _progress.stage_state(campaign_id, String(cond.get("stage", ""))) != CampaignProgress.CLEARED:
+					return false
+			_:
+				return false  # 未知の条件は未充足側に倒す
+	return true
 
 ## 設定集の1節を出す。見出し＋段落（連番のキーが在るぶんだけ）。
 func _build_lore_section(campaign_id: String, section_id: String) -> void:
@@ -858,7 +871,8 @@ func _format_duration(seconds: int) -> String:
 # 共通
 # ---------------------------------------------------------------------------
 
-## names.csv の desc キーが存在すれば説明文ラベルを _detail_box に追加する。
+## desc 翻訳キーが存在すれば説明文ラベルを _detail_box に追加する。
+## unit.*.desc は lore.csv、recipe.*.desc は names.csv。tr() はまとめて解決する。
 func _add_desc_label(desc_key: String) -> void:
 	var desc_text := tr(desc_key)
 	if desc_text != desc_key:

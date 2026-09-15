@@ -92,59 +92,6 @@ func test_build_clamps_difficulty() -> void:
 	var c := CampaignCatalog.build({ "id": "a", "board": "b", "stages": [], "difficulty": 9 }, "res://x")
 	assert_eq(c["difficulty"], 5, "0〜5 にクランプ")
 
-func test_tutorial_manifest_has_lore() -> void:
-	var c := CampaignCatalog.load_file("res://data/stages/tutorial1-goblin-raid/campaign.json")
-	assert_true(c["lore"].size() > 0, "tutorial1 は設定集の節を持つ")
-	assert_eq(c["lore"][0]["id"], "stage", "先頭の節は stage")
-	assert_eq(c["lore"][0]["unlock"], [], "stage は無条件解放")
-
-func test_build_defaults_lore_to_empty() -> void:
-	var c := CampaignCatalog.build({ "id": "a", "board": "b", "stages": [] }, "res://x")
-	assert_eq(c["lore"], [], "lore 未指定は空配列")
-
-func test_build_parses_lore() -> void:
-	var c := CampaignCatalog.build({
-		"id": "a",
-		"board": "b",
-		"stages": [],
-		"lore": [
-			{ "id": "intro", "unlock": [] },
-			{ "id": "secret", "unlock": [{ "type": "cleared", "stage": "s1" }] },
-			"garbage",
-			{ "file": "oops" },
-		],
-	}, "res://x")
-	assert_eq(c["lore"].size(), 2, "不正エントリはスキップ")
-	assert_eq(c["lore"][0]["id"], "intro")
-	assert_eq(c["lore"][1]["unlock"][0]["stage"], "s1")
-
-func test_all_lore_unlock_refs_resolve() -> void:
-	# 実データ: lore の unlock の参照先 stage がすべて同じ冒険譚に実在する。
-	for c in CampaignCatalog.load_all():
-		var ids := {}
-		for s in c["stages"]:
-			ids[s["id"]] = true
-		for section in c["lore"]:
-			for cond in section["unlock"]:
-				if typeof(cond) != TYPE_DICTIONARY:
-					continue
-				var ref := String(cond.get("stage", ""))
-				if ref.is_empty():
-					continue
-				assert_true(ids.has(ref), "%s/lore.%s の unlock 参照 '%s' が実在" % [c["id"], section["id"], ref])
-
-func test_lore_csv_matches_manifest() -> void:
-	# 設定集の節がマニフェストにあれば、対応する翻訳キーが lore.csv に在る（突き合わせ）。
-	for c in CampaignCatalog.load_all():
-		for section in c["lore"]:
-			var sid: String = section["id"]
-			var title_key := "lore.%s.%s.title" % [c["id"], sid]
-			var title := TranslationServer.translate(title_key)
-			assert_ne(title, title_key, "%s: 節 %s の title が翻訳にある" % [c["id"], sid])
-			var p1_key := "lore.%s.%s.1" % [c["id"], sid]
-			var p1 := TranslationServer.translate(p1_key)
-			assert_ne(p1, p1_key, "%s: 節 %s の段落1が翻訳にある" % [c["id"], sid])
-
 func test_build_skips_broken_stage_entries() -> void:
 	var c := CampaignCatalog.build({
 		"id": "a",

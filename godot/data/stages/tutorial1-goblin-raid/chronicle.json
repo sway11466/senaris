@@ -1,0 +1,18 @@
+{
+  "lore": [
+    { "id": "stage", "unlock": [] },
+    { "id": "quest", "unlock": [] },
+    { "id": "party", "unlock": [] },
+    { "id": "enemy", "unlock": [ { "type": "cleared", "stage": "goblin-raid-st2" } ] },
+    { "id": "origin", "unlock": [ { "type": "cleared", "stage": "goblin-raid-st7" } ] }
+  ],
+  "story": [
+    { "stage": "goblin-raid-st1" },
+    { "stage": "goblin-raid-st2" },
+    { "stage": "goblin-raid-st3" },
+    { "stage": "goblin-raid-st4", "events": ["town-freed"] },
+    { "stage": "goblin-raid-st5" },
+    { "stage": "goblin-raid-st6" },
+    { "stage": "goblin-raid-st7" }
+  ]
+}
