@@ -105,17 +105,22 @@
 **クロニクル（設計済み・実装待ち）**
 - ゴール：出会ったユニットと見た陣形スキルが溜まり、冒険譚ごとに戦果・物語（会話の通し読み）・設定集が読める。
 - 背景：マニュアル（[manual.md](gdd/manual.md)）は用語と仕組みの説明に徹していて、個々のユニットやスキルの一覧も物語も持たない。
-- 対応：仕様は [chronicle.md](gdd/chronicle.md) に確定。開き口はタイトルの新項目、記録は `user://chronicle.json`（進捗と別ファイル）、経験した会話は顔ぶれを足す形へ変更（進捗の版上げ）、設定集は `lore.csv`＋マニフェストの `lore`。
+- 対応：仕様は [chronicle.md](gdd/chronicle.md) に確定。開き口はタイトルの新項目、記録は `user://chronicle.json`（進捗と別ファイル）、経験した会話は顔ぶれを足す形へ変更（進捗の版上げ）。
+- データ分離の方針（決めたこと）：クロニクル専用のデータはゲーム進行ファイルから分離する。
+  - 設定集・物語のマニフェスト → 各冒険譚フォルダの `chronicle.json`（`campaign.json` には載せない）。読み込みは `ChronicleLoader`。
+  - ユニット説明文（`unit.*.desc`）→ `lore.csv`（`names.csv` には載せない）。ゲーム中に使わないクロニクル専用テキスト。
+  - レシピ説明文（`recipe.*.desc`）→ `names.csv` に残す。`unit_info_panel.gd` がゲーム中に参照するため分離不可。
+  - 設定集の解放判定 → `chronicle_screen.gd` 内の `_is_lore_section_unlocked()`。`CampaignProgress` の公開 API（`stage_state()`）だけで判定し、進行データ側にクロニクル専用メソッドを持たない。
 - 層の置き場（決めたこと）：presentation は描画だけ。記録と導出は下の層に置く（[architecture.md](tech/architecture.md) 依存ルール）。
   - `godot/infrastructure/save/chronicle_store.gd`（新規）＝`chronicle.json` の読み書き（スキン id の集合・レシピ id の集合・初出の冒険譚 id・版・バックアップ）。前例＝`progress_store.gd`。
-  - `godot/application/chronicle_service.gd`（新規）＝記録を溜める口（盤に出た駒・発動したレシピ）と、画面に出す一覧の導出（ユニット章・陣形章の埋まり具合、冒険譚ランク・クリア時間の合計、設定集の解放、物語の流れ）。戦果・設定集・物語は `ProgressStore` と `campaign.json` から毎回導き、クロニクルのファイルに重ねて持たない。前例＝`campaign_progress.gd`。
+  - `godot/application/chronicle_service.gd`（新規）＝記録を溜める口（盤に出た駒・発動したレシピ）と、画面に出す一覧の導出（ユニット章・陣形章の埋まり具合、冒険譚ランク・クリア時間の合計）。戦果は `ProgressStore` と `campaign.json` から毎回導き、クロニクルのファイルに重ねて持たない。前例＝`campaign_progress.gd`。
   - 記録の発火点は `MatchController` のシグナル（`unit_deployed`／`event_fired`／`base_captured`／`formation_resolved`）と開始時の盤＝application の中で完結させ、presentation を通さない。
-  - `godot/presentation/chronicle/`（新規）＝画面だけ。目次・2ペイン・物語の通し読み（盤を挿絵にする組み立てとカメラ寄せ）。前例＝設定画面・マニュアル画面。
+  - `godot/presentation/chronicle/`（新規）＝画面と `ChronicleLoader`（`chronicle.json` 読み込み）。目次・2ペイン・物語の通し読み。前例＝設定画面・マニュアル画面。
 - 手順（1つずつ動かして進める）：
   0. refactoring-16＝決着時の記録を application に寄せる。クロニクルの記録はその口に足す形にするため、先にやる。 ✅ 実装済み（実機確認待ち）
   1. 記録の土台＝`ChronicleStore`（版・バックアップ・壊れていれば空）と `ChronicleService` の記録側（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）。テスト＝`test_chronicle_store.gd`・`test_chronicle_service.gd`。画面はまだ無い。 ✅ 実装済み
-  2. ユニット章＝`unit_skin.csv` の分類と行順で束ね、黒シルエットと「埋まった数／全部」、選ぶと性能とユニットスキルと説明文。`names.csv` に `unit.<skin_id>.desc`。タイトルのメニューに項目を足し、画面の骨（目次・戻る・暗幕）はここで作る。 ✅ 実装済み（実機確認待ち）
-  3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`。 ✅ 実装済み（実機確認待ち）
+  2. ユニット章＝`unit_skin.csv` の分類と行順で束ね、黒シルエットと「埋まった数／全部」、選ぶと性能とユニットスキルと説明文。`lore.csv` に `unit.<skin_id>.desc`（クロニクル専用）。タイトルのメニューに項目を足し、画面の骨（目次・戻る・暗幕）はここで作る。 ✅ 実装済み（実機確認待ち）
+  3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`（ゲーム中も参照）。 ✅ 実装済み（実機確認待ち）
   4. 冒険譚の一覧と戦果＝冒険譚ランク（全ステージのベストの最低）・クリア時間の合計・「クリア数／ステージ数」、ステージごとの行。新しい記録は持たない。 ✅ 実装済み（実機確認待ち）
   5. 物語＝挿絵は事前撮影の静止画（`assets/campaign/` に配置）、`ConversationPanel` を再利用した通し読み。分岐の切り替え（`ProgressStore` 版上げ＋顔ぶれ累積）は後回し。
     - 5a. 対話データの読み出し（どの会話をどの順で出すか組み立て）
@@ -124,8 +129,9 @@
     - 5d. ステージ順の通し読みフロー（章題・次へ・スキップ・停止）
     - 5e. `ProgressStore` 版上げ＋顔ぶれ累積（分岐切り替えの土台）← 後回し
     - 5f. 分岐の切り替えUI ← 後回し
-  6. 設定集＝`lore.csv`（新規）とマニフェストの `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
-- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/i18n/lore.csv`（新規）・`names.csv` の説明文・`ui.csv`（`ui.chronicle.*`）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。前提＝refactoring-16。
+  6. 設定集＝`lore.csv`（新規）と `chronicle.json` の `lore`、節ごとの解放、構造と CSV の突き合わせテスト。本文はチュートリアル１から。 ✅ 実装済み（実機確認待ち）
+  7. データ分離＝設定集・物語マニフェストを `campaign.json` から `chronicle.json` に移設。`unit.*.desc` を `names.csv` から `lore.csv` に移動。`CampaignCatalog` と `CampaignProgress` からクロニクル専用コードを除去し、`ChronicleLoader` と画面内インライン判定に置き換え。テスト＝`test_chronicle_loader.gd`。 ✅ 実装済み（実機確認待ち）
+- 該当：`godot/infrastructure/save/chronicle_store.gd`（新規）・`godot/application/chronicle_service.gd`（新規）・`godot/presentation/chronicle/`（新規＝画面＋`ChronicleLoader`）・`godot/presentation/title/title_screen.gd`（開き口）・`godot/data/i18n/lore.csv`（新規＝設定集＋`unit.*.desc`）・`names.csv`（`recipe.*.desc` のみ残留）・`ui.csv`（`ui.chronicle.*`）・各冒険譚フォルダの `chronicle.json`（新規）・進捗セーブの版と変換・[gamesystem.md](tech/gamesystem.md) クロニクル・[architecture.md](tech/architecture.md)（構成図に3ファイルを足す）。前提＝refactoring-16。
 
 ### feature-95
 
