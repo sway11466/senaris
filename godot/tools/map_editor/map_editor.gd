@@ -57,6 +57,7 @@ var _sel_type_id := ""   # 配置する自軍ユニットの type_id
 var _sel_skin_id := ""       # 配置する敵ユニットの skin_id
 var _sel_skin_category := "" # 敵パレットの分類絞り込み（空=すべて）
 var _sel_squad := 0
+var _sel_party := 0  ## 「自軍」モードで次に駒を置く味方部隊（doc/gdd/map.md 駒の配置）
 var _base_team := "enemy"
 var _base_hq := ""
 var _base_rest := "both"
@@ -734,7 +735,49 @@ func _build_player_palette() -> void:
 			ob.select(i)
 	ob.item_selected.connect(func(i: int) -> void: _sel_type_id = String(ids[i]))
 	_mode_box.add_child(_labeled_row("タイプ", ob))
+	_add_party_rows()
 	_add_unit_box()
+
+
+## 味方部隊の欄＝置き先を選ぶ＋名前を書く＋足す／消す。敵の「敵グループ」モードほどの
+## 設定を持たない（味方部隊は名前だけ）ので、別モードを立てずに自軍モードへ畳む。
+func _add_party_rows() -> void:
+	var parties: Array = _doc.data["player"]
+	if _sel_party >= parties.size():
+		_sel_party = maxi(parties.size() - 1, 0)
+	var ob := _make_option()
+	for i in parties.size():
+		ob.add_item("部隊%d: %s（%d体）" % [i, String(parties[i].get("name", "無名")),
+			(parties[i].get("units", []) as Array).size()])
+	if not parties.is_empty():
+		ob.select(_sel_party)
+	ob.item_selected.connect(func(i: int) -> void:
+		_sel_party = i
+		_rebuild_mode())
+	_mode_box.add_child(_labeled_row("味方部隊", ob))
+	if _sel_party < parties.size():
+		var name_edit := LineEdit.new()
+		name_edit.text = String((parties[_sel_party] as Dictionary).get("name", ""))
+		name_edit.placeholder_text = "翻訳キー（空＝番号で出る）"
+		name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_edit.text_changed.connect(func(t: String) -> void:
+			var pt: Dictionary = _doc.data["player"][_sel_party]
+			if t.strip_edges().is_empty():
+				pt.erase("name")  # 空の name キーは書き出さない
+			else:
+				pt["name"] = t)
+		_mode_box.add_child(_labeled_row("部隊名", name_edit))
+	var buttons := HBoxContainer.new()
+	_mode_box.add_child(buttons)
+	_add_button(buttons, "味方部隊を追加", func() -> void:
+		_sel_party = _doc.add_party()
+		_rebuild_mode())
+	if parties.size() > 1:
+		_add_button(buttons, "この部隊を削除", func() -> void:
+			_doc.remove_party(_sel_party)
+			_sel_party = 0
+			_board.refresh()
+			_rebuild_mode())
 
 
 ## 上段（置く道具）と下段（選んだ駒）の区切り＋下段の箱。
@@ -926,8 +969,9 @@ func _pick_player(col: int, row: int) -> void:
 	if _sel_category != "" and _sel_category != cat:
 		_sel_category = cat  # 絞り込みで一覧から外れる type は、分類ごと合わせる
 	_sel_type_id = tid
+	_sel_party = int(hit["party"])  # 所属もそろえる＝次の駒が同じ部隊に入る
 	_rebuild_mode()
-	_say("%s の設定を取り込みました。" % tid)
+	_say("%s の設定を取り込みました（味方部隊%d）。" % [tid, _sel_party])
 
 
 ## unit_type の分類（未登録は ""＝「すべて」扱い）。
@@ -979,7 +1023,7 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 				return
 			# 空きマス＝上段の設定で置く、駒の上＝それを選ぶ（どちらも下段がその駒を指す）
 			if _doc.unit_at(col, row).is_empty():
-				if not _doc.add_player(_sel_type_id, col, row):
+				if not _doc.add_player(_sel_type_id, col, row, _sel_party):
 					_say("(%d, %d) には置けません。" % [col, row])
 					return
 				_board.refresh()
@@ -1201,7 +1245,7 @@ func _show_inspection(col: int, row: int) -> void:
 func _inspect_unit(hit: Dictionary) -> void:
 	var u: Dictionary = hit["unit"]
 	var squad := int(hit["squad"])
-	var head := "自軍: %s" % String(u.get("type", u.get("skin", "?"))) if squad < 0 \
+	var head := "自軍（部隊%d）: %s" % [int(hit["party"]), String(u.get("type", u.get("skin", "?")))] if squad < 0 \
 		else "敵（部隊%d）: %s" % [squad, String(u.get("skin", u.get("type", "?")))]
 	_add_info(_inspector,head)
 	var actor := String(u.get("actor", ""))
@@ -1272,6 +1316,8 @@ func _refresh_unit_box() -> void:
 	_add_heading(_unit_box, "選んだ駒 (%d, %d)" % [_sel_unit.x, _sel_unit.y])
 	if _mode == "enemy":
 		_add_unit_squad_row(_unit_box, hit)
+	elif _mode == "player":
+		_add_unit_party_row(_unit_box, hit)
 	_add_unit_kind_row(_unit_box, u, _mode == "enemy")
 	_add_actor_row(_unit_box, u)
 	if _mode == "player":
@@ -1283,6 +1329,23 @@ func _refresh_unit_box() -> void:
 		if _doc.remove_unit_at(_sel_unit.x, _sel_unit.y):
 			_board.refresh()
 		_deselect_unit())
+
+
+## 所属する味方部隊の行（自軍の駒だけ）。部隊を変えると、その部隊の units へ移す。
+func _add_unit_party_row(parent: VBoxContainer, hit: Dictionary) -> void:
+	var parties: Array = _doc.data["player"]
+	var party := int(hit["party"])
+	var keys := []
+	var displays := []
+	for i in parties.size():
+		keys.append(str(i))
+		displays.append("部隊%d: %s" % [i, String(parties[i].get("name", "無名"))])
+	parent.add_child(_labeled_option("味方部隊", keys, displays, str(party),
+		func(k: String) -> void:
+			if _doc.move_unit_to_party(party, int(hit["index"]), int(k)):
+				_board.refresh()
+				_say("(%d, %d) の駒を味方部隊%s へ移しました。" % [_sel_unit.x, _sel_unit.y, k])
+			_refresh_unit_box()))  # index が変わる＝行を引き直す
 
 
 ## 所属部隊の行（敵の駒だけ）。部隊を変えると、その部隊の units へ移す。
@@ -1644,7 +1707,7 @@ func _refresh_events() -> void:
 
 ## 増援1件（見出し＋ターン・陣営・AI・予告文・駒の一覧）。
 func _add_event_rows(index: int, ev: Dictionary) -> void:
-	var team := String(ev.get("team", "player"))
+	var team := _doc.event_team(index)  # 駒を書いたセクションが陣営（doc/gdd/map.md イベント）
 	var units: Array = _doc.event_units(index)
 	_add_outcome_head(_event_box, "%dターン目 ／ %s ／ %d体" % [int(ev.get("turn", 1)),
 		TEAM_LABELS.get(team, team), units.size()], func() -> void:
@@ -1668,17 +1731,26 @@ func _add_event_rows(index: int, ev: Dictionary) -> void:
 	box.add_child(_labeled_row("ターン", turn))
 	box.add_child(_labeled_option("陣営", ["player", "enemy"], ["自軍", "敵"], team,
 		func(k: String) -> void:
-			ev["team"] = k
-			if k == "player":
-				ev.erase("ai")  # 自軍の増援は部隊を持たない
+			_doc.set_event_team(index, k)  # 部隊ごとセクションを移す
 			for u in units:  # 選び方が type ↔ skin で変わるので、指定を持ち越さない
 				u.erase("type")
 				u.erase("skin")
 			_refresh_events()))
+	var party := _doc.event_party(index)  # 加わる部隊（名前・敵ならAIもここ）
 	if team == "enemy":
 		var ai_opts := _ai_options(false)
-		box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(ev.get("ai", "")),
-			func(k: String) -> void: ev["ai"] = k))
+		box.add_child(_labeled_option("AI", ai_opts[0], ai_opts[1], String(party.get("ai", "")),
+			func(k: String) -> void: party["ai"] = k))
+	var party_name := LineEdit.new()
+	party_name.text = String(party.get("name", ""))
+	party_name.placeholder_text = "翻訳キー（空＝番号で出る）"
+	party_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	party_name.text_changed.connect(func(t: String) -> void:
+		if t.strip_edges().is_empty():
+			party.erase("name")  # 空の name キーは書き出さない
+		else:
+			party["name"] = t)
+	box.add_child(_labeled_row("部隊名", party_name))
 	# 登場の仕方（必須）と入口。march／scatter は入口から歩いて出てくる＝入口の座標を持つ。
 	# fade はその場に浮かぶ＝入口を持たない（doc/gdd/map.md イベント）。
 	box.add_child(_labeled_option("登場", ["march", "scatter", "fade"],
@@ -1732,7 +1804,7 @@ func _add_event_rows(index: int, ev: Dictionary) -> void:
 
 ## 増援の駒（1行1体＝駒の種類・座標・× ／ 輸送なら同乗もぶら下げる）。
 func _add_event_unit_rows(parent: VBoxContainer, index: int, ev: Dictionary, units: Array) -> void:
-	var by_skin := String(ev.get("team", "player")) == "enemy"
+	var by_skin := _doc.event_team(index) == "enemy"
 	var keys := _unit_pick_keys(by_skin)
 	var displays := _unit_pick_displays(by_skin)
 	if keys.is_empty():
@@ -2231,9 +2303,7 @@ func _preview_roster() -> Array:
 	var out: Array = []
 	var catalog := UnitCatalog.load_default()
 	var skins := SkinCatalog.load_standard()
-	for u in _doc.data.get("player", []):
-		if typeof(u) != TYPE_DICTIONARY:
-			continue
+	for u in _doc.player_pieces():
 		var actor := String(u.get("actor", ""))
 		if actor == "" or String(u.get("supply", "")) == "join":
 			continue

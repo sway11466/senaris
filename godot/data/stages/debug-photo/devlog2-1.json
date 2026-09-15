@@ -2,14 +2,16 @@
   "turn_limit": 20,
   "name": "debug-photo-devlog2-1",
   "player": [
-    { "type": "wizard", "col": 3, "row": 4 },
-    { "type": "wizard", "col": 4, "row": 4 },
-    { "type": "witch",  "col": 4, "row": 5 },
-    { "type": "knight", "col": 4, "row": 3 },
-    { "type": "fighter","col": 4, "row": 6 },
-    { "type": "barricade", "col": 5, "row": 4 },
-    { "type": "barricade", "col": 5, "row": 5 },
-    { "type": "priest", "col": 2, "row": 5 }
+    { "units": [
+        { "type": "wizard", "col": 3, "row": 4 },
+        { "type": "wizard", "col": 4, "row": 4 },
+        { "type": "witch",  "col": 4, "row": 5 },
+        { "type": "knight", "col": 4, "row": 3 },
+        { "type": "fighter","col": 4, "row": 6 },
+        { "type": "barricade", "col": 5, "row": 4 },
+        { "type": "barricade", "col": 5, "row": 5 },
+        { "type": "priest", "col": 2, "row": 5 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "ai": "charge",

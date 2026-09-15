@@ -2,7 +2,9 @@
   "turn_limit": 20,
   "name": "goblin-horde-st2",
   "player": [
-    { "type": "cleric", "col": 6, "row": 11 }
+    { "units": [
+        { "type": "cleric", "col": 6, "row": 11 }
+      ] }
   ],
   "enemy": [
     { "order": 21, "ai": "raid",

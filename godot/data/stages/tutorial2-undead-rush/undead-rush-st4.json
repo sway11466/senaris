@@ -2,19 +2,21 @@
   "turn_limit": 30,
   "name": "undead-rush-st4",
   "player": [
-    { "type": "knight", "col": 3, "row": 4 },
-    { "type": "knight", "col": 3, "row": 5 },
-    { "type": "priest", "col": 0, "row": 6 },
-    { "type": "cleric", "col": 0, "row": 4 },
-    { "type": "wizard", "col": 1, "row": 4 },
-    { "type": "wizard", "col": 1, "row": 5 },
-    { "type": "witch", "col": 0, "row": 5 },
-    { "type": "fighter", "col": 2, "row": 4 },
-    { "type": "fighter", "col": 2, "row": 6 },
-    { "type": "wagon", "col": 2, "row": 5,
-      "passengers": [
-        { "type": "barricade" },
-        { "type": "barricade" }
+    { "units": [
+        { "type": "knight", "col": 3, "row": 4 },
+        { "type": "knight", "col": 3, "row": 5 },
+        { "type": "priest", "col": 0, "row": 6 },
+        { "type": "cleric", "col": 0, "row": 4 },
+        { "type": "wizard", "col": 1, "row": 4 },
+        { "type": "wizard", "col": 1, "row": 5 },
+        { "type": "witch", "col": 0, "row": 5 },
+        { "type": "fighter", "col": 2, "row": 4 },
+        { "type": "fighter", "col": 2, "row": 6 },
+        { "type": "wagon", "col": 2, "row": 5,
+          "passengers": [
+            { "type": "barricade" },
+            { "type": "barricade" }
+          ] }
       ] }
   ],
   "enemy": [

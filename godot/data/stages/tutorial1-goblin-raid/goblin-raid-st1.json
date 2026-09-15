@@ -5,9 +5,11 @@
   "haze": 0.80,
   "backdrop": "sky_clear",
   "player": [
-    { "type": "fighter", "col": 1, "row": 3 },
-    { "type": "novice", "col": 1, "row": 1 },
-    { "type": "novice", "col": 1, "row": 5 }
+    { "units": [
+        { "type": "fighter", "col": 1, "row": 3 },
+        { "type": "novice", "col": 1, "row": 1 },
+        { "type": "novice", "col": 1, "row": 5 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "ai": "charge",

@@ -3,8 +3,10 @@
   "name": "debug-raid",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 4, "row": 3 },
-    { "type": "archer", "col": 3, "row": 2 }
+    { "units": [
+        { "type": "fighter", "col": 4, "row": 3 },
+        { "type": "archer", "col": 3, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "拠点強襲", "ai": "raid",

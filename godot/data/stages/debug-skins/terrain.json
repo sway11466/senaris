@@ -3,11 +3,13 @@
   "name": "debug-terrain",
   "haze": 0.80,
   "player": [
-    { "type": "thief", "col": 0, "row": 3 },
-    { "type": "thief", "col": 0, "row": 4 },
-    { "type": "thief", "col": 0, "row": 5 },
-    { "type": "thief", "col": 0, "row": 6 },
-    { "type": "thief", "col": 0, "row": 7 }
+    { "units": [
+        { "type": "thief", "col": 0, "row": 3 },
+        { "type": "thief", "col": 0, "row": 4 },
+        { "type": "thief", "col": 0, "row": 5 },
+        { "type": "thief", "col": 0, "row": 6 },
+        { "type": "thief", "col": 0, "row": 7 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "案山子（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,

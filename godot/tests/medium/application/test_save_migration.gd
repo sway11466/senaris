@@ -10,13 +10,13 @@ const STAGE_TERRAIN := { "terrain": ["......", "......", "......", "......"] }
 
 const STAGE := {
 	"turn_limit": 9,
-	"player": [{ "type": "fighter", "col": 0, "row": 0 }],
+	"player": [ { "units": [{ "type": "fighter", "col": 0, "row": 0 }] } ],
 	"bases": [{ "col": 1, "row": 1, "team": "neutral" }],
 	"events": [
-		{ "id": "w1", "turn": 2, "type": "reinforce", "team": "enemy", "order": 1, "ai": "charge", "entry": "fade",
-			"units": [{ "type": "fighter", "col": 5, "row": 3 }] },
-		{ "id": "w2", "turn": 4, "type": "reinforce", "team": "enemy", "order": 2, "ai": "charge", "entry": "fade",
-			"units": [{ "type": "fighter", "col": 5, "row": 3 }] },
+		{ "id": "w1", "turn": 2, "type": "reinforce", "entry": "fade",
+			"enemy": [{ "order": 1, "ai": "charge", "units": [{ "type": "fighter", "col": 5, "row": 3 }] }] },
+		{ "id": "w2", "turn": 4, "type": "reinforce", "entry": "fade",
+			"enemy": [{ "order": 2, "ai": "charge", "units": [{ "type": "fighter", "col": 5, "row": 3 }] }] },
 		{ "id": "cap", "on": "capture", "col": 1, "row": 1, "team": "player", "type": "talk",
 			"once": "village", "dialogue": "taken", "name": "ui.test.event_name" },
 	],
@@ -80,7 +80,20 @@ func test_v3_start_time_is_unknown() -> void:
 	var meta: Dictionary = got["meta"]
 	assert_eq(int(meta["started_at"]), 0, "旧セーブは開始時刻を持たない＝不明（所要時間を測れない回）")
 	assert_eq(String(meta["stage_id"]), "a", "他のメタはそのまま")
-	assert_eq(got["state"], { "turn_number": 2 }, "盤の差分は触らない")
+	assert_eq(int((got["state"] as Dictionary)["turn_number"]), 2, "盤の差分は触らない")
+	assert_eq((got["state"] as Dictionary)["squad_of"], {}, "所属の付け替えは空のまま（味方部隊のずらし幅0）")
+
+## v4（味方は部隊に属さない）→ v5。所属は部隊の並び順で持つので、味方部隊のぶん敵の index が
+## ずれる。味方の駒はどの部隊に居たかを v4 が持たない＝最初の味方部隊に入れる。
+func test_v4_shifts_squads_and_puts_allies_in_the_first_party() -> void:
+	var record := { "version": 4, "meta": { "stage_path": STAGE_PATH, "started_at": 0 },
+		"state": { "units": [{ "id": 1, "team": 0 }, { "id": 2, "team": 1 }],
+			"squad_of": { "2": 0 }, "engaged_squads": [0] } }
+	var state: Dictionary = SaveMigration.migrate(record)["state"]
+	var squad_of: Dictionary = state["squad_of"]
+	assert_eq(int(squad_of["2"]), 1, "敵の所属は味方部隊のぶん後ろへずれる")
+	assert_eq(int(squad_of["1"]), 0, "味方の駒は最初の味方部隊へ")
+	assert_eq(state["engaged_squads"], [1], "拠点の起動フラグも同じだけずらす")
 
 func test_v2_climbs_to_current_version() -> void:
 	var meta: Dictionary = SaveMigration.migrate(_v2_record())["meta"]

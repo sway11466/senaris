@@ -6,7 +6,7 @@ class_name UnitInfoPanel
 ##
 ## ユニットは1行1項目で出す。板は固定寸法（UiLayout.RIGHT_BOX）で全部は入りきらないので、
 ## 戦闘レポートと同じ作りのタブ（能力／状態／地形）で切り替える＝スクロールさせない。
-## 見出し（名前・陣営／部隊・兵種／敵の特性）はタブの上に据え置き＝どの駒を見ているか常に分かる。
+## 見出し（名前と兵種／所属部隊／敵の特性）はタブの上に据え置き＝どの駒を見ているか常に分かる。
 ## 仕様 → doc/gdd/uiux.md ユニット情報パネル
 
 ## グループの区切り線。改行だけで離すと「どこまでが同じ話か」が読めないので線を引く。
@@ -39,9 +39,9 @@ var _skins := {}        # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }
 var _terrain_skins := {}  # Vector2i -> skin_id（ステージの見た目差分。地形名をスキン名で出すのに使う）
 var _ai_presets := {}   # 特性id -> パラメーター辞書（data/ai/ai.json）。特性名を引くのに使う
 var _ai_icons := {}     # 特性id -> Texture2D / null（無い印。毎回 load しないための控え）
-var _header: HBoxContainer  # 据え置きの見出し（左＝名前と部隊/兵種・右＝敵の特性）
-var _header_name: Label     # 名前（陣営）
-var _header_sub: Label      # 敵＝部隊名／自軍＝兵種。どちらも無ければ隠す
+var _header: HBoxContainer  # 据え置きの見出し（左＝名前と所属部隊・右＝敵の特性）
+var _header_name: Label     # 名前（自軍は兵種つき）
+var _header_sub: Label      # 所属部隊の名前。部隊が無ければ隠す
 var _ai_box: HBoxContainer  # 特性の欄（敵のときだけ出す）
 var _ai_frame: PanelContainer  # アイコンの額（絵が無ければ額ごと隠す）
 var _ai_icon: TextureRect
@@ -576,32 +576,33 @@ func _garrison_line(gu: Unit, b: Base) -> String:
 	return tr("ui.info.reserves_line") % [nm, gu.troops, gu.max_troops, gu.level]
 
 ## タブの上に据え置く見出しを組み直す。仕様 → doc/gdd/uiux.md ユニット情報パネル
-## 2行目は敵＝部隊名／自軍＝兵種。敵に兵種を出さないのはリスキン元（種別）が透けるため。
+## 1行目は名前（自軍は兵種つき）、2行目は所属部隊。敵に兵種を出さないのはリスキン元（種別）が透けるため。
 func _update_header(u: Unit) -> void:
 	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)
 	var unit_name := tr("unit." + skin.skin_id + ".name") if skin != null else u.type_id
-	var team_name := tr("ui.info.team_ally") if u.team == 0 else tr("ui.info.team_enemy")
-	_header_name.text = tr("ui.info.header_name") % [unit_name, team_name]
-	var sub := ""
-	if u.team == 0:
-		var cat := UnitCatalog.display_category(u.type_id)
-		sub = tr("category." + cat + ".name") if not cat.is_empty() else ""
-	else:
-		sub = _squad_name(u)
-	_header_sub.text = sub
-	_header_sub.visible = not sub.is_empty()
+	# 1行目は名前。自軍だけ兵種を括弧で添える（敵に兵種は出さない → doc/gdd/uiux.md 見出し）。
+	# 陣営は書かない＝駒の色と盤の位置で分かる。
+	var cat := UnitCatalog.display_category(u.type_id) if u.team == 0 else ""
+	_header_name.text = tr("ui.info.header_class") % [unit_name, tr("category." + cat + ".name")] \
+		if not cat.is_empty() else unit_name
+	_header_sub.text = _squad_name(u)  # 2行目は所属部隊（味方・敵とも）
+	_header_sub.visible = not _header_sub.text.is_empty()
 	_update_ai(u)
 
-## 敵の見出し2行目＝所属部隊の名前。部隊は一斉警戒の範囲＝この駒に触れると誰まで起きるかを示す。
+## 見出し2行目＝所属部隊の名前。敵の部隊は一斉警戒の範囲＝この駒に触れると誰まで起きるかを示す。
+## 味方の部隊は規則に効かない＝作者が駒の束に付けた呼び名をそのまま見せる。
 ## name はステージが持つ表示名で tr() を通す（i18n 移行時にキーへ差し替えられる）。
-## name の無い部隊は order から組む＝名前を書かなくても部隊が分かれていることは見せる。
+## name の無い敵部隊は order から番号で組む＝名前を書かなくても部隊が分かれていることは見せる。
+## 味方は名前を書いたときだけ出す（部隊が1つだけの盤で番号を出しても何も伝わらない）。
 func _squad_name(u: Unit) -> String:
 	var squad := _state.squad_of(u.id)
-	if squad.is_empty():
+	if squad.is_empty() and _state.squad_index_of(u.id) < 0:
 		return ""
 	var nm := String(squad.get("name", ""))
 	if not nm.is_empty():
 		return tr(nm)
+	if u.team == 0:
+		return ""  # 味方は名前を書いたときだけ出す（1部隊しかない盤で「第1部隊」は何も伝えない）
 	var order: Variant = squad.get("order")
 	var n := _state.squad_index_of(u.id) + 1
 	if typeof(order) == TYPE_INT or typeof(order) == TYPE_FLOAT:

@@ -3,8 +3,10 @@
   "name": "debug-charge",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 2, "row": 3 },
-    { "type": "cleric", "col": 2, "row": 4 }
+    { "units": [
+        { "type": "fighter", "col": 2, "row": 3 },
+        { "type": "cleric", "col": 2, "row": 4 }
+      ] }
   ],
   "enemy": [],
   "bases": [

@@ -7,31 +7,33 @@
     "main": "graveyard"
   },
   "player": [
-    {
-      "type": "fighter",
-      "col": 1,
-      "row": 1
-    },
-    {
-      "type": "thief",
-      "col": 1,
-      "row": 2
-    },
-    {
-      "type": "pegasus",
-      "col": 1,
-      "row": 3
-    },
-    {
-      "type": "pixie",
-      "col": 1,
-      "row": 4
-    },
-    {
-      "type": "airship",
-      "col": 1,
-      "row": 5
-    }
+    { "units": [
+        {
+          "type": "fighter",
+          "col": 1,
+          "row": 1
+        },
+        {
+          "type": "thief",
+          "col": 1,
+          "row": 2
+        },
+        {
+          "type": "pegasus",
+          "col": 1,
+          "row": 3
+        },
+        {
+          "type": "pixie",
+          "col": 1,
+          "row": 4
+        },
+        {
+          "type": "airship",
+          "col": 1,
+          "row": 5
+        }
+      ] }
   ],
   "enemy": [
     {

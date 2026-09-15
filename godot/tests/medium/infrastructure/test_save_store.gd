@@ -36,7 +36,7 @@ func test_roundtrips_real_battle_state() -> void:
 	# 実 BattleState を to_save_diff→保存→読出→apply_save_diff で復元できる（中断→再開の経路）。
 	var cat := { "knight": UnitType.from_dict({ "id": "knight", "atk_ground": 12, "defense": 8, "move": 3, "max_troops": 8 }) }
 	var stage := { "cols": 6, "rows": 4, "turn_limit": 10,
-		"player": [{ "type": "knight", "col": 1, "row": 1 }] }
+		"player": [ { "units": [{ "type": "knight", "col": 1, "row": 1 }] } ] }
 	var s := StageLoader.build(stage, cat)
 	s.current_team = 1
 	s.turn_number = 4

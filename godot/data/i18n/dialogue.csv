@@ -242,6 +242,7 @@ undead-rush.st7.intro.4,今まで通り、トリニティノヴァで薙ぎ払�
 undead-rush.st7.intro.5,守り抜け。聖騎士様が撃つ、その一手のために。行くぞ、これで終わらせる。,"Hold the line — for the single strike the paladin will loose. Let's go; we end this here."
 undead-rush.st7.arrive.label,飛空艇の到着まであと{n}ターン,Turns until the airship arrives: {n}
 undead-rush.st7.arrive.name,飛空艇の到着,The Airship Arrives
+undead-rush.st7.party.airship,救援隊,The Relief Force
 undead-rush.st7.arrive.1,飛空艇が着きました！　聖騎士様がお見えです！,"The airship has landed! The paladin is here!"
 undead-rush.st7.arrive.2,待たせたな。戦況は？,"Sorry to keep you waiting. How stands the field?"
 undead-rush.st7.arrive.3,ネクロマンサーは奥の高台です。屍は墓地から次々と湧いてきます。,"The necromancer is on the high ground at the far end. The dead keep rising from the graveyards."
@@ -271,6 +272,7 @@ dbg.base.4,盤上の味方が零でも、町に控えが残っていれば敗北
 dbg.base.5,町の色は所有で変わる。灰が中立、青が味方、赤が敵。,"Town colours follow ownership: grey neutral, blue ours, red theirs."
 dbg.base.6,右奥のゴブリン三体は拠点攻略。遠くから町を取りに来る。放っておけば中立も味方の町も奪われる。,"The three goblins at the far right are raiders. They march in from a distance to take a town — leave them be and both the neutral town and ours will fall."
 dbg.event.airship,飛空艇 到着まで あと{n}ターン,"Airship arrives in {n} turn(s)"
+dbg.event.party.airship,救援隊,Relief Force
 dbg.event.goblins,ゴブリンの増援まで あと{n}ターン,"Goblin reinforcements in {n} turn(s)"
 dragon-hunt.st1.intro.1,今回の依頼は魔獣の討伐と調査か。,"So this contract is culling the beasts, and looking into them."
 dragon-hunt.st1.intro.2,ひとまず、この街道の先の街で情報を集めましょう。,"For now, let us gather word at the city up this road."

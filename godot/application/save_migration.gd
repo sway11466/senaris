@@ -27,6 +27,9 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version == 3:
 		record = _v3_to_v4(record)
 		version = 4
+	if version == 4:
+		record = _v4_to_v5(record)
+		version = 5
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -48,6 +51,45 @@ static func _renamed_path(data: Dictionary) -> Dictionary:
 ## v3 → v4（meta に開始時刻を足した）。旧セーブは測っていないので 0＝不明を入れる。
 ## 不明のまま勝った回は戦果票に所要時間を出さず、ベストタイムも記録しない
 ## （doc/tech/gamesystem.md §所要時間）。測っていない時間を 0 秒として記録に混ぜないため。
+## v4（味方は部隊に属さない）→ v5（味方も部隊に属する）。部隊の所属は state.squads の並び順で
+## 持つので、味方部隊が先に積まれたぶん既存の所属（＝すべて敵か拠点）を後ろへずらす。
+## 味方の駒は、どの部隊に居たかを v4 セーブが持たない＝全員そのステージの最初の味方部隊に入れる
+## （doc/tech/gamesystem.md §版と移行）。所属は見出しの表示にしか効かない。
+static func _v4_to_v5(record: Dictionary) -> Dictionary:
+	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
+	var shift := _player_party_count(String((record.get("meta", {}) as Dictionary).get("stage_path", "")))
+	var squad_of := {}
+	for key in (state.get("squad_of", {}) as Dictionary):
+		squad_of[key] = int((state["squad_of"] as Dictionary)[key]) + shift
+	var engaged: Array = []
+	for i in (state.get("engaged_squads", []) as Array):
+		engaged.append(int(i) + shift)
+	if shift > 0:
+		for u in _as_dicts(state.get("units", [])):
+			if int(u.get("team", 0)) == 0:
+				squad_of[str(int(u.get("id", 0)))] = 0  # 味方は最初の部隊へ
+	state["squad_of"] = squad_of
+	state["engaged_squads"] = engaged
+	return { "meta": record.get("meta", {}), "state": state }
+
+## そのステージの味方部隊の数（ずらし幅）。読めないステージは 0＝所属をいじらない。
+static func _player_party_count(stage_path: String) -> int:
+	if stage_path.is_empty():
+		return 0
+	var data := StageLoader.read_stage(stage_path)
+	var parties: Variant = data.get("player", [])
+	return (parties as Array).size() if typeof(parties) == TYPE_ARRAY else 0
+
+## Variant を辞書の配列として読む（旧版セーブの中身を数えるときの入口）。
+static func _as_dicts(v: Variant) -> Array:
+	var out: Array = []
+	if typeof(v) != TYPE_ARRAY:
+		return out
+	for e in v:
+		if typeof(e) == TYPE_DICTIONARY:
+			out.append(e)
+	return out
+
 static func _v3_to_v4(record: Dictionary) -> Dictionary:
 	var meta: Dictionary = (record.get("meta", {}) as Dictionary).duplicate()
 	meta["started_at"] = 0
@@ -139,8 +181,11 @@ static func _identity_of_stage(e: Dictionary) -> String:
 	var hex := Vector2i.MAX
 	if on == "capture" and e.has("col") and e.has("row"):
 		hex = Hex.offset_to_axial(int(e["col"]), int(e["row"]))
+	# 陣営は増援なら駒を書いたセクション、会話だけなら "team"（引き金の条件）。
 	var team := 0
-	if e.has("team"):
+	if typeof(e.get("enemy")) == TYPE_ARRAY:
+		team = 1
+	elif typeof(e.get("player")) != TYPE_ARRAY and e.has("team"):
 		team = int(StageLoader.TEAM_NAMES.get(String(e["team"]), 0))
 	return _identity(int(e.get("turn", 1)), team, on, hex, String(e.get("once", "")), String(e.get("label", "")))
 

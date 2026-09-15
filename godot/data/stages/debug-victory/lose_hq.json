@@ -3,7 +3,9 @@
   "name": "debug-lose_hq",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 8, "row": 2 }
+    { "units": [
+        { "type": "fighter", "col": 8, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "本拠地強襲", "ai": "raid",

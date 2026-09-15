@@ -3,9 +3,11 @@
   "name": "debug-carryover-seed",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "actor": "keeper", "supply": "join", "level": 7, "troops": 3, "col": 0, "row": 0 },
-    { "type": "archer", "actor": "refiller", "supply": "join", "level": 4, "troops": 5, "col": 0, "row": 4 },
-    { "type": "novice", "actor": "faller", "supply": "join", "level": 9, "troops": 1, "col": 6, "row": 2 }
+    { "units": [
+        { "type": "fighter", "actor": "keeper", "supply": "join", "level": 7, "troops": 3, "col": 0, "row": 0 },
+        { "type": "archer", "actor": "refiller", "supply": "join", "level": 4, "troops": 5, "col": 0, "row": 4 },
+        { "type": "novice", "actor": "faller", "supply": "join", "level": 9, "troops": 1, "col": 6, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "継承の種（faller だけを狙える位置）", "ai": "charge",

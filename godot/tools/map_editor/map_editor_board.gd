@@ -239,8 +239,10 @@ func _draw() -> void:
 	# 上の行から描く＝立ち絵が重なったとき手前（下の行）が上に来る。
 	var font_size := maxi(8, int(hex_size * 0.32))
 	var pieces := []
-	for u in doc.data["player"]:
-		pieces.append({ "unit": u, "team": 0, "tag": "" })
+	var parties: Array = doc.data["player"]
+	for p in parties.size():
+		for u in parties[p].get("units", []):
+			pieces.append({ "unit": u, "team": 0, "tag": str(p) if parties.size() > 1 else "" })
 	var squads: Array = doc.data["enemy"]
 	for s in squads.size():
 		for u in squads[s].get("units", []):

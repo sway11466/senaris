@@ -3,7 +3,9 @@
   "name": "debug-turnlimit",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 1, "row": 2 }
+    { "units": [
+        { "type": "fighter", "col": 1, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "見張り", "ai": "ambush", "sight": 2,

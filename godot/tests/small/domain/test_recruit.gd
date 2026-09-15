@@ -12,7 +12,7 @@ func _catalog() -> Dictionary:
 func _stage(player_col: int = 1) -> BattleState:
 	return StageLoader.build({
 		"cols": 8, "rows": 4,
-		"player": [{ "type": "cleric", "col": player_col, "row": 1 }],
+		"player": [ { "units": [{ "type": "cleric", "col": player_col, "row": 1 }] } ],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
 			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }],
 	}, _catalog())

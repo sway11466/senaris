@@ -18,7 +18,8 @@ var _terrain_undo := {}    ## 直前の地形操作より前の状態（terrain 
 ## 新規ステージ（平地のみ・駒なし）。
 static func new_stage(cols: int = 12, rows: int = 8, margin: int = 0) -> MapEditorDoc:
 	var doc := MapEditorDoc.new()
-	doc.data = { "turn_limit": 30, "name": "", "cols": cols, "rows": rows, "margin": margin, "terrain": [], "player": [], "enemy": [], "bases": [] }
+	doc.data = { "turn_limit": 30, "name": "", "cols": cols, "rows": rows, "margin": margin, "terrain": [],
+		"player": [ { "units": [] } ], "enemy": [], "bases": [] }
 	doc._normalize_terrain()
 	return doc
 
@@ -44,6 +45,7 @@ static func from_text(text: String, terrain_text: String) -> MapEditorDoc:
 	if not doc.data.has("margin"):
 		doc.data["margin"] = 0  # 既定値に頼らず必ず書き出す（保存でキーが増える＝意図した挙動）
 	doc._migrate_legacy_bases()
+	doc._migrate_legacy_player()
 	doc._normalize_terrain()
 	return doc
 
@@ -348,7 +350,8 @@ func resize(new_cols: int, new_rows: int) -> int:
 	_normalize_terrain()
 	_terrain_undo = {}  # 旧サイズのスナップショットは戻せない（盤とズレる）
 	var dropped := 0
-	dropped += _drop_out_of_range(data["player"])
+	for pt in data["player"]:
+		dropped += _drop_out_of_range(pt.get("units", []))
 	for sq in data["enemy"]:
 		dropped += _drop_out_of_range(sq.get("units", []))
 	dropped += _drop_out_of_range(data["bases"])
@@ -467,10 +470,7 @@ func shift(dcol: int, drow: int) -> bool:
 ## 盤に座標を持つ駒すべて（自軍・敵部隊・増援イベント）。実体を返す＝書き換えがそのまま効く。
 ## 拠点の控え(garrison)と搭載駒(passengers)は座標を持たない（出撃時に決まる）ので含めない。
 func placed_units() -> Array:
-	var out := []
-	for u in data.get("player", []):
-		if typeof(u) == TYPE_DICTIONARY:
-			out.append(u)
+	var out := player_pieces()
 	for sq in data.get("enemy", []):
 		if typeof(sq) != TYPE_DICTIONARY:
 			continue
@@ -480,28 +480,45 @@ func placed_units() -> Array:
 	for ev in event_list():
 		if typeof(ev) != TYPE_DICTIONARY:
 			continue
-		for u in (ev as Dictionary).get("units", []):
-			if typeof(u) == TYPE_DICTIONARY:
-				out.append(u)
+		for section in ["player", "enemy"]:
+			for pt in (ev as Dictionary).get(section, []):
+				for u in (pt as Dictionary).get("units", []):
+					if typeof(u) == TYPE_DICTIONARY:
+						out.append(u)
 	return out
 
 
 # --- ユニット・拠点 ---
 
 
+## 味方の駒（部隊をまたいで記述順）。部隊の区切りを見ない側が通る。
+func player_pieces() -> Array:
+	var out := []
+	for pt in data.get("player", []):
+		if typeof(pt) != TYPE_DICTIONARY:
+			continue
+		for u in (pt as Dictionary).get("units", []):
+			if typeof(u) == TYPE_DICTIONARY:
+				out.append(u)
+	return out
+
+
 ## セルの駒を返す。無ければ空辞書。
-## あれば { "squad": 部隊index（自軍は -1）, "index": 配列内index, "unit": 駒辞書 }。
+## あれば { "squad": 敵部隊index（自軍は -1）, "party": 味方部隊index（敵は -1）,
+##         "index": 部隊の中の index, "unit": 駒辞書 }。
 func unit_at(col: int, row: int) -> Dictionary:
-	var units: Array = data["player"]
-	for i in units.size():
-		if int(units[i].get("col", 0)) == col and int(units[i].get("row", 0)) == row:
-			return { "squad": -1, "index": i, "unit": units[i] }
+	var parties: Array = data["player"]
+	for p in parties.size():
+		var pu: Array = parties[p].get("units", [])
+		for i in pu.size():
+			if int(pu[i].get("col", 0)) == col and int(pu[i].get("row", 0)) == row:
+				return { "squad": -1, "party": p, "index": i, "unit": pu[i] }
 	var squads: Array = data["enemy"]
 	for s in squads.size():
 		var su: Array = squads[s].get("units", [])
 		for i in su.size():
 			if int(su[i].get("col", 0)) == col and int(su[i].get("row", 0)) == row:
-				return { "squad": s, "index": i, "unit": su[i] }
+				return { "squad": s, "party": -1, "index": i, "unit": su[i] }
 	return {}
 
 
@@ -529,12 +546,51 @@ static func garrison_count(base: Variant) -> int:
 	return n
 
 
-## 自軍の駒を置く（既に駒があれば false）。
-func add_player(type_id: String, col: int, row: int) -> bool:
+## 自軍の駒を味方部隊 party_idx に置く（既に駒があれば false）。
+func add_player(type_id: String, col: int, row: int, party_idx: int = 0) -> bool:
 	if not unit_at(col, row).is_empty():
 		return false
-	data["player"].append({ "type": type_id, "col": col, "row": row })
+	if party_idx < 0 or party_idx >= data["player"].size():
+		return false
+	var pt: Dictionary = data["player"][party_idx]
+	if typeof(pt.get("units")) != TYPE_ARRAY:
+		pt["units"] = []
+	pt["units"].append({ "type": type_id, "col": col, "row": row })
 	return true
+
+
+## 味方部隊を追加して index を返す。持つのは名前だけ（特性も行動順も無い）。
+func add_party(name: String = "") -> int:
+	var pt := {}
+	if name != "":
+		pt["name"] = name
+	pt["units"] = []
+	data["player"].append(pt)
+	return data["player"].size() - 1
+
+
+## 駒を別の味方部隊へ移す（座標はそのまま）。移せなければ false。
+func move_unit_to_party(from_party: int, index: int, to_party: int) -> bool:
+	var parties: Array = data["player"]
+	if from_party == to_party:
+		return false
+	if from_party < 0 or from_party >= parties.size() or to_party < 0 or to_party >= parties.size():
+		return false
+	var units: Array = parties[from_party].get("units", [])
+	if index < 0 or index >= units.size():
+		return false
+	var unit: Variant = units[index]
+	units.remove_at(index)
+	if typeof(parties[to_party].get("units")) != TYPE_ARRAY:
+		parties[to_party]["units"] = []
+	parties[to_party]["units"].append(unit)
+	return true
+
+
+## 味方部隊を削除（所属ユニットごと）。最後の1つは消さない＝駒の置き場が無くなる。
+func remove_party(party_idx: int) -> void:
+	if data["player"].size() > 1 and party_idx >= 0 and party_idx < data["player"].size():
+		data["player"].remove_at(party_idx)
 
 
 ## 敵の駒を部隊 squad_idx に置く（既に駒があれば false）。
@@ -655,7 +711,7 @@ func remove_unit_at(col: int, row: int) -> bool:
 	if hit.is_empty():
 		return false
 	if int(hit["squad"]) < 0:
-		data["player"].remove_at(hit["index"])
+		data["player"][int(hit["party"])]["units"].remove_at(hit["index"])
 	else:
 		data["enemy"][hit["squad"]]["units"].remove_at(hit["index"])
 	return true
@@ -720,7 +776,7 @@ static func _is_target_at(t: Variant, col: int, row: int) -> bool:
 ## ステージで使われている actor の集合（盤の駒・部隊の駒・拠点の控え）。重複しない名前を作るのに使う。
 func used_actors() -> Dictionary:
 	var out := {}
-	for u in data["player"]:
+	for u in player_pieces():
 		_collect_actor(out, u)
 	for sq in data["enemy"]:
 		for u in sq.get("units", []):
@@ -852,13 +908,15 @@ func event_list() -> Array:
 
 
 ## 増援を1件足す（キーが無ければ作る）。駒は空で始め、パネル側で足す。
+## 加わる駒は陣営のセクション（player / enemy）に部隊として書く＝どちらに書いたかが陣営
+## （doc/gdd/map.md イベント）。1イベント＝1部隊で作る。
 func add_event(turn: int, team: String) -> void:
 	if typeof(data.get("events")) != TYPE_ARRAY:
 		data["events"] = []
 	# 登場の仕方は駒を出すイベントの必須キー（doc/gdd/map.md イベント）。入口を持たない fade で
 	# 作っておき、歩かせたければエディタで march／scatter に変える＝入口の欄がそこで出る。
-	data["events"].append({ "turn": maxi(turn, 1), "type": "reinforce", "team": team,
-		"entry": "fade", "units": [] })
+	data["events"].append({ "turn": maxi(turn, 1), "type": "reinforce",
+		"entry": "fade", team: [ { "units": [] } ] })
 
 
 func remove_event(index: int) -> void:
@@ -870,14 +928,53 @@ func remove_event(index: int) -> void:
 
 
 ## index のイベントの駒リスト（無ければ作って返す＝そのまま編集できる）。範囲外は空。
+## 駒は陣営セクションの部隊の中にある。エディタが作るイベントは1部隊なので先頭を返す。
 func event_units(index: int) -> Array:
+	var pt := event_party(index)
+	if pt.is_empty():
+		return []
+	if typeof(pt.get("units")) != TYPE_ARRAY:
+		pt["units"] = []
+	return pt["units"]
+
+
+## index のイベントが駒を書いている部隊（無ければ作る）。範囲外は空辞書。
+func event_party(index: int) -> Dictionary:
 	var e := event_list()
 	if index < 0 or index >= e.size():
-		return []
+		return {}
 	var ev: Dictionary = e[index]
-	if typeof(ev.get("units")) != TYPE_ARRAY:
-		ev["units"] = []
-	return ev["units"]
+	var section := event_team(index)
+	if typeof(ev.get(section)) != TYPE_ARRAY or (ev[section] as Array).is_empty():
+		ev[section] = [ { "units": [] } ]
+	return (ev[section] as Array)[0]
+
+
+## index のイベントの陣営＝駒を書いているセクション名（既定は自軍）。
+func event_team(index: int) -> String:
+	var e := event_list()
+	if index < 0 or index >= e.size():
+		return "player"
+	var ev: Dictionary = e[index]
+	return "enemy" if typeof(ev.get("enemy")) == TYPE_ARRAY else "player"
+
+
+## index のイベントの陣営を変える（部隊ごと移す＝駒と名前はそのまま）。
+func set_event_team(index: int, team: String) -> void:
+	var e := event_list()
+	if index < 0 or index >= e.size() or not (team in ["player", "enemy"]):
+		return
+	var ev: Dictionary = e[index]
+	var was := event_team(index)
+	if was == team:
+		return
+	var parties: Variant = ev.get(was, [ { "units": [] } ])
+	ev.erase(was)
+	ev[team] = parties
+	for pt in (parties as Array):  # 特性と行動順は敵だけのもの
+		if team == "player":
+			(pt as Dictionary).erase("ai")
+			(pt as Dictionary).erase("order")
 
 
 func defeat_list() -> Array:
@@ -949,6 +1046,27 @@ func to_terrain_text() -> String:
 
 ## 旧キーの拠点（kind:"hq" と native）を hq / rest に読み替える。読み込み時だけの片道変換＝保存で新キーになる。
 ## 詳細 → doc/gdd/map.md 拠点の値。控えの native は既定を持たないので、無い行は拠点の開始時の所有者に倒す。
+## 旧い形（player に駒を直書き）を1つの味方部隊に包む。読み込みでだけ通す＝保存すれば新しい形になる。
+## 仕様 → doc/gdd/map.md 駒の配置
+func _migrate_legacy_player() -> void:
+	var parties: Array = data.get("player", [])
+	var units := []
+	var wrapped := []
+	for e in parties:
+		if typeof(e) != TYPE_DICTIONARY:
+			continue
+		if (e as Dictionary).has("units"):
+			wrapped.append(e)
+		else:
+			units.append(e)  # 駒の直書き
+	if units.is_empty():
+		if wrapped.is_empty():
+			data["player"] = [ { "units": [] } ]  # 駒の置き場は常に1つ以上
+		return
+	wrapped.push_front({ "units": units })
+	data["player"] = wrapped
+
+
 func _migrate_legacy_bases() -> void:
 	for b in data.get("bases", []):
 		if typeof(b) != TYPE_DICTIONARY:

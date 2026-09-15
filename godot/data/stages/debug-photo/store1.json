@@ -2,36 +2,38 @@
   "turn_limit": 20,
   "name": "debug-photo-store1",
   "player": [
-    {
-      "type": "fighter",
-      "col": 5,
-      "row": 8
-    },
-    {
-      "type": "novice",
-      "col": 5,
-      "row": 7
-    },
-    {
-      "type": "novice",
-      "col": 4,
-      "row": 6
-    },
-    {
-      "type": "archer",
-      "col": 6,
-      "row": 8
-    },
-    {
-      "type": "cleric",
-      "col": 6,
-      "row": 9
-    },
-    {
-      "type": "halfling",
-      "col": 4,
-      "row": 7
-    }
+    { "units": [
+        {
+          "type": "fighter",
+          "col": 5,
+          "row": 8
+        },
+        {
+          "type": "novice",
+          "col": 5,
+          "row": 7
+        },
+        {
+          "type": "novice",
+          "col": 4,
+          "row": 6
+        },
+        {
+          "type": "archer",
+          "col": 6,
+          "row": 8
+        },
+        {
+          "type": "cleric",
+          "col": 6,
+          "row": 9
+        },
+        {
+          "type": "halfling",
+          "col": 4,
+          "row": 7
+        }
+      ] }
   ],
   "enemy": [
     {

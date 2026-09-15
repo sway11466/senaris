@@ -30,7 +30,7 @@ func _data(events: Array) -> Dictionary:
 	return {
 		"cols": 6, "rows": 4,
 		"terrain": ["......", "......", "......", "......"],
-		"player": [ { "type": "fighter", "col": 0, "row": 0 } ],
+		"player": [ { "units": [ { "type": "fighter", "col": 0, "row": 0 } ] } ],
 		"enemy": [],
 		"events": events,
 	}
@@ -63,11 +63,22 @@ func _next_id() -> String:
 ## 登場の仕方は駒を出すイベントの必須キー（doc/gdd/map.md）。ここの関心は発火なので
 ## 入口を持たない fade を既定にする（歩かせ方を見るテストは extra で上書きする）。
 func _reinforce(turn: int, extra: Dictionary = {}) -> Dictionary:
-	var e := { "id": _next_id(), "turn": turn, "type": "reinforce", "team": "player",
-		"entry": "fade",
-		"units": [ { "type": "fighter", "col": 5, "row": 3 } ] }
+	var e := { "id": _next_id(), "turn": turn, "type": "reinforce", "entry": "fade" }
+	var units: Array = [ { "type": "fighter", "col": 5, "row": 3 } ]
+	var squad := {}      # 部隊の定義（敵なら ai・order も）
+	var section := "player"  # 駒を書くセクション＝加わる陣営
 	for k in extra:
-		e[k] = extra[k]
+		match k:
+			"team":
+				section = String(extra[k])
+			"units":
+				units = extra[k]
+			"ai", "order", "sight":
+				squad[k] = extra[k]
+			_:
+				e[k] = extra[k]
+	squad["units"] = units
+	e[section] = [squad]
 	return _with_name(e)
 
 ## 会話つきのイベントは見出しの翻訳キーが必須（doc/gdd/map.md イベントの name）＝雛形で添える。
@@ -131,7 +142,7 @@ func test_enemy_reinforcement_joins_a_squad() -> void:
 ## 指定hexが埋まっていたら最寄りの空きへずらす（イベントは止まらない）。
 func test_shifts_to_the_nearest_free_hex() -> void:
 	var data := _data([_reinforce(1)])
-	data["player"].append({ "type": "fighter", "col": 5, "row": 3 })  # 指定先を先に埋める
+	data["player"][0]["units"].append({ "type": "fighter", "col": 5, "row": 3 })  # 指定先を先に埋める
 	var s := _build(data)
 	assert_eq(s.team_unit_count(0), 3, "ずれても出る")
 	var want := Hex.offset_to_axial(5, 3)
@@ -154,9 +165,9 @@ func test_shifts_off_impassable_terrain() -> void:
 # --- 搭載駒 ---
 
 func test_transport_arrives_loaded() -> void:
-	var e := { "id": "airship", "turn": 2, "type": "reinforce", "team": "player", "entry": "fade",
-		"units": [ { "type": "airship", "col": 5, "row": 3,
-			"passengers": [ { "type": "paladin" } ] } ] }
+	var e := { "id": "airship", "turn": 2, "type": "reinforce", "entry": "fade",
+		"player": [ { "units": [ { "type": "airship", "col": 5, "row": 3,
+			"passengers": [ { "type": "paladin" } ] } ] } ] }
 	var s := _state([e])
 	assert_eq(s.team_unit_count(0), 1, "開始時は居ない")
 	s.end_turn(); s.end_turn()
@@ -168,9 +179,9 @@ func test_transport_arrives_loaded() -> void:
 
 ## 搭載駒は盤上に居ない＝殲滅の数には入らない（既存の輸送と同じ扱い）。
 func test_passengers_are_not_on_board() -> void:
-	var e := { "id": "airship", "turn": 1, "type": "reinforce", "team": "player", "entry": "fade",
-		"units": [ { "type": "airship", "col": 5, "row": 3,
-			"passengers": [ { "type": "paladin" } ] } ] }
+	var e := { "id": "airship", "turn": 1, "type": "reinforce", "entry": "fade",
+		"player": [ { "units": [ { "type": "airship", "col": 5, "row": 3,
+			"passengers": [ { "type": "paladin" } ] } ] } ] }
 	var s := _state([e])
 	assert_eq(s.team_unit_count(0), 2, "盤に居るのは元の1体＋飛空艇")
 
@@ -227,7 +238,7 @@ func test_event_records_where_units_landed() -> void:
 ## ずれて出たときは、指定座標ではなくずれた先を控える（カメラは本当の場所を見る）。
 func test_placed_hex_follows_the_shift() -> void:
 	var data := _data([_reinforce(1, { "focus": true })])
-	data["player"].append({ "type": "fighter", "col": 5, "row": 3 })  # 指定先を先に埋める
+	data["player"][0]["units"].append({ "type": "fighter", "col": 5, "row": 3 })  # 指定先を先に埋める
 	var s := _build(data)
 	var placed: Array = s.last_fired_events[0].placed
 	assert_eq(placed.size(), 1, "1体ぶん控える")
@@ -242,10 +253,10 @@ func test_focus_survives_serialization() -> void:
 # --- 中断セーブ ---
 
 func test_pending_event_survives_serialization() -> void:
-	var e := { "id": "airship", "turn": 4, "type": "reinforce", "team": "player", "label": "ui.test.airship",
+	var e := { "id": "airship", "turn": 4, "type": "reinforce", "label": "ui.test.airship",
 		"entry": "fade",
-		"units": [ { "type": "airship", "col": 5, "row": 3,
-			"passengers": [ { "type": "paladin" } ] } ] }
+		"player": [ { "units": [ { "type": "airship", "col": 5, "row": 3,
+			"passengers": [ { "type": "paladin" } ] } ] } ] }
 	var data := _data([e])
 	var back := _roundtrip(_build(data), data)
 	assert_eq(back.pending_events().size(), 1, "未発生のまま復元される")
@@ -284,7 +295,7 @@ func _base_hex() -> Vector2i:
 ## (3,2) に中立拠点、その隣（2,2）に占領できるクレリック。敵は置かない（決着はここでは見ない）。
 func _capture_data(events: Array) -> Dictionary:
 	var data := _data(events)
-	data["player"] = [ { "type": "cleric", "col": 2, "row": 2 } ]
+	data["player"] = [ { "units": [ { "type": "cleric", "col": 2, "row": 2 } ] } ]
 	data["bases"] = [ { "col": BASE_COL, "row": BASE_ROW, "team": "neutral" } ]
 	return data
 

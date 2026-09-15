@@ -3,8 +3,10 @@
   "name": "debug-defend-base",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 3, "row": 4 },
-    { "type": "novice", "col": 2, "row": 3 }
+    { "units": [
+        { "type": "fighter", "col": 3, "row": 4 },
+        { "type": "novice", "col": 2, "row": 3 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "拠点強襲", "ai": "raid",

@@ -120,7 +120,7 @@ func test_turnlimit_debug_stage_loads() -> void:
 	assert_eq(s.turn_limit, 10, "リミット10")
 	assert_eq(s.team_unit_count(0), 1, "自軍1体")
 	assert_eq(s.team_unit_count(1), 1, "敵1体")
-	assert_eq(String(s.squads[0].get("ai", "")), "ambush", "敵は待ち伏せ(ambush)")
+	assert_eq(String(s.squads[1].get("ai", "")), "ambush", "敵は待ち伏せ(ambush)＝味方部隊の次")
 
 func test_build_wires_turn_limit() -> void:
 	var s := StageLoader.build({ "cols": 6, "rows": 6, "turn_limit": 25 })

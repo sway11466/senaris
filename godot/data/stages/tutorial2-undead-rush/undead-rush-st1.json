@@ -5,11 +5,13 @@
   "backdrop": "sky_overcast",
   "haze": 0.80,
   "player": [
-    { "type": "knight", "col": 6, "row": 7 },
-    { "type": "priest", "col": 6, "row": 8 },
-    { "type": "wizard", "col": 5, "row": 7 },
-    { "type": "witch", "col": 7, "row": 8 },
-    { "type": "fighter", "col": 8, "row": 8 }
+    { "units": [
+        { "type": "knight", "col": 6, "row": 7 },
+        { "type": "priest", "col": 6, "row": 8 },
+        { "type": "wizard", "col": 5, "row": 7 },
+        { "type": "witch", "col": 7, "row": 8 },
+        { "type": "fighter", "col": 8, "row": 8 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "undead-rush.st1.squad.1", "ai": "charge",

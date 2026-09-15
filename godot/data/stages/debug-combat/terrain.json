@@ -3,19 +3,21 @@
   "name": "debug-combat-terrain",
   "haze": 0.80,
   "player": [
-    { "type": "archer", "col": 1, "row": 1 },
-    { "type": "archer", "col": 6, "row": 1 },
-    { "type": "archer", "col": 1, "row": 3 },
-    { "type": "archer", "col": 6, "row": 3 },
-    { "type": "archer", "col": 1, "row": 5 },
-    { "type": "archer", "col": 6, "row": 5 },
-    { "type": "archer", "col": 1, "row": 7 },
-    { "type": "archer", "col": 6, "row": 7 },
-    { "type": "archer", "col": 1, "row": 9 },
-    { "type": "archer", "col": 6, "row": 9 },
-    { "type": "archer", "col": 1, "row": 11 },
-    { "type": "archer", "col": 6, "row": 11 },
-    { "type": "archer", "col": 1, "row": 13 }
+    { "units": [
+        { "type": "archer", "col": 1, "row": 1 },
+        { "type": "archer", "col": 6, "row": 1 },
+        { "type": "archer", "col": 1, "row": 3 },
+        { "type": "archer", "col": 6, "row": 3 },
+        { "type": "archer", "col": 1, "row": 5 },
+        { "type": "archer", "col": 6, "row": 5 },
+        { "type": "archer", "col": 1, "row": 7 },
+        { "type": "archer", "col": 6, "row": 7 },
+        { "type": "archer", "col": 1, "row": 9 },
+        { "type": "archer", "col": 6, "row": 9 },
+        { "type": "archer", "col": 1, "row": 11 },
+        { "type": "archer", "col": 6, "row": 11 },
+        { "type": "archer", "col": 1, "row": 13 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "案山子（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,

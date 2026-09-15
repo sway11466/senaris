@@ -2,25 +2,27 @@
   "turn_limit": 30,
   "name": "undead-rush-st7",
   "player": [
-    { "type": "knight", "col": 3, "row": 22 },
-    { "type": "knight", "col": 4, "row": 22 },
-    { "type": "knight", "col": 2, "row": 22 },
-    { "type": "bishop", "col": 6, "row": 24 },
-    { "type": "priest", "col": 7, "row": 22 },
-    { "type": "priest", "col": 7, "row": 23 },
-    { "type": "cleric", "col": 5, "row": 23 },
-    { "type": "cleric", "col": 5, "row": 22 },
-    { "type": "fighter", "col": 8, "row": 22 },
-    { "type": "fighter", "col": 9, "row": 22 },
-    { "type": "fighter", "col": 10, "row": 22 },
-    { "type": "wizard", "col": 8, "row": 23 },
-    { "type": "wizard", "col": 10, "row": 23 },
-    { "type": "witch", "col": 2, "row": 23 },
-    { "type": "witch", "col": 4, "row": 23 },
-    { "type": "wagon", "col": 6, "row": 22,
-      "passengers": [
-        { "type": "barricade" },
-        { "type": "barricade" }
+    { "units": [
+        { "type": "knight", "col": 3, "row": 22 },
+        { "type": "knight", "col": 4, "row": 22 },
+        { "type": "knight", "col": 2, "row": 22 },
+        { "type": "bishop", "col": 6, "row": 24 },
+        { "type": "priest", "col": 7, "row": 22 },
+        { "type": "priest", "col": 7, "row": 23 },
+        { "type": "cleric", "col": 5, "row": 23 },
+        { "type": "cleric", "col": 5, "row": 22 },
+        { "type": "fighter", "col": 8, "row": 22 },
+        { "type": "fighter", "col": 9, "row": 22 },
+        { "type": "fighter", "col": 10, "row": 22 },
+        { "type": "wizard", "col": 8, "row": 23 },
+        { "type": "wizard", "col": 10, "row": 23 },
+        { "type": "witch", "col": 2, "row": 23 },
+        { "type": "witch", "col": 4, "row": 23 },
+        { "type": "wagon", "col": 6, "row": 22,
+          "passengers": [
+            { "type": "barricade" },
+            { "type": "barricade" }
+          ] }
       ] }
   ],
   "enemy": [
@@ -181,14 +183,17 @@
       "garrison": [ { "skin": "zombie", "count": 10, "native": "enemy" } ] }
   ],
   "events": [
-    { "turn": 5, "type": "reinforce", "label": "undead-rush.st7.arrive.label", "team": "player", "id": "airship-arrive", "dialogue": "arrive", "name": "undead-rush.st7.arrive.name", "focus": true,
+    { "turn": 5, "type": "reinforce", "label": "undead-rush.st7.arrive.label", "id": "airship-arrive", "dialogue": "arrive", "name": "undead-rush.st7.arrive.name", "focus": true,
       "entry": "march", "from": { "col": 0, "row": 25 },
-      "units": [
-        { "type": "airship", "col": 6, "row": 25,
-          "passengers": [
-            { "type": "paladin" },
-            { "type": "cleric" },
-            { "type": "priest" }
+      "player": [
+        { "name": "undead-rush.st7.party.airship",
+          "units": [
+            { "type": "airship", "col": 6, "row": 25,
+              "passengers": [
+                { "type": "paladin" },
+                { "type": "cleric" },
+                { "type": "priest" }
+              ] }
           ] }
       ] }
   ],

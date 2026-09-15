@@ -2,22 +2,24 @@
   "turn_limit": 30,
   "name": "debug-photo-devlog1-2",
   "player": [
-    {
-      "type": "fighter",
-      "col": 7,
-      "row": 4,
-      "troops": 5
-    },
-    {
-      "type": "novice",
-      "col": 6,
-      "row": 5
-    },
-    {
-      "type": "novice",
-      "col": 7,
-      "row": 5
-    }
+    { "units": [
+        {
+          "type": "fighter",
+          "col": 7,
+          "row": 4,
+          "troops": 5
+        },
+        {
+          "type": "novice",
+          "col": 6,
+          "row": 5
+        },
+        {
+          "type": "novice",
+          "col": 7,
+          "row": 5
+        }
+      ] }
   ],
   "enemy": [
     {

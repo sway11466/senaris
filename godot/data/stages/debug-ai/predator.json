@@ -3,9 +3,11 @@
   "name": "debug-weak",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 5, "row": 3 },
-    { "type": "witch", "col": 2, "row": 2 },
-    { "type": "wagon", "col": 1, "row": 4 }
+    { "units": [
+        { "type": "fighter", "col": 5, "row": 3 },
+        { "type": "witch", "col": 2, "row": 2 },
+        { "type": "wagon", "col": 1, "row": 4 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "弱者狙い", "ai": "predator",

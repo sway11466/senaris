@@ -53,6 +53,30 @@ func test_stage_squad_ai_labels_exist() -> void:
 ## 駒の直書きを見分ける印。部隊定義には現れず、駒にだけ現れるキー（player は type / enemy は skin）。
 const PIECE_KEYS := ["skin", "type", "col", "row"]
 
+func test_stage_player_pieces_all_belong_to_parties() -> void:
+	# 味方の駒も必ずいずれかの味方部隊に属する（doc/gdd/map.md 駒の配置）。
+	# player の直下に駒を直書きすると、ローダーは「units 無しの部隊」として読み飛ばす
+	# ＝盤から駒が黙って消える。
+	var files := _all_stage_files("res://data/stages")
+	assert_gt(files.size(), 0, "ステージJSONが見つかる")
+	for path in files:
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		for entry in data.get("player", []):
+			if typeof(entry) != TYPE_DICTIONARY:
+				assert_true(false, "%s の player 要素が部隊(辞書)でない" % path)
+				continue
+			var party: Dictionary = entry
+			assert_true(party.has("units"), "%s の player 要素が units を持つ＝部隊である" % path)
+			assert_eq(typeof(party.get("units", [])), TYPE_ARRAY, "%s の units は配列" % path)
+			for key in PIECE_KEYS:
+				assert_false(party.has(key), "%s の player 直下に駒キーがある（部隊の外に駒を直書きしない）: %s" \
+					% [path, key])
+			for key in ["ai", "order"]:
+				assert_false(party.has(key), "%s の味方部隊には書かないキー（特性も行動順も持たない）: %s" % [path, key])
+
+
 func test_stage_enemy_pieces_all_belong_to_squads() -> void:
 	# 敵駒は必ずいずれかの部隊(squad)に属する（doc/gdd/ai.md 部隊）。
 	# enemy の直下に駒を直書きすると特性も order も持たない駒ができ、行動順の列から漏れる。

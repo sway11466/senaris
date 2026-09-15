@@ -2,15 +2,17 @@
   "turn_limit": 20,
   "name": "goblin-horde-st1",
   "player": [
-    { "type": "fighter", "col": 5, "row": 10 },
-    { "type": "novice", "col": 7, "row": 10 },
-    { "type": "archer", "col": 5, "row": 12 },
-    { "type": "archer", "col": 7, "row": 11 },
-    { "type": "halfling", "col": 7, "row": 12 },
-    { "type": "novice", "col": 4, "row": 12 },
-    { "type": "novice", "col": 5, "row": 11 },
-    { "type": "novice", "col": 6, "row": 11 },
-    { "type": "cleric", "col": 6, "row": 12 }
+    { "units": [
+        { "type": "fighter", "col": 5, "row": 10 },
+        { "type": "novice", "col": 7, "row": 10 },
+        { "type": "archer", "col": 5, "row": 12 },
+        { "type": "archer", "col": 7, "row": 11 },
+        { "type": "halfling", "col": 7, "row": 12 },
+        { "type": "novice", "col": 4, "row": 12 },
+        { "type": "novice", "col": 5, "row": 11 },
+        { "type": "novice", "col": 6, "row": 11 },
+        { "type": "cleric", "col": 6, "row": 12 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "goblin-horde.st1.squad.1", "ai": "charge",

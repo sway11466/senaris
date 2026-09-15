@@ -4,16 +4,18 @@
   "name": "dragon-hunt-st1",
   "haze": 0.80,
   "player": [
-    { "type": "wizard", "actor": "wizard", "supply": "join", "col": 7, "row": 17 },
-    { "type": "hunter", "actor": "hunter", "supply": "join", "col": 5, "row": 17 },
-    { "type": "bishop", "actor": "bishop", "supply": "join", "col": 6, "row": 18 },
-    { "type": "vanguard", "actor": "vanguard", "supply": "join", "col": 7, "row": 16 },
-    { "type": "thief", "actor": "thief", "supply": "join", "col": 6, "row": 17 },
-    { "type": "fighter", "actor": "fighter", "supply": "join", "col": 9, "row": 8 },
-    { "type": "halfling", "actor": "halfling", "supply": "join", "col": 10, "row": 9 },
-    { "type": "archer", "actor": "archer", "supply": "join", "col": 9, "row": 9 },
-    { "type": "cleric", "actor": "cleric", "supply": "join", "col": 9, "row": 10 },
-    { "type": "mage", "actor": "mage", "supply": "join", "col": 10, "row": 10 }
+    { "units": [
+        { "type": "wizard", "actor": "wizard", "supply": "join", "col": 7, "row": 17 },
+        { "type": "hunter", "actor": "hunter", "supply": "join", "col": 5, "row": 17 },
+        { "type": "bishop", "actor": "bishop", "supply": "join", "col": 6, "row": 18 },
+        { "type": "vanguard", "actor": "vanguard", "supply": "join", "col": 7, "row": 16 },
+        { "type": "thief", "actor": "thief", "supply": "join", "col": 6, "row": 17 },
+        { "type": "fighter", "actor": "fighter", "supply": "join", "col": 9, "row": 8 },
+        { "type": "halfling", "actor": "halfling", "supply": "join", "col": 10, "row": 9 },
+        { "type": "archer", "actor": "archer", "supply": "join", "col": 9, "row": 9 },
+        { "type": "cleric", "actor": "cleric", "supply": "join", "col": 9, "row": 10 },
+        { "type": "mage", "actor": "mage", "supply": "join", "col": 10, "row": 10 }
+      ] }
   ],
   "enemy": [
     { "order": 2, "name": "dragon-hunt.st1.squad.1", "ai": "charge",

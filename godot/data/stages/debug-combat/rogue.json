@@ -3,11 +3,13 @@
   "name": "debug-combat-rogue",
   "haze": 0.80,
   "player": [
-    { "type": "archer", "col": 1, "row": 1 },
-    { "type": "archer", "col": 1, "row": 3 },
-    { "type": "archer", "col": 1, "row": 5 },
-    { "type": "archer", "col": 1, "row": 7 },
-    { "type": "archer", "col": 1, "row": 9 }
+    { "units": [
+        { "type": "archer", "col": 1, "row": 1 },
+        { "type": "archer", "col": 1, "row": 3 },
+        { "type": "archer", "col": 1, "row": 5 },
+        { "type": "archer", "col": 1, "row": 7 },
+        { "type": "archer", "col": 1, "row": 9 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "的（待ち伏せ・索敵0）", "ai": "ambush", "sight": 0,

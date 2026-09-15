@@ -39,6 +39,7 @@ ui.info.tab_ability,能力,Stats
 ui.info.tab_status,状態,Status
 ui.info.tab_terrain,地形,Terrain
 ui.info.header_name,%s （%s）,%s (%s)
+ui.info.header_class,%s（%s）,%s (%s)
 ui.info.team_ally,自軍,Ally
 ui.info.team_enemy,敵軍,Enemy
 ui.info.team_neutral,中立,Neutral
@@ -219,6 +220,8 @@ ui.chronicle.campaigns,冒険譚,Adventures
 ui.chronicle.count,%d / %d,%d / %d
 ui.chronicle.unknown,？,?
 ui.chronicle.first_seen,初出,First seen in
+ui.chronicle.capacity,搭乗,Capacity
+ui.chronicle.name_category,%s（%s）,%s (%s)
 ui.chronicle.shape_triangle,三角（相互隣接）,Triangle (mutual adjacency)
 ui.chronicle.shape_escort,護衛（発動者に随伴）,Escort (flanking the leader)
 ui.chronicle.shape_cluster,集団（隣接の連鎖）,Cluster (connected chain)

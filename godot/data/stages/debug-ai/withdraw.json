@@ -3,9 +3,11 @@
   "name": "debug-withdraw",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 2, "row": 2 },
-    { "type": "archer", "col": 1, "row": 3 },
-    { "type": "novice", "col": 2, "row": 4 }
+    { "units": [
+        { "type": "fighter", "col": 2, "row": 2 },
+        { "type": "archer", "col": 1, "row": 3 },
+        { "type": "novice", "col": 2, "row": 4 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "撤退隊", "ai": "withdraw",

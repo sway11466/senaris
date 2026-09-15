@@ -2,10 +2,12 @@
   "turn_limit": 30,
   "name": "goblin-raid-st4",
   "player": [
-    { "type": "fighter", "col": 3, "row": 6 },
-    { "type": "novice", "col": 2, "row": 6 },
-    { "type": "novice", "col": 2, "row": 7 },
-    { "type": "cleric", "col": 1, "row": 6 }
+    { "units": [
+        { "type": "fighter", "col": 3, "row": 6 },
+        { "type": "novice", "col": 2, "row": 6 },
+        { "type": "novice", "col": 2, "row": 7 },
+        { "type": "cleric", "col": 1, "row": 6 }
+      ] }
   ],
   "enemy": [
     { "order": 2, "name": "goblin-raid.st4.squad.1", "ai": "charge",

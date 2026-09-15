@@ -6,7 +6,7 @@ func _stage() -> Dictionary:
 		"name": "テスト平原",
 		"cols": 6, "rows": 4, "turn_limit": 10, "haze": 0.35,
 		"terrain": ["......", "..PP..", "......", "......"],
-		"player": [{ "type": "archer", "col": 1, "row": 1 }],
+		"player": [ { "units": [{ "type": "archer", "col": 1, "row": 1 }] } ],
 		"bgm": { "main": "march" },
 		"dialogue": { "intro": [{ "speaker": "a", "text": "b" }] },
 		"backdrop": "sky1",

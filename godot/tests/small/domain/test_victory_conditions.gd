@@ -146,7 +146,7 @@ func test_loader_wires_base_hq() -> void:
 func test_own_hq_held_by_enemy_at_start_is_loss_until_retaken() -> void:
 	# 本拠地の印は所有者と独立＝開始時に奪われている自軍の本拠地（hq:player, team:enemy）を書ける。
 	var data := { "cols": 6, "rows": 6,
-		"player": [ { "col": 1, "row": 1 } ],
+		"player": [ { "units": [ { "col": 1, "row": 1 } ] } ],
 		"enemy": [ { "ai": "charge", "units": [ { "col": 5, "row": 5 } ] } ],
 		"bases": [ { "col": 4, "row": 4, "team": "enemy", "hq": "player" } ],
 	}
@@ -157,9 +157,9 @@ func test_own_hq_held_by_enemy_at_start_is_loss_until_retaken() -> void:
 
 func test_loader_wires_victory_and_actor() -> void:
 	var data := { "cols": 6, "rows": 6,
-		"player": [
+		"player": [ { "units": [
 			{ "col": 1, "row": 1 },
-		],
+		] } ],
 		"enemy": [
 			{ "order": 1, "ai": "charge", "units": [ { "actor": BOSS, "col": 4, "row": 4 } ] },
 		],
@@ -330,7 +330,7 @@ func test_defeat_wins_over_victory_condition() -> void:
 func test_loader_reads_defeat_list() -> void:
 	var s := StageLoader.build({
 		"cols": 6, "rows": 6,
-		"player": [ { "type": "cleric", "col": 0, "row": 0 } ],
+		"player": [ { "units": [ { "type": "cleric", "col": 0, "row": 0 } ] } ],
 		"bases": [ { "col": 3, "row": 3, "team": "neutral", "rest": "both" } ],
 		"defeat": [ { "type": "lose_base", "bases": [ { "col": 3, "row": 3 } ] } ],
 	})

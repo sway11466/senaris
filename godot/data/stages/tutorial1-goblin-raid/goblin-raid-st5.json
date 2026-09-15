@@ -2,13 +2,15 @@
   "turn_limit": 30,
   "name": "goblin-raid-st5",
   "player": [
-    { "type": "fighter", "col": 5, "row": 4 },
-    { "type": "novice", "col": 5, "row": 3 },
-    { "type": "novice", "col": 5, "row": 5 },
-    { "type": "novice", "col": 4, "row": 3 },
-    { "type": "novice", "col": 4, "row": 5 },
-    { "type": "archer", "col": 4, "row": 4 },
-    { "type": "archer", "col": 3, "row": 4 }
+    { "units": [
+        { "type": "fighter", "col": 5, "row": 4 },
+        { "type": "novice", "col": 5, "row": 3 },
+        { "type": "novice", "col": 5, "row": 5 },
+        { "type": "novice", "col": 4, "row": 3 },
+        { "type": "novice", "col": 4, "row": 5 },
+        { "type": "archer", "col": 4, "row": 4 },
+        { "type": "archer", "col": 3, "row": 4 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "ai": "charge",

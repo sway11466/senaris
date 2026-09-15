@@ -13,7 +13,9 @@ const DEFAULT_PATH := "user://save.json"
 ##    meta にステージ定義の印（stage_digest）を足した（doc/tech/gamesystem.md §中断セーブが持つもの）。
 ## 4: meta にステージ開始の実時刻（started_at）を足した。戦果票の所要時間がこれを引く
 ##    （doc/tech/gamesystem.md §所要時間）。旧セーブは測っていない＝変換で 0（不明）を入れる。
-const VERSION := 4
+## 5: 味方の駒も部隊に属するようになった（doc/gdd/map.md 駒の配置）。部隊の所属は並び順で持つので、
+##    味方部隊が先に積まれるぶん敵の index がずれる＝変換で付け替える。
+const VERSION := 5
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

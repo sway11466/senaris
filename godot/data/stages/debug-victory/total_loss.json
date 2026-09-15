@@ -3,7 +3,9 @@
   "name": "debug-total_loss",
   "haze": 0.80,
   "player": [
-    { "type": "novice", "col": 1, "row": 2 }
+    { "units": [
+        { "type": "novice", "col": 1, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "討手", "ai": "charge",

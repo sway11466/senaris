@@ -2,26 +2,28 @@
   "turn_limit": 30,
   "name": "debug-photo-store4",
   "player": [
-    {
-      "type": "fighter",
-      "col": 2,
-      "row": 5
-    },
-    {
-      "type": "novice",
-      "col": 2,
-      "row": 4
-    },
-    {
-      "type": "novice",
-      "col": 2,
-      "row": 6
-    },
-    {
-      "type": "cleric",
-      "col": 1,
-      "row": 5
-    }
+    { "units": [
+        {
+          "type": "fighter",
+          "col": 2,
+          "row": 5
+        },
+        {
+          "type": "novice",
+          "col": 2,
+          "row": 4
+        },
+        {
+          "type": "novice",
+          "col": 2,
+          "row": 6
+        },
+        {
+          "type": "cleric",
+          "col": 1,
+          "row": 5
+        }
+      ] }
   ],
   "enemy": [
     {

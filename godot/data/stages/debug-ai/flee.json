@@ -3,8 +3,10 @@
   "name": "debug-flee",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 5, "row": 3 },
-    { "type": "archer", "col": 4, "row": 2 }
+    { "units": [
+        { "type": "fighter", "col": 5, "row": 3 },
+        { "type": "archer", "col": 4, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "逃走者", "ai": "flee",

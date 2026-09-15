@@ -362,8 +362,8 @@ func _place_event_units(e: StageEvent) -> void:
 		e.placed.append(hex)
 		e.placed_ids.append(u.id)
 		add_unit(u)
-		if e.squad_index >= 0:
-			assign_squad(u.id, e.squad_index)
+		if item.squad_index >= 0:
+			assign_squad(u.id, item.squad_index)
 		for p in item.passengers:
 			put_passenger(u.id, p)
 

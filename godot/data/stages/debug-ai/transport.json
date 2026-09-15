@@ -3,8 +3,10 @@
   "name": "debug-ai-transport",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 3, "row": 1 },
-    { "type": "cleric", "col": 3, "row": 5 }
+    { "units": [
+        { "type": "fighter", "col": 3, "row": 1 },
+        { "type": "cleric", "col": 3, "row": 5 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "馬車と乗り手", "ai": "raid",

@@ -3,7 +3,9 @@
   "name": "debug-talk",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 2, "row": 2 }
+    { "units": [
+        { "type": "fighter", "col": 2, "row": 2 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "ai": "charge", "units": [ { "skin": "goblin", "col": 4, "row": 2 } ] }

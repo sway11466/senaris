@@ -16,9 +16,9 @@ const SAMPLE := """
     "..CC..",
     "......"
   ],
-  "player": [
+  "player": [ { "units": [
     { "type": "fighter", "col": 1, "row": 1 }
-  ],
+  ] } ],
   "enemy": [
     { "order": 1, "name": "本隊", "ai": "ambush", "sight": 3, "units": [
       { "skin": "goblin", "col": 4, "row": 1 },
@@ -58,17 +58,17 @@ const EVENT_SAMPLE := """
     "......",
     "......"
   ],
-  "player": [
+  "player": [ { "units": [
     { "type": "fighter", "col": 1, "row": 1 }
-  ],
+  ] } ],
   "enemy": [],
   "events": [
-    { "turn": 5, "type": "reinforce", "team": "player",
+    { "turn": 5, "type": "reinforce",
       "label": "undead-rush.st7.event.airship", "entry": "fade",
-      "units": [
+      "player": [ { "units": [
         { "type": "airship", "col": 0, "row": 3,
           "passengers": [ { "type": "paladin" } ] }
-      ] }
+      ] } ] }
   ]
 }
 """
@@ -179,7 +179,7 @@ func test_resize_drops_out_of_range_entities() -> void:
 	assert_eq(dropped, 3)
 	assert_eq(doc.data["enemy"][0]["units"].size(), 0)
 	assert_eq(doc.data["bases"].size(), 0)
-	assert_eq(doc.data["player"].size(), 1)  # 範囲内は残る
+	assert_eq(doc.data["player"][0]["units"].size(), 1)  # 範囲内は残る
 
 
 # --- 見た目レイヤー（terrain_skins） ---
@@ -393,8 +393,8 @@ func test_move_base_at_carries_the_defeat_target() -> void:
 func test_move_unit_at() -> void:
 	var doc := _load(SAMPLE)
 	assert_true(doc.move_unit_at(1, 1, 2, 2), "空きマスへは動かせる")
-	assert_eq(int(doc.data["player"][0]["col"]), 2)
-	assert_eq(int(doc.data["player"][0]["row"]), 2)
+	assert_eq(int(doc.data["player"][0]["units"][0]["col"]), 2)
+	assert_eq(int(doc.data["player"][0]["units"][0]["row"]), 2)
 	assert_false(doc.move_unit_at(2, 2, 4, 1), "駒のいるマスへは動かせない")
 	assert_false(doc.move_unit_at(2, 2, 99, 0), "盤外へは動かせない")
 	assert_false(doc.move_unit_at(0, 0, 3, 3), "駒のいないマスからは動かせない")
@@ -449,10 +449,10 @@ func test_free_actor_avoids_duplicate() -> void:
 
 func test_set_actor_names_player_and_enemy() -> void:
 	var doc := _load(SAMPLE)
-	doc.set_actor(doc.data["player"][0], "cap")
+	doc.set_actor(doc.data["player"][0]["units"][0], "cap")
 	doc.set_actor(doc.data["enemy"][0]["units"][0], "goblin")
-	assert_eq(doc.data["player"][0]["actor"], "cap", "自軍にも名前を付けられる")
-	assert_false(doc.data["player"][0].has("id"), "数値 id は書かない")
+	assert_eq(doc.data["player"][0]["units"][0]["actor"], "cap", "自軍にも名前を付けられる")
+	assert_false(doc.data["player"][0]["units"][0].has("id"), "数値 id は書かない")
 	assert_true(doc.used_actors().has("cap"))
 	assert_eq(doc.used_actors().size(), 3)
 
@@ -473,11 +473,11 @@ func test_set_actor_clear_drops_condition() -> void:
 
 func test_set_actor_follows_lose_unit() -> void:
 	var doc := _load(SAMPLE)
-	doc.set_actor(doc.data["player"][0], "cap")
+	doc.set_actor(doc.data["player"][0]["units"][0], "cap")
 	doc.data["defeat"] = [{ "type": "lose_unit", "actors": ["cap", "other"] }]
-	doc.set_actor(doc.data["player"][0], "captain")
+	doc.set_actor(doc.data["player"][0]["units"][0], "captain")
 	assert_eq(doc.defeat_list()[0]["actors"], ["captain", "other"], "護衛対象の名指しも追随")
-	doc.set_actor(doc.data["player"][0], "")
+	doc.set_actor(doc.data["player"][0]["units"][0], "")
 	assert_eq(doc.defeat_list()[0]["actors"], ["other"], "外した名前だけ落ちる")
 
 
@@ -515,9 +515,9 @@ const MARGIN_SAMPLE := """
   "terrain_skins": [
     { "col": -1, "row": 1, "skin": "plain_grave1" }
   ],
-  "player": [
+  "player": [ { "units": [
     { "type": "fighter", "col": 1, "row": 1 }
-  ],
+  ] } ],
   "enemy": [],
   "bases": []
 }
@@ -633,8 +633,8 @@ func test_shift_moves_board_contents_together() -> void:
 	assert_eq(doc.terrain_char(1, 1), ".", "元のマスは既定地形に戻る")
 	assert_eq(doc.terrain_skin(3, 2), "forest_pine1")
 	assert_eq(doc.terrain_skin(1, 1), "")
-	assert_eq(int(doc.data["player"][0]["col"]), 4)
-	assert_eq(int(doc.data["player"][0]["row"]), 2)
+	assert_eq(int(doc.data["player"][0]["units"][0]["col"]), 4)
+	assert_eq(int(doc.data["player"][0]["units"][0]["row"]), 2)
 	assert_eq(int(doc.data["enemy"][0]["units"][0]["col"]), 4)
 	assert_eq(int(doc.data["enemy"][0]["units"][0]["row"]), 3)
 	assert_false(doc.base_at(5, 2).is_empty())
@@ -664,7 +664,7 @@ func test_shift_does_nothing_when_contents_would_fall_off() -> void:
 	assert_eq(int(doc.shift_losses(2, 0).get("units", 0)), 1)
 	assert_false(doc.shift(2, 0))
 	assert_eq(doc.terrain_char(0, 0), "F", "地形も駒も1つも動かさない")
-	assert_eq(int(doc.data["player"][0]["col"]), 5)
+	assert_eq(int(doc.data["player"][0]["units"][0]["col"]), 5)
 
 
 func test_shift_counts_only_non_default_terrain_as_lost() -> void:
@@ -784,7 +784,7 @@ func test_events_round_trip_untouched() -> void:
 	assert_eq(e.size(), 1, "イベントが1件残る")
 	assert_eq(int((e[0] as Dictionary)["turn"]), 5, "ターンが保たれる")
 	assert_eq(String((e[0] as Dictionary)["label"]), "undead-rush.st7.event.airship", "予告キーが保たれる")
-	var units: Array = (e[0] as Dictionary)["units"]
+	var units: Array = back.event_units(0)  # 駒は陣営セクションの部隊の中
 	assert_eq(String((units[0] as Dictionary)["type"]), "airship", "駒が保たれる")
 	assert_eq(((units[0] as Dictionary)["passengers"] as Array).size(), 1, "同乗も保たれる")
 

@@ -2,18 +2,20 @@
   "turn_limit": 30,
   "name": "dragon-hunt-st4",
   "player": [
-    { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 20, "supply": "refill" },
-    { "type": "thief", "actor": "thief", "col": 4, "row": 22, "supply": "refill" },
-    { "type": "hunter", "actor": "hunter", "col": 3, "row": 23, "supply": "refill" },
-    { "type": "bishop", "actor": "bishop", "col": 3, "row": 21, "supply": "refill" },
-    { "type": "wizard", "actor": "wizard", "col": 4, "row": 21, "supply": "refill" },
-    { "type": "fighter", "actor": "fighter", "col": 2, "row": 23, "supply": "refill" },
-    { "type": "halfling", "actor": "halfling", "col": 2, "row": 21, "supply": "refill" },
-    { "type": "archer", "actor": "archer", "col": 4, "row": 23, "supply": "refill" },
-    { "type": "cleric", "actor": "cleric", "col": 2, "row": 20, "supply": "refill" },
-    { "type": "pixie", "actor": "pixie", "col": 3, "row": 22, "supply": "refill" },
-    { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 22, "supply": "refill" },
-    { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" }
+    { "units": [
+        { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 20, "supply": "refill" },
+        { "type": "thief", "actor": "thief", "col": 4, "row": 22, "supply": "refill" },
+        { "type": "hunter", "actor": "hunter", "col": 3, "row": 23, "supply": "refill" },
+        { "type": "bishop", "actor": "bishop", "col": 3, "row": 21, "supply": "refill" },
+        { "type": "wizard", "actor": "wizard", "col": 4, "row": 21, "supply": "refill" },
+        { "type": "fighter", "actor": "fighter", "col": 2, "row": 23, "supply": "refill" },
+        { "type": "halfling", "actor": "halfling", "col": 2, "row": 21, "supply": "refill" },
+        { "type": "archer", "actor": "archer", "col": 4, "row": 23, "supply": "refill" },
+        { "type": "cleric", "actor": "cleric", "col": 2, "row": 20, "supply": "refill" },
+        { "type": "pixie", "actor": "pixie", "col": 3, "row": 22, "supply": "refill" },
+        { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 22, "supply": "refill" },
+        { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "sight": 3,

@@ -24,7 +24,6 @@ var trigger: Trigger = Trigger.TURN
 var hex := Vector2i.MAX            ## CAPTURE のとき対象の拠点
 var once: String = ""              ## 排他の名前。同じ名前の未発生イベントは、どれか1つが起きたら残りを捨てる
 var label: String = ""             ## 残りターン板の予告（翻訳キー）。空＝予告しない
-var squad_index := -1              ## 敵の増援が属する部隊（BattleState.squads の index）。-1＝部隊なし
 var dialogue: String = ""          ## 台本キー。空＝会話なし
 var focus := false                 ## 起きたときカメラを寄せるか
 var units: Array[EventUnit] = []   ## 出す駒（搭乗を含む）。空＝会話だけ

@@ -5,16 +5,18 @@
   "backdrop": "sky_overcast",
   "haze": 0.80,
   "player": [
-    { "type": "knight", "col": 1, "row": 6 },
-    { "type": "priest", "col": 0, "row": 8 },
-    { "type": "wizard", "col": 1, "row": 7 },
-    { "type": "wizard", "col": 1, "row": 8 },
-    { "type": "witch", "col": 0, "row": 7 },
-    { "type": "fighter", "col": 2, "row": 8 },
-    { "type": "wagon", "col": 2, "row": 7,
-      "passengers": [
-        { "type": "barricade" },
-        { "type": "barricade" }
+    { "units": [
+        { "type": "knight", "col": 1, "row": 6 },
+        { "type": "priest", "col": 0, "row": 8 },
+        { "type": "wizard", "col": 1, "row": 7 },
+        { "type": "wizard", "col": 1, "row": 8 },
+        { "type": "witch", "col": 0, "row": 7 },
+        { "type": "fighter", "col": 2, "row": 8 },
+        { "type": "wagon", "col": 2, "row": 7,
+          "passengers": [
+            { "type": "barricade" },
+            { "type": "barricade" }
+          ] }
       ] }
   ],
   "enemy": [

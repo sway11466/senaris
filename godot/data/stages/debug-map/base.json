@@ -3,8 +3,10 @@
   "name": "debug-base",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 3, "row": 3 },
-    { "type": "cleric", "col": 3, "row": 4 }
+    { "units": [
+        { "type": "fighter", "col": 3, "row": 3 },
+        { "type": "cleric", "col": 3, "row": 4 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "湧き拠点もち", "ai": "ambush", "sight": 2,

@@ -25,8 +25,8 @@ class_name StageLoader
 ## 陣営表記（ステージJSON）→ 内部 int（0=自軍 / 1=敵 / -1=中立=Base.NEUTRAL）。
 const TEAM_NAMES := { "player": 0, "enemy": 1, "neutral": -1 }
 
-## イベント自身のキー。敵の増援ではこれ以外（ai・sight 等）を部隊定義として拾う。
-const EVENT_KEYS := ["id", "type", "team", "turn", "on", "col", "row", "once", "label", "name", "units", "dialogue", "focus", "entry", "from"]
+## 増援が部隊を書くセクション（盤の駒の配置と同じ綴り）→ 内部の陣営 int。
+const EVENT_SECTIONS := { "player": 0, "enemy": 1 }
 
 ## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/campaigns.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
@@ -53,11 +53,13 @@ static func _parse_team(value: Variant, default_team: int) -> int:
 	return default_team
 
 ## ステージ辞書から BattleState を組み立てる。
-## 期待キー: cols, rows, margin, terrain(配列の文字列), player(駒の配列), enemy(squadの配列), bases(配列の辞書)。
+## 期待キー: cols, rows, margin, terrain(配列の文字列), player(味方部隊の配列), enemy(敵部隊の配列), bases(配列の辞書)。
 ## margin＝terrain を盤より何マス外側まで書いたか（外周）。cols/rows は遊べる盤のままで、
 ## ずれるのは terrain の読み出し位置だけ＝駒・拠点・terrain_skins の座標は盤の0起点で不変。
 ## 陣営はセクションで決まる（player→内部0 / enemy→内部1）＝駒に "team" は書かない。
-## enemy は squad の配列で、各 squad が特性(ai)を持つ（敵は必ず squad に属する）。
+## player / enemy はどちらも部隊(squad)の配列で、駒は必ずどれかの部隊に属する。
+## 敵部隊だけが特性(ai)と行動順(order)を持ち、味方部隊が持つのは名前だけ。
+## 部隊は state.squads に player → enemy → 拠点 → 増援 の順で積む。
 ## catalog = { id: UnitType }。ユニットが "type" を持つときステータスを引く（省略時は素の値）＝性能の唯一の出どころ。
 ## carried = 継承ユニットの直列化リスト（Unit.to_dict() の配列＝名簿）。
 ## player の駒のうち actor を持つものだけが名簿と突き合わされる（詳細 → _apply_units）。
@@ -416,7 +418,7 @@ static func load_rank(path: String) -> Dictionary:
 static func count_start_allies(data: Dictionary, state: BattleState, catalog: Dictionary,
 		skin_catalog: Dictionary = {}) -> int:
 	var n := 0
-	for u in _as_dicts(data.get("player", [])):
+	for u in _player_pieces(data):
 		if not _starts_in_force(u, state):
 			continue
 		n += _force_size(u, catalog, skin_catalog)
@@ -429,9 +431,9 @@ static func count_start_allies(data: Dictionary, state: BattleState, catalog: Di
 	for e in _as_dicts(data.get("events", [])):
 		if String(e.get("type", "reinforce")) != "reinforce":
 			continue
-		if _parse_team(e.get("team"), 0) != 0:
+		if _event_team(e) != 0:
 			continue
-		for u in _as_dicts(e.get("units", [])):
+		for u in _event_pieces(e):
 			n += _force_size(u, catalog, skin_catalog)
 	return n
 
@@ -466,6 +468,15 @@ static func _is_emplacement_data(u: Dictionary, catalog: Dictionary, skin_catalo
 		type_id = SkinCatalog.type_of_skin(skin_catalog, skin_id)
 	var t: UnitType = catalog.get(type_id)
 	return t != null and t.move_type == "stationary"
+
+## player セクション（味方部隊の配列）の駒を、部隊をまたいで記述順に並べた配列。
+## 部隊の区切りを見ない側（数える・紙に並べる・継承かを見る）はここを通る。
+static func _player_pieces(data: Dictionary) -> Array:
+	var out: Array = []
+	for p in _as_dicts(data.get("player", [])):
+		for u in _as_dicts(p.get("units", [])):
+			out.append(u)
+	return out
 
 ## Variant を辞書の配列として読む（ステージJSONを数えるときの共通の入口）。
 static func _as_dicts(value: Variant) -> Array:
@@ -504,13 +515,8 @@ static func load_briefing(path: String, carried: Array = []) -> Dictionary:
 static func preview_player_units(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dictionary = {},
 		carried: Array = []) -> Array:
 	var out: Array = []
-	var units: Variant = data.get("player", [])
-	if typeof(units) != TYPE_ARRAY:
-		return out
 	var by_actor := _roster_by_actor(carried)
-	for u in units:
-		if typeof(u) != TYPE_DICTIONARY:
-			continue
+	for u in _player_pieces(data):
 		var unit := _resolve_player_unit(u, catalog, 1, 0, skin_catalog, by_actor)
 		if unit != null:
 			out.append({ "skin_id": unit.skin_id, "available": true, "carried": unit.actor != "",
@@ -556,15 +562,14 @@ static func _append_preview_passengers(out: Array, list: Variant, catalog: Dicti
 ## 戦力を持ち越すステージか（継承／独立 → doc/gdd/campaigns.md 戦力供給モデル）。
 ## 名簿に載る駒（actor 持ち）が1つでもあれば継承＝この戦いの生き残りが次へ渡る。
 static func is_carryover_stage(data: Dictionary) -> bool:
-	var units: Variant = data.get("player", [])
-	if typeof(units) != TYPE_ARRAY:
-		return false
-	for u in units:
-		if typeof(u) == TYPE_DICTIONARY and String(u.get("actor", "")) != "":
+	for u in _player_pieces(data):
+		if String(u.get("actor", "")) != "":
 			return true
 	return false
 
-## 駒配置リスト（player セクション）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
+## player セクション（味方部隊の配列）を盤に追加。出現順に1始まりで採番し、次の採番値を返す。
+## 各部隊は { name?: 表示名, units: [...] }＝敵部隊と同じ形だが、特性も行動順も持たない
+## （動かすのは人間）。部隊は state.squads の先頭から順に積む（敵部隊はその続き）。
 ## team は陣営（呼び出し側が固定＝駒から読まない）。
 ## "type" があれば catalog からステータスを引く（性能の上書きは不可）。駒が書けるのは troops/level だけ。
 ## "type" が無ければ素の値（既定: move3・troops8・atk10・def10・level1）。
@@ -576,19 +581,34 @@ static func is_carryover_stage(data: Dictionary) -> bool:
 ##   supply:"refill"         → 名簿から引き、兵数だけ満員へ（Lv は名簿のまま）。離脱者は出さない
 ##   supply:"revive"         → refill に加えて兵力ゼロの離脱者も満員で出す
 ## 出さなかった駒は id を消費しない（採番は盤に乗った駒の順）。
-static func _apply_units(state: BattleState, units: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}, carried: Array = []) -> int:
-	if typeof(units) != TYPE_ARRAY:
+static func _apply_units(state: BattleState, parties: Variant, catalog: Dictionary, team: int, skin_catalog: Dictionary = {}, carried: Array = []) -> int:
+	if typeof(parties) != TYPE_ARRAY:
 		return 1
 	var by_actor := _roster_by_actor(carried)
 	var auto_id := 1
-	for u in units:
-		var unit := _resolve_player_unit(u, catalog, auto_id, team, skin_catalog, by_actor)
-		if unit == null:
-			continue  # 名簿に居ない／離脱者＝この駒は今回出撃しない
-		state.add_unit(unit)
-		auto_id += 1
-		auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
+	for p in parties:
+		if typeof(p) != TYPE_DICTIONARY:
+			continue
+		var idx := _register_squad(state, p)
+		for u in _as_dicts((p as Dictionary).get("units", [])):
+			var unit := _resolve_player_unit(u, catalog, auto_id, team, skin_catalog, by_actor)
+			if unit == null:
+				continue  # 名簿に居ない／離脱者＝この駒は今回出撃しない
+			state.add_unit(unit)
+			state.assign_squad(unit.id, idx)
+			auto_id += 1
+			auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
 	return auto_id
+
+## 部隊の定義（units 以外のキー）を state.squads に積み、その index を返す。
+## 味方は name だけ、敵は ai・order・パラメーターの上書きも入る。
+static func _register_squad(state: BattleState, squad_data: Dictionary) -> int:
+	var squad := {}
+	for key in squad_data:
+		if key != "units":
+			squad[key] = squad_data[key]
+	state.squads.append(squad)
+	return state.squads.size() - 1
 
 ## 名簿を actor で引く索引。同じ actor が重複していれば名簿順で最初の1体が勝つ。
 static func _roster_by_actor(carried: Array) -> Dictionary:
@@ -683,12 +703,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 		return start_id
 	var auto_id := start_id
 	for sq in squads:
-		var squad := {}
-		for key in sq:
-			if key != "units":  # units 以外（name/ai/上書きパラメーター）が部隊定義
-				squad[key] = sq[key]
-		var idx: int = state.squads.size()
-		state.squads.append(squad)
+		var idx := _register_squad(state, sq)
 		for u in sq.get("units", []):
 			var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), team, skin_catalog)
 			state.add_unit(unit)
@@ -701,8 +716,8 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 ## 引き金は turn（Nターン目）か on（盤の出来事＝いまは "capture"＝拠点の占領・col/row で拠点を指す）。
 ## 中身は type＝増援（"reinforce"）か会話だけ（"talk"）。
 ## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生時に盤へ出す＝domain は JSON を知らない。
-## team:"enemy" の増援は1つの部隊として登録し、その index をイベントに持たせる（発生時に assign_squad）。
-## 部隊定義（ai・パラメーターの上書き・行動順 order）はイベント直下に書く＝EVENT_KEYS 以外を拾う。
+## 増援の駒は盤と同じ陣営セクション（player / enemy）に部隊として書く＝どちらに書いたかで陣営が決まる。
+## 部隊はここで登録し、その index を駒ごとに持たせる（発生時に assign_squad）。
 ## order は敵の増援にも要る（湧いた部隊も行動順の列に並ぶ）＝抜けは test_data_integrity が捕まえる。
 ## id はイベントの名前（必須・ステージ内で一意）＝セーブが未発火のイベントを識別するのに使う。
 ## 欠落・重複は push_error（turn_limit と同じ扱い）＝ test_data_integrity も同じ検査を持つ。
@@ -718,14 +733,12 @@ static func _apply_events(state: BattleState, events: Variant, catalog: Dictiona
 		var ev := _parse_event(e, seen_ids)
 		if ev == null:
 			continue
-		if ev.team == 1 and _event_type(e) == "reinforce":
-			ev.squad_index = _register_event_squad(state, e)
-		ev.units = _parse_event_units(e, ev, catalog, ids, skin_catalog)
+		ev.units = _parse_event_units(state, e, ev, catalog, ids, skin_catalog)
 		state.add_event(ev)
 	return ids.next
 
 ## イベント1件の見出し（id・種類・引き金・陣営・ターン・台本）を読む。書き間違いは警告して null
-## ＝そのイベントだけ捨てる。駒と部隊は別に読む（_parse_event_units / _register_event_squad）。
+## ＝そのイベントだけ捨てる。駒と部隊は別に読む（_parse_event_units）。
 static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	var ev := StageEvent.new()
 	ev.id = _event_id(e, seen_ids)
@@ -743,7 +756,7 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 			push_warning("StageLoader: on:\"capture\" のイベントに拠点の col/row が無い（無視）")
 			return null
 		ev.hex = Hex.offset_to_axial(int(e["col"]), int(e["row"]))
-	ev.team = _parse_team(e.get("team"), 0)
+	ev.team = _event_team(e)
 	ev.turn = int(e.get("turn", 1))
 	ev.once = String(e.get("once", ""))
 	ev.label = String(e.get("label", ""))
@@ -768,6 +781,47 @@ static func _event_id(e: Dictionary, seen_ids: Dictionary) -> String:
 static func _event_type(e: Dictionary) -> String:
 	return String(e.get("type", "reinforce"))
 
+## イベントの陣営。増援は部隊を書いたセクション（player / enemy）が決める。
+## 会話だけのイベントは "team"＝引き金の条件（占領なら取った側・turn 起点ならその陣営の手番）。
+## 旧い書き方（増援の直下に team / units）はデータのバグ＝黙って別の意味に読まれないよう止める。
+static func _event_team(e: Dictionary) -> int:
+	var sections := _event_sections(e)
+	if e.has("units"):
+		push_error("StageLoader: 増援の駒は player / enemy の部隊に書く（イベント直下の units は読まない）: '%s'"
+			% String(e.get("id", "")))
+	if sections.is_empty():
+		return _parse_team(e.get("team"), 0)
+	if e.has("team"):
+		push_error("StageLoader: 増援に team は書かない（陣営は部隊を書いたセクションが決める）: '%s'"
+			% String(e.get("id", "")))
+	if sections.size() > 1:
+		push_error("StageLoader: 1つのイベントで両陣営の増援は出せない: '%s'" % String(e.get("id", "")))
+	return EVENT_SECTIONS[sections[0]]
+
+## そのイベントが部隊を書いているセクション名（"player" / "enemy"）。書いていなければ空。
+static func _event_sections(e: Dictionary) -> Array:
+	var out: Array = []
+	for key in EVENT_SECTIONS:
+		if typeof(e.get(key)) == TYPE_ARRAY:
+			out.append(key)
+	return out
+
+## そのイベントが盤に出す部隊（セクションの中身）。会話だけのイベントは空。
+static func _event_parties(e: Dictionary) -> Array:
+	var out: Array = []
+	for key in _event_sections(e):
+		for p in _as_dicts(e[key]):
+			out.append(p)
+	return out
+
+## そのイベントが盤に出す駒（部隊をまたいで記述順）。
+static func _event_pieces(e: Dictionary) -> Array:
+	var out: Array = []
+	for p in _event_parties(e):
+		for u in _as_dicts(p.get("units", [])):
+			out.append(u)
+	return out
+
 ## 会話つきのイベントの書き方の検査。
 ## name はイベントの名前（doc/gdd/map.md イベントの name）。会話つきのイベントは
 ## 「ストーリーを確認」の目次にこの名前で並ぶので、会話を持つなら name が要る。
@@ -786,8 +840,7 @@ static func _check_event_dialogue(e: Dictionary, ev: StageEvent) -> void:
 ## （どこから盤に入ったかは次の一手の読みに直結する）。march／scatter は入口を持ち、fade は持たない。
 ## 書き間違いは push_error（turn_limit と同じ扱い）。詳細 → doc/gdd/map.md イベント
 static func _parse_entry(e: Dictionary, ev: StageEvent) -> void:
-	var raw_units: Variant = e.get("units", [])
-	var has_units := typeof(raw_units) == TYPE_ARRAY and not (raw_units as Array).is_empty()
+	var has_units := not _event_pieces(e).is_empty()
 	var entry_id := String(e.get("entry", ""))
 	if not has_units:
 		if not entry_id.is_empty() or e.has("from"):
@@ -810,41 +863,29 @@ static func _parse_entry(e: Dictionary, ev: StageEvent) -> void:
 	var f: Dictionary = raw_from
 	ev.from = Hex.offset_to_axial(int(f["col"]), int(f["row"]))
 
-## 敵の増援＝1部隊。AIプリセット等の上書きはイベント直下に書く（部隊定義と同じ流儀）＝EVENT_KEYS 以外を拾う。
-## 登録した部隊の index を返す。
-static func _register_event_squad(state: BattleState, e: Dictionary) -> int:
-	var squad := {}
-	for key in e:
-		if not (key in EVENT_KEYS):
-			squad[key] = e[key]
-	state.squads.append(squad)
-	return state.squads.size() - 1
-
-## イベントで出す駒（搭乗を含む）。会話（type:"talk"）は駒を出さない＝units が書いてあれば警告。
+## イベントで出す駒（搭乗を含む）。会話（type:"talk"）は駒を出さない＝部隊が書いてあれば警告。
 ## 搭乗は輸送ユニットにだけ乗せる。採番は ids から取る。
-static func _parse_event_units(e: Dictionary, ev: StageEvent, catalog: Dictionary, ids: IdSeq, skin_catalog: Dictionary) -> Array[EventUnit]:
+static func _parse_event_units(state: BattleState, e: Dictionary, ev: StageEvent, catalog: Dictionary, ids: IdSeq, skin_catalog: Dictionary) -> Array[EventUnit]:
 	var out: Array[EventUnit] = []
-	var raw_units: Variant = e.get("units", [])
-	var has_units := typeof(raw_units) == TYPE_ARRAY and not (raw_units as Array).is_empty()
+	var parties := _event_parties(e)
 	if _event_type(e) == "talk":
-		if has_units:
-			push_warning("StageLoader: type:\"talk\" のイベントに units 指定（駒は出ない）")
+		if not parties.is_empty():
+			push_warning("StageLoader: type:\"talk\" のイベントに部隊の指定（駒は出ない）")
 		return out
-	if not has_units:
-		return out
-	for ud in raw_units:
-		if typeof(ud) != TYPE_DICTIONARY:
-			continue
-		var item := EventUnit.new()
-		item.unit = _make_unit(ud, catalog, ids.take(), ev.team, skin_catalog)
-		var plist: Variant = ud.get("passengers", [])
-		if typeof(plist) == TYPE_ARRAY and not plist.is_empty():
-			if item.unit.is_transport():
-				for pd in plist:
-					item.passengers.append(_make_unit(pd, catalog, ids.take(), ev.team, skin_catalog))  # 搭乗は同陣営
-			else:
-				push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % item.unit.id)
-		out.append(item)
+	for p in parties:
+		var squad_index := _register_squad(state, p)  # 湧いた部隊も盤の部隊と同じ列に並ぶ
+		for ud in _as_dicts(p.get("units", [])):
+			var item := EventUnit.new()
+			item.squad_index = squad_index
+			item.unit = _make_unit(ud, catalog, ids.take(), ev.team, skin_catalog)
+			var plist: Variant = ud.get("passengers", [])
+			if typeof(plist) == TYPE_ARRAY and not plist.is_empty():
+				if item.unit.is_transport():
+					for pd in plist:
+						item.passengers.append(_make_unit(pd, catalog, ids.take(), ev.team, skin_catalog))  # 搭乗は同陣営
+				else:
+					push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % item.unit.id)
+			out.append(item)
 	return out
 
 ## 駒番号の採番（増援は駒ごと・搭乗者ごとに1つずつ消費し、次のセクションへ続きを渡す）。

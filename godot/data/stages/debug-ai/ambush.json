@@ -3,10 +3,12 @@
   "name": "debug-ambush",
   "haze": 0.80,
   "player": [
-    { "type": "fighter", "col": 1, "row": 4 },
-    { "type": "novice", "col": 1, "row": 3 },
-    { "type": "novice", "col": 1, "row": 5 },
-    { "type": "thief", "col": 11, "row": 4 }
+    { "units": [
+        { "type": "fighter", "col": 1, "row": 4 },
+        { "type": "novice", "col": 1, "row": 3 },
+        { "type": "novice", "col": 1, "row": 5 },
+        { "type": "thief", "col": 11, "row": 4 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "見張り（壁と森）", "ai": "ambush", "sight": 5,

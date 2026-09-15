@@ -21,10 +21,10 @@ func test_catalog_wires_capacity() -> void:
 	assert_eq(cat["fighter"].capacity, 0, "歩兵=輸送不可")
 
 func test_loader_wires_passengers() -> void:
-	var data := { "cols": 8, "rows": 8, "player": [
+	var data := { "cols": 8, "rows": 8, "player": [ { "units": [
 		{ "type": "airship", "col": 1, "row": 1,
 			"passengers": [ { "type": "paladin" }, { "type": "novice" } ] },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, UnitCatalog.load_default())
 	var airship := s.unit_by_id(1)
 	assert_eq(airship.capacity, 4, "capacity が type から載る")

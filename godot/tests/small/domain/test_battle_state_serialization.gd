@@ -18,10 +18,10 @@ func _stage_data() -> Dictionary:
 	return {
 		"cols": 8, "rows": 6, "turn_limit": 15,
 		"terrain": ["........", "..PP....", "........", "........", "........", "........"],
-		"player": [
+		"player": [ { "units": [
 			{ "type": "archer", "col": 1, "row": 1 },
 			{ "type": "wagon", "col": 2, "row": 1, "passengers": [{ "type": "knight" }] },
-		],
+		] } ],
 		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "ambush", "sight": 4,
 			"units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "hq": "player", "rest": "player", "garrison": [{ "type": "archer", "count": 1, "native": "player" }] }],
@@ -120,8 +120,8 @@ func test_bases_and_garrison_roundtrip() -> void:
 func test_squads_and_membership_roundtrip() -> void:
 	# 部隊定義はステージJSONから、「駒→部隊」の対応はセーブから。落ちると復元後の敵が特性を失う＝別物になる。
 	var s2 := _rich_roundtrip()
-	assert_eq(s2.squads.size(), 1, "敵の部隊")
-	assert_eq(s2.squad_index_of(BOSS_ID), 0, "敵knight は部隊0所属")
+	assert_eq(s2.squads.size(), 2, "味方部隊＋敵部隊")
+	assert_eq(s2.squad_index_of(BOSS_ID), 1, "敵knight は味方部隊の次＝部隊1所属")
 	var sq := s2.squad_of(BOSS_ID)
 	assert_eq(String(sq.get("ai", "")), "ambush", "部隊の特性id")
 	assert_eq(int(sq.get("order", 0)), 1, "行動順")
@@ -219,9 +219,9 @@ func test_restore_picks_up_added_events() -> void:
 	var data := _stage_data()
 	var s := _rich_state(data)
 	var added := _stage_data()
-	added["events"] = [{ "id": "late-wave", "turn": 5, "type": "reinforce", "team": "enemy", "order": 2, "ai": "charge",
-		"entry": "fade",
-		"units": [{ "type": "knight", "col": 7, "row": 5 }] }]
+	added["events"] = [{ "id": "late-wave", "turn": 5, "type": "reinforce", "entry": "fade",
+		"enemy": [{ "order": 2, "ai": "charge",
+			"units": [{ "type": "knight", "col": 7, "row": 5 }] }] }]
 	var s2 := _roundtrip(s, data, added)
 	assert_eq(s2.pending_events().size(), 1, "足されたイベントが未発火として現れる")
 	assert_eq(s2.pending_events()[0].id, "late-wave")

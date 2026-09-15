@@ -3,14 +3,16 @@
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 4, "survival_a": 2 },
   "name": "goblin-raid-st6",
   "player": [
-    { "type": "fighter", "col": 3, "row": 4 },
-    { "type": "halfling", "col": 3, "row": 5 },
-    { "type": "novice", "col": 2, "row": 4 },
-    { "type": "novice", "col": 2, "row": 5 },
-    { "type": "novice", "col": 2, "row": 6 },
-    { "type": "novice", "col": 3, "row": 3 },
-    { "type": "archer", "col": 1, "row": 4 },
-    { "type": "archer", "col": 1, "row": 5 }
+    { "units": [
+        { "type": "fighter", "col": 3, "row": 4 },
+        { "type": "halfling", "col": 3, "row": 5 },
+        { "type": "novice", "col": 2, "row": 4 },
+        { "type": "novice", "col": 2, "row": 5 },
+        { "type": "novice", "col": 2, "row": 6 },
+        { "type": "novice", "col": 3, "row": 3 },
+        { "type": "archer", "col": 1, "row": 4 },
+        { "type": "archer", "col": 1, "row": 5 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "goblin-raid.st6.squad.1", "ai": "ambush", "sight": 3,

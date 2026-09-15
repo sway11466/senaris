@@ -3,9 +3,11 @@
   "name": "debug-hq",
   "haze": 0.80,
   "player": [
-    { "type": "cleric", "col": 3, "row": 3 },
-    { "type": "fighter", "col": 4, "row": 3 },
-    { "type": "novice", "col": 4, "row": 4 }
+    { "units": [
+        { "type": "cleric", "col": 3, "row": 3 },
+        { "type": "fighter", "col": 4, "row": 3 },
+        { "type": "novice", "col": 4, "row": 4 }
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "本拠地強襲", "ai": "raid",

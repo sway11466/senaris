@@ -4,19 +4,21 @@
   "name": "dragon-hunt-st5",
   "haze": 0.80,
   "player": [
-    {"type": "bishop", "col": 6, "row": 17, "actor": "bishop", "supply": "refill"},
-    {"type": "vanguard", "col": 7, "row": 17, "actor": "vanguard", "supply": "refill"},
-    {"type": "wizard", "col": 5, "row": 17, "actor": "wizard", "supply": "refill"},
-    {"type": "cleric", "col": 8, "row": 17, "actor": "cleric", "supply": "refill"},
-    {"type": "thief", "col": 6, "row": 16, "actor": "thief", "supply": "refill"},
-    {"type": "hunter", "col": 7, "row": 16, "actor": "hunter", "supply": "refill"},
-    {"type": "fighter", "col": 5, "row": 16, "actor": "fighter", "supply": "refill"},
-    {"type": "archer", "col": 8, "row": 16, "actor": "archer", "supply": "refill"},
-    {"type": "halfling", "col": 6, "row": 15, "actor": "halfling", "supply": "refill"},
-    {"type": "pixie", "col": 7, "row": 15, "actor": "pixie", "supply": "refill"},
-    {"type": "dwarf", "col": 3, "row": 15, "actor": "dwarf", "supply": "refill"},
-    {"type": "elf", "col": 4, "row": 15, "actor": "elf", "supply": "refill"},
-    {"type": "mage", "col": 8, "row": 15, "actor": "mage", "supply": "refill"}
+    { "units": [
+        {"type": "bishop", "col": 6, "row": 17, "actor": "bishop", "supply": "refill"},
+        {"type": "vanguard", "col": 7, "row": 17, "actor": "vanguard", "supply": "refill"},
+        {"type": "wizard", "col": 5, "row": 17, "actor": "wizard", "supply": "refill"},
+        {"type": "cleric", "col": 8, "row": 17, "actor": "cleric", "supply": "refill"},
+        {"type": "thief", "col": 6, "row": 16, "actor": "thief", "supply": "refill"},
+        {"type": "hunter", "col": 7, "row": 16, "actor": "hunter", "supply": "refill"},
+        {"type": "fighter", "col": 5, "row": 16, "actor": "fighter", "supply": "refill"},
+        {"type": "archer", "col": 8, "row": 16, "actor": "archer", "supply": "refill"},
+        {"type": "halfling", "col": 6, "row": 15, "actor": "halfling", "supply": "refill"},
+        {"type": "pixie", "col": 7, "row": 15, "actor": "pixie", "supply": "refill"},
+        {"type": "dwarf", "col": 3, "row": 15, "actor": "dwarf", "supply": "refill"},
+        {"type": "elf", "col": 4, "row": 15, "actor": "elf", "supply": "refill"},
+        {"type": "mage", "col": 8, "row": 15, "actor": "mage", "supply": "refill"}
+      ] }
   ],
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st5.squad.1", "ai": "charge",

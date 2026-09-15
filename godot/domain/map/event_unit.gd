@@ -5,3 +5,4 @@ class_name EventUnit
 
 var unit: Unit
 var passengers: Array[Unit] = []
+var squad_index := -1  ## 加わる部隊（BattleState.squads の index）。-1＝部隊なし

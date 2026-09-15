@@ -29,10 +29,10 @@ func test_named_member_lost_stays_enrolled_with_zero_troops() -> void:
 		{ "type": "elf", "skin": "elf", "level": 1, "troops": 8, "max_troops": 8, "actor": "t3.elf" },
 	]
 	# 2人とも出撃した盤で、エルフだけを失って決着した。
-	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
+	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [ { "units": [
 		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join", "troops": 2, "level": 3 },
 		{ "type": "elf", "col": 2, "row": 1, "actor": "t3.elf", "supply": "join" },
-	] }, _catalog())
+	] } ] }, _catalog())
 	assert_true(s.remove_unit(s.unit_at(Hex.offset_to_axial(2, 1)).id), "エルフを失う")
 	var updated := RosterService.update_after_clear(previous, s)
 	assert_eq(_actors(updated), ["t3.van", "t3.elf"], "名簿の並び順を保つ")
@@ -48,9 +48,9 @@ func test_member_not_sortied_is_left_untouched() -> void:
 		{ "type": "elf", "skin": "elf", "level": 2, "troops": 5, "max_troops": 8, "actor": "t3.elf" },
 	]
 	# この盤に出したのはヴァンガードだけ（エルフは配置していない）。
-	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
+	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [ { "units": [
 		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join", "troops": 2, "level": 3 },
-	] }, _catalog())
+	] } ] }, _catalog())
 	var updated := RosterService.update_after_clear(previous, s)
 	assert_eq(_actors(updated), ["t3.van", "t3.elf"], "名簿の並び順を保つ")
 	assert_eq(int(_entry(updated, "t3.van")["troops"]), 2, "出た者は現在値で更新")
@@ -61,24 +61,24 @@ func test_garrison_member_counts_as_sortied() -> void:
 	# 拠点の控えに居るだけで出撃しなかった者も「この盤に出た」＝更新対象。
 	# 盤から消えていれば離脱として数える（控えごと拠点を失った場合）。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }],
+		"player": [ { "units": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }] } ],
 		"bases": [{ "col": 4, "row": 1, "team": "player",
 			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "player" }] }] }, _catalog())
 	assert_true(s.has_sortied("t3.elf"), "控えも投入済みとして数える")
 
 func test_anonymous_units_are_not_enrolled() -> void:
 	# 名前のない雑兵は同一性を持たない＝名簿に載らない（持ち越さず各ステージが配給する）。
-	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
+	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [ { "units": [
 		{ "type": "recruit", "col": 1, "row": 1 },
 		{ "type": "knight", "col": 2, "row": 1, "actor": "t3.van", "supply": "join" },
-	] }, _catalog())
+	] } ] }, _catalog())
 	var updated := RosterService.update_after_clear([], s)
 	assert_eq(_actors(updated), ["t3.van"], "actor のある仲間だけが載る")
 
 func test_unreleased_neutral_is_not_enrolled() -> void:
 	# 中立のまま取り逃した駒は帰属が自軍にならない＝名簿に載らない。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }],
+		"player": [ { "units": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }] } ],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
 			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }] }, _catalog())
 	var updated := RosterService.update_after_clear([], s)
@@ -87,7 +87,7 @@ func test_unreleased_neutral_is_not_enrolled() -> void:
 func test_enemy_released_neutral_is_not_enrolled() -> void:
 	# 敵が先に解放した駒は帰属が敵で確定＝自軍の名簿には載らない。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }],
+		"player": [ { "units": [{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join" }] } ],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
 			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }] }, _catalog())
 	var base_hex := Hex.offset_to_axial(4, 1)
@@ -100,7 +100,7 @@ func test_enemy_released_neutral_is_not_enrolled() -> void:
 func test_captive_after_release_is_still_enrolled() -> void:
 	# 味方が解放した後で拠点ごと奪われ、捕虜のままクリアしても加入する（帰属は動かない）。
 	var s := StageLoader.build({ "cols": 8, "rows": 4,
-		"player": [{ "type": "cleric", "col": 3, "row": 1 }],
+		"player": [ { "units": [{ "type": "cleric", "col": 3, "row": 1 }] } ],
 		"bases": [{ "col": 4, "row": 1, "team": "neutral",
 			"garrison": [{ "type": "elf", "actor": "t3.elf", "native": "neutral" }] }] }, _catalog())
 	var base_hex := Hex.offset_to_axial(4, 1)
@@ -121,8 +121,8 @@ func test_passengers_are_collected() -> void:
 	# 輸送に乗ったまま決着した駒も名簿に載る（盤上リストには居ないため取りこぼしやすい）。
 	var cat := _catalog()
 	cat["wagon"] = UnitType.from_dict({ "id": "wagon", "atk_ground": 0, "defense": 4, "move": 5, "max_troops": 8, "capacity": 4 })
-	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [
+	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [ { "units": [
 		{ "type": "wagon", "col": 1, "row": 1, "passengers": [{ "type": "elf", "actor": "t3.elf" }] },
-	] }, cat)
+	] } ] }, cat)
 	var updated := RosterService.update_after_clear([], s)
 	assert_true("t3.elf" in _actors(updated), "搭乗中の仲間も名簿に載る")

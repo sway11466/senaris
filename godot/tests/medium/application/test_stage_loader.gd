@@ -25,9 +25,9 @@ func test_build_reads_size_terrain_units() -> void:
 			"......",
 			"......",
 		],
-		"player": [
+		"player": [ { "units": [
 			{ "col": 1, "row": 2, "troops": 7, "level": 3 },
-		],
+		] } ],
 		"enemy": [
 			{ "ai": "charge", "units": [ { "col": 4, "row": 1 } ] },  # 省略値はデフォルト
 		],
@@ -45,9 +45,9 @@ func test_build_reads_size_terrain_units() -> void:
 func test_build_unit_fields_and_defaults() -> void:
 	var data := {
 		"cols": 6, "rows": 4,
-		"player": [
+		"player": [ { "units": [
 			{ "col": 1, "row": 2, "troops": 7, "level": 3 },
-		],
+		] } ],
 		"enemy": [
 			{ "ai": "charge", "units": [ { "col": 4, "row": 1 } ] },
 		],
@@ -64,12 +64,34 @@ func test_build_unit_fields_and_defaults() -> void:
 	assert_eq(u2.unit_attack, 10, "type 無しは素の既定（atk10）")
 	assert_eq(u2.move, 3, "type 無しは素の既定（move3）")
 
+func test_build_wires_player_parties() -> void:
+	# 味方も部隊に属する（doc/gdd/map.md 駒の配置）。持つのは名前だけで、特性も行動順も無い。
+	# 部隊は state.squads の先頭から記述順に積む＝敵部隊はその続きに並ぶ。
+	var data := {
+		"cols": 8, "rows": 4,
+		"player": [
+			{ "name": "ui.test.party_main", "units": [ { "col": 1, "row": 1 }, { "col": 1, "row": 2 } ] },
+			{ "units": [ { "col": 2, "row": 1 } ] },
+		],
+		"enemy": [ { "order": 1, "ai": "charge", "units": [ { "col": 6, "row": 1 } ] } ],
+	}
+	var s := StageLoader.build(data)
+	assert_eq(s.squads.size(), 3, "味方2部隊のあとに敵部隊が並ぶ")
+	assert_eq(String(s.squads[0].get("name", "")), "ui.test.party_main", "部隊名は部隊定義に入る")
+	assert_false(s.squads[0].has("units"), "units は部隊定義に残さない（駒は盤に置く）")
+	assert_false(s.squads[1].has("name"), "名前を書かない部隊は name を持たない")
+	assert_eq(s.squad_index_of(1), 0, "1つ目の味方部隊の駒")
+	assert_eq(s.squad_index_of(2), 0, "同じ部隊の2体目")
+	assert_eq(s.squad_index_of(3), 1, "2つ目の味方部隊の駒")
+	assert_eq(s.squad_index_of(4), 2, "敵部隊は味方部隊の続き")
+
+
 func test_build_wires_enemy_squads() -> void:
 	# 敵AIの配線＝部隊定義が state.squads に載り、その部隊の駒が index で引けること。
 	# 特性・行動順・パラメーター上書きは全部この dict 越しに Brain へ渡る（doc/gdd/ai.md 部隊）。
 	var data := {
 		"cols": 8, "rows": 4,
-		"player": [ { "col": 1, "row": 1 } ],
+		"player": [ { "units": [ { "col": 1, "row": 1 } ] } ],
 		"enemy": [
 			{ "order": 2, "name": "見張り", "ai": "ambush", "sight": 5,
 				"units": [ { "col": 6, "row": 1 } ] },
@@ -78,15 +100,15 @@ func test_build_wires_enemy_squads() -> void:
 		],
 	}
 	var s := StageLoader.build(data)
-	assert_eq(s.squads.size(), 2, "部隊は記述順に登録される")
-	assert_eq(str(s.squads[0].get("ai", "")), "ambush")
-	assert_eq(int(s.squads[0].get("sight", 0)), 5, "部隊ごとのパラメーター上書きも部隊定義に入る")
-	assert_false(s.squads[0].has("units"), "units は部隊定義に残さない（駒は盤に置く）")
-	assert_eq(int(s.squads[1].get("order", 0)), 1, "行動順は書かれた値のまま（並べ替えは Brain の仕事）")
-	assert_eq(s.squad_index_of(2), 0, "1つ目の部隊の駒")
-	assert_eq(s.squad_index_of(3), 1, "2つ目の部隊の駒")
-	assert_eq(s.squad_index_of(4), 1, "同じ部隊の2体目")
-	assert_eq(s.squad_index_of(1), -1, "自軍の駒は部隊に属さない")
+	assert_eq(s.squads.size(), 3, "味方部隊のあとに敵部隊が記述順で並ぶ")
+	assert_eq(str(s.squads[1].get("ai", "")), "ambush")
+	assert_eq(int(s.squads[1].get("sight", 0)), 5, "部隊ごとのパラメーター上書きも部隊定義に入る")
+	assert_false(s.squads[1].has("units"), "units は部隊定義に残さない（駒は盤に置く）")
+	assert_eq(int(s.squads[2].get("order", 0)), 1, "行動順は書かれた値のまま（並べ替えは Brain の仕事）")
+	assert_eq(s.squad_index_of(2), 1, "1つ目の敵部隊の駒")
+	assert_eq(s.squad_index_of(3), 2, "2つ目の敵部隊の駒")
+	assert_eq(s.squad_index_of(4), 2, "同じ敵部隊の2体目")
+	assert_eq(s.squad_index_of(1), 0, "自軍の駒は先頭の味方部隊に属する")
 
 func test_build_wires_ai_bases_as_squads() -> void:
 	# 拠点そのものが1部隊（doc/gdd/ai.md 拠点出撃）。ai を書いた拠点だけが部隊になる＝opt-in。
@@ -120,9 +142,9 @@ func test_build_resolves_type_from_catalog() -> void:
 			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
 		}),
 	}
-	var data := { "cols": 6, "rows": 4, "player": [
+	var data := { "cols": 6, "rows": 4, "player": [ { "units": [
 		{ "type": "cleric", "col": 1, "row": 1 },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
 	assert_eq(u.type_id, "cleric", "type_id を保持")
@@ -138,9 +160,9 @@ func test_unit_dict_carries_state_only() -> void:
 			"id": "cleric", "atk_ground": 10, "defense": 4, "move": 3, "max_troops": 8,
 		}),
 	}
-	var data := { "cols": 6, "rows": 4, "player": [
+	var data := { "cols": 6, "rows": 4, "player": [ { "units": [
 		{ "type": "cleric", "col": 1, "row": 1, "troops": 5, "level": 2 },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
 	assert_eq(u.troops, 5, "troops＝損耗は駒が指定できる")
@@ -157,11 +179,11 @@ func test_stage_cannot_override_type_stats() -> void:
 			"move_type": "flight", "move_after_attack": true, "can_capture": true,
 		}),
 	}
-	var data := { "cols": 6, "rows": 4, "player": [
+	var data := { "cols": 6, "rows": 4, "player": [ { "units": [
 		{ "type": "cleric", "col": 1, "row": 1,
 			"atk": 99, "def": 99, "move": 99, "range": 1, "capacity": 0, "atk_air": 0,
 			"pierce": 0.0, "move_type": "foot", "move_after_attack": false, "can_capture": false },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
 	assert_eq(u.unit_attack, 10, "atk は無視")
@@ -188,9 +210,9 @@ func test_carryover_places_named_members() -> void:
 		{ "type": "archer", "skin": "archer", "level": 3, "troops": 6, "max_troops": 8, "actor": "c.archer" },
 		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8, "actor": "c.knight" },
 	]
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 2, "actor": "c.archer" }, { "col": 1, "row": 3, "actor": "c.knight" },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
 	assert_eq(s.units().size(), 2, "継承2体が配置される")
 	var a := s.unit_at(Hex.offset_to_axial(1, 2))
@@ -208,10 +230,10 @@ func test_carryover_places_named_members() -> void:
 func test_carryover_coexists_with_fresh_reinforcements() -> void:
 	# 継承ユニット＋新米（配給）が同じ player セクションに共存し、id が衝突しない。
 	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8, "actor": "c.archer" }]
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "c.archer" },
 		{ "type": "recruit", "col": 5, "row": 4 },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
 	assert_eq(s.units().size(), 2, "継承1＋新米1")
 	var ids := {}
@@ -224,15 +246,15 @@ func test_carryover_coexists_with_fresh_reinforcements() -> void:
 
 func test_no_carried_units_leaves_named_pieces_off_the_board() -> void:
 	# fresh（継承なし）＝carried 空なら actor だけの駒は盤に出ない。
-	var data := { "cols": 8, "rows": 6, "player": [{ "col": 1, "row": 1, "actor": "c.archer" }] }
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.archer" }] } ] }
 	var s := StageLoader.build(data, _carry_catalog(), {}, [])
 	assert_eq(s.units().size(), 0, "carried 空なら継承配置なし")
 
 func test_roster_collect_returns_player_only() -> void:
 	# 名簿の収集＝自軍に帰属する名前つきの駒だけ返す（敵は含めない）。
 	var data := { "cols": 6, "rows": 4,
-		"player": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer", "supply": "join" },
-			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight", "supply": "join" }],
+		"player": [ { "units": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer", "supply": "join" },
+			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight", "supply": "join" }] } ],
 		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1, "actor": "c.foe" }] }] }
 	var s := StageLoader.build(data, _carry_catalog())
 	var snaps := RosterService.collect(s)
@@ -244,7 +266,7 @@ func test_roster_collect_returns_player_only() -> void:
 func test_load_file_places_carried_units() -> void:
 	# load_file(path, carried) で名簿の仲間が player の actor に嵌る（main の受け渡し経路）。
 	_write_stage(JSON.stringify({ "turn_limit": 20,
-		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }] }))
+		"player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.knight" }] } ] }))
 	_write_terrain('{ "terrain": ["........", "........", "........", "........", "........", "........"] }')
 	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8, "actor": "c.knight" }]
 	var s := StageLoader.load_file(TMP_PATH, carried)
@@ -267,9 +289,9 @@ func test_build_bases_with_garrison() -> void:
 	}
 	var data := {
 		"cols": 8, "rows": 6,
-		"player": [
+		"player": [ { "units": [
 			{ "type": "cleric", "col": 1, "row": 1 },
-		],
+		] } ],
 		"bases": [
 			{ "col": 4, "row": 3, "team": "enemy", "garrison": [ { "type": "novice", "count": 2, "native": "enemy" } ] },
 		],
@@ -291,9 +313,9 @@ func test_team_names_resolve_to_internal_ints() -> void:
 	# 駒の陣営はセクション（player/enemy）で決まり内部 int(0/1) に。拠点の team／控えの native は可読表記→int(-1/0)。
 	var data := {
 		"cols": 6, "rows": 6,
-		"player": [
+		"player": [ { "units": [
 			{ "col": 1, "row": 1 },
-		],
+		] } ],
 		"enemy": [
 			{ "ai": "charge", "units": [ { "col": 4, "row": 4 } ] },
 		],
@@ -316,7 +338,7 @@ func test_base_hq_and_rest_keys() -> void:
 	# "rest"＝誰が休めるか（占領しても変わらない）。→ doc/gdd/map.md §拠点の値
 	var data := {
 		"cols": 6, "rows": 6,
-		"player": [ { "col": 1, "row": 1 } ],
+		"player": [ { "units": [ { "col": 1, "row": 1 } ] } ],
 		"bases": [
 			{ "col": 2, "row": 2, "team": "enemy", "hq": "player", "rest": "player",
 				"garrison": [ { "count": 1, "native": "player" } ] },
@@ -339,7 +361,7 @@ func test_garrison_without_native_falls_back_to_base_team() -> void:
 	# native は必須（既定なし）。書き忘れは警告して、拠点の開始時の所有者に倒す＝中立拠点なら中立。
 	var data := {
 		"cols": 6, "rows": 6,
-		"player": [ { "col": 1, "row": 1 } ],
+		"player": [ { "units": [ { "col": 1, "row": 1 } ] } ],
 		"bases": [
 			{ "col": 2, "row": 2, "team": "enemy", "garrison": [ { "count": 1 } ] },
 			{ "col": 4, "row": 4, "team": "neutral", "garrison": [ { "count": 1 } ] },
@@ -405,7 +427,7 @@ func test_load_file_non_dict_json_returns_null() -> void:
 
 func test_load_file_missing_turn_limit_errors_but_builds() -> void:
 	# turn_limit 欠損はデータのバグとして push_error するが、build は続行して state を返す（現仕様）
-	_write_stage(JSON.stringify({ "player": [ { "col": 0, "row": 0 } ] }))
+	_write_stage(JSON.stringify({ "player": [ { "units": [ { "col": 0, "row": 0 } ] } ] }))
 	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_push_error("turn_limit")
@@ -414,7 +436,7 @@ func test_load_file_missing_turn_limit_errors_but_builds() -> void:
 	assert_eq(s.units().size(), 1)
 
 func test_load_file_non_positive_turn_limit_errors_but_builds() -> void:
-	_write_stage(JSON.stringify({ "turn_limit": 0, "player": [ { "col": 0, "row": 0 } ] }))
+	_write_stage(JSON.stringify({ "turn_limit": 0, "player": [ { "units": [ { "col": 0, "row": 0 } ] } ] }))
 	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_push_error("turn_limit")
@@ -422,7 +444,7 @@ func test_load_file_non_positive_turn_limit_errors_but_builds() -> void:
 	assert_eq(s.turn_limit, 0)
 
 func test_unknown_type_warns_and_falls_back_to_defaults() -> void:
-	var data := { "cols": 4, "rows": 3, "player": [ { "type": "nope", "col": 1, "row": 1 } ] }
+	var data := { "cols": 4, "rows": 3, "player": [ { "units": [ { "type": "nope", "col": 1, "row": 1 } ] } ] }
 	var s := StageLoader.build(data)  # catalog に無い種別＝クラッシュせず素の値
 	assert_push_warning("未知のユニット種別")
 	var u := s.unit_by_id(1)
@@ -441,9 +463,9 @@ func test_type_wires_all_combat_fields_from_catalog() -> void:
 			"move_after_attack": true, "max_troops": 8, "capacity": 4,
 		}),
 	}
-	var data := { "cols": 6, "rows": 4, "player": [
+	var data := { "cols": 6, "rows": 4, "player": [ { "units": [
 		{ "type": "wyvern", "col": 1, "row": 1 },
-	] }
+	] } ] }
 	var u := StageLoader.build(data, catalog).unit_by_id(1)
 	assert_eq(u.move_type, "flight", "move_type が種別から載る")
 	assert_eq(u.attack_range, 2, "attack_range が種別から載る")
@@ -458,9 +480,9 @@ func test_type_field_sets_skin_id_to_same_name() -> void:
 			"id": "fighter", "atk_ground": 50, "defense": 40, "move": 6, "max_troops": 8,
 		}),
 	}
-	var data := { "cols": 6, "rows": 4, "player": [
+	var data := { "cols": 6, "rows": 4, "player": [ { "units": [
 		{ "type": "fighter", "col": 1, "row": 1 },
-	] }
+	] } ] }
 	var s := StageLoader.build(data, catalog)
 	var u := s.unit_by_id(1)
 	assert_eq(u.skin_id, "fighter", "type 指定 → 同名 skin_id")
@@ -593,11 +615,11 @@ func test_stage_backdrops_have_art() -> void:
 
 func test_preview_lists_player_units_in_order() -> void:
 	# 配給の駒は書いた順に、頭数ぶん並ぶ（同じユニットが2体なら2つ）。
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "type": "recruit", "col": 1, "row": 1 },
 		{ "type": "recruit", "col": 1, "row": 2 },
 		{ "type": "archer", "col": 2, "row": 1 },
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog())
 	assert_eq(party.size(), 3, "頭数ぶん並ぶ")
 	assert_eq(party[0]["skin_id"], "recruit")
@@ -612,9 +634,9 @@ func test_preview_marks_zero_troop_member_unavailable() -> void:
 		{ "type": "archer", "skin": "archer", "level": 2, "troops": 0, "max_troops": 8, "actor": "c.archer" },
 		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8, "actor": "c.knight" },
 	]
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "c.archer" }, { "col": 1, "row": 2, "actor": "c.knight" },
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
 	assert_eq(party.size(), 2, "離脱者も並べる")
 	assert_eq(party[0]["skin_id"], "archer")
@@ -625,17 +647,17 @@ func test_preview_marks_zero_troop_member_unavailable() -> void:
 func test_preview_revive_member_is_available() -> void:
 	# revive は兵力ゼロでも満員で盤に出る＝紙でも沈めない。
 	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 0, "max_troops": 8, "actor": "c.archer" }]
-	var data := { "cols": 8, "rows": 6, "player": [{ "col": 1, "row": 1, "actor": "c.archer", "supply": "revive" }] }
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.archer", "supply": "revive" }] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
 	assert_eq(party.size(), 1)
 	assert_true(party[0]["available"], "呼び戻される駒は出撃できる")
 
 func test_preview_join_member_is_carried() -> void:
 	# supply:"join" は配給だがクリアで名簿に載る＝引き継ぐ側に並べる。
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "type": "recruit", "col": 1, "row": 1, "actor": "c.recruit", "supply": "join" },
 		{ "type": "archer", "col": 2, "row": 1 },
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog())
 	assert_true(party[0]["carried"], "初登場でも名簿に載る")
 	assert_false(party[1]["carried"], "その戦い限りの駒")
@@ -648,14 +670,14 @@ func test_preview_badges_mark_how_troops_are_supplied() -> void:
 		{ "type": "recruit", "skin": "recruit", "level": 1, "troops": 8, "max_troops": 8, "actor": "c.full" },
 		{ "type": "archer", "skin": "archer", "level": 1, "troops": 0, "max_troops": 8, "actor": "c.down" },
 	]
-	var data := { "cols": 8, "rows": 8, "player": [
+	var data := { "cols": 8, "rows": 8, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "c.archer" },                                  # 損耗のまま
 		{ "col": 1, "row": 2, "actor": "c.knight", "supply": "refill" },              # 兵数だけ満員へ
 		{ "col": 1, "row": 3, "actor": "c.full", "supply": "refill" },                # すでに満員
 		{ "col": 1, "row": 4, "actor": "c.down", "supply": "revive" },                # 兵力ゼロから戻る
 		{ "type": "recruit", "col": 1, "row": 5, "actor": "c.new", "supply": "join" },  # 初登場
 		{ "type": "recruit", "col": 1, "row": 6 },                                    # この依頼限り
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
 	assert_eq(party.size(), 6)
 	assert_eq(party[0]["badge"], StageLoader.BADGE_DAMAGED, "損耗したまま出る")
@@ -668,10 +690,10 @@ func test_preview_badges_mark_how_troops_are_supplied() -> void:
 func test_preview_unavailable_and_passengers_have_no_badge() -> void:
 	# 出撃できない駒は沈めた色が言う／輸送の乗員はこの依頼限り＝どちらも印を持たない。
 	var carried := [{ "type": "archer", "skin": "archer", "level": 1, "troops": 0, "max_troops": 8, "actor": "c.archer" }]
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "c.archer" },
 		{ "type": "knight", "col": 2, "row": 1, "passengers": [{ "type": "recruit" }] },
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, carried)
 	assert_false(party[0]["available"], "兵力ゼロは出撃できない")
 	assert_eq(party[0]["badge"], StageLoader.BADGE_NONE, "出撃できない駒は印を持たない")
@@ -679,9 +701,9 @@ func test_preview_unavailable_and_passengers_have_no_badge() -> void:
 
 func test_preview_skips_unjoined_member() -> void:
 	# 名簿に居ない駒（未加入）は盤に出ないので紙にも出さない。
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "c.archer" }, { "type": "recruit", "col": 2, "row": 1 },
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog(), {}, [])
 	assert_eq(party.size(), 1, "未加入は並べない")
 	assert_eq(party[0]["skin_id"], "recruit")
@@ -689,10 +711,10 @@ func test_preview_skips_unjoined_member() -> void:
 
 func test_preview_includes_passengers() -> void:
 	# 輸送に乗っている駒も出撃する戦力＝輸送の直後に並べる。
-	var data := { "cols": 8, "rows": 6, "player": [
+	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "type": "knight", "col": 1, "row": 1, "passengers": [{ "type": "recruit" }] },
 		{ "type": "archer", "col": 2, "row": 1 },
-	] }
+	] } ] }
 	var party := StageLoader.preview_player_units(data, _carry_catalog())
 	assert_eq(party.size(), 3)
 	assert_eq(party[1]["skin_id"], "recruit", "搭乗者は輸送の次")
@@ -702,22 +724,22 @@ func test_preview_includes_passengers() -> void:
 func test_preview_ignores_enemy_and_events() -> void:
 	# 敵と増援は紙に出さない（盤で出会うものを先に見せない）。
 	var data := { "cols": 8, "rows": 6,
-		"player": [{ "type": "recruit", "col": 1, "row": 1 }],
+		"player": [ { "units": [{ "type": "recruit", "col": 1, "row": 1 }] } ],
 		"enemy": [{ "ai": "charge", "units": [{ "type": "knight", "col": 5, "row": 1 }] }],
-		"events": [{ "type": "spawn", "team": "player", "turn": 3, "units": [{ "type": "archer", "col": 2, "row": 2 }] }],
+		"events": [{ "type": "spawn", "turn": 3, "player": [ { "units": [{ "type": "archer", "col": 2, "row": 2 }] } ] }],
 	}
 	var party := StageLoader.preview_player_units(data, _carry_catalog())
 	assert_eq(party.size(), 1, "自軍の初期配置だけ")
 
 func test_is_carryover_stage() -> void:
 	# 名簿に載る駒（actor 持ち）があれば継承、無ければ独立。
-	assert_true(StageLoader.is_carryover_stage({ "player": [
-		{ "type": "recruit", "col": 1, "row": 1 }, { "col": 1, "row": 2, "actor": "c.archer" }] }))
-	assert_false(StageLoader.is_carryover_stage({ "player": [{ "type": "recruit", "col": 1, "row": 1 }] }))
+	assert_true(StageLoader.is_carryover_stage({ "player": [ { "units": [
+		{ "type": "recruit", "col": 1, "row": 1 }, { "col": 1, "row": 2, "actor": "c.archer" }] } ] }))
+	assert_false(StageLoader.is_carryover_stage({ "player": [ { "units": [{ "type": "recruit", "col": 1, "row": 1 }] } ] }))
 	assert_false(StageLoader.is_carryover_stage({}), "player が無ければ独立")
 
 func test_load_briefing_from_file() -> void:
-	_write_stage('{ "player": [{ "type": "novice", "col": 1, "row": 1 }] }')
+	_write_stage('{ "player": [ { "units": [{ "type": "novice", "col": 1, "row": 1 }] } ] }')
 	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	var brief := StageLoader.load_briefing(TMP_PATH)
 	assert_eq((brief["party"] as Array).size(), 1)
@@ -734,20 +756,20 @@ func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> voi
 	var skins := SkinCatalog.load_standard()
 	var data := {
 		"cols": 6, "rows": 4,
-		"player": [
+		"player": [ { "units": [
 			{ "type": "knight", "col": 1, "row": 2 },
 			{ "type": "barricade", "col": 2, "row": 2 },
 			{ "type": "wagon", "col": 1, "row": 1, "passengers": [ { "type": "knight" } ] },
-		],
+		] } ],
 		"bases": [
 			{ "col": 4, "row": 1, "team": "neutral", "garrison": [ { "type": "knight", "count": 2, "native": "neutral" } ] },
 			{ "col": 5, "row": 1, "team": "enemy", "garrison": [ { "type": "knight", "count": 3, "native": "enemy" } ] },
 		],
 		"events": [
-			{ "id": "help", "turn": 5, "team": "player", "entry": "fade",
-				"units": [ { "type": "knight", "col": 0, "row": 0 } ] },
-			{ "id": "foes", "turn": 6, "team": "enemy", "order": 1, "entry": "fade",
-				"units": [ { "type": "knight", "col": 0, "row": 1 } ] },
+			{ "id": "help", "turn": 5, "entry": "fade",
+				"player": [ { "units": [ { "type": "knight", "col": 0, "row": 0 } ] } ] },
+			{ "id": "foes", "turn": 6, "entry": "fade",
+				"enemy": [ { "order": 1, "units": [ { "type": "knight", "col": 0, "row": 1 } ] } ] },
 		],
 	}
 	var s := StageLoader.build(data, catalog, skins)
@@ -760,7 +782,7 @@ func test_count_start_allies_follows_garrison_native() -> void:
 	var skins := SkinCatalog.load_standard()
 	var data := {
 		"cols": 6, "rows": 4,
-		"player": [ { "type": "knight", "col": 1, "row": 2 } ],
+		"player": [ { "units": [ { "type": "knight", "col": 1, "row": 2 } ] } ],
 		"bases": [
 			# 敵に奪われている砦に閉じ込められた自軍の控え＝自軍の戦力
 			{ "col": 4, "row": 1, "team": "enemy",
@@ -780,11 +802,11 @@ func test_count_start_allies_skips_units_that_did_not_sortie() -> void:
 	var skins := SkinCatalog.load_standard()
 	var data := {
 		"cols": 6, "rows": 4,
-		"player": [
+		"player": [ { "units": [
 			{ "type": "knight", "col": 1, "row": 2, "actor": "hero" },
 			{ "type": "knight", "col": 2, "row": 2, "actor": "absent" },
 			{ "type": "knight", "col": 3, "row": 2 },
-		],
+		] } ],
 	}
 	var roster := [ { "actor": "hero", "type": "knight", "troops": 8, "level": 1 } ]
 	var s := StageLoader.build(data, catalog, skins, roster)
@@ -838,7 +860,7 @@ func test_read_stage_without_terrain_errors() -> void:
 	assert_false(data.has("cols"), "地形が無ければ盤の広さも出せない")
 
 func test_load_file_builds_the_board_from_the_terrain_file() -> void:
-	_write_stage('{ "turn_limit": 10, "player": [ { "type": "novice", "col": 0, "row": 0 } ] }')
+	_write_stage('{ "turn_limit": 10, "player": [ { "units": [ { "type": "novice", "col": 0, "row": 0 } ] } ] }')
 	_write_terrain('{ "terrain": ["....", "..PP", "...."] }')
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_not_null(s)
