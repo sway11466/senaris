@@ -420,13 +420,14 @@ func _on_battle_finished(outcome: int) -> void:
 		_turn_banner.dismiss()  # ターン制限切れはターンの切り替わりと同時＝戦果票と重ねない
 	if _formation_cutin != null:
 		_formation_cutin.dismiss()  # 陣形でボスを倒した＝カットインの最中に決着しうる
-	# クロニクルは盤を離れるときにまとめて書く。決着＝盤を離れる。
-	_chronicle.flush()
 	# 記録は application 層（StageOutcome）に委ねる。ランク・所要時間・自己ベストも向こうで採る。
 	var result := _outcome.battle_finished(
 			_context.campaign_id, _context.stage_id, outcome,
 			_controller.state if _controller != null else null,
 			_context.started_at, _context.stage_path, _load_roster())
+	# クロニクルは盤を離れるときにまとめて書く。決着＝盤を離れる。
+	# battle_finished より後に置く＝この回のクリア後の顔ぶれを同じ書き出しに含めるため。
+	_chronicle.flush()
 	var rank: String = result["rank"]
 	_tally.set_result(int(result["elapsed"]), int(result["best_time"]))
 	match outcome:
