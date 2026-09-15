@@ -297,14 +297,6 @@
 - 対応：`terrain_skin.csv` に `fort` 型の見た目違いを1つ足す（洞窟の地面の上に立てる泉。占領で色が変わる `_team0`／`_team1` の規則は他の拠点と同じ＝[terrain.md](art/terrain.md)）。st6 の該当マスをそのスキンに差し替える。
 - 該当：`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json`・`doc/art/terrain.md`。着手の引き金＝竜狩りの通し確認で st6 を触るとき。
 
-### feature-125
-
-**経験した会話の記録を「足す」形にする**
-- ゴール：仲間 X が「居た回」と「居なかった回」を両方遊んだことが、進捗セーブに残る。
-- 背景：いまの進捗セーブは、在籍した仲間と発生したイベントを最後に遊んだ回で上書きしている（[gamesystem.md](tech/gamesystem.md) 経験した会話）。上書きのままだと「両方を経験した」という事実が残らず、クロニクルの通し読みで展開を切り替える材料（feature-129）が作れない。記録の形を変えた後の回からしか貯まらないので、通し読み本体より先に置く。
-- 対応：累積は進捗ではなく `user://chronicle.json` に持つ＝冒険譚→ステージごとに、遊んだ回の在籍 actor（開始時・クリア後）と起きたイベントを足す。同じ顔ぶれの回は畳む。進捗セーブは最後に遊んだ回の上書きのままで、版も構造も変えない（盤の中の読み直しが読む）。記録の口は `StageOutcome` の3入口に並べる。
-- 該当：`godot/infrastructure/save/chronicle_store.gd`・`godot/application/chronicle_service.gd`・`godot/application/stage_outcome.gd`・`godot/tests/`・[gamesystem.md](tech/gamesystem.md)・[chronicle.md](gdd/chronicle.md)。
-
 ### feature-126
 
 **クロニクルの通し読みの仕組み**
@@ -335,7 +327,7 @@
 - ゴール：両方の展開を経験している箇所で、通し読みの途中にどちらを読むか切り替えられる。
 - 背景：台本には在籍による行の出し入れ（`joined:<actor>`）と、どちらか一方しか起きないイベントがある（[chronicle.md](gdd/chronicle.md) 分岐の切り替え）。既定は最後に遊んだ回で、切り替えは両方を経験している箇所だけに出す＝読み始める前に顔ぶれを選ばせない。
 - 対応：通し読みが分岐に差しかかったとき、パネル脇に切り替えを出す。切り替えは仲間ごとに独立。
-- 該当：`godot/presentation/chronicle/`・[chronicle.md](gdd/chronicle.md) 分岐の切り替え。前提＝feature-125・feature-126。
+- 該当：`godot/presentation/chronicle/`・[chronicle.md](gdd/chronicle.md) 分岐の切り替え。前提＝feature-126。
 
 ## リファクタリング
 
