@@ -228,3 +228,10 @@ ui.chronicle.recipe_range,射程 %d,Range %d
 ui.chronicle.recipe_effect_area,範囲攻撃（半径%d）,Area attack (radius %d)
 ui.chronicle.recipe_effect_single,単体攻撃,Single-target attack
 ui.chronicle.recipe_effect_buff,状態補正（味方全体）,Status effect (all allies)
+ui.chronicle.results,戦果,Results
+ui.chronicle.story,物語,Story
+ui.chronicle.lore,設定集,Lore
+ui.chronicle.back_campaigns,← 冒険譚,← Adventures
+ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
+ui.chronicle.campaign_rank,ランク %s,Rank %s
+ui.chronicle.total_time,合計 %s,Total %s

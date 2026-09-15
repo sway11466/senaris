@@ -5,7 +5,7 @@ class_name ChronicleScreen
 ##
 ## 画面の様式はマニュアル・設定と同じ（全画面の暗幕、木の板のボタン、戻るは左下）。
 ## 中は3章＝ユニット／陣形スキル／冒険譚。目次で章を選び、右に中身を出す。
-## 手順2ではユニット章の骨組みだけ。陣形と冒険譚は手順3・4で足す。
+## 冒険譚だけ2段目がある（戦果／物語／設定集）。戻るで上の段へ上がる。
 
 signal closed  # 畳み終わった（暗幕が抜けたところ）
 
@@ -44,6 +44,10 @@ const ITEM_HEIGHT := 36   # アイテム1行の高さ
 enum Chapter { UNITS, FORMATIONS, CAMPAIGNS }
 const CHAPTER_KEYS := ["ui.chronicle.units", "ui.chronicle.formations", "ui.chronicle.campaigns"]
 
+## 冒険譚のなかの節（2段目の目次）
+enum CampaignSection { RESULTS, STORY, LORE }
+const CAMPAIGN_SECTION_KEYS := ["ui.chronicle.results", "ui.chronicle.story", "ui.chronicle.lore"]
+
 var _root: Control
 var _heading: Label
 var _toc_box: VBoxContainer
@@ -58,6 +62,8 @@ var _progress: CampaignProgress = null
 var _skins: Dictionary = {}  # SkinCatalog（main.gd と同じインスタンスを参照しない＝開くときに組む）
 var _selected_skin_id := ""  # ユニット章で選んでいるスキン
 var _selected_recipe_id := ""  # 陣形章で選んでいるレシピ
+var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空ならリスト）
+var _campaign_section: int = CampaignSection.RESULTS  # 冒険譚内の節
 
 func _ready() -> void:
 	layer = LAYER
@@ -100,6 +106,9 @@ func open(store: ChronicleStore, progress: CampaignProgress) -> void:
 	_chapter = Chapter.UNITS
 	_selected_skin_id = ""
 	_selected_recipe_id = ""
+	_selected_campaign_id = ""
+	_campaign_section = CampaignSection.RESULTS
+	_back.text = tr("ui.chronicle.back")
 	_rebuild()
 	visible = true
 	_root.modulate.a = 0.0
@@ -127,6 +136,13 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_back() -> void:
 	SfxPlayer.play_event("menu_back")
+	# 冒険譚の2段目にいれば上の段（冒険譚リスト）へ戻る。それ以外は画面を出る。
+	if _chapter == Chapter.CAMPAIGNS and not _selected_campaign_id.is_empty():
+		_selected_campaign_id = ""
+		_campaign_section = CampaignSection.RESULTS
+		_back.text = tr("ui.chronicle.back")
+		_rebuild()
+		return
 	close()
 
 # ---------------------------------------------------------------------------
@@ -186,6 +202,11 @@ func _rebuild() -> void:
 func _rebuild_toc() -> void:
 	for c in _toc_box.get_children():
 		c.queue_free()
+	# 冒険譚を選んでいるとき＝2段目（戦果／物語／設定集）
+	if _chapter == Chapter.CAMPAIGNS and not _selected_campaign_id.is_empty():
+		_rebuild_toc_campaign()
+		return
+	# 1段目（ユニット／陣形スキル／冒険譚）
 	for i in CHAPTER_KEYS.size():
 		var btn := TavernTheme.wood_button(tr(CHAPTER_KEYS[i]))
 		btn.custom_minimum_size = Vector2(TOC_WIDTH - 8, TOC_BUTTON_HEIGHT)
@@ -195,12 +216,33 @@ func _rebuild_toc() -> void:
 		if i == _chapter:
 			_add_frame(btn)
 
+## 冒険譚の2段目の目次（戦果／物語／設定集）。
+func _rebuild_toc_campaign() -> void:
+	for i in CAMPAIGN_SECTION_KEYS.size():
+		var btn := TavernTheme.wood_button(tr(CAMPAIGN_SECTION_KEYS[i]))
+		btn.custom_minimum_size = Vector2(TOC_WIDTH - 8, TOC_BUTTON_HEIGHT)
+		var idx := i
+		btn.pressed.connect(func() -> void: _select_campaign_section(idx))
+		_toc_box.add_child(btn)
+		if i == _campaign_section:
+			_add_frame(btn)
+
+func _select_campaign_section(idx: int) -> void:
+	if idx == _campaign_section:
+		return
+	_campaign_section = idx
+	SfxPlayer.play_event("menu_select")
+	_rebuild()
+
 func _select_chapter(idx: int) -> void:
 	if idx == _chapter:
 		return
 	_chapter = idx
 	_selected_skin_id = ""
 	_selected_recipe_id = ""
+	_selected_campaign_id = ""
+	_campaign_section = CampaignSection.RESULTS
+	_back.text = tr("ui.chronicle.back")
 	SfxPlayer.play_event("menu_select")
 	_rebuild()
 
@@ -230,7 +272,16 @@ func _rebuild_content() -> void:
 		Chapter.FORMATIONS:
 			_build_formations_chapter()
 		Chapter.CAMPAIGNS:
-			_build_placeholder(tr("ui.chronicle.campaigns"))
+			if _selected_campaign_id.is_empty():
+				_build_campaigns_chapter()
+			else:
+				match _campaign_section:
+					CampaignSection.RESULTS:
+						_build_campaign_results()
+					CampaignSection.STORY:
+						_build_placeholder(tr("ui.chronicle.story"))
+					CampaignSection.LORE:
+						_build_placeholder(tr("ui.chronicle.lore"))
 
 func _build_placeholder(title: String) -> void:
 	var label := Label.new()
@@ -576,6 +627,171 @@ func _effect_text(recipe: Dictionary) -> String:
 		"buff":
 			return tr("ui.chronicle.recipe_effect_buff")
 	return ""
+
+# ---------------------------------------------------------------------------
+# 冒険譚章
+# ---------------------------------------------------------------------------
+
+## 冒険譚の一覧。タップで2段目（戦果／物語／設定集）に入る。
+func _build_campaigns_chapter() -> void:
+	if _progress == null:
+		return
+	var camps := _progress.campaigns(false)  # デバッグ冒険譚を除く
+	for c in camps:
+		var cid: String = c["id"]
+		var stages: Array = c["stages"]
+		var total: int = stages.size()
+		var cleared := _progress.cleared_count(cid)
+
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(0, ITEM_HEIGHT)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.text = "  " + tr(String(c.get("title", cid)))
+		btn.add_theme_color_override("font_color", UI_GRAY)
+		btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+		btn.pressed.connect(func() -> void: _open_campaign(cid))
+		btn.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color.TRANSPARENT
+		btn.add_theme_stylebox_override("normal", sb)
+		var sb_hover := StyleBoxFlat.new()
+		sb_hover.bg_color = Color(1.0, 1.0, 1.0, 0.05)
+		btn.add_theme_stylebox_override("hover", sb_hover)
+		_content_box.add_child(btn)
+
+		# 進捗の行（クリア数・ランク・合計時間）
+		if total > 0:
+			var parts: Array = []
+			parts.append(tr("ui.chronicle.cleared_progress") % [cleared, total])
+			if _progress.is_all_cleared(cid):
+				var rank := _campaign_rank(cid, stages)
+				if not rank.is_empty():
+					parts.append(tr("ui.chronicle.campaign_rank") % rank)
+				var t := _campaign_total_time(cid, stages)
+				if t > 0:
+					parts.append(tr("ui.chronicle.total_time") % _format_duration(t))
+			var info := Label.new()
+			info.text = "    " + "  ".join(parts)
+			info.add_theme_font_size_override("font_size", COUNT_FONT_SIZE)
+			info.add_theme_color_override("font_color", DIM_GRAY)
+			_content_box.add_child(info)
+
+func _open_campaign(campaign_id: String) -> void:
+	_selected_campaign_id = campaign_id
+	_campaign_section = CampaignSection.RESULTS
+	_back.text = tr("ui.chronicle.back_campaigns")
+	SfxPlayer.play_event("menu_select")
+	_rebuild()
+
+# ---------------------------------------------------------------------------
+# 戦果（冒険譚2段目・RESULTS）
+# ---------------------------------------------------------------------------
+
+## 選択中の冒険譚のステージごとの戦果を出す。
+func _build_campaign_results() -> void:
+	if _progress == null:
+		return
+	var c := _progress.campaign(_selected_campaign_id)
+	if c.is_empty():
+		return
+	# 冒険譚の見出し
+	var head := Label.new()
+	head.text = tr(String(c.get("title", _selected_campaign_id)))
+	head.add_theme_font_size_override("font_size", HEAD_FONT_SIZE)
+	head.add_theme_color_override("font_color", ACCENT)
+	_content_box.add_child(head)
+
+	# 冒険譚サマリー（全クリアならランクと合計時間）
+	var stages: Array = c["stages"]
+	if _progress.is_all_cleared(_selected_campaign_id):
+		var summary_parts: Array = []
+		var rank := _campaign_rank(_selected_campaign_id, stages)
+		if not rank.is_empty():
+			summary_parts.append(tr("ui.chronicle.campaign_rank") % rank)
+		var t := _campaign_total_time(_selected_campaign_id, stages)
+		if t > 0:
+			summary_parts.append(tr("ui.chronicle.total_time") % _format_duration(t))
+		if not summary_parts.is_empty():
+			var summary := Label.new()
+			summary.text = "  ".join(summary_parts)
+			summary.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
+			summary.add_theme_color_override("font_color", UI_GRAY)
+			_content_box.add_child(summary)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, CATEGORY_GAP)
+	_content_box.add_child(spacer)
+
+	# ステージごとの行
+	for s in stages:
+		var sid: String = s["id"]
+		var cleared := _progress.stage_state(_selected_campaign_id, sid) == CampaignProgress.CLEARED
+		var row := HBoxContainer.new()
+		row.custom_minimum_size = Vector2(0, ITEM_HEIGHT)
+		row.add_theme_constant_override("separation", 16)
+
+		var title_label := Label.new()
+		if cleared:
+			title_label.text = tr(String(s.get("title", sid)))
+		else:
+			title_label.text = tr("ui.chronicle.unknown")
+		title_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+		title_label.add_theme_color_override("font_color", UI_GRAY if cleared else DIM_GRAY)
+		title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(title_label)
+
+		if cleared:
+			var rank := _progress.best_rank(_selected_campaign_id, sid)
+			if not rank.is_empty():
+				var rank_label := Label.new()
+				rank_label.text = rank
+				rank_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+				rank_label.add_theme_color_override("font_color", ACCENT)
+				rank_label.custom_minimum_size = Vector2(30, 0)
+				row.add_child(rank_label)
+			var time := _progress.best_time(_selected_campaign_id, sid)
+			if time > 0:
+				var time_label := Label.new()
+				time_label.text = _format_duration(time)
+				time_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+				time_label.add_theme_color_override("font_color", DIM_GRAY)
+				row.add_child(time_label)
+
+		_content_box.add_child(row)
+
+## 冒険譚ランク＝全ステージのベストランクのうち最も低いもの。未ランクがあれば空。
+func _campaign_rank(campaign_id: String, stages: Array) -> String:
+	var worst := "S"
+	for s in stages:
+		var r := _progress.best_rank(campaign_id, s["id"])
+		if r.is_empty():
+			return ""
+		if RankEvaluator.is_better(worst, r):
+			worst = r
+	return worst
+
+## クリア時間の合計＝各ステージのベストの和。未記録があれば 0。
+func _campaign_total_time(campaign_id: String, stages: Array) -> int:
+	var total := 0
+	for s in stages:
+		var t := _progress.best_time(campaign_id, s["id"])
+		if t == 0:
+			return 0
+		total += t
+	return total
+
+## 秒を表示用テキストにする（stage_tally.gd と同じ形式）。
+func _format_duration(seconds: int) -> String:
+	var total := maxi(seconds, 0)
+	var days := total / 86400
+	var hours := (total % 86400) / 3600
+	var minutes := (total % 3600) / 60
+	if days > 0:
+		return tr("ui.result.time_days") % [days, hours, minutes]
+	if hours > 0:
+		return "%d:%02d:%02d" % [hours, minutes, total % 60]
+	return "%d:%02d" % [minutes, total % 60]
 
 # ---------------------------------------------------------------------------
 # 共通
