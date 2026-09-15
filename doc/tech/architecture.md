@@ -76,6 +76,7 @@ res://
 │   ├── stage_loader.gd      # ステージJSON → BattleState
 │   ├── campaign_progress.gd # 解放判定・記録の書き先
 │   ├── stage_outcome.gd     # 決着時の記録(クリア・ランク・所要時間・名簿・会話)
+│   ├── chronicle_service.gd # クロニクルの記録(盤に出た駒・発動したレシピを溜め、盤を離れるときに書く)
 │   ├── roster_service.gd    # 名簿(継承の戦力)
 │   └── bgm_director.gd
 ├── presentation/      # ここだけノード/シーン
@@ -94,7 +95,7 @@ res://
 │   ├── i18n/          # 翻訳CSV(正本)＋生成 .translation
 │   └── terrain/ movement/ ai/ audio/ effects/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
 ├── infrastructure/
-│   ├── save/          # 直列化(進捗＋中断)
+│   ├── save/          # 直列化(進捗＋中断＋クロニクル)
 │   └── platform/      # 外界との境界: チャネル・版の識別(build_info)
 ├── assets/            # ゲームに載る素材。<種別>-src は元素材で .gdignore（Godotの走査外）
 │   └── licenses/      # 配布物に添えるライセンス文

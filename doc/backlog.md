@@ -112,8 +112,8 @@
   - 記録の発火点は `MatchController` のシグナル（`unit_deployed`／`event_fired`／`base_captured`／`formation_resolved`）と開始時の盤＝application の中で完結させ、presentation を通さない。
   - `godot/presentation/chronicle/`（新規）＝画面だけ。目次・2ペイン・物語の通し読み（盤を挿絵にする組み立てとカメラ寄せ）。前例＝設定画面・マニュアル画面。
 - 手順（1つずつ動かして進める）：
-  0. refactoring-16＝決着時の記録を application に寄せる。クロニクルの記録はその口に足す形にするため、先にやる。
-  1. 記録の土台＝`ChronicleStore`（版・バックアップ・壊れていれば空）と `ChronicleService` の記録側（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）。テスト＝`test_chronicle_store.gd`・`test_chronicle_service.gd`。画面はまだ無い。
+  0. refactoring-16＝決着時の記録を application に寄せる。クロニクルの記録はその口に足す形にするため、先にやる。 ✅ 実装済み（実機確認待ち）
+  1. 記録の土台＝`ChronicleStore`（版・バックアップ・壊れていれば空）と `ChronicleService` の記録側（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）。テスト＝`test_chronicle_store.gd`・`test_chronicle_service.gd`。画面はまだ無い。 ✅ 実装済み（テスト実行待ち＝配線は手順2以降）
   2. ユニット章＝`unit_skin.csv` の分類と行順で束ね、黒シルエットと「埋まった数／全部」、選ぶと性能とユニットスキルと説明文。`names.csv` に `unit.<skin_id>.desc`。タイトルのメニューに項目を足し、画面の骨（目次・戻る・暗幕）はここで作る。
   3. 陣形章＝「？」の枠と「埋まった数／全部」、解放済みはレシピの図・効果・持続・射程・初出。`names.csv` に `recipe.<id>.desc`。
   4. 冒険譚の一覧と戦果＝冒険譚ランク（全ステージのベストの最低）・クリア時間の合計・「クリア数／ステージ数」、ステージごとの行。新しい記録は持たない。
