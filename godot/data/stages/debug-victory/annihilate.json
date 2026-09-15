@@ -2,16 +2,6 @@
   "turn_limit": 30,
   "name": "debug-annihilate",
   "haze": 0.80,
-  "cols": 8,
-  "rows": 5,
-  "margin": 0,
-  "terrain": [
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
-  ],
   "player": [
     { "type": "fighter", "col": 1, "row": 2 },
     { "type": "archer", "col": 2, "row": 1 }

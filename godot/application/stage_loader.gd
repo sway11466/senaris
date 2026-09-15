@@ -104,6 +104,10 @@ static func read_stage(path: String) -> Dictionary:
 	var data := _read_json(path)
 	if data.is_empty():
 		return data
+	for k in TERRAIN_KEYS + ["cols", "rows"]:
+		if data.has(k):  # 本体に書いても効かない＝二重に書けば食い違うので書かせない
+			push_error("StageLoader: \"%s\" は本体に書かない（地形ファイルへ／cols・rows はグリッドから数える）: %s"
+					% [k, path])
 	var terrain := _read_json(terrain_path(path))
 	for k in TERRAIN_KEYS:
 		if terrain.has(k):

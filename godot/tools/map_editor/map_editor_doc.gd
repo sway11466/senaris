@@ -1,7 +1,9 @@
 extends RefCounted
 class_name MapEditorDoc
 ## マップエディタ（tools/map_editor/map_editor.tscn）のドキュメントモデル。
-## stage.json の辞書をそのまま正本として持ち、編集操作とテキスト入出力（読込/保存）を提供する。
+## ステージの辞書をそのまま正本として持ち、編集操作とテキスト入出力（読込/保存）を提供する。
+## ファイルは本体と地形（<ステージ>.terrain.json）の2つに分かれるが、手に持つ辞書は合流した1つ
+## ＝StageLoader.read_stage と同じ形（cols/rows も入る）。分けるのは書き出すときだけ。
 ## 編集対象外のキー（dialogue / 未知キー）は読み込んだまま温存して書き戻す。
 ## 純ロジック（Godotノード非依存）＝テスト対象（tests/unit/test_map_editor_doc.gd）。
 ## スキーマの解釈は StageLoader（application/stage_loader.gd）に合わせる。
@@ -21,19 +23,21 @@ static func new_stage(cols: int = 12, rows: int = 8, margin: int = 0) -> MapEdit
 	return doc
 
 
-## JSONテキストから読み込む。不正なら null。
+## 本体と地形ファイルの JSON テキストから読み込む。どちらかが不正なら null。
 ## JSON.parse_string はパース失敗時にエンジンエラーを出すため、静かな JSON.parse を使う。
-static func from_text(text: String) -> MapEditorDoc:
-	var json := JSON.new()
-	if json.parse(text) != OK:
-		return null
-	var parsed: Variant = json.data
-	if typeof(parsed) != TYPE_DICTIONARY:
+static func from_text(text: String, terrain_text: String) -> MapEditorDoc:
+	var parsed: Variant = _parse_dict(text)
+	var terrain: Variant = _parse_dict(terrain_text)
+	if parsed == null or terrain == null:
 		return null
 	var doc := MapEditorDoc.new()
 	doc.data = parsed
 	for key in parsed:
 		doc._keys_in_source[String(key)] = true
+	for key in terrain:  # 地形ファイル側のキーを重ねる（本体には書かれない）
+		doc.data[key] = terrain[key]
+		doc._keys_in_source[String(key)] = true
+	doc._count_board()
 	for key in ["player", "enemy", "bases"]:  # 編集対象の配列はキー欠落を補う
 		if typeof(doc.data.get(key)) != TYPE_ARRAY:
 			doc.data[key] = []
@@ -42,6 +46,26 @@ static func from_text(text: String) -> MapEditorDoc:
 	doc._migrate_legacy_bases()
 	doc._normalize_terrain()
 	return doc
+
+
+## 静かな JSON パース。辞書でなければ null（呼び出し側が「読めない」に倒す）。
+static func _parse_dict(text: String) -> Variant:
+	var json := JSON.new()
+	if json.parse(text) != OK:
+		return null
+	var parsed: Variant = json.data
+	return parsed if typeof(parsed) == TYPE_DICTIONARY else null
+
+
+## 盤の広さを地形グリッドから数えて辞書に入れる（ファイルには書かない＝StageLoader と同じ決め方）。
+func _count_board() -> void:
+	var grid: Variant = data.get("terrain", [])
+	if typeof(grid) != TYPE_ARRAY or (grid as Array).is_empty():
+		return
+	var lines: Array = grid
+	var m := margin()
+	data["cols"] = String(lines[0]).length() - m * 2
+	data["rows"] = lines.size() - m * 2
 
 
 func cols() -> int:
@@ -913,9 +937,14 @@ func remove_defeat(index: int) -> void:
 # --- 保存（テキスト化） ---
 
 
-func to_text() -> String:
+func to_stage_text() -> String:
 	_normalize_terrain()
-	return MapEditorDocSerializer.serialize(data, _keys_in_source)
+	return MapEditorDocSerializer.serialize_stage(data, _keys_in_source)
+
+
+func to_terrain_text() -> String:
+	_normalize_terrain()
+	return MapEditorDocSerializer.serialize_terrain(data, _keys_in_source)
 
 
 ## 旧キーの拠点（kind:"hq" と native）を hq / rest に読み替える。読み込み時だけの片道変換＝保存で新キーになる。

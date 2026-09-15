@@ -2,16 +2,6 @@
   "turn_limit": 30,
   "name": "debug-carryover-seed",
   "haze": 0.80,
-  "cols": 8,
-  "rows": 5,
-  "margin": 0,
-  "terrain": [
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
-  ],
   "player": [
     { "type": "fighter", "actor": "keeper", "supply": "join", "level": 7, "troops": 3, "col": 0, "row": 0 },
     { "type": "archer", "actor": "refiller", "supply": "join", "level": 4, "troops": 5, "col": 0, "row": 4 },

@@ -54,7 +54,7 @@ func _stage_paths(dir_path: String) -> Array:
 	for d in dir.get_directories():
 		out.append_array(_stage_paths(dir_path.path_join(d)))
 	for f in dir.get_files():
-		if f.ends_with(".json"):
+		if f.ends_with(".json") and not f.ends_with(StageLoader.TERRAIN_SUFFIX):
 			out.append(dir_path.path_join(f))
 	return out
 

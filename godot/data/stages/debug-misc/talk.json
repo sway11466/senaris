@@ -2,16 +2,6 @@
   "turn_limit": 30,
   "name": "debug-talk",
   "haze": 0.80,
-  "cols": 8,
-  "rows": 5,
-  "margin": 0,
-  "terrain": [
-    "........",
-    "........",
-    "........",
-    "........",
-    "........"
-  ],
   "player": [
     { "type": "fighter", "col": 2, "row": 2 }
   ],

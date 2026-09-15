@@ -121,6 +121,8 @@
 
 - ステージは JSON データで記述する（ASCII地形グリッド＋ユニット配置）。データは `data/`、それを盤面(BattleState)に組み立てるローダー `StageLoader` は `application/`（data＋domain の両方に依存するため）。詳細 → [../tech/architecture.md](../tech/architecture.md)。
 - ステージは冒険譚ごとのフォルダに束ねる: `godot/data/stages/<冒険譚>/<ステージ>.json`（→ [campaigns.md](campaigns.md) ステージの束ね方）。
+- ステージは2ファイルに分かれる。本体 `<ステージ>.json` と地形 `<ステージ>.terrain.json` で、地形ファイルが持つのは `terrain` / `terrain_skins` / `margin` の3つ。地形はマップエディタで編集するもので、量も大きい（見た目の差分が本体を埋める）ので本体から外す。読むときに合流するので、盤に組み上がった形は分けていないときと同じ。
+- 盤の広さはどちらのファイルにも書かない。`terrain` グリッドの寸法から数える（`margin` のぶんを差し引く）。同じことを二度書けば食い違うため。グリッドの行の長さが揃っていなければエラーで、盤の形は決めない。
 - 演出・見た目のキー（presentation 専用＝BattleState には入らない）:
   - `dialogue`: 戦闘前後の会話 `{ "intro": [...], "outro": [...] }`・各行 `{speaker, skin, text}`・テキストは翻訳キー。仕様 → [../campaign/authoring.md](../campaign/authoring.md)
   - `terrain_skins`: 地形の見た目差分（座標→skin_id の列挙。未指定セルは type の既定スキン）。性能の `terrain` グリッドとは別レイヤー
@@ -130,15 +132,15 @@
 
 盤の縁のマスは「盤の外に何があるか」が分からない。柵や道のような繋がる地形（`connect`）はそれで絵が決まるので、外側を作者が描けるようにしたのが `margin`。
 
-- `cols` / `rows` は遊べる盤のまま。`terrain` だけを外周ぶん大きく書き、厚みを `margin` で言う。グリッドは `(cols + 2*margin)` 文字 × `(rows + 2*margin)` 行。
+- 遊べる盤より外周ぶん大きく `terrain` を書き、厚みを `margin` で言う。グリッドは `(盤の幅 + 2*margin)` 文字 × `(盤の高さ + 2*margin)` 行で、盤の広さはここから逆算される。
 - 駒・拠点の座標は盤の0起点のまま。ずれるのは `terrain` の読み出し位置だけで、`margin: 0` なら書き方も挙動も従来と変わらない。
 - 外周は描かない・駒は入れない・盤（`BattleState`）にも存在しない。接続タイルの向きを引くためだけのデータ。
 - 厚みは 1 で足りる。offset 座標では6近傍が必ず col±1・row±1 に収まるので、1周あればどのマスの隣も覆える。
-- `terrain_skins` は外周のセルも指せる（`col`/`row` が負値や `cols` 以上になるだけ）。
+- `terrain_skins` は外周のセルも指せる（`col`/`row` が負値や盤の幅以上になるだけ）。
 - 縁の絵がどう決まるかは [../art/terrain.md](../art/terrain.md) §3.5。
-- 例（24×9 の盤に外周1周＝26文字×11行）:
+- 例（24×9 の盤に外周1周＝26文字×11行。地形ファイルの中身）:
   ```json
-  "cols": 24, "rows": 9, "margin": 1,
+  "margin": 1,
   "terrain": [
     "FFFFFFFFFF%%%%%%%%%%%%%%%%",
     "FFFFFFFFFF%%%%%%%%%%%%%%%%",

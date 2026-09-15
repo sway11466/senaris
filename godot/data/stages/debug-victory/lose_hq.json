@@ -2,16 +2,6 @@
   "turn_limit": 30,
   "name": "debug-lose_hq",
   "haze": 0.80,
-  "cols": 10,
-  "rows": 5,
-  "margin": 0,
-  "terrain": [
-    "..........",
-    "..........",
-    ".O........",
-    "..........",
-    ".........."
-  ],
   "player": [
     { "type": "fighter", "col": 8, "row": 2 }
   ],

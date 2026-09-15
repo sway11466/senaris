@@ -4,21 +4,6 @@
   "name": "goblin-raid-st1",
   "haze": 0.80,
   "backdrop": "sky_clear",
-  "cols": 14,
-  "rows": 8,
-  "margin": 1,
-  "terrain": [
-    "PPPP............",
-    "PPPP......FFFFF.",
-    "PPPP.......FFFF.",
-    ".P..........FFF.",
-    ".............F..",
-    "..............RR",
-    "............RRRR",
-    "......R.R.RRRR..",
-    "....RRRRRRRR....",
-    "...RRRRRRR......"
-  ],
   "player": [
     { "type": "fighter", "col": 1, "row": 3 },
     { "type": "novice", "col": 1, "row": 1 },

@@ -243,10 +243,9 @@ func test_roster_collect_returns_player_only() -> void:
 
 func test_load_file_places_carried_units() -> void:
 	# load_file(path, carried) で名簿の仲間が player の actor に嵌る（main の受け渡し経路）。
-	_write_stage(JSON.stringify({
-		"terrain": ["........", "........", "........", "........", "........", "........"], "turn_limit": 20,
-		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }],
-	}))
+	_write_stage(JSON.stringify({ "turn_limit": 20,
+		"player": [{ "col": 1, "row": 1, "actor": "c.knight" }] }))
+	_write_terrain('{ "terrain": ["........", "........", "........", "........", "........", "........"] }')
 	var carried := [{ "type": "knight", "skin": "knight", "level": 4, "troops": 3, "max_troops": 8, "actor": "c.knight" }]
 	var s := StageLoader.load_file(TMP_PATH, carried)
 	assert_not_null(s)
@@ -406,7 +405,8 @@ func test_load_file_non_dict_json_returns_null() -> void:
 
 func test_load_file_missing_turn_limit_errors_but_builds() -> void:
 	# turn_limit 欠損はデータのバグとして push_error するが、build は続行して state を返す（現仕様）
-	_write_stage(JSON.stringify({ "terrain": ["....", "....", "...."], "player": [ { "col": 0, "row": 0 } ] }))
+	_write_stage(JSON.stringify({ "player": [ { "col": 0, "row": 0 } ] }))
+	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_push_error("turn_limit")
 	assert_not_null(s, "エラーは出すが読み込みは成立する")
@@ -414,8 +414,8 @@ func test_load_file_missing_turn_limit_errors_but_builds() -> void:
 	assert_eq(s.units().size(), 1)
 
 func test_load_file_non_positive_turn_limit_errors_but_builds() -> void:
-	_write_stage(JSON.stringify({ "terrain": ["....", "....", "...."], "turn_limit": 0,
-		"player": [ { "col": 0, "row": 0 } ] }))
+	_write_stage(JSON.stringify({ "turn_limit": 0, "player": [ { "col": 0, "row": 0 } ] }))
+	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	var s := StageLoader.load_file(TMP_PATH)
 	assert_push_error("turn_limit")
 	assert_not_null(s, "0 以下でもエラーを出しつつ state を返す")
@@ -557,7 +557,7 @@ func _all_stage_files() -> Array[String]:
 		if sd == null:
 			continue
 		for f in sd.get_files():
-			if f.ends_with(".json") and f != "campaign.json":
+			if f.ends_with(".json") and f != "campaign.json" 					and not f.ends_with(StageLoader.TERRAIN_SUFFIX):  # 地形ファイルはステージではない
 				out.append("%s/%s/%s" % [root, sub, f])
 	return out
 
@@ -571,7 +571,8 @@ func test_backdrop_missing_is_empty() -> void:
 	assert_eq(StageLoader.parse_backdrop({}), "")
 
 func test_load_backdrop_from_file() -> void:
-	_write_stage('{ "terrain": ["....", "....", "...."], "margin": 0, "backdrop": "cave_wall1" }')
+	_write_stage('{ "backdrop": "cave_wall1" }')
+	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	assert_eq(StageLoader.load_backdrop(TMP_PATH), "cave_wall1")
 
 func test_load_backdrop_missing_file_is_empty() -> void:
@@ -716,7 +717,8 @@ func test_is_carryover_stage() -> void:
 	assert_false(StageLoader.is_carryover_stage({}), "player が無ければ独立")
 
 func test_load_briefing_from_file() -> void:
-	_write_stage('{ "terrain": ["....", "....", "...."], "margin": 0, "player": [{ "type": "novice", "col": 1, "row": 1 }] }')
+	_write_stage('{ "player": [{ "type": "novice", "col": 1, "row": 1 }] }')
+	_write_terrain('{ "terrain": ["....", "....", "...."] }')
 	var brief := StageLoader.load_briefing(TMP_PATH)
 	assert_eq((brief["party"] as Array).size(), 1)
 	assert_false(brief["carryover"], "actor が無ければ独立")

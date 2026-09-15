@@ -2,10 +2,20 @@ extends RefCounted
 class_name MapEditorDocSerializer
 ## MapEditorDoc の stage.json 整形出力（tools 専用）。
 ## 既存ステージの手書きスタイルに寄せる：2スペースインデント・駒/控え/会話行は1行辞書・terrain は1行1文字列。
-## MapEditorDoc.to_text() から委譲される。データ操作は持たない＝入力を文字列に変えるだけ。
+## MapEditorDoc.to_stage_text() / to_terrain_text() から委譲される。データ操作は持たない＝入力を文字列に変えるだけ。
+##
+## 出力は2ファイル。本体（<ステージ>.json）と地形（<ステージ>.terrain.json）で、
+## 分け方は StageLoader に合わせる＝地形ファイルが持つのは margin / terrain / terrain_skins。
+## 盤の広さ（cols/rows）はどちらにも書かない（読むときにグリッドから数える）。
 
 ## 保存時のトップレベルキーの並び（既存ステージの手書き順に合わせる）。残りは元の順で末尾。
-const KEY_ORDER := ["turn_limit", "name", "cols", "rows", "margin", "terrain", "terrain_skins", "player", "enemy", "bases", "events", "victory", "defeat", "dialogue"]
+const KEY_ORDER := ["turn_limit", "name", "player", "enemy", "bases", "events", "victory", "defeat", "dialogue"]
+
+## 地形ファイルに書くキー（この順で書く）。
+const TERRAIN_FILE_KEYS := ["margin", "terrain", "terrain_skins"]
+
+## 本体には書かないキー（地形ファイルへ／盤の広さはグリッドから数える）。
+const NOT_IN_STAGE := ["margin", "terrain", "terrain_skins", "cols", "rows"]
 
 ## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers /
 ## 敗北条件の bases・actors）。1件だけなら1行に収まる＝手書きの既存ステージと同じ見た目になる。
@@ -16,23 +26,37 @@ const ENTITY_KEY_ORDER := ["turn", "order", "name", "ai", "speaker", "type", "sk
 
 
 ## data と keys_in_source（読み込み時に元ファイルに存在したキーの記録）を受け取り、
-## 手書きスタイルに寄せた JSON テキストを返す。
-static func serialize(data: Dictionary, keys_in_source: Dictionary) -> String:
+## 手書きスタイルに寄せた本体の JSON テキストを返す（地形は serialize_terrain へ）。
+static func serialize_stage(data: Dictionary, keys_in_source: Dictionary) -> String:
 	var keys := []
 	for k in KEY_ORDER:
 		if data.has(k):
 			keys.append(k)
 	for k in data:
-		if not keys.has(k):
+		if not keys.has(k) and not (String(k) in NOT_IN_STAGE):
 			keys.append(k)
 	var parts: Array[String] = []
 	for k in keys:
-		# 任意キー（bases/victory/terrain_skins）は空なら書かない（読み込み時の補完でキーを増やさない）。
+		# 任意キー（bases/victory）は空なら書かない（読み込み時の補完でキーを増やさない）。
 		# ただし元ファイルに書いてあったキーはそのまま残す（往復で内容を変えない）。
-		if String(k) in ["bases", "victory", "defeat", "terrain_skins"] and typeof(data[k]) == TYPE_ARRAY \
+		if String(k) in ["bases", "victory", "defeat"] and typeof(data[k]) == TYPE_ARRAY \
 				and data[k].is_empty() and not keys_in_source.has(String(k)):
 			continue
 		parts.append("  %s: %s" % [JSON.stringify(String(k)), _emit_top(k, data[k])])
+	return "{\n" + ",\n".join(parts) + "\n}\n"
+
+
+## 地形ファイル（<ステージ>.terrain.json）のテキスト。margin は既定に頼らず必ず書く。
+## terrain_skins は空なら書かない（元ファイルにあったものはそのまま残す）。
+static func serialize_terrain(data: Dictionary, keys_in_source: Dictionary) -> String:
+	var parts: Array[String] = []
+	for k in TERRAIN_FILE_KEYS:
+		if not data.has(k):
+			continue
+		if k == "terrain_skins" and typeof(data[k]) == TYPE_ARRAY \
+				and data[k].is_empty() and not keys_in_source.has(k):
+			continue
+		parts.append("  %s: %s" % [JSON.stringify(k), _emit_top(k, data[k])])
 	return "{\n" + ",\n".join(parts) + "\n}\n"
 
 

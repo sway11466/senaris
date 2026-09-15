@@ -247,6 +247,22 @@ func test_stage_bases_use_hq_rest_and_garrison_native() -> void:
 					"%s: 控え %s に native（player/enemy/neutral）が要る" % [where, str(g.get("skin", g.get("type", "?")))])
 
 ## data/stages 以下を再帰し、ステージJSON（campaign.json マニフェストは除く）のパス配列を返す。
+func test_every_stage_has_a_terrain_file() -> void:
+	# 地形は相棒のファイル（<ステージ>.terrain.json）が正本＝無ければ盤の広さも決まらない。
+	for path in _all_stage_files("res://data/stages"):
+		assert_true(FileAccess.file_exists(StageLoader.terrain_path(path)),
+			"%s の地形ファイルがある" % path)
+
+func test_stage_body_does_not_keep_terrain_keys() -> void:
+	# 本体に書いても読まれない＝二重に書けば食い違う。分割の取りこぼしをここで塞ぐ。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		for key in StageLoader.TERRAIN_KEYS + ["cols", "rows"]:
+			assert_false((data as Dictionary).has(key),
+				"%s の本体に \"%s\" は書かない" % [path, key])
+
 func _all_stage_files(root: String) -> Array:
 	var out: Array = []
 	var dir := DirAccess.open(root)
@@ -259,7 +275,8 @@ func _all_stage_files(root: String) -> Array:
 		if dir.current_is_dir():
 			if not name.begins_with("."):
 				out += _all_stage_files(full)
-		elif name.ends_with(".json") and name != "campaign.json":
+		elif name.ends_with(".json") and name != "campaign.json" \
+				and not name.ends_with(StageLoader.TERRAIN_SUFFIX):  # 地形ファイルはステージではない
 			out.append(full)
 		name = dir.get_next()
 	dir.list_dir_end()

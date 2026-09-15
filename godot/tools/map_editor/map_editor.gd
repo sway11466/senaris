@@ -1695,10 +1695,10 @@ func _add_event_rows(index: int, ev: Dictionary) -> void:
 		var from: Dictionary = ev["from"]
 		var from_row := HBoxContainer.new()
 		box.add_child(from_row)
-		var from_col := _make_spin(0, int(_doc.data.get("cols", 12)) - 1, int(from.get("col", 0)))
+		var from_col := _make_spin(0, _doc.cols() - 1, int(from.get("col", 0)))
 		from_col.value_changed.connect(func(v: float) -> void: from["col"] = int(v))
 		from_row.add_child(_labeled_row("入口 col", from_col))
-		var from_r := _make_spin(0, int(_doc.data.get("rows", 8)) - 1, int(from.get("row", 0)))
+		var from_r := _make_spin(0, _doc.rows() - 1, int(from.get("row", 0)))
 		from_r.value_changed.connect(func(v: float) -> void: from["row"] = int(v))
 		from_row.add_child(_labeled_row("row", from_r))
 	var label := LineEdit.new()
@@ -1737,8 +1737,8 @@ func _add_event_unit_rows(parent: VBoxContainer, index: int, ev: Dictionary, uni
 	var displays := _unit_pick_displays(by_skin)
 	if keys.is_empty():
 		return
-	var cols := int(_doc.data.get("cols", 12))
-	var rows := int(_doc.data.get("rows", 8))
+	var cols := _doc.cols()
+	var rows := _doc.rows()
 	_add_info(parent, "駒（units） %d体" % units.size())
 	for i in units.size():
 		var u: Dictionary = units[i]
@@ -2120,7 +2120,16 @@ func _on_new() -> void:
 
 
 func _on_open_file(path: String) -> void:
-	var doc := MapEditorDoc.from_text(FileAccess.get_file_as_string(path))
+	if path.ends_with(StageLoader.TERRAIN_SUFFIX):
+		_say("地形ファイルは単体では開けません。相棒の本体（%s）を開いてください。"
+				% path.replace(StageLoader.TERRAIN_SUFFIX, ".json"))
+		return
+	var terrain_path := StageLoader.terrain_path(path)
+	if not FileAccess.file_exists(terrain_path):
+		_say("地形ファイルがありません: " + terrain_path)
+		return
+	var doc := MapEditorDoc.from_text(FileAccess.get_file_as_string(path),
+		FileAccess.get_file_as_string(terrain_path))
 	if doc == null:
 		_say("読み込めませんでした（JSONが不正）: " + path)
 		return
@@ -2191,7 +2200,8 @@ func _shift_label(delta: Vector2i) -> String:
 func _on_preview() -> void:
 	var tmp := "user://map_editor_preview.json"
 	var tmp_roster := "user://map_editor_preview_roster.json"
-	if not _write_temp(tmp, _doc.to_text()) \
+	if not _write_temp(tmp, _doc.to_stage_text()) \
+			or not _write_temp(StageLoader.terrain_path(tmp), _doc.to_terrain_text()) \
 			or not _write_temp(tmp_roster, JSON.stringify(_preview_roster(), "  ")):
 		return
 	var pid := OS.create_process(OS.get_executable_path(), [
@@ -2258,8 +2268,15 @@ func _write(path: String) -> void:
 	if f == null:
 		_say("保存に失敗しました: " + path)
 		return
-	f.store_string(_doc.to_text())
+	f.store_string(_doc.to_stage_text())
 	f.close()
+	var tp := StageLoader.terrain_path(path)
+	var t := FileAccess.open(tp, FileAccess.WRITE)
+	if t == null:
+		_say("地形ファイルの保存に失敗しました: " + tp)
+		return
+	t.store_string(_doc.to_terrain_text())
+	t.close()
 	_path = path
 	var i18n_msg := _save_i18n()
 	_sync_fields()

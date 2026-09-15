@@ -5,8 +5,11 @@ extends GutTest
 const STAGE_PATH := "user://test_migration_stage.json"
 
 ## v2 セーブの復元先として使うステージ定義（イベント3つ・拠点1つ）。
+## 地形は相棒のファイル（<ステージ>.terrain.json）に持つ＝本体には書かない。
+const STAGE_TERRAIN := { "terrain": ["......", "......", "......", "......"] }
+
 const STAGE := {
-	"terrain": ["......", "......", "......", "......"], "turn_limit": 9,
+	"turn_limit": 9,
 	"player": [{ "type": "fighter", "col": 0, "row": 0 }],
 	"bases": [{ "col": 1, "row": 1, "team": "neutral" }],
 	"events": [
@@ -22,9 +25,12 @@ const STAGE := {
 func before_each() -> void:
 	var f := FileAccess.open(STAGE_PATH, FileAccess.WRITE)
 	f.store_string(JSON.stringify(STAGE))
+	var t := FileAccess.open(StageLoader.terrain_path(STAGE_PATH), FileAccess.WRITE)
+	t.store_string(JSON.stringify(STAGE_TERRAIN))
 
 func after_all() -> void:
-	DirAccess.remove_absolute(ProjectSettings.globalize_path(STAGE_PATH))
+	for p in [STAGE_PATH, StageLoader.terrain_path(STAGE_PATH)]:
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(p))
 
 ## v2 の state に入っていた形の未発火イベント（BattleState の旧 _events_to_dicts）。
 ## hex はターン起点だと Vector2i.MAX、占領起点だと拠点の axial。

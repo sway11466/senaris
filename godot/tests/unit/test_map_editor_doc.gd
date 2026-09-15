@@ -75,9 +75,9 @@ const EVENT_SAMPLE := """
 
 
 func _roundtrip(text: String) -> Dictionary:
-	var doc := MapEditorDoc.from_text(text)
+	var doc := _load(text)
 	assert_not_null(doc, "パースできること")
-	return JSON.parse_string(doc.to_text())
+	return _save(doc)
 
 
 # --- 入出力 ---
@@ -85,14 +85,13 @@ func _roundtrip(text: String) -> Dictionary:
 
 func test_roundtrip_keeps_all_data() -> void:
 	var out := _roundtrip(SAMPLE)
-	var src: Dictionary = JSON.parse_string(SAMPLE)
-	assert_eq_deep(out, src)  # 編集なしの読込→保存で内容が変わらない
+	assert_eq_deep(out, _sample_dict(SAMPLE))  # 編集なしの読込→保存で内容が変わらない
 
 
 func test_from_text_migrates_legacy_base_keys() -> void:
 	# 旧キー（kind:"hq" / 拠点の native）は読み込みで hq / rest に読み替え、控えの native を補う
 	# （doc/gdd/map.md 拠点の値）。保存すると新キーになる。
-	var doc := MapEditorDoc.from_text("""{
+	var doc := _load("""{
   "turn_limit": 30, "name": "legacy", "cols": 6, "rows": 4, "margin": 0,
   "terrain": ["......", "......", "......", "......"],
   "player": [], "enemy": [],
@@ -113,7 +112,7 @@ func test_from_text_migrates_legacy_base_keys() -> void:
 	assert_false(b1.has("hq"), "kind:fort → hq 無し")
 	assert_eq(String(b1["garrison"][0]["native"]), "neutral", "中立拠点の控え → 中立")
 	assert_eq(String(b1["garrison"][1]["native"]), "player", "書いてある native はそのまま")
-	var text := doc.to_text()
+	var text := _text(doc)
 	assert_false(text.contains("\"kind\""), "保存すると kind は出ない")
 	assert_true(text.contains("\"hq\": \"player\""), "保存すると hq が出る")
 
@@ -125,19 +124,19 @@ func test_roundtrip_keeps_dialogue_untouched() -> void:
 
 
 func test_output_starts_with_turn_limit_and_ints_have_no_decimal() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
-	var text := doc.to_text()
+	var doc := _load(SAMPLE)
+	var text := _text(doc)
 	assert_string_contains(text.split("\n")[1], "\"turn_limit\": 30")  # 先頭キー＝手書き慣習
 	assert_false(text.contains("30.0"), "JSON由来のfloatを整数表記で書き戻す")
 
 
 func test_from_text_rejects_broken_json() -> void:
-	assert_null(MapEditorDoc.from_text("{ broken"))
+	assert_null(_load("{ broken"))
 
 
 func test_empty_optional_keys_are_not_emitted() -> void:
 	var doc := MapEditorDoc.new_stage(4, 3)
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_false(out.has("bases"), "空のbasesは書かない")
 	assert_false(out.has("victory"), "空のvictoryは書かない")
 	assert_true(out.has("player"))
@@ -146,8 +145,8 @@ func test_empty_optional_keys_are_not_emitted() -> void:
 
 func test_empty_optional_key_from_source_is_preserved() -> void:
 	# units.json 等は "bases": [] を明示している＝往復で消してはいけない
-	var doc := MapEditorDoc.from_text("{ \"turn_limit\": 30, \"cols\": 4, \"rows\": 3, \"bases\": [] }")
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var doc := _load("{ \"turn_limit\": 30, \"cols\": 4, \"rows\": 3, \"bases\": [] }")
+	var out: Dictionary = _save(doc)
 	assert_true(out.has("bases"))
 	assert_eq(out["bases"], [])
 
@@ -160,22 +159,22 @@ func test_terrain_paint_and_read() -> void:
 	doc.set_terrain_char(2, 1, "F")
 	assert_eq(doc.terrain_char(2, 1), "F")
 	assert_eq(doc.terrain_char(0, 0), ".")
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_eq(out["terrain"][1], "..F.")
 
 
 func test_resize_pads_and_crops_terrain() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	doc.resize(8, 2)
 	assert_eq(doc.terrain_char(2, 0), "F")  # 既存は残る
 	assert_eq(doc.terrain_char(7, 0), ".")  # 拡張分は平地
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_eq(out["terrain"].size(), 2)
 	assert_eq(String(out["terrain"][0]).length(), 8)
 
 
 func test_resize_drops_out_of_range_entities() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	var dropped := doc.resize(4, 4)  # col4以上の敵2体・col5の拠点が範囲外
 	assert_eq(dropped, 3)
 	assert_eq(doc.data["enemy"][0]["units"].size(), 0)
@@ -202,7 +201,7 @@ func test_terrain_skin_ignores_out_of_board_and_stays_unset() -> void:
 	var doc := MapEditorDoc.new_stage(4, 3)
 	doc.set_terrain_skin(9, 9, "wall_stone1")
 	assert_eq(doc.terrain_skin(9, 9), "")
-	assert_false(JSON.parse_string(doc.to_text()).has("terrain_skins"), "空なら書き出さない")
+	assert_false(_save(doc).has("terrain_skins"), "空なら書き出さない")
 
 
 func test_terrain_skin_map_for_board() -> void:
@@ -215,11 +214,10 @@ func test_terrain_skins_are_emitted_sorted_row_major() -> void:
 	var doc := MapEditorDoc.new_stage(4, 3)
 	doc.set_terrain_skin(3, 2, "wall_stone1")
 	doc.set_terrain_skin(1, 0, "fort_town1")
-	var text := doc.to_text()
+	var text := _text(doc)
 	assert_string_contains(text, "{ \"col\": 1, \"row\": 0, \"skin\": \"fort_town1\" }")  # 手書きのキー順
 	assert_lt(text.find("\"row\": 0"), text.find("\"row\": 2"), "row→col の順に並べる")
-	var out: Dictionary = JSON.parse_string(text)
-	assert_eq(out["terrain_skins"].size(), 2)
+	assert_eq(_save(doc)["terrain_skins"].size(), 2)
 
 
 func test_fill_paints_connected_region_and_returns_count() -> void:
@@ -254,7 +252,7 @@ func test_fill_at_board_edge_stays_inside() -> void:
 	var doc := MapEditorDoc.new_stage(3, 2)
 	assert_eq(doc.fill_terrain(0, 0, "F", ""), 6, "隅から全面＝盤内の6マスだけ")
 	assert_eq(doc.fill_terrain(2, 1, ".", "cave"), 6, "反対の隅からも同じ")
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_eq(out["terrain"].size(), 2)
 	assert_eq(out["terrain_skins"].size(), 6, "盤内のマスだけが差分になる")
 	for line in out["terrain"]:
@@ -270,7 +268,7 @@ func test_connected_cells_outside_board_is_empty() -> void:
 func test_fill_output_keeps_write_format() -> void:
 	var doc := MapEditorDoc.new_stage(3, 2)
 	doc.fill_terrain(0, 0, ".", "plain_cave1")
-	var text := doc.to_text()
+	var text := _text(doc)
 	assert_string_contains(text, "{ \"col\": 0, \"row\": 0, \"skin\": \"plain_cave1\" }")
 	assert_lt(text.find("\"col\": 0, \"row\": 0"), text.find("\"col\": 0, \"row\": 1"), "row→col 並び")
 
@@ -294,7 +292,7 @@ func test_undo_erases_terrain_skins_key_when_it_did_not_exist() -> void:
 	doc.push_terrain_undo()
 	doc.fill_terrain(0, 0, ".", "plain_cave1")
 	assert_true(doc.undo_terrain())
-	assert_false(JSON.parse_string(doc.to_text()).has("terrain_skins"))
+	assert_false(_save(doc).has("terrain_skins"))
 
 
 func test_resize_drops_terrain_undo() -> void:
@@ -307,7 +305,7 @@ func test_resize_drops_terrain_undo() -> void:
 func test_roundtrip_keeps_terrain_skins_including_unknown_keys() -> void:
 	var src := "{ \"turn_limit\": 30, \"cols\": 4, \"rows\": 3, \"terrain_skins\": [" \
 		+ " { \"col\": 1, \"row\": 0, \"skin\": \"fort_town1\", \"memo\": \"手書き\" } ] }"
-	var out: Dictionary = JSON.parse_string(MapEditorDoc.from_text(src).to_text())
+	var out: Dictionary = _save(_load(src))
 	assert_eq_deep(out["terrain_skins"], JSON.parse_string(src)["terrain_skins"])
 
 
@@ -337,7 +335,7 @@ func test_height_override_writes_pair_and_clears_on_repaint() -> void:
 func test_height_override_is_emitted_in_key_order() -> void:
 	var doc := MapEditorDoc.new_stage(4, 3)
 	doc.set_terrain_skin(1, 0, "river", { "elevation": -0.18, "floor": 0.0 })
-	assert_string_contains(doc.to_text(),
+	assert_string_contains(_text(doc),
 		"{ \"col\": 1, \"row\": 0, \"skin\": \"river\", \"elevation\": -0.18, \"floor\": 0 }")
 
 
@@ -393,7 +391,7 @@ func test_move_base_at_carries_the_defeat_target() -> void:
 
 
 func test_move_unit_at() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	assert_true(doc.move_unit_at(1, 1, 2, 2), "空きマスへは動かせる")
 	assert_eq(int(doc.data["player"][0]["col"]), 2)
 	assert_eq(int(doc.data["player"][0]["row"]), 2)
@@ -405,7 +403,7 @@ func test_move_unit_at() -> void:
 
 
 func test_move_unit_to_squad() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	var to := doc.add_squad("charge")
 	assert_false(doc.move_unit_to_squad(0, 0, 0), "同じ部隊へは移さない")
 	assert_true(doc.move_unit_to_squad(0, 0, to))
@@ -438,19 +436,19 @@ func test_garrison_count_sums_the_rows() -> void:
 
 
 func test_used_actors_collects_named_pieces() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	assert_true(doc.used_actors().has("hobgoblin"), "部隊の駒の actor を拾う")
 	assert_eq(doc.used_actors().size(), 1, "名前なしの駒は数えない")
 
 
 func test_free_actor_avoids_duplicate() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	assert_eq(doc.free_actor("goblin"), "goblin", "未使用ならそのまま")
 	assert_eq(doc.free_actor("hobgoblin"), "hobgoblin2", "使用済みなら連番を足す")
 
 
 func test_set_actor_names_player_and_enemy() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	doc.set_actor(doc.data["player"][0], "cap")
 	doc.set_actor(doc.data["enemy"][0]["units"][0], "goblin")
 	assert_eq(doc.data["player"][0]["actor"], "cap", "自軍にも名前を付けられる")
@@ -460,13 +458,13 @@ func test_set_actor_names_player_and_enemy() -> void:
 
 
 func test_set_actor_rename_follows_victory() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	doc.set_actor(doc.data["enemy"][0]["units"][1], "necromancer")
 	assert_eq(doc.victory_list()[0]["actor"], "necromancer", "勝利条件の名指しも付け替わる")
 
 
 func test_set_actor_clear_drops_condition() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	doc.set_actor(doc.data["enemy"][0]["units"][1], "")
 	assert_false(doc.data["enemy"][0]["units"][1].has("actor"))
 	assert_eq(doc.victory_list().size(), 0, "指す先が無くなった条件は残さない")
@@ -474,7 +472,7 @@ func test_set_actor_clear_drops_condition() -> void:
 
 
 func test_set_actor_follows_lose_unit() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	doc.set_actor(doc.data["player"][0], "cap")
 	doc.data["defeat"] = [{ "type": "lose_unit", "actors": ["cap", "other"] }]
 	doc.set_actor(doc.data["player"][0], "captain")
@@ -484,16 +482,16 @@ func test_set_actor_follows_lose_unit() -> void:
 
 
 func test_add_squad_gets_next_order() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	assert_eq(doc.max_order(), 2, "部隊1＋AI出撃する拠点2")
 	assert_eq(doc.data["enemy"][doc.add_squad("charge")]["order"], 3, "追加した部隊は末尾の順番")
 
 
 func test_remove_victory_erases_empty_key() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)
+	var doc := _load(SAMPLE)
 	doc.remove_victory(0)
 	assert_false(doc.data.has("victory"))
-	assert_false(JSON.parse_string(doc.to_text()).has("victory"))
+	assert_false(_save(doc).has("victory"))
 
 
 # --- 外周（margin）。terrain だけ盤より大きく持ち、駒・拠点は盤にしか置けない ---
@@ -528,12 +526,11 @@ const MARGIN_SAMPLE := """
 
 func test_margin_roundtrip_keeps_the_ring() -> void:
 	var out := _roundtrip(MARGIN_SAMPLE)
-	var src: Dictionary = JSON.parse_string(MARGIN_SAMPLE)
-	assert_eq_deep(out, src)  # 読込→保存で外周が消えたり切り詰められたりしない
+	assert_eq_deep(out, _sample_dict(MARGIN_SAMPLE))  # 読込→保存で外周が消えたり切り詰められたりしない
 
 
 func test_margin_terrain_char_is_addressed_from_the_board_origin() -> void:
-	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	var doc := _load(MARGIN_SAMPLE)
 	assert_eq(doc.cols(), 4, "cols は遊べる盤のまま")
 	assert_eq(doc.rows(), 3, "rows は遊べる盤のまま")
 	assert_eq(doc.margin(), 1)
@@ -544,27 +541,27 @@ func test_margin_terrain_char_is_addressed_from_the_board_origin() -> void:
 
 
 func test_margin_cells_are_paintable_and_survive_saving() -> void:
-	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	var doc := _load(MARGIN_SAMPLE)
 	doc.set_terrain_char(-1, 1, "L")   # 左辺の外周を道に
 	doc.set_terrain_char(1, 3, "L")    # 下辺の外周を道に
 	assert_eq(doc.terrain_char(-1, 1), "L")
 	assert_eq(doc.terrain_char(1, 3), "L")
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_eq(String(out["terrain"][2]), "L..%%F", "左辺の外周が書き出しに乗る")
 	assert_eq(String(out["terrain"][4]), "FFLFFF", "下辺の外周が書き出しに乗る")
 
 
 func test_margin_rejects_cells_outside_the_canvas() -> void:
-	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	var doc := _load(MARGIN_SAMPLE)
 	doc.set_terrain_char(-2, 0, "L")  # 外周のさらに外
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_eq(out["terrain"].size(), 5, "行数は変わらない")
 	for line in out["terrain"]:
 		assert_eq(String(line).length(), 6, "桁数も変わらない")
 
 
 func test_in_board_excludes_the_ring() -> void:
-	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	var doc := _load(MARGIN_SAMPLE)
 	assert_true(doc.in_board(0, 0), "盤の左上")
 	assert_true(doc.in_board(3, 2), "盤の右下")
 	assert_false(doc.in_board(-1, 0), "外周は盤ではない＝駒を置けない")
@@ -575,7 +572,7 @@ func test_in_board_excludes_the_ring() -> void:
 
 func test_terrain_skins_can_address_the_ring() -> void:
 	# 外周のセルにも見た目差分を書ける（座標が盤外になるだけ＝形式はそのまま）
-	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)
+	var doc := _load(MARGIN_SAMPLE)
 	assert_eq(doc.terrain_skin(-1, 1), "plain_grave1", "読み込んだ外周の skin 指定")
 	doc.set_terrain_skin(4, 2, "road")
 	assert_eq(doc.terrain_skin(4, 2), "road", "外周に skin を足せる")
@@ -583,7 +580,7 @@ func test_terrain_skins_can_address_the_ring() -> void:
 
 func test_fill_does_not_cross_the_board_edge() -> void:
 	# 盤の中で始めた塗りが外周へ漏れない（逆も同じ）＝縁の絵を作者が握れる
-	var doc := MapEditorDoc.from_text("""
+	var doc := _load("""
 { "cols": 3, "rows": 3, "margin": 1, "terrain": [
 	".....", ".....", ".....", ".....", "....."
 ], "player": [], "enemy": [], "bases": [] }
@@ -596,24 +593,24 @@ func test_fill_does_not_cross_the_board_edge() -> void:
 
 
 func test_set_margin_grows_and_shrinks_the_grid() -> void:
-	var doc := MapEditorDoc.from_text(SAMPLE)  # 6×4・margin 0
+	var doc := _load(SAMPLE)  # 6×4・margin 0
 	doc.set_margin(1)
-	var grown: Dictionary = JSON.parse_string(doc.to_text())
+	var grown: Dictionary = _save(doc)
 	assert_eq(grown["terrain"].size(), 6, "行が2つ増える")
 	assert_eq(String(grown["terrain"][0]).length(), 8, "桁も2つ増える")
 	assert_eq(doc.terrain_char(2, 0), "F", "盤の中身はずれない")
 	doc.set_margin(0)
-	var shrunk: Dictionary = JSON.parse_string(doc.to_text())
+	var shrunk: Dictionary = _save(doc)
 	assert_eq(shrunk["terrain"].size(), 4, "元の行数に戻る")
 	assert_eq(String(shrunk["terrain"][0]), "..FF..", "盤の中身も元のまま")
 
 
 func test_margin_is_written_even_when_absent_from_the_source() -> void:
 	# 既定値に頼らない方針＝読み込んだファイルに margin が無ければ 0 を書き足して保存する
-	var doc := MapEditorDoc.from_text("""
+	var doc := _load("""
 { "cols": 3, "rows": 2, "terrain": ["...", "..."], "player": [], "enemy": [], "bases": [] }
 """)
-	var out: Dictionary = JSON.parse_string(doc.to_text())
+	var out: Dictionary = _save(doc)
 	assert_true(out.has("margin"), "margin キーが書き出される")
 	assert_eq(int(out["margin"]), 0)
 
@@ -645,7 +642,7 @@ func test_shift_moves_board_contents_together() -> void:
 
 
 func test_shift_moves_event_units() -> void:
-	var doc := MapEditorDoc.from_text(EVENT_SAMPLE)
+	var doc := _load(EVENT_SAMPLE)
 	assert_true(doc.shift(2, 0))
 	var u: Dictionary = doc.event_units(0)[0]
 	assert_eq(int(u["col"]), 2)
@@ -678,7 +675,7 @@ func test_shift_counts_only_non_default_terrain_as_lost() -> void:
 
 
 func test_shift_moves_margin_terrain_with_the_board() -> void:
-	var doc := MapEditorDoc.from_text(MARGIN_SAMPLE)  # 4×3・外周1（縁が F で囲われている）
+	var doc := _load(MARGIN_SAMPLE)  # 4×3・外周1（縁が F で囲われている）
 	doc.resize(6, 3)  # 右に2列ぶんの余白を作る
 	assert_true(doc.shift(2, 0))
 	assert_eq(doc.terrain_char(3, 0), "P", "盤の中身がそのまま2列右へ")
@@ -746,22 +743,22 @@ func test_removing_one_of_an_and_keeps_the_condition() -> void:
 func test_defeat_key_is_omitted_when_empty() -> void:
 	var doc := _doc_with_base()
 	doc.add_defeat_lose_base(3, 2)
-	assert_true(doc.to_text().contains("\"defeat\""), "指定があれば書き出す")
+	assert_true(_text(doc).contains("\"defeat\""), "指定があれば書き出す")
 	doc.remove_defeat(0)
-	assert_false(doc.to_text().contains("\"defeat\""), "空の defeat キーは書き出さない")
+	assert_false(_text(doc).contains("\"defeat\""), "空の defeat キーは書き出さない")
 
 ## 手書きの既存ステージと同じ書式で出す（エディタで開き直しただけで差分が出ない）。
 func test_defeat_is_written_in_the_handwritten_style() -> void:
 	var doc := _doc_with_base()
 	doc.add_base(6, 2, "neutral", "fort")
 	doc.add_defeat_lose_base(3, 2)
-	assert_true(doc.to_text().contains(
+	assert_true(_text(doc).contains(
 		"  \"defeat\": [\n" +
 		"    { \"type\": \"lose_base\",\n" +
 		"      \"bases\": [ { \"col\": 3, \"row\": 2 } ] }\n" +
 		"  ]"), "対象1つは1行に収める")
 	doc.add_defeat_lose_base(6, 2, true)
-	assert_true(doc.to_text().contains(
+	assert_true(_text(doc).contains(
 		"  \"defeat\": [\n" +
 		"    { \"type\": \"lose_base\",\n" +
 		"      \"bases\": [\n" +
@@ -775,11 +772,11 @@ func test_defeat_is_written_in_the_handwritten_style() -> void:
 
 func test_events_round_trip_untouched() -> void:
 	# エディタが触らないステージでも events はそのまま書き戻る（未知キーの温存と同じ扱い）。
-	var src := MapEditorDoc.from_text(EVENT_SAMPLE)
+	var src := _load(EVENT_SAMPLE)
 	assert_not_null(src, "読み込める")
 	if src == null:
 		return
-	var back := MapEditorDoc.from_text(src.to_text())
+	var back := MapEditorDoc.from_text(src.to_stage_text(), src.to_terrain_text())
 	assert_not_null(back, "書き戻したものを読み直せる")
 	if back == null:
 		return
@@ -800,10 +797,10 @@ func test_add_and_remove_event() -> void:
 	assert_eq(String((doc.event_list()[0] as Dictionary)["type"]), "reinforce", "型は増援")
 	doc.event_units(0).append({ "type": "airship", "col": 0, "row": 5 })
 	assert_eq(doc.event_units(0).size(), 1, "駒を足せる")
-	assert_true(doc.to_text().contains("\"events\""), "保存に出る")
+	assert_true(_text(doc).contains("\"events\""), "保存に出る")
 	doc.remove_event(0)
 	assert_true(doc.event_list().is_empty(), "消せる")
-	assert_false(doc.to_text().contains("\"events\""), "空の events キーは書き出さない")
+	assert_false(_text(doc).contains("\"events\""), "空の events キーは書き出さない")
 
 
 ## ターンが1未満にならない（0ターン目のイベントは発生ターンが来ない＝出ないままになる）。
@@ -818,3 +815,44 @@ func test_event_units_on_missing_index_is_empty() -> void:
 	assert_true(doc.event_units(0).is_empty(), "イベントが無ければ空")
 	doc.add_event(2, "enemy")
 	assert_true(doc.event_units(3).is_empty(), "範囲外でも壊れない")
+
+
+# --- 試料の割り方（本体と地形ファイル） ---
+# 試料は読みやすさのため1つの辞書で書き、読み込むときに実ファイルと同じ2つに割る。
+# 地形ファイルへ行くのは margin / terrain / terrain_skins、cols/rows はどちらにも書かない。
+
+func _load(text: String) -> MapEditorDoc:
+	var json := JSON.new()
+	if json.parse(text) != OK or typeof(json.data) != TYPE_DICTIONARY:
+		return MapEditorDoc.from_text(text, "{}")  # 壊れた試料はそのまま渡して null を見る
+	var body: Dictionary = json.data
+	var terrain := {}
+	for k in MapEditorDocSerializer.TERRAIN_FILE_KEYS:
+		if body.has(k):
+			terrain[k] = body[k]
+			body.erase(k)
+	body.erase("cols")
+	body.erase("rows")
+	return MapEditorDoc.from_text(JSON.stringify(body), JSON.stringify(terrain))
+
+
+## 保存した2ファイルを1つの辞書に合流して返す（どちらに書かれたかを問わず中身を見る）。
+func _save(doc: MapEditorDoc) -> Dictionary:
+	var out: Dictionary = JSON.parse_string(doc.to_stage_text())
+	var terrain: Dictionary = JSON.parse_string(doc.to_terrain_text())
+	for k in terrain:
+		out[k] = terrain[k]
+	return out
+
+
+## 保存した2ファイルのテキストを続けたもの（整形の見た目を検査する用）。
+func _text(doc: MapEditorDoc) -> String:
+	return doc.to_stage_text() + doc.to_terrain_text()
+
+
+## 試料の辞書（突き合わせ用）。cols/rows はファイルに書かなくなったので落とす。
+func _sample_dict(text: String) -> Dictionary:
+	var out: Dictionary = JSON.parse_string(text)
+	out.erase("cols")
+	out.erase("rows")
+	return out

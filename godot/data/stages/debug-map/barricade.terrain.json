@@ -1,0 +1,17 @@
+{
+  "margin": 0,
+  "terrain": [
+    "..............",
+    "..............",
+    "....W.........",
+    ".O..W.........",
+    "....W.........",
+    "..............",
+    ".............."
+  ],
+  "terrain_skins": [
+    { "col": 4, "row": 2, "skin": "rampart_granite1" },
+    { "col": 4, "row": 3, "skin": "rampart_granite1" },
+    { "col": 4, "row": 4, "skin": "rampart_granite1" }
+  ]
+}

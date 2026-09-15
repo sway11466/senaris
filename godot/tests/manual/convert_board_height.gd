@@ -31,7 +31,7 @@ static func _axis(arr: Array, i: int) -> float:
 func _convert(path: String, lines: PackedStringArray) -> void:
 	lines.append("== " + path)
 	var text := FileAccess.get_file_as_string(path)
-	var doc := MapEditorDoc.from_text(text)
+	var doc := MapEditorDoc.from_text(text, FileAccess.get_file_as_string(StageLoader.terrain_path(path)))
 	if doc == null:
 		lines.append("FAIL: from_text returned null")
 		return
@@ -64,9 +64,10 @@ func _convert(path: String, lines: PackedStringArray) -> void:
 			converted += 1
 	doc.data.erase("height")
 	doc._keys_in_source.erase("height")
-	var out_text := doc.to_text()
+	var out_text := doc.to_stage_text()
+	var out_terrain := doc.to_terrain_text()
 	# 検算：書き出したテキストを読み直し、新式の高さが旧式と全マスで一致するか
-	var doc2 := MapEditorDoc.from_text(out_text)
+	var doc2 := MapEditorDoc.from_text(out_text, out_terrain)
 	var mismatch := 0
 	for row in doc2.rows():
 		for col in doc2.cols():
@@ -84,6 +85,9 @@ func _convert(path: String, lines: PackedStringArray) -> void:
 		var f := FileAccess.open(path, FileAccess.WRITE)
 		f.store_string(out_text)
 		f.close()
+		var t := FileAccess.open(StageLoader.terrain_path(path), FileAccess.WRITE)
+		t.store_string(out_terrain)
+		t.close()
 		lines.append("written")
 
 
