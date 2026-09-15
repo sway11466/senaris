@@ -302,8 +302,8 @@
 **経験した会話の記録を「足す」形にする**
 - ゴール：仲間 X が「居た回」と「居なかった回」を両方遊んだことが、進捗セーブに残る。
 - 背景：いまの進捗セーブは、在籍した仲間と発生したイベントを最後に遊んだ回で上書きしている（[gamesystem.md](tech/gamesystem.md) 経験した会話）。上書きのままだと「両方を経験した」という事実が残らず、クロニクルの通し読みで展開を切り替える材料（feature-129）が作れない。記録の形を変えた後の回からしか貯まらないので、通し読み本体より先に置く。
-- 対応：在籍 actor を仲間ごとに「居た回を経験した／居なかった回を経験した」の両方で持ち、発生したイベントは消さずに足す。最後に遊んだ回の顔ぶれは別に持つ（既定の読み口はここ）。旧版のセーブは「1回分の顔ぶれ」として版の変換で読み替える。
-- 該当：`godot/infrastructure/save/progress_store.gd`・`godot/application/campaign_progress.gd`・`godot/presentation/main/story_director.gd`・`godot/tests/unit/`・[gamesystem.md](tech/gamesystem.md)。
+- 対応：累積は進捗ではなく `user://chronicle.json` に持つ＝冒険譚→ステージごとに、遊んだ回の在籍 actor（開始時・クリア後）と起きたイベントを足す。同じ顔ぶれの回は畳む。進捗セーブは最後に遊んだ回の上書きのままで、版も構造も変えない（盤の中の読み直しが読む）。記録の口は `StageOutcome` の3入口に並べる。
+- 該当：`godot/infrastructure/save/chronicle_store.gd`・`godot/application/chronicle_service.gd`・`godot/application/stage_outcome.gd`・`godot/tests/unit/`・[gamesystem.md](tech/gamesystem.md)・[chronicle.md](gdd/chronicle.md)。
 
 ### feature-126
 

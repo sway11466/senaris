@@ -116,9 +116,9 @@ func _ready() -> void:
 	_install_conversation()  # 永続の会話パネル（右エリア）。load_stage の intro より前に用意
 	_progress = CampaignProgress.new(CampaignCatalog.load_all(), ProgressStore.new())
 	_roster_store = RosterStore.new()  # carryover の戦力スナップショット（user://roster.json）
-	_outcome = StageOutcome.new(_progress, _roster_store)  # 決着時の記録の門番
 	_chronicle_store = ChronicleStore.new()  # クロニクル（user://chronicle.json）
 	_chronicle = ChronicleService.new(_chronicle_store)  # 記録 API（盤を離れるときに書く）
+	_outcome = StageOutcome.new(_progress, _roster_store, _chronicle)  # 決着時の記録の門番
 	_install_story()  # 会話の進行。盤・HUD・暗幕・会話パネル・進行記録が揃ってから
 	_install_save()  # 中断セーブ／オートセーブ＋枠一覧（HUD・タイトルの両方から開く）
 	_hud.set_load_available(_save.has_any())  # 起動時にセーブが1枠でも在ればロードを有効化
