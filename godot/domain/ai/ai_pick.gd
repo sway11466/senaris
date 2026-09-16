@@ -38,7 +38,7 @@ func nearest_target(state: BattleState, u: Unit, enemies: Array[Unit], field: Di
 	var best: Unit = null
 	var best_c := BattleState.UNREACHABLE
 	for e in enemies:
-		var c := AiDistance.min_cost_in(field, state.attack_cells(u.id, e.id))
+		var c := AiDistance.min_cost_in(field, state.attack_cells(u.handle, e.handle))
 		if c >= BattleState.UNREACHABLE:
 			continue
 		if best == null or c < best_c or (c == best_c and is_younger_hex(e.pos, best.pos)):
@@ -63,8 +63,8 @@ func nearest_hex_in(field: Dictionary, cells: Array[Vector2i]) -> Vector2i:
 func nearest_id_by_board(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	var best := ids[0]
 	for id in ids:
-		var t := state.unit_by_id(id)
-		if nearer_hex(u.pos, t.pos, state.unit_by_id(best).pos):
+		var t := state.unit_by_handle(id)
+		if nearer_hex(u.pos, t.pos, state.unit_by_handle(best).pos):
 			best = id
 	return best
 
@@ -116,10 +116,10 @@ func most_gain_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	var best := pool[0]
 	var best_gain := -1
 	for id in pool:
-		var t := state.unit_by_id(id)
+		var t := state.unit_by_handle(id)
 		var gain := Combat.casualties(state, u, t, Hex.distance(u.pos, t.pos) <= 1)
 		if gain > best_gain or (gain == best_gain \
-				and nearer_hex(u.pos, t.pos, state.unit_by_id(best).pos)):
+				and nearer_hex(u.pos, t.pos, state.unit_by_handle(best).pos)):
 			best = id
 			best_gain = gain
 	return best
@@ -128,7 +128,7 @@ func most_gain_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 func retaliation_free(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
 	var out: Array[int] = []
 	for id in ids:
-		if not retaliates(u, state.unit_by_id(id), u.pos):
+		if not retaliates(u, state.unit_by_handle(id), u.pos):
 			out.append(id)
 	return out if not out.is_empty() else ids
 
@@ -138,7 +138,7 @@ func retaliation_free(state: BattleState, u: Unit, ids: Array[int]) -> Array[int
 func killable_first(state: BattleState, u: Unit, ids: Array[int]) -> Array[int]:
 	var out: Array[int] = []
 	for id in ids:
-		if can_kill_in_one_hit(state, u, state.unit_by_id(id)):
+		if can_kill_in_one_hit(state, u, state.unit_by_handle(id)):
 			out.append(id)
 	return out if not out.is_empty() else ids
 
@@ -161,10 +161,10 @@ func fewest_left_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	var best := ids[0]
 	var best_left := 1 << 30
 	for id in ids:
-		var t := state.unit_by_id(id)
+		var t := state.unit_by_handle(id)
 		var left := t.troops + t.shield - Combat.casualties(state, u, t, Hex.distance(u.pos, t.pos) <= 1)
 		if left < best_left or (left == best_left \
-				and nearer_hex(u.pos, t.pos, state.unit_by_id(best).pos)):
+				and nearer_hex(u.pos, t.pos, state.unit_by_handle(best).pos)):
 			best = id
 			best_left = left
 	return best
@@ -190,8 +190,8 @@ func air_prey(state: BattleState, u: Unit) -> Array[Unit]:
 func air_first(air: Array[Unit], ids: Array[int]) -> Array[int]:
 	var out: Array[int] = []
 	for e in air:
-		if e.id in ids:
-			out.append(e.id)
+		if e.handle in ids:
+			out.append(e.handle)
 	return out if not out.is_empty() else ids
 
 # --- 獲物（doc/gdd/ai.md 獲物） ---
@@ -285,7 +285,7 @@ func wounded_of(state: BattleState, u: Unit, move_field: Dictionary) -> Unit:
 	var best_c := BattleState.UNREACHABLE
 	for e in attackable_enemies(state, u):
 		var pct := damage_percent(e)
-		var c := AiDistance.min_cost_in(move_field, state.attack_cells(u.id, e.id))
+		var c := AiDistance.min_cost_in(move_field, state.attack_cells(u.handle, e.handle))
 		if best == null or pct > best_pct \
 				or (pct == best_pct and (c < best_c \
 					or (c == best_c and is_younger_hex(e.pos, best.pos)))):
@@ -298,8 +298,8 @@ func wounded_of(state: BattleState, u: Unit, move_field: Dictionary) -> Unit:
 func most_damaged_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	var best := ids[0]
 	for id in ids:
-		var t := state.unit_by_id(id)
-		var b := state.unit_by_id(best)
+		var t := state.unit_by_handle(id)
+		var b := state.unit_by_handle(best)
 		var pct := damage_percent(t)
 		var best_pct := damage_percent(b)
 		if pct > best_pct or (pct == best_pct and nearer_hex(u.pos, t.pos, b.pos)):
@@ -354,7 +354,7 @@ func _skill_target_better(u: Unit, c: Unit, best: Unit, pick: String) -> bool:
 		return score > best_score
 	if c.pos != best.pos:
 		return is_younger_hex(c.pos, best.pos)
-	return c.id < best.id
+	return c.handle < best.handle
 
 # --- 包囲可能（doc/gdd/ai.md 包囲可能） ---
 
@@ -370,14 +370,14 @@ func surround_able(state: BattleState, u: Unit, target: Unit, exclude_self := fa
 	for other in state.units():
 		if other.team != u.team:
 			continue
-		if exclude_self and other.id == u.id:
+		if exclude_self and other.handle == u.handle:
 			continue  # 下がる行が呼ぶ＝動いた先では隣接しない自分を頭数に入れない
 		if Hex.distance(other.pos, target.pos) == 1:
 			count += 1
 			continue
-		if state.has_moved(other.id) or state.is_done(other.id):
+		if state.has_moved(other.handle) or state.is_done(other.handle):
 			continue  # もう動けない駒は今ターン中には寄れない
-		for h in state.reachable(other.id):
+		for h in state.reachable(other.handle):
 			if h in ring:
 				count += 1
 				break
@@ -404,5 +404,5 @@ static func nearer_hex(from: Vector2i, a: Vector2i, b: Vector2i) -> bool:
 static func ids_of(units: Array[Unit]) -> Array[int]:
 	var out: Array[int] = []
 	for u in units:
-		out.append(u.id)
+		out.append(u.handle)
 	return out

@@ -34,8 +34,8 @@ func _rich_state(data: Dictionary) -> BattleState:
 	# 進行中の状態を模す：ターン・行動フラグ・損耗・状態補正・撃破記録を仕込む。
 	s.current_team = 1
 	s.turn_number = 3
-	s.unit_by_id(1).troops = 5      # archer 損耗
-	s.unit_by_id(1).gain_level(2)  # level 1→3
+	s.unit_by_handle(1).troops = 5      # archer 損耗
+	s.unit_by_handle(1).gain_level(2)  # level 1→3
 	s.set_done(1)
 	s.mark_engaged(BOSS_ID)
 	s.mark_squad_engaged(0)  # 拠点＝部隊の起動フラグ（盤上に駒を持たないので部隊の側に立つ）
@@ -75,7 +75,7 @@ func test_scalars_roundtrip() -> void:
 func test_units_roundtrip_with_board_and_growth() -> void:
 	var s2 := _rich_roundtrip()
 	assert_eq(s2.units().size(), 3, "盤上3体（archer/wagon/敵knight）")
-	var a := s2.unit_by_id(1)
+	var a := s2.unit_by_handle(1)
 	assert_eq(a.type_id, "archer")
 	assert_eq(a.team, 0)
 	assert_eq(a.pos, Hex.offset_to_axial(1, 1), "位置を保つ")
@@ -83,7 +83,7 @@ func test_units_roundtrip_with_board_and_growth() -> void:
 	assert_eq(a.level, 3, "レベルを保つ")
 	assert_eq(a.unit_attack, 8, "性能は type から再構築")
 	assert_eq(a.attack_range, 2)
-	var e := s2.unit_by_id(BOSS_ID)
+	var e := s2.unit_by_handle(BOSS_ID)
 	assert_eq(e.team, 1, "敵の陣営を保つ")
 	assert_eq(e.pos, Hex.offset_to_axial(6, 1))
 
@@ -132,11 +132,11 @@ func test_passengers_roundtrip() -> void:
 	var riders := s2.passengers(2)  # wagon id=2
 	assert_eq(riders.size(), 1, "搭乗1体")
 	assert_eq(riders[0].type_id, "knight", "搭乗兵の type")
-	assert_eq(riders[0].id, 3, "搭乗兵の id")
+	assert_eq(riders[0].handle, 3, "搭乗兵の id")
 
 func test_status_mods_roundtrip() -> void:
 	var s2 := _rich_roundtrip()
-	var agg := s2.status_aggregate(s2.unit_by_id(1), "attack")
+	var agg := s2.status_aggregate(s2.unit_by_handle(1), "attack")
 	assert_almost_eq(float(agg["mul"]), 1.3, 0.001, "team バフが復元され攻撃に係数")
 
 func test_victory_conditions_come_from_stage() -> void:
@@ -170,7 +170,7 @@ func test_restore_drops_units_off_the_board() -> void:
 	var shrunk := _stage_data()
 	shrunk["cols"] = 5  # 敵knight(6,1) が盤外になる
 	var s2 := _roundtrip(s, data, shrunk)
-	assert_null(s2.unit_by_id(BOSS_ID), "盤外の駒は出さない")
+	assert_null(s2.unit_by_handle(BOSS_ID), "盤外の駒は出さない")
 	assert_eq(s2.units().size(), 2, "残りの駒（archer/wagon）は出る")
 
 ## 地形が変わって移動タイプで入れないマスに立つ駒は出さない。搭乗者も一緒に落ちる。
@@ -181,9 +181,9 @@ func test_restore_drops_units_on_impassable_terrain() -> void:
 	var back := StageLoader.build(data, _cat())
 	back.set_movement({ "foot": { "plateau": "x" } })  # wagon(2,1) の足元 plateau を進入不可に
 	back.apply_save_diff(diff, _cat())
-	assert_null(back.unit_by_id(2), "入れない地形の駒は出さない")
+	assert_null(back.unit_by_handle(2), "入れない地形の駒は出さない")
 	assert_true(back.passengers(2).is_empty(), "輸送ごと落ちた搭乗者も出さない")
-	assert_not_null(back.unit_by_id(1), "立てる駒は出る")
+	assert_not_null(back.unit_by_handle(1), "立てる駒は出る")
 
 ## 拠点が消えたステージでは、その駐留兵ごと出さない。拠点はステージJSONが正本。
 func test_restore_drops_garrison_of_removed_base() -> void:
@@ -207,12 +207,12 @@ func test_restore_keeps_added_base_and_renumbers_its_garrison() -> void:
 	assert_eq(b.team, 1, "初期帰属もステージ定義のまま")
 	var used := {}
 	for u in s2.units():
-		used[u.id] = true
+		used[u.handle] = true
 	for p in s2.passengers(2):
-		used[p.id] = true
+		used[p.handle] = true
 	for gu in s2.base_at(Hex.offset_to_axial(4, 3)).garrison:
-		used[gu.id] = true
-	assert_false(used.has(b.garrison[0].id), "足された拠点の駐留兵はセーブの駒と id が衝突しない")
+		used[gu.handle] = true
+	assert_false(used.has(b.garrison[0].handle), "足された拠点の駐留兵はセーブの駒と id が衝突しない")
 
 ## ステージ更新で足されたイベントは、発火済みの記録に無いので既存のセーブでも発火できる。
 func test_restore_picks_up_added_events() -> void:

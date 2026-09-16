@@ -36,5 +36,5 @@ func action(state: BattleState, u: Unit) -> AiAction:
 		var ids := pick.air_first(air, in_range)
 		if prefer_kill:
 			ids = pick.killable_first(state, u, ids)
-		return AiAction.attack(u.id, pick.safest_id(state, u, ids))
+		return AiAction.attack(u.handle, pick.safest_id(state, u, ids))
 	return rows.advance_to_nearest_enemy(state, u, true)

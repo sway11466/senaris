@@ -17,9 +17,9 @@ func _pair(shield: int, t_troops := 8) -> Dictionary:
 	s.add_unit(t)
 	return { "s": s, "a": a, "t": t }
 
-func _dot(unit_id: int, value: int) -> Dictionary:
+func _dot(handle: int, value: int) -> Dictionary:
 	return {
-		"scope": "unit", "unit_id": unit_id, "owner_team": 0,
+		"scope": "unit", "unit_id": handle, "owner_team": 0,
 		"op": StatusMod.OP_DOT, "value": value, "remaining": 2, "kind": StatusMod.KIND_DEBUFF,
 	}
 
@@ -90,7 +90,7 @@ func test_dot_eats_shield_before_troops() -> void:
 	var p := _pair(3)
 	var s: BattleState = p["s"]
 	var t: Unit = p["t"]
-	s.add_status_mod(_dot(t.id, 5))
+	s.add_status_mod(_dot(t.handle, 5))
 	s.end_turn()  # 敵ターン開始＝掛けられた側の頭で減る
 	assert_eq(t.shield, 0, "毒もまずシールドを溶かす")
 	assert_eq(t.troops, 6, "超過2が本体へ")
@@ -99,7 +99,7 @@ func test_dot_floor_applies_to_troops_only() -> void:
 	var p := _pair(2, 2)
 	var s: BattleState = p["s"]
 	var t: Unit = p["t"]
-	s.add_status_mod(_dot(t.id, 10))
+	s.add_status_mod(_dot(t.handle, 10))
 	s.end_turn()
 	assert_eq(t.shield, 0, "シールドは0まで減る")
 	assert_eq(t.troops, 1, "本体は残兵1で止まる")

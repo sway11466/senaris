@@ -595,7 +595,7 @@ static func _apply_units(state: BattleState, parties: Variant, catalog: Dictiona
 			if unit == null:
 				continue  # 名簿に居ない／離脱者＝この駒は今回出撃しない
 			state.add_unit(unit)
-			state.assign_squad(unit.id, idx)
+			state.assign_squad(unit.handle, idx)
 			auto_id += 1
 			auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
 	return auto_id
@@ -673,7 +673,7 @@ static func _make_carried_unit(u: Dictionary, snap: Dictionary, catalog: Diction
 	if refill:
 		merged["troops"] = int(merged.get("max_troops", 8))  # 幕間の補充・離脱者の復帰＝満員で出す
 	var unit := Unit.from_dict(merged, t)
-	unit.id = id
+	unit.handle = id
 	unit.team = 0  # 継承は自軍
 	unit.set_native_team(0)  # 帰属は確定済み（名簿に載っている＝仲間）
 	unit.pos = Hex.offset_to_axial(int(u.get("col", 0)), int(u.get("row", 0)))
@@ -684,12 +684,12 @@ static func _apply_initial_passengers(state: BattleState, transport: Unit, list:
 	if typeof(list) != TYPE_ARRAY or list.is_empty():
 		return start_id
 	if not transport.is_transport():
-		push_warning("StageLoader: capacity 0 のユニットに passengers 指定: id=%d" % transport.id)
+		push_warning("StageLoader: capacity 0 のユニットに passengers 指定: id=%d" % transport.handle)
 		return start_id
 	var auto_id := start_id
 	for pd in list:
 		var p := _make_unit(pd, catalog, auto_id, transport.team, skin_catalog)  # 搭乗は同陣営
-		state.put_passenger(transport.id, p)
+		state.put_passenger(transport.handle, p)
 		auto_id += 1
 	return auto_id
 
@@ -707,7 +707,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 		for u in sq.get("units", []):
 			var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), team, skin_catalog)
 			state.add_unit(unit)
-			state.assign_squad(unit.id, idx)
+			state.assign_squad(unit.handle, idx)
 			auto_id += 1
 			auto_id = _apply_initial_passengers(state, unit, u.get("passengers", []), catalog, auto_id, skin_catalog)
 	return auto_id
@@ -884,7 +884,7 @@ static func _parse_event_units(state: BattleState, e: Dictionary, ev: StageEvent
 					for pd in plist:
 						item.passengers.append(_make_unit(pd, catalog, ids.take(), ev.team, skin_catalog))  # 搭乗は同陣営
 				else:
-					push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % item.unit.id)
+					push_warning("StageLoader: capacity 0 の増援に passengers 指定: id=%d" % item.unit.handle)
 			out.append(item)
 	return out
 

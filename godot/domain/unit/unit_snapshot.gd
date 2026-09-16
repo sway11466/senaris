@@ -5,7 +5,7 @@ class_name UnitSnapshot
 ## troops_after は戦闘（または発動）の後に呼び出し側が入れる＝兵数が動かないスキルでは troops_before と同じ。
 ## 詳細 → doc/tech/combat_scene.md
 
-var id: int
+var handle: int
 var type_id: String
 var skin_id: String
 var team: int

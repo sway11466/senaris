@@ -42,29 +42,29 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	for id in in_range:
 		if id in prey_ids:
 			prey_in_range.append(id)
-		if pick.can_kill_in_one_hit(state, u, state.unit_by_id(id)):
+		if pick.can_kill_in_one_hit(state, u, state.unit_by_handle(id)):
 			killable.append(id)
 	var can_move := rows.can_advance(state, u)
-	var move_field := AiDistance.move_cost_field(state, u.id, u.pos) if can_move else {}
+	var move_field := AiDistance.move_cost_field(state, u.handle, u.pos) if can_move else {}
 	var target := pick.hunted_prey(state, u, move_field) if can_move else null
 	if killable.is_empty() and target != null:
 		row = rows.standoff_row(state, u, target)
 		if row != null:
 			return row
 	if not prey_in_range.is_empty():
-		return AiAction.attack(u.id, pick.fewest_left_id(state, u, prey_in_range))
+		return AiAction.attack(u.handle, pick.fewest_left_id(state, u, prey_in_range))
 	if not killable.is_empty():
-		return AiAction.attack(u.id, pick.safest_id(state, u, killable))
+		return AiAction.attack(u.handle, pick.safest_id(state, u, killable))
 	if not can_move or target == null:
 		return null  # 移動を使い切った／sight 範囲内に獲物がいない＝前進はしない
-	var cells := state.attack_cells(u.id, target.id)
+	var cells := state.attack_cells(u.handle, target.handle)
 	# 6 回り込み（迂回距離）。標的自身のZOCは外して測る＝外さないと隣へ入れず必ず測れない。
 	# 表は標的から流して1枚だけ作り、自分のマスが載っているかで「測れる」を見る（両向きで一致する）。
-	var detour_field := AiDistance.detour_cost_field_to(state, u.id, target.pos, target.id)
+	var detour_field := AiDistance.detour_cost_field_to(state, u.handle, target.pos, target.handle)
 	if detour_field.has(u.pos):
 		return rows.advance(state, u, detour_field, cells)
 	if AiDistance.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
-		return rows.advance(state, u, AiDistance.move_cost_field(state, u.id, target.pos), cells)
-	if AiDistance.terrain_distance(state, u.id, cells) < BattleState.UNREACHABLE:
-		return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.id, target.pos), cells)
+		return rows.advance(state, u, AiDistance.move_cost_field(state, u.handle, target.pos), cells)
+	if AiDistance.terrain_distance(state, u.handle, cells) < BattleState.UNREACHABLE:
+		return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.handle, target.pos), cells)
 	return rows.advance_straight(state, u, target.pos)

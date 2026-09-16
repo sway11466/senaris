@@ -30,9 +30,9 @@ static func is_transport(u: Unit) -> bool:
 ## そこで撃てる相手を返すと成立しない攻撃を返し続けることになる。
 func attack_targets(state: BattleState, u: Unit) -> Array[int]:
 	var none: Array[int] = []
-	if is_transport(u) or state.has_attacked(u.id):
+	if is_transport(u) or state.has_attacked(u.handle):
 		return none
-	return state.attack_targets(u.id)
+	return state.attack_targets(u.handle)
 
 ## 前進で止まってはいけないマス。輸送ユニットは目的地hex（自陣営以外の拠点）に乗らない
 ## ＝塞ぐと運んできた占領兵も他の味方も拠点へ入れない。
@@ -46,7 +46,7 @@ func forbidden_cells(state: BattleState, u: Unit) -> Dictionary:
 
 ## いま移動を伴う行を実行できるか（移動を使い切っていないか）。
 func can_advance(state: BattleState, u: Unit) -> bool:
-	return state.can_still_move(u.id)
+	return state.can_still_move(u.handle)
 
 # --- 占領・スキル ---
 
@@ -55,7 +55,7 @@ func can_advance(state: BattleState, u: Unit) -> bool:
 func capture_row(state: BattleState, u: Unit) -> AiAction:
 	if not u.can_capture or not can_advance(state, u):
 		return null
-	var reach := state.reachable(u.id)
+	var reach := state.reachable(u.handle)
 	var best := AiPick.NO_HEX
 	for b in state.bases():
 		if b.team == u.team or b.hex == u.pos or not (b.hex in reach):
@@ -64,7 +64,7 @@ func capture_row(state: BattleState, u: Unit) -> AiAction:
 			continue  # 味方輸送が拠点に乗っている＝そこへ動くと占領ではなく乗車になる
 		if best == AiPick.NO_HEX or AiPick.nearer_hex(u.pos, b.hex, best):
 			best = b.hex
-	return AiAction.move_to(u.id, best) if best != AiPick.NO_HEX else null
+	return AiAction.move_to(u.handle, best) if best != AiPick.NO_HEX else null
 
 ## スキルの行＝掛けられる対象のうち stack 条件を満たすものを集め、pick_rule で1体に絞って放つ。
 ## 放つと発動者は行動完了になるので攻撃より前に置く。移動後でも放てる（doc/gdd/skills.md）。
@@ -73,7 +73,7 @@ func capture_row(state: BattleState, u: Unit) -> AiAction:
 func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround := false) -> AiAction:
 	for option in Formation.available_for(state, u):
 		if not option.needs_target():
-			return AiAction.skill(u.id, option, u.pos)  # 陣営全体＝対象を選ばない
+			return AiAction.skill(u.handle, option, u.pos)  # 陣営全体＝対象を選ばない
 		var kind := option.stack_kind()
 		var candidates: Array[Unit] = []
 		for other in state.units():
@@ -86,7 +86,7 @@ func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround 
 			candidates.append(other)
 		if candidates.is_empty():
 			continue
-		return AiAction.skill(u.id, option, pick.pick_skill_target(state, u, candidates, pick_rule).pos)
+		return AiAction.skill(u.handle, option, pick.pick_skill_target(state, u, candidates, pick_rule).pos)
 	return null
 
 # --- 最大間合い（doc/gdd/ai.md 最大間合い） ---
@@ -107,7 +107,7 @@ func standoff_row(state: BattleState, u: Unit, target: Unit = null,
 		pool: Array[Unit] = []) -> AiAction:
 	if u.attack_range < 2 or is_transport(u) or not can_advance(state, u):
 		return null
-	var reach := state.reachable(u.id)
+	var reach := state.reachable(u.handle)
 	var cells: Array[Vector2i] = []
 	if target != null:
 		cells = standing_attack_cells(state, u, target, reach)
@@ -134,7 +134,7 @@ func standoff_row(state: BattleState, u: Unit, target: Unit = null,
 		if better:
 			best = h
 			best_d = d
-	return AiAction.move_to(u.id, best) if best != u.pos else null
+	return AiAction.move_to(u.handle, best) if best != u.pos else null
 
 ## swarm #3 の標的＝移動範囲のどこかから撃てて、自分を除いても包囲可能な敵のうち損耗が最大の
 ## もの（doc/gdd/ai.md swarm #3）。同値は盤上距離 → col → row。
@@ -144,17 +144,17 @@ func standoff_row(state: BattleState, u: Unit, target: Unit = null,
 func surroundable_standoff_target(state: BattleState, u: Unit) -> Unit:
 	if u.attack_range < 2 or is_transport(u) or not can_advance(state, u):
 		return null
-	var reach := state.reachable(u.id)
+	var reach := state.reachable(u.handle)
 	var ids: Array[int] = []
 	for e in pick.attackable_enemies(state, u):
 		if not pick.surround_able(state, u, e, true):
 			continue
 		if standing_attack_cells(state, u, e, reach).is_empty():
 			continue  # 今ターン撃てる位置が無い敵は標的にしない（前進の行に任せる）
-		ids.append(e.id)
+		ids.append(e.handle)
 	if ids.is_empty():
 		return null
-	return state.unit_by_id(pick.most_damaged_id(state, u, ids))
+	return state.unit_by_handle(pick.most_damaged_id(state, u, ids))
 
 ## target を攻撃できるマスのうち、今ターン実際に立てるもの。
 ## 駒の居るマス＝乗れる味方輸送は除く（前進と同じ理由＝踏むと乗るつもりのない乗車になる）。
@@ -162,7 +162,7 @@ func surroundable_standoff_target(state: BattleState, u: Unit) -> Unit:
 func standing_attack_cells(state: BattleState, u: Unit, target: Unit,
 		reach: Array[Vector2i]) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
-	for h in state.attack_cells(u.id, target.id):
+	for h in state.attack_cells(u.handle, target.handle):
 		if not (h in reach):
 			continue
 		if h != u.pos and state.unit_at(h) != null:
@@ -182,38 +182,38 @@ func standing_attack_cells(state: BattleState, u: Unit, target: Unit,
 ## 攻撃済みの駒は動かさない。ヒット&アウェイ持ち（move_after_attack）はもう撃てないので、
 ## 撃てる位置を探すより前進の行に任せたほうが拠点へ寄る。
 func shift_to_shoot_row(state: BattleState, u: Unit) -> AiAction:
-	if u.attack_range < 2 or is_transport(u) or state.has_attacked(u.id) \
+	if u.attack_range < 2 or is_transport(u) or state.has_attacked(u.handle) \
 			or not can_advance(state, u):
 		return null
 	var goals := pick.hostile_base_hexes(state, u)
 	if goals.is_empty():
 		return null
-	var reach := state.reachable(u.id)
+	var reach := state.reachable(u.handle)
 	var shootable: Array[int] = []
 	var cells_of := {}
 	for e in pick.attackable_enemies(state, u):
 		var spots := standing_attack_cells(state, u, e, reach)
 		if spots.is_empty():
 			continue
-		shootable.append(e.id)
-		cells_of[e.id] = spots
+		shootable.append(e.handle)
+		cells_of[e.handle] = spots
 	var blocker := _blocking_enemy_id(state, u, shootable)
 	if blocker < 0:
 		return null
 	var cells: Array[Vector2i] = cells_of[blocker]
 	var best := _nearest_cell_to_goals(state, u, cells, goals)
-	return AiAction.move_to(u.id, best) if best != AiPick.NO_HEX and best != u.pos else null
+	return AiAction.move_to(u.handle, best) if best != AiPick.NO_HEX and best != u.pos else null
 
 ## cells のうち拠点へ最も近いマス（1つも測れなければ NO_HEX）。測る順は前進と同じ＝
 ## 移動距離 → 地形距離 → 盤上距離。
 func _nearest_cell_to_goals(state: BattleState, u: Unit, cells: Array[Vector2i],
 		goals: Array[Vector2i]) -> Vector2i:
-	var goal := pick.nearest_hex_in(AiDistance.move_cost_field(state, u.id, u.pos), goals)
+	var goal := pick.nearest_hex_in(AiDistance.move_cost_field(state, u.handle, u.pos), goals)
 	if goal != AiPick.NO_HEX:
-		return _nearest_cell_in_field(u, cells, AiDistance.move_cost_field(state, u.id, goal))
-	goal = pick.nearest_hex_in(AiDistance.terrain_cost_field(state, u.id, u.pos), goals)
+		return _nearest_cell_in_field(u, cells, AiDistance.move_cost_field(state, u.handle, goal))
+	goal = pick.nearest_hex_in(AiDistance.terrain_cost_field(state, u.handle, u.pos), goals)
 	if goal != AiPick.NO_HEX:
-		return _nearest_cell_in_field(u, cells, AiDistance.terrain_cost_field(state, u.id, goal))
+		return _nearest_cell_in_field(u, cells, AiDistance.terrain_cost_field(state, u.handle, goal))
 	goal = pick.nearest_hex_by_board(u.pos, goals)
 	var board := {}
 	for h in cells:
@@ -271,27 +271,27 @@ func frontmost_blocker_id(state: BattleState, u: Unit, shootable: Array[int]) ->
 	var best := -1
 	var best_c := BattleState.UNREACHABLE
 	for id in shootable:
-		var e := state.unit_by_id(id)
+		var e := state.unit_by_handle(id)
 		var c := BattleState.UNREACHABLE
 		for g in goals:
 			c = mini(c, int(state.travel_cost_field(g, u.move_type, u.move)
 				.get(e.pos, BattleState.UNREACHABLE)))
 		if best < 0 or c < best_c \
-				or (c == best_c and AiPick.nearer_hex(u.pos, e.pos, state.unit_by_id(best).pos)):
+				or (c == best_c and AiPick.nearer_hex(u.pos, e.pos, state.unit_by_handle(best).pos)):
 			best = id
 			best_c = c
 	return best
 
 ## ignore の駒をどけると拠点への道が良くなるか。
 func _route_improves(state: BattleState, u: Unit, goals: Array[Vector2i], ignore: Dictionary) -> bool:
-	var before := AiDistance.min_cost_in(AiDistance.move_cost_field(state, u.id, u.pos), goals)
-	var after := AiDistance.min_cost_in(AiDistance.move_cost_field_without(state, u.id, u.pos, ignore), goals)
+	var before := AiDistance.min_cost_in(AiDistance.move_cost_field(state, u.handle, u.pos), goals)
+	var after := AiDistance.min_cost_in(AiDistance.move_cost_field_without(state, u.handle, u.pos, ignore), goals)
 	if after < before:
 		return true  # 体で道を塞いでいる（測れるようになった場合も含む）
-	var zoc_before := AiDistance.min_cost_in(AiDistance.detour_cost_field(state, u.id, u.pos), goals)
+	var zoc_before := AiDistance.min_cost_in(AiDistance.detour_cost_field(state, u.handle, u.pos), goals)
 	if zoc_before < BattleState.UNREACHABLE:
 		return false  # ZOCを避ける道が残っている＝足は止まっていない
-	return AiDistance.min_cost_in(AiDistance.detour_cost_field(state, u.id, u.pos, -1, ignore), goals) \
+	return AiDistance.min_cost_in(AiDistance.detour_cost_field(state, u.handle, u.pos, -1, ignore), goals) \
 		< BattleState.UNREACHABLE
 
 # --- 降ろす・乗る（doc/gdd/ai.md raid #8〜#10・輸送ユニット） ---
@@ -301,24 +301,24 @@ func _route_improves(state: BattleState, u: Unit, goals: Array[Vector2i], ignore
 ## 8 占領兵の乗員を自陣営以外の拠点hexへ降ろす（＝降りた瞬間に占領）
 ## 9 拠点に隣接する降車先へ降ろす。降りた先から拠点へたどり着けない乗員は乗せたまま
 func unload_now_row(state: BattleState, u: Unit) -> AiAction:
-	var list := state.passengers(u.id)
+	var list := state.passengers(u.handle)
 	var goals := pick.hostile_base_hexes(state, u)
 	if list.is_empty() or goals.is_empty():
 		return null
 	for i in list.size():
 		if not (list[i] as Unit).can_capture:
 			continue  # 占領できない駒を拠点hexへ降ろしても占領は起きず、拠点を塞ぐだけ
-		var cells := state.unload_cells(u.id, i)
+		var cells := state.unload_cells(u.handle, i)
 		var best := AiPick.NO_HEX
 		for b in goals:
 			if b in cells and (best == AiPick.NO_HEX or AiPick.is_younger_hex(b, best)):
 				best = b
 		if best != AiPick.NO_HEX:
-			return AiAction.unload(u.id, i, best)
+			return AiAction.unload(u.handle, i, best)
 	for i in list.size():
 		var p: Unit = list[i]
 		var best := AiPick.NO_HEX
-		for h in state.unload_cells(u.id, i):
+		for h in state.unload_cells(u.handle, i):
 			if best != AiPick.NO_HEX and not AiPick.is_younger_hex(h, best):
 				continue
 			for b in goals:
@@ -326,20 +326,20 @@ func unload_now_row(state: BattleState, u: Unit) -> AiAction:
 					best = h
 					break
 		if best != AiPick.NO_HEX:
-			return AiAction.unload(u.id, i, best)
+			return AiAction.unload(u.handle, i, best)
 	return null
 
 ## 8/9行のうち「降ろせるマスへ移動する」部分。降車は移動後に unload_now_row が拾う。
 ## 行き先は、乗員を降ろせるマスのうち拠点に最も近いもの（同値は col → row の若い方）。
 func unload_move_row(state: BattleState, u: Unit) -> AiAction:
-	var list := state.passengers(u.id)
+	var list := state.passengers(u.handle)
 	var goals := pick.hostile_base_hexes(state, u)
 	if list.is_empty() or goals.is_empty() or not can_advance(state, u):
 		return null
 	var forbidden := forbidden_cells(state, u)  # 目的地hexに乗らない＝降ろすための移動でも同じ
 	var best := AiPick.NO_HEX
 	var best_d := 1 << 30
-	for h in state.reachable(u.id):
+	for h in state.reachable(u.handle):
 		if h == u.pos or forbidden.has(h) or state.unit_at(h) != null:
 			continue
 		for b in goals:
@@ -350,14 +350,14 @@ func unload_move_row(state: BattleState, u: Unit) -> AiAction:
 				continue
 			best = h
 			best_d = d
-	return AiAction.move_to(u.id, best) if best != AiPick.NO_HEX else null
+	return AiAction.move_to(u.handle, best) if best != AiPick.NO_HEX else null
 
 ## from_hex に立てば、いずれかの乗員を拠点 b に絡めて降ろせるか（移動先の見積もり）。
 ## 降車先は隣接1マスの特例で測る＝乗員の移動力に関係なく輸送の隣へは降ろせる。
 func _can_unload_near(state: BattleState, u: Unit, list: Array, from_hex: Vector2i, b: Vector2i) -> bool:
 	for i in list.size():
 		var p: Unit = list[i]
-		if state.has_moved(p.id):
+		if state.has_moved(p.handle):
 			continue  # 乗車したターンは降りられない
 		if p.can_capture and Hex.distance(from_hex, b) == 1 and _vacant(state, u, b) \
 				and state.can_enter_terrain(p, b):
@@ -372,7 +372,7 @@ func _can_unload_near(state: BattleState, u: Unit, list: Array, from_hex: Vector
 ## hex が空くか。輸送自身が立っているマスは、そこから動けば空く＝空き扱い。
 func _vacant(state: BattleState, u: Unit, hex: Vector2i) -> bool:
 	var occ := state.unit_at(hex)
-	return occ == null or occ.id == u.id
+	return occ == null or occ.handle == u.handle
 
 ## p が from から goal へ自力でたどり着けるか＝地形距離が測れるか（doc/gdd/ai.md たどり着ける）。
 ## 道のり表は goal 自身を必ず 0 で載せる（起点だから）ので、goal に入れるかは別に見る
@@ -388,16 +388,16 @@ func _reaches(state: BattleState, p: Unit, from: Vector2i, goal: Vector2i) -> bo
 func board_row(state: BattleState, u: Unit) -> AiAction:
 	if is_transport(u) or not can_advance(state, u):
 		return null
-	var squad := state.squad_index_of(u.id)
+	var squad := state.squad_index_of(u.handle)
 	var goals := pick.hostile_base_hexes(state, u)
 	if squad < 0 or goals.is_empty():
 		return null
 	var walk := _arrival_turns(state, u, goals, 0)
-	var reach := state.reachable(u.id)
+	var reach := state.reachable(u.handle)
 	var best := AiPick.NO_HEX
 	var best_turns := BattleState.UNREACHABLE
 	for t in state.units():
-		if not is_transport(t) or state.squad_index_of(t.id) != squad:
+		if not is_transport(t) or state.squad_index_of(t.handle) != squad:
 			continue
 		if not state.can_board(u, t) or not (t.pos in reach):
 			continue  # 満車・敵陣営・輸送どうしは can_board が弾く
@@ -408,12 +408,12 @@ func board_row(state: BattleState, u: Unit) -> AiAction:
 				or (ride == best_turns and AiPick.nearer_hex(u.pos, t.pos, best)):
 			best = t.pos
 			best_turns = ride
-	return AiAction.move_to(u.id, best) if best != AiPick.NO_HEX else null
+	return AiAction.move_to(u.handle, best) if best != AiPick.NO_HEX else null
 
 ## goals のいずれかへ着くまでのターン数＝地形距離 ÷ 移動力の切り上げ（最寄りの拠点で測る）。
 ## extra は便乗の +1。測れない・移動力0は UNREACHABLE＝徒歩が測れなければ便乗が必ず勝つ。
 func _arrival_turns(state: BattleState, u: Unit, goals: Array[Vector2i], extra: int) -> int:
-	var field := AiDistance.terrain_cost_field(state, u.id, u.pos)
+	var field := AiDistance.terrain_cost_field(state, u.handle, u.pos)
 	var best := BattleState.UNREACHABLE
 	for g in goals:
 		best = mini(best, _turns_needed(int(field.get(g, BattleState.UNREACHABLE)), u.move))
@@ -434,7 +434,7 @@ func advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false) 
 	var enemies := pick.attackable_enemies(state, u)
 	if enemies.is_empty():
 		return null
-	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.handle, u.pos)
 	# 空敵の優先は最大前進の行だけ。見込前進・直線寄せまで優先すると、今ターン届かない飛行1体に
 	# 盤上の対空得意が全員吸われる（doc/gdd/ai.md charge #6・#7 の注記）。
 	var target: Unit = null
@@ -443,12 +443,12 @@ func advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false) 
 	if target == null:
 		target = pick.nearest_target(state, u, enemies, move_field)
 	if target != null:
-		return advance(state, u, AiDistance.move_cost_field(state, u.id, target.pos),
-			state.attack_cells(u.id, target.id))
-	target = pick.nearest_target(state, u, enemies, AiDistance.terrain_cost_field(state, u.id, u.pos))
+		return advance(state, u, AiDistance.move_cost_field(state, u.handle, target.pos),
+			state.attack_cells(u.handle, target.handle))
+	target = pick.nearest_target(state, u, enemies, AiDistance.terrain_cost_field(state, u.handle, u.pos))
 	if target != null:
-		return advance(state, u, AiDistance.terrain_cost_field(state, u.id, target.pos),
-			state.attack_cells(u.id, target.id))
+		return advance(state, u, AiDistance.terrain_cost_field(state, u.handle, target.pos),
+			state.attack_cells(u.handle, target.handle))
 	return advance_straight(state, u, pick.nearest_unit_by_board(u.pos, enemies).pos)
 
 ## 標的から流した道のり表の勾配を降りて、移動範囲のうち距離が最も縮むマスへ動く1手。
@@ -465,7 +465,7 @@ func advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array,
 	var forbidden := forbidden_cells(state, u)
 	var best := u.pos
 	var best_c := _advance_score(field, goals, u.pos)
-	for h in state.reachable(u.id):
+	for h in state.reachable(u.handle):
 		if not allow.is_empty() and not allow.has(h):
 			continue
 		if forbidden.has(h) or state.unit_at(h) != null:
@@ -474,7 +474,7 @@ func advance(state: BattleState, u: Unit, field: Dictionary, goal_cells: Array,
 		if c < best_c or (c == best_c and best != u.pos and AiPick.is_younger_hex(h, best)):
 			best = h
 			best_c = c
-	return AiAction.move_to(u.id, best) if best != u.pos else null
+	return AiAction.move_to(u.handle, best) if best != u.pos else null
 
 ## 直線寄せ＝盤上距離が縮むマスへ動く（距離が測れないときに使う）。壁の向こうの標的へ
 ## 壁際まで詰めて止まる動きになる。縮むマスが無ければ現在地。
@@ -483,7 +483,7 @@ func advance_straight(state: BattleState, u: Unit, goal: Vector2i,
 	var forbidden := forbidden_cells(state, u)
 	var best := u.pos
 	var best_d := Hex.distance(u.pos, goal)
-	for h in state.reachable(u.id):
+	for h in state.reachable(u.handle):
 		if not allow.is_empty() and not allow.has(h):
 			continue
 		if forbidden.has(h) or state.unit_at(h) != null:
@@ -492,7 +492,7 @@ func advance_straight(state: BattleState, u: Unit, goal: Vector2i,
 		if d < best_d or (d == best_d and best != u.pos and AiPick.is_younger_hex(h, best)):
 			best = h
 			best_d = d
-	return AiAction.move_to(u.id, best) if best != u.pos else null
+	return AiAction.move_to(u.handle, best) if best != u.pos else null
 
 ## hex に立ったときの標的への距離。攻撃可能なマスは0、表に無いマスは測れない（UNREACHABLE）。
 static func _advance_score(field: Dictionary, goals: Dictionary, hex: Vector2i) -> int:
@@ -504,20 +504,20 @@ static func _advance_score(field: Dictionary, goals: Dictionary, hex: Vector2i) 
 func detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
 	if goals.is_empty():
 		return null
-	var detour_field := AiDistance.detour_cost_field(state, u.id, u.pos)
+	var detour_field := AiDistance.detour_cost_field(state, u.handle, u.pos)
 	var goal := pick.nearest_hex_in(detour_field, goals)
 	if goal == AiPick.NO_HEX:
 		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている → 待機
-	return advance(state, u, AiDistance.detour_cost_field(state, u.id, goal), [goal])
+	return advance(state, u, AiDistance.detour_cost_field(state, u.handle, goal), [goal])
 
 ## 最大前進（移動距離）で拠点へ向かう1手。測れる拠点が無ければ null＝この行は通らない。
 func move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
 	if goals.is_empty():
 		return null
-	var goal := pick.nearest_hex_in(AiDistance.move_cost_field(state, u.id, u.pos), goals)
+	var goal := pick.nearest_hex_in(AiDistance.move_cost_field(state, u.handle, u.pos), goals)
 	if goal == AiPick.NO_HEX:
 		return null  # 移動距離が測れない＝道が塞がれている
-	return advance(state, u, AiDistance.move_cost_field(state, u.id, goal), [goal])
+	return advance(state, u, AiDistance.move_cost_field(state, u.handle, goal), [goal])
 
 # --- 脅威圏と間合取り（doc/gdd/ai.md 脅威圏・間合取り） ---
 
@@ -529,12 +529,12 @@ func move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiActi
 ## 敵を縛っていることを当てにすると、隣接から下がる手がそもそも成立しなくなる。
 func threat_cells(state: BattleState, u: Unit) -> Dictionary:
 	var out := {}
-	var ignore := { u.id: true }
+	var ignore := { u.handle: true }
 	for e in state.units():
 		if e.team == u.team or e.attack_against(u) <= 0:
 			continue
 		# 1ターンで届く範囲（移動力）で切って流す＝盤全体を流してから捨てるより敵の数ぶん軽い
-		var field := AiDistance.move_cost_field_within(state, e.id, e.pos, ignore, e.move)
+		var field := AiDistance.move_cost_field_within(state, e.handle, e.pos, ignore, e.move)
 		for r in field:
 			for h in Hex.within_range(r, e.attack_range):
 				if out.has(h) or not state.in_field(h):
@@ -547,7 +547,7 @@ func threat_cells(state: BattleState, u: Unit) -> Dictionary:
 func safe_cells(state: BattleState, u: Unit) -> Dictionary:
 	var threat := threat_cells(state, u)
 	var out := {}
-	for h in state.reachable(u.id):
+	for h in state.reachable(u.handle):
 		if threat.has(h):
 			continue
 		if h != u.pos and state.unit_at(h) != null:
@@ -575,4 +575,4 @@ func spacing_step(state: BattleState, u: Unit, safe: Dictionary,
 		if better:
 			best = h
 			best_c = c
-	return AiAction.move_to(u.id, best) if best != AiPick.NO_HEX and best != u.pos else null
+	return AiAction.move_to(u.handle, best) if best != AiPick.NO_HEX and best != u.pos else null

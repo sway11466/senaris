@@ -309,10 +309,10 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	_update_aura()
 
 ## クロニクル：拠点から出撃した駒を記録する。自軍の出撃も敵の拠点配備も含む。
-func _on_unit_deployed_chronicle(unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> void:
+func _on_unit_deployed_chronicle(handle: int, _base_hex: Vector2i, _to: Vector2i) -> void:
 	if _controller == null:
 		return
-	var unit := _controller.state.unit_by_id(unit_id)
+	var unit := _controller.state.unit_by_handle(handle)
 	if unit != null:
 		_chronicle.note_unit(unit)
 
@@ -322,7 +322,7 @@ func _on_event_fired_chronicle(info: Dictionary) -> void:
 		return
 	var ids: Array = info.get("units", [])
 	for uid in ids:
-		var unit := _controller.state.unit_by_id(int(uid))
+		var unit := _controller.state.unit_by_handle(int(uid))
 		if unit != null:
 			_chronicle.note_unit(unit)
 

@@ -53,12 +53,12 @@ func test_build_unit_fields_and_defaults() -> void:
 		],
 	}
 	var s := StageLoader.build(data)
-	var u := s.unit_by_id(1)  # id 省略 → 出現順で1始まり
+	var u := s.unit_by_handle(1)  # id 省略 → 出現順で1始まり
 	assert_eq(u.team, 0)
 	assert_eq(u.pos, Hex.offset_to_axial(1, 2))
 	assert_eq(u.troops, 7)
 	assert_eq(u.level, 3)
-	var u2 := s.unit_by_id(2)
+	var u2 := s.unit_by_handle(2)
 	assert_eq(u2.troops, 8, "troops 省略は満員")
 	assert_eq(u2.level, 1, "level 省略は1")
 	assert_eq(u2.unit_attack, 10, "type 無しは素の既定（atk10）")
@@ -146,7 +146,7 @@ func test_build_resolves_type_from_catalog() -> void:
 		{ "type": "cleric", "col": 1, "row": 1 },
 	] } ] }
 	var s := StageLoader.build(data, catalog)
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_eq(u.type_id, "cleric", "type_id を保持")
 	assert_eq(u.unit_attack, 10, "atk_ground → unit_attack")
 	assert_eq(u.unit_defense, 4, "defense → unit_defense")
@@ -164,7 +164,7 @@ func test_unit_dict_carries_state_only() -> void:
 		{ "type": "cleric", "col": 1, "row": 1, "troops": 5, "level": 2 },
 	] } ] }
 	var s := StageLoader.build(data, catalog)
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_eq(u.troops, 5, "troops＝損耗は駒が指定できる")
 	assert_eq(u.level, 2, "level＝成長は駒が指定できる")
 	assert_eq(u.max_troops, 8, "満員値は type のまま＝損耗しても回復は type の上限まで戻る")
@@ -185,7 +185,7 @@ func test_stage_cannot_override_type_stats() -> void:
 			"pierce": 0.0, "move_type": "foot", "move_after_attack": false, "can_capture": false },
 	] } ] }
 	var s := StageLoader.build(data, catalog)
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_eq(u.unit_attack, 10, "atk は無視")
 	assert_eq(u.unit_defense, 4, "def は無視")
 	assert_eq(u.move, 3, "move は無視")
@@ -238,7 +238,7 @@ func test_carryover_coexists_with_fresh_reinforcements() -> void:
 	assert_eq(s.units().size(), 2, "継承1＋新米1")
 	var ids := {}
 	for u in s.units():
-		ids[u.id] = true
+		ids[u.handle] = true
 	assert_eq(ids.size(), 2, "id が衝突しない")
 	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).type_id, "recruit", "新米は player 記法どおり満員")
 	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).troops, 8)
@@ -298,7 +298,7 @@ func test_build_bases_with_garrison() -> void:
 	}
 	var s := StageLoader.build(data, catalog)
 	# 占領フラグが種別から載る
-	assert_true(s.unit_by_id(1).can_capture, "cleric は can_capture")
+	assert_true(s.unit_by_handle(1).can_capture, "cleric は can_capture")
 	# 拠点が組み上がる
 	var b := s.base_at(Hex.offset_to_axial(4, 3))
 	assert_not_null(b, "bases から拠点が立つ")
@@ -307,7 +307,7 @@ func test_build_bases_with_garrison() -> void:
 	assert_eq(b.garrison[0].unit_attack, 45, "garrison も種別ステータスを引く")
 	assert_eq(b.garrison[0].troops, 8, "garrison 既定は満員")
 	# garrison の id は盤上ユニットと衝突しない採番
-	assert_ne(b.garrison[0].id, s.unit_by_id(1).id)
+	assert_ne(b.garrison[0].handle, s.unit_by_handle(1).handle)
 
 func test_team_names_resolve_to_internal_ints() -> void:
 	# 駒の陣営はセクション（player/enemy）で決まり内部 int(0/1) に。拠点の team／控えの native は可読表記→int(-1/0)。
@@ -325,8 +325,8 @@ func test_team_names_resolve_to_internal_ints() -> void:
 		],
 	}
 	var s := StageLoader.build(data)
-	assert_eq(s.unit_by_id(1).team, 0, "player セクション → 0")
-	assert_eq(s.unit_by_id(2).team, 1, "enemy セクション → 1")
+	assert_eq(s.unit_by_handle(1).team, 0, "player セクション → 0")
+	assert_eq(s.unit_by_handle(2).team, 1, "enemy セクション → 1")
 	var b := s.base_at(Hex.offset_to_axial(2, 2))
 	assert_eq(b.team, -1, "neutral → -1")
 	assert_false(b.is_hq(), "hq 省略＝普通の砦")
@@ -406,7 +406,7 @@ func test_skin_field_resolves_type_and_keeps_skin_id() -> void:
 		{ "ai": "charge", "units": [ { "skin": "goblin", "col": 1, "row": 1 } ] },
 	] }
 	var s := StageLoader.build(data, catalog, skin_catalog)
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_eq(u.skin_id, "goblin", "skin_id を保持")
 	assert_eq(u.type_id, "cleric", "skin から type を逆引き")
 	assert_eq(u.unit_attack, 10, "逆引きした type の stats を引く")
@@ -447,7 +447,7 @@ func test_unknown_type_warns_and_falls_back_to_defaults() -> void:
 	var data := { "cols": 4, "rows": 3, "player": [ { "units": [ { "type": "nope", "col": 1, "row": 1 } ] } ] }
 	var s := StageLoader.build(data)  # catalog に無い種別＝クラッシュせず素の値
 	assert_push_warning("未知のユニット種別")
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_eq(u.type_id, "nope", "type_id は書かれたまま保持")
 	assert_eq(u.move, 3, "素の既定 move")
 	assert_eq(u.troops, 8, "素の既定 troops")
@@ -466,7 +466,7 @@ func test_type_wires_all_combat_fields_from_catalog() -> void:
 	var data := { "cols": 6, "rows": 4, "player": [ { "units": [
 		{ "type": "wyvern", "col": 1, "row": 1 },
 	] } ] }
-	var u := StageLoader.build(data, catalog).unit_by_id(1)
+	var u := StageLoader.build(data, catalog).unit_by_handle(1)
 	assert_eq(u.move_type, "flight", "move_type が種別から載る")
 	assert_eq(u.attack_range, 2, "attack_range が種別から載る")
 	assert_eq(u.move_after_attack, true, "move_after_attack が種別から載る")
@@ -484,7 +484,7 @@ func test_type_field_sets_skin_id_to_same_name() -> void:
 		{ "type": "fighter", "col": 1, "row": 1 },
 	] } ] }
 	var s := StageLoader.build(data, catalog)
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_eq(u.skin_id, "fighter", "type 指定 → 同名 skin_id")
 	assert_eq(u.type_id, "fighter", "type_id はそのまま")
 

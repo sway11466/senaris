@@ -212,11 +212,11 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 			continue
 		# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
 		# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
-		if not state.has_action_left(unit.id):
+		if not state.has_action_left(unit.handle):
 			continue
 		# チャージが必要なレシピは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
 		var ct := int(r.get("charge_turns", 0))
-		if ct > 0 and state.get_charge(unit.id, rid) < ct:
+		if ct > 0 and state.get_charge(unit.handle, rid) < ct:
 			continue
 		match String(r["shape"]):
 			"triangle":
@@ -241,7 +241,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 				if not members.is_empty():
 					var ordered: Array = [unit]  # 発動者を先頭に（leader_id 用）
 					for m in members:
-						if m.id != unit.id:
+						if m.handle != unit.handle:
 							ordered.append(m)
 					out.append(FormationOption.from_recipe(rid, r, ordered))
 	return out
@@ -253,7 +253,7 @@ static func preview(state: BattleState, option: FormationOption, target: Vector2
 	var participants := option.participants
 	for hx in blast_cells(option, target):
 		var victim := state.unit_at(hx)
-		if victim != null and not (victim.id in participants):
+		if victim != null and not (victim.handle in participants):
 			hits.append(_formation_hit(state, option, victim))
 	return {"recipe": option.recipe, "hits": hits}
 
@@ -274,14 +274,14 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 		return true
 	var rng := option.max_range
 	var lead_id := option.leader_id
-	var leader := state.unit_by_id(lead_id)
+	var leader := state.unit_by_handle(lead_id)
 	var within := false
 	if option.range_from == FormationOption.RangeFrom.ANY:
 		for pid in option.participants:
-			var p := state.unit_by_id(int(pid))
+			var p := state.unit_by_handle(int(pid))
 			if p == null:
 				continue
-			var ppos := from_hex if (from_hex != NO_HEX and p.id == lead_id) else p.pos
+			var ppos := from_hex if (from_hex != NO_HEX and p.handle == lead_id) else p.pos
 			if Hex.distance(ppos, target) <= rng:
 				within = true
 				break
@@ -318,7 +318,7 @@ static func targetable_cells(state: BattleState, option: FormationOption, from_h
 	var out: Array[Vector2i] = []
 	if not option.needs_target():
 		return out
-	var leader := state.unit_by_id(option.leader_id)
+	var leader := state.unit_by_handle(option.leader_id)
 	var single := option.effect == FormationOption.Effect.SINGLE
 	var participants := option.participants
 	for h in _in_range_cells(state, option, from_hex):
@@ -326,7 +326,7 @@ static func targetable_cells(state: BattleState, option: FormationOption, from_h
 			continue
 		if single:
 			var u := _unit_at_assumed(state, leader, from_hex, h)
-			if u == null or u.id in participants:
+			if u == null or u.handle in participants:
 				continue
 		out.append(h)
 	return out
@@ -357,13 +357,13 @@ static func _in_range_cells(state: BattleState, option: FormationOption, from_he
 	var origins: Array[Vector2i] = []
 	if option.range_from == FormationOption.RangeFrom.ANY:
 		for pid in option.participants:
-			var p := state.unit_by_id(int(pid))
+			var p := state.unit_by_handle(int(pid))
 			if p != null:
-				origins.append(from_hex if (from_hex != NO_HEX and p.id == lead_id) else p.pos)
+				origins.append(from_hex if (from_hex != NO_HEX and p.handle == lead_id) else p.pos)
 	elif from_hex != NO_HEX:
 		origins.append(from_hex)
 	else:
-		var leader := state.unit_by_id(lead_id)
+		var leader := state.unit_by_handle(lead_id)
 		if leader != null:
 			origins.append(leader.pos)
 	var seen := {}
@@ -380,7 +380,7 @@ static func _in_range_cells(state: BattleState, option: FormationOption, from_he
 static func _adjacent_members(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
-		if u.id == leader.id or u.team != leader.team or not state.has_action_left(u.id):
+		if u.handle == leader.handle or u.team != leader.team or not state.has_action_left(u.handle):
 			continue
 		if not _matches(u, r["member_skins"]):
 			continue
@@ -412,17 +412,17 @@ static func _escort_sets(state: BattleState, leader: Unit, r: Dictionary, lead_p
 ## ②グレイス＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
 ## leader は lead_pos に居るものとする（移動先のこともある）＝探索は位置で持ち回る。
 static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
-	var seen := {leader.id: leader}
+	var seen := {leader.handle: leader}
 	var frontier: Array[Vector2i] = [lead_pos]
 	while not frontier.is_empty():
 		var cur: Vector2i = frontier.pop_back()
 		for u in state.units():
-			if seen.has(u.id) or u.team != leader.team or not state.has_action_left(u.id):
+			if seen.has(u.handle) or u.team != leader.team or not state.has_action_left(u.handle):
 				continue
 			if not _matches(u, r["member_skins"]):
 				continue
 			if Hex.distance(u.pos, cur) == 1:
-				seen[u.id] = u
+				seen[u.handle] = u
 				frontier.append(u.pos)
 	if seen.size() < int(r["count"]):
 		return []
@@ -433,13 +433,13 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: 
 ## 面の広さ（最大7hex）そのものが強み。合算は割合式が飽和してオーバーキルのため見送り（旧feature-11）。
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
 static func _formation_hit(state: BattleState, option: FormationOption, victim: Unit) -> HitDetail:
-	var leader := state.unit_by_id(option.leader_id)
+	var leader := state.unit_by_handle(option.leader_id)
 	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
 	var atk := _skill_attack_breakdown(state, leader)
 	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。
 	var df := Combat.defense_breakdown(state, victim, leader, false)
 	var hit := Combat.hit_from_breakdowns(atk, df, victim.troops)
-	hit.target_id = victim.id
+	hit.target_id = victim.handle
 	return hit
 
 ## 発動者の実効攻撃力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.attack_breakdown_from）。

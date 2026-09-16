@@ -33,7 +33,7 @@ func test_named_member_lost_stays_enrolled_with_zero_troops() -> void:
 		{ "type": "knight", "col": 1, "row": 1, "actor": "t3.van", "supply": "join", "troops": 2, "level": 3 },
 		{ "type": "elf", "col": 2, "row": 1, "actor": "t3.elf", "supply": "join" },
 	] } ] }, _catalog())
-	assert_true(s.remove_unit(s.unit_at(Hex.offset_to_axial(2, 1)).id), "エルフを失う")
+	assert_true(s.remove_unit(s.unit_at(Hex.offset_to_axial(2, 1)).handle), "エルフを失う")
 	var updated := RosterService.update_after_clear(previous, s)
 	assert_eq(_actors(updated), ["t3.van", "t3.elf"], "名簿の並び順を保つ")
 	assert_eq(int(_entry(updated, "t3.van")["troops"]), 2, "生存者は現在値で更新")
@@ -111,8 +111,8 @@ func test_captive_after_release_is_still_enrolled() -> void:
 	s.end_turn(); s.end_turn()
 	s.move_unit(1, Hex.offset_to_axial(3, 1))  # 占領兵が退く
 	s.end_turn(); s.end_turn()
-	s.move_unit(elf.id, base_hex)
-	assert_true(s.enter_base(elf.id), "拠点に駐留")
+	s.move_unit(elf.handle, base_hex)
+	assert_true(s.enter_base(elf.handle), "拠点に駐留")
 	s.base_at(base_hex).team = 1  # 敵が奪う＝捕虜
 	var updated := RosterService.update_after_clear([], s)
 	assert_true("t3.elf" in _actors(updated), "捕虜でも加入している")

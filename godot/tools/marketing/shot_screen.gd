@@ -190,7 +190,7 @@ func _ready() -> void:
 			push_error("shot_screen: (%d,%d) に駒が居ない" % [select_cell.x, select_cell.y])
 			get_tree().quit(1)
 			return
-		main.get_node("HexBoard")._select(unit.id)
+		main.get_node("HexBoard")._select(unit.handle)
 
 	var board: Node = main.get_node("HexBoard")
 	if frame.size() == 4:
@@ -258,7 +258,7 @@ func _ready() -> void:
 			get_tree().quit(1)
 			return
 		DirAccess.make_dir_recursive_absolute(out)
-		if not main._controller.execute_attack(AttackCommand.new(atk.id, tgt.id)):
+		if not main._controller.execute_attack(AttackCommand.new(atk.handle, tgt.handle)):
 			push_error("shot_screen: 攻撃が通らない（隣接/射程/行動済みを確認）")
 			get_tree().quit(1)
 			return

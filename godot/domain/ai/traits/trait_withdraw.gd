@@ -28,8 +28,8 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	if row != null:
 		return row
 	if AiPick.damage_percent(u) >= params.retreat_percent_of(state, u):
-		if state.can_enter_base(u.id):
-			return AiAction.enter_base(u.id)
+		if state.can_enter_base(u.handle):
+			return AiAction.enter_base(u.handle)
 		if rows.can_advance(state, u):
 			row = rows.move_to_base(state, u, pick.friendly_base_hexes(state, u))
 			if row != null:

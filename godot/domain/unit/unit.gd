@@ -8,7 +8,7 @@ class_name Unit
 const MAX_LEVEL := 99  ## レベルの上限
 const NEUTRAL_TEAM := -1  ## 中立（＝帰属未確定）。Base.NEUTRAL と同値（Base を参照すると循環するため別に置く）
 
-var id: int            ## 一意なID
+var handle: int        ## 実行時のハンドル（盤に置かれている間だけ一意。データの語彙ではない → doc/gdd/map.md）
 var team: int          ## 陣営（0=自軍, 1=敵軍 ...）。中立garrisonの寝返り等で変わりうる
 var native_team: int   ## 生来の陣営（不変）。-1(Base.NEUTRAL)=中立＝まだ帰属が決まっていない。
                        ## 本拠地判定にも使う値なので、解放や占領では動かさない。詳細 → doc/gdd/map.md
@@ -61,10 +61,10 @@ func attack_against(target: Unit) -> int:
 func can_reach(d: int) -> bool:
 	return d >= min_range and d <= attack_range
 
-func _init(p_id: int, p_team: int, p_pos: Vector2i, p_move: int,
+func _init(p_handle: int, p_team: int, p_pos: Vector2i, p_move: int,
 		p_troops: int = 8, p_unit_attack: int = 10, p_unit_defense: int = 10,
 		p_level: int = 1, p_type_id: String = "") -> void:
-	id = p_id
+	handle = p_handle
 	team = p_team
 	native_team = p_team  # 既定は初期陣営（中立garrison等は生成側が上書き）
 	recruited_team = p_team  # 帰属先は native に追従（native を変えたら set_native_team で揃える）
@@ -104,7 +104,7 @@ func is_unclaimed() -> bool:
 	return recruited_team == NEUTRAL_TEAM
 
 ## 種別(UnitType)の性能をこの駒に写す（type が唯一の出どころ＝数値を焼かない）。
-## 成長・損耗（level/troops）と盤依存の状態（id/team/pos）は触らない＝呼び出し側の管轄。
+## 成長・損耗（level/troops）と盤依存の状態（handle/team/pos）は触らない＝呼び出し側の管轄。
 ## max_troops は type の満員値にするので、損耗を保つ用途では呼び出し後に上書きする。
 ## シールドは初期値と現在値の両方を type の値にする（満員と同じ扱い）＝損耗を保つ用途では shield を上書きする。
 ## ステージ読み込み（StageLoader._make_unit）・セーブ復元（from_dict）とも、性能はこの写しだけで決まる。
@@ -125,7 +125,7 @@ func apply_type(t: UnitType) -> void:
 	shield = t.shield
 
 ## 直列化（セーブの土台）。素性・成長・損耗だけを出す＝type/skin/level/troops/max_troops。
-## 性能値（攻防・射程…）は type から再構築するので焼かない。盤依存の状態（id/team/pos/行動済み）も持たない
+## 性能値（攻防・射程…）は type から再構築するので焼かない。盤依存の状態（handle/team/pos/行動済み）も持たない
 ## ＝戦力スナップショット（継承）はこれそのもの、中断セーブはこれに盤情報を足す。詳細 → doc/tech/gamesystem.md
 func to_dict() -> Dictionary:
 	var d := {
@@ -143,7 +143,7 @@ func to_dict() -> Dictionary:
 
 ## 直列化から駒を復元。性能は t（type_id で解決した UnitType）から再構築する。
 ## t 省略/未解決なら既定性能（move3/atk10/def10）で復元＝データ欠損に耐える（catalog 解決は呼び出し側）。
-## id/team/pos は placeholder（0/0/ZERO）＝配置する側（次ステージ or 中断復元）が決める。
+## handle/team/pos は placeholder（0/0/ZERO）＝配置する側（次ステージ or 中断復元）が決める。
 static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	var type_id := String(data.get("type", ""))
 	var level := int(data.get("level", 1))
@@ -161,11 +161,11 @@ static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	unit.actor = String(data.get("actor", ""))
 	return unit
 
-## 中断セーブ用の直列化＝スナップショット(to_dict)に盤情報（id/team/native/位置）を足したもの。
+## 中断セーブ用の直列化＝スナップショット(to_dict)に盤情報（handle/team/native/位置）を足したもの。
 ## 位置は axial 座標を q/r として直に持つ。詳細 → doc/tech/gamesystem.md
 func to_full_dict() -> Dictionary:
 	var d := to_dict()
-	d["id"] = id
+	d["id"] = handle  # セーブのキーは "id" のまま（版と一緒に変える）
 	d["team"] = team
 	d["native"] = native_team
 	d["recruited"] = recruited_team
@@ -176,7 +176,7 @@ func to_full_dict() -> Dictionary:
 ## to_full_dict からの復元。性能は t（UnitType）から再構築し、盤情報を戻す。
 static func from_full_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	var unit := from_dict(data, t)
-	unit.id = int(data.get("id", 0))
+	unit.handle = int(data.get("id", 0))
 	unit.team = int(data.get("team", 0))
 	unit.set_native_team(int(data.get("native", unit.team)))
 	unit.recruited_team = int(data.get("recruited", unit.native_team))  # 旧セーブは native と同値で復元

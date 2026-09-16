@@ -10,7 +10,7 @@ func _factor_with(dirs: Array) -> float:
 	for d in dirs:
 		s.add_unit(Unit.new(id, 1, Hex.neighbor(c, d), 3))
 		id += 1
-	return Surround.factor(s, s.unit_by_id(1))
+	return Surround.factor(s, s.unit_by_handle(1))
 
 func test_one_enemy_no_surround() -> void:
 	assert_eq(_factor_with([0]), 1.0, "隣接1体ではゲート未達で包囲不成立")
@@ -33,7 +33,7 @@ func test_allies_do_not_count() -> void:
 	s.add_unit(Unit.new(1, 0, c, 3))
 	s.add_unit(Unit.new(2, 0, Hex.neighbor(c, 0), 3))  # 味方
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(c, 3), 3))  # 味方
-	assert_eq(Surround.factor(s, s.unit_by_id(1)), 1.0, "味方は包囲に数えない")
+	assert_eq(Surround.factor(s, s.unit_by_handle(1)), 1.0, "味方は包囲に数えない")
 
 func test_edge_is_weaker() -> void:
 	# 隅は盤外を数えないので、敵で固めても包囲が弱い（中央の対角0.50より高い）。
@@ -46,7 +46,7 @@ func test_edge_is_weaker() -> void:
 		if s.in_field(h):
 			s.add_unit(Unit.new(id, 1, h, 3))
 			id += 1
-	assert_almost_eq(Surround.factor(s, s.unit_by_id(1)), 0.84, 0.001, "隅は2マスしか覆えず 0.84（中央の対角0.68より弱い）")
+	assert_almost_eq(Surround.factor(s, s.unit_by_handle(1)), 0.84, 0.001, "隅は2マスしか覆えず 0.84（中央の対角0.68より弱い）")
 
 # 注: 「対角2体で包囲して攻撃」は包囲と支援が同時に効く（側面ユニットは攻撃支援者でもある）。
 # その複合ケースの戦闘結果は test_support.gd で検証する。

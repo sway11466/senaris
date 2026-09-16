@@ -58,7 +58,7 @@ func test_pierce_applies_after_support_cap() -> void:
 	s.add_unit(atk)
 	s.add_unit(Unit.new(2, 0, Hex.neighbor(ap, 0), 3, 8, 10, 10))    # 防御側: 素防 8×10=80
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 2), 3, 8, 0, 50))     # 味方: 支援 8×50×0.25=100
-	var df := Combat.defense_breakdown(s, s.unit_by_id(2), atk)
+	var df := Combat.defense_breakdown(s, s.unit_by_handle(2), atk)
 	assert_true(df.capped, "支援(+100)で2倍上限(80→160)が効く")
 	assert_almost_eq(df.total, 80.0, 0.01, "min(180,160)×0.5＝80（上限→貫通の順）")
 

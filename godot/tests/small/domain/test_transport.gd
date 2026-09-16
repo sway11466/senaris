@@ -26,10 +26,10 @@ func test_loader_wires_passengers() -> void:
 			"passengers": [ { "type": "paladin" }, { "type": "novice" } ] },
 	] } ] }
 	var s := StageLoader.build(data, UnitCatalog.load_default())
-	var airship := s.unit_by_id(1)
+	var airship := s.unit_by_handle(1)
 	assert_eq(airship.capacity, 4, "capacity が type から載る")
 	assert_eq(s.passengers(1).size(), 2, "初期搭乗2体")
-	assert_null(s.unit_by_id(2), "搭乗駒は盤上に居ない")
+	assert_null(s.unit_by_handle(2), "搭乗駒は盤上に居ない")
 	assert_eq(s.passengers(1)[0].team, 0, "搭乗駒は輸送と同陣営")
 
 # --- 乗車（board） ---
@@ -42,7 +42,7 @@ func test_move_onto_transport_boards() -> void:
 	s.add_unit(rider)
 	assert_true(s.reachable(2).has(wagon.pos), "味方輸送のマスは移動先に含まれる")
 	assert_true(s.move_unit(2, wagon.pos), "輸送のマスへ移動＝乗車")
-	assert_null(s.unit_by_id(2), "乗った駒は盤上から消える")
+	assert_null(s.unit_by_handle(2), "乗った駒は盤上から消える")
 	assert_eq(s.passengers(1).size(), 1, "輸送の搭乗リストに載る")
 	assert_true(s.has_moved(2) and s.has_attacked(2), "乗った駒は行動完了")
 
@@ -144,7 +144,7 @@ func test_unload_places_unit_and_allows_attack() -> void:
 	s.add_unit(enemy)
 	var dest := Hex.offset_to_axial(3, 4)  # 敵の隣
 	assert_true(s.unload(1, 0, dest), "降車できる")
-	assert_eq(s.unit_by_id(2).pos, dest, "盤上に配置される")
+	assert_eq(s.unit_by_handle(2).pos, dest, "盤上に配置される")
 	assert_true(s.has_moved(2), "降車＝移動を消費")
 	assert_true(s.can_attack(2, 9), "降車後に攻撃できる（通常の移動→攻撃と同じ）")
 	assert_eq(s.passengers(1).size(), 0, "搭乗リストから抜ける")
@@ -216,7 +216,7 @@ func test_move0_passenger_unloads_to_adjacent() -> void:
 	assert_eq(cells.size(), 6, "移動0でも隣接6マスへ降ろせる")
 	var dest := Hex.offset_to_axial(3, 4)
 	assert_true(s.unload(1, 0, dest), "隣接マスへ降車できる")
-	assert_eq(s.unit_by_id(2).pos, dest, "盤上に配置される")
+	assert_eq(s.unit_by_handle(2).pos, dest, "盤上に配置される")
 
 func test_move1_unit_boards_transport_on_costly_terrain() -> void:
 	var s := _state()
@@ -264,7 +264,7 @@ func test_deploy_onto_adjacent_transport_boards() -> void:
 	s.add_unit(wagon)
 	assert_true(s.deploy_cells(base_hex, 0).has(wagon.pos), "隣接する乗れる輸送のマスが出撃先に含まれる")
 	assert_true(s.deploy(base_hex, 0, wagon.pos), "輸送のマスへ出撃＝直接乗車")
-	assert_null(s.unit_by_id(9), "盤上には出ない")
+	assert_null(s.unit_by_handle(9), "盤上には出ない")
 	assert_eq(s.passengers(1).size(), 1, "搭乗リストに載る")
 	assert_eq(b.garrison.size(), 0, "garrison から抜ける")
 	assert_true(s.unload_cells(1, 0).is_empty(), "出撃（乗車）したターンは降ろせない")
@@ -317,7 +317,7 @@ func test_enter_base_moves_passengers_into_garrison() -> void:
 	assert_true(s.enter_base(1), "積んだまま拠点に入れる")
 	assert_eq(s.passengers(1).size(), 0, "積載は空になる")
 	assert_eq(b.garrison.size(), 2, "輸送も搭乗駒も garrison に入る")
-	assert_eq(b.garrison[1].id, 2, "搭乗駒は輸送の次に並ぶ")
+	assert_eq(b.garrison[1].handle, 2, "搭乗駒は輸送の次に並ぶ")
 	assert_false(s.can_deploy_garrison(base_hex, 0), "入ったターンは輸送を出せない")
 	assert_false(s.can_deploy_garrison(base_hex, 1), "搭乗駒もそのターンは出せない（バラまき再配置の防止）")
 	s.end_turn()

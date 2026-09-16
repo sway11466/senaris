@@ -71,7 +71,7 @@ var _fig_height := {}     # Texture2D -> float（立ち絵の実体の背丈）
 var _unit_tex := {}       # 画像パス(String) -> Texture2D
 
 # --- ノード管理 ---
-## unit_id -> Node3D（そのユニットの見た目一式の親）。sync_units が作り直す。
+## handle -> Node3D（そのユニットの見た目一式の親）。sync_units が作り直す。
 var _unit_nodes := {}
 ## 頭上マーカーのノード（_process が揺らす）。
 var _target_markers: Array[Node3D] = []
@@ -140,9 +140,9 @@ func build_unit_node(u: Unit) -> Node3D:
 	var root := Node3D.new()
 	root.position = Vector3(p.x, _elev_fn.call(u.pos), p.y)
 	add_child(root)
-	_unit_nodes[u.id] = root
+	_unit_nodes[u.handle] = root
 	# 暗く落とすのは「このターンの行動を終えた駒」だけ。
-	var done := _state.is_done(u.id)
+	var done := _state.is_done(u.handle)
 	var tex := _unit_texture(u)
 	if tex != null:
 		var spr := Sprite3D.new()
@@ -171,7 +171,7 @@ func build_unit_node(u: Unit) -> Node3D:
 	# 兵数バー（残存兵数/満員）。駒の足元に置く。
 	_add_troops_bar(u, root)
 	# 輸送の搭載数を左上に小さく。
-	var pcount := _state.passengers(u.id).size()
+	var pcount := _state.passengers(u.handle).size()
 	if pcount > 0:
 		add_count_label("+%d" % pcount, Vector3.ZERO, COLOR_UNIT_LABEL, root)
 	return root

@@ -23,15 +23,15 @@ func id() -> String:
 	return "swarm"
 
 func action(state: BattleState, u: Unit) -> AiAction:
-	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.handle, u.pos)
 	var wounded := pick.wounded_of(state, u, move_field)
 	if wounded != null:
 		var standoff := rows.standoff_row(state, u, wounded)
 		if standoff != null:
 			return standoff
 	var in_range := rows.attack_targets(state, u)
-	if wounded != null and wounded.id in in_range:
-		return AiAction.attack(u.id, wounded.id)
+	if wounded != null and wounded.handle in in_range:
+		return AiAction.attack(u.handle, wounded.handle)
 	# 3 自分を除いても包囲可能な敵へ最大間合い
 	var pinned := rows.surroundable_standoff_target(state, u)
 	if pinned != null:
@@ -42,26 +42,26 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	var surroundable: Array[int] = []
 	var stacked: Array[int] = []  # stack 条件を満たさない＝もう重ねる価値がない相手
 	for id in in_range:
-		var t := state.unit_by_id(id)
+		var t := state.unit_by_handle(id)
 		if not pick.surround_able(state, u, t):
 			continue
 		surroundable.append(id)
 		if not pick.stack_passes(state, u, kind, t):
 			stacked.append(id)
 	if not stacked.is_empty():
-		return AiAction.attack(u.id, pick.most_damaged_id(state, u, stacked))
+		return AiAction.attack(u.handle, pick.most_damaged_id(state, u, stacked))
 	var row := rows.skill_row(state, u, AiPick.PICK_DAMAGED, true)
 	if row != null:
 		return row
 	if not surroundable.is_empty():
-		return AiAction.attack(u.id, pick.most_damaged_id(state, u, surroundable))
+		return AiAction.attack(u.handle, pick.most_damaged_id(state, u, surroundable))
 	if not rows.can_advance(state, u):
 		return null
 	# 7/8 手負いへ。sight 範囲内に居るときだけ（選び終えた1体が範囲に入っているかを見る）。
 	if wounded != null and pick.in_sight(state, u, wounded):
-		var cells := state.attack_cells(u.id, wounded.id)
+		var cells := state.attack_cells(u.handle, wounded.handle)
 		if AiDistance.min_cost_in(move_field, cells) < BattleState.UNREACHABLE:
-			return rows.advance(state, u, AiDistance.move_cost_field(state, u.id, wounded.pos), cells)
-		if AiDistance.terrain_distance(state, u.id, cells) < BattleState.UNREACHABLE:
-			return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.id, wounded.pos), cells)
+			return rows.advance(state, u, AiDistance.move_cost_field(state, u.handle, wounded.pos), cells)
+		if AiDistance.terrain_distance(state, u.handle, cells) < BattleState.UNREACHABLE:
+			return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.handle, wounded.pos), cells)
 	return rows.advance_to_nearest_enemy(state, u)

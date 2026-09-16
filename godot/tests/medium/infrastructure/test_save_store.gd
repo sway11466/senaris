@@ -40,7 +40,7 @@ func test_roundtrips_real_battle_state() -> void:
 	var s := StageLoader.build(stage, cat)
 	s.current_team = 1
 	s.turn_number = 4
-	s.unit_by_id(1).troops = 3
+	s.unit_by_handle(1).troops = 3
 	SaveStore.new(PATH).save(s.to_save_diff(), { "stage_path": "res://data/stages/x.json" })
 
 	var got := SaveStore.new(PATH).load()
@@ -49,7 +49,7 @@ func test_roundtrips_real_battle_state() -> void:
 	s2.apply_save_diff(got["state"], cat)
 	assert_eq(s2.current_team, 1, "ターンを復元")
 	assert_eq(s2.turn_number, 4)
-	assert_eq(s2.unit_by_id(1).troops, 3, "損耗を復元")
+	assert_eq(s2.unit_by_handle(1).troops, 3, "損耗を復元")
 	assert_eq(String(got["meta"]["stage_path"]), "res://data/stages/x.json", "再開に使うステージパス")
 
 func test_save_overwrites_single_slot() -> void:

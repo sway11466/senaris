@@ -12,8 +12,8 @@ func test_even_fight_simultaneous() -> void:
 	var r := s.attack(1, 2)
 	assert_eq(r.damage(), 4, "互角(8/10/10)同士は4減らす（A=D→割合0.5）")
 	assert_eq(r.retaliation(), 4, "同時攻撃なので反撃も4")
-	assert_eq(s.unit_by_id(2).troops, 4)
-	assert_eq(s.unit_by_id(1).troops, 4)
+	assert_eq(s.unit_by_handle(2).troops, 4)
+	assert_eq(s.unit_by_handle(1).troops, 4)
 
 func test_attack_advantage_hits_harder() -> void:
 	var s := _state()
@@ -32,8 +32,8 @@ func test_overwhelming_kills_without_loss() -> void:
 	var r := s.attack(1, 2)
 	assert_true(r.killed(), "圧倒的攻撃で撃破")
 	assert_false(r.attacker_killed(), "弱い反撃では落ちない")
-	assert_eq(s.unit_by_id(1).troops, 8, "微小な反撃は兵数を減らさない")
-	assert_null(s.unit_by_id(2), "倒した敵は盤から消える")
+	assert_eq(s.unit_by_handle(1).troops, 8, "微小な反撃は兵数を減らさない")
+	assert_null(s.unit_by_handle(2), "倒した敵は盤から消える")
 
 func test_simultaneous_mutual_kill() -> void:
 	var s := _state()
@@ -42,8 +42,8 @@ func test_simultaneous_mutual_kill() -> void:
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 2, 100, 1))
 	var r := s.attack(1, 2)
 	assert_true(r.killed() and r.attacker_killed(), "相討ちで両者撃破")
-	assert_null(s.unit_by_id(1))
-	assert_null(s.unit_by_id(2))
+	assert_null(s.unit_by_handle(1))
+	assert_null(s.unit_by_handle(2))
 
 func test_attack_marks_done() -> void:
 	var s := _state()
@@ -106,8 +106,8 @@ func test_level_gained_on_survived_fight() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 10, 10))               # Lv1
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))
 	s.attack(1, 2)
-	assert_eq(s.unit_by_id(1).level, 2, "戦って生き残った攻撃側は+1でLv2")
-	assert_eq(s.unit_by_id(2).level, 2, "反撃した近接防御側も+1でLv2")
+	assert_eq(s.unit_by_handle(1).level, 2, "戦って生き残った攻撃側は+1でLv2")
+	assert_eq(s.unit_by_handle(2).level, 2, "反撃した近接防御側も+1でLv2")
 
 func test_level_bonus_on_kill() -> void:
 	var s := _state()
@@ -115,7 +115,7 @@ func test_level_bonus_on_kill() -> void:
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 100, 10))             # Lv1
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 2, 1, 1))
 	s.attack(1, 2)
-	assert_eq(s.unit_by_id(1).level, 3, "参加+1・撃破+1でLv1→Lv3")
+	assert_eq(s.unit_by_handle(1).level, 3, "参加+1・撃破+1でLv1→Lv3")
 
 func test_level_caps_at_max_level() -> void:
 	var u := Unit.new(1, 0, Vector2i.ZERO, 3)
@@ -162,7 +162,7 @@ func test_indirect_no_retaliation() -> void:
 	var r := s.attack(1, 2)
 	assert_true(r.damage() > 0, "間接でも相手は削れる")
 	assert_eq(r.retaliation(), 0, "間接攻撃は反撃を受けない")
-	assert_eq(s.unit_by_id(1).troops, 8, "攻撃側は無傷")
+	assert_eq(s.unit_by_handle(1).troops, 8, "攻撃側は無傷")
 
 func test_indirect_defender_gains_no_exp() -> void:
 	var s := _state()
@@ -172,8 +172,8 @@ func test_indirect_defender_gains_no_exp() -> void:
 	s.add_unit(a)
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(4, 2), 3, 8, 10, 10))
 	s.attack(1, 2)
-	assert_eq(s.unit_by_id(1).level, 2, "間接の攻撃側は+1（Lv2）")
-	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は+0（Lv1のまま）")
+	assert_eq(s.unit_by_handle(1).level, 2, "間接の攻撃側は+1（Lv2）")
+	assert_eq(s.unit_by_handle(2).level, 1, "反撃しない防御側は+0（Lv1のまま）")
 
 func test_indirect_benefits_from_surround_but_not_support() -> void:
 	# 囲んで止めた敵を後ろから集中放火＝間接でも包囲は効く。支援は近接のみなので乗らない。
@@ -219,8 +219,8 @@ func test_ranged_unit_meleeing_at_distance1_is_melee() -> void:
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 8, 10, 10))  # 距離1
 	var r := s.attack(1, 2)
 	assert_eq(r.retaliation(), 4, "距離1で殴った弓は近接扱い＝反撃4を受ける")
-	assert_eq(s.unit_by_id(1).level, 2, "近接した攻撃側は+1")
-	assert_eq(s.unit_by_id(2).level, 2, "反撃した近接防御側も+1")
+	assert_eq(s.unit_by_handle(1).level, 2, "近接した攻撃側は+1")
+	assert_eq(s.unit_by_handle(2).level, 2, "反撃した近接防御側も+1")
 
 func test_min_range_dead_zone_cannot_hit_adjacent() -> void:
 	# min_range≥2 の砲兵は懐に死角＝隣接(距離1)を撃てない。距離2なら撃てる。
@@ -253,7 +253,7 @@ func test_min_range_defender_cannot_retaliate_in_melee() -> void:
 	var r := s.attack(1, 2)
 	assert_true(r.damage() > 0, "攻撃側は当てる")
 	assert_eq(r.retaliation(), 0, "懐に死角の砲兵は距離1に反撃できない")
-	assert_eq(s.unit_by_id(2).level, 1, "反撃しない防御側は Lv+0")
+	assert_eq(s.unit_by_handle(2).level, 1, "反撃しない防御側は Lv+0")
 
 func test_combat_is_deterministic() -> void:
 	# 同じ初期条件なら何度やっても同じ結果（乱数なし）。

@@ -7,7 +7,7 @@ class_name HexBoard3D
 ## 方針 → doc/adr/ADR-0003-board-3d-hybrid.md
 
 ## 選択中ユニットが変わったとき発行（id<0＝選択解除）。情報パネル等が購読する。
-signal selection_changed(unit_id: int)
+signal selection_changed(handle: int)
 ## ユニットのいない空きマスをクリックしたとき発行（地形・拠点情報を右パネルに出す）。
 signal tile_inspected(hex: Vector2i)
 ## 戻る対象が無い最上位で Esc を押したとき発行（HUD がシステムメニューを開く）。
@@ -448,7 +448,7 @@ func _on_click(hex: Vector2i) -> void:
 		return
 	# 選択中に「自マス or 到達マス」をクリック → コマンドメニュー（移動は未確定のまま開く）。
 	if _selected_id != -1:
-		var sel := state.unit_by_id(_selected_id)
+		var sel := state.unit_by_handle(_selected_id)
 		if sel != null and (hex == sel.pos or (state.unit_at(hex) == null and _reachable.has(hex))):
 			_open_command_menu(hex)
 			return
@@ -459,8 +459,8 @@ func _on_click(hex: Vector2i) -> void:
 			return
 	# 現ターンで操作可能なユニットをクリック → 選択。
 	var clicked := state.unit_at(hex)
-	if clicked != null and state.can_select(clicked.id):
-		_select(clicked.id)
+	if clicked != null and state.can_select(clicked.handle):
+		_select(clicked.handle)
 		return
 	# 自軍の出撃可能な拠点をクリック → 拠点メニュー（出撃）。閉じ込めの控えしか無い拠点は開かない。
 	var b := state.base_at(hex)
@@ -469,7 +469,7 @@ func _on_click(hex: Vector2i) -> void:
 		_open_base_menu(hex)
 		return
 	if clicked != null:
-		_inspect_unit(clicked.id)  # 操作対象外（敵など）→ 選択せずステータスのみ表示
+		_inspect_unit(clicked.handle)  # 操作対象外（敵など）→ 選択せずステータスのみ表示
 		return
 	_deselect()
 	if state.unit_at(hex) == null:
@@ -481,7 +481,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 	_menu_base = INVALID_HEX
 	_preview_move(dest)
 	var can_attack := not controller.attack_targets_from(_selected_id, dest).is_empty()
-	var sel := state.unit_by_id(_selected_id)
+	var sel := state.unit_by_handle(_selected_id)
 	var base := state.base_at(dest)
 	var will_capture := sel != null and sel.can_capture and base != null and base.team != sel.team
 	var can_enter := state.can_enter_base_at(_selected_id, dest)
@@ -498,7 +498,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 		var pu: Unit = pas[i]
 		var sk := SkinCatalog.resolve(_skin_catalog, pu.skin_id, pu.type_id, pu.team)
 		_menu.add_item(tr("ui.board.unload") % (tr("unit." + sk.skin_id + ".name") if sk != null else pu.type_id), UNLOAD_ID_BASE + i)
-		if state.has_moved(pu.id):
+		if state.has_moved(pu.handle):
 			_menu.set_item_disabled(_menu.get_item_index(UNLOAD_ID_BASE + i), true)
 	if sel != null and base != null and base.team == sel.team and base.has_deployable_garrison():
 		_menu.add_separator()
@@ -568,7 +568,7 @@ func _on_menu_id(id: int) -> void:
 			_reachable.clear()
 			_targets.clear()
 			for tid in controller.attack_targets_for(_selected_id):
-				var u := state.unit_by_id(tid)
+				var u := state.unit_by_handle(tid)
 				if u != null:
 					_targets[u.pos] = tid
 			_choosing_target = true
@@ -653,7 +653,7 @@ func _after_menu_closed() -> void:
 
 ## 保留中の移動を確定（自マスのままなら移動しない）。
 func _commit_pending_move() -> void:
-	var sel := state.unit_by_id(_selected_id)
+	var sel := state.unit_by_handle(_selected_id)
 	if sel != null and _pending_to != INVALID_HEX and _pending_to != sel.pos:
 		controller.execute(MoveCommand.new(_selected_id, _pending_to))
 	_pending_to = INVALID_HEX
@@ -661,7 +661,7 @@ func _commit_pending_move() -> void:
 ## 移動先をクリックした時点で駒を歩かせる（見た目だけ。盤の状態は未確定）。
 ## 駒が動いて見えないと「移動が起きていない」と読まれる → doc/gdd/uiux.md 移動の見せ方
 func _preview_move(dest: Vector2i) -> void:
-	var sel := state.unit_by_id(_selected_id)
+	var sel := state.unit_by_handle(_selected_id)
 	if sel == null or dest == sel.pos:
 		return
 	var path := state.path_to(_selected_id, dest)
@@ -756,19 +756,19 @@ func _handle_unload_menu(id: int) -> void:
 	_unload_to = INVALID_HEX
 	match id:
 		MENU_ATTACK:
-			var pid: int = state.passengers(_unload_transport)[_unload_index].id
+			var pid: int = state.passengers(_unload_transport)[_unload_index].handle
 			if controller.execute_unload(UnloadCommand.new(_unload_transport, _unload_index, dest)):
 				_selected_id = pid
 				_targets.clear()
 				for tid in controller.attack_targets_for(pid):
-					var u := state.unit_by_id(tid)
+					var u := state.unit_by_handle(tid)
 					if u != null:
 						_targets[u.pos] = tid
 				_choosing_target = true
 				selection_changed.emit(pid)
 				_sync()
 		MENU_WAIT:
-			var pid: int = state.passengers(_unload_transport)[_unload_index].id
+			var pid: int = state.passengers(_unload_transport)[_unload_index].handle
 			if controller.execute_unload(UnloadCommand.new(_unload_transport, _unload_index, dest)):
 				controller.stand(pid)  # unit_stood → _sync（降車なので待つ移動アニメは無い）
 		MENU_CANCEL:
@@ -882,26 +882,26 @@ func _inspect_unit(id: int) -> void:
 	selection_changed.emit(id)
 	_sync_overlay()
 
-func _on_unit_moved(unit_id: int, _from: Vector2i, _to: Vector2i, path: Array[Vector2i]) -> void:
+func _on_unit_moved(handle: int, _from: Vector2i, _to: Vector2i, path: Array[Vector2i]) -> void:
 	# プレビューで既に歩かせた駒の確定＝歩き直さない（歩き途中なら _sync が移動先へスナップする）。
-	var previewed := unit_id == _preview_unit
+	var previewed := handle == _preview_unit
 	_preview_unit = -1
 	_preview_from = INVALID_HEX
 	_sync()  # 盤は真実（＝移動先）で作り直す
 	# 乗車には専用のシグナルが無い。輸送のマスへ入った駒は盤から外れる＝作り直した後に
 	# ノードが残っていなければ乗ったと分かる（降車は _on_unit_unloaded 側で鳴らす）。
-	if not _unit_renderer.has_unit_node(unit_id):
+	if not _unit_renderer.has_unit_node(handle):
 		SfxPlayer.play_event("map_board")
 	if previewed:
 		return
-	_animate_move(unit_id, path)
+	_animate_move(handle, path)
 
 ## 移動した駒を経路の起点へ戻し、マスを1つずつ辿らせる（見た目だけ後追い）。
 ## 盤の状態は既に移動先で確定しているので、アニメが途中で切れても嘘にはならない
 ## ＝別イベントの sync_units がノードごと作り直し、駒は真実の位置にスナップする
 ## （戦闘演出と同じ「状態は即確定・見た目は後追い」の流儀）。
-func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
-	var node: Node3D = _unit_renderer.get_unit_node(unit_id)
+func _animate_move(handle: int, path: Array[Vector2i]) -> void:
+	var node: Node3D = _unit_renderer.get_unit_node(handle)
 	# 経路なし＝アニメできない（乗車で盤から消えた／隣接特例の外）→ 従来どおり瞬間移動。
 	if node == null or path.size() < 2:
 		move_animation_finished.emit()
@@ -910,7 +910,7 @@ func _animate_move(unit_id: int, path: Array[Vector2i]) -> void:
 	# map_move（doc/audio/sfx.md 移動音）。素材は移動タイプ＋スキンで決まり、未配置なら無音で進む。
 	# 鳴らし方は素材の型で決まる。刻む＝マスごとに1発、続く＝開始でループし到着で止める、
 	# 周期＝開始で1発・every マスごとに1発・到着で鳴っている一打を止める。
-	var move_sfx := _move_sfx_of(unit_id)
+	var move_sfx := _move_sfx_of(handle)
 	var kind := SfxCatalog.move_kind_of(move_sfx)
 	var every := SfxCatalog.move_every_of(move_sfx)
 	_stop_move_voice()  # 前の移動音が残っていれば畳む（同時に動く駒は1体）
@@ -970,7 +970,7 @@ func _entry_walk(ids: Array, from: Vector2i, sequential: bool) -> void:
 		if node == null:
 			continue
 		if path.size() < 2:
-			var u := state.unit_by_id(uid)
+			var u := state.unit_by_handle(uid)
 			if u != null and u.pos != from:
 				push_warning("HexBoard3D: 入口から歩いてこられない駒（その場に出す）: id=%d" % uid)
 			continue
@@ -1066,10 +1066,10 @@ func _kill_entry_tweens() -> void:
 ## その駒の移動音の素材ID。スキンの指定（map_move_sfx）を優先し、無ければ移動タイプの既定。
 ## 飛行の飛び方の違い（羽ばたき／浮遊／プロペラ）はスキン側で分かれる（doc/audio/sfx.md 移動音）。
 ## 盤に居ない・移動タイプ不明なら ""＝無音。
-func _move_sfx_of(unit_id: int) -> String:
+func _move_sfx_of(handle: int) -> String:
 	if state == null:
 		return ""
-	var u := state.unit_by_id(unit_id)
+	var u := state.unit_by_handle(handle)
 	if u == null:
 		return ""
 	var s: UnitSkin = SkinCatalog.resolve(_skin_catalog, u.skin_id, u.type_id, u.team)
@@ -1221,7 +1221,7 @@ func _sync_overlay() -> void:
 	for pos in _targets:
 		var tp := Hex.to_pixel(pos, TILE)
 		_unit_renderer.add_ring(Vector3(tp.x, _terrain_renderer.elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
-		_unit_renderer.add_target_marker(state.unit_by_id(int(_targets[pos])), _overlay_root)
+		_unit_renderer.add_target_marker(state.unit_by_handle(int(_targets[pos])), _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 		# 対象を1体選ぶスキル（single＝単体狙撃／buff_scope=unit＝1体に掛ける）は駒の居るhexしか
@@ -1231,11 +1231,11 @@ func _sync_overlay() -> void:
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
 		for h in Hex.within_range(_hover, _formation_active.radius):
 			_add_cell(h, COLOR_FORMATION_BLAST, 0.035)
-	var sel := state.unit_by_id(_selected_id) if _selected_id != -1 else null
+	var sel := state.unit_by_handle(_selected_id) if _selected_id != -1 else null
 	if sel != null:
 		var sp := Hex.to_pixel(sel.pos, TILE)
 		_unit_renderer.add_ring(Vector3(sp.x, _terrain_renderer.elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
-	var ins := state.unit_by_id(_inspected_id) if _inspected_id != -1 else null
+	var ins := state.unit_by_handle(_inspected_id) if _inspected_id != -1 else null
 	if ins != null:
 		var ip := Hex.to_pixel(ins.pos, TILE)
 		_unit_renderer.add_ring(Vector3(ip.x, _terrain_renderer.elev(ins.pos), ip.y), TILE * 0.70, 0.05, COLOR_INSPECT_RING, 0.045, _overlay_root)

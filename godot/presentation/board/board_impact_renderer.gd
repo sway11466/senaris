@@ -256,7 +256,7 @@ func _land_hit(hit: SkillHit, stretch := 1.0) -> void:
 		return
 	# 兵数バーは組み立て時に焼くので、減った値を出すには組み直すのが早い（state は解決済み）。
 	_unit_renderer.remove_unit(uid)
-	var u := _state.unit_by_id(uid)
+	var u := _state.unit_by_handle(uid)
 	if u != null:
 		_flash_unit(_unit_renderer.build_unit_node(u))
 

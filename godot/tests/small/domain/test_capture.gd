@@ -89,8 +89,8 @@ func test_deploy_places_unit_and_marks_done() -> void:
 	assert_not_null(u, "出撃先に駒が出る")
 	assert_eq(u.team, 0, "出撃した駒は占領陣営につく")
 	assert_eq(b.garrison.size(), 1, "garrison から1体減る")
-	assert_true(s.is_done(u.id), "出撃した駒はそのターン行動完了（1歩のみ）")
-	assert_false(s.can_still_move(u.id), "これ以上移動できない")
+	assert_true(s.is_done(u.handle), "出撃した駒はそのターン行動完了（1歩のみ）")
+	assert_false(s.can_still_move(u.handle), "これ以上移動できない")
 
 func test_deploy_only_one_step_out() -> void:
 	var s := _state()
@@ -186,7 +186,7 @@ func test_enter_own_base_and_heal() -> void:
 	s.add_unit(u)
 	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(6, 6), 3))  # 盤上最後の1体にならないよう相棒
 	assert_true(s.enter_base(1), "自軍拠点の上から中に入れる")
-	assert_null(s.unit_by_id(1), "駐留中は盤上に居ない")
+	assert_null(s.unit_by_handle(1), "駐留中は盤上に居ない")
 	assert_eq(s.base_at(base_hex).garrison.size(), 1, "garrison に載る")
 	s.end_turn()
 	s.end_turn()  # 自軍ターン開始 → 駐留駒が回復
@@ -202,7 +202,7 @@ func test_standing_on_base_no_longer_heals() -> void:
 	var u := Unit.new(1, 1, base_hex, 3); u.troops = 3
 	s.add_unit(u)
 	s.end_turn()  # team1 ターン開始
-	assert_eq(s.unit_by_id(1).troops, 3, "上に立っているだけでは回復しない（中に入るモデル）")
+	assert_eq(s.unit_by_handle(1).troops, 3, "上に立っているだけでは回復しない（中に入るモデル）")
 
 func test_cannot_enter_enemy_base_or_off_base() -> void:
 	var s := _state()
@@ -321,9 +321,9 @@ func test_neutral_garrison_defects_to_captor() -> void:
 	s.current_team = 0
 	assert_true(s.can_deploy_garrison(base_hex, 0), "帰属未確定なら取った側が出せる")
 	assert_true(s.deploy(base_hex, 0, Hex.neighbor(base_hex, 0)))
-	assert_eq(s.unit_by_id(10).team, 0, "出撃で自軍に寝返る")
-	assert_eq(s.unit_by_id(10).native_team, Base.NEUTRAL, "native は不変")
-	assert_eq(s.unit_by_id(10).recruited_team, 0, "帰属が自軍で確定する")
+	assert_eq(s.unit_by_handle(10).team, 0, "出撃で自軍に寝返る")
+	assert_eq(s.unit_by_handle(10).native_team, Base.NEUTRAL, "native は不変")
+	assert_eq(s.unit_by_handle(10).recruited_team, 0, "帰属が自軍で確定する")
 
 func test_entered_unit_cannot_deploy_same_turn() -> void:
 	# 「入る」で収容した駒は、そのターン出撃させられない＝入って出るの往復を作らない。

@@ -27,7 +27,7 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	if not blockers.is_empty():
 		var ids := pick.air_first(pick.air_prey(state, u), blockers)
 		ids = pick.killable_first(state, u, ids)
-		return AiAction.attack(u.id, rows.frontmost_blocker_id(state, u, ids))
+		return AiAction.attack(u.handle, rows.frontmost_blocker_id(state, u, ids))
 	# 8/9 降ろす（乗員を持つ駒＝輸送ユニットにしか当たらない）
 	row = rows.unload_now_row(state, u)
 	if row != null:
@@ -45,14 +45,14 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	if goals.is_empty():
 		return null
 	# 11 移動距離／12 地形距離。測れた時点でその行が成立＝縮むマスが無ければ現在地に留まる。
-	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.handle, u.pos)
 	var goal := pick.nearest_hex_in(move_field, goals)
 	if goal != AiPick.NO_HEX:
-		return rows.advance(state, u, AiDistance.move_cost_field(state, u.id, goal), [goal])
-	var terrain_field := AiDistance.terrain_cost_field(state, u.id, u.pos)
+		return rows.advance(state, u, AiDistance.move_cost_field(state, u.handle, goal), [goal])
+	var terrain_field := AiDistance.terrain_cost_field(state, u.handle, u.pos)
 	goal = pick.nearest_hex_in(terrain_field, goals)
 	if goal != AiPick.NO_HEX:
-		return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.id, goal), [goal])
+		return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.handle, goal), [goal])
 	# 13 盤上に自陣営以外の拠点がある → 盤上距離が最小の拠点へ直線寄せ
 	return rows.advance_straight(state, u, pick.nearest_hex_by_board(u.pos, goals))
 

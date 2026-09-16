@@ -197,7 +197,7 @@ func test_path_to_straight_line() -> void:
 	var path := s.path_to(1, p2)
 	_assert_walkable(path, p0, p2)
 	assert_eq(path.size(), 3, "2歩＝起点＋2マス")
-	assert_eq(s.unit_by_id(1).pos, p0, "path_to は盤を変えない")
+	assert_eq(s.unit_by_handle(1).pos, p0, "path_to は盤を変えない")
 
 func test_path_to_rejects_unreachable_and_self() -> void:
 	var s := BattleState.new(8, 8)

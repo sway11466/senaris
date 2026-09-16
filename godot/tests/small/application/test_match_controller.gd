@@ -49,7 +49,7 @@ func test_finished_latch_blocks_all_commands() -> void:
 	t.capacity = 4
 	for u in [u1, e1, u2, t]:
 		s.add_unit(u)
-	s.put_passenger(t.id, Unit.new(5, 0, Vector2i.ZERO, 2))
+	s.put_passenger(t.handle, Unit.new(5, 0, Vector2i.ZERO, 2))
 	var b := Base.new(Hex.offset_to_axial(8, 5), 0)                 # 出撃役の拠点
 	b.garrison.append(Unit.new(6, 0, Vector2i.ZERO, 2))
 	s.add_base(b)
@@ -120,7 +120,7 @@ func test_formation_boss_kill_finishes_once() -> void:
 	var s := BattleState.new(12, 8)
 	s.victory_conditions = [{"type": "defeat_unit", "actor": "boss"}]
 	var f := _trinity_nova_state(s)  # 敵 id9＝ボス（def 1＝撃破される）
-	s.unit_by_id(9).actor = "boss"  # 勝敗条件は actor で名指す（doc/gdd/map.md）
+	s.unit_by_handle(9).actor = "boss"  # 勝敗条件は actor で名指す（doc/gdd/map.md）
 	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
 	var mc := _mc(s)
 	var cmd := _formation_cmd(s, f["leader"], f["enemy_hex"])
@@ -139,7 +139,7 @@ func test_unload_capture_finishes_once() -> void:
 	s.add_unit(t)
 	var p := Unit.new(2, 0, Vector2i.ZERO, 2)
 	p.can_capture = true
-	s.put_passenger(t.id, p)
+	s.put_passenger(t.handle, p)
 	var hq_hex := Hex.neighbor(t.pos, 0)
 	s.add_base(Base.new(hq_hex, 1, 1))  # 敵の本拠地
 	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
@@ -426,7 +426,7 @@ func test_execute_deploy_emits_garrison_uid() -> void:
 	var mc := _mc(s)
 	assert_true(mc.execute_deploy(DeployCommand.new(b.hex, 0, to)))
 	assert_signal_emitted_with_parameters(mc, "unit_deployed", [42, b.hex, to])
-	assert_eq(s.unit_at(to).id, 42, "出撃した駒が盤上に出る")
+	assert_eq(s.unit_at(to).handle, 42, "出撃した駒が盤上に出る")
 
 func test_execute_deploy_into_transport_uses_prefetched_uid() -> void:
 	# 出撃先が輸送のマス＝盤上には出ない（unit_at では引けない）ため、uid は控えから事前に取る。
@@ -441,8 +441,8 @@ func test_execute_deploy_into_transport_uses_prefetched_uid() -> void:
 	var mc := _mc(s)
 	assert_true(mc.execute_deploy(DeployCommand.new(b.hex, 0, t.pos)))
 	assert_signal_emitted_with_parameters(mc, "unit_deployed", [42, b.hex, t.pos])
-	assert_eq(s.unit_at(t.pos).id, 7, "出撃先のマスに居るのは輸送（出た駒ではない）")
-	assert_eq((s.passengers(7)[0] as Unit).id, 42, "出た駒は輸送に搭乗している")
+	assert_eq(s.unit_at(t.pos).handle, 7, "出撃先のマスに居るのは輸送（出た駒ではない）")
+	assert_eq((s.passengers(7)[0] as Unit).handle, 42, "出た駒は輸送に搭乗している")
 
 func test_execute_deploy_invalid_fails_without_signal() -> void:
 	var s := BattleState.new(12, 8)

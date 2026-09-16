@@ -6,7 +6,7 @@ class_name StatusMod
 ## 1エントリ ＝ Dictionary:
 ##   scope: "team" | "unit"（将来 "tile"/"area"）… どのユニットに効くか
 ##   team:  int（scope=="team" のとき対象陣営）
-##   unit_id: int（scope=="unit" のとき対象ユニット）
+##   handle: int（scope=="unit" のとき対象ユニット）
 ##   op: "mul" | "add" … 乗算（実効ステータスに係数）／加算（支援と同じ位置）
 ##   target: "attack" | "defense" | "both"
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
@@ -109,5 +109,5 @@ static func applies_to(m: Dictionary, unit: Unit) -> bool:
 		"team":
 			return int(m.get("team", -99)) == unit.team
 		"unit":
-			return int(m.get("unit_id", -1)) == unit.id
+			return int(m.get("unit_id", -1)) == unit.handle
 	return false

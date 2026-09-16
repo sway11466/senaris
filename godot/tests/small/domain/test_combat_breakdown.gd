@@ -55,7 +55,7 @@ func test_defense_breakdown_reflects_surround() -> void:
 	s.add_unit(t)
 	s.add_unit(Unit.new(2, 0, Hex.neighbor(c, 0), 3))    # 囲み1
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(c, 3), 3))    # 囲み2（対角）→ 包囲0.68
-	var b := Combat.defense_breakdown(s, t, s.unit_by_id(2))
+	var b := Combat.defense_breakdown(s, t, s.unit_by_handle(2))
 	assert_almost_eq(b.surround, 0.68, 0.001, "対角2体で包囲0.68が防御に乗る")
 	assert_lt(b.total, 80.0, "包囲で実効防御が素の80未満")
 

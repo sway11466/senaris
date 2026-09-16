@@ -105,7 +105,7 @@ func test_applied_returns_only_applying_entries() -> void:
 	assert_eq(ally_list.size(), 1, "味方に効くエントリだけ返る")
 	assert_eq(String(ally_list[0]["name"]), "グレイス", "表示名を保持する")
 	var foe_list := StatusMod.applied(mods, foe)
-	assert_eq(foe_list.size(), 1, "個別(unit_id=2)エントリだけ効く")
+	assert_eq(foe_list.size(), 1, "個別(handle=2)エントリだけ効く")
 	assert_eq(String(foe_list[0].get("op", "")), "add", "team0 のバフは敵に効かない")
 
 func test_combat_detail_snapshot_includes_statuses() -> void:

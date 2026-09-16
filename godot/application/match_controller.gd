@@ -7,17 +7,17 @@ class_name MatchController
 ## 上り: 純データのシグナルで Presentation に通知する。
 ## path は from→to の通過ヘックス列（両端含む）＝移動アニメの経路。
 ## 経路を引けなかった場合は空＝受け手は瞬間移動にフォールバックする（盤の状態には影響しない）。
-signal unit_moved(unit_id: int, from: Vector2i, to: Vector2i, path: Array[Vector2i])
-signal move_rejected(unit_id: int, to: Vector2i)
+signal unit_moved(handle: int, from: Vector2i, to: Vector2i, path: Array[Vector2i])
+signal move_rejected(handle: int, to: Vector2i)
 signal unit_attacked(attacker_id: int, target_id: int, damage: int, killed: bool)
 signal combat_resolved(result: AttackResult)  # 戦闘結果（スナップショット・攻防の内訳・損害）
 signal formation_resolved(result: SkillResult)  # 陣形スキルの解決結果（着弾ごとの損害・撃破）
-signal unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i)
-signal unit_unloaded(unit_id: int, transport_id: int, to: Vector2i)
-signal unit_entered_base(unit_id: int, base_hex: Vector2i)
+signal unit_deployed(handle: int, base_hex: Vector2i, to: Vector2i)
+signal unit_unloaded(handle: int, transport_id: int, to: Vector2i)
+signal unit_entered_base(handle: int, base_hex: Vector2i)
 signal base_captured(base_hex: Vector2i, team: int)  # 拠点の所属が変わった＝占領成立
-signal unit_stood(unit_id: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
-signal unit_died(unit_id: int)
+signal unit_stood(handle: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
+signal unit_died(handle: int)
 signal turn_changed(team: int, turn_number: int)
 signal event_fired(info: Dictionary)  # イベント（増援）が起きた＝{ label, dialogue }。台本そのものは presentation が持つ
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
@@ -51,18 +51,18 @@ func detection_radius(unit: Unit) -> int:
 func execute(cmd: MoveCommand) -> bool:
 	if _finished:
 		return false
-	var u := state.unit_by_id(cmd.unit_id)
+	var u := state.unit_by_handle(cmd.handle)
 	if u == null:
 		return false
 	var from := u.pos
-	var path := state.path_to(cmd.unit_id, cmd.to)
+	var path := state.path_to(cmd.handle, cmd.to)
 	var before := _base_team_at(cmd.to)
-	if state.move_unit(cmd.unit_id, cmd.to):
-		unit_moved.emit(cmd.unit_id, from, cmd.to, path)
+	if state.move_unit(cmd.handle, cmd.to):
+		unit_moved.emit(cmd.handle, from, cmd.to, path)
 		_emit_if_captured(cmd.to, before)
 		_check_finished()  # 移動＝占領が起きうる（本拠地の占領/喪失はこの瞬間に決着する）
 		return true
-	move_rejected.emit(cmd.unit_id, cmd.to)
+	move_rejected.emit(cmd.handle, cmd.to)
 	return false
 
 ## 下り: 攻撃コマンドの処理。成功すれば unit_attacked（撃破時は unit_died）を発行。
@@ -103,7 +103,7 @@ func execute_deploy(cmd: DeployCommand) -> bool:
 	var b := state.base_at(cmd.base_hex)
 	var uid := -1
 	if b != null and cmd.garrison_index >= 0 and cmd.garrison_index < b.garrison.size():
-		uid = (b.garrison[cmd.garrison_index] as Unit).id
+		uid = (b.garrison[cmd.garrison_index] as Unit).handle
 	if state.deploy(cmd.base_hex, cmd.garrison_index, cmd.to):
 		unit_deployed.emit(uid, cmd.base_hex, cmd.to)
 		return true
@@ -121,7 +121,7 @@ func execute_unload(cmd: UnloadCommand) -> bool:
 	var before := _base_team_at(cmd.to)
 	if state.unload(cmd.transport_id, cmd.index, cmd.to):
 		var u := state.unit_at(cmd.to)
-		unit_unloaded.emit(u.id if u != null else -1, cmd.transport_id, cmd.to)
+		unit_unloaded.emit(u.handle if u != null else -1, cmd.transport_id, cmd.to)
 		_emit_if_captured(cmd.to, before)
 		_check_finished()
 		return true
@@ -168,15 +168,15 @@ func unload_attack_targets_for(transport_id: int, index: int, from_hex: Vector2i
 	return state.unload_attack_targets(transport_id, index, from_hex)
 
 ## 下り: 拠点に「入る」（駐留＝回復）。成功すれば unit_entered_base を発行。
-func enter_base(unit_id: int) -> bool:
+func enter_base(handle: int) -> bool:
 	if _finished:
 		return false
-	var u := state.unit_by_id(unit_id)
+	var u := state.unit_by_handle(handle)
 	if u == null:
 		return false
 	var hex := u.pos
-	if state.enter_base(unit_id):
-		unit_entered_base.emit(unit_id, hex)
+	if state.enter_base(handle):
+		unit_entered_base.emit(handle, hex)
 		return true
 	return false
 
@@ -269,7 +269,7 @@ func run_ai_turn() -> void:
 func _action_focus_hex(action: AiAction) -> Vector2i:
 	match action.kind:
 		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL, AiAction.Kind.ENTER_BASE:
-			var u := state.unit_by_id(action.unit_id)
+			var u := state.unit_by_handle(action.handle)
 			return u.pos if u != null else action.to
 		_:  # DEPLOY / UNLOAD＝駒が現れるマスを見せる
 			return action.to
@@ -278,19 +278,19 @@ func _action_focus_hex(action: AiAction) -> Vector2i:
 func _apply_ai_action(action: AiAction) -> bool:
 	match action.kind:
 		AiAction.Kind.MOVE:
-			execute(MoveCommand.new(action.unit_id, action.to))
+			execute(MoveCommand.new(action.handle, action.to))
 		AiAction.Kind.ATTACK:
-			return execute_attack(AttackCommand.new(action.unit_id, action.target_id))
+			return execute_attack(AttackCommand.new(action.handle, action.target_id))
 		AiAction.Kind.DEPLOY:
 			execute_deploy(DeployCommand.new(action.base_hex, action.garrison_index, action.to))
 		AiAction.Kind.UNLOAD:
-			execute_unload(UnloadCommand.new(action.unit_id, action.passenger_index, action.to))
+			execute_unload(UnloadCommand.new(action.handle, action.passenger_index, action.to))
 		AiAction.Kind.SKILL:
 			# 効果対象が1体のユニットスキルは演出シーンに乗る（doc/tech/combat_scene.md）ので、
 			# 攻撃と同じく閉じるまで待たせる。演出が出ないレシピなら pace 側が即返る。
 			return execute_formation(FormationCommand.new(action.option, action.to))
 		AiAction.Kind.ENTER_BASE:
-			enter_base(action.unit_id)
+			enter_base(action.handle)
 	return false
 
 func _check_finished() -> void:
@@ -299,24 +299,24 @@ func _check_finished() -> void:
 		battle_finished.emit(state.outcome())
 
 ## 表示用の問い合わせ（状態は変えない）。
-func reachable_for(unit_id: int) -> Array[Vector2i]:
-	return state.reachable(unit_id)
+func reachable_for(handle: int) -> Array[Vector2i]:
+	return state.reachable(handle)
 
-func attack_targets_for(unit_id: int) -> Array[int]:
-	return state.attack_targets(unit_id)
+func attack_targets_for(handle: int) -> Array[int]:
+	return state.attack_targets(handle)
 
 ## 表示用: from_hex に居ると仮定したときの攻撃対象（コマンドメニューの「攻撃」可否判定）。
-func attack_targets_from(unit_id: int, from_hex: Vector2i) -> Array[int]:
-	return state.attack_targets_from(unit_id, from_hex)
+func attack_targets_from(handle: int, from_hex: Vector2i) -> Array[int]:
+	return state.attack_targets_from(handle, from_hex)
 
 ## コマンドメニューの「待機」: そのユニットの行動をこのターン終了させる。
-func stand(unit_id: int) -> void:
+func stand(handle: int) -> void:
 	if _finished:
 		return
-	if state.unit_by_id(unit_id) == null:  # 盤に居ない駒＝行動終了させる対象が無い
+	if state.unit_by_handle(handle) == null:  # 盤に居ない駒＝行動終了させる対象が無い
 		return
-	state.set_done(unit_id)
-	unit_stood.emit(unit_id)
+	state.set_done(handle)
+	unit_stood.emit(handle)
 
 ## デバッグ: 盤上の敵駒（team 1）を全て除去する。決着は既存の判定に委ねる＝殲滅で勝利になる
 ## ステージならそのまま通常の勝利フロー（戦果票→outro→完走イラスト）へ流れる。敵拠点に控えが
@@ -327,8 +327,8 @@ func wipe_enemies() -> void:
 	for u in state.units().duplicate():  # 除去で盤上リストが縮む＝複製を回す
 		if u.team != 1:
 			continue
-		if state.remove_unit(u.id):
-			unit_died.emit(u.id)  # 撃破と同じ経路で盤から駒を消す
+		if state.remove_unit(u.handle):
+			unit_died.emit(u.handle)  # 撃破と同じ経路で盤から駒を消す
 	_check_finished()
 
 ## デバッグ: 未発生イベント e を引き金を待たずに起こす。中身（増援・会話・カメラ寄せ）は通常の

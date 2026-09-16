@@ -52,28 +52,28 @@ func _trait_of_base(state: BattleState, b: Base) -> AiTrait:
 ## 攻撃を受けた駒は特性によらずその時点で行動開始する＝BattleState.attack が mark_engaged を呼ぶ。
 ## 条件は特性の starts_engaged と、部隊の誰かが行動開始済み（一斉警戒）のどちらか。
 func _ensure_engaged(state: BattleState, u: Unit) -> bool:
-	if state.is_engaged(u.id):
+	if state.is_engaged(u.handle):
 		return true
 	var engaged := _trait_of(state, u).starts_engaged(state, u) or _squadmate_engaged(state, u)
 	if engaged:
-		state.mark_engaged(u.id)
+		state.mark_engaged(u.handle)
 	return engaged
 
 ## u と同じ部隊の誰かが行動開始済みか（一斉警戒）。拠点も部隊の一員として数える＝その拠点が
 ## 起きていれば、そこから出した駒も自分の sight で敵を捉えられなくても動き出す。
 func _squadmate_engaged(state: BattleState, u: Unit) -> bool:
-	var idx := state.squad_index_of(u.id)
+	var idx := state.squad_index_of(u.handle)
 	if idx < 0:
 		return false
-	return state.is_squad_engaged(idx) or _squad_unit_engaged(state, idx, u.id)
+	return state.is_squad_engaged(idx) or _squad_unit_engaged(state, idx, u.handle)
 
 ## 部隊 squad_index の盤上の駒に行動開始済みの者がいるか（except_id は自分＝数えない）。
 func _squad_unit_engaged(state: BattleState, squad_index: int, except_id := -1) -> bool:
 	if squad_index < 0:
 		return false  # 部隊なし同士を「同じ部隊」と数えない
 	for other in state.units():
-		if other.id != except_id and state.squad_index_of(other.id) == squad_index \
-				and state.is_engaged(other.id):
+		if other.handle != except_id and state.squad_index_of(other.handle) == squad_index \
+				and state.is_engaged(other.handle):
 			return true
 	return false
 
@@ -82,7 +82,7 @@ func _squad_unit_engaged(state: BattleState, squad_index: int, except_id := -1) 
 ## swarm も sight を持つが行動開始条件は常時＝寝ている状態が無いのでここには入らない。
 ## `*`（上限なし）は SIGHT_UNLIMITED がそのまま返る。輪の走査は Sight 側が盤の広さで頭打ちにする。
 func detection_radius(state: BattleState, unit: Unit) -> int:
-	if unit == null or state.is_engaged(unit.id):
+	if unit == null or state.is_engaged(unit.handle):
 		return 0
 	if not _trait_of(state, unit).engages_by_sight():
 		return 0
@@ -134,23 +134,23 @@ func _order_of(state: BattleState, squad_index: int) -> int:
 func _units_in_order(state: BattleState, team: int, squad_index: int) -> Array[Unit]:
 	var list: Array[Unit] = []
 	for u in state.units():
-		if u.team == team and state.squad_index_of(u.id) == squad_index:
+		if u.team == team and state.squad_index_of(u.handle) == squad_index:
 			list.append(u)
-	var dist := {}  # unit_id -> 最寄り敵までの盤上距離（並べ替え中に何度も引くので先に1回だけ）
+	var dist := {}  # handle -> 最寄り敵までの盤上距離（並べ替え中に何度も引くので先に1回だけ）
 	for u in list:
-		dist[u.id] = _board_distance_to_nearest_enemy(state, u)
+		dist[u.handle] = _board_distance_to_nearest_enemy(state, u)
 	list.sort_custom(func(a: Unit, b: Unit) -> bool:
 		# 輸送ユニットは部隊の最後（同じ部隊の駒が乗り込んでから動く。doc/gdd/ai.md 輸送ユニット）
 		var ta := AiRows.is_transport(a)
 		if ta != AiRows.is_transport(b):
 			return not ta
-		var da: int = dist[a.id]
-		var db: int = dist[b.id]
+		var da: int = dist[a.handle]
+		var db: int = dist[b.handle]
 		if da != db:
 			return da < db
 		if a.pos != b.pos:
 			return AiPick.is_younger_hex(a.pos, b.pos)
-		return a.id < b.id)
+		return a.handle < b.handle)
 	return list
 
 ## u から最寄りの敵までの盤上距離（敵がいなければ0＝全員同値になり col → row で並ぶ）。
@@ -168,7 +168,7 @@ func _board_distance_to_nearest_enemy(state: BattleState, u: Unit) -> int:
 ## 「拠点に入る」行は移動も攻撃射程も要らないため、行の条件に任せる（doc/gdd/ai.md 行動ルール）。
 func _unit_action(state: BattleState, u: Unit) -> AiAction:
 	var trait_rule := _trait_of(state, u)
-	if state.is_done(u.id):
+	if state.is_done(u.handle):
 		# 行動を終えた駒に残る手（輸送の降車＝乗員の手番で、運んだそのターンに降ろせる）。
 		if not trait_rule.acts_when_done(u) or not _ensure_engaged(state, u):
 			return null

@@ -323,7 +323,7 @@ func test_defeat_wins_over_victory_condition() -> void:
 	var hex := Hex.offset_to_axial(4, 4)
 	s.base_at(hex).team = 1
 	s.victory_conditions = [{ "type": "defeat_unit", "actor": "raider" }]
-	s.unit_by_id(2).actor = "raider"
+	s.unit_by_handle(2).actor = "raider"
 	s.remove_unit(2)  # 敵を全滅させたが拠点は奪われたまま
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "敗北条件が勝利より優先される")
 

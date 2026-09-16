@@ -29,7 +29,7 @@ func _ai(s: BattleState, si: int, id: int, col: int, row: int, move := 3) -> Uni
 	var u := Unit.new(id, 1, Hex.offset_to_axial(col, row), move)
 	u.move_type = "foot"
 	s.add_unit(u)
-	s.assign_squad(u.id, si)
+	s.assign_squad(u.handle, si)
 	return u
 
 ## 輸送ユニット（既定＝馬車相当: 搭載4・移動6・攻撃0）。
@@ -61,11 +61,11 @@ func _hex(col: int, row: int) -> Vector2i:
 func _apply(s: BattleState, a: AiAction) -> void:
 	match a.kind:
 		AiAction.Kind.MOVE:
-			s.move_unit(a.unit_id, a.to)
+			s.move_unit(a.handle, a.to)
 		AiAction.Kind.UNLOAD:
-			s.unload(a.unit_id, a.passenger_index, a.to)
+			s.unload(a.handle, a.passenger_index, a.to)
 		AiAction.Kind.ATTACK:
-			s.attack(a.unit_id, a.target_id)
+			s.attack(a.handle, a.target_id)
 
 ## そのターンの手を尽きるまで回す（run_ai_turn 相当）。返すのは打った手の列。
 func _run_turn(s: BattleState) -> Array[AiAction]:
@@ -88,7 +88,7 @@ func test_transport_moves_last_in_its_squad() -> void:
 	_ai(s, si, 11, 2, 2)
 	s.add_base(Base.new(_hex(9, 2), 0))
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, 11, "輸送より先に歩兵が動く")
+	assert_eq(a.handle, 11, "輸送より先に歩兵が動く")
 
 func test_transport_does_not_attack() -> void:
 	# 攻撃力を持つ輸送（飛空艇）も、自分からは仕掛けない。
@@ -134,7 +134,7 @@ func test_slow_capturer_boards_the_squad_wagon() -> void:
 	cleric.can_capture = true
 	s.add_base(Base.new(_hex(14, 2), 0))
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, 11, "先に動くのは乗る側")
+	assert_eq(a.handle, 11, "先に動くのは乗る側")
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_eq(a.to, wagon.pos, "馬車のマスへ移動＝乗車")
 	_apply(s, a)
@@ -150,8 +150,8 @@ func test_does_not_board_a_wagon_of_another_squad() -> void:
 	cleric.can_capture = true
 	s.add_base(Base.new(_hex(14, 2), 0))
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, 11)
-	assert_ne(a.to, s.unit_by_id(10).pos, "他部隊の馬車には乗らない")
+	assert_eq(a.handle, 11)
+	assert_ne(a.to, s.unit_by_handle(10).pos, "他部隊の馬車には乗らない")
 
 func test_does_not_board_when_walking_is_not_slower() -> void:
 	# 便乗＝輸送の道のり÷輸送の移動力 +1。同値なら乗らない（振動しない）。
@@ -162,7 +162,7 @@ func test_does_not_board_when_walking_is_not_slower() -> void:
 	runner.can_capture = true
 	s.add_base(Base.new(_hex(14, 2), 0))
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, 11)
+	assert_eq(a.handle, 11)
 	assert_ne(a.to, wagon.pos, "自分で歩いたほうが早い／同じなら乗らない")
 
 func test_does_not_board_a_full_wagon() -> void:
@@ -190,7 +190,7 @@ func test_unloads_a_capturer_onto_the_base_hex() -> void:
 	s.add_base(Base.new(base_hex, 0))
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.UNLOAD)
-	assert_eq(a.unit_id, wagon.id)
+	assert_eq(a.handle, wagon.handle)
 	assert_eq(a.to, base_hex, "拠点hexへ降ろす")
 	_apply(s, a)
 	assert_eq(s.base_at(base_hex).team, 1, "降車で占領が成立")

@@ -21,7 +21,7 @@ static func collect(state: BattleState) -> Array:
 	for u in state.units():
 		if _enrolled(u):
 			out.append(u.to_dict())
-		for p in state.passengers(u.id):  # 搭乗中の駒は units() に居ない
+		for p in state.passengers(u.handle):  # 搭乗中の駒は units() に居ない
 			if _enrolled(p as Unit):
 				out.append((p as Unit).to_dict())
 	for b in state.bases():

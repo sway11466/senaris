@@ -38,7 +38,7 @@ func _u(id: int, team: int, col: int, row: int, move := 3, troops := 8,
 func _ai(s: BattleState, squad_index: int, id: int, col: int, row: int, move := 3) -> Unit:
 	var u := _u(id, 1, col, row, move)
 	s.add_unit(u)
-	s.assign_squad(u.id, squad_index)
+	s.assign_squad(u.handle, squad_index)
 	return u
 
 ## プレイヤーの駒（team 0）を盤へ置く。
@@ -59,7 +59,7 @@ func _skin(u: Unit, skin: String) -> Unit:
 ## 対象1体に掛かった補正を1本積む。
 func _mod(s: BattleState, u: Unit, kind: String) -> void:
 	s.add_status_mod({
-		"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
+		"scope": "unit", "unit_id": u.handle, "op": "add", "target": "both",
 		"value": 10.0 if kind == StatusMod.KIND_BUFF else -10.0,
 		"kind": kind, "owner_team": 1, "remaining": 3,
 	})
@@ -84,7 +84,7 @@ func test_charge_attacks_the_nearest_enemy_not_the_weakest() -> void:
 	_hurt(_pc(s, 2, 4, 1), 2)               # 盤上距離3・兵数2（旧実装ならこちらを狙った）
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, near.id, "兵数ではなく盤上距離が最小の敵")
+	assert_eq(a.target_id, near.handle, "兵数ではなく盤上距離が最小の敵")
 
 func test_charge_backs_off_to_the_range_edge_before_shooting() -> void:
 	# #3 間接攻撃できる駒は、撃てる敵から最大間合いを取ってから撃つ。
@@ -98,10 +98,10 @@ func test_charge_backs_off_to_the_range_edge_before_shooting() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
 	assert_eq(Hex.distance(a.to, e.pos), 2, "射程上限まで間合いを取る")
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
 	var b := _brain.next_action(s, 1)
 	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
-	assert_eq(b.target_id, e.id)
+	assert_eq(b.target_id, e.handle)
 
 func test_charge_stops_at_the_range_edge_while_closing_in() -> void:
 	# #3 の標的は「移動範囲のどこかから撃てる敵」＝射程の外から詰めるときも外縁で止まる。
@@ -126,7 +126,7 @@ func test_charge_does_not_shuffle_when_already_at_the_range_edge() -> void:
 	var e := _pc(s, 1, 2, 1)                # 盤上距離2＝すでに最大間合い
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "横のマスへ動き直さない")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_charge_melee_piece_attacks_without_repositioning() -> void:
 	# 近接しかできない駒は撃てるマスがどれも距離1＝最大間合いが現在地と同じ＝この行では動かない。
@@ -136,7 +136,7 @@ func test_charge_melee_piece_attacks_without_repositioning() -> void:
 	_ai(s, _squad(s, "charge"), 10, 4, 1)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_charge_shoots_the_enemy_that_cannot_retaliate() -> void:
 	# #4 隣に敵がいても、距離2で撃てる相手がいればそちらを撃つ（間接＝反撃なし）。
@@ -150,7 +150,7 @@ func test_charge_shoots_the_enemy_that_cannot_retaliate() -> void:
 	var far := _pc(s, 2, 4, 2)              # 盤上距離2＝反撃されない
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, far.id, "反撃されない敵を優先する")
+	assert_eq(a.target_id, far.handle, "反撃されない敵を優先する")
 
 func test_charge_melees_when_it_cannot_avoid_retaliation() -> void:
 	# 反撃されない敵が1体もいなければ、これまで通り盤上距離が最小の敵を殴る。
@@ -161,7 +161,7 @@ func test_charge_melees_when_it_cannot_avoid_retaliation() -> void:
 	var e := _pc(s, 1, 4, 3)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 ## 隣に仕留められる敵、距離2に無傷の敵。撃つ行の対象選びだけを見るため移動0・射程2で組む。
 func _kill_choice(trait_id: String) -> BattleState:
@@ -205,7 +205,7 @@ func test_charge_ignores_its_own_base() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(3, 5), 1))  # 自陣営の拠点
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "自陣営の拠点は占領の対象外")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_charge_advances_by_move_distance() -> void:
 	# #4 移動距離が測れる敵へ最大前進＝開けた盤では移動力ぶん詰める。
@@ -229,7 +229,7 @@ func test_charge_uses_terrain_distance_when_pieces_block_the_way() -> void:
 	for nb in Hex.neighbors(e.pos):
 		var o := Hex.axial_to_offset(nb)
 		var blocker := _ai(s, si, id, o.x, o.y)
-		s.set_done(blocker.id)  # もう動かない駒＝行動順で飛ばされる
+		s.set_done(blocker.handle)  # もう動かない駒＝行動順で飛ばされる
 		id += 1
 	assert_eq(AiDistance.move_distance(s, 10, s.attack_cells(10, 1)), BattleState.UNREACHABLE,
 		"前提: 攻撃可能なマスが全部埋まっている＝移動距離は測れない")
@@ -261,7 +261,7 @@ func test_charge_skips_the_advance_rows_after_spending_its_move() -> void:
 	_ai(s, si, 10, 0, 1)
 	_pc(s, 1, 10, 1)
 	var a := _brain.next_action(s, 1)
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: 1手目は前進")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 1手目は前進")
 	assert_null(_brain.next_action(s, 1), "移動を使い切ったので待機")
 
 func test_charge_waits_without_enemies() -> void:
@@ -280,10 +280,10 @@ func test_charge_reaches_the_enemy_over_several_actions() -> void:
 	var e := _pc(s, 1, 5, 1)
 	e.unit_attack = 1  # 反撃は微弱＝AIは落ちない
 	_run_turn(s, 1)
-	var ai := s.unit_by_id(10)
+	var ai := s.unit_by_handle(10)
 	assert_not_null(ai, "AIユニットは生存")
 	assert_eq(Hex.distance(ai.pos, enemy_pos), 1, "敵に隣接するまで前進する")
-	assert_lt(s.unit_by_id(1).troops, 8, "前進後に攻撃して兵数を削る")
+	assert_lt(s.unit_by_handle(1).troops, 8, "前進後に攻撃して兵数を削る")
 
 ## 行動が尽きるまで AI を実際に適用する（安全のため上限付き）。
 func _run_turn(s: BattleState, team: int) -> void:
@@ -296,9 +296,9 @@ func _run_turn(s: BattleState, team: int) -> void:
 			return
 		match a.kind:
 			AiAction.Kind.MOVE:
-				assert_true(s.move_unit(a.unit_id, a.to), "AIの移動は妥当であるべき")
+				assert_true(s.move_unit(a.handle, a.to), "AIの移動は妥当であるべき")
 			AiAction.Kind.ATTACK:
-				assert_not_null(s.attack(a.unit_id, a.target_id), "AIの攻撃は妥当であるべき")
+				assert_not_null(s.attack(a.handle, a.target_id), "AIの攻撃は妥当であるべき")
 			AiAction.Kind.SKILL:
 				assert_not_null(FormationResolver.resolve(s, a.option, a.to), "AIのスキルは妥当であるべき")
 			AiAction.Kind.DEPLOY:
@@ -338,11 +338,11 @@ func test_ambush_wakes_when_a_squadmate_is_engaged() -> void:
 	var near := _ai(s, si, 10, 1, 1)
 	var far := _ai(s, si, 11, 0, 0)  # 敵まで視線距離4＝自分では気づかない
 	_pc(s, 1, 4, 1)
-	s.mark_engaged(near.id)
-	s.set_done(near.id)  # 先に動き終えた扱い
+	s.mark_engaged(near.handle)
+	s.set_done(near.handle)  # 先に動き終えた扱い
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
-	assert_eq(a.unit_id, far.id, "部隊ごと起きる")
+	assert_eq(a.handle, far.handle, "部隊ごと起きる")
 
 func test_ambush_wakes_when_shot_from_outside_its_sight() -> void:
 	# 攻撃を受けた駒は特性と行動開始条件によらず、その時点で行動開始する。
@@ -352,7 +352,7 @@ func test_ambush_wakes_when_shot_from_outside_its_sight() -> void:
 	var shooter := _pc(s, 1, 1, 1)
 	shooter.attack_range = 4  # 視線3の外から届く
 	s.current_team = 0
-	assert_not_null(s.attack(shooter.id, 10), "前提: sight の外から撃てる")
+	assert_not_null(s.attack(shooter.handle, 10), "前提: sight の外から撃てる")
 	s.current_team = 1
 	assert_true(s.is_engaged(10), "撃たれたら起きる")
 	assert_not_null(_brain.next_action(s, 1))
@@ -384,7 +384,7 @@ func test_detection_radius_only_for_a_sleeping_ambusher() -> void:
 	var c := _ai(s, _squad(s, "charge"), 11, 2, 1)
 	assert_eq(_brain.detection_radius(s, g), 3, "寝ている見張り＝sight 半径")
 	assert_eq(_brain.detection_radius(s, c), 0, "常時の特性に検知域は無い")
-	s.mark_engaged(g.id)
+	s.mark_engaged(g.handle)
 	assert_eq(_brain.detection_radius(s, g), 0, "起動済みは0")
 
 func test_detection_radius_covers_weak_and_skips_swarm() -> void:
@@ -397,7 +397,7 @@ func test_detection_radius_covers_weak_and_skips_swarm() -> void:
 	assert_eq(_brain.detection_radius(s, sw), 0, "群れは常時起動＝検知域なし")
 	assert_eq(_brain.detection_radius(s, _ai(s, _squad(s, "predator", { "sight": 4 }), 12, 3, 1)), 4,
 		"部隊の上書きがそのまま半径になる")
-	s.mark_engaged(w.id)
+	s.mark_engaged(w.handle)
 	assert_eq(_brain.detection_radius(s, w), 0, "獲物を見つけたあとは0")
 
 # --- raid（拠点攻略） ---
@@ -455,7 +455,7 @@ func test_raid_attacks_an_enemy_blocking_the_corridor() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "通路を塞ぐ敵は殴る")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_raid_shifts_to_a_cell_where_it_can_shoot_the_blocker() -> void:
 	# #3 射程2-5 の駒は隣接されると撃てない。撃てるマスのうち拠点へ最も近いマスへ動き、
@@ -469,14 +469,14 @@ func test_raid_shifts_to_a_cell_where_it_can_shoot_the_blocker() -> void:
 	gun.attack_range = 3
 	var e := _pc(s, 1, 5, 2)
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
-	assert_false(s.can_attack(gun.id, e.id), "前提: 隣接した位置からは撃てない")
+	assert_false(s.can_attack(gun.handle, e.handle), "前提: 隣接した位置からは撃てない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃てる位置へずれる")
 	assert_eq(Hex.distance(a.to, e.pos), 2, "下がる幅は拠点へ最も近い撃てるマスまで＝最小限")
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: この移動は妥当")
+	assert_true(s.move_unit(a.handle, a.to), "前提: この移動は妥当")
 	var b := _brain.next_action(s, 1)
 	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
-	assert_eq(b.target_id, e.id)
+	assert_eq(b.target_id, e.handle)
 
 func test_raid_does_not_back_off_from_the_enemy_in_its_way() -> void:
 	# #3 の行き先は拠点へ最も近い撃てるマス＝いまの位置から撃てるならそのまま殴る。
@@ -491,7 +491,7 @@ func test_raid_does_not_back_off_from_the_enemy_in_its_way() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "下がらずに殴る")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_raid_attacks_when_two_enemies_block_together() -> void:
 	# 幅2の通路を2体で塞ぐ形。1体ずつ試すとどちらを外しても道が開かず、
@@ -519,8 +519,8 @@ func test_raid_finishes_the_blocker_it_can_kill() -> void:
 	_pc(s, 1, 5, 2)            # 一番前＝拠点への地形距離が最小
 	_hurt(_pc(s, 2, 5, 3), 1)  # 後ろだが残り1＝仕留められる
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
-	assert_true(Combat.casualties(s, u, s.unit_by_id(2), true) >= 1, "前提: 後ろの敵は仕留められる")
-	assert_lt(Combat.casualties(s, u, s.unit_by_id(1), true), 8, "前提: 一番前の敵は倒しきれない")
+	assert_true(Combat.casualties(s, u, s.unit_by_handle(2), true) >= 1, "前提: 後ろの敵は仕留められる")
+	assert_lt(Combat.casualties(s, u, s.unit_by_handle(1), true), 8, "前提: 一番前の敵は倒しきれない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, 2, "一番前でなくても、いま消せる駒から消す")
@@ -538,7 +538,7 @@ func test_raid_shoots_the_flying_blocker_first_when_good_at_air() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, flier.id, "一番前の地上より、道を塞ぐ空敵を先に撃つ")
+	assert_eq(a.target_id, flier.handle, "一番前の地上より、道を塞ぐ空敵を先に撃つ")
 
 func test_raid_attacks_an_enemy_that_pins_it_with_zoc() -> void:
 	# 体では塞いでいないが、ZOCで通路が消えている＝迂回距離が測れなくなっている。
@@ -549,11 +549,11 @@ func test_raid_attacks_an_enemy_that_pins_it_with_zoc() -> void:
 	_ai(s, si, 10, 4, 3)
 	var e := _pc(s, 1, 5, 3)
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
-	assert_lt(AiDistance.min_cost_in(AiDistance.move_cost_field(s, 10, s.unit_by_id(10).pos),
+	assert_lt(AiDistance.min_cost_in(AiDistance.move_cost_field(s, 10, s.unit_by_handle(10).pos),
 		[Hex.offset_to_axial(9, 2)]), BattleState.UNREACHABLE, "体では塞がれていない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "ZOCで足を止めている敵は殴る")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_raid_takes_the_nearest_base_including_neutral() -> void:
 	var s := BattleState.new(12, 5)
@@ -602,7 +602,7 @@ func test_weak_attacks_the_prey_it_can_reduce_most() -> void:
 	var hurt := _hurt(_pc(s, 2, 4, 0, 10), 1)  # 距離2・残り1
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, hurt.id, "攻撃後の残兵が最小になる相手")
+	assert_eq(a.target_id, hurt.handle, "攻撃後の残兵が最小になる相手")
 
 func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
 	# #5 獲物でなくても、一撃で倒せる相手なら殴る。
@@ -615,7 +615,7 @@ func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
 	assert_true(Combat.casualties(s, u, tough, true) >= tough.troops, "前提: 一撃で倒せる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, tough.id, "獲物でなくても倒しきれるなら殴る")
+	assert_eq(a.target_id, tough.handle, "獲物でなくても倒しきれるなら殴る")
 
 func test_weak_backs_off_before_shooting_the_prey() -> void:
 	# #3 間接攻撃できる駒は、狙う獲物から最大間合いを取ってから撃つ。
@@ -629,10 +629,10 @@ func test_weak_backs_off_before_shooting_the_prey() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
 	assert_eq(Hex.distance(a.to, prey.pos), 2, "射程上限まで間合いを取る")
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
 	var b := _brain.next_action(s, 1)
 	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
-	assert_eq(b.target_id, prey.id)
+	assert_eq(b.target_id, prey.handle)
 
 func test_weak_does_not_back_off_from_a_finishing_blow() -> void:
 	# #3 は「いまの位置から一撃で倒せる敵がいない」ときだけ成立＝倒しきれる相手からは下がらない。
@@ -646,7 +646,7 @@ func test_weak_does_not_back_off_from_a_finishing_blow() -> void:
 	assert_true(Combat.casualties(s, archer, tough, true) >= tough.troops, "前提: 一撃で倒せる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "倒しきれる相手からは下がらない")
-	assert_eq(a.target_id, tough.id)
+	assert_eq(a.target_id, tough.handle)
 
 func test_weak_finishes_the_enemy_that_cannot_retaliate() -> void:
 	# #5 どちらも倒せるなら反撃を受けない相手から倒す。移動0＝下がる余地を消して行だけを見る。
@@ -661,7 +661,7 @@ func test_weak_finishes_the_enemy_that_cannot_retaliate() -> void:
 	assert_true(Combat.casualties(s, archer, far, false) >= far.troops, "前提: 距離2でも倒せる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, far.id, "反撃されない敵から倒す")
+	assert_eq(a.target_id, far.handle, "反撃されない敵から倒す")
 
 func test_weak_flanks_around_the_zoc_band() -> void:
 	# #6 回り込み＝敵ZOCを避けて獲物へ近づく。壁で抜け道を絞らないと同じ長さの別ルートが
@@ -675,7 +675,7 @@ func test_weak_flanks_around_the_zoc_band() -> void:
 	var u := _ai(s, si, 10, 1, 0)
 	var blocker := _pc(s, 1, 3, 1, 80)  # 近い抜け道の脇＝ZOCで蓋をする硬い駒
 	var prey := _pc(s, 2, 7, 0, 10)
-	assert_lt(AiDistance.detour_distance_to(s, 10, prey.id), BattleState.UNREACHABLE,
+	assert_lt(AiDistance.detour_distance_to(s, 10, prey.handle), BattleState.UNREACHABLE,
 		"前提: 遠い抜け道があるので迂回距離は測れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
@@ -702,11 +702,11 @@ func test_predator_wakes_when_a_squadmate_is_engaged() -> void:
 	var near := _ai(s, si, 10, 1, 1)
 	var far := _ai(s, si, 11, 0, 0)  # 獲物まで視線が届かない
 	_pc(s, 1, 4, 1)
-	s.mark_engaged(near.id)
-	s.set_done(near.id)  # 先に動き終えた扱い
+	s.mark_engaged(near.handle)
+	s.set_done(near.handle)  # 先に動き終えた扱い
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a)
-	assert_eq(a.unit_id, far.id, "部隊ごと起きる")
+	assert_eq(a.handle, far.handle, "部隊ごと起きる")
 
 # --- swarm（群れ） ---
 
@@ -719,7 +719,7 @@ func test_swarm_bites_a_wounded_enemy_alone() -> void:
 	var wounded := _hurt(_pc(s, 1, 4, 1), 3)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, wounded.id)
+	assert_eq(a.target_id, wounded.handle)
 
 func test_swarm_backs_off_before_shooting_the_wounded() -> void:
 	# #1 間接攻撃できる駒は手負いから最大間合いを取ってから撃つ（囲むのは近接の駒に任せる）。
@@ -732,10 +732,10 @@ func test_swarm_backs_off_before_shooting_the_wounded() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
 	assert_eq(Hex.distance(a.to, wounded.pos), 2, "射程上限まで間合いを取る")
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
 	var b := _brain.next_action(s, 1)
 	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
-	assert_eq(b.target_id, wounded.id)
+	assert_eq(b.target_id, wounded.handle)
 
 func test_swarm_leaves_a_healthy_enemy_and_goes_for_the_wounded() -> void:
 	# 無傷の敵には頭数が揃うまで手を出さない。手負いは盤全体から1体選ぶ。
@@ -760,7 +760,7 @@ func test_swarm_attacks_a_healthy_enemy_once_the_numbers_are_there() -> void:
 	_hurt(_pc(s, 2, 9, 2), 2)             # 手負いは遠い＝#2 は成立しない
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "頭数が揃えば無傷の敵にも手を出す")
-	assert_eq(a.target_id, healthy.id)
+	assert_eq(a.target_id, healthy.handle)
 
 func test_swarm_backs_off_to_shoot_a_surroundable_enemy() -> void:
 	# #3 手負いを撃てないターンでも、包囲可能な敵から間合いを取ってから撃つ。
@@ -774,13 +774,13 @@ func test_swarm_backs_off_to_shoot_a_surroundable_enemy() -> void:
 	_ai(s, si, 12, 4, 3)
 	var x := _pc(s, 1, 4, 2)                    # 隣接＝いまの位置からは撃てない
 	_hurt(_pc(s, 2, 15, 4), 2)                  # 手負いは遠い＝#1・#2 は成立しない
-	assert_false(s.can_attack(gun.id, x.id), "前提: 隣接した位置からは撃てない")
+	assert_false(s.can_attack(gun.handle, x.handle), "前提: 隣接した位置からは撃てない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
-	assert_eq(a.unit_id, gun.id, "前提: 先に動くのは間接の駒")
+	assert_eq(a.handle, gun.handle, "前提: 先に動くのは間接の駒")
 	assert_eq(Hex.distance(a.to, x.pos), 3, "射程上限まで間合いを取る")
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
-	assert_true(s.can_attack(gun.id, x.id), "下がった先から撃てる")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.can_attack(gun.handle, x.handle), "下がった先から撃てる")
 
 func test_swarm_does_not_back_off_when_the_surround_needs_itself() -> void:
 	# #3 が「自分を除いても包囲可能」を見る理由。下がると自分が頭数から外れて包囲が崩れ、
@@ -795,9 +795,9 @@ func test_swarm_does_not_back_off_when_the_surround_needs_itself() -> void:
 	var x := _pc(s, 1, 4, 2)
 	_hurt(_pc(s, 2, 15, 4), 2)                  # 手負いは遠い＝#1・#2 は成立しない
 	var a := _brain.next_action(s, 1)
-	assert_eq(a.unit_id, gun.id, "前提: 先に動くのは間接の駒")
+	assert_eq(a.handle, gun.handle, "前提: 先に動くのは間接の駒")
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "頭数が自分込みでぎりぎりなら下がらない")
-	assert_eq(a.target_id, x.id)
+	assert_eq(a.target_id, x.handle)
 
 func test_swarm_does_not_take_bases() -> void:
 	var s := BattleState.new(12, 5)
@@ -838,7 +838,7 @@ func test_swarm_switches_from_the_skill_to_attacking_when_stacked() -> void:
 	_mod(s, healthy, StatusMod.KIND_DEBUFF)
 	a = _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "stack に達した相手は殴る")
-	assert_eq(a.target_id, healthy.id)
+	assert_eq(a.target_id, healthy.handle)
 
 # --- stack 条件（全特性のパラメーター） ---
 
@@ -906,7 +906,7 @@ func test_squads_act_in_order_not_in_registration_order() -> void:
 	_ai(s, late, 10, 6, 2)  # 敵に近い＝距離で決めるならこちらが先になる
 	var far := _ai(s, early, 11, 8, 2)
 	_pc(s, 1, 1, 2)
-	assert_eq(_brain.next_action(s, 1).unit_id, far.id, "order 1 の部隊から動く")
+	assert_eq(_brain.next_action(s, 1).handle, far.handle, "order 1 の部隊から動く")
 
 func test_squad_members_move_from_the_front_line() -> void:
 	# 部隊の中は盤上距離で最寄りの敵に近い駒から。後ろの駒が先に動くと前の駒に塞がれるため。
@@ -916,10 +916,10 @@ func test_squad_members_move_from_the_front_line() -> void:
 	var back := _ai(s, si, 10, 9, 2)
 	var front := _ai(s, si, 11, 7, 2)
 	_pc(s, 1, 1, 2)
-	assert_eq(_brain.next_action(s, 1).unit_id, front.id, "最寄りの敵に近い駒から動く")
+	assert_eq(_brain.next_action(s, 1).handle, front.handle, "最寄りの敵に近い駒から動く")
 	# 駒が動けば距離も変わる＝毎ターン計算し直すので前後が入れ替われば順番も入れ替わる
 	back.pos = Hex.offset_to_axial(4, 2)
-	assert_eq(_brain.next_action(s, 1).unit_id, back.id, "前に出た駒が先頭になる")
+	assert_eq(_brain.next_action(s, 1).handle, back.handle, "前に出た駒が先頭になる")
 
 func test_the_base_deploys_after_the_pieces_of_its_squad() -> void:
 	# 出撃を行うのは、その部隊の盤上の駒を動かし終えたあと。
@@ -931,8 +931,8 @@ func test_the_base_deploys_after_the_pieces_of_its_squad() -> void:
 	_pc(s, 1, 11, 2)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "盤上の駒が先")
-	assert_eq(a.unit_id, u.id)
-	s.set_done(u.id)
+	assert_eq(a.handle, u.handle)
+	s.set_done(u.handle)
 	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "駒を捌いてから出撃")
 
 # --- 拠点出撃（行動開始条件を拠点hex基準で見る） ---
@@ -991,8 +991,8 @@ func test_base_wakes_when_a_squadmate_is_engaged() -> void:
 	var scout := _ai(s, si, 10, 8, 2)
 	_base_with_garrison(s, si, 4, 2)
 	_pc(s, 1, 11, 2)  # 拠点hexからは視線距離7＝拠点だけでは気づかない
-	assert_eq(_brain.next_action(s, 1).unit_id, scout.id, "前提: 索敵に入った駒が先に起きる")
-	s.set_done(scout.id)
+	assert_eq(_brain.next_action(s, 1).handle, scout.handle, "前提: 索敵に入った駒が先に起きる")
+	s.set_done(scout.handle)
 	assert_eq(_brain.next_action(s, 1).kind, AiAction.Kind.DEPLOY, "部隊の駒が起きたら拠点も起きる")
 
 func test_a_piece_wakes_when_its_base_is_engaged() -> void:
@@ -1007,7 +1007,7 @@ func test_a_piece_wakes_when_its_base_is_engaged() -> void:
 	assert_not_null(_run_deploy(s), "前提: 拠点は索敵に反応して出撃する")
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a, "拠点が起きたら同じ部隊の駒も起きる")
-	assert_eq(a.unit_id, far.id)
+	assert_eq(a.handle, far.handle)
 
 func test_base_ignores_another_squads_alarm() -> void:
 	# 一斉警戒はその部隊の中で閉じる＝盤上の別部隊が行動開始しても拠点は起きない。
@@ -1017,8 +1017,8 @@ func test_base_ignores_another_squads_alarm() -> void:
 	var runner := _ai(s, other, 10, 8, 2)
 	_base_with_garrison(s, _squad(s, "ambush"), 4, 2)
 	_pc(s, 1, 11, 2)  # 拠点hexからは sight の外
-	s.mark_engaged(runner.id)
-	s.set_done(runner.id)  # 先に動き終えた扱い
+	s.mark_engaged(runner.handle)
+	s.set_done(runner.handle)  # 先に動き終えた扱い
 	assert_null(_brain.next_action(s, 1), "別部隊の起動では拠点は起きない")
 
 func test_base_deploys_until_the_open_neighbors_are_full() -> void:
@@ -1049,8 +1049,8 @@ func test_base_deploys_in_the_order_the_garrison_is_written() -> void:
 	s.current_team = 1
 	_base_with_garrison(s, _squad(s, "charge"), 4, 2, 2)
 	assert_eq(_run_deploy(s).garrison_index, 0)
-	assert_not_null(s.unit_by_id(20), "記述順の先頭が盤に出る")
-	assert_null(s.unit_by_id(21), "2体目はまだ控え")
+	assert_not_null(s.unit_by_handle(20), "記述順の先頭が盤に出る")
+	assert_null(s.unit_by_handle(21), "2体目はまだ控え")
 
 func test_base_deploys_toward_the_nearest_enemy() -> void:
 	# 出す先は、盤上距離が最小の敵に最も近い空きマス。
@@ -1128,7 +1128,7 @@ func test_flee_enters_friendly_base_when_damaged_and_on_base() -> void:
 	_ai(s, si, 11, 6, 2)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入る")
-	assert_eq(a.unit_id, 10)
+	assert_eq(a.handle, 10)
 
 func test_flee_does_not_attack() -> void:
 	# 攻撃の行を持たない＝射程内に敵がいても殴らない。
@@ -1140,7 +1140,7 @@ func test_flee_does_not_attack() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(8, 2), 0))  # 目的地
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "殴らずに拠点へ歩く")
-	assert_ne(a.to, s.unit_by_id(1).pos, "敵のマスへは向かわない")
+	assert_ne(a.to, s.unit_by_handle(1).pos, "敵のマスへは向かわない")
 
 func test_flee_waits_when_zoc_blocks_all_routes() -> void:
 	# ZOCで全方位塞がれたら待機（ZOCに突っ込まない）。
@@ -1188,7 +1188,7 @@ func test_withdraw_fights_like_charge_when_healthy() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(8, 2), 1))  # 自陣営の拠点
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "無傷なら殴る")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_withdraw_falls_back_before_attacking() -> void:
 	# 損耗 ≧ retreat（既定50）なら退く行が攻撃より上＝隣に敵がいても拠点へ下がる。
@@ -1215,7 +1215,7 @@ func test_withdraw_attacks_when_it_cannot_fall_back() -> void:
 	s.add_base(Base.new(Hex.offset_to_axial(9, 1), 1))
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "下がれないなら殴る")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_withdraw_enters_friendly_base_when_damaged_and_on_base() -> void:
 	# 損耗状態で自陣営の拠点hexにいれば「入る」（回復して出直す）。
@@ -1228,7 +1228,7 @@ func test_withdraw_enters_friendly_base_when_damaged_and_on_base() -> void:
 	_ai(s, si, 11, 6, 2)  # 盤上最後の1体＝入ると全滅になるので、もう1体置く
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入る")
-	assert_eq(a.unit_id, 10)
+	assert_eq(a.handle, 10)
 
 func test_withdraw_fights_on_when_no_friendly_base_exists() -> void:
 	# 帰る先が無ければ退く行は通らない＝突撃として戦う。
@@ -1240,7 +1240,7 @@ func test_withdraw_fights_on_when_no_friendly_base_exists() -> void:
 	var e := _pc(s, 1, 4, 1)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "退けないなら諦めて殴る")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 ## 幅2の通路の片側を敵が塞ぎ、残る1マスはその敵のZOC。西端に損耗50%の駒、東端に自陣営の拠点。
 func _zoc_lane(trait_id: String) -> BattleState:
@@ -1265,9 +1265,9 @@ func test_withdraw_finishes_the_enemy_it_can_kill() -> void:
 	# #6〜#9 仕留められる敵は反撃されない敵より上＝反撃を受けても、消せる相手から消す。
 	# 倒せば次のターン以降その駒から撃たれない＝退いて回復するまでに受ける被害が減る。
 	var s := _kill_choice("withdraw")
-	var u := s.unit_by_id(10)
-	assert_true(Combat.casualties(s, u, s.unit_by_id(1), true) >= 1, "前提: 隣の敵は仕留められる")
-	assert_lt(Combat.casualties(s, u, s.unit_by_id(2), false), 8, "前提: 距離2の敵は倒しきれない")
+	var u := s.unit_by_handle(10)
+	assert_true(Combat.casualties(s, u, s.unit_by_handle(1), true) >= 1, "前提: 隣の敵は仕留められる")
+	assert_lt(Combat.casualties(s, u, s.unit_by_handle(2), false), 8, "前提: 距離2の敵は倒しきれない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, 1, "反撃を受けても仕留められる敵を先に撃つ")
@@ -1294,7 +1294,7 @@ func test_charge_shoots_the_flier_first_when_good_at_air() -> void:
 	var flier := _air(s, 2, 4, 1)          # 飛行・盤上距離3
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, flier.id, "近い地上より空敵を先に撃つ")
+	assert_eq(a.target_id, flier.handle, "近い地上より空敵を先に撃つ")
 
 func test_charge_ignores_the_flier_when_not_good_at_air() -> void:
 	# 対空攻撃力はあるが対空得意ではない（対地 > 対空）＝優先は働かない。
@@ -1309,7 +1309,7 @@ func test_charge_ignores_the_flier_when_not_good_at_air() -> void:
 	_air(s, 2, 4, 1)
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, ground.id, "盤上距離が最小の敵をそのまま撃つ")
+	assert_eq(a.target_id, ground.handle, "盤上距離が最小の敵をそのまま撃つ")
 
 func test_charge_advances_toward_the_flier_when_good_at_air() -> void:
 	# #5 最大前進の標的も空敵を優先＝手が届く範囲では空へ寄る。
@@ -1336,7 +1336,7 @@ func test_withdraw_shoots_the_flier_before_a_killable_ground() -> void:
 	var flier := _air(s, 2, 4, 1)  # 飛行・無傷＝仕留められない
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, flier.id, "仕留められる地上より空敵が先")
+	assert_eq(a.target_id, flier.handle, "仕留められる地上より空敵が先")
 
 # --- standoff（睨み合い） ---
 
@@ -1357,7 +1357,7 @@ func test_standoff_shoots_when_the_enemy_walks_into_range() -> void:
 	var e := _pc(s, 1, 8, 1)  # 盤上距離3＝射程内。敵は移動3・射程1＝脅威圏4なので危険な距離
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "脅威圏の中でも撃てるなら撃つ")
-	assert_eq(a.target_id, e.id)
+	assert_eq(a.target_id, e.handle)
 
 func test_standoff_backs_out_of_the_threat_zone_then_shoots() -> void:
 	# 隣接されて撃てない（min_range 2）とき、脅威圏の外へ出てから同じ手番で撃つ。
@@ -1369,10 +1369,10 @@ func test_standoff_backs_out_of_the_threat_zone_then_shoots() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃てないので間合いを取り直す")
 	assert_gt(Hex.distance(a.to, e.pos), 4, "脅威圏（敵の移動3＋射程1）の外へ出る")
-	assert_true(s.move_unit(a.unit_id, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
 	var b := _brain.next_action(s, 1)
 	assert_eq(b.kind, AiAction.Kind.ATTACK, "移動後に同じ手番で撃つ")
-	assert_eq(b.target_id, e.id)
+	assert_eq(b.target_id, e.handle)
 
 func test_standoff_closes_in_but_stops_outside_the_threat_zone() -> void:
 	# 遠ければ詰める。詰め先は脅威圏の外＝先手を取れる距離まで。
@@ -1422,7 +1422,7 @@ func test_standoff_shoots_the_enemy_it_can_hurt_most() -> void:
 		Combat.casualties(s, caster, hard, false), "前提: 遠い敵のほうが多く削れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, soft.id, "近い硬い敵ではなく、多く削れる敵を撃つ")
+	assert_eq(a.target_id, soft.handle, "近い硬い敵ではなく、多く削れる敵を撃つ")
 
 func test_standoff_finishes_before_the_bigger_hit() -> void:
 	# 仕留められる敵は戦果より上＝削り量で勝る相手がいても、消せる相手から消す。
@@ -1436,7 +1436,7 @@ func test_standoff_finishes_before_the_bigger_hit() -> void:
 		Combat.casualties(s, caster, weak, false), "前提: 無傷の敵のほうが多く削れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, weak.id, "戦果より仕留めが先")
+	assert_eq(a.target_id, weak.handle, "戦果より仕留めが先")
 
 func test_standoff_shoots_the_flier_before_a_killable_ground() -> void:
 	# 空敵は仕留めより上＝睨み合いの撃つ行も最上段は空敵（対空得意な駒だけが飛行に触れる）。
@@ -1449,7 +1449,7 @@ func test_standoff_shoots_the_flier_before_a_killable_ground() -> void:
 	var flier := _air(s, 2, 9, 1)          # 飛行・遠い・仕留められない
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, flier.id, "仕留められる地上より空敵が先")
+	assert_eq(a.target_id, flier.handle, "仕留められる地上より空敵が先")
 
 # --- 手詰まり（is_stuck）でも行の判定は打ち切らない ---
 
@@ -1469,11 +1469,11 @@ func test_a_stuck_piece_still_casts_its_skill() -> void:
 	var pixie := _skin(_ai(s, si, 10, 1, 1), "pixie")
 	_wall_around(s, pixie)
 	_pc(s, 1, 3, 0)  # 壁の外＝攻撃射程外
-	assert_true(s.is_stuck(pixie.id), "前提: 手詰まり")
+	assert_true(s.is_stuck(pixie.handle), "前提: 手詰まり")
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a, "手詰まりでもスキルの行は見る")
 	assert_eq(a.kind, AiAction.Kind.SKILL, "自分にピクシーダストを掛ける")
-	assert_eq(a.unit_id, pixie.id)
+	assert_eq(a.handle, pixie.handle)
 
 func test_a_stuck_piece_still_enters_its_base() -> void:
 	# 手負いで自陣拠点hexに立つ駒は、囲まれて手詰まりでも「拠点に入る」行（flee #2）が成立する。
@@ -1486,11 +1486,11 @@ func test_a_stuck_piece_still_enters_its_base() -> void:
 	var b := Base.new(runner.pos, 1)
 	b.squad_index = si
 	s.add_base(b)
-	assert_true(s.is_stuck(runner.id), "前提: 手詰まり")
+	assert_true(s.is_stuck(runner.handle), "前提: 手詰まり")
 	var a := _brain.next_action(s, 1)
 	assert_not_null(a, "手詰まりでも拠点に入る行は見る")
 	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入って回復に回る")
-	assert_eq(a.unit_id, runner.id)
+	assert_eq(a.handle, runner.handle)
 
 func test_a_stuck_piece_still_raises_the_alarm() -> void:
 	# 手詰まりでも行動開始判定は走る＝視線内の敵で起動し、一斉警戒の起点になる。
@@ -1507,8 +1507,8 @@ func test_a_stuck_piece_still_raises_the_alarm() -> void:
 		nid += 1
 	var far := _ai(s, si, 11, 0, 1)  # 敵まで視線距離6＝自分では気づかない
 	_pc(s, 1, 6, 1)  # watcher から視線距離2＝視線内・攻撃射程外
-	assert_true(s.is_stuck(watcher.id), "前提: 手詰まり")
+	assert_true(s.is_stuck(watcher.handle), "前提: 手詰まり")
 	var a := _brain.next_action(s, 1)
-	assert_true(s.is_engaged(watcher.id), "手詰まりでも視線内の敵で行動開始する")
+	assert_true(s.is_engaged(watcher.handle), "手詰まりでも視線内の敵で行動開始する")
 	assert_not_null(a, "一斉警戒で部隊の仲間が起きる")
-	assert_eq(a.unit_id, far.id, "動くのは輪の外の仲間")
+	assert_eq(a.handle, far.handle, "動くのは輪の外の仲間")

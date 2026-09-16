@@ -63,10 +63,10 @@ static func from_recipe(rid: String, r: Dictionary, units: Array) -> FormationOp
 	var o := FormationOption.new()
 	o.recipe = rid
 	o.name = String(r["name"])
-	o.leader_id = units[0].id
+	o.leader_id = units[0].handle
 	var ids: Array[int] = []
 	for u in units:
-		ids.append(u.id)
+		ids.append(u.handle)
 	o.participants = ids
 	o.effect = _id_to_enum(EFFECT_IDS, String(r["effect"]), "effect")
 	o.shape = _id_to_enum(SHAPE_IDS, String(r["shape"]), "shape")

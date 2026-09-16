@@ -14,7 +14,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# でない）、target が射程内であること。行ける先が無いだけの駒は参加できる＝発動に移動先も
 	# 攻撃相手も要らない（Formation.available_for と同じ資格）。
 	for pid in option.participants:
-		var p := state.unit_by_id(pid)
+		var p := state.unit_by_handle(pid)
 		if p == null or p.team != state.current_team:
 			return null
 		if not state.has_action_left(pid):
@@ -33,7 +33,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	var spawn_cells: Array[Vector2i] = []  # 分裂で湧いた位置（cells に載せて盤で光らせる）
 	# レポートの見出し・攻撃列に出す発動者（発動前に固める＝attack のスナップショットと同じ流儀。
 	# 兵数は動かないので troops_after は troops_before のまま）。詳細 → doc/tech/combat_scene.md
-	var caster := state.unit_by_id(option.leader_id)
+	var caster := state.unit_by_handle(option.leader_id)
 	if caster != null:
 		out.caster = state.unit_snapshot(caster)
 	match option.effect:
@@ -73,11 +73,11 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(state, option, target)
 	for hit: HitDetail in pv["hits"]:
-		var victim := state.unit_by_id(hit.target_id)
+		var victim := state.unit_by_handle(hit.target_id)
 		if victim == null:
 			continue
 		var h := SkillHit.new()
-		h.target_id = victim.id
+		h.target_id = victim.handle
 		h.hex = victim.pos  # 撃破すると盤から外れる＝消える前に控える（演出が当たった場所を出す）
 		h.victim = state.unit_snapshot(victim)  # 撃破で盤から消えてもレポートに名前と兵数を出せるよう固める
 		h.loss = hit.loss
@@ -86,9 +86,9 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		h.killed = victim.troops <= 0
 		h.victim.troops_after = victim.troops
 		h.victim.shield_after = victim.shield
-		state.mark_engaged(victim.id)  # 被弾＝起動トリガー（待ち伏せAIが立つ）
+		state.mark_engaged(victim.handle)  # 被弾＝起動トリガー（待ち伏せAIが立つ）
 		if h.killed:
-			state.remove_unit(victim.id)
+			state.remove_unit(victim.handle)
 		out.hits.append(h)
 	# レベル: attack と同じ「戦ったら+1・倒したらさらに+1」を陣形1発の単位で（面で複数撃破でも+2止まり）。
 	# 対象に1体も当たらなかった空撃ちは0（戦っていない＝上がらない）。
@@ -105,7 +105,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		exp_gain = 1
 	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）＋レベル加算。
 	for pid in option.participants:
-		var p := state.unit_by_id(pid)
+		var p := state.unit_by_handle(pid)
 		if p != null:
 			p.gain_level(exp_gain)
 		state.set_done(pid)
@@ -130,7 +130,7 @@ static func _skill_cast(state: BattleState, option: FormationOption, target: Vec
 	c.name = option.name
 	c.effect = option.effect_id()
 	c.combat_effect = option.combat_effect
-	var caster := state.unit_by_id(option.leader_id)
+	var caster := state.unit_by_handle(option.leader_id)
 	var victim := state.unit_at(target)
 	if caster != null:
 		c.caster = state.unit_snapshot(caster)
@@ -145,7 +145,7 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 	var u := state.unit_at(target)  # can_target が対象の存在と陣営を保証済み
 	return {
 		"scope": "unit",
-		"unit_id": u.id if u != null else -1,
+		"unit_id": u.handle if u != null else -1,
 		"owner_team": state.current_team,
 		"op": StatusMod.OP_DOT,
 		"value": option.dot_troops,
@@ -164,7 +164,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 	# 弱体は負値（ドレッドタッチ＝-10/兵）なので、0 以外かどうかで判定する。
 	var value := option.buff_value
 	if not is_zero_approx(option.buff_value_per_troop):
-		var caster := state.unit_by_id(option.leader_id)
+		var caster := state.unit_by_handle(option.leader_id)
 		value = option.buff_value_per_troop * float(caster.troops if caster != null else 0)
 	# 参加人数で伸びるレシピ（グレイス）は、基準人数（min_count）を超えた参加者1体ごとに加算する。
 	# 5体 ×1.30／6体 ×1.35／8体 ×1.45。発動時の人数で焼き込む＝以後クラスタが崩れても変わらない。
@@ -185,7 +185,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 	if option.scope == FormationOption.Scope.UNIT:
 		var u := state.unit_at(target)  # can_target が対象の存在と陣営を保証済み
 		e["scope"] = "unit"
-		e["unit_id"] = u.id if u != null else -1
+		e["unit_id"] = u.handle if u != null else -1
 	else:
 		e["scope"] = "team"
 		e["team"] = state.current_team

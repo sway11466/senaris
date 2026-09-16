@@ -31,11 +31,11 @@ func _init(p_known_traits: Array[String]) -> void:
 
 ## u の特性id。部隊に属さない駒・未知の特性は DEFAULT_TRAIT。
 func trait_id_of(state: BattleState, u: Unit) -> String:
-	return _resolve_trait(String(state.squad_of(u.id).get("ai", "")))
+	return _resolve_trait(String(state.squad_of(u.handle).get("ai", "")))
 
 ## u のパラメーター（解決順＝部隊の上書き ＞ 特性の既定）。どちらにも無ければ "-"（該当なし）。
 func param(state: BattleState, u: Unit, key: String) -> Variant:
-	var squad := state.squad_of(u.id)
+	var squad := state.squad_of(u.handle)
 	if squad.has(key):
 		return squad[key]
 	return preset_param(trait_id_of(state, u), key)

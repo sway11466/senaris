@@ -77,7 +77,7 @@ func _ready() -> void:
 			push_error("shot_stage: (%d,%d) に駒が居ない" % [select_cell.x, select_cell.y])
 			get_tree().quit(1)
 			return
-		board._select(unit.id)
+		board._select(unit.handle)
 
 	# 盤全体を画面に収める。実機の fit_to_view は右の情報パネル（INFOPANEL_LEFT）を
 	# 避けて左に寄せるが、このツールに HUD は無いので全画面を可視域にする。

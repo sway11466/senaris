@@ -146,9 +146,9 @@ func test_ids_stay_unique_when_pieces_are_skipped() -> void:
 	] } ] }, _catalog(), {}, carried)
 	var ids := {}
 	for u in s.units():
-		ids[u.id] = true
+		ids[u.handle] = true
 	assert_eq(ids.size(), 2, "id が衝突しない")
-	assert_eq(_at(s, 2, 1).id, 1, "採番は盤に乗った順に詰まる")
+	assert_eq(_at(s, 2, 1).handle, 1, "採番は盤に乗った順に詰まる")
 
 func test_stage_type_wins_over_the_roster() -> void:
 	# 性能の出どころはステージJSON（名簿はプレイヤーの手元にあるセーブ）。

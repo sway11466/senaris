@@ -12,11 +12,11 @@ var turn_number: int = 1   ## ターン番号（両陣営が1巡で+1）
 var turn_limit: int = 0    ## ターン上限（超過でプレイヤー敗北・引き分けなし）。0＝無制限。実ステージJSONでは必須指定。詳細 → doc/gdd/map.md
 
 var _units: Array[Unit] = []
-var _moved := {}       # unit_id -> true（攻撃前の移動を1回使った）
-var _post_moved := {}  # unit_id -> true（攻撃後の再移動を1回使った）
-var _attacked := {}    # unit_id -> true（このターンに攻撃済み）
-var _done := {}        # unit_id -> true（コマンドメニューの「待機」等で明示的に行動終了）
-var _spent := {}       # unit_id -> int（このターンに使った移動コスト。move と比較）
+var _moved := {}       # handle -> true（攻撃前の移動を1回使った）
+var _post_moved := {}  # handle -> true（攻撃後の再移動を1回使った）
+var _attacked := {}    # handle -> true（このターンに攻撃済み）
+var _done := {}        # handle -> true（コマンドメニューの「待機」等で明示的に行動終了）
+var _spent := {}       # handle -> int（このターンに使った移動コスト。move と比較）
 var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
 var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md
@@ -35,35 +35,35 @@ var defeat_conditions: Array = []
 ## 要素は dict: { "name": 表示名, "ai": 特性id, "order": 行動順, ...パラメーターの上書き（sight/stack） }
 ## 詳細 → doc/gdd/ai.md（部隊）
 var squads: Array = []
-var _squad_of := {}  # unit_id -> squads の index（部隊に属さないユニットは未登録）
+var _squad_of := {}  # handle -> squads の index（部隊に属さないユニットは未登録）
 
-## unit_id を部隊 squad_index に所属させる（StageLoader が配線）。
-func assign_squad(unit_id: int, squad_index: int) -> void:
-	_squad_of[unit_id] = squad_index
+## handle を部隊 squad_index に所属させる（StageLoader が配線）。
+func assign_squad(handle: int, squad_index: int) -> void:
+	_squad_of[handle] = squad_index
 
-## unit_id の所属部隊（dict）。部隊に属さなければ空 dict。
-func squad_of(unit_id: int) -> Dictionary:
-	var idx := squad_index_of(unit_id)
+## handle の所属部隊（dict）。部隊に属さなければ空 dict。
+func squad_of(handle: int) -> Dictionary:
+	var idx := squad_index_of(handle)
 	return squads[idx] if idx >= 0 else {}
 
-## unit_id の所属部隊 index（部隊に属さなければ -1）。一斉警戒（同部隊判定）に使う。
-func squad_index_of(unit_id: int) -> int:
-	var idx: Variant = _squad_of.get(unit_id)
+## handle の所属部隊 index（部隊に属さなければ -1）。一斉警戒（同部隊判定）に使う。
+func squad_index_of(handle: int) -> int:
+	var idx: Variant = _squad_of.get(handle)
 	if idx == null or int(idx) < 0 or int(idx) >= squads.size():
 		return -1
 	return int(idx)
 
 # --- AI起動状態（待ち伏せAIの「起きた」フラグ）。詳細 → doc/gdd/ai.md ---
 
-var _engaged := {}  # unit_id -> true（待ち伏せAIが起動済み。一度起動したら戻らない）
+var _engaged := {}  # handle -> true（待ち伏せAIが起動済み。一度起動したら戻らない）
 
-## unit_id を起動済みにする（AIの起動判定・被弾で立つ）。
-func mark_engaged(unit_id: int) -> void:
-	_engaged[unit_id] = true
+## handle を起動済みにする（AIの起動判定・被弾で立つ）。
+func mark_engaged(handle: int) -> void:
+	_engaged[handle] = true
 
-## unit_id が起動済みか。
-func is_engaged(unit_id: int) -> bool:
-	return _engaged.has(unit_id)
+## handle が起動済みか。
+func is_engaged(handle: int) -> bool:
+	return _engaged.has(handle)
 
 var _engaged_squads := {}  # squads の index -> true（拠点の起動フラグ。一度起動したら戻らない）
 
@@ -164,20 +164,20 @@ func _tick_dots() -> void:
 # 発動できる。発動すると 0 に戻る。盤に出た直後は 0＝溜まるまで撃てない。
 # 将来、他のスキルでチャージ量を直接加速できる余地を残す（→ doc/gdd/skills.md 共通ルール）。
 
-var _charges := {}  # unit_id -> { recipe_id: int }
+var _charges := {}  # handle -> { recipe_id: int }
 
-## unit_id の recipe_id に対するチャージ量（未登録は 0）。
-func get_charge(unit_id: int, recipe_id: String) -> int:
-	var per_unit: Variant = _charges.get(unit_id)
+## handle の recipe_id に対するチャージ量（未登録は 0）。
+func get_charge(handle: int, recipe_id: String) -> int:
+	var per_unit: Variant = _charges.get(handle)
 	if per_unit == null or typeof(per_unit) != TYPE_DICTIONARY:
 		return 0
 	return int((per_unit as Dictionary).get(recipe_id, 0))
 
-## unit_id の recipe_id のチャージ量を value にセットする。
-func set_charge(unit_id: int, recipe_id: String, value: int) -> void:
-	if not _charges.has(unit_id):
-		_charges[unit_id] = {}
-	_charges[unit_id][recipe_id] = value
+## handle の recipe_id のチャージ量を value にセットする。
+func set_charge(handle: int, recipe_id: String, value: int) -> void:
+	if not _charges.has(handle):
+		_charges[handle] = {}
+	_charges[handle][recipe_id] = value
 
 ## ターン開始時に、始まった陣営の駒のチャージ量を +1 する（charge_turns を持つレシピだけ）。
 ## 盤上の駒だけが対象（搭乗中・garrison はチャージしない）。
@@ -191,10 +191,10 @@ func _increment_charges() -> void:
 				continue
 			if not Formation._matches(u, r["leader_skins"]):
 				continue
-			var cur := get_charge(u.id, rid)
-			set_charge(u.id, rid, cur + 1)
+			var cur := get_charge(u.handle, rid)
+			set_charge(u.handle, rid, cur + 1)
 
-var _defeated := {}  # unit_id -> true（撃破で盤から消えた駒の記録）
+var _defeated := {}  # handle -> true（撃破で盤から消えた駒の記録）
 ## team -> 失った駒の数（累積・兵器は数えない）。戦果票の撃破数が敵側の値を読む。doc/gdd/rank.md
 var _losses := {}
 var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
@@ -222,9 +222,9 @@ func has_sortied(actor: String) -> bool:
 func units() -> Array[Unit]:
 	return _units
 
-func unit_by_id(id: int) -> Unit:
+func unit_by_handle(handle: int) -> Unit:
 	for u in _units:
-		if u.id == id:
+		if u.handle == handle:
 			return u
 	return null
 
@@ -356,16 +356,16 @@ func _place_event_units(e: StageEvent) -> void:
 			continue
 		var hex := _free_hex_for(u, u.pos)
 		if hex == Vector2i.MAX:
-			push_warning("BattleState: 増援を置く空きが無い（この駒は出さない）: id=%d" % u.id)
+			push_warning("BattleState: 増援を置く空きが無い（この駒は出さない）: id=%d" % u.handle)
 			continue
 		u.pos = hex
 		e.placed.append(hex)
-		e.placed_ids.append(u.id)
+		e.placed_ids.append(u.handle)
 		add_unit(u)
 		if item.squad_index >= 0:
-			assign_squad(u.id, item.squad_index)
+			assign_squad(u.handle, item.squad_index)
 		for p in item.passengers:
-			put_passenger(u.id, p)
+			put_passenger(u.handle, p)
 
 ## u を置くヘックス。希望位置が埋まっている／その駒が入れない地形なら最寄りの空きへずらす。
 ## 見つからなければ Vector2i.MAX。近い順に見るので、ずれても意図した場所の近くに出る。
@@ -399,7 +399,7 @@ func can_board(u: Unit, transport: Unit) -> bool:
 		return false
 	if u.is_transport() or u.team != transport.team:
 		return false
-	return passengers(transport.id).size() < transport.capacity
+	return passengers(transport.handle).size() < transport.capacity
 
 ## 駒を輸送へ直接積む（初期配置・乗車の内部処理。行動フラグは触らない）。
 func put_passenger(transport_id: int, u: Unit) -> void:
@@ -414,12 +414,12 @@ func put_passenger(transport_id: int, u: Unit) -> void:
 ## （積み降ろしは人手＝移動0の駒も隣へ降ろせる）。進入不可地形（x）は特例でも不可。
 ## 乗車したターン（行動済み）の駒は降りられない＝空。
 func _unload_map(transport_id: int, index: int) -> Dictionary:
-	var t := unit_by_id(transport_id)
+	var t := unit_by_handle(transport_id)
 	var list := passengers(transport_id)
 	if t == null or index < 0 or index >= list.size():
 		return {}
 	var p: Unit = list[index]
-	if has_moved(p.id):
+	if has_moved(p.handle):
 		return {}  # 乗車したターンは行動完了＝降りられない（翌ターンから）
 	var m := Hex.flood_reach_cost_map(t.pos, p.move, _enter_cost.bind(p), _move_stop.bind(p))
 	var cells := {}
@@ -450,7 +450,7 @@ func unload_attack_targets(transport_id: int, index: int, from_hex: Vector2i) ->
 	var p: Unit = list[index]
 	for u in _units:
 		if _can_attack_from(p, u, from_hex):
-			ids.append(u.id)
+			ids.append(u.handle)
 	return ids
 
 ## 搭乗駒 index を to へ降ろす。降車＝その駒の通常移動（コスト消費・以後攻撃は可能）。
@@ -463,8 +463,8 @@ func unload(transport_id: int, index: int, to: Vector2i) -> bool:
 	_passengers[transport_id].remove_at(index)
 	p.pos = to
 	_units.append(p)
-	_moved[p.id] = true
-	_spent[p.id] = int(m[to])
+	_moved[p.handle] = true
+	_spent[p.handle] = int(m[to])
 	_try_capture(p)
 	return true
 
@@ -562,7 +562,7 @@ func travel_cost_field_avoiding_units(goal: Vector2i, move_type: String, budget:
 		if not in_field(hex):
 			return Movement.IMPASSABLE
 		var occ := unit_at(hex)
-		if hex != goal and hex != from_hex and occ != null and not ignore_ids.has(occ.id):
+		if hex != goal and hex != from_hex and occ != null and not ignore_ids.has(occ.handle):
 			return Movement.IMPASSABLE  # 標的以外の駒は壁
 		var c := Movement.cost(_movement, move_type, terrain_at(hex))
 		if max_step_cost > 0 and c > max_step_cost:
@@ -608,23 +608,23 @@ func visible_hexes(from: Vector2i, budget: int) -> Dictionary:
 	_sight_cache[key] = vis
 	return vis
 
-## unit_id が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
+## handle が「残り移動力」で到達できるヘックス（起点を含む）。盤外・敵は進入不可、地形はコスト。
 ## 味方のマスは通過できるが停止できない（到達候補には含めない）。
 ## 敵ZOC（敵に隣接するマス）に入ると停止＝その先へは進めない（飛行含む全移動タイプ）。
-func reachable(unit_id: int) -> Array[Vector2i]:
+func reachable(handle: int) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
-	for h in _reach_map(unit_id):
+	for h in _reach_map(handle):
 		result.append(h)
 	return result
 
-## unit_id が to へ移動するときに通るヘックス列（起点 u.pos で始まり to で終わる）。
+## handle が to へ移動するときに通るヘックス列（起点 u.pos で始まり to で終わる）。
 ## 移動できない to には空配列。盤の状態は変えない（見た目＝移動アニメの経路に使う）。
 ## move_unit より前に呼ぶこと: 移動後は u.pos と _spent が変わり、同じ経路は復元できない。
-func path_to(unit_id: int, to: Vector2i) -> Array[Vector2i]:
-	var u := unit_by_id(unit_id)
-	if u == null or to == u.pos or not _reach_map(unit_id).has(to):
+func path_to(handle: int, to: Vector2i) -> Array[Vector2i]:
+	var u := unit_by_handle(handle)
+	if u == null or to == u.pos or not _reach_map(handle).has(to):
 		return []
-	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
+	var budget := maxi(u.move - int(_spent.get(handle, 0)), 0)
 	var prev := Hex.flood_reach_prev_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
 	if not prev.has(to):
 		# 隣接1マスの特例（乗れる輸送）は探索の外＝経路を持たない。隣接なので直進で足りる。
@@ -640,15 +640,15 @@ func path_to(unit_id: int, to: Vector2i) -> Array[Vector2i]:
 	path.reverse()
 	return path
 
-## 入口 from から unit_id がいま立っているヘックスまでの通り道（見た目だけの経路）。
+## 入口 from から handle がいま立っているヘックスまでの通り道（見た目だけの経路）。
 ## 移動力の予算・敵ZOC・ほかの駒は見ない＝地形の進入可否だけをたどる（駒どうしはすり抜ける）。
 ## 1マスの進入コストがその駒の移動力を超えるヘックスは通さない＝何ターンかけても入れないマスは
 ## その駒の道ではない（移動2の駒にとっての柵。travel_cost_field と同じ線引き）。
 ## 移動力0の駒（据え置き）は上限を課さない＝運び込まれた体で歩かせる。
 ## 増援の登場の演出が使う。たどり着けなければ空配列＝呼んだ側はその駒をその場に出す。
 ## 詳細 → doc/gdd/map.md イベント（entry／from）・doc/gdd/uiux.md 移動の見せ方
-func entry_path(unit_id: int, from: Vector2i) -> Array[Vector2i]:
-	var u := unit_by_id(unit_id)
+func entry_path(handle: int, from: Vector2i) -> Array[Vector2i]:
+	var u := unit_by_handle(handle)
 	if u == null or not in_field(from) or from == u.pos:
 		return []
 	var max_step := u.move
@@ -673,11 +673,11 @@ func entry_path(unit_id: int, from: Vector2i) -> Array[Vector2i]:
 ## reachable の {ヘックス: 到達コスト} 版（残り移動力で計算）。移動コスト消費に使う。
 ## 隣接1マスの特例: 隣接する乗れる輸送のマスは、移動力・地形コストに関係なく常に含める
 ## （積み降ろしは人手＝移動0の駒も隣の輸送には乗れる）。詳細 → doc/gdd/movement.md（輸送）
-func _reach_map(unit_id: int) -> Dictionary:
-	var u := unit_by_id(unit_id)
+func _reach_map(handle: int) -> Dictionary:
+	var u := unit_by_handle(handle)
 	if u == null:
 		return {}
-	var budget := maxi(u.move - int(_spent.get(unit_id, 0)), 0)
+	var budget := maxi(u.move - int(_spent.get(handle, 0)), 0)
 	var m := Hex.flood_reach_cost_map(u.pos, budget, _enter_cost.bind(u), _move_stop.bind(u))
 	# 味方のマスは通過できるが停止できない＝到達候補から除外（起点・乗れる輸送は残す）。
 	var result := {}
@@ -720,37 +720,37 @@ func _move_stop(hex: Vector2i, u: Unit) -> bool:
 func in_enemy_zoc(hex: Vector2i, u: Unit, ignore_id: int = -1, ignore_ids: Dictionary = {}) -> bool:
 	for nb in Hex.neighbors(hex):
 		var occ := unit_at(nb)
-		if occ != null and occ.team != u.team and occ.id != ignore_id and not ignore_ids.has(occ.id):
+		if occ != null and occ.team != u.team and occ.handle != ignore_id and not ignore_ids.has(occ.handle):
 			return true
 	return false
 
 ## 妥当なら移動を適用して true。ターン違い・移動権なし・不正先なら false。移動コストを予算から消費。
 ## 移動先が「乗れる味方輸送」のマスなら乗車＝盤から降りて搭乗し、その駒は行動完了になる。
-func move_unit(unit_id: int, to: Vector2i) -> bool:
-	if not _can_act_move(unit_id):
+func move_unit(handle: int, to: Vector2i) -> bool:
+	if not _can_act_move(handle):
 		return false
-	var rm := _reach_map(unit_id)
-	var u := unit_by_id(unit_id)
+	var rm := _reach_map(handle)
+	var u := unit_by_handle(handle)
 	if to == u.pos or not rm.has(to):
 		return false
 	var occ := unit_at(to)
 	if occ != null:
 		if not can_board(u, occ):
 			return false
-		_take_off_board(unit_id)  # 乗車: 盤から外して輸送へ（撃破記録は付かない）
-		put_passenger(occ.id, u)
-		_moved[unit_id] = true    # 乗った駒は行動完了（doc/gdd/movement.md）
-		_post_moved[unit_id] = true
-		_attacked[unit_id] = true
-		_spent[unit_id] = u.move
+		_take_off_board(handle)  # 乗車: 盤から外して輸送へ（撃破記録は付かない）
+		put_passenger(occ.handle, u)
+		_moved[handle] = true    # 乗った駒は行動完了（doc/gdd/movement.md）
+		_post_moved[handle] = true
+		_attacked[handle] = true
+		_spent[handle] = u.move
 		return true
 	u.pos = to
-	_spent[unit_id] = int(_spent.get(unit_id, 0)) + int(rm[to])
+	_spent[handle] = int(_spent.get(handle, 0)) + int(rm[to])
 	# 攻撃前なら通常移動、攻撃後なら再移動として消費（どちらも1回）。
-	if has_attacked(unit_id):
-		_post_moved[unit_id] = true
+	if has_attacked(handle):
+		_post_moved[handle] = true
 	else:
-		_moved[unit_id] = true
+		_moved[handle] = true
 	_try_capture(u)  # 占領可ユニットが敵/中立拠点に入ったら即占領
 	return true
 
@@ -765,19 +765,19 @@ func _try_capture(u: Unit) -> void:
 
 ## いま移動できるか（ターン・移動権・残り予算）。
 ## 攻撃前: 通常移動を未使用なら可。攻撃後: 再移動可ユニットが再移動を未使用なら可。
-func _can_act_move(unit_id: int) -> bool:
-	var u := unit_by_id(unit_id)
+func _can_act_move(handle: int) -> bool:
+	var u := unit_by_handle(handle)
 	if not is_current_unit(u):
 		return false
-	if int(_spent.get(unit_id, 0)) >= u.move and _adjacent_boardable(u).is_empty():
+	if int(_spent.get(handle, 0)) >= u.move and _adjacent_boardable(u).is_empty():
 		return false  # 予算切れ（隣接に乗れる輸送があれば特例で乗車だけはできる）
-	if has_attacked(unit_id):
-		return u.move_after_attack and not _post_moved.has(unit_id)
-	return not _moved.has(unit_id)
+	if has_attacked(handle):
+		return u.move_after_attack and not _post_moved.has(handle)
+	return not _moved.has(handle)
 
 ## いま移動できるか（公開）。盤の移動範囲表示などに使う。
-func can_still_move(unit_id: int) -> bool:
-	return _can_act_move(unit_id)
+func can_still_move(handle: int) -> bool:
+	return _can_act_move(handle)
 
 # --- 出撃（ネクタリス方式・占領済み拠点から1歩で出す） ---
 
@@ -821,7 +821,7 @@ func _enterable_terrain(move_type: String, terrain: String) -> bool:
 func _deploy_boardable(b: Base, garrison_index: int, occ: Unit) -> bool:
 	if not occ.is_transport() or occ.team != b.team:
 		return false
-	if passengers(occ.id).size() >= occ.capacity:
+	if passengers(occ.handle).size() >= occ.capacity:
 		return false
 	if garrison_index >= 0:
 		return garrison_index < b.garrison.size() and not (b.garrison[garrison_index] as Unit).is_transport()
@@ -841,7 +841,7 @@ func can_deploy_garrison(base_hex: Vector2i, index: int) -> bool:
 	# このターン行動を終えた駒は出せない＝「入る」で収容した駒の往復を止める。判定は明示的な
 	# 行動終了フラグだけを見る（盤外の駒に is_done / is_stuck の盤面判定は当てられない）。
 	# フラグは end_turn で一掃される＝次の自軍ターンから出せる。
-	if _done.has(u.id):
+	if _done.has(u.handle):
 		return false
 	return u.is_unclaimed() or u.recruited_team == b.team
 
@@ -869,30 +869,30 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	if u.is_unclaimed():
 		u.recruited_team = current_team  # 解放＝帰属確定。以後は拠点を奪われても寝返らず捕虜になる
 	if occ != null:
-		put_passenger(occ.id, u)  # 出撃先が輸送＝直接乗車（盤上には出ない）
+		put_passenger(occ.handle, u)  # 出撃先が輸送＝直接乗車（盤上には出ない）
 	else:
 		u.pos = to_hex
 		_units.append(u)
 	if b.squad_index >= 0:
-		assign_squad(u.id, b.squad_index)  # 拠点=部隊の駒として振る舞う（敵AIの拠点出撃。ai.md 拠点出撃）
+		assign_squad(u.handle, b.squad_index)  # 拠点=部隊の駒として振る舞う（敵AIの拠点出撃。ai.md 拠点出撃）
 	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃も降車もこれ以上しない）。
-	_moved[u.id] = true
-	_post_moved[u.id] = true
-	_attacked[u.id] = true
-	_spent[u.id] = u.move
+	_moved[u.handle] = true
+	_post_moved[u.handle] = true
+	_attacked[u.handle] = true
+	_spent[u.handle] = u.move
 	return true
 
 ## 自軍所有の拠点に「入る」（駐留）。拠点hexに立っている駒を garrison へ移す＝盤上から消える。
 ## 中でターン開始ごとに回復（_heal_garrisons）。出るのは出撃（deploy）＝1歩・行動完了。
-func can_enter_base(unit_id: int) -> bool:
-	var u := unit_by_id(unit_id)
-	return u != null and can_enter_base_at(unit_id, u.pos)
+func can_enter_base(handle: int) -> bool:
+	var u := unit_by_handle(handle)
+	return u != null and can_enter_base_at(handle, u.pos)
 
 ## dest_hex（自軍拠点）へ移動して「入る」が許されるか。メニュー表示は移動前に先読みするため、
 ## 現在位置ではなく移動先を仮定して判定する（実行時は dest_hex＝現在位置で同じ規則になる）。
 ## 案B: 盤上最後の1体でも、入った直後に復帰手段が残るなら入れる（即敗北を防ぐ）。
-func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
-	var u := unit_by_id(unit_id)
+func can_enter_base_at(handle: int, dest_hex: Vector2i) -> bool:
+	var u := unit_by_handle(handle)
 	if not is_current_unit(u):
 		return false
 	var b := base_at(dest_hex)
@@ -909,34 +909,34 @@ func can_enter_base_at(unit_id: int, dest_hex: Vector2i) -> bool:
 ## 輸送が入ったときは積載を空にし、搭乗駒も garrison へ移す＝拠点の中に「積んだままの馬車」を
 ## 残さない（中では降ろせないので、そのままだと搭乗駒が回復も出撃もできない）。搭乗駒にも行動終了を
 ## 付ける＝乗せて入ってその場でバラまく再配置を止める（輸送自身の往復を止めるのと同じ理由）。
-func enter_base(unit_id: int) -> bool:
-	if not can_enter_base(unit_id):
+func enter_base(handle: int) -> bool:
+	if not can_enter_base(handle):
 		return false
-	var u := unit_by_id(unit_id)
+	var u := unit_by_handle(handle)
 	var b := base_at(u.pos)
-	_take_off_board(unit_id)
-	set_done(unit_id)  # 入るのも1手＝行動終了。これがそのターンの出撃を止める（往復させない）
+	_take_off_board(handle)
+	set_done(handle)  # 入るのも1手＝行動終了。これがそのターンの出撃を止める（往復させない）
 	b.garrison.append(u)
-	for p in passengers(unit_id):
-		set_done(p.id)
+	for p in passengers(handle):
+		set_done(p.handle)
 		b.garrison.append(p)
-	_passengers.erase(unit_id)
+	_passengers.erase(handle)
 	return true
 
 # --- 攻撃 ---
 
 ## attacker が target を攻撃できるか（現ターン・未攻撃・射程内の敵）。
 func can_attack(attacker_id: int, target_id: int) -> bool:
-	var a := unit_by_id(attacker_id)
+	var a := unit_by_handle(attacker_id)
 	if a == null:
 		return false
-	return _can_attack_from(a, unit_by_id(target_id), a.pos)
+	return _can_attack_from(a, unit_by_handle(target_id), a.pos)
 
 ## from_hex に attacker が居ると仮定したときの攻撃可否。仮移動でメニューを出す（移動確定前）ために使う。
 func _can_attack_from(a: Unit, t: Unit, from_hex: Vector2i) -> bool:
 	if a == null:
 		return false
-	if not is_current_unit(a) or has_attacked(a.id):
+	if not is_current_unit(a) or has_attacked(a.handle):
 		return false
 	return _can_hit(a, t, from_hex)
 
@@ -954,18 +954,18 @@ func _can_hit(a: Unit, t: Unit, from_hex: Vector2i) -> bool:
 
 ## attacker が今いる位置から攻撃できる敵ユニットIDの一覧。
 func attack_targets(attacker_id: int) -> Array[int]:
-	var a := unit_by_id(attacker_id)
+	var a := unit_by_handle(attacker_id)
 	return attack_targets_from(attacker_id, a.pos) if a != null else []
 
 ## from_hex に居ると仮定して攻撃できる敵ID一覧（移動を確定せずコマンドメニューを出すため）。
 func attack_targets_from(attacker_id: int, from_hex: Vector2i) -> Array[int]:
-	var a := unit_by_id(attacker_id)
+	var a := unit_by_handle(attacker_id)
 	var ids: Array[int] = []
 	if a == null:
 		return ids
 	for u in _units:
 		if _can_attack_from(a, u, from_hex):
-			ids.append(u.id)
+			ids.append(u.handle)
 	return ids
 
 ## 攻撃を解決。両軍同時攻撃（防御側は反撃する）。
@@ -973,8 +973,8 @@ func attack_targets_from(attacker_id: int, from_hex: Vector2i) -> Array[int]:
 func attack(attacker_id: int, target_id: int) -> AttackResult:
 	if not can_attack(attacker_id, target_id):
 		return null
-	var a := unit_by_id(attacker_id)
-	var t := unit_by_id(target_id)
+	var a := unit_by_handle(attacker_id)
+	var t := unit_by_handle(target_id)
 	var melee := Hex.distance(a.pos, t.pos) <= 1  # 距離1の攻撃＝近接（反撃あり）、距離≥2＝遠隔（反撃なし）
 	# 反撃は「近接（距離1）」かつ「防御側が距離1を狙えて、攻撃側を攻撃できる」ときだけ成立。
 	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない／砲兵(min_range≥2)は懐の敵に反撃できない（→被反撃なし・Lv+0）。
@@ -1023,15 +1023,15 @@ func attack(attacker_id: int, target_id: int) -> AttackResult:
 ## 特性ごとの行動ルールが決める。
 const UNREACHABLE := 1 << 30
 
-## 標的 target_id に攻撃可能なマスの集合＝unit_id の駒がそこに立てば攻撃が届くマス。
+## 標的 target_id に攻撃可能なマスの集合＝handle の駒がそこに立てば攻撃が届くマス。
 ## 射程（min_range〜attack_range）だけでなく、その標的を攻撃できるか（対空・対地）まで見る
 ## ＝対空攻撃力の無い駒にとって飛行の標的は1マスも持たない＝距離が測れない。
 ## 空きも地形も見ない: 駒で埋まったマスは移動距離の側で壁として落ち、地形距離では逆に数える
 ## （地形距離は駒を壁にしない）。ここで絞ると2つの距離の使い分けが潰れる。
-func attack_cells(unit_id: int, target_id: int) -> Array[Vector2i]:
+func attack_cells(handle: int, target_id: int) -> Array[Vector2i]:
 	var cells: Array[Vector2i] = []
-	var a := unit_by_id(unit_id)
-	var t := unit_by_id(target_id)
+	var a := unit_by_handle(handle)
+	var t := unit_by_handle(target_id)
 	if a == null or t == null:
 		return cells
 	for hex in Hex.within_range(t.pos, a.attack_range):
@@ -1043,22 +1043,22 @@ func attack_cells(unit_id: int, target_id: int) -> Array[Vector2i]:
 func _max_unit_id() -> int:
 	var m := 0
 	for u in _units:
-		if u.id > m:
-			m = u.id
+		if u.handle > m:
+			m = u.handle
 	for list in _passengers.values():
 		for u in list:
-			if u.id > m:
-				m = u.id
+			if u.handle > m:
+				m = u.handle
 	for b in _bases:
 		for u in b.garrison:
-			if u.id > m:
-				m = u.id
+			if u.handle > m:
+				m = u.handle
 	return m
 
 ## 分裂スキル（⑤スライムスプリット）の実行。発動者の隣接する空きマスへ複製を1体置く。
 ## 空きマスが無ければ null を返す（発動失敗）。呼ぶのは FormationResolver。詳細 → doc/gdd/skills.md
 func spawn_unit(caster_id: int) -> Unit:
-	var caster := unit_by_id(caster_id)
+	var caster := unit_by_handle(caster_id)
 	if caster == null:
 		return null
 	# 隣接する空きマス（盤内かつ駒が居ない）を探す
@@ -1095,7 +1095,7 @@ func spawn_unit(caster_id: int) -> Unit:
 ## troops_after は troops_before と同じ値で返す＝兵数が動く呼び手が上書きする。
 func unit_snapshot(u: Unit) -> UnitSnapshot:
 	var s := UnitSnapshot.new()
-	s.id = u.id
+	s.handle = u.handle
 	s.type_id = u.type_id
 	s.skin_id = u.skin_id
 	s.actor = u.actor
@@ -1114,17 +1114,17 @@ func unit_snapshot(u: Unit) -> UnitSnapshot:
 
 ## 撃破された駒を盤から除去し、撃破済みとして記録（勝利条件「ボス撃破」の判定材料）。
 ## 輸送が撃破された場合、搭乗中の駒も失われる（ネクタリス準拠）。
-func _remove_unit(unit_id: int) -> void:
-	_defeated[unit_id] = true
-	var lost := unit_by_id(unit_id)
+func _remove_unit(handle: int) -> void:
+	_defeated[handle] = true
+	var lost := unit_by_handle(handle)
 	_mark_actor_defeated(lost)
 	_count_loss(lost)
-	for p in passengers(unit_id):
-		_defeated[p.id] = true  # 巻き添え（盤上には居ないのでリストから消すだけ）
+	for p in passengers(handle):
+		_defeated[p.handle] = true  # 巻き添え（盤上には居ないのでリストから消すだけ）
 		_mark_actor_defeated(p)
 		_count_loss(p)
-	_passengers.erase(unit_id)
-	_take_off_board(unit_id)
+	_passengers.erase(handle)
+	_take_off_board(handle)
 
 ## 失った駒を陣営ごとに数える。兵器は数えない（→ doc/gdd/rank.md）＝敵の兵器を壊しても撃破に乗らない。
 func _count_loss(u: Unit) -> void:
@@ -1138,9 +1138,9 @@ func _mark_actor_defeated(u: Unit) -> void:
 		_defeated_actors[u.actor] = true
 
 ## 駒を盤上リストから外す（撃破記録は付けない。乗車・撃破処理の内部用）。
-func _take_off_board(unit_id: int) -> void:
+func _take_off_board(handle: int) -> void:
 	for i in _units.size():
-		if _units[i].id == unit_id:
+		if _units[i].handle == handle:
 			_units.remove_at(i)
 			return
 
@@ -1216,9 +1216,9 @@ func _base_has_open_neighbor(b: Base) -> bool:
 			return true
 	return false
 
-## 撃破済みの駒か。盤から消えた駒は unit_by_id では引けないので記録を見る。
-func is_defeated(unit_id: int) -> bool:
-	return _defeated.has(unit_id)
+## 撃破済みの駒か。盤から消えた駒は unit_by_handle では引けないので記録を見る。
+func is_defeated(handle: int) -> bool:
+	return _defeated.has(handle)
 
 ## 名指しした駒（actor）が撃破済みか。ボス撃破・護衛対象の喪失が見る。詳細 → doc/gdd/map.md
 func is_actor_defeated(actor: String) -> bool:
@@ -1227,10 +1227,10 @@ func is_actor_defeated(actor: String) -> bool:
 ## 駒を1体、戦闘を経ずに盤から除去する（撃破扱い＝ボス撃破の勝利条件にも効く）。
 ## 戦闘の結果ではない除去の入口＝デバッグメニューの「敵を殲滅」が使う。詳細 → doc/gdd/uiux.md
 ## 盤に居ない駒（既に撃破・搭乗中）を指したら false。
-func remove_unit(unit_id: int) -> bool:
-	if unit_by_id(unit_id) == null:
+func remove_unit(handle: int) -> bool:
+	if unit_by_handle(handle) == null:
 		return false
-	_remove_unit(unit_id)
+	_remove_unit(handle)
 	return true
 
 ## 決着結果。判定規則は Victory（static ヘルパー）が持つ＝勝利条件タイプが増えても state は太らない。
@@ -1247,55 +1247,55 @@ func is_current_unit(u: Unit) -> bool:
 	return u != null and u.team == current_team
 
 ## このターンに（攻撃前の）移動を使ったか。
-func has_moved(unit_id: int) -> bool:
-	return _moved.has(unit_id)
+func has_moved(handle: int) -> bool:
+	return _moved.has(handle)
 
 ## このターンに攻撃済みか。
-func has_attacked(unit_id: int) -> bool:
-	return _attacked.has(unit_id)
+func has_attacked(handle: int) -> bool:
+	return _attacked.has(handle)
 
 ## このターンの行動を終えたか（明示的に待機した／このターン動くか撃つかして、もう手が残っていない）。
 ## このターンまだ何もしていない駒は、瓦礫や味方に囲まれて行ける先が無くても終わりにしない
 ## ＝暗く落とさず、選択も陣形への参加もできる（そちらは is_stuck で見る）。
 ## 降車は「搭乗駒の行動」＝輸送自身が行動完了（待機・攻撃済み）でも、降ろせる駒が居る限り
 ## 選択可能にする（未行動の搭乗駒はいつでも降ろせる）。詳細 → doc/gdd/movement.md
-func is_done(unit_id: int) -> bool:
-	if _has_unloadable_passenger(unit_id):
+func is_done(handle: int) -> bool:
+	if _has_unloadable_passenger(handle):
 		return false  # 「待機」済みでも降車のために選択できる
-	if _done.has(unit_id):
+	if _done.has(handle):
 		return true  # 「待機」で行動終了済み
-	if not has_moved(unit_id) and not has_attacked(unit_id):
+	if not has_moved(handle) and not has_attacked(handle):
 		return false  # このターンまだ何も使っていない＝手詰まりでも「終えた」ではない
-	return is_stuck(unit_id)
+	return is_stuck(handle)
 
 ## 打つ手が無いか（行ける先も撃てる相手も無い）。行動を使ったかどうかとは別＝ターン開始から
 ## 手詰まりの駒もありうる（瓦礫に囲まれる・味方で塞がれる・敵ZOCで出口が終端になる）。
 ## 手詰まりでも陣形スキルには参加できるので、盤の表示・選択可否はこれではなく is_done を見る。
-func is_stuck(unit_id: int) -> bool:
-	var can_atk := not has_attacked(unit_id) and not attack_targets(unit_id).is_empty()
-	var can_mv := _can_act_move(unit_id) and reachable(unit_id).size() > 1  # 自分以外に行ける
+func is_stuck(handle: int) -> bool:
+	var can_atk := not has_attacked(handle) and not attack_targets(handle).is_empty()
+	var can_mv := _can_act_move(handle) and reachable(handle).size() > 1  # 自分以外に行ける
 	return not can_atk and not can_mv
 
 ## このターンの行動をまだ使っていないか（「待機」で終えておらず、攻撃もしていない）。
 ## is_done と違い「行ける先が無い／撃てる相手が居ない」を終了扱いにしない。移動してから
 ## 撃てるユニットスキルは、移動後この判定で発動可否を決める。詳細 → doc/gdd/skills.md
-func has_action_left(unit_id: int) -> bool:
-	return not _done.has(unit_id) and not has_attacked(unit_id)
+func has_action_left(handle: int) -> bool:
+	return not _done.has(handle) and not has_attacked(handle)
 
 ## 降ろせる搭乗駒（このターン未行動）が居るか。
-func _has_unloadable_passenger(unit_id: int) -> bool:
-	for p in passengers(unit_id):
-		if not has_moved(p.id):
+func _has_unloadable_passenger(handle: int) -> bool:
+	for p in passengers(handle):
+		if not has_moved(p.handle):
 			return true
 	return false
 
 ## 明示的に行動終了させる（コマンドメニューの「待機」）。再選択・再行動を止める。
-func set_done(unit_id: int) -> void:
-	_done[unit_id] = true
+func set_done(handle: int) -> void:
+	_done[handle] = true
 
 ## 選択して操作できる状態か（現ターン・まだ行動が残っている）。
-func can_select(unit_id: int) -> bool:
-	return is_current_unit(unit_by_id(unit_id)) and not is_done(unit_id)
+func can_select(handle: int) -> bool:
+	return is_current_unit(unit_by_handle(handle)) and not is_done(handle)
 
 ## ターンを次の陣営へ。行動済みフラグを一掃し、0 に戻ったらターン+1。
 ## ターン開始時に、拠点に駐留中（garrison）の駒を回復（休憩＝中に入るモデル）。
@@ -1421,7 +1421,7 @@ func _apply_diff_units(diff: Dictionary, catalog: Dictionary) -> void:
 			continue
 		_units.append(u)
 	for tid in _as_dict(diff.get("passengers", {})):
-		if unit_by_id(int(tid)) == null:
+		if unit_by_handle(int(tid)) == null:
 			continue  # 輸送ごと盤から落ちた＝搭乗者も出さない
 		var arr: Array[Unit] = []
 		for pd in diff["passengers"][tid]:
@@ -1459,26 +1459,26 @@ func _apply_diff_bases(diff: Dictionary, catalog: Dictionary) -> Array:
 func _renumber_stage_units(fresh_bases: Array) -> void:
 	var next_id := 1
 	for u in _units:
-		next_id = maxi(next_id, u.id + 1)
+		next_id = maxi(next_id, u.handle + 1)
 	for tid in _passengers:
 		for p in _passengers[tid]:
-			next_id = maxi(next_id, (p as Unit).id + 1)
+			next_id = maxi(next_id, (p as Unit).handle + 1)
 	for b in _bases:
 		if b in fresh_bases:
 			continue
 		for gu in b.garrison:
-			next_id = maxi(next_id, (gu as Unit).id + 1)
+			next_id = maxi(next_id, (gu as Unit).handle + 1)
 	for b in fresh_bases:
 		for gu in b.garrison:
-			(gu as Unit).id = next_id
+			(gu as Unit).handle = next_id
 			next_id += 1
 	for e in _events:
 		for item in e.units:
 			if item.unit != null:
-				item.unit.id = next_id
+				item.unit.handle = next_id
 				next_id += 1
 			for p in item.passengers:
-				p.id = next_id
+				p.handle = next_id
 				next_id += 1
 
 ## int キーの dict → 文字列キーの dict（JSON はキーを文字列化するので保存時に明示変換）。
@@ -1516,7 +1516,7 @@ static func _as_dict(v: Variant) -> Dictionary:
 	return v if typeof(v) == TYPE_DICTIONARY else {}
 
 ## _charges を JSON 化可能な dict に変換（キーを文字列化）。
-## { unit_id(int): { recipe_id: int } } → { "unit_id": { recipe_id: int } }
+## { handle(int): { recipe_id: int } } → { "unit_id": { recipe_id: int } }
 func _charges_to_dict() -> Dictionary:
 	var out := {}
 	for uid in _charges:

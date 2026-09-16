@@ -29,7 +29,7 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	if not in_range.is_empty():
 		var ids := pick.air_first(pick.air_prey(state, u), in_range)
 		ids = pick.killable_first(state, u, ids)
-		return AiAction.attack(u.id, pick.most_gain_id(state, u, ids))
+		return AiAction.attack(u.handle, pick.most_gain_id(state, u, ids))
 	return _spacing_advance(state, u)
 
 ## standoff の移動（7〜9）。行き先は脅威圏の外に限り、外に1マスも無ければ動かない。
@@ -44,13 +44,13 @@ func _spacing_advance(state: BattleState, u: Unit) -> AiAction:
 	var safe := rows.safe_cells(state, u)
 	if safe.is_empty():
 		return null
-	var move_field := AiDistance.move_cost_field(state, u.id, u.pos)
+	var move_field := AiDistance.move_cost_field(state, u.handle, u.pos)
 	var target := pick.nearest_target(state, u, enemies, move_field)
 	if target != null:
-		return rows.spacing_step(state, u, safe, AiDistance.move_cost_field(state, u.id, target.pos),
-			state.attack_cells(u.id, target.id))
-	target = pick.nearest_target(state, u, enemies, AiDistance.terrain_cost_field(state, u.id, u.pos))
+		return rows.spacing_step(state, u, safe, AiDistance.move_cost_field(state, u.handle, target.pos),
+			state.attack_cells(u.handle, target.handle))
+	target = pick.nearest_target(state, u, enemies, AiDistance.terrain_cost_field(state, u.handle, u.pos))
 	if target != null:
-		return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.id, target.pos),
-			state.attack_cells(u.id, target.id), safe)
+		return rows.advance(state, u, AiDistance.terrain_cost_field(state, u.handle, target.pos),
+			state.attack_cells(u.handle, target.handle), safe)
 	return rows.advance_straight(state, u, pick.nearest_unit_by_board(u.pos, enemies).pos, safe)

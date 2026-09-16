@@ -124,7 +124,7 @@ func _ready() -> void:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 
-	if not controller.execute_attack(AttackCommand.new(atk.id, tgt.id)):
+	if not controller.execute_attack(AttackCommand.new(atk.handle, tgt.handle)):
 		push_error("shot_combat: 攻撃が通らない（隣接/射程/行動済みを確認）")
 		get_tree().quit(1)
 		return

@@ -112,7 +112,7 @@ static func defense_breakdown_from(troops: int, stat: int, lv: float, surround: 
 static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) -> float:
 	var total := 0.0
 	for ally in state.units():
-		if ally.team != u.team or ally.id == u.id:
+		if ally.team != u.team or ally.handle == u.handle:
 			continue
 		if Hex.distance(ally.pos, enemy.pos) != 1:
 			continue

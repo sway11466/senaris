@@ -387,7 +387,7 @@ func _split_state() -> Dictionary:
 	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()  # 敵ターン（team=1）に進める
-	s.set_charge(slime.id, "slime_split", 3)  # チャージ済み（即発動できる状態）
+	s.set_charge(slime.handle, "slime_split", 3)  # チャージ済み（即発動できる状態）
 	return {"s": s, "slime": slime}
 
 func _split_option(f: Dictionary) -> FormationOption:
@@ -428,7 +428,7 @@ func test_split_inherits_troops() -> void:
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	var spawned: Unit = null
 	for u in s.units():
-		if u.id != f["slime"].id:
+		if u.handle != f["slime"].handle:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_eq(spawned.troops, 5, "兵数は発動者の現在値を引き継ぐ")
@@ -440,16 +440,16 @@ func test_split_spawned_is_done() -> void:
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	var spawned: Unit = null
 	for u in s.units():
-		if u.id != f["slime"].id:
+		if u.handle != f["slime"].handle:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
-	assert_true(s.is_done(spawned.id), "生まれたターンは行動済み")
+	assert_true(s.is_done(spawned.handle), "生まれたターンは行動済み")
 
 func test_split_caster_is_done() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_true(s.is_done(f["slime"].id), "発動者は行動完了")
+	assert_true(s.is_done(f["slime"].handle), "発動者は行動完了")
 
 func test_split_caster_gains_no_level() -> void:
 	# 共通ルール「発動者は Lv+1」の例外＝分裂ではレベルが上がらない。詳細 → doc/gdd/skills.md ⑤
@@ -465,7 +465,7 @@ func test_split_result_cells_hold_spawned_hex() -> void:
 	var result := FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	var spawned: Unit = null
 	for u in s.units():
-		if u.id != f["slime"].id:
+		if u.handle != f["slime"].handle:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
 	var cells := result.cells
@@ -478,7 +478,7 @@ func test_split_spawned_inherits_skin_and_type() -> void:
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	var spawned: Unit = null
 	for u in s.units():
-		if u.id != f["slime"].id:
+		if u.handle != f["slime"].handle:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_eq(spawned.skin_id, "slime", "skin_id を引き継ぐ")
@@ -494,10 +494,10 @@ func test_split_id_does_not_collide() -> void:
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	var spawned: Unit = null
 	for u in s.units():
-		if u.id != f["slime"].id and u.id != 100:
+		if u.handle != f["slime"].handle and u.handle != 100:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
-	assert_gt(spawned.id, 100, "既存の最大 id より大きい")
+	assert_gt(spawned.handle, 100, "既存の最大 id より大きい")
 
 ## 隣接に空きマスが無ければメニューに出ない＝発動できない。
 func test_split_not_offered_when_surrounded() -> void:
@@ -539,9 +539,9 @@ func _purify_option(f: Dictionary) -> FormationOption:
 
 ## near に有害な弱体（ドレッドタッチ相当）と無害な強化（ピクシーダスト相当）を1つずつ掛ける。
 func _afflict(s: BattleState, u: Unit) -> void:
-	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
+	s.add_status_mod({"scope": "unit", "unit_id": u.handle, "op": "add", "target": "both",
 		"value": -80.0, "owner_team": 1, "remaining": 1, "name": "ドレッドタッチ", "kind": "debuff"})
-	s.add_status_mod({"scope": "unit", "unit_id": u.id, "op": "add", "target": "both",
+	s.add_status_mod({"scope": "unit", "unit_id": u.handle, "op": "add", "target": "both",
 		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "ピクシーダスト", "kind": "buff"})
 
 func test_purify_offered_by_clergy_alone() -> void:
@@ -590,7 +590,7 @@ func test_purify_ignores_buff_only_ally() -> void:
 	var f := _purify_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
-	s.add_status_mod({"scope": "unit", "unit_id": near.id, "op": "add", "target": "both",
+	s.add_status_mod({"scope": "unit", "unit_id": near.handle, "op": "add", "target": "both",
 		"value": 80.0, "owner_team": 0, "remaining": 1, "kind": "buff"})
 	assert_false(Formation.can_target(s, _purify_option(f), near.pos), "強化だけの味方には掛けられない")
 
@@ -631,7 +631,7 @@ func test_purify_drops_every_debuff_at_once() -> void:
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	for i in 3:
-		s.add_status_mod({"scope": "unit", "unit_id": near.id, "op": "add", "target": "both",
+		s.add_status_mod({"scope": "unit", "unit_id": near.handle, "op": "add", "target": "both",
 			"value": -50.0, "owner_team": 1, "remaining": 1, "kind": "debuff"})
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), -150.0, 0.001, "3本で -150")
 	assert_not_null(FormationResolver.resolve(s, _purify_option(f), near.pos), "発動成功")
@@ -689,7 +689,7 @@ func test_charge_allows_when_full() -> void:
 	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()  # 敵ターン
-	s.set_charge(slime.id, "slime_split", 3)
+	s.set_charge(slime.handle, "slime_split", 3)
 	var found := false
 	for o in Formation.available_for(s, slime):
 		if o.recipe == "slime_split":
@@ -705,7 +705,7 @@ func test_charge_blocks_when_short() -> void:
 	slime.move_type = "foot"
 	s.add_unit(slime)
 	s.end_turn()
-	s.set_charge(slime.id, "slime_split", 2)  # 3 が必要だが 2 しか溜まっていない
+	s.set_charge(slime.handle, "slime_split", 2)  # 3 が必要だが 2 しか溜まっていない
 	var found := false
 	for o in Formation.available_for(s, slime):
 		if o.recipe == "slime_split":
@@ -720,22 +720,22 @@ func test_charge_increments_each_turn() -> void:
 	slime.skin_id = "slime"
 	slime.move_type = "foot"
 	s.add_unit(slime)
-	assert_eq(s.get_charge(slime.id, "slime_split"), 0, "初期値は 0")
+	assert_eq(s.get_charge(slime.handle, "slime_split"), 0, "初期値は 0")
 	# team=0 のターンを終了 → team=1 のターン開始（敵ターン）＝敵駒のチャージが +1
 	s.end_turn()
-	assert_eq(s.get_charge(slime.id, "slime_split"), 1, "1ターン目で +1")
+	assert_eq(s.get_charge(slime.handle, "slime_split"), 1, "1ターン目で +1")
 	s.end_turn()  # team=1 → team=0（プレイヤーターン）＝敵は増えない
-	assert_eq(s.get_charge(slime.id, "slime_split"), 1, "相手ターンでは増えない")
+	assert_eq(s.get_charge(slime.handle, "slime_split"), 1, "相手ターンでは増えない")
 	s.end_turn()  # team=0 → team=1（敵ターン）
-	assert_eq(s.get_charge(slime.id, "slime_split"), 2, "2ターン目で +1")
+	assert_eq(s.get_charge(slime.handle, "slime_split"), 2, "2ターン目で +1")
 
 ## 発動するとチャージ量が 0 に戻る。
 func test_charge_resets_on_use() -> void:
 	var f := _split_state()  # チャージ3で即発動可
 	var s: BattleState = f["s"]
-	assert_eq(s.get_charge(f["slime"].id, "slime_split"), 3, "発動前は 3")
+	assert_eq(s.get_charge(f["slime"].handle, "slime_split"), 3, "発動前は 3")
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_eq(s.get_charge(f["slime"].id, "slime_split"), 0, "発動後は 0 に戻る")
+	assert_eq(s.get_charge(f["slime"].handle, "slime_split"), 0, "発動後は 0 に戻る")
 
 ## 分裂で生まれた駒のチャージ量は 0（溜まるまで撃てない）。
 func test_charge_spawned_starts_at_zero() -> void:
@@ -744,10 +744,10 @@ func test_charge_spawned_starts_at_zero() -> void:
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	var spawned: Unit = null
 	for u in s.units():
-		if u.id != f["slime"].id:
+		if u.handle != f["slime"].handle:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
-	assert_eq(s.get_charge(spawned.id, "slime_split"), 0, "生まれた駒のチャージ量は 0")
+	assert_eq(s.get_charge(spawned.handle, "slime_split"), 0, "生まれた駒のチャージ量は 0")
 
 ## 3ターン溜めれば盤に出た直後の駒でも発動できる（初期 0 → 3ターンで 3）。
 func test_charge_accumulates_to_threshold() -> void:
@@ -761,7 +761,7 @@ func test_charge_accumulates_to_threshold() -> void:
 	for i in 3:
 		s.end_turn()  # → enemy turn: charge +1
 		s.end_turn()  # → player turn: charge stays
-	assert_eq(s.get_charge(slime.id, "slime_split"), 3, "3ターンで必要量に達する")
+	assert_eq(s.get_charge(slime.handle, "slime_split"), 3, "3ターンで必要量に達する")
 	var found := false
 	for o in Formation.available_for(s, slime):
 		if o.recipe == "slime_split":
@@ -776,10 +776,10 @@ func test_charge_survives_serialization() -> void:
 	slime.skin_id = "slime"
 	slime.move_type = "foot"
 	s.add_unit(slime)
-	s.set_charge(slime.id, "slime_split", 2)
+	s.set_charge(slime.handle, "slime_split", 2)
 	var restored := _state()  # 同じ器（盤サイズ）を組み直して差分を被せる＝実際の再開と同じ形
 	restored.apply_save_diff(s.to_save_diff())
-	assert_eq(restored.get_charge(slime.id, "slime_split"), 2, "復元後もチャージ量が保たれる")
+	assert_eq(restored.get_charge(slime.handle, "slime_split"), 2, "復元後もチャージ量が保たれる")
 
 # --- ⑥ポイズンスティング（継続ダメージ）。詳細 → doc/gdd/skills.md ---
 
@@ -895,7 +895,7 @@ func test_sting_never_kills() -> void:
 	assert_not_null(FormationResolver.resolve(s, _sting_option(f), foe.pos), "発動成功")
 	s.end_turn()
 	assert_eq(foe.troops, 1, "残兵1は減らない")
-	assert_not_null(s.unit_by_id(foe.id), "盤から消えない")
+	assert_not_null(s.unit_by_handle(foe.handle), "盤から消えない")
 
 ## ピュリファイで落とせる（他の弱体と同じ器に乗っている）。
 func test_sting_is_cleansable() -> void:
@@ -917,4 +917,4 @@ func test_sting_survives_serialization() -> void:
 	var restored := _state()  # 同じ器（盤サイズ）を組み直して差分を被せる＝実際の再開と同じ形
 	restored.apply_save_diff(s.to_save_diff())
 	restored.end_turn()
-	assert_eq(restored.unit_by_id(foe.id).troops, 7, "復元後もターン開始で減る")
+	assert_eq(restored.unit_by_handle(foe.handle).troops, 7, "復元後もターン開始で減る")

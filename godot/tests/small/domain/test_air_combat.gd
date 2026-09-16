@@ -44,8 +44,8 @@ func test_flyer_hits_ground_no_retaliation_when_no_antiair() -> void:
 	var r := s.attack(1, 2)
 	assert_gt(r.damage(), 0, "飛行は地上を攻撃できる（対地で）")
 	assert_eq(r.retaliation(), 0, "対空0の地上は反撃できない")
-	assert_eq(s.unit_by_id(2).level, 1, "反撃不成立→防御側は Lv+0")
-	assert_eq(s.unit_by_id(1).level, 2, "攻撃側は参加で+1")
+	assert_eq(s.unit_by_handle(2).level, 1, "反撃不成立→防御側は Lv+0")
+	assert_eq(s.unit_by_handle(1).level, 2, "攻撃側は参加で+1")
 
 func test_ground_with_antiair_retaliates_against_flyer() -> void:
 	var s := _state()
@@ -58,7 +58,7 @@ func test_ground_with_antiair_retaliates_against_flyer() -> void:
 	s.current_team = 1
 	var r := s.attack(1, 2)
 	assert_gt(r.retaliation(), 0, "対空ありの地上は飛行に反撃できる")
-	assert_eq(s.unit_by_id(2).level, 2, "反撃成立で防御側+1")
+	assert_eq(s.unit_by_handle(2).level, 2, "反撃成立で防御側+1")
 
 func test_loader_sets_aerial_and_atk_air_from_type() -> void:
 	var catalog := {
@@ -71,7 +71,7 @@ func test_loader_sets_aerial_and_atk_air_from_type() -> void:
 		{ "ai": "charge", "units": [ { "type": "dragon", "col": 1, "row": 1 } ] },
 	] }
 	var s := StageLoader.build(data, catalog)
-	var u := s.unit_by_id(1)
+	var u := s.unit_by_handle(1)
 	assert_true(u.is_aerial(), "move_type=flight → is_aerial()")
 	assert_eq(u.atk_air, 60, "atk_air を種別から載せる")
 	assert_eq(u.unit_attack, 90, "対地は atk_ground")

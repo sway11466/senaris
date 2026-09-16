@@ -135,7 +135,7 @@ func test_enemy_reinforcement_joins_a_squad() -> void:
 			foe = u
 	assert_not_null(foe, "敵の増援が盤に居る")
 	if foe != null:
-		assert_eq(String(s.squad_of(foe.id).get("ai", "")), "charge", "部隊のAIプリセットを持つ")
+		assert_eq(String(s.squad_of(foe.handle).get("ai", "")), "charge", "部隊のAIプリセットを持つ")
 
 # --- 置き場所 ---
 
@@ -174,8 +174,8 @@ func test_transport_arrives_loaded() -> void:
 	var ship := s.unit_at(Hex.offset_to_axial(5, 3))
 	assert_not_null(ship, "飛空艇が来る")
 	if ship != null:
-		assert_eq(s.passengers(ship.id).size(), 1, "パラディンを乗せたまま来る")
-		assert_eq(String((s.passengers(ship.id)[0] as Unit).type_id), "paladin", "中身はパラディン")
+		assert_eq(s.passengers(ship.handle).size(), 1, "パラディンを乗せたまま来る")
+		assert_eq(String((s.passengers(ship.handle)[0] as Unit).type_id), "paladin", "中身はパラディン")
 
 ## 搭載駒は盤上に居ない＝殲滅の数には入らない（既存の輸送と同じ扱い）。
 func test_passengers_are_not_on_board() -> void:
@@ -266,7 +266,7 @@ func test_pending_event_survives_serialization() -> void:
 	var ship := back.unit_at(Hex.offset_to_axial(5, 3))
 	assert_not_null(ship, "復元後も発生ターンに来る")
 	if ship != null:
-		assert_eq(back.passengers(ship.id).size(), 1, "搭載駒も復元される")
+		assert_eq(back.passengers(ship.handle).size(), 1, "搭載駒も復元される")
 
 func test_dialogue_key_survives_serialization() -> void:
 	var data := _data([_reinforce(4, { "dialogue": "arrive" })])
@@ -313,7 +313,7 @@ func _capture_event(team: String, extra: Dictionary = {}) -> Dictionary:
 func _capture_with_cleric(s: BattleState) -> void:
 	var u := s.unit_at(Hex.offset_to_axial(2, 2))
 	assert_not_null(u, "前提: クレリックが盤に居る")
-	assert_true(s.move_unit(u.id, _base_hex()), "前提: 拠点hexへ入れる")
+	assert_true(s.move_unit(u.handle, _base_hex()), "前提: 拠点hexへ入れる")
 	assert_eq(s.base_at(_base_hex()).team, 0, "前提: 占領で自軍所属になる")
 
 ## 引き金が占領のイベントは、ターンが進んでも起きない。
@@ -516,7 +516,7 @@ func test_entry_path_ignores_the_move_budget_and_units() -> void:
 	var u := s.unit_at(goal)
 	assert_not_null(u, "前提: 増援が所定位置に出ている")
 	u.move = 2  # 1手では届かない移動力にしても道は出る（予算で切らない）
-	var path := s.entry_path(u.id, Hex.offset_to_axial(0, 0))
+	var path := s.entry_path(u.handle, Hex.offset_to_axial(0, 0))
 	assert_eq(path.front(), Hex.offset_to_axial(0, 0), "入口から始まる")
 	assert_eq(path.back(), goal, "所定位置で終わる")
 	assert_gt(path.size() - 1, u.move, "移動力では届かない距離でも道が出る")
@@ -528,4 +528,4 @@ func test_entry_path_is_empty_when_the_terrain_blocks_it() -> void:
 	var s := _build(data)
 	var u := s.unit_at(Hex.offset_to_axial(5, 3))
 	assert_not_null(u, "前提: 増援は所定位置に出ている（歩けなくても盤には出る）")
-	assert_true(s.entry_path(u.id, Hex.offset_to_axial(0, 0)).is_empty(), "壁の向こうへは道が出ない")
+	assert_true(s.entry_path(u.handle, Hex.offset_to_axial(0, 0)).is_empty(), "壁の向こうへは道が出ない")

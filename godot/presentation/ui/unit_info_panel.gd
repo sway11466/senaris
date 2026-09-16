@@ -385,15 +385,15 @@ func bind_ai_presets(presets: Dictionary) -> void:
 	_ai_presets = presets
 
 ## 選択変更を受けて表示を更新（id<0 で未選択）。タブの選択は駒をまたいで保つ。
-func show_unit(unit_id: int) -> void:
-	if _state == null or unit_id < 0:
+func show_unit(handle: int) -> void:
+	if _state == null or handle < 0:
 		clear()
 		return
-	var u := _state.unit_by_id(unit_id)
+	var u := _state.unit_by_handle(handle)
 	if u == null:
 		clear()
 		return
-	_shown_unit = unit_id
+	_shown_unit = handle
 	_view = "unit"
 	if _report != null:
 		_report.hide()
@@ -596,8 +596,8 @@ func _update_header(u: Unit) -> void:
 ## name の無い敵部隊は order から番号で組む＝名前を書かなくても部隊が分かれていることは見せる。
 ## 味方は名前を書いたときだけ出す（部隊が1つだけの盤で番号を出しても何も伝わらない）。
 func _squad_name(u: Unit) -> String:
-	var squad := _state.squad_of(u.id)
-	if squad.is_empty() and _state.squad_index_of(u.id) < 0:
+	var squad := _state.squad_of(u.handle)
+	if squad.is_empty() and _state.squad_index_of(u.handle) < 0:
 		return ""
 	var nm := String(squad.get("name", ""))
 	if not nm.is_empty():
@@ -605,7 +605,7 @@ func _squad_name(u: Unit) -> String:
 	if u.team == 0:
 		return ""  # 味方は名前を書いたときだけ出す（1部隊しかない盤で「第1部隊」は何も伝えない）
 	var order: Variant = squad.get("order")
-	var n := _state.squad_index_of(u.id) + 1
+	var n := _state.squad_index_of(u.handle) + 1
 	if typeof(order) == TYPE_INT or typeof(order) == TYPE_FLOAT:
 		n = int(order)
 	return tr("ui.info.squad_n") % n
@@ -614,7 +614,7 @@ func _squad_name(u: Unit) -> String:
 func _update_ai(u: Unit) -> void:
 	var id := ""
 	if u.team != 0:
-		id = String(_state.squad_of(u.id).get("ai", ""))
+		id = String(_state.squad_of(u.handle).get("ai", ""))
 	if id.is_empty():
 		_ai_box.hide()
 		return
@@ -749,15 +749,15 @@ func _build_terrain(u: Unit) -> void:
 func _action_state(u: Unit) -> String:
 	if not _state.is_current_unit(u):
 		return tr("ui.info.act_awaiting_turn")
-	if _state.is_done(u.id):
+	if _state.is_done(u.handle):
 		return tr("ui.info.act_done")
-	if _state.is_stuck(u.id):
+	if _state.is_stuck(u.handle):
 		# 行動は残っているが動く先も撃つ相手も無い（陣形には参加できる）
 		return tr("ui.info.act_stuck")
 	var parts: Array[String] = []
-	parts.append(tr("ui.info.act_can_move") if _state.can_still_move(u.id) \
+	parts.append(tr("ui.info.act_can_move") if _state.can_still_move(u.handle) \
 		else tr("ui.info.act_moved"))
-	parts.append(tr("ui.info.act_can_attack") if not _state.has_attacked(u.id) \
+	parts.append(tr("ui.info.act_can_attack") if not _state.has_attacked(u.handle) \
 		else tr("ui.info.act_attacked"))
 	return " / ".join(parts)
 

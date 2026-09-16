@@ -90,7 +90,7 @@ func test_done_member_excluded() -> void:
 func test_stuck_member_still_counts() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
-	s.unit_by_id(2).move = 0  # 行ける先が無い（瓦礫や味方に囲まれた駒と同じ状態）
+	s.unit_by_handle(2).move = 0  # 行ける先が無い（瓦礫や味方に囲まれた駒と同じ状態）
 	assert_true(s.is_stuck(2), "前提: メンバーに打つ手が無い")
 	assert_false(s.is_done(2), "前提: 行動は使っていない")
 	assert_eq(_count(Formation.available_for(s, f["leader"]), "trinity_nova"), 1,
@@ -300,7 +300,7 @@ func test_divine_judgment_offered() -> void:
 func test_divine_judgment_leader_must_be_paladin() -> void:
 	# 聖職を選んでもディバインジャッジメントは出ない（発動者はパラディンのみ）。
 	var f := _judgment_state()
-	var cleric: Unit = f["s"].unit_by_id(2)
+	var cleric: Unit = f["s"].unit_by_handle(2)
 	assert_eq(_count(Formation.available_for(f["s"], cleric), "divine_judgment"), 0, "発動者がパラディンでなければ未提示")
 
 ## ③は「パラディンを中心に、周囲に聖職2体」＝聖職同士の隣接は問わない。
@@ -350,7 +350,7 @@ func test_targetable_cells_measured_from_move_destination() -> void:
 	s.add_unit(Unit.new(3, 0, tri[2], 3, 8, 20, 20, 1, "priest"))
 	var enemy_hex := c + Hex.direction(0) * 12  # 発動者から距離12＝射程10の外
 	s.add_unit(Unit.new(9, 1, enemy_hex, 3, 8, 10, 20))
-	var opt: FormationOption = Formation.available_for(s, s.unit_by_id(1))[0]
+	var opt: FormationOption = Formation.available_for(s, s.unit_by_handle(1))[0]
 	assert_true(Formation.targetable_cells(s, opt).is_empty(), "いまの位置からは射程外")
 	assert_true(enemy_hex in Formation.targetable_cells(s, opt, c + Hex.direction(0) * 2),
 		"2マス寄った位置からなら射程内")
@@ -462,7 +462,7 @@ func test_area_excludes_participants() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var leader: Unit = f["leader"]
-	var w2_before := s.unit_by_id(2).troops
+	var w2_before := s.unit_by_handle(2).troops
 	var enemy := Unit.new(12, 1, Hex.neighbor(leader.pos, 2), 3, 8, 10, 20)  # leader隣接の敵
 	s.add_unit(enemy)
 	var opt: FormationOption = Formation.available_for(s, leader)[0]
@@ -472,7 +472,7 @@ func test_area_excludes_participants() -> void:
 		hit_ids.append(r.target_id)
 	assert_true(12 in hit_ids, "面内の敵には当たる")
 	assert_false(1 in hit_ids or 2 in hit_ids or 3 in hit_ids, "発動者3体は着弾対象から除外")
-	assert_eq(s.unit_by_id(2).troops, w2_before, "発動者の兵数は不変")
+	assert_eq(s.unit_by_handle(2).troops, w2_before, "発動者の兵数は不変")
 
 func test_resolve_out_of_range_fails() -> void:
 	var f := _trinity_nova_state()
@@ -487,9 +487,9 @@ func test_participants_gain_level() -> void:
 	var s: BattleState = f["s"]
 	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
 	FormationResolver.resolve(s, opt, f["enemy_hex"])
-	assert_not_null(s.unit_by_id(9), "硬い敵は生存（非撃破ケースの前提）")
+	assert_not_null(s.unit_by_handle(9), "硬い敵は生存（非撃破ケースの前提）")
 	for pid in [1, 2, 3]:
-		assert_eq(s.unit_by_id(pid).level, 2, "参加者%d は発動でLv+1" % pid)
+		assert_eq(s.unit_by_handle(pid).level, 2, "参加者%d は発動でLv+1" % pid)
 
 func test_empty_cast_grants_no_level() -> void:
 	# 面に敵が1体も居ない空撃ちはLv+0（ただし参加者は行動完了）。
@@ -500,7 +500,7 @@ func test_empty_cast_grants_no_level() -> void:
 	var res := FormationResolver.resolve(s, opt, empty)
 	assert_eq(res.hits.size(), 0, "空撃ち＝着弾なし")
 	for pid in [1, 2, 3]:
-		assert_eq(s.unit_by_id(pid).level, 1, "空撃ちはLv+0（Lv1のまま）")
+		assert_eq(s.unit_by_handle(pid).level, 1, "空撃ちはLv+0（Lv1のまま）")
 	assert_true(s.is_done(1), "空撃ちでも行動完了")
 
 func test_kill_grants_extra_level() -> void:
@@ -510,7 +510,7 @@ func test_kill_grants_extra_level() -> void:
 	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
 	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	for pid in [1, 2, 3]:
-		assert_eq(s.unit_by_id(pid).level, 3, "撃破時は参加者%d がLv+2" % pid)
+		assert_eq(s.unit_by_handle(pid).level, 3, "撃破時は参加者%d がLv+2" % pid)
 
 func test_resolve_kills_when_lethal() -> void:
 	# 防御が薄い敵は撃破され盤から消える。
@@ -519,7 +519,7 @@ func test_resolve_kills_when_lethal() -> void:
 	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_true(res.hits[0].killed, "撃破フラグ")
-	assert_null(s.unit_by_id(9), "撃破された敵は盤から消える")
+	assert_null(s.unit_by_handle(9), "撃破された敵は盤から消える")
 
 func test_is_unit_skill_splits_catalog_by_shape() -> void:
 	# 演出・効果音の出し分けが読む区別（陣形＝カットインあり／ユニットスキル＝音だけ）。
@@ -539,7 +539,7 @@ func test_result_carries_snapshots_and_attack_breakdown() -> void:
 	var opt: FormationOption = Formation.available_for(s, leader)[0]
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	var caster := res.caster
-	assert_eq(caster.id, leader.id, "発動者のスナップショット")
+	assert_eq(caster.handle, leader.handle, "発動者のスナップショット")
 	assert_eq(caster.level, 1, "スナップショットは発動前（Lv加算前）に固める")
 	var r := res.hits[0]
 	var v := r.victim

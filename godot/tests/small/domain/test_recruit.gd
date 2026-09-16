@@ -26,7 +26,7 @@ func test_neutral_garrison_starts_unclaimed() -> void:
 
 func test_player_units_are_claimed_by_default() -> void:
 	var s := _stage()
-	var c := s.unit_by_id(1)
+	var c := s.unit_by_handle(1)
 	assert_eq(c.recruited_team, 0, "最初から味方の駒は帰属先＝自軍（既定は native と同じ）")
 	assert_false(c.is_unclaimed())
 
@@ -58,8 +58,8 @@ func test_released_unit_does_not_defect_when_base_is_retaken() -> void:
 	_next_own_turn(s)
 	assert_true(s.move_unit(1, Hex.offset_to_axial(3, 1)), "占領兵が拠点から退く")
 	_next_own_turn(s)
-	assert_true(s.move_unit(elf.id, base_hex), "エルフが拠点へ")
-	assert_true(s.enter_base(elf.id), "拠点に入る（駐留）")
+	assert_true(s.move_unit(elf.handle, base_hex), "エルフが拠点へ")
+	assert_true(s.enter_base(elf.handle), "拠点に入る（駐留）")
 	# 敵が拠点を奪う。
 	s.base_at(base_hex).team = 1
 	assert_false(s.can_deploy_garrison(base_hex, 0), "敵は解放済みの駒を出撃させられない＝捕虜")

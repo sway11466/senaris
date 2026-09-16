@@ -8,10 +8,10 @@ func test_add_and_query() -> void:
 	var s := _state()
 	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3)
 	s.add_unit(u)
-	assert_eq(s.unit_by_id(1), u)
+	assert_eq(s.unit_by_handle(1), u)
 	assert_eq(s.unit_at(u.pos), u, "座標からユニットを引ける")
 	assert_null(s.unit_at(Hex.offset_to_axial(0, 0)), "空きマスは null")
-	assert_null(s.unit_by_id(999), "未知IDは null")
+	assert_null(s.unit_by_handle(999), "未知IDは null")
 
 func test_can_reach_respects_min_and_max() -> void:
 	var u := Unit.new(1, 0, Vector2i.ZERO, 3)
@@ -37,7 +37,7 @@ func test_move_valid() -> void:
 	s.add_unit(Unit.new(1, 0, start, 2))
 	var dest := Hex.neighbor(start, 0)
 	assert_true(s.move_unit(1, dest), "妥当な移動は成功")
-	assert_eq(s.unit_by_id(1).pos, dest, "座標が更新される")
+	assert_eq(s.unit_by_handle(1).pos, dest, "座標が更新される")
 
 func test_hit_and_run_move_after_attack() -> void:
 	var s := _state()
@@ -51,7 +51,7 @@ func test_hit_and_run_move_after_attack() -> void:
 	assert_false(s.is_done(1), "攻撃後もまだ完了しない")
 	var away := Hex.neighbor(ap, 3)  # 敵の反対側へ離脱
 	assert_true(s.move_unit(1, away), "攻撃後に離脱移動できる")
-	assert_eq(s.unit_by_id(1).pos, away)
+	assert_eq(s.unit_by_handle(1).pos, away)
 	assert_true(s.is_done(1), "再移動を使い切ったら完了")
 
 func test_normal_unit_done_after_attack() -> void:
@@ -98,14 +98,14 @@ func test_move_rejects_occupied_and_out_of_range() -> void:
 	s.add_unit(Unit.new(2, 1, occupied, 2))
 	assert_false(s.move_unit(1, occupied), "他ユニットの上には移動不可")
 	assert_false(s.move_unit(1, Hex.offset_to_axial(5, 5)), "移動力を超える先は不可")
-	assert_eq(s.unit_by_id(1).pos, start, "不正な移動では動かない")
+	assert_eq(s.unit_by_handle(1).pos, start, "不正な移動では動かない")
 
 func test_remove_unit_takes_off_board_and_records_defeat() -> void:
 	var s := _state()
 	var pos := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 1, pos, 3))
 	assert_true(s.remove_unit(1), "盤上の駒は除去できる")
-	assert_null(s.unit_by_id(1), "盤上リストから消える")
+	assert_null(s.unit_by_handle(1), "盤上リストから消える")
 	assert_null(s.unit_at(pos), "座標からも引けない")
 	assert_eq(s.team_unit_count(1), 0, "陣営の頭数が減る（殲滅＝勝利判定の材料）")
 	assert_true(s.is_defeated(1), "撃破として記録される（ボス撃破の勝利条件に効く）")
@@ -129,10 +129,10 @@ func test_survivor_count_includes_garrison_and_passengers() -> void:
 	wagon.capacity = 4
 	s.add_unit(wagon)
 	var rider := Unit.new(3, 0, Hex.offset_to_axial(1, 2), 3)
-	s.put_passenger(wagon.id, rider)
+	s.put_passenger(wagon.handle, rider)
 	assert_eq(s.ally_survivor_count(), 3, "搭乗中の駒も生存に数える")
 	# 失われた駒だけが落ちる
-	assert_true(s.remove_unit(wagon.id), "輸送を撃破（搭乗駒も巻き添え）")
+	assert_true(s.remove_unit(wagon.handle), "輸送を撃破（搭乗駒も巻き添え）")
 	assert_eq(s.ally_survivor_count(), 1, "撃破された駒と搭乗駒は数から落ちる")
 
 func test_survivor_count_includes_unclaimed_garrison() -> void:
@@ -165,7 +165,7 @@ func test_survivor_count_excludes_emplacements() -> void:
 	s.add_unit(wagon)
 	var cargo := Unit.new(4, 0, Hex.offset_to_axial(1, 2), 3)
 	cargo.move_type = "stationary"
-	s.put_passenger(wagon.id, cargo)
+	s.put_passenger(wagon.handle, cargo)
 	assert_eq(s.ally_survivor_count(), 2, "積荷の兵器も数えない（兵と馬車だけ）")
 	var b := Base.new(Hex.offset_to_axial(3, 2), 0)
 	var stored := Unit.new(5, 0, Vector2i.ZERO, 3)
@@ -194,20 +194,20 @@ func test_losses_count_defeated_units() -> void:
 	var wagon := Unit.new(2, 1, Hex.offset_to_axial(3, 2), 3)
 	wagon.capacity = 4
 	s.add_unit(wagon)
-	s.put_passenger(wagon.id, Unit.new(3, 1, Vector2i.ZERO, 3))
+	s.put_passenger(wagon.handle, Unit.new(3, 1, Vector2i.ZERO, 3))
 	var barricade := Unit.new(4, 1, Hex.offset_to_axial(4, 2), 3)
 	barricade.move_type = "stationary"
 	s.add_unit(barricade)
 	var ally := Unit.new(5, 0, Hex.offset_to_axial(1, 1), 3)
 	s.add_unit(ally)
 	assert_eq(s.losses(1), 0, "まだ何も倒していない")
-	assert_true(s.remove_unit(foe.id))
+	assert_true(s.remove_unit(foe.handle))
 	assert_eq(s.losses(1), 1, "倒した敵を数える")
-	assert_true(s.remove_unit(wagon.id))
+	assert_true(s.remove_unit(wagon.handle))
 	assert_eq(s.losses(1), 3, "巻き添えの搭乗駒も数える")
-	assert_true(s.remove_unit(barricade.id))
+	assert_true(s.remove_unit(barricade.handle))
 	assert_eq(s.losses(1), 3, "敵の兵器は撃破に乗らない")
-	assert_true(s.remove_unit(ally.id))
+	assert_true(s.remove_unit(ally.handle))
 	assert_eq(s.losses(1), 3, "自軍の損失は敵の撃破に混ざらない")
 	assert_eq(s.losses(0), 1, "陣営ごとに数える")
 

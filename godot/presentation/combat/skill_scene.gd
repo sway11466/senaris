@@ -28,7 +28,7 @@ func play(detail: SkillCast) -> void:
 	# 発動者を左・対象を右に置く。立ち絵の反転は舞台側（_face_mirror）が引き受ける。
 	# 自分掛け（発動者＝対象）は同じ駒を左右に2組出さず、陣営の側に1組だけ置いて
 	# 自分の隊列に着弾させる。反対側は空にする（→ CombatStage._blank_side）。
-	var self_cast := caster.id == victim.id
+	var self_cast := caster.handle == victim.handle
 	var cast_side := "L"
 	if self_cast or caster.team != victim.team:
 		cast_side = "L" if caster.team == 0 else "R"
