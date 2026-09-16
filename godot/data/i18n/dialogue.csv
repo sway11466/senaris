@@ -101,6 +101,7 @@ goblin-raid.st7.squad.1,通路,Corridor
 goblin-raid.st7.squad.2,手下部屋,Minion Room
 goblin-raid.st7.squad.3,ボス部屋,Boss Room
 goblin-raid.st7.squad.4,ボス,Boss
+goblin-raid.party.militia,自警団,The Militia
 char.knight.name,騎士,Knight
 char.priest.name,司祭,Priest
 char.mage.name,魔導師,Mage
@@ -242,7 +243,8 @@ undead-rush.st7.intro.4,今まで通り、トリニティノヴァで薙ぎ払�
 undead-rush.st7.intro.5,守り抜け。聖騎士様が撃つ、その一手のために。行くぞ、これで終わらせる。,"Hold the line — for the single strike the paladin will loose. Let's go; we end this here."
 undead-rush.st7.arrive.label,飛空艇の到着まであと{n}ターン,Turns until the airship arrives: {n}
 undead-rush.st7.arrive.name,飛空艇の到着,The Airship Arrives
-undead-rush.st7.party.airship,救援隊,The Relief Force
+undead-rush.st7.party.paladin,パラディン隊,The Paladin Company
+undead-rush.party.survey,調査隊,The Expedition
 undead-rush.st7.arrive.1,飛空艇が着きました！　聖騎士様がお見えです！,"The airship has landed! The paladin is here!"
 undead-rush.st7.arrive.2,待たせたな。戦況は？,"Sorry to keep you waiting. How stands the field?"
 undead-rush.st7.arrive.3,ネクロマンサーは奥の高台です。屍は墓地から次々と湧いてきます。,"The necromancer is on the high ground at the far end. The dead keep rising from the graveyards."

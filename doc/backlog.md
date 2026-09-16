@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=8 / feature=130 / refactoring=18.
+次回採番: bug=10 / feature=131 / refactoring=18.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -13,6 +13,25 @@
 ## バグ
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### bug-9
+
+**「魔法生物」が兵種と分類の両方の名前になっていて、どちらを指すか読めない**
+- ゴール：プレイヤーが「魔法生物」という語を見たとき、それが駒の役どころを指すのか素性を指すのかが迷わず決まる。
+- 背景：兵種（`unit_type.csv` の `category`）の1つ `monstrosity` の表示名が「魔法生物」で、分類（`unit_skin.csv` の `category`）の敵側の1つ `construct` の表示名も「魔法生物」。別の軸の別の概念が同じ語を名乗っている。
+  - 兵種のほうはマニュアルの用語説明に一覧で出る（`manual.unit.main.category.desc`）。分類のほうはクロニクルのユニット章の見出しに出て、ミミックとスライムが並ぶ。スライムは兵種も `monstrosity` なので両方が「魔法生物」で重なるが、ミミックの兵種は `scout`（斥候）なので重ならない。
+  - 英語は `Monstrosity` と `Constructs` で分かれているため、この重なりは日本語だけで起きる。
+  - 分類「魔法生物」の中身はミミックとスライム＝作られた物と不定形の2つで、`Constructs`（作られたもの）もスライムには当たっていない。日本語を直すなら英語も一緒に見る。
+- 対応：どちらの語を動かすかを決める。兵種側を動かすと `names.csv` の1行と `manual.csv` の本文、分類側を動かすと `names.csv` の1行（値の id も変えるなら `unit_skin.csv` の2行と生成物）。どちらも軽い＝決めるほうが本体。
+- 該当：`godot/data/i18n/names.csv`・`godot/data/i18n/manual.csv`・`godot/data/units/unit_skin.csv`・[i18n.md](tech/i18n.md) 英語の用語・[units.md](art/units.md) §2。
+
+### bug-8
+
+**Medium テストが `user://` 直下に退避ファイルと世代を残していく**
+- ゴール：テスト一式を回した後、`user://` にテストの産物が1つも残っていない。
+- 背景：セーブのストアを動かすテストが `user://` 直下でファイル名を取っている（`test_progress.json`・`test_roster.json`・`test_save.json`・`test_settings.json`・`test_chronicle.json`・`test_outcome_progress.json`）。本体のファイルは片付けるが、`SaveFile` が書き込みのたびに作る世代（`test_progress.<時刻>.json`）と、読めなかったファイルの退避（`.broken-` `.v0-` `.v999-`）は残る。[testing.md](tech/testing.md) テストサイズの「使ったファイルを必ず片付ける」に反している。プレイヤーのセーブとは別名なので実害は無いが、保存フォルダを見たときにどれが本物か分からなくなる。`test_progress.json` は2つのテストが共有していて、片方の前提がもう片方の後始末に依存している点も同じ話。
+- 対応：テストごとにディレクトリを持ち（`test_save_file.gd`・`test_save_slots.gd` が先例）、`after_all` でディレクトリごと消す。
+- 該当：`godot/tests/medium/infrastructure/test_progress_store.gd`・`test_roster_store.gd`・`test_save_store.gd`・`test_settings_store.gd`・`test_chronicle_store.gd`・`godot/tests/medium/application/test_campaign_progress.gd`・`test_stage_outcome.gd`。
 
 ### bug-7
 
@@ -41,6 +60,14 @@
 ## 機能追加
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### feature-130
+
+**セーブデータを手で直せるツール（セーブエディタ）**
+- ゴール：ゲームを起動せずにクリア記録・名簿・クロニクルを読んで書き換えられる。消えた記録を手で戻せる。
+- 背景：2026-09-16 に `user://progress.json`（クリア記録）・`roster.json`・`chronicle.json` が消え、世代バックアップにも実プレイの記録が残っておらず戻せなかった。JSON を直接書けば戻せるが、版・形式・ステージの改名表（`StageRenames`）を踏まえた形を手で書くのは間違えやすい。
+- 対応：`godot/tools/` に画面ツールとして置く（索引 → [tools.md](tech/tools.md)）。冒険譚とステージの一覧から、クリア済み・ランク・所要時間を編集する。書き込みはストア（`ProgressStore` ほか）を通す＝版と形式の責任をストアに残し、ツールは値だけを持つ。名簿とクロニクルも同じ画面から。
+- 該当：`godot/tools/`・`godot/infrastructure/save/`・`doc/tech/tools.md`。
 
 ### refactoring-12
 - doc/art/terrain.mdの内容精査

@@ -2,7 +2,8 @@
   "turn_limit": 30,
   "name": "undead-rush-st4",
   "player": [
-    { "units": [
+    { "name": "undead-rush.party.survey",
+      "units": [
         { "type": "knight", "col": 3, "row": 4 },
         { "type": "knight", "col": 3, "row": 5 },
         { "type": "priest", "col": 0, "row": 6 },

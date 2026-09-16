@@ -2,7 +2,8 @@
   "turn_limit": 30,
   "name": "undead-rush-st7",
   "player": [
-    { "units": [
+    { "name": "undead-rush.party.survey",
+      "units": [
         { "type": "knight", "col": 3, "row": 22 },
         { "type": "knight", "col": 4, "row": 22 },
         { "type": "knight", "col": 2, "row": 22 },
@@ -186,7 +187,7 @@
     { "turn": 5, "type": "reinforce", "label": "undead-rush.st7.arrive.label", "id": "airship-arrive", "dialogue": "arrive", "name": "undead-rush.st7.arrive.name", "focus": true,
       "entry": "march", "from": { "col": 0, "row": 25 },
       "player": [
-        { "name": "undead-rush.st7.party.airship",
+        { "name": "undead-rush.st7.party.paladin",
           "units": [
             { "type": "airship", "col": 6, "row": 25,
               "passengers": [

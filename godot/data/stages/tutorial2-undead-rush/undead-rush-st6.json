@@ -5,7 +5,8 @@
   "backdrop": "sky_overcast",
   "haze": 0.80,
   "player": [
-    { "units": [
+    { "name": "undead-rush.party.survey",
+      "units": [
         { "type": "knight", "col": 4, "row": 7 },
         { "type": "knight", "col": 2, "row": 8 },
         { "type": "knight", "col": 3, "row": 7 },

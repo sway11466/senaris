@@ -8,11 +8,12 @@ class_name ChronicleStore
 ## タイトルへ戻る）に save() を呼んでまとめて書く（gamesystem.md §クロニクル）。
 ## 壊れていれば空で起動し、遊び直せば埋まるだけ。
 
-const DEFAULT_PATH := "user://chronicle.json"
-const VERSION := 1
+const FILE := "chronicle.json"  # 置き場は SavePaths が持つ
+const VERSION := 2
+const OLDEST_SUPPORTED := 1  # v1＝スキンにも初出の冒険譚を持っていた版
 
 var _path: String
-var _skins := {}    # skin_id -> { "first": campaign_id }
+var _skins := {}    # skin_id -> true（出会った id の集合。スキンは初出を持たない）
 var _recipes := {}  # recipe_id -> { "first": campaign_id }
 ## 経験した会話。campaign_id -> { stage_id: { start: [[actor]], clear: [[actor]], events: [id] } }
 ## start / clear は「遊んだ回ごとの在籍 actor の並び」を重複なく溜める＝同じ顔ぶれの回は畳む。
@@ -21,7 +22,7 @@ var _recipes := {}  # recipe_id -> { "first": campaign_id }
 var _stories := {}
 var _dirty := false # record_* を呼んでから save() するまでの間だけ true
 
-func _init(path: String = DEFAULT_PATH) -> void:
+func _init(path: String = SavePaths.of(FILE)) -> void:
 	_path = path
 	_load()
 
@@ -33,9 +34,9 @@ func has_skin(skin_id: String) -> bool:
 func has_recipe(recipe_id: String) -> bool:
 	return _recipes.has(recipe_id)
 
-## 記録済みのスキン一覧（コピー）。
-func skins() -> Dictionary:
-	return _skins.duplicate(true)
+## 記録済みのスキン一覧（コピー）。出会った skin_id が並ぶだけ。
+func skins() -> Array:
+	return _skins.keys()
 
 ## 記録済みのレシピ一覧（コピー）。
 func recipes() -> Dictionary:
@@ -43,10 +44,10 @@ func recipes() -> Dictionary:
 
 ## スキンを記録する（メモリのみ。save() を呼ぶまでファイルに書かない）。
 ## 新規なら true、既知または空なら false を返す。
-func record_skin(skin_id: String, campaign_id: String) -> bool:
+func record_skin(skin_id: String) -> bool:
 	if skin_id.is_empty() or _skins.has(skin_id):
 		return false
-	_skins[skin_id] = { "first": campaign_id }
+	_skins[skin_id] = true
 	_dirty = true
 	return true
 
@@ -104,23 +105,62 @@ func save() -> void:
 	if f == null:
 		push_error("ChronicleStore: 書き込めない: %s" % _path)
 		return
-	var out := { "version": VERSION, "skins": _skins, "recipes": _recipes, "stories": _stories }
+	var out := { "version": VERSION, "skins": _skins.keys(), "recipes": _recipes, "stories": _stories }
 	f.store_string(JSON.stringify(out, "  "))
 	_dirty = false
 
 # ---------------------------------------------------------------------------
 
 func _load() -> void:
-	var result := SaveFile.read(_path, VERSION)
+	var result := SaveFile.read(_path, VERSION, OLDEST_SUPPORTED)
 	var status := int(result["status"])
 	if status != SaveFile.VALID:
 		if status != SaveFile.MISSING:
 			push_warning("ChronicleStore: ファイルが不正のため空扱い: %s" % _path)
 		return
-	var data: Dictionary = result["data"]
-	_load_map(data.get("skins", {}), _skins)
+	var data := _migrate(result["data"])
+	if data.is_empty():
+		return
+	_load_ids(data.get("skins", []), _skins)
 	_load_map(data.get("recipes", {}), _recipes)
 	_load_stories(data.get("stories", {}))
+
+## 旧版を現行の形に直してから読む（doc/tech/gamesystem.md §版と移行）。
+## 版を上げたらここに1段足す。変換を持たない版は空を返す＝無いものとして扱う。
+static func _migrate(data: Dictionary) -> Dictionary:
+	var version := int(data.get("version", 0))
+	var out := data
+	if version == 1:
+		out = _v1_to_v2(out)
+		version = 2
+	if version != VERSION:
+		push_warning("ChronicleStore: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
+		return {}
+	return out
+
+## v1→v2: スキンが持っていた初出の冒険譚を捨て、出会った id の並びだけにする。
+## レシピ側の初出はそのまま（陣形スキルの章が読む）。
+static func _v1_to_v2(data: Dictionary) -> Dictionary:
+	var out := data.duplicate(true)
+	var ids: Array = []
+	var raw: Variant = data.get("skins", {})
+	if typeof(raw) == TYPE_DICTIONARY:
+		for k in raw as Dictionary:
+			ids.append(String(k))
+	out["skins"] = ids
+	out["version"] = 2
+	return out
+
+## [ id, ... ] の並びを型チェックしながら読む（手編集・破損対策）。
+func _load_ids(raw: Variant, dest: Dictionary) -> void:
+	if typeof(raw) != TYPE_ARRAY:
+		return
+	for v in raw as Array:
+		if typeof(v) != TYPE_STRING:
+			continue
+		var id := String(v)
+		if not id.is_empty():
+			dest[id] = true
 
 ## { id: { "first": campaign_id } } の辞書を型チェックしながら読む（手編集・破損対策）。
 func _load_map(raw: Variant, dest: Dictionary) -> void:

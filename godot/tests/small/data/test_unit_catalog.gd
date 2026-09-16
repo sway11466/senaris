@@ -30,4 +30,3 @@ func test_load_default_roster() -> void:
 	assert_eq(c.max_troops, 8)
 	assert_gt(c.atk_ground, 0, "ステータスが読めている（値はバランス調整で変わりうる）")
 	assert_gt(c.defense, 0)
-

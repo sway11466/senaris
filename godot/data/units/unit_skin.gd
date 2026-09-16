@@ -19,6 +19,9 @@ const LINEUPS := [LINEUP_SQUAD, LINEUP_RETINUE, LINEUP_SINGLE]
 
 var skin_id: String       ## スキンID（主キー。ステージはこれで見た目を指定）。skin→type は1:1
 var type_id: String       ## 紐づく性能(UnitType)のID
+## 陣営（"ally"/"enemy"）。JSON では行ではなく入れ子の段が持つので、SkinCatalog が組むときに入れる。
+## 分類の軸が陣営で違う（下記）ため、分類を読む側はこれを見て解釈を変える。
+var side: String
 var name: String          ## 開発用メモ（CSV の name 列）。画面表示は tr("unit." + skin_id + ".name") を使う
 ## 分類の英字id。味方は兵種（infantry/clergy…＝unit_type の category と一致）、敵は素性（goblin/undead…）。
 ## 表示は tr("unit_group." + category + ".name")。戦闘・移動の判定には使わない（ツール・図鑑・見出し用）。
@@ -30,10 +33,11 @@ var combat_effect: String  ## 攻撃エフェクトID（data/effects/combat_effe
 var map_move_sfx: String   ## 移動音の素材ID（SfxCatalog.MOVE_SFX）。空＝移動タイプの既定。→ doc/audio/sfx.md
 var retainers: Array       ## 戦闘演出で脇に並べる別スキンの skin_id（先頭＝本人の隣）。retinue のときだけ使う。→ doc/tech/combat_scene.md
 
-static func from_dict(d: Dictionary) -> UnitSkin:
+static func from_dict(d: Dictionary, side: String = "") -> UnitSkin:
 	var s := UnitSkin.new()
 	s.skin_id = String(d.get("skin_id", ""))
 	s.type_id = String(d.get("type_id", ""))
+	s.side = side
 	s.name = String(d.get("name", ""))
 	s.category = String(d.get("category", ""))
 	s.description = String(d.get("description", ""))

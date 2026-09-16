@@ -4,7 +4,7 @@ class_name ProgressStore
 ## 素のJSON＋バージョン・形式チェック（不正・破損は新規扱いにフォールバックしクラッシュしない）。
 ## 課金解放(entitlement)はここに書かない＝セーブ改ざんで課金を突破させない設計規律。
 
-const DEFAULT_PATH := "user://progress.json"
+const FILE := "progress.json"  # 置き場は SavePaths が持つ
 ## 2: ステージごとのベストタイム（times＝クリアまでの所要秒）を足した。
 ## 3: ステージごとに経験した会話（story）を足した。
 ## 4: ステージIDを冒険譚名付き（goblin-raid-st1）へ改名した。
@@ -21,7 +21,7 @@ var _times := {}    # 冒険譚ID -> { ステージID: 秒 }（ベストタイ�
 ## 「ストーリーを確認」が当時の顔ぶれで台本を組み直すのに使う。仕様 → doc/tech/gamesystem.md 経験した会話
 var _story := {}
 
-func _init(path: String = DEFAULT_PATH) -> void:
+func _init(path: String = SavePaths.of(FILE)) -> void:
 	_path = path
 	_load()
 

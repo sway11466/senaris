@@ -40,6 +40,23 @@ const CATEGORY_GAP := 20  # カテゴリ間の余白
 const ITEM_GAP := 6       # アイテム間の余白
 const ITEM_HEIGHT := 36   # アイテム1行の高さ
 
+## ユニット章の格子。1段に並ぶ枚数は CARD_COLUMNS だけで決まる（カードの幅は器の幅から割り出す）。
+const CARD_COLUMNS := 6
+const CARD_GAP := 12
+const CARD_ASPECT := 1.15   # カードの縦／横
+const CARD_PAD := 10        # 紙の縁と絵の間
+const CARD_DIM := 0.78      # 未解放のカードの紙の明るさ
+const SCROLLBAR_ALLOW := 16.0  # 縦スクロールバーのぶん幅を引く（出た瞬間に折り返さないため）
+
+## ユニットの拡大カード（格子のカードを押すと手前に開く1枚）。
+const EXPAND_SCRIM := Color(0.02, 0.02, 0.03, 0.72)
+const EXPAND_WIDTH := 760.0
+const EXPAND_ART_HEIGHT := 200.0
+const EXPAND_PAD := 24
+const STAT_LABEL_WIDTH := 104.0
+const STAT_VALUE_WIDTH := 72.0
+const NONE_TEXT := "—"
+
 ## 章の定数
 enum Chapter { UNITS, FORMATIONS, CAMPAIGNS }
 const CHAPTER_KEYS := ["ui.chronicle.units", "ui.chronicle.formations", "ui.chronicle.campaigns"]
@@ -60,7 +77,9 @@ var _chapter: int = Chapter.UNITS
 var _store: ChronicleStore = null
 var _progress: CampaignProgress = null
 var _skins: Dictionary = {}  # SkinCatalog（main.gd と同じインスタンスを参照しない＝開くときに組む）
-var _selected_skin_id := ""  # ユニット章で選んでいるスキン
+var _types: Dictionary = {}  # UnitCatalog（{ type_id: UnitType }）。拡大カードの性能表が読む
+var _expanded: Control = null  # ユニットの拡大カード（開いていなければ null）
+var _grid_width := 0.0  # 格子を組んだときの器の幅。変わったら組み直す
 var _selected_recipe_id := ""  # 陣形章で選んでいるレシピ
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空ならリスト）
 var _campaign_section: int = CampaignSection.RESULTS  # 冒険譚内の節
@@ -103,8 +122,9 @@ func open(store: ChronicleStore, progress: CampaignProgress) -> void:
 	_store = store
 	_progress = progress
 	_skins = SkinCatalog.load_standard()
+	_types = UnitCatalog.load_default()
 	_chapter = Chapter.UNITS
-	_selected_skin_id = ""
+	_close_expanded()
 	_selected_recipe_id = ""
 	_selected_campaign_id = ""
 	_campaign_section = CampaignSection.RESULTS
@@ -124,6 +144,7 @@ func close() -> void:
 func refresh_labels() -> void:
 	_heading.text = tr("ui.chronicle.title")
 	_back.text = tr("ui.chronicle.back")
+	_close_expanded()  # 開いたままの拡大カードは組み直さず畳む（格子へ戻る）
 	if visible:
 		_rebuild()
 
@@ -135,6 +156,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 func _on_back() -> void:
+	# 拡大カードが開いていれば、まずそれを畳む（段は増やさない＝画面は出ない）
+	if _expanded != null:
+		_close_unit_card()
+		return
 	SfxPlayer.play_event("menu_back")
 	# 冒険譚の2段目にいれば上の段（冒険譚リスト）へ戻る。それ以外は画面を出る。
 	if _chapter == Chapter.CAMPAIGNS and not _selected_campaign_id.is_empty():
@@ -180,6 +205,7 @@ func _panes() -> Control:
 	_content_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_content_box.add_theme_constant_override("separation", ITEM_GAP)
 	_content_scroll.add_child(_content_box)
+	_content_scroll.resized.connect(_on_content_resized)
 	right.add_child(_content_scroll)
 
 	_detail_box = VBoxContainer.new()
@@ -238,7 +264,7 @@ func _select_chapter(idx: int) -> void:
 	if idx == _chapter:
 		return
 	_chapter = idx
-	_selected_skin_id = ""
+	_close_expanded()
 	_selected_recipe_id = ""
 	_selected_campaign_id = ""
 	_campaign_section = CampaignSection.RESULTS
@@ -266,6 +292,8 @@ func _rebuild_content() -> void:
 		c.queue_free()
 	for c in _detail_box.get_children():
 		c.queue_free()
+	# ユニット章は詳細を拡大カードで出す＝下段の詳細ペインは畳んで場所を空ける
+	_detail_box.visible = _chapter != Chapter.UNITS
 	match _chapter:
 		Chapter.UNITS:
 			_build_units_chapter()
@@ -294,13 +322,16 @@ func _build_placeholder(title: String) -> void:
 # ユニット章
 # ---------------------------------------------------------------------------
 
-## カテゴリごとにユニットを束ねて出す。カテゴリの出現順と各スキンの並び順は
+## カテゴリごとに羊皮紙のカードを格子に並べる。カードに載るのは盤の絵だけで、名前も数値も
+## 出さない（doc/gdd/chronicle.md ユニット）。カテゴリの出現順と各スキンの並び順は
 ## SkinCatalog の __by_id__ 辞書の挿入順（＝CSV の行順）に従う。
 func _build_units_chapter() -> void:
 	if _store == null:
 		return
 	var ordered := _ordered_skins()
-	var encountered := _store.skins()  # { skin_id: { first: campaign_id } }
+	var encountered := _store.skins()  # 出会った skin_id の並び
+	var card_size := _card_size()
+	_grid_width = _content_scroll.size.x
 
 	for cat_entry in ordered:
 		var category: String = cat_entry["category"]
@@ -326,20 +357,19 @@ func _build_units_chapter() -> void:
 		head.add_child(count_label)
 		_content_box.add_child(head)
 
-		# スキンの行を並べる
+		# カードの格子
+		var grid := HFlowContainer.new()
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", CARD_GAP)
+		grid.add_theme_constant_override("v_separation", CARD_GAP)
 		for s in skins:
-			var known := encountered.has(s.skin_id)
-			var row := _unit_row(s, known)
-			_content_box.add_child(row)
+			grid.add_child(_unit_card(s, encountered.has(s.skin_id), card_size))
+		_content_box.add_child(grid)
 
 		# カテゴリ間の余白
 		var spacer := Control.new()
 		spacer.custom_minimum_size = Vector2(0, CATEGORY_GAP)
 		_content_box.add_child(spacer)
-
-	# 選択中のスキンがあれば詳細を出す
-	if not _selected_skin_id.is_empty():
-		_build_unit_detail(_selected_skin_id)
 
 ## SkinCatalog の __by_id__ からカテゴリ順にまとめた配列を返す。
 ## [{ "category": String, "skins": [UnitSkin, ...] }, ...]
@@ -355,82 +385,287 @@ func _ordered_skins() -> Array:
 		categories[cat_map[s.category]]["skins"].append(s)
 	return categories
 
-## ユニット1行。解放済みは名前とアイコン、未解放は「？」。
-func _unit_row(skin: UnitSkin, known: bool) -> Control:
-	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(0, ITEM_HEIGHT)
-	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	btn.focus_mode = Control.FOCUS_NONE
-	if known:
-		btn.text = "  " + tr("unit.%s.name" % skin.skin_id)
-		btn.add_theme_color_override("font_color", UI_GRAY)
-		btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
-		var sid := skin.skin_id
-		btn.pressed.connect(func() -> void: _select_unit(sid))
-	else:
-		btn.text = "  " + tr("ui.chronicle.unknown")
-		btn.add_theme_color_override("font_color", DIM_GRAY)
-		btn.add_theme_color_override("font_hover_color", DIM_GRAY)
-		btn.disabled = true
-	btn.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
-	# 透明な板にする（木の板は目次だけ＝中身は素のボタン）
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color.TRANSPARENT
-	btn.add_theme_stylebox_override("normal", sb)
-	var sb_hover := StyleBoxFlat.new()
-	sb_hover.bg_color = Color(1.0, 1.0, 1.0, 0.05)
-	btn.add_theme_stylebox_override("hover", sb_hover)
-	var sb_disabled := StyleBoxFlat.new()
-	sb_disabled.bg_color = Color.TRANSPARENT
-	btn.add_theme_stylebox_override("disabled", sb_disabled)
-	if known and skin.skin_id == _selected_skin_id:
-		var sb_sel := StyleBoxFlat.new()
-		sb_sel.bg_color = Color(1.0, 1.0, 1.0, 0.08)
-		sb_sel.border_color = FRAME_COLOR
-		sb_sel.border_width_left = FRAME_WIDTH
-		btn.add_theme_stylebox_override("normal", sb_sel)
-	return btn
+## カード1枚の寸法＝格子の幅を CARD_COLUMNS で割る。器がまだ measure されていない
+## （開いた直後の1フレーム目）ときは画面幅から見積もり、_on_content_resized で組み直す。
+func _card_size() -> Vector2:
+	var avail := _content_scroll.size.x
+	if avail <= 0.0:
+		avail = get_viewport().get_visible_rect().size.x - EDGE * 2.0 - TOC_WIDTH - PANE_GAP
+	avail -= SCROLLBAR_ALLOW
+	var w := maxf(floorf((avail - CARD_GAP * (CARD_COLUMNS - 1)) / float(CARD_COLUMNS)), 48.0)
+	return Vector2(w, floorf(w * CARD_ASPECT))
 
-func _select_unit(skin_id: String) -> void:
-	_selected_skin_id = skin_id
-	SfxPlayer.play_event("menu_select")
+## 器の幅が変わるとカードの寸法が変わる＝ユニット章だけ組み直す。
+func _on_content_resized() -> void:
+	if not visible or _chapter != Chapter.UNITS:
+		return
+	if absf(_content_scroll.size.x - _grid_width) < 1.0:
+		return
 	_rebuild_content()
 
+## 格子の1枚＝依頼ボードの貼り紙と同じ羊皮紙。未解放は黒いシルエットで押せない。
+func _unit_card(skin: UnitSkin, known: bool, card_size: Vector2) -> Control:
+	var card := Button.new()
+	card.custom_minimum_size = card_size
+	card.focus_mode = Control.FOCUS_NONE
+	card.clip_contents = true
+	var paper_seed := hash(skin.skin_id)  # カードごとに紙の変種を固定（hover でも変わらない）
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var bright := 1.0
+		if not known:
+			bright = CARD_DIM
+		elif state == "hover":
+			bright = 1.06
+		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(paper_seed, bright))
+
+	var pad := MarginContainer.new()
+	pad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		pad.add_theme_constant_override(side, CARD_PAD)
+	pad.add_child(_art_view(skin, "map", not known))
+	card.add_child(pad)
+
+	if known:
+		var sid := skin.skin_id
+		card.pressed.connect(func() -> void: _open_unit_card(sid))
+	else:
+		card.disabled = true
+	return card
+
+## 絵1枚。画像が未用意ならプレースホルダの文字（doc/art/overview.md）。
+## silhouette＝未解放のカード＝黒く塗り潰して形だけ見せる。
+func _art_view(skin: UnitSkin, slot: String, silhouette: bool) -> Control:
+	var path := skin.image(slot)
+	var tex: Texture2D = null
+	if not path.is_empty():
+		tex = load(path) as Texture2D
+	if tex == null:
+		var ph := Label.new()
+		ph.text = tr("ui.chronicle.unknown") if silhouette else tr("unit.%s.name" % skin.skin_id)
+		ph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		ph.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ph.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+		ph.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+		ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return ph
+	var art := TextureRect.new()
+	art.texture = _cropped(tex)
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if silhouette:
+		art.modulate = Color(0.0, 0.0, 0.0, 0.92)
+	return art
+
+## 絵の実体（非透過部分）の外接矩形だけを切り出したテクスチャ。キャンバスの余白ごと枠に
+## 収めると駒が小さくしか出ない（map は 384 角に対し実体が 101×180 のような比率）。
+## 会話の顔・ターン表示と同じ切り出し方（doc/art/overview.md）。
+func _cropped(src: Texture2D) -> Texture2D:
+	var img := src.get_image()
+	if img == null:
+		return src
+	var used := img.get_used_rect()
+	if used.size.x <= 0 or used.size.y <= 0:
+		return src
+	var atlas := AtlasTexture.new()
+	atlas.atlas = src
+	atlas.region = Rect2(used.position, used.size)
+	return atlas
+
 # ---------------------------------------------------------------------------
-# ユニット詳細
+# ユニットの拡大カード
 # ---------------------------------------------------------------------------
 
-func _build_unit_detail(skin_id: String) -> void:
+## 格子のカードを押すと手前に開く大きな羊皮紙。盤の絵と戦闘の絵を並べ、名前・兵種・初出・
+## 説明文・性能・ユニットスキルを載せる。閉じると格子へ戻る（Esc・紙の外を押す・左下の戻る）。
+func _open_unit_card(skin_id: String) -> void:
 	var skin := SkinCatalog.skin_by_id(_skins, skin_id)
 	if skin == null:
 		return
-	# 名前
+	SfxPlayer.play_event("menu_select")
+	_close_expanded()
+
+	_expanded = Control.new()
+	_expanded.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_expanded.mouse_filter = Control.MOUSE_FILTER_STOP
+	_expanded.gui_input.connect(func(event: InputEvent) -> void:
+		# 紙そのものは STOP で受け止めるので、ここへ来るのは紙の外を押したとき
+		if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+			_close_unit_card())
+
+	var scrim := ColorRect.new()
+	scrim.color = EXPAND_SCRIM
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	scrim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_expanded.add_child(scrim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(_expanded_sheet(skin))
+	_expanded.add_child(center)
+
+	_root.add_child(_expanded)
+	_expanded.modulate.a = 0.0
+	create_tween().tween_property(_expanded, "modulate:a", 1.0, FADE_SEC * 0.5)
+
+func _close_unit_card() -> void:
+	SfxPlayer.play_event("menu_back")
+	_close_expanded()
+
+func _close_expanded() -> void:
+	if _expanded == null:
+		return
+	_expanded.queue_free()
+	_expanded = null
+
+## 拡大カードの紙。文字は紙の上なのでインク色（UIのグレーではない）。
+func _expanded_sheet(skin: UnitSkin) -> Control:
+	var sheet := PanelContainer.new()
+	sheet.custom_minimum_size = Vector2(EXPAND_WIDTH, 0)
+	sheet.add_theme_stylebox_override("panel", TavernTheme.parchment_stylebox(hash(skin.skin_id)))
+
+	var pad := MarginContainer.new()
+	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		pad.add_theme_constant_override(side, EXPAND_PAD)
+	sheet.add_child(pad)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 10)
+	pad.add_child(col)
+
+	# 絵＝盤の絵と戦闘の絵を並べる
+	var arts := HBoxContainer.new()
+	arts.add_theme_constant_override("separation", EXPAND_PAD)
+	arts.custom_minimum_size = Vector2(0, EXPAND_ART_HEIGHT)
+	for slot in ["map", "combat"]:
+		var art := _art_view(skin, slot, false)
+		art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		art.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		arts.add_child(art)
+	col.add_child(arts)
+
+	# 見出し＝ユニット名（兵種）
 	var name_label := Label.new()
-	name_label.text = tr("unit.%s.name" % skin_id)
-	name_label.add_theme_font_size_override("font_size", HEAD_FONT_SIZE)
-	name_label.add_theme_color_override("font_color", ACCENT)
-	_detail_box.add_child(name_label)
-	# カテゴリ
-	var cat_label := Label.new()
-	cat_label.text = tr("unit_group.%s.name" % skin.category)
-	cat_label.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
-	cat_label.add_theme_color_override("font_color", DIM_GRAY)
-	_detail_box.add_child(cat_label)
-	# 初出の冒険譚
-	var encountered: Dictionary = _store.skins()
-	var entry: Dictionary = encountered.get(skin_id, {})
-	var first_campaign: String = entry.get("first", "")
-	if not first_campaign.is_empty() and _progress != null:
-		var campaign := _progress.campaign(first_campaign)
-		if not campaign.is_empty():
-			var first_label := Label.new()
-			var campaign_title := tr(String(campaign.get("id", first_campaign)))
-			first_label.text = "%s: %s" % [tr("ui.chronicle.first_seen"), campaign_title]
-			first_label.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
-			first_label.add_theme_color_override("font_color", UI_GRAY)
-			_detail_box.add_child(first_label)
-	# 説明文（names.csv に unit.<skin_id>.desc があれば）
-	_add_desc_label("unit.%s.desc" % skin_id)
+	name_label.text = _unit_title(skin)
+	name_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	name_label.add_theme_color_override("font_color", TavernTheme.INK)
+	col.add_child(name_label)
+
+	# 説明文（chronicle.csv に unit.<skin_id>.desc があれば）
+	var desc_key := "unit.%s.desc" % skin.skin_id
+	var desc_text := tr(desc_key)
+	if desc_text != desc_key:
+		var desc_label := Label.new()
+		desc_label.text = desc_text
+		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		desc_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+		desc_label.add_theme_color_override("font_color", TavernTheme.INK)
+		col.add_child(desc_label)
+
+	# 性能の数値
+	col.add_child(_stats_grid(skin.type_id))
+	var traits := _trait_text(skin.type_id)
+	if not traits.is_empty():
+		col.add_child(_ink_line("%s  %s" % [tr("ui.info.trait"), traits], TavernTheme.INK))
+
+	# ユニットスキル（撃てるものを性能の一部として載せる。doc/gdd/skills.md）
+	for rid in _unit_skill_ids(skin):
+		col.add_child(_ink_line("%s  %s" % [tr("ui.info.skill"), tr("recipe.%s.name" % rid)], TavernTheme.INK))
+		var skill_desc := tr("recipe.%s.desc" % rid)
+		if skill_desc != "recipe.%s.desc" % rid:
+			col.add_child(_ink_line(skill_desc, TavernTheme.INK_SOFT))
+	return sheet
+
+## 紙の上の1行（折り返しあり）。
+func _ink_line(text: String, color: Color) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
+	label.add_theme_color_override("font_color", color)
+	return label
+
+## 見出しの文字列＝ユニット名（兵種）。兵種を添えるのは味方だけ。
+## 敵の分類は素性（ゴブリン・アンデッド…）で兵種ではなく、格子の章見出しと同じ語になる＝
+## 括弧に入れても何も足さない。兵種そのものを出すのはリスキン元が透けるので避ける
+## （情報パネルと同じ線 → doc/gdd/uiux.md 見出し）。
+func _unit_title(skin: UnitSkin) -> String:
+	var name_text := tr("unit.%s.name" % skin.skin_id)
+	if skin.side != "ally" or skin.category.is_empty():
+		return name_text
+	return tr("ui.chronicle.name_category") % [name_text, tr("unit_group.%s.name" % skin.category)]
+
+## 性能の数値＝盤の状況で変わらない値だけ。項目と語は情報パネルの能力タブと揃える。
+func _stats_grid(type_id: String) -> Control:
+	var grid := GridContainer.new()
+	grid.columns = 6  # 項目・値の対を1行に3つ（紙の幅に対して余るため）
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 4)
+	for row in _stat_rows(type_id):
+		var label := Label.new()
+		label.text = String(row[0])
+		label.custom_minimum_size = Vector2(STAT_LABEL_WIDTH, 0)
+		label.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
+		label.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+		grid.add_child(label)
+		var value := Label.new()
+		value.text = String(row[1])
+		value.custom_minimum_size = Vector2(STAT_VALUE_WIDTH, 0)
+		value.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
+		value.add_theme_color_override("font_color", TavernTheme.INK)
+		grid.add_child(value)
+	return grid
+
+## [[項目, 値], ...]。持たない駒に出しても意味のない項目（搭乗・シールド）は持つ駒だけ。
+func _stat_rows(type_id: String) -> Array:
+	var t: UnitType = _types.get(type_id, null) as UnitType
+	if t == null:
+		return []
+	var rows: Array = []
+	rows.append([tr("ui.info.atk_ground"), str(t.atk_ground)])
+	rows.append([tr("ui.info.atk_air"), str(t.atk_air) if t.atk_air > 0 else NONE_TEXT])
+	rows.append([tr("ui.info.defense"), str(t.defense)])
+	rows.append([tr("ui.info.range"), str(t.attack_range) if t.min_range == t.attack_range \
+		else "%d-%d" % [t.min_range, t.attack_range]])
+	rows.append([tr("ui.info.move"), str(t.move)])
+	rows.append([tr("ui.info.move_type"), tr("movement.%s.name" % t.move_type)])
+	rows.append([tr("ui.info.strength"), str(t.max_troops)])
+	if t.capacity > 0:
+		rows.append([tr("ui.chronicle.capacity"), str(t.capacity)])
+	if t.shield > 0:
+		rows.append([tr("ui.info.shield"), str(t.shield)])
+	return rows
+
+## 特性＝他の行を見ても分からないことだけ（情報パネルと同じ線引き）。
+func _trait_text(type_id: String) -> String:
+	var t: UnitType = _types.get(type_id, null) as UnitType
+	if t == null:
+		return ""
+	var traits: Array[String] = []
+	if t.pierce > 0.0:
+		traits.append(tr("ui.info.trait_pierce") % roundi(t.pierce * 100.0))
+	if t.can_capture:
+		traits.append(tr("ui.info.trait_capture"))
+	if t.move_after_attack:
+		traits.append(tr("ui.info.trait_move_after_attack"))
+	return "   /   ".join(traits)
+
+## その駒が撃てるユニットスキル（単独発動＝shape "solo"）のレシピid。
+## 照合は skin_id だけ＝Formation._matches が盤で使う鍵と同じ（クロニクルの枠は必ず
+## skin_id を持つ）。type_id でも拾うと、性能を借りているだけの別スキンに撃てない
+## スキルが載る（ゴーストはピクシー性能だがピクシーダストは撃てない）。
+func _unit_skill_ids(skin: UnitSkin) -> Array:
+	var out: Array = []
+	for rid in Formation.RECIPES:
+		var recipe: Dictionary = Formation.RECIPES[rid]
+		if not Formation.is_unit_skill(rid):
+			continue
+		if (recipe.get("leader_skins", []) as Array).has(skin.skin_id):
+			out.append(rid)
+	return out
 
 # ---------------------------------------------------------------------------
 # 陣形章

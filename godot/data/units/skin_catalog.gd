@@ -21,8 +21,8 @@ static func build(data: Dictionary) -> Dictionary:
 		return out
 	for type_id in skins:
 		var sides: Dictionary = skins[type_id]
-		var ally := _to_skins(sides.get("ally", []))
-		var enemy := _to_skins(sides.get("enemy", []))
+		var ally := _to_skins(sides.get("ally", []), "ally")
+		var enemy := _to_skins(sides.get("enemy", []), "enemy")
 		out[type_id] = { "ally": ally, "enemy": enemy }
 		for s in ally:
 			if s.skin_id != "":
@@ -33,11 +33,11 @@ static func build(data: Dictionary) -> Dictionary:
 	out[BY_ID_KEY] = by_id
 	return out
 
-static func _to_skins(arr: Variant) -> Array:
+static func _to_skins(arr: Variant, side: String) -> Array:
 	var list := []
 	if typeof(arr) == TYPE_ARRAY:
 		for d in arr:
-			var s := UnitSkin.from_dict(d)
+			var s := UnitSkin.from_dict(d, side)
 			_autowire_images(s)
 			list.append(s)
 	return list
