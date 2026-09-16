@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=8 / feature=131 / refactoring=18.
+次回採番: bug=9 / feature=131 / refactoring=18.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -13,6 +13,14 @@
 ## バグ
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### bug-8
+
+**Medium テストが `user://` 直下に退避ファイルと世代を残していく**
+- ゴール：テスト一式を回した後、`user://` にテストの産物が1つも残っていない。
+- 背景：セーブのストアを動かすテストが `user://` 直下でファイル名を取っている（`test_progress.json`・`test_roster.json`・`test_save.json`・`test_settings.json`・`test_chronicle.json`・`test_outcome_progress.json`）。本体のファイルは片付けるが、`SaveFile` が書き込みのたびに作る世代（`test_progress.<時刻>.json`）と、読めなかったファイルの退避（`.broken-` `.v0-` `.v999-`）は残る。[testing.md](tech/testing.md) テストサイズの「使ったファイルを必ず片付ける」に反している。プレイヤーのセーブとは別名なので実害は無いが、保存フォルダを見たときにどれが本物か分からなくなる。`test_progress.json` は2つのテストが共有していて、片方の前提がもう片方の後始末に依存している点も同じ話。
+- 対応：テストごとにディレクトリを持ち（`test_save_file.gd`・`test_save_slots.gd` が先例）、`after_all` でディレクトリごと消す。
+- 該当：`godot/tests/medium/infrastructure/test_progress_store.gd`・`test_roster_store.gd`・`test_save_store.gd`・`test_settings_store.gd`・`test_chronicle_store.gd`・`godot/tests/medium/application/test_campaign_progress.gd`・`test_stage_outcome.gd`。
 
 ### bug-7
 
