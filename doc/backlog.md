@@ -82,7 +82,13 @@
 **Steam 実績・Stats の配線（GodotSteam 導入）**
 - 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`godot/infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
 - 対応：(1) GodotSteam を導入し `godot/infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。チャネルごとのアダプターと部品の構造、Steam 以外のチャネルでの実績の保管先は feature-62）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
-- 該当：`godot/infrastructure/platform/`（GodotSteam の隔離・新規）・`godot/application/campaign_progress.gd`（完走判定・ランク記録）・`godot/infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝Steamworks に AppID を登録したとき（[monetization.md](sales/monetization.md) 出す順序）。前提＝ランクの評価式（[rank.md](gdd/rank.md)）は実装済み。
+- 該当：`godot/infrastructure/platform/`（GodotSteam の隔離・新規）・`godot/application/campaign_progress.gd`（完走判定・ランク記録）・`godot/infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝下の段階1と2は登録前から進められる。段階3は Steamworks に AppID を登録したとき（[monetization.md](sales/monetization.md) 出す順序）。前提＝ランクの評価式（[rank.md](gdd/rank.md)）は実装済み。
+- 導入の形：GodotSteam は GDExtension 版（`godot/addons/` に置くアドオン）を採る。GodotSteam 同梱のエディタは使わない＝手元の Godot エディタと二重管理になる。
+- 進め方（登録前に進められる範囲）：
+  1. 登録なし・Steam なし。feature-62 のアダプターと部品を作り、dev アダプターで実績の発火点・所有チェックの呼び出し・Stats の刻む場所を全部作る。エディタと GUT はここで回る。GUT は Steam 実装を通さず、アダプターの選択と部品の挙動だけを見る。
+  2. 登録なし・テスト用 AppID 480（Valve が公開している Spacewar）。GodotSteam を入れ steam アダプターを書き、480 に繋いで初期化・実績の読み書き・Stats の送信が通ることを確認する。実績名は Spacewar に定義済みのものを仮に使う。Senaris 固有の実績の定義・DLC の所有チェック・体験版と製品版のセーブ共有は 480 では試せない。
+  3. 登録あり・自分の AppID。管理画面で実績・DLC・Cloud を定義し、AppID と実績名を差し替えて本番確認する。
+- 手元で Steam 実装を動かす条件：Steam クライアントが起動しログイン済みであること。Steam を経由せず起動するため、AppID を1行書いた `steam_appid.txt` を作業ディレクトリ（エディタならプロジェクトルート、ビルドなら exe の隣）に置く。このファイルは配布物に入れない＝Steam から起動されるときは Steam が AppID を渡す。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
 
 ### feature-46
