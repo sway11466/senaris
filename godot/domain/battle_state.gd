@@ -22,12 +22,12 @@ var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形�
 var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 → doc/gdd/map.md
 
 ## 勝利条件リスト（OR＝どれか1つ満たせば勝利）。空＝殲滅のみ（従来挙動）。詳細 → doc/gdd/map.md（勝敗条件）
-## 要素は dict。現在対応: { "type": "defeat_unit", "actor": <String> } ＝ ボス撃破（駒に actor を書いて名指す）
+## 要素は dict。現在対応: { "type": "defeat_unit", "unit_id": <String> } ＝ ボス撃破（駒に unit_id を書いて名指す）
 var victory_conditions: Array = []
 
 ## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。
 ## 要素は dict。現在対応: { "type": "lose_base", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点を全て敵に奪われる
-##                       { "type": "lose_unit", "actors": [<String>, …] } ＝ 護衛対象の喪失
+##                       { "type": "lose_unit", "unit_ids": [<String>, …] } ＝ 護衛対象の喪失
 ## 本拠地(hq)喪失の常時ルールとは別軸＝あちらは陣営の要、こちらはステージが名指しする守り物。
 var defeat_conditions: Array = []
 
@@ -197,7 +197,7 @@ func _increment_charges() -> void:
 var _defeated := {}  # handle -> true（撃破で盤から消えた駒の記録）
 ## team -> 失った駒の数（累積・兵器は数えない）。戦果票の撃破数が敵側の値を読む。doc/gdd/rank.md
 var _losses := {}
-var _defeated_actors := {}  # actor -> true（名前つきの駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
+var _defeated_unit_ids := {}  # unit_id -> true（名指された駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
 ## actor -> true（この戦闘に投入された名前つきの駒。初期配置・拠点の控え・搭乗・増援のすべてを含む）。
 ## クリア後の名簿更新がここを見て「出た者」と「出番の無かった者」を分ける。詳細 → doc/gdd/campaigns.md 名簿の更新
 var _sortied_actors := {}
@@ -1117,11 +1117,11 @@ func unit_snapshot(u: Unit) -> UnitSnapshot:
 func _remove_unit(handle: int) -> void:
 	_defeated[handle] = true
 	var lost := unit_by_handle(handle)
-	_mark_actor_defeated(lost)
+	_mark_unit_id_defeated(lost)
 	_count_loss(lost)
 	for p in passengers(handle):
 		_defeated[p.handle] = true  # 巻き添え（盤上には居ないのでリストから消すだけ）
-		_mark_actor_defeated(p)
+		_mark_unit_id_defeated(p)
 		_count_loss(p)
 	_passengers.erase(handle)
 	_take_off_board(handle)
@@ -1132,10 +1132,10 @@ func _count_loss(u: Unit) -> void:
 		return
 	_losses[u.team] = int(_losses.get(u.team, 0)) + 1
 
-## 名前つきの駒（actor）の撃破を記録する。名前の無い駒は素通し。
-func _mark_actor_defeated(u: Unit) -> void:
-	if u != null and u.actor != "":
-		_defeated_actors[u.actor] = true
+## 名指された駒（unit_id）の撃破を記録する。名前の無い駒は素通し。
+func _mark_unit_id_defeated(u: Unit) -> void:
+	if u != null and u.unit_id != "":
+		_defeated_unit_ids[u.unit_id] = true
 
 ## 駒を盤上リストから外す（撃破記録は付けない。乗車・撃破処理の内部用）。
 func _take_off_board(handle: int) -> void:
@@ -1221,8 +1221,8 @@ func is_defeated(handle: int) -> bool:
 	return _defeated.has(handle)
 
 ## 名指しした駒（actor）が撃破済みか。ボス撃破・護衛対象の喪失が見る。詳細 → doc/gdd/map.md
-func is_actor_defeated(actor: String) -> bool:
-	return actor != "" and _defeated_actors.has(actor)
+func is_unit_id_defeated(unit_id: String) -> bool:
+	return unit_id != "" and _defeated_unit_ids.has(unit_id)
 
 ## 駒を1体、戦闘を経ずに盤から除去する（撃破扱い＝ボス撃破の勝利条件にも効く）。
 ## 戦闘の結果ではない除去の入口＝デバッグメニューの「敵を殲滅」が使う。詳細 → doc/gdd/uiux.md
@@ -1359,7 +1359,7 @@ func to_save_diff() -> Dictionary:
 		"engaged": _engaged.keys(), "engaged_squads": _engaged_squads.keys(),
 		"defeated": _defeated.keys(),
 		"losses": _int_keyed_to_str(_losses),
-		"defeated_actors": _defeated_actors.keys(),
+		"defeated_unit_ids": _defeated_unit_ids.keys(),
 		"sortied_actors": _sortied_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
 		"charges": _charges_to_dict(),
@@ -1386,7 +1386,7 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	_engaged_squads = _ids_to_set(diff.get("engaged_squads", []))
 	_defeated = _ids_to_set(diff.get("defeated", []))
 	_losses = _str_keyed_to_int(diff.get("losses", {}))
-	_defeated_actors = _names_to_set(diff.get("defeated_actors", []))
+	_defeated_unit_ids = _names_to_set(diff.get("defeated_unit_ids", []))
 	_sortied_actors = _names_to_set(diff.get("sortied_actors", []))
 	for b in fresh_bases:  # ステージ更新で足された拠点の控えは今この盤に出た＝投入記録を立て直す
 		for gu in b.garrison:
@@ -1516,7 +1516,7 @@ static func _as_dict(v: Variant) -> Dictionary:
 	return v if typeof(v) == TYPE_DICTIONARY else {}
 
 ## _charges を JSON 化可能な dict に変換（キーを文字列化）。
-## { handle(int): { recipe_id: int } } → { "unit_id": { recipe_id: int } }
+## { handle(int): { recipe_id: int } } → { "handle": { recipe_id: int } }
 func _charges_to_dict() -> Dictionary:
 	var out := {}
 	for uid in _charges:

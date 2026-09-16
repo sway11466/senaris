@@ -15,7 +15,10 @@ const DEFAULT_PATH := "user://save.json"
 ##    （doc/tech/gamesystem.md §所要時間）。旧セーブは測っていない＝変換で 0（不明）を入れる。
 ## 5: 味方の駒も部隊に属するようになった（doc/gdd/map.md 駒の配置）。部隊の所属は並び順で持つので、
 ##    味方部隊が先に積まれるぶん敵の index がずれる＝変換で付け替える。
-const VERSION := 5
+## 6: 駒を指す語彙を unit_id（この盤の駒）と actor（冒険譚の人物）に分けた（doc/gdd/map.md
+##    駒を指す名前）。実行時のハンドルのキーが "id" → "handle"、勝敗条件の記録が
+##    defeated_actors → defeated_unit_ids、状態補正の "unit_id"（int）→ "handle"。
+const VERSION := 6
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

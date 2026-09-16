@@ -349,9 +349,9 @@ func test_transport_death_kills_passengers() -> void:
 	wagon.troops = 1  # 一撃で落ちる
 	s.add_unit(wagon)
 	var vip := Unit.new(2, 0, Vector2i.ZERO, 3)
-	vip.actor = "vip"
+	vip.unit_id = "vip"
 	s.put_passenger(1, vip)
-	s.victory_conditions = [{ "type": "defeat_unit", "actor": "vip" }]  # 搭乗駒がボスの場合も撃破扱い
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": "vip" }]  # 搭乗駒がボスの場合も撃破扱い
 	var killer := Unit.new(9, 1, Hex.neighbor(wagon.pos, 0), 3, 8, 90, 40)
 	s.add_unit(killer)
 	s.add_unit(Unit.new(3, 0, Hex.offset_to_axial(0, 0), 3))  # 全滅回避用の自軍

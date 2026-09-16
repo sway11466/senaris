@@ -36,10 +36,10 @@
         { "skin": "hobgoblin", "col": 23, "row": 4 }
       ] },
     { "order": 4, "name": "goblin-raid.st7.squad.4", "ai": "ambush", "sight": 0,
-      "units": [ { "skin": "goblin_lord", "actor": "goblin_load", "col": 25, "row": 5 } ] }
+      "units": [ { "skin": "goblin_lord", "unit_id": "goblin_load", "col": 25, "row": 5 } ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "actor": "goblin_load" }
+    { "type": "defeat_unit", "unit_id": "goblin_load" }
   ],
   "dialogue": {
     "intro": [

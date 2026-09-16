@@ -164,6 +164,16 @@ func test_stage_events_have_unique_ids() -> void:
 			assert_false(seen.has(v), "%s のイベント id '%s' が他と重複しない" % [path, v])
 			seen[v] = true
 
+func test_stage_unit_ids_are_unique_and_referenced() -> void:
+	# 駒の名前(unit_id)はステージ内で一意、勝敗条件が指す先は盤に居る（doc/gdd/map.md 駒を指す名前）。
+	# 綴り違いを黙って通すと「書き忘れ」と「名指さない」が区別できなくなる。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var problems := StageLoader.unit_id_problems(data)
+		assert_eq(problems, [], "%s の unit_id: %s" % [path, ", ".join(PackedStringArray(problems))])
+
 func test_stage_events_with_dialogue_have_name() -> void:
 	# 会話つきのイベントは「ストーリーを確認」の目次に並ぶ＝見出しの翻訳キーが要る
 	# （doc/gdd/map.md イベントの name）。無いと、あとから選びようがない。

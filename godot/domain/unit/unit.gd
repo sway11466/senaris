@@ -15,6 +15,8 @@ var native_team: int   ## 生来の陣営（不変）。-1(Base.NEUTRAL)=中立�
 var recruited_team: int  ## 帰属先＝どちらの戦力として世に出たか。既定は native_team と同じ。
                        ## 中立 native の駒が解放（出撃）された瞬間に出した側で確定し、以後は不変
                        ## ＝拠点ごと奪われても寝返らず捕虜になる。出撃・回復の可否はこの値で見る。
+var unit_id: String = ""  ## この盤の駒の名前（ステージの中で一意。空＝名指されない駒）。
+                       ## 勝敗条件（defeat_unit / lose_unit）がこの値を見る。詳細 → doc/gdd/map.md
 var actor: String = ""   ## 永続キャラ識別子（冒険譚のなかで一意。名簿は冒険譚ごと。例 "elf"）。空＝名前のない雑兵。
                        ## 名簿の同一性・player の駒と名簿の突き合わせ・会話の分岐がこの値を見る
 var pos: Vector2i      ## axial 座標
@@ -165,7 +167,9 @@ static func from_dict(data: Dictionary, t: UnitType = null) -> Unit:
 ## 位置は axial 座標を q/r として直に持つ。詳細 → doc/tech/gamesystem.md
 func to_full_dict() -> Dictionary:
 	var d := to_dict()
-	d["id"] = handle  # セーブのキーは "id" のまま（版と一緒に変える）
+	d["handle"] = handle
+	if unit_id != "":
+		d["unit_id"] = unit_id  # 名指されない駒では出さない（キーを増やさない＝actor と同じ流儀）
 	d["team"] = team
 	d["native"] = native_team
 	d["recruited"] = recruited_team
@@ -176,7 +180,8 @@ func to_full_dict() -> Dictionary:
 ## to_full_dict からの復元。性能は t（UnitType）から再構築し、盤情報を戻す。
 static func from_full_dict(data: Dictionary, t: UnitType = null) -> Unit:
 	var unit := from_dict(data, t)
-	unit.handle = int(data.get("id", 0))
+	unit.handle = int(data.get("handle", 0))
+	unit.unit_id = String(data.get("unit_id", ""))
 	unit.team = int(data.get("team", 0))
 	unit.set_native_team(int(data.get("native", unit.team)))
 	unit.recruited_team = int(data.get("recruited", unit.native_team))  # 旧セーブは native と同値で復元

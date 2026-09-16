@@ -22,7 +22,7 @@ const SAMPLE := """
   "enemy": [
     { "order": 1, "name": "本隊", "ai": "ambush", "sight": 3, "units": [
       { "skin": "goblin", "col": 4, "row": 1 },
-      { "skin": "hobgoblin", "actor": "hobgoblin", "col": 4, "row": 2 }
+      { "skin": "hobgoblin", "unit_id": "hobgoblin", "col": 4, "row": 2 }
     ] }
   ],
   "bases": [
@@ -30,7 +30,7 @@ const SAMPLE := """
       "garrison": [ { "skin": "goblin", "count": 4, "native": "enemy" } ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "actor": "hobgoblin" }
+    { "type": "defeat_unit", "unit_id": "hobgoblin" }
   ],
   "dialogue": {
     "intro": [
@@ -432,53 +432,53 @@ func test_garrison_count_sums_the_rows() -> void:
 	assert_eq(MapEditorDoc.garrison_count({ "garrison": "壊れた値" }), 0, "配列でなければ0体")
 
 
-# --- 名指し(actor)・行動順(order)・勝利条件 ---
+# --- 名指し(unit_id)・人物(actor)・行動順(order)・勝利条件 ---
 
 
-func test_used_actors_collects_named_pieces() -> void:
+func test_used_unit_ids_collects_named_pieces() -> void:
 	var doc := _load(SAMPLE)
-	assert_true(doc.used_actors().has("hobgoblin"), "部隊の駒の actor を拾う")
-	assert_eq(doc.used_actors().size(), 1, "名前なしの駒は数えない")
+	assert_true(doc.used_unit_ids().has("hobgoblin"), "部隊の駒の unit_id を拾う")
+	assert_eq(doc.used_unit_ids().size(), 1, "名前なしの駒は数えない")
 
 
-func test_free_actor_avoids_duplicate() -> void:
+func test_free_unit_id_avoids_duplicate() -> void:
 	var doc := _load(SAMPLE)
-	assert_eq(doc.free_actor("goblin"), "goblin", "未使用ならそのまま")
-	assert_eq(doc.free_actor("hobgoblin"), "hobgoblin2", "使用済みなら連番を足す")
+	assert_eq(doc.free_unit_id("goblin"), "goblin", "未使用ならそのまま")
+	assert_eq(doc.free_unit_id("hobgoblin"), "hobgoblin2", "使用済みなら連番を足す")
 
 
-func test_set_actor_names_player_and_enemy() -> void:
+func test_set_unit_id_names_player_and_enemy() -> void:
 	var doc := _load(SAMPLE)
-	doc.set_actor(doc.data["player"][0]["units"][0], "cap")
-	doc.set_actor(doc.data["enemy"][0]["units"][0], "goblin")
-	assert_eq(doc.data["player"][0]["units"][0]["actor"], "cap", "自軍にも名前を付けられる")
+	doc.set_unit_id(doc.data["player"][0]["units"][0], "cap")
+	doc.set_unit_id(doc.data["enemy"][0]["units"][0], "goblin")
+	assert_eq(doc.data["player"][0]["units"][0]["unit_id"], "cap", "自軍にも名前を付けられる")
 	assert_false(doc.data["player"][0]["units"][0].has("id"), "数値 id は書かない")
-	assert_true(doc.used_actors().has("cap"))
-	assert_eq(doc.used_actors().size(), 3)
+	assert_true(doc.used_unit_ids().has("cap"))
+	assert_eq(doc.used_unit_ids().size(), 3)
 
 
-func test_set_actor_rename_follows_victory() -> void:
+func test_set_unit_id_rename_follows_victory() -> void:
 	var doc := _load(SAMPLE)
-	doc.set_actor(doc.data["enemy"][0]["units"][1], "necromancer")
-	assert_eq(doc.victory_list()[0]["actor"], "necromancer", "勝利条件の名指しも付け替わる")
+	doc.set_unit_id(doc.data["enemy"][0]["units"][1], "necromancer")
+	assert_eq(doc.victory_list()[0]["unit_id"], "necromancer", "勝利条件の名指しも付け替わる")
 
 
-func test_set_actor_clear_drops_condition() -> void:
+func test_set_unit_id_clear_drops_condition() -> void:
 	var doc := _load(SAMPLE)
-	doc.set_actor(doc.data["enemy"][0]["units"][1], "")
-	assert_false(doc.data["enemy"][0]["units"][1].has("actor"))
+	doc.set_unit_id(doc.data["enemy"][0]["units"][1], "")
+	assert_false(doc.data["enemy"][0]["units"][1].has("unit_id"))
 	assert_eq(doc.victory_list().size(), 0, "指す先が無くなった条件は残さない")
 	assert_false(doc.data.has("victory"), "空の victory キーは書き出さない")
 
 
-func test_set_actor_follows_lose_unit() -> void:
+func test_set_unit_id_follows_lose_unit() -> void:
 	var doc := _load(SAMPLE)
-	doc.set_actor(doc.data["player"][0]["units"][0], "cap")
-	doc.data["defeat"] = [{ "type": "lose_unit", "actors": ["cap", "other"] }]
-	doc.set_actor(doc.data["player"][0]["units"][0], "captain")
-	assert_eq(doc.defeat_list()[0]["actors"], ["captain", "other"], "護衛対象の名指しも追随")
-	doc.set_actor(doc.data["player"][0]["units"][0], "")
-	assert_eq(doc.defeat_list()[0]["actors"], ["other"], "外した名前だけ落ちる")
+	doc.set_unit_id(doc.data["player"][0]["units"][0], "cap")
+	doc.data["defeat"] = [{ "type": "lose_unit", "unit_ids": ["cap", "other"] }]
+	doc.set_unit_id(doc.data["player"][0]["units"][0], "captain")
+	assert_eq(doc.defeat_list()[0]["unit_ids"], ["captain", "other"], "護衛対象の名指しも追随")
+	doc.set_unit_id(doc.data["player"][0]["units"][0], "")
+	assert_eq(doc.defeat_list()[0]["unit_ids"], ["other"], "外した名前だけ落ちる")
 
 
 func test_add_squad_gets_next_order() -> void:
@@ -856,3 +856,16 @@ func _sample_dict(text: String) -> Dictionary:
 	out.erase("cols")
 	out.erase("rows")
 	return out
+
+
+## 人物名(actor)は盤の名指しとは別物＝勝敗条件は追随しない（doc/gdd/map.md 駒を指す名前）。
+func test_set_actor_does_not_touch_conditions() -> void:
+	var doc := _load(SAMPLE)
+	var unit: Dictionary = doc.data["enemy"][0]["units"][1]
+	doc.set_actor(unit, "warlord")
+	assert_eq(unit["actor"], "warlord", "人物名が付く")
+	assert_eq(unit["unit_id"], "hobgoblin", "駒の名前はそのまま")
+	assert_eq(doc.victory_list()[0]["unit_id"], "hobgoblin", "勝敗条件は動かない")
+	doc.set_actor(unit, "")
+	assert_false(unit.has("actor"), "外せる")
+	assert_eq(doc.victory_list()[0]["unit_id"], "hobgoblin", "外しても勝敗条件は残る")

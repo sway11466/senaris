@@ -23,9 +23,9 @@ func _stage_data() -> Dictionary:
 			{ "type": "wagon", "col": 2, "row": 1, "passengers": [{ "type": "knight" }] },
 		] } ],
 		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "ambush", "sight": 4,
-			"units": [{ "type": "knight", "col": 6, "row": 1, "actor": "boss" }] }],
+			"units": [{ "type": "knight", "col": 6, "row": 1, "unit_id": "boss", "actor": "warlord" }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "hq": "player", "rest": "player", "garrison": [{ "type": "archer", "count": 1, "native": "player" }] }],
-		"victory": [{ "type": "defeat_unit", "actor": "boss" }],
+		"victory": [{ "type": "defeat_unit", "unit_id": "boss" }],
 		"defeat": [{ "type": "lose_base", "bases": [{ "col": 4, "row": 3 }] }],
 	}
 
@@ -44,7 +44,7 @@ func _rich_state(data: Dictionary) -> BattleState:
 	s._post_moved[2] = true
 	s._spent[1] = 2
 	s._defeated[42] = true                 # 盤外で撃破済みの駒
-	s._defeated_actors["ghost"] = true     # 名指しの撃破記録（ボス撃破・護衛対象の判定用）
+	s._defeated_unit_ids["ghost"] = true     # 名指しの撃破記録（ボス撃破・護衛対象の判定用）
 	s._losses[1] = 3                       # 戦果票の撃破数（累積・導出できないので差分が持つ）
 	s.add_status_mod({ "scope": "team", "team": 0, "op": "mul", "target": "attack", "value": 1.3, "owner_team": 0, "remaining": 2 })
 	return s
@@ -70,7 +70,7 @@ func test_scalars_roundtrip() -> void:
 	assert_eq(s2.current_team, 1, "ターンの陣営")
 	assert_eq(s2.turn_number, 3)
 	assert_eq(s2.turn_limit, 15, "ターン上限はステージJSONから引き直す")
-	assert_true(s2.has_sortied("boss"), "この盤に投入された名前つきの駒の記録も復元する（名簿の更新が見る）")
+	assert_true(s2.has_sortied("warlord"), "この盤に投入された人物(actor)の記録も復元する（名簿の更新が見る）")
 
 func test_units_roundtrip_with_board_and_growth() -> void:
 	var s2 := _rich_roundtrip()
@@ -97,7 +97,7 @@ func test_action_flags_roundtrip() -> void:
 	assert_true(s2.is_squad_engaged(0), "部隊(拠点)のAI起動フラグ＝再開後に眠り直さない")
 	assert_eq(int(s2._spent.get(1, 0)), 2, "使った移動コスト")
 	assert_true(s2._defeated.has(42), "撃破記録")
-	assert_true(s2.is_actor_defeated("ghost"), "名指しの撃破記録（ボス撃破・護衛対象の判定用）")
+	assert_true(s2.is_unit_id_defeated("ghost"), "名指しの撃破記録（ボス撃破・護衛対象の判定用）")
 	assert_eq(s2.losses(1), 3, "撃破数（陣営ごとの損失）＝再開後も数え直しにならない")
 
 func test_terrain_comes_from_stage() -> void:
@@ -142,7 +142,7 @@ func test_status_mods_roundtrip() -> void:
 func test_victory_conditions_come_from_stage() -> void:
 	var s2 := _rich_roundtrip()
 	assert_eq(s2.victory_conditions.size(), 1)
-	assert_eq(String(s2.victory_conditions[0]["actor"]), "boss", "ボス撃破条件はステージJSONから引き直す")
+	assert_eq(String(s2.victory_conditions[0]["unit_id"]), "boss", "ボス撃破条件はステージJSONから引き直す")
 
 func test_defeat_conditions_come_from_stage() -> void:
 	var s2 := _rich_roundtrip()

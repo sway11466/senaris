@@ -751,10 +751,10 @@ static func is_lose_unit(c: Variant) -> bool:
 
 
 ## lose_unit 条件が持つ名指しの配列。実体を返す＝呼び出し側の追加・削除がそのまま効く。
-static func lose_unit_actors(c: Variant) -> Array:
+static func lose_unit_ids(c: Variant) -> Array:
 	if not is_lose_unit(c):
 		return []
-	var a: Variant = c.get("actors", [])
+	var a: Variant = c.get("unit_ids", [])
 	return a if typeof(a) == TYPE_ARRAY else []
 
 
@@ -770,39 +770,39 @@ static func _is_target_at(t: Variant, col: int, row: int) -> bool:
 	return typeof(t) == TYPE_DICTIONARY and int(t.get("col", -1)) == col and int(t.get("row", -1)) == row
 
 
-# --- 名指し(actor)・勝利条件 ---
+# --- 名指し(unit_id)・人物(actor)・勝利条件 ---
 
 
-## ステージで使われている actor の集合（盤の駒・部隊の駒・拠点の控え）。重複しない名前を作るのに使う。
-func used_actors() -> Dictionary:
+## ステージで使われている unit_id の集合（盤の駒・部隊の駒・拠点の控え）。重複しない名前を作るのに使う。
+func used_unit_ids() -> Dictionary:
 	var out := {}
 	for u in player_pieces():
-		_collect_actor(out, u)
+		_collect_unit_id(out, u)
 	for sq in data["enemy"]:
 		for u in sq.get("units", []):
-			_collect_actor(out, u)
+			_collect_unit_id(out, u)
 	for b in data.get("bases", []):
 		if typeof(b) != TYPE_DICTIONARY:
 			continue
 		for g in b.get("garrison", []):
-			_collect_actor(out, g)
+			_collect_unit_id(out, g)
 	return out
 
 
-func _collect_actor(out: Dictionary, unit: Variant) -> void:
+func _collect_unit_id(out: Dictionary, unit: Variant) -> void:
 	if typeof(unit) != TYPE_DICTIONARY:
 		return
-	var a := String((unit as Dictionary).get("actor", ""))
+	var a := String((unit as Dictionary).get("unit_id", ""))
 	if a != "":
 		out[a] = true
 	for p in (unit as Dictionary).get("passengers", []):
-		_collect_actor(out, p)
+		_collect_unit_id(out, p)
 
 
 ## base を土台に、ステージ内で重複しない actor 名を作る（"necromancer" → "necromancer2" …）。
-func free_actor(base: String) -> String:
-	var stem := base if base != "" else "actor"
-	var used := used_actors()
+func free_unit_id(base: String) -> String:
+	var stem := base if base != "" else "unit"
+	var used := used_unit_ids()
 	if not used.has(stem):
 		return stem
 	var n := 2
@@ -811,50 +811,59 @@ func free_actor(base: String) -> String:
 	return "%s%d" % [stem, n]
 
 
-## 駒の名指し(actor)を書き換える。空文字なら名前を外す。
-## 駒を指す手段は actor 一本＝数値 id はデータに書かない（doc/gdd/map.md 名前つきの駒）。
+## 駒の名指し(unit_id)を書き換える。空文字なら名前を外す。
+## 数値 id はデータに書かない（doc/gdd/map.md 駒を指す名前）。
 ## 元の名前を指していた勝敗条件は一緒に付け替える（拠点を動かすと lose_base が追随するのと同じ）。
 ## 指す先が無くなった条件は消す＝「対象なし＝成立しない」条件を黙って残さない。
-func set_actor(unit: Dictionary, name: String) -> void:
-	var old := String(unit.get("actor", ""))
+func set_unit_id(unit: Dictionary, name: String) -> void:
+	var old := String(unit.get("unit_id", ""))
 	if old == name:
 		return
 	if name == "":
+		unit.erase("unit_id")
+	else:
+		unit["unit_id"] = name
+	if old != "":
+		_rename_unit_id_refs(old, name)
+
+
+## 駒の人物名(actor)を書き換える。空文字なら名前を外す。冒険譚の名簿・会話・クロニクルが見る値で、
+## 盤の名指しとは別物＝勝敗条件は追随しない（doc/gdd/map.md 駒を指す名前）。
+func set_actor(unit: Dictionary, name: String) -> void:
+	if name == "":
 		unit.erase("actor")
-		unit.erase("supply")  # 名簿との突き合わせは名前つきの駒だけの話（doc/gdd/campaigns.md 配置）
+		unit.erase("supply")  # 名簿との突き合わせは人物の駒だけの話（doc/gdd/campaigns.md 配置）
 	else:
 		unit["actor"] = name
-	if old != "":
-		_rename_actor_refs(old, name)
 
 
-## 勝敗条件の中の actor 名を付け替える（new が空なら、その名指しを取り除く）。
-func _rename_actor_refs(old: String, new: String) -> void:
+## 勝敗条件の中の unit_id を付け替える（new が空なら、その名指しを取り除く）。
+func _rename_unit_id_refs(old: String, new: String) -> void:
 	var v := victory_list()
 	for i in range(v.size() - 1, -1, -1):
-		if String(v[i].get("type", "")) != "defeat_unit" or String(v[i].get("actor", "")) != old:
+		if String(v[i].get("type", "")) != "defeat_unit" or String(v[i].get("unit_id", "")) != old:
 			continue
 		if new == "":
 			v.remove_at(i)
 		else:
-			v[i]["actor"] = new
+			v[i]["unit_id"] = new
 	if v.is_empty() and data.has("victory"):
 		data.erase("victory")
 	var d := defeat_list()
 	for i in range(d.size() - 1, -1, -1):
 		if String(d[i].get("type", "")) != "lose_unit":
 			continue
-		var actors: Variant = d[i].get("actors", [])
-		if typeof(actors) != TYPE_ARRAY:
+		var names: Variant = d[i].get("unit_ids", [])
+		if typeof(names) != TYPE_ARRAY:
 			continue
-		for j in range((actors as Array).size() - 1, -1, -1):
-			if String(actors[j]) != old:
+		for j in range((names as Array).size() - 1, -1, -1):
+			if String(names[j]) != old:
 				continue
 			if new == "":
-				(actors as Array).remove_at(j)
+				(names as Array).remove_at(j)
 			else:
-				actors[j] = new
-		if (actors as Array).is_empty():
+				names[j] = new
+		if (names as Array).is_empty():
 			d.remove_at(i)
 	if d.is_empty() and data.has("defeat"):
 		data.erase("defeat")

@@ -73,7 +73,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	next_id = _apply_events(state, data.get("events", []), catalog, next_id, skin_catalog)
-	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "actor": "necromancer" }]（ボスの駒に actor）
+	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": "necromancer" }]（ボスの駒に unit_id）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
@@ -154,11 +154,65 @@ static func load_file(path: String, carried: Array = []) -> BattleState:
 		return null
 	if not data.has("turn_limit") or int(data.get("turn_limit", 0)) <= 0:
 		push_error("StageLoader: turn_limit（>0）は必須です（指定なし＝データのバグ）: %s" % path)  # doc/gdd/map.md
+	check_unit_ids(data, path)
 	var state := build(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
 	state.set_movement(Movement.load_default())  # 地形ごとの移動コストを有効化
 	state.set_sight_cost(TerrainType.sight_cost_table())  # 地形ごとの視線コスト（索敵の遮蔽・減衰）を有効化
 	state.fire_due_events()  # 1ターン目に指定された増援を出す（移動コスト表が要るのでここ）
 	return state
+
+## 駒の名前（unit_id）の重複と、勝敗条件が指す先の不在を検査する。どちらもデータのバグ＝止める
+## （イベントの id と同じ扱い。→ doc/gdd/map.md 駒を指す名前）。盤に出す前の生データを見るので、
+## 拠点の控え・増援・搭乗者も含めて数えられる。
+static func check_unit_ids(data: Dictionary, path: String) -> void:
+	for msg in unit_id_problems(data):
+		push_error("StageLoader: %s: %s" % [msg, path])
+
+## unit_id の問題を並べる（空＝問題なし）。push_error しないのでテストから呼べる。
+static func unit_id_problems(data: Dictionary) -> Array:
+	var out: Array = []
+	var seen := {}
+	_collect_unit_ids(data, seen, out)
+	for key in ["victory", "defeat"]:
+		var conds: Variant = data.get(key, [])
+		if typeof(conds) != TYPE_ARRAY:
+			continue
+		for c in conds:
+			if typeof(c) != TYPE_DICTIONARY:
+				continue
+			for name in _condition_unit_ids(c):
+				if not seen.has(name):
+					out.append("勝敗条件が指す unit_id '%s' の駒が盤に無い（＝データのバグ）" % name)
+	return out
+
+## 勝敗条件1件が名指している unit_id（defeat_unit は1つ、lose_unit は配列）。
+static func _condition_unit_ids(c: Dictionary) -> Array:
+	var out: Array = []
+	if c.has("unit_id"):
+		out.append(String(c["unit_id"]))
+	var many: Variant = c.get("unit_ids", [])
+	if typeof(many) == TYPE_ARRAY:
+		for v in many:
+			out.append(String(v))
+	return out
+
+## 生データを再帰でたどって unit_id を集める。重複は out に積む。
+static func _collect_unit_ids(node: Variant, seen: Dictionary, out: Array) -> void:
+	match typeof(node):
+		TYPE_DICTIONARY:
+			var d: Dictionary = node
+			var name := String(d.get("unit_id", ""))
+			if name != "":
+				if seen.has(name):
+					out.append("駒の unit_id '%s' がステージ内で重複（＝データのバグ）" % name)
+				seen[name] = true
+			for k in d:
+				if k == "victory" or k == "defeat":
+					continue  # 条件は名指す側＝駒の定義ではない
+				_collect_unit_ids(d[k], seen, out)
+		TYPE_ARRAY:
+			for v in node:
+				_collect_unit_ids(v, seen, out)
 
 ## 外周（ステージJSON "margin"）の厚み。0＝外周なし。負値は0に丸める。詳細 → doc/gdd/map.md
 static func _parse_margin(data: Dictionary) -> int:
@@ -705,7 +759,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 	for sq in squads:
 		var idx := _register_squad(state, sq)
 		for u in sq.get("units", []):
-			var unit := _make_unit(u, catalog, int(u.get("id", auto_id)), team, skin_catalog)
+			var unit := _make_unit(u, catalog, auto_id, team, skin_catalog)
 			state.add_unit(unit)
 			state.assign_squad(unit.handle, idx)
 			auto_id += 1
@@ -962,5 +1016,6 @@ static func _make_unit(u: Dictionary, catalog: Dictionary, id: int, team: int, s
 	unit.troops = int(u.get("troops", unit.max_troops))  # 損耗（省略＝満員）。満員値は type のまま＝回復は type の上限まで戻る
 	unit.skin_id = skin_id
 	unit.set_native_team(_parse_team(u.get("native"), unit.team))  # 生来の陣営＋帰属先（既定=初期team。garrison は呼び出し側が上書き）
-	unit.actor = String(u.get("actor", ""))  # 名前つきの駒（名簿・会話分岐の同一性）。詳細 → doc/gdd/map.md
+	unit.unit_id = String(u.get("unit_id", ""))  # この盤の駒の名前（勝敗条件が名指す）。詳細 → doc/gdd/map.md
+	unit.actor = String(u.get("actor", ""))  # 冒険譚の人物の名前（名簿・会話分岐の同一性）。詳細 → doc/gdd/map.md
 	return unit  # 飛行判定は Unit.is_aerial()＝move_type=="flight" で行う

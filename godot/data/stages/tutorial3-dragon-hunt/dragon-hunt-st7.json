@@ -24,7 +24,7 @@
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st7.squad.1", "ai": "predator",
       "units": [
-        {"skin": "red_dragon", "col": 7, "row": 1, "actor": "dragon"}
+        {"skin": "red_dragon", "col": 7, "row": 1, "unit_id": "dragon"}
       ] },
     { "order": 2, "name": "dragon-hunt.st7.squad.2", "ai": "charge",
       "units": [
@@ -44,7 +44,7 @@
       ] }
   ],
   "victory": [
-    {"type": "defeat_unit", "actor": "dragon"}
+    {"type": "defeat_unit", "unit_id": "dragon"}
   ],
   "dialogue": {
     "intro": [

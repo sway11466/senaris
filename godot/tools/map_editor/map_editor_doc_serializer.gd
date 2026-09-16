@@ -18,11 +18,11 @@ const TERRAIN_FILE_KEYS := ["margin", "terrain", "terrain_skins"]
 const NOT_IN_STAGE := ["margin", "terrain", "terrain_skins", "cols", "rows"]
 
 ## 辞書の中で「配列を段落表示する」キー（squad の units / 拠点の garrison / 輸送の passengers /
-## 敗北条件の bases・actors）。1件だけなら1行に収まる＝手書きの既存ステージと同じ見た目になる。
-const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers", "bases", "actors"]
+## 敗北条件の bases・unit_ids）。1件だけなら1行に収まる＝手書きの既存ステージと同じ見た目になる。
+const BLOCK_ARRAY_KEYS := ["units", "garrison", "passengers", "bases", "unit_ids"]
 
 ## 辞書内キーの並び（既存ステージの手書き順に寄せる）。残りは元の順、BLOCK_ARRAY_KEYS は常に末尾。
-const ENTITY_KEY_ORDER := ["turn", "order", "name", "ai", "speaker", "type", "skin", "actor", "text", "label", "col", "row", "team", "hq", "rest", "count", "native"]
+const ENTITY_KEY_ORDER := ["turn", "order", "name", "ai", "speaker", "type", "skin", "unit_id", "actor", "text", "label", "col", "row", "team", "hq", "rest", "count", "native"]
 
 
 ## data と keys_in_source（読み込み時に元ファイルに存在したキーの記録）を受け取り、

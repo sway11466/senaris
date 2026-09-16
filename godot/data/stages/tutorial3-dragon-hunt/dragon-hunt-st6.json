@@ -31,7 +31,7 @@
       ] },
     { "order": 2, "name": "dragon-hunt.st6.squad.2", "ai": "raid",
       "units": [
-        {"skin": "rogue_head", "col": 8, "row": 3, "actor": "paladin"}
+        {"skin": "rogue_head", "col": 8, "row": 3, "unit_id": "paladin"}
       ] },
     { "order": 3, "name": "dragon-hunt.st6.squad.3", "ai": "ambush", "sight": 1,
       "units": [
@@ -54,7 +54,7 @@
     {"col": 7, "row": 3, "team": "neutral", "rest": "both"}
   ],
   "victory": [
-    {"type": "defeat_unit", "actor": "paladin"}
+    {"type": "defeat_unit", "unit_id": "paladin"}
   ],
   "defeat": [
     {"type": "lose_base", "bases": [{"col": 7, "row": 16}, {"col": 3, "row": 10}, {"col": 7, "row": 3}]}

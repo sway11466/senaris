@@ -539,9 +539,9 @@ func _purify_option(f: Dictionary) -> FormationOption:
 
 ## near に有害な弱体（ドレッドタッチ相当）と無害な強化（ピクシーダスト相当）を1つずつ掛ける。
 func _afflict(s: BattleState, u: Unit) -> void:
-	s.add_status_mod({"scope": "unit", "unit_id": u.handle, "op": "add", "target": "both",
+	s.add_status_mod({"scope": "unit", "handle": u.handle, "op": "add", "target": "both",
 		"value": -80.0, "owner_team": 1, "remaining": 1, "name": "ドレッドタッチ", "kind": "debuff"})
-	s.add_status_mod({"scope": "unit", "unit_id": u.handle, "op": "add", "target": "both",
+	s.add_status_mod({"scope": "unit", "handle": u.handle, "op": "add", "target": "both",
 		"value": 80.0, "owner_team": 0, "remaining": 1, "name": "ピクシーダスト", "kind": "buff"})
 
 func test_purify_offered_by_clergy_alone() -> void:
@@ -590,7 +590,7 @@ func test_purify_ignores_buff_only_ally() -> void:
 	var f := _purify_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
-	s.add_status_mod({"scope": "unit", "unit_id": near.handle, "op": "add", "target": "both",
+	s.add_status_mod({"scope": "unit", "handle": near.handle, "op": "add", "target": "both",
 		"value": 80.0, "owner_team": 0, "remaining": 1, "kind": "buff"})
 	assert_false(Formation.can_target(s, _purify_option(f), near.pos), "強化だけの味方には掛けられない")
 
@@ -631,7 +631,7 @@ func test_purify_drops_every_debuff_at_once() -> void:
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
 	for i in 3:
-		s.add_status_mod({"scope": "unit", "unit_id": near.handle, "op": "add", "target": "both",
+		s.add_status_mod({"scope": "unit", "handle": near.handle, "op": "add", "target": "both",
 			"value": -50.0, "owner_team": 1, "remaining": 1, "kind": "debuff"})
 	assert_almost_eq(float(s.status_aggregate(near, "attack")["add"]), -150.0, 0.001, "3本で -150")
 	assert_not_null(FormationResolver.resolve(s, _purify_option(f), near.pos), "発動成功")

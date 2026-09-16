@@ -109,5 +109,5 @@ static func applies_to(m: Dictionary, unit: Unit) -> bool:
 		"team":
 			return int(m.get("team", -99)) == unit.team
 		"unit":
-			return int(m.get("unit_id", -1)) == unit.handle
+			return int(m.get("handle", -1)) == unit.handle
 	return false

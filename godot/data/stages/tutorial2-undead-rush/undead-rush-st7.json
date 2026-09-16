@@ -28,7 +28,7 @@
   ],
   "enemy": [
     { "order": 50, "name": "undead-rush.st7.squad.1", "ai": "ambush", "sight": 10,
-      "units": [ { "skin": "necromancer", "actor": "necromancer", "col": 6, "row": 2 } ] },
+      "units": [ { "skin": "necromancer", "unit_id": "necromancer", "col": 6, "row": 2 } ] },
     { "order": 1, "name": "undead-rush.st7.squad.2", "ai": "charge",
       "units": [
         { "skin": "ghoul", "col": 3, "row": 16 },
@@ -199,7 +199,7 @@
       ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "actor": "necromancer" }
+    { "type": "defeat_unit", "unit_id": "necromancer" }
   ],
   "defeat": [
     { "type": "lose_base",

@@ -1261,8 +1261,10 @@ func _inspect_unit(hit: Dictionary) -> void:
 	var head := "自軍（部隊%d）: %s" % [int(hit["party"]), String(u.get("type", u.get("skin", "?")))] if squad < 0 \
 		else "敵（部隊%d）: %s" % [squad, String(u.get("skin", u.get("type", "?")))]
 	_add_info(_inspector,head)
+	var unit_id := String(u.get("unit_id", ""))
+	_add_info(_inspector, "unit_id: %s" % (unit_id if unit_id != "" else "（名指しなし）"))
 	var actor := String(u.get("actor", ""))
-	_add_info(_inspector, "actor: %s" % (actor if actor != "" else "（名前なし）"))
+	_add_info(_inspector, "actor: %s" % (actor if actor != "" else "（人物でない）"))
 	if u.has("passengers") and not u["passengers"].is_empty():
 		_add_hint(_inspector, "同乗 %d 体（passengers は JSON 直接編集）" % u["passengers"].size())
 	_add_hint(_inspector, "駒の編集は「自軍」「敵」モードで。")
@@ -1332,6 +1334,7 @@ func _refresh_unit_box() -> void:
 	elif _mode == "player":
 		_add_unit_party_row(_unit_box, hit)
 	_add_unit_kind_row(_unit_box, u, _mode == "enemy")
+	_add_unit_id_row(_unit_box, u)
 	_add_actor_row(_unit_box, u)
 	if _mode == "player":
 		_add_supply_row(_unit_box, u)
@@ -1478,17 +1481,54 @@ func _capacity_of(u: Dictionary) -> int:
 	return 0
 
 
-## 名指し(actor)の入力行。空＝名前なし。味方・敵のどちらにも付けられる。
+## 名指し(unit_id)の入力行。空＝名指しなし。味方・敵のどちらにも付けられる。
 ## u が空＝駒を選んでいない＝入力できない（名前は駒に付くもので、パレットの設定ではない）。
 ## 確定は Enter かフォーカスを外したとき＝1文字打つたびに勝敗条件を追い直さない。
+func _add_unit_id_row(parent: VBoxContainer, u: Dictionary) -> void:
+	var edit := LineEdit.new()
+	edit.text = String(u.get("unit_id", ""))
+	edit.editable = not u.is_empty()
+	edit.placeholder_text = "（名指しなし）" if not u.is_empty() else "（駒を選ぶと入力できる）"
+	edit.tooltip_text = "この盤の駒を名指す値。勝敗条件がこの名前を見る。\n" \
+		+ "ステージの中で一意。名指す必要のない駒には付けない（doc/gdd/map.md 駒を指す名前）。"
+	var row := _labeled_row("駒の名前", edit)
+	parent.add_child(row)
+	if u.is_empty():
+		return
+	var apply := func(text: String) -> void:
+		var new_name := text.strip_edges()
+		var old := String(u.get("unit_id", ""))
+		if new_name == old:
+			return
+		if new_name != "" and _doc.used_unit_ids().has(new_name):
+			_say("unit_id \"%s\" は既に他の駒が使っています。別の名前にしてください。" % new_name)
+			edit.text = old
+			return
+		_doc.set_unit_id(u, new_name)  # 元の名前を指していた勝敗条件も一緒に付け替わる
+		edit.text = new_name
+		if new_name == "":
+			_say("unit_id を外しました（この駒を指していた勝敗条件も外れます）。")
+		elif old == "":
+			_say("unit_id \"%s\" を付けました。" % new_name)
+		else:
+			_say("unit_id を \"%s\" → \"%s\" に変えました（勝敗条件も追随）。" % [old, new_name])
+	edit.text_submitted.connect(func(text: String) -> void: apply.call(text))
+	edit.focus_exited.connect(func() -> void: apply.call(edit.text))
+	_add_button(row, "自動", func() -> void:
+		# 下段は貼り直さない：入力欄が消えると focus_exited が古い文字列で走り、付けた名前を上書きしてしまう
+		apply.call(_doc.free_unit_id(String(u.get("skin", u.get("type", ""))))))
+
+
+## 人物名(actor)の入力行。冒険譚の名簿・会話・クロニクルが見る値で、盤の名指し(unit_id)とは別物。
+## 一意なのは冒険譚の中＝1ステージしか見ないエディタでは重複を判定できないので、重複チェックはしない。
 func _add_actor_row(parent: VBoxContainer, u: Dictionary) -> void:
 	var edit := LineEdit.new()
 	edit.text = String(u.get("actor", ""))
 	edit.editable = not u.is_empty()
-	edit.placeholder_text = "（名前なし）" if not u.is_empty() else "（駒を選ぶと入力できる）"
-	edit.tooltip_text = "駒を名指す値。会話の分岐・継承(carryover)・勝敗条件がこの名前を見る。\n" \
-		+ "名前のない雑兵には付けない（doc/gdd/map.md 名前つきの駒）。"
-	var row := _labeled_row("アクター名", edit)
+	edit.placeholder_text = "（人物でない）" if not u.is_empty() else "（駒を選ぶと入力できる）"
+	edit.tooltip_text = "冒険譚に出てくる人物の名前。名簿(carryover)・会話の分岐・クロニクルが見る。\n" \
+		+ "名前のない雑兵には付けない。勝敗条件は見ない（doc/gdd/map.md 駒を指す名前）。"
+	var row := _labeled_row("人物名", edit)
 	parent.add_child(row)
 	if u.is_empty():
 		return
@@ -1497,23 +1537,14 @@ func _add_actor_row(parent: VBoxContainer, u: Dictionary) -> void:
 		var old := String(u.get("actor", ""))
 		if new_name == old:
 			return
-		if new_name != "" and _doc.used_actors().has(new_name):
-			_say("actor \"%s\" は既に他の駒が使っています。別の名前にしてください。" % new_name)
-			edit.text = old
-			return
-		_doc.set_actor(u, new_name)  # 元の名前を指していた勝敗条件も一緒に付け替わる
+		_doc.set_actor(u, new_name)
 		edit.text = new_name
 		if new_name == "":
-			_say("actor を外しました（この駒を指していた勝敗条件も外れます）。")
-		elif old == "":
-			_say("actor \"%s\" を付けました。" % new_name)
+			_say("actor を外しました（名簿から外れます）。")
 		else:
-			_say("actor を \"%s\" → \"%s\" に変えました（勝敗条件も追随）。" % [old, new_name])
+			_say("actor を \"%s\" にしました。" % new_name)
 	edit.text_submitted.connect(func(text: String) -> void: apply.call(text))
 	edit.focus_exited.connect(func() -> void: apply.call(edit.text))
-	_add_button(row, "自動", func() -> void:
-		# 下段は貼り直さない：入力欄が消えると focus_exited が古い文字列で走り、付けた名前を上書きしてしまう
-		apply.call(_doc.free_actor(String(u.get("skin", u.get("type", ""))))))
 
 
 ## 戦力供給(supply)の行。自軍の駒にだけ出す（名簿は自軍のもの）。
@@ -1683,12 +1714,12 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 
 ## 追加できる条件の種類。key＝JSONの type、値＝[表示名, 説明]。
 const VICTORY_KINDS := {
-	"defeat_unit": ["ボス撃破", "名指し(actor)の駒を倒す"],
+	"defeat_unit": ["ボス撃破", "名指し(unit_id)の駒を倒す"],
 	"capture_hq": ["本拠地占領", "敵の本拠地(hq)をすべて自軍が保持する"],
 }
 const DEFEAT_KINDS := {
 	"lose_base": ["拠点の喪失", "名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立）"],
-	"lose_unit": ["護衛対象の喪失", "名指し(actor)の駒をすべて失う"],
+	"lose_unit": ["護衛対象の喪失", "名指し(unit_id)の駒をすべて失う"],
 }
 
 
@@ -1941,8 +1972,8 @@ func _refresh_victory() -> void:
 		var box := _indent(_victory_box)
 		_add_note(box, String(kind[1]))
 		if type_id == "defeat_unit":
-			_add_actor_target_row(box, String(c.get("actor", "")),
-				func(name: String) -> void: c["actor"] = name, Callable())
+			_add_unit_id_target_row(box, String(c.get("unit_id", "")),
+				func(name: String) -> void: c["unit_id"] = name, Callable())
 	_add_kind_adder(_victory_box, VICTORY_KINDS, _add_victory_kind)
 
 
@@ -1997,35 +2028,35 @@ func _build_lose_base_targets(box: VBoxContainer, c: Dictionary) -> void:
 		_refresh_defeat())
 
 
-## lose_unit の対象（actor）一覧＋追加。対象が空になった条件は残さない。
+## lose_unit の対象（unit_id）一覧＋追加。対象が空になった条件は残さない。
 func _build_lose_unit_targets(box: VBoxContainer, c: Dictionary) -> void:
-	if typeof(c.get("actors")) != TYPE_ARRAY:
-		c["actors"] = []
-	var actors: Array = c["actors"]
-	if actors.is_empty():
+	if typeof(c.get("unit_ids")) != TYPE_ARRAY:
+		c["unit_ids"] = []
+	var names: Array = c["unit_ids"]
+	if names.is_empty():
 		_add_warn(box, "対象がありません（このままだと成立しません）")
-	for j in actors.size():
-		_add_actor_target_row(box, String(actors[j]),
-			func(name: String) -> void: actors[j] = name,
+	for j in names.size():
+		_add_unit_id_target_row(box, String(names[j]),
+			func(name: String) -> void: names[j] = name,
 			func() -> void:
-				actors.remove_at(j)
+				names.remove_at(j)
 				_drop_empty_defeat(c)
 				_refresh_defeat())
-		if not _doc.used_actors().has(String(actors[j])):
+		if not _doc.used_unit_ids().has(String(names[j])):
 			_add_warn(box, "  ↑ この名前の駒がありません")
 	_add_button(box, "対象を追加", func() -> void:
-		var free := _free_actor_target()
+		var free := _free_unit_id_target()
 		if free == "":
-			_say(_no_actor_message())
+			_say(_no_unit_id_message())
 			return
-		actors.append(free)
+		names.append(free)
 		_refresh_defeat())
 
 
 ## 対象が空になった敗北条件を取り除く（成立しない条件を黙って残さない）。
 func _drop_empty_defeat(c: Dictionary) -> void:
 	var targets := MapEditorDoc.lose_base_targets(c) if MapEditorDoc.is_lose_base(c) \
-		else MapEditorDoc.lose_unit_actors(c)
+		else MapEditorDoc.lose_unit_ids(c)
 	if not targets.is_empty():
 		return
 	var list := _doc.defeat_list()
@@ -2036,23 +2067,23 @@ func _drop_empty_defeat(c: Dictionary) -> void:
 
 
 ## 勝敗条件が指す actor の入力行。実在しない名前は弾いて元に戻す（保存前に「駒なし」を作らない）。
-func _add_actor_target_row(parent: Control, current: String, apply: Callable,
+func _add_unit_id_target_row(parent: Control, current: String, apply: Callable,
 		on_remove: Callable) -> void:
 	var row := HBoxContainer.new()
 	parent.add_child(row)
-	_add_label(row, "actor")
+	_add_label(row, "unit_id")
 	var edit := LineEdit.new()
 	edit.text = current
 	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	edit.placeholder_text = "駒の actor 名"
+	edit.placeholder_text = "駒の unit_id"
 	row.add_child(edit)
 	var state := { "v": current }  # 貼り直さずに現在値を持つ（貼り直すと入力中のフォーカスが飛ぶ）
 	var commit := func(text: String) -> void:
 		var name := text.strip_edges()
 		if name == String(state["v"]):
 			return
-		if not _doc.used_actors().has(name):
-			_say("actor \"%s\" の駒がありません。「自軍」「敵」モードで名前を付けてから指定してください。" % name)
+		if not _doc.used_unit_ids().has(name):
+			_say("unit_id \"%s\" の駒がありません。「自軍」「敵」モードで名前を付けてから指定してください。" % name)
 			edit.text = String(state["v"])
 			return
 		state["v"] = name
@@ -2113,11 +2144,11 @@ func _add_kind_adder(parent: Control, kinds: Dictionary, on_add: Callable) -> vo
 func _add_victory_kind(type_id: String) -> void:
 	match type_id:
 		"defeat_unit":
-			var actor := _free_actor_target()
-			if actor == "":
-				_say(_no_actor_message())
+			var name := _free_unit_id_target()
+			if name == "":
+				_say(_no_unit_id_message())
 				return
-			_doc.add_victory({ "type": "defeat_unit", "actor": actor })
+			_doc.add_victory({ "type": "defeat_unit", "unit_id": name })
 		"capture_hq":
 			for c in _doc.victory_list():
 				if String(c.get("type", "")) == "capture_hq":
@@ -2136,11 +2167,11 @@ func _add_defeat_kind(type_id: String) -> void:
 				return
 			_doc.add_defeat_lose_base(free.x, free.y)  # 単独の条件＝他の条件とOR
 		"lose_unit":
-			var actor := _free_actor_target()
-			if actor == "":
-				_say(_no_actor_message())
+			var name := _free_unit_id_target()
+			if name == "":
+				_say(_no_unit_id_message())
 				return
-			_doc.add_defeat({ "type": "lose_unit", "actors": [actor] })
+			_doc.add_defeat({ "type": "lose_unit", "unit_ids": [name] })
 	_refresh_defeat()
 
 
@@ -2154,25 +2185,25 @@ func _free_base_target() -> Vector2i:
 	return MapEditorBoard.OUTSIDE
 
 
-## まだどの条件も指していない actor（無ければ ""）。新しい対象の初期値に使う。
-func _free_actor_target() -> String:
+## まだどの条件も指していない unit_id（無ければ ""）。新しい対象の初期値に使う。
+func _free_unit_id_target() -> String:
 	var taken := {}
 	for c in _doc.victory_list():
 		if String(c.get("type", "")) == "defeat_unit":
-			taken[String(c.get("actor", ""))] = true
+			taken[String(c.get("unit_id", ""))] = true
 	for c in _doc.defeat_list():
-		for a in MapEditorDoc.lose_unit_actors(c):
+		for a in MapEditorDoc.lose_unit_ids(c):
 			taken[String(a)] = true
-	for a in _doc.used_actors():
+	for a in _doc.used_unit_ids():
 		if not taken.has(String(a)):
 			return String(a)
 	return ""
 
 
-func _no_actor_message() -> String:
-	if _doc.used_actors().is_empty():
-		return "名前(actor)の付いた駒がありません。「自軍」「敵」モードで先に名前を付けてください。"
-	return "名前(actor)の付いた駒は、すべて既にどれかの条件が指しています。"
+func _no_unit_id_message() -> String:
+	if _doc.used_unit_ids().is_empty():
+		return "名前(unit_id)の付いた駒がありません。「自軍」「敵」モードで先に名前を付けてください。"
+	return "名前(unit_id)の付いた駒は、すべて既にどれかの条件が指しています。"
 
 
 ## 自軍の本拠地（hq:"player"）が盤にあるか（＝「本拠地の喪失で敗北」が効くステージか）。

@@ -19,7 +19,7 @@ func _pair(shield: int, t_troops := 8) -> Dictionary:
 
 func _dot(handle: int, value: int) -> Dictionary:
 	return {
-		"scope": "unit", "unit_id": handle, "owner_team": 0,
+		"scope": "unit", "handle": handle, "owner_team": 0,
 		"op": StatusMod.OP_DOT, "value": value, "remaining": 2, "kind": StatusMod.KIND_DEBUFF,
 	}
 

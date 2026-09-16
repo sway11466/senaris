@@ -26,9 +26,9 @@ func test_debuff_count_counts_only_this_units_debuffs() -> void:
 	s.add_unit(u)
 	s.add_unit(v)
 	assert_eq(s.debuff_count(u), 0, "何も掛かっていなければ0")
-	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 1, "op": "add", "target": "both", "value": -40, "kind": "debuff", "remaining": 3})
-	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 1, "op": "mul", "target": "both", "value": 0.7, "kind": "debuff", "remaining": 1})
-	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 0, "op": "add", "target": "both", "value": 30, "kind": "buff", "remaining": 3})
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 1, "op": "add", "target": "both", "value": -40, "kind": "debuff", "remaining": 3})
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 1, "op": "mul", "target": "both", "value": 0.7, "kind": "debuff", "remaining": 1})
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 0, "op": "add", "target": "both", "value": 30, "kind": "buff", "remaining": 3})
 	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 1, "op": "mul", "target": "both", "value": 0.8, "kind": "debuff", "remaining": 1})
 	assert_eq(s.debuff_count(u), 2, "種類の違う弱体2本を合算（強化と陣営全体は数えない）")
 	assert_eq(s.debuff_count(v), 0, "別の駒には効いていない")
@@ -49,8 +49,8 @@ func test_unit_scope_add_and_debuff() -> void:
 	var v := Unit.new(2, 0, Hex.offset_to_axial(3, 2), 3, 8, 30, 30)
 	s.add_unit(u)
 	s.add_unit(v)
-	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 0, "op": "add", "target": "defense", "value": 40, "remaining": 1})
-	s.add_status_mod({"scope": "unit", "unit_id": 1, "owner_team": 0, "op": "mul", "target": "defense", "value": 0.5, "remaining": 1})  # デバフ＝不利な値
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 0, "op": "add", "target": "defense", "value": 40, "remaining": 1})
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 0, "op": "mul", "target": "defense", "value": 0.5, "remaining": 1})  # デバフ＝不利な値
 	var a := s.status_aggregate(u, "defense")
 	assert_almost_eq(float(a["add"]), 40.0, 0.001, "個別add")
 	assert_almost_eq(float(a["mul"]), 0.5, 0.001, "個別mul（デバフ）")
@@ -76,7 +76,7 @@ func test_add_debuff_floors_defense_at_zero() -> void:
 	var foe := Unit.new(2, 1, Hex.neighbor(atk.pos, 0), 3, 4, 10, 10)  # 兵4＝素の実効防御40
 	s.add_unit(atk)
 	s.add_unit(foe)
-	s.add_status_mod({"scope": "unit", "unit_id": 2, "owner_team": 0, "op": "add", "target": "defense", "value": -80, "kind": "debuff", "remaining": 3})
+	s.add_status_mod({"scope": "unit", "handle": 2, "owner_team": 0, "op": "add", "target": "defense", "value": -80, "kind": "debuff", "remaining": 3})
 	assert_almost_eq(Combat.defense_breakdown(s, foe, atk).total, 0.0, 0.001, "40−80 は 0 に切り上げ（−40 のままだと防御40と等価になる）")
 	var df := Combat.defense_breakdown_from(4, 10, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0, -200.0)
 	assert_almost_eq(df.total, 0.0, 0.001, "さらに深い減算でも 0 のまま（硬くならない）")
@@ -99,7 +99,7 @@ func test_applied_returns_only_applying_entries() -> void:
 	var foe := Unit.new(2, 1, Hex.offset_to_axial(5, 2), 3, 8, 30, 30)
 	var mods := [
 		{"scope": "team", "team": 0, "op": "mul", "target": "both", "value": 1.3, "name": "グレイス"},
-		{"scope": "unit", "unit_id": 2, "op": "add", "target": "attack", "value": 10},
+		{"scope": "unit", "handle": 2, "op": "add", "target": "attack", "value": 10},
 	]
 	var ally_list := StatusMod.applied(mods, ally)
 	assert_eq(ally_list.size(), 1, "味方に効くエントリだけ返る")

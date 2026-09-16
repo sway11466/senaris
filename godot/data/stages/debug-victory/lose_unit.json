@@ -4,7 +4,7 @@
   "haze": 0.80,
   "player": [
     { "units": [
-        { "type": "cleric", "actor": "escort", "supply": "join", "col": 2, "row": 2 },
+        { "type": "cleric", "unit_id": "escort", "col": 2, "row": 2 },
         { "type": "fighter", "col": 1, "row": 2 }
       ] }
   ],
@@ -16,6 +16,6 @@
       ] }
   ],
   "defeat": [
-    { "type": "lose_unit", "actors": ["escort"] }
+    { "type": "lose_unit", "unit_ids": ["escort"] }
   ]
 }

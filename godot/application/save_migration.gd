@@ -30,6 +30,9 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version == 4:
 		record = _v4_to_v5(record)
 		version = 5
+	if version == 5:
+		record = _v5_to_v6(record)
+		version = 6
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -53,6 +56,39 @@ static func _renamed_path(data: Dictionary) -> Dictionary:
 ## （doc/tech/gamesystem.md §所要時間）。測っていない時間を 0 秒として記録に混ぜないため。
 ## v4（味方は部隊に属さない）→ v5（味方も部隊に属する）。部隊の所属は state.squads の並び順で
 ## 持つので、味方部隊が先に積まれたぶん既存の所属（＝すべて敵か拠点）を後ろへずらす。
+## 駒を指す語彙を分けた版（doc/gdd/map.md 駒を指す名前）。実行時のハンドルのキーが "id" から
+## "handle" になり、勝敗条件が見る名前が actor から unit_id になった。
+## actor を持つ駒には unit_id = actor を無条件で複製する＝旧セーブでは同じ値が両方の役目を
+## 兼ねていたので、これで再開後もボス撃破・護衛対象の判定が続く。ステージJSONは読まない
+## （そのステージが改名・削除されていても漏れない）。余分な unit_id は誰も参照しないので害がない。
+static func _v5_to_v6(record: Dictionary) -> Dictionary:
+	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
+	for u in _as_dicts(state.get("units", [])):
+		_v6_unit(u)
+	for tid in (state.get("passengers", {}) as Dictionary):
+		for p in _as_dicts((state["passengers"] as Dictionary)[tid]):
+			_v6_unit(p)
+	for b in _as_dicts(state.get("bases", [])):
+		for g in _as_dicts(b.get("garrison", [])):
+			_v6_unit(g)
+	for m in _as_dicts(state.get("status_mods", [])):
+		if m.has("unit_id"):  # 駒のハンドル（int）を指していたキー＝String の unit_id とは別物
+			m["handle"] = m["unit_id"]
+			m.erase("unit_id")
+	if state.has("defeated_actors"):
+		state["defeated_unit_ids"] = state["defeated_actors"]
+		state.erase("defeated_actors")
+	return { "meta": record.get("meta", {}), "state": state }
+
+## 駒1体を v6 の形へ（ハンドルのキー名と、名指しの複製）。
+static func _v6_unit(u: Dictionary) -> void:
+	if u.has("id"):
+		u["handle"] = u["id"]
+		u.erase("id")
+	var actor := String(u.get("actor", ""))
+	if actor != "" and not u.has("unit_id"):
+		u["unit_id"] = actor
+
 ## 味方の駒は、どの部隊に居たかを v4 セーブが持たない＝全員そのステージの最初の味方部隊に入れる
 ## （doc/tech/gamesystem.md §版と移行）。所属は見出しの表示にしか効かない。
 static func _v4_to_v5(record: Dictionary) -> Dictionary:

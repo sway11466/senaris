@@ -196,3 +196,49 @@ func test_v2_migrated_save_restores_on_the_stage() -> void:
 	assert_false(s.base_at(Hex.offset_to_axial(1, 1)).is_hq(), "本拠地の印はステージJSONから（セーブには無い）")
 	assert_eq(s.pending_events().size(), 2, "未発火イベントだけ残る")
 	assert_eq(s.turn_limit, 9, "ターン上限はステージJSONから")
+
+
+## v6: 駒を指す語彙を分けた版。ハンドルのキーが "id" → "handle"、勝敗条件の記録が
+## defeated_actors → defeated_unit_ids、状態補正の "unit_id"(int) → "handle"。
+## actor を持つ駒には unit_id を無条件で複製する（旧セーブでは同じ値が両方を兼ねていた）。
+func _v5_record() -> Dictionary:
+	return {
+		"version": 5,
+		"meta": { "campaign_id": "tutorial1-goblin-raid", "stage_id": "st1", "stage_path": STAGE_PATH },
+		"state": {
+			"units": [{ "id": 1, "type": "fighter", "team": 0, "actor": "hero" },
+				{ "id": 2, "type": "goblin", "team": 1 }],
+			"passengers": { "1": [{ "id": 5, "type": "knight", "actor": "rider" }] },
+			"bases": [{ "garrison": [{ "id": 7, "type": "archer", "actor": "elf" }] }],
+			"status_mods": [{ "scope": "unit", "unit_id": 2, "op": "add", "target": "both", "value": 10 }],
+			"defeated_actors": ["boss"], "sortied_actors": ["hero"],
+		},
+	}
+
+func test_v5_to_v6_renames_handle_and_copies_unit_id() -> void:
+	var got := SaveMigration.migrate(_v5_record())
+	var state: Dictionary = got["state"]
+	var u: Dictionary = state["units"][0]
+	assert_eq(int(u["handle"]), 1, "ハンドルのキーは handle")
+	assert_false(u.has("id"), "古いキーは残さない")
+	assert_eq(String(u["unit_id"]), "hero", "actor を unit_id に複製＝再開後もボス撃破が解ける")
+	assert_eq(String(u["actor"]), "hero", "actor はそのまま残る")
+	assert_false((state["units"][1] as Dictionary).has("unit_id"), "名前のない駒には足さない")
+
+func test_v5_to_v6_covers_passengers_and_garrison() -> void:
+	var state: Dictionary = SaveMigration.migrate(_v5_record())["state"]
+	var p: Dictionary = (state["passengers"] as Dictionary)["1"][0]
+	assert_eq(int(p["handle"]), 5, "搭乗者も直す")
+	assert_eq(String(p["unit_id"]), "rider")
+	var g: Dictionary = (state["bases"][0] as Dictionary)["garrison"][0]
+	assert_eq(int(g["handle"]), 7, "拠点の控えも直す")
+	assert_eq(String(g["unit_id"]), "elf")
+
+func test_v5_to_v6_renames_records_and_status_mods() -> void:
+	var state: Dictionary = SaveMigration.migrate(_v5_record())["state"]
+	assert_eq(state["defeated_unit_ids"], ["boss"], "撃破の記録は unit_id 側へ")
+	assert_false(state.has("defeated_actors"))
+	assert_eq(state["sortied_actors"], ["hero"], "出撃の記録は actor のまま（名簿の話）")
+	var m: Dictionary = state["status_mods"][0]
+	assert_eq(int(m["handle"]), 2, "状態補正が持つのは駒のハンドル")
+	assert_false(m.has("unit_id"), "String の unit_id と同じキー名で残さない")

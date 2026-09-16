@@ -3,17 +3,17 @@ extends GutTest
 ## 殲滅勝ち／全滅負けは従来どおり常に有効で、victory_conditions はそれに OR で加わる。
 
 const BOSS_ID := 99
-const BOSS := "boss"  ## 勝敗条件が駒を指す名前（actor）。数値 id はデータの語彙ではない。
+const BOSS := "boss"  ## 勝敗条件が駒を指す名前（unit_id）。実行時のハンドルはデータの語彙ではない。
 
-## actor（名指し）を付けた駒を返す。勝敗条件は id ではなく actor で駒を指す（doc/gdd/map.md）。
-func _named(u: Unit, actor: String) -> Unit:
-	u.actor = actor
+## unit_id（名指し）を付けた駒を返す。勝敗条件はハンドルではなく unit_id で駒を指す（doc/gdd/map.md）。
+func _named(u: Unit, unit_id: String) -> Unit:
+	u.unit_id = unit_id
 	return u
 
 ## 自軍1体＋ボス＋雑魚1体の盤。ボスは troops=1（一撃で落ちる）。
 func _boss_state() -> BattleState:
 	var s := BattleState.new(8, 8)
-	s.victory_conditions = [{ "type": "defeat_unit", "actor": BOSS }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": BOSS }]
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 50, 40))                        # 自軍
 	s.add_unit(_named(Unit.new(BOSS_ID, 1, Hex.neighbor(ap, 0), 3, 1, 50, 40), BOSS))  # ボス（隣接・兵1）
@@ -40,7 +40,7 @@ func test_ongoing_while_boss_alive() -> void:
 func test_annihilation_still_wins_with_condition_list() -> void:
 	# 条件リストがあっても、殲滅（盤上の敵0）での勝利は従来どおり有効。
 	var s := BattleState.new(8, 8)
-	s.victory_conditions = [{ "type": "defeat_unit", "actor": BOSS }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": BOSS }]
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 50, 40))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 1, 10, 4))  # ボスでない敵1体だけ
@@ -50,7 +50,7 @@ func test_annihilation_still_wins_with_condition_list() -> void:
 func test_mutual_destruction_on_boss_kill_is_loss() -> void:
 	# 相討ち: 最後の自軍がボスを倒しつつ反撃で全滅 → 敗北優先（従来ルールを維持）。
 	var s := BattleState.new(8, 8)
-	s.victory_conditions = [{ "type": "defeat_unit", "actor": BOSS }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": BOSS }]
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 1, 50, 4))                          # 自軍最後の1体・兵1・紙防御
 	s.add_unit(_named(Unit.new(BOSS_ID, 1, Hex.neighbor(ap, 0), 3, 1, 90, 4), BOSS))  # ボス・兵1・高火力
@@ -155,21 +155,21 @@ func test_own_hq_held_by_enemy_at_start_is_loss_until_retaken() -> void:
 	s.base_at(Hex.offset_to_axial(4, 4)).team = 0
 	assert_eq(s.outcome(), BattleState.ONGOING, "奪還すれば継続")
 
-func test_loader_wires_victory_and_actor() -> void:
+func test_loader_wires_victory_and_unit_id() -> void:
 	var data := { "cols": 6, "rows": 6,
 		"player": [ { "units": [
 			{ "col": 1, "row": 1 },
 		] } ],
 		"enemy": [
-			{ "order": 1, "ai": "charge", "units": [ { "actor": BOSS, "col": 4, "row": 4 } ] },
+			{ "order": 1, "ai": "charge", "units": [ { "unit_id": BOSS, "col": 4, "row": 4 } ] },
 		],
-		"victory": [ { "type": "defeat_unit", "actor": BOSS } ],
+		"victory": [ { "type": "defeat_unit", "unit_id": BOSS } ],
 	}
 	var s := StageLoader.build(data)
 	assert_eq(s.victory_conditions.size(), 1, "victory リストが載る")
 	var boss := s.unit_at(Hex.offset_to_axial(4, 4))
 	assert_not_null(boss, "ボスが盤に載る")
-	assert_eq(boss.actor, BOSS, "actor が駒に渡る＝勝敗条件から名指しできる")
+	assert_eq(boss.unit_id, BOSS, "unit_id が駒に渡る＝勝敗条件から名指しできる")
 
 func test_loader_defaults_to_empty_conditions() -> void:
 	var s := StageLoader.build({ "cols": 6, "rows": 6 })
@@ -190,13 +190,13 @@ func test_victory_helper_matches_state_query() -> void:
 func test_victory_helper_judges_single_condition() -> void:
 	# 勝利条件1件の判定は condition_met＝タイプを足すときの入口。
 	var s := _boss_state()
-	var boss := { "type": "defeat_unit", "actor": BOSS }
+	var boss := { "type": "defeat_unit", "unit_id": BOSS }
 	assert_false(Victory.condition_met(s, boss), "ボスが生きていれば不成立")
 	s.attack(1, BOSS_ID)
 	assert_true(Victory.condition_met(s, boss), "撃破済みなら成立")
 	assert_false(Victory.condition_met(s, { "type": "no_such_type" }), "未知の type は満たさない")
-	assert_true(s.is_actor_defeated(BOSS), "撃破の記録は state 側の口から引ける")
-	assert_false(s.is_actor_defeated(""), "名前なしは名指しできない（空指定で誤成立しない）")
+	assert_true(s.is_unit_id_defeated(BOSS), "撃破の記録は state 側の口から引ける")
+	assert_false(s.is_unit_id_defeated(""), "名前なしは名指しできない（空指定で誤成立しない）")
 
 
 # --- 敗北条件リスト（defeat）。本拠地喪失の常時ルールとは別軸＝ステージが名指しする守り物。---
@@ -241,7 +241,7 @@ func test_lose_base_ignores_missing_base() -> void:
 func test_lose_unit_defeat_on_escort_death() -> void:
 	# 護衛対象の喪失（勝利側の defeat_unit と対）。
 	var s := BattleState.new(8, 8)
-	s.defeat_conditions = [{ "type": "lose_unit", "actors": ["vip"] }]
+	s.defeat_conditions = [{ "type": "lose_unit", "unit_ids": ["vip"] }]
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
 	var vip := _named(Unit.new(7, 0, Hex.offset_to_axial(2, 2), 3, 1), "vip")  # 護衛対象（兵1）
 	s.add_unit(vip)
@@ -288,9 +288,9 @@ func test_lose_base_and_ignores_missing_target() -> void:
 	s.base_at(Hex.offset_to_axial(4, 4)).team = 1
 	assert_eq(s.outcome(), BattleState.ONGOING, "盤に無い座標が混ざると成立しない")
 
-func test_lose_unit_and_needs_all_actors() -> void:
+func test_lose_unit_and_needs_all_unit_ids() -> void:
 	var s := BattleState.new(8, 8)
-	s.defeat_conditions = [{ "type": "lose_unit", "actors": ["vip", "vip2"] }]
+	s.defeat_conditions = [{ "type": "lose_unit", "unit_ids": ["vip", "vip2"] }]
 	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
 	s.add_unit(_named(Unit.new(7, 0, Hex.offset_to_axial(2, 2), 3, 1), "vip"))
 	s.add_unit(_named(Unit.new(8, 0, Hex.offset_to_axial(3, 3), 3, 1), "vip2"))
@@ -305,7 +305,7 @@ func test_empty_targets_never_trigger() -> void:
 	var s := _defend_two_state()
 	s.defeat_conditions = [
 		{ "type": "lose_base", "bases": [] },
-		{ "type": "lose_unit", "actors": [] },
+		{ "type": "lose_unit", "unit_ids": [] },
 		{ "type": "lose_base" },
 	]
 	assert_eq(s.outcome(), BattleState.ONGOING, "対象が空の条件は成立しない")
@@ -322,8 +322,8 @@ func test_defeat_wins_over_victory_condition() -> void:
 	var s := _defend_state()
 	var hex := Hex.offset_to_axial(4, 4)
 	s.base_at(hex).team = 1
-	s.victory_conditions = [{ "type": "defeat_unit", "actor": "raider" }]
-	s.unit_by_handle(2).actor = "raider"
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": "raider" }]
+	s.unit_by_handle(2).unit_id = "raider"
 	s.remove_unit(2)  # 敵を全滅させたが拠点は奪われたまま
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "敗北条件が勝利より優先される")
 

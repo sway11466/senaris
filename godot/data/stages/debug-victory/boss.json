@@ -12,12 +12,12 @@
   ],
   "enemy": [
     { "order": 1, "ai": "charge", "units": [
-      { "skin": "goblin", "actor": "boss", "col": 4, "row": 3 },
+      { "skin": "goblin", "unit_id": "boss", "col": 4, "row": 3 },
       { "skin": "hobgoblin", "col": 8, "row": 2 },
       { "skin": "hobgoblin", "col": 8, "row": 4 }
     ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "actor": "boss" }
+    { "type": "defeat_unit", "unit_id": "boss" }
   ]
 }

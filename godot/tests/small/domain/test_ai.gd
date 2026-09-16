@@ -59,7 +59,7 @@ func _skin(u: Unit, skin: String) -> Unit:
 ## 対象1体に掛かった補正を1本積む。
 func _mod(s: BattleState, u: Unit, kind: String) -> void:
 	s.add_status_mod({
-		"scope": "unit", "unit_id": u.handle, "op": "add", "target": "both",
+		"scope": "unit", "handle": u.handle, "op": "add", "target": "both",
 		"value": 10.0 if kind == StatusMod.KIND_BUFF else -10.0,
 		"kind": kind, "owner_team": 1, "remaining": 3,
 	})

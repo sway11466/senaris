@@ -145,7 +145,7 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 	var u := state.unit_at(target)  # can_target が対象の存在と陣営を保証済み
 	return {
 		"scope": "unit",
-		"unit_id": u.handle if u != null else -1,
+		"handle": u.handle if u != null else -1,
 		"owner_team": state.current_team,
 		"op": StatusMod.OP_DOT,
 		"value": option.dot_troops,
@@ -185,7 +185,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 	if option.scope == FormationOption.Scope.UNIT:
 		var u := state.unit_at(target)  # can_target が対象の存在と陣営を保証済み
 		e["scope"] = "unit"
-		e["unit_id"] = u.handle if u != null else -1
+		e["handle"] = u.handle if u != null else -1
 	else:
 		e["scope"] = "team"
 		e["team"] = state.current_team

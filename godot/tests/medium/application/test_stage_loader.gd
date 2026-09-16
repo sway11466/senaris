@@ -874,3 +874,54 @@ func test_load_terrain_skins_reads_the_terrain_file() -> void:
 	_write_terrain('{ "terrain": ["....", "....", "...."], "terrain_skins": [{ "col": 1, "row": 2, "skin": "snow1" }] }')
 	var skins := StageLoader.load_terrain_skins(TMP_PATH)
 	assert_eq(skins.get(Hex.offset_to_axial(1, 2), ""), "snow1")
+
+
+# --- 駒の名前(unit_id)の検査 ---
+
+
+## 名指しはステージの中で一意。重複はデータのバグ（→ doc/gdd/map.md 駒を指す名前）。
+func test_unit_id_duplicate_is_a_problem() -> void:
+	var data := {
+		"player": [ { "units": [{ "type": "archer", "col": 1, "row": 1, "unit_id": "vip" }] } ],
+		"enemy": [ { "ai": "charge", "units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "vip" }] } ],
+	}
+	var problems := StageLoader.unit_id_problems(data)
+	assert_eq(problems.size(), 1, "重複を1件として挙げる")
+	assert_true(String(problems[0]).contains("vip"), "どの名前かを言う")
+
+
+## 拠点の控えと増援と搭乗者も同じ名前空間（盤に出る駒はすべて名指せる）。
+func test_unit_id_collected_from_garrison_events_and_passengers() -> void:
+	var data := {
+		"player": [ { "units": [{ "type": "wagon", "col": 1, "row": 1,
+			"passengers": [{ "type": "knight", "unit_id": "rider" }] }] } ],
+		"bases": [ { "col": 2, "row": 2, "garrison": [{ "type": "archer", "native": "neutral", "unit_id": "rider" }] } ],
+	}
+	assert_eq(StageLoader.unit_id_problems(data).size(), 1, "搭乗者と控えの名前がぶつかる")
+	var data2 := {
+		"events": [ { "id": "w1", "turn": 2, "enemy": [ { "ai": "charge",
+			"units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "late" }] } ] } ],
+		"victory": [ { "type": "defeat_unit", "unit_id": "late" } ],
+	}
+	assert_eq(StageLoader.unit_id_problems(data2), [], "増援の駒も名指せる＝参照は解決する")
+
+
+## 勝敗条件が指す先が盤に無いのはデータのバグ（書き忘れと「書かない」を区別する）。
+func test_victory_pointing_at_a_missing_unit_id_is_a_problem() -> void:
+	var data := {
+		"enemy": [ { "ai": "charge", "units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "boss" }] } ],
+		"victory": [ { "type": "defeat_unit", "unit_id": "bos" } ],
+		"defeat": [ { "type": "lose_unit", "unit_ids": ["boss", "ghost"] } ],
+	}
+	var problems := StageLoader.unit_id_problems(data)
+	assert_eq(problems.size(), 2, "綴り違いの勝利条件と、居ない護衛対象の2件")
+
+
+## actor は人物の名前＝盤の名指しとは別の名前空間。ぶつかっても問題ではない。
+func test_actor_is_not_part_of_the_unit_id_namespace() -> void:
+	var data := {
+		"player": [ { "units": [{ "type": "archer", "col": 1, "row": 1, "actor": "elf", "supply": "join" }] } ],
+		"enemy": [ { "ai": "charge", "units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "elf" }] } ],
+		"victory": [ { "type": "defeat_unit", "unit_id": "elf" } ],
+	}
+	assert_eq(StageLoader.unit_id_problems(data), [], "同じ綴りでも役目が違う＝衝突しない")

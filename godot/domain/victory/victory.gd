@@ -33,8 +33,8 @@ static func is_over(state: BattleState) -> bool:
 ## 勝利条件タイプを足すときは、ここに分岐を1つと判定関数を1つ足す（BattleState は触らない）。
 static func condition_met(state: BattleState, c: Dictionary) -> bool:
 	match String(c.get("type", "")):
-		"defeat_unit":  # ボス撃破＝名指し(actor)の駒が撃破済み
-			return state.is_actor_defeated(String(c.get("actor", "")))
+		"defeat_unit":  # ボス撃破＝名指し(unit_id)の駒が撃破済み
+			return state.is_unit_id_defeated(String(c.get("unit_id", "")))
 		"capture_hq":   # 本拠地占領＝敵 native の hq をすべて自軍が保持（hq が無ければ不成立）
 			return _enemy_hq_all_captured(state)
 	return false
@@ -50,7 +50,7 @@ static func defeat_condition_met(state: BattleState, c: Dictionary) -> bool:
 		"lose_base":  # 名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立。奪還で解消）
 			return _all_bases_taken(state, c.get("bases"))
 		"lose_unit":  # 護衛対象をすべて失う（勝利側の defeat_unit と対）
-			return _all_actors_defeated(state, c.get("actors"))
+			return _all_unit_ids_defeated(state, c.get("unit_ids"))
 	return false
 
 ## 指定した拠点がすべて敵の手に落ちているか。対象が空なら false（空指定で即敗北にしない）。
@@ -65,12 +65,12 @@ static func _all_bases_taken(state: BattleState, targets: Variant) -> bool:
 			return false
 	return true
 
-## 名指し(actor)した駒をすべて失っているか。対象が空なら false（空指定で即敗北にしない）。
-static func _all_actors_defeated(state: BattleState, actors: Variant) -> bool:
-	if typeof(actors) != TYPE_ARRAY or (actors as Array).is_empty():
+## 名指し(unit_id)した駒をすべて失っているか。対象が空なら false（空指定で即敗北にしない）。
+static func _all_unit_ids_defeated(state: BattleState, unit_ids: Variant) -> bool:
+	if typeof(unit_ids) != TYPE_ARRAY or (unit_ids as Array).is_empty():
 		return false
-	for a in actors:
-		if not state.is_actor_defeated(String(a)):
+	for a in unit_ids:
+		if not state.is_unit_id_defeated(String(a)):
 			return false
 	return true
 
