@@ -159,7 +159,7 @@ unit_group.orc.name,オーク,Orcs
 unit_group.beast.name,魔獣,Beasts
 unit_group.rogue.name,悪党,Outlaws
 unit_group.plant.name,植物,Plants
-unit_group.construct.name,魔法生物,Constructs
+unit_group.magical.name,魔法生物,Magical Creatures
 unit_group.giant.name,巨人,Giants
 unit_group.dragon.name,ドラゴン,Dragons
 recipe.trinity_nova.name,トリニティノヴァ,Trinity Nova

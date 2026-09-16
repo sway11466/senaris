@@ -36,7 +36,7 @@
 | giant | `debug-combat/giant.json` | 巨人の戦闘シーン確認 | 巨人スキンを追加したとき |
 | plant | `debug-combat/plant.json` | 植物の戦闘シーン確認 | 植物スキンを追加したとき |
 | dragon | `debug-combat/dragon.json` | ドラゴンの戦闘シーン確認 | ドラゴンスキンを追加したとき |
-| magic_creature | `debug-combat/magic_creature.json` | 魔法生物の戦闘シーン確認 | 魔法生物スキンを追加したとき |
+| magical | `debug-combat/magical.json` | 魔法生物の戦闘シーン確認 | 魔法生物スキンを追加したとき |
 | rogue | `debug-combat/rogue.json` | 悪党の戦闘シーン確認 | 悪党スキンを追加したとき |
 | terrain | `debug-combat/terrain.json` | 地形ごとの戦闘背景確認 | 戦闘背景を追加したとき |
 
@@ -123,7 +123,7 @@
 | giant | `debug-skins/giant.json` | 巨人のマップ表示確認 | 巨人スキンを追加したとき |
 | plant | `debug-skins/plant.json` | 植物のマップ表示確認 | 植物スキンを追加したとき |
 | dragon | `debug-skins/dragon.json` | ドラゴンのマップ表示確認 | ドラゴンスキンを追加したとき |
-| magic_creature | `debug-skins/magic_creature.json` | 魔法生物のマップ表示確認 | 魔法生物スキンを追加したとき |
+| magical | `debug-skins/magical.json` | 魔法生物のマップ表示確認 | 魔法生物スキンを追加したとき |
 | rogue | `debug-skins/rogue.json` | 悪党のマップ表示確認 | 悪党スキンを追加したとき |
 | terrain | `debug-skins/terrain.json` | 地形見本（基本地形・7ヘクスずつ） | 地形スキンを追加したとき |
 | height | `debug-skins/height.json` | 高さ見本（徐々に上がる傾斜・崖） | 高さの仕様を変えたとき |

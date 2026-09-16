@@ -1,6 +1,6 @@
 {
   "turn_limit": 99,
-  "name": "debug-combat-magic_creature",
+  "name": "debug-combat-magical",
   "haze": 0.80,
   "player": [
     { "units": [

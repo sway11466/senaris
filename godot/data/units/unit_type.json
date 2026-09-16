@@ -668,7 +668,7 @@
 			"atk_ground": 20,
 			"can_capture": false,
 			"capacity": 0,
-			"category": "monstrosity",
+			"category": "magical",
 			"defense": 20,
 			"id": "slime",
 			"max_troops": 8,

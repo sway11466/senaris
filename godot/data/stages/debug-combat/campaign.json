@@ -44,8 +44,8 @@
       "title": "ドラゴン"
     },
     {
-      "id": "magic_creature",
-      "file": "magic_creature.json",
+      "id": "magical",
+      "file": "magical.json",
       "title": "魔法生物"
     },
     {

@@ -729,7 +729,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "construct",
+					"category": "magical",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -825,7 +825,7 @@
 			],
 			"enemy": [
 				{
-					"category": "construct",
+					"category": "magical",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",

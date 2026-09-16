@@ -27,7 +27,7 @@ manual.unit.main.capacity.desc,中に乗せられる味方の数。1以上なら
 manual.unit.main.level.term,レベル,Lv
 manual.unit.main.level.desc,戦うたびに上がる強さ。初期値は1で、1上がるごとに攻撃力と防御力が1%増える。上限は99。,"Power earned by fighting. Units start at 1, and every level adds 1% to both attack and defense. The cap is 99."
 manual.unit.main.category.term,兵種,Class
-manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器・魔法生物がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport, war machine and monstrosity. Formation skill recipes are written in terms of these too."
+manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport and war machine. Formation skill recipes are written in terms of these too."
 manual.combat.title,戦闘,Combat
 manual.combat.main.title,戦闘,Combat
 manual.combat.main.intro,戦闘に乱数は無い。同じ盤面で同じ手を打てば、結果は必ず同じになる。運で駒を失うことはないかわりに、負けたなら理由は必ず盤の上にある。,"There is no randomness in combat. The same board and the same move always give the same result. You never lose a unit to bad luck — but when you lose, the reason is always somewhere on the board."
