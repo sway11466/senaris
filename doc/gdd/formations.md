@@ -128,24 +128,26 @@
 
 全レシピの決定事項をここに揃える。列は固定で、レシピを足すときは必ず両方の表に1行ずつ足す。`id` は code（`Formation.RECIPES`）・`names.csv`（`recipe.<id>.name/desc`）・素材の規約解決（`assets/formations/<id>_impact.png`・`assets/sfx/<id>.ogg`）で共通に使う。各レシピの理屈・試算・演出は下の「レシピ一覧」に置く。code との食い違いはドリフト検出（[../backlog.md](../backlog.md) refactoring-15）で拾う。
 
+「分類」はクロニクルの陣形スキル章の束ね（[chronicle.md](chronicle.md) 陣形スキル）。攻撃は撃ち手の武器で 弓攻撃／魔法攻撃／特殊攻撃、補正は上げる・下げる・それ以外で 強化／弱体化／その他、敵のレシピは効果で分けず「敵」。効果の型から導かず、レシピごとに手で付ける。code では `category`（`bow`／`magic`／`special`／`buff`／`debuff`／`other`／`enemy`）、見出しの語は `recipe_group.<category>.name`。表の行順がそのままクロニクルのカードの並びなので、`RECIPES` の順も表に揃える。「発動者になれる駒」の先頭に書いたスキンが未解放カードの黒塗りの代表になる。
+
 共通（表には書かない）：発動はプレイヤーの明示操作／参加者は全員行動完了／発動者は移動してから発動できる（成立と射程は移動先で判定）／照合はスキンID（未指定は種別ID）／ダメージ系は間接扱い（反撃なし・支援なし・包囲は乗る）／レベルは着弾のあるレシピだけ、1発の単位で「戦ったら+1・倒したら+1」。
 
 ### 表A：レシピ（誰が・どう並ぶ・誰から）
 
-| # | id | 名前 | 使い手 | 発動者になれる駒 | 残りの参加者 | 形 | 人数 | 発動できる駒 | 射程 | 実装 |
-|---|---|---|---|---|---|---|---|---|---|---|
-| ① | `trinity_nova` | トリニティノヴァ | 味方 | wizard／witch | wizard／witch | `triangle`（相互隣接） | 3 | どれからでも | 5 | 済 |
-| ② | `grace` | グレイス | 味方 | cleric／priest／bishop／paladin | 同左 | `cluster`（隣接連結・全員参加） | 5以上 | どれからでも | —（全体） | 済 |
-| ③ | `divine_judgment` | ディバインジャッジメント | 味方 | paladin | cleric／priest／bishop ×2（発動者に隣接） | `escort` | 3 | パラディン | 10 | 済 |
-| ④ | `trick_shot` | トリックショット | 味方 | archer／hunter／elf | scout／thief／halfling／ninja／kunoichi ×1（**対象に隣接**） | `spotter` | 2 | 弓兵 | 弓兵の通常射程（下限〜上限） | feature-117 |
-| ⑤ | `shield_wall` | シールドウォール | 味方 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 | `line`（一直線・連なり全員参加） | 3以上 | どれからでも | —（参加者） | feature-120 |
-| ⑥ | `arrow_rain` | アローレイン | 味方 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | feature-119 |
-| ⑦ | `magic_shield` | マジックシールド | 味方 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | feature-121 |
-| ⑧ | `backstab` | バックスタブ | 味方 | thief | 任意 ×1（**対象を挟んで正反対**） | `backstab` | 2 | シーフ | 1 | feature-122 |
-| ⑨ | `magic_arrow` | マジックアロー | 味方 | archer／hunter／elf | wizard／witch ×1（隣接） | `escort` | 2 | 弓兵 | 2体の射程上限の長い方＋1（下限なし） | feature-118 |
-| ⑩ | `counter` | カウンター | 味方 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 ×1（隣接） | `escort` | 2（固定） | どちらからでも | —（参加者） | feature-124 |
-| C1 | `chaos_baptism` | 混沌の洗礼 | 敵（教団） | 邪神官（`cult_priest`・witch 性能）／邪教徒（`cultist`・mage 性能）※skin_id は仮 | 同左 | `triangle` | 3 | どれからでも | 5 | 未（第2部 st5〜） |
-| C2 | `creeping_chaos` | 忍び寄る混沌 | 敵（教団） | 同上 | 同左 | `cluster` | 5以上 | どれからでも | 7 | 未（第2部 st5〜） |
+| # | id | 名前 | 使い手 | 分類 | 発動者になれる駒 | 残りの参加者 | 形 | 人数 | 発動できる駒 | 射程 | 実装 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ① | `trinity_nova` | トリニティノヴァ | 味方 | 魔法攻撃 | wizard／witch | wizard／witch | `triangle`（相互隣接） | 3 | どれからでも | 5 | 済 |
+| ② | `grace` | グレイス | 味方 | 強化 | cleric／priest／bishop／paladin | 同左 | `cluster`（隣接連結・全員参加） | 5以上 | どれからでも | —（全体） | 済 |
+| ③ | `divine_judgment` | ディバインジャッジメント | 味方 | 特殊攻撃 | paladin | cleric／priest／bishop ×2（発動者に隣接） | `escort` | 3 | パラディン | 10 | 済 |
+| ④ | `trick_shot` | トリックショット | 味方 | 弓攻撃 | archer／hunter／elf | scout／thief／halfling／ninja／kunoichi ×1（**対象に隣接**） | `spotter` | 2 | 弓兵 | 弓兵の通常射程（下限〜上限） | feature-117 |
+| ⑤ | `shield_wall` | シールドウォール | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 | `line`（一直線・連なり全員参加） | 3以上 | どれからでも | —（参加者） | feature-120 |
+| ⑥ | `arrow_rain` | アローレイン | 味方 | 弓攻撃 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | feature-119 |
+| ⑦ | `magic_shield` | マジックシールド | 味方 | 強化 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | feature-121 |
+| ⑧ | `backstab` | バックスタブ | 味方 | 特殊攻撃 | thief | 任意 ×1（**対象を挟んで正反対**） | `backstab` | 2 | シーフ | 1 | feature-122 |
+| ⑨ | `magic_arrow` | マジックアロー | 味方 | 魔法攻撃 | archer／hunter／elf | wizard／witch ×1（隣接） | `escort` | 2 | 弓兵 | 2体の射程上限の長い方＋1（下限なし） | feature-118 |
+| ⑩ | `counter` | カウンター | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 ×1（隣接） | `escort` | 2（固定） | どちらからでも | —（参加者） | feature-124 |
+| C1 | `chaos_baptism` | 混沌の洗礼 | 敵（教団） | 敵 | 邪神官（`cult_priest`・witch 性能）／邪教徒（`cultist`・mage 性能）※skin_id は仮 | 同左 | `triangle` | 3 | どれからでも | 5 | 未（第2部 st5〜） |
+| C2 | `creeping_chaos` | 忍び寄る混沌 | 敵（教団） | 敵 | 同上 | 同左 | `cluster` | 5以上 | どれからでも | 7 | 未（第2部 st5〜） |
 
 ### 表B：効果
 
