@@ -19,7 +19,7 @@
 **前のステージをやり直すと、進んだ先まで育てた名簿が上書きされる**
 - ゴール：進んだ先のステージまでの名簿が、前のステージをやり直しても失われない。
 - 背景：名簿は冒険譚に1冊で、ステージごとの控えを持たない（[campaigns.md](gdd/campaigns.md) 名簿）。チュートリアル３「竜狩り」を st6 までクリアした状態で st3 を遊ぶと、st6 クリア後の Lv・兵数の仲間で st3 が始まり（`join` の駒だけ配給）、クリアすると盤に出た者の状態がそのまま名簿に書き戻る＝st6 まで育てた状態は退避した世代にしか残らない。名簿の読み書きは `main.gd` の開始時ロードと `StageOutcome.battle_finished` のクリア時保存。
-- 対応：名簿をステージごとの控えにする。ステージ N をクリアしたら「N クリア後の名簿」を控えに書き、次のステージは前のステージの控えから始める。クリア済みのステージをやり直すと前のステージの控えで始まり、クリアでそのステージの控えだけが書き換わる（先のステージの控えは残る）。st6 まで進んで st3 に戻ったとき st6 の状態で始まる理由がプレイヤーに説明できないため、名簿1冊は採らない。どの控えから始めるかは冒険譚マニフェストの各ステージに引き継ぎ元のステージを書く欄で示す（`unlock` から導かない＝解放と継承を別々に読める）。欄の無いステージは空の名簿で始まる＝`join` の駒だけが出る。独立の冒険譚は何も書かない。
+- 対応：名簿をステージごとの控えにする。ステージ N をクリアしたら「N クリア後の名簿」を控えに書き、次のステージは前のステージの控えから始める。クリア済みのステージをやり直すと前のステージの控えで始まり、クリアでそのステージの控えだけが書き換わる（先のステージの控えは残る）。st6 まで進んで st3 に戻ったとき st6 の状態で始まる理由がプレイヤーに説明できないため、名簿1冊は採らない。どの控えから始めるかは冒険譚マニフェストの各ステージに引き継ぎ元のステージを書く欄で示す（`unlock` から導かない＝解放と継承を別々に読める）。欄の無いステージは空の名簿で始まる＝`join` の駒だけが出る。独立の冒険譚は何も書かない。名簿の版は 1→2 に上げ、変換は1冊の名簿を明示的に捨てる（体験版は出回っておらず守る名簿が無い。手元の名簿は feature-130 で作り直す）。
 - 該当：`godot/application/stage_outcome.gd`・`godot/application/roster_service.gd`・`godot/infrastructure/save/roster_store.gd`・`godot/presentation/main/main.gd`・`doc/gdd/campaigns.md`・`doc/tech/gamesystem.md`。
 
 ### bug-7
@@ -60,12 +60,6 @@
   - 名簿：クリア済みにしたときに指定できる。既定は全員生存で、生存状況・Lv・兵数を変えられる。載せる顔ぶれの決め方は bug-10（名簿の持ち方）の結論に依存するため未決。
   - クロニクル：未決。
 - 該当：`godot/tools/`・`godot/infrastructure/save/`・`doc/tech/tools.md`。
-
-### refactoring-12
-- doc/art/terrain.mdの内容精査
-- 旧地形システム関連の記述は消す
-- 目次を見直し
-
 
 ### feature-8
 
@@ -331,6 +325,14 @@
 - 対応：`terrain_skin.csv` に `fort` 型の見た目違いを1つ足す（洞窟の地面の上に立てる泉。占領で色が変わる `_team0`／`_team1` の規則は他の拠点と同じ＝[terrain.md](art/terrain.md)）。st6 の該当マスをそのスキンに差し替える。
 - 該当：`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json`・`doc/art/terrain.md`。着手の引き金＝竜狩りの通し確認で st6 を触るとき。
 
+### feature-124
+
+**陣形スキル⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5＝反撃強化）**
+- ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
+- 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
+- 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `names.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
+- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
+
 ### feature-127
 
 **チュートリアル１のクロニクルの中身**
@@ -366,14 +368,6 @@
 - 背景：内部IDは `emplacement`（設置物）だが、プレイヤー向け表示名は「兵器 / War Machine」。他の兵種（infantry・archer・mage …）は内部IDと表示名が対応しているのに、ここだけずれている。IDを見ても何を指すか分かりにくい。
 - 対応：`emplacement` を `war_machine` に一括置換する。CSV・JSON・GDScript・ドキュメントが対象。i18n キーも `unit_group.emplacement.name` → `unit_group.war_machine.name` に変える。
 - 該当：`godot/data/units/unit_type.csv`・`unit_skin.csv`・生成物（`unit_type.json`・`unit_skin.json`）・`godot/data/i18n/names.csv`・`godot/data/i18n/manual.csv`・GDScript で `emplacement` を参照する箇所・`doc/gdd/units.md`。
-
-### feature-124
-
-**陣形スキル⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5＝反撃強化）**
-- ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
-- 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
-- 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `names.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
-- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
 
 ### refactoring-17
 
