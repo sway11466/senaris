@@ -69,7 +69,7 @@ func _records() -> bool:
 ## Formation._matches と同じ照合規約。
 func _note_skin(unit: Unit) -> void:
 	var sid := unit.skin_id if unit.skin_id != "" else unit.type_id
-	_store.record_skin(sid, _campaign_id)
+	_store.record_skin(sid)
 
 ## 名簿（Unit の直列化）から actor の名前だけを取り出す。会話の when が見るのは在籍だけ
 ## （doc/campaign/authoring.md 会話の分岐）＝素性も損耗も持たない。ProgressStore と同じ規約。

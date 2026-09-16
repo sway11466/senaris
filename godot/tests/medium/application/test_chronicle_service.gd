@@ -56,14 +56,13 @@ func test_begin_empty_campaign_does_not_record() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("", _state())
-	assert_eq(st.skins(), {}, "冒険譚の外では記録しない")
+	assert_eq(st.skins(), [], "冒険譚の外では記録しない")
 
-func test_begin_records_campaign_id_as_first() -> void:
+func test_begin_records_skins_on_the_board() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("tutorial1", _state())
-	assert_eq(st.skins()["knight"]["first"], "tutorial1",
-			"初出の冒険譚 id が記録される")
+	assert_true(st.has_skin("knight"), "盤に出ている駒が記録される")
 
 # ---------------------------------------------------------------------------
 # note_unit（出撃・増援）
@@ -85,7 +84,7 @@ func test_note_unit_outside_campaign_does_nothing() -> void:
 	var u := Unit.new(10, 1, Hex.offset_to_axial(3, 3), 3, 8, 10, 10, 1, "dragon")
 	u.skin_id = "dragon"
 	svc.note_unit(u)
-	assert_eq(st.skins(), {}, "冒険譚の外では増援も記録しない")
+	assert_eq(st.skins(), [], "冒険譚の外では増援も記録しない")
 
 func test_note_unit_fallback_to_type_id() -> void:
 	var st := _store()
@@ -162,19 +161,14 @@ func test_accumulates_across_campaigns() -> void:
 	var reloaded := ChronicleStore.new(PATH)
 	assert_true(reloaded.has_skin("knight"), "冒険譚1 のスキンが残っている")
 	assert_true(reloaded.has_skin("dragon"), "冒険譚2 のスキンも足されている")
-	assert_eq(reloaded.skins()["knight"]["first"], "campaign1",
-			"初出の冒険譚は冒険譚1のまま")
-	assert_eq(reloaded.skins()["dragon"]["first"], "campaign2",
-			"dragon の初出は冒険譚2")
 
-func test_already_known_skin_does_not_change_first() -> void:
+func test_already_known_skin_stays_single_entry() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("campaign1", _state())
 	svc.flush()
-	# 冒険譚2 で同じ knight に出会っても初出は変わらない
+	# 冒険譚2 で同じ knight に出会っても増えない
 	svc.begin("campaign2", _state())
 	svc.flush()
 	var reloaded := ChronicleStore.new(PATH)
-	assert_eq(reloaded.skins()["knight"]["first"], "campaign1",
-			"初出の冒険譚は上書きされない")
+	assert_eq(reloaded.skins().count("knight"), 1, "同じスキンは1件のまま")
