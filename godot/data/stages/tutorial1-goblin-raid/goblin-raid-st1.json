@@ -5,7 +5,8 @@
   "haze": 0.80,
   "backdrop": "sky_clear",
   "player": [
-    { "units": [
+    { "name": "goblin-raid.party.militia",
+      "units": [
         { "type": "fighter", "col": 1, "row": 3 },
         { "type": "novice", "col": 1, "row": 1 },
         { "type": "novice", "col": 1, "row": 5 }

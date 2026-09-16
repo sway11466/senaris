@@ -2,7 +2,8 @@
   "turn_limit": 30,
   "name": "goblin-raid-st4",
   "player": [
-    { "units": [
+    { "name": "goblin-raid.party.militia",
+      "units": [
         { "type": "fighter", "col": 3, "row": 6 },
         { "type": "novice", "col": 2, "row": 6 },
         { "type": "novice", "col": 2, "row": 7 },
