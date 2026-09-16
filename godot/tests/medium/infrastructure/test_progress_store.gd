@@ -231,3 +231,28 @@ func test_v2_file_is_migrated() -> void:
 func _write(text: String) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
 	f.store_string(text)
+
+func test_remove_stage_erases_every_record_of_that_stage_only() -> void:
+	# セーブエディタの「クリア済みデータを消す」＝クリア済み・ランク・所要時間・経験した会話をまとめて消す。
+	var store := ProgressStore.new(PATH)
+	for sid in ["st1", "st2"]:
+		store.mark_cleared("tutorial", sid)
+		store.mark_rank("tutorial", sid, "A")
+		store.mark_time("tutorial", sid, 120)
+		store.mark_story_start("tutorial", sid, [{ "actor": "hero" }])
+		store.mark_story_clear("tutorial", sid, [{ "actor": "hero" }])
+		store.mark_story_event("tutorial", sid, "ev1")
+	store.remove_stage("tutorial", "st1")
+	var reloaded := ProgressStore.new(PATH)  # 読み直し＝ファイルに書けている
+	assert_false(reloaded.is_cleared("tutorial", "st1"), "クリア済みが消える")
+	assert_eq(reloaded.best_rank("tutorial", "st1"), "", "ランクが消える")
+	assert_eq(reloaded.best_time("tutorial", "st1"), 0, "所要時間が消える")
+	assert_eq(reloaded.story("tutorial", "st1"), {}, "経験した会話が消える")
+	assert_true(reloaded.is_cleared("tutorial", "st2"), "他のステージは残る")
+	assert_eq(reloaded.best_rank("tutorial", "st2"), "A")
+	assert_eq(reloaded.story("tutorial", "st2")["events"], ["ev1"])
+
+func test_remove_stage_without_record_does_nothing() -> void:
+	var store := ProgressStore.new(PATH)
+	store.remove_stage("tutorial", "st1")
+	assert_false(FileAccess.file_exists(PATH), "記録が無ければ書かない")

@@ -35,6 +35,21 @@ func mark_cleared(campaign_id: String, stage_id: String) -> void:
 	_cleared[campaign_id][stage_id] = true
 	_save()
 
+## そのステージの記録（クリア済み・ランク・所要時間・経験した会話）をすべて消して即保存する。
+## ゲームは呼ばない＝セーブエディタ（tools/save_editor）の口。記録が無ければ何もしない。
+func remove_stage(campaign_id: String, stage_id: String) -> void:
+	var touched := false
+	for table in [_cleared, _ranks, _times, _story]:
+		if not table.has(campaign_id):
+			continue
+		var stages: Dictionary = table[campaign_id]
+		if stages.erase(stage_id):
+			touched = true
+		if stages.is_empty():
+			table.erase(campaign_id)
+	if touched:
+		_save()
+
 ## ベストランクを返す（未記録なら空文字）。
 func best_rank(campaign_id: String, stage_id: String) -> String:
 	return String(_ranks.get(campaign_id, {}).get(stage_id, ""))
