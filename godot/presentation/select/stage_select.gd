@@ -242,8 +242,10 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 		"path": path,
 	}
 	# 顔ぶれ・戦力の供給は紙を開くときだけステージJSONを1本読んで作る（一覧では読まない）。
-	# 名簿は毎回読み直す＝直前の戦いの損耗が紙に出る。
-	var brief := StageLoader.load_briefing(path, RosterStore.new().load_roster(campaign_id))
+	# 名簿は毎回読み直す＝直前の戦いの損耗が紙に出る。読むのは引き継ぎ元のステージの控え（盤の開始と同じ）。
+	var source := _progress.roster_source(campaign_id, String(s["id"]))
+	var roster: Array = RosterStore.new().load_roster(campaign_id, source) if not source.is_empty() else []
+	var brief := StageLoader.load_briefing(path, roster)
 	_briefing.open(tr(String(s["title"])), brief.get("party", []), bool(brief.get("carryover", false)))
 
 ## 未解放の札を押したとき＝拒否音＋解放条件だけを書いた紙を出す（ステージ名は出さない）。

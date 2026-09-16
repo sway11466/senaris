@@ -8,7 +8,8 @@ const STAGES_ROOT := "res://data/stages"
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
 ## { id, title, desc, debug, difficulty, board, actor_lineup, cover_paths, victory_paths,
-##   stages: [ { id, title, file, path, unlock: Array } ] }
+##   stages: [ { id, title, file, path, unlock: Array, roster_from: String } ] }
+## roster_from＝名簿の引き継ぎ元のステージID。""＝空の名簿で始める（doc/gdd/campaigns.md 名簿）。
 ## actor_lineup＝継承の一行（actor 付き味方）を戦闘演出で1体として描くか。""＝スキン任せ、"single"＝1体。
 ## cover_paths/victory_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
@@ -34,8 +35,10 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 			"file": file,
 			"path": "%s/%s" % [dir_path, file],
 			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
+			"roster_from": String(s.get("roster_from", "")),  # 名簿の引き継ぎ元。空＝空の名簿で始める
 		})
 	_warn_dangling_unlock(id, stages)
+	_warn_dangling_roster_from(id, stages)
 	return {
 		"id": id,
 		"title": String(data.get("title", id)),  # 翻訳キー（表示側で tr()）。debug 等は生テキストでも tr() は素通し
@@ -96,6 +99,17 @@ static func _warn_dangling_unlock(campaign_id: String, stages: Array) -> void:
 				continue
 			if not ids.has(ref):
 				push_warning("CampaignCatalog[%s]: stage '%s' の unlock が未定義の stage '%s' を参照" % [campaign_id, s["id"], ref])
+
+## roster_from（名簿の引き継ぎ元）が同じ冒険譚に実在するか検証し、dangling を警告。
+## 指す先が無いと空の名簿で始まる＝名簿から出すはずの仲間が黙って盤に出てこない。
+static func _warn_dangling_roster_from(campaign_id: String, stages: Array) -> void:
+	var ids := {}
+	for s in stages:
+		ids[s["id"]] = true
+	for s in stages:
+		var ref: String = s["roster_from"]
+		if not ref.is_empty() and not ids.has(ref):
+			push_warning("CampaignCatalog[%s]: stage '%s' の roster_from が未定義の stage '%s' を参照" % [campaign_id, s["id"], ref])
 
 
 ## 絵を規約で自動解決＝連番バリアントを集める：{id}_{kind}.png（＋_2/_3…）の在るものを順に。

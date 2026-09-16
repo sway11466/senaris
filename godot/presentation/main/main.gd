@@ -30,7 +30,7 @@ var _progress: CampaignProgress = null
 var _outcome: StageOutcome = null  # 決着時の記録の門番（application 層）。presentation は状態を直接書き換えない
 var _chronicle_store: ChronicleStore = null  # クロニクル永続化（user://chronicle.json）
 var _chronicle: ChronicleService = null  # クロニクルの記録（盤に出た駒・発動したレシピを溜め、盤を離れるときに書く）
-var _roster_store: RosterStore = null  # 戦力継承(carryover)のスナップショット永続化。冒険譚IDで引く
+var _roster_store: RosterStore = null  # 戦力継承(carryover)の名簿の控え。冒険譚IDとステージIDで引く
 var _save: SaveCoordinator = null  # 中断セーブ／オートセーブの段取り（枠・一覧・復元）。仕様 → doc/tech/gamesystem.md
 var _save_panel: SaveSlotPanel = null  # 枠一覧（セーブ/ロード共通）。盤を覆う画面の一つとして表示を見張る
 var _select: SelectScreen = null
@@ -131,11 +131,15 @@ func _ready() -> void:
 	_install_board_cover()  # 盤を覆う画面が全部揃ってから＝どれかが出ている間は盤に入力を通さない
 
 ## いま挑んでいる冒険譚の名簿（carryover）。冒険譚外（デバッグ・下敷き）では空。
+## 読むのは引き継ぎ元（マニフェストの roster_from）のステージの控え＝roster_from の無いステージは空。
 ## ステージ配置（player の actor 突き合わせ）と会話の when 評価の両方がこれを見る。詳細 → doc/gdd/campaigns.md
 func _load_roster() -> Array:
 	if _roster_store == null or _context.campaign_id.is_empty():
 		return []
-	return _roster_store.load_roster(_context.campaign_id)
+	var source := _progress.roster_source(_context.campaign_id, _context.stage_id)
+	if source.is_empty():
+		return []
+	return _roster_store.load_roster(_context.campaign_id, source)
 
 ## ステージ(JSON)を読み込み、マッチ（最小AI込み）を組み直す。再呼び出しで切替できる。
 func load_stage(path: String) -> void:

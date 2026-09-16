@@ -106,3 +106,25 @@ func test_build_skips_broken_stage_entries() -> void:
 	assert_push_warning("stage エントリが辞書でない")
 	assert_eq(c["stages"].size(), 1, "壊れたエントリはスキップ")
 	assert_eq(c["stages"][0]["title"], "s1", "title 未指定は id で代用")
+
+func test_tutorial3_roster_from() -> void:
+	# 継承の冒険譚は各ステージが名簿の引き継ぎ元を持つ（doc/gdd/stage_select.md 冒険譚マニフェスト）。
+	var c := CampaignCatalog.load_file("res://data/stages/tutorial3-dragon-hunt/campaign.json")
+	assert_eq(c["stages"][0]["roster_from"], "", "1面は引き継ぎ元なし＝空の名簿で始める")
+	assert_eq(c["stages"][1]["roster_from"], "dragon-hunt-st1", "2面は1面のクリア後の名簿で始める")
+
+func test_build_defaults_roster_from_to_empty() -> void:
+	var c := CampaignCatalog.build({ "id": "x", "board": "tutorial",
+		"stages": [ { "id": "s1", "file": "s1.json" } ] }, "res://x")
+	assert_eq(c["stages"][0]["roster_from"], "", "未指定は空文字")
+
+func test_all_roster_from_refs_resolve() -> void:
+	# 実データ: roster_from の参照先 stage が同じ冒険譚に実在する（dangling だと仲間が黙って出てこない）。
+	for c in CampaignCatalog.load_all():
+		var ids := {}
+		for s in c["stages"]:
+			ids[s["id"]] = true
+		for s in c["stages"]:
+			var ref: String = s["roster_from"]
+			if not ref.is_empty():
+				assert_true(ids.has(ref), "%s/%s の roster_from '%s' が実在" % [c["id"], s["id"], ref])

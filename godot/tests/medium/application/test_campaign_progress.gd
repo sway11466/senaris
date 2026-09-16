@@ -177,3 +177,16 @@ func test_is_all_cleared_excludes_debug_and_unknown() -> void:
 	p.record_clear("dbg", "d1")  # デバッグ冒険譚は記録しない＝制覇にもならない
 	assert_false(p.is_all_cleared("dbg"), "デバッグ冒険譚は対象外")
 	assert_false(p.is_all_cleared("no_such"), "未知のIDは false")
+
+func test_roster_source_reads_manifest() -> void:
+	# 名簿の引き継ぎ元＝マニフェストの roster_from。無ければ空文字（doc/gdd/campaigns.md 名簿）。
+	var p := CampaignProgress.new([CampaignCatalog.build({
+		"id": "camp", "title": "t", "board": "tutorial",
+		"stages": [
+			{ "id": "st1", "file": "st1.json" },
+			{ "id": "st2", "file": "st2.json", "roster_from": "st1" },
+		] }, "res://x")], ProgressStore.new(PATH))
+	assert_eq(p.roster_source("camp", "st1"), "", "1面は引き継ぎ元なし")
+	assert_eq(p.roster_source("camp", "st2"), "st1")
+	assert_eq(p.roster_source("camp", "nope"), "", "未知のステージは空")
+	assert_eq(p.roster_source("nope", "st1"), "", "未知の冒険譚は空")

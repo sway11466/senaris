@@ -11,7 +11,8 @@
     {
       "id": "inherit",
       "file": "inherit.json",
-      "title": "名簿から出す"
+      "title": "名簿から出す",
+      "roster_from": "seed"
     }
   ]
 }

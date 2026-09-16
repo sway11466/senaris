@@ -194,6 +194,12 @@ func next_playable_stage(campaign_id: String, stage_id: String) -> Dictionary:
 		return {}
 	return nxt
 
+## ステージが読む名簿の控え＝マニフェストの roster_from が指すステージID。無ければ空文字＝空の名簿で始める。
+## 仕様 → doc/gdd/campaigns.md 名簿
+func roster_source(campaign_id: String, stage_id: String) -> String:
+	var s := _find_stage(campaign(campaign_id), stage_id)
+	return String(s.get("roster_from", "")) if not s.is_empty() else ""
+
 ## ステージ一覧での通し番号（1始まり・見つからなければ 0）。ステージ名を伏せたまま指すのに使う。
 func _stage_number(c: Dictionary, stage_id: String) -> int:
 	if c.is_empty():

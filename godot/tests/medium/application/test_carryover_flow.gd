@@ -40,10 +40,10 @@ func test_win_saves_survivors_and_next_stage_inherits_them() -> void:
 
 	# --- main の勝利フック相当：生存自軍を保存。
 	var store := RosterStore.new(PATH)
-	store.save_roster("camp", RosterService.update_after_clear([], s1))
+	store.save_roster("camp", "s1", RosterService.update_after_clear([], s1))
 
 	# --- main のステージ開始フック相当：別インスタンスで読み直し、S2(carryover)に渡す。
-	var carried := RosterStore.new(PATH).load_roster("camp")
+	var carried := RosterStore.new(PATH).load_roster("camp", "s1")
 	var s2 := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 2, "row": 2, "actor": "c.archer" }, { "col": 2, "row": 3, "actor": "c.knight" },
 	] } ] }, cat, {}, carried)
@@ -67,15 +67,49 @@ func test_retry_uses_previous_win_snapshot_not_current_run() -> void:
 	] } ] }, cat)
 	s1.unit_by_handle(1).troops = 5  # S1 を 兵5 で勝ち抜けた
 	var store := RosterStore.new(PATH)
-	store.save_roster("camp", RosterService.update_after_clear([], s1))
+	store.save_roster("camp", "s1", RosterService.update_after_clear([], s1))
 
 	# S2 開始（1回目）＝兵5を継承。
-	var carried1 := RosterStore.new(PATH).load_roster("camp")
+	var carried1 := RosterStore.new(PATH).load_roster("camp", "s1")
 	var s2a := StageLoader.build({ "cols": 8, "rows": 6,
 		"player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.knight" }] } ] }, cat, {}, carried1)
 	assert_eq(s2a.unit_at(Hex.offset_to_axial(1, 1)).troops, 5)
 	# S2 で敗北（保存しない）→ 再挑戦。スナップショットは触れていない。
-	var carried2 := RosterStore.new(PATH).load_roster("camp")
+	var carried2 := RosterStore.new(PATH).load_roster("camp", "s1")
 	var s2b := StageLoader.build({ "cols": 8, "rows": 6,
 		"player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.knight" }] } ] }, cat, {}, carried2)
 	assert_eq(s2b.unit_at(Hex.offset_to_axial(1, 1)).troops, 5, "再挑戦も S1勝利時の兵5からやり直せる")
+
+func test_replaying_earlier_stage_keeps_later_snapshot() -> void:
+	# S1→S2 と進んだあと S1 をやり直しても、S2 クリア後の控えは変わらない。
+	# S1 の開始は「S1 の引き継ぎ元」の控え（ここでは無し＝join で配給）から＝S2 の育ちを持ち込まない。
+	var cat := _catalog()
+	var store := RosterStore.new(PATH)
+	# S1 初回クリア：knight 兵5。
+	var s1 := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
+		{ "type": "knight", "col": 0, "row": 0, "actor": "c.knight", "supply": "join" },
+	] } ] }, cat)
+	s1.unit_by_handle(1).troops = 5
+	store.save_roster("camp", "s1", RosterService.update_after_clear([], s1))
+	# S2 クリア：S1 の控えで始め、Lv+2・兵3 で勝ち抜けた。
+	var s2 := StageLoader.build({ "cols": 8, "rows": 6,
+		"player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.knight" }] } ] }, cat, {}, store.load_roster("camp", "s1"))
+	var k2 := s2.unit_at(Hex.offset_to_axial(1, 1))
+	assert_eq(k2.troops, 5, "S2 は S1 の控えで始まる")
+	k2.gain_level(2)
+	k2.troops = 3
+	store.save_roster("camp", "s2", RosterService.update_after_clear(store.load_roster("camp", "s1"), s2))
+	# S1 をやり直す：引き継ぎ元が無いので配給＝初回と同じ Lv1・満員で始まる。
+	var s1_again := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
+		{ "type": "knight", "col": 0, "row": 0, "actor": "c.knight", "supply": "join" },
+	] } ] }, cat, {}, [])
+	var k1 := s1_again.unit_by_handle(1)
+	assert_eq(k1.level, 1, "やり直しの S1 は初回と同じ状態で始まる")
+	assert_eq(k1.troops, 8)
+	k1.troops = 7
+	store.save_roster("camp", "s1", RosterService.update_after_clear([], s1_again))
+	# S1 の控えは書き換わり、S2 の控えはそのまま。
+	var reloaded := RosterStore.new(PATH)
+	assert_eq(reloaded.load_roster("camp", "s1")[0]["troops"], 7, "やり直した S1 の控えは新しい結果")
+	assert_eq(reloaded.load_roster("camp", "s2")[0]["troops"], 3, "先の S2 の控えは変わらない")
+	assert_eq(reloaded.load_roster("camp", "s2")[0]["level"], 3, "S2 で育った Lv も残る")

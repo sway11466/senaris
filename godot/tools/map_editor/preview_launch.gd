@@ -5,7 +5,7 @@ extends SceneTree
 ## 手動実行: godot --path . -s res://tools/map_editor/preview_launch.gd -- <ステージJSON> <名簿JSON>
 ## （--headless は付けない＝実機の絵を見るためのツール）
 ##
-## main.load_stage は実物の名簿（user://roster.json）を冒険譚IDで引くので、ここでは呼ばずに
+## main.load_stage は実物の名簿（user://roster.json）を冒険譚IDと引き継ぎ元のステージIDで引くので、ここでは呼ばずに
 ## 同じ手順をこちらで踏む＝名簿だけ差し替える。冒険譚IDは空のまま＝クリア記録・オートセーブ・
 ## 実物の名簿の更新は動かない（実ロジックに実機確認の都合を持ち込まない）。
 

@@ -315,3 +315,23 @@ func _all_stage_files(root: String) -> Array:
 		name = dir.get_next()
 	dir.list_dir_end()
 	return out
+
+func test_stages_inheriting_actors_declare_roster_from() -> void:
+	# 名簿から出す駒（join 以外の actor 駒）を置くステージは、マニフェストに名簿の引き継ぎ元
+	# roster_from を書く（doc/gdd/stage_select.md 冒険譚マニフェスト）。無ければ空の名簿で始まり、
+	# その駒は黙って盤に出ない。
+	for c in CampaignCatalog.load_all():
+		for s in c["stages"]:
+			var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(s["path"]))
+			if typeof(data) != TYPE_DICTIONARY:
+				continue
+			var inherits := false
+			for party in data.get("player", []):
+				if typeof(party) != TYPE_DICTIONARY:
+					continue
+				for u in party.get("units", []):
+					if typeof(u) == TYPE_DICTIONARY and u.has("actor") and String(u.get("supply", "")) != "join":
+						inherits = true
+			if inherits:
+				assert_false(String(s["roster_from"]).is_empty(),
+					"%s/%s は名簿から出す駒があるので roster_from を書く" % [c["id"], s["id"]])

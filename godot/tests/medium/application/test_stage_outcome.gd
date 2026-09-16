@@ -238,3 +238,19 @@ func test_outside_campaign_does_not_touch_chronicle() -> void:
 	assert_eq(_last_chronicle_store.story("", "")["start"], [],
 			"冒険譚の外はクロニクルにも書かない")
 
+# ---------------------------------------------------------------------------
+# battle_finished — 名簿はクリアしたステージの控え
+# ---------------------------------------------------------------------------
+
+func test_win_saves_roster_snapshot_under_stage() -> void:
+	# 名簿はクリアしたステージの控えとして書く。他のステージの控えには触らない。
+	var store := _roster_store()
+	var o := _outcome(null, store)
+	var s := _state()
+	s.unit_by_handle(1).actor = "hero"  # 名簿に載るのは actor を持つ自軍の駒だけ
+	o.battle_finished("tc", "st1", BattleState.PLAYER_WIN, s,
+			int(Time.get_unix_time_from_system()) - 30, "", [])
+	var saved := RosterStore.new(ROSTER_PATH)
+	assert_eq(saved.load_roster("tc", "st1").size(), 1, "st1 の控えに在籍者が載る")
+	assert_eq(saved.load_roster("tc", "st1")[0]["actor"], "hero")
+	assert_eq(saved.load_roster("tc", "st2"), [], "他のステージの控えは空のまま")

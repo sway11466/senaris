@@ -42,6 +42,8 @@ func event_fired(campaign_id: String, stage_id: String, event_id: String) -> voi
 ##   elapsed:        int    — 決着までの所要秒（0＝測れていない）
 ##   best_time:      int    — この回を記録する前の自己ベスト（0＝記録なし）
 ##   updated_roster: Array  — 更新後の名簿（名簿を更新しなかった回は空配列）
+## previous_roster＝開始時の名簿（引き継ぎ元のステージの控え）。名簿は冒険譚ID×ステージIDの控えで、
+## クリアしたステージの控えとして書く＝前のステージをやり直しても先の控えは変わらない（doc/gdd/campaigns.md 名簿）。
 func battle_finished(campaign_id: String, stage_id: String, outcome: int,
 		state: BattleState, started_at: int, stage_path: String,
 		previous_roster: Array) -> Dictionary:
@@ -60,9 +62,9 @@ func battle_finished(campaign_id: String, stage_id: String, outcome: int,
 		_progress.record_time(campaign_id, stage_id, elapsed)                   # ③
 		if _roster_store != null and state != null:                              # ④
 			updated_roster = RosterService.update_after_clear(previous_roster, state)
-			_roster_store.save_roster(campaign_id, updated_roster)
+			_roster_store.save_roster(campaign_id, stage_id, updated_roster)
 		# 経験した会話の clear＝名簿の保存より後。この回で仲間になった駒を含む顔ぶれ。
-		var clear_roster := _roster_store.load_roster(campaign_id) \
+		var clear_roster := _roster_store.load_roster(campaign_id, stage_id) \
 				if _roster_store != null else []
 		_progress.record_story_clear(campaign_id, stage_id, clear_roster)       # ⑤
 		_chronicle.note_story_clear(campaign_id, stage_id, clear_roster)
