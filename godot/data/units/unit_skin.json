@@ -3,7 +3,7 @@
 		"airship": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "transport",
 					"combat_effect": "cannonball",
 					"combat_lineup": "single",
 					"description": "",
@@ -20,7 +20,7 @@
 		"archer": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "archer",
 					"combat_effect": "arrow",
 					"combat_lineup": "squad",
 					"description": "",
@@ -37,7 +37,7 @@
 		"ballista": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "emplacement",
 					"combat_effect": "arrow_bolt",
 					"combat_lineup": "squad",
 					"description": "",
@@ -54,7 +54,7 @@
 		"barricade": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "emplacement",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -71,7 +71,7 @@
 		"birdman": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "flier",
 					"combat_effect": "punch",
 					"combat_lineup": "squad",
 					"description": "",
@@ -85,7 +85,7 @@
 			],
 			"enemy": [
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -97,7 +97,7 @@
 					"type_id": "birdman"
 				},
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "claw",
 					"combat_lineup": "squad",
 					"description": "",
@@ -113,7 +113,7 @@
 		"bishop": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "clergy",
 					"combat_effect": "holy",
 					"combat_lineup": "squad",
 					"description": "",
@@ -127,7 +127,7 @@
 			],
 			"enemy": [
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "punch",
 					"combat_lineup": "squad",
 					"description": "",
@@ -143,7 +143,7 @@
 		"cleric": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "clergy",
 					"combat_effect": "holy",
 					"combat_lineup": "squad",
 					"description": "",
@@ -157,7 +157,7 @@
 			],
 			"enemy": [
 				{
-					"category": "ゴブリン",
+					"category": "goblin",
 					"combat_effect": "slash_s",
 					"combat_lineup": "squad",
 					"description": "",
@@ -169,7 +169,7 @@
 					"type_id": "cleric"
 				},
 				{
-					"category": "悪党",
+					"category": "rogue",
 					"combat_effect": "slash_s",
 					"combat_lineup": "squad",
 					"description": "",
@@ -186,7 +186,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "ドラゴン",
+					"category": "dragon",
 					"combat_effect": "fire_breath",
 					"combat_lineup": "single",
 					"description": "",
@@ -202,7 +202,7 @@
 		"dwarf": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
@@ -219,7 +219,7 @@
 		"elf": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "archer",
 					"combat_effect": "arrow",
 					"combat_lineup": "squad",
 					"description": "",
@@ -236,7 +236,7 @@
 		"fighter": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -250,7 +250,7 @@
 			],
 			"enemy": [
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "claw",
 					"combat_lineup": "squad",
 					"description": "",
@@ -262,7 +262,7 @@
 					"type_id": "fighter"
 				},
 				{
-					"category": "オーク",
+					"category": "orc",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -279,7 +279,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "植物",
+					"category": "plant",
 					"combat_effect": "punch",
 					"combat_lineup": "squad",
 					"description": "",
@@ -296,7 +296,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "植物",
+					"category": "plant",
 					"combat_effect": "spore",
 					"combat_lineup": "squad",
 					"description": "",
@@ -313,7 +313,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "植物",
+					"category": "plant",
 					"combat_effect": "scream",
 					"combat_lineup": "squad",
 					"description": "",
@@ -329,7 +329,7 @@
 		"halfling": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "scout",
 					"combat_effect": "stone",
 					"combat_lineup": "squad",
 					"description": "",
@@ -346,7 +346,7 @@
 		"hunter": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "archer",
 					"combat_effect": "arrow_crossbow",
 					"combat_lineup": "squad",
 					"description": "",
@@ -364,7 +364,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "巨人",
+					"category": "giant",
 					"combat_effect": "punch",
 					"combat_lineup": "single",
 					"description": "",
@@ -380,7 +380,7 @@
 		"knight": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -394,7 +394,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "pincer",
 					"combat_lineup": "squad",
 					"description": "",
@@ -410,7 +410,7 @@
 		"kunoichi": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "scout",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -427,7 +427,7 @@
 		"mage": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "mage",
 					"combat_effect": "magic_bolt",
 					"combat_lineup": "squad",
 					"description": "",
@@ -441,7 +441,7 @@
 			],
 			"enemy": [
 				{
-					"category": "オーク",
+					"category": "orc",
 					"combat_effect": "fire_ball",
 					"combat_lineup": "squad",
 					"description": "",
@@ -457,7 +457,7 @@
 		"magic_knight": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -474,7 +474,7 @@
 		"ninja": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "scout",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -488,7 +488,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "bite",
 					"combat_lineup": "single",
 					"description": "",
@@ -504,7 +504,7 @@
 		"novice": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "slash_s",
 					"combat_lineup": "squad",
 					"description": "",
@@ -518,7 +518,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -534,7 +534,7 @@
 		"paladin": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "clergy",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -548,7 +548,7 @@
 			],
 			"enemy": [
 				{
-					"category": "ゴブリン",
+					"category": "goblin",
 					"combat_effect": "slash_m",
 					"combat_lineup": "retinue",
 					"description": "",
@@ -562,7 +562,7 @@
 					"type_id": "paladin"
 				},
 				{
-					"category": "悪党",
+					"category": "rogue",
 					"combat_effect": "slash_m",
 					"combat_lineup": "retinue",
 					"description": "",
@@ -580,7 +580,7 @@
 		"pegasus": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "flier",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -597,7 +597,7 @@
 		"pixie": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "flier",
 					"combat_effect": "magic_dust",
 					"combat_lineup": "squad",
 					"description": "",
@@ -611,7 +611,7 @@
 			],
 			"enemy": [
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "curse_wisp",
 					"combat_lineup": "squad",
 					"description": "",
@@ -627,7 +627,7 @@
 		"priest": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "clergy",
 					"combat_effect": "holy",
 					"combat_lineup": "squad",
 					"description": "",
@@ -641,7 +641,7 @@
 			],
 			"enemy": [
 				{
-					"category": "ゴブリン",
+					"category": "goblin",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -653,7 +653,7 @@
 					"type_id": "priest"
 				},
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -665,7 +665,7 @@
 					"type_id": "priest"
 				},
 				{
-					"category": "悪党",
+					"category": "rogue",
 					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
@@ -681,7 +681,7 @@
 		"samurai": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -699,7 +699,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "bite",
 					"combat_lineup": "squad",
 					"description": "",
@@ -716,7 +716,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "魔法生物",
+					"category": "construct",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -732,7 +732,7 @@
 		"slinger": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "archer",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -746,7 +746,7 @@
 			],
 			"enemy": [
 				{
-					"category": "ゴブリン",
+					"category": "goblin",
 					"combat_effect": "arrow",
 					"combat_lineup": "squad",
 					"description": "",
@@ -758,7 +758,7 @@
 					"type_id": "slinger"
 				},
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "arrow_bone",
 					"combat_lineup": "squad",
 					"description": "",
@@ -770,7 +770,7 @@
 					"type_id": "slinger"
 				},
 				{
-					"category": "悪党",
+					"category": "rogue",
 					"combat_effect": "stone",
 					"combat_lineup": "squad",
 					"description": "",
@@ -786,7 +786,7 @@
 		"sniper": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "champion",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -803,7 +803,7 @@
 		"sorcerer": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "champion",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -817,7 +817,7 @@
 			],
 			"enemy": [
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "curse",
 					"combat_lineup": "retinue",
 					"description": "",
@@ -841,7 +841,7 @@
 		"thief": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "scout",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -855,7 +855,7 @@
 			],
 			"enemy": [
 				{
-					"category": "魔法生物",
+					"category": "construct",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -872,7 +872,7 @@
 			"ally": [],
 			"enemy": [
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "claw",
 					"combat_lineup": "squad",
 					"description": "",
@@ -888,7 +888,7 @@
 		"vanguard": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "infantry",
 					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
@@ -902,7 +902,7 @@
 			],
 			"enemy": [
 				{
-					"category": "オーク",
+					"category": "orc",
 					"combat_effect": "slash_m",
 					"combat_lineup": "squad",
 					"description": "",
@@ -918,7 +918,7 @@
 		"wagon": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "transport",
 					"combat_effect": "",
 					"combat_lineup": "single",
 					"description": "",
@@ -932,7 +932,7 @@
 			],
 			"enemy": [
 				{
-					"category": "悪党",
+					"category": "rogue",
 					"combat_effect": "",
 					"combat_lineup": "single",
 					"description": "",
@@ -948,7 +948,7 @@
 		"warlord": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "champion",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -962,7 +962,7 @@
 			],
 			"enemy": [
 				{
-					"category": "アンデッド",
+					"category": "undead",
 					"combat_effect": "slash_l",
 					"combat_lineup": "squad",
 					"description": "",
@@ -974,7 +974,7 @@
 					"type_id": "warlord"
 				},
 				{
-					"category": "魔獣",
+					"category": "beast",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -990,7 +990,7 @@
 		"witch": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "mage",
 					"combat_effect": "magic_bolt",
 					"combat_lineup": "squad",
 					"description": "",
@@ -1007,7 +1007,7 @@
 		"wizard": {
 			"ally": [
 				{
-					"category": "基準",
+					"category": "mage",
 					"combat_effect": "magic_bolt",
 					"combat_lineup": "squad",
 					"description": "",

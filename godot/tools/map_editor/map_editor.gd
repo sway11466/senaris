@@ -9,7 +9,7 @@ extends Control
 const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを読む（分類ごとに整列済み＝パレットの並びが素直）
 
 const STAGES_DIR := "res://data/stages"
-const STANDARD_CATEGORY := "基準"  ## 味方専用スキンの分類＝敵パレットには出さない
+const ALLY_SIDE := "ally"  ## 味方専用スキン（unit_skin.csv の side）＝敵パレットには出さない
 ## 地形パレットの分類のうち、地形タイプでないもの＝各タイプの素のスキンを横断で並べる枠。
 ## 盤の下地を塗る間、分類を切り替えずに済ませるためのもの（terrain_type の id とは衝突しない）。
 const BASIC_CATEGORY := "__basic__"
@@ -38,8 +38,8 @@ var _mode := "terrain"
 var _terrains: Array = []    # [{ id, char, memo }]
 var _unit_types: Array = []  # [{ id, category }]
 var _categories: Array = []  # 分類（category）の一覧（出現順）
-var _skins: Array = []           # [{ skin_id, type_id, category }]（CSV順＝分類ごとに整列済み）
-var _skin_categories: Array = [] # 敵パレット用の分類一覧（基準を除く・出現順）
+var _skins: Array = []           # [{ skin_id, type_id, category, side }]（CSV順＝分類ごとに整列済み）
+var _skin_categories: Array = [] # 敵パレット用の分類一覧（味方=side ally を除く・出現順）
 var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]（CSV順）
 var _bgm_tracks: Array = []  # assets/bgm/ に実在するトラックID（BGM欄の選択肢。autowire と同じ規約）
 var _ai_presets: Array = []  # [特性id]
@@ -133,11 +133,15 @@ func _load_catalogs() -> void:
 		_sel_type_id = String(_unit_types[0]["id"])
 	for r in CsvUtil.read_table("res://data/units/unit_skin.csv"):
 		var cat := String(r.get("category", ""))
-		_skins.append({ "skin_id": String(r["skin_id"]), "type_id": String(r["type_id"]), "category": cat })
-		if cat != "" and cat != STANDARD_CATEGORY and not _skin_categories.has(cat):
+		var side := String(r.get("side", ""))
+		_skins.append({ "skin_id": String(r["skin_id"]), "type_id": String(r["type_id"]),
+			"category": cat, "side": side })
+		if side == ALLY_SIDE:
+			continue  # 味方スキンの分類は兵種＝敵パレットの絞り込みには混ぜない
+		if cat != "" and not _skin_categories.has(cat):
 			_skin_categories.append(cat)
-		if _sel_skin_id == "" and cat != STANDARD_CATEGORY:
-			_sel_skin_id = String(r["skin_id"])  # 敵パレットの初期値＝基準以外の先頭
+		if _sel_skin_id == "":
+			_sel_skin_id = String(r["skin_id"])  # 敵パレットの初期値＝敵スキンの先頭
 	for r in CsvUtil.read_table("res://data/terrain/terrain_skin.csv"):
 		var sid := String(r.get("skin_id", ""))
 		var type_id := String(r.get("terrain_type", ""))
@@ -717,8 +721,8 @@ func _bgm_row(slot: String) -> HBoxContainer:
 ## 「自軍」モード＝上段は「次に置く駒」の道具（分類→種別）。置いた駒／選んだ駒は下段で設定する。
 func _build_player_palette() -> void:
 	_add_hint(_mode_box, "左クリック＝配置 or 選択\n右クリック＝スポイト（設定を取り込む）\nドラッグ＝移動")
-	# 分類（category）で絞ってから種別を選ぶ
-	_mode_box.add_child(_labeled_option("分類", [""] + _categories, ["すべて"] + _categories, _sel_category,
+	# 分類（category）で絞ってから種別を選ぶ。味方の分類＝兵種なので表示は訳語で出す。
+	_mode_box.add_child(_labeled_option("分類", [""] + _categories, ["すべて"] + _group_names(_categories), _sel_category,
 		func(k: String) -> void:
 			_sel_category = k
 			_rebuild_mode()))
@@ -903,14 +907,14 @@ func _build_enemy_palette() -> void:
 	_add_squad_selector()
 	if _doc.data["enemy"].is_empty():
 		_add_hint(_mode_box, "部隊がありません。盤をクリックすると自動で作成します（設定は「敵グループ」モードで）。")
-	# 配置するスキン：分類で絞ってから選ぶ（基準＝味方専用スキンは出さない）
-	_mode_box.add_child(_labeled_option("分類", [""] + _skin_categories, ["すべて"] + _skin_categories, _sel_skin_category,
+	# 配置するスキン：分類で絞ってから選ぶ（side=ally＝味方専用スキンは出さない）
+	_mode_box.add_child(_labeled_option("分類", [""] + _skin_categories, ["すべて"] + _group_names(_skin_categories), _sel_skin_category,
 		func(k: String) -> void:
 			_sel_skin_category = k
 			_rebuild_mode()))
 	var pool := []
 	for s in _skins:
-		if String(s["category"]) == STANDARD_CATEGORY:
+		if String(s["side"]) == ALLY_SIDE:
 			continue
 		if _sel_skin_category != "" and String(s["category"]) != _sel_skin_category:
 			continue
@@ -982,12 +986,21 @@ func _category_of_type(type_id: String) -> String:
 	return ""
 
 
-## 敵パレットに出る見た目か（未登録／基準＝味方専用は出ない）。
+## 敵パレットに出る見た目か（未登録／side=ally＝味方専用は出ない）。
 func _is_enemy_skin(skin_id: String) -> bool:
 	for s in _skins:
 		if String(s["skin_id"]) == skin_id:
-			return String(s["category"]) != STANDARD_CATEGORY
+			return String(s["side"]) != ALLY_SIDE
 	return false
+
+
+## 分類の表示名（英字id → 訳語）。CSV は id が正本なので、画面に出すときだけ訳す。
+## 味方の兵種（infantry…）も敵の素性（goblin…）も同じ unit_group.* から引く。
+func _group_names(ids: Array) -> Array:
+	var out := []
+	for c in ids:
+		out.append(tr("unit_group.%s.name" % c))
+	return out
 
 
 ## skin_id の分類（未登録は ""＝「すべて」扱い）。
@@ -1425,12 +1438,12 @@ func _add_passenger_rows(parent: VBoxContainer, u: Dictionary, by_skin: bool, on
 		on_change.call())
 
 
-## 駒を選ぶドロップダウンのキー列。敵は skin（基準＝味方専用スキンは出さない）、自軍は type。
+## 駒を選ぶドロップダウンのキー列。敵は skin（side=ally＝味方専用スキンは出さない）、自軍は type。
 func _unit_pick_keys(by_skin: bool) -> Array:
 	var keys := []
 	if by_skin:
 		for s in _skins:
-			if String(s["category"]) != STANDARD_CATEGORY:
+			if String(s["side"]) != ALLY_SIDE:
 				keys.append(String(s["skin_id"]))
 	else:
 		for t in _unit_types:
@@ -1443,7 +1456,7 @@ func _unit_pick_displays(by_skin: bool) -> Array:
 	var out := []
 	if by_skin:
 		for s in _skins:
-			if String(s["category"]) != STANDARD_CATEGORY:
+			if String(s["side"]) != ALLY_SIDE:
 				out.append("%s（%s）" % [s["skin_id"], s["type_id"]])
 	else:
 		for t in _unit_types:

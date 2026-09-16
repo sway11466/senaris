@@ -39,8 +39,9 @@ func _initialize() -> void:
 		print("unit_type.json: %d types" % type_rows.size())
 
 	var s := build_unit_skin(skin_rows, type_ids, effect_ids)
-	if s["json"] == null:
-		_report("unit_skin.csv", s["problems"])
+	var cat_problems := category_problems(skin_rows, type_rows)
+	if s["json"] == null or not cat_problems.is_empty():
+		_report("unit_skin.csv", s["problems"] + cat_problems)
 	else:
 		Csv.write_json("res://data/units/unit_skin.json", s["json"])
 		print("unit_skin.json: %d types" % s["json"]["skins"].size())
@@ -59,8 +60,9 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 
 ## スキン表（1行=1別名: skin_id, side, type_id, name, category, combat_lineup, retainers）→ { problems, json }。純関数。
 ## 同じ (type_id, side) の行は出現順にエイリアス配列へ。description/images は空（後で拡張）。
-## category は管理分類（基準/ゴブリン/…）＝参考データとして JSON にも持つ。
-## skin は見た目レイヤー（案P）＝category をゲームロジックから参照しないこと（ツール・図鑑用）。
+## category は分類の英字id（ally=兵種 infantry/clergy…・enemy=素性 goblin/undead…）＝JSON にも持つ。
+## 表示は tr("unit_group." + id + ".name")。検証は category_problems（別関数＝type の category が要るため）。
+## skin は見た目レイヤー（案P）＝category を戦闘・移動の判定に使わないこと（ツール・図鑑・見出し用）。
 ## combat_lineup は戦闘演出での並べ方（squad/retinue/single）＝スキンごとに人が決める（性能から導かない）。
 ## retainers は戦闘演出で本人の脇に並べる別スキン（'|' 区切り・retinue のときだけ）。→ doc/tech/combat_scene.md
 ## combat_effect は攻撃エフェクトID（空＝既定のスパーク）。effect_ids は data/effects/ の実在ID集合。
@@ -124,6 +126,29 @@ static func _retainer_problems(rows: Array) -> Array:
 		for id in list:
 			if not known.has(id):
 				out.append("'%s': retainers が未定義の skin_id を指している: '%s'" % [label, id])
+	return out
+
+## 分類（category 列）の検証。純関数。build_unit_skin とは別に呼ぶ（あちらは type の id しか受け取らない）。
+## 分類はプレイヤーに見える語になった（クロニクルの見出し・情報パネルの見出し）ので、空欄を通さない。
+## ally 行は兵種そのもの＝unit_type.csv の category と一致させる。情報パネルはこの列だけを読むので、
+## ずれると味方の見出しに嘘の兵種が出る。ここで止めれば JSON になる前に気づける。
+## enemy 行は素性（goblin・undead…）＝性能から導けないので一致は求めない。→ doc/art/units.md §2
+static func category_problems(skin_rows: Array, type_rows: Array) -> Array:
+	var type_cat := {}
+	for t in type_rows:
+		type_cat[str(t.get("id", ""))] = str(t.get("category", ""))
+	var out := []
+	for r in skin_rows:
+		var label := str(r.get("skin_id", ""))
+		var cat := str(r.get("category", "")).strip_edges()
+		if cat.is_empty():
+			out.append("'%s': category が空（分類は画面に出る＝空欄は見出しが消える）" % label)
+			continue
+		if str(r.get("side", "")) != "ally":
+			continue
+		var want := str(type_cat.get(str(r.get("type_id", "")), ""))
+		if cat != want:
+			out.append("'%s': ally の category は兵種と一致させる（unit_type の '%s' に対し '%s'）" % [label, want, cat])
 	return out
 
 func _report(name: String, problems: Array) -> void:

@@ -582,8 +582,9 @@ func _update_header(u: Unit) -> void:
 	var unit_name := tr("unit." + skin.skin_id + ".name") if skin != null else u.type_id
 	# 1行目は名前。自軍だけ兵種を括弧で添える（敵に兵種は出さない → doc/gdd/uiux.md 見出し）。
 	# 陣営は書かない＝駒の色と盤の位置で分かる。
-	var cat := UnitCatalog.display_category(u.type_id) if u.team == 0 else ""
-	_header_name.text = tr("ui.info.header_class") % [unit_name, tr("category." + cat + ".name")] \
+	# 兵種はスキンの分類そのもの（味方行は unit_type の category と一致する＝convert が検証する）。
+	var cat := skin.category if skin != null and u.team == 0 else ""
+	_header_name.text = tr("ui.info.header_class") % [unit_name, tr("unit_group." + cat + ".name")] \
 		if not cat.is_empty() else unit_name
 	_header_sub.text = _squad_name(u)  # 2行目は所属部隊（味方・敵とも）
 	_header_sub.visible = not _header_sub.text.is_empty()

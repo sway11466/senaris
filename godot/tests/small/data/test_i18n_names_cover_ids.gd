@@ -19,8 +19,10 @@ const SOURCES := [
 	{ "prefix": "terrain_type", "csv": "res://data/terrain/terrain_type.csv", "col": "id" },
 	{ "prefix": "movement", "csv": "res://data/movement/movement.csv", "col": "move_type" },
 	{ "prefix": "ai", "csv": "res://data/ai/ai.csv", "col": "ai" },
-	# 兵種は unit_type.csv の category 列＝1つの兵種を複数の種別が共有する（値集合で見る）。
-	{ "prefix": "category", "csv": "res://data/units/unit_type.csv", "col": "category" },
+	# 分類は unit_skin.csv の category 列＝1つの分類を複数のスキンが共有する（値集合で見る）。
+	# 味方は兵種（infantry…）・敵は素性（goblin…）だが、画面に出るのはこの列だけなのでキーは1系統。
+	# unit_type.csv の category 列は見ない（味方行と一致することは convert が検証する）。
+	{ "prefix": "unit_group", "csv": "res://data/units/unit_skin.csv", "col": "category" },
 ]
 
 

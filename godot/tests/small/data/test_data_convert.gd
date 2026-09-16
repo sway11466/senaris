@@ -62,12 +62,46 @@ func test_unit_skin_valid_builds_json() -> void:
 	assert_eq(r["json"]["skins"]["knight"]["enemy"].size(), 1)
 
 func test_unit_skin_category_flows_into_json() -> void:
-	# category は参考データとして JSON に乗る（任意列＝無ければ空文字）。ロジックでは使わない前提。
+	# category は分類の英字id。JSON へそのまま乗る（空欄の検査は category_problems の担当）。
 	var with_cat := _valid_skin_row("kn_a", "knight", "ally")
-	with_cat["category"] = "基準"
+	with_cat["category"] = "infantry"
 	var r := Units.build_unit_skin([with_cat, _valid_skin_row("kn_e", "knight", "enemy")], ["knight"])
-	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["category"], "基準")
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["category"], "infantry")
 	assert_eq(r["json"]["skins"]["knight"]["enemy"][0]["category"], "", "category 無し＝空文字")
+
+
+# --- units: category_problems（分類の検証。build_unit_skin とは別関数） ---
+
+func _skin_row_with_cat(sid: String, side: String, cat: String) -> Dictionary:
+	var r := _valid_skin_row(sid, "knight", side)
+	r["category"] = cat
+	return r
+
+func _knight_types() -> Array:
+	return [{ "id": "knight", "category": "infantry" }]
+
+func test_category_ally_matching_type_is_ok() -> void:
+	var out := Units.category_problems([_skin_row_with_cat("kn_a", "ally", "infantry")], _knight_types())
+	assert_eq(out, [], "ally の分類が兵種と一致＝問題なし")
+
+func test_category_ally_mismatching_type_is_flagged() -> void:
+	# 情報パネルはスキンの分類だけを読む＝ずれると味方の見出しに嘘の兵種が出る。
+	var out := Units.category_problems([_skin_row_with_cat("kn_a", "ally", "archer")], _knight_types())
+	assert_eq(out.size(), 1)
+	assert_true(String(out[0]).contains("kn_a"), "どの行かが分かる: %s" % str(out))
+
+func test_category_enemy_is_free() -> void:
+	# 敵の分類は素性＝性能から導けないので、兵種と違っていて当たり前。
+	var out := Units.category_problems([_skin_row_with_cat("kn_e", "enemy", "goblin")], _knight_types())
+	assert_eq(out, [])
+
+func test_category_empty_is_flagged_on_both_sides() -> void:
+	# 分類は画面に出る（クロニクルの見出し・情報パネル）＝空欄は見出しが消える。
+	var out := Units.category_problems([
+		_skin_row_with_cat("kn_a", "ally", ""),
+		_skin_row_with_cat("kn_e", "enemy", ""),
+	], _knight_types())
+	assert_eq(out.size(), 2, "味方・敵とも空欄は通さない: %s" % str(out))
 
 
 func test_unit_skin_each_required_column_pins_json_null() -> void:

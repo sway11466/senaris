@@ -152,16 +152,24 @@ ai.swarm.name,群れ,Swarm
 ai.flee.name,逃走,Flee
 ai.withdraw.name,撤退,Withdraw
 ai.standoff.name,睨み合い,Standoff
-category.infantry.name,歩兵,Infantry
-category.clergy.name,占領兵,Clergy
-category.archer.name,弓兵,Archer
-category.mage.name,魔法兵,Mage
-category.scout.name,斥候,Scout
-category.flier.name,飛行兵,Flier
-category.champion.name,精鋭,Champion
-category.transport.name,輸送,Transport
-category.emplacement.name,兵器,War Machine
-category.monstrosity.name,魔法生物,Monstrosity
+unit_group.infantry.name,歩兵,Infantry
+unit_group.clergy.name,占領兵,Clergy
+unit_group.archer.name,弓兵,Archer
+unit_group.scout.name,斥候,Scout
+unit_group.mage.name,魔法兵,Mage
+unit_group.flier.name,飛行兵,Flier
+unit_group.champion.name,精鋭,Champion
+unit_group.transport.name,輸送,Transport
+unit_group.emplacement.name,兵器,War Machine
+unit_group.goblin.name,ゴブリン,Goblins
+unit_group.undead.name,アンデッド,Undead
+unit_group.orc.name,オーク,Orcs
+unit_group.beast.name,魔獣,Beasts
+unit_group.rogue.name,悪党,Outlaws
+unit_group.plant.name,植物,Plants
+unit_group.construct.name,魔法生物,Constructs
+unit_group.giant.name,巨人,Giants
+unit_group.dragon.name,ドラゴン,Dragons
 recipe.trinity_nova.name,トリニティノヴァ,Trinity Nova
 recipe.divine_judgment.name,ディバインジャッジメント,Divine Judgment
 recipe.grace.name,グレイス,Grace

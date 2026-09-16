@@ -49,7 +49,7 @@
 - `godot/data/units/convert.gd`（headless）が **CSV → コード用JSON** を生成。実行: `godot --headless --path . --script res://data/units/convert.gd`
 - **CSVは2行ヘッダ**: 1行目=英語キー（コードが使う）／2行目=日本語ラベル（人間用・変換時は読み飛ばす）／3行目以降=データ。参考用の列（兵種・備考など）を足してもよい（コードは未知キーを無視）。
 - `godot/data/units/unit_type.csv` → `godot/data/units/unit_type.json`（**生成物・手で触らない**）。
-- `godot/data/units/unit_skin.csv`（1行=1スキン・`skin_id` が主キー）→ `godot/data/units/unit_skin.json`。列の構成と意味は CSV の2行目（日本語ラベル）と `convert.gd` の検証を見る＝ここには写さない。書き出し倍率・横位置補正は [../art/units.md](../art/units.md) §3、戦闘演出の表示パターンと従者は [../tech/combat_scene.md](../tech/combat_scene.md)。`category`（管理分類）は JSON にも出す参考データで、ゲームロジックは参照しない（マップエディタの絞り込み等ツール用）。
+- `godot/data/units/unit_skin.csv`（1行=1スキン・`skin_id` が主キー）→ `godot/data/units/unit_skin.json`。列の構成と意味は CSV の2行目（日本語ラベル）と `convert.gd` の検証を見る＝ここには写さない。書き出し倍率・横位置補正は [../art/units.md](../art/units.md) §3、戦闘演出の表示パターンと従者は [../tech/combat_scene.md](../tech/combat_scene.md)。`category`（分類）は味方＝兵種・敵＝素性の英字id で、画面の見出しに出る（[../art/units.md](../art/units.md) §2）。戦闘・移動の判定には使わない。
 - `godot/data/movement/movement.csv` → `godot/data/movement/movement.json`（移動タイプ×地形コスト表）。
 - 表計算向き＝**ユニット性能・エイリアス・移動タイプ**の3表（1行=1レコードのフラット表）。ステージ(json) は手書きのまま。
 

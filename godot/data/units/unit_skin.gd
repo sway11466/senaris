@@ -20,7 +20,9 @@ const LINEUPS := [LINEUP_SQUAD, LINEUP_RETINUE, LINEUP_SINGLE]
 var skin_id: String       ## スキンID（主キー。ステージはこれで見た目を指定）。skin→type は1:1
 var type_id: String       ## 紐づく性能(UnitType)のID
 var name: String          ## 開発用メモ（CSV の name 列）。画面表示は tr("unit." + skin_id + ".name") を使う
-var category: String      ## 管理分類（基準/ゴブリン/アンデッド…）。参考データ＝ゲームロジックで参照しない（ツール・図鑑用）
+## 分類の英字id。味方は兵種（infantry/clergy…＝unit_type の category と一致）、敵は素性（goblin/undead…）。
+## 表示は tr("unit_group." + category + ".name")。戦闘・移動の判定には使わない（ツール・図鑑・見出し用）。
+var category: String
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
 var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
 var combat_lineup: String = LINEUP_SQUAD  ## 戦闘演出での並べ方（LINEUPS のいずれか）

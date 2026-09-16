@@ -314,7 +314,7 @@ func _build_units_chapter() -> void:
 		var head := HBoxContainer.new()
 		head.add_theme_constant_override("separation", 8)
 		var cat_label := Label.new()
-		cat_label.text = category
+		cat_label.text = tr("unit_group.%s.name" % category)
 		cat_label.add_theme_font_size_override("font_size", HEAD_FONT_SIZE)
 		cat_label.add_theme_color_override("font_color", ACCENT)
 		head.add_child(cat_label)
@@ -412,7 +412,7 @@ func _build_unit_detail(skin_id: String) -> void:
 	_detail_box.add_child(name_label)
 	# カテゴリ
 	var cat_label := Label.new()
-	cat_label.text = skin.category
+	cat_label.text = tr("unit_group.%s.name" % skin.category)
 	cat_label.add_theme_font_size_override("font_size", DETAIL_FONT_SIZE)
 	cat_label.add_theme_color_override("font_color", DIM_GRAY)
 	_detail_box.add_child(cat_label)
