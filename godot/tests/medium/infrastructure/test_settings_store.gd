@@ -1,17 +1,22 @@
 extends GutTest
 ## SettingsStore（設定＝user://settings.json）のテスト。仕様 → doc/tech/gamesystem.md §設定
 
-const PATH := "user://test_settings.json"
+const DIR := "user://test_settings_store"
+const PATH := "user://test_settings_store/settings.json"
 
 func before_each() -> void:
-	_remove()
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 
 func after_all() -> void:
-	_remove()
+	_clean()
 
-func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 func test_unset_locale_comes_from_environment() -> void:
 	var store := SettingsStore.new(PATH)

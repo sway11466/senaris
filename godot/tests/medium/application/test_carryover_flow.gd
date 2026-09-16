@@ -3,17 +3,22 @@ extends GutTest
 ## 同じ公開APIで再現し、S1勝利→保存→S2開始→配置 が繋がることを固定する。詳細 → doc/gdd/campaigns.md
 ## （main.gd 自体は Node2D/シーン依存で単体テスト外＝ここでロジック経路を担保する。）
 
-const PATH := "user://test_carryover_flow.json"
+const DIR := "user://test_carryover_flow"
+const PATH := "user://test_carryover_flow/roster.json"
 
 func before_each() -> void:
-	_remove()
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 
 func after_all() -> void:
-	_remove()
+	_clean()
 
-func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 func _catalog() -> Dictionary:
 	return {

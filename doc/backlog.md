@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=10 / feature=131 / refactoring=19.
+次回採番: bug=11 / feature=131 / refactoring=19.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -14,13 +14,13 @@
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### bug-8
+### bug-10
 
-**Medium テストが `user://` 直下に退避ファイルと世代を残していく**
-- ゴール：テスト一式を回した後、`user://` にテストの産物が1つも残っていない。
-- 背景：セーブのストアを動かすテストが `user://` 直下でファイル名を取っている（`test_progress.json`・`test_roster.json`・`test_save.json`・`test_settings.json`・`test_chronicle.json`・`test_outcome_progress.json`）。本体のファイルは片付けるが、`SaveFile` が書き込みのたびに作る世代（`test_progress.<時刻>.json`）と、読めなかったファイルの退避（`.broken-` `.v0-` `.v999-`）は残る。[testing.md](tech/testing.md) テストサイズの「使ったファイルを必ず片付ける」に反している。プレイヤーのセーブとは別名なので実害は無いが、保存フォルダを見たときにどれが本物か分からなくなる。`test_progress.json` は2つのテストが共有していて、片方の前提がもう片方の後始末に依存している点も同じ話。
-- 対応：テストごとにディレクトリを持ち（`test_save_file.gd`・`test_save_slots.gd` が先例）、`after_all` でディレクトリごと消す。
-- 該当：`godot/tests/medium/infrastructure/test_progress_store.gd`・`test_roster_store.gd`・`test_save_store.gd`・`test_settings_store.gd`・`test_chronicle_store.gd`・`godot/tests/medium/application/test_campaign_progress.gd`・`test_stage_outcome.gd`。
+**前のステージをやり直すと、進んだ先まで育てた名簿が上書きされる**
+- ゴール：進んだ先のステージまでの名簿が、前のステージをやり直しても失われない。
+- 背景：名簿は冒険譚に1冊で、ステージごとの控えを持たない（[campaigns.md](gdd/campaigns.md) 名簿）。チュートリアル３「竜狩り」を st6 までクリアした状態で st3 を遊ぶと、st6 クリア後の Lv・兵数の仲間で st3 が始まり（`join` の駒だけ配給）、クリアすると盤に出た者の状態がそのまま名簿に書き戻る＝st6 まで育てた状態は退避した世代にしか残らない。名簿の読み書きは `main.gd` の開始時ロードと `StageOutcome.battle_finished` のクリア時保存。
+- 対応：名簿をステージごとの控えにする。ステージ N をクリアしたら「N クリア後の名簿」を控えに書き、次のステージは前のステージの控えから始める。クリア済みのステージをやり直すと前のステージの控えで始まり、クリアでそのステージの控えだけが書き換わる（先のステージの控えは残る）。st6 まで進んで st3 に戻ったとき st6 の状態で始まる理由がプレイヤーに説明できないため、名簿1冊は採らない。どの控えから始めるかは冒険譚マニフェストの各ステージに引き継ぎ元のステージを書く欄で示す（`unlock` から導かない＝解放と継承を別々に読める）。欄の無いステージは空の名簿で始まる＝`join` の駒だけが出る。独立の冒険譚は何も書かない。
+- 該当：`godot/application/stage_outcome.gd`・`godot/application/roster_service.gd`・`godot/infrastructure/save/roster_store.gd`・`godot/presentation/main/main.gd`・`doc/gdd/campaigns.md`・`doc/tech/gamesystem.md`。
 
 ### bug-7
 
@@ -55,7 +55,10 @@
 **セーブデータを手で直せるツール（セーブエディタ）**
 - ゴール：ゲームを起動せずにクリア記録・名簿・クロニクルを読んで書き換えられる。消えた記録を手で戻せる。
 - 背景：2026-09-16 に `user://progress.json`（クリア記録）・`roster.json`・`chronicle.json` が消え、世代バックアップにも実プレイの記録が残っておらず戻せなかった。JSON を直接書けば戻せるが、版・形式・ステージの改名表（`StageRenames`）を踏まえた形を手で書くのは間違えやすい。
-- 対応：`godot/tools/` に画面ツールとして置く（索引 → [tools.md](tech/tools.md)）。冒険譚とステージの一覧から、クリア済み・ランク・所要時間を編集する。書き込みはストア（`ProgressStore` ほか）を通す＝版と形式の責任をストアに残し、ツールは値だけを持つ。名簿とクロニクルも同じ画面から。
+- 対応：`godot/tools/` に画面ツールとして置く（索引 → [tools.md](tech/tools.md)）。開くのは実機の `user://` のファイルだけ（エディタからデバッグ起動したときに読み書きするもの）＝ファイル選択は持たない。書き込みはストア（`ProgressStore` ほか）を通す＝版と形式の責任をストアに残し、ツールは値だけを持つ。ストアの書き口は記録用（ランクは上位のときだけ・所要時間は短いときだけ）なので、任意の値に置く・消す口を足す。
+  - ステージ：冒険譚とステージの一覧から、ステージ単位で「クリア済みにする」（クリア済みの印だけ立てる。ランク・所要時間は空のまま）と「クリア済みデータを消す」（そのステージのクリア済みの印・ランク・所要時間・経験した会話をすべて消す）の2操作。ランク・所要時間・会話を個別に書く欄は持たない。
+  - 名簿：クリア済みにしたときに指定できる。既定は全員生存で、生存状況・Lv・兵数を変えられる。載せる顔ぶれの決め方は bug-10（名簿の持ち方）の結論に依存するため未決。
+  - クロニクル：未決。
 - 該当：`godot/tools/`・`godot/infrastructure/save/`・`doc/tech/tools.md`。
 
 ### refactoring-12

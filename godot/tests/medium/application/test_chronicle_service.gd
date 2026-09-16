@@ -2,25 +2,22 @@ extends GutTest
 ## ChronicleService のテスト。盤に出た駒と発動したレシピの記録を検証する。
 ## 仕様 → doc/gdd/chronicle.md / doc/tech/gamesystem.md §クロニクル
 
-const PATH := "user://test_chronicle_svc.json"
+const DIR := "user://test_chronicle_service"
+const PATH := "user://test_chronicle_service/chronicle.json"
 
 func before_each() -> void:
-	_remove()
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 
 func after_all() -> void:
-	_remove()
+	_clean()
 
-func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
-	var dir := DirAccess.open(PATH.get_base_dir())
-	if dir == null:
-		return
-	var prefix := PATH.get_file().get_basename() + "."
-	for file in dir.get_files():
-		if file.begins_with(prefix):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(
-					PATH.get_base_dir().path_join(file)))
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 func _store() -> ChronicleStore:
 	return ChronicleStore.new(PATH)

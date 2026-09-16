@@ -3,9 +3,10 @@ extends GutTest
 ## 決着時の記録が正しい順序で書かれること、冒険譚の外では書かないこと、
 ## 敗北では名簿を更新しないことを検証する。
 
-const PROGRESS_PATH := "user://test_outcome_progress.json"
-const ROSTER_PATH := "user://test_outcome_roster.json"
-const CHRONICLE_PATH := "user://test_outcome_chronicle.json"
+const DIR := "user://test_stage_outcome"
+const PROGRESS_PATH := "user://test_stage_outcome/progress.json"
+const ROSTER_PATH := "user://test_stage_outcome/roster.json"
+const CHRONICLE_PATH := "user://test_stage_outcome/chronicle.json"
 
 ## 経験した会話の検証で覗く。_outcome() が作ったものを取っておく。
 var _last_chronicle_store: ChronicleStore = null
@@ -56,15 +57,19 @@ func _state() -> BattleState:
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(5, 5), 3))  # 敵軍
 	return s
 
-func after_each() -> void:
-	# テスト用の一時ファイルを消す。
-	for path: String in [PROGRESS_PATH, ROSTER_PATH, CHRONICLE_PATH]:
-		if FileAccess.file_exists(path):
-			DirAccess.remove_absolute(path)
-		# ProgressStore のバックアップ（.bak）も消す。
-		var bak := path + ".bak"
-		if FileAccess.file_exists(bak):
-			DirAccess.remove_absolute(bak)
+func before_each() -> void:
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
+
+func after_all() -> void:
+	_clean()
+
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 # ---------------------------------------------------------------------------
 # stage_started

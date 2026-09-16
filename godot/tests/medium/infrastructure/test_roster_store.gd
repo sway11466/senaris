@@ -1,17 +1,22 @@
 extends GutTest
 ## RosterStore（戦力スナップショット＝継承 carryover）のテスト。仕様 → doc/gdd/campaigns.md / doc/tech/gamesystem.md
 
-const PATH := "user://test_roster.json"
+const DIR := "user://test_roster_store"
+const PATH := "user://test_roster_store/roster.json"
 
 func before_each() -> void:
-	_remove()
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 
 func after_all() -> void:
-	_remove()
+	_clean()
 
-func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 func _write(text: String) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)

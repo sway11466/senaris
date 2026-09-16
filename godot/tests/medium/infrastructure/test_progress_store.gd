@@ -1,17 +1,22 @@
 extends GutTest
 ## ProgressStore（進捗セーブ＝クリア記録）のテスト。仕様 → doc/gdd/stage_select.md
 
-const PATH := "user://test_progress.json"
+const DIR := "user://test_progress_store"
+const PATH := "user://test_progress_store/progress.json"
 
 func before_each() -> void:
-	_remove()
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 
 func after_all() -> void:
-	_remove()
+	_clean()
 
-func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 func test_fresh_store_has_nothing() -> void:
 	var store := ProgressStore.new(PATH)

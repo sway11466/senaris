@@ -2,26 +2,22 @@ extends GutTest
 ## ChronicleStore のテスト。chronicle.json の読み書き・版・破損対策を検証する。
 ## 仕様 → doc/gdd/chronicle.md 記録の持ち方 / doc/tech/gamesystem.md §クロニクル
 
-const PATH := "user://test_chronicle.json"
+const DIR := "user://test_chronicle_store"
+const PATH := "user://test_chronicle_store/chronicle.json"
 
 func before_each() -> void:
-	_remove()
+	_clean()
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(DIR))
 
 func after_all() -> void:
-	_remove()
+	_clean()
 
-func _remove() -> void:
-	if FileAccess.file_exists(PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
-	# SaveFile.rotate の世代ファイルも消す
-	var dir := DirAccess.open(PATH.get_base_dir())
-	if dir == null:
-		return
-	var prefix := PATH.get_file().get_basename() + "."
-	for file in dir.get_files():
-		if file.begins_with(prefix):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(
-					PATH.get_base_dir().path_join(file)))
+func _clean() -> void:
+	var dir := DirAccess.open(DIR)
+	if dir != null:
+		for file in dir.get_files():
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR.path_join(file)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(DIR))
 
 func _write(text: String) -> void:
 	var f := FileAccess.open(PATH, FileAccess.WRITE)
@@ -112,7 +108,7 @@ func test_save_resets_dirty() -> void:
 	store.save()
 	assert_true(FileAccess.file_exists(PATH), "1回目の save でファイルができる")
 	# ファイルを消して、もう一度 save → dirty がリセットされていれば書かない
-	_remove()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(PATH))
 	store.save()
 	assert_false(FileAccess.file_exists(PATH), "save 後に dirty がリセットされている")
 
