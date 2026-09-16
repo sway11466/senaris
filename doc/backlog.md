@@ -339,14 +339,6 @@
 - 対応：`terrain_skin.csv` に `fort` 型の見た目違いを1つ足す（洞窟の地面の上に立てる泉。占領で色が変わる `_team0`／`_team1` の規則は他の拠点と同じ＝[terrain.md](art/terrain.md)）。st6 の該当マスをそのスキンに差し替える。
 - 該当：`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json`・`doc/art/terrain.md`。着手の引き金＝竜狩りの通し確認で st6 を触るとき。
 
-### feature-126
-
-**クロニクルの通し読みの仕組み**
-- ゴール：クロニクルの冒険譚から「物語」を選ぶと、その冒険譚の会話を最初から最後まで読み返せる。
-- 背景：クロニクルの他の章（ユニット・陣形スキル・戦果・設定集）は動いていて、物語だけがプレースホルダのまま。材料は揃っている＝順序は `godot/data/chronicle/<冒険譚 id>.json` の `story`、本文は `dialogue.csv`、表示は盤で使っている `ConversationPanel`。冒険譚が増えても作り直さない共通の仕組みなので、中身（feature-127・128）とは分ける。
-- 対応：(1) `story` の並びに沿って、どの会話をどの順で出すかを組み立てる。(2) ステージの挿絵を背景に敷く（盤は組み直さず、`assets/campaign/` の静止画を読む）。(3) `ConversationPanel` を盤の外でも動かす。(4) 通し読みの操作＝章題・次へ・スキップ・停止。どの回の内容を出すかは最後に遊んだ回で固定（切り替えは feature-129）。
-- 該当：`godot/presentation/chronicle/`・`godot/presentation/ui/conversation_panel.gd`・`godot/data/i18n/ui.csv`（`ui.chronicle.*`）・[chronicle.md](gdd/chronicle.md) 物語。
-
 ### feature-127
 
 **チュートリアル１のクロニクルの中身**
