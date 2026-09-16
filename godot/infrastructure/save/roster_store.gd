@@ -6,13 +6,13 @@ class_name RosterStore
 ## 素性・成長・損耗だけ（性能は type から再構築・盤依存の状態は持たない）。Unit の復元・配置は application 層（Phase 2c/2d）。
 ## 素のJSON＋バージョン・形式チェック（不正・破損は空にフォールバックしクラッシュしない＝ProgressStore と同流儀）。
 
-const DEFAULT_PATH := "user://roster.json"
+const FILE := "roster.json"  # 置き場は SavePaths が持つ
 const VERSION := 1
 
 var _path: String
 var _rosters := {}  # 冒険譚ID -> Array[Dictionary]（Unit.to_dict() の配列）
 
-func _init(path: String = DEFAULT_PATH) -> void:
+func _init(path: String = SavePaths.of(FILE)) -> void:
 	_path = path
 	_load()
 

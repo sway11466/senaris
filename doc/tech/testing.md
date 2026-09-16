@@ -20,7 +20,7 @@
 
 - Small を既定とし、Medium にするのは資源が本当に要るときだけ。Medium が増えるほど全件実行の回転が落ちる。
 - 置き場はサイズで分ける＝`godot/tests/small/` と `godot/tests/medium/`。さらにその下を対象のレイヤー（domain / data / application / infrastructure / tools / presentation）で割る。どのサイズかを名前や本文で宣言せず、置いた場所が宣言になる。
-- 実ファイルを触る Medium は、使ったファイルを必ず片付ける。実セーブ（`user://progress.json` ほか）を書き換えるものは、退避して戻すところまでテストの責任。
+- 実ファイルを触る Medium は、使ったファイルを必ず片付ける。セーブを書き換えるものはプレイヤーの実セーブを触らない＝置き場（`SavePaths`）をその回だけのディレクトリへ向けてから立ち上げ、終わったら消す（[gamesystem.md](gamesystem.md) §置き場）。退避して戻す形は採らない。途中で止まった回に戻す者がいなくなる。
 
 ## 自動テストで捕まらないもの
 

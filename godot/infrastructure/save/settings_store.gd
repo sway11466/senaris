@@ -7,7 +7,7 @@ class_name SettingsStore
 ## 書くのはプレイヤーが選んだ値だけ。選んでいない項目はファイルに現れない
 ## ＝「まだ選ばれていない」と「選んだ結果たまたま既定と同じ」を取り違えない。
 
-const DEFAULT_PATH := "user://settings.json"
+const FILE := "settings.json"  # 置き場は SavePaths が持つ
 const VERSION := 1
 
 ## 選べる言語。翻訳CSVの列（doc/tech/i18n.md）と対応する。
@@ -27,7 +27,7 @@ const DIALOGUE_DEFAULT := "hide"  # 畳んだのは板を見たくないとい�
 var _path: String
 var _values := {}  # 項目 -> 値（プレイヤーが選んだものだけ）
 
-func _init(path: String = DEFAULT_PATH) -> void:
+func _init(path: String = SavePaths.of(FILE)) -> void:
 	_path = path
 	_load()
 

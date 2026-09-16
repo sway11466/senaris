@@ -8,13 +8,12 @@ class_name SaveSlots
 
 const AUTO := "auto"          # オートセーブの枠ID（一覧の先頭）
 const MANUAL_COUNT := 5       # 中断セーブの枠数
-const DEFAULT_DIR := "user://"
 const PREFIX := "save_"
 
 var _dir: String
 var _stores := {}  # 枠ID -> SaveStore
 
-func _init(dir: String = DEFAULT_DIR) -> void:
+func _init(dir: String = SavePaths.dir) -> void:
 	_dir = dir if dir.ends_with("/") else dir + "/"
 	for slot in slot_ids():
 		_stores[slot] = SaveStore.new("%s%s%s.json" % [_dir, PREFIX, slot])

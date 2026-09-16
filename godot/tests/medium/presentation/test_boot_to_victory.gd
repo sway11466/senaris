@@ -3,7 +3,8 @@ extends GutTest
 ## main.tscn を立ち上げ、内部メソッドを入口にして下の層まで届いているかを見る＝配線の確認。
 ## 入力と画面遷移は入口にしない。値や分岐の正しさは各層のテストが見るので、ここでは見ない。
 ##
-## 実ファイル（user:// の実セーブ）を書き換えるので、退避して戻すところまで受け持つ。
+## セーブは実ファイルを触らない。SavePaths をこの回だけの置き場へ向け、終わったら消す
+## （doc/tech/testing.md 実ファイルを触らない）。
 
 const MAIN := preload("res://presentation/main/main.tscn")
 
@@ -11,31 +12,27 @@ const CAMPAIGN := "tutorial1-goblin-raid"
 const STAGE := "goblin-raid-st1"
 const STAGE_PATH := "res://data/stages/tutorial1-goblin-raid/goblin-raid-st1.json"
 
-## 盤の動きで書き換わる実セーブ。テストの前に退避し、後で戻す。
-const SAVES := [
-	"user://progress.json",
-	"user://roster.json",
-	"user://chronicle.json",
-]
-const STASH_SUFFIX := ".medium_stash"
+## この回のセーブの置き場。盤の動きで書き換わるファイル（進捗・名簿・クロニクル・設定・
+## 中断セーブ）がまとめてここへ落ちる＝実セーブは一度も開かない。
+const SAVE_DIR := "user://test_boot_to_victory/"
+
+var _save_dir_before := ""
 
 func before_all() -> void:
-	for path: String in SAVES:
-		if FileAccess.file_exists(path):
-			DirAccess.copy_absolute(path, path + STASH_SUFFIX)
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	_save_dir_before = SavePaths.dir
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SAVE_DIR))
+	SavePaths.dir = SAVE_DIR
 
 func after_all() -> void:
-	for path: String in SAVES:
-		if FileAccess.file_exists(path):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
-		if FileAccess.file_exists(path + STASH_SUFFIX):
-			DirAccess.copy_absolute(path + STASH_SUFFIX, path)
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(path + STASH_SUFFIX))
-		# セーブのバックアップ（SaveFile.rotate）もこの回の産物なら消す。
-		var bak := path + ".bak"
-		if FileAccess.file_exists(bak):
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(bak))
+	SavePaths.dir = _save_dir_before
+	# この回の産物（世代バックアップ SaveFile.rotate も含む）は置き場ごと消す。
+	var abs := ProjectSettings.globalize_path(SAVE_DIR)
+	var dir := DirAccess.open(abs)
+	if dir == null:
+		return
+	for file in dir.get_files():
+		DirAccess.remove_absolute(abs.path_join(file))
+	DirAccess.remove_absolute(abs)
 
 ## main.tscn を立ち上げ、タイトルを閉じた状態にして返す。
 func _boot() -> Node:
