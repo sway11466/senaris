@@ -6,7 +6,6 @@ unit.paladin.name,パラディン,Paladin
 unit.archer.name,アーチャー,Archer
 unit.hunter.name,ハンター,Ranger
 unit.elf.name,エルフ,Elf
-unit.slinger.name,スリンガー,Slinger
 unit.mage.name,メイジ,Mage
 unit.wizard.name,ウィザード,Wizard
 unit.witch.name,ウィッチ,Witch
@@ -20,13 +19,8 @@ unit.birdman.name,バードマン,Birdfolk
 unit.novice.name,ノービス,Novice
 unit.fighter.name,ファイター,Fighter
 unit.vanguard.name,ヴァンガード,Vanguard
-unit.samurai.name,サムライ,Samurai
 unit.knight.name,ナイト,Knight
 unit.dwarf.name,ドワーフ,Dwarf
-unit.magic_knight.name,マジックナイト,Arcane Knight
-unit.sorcerer.name,ソーサラー,Sorcerer
-unit.sniper.name,スナイパー,Marksman
-unit.warlord.name,ウォーロード,Warlord
 unit.wagon.name,馬車,Wagon
 unit.airship.name,飛空艇,Airship
 unit.barricade.name,バリケード,Barricade
@@ -47,9 +41,7 @@ unit.orc.name,オーク,Orc
 unit.orc_leader.name,オークリーダー,Orc Warchief
 unit.orc_mage.name,オークメイジ,Orc Shaman
 unit.griffon.name,グリフォン,Griffon
-unit.chimera.name,キメラ,Chimera
 unit.harpy.name,ハーピー,Harpy
-unit.dire_wolf.name,ダイアウルフ,Dire Wolf
 unit.rock_serpent.name,ロックサーペント,Rock Serpent
 unit.wyrm.name,ワイアーム,Wyrm
 unit.scorpion.name,スコーピオン,Giant Scorpion

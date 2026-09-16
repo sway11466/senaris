@@ -12,10 +12,10 @@
   "enemy": [
     { "order": 1, "name": "群れ", "ai": "swarm",
       "units": [
-        { "skin": "dire_wolf", "col": 8, "row": 1 },
-        { "skin": "dire_wolf", "col": 9, "row": 3 },
-        { "skin": "dire_wolf", "col": 8, "row": 5 },
-        { "skin": "dire_wolf", "col": 10, "row": 2 }
+        { "skin": "rock_serpent", "col": 8, "row": 1 },
+        { "skin": "rock_serpent", "col": 9, "row": 3 },
+        { "skin": "rock_serpent", "col": 8, "row": 5 },
+        { "skin": "rock_serpent", "col": 10, "row": 2 }
       ] }
   ]
 }

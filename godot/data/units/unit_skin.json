@@ -1,35 +1,29 @@
 {
 	"order": [
-		"cleric",
-		"priest",
-		"bishop",
-		"paladin",
+		"novice",
+		"fighter",
+		"vanguard",
+		"knight",
+		"dwarf",
 		"archer",
 		"hunter",
 		"elf",
-		"slinger",
-		"mage",
-		"wizard",
-		"witch",
 		"thief",
 		"halfling",
 		"ninja",
 		"kunoichi",
+		"cleric",
+		"priest",
+		"bishop",
+		"paladin",
+		"mage",
+		"wizard",
+		"witch",
+		"wagon",
+		"airship",
 		"pixie",
 		"pegasus",
 		"birdman",
-		"novice",
-		"fighter",
-		"vanguard",
-		"samurai",
-		"knight",
-		"dwarf",
-		"magic_knight",
-		"sorcerer",
-		"sniper",
-		"warlord",
-		"wagon",
-		"airship",
 		"barricade",
 		"ballista",
 		"goblin",
@@ -48,24 +42,22 @@
 		"orc_leader",
 		"orc_mage",
 		"griffon",
-		"chimera",
 		"harpy",
-		"dire_wolf",
 		"rock_serpent",
 		"wyrm",
 		"scorpion",
-		"troll",
-		"treant",
-		"matango",
-		"mandragora",
-		"red_dragon",
-		"mimic",
-		"slime",
 		"rogue",
 		"rogue_axe",
 		"rogue_slinger",
 		"rogue_head",
-		"rogue_wagon"
+		"rogue_wagon",
+		"troll",
+		"treant",
+		"matango",
+		"mandragora",
+		"mimic",
+		"slime",
+		"red_dragon"
 	],
 	"skins": {
 		"airship": {
@@ -522,23 +514,6 @@
 				}
 			]
 		},
-		"magic_knight": {
-			"ally": [
-				{
-					"category": "infantry",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "マジックナイト",
-					"retainers": [],
-					"skin_id": "magic_knight",
-					"type_id": "magic_knight"
-				}
-			],
-			"enemy": []
-		},
 		"ninja": {
 			"ally": [
 				{
@@ -584,20 +559,7 @@
 					"type_id": "novice"
 				}
 			],
-			"enemy": [
-				{
-					"category": "beast",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "ダイアウルフ",
-					"retainers": [],
-					"skin_id": "dire_wolf",
-					"type_id": "novice"
-				}
-			]
+			"enemy": []
 		},
 		"paladin": {
 			"ally": [
@@ -746,23 +708,6 @@
 				}
 			]
 		},
-		"samurai": {
-			"ally": [
-				{
-					"category": "infantry",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "サムライ",
-					"retainers": [],
-					"skin_id": "samurai",
-					"type_id": "samurai"
-				}
-			],
-			"enemy": []
-		},
 		"scout": {
 			"ally": [],
 			"enemy": [
@@ -798,20 +743,7 @@
 			]
 		},
 		"slinger": {
-			"ally": [
-				{
-					"category": "archer",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "スリンガー",
-					"retainers": [],
-					"skin_id": "slinger",
-					"type_id": "slinger"
-				}
-			],
+			"ally": [],
 			"enemy": [
 				{
 					"category": "goblin",
@@ -851,38 +783,8 @@
 				}
 			]
 		},
-		"sniper": {
-			"ally": [
-				{
-					"category": "champion",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "スナイパー",
-					"retainers": [],
-					"skin_id": "sniper",
-					"type_id": "sniper"
-				}
-			],
-			"enemy": []
-		},
 		"sorcerer": {
-			"ally": [
-				{
-					"category": "champion",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "ソーサラー",
-					"retainers": [],
-					"skin_id": "sorcerer",
-					"type_id": "sorcerer"
-				}
-			],
+			"ally": [],
 			"enemy": [
 				{
 					"category": "undead",
@@ -1014,20 +916,7 @@
 			]
 		},
 		"warlord": {
-			"ally": [
-				{
-					"category": "champion",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "ウォーロード",
-					"retainers": [],
-					"skin_id": "warlord",
-					"type_id": "warlord"
-				}
-			],
+			"ally": [],
 			"enemy": [
 				{
 					"category": "undead",
@@ -1039,18 +928,6 @@
 					"name": "デュラハン",
 					"retainers": [],
 					"skin_id": "dullahan",
-					"type_id": "warlord"
-				},
-				{
-					"category": "beast",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "キメラ",
-					"retainers": [],
-					"skin_id": "chimera",
 					"type_id": "warlord"
 				}
 			]
