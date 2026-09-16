@@ -76,7 +76,7 @@ func test_conversation_panel_reveals_then_closes() -> void:
 		{ "speaker": "char.cap.name", "skin": "fighter", "text": "talk.intro.1" },
 		{ "speaker": "char.rookie.name", "skin": "novice", "text": "talk.intro.2" },
 	]
-	panel.start(lines, "戦闘開始")
+	panel.start(lines, "戦闘開始", "ui.talk.skip")
 	assert_eq(panel._messages.get_child_count(), 1, "開始で1行目を表示")
 	assert_true(panel.visible, "会話中は表示")
 	panel._on_next()
@@ -95,7 +95,7 @@ func test_conversation_panel_sound_line_is_shown_without_speaker() -> void:
 		{ "text": "talk.intro.sfx", "sfx": "slash_m" },
 		{ "speaker": "char.rookie.name", "skin": "novice", "text": "talk.intro.2" },
 	]
-	panel.start(lines, "戦闘開始")
+	panel.start(lines, "戦闘開始", "ui.talk.skip")
 	panel._on_next()
 	assert_eq(panel._messages.get_child_count(), 2, "効果音の行も1行として表示される")
 	assert_eq(panel._speakers, 1, "効果音の行は左右交互の順番を消費しない")
@@ -111,7 +111,7 @@ func test_conversation_panel_sound_only_line_advances() -> void:
 		{ "sfx": "slash_m" },
 		{ "speaker": "char.cap.name", "skin": "fighter", "text": "talk.intro.1" },
 	]
-	panel.start(lines, "戦闘開始")
+	panel.start(lines, "戦闘開始", "ui.talk.skip")
 	assert_eq(panel._messages.get_child_count(), 1, "音だけの行は表示を持たず、次の行まで進む")
 	assert_eq(panel._shown, 2, "2行とも消費済み")
 
@@ -120,7 +120,7 @@ func test_conversation_panel_skip_closes_immediately() -> void:
 	add_child_autofree(panel)
 	panel.bind({})
 	watch_signals(panel)
-	panel.start([ { "speaker": "char.cap.name", "skin": "fighter", "text": "talk.intro.1" } ], "戦闘開始")
+	panel.start([ { "speaker": "char.cap.name", "skin": "fighter", "text": "talk.intro.1" } ], "戦闘開始", "ui.talk.skip")
 	panel._on_skip()
 	assert_signal_emitted(panel, "closed", "スキップで即 closed")
 	assert_false(panel.visible)
@@ -130,7 +130,7 @@ func test_conversation_panel_empty_closes() -> void:
 	add_child_autofree(panel)
 	panel.bind({})
 	watch_signals(panel)
-	panel.start([], "戦闘開始")
+	panel.start([], "戦闘開始", "ui.talk.skip")
 	assert_signal_emitted(panel, "closed", "空の会話は即 closed（フローを止めない）")
 
 ## 「ストーリーを確認」の目次＝会話つきイベントの索引（doc/gdd/uiux.md ターン終了・システムメニュー）。

@@ -13,6 +13,7 @@ class_name ConversationPanel
 ## ボタン以外のどこを押して引きずっても板が動く（仕様 → doc/gdd/uiux.md 移動）。
 
 signal closed  # 会話終了（読了 or スキップ）。呼び出し側が次（戦闘/セレクト）へ進む。
+signal skipped  # 左のボタンで飛ばした（closed の直前）。読了と区別したい側だけが受ける
 
 const FACE_SCALE := 0.33   # キャラ絵の表示倍率。全キャラ共通の固定比＝相対サイズ（大型は大きい）を維持
 const COLOR_BUBBLE_L := Color(0.22, 0.25, 0.31)  # 左（相手側）の吹き出し
@@ -34,6 +35,7 @@ var _lines: Array = []
 var _shown := 0
 var _speakers := 0  # 話者のいる行だけを数える＝左右交互の順番（効果音の行を挟んでも左右が入れ替わらない）
 var _finish_label := ""
+var _skip_label := ""  # 左のボタンの文言キー（盤は「会話をスキップ」・通し読みは「次の章へ」）
 var _scroll: ScrollContainer
 var _messages: VBoxContainer
 var _next_btn: Button
@@ -63,7 +65,7 @@ func _ready() -> void:
 	bar.offset_bottom = -10
 	bar.add_theme_constant_override("separation", 8)
 	add_child(bar)
-	_skip_btn = TavernTheme.wood_button(tr("ui.talk.skip"))
+	_skip_btn = TavernTheme.wood_button("")  # 文言は start() で決まる（呼ぶ側が持つ）
 	_skip_btn.pressed.connect(_on_skip)
 	bar.add_child(_skip_btn)
 	_next_btn = TavernTheme.wood_button(tr("ui.talk.next"))
@@ -85,9 +87,12 @@ func bind(skin_catalog: Dictionary) -> void:
 ## { scene } は場面の切り替え（横線＋ト書き。以後の話者は左から）。
 ## finish_label＝最後の1行を読んだ後のボタン文言の翻訳キー（intro="ui.talk.start_battle" / outro="ui.talk.close" 等）。
 ## セリフ・話者名と同じくキーで受けてここで tr() する＝言語を切り替えても表示が追従する。
-func start(lines: Array, finish_label: String) -> void:
+## skip_label＝左のボタンの文言キー（盤は "ui.talk.skip"・通し読みは「次の章へ」）。
+func start(lines: Array, finish_label: String, skip_label: String) -> void:
 	_lines = lines
 	_finish_label = finish_label
+	_skip_label = skip_label
+	_skip_btn.text = tr(skip_label)
 	_shown = 0
 	_speakers = 0
 	for c in _messages.get_children():
@@ -133,7 +138,9 @@ func _reveal_next() -> void:
 ## パネルは起動時に1度だけ作って生き続けるので、板に焼いたボタンの文字だけ差し替える。
 ## 会話の本文は流すたびに組むので触らない。
 func refresh_labels() -> void:
-	_skip_btn.text = tr("ui.talk.skip")
+	if _skip_label.is_empty():
+		return  # まだ一度も流していない＝貼り直す文言が無い
+	_skip_btn.text = tr(_skip_label)
 	_next_btn.text = tr(_finish_label) if not _finish_label.is_empty() and _shown >= _lines.size() else tr("ui.talk.next")
 
 ## 台本の1行。辞書でなければ空辞書に倒す（壊れたデータで会話を止めない）。
@@ -172,6 +179,7 @@ func _on_next() -> void:
 		_reveal_next()
 
 func _on_skip() -> void:
+	skipped.emit()
 	_close()
 
 func _close() -> void:

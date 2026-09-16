@@ -83,6 +83,7 @@ var _grid_width := 0.0  # 格子を組んだときの器の幅。変わったら
 var _selected_recipe_id := ""  # 陣形章で選んでいるレシピ
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空ならリスト）
 var _campaign_section: int = CampaignSection.RESULTS  # 冒険譚内の節
+var _reader: ChronicleStoryReader = null  # 物語の通し読み（この画面の上に開く）
 
 func _ready() -> void:
 	layer = LAYER
@@ -115,6 +116,12 @@ func _ready() -> void:
 	_back.pressed.connect(_on_back)
 	_root.add_child(_back)
 
+	# 物語の通し読み。この画面より前面の層に自分で出る＝読むあいだは目次を覆う。
+	_reader = ChronicleStoryReader.new()
+	_reader.name = "StoryReader"
+	_reader.closed.connect(_on_reader_closed)
+	add_child(_reader)
+
 	visible = false
 
 ## 開く。開くたびに最新のストアから組み直す。
@@ -144,6 +151,7 @@ func close() -> void:
 func refresh_labels() -> void:
 	_heading.text = tr("ui.chronicle.title")
 	_back.text = tr("ui.chronicle.back")
+	_reader.refresh_labels()
 	_close_expanded()  # 開いたままの拡大カードは組み直さず畳む（格子へ戻る）
 	if visible:
 		_rebuild()
@@ -307,7 +315,7 @@ func _rebuild_content() -> void:
 					CampaignSection.RESULTS:
 						_build_campaign_results()
 					CampaignSection.STORY:
-						_build_placeholder(tr("ui.chronicle.story"))
+						_build_campaign_story()
 					CampaignSection.LORE:
 						_build_campaign_lore()
 
@@ -994,6 +1002,66 @@ func _build_campaign_results() -> void:
 				row.add_child(time_label)
 
 		_content_box.add_child(row)
+
+# ---------------------------------------------------------------------------
+# 物語（冒険譚2段目・STORY）
+# ---------------------------------------------------------------------------
+
+## 章題を並べる。押すとその章から通し読みが始まる（先頭は「はじめから」）。
+## 並ぶのは経験した章だけ＝見ていない出来事の存在を匂わせない（doc/gdd/chronicle.md 物語）。
+func _build_campaign_story() -> void:
+	if _progress == null:
+		return
+	var campaign := _progress.campaign(_selected_campaign_id)
+	if campaign.is_empty():
+		return
+	var chronicle := ChronicleLoader.load_for(_selected_campaign_id)
+	var chapters := ChronicleStory.load(_selected_campaign_id, chronicle["story"], campaign, _progress)
+	if chapters.is_empty():
+		_build_placeholder(tr("ui.chronicle.story_empty"))
+		return
+
+	var head := Label.new()
+	head.text = tr("ui.chronicle.story")
+	head.add_theme_font_size_override("font_size", HEAD_FONT_SIZE)
+	head.add_theme_color_override("font_color", ACCENT)
+	_content_box.add_child(head)
+
+	_content_box.add_child(_story_button(tr("ui.chronicle.story_from_start"), chapters, 0))
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, CATEGORY_GAP)
+	_content_box.add_child(spacer)
+	for i in chapters.size():
+		var chapter: Dictionary = chapters[i]
+		_content_box.add_child(_story_button(tr(String(chapter["title"])), chapters, i))
+
+## 章題1行のボタン（冒険譚の一覧と同じ手つき）。
+func _story_button(text: String, chapters: Array, index: int) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(0, ITEM_HEIGHT)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.text = "  " + text
+	btn.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+	btn.add_theme_color_override("font_color", UI_GRAY)
+	btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color.TRANSPARENT
+	btn.add_theme_stylebox_override("normal", sb)
+	var sb_hover := StyleBoxFlat.new()
+	sb_hover.bg_color = Color(1.0, 1.0, 1.0, 0.05)
+	btn.add_theme_stylebox_override("hover", sb_hover)
+	btn.pressed.connect(func() -> void: _open_story(chapters, index))
+	return btn
+
+## 通し読みを開く。読んでいるあいだ、この画面は板の裏に置いたまま。
+func _open_story(chapters: Array, index: int) -> void:
+	SfxPlayer.play_event("menu_select")
+	_reader.open(chapters, index, _skins)
+
+## 通し読みを畳んだ＝章の一覧へ戻る（画面はこの下で開いたまま）。
+func _on_reader_closed() -> void:
+	pass
 
 # ---------------------------------------------------------------------------
 # 設定集（冒険譚2段目・LORE）

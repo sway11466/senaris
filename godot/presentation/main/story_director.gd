@@ -87,7 +87,7 @@ func _open_talk(phase: String, lines: Array, finish_label: String) -> void:
 	_board.set_input_locked(true)  # 会話中はスクロール等を会話エリアだけに
 	_set_scrim(true)
 	_hud.set_player_turn(false)
-	_conversation.start(lines, finish_label)
+	_conversation.start(lines, finish_label, "ui.talk.skip")
 
 ## intro 会話があれば、盤操作をロックして先に流す（無ければ何もしない＝即戦闘）。
 func maybe_start_intro() -> void:

@@ -239,3 +239,8 @@ ui.chronicle.lore_locked,続きは冒険のあとで,More to come after your adv
 ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
 ui.chronicle.campaign_rank,ランク %s,Rank %s
 ui.chronicle.total_time,合計 %s,Total %s
+ui.chronicle.story_from_start,はじめから,From the beginning
+ui.chronicle.story_empty,まだ読み返せる物語がない,No story to read back yet
+ui.chronicle.story_next_chapter,次の章へ,Next chapter
+ui.chronicle.story_end,読み終える,Finish
+ui.chronicle.story_quit,← 章の一覧,← Chapters

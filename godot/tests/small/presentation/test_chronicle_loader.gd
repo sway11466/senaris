@@ -97,3 +97,28 @@ func test_all_story_stages_exist_in_campaign() -> void:
 		for entry in chronicle["story"]:
 			var stage: String = entry["stage"]
 			assert_true(stage_ids.has(stage), "%s/story の stage '%s' が campaign.json に実在" % [campaign_id, stage])
+
+func test_story_events_match_the_stage() -> void:
+	# chronicle.json の story.events と、ステージ JSON の会話つきイベントが一致する。
+	# 通し読みの並びはこの events が決める（doc/gdd/chronicle.md 物語）＝片方だけ増えると
+	# 会話が黙って落ちる／並べられないイベントが出る。
+	var chronicles := ChronicleLoader.load_all()
+	for campaign_id in chronicles:
+		var chronicle: Dictionary = chronicles[campaign_id]
+		var c := CampaignCatalog.load_file("res://data/stages/%s/campaign.json" % campaign_id)
+		if c.is_empty():
+			continue
+		var paths := {}
+		for s in c["stages"]:
+			paths[s["id"]] = String(s["path"])
+		for entry in chronicle["story"]:
+			var stage: String = entry["stage"]
+			if not paths.has(stage):
+				continue  # ステージの実在は test_all_story_stages_exist_in_campaign が見る
+			var talks := StageLoader.load_event_talks(String(paths[stage]))
+			for ev in entry["events"]:
+				assert_true(talks.has(String(ev)),
+						"%s/%s: story の events '%s' がステージの会話つきイベントに実在" % [campaign_id, stage, ev])
+			for id in talks:
+				assert_true(entry["events"].has(String(id)),
+						"%s/%s: ステージの会話つきイベント '%s' が story の events に在る" % [campaign_id, stage, id])

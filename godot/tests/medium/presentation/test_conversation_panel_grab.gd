@@ -16,7 +16,7 @@ func before_each() -> void:
 		{ "speaker": "x.a", "skin": "fighter", "text": "x.1" },
 		{ "text": "x.sfx" },
 		{ "speaker": "x.b", "skin": "archer", "text": "x.2" },
-	], "ui.talk.start_battle")
+	], "ui.talk.start_battle", "ui.talk.skip")
 	panel._reveal_next()
 	panel._reveal_next()
 	await get_tree().process_frame
