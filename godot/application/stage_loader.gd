@@ -728,6 +728,7 @@ static func _make_carried_unit(u: Dictionary, snap: Dictionary, catalog: Diction
 		merged["troops"] = int(merged.get("max_troops", 8))  # 幕間の補充・離脱者の復帰＝満員で出す
 	var unit := Unit.from_dict(merged, t)
 	unit.handle = id
+	unit.unit_id = String(u.get("unit_id", ""))  # 盤の名指しはステージ側が決める（名簿は持たない）
 	unit.team = 0  # 継承は自軍
 	unit.set_native_team(0)  # 帰属は確定済み（名簿に載っている＝仲間）
 	unit.pos = Hex.offset_to_axial(int(u.get("col", 0)), int(u.get("row", 0)))

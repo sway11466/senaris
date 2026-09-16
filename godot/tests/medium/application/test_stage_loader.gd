@@ -925,3 +925,20 @@ func test_actor_is_not_part_of_the_unit_id_namespace() -> void:
 		"victory": [ { "type": "defeat_unit", "unit_id": "elf" } ],
 	}
 	assert_eq(StageLoader.unit_id_problems(data), [], "同じ綴りでも役目が違う＝衝突しない")
+
+
+## 名簿から出す仲間も勝敗条件で名指せる。unit_id は盤の話＝ステージ側が決める（名簿は持たない）。
+func test_carried_unit_takes_unit_id_from_the_stage() -> void:
+	var carried := [{ "type": "knight", "skin": "knight", "level": 1, "troops": 6,
+		"max_troops": 8, "actor": "c.knight" }]
+	var data := { "cols": 8, "rows": 6,
+		"player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.knight", "unit_id": "escort" }] } ],
+		"defeat": [ { "type": "lose_unit", "unit_ids": ["escort"] } ] }
+	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
+	var u := s.unit_at(Hex.offset_to_axial(1, 1))
+	assert_not_null(u, "名簿から出る")
+	assert_eq(u.actor, "c.knight", "人物の名前は名簿から")
+	assert_eq(u.unit_id, "escort", "盤の名指しはステージから")
+	assert_false(Victory.defeat_condition_met(s, s.defeat_conditions[0]), "生きている間は成立しない")
+	s.remove_unit(u.handle)
+	assert_true(Victory.defeat_condition_met(s, s.defeat_conditions[0]), "失うと護衛失敗になる")
