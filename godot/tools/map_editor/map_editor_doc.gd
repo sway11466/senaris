@@ -773,33 +773,33 @@ static func _is_target_at(t: Variant, col: int, row: int) -> bool:
 # --- 名指し(unit_id)・人物(actor)・勝利条件 ---
 
 
-## ステージで使われている unit_id の集合（盤の駒・部隊の駒・拠点の控え）。重複しない名前を作るのに使う。
+## ステージで使われている unit_id の集合。重複しない名前を作るのに使う。
+## 生データを再帰でたどる＝盤の駒・部隊の駒・拠点の控え・増援・搭乗者を漏れなく拾う
+## （StageLoader._collect_unit_ids と同じ範囲。片方だけ狭いと、エディタが通した名前を
+## ローダーが重複として弾く）。
 func used_unit_ids() -> Dictionary:
 	var out := {}
-	for u in player_pieces():
-		_collect_unit_id(out, u)
-	for sq in data["enemy"]:
-		for u in sq.get("units", []):
-			_collect_unit_id(out, u)
-	for b in data.get("bases", []):
-		if typeof(b) != TYPE_DICTIONARY:
-			continue
-		for g in b.get("garrison", []):
-			_collect_unit_id(out, g)
+	_collect_unit_id(out, data)
 	return out
 
 
-func _collect_unit_id(out: Dictionary, unit: Variant) -> void:
-	if typeof(unit) != TYPE_DICTIONARY:
-		return
-	var a := String((unit as Dictionary).get("unit_id", ""))
-	if a != "":
-		out[a] = true
-	for p in (unit as Dictionary).get("passengers", []):
-		_collect_unit_id(out, p)
+func _collect_unit_id(out: Dictionary, node: Variant) -> void:
+	match typeof(node):
+		TYPE_DICTIONARY:
+			var d: Dictionary = node
+			var a := String(d.get("unit_id", ""))
+			if a != "":
+				out[a] = true
+			for k in d:
+				if k == "victory" or k == "defeat":
+					continue  # 条件は名指す側＝駒の定義ではない
+				_collect_unit_id(out, d[k])
+		TYPE_ARRAY:
+			for v in node:
+				_collect_unit_id(out, v)
 
 
-## base を土台に、ステージ内で重複しない actor 名を作る（"necromancer" → "necromancer2" …）。
+## base を土台に、ステージ内で重複しない unit_id を作る（"necromancer" → "necromancer2" …）。
 func free_unit_id(base: String) -> String:
 	var stem := base if base != "" else "unit"
 	var used := used_unit_ids()

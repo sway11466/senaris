@@ -1220,7 +1220,7 @@ func _base_has_open_neighbor(b: Base) -> bool:
 func is_defeated(handle: int) -> bool:
 	return _defeated.has(handle)
 
-## 名指しした駒（actor）が撃破済みか。ボス撃破・護衛対象の喪失が見る。詳細 → doc/gdd/map.md
+## 名指しした駒（unit_id）が撃破済みか。ボス撃破・護衛対象の喪失が見る。詳細 → doc/gdd/map.md
 func is_unit_id_defeated(unit_id: String) -> bool:
 	return unit_id != "" and _defeated_unit_ids.has(unit_id)
 

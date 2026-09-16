@@ -441,6 +441,25 @@ func test_used_unit_ids_collects_named_pieces() -> void:
 	assert_eq(doc.used_unit_ids().size(), 1, "名前なしの駒は数えない")
 
 
+## 数える範囲は StageLoader と同じ＝増援・拠点の控え・搭乗者まで。片方だけ狭いと、
+## エディタが通した名前をローダーが重複として弾く。
+func test_used_unit_ids_covers_events_garrison_and_passengers() -> void:
+	var doc := _load("""{
+		"turn_limit": 10, "name": "", "margin": 0,
+		"player": [ { "units": [ { "type": "wagon", "col": 1, "row": 1,
+			"passengers": [ { "type": "knight", "unit_id": "rider" } ] } ] } ],
+		"enemy": [],
+		"bases": [ { "col": 2, "row": 2, "garrison": [ { "skin": "goblin", "native": "enemy", "unit_id": "keeper" } ] } ],
+		"events": [ { "id": "w1", "turn": 3, "entry": "fade",
+			"enemy": [ { "ai": "charge", "units": [ { "skin": "goblin", "col": 4, "row": 1, "unit_id": "late" } ] } ] } ]
+	}""")
+	var used := doc.used_unit_ids()
+	assert_true(used.has("rider"), "搭乗者を拾う")
+	assert_true(used.has("keeper"), "拠点の控えを拾う")
+	assert_true(used.has("late"), "増援の駒を拾う")
+	assert_eq(doc.free_unit_id("late"), "late2", "増援と同じ名前を勧めない")
+
+
 func test_free_unit_id_avoids_duplicate() -> void:
 	var doc := _load(SAMPLE)
 	assert_eq(doc.free_unit_id("goblin"), "goblin", "未使用ならそのまま")

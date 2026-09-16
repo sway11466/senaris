@@ -2066,7 +2066,7 @@ func _drop_empty_defeat(c: Dictionary) -> void:
 			return
 
 
-## 勝敗条件が指す actor の入力行。実在しない名前は弾いて元に戻す（保存前に「駒なし」を作らない）。
+## 勝敗条件が指す unit_id の入力行。実在しない名前は弾いて元に戻す（保存前に「駒なし」を作らない）。
 func _add_unit_id_target_row(parent: Control, current: String, apply: Callable,
 		on_remove: Callable) -> void:
 	var row := HBoxContainer.new()
