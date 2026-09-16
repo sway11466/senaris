@@ -83,11 +83,16 @@ static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	var skins := {}
+	# order＝CSV の行順（skin_id の並び）。skins は type_id で束ねるので、そのままでは行順が
+	# 失われる（同じ性能にぶら下がる敵スキンが、その性能の味方スキンの直後へ回る）。行順で
+	# 並べる画面（クロニクルのユニット章）へ CSV の並びを届けるために別に持つ。
+	var order: Array = []
 	for r in rows:
 		var tid := str(r["type_id"])
 		var side := str(r["side"])
 		if not skins.has(tid):
 			skins[tid] = { "ally": [], "enemy": [] }
+		order.append(str(r.get("skin_id", "")))
 		skins[tid][side].append({
 			"skin_id": str(r.get("skin_id", "")), "type_id": tid,
 			"name": str(r["name"]), "category": str(r.get("category", "")),
@@ -96,7 +101,7 @@ static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []
 			"combat_effect": str(r.get("combat_effect", "")),
 			"map_move_sfx": str(r.get("map_move_sfx", "")),
 		})
-	return { "problems": problems, "json": { "skins": skins } }
+	return { "problems": problems, "json": { "skins": skins, "order": order } }
 
 ## retainers セル → skin_id の配列。空セル・空要素は落とす。純関数。
 static func parse_retainers(row: Dictionary) -> Array:

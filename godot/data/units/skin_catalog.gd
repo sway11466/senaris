@@ -30,7 +30,23 @@ static func build(data: Dictionary) -> Dictionary:
 		for s in enemy:
 			if s.skin_id != "":
 				by_id[s.skin_id] = s
-	out[BY_ID_KEY] = by_id
+	out[BY_ID_KEY] = _ordered_by(by_id, data.get("order", []))
+	return out
+
+## skin_id 索引を CSV の行順（unit_skin.json の "order"）に並べ直す。辞書は挿入順で回るので、
+## 行順で並べる画面（クロニクルのユニット章）はこの順をそのまま使える。order を持たない表
+## （手書きのテストデータ）はそのままの順。order に無い skin_id は後ろへ回す＝索引から落とさない。
+static func _ordered_by(by_id: Dictionary, order: Variant) -> Dictionary:
+	if typeof(order) != TYPE_ARRAY or (order as Array).is_empty():
+		return by_id
+	var out := {}
+	for sid in order as Array:
+		var key := String(sid)
+		if by_id.has(key):
+			out[key] = by_id[key]
+	for key in by_id:
+		if not out.has(key):
+			out[key] = by_id[key]
 	return out
 
 static func _to_skins(arr: Variant, side: String) -> Array:
