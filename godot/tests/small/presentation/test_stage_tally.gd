@@ -137,33 +137,6 @@ func test_format_days_drops_seconds() -> void:
 func test_format_negative_is_zero() -> void:
 	assert_eq(_tally.format_duration(-5), "0:00")
 
-# --- finish ---
-
-func test_finish_win_returns_rank_and_elapsed() -> void:
-	_context.started_at = int(Time.get_unix_time_from_system()) - 100
-	var rank := _tally.finish(BattleState.PLAYER_WIN, 0)
-	assert_eq(rank, "A", "ターン S・生存 A ＝ 低い方の A")
-	assert_between(_tally.elapsed(), 100, 102, "開始時刻からの秒数")
-
-func test_finish_lose_has_no_rank() -> void:
-	_context.started_at = int(Time.get_unix_time_from_system()) - 100
-	assert_eq(_tally.finish(BattleState.PLAYER_LOSS, 0), "")
-	assert_gt(_tally.elapsed(), 0, "所要時間は負けても測る")
-
-func test_finish_without_start_time_is_unmeasured() -> void:
-	_context.started_at = 0
-	_tally.finish(BattleState.PLAYER_WIN, 0)
-	assert_eq(_tally.elapsed(), 0)
-
-func test_finish_clock_rewind_is_zero() -> void:
-	_context.started_at = int(Time.get_unix_time_from_system()) + 1000
-	_tally.finish(BattleState.PLAYER_WIN, 0)
-	assert_eq(_tally.elapsed(), 0, "時計が巻き戻っても負の時間にしない")
-
-func test_finish_without_rank_data_is_blank() -> void:
-	_tally._rank_data = {}
-	assert_eq(_tally.finish(BattleState.PLAYER_WIN, 0), "")
-
 # --- title ---
 
 func test_title_from_campaign_manifest() -> void:

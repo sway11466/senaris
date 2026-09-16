@@ -185,6 +185,18 @@ func test_elapsed_positive_for_past_start() -> void:
 	var elapsed := StageOutcome._compute_elapsed(started)
 	assert_true(elapsed >= 119 and elapsed <= 121, "120秒前の開始で ≈120 秒")
 
+func test_elapsed_zero_when_clock_rewinds() -> void:
+	var started := int(Time.get_unix_time_from_system()) + 1000
+	assert_eq(StageOutcome._compute_elapsed(started), 0, "時計が巻き戻っても負の時間にしない")
+
+# ---------------------------------------------------------------------------
+# _compute_rank
+# ---------------------------------------------------------------------------
+
+func test_rank_is_blank_on_defeat() -> void:
+	assert_eq(StageOutcome._compute_rank(BattleState.PLAYER_LOSS, _state(), ""), "",
+			"敗北にランクは付かない")
+
 # ---------------------------------------------------------------------------
 # 経験した会話（クロニクル側）＝遊んだ回を足す
 # ---------------------------------------------------------------------------
