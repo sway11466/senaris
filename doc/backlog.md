@@ -231,7 +231,7 @@
 - 副作用：地形の後ろ絵（玉座など）の立ち位置が本人の位置から決まるので味方側で動く。フラグが効かない経路＝起動時の下敷き・撮影ツール（`shot_combat.gd`・`shot_screen.gd` は冒険譚を通さず戦闘を組む）・devlog 用の並び絵 `build_lineup.py`＝撮影物と実機の見た目が食い違う。撮りたければ各々に引数を足す。
 - 考慮外：スキン単位の `single`（聖女・ユニコーンのように常に1人の駒は従来どおり `unit_skin.csv` で決める）。retinue の上書き。
 - 該当：`godot/data/stages/campaign_catalog.gd`・`godot/domain/unit/unit_snapshot.gd`・`godot/domain/battle_state.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/main/main.gd`・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`・`godot/tests/small/data/test_campaign_catalog.gd`。難易度は小〜中（配管は既存の前例どおり。重いのは見た目の判断）。
-- **実装済み（実機確認待ち）**：コード・テスト・仕様追記は完了（(1)〜(8) すべて）。三部作の `campaign.json` は冒険譚が未作成のため対象外。実機確認＝竜狩り（tutorial3）で以下を確認すること: (1) actor 付き味方が1体で描かれる（配給・敵は隊列のまま） (2) 倍率が等倍で違和感がないか (3) 着弾点が SINGLE_POS に寄っているか (4) 発数が兵数どおりか (5) ユニットスキル・自分掛けでも同じ描き方になるか。
+- **実装済み（実機確認中）**：コード・テスト・仕様追記は完了（(1)〜(8) すべて）。三部作の `campaign.json` は冒険譚が未作成のため対象外。倍率は実機で見て等倍→1.1（`ACTOR_SINGLE_SCALE`）に上げた（2026-09-18）。残りの実機確認＝竜狩り（tutorial3）で: (1) 配給・敵が隊列のままか (2) 1.1 の大きさで落ち着くか (3) 着弾点が SINGLE_POS に寄っているか (4) 発数が兵数どおりか (5) ユニットスキル・自分掛けでも同じ描き方になるか。
 
 ### feature-117
 

@@ -22,6 +22,7 @@ const POS := [  # 散開スキャッター隊列（x:奥0→前1／y:上0→下1
 ]
 const SINGLE_POS := Vector2(0.50, 0.55)  # single（複製しない駒）の立ち位置。隊列の重心あたりに1体だけ置く
 const SINGLE_SCALE := 1.4  # single だけ一段大きく描く（隊列8体ぶんの面積を1体で受けるので、等倍だと画が空く）
+const ACTOR_SINGLE_SCALE := 1.1  # 冒険譚の actor_lineup 由来の1体描写の倍率。等倍だと小さく見えたので少しだけ足す（実機で決めた値）
 const MAX_TROOPS := 8  # 兵量バーの目盛り数＝戦闘ルールの上限（doc/gdd/combat.md）。POS の枠数と同じ
 const GROUND_BLEED := 8.0  # 地面を窓より外へ広げる量（シェイクで縁が覗かないように）
 const CORNER_RADIUS := 0.09   # 窓の角を丸める半径（短辺に対する比）
@@ -486,10 +487,10 @@ func _render_side(side: String, comb: UnitSnapshot, count: int, shield: int, ani
 	_set_bar(side, count, shield, team, animate)
 	if _lineup_of(comb) == UnitSkin.LINEUP_SINGLE:
 		# 1体だけ＝損害で絵が減らないので、減り方は兵量バーが受け持つ。
-		# スキン由来は SINGLE_SCALE（馬車・竜級＝画を埋める）、actor_lineup 由来は等倍
-		#（味方の大きさは combat_scale で焼き込み済み）。
+		# スキン由来は SINGLE_SCALE（馬車・竜級＝画を埋める）、actor_lineup 由来は ACTOR_SINGLE_SCALE
+		#（味方の大きさは combat_scale で焼き込み済みなので、控えめに足すだけ）。
 		var skin := _skin_of(comb)
-		var scale := SINGLE_SCALE if (skin != null and skin.is_single_figure()) else 1.0
+		var scale := SINGLE_SCALE if (skin != null and skin.is_single_figure()) else ACTOR_SINGLE_SCALE
 		var at := _slot_pos(side, SINGLE_POS)
 		_add_figure(layer, at.x, at.y, FIG_SCALE * scale, _texture_for(comb), team, comb, _mirror[side])
 		return
