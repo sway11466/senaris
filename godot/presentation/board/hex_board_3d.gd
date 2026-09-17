@@ -85,6 +85,7 @@ var _move_voice_sfx := ""                  # その素材ID（止めるときの
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
 var _entry_tweens: Array[Tween] = []  # 進行中の登場の演出（一斉に散る＝同時に何本も走る）
 var _entry_until_msec := 0            # その演出が終わる時刻（0＝走っていない）。テンポ制御が待つ
+var _hidden := {}  # handle -> true。intro の enter 行が来るまで隠しておく駒（doc/gdd/map.md 会話の途中の登場）
 
 var _pending_to := INVALID_HEX  # メニュー表示中の移動先（未確定）
 var _preview_unit := -1           # 移動プレビューで歩かせた駒（見た目だけ移動先に居る）
@@ -160,6 +161,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.battle_finished.connect(_on_battle_finished)
 	_terrain_renderer.build_tiles()
 	fit_to_view()
+	_hidden.clear()  # 隠し駒は intro の間だけ＝前のステージから持ち越さない
 	_sync()
 
 ## 選択・出撃モード・ロック・ホバーを初期状態へ（ステージ再ロード時に呼ぶ）。
@@ -945,21 +947,66 @@ func play_entry(info: Dictionary, animate := true) -> void:
 	_sync()
 	if not animate:
 		return
+	await _await_entry(_schedule_entry(info))
+
+## 会話の途中の登場（doc/gdd/map.md）：intro の enter 行が来るまで隠しておく駒。盤面データには
+## 最初から居る＝描画だけを止める。盤を作り直しても隠れたまま（_sync が掛け直す）。
+func hide_units(handles: Array) -> void:
+	for h in handles:
+		_hidden[int(h)] = true
+	_apply_hidden()
+
+## 隠していた駒を演出なしで全部見せる（会話のスキップ・読み終わり）。
+func reveal_all_hidden() -> void:
+	if _hidden.is_empty():
+		return
+	_hidden.clear()
+	_sync()
+
+## enter 行の相手（play_entry と同じ info の配列）を登場させる。同じ行に並んだ相手は同時に動き出す
+## ＝一団ごとに演出を仕込んでから、いちばん長い一団が着くまで待つ。隠していない駒は触らない。
+func reveal_units(infos: Array, animate := true) -> void:
+	var any := false
+	for info in infos:
+		for h in (info as Dictionary).get("units", []):
+			if _hidden.erase(int(h)):
+				any = true
+	if not any:
+		return
+	_sync()
+	if not animate:
+		return
+	var total := 0.0
+	for info in infos:
+		total = maxf(total, _schedule_entry(info))
+	await _await_entry(total)
+
+## 登場の演出を仕込み、全員が着くまでの秒数を返す（待つのは呼ぶ側＝複数の一団を同時に出せる）。
+## 進行中の演出を畳むのは _sync（呼ぶ前に盤を作り直している）。
+func _schedule_entry(info: Dictionary) -> float:
+	var ids: Array = info.get("units", [])
 	var from: Vector2i = info.get("from", Vector2i.MAX)
 	match String(info.get("entry", "")):
 		"march":
-			await _entry_walk(ids, from, true)
+			return _entry_walk(ids, from, true)
 		"scatter":
-			await _entry_walk(ids, from, false)
+			return _entry_walk(ids, from, false)
 		"fade":
-			await _entry_fade(ids)
+			return _entry_fade(ids)
+	return 0.0
+
+## 隠し駒を描画から外す（_sync のたびに掛け直す＝作り直しで見えてしまわない）。
+func _apply_hidden() -> void:
+	for h in _hidden:
+		var node: Node3D = _unit_renderer.get_unit_node(int(h))
+		if node != null:
+			node.visible = false
 
 ## 入口から歩いてくる登場。sequential＝1体ずつ順に（march）／false＝少しずつずらして同時に（scatter）。
 ## 経路を持たない駒（入口からたどり着けない・入口に立っている）は歩かせずその場に出す
 ## ＝データのバグはデータ整合テストが先に捕まえる（doc/gdd/map.md イベント）。
 ## 移動音は march なら駒ごとに、scatter なら先頭の1体だけ鳴らす＝全員ぶんは団子になる。
-func _entry_walk(ids: Array, from: Vector2i, sequential: bool) -> void:
-	_kill_entry_tweens()
+func _entry_walk(ids: Array, from: Vector2i, sequential: bool) -> float:
 	var at := 0.0     # 次の駒が入口を出る時刻
 	var total := 0.0  # 全員が着くまで
 	var lead := true
@@ -980,7 +1027,7 @@ func _entry_walk(ids: Array, from: Vector2i, sequential: bool) -> void:
 		total = maxf(total, at + walk)
 		at += walk if sequential else ENTRY_STAGGER_SEC
 		lead = false
-	await _await_entry(total)
+	return total
 
 ## 1体ぶんの歩く演出。delay 秒だけ待ってから入口を出る＝出番が来るまで駒は隠す
 ## （入口は1ヘックスなので、隠さないと全員がそこに重なって待つ）。
@@ -1015,8 +1062,7 @@ func _walk_in_tween(node: Node3D, path: Array[Vector2i], delay: float, sfx: Stri
 
 ## その場に浮かび上がる登場（入口を持たない駒）。立ち絵と文字は薄いところから戻し、
 ## 影・バー・輪は共有材質なので隠しておいて最後に出す（薄くすると他の駒まで巻き込む）。
-func _entry_fade(ids: Array) -> void:
-	_kill_entry_tweens()
+func _entry_fade(ids: Array) -> float:
 	var shown := false
 	for id in ids:
 		var node: Node3D = _unit_renderer.get_unit_node(int(id))
@@ -1044,7 +1090,7 @@ func _entry_fade(ids: Array) -> void:
 				n3.show())
 		_entry_tweens.append(t)
 		shown = true
-	await _await_entry(ENTRY_FADE_SEC if shown else 0.0)
+	return ENTRY_FADE_SEC if shown else 0.0
 
 ## 登場の演出が終わるまで待つ（秒で待つ＝途中で盤が作り直されて演出が消えても待ち手は返る）。
 ## 終わる時刻を控える＝AIターンのテンポ制御（await_move_animation）も同じ時刻まで待つ。
@@ -1158,6 +1204,7 @@ func _sync() -> void:
 	_kill_move_tween()
 	_kill_entry_tweens()
 	_unit_renderer.sync_units()
+	_apply_hidden()
 	_sync_overlay()
 
 ## 拠点の所属（六角の縁取り）と控え数。占領で変わるためイベントごとに作り直す。

@@ -48,6 +48,7 @@ func bind(board: HexBoard3D, info_panel: UnitInfoPanel, hud: Hud, screen: Screen
 	_outcome = outcome
 	_settings_store = settings_store
 	_conversation.closed.connect(_on_conversation_closed)
+	_conversation.enter_pace = _on_enter_line  # 台本の enter 行＝隠していた駒を盤に出す
 	_hud.story_requested.connect(_on_story_requested)
 
 ## ステージごとの台本と文脈。新規ロードでも中断セーブ復元でも呼ぶ。
@@ -90,13 +91,40 @@ func _open_talk(phase: String, lines: Array, finish_label: String) -> void:
 	_conversation.start(lines, finish_label, "ui.talk.skip")
 
 ## intro 会話があれば、盤操作をロックして先に流す（無ければ何もしない＝即戦闘）。
+## 台本に enter 行があれば、その駒を隠してから流す＝行が来た瞬間に盤に現れる
+## （doc/gdd/map.md 会話の途中の登場）。会話を出さないときは隠さない＝盤は台本どおりの顔ぶれで始まる。
 func maybe_start_intro() -> void:
-	if _dialogue.get("intro", []).is_empty():
+	var intro: Array = _dialogue.get("intro", [])
+	if intro.is_empty():
 		return
 	if not shows_dialogue():
 		_hud.show_dialogue_badge()  # 開幕の会話があったことだけ知らせる（読むのはメニューから）
 		return
-	_open_talk("intro", _dialogue["intro"], "ui.talk.start_battle")
+	_board.hide_units(_enter_handles(intro))
+	_open_talk("intro", intro, "ui.talk.start_battle")
+
+## intro の enter 行が指す駒のハンドルを全部集める（隠す対象）。
+func _enter_handles(intro: Array) -> Array:
+	var out: Array = []
+	if _controller == null:
+		return out
+	for line in intro:
+		if typeof(line) != TYPE_DICTIONARY:
+			continue
+		for info in StageLoader.resolve_enter(_controller.state, line):
+			out.append_array((info as Dictionary).get("units", []))
+	return out
+
+## 台本の enter 行（ConversationPanel から）＝隠していた駒を登場の演出つきで盤に出す。
+## 効くのは intro を流している最中だけ＝「ストーリーを確認」の読み直しでは何もしない
+## （駒はもう盤に居る）。同じ行に並んだ相手は同時に出る（HexBoard3D.reveal_units）。
+func _on_enter_line(line: Dictionary) -> void:
+	if _phase != "intro" or _controller == null:
+		return
+	var infos := StageLoader.resolve_enter(_controller.state, line)
+	if infos.is_empty():
+		return
+	await _board.reveal_units(infos)
 
 ## 決着の会話。lines＝クリア後の名簿で組み直した outro。label＝閉じるボタンの文言キー
 ## （次ステージがあるか無いかで変わる＝呼ぶ側が決める）。
@@ -243,6 +271,8 @@ static func _actors_as_roster(actors: Array) -> Array:
 ## 会話終了（読了 or スキップ）。盤の凍結・暗幕・情報板の隠しを戻し、読み直しなら割り込む前の
 ## ターン終了の可否へ戻す。次に何をするか（戦闘へ戻る・次ステージへ）は closed を受けた main。
 func _on_conversation_closed() -> void:
+	if _phase == "intro":
+		_board.reveal_all_hidden()  # スキップで読み残した enter 行の駒も盤に出す（演出なし）
 	_info_panel.set_covered(false)  # 会話が終わったら情報パネルを戻す（畳んでいたなら畳んだまま）
 	_board.set_input_locked(false)  # 盤の凍結を解除（intro/outro 共通）
 	_set_scrim(false)  # 暗幕を戻す（盤が主役に戻る）

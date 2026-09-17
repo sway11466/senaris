@@ -230,6 +230,17 @@ func test_stage_unit_ids_are_unique_and_referenced() -> void:
 		var problems := StageLoader.unit_id_problems(data)
 		assert_eq(problems, [], "%s の unit_id: %s" % [path, ", ".join(PackedStringArray(problems))])
 
+func test_stage_enter_lines_are_consistent() -> void:
+	# 会話の途中の登場（intro の enter 行）が指す部隊 name／unit_id が陣営セクションに居て、
+	# 同じ駒を2度指さず、enter 行が intro 以外に無く、entry／from の書き分けが増援と同じ規則に
+	# 従う（doc/gdd/map.md 会話の途中の登場）。指す先の綴り違いは実機では黙って何も出ない。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var problems := StageLoader.enter_problems(data)
+		assert_eq(problems, [], "%s の enter 行: %s" % [path, ", ".join(PackedStringArray(problems))])
+
 func test_stage_events_declare_entry_and_from() -> void:
 	# 駒を出すイベントは登場の仕方（entry）を必ず持ち、歩いてくる登場だけが入口（from）を持つ
 	# （doc/gdd/map.md イベント）。既定を置かない決まりなので、書き忘れは

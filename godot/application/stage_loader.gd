@@ -419,6 +419,141 @@ static func load_dialogue(path: String, roster: Array = []) -> Dictionary:
 		return { "intro": [], "outro": [] }
 	return parse_dialogue(data, roster)
 
+## 会話の途中の登場（intro の enter 行）。行の enter＝[{ squad | unit, entry, from }] を盤の駒の
+## ハンドルに解決し、相手ごとの { units: [handle…], entry: String, from: Vector2i } の配列で返す
+## ＝HexBoard3D.play_entry が読むのと同じ形。部隊は name で、駒は unit_id で指す。
+## 指す先が盤に無い相手は落とす＝名簿に居ない actor の駒は出撃していないのが正しい
+## （データの不整合は enter_problems がテストで捕まえる）。presentation 専用＝BattleState には入れない。
+## 詳細 → doc/gdd/map.md 会話の途中の登場
+static func resolve_enter(state: BattleState, line: Dictionary) -> Array:
+	var out: Array = []
+	var targets: Variant = line.get("enter")
+	if typeof(targets) != TYPE_ARRAY:
+		return out
+	for t in targets:
+		if typeof(t) != TYPE_DICTIONARY:
+			continue
+		var target: Dictionary = t
+		var handles: Array = []
+		if target.has("squad"):
+			var squad_name := String(target["squad"])
+			for u in state.units():
+				if String(state.squad_of(u.handle).get("name", "")) == squad_name:
+					handles.append(u.handle)
+		elif target.has("unit"):
+			var unit_id := String(target["unit"])
+			for u in state.units():
+				if u.unit_id == unit_id:
+					handles.append(u.handle)
+		if handles.is_empty():
+			continue
+		var info := { "units": handles, "entry": String(target.get("entry", "")), "from": Vector2i.MAX }
+		var raw_from: Variant = target.get("from")
+		if typeof(raw_from) == TYPE_DICTIONARY and raw_from.has("col") and raw_from.has("row"):
+			info["from"] = Hex.offset_to_axial(int(raw_from["col"]), int(raw_from["row"]))
+		out.append(info)
+	return out
+
+## 台本（parse_dialogue の結果）の intro に enter 行があるか。
+static func has_enter_lines(dialogue: Dictionary) -> bool:
+	for line in dialogue.get("intro", []):
+		if typeof(line) == TYPE_DICTIONARY and (line as Dictionary).has("enter"):
+			return true
+	return false
+
+## intro の enter 行の問題を並べる（空＝問題なし）。生データを見るのでテストから呼べる。
+## 指せるのは陣営セクションの部隊（name）と駒（unit_id）だけ＝搭乗者・拠点の控え・増援は盤に居ない。
+## 詳細 → doc/gdd/map.md 会話の途中の登場（データ整合）
+static func enter_problems(data: Dictionary) -> Array:
+	var out: Array = []
+	var dlg: Variant = data.get("dialogue", {})
+	if typeof(dlg) != TYPE_DICTIONARY:
+		return out
+	var squads := {}      # 部隊の name -> その駒の印の配列
+	var dup_squads := {}  # 2つ以上ある name
+	var units := {}       # unit_id -> 駒の印
+	for section in ["player", "enemy"]:
+		var si := 0
+		for s in _as_dicts(data.get(section, [])):
+			var keys: Array = []
+			var ui := 0
+			for u in _as_dicts(s.get("units", [])):
+				var key := "%s/%d/%d" % [section, si, ui]
+				keys.append(key)
+				var unit_id := String(u.get("unit_id", ""))
+				if unit_id != "":
+					units[unit_id] = key
+				ui += 1
+			var squad_name := String(s.get("name", ""))
+			if squad_name != "":
+				if squads.has(squad_name):
+					dup_squads[squad_name] = true
+				squads[squad_name] = keys
+			si += 1
+	var taken := {}  # 駒の印 -> true（同じ駒を2つの相手で指さない）
+	for phase in (dlg as Dictionary):
+		var lines: Variant = dlg[phase]
+		if typeof(lines) != TYPE_ARRAY:
+			continue
+		for line in lines:
+			if typeof(line) != TYPE_DICTIONARY or not (line as Dictionary).has("enter"):
+				continue
+			if String(phase) != "intro":
+				out.append("enter 行は intro にしか書けない（台本 '%s'）" % phase)
+				continue
+			var targets: Variant = (line as Dictionary)["enter"]
+			if typeof(targets) != TYPE_ARRAY:
+				out.append("enter 行の値は相手の配列")
+				continue
+			for t in targets:
+				if typeof(t) != TYPE_DICTIONARY:
+					out.append("enter 行の相手が辞書でない")
+					continue
+				_enter_target_problems(t, squads, dup_squads, units, taken, out)
+	return out
+
+## enter 行の相手1つぶんの検査（enter_problems の下請け）。
+static func _enter_target_problems(target: Dictionary, squads: Dictionary, dup_squads: Dictionary,
+		units: Dictionary, taken: Dictionary, out: Array) -> void:
+	if target.has("squad") == target.has("unit"):
+		out.append("enter 行の相手は squad か unit のどちらか1つを書く")
+		return
+	var keys: Array = []
+	var label := ""
+	if target.has("squad"):
+		var squad_name := String(target["squad"])
+		label = "squad '%s'" % squad_name
+		if not squads.has(squad_name):
+			out.append("enter 行が指す部隊 name '%s' が陣営セクションに無い" % squad_name)
+			return
+		if dup_squads.has(squad_name):
+			out.append("enter 行が指す部隊 name '%s' がステージ内で重複" % squad_name)
+			return
+		keys = squads[squad_name]
+	else:
+		var unit_id := String(target["unit"])
+		label = "unit '%s'" % unit_id
+		if not units.has(unit_id):
+			out.append("enter 行が指す unit_id '%s' が陣営セクションに無い" % unit_id)
+			return
+		keys = [units[unit_id]]
+	for k in keys:
+		if taken.has(k):
+			out.append("enter 行が同じ駒を2度指している（%s）" % label)
+			break
+		taken[k] = true
+	var entry := String(target.get("entry", ""))
+	if not StageEvent.ENTRY_IDS.has(entry):
+		out.append("enter 行の %s に entry（march／scatter／fade）が無い" % label)
+		return
+	var raw_from: Variant = target.get("from")
+	var has_from := typeof(raw_from) == TYPE_DICTIONARY 		and (raw_from as Dictionary).has("col") and (raw_from as Dictionary).has("row")
+	if entry == "fade":
+		if raw_from != null:
+			out.append("entry:\"fade\" の %s は入口 from を持たない" % label)
+	elif not has_from:
+		out.append("entry:\"%s\" の %s に入口 from（col/row）が無い" % [entry, label])
+
 ## BGM：ステージ辞書の "bgm"（{ main }）を取り出す。値はトラックID（assets/bgm/{id}.ogg）。
 ## 会話(skin)と同じく presentation/application 側の関心＝BattleState には入れない。
 ## 空スロットの穴埋め（冒険譚既定・全体既定）は application/bgm_director.gd。詳細 → doc/audio/bgm.md

@@ -5,6 +5,7 @@ class_name ConversationPanel
 ## 話者は左右交互で出す。セリフ/話者名は翻訳キー＝tr() で解決（i18n・正本 data/i18n/dialogue.csv）。
 ## 話者のいない行（効果音・ト書き）も1行として挟める＝顔を出さず中央に文字だけ、`sfx` があればその音を鳴らす。
 ## 場面の切り替え（`scene`）は横線の真ん中にト書きを小さく置く区切り＝以後の話者は左から始め直す。
+## 駒の登場（`enter`）は何も表示しない行＝注入された enter_pace に行を渡して盤に駒を出し切ってから次の行へ進む。
 ## 詳細 → doc/campaign/authoring.md
 ##
 ## 顔は UnitSkin の portrait スロット（未用意は名前2文字のプレースホルダ）。
@@ -36,6 +37,10 @@ var _shown := 0
 var _speakers := 0  # 話者のいる行だけを数える＝左右交互の順番（効果音の行を挟んでも左右が入れ替わらない）
 var _finish_label := ""
 var _skip_label := ""  # 左のボタンの文言キー（盤は「会話をスキップ」・通し読みは「次の章へ」）
+## 会話の enter 行で呼ぶフック（StoryDirector が注入）＝ call(line: Dictionary)。駒を出し切るまで
+## 待てるよう await できるものを渡す。未注入＝enter 行は素通りする。詳細 → doc/gdd/map.md 会話の途中の登場
+var enter_pace: Callable = Callable()
+var _revealing := false  # enter 行の待ちの最中＝「次へ」「スキップ」を受けない（駒が出る前に進めない）
 var _scroll: ScrollContainer
 var _messages: VBoxContainer
 var _next_btn: Button
@@ -95,6 +100,7 @@ func start(lines: Array, finish_label: String, skip_label: String) -> void:
 	_skip_btn.text = tr(skip_label)
 	_shown = 0
 	_speakers = 0
+	_revealing = false  # 前の会話が enter 行の待ちのまま閉じられていても、新しい会話は進められる
 	for c in _messages.get_children():
 		c.queue_free()
 	show()
@@ -108,8 +114,12 @@ func start(lines: Array, finish_label: String, skip_label: String) -> void:
 ## - scene あり＝場面の区切り（横線の真ん中にト書き）。左右交互を最初に戻す
 ## - speaker なし・text あり＝中央に文字だけ（効果音・ト書き）
 ## - sfx あり＝その行が出るときにその音を鳴らす（文字送り音の代わり）
-## 表示するものが何も無い行（sfx だけ）は「次へ」を消費させず、続けて次の行まで進める。
+## - enter あり＝盤に駒が出る（表示は無い＝出し切るまで待ってから次の行へ）
+## 表示するものが何も無い行（sfx・enter だけ）は「次へ」を消費させず、続けて次の行まで進める。
 func _reveal_next() -> void:
+	if _revealing:
+		return
+	_revealing = true
 	while _shown < _lines.size():
 		var line := _line_at(_shown)
 		_shown += 1
@@ -129,8 +139,11 @@ func _reveal_next() -> void:
 			SfxPlayer.play_sfx(sfx)  # 効果音の行＝文字送り音は鳴らさない（音が重ならないように）
 		elif shown_here:
 			SfxPlayer.play_event("map_talk")
+		if line.has("enter") and enter_pace.is_valid():
+			await enter_pace.call(line)  # 駒の登場＝物音の行の「次へ」で出てくる
 		if shown_here:
 			break
+	_revealing = false
 	_next_btn.text = tr(_finish_label) if _shown >= _lines.size() else tr("ui.talk.next")
 	_scroll_to_last()
 
@@ -173,12 +186,16 @@ func _scroll_to_last() -> void:
 		_scroll.scroll_vertical = int(top)
 
 func _on_next() -> void:
+	if _revealing:
+		return  # 駒が出ている最中＝連打で先へ進めない
 	if _shown >= _lines.size():
 		_close()
 	else:
 		_reveal_next()
 
 func _on_skip() -> void:
+	if _revealing:
+		return  # 駒が出ている最中＝出し切ってから閉じさせる
 	skipped.emit()
 	_close()
 
