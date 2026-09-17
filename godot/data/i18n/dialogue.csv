@@ -455,9 +455,22 @@ dragon-hunt.st3.squad.3,岩陰のロックサーペント３,Lurking Rock Serpen
 dragon-hunt.st3.squad.4,岩陰のロックサーペント４,Lurking Rock Serpent 4
 dragon-hunt.st3.squad.5,岩陰のロックサーペント５,Lurking Rock Serpent 5
 dragon-hunt.st3.squad.6,岩陰のロックサーペント６,Lurking Rock Serpent 6
-dragon-hunt.st3.squad.7,ワイアーム,Wyrm
-dragon-hunt.st3.squad.8,居座るトロール,Stubborn Troll
-dragon-hunt.st3.squad.9,ローグ一味,Bandit Gang
+dragon-hunt.st3.squad.7,潜むワイアーム１,Lurking Wyrm 1
+dragon-hunt.st3.squad.8,潜むワイアーム２,Lurking Wyrm 2
+dragon-hunt.st3.squad.9,居座るトロール,Stubborn Troll
+dragon-hunt.st3.squad.10,ローグ一味,Bandit Gang
+dragon-hunt.st3.squad.11,ローグの荷馬車,Bandit Wagon
+dragon-hunt.st3.secured.name,集落の確保,Securing the Camp
+dragon-hunt.st3.secured.1,何者だ！　盗人の仲間か！,"Who goes there! More of the thieves?"
+dragon-hunt.st3.secured.2,違う。鉱石を盗んだローグ一味を追ってきた。,"No. We are after the bandits who stole your ore."
+dragon-hunt.st3.secured.3,魔物に囲まれて困っているのだろう。手を貸そう。,"Hemmed in by monsters, I take it. We will lend a hand."
+dragon-hunt.st3.secured.4,……それは助かる。わしも囲みを破るのに手を出す。,"...That is a help. I will do my part in breaking the ring."
+dragon-hunt.st3.secured.5,傷ついた者は集落へ。中で休めば兵は戻ります。,"Send the wounded into the camp. Rest inside and their ranks fill back up."
+dragon-hunt.st3.lost.name,集落を奪われた,The Camp Lost
+dragon-hunt.st3.lost.1,おい、ドワーフ！　後から来る連中が採掘物を運び出しているぞ。これがその証拠だ。,"Hey, dwarf! The lot coming up behind us are hauling off your ore. Here is the proof."
+dragon-hunt.st3.lost.2,なんと……盗人に鉱脈を触らせるわけにはいかん。わしが追い払ってやる！,"What! ...No thief lays a hand on our seam. I will drive them off myself!"
+dragon-hunt.st3.lost.3,まずい、先を越されたわ。嘘を吹き込まれてる。,"Bad — they beat us there. He is being fed lies."
+dragon-hunt.st3.lost.4,ドワーフが敵に回った。こうなれば退けるしかない。,"The dwarf has turned on us. Nothing for it now but to beat him back."
 dragon-hunt.st3.scene.1,鉱脈の深部。鉱石を手にしたローグ一味,"Deep in the mine. The rogues, ore in hand."
 dragon-hunt.st3.scene.2,冒険者たち,"Back with the adventurers."
 goblin-horde.st1.squad.1,先鋒の群れ,Vanguard Horde

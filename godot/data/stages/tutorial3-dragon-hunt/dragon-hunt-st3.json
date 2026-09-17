@@ -1,5 +1,5 @@
 {
-  "turn_limit": 30,
+  "turn_limit": 40,
   "name": "dragon-hunt-st3",
   "player": [
     { "units": [
@@ -54,24 +54,27 @@
         { "skin": "rock_serpent", "col": 23, "row": 19 }
       ] },
     { "order": 7, "name": "dragon-hunt.st3.squad.7", "ai": "ambush", "sight": 9,
-      "units": [
-        { "skin": "wyrm", "col": 17, "row": 2 },
-        { "skin": "wyrm", "col": 23, "row": 15 }
-      ] },
-    { "order": 8, "name": "dragon-hunt.st3.squad.8", "ai": "ambush", "sight": 12,
+      "units": [ { "skin": "wyrm", "col": 17, "row": 2 } ] },
+    { "order": 8, "name": "dragon-hunt.st3.squad.8", "ai": "ambush", "sight": 9,
+      "units": [ { "skin": "wyrm", "col": 23, "row": 15 } ] },
+    { "order": 9, "name": "dragon-hunt.st3.squad.9", "ai": "ambush", "sight": 12,
       "units": [ { "skin": "troll", "col": 23, "row": 11 } ] },
-    { "order": 9, "name": "dragon-hunt.st3.squad.9", "ai": "raid",
+    { "order": 10, "name": "dragon-hunt.st3.squad.10", "ai": "raid",
       "units": [
         { "skin": "rogue_axe", "col": 23, "row": 4 },
         { "skin": "rogue", "col": 22, "row": 5 },
         { "skin": "rogue_slinger", "col": 23, "row": 5 }
       ] },
-    { "order": 10, "ai": "ambush", "sight": 0,
+    { "order": 11, "name": "dragon-hunt.st3.squad.11", "ai": "ambush", "sight": 0,
       "units": [ { "skin": "rogue_wagon", "col": 6, "row": 1 } ] }
   ],
   "bases": [
     { "col": 12, "row": 5, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
+  ],
+  "events": [
+    { "id": "camp-secured", "type": "capture", "col": 12, "row": 5, "captured_by": "player", "once": "camp", "dialogue": "secured", "name": "dragon-hunt.st3.secured.name", "focus": true },
+    { "id": "camp-lost", "type": "capture", "col": 12, "row": 5, "captured_by": "enemy", "once": "camp", "dialogue": "lost", "name": "dragon-hunt.st3.lost.name", "focus": true }
   ],
   "dialogue": {
     "intro": [
@@ -97,6 +100,19 @@
       { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st3.intro.9" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st3.intro.10" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.intro.8" }
+    ],
+    "secured": [
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st3.secured.1" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.secured.2" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st3.secured.3" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st3.secured.4" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st3.secured.5" }
+    ],
+    "lost": [
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st3.lost.1" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st3.lost.2" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st3.lost.3" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.lost.4" }
     ],
     "outro": [
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st3.outro.1" },
