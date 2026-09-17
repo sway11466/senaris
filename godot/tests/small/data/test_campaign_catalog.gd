@@ -118,6 +118,32 @@ func test_build_defaults_roster_from_to_empty() -> void:
 		"stages": [ { "id": "s1", "file": "s1.json" } ] }, "res://x")
 	assert_eq(c["stages"][0]["roster_from"], "", "未指定は空文字")
 
+func test_build_defaults_interlude_to_empty() -> void:
+	var c := CampaignCatalog.build({ "id": "x", "board": "tutorial",
+		"stages": [ { "id": "s1", "file": "s1.json" } ] }, "res://x")
+	assert_eq(c["stages"][0]["interlude"], "", "未指定は空＝印なし（連戦・独立）")
+
+func test_build_interlude_rest_and_revive() -> void:
+	var c := CampaignCatalog.build({ "id": "x", "board": "tutorial", "stages": [
+		{ "id": "s1", "file": "s1.json" },
+		{ "id": "s2", "file": "s2.json", "interlude": "rest" },
+		{ "id": "s3", "file": "s3.json", "interlude": "revive" } ] }, "res://x")
+	assert_eq(c["stages"][1]["interlude"], "rest", "休息")
+	assert_eq(c["stages"][2]["interlude"], "revive", "復帰")
+
+func test_build_interlude_rejects_unknown() -> void:
+	var c := CampaignCatalog.build({ "id": "x", "board": "tutorial",
+		"stages": [ { "id": "s1", "file": "s1.json", "interlude": "continuous" } ] }, "res://x")
+	assert_eq(c["stages"][0]["interlude"], "", "未知の値は印なしに倒す（連戦は書かない）")
+	assert_push_warning("interlude")
+
+func test_tutorial3_interlude() -> void:
+	# 竜狩りは st2 以降の全話が名簿の駒に refill を書く＝全部の前が休息（doc/campaign/tutorial3-dragon-hunt.md）。
+	var c := CampaignCatalog.load_file("res://data/stages/tutorial3-dragon-hunt/campaign.json")
+	assert_eq(c["stages"][0]["interlude"], "", "1面の前に幕間は無い")
+	for i in range(1, c["stages"].size()):
+		assert_eq(c["stages"][i]["interlude"], "rest", "%s の前は休息" % c["stages"][i]["id"])
+
 func test_all_roster_from_refs_resolve() -> void:
 	# 実データ: roster_from の参照先 stage が同じ冒険譚に実在する（dangling だと仲間が黙って出てこない）。
 	for c in CampaignCatalog.load_all():

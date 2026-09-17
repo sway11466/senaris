@@ -10,21 +10,21 @@
     { "id": "dragon-hunt-st1", "file": "dragon-hunt-st1.json", "title": "dragon-hunt.st1.title" },
     { "id": "dragon-hunt-st2", "file": "dragon-hunt-st2.json", "title": "dragon-hunt.st2.title",
       "unlock": [ { "type": "cleared", "stage": "dragon-hunt-st1" } ],
-      "roster_from": "dragon-hunt-st1" },
+      "roster_from": "dragon-hunt-st1", "interlude": "rest" },
     { "id": "dragon-hunt-st3", "file": "dragon-hunt-st3.json", "title": "dragon-hunt.st3.title",
       "unlock": [ { "type": "cleared", "stage": "dragon-hunt-st2" } ],
-      "roster_from": "dragon-hunt-st2" },
+      "roster_from": "dragon-hunt-st2", "interlude": "rest" },
     { "id": "dragon-hunt-st4", "file": "dragon-hunt-st4.json", "title": "dragon-hunt.st4.title",
       "unlock": [ { "type": "cleared", "stage": "dragon-hunt-st3" } ],
-      "roster_from": "dragon-hunt-st3" },
+      "roster_from": "dragon-hunt-st3", "interlude": "rest" },
     { "id": "dragon-hunt-st5", "file": "dragon-hunt-st5.json", "title": "dragon-hunt.st5.title",
       "unlock": [ { "type": "cleared", "stage": "dragon-hunt-st4" } ],
-      "roster_from": "dragon-hunt-st4" },
+      "roster_from": "dragon-hunt-st4", "interlude": "rest" },
     { "id": "dragon-hunt-st6", "file": "dragon-hunt-st6.json", "title": "dragon-hunt.st6.title",
       "unlock": [ { "type": "cleared", "stage": "dragon-hunt-st5" } ],
-      "roster_from": "dragon-hunt-st5" },
+      "roster_from": "dragon-hunt-st5", "interlude": "rest" },
     { "id": "dragon-hunt-st7", "file": "dragon-hunt-st7.json", "title": "dragon-hunt.st7.title",
       "unlock": [ { "type": "cleared", "stage": "dragon-hunt-st6" } ],
-      "roster_from": "dragon-hunt-st6" }
+      "roster_from": "dragon-hunt-st6", "interlude": "rest" }
   ]
 }

@@ -420,3 +420,41 @@ func test_stages_inheriting_actors_declare_roster_from() -> void:
 			if inherits:
 				assert_false(String(s["roster_from"]).is_empty(),
 					"%s/%s は名簿から出す駒があるので roster_from を書く" % [c["id"], s["id"]])
+
+func test_stage_interlude_matches_supply() -> void:
+	# 幕間の印（マニフェストの interlude）は見せ方、兵が戻るかは駒の supply。2か所に書くので
+	# 食い違いをここで拾う（doc/gdd/stage_select.md 冒険譚マニフェスト）。線引き＝
+	#   rest   → 新入り（join）以外の名簿の駒は全部 refill
+	#   revive → 同じく全部 revive
+	#   印なし → refill／revive の駒が1体も無い（書き忘れの印）
+	# 1面の前に幕間は無い。デバッグ冒険譚は機能見本で refill と revive を1盤に混ぜるので対象外。
+	for c in CampaignCatalog.load_all():
+		if c["debug"]:
+			continue
+		for i in c["stages"].size():
+			var s: Dictionary = c["stages"][i]
+			var interlude: String = s["interlude"]
+			var where := "%s/%s" % [c["id"], s["id"]]
+			if i == 0:
+				assert_true(interlude.is_empty(), "%s: 1面の前に幕間は無い" % where)
+			var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(s["path"]))
+			if typeof(data) != TYPE_DICTIONARY:
+				continue
+			for party in data.get("player", []):
+				if typeof(party) != TYPE_DICTIONARY:
+					continue
+				for u in party.get("units", []):
+					if typeof(u) != TYPE_DICTIONARY or not u.has("actor"):
+						continue
+					var supply := String(u.get("supply", ""))
+					if supply == "join":
+						continue
+					var label := "%s の駒 %s（supply='%s'）" % [where, String(u["actor"]), supply]
+					match interlude:
+						"rest":
+							assert_eq(supply, "refill", "%s: 休息の話は名簿の駒を refill で出す" % label)
+						"revive":
+							assert_eq(supply, "revive", "%s: 復帰の話は名簿の駒を revive で出す" % label)
+						_:
+							assert_false(supply in ["refill", "revive"],
+								"%s: 兵を戻す駒があるならマニフェストに interlude を書く" % label)

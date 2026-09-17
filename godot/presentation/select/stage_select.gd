@@ -16,6 +16,8 @@ const RANK_MARK_FONT := 26   # 印の字の上限。実際の大きさは直径�
 const RANK_MARK_FILL := 1.15 # 丸の大きさは据え置いて字だけ太らせる（戦果票の印と同じ扱い）
 const RANK_MARK_DROP := 0.04 # 字を丸の中心より少し下げる（同上）
 const RANK_MARK_PAD := 10.0  # 札の右端から印までの余白
+const INTERLUDE_DIR := "res://assets/icons/interlude/"  # 幕間の印の絵（{interlude}.png）
+const INTERLUDE_H := 24.0  # 幕間の印の高さ。札と札のあいだの中央に置く
 
 var _rank_font_cache: Font = null
 
@@ -154,7 +156,13 @@ func show_campaign(campaign_id: String, variant: int = -1) -> void:
 	_set_cover(_variant_at(art_paths, variant), tr(String(c["title"])))
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
-		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
+		var s: Dictionary = c["stages"][i]
+		# 幕間の印は「次の行の前」＝その話の前で兵が戻るなら、前の札との間に挟む。
+		# 未解放の行の前でも出す（伏せるのは題名だけ）。doc/gdd/stage_select.md 幕間の印
+		var mark := _interlude_mark(String(s["interlude"]))
+		if mark != null:
+			_stage_list.add_child(mark)
+		_stage_list.add_child(_stage_row(campaign_id, s, i + 1))
 
 ## 扉絵を表示。cover_path があれば絵＋ラベル非表示、無ければプレースホルダ（タイトル）へ。
 func _set_cover(cover_path: String, title: String) -> void:
@@ -196,6 +204,25 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Control:
 	if not rank.is_empty():
 		row.add_child(_rank_mark(rank))
 	return row
+
+## 札と札のあいだに挟む幕間の印（ベッド＝休息／十字＝復帰）。印なし・絵なしは null。
+## 絵はアスペクト維持で高さ INTERLUDE_H に収め、行の中央に置く。額は付けない（板に直に載せる）。
+func _interlude_mark(interlude: String) -> Control:
+	if interlude.is_empty():
+		return null
+	var path := INTERLUDE_DIR + interlude + ".png"
+	if not ResourceLoader.exists(path):
+		return null
+	var holder := CenterContainer.new()
+	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var mark := TextureRect.new()
+	mark.texture = load(path)
+	mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var tex_size: Vector2 = mark.texture.get_size()
+	mark.custom_minimum_size = Vector2(INTERLUDE_H * tex_size.x / maxf(tex_size.y, 1.0), INTERLUDE_H)
+	holder.add_child(mark)
+	return holder
 
 ## 木札の右端に押すランクの印＝戦果票の判子をそのまま小さくしたもの。暗い木の上なので
 ## 封蝋の赤ではなく焼き印の琥珀で押す。字だけを置くと「文字が1つ増えた」に見えて押した感じが

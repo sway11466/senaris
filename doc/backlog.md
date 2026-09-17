@@ -195,15 +195,6 @@
 - 考慮外：st6 以降。娘を勝利条件に入れること（外へ出すのは手段）。
 - 該当：`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/domain/victory/victory.gd`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/terrain/terrain_skin.csv`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map.md`（逃げ切り拠点の陣営の扱い）・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜109。
 
-### feature-111
-
-**幕間の印（連戦／休息／復帰をステージ一覧で知らせる）**
-- ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かる。
-- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印に書いた。連続プレイの途中に挿絵は挟まない（休み方が冒険譚ごとに違うので共用の一枚絵は合わない。2026-09-17）。邪神三部作 第1部（st2・st3 の前が休息、st3〜st7 が連戦）が最初の使い手。チュートリアル３「竜狩り」も継承で、st2 以降の全話が名簿の駒に `refill` を書いている＝`campaign.json` に `interlude: rest` を入れ、整合テストの対象にする。
-- 対応：(1) マニフェストのステージ項目に `interlude`（`rest`／`revive`。連戦は書かない）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン2つ（ベッド・十字）は生成方式（[icons.md](art/icons.md) ICON STYLE の幕間版）で作り、`icons/interlude/{id}.png` に置く。(3) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
-- 考慮外：独立（各話配給）の冒険譚への印（出さない）。連続プレイ中の挿絵（出さない）。
-- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`doc/art/icons.md`（幕間のスロット）・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/assets/icons/interlude/`・`godot/tests/`（整合テスト）・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`（`interlude` の記入）。
-
 ### feature-112
 
 **邪神三部作 第1部 st6「別荘の床下から」のステージ実装（twingods1-6）**
