@@ -2,7 +2,7 @@
   "turn_limit": 40,
   "name": "dragon-hunt-st3",
   "player": [
-    { "units": [
+    {       "units": [
         { "type": "pixie", "actor": "pixie", "col": 3, "row": 17, "supply": "join" },
         { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 18, "supply": "refill" },
         { "type": "thief", "actor": "thief", "col": 2, "row": 19, "supply": "refill" },
@@ -54,34 +54,35 @@
         { "skin": "rock_serpent", "col": 23, "row": 19 }
       ] },
     { "order": 7, "name": "dragon-hunt.st3.squad.7", "ai": "ambush", "sight": 9,
-      "units": [ { "skin": "wyrm", "col": 17, "row": 2 } ] },
+      "units": [ { "skin": "wyrm", "col": 22, "row": 3 } ] },
     { "order": 8, "name": "dragon-hunt.st3.squad.8", "ai": "ambush", "sight": 9,
       "units": [ { "skin": "wyrm", "col": 23, "row": 15 } ] },
     { "order": 9, "name": "dragon-hunt.st3.squad.9", "ai": "ambush", "sight": 12,
       "units": [ { "skin": "troll", "col": 23, "row": 11 } ] },
     { "order": 10, "name": "dragon-hunt.st3.squad.10", "ai": "raid",
       "units": [
-        { "skin": "rogue_axe", "col": 23, "row": 4 },
-        { "skin": "rogue", "col": 22, "row": 5 },
-        { "skin": "rogue_slinger", "col": 23, "row": 5 }
+        { "skin": "rogue", "col": 16, "row": 3 },
+        { "skin": "rogue_axe", "col": 17, "row": 2 },
+        { "skin": "rogue", "col": 17, "row": 3 }
       ] },
     { "order": 11, "name": "dragon-hunt.st3.squad.11", "ai": "ambush", "sight": 0,
       "units": [ { "skin": "rogue_wagon", "col": 6, "row": 1 } ] }
   ],
   "bases": [
-    { "col": 12, "row": 5, "team": "neutral", "rest": "both",
+    { "col": 9, "row": 11, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
   ],
   "events": [
-    { "id": "camp-secured", "type": "capture", "col": 12, "row": 5, "captured_by": "player", "once": "camp", "dialogue": "secured", "focus": true },
-    { "id": "camp-lost", "type": "capture", "col": 12, "row": 5, "captured_by": "enemy", "once": "camp", "dialogue": "lost", "focus": true }
+    { "type": "capture", "col": 12, "row": 5, "id": "camp-secured", "captured_by": "player", "once": "camp", "dialogue": "secured", "focus": true },
+    { "type": "capture", "col": 12, "row": 5, "id": "camp-lost", "captured_by": "enemy", "once": "camp", "dialogue": "lost", "focus": true }
   ],
   "dialogue": {
     "intro": [
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st3.intro.1" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.intro.11" },
       { "text": "dragon-hunt.st3.intro.12", "sfx": "quake" },
-      { "enter": [
+      {
+        "enter": [
           { "squad": "dragon-hunt.st3.squad.1", "entry": "fade" },
           { "squad": "dragon-hunt.st3.squad.2", "entry": "fade" },
           { "squad": "dragon-hunt.st3.squad.3", "entry": "fade" },
@@ -91,10 +92,15 @@
           { "squad": "dragon-hunt.st3.squad.7", "entry": "fade" },
           { "squad": "dragon-hunt.st3.squad.8", "entry": "fade" },
           { "squad": "dragon-hunt.st3.squad.9", "entry": "fade" }
-      ] },
+        ]
+      },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st3.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st3.intro.3" },
-      { "enter": [ { "squad": "dragon-hunt.st3.squad.10", "entry": "fade" } ] },
+      {
+        "enter": [
+          { "squad": "dragon-hunt.st3.squad.10", "entry": "fade" }
+        ]
+      },
       { "scene": "dragon-hunt.st3.scene.1" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st3.rogue.1" },
       { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st3.rogue.2" },
@@ -135,7 +141,7 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.outro.5" }
     ]
   },
-  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 6, "survival_a": 3 },
+  "rank": { "turn_s": 20, "turn_a": 30, "survival_s": 6, "survival_a": 3 },
   "haze": 0.8,
   "bgm": { "main": "raid" }
 }
