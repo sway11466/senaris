@@ -70,6 +70,10 @@
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.4" },
+      { "enter": [
+          { "squad": "dragon-hunt.st6.squad.1", "entry": "scatter", "from": { "col": 7, "row": 3 } },
+          { "squad": "dragon-hunt.st6.squad.2", "entry": "scatter", "from": { "col": 7, "row": 3 } }
+      ] },
       { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st6.intro.9" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.10" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st6.intro.5" },

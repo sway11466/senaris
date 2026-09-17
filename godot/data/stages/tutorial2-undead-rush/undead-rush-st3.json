@@ -10,7 +10,7 @@
         { "type": "knight", "col": 1, "row": 6 },
         { "type": "priest", "col": 0, "row": 8 },
         { "type": "wizard", "col": 1, "row": 7 },
-        { "type": "wizard", "col": 1, "row": 8 },
+        { "type": "wizard", "col": 1, "row": 8, "unit_id": "guild_wizard" },
         { "type": "witch", "col": 0, "row": 7 },
         { "type": "fighter", "col": 2, "row": 8 },
         { "type": "wagon", "col": 2, "row": 7,
@@ -74,6 +74,7 @@
     "intro": [
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.1" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st3.intro.2" },
+      { "enter": [ { "unit": "guild_wizard", "entry": "march", "from": { "col": 0, "row": 6 } } ] },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.6" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st3.intro.9" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st3.intro.5" },
@@ -81,6 +82,10 @@
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.7" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st3.intro.10" },
       { "speaker": "char.witch.name", "skin": "witch", "text": "undead-rush.st3.intro.11" },
+      { "enter": [
+          { "squad": "undead-rush.st3.squad.4", "entry": "fade" },
+          { "squad": "undead-rush.st3.squad.5", "entry": "fade" }
+      ] },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st3.intro.12" },
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st3.intro.14" },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st3.intro.13" }

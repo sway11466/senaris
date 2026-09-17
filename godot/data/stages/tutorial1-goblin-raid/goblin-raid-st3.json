@@ -13,7 +13,7 @@
       ] }
   ],
   "enemy": [
-    { "order": 1, "ai": "charge",
+    { "order": 1, "name": "goblin-raid.st3.squad.1", "ai": "charge",
       "units": [
         { "skin": "goblin", "col": 12, "row": 4 },
         { "skin": "goblin", "col": 12, "row": 5 },
@@ -28,6 +28,7 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st3.intro.1" },
+      { "enter": [ { "squad": "goblin-raid.st3.squad.1", "entry": "scatter", "from": { "col": 17, "row": 5 } } ] },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st3.intro.2" },
       { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-raid.st3.intro.3" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st3.intro.4" },

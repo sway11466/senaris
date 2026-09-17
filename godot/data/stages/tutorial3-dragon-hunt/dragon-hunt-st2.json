@@ -71,6 +71,12 @@
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st2.intro.2" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st2.intro.3" },
       { "text": "dragon-hunt.st2.intro.4", "sfx": "map_turn_enemy" },
+      { "enter": [
+          { "squad": "dragon-hunt.st2.squad.1", "entry": "scatter", "from": { "col": 6, "row": 0 } },
+          { "squad": "dragon-hunt.st2.squad.2", "entry": "march", "from": { "col": 6, "row": 0 } },
+          { "squad": "dragon-hunt.st2.squad.3", "entry": "march", "from": { "col": 7, "row": 25 } },
+          { "squad": "dragon-hunt.st2.squad.4", "entry": "march", "from": { "col": 7, "row": 25 } }
+      ] },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st2.intro.5" },
       { "speaker": "char.rookie_fighter.name", "skin": "fighter", "text": "dragon-hunt.st2.intro.6" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st2.intro.7" },

@@ -6,7 +6,7 @@
     { "name": "goblin-raid.party.militia",
       "units": [
         { "type": "fighter", "col": 3, "row": 4 },
-        { "type": "halfling", "col": 3, "row": 5 },
+        { "type": "halfling", "col": 3, "row": 5, "unit_id": "scout" },
         { "type": "novice", "col": 2, "row": 4 },
         { "type": "novice", "col": 2, "row": 5 },
         { "type": "novice", "col": 2, "row": 6 },
@@ -39,6 +39,7 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st6.intro.1" },
+      { "enter": [ { "unit": "scout", "entry": "march", "from": { "col": 0, "row": 5 } } ] },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st6.intro.2" },
       { "speaker": "char.scout.name", "skin": "halfling", "text": "goblin-raid.st6.intro.3" },
       { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-raid.st6.intro.7" },

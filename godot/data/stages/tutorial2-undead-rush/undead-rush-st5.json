@@ -9,11 +9,11 @@
       "units": [
         { "type": "knight", "col": 6, "row": 5 },
         { "type": "knight", "col": 6, "row": 6 },
-        { "type": "bishop", "col": 1, "row": 5 },
+        { "type": "bishop", "col": 1, "row": 5, "unit_id": "clergy_bishop" },
         { "type": "priest", "col": 2, "row": 6 },
-        { "type": "priest", "col": 2, "row": 5 },
+        { "type": "priest", "col": 2, "row": 5, "unit_id": "clergy_priest" },
         { "type": "cleric", "col": 1, "row": 4 },
-        { "type": "cleric", "col": 1, "row": 6 },
+        { "type": "cleric", "col": 1, "row": 6, "unit_id": "clergy_cleric" },
         { "type": "wizard", "col": 4, "row": 5 },
         { "type": "wizard", "col": 4, "row": 6 },
         { "type": "witch", "col": 3, "row": 5 },
@@ -83,6 +83,11 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st5.intro.1" },
+      { "enter": [
+          { "unit": "clergy_bishop", "entry": "march", "from": { "col": 0, "row": 5 } },
+          { "unit": "clergy_priest", "entry": "march", "from": { "col": 0, "row": 5 } },
+          { "unit": "clergy_cleric", "entry": "march", "from": { "col": 0, "row": 5 } }
+      ] },
       { "speaker": "char.knight.name", "skin": "knight", "text": "undead-rush.st5.intro.2" },
       { "speaker": "char.priest.name", "skin": "priest", "text": "undead-rush.st5.intro.9" },
       { "speaker": "char.mage.name", "skin": "wizard", "text": "undead-rush.st5.intro.10" },

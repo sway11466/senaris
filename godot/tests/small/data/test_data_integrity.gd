@@ -296,6 +296,41 @@ func test_walking_entries_can_reach_their_places() -> void:
 				assert_false(state.entry_path(uid, e.from).is_empty(),
 					"%s のイベント '%s' の駒 id=%d が入口から歩いてこられる" % [path, e.id, uid])
 
+func test_walking_enter_lines_can_reach_their_places() -> void:
+	# 会話の途中の登場（intro の enter 行）で歩いてくる駒も、入口から所定位置まで地形をたどれること
+	# （doc/gdd/map.md 会話の途中の登場）。増援と同じく、たどり着けない駒は歩かずその場に出る。
+	# 名簿から出す駒（actor だけの駒）は名簿なしでは盤に乗らない＝その行は空で通る。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var intro: Variant = ((data as Dictionary).get("dialogue", {}) as Dictionary).get("intro", [])
+		if typeof(intro) != TYPE_ARRAY:
+			continue
+		var walks := false
+		for line in intro:
+			if typeof(line) != TYPE_DICTIONARY:
+				continue
+			for t in (line as Dictionary).get("enter", []):
+				if typeof(t) == TYPE_DICTIONARY and String((t as Dictionary).get("entry", "")) in ["march", "scatter"]:
+					walks = true
+		if not walks:
+			continue
+		var state := StageLoader.load_file(path)
+		assert_not_null(state, "%s が読める" % path)
+		if state == null:
+			continue
+		for line in intro:
+			if typeof(line) != TYPE_DICTIONARY:
+				continue
+			for info in StageLoader.resolve_enter(state, line):
+				var from: Vector2i = info["from"]
+				if from == Vector2i.MAX:
+					continue
+				for uid in info["units"]:
+					assert_false(state.entry_path(int(uid), from).is_empty(),
+						"%s の enter 行の駒 handle=%d が入口 %s から歩いてこられる" % [path, int(uid), from])
+
 func _assert_order(path: String, holder: Dictionary, label: String, seen: Dictionary) -> void:
 	var v: Variant = holder.get("order")
 	if typeof(v) != TYPE_FLOAT and typeof(v) != TYPE_INT:
