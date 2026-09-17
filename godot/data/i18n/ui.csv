@@ -31,7 +31,6 @@ ui.hud.info_panel_reset,情報板の位置を戻す,Reset Info Panel Position
 ui.hud.story,ストーリーを確認,Review Story
 ui.hud.story_intro,開幕,Opening
 ui.hud.story_outro,決着,Ending
-ui.hud.story_event,イベント {n},Event {n}
 ui.hud.save,セーブ,Save
 ui.hud.load,ロード,Load
 ui.hud.settings,設定,Settings

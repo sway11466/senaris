@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=131 / refactoring=19.
+次回採番: bug=12 / feature=131 / refactoring=21.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -351,6 +351,32 @@
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
+### refactoring-20
+
+**翻訳CSVを、読む画面・データの種類ごとに分け直す**
+- ゴール：翻訳CSVが14本で、1本を開けば何の文言かが分かる。ui.csv に全画面の文言が、names.csv にユニット・地形・スキルの表示名が、dialogue.csv に部隊名と予告が混ざっていない。
+- 背景：今は ui（全画面）・names（データ側の表示名すべて）・campaigns・dialogue（ステージJSONが名指しするキーすべて）・chronicle・manual の6本。分け方はオーナーが感覚で決めた（2026-09-17）。冒険譚ごとには分けない。
+- 対応：次の14本に分ける。キーの綴りは変えない（ファイルを移すだけ）。例外はクロニクルで、マップと同じ語（会話ボタン・戦果の章の語）でも `ui.chronicle.*` として自前で持つ。
+  - chronicle: `ui.chronicle.*`・`unit.<id>.desc`・`lore.*`・通し読みの会話ボタン・戦果の章の語
+  - units: `unit.<id>.name`・`unit_group.<id>.name`
+  - terrain: `terrain.<id>.name`・`terrain_type.<id>.name`
+  - skills: 陣形スキルとユニットスキルの名前・説明・分類名（今の `recipe.*`・`recipe_group.*`。改名は refactoring-19）
+  - ai: `ai.<id>.name` ／ movement: `movement.<id>.name`
+  - map: `ui.hud.*`・`ui.board.*`・`ui.info.*`・`ui.banner.*`・`ui.combat.*`・`ui.skillreport.*`・`ui.talk.*`
+  - menu: `ui.title.*`・`ui.quest.*`・`ui.select.*`・`ui.manual.*`
+  - settings: `ui.settings.*` ／ save: `ui.save.*` ／ report: `ui.report.*`・`ui.result.*`
+  - campaigns: 冒険譚・ステージの題名と説明、敵部隊名・味方部隊名、増援の予告 `label`、イベント名（`event.<ステージ id>.<イベント id>.name`）
+  - dialogue: 開幕・決着・イベント会話の台詞、話者名 `char.*`、デバッグステージの台詞
+  - manual: そのまま
+  - `project.godot` の `locale/translations` と、`test_i18n.gd`・`test_i18n_translation.gd`・`test_i18n_names_cover_ids.gd` の CSV 一覧を合わせ、`.translation` を再生成。[i18n.md](tech/i18n.md) キー命名規約の「系統ごとに CSV を分ける」を新しい分け方に書き換える。
+- 該当：`godot/data/i18n/`・`godot/project.godot`・`godot/tests/small/data/test_i18n*.gd`・`doc/tech/i18n.md`。refactoring-19 と同時期に着手する。
+### refactoring-19
+
+**「レシピ」がスキルそのものを指す語として doc・キー・コードに広がっている**
+- ゴール：「レシピ」は成立条件の配置だけを指し、陣形スキルとユニットスキルの項目（id・名前・説明・分類）は doc でもキーでもコードでも「スキル」と呼ばれている。会話で「陣形スキル」と言うべきところを「レシピ」と言う原因が残っていない。
+- 背景：[formations.md](gdd/formations.md) は「特定のユニット配置（編成レシピ）」と配置の意味で定義したうえで、同じ語を項目の名前として使っている（「本書はレシピの正本」「人数が固定のレシピ」）。翻訳キーは `recipe.<id>.name/desc`・`recipe_group.<id>.name`、コードは `recipe` が308箇所で、陣形スキルとユニットスキルの上位の呼び名として使われている。上位の呼び名は「スキル」で既にある（`skill_cast.gd`・`skill_result.gd`・`skill_scene.gd`・`ui.skillreport.*`）。これを読んだセッションが「レシピ名」「レシピの分類」と話す。
+- 対応：(1) doc（formations.md・skills.md・combat.md・chronicle.md・uiux.md・i18n.md・CLAUDE.md）で、スキルそのものを指す「レシピ」を「陣形スキル」「スキル」に書き換える。配置の意味の箇所は残す。(2) 翻訳キーを `skill.<id>.name/desc`・`skill_group.<id>.name` に改名し `.translation` を再生成。(3) コードの `recipe` のうち、スキルの項目を指す識別子（id・名前・分類・カタログ）を `skill` に。配置の条件を指す箇所は `recipe` のまま。(4) `test_i18n_names_cover_ids.gd` の一覧を新キーに合わせる。
+- 該当：`doc/gdd/formations.md`・`doc/gdd/skills.md`・`doc/gdd/combat.md`・`doc/gdd/chronicle.md`・`doc/gdd/uiux.md`・`doc/tech/i18n.md`・`CLAUDE.md`・`godot/data/i18n/names.csv`・`godot/domain/formation/`・`godot/presentation/chronicle/`・`godot/presentation/formation/`・`godot/application/chronicle_service.gd`・`godot/infrastructure/save/chronicle_store.gd`。翻訳CSVの分け直しと同時期に着手する。
 ### refactoring-18
 
 **兵種 `emplacement` の内部IDを `war_machine` に改名する**

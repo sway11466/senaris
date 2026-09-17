@@ -378,13 +378,15 @@ static func _when_holds(cond: Variant, joined: Dictionary) -> bool:
 	var has: bool = joined.has(actor)
 	return not has if negate else has
 
-## 会話つきイベントの索引（イベント id → { dialogue＝台本のキー }）。
+## 会話つきイベントの索引（イベント id → { name＝イベント名の翻訳キー, dialogue＝台本のキー }）。
 ## 「ストーリーを確認」の目次と読み直しが引く（doc/gdd/uiux.md ターン終了・システムメニュー）。
-## 見出しは目次側が起きた順の番号で組む＝イベントは名前を持たない。
+## イベント名は JSON に書かず、ステージ id（JSON の name）とイベント id からの規約キーで引く
+## （event_name_key。ユニットの表示名 unit.<skin_id>.name と同じ方式。訳文は campaigns.csv）。
 ## 発火したイベントは BattleState から消えるので、盤の状態ではなくステージ JSON から引く
 ## ＝会話と同じく presentation 専用（案P）。
 static func parse_event_talks(data: Dictionary) -> Dictionary:
 	var out := {}
+	var stage_id := String(data.get("name", ""))
 	for e in _as_dicts(data.get("events", [])):
 		var talk := String(e.get("dialogue", ""))
 		if talk.is_empty():
@@ -392,8 +394,15 @@ static func parse_event_talks(data: Dictionary) -> Dictionary:
 		var id := String(e.get("id", ""))
 		if id.is_empty():
 			continue  # 欠落は _apply_events が push_error で知らせる＝ここでは黙って落とす
-		out[id] = { "dialogue": talk }
+		if stage_id.is_empty():
+			push_error("StageLoader: ステージの name（ステージ id）が無い＝イベント '%s' の名前を引けない" % id)
+			continue
+		out[id] = { "name": event_name_key(stage_id, id), "dialogue": talk }
 	return out
+
+## イベント名の翻訳キー（規約）。ステージ id はステージ内でしか一意でないイベント id を世界で一意にする。
+static func event_name_key(stage_id: String, event_id: String) -> String:
+	return "event.%s.%s.name" % [stage_id, event_id]
 
 ## res:// パスの JSON から会話つきイベントの索引を読む（load_dialogue と対）。
 static func load_event_talks(path: String) -> Dictionary:

@@ -196,8 +196,7 @@ func _story_record() -> Dictionary:
 
 ## 「ストーリーを確認」の目次を貼り直す。経験していないものは並べない
 ## ＝まだ見ていない出来事の存在を目次で匂わせない（doc/gdd/uiux.md ターン終了・システムメニュー）。
-## 見出しはここで訳して渡す＝言語が変われば呼び直す。イベントは書き手が名前を付けない＝起きた順に
-## 「イベント N」と番号で出す（敵部隊の「第N部隊」と同じ流儀）。
+## 見出しはここで訳して渡す＝言語が変われば呼び直す。イベント名は id からの規約キー（StageLoader.event_name_key）。
 func refresh_menu() -> void:
 	var record := _story_record()
 	var entries: Array = []
@@ -206,7 +205,7 @@ func refresh_menu() -> void:
 	for id in record.get("events", []):
 		var talk: Dictionary = _event_talks.get(String(id), {})
 		if not talk.is_empty():  # ステージを直してイベントごと消えた記録は出さない
-			entries.append([String(id), tr("ui.hud.story_event").format({ "n": entries.size() })])
+			entries.append([String(id), tr(String(talk["name"]))])
 	if record.has("clear") and not _dialogue.get("outro", []).is_empty():
 		entries.append(["outro", tr("ui.hud.story_outro")])
 	_hud.set_story_entries(entries)

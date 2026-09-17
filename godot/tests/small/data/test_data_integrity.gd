@@ -170,6 +170,38 @@ func test_stage_events_name_their_trigger_by_type() -> void:
 			else:
 				assert_true(event.has("turn"), "%s に turn がある" % where)
 
+## 翻訳CSV（1行ヘッダ keys, ja, en）のキー集合。
+func _i18n_keys(path: String) -> Dictionary:
+	var f := FileAccess.open(path, FileAccess.READ)
+	assert_not_null(f, "%s を開けること" % path)
+	if f == null:
+		return {}
+	f.get_csv_line()  # ヘッダ
+	var keys := {}
+	while not f.eof_reached():
+		var cols := f.get_csv_line()
+		if cols.size() > 0 and cols[0] != "":
+			keys[cols[0]] = true
+	f.close()
+	return keys
+
+func test_stage_events_with_dialogue_have_a_name_translation() -> void:
+	# 会話つきのイベントは「ストーリーを確認」の目次に並ぶ。見出しは JSON に書かず、
+	# ステージ id とイベント id からの規約キー（StageLoader.event_name_key）で campaigns.csv から引く
+	# （doc/gdd/map.md イベント）。キーが無ければキー文字列がそのまま画面に出る＝ここで捕まえる。
+	var keys := _i18n_keys("res://data/i18n/campaigns.csv")
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var stage_id := str(data.get("name", ""))
+		for event in data.get("events", []):
+			if typeof(event) != TYPE_DICTIONARY or str(event.get("dialogue", "")).is_empty():
+				continue
+			assert_false(stage_id.is_empty(), "%s に name（ステージ id）がある" % path)
+			var key := StageLoader.event_name_key(stage_id, str(event.get("id", "")))
+			assert_true(keys.has(key), "campaigns.csv に %s がある（%s のイベント名）" % [key, path])
+
 func test_stage_events_have_unique_ids() -> void:
 	# イベントの id は必須・ステージ内で一意（doc/gdd/map.md イベント）。
 	# セーブが未発火のイベントを id で覚えるので、欠落・重複は復元先を見失う。

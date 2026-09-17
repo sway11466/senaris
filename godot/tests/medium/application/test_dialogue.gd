@@ -136,6 +136,7 @@ func test_conversation_panel_empty_closes() -> void:
 ## 「ストーリーを確認」の目次＝会話つきイベントの索引（doc/gdd/uiux.md ターン終了・システムメニュー）。
 func test_parse_event_talks_indexes_events_with_dialogue() -> void:
 	var talks := StageLoader.parse_event_talks({
+		"name": "goblin-raid-st4",
 		"events": [
 			{ "id": "town-freed", "type": "capture", "dialogue": "free" },
 			{ "id": "airship", "type": "turn" },
@@ -143,9 +144,19 @@ func test_parse_event_talks_indexes_events_with_dialogue() -> void:
 	})
 	assert_eq(talks.size(), 1, "会話を持たないイベントは目次に出さない")
 	assert_eq(String(talks["town-freed"]["dialogue"]), "free", "読み直す台本のキーを引ける")
+	assert_eq(String(talks["town-freed"]["name"]), "event.goblin-raid-st4.town-freed.name",
+		"見出しはステージ id とイベント id からの規約キー（JSON には書かない）")
 
 func test_parse_event_talks_skips_events_without_id() -> void:
 	var talks := StageLoader.parse_event_talks({
+		"name": "goblin-raid-st4",
 		"events": [ { "type": "capture", "dialogue": "free" } ]
 	})
 	assert_eq(talks, {}, "id が無ければ記録と突き合わせられない（欠落は _apply_events が知らせる）")
+
+func test_parse_event_talks_needs_the_stage_id() -> void:
+	var talks := StageLoader.parse_event_talks({
+		"events": [ { "id": "town-freed", "type": "capture", "dialogue": "free" } ]
+	})
+	assert_push_error("ステージの name")
+	assert_eq(talks, {}, "ステージ id が無ければ規約キーを組めない")
