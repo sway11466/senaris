@@ -124,7 +124,7 @@
 - ステージは2ファイルに分かれる。本体 `<ステージ>.json` と地形 `<ステージ>.terrain.json` で、地形ファイルが持つのは `terrain` / `terrain_skins` / `margin` の3つ。地形はマップエディタで編集するもので、量も大きい（見た目の差分が本体を埋める）ので本体から外す。読むときに合流するので、盤に組み上がった形は分けていないときと同じ。
 - 盤の広さはどちらのファイルにも書かない。`terrain` グリッドの寸法から数える（`margin` のぶんを差し引く）。同じことを二度書けば食い違うため。グリッドの行の長さが揃っていなければエラーで、盤の形は決めない。
 - 演出・見た目のキー（presentation 専用＝BattleState には入らない）:
-  - `dialogue`: 戦闘前後の会話 `{ "intro": [...], "outro": [...] }`・各行 `{speaker, skin, text}`・テキストは翻訳キー。仕様 → [../campaign/authoring.md](../campaign/authoring.md)
+  - `dialogue`: 戦闘前後の会話 `{ "intro": [...], "outro": [...] }`・各行 `{speaker, skin, text}`・テキストは翻訳キー。仕様 → [../campaign/authoring.md](../campaign/authoring.md)。intro の途中で駒を出す `enter` 行 → [会話の途中の登場](#会話の途中の登場intro-の-enter-行)
   - `terrain_skins`: 地形の見た目差分（座標→skin_id の列挙。未指定セルは type の既定スキン）。性能の `terrain` グリッドとは別レイヤー
   - `margin`: 外周＝盤の外側に何マスぶん地形を描くか（下記）
 
@@ -159,7 +159,7 @@
 - **性能は `type` が唯一の出どころ**＝攻撃・防御・移動・射程などをステージ側から上書きすることはできない。ボス個体や強化型が要るなら `type` を足す（数値がステージに散らばるとバランス調整の見通しが効かなくなるため）。駒に書けるのは個体の状態（`troops`/`level`）だけ。
 - **敵部隊(squad)** ＝ `{ "order": 行動順, "name"?: 表示名, "ai": 特性id, ...上書き, "units": [...] }`。`ai` は [ai.md](ai.md) の特性（`charge`/`ambush`/`raid`/`weak`/`swarm`）。`sight`・`stack` は部隊ごとに上書きできる。`order` は敵の行動順（[ai.md](ai.md) 行動順）で、`ai` を持つ拠点も同じ列に並ぶ。
 - **味方部隊** ＝ `{ "name"?: 表示名, "units": [...] }`。動かすのは人間なので、特性も行動順も持たない。分けるのは名前を付けて見せるためと、作者が駒をまとめて扱うため。
-- `name` は翻訳キーで書き、表示のときに引く（[../tech/i18n.md](../tech/i18n.md)）。駒を選ぶと情報パネルの見出しに出る（[uiux.md](uiux.md) 見出し）。敵部隊は書かなければ番号で出るが、味方部隊は書いたときだけ出る。
+- `name` は翻訳キーで書き、表示のときに引く（[../tech/i18n.md](../tech/i18n.md)）。駒を選ぶと情報パネルの見出しに出る（[uiux.md](uiux.md) 見出し）。敵部隊は書かなければ番号で出るが、味方部隊は書いたときだけ出る。[会話の途中の登場](#会話の途中の登場intro-の-enter-行)（`enter` 行）が部隊を指すのもこの `name`＝指す部隊には必ず書き、同じ `name` の部隊を1つのステージに2つ置かない。
 - 例:
   ```json
   "player": [
@@ -196,7 +196,7 @@
 
 | 名前 | 何を指すか | 一意の範囲 | 見るもの |
 |---|---|---|---|
-| `unit_id` | この盤に置かれた駒 | ステージJSON 1枚の中（初期配置・拠点の控え・増援・搭乗者を含む） | [勝敗条件](#勝敗条件)の `defeat_unit`／`lose_unit` |
+| `unit_id` | この盤に置かれた駒 | ステージJSON 1枚の中（初期配置・拠点の控え・増援・搭乗者を含む） | [勝敗条件](#勝敗条件)の `defeat_unit`／`lose_unit`・[会話の途中の登場](#会話の途中の登場intro-の-enter-行)の `enter` 行 |
 | `actor` | 冒険譚に出てくる人物 | 冒険譚の中 | 名簿（[campaigns.md](campaigns.md) 戦力供給モデル）・会話の分岐（[../campaign/authoring.md](../campaign/authoring.md)）・クロニクル |
 
 片方から他方を導くことはしない。名簿の仲間を勝敗条件で名指すなら、その駒に両方を書く。
@@ -310,6 +310,38 @@
   ```
 
 **残りターンは常時見せる**（[uiux.md](uiux.md) 残りターン）。「持ちこたえろ」とだけ言われても、あと何ターン耐えるのかが読めないと我慢の量を測れない。`label` の訳文には何が来るのかを書く（例「飛空艇 到着まで」）。予告なしに戦力が湧くのは避ける形（[map_patterns.md](map_patterns.md) P10 波状）でもある。
+
+### 会話の途中の登場（intro の `enter` 行）
+
+戦闘前の会話（`dialogue.intro`）の途中で、指定した駒を盤に出す仕組み。効果音やト書きで登場を告げてから駒を見せるためのもので、味方でも敵でも出せる。
+
+- 駒と部隊は[陣営セクション](#駒の配置陣営セクション)にふつうに書く。盤面データの上では開始時から盤に居る＝1ターン目からふつうに動け、開始時の戦力の数え方（[rank.md](rank.md)）も変わらない。変わるのは見せ方だけで、盤の描画が行が来るまでその駒を隠しておく（presentation 専用＝BattleState には入らない）。
+- intro の行に `{ "enter": [ ... ] }` を置く。画面には何も出さず、その行に来た瞬間に並べた相手が盤に現れ、続けて次の行へ進む。行に無い駒は会話の前から盤に見えている。行を intro の末尾に置けば、会話の直後に出る。
+- 相手は1要素に1つ。部隊は `name` で、駒は `unit_id` で指す（[駒を指す名前](#駒を指す名前unit_id-と-actor)）。同じ行に並べた相手は同時に動き出す。
+  - `{ "squad": "<部隊の name>", "entry": …, "from": … }` ＝ その部隊の駒が全部出る。
+  - `{ "unit": "<unit_id>", "entry": …, "from": … }` ＝ その駒だけ出る。
+- 登場の仕方は増援と同じ語彙・同じ規則＝`entry`（`march`／`scatter`／`fade`）は必ず書き、`march`／`scatter` なら `from` を書き、`fade` には書かない（[駒を出す](#駒を出すplayer--enemy-の部隊)）。相手ごとに書くので、北の一団は浮かび、南の一団は坑口から歩く、を1行で書ける。同じ入口から `march` で複数体を出すと、並べた順に1体ずつ入口を出る。
+- 会話をスキップしたとき・会話を出さない設定（[settings.md](settings.md)）のとき・中断セーブの復元では、隠していた駒を演出なしで全部見せる＝盤はいつも台本どおりの顔ぶれで始まる。「ストーリーを確認」（[uiux.md](uiux.md)）で intro を読み直すときは `enter` 行は何もしない。
+- 書けるのは intro だけ。outro とイベントの会話には書かない（outro は盤が終わっている。イベントの会話で駒を出すのは増援の仕事）。
+- データ整合＝指した `name`／`unit_id` が盤に居る・同じ駒を2つの行で指さない・`enter` 行が intro 以外に無い・`entry`／`from` の書き分けが規則どおり。指される部隊の `name` はステージ内で一意。
+- 例（物音の行のあとで、ハーピーの部隊が北に浮かび、オークの部隊が南の坑口から歩いてくる。会話の最後にローグが1体だけ現れる）:
+  ```json
+  "enemy": [
+    { "order": 1, "name": "dragon-hunt.st2.squad.1", "ai": "charge", "units": [ ... ] },
+    { "order": 2, "name": "dragon-hunt.st2.squad.2", "ai": "charge", "units": [ ... ] },
+    { "order": 3, "ai": "raid", "units": [ { "skin": "rogue", "col": 1, "row": 1, "unit_id": "rogue" } ] }
+  ],
+  "dialogue": { "intro": [
+    { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st2.intro.3" },
+    { "text": "dragon-hunt.st2.intro.4", "sfx": "map_turn_enemy" },
+    { "enter": [
+        { "squad": "dragon-hunt.st2.squad.1", "entry": "fade" },
+        { "squad": "dragon-hunt.st2.squad.2", "entry": "march", "from": { "col": 7, "row": 21 } }
+    ] },
+    { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st2.intro.5" },
+    { "enter": [ { "unit": "rogue", "entry": "fade" } ] }
+  ] }
+  ```
 
 ## エネミー／ステージ設計
 

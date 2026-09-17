@@ -197,12 +197,12 @@
 
 ### feature-111
 
-**幕間の印と挿絵（連戦／休息／復帰をプレイヤーに知らせる）**
-- ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かり、連続プレイでは休息と復帰のときだけ一枚絵で知らされる。
-- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印・幕間の挿絵に書いた。邪神三部作 第1部（st2・st3 の前が休息、st3〜st7 が連戦）が最初の使い手。チュートリアル３「竜狩り」も継承で、st2 以降の全話が名簿の駒に `refill` を書いている＝`campaign.json` に `interlude: rest` を入れ、整合テストの対象にする。
-- 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗＝[icons.md](art/icons.md)）。(3) 戦闘後の自動遷移（[main.gd](../godot/presentation/main/main.gd)）で、次の `interlude` が `rest`／`revive` なら次の intro の前に挿絵＋一文を挟む。挿絵2枚（[keyvisual.md](art/keyvisual.md)）、文は翻訳キー。セレクトから直接始めたときは挟まない。(4) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
-- 考慮外：独立（各話配給）の冒険譚への印（出さない）。
-- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`godot/tests/`（整合テスト）・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`（`interlude` の記入）。
+**幕間の印（連戦／休息／復帰をステージ一覧で知らせる）**
+- ゴール：継承の冒険譚で、話と話のあいだに兵が戻るのか戻らないのかが、ステージ一覧を見れば分かる。
+- 背景：継承（carryover）では `supply: "refill"`／`"revive"` で兵が戻るが、それが盤の中のデータでしかなく、プレイヤーには何も見えない。連戦か休息かは難しさそのものなので、遊ぶ前に読めるべき。仕様は [stage_select.md](gdd/stage_select.md) 幕間の印に書いた。連続プレイの途中に挿絵は挟まない（休み方が冒険譚ごとに違うので共用の一枚絵は合わない。2026-09-17）。邪神三部作 第1部（st2・st3 の前が休息、st3〜st7 が連戦）が最初の使い手。チュートリアル３「竜狩り」も継承で、st2 以降の全話が名簿の駒に `refill` を書いている＝`campaign.json` に `interlude: rest` を入れ、整合テストの対象にする。
+- 対応：(1) マニフェストのステージ項目に `interlude`（`continuous`／`rest`／`revive`）を足し、[campaign_catalog.gd](../godot/data/stages/campaign_catalog.gd) で読む。(2) ステージ一覧（[stage_select.gd](../godot/presentation/select/stage_select.gd)）で行と行のあいだに印を挟む。アイコン3つ（松明・ベッド・合流の旗）は生成方式（[icons.md](art/icons.md) ICON STYLE の幕間版）で作り、`icons/interlude/{id}.png` に置く。(3) データ整合テスト＝`interlude: rest` の話は名簿の駒に `refill` が、`revive` の話は `revive` が書かれていること（逆も）。
+- 考慮外：独立（各話配給）の冒険譚への印（出さない）。連続プレイ中の挿絵（出さない）。
+- 該当：`doc/gdd/stage_select.md`・`doc/gdd/campaigns.md`・`doc/art/icons.md`（幕間のスロット）・`godot/data/stages/campaign_catalog.gd`・`godot/presentation/select/stage_select.gd`・`godot/assets/icons/interlude/`・`godot/tests/`（整合テスト）・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`（`interlude` の記入）。
 
 ### feature-112
 
@@ -224,13 +224,13 @@
 
 ### feature-114
 
-**会話の途中で駒を盤に出す（`enter` 行と `on: "dialogue"` イベント）**
+**会話の途中で駒を盤に出す（intro の `enter` 行）**
 - ゴール：戦闘前の会話の任意の行で、味方でも敵でも、指定した駒だけを盤に出せる（会話の前から居る／途中で出る／会話の直後に出る、をステージデータで選べる）。
-- 背景：駒は開始時に全部置かれ、その上で intro が流れる。途中で出す手段は `events` の増援（`turn`／`on: "capture"`）だけで、1ターン目のイベントは会話を流せないため「音や台詞で気づいてから敵が現れる」「合流の台詞で仲間が現れる」が書けない（[map.md](gdd/map.md) イベント）。チュートリアル１〜３の台本には効果音やト書きで登場を告げる行が既にあり、盤が先に見せてしまっている。
-- 方式は未決：`events`（増援）に相乗りする形で一度実装したが取り消した（2026-09-15）。会話の途中の登場は盤の顔ぶれを変えない見た目の話なので、盤面データを書き換える `events` に載せるのが誤り。駒と部隊の定義は陣営セクション（`player[]`／`enemy[]`）に置いたまま、presentation が intro の間だけ見せ方を変える形にする。なお `player[]` は駒の配列・`enemy[]` は部隊の配列で構造が違うため、同じ書き方で敵味方を名指せない。そこをどう揃えるかが先。
-
-- 考慮外：outro での登場（ステージが終わるので意味がない）。会話の途中で駒を消すこと。
-- 該当：`doc/gdd/map.md`・`doc/campaign/authoring.md`・`godot/application/stage_loader.gd`・`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/ui/conversation_panel.gd`・`godot/tools/map_editor/`（イベントの引き金の選択肢）。
+- 背景：駒は開始時に全部置かれ、その上で intro が流れる。途中で出す手段は `events` の増援だけで、1ターン目のイベントは会話を流せないため「音や台詞で気づいてから敵が現れる」「合流の台詞で仲間が現れる」が書けない（[map.md](gdd/map.md) イベント）。チュートリアル１〜３の台本には登場を告げる行が既にあり、盤が先に見せてしまっている。
+- 方式：仕様は [map.md](gdd/map.md) 会話の途中の登場・[authoring.md](campaign/authoring.md) 会話パート。駒と部隊は陣営セクションに置いたまま、intro の `enter` 行が部隊を `name`・駒を `unit_id` で指し、登場の仕方（`entry`／`from`）も行に書く。盤面データは開始時から駒を持ち、presentation が行が来るまで隠す。`events` に相乗りする形（引き金 `on:"dialogue"`）は一度実装して取り消した（2026-09-15）＝部隊がイベントに入ると名前が失われ、盤面データ・セーブ・マップエディタにも手が入るため。
+- 対応：(1) `StageLoader` が intro の `enter` 行を解決し、部隊 `name`／`unit_id` → 駒のハンドルの一覧（登場の仕方つき）を presentation に渡す（`parse_dialogue` の並び）。(2) `HexBoard3D` が合図待ちの駒を隠して盤を組み、行が来たら `play_entry` で見せる。スキップ・会話を出さない設定・中断セーブの復元では演出なしで全部見せる。(3) `ConversationPanel` の `enter` 行＝表示なし・「次へ」を消費せず、出し切ってから次の行へ。連打で二重に進めない。(4) `StoryDirector` が行と盤を繋ぐ。「ストーリーを確認」の読み直しでは何もしない。(5) データ整合テスト（指す先が居る・同じ駒を2度指さない・`enter` 行は intro だけ・`entry`／`from` の書き分け）。
+- 考慮外：outro での登場。会話の途中で駒を消すこと。マップエディタ（部隊・駒の書式は変わらないので触らない）。
+- 該当：`godot/application/stage_loader.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/main/story_director.gd`・`godot/presentation/ui/conversation_panel.gd`・`godot/tests/`（データ整合）。
 
 ### feature-115
 
@@ -242,7 +242,7 @@
   - チュートリアル２ st3：魔導師「もう一人、術者を呼びました」→ 3人目の術者／魔女「ゴーストよ」→ ゴースト。st4：司祭「教会が応えてくれました」→ 教会の増援／魔女「レイスよ」→ レイス。st5：司祭「聖職が五人、揃いました」→ 聖職の追加分。
   - チュートリアル３ st2：効果音「敵襲だーっ！」→ 北にハーピー・南にオーク（一番の候補）。st3：効果音「ドゴォンッ」→ 坑道の魔物／ト書き「鉱脈の外れ」→ ローグ一味。st6：シーフ「誰かが逃げてきたわね」→ 逃げるローグ本隊。
   - 見送り：チュートリアル２ st6 デュラハン・チュートリアル３ st7 竜（最初から見えている形のほうが自然）。
-- 方式は未決：駒と部隊の定義は陣営セクション（`player[]`／`enemy[]`）に置いたままにする。一度 `events` へ移して実装したが、部隊がイベントの中に入ると部隊名が失われ、マップエディタからも編集できなくなるため取り消した（2026-09-15）。イベントが部隊を名指す形にするか、部隊側に登場を書くかは未決。
+- 方式：feature-114 の `enter` 行。指す部隊には `name` を、駒には `unit_id` を付ける。
 - 考慮外：邪神三部作への適用（別途、台本を見直すときに拾う）。
 - 該当：`godot/data/stages/tutorial1-goblin-raid/`・`godot/data/stages/tutorial2-undead-rush/`・`godot/data/stages/tutorial3-dragon-hunt/`・`doc/campaign/tutorial1-goblin-raid.md`・`doc/campaign/tutorial2-undead-rush.md`・`doc/campaign/tutorial3-dragon-hunt.md`。
 
