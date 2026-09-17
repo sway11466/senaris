@@ -311,7 +311,7 @@
 
 **翻訳CSVを、読む画面・データの種類ごとに分け直す**
 - ゴール：翻訳CSVが14本で、1本を開けば何の文言かが分かる。ui.csv に全画面の文言が、names.csv にユニット・地形・スキルの表示名が、dialogue.csv に部隊名と予告が混ざっていない。
-- 背景：今は ui（全画面）・names（データ側の表示名すべて）・campaigns・dialogue（ステージJSONが名指しするキーすべて）・chronicle・manual の6本。分け方はオーナーが感覚で決めた（2026-09-17）。冒険譚ごとには分けない。
+- 背景：今は ui（全画面）・names（データ側の表示名すべて）・campaigns・dialogue（ステージJSONが名指しするキーすべて）・chronicle・manual の6本。分け方はオーナーが感覚で決めた（2026-09-17）。冒険譚ごとには分けない。names.csv だけを割る refactoring-17 はここに含めた。
 - 対応：次の14本に分ける。キーの綴りは変えない（ファイルを移すだけ）。例外はクロニクルで、マップと同じ語（会話ボタン・戦果の章の語）でも `ui.chronicle.*` として自前で持つ。
   - chronicle: `ui.chronicle.*`・`unit.<id>.desc`・`lore.*`・通し読みの会話ボタン・戦果の章の語
   - units: `unit.<id>.name`・`unit_group.<id>.name`
@@ -340,14 +340,6 @@
 - 背景：内部IDは `emplacement`（設置物）だが、プレイヤー向け表示名は「兵器 / War Machine」。他の兵種（infantry・archer・mage …）は内部IDと表示名が対応しているのに、ここだけずれている。IDを見ても何を指すか分かりにくい。
 - 対応：`emplacement` を `war_machine` に一括置換する。CSV・JSON・GDScript・ドキュメントが対象。i18n キーも `unit_group.emplacement.name` → `unit_group.war_machine.name` に変える。
 - 該当：`godot/data/units/unit_type.csv`・`unit_skin.csv`・生成物（`unit_type.json`・`unit_skin.json`）・`godot/data/i18n/names.csv`・`godot/data/i18n/manual.csv`・GDScript で `emplacement` を参照する箇所・`doc/gdd/units.md`。
-
-### refactoring-17
-
-**`names.csv` を他と同じ単位に割る（ユニット・地形 …）**
-- ゴール：翻訳CSV のファイル名を見れば、そこに何の文字列が入っているかが分かる。
-- 背景：翻訳CSV は用途で分かれている（`dialogue` / `campaigns` / `ui` / `manual` / `chronicle`）が、`names.csv` だけが「データに付いた用語」を全部抱えている＝ `ai` / `category` / `movement` / `recipe` / `terrain` / `terrain_type` / `unit` の7系統。何の name なのかをファイル名が言えていない。データ側は `godot/data/units/` `terrain/` `movement/` `ai/` のように機能フォルダで割れているので、翻訳も同じ単位にできる。
-- 対応：`names.csv` を系統ごとの CSV に割る（ユニット・地形・移動・AI・陣形スキル …）。`project.godot` の `locale/translations` と [i18n.md](tech/i18n.md) のキー命名規約を合わせて直す。キー（`unit.<id>.name` 等）は変えない＝ファイルの割り方だけの変更で、コードは触らない。
-- 該当：`godot/data/i18n/names.csv`・`godot/project.godot`・[i18n.md](tech/i18n.md)・`godot/tests/`（CSV を名指ししているテスト）。
 
 ### refactoring-15
 
