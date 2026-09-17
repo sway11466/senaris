@@ -42,6 +42,17 @@ func _trinity_nova_state(enemy_def := 20) -> Dictionary:
 
 # --- 検出 ---
 
+## 陣形スキルは必ず分類（表Aの「分類」列）を持つ＝クロニクルの束ね。ユニットスキルは持たない。
+## 詳細 → doc/gdd/chronicle.md 陣形スキル
+func test_formation_recipes_have_category() -> void:
+	for rid in Formation.RECIPES:
+		var r: Dictionary = Formation.RECIPES[rid]
+		if Formation.is_unit_skill(rid):
+			assert_false(r.has("category"), "%s: ユニットスキルは分類を持たない" % rid)
+		else:
+			assert_true(Formation.CATEGORIES.has(r.get("category", "")),
+				"%s: 分類が表Aの値でない" % rid)
+
 func test_available_detects_trinity_nova_triangle() -> void:
 	var f := _trinity_nova_state()
 	var opts := Formation.available_for(f["s"], f["leader"])

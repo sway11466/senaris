@@ -26,3 +26,16 @@ const HEAD_GAP := 14      # 見出しと中身の間・上段と下段の間
 const CATEGORY_GAP := 20  # カテゴリ間の余白
 const ITEM_GAP := 6       # アイテム間の余白
 const ITEM_HEIGHT := 36   # アイテム1行の高さ
+
+## カードの格子（ユニット章・陣形スキル章）。1段の枚数と縦横比は章ごとに違うので章が持つ。
+const CARD_GAP := 12
+const CARD_PAD := 10           # 紙の縁と絵の間
+const CARD_DIM := 0.78         # 未解放のカードの紙の明るさ
+const SCROLLBAR_ALLOW := 16.0  # 縦スクロールバーのぶん幅を引く（出た瞬間に折り返さないため）
+const SILHOUETTE := Color(0.0, 0.0, 0.0, 0.92)  # 未解放の黒塗り
+
+## 拡大カード（格子のカードを押すと手前に開く1枚）。
+const EXPAND_SCRIM := Color(0.02, 0.02, 0.03, 0.72)
+const EXPAND_WIDTH := 760.0
+const EXPAND_ART_HEIGHT := 200.0
+const EXPAND_PAD := 24

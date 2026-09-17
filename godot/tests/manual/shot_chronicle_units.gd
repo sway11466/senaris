@@ -12,6 +12,9 @@ func _initialize() -> void:
 	_main = packed.instantiate()
 	root.add_child(_main)
 
+func _chapter() -> ChronicleUnitsChapter:
+	return _main._chronicle_screen._chapters[0] as ChronicleUnitsChapter
+
 func _process(_delta: float) -> bool:
 	_frame += 1
 	match _frame:
@@ -27,15 +30,15 @@ func _process(_delta: float) -> bool:
 		40:
 			_shot("user://shot_chronicle_grid.png")
 		42:
-			_main._chronicle_screen._open_unit_card("cleric")  # スキル＋特性を持つ駒
+			_chapter()._open_unit_card("cleric")  # スキル＋特性を持つ駒
 		60:
 			_shot("user://shot_chronicle_card_cleric.png")
 		62:
 			_main._chronicle_screen._on_back()  # Esc と同じ経路＝拡大だけ畳む
-			print("closed_expanded=", _main._chronicle_screen._expanded == null,
+			print("closed_expanded=", _chapter()._expanded == null,
 				" screen_visible=", _main._chronicle_screen.visible)
 		64:
-			_main._chronicle_screen._open_unit_card("pixie")  # 貫通を持つ小さい駒
+			_chapter()._open_unit_card("pixie")  # 貫通を持つ小さい駒
 		80:
 			_shot("user://shot_chronicle_card_pixie.png")
 		90:

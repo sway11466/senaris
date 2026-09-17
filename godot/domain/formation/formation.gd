@@ -21,10 +21,16 @@ class_name Formation
 ##        "cluster"（count 体以上の隣接クラスタ）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
+## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
+## 陣形スキルの並びは表Aの行順に揃える＝クロニクルのカードの並び。詳細 → doc/gdd/chronicle.md 陣形スキル
+## 分類（category）に書ける値＝表Aの「分類」列（弓攻撃／魔法攻撃／特殊攻撃／強化／弱体化／その他／敵）。
+const CATEGORIES := ["bow", "magic", "special", "buff", "debuff", "other", "enemy"]
+
 const RECIPES := {
 	# name は開発用メモ。画面表示は tr("recipe.{id}.name")（正本 data/i18n/names.csv）で解決する。
 	"trinity_nova": {
 		"name": "トリニティノヴァ",
+		"category": "magic",
 		"leader_skins": ["wizard", "witch"],
 		"member_skins": ["wizard", "witch"],
 		"shape": "triangle",
@@ -34,18 +40,9 @@ const RECIPES := {
 		"range": 5,
 		"range_from": "any",
 	},
-	"divine_judgment": {
-		"name": "ディバインジャッジメント",
-		"leader_skins": ["paladin"],
-		"member_skins": ["cleric", "priest", "bishop"],
-		"shape": "escort",
-		"count": 3,
-		"effect": "single",
-		"range": 10,
-		"range_from": "leader",
-	},
 	"grace": {
 		"name": "グレイス",
+		"category": "buff",
 		"leader_skins": ["cleric", "priest", "bishop", "paladin"],
 		"member_skins": ["cleric", "priest", "bishop", "paladin"],
 		"shape": "cluster",
@@ -59,6 +56,17 @@ const RECIPES := {
 		"buff_value_per_extra": 0.05,
 		"buff_fx": "aura",  # 盤全体の見た目（外周から差し込む金の光）。詳細 → doc/gdd/formations.md
 		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
+	},
+	"divine_judgment": {
+		"name": "ディバインジャッジメント",
+		"category": "special",
+		"leader_skins": ["paladin"],
+		"member_skins": ["cleric", "priest", "bishop"],
+		"shape": "escort",
+		"count": 3,
+		"effect": "single",
+		"range": 10,
+		"range_from": "leader",
 	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md

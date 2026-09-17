@@ -222,15 +222,21 @@ ui.chronicle.unknown,？,?
 ui.chronicle.first_seen,初出,First seen in
 ui.chronicle.capacity,搭乗,Capacity
 ui.chronicle.name_category,%s（%s）,%s (%s)
-ui.chronicle.shape_triangle,三角（相互隣接）,Triangle (mutual adjacency)
-ui.chronicle.shape_escort,護衛（発動者に随伴）,Escort (flanking the leader)
-ui.chronicle.shape_cluster,集団（隣接の連鎖）,Cluster (connected chain)
-ui.chronicle.recipe_leader,発動者: %s,Leader: %s
-ui.chronicle.recipe_members,参加者: %s,Members: %s
-ui.chronicle.recipe_range,射程 %d,Range %d
+ui.chronicle.recipe_leader,発動者,Leader
+ui.chronicle.recipe_members,参加者,Members
+ui.chronicle.recipe_effect,効果,Effect
 ui.chronicle.recipe_effect_area,範囲攻撃（半径%d）,Area attack (radius %d)
 ui.chronicle.recipe_effect_single,単体攻撃,Single-target attack
 ui.chronicle.recipe_effect_buff,状態補正（味方全体）,Status effect (all allies)
+ui.chronicle.recipe_duration,持続,Duration
+ui.chronicle.recipe_instant,即時,Instant
+ui.chronicle.recipe_until_next_turn,次の自軍ターン開始まで,Until your next turn
+ui.chronicle.recipe_turns,%dターン,%d turns
+ui.chronicle.recipe_count,人数,Members
+ui.chronicle.recipe_count_min,%d以上,%d or more
+ui.chronicle.recipe_from,発動できる駒,Cast from
+ui.chronicle.recipe_from_any,どれからでも,Any member
+ui.chronicle.recipe_from_leader,発動者から,Leader only
 ui.chronicle.results,戦果,Results
 ui.chronicle.story,物語,Story
 ui.chronicle.lore,設定集,Lore

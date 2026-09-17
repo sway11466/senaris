@@ -48,7 +48,7 @@ func _build() -> void:
 
 ## カットインを出す。絵が在れば true（呼び手は finished を待つ）、無ければ何もせず false。
 func play(recipe_id: String) -> bool:
-	var tex := _load_art(recipe_id)
+	var tex := load_art(recipe_id)
 	if tex == null:
 		return false
 	_texture = tex
@@ -60,7 +60,8 @@ func play(recipe_id: String) -> bool:
 	return true
 
 ## assets/formations/{recipe_id}.png（無ければ .webp）。置いてあれば出る＝コード不変で絵を足せる。
-func _load_art(recipe_id: String) -> Texture2D:
+## クロニクルの陣形スキル章も同じ絵をカードの面に使う（doc/gdd/chronicle.md 陣形スキル）。
+static func load_art(recipe_id: String) -> Texture2D:
 	if recipe_id.is_empty():
 		return null
 	for ext in EXTS:

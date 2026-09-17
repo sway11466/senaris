@@ -1,216 +1,191 @@
-extends ChronicleChapter
+extends ChronicleCardChapter
 class_name ChronicleFormationsChapter
 ## クロニクルの陣形スキル章。仕様 → doc/gdd/chronicle.md 陣形スキル
 ##
-## レシピの一覧と「埋まった数／全部」を上段に、選んだレシピの詳細を下段に出す。
-## 並ぶのは陣形スキル（shape != "solo"）だけ＝単独発動のユニットスキルはユニット章の
-## 拡大カードに載る（doc/gdd/skills.md）。
+## 表A（doc/gdd/formations.md）の分類ごとに羊皮紙のカードを格子に並べる。解放済みの面はカットインの絵、
+## 未解放の面は要るユニットの黒塗りを人数ぶん＝ヒント（誰が要るかまで。形と位置は解放後の拡大カードだけ）。
+## 分類と並びは Formation.RECIPES の category と挿入順（表Aの写し）。
+## 並ぶのは陣形スキル（shape != "solo"）だけ＝単独発動のユニットスキルはユニット章の拡大カードに載る
+## （doc/gdd/skills.md）。
 
-## 配置の形 → 翻訳キーの引き。
-const SHAPE_KEYS := {
-	"triangle": "ui.chronicle.shape_triangle",
-	"escort": "ui.chronicle.shape_escort",
-	"cluster": "ui.chronicle.shape_cluster",
-}
+const NONE_TEXT := "—"
+const HINT_GAP := 4  # 黒塗りの駒の間
 
-var _selected_recipe_id := ""  # 選んでいるレシピ（空なら詳細なし）
+## カットインの絵（1200×896）を面いっぱいに載せる横長のカード。
+func _card_columns() -> int:
+	return 4
 
-func reset() -> void:
-	_selected_recipe_id = ""
+func _card_aspect() -> float:
+	return 0.75
 
-## Formation.RECIPES から陣形スキル（shape != "solo"）だけを挿入順に返す。
-func _formation_recipes() -> Array:
-	var out: Array = []
-	for recipe_id in Formation.RECIPES:
-		var r: Dictionary = Formation.RECIPES[recipe_id]
-		if r.get("shape", "") != "solo":
-			out.append(recipe_id)
-	return out
-
-## レシピの一覧と「埋まった数／全部」、選択で詳細。
 func _build() -> void:
 	if _store == null:
 		return
-	var recipes := _formation_recipes()
 	var encountered := _store.recipes()  # { recipe_id: { first: campaign_id } }
+	var card_size := _card_size()
+	for group in _grouped_recipes():
+		var category: String = group["category"]
+		var ids: Array = group["recipes"]
+		var found := 0
+		var cards: Array = []
+		for rid in ids:
+			var known: bool = encountered.has(rid)
+			if known:
+				found += 1
+			cards.append(_recipe_card(rid, known, card_size))
+		_add_group(tr("recipe_group.%s.name" % category), found, cards)
 
-	var found := 0
-	for rid in recipes:
-		if encountered.has(rid):
-			found += 1
+## Formation.RECIPES から陣形スキル（shape != "solo"）を分類ごとにまとめる。分類の並びは初めて
+## 現れた順、分類のなかは挿入順＝表Aの行順。[{ "category": String, "recipes": [id, ...] }, ...]
+func _grouped_recipes() -> Array:
+	var groups: Array = []
+	var index := {}  # category -> index in groups
+	for rid in Formation.RECIPES:
+		if Formation.is_unit_skill(rid):
+			continue
+		var r: Dictionary = Formation.RECIPES[rid]
+		var category := String(r.get("category", ""))
+		if not index.has(category):
+			index[category] = groups.size()
+			groups.append({ "category": category, "recipes": [] })
+		groups[index[category]]["recipes"].append(rid)
+	return groups
 
-	# 見出し＋カウント
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 8)
-	var head_label := Label.new()
-	head_label.text = tr("ui.chronicle.formations")
-	head_label.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
-	head_label.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
-	head.add_child(head_label)
-	var count_label := Label.new()
-	count_label.text = tr("ui.chronicle.count") % [found, recipes.size()]
-	count_label.add_theme_font_size_override("font_size", ChronicleStyle.COUNT_FONT_SIZE)
-	count_label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-	count_label.size_flags_vertical = Control.SIZE_SHRINK_END
-	head.add_child(count_label)
-	_content_box.add_child(head)
-
-	# レシピの行を並べる
-	for rid in recipes:
-		var known := encountered.has(rid)
-		var row := _recipe_row(rid, known)
-		_content_box.add_child(row)
-
-	# 選択中のレシピがあれば詳細を出す
-	if not _selected_recipe_id.is_empty():
-		_build_recipe_detail(_selected_recipe_id)
-
-## レシピ1行。解放済みは名前、未解放は「？」。
-func _recipe_row(recipe_id: String, known: bool) -> Control:
-	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(0, ChronicleStyle.ITEM_HEIGHT)
-	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	btn.focus_mode = Control.FOCUS_NONE
+## 格子の1枚。解放済みはカットインの絵、未解放は黒塗りの顔ぶれ。
+func _recipe_card(recipe_id: String, known: bool, card_size: Vector2) -> Control:
+	var face: Control
 	if known:
-		btn.text = "  " + tr("recipe.%s.name" % recipe_id)
-		btn.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
-		var rid := recipe_id
-		btn.pressed.connect(func() -> void: _select_recipe(rid))
+		face = _cutin_art(recipe_id)
 	else:
-		btn.text = "  " + tr("ui.chronicle.unknown")
-		btn.add_theme_color_override("font_color", ChronicleStyle.DIM_GRAY)
-		btn.add_theme_color_override("font_hover_color", ChronicleStyle.DIM_GRAY)
-		btn.disabled = true
-	btn.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color.TRANSPARENT
-	btn.add_theme_stylebox_override("normal", sb)
-	var sb_hover := StyleBoxFlat.new()
-	sb_hover.bg_color = Color(1.0, 1.0, 1.0, 0.05)
-	btn.add_theme_stylebox_override("hover", sb_hover)
-	var sb_disabled := StyleBoxFlat.new()
-	sb_disabled.bg_color = Color.TRANSPARENT
-	btn.add_theme_stylebox_override("disabled", sb_disabled)
-	if known and recipe_id == _selected_recipe_id:
-		var sb_sel := StyleBoxFlat.new()
-		sb_sel.bg_color = Color(1.0, 1.0, 1.0, 0.08)
-		sb_sel.border_color = ChronicleStyle.FRAME_COLOR
-		sb_sel.border_width_left = ChronicleStyle.FRAME_WIDTH
-		btn.add_theme_stylebox_override("normal", sb_sel)
-	return btn
+		face = _hint_face(recipe_id)
+	var rid := recipe_id
+	return _paper_card(hash(rid), known, card_size, face, func() -> void: _open_recipe_card(rid))
 
-func _select_recipe(recipe_id: String) -> void:
-	_selected_recipe_id = recipe_id
-	SfxPlayer.play_event("menu_select")
-	rebuild()
+## カットインの絵。未用意ならプレースホルダの文字。
+func _cutin_art(recipe_id: String) -> Control:
+	var tex := FormationCutin.load_art(recipe_id)
+	if tex == null:
+		return _art_placeholder(tr("recipe.%s.name" % recipe_id))
+	return _art_rect(tex, false)
+
+## 未解放の面＝要るユニットの盤の絵を黒塗りで人数ぶん横に並べる。
+func _hint_face(recipe_id: String) -> Control:
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", HINT_GAP)
+	for skin in _figure_skins(recipe_id):
+		var art := _skin_art(skin, "map", true)
+		art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		art.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		row.add_child(art)
+	return row
+
+## 図と黒塗りに使う顔ぶれ＝人数ぶんの UnitSkin。先頭が発動者（発動者になれる駒の先頭で代表）、
+## 残りは参加者の先頭で代表する（doc/gdd/formations.md 一覧）。
+func _figure_skins(recipe_id: String) -> Array:
+	var r: Dictionary = Formation.RECIPES[recipe_id]
+	var leaders: Array = r.get("leader_skins", [])
+	var members: Array = r.get("member_skins", [])
+	var count: int = r.get("count", 1)
+	var out: Array = []
+	for i in count:
+		var pool: Array = leaders if i == 0 else members
+		var skin := SkinCatalog.skin_by_id(_skins, String(pool[0]))
+		if skin != null:
+			out.append(skin)
+	return out
 
 # ---------------------------------------------------------------------------
-# 詳細（下段）
+# 拡大カード
 # ---------------------------------------------------------------------------
 
-func _build_recipe_detail(recipe_id: String) -> void:
+## カットインの絵とレシピの図を並べ、名前（分類）・説明文・効果の表・候補・初出を載せる。
+func _open_recipe_card(recipe_id: String) -> void:
 	if not Formation.RECIPES.has(recipe_id):
 		return
-	var recipe: Dictionary = Formation.RECIPES[recipe_id]
-	# 名前
-	var name_label := Label.new()
-	name_label.text = tr("recipe.%s.name" % recipe_id)
-	name_label.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
-	name_label.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
-	_detail_box.add_child(name_label)
-	# 配置の形
-	var shape: String = recipe.get("shape", "")
-	var shape_key: String = SHAPE_KEYS.get(shape, "")
-	if not shape_key.is_empty():
-		var shape_label := Label.new()
-		shape_label.text = tr(shape_key)
-		shape_label.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-		shape_label.add_theme_color_override("font_color", ChronicleStyle.DIM_GRAY)
-		_detail_box.add_child(shape_label)
-	# 発動者と参加者（スキン名の翻訳）
-	var leader_skins: Array = recipe.get("leader_skins", [])
-	if not leader_skins.is_empty():
-		var leader_names := _skin_names_text(leader_skins)
-		var leader_label := Label.new()
-		leader_label.text = tr("ui.chronicle.recipe_leader") % leader_names
-		leader_label.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-		leader_label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		_detail_box.add_child(leader_label)
-	var member_skins: Array = recipe.get("member_skins", [])
-	if not member_skins.is_empty():
-		var member_names := _skin_names_text(member_skins)
-		var member_label := Label.new()
-		member_label.text = tr("ui.chronicle.recipe_members") % member_names
-		member_label.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-		member_label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		_detail_box.add_child(member_label)
-	# 効果と射程
-	var effect_text := _effect_text(recipe)
-	var range_val: int = recipe.get("range", 0)
-	var info_parts: Array = []
-	if not effect_text.is_empty():
-		info_parts.append(effect_text)
-	if range_val > 0:
-		info_parts.append(tr("ui.chronicle.recipe_range") % range_val)
-	if not info_parts.is_empty():
-		var info_label := Label.new()
-		info_label.text = "  ".join(info_parts)
-		info_label.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-		info_label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		_detail_box.add_child(info_label)
+	_open_expanded(_expanded_sheet(recipe_id))
+
+func _expanded_sheet(recipe_id: String) -> Control:
+	var r: Dictionary = Formation.RECIPES[recipe_id]
+	var col := _sheet_col()
+
+	# 絵＝カットインとレシピの図
+	var figure := ChronicleRecipeFigure.new()
+	var textures: Array = []
+	for skin in _figure_skins(recipe_id):
+		textures.append(_skin_texture(skin, "map"))
+	figure.setup(String(r.get("shape", "")), textures)
+	col.add_child(_art_row([_cutin_art(recipe_id), figure]))
+
+	# 見出し＝名前（分類）
+	var category := String(r.get("category", ""))
+	col.add_child(_sheet_title(tr("ui.chronicle.name_category") % [
+		tr("recipe.%s.name" % recipe_id), tr("recipe_group.%s.name" % category)]))
+
+	# 説明文（names.csv の recipe.<id>.desc。情報パネルと共通）
+	var desc := _desc_label("recipe.%s.desc" % recipe_id)
+	if desc != null:
+		col.add_child(desc)
+
+	# 効果・射程・持続・人数・発動できる駒。値に文が入る（持続・効果）ので1行2対に留める
+	col.add_child(_pairs_grid(_recipe_rows(r), 2))
+
+	# 発動者と参加者の候補（図は代表1体なので、候補が複数あることはここで分かる）
+	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.recipe_leader"),
+		_skin_names_text(r.get("leader_skins", []))], TavernTheme.INK))
+	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.recipe_members"),
+		_skin_names_text(r.get("member_skins", []))], TavernTheme.INK))
+
 	# 初出の冒険譚
-	var encountered := _store.recipes()
-	var entry: Dictionary = encountered.get(recipe_id, {})
-	var first_campaign: String = entry.get("first", "")
+	var entry: Dictionary = _store.recipes().get(recipe_id, {})
+	var first_campaign := String(entry.get("first", ""))
 	if not first_campaign.is_empty() and _progress != null:
 		var campaign := _progress.campaign(first_campaign)
 		if not campaign.is_empty():
-			var first_label := Label.new()
-			var campaign_title := tr(String(campaign.get("id", first_campaign)))
-			first_label.text = "%s: %s" % [tr("ui.chronicle.first_seen"), campaign_title]
-			first_label.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-			first_label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-			_detail_box.add_child(first_label)
-	# 説明文
-	_add_desc_label("recipe.%s.desc" % recipe_id)
+			col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.first_seen"),
+				tr(String(campaign.get("title", first_campaign)))], TavernTheme.INK_SOFT))
+	return _paper_sheet(hash(recipe_id), col)
 
-## スキン id の配列を翻訳済み名前のカンマ区切りに変換する。
-func _skin_names_text(skin_ids: Array) -> String:
-	var names: Array = []
-	for sid in skin_ids:
-		var key := "unit.%s.name" % sid
-		var translated := tr(key)
-		# 翻訳キーが見つからなければ id をそのまま使う
-		names.append(translated if translated != key else String(sid))
-	# 重複を除いてカンマ区切り
-	var unique: Array = []
-	for n in names:
-		if not unique.has(n):
-			unique.append(n)
-	return ", ".join(unique)
+## 効果の表＝[[項目, 値], ...]。
+func _recipe_rows(r: Dictionary) -> Array:
+	var rows: Array = []
+	rows.append([tr("ui.chronicle.recipe_effect"), _effect_text(r)])
+	var range_val: int = r.get("range", 0)
+	rows.append([tr("ui.info.range"), str(range_val) if range_val > 0 else NONE_TEXT])
+	rows.append([tr("ui.chronicle.recipe_duration"), _duration_text(r)])
+	var count: int = r.get("count", 1)
+	rows.append([tr("ui.chronicle.recipe_count"),
+		tr("ui.chronicle.recipe_count_min") % count if r.get("shape", "") == "cluster" else str(count)])
+	rows.append([tr("ui.chronicle.recipe_from"),
+		tr("ui.chronicle.recipe_from_leader") if r.get("range_from", "") == "leader" \
+		else tr("ui.chronicle.recipe_from_any")])
+	return rows
 
 ## レシピの効果を翻訳済みテキストにする。
-func _effect_text(recipe: Dictionary) -> String:
-	var effect: String = recipe.get("effect", "")
-	match effect:
+func _effect_text(r: Dictionary) -> String:
+	match String(r.get("effect", "")):
 		"area":
-			var radius: int = recipe.get("radius", 1)
-			return tr("ui.chronicle.recipe_effect_area") % radius
+			return tr("ui.chronicle.recipe_effect_area") % int(r.get("radius", 1))
 		"single":
 			return tr("ui.chronicle.recipe_effect_single")
 		"buff":
 			return tr("ui.chronicle.recipe_effect_buff")
 	return ""
 
-## desc 翻訳キーが存在すれば説明文ラベルを下段に追加する。
-## recipe.*.desc は names.csv。tr() はまとめて解決する。
-func _add_desc_label(desc_key: String) -> void:
-	var desc_text := tr(desc_key)
-	if desc_text != desc_key:
-		var desc_label := Label.new()
-		desc_label.text = desc_text
-		desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		desc_label.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-		desc_label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		_detail_box.add_child(desc_label)
+## 持続。ダメージ系は即時、補正は次の自軍ターン開始まで（doc/gdd/formations.md 表B）。
+func _duration_text(r: Dictionary) -> String:
+	if not r.has("duration_turns"):
+		return tr("ui.chronicle.recipe_instant")
+	var turns: int = r["duration_turns"]
+	if turns == 1:
+		return tr("ui.chronicle.recipe_until_next_turn")
+	return tr("ui.chronicle.recipe_turns") % turns
+
+## スキン id の配列を翻訳済み名前のカンマ区切りに変換する（重複は除く）。
+func _skin_names_text(skin_ids: Array) -> String:
+	var unique: Array = []
+	for sid in skin_ids:
+		var n := tr("unit.%s.name" % sid)
+		if not unique.has(n):
+			unique.append(n)
+	return ", ".join(unique)
