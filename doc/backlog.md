@@ -213,17 +213,6 @@
 - 考慮外：第2部。有力者を勝敗条件に入れること。
 - 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧は記入済み。実装後に数を合わせる）。前提＝feature-106〜110・112。
 
-### feature-116
-
-**継承の一行を戦闘演出で1体として描く（マニフェスト `actor_lineup`）**
-- ゴール：継承（carryover）の冒険譚で、名簿に載る一行の駒が戦闘演出に1体だけ立ち、兵数は兵量バーで読める。支援ユニット（配給）と敵は隊列のまま＝「一行は個人、軍は隊列」が絵で分かれる。
-- 背景：継承の冒険譚は駒に名前こそ無いが個人として見せているので、戦闘演出で同じ顔が8体並ぶと違和感が出る。演出には既に `single`（1体だけ描き損害は兵量バー）があるが `unit_skin.csv` のスキン単位で、一行のスキンはチュートリアルの兵と共用＝スキンでは切り替えられない。個人として描くかは冒険譚の性質なので、冒険譚のマニフェストで宣言する。
-- 対応：(1) `campaign.json` に `actor_lineup`（`""`＝スキン任せ／`"single"`）を足し、`CampaignCatalog.build` で正規化（`UnitSkin.LINEUPS` で検証）。(2) `UnitSnapshot` に `actor` を写す（`BattleState.unit_snapshot`）。(3) `CombatStage` に `bind_actor_lineup` と `_lineup_of(comb)` を足し、味方（team 0）かつ `actor` 付きなら上書き。隊列を見ている3箇所（`_render_side`・`_textures_for`・`_lead_pos`）をこの1関数経由に寄せる＝戦闘・ユニットスキル・自分掛けが同じ判断を通る。(4) `main.gd` の演出部品への配線に `emblem` と同じ流れで1行ずつ。(5) 上書き時の倍率は 1.0（`SINGLE_SCALE` 1.4 は馬車・竜級のための値。味方の大きさは `combat_scale` で焼き込み済み）。発数は兵数のまま＝集中砲火として読ませ、着弾点は隊列スロットではなく本人の位置へ寄せる。倍率と発数は実機で見てから最終判断。(6) 使う冒険譚＝チュートリアル３「竜狩り」から（`tutorial3-dragon-hunt/campaign.json` に `"actor_lineup": "single"`）。三部作にも同じ1行。(7) `test_campaign_catalog.gd` に既定とパースのテスト。(8) 仕様の追記＝[combat_scene.md](tech/combat_scene.md) 兵数の表示・[stage_select.md](gdd/stage_select.md) マニフェスト・[campaigns.md](gdd/campaigns.md)。
-- 副作用：地形の後ろ絵（玉座など）の立ち位置が本人の位置から決まるので味方側で動く。フラグが効かない経路＝起動時の下敷き・撮影ツール（`shot_combat.gd`・`shot_screen.gd` は冒険譚を通さず戦闘を組む）・devlog 用の並び絵 `build_lineup.py`＝撮影物と実機の見た目が食い違う。撮りたければ各々に引数を足す。
-- 考慮外：スキン単位の `single`（聖女・ユニコーンのように常に1人の駒は従来どおり `unit_skin.csv` で決める）。retinue の上書き。
-- 該当：`godot/data/stages/campaign_catalog.gd`・`godot/domain/unit/unit_snapshot.gd`・`godot/domain/battle_state.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/main/main.gd`・`godot/data/stages/tutorial3-dragon-hunt/campaign.json`・`godot/tests/small/data/test_campaign_catalog.gd`。難易度は小〜中（配管は既存の前例どおり。重いのは見た目の判断）。
-- **実装済み（実機確認中）**：コード・テスト・仕様追記は完了（(1)〜(8) すべて）。三部作の `campaign.json` は冒険譚が未作成のため対象外。倍率は実機で見て等倍→1.1（`ACTOR_SINGLE_SCALE`）に上げた（2026-09-18）。残りの実機確認＝竜狩り（tutorial3）で: (1) 配給・敵が隊列のままか (2) 1.1 の大きさで落ち着くか (3) 着弾点が SINGLE_POS に寄っているか (4) 発数が兵数どおりか (5) ユニットスキル・自分掛けでも同じ描き方になるか。
-
 ### feature-117
 
 **陣形スキル④トリックショット（弓兵＋斥候・貫通0.5の単体射撃）**

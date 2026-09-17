@@ -9,6 +9,7 @@ extends Node3D
 ##   --attacker / --target … ステージJSONと同じ col/row。隣接（または射程内）で攻撃可能であること
 ##   --size WxH            … ウィンドウ＝出力の解像度（既定 2560x1440）
 ##   --count / --interval  … 連写の枚数と間隔（既定 24枚 × 0.12秒 ≒ 演出全体をカバー）
+##   --actor-lineup <値>   … 冒険譚マニフェストの actor_lineup（"single"）。このツールは冒険譚を通さないので手で渡す
 
 func _ready() -> void:
 	var uargs := OS.get_cmdline_user_args()
@@ -18,10 +19,11 @@ func _ready() -> void:
 	var size := Vector2i(2560, 1440)
 	var count := 24
 	var interval := 0.12
+	var actor_lineup := ""
 	var i := 0
 	while i < uargs.size():
 		var a := uargs[i]
-		if a in ["--attacker", "--target", "--size", "--count", "--interval"] and i + 1 < uargs.size():
+		if a in ["--attacker", "--target", "--size", "--count", "--interval", "--actor-lineup"] and i + 1 < uargs.size():
 			var v := uargs[i + 1]
 			match a:
 				"--attacker", "--target":
@@ -42,6 +44,8 @@ func _ready() -> void:
 					count = int(v)
 				"--interval":
 					interval = float(v)
+				"--actor-lineup":
+					actor_lineup = v
 			i += 2
 		else:
 			plain.append(a)
@@ -94,6 +98,7 @@ func _ready() -> void:
 	combat.bind_state(state)
 	combat.bind_backdrop(StageLoader.load_backdrop(stage_path))
 	combat.bind_haze(StageLoader.load_haze(stage_path))
+	combat.bind_actor_lineup(actor_lineup)  # 一行を1体で描くか（main.gd と同じ配線）
 	add_child(combat)
 	controller.combat_resolved.connect(combat.play)
 

@@ -43,7 +43,7 @@
 
 - `retainers` 列は `retinue` のときだけ意味を持つ。
 - `single` は絵が減らないので、損害は下記の兵量バーと数値で見せる。1体で隊列8体ぶんの面積を受けるため、演出側で一段大きく描く（倍率 SINGLE_SCALE＝実装が持つ）。スキン個別に足したいぶんは `combat_scale`。
-- **actor_lineup（冒険譚マニフェスト）**: 継承の一行（actor 付き味方）を冒険譚単位で `single` に上書きする。スキンの `combat_lineup` より優先される（味方 team 0 かつ actor 非空の駒だけ）。倍率は ACTOR_SINGLE_SCALE（1.1）。スキン由来の SINGLE_SCALE（1.4）は掛けない＝味方の大きさは combat_scale で焼き込み済みなので、控えめに足すだけ。エフェクトの発数は兵数のまま＝集中砲火として読ませる。仕様 → [stage_select.md](../gdd/stage_select.md) 冒険譚マニフェスト。
+- **actor_lineup（冒険譚マニフェスト）**: 継承の一行（actor 付き味方）を冒険譚単位で `single` に上書きする。スキンの `combat_lineup` より優先される（味方 team 0 かつ actor 非空の駒だけ）。倍率は ACTOR_SINGLE_SCALE（1.2）。スキン由来の SINGLE_SCALE（1.4）は掛けない＝味方の大きさは combat_scale で焼き込み済みなので、控えめに足すだけ。エフェクトの発数は兵数のまま＝集中砲火として読ませる。仕様 → [stage_select.md](../gdd/stage_select.md) 冒険譚マニフェスト。
 
 ### 兵量バー
 
