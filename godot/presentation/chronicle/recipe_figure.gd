@@ -7,7 +7,7 @@ class_name ChronicleRecipeFigure
 ## 対象の敵ヘクスも要るので、その形を実装するときに足す。絵は紙に直接描く（ノードを積まない）。
 
 ## 形 → 置く axial の並び。先頭が発動者。
-## triangle＝相互隣接の3つ／escort＝発動者の両脇（下側）／cluster＝発動者を囲む4つ（5体の最低人数）。
+## triangle＝相互隣接の3つ／escort＝発動者に隣接する2つ（位置は問わないので一例）／cluster＝発動者を囲む4つ（5体の最低人数）。
 const LAYOUTS := {
 	"triangle": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
 	"escort": [Vector2i(0, 0), Vector2i(-1, 1), Vector2i(1, 0)],

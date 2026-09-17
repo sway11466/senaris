@@ -175,7 +175,7 @@ recipe_group.magic.name,魔法攻撃,Magic Attack
 recipe_group.buff.name,強化,Buff
 recipe_group.special.name,特殊攻撃,Special Attack
 recipe.trinity_nova.desc,魔法兵3体が三角に並び、広域の魔法攻撃を放つ。着弾地点とその周囲の敵味方を巻き込む。,"Three spellcasters form a triangle and unleash a wide-area magical attack. Hits all units — friend and foe — at the blast site and surrounding hexes."
-recipe.divine_judgment.desc,パラディンの両脇に聖職者が2体並び、遠方の敵1体を狙い打つ。,"Two clerics flank a Paladin in prayer. Together they strike down a single distant enemy."
+recipe.divine_judgment.desc,パラディンに聖職者2体が隣接し、遠方の敵1体を狙い打つ。,"Two clerics stand beside a Paladin in prayer. Together they strike down a single distant enemy."
 recipe.grace.desc,5体以上の聖職者が隣接の鎖を組み、味方全体の攻防を高める。参加者が多いほど効果が上がる。,"Five or more clergy form a connected chain, raising the attack and defense of all allies. The more participants, the stronger the effect."
 recipe.pixie_dust.desc,自分か隣の味方1体の攻撃力・防御力に、発動したピクシーの残兵数×10 を足す。自軍ターン3回ぶん続く。,"Adds 10 × the caster's remaining troops to the Attack and Defense of itself or one adjacent ally. Lasts 3 of your turns."
 recipe.purify.desc,自分か隣の味方1体から、掛かっている弱体をすべて取り除く。弱体の無い相手には撃てない。,Removes every debuff from itself or one adjacent ally. Cannot target a unit that has no debuff.
