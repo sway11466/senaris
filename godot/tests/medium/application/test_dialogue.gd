@@ -137,16 +137,15 @@ func test_conversation_panel_empty_closes() -> void:
 func test_parse_event_talks_indexes_events_with_dialogue() -> void:
 	var talks := StageLoader.parse_event_talks({
 		"events": [
-			{ "id": "town-freed", "type": "talk", "dialogue": "free", "name": "goblin-raid.st4.free.name" },
-			{ "id": "airship", "type": "reinforce" },
+			{ "id": "town-freed", "type": "capture", "dialogue": "free" },
+			{ "id": "airship", "type": "turn" },
 		]
 	})
 	assert_eq(talks.size(), 1, "会話を持たないイベントは目次に出さない")
-	assert_eq(String(talks["town-freed"]["name"]), "goblin-raid.st4.free.name")
-	assert_eq(String(talks["town-freed"]["dialogue"]), "free", "読み直す台本のキーも引ける")
+	assert_eq(String(talks["town-freed"]["dialogue"]), "free", "読み直す台本のキーを引ける")
 
-func test_parse_event_talks_skips_events_without_name() -> void:
+func test_parse_event_talks_skips_events_without_id() -> void:
 	var talks := StageLoader.parse_event_talks({
-		"events": [ { "id": "town-freed", "type": "talk", "dialogue": "free" } ]
+		"events": [ { "type": "capture", "dialogue": "free" } ]
 	})
-	assert_eq(talks, {}, "見出しが無ければ目次に出せない（欠落は _apply_events が知らせる）")
+	assert_eq(talks, {}, "id が無ければ記録と突き合わせられない（欠落は _apply_events が知らせる）")

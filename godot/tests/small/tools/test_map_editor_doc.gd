@@ -63,7 +63,7 @@ const EVENT_SAMPLE := """
   ] } ],
   "enemy": [],
   "events": [
-    { "turn": 5, "type": "reinforce",
+    { "turn": 5, "type": "turn",
       "label": "undead-rush.st7.event.airship", "entry": "fade",
       "player": [ { "units": [
         { "type": "airship", "col": 0, "row": 3,
@@ -450,7 +450,7 @@ func test_used_unit_ids_covers_events_garrison_and_passengers() -> void:
 			"passengers": [ { "type": "knight", "unit_id": "rider" } ] } ] } ],
 		"enemy": [],
 		"bases": [ { "col": 2, "row": 2, "garrison": [ { "skin": "goblin", "native": "enemy", "unit_id": "keeper" } ] } ],
-		"events": [ { "id": "w1", "turn": 3, "entry": "fade",
+		"events": [ { "id": "w1", "type": "turn", "turn": 3, "entry": "fade",
 			"enemy": [ { "ai": "charge", "units": [ { "skin": "goblin", "col": 4, "row": 1, "unit_id": "late" } ] } ] } ]
 	}""")
 	var used := doc.used_unit_ids()
@@ -813,7 +813,7 @@ func test_add_and_remove_event() -> void:
 	assert_true(doc.event_list().is_empty(), "最初は空")
 	doc.add_event(5, "player")
 	assert_eq(doc.event_list().size(), 1, "1件足せる")
-	assert_eq(String((doc.event_list()[0] as Dictionary)["type"]), "reinforce", "型は増援")
+	assert_eq(String((doc.event_list()[0] as Dictionary)["type"]), "turn", "引き金はターン")
 	doc.event_units(0).append({ "type": "airship", "col": 0, "row": 5 })
 	assert_eq(doc.event_units(0).size(), 1, "駒を足せる")
 	assert_true(_text(doc).contains("\"events\""), "保存に出る")

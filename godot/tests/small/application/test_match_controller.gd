@@ -310,8 +310,8 @@ func test_end_turn_emits_event_fired() -> void:
 	mc.end_turn()  # ターン2 自軍＝発生
 	assert_signal_emitted_with_parameters(mc, "event_fired",
 		[{ "id": "", "label": "ui.test.airship", "dialogue": "arrive", "focus": true,
-			"on": "", "hex": Hex.offset_to_axial(4, 4),
-			"entry": "fade", "from": Vector2i.MAX, "units": [3] }], 0)  # on が空＝ターン起点
+			"type": "turn", "hex": Hex.offset_to_axial(4, 4),
+			"entry": "fade", "from": Vector2i.MAX, "units": [3] }], 0)  # type＝ターン起点
 
 ## イベントの無いターンは飛ばない（毎ターン鳴らさない）。
 func test_end_turn_without_event_is_silent() -> void:
@@ -546,7 +546,7 @@ func test_capture_fires_the_event_on_the_player_turn() -> void:
 	var info: Dictionary = get_signal_parameters(mc, "event_fired", 0)[0]
 	assert_eq(String(info.get("id", "")), "ev-elf_join", "イベント id を渡す（ストーリー目次の記録に使う）")
 	assert_eq(String(info.get("dialogue", "")), "elf_join", "台本キーを渡す")
-	assert_eq(String(info.get("on", "")), "capture", "引き金の別も渡す（敵ターンに出せるかの判断に使う）")
+	assert_eq(String(info.get("type", "")), "capture", "引き金の別も渡す（敵ターンに出せるかの判断に使う）")
 	assert_eq(info.get("hex", Vector2i.MAX), base_hex, "カメラの行き先は拠点")
 
 ## 敵が取ったぶんは、その1手を見せ切ってから流し、読了を待ってから次の手へ進む。

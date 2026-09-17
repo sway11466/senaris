@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=11 / feature=131 / refactoring=19.
+次回採番: bug=12 / feature=131 / refactoring=19.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -13,21 +13,6 @@
 ## バグ
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
-
-### bug-7
-
-**イベント（`events`）のキーが用途を兼ねていて、1件読んでも意味が取れない**
-- ゴール：イベントを1件読めば「いつ起きるか」「何が起きるか」「誰に起きるか」がキーの名前だけで分かる。同じキーが場所によって違う意味を持たない。
-- 背景：占領が引き金の会話（[goblin-raid-st4.json](../godot/data/stages/tutorial1-goblin-raid/goblin-raid-st4.json)）は、盤の (9,6) の町を味方が取った瞬間に `free` の会話を流す、と読む。
-  ```json
-  { "id": "town-freed", "type": "talk", "col": 9, "row": 6, "team": "player",
-    "on": "capture", "dialogue": "free", "name": "…", "focus": true }
-  ```
-  - 引き金（`turn` / `on`）と起きること（`type`）が別の軸なのに、`type` が後者だけを名乗っている。`on` を書かなければターン起点、という暗黙の規則になっている。
-  - `type` の2値（`reinforce` / `talk`）は実態と合っていない。増援のイベントは駒が増えて会話も流れる＝両方やっている。
-  - `team` は陣営の名前をしているが、ここでの意味は「どちらが取ったら起きるか」という引き金の条件。駒の陣営（増援が使っていた `team`）とは別物で、たまたま同じ値を取るだけ。
-- 対応：(1) 引き金を `type` に寄せる（`turn` / `capture`）。起きることは中身で決まる＝駒があれば増援、`dialogue` があれば会話、両方あれば両方。(2) 占領の条件（取った側）は引き金側のキーに移し、`team` を廃止する。(3) 会話のイベントを持つステージJSON（`debug-photo/store4.json`・`goblin-raid-st4`・`undead-rush-st2`）を書き換える。(4) マップエディタのイベント編集を新しい形に合わせる。
-- 該当：`godot/application/stage_loader.gd`・`godot/domain/map/stage_event.gd`・`godot/tools/map_editor/map_editor.gd`・`godot/tests/small/data/test_data_integrity.gd`・`godot/tests/small/domain/test_events.gd`・`doc/gdd/map.md`。
 
 ### bug-6
 

@@ -63,7 +63,7 @@ func _next_id() -> String:
 ## 登場の仕方は駒を出すイベントの必須キー（doc/gdd/map.md）。ここの関心は発火なので
 ## 入口を持たない fade を既定にする（歩かせ方を見るテストは extra で上書きする）。
 func _reinforce(turn: int, extra: Dictionary = {}) -> Dictionary:
-	var e := { "id": _next_id(), "turn": turn, "type": "reinforce", "entry": "fade" }
+	var e := { "id": _next_id(), "turn": turn, "type": "turn", "entry": "fade" }
 	var units: Array = [ { "type": "fighter", "col": 5, "row": 3 } ]
 	var squad := {}      # 部隊の定義（敵なら ai・order も）
 	var section := "player"  # 駒を書くセクション＝加わる陣営
@@ -79,12 +79,6 @@ func _reinforce(turn: int, extra: Dictionary = {}) -> Dictionary:
 				e[k] = extra[k]
 	squad["units"] = units
 	e[section] = [squad]
-	return _with_name(e)
-
-## 会話つきのイベントは見出しの翻訳キーが必須（doc/gdd/map.md イベントの name）＝雛形で添える。
-static func _with_name(e: Dictionary) -> Dictionary:
-	if not String(e.get("dialogue", "")).is_empty() and not e.has("name"):
-		e["name"] = "ui.test.event_name"
 	return e
 
 # --- 発生ターン ---
@@ -165,7 +159,7 @@ func test_shifts_off_impassable_terrain() -> void:
 # --- 搭載駒 ---
 
 func test_transport_arrives_loaded() -> void:
-	var e := { "id": "airship", "turn": 2, "type": "reinforce", "entry": "fade",
+	var e := { "id": "airship", "turn": 2, "type": "turn", "entry": "fade",
 		"player": [ { "units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] } ] }
 	var s := _state([e])
@@ -179,7 +173,7 @@ func test_transport_arrives_loaded() -> void:
 
 ## 搭載駒は盤上に居ない＝殲滅の数には入らない（既存の輸送と同じ扱い）。
 func test_passengers_are_not_on_board() -> void:
-	var e := { "id": "airship", "turn": 1, "type": "reinforce", "entry": "fade",
+	var e := { "id": "airship", "turn": 1, "type": "turn", "entry": "fade",
 		"player": [ { "units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] } ] }
 	var s := _state([e])
@@ -253,7 +247,7 @@ func test_focus_survives_serialization() -> void:
 # --- 中断セーブ ---
 
 func test_pending_event_survives_serialization() -> void:
-	var e := { "id": "airship", "turn": 4, "type": "reinforce", "label": "ui.test.airship",
+	var e := { "id": "airship", "turn": 4, "type": "turn", "label": "ui.test.airship",
 		"entry": "fade",
 		"player": [ { "units": [ { "type": "airship", "col": 5, "row": 3,
 			"passengers": [ { "type": "paladin" } ] } ] } ] }
@@ -284,7 +278,7 @@ func test_fired_event_is_not_serialized() -> void:
 	assert_true(back.pending_events().is_empty(), "発生済みは持ち越さない")
 	assert_eq(back.team_unit_count(0), 2, "盤の駒としては残る")
 
-# --- 引き金＝拠点の占領（on: "capture"） ---
+# --- 引き金＝拠点の占領（type: "capture"） ---
 
 const BASE_COL := 3
 const BASE_ROW := 2
@@ -303,11 +297,11 @@ func _capture_state(events: Array) -> BattleState:
 	return _build(_capture_data(events))
 
 func _capture_event(team: String, extra: Dictionary = {}) -> Dictionary:
-	var e := { "id": _next_id(), "on": "capture", "col": BASE_COL, "row": BASE_ROW, "team": team,
-		"type": "talk", "dialogue": "taken_by_%s" % team }
+	var e := { "id": _next_id(), "type": "capture", "col": BASE_COL, "row": BASE_ROW, "captured_by": team,
+		"dialogue": "taken_by_%s" % team }
 	for k in extra:
 		e[k] = extra[k]
-	return _with_name(e)
+	return e
 
 ## クレリックを拠点へ入れて占領する（所属が変わることを確かめてから返す）。
 func _capture_with_cleric(s: BattleState) -> void:
@@ -323,11 +317,24 @@ func test_capture_event_does_not_fire_on_turns() -> void:
 	assert_eq(s.pending_events().size(), 1, "ターンでは起きない")
 	assert_true(s.last_fired_events.is_empty(), "ターンの発火にも混ざらない")
 
-## 駒を出さないイベント（type: "talk"）は盤を変えない。
+## 駒を出さないイベント（部隊を書かない）は盤を変えない。
 func test_talk_event_places_no_units() -> void:
 	var s := _capture_state([_capture_event("player")])
 	assert_eq(s.team_unit_count(0), 1, "駒は増えない")
 	assert_true(s.pending_events()[0].units.is_empty(), "駒を持たない")
+
+## 占領で出す駒の陣営は部隊を書いたセクションが決める＝取った側（captured_by）とは別。
+## 敵に取られたら味方の援軍が来る、が書ける。
+func test_capture_event_units_take_their_sections_team() -> void:
+	var s := _capture_state([_capture_event("enemy", { "entry": "fade",
+		"player": [ { "units": [ { "type": "fighter", "col": 5, "row": 3 } ] } ] })])
+	var e := s.pending_events()[0]
+	assert_eq(e.team, 1, "引き金の陣営は取った側（敵）")
+	assert_eq(e.units.size(), 1, "駒を持つ")
+	assert_eq(e.units[0].unit.team, 0, "駒の陣営は player セクション")
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 0, "味方が取っても起きない")
+	assert_eq(s.fire_capture_events(_base_hex(), 1).size(), 1, "敵が取ったら起きる")
+	assert_eq(s.team_unit_count(0), 2, "味方の駒が盤に出る")
 
 func test_capture_event_fires_when_the_base_changes_hands() -> void:
 	var s := _capture_state([_capture_event("player")])
@@ -384,8 +391,8 @@ func test_once_does_not_touch_other_names() -> void:
 func test_once_spans_triggers() -> void:
 	var s := _capture_state([
 		_capture_event("player", { "once": "elf_village" }),
-		{ "id": "too-late", "turn": 2, "type": "talk", "team": "player", "once": "elf_village",
-			"dialogue": "too_late", "name": "ui.test.event_name" },
+		{ "id": "too-late", "type": "turn", "turn": 2, "once": "elf_village",
+			"dialogue": "too_late" },
 	])
 	_capture_with_cleric(s)
 	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "先に占領で起きる")

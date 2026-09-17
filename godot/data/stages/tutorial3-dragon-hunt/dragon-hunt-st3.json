@@ -73,8 +73,8 @@
       "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
   ],
   "events": [
-    { "id": "camp-secured", "type": "capture", "col": 12, "row": 5, "captured_by": "player", "once": "camp", "dialogue": "secured", "name": "dragon-hunt.st3.secured.name", "focus": true },
-    { "id": "camp-lost", "type": "capture", "col": 12, "row": 5, "captured_by": "enemy", "once": "camp", "dialogue": "lost", "name": "dragon-hunt.st3.lost.name", "focus": true }
+    { "id": "camp-secured", "type": "capture", "col": 12, "row": 5, "captured_by": "player", "once": "camp", "dialogue": "secured", "focus": true },
+    { "id": "camp-lost", "type": "capture", "col": 12, "row": 5, "captured_by": "enemy", "once": "camp", "dialogue": "lost", "focus": true }
   ],
   "dialogue": {
     "intro": [

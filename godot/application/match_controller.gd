@@ -202,7 +202,7 @@ func _announce_fired_events() -> void:
 		event_fired.emit(_event_info(e, e.placed[0] if not e.placed.is_empty() else Vector2i.MAX))
 
 ## イベント1件 → 上へ渡す素データ。focus_hex＝カメラの行き先（増援は実際に駒が出た場所、
-## 占領は拠点の hex）。on は引き金の別＝presentation が敵ターンに出してよいかの判断に使う。
+## 占領は拠点の hex）。type は引き金の別＝presentation が敵ターンに出してよいかの判断に使う。
 ## entry／from／units は登場の見せ方＝どこから何が出てきたか（doc/gdd/map.md イベント）。
 ## units は実際に盤へ出た駒の id（置けなかった駒は載らない）＝並びは units に書いた順。
 func _event_info(e: StageEvent, focus_hex: Vector2i) -> Dictionary:
@@ -211,7 +211,7 @@ func _event_info(e: StageEvent, focus_hex: Vector2i) -> Dictionary:
 		"label": e.label,
 		"dialogue": e.dialogue,
 		"focus": e.focus,
-		"on": e.trigger_id(),
+		"type": e.trigger_id(),
 		"hex": focus_hex,
 		"entry": e.entry_id(),
 		"from": e.from,

@@ -924,7 +924,7 @@ func add_event(turn: int, team: String) -> void:
 		data["events"] = []
 	# 登場の仕方は駒を出すイベントの必須キー（doc/gdd/map.md イベント）。入口を持たない fade で
 	# 作っておき、歩かせたければエディタで march／scatter に変える＝入口の欄がそこで出る。
-	data["events"].append({ "turn": maxi(turn, 1), "type": "reinforce",
+	data["events"].append({ "turn": maxi(turn, 1), "type": "turn",
 		"entry": "fade", team: [ { "units": [] } ] })
 
 

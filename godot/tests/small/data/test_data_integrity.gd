@@ -137,14 +137,38 @@ func test_stage_squads_and_ai_bases_have_order() -> void:
 				continue  # ai 無し＝AI出撃しない拠点は行動順の列に並ばない
 			_assert_order(path, base, "base (%s, %s)" % [str(base.get("col")), str(base.get("row"))], seen)
 		for event in data.get("events", []):
-			# 敵の増援も1部隊として squads に積まれる＝行動順の列に並ぶ（order はイベント直下に書く）。
-			# 自軍の増援に部隊は無い（行動を選ぶのはプレイヤー）ので team で絞る。
-			# 駒を出さないイベント（type:"talk"＝会話だけ）は部隊を持たない＝order も要らない。
-			if typeof(event) != TYPE_DICTIONARY or str(event.get("team", "")) != "enemy":
+			# イベントで出す敵の部隊も squads に積まれる＝行動順の列に並ぶ（order は部隊の中に書く）。
+			# 自軍の部隊は行動をプレイヤーが選ぶので order を持たない＝enemy セクションだけ見る。
+			# 駒を出さないイベント（会話だけ）は部隊を持たない＝order も要らない。
+			if typeof(event) != TYPE_DICTIONARY:
 				continue
-			if str(event.get("type", "reinforce")) != "reinforce":
+			for squad in event.get("enemy", []):
+				if typeof(squad) != TYPE_DICTIONARY:
+					continue
+				_assert_order(path, squad, "event '%s' squad" % str(event.get("id", "")), seen)
+
+func test_stage_events_name_their_trigger_by_type() -> void:
+	# 引き金は type（turn／capture）で書く（doc/gdd/map.md イベント）。既定は無い＝書き忘れは
+	# 読み込みで捨てられて黙ってイベントが消えるので、ここで捕まえる。旧い書き方（on／team／
+	# reinforce／talk）は読み込みが止めるが、データとしては不備。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		for event in data.get("events", []):
+			if typeof(event) != TYPE_DICTIONARY:
 				continue
-			_assert_order(path, event, "event (turn %d)" % int(event.get("turn", 0)), seen)
+			var where := "%s のイベント '%s'" % [path, str(event.get("id", ""))]
+			var type_id := str(event.get("type", ""))
+			assert_true(type_id in ["turn", "capture"], "%s の type は turn／capture" % where)
+			assert_false(event.has("on") or event.has("team") or event.has("name"),
+				"%s に on／team／name（廃止）が無い" % where)
+			if type_id == "capture":
+				assert_true(event.has("col") and event.has("row"), "%s に拠点の col/row がある" % where)
+				assert_true(str(event.get("captured_by", "")) in ["player", "enemy"],
+					"%s に captured_by（player／enemy）がある" % where)
+			else:
+				assert_true(event.has("turn"), "%s に turn がある" % where)
 
 func test_stage_events_have_unique_ids() -> void:
 	# イベントの id は必須・ステージ内で一意（doc/gdd/map.md イベント）。
@@ -173,23 +197,6 @@ func test_stage_unit_ids_are_unique_and_referenced() -> void:
 			continue
 		var problems := StageLoader.unit_id_problems(data)
 		assert_eq(problems, [], "%s の unit_id: %s" % [path, ", ".join(PackedStringArray(problems))])
-
-func test_stage_events_with_dialogue_have_name() -> void:
-	# 会話つきのイベントは「ストーリーを確認」の目次に並ぶ＝見出しの翻訳キーが要る
-	# （doc/gdd/map.md イベントの name）。無いと、あとから選びようがない。
-	for path in _all_stage_files("res://data/stages"):
-		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-		if typeof(data) != TYPE_DICTIONARY:
-			continue
-		for event in data.get("events", []):
-			if typeof(event) != TYPE_DICTIONARY:
-				continue
-			var talk: Variant = event.get("dialogue", "")
-			if typeof(talk) != TYPE_STRING or String(talk).is_empty():
-				continue
-			var v: Variant = event.get("name")
-			assert_true(typeof(v) == TYPE_STRING and not String(v).is_empty(),
-				"%s のイベント '%s' に name（見出しの翻訳キー）がある" % [path, String(event.get("id", ""))])
 
 func test_stage_events_declare_entry_and_from() -> void:
 	# 駒を出すイベントは登場の仕方（entry）を必ず持ち、歩いてくる登場だけが入口（from）を持つ

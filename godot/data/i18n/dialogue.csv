@@ -49,7 +49,6 @@ goblin-raid.st4.intro.2,間に合った、のか？,"Are we... in time?"
 goblin-raid.st4.intro.3,まだ燃え尽きてない。なら間に合う。神官、町を襲うゴブリンは俺達が引き受ける。あんたはけが人を助けてくれ。そして、戦える男手を募ってくれ。,"It hasn't burned out. Then we're in time. Priest, we'll take on the goblins raiding the town. You tend the wounded — and rally any who can still fight."
 goblin-raid.st4.intro.4,承知しました。皆を、お願いします。,"Understood. I leave the people to you."
 goblin-raid.st4.intro.5,町を救えば、立てる者は剣を取る。数で劣っても、取り返せる。行くぞ！,"Save the town and those who can stand will take up swords. Outnumbered or not, we can turn this around. Move!"
-goblin-raid.st4.free.name,町の解放,Freeing the Town
 goblin-raid.st4.free.1,ゴブリンから守っていただき、ありがとうございます。私たちも戦います。,"Thank you for defending us from the goblins. We will fight too."
 goblin-raid.st4.free.2,ありがたい。だが飛び出すな、町で待て。斥候、出し方を教えてやれ。,"We are glad of it. But do not go charging out — wait in the town. Scout, show them how to come out."
 goblin-raid.st4.free.3,町を選べば、中で待つ顔ぶれが出ます。出したい者を選んで、光ったマスへ——隣に一体ずつ。,"Select the town and it lists who waits inside. Pick the one you want out, then a lit tile — one at a time, beside the town."
@@ -143,7 +142,6 @@ undead-rush.st2.intro.3,馬車は無防備です。道中にも屍が居るか�
 undead-rush.st2.intro.6,壊されれば、乗っている者もろとも失われます。必ず前衛の後ろを走らせてください。,"If it is destroyed, everyone aboard is lost with it. Keep it running behind the front line."
 undead-rush.st2.intro.7,それに、集落の詰所を守るのは若い衛士が三人だけ。あそこを奪われれば、私たちの負けです。,"And only three young guards hold the hamlet's post. If it is taken, we lose."
 undead-rush.st2.intro.4,よし、司祭は馬車にのってくれ。それ以外のメンバーは護衛をする。,"Right — Priest, you ride the wagon. The rest of us escort it."
-undead-rush.st2.free.name,詰所の解放,Freeing the Guard Post
 undead-rush.st2.free.1,助かりました！　この詰所は自分たちが守ります。,"You saved us! We will hold this post ourselves."
 undead-rush.st2.free.2,傷を負った方は詰所へ入れてください。中で休めば、兵は戻ります。,"Send anyone wounded into the post. Rest inside and their ranks fill back up."
 undead-rush.st2.free.3,助かる。無理はするな、削られたら下がって休め。,"Good. Don't push it — if you are worn down, fall back and rest."
@@ -242,7 +240,6 @@ undead-rush.st7.intro.9,言っておくけど、あいつ自身も五つ先か�
 undead-rush.st7.intro.4,今まで通り、トリニティノヴァで薙ぎ払い、グレイスで耐えましょう。,"As before — sweep them with the Trinity Nova and endure with the Grace."
 undead-rush.st7.intro.5,守り抜け。聖騎士様が撃つ、その一手のために。行くぞ、これで終わらせる。,"Hold the line — for the single strike the paladin will loose. Let's go; we end this here."
 undead-rush.st7.arrive.label,飛空艇の到着まであと{n}ターン,Turns until the airship arrives: {n}
-undead-rush.st7.arrive.name,飛空艇の到着,The Airship Arrives
 undead-rush.st7.party.paladin,パラディン隊,The Paladin Company
 undead-rush.party.survey,調査隊,The Expedition
 undead-rush.st7.arrive.1,飛空艇が着きました！　聖騎士様がお見えです！,"The airship has landed! The paladin is here!"
@@ -460,13 +457,11 @@ dragon-hunt.st3.squad.8,潜むワイアーム２,Lurking Wyrm 2
 dragon-hunt.st3.squad.9,居座るトロール,Stubborn Troll
 dragon-hunt.st3.squad.10,ローグ一味,Bandit Gang
 dragon-hunt.st3.squad.11,ローグの荷馬車,Bandit Wagon
-dragon-hunt.st3.secured.name,集落の確保,Securing the Camp
 dragon-hunt.st3.secured.1,何者だ！　盗人の仲間か！,"Who goes there! More of the thieves?"
 dragon-hunt.st3.secured.2,違う。鉱石を盗んだローグ一味を追ってきた。,"No. We are after the bandits who stole your ore."
 dragon-hunt.st3.secured.3,魔物に囲まれて困っているのだろう。手を貸そう。,"Hemmed in by monsters, I take it. We will lend a hand."
 dragon-hunt.st3.secured.4,……それは助かる。わしも囲みを破るのに手を出す。,"...That is a help. I will do my part in breaking the ring."
 dragon-hunt.st3.secured.5,傷ついた者は集落へ。中で休めば兵は戻ります。,"Send the wounded into the camp. Rest inside and their ranks fill back up."
-dragon-hunt.st3.lost.name,集落を奪われた,The Camp Lost
 dragon-hunt.st3.lost.1,おい、ドワーフ！　後から来る連中が採掘物を運び出しているぞ。これがその証拠だ。,"Hey, dwarf! The lot coming up behind us are hauling off your ore. Here is the proof."
 dragon-hunt.st3.lost.2,なんと……盗人に鉱脈を触らせるわけにはいかん。わしが追い払ってやる！,"What! ...No thief lays a hand on our seam. I will drive them off myself!"
 dragon-hunt.st3.lost.3,まずい、先を越されたわ。嘘を吹き込まれてる。,"Bad — they beat us there. He is being fed lies."

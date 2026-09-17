@@ -211,18 +211,20 @@ static func _identity_of_saved(ed: Dictionary) -> String:
 		Vector2i(int(ed.get("hex_q", 0)), int(ed.get("hex_r", 0))),
 		String(ed.get("once", "")), String(ed.get("label", "")))
 
-## ステージJSONのイベント記述の内容の鍵。既定値の解釈は StageLoader._apply_events と揃える。
+## ステージJSONのイベント記述の内容の鍵。陣営の解釈は StageLoader._parse_event と揃える。
+## 鍵の引き金の表記は v2 セーブが持っていた旧 on（"" ＝ターン／"capture"）に合わせる＝type から読み替える。
 static func _identity_of_stage(e: Dictionary) -> String:
-	var on := String(e.get("on", ""))
+	var is_capture := String(e.get("type", "")) == "capture"
+	var on := "capture" if is_capture else ""
 	var hex := Vector2i.MAX
-	if on == "capture" and e.has("col") and e.has("row"):
+	if is_capture and e.has("col") and e.has("row"):
 		hex = Hex.offset_to_axial(int(e["col"]), int(e["row"]))
-	# 陣営は増援なら駒を書いたセクション、会話だけなら "team"（引き金の条件）。
+	# 引き金の陣営は、占領なら取った側（captured_by）、ターンなら駒を書いたセクション（無ければ自軍）。
 	var team := 0
-	if typeof(e.get("enemy")) == TYPE_ARRAY:
+	if is_capture:
+		team = int(StageLoader.EVENT_SECTIONS.get(String(e.get("captured_by", "")), 0))
+	elif typeof(e.get("enemy")) == TYPE_ARRAY:
 		team = 1
-	elif typeof(e.get("player")) != TYPE_ARRAY and e.has("team"):
-		team = int(StageLoader.TEAM_NAMES.get(String(e["team"]), 0))
 	return _identity(int(e.get("turn", 1)), team, on, hex, String(e.get("once", "")), String(e.get("label", "")))
 
 static func _identity(turn: int, team: int, on: String, hex: Vector2i, once: String, label: String) -> String:

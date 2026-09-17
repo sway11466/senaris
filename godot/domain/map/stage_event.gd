@@ -7,8 +7,8 @@ class_name StageEvent
 ## 引き金。TURN＝発生ターンが来た（自分の陣営の手番の頭）／CAPTURE＝拠点の所属が変わった。
 enum Trigger { TURN, CAPTURE }
 
-## ステージJSONの "on" と1対1。省略（""）＝ターン。
-const TRIGGER_IDS := { "": Trigger.TURN, "capture": Trigger.CAPTURE }
+## ステージJSONの "type" と1対1。省略は無い＝必ず書く（StageLoader が検査）。
+const TRIGGER_IDS := { "turn": Trigger.TURN, "capture": Trigger.CAPTURE }
 
 ## 登場の仕方。MARCH＝入口から1体ずつ順に出て所定位置まで歩く／SCATTER＝入口から全員が続けて
 ## 出て同時に散る／FADE＝所定位置にその場で浮かび上がる（入口を持たない）。
@@ -19,7 +19,7 @@ const ENTRY_IDS := { "march": Entry.MARCH, "scatter": Entry.SCATTER, "fade": Ent
 
 var id: String                     ## ステージ内で一意（発火済みの記録＝中断セーブが持つ）
 var turn: int = 1                  ## 発生ターン（TURN のとき。過ぎていても取りこぼさない）
-var team: int                      ## 起こす陣営（TURN＝その陣営の手番で起きる／CAPTURE＝その陣営が取ったとき）
+var team: int                      ## 引き金の陣営（TURN＝その陣営の手番の頭で起きる／CAPTURE＝その陣営が取ったとき）。出す駒の陣営は駒が持つ
 var trigger: Trigger = Trigger.TURN
 var hex := Vector2i.MAX            ## CAPTURE のとき対象の拠点
 var once: String = ""              ## 排他の名前。同じ名前の未発生イベントは、どれか1つが起きたら残りを捨てる
@@ -36,7 +36,7 @@ var from := Vector2i.MAX           ## 入口＝駒が盤に入ってくる hex�
 func is_capture() -> bool:
 	return trigger == Trigger.CAPTURE
 
-## 引き金の JSON 表記（"" / "capture"）。上へ渡す素データと、旧セーブとの突き合わせが読む。
+## 引き金の JSON 表記（"turn" / "capture"）。上へ渡す素データが読む。
 func trigger_id() -> String:
 	return String(TRIGGER_IDS.find_key(trigger))
 

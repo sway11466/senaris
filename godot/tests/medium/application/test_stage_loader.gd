@@ -766,9 +766,9 @@ func test_count_start_allies_counts_neutral_garrison_and_pending_events() -> voi
 			{ "col": 5, "row": 1, "team": "enemy", "garrison": [ { "type": "knight", "count": 3, "native": "enemy" } ] },
 		],
 		"events": [
-			{ "id": "help", "turn": 5, "entry": "fade",
+			{ "id": "help", "type": "turn", "turn": 5, "entry": "fade",
 				"player": [ { "units": [ { "type": "knight", "col": 0, "row": 0 } ] } ] },
-			{ "id": "foes", "turn": 6, "entry": "fade",
+			{ "id": "foes", "type": "turn", "turn": 6, "entry": "fade",
 				"enemy": [ { "order": 1, "units": [ { "type": "knight", "col": 0, "row": 1 } ] } ] },
 		],
 	}
@@ -899,7 +899,7 @@ func test_unit_id_collected_from_garrison_events_and_passengers() -> void:
 	}
 	assert_eq(StageLoader.unit_id_problems(data).size(), 1, "搭乗者と控えの名前がぶつかる")
 	var data2 := {
-		"events": [ { "id": "w1", "turn": 2, "enemy": [ { "ai": "charge",
+		"events": [ { "id": "w1", "type": "turn", "turn": 2, "enemy": [ { "ai": "charge",
 			"units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "late" }] } ] } ],
 		"victory": [ { "type": "defeat_unit", "unit_id": "late" } ],
 	}

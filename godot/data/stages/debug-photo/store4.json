@@ -99,13 +99,11 @@
   "events": [
     {
       "id": "town-freed",
-      "type": "talk",
+      "type": "capture",
       "col": 9,
       "row": 6,
-      "team": "player",
-      "on": "capture",
+      "captured_by": "player",
       "dialogue": "free",
-      "name": "goblin-raid.st4.free.name",
       "focus": true
     }
   ],

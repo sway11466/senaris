@@ -20,7 +20,7 @@
     { "type": "capture_hq" }
   ],
   "events": [
-    { "id": "airship", "turn": 3, "type": "reinforce",
+    { "id": "airship", "turn": 3, "type": "turn",
       "entry": "march", "from": { "col": 15, "row": 0 },
       "label": "dbg.event.airship",
       "player": [
@@ -30,7 +30,7 @@
               "passengers": [ { "type": "paladin" } ] }
           ] }
       ] },
-    { "id": "goblins", "turn": 5, "type": "reinforce",
+    { "id": "goblins", "turn": 5, "type": "turn",
       "entry": "fade",
       "label": "dbg.event.goblins",
       "enemy": [

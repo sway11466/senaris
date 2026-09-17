@@ -219,7 +219,7 @@ func test_restore_picks_up_added_events() -> void:
 	var data := _stage_data()
 	var s := _rich_state(data)
 	var added := _stage_data()
-	added["events"] = [{ "id": "late-wave", "turn": 5, "type": "reinforce", "entry": "fade",
+	added["events"] = [{ "id": "late-wave", "turn": 5, "type": "turn", "entry": "fade",
 		"enemy": [{ "order": 2, "ai": "charge",
 			"units": [{ "type": "knight", "col": 7, "row": 5 }] }] }]
 	var s2 := _roundtrip(s, data, added)
