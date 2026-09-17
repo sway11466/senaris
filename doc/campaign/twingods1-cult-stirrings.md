@@ -538,4 +538,4 @@
   | 商人（有力者） | civilian | Merchant | `merchant` | st7 |
 
   邪教側の並びは三部作で共通（[twingods.md](twingods.md) 邪教側の兵）。英語名は仮。
-- `supply` と幕間の印は決定済み＝兵を満たす `refill` は st2・st3 の頭、st3〜st7 は連戦で戻らない（st4 のアジト・st6 の祈り所でだけ戻せる）。マニフェストの `interlude` は st2・st3＝`rest`、st4〜st7＝`continuous`（[../gdd/stage_select.md](../gdd/stage_select.md) 幕間の印）
+- `supply` と幕間の印は決定済み＝兵を満たす `refill` は st2・st3 の頭、st3〜st7 は連戦で戻らない（st4 のアジト・st6 の祈り所でだけ戻せる）。マニフェストの `interlude` は st2・st3＝`rest`、st4〜st7 は書かない（連戦）（[../gdd/stage_select.md](../gdd/stage_select.md) 幕間の印）
