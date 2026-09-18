@@ -14,15 +14,6 @@
 
 判明済みの不具合。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### bug-6
-
-**陣形スキルの成立する組が複数あるとき、どの組かを示せない（同名の項目が並ぶ）＋参加人数を選べない**
-- ゴール：レシピごとにメニュー項目が1つで、すべての形（固定人数・可変人数）で参加者をプレイヤーが盤の上で選べる。可変人数の形（②cluster・⑤line）は最低人数に達したら「発動」ボタンが現れ、さらに追加するか発動するかをプレイヤーが決める。③で聖職が3体隣接している盤、②で聖職が7体固まっている盤で確認できる。
-- 背景：`Formation.available_for` が成立する組を全部列挙し、`hex_board_3d.gd` の行動メニューがそれを組の数だけ同じ名前で並べる（③のパラディンの隣に聖職が3体＝「ディバインジャッジメント」が3行）。どれがどの組かは読めない。2体固定のレシピ（④⑨⑩・feature-117/118/123）が入ると常態化する。加えて、全員参加の形（②cluster・⑤line）は参加人数を選べないが、選べたほうが面白い＝8体固まっていても5体だけ使って残り3体を別行動にできる判断が生まれる。仕様は [uiux.md](gdd/uiux.md)「陣形スキルの参加者を選ぶ」・[formations.md](gdd/formations.md) 共通ルール（反映が必要）。
-- 対応：(1) `available_for` の返りをレシピ単位にまとめる（`FormationOption` に候補の組 `member_sets` を持たせるか、レシピ単位の `FormationChoice` を新設して組を内包）。AI（`ai_rows.gd`・`ai_pick.gd`）と撮影ツールは組を列挙する既存の形を使い続けてよいので、列挙する関数は残し、UI 向けにまとめる関数を足す。(2) `hex_board_3d.gd`：メニューはレシピごとに1項目。ホバーで候補の駒を橙で光らせる。選択後、参加者選びの状態（`_choosing_members`）に入り、クリックで1体ずつ確定する（残りの候補は確定済みと組める駒に絞る）。固定人数のスキル（③④⑦⑨⑩）は必要人数が揃ったら自動で次へ進む。可変人数のスキル（②cluster・⑤line）は最低人数に達した時点で「発動」ボタンを表示し、プレイヤーが追加を続けるか発動するかを選ぶ。候補が1組しかない固定人数スキルは参加者選びの段を飛ばして従来どおり即発動へ。④は着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ。発動ボタンは HUD に置き、鍵盤には割り当てない（Enter はターン終了・Space は情報板）。(3) 移動の確定（`_commit_pending_move`）をメニュー選択時から発動の直前へ遅らせ、参加者選び・着弾先選びの間は移動先に居るものとして判定する（`from_hex` は既に domain 側が受け取れる）。キャンセルは1段ずつ戻す（着弾先 → 参加者 → メニュー）＝メニューまで戻れば移動先を選び直せる。(4) 橙のオーバーレイをコードの色定数に足す（色の表は反映済み）。(5) `test_formation.gd` にレシピ単位のまとめ（組が1つ／複数）・候補の絞り込み・可変人数の連結維持・人数で変わる効果値のテスト。UI の段は実機で確認。(6) デバッグステージ `debug-formation-skill/formation.json` の盤を、③の組が複数・②の候補が最低人数超になるよう直す。
-- 考慮外：AI の組の選び方（既存のまま）。タッチ操作。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/board/`（オーバーレイの色）・`godot/presentation/ui/hud.gd`（発動ボタン）・`godot/data/i18n/map.csv`・`godot/data/stages/debug-formation-skill/formation.json`・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/uiux.md`・`doc/gdd/formations.md`。feature-117/118/123 の前提。
-
 ## 機能追加
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
@@ -218,9 +209,9 @@
 **陣形スキル④トリックショット（弓兵＋斥候・貫通0.5の単体射撃）**
 - ゴール：斥候が敵に隣接し弓兵がその敵を射程に収めたとき、弓兵の行動メニューに項目が出て、貫通0.5・反撃なしの一撃が飛ぶ。飛行の敵には対空値で撃てる。ステージでは教えない＝出れば見つかる。
 - 背景：[formations.md](gdd/formations.md) ④ で仕様確定。既存の陣形は「参加者の形」（triangle／escort／cluster）だけを見るが、これは「対象の周りに参加者が居るか」を見る初めての形。威力の計算も既存は常に対地値・貫通は発動者依存で、矢のレシピ（④⑥⑨）は相手が飛行なら対空値・貫通はレシピ側で上書き、が要る。⑥⑨がこの下地を使うので最初に作る。
-- 対応：(1) `Formation.RECIPES` に `trick_shot`（leader＝archer/hunter/elf、member＝scout/thief/halfling/ninja/kunoichi、shape `spotter`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"＝相手で対地／対空を切り替え）。(2) `FormationOption.Shape` に `SPOTTER` を足し、`available_for` は対象候補ごとに「その対象に隣接する member」を組で持つ（対象を選んだ時点で相方が決まる。複数なら1体を選ぶ＝option を対象×相方で複数出す）。射程は発動者の通常射程（`min_range`〜`attack_range`）。参加者選びは bug-6 の仕組みに乗せる＝`choices_for`／`member_candidates` に「着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ」分岐を足す（他の形は参加者が先）。(3) `_skill_attack_breakdown` に対地／対空の切り替え、`_formation_hit` にレシピの貫通上書きを通す（`attack_vs` 未指定のレシピは従来どおり対地固定・発動者依存）。(4) 演出は③と同じ単体シーケンス（絵は `assets/formations/trick_shot_impact.png` の規約解決、無ければ共通3段）。(5) `skills.csv` に `recipe.trick_shot.name/desc`。(6) `test_formation.gd` に成立（斥候が対象に隣接／弓兵が射程内）・不成立（斥候が発動者にだけ隣接）・貫通・対空の切り替えのテスト。
+- 対応：(1) `Formation.RECIPES` に `trick_shot`（leader＝archer/hunter/elf、member＝scout/thief/halfling/ninja/kunoichi、shape `spotter`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"＝相手で対地／対空を切り替え）。(2) `FormationOption.Shape` に `SPOTTER` を足し、`available_for` は対象候補ごとに「その対象に隣接する member」を組で持つ（対象を選んだ時点で相方が決まる。複数なら1体を選ぶ＝option を対象×相方で複数出す）。射程は発動者の通常射程（`min_range`〜`attack_range`）。参加者選びは既存の仕組みに乗せる＝`choices_for`／`member_candidates` に「着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ」分岐を足す（他の形は参加者が先）。(3) `_skill_attack_breakdown` に対地／対空の切り替え、`_formation_hit` にレシピの貫通上書きを通す（`attack_vs` 未指定のレシピは従来どおり対地固定・発動者依存）。(4) 演出は③と同じ単体シーケンス（絵は `assets/formations/trick_shot_impact.png` の規約解決、無ければ共通3段）。(5) `skills.csv` に `recipe.trick_shot.name/desc`。(6) `test_formation.gd` に成立（斥候が対象に隣接／弓兵が射程内）・不成立（斥候が発動者にだけ隣接）・貫通・対空の切り替えのテスト。
 - 考慮外：敵AIの使用（敵スキンはレシピに書かない）。教えるステージの追加。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。前提＝bug-6（参加者を選ぶ段）。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。
 
 ### feature-118
 
@@ -228,7 +219,7 @@
 - ゴール：弓兵と魔法兵が隣接しているとき、弓兵から「2体の攻撃力の大きい方＋10・貫通0.5」の単体射撃が「2体の射程上限の長い方＋1」まで届く。届かなかった相手に魔法兵級の一撃が届く。
 - 背景：[formations.md](gdd/formations.md) ⑨ で仕様確定。escort（count 2）の流用だが、威力の元と射程を「発動者」ではなく「参加者の性能から引く」のが新しい。対空／対地の切り替えと貫通の上書きは feature-117 の下地。
 - 対応：(1) `RECIPES` に `magic_arrow`（leader＝archer/hunter/elf、member＝wizard/witch、shape `escort`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"、`attack_from` "max_plus"（値 10）、`range_from_stats` "max_plus"（値 1）、下限なし）。(2) `_skill_attack_breakdown` に「参加者の攻撃力の最大＋定数」を元にする経路（兵数・レベル・包囲・地形は発動者のもの）。(3) `available_for`／`_in_range_cells` で射程を参加者の `attack_range` の最大＋1 から求める（レシピの固定 `range` と排他）。(4) 演出は④と同じ単体シーケンス（`magic_arrow_impact.png`）。(5) `skills.csv`。(6) テスト＝威力の元の選び方（地上はウィザード40＋10／空はエルフ60＋10）・射程（アーチャー＋ウィザード＝5・エルフ＝6）。
-- 該当：feature-117 と同じ。前提＝feature-117・bug-6。
+- 該当：feature-117 と同じ。前提＝feature-117。
 
 ### feature-119
 
@@ -277,7 +268,7 @@
 - ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
 - 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `skills.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
-- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120・bug-6。
+- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120。
 
 ### feature-127
 
