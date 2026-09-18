@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=131 / refactoring=21.
+次回採番: bug=12 / feature=132 / refactoring=21.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -191,7 +191,7 @@
 **邪神三部作 第1部 st6「別荘の床下から」のステージ実装（twingods1-6）**
 - ゴール：第1部の st6 が st5 から続けて遊べる（連戦の一行7人が床下から別荘へ上がり、寝ている私兵を起こさずに通るか選び、祈り所で休めて、渡り廊下の扉を押さえて会話へ）。
 - 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st6 が設計・台本まで決まった。待ち伏せ・突撃・睨み合い・敵hq占領・拠点の回復（`rest: player`）は既存。敵スキンは st2 の人さらい3種と st3 の邪信徒2種を流用＝新規なし。無いのは別荘の地形スキン。
-- 対応：(1) ステージ JSON `cult-stirrings-st6.json`＝床下の階段から母屋の廊下へ、両脇に私兵の部屋（待ち伏せ・索敵2）、廊下の先に中庭、2階の回廊に投石3（待ち伏せ）、中庭に私兵頭1（突撃）、中庭の先に祈り所（拠点・`team: enemy`・`rest: player`）と渡り廊下の扉（敵hq・`rest: enemy`）、その手前に見習い教徒3（突撃）と術者2（睨み合い）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`capture_hq` か殲滅、敗北＝全滅、`turn_limit` 20。(2) `campaign.json` に st6 を足す（解放条件＝st5 クリア・`interlude` 無し＝連戦）。(3) 翻訳 CSV＝`campaigns.csv`（st6 の題）と `dialogue.csv`（戦闘前・戦闘後の台本）。(4) 地形スキン＝別荘の床（絨毯＝`road` か `plain` の見た目違い）・別荘の壁（`wall` 型）・中庭（`plain` の見た目違い）・2階の回廊（`plateau` の見た目違い＝撃ち下ろす高み）・祈り所（`fort` 型の見た目違い）・渡り廊下の扉（`fort` 型の見た目違い）。
+- 対応：(1) ステージ JSON `cult-stirrings-st6.json`＝床下の階段から母屋の廊下へ、両脇に私兵の部屋（待ち伏せ・索敵2）、廊下の先に中庭、2階の回廊に投石3（待ち伏せ）、中庭に私兵頭1（突撃）、中庭の先に祈り所（拠点・`team: enemy`・`rest: player`）と渡り廊下の扉（敵hq・`rest: enemy`）、その手前に見習い教徒3（突撃）と術者2（睨み合い）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`capture_hq` か殲滅、敗北＝全滅、`turn_limit` 20。(2) `campaign.json` に st6 を足す（解放条件＝st5 クリア・`interlude` は `damaged`＝連戦）。(3) 翻訳 CSV＝`campaigns.csv`（st6 の題）と `dialogue.csv`（戦闘前・戦闘後の台本）。(4) 地形スキン＝別荘の床（絨毯＝`road` か `plain` の見た目違い）・別荘の壁（`wall` 型）・中庭（`plain` の見た目違い）・2階の回廊（`plateau` の見た目違い＝撃ち下ろす高み）・祈り所（`fort` 型の見た目違い）・渡り廊下の扉（`fort` 型の見た目違い）。
 - 考慮外：st7。使用人などの支援ユニット（出さない）。
 - 該当：`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/terrain/terrain_skin.csv`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧に行を足す）。前提＝feature-106〜110。
 
@@ -200,7 +200,7 @@
 **邪神三部作 第1部 st7「離れの決戦」のステージ実装（twingods1-7）**
 - ゴール：第1部が st1 から st7 まで通しで遊べる（連戦の一行7人が離れに踏み込み、壁と高みに守られた邪神官を落として幕。完走の勝利絵と outro）。
 - 背景：[twingods1-cult-stirrings.md](campaign/twingods1-cult-stirrings.md) の st7 が設計・台本まで決まった。ボス撃破（`defeat_unit`）・待ち伏せ・睨み合い・突撃・台地は既存。無いのは敵スキン2つと離れの地形スキン。
-- 対応：(1) 敵スキン「邪教兵」（type `novice`・`cult_soldier`）と「商人」（type `civilian`・`merchant`＝有力者。攻撃0の非戦闘員で、倒れる＝取り押さえた）を `unit_skin.csv` に足す。絵は仮でよい。(2) ステージ JSON `cult-stirrings-st7.json`＝渡り廊下から離れの一室へ。奥の祭壇に邪神官（`unit_id: cult_priest`・`standoff`）、左右の台地に邪教徒3（`standoff`）、手前に邪教兵4（`ambush`・索敵1）、邪教見習い2（`charge`）、祭壇の脇に商人（`actor: patron`・`ambush`・索敵0）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`defeat_unit`（cult_priest）のみ、敗北＝全滅、`turn_limit` 20。逃げ切り拠点は置かない。(3) `campaign.json` に st7 を足す（解放条件＝st6 クリア・`interlude` 無し＝連戦）。(4) 翻訳 CSV＝`campaigns.csv`（st7 の題・冒険譚の説明）と `dialogue.csv`（戦闘前・戦闘後の台本・話者「邪神官」「有力者」「有力者の娘」＝町娘のスキンの顔を流用）。(5) 地形スキン＝離れの床・壁・祭壇（st5 の祭壇と同じでよい）・高み（`plateau` の見た目違い）。(6) 完走の勝利絵 `{id}_victory.png` と扉絵 `{id}_cover.png`（[keyvisual.md](art/keyvisual.md)）は別途。
+- 対応：(1) 敵スキン「邪教兵」（type `novice`・`cult_soldier`）と「商人」（type `civilian`・`merchant`＝有力者。攻撃0の非戦闘員で、倒れる＝取り押さえた）を `unit_skin.csv` に足す。絵は仮でよい。(2) ステージ JSON `cult-stirrings-st7.json`＝渡り廊下から離れの一室へ。奥の祭壇に邪神官（`unit_id: cult_priest`・`standoff`）、左右の台地に邪教徒3（`standoff`）、手前に邪教兵4（`ambush`・索敵1）、邪教見習い2（`charge`）、祭壇の脇に商人（`actor: patron`・`ambush`・索敵0）。一行7人は `actor` のみ（連戦・`supply` 無し）。勝利＝`defeat_unit`（cult_priest）のみ、敗北＝全滅、`turn_limit` 20。逃げ切り拠点は置かない。(3) `campaign.json` に st7 を足す（解放条件＝st6 クリア・`interlude` は `damaged`＝連戦）。(4) 翻訳 CSV＝`campaigns.csv`（st7 の題・冒険譚の説明）と `dialogue.csv`（戦闘前・戦闘後の台本・話者「邪神官」「有力者」「有力者の娘」＝町娘のスキンの顔を流用）。(5) 地形スキン＝離れの床・壁・祭壇（st5 の祭壇と同じでよい）・高み（`plateau` の見た目違い）。(6) 完走の勝利絵 `{id}_victory.png` と扉絵 `{id}_cover.png`（[keyvisual.md](art/keyvisual.md)）は別途。
 - 考慮外：第2部。有力者を勝敗条件に入れること。
 - 該当：`godot/data/units/unit_skin.csv`・`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/twingods1-cult-stirrings/`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/dialogue.csv`・`doc/gdd/map_patterns.md`（ステージ一覧は記入済み。実装後に数を合わせる）。前提＝feature-106〜110・112。
 
@@ -293,6 +293,15 @@
 - 背景：台本には在籍による行の出し入れ（`joined:<actor>`）と、どちらか一方しか起きないイベントがある（[chronicle.md](gdd/chronicle.md) 分岐の切り替え）。既定は最後に遊んだ回で、切り替えは両方を経験している箇所だけに出す＝読み始める前に顔ぶれを選ばせない。
 - 対応：通し読みが分岐に差しかかったとき、パネル脇に切り替えを出す。切り替えは仲間ごとに独立。
 - 該当：`godot/presentation/chronicle/`・[chronicle.md](gdd/chronicle.md) 分岐の切り替え。前提＝feature-126。
+
+### feature-131
+
+**依頼書を見開きの2段組に作り直す**
+- ゴール：ステージの札を押すと、あらすじ・幕間の印・過去の戦果・出撃する顔ぶれが1枚の紙で読める。一覧の札には印が何も載っていない。
+- 背景：兵の戻り方を札に小さな印で載せる形が絵として成立せず、紙で見せる形に決め直した（[stage_select.md](gdd/stage_select.md) 依頼書）。駒ごとの印は同じことを駒の数だけ繰り返していたので幕間の印1枚に畳む。久しぶりに開いた人が話の続きを思い出せるよう、全ステージにあらすじを持たせる。
+- 対応：(1) `QuestSheet` を左右2段に組み直す＝左にあらすじと幕間の印、右に顔ぶれ、右上に戦果の判子、紙は横長。紙の材質は横も引き伸ばす（タイルだと元絵の幅で継ぎ目が出る）。(2) 駒ごとの印を撤去＝`_with_badge` と升の幅固定、`icons/quest/` の4枚、`ui.quest.badge_*` の翻訳キー、`StageLoader` が返す `badge`。(3) `StageSelect` から札のランクの印とクリアバッジを外す。(4) `campaign.json` に `synopsis` を全ステージ（デバッグ冒険譚も1文）、`interlude` を `damaged`／`refill`／`revive` の3値に書き換え＝継承の冒険譚の2話目以降に必ず書く。(5) `campaigns.csv` にあらすじ本文（`<冒険譚>.stN.synopsis`・日英）。(6) データ整合テストを3値と `synopsis` 必須に合わせる。
+- 考慮外：幕間の印の絵（別途）。冒険譚カード側の `DONE` の印。
+- 該当：`godot/presentation/select/quest_sheet.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/select/tavern_theme.gd`（紙の stylebox）・`godot/application/stage_loader.gd`・`godot/data/stages/campaign_catalog.gd`・各 `campaign.json`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/menu.csv`・`godot/tests/small/data/test_data_integrity.gd`・[stage_select.md](gdd/stage_select.md)・[rank.md](gdd/rank.md)・[icons.md](art/icons.md)・[menu.md](art/menu.md)。
 
 ## リファクタリング
 
