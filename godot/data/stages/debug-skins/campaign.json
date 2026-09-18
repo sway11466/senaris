@@ -6,62 +6,74 @@
     {
       "id": "ally",
       "file": "ally.json",
-      "title": "味方ユニット"
+      "title": "味方ユニット",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "goblin",
       "file": "goblin.json",
-      "title": "ゴブリン"
+      "title": "ゴブリン",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "undead",
       "file": "undead.json",
-      "title": "アンデッド"
+      "title": "アンデッド",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "orc",
       "file": "orc.json",
-      "title": "オーク"
+      "title": "オーク",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "beast",
       "file": "beast.json",
-      "title": "魔獣"
+      "title": "魔獣",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "giant",
       "file": "giant.json",
-      "title": "巨人"
+      "title": "巨人",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "plant",
       "file": "plant.json",
-      "title": "植物"
+      "title": "植物",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "dragon",
       "file": "dragon.json",
-      "title": "ドラゴン"
+      "title": "ドラゴン",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "magical",
       "file": "magical.json",
-      "title": "魔法生物"
+      "title": "魔法生物",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "rogue",
       "file": "rogue.json",
-      "title": "悪党"
+      "title": "悪党",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "terrain",
       "file": "terrain.json",
-      "title": "地形見本（基本地形・7ヘクスずつ）"
+      "title": "地形見本（基本地形・7ヘクスずつ）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "height",
       "file": "height.json",
-      "title": "高さ見本（徐々に上がる傾斜・崖）"
+      "title": "高さ見本（徐々に上がる傾斜・崖）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

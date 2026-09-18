@@ -11,15 +11,6 @@ signal back_requested
 
 const ROW_HEIGHT := 48.0
 const LOCKED_TILTS := [-2.0, 1.4, -1.6, 2.2]  # 裏返した札の傾き（度）
-const RANK_MARK_D := 38.0    # 木札に押すランクの印の直径（札の高さ48に収まる大きさ）
-const RANK_MARK_FONT := 26   # 印の字の上限。実際の大きさは直径側で頭打ちになる
-const RANK_MARK_FILL := 1.15 # 丸の大きさは据え置いて字だけ太らせる（戦果票の印と同じ扱い）
-const RANK_MARK_DROP := 0.04 # 字を丸の中心より少し下げる（同上）
-const RANK_MARK_PAD := 10.0  # 札の右端から印までの余白
-const INTERLUDE_DIR := "res://assets/icons/interlude/"  # 幕間の印の絵（{interlude}.png）
-const INTERLUDE_H := 24.0  # 幕間の印の高さ。札と札のあいだの中央に置く
-
-var _rank_font_cache: Font = null
 
 var _progress: CampaignProgress
 var _title: Label
@@ -156,13 +147,7 @@ func show_campaign(campaign_id: String, variant: int = -1) -> void:
 	_set_cover(_variant_at(art_paths, variant), tr(String(c["title"])))
 	_clear_children(_stage_list)
 	for i in c["stages"].size():
-		var s: Dictionary = c["stages"][i]
-		# 幕間の印は「次の行の前」＝その話の前で兵が戻るなら、前の札との間に挟む。
-		# 未解放の行の前でも出す（伏せるのは題名だけ）。doc/gdd/stage_select.md 幕間の印
-		var mark := _interlude_mark(String(s["interlude"]))
-		if mark != null:
-			_stage_list.add_child(mark)
-		_stage_list.add_child(_stage_row(campaign_id, s, i + 1))
+		_stage_list.add_child(_stage_row(campaign_id, c["stages"][i], i + 1))
 
 ## 扉絵を表示。cover_path があれば絵＋ラベル非表示、無ければプレースホルダ（タイトル）へ。
 func _set_cover(cover_path: String, title: String) -> void:
@@ -174,21 +159,13 @@ func _set_cover(cover_path: String, title: String) -> void:
 	_art_label.text = "" if tex != null else title
 
 ## ステージ1行。未解放は裏返した札（名前を出さず傾けた板）で返すので、戻りは Control。
+## 札には印を何も載せない＝ランクもクリアの印も幕間の印も置かない（doc/gdd/stage_select.md
+## ステージ一覧）。一覧は題名を並べるだけの場所で、そのステージのことは押して依頼書で読む。
 func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Control:
-	var label := "%d. %s" % [number, tr(String(s["title"]))]  # stage.title は翻訳キー（i18n）
-	var stage_state := _progress.stage_state(campaign_id, String(s["id"]))
-	var locked := stage_state == CampaignProgress.LOCKED
-	var text := label
-	var rank := ""
-	match stage_state:
-		CampaignProgress.CLEARED:
-			# ランクがあれば札の右端に焼き印で押す＝そちらがクリアの印になるので ✓ は出さない。
-			# ランクを持たないステージ（rank を書いていないデバッグ盤など）だけ ✓ のまま。
-			rank = _progress.best_rank(campaign_id, String(s["id"]))
-			if rank.is_empty():
-				text = "✓ %s" % label
-		CampaignProgress.LOCKED:
-			text = "%d." % number  # 名前は伏せる＝裏返した札。解放条件は押すと依頼書で出す
+	var text := "%d. %s" % [number, tr(String(s["title"]))]  # stage.title は翻訳キー（i18n）
+	var locked := _progress.stage_state(campaign_id, String(s["id"])) == CampaignProgress.LOCKED
+	if locked:
+		text = "%d." % number  # 名前は伏せる＝裏返した札。解放条件は押すと依頼書で出す
 	# 依頼ボードに下がる木札（focus_mode は wood_button 側で NONE 済み）。
 	var row := TavernTheme.wood_button(text)
 	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
@@ -201,47 +178,7 @@ func _stage_row(campaign_id: String, s: Dictionary, number: int) -> Control:
 		row.pressed.connect(_open_locked.bind(campaign_id, String(s["id"])))
 		return _tilted(row, number)
 	row.pressed.connect(_open_briefing.bind(campaign_id, s))
-	if not rank.is_empty():
-		row.add_child(_rank_mark(rank))
 	return row
-
-## 札と札のあいだに挟む幕間の印（ベッド＝休息／十字＝復帰）。印なし・絵なしは null。
-## 絵はアスペクト維持で高さ INTERLUDE_H に収め、行の中央に置く。額は付けない（板に直に載せる）。
-func _interlude_mark(interlude: String) -> Control:
-	if interlude.is_empty():
-		return null
-	var path := INTERLUDE_DIR + interlude + ".png"
-	if not ResourceLoader.exists(path):
-		return null
-	var holder := CenterContainer.new()
-	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var mark := TextureRect.new()
-	mark.texture = load(path)
-	mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	var tex_size: Vector2 = mark.texture.get_size()
-	mark.custom_minimum_size = Vector2(INTERLUDE_H * tex_size.x / maxf(tex_size.y, 1.0), INTERLUDE_H)
-	holder.add_child(mark)
-	return holder
-
-## 木札の右端に押すランクの印＝戦果票の判子をそのまま小さくしたもの。暗い木の上なので
-## 封蝋の赤ではなく焼き印の琥珀で押す。字だけを置くと「文字が1つ増えた」に見えて押した感じが
-## 出ないので、丸枠ごと縮める（38px でも二重の枠と字は潰れない。実測で確認）。
-## 字は戦果票の印と同じ書体＝小さくても形が読める（手書き風は1文字だと崩れが形の全部になる）。
-func _rank_mark(rank: String) -> Control:
-	var mark := TavernTheme.stamp(rank, TavernTheme.BRAND, -6.0, RANK_MARK_FONT, 1.0,
-		RANK_MARK_D, _rank_font(), RANK_MARK_FILL, RANK_MARK_DROP)
-	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# 札の右端に縦中央で貼る（アンカーで置く＝札の幅が変わっても付いていく）。
-	mark.set_anchors_preset(Control.PRESET_CENTER_RIGHT, true)
-	mark.position = Vector2(-mark.size.x - RANK_MARK_PAD, -mark.size.y * 0.5)
-	return mark
-
-## 印の字の書体（戦果票と同じ）。無ければ既定のまま。
-func _rank_font() -> Font:
-	if _rank_font_cache == null and ResourceLoader.exists(ResultBanner.RANK_FONT_PATH):
-		_rank_font_cache = load(ResultBanner.RANK_FONT_PATH) as Font
-	return _rank_font_cache
 
 ## 裏返した札を少し傾ける＝掛け直されていない札に見せる。角度は番号で巡回＝並びが機械的にならない。
 ## Container は並べ直すたびに子の rotation を 0 に戻すので、素の Control で1枚くるんでその中で回す
@@ -273,7 +210,11 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 	var source := _progress.roster_source(campaign_id, String(s["id"]))
 	var roster: Array = RosterStore.new().load_roster(campaign_id, source) if not source.is_empty() else []
 	var brief := StageLoader.load_briefing(path, roster)
-	_briefing.open(tr(String(s["title"])), brief.get("party", []), bool(brief.get("carryover", false)))
+	# あらすじ・幕間の印はマニフェスト（一覧に持っている辞書）から、戦果は記録から引く
+	# ＝紙を開くときに読むのはステージJSONと名簿だけで足りる。
+	_briefing.open(tr(String(s["title"])), tr(String(s["synopsis"])), String(s["interlude"]),
+		_progress.best_rank(campaign_id, String(s["id"])),
+		brief.get("party", []), bool(brief.get("carryover", false)))
 
 ## 未解放の札を押したとき＝拒否音＋解放条件だけを書いた紙を出す（ステージ名は出さない）。
 func _open_locked(campaign_id: String, stage_id: String) -> void:

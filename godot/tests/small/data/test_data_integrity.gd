@@ -421,22 +421,40 @@ func test_stages_inheriting_actors_declare_roster_from() -> void:
 				assert_false(String(s["roster_from"]).is_empty(),
 					"%s/%s は名簿から出す駒があるので roster_from を書く" % [c["id"], s["id"]])
 
+func test_every_stage_has_synopsis() -> void:
+	# あらすじは全ステージに書く（デバッグ冒険譚も1文）＝一覧から入り直した人が、依頼書で
+	# 話の続きを思い出せるようにする（doc/gdd/stage_select.md あらすじ）。
+	for c in CampaignCatalog.load_all():
+		for s in c["stages"]:
+			assert_false(String(s["synopsis"]).is_empty(),
+				"%s/%s に synopsis（あらすじ）を書く" % [c["id"], s["id"]])
+
 func test_stage_interlude_matches_supply() -> void:
 	# 幕間の印（マニフェストの interlude）は見せ方、兵が戻るかは駒の supply。2か所に書くので
 	# 食い違いをここで拾う（doc/gdd/stage_select.md 冒険譚マニフェスト）。線引き＝
-	#   rest   → 新入り（join）以外の名簿の駒は全部 refill
-	#   revive → 同じく全部 revive
-	#   印なし → refill／revive の駒が1体も無い（書き忘れの印）
-	# 1面の前に幕間は無い。デバッグ冒険譚は機能見本で refill と revive を1盤に混ぜるので対象外。
+	#   damaged → 連戦。refill／revive の駒が1体も無い
+	#   refill  → 新入り（join）以外の名簿の駒は全部 refill
+	#   revive  → 同じく全部 revive
+	# 継承の冒険譚（名簿を引き継ぐ話がある）の2話目以降は、この3値のどれかを必ず書く＝「書いて
+	# いない」と「連戦」が同じ意味になると書き忘れを拾えない。1話目と独立の冒険譚には幕間その
+	# ものが無いので書かない。デバッグ冒険譚は機能見本で refill と revive を1盤に混ぜるので対象外。
 	for c in CampaignCatalog.load_all():
 		if c["debug"]:
 			continue
+		var carryover := false
+		for s in c["stages"]:
+			if not String(s["roster_from"]).is_empty():
+				carryover = true
 		for i in c["stages"].size():
 			var s: Dictionary = c["stages"][i]
 			var interlude: String = s["interlude"]
 			var where := "%s/%s" % [c["id"], s["id"]]
-			if i == 0:
-				assert_true(interlude.is_empty(), "%s: 1面の前に幕間は無い" % where)
+			if i == 0 or not carryover:
+				assert_true(interlude.is_empty(), "%s: 幕間の無い話（1話目・独立）に interlude は書かない" % where)
+			else:
+				assert_true(CampaignCatalog.INTERLUDES.has(interlude),
+					"%s: 継承の2話目以降は interlude を %s のどれかで書く（今は '%s'）"
+						% [where, str(CampaignCatalog.INTERLUDES), interlude])
 			var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(s["path"]))
 			if typeof(data) != TYPE_DICTIONARY:
 				continue
@@ -451,10 +469,10 @@ func test_stage_interlude_matches_supply() -> void:
 						continue
 					var label := "%s の駒 %s（supply='%s'）" % [where, String(u["actor"]), supply]
 					match interlude:
-						"rest":
+						"refill":
 							assert_eq(supply, "refill", "%s: 休息の話は名簿の駒を refill で出す" % label)
 						"revive":
 							assert_eq(supply, "revive", "%s: 復帰の話は名簿の駒を revive で出す" % label)
 						_:
 							assert_false(supply in ["refill", "revive"],
-								"%s: 兵を戻す駒があるならマニフェストに interlude を書く" % label)
+								"%s: 兵を戻す駒があるなら interlude は refill／revive" % label)

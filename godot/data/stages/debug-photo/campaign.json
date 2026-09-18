@@ -6,47 +6,56 @@
     {
       "id": "devlog1-1",
       "file": "devlog1-1.json",
-      "title": "devlog1-1 細道の栓（st3）"
+      "title": "devlog1-1 細道の栓（st3）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "devlog1-2",
       "file": "devlog1-2.json",
-      "title": "devlog1-2 戦闘（ファイター対ホブゴブリン）"
+      "title": "devlog1-2 戦闘（ファイター対ホブゴブリン）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "store1",
       "file": "store1.json",
-      "title": "store1 紹介画像の1枚目（盤の全景・包囲しかけ）"
+      "title": "store1 紹介画像の1枚目（盤の全景・包囲しかけ）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "store2",
       "file": "store2.json",
-      "title": "store2 紹介画像の2枚目（戦闘の演出・ノービス対ホブゴブリン）"
+      "title": "store2 紹介画像の2枚目（戦闘の演出・ノービス対ホブゴブリン）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "store3",
       "file": "store3.json",
-      "title": "store3 紹介画像の3枚目（陣形スキルのカットイン＝トリニティノヴァ）"
+      "title": "store3 紹介画像の3枚目（陣形スキルのカットイン＝トリニティノヴァ）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "store4",
       "file": "store4.json",
-      "title": "store4 紹介画像の4枚目（会話パート＝チュートリアル1・第4話の導入）"
+      "title": "store4 紹介画像の4枚目（会話パート＝チュートリアル1・第4話の導入）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "devlog4-1",
       "file": "devlog4-1.json",
-      "title": "devlog4-1 グレイス（st5 の盤）"
+      "title": "devlog4-1 グレイス（st5 の盤）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "devlog4-2",
       "file": "devlog4-2.json",
-      "title": "devlog4-2 ドレッドタッチ（st3 の盤）"
+      "title": "devlog4-2 ドレッドタッチ（st3 の盤）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "devlog4-3",
       "file": "devlog4-3.json",
-      "title": "devlog4-3 乗り物＝馬車と飛空艇（st7 の盤のコピー）"
+      "title": "devlog4-3 乗り物＝馬車と飛空艇（st7 の盤のコピー）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

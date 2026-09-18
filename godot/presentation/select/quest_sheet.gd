@@ -2,40 +2,53 @@ extends Control
 class_name QuestSheet
 ## 出撃確認の依頼書ダイアログ。仕様 → doc/gdd/stage_select.md（依頼書）
 ## ボードから紙を1枚受け取る見立て＝羊皮紙シート＋出撃する/別のステージを選ぶ。
-## 標準 ConfirmationDialog の置き換え。紙に書くもの（顔ぶれ・戦力の供給／勝利条件は書かない）は
-## doc/gdd/stage_select.md 依頼書で決める。
+## 標準 ConfirmationDialog の置き換え。紙に書くもの（あらすじ・幕間の印・戦果・顔ぶれ／
+## 勝利条件は書かない）は doc/gdd/stage_select.md 依頼書で決める。
+## 見開きの本のように左右2段に割り、どちらのページも左端から始める＝本文の左端と、右の見出し・
+## 駒の左端が2本の縦の線になる。中身の量（駒の数・あらすじの長さ）は話ごとに変わるので、
+## 寄せる辺を決めておかないと数によって並びが動く。
 ## 未解放のステージを押したときは同じ紙で解放条件を出す（open_locked）＝一覧から条件の文字を追い出す。
 
 signal confirmed
 
-const SHEET_SIZE := Vector2(560, 400)  # 紙の最小寸法（parchment_sheet.png と同寸）。顔ぶれの群が増えると縦に伸びる
+const SHEET_SIZE := Vector2(900, 400)  # 紙の最小寸法。横長＝見開きの2段組。縦は顔ぶれの群の数で伸びる
 
 const LOCKED_TITLE_KEY := "ui.quest.locked_title"
+
+const COL_GAP := 28       # 左右のページの間
+const COL_SEP := 18       # 左のページの中（あらすじ→幕間の印）
+const BODY_FONT := 17     # あらすじ・解放条件の本文
+
+## 幕間の印（その話の前に何が起きたか）＝絵1枚。高さは紙に並ぶ駒と同じ（doc/art/icons.md 幕間の印）。
+## 絵の無い印（まだ描いていない値）は何も出さない＝欠けた枠を見せない。
+const INTERLUDE_DIR := "res://assets/icons/interlude/"
+const INTERLUDE_H := 54.0
+
+## 戦果の判子（過去の最高ランク）＝紙の右上の角に押す。上と右の余白を同じにして角へ寄せる
+## ＝後から書き足した検印に見える。焼き印の琥珀をそのまま押すと羊皮紙で浮くので暗く落とす。
+const RANK_STAMP_D := 54.0
+const RANK_STAMP_PAD := 22.0
+const RANK_STAMP_TILT := -8.0
+const RANK_STAMP_FONT := 38
+const RANK_STAMP_FILL := 1.15  # 丸の大きさは据え置いて字だけ太らせる（1文字を押すとき用）
+const RANK_STAMP_DROP := 0.04  # 字を丸の中心より少し下げる（同上）
+const RANK_STAMP_DARKEN := 0.38
 
 const PARTY_ICON_H := 54.0  # 顔ぶれ1体の高さ（絵は全員ぶんの帯で切ってから揃える）
 const PARTY_SEP := 6        # 絵と絵の間
 const PARTY_HEAD_SEP := 2   # 見出しと、その見出しが指す並びの間（塊の中）
 const PARTY_GROUP_SEP := 16  # 塊と塊の間。中より広く取る＝見出しがどの並びのものか一目で分かる
 
-## 駒の下に置く印（兵の出方）＝絵＋語。絵のファイル名は StageLoader.BADGE_* の値。
-## 絵は座標から焼いた図形（doc/art/icons.md 依頼書の印）＝どれも 128px 四方・塗り面積を
-## 揃えてあるので、同じ枠に入れれば1つだけ重く見えることはない。
-const BADGE_DIR := "res://assets/icons/quest/"
-const BADGE_SIZE := 12.0  # 語の左に置く絵の一辺
-const BADGE_FONT := 10    # 語の大きさ。群の見出し（14）より小さい＝見出しと読み違えない
-const BADGE_GAP := 3      # 絵と語の間
-const BADGE_SEP := 2      # 駒と、その下の印の間
-## 印が付く群のセルの最小幅。印は器から張り出して描くので、これが狭いと隣の語とぶつかる。
-## 語の長さで決めず定数で持つ＝駒の間隔が言語で変わらない。いちばん長い語（英語 Revived）が
-## 収まる幅にしてある。訳を足して溢れるようになったら、ここを広げる。
-const BADGE_CELL := 52.0
-
 var _title: Label
 var _body: Label
+var _interlude: TextureRect
+var _rank_slot: Control
+var _right: VBoxContainer
 var _back: Button
 var _sortie: Button
 var _party_box: VBoxContainer
 var _skins: Dictionary
+var _rank_font_cache: Font = null
 
 func _ready() -> void:
 	_skins = SkinCatalog.load_standard()  # 顔ぶれの絵を引く表（開くたびに読み直さない）
@@ -61,6 +74,12 @@ func _ready() -> void:
 	sheet.add_theme_stylebox_override("panel", TavernTheme.sheet_stylebox())
 	center.add_child(sheet)
 
+	# 判子は紙の角に押す＝中身の器（余白の内側）ではなく紙そのものに載せる。
+	_rank_slot = Control.new()
+	_rank_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_rank_slot.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sheet.add_child(_rank_slot)
+
 	var pad := MarginContainer.new()
 	for side in ["margin_left", "margin_right", "margin_bottom"]:
 		pad.add_theme_constant_override(side, 32)
@@ -84,18 +103,38 @@ func _ready() -> void:
 	rule.custom_minimum_size = Vector2(0.0, 2.0)
 	content.add_child(rule)
 
+	# 見開きの本体＝左右2段。左右は同じ幅（stretch_ratio を揃える）。
+	var cols := HBoxContainer.new()
+	cols.add_theme_constant_override("separation", COL_GAP)
+	content.add_child(cols)
+
+	var left := VBoxContainer.new()
+	left.add_theme_constant_override("separation", COL_SEP)
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cols.add_child(left)
+
 	_body = Label.new()
-	_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_body.add_theme_font_size_override("font_size", 18)
+	_body.add_theme_font_size_override("font_size", BODY_FONT)
 	_body.add_theme_color_override("font_color", TavernTheme.INK)
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_body)
+	left.add_child(_body)
 
-	# 出撃する顔ぶれ＝盤と同じマップ絵を紙の幅で折り返して並べる。継承のステージでは
-	# 「引き継ぐ隊」と「この戦い限りの駒」を別の行に分ける（混ぜると全部引き継ぐように読める）。
+	# 幕間の印。絵は横の比率を保つので、幅は絵ごとに変わる（左端は揃う）。
+	_interlude = TextureRect.new()
+	_interlude.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_interlude.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_interlude.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	left.add_child(_interlude)
+
+	# 右＝出撃する顔ぶれ＝盤と同じマップ絵をページの幅で折り返して並べる。継承のステージでは
+	# 「引き継ぐ隊」と「この戦い限りの駒」を別の塊に分ける（混ぜると全部引き継ぐように読める）。
+	_right = VBoxContainer.new()
+	_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cols.add_child(_right)
+
 	_party_box = VBoxContainer.new()
 	_party_box.add_theme_constant_override("separation", PARTY_GROUP_SEP)
-	content.add_child(_party_box)
+	_right.add_child(_party_box)
 
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -118,13 +157,18 @@ func _ready() -> void:
 	_sortie.pressed.connect(_on_sortie_pressed)
 	buttons.add_child(_sortie)
 
-## party＝StageLoader.preview_player_units の配列（{ skin_id, available, carried, badge }）。
+## synopsis＝あらすじの本文（訳したもの）。interlude＝その話の前の幕間（CampaignCatalog.INTERLUDES・
+## ""＝幕間なし）。rank＝過去の最高ランク（""＝未クリア）。
+## party＝StageLoader.preview_player_units の配列（{ skin_id, available, carried }）。
 ## carryover＝この戦いの生き残りが次へ渡るか（doc/gdd/campaigns.md 戦力供給モデル）。
-func open(stage_title: String, party: Array = [], carryover: bool = false) -> void:
+func open(stage_title: String, synopsis: String, interlude: String, rank: String,
+		party: Array = [], carryover: bool = false) -> void:
 	_title.text = stage_title
-	_body.text = tr("ui.quest.confirm")
+	_body.text = synopsis
 	_back.text = tr("ui.quest.back")
 	_sortie.text = tr("ui.quest.sortie")  # 開くたびに貼り直す＝言語を変えたあとも紙の文字が揃う
+	_set_interlude(interlude)
+	_set_rank(rank)
 	_fill_party(party, carryover)
 	_sortie.visible = true
 	visible = true
@@ -135,6 +179,8 @@ func open_locked(unlock_text: String) -> void:
 	_title.text = tr(LOCKED_TITLE_KEY)
 	_body.text = unlock_text
 	_back.text = tr("ui.quest.close")
+	_set_interlude("")
+	_set_rank("")
 	_fill_party([], false)  # 顔ぶれも出さない＝名前を伏せた紙が中身を漏らさない
 	_sortie.visible = false
 	visible = true
@@ -142,7 +188,44 @@ func open_locked(unlock_text: String) -> void:
 func close() -> void:
 	visible = false
 
-## 顔ぶれを並べ直す。空なら行ごと消える（未解放の紙・自軍の駒が無いステージ）。
+## 幕間の印を貼り替える。印なし・絵がまだ無い値は器ごと隠す＝空きも詰まる。
+func _set_interlude(interlude: String) -> void:
+	var path := INTERLUDE_DIR + interlude + ".png"
+	var tex: Texture2D = load(path) if not interlude.is_empty() and ResourceLoader.exists(path) else null
+	_interlude.texture = tex
+	_interlude.visible = tex != null
+	if tex == null:
+		return
+	var size: Vector2 = tex.get_size()
+	_interlude.custom_minimum_size = Vector2(INTERLUDE_H * size.x / maxf(size.y, 1.0), INTERLUDE_H)
+
+## 戦果の判子を押し直す。未クリア（ランクなし）は何も押さない。
+## 字は戦果票の印と同じ書体＝1文字でも形が読める（手書き風は1文字だと崩れが形の全部になる）。
+func _set_rank(rank: String) -> void:
+	for child in _rank_slot.get_children():
+		_rank_slot.remove_child(child)
+		child.queue_free()
+	if rank.is_empty():
+		return
+	var mark := TavernTheme.stamp(rank, TavernTheme.BRAND.darkened(RANK_STAMP_DARKEN),
+		RANK_STAMP_TILT, RANK_STAMP_FONT, 1.0, RANK_STAMP_D, _rank_font(),
+		RANK_STAMP_FILL, RANK_STAMP_DROP)
+	mark.anchor_left = 1.0
+	mark.anchor_right = 1.0
+	mark.offset_left = -(RANK_STAMP_D + RANK_STAMP_PAD)
+	mark.offset_right = -RANK_STAMP_PAD
+	mark.offset_top = RANK_STAMP_PAD
+	mark.offset_bottom = RANK_STAMP_PAD + RANK_STAMP_D
+	_rank_slot.add_child(mark)
+
+## 判子の字の書体（戦果票と同じ）。無ければ既定のまま。
+func _rank_font() -> Font:
+	if _rank_font_cache == null and ResourceLoader.exists(ResultBanner.RANK_FONT_PATH):
+		_rank_font_cache = load(ResultBanner.RANK_FONT_PATH) as Font
+	return _rank_font_cache
+
+## 顔ぶれを並べ直す。空なら右のページごと畳む（未解放の紙・自軍の駒が無いステージ）＝
+## 左のページが紙いっぱいに広がり、半分だけ書かれた紙にならない。
 ## 群ごとに見出し＋絵の並び。継承のステージは「出撃できる生存者」「この戦い限りの駒」
 ## 「兵力ゼロで出撃できない駒」の3群に分ける（居ない群は出さない）。
 ## 絵の縮尺は全員ぶんの帯から1つ決めて全群で共有する＝群が変わっても駒の大小関係が変わらない。
@@ -150,7 +233,7 @@ func _fill_party(party: Array, carryover: bool) -> void:
 	for child in _party_box.get_children():
 		_party_box.remove_child(child)
 		child.queue_free()
-	_party_box.visible = not party.is_empty()
+	_right.visible = not party.is_empty()
 	var entries: Array = []
 	for e in party:
 		if typeof(e) != TYPE_DICTIONARY:
@@ -178,6 +261,7 @@ func _band(entries: Array) -> Vector2:
 	return band if band.x < band.y else Vector2.ZERO
 
 ## 1群ぶん（見出し＋絵の並び）を1つの塊として積む。中身が無ければ何も足さない＝空の見出しを出さない。
+## 見出しも駒も左端から始める＝ページの左の縦線に揃う（数が変わっても並びが動かない）。
 ## 切り出す帯はこの群のぶんだけ＝背の低い駒しか居ない群は行も低くなり、見出しがその並びに寄る。
 ## 縮尺は全群で共通なので、行の高さが違っても駒の大小関係は変わらない。
 func _add_party_row(title_key: String, entries: Array, scale: float) -> void:
@@ -188,33 +272,18 @@ func _add_party_row(title_key: String, entries: Array, scale: float) -> void:
 	_party_box.add_child(group)
 	var head := Label.new()
 	head.text = tr(title_key)
-	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	head.add_theme_font_size_override("font_size", 14)
 	head.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 	head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	group.add_child(head)
 	var row := HFlowContainer.new()
-	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	row.alignment = FlowContainer.ALIGNMENT_BEGIN
 	row.add_theme_constant_override("h_separation", PARTY_SEP)
 	row.add_theme_constant_override("v_separation", PARTY_SEP)
 	group.add_child(row)
 	var band := _band(entries)
-	var cells: Array[Control] = []
 	for entry in entries:
-		var cell := _party_figure(entry, band, scale)
-		cells.append(cell)
-		row.add_child(cell)
-	# セルの幅をこの群でいちばん広いものに揃える＝駒が等間隔に並ぶ。揃えないと、
-	# 印の語が長い駒のセルだけ広がって、上の駒の間隔がばらつく（英語で目立つ）。
-	var w := 0.0
-	for cell in cells:
-		w = maxf(w, cell.get_combined_minimum_size().x)  # 器自身は最小寸法を持たない＝駒の絵の幅
-	for entry in entries:
-		if not String(entry["badge"]).is_empty():
-			w = maxf(w, BADGE_CELL)  # 印が1つでも出る群は、語が収まる幅まで広げる
-			break
-	for cell in cells:
-		cell.custom_minimum_size.x = w
+		row.add_child(_party_figure(entry, band, scale))
 
 ## 1体ぶんの材料。絵が無ければ tex=null（名前の先頭2文字で描く）。
 ## used＝絵の非透過部分の外接矩形（キャンバス座標）。
@@ -232,8 +301,7 @@ func _party_entry(e: Dictionary) -> Dictionary:
 			if r.size.x > 0 and r.size.y > 0:
 				used = Rect2(r.position, r.size)
 	return { "skin_id": skin_id, "available": bool(e.get("available", true)),
-		"carried": bool(e.get("carried", false)), "badge": String(e.get("badge", "")),
-		"tex": tex, "used": used }
+		"carried": bool(e.get("carried", false)), "tex": tex, "used": used }
 
 ## 1体ぶんの絵。左右は自分の外接、縦は同じ群の帯で切る＝キャンバスの余白が消える。
 ## 大小関係はキャンバスに焼いてあるので（doc/art/overview.md）、切った絵を共通の縮尺で出す。
@@ -264,55 +332,7 @@ func _party_figure(entry: Dictionary, band: Vector2, scale: float) -> Control:
 		node = rect
 	if not bool(entry["available"]):
 		node.modulate = BoardUnitRenderer.DONE_MODULATE
-	return _with_badge(node, String(entry["badge"]))
-
-## 駒の絵の下に兵の出方の印（絵＋語）を積む。絵に重ねず下に置くのは、重ねると顔か足元の
-## どちらかを潰すため。語が意味を言い、絵は目印。
-## 印の無い駒も同じ器に入れ、空の行を持たせる＝行の高さが揃い、足元が1本の線に並ぶ。
-## 駒の絵より印のほうが広ければ、駒は印の幅の中央に寄る。
-func _with_badge(node: Control, badge: String) -> Control:
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", BADGE_SEP)
-	box.add_child(node)
-	# 印と語は、幅を持たない器（Control）に載せて中央から吊る。器に幅を持たせると、
-	# 語の長さがセルの幅になり、駒の間隔が語の長さで変わってしまう（言語でも変わる）。
-	var slot := Control.new()
-	box.add_child(slot)
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", BADGE_GAP)
-	slot.add_child(row)
-	var path := BADGE_DIR + badge + ".png"
-	if not badge.is_empty() and ResourceLoader.exists(path):
-		var mark := TextureRect.new()
-		mark.texture = load(path)
-		mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		mark.custom_minimum_size = Vector2(BADGE_SIZE, BADGE_SIZE)
-		mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER  # 行に合わせて縦へ伸ばさない＝正方形を保つ
-		row.add_child(mark)
-	var text := Label.new()
-	text.text = tr("ui.quest.badge_%s" % badge) if not badge.is_empty() else ""
-	text.add_theme_font_size_override("font_size", BADGE_FONT)
-	text.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
-	row.add_child(text)
-	# 語の右に、印と同じ幅の空きを置く＝中央に来るのは印＋語ではなく語だけになり、印は
-	# その左へ張り出す。印は小さくて語は長いので、両方まとめて中央に置くと目には語が
-	# 右へ寄って見える。駒の真下に来てほしいのは語のほう。
-	var pad := Control.new()
-	pad.custom_minimum_size.x = BADGE_SIZE
-	row.add_child(pad)
-	# 器の高さだけは行に合わせる（幅は持たせない）。行は中央に吊る＝上の pad と合わせて、
-	# 駒の真下に来るのは語の中心になる。
-	var need := row.get_combined_minimum_size()
-	slot.custom_minimum_size.y = need.y
-	row.anchor_left = 0.5
-	row.anchor_right = 0.5
-	row.offset_left = -need.x * 0.5
-	row.offset_right = need.x * 0.5
-	row.offset_top = 0.0
-	row.offset_bottom = need.y
-	return box
+	return node
 
 ## 取り消して閉じる（「別のステージを選ぶ」・幕クリック・Esc の共通入口）。開くときに音が鳴るので、
 ## 閉じるときも鳴らないと非対称になる。出撃は確定音が鳴るので、こちらは通さない。

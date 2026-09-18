@@ -6,47 +6,56 @@
     {
       "id": "charge",
       "file": "charge.json",
-      "title": "突撃"
+      "title": "突撃",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "ambush",
       "file": "ambush.json",
-      "title": "待ち伏せ"
+      "title": "待ち伏せ",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "raid",
       "file": "raid.json",
-      "title": "拠点攻略"
+      "title": "拠点攻略",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "predator",
       "file": "predator.json",
-      "title": "弱者狙い"
+      "title": "弱者狙い",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "swarm",
       "file": "swarm.json",
-      "title": "群れ"
+      "title": "群れ",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "flee",
       "file": "flee.json",
-      "title": "逃走"
+      "title": "逃走",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "withdraw",
       "file": "withdraw.json",
-      "title": "撤退"
+      "title": "撤退",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "standoff",
       "file": "standoff.json",
-      "title": "睨み合い"
+      "title": "睨み合い",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "transport",
       "file": "transport.json",
-      "title": "輸送ユニット"
+      "title": "輸送ユニット",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

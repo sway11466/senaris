@@ -6,47 +6,56 @@
     {
       "id": "boss",
       "file": "boss.json",
-      "title": "ボス撃破"
+      "title": "ボス撃破",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "hq",
       "file": "hq.json",
-      "title": "本拠地占領"
+      "title": "本拠地占領",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "turnlimit",
       "file": "turnlimit.json",
-      "title": "ターン制限"
+      "title": "ターン制限",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "defend_base",
       "file": "defend_base.json",
-      "title": "拠点防衛（1つ）"
+      "title": "拠点防衛（1つ）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "defend_two",
       "file": "defend_two.json",
-      "title": "拠点防衛（2つ・AND）"
+      "title": "拠点防衛（2つ・AND）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "annihilate",
       "file": "annihilate.json",
-      "title": "殲滅"
+      "title": "殲滅",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "total_loss",
       "file": "total_loss.json",
-      "title": "自軍全滅"
+      "title": "自軍全滅",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "lose_hq",
       "file": "lose_hq.json",
-      "title": "自軍本拠地喪失"
+      "title": "自軍本拠地喪失",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "lose_unit",
       "file": "lose_unit.json",
-      "title": "護衛対象喪失"
+      "title": "護衛対象喪失",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

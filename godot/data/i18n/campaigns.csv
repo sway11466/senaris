@@ -2,33 +2,55 @@ keys,ja,en
 goblin-raid.title,ゴブリンの襲撃,Goblin Raid
 goblin-raid.desc,町外れに現れたゴブリンの群れを討ち、襲われる町を救い、巣穴の主を断つ。移動・地形・包囲・支援・間接・占領といった戦術の基礎を、隊長と新兵の初陣を通してひとつずつ学ぶ、旅立ちの章。,"Rout the goblins at the town's edge, free the town, end their lord in his den. Movement, terrain, encirclement, support, indirect fire, capture — the basics, one battle at a time."
 goblin-raid.st1.title,先兵隊との遭遇,Meet the Raiders
+goblin-raid.st1.synopsis,町外れの平原にゴブリンが現れた。数は多くない、本隊に先んじた斥候だろう。隊長は初陣の新兵を連れ、数が増える前に叩きに出る。,"Goblins have appeared on the plain outside town — only a handful, scouts running ahead of a larger force. The captain takes his raw recruit out to break them before their numbers grow."
 goblin-raid.st2.title,高台の布陣,Take the High Ground
+goblin-raid.st2.synopsis,先兵隊は退けた。だが丘の向こうから本隊が来る。ひと振りの重いホブゴブリンが二匹混じっている。低地で正面から受ければ削られる一方だ。丘を先に取り、肩を並べて迎え撃つ。,"The scouts are routed, but the main force is coming over the hill — two hobgoblins among them, and their blows land heavy. Trade punches from the low ground and we are the ones worn down. Take the hill first and hold it shoulder to shoulder."
 goblin-raid.st3.title,隘路の包囲戦,Close the Trap
+goblin-raid.st3.synopsis,丘の戦いに勝った直後、谷の向こうの町から煙が上がった。町との間にはゴブリンの群れ。正面で受ければ呑まれる。細道へ誘い込み、出口を挟んで一匹ずつ捌いて押し通る。,"Just as the hill is won, smoke rises from the town across the valley — and a goblin swarm sits between. Meet it head-on and we are swallowed. Lure them into the narrow pass, flank the exit, and cut through one at a time."
 goblin-raid.st4.title,町の解放,Free the Town
+goblin-raid.st4.synopsis,谷の群れは捌いた。追いついた神官を加え、燃える町へ駆けつける。まだ焼け落ちてはいない。町を襲うゴブリンを引き受け、立てる者が剣を取るまで持ちこたえる。,"The valley swarm is cleared. A priest catches up and joins the squad as they rush for the burning town. It has not burned out yet. Take on the raiders, and hold until those who can still stand take up swords."
 goblin-raid.st5.title,巣穴へ進軍,Strike from Afar
+goblin-raid.st5.synopsis,町は解放され、助けた人々が剣を取った。斥候が言うには、襲撃の元は北の巣穴だ。元を断たねばまた襲われる。弓を携え、森に散らばる敵を引きつけては削り、巣穴の入口を目指す。,"The town is free and the people it saved have taken up arms. The scout names the source: the nest to the north. Leave it and the raids return. With bows in hand, draw the scattered defenders in, whittle them down, and take the entrance."
 goblin-raid.st6.title,潜む伏兵,Draw Them Out
+goblin-raid.st6.synopsis,巣穴の入口を制圧した。中は通路と部屋が入り組み、踏み込めば部屋ごと一斉に来る。足の速い斥候が一組だけ釣り出し、通路で各個に叩く。,"The entrance is taken. Inside is a warren of tangled passages and rooms, and blundering in brings a whole room at once. The quick-footed scout lures one group into a passage, where the squad breaks them apart."
 goblin-raid.st7.title,ゴブリンの王,The Goblin King
+goblin-raid.st7.synopsis,手下の大半を断ち、残るは最奥のゴブリンロード。正面で殴り合えば保たない。隊を二手に分け、表で引きつけ、裏の通路から回り込んで前後で挟む。ここまでに覚えた全部を使う。,"Most of the underlings are down; only the Goblin Lord in the innermost chamber remains. Trade blows head-on and the squad will not hold. Split in two — draw it at the front, circle in from the back passage, and pin it between. Everything learned so far, at once."
 undead-rush.title,アンデッドの群れ,The Undead Swarm
 undead-rush.desc,墓地から湧き出すアンデッドとの戦い。騎士団・教会・魔法ギルドの混成調査隊が、魔法兵の長射程と輸送、陣形スキルを駆使し、屍の群れを押し返して元凶のネクロマンサーを討つ第二の章。,"The dead well up from the graveyard. Knights, clergy, and mages push back the swarm with long-range casters, transport, and formation skills, and cut down the necromancer behind it."
 undead-rush.st1.title,屍の迎撃,Shield the Casters
+undead-rush.st1.synopsis,動く骸の噂を確かめに、騎士団・教会・魔法ギルドの調査隊が墓地へ入る。噂は本当だった。屍の足は遅く、術者の魔法のほうが先に届く。前衛で受け、後ろから撃って近づかせずに削る。,"A joint party of knights, clergy, and mages rides to the graveyard to test the rumor of walking bones — and finds it true. The dead are slow, and a caster's reach is longer. Hold the front, shoot from behind, and wear them down before they ever close."
 undead-rush.st2.title,集落の救援,Race to the Village
+undead-rush.st2.synopsis,屍は退けたが、墓地のすぐ先には小さな集落がある。歩けば日が暮れる。荷馬車に司祭を乗せ、前衛が囲んで走る。馬車が壊れれば乗っている者ごと失われ、詰所を奪われればそこで負けだ。,"The dead are beaten back, but a small settlement lies just past the graveyard and walking there would take until nightfall. The priest rides the wagon while the rest escort it. Lose the wagon and everyone aboard is lost; lose the guard post and the fight is lost with it."
 undead-rush.st3.title,屍の殲滅,Unleash the Trinity Nova
+undead-rush.st3.synopsis,集落は守った。だが墓地の奥から、地平を埋めるほどの屍が湧き続けている。ギルドから術者をもう一人呼び、三人が三角に組んで合体魔法を撃つ。狭い口をバリケードで塞ぎ、詰まったところへ落とす。,"The settlement holds, but the dead keep pouring from deeper in — enough to fill the horizon. Another caster comes from the guild: three mages set in a triangle can loose the Trinity Nova. Seal the narrow gap with barricades and drop it where they pile up."
 undead-rush.st4.title,墓地の浄化,Seal the Graves
+undead-rush.st4.synopsis,合体魔法で群れは薙ぎ払えた。それでも湧き元がある限り終わらない。教会が騎士と聖職を送ってきた。前衛と術者で道を作り、馬車で聖職を墓標まで運んで祈りを捧げる。足の速いグールと、壁をすり抜けるレイスが立ちはだかる。,"The combined spell sweeps the swarm away, but nothing ends while the source remains. The church sends knights and more clergy. The vanguard and casters open a road and the wagon carries a priest to the graves to pray them silent — past quick ghouls and a wraith no wall can stop."
 undead-rush.st5.title,神の加護,Invoke the Grace
+undead-rush.st5.synopsis,墓地のひとつは鎮めた。だが奥にはグールの群れ。正面から殴り合えば前衛が潰れる。聖職が五人身を寄せて加護を祈り、盤の端まで届く光で味方を底上げする。祈っている聖職は脆い。バリケードと前衛で蓋をする。,"One graveyard is silenced, but ghouls swarm beyond it, and a head-on brawl would break the front line. Five of the clergy draw close and pray the Grace — a light that reaches the far edge of the field. Those at prayer are fragile: keep them behind barricades and shields."
 undead-rush.st6.title,首無し騎士の猛攻,Storm the Crypts
+undead-rush.st6.synopsis,加護を得て墓地を押さえた。だが、さらに奥から格の違う気配がする。首無しの鎧＝デュラハンは、弱ったところ脆いところを選んで回り込んでくる。トリニティノヴァとグレイス、手札を全部出して、二つの墓地を鎮める。,"With the Grace upon them the party presses on, only to meet something of another order: a dullahan, a headless suit of armor that circles to whatever is wounded or frail. Trinity Nova and Grace together, every card played — and two graveyards to lay to rest."
 undead-rush.st7.title,屍の元凶,The Necromancer's End
+undead-rush.st7.synopsis,二つの墓地を鎮めてなお屍は絶えない。元凶は生きた者、死者を操るネクロマンサーだった。聖都から聖騎士が飛空艇で向かっている。屍を残らず倒す必要はない。その一撃が届くまで前線を守り抜く。,Both graveyards are laid to rest and still the dead come. The source is alive after all — a necromancer who commands them. A paladin is inbound by airship from the Holy City. There is no need to fell every corpse: hold the line until that single strike can reach.
 dragon-hunt.title,竜狩り,The Dragon Hunt
 dragon-hunt.desc,街を襲う魔獣の討伐を請け負ったベテラン冒険者たちが、黒幕を追い竜と対峙する第三の章。平原から火口へ舞台を移し、飛行と対空、異種族の勧誘、戦力を次へ持ち越す消耗の重みを学ぶ。,"Veterans hired to cull the beasts raiding the city follow the trail to its masters, and face the dragon. From plains to caldera: flight and anti-air, other peoples recruited, losses carried on."
 dragon-hunt.st1.title,駆け出し冒険者と魔獣,Bring Them Down
+dragon-hunt.st1.synopsis,魔獣の討伐と調査を請け負ったベテランたちが、街道を街へ向かう。その先で若い冒険者がオークに囲まれていた。しかも奥からグリフォンが来る。空の相手に剣は届かない。弓と魔法で落とし、若手を助ける。,"Veterans hired to cull the beasts and look into them take the road toward the city — and find a young party pinned by orcs, with a griffon closing in behind. Blades cannot reach the sky. Bring it down with bow and spell, and get the youngsters out."
 dragon-hunt.st2.title,南北の門の死守,Hold Both Gates
+dragon-hunt.st2.synopsis,助けた若手を連れて街に入り、聞き込みで分かったのは、ならず者が消えた頃から魔獣が現れたということ。そこへ南北の門から同時に襲撃。バリスタは一基だけで、馬車で運べる門はどちらか片方だ。街の拠点を奪われれば負ける。,"The rescued youngsters come along into the city, where the word is that the beasts appeared just as a band of ruffians vanished. Then both gates are struck at once. There is one ballista, and the wagon can bring it to only one of them. Lose a city post and the fight is lost."
 dragon-hunt.st3.title,荒野の争奪戦,Stall Them from Above
+dragon-hunt.st3.synopsis,門は守り、ならず者の馬車から囚われの妖精を助け出した。轍は荒野へ続く。ドワーフの坑道からは地下の魔物が這い出し、ローグたちは集落へ向かっている。空から足を止めて捌き、先に集落へ着いてドワーフを味方につける。,"Both gates held, and a caged pixie is freed from the ruffians' wagon. The tracks lead to the badlands, where monsters crawl out of a dwarven shaft and the rogues are making for the camp. Pin the crawlers from the air, and reach the dwarves first."
 dragon-hunt.st4.title,エルフの里の攻防,Win Over the Elves
+dragon-hunt.st4.synopsis,ドワーフを味方につけ、轍を追って森に入る。道には殴り合う価値のない魔物が居座っている。避けて抜け、山の麓に止まったローグの馬車を壊す。荷台の檻には、攫われた鳥人の子どもたちが居た。,"With the dwarves alongside, the party follows the ruts into the forest. Monsters squat on every road, and none of them are worth the fight. Slip past them and wreck the rogues' wagon where it has stopped at the foot of the mountains. In its cage: stolen birdfolk children."
 dragon-hunt.st5.title,山里の救出戦,Rescue the Fledglings
+dragon-hunt.st5.synopsis,馬車を壊し、子どもたちを預かった。ローグは子どもを盾に親を脅すつもりで、まだそれを知らない。荒れた山から降りてきた魔獣に押されながら、崖の里へ先に着いて子どもたちを返す。,"The wagon is wrecked and the children are in the party's care — the rogues still mean to use them as leverage on their parents, and do not yet know they are gone. Push through beasts driven down from the ravaged mountains and reach the cliff village first."
 dragon-hunt.st6.title,洞窟の挟撃,Corner the Ringleader
+dragon-hunt.st6.synopsis,子どもたちは親のもとへ戻り、鳥人が教えてくれた。ローグが探していたのは竜の巣の入口だった。洞窟の奥では、竜に返り討ちに遭った頭目が手負いで逃げている。泉は双方が要る。部屋を回り込んで挟む。,"The children are home, and the birdfolk give up what they know: the rogues were hunting the entrance to a dragon's nest. Deep in the caves their ringleader flees, wounded by the dragon's answer. Both sides need the springs. Circle the chambers and close the pincer."
 dragon-hunt.st7.title,火竜との決戦,The Dragon's Wrath
+dragon-hunt.st7.synopsis,頭目は討った。それでも巣を荒らされた竜の怒りは収まらず、街を目指して降りてこようとしている。火口に泉は無く、ここまで残した兵がそのまま持ち駒だ。落とすのではなく眠らせる。空へ届く手を一度に集める。,"The ringleader has fallen, but the dragon's rage at its despoiled nest has not, and it means to come down on the city. There are no springs in the caldera — what has been kept alive is all there is. Not to kill it but to put it to sleep: every shot that can reach the sky, loosed at once."
 goblin-horde.title,ゴブリン討伐令,Warrant: The Goblin Lord
 goblin-horde.desc,腕に覚えのある者へ。押し寄せるゴブリンの大群を、限られた手勢で討ち払え。物語はない。報酬と名誉、そして本気の腕試しがあるだけだ。,"For those who trust their skill: rout the goblin horde with a handful of troops. No tale to tell — just coin, glory, and a real fight."
 goblin-horde.st1.title,ゴブリン討伐令,Warrant: The Goblin Lord
+goblin-horde.st1.synopsis,討伐令が貼り出された。巣を離れた大群が街道へ下りてくる。増援は無く、手勢はこの紙に並ぶ顔ぶれだけ。地形を選び、噛み合わせて数を覆す。,"The warrant is posted: a horde has left its nest and is coming down the road. No reinforcements — the party on this sheet is all there is. Choose the ground, lock them in, and turn the numbers over."
 event.goblin-raid-st4.town-freed.name,町の解放,Freeing the Town
 event.undead-rush-st2.town-freed.name,詰所の解放,Freeing the Guard Post
 event.undead-rush-st7.airship-arrive.name,飛空艇の到着,The Airship Arrives

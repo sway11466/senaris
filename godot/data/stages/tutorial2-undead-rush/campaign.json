@@ -6,18 +6,18 @@
   "difficulty": 2,
   "emblem": { "ally": "knight", "enemy": "skeleton" },
   "stages": [
-    { "id": "undead-rush-st1", "file": "undead-rush-st1.json", "title": "undead-rush.st1.title" },
-    { "id": "undead-rush-st2", "file": "undead-rush-st2.json", "title": "undead-rush.st2.title",
+    { "id": "undead-rush-st1", "file": "undead-rush-st1.json", "title": "undead-rush.st1.title", "synopsis": "undead-rush.st1.synopsis" },
+    { "id": "undead-rush-st2", "file": "undead-rush-st2.json", "title": "undead-rush.st2.title", "synopsis": "undead-rush.st2.synopsis",
       "unlock": [ { "type": "cleared", "stage": "undead-rush-st1" } ] },
-    { "id": "undead-rush-st3", "file": "undead-rush-st3.json", "title": "undead-rush.st3.title",
+    { "id": "undead-rush-st3", "file": "undead-rush-st3.json", "title": "undead-rush.st3.title", "synopsis": "undead-rush.st3.synopsis",
       "unlock": [ { "type": "cleared", "stage": "undead-rush-st2" } ] },
-    { "id": "undead-rush-st4", "file": "undead-rush-st4.json", "title": "undead-rush.st4.title",
+    { "id": "undead-rush-st4", "file": "undead-rush-st4.json", "title": "undead-rush.st4.title", "synopsis": "undead-rush.st4.synopsis",
       "unlock": [ { "type": "cleared", "stage": "undead-rush-st3" } ] },
-    { "id": "undead-rush-st5", "file": "undead-rush-st5.json", "title": "undead-rush.st5.title",
+    { "id": "undead-rush-st5", "file": "undead-rush-st5.json", "title": "undead-rush.st5.title", "synopsis": "undead-rush.st5.synopsis",
       "unlock": [ { "type": "cleared", "stage": "undead-rush-st4" } ] },
-    { "id": "undead-rush-st6", "file": "undead-rush-st6.json", "title": "undead-rush.st6.title",
+    { "id": "undead-rush-st6", "file": "undead-rush-st6.json", "title": "undead-rush.st6.title", "synopsis": "undead-rush.st6.synopsis",
       "unlock": [ { "type": "cleared", "stage": "undead-rush-st5" } ] },
-    { "id": "undead-rush-st7", "file": "undead-rush-st7.json", "title": "undead-rush.st7.title",
+    { "id": "undead-rush-st7", "file": "undead-rush-st7.json", "title": "undead-rush.st7.title", "synopsis": "undead-rush.st7.synopsis",
       "unlock": [ { "type": "cleared", "stage": "undead-rush-st6" } ] }
   ]
 }

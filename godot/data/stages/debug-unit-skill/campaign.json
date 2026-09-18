@@ -6,7 +6,8 @@
     {
       "id": "skill",
       "file": "skill.json",
-      "title": "ユニットスキル（味方）"
+      "title": "ユニットスキル（味方）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

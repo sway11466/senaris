@@ -6,12 +6,14 @@
     {
       "id": "formation",
       "file": "formation.json",
-      "title": "陣形スキル（味方）"
+      "title": "陣形スキル（味方）",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "members",
       "file": "members.json",
-      "title": "陣形スキル（参加者選び）"
+      "title": "陣形スキル（参加者選び）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

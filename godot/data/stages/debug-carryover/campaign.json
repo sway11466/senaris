@@ -6,12 +6,14 @@
     {
       "id": "seed",
       "file": "seed.json",
-      "title": "名簿を作る"
+      "title": "名簿を作る",
+      "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "inherit",
       "file": "inherit.json",
       "title": "名簿から出す",
+      "synopsis": "デバッグ冒険譚",
       "roster_from": "seed"
     }
   ]

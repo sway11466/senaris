@@ -208,13 +208,15 @@ static func parchment_stylebox(seed := 0, bright := 1.0) -> StyleBox:
 	return sb
 
 ## 依頼書（出撃確認ダイアログの紙）。parchment_sheet.png があればテクスチャ、無ければクリーム地。
-## テクスチャは QuestSheet.SHEET_SIZE と同寸で焼く → doc/art/menu.md
+## 紙の寸法は中身で決まる（QuestSheet.SHEET_SIZE 以上）＝テクスチャは実寸に縛られない → doc/art/menu.md
 static func sheet_stylebox() -> StyleBox:
 	var tex := _tex("parchment_sheet")
 	if tex != null:
 		var sbt := _texture_box(tex, 8, 0)
-		# 紙は顔ぶれの群の数で縦に伸びる（doc/gdd/stage_select.md 依頼書）。タイルだと中途半端な
-		# 繰り返しの継ぎ目が出るので引き伸ばす。横は実寸(560)と同じなので 1:1。
+		# 紙は見開きの2段組で横に広く、顔ぶれの群の数で縦にも伸びる（doc/gdd/stage_select.md 依頼書）。
+		# タイルだと元絵の寸法のところで繰り返しの継ぎ目が出て、折り目のような筋に見えるので、
+		# 縦も横も引き伸ばす。
+		sbt.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 		sbt.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 		return sbt
 	var sb := StyleBoxFlat.new()

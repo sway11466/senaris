@@ -6,6 +6,6 @@
   "difficulty": 3,
   "emblem": { "ally": "fighter", "enemy": "goblin" },
   "stages": [
-    { "id": "goblin-horde-st1", "file": "goblin-horde-st1.json", "title": "goblin-horde.st1.title" }
+    { "id": "goblin-horde-st1", "file": "goblin-horde-st1.json", "title": "goblin-horde.st1.title", "synopsis": "goblin-horde.st1.synopsis" }
   ]
 }

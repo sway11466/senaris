@@ -4,15 +4,18 @@ class_name CampaignCatalog
 ## data層＝純データのみ（解放判定・クリア記録は application/campaign_progress.gd）。
 
 const STAGES_ROOT := "res://data/stages"
-const INTERLUDES := ["rest", "revive"]  # 幕間の印の値。ステージ一覧が同名の絵（icons/interlude/{値}.png）を引く
+## 幕間の印の値（damaged＝連戦／refill＝休息／revive＝復帰）。依頼書が同名の絵
+## （icons/interlude/{値}.png）を引く。詳細 → doc/gdd/stage_select.md 幕間の印
+const INTERLUDES := ["damaged", "refill", "revive"]
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
 ## { id, title, desc, debug, difficulty, board, actor_lineup, cover_paths, victory_paths,
-##   stages: [ { id, title, file, path, unlock: Array, roster_from: String, interlude: String } ] }
+##   stages: [ { id, title, synopsis, file, path, unlock: Array, roster_from: String, interlude: String } ] }
 ## roster_from＝名簿の引き継ぎ元のステージID。""＝空の名簿で始める（doc/gdd/campaigns.md 名簿）。
-## interlude＝その話の前の幕間の印（"rest"／"revive"）。""＝印なし（連戦・独立）。見せ方だけの値で、
-## 兵が実際に戻るかはステージ JSON の supply が決める（doc/gdd/stage_select.md 幕間の印）。
+## synopsis＝あらすじの翻訳キー。全ステージに書く＝依頼書の左のページがこれを出す。
+## interlude＝その話の前の幕間の印（INTERLUDES のどれか）。""＝幕間なし（1話目・独立）。見せ方だけの
+## 値で、兵が実際に戻るかはステージ JSON の supply が決める（doc/gdd/stage_select.md 幕間の印）。
 ## actor_lineup＝継承の一行（actor 付き味方）を戦闘演出で1体として描くか。""＝スキン任せ、"single"＝1体。
 ## cover_paths/victory_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
@@ -35,6 +38,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		stages.append({
 			"id": sid,
 			"title": String(s.get("title", sid)),
+			"synopsis": _parse_synopsis(id, sid, s.get("synopsis", "")),  # あらすじの翻訳キー
 			"file": file,
 			"path": "%s/%s" % [dir_path, file],
 			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
@@ -86,6 +90,14 @@ static func _parse_actor_lineup(raw: Variant) -> String:
 	if v.is_empty():
 		return ""
 	return v if UnitSkin.LINEUPS.has(v) else ""
+
+## synopsis（あらすじの翻訳キー）。全ステージに書く決まりなので、空は警告して ""＝紙のあらすじが
+## 空欄になる（書き忘れを黙って既定値で埋めない。doc/gdd/stage_select.md あらすじ）。
+static func _parse_synopsis(campaign_id: String, stage_id: String, raw: Variant) -> String:
+	var v := String(raw) if raw != null else ""
+	if v.is_empty():
+		push_warning("CampaignCatalog[%s]: stage '%s' に synopsis が無い＝依頼書のあらすじが空になる" % [campaign_id, stage_id])
+	return v
 
 ## interlude（幕間の印）を正規化。""（印なし）か INTERLUDES のどれか。
 ## それ以外は警告して ""＝印を出さない（既定値で黙って拾わない）。

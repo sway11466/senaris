@@ -286,15 +286,6 @@
 - 対応：通し読みが分岐に差しかかったとき、パネル脇に切り替えを出す。切り替えは仲間ごとに独立。
 - 該当：`godot/presentation/chronicle/`・[chronicle.md](gdd/chronicle.md) 分岐の切り替え。前提＝feature-126。
 
-### feature-131
-
-**依頼書を見開きの2段組に作り直す**
-- ゴール：ステージの札を押すと、あらすじ・幕間の印・過去の戦果・出撃する顔ぶれが1枚の紙で読める。一覧の札には印が何も載っていない。
-- 背景：兵の戻り方を札に小さな印で載せる形が絵として成立せず、紙で見せる形に決め直した（[stage_select.md](gdd/stage_select.md) 依頼書）。駒ごとの印は同じことを駒の数だけ繰り返していたので幕間の印1枚に畳む。久しぶりに開いた人が話の続きを思い出せるよう、全ステージにあらすじを持たせる。
-- 対応：(1) `QuestSheet` を左右2段に組み直す＝左にあらすじと幕間の印、右に顔ぶれ、右上に戦果の判子、紙は横長。紙の材質は横も引き伸ばす（タイルだと元絵の幅で継ぎ目が出る）。(2) 駒ごとの印を撤去＝`_with_badge` と升の幅固定、`icons/quest/` の4枚、`ui.quest.badge_*` の翻訳キー、`StageLoader` が返す `badge`。(3) `StageSelect` から札のランクの印とクリアバッジを外す。(4) `campaign.json` に `synopsis` を全ステージ（デバッグ冒険譚も1文）、`interlude` を `damaged`／`refill`／`revive` の3値に書き換え＝継承の冒険譚の2話目以降に必ず書く。(5) `campaigns.csv` にあらすじ本文（`<冒険譚>.stN.synopsis`・日英）。(6) データ整合テストを3値と `synopsis` 必須に合わせる。
-- 考慮外：幕間の印の絵（別途）。冒険譚カード側の `DONE` の印。
-- 該当：`godot/presentation/select/quest_sheet.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/select/tavern_theme.gd`（紙の stylebox）・`godot/application/stage_loader.gd`・`godot/data/stages/campaign_catalog.gd`・各 `campaign.json`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/menu.csv`・`godot/tests/small/data/test_data_integrity.gd`・[stage_select.md](gdd/stage_select.md)・[rank.md](gdd/rank.md)・[icons.md](art/icons.md)・[menu.md](art/menu.md)。
-
 ### feature-132
 
 **幕間の印 `damaged` のモチーフを決めて描く**
