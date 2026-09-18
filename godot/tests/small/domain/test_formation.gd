@@ -571,3 +571,124 @@ func test_grace_result_carries_status_entry() -> void:
 	assert_almost_eq(float(st["value"]), 1.3, 0.001, "×1.3")
 	assert_eq(int(st["remaining"]), 1, "持続1ターン")
 	assert_not_null(res.caster, "バフでも発動者スナップショットが載る")
+
+# --- レシピ単位のまとめ（参加者を選ぶ）---
+
+## そのスキルのまとめを取り出す（無ければ null）。
+func _choice(cs: Array[FormationChoice], skill: String) -> FormationChoice:
+	for c in cs:
+		if c.skill == skill:
+			return c
+	return null
+
+## 発動者の周囲3方向（dir0/dir1/dir2）に候補を置いた盤。dir0-dir1・dir1-dir2 は隣接、dir0-dir2 は距離2。
+## ①は三角が2通り（leader+dir0+dir1／leader+dir1+dir2）、③は組が3通りになる。
+func _fan_state(leader_skin: String, member_skin: String) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(4, 4)
+	var lead := Unit.new(1, 0, c, 3, 8, 50, 50, 1, leader_skin)
+	var m0 := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 20, 20, 1, member_skin)
+	var m1 := Unit.new(3, 0, Hex.neighbor(c, 1), 3, 8, 20, 20, 1, member_skin)
+	var m2 := Unit.new(4, 0, Hex.neighbor(c, 2), 3, 8, 20, 20, 1, member_skin)
+	for u in [lead, m0, m1, m2]:
+		s.add_unit(u)
+	return {"s": s, "leader": lead}
+
+## 組が複数あってもメニューの項目は1つ＝レシピ単位に畳む（組は member_sets に内包する）。
+func test_choices_fold_sets_into_one_item() -> void:
+	var f := _fan_state("paladin", "cleric")
+	var s: BattleState = f["s"]
+	assert_eq(_count(Formation.available_for(s, f["leader"]), "divine_judgment"), 3, "前提: 組は3通り")
+	var cs := Formation.choices_for(s, f["leader"])
+	var c := _choice(cs, "divine_judgment")
+	assert_not_null(c, "ディバインジャッジメントの項目が1つ出る")
+	assert_eq(c.member_sets.size(), 3, "3組を内包する")
+	assert_eq(c.pool.size(), 3, "候補の駒は3体")
+	assert_true(c.needs_choice(), "組が複数＝参加者を選ぶ段を挟む")
+
+## 組が1つしかない固定人数のスキルは参加者選びの段を飛ばす。
+func test_choice_skipped_when_single_set() -> void:
+	var f := _judgment_state()
+	var c := _choice(Formation.choices_for(f["s"], f["leader"]), "divine_judgment")
+	assert_false(c.needs_choice(), "組が1つ＝選ぶ余地が無い")
+	assert_eq(c.forced_members(), [2, 3] as Array[int], "そのまま参加者が決まる")
+
+## ①は1体目を確定すると2体目の候補が絞られる（1体目と組める駒だけ）。
+func test_member_candidates_narrow_after_first_pick() -> void:
+	var f := _fan_state("wizard", "wizard")
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["leader"]), "trinity_nova")
+	var none: Array[int] = []
+	assert_eq(Formation.member_candidates(s, c, none), [2, 3, 4] as Array[int], "はじめは3体とも候補")
+	assert_eq(Formation.member_candidates(s, c, [2] as Array[int]), [3] as Array[int],
+		"dir0 を選んだら、それと隣接する dir1 だけが残る")
+	assert_eq(Formation.member_candidates(s, c, [3] as Array[int]), [2, 4] as Array[int],
+		"dir1 を選んだら両隣が残る")
+
+## ③は発動者への隣接だけを見るので、1体目を確定しても候補は絞られない。
+func test_escort_candidates_not_narrowed() -> void:
+	var f := _fan_state("paladin", "cleric")
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["leader"]), "divine_judgment")
+	assert_eq(Formation.member_candidates(s, c, [2] as Array[int]), [3, 4] as Array[int],
+		"メンバー同士の隣接は問わない")
+
+## 人数が固定のスキルは人数ちょうどで発動できる（足りなければ不可）。
+func test_can_activate_fixed_count() -> void:
+	var f := _fan_state("paladin", "cleric")
+	var c := _choice(Formation.choices_for(f["s"], f["leader"]), "divine_judgment")
+	assert_false(Formation.can_activate(c, [2] as Array[int]), "発動者＋1体では足りない")
+	assert_true(Formation.can_activate(c, [2, 3] as Array[int]), "発動者＋2体で発動できる")
+
+## ②は最低人数を超える候補があれば参加者を選ぶ。候補は連結を保つ駒だけ＝端から伸ばす。
+func test_cluster_candidates_keep_connection() -> void:
+	var f := _cluster_state(7)
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["leader"]), "grace")
+	assert_true(c.variable_count, "②は人数が可変")
+	assert_eq(c.pool.size(), 6, "発動者を除く候補は6体")
+	assert_true(c.needs_choice(), "候補が最低人数を超える＝参加者を選ぶ")
+	var none: Array[int] = []
+	assert_eq(Formation.member_candidates(s, c, none), [2] as Array[int], "列の隣だけが候補")
+	assert_eq(Formation.member_candidates(s, c, [2] as Array[int]), [3] as Array[int], "確定した先の隣へ伸びる")
+	assert_false(Formation.can_activate(c, [2, 3] as Array[int]), "5体に満たなければ発動できない")
+	assert_true(Formation.can_activate(c, [2, 3, 4, 5] as Array[int]), "最低人数に達したら発動できる")
+	assert_true(Formation.can_activate(c, [2, 3, 4, 5, 6] as Array[int]), "さらに足しても発動できる")
+
+## 候補が最低人数ちょうどなら選ぶ余地が無い＝段を飛ばして全員が参加する。
+func test_cluster_choice_skipped_at_minimum() -> void:
+	var f := _cluster_state(5)
+	var c := _choice(Formation.choices_for(f["s"], f["leader"]), "grace")
+	assert_false(c.needs_choice(), "5体ちょうど＝選ぶ余地が無い")
+	assert_eq(c.forced_members().size(), 4, "発動者を除く4体がそのまま参加者")
+
+## 効果は選んだ人数で決まる＝8体固まっていても5体だけ供出すれば基準の補正になる。
+func test_grace_value_follows_chosen_members() -> void:
+	var f := _cluster_state(8)
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["leader"]), "grace")
+	var opt := Formation.option_of(s, c, [2, 3, 4, 5] as Array[int])
+	assert_eq(opt.participants.size(), 5, "発動者＋4体＝5体で撃つ")
+	assert_eq(opt.leader_id, 1, "先頭が発動者")
+	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
+	assert_almost_eq(float(res.status["value"]), 1.3, 0.001, "5体ぶんの補正")
+	assert_false(s.is_done(6), "選ばなかった駒は行動を残す")
+
+## メニューの無効化の判断＝どの組でも撃てる先が無いときだけ無効。
+func test_choice_has_target() -> void:
+	var f := _judgment_state()
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["leader"]), "divine_judgment")
+	assert_true(Formation.choice_has_target(s, c), "射程内に敵が居る")
+	s.remove_unit(9)
+	var c2 := _choice(Formation.choices_for(s, f["leader"]), "divine_judgment")
+	assert_false(Formation.choice_has_target(s, c2), "撃てる先が無い")
+
+## ユニットスキル（単独発動）も同じ器に乗る＝参加者を選ぶ段は無い。
+func test_unit_skill_choice_has_no_members() -> void:
+	var f := _judgment_state()
+	var cleric: Unit = f["s"].unit_by_handle(2)
+	var c := _choice(Formation.choices_for(f["s"], cleric), "purify")
+	assert_not_null(c, "ピュリファイの項目が出る")
+	assert_false(c.needs_choice(), "単独で撃つ＝選ぶ余地が無い")
+	assert_true(c.forced_members().is_empty(), "参加者は発動者だけ")

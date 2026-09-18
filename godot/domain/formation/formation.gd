@@ -214,17 +214,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
 	for rid in SKILLS:
 		var r: Dictionary = SKILLS[rid]
-		if not (r["effect"] in IMPLEMENTED_EFFECTS):
-			continue
-		if not _matches(unit, r["leader_skins"]):
-			continue
-		# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
-		# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
-		if not state.has_action_left(unit.handle):
-			continue
-		# チャージが必要なスキルは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
-		var ct := int(r.get("charge_turns", 0))
-		if ct > 0 and state.get_charge(unit.handle, rid) < ct:
+		if not _leader_can_offer(state, unit, rid, r):
 			continue
 		match String(r["shape"]):
 			"triangle":
@@ -235,14 +225,8 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
-				if String(r["effect"]) == "spawn":
-					var has_empty := false
-					for nb in Hex.neighbors(lead_pos):
-						if state.in_field(nb) and state.unit_at(nb) == null:
-							has_empty = true
-							break
-					if not has_empty:
-						continue
+				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, lead_pos):
+					continue
 				out.append(FormationOption.from_skill(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
 				var members := _cluster(state, unit, r, lead_pos)
@@ -253,6 +237,123 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 							ordered.append(m)
 					out.append(FormationOption.from_skill(rid, r, ordered))
 	return out
+
+## 選択中 unit が発動できるスキルを、レシピ単位に1つずつまとめた一覧（読み取りのみ・非破壊）。
+## 行動メニューはこれを並べる＝成立する組が複数あっても同じ名前の項目を並べない。組ごとに1つ
+## 要る側（敵AI・撮影ツール）は available_for を使う。
+## 参加者は choices_for → member_candidates → option_of の順で確定する。
+## 詳細 → doc/gdd/uiux.md 陣形スキルの参加者を選ぶ
+static func choices_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> Array[FormationChoice]:
+	var out: Array[FormationChoice] = []
+	if unit == null:
+		return out
+	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
+	for rid in SKILLS:
+		var r: Dictionary = SKILLS[rid]
+		if not _leader_can_offer(state, unit, rid, r):
+			continue
+		var c := FormationChoice.new()
+		c.skill = rid
+		c.leader_id = unit.handle
+		c.min_count = int(r.get("count", 1))
+		match String(r["shape"]):
+			"triangle":
+				_fill_fixed(c, _triangle_sets(state, unit, r, lead_pos))
+			"escort":
+				_fill_fixed(c, _escort_sets(state, unit, r, lead_pos))
+			"solo":
+				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, lead_pos):
+					continue
+				c.member_sets = [[] as Array[int]]  # 発動者だけで成立＝選ぶ余地の無い組が1つ
+			"cluster":
+				c.variable_count = true
+				for m in _cluster(state, unit, r, lead_pos):
+					if m.handle != unit.handle:
+						c.pool.append(m.handle)
+		if c.member_sets.is_empty() and c.pool.is_empty():
+			continue  # 組が1つも無い＝そのスキルは成立していない
+		out.append(c)
+	return out
+
+## いま追加で選べる参加者（駒番号）。chosen＝確定済みの参加者（発動者は含めない）。
+## 人数が固定のスキルは「chosen を含む組の残り」＝1体目を確定すると2体目の候補が絞られる。
+## 人数が可変のスキルは形を保つ駒だけ＝発動者か確定済みに隣接するものを端から伸ばす
+## （`line`（⑤）が入るときは、ここに一直線の条件が加わる → doc/gdd/formations.md 実装方針）。
+static func member_candidates(state: BattleState, choice: FormationChoice, chosen: Array[int],
+		from_hex := NO_HEX) -> Array[int]:
+	var out: Array[int] = []
+	if choice == null:
+		return out
+	if choice.variable_count:
+		var leader := state.unit_by_handle(choice.leader_id)
+		if leader == null:
+			return out
+		var anchors: Array[Vector2i] = [leader.pos if from_hex == NO_HEX else from_hex]
+		for h in chosen:
+			var cu := state.unit_by_handle(h)
+			if cu != null:
+				anchors.append(cu.pos)
+		for h in choice.pool:
+			if h in chosen:
+				continue
+			var u := state.unit_by_handle(h)
+			if u == null:
+				continue
+			for a in anchors:
+				if Hex.distance(u.pos, a) == 1:
+					out.append(h)
+					break
+		return out
+	var seen := {}
+	for s in choice.member_sets:
+		if not _contains_all(s, chosen):
+			continue
+		for h in s:
+			var hid := int(h)
+			if hid in chosen or seen.has(hid):
+				continue
+			seen[hid] = true
+			out.append(hid)
+	return out
+
+## chosen（発動者を除く確定済みの参加者）で発動できるか。
+## 人数が可変のスキルは最低人数以上、固定のスキルは人数ちょうど。
+static func can_activate(choice: FormationChoice, chosen: Array[int]) -> bool:
+	if choice == null:
+		return false
+	var n := chosen.size() + 1  # 発動者を足す
+	if choice.variable_count:
+		return n >= choice.min_count
+	return n == choice.min_count
+
+## 確定した参加者から FormationOption を組む（先頭＝発動者）。発動の直前に1度だけ呼ぶ。
+static func option_of(state: BattleState, choice: FormationChoice, chosen: Array[int]) -> FormationOption:
+	if choice == null:
+		return null
+	var leader := state.unit_by_handle(choice.leader_id)
+	if leader == null:
+		return null
+	var units: Array = [leader]
+	for h in chosen:
+		var u := state.unit_by_handle(h)
+		if u == null:
+			return null
+		units.append(u)
+	return FormationOption.from_skill(choice.skill, SKILLS[choice.skill], units)
+
+## いま撃てる先があるか（メニュー項目を無効化するかの判断）。対象の要らないスキルは常に true。
+## 射程の起点に参加者を含むスキル（range_from "any"）があるので、候補の組ごとに見て1つでも
+## 撃てれば有効にする＝どの組で撃つかは参加者選びの段で決まる。
+static func choice_has_target(state: BattleState, choice: FormationChoice, from_hex := NO_HEX) -> bool:
+	for members in _probe_sets(choice):
+		var o := option_of(state, choice, members)
+		if o == null:
+			continue
+		if not o.needs_target():
+			return true
+		if not targetable_cells(state, o, from_hex).is_empty():
+			return true
+	return false
 
 ## target を着弾中心としたときの効果プレビュー（純ロジック・非破壊）。
 ## 対象ごとの hit 内訳（HitDetail。target_id に対象の駒番号）を返す。適用は FormationResolver。
@@ -347,6 +448,61 @@ static func targetable_cells(state: BattleState, option: FormationOption, from_h
 static func _matches(unit: Unit, skins: Array) -> bool:
 	var key := unit.skin_id if unit.skin_id != "" else unit.type_id
 	return key in skins
+
+## unit がそのスキルの発動者として名乗れるか（形は見ない）。available_for と choices_for の共通の門。
+static func _leader_can_offer(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
+	if not (r["effect"] in IMPLEMENTED_EFFECTS):
+		return false
+	if not _matches(unit, r["leader_skins"]):
+		return false
+	# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
+	# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
+	if not state.has_action_left(unit.handle):
+		return false
+	# チャージが必要なスキルは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
+	var ct := int(r.get("charge_turns", 0))
+	return ct == 0 or state.get_charge(unit.handle, rid) >= ct
+
+## 湧き（spawn）の置き先＝lead_pos の隣に盤内の空きマスがあるか。
+static func _spawn_has_room(state: BattleState, lead_pos: Vector2i) -> bool:
+	for nb in Hex.neighbors(lead_pos):
+		if state.in_field(nb) and state.unit_at(nb) == null:
+			return true
+	return false
+
+## 人数が固定のスキルの候補（Unit の組の列挙）を FormationChoice へ移す。
+## member_sets＝組ごとの駒番号／pool＝どれかの組に出てくる駒すべて（メニューのホバーで光らせる）。
+static func _fill_fixed(c: FormationChoice, sets: Array) -> void:
+	var seen := {}
+	for s in sets:
+		var ids: Array[int] = []
+		for u in s:
+			ids.append(u.handle)
+			if not seen.has(u.handle):
+				seen[u.handle] = true
+				c.pool.append(u.handle)
+		c.member_sets.append(ids)
+
+## s が chosen の駒をすべて含むか（確定済みと矛盾しない組の絞り込み）。
+static func _contains_all(s: Array, chosen: Array[int]) -> bool:
+	for h in chosen:
+		if not (h in s):
+			return false
+	return true
+
+## 撃てる先があるかを試す参加者の組。固定は候補の組ぜんぶ、可変は候補全員（射程の起点が最も多い）。
+static func _probe_sets(choice: FormationChoice) -> Array:
+	if choice == null:
+		return []
+	if choice.variable_count:
+		return [choice.pool.duplicate()]
+	var out: Array = []
+	for s in choice.member_sets:
+		var ids: Array[int] = []
+		for h in s:
+			ids.append(int(h))
+		out.append(ids)
+	return out
 
 ## from_hex に発動者が居ると仮定したときの hex の駒。移動を確定する前は盤の上の発動者がまだ
 ## 元のマスに立っているので、そこを空として読み替える（自分に掛けるスキルの対象判定に効く）。
