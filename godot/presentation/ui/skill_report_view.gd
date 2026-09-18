@@ -106,7 +106,7 @@ func _render() -> void:
 	for c in _body.get_children():
 		_body.remove_child(c)  # queue_free 待ちの旧行が新行と同居して1フレーム崩れるのを避ける
 		c.queue_free()
-	_head.text = tr("recipe.%s.name" % _result.recipe)
+	_head.text = tr("skill.%s.name" % _result.skill)
 	if _page == 0:
 		_side_head.hide()
 		_build_summary()
@@ -139,7 +139,7 @@ func _build_summary() -> void:
 ## 損害の出ないレシピ（バフ・解除・分裂・毒）と空撃ちのサマリー。効果と持続を、状態タブ・
 ## 戦闘レポートのバフ行と同じ書式（CombatReportView.status_text）で出す＝画面ごとに言葉を変えない。
 func _build_no_damage_lines() -> void:
-	var effect := String(Formation.RECIPES.get(_result.recipe, {}).get("effect", ""))
+	var effect := String(Formation.SKILLS.get(_result.skill, {}).get("effect", ""))
 	var cast := _result.cast
 	match effect:
 		"buff", "dot":

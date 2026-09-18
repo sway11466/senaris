@@ -5,9 +5,9 @@ class_name SkillCast
 ## 演出シーン（SkillScene）が絵と文言を、スキルレポートが掛かり先を読む。
 ## 詳細 → doc/tech/combat_scene.md ユニットスキルの演出
 
-var recipe: String          ## レシピID（音の規約解決に使う）
+var skill: String           ## スキルID（音の規約解決に使う）
 var name: String            ## 開発用メモの表示名
-var effect: String          ## 効果の RECIPES 文字列（"buff" / "cleanse" / "dot" …）
+var effect: String          ## 効果の SKILLS 文字列（"buff" / "cleanse" / "dot" …）
 var combat_effect: String   ## エフェクトID。空＝発動者スキンの combat_effect へ落ちる
 var caster: UnitSnapshot
 var target: UnitSnapshot

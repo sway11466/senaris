@@ -1,20 +1,20 @@
 extends RefCounted
 class_name FormationOption
 ## 盤上で成立した陣形スキル／ユニットスキルの選択肢1つ（Formation.available_for の1要素）。
-## レシピ（Formation.RECIPES）の値と参加ユニットを持ち、「対象を選ぶか」「着弾があるか」
+## スキル（Formation.SKILLS）の値と参加ユニットを持ち、「対象を選ぶか」「着弾があるか」
 ## 「駒の居るhexしか選べないか」の判断をここに閉じる＝読む側が効果の文字列を比べない。
 ## 純データ・Node非依存。盤は書き換えない（適用は FormationResolver）。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 
-## 効果の種類。RECIPES の "effect" と1対1（EFFECT_IDS）。
+## 効果の種類。SKILLS の "effect" と1対1（EFFECT_IDS）。
 enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
-## 参加者の並び方。RECIPES の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
+## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
 enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER }
-## 効果の掛かる範囲。陣営全体（グレイス）か対象1体（ユニットスキル）か。RECIPES の "buff_scope"。
+## 効果の掛かる範囲。陣営全体（グレイス）か対象1体（ユニットスキル）か。SKILLS の "buff_scope"。
 enum Scope { TEAM, UNIT }
-## 対象1体のとき、味方に掛けるか敵に掛けるか。RECIPES の "buff_side"。
+## 対象1体のとき、味方に掛けるか敵に掛けるか。SKILLS の "buff_side"。
 enum Side { ALLY, ENEMY }
-## 射程の起点。発動者からか、参加者のどれからでもか。RECIPES の "range_from"。
+## 射程の起点。発動者からか、参加者のどれからでもか。SKILLS の "range_from"。
 enum RangeFrom { LEADER, ANY }
 
 const EFFECT_IDS := {
@@ -28,8 +28,8 @@ const SCOPE_IDS := { "team": Scope.TEAM, "unit": Scope.UNIT }
 const SIDE_IDS := { "ally": Side.ALLY, "enemy": Side.ENEMY }
 const RANGE_FROM_IDS := { "leader": RangeFrom.LEADER, "any": RangeFrom.ANY }
 
-var recipe: String            ## レシピID（RECIPES のキー。表示名・音・絵の規約解決に使う）
-var name: String              ## 開発用メモ（画面表示は tr("recipe.{id}.name")）
+var skill: String             ## スキルID（SKILLS のキー。表示名・音・絵の規約解決に使う）
+var name: String              ## 開発用メモ（画面表示は tr("skill.{id}.name")）
 var leader_id: int            ## 発動者の駒番号（participants の先頭）
 var participants: Array[int]  ## 参加する駒番号。先頭＝発動者
 var effect: Effect
@@ -52,16 +52,16 @@ var buff_op: String           ## "mul" / "add"
 var buff_value: float
 var buff_value_per_troop: float  ## 発動者の残兵1体あたりの値。0＝兵数に依らない
 var buff_value_per_extra: float  ## 基準人数（min_count）を超えた参加者1体あたりの加算。0＝人数に依らない
-var min_count: int            ## レシピが成立する最低人数（RECIPES の "count"）
+var min_count: int            ## スキルが成立する最低人数（SKILLS の "count"）
 var buff_fx: String           ## 盤の見た目。空＝見た目なし
 var buff_target: String       ## "attack" / "defense" / "both"
 var duration_turns: int
 var dot_troops: int           ## 対象側のターン開始ごとに減る兵数（DOT のみ）
 
-## レシピ定義 r（Formation.RECIPES[rid]）と参加ユニット（先頭＝発動者）から選択肢を組む。
-static func from_recipe(rid: String, r: Dictionary, units: Array) -> FormationOption:
+## スキル定義 r（Formation.SKILLS[rid]）と参加ユニット（先頭＝発動者）から選択肢を組む。
+static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOption:
 	var o := FormationOption.new()
-	o.recipe = rid
+	o.skill = rid
 	o.name = String(r["name"])
 	o.leader_id = units[0].handle
 	var ids: Array[int] = []
@@ -98,12 +98,12 @@ static func from_recipe(rid: String, r: Dictionary, units: Array) -> FormationOp
 		o.duration_turns = int(r.get("duration_turns", 1))
 	return o
 
-## RECIPES の文字列を enum に引く。RECIPES はコード内の定数なので、無い文字列は書き間違い＝止める。
+## SKILLS の文字列を enum に引く。SKILLS はコード内の定数なので、無い文字列は書き間違い＝止める。
 static func _id_to_enum(table: Dictionary, id: String, key: String) -> int:
-	assert(table.has(id), "FormationOption: RECIPES の %s '%s' は未定義" % [key, id])
+	assert(table.has(id), "FormationOption: SKILLS の %s '%s' は未定義" % [key, id])
 	return int(table[id])
 
-## effect の RECIPES 文字列。発動結果（FormationResolver の "skill"）に載せて presentation が読む。
+## effect の SKILLS 文字列。発動結果（FormationResolver の "skill"）に載せて presentation が読む。
 func effect_id() -> String:
 	return EFFECT_IDS.find_key(effect)
 

@@ -1,7 +1,7 @@
 extends RefCounted
 class_name ChronicleStore
 ## クロニクルの読み書き（infrastructure 層）。出会ったユニット（skin_id）と
-## 見た陣形スキル（レシピ id）を user://chronicle.json に持つ。
+## 見た陣形スキル（スキル id）を user://chronicle.json に持つ。
 ## 仕様 → doc/gdd/chronicle.md 記録の持ち方 / doc/tech/gamesystem.md §クロニクル
 ##
 ## 他のストアと異なり、record_* は即座に保存しない。盤を離れるとき（決着・中断・
@@ -14,7 +14,7 @@ const OLDEST_SUPPORTED := 1  # v1＝スキンにも初出の冒険譚を持っ�
 
 var _path: String
 var _skins := {}    # skin_id -> true（出会った id の集合。スキンは初出を持たない）
-var _recipes := {}  # recipe_id -> { "first": campaign_id }
+var _skills := {}   # skill_id -> { "first": campaign_id }
 ## 経験した会話。campaign_id -> { stage_id: { start: [[actor]], clear: [[actor]], events: [id] } }
 ## start / clear は「遊んだ回ごとの在籍 actor の並び」を重複なく溜める＝同じ顔ぶれの回は畳む。
 ## 足していく形にすることで、仲間が「居た回」と「居なかった回」の両方を経験したかが分かる
@@ -30,17 +30,17 @@ func _init(path: String = SavePaths.of(FILE)) -> void:
 func has_skin(skin_id: String) -> bool:
 	return _skins.has(skin_id)
 
-## recipe_id が記録済みか。
-func has_recipe(recipe_id: String) -> bool:
-	return _recipes.has(recipe_id)
+## skill_id が記録済みか。
+func has_skill(skill_id: String) -> bool:
+	return _skills.has(skill_id)
 
 ## 記録済みのスキン一覧（コピー）。出会った skin_id が並ぶだけ。
 func skins() -> Array:
 	return _skins.keys()
 
-## 記録済みのレシピ一覧（コピー）。
-func recipes() -> Dictionary:
-	return _recipes.duplicate(true)
+## 記録済みのスキル一覧（コピー）。
+func skills() -> Dictionary:
+	return _skills.duplicate(true)
 
 ## スキンを記録する（メモリのみ。save() を呼ぶまでファイルに書かない）。
 ## 新規なら true、既知または空なら false を返す。
@@ -51,11 +51,11 @@ func record_skin(skin_id: String) -> bool:
 	_dirty = true
 	return true
 
-## レシピを記録する（メモリのみ）。新規なら true。
-func record_recipe(recipe_id: String, campaign_id: String) -> bool:
-	if recipe_id.is_empty() or _recipes.has(recipe_id):
+## スキルを記録する（メモリのみ）。新規なら true。
+func record_skill(skill_id: String, campaign_id: String) -> bool:
+	if skill_id.is_empty() or _skills.has(skill_id):
 		return false
-	_recipes[recipe_id] = { "first": campaign_id }
+	_skills[skill_id] = { "first": campaign_id }
 	_dirty = true
 	return true
 
@@ -105,7 +105,7 @@ func save() -> void:
 	if f == null:
 		push_error("ChronicleStore: 書き込めない: %s" % _path)
 		return
-	var out := { "version": VERSION, "skins": _skins.keys(), "recipes": _recipes, "stories": _stories }
+	var out := { "version": VERSION, "skins": _skins.keys(), "skills": _skills, "stories": _stories }
 	f.store_string(JSON.stringify(out, "  "))
 	_dirty = false
 
@@ -122,7 +122,7 @@ func _load() -> void:
 	if data.is_empty():
 		return
 	_load_ids(data.get("skins", []), _skins)
-	_load_map(data.get("recipes", {}), _recipes)
+	_load_map(data.get("skills", {}), _skills)
 	_load_stories(data.get("stories", {}))
 
 ## 旧版を現行の形に直してから読む（doc/tech/gamesystem.md §版と移行）。
@@ -139,7 +139,7 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	return out
 
 ## v1→v2: スキンが持っていた初出の冒険譚を捨て、出会った id の並びだけにする。
-## レシピ側の初出はそのまま（陣形スキルの章が読む）。
+## スキル側の初出はそのまま（陣形スキルの章が読む）。
 static func _v1_to_v2(data: Dictionary) -> Dictionary:
 	var out := data.duplicate(true)
 	var ids: Array = []

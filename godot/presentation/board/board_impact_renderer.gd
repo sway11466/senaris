@@ -61,7 +61,7 @@ var _set_locked_fn: Callable  # (v: bool) -> void（入力ロック）
 var _impact_gen := 0            # 世代。ステージが変わったら増やす＝await の先で打ち切る
 var _impact_pending := false    # 着弾待ち＝盤の作り直しを保留している（撃たれる前の姿のまま置く）
 var _impact_lock := false       # 演出の間だけ入力を止めた＝終わったら元へ戻す
-var _impact_tex := {}           # recipe_id -> Texture2D|null（駒に重ねる着弾の絵）
+var _impact_tex := {}           # skill_id -> Texture2D|null（駒に重ねる着弾の絵）
 var _finisher := false          # 次の着弾を決着のとどめ（スロー）として見せる＝main が勝ち確定後に立てる
 
 
@@ -131,7 +131,7 @@ func play(result: SkillResult, is_locked: bool) -> void:
 		return
 	# ディバインジャッジメントは単体対象＝共通の3段では見せ場が無いので専用シーケンスへ。
 	# 絵が無ければ共通へ落とす（面の光と被弾フラッシュだけ＝穴が開かない）。
-	if result.recipe == "divine_judgment":
+	if result.skill == "divine_judgment":
 		var dj_tex := _impact_texture("divine_judgment")
 		if dj_tex != null:
 			await _play_divine_judgment(hits[0], dj_tex, is_locked)
@@ -148,7 +148,7 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	var center := result.center
 	# 面の光は駒の処理が終わるまで保たせる＝どの範囲の中で起きているのかが見えたまま進む。
 	_flash_cells(result.cells, HIT_CELL_HOLD + (HIT_DROP_SEC + HIT_STEP_SEC * float(hits.size())) * st)
-	var tex := _impact_texture(result.recipe)
+	var tex := _impact_texture(result.skill)
 	# 着弾中心に近い駒から外へ。同距離は id 順＝毎回同じ順で出る（見え方が揺れない）。
 	var order := hits.duplicate()
 	order.sort_custom(func(a: SkillHit, b: SkillHit) -> bool:
@@ -322,7 +322,7 @@ func _flash_cells(cells: Array, hold: float,
 		tw.tween_callback(mi.queue_free)
 
 
-## 駒に当てるエフェクト1発。レシピ専用の絵を駒の真上から落として当てる。
+## 駒に当てるエフェクト1発。スキル専用の絵を駒の真上から落として当てる。
 ## 落ちきった時点で on_land を呼ぶ＝駒の反応（フラッシュ・兵数・撃破）はそこに揃う。
 ## 絵が無いときは、そのヘックスだけを濃く光らせる＝穴が開かない。
 ## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
@@ -380,19 +380,19 @@ func _spawn_pillar(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 
 	tw.tween_callback(spr.queue_free)
 
 
-## 着弾に使う絵（キャッシュ）。レシピIDで規約解決する＝assets/formations/{recipe_id}_impact.png。
-## カットイン（{recipe_id}.png）と同じ置き場・同じ規約で、接尾辞だけが違う。
+## 着弾に使う絵（キャッシュ）。スキルIDで規約解決する＝assets/formations/{skill_id}_impact.png。
+## カットイン（{skill_id}.png）と同じ置き場・同じ規約で、接尾辞だけが違う。
 ## 盤でしか使わないので絵は最初から下向きに描く＝ここで回さない。
 ## 無ければ null＝絵を出さず面の光だけで済ませる（武器の攻撃エフェクトへは落とさない。
 ## 借り物を落とすと剣の弧が天から降ってくる）。詳細 → doc/gdd/formations.md 発動の演出
-func _impact_texture(recipe: String) -> Texture2D:
-	if recipe.is_empty():
+func _impact_texture(skill_id: String) -> Texture2D:
+	if skill_id.is_empty():
 		return null
-	if _impact_tex.has(recipe):
-		return _impact_tex[recipe]
-	var p := "res://assets/formations/%s_impact.png" % recipe
+	if _impact_tex.has(skill_id):
+		return _impact_tex[skill_id]
+	var p := "res://assets/formations/%s_impact.png" % skill_id
 	var tex := load(p) as Texture2D if ResourceLoader.exists(p) else null
-	_impact_tex[recipe] = tex
+	_impact_tex[skill_id] = tex
 	return tex
 
 

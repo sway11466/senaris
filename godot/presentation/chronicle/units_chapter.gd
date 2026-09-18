@@ -79,9 +79,9 @@ func _expanded_sheet(skin: UnitSkin) -> Control:
 
 	# ユニットスキル（撃てるものを性能の一部として載せる。doc/gdd/skills.md）
 	for rid in _unit_skill_ids(skin):
-		col.add_child(_ink_line("%s  %s" % [tr("ui.info.skill"), tr("recipe.%s.name" % rid)], TavernTheme.INK))
-		var skill_desc := tr("recipe.%s.desc" % rid)
-		if skill_desc != "recipe.%s.desc" % rid:
+		col.add_child(_ink_line("%s  %s" % [tr("ui.info.skill"), tr("skill.%s.name" % rid)], TavernTheme.INK))
+		var skill_desc := tr("skill.%s.desc" % rid)
+		if skill_desc != "skill.%s.desc" % rid:
 			col.add_child(_ink_line(skill_desc, TavernTheme.INK_SOFT))
 	return _paper_sheet(hash(skin.skin_id), col)
 
@@ -136,10 +136,10 @@ func _trait_text(type_id: String) -> String:
 ## スキルが載る（ゴーストはピクシー性能だがピクシーダストは撃てない）。
 func _unit_skill_ids(skin: UnitSkin) -> Array:
 	var out: Array = []
-	for rid in Formation.RECIPES:
-		var recipe: Dictionary = Formation.RECIPES[rid]
+	for rid in Formation.SKILLS:
+		var skill_def: Dictionary = Formation.SKILLS[rid]
 		if not Formation.is_unit_skill(rid):
 			continue
-		if (recipe.get("leader_skins", []) as Array).has(skin.skin_id):
+		if (skill_def.get("leader_skins", []) as Array).has(skin.skin_id):
 			out.append(rid)
 	return out

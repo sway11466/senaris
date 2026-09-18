@@ -6,7 +6,7 @@ class_name SkillResult
 ## 盤の着弾演出（BoardImpactRenderer）・スキルレポート（SkillReportView）・演出シーン（SkillScene）が読む。
 ## 詳細 → doc/gdd/formations.md 発動の演出, doc/tech/combat_scene.md
 
-var recipe: String                 ## レシピID
+var skill: String                  ## スキルID
 var leader_id: int                 ## 発動者の駒番号
 var caster: UnitSnapshot           ## 発動者（発動前に固める。兵数は動かないので troops_after＝troops_before）
 var center: Vector2i               ## 着弾中心（対象を取らないレシピでは呼び手が渡した値のまま）

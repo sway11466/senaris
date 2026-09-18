@@ -285,13 +285,13 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	# 発動と同時にスキルレポート（カットイン・着弾の間も右パネルに出ている）。盤側の選択解除
 	# （clear）が先に走る＝HexBoard.bind の接続がこのハンドラより先。仕様 → doc/tech/combat_scene.md
 	$Front/InfoPanel.show_skill_report(result)
-	_chronicle.note_recipe(result.recipe)  # クロニクルにレシピを記録
+	_chronicle.note_skill(result.skill)  # クロニクルにスキルを記録
 	# このスキルで勝ちが確定していれば、盤の着弾をとどめ（スロー＋カメラ寄せ）として見せる。
 	if _win_decided():
 		_finisher_route = "formation"
 		$HexBoard.arm_finisher_impact()
-	var recipe := result.recipe
-	if Formation.is_unit_skill(recipe):
+	var skill_id := result.skill
+	if Formation.is_unit_skill(skill_id):
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
 		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
 		_update_aura()
@@ -299,12 +299,12 @@ func _on_formation_resolved(result: SkillResult) -> void:
 		if _skill_scene != null and result.cast != null:
 			_skill_scene.play(result.cast)
 		return
-	# 陣形の音はレシピごとに違う＝規約解決（assets/sfx/{recipe_id}.ogg と {recipe_id}_hit.ogg）。
+	# 陣形の音はスキルごとに違う＝規約解決（assets/sfx/{skill_id}.ogg と {skill_id}_hit.ogg）。
 	# 面殲滅と全体バフで同じ音を鳴らすと、何が起きたのかが音から分からない。
-	SfxPlayer.play_sfx(recipe)
-	if _formation_cutin != null and _formation_cutin.play(recipe):
+	SfxPlayer.play_sfx(skill_id)
+	if _formation_cutin != null and _formation_cutin.play(skill_id):
 		await _formation_cutin.finished
-	SfxPlayer.play_sfx("%s_hit" % recipe)
+	SfxPlayer.play_sfx("%s_hit" % skill_id)
 	# 着弾＝揺れ → 面の光 → 被弾した駒を1体ずつ。揺れは画面全体（右の情報ボックスも同じ衝撃の下に
 	# 置く）＝2D側はここ、盤（3D）は HexBoard がカメラに同じ量を掛ける。着弾の無いバフは揺らさない。
 	if $HexBoard.is_impacting():

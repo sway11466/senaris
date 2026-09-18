@@ -59,10 +59,10 @@ func test_every_id_has_a_name_key() -> void:
 				NAMES_CSV, key, src["csv"], src["col"]])
 
 
-## スキルのレシピIDは CSV ではなくコード側の定義が正本（Formation.RECIPES）。
-func test_every_recipe_has_a_name_key() -> void:
+## スキルのスキルIDは CSV ではなくコード側の定義が正本（Formation.SKILLS）。
+func test_every_skill_has_a_name_key() -> void:
 	var keys := _name_keys()
-	assert_gt(Formation.RECIPES.size(), 0, "レシピが定義されていること")
-	for id: String in Formation.RECIPES.keys():
-		var key := "recipe.%s.name" % id
-		assert_true(keys.has(key), "%s に %s があること（Formation.RECIPES）" % [NAMES_CSV, key])
+	assert_gt(Formation.SKILLS.size(), 0, "スキルが定義されていること")
+	for id: String in Formation.SKILLS.keys():
+		var key := "skill.%s.name" % id
+		assert_true(keys.has(key), "%s に %s があること（Formation.SKILLS）" % [NAMES_CSV, key])

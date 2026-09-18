@@ -705,8 +705,8 @@ func _build_ability(u: Unit) -> void:
 	# 区切り線や見出しを置かないのは、置くと1ページ目に入らず、ページ2の存在に気づかれないため
 	# （2026-09 実測＝器の高さが 368px だった時点で、兵数〜特性で 239px・見出し付きの節は 161px）。
 	for rid in Formation.unit_skills_of(u):
-		_add_row(tr("ui.info.skill"), tr("recipe." + rid + ".name"))
-		_add_indent_row(tr("recipe." + rid + ".desc"), LABEL_W + ROW_LABEL_GAP)
+		_add_row(tr("ui.info.skill"), tr("skill." + rid + ".name"))
+		_add_indent_row(tr("skill." + rid + ".desc"), LABEL_W + ROW_LABEL_GAP)
 
 ## 状態＝このターン何ができるか＋いま効いているバフ・デバフ。
 ## 包囲は地形ではなく「隣の敵に囲まれて弱っている」＝デバフなのでここに置く。

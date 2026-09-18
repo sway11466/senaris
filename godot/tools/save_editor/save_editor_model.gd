@@ -77,12 +77,12 @@ static func roster_entry(c: Dictionary, level: int, troops: int) -> Dictionary:
 		"max_troops": max_troops,
 	}
 
-## クロニクルの陣形スキルの章が並べる全レシピ（shape が solo＝ユニットスキルは除く）。
-static func formation_recipe_ids() -> Array:
+## クロニクルの陣形スキルの章が並べる全スキル（shape が solo＝ユニットスキルは除く）。
+static func formation_skill_ids() -> Array:
 	var out: Array = []
-	for recipe_id in Formation.RECIPES:
-		if String((Formation.RECIPES[recipe_id] as Dictionary).get("shape", "")) != "solo":
-			out.append(String(recipe_id))
+	for skill_id in Formation.SKILLS:
+		if String((Formation.SKILLS[skill_id] as Dictionary).get("shape", "")) != "solo":
+			out.append(String(skill_id))
 	return out
 
 ## クロニクルのユニットの章が並べる全スキン（スキン表の行順）。
@@ -95,17 +95,17 @@ static func all_skin_ids(skins: Dictionary) -> Array:
 ## 「全部ON」。campaigns＝CampaignCatalog.load_all()、manifests＝ChronicleLoader.load_all()。
 ## 物語の記録は最後に遊んだ回（進捗）と遊んだ回の累積（クロニクル）の両方に書く。
 ## 開始時の在籍＝引き継ぎ元までの候補、クリア後の在籍＝そのステージまでの候補。
-## 返り値＝書いた数 { skins, recipes, stages }。クロニクルの save() は呼び出し側が呼ぶ。
+## 返り値＝書いた数 { skins, skills, stages }。クロニクルの save() は呼び出し側が呼ぶ。
 static func all_on(progress: ProgressStore, chronicle: ChronicleStore, campaigns: Array,
 		manifests: Dictionary, catalog: Dictionary, skins: Dictionary) -> Dictionary:
 	var n_skins := 0
 	for skin_id in all_skin_ids(skins):
 		if chronicle.record_skin(skin_id):
 			n_skins += 1
-	var n_recipes := 0
-	for recipe_id in formation_recipe_ids():
-		if chronicle.record_recipe(recipe_id, ""):
-			n_recipes += 1
+	var n_skills := 0
+	for skill_id in formation_skill_ids():
+		if chronicle.record_skill(skill_id, ""):
+			n_skills += 1
 	var n_stages := 0
 	for c in campaigns:
 		if bool(c.get("debug", false)):
@@ -127,7 +127,7 @@ static func all_on(progress: ProgressStore, chronicle: ChronicleStore, campaigns
 				progress.mark_story_event(cid, sid, String(event_id))
 				chronicle.record_story_event(cid, sid, String(event_id))
 			n_stages += 1
-	return { "skins": n_skins, "recipes": n_recipes, "stages": n_stages }
+	return { "skins": n_skins, "skills": n_skills, "stages": n_stages }
 
 # ---------------------------------------------------------------------------
 

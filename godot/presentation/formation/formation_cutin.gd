@@ -3,7 +3,7 @@ class_name FormationCutin
 ## 陣形スキルの発動で挟む1枚絵のカットイン（presentation）。画面全体の暗転（ScreenLighting）の
 ## 上に絵を出し、留めて消える。本体は前面パネル層（45）＝幕より前。右の InfoPanel も同じ層で沈まない。
 ## 窓は戦闘演出シーンと同じ位置・大きさ・形（角丸）＝盤が完全に消えない・演出の見た目を揃える。
-## 絵はレシピIDで規約解決＝assets/formations/{recipe_id}.png。無ければ何もせず false を返す
+## 絵はスキルIDで規約解決＝assets/formations/{skill_id}.png。無ければ何もせず false を返す
 ## （カットインを飛ばして盤の結果だけ見せる。音は main が鳴らす）。
 ## クリック／キーで即座に飛ばせる。頭はロックしない＝1ステージに何度も出るため。
 ## 仕様 → doc/gdd/formations.md（発動の演出）／絵の置き場 → doc/art/keyvisual.md
@@ -47,8 +47,8 @@ func _build() -> void:
 	add_child(_edge)
 
 ## カットインを出す。絵が在れば true（呼び手は finished を待つ）、無ければ何もせず false。
-func play(recipe_id: String) -> bool:
-	var tex := load_art(recipe_id)
+func play(skill_id: String) -> bool:
+	var tex := load_art(skill_id)
 	if tex == null:
 		return false
 	_texture = tex
@@ -59,13 +59,13 @@ func play(recipe_id: String) -> bool:
 	_animate()
 	return true
 
-## assets/formations/{recipe_id}.png（無ければ .webp）。置いてあれば出る＝コード不変で絵を足せる。
+## assets/formations/{skill_id}.png（無ければ .webp）。置いてあれば出る＝コード不変で絵を足せる。
 ## クロニクルの陣形スキル章も同じ絵をカードの面に使う（doc/gdd/chronicle.md 陣形スキル）。
-static func load_art(recipe_id: String) -> Texture2D:
-	if recipe_id.is_empty():
+static func load_art(skill_id: String) -> Texture2D:
+	if skill_id.is_empty():
 		return null
 	for ext in EXTS:
-		var path := "%s/%s%s" % [ART_DIR, recipe_id, ext]
+		var path := "%s/%s%s" % [ART_DIR, skill_id, ext]
 		if ResourceLoader.exists(path):
 			return load(path) as Texture2D
 	return null

@@ -249,8 +249,8 @@ func _support_text(side: Dictionary) -> String:
 static func status_text(m: Dictionary) -> String:
 	# 表示名はレシピIDから引く（エントリは表示文字列を持たない → formation_resolver.gd）。
 	# レシピを持たない状態補正は用語で出す。static なので tr() は使えない。
-	var rid := String(m.get("recipe", ""))
-	var nm := TranslationServer.translate("recipe.%s.name" % rid) if not rid.is_empty() \
+	var rid := String(m.get("skill", ""))
+	var nm := TranslationServer.translate("skill.%s.name" % rid) if not rid.is_empty() \
 		else TranslationServer.translate("ui.report.modifier_unnamed")
 	# 継続ダメージは攻防に効かない＝攻/防の2列に置けない。毎ターン何人減るかをそのまま出す。
 	if StatusMod.is_dot(m):

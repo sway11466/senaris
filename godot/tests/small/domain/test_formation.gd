@@ -5,19 +5,19 @@ extends GutTest
 func _state() -> BattleState:
 	return BattleState.new(12, 8)
 
-## そのレシピの選択肢だけを数える。聖職はピュリファイ（ユニットスキル）も単独で撃てるので、
+## そのスキルの選択肢だけを数える。聖職はピュリファイ（ユニットスキル）も単独で撃てるので、
 ## 選択肢の総数で陣形スキルの成立を判定すると混ざる。詳細 → doc/gdd/skills.md
-func _count(opts: Array[FormationOption], recipe: String) -> int:
+func _count(opts: Array[FormationOption], skill: String) -> int:
 	var n := 0
 	for o in opts:
-		if o.recipe == recipe:
+		if o.skill == skill:
 			n += 1
 	return n
 
-## そのレシピの選択肢を1つ取り出す（無ければ null）。
-func _pick(opts: Array[FormationOption], recipe: String) -> FormationOption:
+## そのスキルの選択肢を1つ取り出す（無ければ null）。
+func _pick(opts: Array[FormationOption], skill: String) -> FormationOption:
 	for o in opts:
-		if o.recipe == recipe:
+		if o.skill == skill:
 			return o
 	return null
 
@@ -44,9 +44,9 @@ func _trinity_nova_state(enemy_def := 20) -> Dictionary:
 
 ## 陣形スキルは必ず分類（表Aの「分類」列）を持つ＝クロニクルの束ね。ユニットスキルは持たない。
 ## 詳細 → doc/gdd/chronicle.md 陣形スキル
-func test_formation_recipes_have_category() -> void:
-	for rid in Formation.RECIPES:
-		var r: Dictionary = Formation.RECIPES[rid]
+func test_formation_skills_have_category() -> void:
+	for rid in Formation.SKILLS:
+		var r: Dictionary = Formation.SKILLS[rid]
 		if Formation.is_unit_skill(rid):
 			assert_false(r.has("category"), "%s: ユニットスキルは分類を持たない" % rid)
 		else:
@@ -58,7 +58,7 @@ func test_available_detects_trinity_nova_triangle() -> void:
 	var opts := Formation.available_for(f["s"], f["leader"])
 	assert_eq(opts.size(), 1, "三角形のトリニティノヴァが1つ検出される")
 	var o: FormationOption = opts[0]
-	assert_eq(o.recipe, "trinity_nova", "レシピは trinity_nova")
+	assert_eq(o.skill, "trinity_nova", "スキルは trinity_nova")
 	assert_eq(o.participants.size(), 3, "参加3体")
 	assert_true(o.needs_target(), "面攻撃は対象指定が要る")
 
@@ -84,7 +84,7 @@ func test_trinity_nova_rejects_flanking_members() -> void:
 	assert_eq(_count(Formation.available_for(s, w1), "trinity_nova"), 0,
 		"メンバー同士が隣接していなければ三角形にならない")
 
-func test_leader_type_gates_recipe() -> void:
+func test_leader_type_gates_skill() -> void:
 	# クレリックを選んでもトリニティノヴァ（魔法兵）は出ない。
 	var f := _trinity_nova_state()
 	var cleric := Unit.new(20, 0, Hex.offset_to_axial(1, 1), 3, 8, 20, 20, 1, "cleric")
@@ -150,7 +150,7 @@ func test_grace_offered_with_five_clustered() -> void:
 	var opts := Formation.available_for(f["s"], f["leader"])
 	assert_eq(_count(opts, "grace"), 1, "占領兵5体クラスタでグレイス")
 	var o := _pick(opts, "grace")
-	assert_eq(o.recipe, "grace", "レシピは grace")
+	assert_eq(o.skill, "grace", "スキルは grace")
 	assert_eq(o.effect, FormationOption.Effect.BUFF, "バフ効果")
 	assert_false(o.needs_target(), "バフは対象指定不要")
 
@@ -236,9 +236,9 @@ func test_cluster_forms_at_move_destination() -> void:
 	assert_eq(_count(opts, "grace"), 1, "移動先で列に加われば5体クラスタが成立する")
 	assert_eq(_pick(opts, "grace").participants.size(), 5, "参加は5体")
 
-## レシピの照合はスキンID。性能(type)が cleric でも見た目がゴブリンなら聖歌隊にならない。
+## スキルの照合はスキンID。性能(type)が cleric でも見た目がゴブリンなら聖歌隊にならない。
 ## 詳細 → doc/gdd/formations.md 共通ルール
-func test_recipe_matches_by_skin_not_type() -> void:
+func test_skill_matches_by_skin_not_type() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
 	var leader: Unit = null
@@ -251,7 +251,7 @@ func test_recipe_matches_by_skin_not_type() -> void:
 	assert_eq(Formation.available_for(s, leader).size(), 0, "スキンが違えばグレイスは成立しない")
 
 ## スキンID明示でも成立する（skin_id 未指定＝type_id へフォールバックは _aria_state 側で担保）。
-func test_recipe_matches_with_explicit_skin() -> void:
+func test_skill_matches_with_explicit_skin() -> void:
 	var f := _aria_state()
 	for u in f["s"].units():
 		if u.type_id == "cleric":
@@ -304,7 +304,7 @@ func test_divine_judgment_offered() -> void:
 	var opts := Formation.available_for(f["s"], f["leader"])
 	assert_eq(opts.size(), 1, "ディバインジャッジメントが検出される")
 	var o: FormationOption = opts[0]
-	assert_eq(o.recipe, "divine_judgment", "レシピは divine_judgment")
+	assert_eq(o.skill, "divine_judgment", "スキルは divine_judgment")
 	assert_eq(o.effect, FormationOption.Effect.SINGLE, "単体効果")
 	assert_eq(o.max_range, 10, "射程10")
 
@@ -535,9 +535,9 @@ func test_resolve_kills_when_lethal() -> void:
 func test_is_unit_skill_splits_catalog_by_shape() -> void:
 	# 演出・効果音の出し分けが読む区別（陣形＝カットインあり／ユニットスキル＝音だけ）。
 	assert_true(Formation.is_unit_skill("pixie_dust"), "単独発動(shape=solo)はユニットスキル")
-	assert_false(Formation.is_unit_skill("trinity_nova"), "複数人のレシピは陣形")
+	assert_false(Formation.is_unit_skill("trinity_nova"), "複数人のスキルは陣形")
 	assert_false(Formation.is_unit_skill("grace"), "クラスタも陣形")
-	assert_false(Formation.is_unit_skill("no_such_recipe"), "未知のIDは陣形扱い（落ちない）")
+	assert_false(Formation.is_unit_skill("no_such_skill"), "未知のIDは陣形扱い（落ちない）")
 
 # --- スキルレポート用の result（→ doc/tech/combat_scene.md 右パネル（スキルレポート）） ---
 
@@ -561,7 +561,7 @@ func test_result_carries_snapshots_and_attack_breakdown() -> void:
 		assert_not_null(atk.get(key), "攻撃側の内訳に %s が載る" % key)
 
 func test_grace_result_carries_status_entry() -> void:
-	# 損害の出ないレシピはレポートが効果と持続を出す＝積んだ状態補正エントリを result にも載せる。
+	# 損害の出ないスキルはレポートが効果と持続を出す＝積んだ状態補正エントリを result にも載せる。
 	var f := _aria_state()
 	var s: BattleState = f["s"]
 	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]

@@ -121,8 +121,8 @@ func test_combat_detail_snapshot_includes_statuses() -> void:
 	assert_eq(String(a_statuses[0]["name"]), "グレイス", "表示名まで届く")
 	assert_eq(d.defender.statuses.size(), 0, "防御側(team1)には効いていない")
 
-func test_formation_buff_entry_carries_recipe_id() -> void:
-	# FormationResolver.resolve の buff 経路で、エントリに陣形レシピのIDが入る（表示名は読む側が引く）。
+func test_formation_buff_entry_carries_skill_id() -> void:
+	# FormationResolver.resolve の buff 経路で、エントリに陣形スキルのIDが入る（表示名は読む側が引く）。
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var members: Array[Unit] = []
@@ -136,7 +136,7 @@ func test_formation_buff_entry_carries_recipe_id() -> void:
 	var lead := members[0]
 	var applied := StatusMod.applied(s._status_mods, lead)
 	assert_eq(applied.size(), 1, "バフエントリが積まれる")
-	assert_eq(String(applied[0]["recipe"]), "grace", "レシピIDが入る")
+	assert_eq(String(applied[0]["skill"]), "grace", "スキルIDが入る")
 
 # --- 持続満了 ---
 

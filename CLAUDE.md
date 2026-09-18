@@ -33,7 +33,7 @@
 ### ゲームデザイン — `gdd/`
 
 - [doc/gdd/combat.md](doc/gdd/combat.md) — 戦闘解決（補正チェーン・陣形スキル）
-- [doc/gdd/formations.md](doc/gdd/formations.md) — 陣形スキル（レシピ・カタログ）
+- [doc/gdd/formations.md](doc/gdd/formations.md) — 陣形スキル（カタログ）
 - [doc/gdd/skills.md](doc/gdd/skills.md) — ユニットスキル（発動者1体で撃つ。仕組みは陣形スキルと共通）
 - [doc/gdd/units.md](doc/gdd/units.md) — ユニット性能設計・対応表
 - [doc/gdd/movement.md](doc/gdd/movement.md) — 移動タイプ・地形コスト・reachable

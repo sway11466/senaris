@@ -190,7 +190,7 @@ ui.board.unload,降車: %s,Unload: %s
 ui.board.deploy,出撃: %s,Deploy: %s
 ui.board.unit_skill,ユニットスキル,Unit Skill
 ui.board.formation_skill,陣形スキル,Formation Skill
-ui.board.recipe_item,%s: %s,%s: %s
+ui.board.skill_item,%s: %s,%s: %s
 ui.board.cancel,キャンセル,Cancel
 ui.banner.player_turn,自軍のターン,Your Turn
 ui.banner.enemy_turn,敵軍のターン,Enemy Turn
@@ -222,21 +222,21 @@ ui.chronicle.unknown,？,?
 ui.chronicle.first_seen,初出,First seen in
 ui.chronicle.capacity,搭乗,Capacity
 ui.chronicle.name_category,%s（%s）,%s (%s)
-ui.chronicle.recipe_leader,発動者,Leader
-ui.chronicle.recipe_members,参加者,Members
-ui.chronicle.recipe_effect,効果,Effect
-ui.chronicle.recipe_effect_area,範囲攻撃（半径%d）,Area attack (radius %d)
-ui.chronicle.recipe_effect_single,単体攻撃,Single-target attack
-ui.chronicle.recipe_effect_buff,状態補正（味方全体）,Status effect (all allies)
-ui.chronicle.recipe_duration,持続,Duration
-ui.chronicle.recipe_instant,即時,Instant
-ui.chronicle.recipe_until_next_turn,次の自軍ターン開始まで,Until your next turn
-ui.chronicle.recipe_turns,%dターン,%d turns
-ui.chronicle.recipe_count,人数,Members
-ui.chronicle.recipe_count_min,%d以上,%d or more
-ui.chronicle.recipe_from,発動できる駒,Cast from
-ui.chronicle.recipe_from_any,どれからでも,Any member
-ui.chronicle.recipe_from_leader,発動者から,Leader only
+ui.chronicle.skill_leader,発動者,Leader
+ui.chronicle.skill_members,参加者,Members
+ui.chronicle.skill_effect,効果,Effect
+ui.chronicle.skill_effect_area,範囲攻撃（半径%d）,Area attack (radius %d)
+ui.chronicle.skill_effect_single,単体攻撃,Single-target attack
+ui.chronicle.skill_effect_buff,状態補正（味方全体）,Status effect (all allies)
+ui.chronicle.skill_duration,持続,Duration
+ui.chronicle.skill_instant,即時,Instant
+ui.chronicle.skill_until_next_turn,次の自軍ターン開始まで,Until your next turn
+ui.chronicle.skill_turns,%dターン,%d turns
+ui.chronicle.skill_count,人数,Members
+ui.chronicle.skill_count_min,%d以上,%d or more
+ui.chronicle.skill_from,発動できる駒,Cast from
+ui.chronicle.skill_from_any,どれからでも,Any member
+ui.chronicle.skill_from_leader,発動者から,Leader only
 ui.chronicle.results,戦果,Results
 ui.chronicle.story,物語,Story
 ui.chronicle.lore,設定集,Lore

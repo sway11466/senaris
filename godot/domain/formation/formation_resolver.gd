@@ -22,7 +22,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	if not Formation.can_target(state, option, target):
 		return null
 	var out := SkillResult.new()
-	out.recipe = option.recipe
+	out.skill = option.skill
 	out.leader_id = option.leader_id
 	out.center = target
 	# 効果対象が1体のユニットスキルは演出シーンに乗る（→ doc/tech/combat_scene.md）。
@@ -112,7 +112,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		state.mark_engaged(pid)
 	# チャージが必要なレシピは発動後に 0 に戻す（→ doc/gdd/skills.md 共通ルール）。
 	if option.charge_turns > 0:
-		state.set_charge(option.leader_id, option.recipe, 0)
+		state.set_charge(option.leader_id, option.skill, 0)
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
 	out.cells = Formation.blast_cells(option, target)
@@ -126,7 +126,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 ## 詳細 → doc/tech/combat_scene.md ユニットスキルの演出
 static func _skill_cast(state: BattleState, option: FormationOption, target: Vector2i) -> SkillCast:
 	var c := SkillCast.new()
-	c.recipe = option.recipe
+	c.skill = option.skill
 	c.name = option.name
 	c.effect = option.effect_id()
 	c.combat_effect = option.combat_effect
@@ -150,7 +150,7 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 		"op": StatusMod.OP_DOT,
 		"value": option.dot_troops,
 		"remaining": option.duration_turns,
-		"recipe": option.recipe,  # 表示名は読む側が recipe.<id>.name を引く（domain は表示文字列を持たない）
+		"skill": option.skill,  # 表示名は読む側が skill.<id>.name を引く（domain は表示文字列を持たない）
 		"fx": option.buff_fx,
 		"kind": option.buff_kind,
 	}
@@ -177,7 +177,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 		"target": option.buff_target,
 		"value": value,
 		"remaining": option.duration_turns,
-		"recipe": option.recipe,  # 表示名は読む側が recipe.<id>.name を引く（domain は表示文字列を持たない）
+		"skill": option.skill,  # 表示名は読む側が skill.<id>.name を引く（domain は表示文字列を持たない）
 		"fx": option.buff_fx,  # 盤の見た目（presentation が読む。空＝見た目なし）
 		# 強化か弱体か。ピュリファイが落とす対象と盤の見た目をこれで決める＝値の符号から推測しない。
 		"kind": option.buff_kind,

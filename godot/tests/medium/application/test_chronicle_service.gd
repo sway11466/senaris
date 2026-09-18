@@ -1,5 +1,5 @@
 extends GutTest
-## ChronicleService のテスト。盤に出た駒と発動したレシピの記録を検証する。
+## ChronicleService のテスト。盤に出た駒と発動したスキルの記録を検証する。
 ## 仕様 → doc/gdd/chronicle.md / doc/tech/gamesystem.md §クロニクル
 
 const DIR := "user://test_chronicle_service"
@@ -93,29 +93,29 @@ func test_note_unit_fallback_to_type_id() -> void:
 	assert_true(st.has_skin("wyvern"), "skin_id 未設定なら type_id で記録")
 
 # ---------------------------------------------------------------------------
-# note_recipe（陣形スキル発動）
+# note_skill（陣形スキル発動）
 # ---------------------------------------------------------------------------
 
-func test_note_recipe_records() -> void:
+func test_note_skill_records() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("tc", BattleState.new(8, 8))
-	svc.note_recipe("trinity_nova")
-	assert_true(st.has_recipe("trinity_nova"), "発動したレシピが記録される")
+	svc.note_skill("trinity_nova")
+	assert_true(st.has_skill("trinity_nova"), "発動したスキルが記録される")
 
-func test_note_recipe_empty_id_does_nothing() -> void:
+func test_note_skill_empty_id_does_nothing() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("tc", BattleState.new(8, 8))
-	svc.note_recipe("")
-	assert_eq(st.recipes(), {}, "空のレシピ id は記録しない")
+	svc.note_skill("")
+	assert_eq(st.skills(), {}, "空のスキル id は記録しない")
 
-func test_note_recipe_outside_campaign_does_nothing() -> void:
+func test_note_skill_outside_campaign_does_nothing() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("", BattleState.new(8, 8))
-	svc.note_recipe("trinity_nova")
-	assert_eq(st.recipes(), {}, "冒険譚の外ではレシピも記録しない")
+	svc.note_skill("trinity_nova")
+	assert_eq(st.skills(), {}, "冒険譚の外ではスキルも記録しない")
 
 # ---------------------------------------------------------------------------
 # flush（盤を離れるときにファイルへ書く）
@@ -125,11 +125,11 @@ func test_flush_saves_to_file() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("tc", _state())
-	svc.note_recipe("trinity_nova")
+	svc.note_skill("trinity_nova")
 	svc.flush()
 	var reloaded := ChronicleStore.new(PATH)
 	assert_true(reloaded.has_skin("knight"), "flush でスキンがファイルに書かれる")
-	assert_true(reloaded.has_recipe("trinity_nova"), "flush でレシピがファイルに書かれる")
+	assert_true(reloaded.has_skill("trinity_nova"), "flush でスキルがファイルに書かれる")
 
 func test_flush_without_changes_does_not_write() -> void:
 	var st := _store()

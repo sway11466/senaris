@@ -326,7 +326,7 @@ func _on_all_on() -> void:
 	var n := SaveEditorModel.all_on(_progress, _chronicle, _campaigns, ChronicleLoader.load_all(), _catalog, _skins)
 	_chronicle.save()
 	_say("クロニクルを全部ONにしました（スキン +%d・陣形スキル +%d・物語の記録 %d ステージ）" \
-			% [n["skins"], n["recipes"], n["stages"]])
+			% [n["skins"], n["skills"], n["stages"]])
 
 
 func _say(text: String) -> void:

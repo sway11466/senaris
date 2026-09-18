@@ -1,13 +1,13 @@
 extends RefCounted
 class_name ChronicleService
 ## クロニクルの記録 API（application 層）。盤に出た駒（skin_id）と発動した
-## 陣形スキル（レシピ id）をメモリに溜め、盤を離れるときにまとめて書く。
+## 陣形スキル（スキル id）をメモリに溜め、盤を離れるときにまとめて書く。
 ## 仕様 → doc/gdd/chronicle.md / doc/tech/gamesystem.md §クロニクル
 ##
 ## 入口:
 ##   begin       — ステージ開始（盤の初期配置を走査して全駒を記録）
 ##   note_unit   — 駒が盤に現れた（出撃・増援）
-##   note_recipe — 陣形スキルが発動した
+##   note_skill  — 陣形スキルが発動した
 ##   note_story_* — 遊んだ回の顔ぶれ・起きたイベントを足す（StageOutcome から呼ぶ）
 ##   flush       — 盤を離れる（ファイルに書く）
 ##
@@ -36,13 +36,13 @@ func note_unit(unit: Unit) -> void:
 	_note_skin(unit)
 
 ## 陣形スキルが発動した。
-func note_recipe(recipe_id: String) -> void:
-	if not _records() or recipe_id.is_empty():
+func note_skill(skill_id: String) -> void:
+	if not _records() or skill_id.is_empty():
 		return
-	_store.record_recipe(recipe_id, _campaign_id)
+	_store.record_skill(skill_id, _campaign_id)
 
 ## ステージを始めた＝開始時の在籍 actor を足す。同じ顔ぶれの回は畳まれる。
-## 駒・レシピと違い冒険譚とステージを引数で受ける＝StageOutcome と同じ規約で呼ばれるため。
+## 駒・スキルと違い冒険譚とステージを引数で受ける＝StageOutcome と同じ規約で呼ばれるため。
 func note_story_start(campaign_id: String, stage_id: String, roster: Array) -> void:
 	_store.record_story_roster(campaign_id, stage_id, "start", _actor_names(roster))
 

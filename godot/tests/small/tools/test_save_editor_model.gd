@@ -1,7 +1,7 @@
 extends GutTest
 ## SaveEditorModel（tools/save_editor/save_editor_model.gd）のテスト。
 ## セーブエディタが名簿の候補をどう集めるか（roster_from の鎖・player と拠点の控え）と、
-## クロニクルの「全部ON」が並べる全スキン・全レシピの定義を固定する。仕様 → doc/backlog.md feature-130
+## クロニクルの「全部ON」が並べる全スキン・全スキルの定義を固定する。仕様 → doc/backlog.md feature-130
 
 const T3 := "res://data/stages/tutorial3-dragon-hunt/campaign.json"
 
@@ -92,12 +92,12 @@ func test_roster_entry_clamps_values() -> void:
 	assert_eq(SaveEditorModel.roster_entry(cand, 3, -1)["troops"], 0, "兵数は 0 以上")
 	assert_eq(e.keys().size(), 6, "Unit.to_dict と同じ6項目")
 
-func test_formation_recipe_ids_exclude_unit_skills() -> void:
-	var ids := SaveEditorModel.formation_recipe_ids()
+func test_formation_skill_ids_exclude_unit_skills() -> void:
+	var ids := SaveEditorModel.formation_skill_ids()
 	assert_gt(ids.size(), 0)
 	for id in ids:
 		assert_false(Formation.is_unit_skill(id), "ユニットスキル（solo）は陣形スキルの章に並ばない: %s" % id)
-	assert_lt(ids.size(), Formation.RECIPES.size(), "solo を除いている")
+	assert_lt(ids.size(), Formation.SKILLS.size(), "solo を除いている")
 
 func test_all_skin_ids_matches_skin_table() -> void:
 	var skins := SkinCatalog.load_standard()

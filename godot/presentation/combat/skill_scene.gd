@@ -63,9 +63,9 @@ func play(detail: SkillCast) -> void:
 ## 効果量が残兵数で決まる（buff_value_per_troop）ので、発数＝残兵数にすると絵と数字が一致する。
 func _cast(cast_side: String, to_side: String, victim: UnitSnapshot, eff: CombatEffect, shots: int, detail: SkillCast, gen: int) -> void:
 	# 発動音。1発ずつではなく発動につき1回（8体並ぶと8連射になって潰れる）。
-	# 素材はレシピIDの規約解決（assets/sfx/{recipe_id}.ogg）＝陣形スキルと同じ引き方。
+	# 素材はスキルIDの規約解決（assets/sfx/{skill_id}.ogg）＝陣形スキルと同じ引き方。
 	# 無ければ無音で進む。詳細 → doc/audio/sfx.md
-	SfxPlayer.play_sfx(detail.recipe)
+	SfxPlayer.play_sfx(detail.skill)
 	var targets := _troops_of(victim)
 	var fly := eff != null and eff.is_projectile() and cast_side != to_side  # 自分掛けは飛ばさない（play と同条件）
 	for i in shots:

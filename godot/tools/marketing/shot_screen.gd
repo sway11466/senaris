@@ -10,9 +10,9 @@ extends Node
 ##   --select col,row … そのマスの駒を選択した状態で撮る（情報パネルにその駒が出る）
 ##   --frame c1,r1,c2,r2 … 盤全体ではなく、この2マスが作る矩形に画角を寄せる（縦長の盤を横長の画に収める）
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
-##   --formation <recipe> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
+##   --formation <skill> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
 ##   --enemy-turn … 敵の手番に渡してから撮る（敵のスキル・敵の攻撃を実機と同じ手番で撮る）
-##   --pre-formation <recipe> --pre-leader c,r --pre-target c,r … 本命の前に技を1つ通し、手番を戻す
+##   --pre-formation <skill> --pre-leader c,r --pre-target c,r … 本命の前に技を1つ通し、手番を戻す
 ##       （相手が掛けた状態が無いと発動できない技＝ピュリファイ等を撮るため。--enemy-turn と併せて使う）
 ##   --talk N … 会話パートを N 行ぶん進めた状態で撮る（intro を持つステージで使う）
 ##   --select-screen … 盤ではなく酒場の冒険譚選択（依頼ボード）を開いた状態で撮る
@@ -29,8 +29,8 @@ func _ready() -> void:
 	var has_select := false
 	var frame := PackedInt32Array()
 	var attack := PackedInt32Array()
-	var recipe := ""
-	var pre_recipe := ""
+	var skill_id := ""
+	var pre_skill_id := ""
 	var talk := -1
 	var select_screen := false
 	var fresh := false
@@ -85,10 +85,10 @@ func _ready() -> void:
 			talk = int(uargs[i + 1])
 			i += 2
 		elif a == "--formation" and i + 1 < uargs.size():
-			recipe = uargs[i + 1]
+			skill_id = uargs[i + 1]
 			i += 2
 		elif a == "--pre-formation" and i + 1 < uargs.size():
-			pre_recipe = uargs[i + 1]
+			pre_skill_id = uargs[i + 1]
 			i += 2
 		elif a in ["--leader", "--target", "--pre-leader", "--pre-target"] and i + 1 < uargs.size():
 			var c := uargs[i + 1].split(",")
@@ -172,11 +172,11 @@ func _ready() -> void:
 		for f in 12:
 			await get_tree().process_frame
 
-	if pre_recipe != "":
+	if pre_skill_id != "":
 		# 前段＝本命の前に技を1つ通す。相手が掛けた状態が無いと発動できない技（ピュリファイ）は、
 		# 盤の初期配置では作れない＝ステージJSONが駒に書けるのは troops と level だけのため。
 		# 通し終えたら手番を戻す＝この後の本命は、掛けられた側の陣営の手番で撮ることになる。
-		if not await _fire_recipe(main, pre_recipe, pre_leader_cell, pre_target_cell):
+		if not await _fire_skill(main, pre_skill_id, pre_leader_cell, pre_target_cell):
 			get_tree().quit(1)
 			return
 		main._controller.end_turn()
@@ -217,7 +217,7 @@ func _ready() -> void:
 		for f in 8:
 			await get_tree().process_frame
 
-	if recipe != "":
+	if skill_id != "":
 		var fs: Variant = main._controller.state
 		var lead: Variant = fs.unit_at(Hex.offset_to_axial(leader_cell.x, leader_cell.y))
 		if lead == null:
@@ -226,11 +226,11 @@ func _ready() -> void:
 			return
 		var picked: FormationOption = null
 		for o in Formation.available_for(fs, lead):
-			if o.recipe == recipe:
+			if o.skill == skill_id:
 				picked = o
 				break
 		if picked == null:
-			push_error("shot_screen: %s が発動できない（レシピの並びと射程を確認）" % recipe)
+			push_error("shot_screen: %s が発動できない（スキルの並びと射程を確認）" % skill_id)
 			get_tree().quit(1)
 			return
 		DirAccess.make_dir_recursive_absolute(out)
@@ -282,7 +282,7 @@ func _ready() -> void:
 
 ## 技を1つ通し、演出が閉じるまで待つ（前段の1手ぶん）。連写はしない＝撮るのは本命だけ。
 ## 陣形スキルとユニットスキルは同じ経路（Formation.available_for → execute_formation）で通る。
-func _fire_recipe(main: Node, recipe: String, leader_cell: Vector2i, target_cell: Vector2i) -> bool:
+func _fire_skill(main: Node, skill_id: String, leader_cell: Vector2i, target_cell: Vector2i) -> bool:
 	var st: Variant = main._controller.state
 	var lead: Variant = st.unit_at(Hex.offset_to_axial(leader_cell.x, leader_cell.y))
 	if lead == null:
@@ -290,11 +290,11 @@ func _fire_recipe(main: Node, recipe: String, leader_cell: Vector2i, target_cell
 		return false
 	var picked: FormationOption = null
 	for o in Formation.available_for(st, lead):
-		if o.recipe == recipe:
+		if o.skill == skill_id:
 			picked = o
 			break
 	if picked == null:
-		push_error("shot_screen: %s が発動できない（レシピの並びと射程・手番を確認）" % recipe)
+		push_error("shot_screen: %s が発動できない（スキルの並びと射程・手番を確認）" % skill_id)
 		return false
 	if not main._controller.execute_formation(FormationCommand.new(picked, Hex.offset_to_axial(target_cell.x, target_cell.y))):
 		push_error("shot_screen: 前段のスキルが通らない")

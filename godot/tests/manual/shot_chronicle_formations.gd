@@ -22,14 +22,14 @@ func _process(_delta: float) -> bool:
 			TranslationServer.set_locale("ja")
 			# 2本だけ解放し、ディバインジャッジメントは未解放の黒塗りを見る
 			_store = ChronicleStore.new("user://chronicle_shot_test.json")
-			_store.record_recipe("trinity_nova", "tutorial2-undead-rush")
-			_store.record_recipe("grace", "tutorial2-undead-rush")
+			_store.record_skill("trinity_nova", "tutorial2-undead-rush")
+			_store.record_skill("grace", "tutorial2-undead-rush")
 			_main._chronicle_screen.open(_store, _main._progress)
 			_main._chronicle_screen._select_chapter(1)
 		40:
 			_shot("user://shot_formations_grid.png")
 		42:
-			_chapter()._open_recipe_card("trinity_nova")
+			_chapter()._open_skill_card("trinity_nova")
 		60:
 			_shot("user://shot_formations_card_trinity_nova.png")
 		62:
@@ -37,7 +37,7 @@ func _process(_delta: float) -> bool:
 			print("closed_expanded=", _chapter()._expanded == null,
 				" screen_visible=", _main._chronicle_screen.visible)
 		64:
-			_chapter()._open_recipe_card("grace")
+			_chapter()._open_skill_card("grace")
 		80:
 			_shot("user://shot_formations_card_grace.png")
 		82:

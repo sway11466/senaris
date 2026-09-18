@@ -160,33 +160,33 @@ func _tick_dots() -> void:
 
 # --- チャージ（再使用間隔）。詳細 → doc/gdd/skills.md ---
 #
-# 駒ごと・レシピごとに整数値を持ち、毎ターン開始時に +1 される。レシピの必要量に達すると
+# 駒ごと・スキルごとに整数値を持ち、毎ターン開始時に +1 される。スキルの必要量に達すると
 # 発動できる。発動すると 0 に戻る。盤に出た直後は 0＝溜まるまで撃てない。
 # 将来、他のスキルでチャージ量を直接加速できる余地を残す（→ doc/gdd/skills.md 共通ルール）。
 
-var _charges := {}  # handle -> { recipe_id: int }
+var _charges := {}  # handle -> { skill_id: int }
 
-## handle の recipe_id に対するチャージ量（未登録は 0）。
-func get_charge(handle: int, recipe_id: String) -> int:
+## handle の skill_id に対するチャージ量（未登録は 0）。
+func get_charge(handle: int, skill_id: String) -> int:
 	var per_unit: Variant = _charges.get(handle)
 	if per_unit == null or typeof(per_unit) != TYPE_DICTIONARY:
 		return 0
-	return int((per_unit as Dictionary).get(recipe_id, 0))
+	return int((per_unit as Dictionary).get(skill_id, 0))
 
-## handle の recipe_id のチャージ量を value にセットする。
-func set_charge(handle: int, recipe_id: String, value: int) -> void:
+## handle の skill_id のチャージ量を value にセットする。
+func set_charge(handle: int, skill_id: String, value: int) -> void:
 	if not _charges.has(handle):
 		_charges[handle] = {}
-	_charges[handle][recipe_id] = value
+	_charges[handle][skill_id] = value
 
-## ターン開始時に、始まった陣営の駒のチャージ量を +1 する（charge_turns を持つレシピだけ）。
+## ターン開始時に、始まった陣営の駒のチャージ量を +1 する（charge_turns を持つスキルだけ）。
 ## 盤上の駒だけが対象（搭乗中・garrison はチャージしない）。
 func _increment_charges() -> void:
 	for u in _units:
 		if u.team != current_team:
 			continue
-		for rid in Formation.RECIPES:
-			var r: Dictionary = Formation.RECIPES[rid]
+		for rid in Formation.SKILLS:
+			var r: Dictionary = Formation.SKILLS[rid]
 			if int(r.get("charge_turns", 0)) <= 0:
 				continue
 			if not Formation._matches(u, r["leader_skins"]):
@@ -1516,7 +1516,7 @@ static func _as_dict(v: Variant) -> Dictionary:
 	return v if typeof(v) == TYPE_DICTIONARY else {}
 
 ## _charges を JSON 化可能な dict に変換（キーを文字列化）。
-## { handle(int): { recipe_id: int } } → { "handle": { recipe_id: int } }
+## { handle(int): { skill_id: int } } → { "handle": { skill_id: int } }
 func _charges_to_dict() -> Dictionary:
 	var out := {}
 	for uid in _charges:

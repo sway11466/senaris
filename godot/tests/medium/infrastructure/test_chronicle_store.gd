@@ -30,7 +30,7 @@ func _write(text: String) -> void:
 func test_fresh_store_is_empty() -> void:
 	var store := ChronicleStore.new(PATH)
 	assert_eq(store.skins(), [], "初期状態はスキンなし")
-	assert_eq(store.recipes(), {}, "初期状態はレシピなし")
+	assert_eq(store.skills(), {}, "初期状態はスキルなし")
 
 # ---------------------------------------------------------------------------
 # record_skin
@@ -51,22 +51,22 @@ func test_record_skin_empty_id_returns_false() -> void:
 	assert_false(store.record_skin(""), "空 id は記録しない")
 
 # ---------------------------------------------------------------------------
-# record_recipe
+# record_skill
 # ---------------------------------------------------------------------------
 
-func test_record_recipe_new_returns_true() -> void:
+func test_record_skill_new_returns_true() -> void:
 	var store := ChronicleStore.new(PATH)
-	assert_true(store.record_recipe("trinity_nova", "tc"), "新規レシピは true")
-	assert_true(store.has_recipe("trinity_nova"), "記録されている")
+	assert_true(store.record_skill("trinity_nova", "tc"), "新規スキルは true")
+	assert_true(store.has_skill("trinity_nova"), "記録されている")
 
-func test_record_recipe_duplicate_returns_false() -> void:
+func test_record_skill_duplicate_returns_false() -> void:
 	var store := ChronicleStore.new(PATH)
-	store.record_recipe("trinity_nova", "tc")
-	assert_false(store.record_recipe("trinity_nova", "tc"), "既知レシピは false")
+	store.record_skill("trinity_nova", "tc")
+	assert_false(store.record_skill("trinity_nova", "tc"), "既知スキルは false")
 
-func test_record_recipe_empty_id_returns_false() -> void:
+func test_record_skill_empty_id_returns_false() -> void:
 	var store := ChronicleStore.new(PATH)
-	assert_false(store.record_recipe("", "tc"), "空 id は記録しない")
+	assert_false(store.record_skill("", "tc"), "空 id は記録しない")
 
 # ---------------------------------------------------------------------------
 # save / reload（永続化の往復）
@@ -75,12 +75,12 @@ func test_record_recipe_empty_id_returns_false() -> void:
 func test_save_and_reload() -> void:
 	var store := ChronicleStore.new(PATH)
 	store.record_skin("archer")
-	store.record_recipe("trinity_nova", "tc")
+	store.record_skill("trinity_nova", "tc")
 	store.save()
 	var reloaded := ChronicleStore.new(PATH)
 	assert_true(reloaded.has_skin("archer"), "保存後に読み直せる")
-	assert_true(reloaded.has_recipe("trinity_nova"), "レシピも読み直せる")
-	assert_eq(reloaded.recipes()["trinity_nova"]["first"], "tc", "レシピの初出は保存されている")
+	assert_true(reloaded.has_skill("trinity_nova"), "スキルも読み直せる")
+	assert_eq(reloaded.skills()["trinity_nova"]["first"], "tc", "スキルの初出は保存されている")
 
 func test_duplicate_skin_stays_single_entry() -> void:
 	var store := ChronicleStore.new(PATH)
@@ -112,20 +112,20 @@ func test_save_resets_dirty() -> void:
 	store.save()
 	assert_false(FileAccess.file_exists(PATH), "save 後に dirty がリセットされている")
 
-func test_multiple_skins_and_recipes_persist() -> void:
+func test_multiple_skins_and_skills_persist() -> void:
 	var store := ChronicleStore.new(PATH)
 	store.record_skin("archer")
 	store.record_skin("knight")
 	store.record_skin("goblin")
-	store.record_recipe("trinity_nova", "tc")
-	store.record_recipe("grace", "tc2")
+	store.record_skill("trinity_nova", "tc")
+	store.record_skill("grace", "tc2")
 	store.save()
 	var reloaded := ChronicleStore.new(PATH)
 	assert_true(reloaded.has_skin("archer"))
 	assert_true(reloaded.has_skin("knight"))
 	assert_true(reloaded.has_skin("goblin"))
-	assert_true(reloaded.has_recipe("trinity_nova"))
-	assert_true(reloaded.has_recipe("grace"))
+	assert_true(reloaded.has_skill("trinity_nova"))
+	assert_true(reloaded.has_skill("grace"))
 
 # ---------------------------------------------------------------------------
 # 破損・不正ファイル（ProgressStore / RosterStore と同流儀）
@@ -151,35 +151,35 @@ func test_wrong_version_falls_back_to_empty() -> void:
 func test_missing_version_falls_back_to_empty() -> void:
 	_write(JSON.stringify({
 			"skins": { "archer": { "first": "tc" } },
-			"recipes": {} }))
+			"skills": {} }))
 	var store := ChronicleStore.new(PATH)
 	assert_push_warning("ファイルが不正")
 	assert_false(store.has_skin("archer"), "version 欠損は空扱い")
 
 func test_skins_not_array_loads_empty() -> void:
 	_write(JSON.stringify({ "version": ChronicleStore.VERSION,
-			"skins": "oops", "recipes": {} }))
+			"skins": "oops", "skills": {} }))
 	var store := ChronicleStore.new(PATH)
 	assert_eq(store.skins(), [], "skins が並びでなければ空")
 
-func test_recipes_not_dict_loads_empty() -> void:
+func test_skills_not_dict_loads_empty() -> void:
 	_write(JSON.stringify({ "version": ChronicleStore.VERSION,
-			"skins": {}, "recipes": 42 }))
+			"skins": {}, "skills": 42 }))
 	var store := ChronicleStore.new(PATH)
-	assert_eq(store.recipes(), {}, "recipes が辞書でなければ空")
+	assert_eq(store.skills(), {}, "skills が辞書でなければ空")
 
 func test_non_string_skin_entry_skipped() -> void:
 	_write(JSON.stringify({ "version": ChronicleStore.VERSION,
-			"skins": ["archer", 42], "recipes": {} }))
+			"skins": ["archer", 42], "skills": {} }))
 	var store := ChronicleStore.new(PATH)
 	assert_eq(store.skins(), ["archer"], "文字列でない要素はスキップ")
 
-func test_non_dict_recipe_entry_skipped() -> void:
+func test_non_dict_skill_entry_skipped() -> void:
 	_write(JSON.stringify({ "version": ChronicleStore.VERSION, "skins": [],
-			"recipes": { "trinity_nova": { "first": "tc" }, "broken": "not a dict" } }))
+			"skills": { "trinity_nova": { "first": "tc" }, "broken": "not a dict" } }))
 	var store := ChronicleStore.new(PATH)
-	assert_true(store.has_recipe("trinity_nova"), "正常なエントリは残る")
-	assert_false(store.has_recipe("broken"), "辞書でないエントリはスキップ")
+	assert_true(store.has_skill("trinity_nova"), "正常なエントリは残る")
+	assert_false(store.has_skill("broken"), "辞書でないエントリはスキップ")
 
 # ---------------------------------------------------------------------------
 # 版と移行（v1＝スキンにも初出を持っていた版）
@@ -188,15 +188,15 @@ func test_non_dict_recipe_entry_skipped() -> void:
 func test_v1_file_loads_and_drops_skin_first() -> void:
 	_write(JSON.stringify({ "version": 1,
 			"skins": { "archer": { "first": "tc" }, "knight": { "first": "tc2" } },
-			"recipes": { "trinity_nova": { "first": "tc" } } }))
+			"skills": { "trinity_nova": { "first": "tc" } } }))
 	var store := ChronicleStore.new(PATH)
 	assert_true(store.has_skin("archer"), "v1 のスキンは読める")
 	assert_true(store.has_skin("knight"), "v1 のスキンは読める")
-	assert_eq(store.recipes()["trinity_nova"]["first"], "tc", "レシピの初出は残る")
+	assert_eq(store.skills()["trinity_nova"]["first"], "tc", "スキルの初出は残る")
 
 func test_v1_file_is_rewritten_without_skin_first() -> void:
 	_write(JSON.stringify({ "version": 1,
-			"skins": { "archer": { "first": "tc" } }, "recipes": {} }))
+			"skins": { "archer": { "first": "tc" } }, "skills": {} }))
 	var store := ChronicleStore.new(PATH)
 	store.record_skin("knight")  # 変更が無いと書き出さないので1件足す
 	store.save()
@@ -206,7 +206,7 @@ func test_v1_file_is_rewritten_without_skin_first() -> void:
 			"スキンは id の並びだけになり、初出の冒険譚は消えている")
 
 # ---------------------------------------------------------------------------
-# skins / recipes はコピーを返す
+# skins / skills はコピーを返す
 # ---------------------------------------------------------------------------
 
 func test_skins_returns_copy() -> void:
@@ -217,13 +217,13 @@ func test_skins_returns_copy() -> void:
 	assert_eq(store.skins(), ["archer"],
 			"skins() の返り値を変えても内部状態は汚れない")
 
-func test_recipes_returns_copy() -> void:
+func test_skills_returns_copy() -> void:
 	var store := ChronicleStore.new(PATH)
-	store.record_recipe("trinity_nova", "tc")
-	var got := store.recipes()
+	store.record_skill("trinity_nova", "tc")
+	var got := store.skills()
 	got["trinity_nova"]["first"] = "tampered"
-	assert_eq(store.recipes()["trinity_nova"]["first"], "tc",
-			"recipes() の返り値を変えても内部状態は汚れない")
+	assert_eq(store.skills()["trinity_nova"]["first"], "tc",
+			"skills() の返り値を変えても内部状態は汚れない")
 
 # ---------------------------------------------------------------------------
 # 経験した会話：顔ぶれを足す

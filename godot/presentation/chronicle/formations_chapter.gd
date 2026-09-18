@@ -4,7 +4,7 @@ class_name ChronicleFormationsChapter
 ##
 ## 表A（doc/gdd/formations.md）の分類ごとに羊皮紙のカードを格子に並べる。解放済みの面はカットインの絵、
 ## 未解放の面は要るユニットの黒塗りを人数ぶん＝ヒント（誰が要るかまで。形と位置は解放後の拡大カードだけ）。
-## 分類と並びは Formation.RECIPES の category と挿入順（表Aの写し）。
+## 分類と並びは Formation.SKILLS の category と挿入順（表Aの写し）。
 ## 並ぶのは陣形スキル（shape != "solo"）だけ＝単独発動のユニットスキルはユニット章の拡大カードに載る
 ## （doc/gdd/skills.md）。
 
@@ -21,59 +21,59 @@ func _card_aspect() -> float:
 func _build() -> void:
 	if _store == null:
 		return
-	var encountered := _store.recipes()  # { recipe_id: { first: campaign_id } }
+	var encountered := _store.skills()  # { skill_id: { first: campaign_id } }
 	var card_size := _card_size()
-	for group in _grouped_recipes():
+	for group in _grouped_skills():
 		var category: String = group["category"]
-		var ids: Array = group["recipes"]
+		var ids: Array = group["skills"]
 		var found := 0
 		var cards: Array = []
 		for rid in ids:
 			var known: bool = encountered.has(rid)
 			if known:
 				found += 1
-			cards.append(_recipe_card(rid, known, card_size))
-		_add_group(tr("recipe_group.%s.name" % category), found, cards)
+			cards.append(_skill_card(rid, known, card_size))
+		_add_group(tr("skill_group.%s.name" % category), found, cards)
 
-## Formation.RECIPES から陣形スキル（shape != "solo"）を分類ごとにまとめる。分類の並びは初めて
-## 現れた順、分類のなかは挿入順＝表Aの行順。[{ "category": String, "recipes": [id, ...] }, ...]
-func _grouped_recipes() -> Array:
+## Formation.SKILLS から陣形スキル（shape != "solo"）を分類ごとにまとめる。分類の並びは初めて
+## 現れた順、分類のなかは挿入順＝表Aの行順。[{ "category": String, "skills": [id, ...] }, ...]
+func _grouped_skills() -> Array:
 	var groups: Array = []
 	var index := {}  # category -> index in groups
-	for rid in Formation.RECIPES:
+	for rid in Formation.SKILLS:
 		if Formation.is_unit_skill(rid):
 			continue
-		var r: Dictionary = Formation.RECIPES[rid]
+		var r: Dictionary = Formation.SKILLS[rid]
 		var category := String(r.get("category", ""))
 		if not index.has(category):
 			index[category] = groups.size()
-			groups.append({ "category": category, "recipes": [] })
-		groups[index[category]]["recipes"].append(rid)
+			groups.append({ "category": category, "skills": [] })
+		groups[index[category]]["skills"].append(rid)
 	return groups
 
 ## 格子の1枚。解放済みはカットインの絵、未解放は黒塗りの顔ぶれ。
-func _recipe_card(recipe_id: String, known: bool, card_size: Vector2) -> Control:
+func _skill_card(skill_id: String, known: bool, card_size: Vector2) -> Control:
 	var face: Control
 	if known:
-		face = _cutin_art(recipe_id)
+		face = _cutin_art(skill_id)
 	else:
-		face = _hint_face(recipe_id)
-	var rid := recipe_id
-	return _paper_card(hash(rid), known, card_size, face, func() -> void: _open_recipe_card(rid))
+		face = _hint_face(skill_id)
+	var rid := skill_id
+	return _paper_card(hash(rid), known, card_size, face, func() -> void: _open_skill_card(rid))
 
 ## カットインの絵。未用意ならプレースホルダの文字。
-func _cutin_art(recipe_id: String) -> Control:
-	var tex := FormationCutin.load_art(recipe_id)
+func _cutin_art(skill_id: String) -> Control:
+	var tex := FormationCutin.load_art(skill_id)
 	if tex == null:
-		return _art_placeholder(tr("recipe.%s.name" % recipe_id))
+		return _art_placeholder(tr("skill.%s.name" % skill_id))
 	return _art_rect(tex, false)
 
 ## 未解放の面＝要るユニットの盤の絵を黒塗りで人数ぶん横に並べる。
-func _hint_face(recipe_id: String) -> Control:
+func _hint_face(skill_id: String) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_theme_constant_override("separation", HINT_GAP)
-	for skin in _figure_skins(recipe_id):
+	for skin in _figure_skins(skill_id):
 		var art := _skin_art(skin, "map", true)
 		art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		art.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -82,8 +82,8 @@ func _hint_face(recipe_id: String) -> Control:
 
 ## 図と黒塗りに使う顔ぶれ＝人数ぶんの UnitSkin。先頭が発動者（発動者になれる駒の先頭で代表）、
 ## 残りは参加者の先頭で代表する（doc/gdd/formations.md 一覧）。
-func _figure_skins(recipe_id: String) -> Array:
-	var r: Dictionary = Formation.RECIPES[recipe_id]
+func _figure_skins(skill_id: String) -> Array:
+	var r: Dictionary = Formation.SKILLS[skill_id]
 	var leaders: Array = r.get("leader_skins", [])
 	var members: Array = r.get("member_skins", [])
 	var count: int = r.get("count", 1)
@@ -100,86 +100,86 @@ func _figure_skins(recipe_id: String) -> Array:
 # ---------------------------------------------------------------------------
 
 ## カットインの絵とレシピの図を並べ、名前（分類）・説明文・効果の表・候補・初出を載せる。
-func _open_recipe_card(recipe_id: String) -> void:
-	if not Formation.RECIPES.has(recipe_id):
+func _open_skill_card(skill_id: String) -> void:
+	if not Formation.SKILLS.has(skill_id):
 		return
-	_open_expanded(_expanded_sheet(recipe_id))
+	_open_expanded(_expanded_sheet(skill_id))
 
-func _expanded_sheet(recipe_id: String) -> Control:
-	var r: Dictionary = Formation.RECIPES[recipe_id]
+func _expanded_sheet(skill_id: String) -> Control:
+	var r: Dictionary = Formation.SKILLS[skill_id]
 	var col := _sheet_col()
 
 	# 絵＝カットインとレシピの図
 	var figure := ChronicleRecipeFigure.new()
 	var textures: Array = []
-	for skin in _figure_skins(recipe_id):
+	for skin in _figure_skins(skill_id):
 		textures.append(_skin_texture(skin, "map"))
 	figure.setup(String(r.get("shape", "")), textures)
-	col.add_child(_art_row([_cutin_art(recipe_id), figure]))
+	col.add_child(_art_row([_cutin_art(skill_id), figure]))
 
 	# 見出し＝名前（分類）
 	var category := String(r.get("category", ""))
 	col.add_child(_sheet_title(tr("ui.chronicle.name_category") % [
-		tr("recipe.%s.name" % recipe_id), tr("recipe_group.%s.name" % category)]))
+		tr("skill.%s.name" % skill_id), tr("skill_group.%s.name" % category)]))
 
-	# 説明文（names.csv の recipe.<id>.desc。情報パネルと共通）
-	var desc := _desc_label("recipe.%s.desc" % recipe_id)
+	# 説明文（names.csv の skill.<id>.desc。情報パネルと共通）
+	var desc := _desc_label("skill.%s.desc" % skill_id)
 	if desc != null:
 		col.add_child(desc)
 
 	# 効果・射程・持続・人数・発動できる駒。値に文が入る（持続・効果）ので1行2対に留める
-	col.add_child(_pairs_grid(_recipe_rows(r), 2))
+	col.add_child(_pairs_grid(_skill_rows(r), 2))
 
 	# 発動者と参加者の候補（図は代表1体なので、候補が複数あることはここで分かる）
-	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.recipe_leader"),
+	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_leader"),
 		_skin_names_text(r.get("leader_skins", []))], TavernTheme.INK))
-	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.recipe_members"),
+	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_members"),
 		_skin_names_text(r.get("member_skins", []))], TavernTheme.INK))
 
 	# 初出の冒険譚
-	var entry: Dictionary = _store.recipes().get(recipe_id, {})
+	var entry: Dictionary = _store.skills().get(skill_id, {})
 	var first_campaign := String(entry.get("first", ""))
 	if not first_campaign.is_empty() and _progress != null:
 		var campaign := _progress.campaign(first_campaign)
 		if not campaign.is_empty():
 			col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.first_seen"),
 				tr(String(campaign.get("title", first_campaign)))], TavernTheme.INK_SOFT))
-	return _paper_sheet(hash(recipe_id), col)
+	return _paper_sheet(hash(skill_id), col)
 
 ## 効果の表＝[[項目, 値], ...]。
-func _recipe_rows(r: Dictionary) -> Array:
+func _skill_rows(r: Dictionary) -> Array:
 	var rows: Array = []
-	rows.append([tr("ui.chronicle.recipe_effect"), _effect_text(r)])
+	rows.append([tr("ui.chronicle.skill_effect"), _effect_text(r)])
 	var range_val: int = r.get("range", 0)
 	rows.append([tr("ui.info.range"), str(range_val) if range_val > 0 else NONE_TEXT])
-	rows.append([tr("ui.chronicle.recipe_duration"), _duration_text(r)])
+	rows.append([tr("ui.chronicle.skill_duration"), _duration_text(r)])
 	var count: int = r.get("count", 1)
-	rows.append([tr("ui.chronicle.recipe_count"),
-		tr("ui.chronicle.recipe_count_min") % count if r.get("shape", "") == "cluster" else str(count)])
-	rows.append([tr("ui.chronicle.recipe_from"),
-		tr("ui.chronicle.recipe_from_leader") if r.get("range_from", "") == "leader" \
-		else tr("ui.chronicle.recipe_from_any")])
+	rows.append([tr("ui.chronicle.skill_count"),
+		tr("ui.chronicle.skill_count_min") % count if r.get("shape", "") == "cluster" else str(count)])
+	rows.append([tr("ui.chronicle.skill_from"),
+		tr("ui.chronicle.skill_from_leader") if r.get("range_from", "") == "leader" \
+		else tr("ui.chronicle.skill_from_any")])
 	return rows
 
 ## レシピの効果を翻訳済みテキストにする。
 func _effect_text(r: Dictionary) -> String:
 	match String(r.get("effect", "")):
 		"area":
-			return tr("ui.chronicle.recipe_effect_area") % int(r.get("radius", 1))
+			return tr("ui.chronicle.skill_effect_area") % int(r.get("radius", 1))
 		"single":
-			return tr("ui.chronicle.recipe_effect_single")
+			return tr("ui.chronicle.skill_effect_single")
 		"buff":
-			return tr("ui.chronicle.recipe_effect_buff")
+			return tr("ui.chronicle.skill_effect_buff")
 	return ""
 
 ## 持続。ダメージ系は即時、補正は次の自軍ターン開始まで（doc/gdd/formations.md 表B）。
 func _duration_text(r: Dictionary) -> String:
 	if not r.has("duration_turns"):
-		return tr("ui.chronicle.recipe_instant")
+		return tr("ui.chronicle.skill_instant")
 	var turns: int = r["duration_turns"]
 	if turns == 1:
-		return tr("ui.chronicle.recipe_until_next_turn")
-	return tr("ui.chronicle.recipe_turns") % turns
+		return tr("ui.chronicle.skill_until_next_turn")
+	return tr("ui.chronicle.skill_turns") % turns
 
 ## スキン id の配列を翻訳済み名前のカンマ区切りに変換する（重複は除く）。
 func _skin_names_text(skin_ids: Array) -> String:

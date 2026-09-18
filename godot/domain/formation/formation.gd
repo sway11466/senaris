@@ -14,7 +14,7 @@ class_name Formation
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし参加者は全員除外（発動側は自分たちの術で焼けない）。
 ## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は FormationResolver。
 
-## レシピ定義（当面ハードコード。将来 CSV/JSON 化）。
+## スキル定義（当面ハードコード。将来 CSV/JSON 化）。
 ## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
@@ -26,8 +26,8 @@ class_name Formation
 ## 分類（category）に書ける値＝表Aの「分類」列（弓攻撃／魔法攻撃／特殊攻撃／強化／弱体化／その他／敵）。
 const CATEGORIES := ["bow", "magic", "special", "buff", "debuff", "other", "enemy"]
 
-const RECIPES := {
-	# name は開発用メモ。画面表示は tr("recipe.{id}.name")（正本 data/i18n/names.csv）で解決する。
+const SKILLS := {
+	# name は開発用メモ。画面表示は tr("skill.{id}.name")（正本 data/i18n/names.csv）で解決する。
 	"trinity_nova": {
 		"name": "トリニティノヴァ",
 		"category": "magic",
@@ -182,29 +182,29 @@ const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
 const NO_HEX := Vector2i(1 << 30, 1 << 30)
 
-## そのレシピがユニットスキル（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
+## そのスキルがユニットスキル（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
 ## 演出・効果音の出し分けが読む（陣形はカットインあり／ユニットスキルは音だけ）。
-static func is_unit_skill(recipe_id: String) -> bool:
-	var r: Dictionary = RECIPES.get(recipe_id, {})
+static func is_unit_skill(skill_id: String) -> bool:
+	var r: Dictionary = SKILLS.get(skill_id, {})
 	return String(r.get("shape", "")) == "solo"
 
-## unit が持つユニットスキル（単独発動レシピ）の id 一覧。盤の状況（対象の有無・行動済み）には
+## unit が持つユニットスキル（単独発動スキル）の id 一覧。盤の状況（対象の有無・行動済み）には
 ## 依らない＝「この駒は何を撃てる駒か」。情報パネルの能力タブが説明を並べるのに読む。
 ## いま撃てるかは available_for が見る（→ doc/gdd/uiux.md ユニット情報パネル）。
 static func unit_skills_of(unit: Unit) -> Array[String]:
 	var out: Array[String] = []
 	if unit == null:
 		return out
-	for rid in RECIPES:
-		var r: Dictionary = RECIPES[rid]
+	for rid in SKILLS:
+		var r: Dictionary = SKILLS[rid]
 		if String(r["shape"]) != "solo" or not (r["effect"] in IMPLEMENTED_EFFECTS):
 			continue
 		if _matches(unit, r["leader_skins"]):
 			out.append(rid)
 	return out
 
-## 選択中 unit が発動できる、盤上で成立済みのレシピ選択肢一覧（読み取りのみ・非破壊）。
-## 各要素＝ FormationOption（レシピの値＋参加者。対象が要るか等の判断もそこに持つ）。
+## 選択中 unit が発動できる、盤上で成立済みのスキル選択肢一覧（読み取りのみ・非破壊）。
+## 各要素＝ FormationOption（スキルの値＋参加者。対象が要るか等の判断もそこに持つ）。
 ## from_hex＝発動者がそこに居ると仮定して成立を見る（移動を確定する前のコマンドメニュー用）。
 ## 発動者は移動してから発動してよい＝隣接の判定は移動先で行う。詳細 → doc/gdd/formations.md
 static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> Array[FormationOption]:
@@ -212,8 +212,8 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 	if unit == null:
 		return out
 	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
-	for rid in RECIPES:
-		var r: Dictionary = RECIPES[rid]
+	for rid in SKILLS:
+		var r: Dictionary = SKILLS[rid]
 		if not (r["effect"] in IMPLEMENTED_EFFECTS):
 			continue
 		if not _matches(unit, r["leader_skins"]):
@@ -222,17 +222,17 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 		# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
 		if not state.has_action_left(unit.handle):
 			continue
-		# チャージが必要なレシピは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
+		# チャージが必要なスキルは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
 		var ct := int(r.get("charge_turns", 0))
 		if ct > 0 and state.get_charge(unit.handle, rid) < ct:
 			continue
 		match String(r["shape"]):
 			"triangle":
 				for members in _triangle_sets(state, unit, r, lead_pos):
-					out.append(FormationOption.from_recipe(rid, r, [unit, members[0], members[1]]))
+					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
 			"escort":
 				for members in _escort_sets(state, unit, r, lead_pos):
-					out.append(FormationOption.from_recipe(rid, r, [unit, members[0], members[1]]))
+					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
 				if String(r["effect"]) == "spawn":
@@ -243,7 +243,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 							break
 					if not has_empty:
 						continue
-				out.append(FormationOption.from_recipe(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
+				out.append(FormationOption.from_skill(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
 				var members := _cluster(state, unit, r, lead_pos)
 				if not members.is_empty():
@@ -251,7 +251,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 					for m in members:
 						if m.handle != unit.handle:
 							ordered.append(m)
-					out.append(FormationOption.from_recipe(rid, r, ordered))
+					out.append(FormationOption.from_skill(rid, r, ordered))
 	return out
 
 ## target を着弾中心としたときの効果プレビュー（純ロジック・非破壊）。
@@ -263,7 +263,7 @@ static func preview(state: BattleState, option: FormationOption, target: Vector2
 		var victim := state.unit_at(hx)
 		if victim != null and not (victim.handle in participants):
 			hits.append(_formation_hit(state, option, victim))
-	return {"recipe": option.recipe, "hits": hits}
+	return {"skill": option.skill, "hits": hits}
 
 ## 着弾する面＝効果が及ぶヘックス（駒の有無によらない）。着弾の無いもの（バフ・解除）は空。
 ## 盤の演出が「どこに当たったか」を光らせるのに使う。詳細 → doc/gdd/formations.md 発動の演出
