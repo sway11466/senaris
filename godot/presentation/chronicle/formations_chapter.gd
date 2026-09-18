@@ -122,7 +122,7 @@ func _expanded_sheet(skill_id: String) -> Control:
 	col.add_child(_sheet_title(tr("ui.chronicle.name_category") % [
 		tr("skill.%s.name" % skill_id), tr("skill_group.%s.name" % category)]))
 
-	# 説明文（names.csv の skill.<id>.desc。情報パネルと共通）
+	# 説明文（skills.csv の skill.<id>.desc。情報パネルと共通）
 	var desc := _desc_label("skill.%s.desc" % skill_id)
 	if desc != null:
 		col.add_child(desc)

@@ -1,0 +1,77 @@
+﻿keys,ja,en
+unit.cleric.name,クレリック,Cleric
+unit.priest.name,プリースト,Priest
+unit.bishop.name,ビショップ,Bishop
+unit.paladin.name,パラディン,Paladin
+unit.archer.name,アーチャー,Archer
+unit.hunter.name,ハンター,Ranger
+unit.elf.name,エルフ,Elf
+unit.mage.name,メイジ,Mage
+unit.wizard.name,ウィザード,Wizard
+unit.witch.name,ウィッチ,Witch
+unit.thief.name,シーフ,Thief
+unit.halfling.name,ハーフリング,Halfling
+unit.ninja.name,ニンジャ,Ninja
+unit.kunoichi.name,くノ一,Kunoichi
+unit.pixie.name,ピクシー,Pixie
+unit.pegasus.name,ペガサス,Pegasus
+unit.birdman.name,バードマン,Birdfolk
+unit.novice.name,ノービス,Novice
+unit.fighter.name,ファイター,Fighter
+unit.vanguard.name,ヴァンガード,Vanguard
+unit.knight.name,ナイト,Knight
+unit.dwarf.name,ドワーフ,Dwarf
+unit.wagon.name,馬車,Wagon
+unit.airship.name,飛空艇,Airship
+unit.barricade.name,バリケード,Barricade
+unit.ballista.name,バリスタ,Ballista
+unit.goblin.name,ゴブリン,Goblin
+unit.hobgoblin.name,ホブゴブリン,Hobgoblin
+unit.goblin_archer.name,ゴブリンアーチャー,Goblin Archer
+unit.goblin_lord.name,ゴブリンロード,Goblin Lord
+unit.skeleton.name,スケルトン,Skeleton
+unit.zombie.name,ゾンビ,Zombie
+unit.skeleton_archer.name,スケルトンアーチャー,Skeleton Archer
+unit.ghoul.name,グール,Ghoul
+unit.dullahan.name,デュラハン,Dullahan
+unit.ghost.name,ゴースト,Ghost
+unit.wraith.name,レイス,Wraith
+unit.necromancer.name,ネクロマンサー,Necromancer
+unit.orc.name,オーク,Orc
+unit.orc_leader.name,オークリーダー,Orc Warchief
+unit.orc_mage.name,オークメイジ,Orc Shaman
+unit.griffon.name,グリフォン,Griffon
+unit.harpy.name,ハーピー,Harpy
+unit.rock_serpent.name,ロックサーペント,Rock Serpent
+unit.wyrm.name,ワイアーム,Wyrm
+unit.scorpion.name,スコーピオン,Giant Scorpion
+unit.troll.name,トロール,Troll
+unit.treant.name,トレント,Treant
+unit.matango.name,マタンゴ,Myconid
+unit.mandragora.name,マンドラゴラ,Mandragora
+unit.red_dragon.name,レッドドラゴン,Red Dragon
+unit.mimic.name,ミミック,Mimic
+unit.slime.name,スライム,Slime
+unit.rogue.name,ローグ,Bandit
+unit.rogue_axe.name,ローグアックス,Thug
+unit.rogue_slinger.name,ローグスリンガー,Bandit Slinger
+unit.rogue_head.name,ローグヘッド,Bandit Captain
+unit.rogue_wagon.name,ならず者の馬車,Bandit Wagon
+unit_group.infantry.name,歩兵,Infantry
+unit_group.clergy.name,占領兵,Clergy
+unit_group.archer.name,弓兵,Archer
+unit_group.scout.name,斥候,Scout
+unit_group.mage.name,魔法兵,Mage
+unit_group.flier.name,飛行兵,Flier
+unit_group.champion.name,精鋭,Champion
+unit_group.transport.name,輸送,Transport
+unit_group.emplacement.name,兵器,War Machine
+unit_group.goblin.name,ゴブリン,Goblins
+unit_group.undead.name,アンデッド,Undead
+unit_group.orc.name,オーク,Orcs
+unit_group.beast.name,魔獣,Beasts
+unit_group.rogue.name,悪党,Outlaws
+unit_group.plant.name,植物,Plants
+unit_group.magical.name,魔法生物,Magical Creatures
+unit_group.giant.name,巨人,Giants
+unit_group.dragon.name,ドラゴン,Dragons

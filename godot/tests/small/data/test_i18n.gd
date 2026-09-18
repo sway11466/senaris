@@ -15,7 +15,7 @@ func test_dialogue_translation_en() -> void:
 	assert_eq(TranslationServer.translate("char.cap.name"), "Captain", "英語ロケールで英語が引ける")
 	TranslationServer.set_locale(prev)
 
-## UI 文言（ui.csv）が project.godot の locale/translations 経由で引けること。
+## UI 文言（menu.csv 等）が project.godot の locale/translations 経由で引けること。
 ## .translation の中身は test_i18n_translation.gd が見る。ここが見るのは登録の有無＝
 ## CSV を新設して project.godot への追記を忘れると、画面にキー文字列がそのまま出る事故を検知する。
 func test_ui_translation_registered() -> void:

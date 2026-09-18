@@ -524,7 +524,7 @@ func _open_command_menu(dest: Vector2i) -> void:
 			for i in _formation_opts.size():
 				var o: FormationOption = _formation_opts[i]
 				var label := tr("ui.board.unit_skill") if o.is_unit_skill() else tr("ui.board.formation_skill")
-				# スキル名は規約キー（names.csv）で解決。SKILLS の name は開発用メモ
+				# スキル名は規約キー（skills.csv）で解決。SKILLS の name は開発用メモ
 				var skill_name := tr("skill." + o.skill + ".name")
 				_menu.add_item(tr("ui.board.skill_item") % [label, skill_name], FORMATION_ID_BASE + i)
 				if Formation.targetable_cells(state, o, dest).is_empty() and o.needs_target():

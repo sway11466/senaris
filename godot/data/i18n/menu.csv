@@ -1,0 +1,32 @@
+﻿keys,ja,en
+ui.title.continue,冒険の続き,Continue
+ui.title.new_adventure,新しい冒険譚,New Adventure
+ui.title.settings,設定,Settings
+ui.title.manual,マニュアル,Manual
+ui.title.credits,クレジット,Credits
+ui.title.quit,おわる,Quit
+ui.manual.title,マニュアル,Manual
+ui.manual.back,← メニュー,← Menu
+ui.quest.locked_title,まだ受けられない依頼,Quest Locked
+ui.quest.back,別の依頼を選ぶ,Choose Another Quest
+ui.quest.sortie,出発する,Set Out
+ui.quest.confirm,出発しますか？,Ready to set out?
+ui.quest.close,閉じる,Close
+ui.quest.party_sortie,以下のユニットが出発します,Your party for this quest
+ui.quest.party_carry,この先も共に戦うユニット,Units that stay with you
+ui.quest.party_oneoff,この依頼限りのユニット,Units provided for this quest only
+ui.quest.party_lost,兵数がゼロで出撃できないユニット,Units at zero strength — can't set out
+ui.quest.badge_new,新加入,New
+ui.quest.badge_revive,復帰,Revived
+ui.quest.badge_refill,補充,Healed
+ui.quest.badge_damaged,損耗,Worn
+ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
+ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock
+ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock
+ui.quest.unlock_dlc,追加コンテンツ,Additional Content
+ui.quest.unlock_sep,・,"; "
+ui.select.debug_note,（開発ビルド限定）,(Debug build only)
+ui.select.danger,危険度,Danger
+ui.select.menu,← メニュー,← Menu
+ui.select.back_tales,← 冒険譚,← Adventures
+ui.title.chronicle,クロニクル,Chronicle

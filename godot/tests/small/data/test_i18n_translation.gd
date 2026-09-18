@@ -16,17 +16,53 @@ const SOURCES := [
 		"ja": "res://data/i18n/campaigns.ja.translation",
 		"en": "res://data/i18n/campaigns.en.translation",
 	} },
-	{ "csv": "res://data/i18n/ui.csv", "tr": {
-		"ja": "res://data/i18n/ui.ja.translation",
-		"en": "res://data/i18n/ui.en.translation",
-	} },
-	{ "csv": "res://data/i18n/names.csv", "tr": {
-		"ja": "res://data/i18n/names.ja.translation",
-		"en": "res://data/i18n/names.en.translation",
-	} },
 	{ "csv": "res://data/i18n/manual.csv", "tr": {
 		"ja": "res://data/i18n/manual.ja.translation",
 		"en": "res://data/i18n/manual.en.translation",
+	} },
+	{ "csv": "res://data/i18n/chronicle.csv", "tr": {
+		"ja": "res://data/i18n/chronicle.ja.translation",
+		"en": "res://data/i18n/chronicle.en.translation",
+	} },
+	{ "csv": "res://data/i18n/map.csv", "tr": {
+		"ja": "res://data/i18n/map.ja.translation",
+		"en": "res://data/i18n/map.en.translation",
+	} },
+	{ "csv": "res://data/i18n/menu.csv", "tr": {
+		"ja": "res://data/i18n/menu.ja.translation",
+		"en": "res://data/i18n/menu.en.translation",
+	} },
+	{ "csv": "res://data/i18n/settings.csv", "tr": {
+		"ja": "res://data/i18n/settings.ja.translation",
+		"en": "res://data/i18n/settings.en.translation",
+	} },
+	{ "csv": "res://data/i18n/save.csv", "tr": {
+		"ja": "res://data/i18n/save.ja.translation",
+		"en": "res://data/i18n/save.en.translation",
+	} },
+	{ "csv": "res://data/i18n/report.csv", "tr": {
+		"ja": "res://data/i18n/report.ja.translation",
+		"en": "res://data/i18n/report.en.translation",
+	} },
+	{ "csv": "res://data/i18n/units.csv", "tr": {
+		"ja": "res://data/i18n/units.ja.translation",
+		"en": "res://data/i18n/units.en.translation",
+	} },
+	{ "csv": "res://data/i18n/terrain.csv", "tr": {
+		"ja": "res://data/i18n/terrain.ja.translation",
+		"en": "res://data/i18n/terrain.en.translation",
+	} },
+	{ "csv": "res://data/i18n/skills.csv", "tr": {
+		"ja": "res://data/i18n/skills.ja.translation",
+		"en": "res://data/i18n/skills.en.translation",
+	} },
+	{ "csv": "res://data/i18n/ai.csv", "tr": {
+		"ja": "res://data/i18n/ai.ja.translation",
+		"en": "res://data/i18n/ai.en.translation",
+	} },
+	{ "csv": "res://data/i18n/movement.csv", "tr": {
+		"ja": "res://data/i18n/movement.ja.translation",
+		"en": "res://data/i18n/movement.en.translation",
 	} },
 ]
 

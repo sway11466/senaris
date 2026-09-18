@@ -126,7 +126,7 @@
 
 ## 一覧（決まった項目）
 
-全スキルの決定事項をここに揃える。列は固定で、スキルを足すときは必ず両方の表に1行ずつ足す。`id` は code（`Formation.SKILLS`）・`names.csv`（`skill.<id>.name/desc`）・素材の規約解決（`assets/formations/<id>_impact.png`・`assets/sfx/<id>.ogg`）で共通に使う。各スキルの理屈・試算・演出は下の「スキル一覧」に置く。code との食い違いはドリフト検出（[../backlog.md](../backlog.md) refactoring-15）で拾う。
+全スキルの決定事項をここに揃える。列は固定で、スキルを足すときは必ず両方の表に1行ずつ足す。`id` は code（`Formation.SKILLS`）・`skills.csv`（`skill.<id>.name/desc`）・素材の規約解決（`assets/formations/<id>_impact.png`・`assets/sfx/<id>.ogg`）で共通に使う。各スキルの理屈・試算・演出は下の「スキル一覧」に置く。code との食い違いはドリフト検出（[../backlog.md](../backlog.md) refactoring-15）で拾う。
 
 「分類」はクロニクルの陣形スキル章の束ね（[chronicle.md](chronicle.md) 陣形スキル）。攻撃は撃ち手の武器で 弓攻撃／魔法攻撃／特殊攻撃、補正は上げる・下げる・それ以外で 強化／弱体化／その他、敵のスキルは効果で分けず「敵」。効果の型から導かず、スキルごとに手で付ける。code では `category`（`bow`／`magic`／`special`／`buff`／`debuff`／`other`／`enemy`）、見出しの語は `skill_group.<category>.name`。表の行順がそのままクロニクルのカードの並びなので、`SKILLS` の順も表に揃える。「発動者になれる駒」の先頭に書いたスキンが未解放カードの黒塗りの代表になる。
 
@@ -325,7 +325,7 @@
 
 ## 実装方針（決定）
 
-- データ化の形式：当面は `godot/domain/formation/` にハードコード（各スキルは効果自体が個別でデータ化の旨みが薄い）。スキルが増えたら CSV/JSON 化を検討。AIの「ロジック＝コード／組合せ＝データ」とは違い、陣形スキルは効果ごとに専用処理。 正本は本書の「一覧（決まった項目）」で、code の `SKILLS` と `names.csv` の id・人数・形・射程が一覧と揃っているかをテストで照合する（ドリフト検出＝[../backlog.md](../backlog.md) refactoring-15）。CSV/JSON 化は、敵スキン付きのスキルが増えて表計算で見たくなった時（第2部の着手）に判断する。
+- データ化の形式：当面は `godot/domain/formation/` にハードコード（各スキルは効果自体が個別でデータ化の旨みが薄い）。スキルが増えたら CSV/JSON 化を検討。AIの「ロジック＝コード／組合せ＝データ」とは違い、陣形スキルは効果ごとに専用処理。 正本は本書の「一覧（決まった項目）」で、code の `SKILLS` と `skills.csv` の id・人数・形・射程が一覧と揃っているかをテストで照合する（ドリフト検出＝[../backlog.md](../backlog.md) refactoring-15）。CSV/JSON 化は、敵スキン付きのスキルが増えて表計算で見たくなった時（第2部の着手）に判断する。
 - 形の判定：`triangle`（①）＝参加3体が相互に隣接（hex は3マス相互隣接で三角形）／`escort`（③）＝発動者に count-1 体が隣接、メンバー同士は不問／`cluster`（②）＝隣接連結が count 体以上。
 - `spotter`（④）＝発動者は対象を射程に収め、もう1体（斥候）が対象に隣接。参加者同士の位置は不問。既存3つが「参加者の形」を見るのに対し、対象の周りを見る唯一の形。
 - `line`（⑤）＝発動者を含む一直線上に途切れず連なる参加者が count 体以上。連なり全員が参加（`cluster` の直線版）。

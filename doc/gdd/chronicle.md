@@ -109,7 +109,7 @@
 - 冒険譚ごとのマニフェストは `godot/data/chronicle/<冒険譚 id>.json`。設定集（`lore`）と物語（`story`）の並びと解放条件を持つ。読むのは `ChronicleLoader` で、ファイル名が冒険譚 id。
 - 設定集の本文は翻訳CSV `godot/data/i18n/chronicle.csv`。キーは `lore.<冒険譚>.<節>.<段落>`。1行1キーで段落ごとに振る。
 - ユニットの説明文（`unit.<skin_id>.desc`）も `chronicle.csv`。ゲーム中は読まず、クロニクル画面だけが読むため。
-- スキルの説明文（`skill.<id>.desc`）は `names.csv` に残す。情報パネルがゲーム中に読む（[../tech/i18n.md](../tech/i18n.md)）。
+- スキルの説明文（`skill.<id>.desc`）は `skills.csv` に置く。情報パネルがゲーム中に読む（[../tech/i18n.md](../tech/i18n.md)）。
 
 ```json
 "lore": [
@@ -123,7 +123,7 @@
 - 物語（`story`）はステージの並びと、そのステージで出すイベント会話の並び（`events`）を持つ。**出す順はここが正本**＝遊んだ回の記録は「経験したか」だけを見る。並びが記録と食い違えば（ステージのイベントを足して `events` に書き忘れた等）テストで落ちる。
 - 節の `id` が翻訳キーの `<節>`。段落は `lore.tutorial1-goblin-raid.origin.1` から連番で、CSV に在るぶんだけ順に出す（段落数を JSON に書かない）。
 - 構造（マニフェストの節）と `chronicle.csv` のキーの突き合わせはテストで見る（[../tech/testing.md](../tech/testing.md)）。マニュアルの `manual.csv` と同じ。
-- 画面の文言は `ui.csv` の `ui.chronicle.*`。
+- 画面の文言は `chronicle.csv` の `ui.chronicle.*`。
 
 ## 記録の持ち方
 

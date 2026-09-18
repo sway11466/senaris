@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bafr5ii4kp4ie"
+
+[deps]
+
+files=["res://data/i18n/terrain.ja.translation", "res://data/i18n/terrain.en.translation"]
+
+source_file="res://data/i18n/terrain.csv"
+dest_files=["res://data/i18n/terrain.ja.translation", "res://data/i18n/terrain.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

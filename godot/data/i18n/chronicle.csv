@@ -1,4 +1,4 @@
-keys,ja,en
+﻿keys,ja,en
 lore.tutorial1-goblin-raid.stage.title,舞台,The Setting
 lore.tutorial1-goblin-raid.stage.1,王国の外縁に位置する小さな辺境の町。都からの援軍が届くには遠すぎ、町の安全は自警団の手に委ねられている。,"A small frontier town on the kingdom's outer edge. Too far for reinforcements from the capital, the town's safety rests in the hands of its militia."
 lore.tutorial1-goblin-raid.stage.2,"町の北には山がちな丘陵が続き、その先に岩と洞窟が入り組んだ「巣穴」がある。ゴブリンの群れが代々棲みつき、ときおり山を下りては近辺を荒らしている。","North of town, rocky hills give way to a tangle of caves and tunnels known as the lair. Generations of goblins have made it their home, descending from the hills to raid the surroundings from time to time."
@@ -79,3 +79,41 @@ unit.rogue_axe.desc,斧を振るう荒くれ。力はあるが守りは薄い、
 unit.rogue_slinger.desc,石を投げつけるならず者。正面から戦う度胸はなく、遠くから嫌がらせをする。,"Bandits who hurl stones. Lacking courage for a fair fight, they harass from a distance."
 unit.rogue_head.desc,ならず者どもの頭目。手下を引き連れ、自らの腕も確かな悪党の親玉。,"The ringleader of the rogues. Flanked by underlings and skilled in combat — a true bandit captain."
 unit.rogue_wagon.desc,ならず者が使う荷馬車。盗んだ品を積み、仲間を運ぶ。,"A wagon commandeered by bandits. It hauls stolen goods and ferries their comrades."
+ui.chronicle.title,クロニクル,Chronicle
+ui.chronicle.back,← メニュー,← Menu
+ui.chronicle.units,ユニット,Units
+ui.chronicle.formations,陣形スキル,Formations
+ui.chronicle.campaigns,冒険譚,Adventures
+ui.chronicle.count,%d / %d,%d / %d
+ui.chronicle.unknown,？,?
+ui.chronicle.first_seen,初出,First seen in
+ui.chronicle.capacity,搭乗,Capacity
+ui.chronicle.name_category,%s（%s）,%s (%s)
+ui.chronicle.skill_leader,発動者,Leader
+ui.chronicle.skill_members,参加者,Members
+ui.chronicle.skill_effect,効果,Effect
+ui.chronicle.skill_effect_area,範囲攻撃（半径%d）,Area attack (radius %d)
+ui.chronicle.skill_effect_single,単体攻撃,Single-target attack
+ui.chronicle.skill_effect_buff,状態補正（味方全体）,Status effect (all allies)
+ui.chronicle.skill_duration,持続,Duration
+ui.chronicle.skill_instant,即時,Instant
+ui.chronicle.skill_until_next_turn,次の自軍ターン開始まで,Until your next turn
+ui.chronicle.skill_turns,%dターン,%d turns
+ui.chronicle.skill_count,人数,Members
+ui.chronicle.skill_count_min,%d以上,%d or more
+ui.chronicle.skill_from,発動できる駒,Cast from
+ui.chronicle.skill_from_any,どれからでも,Any member
+ui.chronicle.skill_from_leader,発動者から,Leader only
+ui.chronicle.results,戦果,Results
+ui.chronicle.story,物語,Story
+ui.chronicle.lore,設定集,Lore
+ui.chronicle.back_campaigns,← 冒険譚,← Adventures
+ui.chronicle.lore_locked,続きは冒険のあとで,More to come after your adventure
+ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
+ui.chronicle.campaign_rank,ランク %s,Rank %s
+ui.chronicle.total_time,合計 %s,Total %s
+ui.chronicle.story_from_start,はじめから,From the beginning
+ui.chronicle.story_empty,まだ読み返せる物語がない,No story to read back yet
+ui.chronicle.story_next_chapter,次の章へ,Next chapter
+ui.chronicle.story_end,読み終える,Finish
+ui.chronicle.story_quit,← 章の一覧,← Chapters

@@ -1,0 +1,8 @@
+﻿keys,ja,en
+movement.foot.name,歩行,Foot
+movement.light_foot.name,軽歩行,Light Foot
+movement.forest_stride.name,森歩行,Forest Stride
+movement.brush_stride.name,茂歩行,Brush Stride
+movement.mountain_stride.name,山歩行,Mountain Stride
+movement.flight.name,飛行,Flight
+movement.stationary.name,固定,Stationary

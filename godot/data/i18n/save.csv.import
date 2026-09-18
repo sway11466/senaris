@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bky8i674fs0v2"
+
+[deps]
+
+files=["res://data/i18n/save.ja.translation", "res://data/i18n/save.en.translation"]
+
+source_file="res://data/i18n/save.csv"
+dest_files=["res://data/i18n/save.ja.translation", "res://data/i18n/save.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

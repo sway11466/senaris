@@ -103,7 +103,7 @@ func test_both_languages_are_filled() -> void:
 		assert_false(String(row["ja"]).strip_edges().is_empty(), "ja が埋まっていること: %s" % key)
 		assert_false(String(row["en"]).strip_edges().is_empty(), "en が埋まっていること: %s" % key)
 
-## 画面の枠（見出し・戻る）は ui.csv 側にある。
+## 画面の枠（見出し・戻る）は menu.csv 側にある。
 func test_screen_chrome_keys_resolve() -> void:
 	var prev := TranslationServer.get_locale()
 	TranslationServer.set_locale("ja")

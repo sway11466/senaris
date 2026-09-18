@@ -1,0 +1,14 @@
+﻿keys,ja,en
+ui.settings.title,設定,Settings
+ui.settings.language,言語,Language
+ui.settings.volume_master,全体の音量,Master Volume
+ui.settings.volume_music,BGMの音量,Music Volume
+ui.settings.volume_sfx,効果音の音量,SFX Volume
+ui.settings.window_mode,画面,Display
+ui.settings.windowed,ウィンドウ,Windowed
+ui.settings.fullscreen,全画面,Fullscreen
+ui.settings.dialogue,会話,Dialogue
+ui.settings.dialogue_note,情報板を畳んでいるとき,While the panel is folded
+ui.settings.dialogue_show,会話のみ表示する,Dialogue only
+ui.settings.dialogue_hide,表示しない,Hide
+ui.settings.back,← 戻る,← Back

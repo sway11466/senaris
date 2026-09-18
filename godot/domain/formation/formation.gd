@@ -27,7 +27,7 @@ class_name Formation
 const CATEGORIES := ["bow", "magic", "special", "buff", "debuff", "other", "enemy"]
 
 const SKILLS := {
-	# name は開発用メモ。画面表示は tr("skill.{id}.name")（正本 data/i18n/names.csv）で解決する。
+	# name は開発用メモ。画面表示は tr("skill.{id}.name")（正本 data/i18n/skills.csv）で解決する。
 	"trinity_nova": {
 		"name": "トリニティノヴァ",
 		"category": "magic",
