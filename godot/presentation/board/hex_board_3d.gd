@@ -40,8 +40,6 @@ const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周
 const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
-const COLOR_FORMATION_MEMBER := Color(1.00, 0.55, 0.15, 0.32)  # 陣形の参加者の候補（メニューのホバー中・参加者を選ぶ段）
-const COLOR_MEMBER_RING := Color(1.00, 0.55, 0.15)            # 確定した参加者（同じ橙・輪で残す）
 # 着弾演出の定数は BoardImpactRenderer に移設。
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
@@ -1441,16 +1439,14 @@ func _sync_overlay() -> void:
 		var tp := Hex.to_pixel(pos, TILE)
 		_unit_renderer.add_ring(Vector3(tp.x, _terrain_renderer.elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
 		_unit_renderer.add_target_marker(state.unit_by_handle(int(_targets[pos])), _overlay_root)
-	for h in _menu_pool:  # メニューでホバー中のスキルの候補の駒（doc/gdd/uiux.md ユニットコマンドメニュー）
-		_add_cell(h, COLOR_FORMATION_MEMBER, 0.025)
+	# 参加者の候補は頭上の星で示す＝クリックの入口になる記号は地面に置かない（手前の高い地形に
+	# 隠れるため。doc/gdd/uiux.md 盤の表示記号）。
+	for h in _menu_pool:  # メニューでホバー中のスキルの候補の駒
+		_unit_renderer.add_member_marker(state.unit_at(h), _overlay_root)
 	for h in _member_cells:  # いま確定できる参加者の候補
-		_add_cell(h, COLOR_FORMATION_MEMBER, 0.025)
-	for mh in _chosen:  # 確定した参加者は光ったまま残す＝誰を供出するかが盤で読める
-		var mu := state.unit_by_handle(int(mh))
-		if mu != null:
-			var mp := Hex.to_pixel(mu.pos, TILE)
-			_unit_renderer.add_ring(Vector3(mp.x, _terrain_renderer.elev(mu.pos), mp.y),
-					TILE * 0.66, 0.06, COLOR_MEMBER_RING, 0.05, _overlay_root)
+		_unit_renderer.add_member_marker(state.unit_at(h), _overlay_root)
+	for mh in _chosen:  # 確定した参加者も星で残す＝誰を供出するかが盤で読める（揺らさない＝決まった印）
+		_unit_renderer.add_member_marker(state.unit_by_handle(int(mh)), _overlay_root, true)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 		# 対象を1体選ぶスキル（single＝単体狙撃／buff_scope=unit＝1体に掛ける）は駒の居るhexしか

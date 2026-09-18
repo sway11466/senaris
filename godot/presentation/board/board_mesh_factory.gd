@@ -211,6 +211,63 @@ static func outset_tri(p: Array[Vector2], e: float) -> Array[Vector2]:
 		incenter + (p[2] - incenter) * k,
 	]
 
+## 星形の輪郭（XY平面・頂点1つが真上・原点＝いちばん下の高さ）。三角のマーカーと同じ取り決めで、
+## 原点を駒の頭の上に置くと星全体がその上に乗る。陣形スキルの参加者の候補に使う。
+static func star_points(size: float, points := 5, inner_ratio := 0.5) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var r_out := size * 0.5
+	var r_in := r_out * inner_ratio
+	var lowest := INF
+	for k in points * 2:
+		var ang := PI * 0.5 + float(k) * PI / float(points)  # k=0 が真上
+		var rad := r_out if k % 2 == 0 else r_in
+		var v := Vector2(cos(ang) * rad, sin(ang) * rad)
+		lowest = minf(lowest, v.y)
+		out.append(v)
+	for i in out.size():
+		out[i] = Vector2(out[i].x, out[i].y - lowest)
+	return out
+
+## 閉じた輪郭を外へ e だけ等距離に押し出す（縁取りの下敷き）。各頂点を2辺の法線のマイター方向へ
+## 動かす＝どの辺からも距離 e で揃う（相似形に膨らませると辺ごとに太さがずれる。outset_tri の注記
+## と同じ理由）。星のように尖った頂点はマイターが伸びるので limit で頭打ちにする。
+static func outset_poly(p: Array[Vector2], e: float, miter_limit := 2.6) -> Array[Vector2]:
+	var n := p.size()
+	if n < 3 or e <= 0.0:
+		return p
+	var area := 0.0
+	for i in n:
+		area += p[i].cross(p[(i + 1) % n])
+	var sgn := 1.0 if area > 0.0 else -1.0  # 巻き順で外向きの取り方が反転する
+	var out: Array[Vector2] = []
+	for i in n:
+		var n1 := _edge_normal(p[(i - 1 + n) % n], p[i], sgn)
+		var n2 := _edge_normal(p[i], p[(i + 1) % n], sgn)
+		var m := (n1 + n2) / maxf(1.0 + n1.dot(n2), 0.001)
+		if m.length() > miter_limit:
+			m = m.normalized() * miter_limit
+		out.append(p[i] + m * e)
+	return out
+
+## 辺 a→b の外向き法線（sgn＝巻き順の符号）。
+static func _edge_normal(a: Vector2, b: Vector2, sgn: float) -> Vector2:
+	var d := (b - a).normalized()
+	return Vector2(d.y, -d.x) * sgn
+
+## 閉じた輪郭を重心からの扇でメッシュにする（星のように凹みのある形も、重心から全頂点が
+## 見えるので割れる）。裏面も描く前提で巻き順は問わない。
+static func make_poly_mesh(p: Array[Vector2]) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var c := Vector2.ZERO
+	for v in p:
+		c += v
+	c /= float(p.size())
+	for i in p.size():
+		for v in [c, p[i], p[(i + 1) % p.size()]]:
+			st.set_normal(Vector3.BACK); st.add_vertex(Vector3(v.x, v.y, 0.0))
+	return st.commit()
+
 ## 頂点3つ（XY平面）を三角のメッシュにする。裏面も描く前提で巻き順は問わない。
 static func make_tri_mesh(p: Array[Vector2]) -> ArrayMesh:
 	var st := SurfaceTool.new()

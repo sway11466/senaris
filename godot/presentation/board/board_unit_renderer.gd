@@ -45,6 +45,12 @@ const MARK_BOB_CYCLE := 1.1        # 同・周期（秒）
 const MARK_MIN_PX := 18.0          # 引いた画角での最小の大きさ(px)
 const MARK_MAX_SCALE := 2.5        # 拡大の上限
 
+## 参加者マーカー＝陣形スキルの候補の駒の頭上に浮かぶ星。攻撃対象（赤の三角）とは形でも分ける
+## ＝同じ盤に両方出ることがある（単体対象のスキルの着弾先と、参加者の候補）。doc/gdd/uiux.md
+const COLOR_MEMBER_MARK := Color(1.00, 0.62, 0.16)
+const COLOR_MEMBER_MARK_EDGE := Color(0.10, 0.05, 0.02)
+const MARK_STAR := TILE * 0.40     # 星の外接円の直径
+
 # --- 外部参照（setup で注入）---
 var _board_cam: BoardCamera
 var _state: BattleState
@@ -64,6 +70,11 @@ var _mark_edge_mesh: ArrayMesh
 var _mark_mat: StandardMaterial3D
 var _mark_mat_edge: StandardMaterial3D
 var _mark_tip_drop := 0.0
+var _star_mesh: ArrayMesh
+var _star_edge_mesh: ArrayMesh
+var _star_mat: StandardMaterial3D
+var _star_mat_edge: StandardMaterial3D
+var _star_drop := 0.0
 
 # --- キャッシュ ---
 var _ring_mesh := {}      # "半径|太さ" -> ArrayMesh（円環メッシュキャッシュ）
@@ -89,6 +100,13 @@ func _ready() -> void:
 	_mark_tip_drop = -tri_edge[1].y
 	_mark_mat = BoardMeshFactory.make_mark_material(COLOR_ATTACK_MARK, 4)
 	_mark_mat_edge = BoardMeshFactory.make_mark_material(COLOR_ATTACK_MARK_EDGE, 3)
+	var star := BoardMeshFactory.star_points(MARK_STAR)
+	var star_edge := BoardMeshFactory.outset_poly(star, MARK_EDGE)
+	_star_mesh = BoardMeshFactory.make_poly_mesh(star)
+	_star_edge_mesh = BoardMeshFactory.make_poly_mesh(star_edge)
+	_star_drop = -_lowest_y(star_edge)  # 縁取りのぶん下へ出る量＝その量だけ持ち上げて隙間を揃える
+	_star_mat = BoardMeshFactory.make_mark_material(COLOR_MEMBER_MARK, 4)
+	_star_mat_edge = BoardMeshFactory.make_mark_material(COLOR_MEMBER_MARK_EDGE, 3)
 	_disc_mesh = CylinderMesh.new()
 	_disc_mesh.top_radius = TILE * 0.55
 	_disc_mesh.bottom_radius = TILE * 0.55
@@ -111,12 +129,16 @@ func _process(_delta: float) -> void:
 		_glow_mat.albedo_color.a = lerpf(SKILL_GLOW_MIN, SKILL_GLOW_MAX, w)
 		# 位相は共通（2つ出ても揃って呼吸する）。濃さの幅だけ合成方式に合わせて分ける。
 		_glow_mat_debuff.albedo_color.a = lerpf(SKILL_DEBUFF_MIN, SKILL_DEBUFF_MAX, w)
-	# 攻撃対象マーカーの上下の揺れ。
+	# 頭上マーカーの上下の揺れ。揺れるのは「いま選べる」もの＝確定した参加者の星は止めておく。
 	if not _target_markers.is_empty() and _board_cam != null:
 		var dy := sin(float(Time.get_ticks_msec()) * 0.001 / MARK_BOB_CYCLE * TAU) * MARK_BOB
 		var s := _mark_scale()  # ズームで見失わないよう、引いた画角では拡大する
 		for m in _target_markers:
-			m.position = Vector3(m.get_meta("base_pos")) + _board_cam.cam_up * (dy * s)
+			var base := Vector3(m.get_meta("base_pos"))
+			if bool(m.get_meta("bob")):
+				m.position = base + _board_cam.cam_up * (dy * s)
+			else:
+				m.position = base
 			m.scale = Vector3(s, s, 1.0)
 
 # =========================================================================
@@ -229,22 +251,42 @@ func add_count_label(text: String, wpos: Vector3, color: Color, root: Node3D,
 
 ## 攻撃対象マーカー（頭上の下向き三角）を1体ぶん置く。parent はオーバーレイ層。
 func add_target_marker(u: Unit, parent: Node3D) -> void:
+	_add_head_mark(u, parent, _mark_mesh, _mark_edge_mesh, _mark_mat, _mark_mat_edge, _mark_tip_drop)
+
+## 陣形スキルの参加者マーカー（頭上の橙の星）を1体ぶん置く。地面の塗りでは手前の高い地形に
+## 隠れるため、クリックの入口になる記号は駒の高さに置く → doc/gdd/uiux.md 盤の表示記号。
+## settled＝確定した参加者。星は止めて出す（揺れている＝まだ選べる／止まっている＝もう決まった）。
+func add_member_marker(u: Unit, parent: Node3D, settled := false) -> void:
+	_add_head_mark(u, parent, _star_mesh, _star_edge_mesh, _star_mat, _star_mat_edge, _star_drop,
+			not settled)
+
+## 頭上マーカーを1体ぶん置く（縁取り→塗りの順に重ね、揺れと最小サイズは _process が見る）。
+func _add_head_mark(u: Unit, parent: Node3D, mesh: ArrayMesh, edge_mesh: ArrayMesh,
+		mat: StandardMaterial3D, mat_edge: StandardMaterial3D, drop: float, bob := true) -> void:
 	if u == null:
 		return
 	var n := Node3D.new()
-	var base := _unit_head_pos(u) + _board_cam.cam_up * (MARK_GAP + _mark_tip_drop)
+	var base := _unit_head_pos(u) + _board_cam.cam_up * (MARK_GAP + drop)
 	n.position = base
 	n.set_meta("base_pos", base)
+	n.set_meta("bob", bob)
 	var edge := MeshInstance3D.new()
-	edge.mesh = _mark_edge_mesh
-	edge.material_override = _mark_mat_edge
+	edge.mesh = edge_mesh
+	edge.material_override = mat_edge
 	n.add_child(edge)
 	var fill := MeshInstance3D.new()
-	fill.mesh = _mark_mesh
-	fill.material_override = _mark_mat
+	fill.mesh = mesh
+	fill.material_override = mat
 	n.add_child(fill)
 	parent.add_child(n)
 	_target_markers.append(n)
+
+## 輪郭のいちばん下の高さ（原点からどれだけ下に出るか）。
+func _lowest_y(p: Array[Vector2]) -> float:
+	var y := INF
+	for v in p:
+		y = minf(y, v.y)
+	return y
 
 ## マーカーの追跡リストをクリアする。実体は親（_overlay_root）の子なので、
 ## 親を消すと実体も消える＝ここでは参照だけ。
