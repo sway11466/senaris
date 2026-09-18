@@ -7,6 +7,11 @@
       "id": "formation",
       "file": "formation.json",
       "title": "陣形スキル（味方）"
+    },
+    {
+      "id": "members",
+      "file": "members.json",
+      "title": "陣形スキル（参加者選び）"
     }
   ]
 }

@@ -55,6 +55,7 @@
 | ステージ | ファイル | 目的 | 変更の引き金 |
 | --- | --- | --- | --- |
 | formation | `debug-formation-skill/formation.json` | 陣形スキルの動作確認 | レシピを追加したとき |
+| members | `debug-formation-skill/members.json` | 参加者を選ぶ段の確認（組が複数／組が1つ／候補が絞られる／人数が可変で候補が余る／可変で最低人数ちょうど／移動先で成立） | 参加者の選び方・形を足したとき |
 
 ## debug-ai（敵AI）
 

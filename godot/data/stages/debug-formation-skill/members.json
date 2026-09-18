@@ -1,0 +1,54 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-members",
+  "haze": 0.80,
+  "player": [
+    { "units": [
+        { "type": "wizard", "col": 3, "row": 3 },
+        { "type": "wizard", "col": 4, "row": 4 },
+        { "type": "wizard", "col": 3, "row": 4 },
+        { "type": "wizard", "col": 2, "row": 4 },
+
+        { "type": "paladin", "col": 3, "row": 8 },
+        { "type": "cleric", "col": 4, "row": 9 },
+        { "type": "priest", "col": 3, "row": 9 },
+        { "type": "cleric", "col": 2, "row": 9 },
+
+        { "type": "paladin", "col": 8, "row": 8 },
+        { "type": "cleric", "col": 9, "row": 8 },
+        { "type": "priest", "col": 7, "row": 7 },
+
+        { "type": "cleric", "col": 8, "row": 1 },
+        { "type": "cleric", "col": 8, "row": 2 },
+        { "type": "priest", "col": 8, "row": 3 },
+        { "type": "cleric", "col": 8, "row": 4 },
+        { "type": "cleric", "col": 8, "row": 5 },
+
+        { "type": "cleric", "col": 12, "row": 2 },
+        { "type": "cleric", "col": 12, "row": 3 },
+        { "type": "priest", "col": 12, "row": 4 },
+        { "type": "cleric", "col": 12, "row": 5 },
+        { "type": "cleric", "col": 13, "row": 2 },
+        { "type": "priest", "col": 13, "row": 3 },
+        { "type": "cleric", "col": 13, "row": 4 },
+        { "type": "cleric", "col": 13, "row": 5 },
+
+        { "type": "wizard", "col": 12, "row": 9 },
+        { "type": "wizard", "col": 12, "row": 10 },
+        { "type": "wizard", "col": 14, "row": 9 },
+
+        { "type": "fighter", "col": 6, "row": 10 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "的（左・起きない）", "ai": "ambush", "sight": 1,
+      "units": [
+        { "skin": "goblin", "col": 6, "row": 4 }
+      ] },
+    { "order": 2, "name": "的（右・起きない）", "ai": "ambush", "sight": 1,
+      "units": [
+        { "skin": "hobgoblin", "col": 15, "row": 11 }
+      ] }
+  ],
+  "bases": []
+}
