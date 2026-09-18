@@ -19,9 +19,9 @@
 **陣形スキルの成立する組が複数あるとき、どの組かを示せない（同名の項目が並ぶ）＋参加人数を選べない**
 - ゴール：レシピごとにメニュー項目が1つで、すべての形（固定人数・可変人数）で参加者をプレイヤーが盤の上で選べる。可変人数の形（②cluster・⑤line）は最低人数に達したら「発動」ボタンが現れ、さらに追加するか発動するかをプレイヤーが決める。③で聖職が3体隣接している盤、②で聖職が7体固まっている盤で確認できる。
 - 背景：`Formation.available_for` が成立する組を全部列挙し、`hex_board_3d.gd` の行動メニューがそれを組の数だけ同じ名前で並べる（③のパラディンの隣に聖職が3体＝「ディバインジャッジメント」が3行）。どれがどの組かは読めない。2体固定のレシピ（④⑨⑩・feature-117/118/123）が入ると常態化する。加えて、全員参加の形（②cluster・⑤line）は参加人数を選べないが、選べたほうが面白い＝8体固まっていても5体だけ使って残り3体を別行動にできる判断が生まれる。仕様は [uiux.md](gdd/uiux.md)「陣形スキルの参加者を選ぶ」・[formations.md](gdd/formations.md) 共通ルール（反映が必要）。
-- 対応：(1) `available_for` の返りをレシピ単位にまとめる（`FormationOption` に候補の組 `member_sets` を持たせるか、レシピ単位の `FormationChoice` を新設して組を内包）。AI（`ai_rows.gd`・`ai_pick.gd`）と撮影ツールは組を列挙する既存の形を使い続けてよいので、列挙する関数は残し、UI 向けにまとめる関数を足す。(2) `hex_board_3d.gd`：メニューはレシピごとに1項目。ホバーで候補の駒を橙で光らせる。選択後、参加者選びの状態（`_choosing_members`）に入り、クリックで1体ずつ確定する（残りの候補は確定済みと組める駒に絞る）。固定人数のスキル（③④⑦⑨⑩）は必要人数が揃ったら自動で次へ進む。可変人数のスキル（②cluster・⑤line）は最低人数に達した時点で「発動」ボタンを表示し、プレイヤーが追加を続けるか発動するかを選ぶ。候補が1組しかない固定人数スキルは参加者選びの段を飛ばして従来どおり即発動へ。④は着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ。(3) キャンセルは1段ずつ戻す（着弾先 → 参加者 → メニュー）。(4) 橙のオーバーレイを色の表に足す（`board overlay`）。(5) `test_formation.gd` にレシピ単位のまとめ（組が1つ／複数）のテスト。UI の段は実機で確認。
+- 対応：(1) `available_for` の返りをレシピ単位にまとめる（`FormationOption` に候補の組 `member_sets` を持たせるか、レシピ単位の `FormationChoice` を新設して組を内包）。AI（`ai_rows.gd`・`ai_pick.gd`）と撮影ツールは組を列挙する既存の形を使い続けてよいので、列挙する関数は残し、UI 向けにまとめる関数を足す。(2) `hex_board_3d.gd`：メニューはレシピごとに1項目。ホバーで候補の駒を橙で光らせる。選択後、参加者選びの状態（`_choosing_members`）に入り、クリックで1体ずつ確定する（残りの候補は確定済みと組める駒に絞る）。固定人数のスキル（③④⑦⑨⑩）は必要人数が揃ったら自動で次へ進む。可変人数のスキル（②cluster・⑤line）は最低人数に達した時点で「発動」ボタンを表示し、プレイヤーが追加を続けるか発動するかを選ぶ。候補が1組しかない固定人数スキルは参加者選びの段を飛ばして従来どおり即発動へ。④は着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ。発動ボタンは HUD に置き、鍵盤には割り当てない（Enter はターン終了・Space は情報板）。(3) 移動の確定（`_commit_pending_move`）をメニュー選択時から発動の直前へ遅らせ、参加者選び・着弾先選びの間は移動先に居るものとして判定する（`from_hex` は既に domain 側が受け取れる）。キャンセルは1段ずつ戻す（着弾先 → 参加者 → メニュー）＝メニューまで戻れば移動先を選び直せる。(4) 橙のオーバーレイをコードの色定数に足す（色の表は反映済み）。(5) `test_formation.gd` にレシピ単位のまとめ（組が1つ／複数）・候補の絞り込み・可変人数の連結維持・人数で変わる効果値のテスト。UI の段は実機で確認。(6) デバッグステージ `debug-formation-skill/formation.json` の盤を、③の組が複数・②の候補が最低人数超になるよう直す。
 - 考慮外：AI の組の選び方（既存のまま）。タッチ操作。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/board/`（オーバーレイの色）・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/uiux.md`・`doc/gdd/formations.md`。feature-117/118/123 の前提。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/board/`（オーバーレイの色）・`godot/presentation/ui/hud.gd`（発動ボタン）・`godot/data/i18n/map.csv`・`godot/data/stages/debug-formation-skill/formation.json`・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/uiux.md`・`doc/gdd/formations.md`。feature-117/118/123 の前提。
 
 ## 機能追加
 
@@ -307,32 +307,6 @@
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### refactoring-20
-
-**翻訳CSVを、読む画面・データの種類ごとに分け直す**
-- ゴール：翻訳CSVが14本で、1本を開けば何の文言かが分かる。ui.csv に全画面の文言が、names.csv にユニット・地形・スキルの表示名が、dialogue.csv に部隊名と予告が混ざっていない。
-- 背景：今は ui（全画面）・names（データ側の表示名すべて）・campaigns・dialogue（ステージJSONが名指しするキーすべて）・chronicle・manual の6本。分け方はオーナーが感覚で決めた（2026-09-17）。冒険譚ごとには分けない。names.csv だけを割る refactoring-17 はここに含めた。
-- 対応：次の14本に分ける。キーの綴りは変えない（ファイルを移すだけ）。例外はクロニクルで、マップと同じ語（会話ボタン・戦果の章の語）でも `ui.chronicle.*` として自前で持つ。
-  - chronicle: `ui.chronicle.*`・`unit.<id>.desc`・`lore.*`・通し読みの会話ボタン・戦果の章の語
-  - units: `unit.<id>.name`・`unit_group.<id>.name`
-  - terrain: `terrain.<id>.name`・`terrain_type.<id>.name`
-  - skills: 陣形スキルとユニットスキルの名前・説明・分類名（今の `recipe.*`・`recipe_group.*`。改名は refactoring-19）
-  - ai: `ai.<id>.name` ／ movement: `movement.<id>.name`
-  - map: `ui.hud.*`・`ui.board.*`・`ui.info.*`・`ui.banner.*`・`ui.combat.*`・`ui.skillreport.*`・`ui.talk.*`
-  - menu: `ui.title.*`・`ui.quest.*`・`ui.select.*`・`ui.manual.*`
-  - settings: `ui.settings.*` ／ save: `ui.save.*` ／ report: `ui.report.*`・`ui.result.*`
-  - campaigns: 冒険譚・ステージの題名と説明、敵部隊名・味方部隊名、増援の予告 `label`、イベント名（`event.<ステージ id>.<イベント id>.name`）
-  - dialogue: 開幕・決着・イベント会話の台詞、話者名 `char.*`、デバッグステージの台詞
-  - manual: そのまま
-  - `project.godot` の `locale/translations` と、`test_i18n.gd`・`test_i18n_translation.gd`・`test_i18n_names_cover_ids.gd` の CSV 一覧を合わせ、`.translation` を再生成。[i18n.md](tech/i18n.md) キー命名規約の「系統ごとに CSV を分ける」を新しい分け方に書き換える。
-- 該当：`godot/data/i18n/`・`godot/project.godot`・`godot/tests/small/data/test_i18n*.gd`・`doc/tech/i18n.md`。refactoring-19 と同時期に着手する。
-### refactoring-19
-
-**「レシピ」がスキルそのものを指す語として doc・キー・コードに広がっている**
-- ゴール：「レシピ」は成立条件の配置だけを指し、陣形スキルとユニットスキルの項目（id・名前・説明・分類）は doc でもキーでもコードでも「スキル」と呼ばれている。会話で「陣形スキル」と言うべきところを「レシピ」と言う原因が残っていない。
-- 背景：[formations.md](gdd/formations.md) は「特定のユニット配置（編成レシピ）」と配置の意味で定義したうえで、同じ語を項目の名前として使っている（「本書はレシピの正本」「人数が固定のレシピ」）。翻訳キーは `recipe.<id>.name/desc`・`recipe_group.<id>.name`、コードは `recipe` が308箇所で、陣形スキルとユニットスキルの上位の呼び名として使われている。上位の呼び名は「スキル」で既にある（`skill_cast.gd`・`skill_result.gd`・`skill_scene.gd`・`ui.skillreport.*`）。これを読んだセッションが「レシピ名」「レシピの分類」と話す。
-- 対応：(1) doc（formations.md・skills.md・combat.md・chronicle.md・uiux.md・i18n.md・CLAUDE.md）で、スキルそのものを指す「レシピ」を「陣形スキル」「スキル」に書き換える。配置の意味の箇所は残す。(2) 翻訳キーを `skill.<id>.name/desc`・`skill_group.<id>.name` に改名し `.translation` を再生成。(3) コードの `recipe` のうち、スキルの項目を指す識別子（id・名前・分類・カタログ）を `skill` に。配置の条件を指す箇所は `recipe` のまま。(4) `test_i18n_names_cover_ids.gd` の一覧を新キーに合わせる。
-- 該当：`doc/gdd/formations.md`・`doc/gdd/skills.md`・`doc/gdd/combat.md`・`doc/gdd/chronicle.md`・`doc/gdd/uiux.md`・`doc/tech/i18n.md`・`CLAUDE.md`・`godot/data/i18n/skills.csv`・`godot/domain/formation/`・`godot/presentation/chronicle/`・`godot/presentation/formation/`・`godot/application/chronicle_service.gd`・`godot/infrastructure/save/chronicle_store.gd`。翻訳CSVの分け直しと同時期に着手する。
 ### refactoring-18
 
 **兵種 `emplacement` の内部IDを `war_machine` に改名する**
