@@ -1,0 +1,92 @@
+SUBJECT: One stone FOUNTAIN, set in a cave — an octagonal basin of water with a
+pillar at its centre carrying two round bowls, water falling from bowl to bowl
+and into the basin. Drawn as ONE object standing alone on a flat pure white
+background (#FFFFFF) — no ground, no floor, no cave wall, no cast shadow on the
+ground, no other objects.
+
+VIEWING ANGLE — seen from the front and moderately above, about 35 degrees down
+from the horizon: high enough that the water in the basin shows as a wide
+ellipse, low enough that the pillar and its bowls stand clearly above it.
+
+SQUARE TO THE VIEWER — the fountain is set straight in front of the viewer, not
+turned: one flat side of the octagonal basin faces the viewer head-on, its near
+edge running horizontally across the bottom of the object, and the left and
+right halves are mirror images of each other. Do NOT rotate the basin so that a
+corner points at the viewer. This is NOT an isometric view and NOT a
+three-quarter view.
+
+DESIGN (follow exactly, every count and position):
+- One built stone fountain. NOT a natural spring, NOT a well, NOT a water
+  trough. NO roof, NO canopy, NO arch, NO columns around it, NO steps, NO
+  railing, NO statue of a person or an animal, NO animal-head spout, NO
+  gargoyle, NO carved faces.
+- THE BASIN: one octagonal basin. Its wall is low — one course of dressed stone,
+  its height about one sixth of the basin's width — and is topped by eight flat
+  coping slabs, one to each side, with a visible joint at every corner. Still,
+  clear water fills the basin to just below the coping.
+- THE PAVING: one narrow ring of flat paving slabs laid around the foot of the
+  basin wall, level with the ground and about one fifth of the basin's width
+  wide. It follows the eight sides of the basin. Nothing else is on it.
+- THE PILLAR: one straight octagonal stone pillar rising from the centre of the
+  basin, its height about three quarters of the basin's width, plain and
+  untapered, with no carving on it other than the shield described below.
+- THE TWO BOWLS: one round bowl on the pillar at about two thirds of its height,
+  its width about half the basin's width; and one smaller round bowl at the very
+  top of the pillar, its width about a quarter of the basin's width. Both are
+  shallow, with a plain rounded rim.
+- THE WATER: a low rounded dome of water wells up at the centre of the top bowl,
+  no higher than the depth of that bowl. Water spills evenly over the rim of the
+  top bowl in an unbroken sheet all the way round, falls into the lower bowl,
+  and spills from the lower bowl's rim in the same way into the basin. Both
+  sheets fall clear of the pillar, well outside its faces. NO tall jet, NO
+  spout, NO arcing streams, NO spray, NO foam, NO mist, NO steam, NO droplets in
+  the air.
+- THE SHIELD: one carved stone shield fixed flat to the FRONT face of the
+  pillar, in the clear stretch between the lower bowl and the surface of the
+  basin water, facing the viewer square-on. It is about one quarter of the
+  basin's width across and a quarter taller than it is wide. It has a plain
+  raised stone rim and a FLAT, EMPTY FIELD inside it — NO device, NO charge, NO
+  emblem, NO cross, NO animal, NO lettering, NO crest, NO ribbon, NO wreath, and
+  the field is not divided. The field is ONE UNIFORM COLOUR — the game repaints
+  it to show who holds the fountain — so no pattern of any kind, and its shading
+  is flat. Nothing overlaps the shield: no falling water passes in front of it.
+- COLOURS: the basin, coping, paving, pillar, bowls and the shield's rim are a
+  cool pale grey dressed stone, hex #9B9A93, each piece a slightly different
+  flat tone between #ACABA3 and #7E7D76. The field of the shield is bare
+  unpainted stone of the same family, a touch lighter than the pillar, hex
+  #A8A79F. The water is clear and muted blue-green, base #5E8E8A, deepest under
+  the falling sheets #3C5E5C, catch-light #9BC2B9 — NOT bright cyan, NOT
+  turquoise, NOT saturated.
+- THE GROUND IT WILL SIT ON: the game draws its own cave floor, a warm packed
+  dirt of hex #8A7C6A, behind this picture. The stonework must read clearly
+  against it by being COOLER and GREYER — do NOT make the stone warm, brown,
+  orange, rust, golden or sandy, and do not let it take the colour of that
+  floor.
+
+SIZE — the object sits in the MIDDLE of the picture. In a 1024-pixel picture the
+basin including its paving is about 620 pixels wide, and the whole fountain from
+the paving to the rim of the top bowl is about 700 pixels tall, leaving at least
+140 pixels of white on every side. It must NOT touch any edge and must NOT be
+cut by any edge.
+
+LIGHT — dim light from above, short soft shadows that fall only on the fountain
+itself. NOTHING casts a shadow onto the background. NO glow, NO shine, NO light
+of any colour anywhere in this picture, and the water does not light up.
+
+THE BACKGROUND — everything around the fountain is PURE FLAT WHITE, #FFFFFF,
+with NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO
+drop shadow. This white is going to be deleted and the game will draw its own
+cave floor there, so the outline of the fountain must be a hard, clean, crisp
+edge against it. Nothing in the fountain itself may be white or near-white.
+
+Everything muted, in the same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear dark outlines, a mature, slightly
+muted, limited color palette (NOT bright saturated, NOT painterly photorealism).
+
+NOTHING ELSE — no people, no creature, no fish, no birds, no coins in the water,
+no cup, no ladle, no jar, no bucket, no rope, no torch, no lantern, no candle,
+no crystal, no mushroom, no moss, no ivy, no grass, no plants, no flowers, no
+bones, no treasure, no stalactites, no cave wall, no path, no banner, no flag,
+no lettering, NO magic, NO particles. Read at thumbnail size: a few large
+legible shapes, no fine detail. NO border, NO frame around the picture itself,
+NO vignette. Square 1:1.

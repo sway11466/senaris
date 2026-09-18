@@ -254,14 +254,6 @@
 - 考慮外：他の斥候（ハーフリング等）への拡張。撃破後の再攻撃（検討して不採用）。
 - 該当：feature-117 と同じ＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。前提＝feature-117。
 
-### feature-123
-
-**回復の泉の見た目（拠点スキン）**
-- ゴール：チュートリアル３ st6 の泉3つが、盤の上で泉に見える（回復・争奪の動きは今のまま）。
-- 背景：拠点の地形スキンは町・詰所・礼拝堂・納骨堂などの建物だけで、泉が無い。[tutorial3-dragon-hunt.md](campaign/tutorial3-dragon-hunt.md) st6 は泉3つを汎用 fort で置いてあり、回復ローテと争奪は動くが「泉を取り合う」絵にならない。会話も泉と呼んでいるので、盤とのずれが目に付く。
-- 対応：`terrain_skin.csv` に `fort` 型の見た目違いを1つ足す（洞窟の地面の上に立てる泉。占領で色が変わる `_team0`／`_team1` の規則は他の拠点と同じ＝[terrain.md](art/terrain.md)）。st6 の該当マスをそのスキンに差し替える。
-- 該当：`godot/data/terrain/terrain_skin.csv`・`godot/data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json`・`doc/art/terrain.md`。着手の引き金＝竜狩りの通し確認で st6 を触るとき。
-
 ### feature-124
 
 **陣形スキル⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5＝反撃強化）**

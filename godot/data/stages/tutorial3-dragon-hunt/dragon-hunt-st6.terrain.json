@@ -21,5 +21,10 @@
     "####....O.....####",
     "####..........####",
     "##################"
+  ],
+  "terrain_skins": [
+    { "col": 7, "row": 3, "skin": "plain_cave1_fort_spring1" },
+    { "col": 3, "row": 10, "skin": "plain_cave1_fort_spring1" },
+    { "col": 7, "row": 16, "skin": "plain_cave1_fort_spring1" }
   ]
 }

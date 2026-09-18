@@ -1,0 +1,30 @@
+盤の立ち絵を出したチャットの続きとして投げる（別チャットで DESIGN から出し直すと、
+八角形の面が回って奥行きが付く）。中立が出たら、同じチャットのまま team0 / team1 の
+塗り替えプロンプトを続ける。
+
+SAME fountain as the previous image — identical basin, coping, skirt, pillar,
+bowls, falling water and shield, in exactly the same colours, at the same size
+on the same pure-white background. Do not redesign anything.
+
+Change ONLY the viewpoint: drop the camera until it is almost level with the
+fountain, looking at it from about 12 degrees above the top of the basin wall
+instead of from high above. This is very close to a flat elevation — a drawing
+of the fountain seen head-on.
+
+- The octagonal basin no longer opens up towards the viewer. The water inside it
+  shows only as a narrow sliver just behind the near coping, and the far rim of
+  the basin sits only a little above the near rim.
+- The side faces of the octagon are strongly compressed; the basin reads as a
+  wide, nearly straight wall running horizontally across the picture.
+- The same flat side of the octagon still faces the viewer head-on, and the left
+  and right halves stay mirror images of each other.
+- NOTHING drives diagonally into the distance. NO ground plane, NO floor, NO
+  receding lines, NO isometric view, NO three-quarter view, NO horizon.
+- The pillar, the two bowls and the four falling streams keep exactly the shapes
+  they have; they are simply seen from lower down. The dome of water in the top
+  bowl is now seen edge-on as a low mound.
+- The shield stays flat on the front face of the pillar, facing the viewer
+  square-on, fully visible and overlapped by nothing.
+
+Keep the whole fountain inside the frame — do not crop it — on the same pure
+flat white #FFFFFF background, with no cast shadow and no ground under it.
