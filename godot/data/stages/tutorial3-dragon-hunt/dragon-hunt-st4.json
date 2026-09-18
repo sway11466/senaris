@@ -21,34 +21,51 @@
     { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "sight": 3,
       "units": [
         { "skin": "treant", "col": 3, "row": 18 },
-        { "skin": "treant", "col": 6, "row": 21 },
-        { "skin": "treant", "col": 10, "row": 16 },
+        { "skin": "treant", "col": 2, "row": 23 },
         { "skin": "rogue_slinger", "col": 18, "row": 30 },
-        { "skin": "treant", "col": 7, "row": 25 },
-        { "skin": "treant", "col": 10, "row": 25 },
-        { "skin": "treant", "col": 7, "row": 28 },
+        { "skin": "treant", "col": 7, "row": 26 },
+        { "skin": "treant", "col": 9, "row": 24 },
+        { "skin": "treant", "col": 9, "row": 28 },
         { "skin": "treant", "col": 3, "row": 15 },
+        { "skin": "treant", "col": 5, "row": 13 },
+        { "skin": "treant", "col": 11, "row": 26 },
+        { "skin": "treant", "col": 4, "row": 3 },
+        { "skin": "treant", "col": 3, "row": 3 },
         { "skin": "treant", "col": 2, "row": 11 }
       ] },
     { "order": 2, "name": "dragon-hunt.st4.squad.2", "ai": "ambush", "sight": 2,
       "units": [
-        { "skin": "matango", "col": 12, "row": 27 },
-        { "skin": "matango", "col": 12, "row": 29 },
+        { "skin": "matango", "col": 8, "row": 21 },
+        { "skin": "matango", "col": 9, "row": 14 },
+        { "skin": "matango", "col": 7, "row": 17 },
+        { "skin": "matango", "col": 9, "row": 26 },
+        { "skin": "matango", "col": 11, "row": 18 },
+        { "skin": "matango", "col": 12, "row": 21 },
         { "skin": "matango", "col": 7, "row": 19 },
-        { "skin": "matango", "col": 5, "row": 13 },
-        { "skin": "matango", "col": 10, "row": 28 },
-        { "skin": "matango", "col": 5, "row": 17 }
+        { "skin": "matango", "col": 9, "row": 5 },
+        { "skin": "matango", "col": 7, "row": 6 },
+        { "skin": "matango", "col": 9, "row": 7 },
+        { "skin": "matango", "col": 11, "row": 6 }
       ] },
     { "order": 3, "name": "dragon-hunt.st4.squad.3", "ai": "charge",
       "units": [
-        { "skin": "mandragora", "col": 13, "row": 19 },
-        { "skin": "mandragora", "col": 11, "row": 14 },
-        { "skin": "mandragora", "col": 16, "row": 24 }
+        { "skin": "mandragora", "col": 14, "row": 19 },
+        { "skin": "mandragora", "col": 14, "row": 15 },
+        { "skin": "mandragora", "col": 16, "row": 24 },
+        { "skin": "mandragora", "col": 17, "row": 12 },
+        { "skin": "mandragora", "col": 17, "row": 9 },
+        { "skin": "mandragora", "col": 15, "row": 6 }
       ] },
     { "order": 4, "name": "dragon-hunt.st4.squad.4", "ai": "raid",
       "units": [
         { "skin": "rogue_axe", "col": 16, "row": 29 },
         { "skin": "rogue", "col": 17, "row": 29 }
+      ] },
+    { "order": 6, "ai": "ambush", "sight": 0,
+      "units": [
+        { "skin": "rogue_wagon", "unit_id": "rogue-wagon3", "col": 16, "row": 1 },
+        { "skin": "rogue_wagon", "unit_id": "rogue-wagon2", "col": 16, "row": 2 },
+        { "skin": "rogue_wagon", "unit_id": "rogue-wagon1", "col": 15, "row": 1 }
       ] }
   ],
   "bases": [
@@ -58,6 +75,9 @@
   "events": [
     { "type": "capture", "col": 8, "row": 10, "id": "village-secured", "captured_by": "player", "once": "village", "dialogue": "secured", "focus": true },
     { "type": "capture", "col": 8, "row": 10, "id": "village-lost", "captured_by": "enemy", "once": "village", "dialogue": "lost", "focus": true }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "unit_id": "rogue-wagon1" }
   ],
   "dialogue": {
     "intro": [

@@ -27,31 +27,38 @@
       "units": [
         { "skin": "rock_serpent", "col": 16, "row": 16 },
         { "skin": "rock_serpent", "col": 17, "row": 16 },
-        { "skin": "rock_serpent", "col": 17, "row": 15 }
+        { "skin": "rock_serpent", "col": 17, "row": 15 },
+        { "skin": "rock_serpent", "col": 16, "row": 15 },
+        { "skin": "rock_serpent", "col": 16, "row": 17 }
       ] },
     { "order": 3, "name": "dragon-hunt.st3.squad.3", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 7 },
-        { "skin": "rock_serpent", "col": 10, "row": 8 },
-        { "skin": "rock_serpent", "col": 10, "row": 7 }
+        { "skin": "rock_serpent", "col": 10, "row": 7 },
+        { "skin": "rock_serpent", "col": 11, "row": 6 },
+        { "skin": "rock_serpent", "col": 12, "row": 7 }
       ] },
     { "order": 4, "name": "dragon-hunt.st3.squad.4", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 16, "row": 8 },
         { "skin": "rock_serpent", "col": 17, "row": 8 },
-        { "skin": "rock_serpent", "col": 16, "row": 9 }
+        { "skin": "rock_serpent", "col": 16, "row": 9 },
+        { "skin": "rock_serpent", "col": 17, "row": 7 },
+        { "skin": "rock_serpent", "col": 17, "row": 9 }
       ] },
     { "order": 5, "name": "dragon-hunt.st3.squad.5", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 11, "row": 3 },
         { "skin": "rock_serpent", "col": 11, "row": 2 },
-        { "skin": "rock_serpent", "col": 10, "row": 3 }
+        { "skin": "rock_serpent", "col": 10, "row": 3 },
+        { "skin": "rock_serpent", "col": 12, "row": 3 }
       ] },
     { "order": 6, "name": "dragon-hunt.st3.squad.6", "ai": "ambush", "sight": 8, "stack": 1,
       "units": [
         { "skin": "rock_serpent", "col": 22, "row": 20 },
         { "skin": "rock_serpent", "col": 23, "row": 20 },
-        { "skin": "rock_serpent", "col": 23, "row": 19 }
+        { "skin": "rock_serpent", "col": 23, "row": 19 },
+        { "skin": "rock_serpent", "col": 22, "row": 19 }
       ] },
     { "order": 7, "name": "dragon-hunt.st3.squad.7", "ai": "ambush", "sight": 9,
       "units": [ { "skin": "wyrm", "col": 22, "row": 3 } ] },
@@ -143,5 +150,6 @@
   },
   "rank": { "turn_s": 20, "turn_a": 30, "survival_s": 6, "survival_a": 3 },
   "haze": 0.8,
+  "backdrop": "sky_clear",
   "bgm": { "main": "raid" }
 }

@@ -2,7 +2,8 @@
   "turn_limit": 30,
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 7, "survival_a": 4 },
   "name": "dragon-hunt-st6",
-  "haze": 0.80,
+  "haze": 0.3,
+  "backdrop": "cave_wall",
   "player": [
     { "units": [
         {"type": "cleric", "col": 5, "row": 17, "actor": "cleric", "supply": "refill"},
