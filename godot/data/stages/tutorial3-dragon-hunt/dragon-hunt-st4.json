@@ -2,67 +2,74 @@
   "turn_limit": 30,
   "name": "dragon-hunt-st4",
   "player": [
-    { "units": [
-        { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 20, "supply": "refill" },
-        { "type": "thief", "actor": "thief", "col": 4, "row": 22, "supply": "refill" },
-        { "type": "hunter", "actor": "hunter", "col": 3, "row": 23, "supply": "refill" },
-        { "type": "bishop", "actor": "bishop", "col": 3, "row": 21, "supply": "refill" },
-        { "type": "wizard", "actor": "wizard", "col": 4, "row": 21, "supply": "refill" },
-        { "type": "fighter", "actor": "fighter", "col": 2, "row": 23, "supply": "refill" },
-        { "type": "halfling", "actor": "halfling", "col": 2, "row": 21, "supply": "refill" },
-        { "type": "archer", "actor": "archer", "col": 4, "row": 23, "supply": "refill" },
-        { "type": "cleric", "actor": "cleric", "col": 2, "row": 20, "supply": "refill" },
-        { "type": "pixie", "actor": "pixie", "col": 3, "row": 22, "supply": "refill" },
-        { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 22, "supply": "refill" },
-        { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" }
+    {       "units": [
+        { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 27, "supply": "refill" },
+        { "type": "thief", "actor": "thief", "col": 4, "row": 29, "supply": "refill" },
+        { "type": "hunter", "actor": "hunter", "col": 3, "row": 30, "supply": "refill" },
+        { "type": "bishop", "actor": "bishop", "col": 3, "row": 28, "supply": "refill" },
+        { "type": "wizard", "actor": "wizard", "col": 4, "row": 28, "supply": "refill" },
+        { "type": "fighter", "actor": "fighter", "col": 2, "row": 30, "supply": "refill" },
+        { "type": "halfling", "actor": "halfling", "col": 2, "row": 28, "supply": "refill" },
+        { "type": "archer", "actor": "archer", "col": 4, "row": 30, "supply": "refill" },
+        { "type": "cleric", "actor": "cleric", "col": 2, "row": 27, "supply": "refill" },
+        { "type": "pixie", "actor": "pixie", "col": 3, "row": 29, "supply": "refill" },
+        { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 29, "supply": "refill" },
+        { "type": "mage", "actor": "mage", "col": 4, "row": 27, "supply": "refill" }
       ] }
   ],
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "sight": 3,
       "units": [
-        { "skin": "treant", "col": 3, "row": 11 },
-        { "skin": "treant", "col": 6, "row": 14 },
-        { "skin": "treant", "col": 10, "row": 9 },
-        { "skin": "rogue_slinger", "col": 18, "row": 23 },
-        { "skin": "treant", "col": 7, "row": 18 },
-        { "skin": "treant", "col": 10, "row": 18 },
-        { "skin": "treant", "col": 7, "row": 21 },
-        { "skin": "treant", "col": 3, "row": 8 },
-        { "skin": "treant", "col": 2, "row": 4 }
+        { "skin": "treant", "col": 3, "row": 18 },
+        { "skin": "treant", "col": 6, "row": 21 },
+        { "skin": "treant", "col": 10, "row": 16 },
+        { "skin": "rogue_slinger", "col": 18, "row": 30 },
+        { "skin": "treant", "col": 7, "row": 25 },
+        { "skin": "treant", "col": 10, "row": 25 },
+        { "skin": "treant", "col": 7, "row": 28 },
+        { "skin": "treant", "col": 3, "row": 15 },
+        { "skin": "treant", "col": 2, "row": 11 }
       ] },
     { "order": 2, "name": "dragon-hunt.st4.squad.2", "ai": "ambush", "sight": 2,
       "units": [
-        { "skin": "matango", "col": 12, "row": 20 },
-        { "skin": "matango", "col": 12, "row": 22 },
-        { "skin": "matango", "col": 7, "row": 12 },
-        { "skin": "matango", "col": 5, "row": 6 },
-        { "skin": "matango", "col": 10, "row": 21 },
-        { "skin": "matango", "col": 5, "row": 10 }
+        { "skin": "matango", "col": 12, "row": 27 },
+        { "skin": "matango", "col": 12, "row": 29 },
+        { "skin": "matango", "col": 7, "row": 19 },
+        { "skin": "matango", "col": 5, "row": 13 },
+        { "skin": "matango", "col": 10, "row": 28 },
+        { "skin": "matango", "col": 5, "row": 17 }
       ] },
     { "order": 3, "name": "dragon-hunt.st4.squad.3", "ai": "charge",
       "units": [
-        { "skin": "mandragora", "col": 13, "row": 12 },
-        { "skin": "mandragora", "col": 11, "row": 7 },
-        { "skin": "mandragora", "col": 16, "row": 17 }
+        { "skin": "mandragora", "col": 13, "row": 19 },
+        { "skin": "mandragora", "col": 11, "row": 14 },
+        { "skin": "mandragora", "col": 16, "row": 24 }
       ] },
     { "order": 4, "name": "dragon-hunt.st4.squad.4", "ai": "raid",
       "units": [
-        { "skin": "rogue_axe", "col": 16, "row": 22 },
-        { "skin": "rogue", "col": 17, "row": 22 }
+        { "skin": "rogue_axe", "col": 16, "row": 29 },
+        { "skin": "rogue", "col": 17, "row": 29 }
       ] }
   ],
   "bases": [
-    { "order": 5, "ai": "ambush", "col": 8, "row": 3, "team": "neutral", "rest": "both",
+    { "order": 5, "ai": "ambush", "col": 8, "row": 10, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "elf", "actor": "elf", "native": "neutral" } ] }
+  ],
+  "events": [
+    { "type": "capture", "col": 8, "row": 10, "id": "village-secured", "captured_by": "player", "once": "village", "dialogue": "secured", "focus": true },
+    { "type": "capture", "col": 8, "row": 10, "id": "village-lost", "captured_by": "enemy", "once": "village", "dialogue": "lost", "focus": true }
   ],
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st4.rogue.1" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st4.rogue.2" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st4.rogue.2" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st4.rogue.3" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st4.rogue.4" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st4.rogue.4" },
+      { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st4.rogue.5" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st4.rogue.6" },
       { "scene": "dragon-hunt.st4.scene.1" },
-      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.intro.2" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st4.intro.2" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.intro.10" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st4.intro.3" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st4.intro.4" },
       { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st4.intro.8" },
@@ -72,15 +79,35 @@
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st4.intro.6" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.intro.7" }
     ],
+    "secured": [
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.secured.1" },
+      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.secured.2" },
+      { "speaker": "char.pixie.name", "skin": "pixie", "text": "dragon-hunt.st4.secured.3" },
+      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.secured.4" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st4.secured.5" },
+      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.secured.6" }
+    ],
+    "lost": [
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st4.lost.1" },
+      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.lost.2" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st4.lost.3" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st4.lost.4" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.lost.5" }
+    ],
     "outro": [
       { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "dragon-hunt.st4.outro.1" },
-      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.outro.5", "when": "joined:elf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st4.outro.2" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st4.outro.3" },
+      { "speaker": "char.birdman_child.name", "skin": "birdman", "text": "dragon-hunt.st4.outro.3" },
+      { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st4.outro.6" },
+      { "speaker": "char.birdman_child.name", "skin": "birdman", "text": "dragon-hunt.st4.outro.7" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st4.outro.8" },
+      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "dragon-hunt.st4.outro.9" },
+      { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.outro.5", "when": "joined:elf" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.outro.4" }
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 6, "survival_a": 3 },
-  "haze": 0.8,
+  "haze": 0.3,
+  "backdrop": "forest",
   "bgm": { "main": "raid" }
 }

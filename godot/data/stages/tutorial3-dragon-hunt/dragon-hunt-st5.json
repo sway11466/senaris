@@ -3,6 +3,7 @@
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 7, "survival_a": 4 },
   "name": "dragon-hunt-st5",
   "haze": 0.80,
+  "backdrop": "sky_clear",
   "player": [
     { "units": [
         {"type": "bishop", "col": 6, "row": 17, "actor": "bishop", "supply": "refill"},
@@ -53,9 +54,9 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st5.rogue.1" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st5.rogue.2" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st5.rogue.2" },
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st5.rogue.3" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st5.rogue.4" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st5.rogue.4" },
       { "scene": "dragon-hunt.st5.scene.1" },
       { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st5.intro.1", "when": "joined:elf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.2" },
