@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=132 / refactoring=21.
+次回採番: bug=12 / feature=133 / refactoring=21.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -294,6 +294,15 @@
 - 対応：(1) `QuestSheet` を左右2段に組み直す＝左にあらすじと幕間の印、右に顔ぶれ、右上に戦果の判子、紙は横長。紙の材質は横も引き伸ばす（タイルだと元絵の幅で継ぎ目が出る）。(2) 駒ごとの印を撤去＝`_with_badge` と升の幅固定、`icons/quest/` の4枚、`ui.quest.badge_*` の翻訳キー、`StageLoader` が返す `badge`。(3) `StageSelect` から札のランクの印とクリアバッジを外す。(4) `campaign.json` に `synopsis` を全ステージ（デバッグ冒険譚も1文）、`interlude` を `damaged`／`refill`／`revive` の3値に書き換え＝継承の冒険譚の2話目以降に必ず書く。(5) `campaigns.csv` にあらすじ本文（`<冒険譚>.stN.synopsis`・日英）。(6) データ整合テストを3値と `synopsis` 必須に合わせる。
 - 考慮外：幕間の印の絵（別途）。冒険譚カード側の `DONE` の印。
 - 該当：`godot/presentation/select/quest_sheet.gd`・`godot/presentation/select/stage_select.gd`・`godot/presentation/select/tavern_theme.gd`（紙の stylebox）・`godot/application/stage_loader.gd`・`godot/data/stages/campaign_catalog.gd`・各 `campaign.json`・`godot/data/i18n/campaigns.csv`・`godot/data/i18n/menu.csv`・`godot/tests/small/data/test_data_integrity.gd`・[stage_select.md](gdd/stage_select.md)・[rank.md](gdd/rank.md)・[icons.md](art/icons.md)・[menu.md](art/menu.md)。
+
+### feature-132
+
+**幕間の印 `damaged` のモチーフを決めて描く**
+- ゴール：依頼書の幕間の印3枚が揃い、連戦の話を開いたときに「傷ついたまま次へ出る」と読める絵が1枚出る。
+- 背景：`refill`（宿のベッド）と `revive`（有翼の十字）は描けたが、`damaged` だけモチーフが決まっていない。試した案と外した理由＝断ち切れた革帯（何が起きたか読めない）／刃こぼれの剣（欠けは小さくすると輪郭のノイズになる）／ひび割れた盾（`predator`（弱者狙い）の割れた盾と同じ構図）／松明（暗いだけで連戦に結びつかない）／血の染みた包帯（手当てをしたとも読める）。
+- 対応：モチーフを決め、[icons.md](art/icons.md) §3 の表と SUBJECT を書いて生成する。要件＝面が広くて小さくしても輪郭が残る／`refill`（横長・木と布）・`revive`（縦長・金と白）と型と材質が分かれる／AI の特性アイコンと構図が被らない／「休んだ」「手当てをした」と読めない。
+- 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
+- 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
 
 ## リファクタリング
 

@@ -14,7 +14,7 @@
 
 - 絵は在れば出す。無ければ額ごと消えて特性名の文字だけになるので、絵を1枚ずつ足していける。
 - 額（枠）はアプリ側が描く（`TavernTheme.icon_frame_stylebox`）。絵に枠を描き込ませない＝生成のたびに枠の形が揺らぐため、絵は中身だけを持つ。HUD のボタン・幕間の印は額なしで載せる（板に、紙に）。
-- 表示寸法は特性が額の外寸44px・内側36px、HUD のボタンが高さ24px、幕間の印が高さ30px。書き出しは128pxで、拡大表示が要るようになってもそのまま使える。
+- 表示寸法は特性が額の外寸44px・内側36px、HUD のボタンが高さ24px、幕間の印が高さ54px（紙に並ぶ駒と同じ）。書き出しは128pxで、拡大表示が要るようになってもそのまま使える。
 
 ## 2. 生成方式（ICON STYLE）
 
@@ -57,23 +57,21 @@ border, and no photographic rendering, bloom, gradients, particles or metallic
 sheen.
 ```
 
-幕間の印用（INTERLUDE ICON STYLE）。載る先が暗い木の板ではなく依頼書の羊皮紙なので、焼き印の一文をインクの一文に替える。色は琥珀の共通色ではなく印ごとに変える＝SUBJECT が色を指定し、STYLE は「1色で、その色の濃淡は2段まで」とだけ言う。読める寸法は30px。それ以外は同じ:
+幕間の印用（INTERLUDE STYLE）。これだけは記号ではなく**絵**で、盤の駒（[units.md](units.md) §3.2 UNIT STYLE）と同じ文法にする＝紙の右半分にユニットの絵が並ぶので、左に記号を置くと文法の違う物が混ざって見える。ユニットの STYLE から頭身・顔・武器・接地の条項を外し、被写体を小物1つに替えたもの。物は自然な色で塗る（色で意味を分けない）。読める寸法は54px＝紙に並ぶ駒と同じ高さ:
 
 ```
-STYLE: A single fantasy game UI icon: ONE isolated emblem on an empty
-background, drawn as a mark inked onto an old parchment sheet — a bold flat
-shape in the ONE colour the subject names, that colour plus at most one
-slightly darker tone of it, with hard flat edges. Clean stylized vector-like
-shapes, the same slightly muted look as the game's unit pieces. This mark tells
-what happened on the road BETWEEN two battles, so it reads as a plain, calm
-signpost: a familiar everyday object, tidy and honest, neither menacing nor
-ornate. Follow the arrangement the subject describes exactly, including which
-way each element points and where each element sits. A crisp, bold silhouette
-that still reads when shrunk to 30 pixels tall. The mark fills the square
-canvas edge to edge, leaving only a thin margin. Square 1:1 composition. Keep
-the frame clean: the emblem alone, no characters, no hands, no ground, no
-scenery, no text, no border, and no photographic rendering, bloom, gradients,
-particles or metallic sheen.
+STYLE: A single fantasy tactics-game prop piece, clean stylized vector-like
+illustration with bold flat cel-shading and a strong readable silhouette.
+Simplified, bold, rounded chunky shapes, grounded in a mature, slightly muted,
+limited color palette. NOT bright saturated anime coloring, NOT painterly
+photorealism. Soft rim light, minimal fussy detail so the shape still reads
+clearly when shrunk to 54 pixels tall. ONE object alone, in its own natural
+materials and colours. Follow the arrangement the subject describes exactly,
+including which way each element points and where each element sits. The object
+fills the square canvas edge to edge, leaving only a thin margin. Square 1:1
+composition. Keep the frame clean: the object alone, no characters, no hands,
+no ground line, no scenery, no text, no border, and no photographic rendering,
+bloom, particles or metallic sheen.
 ```
 
 SUBJECT を書くときの勘所（実地で効いたもの）:
@@ -89,20 +87,19 @@ SUBJECT を書くときの勘所（実地で効いたもの）:
 
 ## 3. 幕間の印（生成で作る）
 
-依頼書のあらすじの下に置く印（[../gdd/stage_select.md](../gdd/stage_select.md) 幕間の印）。マニフェストの `interlude` の値がそのまま id。生成方式は §2 の INTERLUDE ICON STYLE＋各 SUBJECT で、保管と書き出しは §4 のとおり。
+依頼書のあらすじの下に置く小さな絵（[../gdd/stage_select.md](../gdd/stage_select.md) 幕間の印）。マニフェストの `interlude` の値がそのまま id。生成方式は §2 の INTERLUDE STYLE＋各 SUBJECT で、保管と書き出しは §4 のとおり。
 
-| id | 形 | 外形の型 | 色 | 意味 |
-|---|---|---|---|---|
-| `damaged` | 裂け目 | 斜めの筋 | `#9A3B2E` | 連戦。兵は戻らない |
-| `refill` | ベッド | 横長・低い（左端に頭板が立つ） | `#3C5F8A` | 休息。兵が満ちる |
-| `revive` | 十字 | 四方の腕が同じ長さ・同じ太さ | `#4E7A3A` | 復帰。倒れた仲間も戻る |
+| id | 物 | 外形の型 | 意味 |
+|---|---|---|---|
+| `damaged` | 裂けた革帯（斜めに走り、中ほどで断ち切られている） | 斜めの筋 | 連戦。兵は戻らない |
+| `refill` | 宿のベッド（木枠に麻の敷布と枕） | 横長・低い（左端に頭板が立つ） | 休息。兵が満ちる |
+| `revive` | 有翼の十字（金の小十字の左右に翼を1対） | 縦長・対称 | 復帰。倒れた仲間も戻る |
 
-- 3枚とも羊皮紙（`#DEC99E`）の上に載る。色はコントラスト比で選ぶ＝見出しのインク `#664D33` が 4.84、下限の目安は 3.0。明るい黄は紙と明度が近く `#C9A227` で 1.49＝ほぼ見えない。
-- 色は意味ごとに変える（赤＝失う／青＝満ちる／緑＝戻る）＝形を読む前に色で当たりが付く。SUBJECT に色名を書き、STYLE 側は1色とだけ言う（§2）。
-- 外形の型を3つで散らす（斜めの筋・横長・対称の十字）＝色が飛んでも取り違えない。
-- 塗ってある面積を3枚で揃える＝並べたとき1枚だけ重く見えない。`magick <png> -alpha extract -format "%[fx:mean]" info:` で測る。
-- 生成の背景は、明るい色の印なら黒・暗い色の印なら白（§2 の勘所）。`damaged` の赤は暗いので黒地だと縁が溶ける。
-- 30px で残るのは輪郭だけ。毛布の襞・十字の飾り・裂け目のほつれは描かせない。
+- 物は自然な色で塗る＝記号の色分けはしない。色で意味を分けると、右半分に並ぶ駒と文法が変わる。
+- 外形の型を3つで散らす（斜めの筋・横長・縦長の対称）＝色が近くても取り違えない。`revive` だけは物ではなく徽章＝「復活」に対応する日常の物が無いので、ジャンルの慣習（翼＝蘇生）に乗る。地に立つ石の十字にすると墓標に読まれるので、手のひらに載る金の徽章として描く。
+- 3枚とも羊皮紙（`#DEC99E`）の上に載る。明度が紙に近い物（生成りの布・白木）は沈むので、影側を落として輪郭を作る。目安は紙とのコントラスト比 3.0 以上（見出しのインク `#664D33` が 4.84）。
+- 54px で残るのは大きな面と輪郭。布の織り目・羽根の一本一本・木の木目は描かせない。翼は3〜4枚の大きな羽根の面として描く。
+- 生成の背景はまっ白＝盤の駒と同じ（[units.md](units.md) §3.2）。縁から floodfill で抜く。
 
 ## 4. 保管・書き出し
 
@@ -123,6 +120,8 @@ powershell -File godot\tools\gen_icon.ps1 charge      # 複数可 / all で全�
 ```
 
 輝度からアルファを起こして背景を抜き（暗いほど透明・しきい値は6〜20%）、余白をトリムして128px四方に収める（[`../../tools/gen_icon.ps1`](../../godot/tools/gen_icon.ps1)）。色は動かさない。抜いたあとは木の色に載せて拡大し、輪郭に黒い縁（ハロー）が残っていないかを見る。
+
+幕間の印（`interlude`）だけは背景がまっ白で、絵の中に暗い面も明るい面もある＝輝度からアルファを起こす手が使えない。縁から floodfill で白を抜く（[`gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1) が盤の駒に使っているのと同じ手）。抜いたあとは羊皮紙の色に載せて、白い縁が残っていないかを見る。
 
 ---
 
