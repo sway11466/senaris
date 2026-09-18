@@ -2,6 +2,7 @@
 ui.hud.end_turn,ターン終了（Enter）,End Turn (Enter)
 ui.hud.info_panel,情報板（Space）,Info Panel (Space)
 ui.hud.menu,メニュー（Esc）,Menu (Esc)
+ui.hud.skill_activate,発動,Cast
 ui.hud.restart,リスタート,Restart Battle
 ui.hud.stage_select,依頼ボード,Quest Board
 ui.hud.zoom_in,ズームイン（Ctrl＋ホイール上）,Zoom In (Ctrl+Wheel Up)

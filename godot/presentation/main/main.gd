@@ -663,6 +663,9 @@ func _install_hud() -> void:
 	_hud.wipe_enemies_requested.connect(_on_wipe_enemies_requested)  # デバッグ項目（製品ビルドでは出ない）
 	_hud.debug_event_requested.connect(_on_debug_event_requested)  # 同上
 	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
+	# 陣形スキルの参加者選び＝盤が「発動できる」と言っている間だけ HUD にボタンを出す。
+	_hud.skill_activate_requested.connect($HexBoard.activate_chosen_formation)
+	$HexBoard.skill_activate_available.connect(_hud.set_skill_activate_visible)
 	$HexBoard.system_menu_requested.connect(_hud.open_system_menu)
 	$HexBoard.info_panel_toggle_requested.connect($Front/InfoPanel.toggle_minimized)  # Space＝情報板ボタンと同じ
 

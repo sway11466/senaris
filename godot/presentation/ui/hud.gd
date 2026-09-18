@@ -8,6 +8,7 @@ class_name Hud
 ## 効かず見えなくなるのを避ける）。ウィンドウリサイズ時は size_changed で置き直す。
 
 signal end_turn_requested        # ターン終了ボタン
+signal skill_activate_requested  # 発動ボタン＝人数が可変の陣形スキルを、選んだ参加者で撃つ
 signal info_panel_toggle_requested  # 情報板ボタン＝右の情報板を畳む／開く
 signal info_panel_reset_requested   # システムメニュー: 情報板の位置を戻す
 signal restart_requested         # システムメニュー: リスタート（現ステージ再読込）
@@ -27,6 +28,7 @@ const ICON_DIR := "res://assets/icons/hud/"
 const ICON_SIZE := 24  # 板の高さ40から上下の余白6ずつを引いた中身28に収める
 
 var _end_btn: Button
+var _cast_btn: Button  # 発動（陣形スキルの参加者選びの間だけ出る）
 var _info_btn: Button
 var _gear: Button
 var _menu: PopupMenu
@@ -51,6 +53,13 @@ func _ready() -> void:
 	_end_btn = _button("ui.hud.end_turn", "end_turn", 140.0)
 	_end_btn.pressed.connect(func() -> void: end_turn_requested.emit())
 	add_child(_end_btn)
+
+	# 発動＝人数が可変の陣形スキルで、最低人数に達している間だけ出す（doc/gdd/uiux.md 参加者を選ぶ）。
+	# ターン終了の真上に置く＝盤をクリックして参加者を足している手の近くで、押し間違えない距離。
+	_cast_btn = _button("ui.hud.skill_activate", "skill_activate", 140.0)
+	_cast_btn.visible = false
+	_cast_btn.pressed.connect(func() -> void: skill_activate_requested.emit())
+	add_child(_cast_btn)
 
 	# 情報板の畳む／開く。左下のメニューの右。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
 	_info_btn = _button("ui.hud.info_panel", "info_panel", 110.0)
@@ -117,8 +126,9 @@ func refresh_labels() -> void:
 	_gear.text = tr("ui.hud.menu")
 	_menu.set_item_text(_menu.get_item_index(SYS_STORY), tr("ui.hud.story"))
 	_end_btn.text = tr("ui.hud.end_turn")
+	_cast_btn.text = tr("ui.hud.skill_activate")
 	_info_btn.text = tr("ui.hud.info_panel")
-	for b: Button in [_gear, _end_btn, _info_btn]:
+	for b: Button in [_gear, _end_btn, _cast_btn, _info_btn]:
 		b.size.x = float(b.get_meta("base_width"))  # 広がった幅は自動では戻らない＝目安の幅に戻し、文字に合わせて広げ直す
 	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
 			[SYS_ZOOM_IN, "ui.hud.zoom_in"], [SYS_ZOOM_OUT, "ui.hud.zoom_out"],
@@ -135,11 +145,16 @@ func _reposition() -> void:
 	_info_btn.position = Vector2(16.0 + _gear.size.x + 8.0, y)  # 歯車の実幅（最小サイズで広がりうる）の右に隙間8
 	# ターン終了は盤エリアを見ない＝板を畳んでも動かしても場所が変わらない（doc/gdd/uiux.md 盤エリア）。
 	_end_btn.position = Vector2(UiLayout.end_turn_left(vp, _end_btn.size.x), y)
+	_cast_btn.position = Vector2(UiLayout.end_turn_left(vp, _cast_btn.size.x), y - 52.0)  # ターン終了の真上
 	if _badge != null:
 		# 情報板ボタンの右上角に半分ほど重ね、しっぽの先がボタンの中に入るように置く。
 		_badge.position = Vector2(
 			_info_btn.position.x + _info_btn.size.x - DialogueBadge.SIZE.x * 0.6,
 			y - (DialogueBadge.SIZE.y + DialogueBadge.TAIL_H) + 6.0)
+
+## 発動ボタンの出し入れ（盤が参加者選びの状態にある間だけ出る）。
+func set_skill_activate_visible(visible_now: bool) -> void:
+	_cast_btn.visible = visible_now
 
 ## ターン終了ボタンの有効/無効（自ターンのみ有効・AIターン/決着後は無効）。
 func set_player_turn(enabled: bool) -> void:

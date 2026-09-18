@@ -22,6 +22,9 @@ signal move_animation_finished
 ## 陣形スキルの着弾演出が終わった（打ち切りでも必ず発行＝待ち手を取り残さない）。
 ## 決着の告知（戦果票）と敵ターンのテンポ制御がこれを待つ。
 signal formation_impact_finished
+## 人数が可変の陣形スキルで「発動」ボタンを出す／引っ込める（HUD が受ける）。
+## 最低人数に達したら出し、さらに足すか発動するかをプレイヤーが決める → doc/gdd/uiux.md
+signal skill_activate_available(available: bool)
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速・上限なし＝時間はマス数に比例。doc/gdd/uiux.md 移動アニメ）
@@ -37,6 +40,8 @@ const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周
 const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
+const COLOR_FORMATION_MEMBER := Color(1.00, 0.55, 0.15, 0.32)  # 陣形の参加者の候補（メニューのホバー中・参加者を選ぶ段）
+const COLOR_MEMBER_RING := Color(1.00, 0.55, 0.15)            # 確定した参加者（同じ橙・輪で残す）
 # 着弾演出の定数は BoardImpactRenderer に移設。
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
@@ -94,7 +99,13 @@ var _choosing_target := false   # 「攻撃」選択後＝攻撃対象クリッ�
 var _choosing_formation := false  # 陣形スキルの着弾中心クリック待ち
 var _formation_active: FormationOption = null  # 発動中の陣形 option（着弾待ち）
 var _formation_cells := {}      # Vector2i -> true（着弾可能な射程内hex）
-var _formation_opts: Array[FormationOption] = []  # 現メニューで提示中の陣形 option 一覧
+var _formation_choices: Array[FormationChoice] = []  # 現メニューで提示中のスキル（レシピ単位に1つ）
+var _choosing_members := false  # 陣形スキルの参加者クリック待ち
+var _choice: FormationChoice = null  # 参加者選び／着弾先選びの対象スキル
+var _chosen: Array[int] = []    # 確定した参加者（発動者を除く・選んだ順）
+var _member_cells := {}         # Vector2i -> handle（いま確定できる候補の駒）
+var _menu_pool := {}            # Vector2i -> true（メニューでホバー中のスキルの候補の駒）
+var _menu_focused := -1         # メニューでいまホバー／選択中の項目の添字（-1＝無し）
 # 着弾演出の状態は BoardImpactRenderer に移設。
 var _menu: PopupMenu = null
 var _menu_handled := false
@@ -212,11 +223,31 @@ func refresh() -> void:
 func _process(_delta: float) -> void:
 	if state == null:
 		return
+	_sync_menu_hover()
 	var h := _hex_at_mouse()
 	if h != _hover:
 		_hover = h
 		_sync_overlay()
 		_play_hover_sfx(h)
+
+## コマンドメニューでいま指している項目を追う。陣形スキルの項目なら、その成立に使える駒を盤で
+## 光らせる（橙）＝どの駒を供出することになるかをメニューの上から読める（doc/gdd/uiux.md）。
+## マウスのホバーと鍵盤の上下はどちらも「いま指している項目」に出るので、1本の経路で拾う。
+func _sync_menu_hover() -> void:
+	var focused := _menu.get_focused_item() if _menu.visible else -1
+	if focused == _menu_focused:
+		return
+	_menu_focused = focused
+	_menu_pool.clear()
+	if focused >= 0:
+		var id := _menu.get_item_id(focused)
+		if id >= FORMATION_ID_BASE and id - FORMATION_ID_BASE < _formation_choices.size():
+			var c: FormationChoice = _formation_choices[id - FORMATION_ID_BASE]
+			for handle in c.pool:
+				var u := state.unit_by_handle(handle)
+				if u != null:
+					_menu_pool[u.pos] = true
+	_sync_overlay()
 
 ## ホバー音は駒と拠点の上でだけ鳴らす。盤は空きマスが大半で、全マスで鳴らすとカーソルを
 ## 動かすだけで鳴り続け、音が「そこに何かある」という情報を失う。→ doc/audio/sfx.md
@@ -434,19 +465,26 @@ func _on_click(hex: Vector2i) -> void:
 			controller.execute_deploy(DeployCommand.new(_deploy_base, _deploy_index, hex))
 			return
 		_clear_deploy()
-	# 陣形の着弾中心クリック待ち: 射程内なら発動、それ以外は中止。
+	# 陣形の参加者クリック待ち: 候補なら1体確定、それ以外は1段戻る。
+	if _choosing_members:
+		if _member_cells.has(hex):
+			_confirm_member(hex)
+		else:
+			_formation_step_back()
+		return
+	# 陣形の着弾中心クリック待ち: 射程内なら発動、それ以外は1段戻る。
 	if _choosing_formation:
 		if _formation_cells.has(hex):
-			controller.execute_formation(FormationCommand.new(_formation_active, hex))
+			_fire_formation(_formation_active, hex)
 		else:
-			_deselect()
+			_formation_step_back()
 		return
-	# 攻撃対象クリック待ち: 対象なら攻撃、それ以外は中止。
+	# 攻撃対象クリック待ち: 対象なら攻撃、それ以外は1段戻る。
 	if _choosing_target:
 		if _targets.has(hex):
-			controller.execute_attack(AttackCommand.new(_selected_id, _targets[hex]))
+			_fire_attack(_targets[hex])
 		else:
-			_deselect()
+			_attack_step_back()
 		return
 	# 選択中に「自マス or 到達マス」をクリック → コマンドメニュー（移動は未確定のまま開く）。
 	if _selected_id != -1:
@@ -478,10 +516,14 @@ func _on_click(hex: Vector2i) -> void:
 		tile_inspected.emit(hex)  # 空きマス＝地形（拠点なら控えも）を右パネルに表示
 
 ## 移動先（自マス含む）に対するコマンドメニューを開く。移動はまだ確定しない。
-func _open_command_menu(dest: Vector2i) -> void:
+## preview=false＝駒はすでに移動先へ歩かせてある（陣形スキルの段から1段戻ってきた場合）。
+func _open_command_menu(dest: Vector2i, preview := true) -> void:
 	_pending_to = dest
 	_menu_base = INVALID_HEX
-	_preview_move(dest)
+	_menu_focused = -1
+	_menu_pool.clear()
+	if preview:
+		_preview_move(dest)
 	var can_attack := not controller.attack_targets_from(_selected_id, dest).is_empty()
 	var sel := state.unit_by_handle(_selected_id)
 	var base := state.base_at(dest)
@@ -516,18 +558,19 @@ func _open_command_menu(dest: Vector2i) -> void:
 	# 発動者は移動してから撃てる＝成立も射程も「移動先 dest に居るものとして」見る。
 	# 成立していないレシピは項目を出さない。成立していても撃てる先が無ければ、出したうえで
 	# 無効化する（攻撃と同じ流儀＝できない操作は選べない → doc/gdd/uiux.md）。
-	_formation_opts = []
+	# 項目はレシピごとに1つ＝成立する組が複数あっても同じ名前を並べない（doc/gdd/uiux.md）。
+	_formation_choices = []
 	if sel != null:
-		_formation_opts = Formation.available_for(state, sel, dest)
-		if not _formation_opts.is_empty():
+		_formation_choices = Formation.choices_for(state, sel, dest)
+		if not _formation_choices.is_empty():
 			_menu.add_separator()
-			for i in _formation_opts.size():
-				var o: FormationOption = _formation_opts[i]
-				var label := tr("ui.board.unit_skill") if o.is_unit_skill() else tr("ui.board.formation_skill")
+			for i in _formation_choices.size():
+				var c: FormationChoice = _formation_choices[i]
+				var label := tr("ui.board.unit_skill") if Formation.is_unit_skill(c.skill) else tr("ui.board.formation_skill")
 				# スキル名は規約キー（skills.csv）で解決。SKILLS の name は開発用メモ
-				var skill_name := tr("skill." + o.skill + ".name")
+				var skill_name := tr("skill." + c.skill + ".name")
 				_menu.add_item(tr("ui.board.skill_item") % [label, skill_name], FORMATION_ID_BASE + i)
-				if Formation.targetable_cells(state, o, dest).is_empty() and o.needs_target():
+				if not Formation.choice_has_target(state, c, dest):
 					_menu.set_item_disabled(_menu.get_item_index(FORMATION_ID_BASE + i), true)
 	_menu.add_separator()
 	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
@@ -544,11 +587,9 @@ func _on_menu_id(id: int) -> void:
 		_handle_unload_menu(id)
 		return
 	if id >= FORMATION_ID_BASE:  # 300以上＝UNLOAD/DEPLOYより先に判定（範囲が重ならないよう最上位）
-		var opt: FormationOption = _formation_opts[id - FORMATION_ID_BASE]
-		# 陣形もユニットスキルも、先に移動を確定してから対象を選ぶ（射程は移動先から測る）。
-		# 動かずに開いた場合は保留移動が無いので素通り。
-		_commit_pending_move()
-		_enter_formation(opt)
+		# 移動はまだ確定しない＝参加者選び・着弾先選びの間は「移動先に居るものとして」判定し、
+		# メニューまで戻れば移動先を選び直せる（doc/gdd/uiux.md 陣形スキルの参加者を選ぶ）。
+		_begin_formation(_formation_choices[id - FORMATION_ID_BASE])
 		return
 	if id >= UNLOAD_ID_BASE:
 		var tid := _selected_id
@@ -566,10 +607,11 @@ func _on_menu_id(id: int) -> void:
 		return
 	match id:
 		MENU_ATTACK:
-			_commit_pending_move()
+			# 移動はまだ確定しない＝対象選びの間は「移動先に居るものとして」射程を見て、
+			# メニューまで戻れば移動先を選び直せる（doc/gdd/uiux.md 基本モデル）。
 			_reachable.clear()
 			_targets.clear()
-			for tid in controller.attack_targets_for(_selected_id):
+			for tid in controller.attack_targets_from(_selected_id, _attack_from()):
 				var u := state.unit_by_handle(tid)
 				if u != null:
 					_targets[u.pos] = tid
@@ -590,22 +632,141 @@ func _on_menu_id(id: int) -> void:
 		MENU_CANCEL:
 			_deselect()
 
-## 陣形スキルの着弾中心クリック待ちモードに入る。射程内hexをハイライトする。
-## 対象を取らないバフ系（②）は即発動（クリック待ちに入らない）。
-func _enter_formation(option: FormationOption) -> void:
-	if not option.needs_target():
-		controller.execute_formation(FormationCommand.new(option, INVALID_HEX))
+## 攻撃側が居るものとして射程を見る位置（移動先。まだ確定していない）。動かずに開いたなら実位置。
+func _attack_from() -> Vector2i:
+	if _pending_to != INVALID_HEX:
+		return _pending_to
+	var sel := state.unit_by_handle(_selected_id)
+	return sel.pos if sel != null else INVALID_HEX
+
+## 攻撃＝ここで初めて移動を確定させる（自マスのままなら no-op）。
+## 対象選びの間は移動を保留したままにするため、確定はこの1か所に寄せる。
+func _fire_attack(target_id: int) -> void:
+	_commit_pending_move()
+	controller.execute_attack(AttackCommand.new(_selected_id, target_id))
+
+## 攻撃の対象選びを1段戻す（対象選び → メニュー）。移動は保留のまま＝移動先を選び直せる。
+func _attack_step_back() -> void:
+	_choosing_target = false
+	_targets.clear()
+	if _pending_to == INVALID_HEX:
+		_deselect()  # 降車から入った攻撃＝降車は確定済みで、戻る先のコマンドメニューが無い
 		return
-	_commit_pending_move()  # 移動してから撃つ＝先に確定させる（自マスなら no-op）
+	_back_to_command_menu()
+
+## 発動者が居るものとして判定する位置（移動先。まだ確定していない）。動かずに開いたなら実位置。
+func _skill_from() -> Vector2i:
+	return _pending_to if _pending_to != INVALID_HEX else Formation.NO_HEX
+
+## メニューでスキルを選んだ＝参加者選びの段に入る。選ぶ余地が無ければ飛ばして次へ。
+## 詳細 → doc/gdd/uiux.md 陣形スキルの参加者を選ぶ
+func _begin_formation(choice: FormationChoice) -> void:
+	_choice = choice
+	_chosen.clear()
+	_reachable.clear()
+	_targets.clear()
+	if not choice.needs_choice():
+		_chosen = choice.forced_members()
+		_enter_formation_target()
+		return
+	_choosing_members = true
+	_refresh_member_cells()
+	_sync_overlay()
+
+## いま確定できる候補の駒を引き直す。人数が可変のスキルは、最低人数に達していれば発動ボタンを出す。
+func _refresh_member_cells() -> void:
+	_member_cells.clear()
+	if _choice != null:
+		for h in Formation.member_candidates(state, _choice, _chosen, _skill_from()):
+			var u := state.unit_by_handle(h)
+			if u != null:
+				_member_cells[u.pos] = h
+	skill_activate_available.emit(_choosing_members and _choice != null
+			and _choice.variable_count and Formation.can_activate(_choice, _chosen))
+
+## 候補の駒をクリックした＝参加者を1体確定する。人数が固定のスキルは揃った時点で次の段へ。
+func _confirm_member(hex: Vector2i) -> void:
+	SfxPlayer.play_event("map_select")
+	_chosen.append(int(_member_cells[hex]))
+	if not _choice.variable_count and Formation.can_activate(_choice, _chosen):
+		_enter_formation_target()
+		return
+	_refresh_member_cells()
+	_sync_overlay()
+
+## 「発動」ボタン＝人数が可変のスキルを、いま選んでいる参加者で撃つ（HUD から呼ばれる）。
+func activate_chosen_formation() -> void:
+	if not _choosing_members or _choice == null or not Formation.can_activate(_choice, _chosen):
+		return
+	SfxPlayer.play_event("map_confirm")
+	_enter_formation_target()
+
+## 参加者が決まった＝着弾中心クリック待ちモードに入る。射程内hexをハイライトする。
+## 対象を取らないバフ系（②）は即発動（クリック待ちに入らない）。
+func _enter_formation_target() -> void:
+	_choosing_members = false
+	_member_cells.clear()
+	skill_activate_available.emit(false)
+	var option := Formation.option_of(state, _choice, _chosen)
+	if option == null:
+		_deselect()
+		return
+	if not option.needs_target():
+		_fire_formation(option, INVALID_HEX)
+		return
 	_reachable.clear()
 	_targets.clear()
 	_choosing_formation = true
 	_formation_active = option
 	_formation_cells.clear()
-	# 移動は確定済み＝発動者は盤の上の実位置に居る（from_hex は渡さない）。
-	for h in Formation.targetable_cells(state, option):
+	for h in Formation.targetable_cells(state, option, _skill_from()):
 		_formation_cells[h] = true
 	_sync_overlay()
+
+## 発動＝ここで初めて移動を確定させる（自マスのままなら no-op）。
+## 参加者選びの間は移動を保留したままにするため、確定はこの1か所に寄せる。
+func _fire_formation(option: FormationOption, target: Vector2i) -> void:
+	_commit_pending_move()
+	controller.execute_formation(FormationCommand.new(option, target))
+
+## 陣形スキルの段を1つ戻す（着弾先 → 参加者 → メニュー）。参加者選びの中では確定を1体ずつ取り消す。
+func _formation_step_back() -> void:
+	if _choosing_formation:
+		_choosing_formation = false
+		_formation_active = null
+		_formation_cells.clear()
+		if _choice != null and _choice.needs_choice():
+			_choosing_members = true
+			if not _chosen.is_empty():
+				_chosen.pop_back()  # 直前に確定した1体を選び直す
+			_refresh_member_cells()
+			_sync_overlay()
+			return
+		_back_to_command_menu()
+		return
+	if _choosing_members:
+		if not _chosen.is_empty():
+			_chosen.pop_back()
+			_refresh_member_cells()
+			_sync_overlay()
+			return
+		_choosing_members = false
+		_member_cells.clear()
+		skill_activate_available.emit(false)
+		_back_to_command_menu()
+
+## 攻撃・陣形スキルの段からコマンドメニューへ戻る。移動は保留のまま＝移動先を選び直せる。
+func _back_to_command_menu() -> void:
+	_choice = null
+	_chosen.clear()
+	var sel := state.unit_by_handle(_selected_id)
+	if sel == null:
+		_deselect()
+		return
+	if state.can_still_move(_selected_id):
+		for h in controller.reachable_for(_selected_id):
+			_reachable[h] = true
+	_open_command_menu(_pending_to if _pending_to != INVALID_HEX else sel.pos, false)
 
 ## 陣形スキルが解決した＝選択を解く。着弾がある場合、盤の作り直しは play_formation_impact まで
 ## 保留する（撃たれる前の姿のまま置く）＝カットインの裏で駒が消えない。順番は main が持つ。
@@ -693,7 +854,11 @@ func _on_cancel(from_esc: bool) -> void:
 	SfxPlayer.play_event("map_cancel")
 	if _menu.visible:
 		_menu.hide()
-	elif _choosing_formation or _choosing_target or _selected_id != -1:
+	elif _choosing_formation or _choosing_members:
+		_formation_step_back()  # 着弾先 → 参加者 → メニュー と1段ずつ戻る
+	elif _choosing_target:
+		_attack_step_back()  # 対象選び → メニュー と1段戻る
+	elif _selected_id != -1:
 		_deselect()
 	elif _unload_transport != -1:
 		_clear_unload()
@@ -861,12 +1026,19 @@ func _deselect() -> void:
 		selection_changed.emit(-1)
 	_sync_overlay()
 
-## 陣形スキルの発動・着弾待ち状態を解除する。
+## 陣形スキルの参加者選び・発動・着弾待ち状態を解除する。
 func _clear_formation() -> void:
 	_choosing_formation = false
 	_formation_active = null
 	_formation_cells.clear()
-	_formation_opts = []
+	_formation_choices = []
+	_choosing_members = false
+	_choice = null
+	_chosen.clear()
+	_member_cells.clear()
+	_menu_pool.clear()
+	_menu_focused = -1
+	skill_activate_available.emit(false)
 
 ## 敵など操作できないユニットを閲覧（選択状態にはしない）。移動範囲＝脅威範囲だけ別色で出す。
 func _inspect_unit(id: int) -> void:
@@ -1269,6 +1441,16 @@ func _sync_overlay() -> void:
 		var tp := Hex.to_pixel(pos, TILE)
 		_unit_renderer.add_ring(Vector3(tp.x, _terrain_renderer.elev(pos), tp.y), TILE * 0.72, 0.06, COLOR_ATTACK_RING, 0.05, _overlay_root)
 		_unit_renderer.add_target_marker(state.unit_by_handle(int(_targets[pos])), _overlay_root)
+	for h in _menu_pool:  # メニューでホバー中のスキルの候補の駒（doc/gdd/uiux.md ユニットコマンドメニュー）
+		_add_cell(h, COLOR_FORMATION_MEMBER, 0.025)
+	for h in _member_cells:  # いま確定できる参加者の候補
+		_add_cell(h, COLOR_FORMATION_MEMBER, 0.025)
+	for mh in _chosen:  # 確定した参加者は光ったまま残す＝誰を供出するかが盤で読める
+		var mu := state.unit_by_handle(int(mh))
+		if mu != null:
+			var mp := Hex.to_pixel(mu.pos, TILE)
+			_unit_renderer.add_ring(Vector3(mp.x, _terrain_renderer.elev(mu.pos), mp.y),
+					TILE * 0.66, 0.06, COLOR_MEMBER_RING, 0.05, _overlay_root)
 	for h in _formation_cells:  # 陣形の着弾可能hex（射程内）
 		_add_cell(h, COLOR_FORMATION_RANGE, 0.02)
 		# 対象を1体選ぶスキル（single＝単体狙撃／buff_scope=unit＝1体に掛ける）は駒の居るhexしか
