@@ -9,6 +9,9 @@ extends Control
 const CsvUtil := preload("res://data/csv_util.gd")  # skin 一覧は正本CSVを読む（分類ごとに整列済み＝パレットの並びが素直）
 
 const STAGES_DIR := "res://data/stages"
+## 最近編集したファイルの履歴。PC ごとの持ち物＝リポジトリには入らない（user:// はこの PC の置き場）。
+const RECENT_PATH := "user://map_editor_recent.json"
+const RECENT_MAX := 10
 const ALLY_SIDE := "ally"  ## 味方専用スキン（unit_skin.csv の side）＝敵パレットには出さない
 ## 地形パレットの分類のうち、地形タイプでないもの＝各タイプの素のスキンを横断で並べる枠。
 ## 盤の下地を塗る間、分類を切り替えずに済ませるためのもの（terrain_type の id とは衝突しない）。
@@ -82,6 +85,8 @@ var _event_box: VBoxContainer  ## 「イベント」モードの一覧＝増援�
 var _i18n_csv := {}      ## dialogue.csv の現在値（キー -> {ja, en}）。起動時に読み、書き込み後に更新
 var _i18n_pending := {}  ## 予告の訳文の未保存入力（キー -> {ja, en}）。ステージ保存時に dialogue.csv へ書く
 var _mode_buttons := {}
+var _recent: Array[String] = []  ## 最近編集したファイル（新しい順・最大 RECENT_MAX）。開いた／保存したときに積む
+var _recent_button: MenuButton
 var _open_dialog: FileDialog
 var _save_dialog: FileDialog
 var _confirm: ConfirmationDialog
@@ -102,6 +107,7 @@ func _ready() -> void:
 	get_window().move_to_center()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_load_catalogs()
+	_load_recent()
 	_i18n_csv = DialogueCsvStore.load_map()
 	_doc = MapEditorDoc.new_stage()
 	_build_ui()
@@ -188,6 +194,14 @@ func _build_ui() -> void:
 	root.add_child(bar)
 	_add_button(bar, "新規", _on_new)
 	_add_button(bar, "開く", func() -> void: _open_dialog.popup_centered(Vector2i(900, 600)))
+	# 「開く」の隣＝最近編集したファイルから選んで開く。中身は開くたびに作り直す（消えたファイルを落とす）。
+	_recent_button = MenuButton.new()
+	_recent_button.text = "最近編集したファイル"
+	_recent_button.flat = false  # 並びのボタンと同じ見た目にする（MenuButton の既定は枠なし）
+	_recent_button.about_to_popup.connect(_refresh_recent_menu)
+	_recent_button.get_popup().id_pressed.connect(func(id: int) -> void: _on_open_file(_recent[id]))
+	bar.add_child(_recent_button)
+	_refresh_recent_button()
 	_add_button(bar, "保存", _on_save)
 	_add_button(bar, "名前を付けて保存", func() -> void: _save_dialog.popup_centered(Vector2i(900, 600)))
 	_add_button(bar, "地形を元に戻す (Ctrl+Z)", _undo_terrain)
@@ -2301,8 +2315,70 @@ func _on_open_file(path: String) -> void:
 		return
 	_doc = doc
 	_path = path
+	_remember_recent(path)
 	_after_load()
 	_say("読み込みました: " + path)
+
+
+# --- 最近編集したファイル ---
+
+
+## 履歴を読む（無い・壊れているときは履歴なしとして進む＝起動は止めない）。
+func _load_recent() -> void:
+	if not FileAccess.file_exists(RECENT_PATH):
+		return  # 初回起動＝まだ履歴が無い（空文字を JSON に食わせるとエラーが出る）
+	var raw: Variant = JSON.parse_string(FileAccess.get_file_as_string(RECENT_PATH))
+	if typeof(raw) != TYPE_ARRAY:
+		return
+	for v in raw:
+		if typeof(v) == TYPE_STRING and not _recent.has(String(v)) and _recent.size() < RECENT_MAX:
+			_recent.append(String(v))
+
+
+## 開いた・保存したファイルを履歴の先頭へ積む（同じパスは1件に畳む）。書き込みはそのつど。
+func _remember_recent(path: String) -> void:
+	_recent.erase(path)
+	_recent.insert(0, path)
+	if _recent.size() > RECENT_MAX:
+		_recent.resize(RECENT_MAX)
+	_save_recent()
+
+
+func _save_recent() -> void:
+	var f := FileAccess.open(RECENT_PATH, FileAccess.WRITE)
+	if f == null:
+		return  # 履歴は無くても編集はできる＝書けなくても黙って進む
+	f.store_string(JSON.stringify(_recent, "  "))
+	f.close()
+	_refresh_recent_button()
+
+
+## メニューを開くたびに作り直す。消えたファイルはここで履歴から落とす。
+func _refresh_recent_menu() -> void:
+	var kept: Array[String] = []
+	for p in _recent:
+		if FileAccess.file_exists(p):
+			kept.append(p)
+	if kept.size() != _recent.size():
+		_recent = kept
+		_save_recent()
+	var menu := _recent_button.get_popup()
+	menu.clear()
+	for i in _recent.size():
+		menu.add_item(_recent_label(_recent[i]), i)
+		menu.set_item_tooltip(i, _recent[i])
+
+
+func _refresh_recent_button() -> void:
+	_recent_button.disabled = _recent.is_empty()
+
+
+## メニューに出す名前＝data/stages より下（冒険譚のフォルダ＋ファイル名）。外のファイルはファイル名だけ。
+func _recent_label(path: String) -> String:
+	var marker := "data/stages/"
+	var slashed := path.replace("\\", "/")
+	var at := slashed.find(marker)
+	return slashed.substr(at + marker.length()) if at >= 0 else slashed.get_file()
 
 
 ## doc 差し替え後の共通処理（フィールド同期・盤/パレット/勝利条件の再構築）。
@@ -2442,6 +2518,7 @@ func _write(path: String) -> void:
 	t.store_string(_doc.to_terrain_text())
 	t.close()
 	_path = path
+	_remember_recent(path)
 	var i18n_msg := _save_i18n()
 	_sync_fields()
 	_say("保存しました: " + path + i18n_msg)
