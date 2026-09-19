@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=133 / refactoring=22.
+次回採番: bug=12 / feature=134 / refactoring=23.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -199,9 +199,27 @@
 - 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
 - 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
 
+### feature-133
+
+**トリックショットのカットインを発動者ごとに分ける**
+- ゴール：④を撃つと射手（アーチャー／ハンター／エルフ）に応じたカットインが出て、クロニクルのカードには先頭のアーチャーの絵が出る。
+- 背景：カットインの絵はスキルごと1枚の規約解決（`assets/formations/{skill_id}.png`）。④は発動者が3種で見た目が違うので射手ごとに描く。仕様 → [formations.md](gdd/formations.md) 発動の演出・[keyvisual.md](art/keyvisual.md) §3。
+- 対応：(1) `RECIPES["trick_shot"]` に `cutin_per_caster: true`。(2) `FormationCutin.load_art(skill_id, caster_skin)` に発動者のスキンを渡し、設定値のあるレシピは `{skill_id}_{skin}.png` を、無いレシピはスキンを無視して `{skill_id}.png` を探す。どちらも無ければ飛ばす（もう一方の名前には落とさない）。(3) main は `SkillResult.caster` のスキンを渡す。(4) クロニクル（`formations_chapter`）は「発動者になれる駒」の先頭のスキンで引く。(5) テスト＝解決の分岐（設定値の有無×絵の有無）。
+- 考慮外：絵そのもの（オーナーが描く。置けば出る）。他の陣形スキルのカットイン。
+- 該当：`godot/domain/formation/formation.gd`・`godot/presentation/formation/formation_cutin.gd`・`godot/presentation/main/main.gd`・`godot/presentation/chronicle/formations_chapter.gd`。
+
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### refactoring-22
+
+**陣形スキルの発動者を指す `leader` を `caster` に改名する**
+- ゴール：発動者を指す名前がコード全体で `caster` に揃い、同じ駒を `leader_id` と `caster` の2語で呼ぶ箇所が無い。doc の「発動者」とコードの語が1対1で対応している。
+- 背景：レシピの `leader_skins`／`member_skins` の対から始まり、`FormationOption.leader_id`・`SkillResult.leader_id`・`BattleState` まで `leader` が広がった。一方で発動結果の `SkillResult.caster`・`SkillCast.caster` と演出側は `caster` で、同じ駒を2語で呼んでいる。「leader」は隊長・号令役を思わせるが、意味は「そのスキルを撃つ駒」で、doc の発動者に当たる語は `caster`。doc に `leader` という語は出てこない。
+- 対応：`leader_skins` → `caster_skins`、`leader_id` → `caster_id`、`leader_pos` → `caster_pos` のように機械的に置換する。`member_skins` はそのまま。`shot_screen` の `--leader`／`--pre-leader` も `--caster`／`--pre-caster` に揃え、[tech/tools.md](tech/tools.md) の起動例を直す。テストは名前の追従だけ。
+- 考慮外：挙動の変更。`member` の呼び名。
+- 該当：`godot/domain/battle_state.gd`・`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_choice.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/domain/formation/skill_result.gd`・`godot/presentation/chronicle/formations_chapter.gd`・`godot/presentation/chronicle/units_chapter.gd`・`godot/tools/marketing/shot_screen.gd`・`godot/tests/small/application/test_match_controller.gd`・`godot/tests/small/domain/test_formation.gd`・`godot/tests/small/domain/test_skill.gd`・[tech/tools.md](tech/tools.md)。
 
 ### refactoring-21
 
