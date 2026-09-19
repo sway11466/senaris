@@ -122,5 +122,5 @@ ui.objective.lose.hq,自軍の本拠地を奪われる,Your headquarters is capt
 ui.objective.lose.turn_limit,%d ターン以内に勝てない,You do not win within %d turns
 ui.objective.lose.lose_unit,%s を失う,%s is lost
 ui.objective.lose.lose_units,%s をすべて失う,All of %s are lost
-ui.objective.lose.base,守るべき拠点を奪われる,A base you must hold is captured
-ui.objective.lose.bases,守るべき拠点をすべて奪われる,Every base you must hold is captured
+ui.objective.lose.base,拠点を奪われる,The base is captured
+ui.objective.lose.bases,拠点をすべて奪われる,All the bases are captured
