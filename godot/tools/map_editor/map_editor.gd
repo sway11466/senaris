@@ -902,8 +902,10 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 
 	# キーの確定は打ち終わったとき＝フォーカスを外すか Enter（駒の名前 unit_id と同じ流儀）。
 	# 1文字ごとに適用すると、打っている途中のキーに訳が書かれて別の部隊の訳と混ざる。
-	# 確定したら ja・en 欄だけ新しいキーで引き直す＝パレットごと貼り直すと、
-	# 入力欄が消えて focus_exited が古い文字列で走り、確定した値を上書きしてしまう。
+	# 確定してもパレットは貼り直さない＝入力欄が消えると focus_exited が古い文字列で走り、
+	# 確定した値を上書きしてしまう。
+	# キーの変更はキーだけの変更＝画面に見えている ja・en をそのまま新しいキーの訳にする
+	# （引き直さない。変更先に登録済みの訳があっても、画面の値が正として上書きする）。
 	var apply_key := func(text: String) -> void:
 		var new_key := text.strip_edges()
 		var old := String(sq.get("name", ""))
@@ -919,9 +921,8 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 		else:
 			sq["name"] = new_key
 		name_edit.text = new_key
-		var next := _i18n_texts(new_key)  # 訳は連れて行かない＝新しいキーの訳を引き直す（未登録なら空）
-		tr_ja.text = String(next.get("ja", ""))
-		tr_en.text = String(next.get("en", ""))
+		_stash_i18n(new_key, "ja", tr_ja.text)
+		_stash_i18n(new_key, "en", tr_en.text)
 	name_edit.text_submitted.connect(func(text: String) -> void: apply_key.call(text))
 	name_edit.focus_exited.connect(func() -> void: apply_key.call(name_edit.text))
 
