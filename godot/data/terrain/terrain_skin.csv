@@ -16,6 +16,7 @@ plain_fence,fence,柵,none,line,,0,0,,panel,0.23,,,true,plain,plain,盤が柱と
 plain_fort,fort,拠点,none,false,,0,0,,standee,1.13,0.2,,true,plain,plain,
 plain_fort_guardhouse1,fort,詰所,none,false,,0,0,,standee,0.8,0.45,,true,plain,plain,道の詰所（road_fort_guardhouse1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 plain_fort_town1,fort,町,none,false,,0,0,,standee,0.79,0.5,,true,plain,plain,道の町（road_fort_town1）の複製を平地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
+plain_fort_elfvillage1,fort,エルフの里,none,false,,0,0,,standee,0.8,0.55,,true,plain,plain,森の空き地に建つエルフの里＝丸小屋3軒と木1本を編み垣で囲う。占領で屋根の色が変わる（_team0=味方/_team1=敵）。柵は戦闘の手前絵（_combat_front）に分けてある
 plain_grave1,plain,墓地の草地,full,false,,0,0,stretch,,,,,true,,,町外れの、墓地へ続く枯れた草地（性能は平地のまま）
 plain_grave1_fence,fence,墓地の柵,none,line,,0,0,,panel,0.23,,,true,plain_grave1,plain_grave1,自前の帯4枚（plain_fence の複製）を墓地の草地の上に立てる
 plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,,standee,0.75,0.45,,true,plain_grave1,plain_grave1,墓地に建つ味方の聖所。鐘楼の十字が目印。控えを出さないので扉は閉じている（納骨堂の開いた入口と対）。占領で屋根の色が変わる（_team0=味方/_team1=敵）
@@ -28,6 +29,7 @@ plain_trap,trap,罠,none,false,,0,0,,standee,0.15,0.2,,true,plain,plain,
 plateau,plateau,台地,full,false,,0.18,0.18,stretch,,,,,true,,,
 rampart,rampart,城壁,full,false,,0.54,0.54,repeat,,,,,true,,,上面は歩廊の敷石・側面画像で切石積みの壁面を見せる。瓦礫の山より高く積む
 rampart_granite1,rampart,花崗岩の尾根,full,false,,0.54,0.54,repeat,,,,,true,,,寒色の灰青の岩盤に細い割れ目。暖色の岩ファミリー（既定の尾根・岩地）とは別の岩質
+rampart_mountain1,rampart,岩の尾根,full,false,,0.54,0.54,repeat,,,,,true,,,山道セットの尾根。越えられない岩＝上面は山道・岩地と同じ暖色の岩で一段暗く、側面画像で縦に割れた岩肌を見せる
 river,river,川,full,false,,-0.18,0,stretch,,,,,true,,,水面。elevation -0.18 で地面より低い。floor 0 で駒は水面の上を飛ぶ。段差の側面は滝（river_side.png）＝マスごとの高さ上書きで水位を段にすると滝になる
 river_lava1,river,溶岩だまり,full,false,,-0.18,0,stretch,,,,,true,,,火口の溶岩。川と同じく地面より低く沈み、飛行だけが越える。上面は溶岩の面に冷えた殻の欠片が浮く絵＝足場が無い
 river_bridge_stone1_l,bridge,石橋（単幅）,none,false,,-0.18,0,,flat,,,,true,river,road_stone1,同じ橋を回した向き＝左上から右下

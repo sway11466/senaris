@@ -1,0 +1,34 @@
+SUBJECT: The inside of a small elf village — a backdrop that stands behind
+the fighting in a battle window. Clean stylized cel-shaded look: bold flat
+shading, clear dark outlines, muted limited palette.
+
+CONTENT, left to right, in one shallow row: a round hut, a second round hut,
+a gap of open ground, a third smaller round hut set a little back, and one
+tree at the far right. Nothing overlaps: the tree stands clear of the huts
+with white showing between its crown and the nearest roof. The tree crown
+rises only a little above the roofs.
+
+- Hut: round wall of upright split logs, warm brown #9A7C58 (shade #6C5539),
+  one arched plank door facing the viewer, one small round window. Conical
+  roof of wooden shingles in ONE flat colour, base #8C8272, shade #6E6657,
+  light #A89E8C — no patchwork, no stripes, no moss, no shingle darker than
+  #6E6657. No chimney, no stone.
+- Tree: thick straight trunk, one big round crown, green #4F6B3F (shade
+  #384D2C). No second tree, no bushes, no vines, no platform, no ladder.
+- Nothing else: no fence, no people, no animals, no flowers, no cart, no
+  flag, no smoke, no magic, no lettering.
+
+FRAMING — square picture. The whole row sits in the lower half, centred,
+about 900 pixels wide in a 1024-pixel picture, with at least 60 pixels of
+empty white on the LEFT and RIGHT of it. NOTHING is cut by the left, right
+or top edge: every hut and the whole tree are completely inside the picture.
+Only the bottom edge cuts: the hut walls and the tree trunk run straight
+down to the bottom edge and are cut flat by it — no ground, no shadow, no
+strip of background along the bottom.
+
+Seen from slightly above and in front, huts facing the viewer, shallow depth:
+the row does not run diagonally into the distance.
+
+BACKGROUND — everything else is pure flat white #FFFFFF, no texture, no sky.
+It will be deleted, so all outer edges must be crisp. Nothing in the village
+may be white or near-white. Square 1:1.

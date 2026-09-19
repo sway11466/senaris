@@ -1,0 +1,74 @@
+SUBJECT: A small ELF VILLAGE in a forest clearing, drawn as ONE compact block
+that stands upright and faces the viewer, the way a piece stands on a game
+board. Drawn alone on a flat pure white background (#FFFFFF) — no ground, no
+grass, no path, no cast shadow on the ground, no other objects.
+
+VIEWING ANGLE — seen from the front and moderately above, about 35 degrees
+down from the horizon: high enough that every roof is fully in view, low
+enough that the doors and walls of the huts stand clearly. The village is
+set straight in front of the viewer, not turned. This is NOT an isometric
+view and NOT a three-quarter view.
+
+DESIGN (follow exactly, every count and position):
+- Exactly THREE round huts and ONE tree. Nothing else stands in the village.
+- The tree stands at the CENTRE of the block, behind the huts: one
+  broad-leaved tree with a thick straight trunk and one big round crown of
+  leaves, deep muted green #4F6B3F, shaded #384D2C. Its crown rises above
+  all three roofs and is the highest thing in the picture. NO second tree,
+  NO bushes, NO hanging vines, NO lanterns in the tree.
+- The three huts stand around the trunk: one hut at the LEFT, one hut at
+  the RIGHT, and one smaller hut at the FRONT centre, just in front of the
+  trunk. All three roofs are fully visible from this angle — the game
+  recolours the roofs to show who holds the village, so no roof may be
+  hidden by another hut or by the tree.
+- Each hut: a round wall of upright split logs, warm brown wood #9A7C58,
+  shaded #6C5539, with one arched plank door facing the viewer and one
+  small round window beside the door. Nothing else on the walls. NO stone,
+  NO plaster, NO chimney, NO smoke.
+- Each hut has ONE conical roof of wooden shingles that overhangs the wall
+  all round. All three roofs are the SAME colour: base #8C8272, shaded side
+  #6E6657, lit side #A89E8C. Every shingle is the same colour as its
+  neighbours — do NOT alternate lighter and darker shingles, NO patchwork,
+  NO stripes, NO moss, NO leaves lying on the roof, NO decorative bands, and
+  NO part of any roof darker than #6E6657. Shading may follow only the slope
+  of the roof, never individual shingles.
+- Across the FRONT of the block, in front of the front hut, runs one low
+  fence of woven living branches (wattle), the same brown as the hut walls,
+  with one open gap in its middle. The fence is lower than the doors of the
+  huts. NO gate leaf, NO posts taller than the fence, NO torches.
+
+THE FOOT — the base of the fence is a clean, straight, level line across the
+bottom of the object. That line is where the game sets the village on the
+ground. Draw nothing below it.
+
+SIZE AND SHAPE — a chunky block, about as wide as it is tall and never more
+than 1.3 times as wide as tall. It is the only object in the picture; it sits
+in the middle with clear space on all four sides and touches no edge. In a
+1024-pixel picture the block is about 700 pixels tall, leaving at least 140
+pixels of white on every side.
+
+COLOR — the wood and the roofs stay muted and greyish; do NOT make them
+brighter, yellower or more saturated than the numbers above, and do NOT make
+them darker either. Only the tree is green. NO ochre, NO orange, NO gold.
+
+LIGHT — soft light from above, short soft shadows that fall only on the
+village itself. NOTHING casts a shadow onto the background. NO glow, NO shine,
+NO light of any colour anywhere in this picture.
+
+THE BACKGROUND — everything around the village is PURE FLAT WHITE, #FFFFFF,
+with NO texture, NO shading, NO gradient, NO ground, NO drop shadow. This
+white is going to be deleted and the game will draw its own ground there, so
+the outline of the village must be a hard, clean, crisp edge against it.
+Nothing in the village itself may be white or near-white.
+
+Everything muted, in the same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear dark outlines, a mature,
+slightly muted, limited color palette (NOT bright saturated, NOT painterly
+photorealism).
+
+NOTHING ELSE — no people, no elves, no animals, no birds, no mushrooms, no
+flowers, no grass, no path, no well, no cart, no banner, no flag, no rope
+bridge, no ladder, no platform in the tree, no lettering, NO magic, NO
+particles. Read at thumbnail size: a few large legible shapes, no fine
+detail. NO border, NO frame around the picture itself, NO vignette.
+Square 1:1.

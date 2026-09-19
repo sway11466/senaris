@@ -305,6 +305,25 @@
 			"terrain_type": "fort"
 		},
 		{
+			"combat_ground": "plain",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"map_ground": "plain",
+			"map_scale": 0.8,
+			"memo": "森の空き地に建つエルフの里＝丸小屋3軒と木1本を編み垣で囲う。占領で屋根の色が変わる（_team0=味方/_team1=敵）。柵は戦闘の手前絵（_combat_front）に分けてある",
+			"name": "エルフの里",
+			"object_foot_z": 0.55,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "plain_fort_elfvillage1",
+			"terrain_type": "fort"
+		},
+		{
 			"combat_ground": "",
 			"combat_scale": "",
 			"connect": false,
@@ -530,6 +549,25 @@
 			"placement": "",
 			"side_tiling": "repeat",
 			"skin_id": "rampart_granite1",
+			"terrain_type": "rampart"
+		},
+		{
+			"combat_ground": "",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0.54,
+			"floor": 0.54,
+			"grid": true,
+			"map_ground": "",
+			"map_scale": "",
+			"memo": "山道セットの尾根。越えられない岩＝上面は山道・岩地と同じ暖色の岩で一段暗く、側面画像で縦に割れた岩肌を見せる",
+			"name": "岩の尾根",
+			"object_foot_z": "",
+			"orientable": "full",
+			"placement": "",
+			"side_tiling": "repeat",
+			"skin_id": "rampart_mountain1",
 			"terrain_type": "rampart"
 		},
 		{

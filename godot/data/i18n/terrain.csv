@@ -14,6 +14,7 @@ terrain.plain_fence.name,柵,Fence
 terrain.plain_fort.name,拠点,Base
 terrain.plain_fort_guardhouse1.name,詰所,Guardhouse
 terrain.plain_fort_town1.name,町,Town
+terrain.plain_fort_elfvillage1.name,エルフの里,Elf Village
 terrain.plain_grave1.name,墓地の草地,Graveyard Grass
 terrain.plain_grave1_fence.name,墓地の柵,Graveyard Fence
 terrain.plain_grave1_fort_chapel1.name,礼拝堂,Chapel
@@ -26,6 +27,7 @@ terrain.plain_trap.name,罠,Trap
 terrain.plateau.name,台地,Plateau
 terrain.rampart.name,城壁,Rampart
 terrain.rampart_granite1.name,花崗岩の尾根,Granite Ridge
+terrain.rampart_mountain1.name,岩の尾根,Rock Ridge
 terrain.bedrock_scree1.name,ガレ場,Scree
 terrain.river.name,川,River
 terrain.river_lava1.name,溶岩だまり,Lava Pool
