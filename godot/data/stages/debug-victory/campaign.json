@@ -10,6 +10,12 @@
       "synopsis": "デバッグ冒険譚"
     },
     {
+      "id": "boss_two",
+      "file": "boss_two.json",
+      "title": "ボス撃破（2体・AND）",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
       "id": "hq",
       "file": "hq.json",
       "title": "本拠地占領",

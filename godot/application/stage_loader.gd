@@ -66,7 +66,7 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	next_id = _apply_events(state, data.get("events", []), catalog, next_id, skin_catalog)
-	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_id": "necromancer" }]（ボスの駒に unit_id）
+	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_ids": ["necromancer"] }]（ボスの駒に unit_id）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
@@ -173,16 +173,16 @@ static func unit_id_problems(data: Dictionary) -> Array:
 		for c in conds:
 			if typeof(c) != TYPE_DICTIONARY:
 				continue
+			if c.has("unit_id"):
+				out.append("勝敗条件の単数キー unit_id は廃止（unit_ids の配列で書く＝データのバグ）")
 			for name in _condition_unit_ids(c):
 				if not seen.has(name):
 					out.append("勝敗条件が指す unit_id '%s' の駒が盤に無い（＝データのバグ）" % name)
 	return out
 
-## 勝敗条件1件が名指している unit_id（defeat_unit は1つ、lose_unit は配列）。
+## 勝敗条件1件が名指している unit_id（defeat_unit も lose_unit も unit_ids の配列）。
 static func _condition_unit_ids(c: Dictionary) -> Array:
 	var out: Array = []
-	if c.has("unit_id"):
-		out.append(String(c["unit_id"]))
 	var many: Variant = c.get("unit_ids", [])
 	if typeof(many) == TYPE_ARRAY:
 		for v in many:

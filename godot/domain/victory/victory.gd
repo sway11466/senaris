@@ -4,6 +4,7 @@ class_name Victory
 ##
 ## 敗北を優先する（自軍消滅／自軍本拠地の喪失）。相討ち消滅も負け。
 ## 消滅＝盤上0 かつ 復帰手段なし（案B）。勝利は 殲滅（常に有効）＋ victory_conditions のいずれか（OR）。
+## 条件1件の中は AND（対象をすべて倒す／すべて失う）、条件どうしは OR。勝利側・敗北側で同じ。
 ##
 ## 決着の3値（ONGOING/PLAYER_WIN/PLAYER_LOSS）は BattleState が持つ＝セーブ・呼び出し側の参照名を変えない。
 ## 「復帰手段があるか」（has_reinforcement）も BattleState に残す＝駐留の可否（can_enter_base_at）と共有するため。
@@ -31,10 +32,13 @@ static func is_over(state: BattleState) -> bool:
 
 ## 勝利条件1件の判定。未知の type は満たさない扱い（前方互換）。
 ## 勝利条件タイプを足すときは、ここに分岐を1つと判定関数を1つ足す（BattleState は触らない）。
+##
+## 1件が複数の対象を持ち、その中は AND＝すべて倒して初めて成立。条件どうしは OR（outcome のループ）。
+## 「AもBも倒したら勝ち」は1件に2つ、「AかBを倒せば勝ち」は1つずつ2件、と書き分ける（敗北側と同じ）。
 static func condition_met(state: BattleState, c: Dictionary) -> bool:
 	match String(c.get("type", "")):
-		"defeat_unit":  # ボス撃破＝名指し(unit_id)の駒が撃破済み
-			return state.is_unit_id_defeated(String(c.get("unit_id", "")))
+		"defeat_unit":  # ボス撃破＝名指し(unit_ids)の駒がすべて撃破済み
+			return _all_unit_ids_defeated(state, c.get("unit_ids"))
 		"capture_hq":   # 本拠地占領＝敵 native の hq をすべて自軍が保持（hq が無ければ不成立）
 			return _enemy_hq_all_captured(state)
 	return false
@@ -43,8 +47,7 @@ static func condition_met(state: BattleState, c: Dictionary) -> bool:
 ## 敗北条件タイプを足すときは、ここに分岐を1つと判定関数を1つ足す（BattleState は触らない）。
 ## 本拠地の喪失（_own_hq_lost）とは別軸＝あちらは hq の常時ルール、こちらはステージが名指しする守り物。
 ##
-## 1件が複数の対象を持ち、その中は AND＝すべて失って初めて成立。条件どうしは OR（outcome のループ）。
-## 「AもBも失ったら負け」は1件に2つ、「AかBを失ったら負け」は1つずつ2件、と書き分ける。
+## 勝利側と同じく、1件が複数の対象を持ち、その中は AND＝すべて失って初めて成立。条件どうしは OR。
 static func defeat_condition_met(state: BattleState, c: Dictionary) -> bool:
 	match String(c.get("type", "")):
 		"lose_base":  # 名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立。奪還で解消）
@@ -65,7 +68,8 @@ static func _all_bases_taken(state: BattleState, targets: Variant) -> bool:
 			return false
 	return true
 
-## 名指し(unit_id)した駒をすべて失っているか。対象が空なら false（空指定で即敗北にしない）。
+## 名指し(unit_ids)した駒がすべて撃破済みか。対象が空なら false（空指定で即決着にしない）。
+## 勝利側（defeat_unit）と敗北側（lose_unit）で共用する。
 static func _all_unit_ids_defeated(state: BattleState, unit_ids: Variant) -> bool:
 	if typeof(unit_ids) != TYPE_ARRAY or (unit_ids as Array).is_empty():
 		return false

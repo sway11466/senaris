@@ -80,6 +80,7 @@
 | ステージ | ファイル | 目的 | 変更の引き金 |
 | --- | --- | --- | --- |
 | boss | `debug-victory/boss.json` | ボス撃破の勝利判定 | defeat_unit の判定を変えたとき |
+| boss_two | `debug-victory/boss_two.json` | ボス撃破（2体・AND）の勝利判定＝片方だけでは勝たない | defeat_unit の複数AND判定を変えたとき |
 | hq | `debug-victory/hq.json` | 本拠地占領の勝利判定 | capture_hq の判定を変えたとき |
 | turnlimit | `debug-victory/turnlimit.json` | ターン制限の敗北判定 | turn_limit の判定を変えたとき |
 | defend_base | `debug-victory/defend_base.json` | 拠点防衛（1つ）の敗北判定 | lose_base の判定を変えたとき |

@@ -877,7 +877,7 @@ func test_unit_id_collected_from_garrison_events_and_passengers() -> void:
 	var data2 := {
 		"events": [ { "id": "w1", "type": "turn", "turn": 2, "enemy": [ { "ai": "charge",
 			"units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "late" }] } ] } ],
-		"victory": [ { "type": "defeat_unit", "unit_id": "late" } ],
+		"victory": [ { "type": "defeat_unit", "unit_ids": ["late"] } ],
 	}
 	assert_eq(StageLoader.unit_id_problems(data2), [], "増援の駒も名指せる＝参照は解決する")
 
@@ -886,11 +886,20 @@ func test_unit_id_collected_from_garrison_events_and_passengers() -> void:
 func test_victory_pointing_at_a_missing_unit_id_is_a_problem() -> void:
 	var data := {
 		"enemy": [ { "ai": "charge", "units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "boss" }] } ],
-		"victory": [ { "type": "defeat_unit", "unit_id": "bos" } ],
+		"victory": [ { "type": "defeat_unit", "unit_ids": ["bos"] } ],
 		"defeat": [ { "type": "lose_unit", "unit_ids": ["boss", "ghost"] } ],
 	}
 	var problems := StageLoader.unit_id_problems(data)
 	assert_eq(problems.size(), 2, "綴り違いの勝利条件と、居ない護衛対象の2件")
+
+
+## 単数キー unit_id は廃止＝勝敗条件は unit_ids の配列で書く。書き残しは黙って効かなくなるのでバグ扱い。
+func test_condition_with_singular_unit_id_is_a_problem() -> void:
+	var data := {
+		"enemy": [ { "ai": "charge", "units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "boss" }] } ],
+		"victory": [ { "type": "defeat_unit", "unit_id": "boss" } ],
+	}
+	assert_eq(StageLoader.unit_id_problems(data).size(), 1, "駒が居ても、単数キーのままなら問題")
 
 
 ## actor は人物の名前＝盤の名指しとは別の名前空間。ぶつかっても問題ではない。
@@ -898,7 +907,7 @@ func test_actor_is_not_part_of_the_unit_id_namespace() -> void:
 	var data := {
 		"player": [ { "units": [{ "type": "archer", "col": 1, "row": 1, "actor": "elf", "supply": "join" }] } ],
 		"enemy": [ { "ai": "charge", "units": [{ "type": "knight", "col": 4, "row": 1, "unit_id": "elf" }] } ],
-		"victory": [ { "type": "defeat_unit", "unit_id": "elf" } ],
+		"victory": [ { "type": "defeat_unit", "unit_ids": ["elf"] } ],
 	}
 	assert_eq(StageLoader.unit_id_problems(data), [], "同じ綴りでも役目が違う＝衝突しない")
 

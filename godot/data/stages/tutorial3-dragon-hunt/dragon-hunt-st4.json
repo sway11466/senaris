@@ -3,22 +3,23 @@
   "name": "dragon-hunt-st4",
   "player": [
     {       "units": [
-        { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 27, "supply": "refill" },
-        { "type": "thief", "actor": "thief", "col": 4, "row": 29, "supply": "refill" },
-        { "type": "hunter", "actor": "hunter", "col": 3, "row": 30, "supply": "refill" },
+        { "type": "vanguard", "actor": "vanguard", "col": 2, "row": 28, "supply": "refill" },
+        { "type": "thief", "actor": "thief", "col": 4, "row": 27, "supply": "refill" },
+        { "type": "hunter", "actor": "hunter", "col": 2, "row": 30, "supply": "refill" },
         { "type": "bishop", "actor": "bishop", "col": 3, "row": 28, "supply": "refill" },
-        { "type": "wizard", "actor": "wizard", "col": 4, "row": 28, "supply": "refill" },
-        { "type": "fighter", "actor": "fighter", "col": 2, "row": 30, "supply": "refill" },
-        { "type": "halfling", "actor": "halfling", "col": 2, "row": 28, "supply": "refill" },
+        { "type": "wizard", "actor": "wizard", "col": 2, "row": 29, "supply": "refill" },
+        { "type": "fighter", "actor": "fighter", "col": 4, "row": 28, "supply": "refill" },
+        { "type": "halfling", "actor": "halfling", "col": 2, "row": 27, "supply": "refill" },
         { "type": "archer", "actor": "archer", "col": 4, "row": 30, "supply": "refill" },
-        { "type": "cleric", "actor": "cleric", "col": 2, "row": 27, "supply": "refill" },
-        { "type": "pixie", "actor": "pixie", "col": 3, "row": 29, "supply": "refill" },
-        { "type": "dwarf", "actor": "dwarf", "col": 2, "row": 29, "supply": "refill" },
-        { "type": "mage", "actor": "mage", "col": 4, "row": 27, "supply": "refill" }
+        { "type": "cleric", "actor": "cleric", "col": 3, "row": 29, "supply": "refill" },
+        { "type": "pixie", "actor": "pixie", "col": 3, "row": 30, "supply": "refill" },
+        { "type": "dwarf", "actor": "dwarf", "col": 3, "row": 27, "supply": "refill" },
+        { "type": "mage", "actor": "mage", "col": 4, "row": 29, "supply": "refill" }
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "sight": 3,
+    { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "units": [] },
+    { "order": 2, "name": "dragon-hunt.st4.squad.2", "ai": "ambush", "sight": 5,
       "units": [
         { "skin": "treant", "col": 3, "row": 18 },
         { "skin": "treant", "col": 2, "row": 23 },
@@ -33,7 +34,7 @@
         { "skin": "treant", "col": 3, "row": 3 },
         { "skin": "treant", "col": 2, "row": 11 }
       ] },
-    { "order": 2, "name": "dragon-hunt.st4.squad.2", "ai": "ambush", "sight": 2,
+    { "order": 3, "name": "dragon-hunt.st4.squad.3", "ai": "ambush", "sight": 5,
       "units": [
         { "skin": "matango", "col": 8, "row": 21 },
         { "skin": "matango", "col": 9, "row": 14 },
@@ -47,7 +48,7 @@
         { "skin": "matango", "col": 9, "row": 7 },
         { "skin": "matango", "col": 11, "row": 6 }
       ] },
-    { "order": 3, "name": "dragon-hunt.st4.squad.3", "ai": "charge",
+    { "order": 4, "name": "dragon-hunt.st4.squad.4", "ai": "ambush", "sight": 5,
       "units": [
         { "skin": "mandragora", "col": 14, "row": 19 },
         { "skin": "mandragora", "col": 14, "row": 15 },
@@ -56,12 +57,12 @@
         { "skin": "mandragora", "col": 17, "row": 9 },
         { "skin": "mandragora", "col": 15, "row": 6 }
       ] },
-    { "order": 4, "name": "dragon-hunt.st4.squad.4", "ai": "raid",
+    { "order": 5, "name": "dragon-hunt.st4.squad.5", "ai": "raid",
       "units": [
         { "skin": "rogue_axe", "col": 16, "row": 29 },
         { "skin": "rogue", "col": 17, "row": 29 }
       ] },
-    { "order": 6, "ai": "ambush", "sight": 0,
+    { "order": 6, "name": "dragon-hunt.st4.squad.6", "ai": "ambush", "sight": 0,
       "units": [
         { "skin": "rogue_wagon", "unit_id": "rogue-wagon3", "col": 16, "row": 1 },
         { "skin": "rogue_wagon", "unit_id": "rogue-wagon2", "col": 16, "row": 2 },
@@ -77,7 +78,8 @@
     { "type": "capture", "col": 8, "row": 10, "id": "village-lost", "captured_by": "enemy", "once": "village", "dialogue": "lost", "focus": true }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_id": "rogue-wagon1" }
+    { "type": "defeat_unit",
+      "unit_ids": ["rogue-wagon1", "rogue-wagon2", "rogue-wagon3"] }
   ],
   "dialogue": {
     "intro": [

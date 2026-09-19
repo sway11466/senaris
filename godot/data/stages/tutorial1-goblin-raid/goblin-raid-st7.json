@@ -39,7 +39,7 @@
       "units": [ { "skin": "goblin_lord", "unit_id": "goblin_load", "col": 25, "row": 5 } ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_id": "goblin_load" }
+    { "type": "defeat_unit", "unit_ids": ["goblin_load"] }
   ],
   "dialogue": {
     "intro": [

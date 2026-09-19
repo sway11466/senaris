@@ -1,6 +1,6 @@
 {
   "turn_limit": 30,
-  "name": "debug-boss",
+  "name": "debug-boss-two",
   "haze": 0.80,
   "player": [
     { "units": [
@@ -12,12 +12,12 @@
   ],
   "enemy": [
     { "order": 1, "ai": "charge", "units": [
-      { "skin": "goblin", "unit_id": "boss", "col": 4, "row": 3 },
-      { "skin": "hobgoblin", "col": 8, "row": 2 },
-      { "skin": "hobgoblin", "col": 8, "row": 4 }
+      { "skin": "goblin", "unit_id": "boss1", "col": 4, "row": 2 },
+      { "skin": "goblin", "unit_id": "boss2", "col": 4, "row": 4 },
+      { "skin": "hobgoblin", "col": 8, "row": 3 }
     ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_ids": ["boss"] }
+    { "type": "defeat_unit", "unit_ids": ["boss1", "boss2"] }
   ]
 }

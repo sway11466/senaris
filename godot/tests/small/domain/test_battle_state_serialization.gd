@@ -25,7 +25,7 @@ func _stage_data() -> Dictionary:
 		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "ambush", "sight": 4,
 			"units": [{ "type": "knight", "col": 6, "row": 1, "unit_id": "boss", "actor": "warlord" }] }],
 		"bases": [{ "col": 4, "row": 3, "team": "player", "hq": "player", "rest": "player", "garrison": [{ "type": "archer", "count": 1, "native": "player" }] }],
-		"victory": [{ "type": "defeat_unit", "unit_id": "boss" }],
+		"victory": [{ "type": "defeat_unit", "unit_ids": ["boss"] }],
 		"defeat": [{ "type": "lose_base", "bases": [{ "col": 4, "row": 3 }] }],
 	}
 
@@ -142,7 +142,7 @@ func test_status_mods_roundtrip() -> void:
 func test_victory_conditions_come_from_stage() -> void:
 	var s2 := _rich_roundtrip()
 	assert_eq(s2.victory_conditions.size(), 1)
-	assert_eq(String(s2.victory_conditions[0]["unit_id"]), "boss", "ボス撃破条件はステージJSONから引き直す")
+	assert_eq(s2.victory_conditions[0]["unit_ids"], ["boss"], "ボス撃破条件はステージJSONから引き直す")
 
 func test_defeat_conditions_come_from_stage() -> void:
 	var s2 := _rich_roundtrip()

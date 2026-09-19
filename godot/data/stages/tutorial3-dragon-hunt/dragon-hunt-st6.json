@@ -55,7 +55,7 @@
     {"col": 7, "row": 3, "team": "neutral", "rest": "both"}
   ],
   "victory": [
-    {"type": "defeat_unit", "unit_id": "paladin"}
+    {"type": "defeat_unit", "unit_ids": ["paladin"]}
   ],
   "defeat": [
     {"type": "lose_base", "bases": [{"col": 7, "row": 16}, {"col": 3, "row": 10}, {"col": 7, "row": 3}]}

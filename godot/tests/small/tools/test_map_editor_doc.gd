@@ -30,7 +30,7 @@ const SAMPLE := """
       "garrison": [ { "skin": "goblin", "count": 4, "native": "enemy" } ] }
   ],
   "victory": [
-    { "type": "defeat_unit", "unit_id": "hobgoblin" }
+    { "type": "defeat_unit", "unit_ids": ["hobgoblin"] }
   ],
   "dialogue": {
     "intro": [
@@ -479,7 +479,19 @@ func test_set_unit_id_names_player_and_enemy() -> void:
 func test_set_unit_id_rename_follows_victory() -> void:
 	var doc := _load(SAMPLE)
 	doc.set_unit_id(doc.data["enemy"][0]["units"][1], "necromancer")
-	assert_eq(doc.victory_list()[0]["unit_id"], "necromancer", "勝利条件の名指しも付け替わる")
+	assert_eq(doc.victory_list()[0]["unit_ids"], ["necromancer"], "勝利条件の名指しも付け替わる")
+
+
+## 1つの勝利条件が複数の駒を名指しているとき、付け替わるのはその駒だけ（条件は残る）。
+func test_set_unit_id_rename_keeps_other_victory_targets() -> void:
+	var doc := _load(SAMPLE)
+	doc.victory_list()[0]["unit_ids"].append("goblin_chief")
+	doc.set_unit_id(doc.data["enemy"][0]["units"][1], "necromancer")
+	assert_eq(doc.victory_list()[0]["unit_ids"], ["necromancer", "goblin_chief"],
+		"名指しの片方だけ付け替わる")
+	doc.set_unit_id(doc.data["enemy"][0]["units"][1], "")
+	assert_eq(doc.victory_list()[0]["unit_ids"], ["goblin_chief"],
+		"外した駒だけ抜ける＝条件そのものは残る")
 
 
 func test_set_unit_id_clear_drops_condition() -> void:
@@ -884,7 +896,7 @@ func test_set_actor_does_not_touch_conditions() -> void:
 	doc.set_actor(unit, "warlord")
 	assert_eq(unit["actor"], "warlord", "人物名が付く")
 	assert_eq(unit["unit_id"], "hobgoblin", "駒の名前はそのまま")
-	assert_eq(doc.victory_list()[0]["unit_id"], "hobgoblin", "勝敗条件は動かない")
+	assert_eq(doc.victory_list()[0]["unit_ids"], ["hobgoblin"], "勝敗条件は動かない")
 	doc.set_actor(unit, "")
 	assert_false(unit.has("actor"), "外せる")
-	assert_eq(doc.victory_list()[0]["unit_id"], "hobgoblin", "外しても勝敗条件は残る")
+	assert_eq(doc.victory_list()[0]["unit_ids"], ["hobgoblin"], "外しても勝敗条件は残る")

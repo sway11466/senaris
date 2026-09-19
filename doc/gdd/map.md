@@ -26,12 +26,12 @@
   - **相討ち全滅**は自軍が盤上から消えていれば敗北優先（暫定踏襲）。
   - この「盤上＋復帰手段」で勝敗を見る方式を案Bと呼ぶ。副作用として、盤上0でも控えを出さず引き籠ると膠着しうるため、ターン制限で決着させる（＝時間切れ敗北。下記）。
 - **判定**: ステージJSONの `victory` 配列（OR評価）を `BattleState.victory_conditions` が判定する。
-  - ボス撃破 `{ "type": "defeat_unit", "unit_id": "..." }`（ボスの駒に `unit_id` を書いて名指す。enemy 部隊の `units[]` 内でよい）。デバッグステージ: `godot/data/stages/debug-victory/boss.json`。
+  - ボス撃破 `{ "type": "defeat_unit", "unit_ids": [ "…", … ] }`＝名指しした駒をすべて撃破で勝利（敗北側の `lose_unit` と対。ボスの駒に `unit_id` を書いて名指す。enemy 部隊の `units[]` 内でよい）。デバッグステージ: `godot/data/stages/debug-victory/boss.json`（1体）・`boss_two.json`（2体のAND）。
   - 本拠地占領 `{ "type": "capture_hq" }`＝`hq:"enemy"` の拠点をすべて自軍が保持で勝利（該当 hq が無ければ不成立＝空勝ち防止）。**`hq:"player"` の拠点を奪われたら敗北**（常時ルール・hq を置いたステージだけ効く。奪還で解消）。本拠地の印は所有者と独立なので、開始時に敵へ奪われている味方の本拠地（`hq:"player", team:"enemy"`）も書ける。デバッグステージ: `godot/data/stages/debug-victory/hq.json`。占領は移動の瞬間に起きるため、決着チェックは移動直後にも走る（MatchController）。
+  - **1条件の中は AND、条件どうしは OR**（勝利・敗北とも）＝1つの条件が対象を複数持てて、その条件が成立するのは全部倒した／全部失ったとき。「AもBも倒したら勝ち」は1条件に2つ、「AかBを倒せば勝ち」は1つずつ2条件、と書き分ける。対象が空の条件は不成立（空指定で即決着にしない）。
   - 敗北条件も同じくリスト＝ステージJSONの `defeat` 配列（OR評価）を `BattleState.defeat_conditions` が判定。勝利側と同じ器で、判定は `Victory.defeat_condition_met`。未知タイプは不成立（前方互換）。
     - 拠点の喪失 `{ "type": "lose_base", "bases": [ { "col": C, "row": R }, … ] }`＝名指しした拠点が敵所属になったら敗北（奪還で解消。盤に拠点が無い座標は「まだ失っていない」扱いで不成立＝指定ミスで即敗北にしない）。**hq喪失の常時ルールとは別軸**＝あちらは陣営の要（本拠地）、こちらはステージが名指しする守り物（護衛する町・預かった砦）。中立拠点でも指定できる。
     - 護衛対象の喪失 `{ "type": "lose_unit", "unit_ids": [ "…", … ] }`＝名指しした駒が撃破されたら敗北（勝利側の `defeat_unit` と対。駒に `unit_id` を書いて名指す）。
-    - **1条件の中は AND、条件どうしは OR**＝対象を複数持てて、その条件が成立するのは全部失ったとき。「AもBも失ったら負け」は1条件に2つ、「AかBを失ったら負け」は1つずつ2条件、と書き分ける。対象が空の条件は不成立（空指定で即敗北にしない）。
     - デバッグステージ: `godot/data/stages/debug-victory/defend_base.json`（1つ）・`defend_two.json`（2つのAND）。マップエディタの「勝敗」モードで指定・確認できる（パネルで条件を追加＝OR、その条件に対象を追加＝AND）。
   - 殲滅勝ち/全滅負けは条件リストと無関係に常時有効（相討ち・hq喪失は敗北優先）。**敗北は勝利より優先**＝同時に成立したら負け。**閉じ込め判定（案B）**＝消滅を「盤上0 かつ 復帰手段なし」で判定（`_has_reinforcement`）。
   - **ターン制限**＝ステージJSONの `turn_limit`（1ターン＝両陣営1巡）。`turn_number > turn_limit` で**時間切れ敗北**（引き分けなし・勝利条件を満たしていればそちらが優先）。**実ステージJSONでは必須**（`load_file` が未指定/0以下を push_error＝データのバグ扱い）。値はステージごとに決める。`build` は未指定を素通し（0＝無制限。合成テスト用）。決着チェックは `MatchController.end_turn` でも走る（ターン跨ぎで発火）。
@@ -211,7 +211,7 @@
   "enemy": [
     { "order": 1, "ai": "charge", "units": [ { "skin": "red_dragon", "col": 9, "row": 5, "unit_id": "dragon" } ] }
   ],
-  "victory": [ { "type": "defeat_unit", "unit_id": "dragon" } ]
+  "victory": [ { "type": "defeat_unit", "unit_ids": [ "dragon" ] } ]
   ```
 
 #### `actor`（冒険譚の人物の名前）

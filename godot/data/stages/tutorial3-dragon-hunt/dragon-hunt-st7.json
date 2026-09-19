@@ -44,7 +44,7 @@
       ] }
   ],
   "victory": [
-    {"type": "defeat_unit", "unit_id": "dragon"}
+    {"type": "defeat_unit", "unit_ids": ["dragon"]}
   ],
   "dialogue": {
     "intro": [

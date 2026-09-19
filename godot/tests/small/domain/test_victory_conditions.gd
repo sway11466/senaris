@@ -13,7 +13,7 @@ func _named(u: Unit, unit_id: String) -> Unit:
 ## 自軍1体＋ボス＋雑魚1体の盤。ボスは troops=1（一撃で落ちる）。
 func _boss_state() -> BattleState:
 	var s := BattleState.new(8, 8)
-	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": BOSS }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_ids": [BOSS] }]
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 50, 40))                        # 自軍
 	s.add_unit(_named(Unit.new(BOSS_ID, 1, Hex.neighbor(ap, 0), 3, 1, 50, 40), BOSS))  # ボス（隣接・兵1）
@@ -40,7 +40,7 @@ func test_ongoing_while_boss_alive() -> void:
 func test_annihilation_still_wins_with_condition_list() -> void:
 	# 条件リストがあっても、殲滅（盤上の敵0）での勝利は従来どおり有効。
 	var s := BattleState.new(8, 8)
-	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": BOSS }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_ids": [BOSS] }]
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 8, 50, 40))
 	s.add_unit(Unit.new(2, 1, Hex.neighbor(ap, 0), 3, 1, 10, 4))  # ボスでない敵1体だけ
@@ -50,13 +50,51 @@ func test_annihilation_still_wins_with_condition_list() -> void:
 func test_mutual_destruction_on_boss_kill_is_loss() -> void:
 	# 相討ち: 最後の自軍がボスを倒しつつ反撃で全滅 → 敗北優先（従来ルールを維持）。
 	var s := BattleState.new(8, 8)
-	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": BOSS }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_ids": [BOSS] }]
 	var ap := Hex.offset_to_axial(2, 2)
 	s.add_unit(Unit.new(1, 0, ap, 3, 1, 50, 4))                          # 自軍最後の1体・兵1・紙防御
 	s.add_unit(_named(Unit.new(BOSS_ID, 1, Hex.neighbor(ap, 0), 3, 1, 90, 4), BOSS))  # ボス・兵1・高火力
 	var r := s.attack(1, BOSS_ID)
 	assert_true(r.killed() and r.attacker_killed(), "相討ちが成立")
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "自軍が盤上から消えていれば敗北優先")
+
+## 1条件に複数の名指し＝その中は AND（全員倒して初めて成立）。詳細 → doc/gdd/map.md（勝敗条件）
+## 自軍2体＋ボス2体（それぞれに隣接）＋雑魚1体の盤。1体は1ターンに1回しか攻撃できないので殴り役も2体。
+func _two_boss_state() -> BattleState:
+	var s := BattleState.new(8, 8)
+	var ap := Hex.offset_to_axial(2, 2)
+	s.add_unit(Unit.new(1, 0, ap, 3, 8, 50, 40))                                            # 自軍A
+	s.add_unit(_named(Unit.new(BOSS_ID, 1, Hex.neighbor(ap, 0), 3, 1, 10, 4), BOSS))        # ボスA（自軍Aに隣接）
+	s.add_unit(_named(Unit.new(BOSS_ID + 1, 1, Hex.neighbor(ap, 1), 3, 1, 10, 4), "boss2")) # ボスB
+	s.add_unit(Unit.new(3, 0, Hex.neighbor(ap, 2), 3, 8, 50, 40))                           # 自軍B（ボスBに隣接）
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3, 8, 10, 4))                      # 離れた雑魚
+	return s
+
+func test_two_bosses_in_one_condition_need_all() -> void:
+	var s := _two_boss_state()
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_ids": [BOSS, "boss2"] }]
+	s.attack(1, BOSS_ID)
+	assert_true(s.is_unit_id_defeated(BOSS), "ボスAは倒した")
+	assert_eq(s.outcome(), BattleState.ONGOING, "片方だけでは勝利しない（条件の中は AND）")
+	s.attack(3, BOSS_ID + 1)
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "全員倒して勝利")
+
+func test_two_bosses_as_separate_conditions_are_or() -> void:
+	# 同じ2体でも、条件を分けて書けば「どちらか1体で勝ち」。
+	var s := _two_boss_state()
+	s.victory_conditions = [
+		{ "type": "defeat_unit", "unit_ids": [BOSS] },
+		{ "type": "defeat_unit", "unit_ids": ["boss2"] },
+	]
+	s.attack(1, BOSS_ID)
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "条件どうしは OR＝片方で勝利")
+
+func test_empty_unit_ids_never_wins() -> void:
+	var s := _boss_state()
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_ids": [] }]
+	assert_eq(s.outcome(), BattleState.ONGOING, "対象が空の条件は成立しない（空勝ち防止）")
+	s.victory_conditions = [{ "type": "defeat_unit" }]
+	assert_eq(s.outcome(), BattleState.ONGOING, "名指しが無い条件も成立しない")
 
 func test_unknown_condition_type_is_ignored() -> void:
 	var s := _boss_state()
@@ -163,7 +201,7 @@ func test_loader_wires_victory_and_unit_id() -> void:
 		"enemy": [
 			{ "order": 1, "ai": "charge", "units": [ { "unit_id": BOSS, "col": 4, "row": 4 } ] },
 		],
-		"victory": [ { "type": "defeat_unit", "unit_id": BOSS } ],
+		"victory": [ { "type": "defeat_unit", "unit_ids": [BOSS] } ],
 	}
 	var s := StageLoader.build(data)
 	assert_eq(s.victory_conditions.size(), 1, "victory リストが載る")
@@ -190,7 +228,7 @@ func test_victory_helper_matches_state_query() -> void:
 func test_victory_helper_judges_single_condition() -> void:
 	# 勝利条件1件の判定は condition_met＝タイプを足すときの入口。
 	var s := _boss_state()
-	var boss := { "type": "defeat_unit", "unit_id": BOSS }
+	var boss := { "type": "defeat_unit", "unit_ids": [BOSS] }  # 1件の中は AND（ここは1体）
 	assert_false(Victory.condition_met(s, boss), "ボスが生きていれば不成立")
 	s.attack(1, BOSS_ID)
 	assert_true(Victory.condition_met(s, boss), "撃破済みなら成立")
@@ -322,7 +360,7 @@ func test_defeat_wins_over_victory_condition() -> void:
 	var s := _defend_state()
 	var hex := Hex.offset_to_axial(4, 4)
 	s.base_at(hex).team = 1
-	s.victory_conditions = [{ "type": "defeat_unit", "unit_id": "raider" }]
+	s.victory_conditions = [{ "type": "defeat_unit", "unit_ids": ["raider"] }]
 	s.unit_by_handle(2).unit_id = "raider"
 	s.remove_unit(2)  # 敵を全滅させたが拠点は奪われたまま
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "敗北条件が勝利より優先される")

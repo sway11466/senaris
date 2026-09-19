@@ -1714,7 +1714,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 
 ## 追加できる条件の種類。key＝JSONの type、値＝[表示名, 説明]。
 const VICTORY_KINDS := {
-	"defeat_unit": ["ボス撃破", "名指し(unit_id)の駒を倒す"],
+	"defeat_unit": ["ボス撃破", "名指し(unit_id)の駒をすべて倒す"],
 	"capture_hq": ["本拠地占領", "敵の本拠地(hq)をすべて自軍が保持する"],
 }
 const DEFEAT_KINDS := {
@@ -1968,8 +1968,7 @@ func _refresh_victory() -> void:
 		var box := _indent(_victory_box)
 		_add_note(box, String(kind[1]))
 		if type_id == "defeat_unit":
-			_add_unit_id_target_row(box, String(c.get("unit_id", "")),
-				func(name: String) -> void: c["unit_id"] = name, Callable())
+			_build_unit_id_targets(box, c, true)
 	_add_kind_adder(_victory_box, VICTORY_KINDS, _add_victory_kind)
 
 
@@ -1996,7 +1995,7 @@ func _refresh_defeat() -> void:
 			"lose_base":
 				_build_lose_base_targets(box, c)
 			"lose_unit":
-				_build_lose_unit_targets(box, c)
+				_build_unit_id_targets(box, c, false)
 	_add_kind_adder(_defeat_box, DEFEAT_KINDS, _add_defeat_kind)
 
 
@@ -2011,7 +2010,7 @@ func _build_lose_base_targets(box: VBoxContainer, c: Dictionary) -> void:
 		var t: Dictionary = targets[j]
 		_add_base_target_row(box, t, func() -> void:
 			targets.remove_at(j)
-			_drop_empty_defeat(c)
+			_drop_empty_condition(c, false)
 			_refresh_defeat())
 		if _doc.base_at(int(t.get("col", -1)), int(t.get("row", -1))).is_empty():
 			_add_warn(box, "  ↑ このマスに拠点がありません")
@@ -2024,11 +2023,13 @@ func _build_lose_base_targets(box: VBoxContainer, c: Dictionary) -> void:
 		_refresh_defeat())
 
 
-## lose_unit の対象（unit_id）一覧＋追加。対象が空になった条件は残さない。
-func _build_lose_unit_targets(box: VBoxContainer, c: Dictionary) -> void:
+## 駒を名指す条件（勝利=defeat_unit / 敗北=lose_unit）の対象一覧＋追加。
+## 対象が空になった条件は残さない。勝利・敗北で同じ形＝1つの条件の中は AND。
+func _build_unit_id_targets(box: VBoxContainer, c: Dictionary, is_victory: bool) -> void:
 	if typeof(c.get("unit_ids")) != TYPE_ARRAY:
 		c["unit_ids"] = []
 	var names: Array = c["unit_ids"]
+	var refresh: Callable = _refresh_victory if is_victory else _refresh_defeat
 	if names.is_empty():
 		_add_warn(box, "対象がありません（このままだと成立しません）")
 	for j in names.size():
@@ -2036,8 +2037,8 @@ func _build_lose_unit_targets(box: VBoxContainer, c: Dictionary) -> void:
 			func(name: String) -> void: names[j] = name,
 			func() -> void:
 				names.remove_at(j)
-				_drop_empty_defeat(c)
-				_refresh_defeat())
+				_drop_empty_condition(c, is_victory)
+				refresh.call())
 		if not _doc.used_unit_ids().has(String(names[j])):
 			_add_warn(box, "  ↑ この名前の駒がありません")
 	_add_button(box, "対象を追加", func() -> void:
@@ -2046,19 +2047,22 @@ func _build_lose_unit_targets(box: VBoxContainer, c: Dictionary) -> void:
 			_say(_no_unit_id_message())
 			return
 		names.append(free)
-		_refresh_defeat())
+		refresh.call())
 
 
-## 対象が空になった敗北条件を取り除く（成立しない条件を黙って残さない）。
-func _drop_empty_defeat(c: Dictionary) -> void:
+## 対象が空になった条件を取り除く（成立しない条件を黙って残さない）。
+func _drop_empty_condition(c: Dictionary, is_victory: bool) -> void:
 	var targets := MapEditorDoc.lose_base_targets(c) if MapEditorDoc.is_lose_base(c) \
-		else MapEditorDoc.lose_unit_ids(c)
+		else MapEditorDoc.condition_unit_ids(c)
 	if not targets.is_empty():
 		return
-	var list := _doc.defeat_list()
+	var list := _doc.victory_list() if is_victory else _doc.defeat_list()
 	for i in list.size():
 		if list[i] == c:
-			_doc.remove_defeat(i)
+			if is_victory:
+				_doc.remove_victory(i)
+			else:
+				_doc.remove_defeat(i)
 			return
 
 
@@ -2144,7 +2148,7 @@ func _add_victory_kind(type_id: String) -> void:
 			if name == "":
 				_say(_no_unit_id_message())
 				return
-			_doc.add_victory({ "type": "defeat_unit", "unit_id": name })
+			_doc.add_victory({ "type": "defeat_unit", "unit_ids": [name] })
 		"capture_hq":
 			for c in _doc.victory_list():
 				if String(c.get("type", "")) == "capture_hq":
@@ -2184,11 +2188,8 @@ func _free_base_target() -> Vector2i:
 ## まだどの条件も指していない unit_id（無ければ ""）。新しい対象の初期値に使う。
 func _free_unit_id_target() -> String:
 	var taken := {}
-	for c in _doc.victory_list():
-		if String(c.get("type", "")) == "defeat_unit":
-			taken[String(c.get("unit_id", ""))] = true
-	for c in _doc.defeat_list():
-		for a in MapEditorDoc.lose_unit_ids(c):
+	for c in _doc.victory_list() + _doc.defeat_list():
+		for a in MapEditorDoc.condition_unit_ids(c):
 			taken[String(a)] = true
 	for a in _doc.used_unit_ids():
 		if not taken.has(String(a)):

@@ -750,9 +750,14 @@ static func is_lose_unit(c: Variant) -> bool:
 	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_unit"
 
 
-## lose_unit 条件が持つ名指しの配列。実体を返す＝呼び出し側の追加・削除がそのまま効く。
-static func lose_unit_ids(c: Variant) -> Array:
-	if not is_lose_unit(c):
+static func is_defeat_unit(c: Variant) -> bool:
+	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "defeat_unit"
+
+
+## 駒を名指す条件（勝利=defeat_unit / 敗北=lose_unit）が持つ名指しの配列。
+## 実体を返す＝呼び出し側の追加・削除がそのまま効く。
+static func condition_unit_ids(c: Variant) -> Array:
+	if not is_lose_unit(c) and not is_defeat_unit(c):
 		return []
 	var a: Variant = c.get("unit_ids", [])
 	return a if typeof(a) == TYPE_ARRAY else []
@@ -838,35 +843,36 @@ func set_actor(unit: Dictionary, name: String) -> void:
 
 
 ## 勝敗条件の中の unit_id を付け替える（new が空なら、その名指しを取り除く）。
+## 勝利(defeat_unit)・敗北(lose_unit)とも unit_ids の配列＝同じ手順で回す。
 func _rename_unit_id_refs(old: String, new: String) -> void:
 	var v := victory_list()
-	for i in range(v.size() - 1, -1, -1):
-		if String(v[i].get("type", "")) != "defeat_unit" or String(v[i].get("unit_id", "")) != old:
-			continue
-		if new == "":
-			v.remove_at(i)
-		else:
-			v[i]["unit_id"] = new
+	_rename_unit_id_refs_in(v, "defeat_unit", old, new)
 	if v.is_empty() and data.has("victory"):
 		data.erase("victory")
 	var d := defeat_list()
-	for i in range(d.size() - 1, -1, -1):
-		if String(d[i].get("type", "")) != "lose_unit":
-			continue
-		var names: Variant = d[i].get("unit_ids", [])
-		if typeof(names) != TYPE_ARRAY:
-			continue
-		for j in range((names as Array).size() - 1, -1, -1):
-			if String(names[j]) != old:
-				continue
-			if new == "":
-				(names as Array).remove_at(j)
-			else:
-				names[j] = new
-		if (names as Array).is_empty():
-			d.remove_at(i)
+	_rename_unit_id_refs_in(d, "lose_unit", old, new)
 	if d.is_empty() and data.has("defeat"):
 		data.erase("defeat")
+
+
+## 条件リスト1本の中の名指しを付け替える。名指しが空になった条件はリストから取り除く。
+func _rename_unit_id_refs_in(list: Array, type_id: String, old: String, new: String) -> void:
+	for i in range(list.size() - 1, -1, -1):
+		if String(list[i].get("type", "")) != type_id:
+			continue
+		var names: Variant = list[i].get("unit_ids", [])
+		if typeof(names) != TYPE_ARRAY:
+			continue
+		var a: Array = names
+		for j in range(a.size() - 1, -1, -1):
+			if String(a[j]) != old:
+				continue
+			if new == "":
+				a.remove_at(j)
+			else:
+				a[j] = new
+		if a.is_empty():
+			list.remove_at(i)
 
 
 ## BGM の指定（bgm: { main }）。無ければ空の辞書。値はトラックID。詳細 → doc/audio/bgm.md
