@@ -1,0 +1,28 @@
+白抜き — 7枚とも _01_raw(jpg) から四隅フラッドフィル（fuzz 7%）→ アルファを1px削ってフリンジを落とす
+（エルフの里と同じ手順）。盤の立ち絵3枚はトリム後 780x694 で一致＝分岐で造形が据え置かれている。
+戦闘の奥絵3枚も 878x426 で一致（team1 だけ幅1px違い）。
+magick {n}_01_raw.jpg -alpha set -fuzz 7% -fill none -draw "alpha 0,0 floodfill" -draw "alpha W-1,0 floodfill" -draw "alpha 0,H-1 floodfill" -draw "alpha W-1,H-1 floodfill" -channel A -morphology Erode Diamond:1 -blur 0x0.5 +channel {n}_03_master.png
+
+盤の駒（立ち絵）— map_scale・object_foot_z は terrain_skin.csv の bedrock_fort_birdvillage1 の行から引く
+（0.8 / 0.55＝エルフの里と同じ）。_team0/_team1 は末尾を落として同じ行を読む。
+powershell -File tools\gen_terrain_tile.ps1 bedrock_fort_birdvillage1 assets\terrain-src\fort_birdvillage1\fort_birdvillage1_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 bedrock_fort_birdvillage1_team0 assets\terrain-src\fort_birdvillage1\fort_birdvillage1_team0_03_master.png -Object
+powershell -File tools\gen_terrain_tile.ps1 bedrock_fort_birdvillage1_team1 assets\terrain-src\fort_birdvillage1\fort_birdvillage1_team1_03_master.png -Object
+
+戦闘の奥絵 — トリムのみ（エルフの里と同じ。トリム後 2.06:1 で帯の形になっている）。
+magick {n}_combat_03_master.png -trim +repage assets\terrain\bedrock_fort_birdvillage1_combat_back.png
+（team0/team1 も同様に _combat_team{N}_03_master.png -> _team{N}_combat_back.png）
+
+戦闘の手前絵（止まり木の横木）— 生成物は両端とも画面の内側で終わっていたので、右端の空きを残したまま
+左を切って「左は画面の外へ抜ける」形にする。縦横比は詰所の石塀・エルフの編み垣と同じ 5.6:1 に合わせた
+（帯の高さは 窓の半幅÷縦横比 で決まる＝既存の塀と同じ高さで出る）。
+magick fort_birdvillage1_combat_front_03_master.png -trim +repage -gravity East -crop 770x172+0+0 +repage -background none -gravity West -extent 963x172 assets\terrain\bedrock_fort_birdvillage1_combat_front.png
+
+段差の帯 — 里のマスは周りの岩地と同じ高さ（0.36）なので、低い隣と接する辺にスカートが出る。
+オブジェクトは side_tiling を空（＝引き伸ばし）にする決まりなので、岩地の帯をそのまま置くと縦に1.5倍
+潰れる。高さ0.36ぶん（1024 × 0.36 ÷ 4.0 ＝ 92px）に切って、引き伸ばしても縮尺が合うようにした。
+magick assets\terrain\bedrock_side.png -gravity center -crop 1024x92+0+0 +repage assets\terrain\bedrock_fort_birdvillage1_side.png
+
+terrain_skin.csv: elevation/floor 0.36（岩地と同じ）/ placement standee / map_ground・combat_ground は bedrock。
+CSV を直したら JSON を焼き直す:
+  godot --headless --path . --script res://data/terrain/convert.gd

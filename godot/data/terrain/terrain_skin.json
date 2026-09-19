@@ -39,6 +39,25 @@
 			"terrain_type": "bedrock"
 		},
 		{
+			"combat_ground": "bedrock",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0.36,
+			"floor": 0.36,
+			"grid": true,
+			"map_ground": "bedrock",
+			"map_scale": 0.8,
+			"memo": "岩地の上に建つバードマンの里＝高床の巣3つと見張りの止まり木。飛んで入る種族なので梯子も階段も無い。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "バードマンの里",
+			"object_foot_z": 0.58,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "bedrock_fort_birdvillage1",
+			"terrain_type": "fort"
+		},
+		{
 			"combat_ground": "",
 			"combat_scale": "",
 			"connect": false,

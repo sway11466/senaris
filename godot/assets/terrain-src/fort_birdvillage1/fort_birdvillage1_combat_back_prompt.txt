@@ -1,0 +1,42 @@
+SUBJECT: The inside of a small birdfolk village — a backdrop that stands
+behind the fighting in a battle window. Clean stylized cel-shaded look: bold
+flat shading, clear dark outlines, muted limited palette.
+
+CONTENT, left to right, in one shallow row: a nest-hut raised on poles, a
+second nest-hut raised on poles, a gap of open ground, a third smaller
+nest-hut set a little back, and one lookout perch at the far right. Nothing
+overlaps: the perch stands clear of the huts with white showing between its
+platform and the nearest roof. The perch platform rises only a little above
+the roofs.
+
+- Nest-hut: a rounded basket of woven branches, warm brown #9A7C58 (shade
+  #6C5539), the weave read as a few broad bands and not as fine basketwork,
+  with one large round doorway facing the viewer and no door leaf in it.
+  Conical roof of thatch in ONE flat colour, base #8C8272, shade #6E6657,
+  light #A89E8C — no patchwork, no stripes, no moss, no part darker than
+  #6E6657. No window, no chimney, no stone.
+- Each hut is RAISED on three plain lashed poles of the same brown wood, so
+  its floor stands well above the bottom of the picture and the doorway is
+  out of reach from the ground — these people fly home. No steps, no stairs,
+  no ladder, no ramp.
+- Lookout perch: one straight bare pole with a small round platform of lashed
+  sticks on top and nothing on the platform. No ladder, no rope, no flag, no
+  banner, no streamer, no lantern.
+- Nothing else: no perch rail, no fence, no people, no birdfolk, no birds, no
+  feathers, no eggs, no animals, no pots, no baskets, no nets, no washing
+  lines, no smoke, no magic, no lettering.
+
+FRAMING — square picture. The whole row sits in the lower half, centred,
+about 900 pixels wide in a 1024-pixel picture, with at least 60 pixels of
+empty white on the LEFT and RIGHT of it. NOTHING is cut by the left, right
+or top edge: every hut and the whole perch are completely inside the picture.
+Only the bottom edge cuts: the support poles and the perch pole run straight
+down to the bottom edge and are cut flat by it — no ground, no shadow, no
+strip of background along the bottom.
+
+Seen from slightly above and in front, huts facing the viewer, shallow depth:
+the row does not run diagonally into the distance.
+
+BACKGROUND — everything else is pure flat white #FFFFFF, no texture, no sky.
+It will be deleted, so all outer edges must be crisp. Nothing in the village
+may be white or near-white. Square 1:1.

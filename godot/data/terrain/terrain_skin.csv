@@ -2,6 +2,7 @@ skin_id,terrain_type,name,orientable,connect,connect_to,elevation,floor,side_til
 スキンID,地形タイプ,表示名,向きのばらし方,隣との繋がり方,繋がる相手,見た目の高さ,駒の足元の高さ,側面の貼り方,置き方,立ち絵の幅,足元の手前寄せ,戦闘の立ち絵の背丈,グリッド線,盤の下地,戦闘背景の下地,備考
 bedrock,bedrock,岩地,full,false,,0.36,0.36,repeat,,,,,true,,,上面は割れた岩盤の段・側面画像で層になった岩の断面を見せる。尾根より明るい岩
 bedrock_scree1,bedrock,ガレ場,full,false,,0.36,0.36,repeat,,,,,true,,,崩れた石が積もった岩場。上面と側面は同じ絵（石の山は向きが無い）。高さは岩地と同じ
+bedrock_fort_birdvillage1,fort,バードマンの里,none,false,,0.36,0.36,,standee,0.8,0.58,,true,bedrock,bedrock,岩地の上に建つバードマンの里＝高床の巣3つと見張りの止まり木。飛んで入る種族なので梯子も階段も無い。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 brush,brush,茂み,flip_x,false,,0.12,0,stretch,,,,,true,,,塊の向きが揃った方がひとつながりの藪に見えるので回さない＝左右反転だけで散らす。駒は藪の中の地面に立つ＝floor 0
 forest,forest,森,full,false,,0.18,0,stretch,,,,,true,,,駒は木々の間の地面に立つ＝floor 0（上面より低い）
 plain,plain,平地,full,false,,0,0,stretch,,,,,true,,,

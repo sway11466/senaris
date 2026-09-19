@@ -1,0 +1,48 @@
+SUBJECT: The low PERCH RAIL of the birdfolk village — a long branch resting
+on short posts, the rail the villagers land on — lying across the FOREGROUND
+of a battle scene: a band that runs along the very bottom of the battle
+window. The soldiers stand behind it and it hides their feet, so this is a
+frame at the very front, not scenery in the distance.
+
+THE RAIL — waist-high, one straight horizontal branch carried on short
+upright posts, with a second thinner branch running below it and lashed to
+the posts with cord. The posts are flush with the top rail, nothing pokes
+above it. It is a plain run of rail: no gate, no gap, no posts taller than
+the rail, no weaving between the posts, no plants growing on it, no flowers,
+no moss, no lettering, and nothing standing on it or leaning against it.
+
+LAYOUT — in a 1792 x 1024 picture the rail is a band about 320 pixels tall
+resting on the BOTTOM edge. Everything above it is EMPTY WHITE. The top of
+the rail is a straight, clearly readable horizontal line — that line is the
+top of the band, and the only strong line in it. Below the top rail the band
+is mostly open: the lower branch, the posts, and empty white between them.
+
+THE TWO ENDS ARE DIFFERENT.
+- LEFT end: the rail runs straight off the left edge of the picture and is
+  cut by it. Nothing tapers and nothing is rounded off there.
+- RIGHT end: the rail STOPS well inside the picture, a FIFTH of the
+  picture's width in from the right edge — in a 1024-pixel picture that is
+  about 200 pixels of empty white to the right of it, a plainly visible gap
+  and not a sliver. The end is plain: one last upright post, with the two
+  branches finishing at it. Do not let it fade out and do not run it off the
+  right edge.
+
+KEEP THE FACE QUIET — the wood is flat and even: the same straight branches
+repeating, no knots, no bark texture, no leaves, no twigs, no pattern breaks,
+no shading and no dirt. Numbers and bars are drawn on top of this band in the
+game, so it must stay calm enough to read them against. Keep it a shade
+darker than the huts of the village, leaning towards a silhouette: the wood
+is a dark muted brown, base #6C5539, lashings and undersides #4E3C29, with
+only a faint lighter #8A6E4C along the top of the rail.
+
+NO LIGHT DIRECTION and no cast shadows: no shadow under the rail, none along
+the bottom, none on the ground (no ground is drawn at all). The band is
+mirrored left to right when the game lays it down.
+
+THE BACKGROUND — everything above and between the wood is PURE FLAT WHITE
+#FFFFFF, with no texture, no shading, no gradient. The white is deleted, so
+the top line of the rail must be a hard, clean, crisp edge against it.
+Nothing in the rail may be white or near-white.
+
+STYLE NOTE — bold flat shapes, clear dark outlines, muted limited palette,
+the same clean cel-shaded look as the rest of the game's terrain.
