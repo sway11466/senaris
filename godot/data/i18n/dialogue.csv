@@ -436,10 +436,12 @@ dragon-hunt.st3.intro.10,硬い相手ほどよく効く。剣が滑る所へ撃�
 dragon-hunt.st4.intro.8,悲鳴を上げる草は、わたしより遠くまで届きます。,"The screaming roots reach farther than I do."
 dragon-hunt.st4.intro.9,ならば近づくな。撃たれぬ間合いから道を選べ。,"Then stay out of it. Choose your road from beyond their reach."
 dragon-hunt.st4.intro.10,馬車を押さえれば、悪党の足が止まる。森を抜けるぞ。,"Take the cart and the villains lose their legs. We cut through the forest."
-dragon-hunt.st4.squad.1,道を塞ぐトレント,Treant Roadblock
-dragon-hunt.st4.squad.2,マタンゴの群生,Myconid Colony
-dragon-hunt.st4.squad.3,マンドラゴラ,Mandragora
-dragon-hunt.st4.squad.4,ローグ一味,Bandit Gang
+dragon-hunt.st4.squad.1,森の入口近くの魔物,Monsters at the Forest Edge
+dragon-hunt.st4.squad.2,道を塞ぐトレント,Treant Roadblock
+dragon-hunt.st4.squad.3,群生するマタンゴ,Myconid Colony
+dragon-hunt.st4.squad.4,潜むマンドラゴラ,Lurking Mandragora
+dragon-hunt.st4.squad.5,森をうろつくローグ,Forest Bandits
+dragon-hunt.st4.squad.6,ローグ馬車,Bandit Wagons
 dragon-hunt.st4.scene.1,森の入口。里へ至る道が何本かに分かれている,"The forest edge. Several paths lead toward the village."
 dragon-hunt.st5.intro.8,崖の上までは、わたしの魔法は届きません……。,"My magic will not reach the top of the cliffs…"
 dragon-hunt.st5.intro.9,届く者が撃つ。君は道の獣を頼む。,"Those who can reach will shoot. You take the beasts on the path."
