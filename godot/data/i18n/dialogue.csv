@@ -373,8 +373,7 @@ dragon-hunt.st5.intro.1,山の空気が濁っています。獣たちが降り�
 dragon-hunt.st5.intro.2,荒らされた山から魔獣が降りてきているな。崖の上に鳥人の里が見える。,"Beasts driven down from the ravaged mountains. I can see a birdfolk village up on the cliffs."
 dragon-hunt.st5.intro.3,子どもたちを返しに行く。悪党が山の奥に何を求めているのかも、空から見下ろす連中なら知っているはずだ。,"We go to return the children. And if any know what the villains want deep in these mountains, it is those who look down from above."
 dragon-hunt.st5.intro.4,ローグたちも山に入っているはずです。里に近づいているかもしれません。,"The rogues must have entered the mountains as well. They may be closing on the village."
-dragon-hunt.st5.intro.5,ただし道中は魔獣だらけよ。山から降りてきた連中が崖にたかっている。,"The road is crawling with beasts, though. The ones driven down are swarming the cliffs."
-dragon-hunt.st5.intro.6,崖の途中に小屋があるわ。屋根は落ちてるけど、休むぶんには十分。,"There's a hut partway up the cliff. The roof is gone, but it's enough to rest in."
+dragon-hunt.st5.intro.5,崖にハーピーとグリフォンが見えるわ。こっちを見てるわね。,"Harpies and griffons up on the cliffs. And they've spotted us."
 dragon-hunt.st5.intro.7,山道はわしに任せろ。岩の上は庭のようなものだ。,"Leave the mountain paths to me. Rock is a garden to a dwarf."
 dragon-hunt.st5.outro.1,子供たちは無事です！ 親のところへ返しました。,"The children are safe! We've returned them to their parents."
 dragon-hunt.st5.outro.2,律儀な連中ね。恩は返す、って顔してるわ。,"Dutiful sorts. They have the look of people who repay a debt."
@@ -443,12 +442,12 @@ dragon-hunt.st4.squad.4,潜むマンドラゴラ,Lurking Mandragora
 dragon-hunt.st4.squad.5,森をうろつくローグ,Forest Bandits
 dragon-hunt.st4.squad.6,ローグ馬車,Bandit Wagons
 dragon-hunt.st4.scene.1,森の入口。里へ至る道が何本かに分かれている,"The forest edge. Several paths lead toward the village."
-dragon-hunt.st5.intro.8,崖の上までは、わたしの魔法は届きません……。,"My magic will not reach the top of the cliffs…"
-dragon-hunt.st5.intro.9,届く者が撃つ。君は道の獣を頼む。,"Those who can reach will shoot. You take the beasts on the path."
+dragon-hunt.st5.intro.8,あの子たち、ひどく気が立ってるわ……襲ってくる気配。これもならず者のせいね。,"They're worked up — badly. They mean to come at us. The rogues' doing, I'd say."
+dragon-hunt.st5.intro.9,山の戦いは足場が悪い。こちらが不利だ。足元に気をつけて戦え。,"Fighting in the mountains means bad footing. The disadvantage is ours. Watch your step out there."
 dragon-hunt.st5.intro.10,魔獣を片付けながら里を目指すぞ。あいつらより先に着く。,"We clear the beasts as we go and make for the village. We arrive before they do."
-dragon-hunt.st5.squad.1,崖のハーピー,Cliff Harpies
-dragon-hunt.st5.squad.2,降りてきたグリフォン,Swooping Griffon
-dragon-hunt.st5.squad.3,山道の魔獣,Beasts of the Pass
+dragon-hunt.st5.squad.1,崖のハーピー1,Cliff Harpies
+dragon-hunt.st5.squad.2,崖のグリフォン,Swooping Griffon
+dragon-hunt.st5.squad.3,崖のロックサーペント1,Beasts of the Pass
 dragon-hunt.st5.squad.4,ローグ一味,Bandit Gang
 dragon-hunt.st5.scene.1,山の入口。崖の上に鳥人の里が見える,"The foot of the mountain. The birdfolk village sits atop the cliffs."
 dragon-hunt.st6.squad.1,ローグ本隊,Bandit Main Force
