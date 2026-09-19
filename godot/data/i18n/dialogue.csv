@@ -445,13 +445,19 @@ dragon-hunt.st4.scene.1,森の入口。里へ至る道が何本かに分かれ�
 dragon-hunt.st5.intro.8,あの子たち、ひどく気が立ってるわ……襲ってくる気配。これもならず者のせいね。,"They're worked up — badly. They mean to come at us. The rogues' doing, I'd say."
 dragon-hunt.st5.intro.9,山の戦いは足場が悪い。こちらが不利だ。足元に気をつけて戦え。,"Fighting in the mountains means bad footing. The disadvantage is ours. Watch your step out there."
 dragon-hunt.st5.intro.10,魔獣を片付けながら里を目指すぞ。あいつらより先に着く。,"We clear the beasts as we go and make for the village. We arrive before they do."
-dragon-hunt.st5.squad.1,崖のハーピー1,Cliff Harpies
-dragon-hunt.st5.squad.2,崖のグリフォン,Swooping Griffon
-dragon-hunt.st5.squad.3,崖のロックサーペント1,Beasts of the Pass
+dragon-hunt.st5.squad.1,崖のハーピー,Cliff Harpies
+dragon-hunt.st5.squad.2,尾根のハーピー,Ridge Harpies
+dragon-hunt.st5.squad.3,里を狙うグリフォン,Griffons over the Village
 dragon-hunt.st5.squad.4,ローグ一味,Bandit Gang
 dragon-hunt.st5.scene.1,山の入口。崖の上に鳥人の里が見える,"The foot of the mountain. The birdfolk village sits atop the cliffs."
+dragon-hunt.st5.squad.5,山道のロックサーペント,Serpents of the Pass
+dragon-hunt.st5.squad.6,登り口のロックサーペント,Serpents at the Ascent
+dragon-hunt.st5.squad.7,里の手前のロックサーペント,Serpents before the Village
+dragon-hunt.st5.squad.8,山道のワイヴァーン,Wyrm of the Pass
+dragon-hunt.st5.squad.9,尾根のワイヴァーン,Wyrm of the Ridge
 dragon-hunt.st6.squad.1,ローグ本隊,Bandit Main Force
 dragon-hunt.st6.squad.2,頭目,Ringleader
+dragon-hunt.st6.squad.3,宝箱のミミック,Treasure Mimics
 dragon-hunt.st6.squad.4,坑道のスコーピオン,Tunnel Scorpions
 dragon-hunt.st6.scene.1,洞窟の入口。奥から咆哮と地鳴りが響く,"The mouth of the cave. From deep within, a roar and the rumble of the earth."
 dragon-hunt.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
