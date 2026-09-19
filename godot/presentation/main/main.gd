@@ -44,6 +44,10 @@ var _title_pending := true
 var _conversation: ConversationPanel = null
 var _combat_scene: CombatScene = null  # 戦闘演出オーバーレイ（永続・combat_resolved を受ける）
 var _skill_scene: SkillScene = null  # ユニットスキルの演出（永続・formation_resolved のスキル分を受ける）
+var _objectives: ObjectiveSheet = null  # 勝敗条件の紙（永続・システムメニューから開く）
+## 紙に出す行（{ "victory": [...], "defeat": [...] }）。ステージを読んだときに1度だけ組む
+## ＝名指された駒が撃破された後（決着後に開いたとき）も同じ文が出る。
+var _objective_lines := {}
 var _victory_screen: VictoryScreen = null  # キャンペーン完走の勝利イラスト（永続・最終勝利で play）
 var _victory_overlay := false  # 完走イラストを outro 会話に重ねて出した＝会話後に全画面で出し直さない印
 var _result: ResultBanner = null  # 決着の戦果票（永続・羊皮紙＋ゴム印）。決着で play
@@ -109,6 +113,7 @@ func _ready() -> void:
 	_install_bgm()  # 永続BGM。load_stage が曲を張り替えるので、それより前に用意
 	_install_sfx()  # 永続SFX。盤・セレクトから静的に鳴らすので、それらより前に用意
 	_install_hud()  # 永続HUD（ターン終了ボタン＋システムメニュー）。load_stage より前に用意
+	_install_objectives()  # 勝敗条件の紙（システムメニューから開く）。load_stage が中身を組むので前に用意
 	_install_turn_plate()  # 永続のターン板（画面上端中央）。load_stage がターン・代表ユニットを流し込む
 	_install_board_logo()  # 永続のタイトルロゴ（右上・情報ボックスの上の帯）
 	_install_turn_banner()  # 永続のターンバナー（画面中央・ターンが移った瞬間だけ出る）
@@ -196,6 +201,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	$Front/InfoPanel.bind(state, _skins)
 	$Front/InfoPanel.bind_terrain_skins(terrain_skins)  # 地形名を盤に見えている絵（スキン）の名前で出す
 	$Front/InfoPanel.bind_ai_presets(_ai_presets)  # 敵の見出しに出す特性名の引き先
+	_objective_lines = ObjectiveText.build(state, _skins)  # 勝敗条件の紙の中身（このステージのぶん）
 	_finisher_route = ""  # 前ステージの決着の印を持ち越さない
 	# controller は作り直すので、controller 由来のシグナルは load ごとに繋ぐ。
 	_controller.combat_resolved.connect($Front/InfoPanel.show_combat)
@@ -353,13 +359,15 @@ func _update_turn_plate(team: int, turn_number: int) -> void:
 	_turn_plate.set_turn(team, turn_number, limit)
 	_update_event()
 
-## 情報板の位置を戻す（システムメニュー）。板を既定の場所へ戻し、設定の位置は項目ごと消す
-## ＝「動かしていない」に戻す。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
-func _on_info_panel_reset_requested() -> void:
+## マップと情報板を初期位置に戻す（システムメニュー）。板を既定の場所へ戻して設定の位置は項目ごと
+## 消し（＝「動かしていない」に戻す）、盤も全体が入る見え方へ戻す。見失うのは板でも盤でも起きるので
+## 戻し先を2つに分けない。仕様 → doc/gdd/uiux.md ターン終了・システムメニュー
+func _on_view_reset_requested() -> void:
 	$Front/InfoPanel.reset_position()
 	_conversation.reset_position()  # 板は1枚＝会話の最中でも両方戻る
 	_settings_store.clear_info_panel_position()
 	_sync_board_area()  # 既定の場所へ戻した＝また板が右ボックスを塞ぐ
+	$HexBoard.fit_to_view()  # 盤は全体が入る位置・寸法へ（F キーと同じ）
 
 ## 板（情報板か会話板のどちらか）を掴んで動かした。板は1枚なので、もう一方も同じ場所へ写し、
 ## 位置を設定に書き、盤エリアを押し直す。仕様 → doc/gdd/uiux.md 移動
@@ -654,12 +662,13 @@ func _install_hud() -> void:
 	add_child(_hud)
 	_hud.end_turn_requested.connect(_on_end_turn_requested)
 	_hud.info_panel_toggle_requested.connect($Front/InfoPanel.toggle_minimized)
-	_hud.info_panel_reset_requested.connect(_on_info_panel_reset_requested)
+	_hud.view_reset_requested.connect(_on_view_reset_requested)
 	_hud.restart_requested.connect(_on_restart_requested)
 	_hud.save_requested.connect(_on_save_requested)
 	_hud.load_requested.connect(_on_load_requested)
 	_hud.zoom_in_requested.connect(func() -> void: $HexBoard.zoom_step(true))
 	_hud.zoom_out_requested.connect(func() -> void: $HexBoard.zoom_step(false))
+	_hud.objectives_requested.connect(_on_objectives_requested)
 	_hud.wipe_enemies_requested.connect(_on_wipe_enemies_requested)  # デバッグ項目（製品ビルドでは出ない）
 	_hud.debug_event_requested.connect(_on_debug_event_requested)  # 同上
 	_hud.debug_events_provider = _debug_event_labels  # メニューを開くたびに hud から聞かれる
@@ -818,18 +827,29 @@ func _on_save_restored(state: BattleState, path: String, meta: Dictionary) -> vo
 		_title.close()
 	_install_state(state, path)  # 盤・進行役を保存状態で据える（intro なし）
 
-## 盤を覆う画面（タイトル・セレクト・設定・マニュアル・セーブ枠一覧）のどれかが出ている間は、盤に入力を
+## 勝敗条件の紙。開き口は盤のシステムメニューだけ＝読むだけで何も変えない（設定と違い値を受け取らない）。
+func _install_objectives() -> void:
+	_objectives = ObjectiveSheet.new()
+	_objectives.name = "ObjectiveSheet"
+	add_child(_objectives)
+
+## 勝利／敗北条件を確認（システムメニュー）。中身はステージを読んだときに組んである。
+func _on_objectives_requested() -> void:
+	_objectives.open(_objective_lines)
+
+## 盤を覆う画面（タイトル・セレクト・設定・マニュアル・セーブ枠一覧・勝敗条件の紙）のどれかが出ている間は、盤に入力を
 ## 通さない（doc/gdd/uiux.md デバイス別 操作表）。各画面の根はマウスを止めるが鍵盤は止まらず盤へ落ちる
 ## ＝Esc でシステムメニューが開き、Enter でターンが終わり、Space で情報板が畳まれる。
 ## 画面ごとに鍵盤を食う作りにはしない＝重なり順（設定はタイトルの上）に依存して Esc の取り合いになる。
 func _install_board_cover() -> void:
-	for screen in [_title, _select, _settings, _manual, _chronicle_screen, _save_panel]:
+	for screen in [_title, _select, _settings, _manual, _chronicle_screen, _save_panel, _objectives]:
 		screen.visibility_changed.connect(_sync_board_cover)
 	_sync_board_cover()
 
 func _sync_board_cover() -> void:
 	$HexBoard.set_covered(_title.visible or _select.visible or _settings.visible
-			or _manual.visible or _chronicle_screen.visible or _save_panel.visible)
+			or _manual.visible or _chronicle_screen.visible or _save_panel.visible
+			or _objectives.visible)
 
 # --- セレクト画面（presentation/select/）。仕様 → doc/gdd/stage_select.md ---
 func _install_select() -> void:
@@ -978,6 +998,8 @@ func _refresh_labels() -> void:
 	_save.refresh_labels()
 	$Front/InfoPanel.refresh_labels()
 	_conversation.refresh_labels()
+	if _controller != null:
+		_objective_lines = ObjectiveText.build(_controller.state, _skins)  # 紙の文も組み直す（訳文から組んでいる）
 
 ## 画面モードを選んだ＝その場で切り替えて保存する。
 func _on_settings_window_mode_chosen(mode: String) -> void:

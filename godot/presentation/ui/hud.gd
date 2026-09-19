@@ -10,7 +10,7 @@ class_name Hud
 signal end_turn_requested        # ターン終了ボタン
 signal skill_activate_requested  # 発動ボタン＝人数が可変の陣形スキルを、選んだ参加者で撃つ
 signal info_panel_toggle_requested  # 情報板ボタン＝右の情報板を畳む／開く
-signal info_panel_reset_requested   # システムメニュー: 情報板の位置を戻す
+signal view_reset_requested         # システムメニュー: マップと情報板を初期位置に戻す
 signal restart_requested         # システムメニュー: リスタート（現ステージ再読込）
 signal stage_select_requested    # システムメニュー: ステージセレクトを開く
 signal save_requested            # システムメニュー: 中断セーブ
@@ -19,6 +19,7 @@ signal settings_requested        # システムメニュー: 設定画面を盤�
 signal zoom_in_requested         # システムメニュー: ズームイン（1段階）
 signal zoom_out_requested        # システムメニュー: ズームアウト（1段階）
 signal story_requested(key: String)  # システムメニュー: ストーリーを確認（key＝intro/outro またはイベントid）
+signal objectives_requested      # システムメニュー: 勝利／敗北条件を確認（紙を開く）
 signal wipe_enemies_requested    # デバッグメニュー: 盤上の敵を殲滅（デバッグビルドのみ出る項目）
 signal debug_event_requested(index: int)  # デバッグメニュー: 未発生イベントを起こす（一覧の何番目か）
 
@@ -36,7 +37,7 @@ var _dbg_events: PopupMenu = null  # デバッグ区画のサブメニュー（�
 var _story_menu: PopupMenu = null  # ストーリーを確認のサブメニュー（経験した会話の目次）
 var _story_keys: Array = []        # サブメニューの並び順 -> 会話のキー（main へ返す）
 var _badge: DialogueBadge = null   # 畳んでいる間に会話が起きたことを知らせる吹き出し
-enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_INFO_RESET, SYS_STORY, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
+enum { SYS_RESTART, SYS_SELECT, SYS_ZOOM_IN, SYS_ZOOM_OUT, SYS_VIEW_RESET, SYS_STORY, SYS_OBJECTIVES, SYS_SAVE, SYS_LOAD, SYS_SETTINGS, SYS_CLOSE, DBG_WIPE, DBG_EVENTS }
 
 ## デバッグ: 未発生イベントの表示名を返す Callable（main が挿す）。一覧は起こすたびに減るので
 ## 作り置きせず、メニューを開くたびに聞き直す。空を返せば「イベントを起こす」は無効表示。
@@ -66,26 +67,29 @@ func _ready() -> void:
 	_info_btn.pressed.connect(func() -> void: info_panel_toggle_requested.emit())
 	add_child(_info_btn)
 
+	# 並びは上ほど何も壊れない操作、下ほど盤を捨てる操作（仕様 → doc/gdd/uiux.md）。
 	_menu = PopupMenu.new()
-	_menu.add_item(tr("ui.hud.restart"), SYS_RESTART)
-	_menu.add_item(tr("ui.hud.stage_select"), SYS_SELECT)
-	_menu.add_separator()
-	# ズームはラベルの括弧書きで本来の操作（Ctrl＋ホイール）も周知する。仕様 → doc/gdd/uiux.md
-	_menu.add_item(tr("ui.hud.zoom_in"), SYS_ZOOM_IN)
-	_menu.add_item(tr("ui.hud.zoom_out"), SYS_ZOOM_OUT)
-	_menu.add_item(tr("ui.hud.info_panel_reset"), SYS_INFO_RESET)  # 動かした情報板を既定の場所へ
-	# ストーリーを確認＝そのステージで経験した会話の目次。中身は main が set_story_entries で貼る。
-	_story_menu = PopupMenu.new()
-	_story_menu.id_pressed.connect(_on_story_id)
-	_menu.add_submenu_node_item(tr("ui.hud.story"), _story_menu, SYS_STORY)
-	_menu.set_item_disabled(_menu.get_item_index(SYS_STORY), true)  # 経験した会話が無いうちは押せない
+	_menu.add_item(tr("ui.hud.close"), SYS_CLOSE)
 	_menu.add_separator()
 	_menu.add_item(tr("ui.hud.save"), SYS_SAVE)
 	_menu.add_item(tr("ui.hud.load"), SYS_LOAD)
 	_menu.add_item(tr("ui.hud.settings"), SYS_SETTINGS)  # タイトルと同じ設定画面を盤の上に開く（doc/gdd/settings.md）
 	_menu.set_item_disabled(_menu.get_item_index(SYS_LOAD), true)  # ロードは中断セーブが在るときだけ有効（main が切替）
 	_menu.add_separator()
-	_menu.add_item(tr("ui.hud.close"), SYS_CLOSE)
+	# ズームはラベルの括弧書きで本来の操作（Ctrl＋ホイール）も周知する。仕様 → doc/gdd/uiux.md
+	_menu.add_item(tr("ui.hud.zoom_in"), SYS_ZOOM_IN)
+	_menu.add_item(tr("ui.hud.zoom_out"), SYS_ZOOM_OUT)
+	_menu.add_item(tr("ui.hud.view_reset"), SYS_VIEW_RESET)  # 動かした情報板と盤を既定の見え方へ
+	_menu.add_separator()
+	# ストーリーを確認＝そのステージで経験した会話の目次。中身は main が set_story_entries で貼る。
+	_story_menu = PopupMenu.new()
+	_story_menu.id_pressed.connect(_on_story_id)
+	_menu.add_submenu_node_item(tr("ui.hud.story"), _story_menu, SYS_STORY)
+	_menu.set_item_disabled(_menu.get_item_index(SYS_STORY), true)  # 経験した会話が無いうちは押せない
+	_menu.add_item(tr("ui.hud.objectives"), SYS_OBJECTIVES)  # 勝敗条件の紙（読むだけ＝いつでも押せる）
+	_menu.add_separator()
+	_menu.add_item(tr("ui.hud.restart"), SYS_RESTART)
+	_menu.add_item(tr("ui.hud.stage_select"), SYS_SELECT)
 	# デバッグ区画は末尾＝製品ビルドには出ない（デバッグ冒険譚の表示と同じゲート）。仕様 → doc/gdd/uiux.md
 	# ここだけ直書きのままなのは、配布ビルドに出ない＝プレイヤーが読まないため（doc/tech/i18n.md）。
 	if OS.is_debug_build():
@@ -132,7 +136,7 @@ func refresh_labels() -> void:
 		b.size.x = float(b.get_meta("base_width"))  # 広がった幅は自動では戻らない＝目安の幅に戻し、文字に合わせて広げ直す
 	for pair in [[SYS_RESTART, "ui.hud.restart"], [SYS_SELECT, "ui.hud.stage_select"],
 			[SYS_ZOOM_IN, "ui.hud.zoom_in"], [SYS_ZOOM_OUT, "ui.hud.zoom_out"],
-			[SYS_INFO_RESET, "ui.hud.info_panel_reset"],
+			[SYS_VIEW_RESET, "ui.hud.view_reset"], [SYS_OBJECTIVES, "ui.hud.objectives"],
 			[SYS_SAVE, "ui.hud.save"], [SYS_LOAD, "ui.hud.load"],
 			[SYS_SETTINGS, "ui.hud.settings"], [SYS_CLOSE, "ui.hud.close"]]:
 		_menu.set_item_text(_menu.get_item_index(int(pair[0])), tr(String(pair[1])))
@@ -232,8 +236,10 @@ func _on_sys_id(id: int) -> void:
 			zoom_in_requested.emit()
 		SYS_ZOOM_OUT:
 			zoom_out_requested.emit()
-		SYS_INFO_RESET:
-			info_panel_reset_requested.emit()
+		SYS_VIEW_RESET:
+			view_reset_requested.emit()
+		SYS_OBJECTIVES:
+			objectives_requested.emit()
 		SYS_CLOSE:
 			pass  # 閉じるだけ（popup は自動で閉じる）
 		DBG_WIPE:

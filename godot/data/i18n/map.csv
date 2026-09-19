@@ -7,8 +7,9 @@ ui.hud.restart,リスタート,Restart Battle
 ui.hud.stage_select,依頼ボード,Quest Board
 ui.hud.zoom_in,ズームイン（Ctrl＋ホイール上）,Zoom In (Ctrl+Wheel Up)
 ui.hud.zoom_out,ズームアウト（Ctrl＋ホイール下）,Zoom Out (Ctrl+Wheel Down)
-ui.hud.info_panel_reset,情報板の位置を戻す,Reset Info Panel Position
+ui.hud.view_reset,マップと情報板を初期位置に戻す,Reset Map and Info Panel
 ui.hud.story,ストーリーを確認,Review Story
+ui.hud.objectives,勝利／敗北条件を確認,Victory and Defeat Conditions
 ui.hud.story_intro,開幕,Opening
 ui.hud.story_outro,決着,Ending
 ui.hud.save,セーブ,Save
@@ -107,3 +108,19 @@ ui.combat.attack,攻撃,Attack
 ui.combat.defense,防御,Defense
 ui.combat.poison,毒 -%d/ターン,Poison -%d/turn
 ui.combat.cleansed,解呪 %d,Cleansed %d
+ui.objective.title,勝利／敗北条件,Victory and Defeat Conditions
+ui.objective.win_head,勝利,Victory
+ui.objective.lose_head,敗北,Defeat
+ui.objective.any,いずれか1つで決まる,Any one of these decides the battle
+ui.objective.name_sep,・,", "
+ui.objective.win.wipe,敵をすべて倒す,Defeat every enemy unit
+ui.objective.win.capture_hq,敵の本拠地を占領する,Capture the enemy headquarters
+ui.objective.win.defeat_unit,%s を倒す,Defeat %s
+ui.objective.win.defeat_units,%s をすべて倒す,Defeat all of %s
+ui.objective.lose.wipe,自軍がすべて倒される,Your army is wiped out
+ui.objective.lose.hq,自軍の本拠地を奪われる,Your headquarters is captured
+ui.objective.lose.turn_limit,%d ターン以内に勝てない,You do not win within %d turns
+ui.objective.lose.lose_unit,%s を失う,%s is lost
+ui.objective.lose.lose_units,%s をすべて失う,All of %s are lost
+ui.objective.lose.base,守るべき拠点を奪われる,A base you must hold is captured
+ui.objective.lose.bases,守るべき拠点をすべて奪われる,Every base you must hold is captured
