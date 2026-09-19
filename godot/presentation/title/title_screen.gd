@@ -224,10 +224,11 @@ func _build_menu() -> Control:
 	# 中断セーブが無いときも項目は出す（押せないだけ）＝並びが変わらず、何が在るかも分かる
 	box.add_child(_menu_button(tr("ui.title.continue"), continue_requested if _has_save else null))
 	box.add_child(_menu_button(tr("ui.title.new_adventure"), new_game_requested))
-	box.add_child(_menu_button(tr("ui.title.settings"), settings_requested))
+	# 並びは遊びに入る→遊びの中身を読む→アプリを扱う（doc/gdd/title.md メニュー項目）。
+	# クレジットはこの板に置かず設定画面の末尾（feature-46）
 	box.add_child(_menu_button(tr("ui.title.manual"), manual_requested))
 	box.add_child(_menu_button(tr("ui.title.chronicle"), chronicle_requested))
-	box.add_child(_menu_button(tr("ui.title.credits"), null))   # 同上（feature-46）
+	box.add_child(_menu_button(tr("ui.title.settings"), settings_requested))
 	box.add_child(_menu_button(tr("ui.title.quit"), quit_requested))
 	layer.add_child(_stamp())
 	return layer
