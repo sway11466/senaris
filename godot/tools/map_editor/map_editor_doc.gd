@@ -642,6 +642,31 @@ func remove_squad(squad_idx: int) -> void:
 		data["enemy"].remove_at(squad_idx)
 
 
+## 敵部隊を行動順 order の小さい順に並べ替える。並びが変わったら true。
+## 同じ order の部隊は今の並びを保つ（安定）＝押すたびに入れ替わらない。
+## 増援（events の enter）は部隊を index ではなく名前で指すので、並びを変えても指す先は動かない。
+func sort_squads_by_order() -> bool:
+	var squads: Array = data["enemy"]
+	var rows := []  # [order, 元のindex, 部隊]
+	for i in squads.size():
+		rows.append([_order_value(squads[i]), i, squads[i]])
+	rows.sort_custom(func(a: Array, b: Array) -> bool:
+		if int(a[0]) != int(b[0]):
+			return int(a[0]) < int(b[0])
+		return int(a[1]) < int(b[1]))
+	var moved := false
+	for i in rows.size():
+		if int(rows[i][1]) != i:
+			moved = true
+			break
+	if not moved:
+		return false
+	squads.clear()
+	for r in rows:
+		squads.append(r[2])
+	return true
+
+
 ## 拠点を置く（既に拠点があれば false）。hq は空文字＝普通の砦（キー自体を書かない）。
 ## rest は常に書く（既定に頼らない）。ai は空文字＝AI出撃なし（キー自体を書かない）。
 func add_base(col: int, row: int, team: String, hq: String = "", rest: String = "both", ai: String = "") -> bool:

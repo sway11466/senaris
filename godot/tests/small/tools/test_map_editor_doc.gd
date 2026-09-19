@@ -518,6 +518,53 @@ func test_add_squad_gets_next_order() -> void:
 	assert_eq(doc.data["enemy"][doc.add_squad("charge")]["order"], 3, "追加した部隊は末尾の順番")
 
 
+## 並べ替えの目印に、部隊の order と name だけを並べたもの。
+func _squad_marks(doc: MapEditorDoc) -> Array:
+	var out := []
+	for sq in doc.data["enemy"]:
+		out.append("%d:%s" % [int(sq["order"]), String(sq.get("name", ""))])
+	return out
+
+
+func test_sort_squads_by_order() -> void:
+	var doc := _load(SAMPLE)
+	doc.data["enemy"][0]["order"] = 9
+	doc.add_squad("charge", "b")
+	doc.data["enemy"][1]["order"] = 4
+	assert_true(doc.sort_squads_by_order(), "並びが変わった")
+	assert_eq(_squad_marks(doc), ["4:b", "9:本隊"], "order の小さい順")
+
+
+func test_sort_squads_keeps_order_of_ties() -> void:
+	var doc := _load(SAMPLE)
+	doc.data["enemy"][0]["order"] = 5
+	doc.add_squad("charge", "b")
+	doc.data["enemy"][1]["order"] = 5
+	doc.add_squad("charge", "c")
+	doc.data["enemy"][2]["order"] = 1
+	assert_true(doc.sort_squads_by_order(), "並びが変わった")
+	assert_eq(_squad_marks(doc), ["1:c", "5:本隊", "5:b"], "同じ order は元の並びのまま")
+
+
+func test_sort_squads_reports_no_change_when_already_sorted() -> void:
+	var doc := _load(SAMPLE)
+	doc.add_squad("charge", "b")
+	assert_false(doc.sort_squads_by_order(), "既に行動順なら動かさない")
+	assert_eq(_squad_marks(doc), ["1:本隊", "3:b"], "並びはそのまま")
+
+
+## 増援（events の enter）は部隊を名前で指す＝並べ替えても指す先は動かない。
+func test_sort_squads_keeps_units_and_event_targets() -> void:
+	var doc := _load(SAMPLE)
+	doc.data["enemy"][0]["order"] = 9
+	var added := doc.add_squad("charge", "b")
+	doc.data["enemy"][added]["order"] = 1
+	var before: Array = doc.data["enemy"][0]["units"]
+	doc.sort_squads_by_order()
+	assert_eq(doc.data["enemy"][1]["name"], "本隊", "本隊は後ろへ")
+	assert_eq(doc.data["enemy"][1]["units"], before, "駒は部隊に付いて動く")
+
+
 func test_remove_victory_erases_empty_key() -> void:
 	var doc := _load(SAMPLE)
 	doc.remove_victory(0)

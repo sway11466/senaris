@@ -828,9 +828,24 @@ func _build_squad_palette() -> void:
 	var group := ButtonGroup.new()
 	for i in squads.size():
 		_add_squad_item(list, group, i, squads[i])
-	_add_button(_mode_box, "部隊を追加", func() -> void:
+	var buttons := HBoxContainer.new()
+	_mode_box.add_child(buttons)
+	_add_button(buttons, "部隊を追加", func() -> void:
 		_sel_squad = _doc.add_squad(_ai_presets[0] if not _ai_presets.is_empty() else "charge")
-		_rebuild_mode())
+		_rebuild_mode()).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 並べ替えると部隊番号が振り直る＝盤の「部N」の札も変わる。増援は部隊を名前で指すので壊れない。
+	_add_button(buttons, "行動順で並べ替え", func() -> void:
+		var keep: Variant = squads[_sel_squad] if _sel_squad < squads.size() else null
+		if _doc.sort_squads_by_order():
+			if keep != null:
+				_sel_squad = maxi(_doc.data["enemy"].find(keep), 0)  # 選んだ部隊はそのまま（番号だけ変わる）
+			_say("部隊を行動順に並べ替えました。")
+		else:
+			_say("すでに行動順のとおりです。")
+		_rebuild_mode()
+		_board.refresh()).tooltip_text = \
+			"order の小さい順に部隊を並べ替える（同じ order は今の並びのまま）。\n" \
+			+ "部隊番号と盤の「部N」の札が振り直る。Ctrl+Z の対象外。"
 
 
 ## 部隊1件＝2〜3行。
