@@ -31,6 +31,7 @@ doc/ が仕様、リポジトリのコードが実装。仕様は捨てないが
 | [../art/](../art/) ・ [../audio/](../audio/) | 一部 | 制作方針（絵柄・STYLE 文・調達）は錨でない＝作り方のガイド。命名規約・スロット・autowire のパス規約はコードが依存するので錨 |
 | [../concepts.md](../concepts.md) | 上位 | 面白さの判断基準。仕様より上に立つ |
 | [../backlog.md](../backlog.md) | × | 未着手の作業の置き場 |
+| [../backlog_scenario.md](../backlog_scenario.md) | × | 未着手の作業のうち、冒険譚の中身を作るものの置き場 |
 | [../adr/](../adr/) | × | 決定の履歴。現在の姿は各 doc 側が持つ |
 
 - データ正本も錨。CSV（`unit_type.csv`・`terrain_type.csv` ほか）と生成される JSON は仕様と実装の関係にあり、doc と同じ扱い。
@@ -69,4 +70,5 @@ doc とコードのズレは、現状は手動で見つける。機械的に検�
 - [architecture.md](architecture.md) — レイヤー／モジュール構成
 - [../concepts.md](../concepts.md) — 面白さの核（仕様より上位の判断基準）
 - [../backlog.md](../backlog.md) — 未着手の作業（doc に書かないもの）
+- [../backlog_scenario.md](../backlog_scenario.md) — 未着手の作業のうち、冒険譚の中身を作るもの
 - 用語の出典: [Spec-First, Spec-Anchored, Spec-as-Truth](https://www.rushis.com/spec-first-spec-anchored-spec-as-truth-the-three-levels-of-spec-driven-development/)（3段階の分類。原典は Martin Fowler）

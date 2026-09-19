@@ -29,6 +29,7 @@
 
 - [doc/concepts.md](doc/concepts.md) — プロダクトコンセプト（何を・なぜ・面白さの核）
 - [doc/backlog.md](doc/backlog.md) — 「必要になったら着手」する作業の置き場
+- [doc/backlog_scenario.md](doc/backlog_scenario.md) — 冒険譚の中身を作る作業（クロニクルの本文・ステージ実装）の置き場
 
 ### ゲームデザイン — `gdd/`
 
