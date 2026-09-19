@@ -61,9 +61,9 @@ func _skill_card(skill_id: String, known: bool, card_size: Vector2) -> Control:
 	var rid := skill_id
 	return _paper_card(hash(rid), known, card_size, face, func() -> void: _open_skill_card(rid))
 
-## カットインの絵。未用意ならプレースホルダの文字。
+## カットインの絵。発動者ごとに絵が分かれるスキルは先頭のスキンの絵。未用意ならプレースホルダの文字。
 func _cutin_art(skill_id: String) -> Control:
-	var tex := FormationCutin.load_art(skill_id)
+	var tex := FormationCutin.load_card_art(skill_id)
 	if tex == null:
 		return _art_placeholder(tr("skill.%s.name" % skill_id))
 	return _art_rect(tex, false)

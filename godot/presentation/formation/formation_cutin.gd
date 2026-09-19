@@ -5,6 +5,9 @@ class_name FormationCutin
 ## 窓は戦闘演出シーンと同じ位置・大きさ・形（角丸）＝盤が完全に消えない・演出の見た目を揃える。
 ## 絵はスキルIDで規約解決＝assets/formations/{skill_id}.png。無ければ何もせず false を返す
 ## （カットインを飛ばして盤の結果だけ見せる。音は main が鳴らす）。
+## 発動者ごとに絵を分けるレシピ（cutin_per_caster）は {skill_id}_{発動者スキン}.png。呼び手は常に
+## 発動者のスキンを渡し、使うかどうかはレシピが決める。該当する名前が無ければ飛ばす＝もう一方の
+## 名前には落とさない。
 ## クリック／キーで即座に飛ばせる。頭はロックしない＝1ステージに何度も出るため。
 ## 仕様 → doc/gdd/formations.md（発動の演出）／絵の置き場 → doc/art/keyvisual.md
 
@@ -47,8 +50,9 @@ func _build() -> void:
 	add_child(_edge)
 
 ## カットインを出す。絵が在れば true（呼び手は finished を待つ）、無ければ何もせず false。
-func play(skill_id: String) -> bool:
-	var tex := load_art(skill_id)
+## caster_skin＝発動者のスキンID。レシピが cutin_per_caster のときだけ絵の名前に使う。
+func play(skill_id: String, caster_skin: String) -> bool:
+	var tex := load_art(skill_id, caster_skin)
 	if tex == null:
 		return false
 	_texture = tex
@@ -59,16 +63,36 @@ func play(skill_id: String) -> bool:
 	_animate()
 	return true
 
-## assets/formations/{skill_id}.png（無ければ .webp）。置いてあれば出る＝コード不変で絵を足せる。
-## クロニクルの陣形スキル章も同じ絵をカードの面に使う（doc/gdd/chronicle.md 陣形スキル）。
-static func load_art(skill_id: String) -> Texture2D:
-	if skill_id.is_empty():
+## assets/formations/{art_stem}.png（無ければ .webp）。置いてあれば出る＝コード不変で絵を足せる。
+## クロニクルの陣形スキル章も同じ絵をカードの面に使う（発動者ごとのレシピは「発動者になれる駒」の
+## 先頭のスキンで引く。doc/gdd/chronicle.md 陣形スキル）。
+static func load_art(skill_id: String, caster_skin: String) -> Texture2D:
+	var stem := art_stem(skill_id, caster_skin)
+	if stem.is_empty():
 		return null
 	for ext in EXTS:
-		var path := "%s/%s%s" % [ART_DIR, skill_id, ext]
+		var path := "%s/%s%s" % [ART_DIR, stem, ext]
 		if ResourceLoader.exists(path):
 			return load(path) as Texture2D
 	return null
+
+## 絵のファイル名（拡張子抜き）。レシピが cutin_per_caster なら {skill_id}_{caster_skin}、
+## それ以外は {skill_id}（渡されたスキンは使わない）。決められないときは空。
+static func art_stem(skill_id: String, caster_skin: String) -> String:
+	if skill_id.is_empty():
+		return ""
+	var per_caster: bool = Formation.SKILLS.get(skill_id, {}).get("cutin_per_caster", false)
+	if not per_caster:
+		return skill_id
+	if caster_skin.is_empty():
+		return ""
+	return "%s_%s" % [skill_id, caster_skin]
+
+## クロニクルのカードに出す絵。発動者ごとのレシピは「発動者になれる駒」の先頭のスキンで引く。
+static func load_card_art(skill_id: String) -> Texture2D:
+	var leaders: Array = Formation.SKILLS.get(skill_id, {}).get("leader_skins", [])
+	var first := String(leaders[0]) if not leaders.is_empty() else ""
+	return load_art(skill_id, first)
 
 func _animate() -> void:
 	if _tween != null and _tween.is_valid():

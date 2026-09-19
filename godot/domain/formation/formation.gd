@@ -87,6 +87,9 @@ const SKILLS := {
 		"attack_vs": "target",
 		# 着弾の絵は射手のヘックスから飛んでくる（③の「真上から降りる」と別）。
 		"impact_motion": "fly",
+		# カットインの絵は発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
+		# 他のスキルはスキルごと1枚。→ doc/gdd/formations.md 発動の演出
+		"cutin_per_caster": true,
 	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md

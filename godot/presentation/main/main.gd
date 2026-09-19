@@ -308,7 +308,9 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	# 陣形の音はスキルごとに違う＝規約解決（assets/sfx/{skill_id}.ogg と {skill_id}_hit.ogg）。
 	# 面殲滅と全体バフで同じ音を鳴らすと、何が起きたのかが音から分からない。
 	SfxPlayer.play_sfx(skill_id)
-	if _formation_cutin != null and _formation_cutin.play(skill_id):
+	# 発動者のスキンは常に渡す。絵の名前に使うかはレシピ（cutin_per_caster）が決める。
+	var caster_skin := result.caster.skin_id if result.caster != null else ""
+	if _formation_cutin != null and _formation_cutin.play(skill_id, caster_skin):
 		await _formation_cutin.finished
 	SfxPlayer.play_sfx("%s_hit" % skill_id)
 	# 着弾＝揺れ → 面の光 → 被弾した駒を1体ずつ。揺れは画面全体（右の情報ボックスも同じ衝撃の下に

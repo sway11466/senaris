@@ -71,10 +71,10 @@
 
 **タイトル画面の残り（クレジット画面）**
 
-- 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、メニューに項目だけ置いてあるクレジット画面。
-- クレジット：素材の権利表記。タイトルのメニューに項目は置いてあるが、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
-- クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。タイトルのメニューからのみ開く（ゲーム中のシステムメニューには足さない＝盤を止めてまで読むものではない）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は `menu.csv` に足す（キーは `ui.<画面>.<項目>` → [i18n.md](tech/i18n.md)）。
-- 該当：`godot/presentation/title/title_screen.gd`・`godot/presentation/credits/`（新規）・`doc/gdd/title.md`。関連＝feature-66〜69（UI文言の i18n キー化）。開き方と戻るの位置は設定画面（`godot/presentation/settings/settings_screen.gd`）を手本にする。着手の引き金＝配布ビルドが見えてきたとき。
+- 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、クレジット画面。置き場はタイトルのメニューから設定画面の末尾へ移した（[settings.md](gdd/settings.md) クレジット、2026-09-20）＝タイトルの板からクレジットの項目を外し、並びをマニュアル→クロニクル→設定にする作業も含む。
+- クレジット：素材の権利表記。タイトルのメニューに項目だけ置いてあり、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
+- クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。設定画面の末尾の板から開く＝タイトルからも盤のシステムメニュー経由でも設定の中から届く。盤の上でも進行は止めない（設定画面と同じ）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は `menu.csv` に足す（キーは `ui.<画面>.<項目>` → [i18n.md](tech/i18n.md)）。
+- 該当：`godot/presentation/settings/settings_screen.gd`（開き口の板）・`godot/presentation/credits/`（新規）・`godot/presentation/title/title_screen.gd`（項目を外す・並べ替え）・`godot/data/i18n/menu.csv`・`doc/gdd/settings.md`。関連＝feature-66〜69（UI文言の i18n キー化）。戻るの位置は設定画面を手本にする。着手の引き金＝配布ビルドが見えてきたとき。
 
 ### feature-62
 
@@ -198,15 +198,6 @@
 - 対応：モチーフを決め、[icons.md](art/icons.md) §3 の表と SUBJECT を書いて生成する。要件＝面が広くて小さくしても輪郭が残る／`refill`（横長・木と布）・`revive`（縦長・金と白）と型と材質が分かれる／AI の特性アイコンと構図が被らない／「休んだ」「手当てをした」と読めない。
 - 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
 - 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
-
-### feature-133
-
-**トリックショットのカットインを発動者ごとに分ける**
-- ゴール：④を撃つと射手（アーチャー／ハンター／エルフ）に応じたカットインが出て、クロニクルのカードには先頭のアーチャーの絵が出る。
-- 背景：カットインの絵はスキルごと1枚の規約解決（`assets/formations/{skill_id}.png`）。④は発動者が3種で見た目が違うので射手ごとに描く。仕様 → [formations.md](gdd/formations.md) 発動の演出・[keyvisual.md](art/keyvisual.md) §3。
-- 対応：(1) `RECIPES["trick_shot"]` に `cutin_per_caster: true`。(2) `FormationCutin.load_art(skill_id, caster_skin)` に発動者のスキンを渡し、設定値のあるレシピは `{skill_id}_{skin}.png` を、無いレシピはスキンを無視して `{skill_id}.png` を探す。どちらも無ければ飛ばす（もう一方の名前には落とさない）。(3) main は `SkillResult.caster` のスキンを渡す。(4) クロニクル（`formations_chapter`）は「発動者になれる駒」の先頭のスキンで引く。(5) テスト＝解決の分岐（設定値の有無×絵の有無）。
-- 考慮外：絵そのもの（オーナーが描く。置けば出る）。他の陣形スキルのカットイン。
-- 該当：`godot/domain/formation/formation.gd`・`godot/presentation/formation/formation_cutin.gd`・`godot/presentation/main/main.gd`・`godot/presentation/chronicle/formations_chapter.gd`。
 
 ## リファクタリング
 
