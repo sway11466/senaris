@@ -2,7 +2,7 @@ extends Node3D
 class_name BoardImpactRenderer
 ## 陣形スキル／ユニットスキルの着弾演出（hex_board_3d.gd から切り出し）。
 ## 面の光 → 被弾した駒を1体ずつ（エフェクト→フラッシュ→兵数、撃破はフェード）。
-## ディバインジャッジメントだけ単体対象の専用シーケンス（ため→光の柱→残光）＝_play_divine_judgment。
+## 単体対象のスキル（③④）だけ専用シーケンス（ため→絵が真上から降りる→残光）＝_play_single_target。
 ## このノード自身が一時的な演出メッシュ（着弾の光・駒に重ねるエフェクト）の入れ物になる。
 ## オーバーレイの作り直しで消えない層＝hex_board_3d の旧 _fx_root に相当する。
 ## 詳細 → doc/gdd/formations.md 発動の演出
@@ -36,17 +36,17 @@ const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
 const FINISH_STRETCH := 2.2
 const FINISH_CELL_HOLD := 0.5     # 決着の光（本拠占領のとどめ＝1マスだけ長めに光らせる）の居座り
 
-# --- ディバインジャッジメント専用 ---
-# 単体対象＝面の広さで見せられないぶん、1発の重さ（柱の大きさと時間）で見せる。
+# --- 単体対象のスキル専用（③ディバインジャッジメント・④トリックショット）---
+# 単体対象＝面の広さで見せられないぶん、1発の重さ（絵の大きさと時間）で見せる。
 # 共通の「落として弾ける」より、ため→ゆっくり降りる→立ったまま残る、で長く見せる。
-const DJ_CHARGE_SEC := 0.30        # ため＝対象ヘクスが光ってから柱が降り始めるまで（狙われた間）
-const DJ_CHARGE_ALPHA_HOLD := 0.22 # ための光の居座りの濃さ（共通より強め。白飛びしない範囲）
-const DJ_DROP_SEC := 0.65          # 柱の降下時間（共通の落下より遅く＝何が降りてきたか見える）
-const DJ_DROP_FROM := TILE * 10.0  # 降下開始の高さ（着地位置からの上乗せ）。柱の裾が画面の上端より
-                                   # 外から入ってくる高さ＝「真上から落ちてくる」に見える
-const DJ_WIDTH_TILES := 1.6        # 柱の幅（ヘックス幅の何倍か）。縦長の絵なので幅基準で釣り合わせる
-const DJ_HOLD_SEC := 0.40          # 着弾後に柱を立たせておく時間（この間に被弾フラッシュ・撃破フェードが進む）
-const DJ_FADE_SEC := 0.40          # 柱の引き
+const SINGLE_CHARGE_SEC := 0.30        # ため＝対象ヘクスが光ってから絵が降り始めるまで（狙われた間）
+const SINGLE_CHARGE_ALPHA_HOLD := 0.22 # ための光の居座りの濃さ（共通より強め。白飛びしない範囲）
+const SINGLE_DROP_SEC := 0.65          # 絵の降下時間（共通の落下より遅く＝何が降りてきたか見える）
+const SINGLE_DROP_FROM := TILE * 10.0  # 降下開始の高さ（着地位置からの上乗せ）。絵の裾が画面の上端より
+                                       # 外から入ってくる高さ＝「真上から落ちてくる」に見える
+const SINGLE_WIDTH_TILES := 1.6        # 絵の幅（ヘックス幅の何倍か）。縦長の絵なので幅基準で釣り合わせる
+const SINGLE_HOLD_SEC := 0.40          # 着弾後に絵を立たせておく時間（この間に被弾フラッシュ・撃破フェードが進む）
+const SINGLE_FADE_SEC := 0.40          # 絵の引き
 
 # --- 外部依存（setup で注入）---
 var _unit_renderer: BoardUnitRenderer
@@ -129,12 +129,12 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	if hits.is_empty():
 		await _flash_cells_only(result.cells, is_locked)
 		return
-	# ディバインジャッジメントは単体対象＝共通の3段では見せ場が無いので専用シーケンスへ。
-	# 絵が無ければ共通へ落とす（面の光と被弾フラッシュだけ＝穴が開かない）。
-	if result.skill == "divine_judgment":
-		var dj_tex := _impact_texture("divine_judgment")
-		if dj_tex != null:
-			await _play_divine_judgment(hits[0], dj_tex, is_locked)
+	# 単体対象のスキル（③④）は共通の3段では見せ場が無いので専用シーケンスへ。判定はレシピの
+	# 効果から引く＝スキルIDを並べない。絵が無ければ共通へ落とす（面の光と被弾フラッシュだけ）。
+	if String(Formation.SKILLS.get(result.skill, {}).get("effect", "")) == "single":
+		var single_tex := _impact_texture(result.skill)
+		if single_tex != null:
+			await _play_single_target(hits[0], single_tex, is_locked)
 			return
 	var gen := _impact_gen
 	# 決着のとどめ＝落下・駒送り・撃破フェードをスローで見せる（面の光の居座りも同じだけ伸ばす）。
@@ -166,12 +166,12 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	_sync_fn.call()
 
 
-## ディバインジャッジメント専用：ため（対象ヘクスの光）→ 光の柱がゆっくり降りて着弾 → 残光 → 引き。
+## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵がゆっくり降りて着弾 → 残光 → 引き。
 ## 対象は1体だけなので hit を直接受ける。被弾の処理（フラッシュ・兵数・撃破フェード）は
-## 柱が着地した瞬間に共通の _land_hit で起こす。
-func _play_divine_judgment(hit: SkillHit, tex: Texture2D, is_locked: bool) -> void:
+## 絵が着地した瞬間に共通の _land_hit で起こす。
+func _play_single_target(hit: SkillHit, tex: Texture2D, is_locked: bool) -> void:
 	var gen := _impact_gen
-	# 決着のとどめ＝柱の降下・残光・撃破フェードをスローで見せる（ためはそのまま）。
+	# 決着のとどめ＝絵の降下・残光・撃破フェードをスローで見せる（ためはそのまま）。
 	var st := FINISH_STRETCH if _finisher else 1.0
 	_impact_lock = not is_locked
 	_set_locked_fn.call(true)  # 共通シーケンスと同じ流儀＝演出中に盤を触らせない
@@ -180,18 +180,18 @@ func _play_divine_judgment(hit: SkillHit, tex: Texture2D, is_locked: bool) -> vo
 		_end_impact()
 		return
 	var hex := hit.hex
-	# ための光は柱が引き始めるまで居座らせる＝どこに落ちるのか・落ちているのかが見えたまま進む。
-	_flash_cells([hex], DJ_CHARGE_SEC + (DJ_DROP_SEC + DJ_HOLD_SEC) * st - HIT_CELL_RISE - HIT_CELL_SETTLE,
-		HIT_CELL_ALPHA, DJ_CHARGE_ALPHA_HOLD)
-	await _wait(DJ_CHARGE_SEC)
+	# ための光は絵が引き始めるまで居座らせる＝どこに落ちるのか・落ちているのかが見えたまま進む。
+	_flash_cells([hex], SINGLE_CHARGE_SEC + (SINGLE_DROP_SEC + SINGLE_HOLD_SEC) * st - HIT_CELL_RISE - HIT_CELL_SETTLE,
+		HIT_CELL_ALPHA, SINGLE_CHARGE_ALPHA_HOLD)
+	await _wait(SINGLE_CHARGE_SEC)
 	if gen != _impact_gen:
 		_end_impact()
 		return
 	var on_land := func() -> void:
 		if gen == _impact_gen:
 			_land_hit(hit, st)
-	_spawn_pillar(hex, tex, on_land, st)
-	await _wait((DJ_DROP_SEC + DJ_HOLD_SEC + DJ_FADE_SEC) * st)
+	_spawn_falling_impact(hex, tex, on_land, st)
+	await _wait((SINGLE_DROP_SEC + SINGLE_HOLD_SEC + SINGLE_FADE_SEC) * st)
 	if gen != _impact_gen:
 		_end_impact()
 		return
@@ -354,10 +354,10 @@ func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 1
 	tw.chain().tween_callback(spr.queue_free)
 
 
-## 光の柱1本。幅基準で大きく出し（縦長の絵＝長辺基準だと痩せる）、上からゆっくり降ろして
+## スキルの絵を1枚。幅基準で大きく出し（縦長の絵＝長辺基準だと痩せる）、上からゆっくり降ろして
 ## 着地の瞬間に on_land を呼ぶ。着地後もしばらく立たせてから引く＝共通の「弾けて消える」とは別の見せ方。
 ## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
-func _spawn_pillar(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 1.0) -> void:
+func _spawn_falling_impact(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 1.0) -> void:
 	var spr := Sprite3D.new()
 	spr.texture = tex
 	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -365,18 +365,18 @@ func _spawn_pillar(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 
 	spr.transparent = true
 	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
 	spr.render_priority = 6
-	spr.pixel_size = (DJ_WIDTH_TILES * TILE) / float(maxi(tex.get_width(), 1))
+	spr.pixel_size = (SINGLE_WIDTH_TILES * TILE) / float(maxi(tex.get_width(), 1))
 	var height := float(tex.get_height()) * spr.pixel_size
 	var p := Hex.to_pixel(hex, TILE)
-	# Sprite3D の原点は絵の中央＝柱の裾が地面に着く高さへ中心を置く。
+	# Sprite3D の原点は絵の中央＝絵の裾が地面に着く高さへ中心を置く。
 	var land := Vector3(p.x, _elev_fn.call(hex) + height * 0.5, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
-	spr.position = land + Vector3(0, DJ_DROP_FROM, 0)
+	spr.position = land + Vector3(0, SINGLE_DROP_FROM, 0)
 	add_child(spr)
 	var tw := create_tween()
-	tw.tween_property(spr, "position", land, DJ_DROP_SEC * stretch).set_ease(Tween.EASE_IN)  # 降下＝加速
+	tw.tween_property(spr, "position", land, SINGLE_DROP_SEC * stretch).set_ease(Tween.EASE_IN)  # 降下＝加速
 	tw.tween_callback(on_land)
-	tw.tween_interval(DJ_HOLD_SEC * stretch)
-	tw.tween_property(spr, "modulate:a", 0.0, DJ_FADE_SEC * stretch)
+	tw.tween_interval(SINGLE_HOLD_SEC * stretch)
+	tw.tween_property(spr, "modulate:a", 0.0, SINGLE_FADE_SEC * stretch)
 	tw.tween_callback(spr.queue_free)
 
 

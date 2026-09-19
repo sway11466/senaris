@@ -9,7 +9,8 @@ class_name FormationOption
 ## 効果の種類。SKILLS の "effect" と1対1（EFFECT_IDS）。
 enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
-enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER }
+## SPOTTER（④）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
+enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER }
 ## 効果の掛かる範囲。陣営全体（グレイス）か対象1体（ユニットスキル）か。SKILLS の "buff_scope"。
 enum Scope { TEAM, UNIT }
 ## 対象1体のとき、味方に掛けるか敵に掛けるか。SKILLS の "buff_side"。
@@ -23,6 +24,7 @@ const EFFECT_IDS := {
 }
 const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
+	"spotter": Shape.SPOTTER,
 }
 const SCOPE_IDS := { "team": Scope.TEAM, "unit": Scope.UNIT }
 const SIDE_IDS := { "ally": Side.ALLY, "enemy": Side.ENEMY }
@@ -37,8 +39,15 @@ var shape: Shape
 var scope: Scope
 var side: Side
 var max_range: int            ## 射程上限（ヘックス数）
+var min_range: int            ## 射程下限（ヘックス数）。0＝下限なし（隣接にも撃てる）
 var range_from: RangeFrom
 var radius: int               ## 面攻撃の半径（AREA のみ）
+## 威力に使うユニット攻撃力の選び方。"ground"＝常に対地値（既定。設計原則3）／"target"＝相手が
+## 飛行なら対空値・地上なら対地値（矢のレシピ＝④⑥⑨の例外）。詳細 → doc/gdd/formations.md 設計原則3
+var attack_vs: String
+## レシピが上書きする防御貫通率。負＝上書きしない（発動者の pierce をそのまま使う）。
+## ④トリックショット＝斥候が見つけた弱点を射抜く 0.5。詳細 → doc/gdd/formations.md ④
+var pierce_override: float
 ## 演出シーンで使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる（presentation が解決）。
 ## エフェクトの単位を「誰が撃ったか」ではなく「何を撃ったか」にする列＝ピュリファイはクレリックが撃っても
 ## ビショップが撃っても同じ絵になる。陣形の盤の着弾はこれを見ない（レシピ専用の絵を規約解決する）。
@@ -75,8 +84,16 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	# 対象1体のスキルが味方向きか敵向きか（Formation.can_target の絞り込み）。既定は味方。
 	o.side = _id_to_enum(SIDE_IDS, String(r.get("buff_side", "ally")), "buff_side")
 	o.max_range = int(r.get("range", 0))
+	o.min_range = 0
+	# 射程をレシピの固定値ではなく発動者の性能から引くレシピ（④）＝弓兵の通常射程（下限〜上限）が
+	# そのままスキルの射程になる。固定の "range" とは排他。詳細 → doc/gdd/formations.md ④
+	if String(r.get("range_from_stats", "")) == "leader":
+		o.max_range = units[0].attack_range
+		o.min_range = units[0].min_range
 	o.range_from = _id_to_enum(RANGE_FROM_IDS, String(r.get("range_from", "leader")), "range_from")
 	o.radius = int(r.get("radius", 0))
+	o.attack_vs = String(r.get("attack_vs", "ground"))
+	o.pierce_override = float(r.get("pierce_override", -1.0))
 	o.combat_effect = String(r.get("combat_effect", ""))
 	o.charge_turns = int(r.get("charge_turns", 0))
 	if o.effect == Effect.BUFF:
@@ -111,6 +128,10 @@ func effect_id() -> String:
 ## メニューの表示ラベルの出し分けが読む。詳細 → doc/gdd/formations.md
 func is_unit_skill() -> bool:
 	return shape == Shape.SOLO
+
+## 距離 d が射程に入るか（下限 min_range 〜 上限 max_range）。下限を持たないレシピは 0〜上限。
+func in_range(d: int) -> bool:
+	return d >= min_range and d <= max_range
 
 ## 着弾（面か1体への損害）があるか。無いもの（状態補正・解除・分裂）は盤を揺らさない。
 func has_impact() -> bool:

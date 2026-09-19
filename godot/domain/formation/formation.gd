@@ -18,7 +18,8 @@ class_name Formation
 ## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
-##        "cluster"（count 体以上の隣接クラスタ）。
+##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
+##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 ## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
@@ -67,6 +68,22 @@ const SKILLS := {
 		"effect": "single",
 		"range": 10,
 		"range_from": "leader",
+	},
+	"trick_shot": {
+		"name": "トリックショット",
+		"category": "bow",
+		"leader_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外
+		"member_skins": ["scout", "thief", "halfling", "ninja", "kunoichi"],
+		"shape": "spotter",
+		"count": 2,
+		"effect": "single",
+		# 射程は弓兵の通常射程そのもの（下限〜上限）＝レシピは固定値を持たない。
+		"range_from_stats": "leader",
+		"range_from": "leader",
+		# 斥候が張り付いて見つけた弱点を射抜く＝魔法兵と同じ貫通が矢に乗る（弓の素は0）。
+		"pierce_override": 0.5,
+		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
+		"attack_vs": "target",
 	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md
@@ -223,6 +240,9 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 			"escort":
 				for members in _escort_sets(state, unit, r, lead_pos):
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
+			"spotter":
+				for members in _spotter_sets(state, unit, r, lead_pos):
+					out.append(FormationOption.from_skill(rid, r, [unit, members[0]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
 				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, lead_pos):
@@ -261,6 +281,10 @@ static func choices_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> A
 				_fill_fixed(c, _triangle_sets(state, unit, r, lead_pos))
 			"escort":
 				_fill_fixed(c, _escort_sets(state, unit, r, lead_pos))
+			"spotter":
+				# 相方は着弾先が決まってから絞る＝先に着弾先を選ぶ段へ進む
+				c.target_first = true
+				_fill_fixed(c, _spotter_sets(state, unit, r, lead_pos))
 			"solo":
 				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, lead_pos):
 					continue
@@ -381,7 +405,6 @@ static func blast_cells(option: FormationOption, target: Vector2i) -> Array[Vect
 static func can_target(state: BattleState, option: FormationOption, target: Vector2i, from_hex := NO_HEX) -> bool:
 	if not option.needs_target():
 		return true
-	var rng := option.max_range
 	var lead_id := option.leader_id
 	var leader := state.unit_by_handle(lead_id)
 	var within := false
@@ -391,15 +414,28 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 			if p == null:
 				continue
 			var ppos := from_hex if (from_hex != NO_HEX and p.handle == lead_id) else p.pos
-			if Hex.distance(ppos, target) <= rng:
+			if option.in_range(Hex.distance(ppos, target)):
 				within = true
 				break
 	elif from_hex != NO_HEX:
-		within = Hex.distance(from_hex, target) <= rng
+		within = option.in_range(Hex.distance(from_hex, target))
 	else:
-		within = leader != null and Hex.distance(leader.pos, target) <= rng
+		within = leader != null and option.in_range(Hex.distance(leader.pos, target))
 	if not within:
 		return false
+	# ④トリックショット＝着弾先に斥候（相方）が張り付いていること。参加者の形ではなく対象の周りを
+	# 見る唯一の形で、相方は移動しない＝盤の実位置で測る。詳細 → doc/gdd/formations.md ④
+	if option.shape == FormationOption.Shape.SPOTTER:
+		if option.participants.size() < 2:
+			return false
+		var spotter := state.unit_by_handle(option.participants[1])
+		if spotter == null or Hex.distance(spotter.pos, target) != 1:
+			return false
+	# 単体を狙うスキル（③④）は敵の駒だけを選べる＝空撃ちも同士討ちもさせない。面に巻き込まれるのと
+	# 狙って撃てるのは別で、誤射は面（①⑥）だけの話。詳細 → doc/gdd/formations.md 共通ルール
+	if option.effect == FormationOption.Effect.SINGLE:
+		var v := _unit_at_assumed(state, leader, from_hex, target)
+		return v != null and leader != null and v.team != leader.team
 	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（ピクシーダスト）は発動者
 	# 自身も選べ、敵を弱らせるもの（ドレッドタッチ）は敵だけを選べる。詳細 → doc/gdd/skills.md
 	if option.scope == FormationOption.Scope.UNIT:
@@ -421,23 +457,46 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 ## option の着弾中心に選べるhex（発動条件の射程内・盤上）。空＝いま撃てる先が無い＝コマンド
 ## メニューでは項目を無効化する（→ doc/gdd/uiux.md 「できない操作は選べない」）。
 ## from_hex＝発動者がそこに居ると仮定する（移動を確定する前のメニュー判定）。省略すると実位置。
-## single（単体狙撃）は「参加者以外の駒が居るhex」だけ＝空撃ちさせない。area（面）は地面にも撃てる。
-## 陣営の絞り込み（味方向き／敵向き）は can_target が持つ＝ここには二重に書かない。
+## 絞り込み（射程・陣営・駒が居るか）は can_target が全部持つ＝ここには二重に書かない。
+## single（単体狙撃）は敵の駒が居るhexだけ、area（面）は地面にも撃てる。
 static func targetable_cells(state: BattleState, option: FormationOption, from_hex := NO_HEX) -> Array[Vector2i]:
 	var out: Array[Vector2i] = []
 	if not option.needs_target():
 		return out
-	var leader := state.unit_by_handle(option.leader_id)
-	var single := option.effect == FormationOption.Effect.SINGLE
-	var participants := option.participants
 	for h in _in_range_cells(state, option, from_hex):
-		if not can_target(state, option, h, from_hex):
+		if can_target(state, option, h, from_hex):
+			out.append(h)
+	return out
+
+## 参加者が決まる前に着弾先を選ぶスキル（④spotter）で、選べる着弾先。候補の組それぞれで見た
+## targetable_cells の和集合＝どれかの斥候で撃てるhexを全部出す。相方は着弾先を選んでから決まる。
+## 詳細 → doc/gdd/uiux.md 陣形スキルの参加者を選ぶ
+static func choice_targetable_cells(state: BattleState, choice: FormationChoice,
+		from_hex := NO_HEX) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var seen := {}
+	for members in _probe_sets(choice):
+		var o := option_of(state, choice, members)
+		if o == null:
 			continue
-		if single:
-			var u := _unit_at_assumed(state, leader, from_hex, h)
-			if u == null or u.handle in participants:
-				continue
-		out.append(h)
+		for h in targetable_cells(state, o, from_hex):
+			if not seen.has(h):
+				seen[h] = true
+				out.append(h)
+	return out
+
+## 着弾先を決めたあとに選べる相方（駒番号）。その着弾先を撃てる組の参加者だけを返す。
+## 1体なら選ぶ余地が無いのでそのまま発動、複数なら相方を選ぶ段を挟む。
+static func members_for_target(state: BattleState, choice: FormationChoice, target: Vector2i,
+		from_hex := NO_HEX) -> Array[int]:
+	var out: Array[int] = []
+	for members in _probe_sets(choice):
+		var o := option_of(state, choice, members)
+		if o == null or not can_target(state, o, target, from_hex):
+			continue
+		for h in members:
+			if not (h in out):
+				out.append(h)
 	return out
 
 # --- 内部 ---
@@ -534,7 +593,8 @@ static func _in_range_cells(state: BattleState, option: FormationOption, from_he
 	var out: Array[Vector2i] = []
 	for o in origins:
 		for h in Hex.within_range(o, rng):
-			if not seen.has(h) and state.in_field(h):
+			# 下限のあるレシピ（④＝弓兵の通常射程）は懐のhexを落とす
+			if not seen.has(h) and state.in_field(h) and option.in_range(Hex.distance(o, h)):
 				seen[h] = true
 				out.append(h)
 	return out
@@ -561,6 +621,41 @@ static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead
 			if Hex.distance(cand[i].pos, cand[j].pos) == 1:
 				sets.append([cand[i], cand[j]])
 	return sets
+
+## レシピのメンバー候補（同陣営・未行動・スキン一致）を位置によらず全部集める。
+## 位置で絞る形（triangle/escort/cluster）は発動者からの距離で、spotter は対象からの距離で絞る。
+static func _member_pool(state: BattleState, leader: Unit, r: Dictionary) -> Array:
+	var cand: Array[Unit] = []
+	for u in state.units():
+		if u.handle == leader.handle or u.team != leader.team or not state.has_action_left(u.handle):
+			continue
+		if _matches(u, r["member_skins"]):
+			cand.append(u)
+	return cand
+
+## ④トリックショット＝対象の周りを見る形。斥候が「発動者の射程に入っている駒」に張り付いていれば
+## 組になる（弓兵と斥候は隣り合わなくてよい）。組は斥候1体ごとに1つで、着弾先はあとから選ぶ。
+## 発動者は lead_pos に居るものとして射程を測る（移動先のこともある）。
+static func _spotter_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
+	var sets: Array = []
+	for m in _member_pool(state, leader, r):
+		if _spotter_has_mark(state, leader, m, lead_pos):
+			sets.append([m])
+	return sets
+
+## 斥候 m の隣に「発動者の射程（下限〜上限）に入っている敵」が居るか＝その斥候で1発撃てるか。
+## 単体を狙うスキルは敵しか選べない（can_target）ので、成立の判定も敵だけを数える。
+static func _spotter_has_mark(state: BattleState, leader: Unit, m: Unit, lead_pos: Vector2i) -> bool:
+	for nb in Hex.neighbors(m.pos):
+		if not state.in_field(nb):
+			continue
+		var v := state.unit_at(nb)
+		if v == null or v.team == leader.team:
+			continue
+		var d := Hex.distance(lead_pos, nb)
+		if d >= leader.min_range and d <= leader.attack_range:
+			return true
+	return false
 
 ## ③ディバインジャッジメント＝発動者を中心に、周囲の2体。メンバー同士の隣接は問わない
 ## （発動者を挟んで左右対称でも成立する）＝leader に隣接する候補の2体組を全列挙。
@@ -599,9 +694,9 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: 
 static func _formation_hit(state: BattleState, option: FormationOption, victim: Unit) -> HitDetail:
 	var leader := state.unit_by_handle(option.leader_id)
 	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
-	var atk := _skill_attack_breakdown(state, leader)
-	# 防御側: 包囲は乗る（victim の surround が defense_breakdown に入る）／貫通は発動者の性質／支援なし。
-	var df := Combat.defense_breakdown(state, victim, leader, false)
+	var atk := _skill_attack_breakdown(state, leader, option, victim)
+	# 防御側: 包囲は乗る（victim の surround が入る）／貫通は発動者の性質かレシピの上書き／支援なし。
+	var df := _skill_defense_breakdown(state, victim, leader, option)
 	var hit := Combat.hit_from_breakdowns(atk, df, victim.troops)
 	hit.target_id = victim.handle
 	return hit
@@ -609,14 +704,40 @@ static func _formation_hit(state: BattleState, option: FormationOption, victim: 
 ## 発動者の実効攻撃力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.attack_breakdown_from）。
 ## 通常戦闘（Combat.attack_breakdown）との違いはここに全部書く:
 ##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）／支援なし（間接扱い）。
-## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md
-static func _skill_attack_breakdown(state: BattleState, leader: Unit) -> StatBreakdown:
+##   矢のレシピ（attack_vs "target"＝④⑥⑨）だけは通常攻撃と同じく相手で対空／対地を切り替える。
+## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md 設計原則3
+static func _skill_attack_breakdown(state: BattleState, leader: Unit, option: FormationOption,
+		victim: Unit) -> StatBreakdown:
 	var sf := state.status_aggregate(leader, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
-	return Combat.attack_breakdown_from(
+	var vs_air := option.attack_vs == "target" and victim.is_aerial()
+	var b := Combat.attack_breakdown_from(
 		leader.troops,
-		leader.unit_attack,  # 常に対地値
+		leader.attack_against(victim) if option.attack_vs == "target" else leader.unit_attack,
 		Combat.level_factor(leader),
 		Combat.surround_factor(state, leader),
 		TerrainType.attack_factor(state.terrain_at(leader.pos)),
 		0.0,  # 支援なし
 		float(sf["mul"]), float(sf["add"]))
+	b.vs_aerial = vs_air  # レポートが対空値で撃ったことを出せる（常に対地のレシピは false）
+	b.melee = false
+	return b
+
+## 被弾側の実効防御力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.defense_breakdown_from）。
+## 通常戦闘（Combat.defense_breakdown）との違いはここに全部書く:
+##   支援なし（間接扱い）／貫通はレシピが上書きしていればその値、なければ発動者の pierce。
+## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md ④
+static func _skill_defense_breakdown(state: BattleState, victim: Unit, leader: Unit,
+		option: FormationOption) -> StatBreakdown:
+	var sf := state.status_aggregate(victim, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
+	var pierce := option.pierce_override if option.pierce_override >= 0.0 else leader.pierce
+	var b := Combat.defense_breakdown_from(
+		victim.troops,
+		victim.unit_defense,
+		Combat.level_factor(victim),
+		Combat.surround_factor(state, victim),
+		TerrainType.defense_factor(state.terrain_at(victim.pos)),
+		0.0,  # 支援なし
+		pierce,
+		float(sf["mul"]), float(sf["add"]))
+	b.melee = false
+	return b

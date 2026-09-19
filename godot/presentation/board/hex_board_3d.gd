@@ -102,6 +102,7 @@ var _choosing_members := false  # 陣形スキルの参加者クリック待ち
 var _choice: FormationChoice = null  # 参加者選び／着弾先選びの対象スキル
 var _chosen: Array[int] = []    # 確定した参加者（発動者を除く・選んだ順）
 var _member_cells := {}         # Vector2i -> handle（いま確定できる候補の駒）
+var _skill_target := INVALID_HEX  # 先に選んだ着弾先（④のように参加者より先に決めるスキル）
 var _menu_pool := {}            # Vector2i -> true（メニューでホバー中のスキルの候補の駒）
 var _menu_focused := -1         # メニューでいまホバー／選択中の項目の添字（-1＝無し）
 # 着弾演出の状態は BoardImpactRenderer に移設。
@@ -470,10 +471,10 @@ func _on_click(hex: Vector2i) -> void:
 		else:
 			_formation_step_back()
 		return
-	# 陣形の着弾中心クリック待ち: 射程内なら発動、それ以外は1段戻る。
+	# 陣形の着弾中心クリック待ち: 射程内なら発動（④は相方を決めてから）、それ以外は1段戻る。
 	if _choosing_formation:
 		if _formation_cells.has(hex):
-			_fire_formation(_formation_active, hex)
+			_confirm_formation_target(hex)
 		else:
 			_formation_step_back()
 		return
@@ -661,8 +662,12 @@ func _skill_from() -> Vector2i:
 func _begin_formation(choice: FormationChoice) -> void:
 	_choice = choice
 	_chosen.clear()
+	_skill_target = INVALID_HEX
 	_reachable.clear()
 	_targets.clear()
+	if choice.target_first:
+		_enter_formation_target()  # ④＝着弾先が先。相方はそのあと（複数いるときだけ）選ぶ
+		return
 	if not choice.needs_choice():
 		_chosen = choice.forced_members()
 		_enter_formation_target()
@@ -675,7 +680,9 @@ func _begin_formation(choice: FormationChoice) -> void:
 func _refresh_member_cells() -> void:
 	_member_cells.clear()
 	if _choice != null:
-		for h in Formation.member_candidates(state, _choice, _chosen, _skill_from()):
+		# 着弾先を先に選ぶスキル（④）の候補は「その着弾先を撃てる組の相方」＝対象から引く。
+		var cands := Formation.members_for_target(state, _choice, _skill_target, _skill_from()) 				if _choice.target_first 				else Formation.member_candidates(state, _choice, _chosen, _skill_from())
+		for h in cands:
 			var u := state.unit_by_handle(h)
 			if u != null:
 				_member_cells[u.pos] = h
@@ -686,6 +693,9 @@ func _refresh_member_cells() -> void:
 func _confirm_member(hex: Vector2i) -> void:
 	SfxPlayer.play_event("map_select")
 	_chosen.append(int(_member_cells[hex]))
+	if _choice.target_first:
+		_fire_chosen_formation()  # 着弾先は選び終えている＝相方が決まった時点で発動
+		return
 	if not _choice.variable_count and Formation.can_activate(_choice, _chosen):
 		_enter_formation_target()
 		return
@@ -704,8 +714,19 @@ func activate_chosen_formation() -> void:
 func _enter_formation_target() -> void:
 	_choosing_members = false
 	_member_cells.clear()
+	_skill_target = INVALID_HEX
 	skill_activate_available.emit(false)
-	var option := Formation.option_of(state, _choice, _chosen)
+	var option: FormationOption = null
+	var cells: Array[Vector2i] = []
+	if _choice != null and _choice.target_first:
+		# 相方がまだ決まっていない＝候補の組の1つで仮の option を作る。盤に出す記号（対象マーカー・
+		# 面プレビュー）はレシピの性質だけで決まるので、どの組で作っても同じ。
+		option = Formation.option_of(state, _choice, _choice.forced_members())
+		cells = Formation.choice_targetable_cells(state, _choice, _skill_from())
+	else:
+		option = Formation.option_of(state, _choice, _chosen)
+		if option != null and option.needs_target():
+			cells = Formation.targetable_cells(state, option, _skill_from())
 	if option == null:
 		_deselect()
 		return
@@ -717,9 +738,47 @@ func _enter_formation_target() -> void:
 	_choosing_formation = true
 	_formation_active = option
 	_formation_cells.clear()
-	for h in Formation.targetable_cells(state, option, _skill_from()):
+	for h in cells:
 		_formation_cells[h] = true
 	_sync_overlay()
+
+## 着弾先を確定した。参加者が先に決まっているスキルはそのまま発動、着弾先が先のスキル（④）は
+## その対象を撃てる相方を引き、複数いるときだけ相方を選ぶ段へ進む。
+func _confirm_formation_target(hex: Vector2i) -> void:
+	if _choice == null or not _choice.target_first:
+		_fire_formation(_formation_active, hex)
+		return
+	_skill_target = hex
+	var cands := Formation.members_for_target(state, _choice, hex, _skill_from())
+	if cands.size() > 1:
+		SfxPlayer.play_event("map_select")
+		_choosing_formation = false
+		_formation_active = null
+		_formation_cells.clear()
+		_choosing_members = true
+		_refresh_member_cells()
+		_sync_overlay()
+		return
+	if cands.is_empty():
+		_formation_step_back()  # 撃てる組が無い（盤が動いた等）＝1段戻す
+		return
+	_chosen.clear()
+	_chosen.append(int(cands[0]))  # 相方が1体＝選ぶ余地が無いのでそのまま発動
+	_fire_chosen_formation()
+
+## 着弾先と参加者がどちらも決まった＝発動する（着弾先が先のスキルの締め）。
+func _fire_chosen_formation() -> void:
+	var option := Formation.option_of(state, _choice, _chosen)
+	if option == null:
+		_deselect()
+		return
+	_choosing_formation = false
+	_choosing_members = false
+	_formation_active = null
+	_formation_cells.clear()
+	_member_cells.clear()
+	skill_activate_available.emit(false)
+	_fire_formation(option, _skill_target)
 
 ## 発動＝ここで初めて移動を確定させる（自マスのままなら no-op）。
 ## 参加者選びの間は移動を保留したままにするため、確定はこの1か所に寄せる。
@@ -733,6 +792,9 @@ func _formation_step_back() -> void:
 		_choosing_formation = false
 		_formation_active = null
 		_formation_cells.clear()
+		if _choice != null and _choice.target_first:
+			_back_to_command_menu()  # 着弾先が最初の段＝戻る先はメニュー
+			return
 		if _choice != null and _choice.needs_choice():
 			_choosing_members = true
 			if not _chosen.is_empty():
@@ -743,6 +805,11 @@ func _formation_step_back() -> void:
 		_back_to_command_menu()
 		return
 	if _choosing_members:
+		if _choice != null and _choice.target_first:
+			_choosing_members = false  # 相方選び → 着弾先選びへ戻る
+			_chosen.clear()
+			_enter_formation_target()
+			return
 		if not _chosen.is_empty():
 			_chosen.pop_back()
 			_refresh_member_cells()
@@ -757,6 +824,7 @@ func _formation_step_back() -> void:
 func _back_to_command_menu() -> void:
 	_choice = null
 	_chosen.clear()
+	_skill_target = INVALID_HEX
 	var sel := state.unit_by_handle(_selected_id)
 	if sel == null:
 		_deselect()
@@ -1034,6 +1102,7 @@ func _clear_formation() -> void:
 	_choice = null
 	_chosen.clear()
 	_member_cells.clear()
+	_skill_target = INVALID_HEX
 	_menu_pool.clear()
 	_menu_focused = -1
 	skill_activate_available.emit(false)

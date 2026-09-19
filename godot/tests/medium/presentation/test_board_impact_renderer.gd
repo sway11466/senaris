@@ -43,14 +43,14 @@ func test_color_formation_hit_is_gold() -> void:
 # --- ディバインジャッジメント専用の定数 ---
 
 func test_dj_charge_positive() -> void:
-	assert_true(BoardImpactRenderer.DJ_CHARGE_SEC > 0.0, "ためは正の値")
+	assert_true(BoardImpactRenderer.SINGLE_CHARGE_SEC > 0.0, "ためは正の値")
 
 func test_dj_drop_slower_than_common() -> void:
-	assert_true(BoardImpactRenderer.DJ_DROP_SEC > BoardImpactRenderer.HIT_DROP_SEC,
+	assert_true(BoardImpactRenderer.SINGLE_DROP_SEC > BoardImpactRenderer.HIT_DROP_SEC,
 		"柱の降下は共通の落下より遅い＝ゆっくり見せる")
 
 func test_dj_charge_alpha_hold_in_safe_range() -> void:
-	var a := BoardImpactRenderer.DJ_CHARGE_ALPHA_HOLD
+	var a := BoardImpactRenderer.SINGLE_CHARGE_ALPHA_HOLD
 	assert_true(a > BoardImpactRenderer.HIT_CELL_ALPHA_HOLD and a <= BoardImpactRenderer.HIT_CELL_ALPHA,
 		"ための居座りは共通より強く、白飛びの上限（立ち上がりの濃さ）以下")
 

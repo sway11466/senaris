@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=133 / refactoring=21.
+次回採番: bug=12 / feature=133 / refactoring=22.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -141,22 +141,13 @@
 - 対応：`UiLayout.board_area` を板の状態（既定の場所で開いているか）で切り替える。ターン終了ボタンは盤エリアから外し、板の既定の矩形のすぐ左に固定する。戦果票は元から画面中央＝変更なし。
 - 該当：`godot/presentation/ui/ui_layout.gd`・`godot/presentation/board/hex_board_3d.gd`（`_vis_rect`）・`godot/presentation/ui/hud.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/formation/formation_cutin.gd`・`godot/presentation/victory/victory_screen.gd`。
 
-### feature-117
-
-**陣形スキル④トリックショット（弓兵＋斥候・貫通0.5の単体射撃）**
-- ゴール：斥候が敵に隣接し弓兵がその敵を射程に収めたとき、弓兵の行動メニューに項目が出て、貫通0.5・反撃なしの一撃が飛ぶ。飛行の敵には対空値で撃てる。ステージでは教えない＝出れば見つかる。
-- 背景：[formations.md](gdd/formations.md) ④ で仕様確定。既存の陣形は「参加者の形」（triangle／escort／cluster）だけを見るが、これは「対象の周りに参加者が居るか」を見る初めての形。威力の計算も既存は常に対地値・貫通は発動者依存で、矢のレシピ（④⑥⑨）は相手が飛行なら対空値・貫通はレシピ側で上書き、が要る。⑥⑨がこの下地を使うので最初に作る。
-- 対応：(1) `Formation.RECIPES` に `trick_shot`（leader＝archer/hunter/elf、member＝scout/thief/halfling/ninja/kunoichi、shape `spotter`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"＝相手で対地／対空を切り替え）。(2) `FormationOption.Shape` に `SPOTTER` を足し、`available_for` は対象候補ごとに「その対象に隣接する member」を組で持つ（対象を選んだ時点で相方が決まる。複数なら1体を選ぶ＝option を対象×相方で複数出す）。射程は発動者の通常射程（`min_range`〜`attack_range`）。参加者選びは既存の仕組みに乗せる＝`choices_for`／`member_candidates` に「着弾先を先に選び、その対象に隣接する斥候が複数のときだけ相方を選ぶ」分岐を足す（他の形は参加者が先）。(3) `_skill_attack_breakdown` に対地／対空の切り替え、`_formation_hit` にレシピの貫通上書きを通す（`attack_vs` 未指定のレシピは従来どおり対地固定・発動者依存）。(4) 演出は③と同じ単体シーケンス（絵は `assets/formations/trick_shot_impact.png` の規約解決、無ければ共通3段）。(5) `skills.csv` に `recipe.trick_shot.name/desc`。(6) `test_formation.gd` に成立（斥候が対象に隣接／弓兵が射程内）・不成立（斥候が発動者にだけ隣接）・貫通・対空の切り替えのテスト。
-- 考慮外：敵AIの使用（敵スキンはレシピに書かない）。教えるステージの追加。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`・`doc/gdd/formations.md`（実装方針の段階を更新）。
-
 ### feature-118
 
 **陣形スキル⑨マジックアロー（弓兵＋魔法兵・大きい方＋10・貫通0.5・射程は長い方＋1）**
 - ゴール：弓兵と魔法兵が隣接しているとき、弓兵から「2体の攻撃力の大きい方＋10・貫通0.5」の単体射撃が「2体の射程上限の長い方＋1」まで届く。届かなかった相手に魔法兵級の一撃が届く。
-- 背景：[formations.md](gdd/formations.md) ⑨ で仕様確定。escort（count 2）の流用だが、威力の元と射程を「発動者」ではなく「参加者の性能から引く」のが新しい。対空／対地の切り替えと貫通の上書きは feature-117 の下地。
+- 背景：[formations.md](gdd/formations.md) ⑨ で仕様確定。escort（count 2）の流用だが、威力の元と射程を「発動者」ではなく「参加者の性能から引く」のが新しい。対空／対地の切り替え（`attack_vs`）と貫通の上書き（`pierce_override`）は④トリックショットで入っている。
 - 対応：(1) `RECIPES` に `magic_arrow`（leader＝archer/hunter/elf、member＝wizard/witch、shape `escort`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"、`attack_from` "max_plus"（値 10）、`range_from_stats` "max_plus"（値 1）、下限なし）。(2) `_skill_attack_breakdown` に「参加者の攻撃力の最大＋定数」を元にする経路（兵数・レベル・包囲・地形は発動者のもの）。(3) `available_for`／`_in_range_cells` で射程を参加者の `attack_range` の最大＋1 から求める（レシピの固定 `range` と排他）。(4) 演出は④と同じ単体シーケンス（`magic_arrow_impact.png`）。(5) `skills.csv`。(6) テスト＝威力の元の選び方（地上はウィザード40＋10／空はエルフ60＋10）・射程（アーチャー＋ウィザード＝5・エルフ＝6）。
-- 該当：feature-117 と同じ。前提＝feature-117。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
 
 ### feature-119
 
@@ -164,7 +155,7 @@
 - ゴール：スリンガー系を除く弓兵3体が三角になると、発動者の射程上限まで届く半径2の面攻撃が撃てる。参加者は当たらず、他の味方は当たる。飛行には対空値。
 - 背景：[formations.md](gdd/formations.md) ⑥ で仕様確定。①と同型で、面の半径が2・射程が発動者の性能依存・対空／対地の切り替えあり、貫通は発動者依存（弓＝0）のまま。
 - 対応：(1) `RECIPES` に `arrow_rain`（leader／member＝archer/hunter/elf、shape `triangle`、count 3、effect `area`、`radius` 2、`range_from` "any"、`range_from_stats` "leader"＝発動者の `attack_range`、`attack_vs` "target"）。(2) `blast_cells` は `radius` を読むだけで済むはず＝19ヘクスになることをテストで確認。(3) 着弾演出の順送り（中心から外へ）が半径2でも成り立つか `board_impact_renderer` を確認。プレビュー（桃の面）も半径2で出す。(4) `skills.csv`・`arrow_rain_impact.png`。(5) テスト＝三角の成立（ハンター＋アーチャー＋エルフ）・スリンガーの除外・面の広さ・参加者の除外。
-- 該当：feature-117 と同じ＋`godot/presentation/board/hex_board_3d.gd`（面のプレビュー）。前提＝feature-117。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/presentation/board/hex_board_3d.gd`（面のプレビュー）。
 
 ### feature-120
 
@@ -189,7 +180,7 @@
 - 背景：[formations.md](gdd/formations.md) ⑧ で仕様確定。形 `backstab` は対象を挟んだ正反対（対象からの方向ベクトルが逆）を見る＝④の `spotter` の親戚。着弾後に発動者の位置を戻すのは初めての処理で、移動開始位置を `BattleState` が覚えている必要がある。
 - 対応：(1) `RECIPES` に `backstab`（leader＝thief、member＝任意（`member_skins` 空＝種別不問の印）、shape `backstab`、count 2、effect `single`、`range` 1、`pierce_override` 0.5、`attack_vs` "target"、`return_to_origin` true）。(2) `FormationOption.Shape` に `BACKSTAB`：対象候補は発動者の隣接する敵のうち、`target + (target - leader_pos)` に味方が居るもの。相方はその1体。(3) `FormationResolver.resolve` の最後に、`return_to_origin` なら発動者を移動開始位置へ戻す（経路・コスト・足止め不問。`MatchController` が持つ移動前の位置を `SkillCast` に渡す）。中断セーブとリプレイで位置が一致することを確認。(4) 演出＝跳んで刺して戻る（駒の移動アニメを2回。絵は `backstab_impact.png`）。(5) `skills.csv`。(6) テスト＝対角の判定（隣り合う2体は不成立）・相方が幾何で決まる・戻り・飛行相手は対空10。
 - 考慮外：他の斥候（ハーフリング等）への拡張。撃破後の再攻撃（検討して不採用）。
-- 該当：feature-117 と同じ＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。前提＝feature-117。
+- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。
 
 ### feature-124
 
@@ -211,6 +202,15 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### refactoring-21
+
+**会話の顔の `portrait` スロットを廃止する**
+- ゴール：会話パネルの顔が `map` の絵だけで決まり、`portrait` という差し込み口がコードと doc から消えている。
+- 背景：`portrait` は画像の差し込み口として用意してあるが、画像は置かれていない。盤に出ないキャラの顔も、会話専用のスキンを足して `map` に絵を置けば出せるので、使う見込みが無い。`UnitSkin.portrait_label()` もどこからも呼ばれていない。
+- 対応：autowire のスロット一覧と会話の顔の解決順から `portrait` を外し、`portrait_label()` を消す。doc 側はスロット表・会話の顔の項・盤に出ない話者の注記・胸像の将来案を `map` 一本の説明に直す。
+- 考慮外：`combat`・`combat_effect` スロット。会話パネルの見せ方（倍率・透明余白の切り抜き）。
+- 該当：`godot/data/units/skin_catalog.gd`・`godot/data/units/unit_skin.gd`・`godot/presentation/ui/conversation_panel.gd`・[art/overview.md](art/overview.md)・[art/units.md](art/units.md)・[campaign/authoring.md](campaign/authoring.md)・[campaign/ancientruins1-mine-monsters.md](campaign/ancientruins1-mine-monsters.md)・[gdd/uiux.md](gdd/uiux.md)。
 
 ### refactoring-18
 

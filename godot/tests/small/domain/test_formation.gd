@@ -692,3 +692,166 @@ func test_unit_skill_choice_has_no_members() -> void:
 	assert_not_null(c, "ピュリファイの項目が出る")
 	assert_false(c.needs_choice(), "単独で撃つ＝選ぶ余地が無い")
 	assert_true(c.forced_members().is_empty(), "参加者は発動者だけ")
+
+# --- ④トリックショット（弓兵＋斥候・貫通0.5・相手で対空／対地）---
+
+## ④の成立盤：アーチャー（射程1-3・対地30／対空40）と、そこから距離3の敵、その敵に張り付く
+## スカウト。弓兵と斥候は隣り合わない＝参加者の形ではなく対象の周りを見る形。
+func _trick_shot_state(enemy_def := 40) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var archer := Unit.new(1, 0, c, 4, 8, 30, 30, 1, "archer")
+	archer.atk_air = 40
+	archer.min_range = 1
+	archer.attack_range = 3
+	var enemy_hex := c + Hex.direction(0) * 3
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
+	var scout := Unit.new(2, 0, enemy_hex + Hex.direction(0), 7, 8, 20, 20, 1, "scout")
+	for u in [archer, enemy, scout]:
+		s.add_unit(u)
+	return {"s": s, "archer": archer, "enemy": enemy, "enemy_hex": enemy_hex, "scout": scout}
+
+func _trick_shot_option(f: Dictionary) -> FormationOption:
+	return _pick(Formation.available_for(f["s"], f["archer"]), "trick_shot")
+
+func test_trick_shot_detected_when_scout_pins_target() -> void:
+	var f := _trick_shot_state()
+	var o := _trick_shot_option(f)
+	assert_not_null(o, "斥候が敵に張り付いていれば成立する")
+	assert_eq(o.participants, [1, 2] as Array[int], "参加者は弓兵と斥候の2体")
+	assert_eq(o.max_range, 3, "射程上限は弓兵の通常射程")
+	assert_eq(o.min_range, 1, "射程下限も弓兵の通常射程")
+
+## 斥候が発動者にだけ隣接していても成立しない＝見るのは対象の周り。
+func test_trick_shot_not_detected_when_scout_only_near_leader() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var archer := Unit.new(1, 0, c, 4, 8, 30, 30, 1, "archer")
+	archer.min_range = 1
+	archer.attack_range = 3
+	s.add_unit(archer)
+	s.add_unit(Unit.new(2, 0, Hex.neighbor(c, 0), 7, 8, 20, 20, 1, "scout"))  # 弓兵の隣
+	s.add_unit(Unit.new(9, 1, c + Hex.direction(0) * 3, 3, 8, 10, 40))  # 射程内だが誰も張り付いていない
+	assert_eq(_count(Formation.available_for(s, archer), "trick_shot"), 0,
+		"敵に張り付いていない斥候では成立しない")
+
+## 対象は斥候が張り付いた駒だけ＝射程内でも隣に斥候が居なければ選べない。
+func test_trick_shot_target_must_be_pinned() -> void:
+	var f := _trick_shot_state()
+	var s: BattleState = f["s"]
+	var loose_hex: Vector2i = f["archer"].pos + Hex.direction(0) * 2  # 射程内だが斥候から離れている
+	s.add_unit(Unit.new(10, 1, loose_hex, 3, 8, 10, 40))
+	var cells := Formation.targetable_cells(s, _trick_shot_option(f))
+	assert_true(f["enemy_hex"] in cells, "張り付かれた敵は選べる")
+	assert_false(loose_hex in cells, "張り付かれていない敵は選べない")
+
+## 射程は弓兵の通常射程そのもの＝下限を持つ弓兵は懐の敵を撃てない。
+## 判定は移動先の位置で行う（発動者は移動してから撃てる）＝from_hex で寄った先を見る。
+func test_trick_shot_respects_range_floor() -> void:
+	var f := _trick_shot_state()
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var close := Hex.neighbor(f["enemy_hex"], 3)  # 敵の隣＝距離1
+	archer.min_range = 1
+	assert_eq(_count(Formation.available_for(s, archer, close), "trick_shot"), 1,
+		"下限1なら隣接からでも撃てる")
+	archer.min_range = 2
+	assert_eq(_count(Formation.available_for(s, archer, close), "trick_shot"), 0,
+		"下限を割る距離では成立しない")
+
+## 貫通0.5の上書き＝弓（素の貫通0）でも相手の防御が半分になる。
+func test_trick_shot_pierces_half() -> void:
+	var f := _trick_shot_state(40)
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var enemy: Unit = f["enemy"]
+	assert_eq(archer.pierce, 0.0, "前提: 弓兵は素で貫通を持たない")
+	var atk := Combat.attack_breakdown_from(archer.troops, archer.unit_attack,
+		Combat.level_factor(archer), Combat.surround_factor(s, archer),
+		TerrainType.attack_factor(s.terrain_at(archer.pos)), 0.0)
+	var bare := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
+		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
+		TerrainType.defense_factor(s.terrain_at(enemy.pos)), 0.0, 0.0)
+	var half := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
+		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
+		TerrainType.defense_factor(s.terrain_at(enemy.pos)), 0.0, 0.5)
+	var expect := Combat.hit_from_breakdowns(atk, half, enemy.troops).loss
+	assert_gt(expect, Combat.hit_from_breakdowns(atk, bare, enemy.troops).loss,
+		"前提: 貫通が乗ると損害が増える")
+	var res := FormationResolver.resolve(s, _trick_shot_option(f), f["enemy_hex"])
+	assert_eq(res.hits[0].loss, expect, "貫通0.5を上書きした損害")
+
+## 矢のレシピは通常攻撃と同じく相手で切り替える＝飛行の敵には対空値（設計原則3の例外）。
+func test_trick_shot_uses_air_attack_vs_aerial() -> void:
+	var f := _trick_shot_state(40)
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var enemy: Unit = f["enemy"]
+	enemy.move_type = "flight"
+	var atk := Combat.attack_breakdown_from(archer.troops, archer.atk_air,
+		Combat.level_factor(archer), Combat.surround_factor(s, archer),
+		TerrainType.attack_factor(s.terrain_at(archer.pos)), 0.0)
+	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
+		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
+		TerrainType.defense_factor(s.terrain_at(enemy.pos)), 0.0, 0.5)
+	var expect := Combat.hit_from_breakdowns(atk, df, enemy.troops).loss
+	var res := FormationResolver.resolve(s, _trick_shot_option(f), f["enemy_hex"])
+	assert_eq(res.hits[0].loss, expect, "飛行の敵には対空値で撃つ")
+
+## 着弾先を先に選ぶスキル＝相方は対象が決まってから引く。
+func test_trick_shot_choice_is_target_first() -> void:
+	var f := _trick_shot_state()
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["archer"]), "trick_shot")
+	assert_not_null(c, "トリックショットの項目が出る")
+	assert_true(c.target_first, "着弾先が先の形")
+	assert_true(f["enemy_hex"] in Formation.choice_targetable_cells(s, c),
+		"相方が決まる前でも撃てる先が出る")
+	assert_eq(Formation.members_for_target(s, c, f["enemy_hex"]), [2] as Array[int],
+		"その敵に張り付いている斥候が相方になる")
+
+## 同じ敵に斥候が2体張り付いていれば、どちらを供出するかを選ぶ。
+func test_trick_shot_two_spotters_offer_both() -> void:
+	var f := _trick_shot_state()
+	var s: BattleState = f["s"]
+	s.add_unit(Unit.new(3, 0, Hex.neighbor(f["enemy_hex"], 3), 7, 8, 50, 20, 1, "thief"))
+	var c := _choice(Formation.choices_for(s, f["archer"]), "trick_shot")
+	assert_eq(c.member_sets.size(), 2, "組は斥候1体ごとに1つ")
+	assert_eq(Formation.members_for_target(s, c, f["enemy_hex"]).size(), 2,
+		"同じ敵に張り付く2体がどちらも相方の候補")
+
+## 参加者は弓兵と斥候の2体とも行動完了＝殴るか撃つかの二択になる。
+func test_trick_shot_spends_both() -> void:
+	var f := _trick_shot_state()
+	var s: BattleState = f["s"]
+	FormationResolver.resolve(s, _trick_shot_option(f), f["enemy_hex"])
+	assert_true(s.is_done(1), "弓兵は行動完了")
+	assert_true(s.is_done(2), "斥候も行動完了")
+
+# --- 単体を狙うスキルの対象（③④共通）---
+
+## 単体狙撃が選べるのは敵の駒だけ。面（①）に巻き込まれるのとは別の話。
+## 詳細 → doc/gdd/formations.md 共通ルール
+func test_single_cannot_target_ally() -> void:
+	var f := _judgment_state()
+	var s: BattleState = f["s"]
+	var ally_hex: Vector2i = f["leader"].pos + Hex.direction(0) * 3  # 射程内の味方（参加者ではない）
+	s.add_unit(Unit.new(5, 0, ally_hex, 3, 8, 20, 20, 1, "fighter"))
+	var opt := _pick(Formation.available_for(s, f["leader"]), "divine_judgment")
+	var cells := Formation.targetable_cells(s, opt)
+	assert_true(f["enemy_hex"] in cells, "敵は選べる")
+	assert_false(ally_hex in cells, "味方は選べない")
+	assert_null(FormationResolver.resolve(s, opt, ally_hex), "味方を指定しても発動しない")
+
+## ④も同じ＝斥候に隣接していても味方は着弾先にならない。
+func test_trick_shot_cannot_target_ally() -> void:
+	var f := _trick_shot_state()
+	var s: BattleState = f["s"]
+	var scout: Unit = f["scout"]
+	var ally_hex := Hex.neighbor(scout.pos, 3)  # 斥候の隣に味方を置く
+	if s.unit_at(ally_hex) != null:
+		ally_hex = Hex.neighbor(scout.pos, 4)
+	s.add_unit(Unit.new(5, 0, ally_hex, 3, 8, 20, 20, 1, "fighter"))
+	var cells := Formation.targetable_cells(s, _trick_shot_option(f))
+	assert_true(f["enemy_hex"] in cells, "張り付かれた敵は選べる")
+	assert_false(ally_hex in cells, "斥候の隣でも味方は選べない")
