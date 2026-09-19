@@ -274,8 +274,11 @@ func _build_ui() -> void:
 	_mode_box.add_theme_constant_override("separation", 6)
 	panel.add_child(_mode_box)
 
-	# ステータス行
+	# ステータス行。折り返す＝折り返さない Label は「文字列の長さ」を最小幅として親に要求するので、
+	# 長いメッセージ（保存時の未登録キーの列挙など）が出ると上の盤＋パネルまで一緒に広げられ、
+	# 右パネルがウィンドウの外へ押し出される。
 	_status = Label.new()
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.modulate = Color(1, 1, 1, 0.7)
 	root.add_child(_status)
 
