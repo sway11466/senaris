@@ -3,6 +3,7 @@
   "rank": { "turn_s": 13, "turn_a": 19, "survival_s": 7, "survival_a": 4 },
   "name": "dragon-hunt-st7",
   "haze": 0.80,
+  "backdrop": "crater_wall",
   "player": [
     { "units": [
         {"type": "bishop", "col": 7, "row": 14, "actor": "bishop", "supply": "refill"},

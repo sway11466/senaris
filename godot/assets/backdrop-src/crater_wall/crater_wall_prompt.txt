@@ -1,19 +1,21 @@
-SUBJECT: The far wall of a volcano's crater, a red dragon's nest, seen from
-across the crater floor. A single wide wall of cooled lava rock, the same
-material as the crater floor: a skin of dark warm grey-brown crust, hex
+SUBJECT: A towering wall of volcanic rock, the nest of a red dragon, seen
+close up from straight ahead. The rock fills the picture edge to edge and
+continues past the bottom edge, which cuts straight through the middle of the
+rock face: at the bottom of the picture we are still looking at the wall
+itself, not at what lies at its feet. Along the top the wall breaks into a
+ragged ridge of blunt spires and notches, none of them centered and none of
+them reaching below the middle, with a flat haze of grey-brown smoke behind
+them. The wall is a skin of cooled lava crust, dark warm grey-brown, hex
 #3A322D, broken into irregular plates in flat tones between #463C35 and
-#2E2824, with clear dark outlines between the plates. The wall has broad
-blocky ledges and cracked buttresses, and a few blunt spires along the top
-edge, none of them centered and none reaching below the middle. The cracks
-between the plates glow the same orange as the molten lava below, hex #E0702A,
-but seen from far off: thin, dim, scattered evenly over the whole wall, never
-widening into a pool, never gathering in one spot, and never reaching the hot
-pale yellow-orange #F2B04A. The crust stays by far the larger area, so the
-wall reads as DARK rock with faint warm lines - do NOT flood it with orange
-and do NOT push the glow toward pink or red. A flat haze of grey-brown smoke
-hangs across the upper part of the wall and softens it. No lava river, no
-fountain of fire, no sparks, no sun, no sky, no cave mouth, no bones or
-treasure. The rock face fills the whole picture from top to bottom: the bottom
-edge cuts across the middle of the wall, so NO crater floor, NO ground, NO
-base of the wall and NO flat band of any kind is visible anywhere - only rock
-face, a little darker toward the bottom.
+#2E2824 with clear dark outlines between them, stacked into broad blocky
+ledges and cracked buttresses. The cracks between the plates glow the same
+orange as molten lava, hex #E0702A, but seen from far off: thin, dim,
+scattered evenly over the whole wall, never widening into a pool, never
+gathering in one spot, and never reaching the hot pale yellow-orange #F2B04A.
+The crust stays by far the larger area, so the wall reads as DARK rock with
+faint warm lines - do NOT flood it with orange and do NOT push the glow toward
+pink or red. Every part of the picture below the ridge is rough vertical rock,
+broken and irregular all the way down to the bottom edge, growing a little
+darker toward the bottom. No smooth or level surface anywhere, no ash, no
+rubble, no lava river, no fountain of fire, no sparks, no sun, no sky, no cave
+mouth, no bones and no treasure.

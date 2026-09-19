@@ -1,0 +1,4 @@
+# 原画 1792x592（3.03:1）。窓が要る最大 3.46:1 より縦に余裕があるので、切り抜き・寸法変更なし。
+# 明度 平均26%/最小14%/最大50%、標準偏差8%、彩度 平均13%（HSL）、平均色 #4C433A。低コントラストで、調整しない。
+# JPEG を PNG に変換するだけ（透過なし）。
+magick assets\backdrop-src\crater_wall\crater_wall_01_raw.jpg assets\backdrop\crater_wall.png
