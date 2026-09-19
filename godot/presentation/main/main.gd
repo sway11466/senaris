@@ -975,7 +975,7 @@ func _on_manual_closed() -> void:
 ## クロニクル＝タイトルに重ねて開く。マニュアルと同じ扱い。仕様 → doc/gdd/chronicle.md
 func _on_title_chronicle() -> void:
 	_title.show_stamp(false)
-	_chronicle_screen.open(_chronicle_store, _progress)
+	_chronicle_screen.open(_chronicle_store, _progress, _skins)
 
 func _on_chronicle_closed() -> void:
 	_title.show_stamp(true)

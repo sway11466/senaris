@@ -40,11 +40,12 @@ func _ordered_skins() -> Array:
 		categories[cat_map[s.category]]["skins"].append(s)
 	return categories
 
-## 格子の1枚。面は盤の絵だけ。未解放は黒いシルエット。
+## 格子の1枚。面は盤の絵だけ（紙を先に出し、絵はあとから載せる）。未解放は黒いシルエット。
 func _unit_card(skin: UnitSkin, known: bool, card_size: Vector2) -> Control:
 	var sid := skin.skin_id
-	return _paper_card(hash(sid), known, card_size, _skin_art(skin, "map", not known),
-		func() -> void: _open_unit_card(sid))
+	var card := _paper_card(hash(sid), known, card_size, null, func() -> void: _open_unit_card(sid))
+	_defer_face(card, [skin.image("map")], func() -> Control: return _skin_art(skin, "map", not known))
+	return card
 
 # ---------------------------------------------------------------------------
 # 拡大カード

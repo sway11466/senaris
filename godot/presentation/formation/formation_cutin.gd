@@ -67,14 +67,19 @@ func play(skill_id: String, caster_skin: String) -> bool:
 ## クロニクルの陣形スキル章も同じ絵をカードの面に使う（発動者ごとのレシピは「発動者になれる駒」の
 ## 先頭のスキンで引く。doc/gdd/chronicle.md 陣形スキル）。
 static func load_art(skill_id: String, caster_skin: String) -> Texture2D:
+	var path := art_path(skill_id, caster_skin)
+	return null if path.is_empty() else load(path) as Texture2D
+
+## 絵のパス。置いてなければ空。
+static func art_path(skill_id: String, caster_skin: String) -> String:
 	var stem := art_stem(skill_id, caster_skin)
 	if stem.is_empty():
-		return null
+		return ""
 	for ext in EXTS:
 		var path := "%s/%s%s" % [ART_DIR, stem, ext]
 		if ResourceLoader.exists(path):
-			return load(path) as Texture2D
-	return null
+			return path
+	return ""
 
 ## 絵のファイル名（拡張子抜き）。レシピが cutin_per_caster なら {skill_id}_{caster_skin}、
 ## それ以外は {skill_id}（渡されたスキンは使わない）。決められないときは空。
@@ -90,9 +95,14 @@ static func art_stem(skill_id: String, caster_skin: String) -> String:
 
 ## クロニクルのカードに出す絵。発動者ごとのレシピは「発動者になれる駒」の先頭のスキンで引く。
 static func load_card_art(skill_id: String) -> Texture2D:
+	var path := card_art_path(skill_id)
+	return null if path.is_empty() else load(path) as Texture2D
+
+## クロニクルのカードに出す絵のパス。無ければ空（クロニクルが裏読みの対象を知るため）。
+static func card_art_path(skill_id: String) -> String:
 	var leaders: Array = Formation.SKILLS.get(skill_id, {}).get("leader_skins", [])
 	var first := String(leaders[0]) if not leaders.is_empty() else ""
-	return load_art(skill_id, first)
+	return art_path(skill_id, first)
 
 func _animate() -> void:
 	if _tween != null and _tween.is_valid():

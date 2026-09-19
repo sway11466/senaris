@@ -51,15 +51,16 @@ func _grouped_skills() -> Array:
 		groups[index[category]]["skills"].append(rid)
 	return groups
 
-## 格子の1枚。解放済みはカットインの絵、未解放は黒塗りの顔ぶれ。
+## 格子の1枚。解放済みはカットインの絵、未解放は黒塗りの顔ぶれ（紙を先に出し、絵はあとから載せる）。
 func _skill_card(skill_id: String, known: bool, card_size: Vector2) -> Control:
-	var face: Control
-	if known:
-		face = _cutin_art(skill_id)
-	else:
-		face = _hint_face(skill_id)
 	var rid := skill_id
-	return _paper_card(hash(rid), known, card_size, face, func() -> void: _open_skill_card(rid))
+	var card := _paper_card(hash(rid), known, card_size, null, func() -> void: _open_skill_card(rid))
+	if known:
+		_defer_face(card, [FormationCutin.card_art_path(rid)],
+			func() -> Control: return _cutin_art(rid), false)
+	else:
+		_defer_face(card, _skin_paths(_figure_skins(rid)), func() -> Control: return _hint_face(rid))
+	return card
 
 ## カットインの絵。発動者ごとに絵が分かれるスキルは先頭のスキンの絵。未用意ならプレースホルダの文字。
 func _cutin_art(skill_id: String) -> Control:

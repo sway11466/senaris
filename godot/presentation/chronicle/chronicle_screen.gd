@@ -33,6 +33,7 @@ var _back: Button
 
 var _chapter: int = Chapter.UNITS
 var _chapters: Array[ChronicleChapter] = []  # Chapter の並び順
+var _types: Dictionary = {}  # UnitCatalog（{ type_id: UnitType }）。初めて開くときに読み、持ち続ける
 
 func _ready() -> void:
 	layer = LAYER
@@ -72,13 +73,15 @@ func _ready() -> void:
 	_root.add_child(_overlay)
 
 	visible = false
+	TavernTheme.request_parchment()  # カードの紙。起動時に裏で読んでおく＝初めて開くときに待たない
 
-## 開く。開くたびに最新のストアから組み直す。
-func open(store: ChronicleStore, progress: CampaignProgress) -> void:
-	var skins := SkinCatalog.load_standard()  # main.gd と同じインスタンスを参照しない＝開くときに組む
-	var types := UnitCatalog.load_default()   # { type_id: UnitType }
+## 開く。開くたびに最新のストアから組み直す。skins は盤と同じスキン表（SkinCatalog）＝
+## 開くたびに読み直さない（画像の有無確認だけで 0.3 秒かかる）。
+func open(store: ChronicleStore, progress: CampaignProgress, skins: Dictionary) -> void:
+	if _types.is_empty():
+		_types = UnitCatalog.load_default()
 	for ch in _chapters:
-		ch.bind(store, progress, skins, types, _overlay)
+		ch.bind(store, progress, skins, _types, _overlay)
 	_chapter = Chapter.UNITS
 	_show_current()
 	visible = true

@@ -182,6 +182,22 @@ static func _parchment_texs() -> Array:
 	_parchment_cache = texs
 	return texs
 
+## 羊皮紙テクスチャを裏で読み始める（画面を出す前に呼ぶ。ディスクから読むのに 0.3 秒かかる）。
+## 読み終わる前に _parchment_texs が来ても load() が裏読みの完了を待って同じものを返す。
+static func request_parchment() -> void:
+	if _parchment_loaded:
+		return
+	var base := "%sparchment.png" % SLOT_DIR
+	if ResourceLoader.exists(base):
+		ResourceLoader.load_threaded_request(base)
+	var n := 2
+	while true:
+		var p := "%sparchment_%d.png" % [SLOT_DIR, n]
+		if not ResourceLoader.exists(p):
+			break
+		ResourceLoader.load_threaded_request(p)
+		n += 1
+
 ## 羊皮紙の貼り紙。parchment.png（＋parchment_2/_3…）があればテクスチャ、無ければクリーム地＋薄縁＋落ち影。
 ## seed でカードごとに紙の変種を決定的に選ぶ（冒険譚idのhash等を渡す＝同じカードは常に同じ紙／隣とは違う紙）。
 ## ボタンの各状態に流用する（同じ seed を渡すこと＝hover で紙が変わらない。bright で hover を少し明るく）。

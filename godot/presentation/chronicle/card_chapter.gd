@@ -6,12 +6,23 @@ class_name ChronicleCardChapter
 ## 章ごとに違うのは 何を1枚にするか（スキン／レシピ）・1段の枚数と縦横比・カードの面・拡大カードの
 ## 中身。ここは格子の寸法・紙・黒塗りの絵・拡大カードの開閉だけを持つ。下段の詳細ペインは持たない
 ## ＝詳細は拡大カードで出すので、格子に高さを全部渡す。
+##
+## 絵は紙のあとから載せる（doc/gdd/chronicle.md 画面）。格子は紙だけで先に組んで画面に出し、
+## 絵は _defer_face で裏読み（ResourceLoader.load_threaded_request）→ 読めた順に _process で
+## 1フレームぶんずつ紙に載せる。絵の切り抜き（get_image＝GPU からの読み戻し）が1枚 10ms を超え
+## 全部まとめると1秒近く固まるので、矩形は画像パスごとに覚えて（_crop_rects）2回目からは読み戻さない。
+## 画像も矩形も手元にあれば待たずにその場で載せる＝2回目以降は開いた瞬間に絵が並ぶ。
 
 const PAIR_LABEL_WIDTH := 104.0  # 項目・値の表の項目の幅
 const PAIR_VALUE_WIDTH := 72.0   # 同じく値の幅
+const FACE_BUDGET_USEC := 6000   # 1フレームに絵を載せる時間の上限。超えたら残りは次のフレーム
+
+static var _crop_rects := {}  # 画像パス → 実体の矩形（Rect2。空＝切り抜かない）。プロセスの間持つ
 
 var _expanded: Control = null  # 拡大カード（開いていなければ null）
 var _grid_width := 0.0  # 格子を組んだときの器の幅。変わったら組み直す
+var _pending: Array = []   # 絵待ちのカード [{ pad, paths, crop, make }]。読めた順に載せる
+var _held: Dictionary = {}  # 裏読みで受け取った画像（パス → Texture2D）。載せ終わるまで参照を持つ
 
 ## 1段に並ぶ枚数。カードの幅は器の幅からこれで割り出す。
 func _card_columns() -> int:
@@ -26,6 +37,7 @@ func _wants_detail_pane() -> bool:
 
 func reset() -> void:
 	_close_expanded()
+	_cancel_faces()
 
 func refresh_labels() -> void:
 	_close_expanded()  # 開いたままの拡大カードは組み直さず畳む（格子へ戻る）
@@ -38,6 +50,7 @@ func handle_back() -> bool:
 	return true
 
 func rebuild() -> void:
+	_cancel_faces()  # 組み直す＝待っていた紙は消える
 	_grid_width = _content_scroll.size.x
 	super()
 
@@ -96,6 +109,7 @@ func _add_group(title: String, found: int, cards: Array) -> void:
 	_content_box.add_child(spacer)
 
 ## 格子の1枚＝依頼ボードの貼り紙と同じ羊皮紙。face が紙の上に載るもの（絵だけ。名前も数値も出さない）。
+## null なら空の紙＝あとから _defer_face で載せる。
 ## 未解放は紙を暗くして押せない。seed はカードごとの紙の変種（hover でも変わらない）。
 func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 		on_pressed: Callable) -> Control:
@@ -116,7 +130,8 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
 		pad.add_theme_constant_override(side, ChronicleStyle.CARD_PAD)
-	pad.add_child(face)
+	if face != null:
+		pad.add_child(face)
 	card.add_child(pad)
 
 	if known:
@@ -124,6 +139,86 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 	else:
 		card.disabled = true
 	return card
+
+# ---------------------------------------------------------------------------
+# 絵をあとから載せる
+# ---------------------------------------------------------------------------
+
+## 空の紙 card に、paths の画像がそろってから make() の面を載せる。画像は裏で読む。
+## crop＝面が盤の絵の切り抜き（_cropped）を使う。画像も矩形も手元にあれば待たずに載せる。
+func _defer_face(card: Control, paths: Array, make: Callable, crop := true) -> void:
+	var pad: Control = card.get_child(0)
+	if _face_ready_now(paths, crop):
+		pad.add_child(make.call())
+		return
+	for p in paths:
+		var path := String(p)
+		if not path.is_empty() and not ResourceLoader.has_cached(path):
+			ResourceLoader.load_threaded_request(path)
+	_pending.append({ "pad": pad, "paths": paths, "crop": crop, "make": make })
+	set_process(true)
+
+## 待たずに載せられるか＝画像が全部キャッシュにあり、切り抜くなら矩形も覚えている。
+func _face_ready_now(paths: Array, crop: bool) -> bool:
+	for p in paths:
+		var path := String(p)
+		if path.is_empty():
+			continue
+		if not ResourceLoader.has_cached(path):
+			return false
+		if crop and not _crop_rects.has(path):
+			return false
+	return true
+
+## 裏読みが済んだか。済んだ画像は受け取って _held に持つ（load() がキャッシュから返るように）。
+## 読めなかった画像は「済み」扱い＝make() 側が load() に失敗してプレースホルダを出す。
+func _face_loaded(job: Dictionary) -> bool:
+	for p in job["paths"]:
+		var path := String(p)
+		if path.is_empty() or _held.has(path) or ResourceLoader.has_cached(path):
+			continue
+		match ResourceLoader.load_threaded_get_status(path):
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				return false
+			ResourceLoader.THREAD_LOAD_LOADED:
+				_held[path] = ResourceLoader.load_threaded_get(path)
+	return true
+
+## 読めた紙から順に絵を載せる。1フレームの上限を超えたら残りは次のフレーム
+## （切り抜きが冷えていると1枚 10ms 超＝1フレーム1枚ずつ埋まっていく）。
+func _process(_delta: float) -> void:
+	var start := Time.get_ticks_usec()
+	var i := 0
+	while i < _pending.size():
+		var job: Dictionary = _pending[i]
+		if not _face_loaded(job):
+			i += 1
+			continue
+		_pending.remove_at(i)
+		var pad: Control = job["pad"]
+		if is_instance_valid(pad):
+			var face: Control = job["make"].call()
+			var target: float = face.modulate.a  # 黒塗りは alpha を持つので 1.0 に上書きしない
+			face.modulate.a = 0.0
+			pad.add_child(face)
+			create_tween().tween_property(face, "modulate:a", target, ChronicleStyle.FADE_SEC * 0.5)
+		if Time.get_ticks_usec() - start > FACE_BUDGET_USEC:
+			break
+	if _pending.is_empty():
+		_held.clear()
+		set_process(false)
+
+func _cancel_faces() -> void:
+	_pending.clear()
+	_held.clear()
+	set_process(false)
+
+## 駒の盤の絵のパスの並び（_defer_face の paths）。未用意は空文字＝待たない。
+func _skin_paths(skins: Array) -> Array:
+	var out: Array = []
+	for s in skins:
+		out.append((s as UnitSkin).image("map"))
+	return out
 
 ## 駒の絵1枚（盤の絵か戦闘の絵）。画像が未用意ならプレースホルダの文字（doc/art/overview.md）。
 ## silhouette＝黒く塗り潰して形だけ見せる（未解放のカード）。
@@ -141,7 +236,7 @@ func _skin_texture(skin: UnitSkin, slot: String) -> Texture2D:
 	var tex := load(path) as Texture2D
 	if tex == null:
 		return null
-	return _cropped(tex)
+	return _cropped(tex, path)
 
 ## 絵1枚を枠いっぱいに（比率は保つ）。
 func _art_rect(tex: Texture2D, silhouette: bool) -> TextureRect:
@@ -169,16 +264,23 @@ func _art_placeholder(text: String) -> Label:
 ## 絵の実体（非透過部分）の外接矩形だけを切り出したテクスチャ。キャンバスの余白ごと枠に
 ## 収めると駒が小さくしか出ない（map は 384 角に対し実体が 101×180 のような比率）。
 ## 会話の顔・ターン表示と同じ切り出し方（doc/art/overview.md）。
-func _cropped(src: Texture2D) -> Texture2D:
-	var img := src.get_image()
-	if img == null:
-		return src
-	var used := img.get_used_rect()
+## 矩形は path ごとに _crop_rects に覚える（get_image が GPU からの読み戻しで重い）。
+func _cropped(src: Texture2D, path: String) -> Texture2D:
+	var used: Rect2
+	if _crop_rects.has(path):
+		used = _crop_rects[path]
+	else:
+		used = Rect2()
+		var img := src.get_image()
+		if img != null:
+			var r := img.get_used_rect()
+			used = Rect2(r.position, r.size)
+		_crop_rects[path] = used
 	if used.size.x <= 0 or used.size.y <= 0:
 		return src
 	var atlas := AtlasTexture.new()
 	atlas.atlas = src
-	atlas.region = Rect2(used.position, used.size)
+	atlas.region = used
 	return atlas
 
 # ---------------------------------------------------------------------------
