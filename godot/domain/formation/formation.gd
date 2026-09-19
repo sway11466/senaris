@@ -21,6 +21,7 @@ class_name Formation
 ##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
 ##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
+## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
 ## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
 ## 陣形スキルの並びは表Aの行順に揃える＝クロニクルのカードの並び。詳細 → doc/gdd/chronicle.md 陣形スキル
@@ -84,6 +85,8 @@ const SKILLS := {
 		"pierce_override": 0.5,
 		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
 		"attack_vs": "target",
+		# 着弾の絵は射手のヘックスから飛んでくる（③の「真上から降りる」と別）。
+		"impact_motion": "fly",
 	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md

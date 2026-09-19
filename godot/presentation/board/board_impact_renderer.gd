@@ -2,7 +2,8 @@ extends Node3D
 class_name BoardImpactRenderer
 ## 陣形スキル／ユニットスキルの着弾演出（hex_board_3d.gd から切り出し）。
 ## 面の光 → 被弾した駒を1体ずつ（エフェクト→フラッシュ→兵数、撃破はフェード）。
-## 単体対象のスキル（③④）だけ専用シーケンス（ため→絵が真上から降りる→残光）＝_play_single_target。
+## 単体対象のスキル（③④）だけ専用シーケンス（ため→絵が届く→残光）＝_play_single_target。
+## 絵の届き方はレシピの impact_motion で分かれる＝真上から降りる（③）／射手から飛ぶ（④）。
 ## このノード自身が一時的な演出メッシュ（着弾の光・駒に重ねるエフェクト）の入れ物になる。
 ## オーバーレイの作り直しで消えない層＝hex_board_3d の旧 _fx_root に相当する。
 ## 詳細 → doc/gdd/formations.md 発動の演出
@@ -47,6 +48,15 @@ const SINGLE_DROP_FROM := TILE * 10.0  # 降下開始の高さ（着地位置か
 const SINGLE_WIDTH_TILES := 1.6        # 絵の幅（ヘックス幅の何倍か）。縦長の絵なので幅基準で釣り合わせる
 const SINGLE_HOLD_SEC := 0.40          # 着弾後に絵を立たせておく時間（この間に被弾フラッシュ・撃破フェードが進む）
 const SINGLE_FADE_SEC := 0.40          # 絵の引き
+
+# --- 飛んでくる絵（④トリックショット。レシピの impact_motion "fly"）---
+# 射手のヘックスから対象のヘックスへ絵を走らせる。真上から降ろす③と違い、どこから撃ったのかが
+# 盤に出る＝供出した弓兵が読める。絵は地面に寝かせて進行方向へ回す（→ doc/gdd/formations.md 発動の演出）。
+const FLY_SEC := 0.26                  # 飛翔時間。矢なので降下（③）より速い＝一瞬で届く
+const FLY_ARC := TILE * 0.7            # 弧の高さ（中間で一番高い）。真っ直ぐ滑らせると滑走に見える
+const FLY_HEIGHT := TILE * 0.55        # 地面からの高さ（駒の胸のあたり）
+const FLY_TILES := 1.5                 # 絵の大きさ（長辺がヘックス幅の何倍か）
+const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時間（③の残光より短い）
 
 # --- 外部依存（setup で注入）---
 var _unit_renderer: BoardUnitRenderer
@@ -134,7 +144,7 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	if String(Formation.SKILLS.get(result.skill, {}).get("effect", "")) == "single":
 		var single_tex := _impact_texture(result.skill)
 		if single_tex != null:
-			await _play_single_target(hits[0], single_tex, is_locked)
+			await _play_single_target(result, single_tex, is_locked)
 			return
 	var gen := _impact_gen
 	# 決着のとどめ＝落下・駒送り・撃破フェードをスローで見せる（面の光の居座りも同じだけ伸ばす）。
@@ -166,13 +176,18 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	_sync_fn.call()
 
 
-## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵がゆっくり降りて着弾 → 残光 → 引き。
-## 対象は1体だけなので hit を直接受ける。被弾の処理（フラッシュ・兵数・撃破フェード）は
-## 絵が着地した瞬間に共通の _land_hit で起こす。
-func _play_single_target(hit: SkillHit, tex: Texture2D, is_locked: bool) -> void:
+## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵が届いて着弾 → 残光 → 引き。
+## 届き方はレシピの impact_motion で分かれる："drop"（既定・③＝真上からゆっくり降りる）／
+## "fly"（④＝射手のヘックスから飛んでくる）。被弾の処理（フラッシュ・兵数・撃破フェード）は
+## どちらも絵が着いた瞬間に共通の _land_hit で起こす。
+func _play_single_target(result: SkillResult, tex: Texture2D, is_locked: bool) -> void:
 	var gen := _impact_gen
-	# 決着のとどめ＝絵の降下・残光・撃破フェードをスローで見せる（ためはそのまま）。
+	# 決着のとどめ＝絵の到達・残光・撃破フェードをスローで見せる（ためはそのまま）。
 	var st := FINISH_STRETCH if _finisher else 1.0
+	var hit: SkillHit = result.hits[0]
+	# 射手の位置が要る＝取れなければ真上から降ろす（穴は開かない）。
+	var flying := _fly_motion(result) and result.caster != null
+	var reach := (FLY_SEC + FLY_HOLD_SEC) if flying else (SINGLE_DROP_SEC + SINGLE_HOLD_SEC)
 	_impact_lock = not is_locked
 	_set_locked_fn.call(true)  # 共通シーケンスと同じ流儀＝演出中に盤を触らせない
 	await _wait(HIT_LEAD_SEC)
@@ -180,8 +195,8 @@ func _play_single_target(hit: SkillHit, tex: Texture2D, is_locked: bool) -> void
 		_end_impact()
 		return
 	var hex := hit.hex
-	# ための光は絵が引き始めるまで居座らせる＝どこに落ちるのか・落ちているのかが見えたまま進む。
-	_flash_cells([hex], SINGLE_CHARGE_SEC + (SINGLE_DROP_SEC + SINGLE_HOLD_SEC) * st - HIT_CELL_RISE - HIT_CELL_SETTLE,
+	# ための光は絵が引き始めるまで居座らせる＝どこへ来るのか・来ているのかが見えたまま進む。
+	_flash_cells([hex], SINGLE_CHARGE_SEC + reach * st - HIT_CELL_RISE - HIT_CELL_SETTLE,
 		HIT_CELL_ALPHA, SINGLE_CHARGE_ALPHA_HOLD)
 	await _wait(SINGLE_CHARGE_SEC)
 	if gen != _impact_gen:
@@ -190,13 +205,21 @@ func _play_single_target(hit: SkillHit, tex: Texture2D, is_locked: bool) -> void
 	var on_land := func() -> void:
 		if gen == _impact_gen:
 			_land_hit(hit, st)
-	_spawn_falling_impact(hex, tex, on_land, st)
-	await _wait((SINGLE_DROP_SEC + SINGLE_HOLD_SEC + SINGLE_FADE_SEC) * st)
+	if flying:
+		_spawn_flying_impact(result.caster.pos, hex, tex, on_land, st)
+	else:
+		_spawn_falling_impact(hex, tex, on_land, st)
+	await _wait((reach + SINGLE_FADE_SEC) * st)
 	if gen != _impact_gen:
 		_end_impact()
 		return
 	_end_impact()
 	_sync_fn.call()
+
+
+## そのスキルの絵が射手から飛んでくるか（レシピの impact_motion）。既定は真上から降りる。
+func _fly_motion(result: SkillResult) -> bool:
+	return String(Formation.SKILLS.get(result.skill, {}).get("impact_motion", "drop")) == "fly"
 
 
 ## 着弾は無いが光らせる面がある（スライムの湧き位置・駒の居ない面への着弾）。
@@ -352,6 +375,43 @@ func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 1
 	tw.tween_property(spr, "scale", Vector3.ONE * HIT_BURST_OPEN, HIT_BURST_SEC * stretch)
 	tw.tween_property(spr, "modulate:a", 0.0, HIT_BURST_SEC * stretch)
 	tw.chain().tween_callback(spr.queue_free)
+
+
+## スキルの絵を1枚、射手のヘックスから対象のヘックスへ飛ばす。着いた瞬間に on_land を呼ぶ。
+## 絵は地面に寝かせて（法線を上へ向けて）進行方向へ回す＝真上から見た形で右向き（+X）に描いた絵が
+## そのまま飛ぶ向きになる。駒と同じ板看板（ビルボード）にすると、どの方向へ飛んでも同じ絵が出て
+## 向きが読めないため、ここだけ寝かせる。詳細 → doc/gdd/formations.md 発動の演出
+## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
+func _spawn_flying_impact(from_hex: Vector2i, to_hex: Vector2i, tex: Texture2D,
+		on_land: Callable, stretch := 1.0) -> void:
+	var a := Hex.to_pixel(from_hex, TILE)
+	var b := Hex.to_pixel(to_hex, TILE)
+	var start := Vector3(a.x, _elev_fn.call(from_hex) + FLY_HEIGHT, a.y)
+	var land := Vector3(b.x, _elev_fn.call(to_hex) + FLY_HEIGHT, b.y)
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.double_sided = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
+	spr.render_priority = 6
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (FLY_TILES * TILE) / maxf(longest, 1.0)
+	# 寝かせる（-90度）＋進行方向へ回す。絵の右が +X なので、向き (dx, dz) への角は atan2(-dz, dx)。
+	var d := land - start
+	spr.rotation = Vector3(-PI * 0.5, atan2(-d.z, d.x), 0.0)
+	spr.position = start
+	add_child(spr)
+	# 弧を描いて飛ぶ＝真っ直ぐ滑らせると地を這っているように見える。頂点は中間。
+	var fly := func(t: float) -> void:
+		spr.position = start.lerp(land, t) + Vector3(0.0, FLY_ARC * sin(PI * t), 0.0)
+	var tw := create_tween()
+	tw.tween_method(fly, 0.0, 1.0, FLY_SEC * stretch).set_ease(Tween.EASE_OUT)  # 手を離れた直後が速い
+	tw.tween_callback(on_land)
+	tw.tween_interval(FLY_HOLD_SEC * stretch)  # 刺さったまま少し置く
+	tw.tween_property(spr, "modulate:a", 0.0, SINGLE_FADE_SEC * stretch)
+	tw.tween_callback(spr.queue_free)
 
 
 ## スキルの絵を1枚。幅基準で大きく出し（縦長の絵＝長辺基準だと痩せる）、上からゆっくり降ろして

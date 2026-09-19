@@ -40,14 +40,14 @@ func test_color_formation_hit_is_gold() -> void:
 	var c := BoardImpactRenderer.COLOR_FORMATION_HIT
 	assert_true(c.r > 0.9 and c.g > 0.7, "着弾の光は金色系")
 
-# --- ディバインジャッジメント専用の定数 ---
+# --- 単体対象のスキル専用の定数 ---
 
 func test_dj_charge_positive() -> void:
 	assert_true(BoardImpactRenderer.SINGLE_CHARGE_SEC > 0.0, "ためは正の値")
 
 func test_dj_drop_slower_than_common() -> void:
 	assert_true(BoardImpactRenderer.SINGLE_DROP_SEC > BoardImpactRenderer.HIT_DROP_SEC,
-		"柱の降下は共通の落下より遅い＝ゆっくり見せる")
+		"真上から降りる絵は共通の落下より遅い＝ゆっくり見せる")
 
 func test_dj_charge_alpha_hold_in_safe_range() -> void:
 	var a := BoardImpactRenderer.SINGLE_CHARGE_ALPHA_HOLD
@@ -122,3 +122,13 @@ func test_impact_finished_emitted_on_empty_hits() -> void:
 	renderer.impact_finished.connect(func() -> void: called["emitted"] = true)
 	await renderer.play(SkillResult.new(), false)
 	assert_true(called["emitted"], "impact_finished が発行される")
+
+# --- 飛んでくる絵（④）の定数 ---
+
+func test_fly_is_quicker_than_drop() -> void:
+	assert_true(BoardImpactRenderer.FLY_SEC < BoardImpactRenderer.SINGLE_DROP_SEC,
+		"矢は真上から降りる絵より速く届く")
+
+func test_fly_arc_and_height_positive() -> void:
+	assert_true(BoardImpactRenderer.FLY_ARC > 0.0, "弧の高さは正＝真っ直ぐ滑らせない")
+	assert_true(BoardImpactRenderer.FLY_HEIGHT > 0.0, "地面より上を飛ぶ")
