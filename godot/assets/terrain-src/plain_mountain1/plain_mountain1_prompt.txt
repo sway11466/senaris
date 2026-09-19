@@ -1,0 +1,22 @@
+SUBJECT: The bare TRODDEN GROUND of a mountain trail, seen straight from
+directly overhead — hard, level ground worn smooth by feet, where the
+mountain's own rock lies just under a thin skin of packed grit. Pale warm grey
+stone, hex #BCAF9B — use this exact base, keep it consistent across all
+variants, and do NOT drift cooler, bluer, more purple, more yellow or more
+saturated than it, and do NOT make it darker or lighter than it either. The
+surface is mostly smooth and even: broad flat areas of bare rock and packed
+grit blending into each other with only very subtle tonal shifts. Only a FEW
+hairline cracks, short and sparse, running in NO single direction — most of
+the frame has none at all. Scattered over the ground: a little loose grit,
+small rock chips and a few flat stones pressed flush into it, each small — at
+most 1/12 of the frame across (about 80px in a 1000px image) — placed randomly
+and unevenly, a few loose clusters here, bare empty ground there, never in
+rows or a regular grid, and never so many that they carpet the frame. This
+ground covers much of the board, so keep the large-scale colour especially
+even and low-contrast: no large dark or light patches, no worn line or ruts
+drawn across it, no steps, no ledges, no single big feature. Flat cel shading
+only. NO grass, NO moss, NO lichen, NO plants, NO soil mounds, NO puddles, NO
+snow, NO water. NO worked stone — NO flagstones, NO paving, NO tiles, NO
+bricks, NO mortar lines. NO objects of any kind — NO bones, NO props. This is
+only the flat ground — NO cliff, NO slope, NO drop-off, NO edge shadow, NO
+cast shadow in the tile. Draw no shadows and no light direction.

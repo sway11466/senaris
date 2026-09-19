@@ -1,0 +1,8 @@
+# 上面＝山道の踏み固めた岩の地面。1024px の原寸をそのまま切り抜く。
+# 8候補から選んだ3枚。切り抜き後の明度 66.9 / 67.0 / 66.6（幅0.4）、明暗むら 0.85 / 1.54 / 1.80（平らな地形の上限1.8以内）。
+# 没の5枚: a・h＝明度が2ポイント暗く亀裂が多い／b・f・g＝明暗むらが2を超える。
+powershell -File tools\gen_terrain_tile.ps1 plain_mountain1 assets\terrain-src\plain_mountain1\plain_mountain1_d.jpg assets\terrain-src\plain_mountain1\plain_mountain1_e.jpg assets\terrain-src\plain_mountain1\plain_mountain1_c.jpg
+
+# terrain_skin.csv: plain_cave1 の行を写す（elevation 0 / orientable full / side_tiling stretch）。基準色は岩地と同じ #BCAF9B。
+# CSV を直したら JSON を焼き直す:
+#   godot --headless --path . --script res://data/terrain/convert.gd

@@ -22,6 +22,7 @@ plain_grave1_fort_chapel1,fort,礼拝堂,none,false,,0,0,,standee,0.75,0.45,,tru
 plain_grave1_fort_crypt1,fort,納骨堂,none,false,,0,0,,standee,0.85,0.50,,true,plain_grave1,plain_grave1,墓地の拠点＝敵の湧き元。地面に開いた穴＝暴かれた墓。占領で蓋が戻って塞がり（_team0=味方）、敵が持つと奥に青緑の光（_team1）
 plain_grave1_prop_tomb1,prop,墓標,flip_x,false,,0,0,,standee,0.61,0.3,,true,plain_grave1,plain_grave1,墓地の草地に墓標が並ぶ。足場が悪い床＝移動2の屍を1マスに落とす。建物と入口を持たない＝湧かない側（納骨堂と対）
 plain_grave1_rubble_tombstone1,rubble,墓石の山,none,false,,0,0,,standee,1.0,0.45,,true,plain_grave1,plain_grave1,崩れた納骨堂と墓石が積み上がった山。瓦礫＝地上は通れず飛行と斥候だけ越える壁。マスを埋めて見せる
+plain_mountain1,plain,山道,full,false,,0,0,stretch,,,,,true,,,山の踏み固めた岩の地面（性能は平地のまま）。基準色は岩地と同じで、山道セットの足場になる
 plain_prop_garden1,prop,菜園,none,false,,0,0,,standee,0.7,0.45,,true,plain,plain,道の菜園（road_prop_garden1）の複製を平地の上に置く
 plain_trap,trap,罠,none,false,,0,0,,standee,0.15,0.2,,true,plain,plain,
 plateau,plateau,台地,full,false,,0.18,0.18,stretch,,,,,true,,,
