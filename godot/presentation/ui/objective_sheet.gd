@@ -5,11 +5,13 @@ class_name ObjectiveSheet
 ## 中身は組まない＝行は main から受け取る（組むのは application/objective_text.gd）。
 
 const LAYER := 80  # クロニクルの物語(79)より前面。同時に開くことはないが番号は専用に取る
-const SHEET_W := 560.0   # 紙の最小の幅。高さは条件の行数で伸びる
+const SHEET_W := 560.0   # 紙の最小の幅。高さは条件の行数で伸び、幅も長い行に合わせて広がる（MAX_W まで）
+const MAX_W_RATIO := 0.82  # 紙の幅の上限＝画面幅に対する比。ここを越える行だけ折り返す
 const TITLE_FONT := 26
 const HEAD_FONT := 20
 const BODY_FONT := 17
 const NOTE_FONT := 14    # 見出しに添える「いずれか1つで決まる」
+const PAD_H := 32.0      # 紙の左右の余白（幅を測るときも同じ値を足す）
 const DOT := 7.0         # 行の頭の印（インクの点）。記号を文字で置かない＝環境でフォントが変わる
 const DOT_GAP := 10.0
 
@@ -23,6 +25,7 @@ var _lose_head: Label
 var _win_note: Label
 var _lose_note: Label
 var _close: Button
+var _sheet: PanelContainer  # 幅を中身に合わせて広げるので持っておく
 
 func _ready() -> void:
 	layer = LAYER
@@ -40,16 +43,16 @@ func _ready() -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(center)
 
-	var sheet := PanelContainer.new()
-	sheet.custom_minimum_size = Vector2(SHEET_W, 0.0)
-	sheet.add_theme_stylebox_override("panel", TavernTheme.sheet_stylebox())
-	center.add_child(sheet)
+	_sheet = PanelContainer.new()
+	_sheet.custom_minimum_size = Vector2(SHEET_W, 0.0)
+	_sheet.add_theme_stylebox_override("panel", TavernTheme.sheet_stylebox())
+	center.add_child(_sheet)
 
 	var pad := MarginContainer.new()
 	for side in ["margin_left", "margin_right", "margin_bottom"]:
-		pad.add_theme_constant_override(side, 32)
+		pad.add_theme_constant_override(side, int(PAD_H))
 	pad.add_theme_constant_override("margin_top", 36)
-	sheet.add_child(pad)
+	_sheet.add_child(pad)
 
 	var content := VBoxContainer.new()
 	content.add_theme_constant_override("separation", 14)
@@ -116,7 +119,21 @@ func open(lines: Dictionary) -> void:
 	_lose_note.text = tr("ui.objective.any")
 	_win_note.visible = win.size() > 1
 	_lose_note.visible = lose.size() > 1
+	_fit_width(win, lose)
 	visible = true
+
+## 紙の幅をいちばん長い行に合わせる（MAX_W_RATIO まで）。英語は行が長くなりがちで、
+## 幅を固定すると条件が2行に割れる＝1件がいくつあるのかが読みにくくなる。
+## 上限を越える行だけは折り返す（Label の autowrap が受ける）＝紙が画面からはみ出さない。
+func _fit_width(win: PackedStringArray, lose: PackedStringArray) -> void:
+	var font := _title.get_theme_font("font")
+	var widest := 0.0
+	for line in win + lose:
+		widest = maxf(widest, font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, BODY_FONT).x)
+	# 行の左の印とその隙間、紙の左右の余白を足したものが要る幅。
+	var needed := widest + DOT + DOT_GAP + PAD_H * 2.0
+	var limit := get_viewport().get_visible_rect().size.x * MAX_W_RATIO
+	_sheet.custom_minimum_size.x = clampf(needed, SHEET_W, limit)
 
 ## 閉じる（「閉じる」・幕クリック・Esc の共通入口）。音は鳴らさない＝盤のシステムメニューは
 ## 開く・選ぶ・閉じるのすべてが無音で、この紙もその一部（doc/audio/sfx.md 発火点カタログ）。
