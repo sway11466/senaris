@@ -118,12 +118,11 @@ func open(lines: Dictionary) -> void:
 	_lose_note.visible = lose.size() > 1
 	visible = true
 
-## 閉じる（「閉じる」・幕クリック・Esc の共通入口）。同じ手触りの紙（依頼書・セーブ枠・設定）と
-## 同じ音で畳む＝どれを閉じたかで音が変わらない。
+## 閉じる（「閉じる」・幕クリック・Esc の共通入口）。音は鳴らさない＝盤のシステムメニューは
+## 開く・選ぶ・閉じるのすべてが無音で、この紙もその一部（doc/audio/sfx.md 発火点カタログ）。
 func close() -> void:
 	if not visible:
 		return
-	SfxPlayer.play_event("menu_back")
 	visible = false
 	closed.emit()
 
