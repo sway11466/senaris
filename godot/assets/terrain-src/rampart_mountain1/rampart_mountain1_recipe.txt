@@ -4,11 +4,15 @@
 powershell -File tools\gen_terrain_tile.ps1 rampart_mountain1 assets\terrain-src\rampart_mountain1\rampart_mountain1_b.jpg
 
 # 側面＝尾根の岩肌。左右シームレスは全幅を保つ限り生きるので、行だけを切る。
-# 高さ138px は「帯1枚で高さ0.54をちょうど覆う」値（band_h = 4.0 × 高さ ÷ 幅 ／ board_terrain_renderer.gd）。
-# 300pxで切ると縦4.3倍・横2倍に潰れて岩が平たくなった。
-# +486 は、帯を6px刻みで全走査して「輪郭の数が多い（12.7本/幅）・横方向の明暗の偏りが最小（14.9）」で選んだ。
-# 明度は上面より2.6ポイント暗い（58.1→55.7）＝岩地の上面と側面の関係（2.8）と同じ。
-magick assets\terrain-src\rampart_mountain1\rampart_mountain1_side_01_raw.jpg -crop 1024x138+0+486 +repage -colors 64 -dither None assets\terrain\rampart_mountain1_side.png
+# 元絵の全高をそのまま使う＝band_h = 4.0 × 1024 ÷ 1024 = 4.0（band_h = 4.0 × 高さ ÷ 幅 ／
+# board_terrain_renderer.gd）。尾根が出す最大の落差は竜狩り st5 の盤の外周で 3.45
+# （ステージの高さ上書きで尾根は 3.0 まで上がる ＋ スカート 0.45）なので、4.0 で1枚に収まる。
+# 最初は138px＝スキンの高さ0.54をちょうど覆う値で切ったが、st5 では 1.2 以上の落差が 190辺あり、
+# 外周（3.45）では帯が3枚ぶん並んで横一列の継ぎ目が出た。
+# repeat は u が幅4.0世界・v が 4.0×高さ÷幅 で縦横比を保つ＝高く切っても岩は潰れない。
+# 全高にすると落差ごとに見える範囲は絵の上から順になる＝138px 版で選んだ +486 の行は、
+# 落差 1.9 以上の辺でしか出てこない。明度は全体59.8・上から256px（落差1.0で見える範囲）が63.8。
+magick assets\terrain-src\rampart_mountain1\rampart_mountain1_side_01_raw.jpg -colors 64 -dither None assets\terrain\rampart_mountain1_side.png
 
 # terrain_skin.csv: rampart_granite1 の行を写す（elevation/floor 0.54・side_tiling repeat・orientable full）。
 # 色は上面 #B1A592 指定→実測58.1（指定より5ポイント暗く出る）。側面は上面から抽出した #AA9F8D/#6F6759/#C2B6A4 で指定。
