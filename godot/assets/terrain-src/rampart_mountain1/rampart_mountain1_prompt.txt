@@ -1,0 +1,7 @@
+SUBJECT: The bare TOP of an impassable rocky RIDGE, seen straight from directly
+overhead. Weathered warm grey bedrock (base colour hex #B1A592) broken by
+irregular hairline fissures running in NO single direction, with chipped
+angular fragments and a few darker recesses. Hard, sheer, clearly unclimbable.
+Keep the large-scale colour even and low-contrast so it tiles cleanly, with no
+single crag or boulder dominating the frame. This is only the flat rock surface
+— NO cliff face, NO slope, NO drop-off, NO edge shadow in the tile.

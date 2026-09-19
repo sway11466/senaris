@@ -1,0 +1,27 @@
+SUBJECT: The sheer FACE of an impassable rocky ridge, seen face-on — the flank
+of the same weathered rock whose crest is seen from above in the tile that goes
+with this one. Viewed straight from the FRONT, NOT from overhead: a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. It must tile
+SEAMLESSLY LEFT TO RIGHT: the left and right edges continue into each other.
+
+THE ROCK: broad flat faces of bare stone, separated by irregular hairline
+fissures, with chipped angular fragments wedged here and there and a few darker
+recesses. It is the SAME rock as the crest: base colour hex #AA9F8D, recesses
+down to about #6F6759, no face brighter than #C2B6A4 and none near-black. The
+fissures run mostly DOWNWARD, as if the rock split under its own weight, but
+never parallel and never in a single direction. Weathered, hard, sheer.
+
+CRITICAL — the light comes from DIRECTLY ABOVE and from nowhere else. This
+strip is wrapped around all six sides of a hexagon, so any sideways light would
+contradict itself: NO light from the left, NO light from the right, NO
+highlight or gradient running sideways across the frame, NO cast shadow thrown
+to one side.
+
+Read at the size it is used: the whole face is only a narrow strip on screen,
+so keep the faces BROAD and few — about four to six across the width of the
+frame — with no fine detail that would disappear. Spread the relief evenly from
+top to bottom, keep the large-scale colour even and low-contrast, and let no
+single large feature sit at one height only.
+
+This is only the flat rock face — NO scree or rubble pile at the bottom, NO
+talus slope, NO top surface, NO ground, NO cast shadow onto anything else.
