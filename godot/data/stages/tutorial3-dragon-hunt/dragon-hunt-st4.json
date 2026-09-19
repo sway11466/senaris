@@ -18,28 +18,28 @@
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "units": [] },
-    { "order": 2, "name": "dragon-hunt.st4.squad.2", "ai": "ambush", "sight": 5,
+    { "order": 1, "name": "dragon-hunt.st4.squad.1", "ai": "ambush", "sight": 3,
+      "units": [
+        { "skin": "treant", "col": 7, "row": 26 },
+        { "skin": "treant", "col": 9, "row": 28 },
+        { "skin": "matango", "col": 9, "row": 26 },
+        { "skin": "treant", "col": 9, "row": 24 },
+        { "skin": "treant", "col": 11, "row": 26 }
+      ] },
+    { "order": 2, "name": "dragon-hunt.st4.squad.2", "ai": "ambush", "sight": 4,
       "units": [
         { "skin": "treant", "col": 3, "row": 18 },
-        { "skin": "treant", "col": 2, "row": 23 },
-        { "skin": "rogue_slinger", "col": 18, "row": 30 },
-        { "skin": "treant", "col": 7, "row": 26 },
-        { "skin": "treant", "col": 9, "row": 24 },
-        { "skin": "treant", "col": 9, "row": 28 },
         { "skin": "treant", "col": 3, "row": 15 },
         { "skin": "treant", "col": 5, "row": 13 },
-        { "skin": "treant", "col": 11, "row": 26 },
         { "skin": "treant", "col": 4, "row": 3 },
         { "skin": "treant", "col": 3, "row": 3 },
         { "skin": "treant", "col": 2, "row": 11 }
       ] },
-    { "order": 3, "name": "dragon-hunt.st4.squad.3", "ai": "ambush", "sight": 5,
+    { "order": 3, "name": "dragon-hunt.st4.squad.3", "ai": "ambush", "sight": 4,
       "units": [
         { "skin": "matango", "col": 8, "row": 21 },
         { "skin": "matango", "col": 9, "row": 14 },
         { "skin": "matango", "col": 7, "row": 17 },
-        { "skin": "matango", "col": 9, "row": 26 },
         { "skin": "matango", "col": 11, "row": 18 },
         { "skin": "matango", "col": 12, "row": 21 },
         { "skin": "matango", "col": 7, "row": 19 },
@@ -48,7 +48,7 @@
         { "skin": "matango", "col": 9, "row": 7 },
         { "skin": "matango", "col": 11, "row": 6 }
       ] },
-    { "order": 4, "name": "dragon-hunt.st4.squad.4", "ai": "ambush", "sight": 5,
+    { "order": 4, "name": "dragon-hunt.st4.squad.4", "ai": "ambush", "sight": 6,
       "units": [
         { "skin": "mandragora", "col": 14, "row": 19 },
         { "skin": "mandragora", "col": 14, "row": 15 },
@@ -59,8 +59,9 @@
       ] },
     { "order": 5, "name": "dragon-hunt.st4.squad.5", "ai": "raid",
       "units": [
-        { "skin": "rogue_axe", "col": 16, "row": 29 },
-        { "skin": "rogue", "col": 17, "row": 29 }
+        { "skin": "rogue_axe", "col": 14, "row": 26 },
+        { "skin": "rogue", "col": 15, "row": 26 },
+        { "skin": "rogue_slinger", "col": 16, "row": 27 }
       ] },
     { "order": 6, "name": "dragon-hunt.st4.squad.6", "ai": "ambush", "sight": 0,
       "units": [
@@ -119,9 +120,9 @@
     "outro": [
       { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "dragon-hunt.st4.outro.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st4.outro.2" },
-      { "speaker": "char.birdman_child.name", "skin": "birdman", "text": "dragon-hunt.st4.outro.3" },
+      { "speaker": "char.birdman_child.name", "skin": "birdman_child", "text": "dragon-hunt.st4.outro.3" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st4.outro.6" },
-      { "speaker": "char.birdman_child.name", "skin": "birdman", "text": "dragon-hunt.st4.outro.7" },
+      { "speaker": "char.birdman_child.name", "skin": "birdman_child", "text": "dragon-hunt.st4.outro.7" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st4.outro.8" },
       { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "dragon-hunt.st4.outro.9" },
       { "speaker": "char.elf.name", "skin": "elf", "text": "dragon-hunt.st4.outro.5", "when": "joined:elf" },
@@ -129,7 +130,7 @@
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 6, "survival_a": 3 },
-  "haze": 0.80,
+  "haze": 0.8,
   "backdrop": "forest",
   "bgm": { "main": "raid" }
 }

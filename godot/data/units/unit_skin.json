@@ -24,6 +24,7 @@
 		"pixie",
 		"pegasus",
 		"birdman",
+		"birdman_child",
 		"barricade",
 		"ballista",
 		"goblin",
@@ -140,6 +141,18 @@
 					"name": "バードマン",
 					"retainers": [],
 					"skin_id": "birdman",
+					"type_id": "birdman"
+				},
+				{
+					"category": "flier",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "鳥人の子",
+					"retainers": [],
+					"skin_id": "birdman_child",
 					"type_id": "birdman"
 				}
 			],
