@@ -858,11 +858,8 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	name_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_edit.text = String(sq.get("name", ""))
 	name_edit.placeholder_text = "部隊名の翻訳キー（省略可）"
-	name_edit.text_changed.connect(func(t: String) -> void:
-		if t == "":
-			sq.erase("name")
-		else:
-			sq["name"] = t)
+	name_edit.tooltip_text = "この部隊の名前を指す翻訳キー。下の ja・en 欄がこのキーの訳になる。\n" \
+		+ "フォーカスを外すか Enter で確定する（打っている途中では適用しない）。"
 	row1.add_child(name_edit)
 	_add_button(row1, "×", func() -> void:
 		_ask("部隊%d を所属ユニットごと削除します。よろしいですか？" % index, func() -> void:
@@ -879,14 +876,39 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	tr_ja.text = String(texts.get("ja", ""))
 	tr_ja.placeholder_text = "日本語"
 	tr_ja.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tr_ja.text_changed.connect(func(t: String) -> void: _stash_i18n(name_edit.text, "ja", t))
+	tr_ja.text_changed.connect(func(t: String) -> void: _stash_i18n(String(sq.get("name", "")), "ja", t))
 	tr_row.add_child(tr_ja)
 	var tr_en := LineEdit.new()
 	tr_en.text = String(texts.get("en", ""))
 	tr_en.placeholder_text = "English"
 	tr_en.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tr_en.text_changed.connect(func(t: String) -> void: _stash_i18n(name_edit.text, "en", t))
+	tr_en.text_changed.connect(func(t: String) -> void: _stash_i18n(String(sq.get("name", "")), "en", t))
 	tr_row.add_child(tr_en)
+
+	# キーの確定は打ち終わったとき＝フォーカスを外すか Enter（駒の名前 unit_id と同じ流儀）。
+	# 1文字ごとに適用すると、打っている途中のキーに訳が書かれて別の部隊の訳と混ざる。
+	# 確定したら ja・en 欄だけ新しいキーで引き直す＝パレットごと貼り直すと、
+	# 入力欄が消えて focus_exited が古い文字列で走り、確定した値を上書きしてしまう。
+	var apply_key := func(text: String) -> void:
+		var new_key := text.strip_edges()
+		var old := String(sq.get("name", ""))
+		if new_key == old:
+			return
+		var taken := _squad_key_owner(new_key, index)
+		if taken >= 0:
+			_say("部隊名のキー \"%s\" は既に部隊%d が使っています。別のキーにしてください。" % [new_key, taken])
+			name_edit.text = old
+			return
+		if new_key == "":
+			sq.erase("name")
+		else:
+			sq["name"] = new_key
+		name_edit.text = new_key
+		var next := _i18n_texts(new_key)  # 訳は連れて行かない＝新しいキーの訳を引き直す（未登録なら空）
+		tr_ja.text = String(next.get("ja", ""))
+		tr_en.text = String(next.get("en", ""))
+	name_edit.text_submitted.connect(func(text: String) -> void: apply_key.call(text))
+	name_edit.focus_exited.connect(func() -> void: apply_key.call(name_edit.text))
 
 	var row2 := HBoxContainer.new()
 	item.add_child(row2)
@@ -899,6 +921,18 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	ai_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row2.add_child(ai_row)
 	_add_sight_row(item, sq, String(sq.get("ai", "")))
+
+
+## そのキーを使っている別の部隊の番号（self_index 自身は数えない）。無ければ -1。
+## 同じキーを2つの部隊が持つと、訳の入力がどちらの部隊のものか決まらなくなる。
+func _squad_key_owner(key: String, self_index: int) -> int:
+	if key == "":
+		return -1  # キー無し（訳を持たない部隊）は何個あってもよい
+	var squads: Array = _doc.data["enemy"]
+	for i in squads.size():
+		if i != self_index and String(squads[i].get("name", "")) == key:
+			return i
+	return -1
 
 
 ## 「敵」モード＝上段は「次に置く駒」の道具（配置先の部隊とスキン）。部隊の設定は「敵グループ」モード。
