@@ -25,14 +25,14 @@
         { "skin": "harpy", "col": 12, "row": 6 },
         { "skin": "harpy", "col": 11, "row": 5 }
       ] },
-    { "order": 2, "name": "dragon-hunt.st5.squad.x1", "ai": "charge",
+    { "order": 2, "name": "dragon-hunt.st5.squad.2", "ai": "charge",
       "units": [
         { "skin": "harpy", "col": 20, "row": 5 },
         { "skin": "harpy", "col": 21, "row": 4 },
         { "skin": "harpy", "col": 21, "row": 5 },
         { "skin": "harpy", "col": 22, "row": 5 }
       ] },
-    { "order": 3, "name": "dragon-hunt.st5.squad.2", "ai": "charge",
+    { "order": 3, "name": "dragon-hunt.st5.squad.3", "ai": "charge",
       "units": [
         { "skin": "griffon", "col": 31, "row": 0 },
         { "skin": "griffon", "col": 32, "row": 1 },
@@ -44,14 +44,14 @@
         { "skin": "rogue", "col": 10, "row": 3 },
         { "skin": "rogue_axe", "col": 9, "row": 2 }
       ] },
-    { "order": 5, "name": "dragon-hunt.st5.squad.3", "ai": "ambush", "stack": 1, "sight": 6,
+    { "order": 5, "name": "dragon-hunt.st5.squad.5", "ai": "ambush", "stack": 1, "sight": 6,
       "units": [
         { "skin": "rock_serpent", "col": 20, "row": 8 },
         { "skin": "rock_serpent", "col": 21, "row": 8 },
         { "skin": "rock_serpent", "col": 20, "row": 9 },
         { "skin": "rock_serpent", "col": 21, "row": 9 }
       ] },
-    { "order": 6, "name": "dragon-hunt.st5.squad.x2", "ai": "ambush", "sight": 6,
+    { "order": 6, "name": "dragon-hunt.st5.squad.6", "ai": "ambush", "sight": 6,
       "units": [
         { "skin": "rock_serpent", "col": 29, "row": 9 },
         { "skin": "rock_serpent", "col": 29, "row": 7 },
