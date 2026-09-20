@@ -1,0 +1,15 @@
+NOTE: これは盤の着弾エフェクト（射手のヘックスから対象へ飛んでいく小さい絵）。1秒のカットイン
+（magic_arrow_{skin}_prompt.txt）とは別物で、絵柄も違う＝人物・背景を描かず、矢そのものだけを描く。
+トリックショットは弓の攻撃エフェクト（assets/effects/arrow.png）の複製だったが、マジックアローは
+魔力のこもった矢を専用に描く。飛ぶ絵なので「真上から見た形・右へ進む向き」で描く（盤が地面に寝かせて
+進行方向へ回す＝doc/gdd/formations.md 発動の演出）。
+生成時は magic_arrow_impact_ref_cutin.png（アーチャーのカットインから矢の部分を切り出したもの＝魔力の見た目）と
+assets/effects/arrow.png（盤の矢の形）を参照画像として添付する。魔弾（magic_bolt.png）は添えない。
+置き場と工程（raw → 透過マスター 03 → gen_formation_impact.ps1）→ doc/art/keyvisual.md §3。
+STYLE は doc/art/units.md §3.4 の EFFECT STYLE（共通・固定）。
+
+SUBJECT: A single ARROW in flight, seen from directly ABOVE, flying to the RIGHT, charged with magic. Two reference images are attached. The FIRST is a crop from the game's cut-in illustration showing this very arrow nocked on the bow: reproduce its magic — the pale ice-blue sheath of light hugging the shaft, the thin light ribbons spiraling around it, the bright pale-blue point at the arrowhead — but translated into flat, hard-edged cel shapes. The SECOND is the game's plain board arrow: copy the arrow's own construction from it (plain wooden shaft, dark grey iron head on the right, pale grey fletching on the left, thick dark outline) so this reads as the same arrow with magic added.
+
+THE MAGIC: a smooth flat sheath of pale ice-blue light wraps the whole shaft from the fletching to the head, drawn as ONE clean cel-shaded shape with a hard outline, slightly wider than the shaft, two blue tones only (a light blue fill with a paler blue core). One or two thin light-blue ribbons spiral loosely around the shaft, drawn as flat hard-edged bands, the same ribbons seen in the cut-in. The arrowhead is tipped with a small, crisp pale-blue point of light, a flat shape, not a bloom. A few short light-blue sparks trail behind the fletching as small flat flecks. Everything is flat and hard-edged; the light is drawn as SHAPES, never as a glow, haze or gradient. The arrow stays clearly readable as an arrow underneath the magic.
+
+Wide horizontal composition inside the square frame: the arrow lies level across the middle, filling the frame edge to edge with only a thin margin. Pure black background (single flat color, for easy cutout).

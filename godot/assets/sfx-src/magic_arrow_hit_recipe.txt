@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/arrow_hit__2020__BOW Arrow Hit 05.wav" -i "sonniss/magic_bolt_hit__2020__Magic_Explosion_Short19.wav" -filter_complex "[0:a]aresample=48000,volume=-7.6dB[a];[1:a]aresample=48000,volume=-8.5dB[b];[a][b]amix=inputs=2:normalize=0:duration=longest,volume=-3.8dB[o]" -map "[o]" -c:a pcm_s24le magic_arrow_hit.wav
