@@ -10,14 +10,12 @@ class_name ChronicleCardChapter
 ## 絵は紙のあとから載せる（doc/gdd/chronicle.md 画面）。格子は紙だけで先に組んで画面に出し、
 ## 絵は _defer_face で裏読み（ResourceLoader.load_threaded_request）→ 読めた順に _process で
 ## 1フレームぶんずつ紙に載せる。絵の切り抜き（get_image＝GPU からの読み戻し）が1枚 10ms を超え
-## 全部まとめると1秒近く固まるので、矩形は画像パスごとに覚えて（_crop_rects）2回目からは読み戻さない。
+## 全部まとめると1秒近く固まるので、矩形は画像パスごとに覚えて（ArtCrop）2回目からは読み戻さない。
 ## 画像も矩形も手元にあれば待たずにその場で載せる＝2回目以降は開いた瞬間に絵が並ぶ。
 
 const PAIR_LABEL_WIDTH := 104.0  # 項目・値の表の項目の幅
 const PAIR_VALUE_WIDTH := 72.0   # 同じく値の幅
 const FACE_BUDGET_USEC := 6000   # 1フレームに絵を載せる時間の上限。超えたら残りは次のフレーム
-
-static var _crop_rects := {}  # 画像パス → 実体の矩形（Rect2。空＝切り抜かない）。プロセスの間持つ
 
 var _expanded: Control = null  # 拡大カード（開いていなければ null）
 var _grid_width := 0.0  # 格子を組んだときの器の幅。変わったら組み直す
@@ -166,7 +164,7 @@ func _face_ready_now(paths: Array, crop: bool) -> bool:
 			continue
 		if not ResourceLoader.has_cached(path):
 			return false
-		if crop and not _crop_rects.has(path):
+		if crop and not ArtCrop.has(path):
 			return false
 	return true
 
@@ -264,18 +262,9 @@ func _art_placeholder(text: String) -> Label:
 ## 絵の実体（非透過部分）の外接矩形だけを切り出したテクスチャ。キャンバスの余白ごと枠に
 ## 収めると駒が小さくしか出ない（map は 384 角に対し実体が 101×180 のような比率）。
 ## 会話の顔・ターン表示と同じ切り出し方（doc/art/overview.md）。
-## 矩形は path ごとに _crop_rects に覚える（get_image が GPU からの読み戻しで重い）。
+## 矩形は path ごとに ArtCrop が覚える（get_image が GPU からの読み戻しで重い）。
 func _cropped(src: Texture2D, path: String) -> Texture2D:
-	var used: Rect2
-	if _crop_rects.has(path):
-		used = _crop_rects[path]
-	else:
-		used = Rect2()
-		var img := src.get_image()
-		if img != null:
-			var r := img.get_used_rect()
-			used = Rect2(r.position, r.size)
-		_crop_rects[path] = used
+	var used := ArtCrop.used_rect(src, path)
 	if used.size.x <= 0 or used.size.y <= 0:
 		return src
 	var atlas := AtlasTexture.new()

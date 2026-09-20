@@ -19,6 +19,8 @@ var _art_label: Label
 var _art_texture: TextureRect          # 冒険譚の扉絵（cover_path があれば表示）
 var _stage_list: VBoxContainer         # 右＝縦リスト
 var _briefing: QuestSheet
+var _skins: Dictionary = {}  # SkinCatalog（setup で受け取る）
+var _types: Dictionary = {}  # UnitCatalog（{ type_id: UnitType }。setup で1回読む）
 var _back: Button                      # 冒険譚選択へ戻る（起動時に作って生き続ける＝refresh_labels の対象）
 var _pending := {}  # ブリーフィング表示中のステージ { campaign_id, stage_id, path }
 
@@ -127,8 +129,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func refresh_labels() -> void:
 	_back.text = tr("ui.select.back_tales")
 
-func setup(progress: CampaignProgress) -> void:
+## skins＝盤と同じスキン表（SkinCatalog）。依頼書の顔ぶれの絵を引く。
+func setup(progress: CampaignProgress, skins: Dictionary) -> void:
 	_progress = progress
+	_skins = skins
+	_types = UnitCatalog.load_default()
+	_briefing.bind(skins)
 
 ## 指定した冒険譚のステージ一覧を表示する（SelectScreen から呼ばれる）。
 func show_campaign(campaign_id: String, variant: int = -1) -> void:
@@ -209,7 +215,7 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 	# 名簿は毎回読み直す＝直前の戦いの損耗が紙に出る。読むのは引き継ぎ元のステージの控え（盤の開始と同じ）。
 	var source := _progress.roster_source(campaign_id, String(s["id"]))
 	var roster: Array = RosterStore.new().load_roster(campaign_id, source) if not source.is_empty() else []
-	var brief := StageLoader.load_briefing(path, roster)
+	var brief := StageLoader.load_briefing(path, _types, _skins, roster)
 	# あらすじ・幕間の印はマニフェスト（一覧に持っている辞書）から、戦果は記録から引く
 	# ＝紙を開くときに読むのはステージJSONと名簿だけで足りる。
 	_briefing.open(tr(String(s["title"])), tr(String(s["synopsis"])), String(s["interlude"]),

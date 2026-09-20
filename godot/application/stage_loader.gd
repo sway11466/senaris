@@ -686,12 +686,15 @@ static func parse_briefing(data: Dictionary, catalog: Dictionary = {}, skin_cata
 	}
 
 ## res:// パスの JSON から依頼書の情報を読む（load_file と対＝セレクトへ渡すため）。
-static func load_briefing(path: String, carried: Array = []) -> Dictionary:
+## catalog＝UnitCatalog、skin_catalog＝SkinCatalog。呼ぶ側が持っているものを渡す（スキン表は
+## 読むのに 0.3 秒かかる＝紙を開くたびに読み直さない）。
+static func load_briefing(path: String, catalog: Dictionary, skin_catalog: Dictionary,
+		carried: Array = []) -> Dictionary:
 	var empty := { "party": [], "carryover": false }
 	var data := read_stage(path)
 	if data.is_empty():
 		return empty
-	return parse_briefing(data, UnitCatalog.load_default(), SkinCatalog.load_standard(), carried)
+	return parse_briefing(data, catalog, skin_catalog, carried)
 
 ## 出撃前に見せる自軍の顔ぶれ。盤を組むのと同じ駒解決を通し、player の記述順で返す。
 ## 輸送の passengers も出撃する戦力なので続けて並べる。増援（events）は見ない＝盤で出会うものを先に見せない。

@@ -717,12 +717,12 @@ func test_is_carryover_stage() -> void:
 func test_load_briefing_from_file() -> void:
 	_write_stage('{ "player": [ { "units": [{ "type": "novice", "col": 1, "row": 1 }] } ] }')
 	_write_terrain('{ "terrain": ["....", "....", "...."] }')
-	var brief := StageLoader.load_briefing(TMP_PATH)
+	var brief := StageLoader.load_briefing(TMP_PATH, UnitCatalog.load_default(), SkinCatalog.load_standard())
 	assert_eq((brief["party"] as Array).size(), 1)
 	assert_false(brief["carryover"], "actor が無ければ独立")
 
 func test_load_briefing_missing_file_is_empty() -> void:
-	var brief := StageLoader.load_briefing("user://no_such_stage.json")
+	var brief := StageLoader.load_briefing("user://no_such_stage.json", {}, {})
 	assert_eq(brief["party"], [])
 	assert_false(brief["carryover"])
 

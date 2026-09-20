@@ -32,9 +32,10 @@ func _ready() -> void:
 
 	visible = false
 
-func setup(progress: CampaignProgress) -> void:
+## skins＝盤と同じスキン表（SkinCatalog）。依頼書の顔ぶれが使う。
+func setup(progress: CampaignProgress, skins: Dictionary) -> void:
 	_campaign_select.setup(progress)
-	_stage_select.setup(progress)
+	_stage_select.setup(progress, skins)
 
 ## 言語が変わったので、抱えている2画面の文言を貼り直す（doc/tech/i18n.md 言語の切り替え）。
 func refresh_labels() -> void:

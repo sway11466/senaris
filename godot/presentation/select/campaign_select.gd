@@ -157,6 +157,19 @@ func _ready() -> void:
 
 func setup(progress: CampaignProgress) -> void:
 	_progress = progress
+	_request_art()
+
+## 貼り紙に出す絵を裏で読み始める（起動時。1枚 0.3 秒かかるので、タイトルの扉をくぐる前に済ませる）。
+## 読み終わる前に _poster が来ても load() が裏読みの完了を待って同じものを返す。
+## 対象は貼り紙に出すもの（card があれば card、無ければ cover）だけ。デバッグ冒険譚は読まない。
+func _request_art() -> void:
+	for c in _progress.campaigns(false):
+		var card_paths: Array = c.get("card_paths", [])
+		var shown: Array = card_paths if not card_paths.is_empty() else c.get("cover_paths", [])
+		for p in shown:
+			var path := String(p)
+			if not path.is_empty() and not ResourceLoader.has_cached(path):
+				ResourceLoader.load_threaded_request(path)
 
 ## ボード一覧を作り直す（クリア数などを都度導出するため表示ごとに呼ぶ）。
 func refresh() -> void:

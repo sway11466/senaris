@@ -857,7 +857,7 @@ func _sync_board_cover() -> void:
 func _install_select() -> void:
 	_select = preload("res://presentation/select/select_screen.gd").new()
 	add_child(_select)
-	_select.setup(_progress)
+	_select.setup(_progress, _skins)
 	_select.stage_chosen.connect(_on_stage_chosen)
 	_select.opened.connect(_on_select_opened)  # ステージ外に戻ったらメニュー曲へ
 	_select.title_requested.connect(_on_select_title_requested)  # さらに戻る＝タイトルのメニュー

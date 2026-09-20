@@ -47,11 +47,10 @@ var _right: VBoxContainer
 var _back: Button
 var _sortie: Button
 var _party_box: VBoxContainer
-var _skins: Dictionary
+var _skins: Dictionary = {}  # 顔ぶれの絵を引く表（盤と同じもの。bind で受け取る）
 var _rank_font_cache: Font = null
 
 func _ready() -> void:
-	_skins = SkinCatalog.load_standard()  # 顔ぶれの絵を引く表（開くたびに読み直さない）
 	# set_anchors_preset はツリー内で呼ぶと現在の矩形（サイズ0）を保つようオフセットを
 	# 補正してしまう。_and_offsets 版でオフセットもリセットする。
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -156,6 +155,10 @@ func _ready() -> void:
 	_sortie = TavernTheme.wax_button(tr("ui.quest.sortie"))
 	_sortie.pressed.connect(_on_sortie_pressed)
 	buttons.add_child(_sortie)
+
+## 顔ぶれの絵を引くスキン表（SkinCatalog）を受け取る。起動時に1回。
+func bind(skins: Dictionary) -> void:
+	_skins = skins
 
 ## synopsis＝あらすじの本文（訳したもの）。interlude＝その話の前の幕間（CampaignCatalog.INTERLUDES・
 ## ""＝幕間なし）。rank＝過去の最高ランク（""＝未クリア）。
@@ -286,7 +289,7 @@ func _add_party_row(title_key: String, entries: Array, scale: float) -> void:
 		row.add_child(_party_figure(entry, band, scale))
 
 ## 1体ぶんの材料。絵が無ければ tex=null（名前の先頭2文字で描く）。
-## used＝絵の非透過部分の外接矩形（キャンバス座標）。
+## used＝絵の非透過部分の外接矩形（キャンバス座標）。矩形は ArtCrop が覚える（開くたびに読み戻さない）。
 func _party_entry(e: Dictionary) -> Dictionary:
 	var skin_id := String(e.get("skin_id", ""))
 	var s: UnitSkin = SkinCatalog.skin_by_id(_skins, skin_id)
@@ -295,11 +298,9 @@ func _party_entry(e: Dictionary) -> Dictionary:
 	var used := Rect2()
 	if tex != null:
 		used = Rect2(Vector2.ZERO, tex.get_size())
-		var img := tex.get_image()
-		if img != null:
-			var r := img.get_used_rect()
-			if r.size.x > 0 and r.size.y > 0:
-				used = Rect2(r.position, r.size)
+		var r := ArtCrop.used_rect(tex, path)
+		if r.size.x > 0 and r.size.y > 0:
+			used = r
 	return { "skin_id": skin_id, "available": bool(e.get("available", true)),
 		"carried": bool(e.get("carried", false)), "tex": tex, "used": used }
 

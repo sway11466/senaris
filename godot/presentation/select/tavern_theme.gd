@@ -291,11 +291,15 @@ void fragment() {
 
 ## ctrl の四隅を radius（px）で丸めて描くようにする。コンテナが大きさを決めるノードにも、
 ## 自分で size を入れるノードにもそのまま掛けられる。子ノードには波及しない。
+## シェーダは1本を使い回す（貼り紙を作り直すたびにコンパイルすると1枚 30ms 超）。
+## マテリアルは半径と寸法が絵ごとに違うので1つずつ。
+static var _rounded_shader: Shader = null
 static func round_corners(ctrl: Control, radius: float) -> void:
-	var sh := Shader.new()
-	sh.code = _ROUNDED_SHADER
+	if _rounded_shader == null:
+		_rounded_shader = Shader.new()
+		_rounded_shader.code = _ROUNDED_SHADER
 	var mat := ShaderMaterial.new()
-	mat.shader = sh
+	mat.shader = _rounded_shader
 	mat.set_shader_parameter("radius_px", radius)
 	ctrl.material = mat
 	# 寸法は draw で渡す。resized はツリーに入る前の変更では飛ばないので取りこぼす
