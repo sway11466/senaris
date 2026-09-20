@@ -380,6 +380,16 @@ dragon-hunt.st5.outro.1,子供たちは無事です！ 親のところへ返し�
 dragon-hunt.st5.outro.2,律儀な連中ね。恩は返す、って顔してるわ。,"Dutiful sorts. They have the look of people who repay a debt."
 dragon-hunt.st5.outro.3,悪党どもが探していたのは、竜の巣の入口だ。場所は洞窟で間違いない。,"What the villains were hunting for is the entrance to the dragon's nest. It's the caves, no question."
 dragon-hunt.st5.outro.4,追いつくぞ。ここまで来て取り逃がすわけにはいかん。,"We catch them. We haven't come this far to let them slip."
+dragon-hunt.st5.secured.1,止まれ、人間。ここは我らの里だ。子らを攫った者の仲間か。,"Halt, humans. This is our village. Are you with the ones who took our children?"
+dragon-hunt.st5.secured.2,違う。攫った連中を追ってきた。子どもたちは麓の馬車から救い出し、ここまで連れてきた。,No. We are after the ones who took them. We freed the children from a wagon at the foot of the mountain and brought them here.
+dragon-hunt.st5.secured.3,父さん！　この人たちが檻を破ってくれたの！,Father! These people broke open the cage!
+dragon-hunt.st5.secured.4,……無事だったか。よく戻った。翼の恩は忘れぬ。恩返しをさせてくれ。,...You are safe. Welcome home. The winged do not forget a debt. Let us repay it.
+dragon-hunt.st5.secured.5,後から来る連中は、子どもを盾に鳥人を従わせるつもりだったんだろう。その手はもう使えない。,The lot behind us meant to hold the children over the birdfolk and bend them to their will. That card is gone now.
+dragon-hunt.st5.lost.1,鳥ども、ガキは麓で預かっている。返してほしければ竜の巣の入口を空から探せ。邪魔する連中は追い払え。,"Listen, birds. We have your brats down below. Want them back? Find the entrance to the dragon's nest from the air. And drive off anyone who gets in our way."
+dragon-hunt.st5.lost.2,……子らに手を出すな。分かった、言う通りにする。,...Do not harm the children. Very well. We will do as you say.
+dragon-hunt.st5.lost.3,父さん、違うの！　私たちはここにいるよ！,"Father, no! We're right here!"
+dragon-hunt.st5.lost.4,届いてないわ。崖の上まで声が通らない。,It isn't reaching them. The voice won't carry up the cliff.
+dragon-hunt.st5.lost.5,先を越された。里は敵に回った。……子どもたちは必ず親のもとへ返す。押し通るぞ。,"They beat us to it. The village has turned against us. ...We will return the children to their parents, no matter what. We push through."
 dragon-hunt.st6.intro.1,この先に、大きな洞がある。奥から獣の匂いがする。,"There's a great hollow ahead. The smell of a beast comes from deep inside."
 dragon-hunt.st6.intro.2,奥から地鳴りだ。……咆哮。あれは獣の声じゃない。,"The ground is rumbling below. …A roar. That is no ordinary beast."
 dragon-hunt.st6.intro.3,あんなものを起こすつもりはなかった！ 宝だけのはずだったんだ！,"We never meant to wake that thing! It was supposed to be the treasure, nothing more!"
@@ -426,6 +436,7 @@ dragon-hunt.st6.rogue.1,あれは、いってえ……。,"What in the world was
 dragon-hunt.st6.rogue.2,泉を伝って抜ける。奥へは戻れん、あんなものが居座っていては。,"We go out by way of the springs. We cannot go back in, not with that thing sitting there."
 dragon-hunt.st6.rogue.3,あんなものを起こすつもりはなかった！ 宝だけのはずだったんだ！,"We never meant to wake that thing! It was supposed to be the treasure, nothing more!"
 dragon-hunt.st6.intro.8,掘り広げた跡がある。この洞、人の手が入っておるぞ。,"Someone has widened this. There are hands at work in this hollow."
+dragon-hunt.st6.intro.11,馬はここに繋いでおく。洞窟の中では走れん。,"We tie the horses up here. They cannot run inside the caves."
 dragon-hunt.st6.outro.7,森を荒らした者たちは、これで償いました。……でも、竜は別です。,"Those who despoiled the forest have paid. …But the dragon is another matter."
 dragon-hunt.st7.intro.8,私の矢は空へ届きます。狙いは翼の付け根。,"My arrows reach the sky. I will aim for the wing root."
 dragon-hunt.st7.intro.9,空はおれが引きつける。落とすのは君たちだ。,"I will draw the sky to me. Bringing it down is your work."

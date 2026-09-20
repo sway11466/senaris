@@ -77,6 +77,10 @@
     { "col": 30, "row": 2, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "birdman", "actor": "birdman", "native": "neutral" } ] }
   ],
+  "events": [
+    { "type": "capture", "col": 30, "row": 2, "id": "village-secured", "captured_by": "player", "once": "village", "dialogue": "secured", "focus": true },
+    { "type": "capture", "col": 30, "row": 2, "id": "village-lost", "captured_by": "enemy", "once": "village", "dialogue": "lost", "focus": true }
+  ],
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st5.rogue.1" },
@@ -99,6 +103,20 @@
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st5.outro.2" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.outro.3" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.outro.4" }
+    ],
+    "secured": [
+      { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st5.secured.1" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.secured.2" },
+      { "speaker": "char.birdman_child.name", "skin": "birdman_child", "text": "dragon-hunt.st5.secured.3" },
+      { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st5.secured.4" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.secured.5" }
+    ],
+    "lost": [
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st5.lost.1" },
+      { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st5.lost.2" },
+      { "speaker": "char.birdman_child.name", "skin": "birdman_child", "text": "dragon-hunt.st5.lost.3" },
+      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st5.lost.4" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.lost.5" }
     ]
   },
   "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 7, "survival_a": 4 },
