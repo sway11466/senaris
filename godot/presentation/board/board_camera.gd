@@ -12,6 +12,7 @@ const ZOOM_STEP := 1.15
 const FOCUS_PAN_SEC := 0.25          # 追従パンの所要秒数
 const FOCUS_MARGIN := 96.0           # 追従デッドゾーン＝可視域の内側マージン(px)
 const FOCUS_PULL_IN := 40.0          # 追従時は安全域の少し内側まで入れる
+const FOCUS_SLACK := 0.5             # 縁ぴったりは見えている扱い(px)＝歩行追従で縁に置いた駒を着地の確認でもう一度寄せない
 const SHAKE_PX := 7.0                # 着弾の揺れ幅（画面px）
 const SHAKE_STEP := 0.05             # 同・1振りの秒数
 ## 決着のとどめの寄せ（仕様 → doc/gdd/uiux.md 決着の合図）。追従（focus_on）と違い距離も詰める。
@@ -146,40 +147,70 @@ func set_focus_bounds(hex_min: Vector2, hex_max: Vector2, margin: float) -> void
 	focus_min = hex_min - Vector2(margin, margin)
 	focus_max = hex_max + Vector2(margin, margin)
 
-## world_pos が vis_rect 内の安全域(FOCUS_MARGIN 内側)に見えていなければ、
+## points（主体の一覧・ワールド座標）が vis_rect 内の安全域(FOCUS_MARGIN 内側)に見えていなければ、
 ## そこへなめらかにパンする。すでに見えていれば何もしない。
-func focus_on(world_pos: Vector3, vis_rect: Rect2) -> void:
-	var dest := focus_dest(world_pos, vis_rect)
+func focus_on(points: Array[Vector3], vis_rect: Rect2) -> void:
+	var dest := focus_dest(points, vis_rect, FOCUS_PULL_IN)
 	if dest.is_equal_approx(target):
 		return
 	await pan_target_to(dest)
 
-## focus_on の行き先（注視点）。はみ出した px 量から逆算するのではなく、
-## 「寄せたい画面位置の真下にある盤上の点」をレイ交差で求め、主体との差だけ注視点をずらす。
-## リグは平行移動なので、この差分だけ動かせば主体はちょうどその画面位置に来る。
+## 歩行中の追従（敵ターンの移動アニメ中に毎フレーム呼ぶ）。主体が安全域の縁に触れたら、
+## はみ出す分だけ注視点を動かす＝縁に触れるまでは動かず、触れてからは駒と同じ速さで付いていく。
+## 内側へ引き込まない（pull_in 0）＝引き込むと縁に触れた瞬間に画面が跳ぶ。Tween は使わず直接書く。
+func follow(world_pos: Vector3, vis_rect: Rect2) -> void:
+	var points: Array[Vector3] = [world_pos]
+	var dest := focus_dest(points, vis_rect, 0.0)
+	if dest.is_equal_approx(target):
+		return
+	_set_target(dest)
+
+## focus_on の行き先（注視点）。points をまとめて安全域へ入れる。
+## - 全部が安全域に入っていれば target のまま＝追わない（デッドゾーン）。
+## - はみ出していれば、はみ出した軸だけ安全域の内側 pull_in まで入れる＝「最小限だけ動かす」。
+## - ズームを変えずには入らない（外接矩形が安全域より大きい）／カメラの背後で手掛かりが無いなら、
+##   points の中間を可視域の中央に置く＝2体が縁近くに来るが両方見える（doc/gdd/uiux.md 敵ターンのカメラ）。
+## 動かす量は px から逆算せず、「寄せたい画面位置の真下にある盤上の点」をレイ交差で求め、主体との差だけ
+## 注視点をずらす。リグは平行移動なので、この差分だけ動かせば主体はちょうどその画面位置に来る。
 ## px × world_per_pixel の線形近似は注視点の奥行きでしか合わず、画面の上下に離れた主体ほど
 ## 外れる（手前側では数十倍に膨らみ、盤の外まで飛んで真っ暗になる）。
-func focus_dest(world_pos: Vector3, vis_rect: Rect2) -> Vector3:
-	# 主体を置きたい画面位置。はみ出した軸だけ安全域の内側へ、そうでない軸は今の位置のまま
-	# ＝「最小限だけ動かす」。カメラの背後（＝通り越した）なら手掛かりが無いので可視域の中心へ。
-	var aim := vis_rect.position + vis_rect.size * 0.5
-	if not camera.is_position_behind(world_pos):
-		var sp := camera.unproject_position(world_pos)
-		var left := vis_rect.position.x + FOCUS_MARGIN
-		var right := vis_rect.end.x - FOCUS_MARGIN
-		var top := vis_rect.position.y + FOCUS_MARGIN
-		var bottom := vis_rect.end.y - FOCUS_MARGIN
-		aim = sp
-		if sp.x < left:
-			aim.x = left + FOCUS_PULL_IN
-		elif sp.x > right:
-			aim.x = right - FOCUS_PULL_IN
-		if sp.y < top:
-			aim.y = top + FOCUS_PULL_IN
-		elif sp.y > bottom:
-			aim.y = bottom - FOCUS_PULL_IN
-		if aim.is_equal_approx(sp):
-			return target  # 安全域に見えている＝追わない（デッドゾーン）
+## 2点以上のときは points[0]（行動主体）を基準に差分を取る＝主体は狙った画面位置に正確に来て、
+## 相手は遠近のぶんだけずれる（pull_in の余裕で吸収する）。
+func focus_dest(points: Array[Vector3], vis_rect: Rect2, pull_in: float) -> Vector3:
+	var safe := vis_rect.grow(-FOCUS_MARGIN)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	var behind := false
+	for p in points:
+		if camera.is_position_behind(p):
+			behind = true
+			break
+		var sp := camera.unproject_position(p)
+		lo = lo.min(sp)
+		hi = hi.max(sp)
+	var size := hi - lo
+	if behind or size.x > safe.size.x or size.y > safe.size.y:
+		var mid := Vector3.ZERO
+		for p in points:
+			mid += p
+		mid /= float(points.size())
+		return _dest_placing(mid, vis_rect.get_center())
+	var shift := Vector2.ZERO
+	if lo.x < safe.position.x - FOCUS_SLACK:
+		shift.x = safe.position.x + minf(pull_in, safe.size.x - size.x) - lo.x
+	elif hi.x > safe.end.x + FOCUS_SLACK:
+		shift.x = safe.end.x - minf(pull_in, safe.size.x - size.x) - hi.x
+	if lo.y < safe.position.y - FOCUS_SLACK:
+		shift.y = safe.position.y + minf(pull_in, safe.size.y - size.y) - lo.y
+	elif hi.y > safe.end.y + FOCUS_SLACK:
+		shift.y = safe.end.y - minf(pull_in, safe.size.y - size.y) - hi.y
+	if shift.is_zero_approx():
+		return target  # 安全域に見えている＝追わない（デッドゾーン）
+	var lead := points[0]
+	return _dest_placing(lead, camera.unproject_position(lead) + shift)
+
+## world_pos が画面位置 aim に来る注視点。行き先は盤の範囲（set_focus_bounds）で止める。
+func _dest_placing(world_pos: Vector3, aim: Vector2) -> Vector3:
 	var anchor := _plane_point(aim, world_pos.y)
 	if not anchor.is_finite():
 		return target

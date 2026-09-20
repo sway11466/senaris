@@ -165,7 +165,7 @@ func on_event_fired(info: Dictionary) -> void:
 	if bool(info.get("focus", false)):
 		var hex: Vector2i = info.get("hex", Vector2i.MAX)
 		if hex != Vector2i.MAX:
-			await _board.focus_camera_on(hex)
+			await _board.focus_camera_on([hex] as Array[Vector2i])
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない
 	_open_talk("event", lines, "ui.talk.resume_battle")
@@ -181,7 +181,7 @@ func _skip_event_dialogue(info: Dictionary) -> void:
 	if bool(info.get("focus", false)):
 		var hex: Vector2i = info.get("hex", Vector2i.MAX)
 		if hex != Vector2i.MAX:
-			await _board.focus_camera_on(hex)
+			await _board.focus_camera_on([hex] as Array[Vector2i])
 	_hud.show_dialogue_badge()
 	_phase = ""
 	event_skip_finished.emit()

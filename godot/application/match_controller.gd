@@ -31,7 +31,7 @@ var ai_brain: AiBrain = null
 var ai_delay := 0.35  # AIの各手を見せるための間（秒）
 var combat_pace := Callable()  # AIターンで戦闘演出の完了を待つフック（presentation が注入）。空なら待たない
 var move_pace := Callable()    # AIターンで移動アニメの完了を待つフック（同上）。空なら待たない
-var focus_pace := Callable()   # AIターンで次の行動主体(hex)をカメラに収めるフック（同上）。空なら何もしない
+var focus_pace := Callable()   # AIターンで見せたい hex の一覧（先頭＝行動主体）をカメラに収めるフック（同上）。空なら何もしない
 var turn_start_pace := Callable()  # AIターンの頭で一拍置くフック（同上・ターンバナー）。空なら待たない
 var dialogue_pace := Callable()  # AIターンで会話の読了を待つフック（同上）。空なら待たない
 
@@ -237,19 +237,19 @@ func run_ai_turn() -> void:
 		var action := ai_brain.next_action(state, state.current_team)
 		if action == null:
 			break
-		# 行動を見せる前に、その主体をカメラに収める（画面外なら寄せて待つ・画面内なら即返る）。
+		# 行動を見せる前に、その主体（攻撃なら相手も）をカメラに収める（画面外なら寄せて待つ・画面内なら即返る）。
 		# 「敵が何をしたか」を毎手見せるため＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md）。
 		if not _finished and focus_pace.is_valid():
-			await focus_pace.call(_action_focus_hex(action))
+			await focus_pace.call(_action_focus_hexes(action))
 		var shown_combat := _apply_ai_action(action)
-		# 移動アニメの完了を待つ＝駒が歩き切ってから次の手へ（手が重ならず追える）。
-		# アニメが無ければ即戻る。攻撃より先＝移動→攻撃の順に見せる。
+		# 移動アニメの完了を待つ＝駒が歩き切ってから次の手へ（手が重ならず追える）。歩いている間の
+		# カメラ追従も presentation がこの待ちの中で行う。アニメが無ければ即戻る。攻撃より先＝移動→攻撃の順に見せる。
 		if not _finished and move_pace.is_valid():
 			await move_pace.call()
 		# 歩き切った先も見せる。出発点しか見ないと、着地が情報板の裏や画面外でも追わない
 		# （doc/gdd/uiux.md 敵ターンのカメラ）。すでに見えていれば追従側が即返る。
 		if action.kind == AiAction.Kind.MOVE and not _finished and focus_pace.is_valid():
-			await focus_pace.call(action.to)
+			await focus_pace.call([action.to] as Array[Vector2i])
 		# 攻撃なら演出の完了を待つ＝盤に戻ってから次の手へ（プレイヤーが流れを追える）。
 		if shown_combat and not _finished and combat_pace.is_valid():
 			await combat_pace.call()
@@ -263,16 +263,31 @@ func run_ai_turn() -> void:
 	if not _finished:
 		end_turn()
 
-## その1手でカメラが見るべき hex。移動・攻撃は主体の現在位置（歩き出し・攻撃元を見せる）、
-## 出撃は駒が現れる出撃先。行動を適用する前に呼ぶ＝主体はまだ動いていない。
-## 移動はこれに加えて、歩き終わった先を run_ai_turn がもう一度渡す。
-func _action_focus_hex(action: AiAction) -> Vector2i:
+## その1手でカメラが見るべき hex の一覧（先頭＝行動主体）。移動は主体の現在位置（歩き出しを見せる）、
+## 攻撃・ユニットスキルは主体の現在位置と相手＝誰を殴ったか・着弾がどこかを見せる、
+## 出撃・降車は駒が現れる先。行動を適用する前に呼ぶ＝主体はまだ動いていない。
+## 移動はこれに加えて、歩き終わった先を run_ai_turn がもう一度渡す（doc/gdd/uiux.md 敵ターンのカメラ）。
+func _action_focus_hexes(action: AiAction) -> Array[Vector2i]:
+	var hexes: Array[Vector2i] = []
 	match action.kind:
-		AiAction.Kind.MOVE, AiAction.Kind.ATTACK, AiAction.Kind.SKILL, AiAction.Kind.ENTER_BASE:
+		AiAction.Kind.MOVE, AiAction.Kind.ENTER_BASE:
 			var u := state.unit_by_handle(action.handle)
-			return u.pos if u != null else action.to
+			hexes.append(u.pos if u != null else action.to)
+		AiAction.Kind.ATTACK:
+			var u := state.unit_by_handle(action.handle)
+			var t := state.unit_by_handle(action.target_id)
+			if u != null:
+				hexes.append(u.pos)
+			if t != null:
+				hexes.append(t.pos)
+		AiAction.Kind.SKILL:
+			var u := state.unit_by_handle(action.handle)
+			if u != null:
+				hexes.append(u.pos)
+			hexes.append(action.to)
 		_:  # DEPLOY / UNLOAD＝駒が現れるマスを見せる
-			return action.to
+			hexes.append(action.to)
+	return hexes
 
 ## 1手を適用する。演出が出た（＝攻撃かスキルが成立した）なら true＝呼び出し側が完了を待つ。
 func _apply_ai_action(action: AiAction) -> bool:

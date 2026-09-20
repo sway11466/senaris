@@ -40,13 +40,6 @@
 - 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線する。チャネルごとのアダプターと「常に所有」の部品は feature-62。
 - 該当：`godot/application/campaign_progress.gd`・`godot/presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝Steam の体験版に向けて Steamworks に登録するとき（[monetization.md](sales/monetization.md) 出す順序）。
 
-### feature-16
-
-**演出の隙間（出撃と降車の見せ方・カメラ追従の追随）**
-- 背景：演出の設定（[settings.md](gdd/settings.md) 戦闘の演出・盤面の演出）と、盤面のみの戦闘の一撃は入った。残るのは演出そのものの隙間。(a) 出撃・降車は経路を持たずポップして現れる。(b) カメラ追従は行動主体の現在位置だけを見る。
-- 対応：(1) 出撃・降車は拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(2) 長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮（現状は移動距離が短く実害小）。
-- 該当：`godot/presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`doc/gdd/uiux.md`。着手の引き金＝出撃の多いステージで駒の湧きが読めないと感じたら。
-
 ### feature-27
 
 **タイトル名「Senaris」の確定手続き**

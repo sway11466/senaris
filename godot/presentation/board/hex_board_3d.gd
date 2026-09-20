@@ -89,6 +89,7 @@ var _covered := false    # 盤の上に画面（タイトル・依頼ボード�
 var _move_voice: AudioStreamPlayer = null  # 進行中の移動音の口（続く型のループ／周期の型の直近の一打）。到着・中断で止める
 var _move_voice_sfx := ""                  # その素材ID（止めるときの照合とフェード秒の取得に使う）
 var _move_tween: Tween = null  # 進行中の移動アニメ（同時に1本＝次の sync_units で必ず畳む）
+var _move_node: Node3D = null  # 同・歩いている駒のノード（敵ターンの歩行追従が毎フレーム位置を読む）
 var _entry_tweens: Array[Tween] = []  # 進行中の登場の演出（一斉に散る＝同時に何本も走る）
 var _entry_until_msec := 0            # その演出が終わる時刻（0＝走っていない）。テンポ制御が待つ
 var _hidden := {}  # handle -> true。intro の enter 行が来るまで隠しておく駒（doc/gdd/map.md 会話の途中の登場）
@@ -385,14 +386,18 @@ func _combat_on_board() -> bool:
 
 ## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
 ## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
-## 盤面の演出 OFF は追わない（設定）。
-func focus_camera_on(hex: Vector2i) -> void:
-	if state == null or _board_fx == "off":
+## hexes は見せたい相手の一覧＝移動・出撃は1つ、攻撃・ユニットスキルは主体と相手の2つ。
+## 先頭が行動主体（カメラ側が差分の基準にする）。盤面の演出 OFF は追わない（設定）。
+func focus_camera_on(hexes: Array[Vector2i]) -> void:
+	if state == null or _board_fx == "off" or hexes.is_empty():
 		return
 	var b := _board_bounds()
 	if b.size.x >= 0.0:
 		_board_cam.set_focus_bounds(b.position, b.end, TILE * 2.0)
-	await _board_cam.focus_on(_hex_world(hex), _vis_rect())
+	var points: Array[Vector3] = []
+	for h in hexes:
+		points.append(_hex_world(h))
+	await _board_cam.focus_on(points, _vis_rect())
 
 ## 盤の外周をピクセル座標（＝ワールド xz）の矩形で返す。盤が空なら size が負。
 func _board_bounds() -> Rect2:
@@ -1059,11 +1064,14 @@ func _clear_unload() -> void:
 	_unload_to = INVALID_HEX
 	_sync_overlay()
 
-func _on_unit_unloaded(_unit_id: int, _transport_id: int, _to: Vector2i) -> void:
+func _on_unit_unloaded(unit_id: int, transport_id: int, to: Vector2i) -> void:
 	_unload_transport = -1
 	_unload_cells.clear()
 	SfxPlayer.play_event("map_board")
 	_sync()
+	var tr := state.unit_by_handle(transport_id)
+	if tr != null:
+		_slide_in(unit_id, tr.pos, to)
 
 ## 自軍の出撃可能な拠点をクリック → 拠点メニュー。
 func _open_base_menu(base_hex: Vector2i) -> void:
@@ -1223,8 +1231,10 @@ func _animate_move(handle: int, path: Array[Vector2i]) -> void:
 		_stop_move_voice()
 		if _move_tween == t:
 			_move_tween = null
+			_move_node = null
 		move_animation_finished.emit())
 	_move_tween = t
+	_move_node = node
 
 ## 増援の登場を見せる（doc/gdd/map.md イベントの entry・doc/gdd/uiux.md 移動の見せ方）。
 ## 盤を先に作り直す＝駒はもう所定位置に居る。演出は見た目だけの後追いで、途中で切れても盤は
@@ -1431,12 +1441,31 @@ func _kill_move_tween() -> void:
 		return
 	var t := _move_tween
 	_move_tween = null
+	_move_node = null
 	if t.is_valid():
 		t.kill()
 	_stop_move_voice()  # 駒がスナップするのに音だけ続かない
 	move_animation_finished.emit()
 
-## AIターンのテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。
+## AIターンのテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待ち、
+## 歩いている間は駒をカメラで追う（doc/gdd/uiux.md 敵ターンのカメラ）。駒が安全域の縁に触れたら
+## はみ出す分だけ注視点が付いていく＝長い移動でも途中で画面から出ない。
+## プレイヤーのターンはこれを通らない（自分の手でカメラは介入しない）＝待つだけの await_move_animation を使う。
+## 追従は移動アニメより後に作った Tween で毎フレーム回す＝同じフレームで駒が進んだ後の位置を読める
+## （process_frame や _process で読むと Tween が進む前の位置＝1フレーム遅れて縁を越える。2026-09-20 実測）。
+func follow_move_animation() -> void:
+	if _move_tween != null and _move_tween.is_valid() and _move_tween.is_running():
+		var t := create_tween().set_loops()
+		t.tween_method(func(_v: float) -> void: _follow_tick(), 0.0, 1.0, 1.0)
+		await move_animation_finished
+		t.kill()
+	await await_move_animation()  # 登場の演出の残りも同じ待ちに乗せる
+
+func _follow_tick() -> void:
+	if _move_node != null and is_instance_valid(_move_node):
+		_board_cam.follow(_move_node.position, _vis_rect())
+
+## 移動アニメ中なら歩き切るまで待つ（カメラは触らない）。
 ## 増援の登場も同じ待ちに乗せる＝増援の駒が歩いている最中に AI が次の手を指さない。
 func await_move_animation() -> void:
 	if _move_tween != null and _move_tween.is_valid() and _move_tween.is_running():
@@ -1454,9 +1483,28 @@ func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed
 		return
 	_sync()
 
-func _on_unit_deployed(_unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> void:
+func _on_unit_deployed(unit_id: int, base_hex: Vector2i, to: Vector2i) -> void:
 	_clear_deploy()
 	_sync()
+	_slide_in(unit_id, base_hex, to)
+
+## 出撃・降車＝拠点／輸送のマスから目的マスへ1歩スライドして現れる（doc/gdd/uiux.md 移動の見せ方）。
+## 盤は _sync で作り直し済み＝駒はもう目的マスに居て、見た目だけ起点から後追いする（移動アニメと同じ流儀）。
+## 移動アニメと同じ _move_tween に乗せる＝倍速・OFF（瞬間に置く）・敵ターンの待ち（await_move_animation）が効く。
+## 移動音は鳴らさない＝駒を置く操作で、歩く操作ではない（出撃は ui_confirm・降車は map_board が別に鳴る。doc/audio/sfx.md）。
+func _slide_in(handle: int, from: Vector2i, to: Vector2i) -> void:
+	var node: Node3D = _unit_renderer.get_unit_node(handle)
+	if node == null or _board_fx == "off":
+		return
+	var path: Array[Vector2i] = [from, to]
+	var t := _walk_in_tween(node, path, 0.0, "")
+	t.finished.connect(func() -> void:
+		if _move_tween == t:
+			_move_tween = null
+			_move_node = null
+		move_animation_finished.emit())
+	_move_tween = t
+	_move_node = node
 
 ## 「待機」＝駒は動かないが行動終了の見た目（暗く）へ変える。
 ## 移動を伴う待機では直前に移動アニメが走っている＝sync_units はそれを畳むため、

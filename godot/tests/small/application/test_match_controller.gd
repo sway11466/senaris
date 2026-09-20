@@ -391,27 +391,29 @@ func test_ai_turn_focuses_each_action_before_applying() -> void:
 	s.add_unit(e)
 	var from := e.pos
 	var mc := _mc(s)
-	var seen: Array[Vector2i] = []
-	mc.focus_pace = func(hex: Vector2i) -> void: seen.append(hex)
+	var seen: Array = []
+	mc.focus_pace = func(hexes: Array[Vector2i]) -> void: seen.append(hexes)
 	var brain := QueueBrain.new()
 	var to := Hex.neighbor(from, 0)
 	brain.queue.append(AiAction.move_to(2, to))
 	mc.ai_brain = brain
 	mc.end_turn()
-	assert_eq(seen, [from, to] as Array[Vector2i],
+	assert_eq(seen, [[from] as Array[Vector2i], [to] as Array[Vector2i]],
 		"移動元(まだ動く前の位置)を先に、歩き終わった移動先を後に渡す")
 
 func test_ai_turn_focus_hex_by_action_kind() -> void:
-	# 種類ごとの注視 hex: 攻撃=攻撃元／出撃=出撃先。_action_focus_hex を直接確かめる。
+	# 種類ごとの注視 hex: 攻撃=攻撃元と相手／出撃=出撃先。_action_focus_hexes を直接確かめる。
 	var s := BattleState.new(12, 8)
 	var atk := Unit.new(1, 1, Hex.offset_to_axial(4, 4), 3)
 	s.add_unit(atk)
-	s.add_unit(Unit.new(2, 0, Hex.neighbor(atk.pos, 0), 3))
+	var tgt := Unit.new(2, 0, Hex.neighbor(atk.pos, 0), 3)
+	s.add_unit(tgt)
 	var mc := _mc(s)
-	assert_eq(mc._action_focus_hex(AiAction.attack(1, 2)), atk.pos, "攻撃は攻撃元を見る")
+	assert_eq(mc._action_focus_hexes(AiAction.attack(1, 2)), [atk.pos, tgt.pos] as Array[Vector2i],
+		"攻撃は攻撃元を先頭に、相手も見る")
 	var deploy_to := Hex.offset_to_axial(7, 3)
-	assert_eq(mc._action_focus_hex(AiAction.deploy(Hex.offset_to_axial(8, 3), 0, deploy_to)), deploy_to,
-		"出撃は駒が現れる出撃先を見る")
+	assert_eq(mc._action_focus_hexes(AiAction.deploy(Hex.offset_to_axial(8, 3), 0, deploy_to)),
+		[deploy_to] as Array[Vector2i], "出撃は駒が現れる出撃先を見る")
 
 # --- execute_deploy（uid の事前取得） ---
 

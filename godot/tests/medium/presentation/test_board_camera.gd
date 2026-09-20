@@ -99,19 +99,27 @@ func _visible_after(world_pos: Vector3, dest: Vector3) -> bool:
 		return false
 	return _vis().has_point(cam.camera.unproject_position(world_pos))
 
+## 1点の行き先（focus_on と同じ引き込み量）。
+func _dest(p: Vector3) -> Vector3:
+	return cam.focus_dest([p] as Array[Vector3], _vis(), BoardCamera.FOCUS_PULL_IN)
+
+## 安全域（可視域の内側 FOCUS_MARGIN）。
+func _safe() -> Rect2:
+	return _vis().grow(-BoardCamera.FOCUS_MARGIN)
+
 func test_focus_dest_ignores_unit_in_safe_area() -> void:
 	# 注視点の真上＝画面中央。安全域の内側なので動かさない（デッドゾーン）。
-	assert_eq(cam.focus_dest(Vector3.ZERO, _vis()), cam.target, "見えている主体は追わない")
+	assert_eq(_dest(Vector3.ZERO), cam.target, "見えている主体は追わない")
 
 func test_focus_dest_pulls_in_far_unit() -> void:
 	# 画面の上（奥）へ大きく外れた主体。1回のパンで可視域に入る。
 	var p := Vector3(0.0, 0.0, -40.0)
-	assert_true(_visible_after(p, cam.focus_dest(p, _vis())), "奥に外れた主体が可視域に入る")
+	assert_true(_visible_after(p, _dest(p)), "奥に外れた主体が可視域に入る")
 
 func test_focus_dest_near_unit_does_not_overshoot() -> void:
 	# 画面の下（手前）へ外れた主体。px 差分の線形近似だとここで数十倍に飛んで盤の外に出た。
 	var p := Vector3(0.0, 0.0, 25.0)
-	var dest := cam.focus_dest(p, _vis())
+	var dest := _dest(p)
 	assert_almost_eq(dest.z, p.z, cam.dist, "手前の主体でも行き過ぎない")
 	assert_true(_visible_after(p, dest), "手前に外れた主体が可視域に入る")
 
@@ -119,21 +127,60 @@ func test_focus_dest_recovers_unit_behind_camera() -> void:
 	# カメラの背後（＝一度通り越した状態）からも引き戻せる。
 	var p := Vector3(0.0, 0.0, 40.0)
 	assert_true(cam.camera.is_position_behind(p), "前提：この点は背後にある")
-	assert_true(_visible_after(p, cam.focus_dest(p, _vis())), "背後の主体も可視域に戻す")
+	assert_true(_visible_after(p, _dest(p)), "背後の主体も可視域に戻す")
 
 func test_focus_dest_keeps_only_out_of_range_axis() -> void:
 	# 横にだけ外れた主体は、縦の見え方（画面上のy）を保ったまま寄せる。
 	var p := Vector3(30.0, 0.0, 0.0)
 	var before := cam.camera.unproject_position(p).y
-	cam.target = cam.focus_dest(p, _vis())
+	cam.target = _dest(p)
 	cam.update_rig()
 	assert_almost_eq(cam.camera.unproject_position(p).y, before, 8.0, "縦の見え方は変えない")
 
 func test_focus_dest_clamped_to_board_bounds() -> void:
 	# 盤の外へは出さない（保険）。
 	cam.set_focus_bounds(Vector2(-10.0, -10.0), Vector2(10.0, 10.0), 2.0)
-	var dest := cam.focus_dest(Vector3(0.0, 0.0, 200.0), _vis())
+	var dest := _dest(Vector3(0.0, 0.0, 200.0))
 	assert_almost_eq(dest.z, 12.0, 0.001, "盤の範囲＋余白で止まる")
+
+# --- focus_dest（攻撃＝主体と相手の2点）---
+
+func test_focus_dest_two_points_both_visible_when_they_fit() -> void:
+	# 主体は見えていて相手だけ右に外れている。2点が安全域に入る幅なら、両方入る最小限だけ寄せる。
+	var a := Vector3.ZERO
+	var b := Vector3(12.0, 0.0, 0.0)
+	var dest := cam.focus_dest([a, b] as Array[Vector3], _vis(), BoardCamera.FOCUS_PULL_IN)
+	assert_ne(dest, cam.target, "相手が外れていれば動く")
+	assert_true(_visible_after(a, dest) and _visible_after(b, dest), "主体と相手の両方が可視域に入る")
+	assert_true(_safe().has_point(cam.camera.unproject_position(a)), "主体は安全域に居る")
+
+func test_focus_dest_two_points_center_between_when_they_do_not_fit() -> void:
+	# ズームを変えずには2点が安全域に入らない幅。2点の中間を可視域の中央に置く。
+	var a := Vector3.ZERO
+	var b := Vector3(40.0, 0.0, 0.0)
+	var dest := cam.focus_dest([a, b] as Array[Vector3], _vis(), BoardCamera.FOCUS_PULL_IN)
+	assert_almost_eq(dest.x, 20.0, 0.01, "中間（x=20）が注視点の真下に来る")
+	cam.target = dest
+	cam.update_rig()
+	var sa := cam.camera.unproject_position(a)
+	var sb := cam.camera.unproject_position(b)
+	assert_almost_eq((sa.x + sb.x) * 0.5, _vis().get_center().x, 1.0, "2体の中間が可視域の中央")
+
+# --- follow（歩行中の追従）---
+
+func test_follow_does_not_move_inside_safe_area() -> void:
+	cam.follow(Vector3(1.0, 0.0, 1.0), _vis())
+	assert_eq(cam.target, Vector3.ZERO, "安全域の内側では動かない")
+
+func test_follow_keeps_unit_on_safe_edge() -> void:
+	# 右へ外れた駒＝はみ出した分だけ動き、駒は安全域の右の縁ぴったりに来る（内側へは引き込まない）。
+	var p := Vector3(15.0, 0.0, 0.0)
+	assert_true(cam.camera.unproject_position(p).x > _safe().end.x, "前提：安全域の右に外れている")
+	cam.follow(p, _vis())
+	assert_almost_eq(cam.camera.unproject_position(p).x, _safe().end.x, 1.0, "縁に置く")
+	var t := cam.target
+	cam.follow(p, _vis())
+	assert_eq(cam.target, t, "縁ぴったりは見えている扱い＝もう動かない")
 
 # --- shake ---
 

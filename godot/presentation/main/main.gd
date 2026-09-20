@@ -209,8 +209,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.combat_resolved.connect($Front/InfoPanel.show_combat)
 	_controller.combat_resolved.connect(_on_combat_resolved)  # 演出シーン（結果＝シーン／根拠＝右パネル）
 	_controller.combat_pace = _await_combat_view  # AIターンは演出の完了を待ってから次へ
-	_controller.move_pace = $HexBoard.await_move_animation  # 同上＝移動アニメも歩き切るまで待つ
-	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体をカメラに収めてから見せる
+	_controller.move_pace = $HexBoard.follow_move_animation  # 同上＝移動アニメも歩き切るまで待つ（歩いている間はカメラで追う）
+	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体（攻撃なら相手も）をカメラに収めてから見せる
 	_controller.turn_start_pace = _await_turn_banner  # 敵ターンは頭の一拍（バナー）を見せてから動く
 	_controller.dialogue_pace = _story.await_dialogue  # 敵ターンの占領で入る会話は読み終えるまで待つ
 	_controller.turn_changed.connect(_on_turn_changed)
