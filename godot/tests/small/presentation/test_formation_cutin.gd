@@ -30,12 +30,13 @@ func test_stem_unknown_skill_falls_to_skill_id() -> void:
 	assert_eq(FormationCutin.art_stem("no_such_skill", "archer"), "no_such_skill",
 		"レシピに無いIDは設定値が無い扱い（絵は無いので結局飛ぶ）")
 
-func test_only_trick_shot_is_per_caster() -> void:
+func test_only_bow_skills_are_per_caster() -> void:
 	var per: Array[String] = []
 	for rid in Formation.SKILLS:
 		if Formation.SKILLS[rid].get("cutin_per_caster", false):
 			per.append(rid)
-	assert_eq(per, ["trick_shot"] as Array[String], "発動者ごとに絵を分けるのは④だけ")
+	assert_eq(per, ["trick_shot", "magic_arrow"] as Array[String],
+		"発動者ごとに絵を分けるのは射手が変わるスキル（トリックショット・マジックアロー）だけ")
 
 # --- 読み込み（置いてある絵と無い絵） ---
 

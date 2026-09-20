@@ -855,3 +855,147 @@ func test_trick_shot_cannot_target_ally() -> void:
 	var cells := Formation.targetable_cells(s, _trick_shot_option(f))
 	assert_true(f["enemy_hex"] in cells, "張り付かれた敵は選べる")
 	assert_false(ally_hex in cells, "斥候の隣でも味方は選べない")
+
+# --- ⑨マジックアロー（弓兵＋魔法兵の隣接・大きい方＋10・貫通0.5・射程は長い方＋1）---
+
+## ⑨の成立盤：アーチャー（射程1-3・対地30／対空40）の隣にウィザード（射程2-4・対地40／対空40）、
+## アーチャーから距離3の敵。
+func _magic_arrow_state(enemy_def := 40) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var archer := Unit.new(1, 0, c, 4, 8, 30, 30, 1, "archer")
+	archer.atk_air = 40
+	archer.min_range = 1
+	archer.attack_range = 3
+	var wizard := Unit.new(2, 0, Hex.neighbor(c, 3), 4, 8, 40, 30, 1, "wizard")
+	wizard.atk_air = 40
+	wizard.pierce = 0.5
+	wizard.min_range = 2
+	wizard.attack_range = 4
+	var enemy_hex := c + Hex.direction(0) * 3
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
+	for u in [archer, wizard, enemy]:
+		s.add_unit(u)
+	return {"s": s, "archer": archer, "wizard": wizard, "enemy": enemy, "enemy_hex": enemy_hex}
+
+func _magic_arrow_option(f: Dictionary) -> FormationOption:
+	return _pick(Formation.available_for(f["s"], f["archer"]), "magic_arrow")
+
+## 陣形ダメージの期待値（発動者の兵数・レベル・包囲・地形に、指定のユニット攻撃力と貫通を当てる）。
+func _expect_loss(s: BattleState, leader: Unit, stat: int, enemy: Unit, pierce: float) -> int:
+	var atk := Combat.attack_breakdown_from(leader.troops, stat,
+		Combat.level_factor(leader), Combat.surround_factor(s, leader),
+		TerrainType.attack_factor(s.terrain_at(leader.pos)), 0.0)
+	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
+		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
+		TerrainType.defense_factor(s.terrain_at(enemy.pos)), 0.0, pierce)
+	return Combat.hit_from_breakdowns(atk, df, enemy.troops).loss
+
+func test_magic_arrow_detected_when_caster_adjacent() -> void:
+	var f := _magic_arrow_state()
+	var o := _magic_arrow_option(f)
+	assert_not_null(o, "弓兵の隣に魔法兵が居れば成立する")
+	assert_eq(o.participants, [1, 2] as Array[int], "参加者は弓兵と魔法兵の2体")
+	assert_eq(o.shape, FormationOption.Shape.ESCORT, "形は escort（人数2）")
+
+## 発動できるのは弓兵から＝ウィザードの選択肢には出ない。
+func test_magic_arrow_only_from_archer() -> void:
+	var f := _magic_arrow_state()
+	assert_eq(_count(Formation.available_for(f["s"], f["wizard"]), "magic_arrow"), 0,
+		"魔法兵からは発動できない")
+
+## メイジは見習いのため対象外＝隣に居ても成立しない。
+func test_magic_arrow_rejects_mage() -> void:
+	var f := _magic_arrow_state()
+	var s: BattleState = f["s"]
+	var wizard: Unit = f["wizard"]
+	wizard.type_id = "mage"
+	assert_eq(_count(Formation.available_for(s, f["archer"]), "magic_arrow"), 0, "メイジでは成立しない")
+
+## 射程は2体の射程上限の長い方＋1・下限なし。
+func test_magic_arrow_range_is_longer_plus_one() -> void:
+	var f := _magic_arrow_state()
+	var o := _magic_arrow_option(f)
+	assert_eq(o.max_range, 5, "アーチャー3／ウィザード4 → 長い方4＋1＝5")
+	assert_eq(o.min_range, 0, "下限は無し")
+	var archer: Unit = f["archer"]
+	archer.type_id = "elf"
+	archer.attack_range = 5
+	assert_eq(_magic_arrow_option(f).max_range, 6, "エルフ5／ウィザード4 → 6")
+	archer.type_id = "archer"
+	archer.attack_range = 3
+	var wizard: Unit = f["wizard"]
+	wizard.type_id = "witch"
+	wizard.attack_range = 5
+	assert_eq(_magic_arrow_option(f).max_range, 6, "アーチャー3／ウィッチ5 → 6")
+
+## 下限が無い＝隣接の敵にも撃てる。射程外（距離6）の敵は選べない。
+func test_magic_arrow_targets_adjacent_and_within_range() -> void:
+	var f := _magic_arrow_state()
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var near_hex := Hex.neighbor(archer.pos, 0)
+	var edge_hex: Vector2i = archer.pos + Hex.direction(0) * 5
+	var far_hex: Vector2i = archer.pos + Hex.direction(0) * 6
+	s.add_unit(Unit.new(10, 1, near_hex, 3, 8, 10, 40))
+	s.add_unit(Unit.new(11, 1, edge_hex, 3, 8, 10, 40))
+	s.add_unit(Unit.new(12, 1, far_hex, 3, 8, 10, 40))
+	var cells := Formation.targetable_cells(s, _magic_arrow_option(f))
+	assert_true(near_hex in cells, "隣接の敵に撃てる（下限なし）")
+	assert_true(edge_hex in cells, "距離5＝射程の端は撃てる")
+	assert_false(far_hex in cells, "距離6は射程外")
+
+## 威力＝2体の攻撃力の大きい方＋10・貫通0.5。地上の敵にはウィザード40＋10＝50 で撃つ。
+## 兵数・レベル・包囲・地形は発動者（弓兵）のもの。
+func test_magic_arrow_ground_uses_max_attack_plus_ten() -> void:
+	var f := _magic_arrow_state(40)
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var enemy: Unit = f["enemy"]
+	archer.troops = 5  # 発動者の兵数で撃つことを見るため魔法兵（8）とずらす
+	var expect := _expect_loss(s, archer, 50, enemy, 0.5)  # 発動前の盤で（発動後は敵の兵数が減る）
+	var res := FormationResolver.resolve(s, _magic_arrow_option(f), f["enemy_hex"])
+	var atk: StatBreakdown = res.hits[0].detail.attack
+	assert_eq(atk.stat, 50, "ウィザード40 と アーチャー30 の大きい方＋10")
+	assert_eq(atk.troops, 5, "兵数は発動者のもの")
+	assert_false(atk.vs_aerial, "地上の敵＝対地値")
+	assert_eq(res.hits[0].loss, expect, "貫通0.5で撃った損害")
+
+## 飛行の敵には対空値で大きい方を取る＝エルフ60＋10＝70（主役が入れ替わる）。
+func test_magic_arrow_air_uses_max_air_attack_plus_ten() -> void:
+	var f := _magic_arrow_state(40)
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var enemy: Unit = f["enemy"]
+	archer.type_id = "elf"
+	archer.atk_air = 60
+	enemy.move_type = "flight"
+	var expect := _expect_loss(s, archer, 70, enemy, 0.5)  # 発動前の盤で
+	var res := FormationResolver.resolve(s, _magic_arrow_option(f), f["enemy_hex"])
+	var atk: StatBreakdown = res.hits[0].detail.attack
+	assert_eq(atk.stat, 70, "エルフ対空60 と ウィザード対空40 の大きい方＋10")
+	assert_true(atk.vs_aerial, "飛行の敵＝対空値")
+	assert_eq(res.hits[0].loss, expect, "対空値・貫通0.5で撃った損害")
+
+## 参加者は2体とも行動完了。
+func test_magic_arrow_spends_both() -> void:
+	var f := _magic_arrow_state()
+	var s: BattleState = f["s"]
+	FormationResolver.resolve(s, _magic_arrow_option(f), f["enemy_hex"])
+	assert_true(s.is_done(1), "弓兵は行動完了")
+	assert_true(s.is_done(2), "魔法兵も行動完了")
+
+## 隣に魔法兵が2体居れば、どちらを供出するかを選ぶ（組は魔法兵1体ごとに1つ）。
+func test_magic_arrow_two_casters_offer_choice() -> void:
+	var f := _magic_arrow_state()
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var witch := Unit.new(3, 0, Hex.neighbor(archer.pos, 4), 4, 8, 30, 30, 1, "witch")
+	witch.attack_range = 5
+	s.add_unit(witch)
+	assert_eq(_count(Formation.available_for(s, archer), "magic_arrow"), 2, "組は魔法兵1体ごとに1つ")
+	var c := _choice(Formation.choices_for(s, archer), "magic_arrow")
+	assert_true(c.needs_choice(), "組が複数＝参加者を選ぶ段を挟む")
+	assert_eq(c.pool, [2, 3] as Array[int], "候補は隣の魔法兵2体")
+	assert_eq(Formation.option_of(s, c, [3] as Array[int]).max_range, 6, "ウィッチを選べば射程6")
+	assert_eq(Formation.option_of(s, c, [2] as Array[int]).max_range, 5, "ウィザードを選べば射程5")

@@ -48,6 +48,10 @@ var attack_vs: String
 ## レシピが上書きする防御貫通率。負＝上書きしない（発動者の pierce をそのまま使う）。
 ## ④トリックショット＝斥候が見つけた弱点を射抜く 0.5。詳細 → doc/gdd/formations.md ④
 var pierce_override: float
+## 威力のユニット攻撃力の引き方。""＝発動者1体の値（既定・設計原則2）／"max_plus"＝参加者の最大＋attack_plus
+## （⑨マジックアロー＝2体の大きい方＋10。合算はしない）。詳細 → doc/gdd/formations.md ⑨
+var attack_from_stats: String
+var attack_plus: int
 ## 演出シーンで使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる（presentation が解決）。
 ## エフェクトの単位を「誰が撃ったか」ではなく「何を撃ったか」にする列＝ピュリファイはクレリックが撃っても
 ## ビショップが撃っても同じ絵になる。陣形の盤の着弾はこれを見ない（レシピ専用の絵を規約解決する）。
@@ -85,15 +89,26 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	o.side = _id_to_enum(SIDE_IDS, String(r.get("buff_side", "ally")), "buff_side")
 	o.max_range = int(r.get("range", 0))
 	o.min_range = 0
-	# 射程をレシピの固定値ではなく発動者の性能から引くレシピ（④）＝弓兵の通常射程（下限〜上限）が
-	# そのままスキルの射程になる。固定の "range" とは排他。詳細 → doc/gdd/formations.md ④
-	if String(r.get("range_from_stats", "")) == "leader":
-		o.max_range = units[0].attack_range
-		o.min_range = units[0].min_range
+	# 射程をレシピの固定値ではなく参加者の性能から引くレシピ。固定の "range" とは排他。
+	#   "leader"（④）＝弓兵の通常射程（下限〜上限）がそのままスキルの射程になる。
+	#   "max_plus"（⑨）＝参加者の射程上限の長い方＋range_plus。下限は無し（隣接にも撃てる）。
+	# 詳細 → doc/gdd/formations.md ④⑨
+	match String(r.get("range_from_stats", "")):
+		"leader":
+			o.max_range = units[0].attack_range
+			o.min_range = units[0].min_range
+		"max_plus":
+			var longest := 0
+			for u in units:
+				longest = maxi(longest, u.attack_range)
+			o.max_range = longest + int(r.get("range_plus", 0))
+			o.min_range = 0
 	o.range_from = _id_to_enum(RANGE_FROM_IDS, String(r.get("range_from", "leader")), "range_from")
 	o.radius = int(r.get("radius", 0))
 	o.attack_vs = String(r.get("attack_vs", "ground"))
 	o.pierce_override = float(r.get("pierce_override", -1.0))
+	o.attack_from_stats = String(r.get("attack_from_stats", ""))
+	o.attack_plus = int(r.get("attack_plus", 0))
 	o.combat_effect = String(r.get("combat_effect", ""))
 	o.charge_turns = int(r.get("charge_turns", 0))
 	if o.effect == Effect.BUFF:

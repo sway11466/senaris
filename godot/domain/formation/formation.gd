@@ -23,6 +23,10 @@ class_name Formation
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
 ## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
+## range_from_stats: 射程を固定値 "range" ではなく参加者の性能から引く（固定の "range" とは排他）。
+##        "leader"（④＝発動者の通常射程・下限〜上限）／"max_plus"（⑨＝参加者の射程上限の最大＋range_plus・下限なし）。
+## attack_from_stats: 威力のユニット攻撃力を発動者1体ではなく参加者から引く。省略＝発動者（設計原則2）。
+##        "max_plus"（⑨＝参加者の攻撃力の最大＋attack_plus。兵数・レベル・包囲・地形は発動者のもの）。
 ## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
 ## 陣形スキルの並びは表Aの行順に揃える＝クロニクルのカードの並び。詳細 → doc/gdd/chronicle.md 陣形スキル
 ## 分類（category）に書ける値＝表Aの「分類」列（弓攻撃／魔法攻撃／特殊攻撃／強化／弱体化／その他／敵）。
@@ -90,6 +94,29 @@ const SKILLS := {
 		"impact_motion": "fly",
 		# カットインの絵は発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
 		# 他のスキルはスキルごと1枚。→ doc/gdd/formations.md 発動の演出
+		"cutin_per_caster": true,
+	},
+	"magic_arrow": {
+		"name": "マジックアロー",
+		"category": "magic",
+		"leader_skins": ["archer", "hunter", "elf"],  # 矢を放つのは弓＝発動は弓兵から。スリンガー系は投石なので対象外
+		"member_skins": ["wizard", "witch"],  # メイジは見習いのため対象外
+		"shape": "escort",
+		"count": 2,
+		"effect": "single",
+		# 射程は2体の射程上限の長い方＋1（アーチャー／ハンター＋ウィザード＝5、エルフかウィッチが居れば6）。
+		# 下限は無し＝隣接にも撃てる。詳細 → doc/gdd/formations.md ⑨
+		"range_from_stats": "max_plus",
+		"range_plus": 1,
+		"range_from": "leader",
+		# 威力は2体の攻撃力の大きい方＋10（合算はしない＝設計原則2の唯一の例外）。相手が飛行なら対空値で
+		# 大きい方を取る＝地上ではウィザード40＋10、空ではエルフ60＋10 と主役が入れ替わる。
+		"attack_from_stats": "max_plus",
+		"attack_plus": 10,
+		"pierce_override": 0.5,  # 魔法が矢に貫通を持ち寄る
+		"attack_vs": "target",
+		"impact_motion": "fly",  # ④と同じ＝光を纏った矢が射手のヘックスから飛んでくる
+		# カットインの絵は④と同じく発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
 		"cutin_per_caster": true,
 	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
@@ -246,7 +273,7 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
 			"escort":
 				for members in _escort_sets(state, unit, r, lead_pos):
-					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
+					out.append(FormationOption.from_skill(rid, r, [unit] + members))
 			"spotter":
 				for members in _spotter_sets(state, unit, r, lead_pos):
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0]]))
@@ -664,14 +691,22 @@ static func _spotter_has_mark(state: BattleState, leader: Unit, m: Unit, lead_po
 			return true
 	return false
 
-## ③ディバインジャッジメント＝発動者を中心に、周囲の2体。メンバー同士の隣接は問わない
-## （発動者を挟んで左右対称でも成立する）＝leader に隣接する候補の2体組を全列挙。
+## 発動者を中心に、隣接する count-1 体。メンバー同士の隣接は問わない（発動者を挟んで左右対称でも
+## 成立する）＝leader に隣接する候補から count-1 体の組を全列挙。
+## ③ディバインジャッジメント＝2体組／⑨マジックアロー＝1体（隣接する魔法兵ごとに1組）。
 static func _escort_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
 	var cand := _adjacent_members(state, leader, r, lead_pos)
+	var need := int(r["count"]) - 1
 	var sets: Array = []
-	for i in cand.size():
-		for j in range(i + 1, cand.size()):
-			sets.append([cand[i], cand[j]])
+	if need == 1:
+		for m in cand:
+			sets.append([m])
+	elif need == 2:
+		for i in cand.size():
+			for j in range(i + 1, cand.size()):
+				sets.append([cand[i], cand[j]])
+	else:
+		assert(false, "Formation: escort の人数 %d は未対応（2 か 3）" % int(r["count"]))
 	return sets
 
 ## leader を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
@@ -712,6 +747,7 @@ static func _formation_hit(state: BattleState, option: FormationOption, victim: 
 ## 通常戦闘（Combat.attack_breakdown）との違いはここに全部書く:
 ##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）／支援なし（間接扱い）。
 ##   矢のレシピ（attack_vs "target"＝④⑥⑨）だけは通常攻撃と同じく相手で対空／対地を切り替える。
+##   ⑨は攻撃力だけを参加者から引く（attack_from_stats）＝兵数・レベル・包囲・地形は発動者のもの。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md 設計原則3
 static func _skill_attack_breakdown(state: BattleState, leader: Unit, option: FormationOption,
 		victim: Unit) -> StatBreakdown:
@@ -719,7 +755,7 @@ static func _skill_attack_breakdown(state: BattleState, leader: Unit, option: Fo
 	var vs_air := option.attack_vs == "target" and victim.is_aerial()
 	var b := Combat.attack_breakdown_from(
 		leader.troops,
-		leader.attack_against(victim) if option.attack_vs == "target" else leader.unit_attack,
+		_skill_attack_stat(state, leader, option, victim),
 		Combat.level_factor(leader),
 		Combat.surround_factor(state, leader),
 		TerrainType.attack_factor(state.terrain_at(leader.pos)),
@@ -728,6 +764,22 @@ static func _skill_attack_breakdown(state: BattleState, leader: Unit, option: Fo
 	b.vs_aerial = vs_air  # レポートが対空値で撃ったことを出せる（常に対地のレシピは false）
 	b.melee = false
 	return b
+
+## 威力に使うユニット攻撃力（兵1体あたり）。既定は発動者1体の値（設計原則2＝参加者ぶんを合算しない）。
+## ⑨マジックアロー（attack_from_stats "max_plus"）だけは参加者の最大＋attack_plus＝地上ではウィザード
+## 40＋10、空ではエルフ 60＋10 と、相手によって主役が入れ替わる。合算ではないので2人・単体でも壊れない。
+## 対空／対地の切り替え（attack_vs）は参加者それぞれに掛ける。詳細 → doc/gdd/formations.md ⑨
+static func _skill_attack_stat(state: BattleState, leader: Unit, option: FormationOption, victim: Unit) -> int:
+	var by_target := option.attack_vs == "target"
+	var stat := leader.attack_against(victim) if by_target else leader.unit_attack
+	if option.attack_from_stats != "max_plus":
+		return stat
+	for pid in option.participants:
+		var p := state.unit_by_handle(int(pid))
+		if p == null:
+			continue
+		stat = maxi(stat, p.attack_against(victim) if by_target else p.unit_attack)
+	return stat + option.attack_plus
 
 ## 被弾側の実効防御力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.defense_breakdown_from）。
 ## 通常戦闘（Combat.defense_breakdown）との違いはここに全部書く:

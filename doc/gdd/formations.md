@@ -149,7 +149,7 @@
 | ⑥ | `arrow_rain` | アローレイン | 味方 | 弓攻撃 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | feature-119 |
 | ⑦ | `magic_shield` | マジックシールド | 味方 | 強化 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | feature-121 |
 | ⑧ | `backstab` | バックスタブ | 味方 | 特殊攻撃 | thief | 任意 ×1（**対象を挟んで正反対**） | `backstab` | 2 | シーフ | 1 | feature-122 |
-| ⑨ | `magic_arrow` | マジックアロー | 味方 | 魔法攻撃 | archer／hunter／elf | wizard／witch ×1（隣接） | `escort` | 2 | 弓兵 | 2体の射程上限の長い方＋1（下限なし） | feature-118 |
+| ⑨ | `magic_arrow` | マジックアロー | 味方 | 魔法攻撃 | archer／hunter／elf | wizard／witch ×1（隣接） | `escort` | 2 | 弓兵 | 2体の射程上限の長い方＋1（下限なし） | 済 |
 | ⑩ | `counter` | カウンター | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 ×1（隣接） | `escort` | 2（固定） | どちらからでも | —（参加者） | feature-124 |
 | C1 | `chaos_baptism` | 混沌の洗礼 | 敵（教団） | 敵 | 邪神官（`cult_priest`・witch 性能）／邪教徒（`cultist`・mage 性能）※skin_id は仮 | 同左 | `triangle` | 3 | どれからでも | 5 | 未（第2部 st5〜） |
 | C2 | `creeping_chaos` | 忍び寄る混沌 | 敵（教団） | 敵 | 同上 | 同左 | `cluster` | 5以上 | どれからでも | 7 | 未（第2部 st5〜） |
