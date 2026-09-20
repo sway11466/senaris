@@ -10,7 +10,6 @@ const MAX_W_RATIO := 0.82  # 紙の幅の上限＝画面幅に対する比。こ
 const TITLE_FONT := 26
 const HEAD_FONT := 20
 const BODY_FONT := 17
-const NOTE_FONT := 14    # 見出しに添える「いずれか1つで決まる」
 const PAD_H := 32.0      # 紙の左右の余白（幅を測るときも同じ値を足す）
 const DOT := 7.0         # 行の頭の印（インクの点）。記号を文字で置かない＝環境でフォントが変わる
 const DOT_GAP := 10.0
@@ -22,8 +21,6 @@ var _win_box: VBoxContainer
 var _lose_box: VBoxContainer
 var _win_head: Label
 var _lose_head: Label
-var _win_note: Label
-var _lose_note: Label
 var _close: Button
 var _sheet: PanelContainer  # 幅を中身に合わせて広げるので持っておく
 
@@ -69,17 +66,11 @@ func _ready() -> void:
 
 	_win_head = _label(tr("ui.objective.win_head"), HEAD_FONT)
 	content.add_child(_win_head)
-	_win_note = _label(tr("ui.objective.any"), NOTE_FONT)
-	_win_note.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
-	content.add_child(_win_note)
 	_win_box = _lines_box()
 	content.add_child(_win_box)
 
 	_lose_head = _label(tr("ui.objective.lose_head"), HEAD_FONT)
 	content.add_child(_lose_head)
-	_lose_note = _label(tr("ui.objective.any"), NOTE_FONT)
-	_lose_note.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
-	content.add_child(_lose_note)
 	_lose_box = _lines_box()
 	content.add_child(_lose_box)
 
@@ -114,11 +105,6 @@ func open(lines: Dictionary) -> void:
 	var lose: PackedStringArray = lines.get("defeat", PackedStringArray())
 	_fill(_win_box, win)
 	_fill(_lose_box, lose)
-	# 「いずれか1つで決まる」は2つ以上あるときだけ＝1つしかない紙に択の説明を足さない。
-	_win_note.text = tr("ui.objective.any")
-	_lose_note.text = tr("ui.objective.any")
-	_win_note.visible = win.size() > 1
-	_lose_note.visible = lose.size() > 1
 	_fit_width(win, lose)
 	visible = true
 

@@ -111,15 +111,14 @@ ui.combat.cleansed,解呪 %d,Cleansed %d
 ui.objective.title,勝利／敗北条件,Victory and Defeat Conditions
 ui.objective.win_head,勝利,Victory
 ui.objective.lose_head,敗北,Defeat
-ui.objective.any,いずれか1つで決まる,Any one of these decides the battle
 ui.objective.name_sep,・,", "
 ui.objective.win.wipe,敵をすべて倒す,Defeat every enemy unit
 ui.objective.win.capture_hq,敵の本拠地を占領する,Capture the enemy headquarters
 ui.objective.win.defeat_unit,%s を倒す,Defeat %s
 ui.objective.win.defeat_units,%s をすべて倒す,Defeat all of %s
-ui.objective.lose.wipe,自軍がすべて倒される,Your army is wiped out
+ui.objective.lose.wipe,自軍が全滅する,Your army is wiped out
 ui.objective.lose.hq,自軍の本拠地を奪われる,Your headquarters is captured
-ui.objective.lose.turn_limit,%d ターン以内に勝てない,You do not win within %d turns
+ui.objective.lose.turn_limit,%d ターン経過,%d turns pass
 ui.objective.lose.lose_unit,%s を失う,%s is lost
 ui.objective.lose.lose_units,%s をすべて失う,All of %s are lost
 ui.objective.lose.base,拠点を奪われる,The base is captured
