@@ -6,8 +6,6 @@
   "backdrop": "cave_wall",
   "player": [
     { "units": [
-        { "type": "horse", "actor": "horse1", "col": 4, "row": 17, "supply": "refill" },
-        { "type": "horse", "actor": "horse2", "col": 10, "row": 17, "supply": "refill" },
         {"type": "cleric", "col": 5, "row": 17, "actor": "cleric", "supply": "refill"},
         {"type": "archer", "col": 6, "row": 17, "actor": "archer", "supply": "refill"},
         {"type": "bishop", "col": 7, "row": 17, "actor": "bishop", "supply": "refill"},
@@ -69,6 +67,7 @@
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st6.rogue.3" },
       { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.intro.3" },
       { "scene": "dragon-hunt.st6.scene.1" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.11" },
       { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st6.intro.1", "when": "joined:birdman" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.2" },
