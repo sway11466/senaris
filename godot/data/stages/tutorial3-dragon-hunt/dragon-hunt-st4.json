@@ -71,7 +71,7 @@
       ] }
   ],
   "bases": [
-    { "order": 5, "ai": "ambush", "col": 8, "row": 10, "team": "neutral", "rest": "both",
+    { "order": 10, "ai": "ambush", "col": 8, "row": 10, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "elf", "actor": "elf", "native": "neutral" } ] }
   ],
   "events": [
