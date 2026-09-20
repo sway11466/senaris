@@ -83,6 +83,7 @@ var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
 var _board_fx := "normal"  # 盤面の演出の設定（SettingsStore.BOARD_FX_MODES）。set_board_fx で入る
+var _combat_fx := "normal"  # 戦闘の演出の設定（SettingsStore.COMBAT_FX_MODES）。set_combat_fx で入る
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
 var _covered := false    # 盤の上に画面（タイトル・依頼ボード・設定…）が出ている＝入力を受けない（set_covered で制御）
 var _move_voice: AudioStreamPlayer = null  # 進行中の移動音の口（続く型のループ／周期の型の直近の一打）。到着・中断で止める
@@ -159,7 +160,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	_skin_catalog = p_skin_catalog
 	_terrain_renderer.setup(state, p_terrain_skins, p_margin_terrain, p_height_overrides)
 	_unit_renderer.setup(_board_cam, state, _skin_catalog, _terrain_renderer.elev, _terrain_renderer.unit_floor)
-	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, state.in_field, state, _sync, func(v: bool) -> void: _locked = v)
+	_impact_renderer.setup(_unit_renderer, _overlay_mesh, _terrain_renderer.elev, state.in_field, state, _sync, func(v: bool) -> void: _locked = v, _skin_catalog)
 	_reset_interaction()
 	controller.unit_moved.connect(_on_unit_moved)
 	controller.unit_attacked.connect(_on_unit_attacked)
@@ -363,6 +364,24 @@ func set_board_fx(mode: String) -> void:
 ## 盤の上の動きに掛ける速さ（1.0＝等速）。OFF は動かさないので呼ぶ側が先に分岐する。
 func _fx_speed() -> float:
 	return BOARD_FX_FAST if _board_fx == "fast" else 1.0
+
+## 戦闘の演出の設定（doc/gdd/settings.md 戦闘の演出）。main が起動時と、設定画面で選ばれたときに呼ぶ。
+func set_combat_fx(mode: String) -> void:
+	_combat_fx = mode
+
+## 画面を占有する演出（戦闘窓・対峙シーン・カットイン）をこの手で出すか。自軍のみ＝いま動いている
+## 陣営がプレイヤーのときだけ。main（窓を開く側）と盤（開かない手の一撃を出す側）が同じ答えを見る。
+func combat_view_shown() -> bool:
+	match _combat_fx:
+		"off":
+			return false
+		"own":
+			return state != null and state.current_team == 0
+	return true
+
+## 戦闘の一撃を盤で見せる手か＝窓を開かず、盤面の演出も OFF でない。
+func _combat_on_board() -> bool:
+	return not combat_view_shown() and _board_fx != "off"
 
 ## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
 ## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
@@ -865,6 +884,19 @@ func play_formation_impact(result: SkillResult) -> void:
 	if _impact_renderer.finisher_armed():
 		await zoom_to_finisher(result.center)
 	await _impact_renderer.play(result, _locked)
+
+## 戦闘の一撃を盤で見せる（BoardImpactRenderer に委譲）。窓を開かない手だけ main が呼ぶ。
+## 決着のとどめ（main が arm_finisher_impact 済み）は、先にカメラを倒れる敵の駒へ寄せてから見せる。
+func play_combat_impact(result: AttackResult) -> void:
+	if _impact_renderer.finisher_armed():
+		await zoom_to_finisher(_combat_finisher_hex(result))
+	await _impact_renderer.play_combat(result, _locked)
+
+## とどめの寄せ先＝この戦闘で倒れる敵陣営の駒。反撃で決まる回は攻撃側が倒れる。
+func _combat_finisher_hex(result: AttackResult) -> Vector2i:
+	if result.attacker.team != 0 and result.attacker.is_killed():
+		return result.attacker.pos
+	return result.defender.pos
 
 ## 着弾演出が進行中か（盤が撃たれる前の姿を保持している間）。決着の告知はこれが終わるまで待つ。
 func is_impacting() -> bool:
@@ -1415,6 +1447,11 @@ func await_move_animation() -> void:
 
 func _on_unit_attacked(_attacker_id: int, _target_id: int, _damage: int, _killed: bool) -> void:
 	_deselect()  # 攻撃したユニットは行動終了
+	if _combat_on_board():
+		# 窓を開かない手＝盤で一撃と被弾を見せる。殴られる前の姿のまま置き、着弾で駒を反応させる
+		# （陣形の着弾と同じ保留。結果は次に飛ぶ combat_resolved で main が play_combat_impact に渡す）
+		_impact_renderer.set_pending(true)
+		return
 	_sync()
 
 func _on_unit_deployed(_unit_id: int, _base_hex: Vector2i, _to: Vector2i) -> void:

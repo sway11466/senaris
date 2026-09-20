@@ -76,6 +76,7 @@ func _ready() -> void:
 		SettingsApplier.apply_volume(String(bus), _settings_store.volume(String(bus)))
 	SettingsApplier.apply_window_mode(_settings_store.window_mode())
 	$HexBoard.set_board_fx(_settings_store.board_fx())  # 盤面の演出（移動アニメ・カメラ追従・着弾の速さ）
+	$HexBoard.set_combat_fx(_settings_store.combat_fx())  # 戦闘の演出（窓を開くか。開かない手は盤が一撃を見せる）
 	_skins = SkinCatalog.load_standard()
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
@@ -233,21 +234,22 @@ func _install_state(state: BattleState, path: String) -> void:
 ## 仕様 → doc/gdd/uiux.md 決着の合図
 func _on_combat_resolved(result: AttackResult) -> void:
 	if not _combat_view_shown():
-		return  # 盤面のみ＝窓を開かない。結果は盤の兵数と右パネルのレポートで読む。決着は盤の側の合図で
+		# 盤面のみ＝窓を開かず、盤で一撃と被弾を見せる（盤面の演出 OFF なら結果だけ）。
+		# 勝ちが確定していれば盤の着弾をとどめ（スロー＋カメラ寄せ）として見せる＝陣形と同じ道。
+		if _win_decided():
+			_finisher_route = "board"
+			$HexBoard.arm_finisher_impact()
+		$HexBoard.play_combat_impact(result)
+		return
 	if _win_decided():
 		_finisher_route = "combat"
 		_combat_scene.arm_finisher()
 	_combat_scene.play(result)
 
 ## 画面を占有する演出（戦闘窓・対峙シーン・カットイン）をこの手で出すか。設定「戦闘の演出」に従う
-## （doc/gdd/settings.md）。自軍のみ＝いま動いている陣営がプレイヤーのときだけ出す。
+## （doc/gdd/settings.md）。答えは盤が持つ＝開かない手の一撃を盤が出す判定と同じものを見る。
 func _combat_view_shown() -> bool:
-	match _settings_store.combat_fx():
-		"off":
-			return false
-		"own":
-			return _controller != null and _controller.state.current_team == 0
-	return true
+	return $HexBoard.combat_view_shown()
 
 ## この時点で勝ちが確定しているか。combat_resolved / formation_resolved は盤の状態が確定した後・
 ## battle_finished より前に飛ぶ＝演出を組む前に決着を読める。
@@ -891,7 +893,7 @@ func _install_settings() -> void:
 	_settings.volume_settled.connect(_settings_store.set_volume)
 	_settings.window_mode_chosen.connect(_on_settings_window_mode_chosen)
 	_settings.dialogue_mode_chosen.connect(_settings_store.set_dialogue_when_minimized)
-	_settings.combat_fx_chosen.connect(_settings_store.set_combat_fx)  # 出すかは play のたびに読む＝当てる先は無い
+	_settings.combat_fx_chosen.connect(_on_settings_combat_fx_chosen)
 	_settings.board_fx_chosen.connect(_on_settings_board_fx_chosen)
 	_settings.closed.connect(_on_settings_closed)
 	add_child(_settings)
@@ -1000,6 +1002,11 @@ func _on_chronicle_closed() -> void:
 func _on_settings_board_fx_chosen(mode: String) -> void:
 	_settings_store.set_board_fx(mode)
 	$HexBoard.set_board_fx(mode)
+
+## 戦闘の演出を選んだ＝保存して盤に当てる（窓を開くかの判定は盤が持つ）。
+func _on_settings_combat_fx_chosen(mode: String) -> void:
+	_settings_store.set_combat_fx(mode)
+	$HexBoard.set_combat_fx(mode)
 
 ## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
 func _on_settings_locale_chosen(locale: String) -> void:

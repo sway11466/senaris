@@ -58,6 +58,17 @@ const FLY_HEIGHT := TILE * 0.55        # 地面からの高さ（駒の胸のあ
 const FLY_TILES := 1.5                 # 絵の大きさ（長辺がヘックス幅の何倍か）
 const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時間（③の残光より短い）
 
+# --- 戦闘の一撃（戦闘窓を開かない手＝設定「戦闘の演出」の盤面のみ。doc/gdd/settings.md）---
+# 攻撃側の武器エフェクト（戦闘窓と同じ CombatEffect）を盤に出す。矢や投石は攻撃側の駒から被弾側へ
+# 飛び、斬撃は被弾側の駒の上で弾ける。着弾で被弾側が反応し（フラッシュ・撃破はフェード）、
+# 反撃があれば逆向きに同じ流れ。どの駒が誰を殴ったかが盤だけで読める。
+const STRIKE_TILES := 2.0        # 重ねる型の絵の大きさ（scale 1.0 でヘックス幅の何倍か。陣形の着弾と同程度＝盤では小さいと埋もれる）
+const STRIKE_SEC := 0.36         # 同・弾けて消えるまで（戦闘窓の 0.30 より少し長く＝盤では絵が小さい）
+const STRIKE_OPEN := 1.5         # 同・弾ける倍率
+const STRIKE_FLY_TILES := 1.5    # 飛ぶ型の絵の大きさ（長辺がヘックス幅の何倍か。④トリックショットと同じ）
+const COUNTER_GAP_SEC := 0.40    # 着弾から反撃が放たれるまでの間（重ねる型の絵が消える頃）
+const COMBAT_TAIL_SEC := 0.30    # 最後の着弾から盤を作り直すまで（フラッシュ・撃破フェードを見せ切る）
+
 # --- 外部依存（setup で注入）---
 var _unit_renderer: BoardUnitRenderer
 var _overlay_mesh: ArrayMesh
@@ -72,6 +83,8 @@ var _impact_gen := 0            # 世代。ステージが変わったら増や�
 var _impact_pending := false    # 着弾待ち＝盤の作り直しを保留している（撃たれる前の姿のまま置く）
 var _impact_lock := false       # 演出の間だけ入力を止めた＝終わったら元へ戻す
 var _impact_tex := {}           # skill_id -> Texture2D|null（駒に重ねる着弾の絵）
+var _effect_tex := {}           # effect_id -> Texture2D|null（戦闘の武器エフェクトの絵）
+var _skin_catalog := {}         # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }。武器エフェクトを引く
 var _finisher := false          # 次の着弾を決着のとどめ（スロー）として見せる＝main が勝ち確定後に立てる
 var _speed := 1.0               # 尺に掛ける速さ（1.0＝等速。盤面の演出「高速」で上がる）
 var _skip := false              # 着弾を見せず結果だけ（盤面の演出 OFF）
@@ -79,7 +92,8 @@ var _skip := false              # 着弾を見せず結果だけ（盤面の演�
 
 func setup(unit_renderer: BoardUnitRenderer, overlay_mesh: ArrayMesh,
 		elev_fn: Callable, in_board_fn: Callable, p_state: BattleState,
-		sync_fn: Callable, set_locked_fn: Callable) -> void:
+		sync_fn: Callable, set_locked_fn: Callable, skin_catalog: Dictionary = {}) -> void:
+	_skin_catalog = skin_catalog
 	_unit_renderer = unit_renderer
 	_overlay_mesh = overlay_mesh
 	_elev_fn = elev_fn
@@ -187,6 +201,122 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	_sync_fn.call()
 
 
+## 戦闘の結果を盤で見せる：攻撃側の一撃 → 被弾側の反応 → 反撃があれば逆向き → 盤を作り直す。
+## 戦闘窓を開かない手だけ hex_board_3d が呼ぶ（設定「戦闘の演出」）。盤面の演出 OFF は結果だけ。
+## 待ちは陣形の着弾と同じく世代で打ち切る＝ステージが変われば途中でも戻る。
+func play_combat(result: AttackResult, is_locked: bool) -> void:
+	if not _impact_pending:
+		return
+	if _skip:
+		_end_impact()  # 盤面の演出 OFF＝一撃も被弾も出さず、殴られた後の盤を作り直すだけ
+		_sync_fn.call()
+		return
+	var gen := _impact_gen
+	var st := FINISH_STRETCH if _finisher else 1.0
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)  # 演出中に盤を触らせない（陣形の着弾と同じ流儀）
+	var a := result.attacker
+	var d := result.defender
+	await _wait(_strike(a, d, result.damage() + d.shield_lost(), st))
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	if result.has_counter():
+		await _wait(COUNTER_GAP_SEC * st)
+		if gen != _impact_gen:
+			_end_impact()
+			return
+		await _wait(_strike(d, a, result.retaliation() + a.shield_lost(), st))
+		if gen != _impact_gen:
+			_end_impact()
+			return
+	await _wait(COMBAT_TAIL_SEC * st)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	_end_impact()
+	_sync_fn.call()
+
+
+## 一撃を放つ。by＝殴る側、comb＝殴られる側（戦闘後の姿を持つ＝撃破かどうかはここから読む）。
+## 飛ぶ型は by の駒から comb の駒へ飛ばし、重ねる型は comb の駒の上でその場で弾けさせる。
+## 音は戦闘窓と同じ規約（発射＝effect_id・着弾＝{effect_id}_hit・損害なし＝弾かれた音）。
+## 返り値＝放ってから着弾するまでの秒数（重ねる型は放った瞬間が着弾＝0）。stretch は決着のスロー。
+func _strike(by: UnitSnapshot, comb: UnitSnapshot, dmg: int, stretch: float) -> float:
+	var gen := _impact_gen
+	var eff := _effect_of(by)
+	var tex := _effect_texture(eff)
+	var killed := comb.is_killed()
+	var uid := comb.handle
+	var on_land := func() -> void:
+		if gen != _impact_gen:
+			return
+		if eff != null:
+			if dmg <= 0:
+				SfxPlayer.play_sfx(CombatStage.SFX_DEFLECT)
+			else:
+				SfxPlayer.play_sfx("%s_hit" % eff.effect_id if eff.is_projectile() else eff.effect_id)
+		_land_unit(uid, killed, stretch)
+	if tex == null:
+		# 絵が無い＝殴られたヘックスだけを光らせる（穴が開かない。陣形の着弾と同じ落とし方）
+		_flash_cells([comb.pos], HIT_BURST_SEC * stretch)
+		on_land.call()
+		return 0.0
+	if eff.is_projectile():
+		SfxPlayer.play_sfx(eff.effect_id)  # 発射。損害によらず武器固有
+		_spawn_flying_impact(by.pos, comb.pos, tex, on_land, stretch, STRIKE_FLY_TILES * eff.scale)
+		return FLY_SEC * stretch
+	# 絵は「右へ向かう一撃」で描く約束＝殴る側が右に居るときだけ水平反転する（戦闘窓と同じ規約）
+	var mirror := Hex.to_pixel(by.pos, TILE).x > Hex.to_pixel(comb.pos, TILE).x
+	_spawn_strike(comb.pos, tex, mirror, STRIKE_TILES * eff.scale, on_land, stretch)
+	return 0.0
+
+
+## 殴る側の武器エフェクト。スキン未設定・未定義IDなら null（絵は無い扱い）。
+func _effect_of(comb: UnitSnapshot) -> CombatEffect:
+	var skin := SkinCatalog.resolve(_skin_catalog, comb.skin_id, comb.type_id, comb.team)
+	if skin == null:
+		return null
+	return CombatEffectCatalog.by_id(skin.combat_effect)
+
+
+## 武器エフェクトの絵（キャッシュ）。置き場は CombatEffect が規約で決める。無ければ null。
+func _effect_texture(eff: CombatEffect) -> Texture2D:
+	if eff == null:
+		return null
+	if _effect_tex.has(eff.effect_id):
+		return _effect_tex[eff.effect_id]
+	var p := eff.image_path()
+	var tex := load(p) as Texture2D if p != "" and ResourceLoader.exists(p) else null
+	_effect_tex[eff.effect_id] = tex
+	return tex
+
+
+## 重ねる型の一撃：殴られる駒の上に絵を1枚置き、開きながら消す（戦闘窓の _spawn_burst と同じ動き）。
+## 放った瞬間が着弾＝置いてすぐ on_land を呼ぶ。
+func _spawn_strike(hex: Vector2i, tex: Texture2D, mirror: bool, tiles: float, on_land: Callable, stretch := 1.0) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
+	spr.render_priority = 6
+	spr.flip_h = mirror
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (tiles * TILE) / maxf(longest, 1.0)
+	var p := Hex.to_pixel(hex, TILE)
+	spr.position = Vector3(p.x, _elev_fn.call(hex) + TILE * 0.9, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	spr.scale = Vector3.ONE * 0.5
+	add_child(spr)
+	on_land.call()
+	var tw := _tween()
+	tw.set_parallel(true)  # 開きながら消える
+	tw.tween_property(spr, "scale", Vector3.ONE * STRIKE_OPEN, STRIKE_SEC * stretch)
+	tw.tween_property(spr, "modulate:a", 0.0, STRIKE_SEC * stretch)
+	tw.chain().tween_callback(spr.queue_free)
+
+
 ## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵が届いて着弾 → 残光 → 引き。
 ## 届き方はレシピの impact_motion で分かれる："drop"（既定・③＝真上からゆっくり降りる）／
 ## "fly"（④＝射手のヘックスから飛んでくる）。被弾の処理（フラッシュ・兵数・撃破フェード）は
@@ -280,11 +410,16 @@ func _hit_unit(hit: SkillHit, tex: Texture2D, stretch := 1.0) -> void:
 
 
 func _land_hit(hit: SkillHit, stretch := 1.0) -> void:
-	var uid := hit.target_id
+	_land_unit(hit.target_id, hit.killed, stretch)
+
+
+## 殴られた駒の反応。撃破ならその場でフェードアウト、生き残りは新しい兵数で組み直して光らせる。
+## 陣形の着弾と戦闘の一撃の両方から使う（state は解決済み＝組み直せば減った値が出る）。
+func _land_unit(uid: int, killed: bool, stretch := 1.0) -> void:
 	var node: Node3D = _unit_renderer.get_unit_node(uid)
 	if node == null:
 		return
-	if hit.killed:
+	if killed:
 		_unit_renderer.forget_unit(uid)
 		_fade_out_unit(node, stretch)
 		return
@@ -392,9 +527,9 @@ func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 1
 ## 絵は地面に寝かせて（法線を上へ向けて）進行方向へ回す＝真上から見た形で右向き（+X）に描いた絵が
 ## そのまま飛ぶ向きになる。駒と同じ板看板（ビルボード）にすると、どの方向へ飛んでも同じ絵が出て
 ## 向きが読めないため、ここだけ寝かせる。詳細 → doc/gdd/formations.md 発動の演出
-## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
+## stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。tiles＝絵の大きさ（長辺がヘックス幅の何倍か）。
 func _spawn_flying_impact(from_hex: Vector2i, to_hex: Vector2i, tex: Texture2D,
-		on_land: Callable, stretch := 1.0) -> void:
+		on_land: Callable, stretch := 1.0, tiles := FLY_TILES) -> void:
 	var a := Hex.to_pixel(from_hex, TILE)
 	var b := Hex.to_pixel(to_hex, TILE)
 	var start := Vector3(a.x, _elev_fn.call(from_hex) + FLY_HEIGHT, a.y)
@@ -408,7 +543,7 @@ func _spawn_flying_impact(from_hex: Vector2i, to_hex: Vector2i, tex: Texture2D,
 	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
 	spr.render_priority = 6
 	var longest := float(maxi(tex.get_width(), tex.get_height()))
-	spr.pixel_size = (FLY_TILES * TILE) / maxf(longest, 1.0)
+	spr.pixel_size = (tiles * TILE) / maxf(longest, 1.0)
 	# 寝かせる（-90度）＋進行方向へ回す。絵の右が +X なので、向き (dx, dz) への角は atan2(-dz, dx)。
 	var d := land - start
 	spr.rotation = Vector3(-PI * 0.5, atan2(-d.z, d.x), 0.0)
