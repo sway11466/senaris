@@ -74,7 +74,8 @@ const SKILLS := {
 		"name": "トリックショット",
 		"category": "bow",
 		"leader_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外
-		"member_skins": ["scout", "thief", "halfling", "ninja", "kunoichi"],
+		# 先頭のシーフがクロニクルの図と未解放の黒塗りの代表（doc/gdd/chronicle.md 陣形スキル）。
+		"member_skins": ["thief", "scout", "halfling", "ninja", "kunoichi"],
 		"shape": "spotter",
 		"count": 2,
 		"effect": "single",

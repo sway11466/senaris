@@ -115,7 +115,10 @@ func _expanded_sheet(skill_id: String) -> Control:
 	var textures: Array = []
 	for skin in _figure_skins(skill_id):
 		textures.append(_skin_texture(skin, "map"))
-	figure.setup(String(r.get("shape", "")), textures)
+	# 対象を取る形の敵ヘクスには敵の代表＝ゴブリンの駒を置く（doc/gdd/chronicle.md 陣形スキル）。
+	var goblin := SkinCatalog.skin_by_id(_skins, "goblin")
+	var target: Texture2D = null if goblin == null else _skin_texture(goblin, "map")
+	figure.setup(String(r.get("shape", "")), textures, target)
 	col.add_child(_art_row([_cutin_art(skill_id), figure]))
 
 	# 見出し＝名前（分類）
