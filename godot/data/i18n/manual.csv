@@ -114,9 +114,9 @@ manual.ai.common.squad1,敵の駒は必ずどれかの部隊に属する。特�
 manual.ai.common.squad2,どこまでが同じ部隊かは盤の絵からは読めないので、駒を選ぶと情報パネルに部隊名が出る。一度に何部隊を起こすかが、こちらの判断になる。,"You cannot tell squad boundaries by looking at the board, so selecting a unit shows its squad name in the info panel. How many squads you rouse at once is your decision to make."
 manual.ai.common.order,行動順,Turn Order
 manual.ai.common.order1,敵のターンは部隊ごとに順番が決まっている。部隊の中では、最寄りの敵に近い駒から動く。前の駒から動かすのは、後ろが先に動くと前に塞がれて進めなくなるため。順番は毎ターン計算し直す。,"The enemy turn runs squad by squad in a fixed order. Within a squad, the unit closest to its nearest foe goes first — if the rear moved first it would be blocked by its own front. The ordering is recomputed every turn."
-manual.ai.common.sortie,拠点出撃,Deploying from Bases
-manual.ai.common.sortie1,控えを抱えた拠点も1つの部隊として扱う。行動開始条件を満たすと、拠点の隣が埋まるか控えが尽きるまで駒を出し続ける。出す先は、いちばん近い敵に最も近い空きマスになる。,"A base holding reserves counts as a squad of its own. Once its activation is met it keeps deploying until the hexes around it are full or the reserves run out. Each unit goes to whichever empty hex is closest to the nearest enemy."
-manual.ai.common.sortie2,出した駒はそのターン行動が終わり、次のターンからその部隊の特性で戦う。特性を持たない拠点は出撃しない＝控えを抱えたまま動かない拠点もある。,"A deployed unit is done for that turn and fights under the base's trait from the next one. A base with no trait never deploys, so some bases sit on their reserves and never open."
+manual.ai.common.deploy,拠点出撃,Deploying from Bases
+manual.ai.common.deploy1,控えを抱えた拠点も1つの部隊として扱う。行動開始条件を満たすと、拠点の隣が埋まるか控えが尽きるまで駒を出し続ける。出す先は、いちばん近い敵に最も近い空きマスになる。,"A base holding reserves counts as a squad of its own. Once its activation is met it keeps deploying until the hexes around it are full or the reserves run out. Each unit goes to whichever empty hex is closest to the nearest enemy."
+manual.ai.common.deploy2,出した駒はそのターン行動が終わり、次のターンからその部隊の特性で戦う。特性を持たない拠点は出撃しない＝控えを抱えたまま動かない拠点もある。,"A deployed unit is done for that turn and fights under the base's trait from the next one. A base with no trait never deploys, so some bases sit on their reserves and never open."
 manual.ai.terms.title,用語,Glossary
 manual.ai.terms.intro,行動ルールの表で使う言葉をまとめる。,The terms used in the action rule tables.
 manual.ai.terms.distance,距離,Distances

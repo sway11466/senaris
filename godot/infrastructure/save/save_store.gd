@@ -18,7 +18,9 @@ const DEFAULT_PATH := "user://save.json"
 ## 6: 駒を指す語彙を unit_id（この盤の駒）と actor（冒険譚の人物）に分けた（doc/gdd/map.md
 ##    駒を指す名前）。実行時のハンドルのキーが "id" → "handle"、勝敗条件の記録が
 ##    defeated_actors → defeated_unit_ids、状態補正の "unit_id"（int）→ "handle"。
-const VERSION := 6
+## 7: 参戦の記録の項目名を sortied_actors → fielded_actors に改めた（doc/tech/i18n.md 英語の用語「参戦」。
+##    出撃＝控えを盤に出す操作と語を分けた）。中身は同じ＝変換は改名だけ。
+const VERSION := 7
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

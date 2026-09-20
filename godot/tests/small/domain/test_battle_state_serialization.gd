@@ -70,7 +70,7 @@ func test_scalars_roundtrip() -> void:
 	assert_eq(s2.current_team, 1, "ターンの陣営")
 	assert_eq(s2.turn_number, 3)
 	assert_eq(s2.turn_limit, 15, "ターン上限はステージJSONから引き直す")
-	assert_true(s2.has_sortied("warlord"), "この盤に投入された人物(actor)の記録も復元する（名簿の更新が見る）")
+	assert_true(s2.has_fielded("warlord"), "この盤に参戦した人物(actor)の記録も復元する（名簿の更新が見る）")
 
 func test_units_roundtrip_with_board_and_growth() -> void:
 	var s2 := _rich_roundtrip()
@@ -159,7 +159,7 @@ func test_empty_state_roundtrips() -> void:
 	assert_eq(s2.cols, 4)
 	assert_eq(s2.units().size(), 0)
 	assert_eq(s2.bases().size(), 0)
-	assert_false(s2.has_sortied("boss"), "空の盤なら投入記録も空")
+	assert_false(s2.has_fielded("boss"), "空の盤なら参戦の記録も空")
 
 # --- セーブ後にステージ定義が変わったときの復元。仕様 → doc/tech/gamesystem.md §復元して居場所を失った駒 ---
 

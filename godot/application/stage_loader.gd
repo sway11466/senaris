@@ -605,7 +605,7 @@ static func load_rank(path: String) -> Dictionary:
 ## 戦果の分母＝ステージ開始時の自軍戦力（→ doc/gdd/rank.md 生存）。数えるのは生来の陣営が
 ## 自軍か中立の駒と、自軍の増援イベントの駒（未発火も含む）。兵器は数えない。
 ## 盤の現況ではなくステージ定義から導出する＝中断セーブから再開しても同じ値になる。
-## 名簿で出撃が決まる駒（actor 持ち）は state.has_sortied で見る＝未加入・離脱者は数えない。
+## 名簿で参戦が決まる駒（actor 持ち）は state.has_fielded で見る＝未加入・離脱者は数えない。
 static func count_start_allies(data: Dictionary, state: BattleState, catalog: Dictionary,
 		skin_catalog: Dictionary = {}) -> int:
 	var n := 0
@@ -637,7 +637,7 @@ static func _starts_in_force(u: Dictionary, state: BattleState) -> bool:
 	var actor := String(u.get("actor", ""))
 	if actor == "" or _parse_supply(u) == SUPPLY_JOIN:
 		return true  # 配給＝名簿を見ずに必ず出る
-	return state.has_sortied(actor)
+	return state.has_fielded(actor)
 
 ## 駒1つぶんの戦力の数＝本体（兵器なら0）＋搭乗している駒。
 static func _force_size(u: Dictionary, catalog: Dictionary, skin_catalog: Dictionary) -> int:

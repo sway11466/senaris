@@ -111,7 +111,7 @@ func test_v2_keeps_dynamic_state() -> void:
 	assert_eq(int(state["turn_number"]), 3)
 	assert_eq((state["units"] as Array).size(), 1, "盤上の駒はそのまま")
 	assert_eq(state["moved"], [1])
-	assert_eq(state["sortied_actors"], ["hero"])
+	assert_eq(state["fielded_actors"], ["hero"], "v7 で項目名が fielded_actors になる")
 	assert_eq(int(state["spent"]["1"]), 2)
 
 func test_v2_bases_become_diff_form() -> void:
@@ -238,7 +238,20 @@ func test_v5_to_v6_renames_records_and_status_mods() -> void:
 	var state: Dictionary = SaveMigration.migrate(_v5_record())["state"]
 	assert_eq(state["defeated_unit_ids"], ["boss"], "撃破の記録は unit_id 側へ")
 	assert_false(state.has("defeated_actors"))
-	assert_eq(state["sortied_actors"], ["hero"], "出撃の記録は actor のまま（名簿の話）")
+	assert_eq(state["fielded_actors"], ["hero"], "参戦の記録は actor のまま（名簿の話）。項目名は v7 の語")
 	var m: Dictionary = state["status_mods"][0]
 	assert_eq(int(m["handle"]), 2, "状態補正が持つのは駒のハンドル")
 	assert_false(m.has("unit_id"), "String の unit_id と同じキー名で残さない")
+
+## v7: 参戦の記録の項目名を sortied_actors → fielded_actors に改めた版（語の整理＝doc/tech/i18n.md「参戦」）。
+func test_v6_to_v7_renames_fielded_actors() -> void:
+	var got := SaveMigration.migrate({ "version": 6, "meta": { "a": 1 },
+		"state": { "turn_number": 3, "sortied_actors": ["hero", "elf"] } })
+	var state: Dictionary = got["state"]
+	assert_eq(state["fielded_actors"], ["hero", "elf"], "中身は同じまま項目名だけ変わる")
+	assert_false(state.has("sortied_actors"), "旧名は残さない")
+	assert_eq(state["turn_number"], 3, "他の項目は触らない")
+
+func test_v6_without_fielded_record_stays_absent() -> void:
+	var state: Dictionary = SaveMigration.migrate({ "version": 6, "state": { "turn_number": 1 } })["state"]
+	assert_false(state.has("fielded_actors"), "無かった項目は作らない（読む側が空として扱う）")

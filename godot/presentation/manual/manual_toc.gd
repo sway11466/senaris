@@ -120,9 +120,9 @@ const CHAPTERS: Array = [
 			{ "t": "p", "e": "squad2" },
 			{ "t": "h", "e": "order" },
 			{ "t": "p", "e": "order1" },
-			{ "t": "h", "e": "sortie" },
-			{ "t": "p", "e": "sortie1" },
-			{ "t": "p", "e": "sortie2" },
+			{ "t": "h", "e": "deploy" },
+			{ "t": "p", "e": "deploy1" },
+			{ "t": "p", "e": "deploy2" },
 		] },
 		{ "id": "terms", "blocks": [
 			{ "t": "p", "e": "intro" },

@@ -58,7 +58,7 @@ static func update_after_clear(previous: Array, state: BattleState) -> Array:
 			var i: int = current_by_actor[a]
 			out.append(current[i])
 			consumed[i] = true
-		elif state.has_sortied(a):
+		elif state.has_fielded(a):
 			var lost: Dictionary = (e as Dictionary).duplicate(true)
 			lost["troops"] = 0  # 出たのに盤から消えた＝戦線離脱。在籍は続く（会話には出る）
 			out.append(lost)

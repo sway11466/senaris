@@ -33,6 +33,9 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version == 5:
 		record = _v5_to_v6(record)
 		version = 6
+	if version == 6:
+		record = _v6_to_v7(record)
+		version = 7
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -130,6 +133,15 @@ static func _v3_to_v4(record: Dictionary) -> Dictionary:
 	var meta: Dictionary = (record.get("meta", {}) as Dictionary).duplicate()
 	meta["started_at"] = 0
 	return { "meta": meta, "state": record.get("state", {}) }
+
+## v6 → v7（参戦の記録の項目名を改めた版）。state の sortied_actors を fielded_actors に写す。
+## 中身（actor の一覧）は同じ。語の整理 → doc/tech/i18n.md 英語の用語「参戦」。
+static func _v6_to_v7(record: Dictionary) -> Dictionary:
+	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
+	if state.has("sortied_actors"):
+		state["fielded_actors"] = state["sortied_actors"]
+		state.erase("sortied_actors")
+	return { "meta": record.get("meta", {}), "state": state }
 
 ## v2（盤の丸ごと直列化）→ v3（動的差分）。盤サイズ・地形・勝敗条件・ターン上限・部隊定義は
 ## ステージJSONから引き直すので落とす。詳細 → doc/backlog.md feature-91・doc/tech/gamesystem.md

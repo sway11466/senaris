@@ -200,7 +200,7 @@ var _losses := {}
 var _defeated_unit_ids := {}  # unit_id -> true（名指された駒の撃破。ボス撃破・護衛対象の喪失が見る。doc/gdd/map.md）
 ## actor -> true（この戦闘に投入された名前つきの駒。初期配置・拠点の控え・搭乗・増援のすべてを含む）。
 ## クリア後の名簿更新がここを見て「出た者」と「出番の無かった者」を分ける。詳細 → doc/gdd/campaigns.md 名簿の更新
-var _sortied_actors := {}
+var _fielded_actors := {}
 
 func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 	cols = p_cols
@@ -208,16 +208,16 @@ func _init(p_cols: int = 12, p_rows: int = 8) -> void:
 
 func add_unit(unit: Unit) -> void:
 	_units.append(unit)
-	_mark_sortied(unit)
+	_mark_fielded(unit)
 
 ## 名前つきの駒を「この戦闘に出た」として控える。盤・控え・搭乗の入口すべてから呼ぶ。
-func _mark_sortied(u: Unit) -> void:
+func _mark_fielded(u: Unit) -> void:
 	if u != null and u.actor != "":
-		_sortied_actors[u.actor] = true
+		_fielded_actors[u.actor] = true
 
 ## この戦闘に投入された駒か（名簿の更新対象かどうか）。
-func has_sortied(actor: String) -> bool:
-	return actor != "" and _sortied_actors.has(actor)
+func has_fielded(actor: String) -> bool:
+	return actor != "" and _fielded_actors.has(actor)
 
 func units() -> Array[Unit]:
 	return _units
@@ -407,7 +407,7 @@ func put_passenger(transport_id: int, u: Unit) -> void:
 		var list: Array[Unit] = []
 		_passengers[transport_id] = list
 	_passengers[transport_id].append(u)
-	_mark_sortied(u)
+	_mark_fielded(u)
 
 ## 降車先候補の {hex: コスト}。搭乗駒が「輸送の位置を起点に」自力で動ける空きhex（通常移動と同じ規則）。
 ## 隣接1マスの特例: 輸送に隣接する進入可能な空きマスは、移動力・地形コストに関係なく常に含める
@@ -476,7 +476,7 @@ const CAPTURE_LEVEL_GAIN := 10
 func add_base(base: Base) -> void:
 	_bases.append(base)
 	for gu in base.garrison:
-		_mark_sortied(gu as Unit)  # 控えも投入済み（出撃しなくてもこの盤に居る）
+		_mark_fielded(gu as Unit)  # 控えも参戦済み（出撃しなくてもこの盤に居る）
 
 func bases() -> Array[Base]:
 	return _bases
@@ -1360,7 +1360,7 @@ func to_save_diff() -> Dictionary:
 		"defeated": _defeated.keys(),
 		"losses": _int_keyed_to_str(_losses),
 		"defeated_unit_ids": _defeated_unit_ids.keys(),
-		"sortied_actors": _sortied_actors.keys(),
+		"fielded_actors": _fielded_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
 		"charges": _charges_to_dict(),
 	}
@@ -1387,10 +1387,10 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	_defeated = _ids_to_set(diff.get("defeated", []))
 	_losses = _str_keyed_to_int(diff.get("losses", {}))
 	_defeated_unit_ids = _names_to_set(diff.get("defeated_unit_ids", []))
-	_sortied_actors = _names_to_set(diff.get("sortied_actors", []))
+	_fielded_actors = _names_to_set(diff.get("fielded_actors", []))
 	for b in fresh_bases:  # ステージ更新で足された拠点の控えは今この盤に出た＝投入記録を立て直す
 		for gu in b.garrison:
-			_mark_sortied(gu as Unit)
+			_mark_fielded(gu as Unit)
 	_spent = _str_keyed_to_int(diff.get("spent", {}))
 	_squad_of = _str_keyed_to_int(diff.get("squad_of", {}))
 	_charges = _charges_from_dict(diff.get("charges", {}))

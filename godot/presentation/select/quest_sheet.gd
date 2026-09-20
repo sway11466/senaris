@@ -45,7 +45,7 @@ var _interlude: TextureRect
 var _rank_slot: Control
 var _right: VBoxContainer
 var _back: Button
-var _sortie: Button
+var _set_out: Button
 var _party_box: VBoxContainer
 var _skins: Dictionary = {}  # 顔ぶれの絵を引く表（盤と同じもの。bind で受け取る）
 var _rank_font_cache: Font = null
@@ -152,9 +152,9 @@ func _ready() -> void:
 	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	buttons.add_child(gap)
 
-	_sortie = TavernTheme.wax_button(tr("ui.quest.sortie"))
-	_sortie.pressed.connect(_on_sortie_pressed)
-	buttons.add_child(_sortie)
+	_set_out = TavernTheme.wax_button(tr("ui.quest.set_out"))
+	_set_out.pressed.connect(_on_set_out_pressed)
+	buttons.add_child(_set_out)
 
 ## 顔ぶれの絵を引くスキン表（SkinCatalog）を受け取る。起動時に1回。
 func bind(skins: Dictionary) -> void:
@@ -169,11 +169,11 @@ func open(stage_title: String, synopsis: String, interlude: String, rank: String
 	_title.text = stage_title
 	_body.text = synopsis
 	_back.text = tr("ui.quest.back")
-	_sortie.text = tr("ui.quest.sortie")  # 開くたびに貼り直す＝言語を変えたあとも紙の文字が揃う
+	_set_out.text = tr("ui.quest.set_out")  # 開くたびに貼り直す＝言語を変えたあとも紙の文字が揃う
 	_set_interlude(interlude)
 	_set_rank(rank)
 	_fill_party(party, carryover)
-	_sortie.visible = true
+	_set_out.visible = true
 	visible = true
 
 ## 未解放のステージを押したときの紙＝解放条件だけを書いて出す。ステージ名は伏せたまま
@@ -185,7 +185,7 @@ func open_locked(unlock_text: String) -> void:
 	_set_interlude("")
 	_set_rank("")
 	_fill_party([], false)  # 顔ぶれも出さない＝名前を伏せた紙が中身を漏らさない
-	_sortie.visible = false
+	_set_out.visible = false
 	visible = true
 
 func close() -> void:
@@ -245,7 +245,7 @@ func _fill_party(party: Array, carryover: bool) -> void:
 	var band := _band(entries)  # 全員ぶんの絵が収まる縦の帯（キャンバス座標の上端・下端）
 	var scale := PARTY_ICON_H / maxf(1.0, band.y - band.x)  # いちばん背の高い駒が PARTY_ICON_H
 	if not carryover:
-		_add_party_row("ui.quest.party_sortie", entries, scale)  # 群は1つ＝出撃する顔ぶれ
+		_add_party_row("ui.quest.party_set_out", entries, scale)  # 群は1つ＝出発する顔ぶれ
 		return
 	_add_party_row("ui.quest.party_carry",
 		entries.filter(func(e: Dictionary) -> bool: return e["carried"] and e["available"]), scale)
@@ -341,7 +341,7 @@ func _cancel() -> void:
 	SfxPlayer.play_event("menu_back")
 	close()
 
-func _on_sortie_pressed() -> void:
+func _on_set_out_pressed() -> void:
 	close()
 	confirmed.emit()
 

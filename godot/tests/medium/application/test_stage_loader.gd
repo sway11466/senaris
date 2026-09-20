@@ -773,7 +773,7 @@ func test_count_start_allies_follows_garrison_native() -> void:
 			"盤上1＋自軍 native の控え2（敵 native の控えは数えない）")
 
 ## 名簿で出撃が決まる駒は「この戦いに出たか」で数える＝未加入の actor は分母に入らない。
-func test_count_start_allies_skips_units_that_did_not_sortie() -> void:
+func test_count_start_allies_skips_units_that_did_not_field() -> void:
 	var catalog := UnitCatalog.load_default()
 	var skins := SkinCatalog.load_standard()
 	var data := {

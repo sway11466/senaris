@@ -109,7 +109,7 @@ func _ready() -> void:
 	footer.add_child(_back)
 
 	_briefing = QuestSheet.new()
-	_briefing.confirmed.connect(_on_sortie)
+	_briefing.confirmed.connect(_on_set_out)
 	add_child(_briefing)
 
 func _on_back() -> void:
@@ -227,7 +227,7 @@ func _open_locked(campaign_id: String, stage_id: String) -> void:
 	SfxPlayer.play_event("menu_locked")
 	_briefing.open_locked(_progress.unlock_text(campaign_id, stage_id))
 
-func _on_sortie() -> void:
+func _on_set_out() -> void:
 	if _pending.is_empty():
 		return
 	stage_chosen.emit(_pending["campaign_id"], _pending["stage_id"], _pending["path"])
