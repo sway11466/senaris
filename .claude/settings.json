@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "cat \"$CLAUDE_PROJECT_DIR/.claude/hooks/answer-reminder.txt\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
