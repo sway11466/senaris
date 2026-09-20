@@ -22,6 +22,12 @@ const LABEL_W := 128.0
 const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
 const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
+## 絵の面。能力タブ＝駒の盤の絵、地形タブ＝立っているマスの地形の見本。中身の上に重ね、1ページ目に
+## だけ出す。左右は「重なる行の値の右端」と器の右端の間の中央＝空いている場所の真ん中。値の欄は
+## 狭めない＝重なる行の値は数字・移動種別・特性名・地形名で短い。長文（スキルの説明・状態タブ）の
+## 上には出さない。仕様 → doc/gdd/uiux.md タブ
+const FIGURE_ROWS := 8      # 駒の面の高さ＝この行数ぶん（兵数〜射程。足元が8行目の下端）
+const FIGURE_W := 150.0     # 面の幅。絵は面の中で左右中央
 
 signal minimized_changed(minimized: bool)  # 畳んだ／開いた（main が設定に書く）
 
@@ -55,7 +61,9 @@ var _shown_unit := -1   # タブ表示中の駒（タブを押したときに描
 var _view := "help"
 var _shown_hex := Vector2i.ZERO  # 地形を出しているマス（_view == "terrain" のときだけ意味を持つ）
 var _content: Control     # 中身の器。板の内側で切り落とす＝行が板の外へはみ出して描かれない
-var _rows: VBoxContainer  # いま出ているページの行。器いっぱいに広げる
+var _rows: VBoxContainer
+var _unit_face: ChronicleFigureFace   # 駒の盤の絵（能力タブ）
+var _terrain_face: TerrainSampleFace  # 立っているマスの地形（地形タブ）  # いま出ているページの行。器いっぱいに広げる
 var _pager: HBoxContainer  # 下端の ◀ 2/3 ▶。1ページのときも場所は空けたまま無効表示にする
 var _minimized := false  # 畳んでいる（プレイヤーの選択。設定に残る）
 var _covered := false    # 会話パネルに覆われている（同じ箱に会話を出す間）。畳みとは別の理由で隠れる
@@ -147,6 +155,14 @@ func _ready() -> void:
 	_rows.add_theme_constant_override("separation", ROW_SEP)
 	_rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(_rows)
+	# 絵の面。行の後に足す＝行の上に描く（重なる行の値は短く、絵の下まで届かない）。
+	_unit_face = ChronicleFigureFace.new()
+	_unit_face.setup(null, false)
+	_unit_face.hide()
+	_content.add_child(_unit_face)
+	_terrain_face = TerrainSampleFace.new()
+	_terrain_face.hide()
+	_content.add_child(_terrain_face)
 	# 器の寸法が決まる／変わったら割り直す。板は固定寸法だが、最初の1回はここで確定する。
 	_content.resized.connect(_render)
 	# 残りターン（増援の予告）。ページには乗せない＝どのページでも同じ場所に居る。出ている間は
@@ -275,6 +291,86 @@ func _show_page() -> void:
 	_page_label.text = "%d/%d" % [_page + 1, total]
 	_prev.disabled = _page <= 0
 	_next.disabled = _page >= total - 1
+	_sync_faces()
+
+## 絵の面を出すか＝駒を見ていて、そのタブの1ページ目のとき。2ページ目以降は長文（スキルの説明・
+## 控えの一覧）が面の場所まで来るので出さない。出す面はページの中身に合わせて置き直す。
+func _sync_faces() -> void:
+	var first := _shown_unit >= 0 and _page == 0
+	_unit_face.visible = first and _tab == "ability"
+	_terrain_face.visible = first and _tab == "terrain" and _terrain_face.has_picture()
+	if _unit_face.visible:
+		var line := get_theme_font("font", "Label").get_height(get_theme_font_size("font_size", "Label"))
+		_place_face(_unit_face, line * FIGURE_ROWS + ROW_SEP * (FIGURE_ROWS - 1))
+	elif _terrain_face.visible:
+		_place_face(_terrain_face, _terrain_face.picture_height())  # 地形は描く物の高さ＝上から詰める
+
+## 面を置く。上端は器の上端、高さは h。左右は、上から h に掛かる行の中身の右端と器の右端の間の中央
+## ＝空いている場所の真ん中。空行と区切り線は幅に数えない（飾りであって読む物ではない）。
+func _place_face(face: Control, h: float) -> void:
+	var font := get_theme_font("font", "Label")
+	var fs := get_theme_font_size("font_size", "Label")
+	var left := 0.0
+	var y := 0.0
+	if _page < _pages.size():
+		for it: Dictionary in _pages[_page]:
+			if y >= h:
+				break
+			left = maxf(left, _item_right(it, font, fs))
+			y += _item_height(it) + ROW_SEP
+	var right := _content.size.x
+	face.size = Vector2(FIGURE_W, h)
+	face.position = Vector2(clampf((left + right - FIGURE_W) * 0.5, 0.0, maxf(right - FIGURE_W, 0.0)), 0.0)
+
+## 行の中身の右端（器の左端から）。項目名／値の行は値の終わり、全幅の行は文の終わり（折り返しは
+## 見ない＝折り返すほど長い文の横には置かない前提）。
+func _item_right(it: Dictionary, font: Font, fs: int) -> float:
+	if String(it.get("t", "full")) == "row":
+		var v := String(it.get("value", ""))
+		return LABEL_W + ROW_LABEL_GAP + font.get_string_size(v, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var text := String(it.get("text", ""))
+	if text.is_empty() or text == SEPARATOR:
+		return 0.0
+	return float(it.get("indent", 0.0)) + font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+
+## 駒を選び直した＝絵を差し替える。駒＝スキンの map 画像（未用意なら空＝プレースホルダは描かない）。
+## 地形＝立っているマスの見本（_terrain_sample）。
+func _update_faces(u: Unit) -> void:
+	var skin: UnitSkin = SkinCatalog.resolve(_skins, u.skin_id, u.type_id, u.team)
+	var p := skin.image("map") if skin != null else ""
+	var tex: Texture2D = load(p) as Texture2D if not p.is_empty() and ResourceLoader.exists(p) else null
+	_unit_face.setup(tex, false)
+	_terrain_sample(u.pos)
+
+## そのマスの地形の見本を地形の面に据える。盤と同じ解決の要点だけ＝所有チームの絵（占領された拠点）
+## → スキンの基本の絵。接続タイル（道の向き・柵の腕）と変種の敷き分けは盤の並びの事情なので見本では
+## 引かず、基本の1枚を出す。足場の上に置くもの（layer=object）は足場のヘックス＋立ち絵、平面のもの
+## は下地があれば合成した1枚（橋＝川の上の板）。
+func _terrain_sample(hex: Vector2i) -> void:
+	var skin := TerrainSkinCatalog.resolve(String(_terrain_skins.get(hex, "")), _state.terrain_at(hex))
+	if skin == null:
+		_terrain_face.setup(null, null)
+		return
+	var b := _state.base_at(hex)
+	var tex := _terrain_texture(skin, b.team if b != null else -1)
+	var ground: Texture2D = null
+	var gs := TerrainSkinCatalog.resolve(skin.map_ground_id(), "") if not skin.map_ground_id().is_empty() else null
+	if gs != null:
+		ground = _terrain_texture(gs, -1)
+	if TerrainType.layer(skin.terrain_type) == "object":
+		_terrain_face.setup(ground, tex)
+	else:
+		_terrain_face.setup(TerrainTiles.composited(ground, tex), null)
+
+## スキンの絵（変種の1枚目）。占領された拠点は所有チーム別の絵があればそれ（盤と同じ規約）。無ければ null。
+func _terrain_texture(skin: TerrainSkin, team: int) -> Texture2D:
+	var path := skin.image_path()
+	if team >= 0:
+		var tp := "res://assets/terrain/%s_team%d.png" % [skin.skin_id, team]
+		if ResourceLoader.exists(tp):
+			path = tp
+	var variants: Array = TerrainTiles.variants(path)
+	return variants[0] if not variants.is_empty() else null
 
 ## 器に入る高さを実測して、入るところまで詰めて次のページへ送る。行数の決め打ちはしない
 ## （フォントか板の寸法を変えた時点で破綻する）。仕様 → doc/gdd/uiux.md ページャー
@@ -400,6 +496,7 @@ func show_unit(handle: int) -> void:
 	if _skill_report != null:
 		_skill_report.hide()
 	_update_header(u)
+	_update_faces(u)
 	_header.show()
 	var b: Button = _tabs[_tab]
 	b.button_pressed = true
