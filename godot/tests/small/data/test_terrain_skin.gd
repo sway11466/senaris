@@ -134,12 +134,17 @@ func test_objects_rotate_never_and_flip_horizontally_at_most() -> void:
 		if s.flips_horizontally():
 			assert_eq(s.placement, TerrainSkin.PLACE_STANDEE, "%s 左右反転を許すのは立ち絵だけ" % s.skin_id)
 		# 高さは elevation＝足場を敷く高さ／floor＝オブジェクトを置く高さ。地面の上に立つ
-		# standee / panel は両方0（背丈は絵が持つ）。flat（橋）は足場（水）より上に板が浮く。
+		# standee / panel は両方とも足場（map_ground）の高さ（背丈は絵が持つ）＝平地なら0、
+		# 岩地の上に建つ拠点なら岩地と同じ高さ。flat（橋）は足場（水）より上に板が浮く。
 		if s.placement == TerrainSkin.PLACE_FLAT:
 			assert_gt(s.floor, s.elevation, "%s は水平の板＝足場より上に浮く" % s.skin_id)
 			continue
-		assert_eq(s.elevation, 0.0, "%s は地面の上に立つ＝足場は地面の高さ" % s.skin_id)
-		assert_eq(s.floor, 0.0, "%s は地面の上に立つ＝置く高さも地面" % s.skin_id)
+		var ground := TerrainSkinCatalog.skin_by_id(s.map_ground_id())
+		assert_true(ground != null, "%s の足場 '%s' がスキンにある" % [s.skin_id, s.map_ground_id()])
+		if ground == null:
+			continue
+		assert_eq(s.elevation, ground.elevation, "%s は地面の上に立つ＝足場は地面と同じ高さ" % s.skin_id)
+		assert_eq(s.floor, ground.elevation, "%s は地面の上に立つ＝置く高さも地面と同じ" % s.skin_id)
 		if s.placement != TerrainSkin.PLACE_STANDEE:
 			continue  # 柵の板（panel）は足元の奥行きを使わない
 		# 立ち絵は駒より奥に立つ（CSVの空欄は 0.0 として出るので、抜けもここで落ちる）。

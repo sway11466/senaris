@@ -56,4 +56,6 @@ event.undead-rush-st2.town-freed.name,詰所の解放,Freeing the Guard Post
 event.undead-rush-st7.airship-arrive.name,飛空艇の到着,The Airship Arrives
 event.dragon-hunt-st3.camp-secured.name,集落の確保,Securing the Camp
 event.dragon-hunt-st3.camp-lost.name,集落を奪われた,The Camp Lost
+event.dragon-hunt-st4.village-secured.name,里の確保,Securing the Village
+event.dragon-hunt-st4.village-lost.name,里を奪われた,The Village Lost
 event.debug-photo-store4.town-freed.name,町の解放,Freeing the Town
