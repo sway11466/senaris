@@ -26,7 +26,7 @@ func test_actor_only_piece_comes_from_the_roster() -> void:
 	assert_eq(u.unit_attack, 6, "性能は type から再構築")
 
 func test_actor_missing_from_roster_is_not_deployed() -> void:
-	# 勧誘し損ねた仲間・まだ登場していない仲間は出ない＝その位置は空のまま。
+	# 勧誘し損ねた仲間・まだ加入していない仲間は出ない＝その位置は空のまま。
 	var carried: Array = [_member("knight", "t3.van")]
 	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "t3.elf" },

@@ -30,7 +30,7 @@ const EVENT_SECTIONS := { "player": 0, "enemy": 1 }
 
 ## 戦力供給の指定（player の駒の任意キー "supply"）＝名簿とどう突き合わせるか。詳細 → doc/gdd/campaigns.md 配置
 const SUPPLY_CARRY := ""          # 省略＝名簿の状態（Lv・troops）のまま持ち越す
-const SUPPLY_JOIN := "join"       # 名簿を見ずに配給（初登場）＝Lv も兵数も初期値
+const SUPPLY_JOIN := "join"       # 名簿を見ずに配給（加入の回）＝Lv も兵数も初期値
 const SUPPLY_REFILL := "refill"   # 名簿から出すが兵数は満員へ（Lv は名簿のまま）
 const SUPPLY_REVIVE := "revive"   # refill に加えて、兵力ゼロの離脱者も満員で呼び戻す
 const SUPPLY_VALUES := [SUPPLY_JOIN, SUPPLY_REFILL, SUPPLY_REVIVE]
@@ -748,7 +748,7 @@ static func is_carryover_stage(data: Dictionary) -> bool:
 ## carried（名簿）との突き合わせ＝戦力供給モデル。詳細 → doc/gdd/campaigns.md 配置
 ##   actor なし              → 配給。そのステージ限りの駒（名簿に載らない）
 ##   actor だけ              → 名簿から引く。居ない／兵力ゼロなら盤に出さない（その位置は空のまま）
-##   supply:"join"           → 配給。名簿は見ない＝初登場（クリア時に名簿へ載る）
+##   supply:"join"           → 配給。名簿は見ない＝加入の回（クリア時に名簿へ載る）
 ##   supply:"refill"         → 名簿から引き、兵数だけ満員へ（Lv は名簿のまま）。離脱者は出さない
 ##   supply:"revive"         → refill に加えて兵力ゼロの離脱者も満員で出す
 ## 出さなかった駒は id を消費しない（採番は盤に乗った駒の順）。
@@ -800,7 +800,7 @@ static func _resolve_player_unit(u: Dictionary, catalog: Dictionary, id: int, te
 	if actor == "" or supply == SUPPLY_JOIN:
 		return _make_unit(u, catalog, id, team, skin_catalog)  # 配給（ステージが戦力を用意する）
 	if not by_actor.has(actor):
-		return null  # 未加入／まだ登場していない＝勝手に出さない
+		return null  # 未加入＝勝手に出さない
 	var snap: Dictionary = by_actor[actor]
 	if int(snap.get("troops", 0)) <= 0 and supply != SUPPLY_REVIVE:
 		return null  # 兵力ゼロの離脱者は名簿に在籍したまま出撃しない（会話には出る）
