@@ -42,10 +42,10 @@
 
 ### feature-16
 
-**移動/カメラ演出の速度設定・敵ターンスキップ・演出の適用範囲拡張**
-- 背景：敵の全行動を見せる（移動アニメ＋カメラ追従）ぶん、敵が多いターンは総時間が伸びる。アニメ速度の設定（高速／標準／オフ）と敵ターンのスキップは SLG の定番だが、速度はどれもコード内の定数のままで、スキップ導線も無い（[uiux.md](gdd/uiux.md) システムメニュー・敵ターンのカメラ）。設定画面と設定の永続化（`SettingsStore`）は言語・音量・画面モードを持ち、盤の中からも開ける形で入っているので、値の置き場と開き口はできている（[settings.md](gdd/settings.md)）。また演出には未対応の隙間がいくつかある。
-- 対応：(1) 設定画面に「戦闘の演出（通常／自軍のみ／OFF）」と「盤面の演出（通常／高速／OFF）」を足す（[settings.md](gdd/settings.md)）。盤面の演出から移動アニメ速度（`MOVE_ANIM_SEC_PER_HEX`／`MOVE_ANIM_MAX_SEC`）・カメラ追従（`FOCUS_PAN_SEC`）・盤の着弾の速さを引き、戦闘の演出から戦闘窓・対峙シーン・カットインを開くかを引く（[combat_scene.md](tech/combat_scene.md) テンポ・スキップ）。敵ターンのスキップ（キー操作）は持たない＝盤面の演出の OFF で受ける。(2) 戦闘の「盤面のみ」は盤に被弾の表現が無く、兵数の変化だけになる。簡単な被弾表現を足すかはここで決める。(3) 出撃・降車は経路を持たずポップして現れる＝拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(4) カメラ追従は行動主体の現在位置だけを見る＝長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮は未対応（現状は移動距離が短く実害小）。
-- 該当：`godot/presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`godot/application/match_controller.gd`（ターンのテンポ・スキップ）・`godot/infrastructure/save/settings_store.gd`・`godot/presentation/settings/settings_screen.gd`・`doc/gdd/uiux.md`。着手の引き金＝敵ターンが長く感じ始めたら。
+**演出の隙間（戦闘の盤面のみ・出撃と降車の見せ方・カメラ追従の追随）**
+- 背景：演出の設定（[settings.md](gdd/settings.md) 戦闘の演出・盤面の演出）は入った。残るのは演出そのものの隙間。(a) 戦闘を「盤面のみ」にすると、盤には被弾の表現が無く兵数が減るだけになる（陣形スキル・ユニットスキルの盤面のみは着弾の光とフラッシュが残るので情報量が違う）。(b) 出撃・降車は経路を持たずポップして現れる。(c) カメラ追従は行動主体の現在位置だけを見る。
+- 対応：(1) 戦闘の盤面のみに簡単な被弾表現（被弾フラッシュ程度）を足すかを決める。(2) 出撃・降車は拠点／輸送から目的マスへの1歩スライドで見せる（経路探索は不要）。(3) 長距離移動でアニメ中に終点が画面外へ出るケースの追随、攻撃で対象も画面に含める配慮（現状は移動距離が短く実害小）。
+- 該当：`godot/presentation/board/hex_board_3d.gd`（`focus_camera_on`／移動アニメ）・`godot/presentation/board/board_impact_renderer.gd`（盤の被弾表現）・`doc/gdd/uiux.md`。着手の引き金＝盤面のみで遊んで敵の一撃が読めないと感じたら。
 
 ### feature-27
 
@@ -147,6 +147,7 @@
 - ゴール：弓兵と魔法兵が隣接しているとき、弓兵から「2体の攻撃力の大きい方＋10・貫通0.5」の単体射撃が「2体の射程上限の長い方＋1」まで届く。届かなかった相手に魔法兵級の一撃が届く。
 - 背景：[formations.md](gdd/formations.md) ⑨ で仕様確定。escort（count 2）の流用だが、威力の元と射程を「発動者」ではなく「参加者の性能から引く」のが新しい。対空／対地の切り替え（`attack_vs`）と貫通の上書き（`pierce_override`）は④トリックショットで入っている。
 - 対応：(1) `RECIPES` に `magic_arrow`（leader＝archer/hunter/elf、member＝wizard/witch、shape `escort`、count 2、effect `single`、`pierce_override` 0.5、`attack_vs` "target"、`attack_from` "max_plus"（値 10）、`range_from_stats` "max_plus"（値 1）、下限なし）。(2) `_skill_attack_breakdown` に「参加者の攻撃力の最大＋定数」を元にする経路（兵数・レベル・包囲・地形は発動者のもの）。(3) `available_for`／`_in_range_cells` で射程を参加者の `attack_range` の最大＋1 から求める（レシピの固定 `range` と排他）。(4) 演出は④と同じ単体シーケンス（`magic_arrow_impact.png`）。(5) `skills.csv`。(6) テスト＝威力の元の選び方（地上はウィザード40＋10／空はエルフ60＋10）・射程（アーチャー＋ウィザード＝5・エルフ＝6）。
+- 演出まわり：カットイン `godot/assets/formations/magic_arrow.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `magic_arrow_{skin}.png`）。効果音 `godot/assets/sfx/magic_arrow.ogg`（発動）と `magic_arrow_hit.ogg`（着弾）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（代表は先頭スキン＝アーチャー＋ウィザード）（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
 
 ### feature-119
@@ -155,6 +156,7 @@
 - ゴール：スリンガー系を除く弓兵3体が三角になると、発動者の射程上限まで届く半径2の面攻撃が撃てる。参加者は当たらず、他の味方は当たる。飛行には対空値。
 - 背景：[formations.md](gdd/formations.md) ⑥ で仕様確定。①と同型で、面の半径が2・射程が発動者の性能依存・対空／対地の切り替えあり、貫通は発動者依存（弓＝0）のまま。
 - 対応：(1) `RECIPES` に `arrow_rain`（leader／member＝archer/hunter/elf、shape `triangle`、count 3、effect `area`、`radius` 2、`range_from` "any"、`range_from_stats` "leader"＝発動者の `attack_range`、`attack_vs` "target"）。(2) `blast_cells` は `radius` を読むだけで済むはず＝19ヘクスになることをテストで確認。(3) 着弾演出の順送り（中心から外へ）が半径2でも成り立つか `board_impact_renderer` を確認。プレビュー（桃の面）も半径2で出す。(4) `skills.csv`・`arrow_rain_impact.png`。(5) テスト＝三角の成立（ハンター＋アーチャー＋エルフ）・スリンガーの除外・面の広さ・参加者の除外。
+- 演出まわり：カットイン `godot/assets/formations/arrow_rain.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `arrow_rain_{skin}.png`）。効果音 `godot/assets/sfx/arrow_rain.ogg`（発動）と `arrow_rain_hit.ogg`（着弾）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる。クロニクルの陣形スキル章＝レシピの図は `triangle` の既存配置で足りる（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/presentation/board/hex_board_3d.gd`（面のプレビュー）。
 
 ### feature-120
@@ -163,6 +165,7 @@
 - ゴール：歩兵が3体以上一直線に並んでいるとき、列のどれからでも撃てて、列の全員の防御が人数ぶん上がる（3体 ×1.15）。次の自軍ターン開始まで。膠着の待機の上位互換で、効果は薄くてよい。
 - 背景：[formations.md](gdd/formations.md) ⑤ で仕様確定。②グレイスの持続バフの器（状態補正エントリ）に、スコープ「参加者だけ」と対象「防御だけ」を足す。形は `cluster` の直線版。
 - 対応：(1) `RECIPES` に `shield_wall`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer（type が入ったら）、shape `line`、count 3、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "def"、`buff_value` 1.15、`buff_value_per_extra` 0.05、`duration_turns` 1）。(2) `FormationOption.Shape` に `LINE`：発動者を含むヘックスの3軸のどれかで途切れず連なる参加者を集める（人数は選べない）。(3) `_buff_entry`／`BattleState` の状態補正に `scope: participants`（駒の集合）と `target: def` を通す＝②は `team`・`both` のまま。(4) 見た目は列の駒の足元の光（`aura_overlay` の駒単位の光を流用）。カットインは規約解決。(5) `skills.csv`。(6) テスト＝直線の判定（3軸・折れ線は不成立・ノービス除外）・人数で伸びる補正・参加者以外に乗らないこと。
+- 演出まわり：カットイン `godot/assets/formations/shield_wall.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `shield_wall_{skin}.png`）。効果音 `godot/assets/sfx/shield_wall.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝形 `line` は新しいので `LAYOUTS` に一直線の3ヘクスを足す（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/battle_state.gd`・`godot/domain/combat/combat.gd`（集計の scope）・`godot/presentation/ui/aura_overlay.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
 
 ### feature-121
@@ -171,6 +174,7 @@
 - ゴール：ウィザード／ウィッチと占領兵が隣接しているとき、どちらからでも発動者中心の7ヘクスに結界が張れる。中に居る味方は実効防御に 10×発動者の残兵数 が足され、貫通を受けない。入れば効き、出れば切れる。次の自軍ターン開始まで。
 - 背景：[formations.md](gdd/formations.md) ⑦ で仕様確定。状態補正の器に **地帯（zone）** のエントリを新設する最初の実体（[combat.md](gdd/combat.md) 状態補正に注記済み）。貫通無効は乗算・加算の外＝貫通の段で攻撃側の `pierce` を 0 にするフラグ。
 - 対応：(1) `RECIPES` に `magic_shield`（leader／member＝wizard/witch × cleric/priest/bishop/paladin の両向き、shape `escort`、count 2、effect `buff`、`buff_scope` "zone"、`zone_radius` 1、`buff_op` "add"、`buff_target` "def"、`buff_value_per_troop` 10、`pierce_immune` true、`duration_turns` 1）。(2) `BattleState` の状態補正エントリに `zone`（中心ヘックス＋半径・陣営）を足し、`Combat` の集計で「対象の駒が地帯の中に居るか」を見る。(3) `Combat` の貫通の段で、防御側に `pierce_immune` の地帯が効いていれば攻撃側の `pierce` を 0 として扱う。(4) 見た目＝結界の7ヘクスに薄い光の床（`aura_overlay` に地帯の床を足す。持続の間出しておく）。(5) `skills.csv`。(6) テスト＝加算（満員で +80）・貫通無効（ウィザードの攻撃が半減しない）・出入りで効く／切れる・満了。
+- 演出まわり：カットイン `godot/assets/formations/magic_shield.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `magic_shield_{skin}.png`）。効果音 `godot/assets/sfx/magic_shield.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（両向きなので代表は先頭スキン＝ウィザード＋クレリック）（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：feature-120 と同じ＋`godot/domain/combat/combat.gd`（貫通の段）・`godot/presentation/ui/aura_overlay.gd`。前提＝feature-120（scope の拡張を先に）。
 
 ### feature-122
@@ -180,6 +184,7 @@
 - 背景：[formations.md](gdd/formations.md) ⑧ で仕様確定。形 `backstab` は対象を挟んだ正反対（対象からの方向ベクトルが逆）を見る＝④の `spotter` の親戚。着弾後に発動者の位置を戻すのは初めての処理で、移動開始位置を `BattleState` が覚えている必要がある。
 - 対応：(1) `RECIPES` に `backstab`（leader＝thief、member＝任意（`member_skins` 空＝種別不問の印）、shape `backstab`、count 2、effect `single`、`range` 1、`pierce_override` 0.5、`attack_vs` "target"、`return_to_origin` true）。(2) `FormationOption.Shape` に `BACKSTAB`：対象候補は発動者の隣接する敵のうち、`target + (target - leader_pos)` に味方が居るもの。相方はその1体。(3) `FormationResolver.resolve` の最後に、`return_to_origin` なら発動者を移動開始位置へ戻す（経路・コスト・足止め不問。`MatchController` が持つ移動前の位置を `SkillCast` に渡す）。中断セーブとリプレイで位置が一致することを確認。(4) 演出＝跳んで刺して戻る（駒の移動アニメを2回。絵は `backstab_impact.png`）。(5) `skills.csv`。(6) テスト＝対角の判定（隣り合う2体は不成立）・相方が幾何で決まる・戻り・飛行相手は対空10。
 - 考慮外：他の斥候（ハーフリング等）への拡張。撃破後の再攻撃（検討して不採用）。
+- 演出まわり：カットイン `godot/assets/formations/backstab.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `backstab_{skin}.png`）。効果音 `godot/assets/sfx/backstab.ogg`（発動）と `backstab_hit.ogg`（着弾）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる。クロニクルの陣形スキル章＝形 `backstab` は新しいので `LAYOUTS` に発動者と対角の味方、`TARGETS` に間の敵ヘクス（ゴブリンの駒）を足す。相方は種別不問（`member_skins` 空）なので図と未解放の黒塗りの代表を1体決める（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。
 
 ### feature-124
@@ -188,6 +193,7 @@
 - ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
 - 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `skills.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
+- 演出まわり：カットイン `godot/assets/formations/counter.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `counter_{skin}.png`）。効果音 `godot/assets/sfx/counter.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120。
 
 ### feature-132
