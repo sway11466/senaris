@@ -22,9 +22,11 @@ const SKIRT_DARKEN := 0.55         # 側面の暗さ（タイル平均色をこ�
 ## 別で、駒＝背丈がファイターの何倍か、オブジェクト＝絵の幅がヘックスの幅(2タイル)の何倍か
 ## （→ doc/art/terrain.md）。盤の読みは「マスからはみ出さないか」で決まるので、幅を基準にする。
 const CANVAS_TILES := 3.75
-## 立ち絵の足元をヘックス中心から手前（下辺寄り）へずらす量はスキン側のデータ＝object_foot_z。
-## 駒（+0.6）と同じ向きで、駒より小さくしておけば同じマスでも駒が手前に立つ。
-## ずらすのは、立ち絵が足元から上へ伸びる＝盤の俯角のぶん体が奥のマスに乗って見えるため。
+## 立ち絵を下辺寄りへ下げる量はスキン側のデータ＝object_foot_z。下げるのは、立ち絵が足元から
+## 上へ伸びる＝盤の俯角のぶん体が奥のマスに乗って見えるため。下げるのは画面の下方向で、盤の
+## 奥行き方向ではない（奥行きで寄せると画面の端で絵がマスの中心から横へ流れる）。
+## 前後の判定だけは盤の奥行きで手前に寄せる＝駒（+0.6）と同じ向きで、駒より小さくしておけば
+## 同じマスでも駒が手前に立つ。
 const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
 
 # --- 状態（setup で注入）---
@@ -454,7 +456,7 @@ func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 		spr.free()
 		return
 	var p := Hex.to_pixel(hex, TILE)
-	spr.position = Vector3(p.x, unit_floor(hex) + 0.02, p.y + skin.object_foot_z)  # 駒と同じ floor
+	spr.position = Vector3(p.x, unit_floor(hex) + 0.02, p.y)  # 駒と同じ floor
 	_standee_nodes[hex] = spr
 	add_child(spr)
 
@@ -469,9 +471,13 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.texture = tex
 	# 絵はシェーダ側の uniform から引くので、材質もテクスチャと一緒に張り替える
 	# （占領で絵が変わる拠点は、texture だけ差し替えても見た目が変わらない）。
-	spr.material_override = BoardMeshFactory.standee_material(tex)
+	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, skin.object_foot_z)
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
+	# 手前寄せ（object_foot_z）は画面の下方向へ掛ける。ワールドの奥行きで寄せると、画面の端では
+	# 斜めに写って絵がマスの中心から横へ流れる（→ doc/gdd/terrain.md）。下げ量は奥行きで寄せた
+	# ときの見え方に合わせる＝俯角のぶん sin をかける。前後の判定だけは材質側の foot_bias が持つ。
+	spr.offset.y -= skin.object_foot_z * sin(deg_to_rad(BoardCamera.PITCH_DEG)) / spr.pixel_size
 	spr.flip_h = skin.flips_horizontally() and TerrainTiles.flips_h_at(hex)
 	return true
 

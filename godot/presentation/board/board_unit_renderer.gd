@@ -174,7 +174,7 @@ func build_unit_node(u: Unit) -> Node3D:
 		# 正対・α抜き・明暗は材質側（standee_material）が持つ。前後判定を「足元に立てた
 		# 垂直な板」で行い、奥の高いマスに頭が食われないようにするため。
 		spr.material_override = BoardMeshFactory.standee_material(tex,
-			DONE_MODULATE if done else Color.WHITE)
+			DONE_MODULATE if done else Color.WHITE, 0.0)
 		# 根ノードはタイル上面（elev）。立ち絵だけ floor へずらす＝影・バー・リングは上面のまま。
 		spr.position = Vector3(0, 0.02 + _floor_fn.call(u.pos) - _elev_fn.call(u.pos), SPRITE_FOOT_Z)
 		root.add_child(spr)
