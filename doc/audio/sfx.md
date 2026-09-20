@@ -207,6 +207,7 @@
 | `trinity_nova` | 7ヘクスに間接ダメージ | 強力な魔法を撃ち出し、生成系の炸裂で着弾する |
 | `grace` | 全体バフ（攻防 ×1.3〜・1ターン） | 澄んだ和音。着弾ではなく発効 |
 | `divine_judgment` | 射程10の単体狙撃 | 遠くまで届く一条。着弾は点で鋭く |
+| `trick_shot` | 弓兵の単体射撃（貫通0.5） | 弓の通常攻撃（`arrow`）と同じ。矢は矢なので描き分けない＝発動・着弾とも複製 |
 
 レシピIDは絵と音の共通キーで、`godot/assets/formations/{recipe_id}.png` のカットインと同じIDを使う。素材の無いレシピは無音で進む（発火点カタログに載っていない発火点と同じ扱い）。
 
@@ -407,6 +408,8 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `trinity_nova_hit` | `Magic_Spells_Impact_Creation20.wav` | 2020 p3 / David Dumais Audio - Spells Magic 1 |
 | `divine_judgment` | `DSGNStngr_Power Up Bright Positive Successful Light Saturation Crash Shimmer 05_ESM_AG.wav` | 2026 p2 / Epic Stock Media - Anime Game |
 | `divine_judgment_hit` | `Impact,Sound Design,Hit,Chime,Resonant Hit,Chime Accent,Tinkle,Fast.wav` の頭から 1.90 秒 | 2019 p1 / Airborne Sound - Crisis Accents |
+| `trick_shot` | `arrow` の複製（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目） | 2019 p5 / Rock The Speakerbox - Melee |
+| `trick_shot_hit` | `arrow_hit` の複製（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
 
 `grace` は外部素材を使わない（澄んだ和音＝MuseScore で自作）。
 
