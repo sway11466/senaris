@@ -6,3 +6,4 @@ movement.brush_stride.name,茂歩行,Brush Stride
 movement.mountain_stride.name,山歩行,Mountain Stride
 movement.flight.name,飛行,Flight
 movement.stationary.name,固定,Stationary
+movement.wheeled.name,車輪,Wheeled

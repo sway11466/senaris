@@ -3,6 +3,8 @@
   "name": "dragon-hunt-st5",
   "player": [
     {       "units": [
+        { "type": "horse", "actor": "horse1", "col": 3, "row": 9, "supply": "refill" },
+        { "type": "horse", "actor": "horse2", "col": 5, "row": 12, "supply": "refill" },
         { "type": "bishop", "actor": "bishop", "col": 5, "row": 10, "supply": "refill" },
         { "type": "vanguard", "actor": "vanguard", "col": 4, "row": 10, "supply": "refill" },
         { "type": "wizard", "actor": "wizard", "col": 4, "row": 12, "supply": "refill" },
@@ -27,22 +29,21 @@
       ] },
     { "order": 2, "name": "dragon-hunt.st5.squad.2", "ai": "charge",
       "units": [
-        { "skin": "harpy", "col": 20, "row": 5 },
-        { "skin": "harpy", "col": 21, "row": 4 },
-        { "skin": "harpy", "col": 21, "row": 5 },
-        { "skin": "harpy", "col": 22, "row": 5 }
+        { "skin": "harpy", "col": 29, "row": 1 },
+        { "skin": "harpy", "col": 30, "row": 1 },
+        { "skin": "harpy", "col": 31, "row": 2 },
+        { "skin": "harpy", "col": 31, "row": 1 }
       ] },
     { "order": 3, "name": "dragon-hunt.st5.squad.3", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 31, "row": 0 },
-        { "skin": "griffon", "col": 32, "row": 1 },
+        { "skin": "griffon", "col": 29, "row": 0 },
         { "skin": "griffon", "col": 32, "row": 2 }
       ] },
     { "order": 4, "name": "dragon-hunt.st5.squad.4", "ai": "raid",
       "units": [
-        { "skin": "rogue_slinger", "col": 8, "row": 3 },
-        { "skin": "rogue", "col": 10, "row": 3 },
-        { "skin": "rogue_axe", "col": 9, "row": 2 }
+        { "skin": "rogue", "col": 8, "row": 3 },
+        { "skin": "rogue", "col": 8, "row": 2 },
+        { "skin": "rogue_axe", "col": 7, "row": 2 }
       ] },
     { "order": 5, "name": "dragon-hunt.st5.squad.5", "ai": "ambush", "stack": 1, "sight": 6,
       "units": [
@@ -63,12 +64,8 @@
       ] },
     { "order": 7, "name": "dragon-hunt.st5.squad.7", "ai": "ambush", "sight": 6,
       "units": [
-        { "skin": "rock_serpent", "col": 25, "row": 2 },
-        { "skin": "rock_serpent", "col": 25, "row": 1 },
         { "skin": "rock_serpent", "col": 26, "row": 3 },
         { "skin": "rock_serpent", "col": 26, "row": 2 },
-        { "skin": "rock_serpent", "col": 26, "row": 1 },
-        { "skin": "rock_serpent", "col": 27, "row": 1 },
         { "skin": "rock_serpent", "col": 27, "row": 2 }
       ] },
     { "order": 8, "name": "dragon-hunt.st5.squad.8", "ai": "ambush", "sight": 8,

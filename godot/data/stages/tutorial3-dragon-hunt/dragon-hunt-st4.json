@@ -3,6 +3,8 @@
   "name": "dragon-hunt-st4",
   "player": [
     {       "units": [
+        { "type": "horse", "actor": "horse1", "col": 1, "row": 28, "supply": "refill" },
+        { "type": "horse", "actor": "horse2", "col": 1, "row": 29, "supply": "refill" },
         { "type": "vanguard", "actor": "vanguard", "col": 2, "row": 28, "supply": "refill" },
         { "type": "thief", "actor": "thief", "col": 4, "row": 27, "supply": "refill" },
         { "type": "hunter", "actor": "hunter", "col": 2, "row": 30, "supply": "refill" },

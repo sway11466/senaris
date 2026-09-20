@@ -1,12 +1,13 @@
 {
 	"move_type_names": {
 		"brush_stride": "茂歩行",
-		"stationary": "固定",
 		"flight": "飛行",
-		"forest_stride": "森歩行",
 		"foot": "歩行",
+		"forest_stride": "森歩行",
 		"light_foot": "軽歩行",
-		"mountain_stride": "山歩行"
+		"mountain_stride": "山歩行",
+		"stationary": "固定",
+		"wheeled": "車輪"
 	},
 	"move_type_order": [
 		"foot",
@@ -15,14 +16,15 @@
 		"brush_stride",
 		"mountain_stride",
 		"flight",
-		"stationary"
+		"stationary",
+		"wheeled"
 	],
 	"movement_types": {
 		"brush_stride": {
 			"bedrock": 3,
 			"bridge": 1,
-			"building": 1,
 			"brush": 1,
+			"building": 1,
 			"fence": 3,
 			"forest": 2,
 			"fort": 1,
@@ -39,32 +41,11 @@
 			"wall": "x",
 			"wasteland": 2
 		},
-		"stationary": {
-			"bedrock": 1,
-			"bridge": 1,
-			"building": 1,
-			"brush": 1,
-			"fence": "x",
-			"forest": 1,
-			"fort": 1,
-			"keepout": "x",
-			"plain": 1,
-			"plateau": 1,
-			"prop": 1,
-			"rampart": 1,
-			"river": "x",
-			"road": 1,
-			"rock": "x",
-			"rubble": 1,
-			"trap": "x",
-			"wall": "x",
-			"wasteland": 1
-		},
 		"flight": {
 			"bedrock": 1,
 			"bridge": 1,
-			"building": 1,
 			"brush": 1,
+			"building": 1,
 			"fence": 1,
 			"forest": 1,
 			"fort": 1,
@@ -81,13 +62,13 @@
 			"wall": "x",
 			"wasteland": 1
 		},
-		"forest_stride": {
+		"foot": {
 			"bedrock": 3,
 			"bridge": 1,
-			"building": 1,
 			"brush": 2,
+			"building": 1,
 			"fence": 3,
-			"forest": 1,
+			"forest": 2,
 			"fort": 1,
 			"keepout": "x",
 			"plain": 1,
@@ -102,13 +83,13 @@
 			"wall": "x",
 			"wasteland": 2
 		},
-		"foot": {
+		"forest_stride": {
 			"bedrock": 3,
 			"bridge": 1,
-			"building": 1,
 			"brush": 2,
+			"building": 1,
 			"fence": 3,
-			"forest": 2,
+			"forest": 1,
 			"fort": 1,
 			"keepout": "x",
 			"plain": 1,
@@ -126,8 +107,8 @@
 		"light_foot": {
 			"bedrock": 2,
 			"bridge": 1,
-			"building": 1,
 			"brush": 1,
+			"building": 1,
 			"fence": 1,
 			"forest": 1,
 			"fort": 1,
@@ -147,8 +128,8 @@
 		"mountain_stride": {
 			"bedrock": 1,
 			"bridge": 1,
-			"building": 1,
 			"brush": 2,
+			"building": 1,
 			"fence": 3,
 			"forest": 2,
 			"fort": 1,
@@ -164,6 +145,48 @@
 			"trap": 3,
 			"wall": "x",
 			"wasteland": 1
+		},
+		"stationary": {
+			"bedrock": 1,
+			"bridge": 1,
+			"brush": 1,
+			"building": 1,
+			"fence": "x",
+			"forest": 1,
+			"fort": 1,
+			"keepout": "x",
+			"plain": 1,
+			"plateau": 1,
+			"prop": 1,
+			"rampart": 1,
+			"river": "x",
+			"road": 1,
+			"rock": "x",
+			"rubble": 1,
+			"trap": "x",
+			"wall": "x",
+			"wasteland": 1
+		},
+		"wheeled": {
+			"bedrock": "x",
+			"bridge": 1,
+			"brush": 3,
+			"building": 1,
+			"fence": 3,
+			"forest": 4,
+			"fort": 1,
+			"keepout": "x",
+			"plain": 1,
+			"plateau": 1,
+			"prop": 2,
+			"rampart": "x",
+			"river": "x",
+			"road": 1,
+			"rock": "x",
+			"rubble": "x",
+			"trap": 3,
+			"wall": "x",
+			"wasteland": 2
 		}
 	}
 }

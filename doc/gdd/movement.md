@@ -27,7 +27,7 @@
 - 地形名は `terrain_type.csv` の `id`（`plain`/`plateau`…）と一致させる。過不足は movement の convert が完全表チェックで検出する（列忘れが黙ってコスト1になる罠を防ぐ）。
 - 現状の移動タイプ（全コストは `movement.csv` が正本）:
   - **foot**（地上・基準）／**flight**（飛行・地形をほぼ無視）／**light_foot**（軽歩行・斥候＝岩地や城壁も越える）
-  - **forest_stride**（森を低コスト＝エルフ）／**brush_stride**（茂みを低コスト＝ハーフリング）／**mountain_stride**（岩地を低コスト＝ドワーフ）／**stationary**（移動0＝バリスタ/バリケード）
+  - **forest_stride**（森を低コスト＝エルフ）／**brush_stride**（茂みを低コスト＝ハーフリング）／**mountain_stride**（岩地を低コスト＝ドワーフ）／**stationary**（移動0＝バリスタ/バリケード）／**wheeled**（車輪＝馬車。道・平地・荒地は歩行と同じで、森・茂みは重く、岩地は進入不可）
 
 - 地形は **データ駆動**（[terrain.md](terrain.md)）。地形を増やす手順は terrain.md「地形タイプの性格」を参照。
 

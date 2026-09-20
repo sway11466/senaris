@@ -20,6 +20,7 @@ mage,メイジ,ally,mage,mage,1.0,0,1.0,squad,,magic_bolt,
 wizard,ウィザード,ally,wizard,mage,1.1,14,1.1,squad,,magic_bolt,
 witch,ウィッチ,ally,witch,mage,0.95,0,0.95,squad,,magic_bolt,
 wagon,馬車,ally,wagon,transport,0.95,0,1.3,single,,,
+horse,馬,ally,horse,transport,0.9,0,1.1,single,,,
 airship,飛空艇,ally,airship,transport,1.3,0,1.3,single,,cannonball,move_propeller
 pixie,ピクシー,ally,pixie,flier,0.68,0,0.68,squad,,magic_dust,move_float
 birdman,バードマン,ally,birdman,flier,1.15,0,1.15,squad,,punch,

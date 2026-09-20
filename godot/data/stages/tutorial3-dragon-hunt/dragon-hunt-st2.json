@@ -100,6 +100,7 @@
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st2.outro.8" },
       { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st2.outro.9" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st2.outro.10" },
+      { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st2.outro.14" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "dragon-hunt.st2.outro.11" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st2.outro.12" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st2.outro.13" }
