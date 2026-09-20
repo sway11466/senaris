@@ -1082,7 +1082,7 @@ func test_base_does_not_deploy_a_garrison_locked_to_the_other_side() -> void:
 	assert_null(_brain.next_action(s, 1), "帰属が自軍側の控えは敵の拠点から出せない")
 
 func test_base_without_ai_never_deploys() -> void:
-	# ai を書かない拠点は出撃しない（opt-in）。控えを抱えたまま湧かせたくない拠点を表す。
+	# ai を書かない拠点は出撃しない（opt-in）。控えを抱えたまま出撃させたくない拠点を表す。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
 	_base_with_garrison(s, -1, 4, 2)

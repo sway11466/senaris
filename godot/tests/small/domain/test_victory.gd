@@ -70,7 +70,7 @@ func test_loss_when_base_blockaded() -> void:
 	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "全周封鎖で盤上復帰できなければ敗北")
 
 func test_no_win_while_enemy_reinforcement_remains() -> void:
-	# 勝利も対称: 敵が盤上0でも、敵拠点に出せる控えがあれば殲滅勝ちにならない（湧く）。
+	# 勝利も対称: 敵が盤上0でも、敵拠点に出せる控えがあれば殲滅勝ちにならない（出撃できる）。
 	var s := BattleState.new(8, 8)
 	var b := Base.new(Hex.offset_to_axial(4, 4), 1)  # 敵拠点
 	b.garrison.append(Unit.new(10, 1, Vector2i.ZERO, 3))  # 敵 native の控え

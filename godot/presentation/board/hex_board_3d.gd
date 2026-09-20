@@ -1437,7 +1437,7 @@ func _kill_move_tween() -> void:
 	move_animation_finished.emit()
 
 ## AIターンのテンポ制御（main が controller.move_pace に注入）：移動アニメ中なら歩き切るまで待つ。
-## 増援の登場も同じ待ちに乗せる＝湧いた駒が歩いている最中に AI が次の手を指さない。
+## 増援の登場も同じ待ちに乗せる＝増援の駒が歩いている最中に AI が次の手を指さない。
 func await_move_animation() -> void:
 	if _move_tween != null and _move_tween.is_valid() and _move_tween.is_running():
 		await move_animation_finished

@@ -459,7 +459,7 @@ func test_split_caster_gains_no_level() -> void:
 	assert_eq((f["slime"] as Unit).level, 1, "分裂ではレベルが上がらない")
 
 func test_split_result_cells_hold_spawned_hex() -> void:
-	# 湧いた位置は cells で返る＝盤はこれを光らせる（演出シーンは出さない）。詳細 → doc/gdd/skills.md ⑤
+	# 分裂で出た位置は cells で返る＝盤はこれを光らせる（演出シーンは出さない）。詳細 → doc/gdd/skills.md ⑤
 	var f := _split_state()
 	var s: BattleState = f["s"]
 	var result := FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
@@ -469,8 +469,8 @@ func test_split_result_cells_hold_spawned_hex() -> void:
 			spawned = u
 	assert_not_null(spawned, "新しい駒が居る")
 	var cells := result.cells
-	assert_eq(cells.size(), 1, "光らせる面は湧いた1マスだけ")
-	assert_true(spawned.pos in cells, "湧いた位置が cells に入る")
+	assert_eq(cells.size(), 1, "光らせる面は分裂で出た1マスだけ")
+	assert_true(spawned.pos in cells, "分裂で出た位置が cells に入る")
 
 func test_split_spawned_inherits_skin_and_type() -> void:
 	var f := _split_state()

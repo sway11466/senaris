@@ -26,7 +26,7 @@ func test_actor_only_piece_comes_from_the_roster() -> void:
 	assert_eq(u.unit_attack, 6, "性能は type から再構築")
 
 func test_actor_missing_from_roster_is_not_deployed() -> void:
-	# 勧誘し損ねた仲間・まだ登場していない仲間は湧かない＝その位置は空のまま。
+	# 勧誘し損ねた仲間・まだ登場していない仲間は出ない＝その位置は空のまま。
 	var carried: Array = [_member("knight", "t3.van")]
 	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "t3.elf" },
@@ -103,7 +103,7 @@ func test_revive_recalls_a_lost_member_at_full_strength() -> void:
 	assert_eq(u.level, 3, "レベルは名簿のまま")
 
 func test_revive_does_not_summon_a_non_member() -> void:
-	# 名簿に居ない actor は revive でも湧かない（勧誘し損ねた仲間はそこに出ない）。
+	# 名簿に居ない actor は revive でも出ない（勧誘し損ねた仲間はそこに出ない）。
 	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "type": "elf", "col": 1, "row": 1, "actor": "t3.elf", "supply": "revive" },
 	] } ] }, _catalog(), {}, [])

@@ -800,7 +800,7 @@ static func _resolve_player_unit(u: Dictionary, catalog: Dictionary, id: int, te
 	if actor == "" or supply == SUPPLY_JOIN:
 		return _make_unit(u, catalog, id, team, skin_catalog)  # 配給（ステージが戦力を用意する）
 	if not by_actor.has(actor):
-		return null  # 未加入／まだ登場していない＝勝手に湧かせない
+		return null  # 未加入／まだ登場していない＝勝手に出さない
 	var snap: Dictionary = by_actor[actor]
 	if int(snap.get("troops", 0)) <= 0 and supply != SUPPLY_REVIVE:
 		return null  # 兵力ゼロの離脱者は名簿に在籍したまま出撃しない（会話には出る）
@@ -890,7 +890,7 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 ## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生時に盤へ出す＝domain は JSON を知らない。
 ## 駒は盤と同じ陣営セクション（player / enemy）に部隊として書く＝どちらに書いたかで駒の陣営が決まる。
 ## 部隊はここで登録し、その index を駒ごとに持たせる（発生時に assign_squad）。
-## order は敵の増援にも要る（湧いた部隊も行動順の列に並ぶ）＝抜けは test_data_integrity が捕まえる。
+## order は敵の増援にも要る（増援で入った部隊も行動順の列に並ぶ）＝抜けは test_data_integrity が捕まえる。
 ## id はイベントの名前（必須・ステージ内で一意）＝セーブが未発火のイベントを識別するのに使う。
 ## 欠落・重複は push_error（turn_limit と同じ扱い）＝ test_data_integrity も同じ検査を持つ。
 ## 採番は他のセクションの続き。搭載駒（passengers）も同じ列で採番する。
@@ -1047,7 +1047,7 @@ static func _parse_event_units(state: BattleState, e: Dictionary, _ev: StageEven
 	for key in _event_sections(e):
 		var team: int = EVENT_SECTIONS[key]
 		for p in _as_dicts(e[key]):
-			var squad_index := _register_squad(state, p)  # 湧いた部隊も盤の部隊と同じ列に並ぶ
+			var squad_index := _register_squad(state, p)  # 増援で入った部隊も盤の部隊と同じ列に並ぶ
 			for ud in _as_dicts(p.get("units", [])):
 				var item := EventUnit.new()
 				item.squad_index = squad_index

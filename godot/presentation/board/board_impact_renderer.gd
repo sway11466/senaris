@@ -363,8 +363,8 @@ func _fly_motion(result: SkillResult) -> bool:
 	return String(Formation.SKILLS.get(result.skill, {}).get("impact_motion", "drop")) == "fly"
 
 
-## 着弾は無いが光らせる面がある（スライムの湧き位置・駒の居ない面への着弾）。
-## 光の立ち上がりを見せてから盤を作り直す＝湧いた駒は光の後に現れる（→ doc/gdd/skills.md ⑤）。
+## 着弾は無いが光らせる面がある（スライムの分裂で出た位置・駒の居ない面への着弾）。
+## 光の立ち上がりを見せてから盤を作り直す＝分裂で出た駒は光の後に現れる（→ doc/gdd/skills.md ⑤）。
 ## 面が無いもの（バフ・解除）は光らせず盤を更新するだけ。引きの光は作り直しに重なって消えていく。
 func _flash_cells_only(cells: Array, is_locked: bool) -> void:
 	if cells.is_empty():

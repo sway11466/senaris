@@ -30,7 +30,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# 発動前に撮る＝戦闘の結果（戦闘前スナップショット）と同じ流儀。
 	var skill_scope := option.scope == FormationOption.Scope.UNIT
 	var cast := _skill_cast(state, option, target) if skill_scope else null
-	var spawn_cells: Array[Vector2i] = []  # 分裂で湧いた位置（cells に載せて盤で光らせる）
+	var spawn_cells: Array[Vector2i] = []  # 分裂で出た位置（cells に載せて盤で光らせる）
 	# レポートの見出し・攻撃列に出す発動者（発動前に固める＝attack のスナップショットと同じ流儀。
 	# 兵数は動かないので troops_after は troops_before のまま）。詳細 → doc/tech/combat_scene.md
 	var caster := state.unit_by_handle(option.leader_id)
@@ -56,7 +56,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 				if cast != null:
 					cast.cleansed = dropped
 		# スライムスプリット（⑤）は隣接する空きマスへ発動者の複製を1体置く。
-		# 着弾・兵数変化は起きない。湧いた位置は cells で盤に返す＝光らせる。詳細 → doc/gdd/skills.md
+		# 着弾・兵数変化は起きない。分裂で出た位置は cells で盤に返す＝光らせる。詳細 → doc/gdd/skills.md
 		FormationOption.Effect.SPAWN:
 			var spawned := state.spawn_unit(option.leader_id)
 			if spawned != null:
@@ -116,7 +116,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
 	out.cells = Formation.blast_cells(option, target)
-	out.cells.append_array(spawn_cells)  # 分裂の湧き位置も光らせる（→ doc/gdd/skills.md ⑤）
+	out.cells.append_array(spawn_cells)  # 分裂で出た位置も光らせる（→ doc/gdd/skills.md ⑤）
 	out.cast = cast
 	return out
 

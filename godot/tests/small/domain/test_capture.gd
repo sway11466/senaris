@@ -122,7 +122,7 @@ func test_deploy_cells_and_can_deploy() -> void:
 
 func test_deploy_skips_terrain_the_unit_cannot_enter() -> void:
 	# 進入不可の地形（壁・瓦礫）は出撃先にしない＝出た瞬間に動かせない駒を作らない。
-	# 冒険譚2 st4 で、瓦礫（rampart）に囲まれた拠点からゾンビが壁の上に湧いていた。
+	# 冒険譚2 st4 で、瓦礫（rampart）に囲まれた拠点からゾンビが壁の上に出撃していた。
 	var s := _state()
 	s.set_movement({ "foot": { "plain": 1, "rampart": "x" }, "flight": { "plain": 1, "rampart": 1 } })
 	var base_hex := Hex.offset_to_axial(4, 4)

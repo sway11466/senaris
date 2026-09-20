@@ -193,7 +193,7 @@ const SKILLS := {
 		# 発動者の複製を1体生成し、兵数は発動時点の発動者の兵数を引き継ぐ。max_troops は type の既定値。
 		# 詳細 → doc/gdd/skills.md
 		"effect": "spawn",
-		"range": 0,  # 自分の隣接に湧く＝対象選択は不要
+		"range": 0,  # 自分の隣接に分裂で出る＝対象選択は不要
 		"range_from": "leader",
 		"charge_turns": 3,  # 盤に出た直後は撃てない。3ターン溜めてから発動。詳細 → doc/gdd/skills.md
 	},
@@ -529,7 +529,7 @@ static func _leader_can_offer(state: BattleState, unit: Unit, rid: String, r: Di
 	var ct := int(r.get("charge_turns", 0))
 	return ct == 0 or state.get_charge(unit.handle, rid) >= ct
 
-## 湧き（spawn）の置き先＝lead_pos の隣に盤内の空きマスがあるか。
+## 分裂（spawn）の置き先＝lead_pos の隣に盤内の空きマスがあるか。
 static func _spawn_has_room(state: BattleState, lead_pos: Vector2i) -> bool:
 	for nb in Hex.neighbors(lead_pos):
 		if state.in_field(nb) and state.unit_at(nb) == null:

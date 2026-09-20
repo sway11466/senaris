@@ -10,7 +10,7 @@ var skill: String                  ## スキルID
 var leader_id: int                 ## 発動者の駒番号
 var caster: UnitSnapshot           ## 発動者（発動前に固める。兵数は動かないので troops_after＝troops_before）
 var center: Vector2i               ## 着弾中心（対象を取らないレシピでは呼び手が渡した値のまま）
-var cells: Array[Vector2i] = []    ## 光らせる面（駒の有無によらない）＋分裂の湧き位置
+var cells: Array[Vector2i] = []    ## 光らせる面（駒の有無によらない）＋分裂で出た位置
 var hits: Array[SkillHit] = []     ## 着弾した対象ごとの損害（着弾の無いレシピは空）
 var status: Dictionary = {}        ## 積んだ状態補正エントリ（バフ・毒）。無ければ空
 var cast: SkillCast                ## 効果対象が1体のユニットスキルの演出用内訳。それ以外は null
