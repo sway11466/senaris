@@ -305,11 +305,28 @@ func _sync_faces() -> void:
 	_unit_face.visible = unit and _tab == "ability"
 	_terrain_face.visible = first and _terrain_face.has_picture() \
 		and ((unit and _tab == "terrain") or (_shown_unit < 0 and _view == "terrain"))
+	var line := get_theme_font("font", "Label").get_height(get_theme_font_size("font_size", "Label"))
 	if _unit_face.visible:
-		var line := get_theme_font("font", "Label").get_height(get_theme_font_size("font_size", "Label"))
 		_place_face(_unit_face, line * FIGURE_ROWS + ROW_SEP * (FIGURE_ROWS - 1))
 	elif _terrain_face.visible:
-		_place_face(_terrain_face, _terrain_face.picture_height())  # 地形は描く物の高さ＝上から詰める
+		# ヘックスは面の下端＝地形の話（地形名〜防御補正）の最後の行に揃う。背の高い立ち絵は上へはみ出す
+		_place_face(_terrain_face, _terrain_group_height())
+
+## 地形の面の高さ＝ページの頭から、最初の区切り線の前にある最後の文のある行の下端まで。地形タブ
+## （地形名・攻撃補正・防御補正）でも空きマスの表示（見出し・空行・攻撃補正・防御補正）でも、
+## 防御補正の行の下端になる＝空行の有無で行数を数え分けない。区切り線が無ければ中身の終わりまで。
+func _terrain_group_height() -> float:
+	var y := 0.0
+	var bottom := 0.0
+	if _page < _pages.size():
+		for it: Dictionary in _pages[_page]:
+			if String(it.get("text", "")) == SEPARATOR:
+				break
+			var h := _item_height(it)
+			if not _is_blank(it):
+				bottom = y + h
+			y += h + ROW_SEP
+	return bottom
 
 ## 面を置く。上端は器の上端、高さは h。左右は、上から h に掛かる行の中身の右端と器の右端の間の中央
 ## ＝空いている場所の真ん中。空行と区切り線は幅に数えない（飾りであって読む物ではない）。
