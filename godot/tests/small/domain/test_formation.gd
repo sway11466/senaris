@@ -706,7 +706,7 @@ func _trick_shot_state(enemy_def := 40) -> Dictionary:
 	archer.attack_range = 3
 	var enemy_hex := c + Hex.direction(0) * 3
 	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
-	var scout := Unit.new(2, 0, enemy_hex + Hex.direction(0), 7, 8, 20, 20, 1, "scout")
+	var scout := Unit.new(2, 0, enemy_hex + Hex.direction(0), 7, 8, 20, 20, 1, "thief")
 	for u in [archer, enemy, scout]:
 		s.add_unit(u)
 	return {"s": s, "archer": archer, "enemy": enemy, "enemy_hex": enemy_hex, "scout": scout}
@@ -730,7 +730,7 @@ func test_trick_shot_not_detected_when_scout_only_near_leader() -> void:
 	archer.min_range = 1
 	archer.attack_range = 3
 	s.add_unit(archer)
-	s.add_unit(Unit.new(2, 0, Hex.neighbor(c, 0), 7, 8, 20, 20, 1, "scout"))  # 弓兵の隣
+	s.add_unit(Unit.new(2, 0, Hex.neighbor(c, 0), 7, 8, 20, 20, 1, "thief"))  # 弓兵の隣
 	s.add_unit(Unit.new(9, 1, c + Hex.direction(0) * 3, 3, 8, 10, 40))  # 射程内だが誰も張り付いていない
 	assert_eq(_count(Formation.available_for(s, archer), "trick_shot"), 0,
 		"敵に張り付いていない斥候では成立しない")

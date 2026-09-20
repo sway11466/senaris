@@ -75,7 +75,7 @@ const SKILLS := {
 		"category": "bow",
 		"leader_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外
 		# 先頭のシーフがクロニクルの図と未解放の黒塗りの代表（doc/gdd/chronicle.md 陣形スキル）。
-		"member_skins": ["thief", "scout", "halfling", "ninja", "kunoichi"],
+		"member_skins": ["thief", "halfling", "ninja", "kunoichi"],
 		"shape": "spotter",
 		"count": 2,
 		"effect": "single",
