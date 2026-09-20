@@ -1,28 +1,27 @@
-公開:
+公開: https://craftkobo.itch.io/senaris/devlog/1670841/every-problem-on-the-board-has-an-answer-on-the-board （2026-09-20）
 
-区分: General Update or Announcement（投稿画面の「Updates, announcements, or changelogs」の項。パッチの告知を兼ねるため #3 と同じ枠）
+区分: Game Design（投稿画面の Long-form discussion の項。#4 と同じ枠。パッチの告知を兼ねないので General Update には置かない）
 
-# devlog #5 — ユニットスキルと輸送（パッチ 0.2.1 の回）
+# devlog #5 — ユニットスキルと輸送（0.2.0 に入っている残り要素の回）
 
 ## 設計
 
 狙い：**「掛けられた不利は盤の上で解ける。代金は行動1回」を1つ持ち帰らせる。**#4 は「強い技には代償がある」だった。今回はその裏返しで、敵に攻防を削られても、足が足りなくて間に合わなくても、答えは盤に置いてある——ただしどちらも1手を払って使う、というところまで。乱数が無いので、解けるかどうかは運ではなく手順の問題になる。
 
-方針：パッチ 0.2.1 の告知回だが、修正一覧だけで終わらせない。#4 で意図的に落としたチュートリアル2の残り2要素（ユニットスキル・輸送）を本題に置き、修正一覧は後半に短く積む。0.2.1 は軽微な修正のみで、遊べる中身は 0.2.0 と同じ＝**本題は「もう入っているのに語っていなかったもの」**という立て付けにする。
+方針：ビルドは 0.2.0 のまま、パッチは出さない。#4 で意図的に落としたチュートリアル2の残り2要素（ユニットスキル・輸送）を本題に置く＝**「もう入っているのに語っていなかったもの」**の回。修正一覧は載せない。
 
 語り口：#1〜#4 と同じ。CraftKobo。主語は Senaris・the game に寄せる。
 
 話の順序：
 
-1. 冒頭。これはパッチ 0.2.1＝章は増えていない。前回 Undead Rush の回で陣形スキルだけに振り切ったので、同じ章に入っている残り2つをここで書く、と宣言する。
+1. 冒頭。前回 Undead Rush の回で陣形スキルだけに振り切ったので、同じ章に入っている残り2つをここで書く、と宣言する。どちらも 0.2.0 で遊べる。
 2. ユニットスキル。陣形スキルと同じ仕組みで、違いは参加者が1体だけ・効果が選んだ1体に乗ること。そして**敵も撃つ**。ゴーストのドレッドタッチ：隣に取り付いて、相手の攻撃力・防御力を -80、3ターン。ここで1枚目。
 3. 効きは掛けた瞬間のゴーストの残兵数で決まって、以後は動かない＝**削ってから掛けさせれば薄い**。ゴーストは防御10・移動5の飛行で、掛けた次のターンにはまず消える。ゴースト1体と、こちらの1手の交換になっている。
 4. 答えはもう1つある。**ピュリファイ**＝聖職1体の行動1回で、掛かっている弱体をすべて落とす。3本刺さっていても1回で済む。落とす相手が居なければコマンドが無効化される＝空撃ちで聖職の手を捨てる事故が起きない。ここで2枚目。
 5. その代金。聖職はグレイスの顔ぶれで、砦を取れる唯一の駒でもある。祈るか、祓うか、拠点へ歩くか——**1体が1ターンにできるのは1つ**。#4 で書いた「グレイスは占領兵を固める」がここで噛み合う。落ちるのは補正だけで、削られた兵は戻らないことも書く（万能に見せない）。
 6. 輸送。聖職は移動2、馬車は6。第2ステージは「歩けば間に合わない距離」を先に地形で作ってある＝道の外は森と柵で、移動2の駒は道しか通れない。乗るのは馬車のマスへ歩くだけ、降りるのは隣のマスへ。馬車自身は戦えないので護衛が要る＝速さと引き換えに前衛の位置が縛られる。
 7. 飛空艇。飛ぶ輸送で、終盤に増援として降りてくる。**何を運んでくるかは書かない**（#4 で3つ目の陣形スキルを伏せたのと同じ扱い）。ここで3枚目。
-8. パッチ 0.2.1 の修正一覧。短く、遊んで違いが分かるものだけ。
-9. 締め。
+8. 締め。
 
 画像（3枚。番号＝貼り順。すべて撮影済み）：
 
@@ -30,7 +29,7 @@
 - `img/devlog5-2.png` … 4番（ピュリファイ）の直後。祓いの演出＝光の十字がウィザードに降り、`Cleansed 1` の大書き＋スキルレポート `Purify / Cast by Priest (Ally) / Debuffs removed from Wizard: 1`。1枚目と同じ土俵（演出＋レポート）で、掛ける側と落とす側を対にする。撮影セットは `debug-photo/devlog4-2.json`（t2 st3 の盤）を流用し、`--enemy-turn --pre-formation dread_touch --pre-leader 4,4 --pre-target 5,4 --formation purify --leader 4,5 --target 5,4 --frame 0,1,14,8` の連写から9枚目。前段でゴーストに掛けさせてから祓う＝ターン板は 2 / 30 になる。
 - `img/devlog5-3.png` … 7番（飛空艇）の直後。馬車と飛空艇が味方の列に並んだ盤。奥に墓地とスケルトン＝運ぶ先に何が居るかが同じ絵に入る。
 
-用語：画面の語に合わせる（hex / Formation Skill / Attack / Defense）。スキル名は Dread Touch・Purify、駒は Wagon・Airship・Ghost・Clergy。数値は画面に出るものだけ（-80・3 turns・移動 2 と 6）。パッチの語は patch。
+用語：画面の語に合わせる（hex / Formation Skill / Attack / Defense）。スキル名は Dread Touch・Purify、駒は Wagon・Airship・Ghost・Clergy。数値は画面に出るものだけ（-80・3 turns・移動 2 と 6）。
 
 注意：
 
@@ -45,4 +44,18 @@
 
 ## 本文
 
-（未執筆。パッチ 0.2.1 の修正が確定してから、8番の一覧と合わせて書く）
+```html
+<p>Last time I wrote about Undead Rush, I only talked about Formation Skills. The chapter has two more things in it that I skipped over, and both have been in the demo since 0.2.0. This is the post about them.</p>
+<p>The first is the small cousin of a Formation Skill: a <strong>Unit Skill</strong>. Same mechanism, same rule that casting it is the caster's whole action for the turn. The difference is that it takes one unit instead of a shape, and it lands on one unit instead of an area. The enemy casts them just as you do.</p>
+<p>A Ghost drifts up next to one of your units and casts <strong>Dread Touch</strong>. The target loses 80 Attack and 80 Defense for three turns. Nothing in Senaris is random, so that number is exactly what it says: for three turns, the touched unit fights like a unit one rank below itself.</p>
+<p><img src=""></p>
+<p>There are two answers, and both are on the board.</p>
+<p>The first is to make the touch weaker before it lands. The penalty is 10 for every Ghost still standing in the squad at the moment it casts, and once cast it is fixed &mdash; it does not shrink when you hit the Ghost afterwards. Ghosts fly, move 5, and defend at 10, so any archer can thin one out on its way in, and a Ghost shot down to half its troops delivers half a Dread Touch. The Ghost itself rarely survives the turn after it casts. The enemy is trading one Ghost for one of your actions, and it is happy to make that trade. Your job is to make it a bad one.</p>
+<p>The second answer is <strong>Purify</strong>. Any Clergy unit &mdash; Cleric, Priest or Bishop &mdash; can spend its action to strip every debuff from itself or an adjacent ally. Three touches stacked on one unit come off in a single cast. And the game will not let you waste it: if there is nothing to remove, the command simply is not offered.</p>
+<p><img src=""></p>
+<p>Which is where the bill comes in. Clergy are your healers and, as I wrote last time, the only units that can take a fort. A Priest gets one action a turn. It can pray, it can cleanse, or it can walk toward the fort you need taken &mdash; not two of those. Every Purify is a turn a capture unit did not spend capturing. And Purify only restores the numbers. The troops the touched unit lost while it stood at &minus;80 stay lost, and the turn it spent not fighting is gone. The board is solvable. It is just never free.</p>
+<p>The other thing I skipped is transport. Clergy move 2. A <strong>Wagon</strong> moves 6. The second stage of Undead Rush is built around that gap: off the road it is forest and fences, where a forest hex eats a Priest's entire move and a fence stops it outright, and the fort is further away than a Priest can walk in the turns you have. Loading is nothing more than walking the unit onto the Wagon's hex; unloading drops it on a hex beside the Wagon. The catch is that the Wagon cannot fight. Whatever it carries is safe only as long as something stands in front of it, so the speed you bought comes out of your front line's freedom to go where it wants.</p>
+<p>Later in the chapter an <strong>Airship</strong> arrives &mdash; the flying version, coming in as reinforcements near the end. What it carries, I will leave on the board.</p>
+<p><img src=""></p>
+<p>Both are in the demo now, in Undead Rush.</p>
+```
