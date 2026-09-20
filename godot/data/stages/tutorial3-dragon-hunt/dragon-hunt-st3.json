@@ -3,19 +3,19 @@
   "name": "dragon-hunt-st3",
   "player": [
     {       "units": [
-        { "type": "horse", "actor": "horse1", "col": 1, "row": 19, "supply": "join" },
-        { "type": "horse", "actor": "horse2", "col": 5, "row": 20, "supply": "join" },
-        { "type": "pixie", "actor": "pixie", "col": 3, "row": 17, "supply": "join" },
         { "type": "vanguard", "actor": "vanguard", "col": 3, "row": 18, "supply": "refill" },
-        { "type": "thief", "actor": "thief", "col": 2, "row": 19, "supply": "refill" },
         { "type": "hunter", "actor": "hunter", "col": 2, "row": 21, "supply": "refill" },
-        { "type": "bishop", "actor": "bishop", "col": 3, "row": 19, "supply": "refill" },
         { "type": "wizard", "actor": "wizard", "col": 4, "row": 21, "supply": "refill" },
+        { "type": "thief", "actor": "thief", "col": 2, "row": 19, "supply": "refill" },
+        { "type": "bishop", "actor": "bishop", "col": 3, "row": 19, "supply": "refill" },
         { "type": "fighter", "actor": "fighter", "col": 4, "row": 19, "supply": "refill" },
-        { "type": "halfling", "actor": "halfling", "col": 3, "row": 21, "supply": "refill" },
         { "type": "archer", "actor": "archer", "col": 2, "row": 20, "supply": "refill" },
+        { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" },
+        { "type": "halfling", "actor": "halfling", "col": 3, "row": 21, "supply": "refill" },
         { "type": "cleric", "actor": "cleric", "col": 3, "row": 20, "supply": "refill" },
-        { "type": "mage", "actor": "mage", "col": 4, "row": 20, "supply": "refill" }
+        { "type": "pixie", "actor": "pixie", "col": 3, "row": 17, "supply": "join" },
+        { "type": "horse", "actor": "horse1", "col": 1, "row": 19, "supply": "join" },
+        { "type": "horse", "actor": "horse2", "col": 5, "row": 20, "supply": "join" }
       ] }
   ],
   "enemy": [

@@ -3,21 +3,21 @@
   "name": "dragon-hunt-st5",
   "player": [
     {       "units": [
-        { "type": "horse", "actor": "horse1", "col": 3, "row": 9, "supply": "refill" },
-        { "type": "horse", "actor": "horse2", "col": 5, "row": 12, "supply": "refill" },
-        { "type": "bishop", "actor": "bishop", "col": 5, "row": 10, "supply": "refill" },
         { "type": "vanguard", "actor": "vanguard", "col": 4, "row": 10, "supply": "refill" },
-        { "type": "wizard", "actor": "wizard", "col": 4, "row": 12, "supply": "refill" },
-        { "type": "cleric", "actor": "cleric", "col": 4, "row": 11, "supply": "refill" },
-        { "type": "thief", "actor": "thief", "col": 6, "row": 11, "supply": "refill" },
         { "type": "hunter", "actor": "hunter", "col": 2, "row": 11, "supply": "refill" },
+        { "type": "wizard", "actor": "wizard", "col": 4, "row": 12, "supply": "refill" },
+        { "type": "thief", "actor": "thief", "col": 6, "row": 11, "supply": "refill" },
+        { "type": "bishop", "actor": "bishop", "col": 5, "row": 10, "supply": "refill" },
         { "type": "fighter", "actor": "fighter", "col": 5, "row": 11, "supply": "refill" },
         { "type": "archer", "actor": "archer", "col": 3, "row": 12, "supply": "refill" },
+        { "type": "mage", "actor": "mage", "col": 3, "row": 10, "supply": "refill" },
         { "type": "halfling", "actor": "halfling", "col": 5, "row": 9, "supply": "refill" },
+        { "type": "cleric", "actor": "cleric", "col": 4, "row": 11, "supply": "refill" },
         { "type": "pixie", "actor": "pixie", "col": 2, "row": 12, "supply": "refill" },
         { "type": "dwarf", "actor": "dwarf", "col": 6, "row": 10, "supply": "refill" },
         { "type": "elf", "actor": "elf", "col": 3, "row": 11, "supply": "refill" },
-        { "type": "mage", "actor": "mage", "col": 3, "row": 10, "supply": "refill" }
+        { "type": "horse", "actor": "horse1", "col": 3, "row": 9, "supply": "refill" },
+        { "type": "horse", "actor": "horse2", "col": 5, "row": 12, "supply": "refill" }
       ] }
   ],
   "enemy": [
