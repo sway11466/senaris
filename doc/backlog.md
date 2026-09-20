@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=135 / refactoring=23.
+次回採番: bug=12 / feature=136 / refactoring=23.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -17,6 +17,14 @@
 ## 機能追加
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### feature-135
+
+**クロニクルの陣形スキルのカードに、性能から引く射程を出す**
+- ゴール：トリックショットとマジックアローの拡大カードで、射程が「—」ではなく「発動者の通常射程」「2体の射程上限の長い方＋1」と読める。
+- 背景：カードの効果の表はレシピの固定 `range` だけを読む。射程を参加者の性能から引くレシピ（`range_from_stats`＝トリックショットの "leader"・マジックアローの "max_plus"）は固定値を持たないので「—」になり、射程の無いスキル（グレイス）と区別がつかない。仕様は「効果・射程・持続・人数・発動できる駒」を載せる（[chronicle.md](gdd/chronicle.md) 陣形スキル）。
+- 対応：`_skill_rows` で `range_from_stats` を見て文を選ぶ。"leader" → 「発動者の通常射程」、"max_plus" → 「参加者の射程上限の長い方＋N」（N は `range_plus`）。固定 `range` があればその数、どちらも無ければ「—」のまま。文は `chronicle.csv` に `ui.chronicle.skill_range_leader`／`ui.chronicle.skill_range_max_plus` を足す。
+- 該当：`godot/presentation/chronicle/formations_chapter.gd`・`godot/data/i18n/chronicle.csv`。
 
 ### feature-8
 
