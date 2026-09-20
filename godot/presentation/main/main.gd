@@ -75,6 +75,7 @@ func _ready() -> void:
 	for bus in SettingsStore.VOLUME_BUSES:
 		SettingsApplier.apply_volume(String(bus), _settings_store.volume(String(bus)))
 	SettingsApplier.apply_window_mode(_settings_store.window_mode())
+	$HexBoard.set_board_fx(_settings_store.board_fx())  # 盤面の演出（移動アニメ・カメラ追従・着弾の速さ）
 	_skins = SkinCatalog.load_standard()
 	_ai_presets = AiCatalog.load_default()
 	# HexBoard と InfoPanel は永続。選択→情報パネルの配線は1回だけ（controller 非依存）。
@@ -231,10 +232,22 @@ func _install_state(state: BattleState, path: String) -> void:
 ## 分かる）、とどめの演出（スロー＋寄り＋白フラッシュへの繋ぎ）として見せる。
 ## 仕様 → doc/gdd/uiux.md 決着の合図
 func _on_combat_resolved(result: AttackResult) -> void:
+	if not _combat_view_shown():
+		return  # 盤面のみ＝窓を開かない。結果は盤の兵数と右パネルのレポートで読む。決着は盤の側の合図で
 	if _win_decided():
 		_finisher_route = "combat"
 		_combat_scene.arm_finisher()
 	_combat_scene.play(result)
+
+## 画面を占有する演出（戦闘窓・対峙シーン・カットイン）をこの手で出すか。設定「戦闘の演出」に従う
+## （doc/gdd/settings.md）。自軍のみ＝いま動いている陣営がプレイヤーのときだけ出す。
+func _combat_view_shown() -> bool:
+	match _settings_store.combat_fx():
+		"off":
+			return false
+		"own":
+			return _controller != null and _controller.state.current_team == 0
+	return true
 
 ## この時点で勝ちが確定しているか。combat_resolved / formation_resolved は盤の状態が確定した後・
 ## battle_finished より前に飛ぶ＝演出を組む前に決着を読める。
@@ -302,7 +315,7 @@ func _on_formation_resolved(result: SkillResult) -> void:
 		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
 		_update_aura()
 		$HexBoard.play_formation_impact(result)  # 効果対象が1体＝着弾があれば盤にも出す
-		if _skill_scene != null and result.cast != null:
+		if _skill_scene != null and result.cast != null and _combat_view_shown():
 			_skill_scene.play(result.cast)
 		return
 	# 陣形の音はスキルごとに違う＝規約解決（assets/sfx/{skill_id}.ogg と {skill_id}_hit.ogg）。
@@ -310,13 +323,13 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	SfxPlayer.play_sfx(skill_id)
 	# 発動者のスキンは常に渡す。絵の名前に使うかはレシピ（cutin_per_caster）が決める。
 	var caster_skin := result.caster.skin_id if result.caster != null else ""
-	if _formation_cutin != null and _formation_cutin.play(skill_id, caster_skin):
+	if _combat_view_shown() and _formation_cutin != null and _formation_cutin.play(skill_id, caster_skin):
 		await _formation_cutin.finished
 	SfxPlayer.play_sfx("%s_hit" % skill_id)
 	# 着弾＝揺れ → 面の光 → 被弾した駒を1体ずつ。揺れは画面全体（右の情報ボックスも同じ衝撃の下に
 	# 置く）＝2D側はここ、盤（3D）は HexBoard がカメラに同じ量を掛ける。着弾の無いバフは揺らさない。
-	if $HexBoard.is_impacting():
-		_shake_screen()
+	if $HexBoard.is_impacting() and _settings_store.board_fx() != "off":
+		_shake_screen()  # 盤面の演出 OFF は揺れも出さない＝結果だけ
 	await $HexBoard.play_formation_impact(result)
 	_update_aura()
 
@@ -878,6 +891,8 @@ func _install_settings() -> void:
 	_settings.volume_settled.connect(_settings_store.set_volume)
 	_settings.window_mode_chosen.connect(_on_settings_window_mode_chosen)
 	_settings.dialogue_mode_chosen.connect(_settings_store.set_dialogue_when_minimized)
+	_settings.combat_fx_chosen.connect(_settings_store.set_combat_fx)  # 出すかは play のたびに読む＝当てる先は無い
+	_settings.board_fx_chosen.connect(_on_settings_board_fx_chosen)
 	_settings.closed.connect(_on_settings_closed)
 	add_child(_settings)
 	_hud.settings_requested.connect(_open_settings)
@@ -957,7 +972,8 @@ func _open_settings() -> void:
 	var volumes := {}
 	for bus in SettingsStore.VOLUME_BUSES:
 		volumes[bus] = _settings_store.volume(String(bus))
-	_settings.open(_settings_store.locale(), volumes, _settings_store.window_mode(), _settings_store.dialogue_when_minimized())
+	_settings.open(_settings_store.locale(), volumes, _settings_store.window_mode(), _settings_store.dialogue_when_minimized(),
+		_settings_store.combat_fx(), _settings_store.board_fx())
 
 ## 設定を畳み終えた。タイトルへ戻ったなら伏せていた刻印を出し直す（盤へ戻るなら何も無い）。
 func _on_settings_closed() -> void:
@@ -979,6 +995,11 @@ func _on_title_chronicle() -> void:
 
 func _on_chronicle_closed() -> void:
 	_title.show_stamp(true)
+
+## 盤面の演出を選んだ＝保存して盤に当てる（盤の中から開いていれば次の手から効く）。
+func _on_settings_board_fx_chosen(mode: String) -> void:
+	_settings_store.set_board_fx(mode)
+	$HexBoard.set_board_fx(mode)
 
 ## 言語を選んだ＝その場で適用して保存し、生き続けている画面の文言を貼り直す。
 func _on_settings_locale_chosen(locale: String) -> void:

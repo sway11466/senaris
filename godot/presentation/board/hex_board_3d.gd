@@ -30,6 +30,7 @@ const TILE := 1.0                # ワールドでの hex サイズ（中心〜�
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速・上限なし＝時間はマス数に比例。doc/gdd/uiux.md 移動アニメ）
 const ENTRY_STAGGER_SEC := 0.10  # 一斉に散る登場＝次の駒が入口を出るまでの間（同じ1ヘックスから出るので重ねない）
 const ENTRY_FADE_SEC := 0.30     # その場に浮かび上がる登場＝薄いところから戻すのにかける秒数
+const BOARD_FX_FAST := 3.0       # 盤面の演出「高速」の倍速（移動アニメ・登場・カメラ追従・着弾に共通。doc/gdd/settings.md）
 const DRAG_THRESHOLD := 6.0      # この距離(px)を超えて動いたらクリックでなくパン
 
 const COLOR_HOVER := Color(0.30, 0.62, 1.00, 0.30)
@@ -81,6 +82,7 @@ var _targets := {}       # Vector2i -> target_id（攻撃可能な敵の位置�
 var _deploy_base := INVALID_HEX
 var _deploy_cells := {}  # Vector2i -> true（出撃先候補）
 var _locked := false     # 決着・AIターン中は入力を受けない（カメラは見られる）
+var _board_fx := "normal"  # 盤面の演出の設定（SettingsStore.BOARD_FX_MODES）。set_board_fx で入る
 var _frozen := false     # 会話中フリーズ＝カメラ含む全入力を止める（set_input_locked で制御）
 var _covered := false    # 盤の上に画面（タイトル・依頼ボード・設定…）が出ている＝入力を受けない（set_covered で制御）
 var _move_voice: AudioStreamPlayer = null  # 進行中の移動音の口（続く型のループ／周期の型の直近の一打）。到着・中断で止める
@@ -351,10 +353,22 @@ func fit_to_view() -> void:
 		return
 	_board_cam.fit_to_bounds(b.position, b.end, TILE, _vis_rect())
 
+## 盤面の演出の設定（doc/gdd/settings.md 盤面の演出）。"normal"／"fast"＝倍速／"off"＝移動は瞬間・
+## カメラは追わない・着弾は結果だけ。main が起動時と、設定画面で選ばれたときに呼ぶ。
+func set_board_fx(mode: String) -> void:
+	_board_fx = mode
+	_board_cam.pan_sec = BoardCamera.FOCUS_PAN_SEC / _fx_speed()
+	_impact_renderer.set_fx(_fx_speed(), mode == "off")
+
+## 盤の上の動きに掛ける速さ（1.0＝等速）。OFF は動かさないので呼ぶ側が先に分岐する。
+func _fx_speed() -> float:
+	return BOARD_FX_FAST if _board_fx == "fast" else 1.0
+
 ## AIターンで「次に動く主体(hex)」をカメラに収める（controller.focus_pace が各手の前に呼ぶ）。
 ## 敵の全行動を見せる＝いつの間にか位置が変わる事態を防ぐ（doc/gdd/uiux.md「敵ターンのカメラ」）。
+## 盤面の演出 OFF は追わない（設定）。
 func focus_camera_on(hex: Vector2i) -> void:
-	if state == null:
+	if state == null or _board_fx == "off":
 		return
 	var b := _board_bounds()
 	if b.size.x >= 0.0:
@@ -1147,7 +1161,12 @@ func _animate_move(handle: int, path: Array[Vector2i]) -> void:
 	if node == null or path.size() < 2:
 		move_animation_finished.emit()
 		return
-	var per_hex := MOVE_ANIM_SEC_PER_HEX  # 経路が長くても縮めない＝時間はマス数に比例（doc/gdd/uiux.md 移動アニメ）
+	if _board_fx == "off":
+		# 盤面の演出 OFF＝瞬間移動。プレビューの歩きも同じ＝クリックした先へ即座に立つ。
+		node.position = _hex_world(path[path.size() - 1])
+		move_animation_finished.emit()
+		return
+	var per_hex := MOVE_ANIM_SEC_PER_HEX / _fx_speed()  # 経路が長くても縮めない＝時間はマス数に比例（doc/gdd/uiux.md 移動アニメ）
 	# map_move（doc/audio/sfx.md 移動音）。素材は移動タイプ＋スキンで決まり、未配置なら無音で進む。
 	# 鳴らし方は素材の型で決まる。刻む＝マスごとに1発、続く＝開始でループし到着で止める、
 	# 周期＝開始で1発・every マスごとに1発・到着で鳴っている一打を止める。
@@ -1184,7 +1203,7 @@ func play_entry(info: Dictionary, animate := true) -> void:
 	if ids.is_empty():
 		return  # 駒を出さないイベント（会話・占領）＝盤は触らない（歩いている駒を止めない）
 	_sync()
-	if not animate:
+	if not animate or _board_fx == "off":
 		return
 	await _await_entry(_schedule_entry(info))
 
@@ -1213,7 +1232,7 @@ func reveal_units(infos: Array, animate := true) -> void:
 	if not any:
 		return
 	_sync()
-	if not animate:
+	if not animate or _board_fx == "off":
 		return
 	var total := 0.0
 	for info in infos:
@@ -1260,11 +1279,11 @@ func _entry_walk(ids: Array, from: Vector2i, sequential: bool) -> float:
 			if u != null and u.pos != from:
 				push_warning("HexBoard3D: 入口から歩いてこられない駒（その場に出す）: id=%d" % uid)
 			continue
-		var walk := float(path.size() - 1) * MOVE_ANIM_SEC_PER_HEX
+		var walk := float(path.size() - 1) * MOVE_ANIM_SEC_PER_HEX / _fx_speed()
 		var sfx := _move_sfx_of(uid) if sequential or lead else ""
 		_entry_tweens.append(_walk_in_tween(node, path, at, sfx))
 		total = maxf(total, at + walk)
-		at += walk if sequential else ENTRY_STAGGER_SEC
+		at += walk if sequential else ENTRY_STAGGER_SEC / _fx_speed()
 		lead = false
 	return total
 
@@ -1294,7 +1313,7 @@ func _walk_in_tween(node: Node3D, path: Array[Vector2i], delay: float, sfx: Stri
 				t.tween_callback(func() -> void:
 					_move_voice_sfx = sfx
 					_move_voice = SfxPlayer.play_sfx(sfx))
-		t.tween_property(node, "position", _hex_world(path[i]), MOVE_ANIM_SEC_PER_HEX)
+		t.tween_property(node, "position", _hex_world(path[i]), MOVE_ANIM_SEC_PER_HEX / _fx_speed())
 	if sfx != "":
 		t.tween_callback(_stop_move_voice)
 	return t
@@ -1315,11 +1334,11 @@ func _entry_fade(ids: Array) -> float:
 				var spr := c as Sprite3D
 				spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED  # discard のままでは薄くならない
 				spr.modulate.a = 0.0
-				t.tween_property(spr, "modulate:a", 1.0, ENTRY_FADE_SEC)
+				t.tween_property(spr, "modulate:a", 1.0, ENTRY_FADE_SEC / _fx_speed())
 			elif c is Label3D:
 				var lbl := c as Label3D
 				lbl.modulate.a = 0.0
-				t.tween_property(lbl, "modulate:a", 1.0, ENTRY_FADE_SEC)
+				t.tween_property(lbl, "modulate:a", 1.0, ENTRY_FADE_SEC / _fx_speed())
 			elif c is Node3D:
 				var n3 := c as Node3D
 				n3.hide()
@@ -1329,7 +1348,7 @@ func _entry_fade(ids: Array) -> float:
 				n3.show())
 		_entry_tweens.append(t)
 		shown = true
-	return ENTRY_FADE_SEC if shown else 0.0
+	return ENTRY_FADE_SEC / _fx_speed() if shown else 0.0
 
 ## 登場の演出が終わるまで待つ（秒で待つ＝途中で盤が作り直されて演出が消えても待ち手は返る）。
 ## 終わる時刻を控える＝AIターンのテンポ制御（await_move_animation）も同じ時刻まで待つ。

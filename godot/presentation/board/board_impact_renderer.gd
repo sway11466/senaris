@@ -73,6 +73,8 @@ var _impact_pending := false    # 着弾待ち＝盤の作り直しを保留し�
 var _impact_lock := false       # 演出の間だけ入力を止めた＝終わったら元へ戻す
 var _impact_tex := {}           # skill_id -> Texture2D|null（駒に重ねる着弾の絵）
 var _finisher := false          # 次の着弾を決着のとどめ（スロー）として見せる＝main が勝ち確定後に立てる
+var _speed := 1.0               # 尺に掛ける速さ（1.0＝等速。盤面の演出「高速」で上がる）
+var _skip := false              # 着弾を見せず結果だけ（盤面の演出 OFF）
 
 
 func setup(unit_renderer: BoardUnitRenderer, overlay_mesh: ArrayMesh,
@@ -88,6 +90,11 @@ func setup(unit_renderer: BoardUnitRenderer, overlay_mesh: ArrayMesh,
 
 
 ## 着弾を待つ状態にする。陣形の解決時に hex_board_3d が呼ぶ。
+## 盤面の演出の設定（doc/gdd/settings.md）。speed＝待ちと動きの尺に掛ける速さ、skip＝見せずに結果だけ。
+func set_fx(speed: float, skip: bool) -> void:
+	_speed = speed
+	_skip = skip
+
 func set_pending(v: bool) -> void:
 	_impact_pending = v
 
@@ -135,6 +142,10 @@ func reset() -> void:
 func play(result: SkillResult, is_locked: bool) -> void:
 	if not _impact_pending:
 		return  # 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み
+	if _skip:
+		_end_impact()  # 盤面の演出 OFF＝光もフラッシュも出さず、撃たれた後の盤を作り直すだけ
+		_sync_fn.call()
+		return
 	var hits := result.hits
 	if hits.is_empty():
 		await _flash_cells_only(result.cells, is_locked)
@@ -292,7 +303,7 @@ func _flash_unit(node: Node3D) -> void:
 		var spr := c as Sprite3D
 		var base := spr.modulate
 		var hot := Color(base.r * HIT_FLASH_GAIN, base.g * HIT_FLASH_GAIN, base.b * HIT_FLASH_GAIN, base.a)
-		var tw := create_tween()
+		var tw := _tween()
 		tw.tween_property(spr, "modulate", hot, HIT_FLASH_SEC)
 		tw.tween_property(spr, "modulate", base, HIT_FLASH_SEC)
 
@@ -301,7 +312,7 @@ func _flash_unit(node: Node3D) -> void:
 ## （材質のアルファを触ると、同じ色を使う他の駒まで一緒に薄くなる）。
 ## stretch＝尺に掛ける倍率（決着のとどめ＝最後の1体はゆっくり消える）。
 func _fade_out_unit(node: Node3D, stretch := 1.0) -> void:
-	var tw := create_tween()
+	var tw := _tween()
 	tw.set_parallel(true)
 	for c in node.get_children():
 		if c is Sprite3D:
@@ -337,7 +348,7 @@ func _flash_cells(cells: Array, hold: float,
 		add_child(mi)
 		# 立ち上がりで一度強く光らせ、駒を処理している間は薄く居座らせる（面は見えたまま・
 		# 駒に重ねるエフェクトは埋もれない）。最後に引く。
-		var tw := create_tween()
+		var tw := _tween()
 		tw.tween_property(m, "albedo_color:a", alpha_rise, HIT_CELL_RISE)
 		tw.tween_property(m, "albedo_color:a", alpha_hold, HIT_CELL_SETTLE)
 		tw.tween_interval(hold)
@@ -368,7 +379,7 @@ func _spawn_burst(hex: Vector2i, tex: Texture2D, on_land: Callable, stretch := 1
 	var land := Vector3(p.x, _elev_fn.call(hex) + TILE * 0.9, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
 	spr.position = land + Vector3(0, HIT_DROP_FROM, 0)
 	add_child(spr)
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_property(spr, "position", land, HIT_DROP_SEC * stretch).set_ease(Tween.EASE_IN)  # 落下＝加速
 	tw.tween_callback(on_land)
 	tw.set_parallel(true)  # 着弾＝開きながら消える
@@ -406,7 +417,7 @@ func _spawn_flying_impact(from_hex: Vector2i, to_hex: Vector2i, tex: Texture2D,
 	# 弧を描いて飛ぶ＝真っ直ぐ滑らせると地を這っているように見える。頂点は中間。
 	var fly := func(t: float) -> void:
 		spr.position = start.lerp(land, t) + Vector3(0.0, FLY_ARC * sin(PI * t), 0.0)
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_method(fly, 0.0, 1.0, FLY_SEC * stretch).set_ease(Tween.EASE_OUT)  # 手を離れた直後が速い
 	tw.tween_callback(on_land)
 	tw.tween_interval(FLY_HOLD_SEC * stretch)  # 刺さったまま少し置く
@@ -432,7 +443,7 @@ func _spawn_falling_impact(hex: Vector2i, tex: Texture2D, on_land: Callable, str
 	var land := Vector3(p.x, _elev_fn.call(hex) + height * 0.5, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
 	spr.position = land + Vector3(0, SINGLE_DROP_FROM, 0)
 	add_child(spr)
-	var tw := create_tween()
+	var tw := _tween()
 	tw.tween_property(spr, "position", land, SINGLE_DROP_SEC * stretch).set_ease(Tween.EASE_IN)  # 降下＝加速
 	tw.tween_callback(on_land)
 	tw.tween_interval(SINGLE_HOLD_SEC * stretch)
@@ -456,6 +467,13 @@ func _impact_texture(skill_id: String) -> Texture2D:
 	return tex
 
 
+## 待ちと動きは同じ速さで縮める（高速）＝待ちだけ縮めると絵が終わる前に次へ進む。
 func _wait(sec: float) -> void:
 	if is_inside_tree():
-		await get_tree().create_timer(sec).timeout
+		await get_tree().create_timer(sec / _speed).timeout
+
+
+func _tween() -> Tween:
+	var tw := create_tween()
+	tw.set_speed_scale(_speed)
+	return tw

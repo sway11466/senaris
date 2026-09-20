@@ -11,4 +11,10 @@ ui.settings.dialogue,会話,Dialogue
 ui.settings.dialogue_note,情報板を畳んでいるとき,While the panel is folded
 ui.settings.dialogue_show,会話のみ表示する,Dialogue only
 ui.settings.dialogue_hide,表示しない,Hide
+ui.settings.combat_fx,戦闘の演出,Battle Scenes
+ui.settings.board_fx,盤面の演出,Board Animation
+ui.settings.fx_normal,通常,Normal
+ui.settings.fx_own,自軍のみ,Own units only
+ui.settings.fx_fast,高速,Fast
+ui.settings.fx_off,OFF,Off
 ui.settings.back,← 戻る,← Back

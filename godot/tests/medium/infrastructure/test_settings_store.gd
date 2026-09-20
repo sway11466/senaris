@@ -170,3 +170,35 @@ func test_unknown_dialogue_mode_is_rejected() -> void:
 	store.set_dialogue_when_minimized("sometimes")
 	assert_push_error("知らない会話の出し方")
 	assert_eq(store.dialogue_when_minimized(), "hide", "知らない値は書かない")
+
+## 戦闘の演出・盤面の演出（doc/gdd/settings.md）
+
+func test_unset_fx_modes_are_normal() -> void:
+	var store := SettingsStore.new(PATH)
+	assert_eq(store.combat_fx(), "normal", "選ばれるまでは通常＝自軍も敵も出す")
+	assert_eq(store.board_fx(), "normal", "選ばれるまでは通常")
+	assert_false(FileAccess.file_exists(PATH), "選ぶまではファイルを作らない")
+
+func test_fx_modes_persist() -> void:
+	SettingsStore.new(PATH).set_combat_fx("own")
+	SettingsStore.new(PATH).set_board_fx("fast")
+	var store := SettingsStore.new(PATH)
+	assert_eq(store.combat_fx(), "own", "別インスタンスで読み直しても残る")
+	assert_eq(store.board_fx(), "fast", "別インスタンスで読み直しても残る")
+	SettingsStore.new(PATH).set_combat_fx("off")
+	SettingsStore.new(PATH).set_board_fx("off")
+	assert_eq(SettingsStore.new(PATH).combat_fx(), "off", "選び直しは上書きされる")
+	assert_eq(SettingsStore.new(PATH).board_fx(), "off", "選び直しは上書きされる")
+
+func test_unknown_fx_modes_are_rejected() -> void:
+	var store := SettingsStore.new(PATH)
+	store.set_combat_fx("fast")  # 高速は盤面の演出の段＝戦闘の演出には無い
+	assert_push_error("知らない戦闘の演出")
+	store.set_board_fx("own")  # 自軍のみは戦闘の演出の段＝盤面の演出には無い
+	assert_push_error("知らない盤面の演出")
+	assert_false(FileAccess.file_exists(PATH), "知らない値は書かない")
+	var f := FileAccess.open(PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify({ "version": SettingsStore.VERSION, "combat_fx": "fast", "board_fx": "own" }))
+	f = null
+	assert_eq(SettingsStore.new(PATH).combat_fx(), "normal", "手編集で入った知らない値は無視する")
+	assert_eq(SettingsStore.new(PATH).board_fx(), "normal", "手編集で入った知らない値は無視する")

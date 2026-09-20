@@ -33,6 +33,9 @@ var cam_up := Vector3.UP
 var focus_min := Vector2(-INF, -INF)
 var focus_max := Vector2(INF, INF)
 
+## 追従パンの所要秒数。既定は FOCUS_PAN_SEC。盤面の演出の設定で HexBoard3D が上書きする。
+var pan_sec := FOCUS_PAN_SEC
+
 var _tween: Tween = null
 
 func _ready() -> void:
@@ -191,7 +194,7 @@ func pan_target_to(dest: Vector3) -> void:
 		_tween.kill()
 	var t := create_tween()
 	t.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	t.tween_method(_set_target, target, dest, FOCUS_PAN_SEC)
+	t.tween_method(_set_target, target, dest, pan_sec)
 	_tween = t
 	await t.finished
 

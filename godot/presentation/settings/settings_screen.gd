@@ -16,6 +16,8 @@ signal volume_changed(bus: String, value: int)  # 音量が動いた（つまみ
 signal volume_settled(bus: String, value: int)  # 音量が決まった（つまみを離した・欄を確定した）＝保存する用
 signal window_mode_chosen(mode: String)  # 画面モードを選んだ（SettingsStore.WINDOW_MODES の値）
 signal dialogue_mode_chosen(mode: String)  # 畳んでいるときの会話の出し方を選んだ（SettingsStore.DIALOGUE_MODES の値）
+signal combat_fx_chosen(mode: String)  # 戦闘の演出を選んだ（SettingsStore.COMBAT_FX_MODES の値）
+signal board_fx_chosen(mode: String)   # 盤面の演出を選んだ（SettingsStore.BOARD_FX_MODES の値）
 
 const LAYER := 76  # タイトル(70)・セーブスロット(75)より前面＝タイトルにも盤にも重ねて出す
 
@@ -40,8 +42,9 @@ const LABEL_WIDTH := 180
 ## 言語を変えたときに行の幅が変わり、項目の位置が動く（doc/gdd/settings.md 見せ方）。
 const OPTION_WIDTH := 200
 const OPTION_SIZE := Vector2(OPTION_WIDTH, 48)
-const TITLE_GAP := 40
-const ROW_GAP := 24
+## 見出しの下と行の間。9行＋見出しが 720px に収まる間隔（行が増えたら詰める側で受ける）。
+const TITLE_GAP := 24
+const ROW_GAP := 16
 const OPTION_GAP := 16
 ## 音量の行（つまみ＋間＋数値の欄）の幅は2択の行（板2枚＋枠の余白＋間）と同じにして右端を揃える。
 const CHOICE_ROW_WIDTH := (OPTION_WIDTH + FRAME_PAD * 2) * 2 + OPTION_GAP
@@ -57,6 +60,12 @@ const VOLUME_ROWS := [["master", "ui.settings.volume_master"], ["music", "ui.set
 const WINDOW_MODES := [["windowed", "ui.settings.windowed"], ["fullscreen", "ui.settings.fullscreen"]]
 ## 畳んでいるときの会話の選択肢。id（SettingsStore.DIALOGUE_MODES）と板の文字の翻訳キー。
 const DIALOGUE_MODES := [["show", "ui.settings.dialogue_show"], ["hide", "ui.settings.dialogue_hide"]]
+## 戦闘の演出・盤面の演出の選択肢。id（SettingsStore.COMBAT_FX_MODES／BOARD_FX_MODES）と板の文字の翻訳キー。
+## 「通常」「OFF」の板の文字は2行で同じキーを使う（同じ言葉に同じ訳）。
+const COMBAT_FX_MODES := [["normal", "ui.settings.fx_normal"], ["own", "ui.settings.fx_own"], ["off", "ui.settings.fx_off"]]
+const BOARD_FX_MODES := [["normal", "ui.settings.fx_normal"], ["fast", "ui.settings.fx_fast"], ["off", "ui.settings.fx_off"]]
+## 翻訳する板を持つ行＝言語が変わったら文字を貼り直す（行id → 選択肢の表）。
+const TRANSLATED_ROWS := { "window_mode": WINDOW_MODES, "dialogue": DIALOGUE_MODES, "combat_fx": COMBAT_FX_MODES, "board_fx": BOARD_FX_MODES }
 
 var _root: Control
 var _heading: Label
@@ -70,6 +79,8 @@ var _dragging := {}        # 系統 -> つまみを引きずっている最中�
 var _locale := ""          # いま選ばれている言語
 var _window_mode := ""     # いま選ばれている画面モード
 var _dialogue_mode := ""   # いま選ばれている会話の出し方
+var _combat_fx := ""       # いま選ばれている戦闘の演出
+var _board_fx := ""        # いま選ばれている盤面の演出
 
 func _ready() -> void:
 	layer = LAYER
@@ -108,6 +119,8 @@ func _ready() -> void:
 	column.add_child(_choice_row("window_mode", "ui.settings.window_mode", WINDOW_MODES, true, _on_window_mode))
 	# ここから下は遊び方の設定＝システムの操作（言語・音量・画面）の後ろに並べる（doc/gdd/settings.md 見せ方）。
 	column.add_child(_choice_row("dialogue", "ui.settings.dialogue", DIALOGUE_MODES, true, _on_dialogue_mode, "ui.settings.dialogue_note"))
+	column.add_child(_choice_row("combat_fx", "ui.settings.combat_fx", COMBAT_FX_MODES, true, _on_combat_fx))
+	column.add_child(_choice_row("board_fx", "ui.settings.board_fx", BOARD_FX_MODES, true, _on_board_fx))
 
 	# 戻るは画面の左下＝セレクト・貼り紙と同じ場所と大きさ（TavernTheme が1箇所で決める）。
 	# 項目の列には混ぜない＝戻る先はどの画面でも同じ隅にある。
@@ -118,15 +131,20 @@ func _ready() -> void:
 
 	visible = false
 
-## 設定を開く。locale＝いま使っている言語、volumes＝系統 -> 0〜100、window_mode＝いまの画面モード
-## （それぞれ選択中の印・つまみの位置に反映する）。
-func open(locale: String, volumes: Dictionary, window_mode: String, dialogue_mode: String) -> void:
+## 設定を開く。locale＝いま使っている言語、volumes＝系統 -> 0〜100、window_mode＝いまの画面モード、
+## 以下も同じくいまの値（それぞれ選択中の印・つまみの位置に反映する）。
+func open(locale: String, volumes: Dictionary, window_mode: String, dialogue_mode: String,
+		combat_fx: String, board_fx: String) -> void:
 	_locale = locale
 	_window_mode = window_mode
 	_dialogue_mode = dialogue_mode
+	_combat_fx = combat_fx
+	_board_fx = board_fx
 	_mark_choice("locale", _locale)
 	_mark_choice("window_mode", _window_mode)
 	_mark_choice("dialogue", _dialogue_mode)
+	_mark_choice("combat_fx", _combat_fx)
+	_mark_choice("board_fx", _board_fx)
 	for bus in _sliders:
 		var value := int(volumes[bus])
 		(_sliders[bus] as HSlider).set_value_no_signal(value)
@@ -150,10 +168,9 @@ func refresh_labels() -> void:
 	_heading.text = tr("ui.settings.title")
 	for key in _labels:
 		(_labels[key] as Label).text = tr(String(key))
-	for mode in WINDOW_MODES:
-		(_choice_buttons["window_mode"][String(mode[0])] as Button).text = tr(String(mode[1]))
-	for mode in DIALOGUE_MODES:
-		(_choice_buttons["dialogue"][String(mode[0])] as Button).text = tr(String(mode[1]))
+	for row_id in TRANSLATED_ROWS:
+		for mode in TRANSLATED_ROWS[row_id]:
+			(_choice_buttons[row_id][String(mode[0])] as Button).text = tr(String(mode[1]))
 	_back.text = tr("ui.settings.back")
 
 ## 項目名の欄（左端。幅を揃えて選択子の左端を揃える）。
@@ -292,6 +309,22 @@ func _on_dialogue_mode(mode: String) -> void:
 	_dialogue_mode = mode
 	_mark_choice("dialogue", _dialogue_mode)
 	dialogue_mode_chosen.emit(mode)
+
+func _on_combat_fx(mode: String) -> void:
+	SfxPlayer.play_event("menu_command")
+	if mode == _combat_fx:
+		return
+	_combat_fx = mode
+	_mark_choice("combat_fx", _combat_fx)
+	combat_fx_chosen.emit(mode)
+
+func _on_board_fx(mode: String) -> void:
+	SfxPlayer.play_event("menu_command")
+	if mode == _board_fx:
+		return
+	_board_fx = mode
+	_mark_choice("board_fx", _board_fx)
+	board_fx_chosen.emit(mode)
 
 ## つまみが動いた。引きずっている最中は音に反映するだけで、決まった値は離したときに出す
 ## （SettingsStore は書くたびに世代退避するので、1ピクセルごとに書かせない）。

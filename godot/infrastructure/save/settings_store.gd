@@ -24,6 +24,16 @@ const WINDOW_MODES := ["windowed", "fullscreen"]
 const DIALOGUE_MODES := ["show", "hide"]
 const DIALOGUE_DEFAULT := "hide"  # 畳んだのは板を見たくないという意思＝既定はそれに合わせる
 
+## 戦闘の演出＝画面を占有する演出（戦闘窓・対峙シーン・カットイン）を出すか。
+## "normal"＝自軍も敵も出す／"own"＝自軍だけ／"off"＝出さない。仕様 → doc/gdd/settings.md 戦闘の演出
+const COMBAT_FX_MODES := ["normal", "own", "off"]
+const COMBAT_FX_DEFAULT := "normal"
+
+## 盤面の演出＝盤の上で動くもの（移動アニメ・カメラ追従・盤の着弾）の速さ。
+## "normal"／"fast"＝速く／"off"＝移動は瞬間・カメラは追わない・着弾は結果だけ。仕様 → 同 盤面の演出
+const BOARD_FX_MODES := ["normal", "fast", "off"]
+const BOARD_FX_DEFAULT := "normal"
+
 var _path: String
 var _values := {}  # 項目 -> 値（プレイヤーが選んだものだけ）
 
@@ -97,6 +107,34 @@ func set_dialogue_when_minimized(value: String) -> void:
 	_values["dialogue_when_minimized"] = value
 	_save()
 
+## 戦闘の演出。まだ選ばれていなければ通常（自軍も敵も出す）。
+func combat_fx() -> String:
+	var v: Variant = _values.get("combat_fx", null)
+	if v is String and COMBAT_FX_MODES.has(v):
+		return String(v)
+	return COMBAT_FX_DEFAULT
+
+func set_combat_fx(value: String) -> void:
+	if not COMBAT_FX_MODES.has(value):
+		push_error("SettingsStore: 知らない戦闘の演出: %s" % value)
+		return
+	_values["combat_fx"] = value
+	_save()
+
+## 盤面の演出。まだ選ばれていなければ通常。
+func board_fx() -> String:
+	var v: Variant = _values.get("board_fx", null)
+	if v is String and BOARD_FX_MODES.has(v):
+		return String(v)
+	return BOARD_FX_DEFAULT
+
+func set_board_fx(value: String) -> void:
+	if not BOARD_FX_MODES.has(value):
+		push_error("SettingsStore: 知らない盤面の演出: %s" % value)
+		return
+	_values["board_fx"] = value
+	_save()
+
 ## 情報板を畳んでいるか。まだ選ばれていなければ開いている。仕様 → doc/gdd/uiux.md 最小化
 func info_panel_minimized() -> bool:
 	var v: Variant = _values.get("info_panel_minimized", null)
@@ -153,6 +191,12 @@ func _load() -> void:
 	var dialogue: Variant = data.get("dialogue_when_minimized", null)
 	if dialogue is String and DIALOGUE_MODES.has(dialogue):
 		_values["dialogue_when_minimized"] = String(dialogue)
+	var combat_fx: Variant = data.get("combat_fx", null)
+	if combat_fx is String and COMBAT_FX_MODES.has(combat_fx):
+		_values["combat_fx"] = String(combat_fx)
+	var board_fx: Variant = data.get("board_fx", null)
+	if board_fx is String and BOARD_FX_MODES.has(board_fx):
+		_values["board_fx"] = String(board_fx)
 	var minimized: Variant = data.get("info_panel_minimized", null)
 	if minimized is bool:
 		_values["info_panel_minimized"] = bool(minimized)
