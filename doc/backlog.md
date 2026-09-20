@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=134 / refactoring=23.
+次回採番: bug=12 / feature=135 / refactoring=23.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -204,6 +204,14 @@
 - 対応：モチーフを決め、[icons.md](art/icons.md) §3 の表と SUBJECT を書いて生成する。要件＝面が広くて小さくしても輪郭が残る／`refill`（横長・木と布）・`revive`（縦長・金と白）と型と材質が分かれる／AI の特性アイコンと構図が被らない／「休んだ」「手当てをした」と読めない。
 - 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
 - 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
+
+### feature-134
+
+**会話でしか出ない顔をクロニクルのユニット章から外す**
+- ゴール：盤に一度も出ない人物（鳥人の子）がクロニクルのユニット章に枠を持たず、会話の顔としては今までどおり出る。
+- 背景：鳥人の子は竜狩り st4 の勝利後の会話で喋るだけで盤に出ないが、`unit_skin.csv` の行なのでクロニクルに枠が並び、埋まる条件が「盤に現れた」のため永久に黒いままになる。[authoring.md](campaign/authoring.md) は「盤に出ないキャラがしゃべる場合」を認めているが、その置き場がユニットスキンしか無い。
+- 対応（判断保留）：案1＝会話専用の顔のカタログを `unit_skin.csv` から分け、会話の `skin` はユニットスキンに無ければそちらを引く（今後の村人・王のような喋るだけの人物の置き場になる）。案2＝`unit_skin.csv` に「盤に出る駒か」の列を足し（全行に書く）、クロニクルはその列で絞る。どちらにするか決めてから着手する。
+- 該当：`godot/data/units/unit_skin.csv`・`godot/presentation/chronicle/units_chapter.gd`・会話の顔の解決（`ConversationPanel`）・[chronicle.md](gdd/chronicle.md) ユニット・[authoring.md](campaign/authoring.md)。
 
 ## リファクタリング
 
