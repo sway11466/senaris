@@ -1,0 +1,19 @@
+NOTE: 生成時は同じフォルダの trick_shot_archer_ref_units.png を参照画像として添付する。
+戦闘立ち絵だけを 4:3 の横長キャンバスに置いたもの（盤の駒は入れない・縦長のシートは出力の縦横比を
+引きずるため）。カットインは発動者ごとに1枚＝これはアーチャー用。
+ハンター／エルフは射手と武器だけを差し替え、カメラ・矢・背景は同じにする。
+FRAMING の数字は採用した trick_shot_archer_01_raw.jpg を実測したもの（人物の高さ＝画面の76%・頭の上端18%・
+足元94%・横の中心51%・弓の先端74%・地平線77%）。採用した raw は本文の一つ前の版（STYLE 無し・
+「遠くの弱点が光る点」の段落あり）で出したもので、この本文はハンター／エルフと揃えた現行版。
+
+SUBJECT: A chibi ARCHER at full draw, the instant before he lets the arrow fly, seen from the side in a low three-quarter view, facing RIGHT. He is the only figure in the picture, large and roughly centered. Wide 4:3 landscape picture.
+
+A REFERENCE SHEET of the unit design is attached: the same archer in this very pose. Copy his costume, colors, face, bow and arrow from that sheet EXACTLY — the description below only adds the scene around him.
+
+FRAMING: the archer fills about three quarters of the frame height — the top of his head about one fifth of the way down from the top edge, his boots standing on the ground just above the bottom edge. His body is centered left-to-right, and the tip of the bow reaches about three quarters of the way across the frame. The horizon is low, about three quarters of the way down, with open sky above it.
+
+THE ARCHER: a young man with short brown hair, bare-headed, in a steel-blue tunic with muted green cloth accents, a brown leather chest piece and belt, a quiver of arrows at his hip, dark trousers and brown boots. He holds a plain wooden bow at full draw: the bow arm locked straight toward the right, the string pulled all the way back to the corner of his mouth, ONE arrow nocked and level, its head just past the bow. The bow limbs are bent hard under the tension. His feet are planted wide, body still and balanced, shoulders square to the shot. Eyes OPEN and narrowed down the shaft of the arrow, lips closed, calm and precise, never shouting, never grimacing. Every other arrow is at rest in his quiver.
+
+Lighting: clear daylight. The sun is high and slightly behind the camera, so the archer is lit cleanly from the front-left with crisp cel shadows, and the arrowhead catches a sharp highlight.
+
+NO enemies, NO corpses, NO named characters, NO hex grid, NO UI. Background: a bright clear blue sky with a few small white clouds, over a low horizon of open grassy battlefield, kept simple so the archer and the drawn bow dominate.
