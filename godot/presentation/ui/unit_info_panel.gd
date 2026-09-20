@@ -22,10 +22,11 @@ const LABEL_W := 128.0
 const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
 const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
-## 絵の面。能力タブ＝駒の盤の絵、地形タブ＝立っているマスの地形の見本。中身の上に重ね、1ページ目に
-## だけ出す。左右は「重なる行の値の右端」と器の右端の間の中央＝空いている場所の真ん中。値の欄は
-## 狭めない＝重なる行の値は数字・移動種別・特性名・地形名で短い。長文（スキルの説明・状態タブ）の
-## 上には出さない。仕様 → doc/gdd/uiux.md タブ
+## 絵の面。能力タブ＝駒の盤の絵、地形タブと空きマスの地形表示＝そのマスの地形の見本。中身の上に
+## 重ね、1ページ目にだけ出す。左右は「重なる行の値の右端」と器の右端の間の中央＝空いている場所の
+## 真ん中。値の欄は狭めない＝重なる行の値は数字・移動種別・特性名・地形名で短い。長文（スキルの
+## 説明・状態タブ）の上には出さない。面は器（_content）ではなく板の子＝器の切り落としを受けず、
+## 背の高い駒の頭は器の上へはみ出して見出しに掛かる（切らない）。仕様 → doc/gdd/uiux.md タブ
 const FIGURE_ROWS := 8      # 駒の面の高さ＝この行数ぶん（兵数〜射程。足元が8行目の下端）
 const FIGURE_W := 150.0     # 面の幅。絵は面の中で左右中央
 
@@ -62,6 +63,7 @@ var _view := "help"
 var _shown_hex := Vector2i.ZERO  # 地形を出しているマス（_view == "terrain" のときだけ意味を持つ）
 var _content: Control     # 中身の器。板の内側で切り落とす＝行が板の外へはみ出して描かれない
 var _rows: VBoxContainer
+var _box: VBoxContainer     # 板の内側の縦積み（見出し・タブ・器・残りターン・ページャー）
 var _unit_face: ChronicleFigureFace   # 駒の盤の絵（能力タブ）
 var _terrain_face: TerrainSampleFace  # 立っているマスの地形（地形タブ）  # いま出ているページの行。器いっぱいに広げる
 var _pager: HBoxContainer  # 下端の ◀ 2/3 ▶。1ページのときも場所は空けたまま無効表示にする
@@ -85,6 +87,7 @@ func _ready() -> void:
 	add_theme_stylebox_override("panel", TavernTheme.signboard_stylebox())
 	add_child(TavernTheme.signboard_frame())
 	var box := VBoxContainer.new()
+	_box = box
 	add_child(box)
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	box.offset_left = 16
@@ -155,14 +158,14 @@ func _ready() -> void:
 	_rows.add_theme_constant_override("separation", ROW_SEP)
 	_rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_content.add_child(_rows)
-	# 絵の面。行の後に足す＝行の上に描く（重なる行の値は短く、絵の下まで届かない）。
+	# 絵の面。器の外（板の子・箱の後）に足す＝行の上に描き、器の切り落としを受けない。
 	_unit_face = ChronicleFigureFace.new()
 	_unit_face.setup(null, false)
 	_unit_face.hide()
-	_content.add_child(_unit_face)
+	add_child(_unit_face)
 	_terrain_face = TerrainSampleFace.new()
 	_terrain_face.hide()
-	_content.add_child(_terrain_face)
+	add_child(_terrain_face)
 	# 器の寸法が決まる／変わったら割り直す。板は固定寸法だが、最初の1回はここで確定する。
 	_content.resized.connect(_render)
 	# 残りターン（増援の予告）。ページには乗せない＝どのページでも同じ場所に居る。出ている間は
@@ -293,12 +296,15 @@ func _show_page() -> void:
 	_next.disabled = _page >= total - 1
 	_sync_faces()
 
-## 絵の面を出すか＝駒を見ていて、そのタブの1ページ目のとき。2ページ目以降は長文（スキルの説明・
-## 控えの一覧）が面の場所まで来るので出さない。出す面はページの中身に合わせて置き直す。
+## 絵の面を出すか＝器が出ていて1ページ目のとき。駒の絵は能力タブ、地形の見本は地形タブと空きマスの
+## 地形表示。2ページ目以降は長文（スキルの説明・控えの一覧）が面の場所まで来るので出さない。
+## レポート中は器ごと隠れるので出ない。出す面はページの中身に合わせて置き直す。
 func _sync_faces() -> void:
-	var first := _shown_unit >= 0 and _page == 0
-	_unit_face.visible = first and _tab == "ability"
-	_terrain_face.visible = first and _tab == "terrain" and _terrain_face.has_picture()
+	var first := _content.visible and _page == 0
+	var unit := first and _shown_unit >= 0
+	_unit_face.visible = unit and _tab == "ability"
+	_terrain_face.visible = first and _terrain_face.has_picture() \
+		and ((unit and _tab == "terrain") or (_shown_unit < 0 and _view == "terrain"))
 	if _unit_face.visible:
 		var line := get_theme_font("font", "Label").get_height(get_theme_font_size("font_size", "Label"))
 		_place_face(_unit_face, line * FIGURE_ROWS + ROW_SEP * (FIGURE_ROWS - 1))
@@ -320,7 +326,9 @@ func _place_face(face: Control, h: float) -> void:
 			y += _item_height(it) + ROW_SEP
 	var right := _content.size.x
 	face.size = Vector2(FIGURE_W, h)
-	face.position = Vector2(clampf((left + right - FIGURE_W) * 0.5, 0.0, maxf(right - FIGURE_W, 0.0)), 0.0)
+	# 面は板の子なので、器の左上（箱の中の器の位置）を足して板の座標にする
+	var origin := _box.position + _content.position
+	face.position = origin + Vector2(clampf((left + right - FIGURE_W) * 0.5, 0.0, maxf(right - FIGURE_W, 0.0)), 0.0)
 
 ## 行の中身の右端（器の左端から）。項目名／値の行は値の終わり、全幅の行は文の終わり（折り返しは
 ## 見ない＝折り返すほど長い文の横には置かない前提）。
@@ -579,6 +587,7 @@ func show_terrain(hex: Vector2i) -> void:
 	_enter_text_view()
 	_shown_hex = hex
 	_view = "terrain"
+	_terrain_sample(hex)
 	_build_terrain_lines(hex)
 	_page = 0
 	_render()
@@ -601,6 +610,7 @@ func _enter_text_view() -> void:
 	if _skill_report != null:
 		_skill_report.hide()
 	_shown_unit = -1
+	_view = ""  # 呼ぶ側が決め直す。前の "terrain" が残ると、素の文の描画で地形の見本が出る
 	_header.hide()
 	_tabs_row.hide()
 	_content.show()
@@ -873,6 +883,7 @@ func show_combat(result: AttackResult) -> void:
 	_event_row.hide()
 	_skill_report.hide()
 	_view = "combat"
+	_sync_faces()
 	_report.show()
 	_report.show_report(result)
 
@@ -890,5 +901,6 @@ func show_skill_report(result: SkillResult) -> void:
 	_event_row.hide()
 	_report.hide()
 	_view = "skill"
+	_sync_faces()
 	_skill_report.show()
 	_skill_report.show_result(result)

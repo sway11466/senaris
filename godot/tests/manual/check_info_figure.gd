@@ -5,8 +5,9 @@ extends SceneTree
 
 const STAGES := [
 	["tutorial1-goblin-raid", "goblin-raid-st1", "res://data/stages/tutorial1-goblin-raid/goblin-raid-st1.json"],
+	["tutorial1-goblin-raid", "goblin-raid-st6", "res://data/stages/tutorial1-goblin-raid/goblin-raid-st6.json"],
 	["tutorial2-undead-rush", "undead-rush-st2", "res://data/stages/tutorial2-undead-rush/undead-rush-st2.json"],
-	["tutorial3-dragon-hunt", "dragon-hunt-st6", "res://data/stages/tutorial3-dragon-hunt/dragon-hunt-st6.json"],
+	["", "", "res://data/stages/debug-combat/dragon.json"],
 ]
 
 var _main: Node = null
@@ -68,16 +69,33 @@ func _plan_steps(stage: String) -> void:
 	var picks: Array = []
 	var first_ally: Unit = null
 	var on_object: Unit = null
+	var on_base: Unit = null
+	var tall: Unit = null
+	var empty_hex := Vector2i(-999, -999)
 	for u: Unit in st.units():
 		if first_ally == null and u.team == 0:
 			first_ally = u
 		var terr: String = st.terrain_at(u.pos)
-		if on_object == null and (TerrainType.layer(terr) == "object" or st.base_at(u.pos) != null):
+		if on_base == null and st.base_at(u.pos) != null:
+			on_base = u
+		elif on_object == null and TerrainType.layer(terr) == "object":
 			on_object = u
-	if first_ally != null:
-		picks.append(first_ally)
-	if on_object != null and on_object != first_ally:
-		picks.append(on_object)
+		if tall == null and (u.skin_id == "red_dragon" or u.type_id.contains("dragon")):
+			tall = u
+	for u: Unit in [first_ally, on_base, on_object, tall]:
+		if u != null and not picks.has(u):
+			picks.append(u)
+	# 空きマス（拠点があればそこ、無ければ上の段の駒の居ないマス）
+	for b in st.bases():
+		if st.unit_at(b.hex) == null:
+			empty_hex = b.hex
+			break
+	if empty_hex.x == -999:
+		for col in st.cols:
+			var hx := Hex.offset_to_axial(col, 0)
+			if st.unit_at(hx) == null:
+				empty_hex = hx
+				break
 	var panel: UnitInfoPanel = _main.get_node("Front/InfoPanel")
 	for loc in ["ja", "en"]:
 		_steps.append(func() -> void:
@@ -93,6 +111,13 @@ func _plan_steps(stage: String) -> void:
 						panel._unit_face.visible, panel._terrain_face.visible, panel._unit_face.size])
 				_steps.append(func() -> void:
 					_shot("%s_%d_%s_%s" % [stage, u.handle, tab, loc]))
+		if empty_hex.x != -999:
+			_steps.append(func() -> void:
+				panel.show_terrain(empty_hex)
+				_log += "%s %s empty hex=%s terr=%s face_terr=%s pos=%s\n" % [stage, loc, empty_hex,
+					st.terrain_at(empty_hex), panel._terrain_face.visible, panel._terrain_face.position])
+			_steps.append(func() -> void:
+				_shot("%s_empty_%s" % [stage, loc]))
 	_steps.append(func() -> void:
 		SettingsApplier.apply_locale("ja")
 		_main._refresh_labels())
