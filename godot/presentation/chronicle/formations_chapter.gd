@@ -2,8 +2,9 @@ extends ChronicleCardChapter
 class_name ChronicleFormationsChapter
 ## クロニクルの陣形スキル章。仕様 → doc/gdd/chronicle.md 陣形スキル
 ##
-## 表A（doc/gdd/formations.md）の分類ごとに羊皮紙のカードを格子に並べる。解放済みの面はカットインの絵、
-## 未解放の面は要るユニットの黒塗りを人数ぶん＝ヒント（誰が要るかまで。形と位置は解放後の拡大カードだけ）。
+## 表A（doc/gdd/formations.md）の分類ごとに羊皮紙のカードを格子に並べる。解放済みの面はカットインの絵と
+## スキル名、未解放の面は要るユニットの黒塗りを人数ぶん＝ヒント（誰が要るかまで。名前は「？」で伏せ、
+## 形と位置は解放後の拡大カードだけ）。
 ## 分類と並びは Formation.SKILLS の category と挿入順（表Aの写し）。
 ## 並ぶのは陣形スキル（shape != "solo"）だけ＝単独発動のユニットスキルはユニット章の拡大カードに載る
 ## （doc/gdd/skills.md）。
@@ -51,10 +52,11 @@ func _grouped_skills() -> Array:
 		groups[index[category]]["skills"].append(rid)
 	return groups
 
-## 格子の1枚。解放済みはカットインの絵、未解放は黒塗りの顔ぶれ（紙を先に出し、絵はあとから載せる）。
+## 格子の1枚。解放済みはカットインの絵と名前、未解放は黒塗りの顔ぶれと「？」（紙を先に出し、絵はあとから載せる）。
 func _skill_card(skill_id: String, known: bool, card_size: Vector2) -> Control:
 	var rid := skill_id
-	var card := _paper_card(hash(rid), known, card_size, null, func() -> void: _open_skill_card(rid))
+	var name_text := tr("skill.%s.name" % rid) if known else tr("ui.chronicle.unknown")
+	var card := _paper_card(hash(rid), known, card_size, null, func() -> void: _open_skill_card(rid), name_text)
 	if known:
 		_defer_face(card, [FormationCutin.card_art_path(rid)],
 			func() -> Control: return _cutin_art(rid), false)
@@ -69,7 +71,8 @@ func _cutin_art(skill_id: String) -> Control:
 		return _art_placeholder(tr("skill.%s.name" % skill_id))
 	return _art_rect(tex, false)
 
-## 未解放の面＝要るユニットの盤の絵を黒塗りで人数ぶん横に並べる。
+## 未解放の面＝要るユニットの盤の絵を黒塗りで人数ぶん横に並べる。切り抜いて枠に収める＝
+## 5人並ぶ紙でも重ならず、ユニット章の格子のような大小関係は付けない（doc/gdd/chronicle.md 陣形スキル）。
 func _hint_face(skill_id: String) -> Control:
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE

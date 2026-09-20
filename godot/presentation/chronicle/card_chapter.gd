@@ -3,7 +3,7 @@ class_name ChronicleCardChapter
 ## 羊皮紙のカードを格子に並べ、押すと拡大カードが手前に開く章の共通部分（ユニット／陣形スキル）。
 ## 仕様 → doc/gdd/chronicle.md ユニット・陣形スキル
 ##
-## 章ごとに違うのは 何を1枚にするか（スキン／レシピ）・1段の枚数と縦横比・カードの面・拡大カードの
+## 章ごとに違うのは 何を1枚にするか（スキン／レシピ）・1段の枚数と絵の縦横比・カードの面・拡大カードの
 ## 中身。ここは格子の寸法・紙・黒塗りの絵・拡大カードの開閉だけを持つ。下段の詳細ペインは持たない
 ## ＝詳細は拡大カードで出すので、格子に高さを全部渡す。
 ##
@@ -26,7 +26,7 @@ var _held: Dictionary = {}  # 裏読みで受け取った画像（パス → Tex
 func _card_columns() -> int:
 	return 6
 
-## カードの縦／横。
+## 絵の面の縦／横。紙はこれに名前の行（CARD_NAME_H）を足した高さ。
 func _card_aspect() -> float:
 	return 1.15
 
@@ -56,8 +56,9 @@ func rebuild() -> void:
 # 格子
 # ---------------------------------------------------------------------------
 
-## カード1枚の寸法＝格子の幅を _card_columns で割る。器がまだ measure されていない
-## （開いた直後の1フレーム目）ときは画面幅から見積もり、_on_content_resized で組み直す。
+## カード1枚の寸法＝格子の幅を _card_columns で割り、高さは絵の面に名前の行を足す。器がまだ
+## measure されていない（開いた直後の1フレーム目）ときは画面幅から見積もり、_on_content_resized
+## で組み直す。
 func _card_size() -> Vector2:
 	var avail := _content_scroll.size.x
 	if avail <= 0.0:
@@ -66,7 +67,7 @@ func _card_size() -> Vector2:
 	avail -= ChronicleStyle.SCROLLBAR_ALLOW
 	var cols := _card_columns()
 	var w := maxf(floorf((avail - ChronicleStyle.CARD_GAP * (cols - 1)) / float(cols)), 48.0)
-	return Vector2(w, floorf(w * _card_aspect()))
+	return Vector2(w, floorf(w * _card_aspect()) + ChronicleStyle.CARD_NAME_H)
 
 ## 器の幅が変わるとカードの寸法が変わる＝組み直す。
 func _on_content_resized() -> void:
@@ -106,15 +107,17 @@ func _add_group(title: String, found: int, cards: Array) -> void:
 	spacer.custom_minimum_size = Vector2(0, ChronicleStyle.CATEGORY_GAP)
 	_content_box.add_child(spacer)
 
-## 格子の1枚＝依頼ボードの貼り紙と同じ羊皮紙。face が紙の上に載るもの（絵だけ。名前も数値も出さない）。
-## null なら空の紙＝あとから _defer_face で載せる。
-## 未解放は紙を暗くして押せない。seed はカードごとの紙の変種（hover でも変わらない）。
+## 格子の1枚＝依頼ボードの貼り紙と同じ羊皮紙。上に絵の面、下に名前の1行（数値は出さない）。
+## face が絵の面に載るもの。null なら空の紙＝あとから _defer_face で載せる。
+## 未解放は紙を暗くして押せず、名前は伏せる（name_text に「？」を渡す）。seed はカードごとの
+## 紙の変種（hover でも変わらない）。
+## 紙で切らない＝盤と同じ大小関係で載せた駒（ChronicleFigureFace）が紙をはみ出せるように。
 func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
-		on_pressed: Callable) -> Control:
+		on_pressed: Callable, name_text: String) -> Control:
 	var card := Button.new()
 	card.custom_minimum_size = card_size
 	card.focus_mode = Control.FOCUS_NONE
-	card.clip_contents = true
+	card.clip_contents = false
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var bright := 1.0
 		if not known:
@@ -123,14 +126,31 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 			bright = 1.06
 		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(seed, bright))
 
-	var pad := MarginContainer.new()
-	pad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var col := VBoxContainer.new()
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	col.add_theme_constant_override("separation", 0)
+	card.add_child(col)
+
+	var pad := MarginContainer.new()  # 絵の面（_defer_face はここに載せる）
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pad.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for side in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
 		pad.add_theme_constant_override(side, ChronicleStyle.CARD_PAD)
 	if face != null:
 		pad.add_child(face)
-	card.add_child(pad)
+	col.add_child(pad)
+	card.set_meta("face_pad", pad)
+
+	var name_label := Label.new()  # 紙の幅いっぱい＝いちばん長い名前が1行に収まる
+	name_label.text = name_text
+	name_label.custom_minimum_size = Vector2(0, ChronicleStyle.CARD_NAME_H)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_label.add_theme_font_size_override("font_size", ChronicleStyle.CARD_NAME_FONT_SIZE)
+	name_label.add_theme_color_override("font_color", TavernTheme.INK if known else TavernTheme.INK_SOFT)
+	col.add_child(name_label)
 
 	if known:
 		card.pressed.connect(on_pressed)
@@ -145,7 +165,7 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 ## 空の紙 card に、paths の画像がそろってから make() の面を載せる。画像は裏で読む。
 ## crop＝面が盤の絵の切り抜き（_cropped）を使う。画像も矩形も手元にあれば待たずに載せる。
 func _defer_face(card: Control, paths: Array, make: Callable, crop := true) -> void:
-	var pad: Control = card.get_child(0)
+	var pad: Control = card.get_meta("face_pad")
 	if _face_ready_now(paths, crop):
 		pad.add_child(make.call())
 		return
@@ -218,13 +238,26 @@ func _skin_paths(skins: Array) -> Array:
 		out.append((s as UnitSkin).image("map"))
 	return out
 
-## 駒の絵1枚（盤の絵か戦闘の絵）。画像が未用意ならプレースホルダの文字（doc/art/overview.md）。
+## 駒の絵1枚（盤の絵か戦闘の絵）を切り抜いて枠いっぱいに。拡大カードとレシピの図の絵。
+## 画像が未用意ならプレースホルダの文字（doc/art/overview.md）。
 ## silhouette＝黒く塗り潰して形だけ見せる（未解放のカード）。
 func _skin_art(skin: UnitSkin, slot: String, silhouette: bool) -> Control:
 	var tex := _skin_texture(skin, slot)
 	if tex == null:
 		return _art_placeholder(tr("ui.chronicle.unknown") if silhouette else tr("unit.%s.name" % skin.skin_id))
 	return _art_rect(tex, silhouette)
+
+## 駒の盤の絵を盤と同じ大小関係で載せる面（ユニット章の格子のカード）。切り抜かないので
+## ArtCrop は要らない＝_defer_face には crop=false で渡す。画像が未用意ならプレースホルダの文字。
+## silhouette＝黒く塗り潰して形だけ見せる（未解放のカード）。
+func _skin_figure(skin: UnitSkin, silhouette: bool) -> Control:
+	var path := skin.image("map")
+	var tex: Texture2D = null if path.is_empty() else load(path) as Texture2D
+	if tex == null:
+		return _art_placeholder(tr("ui.chronicle.unknown") if silhouette else tr("unit.%s.name" % skin.skin_id))
+	var face := ChronicleFigureFace.new()
+	face.setup(tex, silhouette)
+	return face
 
 ## 駒の絵の実体だけを切り出したテクスチャ。画像が未用意なら null。
 func _skin_texture(skin: UnitSkin, slot: String) -> Texture2D:

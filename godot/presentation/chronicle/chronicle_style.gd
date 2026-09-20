@@ -30,6 +30,8 @@ const ITEM_HEIGHT := 36   # アイテム1行の高さ
 ## カードの格子（ユニット章・陣形スキル章）。1段の枚数と縦横比は章ごとに違うので章が持つ。
 const CARD_GAP := 12
 const CARD_PAD := 10           # 紙の縁と絵の間
+const CARD_NAME_FONT_SIZE := 14  # 絵の下の名前
+const CARD_NAME_H := 26        # 名前の行の高さ（紙はこのぶん絵より高い）
 const CARD_DIM := 0.78         # 未解放のカードの紙の明るさ
 const SCROLLBAR_ALLOW := 16.0  # 縦スクロールバーのぶん幅を引く（出た瞬間に折り返さないため）
 const SILHOUETTE := Color(0.0, 0.0, 0.0, 0.92)  # 未解放の黒塗り

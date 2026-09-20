@@ -3,7 +3,7 @@ class_name ChronicleUnitsChapter
 ## クロニクルのユニット章。仕様 → doc/gdd/chronicle.md ユニット
 ##
 ## カテゴリごとに羊皮紙のカードを格子に並べ、押すと拡大カードが手前に開く。格子の1枚に載るのは
-## 盤の絵だけ。格子・紙・拡大カードの開閉は ChronicleCardChapter。
+## 盤の絵と名前。格子・紙・拡大カードの開閉は ChronicleCardChapter。
 
 const NONE_TEXT := "—"
 
@@ -40,11 +40,13 @@ func _ordered_skins() -> Array:
 		categories[cat_map[s.category]]["skins"].append(s)
 	return categories
 
-## 格子の1枚。面は盤の絵だけ（紙を先に出し、絵はあとから載せる）。未解放は黒いシルエット。
+## 格子の1枚。盤の絵と名前（紙を先に出し、絵はあとから載せる）。未解放は黒いシルエットと「？」。
+## 絵は盤と同じ大小関係で載せる（ChronicleFigureFace）＝切り抜かないので crop=false。
 func _unit_card(skin: UnitSkin, known: bool, card_size: Vector2) -> Control:
 	var sid := skin.skin_id
-	var card := _paper_card(hash(sid), known, card_size, null, func() -> void: _open_unit_card(sid))
-	_defer_face(card, [skin.image("map")], func() -> Control: return _skin_art(skin, "map", not known))
+	var name_text := tr("unit.%s.name" % sid) if known else tr("ui.chronicle.unknown")
+	var card := _paper_card(hash(sid), known, card_size, null, func() -> void: _open_unit_card(sid), name_text)
+	_defer_face(card, [skin.image("map")], func() -> Control: return _skin_figure(skin, not known), false)
 	return card
 
 # ---------------------------------------------------------------------------
