@@ -1,0 +1,22 @@
+NOTE: 生成時は同じフォルダの magic_arrow_archer_ref_units.png を参照画像として添付する
+（トリックショットのアーチャー用と同じシート＝戦闘立ち絵だけを 4:3 の横長に置いたもの）。
+カットインは発動者ごとに1枚＝これはアーチャー用。ハンター／エルフは射手と武器だけを差し替える。
+構図・カメラ・背景はトリックショット（trick_shot_archer_01_raw.jpg）と同じにし、違いは
+「番えた矢に魔力がこもっている」ことだけ。魔法兵は描かない＝光の理由は矢そのもの。
+魔力の色は魔法兵の攻撃エフェクト（assets/effects/magic_bolt.png）と同じ淡い青。
+FRAMING の数字はトリックショットのアーチャーを実測したもの（人物の高さ＝画面の76%・頭の上端18%・
+足元94%・横の中心51%・弓の先端74%・地平線77%）。
+
+SUBJECT: A chibi ARCHER at full draw, the instant before he lets fly an arrow charged with magic, seen from the side in a low three-quarter view, facing RIGHT. He is the only figure in the picture, large and roughly centered. Wide 4:3 landscape picture.
+
+A REFERENCE SHEET of the unit design is attached: the same archer in this very pose. Copy his costume, colors, face, bow and arrow from that sheet EXACTLY — the description below only adds the magic and the scene around him.
+
+FRAMING: the archer fills about three quarters of the frame height — the top of his head about one fifth of the way down from the top edge, his boots standing on the ground just above the bottom edge. His body is centered left-to-right, and the tip of the bow reaches about three quarters of the way across the frame. The horizon is low, about three quarters of the way down, with open sky above it.
+
+THE ARCHER: a young man with short brown hair, bare-headed, in a steel-blue tunic with muted green cloth accents, a brown leather chest piece and belt, a quiver of arrows at his hip, dark trousers and brown boots. He holds a plain wooden bow at full draw: the bow arm locked straight toward the right, the string pulled all the way back to the corner of his mouth, ONE arrow nocked and level, its head just past the bow. The bow limbs are bent hard under the tension. His feet are planted wide, body still and balanced, shoulders square to the shot. Eyes OPEN and narrowed down the shaft of the arrow, lips closed, calm and precise, never shouting, never grimacing. Every other arrow is at rest in his quiver.
+
+THE MAGIC ARROW: the ONE nocked arrow is wrapped in pale ice-blue magical energy — a soft glowing sheath hugging the whole shaft, a few thin ribbons of light spiraling loosely around it, and small blue sparks drifting off the tail. The arrowhead burns brightest, a clean pale-blue point of light. The glow is the only magic in the picture: it is calm and contained, NOT a fire, NOT a lightning bolt, NOT a beam, and nothing else on the archer or in the scene glows. The bow, the string and the archer's hands are lit faintly blue from the arrow, just enough to show that the light is real.
+
+Lighting: clear daylight. The sun is high and slightly behind the camera, so the archer is lit cleanly from the front-left with crisp cel shadows, while the arrow's own pale-blue glow adds a cool rim of light on his hands, face and the bow.
+
+NO enemies, NO corpses, NO spellcaster, NO named characters, NO hex grid, NO UI. Background: a bright clear blue sky with a few small white clouds, over a low horizon of open grassy battlefield, kept simple so the archer and the glowing arrow dominate.
