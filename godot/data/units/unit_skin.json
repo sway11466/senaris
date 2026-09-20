@@ -22,7 +22,6 @@
 		"wagon",
 		"airship",
 		"pixie",
-		"pegasus",
 		"birdman",
 		"birdman_child",
 		"barricade",
@@ -619,23 +618,6 @@
 					"type_id": "paladin"
 				}
 			]
-		},
-		"pegasus": {
-			"ally": [
-				{
-					"category": "flier",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "ペガサス",
-					"retainers": [],
-					"skin_id": "pegasus",
-					"type_id": "pegasus"
-				}
-			],
-			"enemy": []
 		},
 		"pixie": {
 			"ally": [
