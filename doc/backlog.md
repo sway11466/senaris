@@ -26,113 +26,22 @@
 - 対応：`_skill_rows` で `range_from_stats` を見て文を選ぶ。"leader" → 「発動者の通常射程」、"max_plus" → 「参加者の射程上限の長い方＋N」（N は `range_plus`）。固定 `range` があればその数、どちらも無ければ「—」のまま。文は `chronicle.csv` に `ui.chronicle.skill_range_leader`／`ui.chronicle.skill_range_max_plus` を足す。
 - 該当：`godot/presentation/chronicle/formations_chapter.gd`・`godot/data/i18n/chronicle.csv`。
 
-### feature-8
+### feature-132
 
-**タッチ操作対応（uiux フェーズ4）**
-- 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
-- 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
-- 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+**幕間の印 `damaged` のモチーフを決めて描く**
+- ゴール：依頼書の幕間の印3枚が揃い、連戦の話を開いたときに「傷ついたまま次へ出る」と読める絵が1枚出る。
+- 背景：`refill`（宿のベッド）と `revive`（有翼の十字）は描けたが、`damaged` だけモチーフが決まっていない。試した案と外した理由＝断ち切れた革帯（何が起きたか読めない）／刃こぼれの剣（欠けは小さくすると輪郭のノイズになる）／ひび割れた盾（`predator`（弱者狙い）の割れた盾と同じ構図）／松明（暗いだけで連戦に結びつかない）／血の染みた包帯（手当てをしたとも読める）。
+- 対応：モチーフを決め、[icons.md](art/icons.md) §3 の表と SUBJECT を書いて生成する。要件＝面が広くて小さくしても輪郭が残る／`refill`（横長・木と布）・`revive`（縦長・金と白）と型と材質が分かれる／AI の特性アイコンと構図が被らない／「休んだ」「手当てをした」と読めない。
+- 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
+- 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
 
-### feature-92
+### feature-134
 
-**ステージが更新されている中断セーブをプレイヤーに知らせる**
-- ゴール：セーブを作ったあとにステージを直した枠が、選ぶ前に見て分かり、選んだときにも一度確認が入る。
-- 背景：ステージ定義が変わっても差分はそのまま適用して再開を妨げない方針だが、黙って適用すると盤が前と違う理由がプレイヤーに分からない。枠の一覧表示は `_row_text` 一本で、ロード時の確認はいまタイトルの「冒険の続き」経由では出ない（失う盤が無いため）。
-- 対応：セーブの印と今のステージ定義の印を比べ、違う枠は一覧の行に更新されている旨を添える。その枠を選んだときだけ確認を挟む（印が一致する枠のロードは今のまま）。
-- 該当：`godot/presentation/ui/save_slot_panel.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`doc/tech/gamesystem.md`。セーブの印は meta の `stage_digest`、今の定義の印は `StageDigest.of_file`。
-
-### feature-13
-
-**entitlement（DLC所有）判定によるステージ解放**
-- 背景：ステージセレクトの解放は現状「クリア連鎖」だけで、有料DLC（冒険譚）の所有チェック（entitlement）が未配線＝販売時に「持っていれば解放」を判定できない（[stage_select.md](gdd/stage_select.md)）。Steam DLC 連携が前提。解放ゲート `_is_satisfied` は `cleared` のみ対応で、entitlement を含む未知条件は locked 扱い。表示側の `unlock_text` には entitlement 条件を「追加コンテンツ」と示す分岐が既にあるが、実際の充足判定の口が無い。
-- 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線する。チャネルごとのアダプターと「常に所有」の部品は feature-62。
-- 該当：`godot/application/campaign_progress.gd`・`godot/presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝Steam の体験版に向けて Steamworks に登録するとき（[monetization.md](sales/monetization.md) 出す順序）。
-
-### feature-27
-
-**タイトル名「Senaris」の確定手続き**
-- 背景：[naming_decision_senaris.md](sales/naming_decision_senaris.md) でタイトル名は「Senaris」に決定済み。確定前の手続きが残っている。すべてオーナー側の手作業。商標の一次スクリーニングと Bluesky ハンドルは済み（結果は同 doc の事前チェック結果サマリ）。Discord は作品名義で取らず、開発元のサーバーで持つ（[marketing.md](sales/marketing.md) Discord）。
-- 対応：(1) X のハンドル。X は使わない方針（[marketing.md](sales/marketing.md) SNS）で、名前の予約だけするかは未決。(2) Steam アプリ名予約（Steamworks 登録時・Steam Direct $100）。確定したら naming_decision_senaris.md のステータスを更新。
-- 該当：`doc/sales/naming_decision_senaris.md`。着手の引き金＝Steam の体験版に向けて Steamworks に登録するとき（[monetization.md](sales/monetization.md) 出す順序）。
-### feature-40
-
-**Steam 実績・Stats の配線（GodotSteam 導入）**
-- 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`godot/infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
-- 対応：(1) GodotSteam を導入し `godot/infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。チャネルごとのアダプターと部品の構造、Steam 以外のチャネルでの実績の保管先は feature-62）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
-- 該当：`godot/infrastructure/platform/`（GodotSteam の隔離・新規）・`godot/application/campaign_progress.gd`（完走判定・ランク記録）・`godot/infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝下の段階1と2は登録前から進められる。段階3は Steamworks に AppID を登録したとき（[monetization.md](sales/monetization.md) 出す順序）。前提＝ランクの評価式（[rank.md](gdd/rank.md)）は実装済み。
-- 導入の形：GodotSteam は GDExtension 版（`godot/addons/` に置くアドオン）を採る。GodotSteam 同梱のエディタは使わない＝手元の Godot エディタと二重管理になる。
-- 進め方（登録前に進められる範囲）：
-  1. 登録なし・Steam なし。feature-62 のアダプターと部品を作り、dev アダプターで実績の発火点・所有チェックの呼び出し・Stats の刻む場所を全部作る。エディタと GUT はここで回る。GUT は Steam 実装を通さず、アダプターの選択と部品の挙動だけを見る。
-  2. 登録なし・テスト用 AppID 480（Valve が公開している Spacewar）。GodotSteam を入れ steam アダプターを書き、480 に繋いで初期化・実績の読み書き・Stats の送信が通ることを確認する。実績名は Spacewar に定義済みのものを仮に使う。Senaris 固有の実績の定義・DLC の所有チェック・体験版と製品版のセーブ共有は 480 では試せない。
-  3. 登録あり・自分の AppID。管理画面で実績・DLC・Cloud を定義し、AppID と実績名を差し替えて本番確認する。
-- 手元で Steam 実装を動かす条件：Steam クライアントが起動しログイン済みであること。Steam を経由せず起動するため、AppID を1行書いた `steam_appid.txt` を作業ディレクトリ（エディタならプロジェクトルート、ビルドなら exe の隣）に置く。このファイルは配布物に入れない＝Steam から起動されるときは Steam が AppID を渡す。
-- 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
-
-### feature-46
-
-**タイトル画面の残り（クレジット画面）**
-
-- 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、クレジット画面。置き場はタイトルのメニューから設定画面の末尾へ移した（[settings.md](gdd/settings.md) クレジット、2026-09-20）＝タイトルの板からクレジットの項目を外し、並びをマニュアル→クロニクル→設定にする作業も含む。
-- クレジット：素材の権利表記。タイトルのメニューに項目だけ置いてあり、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
-- クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。設定画面の末尾の板から開く＝タイトルからも盤のシステムメニュー経由でも設定の中から届く。盤の上でも進行は止めない（設定画面と同じ）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は `menu.csv` に足す（キーは `ui.<画面>.<項目>` → [i18n.md](tech/i18n.md)）。
-- 該当：`godot/presentation/settings/settings_screen.gd`（開き口の板）・`godot/presentation/credits/`（新規）・`godot/presentation/title/title_screen.gd`（項目を外す・並べ替え）・`godot/data/i18n/menu.csv`・`doc/gdd/settings.md`。関連＝feature-66〜69（UI文言の i18n キー化）。戻るの位置は設定画面を手本にする。着手の引き金＝配布ビルドが見えてきたとき。
-
-### feature-62
-
-**販売チャネルごとの機能を乗せる（プラットフォーム層）**
-- ゴール：本体は所有権チェック・実績・Stats をチャネル非依存の口で呼ぶだけで、どのチャネルのビルドでもその口が正しく動く。エディタ実行でも実績の動作が確認できる。
-- 背景：チャネルの判定そのものは `godot/infrastructure/platform/build_info.gd` が持つ（[build.md](tech/build.md)）。その上に乗るチャネル固有の機能がまだ無い。評価ランクの実績発火（feature-40）、entitlement による DLC 解放（feature-13）が控えている。
-- 設計：
-  - 切り替えの鍵は `BuildInfo.channel()` と `edition()`。アダプターはチャネルと1対1で、steam / steam-demo / itch / booth / dev の5つ。「その他」のまとめ枠やフォールバックは作らない。itch と booth と dev の中身が今は同じでも、共通化せず別々に持つ。
-  - アダプターは薄く、機能ごとの部品を組み合わせるだけ。部品（ローカルの実績ファイル・常に所有扱いの所有権チェック・何もしない Stats など）は複数のアダプターで使い回す。
-  - 本体が見る口は3つ。所有権チェック `owns(content_id) -> bool`、実績の保管庫 `unlock(id)` / `is_unlocked(id)` / `unlocked_ids()`、Stats の記録。
-  - 実績はゲーム本体の機能で、Steam はその保管先の1つ。Steam 版は Steamworks を保管庫にし（読み書きとも API で行う）、ローカルファイルを持たない。itch / booth / dev は実績専用のファイルに保存する。進捗セーブとは別のファイル。
-  - Steam 体験版（`steam,demo`）は実績を Steam に立てず実績専用ファイルに溜め、製品版の初回起動でそのファイルを Steamworks に流し込む（Valve の推奨に沿う）。
-  - Stats は Steam 版だけが送る。他のチャネルは送り先が無く集計も要らないので何もしない。
-  - Steam 版で Steamworks の初期化に失敗したときは「Steam から起動してください」と出して終了する。
-  - チャネルと機能の対応：
-
-    | 機能 | steam | steam-demo | itch / booth / dev |
-    |---|---|---|---|
-    | 所有権チェック | Steam DLC に問い合わせ | 常に所有 | 常に所有 |
-    | 実績の保管庫 | Steamworks | 実績専用ファイル（製品版の初回起動で Steam へ） | 実績専用ファイル |
-    | Stats | Steam に送る | Steam に送る（体験版 AppID で使えれば） | 何もしない |
-
-- 対応：(1) 上の設計を `doc/tech/platform.md` に新設して書く（狙い・切り替えの鍵・アダプターと部品の構造・チャネル×機能の表・本体が見る口・体験版からの引き継ぎ・設計の未確定）。(2) `godot/infrastructure/platform/` にインターフェース・アダプター5つ・部品を置き、`channel()` と `edition()` から選ぶ場所を1か所にする。(3) 実績専用ファイルの置き場と形式を決める。
-- 設計の未確定：体験版の AppID で Stats が使えるか（AppID 取得後に管理画面で確認）。Steam Cloud のセーブ置き場をコードで切り替えるのか、Steamworks 側の設定（Auto-Cloud）だけで済むのか。
-- 該当：`godot/infrastructure/platform/`・`doc/tech/platform.md`（新規）・`doc/tech/build.md`・`doc/sales/monetization.md`。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）。
-
-### feature-93
-
-**盤中のヘルプ（その場で用語を引く）**
-- ゴール：盤の中で、いま選んでいる物の用語（敵の特性名・能力値の項目名など）の意味がその場で読める。
-- 背景：マニュアル（[manual.md](gdd/manual.md)）はタイトル専用の通読画面と決め、盤中からは開かない。盤で「弱者狙いって何」「貫通率はどこに効く」と詰まったとき、その場で引く手段が無い。
-- 対応：形は未検討。情報パネルの用語から短い説明を出す類を想定。説明文をマニュアルの本文と共有するかもここで決める。
-- 該当：`godot/presentation/ui/`（情報パネル）・`godot/data/i18n/manual.csv`（マニュアル本文）。着手の引き金＝実プレイで用語に詰まったとき。
-
-### feature-95
-
-**サイトの中身を作る**
-- ゴール：senaris.in を開くと、ゲームの紹介とルールが読める。
-- 背景：ドメイン取得・DNS・配信構成は済んでいる（[site.md](sales/site.md)・[ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)）。残るのは中身で、いま置くものが無い。
-- 対応：(1) ランディングは1ページ。ストアページ（[steam_page.md](sales/steam_page.md)）の文と絵が決まってから流用して作る。(2) ルールのページ（`senaris.in/rules` 相当）をランディングからリンクする。マニュアルの構造定数と `manual.csv` から生成できる想定で、範囲と見せ方は未検討。
-- 該当：`site/`・`doc/sales/site.md`・`godot/data/i18n/manual.csv`。着手の引き金＝配布が見えてきたとき。
-
-### feature-99
-
-**プレスキットを用意する**
-- ゴール：紹介したい人に「ここを見て」と1つ渡せば、本物のロゴ・スクリーンショット・説明文・権利表記が揃う。
-- 背景：体験版の公開後、こちらの許可なく紹介動画が出た（[sales/youtube.md](sales/youtube.md) の記録）。使われたサムネイルは実際の画面ではない生成画像で、期待と実物の落差が視聴者コメントに出た。渡せる素材が手元に無いと、第一接触の絵を他人の生成物に握られる。[site.md](sales/site.md) はランディングページのフッターに置くリンク項目として名前を挙げているだけで、中身も置き場も決めていない。
-- 対応：中身と置き場を決める。素材は3面と共通のものを流用できる（[marketing.md](sales/marketing.md) の素材の置き場）。ストアページ（[steam_page.md](sales/steam_page.md)）を待たずに出せる範囲で先に組む。【未決】置き場（`senaris.in/press` か itch のページ内か）・同梱物（ロゴ・スクリーンショット・キービジュアル・説明文・権利表記・連絡先）・配り方（zip か個別ダウンロードか）。
-- 該当：`channels/`・`doc/sales/site.md`・`doc/sales/marketing.md`・`doc/sales/youtube.md`。着手の引き金＝次に紹介の話が来たとき、またはサイトの中身を作るとき（feature-95）。
-
-### feature-103
-
-**盤エリアを、情報板が塞いでいない側にする**
-- ゴール：情報板を畳んだとき・動かしたときに、盤も演出も画面いっぱいを使う。
-- 背景：盤エリア（ステージ読み込み時のカメラのフィット・戦闘窓・陣形カットイン・完走の勝利イラストの置き場）を板の既定の矩形で固定していたので、畳んでも盤は左800pxの中に小さく出て、右は空いたままだった。仕様は決めてある（[uiux.md](gdd/uiux.md) 盤エリア）。
-- 対応：`UiLayout.board_area` を板の状態（既定の場所で開いているか）で切り替える。ターン終了ボタンは盤エリアから外し、板の既定の矩形のすぐ左に固定する。戦果票は元から画面中央＝変更なし。
-- 該当：`godot/presentation/ui/ui_layout.gd`・`godot/presentation/board/hex_board_3d.gd`（`_vis_rect`）・`godot/presentation/ui/hud.gd`・`godot/presentation/combat/combat_stage.gd`・`godot/presentation/formation/formation_cutin.gd`・`godot/presentation/victory/victory_screen.gd`。
+**会話でしか出ない顔をクロニクルのユニット章から外す**
+- ゴール：盤に一度も出ない人物（鳥人の子）がクロニクルのユニット章に枠を持たず、会話の顔としては今までどおり出る。
+- 背景：鳥人の子は竜狩り st4 の勝利後の会話で喋るだけで盤に出ないが、`unit_skin.csv` の行なのでクロニクルに枠が並び、埋まる条件が「盤に現れた」のため永久に黒いままになる。[authoring.md](campaign/authoring.md) は「盤に出ないキャラがしゃべる場合」を認めているが、その置き場がユニットスキンしか無い。
+- 対応（判断保留）：案1＝会話専用の顔のカタログを `unit_skin.csv` から分け、会話の `skin` はユニットスキンに無ければそちらを引く（今後の村人・王のような喋るだけの人物の置き場になる）。案2＝`unit_skin.csv` に「盤に出る駒か」の列を足し（全行に書く）、クロニクルはその列で絞る。どちらにするか決めてから着手する。
+- 該当：`godot/data/units/unit_skin.csv`・`godot/presentation/chronicle/units_chapter.gd`・会話の顔の解決（`ConversationPanel`）・[chronicle.md](gdd/chronicle.md) ユニット・[authoring.md](campaign/authoring.md)。
 
 ### feature-119
 
@@ -180,22 +89,106 @@
 - 演出まわり：カットイン `godot/assets/formations/counter.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `counter_{skin}.png`）。効果音 `godot/assets/sfx/counter.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120。
 
-### feature-132
+### feature-62
 
-**幕間の印 `damaged` のモチーフを決めて描く**
-- ゴール：依頼書の幕間の印3枚が揃い、連戦の話を開いたときに「傷ついたまま次へ出る」と読める絵が1枚出る。
-- 背景：`refill`（宿のベッド）と `revive`（有翼の十字）は描けたが、`damaged` だけモチーフが決まっていない。試した案と外した理由＝断ち切れた革帯（何が起きたか読めない）／刃こぼれの剣（欠けは小さくすると輪郭のノイズになる）／ひび割れた盾（`predator`（弱者狙い）の割れた盾と同じ構図）／松明（暗いだけで連戦に結びつかない）／血の染みた包帯（手当てをしたとも読める）。
-- 対応：モチーフを決め、[icons.md](art/icons.md) §3 の表と SUBJECT を書いて生成する。要件＝面が広くて小さくしても輪郭が残る／`refill`（横長・木と布）・`revive`（縦長・金と白）と型と材質が分かれる／AI の特性アイコンと構図が被らない／「休んだ」「手当てをした」と読めない。
-- 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
-- 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
+**販売チャネルごとの機能を乗せる（プラットフォーム層）**
+- ゴール：本体は所有権チェック・実績・Stats をチャネル非依存の口で呼ぶだけで、どのチャネルのビルドでもその口が正しく動く。エディタ実行でも実績の動作が確認できる。
+- 背景：チャネルの判定そのものは `godot/infrastructure/platform/build_info.gd` が持つ（[build.md](tech/build.md)）。その上に乗るチャネル固有の機能がまだ無い。評価ランクの実績発火（feature-40）、entitlement による DLC 解放（feature-13）が控えている。
+- 設計：
+  - 切り替えの鍵は `BuildInfo.channel()` と `edition()`。アダプターはチャネルと1対1で、steam / steam-demo / itch / booth / dev の5つ。「その他」のまとめ枠やフォールバックは作らない。itch と booth と dev の中身が今は同じでも、共通化せず別々に持つ。
+  - アダプターは薄く、機能ごとの部品を組み合わせるだけ。部品（ローカルの実績ファイル・常に所有扱いの所有権チェック・何もしない Stats など）は複数のアダプターで使い回す。
+  - 本体が見る口は3つ。所有権チェック `owns(content_id) -> bool`、実績の保管庫 `unlock(id)` / `is_unlocked(id)` / `unlocked_ids()`、Stats の記録。
+  - 実績はゲーム本体の機能で、Steam はその保管先の1つ。Steam 版は Steamworks を保管庫にし（読み書きとも API で行う）、ローカルファイルを持たない。itch / booth / dev は実績専用のファイルに保存する。進捗セーブとは別のファイル。
+  - Steam 体験版（`steam,demo`）は実績を Steam に立てず実績専用ファイルに溜め、製品版の初回起動でそのファイルを Steamworks に流し込む（Valve の推奨に沿う）。
+  - Stats は Steam 版だけが送る。他のチャネルは送り先が無く集計も要らないので何もしない。
+  - Steam 版で Steamworks の初期化に失敗したときは「Steam から起動してください」と出して終了する。
+  - チャネルと機能の対応：
 
-### feature-134
+    | 機能 | steam | steam-demo | itch / booth / dev |
+    |---|---|---|---|
+    | 所有権チェック | Steam DLC に問い合わせ | 常に所有 | 常に所有 |
+    | 実績の保管庫 | Steamworks | 実績専用ファイル（製品版の初回起動で Steam へ） | 実績専用ファイル |
+    | Stats | Steam に送る | Steam に送る（体験版 AppID で使えれば） | 何もしない |
 
-**会話でしか出ない顔をクロニクルのユニット章から外す**
-- ゴール：盤に一度も出ない人物（鳥人の子）がクロニクルのユニット章に枠を持たず、会話の顔としては今までどおり出る。
-- 背景：鳥人の子は竜狩り st4 の勝利後の会話で喋るだけで盤に出ないが、`unit_skin.csv` の行なのでクロニクルに枠が並び、埋まる条件が「盤に現れた」のため永久に黒いままになる。[authoring.md](campaign/authoring.md) は「盤に出ないキャラがしゃべる場合」を認めているが、その置き場がユニットスキンしか無い。
-- 対応（判断保留）：案1＝会話専用の顔のカタログを `unit_skin.csv` から分け、会話の `skin` はユニットスキンに無ければそちらを引く（今後の村人・王のような喋るだけの人物の置き場になる）。案2＝`unit_skin.csv` に「盤に出る駒か」の列を足し（全行に書く）、クロニクルはその列で絞る。どちらにするか決めてから着手する。
-- 該当：`godot/data/units/unit_skin.csv`・`godot/presentation/chronicle/units_chapter.gd`・会話の顔の解決（`ConversationPanel`）・[chronicle.md](gdd/chronicle.md) ユニット・[authoring.md](campaign/authoring.md)。
+- 対応：(1) 上の設計を `doc/tech/platform.md` に新設して書く（狙い・切り替えの鍵・アダプターと部品の構造・チャネル×機能の表・本体が見る口・体験版からの引き継ぎ・設計の未確定）。(2) `godot/infrastructure/platform/` にインターフェース・アダプター5つ・部品を置き、`channel()` と `edition()` から選ぶ場所を1か所にする。(3) 実績専用ファイルの置き場と形式を決める。
+- 設計の未確定：体験版の AppID で Stats が使えるか（AppID 取得後に管理画面で確認）。Steam Cloud のセーブ置き場をコードで切り替えるのか、Steamworks 側の設定（Auto-Cloud）だけで済むのか。
+- 該当：`godot/infrastructure/platform/`・`doc/tech/platform.md`（新規）・`doc/tech/build.md`・`doc/sales/monetization.md`。前提＝feature-40（GodotSteam 導入）・feature-13（entitlement）。
+
+### feature-13
+
+**entitlement（DLC所有）判定によるステージ解放**
+- 背景：ステージセレクトの解放は現状「クリア連鎖」だけで、有料DLC（冒険譚）の所有チェック（entitlement）が未配線＝販売時に「持っていれば解放」を判定できない（[stage_select.md](gdd/stage_select.md)）。Steam DLC 連携が前提。解放ゲート `_is_satisfied` は `cleared` のみ対応で、entitlement を含む未知条件は locked 扱い。表示側の `unlock_text` には entitlement 条件を「追加コンテンツ」と示す分岐が既にあるが、実際の充足判定の口が無い。
+- 対応：所有判定の口を `CampaignProgress` に足し、DLC冒険譚は entitlement 充足で解放。Steam 側は GodotSteam 導入時に配線する。チャネルごとのアダプターと「常に所有」の部品は feature-62。
+- 該当：`godot/application/campaign_progress.gd`・`godot/presentation/select/`・`doc/gdd/stage_select.md`。着手の引き金＝Steam の体験版に向けて Steamworks に登録するとき（[monetization.md](sales/monetization.md) 出す順序）。
+
+### feature-40
+
+**Steam 実績・Stats の配線（GodotSteam 導入）**
+- 背景：実績と計測の方針は [monetization.md](sales/monetization.md)（実績・計測）で決めたが、実装側の入り口が無い。GodotSteam は未導入（`godot/infrastructure/platform/` は空）で、実績を立てる呼び出しも Stats を刻む発火点も置き場所が決まっていない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
+- 対応：(1) GodotSteam を導入し `godot/infrastructure/platform/` の裏に隔離する（feature-13 の entitlement 配線と同じ層・同じ段。チャネルごとのアダプターと部品の構造、Steam 以外のチャネルでの実績の保管先は feature-62）。(2) 実績の発火点＝冒険譚の完走判定。完走判定は `CampaignProgress` にあり、ランクも進捗セーブに入る（[stage_select.md](gdd/stage_select.md) クリア記録）ので判定はここに寄せる。最上位ランク達成時は下2段も同時に付与（取りこぼし防止）。(3) Stats の発火点＝ステージの開始とクリア。全ステージではなくチュートリアルに絞って刻む（見たいのは最初の1時間の離脱）。(4) 体験版のセーブを本体と共有 Steam Cloud に置き、購入後の本体初回起動でまとめて付与する経路（Valve 推奨。体験版では実績を発火させない）。
+- 該当：`godot/infrastructure/platform/`（GodotSteam の隔離・新規）・`godot/application/campaign_progress.gd`（完走判定・ランク記録）・`godot/infrastructure/save/progress_store.gd`（Cloud 配置）・`doc/sales/monetization.md`。着手の引き金＝下の段階1と2は登録前から進められる。段階3は Steamworks に AppID を登録したとき（[monetization.md](sales/monetization.md) 出す順序）。前提＝ランクの評価式（[rank.md](gdd/rank.md)）は実装済み。
+- 導入の形：GodotSteam は GDExtension 版（`godot/addons/` に置くアドオン）を採る。GodotSteam 同梱のエディタは使わない＝手元の Godot エディタと二重管理になる。
+- 進め方（登録前に進められる範囲）：
+  1. 登録なし・Steam なし。feature-62 のアダプターと部品を作り、dev アダプターで実績の発火点・所有チェックの呼び出し・Stats の刻む場所を全部作る。エディタと GUT はここで回る。GUT は Steam 実装を通さず、アダプターの選択と部品の挙動だけを見る。
+  2. 登録なし・テスト用 AppID 480（Valve が公開している Spacewar）。GodotSteam を入れ steam アダプターを書き、480 に繋いで初期化・実績の読み書き・Stats の送信が通ることを確認する。実績名は Spacewar に定義済みのものを仮に使う。Senaris 固有の実績の定義・DLC の所有チェック・体験版と製品版のセーブ共有は 480 では試せない。
+  3. 登録あり・自分の AppID。管理画面で実績・DLC・Cloud を定義し、AppID と実績名を差し替えて本番確認する。
+- 手元で Steam 実装を動かす条件：Steam クライアントが起動しログイン済みであること。Steam を経由せず起動するため、AppID を1行書いた `steam_appid.txt` を作業ディレクトリ（エディタならプロジェクトルート、ビルドなら exe の隣）に置く。このファイルは配布物に入れない＝Steam から起動されるときは Steam が AppID を渡す。
+- 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。実績上限100の緩和条件＝Profile Features のしきい値。
+
+### feature-27
+
+**タイトル名「Senaris」の確定手続き**
+- 背景：[naming_decision_senaris.md](sales/naming_decision_senaris.md) でタイトル名は「Senaris」に決定済み。確定前の手続きが残っている。すべてオーナー側の手作業。商標の一次スクリーニングと Bluesky ハンドルは済み（結果は同 doc の事前チェック結果サマリ）。Discord は作品名義で取らず、開発元のサーバーで持つ（[marketing.md](sales/marketing.md) Discord）。
+- 対応：(1) X のハンドル。X は使わない方針（[marketing.md](sales/marketing.md) SNS）で、名前の予約だけするかは未決。(2) Steam アプリ名予約（Steamworks 登録時・Steam Direct $100）。確定したら naming_decision_senaris.md のステータスを更新。
+- 該当：`doc/sales/naming_decision_senaris.md`。着手の引き金＝Steam の体験版に向けて Steamworks に登録するとき（[monetization.md](sales/monetization.md) 出す順序）。
+
+### feature-8
+
+**タッチ操作対応（uiux フェーズ4）**
+- 背景：モバイルは後回し方針（CLAUDE.md）だが、[uiux.md](gdd/uiux.md) §フェーズ4 が未実装。タッチ操作一式（タップ選択・1本指パン・ピンチズーム・長押しキャンセル）のハンドラが無く、全体表示も `F` キーのみ＝キーボードの無いタッチ環境では全体表示に到達不能。
+- 対応：`hex_board_3d.gd` の `_unhandled_input` に `InputEventScreenTouch`/`ScreenDrag`/長押しを足す。`hud.gd` に全体表示ボタン（タッチ用・画面ボタン必須）を足す。
+- 該当：`godot/presentation/board/hex_board_3d.gd`・`godot/presentation/ui/hud.gd`・`doc/gdd/uiux.md`。着手の引き金＝モバイル配布を見据えたら。
+
+### feature-92
+
+**ステージが更新されている中断セーブをプレイヤーに知らせる**
+- ゴール：セーブを作ったあとにステージを直した枠が、選ぶ前に見て分かり、選んだときにも一度確認が入る。
+- 背景：ステージ定義が変わっても差分はそのまま適用して再開を妨げない方針だが、黙って適用すると盤が前と違う理由がプレイヤーに分からない。枠の一覧表示は `_row_text` 一本で、ロード時の確認はいまタイトルの「冒険の続き」経由では出ない（失う盤が無いため）。
+- 対応：セーブの印と今のステージ定義の印を比べ、違う枠は一覧の行に更新されている旨を添える。その枠を選んだときだけ確認を挟む（印が一致する枠のロードは今のまま）。
+- 該当：`godot/presentation/ui/save_slot_panel.gd`・`godot/presentation/main/main.gd`・`godot/data/i18n/`・`doc/tech/gamesystem.md`。セーブの印は meta の `stage_digest`、今の定義の印は `StageDigest.of_file`。
+
+### feature-46
+
+**タイトル画面の残り（クレジット画面）**
+
+- 背景：タイトル画面そのものは入った（起動→扉が開く動画→店内のメニュー。仕様 → [title.md](gdd/title.md)）。残るのは、クレジット画面。置き場はタイトルのメニューから設定画面の末尾へ移した（[settings.md](gdd/settings.md) クレジット、2026-09-20）＝タイトルの板からクレジットの項目を外し、並びをマニュアル→クロニクル→設定にする作業も含む。
+- クレジット：素材の権利表記。タイトルのメニューに項目だけ置いてあり、受け口が無く押せない状態。画面に出す内容は [credits.md](sales/credits.md) の「ゲーム内クレジットに出すもの」が正本で、そこを読んで並べるだけにする。台帳の整備自体は済んでいるが、根拠が取れていないライセンスが残っている（feature-54）。リリース前が締め切り。
+- クレジット画面の作り（決めたこと）：新規シーン `godot/presentation/credits/` を1枚。設定画面の末尾の板から開く＝タイトルからも盤のシステムメニュー経由でも設定の中から届く。盤の上でも進行は止めない（設定画面と同じ）。戻るは左下の木の板ボタンで、位置と大きさはセレクトと同じ規則に揃える（[stage_select.md](gdd/stage_select.md)）。地は中立の暗色（起動スプラッシュと同じ `#0d1925`）＝操作の道具は酒場の物にしない（[title.md](gdd/title.md)）。押せる物だけが木の板、という様式は保つ。見た目は実物を見てから詰める。文言は `menu.csv` に足す（キーは `ui.<画面>.<項目>` → [i18n.md](tech/i18n.md)）。
+- 該当：`godot/presentation/settings/settings_screen.gd`（開き口の板）・`godot/presentation/credits/`（新規）・`godot/presentation/title/title_screen.gd`（項目を外す・並べ替え）・`godot/data/i18n/menu.csv`・`doc/gdd/settings.md`。関連＝feature-66〜69（UI文言の i18n キー化）。戻るの位置は設定画面を手本にする。着手の引き金＝配布ビルドが見えてきたとき。
+
+### feature-93
+
+**盤中のヘルプ（その場で用語を引く）**
+- ゴール：盤の中で、いま選んでいる物の用語（敵の特性名・能力値の項目名など）の意味がその場で読める。
+- 背景：マニュアル（[manual.md](gdd/manual.md)）はタイトル専用の通読画面と決め、盤中からは開かない。盤で「弱者狙いって何」「貫通率はどこに効く」と詰まったとき、その場で引く手段が無い。
+- 対応：形は未検討。情報パネルの用語から短い説明を出す類を想定。説明文をマニュアルの本文と共有するかもここで決める。
+- 該当：`godot/presentation/ui/`（情報パネル）・`godot/data/i18n/manual.csv`（マニュアル本文）。着手の引き金＝実プレイで用語に詰まったとき。
+
+### feature-95
+
+**サイトの中身を作る**
+- ゴール：senaris.in を開くと、ゲームの紹介とルールが読める。
+- 背景：ドメイン取得・DNS・配信構成は済んでいる（[site.md](sales/site.md)・[ADR-0005](adr/ADR-0005-site-hosting-cloudflare-workers.md)）。残るのは中身で、いま置くものが無い。
+- 対応：(1) ランディングは1ページ。ストアページ（[steam_page.md](sales/steam_page.md)）の文と絵が決まってから流用して作る。(2) ルールのページ（`senaris.in/rules` 相当）をランディングからリンクする。マニュアルの構造定数と `manual.csv` から生成できる想定で、範囲と見せ方は未検討。
+- 該当：`site/`・`doc/sales/site.md`・`godot/data/i18n/manual.csv`。着手の引き金＝配布が見えてきたとき。
+
+### feature-99
+
+**プレスキットを用意する**
+- ゴール：紹介したい人に「ここを見て」と1つ渡せば、本物のロゴ・スクリーンショット・説明文・権利表記が揃う。
+- 背景：体験版の公開後、こちらの許可なく紹介動画が出た（[sales/youtube.md](sales/youtube.md) の記録）。使われたサムネイルは実際の画面ではない生成画像で、期待と実物の落差が視聴者コメントに出た。渡せる素材が手元に無いと、第一接触の絵を他人の生成物に握られる。[site.md](sales/site.md) はランディングページのフッターに置くリンク項目として名前を挙げているだけで、中身も置き場も決めていない。
+- 対応：中身と置き場を決める。素材は3面と共通のものを流用できる（[marketing.md](sales/marketing.md) の素材の置き場）。ストアページ（[steam_page.md](sales/steam_page.md)）を待たずに出せる範囲で先に組む。【未決】置き場（`senaris.in/press` か itch のページ内か）・同梱物（ロゴ・スクリーンショット・キービジュアル・説明文・権利表記・連絡先）・配り方（zip か個別ダウンロードか）。
+- 該当：`channels/`・`doc/sales/site.md`・`doc/sales/marketing.md`・`doc/sales/youtube.md`。着手の引き金＝次に紹介の話が来たとき、またはサイトの中身を作るとき（feature-95）。
 
 ## リファクタリング
 
