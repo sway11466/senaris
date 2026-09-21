@@ -37,15 +37,6 @@
 - 演出まわり：カットイン `godot/assets/formations/backstab.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `backstab_{skin}.png`）。効果音 `godot/assets/sfx/backstab.ogg`（発動）と `backstab_hit.ogg`（着弾）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる。クロニクルの陣形スキル章＝形 `backstab` は新しいので `LAYOUTS` に発動者と対角の味方、`TARGETS` に間の敵ヘクス（ゴブリンの駒）を足す。相方は種別不問（`member_skins` 空）なので図と未解放の黒塗りの代表を1体決める（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。
 
-### feature-124
-
-**陣形スキル⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5＝反撃強化）**
-- ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
-- 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。⑤シールドウォールで入れた器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
-- 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `skills.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
-- 演出まわり：カットイン `godot/assets/formations/counter.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `counter_{skin}.png`）。効果音 `godot/assets/sfx/counter.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
-- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`godot/domain/combat/combat.gd`（集計の target）・`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
-
 ### feature-62
 
 **販売チャネルごとの機能を乗せる（プラットフォーム層）**
