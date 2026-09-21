@@ -56,9 +56,8 @@
   "dialogue": {
     "intro": [
       { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st6.rogue.1" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.rogue.2" },
-      { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st6.rogue.3" },
       { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.intro.3" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.rogue.2" },
       { "scene": "dragon-hunt.st6.scene.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.11" },
       { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st6.intro.1", "when": "joined:birdman" },

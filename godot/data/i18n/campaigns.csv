@@ -58,4 +58,6 @@ event.dragon-hunt-st3.camp-secured.name,集落の確保,Securing the Camp
 event.dragon-hunt-st3.camp-lost.name,集落を奪われた,The Camp Lost
 event.dragon-hunt-st4.village-secured.name,里の確保,Securing the Village
 event.dragon-hunt-st4.village-lost.name,里を奪われた,The Village Lost
+event.dragon-hunt-st5.village-secured.name,山里の確保,Securing the Mountain Village
+event.dragon-hunt-st5.village-lost.name,山里を奪われた,The Mountain Village Lost
 event.debug-photo-store4.town-freed.name,町の解放,Freeing the Town
