@@ -52,6 +52,12 @@
       "synopsis": "デバッグ冒険譚"
     },
     {
+      "id": "manual-combat",
+      "file": "manual-combat.json",
+      "title": "manual-combat マニュアルの絵（ファイター対ゴブリン）",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
       "id": "devlog4-3",
       "file": "devlog4-3.json",
       "title": "devlog4-3 乗り物＝馬車と飛空艇（st7 の盤のコピー）",

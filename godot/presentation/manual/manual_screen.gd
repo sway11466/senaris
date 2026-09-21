@@ -68,6 +68,7 @@ const TAB_ICON_DIR := "res://assets/icons/ai/"
 const TAB_ICON_SIZE := 20
 const TAB_ICON_GAP := 6
 const HEAD_BOTTOM_GAP := 10     # 見出し・タブと本文の間
+const COL_GAP := 16             # 段組みの左右の間
 
 var _root: Control
 var _heading: Label
@@ -282,21 +283,63 @@ func _build_body() -> void:
 		holder = section["tabs"][_tab]
 		section_id = String(holder["id"])
 
-	for block in holder["blocks"]:
-		match String(block["t"]):
-			"p":
-				_body_box.add_child(_label(tr(ManualToc.key(chapter_id, section_id, String(block["e"]))), BODY_FONT_SIZE, UI_GRAY))
-			"h":
-				_body_box.add_child(_gap(HEAD_TOP_GAP))
-				_body_box.add_child(_label(tr(ManualToc.key(chapter_id, section_id, String(block["e"]))), HEAD_FONT_SIZE, ACCENT))
-			"dl":
-				for e in block["e"]:
-					_body_box.add_child(_definition(chapter_id, section_id, String(e)))
-			"rules":
-				for i in range(1, int(block["n"]) + 1):
-					_body_box.add_child(_rule_row(chapter_id, section_id, i))
+	_add_blocks(_body_box, chapter_id, section_id, holder["blocks"])
 	# 組み直した直後は寸法が確定していないので、先頭へ戻すのは次のフレームに任せる。
 	_body_scroll.set_deferred("scroll_vertical", 0)
+
+## ブロックを上から器に積む。段組み（cols）は自分を呼び直して左右それぞれに積む。
+func _add_blocks(box: VBoxContainer, chapter_id: String, section_id: String, blocks: Array) -> void:
+	for block in blocks:
+		match String(block["t"]):
+			"p":
+				box.add_child(_label(tr(ManualToc.key(chapter_id, section_id, String(block["e"]))), BODY_FONT_SIZE, UI_GRAY))
+			"h":
+				box.add_child(_gap(HEAD_TOP_GAP))
+				box.add_child(_label(tr(ManualToc.key(chapter_id, section_id, String(block["e"]))), HEAD_FONT_SIZE, ACCENT))
+			"dl":
+				for e in block["e"]:
+					box.add_child(_definition(chapter_id, section_id, String(e)))
+			"rules":
+				for i in range(1, int(block["n"]) + 1):
+					box.add_child(_rule_row(chapter_id, section_id, i))
+			"img":
+				box.add_child(_image(chapter_id, section_id, String(block["e"])))
+			"cols":
+				box.add_child(_columns(chapter_id, section_id, block))
+
+## 段組み＝左に本文、右に絵。右は絵の幅のまま伸ばさず、左が残りを取る。絵は上端に寄せる
+## ＝本文が右の絵より長くても、絵が縦に流れて本文とずれない。
+func _columns(chapter_id: String, section_id: String, block: Dictionary) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", COL_GAP)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var left := VBoxContainer.new()
+	left.add_theme_constant_override("separation", BLOCK_GAP)
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(left)
+	var right := VBoxContainer.new()
+	right.add_theme_constant_override("separation", BLOCK_GAP)
+	right.size_flags_horizontal = Control.SIZE_SHRINK_END
+	right.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(right)
+	_add_blocks(left, chapter_id, section_id, block["left"])
+	_add_blocks(right, chapter_id, section_id, block["right"])
+	return row
+
+## 絵1枚。パスは翻訳CSVが持つ＝文字の写った絵（情報板）は言語ごとに違うパスを引く。
+## 絵は貼る寸法で書き出しておき、ここでは伸び縮みさせない（幅に合わせて拡大するとぼける）。
+func _image(chapter_id: String, section_id: String, element: String) -> Control:
+	var path := tr(ManualToc.key(chapter_id, section_id, "%s.img" % element))
+	var rect := TextureRect.new()
+	rect.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN  # 本文と同じ左端に揃える
+	rect.stretch_mode = TextureRect.STRETCH_KEEP
+	var tex: Texture2D = load(path) as Texture2D if ResourceLoader.exists(path) else null
+	if tex == null:
+		push_error("ManualScreen: 絵が無い: %s" % path)
+		return rect
+	rect.texture = tex
+	rect.custom_minimum_size = tex.get_size()
+	return rect
 
 ## 用語1件＝見出しの語と、その下に説明。
 func _definition(chapter_id: String, section_id: String, element: String) -> Control:

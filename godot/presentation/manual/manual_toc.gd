@@ -15,6 +15,9 @@ class_name ManualToc
 ##   h     節の中の小見出し。"e"＝要素名
 ##   dl    用語と説明の並び。"e"＝要素名の配列。各要素が .term と .desc を持つ
 ##   rules 敵AIの行動ルール表。"n"＝行数。各行が rule<N>.cond と rule<N>.act を持つ
+##   cols  段組み。"left"／"right"＝それぞれに積むブロックの並び（中身は下の型と同じ）
+##   img   絵1枚。"e"＝要素名（キーは <要素>.img）。値は絵のパスで、翻訳CSVが言語ごとに持つ
+##         ＝文字の写った絵（情報板）は言語ぶん撮って別のパスを書き、言語で変わらない絵は同じパスを書く
 ##
 ## 節が2つ以上ある章は、目次でその章の下に節が開く（いまは敵AIだけ）。
 ## 節が1つの章は章を選べばそのまま本文が出る。
@@ -29,16 +32,36 @@ const KEY_PREFIX := "manual"
 const CHAPTERS: Array = [
 	{ "id": "unit", "sections": [
 		{ "id": "main", "blocks": [
+			# 能力値＝どの駒も持つもの。特性＝持つ駒にだけ板が行を出すもので、板のラベル
+			# （ui.info.trait）と同じ語でくくる。項目の並びは情報板の能力タブと同じ順
+			# （doc/gdd/uiux.md）＝板を見ながら上から順に引ける。
+			# 兵種は板の見出しに出る（能力タブに行が無い）ので並びの先頭に置く。
 			{ "t": "p", "e": "intro" },
-			{ "t": "dl", "e": [
-				"troops", "atk_ground", "atk_air", "defense", "pierce", "range",
-				"move", "move_type", "move_after_attack", "can_capture", "capacity",
-				"level", "category",
+			{ "t": "h", "e": "stats" },
+			{ "t": "p", "e": "stats1" },
+			{ "t": "cols", "left": [
+				{ "t": "dl", "e": [
+					"category", "troops", "level", "atk_ground", "atk_air", "defense", "move",
+					"move_type", "range",
+				] },
+			], "right": [
+				{ "t": "img", "e": "panel_fighter" },
+				{ "t": "img", "e": "panel_witch" },
+				{ "t": "img", "e": "panel_thief" },
+			] },
+			{ "t": "h", "e": "traits" },
+			{ "t": "p", "e": "traits1" },
+			{ "t": "p", "e": "traits2" },
+			{ "t": "cols", "left": [
+				{ "t": "dl", "e": ["pierce", "can_capture", "move_after_attack", "capacity"] },
+			], "right": [
+				{ "t": "img", "e": "panel_cleric" },
 			] },
 		] },
 	] },
 	{ "id": "combat", "sections": [
 		{ "id": "main", "blocks": [
+			{ "t": "img", "e": "window" },
 			{ "t": "p", "e": "intro" },
 			{ "t": "h", "e": "simultaneous" },
 			{ "t": "p", "e": "sim1" },
@@ -47,12 +70,20 @@ const CHAPTERS: Array = [
 			{ "t": "p", "e": "chain1" },
 			{ "t": "p", "e": "chain2" },
 			{ "t": "p", "e": "chain3" },
+			# 補正から先は戦闘レポートと突き合わせて読む＝板を横に並べる。
 			{ "t": "h", "e": "mods" },
-			{ "t": "dl", "e": ["level", "surround", "support", "terrain", "pierce", "status"] },
-			{ "t": "p", "e": "mods_note" },
-			{ "t": "h", "e": "damage" },
-			{ "t": "p", "e": "damage1" },
-			{ "t": "p", "e": "damage2" },
+			{ "t": "cols", "left": [
+				# 並びは戦闘レポートの行と同じ順（StrikeTable）＝レポートを見ながら上から順に引ける。
+				{ "t": "dl", "e": ["level", "surround", "terrain", "status", "support", "pierce"] },
+				{ "t": "p", "e": "mods_note" },
+				{ "t": "h", "e": "damage" },
+				{ "t": "p", "e": "damage1" },
+				{ "t": "p", "e": "damage2" },
+			], "right": [
+				{ "t": "img", "e": "report_summary" },
+				{ "t": "img", "e": "report_attack" },
+				{ "t": "img", "e": "report_counter" },
+			] },
 		] },
 	] },
 	{ "id": "terrain", "sections": [
@@ -278,6 +309,12 @@ static func block_keys(chapter_id: String, section_id: String, block: Dictionary
 			for i in range(1, int(block["n"]) + 1):
 				keys.append(key(chapter_id, section_id, "rule%d.cond" % i))
 				keys.append(key(chapter_id, section_id, "rule%d.act" % i))
+		"img":
+			keys.append(key(chapter_id, section_id, "%s.img" % String(block["e"])))
+		"cols":
+			for side in ["left", "right"]:
+				for b: Dictionary in block[side]:
+					keys.append_array(block_keys(chapter_id, section_id, b))
 		_:
 			push_error("ManualToc: 未知のブロック型: %s" % str(block))
 	return keys

@@ -42,8 +42,14 @@
 ## 本文の持ち方
 
 - 本文は翻訳CSV `godot/data/i18n/manual.csv` に置く。1行1キーで、段落や表のセルごとにキーを振る（[../tech/i18n.md](../tech/i18n.md)）。キーは `manual.<章id>.<節>.<要素>`。
-- 章・節・ブロックの並びは GDScript の定数で持つ。ブロックは段落と表で、どのキー列で構成されるかまで定数が持つ。
+- 章・節・ブロックの並びは GDScript の定数で持つ。ブロックは段落・表・絵で、どのキー列で構成されるかまで定数が持つ。
 - 構造が参照するキーが `manual.csv` に揃っているか、CSV 側に構造から参照されないキーが無いかをテストで突き合わせる（[../tech/testing.md](../tech/testing.md)）。
+
+## 絵の持ち方
+
+- 絵は `godot/assets/manual/` に置き、パスは翻訳CSVが持つ（キーは `manual.<章id>.<節>.<要素>.img`）。文字が写る絵（情報板）は言語ぶん撮って ja/en に別のパスを書き、言語で変わらない絵（戦闘の窓）は同じパスを書く。言語の切り替えは本文と同じ経路で効く。
+- 絵は貼る寸法で書き出す＝画面側では伸び縮みさせない。本文ペインより広い絵は、その幅（864px）に縮めてから置く（幅に合わせて拡大するとぼけるため）。
+- 出どころは撮影ツール（[../tech/tools.md](../tech/tools.md) の `manual/shot_info_panel`・`manual/shot_combat_window`）と撮影セット（`debug-photo/manual-combat` → [../tech/debug-stages.md](../tech/debug-stages.md)）。板や演出の見た目を変えたら同じコマンドで撮り直す。
 
 ---
 

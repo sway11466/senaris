@@ -2,11 +2,15 @@ keys,ja,en
 manual.unit.title,ユニットの能力値,Unit Stats
 manual.unit.main.title,ユニットの能力値,Unit Stats
 manual.unit.main.intro,盤の駒はそれぞれ性能を持つ。ここではその項目が何を指すのかを説明する。実際の数値は、駒を選んだときの情報パネルに出る。,Every unit on the board has its own stats. This chapter explains what each of them means. The actual numbers appear in the info panel when you select a unit.
+manual.unit.main.panel_fighter.img,res://assets/manual/panel_fighter_ja.png,res://assets/manual/panel_fighter_en.png
+manual.unit.main.panel_witch.img,res://assets/manual/panel_witch_ja.png,res://assets/manual/panel_witch_en.png
+manual.unit.main.panel_cleric.img,res://assets/manual/panel_cleric_ja.png,res://assets/manual/panel_cleric_en.png
+manual.unit.main.panel_thief.img,res://assets/manual/panel_thief_ja.png,res://assets/manual/panel_thief_en.png
 manual.unit.main.troops.term,兵数,Strength
-manual.unit.main.troops.desc,その駒に残っている兵の数。満員は8で、0になると駒が盤から消える。攻撃力も防御力も兵数に比例するので、削られた駒は攻めも守りも弱くなる。補充はできない。ドラゴンや馬車のように頭数を持たない駒もあるが、それらも同じ兵数で数える＝減れば同じように弱り、0で盤から消える。,"How many soldiers the unit has left. Full strength is 8, and at 0 the unit is gone from the board. Both attack and defense scale with strength, so a worn-down unit is weaker at everything. There is no way to replenish it. Some units are a single creature or vehicle rather than a squad — a dragon or a wagon — and their Strength is counted the same way: it weakens them as it falls and removes them at 0."
-manual.unit.main.atk_ground.term,対地,Atk vs Ground
+manual.unit.main.troops.desc,その駒に残っている兵の数。満員は8で、0になると駒が盤から消える。攻撃力も防御力も兵数に比例するので、削られた駒は攻めも守りも弱くなる。ドラゴンや馬車のように頭数を持たない駒もあるが、それらも同じ兵数で数える＝減れば同じように弱り、0で盤から消える。,"How many soldiers the unit has left. Full strength is 8, and at 0 the unit is gone from the board. Both attack and defense scale with strength, so a worn-down unit is weaker at everything. Some units are a single creature or vehicle rather than a squad — a dragon or a wagon — and their Strength is counted the same way: it weakens them as it falls and removes them at 0."
+manual.unit.main.atk_ground.term,対地攻撃,Atk vs Ground
 manual.unit.main.atk_ground.desc,地上の敵を攻撃するときに使う攻撃力。兵1体あたりの値で、実際の攻撃力はこれに兵数を掛けたものから始まる。,The attack power used against ground units. It is the value per soldier — actual attack power starts from this multiplied by strength.
-manual.unit.main.atk_air.term,対空,Atk vs Air
+manual.unit.main.atk_air.term,対空攻撃,Atk vs Air
 manual.unit.main.atk_air.desc,飛行の敵を攻撃するときに使う攻撃力。0の駒は飛行を攻撃対象に選べず、飛行に殴られても反撃できない。対空を持つのは弓兵・飛行兵・魔法兵で、歩兵と占領兵の近接は空に届かない。,"The attack power used against fliers. A unit with 0 here cannot target fliers at all, and cannot counter when a flier attacks it. Archers, fliers and mages carry this — infantry and the clergy cannot reach the air in melee."
 manual.unit.main.defense.term,防御,Defense
 manual.unit.main.defense.desc,攻撃を受けたときの固さ。物理と魔法で分かれておらず、相手が地上か飛行かでも分かれない単一の値になる。,"How tough the unit is when attacked. It is a single value — not split into physical and magical, and not split by whether the attacker is on the ground or in the air."
@@ -24,12 +28,18 @@ manual.unit.main.can_capture.term,占領可,Can Capture
 manual.unit.main.can_capture.desc,拠点を占領できるかどうか。持っているのは占領兵だけになる。,Whether the unit can capture a base. Only the clergy have it.
 manual.unit.main.capacity.term,搭乗数,Capacity
 manual.unit.main.capacity.desc,中に乗せられる味方の数。1以上なら輸送として使える。,How many friendly units it can carry. Anything from 1 up can be used as transport.
-manual.unit.main.level.term,レベル,Lv
+manual.unit.main.level.term,Lv,Lv
 manual.unit.main.level.desc,戦うたびに上がる強さ。初期値は1で、1上がるごとに攻撃力と防御力が1%増える。上限は99。,"Power earned by fighting. Units start at 1, and every level adds 1% to both attack and defense. The cap is 99."
 manual.unit.main.category.term,兵種,Class
 manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport and war machine. Formation skill recipes are written in terms of these too."
+manual.unit.main.stats,能力値,Stats
+manual.unit.main.stats1,能力値はどの駒も持つ。情報パネルの能力タブに、下と同じ順で並ぶ。,"Every unit has all of these. They appear in the stats tab of the info panel, in the order below."
+manual.unit.main.traits,特性,Traits
+manual.unit.main.traits1,特性はどの駒も持つわけではなく、持っている駒だけが備える。持つ駒を選ぶと、情報パネルに「特性」の行として出る。,"Traits are not something every unit has — only the units that carry them. Select such a unit and it shows up in the info panel as a Trait row."
+manual.unit.main.traits2,一部の駒はユニットスキルも持つ。これも持っている駒だけのもので、情報パネルでは特性の下に名前と効果が並ぶ。スキルの仕組みは「スキル」の章で説明する。,"Some units also carry a unit skill. Like traits, only the units that have one carry it, and the info panel lists its name and effect below the traits. How skills work is covered in the Skills chapter."
 manual.combat.title,戦闘,Combat
 manual.combat.main.title,戦闘,Combat
+manual.combat.main.window.img,res://assets/manual/combat_window.png,res://assets/manual/combat_window.png
 manual.combat.main.intro,戦闘に乱数は無い。同じ盤面で同じ手を打てば、結果は必ず同じになる。運で駒を失うことはないかわりに、負けたなら理由は必ず盤の上にある。,"There is no randomness in combat. The same board and the same move always give the same result. You never lose a unit to bad luck — but when you lose, the reason is always somewhere on the board."
 manual.combat.main.simultaneous,同時に解決する,Resolved Simultaneously
 manual.combat.main.sim1,攻撃側と防御側は同時に攻撃する。先制は無い。損害はどちらも戦闘前の兵数をもとに計算してから同時に適用するので、1回の戦闘で両方が全滅することもある。,"Attacker and defender strike at the same time. There is no initiative. Losses for both sides are worked out from the strength each had before the fight and then applied together, so a single fight can wipe out both units."
@@ -40,7 +50,7 @@ manual.combat.main.chain2,掛け算で効くのはレベル・包囲・地形・
 manual.combat.main.chain3,最後に防御貫通が防御側にだけ掛かる。支援を足したあとの防御力に掛かるので、支援も貫通の影響を受ける。,"Pierce is applied last, and only to the defender. It hits the defense after Support has been added, so Support is reduced by it as well."
 manual.combat.main.mods,補正,Modifiers
 manual.combat.main.level.term,レベル,Lv
-manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増える。戦えば+1、倒せばさらに+1。反撃できなかった側は上がらない。拠点を占領した占領兵は+10で、戦う機会の少なさを1回で補う。上限は99。,"Each level adds 1% to attack and defense. Fighting gives +1, and destroying the enemy gives another +1. A unit that could not counter gains nothing. A clergy unit that captures a base gains +10, making up in one go for how rarely it fights. The cap is 99."
+manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増える。戦えば+1、倒せばさらに+1。反撃できなかった側は上がらない。上限は99。,"Each level adds 1% to attack and defense. Fighting gives +1, and destroying the enemy gives another +1. A unit that could not counter gains nothing. The cap is 99."
 manual.combat.main.surround.term,包囲,Encircled
 manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighboring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so units on edges and corners are hard to encircle."
 manual.combat.main.support.term,支援,Support
@@ -55,6 +65,9 @@ manual.combat.main.mods_note,包囲と支援は同じ配置から同時に出る
 manual.combat.main.damage,損害の決まり方,How Losses Are Decided
 manual.combat.main.damage1,削れる兵数は、攻める側の実効攻撃力と守る側の実効防御力の比で決まる。互角なら相手の兵の半分、攻撃力が2倍なら8割、半分なら2割が目安になる。,"How many soldiers are lost comes from the ratio of the attacker's Effective Atk to the defender's Effective Def. Evenly matched takes about half, twice the attack takes about eighty percent, half the attack takes about twenty."
 manual.combat.main.damage2,差がついたときほど鋭く効く。互角の殴り合いは互いを削るだけなので、補正を積んでから当てるのがこのゲームの組み立てになる。,"The wider the gap the sharper it bites. An even brawl just grinds both sides down, so the game is about stacking modifiers before you commit."
+manual.combat.main.report_summary.img,res://assets/manual/report_summary_ja.png,res://assets/manual/report_summary_en.png
+manual.combat.main.report_attack.img,res://assets/manual/report_attack_ja.png,res://assets/manual/report_attack_en.png
+manual.combat.main.report_counter.img,res://assets/manual/report_counter_ja.png,res://assets/manual/report_counter_en.png
 manual.terrain.title,地形,Terrain
 manual.terrain.main.title,地形,Terrain
 manual.terrain.main.intro,盤のマスにはそれぞれ地形が置かれている。地形はルールを持つ層と見た目の層に分かれていて、絵が違っても同じ層のものなら同じルールで動く。尾根と花崗岩の尾根、平地と洞窟の床が同じ扱いになるのはこのため。,"Every hex on the board carries a terrain. Terrain is split into a layer that holds the rules and a layer that holds the look, so two hexes that look different behave identically if their rule layer is the same. That is why a ridge and a granite ridge, or a plain and a cave floor, play the same."
@@ -96,7 +109,7 @@ manual.skill.main.kinds1,効果には、当てて削るもの・味方を強化�
 manual.skill.main.kinds2,当てて削るものは間接攻撃として扱う＝支援は乗らず、包囲は乗る。囲むほど威力は上がるが、囲むほど自軍が着弾面に入る。参加していない味方は巻き込まれる。,"Damaging effects count as ranged attacks: Support does not apply, but Encircled does. The more you surround the target the harder it hits — and the more of your own units stand inside the blast. Allies that did not participate are caught in it."
 manual.skill.main.kinds3,撃った結果は右の情報パネルにスキルレポートとして残る。対象ごとの損害と、戦闘レポートと同じ形の内訳をページで読める。,"The result stays in the right-hand panel as a skill report: losses per target, with the same breakdown the battle report shows, one page each."
 manual.skill.main.stack,重ねがけと持続,Stacking and Duration
-manual.skill.main.stack1,ユニットスキルは重ねがけできる。2体が同じ相手に掛ければ効果は足し合わさり、同じスキルを重ねてもよい。,"Unit skills stack. Two casters on the same target add up, and the same skill may be layered on itself."
+manual.skill.main.stack1,スキルは重ねがけできる。同じ相手に二度掛かれば効果は足し合わさり、同じスキルを重ねてもよい。,"Skills stack. Two of them on the same target add up, and the same skill may be layered on itself."
 manual.skill.main.stack2,持続はスキルごとに決まっていて、掛けた側のターン開始で数える。間にはさまる相手のターンでは減らない。,"Duration is set per skill and counts down at the start of the caster's own turn. The opponent's turns in between do not reduce it."
 manual.skill.main.stack3,再使用に間隔を持つスキルもある。毎ターン1ずつ溜まり、必要量に達すると撃てる。撃つと0に戻り、盤に出た直後も0から始まる。,"Some skills have a recharge. It fills by 1 each turn and the skill becomes available once it reaches what the recipe needs. Casting resets it to 0, and a unit that has just entered the board starts at 0 as well."
 manual.ai.title,敵AI,Enemy AI
