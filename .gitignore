@@ -32,3 +32,6 @@ Thumbs.db
 
 # pck 暗号化の鍵が入る。エディタがエクスポートダイアログを開くと勝手に作る（doc/tech/build.md）
 godot/export_credentials.cfg
+
+# 手動確認の使い捨てスクリプトと出力（doc/tech/tools.md）。確認したら消すもので、追跡しない
+godot/tests/manual/
