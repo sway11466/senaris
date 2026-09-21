@@ -4,8 +4,8 @@
 
 | 冒険譚 | 帯 | ファイル |
 |---|---|---|
-| 邪神徒の蠢き | かけだし向け ★★☆☆☆ | [twingods1-cult-stirrings.md](twingods1-cult-stirrings.md) |
-| 邪神の神殿 | 中堅向け ★★★☆☆ | [twingods2-hidden-temple.md](twingods2-hidden-temple.md) |
+| 邪神徒の蠢き | かけだし向け ★★★☆☆ | [twingods1-cult-stirrings.md](twingods1-cult-stirrings.md) |
+| 邪神の神殿 | 中堅向け ★★★★☆ | [twingods2-hidden-temple.md](twingods2-hidden-temple.md) |
 | 邪神復活 | ベテラン向け ★★★★★ | [twingods3-advent.md](twingods3-advent.md) |
 
 **「双子の神」は作者側の呼び名**で、ゲーム内には出さない。プレイヤーが見るのは各冒険譚のタイトル（＝秩序側の呼び名「邪神」）で、それが実は双子の片割れだと知るのは第2部の途中になる（下記「情報の段」）。
