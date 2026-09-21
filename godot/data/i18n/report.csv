@@ -22,7 +22,7 @@ ui.report.head_attack,%s → %s の攻撃,Attack: %s → %s
 ui.report.head_counter,%s → %s の反撃,Counter: %s → %s
 ui.report.col_attack,%sの攻撃,%s's Attack
 ui.report.col_defense,%sの防御,%s's Defense
-ui.report.base_stat,素の値,Base
+ui.report.base_stat,基準値,Base
 ui.report.eff_total,実効値,Effective
 ui.report.strength,兵数,Strength
 ui.report.level,Lv,Lv

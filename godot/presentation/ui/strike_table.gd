@@ -23,15 +23,15 @@ static func fill(grid: GridContainer, striker_name: String, victim_name: String,
 	var off := hit.attack
 	var def := hit.defense
 	add_row(grid, _t("ui.report.col_attack") % striker_name, "", _t("ui.report.col_defense") % victim_name)
-	add_row(grid, num(off.troops), _t("ui.report.strength"), num(def.troops))
 	add_row(grid, atk_stat_text(off), _t("ui.report.base_stat"), String.num_int64(def.stat))
+	add_row(grid, times(off.troops), _t("ui.report.strength"), times(def.troops))
 	add_row(grid, mul(off.level), _t("ui.report.level"), mul(def.level))
-	add_row(grid, mul(off.surround), _t("ui.report.encircled"), mul(def.surround))
+	add_row(grid, opt_mul(off.surround), _t("ui.report.encircled"), opt_mul(def.surround))
 	add_row(grid, mul(off.terrain), _t("ui.report.terrain"), mul(def.terrain))
 	add_row(grid, status_part(off), _t("ui.report.status"), status_part(def))
 	add_row(grid, add_text(off.support), _t("ui.report.support"), add_text(def.support))
-	# 貫通は防御側にだけ乗る（攻撃側の pierce が相手の防御を削る）。効いていなければ — 。
-	add_row(grid, NONE, _t("ui.report.pierce"), mul(def.pierce))
+	# 貫通は防御側にだけ乗る（攻撃側の pierce が相手の防御を削る）。
+	add_row(grid, NONE, _t("ui.report.pierce"), opt_mul(def.pierce))
 	add_rule(grid)  # ここまでが積み上げ、ここから下が出来上がった値
 	add_row(grid, total_text(off, NONE), _t("ui.report.eff_total"), total_text(def, NONE))
 	# 実効値の行の下に用語を添える＝損害の式と同じ言葉で列を結ぶ。
@@ -114,17 +114,21 @@ static func atk_stat_text(b: StatBreakdown) -> String:
 static func total_text(bd: StatBreakdown, empty_text: String) -> String:
 	return String.num_int64(roundi(bd.total)) if bd != null else empty_text
 
-## 整数値（兵数など）。
-static func num(v: int) -> String:
-	return String.num_int64(v)
+## 兵数＝基準値に掛ける頭数。積み上げの向き（掛ける）を記号で見せる。
+static func times(v: int) -> String:
+	return "×%d" % v
 
-## 係数1つ。1.00（＝効いていない）も表に残す＝行の有無で「効いたか」を探させない。
+## 常に働く補正（Lv・地形）の係数。×1.00 も出す＝「このレベル／この地形では得も損もしない」。
 static func mul(v: float) -> String:
 	return "×%.2f" % v
 
-## 加算1つ（支援）。
+## 条件が揃ったときだけ働く補正（包囲・貫通）の係数。条件が外れていれば — ＝土俵に上がっていない。
+static func opt_mul(v: float) -> String:
+	return NONE if is_equal_approx(v, 1.0) else mul(v)
+
+## 支援（加算）。隣に味方がいない・間接攻撃で乗らない場合は — 。
 static func add_text(v: float) -> String:
-	return "%+d" % roundi(v)
+	return NONE if is_zero_approx(v) else "%+d" % roundi(v)
 
 ## 状態補正（バフ/デバフ）。倍率と加算の両方が効いていれば併記する。
 static func status_part(b: StatBreakdown) -> String:
