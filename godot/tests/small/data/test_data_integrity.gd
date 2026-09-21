@@ -503,3 +503,28 @@ func test_infantry_recipes_cover_every_ally_infantry_skin() -> void:
 		assert_false("novice" in r["caster_skins"], "%s はノービスを含まない" % rid)
 		assert_false("novice" in r["member_skins"], "%s はノービスを含まない" % rid)
 	assert_gt(checked, 0, "歩兵のレシピが1つ以上ある")
+
+## 拠点のマスは地形グリッドで砦（fort）であること。拠点の見た目は地形の側から出る＝`bases` に
+## 書いただけでは盤に何も描かれず、遊べてしまうぶん気づけない（2026-09-22 に debug-map/transport
+## で踏んだ）。地形は `*.terrain.json` の `O`。詳細 → doc/gdd/terrain.md・doc/gdd/map.md
+func test_stage_bases_sit_on_fort_terrain() -> void:
+	var files := _all_stage_files("res://data/stages")
+	assert_gt(files.size(), 0, "ステージJSONが見つかる")
+	var checked := 0
+	for path in files:
+		var data := StageLoader.read_stage(path)
+		var grid: Variant = data.get("terrain", [])
+		if typeof(grid) != TYPE_ARRAY:
+			continue
+		var margin := int(data.get("margin", 0))
+		for b in data.get("bases", []):
+			if typeof(b) != TYPE_DICTIONARY:
+				continue
+			checked += 1
+			var col := int(b.get("col", -1)) + margin
+			var row := int(b.get("row", -1)) + margin
+			var line := String(grid[row]) if row >= 0 and row < grid.size() else ""
+			var ch := line[col] if col >= 0 and col < line.length() else ""
+			assert_eq(TerrainType.char_to_id(ch), "fort",
+				"%s の拠点 (col %d, row %d) が砦の上にある" % [path, int(b.get("col", -1)), int(b.get("row", -1))])
+	assert_gt(checked, 0, "拠点が1つ以上ある")
