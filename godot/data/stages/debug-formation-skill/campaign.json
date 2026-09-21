@@ -46,6 +46,12 @@
       "synopsis": "デバッグ冒険譚"
     },
     {
+      "id": "counter",
+      "file": "counter.json",
+      "title": "⑩カウンター",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
       "id": "members",
       "file": "members.json",
       "title": "参加者選び",

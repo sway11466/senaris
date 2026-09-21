@@ -64,6 +64,7 @@
 | shield_wall | `debug-formation-skill/shield_wall.json` | ⑤シールドウォール（殴って反撃を受けると防御が見える） | ⑤を変えたとき |
 | arrow_rain | `debug-formation-skill/arrow_rain.json` | ⑥アローレイン（味方1体が面に入る＝誤射） | ⑥を変えたとき |
 | magic_arrow | `debug-formation-skill/magic_arrow.json` | ⑨マジックアロー（射程ちょうど5） | ⑨を変えたとき |
+| counter | `debug-formation-skill/counter.json` | ⑩カウンター（発動者の隣に歩兵2体＝組を選ぶ。殴られて反撃すると攻撃が見える） | ⑩を変えたとき |
 | members | `debug-formation-skill/members.json` | 参加者を選ぶ段の確認（組が複数／組が1つ／候補が絞られる／人数が可変で候補が余る／可変で最低人数ちょうど／移動先で成立）。スキルをまたぐ話なので1枚にまとめる | 参加者の選び方・形を足したとき |
 
 ## debug-ai（敵AI）

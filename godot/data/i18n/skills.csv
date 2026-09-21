@@ -6,6 +6,7 @@ skill.trick_shot.name,トリックショット,Trick Shot
 skill.magic_arrow.name,マジックアロー,Magic Arrow
 skill.arrow_rain.name,アローレイン,Arrow Rain
 skill.shield_wall.name,シールドウォール,Shield Wall
+skill.counter.name,カウンター,Counter
 skill.pixie_dust.name,ピクシーダスト,Pixie Dust
 skill.purify.name,ピュリファイ,Purify
 skill.dread_touch.name,ドレッドタッチ,Dread Touch
@@ -23,6 +24,7 @@ skill.magic_arrow.desc,魔法兵の力を矢に乗せて敵1体を射抜く。�
 skill.arrow_rain.desc,広い範囲に矢の雨を降らせる。着弾地点から2ヘクス以内の敵味方を巻き込む。,"Rains arrows over a wide area. Hits all units — friend and foe — within two hexes of the blast site."
 skill.grace.desc,味方全体の攻防を高める。参加者が多いほど効果が上がる。,"Raises the attack and defense of all allies. The more participants, the stronger the effect."
 skill.shield_wall.desc,一列に並んだ参加者の防御を高める。参加者が多いほど効果が上がる。他の味方には乗らない。,"Raises the defense of the members standing in line. The more participants, the stronger the effect. Other allies are unaffected."
+skill.counter.desc,隣り合った参加者2体の攻撃を高める。参加者は行動を終えるので、効くのは敵ターンに殴られたときの反撃。他の味方には乗らない。,"Raises the attack of the two adjacent members. They have spent their action, so it applies only when they strike back on the enemy turn. Other allies are unaffected."
 skill.pixie_dust.desc,自分か隣の味方1体の攻撃力・防御力に、発動したピクシーの残兵数×10 を足す。自軍ターン3回ぶん続く。,"Adds 10 × the caster's remaining troops to the Attack and Defense of itself or one adjacent ally. Lasts 3 of your turns."
 skill.purify.desc,自分か隣の味方1体から、掛かっている弱体をすべて取り除く。弱体の無い相手には撃てない。,Removes every debuff from itself or one adjacent ally. Cannot target a unit that has no debuff.
 skill.dread_touch.desc,隣の敵1体の攻撃力・防御力から、発動したゴーストの残兵数×10 を引く。発動側ターン3回ぶん続く。,"Subtracts 10 × the caster's remaining troops from the Attack and Defense of one adjacent enemy. Lasts 3 of the caster's turns."

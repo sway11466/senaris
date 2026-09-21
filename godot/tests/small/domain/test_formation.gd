@@ -1271,3 +1271,112 @@ func test_shield_wall_marks_participants_done() -> void:
 	for pid in [1, 2, 3]:
 		assert_true(s.is_done(pid), "参加者は行動完了（id %d）" % pid)
 	assert_false(s.is_done(20), "列の外の味方は行動を残す")
+
+# --- ⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5）---
+
+## ⑩の成立盤：歩兵2体を隣り合わせに置く（id 1＝発動者・id 2＝相方）。発動者の反対隣に敵1体、
+## 組から離れたところに味方1体（乗らないことの確認用）。
+func _counter_state(skin := "fighter") -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(4, 4)
+	var caster := Unit.new(1, 0, c, 3, 8, 40, 40, 1, skin)
+	var mate := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 40, 40, 1, skin)
+	var outsider := Unit.new(20, 0, Hex.offset_to_axial(9, 6), 3, 8, 40, 40, 1, "fighter")
+	var foe := Unit.new(21, 1, Hex.neighbor(c, 3), 3, 8, 50, 40)
+	for u in [caster, mate, outsider, foe]:
+		s.add_unit(u)
+	return {"s": s, "caster": caster, "mate": mate, "outsider": outsider, "foe": foe}
+
+## 隣り合った歩兵2体で成立し、どちらからでも発動できる。
+func test_counter_pairs_adjacent_infantry() -> void:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	assert_eq(_count(Formation.available_for(s, f["caster"]), "counter"), 1, "発動者から1件")
+	assert_eq(_count(Formation.available_for(s, f["mate"]), "counter"), 1, "相方からも1件")
+	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
+	assert_eq(opt.participants.size(), 2, "参加2体")
+	assert_false(opt.needs_target(), "着弾が無い＝対象指定は要らない")
+
+## 人数は2体で固定＝3体目が隣に居ても参加しない。代わりに組が2通りになる（どちらと組むかを選ぶ）。
+func test_counter_takes_only_two_participants() -> void:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	s.add_unit(Unit.new(3, 0, Hex.neighbor(f["caster"].pos, 1), 3, 8, 40, 40, 1, "knight"))
+	assert_eq(_count(Formation.available_for(s, f["caster"]), "counter"), 2, "相方ごとに1組＝2通り")
+	for o in Formation.available_for(s, f["caster"]):
+		if o.skill == "counter":
+			assert_eq(o.participants.size(), 2, "3体目が隣に居ても参加者は2体")
+	var c := _choice(Formation.choices_for(s, f["caster"]), "counter")
+	assert_true(c.needs_choice(), "組が複数＝参加者を選ぶ段を挟む")
+	assert_false(c.variable_count, "⑩は人数が固定")
+
+## ノービスは見習い＝発動者にも参加者にもならない（⑤と同じ顔ぶれ）。
+func test_counter_excludes_novice() -> void:
+	var f := _counter_state("novice")
+	assert_eq(_count(Formation.available_for(f["s"], f["caster"]), "counter"), 0,
+		"ノービスの組では成立しない")
+
+## 乗るのは組んだ2体の攻撃だけ。防御は変わらず、組の外の味方にも乗らない（⑤の裏返し）。
+func test_counter_lifts_only_participants_attack() -> void:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
+	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
+	assert_not_null(res, "発動成功")
+	assert_almost_eq(float(res.status["value"]), 1.5, 0.001, "補正は ×1.5（人数では伸びない）")
+	for u in [f["caster"], f["mate"]]:
+		assert_almost_eq(float(s.status_aggregate(u, "attack")["mul"]), 1.5, 0.001,
+			"組んだ駒の攻撃が ×1.5（id %d）" % u.handle)
+		assert_almost_eq(float(s.status_aggregate(u, "defense")["mul"]), 1.0, 0.001,
+			"防御は変わらない（id %d）" % u.handle)
+	assert_almost_eq(float(s.status_aggregate(f["outsider"], "attack")["mul"]), 1.0, 0.001,
+		"組の外の味方には乗らない")
+
+## 参加者は行動完了＝自分からは殴れない（②⑤と同じ）。
+func test_counter_marks_participants_done() -> void:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	assert_true(s.is_done(1) and s.is_done(2), "組んだ2体は行動完了")
+	assert_false(s.is_done(20), "組の外の味方は行動を残す")
+
+## 敵ターンに発動者が殴られたときの反撃。cast=true なら先に⑩を撃っておく。
+func _counter_retaliation_loss(cast: bool) -> int:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	if cast:
+		var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
+		assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	s.end_turn()  # 敵ターンへ＝ここで殴られる
+	var res := s.attack(f["foe"].handle, f["caster"].handle)
+	assert_not_null(res, "敵の近接攻撃が成立")
+	return res.to_attacker.loss
+
+## 効くのは敵ターンの反撃＝殴ってきた敵の損害が増える。詳細 → doc/gdd/formations.md ⑩
+func test_counter_boosts_retaliation() -> void:
+	assert_gt(_counter_retaliation_loss(true), _counter_retaliation_loss(false),
+		"⑩を撃っておくと反撃で敵が失う兵が増える")
+
+## 持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
+func test_counter_lasts_one_round() -> void:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	s.end_turn()  # 敵ターンへ
+	assert_almost_eq(float(s.status_aggregate(f["caster"], "attack")["mul"]), 1.5, 0.001,
+		"敵ターン中はまだ効く")
+	s.end_turn()  # 次の自軍ターンへ＝ここで満了
+	assert_almost_eq(float(s.status_aggregate(f["caster"], "attack")["mul"]), 1.0, 0.001,
+		"次の自軍ターン開始で切れる")
+
+## 敵AIの戦果は「こちらの一撃で相手が失う兵」＝相手の防御しか見ない。⑩は攻撃に乗るので戦果は動かない
+## ＝敵は身構えた2体を避けない（doc/gdd/ai.md 基本方針＝敵AIは陣形スキルの効果を読まない）。
+func test_counter_does_not_move_ai_gain() -> void:
+	var f := _counter_state()
+	var s: BattleState = f["s"]
+	var before := Combat.casualties(s, f["foe"], f["caster"], true)
+	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	assert_eq(Combat.casualties(s, f["foe"], f["caster"], true), before, "戦果は変わらない")

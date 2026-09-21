@@ -164,6 +164,27 @@ const SKILLS := {
 		# カットインの絵は④と同じく発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
 		"cutin_per_caster": true,
 	},
+	"counter": {
+		"name": "カウンター",
+		"category": "buff",
+		# 歩兵（ノービスは見習いのため対象外）＝⑤シールドウォールと同じ顔ぶれ。味方の歩兵スキンが
+		# 増えたらここにも足す＝足し忘れは tests/small/data/test_data_integrity.gd が落とす。
+		"caster_skins": ["fighter", "vanguard", "knight", "dwarf"],
+		"member_skins": ["fighter", "vanguard", "knight", "dwarf"],
+		"shape": "escort",
+		"count": 2,
+		"effect": "buff",
+		# 身構えた2体だけに乗る（⑤と同じ）。人数は2体で固定＝隣に3体目が居ても参加しない（組を選ぶ）。
+		"buff_scope": "participants",
+		"buff_op": "mul",
+		"buff_target": "attack",  # 攻撃だけ（防御は変わらない。⑤の裏返し）
+		# 参加者は行動完了＝自分からは殴れないので、上がった攻撃が効くのは敵ターンの反撃だけ。
+		# 人数で伸びない（2体固定）＝buff_value_per_extra は持たない。詳細 → doc/gdd/formations.md ⑩
+		"buff_value": 1.5,
+		"buff_fx": "counter",  # 盤の見た目（2体の足元の光＝⑤と同じ）。空＝見た目なし
+		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
+		"range_from": "any",  # どちらの駒からでも発動できる（着弾は無いので対象は取らない）
+	},
 	# ユニットスキル＝参加者が発動者だけ(shape="solo")・効果を味方1体に乗せる(buff_scope="unit")。
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md
 	"pixie_dust": {
