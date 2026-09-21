@@ -37,6 +37,17 @@ const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
 const FINISH_STRETCH := 2.2
 const FINISH_CELL_HOLD := 0.5     # 決着の光（本拠占領のとどめ＝1マスだけ長めに光らせる）の居座り
 
+# --- 面に降らせる型のスキル専用（⑥アローレイン）---
+# 共通の「被弾した駒に1枚落とす」ではなく、面の全ヘックスに矢を何本も降らせる。
+# 散らし方は乱数ではなくヘックスと何本目から引いた固定値＝同じ盤なら毎回同じ降り方になる。
+const RAIN_TILES := 1.1        # 矢1本の大きさ（長辺がヘックス幅の何倍か）
+const RAIN_DROP_SEC := 0.22    # 1本の落下時間
+const RAIN_FADE_SEC := 0.12    # 着いてから消えるまで
+const RAIN_RING_SEC := 0.10    # 中心から1輪ぶん外れるごとの遅れ（中心から外へ降る）
+const RAIN_GAP_SEC := 0.07     # 同じヘックスに降る矢どうしの間隔
+const RAIN_JITTER_SEC := 0.05  # 同・間隔の散らし幅
+const RAIN_SCATTER := 0.55     # ヘックス内の落ち先の散らし幅（ヘックス幅に対する割合）
+
 # --- 単体対象のスキル専用（③ディバインジャッジメント・④トリックショット）---
 # 単体対象＝面の広さで見せられないぶん、1発の重さ（絵の大きさと時間）で見せる。
 # 共通の「落として弾ける」より、ため→ゆっくり降りる→立ったまま残る、で長く見せる。
@@ -160,6 +171,13 @@ func play(result: SkillResult, is_locked: bool) -> void:
 		_end_impact()  # 盤面の演出 OFF＝光もフラッシュも出さず、撃たれた後の盤を作り直すだけ
 		_sync_fn.call()
 		return
+	# 面に降らせる型（⑥）は、当たった駒が居なくても雨は降る＝先に分ける。
+	var rain := int(Formation.SKILLS.get(result.skill, {}).get("impact_rain", 0))
+	if rain > 0:
+		var rain_tex := _impact_texture(result.skill)
+		if rain_tex != null:
+			await _play_rain(result, rain_tex, is_locked, rain)
+			return
 	var hits := result.hits
 	if hits.is_empty():
 		await _flash_cells_only(result.cells, is_locked)
@@ -315,6 +333,91 @@ func _spawn_strike(hex: Vector2i, tex: Texture2D, mirror: bool, tiles: float, on
 	tw.tween_property(spr, "scale", Vector3.ONE * STRIKE_OPEN, STRIKE_SEC * stretch)
 	tw.tween_property(spr, "modulate:a", 0.0, STRIKE_SEC * stretch)
 	tw.chain().tween_callback(spr.queue_free)
+
+
+## 面に降らせる型のスキル専用（⑥アローレイン）：面の全ヘックスに矢を per_hex 本ずつ降らせる。
+## 落ちる順は中心から外へ（輪ごと）。被弾した駒は、自分のマスに最初の1本が着いた瞬間に反応する
+## ＝共通シーケンスの「駒に1枚落として1体ずつ送る」は使わない。詳細 → doc/gdd/formations.md ⑥
+func _play_rain(result: SkillResult, tex: Texture2D, is_locked: bool, per_hex: int) -> void:
+	var gen := _impact_gen
+	var st := FINISH_STRETCH if _finisher else 1.0
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)  # 演出中に盤を触らせない（共通シーケンスと同じ流儀）
+	await _wait(HIT_LEAD_SEC)  # 揺れと同時に降らせない＝1つの衝撃に潰れる
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	var center := result.center
+	var victims := {}  # ヘックス → そこで被弾した駒
+	for h in result.hits:
+		victims[h.hex] = h
+	var rings := 0
+	for c in result.cells:
+		rings = maxi(rings, Hex.distance(Vector2i(c), center))
+	# 最後の1本が落ちきるまで＝輪の遅れ＋同ヘックス内の間隔＋散らし＋落下
+	var span := RAIN_RING_SEC * float(rings) + RAIN_GAP_SEC * float(per_hex - 1) 		+ RAIN_JITTER_SEC + RAIN_DROP_SEC
+	var tail := maxf(RAIN_FADE_SEC, HIT_FADE_SEC)
+	_flash_cells(result.cells, HIT_CELL_HOLD + (span + tail) * st)
+	for c in result.cells:
+		var hex := Vector2i(c)
+		if not _in_board_fn.call(hex):
+			continue
+		var ring := float(Hex.distance(hex, center))
+		var hit: SkillHit = victims.get(hex)
+		for i in per_hex:
+			var delay := RAIN_RING_SEC * ring + RAIN_GAP_SEC * float(i) 				+ RAIN_JITTER_SEC * _rain_noise(hex, i, 0)
+			var off := Vector2(_rain_noise(hex, i, 1) - 0.5, _rain_noise(hex, i, 2) - 0.5) 				* (TILE * RAIN_SCATTER)
+			# 駒の反応は1本目が着いた瞬間だけ（3本ぶん反応させると兵数バーを3回組み直す）。
+			var on_land := Callable()
+			if hit != null and i == 0:
+				on_land = func() -> void:
+					if gen == _impact_gen:
+						_land_unit(hit.target_id, hit.killed, st)
+			_spawn_rain_arrow(hex, off, tex, delay * st, on_land, st)
+	await _wait((span + tail) * st)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	_end_impact()
+	_sync_fn.call()
+
+
+## 矢を1本、ヘックスの上から落とす。delay 秒待ってから落ち始め、着いたら on_land（あれば）を
+## 呼んで、その場で短く消える（共通の「開きながら消える」はしない＝矢は弾けない）。
+## off＝ヘックスの中心からの落ち先のずれ（盤の平面上）。
+func _spawn_rain_arrow(hex: Vector2i, off: Vector2, tex: Texture2D, delay: float,
+		on_land: Callable, stretch := 1.0) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
+	spr.render_priority = 6
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (RAIN_TILES * TILE) / maxf(longest, 1.0)
+	var p := Hex.to_pixel(hex, TILE)
+	var land := Vector3(p.x + off.x, _elev_fn.call(hex) + TILE * 0.9,
+		p.y + off.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	spr.position = land + Vector3(0, HIT_DROP_FROM, 0)
+	spr.visible = false  # 出番まで隠す（待っている間ぶら下がって見えない）
+	add_child(spr)
+	var tw := _tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func() -> void: spr.visible = true)
+	tw.tween_property(spr, "position", land, RAIN_DROP_SEC * stretch).set_ease(Tween.EASE_IN)
+	if not on_land.is_null():
+		tw.tween_callback(on_land)
+	tw.tween_property(spr, "modulate:a", 0.0, RAIN_FADE_SEC * stretch)
+	tw.tween_callback(spr.queue_free)
+
+
+## 毎回同じだが規則性の見えない 0〜1 の値。ヘックスの座標・何本目・用途(salt) から引く
+## ＝乱数を使わない。同じ面に撃てば毎回同じ降り方になる（見え方が揺れない）。
+static func _rain_noise(hex: Vector2i, i: int, salt: int) -> float:
+	var h := (hex.x * 73856093) ^ (hex.y * 19349663) ^ (i * 83492791) ^ (salt * 2654435761)
+	h = (h ^ (h >> 13)) * 1274126177
+	return float((h ^ (h >> 16)) & 0xFFFF) / 65535.0
 
 
 ## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵が届いて着弾 → 残光 → 引き。

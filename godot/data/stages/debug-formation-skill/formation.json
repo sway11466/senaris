@@ -22,7 +22,10 @@
         { "type": "archer", "col": 5, "row": 2 },
         { "type": "wizard", "col": 6, "row": 2 },
         { "type": "ninja", "col": 7, "row": 2 },
-        { "type": "thief", "col": 7, "row": 1 }
+        { "type": "thief", "col": 7, "row": 1 },
+        { "type": "archer", "col": 6, "row": 5 },
+        { "type": "hunter", "col": 7, "row": 5 },
+        { "type": "elf", "col": 6, "row": 6 }
       ] }
   ],
   "enemy": [

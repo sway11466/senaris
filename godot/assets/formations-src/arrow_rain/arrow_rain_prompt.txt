@@ -1,0 +1,15 @@
+NOTE: 生成時は同じフォルダの arrow_rain_ref_units.png を参照画像として添付する
+（戦闘立ち絵だけを 4:3 の横長に置いたもの。左からアーチャー・ハンター・エルフ）。
+カットインはスキルごと1枚＝発動者では分けない。
+空に矢の雨は描かない。カットインは「3人が射る瞬間」だけを持ち、降り注ぐ側は盤の着弾エフェクト
+（arrow_rain_impact）が19ヘクスに出す＝同じ情報を2回見せない。
+矢の雨を1枚に入れる版を4回出したが、どれも矢が落下向き（敵の矢が降ってくる絵）に出た。
+文章での向き指定は幾何・短文・場面描写のいずれも通らず、向きの見本画像
+（arrow_rain_ref_arrows.png・Pillow で描いた図）を添えて初めて通ったが、今度は矢が真っ黒な
+シルエットになった。雨を捨てる形で決着。見本画像は記録として残してある。
+
+SUBJECT: Three chibi archers shooting upward into a huge empty sky, seen from a low camera. They stand in a triangle across the lower part of the frame, the nearest one largest. Copy their designs from the reference image — left to right: the archer, the hunter with a crossbow, the elf. Each one has an arrow or bolt nocked and drawn, aimed high above the horizon.
+
+The sky is empty. Nothing flies in it — no arrows, no birds — only a few small clouds. The only arrows in the picture are the ones on their bowstrings and in their quivers.
+
+No glow, no magic. Clear daylight, a low grassy horizon. No enemies, no text, no UI.

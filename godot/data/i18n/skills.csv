@@ -4,6 +4,7 @@ skill.divine_judgment.name,ディバインジャッジメント,Divine Judgment
 skill.grace.name,グレイス,Grace
 skill.trick_shot.name,トリックショット,Trick Shot
 skill.magic_arrow.name,マジックアロー,Magic Arrow
+skill.arrow_rain.name,アローレイン,Arrow Rain
 skill.pixie_dust.name,ピクシーダスト,Pixie Dust
 skill.purify.name,ピュリファイ,Purify
 skill.dread_touch.name,ドレッドタッチ,Dread Touch
@@ -18,6 +19,7 @@ skill.trinity_nova.desc,魔法兵3体が三角に並び、広域の魔法攻撃�
 skill.divine_judgment.desc,パラディンに聖職者2体が隣接し、遠方の敵1体を狙い打つ。,"Two clerics stand beside a Paladin in prayer. Together they strike down a single distant enemy."
 skill.trick_shot.desc,弓兵が、斥候の張り付いた敵1体を射抜く。斥候が見つけた弱点を突くので、相手の防御が半分になる。,"An archer shoots an enemy pinned by a scout. The scout marks the weak point, halving the target's defense."
 skill.magic_arrow.desc,弓兵が、隣の魔法兵の力を矢に乗せて敵1体を射抜く。威力は2体の攻撃力の大きい方＋10、射程は2体の長い方＋1で、相手の防御が半分になる。,"An archer fires an arrow charged by an adjacent spellcaster at a single enemy. Uses the higher Attack of the two plus 10, reaches one hex beyond the longer range of the two, and halves the target's defense."
+skill.arrow_rain.desc,弓兵3体が三角に並び、広い範囲に矢の雨を降らせる。着弾地点から2ヘクス以内の敵味方を巻き込む。,"Three archers form a triangle and rain arrows over a wide area. Hits all units — friend and foe — within two hexes of the blast site."
 skill.grace.desc,5体以上の聖職者が隣接の鎖を組み、味方全体の攻防を高める。参加者が多いほど効果が上がる。,"Five or more clergy form a connected chain, raising the attack and defense of all allies. The more participants, the stronger the effect."
 skill.pixie_dust.desc,自分か隣の味方1体の攻撃力・防御力に、発動したピクシーの残兵数×10 を足す。自軍ターン3回ぶん続く。,"Adds 10 × the caster's remaining troops to the Attack and Defense of itself or one adjacent ally. Lasts 3 of your turns."
 skill.purify.desc,自分か隣の味方1体から、掛かっている弱体をすべて取り除く。弱体の無い相手には撃てない。,Removes every debuff from itself or one adjacent ally. Cannot target a unit that has no debuff.
