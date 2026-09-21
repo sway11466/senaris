@@ -108,14 +108,14 @@ func test_note_skill_empty_id_does_nothing() -> void:
 	var svc := ChronicleService.new(st)
 	svc.begin("tc", BattleState.new(8, 8))
 	svc.note_skill("")
-	assert_eq(st.skills(), {}, "空のスキル id は記録しない")
+	assert_eq(st.skills(), [], "空のスキル id は記録しない")
 
 func test_note_skill_outside_campaign_does_nothing() -> void:
 	var st := _store()
 	var svc := ChronicleService.new(st)
 	svc.begin("", BattleState.new(8, 8))
 	svc.note_skill("trinity_nova")
-	assert_eq(st.skills(), {}, "冒険譚の外ではスキルも記録しない")
+	assert_eq(st.skills(), [], "冒険譚の外ではスキルも記録しない")
 
 # ---------------------------------------------------------------------------
 # flush（盤を離れるときにファイルへ書く）

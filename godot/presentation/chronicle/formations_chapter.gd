@@ -22,7 +22,7 @@ func _card_aspect() -> float:
 func _build() -> void:
 	if _store == null:
 		return
-	var encountered := _store.skills()  # { skill_id: { first: campaign_id } }
+	var encountered := _store.skills()  # 見た skill_id の並び
 	var card_size := _card_size()
 	for group in _grouped_skills():
 		var category: String = group["category"]
@@ -88,12 +88,12 @@ func _hint_face(skill_id: String) -> Control:
 ## 残りは参加者の先頭で代表する（doc/gdd/formations.md 一覧）。
 func _figure_skins(skill_id: String) -> Array:
 	var r: Dictionary = Formation.SKILLS[skill_id]
-	var leaders: Array = r.get("caster_skins", [])
+	var casters: Array = r.get("caster_skins", [])
 	var members: Array = r.get("member_skins", [])
 	var count: int = r.get("count", 1)
 	var out: Array = []
 	for i in count:
-		var pool: Array = leaders if i == 0 else members
+		var pool: Array = casters if i == 0 else members
 		var skin := SkinCatalog.skin_by_id(_skins, String(pool[0]))
 		if skin != null:
 			out.append(skin)
@@ -103,7 +103,7 @@ func _figure_skins(skill_id: String) -> Array:
 # 拡大カード
 # ---------------------------------------------------------------------------
 
-## カットインの絵とレシピの図を並べ、名前（分類）・説明文・効果の表・候補・初出を載せる。
+## カットインの絵とレシピの図を並べ、名前（分類）・説明文・効果の表・候補を載せる。
 func _open_skill_card(skill_id: String) -> void:
 	if not Formation.SKILLS.has(skill_id):
 		return
@@ -138,19 +138,11 @@ func _expanded_sheet(skill_id: String) -> Control:
 	col.add_child(_pairs_grid(_skill_rows(r), 2))
 
 	# 発動者と参加者の候補（図は代表1体なので、候補が複数あることはここで分かる）
-	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_leader"),
+	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_caster"),
 		_skin_names_text(r.get("caster_skins", []))], TavernTheme.INK))
 	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_members"),
 		_skin_names_text(r.get("member_skins", []))], TavernTheme.INK))
 
-	# 初出の冒険譚
-	var entry: Dictionary = _store.skills().get(skill_id, {})
-	var first_campaign := String(entry.get("first", ""))
-	if not first_campaign.is_empty() and _progress != null:
-		var campaign := _progress.campaign(first_campaign)
-		if not campaign.is_empty():
-			col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.first_seen"),
-				tr(String(campaign.get("title", first_campaign)))], TavernTheme.INK_SOFT))
 	return _paper_sheet(hash(skill_id), col)
 
 ## 効果の表＝[[項目, 値], ...]。
@@ -163,7 +155,7 @@ func _skill_rows(r: Dictionary) -> Array:
 	rows.append([tr("ui.chronicle.skill_count"),
 		tr("ui.chronicle.skill_count_min") % count if r.get("shape", "") == "cluster" else str(count)])
 	rows.append([tr("ui.chronicle.skill_from"),
-		tr("ui.chronicle.skill_from_leader") if r.get("range_from", "") == "leader" \
+		tr("ui.chronicle.skill_from_caster") if r.get("range_from", "") == "caster" \
 		else tr("ui.chronicle.skill_from_any")])
 	return rows
 
@@ -184,8 +176,8 @@ func _range_text(r: Dictionary) -> String:
 	if range_val > 0:
 		return str(range_val)
 	match String(r.get("range_from_stats", "")):
-		"leader":
-			return tr("ui.chronicle.skill_range_leader")
+		"caster":
+			return tr("ui.chronicle.skill_range_caster")
 		"max_plus":
 			var plus: int = int(r.get("range_plus", 0))
 			if plus > 0:

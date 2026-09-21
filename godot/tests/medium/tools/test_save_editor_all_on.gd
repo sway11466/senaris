@@ -48,7 +48,6 @@ func test_all_on_records_every_skin_and_skill() -> void:
 	assert_eq(n["skills"], SaveEditorModel.formation_skill_ids().size(), "全陣形スキルを書いた")
 	for skill_id in SaveEditorModel.formation_skill_ids():
 		assert_true(skills.has(skill_id), "スキル: %s" % skill_id)
-		assert_eq(skills[skill_id]["first"], "", "初出の冒険譚は空")
 
 func test_all_on_writes_story_records_from_manifest() -> void:
 	# 冒険譚1はクロニクルのマニフェスト（data/chronicle）を持つ＝全ステージに開始時・クリア後の記録と、

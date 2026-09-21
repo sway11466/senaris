@@ -39,7 +39,7 @@ func note_unit(unit: Unit) -> void:
 func note_skill(skill_id: String) -> void:
 	if not _records() or skill_id.is_empty():
 		return
-	_store.record_skill(skill_id, _campaign_id)
+	_store.record_skill(skill_id)
 
 ## ステージを始めた＝開始時の在籍 actor を足す。同じ顔ぶれの回は畳まれる。
 ## 駒・スキルと違い冒険譚とステージを引数で受ける＝StageOutcome と同じ規約で呼ばれるため。

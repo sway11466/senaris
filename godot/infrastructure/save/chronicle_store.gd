@@ -9,12 +9,12 @@ class_name ChronicleStore
 ## 壊れていれば空で起動し、遊び直せば埋まるだけ。
 
 const FILE := "chronicle.json"  # 置き場は SavePaths が持つ
-const VERSION := 2
+const VERSION := 3
 const OLDEST_SUPPORTED := 1  # v1＝スキンにも初出の冒険譚を持っていた版
 
 var _path: String
-var _skins := {}    # skin_id -> true（出会った id の集合。スキンは初出を持たない）
-var _skills := {}   # skill_id -> { "first": campaign_id }
+var _skins := {}    # skin_id -> true（出会った id の集合）
+var _skills := {}   # skill_id -> true（見た id の集合）
 ## 経験した会話。campaign_id -> { stage_id: { start: [[actor]], clear: [[actor]], events: [id] } }
 ## start / clear は「遊んだ回ごとの在籍 actor の並び」を重複なく溜める＝同じ顔ぶれの回は畳む。
 ## 足していく形にすることで、仲間が「居た回」と「居なかった回」の両方を経験したかが分かる
@@ -38,9 +38,9 @@ func has_skill(skill_id: String) -> bool:
 func skins() -> Array:
 	return _skins.keys()
 
-## 記録済みのスキル一覧（コピー）。
-func skills() -> Dictionary:
-	return _skills.duplicate(true)
+## 記録済みのスキル一覧（コピー）。見た skill_id が並ぶだけ。
+func skills() -> Array:
+	return _skills.keys()
 
 ## スキンを記録する（メモリのみ。save() を呼ぶまでファイルに書かない）。
 ## 新規なら true、既知または空なら false を返す。
@@ -52,10 +52,10 @@ func record_skin(skin_id: String) -> bool:
 	return true
 
 ## スキルを記録する（メモリのみ）。新規なら true。
-func record_skill(skill_id: String, campaign_id: String) -> bool:
+func record_skill(skill_id: String) -> bool:
 	if skill_id.is_empty() or _skills.has(skill_id):
 		return false
-	_skills[skill_id] = { "first": campaign_id }
+	_skills[skill_id] = true
 	_dirty = true
 	return true
 
@@ -105,7 +105,7 @@ func save() -> void:
 	if f == null:
 		push_error("ChronicleStore: 書き込めない: %s" % _path)
 		return
-	var out := { "version": VERSION, "skins": _skins.keys(), "skills": _skills, "stories": _stories }
+	var out := { "version": VERSION, "skins": _skins.keys(), "skills": _skills.keys(), "stories": _stories }
 	f.store_string(JSON.stringify(out, "  "))
 	_dirty = false
 
@@ -122,7 +122,7 @@ func _load() -> void:
 	if data.is_empty():
 		return
 	_load_ids(data.get("skins", []), _skins)
-	_load_map(data.get("skills", {}), _skills)
+	_load_ids(data.get("skills", []), _skills)
 	_load_stories(data.get("stories", {}))
 
 ## 旧版を現行の形に直してから読む（doc/tech/gamesystem.md §版と移行）。
@@ -133,23 +133,35 @@ static func _migrate(data: Dictionary) -> Dictionary:
 	if version == 1:
 		out = _v1_to_v2(out)
 		version = 2
+	if version == 2:
+		out = _v2_to_v3(out)
+		version = 3
 	if version != VERSION:
 		push_warning("ChronicleStore: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
 	return out
 
 ## v1→v2: スキンが持っていた初出の冒険譚を捨て、出会った id の並びだけにする。
-## スキル側の初出はそのまま（陣形スキルの章が読む）。
 static func _v1_to_v2(data: Dictionary) -> Dictionary:
 	var out := data.duplicate(true)
+	out["skins"] = _keys_of(data.get("skins", {}))
+	out["version"] = 2
+	return out
+
+## v2→v3: スキルが持っていた初出の冒険譚を捨て、見た id の並びだけにする。
+static func _v2_to_v3(data: Dictionary) -> Dictionary:
+	var out := data.duplicate(true)
+	out["skills"] = _keys_of(data.get("skills", {}))
+	out["version"] = 3
+	return out
+
+## 旧版の { id: 何か } をキーだけの並びにする。
+static func _keys_of(raw: Variant) -> Array:
 	var ids: Array = []
-	var raw: Variant = data.get("skins", {})
 	if typeof(raw) == TYPE_DICTIONARY:
 		for k in raw as Dictionary:
 			ids.append(String(k))
-	out["skins"] = ids
-	out["version"] = 2
-	return out
+	return ids
 
 ## [ id, ... ] の並びを型チェックしながら読む（手編集・破損対策）。
 func _load_ids(raw: Variant, dest: Dictionary) -> void:
@@ -161,16 +173,6 @@ func _load_ids(raw: Variant, dest: Dictionary) -> void:
 		var id := String(v)
 		if not id.is_empty():
 			dest[id] = true
-
-## { id: { "first": campaign_id } } の辞書を型チェックしながら読む（手編集・破損対策）。
-func _load_map(raw: Variant, dest: Dictionary) -> void:
-	if typeof(raw) != TYPE_DICTIONARY:
-		return
-	for k in raw:
-		var v: Variant = raw[k]
-		if typeof(v) != TYPE_DICTIONARY:
-			continue
-		dest[String(k)] = { "first": String((v as Dictionary).get("first", "")) }
 
 ## 経験した会話を型チェックしながら読む（手編集・破損対策）。読めない枝は捨てる。
 func _load_stories(raw: Variant) -> void:

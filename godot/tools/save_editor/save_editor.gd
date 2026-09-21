@@ -128,7 +128,7 @@ func _build_ui() -> void:
 	all_on.pressed.connect(_on_all_on)
 	chron.add_child(all_on)
 	var note := Label.new()
-	note.text = "全スキン・全陣形スキル（初出は空）・物語の記録（マニフェストの全ステージ）。物語の通し読みはクリア済みのステージまで出る＝クリア済みは左の欄で"
+	note.text = "全スキン・全陣形スキル・物語の記録（マニフェストの全ステージ）。物語の通し読みはクリア済みのステージまで出る＝クリア済みは左の欄で"
 	note.modulate = Color(1, 1, 1, 0.55)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL

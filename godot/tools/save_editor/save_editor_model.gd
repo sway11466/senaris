@@ -5,7 +5,7 @@ class_name SaveEditorModel
 ##
 ## - 名簿の候補：ステージから roster_from をさかのぼり、通った各ステージの actor 駒（player の駒と
 ##   拠点の garrison の両方）を初登場の順に並べる。既定は Lv1・満員。
-## - クロニクルの「全部ON」：全スキン・全陣形スキル（初出は空）・物語の記録（マニフェストにある
+## - クロニクルの「全部ON」：全スキン・全陣形スキル・物語の記録（マニフェストにある
 ##   全ステージの開始時／クリア後の在籍と全イベント）を、進捗とクロニクルの両ストアへ書く。
 
 ## roster_from の鎖＝root → stage_id の順のマニフェストのステージ項目。stage_id が無ければ空。
@@ -104,7 +104,7 @@ static func all_on(progress: ProgressStore, chronicle: ChronicleStore, campaigns
 			n_skins += 1
 	var n_skills := 0
 	for skill_id in formation_skill_ids():
-		if chronicle.record_skill(skill_id, ""):
+		if chronicle.record_skill(skill_id):
 			n_skills += 1
 	var n_stages := 0
 	for c in campaigns:

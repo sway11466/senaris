@@ -22,9 +22,9 @@ func _process(_delta: float) -> bool:
 			TranslationServer.set_locale("ja")
 			# 2本だけ解放し、ディバインジャッジメントは未解放の黒塗りを見る
 			_store = ChronicleStore.new("user://chronicle_shot_test.json")
-			_store.record_skill("trinity_nova", "tutorial2-undead-rush")
-			_store.record_skill("grace", "tutorial2-undead-rush")
-			_main._chronicle_screen.open(_store, _main._progress)
+			_store.record_skill("trinity_nova")
+			_store.record_skill("grace")
+			_main._chronicle_screen.open(_store, _main._progress, _main._skins)
 			_main._chronicle_screen._select_chapter(1)
 		40:
 			_shot("user://shot_formations_grid.png")
