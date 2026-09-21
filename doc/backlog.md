@@ -18,14 +18,6 @@
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### feature-135
-
-**クロニクルの陣形スキルのカードに、性能から引く射程を出す**
-- ゴール：トリックショットとマジックアローの拡大カードで、射程が「—」ではなく「発動者の通常射程」「2体の射程上限の長い方＋1」と読める。
-- 背景：カードの効果の表はレシピの固定 `range` だけを読む。射程を参加者の性能から引くレシピ（`range_from_stats`＝トリックショットの "leader"・マジックアローの "max_plus"）は固定値を持たないので「—」になり、射程の無いスキル（グレイス）と区別がつかない。仕様は「効果・射程・持続・人数・発動できる駒」を載せる（[chronicle.md](gdd/chronicle.md) 陣形スキル）。
-- 対応：`_skill_rows` で `range_from_stats` を見て文を選ぶ。"leader" → 「発動者の通常射程」、"max_plus" → 「参加者の射程上限の長い方＋N」（N は `range_plus`）。固定 `range` があればその数、どちらも無ければ「—」のまま。文は `chronicle.csv` に `ui.chronicle.skill_range_leader`／`ui.chronicle.skill_range_max_plus` を足す。
-- 該当：`godot/presentation/chronicle/formations_chapter.gd`・`godot/data/i18n/chronicle.csv`。
-
 ### feature-132
 
 **幕間の印 `damaged` のモチーフを決めて描く**
