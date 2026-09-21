@@ -5,37 +5,37 @@ class_name Formation
 ## Combat と同じく非破壊（盤は書き換えない）＝検出・威力の計算だけを担う。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 ##
-## ①トリニティノヴァ(area)＋③ディバインジャッジメント(single)＝ダメージ系／②グレイス(buff)＝状態補正（乗算・全体・持続）。
+## トリニティノヴァ(area)＋ディバインジャッジメント(single)＝ダメージ系／グレイス(buff)＝状態補正（乗算・全体・持続）。
 ## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
 ## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）を面の各ヘックスに当てる。間接扱い＝反撃を受けない。
 ## - 支援は通常の一撃と同じに乗る＝着弾した駒の周りで数える（対象ごとに値が変わる）。
-## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(caster)の性質を使う（①魔法兵0.5／③聖職0）。
+## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(caster)の性質を使う（トリニティノヴァ＝魔法兵0.5／ディバインジャッジメント＝聖職0）。
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし参加者は全員除外（発動側は自分たちの術で焼けない）。
 ## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は FormationResolver。
 
 ## スキル定義（当面ハードコード。将来 CSV/JSON 化）。
 ## caster_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
-## swap_roles: 2つのリストの役割を入れ替えても組める（⑦＝魔法兵と占領兵のどちらからでも発動でき、
+## swap_roles: 2つのリストの役割を入れ替えても組める（マジックシールド＝魔法兵と占領兵のどちらからでも発動でき、
 ##        必ず両側から1体ずつ。結界の中心は発動者）。省略＝発動者は caster_skins だけ。
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
 ##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
 ##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）／
 ##        "line"（cluster の直線版＝発動者を含む一直線に count 体以上が途切れず連なる）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
-## buff_scope: 補正の掛かる範囲＝"team"（②）／"participants"（⑤⑩）／"unit"（ユニットスキル）／
-##        "zone"（⑦＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
-## pierce_immune: その補正が効いている駒は貫通を受けない（攻撃側の pierce を 0 扱い＝⑦）。
+## buff_scope: 補正の掛かる範囲＝"team"（グレイス）／"participants"（シールドウォール・カウンター）／"unit"（ユニットスキル）／
+##        "zone"（マジックシールド＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
+## pierce_immune: その補正が効いている駒は貫通を受けない（攻撃側の pierce を 0 扱い＝マジックシールド）。
 ## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
 ## impact_rain: 面の全ヘックスに着弾の絵を降らせる本数（1ヘックスあたり）。省略＝0＝被弾した駒に
-##        1枚ずつ落とす共通の形。⑥＝矢の雨。詳細 → doc/gdd/formations.md ⑥
+##        1枚ずつ落とす共通の形。アローレイン＝矢の雨。詳細 → doc/gdd/formations.md アローレイン
 ## range_from: "any"（参加者のどれからでも射程判定）／"caster"（発動者から）。
 ## range_from_stats: 射程を固定値 "range" ではなく参加者の性能から引く（固定の "range" とは排他）。
-##        "caster"（④＝発動者の通常射程・下限〜上限）／"max_plus"（⑨＝参加者の射程上限の最大＋range_plus・下限なし）。
+##        "caster"（トリックショット＝発動者の通常射程・下限〜上限）／"max_plus"（マジックアロー＝参加者の射程上限の最大＋range_plus・下限なし）。
 ## attack_from_stats: 威力のユニット攻撃力を発動者1体ではなく参加者から引く。省略＝発動者（設計原則2）。
-##        "max_plus"（⑨＝参加者の攻撃力の最大＋attack_plus。兵数・レベル・包囲・地形は発動者のもの）。
+##        "max_plus"（マジックアロー＝参加者の攻撃力の最大＋attack_plus。兵数・レベル・包囲・地形は発動者のもの）。
 ## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
 ## 陣形スキルの並びは表Aの行順に揃える＝クロニクルのカードの並び。詳細 → doc/gdd/chronicle.md 陣形スキル
 ## 分類（category）に書ける値＝表Aの「分類」列（弓攻撃／魔法攻撃／特殊攻撃／強化／弱体化／その他／敵）。
@@ -66,7 +66,7 @@ const SKILLS := {
 		"buff_op": "mul",
 		# 最低人数（count）で成立したときの補正。参加者が count を超えた1体ごとに buff_value_per_extra を
 		# 足す＝5体 ×1.30／6体 ×1.35／8体 ×1.45。人数を集めた判断が報われる形（頭数が増えるほど
-		# 消費だけ増える、を避ける）。人数で伸びるのはこのレシピだけ。詳細 → doc/gdd/formations.md ②
+		# 消費だけ増える、を避ける）。人数で伸びるのはこのレシピだけ。詳細 → doc/gdd/formations.md グレイス
 		"buff_value": 1.3,
 		"buff_value_per_extra": 0.05,
 		"buff_fx": "aura",  # 盤全体の見た目（外周から差し込む金の光）。詳細 → doc/gdd/formations.md
@@ -99,7 +99,7 @@ const SKILLS := {
 		"pierce_override": 0.5,
 		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
 		"attack_vs": "target",
-		# 着弾の絵は射手のヘックスから飛んでくる（③の「真上から降りる」と別）。
+		# 着弾の絵は射手のヘックスから飛んでくる（ディバインジャッジメントの「真上から降りる」と別）。
 		"impact_motion": "fly",
 		# カットインの絵は発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
 		# 他のスキルはスキルごと1枚。→ doc/gdd/formations.md 発動の演出
@@ -115,13 +115,13 @@ const SKILLS := {
 		"shape": "line",
 		"count": 3,
 		"effect": "buff",
-		# 列に並んだ参加者だけに乗る（陣営全体の②グレイスと違い、他の味方には効かない）。
+		# 列に並んだ参加者だけに乗る（陣営全体のグレイスと違い、他の味方には効かない）。
 		"buff_scope": "participants",
 		"buff_op": "mul",
 		"buff_target": "defense",  # 防御だけ（攻撃は変わらない）
 		# 最低人数（count）で ×1.15。1体増えるごとに +0.05＝4体 ×1.20／5体 ×1.25。
 		# 効果は薄くてよい＝3体で森（防 ×1.2）に立つ程度。本体は「列から動けない」代償のほう。
-		# 詳細 → doc/gdd/formations.md ⑤
+		# 詳細 → doc/gdd/formations.md シールドウォール
 		"buff_value": 1.15,
 		"buff_value_per_extra": 0.05,
 		"buff_fx": "wall",  # 盤の見た目（列の駒の足元の光）。空＝見た目なし
@@ -131,15 +131,15 @@ const SKILLS := {
 	"arrow_rain": {
 		"name": "アローレイン",
 		"category": "bow",
-		"caster_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外（④と同じ）
+		"caster_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外（トリックショットと同じ）
 		"member_skins": ["archer", "hunter", "elf"],
 		"shape": "triangle",
 		"count": 3,
 		"effect": "area",
-		# 中心＋周囲6＋その外周12＝19ヘクス。①の面（7ヘクス）より一回り広く、参加者以外の味方は焼ける。
+		# 中心＋周囲6＋その外周12＝19ヘクス。トリニティノヴァの面（7ヘクス）より一回り広く、参加者以外の味方は焼ける。
 		"radius": 2,
 		# 射程は発動者の通常射程＝誰が号令をかけるかで届く距離が変わる（アーチャー3／ハンター4／エルフ5）。
-		# 起点は3体のどれからでもよい。詳細 → doc/gdd/formations.md ⑥
+		# 起点は3体のどれからでもよい。詳細 → doc/gdd/formations.md アローレイン
 		"range_from_stats": "caster",
 		"range_from": "any",
 		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
@@ -150,7 +150,7 @@ const SKILLS := {
 	"magic_shield": {
 		"name": "マジックシールド",
 		"category": "buff",
-		"caster_skins": ["wizard", "witch"],  # メイジは見習いのため対象外（①と同じ）
+		"caster_skins": ["wizard", "witch"],  # メイジは見習いのため対象外（トリニティノヴァと同じ）
 		"member_skins": ["cleric", "priest", "bishop", "paladin"],
 		# 魔法兵と占領兵のどちらが発動者でもよい＝役割を入れ替えて組める。2つのリストを1つに
 		# 混ぜないのは、混ぜるとウィザード2体でも組めてしまうため（必ず両側から1体ずつ）。
@@ -159,7 +159,7 @@ const SKILLS := {
 		"count": 2,
 		"effect": "buff",
 		# 発動者を中心とした結界（地帯）に効く＝掛かる相手は発動時の顔ぶれではなく、そのとき
-		# 中に居る味方。入れば効き、出れば切れる。詳細 → doc/gdd/formations.md ⑦
+		# 中に居る味方。入れば効き、出れば切れる。詳細 → doc/gdd/formations.md マジックシールド
 		"buff_scope": "zone",
 		"zone_radius": 1,  # 中心＋周囲6＝7ヘクス
 		"buff_op": "add",  # 実効防御への加算（レベル・包囲・地形の補正は乗らない）
@@ -183,7 +183,7 @@ const SKILLS := {
 		"count": 2,
 		"effect": "single",
 		# 射程は2体の射程上限の長い方＋1（アーチャー／ハンター＋ウィザード＝5、エルフかウィッチが居れば6）。
-		# 下限は無し＝隣接にも撃てる。詳細 → doc/gdd/formations.md ⑨
+		# 下限は無し＝隣接にも撃てる。詳細 → doc/gdd/formations.md マジックアロー
 		"range_from_stats": "max_plus",
 		"range_plus": 1,
 		"range_from": "caster",
@@ -193,28 +193,28 @@ const SKILLS := {
 		"attack_plus": 10,
 		"pierce_override": 0.5,  # 魔法が矢に貫通を持ち寄る
 		"attack_vs": "target",
-		"impact_motion": "fly",  # ④と同じ＝光を纏った矢が射手のヘックスから飛んでくる
-		# カットインの絵は④と同じく発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
+		"impact_motion": "fly",  # トリックショットと同じ＝光を纏った矢が射手のヘックスから飛んでくる
+		# カットインの絵はトリックショットと同じく発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
 		"cutin_per_caster": true,
 	},
 	"counter": {
 		"name": "カウンター",
 		"category": "buff",
-		# 歩兵（ノービスは見習いのため対象外）＝⑤シールドウォールと同じ顔ぶれ。味方の歩兵スキンが
+		# 歩兵（ノービスは見習いのため対象外）＝シールドウォールと同じ顔ぶれ。味方の歩兵スキンが
 		# 増えたらここにも足す＝足し忘れは tests/small/data/test_data_integrity.gd が落とす。
 		"caster_skins": ["fighter", "vanguard", "knight", "dwarf"],
 		"member_skins": ["fighter", "vanguard", "knight", "dwarf"],
 		"shape": "escort",
 		"count": 2,
 		"effect": "buff",
-		# 身構えた2体だけに乗る（⑤と同じ）。人数は2体で固定＝隣に3体目が居ても参加しない（組を選ぶ）。
+		# 身構えた2体だけに乗る（シールドウォールと同じ）。人数は2体で固定＝隣に3体目が居ても参加しない（組を選ぶ）。
 		"buff_scope": "participants",
 		"buff_op": "mul",
-		"buff_target": "attack",  # 攻撃だけ（防御は変わらない。⑤の裏返し）
+		"buff_target": "attack",  # 攻撃だけ（防御は変わらない。シールドウォールの裏返し）
 		# 参加者は行動完了＝自分からは殴れないので、上がった攻撃が効くのは敵ターンの反撃だけ。
-		# 人数で伸びない（2体固定）＝buff_value_per_extra は持たない。詳細 → doc/gdd/formations.md ⑩
+		# 人数で伸びない（2体固定）＝buff_value_per_extra は持たない。詳細 → doc/gdd/formations.md カウンター
 		"buff_value": 1.5,
-		"buff_fx": "counter",  # 盤の見た目（2体の足元の光＝⑤と同じ）。空＝見た目なし
+		"buff_fx": "counter",  # 盤の見た目（2体の足元の光＝シールドウォールと同じ）。空＝見た目なし
 		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
 		"range_from": "any",  # どちらの駒からでも発動できる（着弾は無いので対象は取らない）
 	},
@@ -449,7 +449,7 @@ static func choices_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> A
 ## いま追加で選べる参加者（駒番号）。chosen＝確定済みの参加者（発動者は含めない）。
 ## 人数が固定のスキルは「chosen を含む組の残り」＝1体目を確定すると2体目の候補が絞られる。
 ## 人数が可変のスキルは形を保つ駒だけ＝発動者か確定済みに隣接するものを端から伸ばす
-## （`line`（⑤）が入るときは、ここに一直線の条件が加わる → doc/gdd/formations.md 実装方針）。
+## （`line`（シールドウォール）が入るときは、ここに一直線の条件が加わる → doc/gdd/formations.md 実装方針）。
 static func member_candidates(state: BattleState, choice: FormationChoice, chosen: Array[int],
 		from_hex := NO_HEX) -> Array[int]:
 	var out: Array[int] = []
@@ -459,7 +459,7 @@ static func member_candidates(state: BattleState, choice: FormationChoice, chose
 		var caster := state.unit_any(choice.caster_id)  # 降車先を決めている搭乗駒もありうる
 		if caster == null:
 			return out
-		# 一直線の形（⑤）は「隣接していれば伸ばせる」では足りない＝列の両端の外側だけを出す。
+		# 一直線の形（シールドウォール）は「隣接していれば伸ばせる」では足りない＝列の両端の外側だけを出す。
 		if String(SKILLS[choice.skill].get("shape", "")) == "line":
 			return _line_candidates(state, choice, chosen,
 					caster.pos if from_hex == NO_HEX else from_hex)
@@ -574,16 +574,16 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 		within = caster != null and option.in_range(Hex.distance(caster.pos, target))
 	if not within:
 		return false
-	# ④トリックショット＝着弾先に斥候（相方）が張り付いていること。参加者の形ではなく対象の周りを
-	# 見る唯一の形で、相方は移動しない＝盤の実位置で測る。詳細 → doc/gdd/formations.md ④
+	# トリックショット＝着弾先に斥候（相方）が張り付いていること。参加者の形ではなく対象の周りを
+	# 見る唯一の形で、相方は移動しない＝盤の実位置で測る。詳細 → doc/gdd/formations.md トリックショット
 	if option.shape == FormationOption.Shape.SPOTTER:
 		if option.participants.size() < 2:
 			return false
 		var spotter := state.unit_by_handle(option.participants[1])
 		if spotter == null or Hex.distance(spotter.pos, target) != 1:
 			return false
-	# 単体を狙うスキル（③④）は敵の駒だけを選べる＝空撃ちも同士討ちもさせない。面に巻き込まれるのと
-	# 狙って撃てるのは別で、誤射は面（①⑥）だけの話。詳細 → doc/gdd/formations.md 共通ルール
+	# 単体を狙うスキル（ディバインジャッジメント・トリックショット）は敵の駒だけを選べる＝空撃ちも同士討ちもさせない。面に巻き込まれるのと
+	# 狙って撃てるのは別で、誤射は面（トリニティノヴァ・アローレイン）だけの話。詳細 → doc/gdd/formations.md 共通ルール
 	if option.effect == FormationOption.Effect.SINGLE:
 		var v := _unit_at_assumed(state, caster, from_hex, target)
 		return v != null and caster != null and v.team != caster.team
@@ -599,7 +599,7 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 		if not same_team:
 			return false
 		# 解除（ピュリファイ）は落とすものが無ければ撃てない＝弱体の掛かっていない味方は対象に
-		# ならない。撃てる先が無ければメニューは項目を無効化する。詳細 → doc/gdd/skills.md ③
+		# ならない。撃てる先が無ければメニューは項目を無効化する。詳細 → doc/gdd/skills.md ピュリファイ
 		if option.effect == FormationOption.Effect.CLEANSE:
 			return state.debuff_count(u) > 0
 		return true
@@ -619,7 +619,7 @@ static func targetable_cells(state: BattleState, option: FormationOption, from_h
 			out.append(h)
 	return out
 
-## 参加者が決まる前に着弾先を選ぶスキル（④spotter）で、選べる着弾先。候補の組それぞれで見た
+## 参加者が決まる前に着弾先を選ぶスキル（トリックショット＝spotter）で、選べる着弾先。候補の組それぞれで見た
 ## targetable_cells の和集合＝どれかの斥候で撃てるhexを全部出す。相方は着弾先を選んでから決まる。
 ## 詳細 → doc/gdd/uiux.md 陣形スキルの参加者を選ぶ
 static func choice_targetable_cells(state: BattleState, choice: FormationChoice,
@@ -660,7 +660,7 @@ static func _matches(unit: Unit, skins: Array) -> bool:
 	return key in skins
 
 ## unit がそのスキルの発動者になれるスキンか（形も行動の残りも見ない）。
-## 役割を入れ替えられるレシピ（swap_roles＝⑦マジックシールド）は相方側のスキンでも名乗れる
+## 役割を入れ替えられるレシピ（swap_roles＝マジックシールド）は相方側のスキンでも名乗れる
 ## ＝どちらからでも発動できる。チャージの加算（BattleState._increment_charges）も同じ門を使う。
 static func can_cast_skin(unit: Unit, r: Dictionary) -> bool:
 	if _matches(unit, r["caster_skins"]):
@@ -760,7 +760,7 @@ static func _in_range_cells(state: BattleState, option: FormationOption, from_he
 	var out: Array[Vector2i] = []
 	for o in origins:
 		for h in Hex.within_range(o, rng):
-			# 下限のあるレシピ（④＝弓兵の通常射程）は懐のhexを落とす
+			# 下限のあるレシピ（トリックショット＝弓兵の通常射程）は懐のhexを落とす
 			if not seen.has(h) and state.in_field(h) and option.in_range(Hex.distance(o, h)):
 				seen[h] = true
 				out.append(h)
@@ -779,7 +779,7 @@ static func _adjacent_members(state: BattleState, caster: Unit, r: Dictionary, c
 			cand.append(u)
 	return cand
 
-## ①トリニティノヴァ＝三角形。caster に隣接する候補のうち、互いにも隣接する2体組を全列挙。
+## トリニティノヴァ＝三角形。caster に隣接する候補のうち、互いにも隣接する2体組を全列挙。
 static func _triangle_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
 	var cand := _adjacent_members(state, caster, r, caster_pos)
 	var sets: Array = []
@@ -800,7 +800,7 @@ static func _member_pool(state: BattleState, caster: Unit, r: Dictionary) -> Arr
 			cand.append(u)
 	return cand
 
-## ④トリックショット＝対象の周りを見る形。斥候が「発動者の射程に入っている駒」に張り付いていれば
+## トリックショット＝対象の周りを見る形。斥候が「発動者の射程に入っている駒」に張り付いていれば
 ## 組になる（弓兵と斥候は隣り合わなくてよい）。組は斥候1体ごとに1つで、着弾先はあとから選ぶ。
 ## 発動者は caster_pos に居るものとして射程を測る（移動先のこともある）。
 static func _spotter_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
@@ -826,7 +826,7 @@ static func _spotter_has_mark(state: BattleState, caster: Unit, m: Unit, caster_
 
 ## 発動者を中心に、隣接する count-1 体。メンバー同士の隣接は問わない（発動者を挟んで左右対称でも
 ## 成立する）＝caster に隣接する候補から count-1 体の組を全列挙。
-## ③ディバインジャッジメント＝2体組／⑨マジックアロー＝1体（隣接する魔法兵ごとに1組）。
+## ディバインジャッジメント＝2体組／マジックアロー＝1体（隣接する魔法兵ごとに1組）。
 static func _escort_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
 	var cand := _adjacent_members(state, caster, r, caster_pos)
 	var need := int(r["count"]) - 1
@@ -843,7 +843,7 @@ static func _escort_sets(state: BattleState, caster: Unit, r: Dictionary, caster
 	return sets
 
 ## caster を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
-## ②グレイス＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
+## グレイス＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
 ## caster は caster_pos に居るものとする（移動先のこともある）＝探索は位置で持ち回る。
 static func _cluster(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
 	var seen := {caster.handle: caster}
@@ -862,7 +862,7 @@ static func _cluster(state: BattleState, caster: Unit, r: Dictionary, caster_pos
 		return []
 	return seen.values()
 
-## ⑤シールドウォール＝一直線。発動者の居るヘックスから3軸それぞれに、条件に合う駒が途切れる
+## シールドウォール＝一直線。発動者の居るヘックスから3軸それぞれに、条件に合う駒が途切れる
 ## まで両方向へ伸ばし、発動者を含めて count 体に届いた軸を1本の列として返す。
 ## 戻り＝軸ごとの参加者（発動者は含めない・端から端の並び）。十字なら2本返る。
 ## caster は caster_pos に居るものとする（移動先のこともある）＝_cluster と同じ流儀。
@@ -887,7 +887,7 @@ static func _line_runs(state: BattleState, caster: Unit, r: Dictionary, caster_p
 			runs.append(members)
 	return runs
 
-## ⑤の参加者の候補＝いまの列（発動者＋確定済み）の両端の外側にある駒だけ。
+## シールドウォールの参加者の候補＝いまの列（発動者＋確定済み）の両端の外側にある駒だけ。
 ## 1体も確定していないうちは発動者の隣ぜんぶ＝どの軸へ伸ばすかを1体目が決める。
 ## 途中を飛ばす選び方も、折れ線になる選び方もここで落ちる。
 static func _line_candidates(state: BattleState, choice: FormationChoice, chosen: Array[int],
@@ -941,8 +941,8 @@ static func _formation_hit(state: BattleState, option: FormationOption, victim: 
 ## 通常戦闘（Combat.attack_breakdown）との違いはここに全部書く:
 ##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）。
 ##   支援は victim（着弾した駒）の周りに立つ発動側の駒から集める＝対象ごとに変わる。
-##   矢のレシピ（attack_vs "target"＝④⑥⑨）だけは通常攻撃と同じく相手で対空／対地を切り替える。
-##   ⑨は攻撃力だけを参加者から引く（attack_from_stats）＝兵数・レベル・包囲・地形は発動者のもの。
+##   矢のレシピ（attack_vs "target"＝トリックショット・アローレイン・マジックアロー）だけは通常攻撃と同じく相手で対空／対地を切り替える。
+##   マジックアローは攻撃力だけを参加者から引く（attack_from_stats）＝兵数・レベル・包囲・地形は発動者のもの。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md 設計原則3
 static func _skill_attack_breakdown(state: BattleState, caster: Unit, option: FormationOption,
 		victim: Unit) -> StatBreakdown:
@@ -960,9 +960,9 @@ static func _skill_attack_breakdown(state: BattleState, caster: Unit, option: Fo
 	return b
 
 ## 威力に使うユニット攻撃力（兵1体あたり）。既定は発動者1体の値（設計原則2＝参加者ぶんを合算しない）。
-## ⑨マジックアロー（attack_from_stats "max_plus"）だけは参加者の最大＋attack_plus＝地上ではウィザード
+## マジックアロー（attack_from_stats "max_plus"）だけは参加者の最大＋attack_plus＝地上ではウィザード
 ## 40＋10、空ではエルフ 60＋10 と、相手によって主役が入れ替わる。合算ではないので2人・単体でも壊れない。
-## 対空／対地の切り替え（attack_vs）は参加者それぞれに掛ける。詳細 → doc/gdd/formations.md ⑨
+## 対空／対地の切り替え（attack_vs）は参加者それぞれに掛ける。詳細 → doc/gdd/formations.md マジックアロー
 static func _skill_attack_stat(state: BattleState, caster: Unit, option: FormationOption, victim: Unit) -> int:
 	var by_target := option.attack_vs == "target"
 	var stat := caster.attack_against(victim) if by_target else caster.unit_attack
@@ -979,8 +979,8 @@ static func _skill_attack_stat(state: BattleState, caster: Unit, option: Formati
 ## 通常戦闘（Combat.defense_breakdown）との違いはここに全部書く:
 ##   支援は victim 自身の周りに立つ被弾側の駒から集める（通常戦闘と同じ）。
 ##   貫通はレシピが上書きしていればその値、なければ発動者の pierce。
-##   結界（⑦）の中に居る駒はどちらであっても貫通を受けない＝0 に落とす（貫通を持つ攻撃すべてが対象）。
-## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md ④
+##   結界（マジックシールド）の中に居る駒はどちらであっても貫通を受けない＝0 に落とす（貫通を持つ攻撃すべてが対象）。
+## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md トリックショット
 static func _skill_defense_breakdown(state: BattleState, victim: Unit, caster: Unit,
 		option: FormationOption) -> StatBreakdown:
 	var sf := state.status_aggregate(victim, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}

@@ -123,7 +123,7 @@ func test_impact_finished_emitted_on_empty_hits() -> void:
 	await renderer.play(SkillResult.new(), false)
 	assert_true(called["emitted"], "impact_finished が発行される")
 
-# --- 飛んでくる絵（④）の定数 ---
+# --- 飛んでくる絵（トリックショット）の定数 ---
 
 func test_fly_is_quicker_than_drop() -> void:
 	assert_true(BoardImpactRenderer.FLY_SEC < BoardImpactRenderer.SINGLE_DROP_SEC,

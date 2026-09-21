@@ -41,7 +41,7 @@ func test_only_bow_skills_are_per_caster() -> void:
 # --- 読み込み（置いてある絵と無い絵） ---
 
 func test_load_shared_art_exists() -> void:
-	assert_not_null(FormationCutin.load_art("trinity_nova", "wizard"), "①の絵は置いてある")
+	assert_not_null(FormationCutin.load_art("trinity_nova", "wizard"), "トリニティノヴァの絵は置いてある")
 
 func test_load_unknown_skill_is_null() -> void:
 	assert_null(FormationCutin.load_art("no_such_skill", "archer"), "無い名前は null")

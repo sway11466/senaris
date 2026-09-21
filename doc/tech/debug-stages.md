@@ -57,15 +57,15 @@
 
 | ステージ | ファイル | 目的 | 変更の引き金 |
 | --- | --- | --- | --- |
-| trinity_nova | `debug-formation-skill/trinity_nova.json` | ①トリニティノヴァ（面7ヘクスに敵3体が入る） | ①を変えたとき |
-| grace | `debug-formation-skill/grace.json` | ②グレイス（参加しないファイターで全体バフの乗りを見る） | ②を変えたとき |
-| divine_judgment | `debug-formation-skill/divine_judgment.json` | ③ディバインジャッジメント（射程ちょうど10） | ③を変えたとき |
-| trick_shot | `debug-formation-skill/trick_shot.json` | ④トリックショット（斥候は弓兵に隣接しない） | ④を変えたとき |
-| shield_wall | `debug-formation-skill/shield_wall.json` | ⑤シールドウォール（殴って反撃を受けると防御が見える） | ⑤を変えたとき |
-| arrow_rain | `debug-formation-skill/arrow_rain.json` | ⑥アローレイン（味方1体が面に入る＝誤射） | ⑥を変えたとき |
-| magic_shield | `debug-formation-skill/magic_shield.json` | ⑦マジックシールド（ウィザード＋プリーストが隣接＝どちらからでも。結界の中と外に前衛が1体ずつ、敵は貫通持ちと物理が1体ずつ） | ⑦を変えたとき |
-| magic_arrow | `debug-formation-skill/magic_arrow.json` | ⑨マジックアロー（射程ちょうど5） | ⑨を変えたとき |
-| counter | `debug-formation-skill/counter.json` | ⑩カウンター（発動者の隣に歩兵2体＝組を選ぶ。殴られて反撃すると攻撃が見える） | ⑩を変えたとき |
+| trinity_nova | `debug-formation-skill/trinity_nova.json` | トリニティノヴァ（面7ヘクスに敵3体が入る） | トリニティノヴァを変えたとき |
+| grace | `debug-formation-skill/grace.json` | グレイス（参加しないファイターで全体バフの乗りを見る） | グレイスを変えたとき |
+| divine_judgment | `debug-formation-skill/divine_judgment.json` | ディバインジャッジメント（射程ちょうど10） | ディバインジャッジメントを変えたとき |
+| trick_shot | `debug-formation-skill/trick_shot.json` | トリックショット（斥候は弓兵に隣接しない） | トリックショットを変えたとき |
+| shield_wall | `debug-formation-skill/shield_wall.json` | シールドウォール（殴って反撃を受けると防御が見える） | シールドウォールを変えたとき |
+| arrow_rain | `debug-formation-skill/arrow_rain.json` | アローレイン（味方1体が面に入る＝誤射） | アローレインを変えたとき |
+| magic_shield | `debug-formation-skill/magic_shield.json` | マジックシールド（ウィザード＋プリーストが隣接＝どちらからでも。結界の中と外に前衛が1体ずつ、敵は貫通持ちと物理が1体ずつ） | マジックシールドを変えたとき |
+| magic_arrow | `debug-formation-skill/magic_arrow.json` | マジックアロー（射程ちょうど5） | マジックアローを変えたとき |
+| counter | `debug-formation-skill/counter.json` | カウンター（発動者の隣に歩兵2体＝組を選ぶ。殴られて反撃すると攻撃が見える） | カウンターを変えたとき |
 | members | `debug-formation-skill/members.json` | 参加者を選ぶ段の確認（組が複数／組が1つ／候補が絞られる／人数が可変で候補が余る／可変で最低人数ちょうど／移動先で成立）。スキルをまたぐ話なので1枚にまとめる | 参加者の選び方・形を足したとき |
 
 ## debug-ai（敵AI）

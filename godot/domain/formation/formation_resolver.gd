@@ -38,7 +38,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	if caster != null:
 		out.caster = state.unit_snapshot(caster)
 	match option.effect:
-		# バフ系（②グレイス）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝hits空）。
+		# バフ系（グレイス）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝hits空）。
 		# 損害の出ないレシピの効果表示用に、積んだエントリを result にも載せる（レポートが読む）。
 		FormationOption.Effect.BUFF:
 			var entry := _buff_entry(state, option, target)
@@ -49,20 +49,20 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 				cast.value = float(entry.get("value", 0.0))
 				cast.buff_target = String(entry.get("target", "both"))
 				cast.kind = String(entry.get("kind", StatusMod.KIND_BUFF))
-		# ピュリファイ（③）は積むのではなく落とす。同じく着弾は起きない＝hits空。
+		# ピュリファイは積むのではなく落とす。同じく着弾は起きない＝hits空。
 		FormationOption.Effect.CLEANSE:
 			var cleansed := state.unit_at(target)  # can_target が味方の存在を保証済み
 			if cleansed != null:
 				var dropped := state.clear_debuffs(cleansed)
 				if cast != null:
 					cast.cleansed = dropped
-		# スライムスプリット（⑤）は隣接する空きマスへ発動者の複製を1体置く。
+		# スライムスプリットは隣接する空きマスへ発動者の複製を1体置く。
 		# 着弾・兵数変化は起きない。分裂で出た位置は cells で盤に返す＝光らせる。詳細 → doc/gdd/skills.md
 		FormationOption.Effect.SPAWN:
 			var spawned := state.spawn_unit(option.caster_id)
 			if spawned != null:
 				spawn_cells.append(spawned.pos)
-		# ポイズンスティング（⑥）は補正値を積むのではなく、持続の間ターン開始に兵数を減らすエントリを
+		# ポイズンスティングは補正値を積むのではなく、持続の間ターン開始に兵数を減らすエントリを
 		# 置く。掛けた瞬間には減らない＝最初に減るのは次の対象ターン開始。詳細 → doc/gdd/skills.md
 		FormationOption.Effect.DOT:
 			var dot := _dot_entry(state, option, target)
@@ -117,7 +117,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
 	out.cells = Formation.blast_cells(option, target)
-	out.cells.append_array(spawn_cells)  # 分裂で出た位置も光らせる（→ doc/gdd/skills.md ⑤）
+	out.cells.append_array(spawn_cells)  # 分裂で出た位置も光らせる（→ doc/gdd/skills.md スライムスプリット）
 	out.cast = cast
 	return out
 
@@ -139,7 +139,7 @@ static func _skill_cast(state: BattleState, option: FormationOption, target: Vec
 		c.target = state.unit_snapshot(victim)
 	return c
 
-## 継続ダメージ（⑥ポイズンスティング）の状態補正エントリを組む。値は「1ターンに減る兵数」で、
+## 継続ダメージ（ポイズンスティング）の状態補正エントリを組む。値は「1ターンに減る兵数」で、
 ## 攻防の補正チェーンには参加しない（op が "dot"＝StatusMod.aggregate が読み飛ばす）。持続の数え方と
 ## ピュリファイでの解除は他の弱体と同じ器に相乗りする。詳細 → doc/gdd/skills.md
 static func _dot_entry(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
@@ -156,9 +156,9 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 		"kind": option.buff_kind,
 	}
 
-## バフ系レシピの状態補正エントリを組む。掛かる範囲は4通り＝陣営全体（②グレイス）／参加者だけ
-## （⑤シールドウォール＝列に並んだ駒・⑩カウンター＝隣り合う2体）／対象1体（ユニットスキル＝scope UNIT・target のhexに居る駒。
-## 味方＝ピクシーダスト／敵＝ドレッドタッチ）／地帯（⑦マジックシールド＝発動者を中心とした結界）。
+## バフ系レシピの状態補正エントリを組む。掛かる範囲は4通り＝陣営全体（グレイス）／参加者だけ
+## （シールドウォール＝列に並んだ駒・カウンター＝隣り合う2体）／対象1体（ユニットスキル＝scope UNIT・target のhexに居る駒。
+## 味方＝ピクシーダスト／敵＝ドレッドタッチ）／地帯（マジックシールド＝発動者を中心とした結界）。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 static func _buff_entry(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	# 発動者の兵1人あたりで効くレシピ（ピクシーダスト・ドレッドタッチ）は、発動時の残兵数を掛けて
@@ -168,8 +168,8 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 	if not is_zero_approx(option.buff_value_per_troop):
 		var caster := state.unit_by_handle(option.caster_id)
 		value = option.buff_value_per_troop * float(caster.troops if caster != null else 0)
-	# 参加人数で伸びるレシピ（②グレイス・⑤シールドウォール）は、基準人数（min_count）を超えた
-	# 参加者1体ごとに加算する。②＝5体 ×1.30／6体 ×1.35／8体 ×1.45、⑤＝3体 ×1.15／4体 ×1.20。
+	# 参加人数で伸びるレシピ（グレイス・シールドウォール）は、基準人数（min_count）を超えた
+	# 参加者1体ごとに加算する。グレイス＝5体 ×1.30／6体 ×1.35／8体 ×1.45、シールドウォール＝3体 ×1.15／4体 ×1.20。
 	# 発動時の人数で焼き込む＝以後クラスタや列が崩れても変わらない。
 	if not is_zero_approx(option.buff_value_per_extra):
 		var extra := option.participants.size() - option.min_count
@@ -190,7 +190,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 		e["scope"] = "unit"
 		e["handle"] = u.handle if u != null else -1
 	elif option.scope == FormationOption.Scope.ZONE:
-		# ⑦マジックシールド＝発動者を中心とした結界。ここだけは効く相手を発動時に固めない
+		# マジックシールド＝発動者を中心とした結界。ここだけは効く相手を発動時に固めない
 		# ＝そのとき中に居る味方に効く（入れば効き、出れば切れる）。固めるのは中心と値だけで、
 		# 中心は発動者の位置＝発動者がこのあと動いても結界は動かない。
 		var c := state.unit_by_handle(option.caster_id)
@@ -204,7 +204,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 		if option.pierce_immune:
 			e["pierce_immune"] = true
 	elif option.scope == FormationOption.Scope.PARTICIPANTS:
-		# ⑤シールドウォール＝列に並んだ参加者だけ／⑩カウンター＝組んだ2体だけ。発動時の顔ぶれで
+		# シールドウォール＝列に並んだ参加者だけ／カウンター＝組んだ2体だけ。発動時の顔ぶれで
 		# 固める＝このあと列や組が崩れても、掛かった相手も値も変わらない（人数で伸びる値の焼き込みと同じ流儀）。
 		e["scope"] = "participants"
 		e["handles"] = option.participants.duplicate()

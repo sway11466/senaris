@@ -3,7 +3,7 @@ NOTE: 生成時は同じフォルダの shield_wall_ref_units.png を参照画�
 カットインはスキルごと1枚＝発動者では分けない。
 盾を持つ立ち絵はナイトだけなので、ファイターとヴァンガードは盾以外の構えで壁に加わる。
 光・オーラは描かない（防御バフだが、画の中に光る理由が無い）。効果は盤の足元の光が持つ。
-攻撃系のカットインが縦（光が上へ抜ける）なのに対し、⑤は横に伸びる構図＝一直線の壁そのものを見せる。
+攻撃系のカットインが縦（光が上へ抜ける）なのに対し、シールドウォールは横に伸びる構図＝一直線の壁そのものを見せる。
 
 SUBJECT: Three chibi infantry braced shoulder to shoulder in one straight line facing the camera, seen from a LOW angle so the line looms over the viewer. They fill the lower two thirds of the frame and stand close enough that their shoulders and arms overlap slightly — one unbroken wall of men across the whole width of the picture.
 

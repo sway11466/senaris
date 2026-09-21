@@ -6,55 +6,55 @@
     {
       "id": "trinity_nova",
       "file": "trinity_nova.json",
-      "title": "①トリニティノヴァ",
+      "title": "トリニティノヴァ",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "grace",
       "file": "grace.json",
-      "title": "②グレイス",
+      "title": "グレイス",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "divine_judgment",
       "file": "divine_judgment.json",
-      "title": "③ディバインジャッジメント",
+      "title": "ディバインジャッジメント",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "trick_shot",
       "file": "trick_shot.json",
-      "title": "④トリックショット",
+      "title": "トリックショット",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "shield_wall",
       "file": "shield_wall.json",
-      "title": "⑤シールドウォール",
+      "title": "シールドウォール",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "arrow_rain",
       "file": "arrow_rain.json",
-      "title": "⑥アローレイン",
+      "title": "アローレイン",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "magic_shield",
       "file": "magic_shield.json",
-      "title": "⑦マジックシールド",
+      "title": "マジックシールド",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "magic_arrow",
       "file": "magic_arrow.json",
-      "title": "⑨マジックアロー",
+      "title": "マジックアロー",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "counter",
       "file": "counter.json",
-      "title": "⑩カウンター",
+      "title": "カウンター",
       "synopsis": "デバッグ冒険譚"
     },
     {

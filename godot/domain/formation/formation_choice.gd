@@ -9,7 +9,7 @@ class_name FormationChoice
 var skill: String            ## スキルID（Formation.SKILLS のキー）
 var caster_id: int           ## 発動者の駒番号
 var variable_count: bool     ## 人数が可変か（cluster・line）。false＝固定（member_sets が候補の組）
-## 参加者より先に着弾先を選ぶか（④spotter）。相方は着弾先に隣接する駒の中から決まるので、
+## 参加者より先に着弾先を選ぶか（トリックショット＝spotter）。相方は着弾先に隣接する駒の中から決まるので、
 ## 順が逆になる＝着弾先 → （複数いるときだけ）相方。詳細 → doc/gdd/uiux.md 陣形スキルの参加者を選ぶ
 var target_first: bool
 var min_count: int           ## 成立に要る最低人数（発動者を含む＝SKILLS の "count"）

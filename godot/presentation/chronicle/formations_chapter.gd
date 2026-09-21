@@ -142,7 +142,7 @@ func _expanded_sheet(skill_id: String) -> Control:
 		_shape_text(r)], TavernTheme.INK))
 
 	# 発動者と参加者の候補（図は代表1体なので、候補が複数あることはここで分かる）
-	# 役割を入れ替えられるレシピ（⑦）は相方の側からも撃てる＝発動者の候補に両方を並べる。
+	# 役割を入れ替えられるレシピ（マジックシールド）は相方の側からも撃てる＝発動者の候補に両方を並べる。
 	var casters: Array = r.get("caster_skins", [])
 	if bool(r.get("swap_roles", false)):
 		casters = casters + (r.get("member_skins", []) as Array)

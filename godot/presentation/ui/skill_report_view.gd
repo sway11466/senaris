@@ -158,9 +158,9 @@ func _build_no_damage_lines() -> void:
 		_:
 			_add_line(tr("ui.skillreport.no_hits"))  # 面の中に対象が1体も居ない空撃ち
 
-## バフ・毒の掛かり先。ユニットスキル＝対象1体の名前／②グレイス＝味方全体／
-## ⑤シールドウォール＝参加した人数（掛かるのは列に並んだ駒だけ＝味方全体と読み分ける）／
-## ⑦マジックシールド＝結界の広さ（掛かるのは中に居る味方＝発動時の顔ぶれでは決まらない）。
+## バフ・毒の掛かり先。ユニットスキル＝対象1体の名前／グレイス＝味方全体／
+## シールドウォール＝参加した人数（掛かるのは列に並んだ駒だけ＝味方全体と読み分ける）／
+## マジックシールド＝結界の広さ（掛かるのは中に居る味方＝発動時の顔ぶれでは決まらない）。
 func _buff_target_name(cast: SkillCast) -> String:
 	if cast != null and cast.target != null:
 		return StrikeTable.display_name(_skins, cast.target)

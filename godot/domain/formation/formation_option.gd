@@ -9,11 +9,11 @@ class_name FormationOption
 ## 効果の種類。SKILLS の "effect" と1対1（EFFECT_IDS）。
 enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
-## SPOTTER（④）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
-## LINE（⑤）＝CLUSTER の直線版（隣接連結のうち一直線に連なるものだけ）。
+## SPOTTER（トリックショット）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
+## LINE（シールドウォール）＝CLUSTER の直線版（隣接連結のうち一直線に連なるものだけ）。
 enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER, LINE }
-## 効果の掛かる範囲。陣営全体（グレイス）か、参加者だけ（⑤シールドウォール）か、
-## 対象1体（ユニットスキル）か、地帯（⑦マジックシールド＝発動者中心の結界。掛かる相手は
+## 効果の掛かる範囲。陣営全体（グレイス）か、参加者だけ（シールドウォール）か、
+## 対象1体（ユニットスキル）か、地帯（マジックシールド＝発動者中心の結界。掛かる相手は
 ## 発動時の顔ぶれではなく、そのとき中に居る味方）か。SKILLS の "buff_scope"。
 enum Scope { TEAM, UNIT, PARTICIPANTS, ZONE }
 ## 対象1体のとき、味方に掛けるか敵に掛けるか。SKILLS の "buff_side"。
@@ -48,13 +48,13 @@ var min_range: int            ## 射程下限（ヘックス数）。0＝下限�
 var range_from: RangeFrom
 var radius: int               ## 面攻撃の半径（AREA のみ）
 ## 威力に使うユニット攻撃力の選び方。"ground"＝常に対地値（既定。設計原則3）／"target"＝相手が
-## 飛行なら対空値・地上なら対地値（矢のレシピ＝④⑥⑨の例外）。詳細 → doc/gdd/formations.md 設計原則3
+## 飛行なら対空値・地上なら対地値（矢のレシピ＝トリックショット・アローレイン・マジックアローの例外）。詳細 → doc/gdd/formations.md 設計原則3
 var attack_vs: String
 ## レシピが上書きする防御貫通率。負＝上書きしない（発動者の pierce をそのまま使う）。
-## ④トリックショット＝斥候が見つけた弱点を射抜く 0.5。詳細 → doc/gdd/formations.md ④
+## トリックショット＝斥候が見つけた弱点を射抜く 0.5。詳細 → doc/gdd/formations.md トリックショット
 var pierce_override: float
 ## 威力のユニット攻撃力の引き方。""＝発動者1体の値（既定・設計原則2）／"max_plus"＝参加者の最大＋attack_plus
-## （⑨マジックアロー＝2体の大きい方＋10。合算はしない）。詳細 → doc/gdd/formations.md ⑨
+## （マジックアロー＝2体の大きい方＋10。合算はしない）。詳細 → doc/gdd/formations.md マジックアロー
 var attack_from_stats: String
 var attack_plus: int
 ## 演出シーンで使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる（presentation が解決）。
@@ -74,7 +74,7 @@ var min_count: int            ## スキルが成立する最低人数（SKILLS �
 var buff_fx: String           ## 盤の見た目。空＝見た目なし
 var buff_target: String       ## "attack" / "defense" / "both"
 var zone_radius: int          ## 結界の半径（Scope.ZONE のみ）。1＝中心＋周囲6の7ヘクス
-## 結界の中の味方が貫通を受けないか（⑦）。攻撃側の pierce を 0 扱いにする＝乗算・加算の外。
+## 結界の中の味方が貫通を受けないか（マジックシールド）。攻撃側の pierce を 0 扱いにする＝乗算・加算の外。
 var pierce_immune: bool
 var duration_turns: int
 var dot_troops: int           ## 対象側のターン開始ごとに減る兵数（DOT のみ）
@@ -98,9 +98,9 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	o.max_range = int(r.get("range", 0))
 	o.min_range = 0
 	# 射程をレシピの固定値ではなく参加者の性能から引くレシピ。固定の "range" とは排他。
-	#   "caster"（④）＝弓兵の通常射程（下限〜上限）がそのままスキルの射程になる。
-	#   "max_plus"（⑨）＝参加者の射程上限の長い方＋range_plus。下限は無し（隣接にも撃てる）。
-	# 詳細 → doc/gdd/formations.md ④⑨
+	#   "caster"（トリックショット）＝弓兵の通常射程（下限〜上限）がそのままスキルの射程になる。
+	#   "max_plus"（マジックアロー）＝参加者の射程上限の長い方＋range_plus。下限は無し（隣接にも撃てる）。
+	# 詳細 → doc/gdd/formations.md トリックショット・マジックアロー
 	match String(r.get("range_from_stats", "")):
 		"caster":
 			o.max_range = units[0].attack_range

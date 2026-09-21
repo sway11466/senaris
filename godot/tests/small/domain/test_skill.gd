@@ -166,7 +166,7 @@ func test_stacking_adds_up() -> void:
 	assert_almost_eq(Combat.attack_breakdown(s, near, foe).total, before + 160.0, 0.001, "+80 が2つで +160")
 
 func test_expires_after_three_rounds() -> void:
-	# 持続は自軍ターン3回ぶん（doc/gdd/skills.md ①）。敵ターンでは減らない。
+	# 持続は自軍ターン3回ぶん（doc/gdd/skills.md ピクシーダスト）。敵ターンでは減らない。
 	var f := _dust_state()
 	var s: BattleState = f["s"]
 	var near: Unit = f["near"]
@@ -184,7 +184,7 @@ func test_expires_after_three_rounds() -> void:
 	s.end_turn()  # 3回ぶん使い切った次の自軍ターン＝満了
 	assert_almost_eq(Combat.attack_breakdown(s, near, foe).total, before, 0.001, "自軍ターン3回ぶんで切れる")
 
-# --- ④ドレッドタッチ（単体弱体・対象は敵）---
+# --- ドレッドタッチ（単体弱体・対象は敵）---
 
 # ゴースト1体＋隣接する敵＋離れた敵＋隣接する味方。caster=ghost(id1)。
 # ゴーストは pixie 性能を借りた別スキン＝skin_id で照合される（→ doc/gdd/skills.md 共通ルール）。
@@ -256,7 +256,7 @@ func test_dread_scales_with_caster_troops() -> void:
 	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), -30.0, 0.001, "防御側も同じ")
 
 func test_dread_expires_after_three_rounds() -> void:
-	# 持続は発動側ターン3回ぶん（doc/gdd/skills.md ④）。相手ターンでは減らない。
+	# 持続は発動側ターン3回ぶん（doc/gdd/skills.md ドレッドタッチ）。相手ターンでは減らない。
 	var f := _dread_state()
 	var s: BattleState = f["s"]
 	var foe: Unit = f["foe"]
@@ -274,7 +274,7 @@ func test_dread_expires_after_three_rounds() -> void:
 	s.end_turn()  # 3回ぶん使い切った次の発動側ターン＝満了
 	assert_almost_eq(Combat.attack_breakdown(s, foe, ghost).total, before, 0.001, "発動側ターン3回ぶんで切れる")
 
-# --- ②ヴェノムファング（単体弱体・係数型）---
+# --- ヴェノムファング（単体弱体・係数型）---
 
 # ロックサーペント1体＋隣接する敵＋離れた敵＋隣接する味方。caster=rock_serpent(id1)。
 func _venom_state() -> Dictionary:
@@ -375,7 +375,7 @@ func test_venom_expires_after_three_rounds() -> void:
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001,
 		"発動側ターン3回ぶんで切れる")
 
-# --- ⑤スライムスプリット（分裂・駒生成）---
+# --- スライムスプリット（分裂・駒生成）---
 
 # スライム1体＋周囲に空きマスがある配置。caster=slime(id1)。
 # スライムは敵（team=1）なので end_turn で敵ターンに進めてから使う。
@@ -452,14 +452,14 @@ func test_split_caster_is_done() -> void:
 	assert_true(s.is_done(f["slime"].handle), "発動者は行動完了")
 
 func test_split_caster_gains_no_level() -> void:
-	# 共通ルール「発動者は Lv+1」の例外＝分裂ではレベルが上がらない。詳細 → doc/gdd/skills.md ⑤
+	# 共通ルール「発動者は Lv+1」の例外＝分裂ではレベルが上がらない。詳細 → doc/gdd/skills.md スライムスプリット
 	var f := _split_state()
 	var s: BattleState = f["s"]
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	assert_eq((f["slime"] as Unit).level, 1, "分裂ではレベルが上がらない")
 
 func test_split_result_cells_hold_spawned_hex() -> void:
-	# 分裂で出た位置は cells で返る＝盤はこれを光らせる（演出シーンは出さない）。詳細 → doc/gdd/skills.md ⑤
+	# 分裂で出た位置は cells で返る＝盤はこれを光らせる（演出シーンは出さない）。詳細 → doc/gdd/skills.md スライムスプリット
 	var f := _split_state()
 	var s: BattleState = f["s"]
 	var result := FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
@@ -517,7 +517,7 @@ func test_split_spawned_counts_for_annihilation() -> void:
 	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
 	assert_eq(s.team_unit_count(1), 2, "敵の駒数が2に増えている")
 
-# --- ③ピュリファイ（有害な補正の解除）---
+# --- ピュリファイ（有害な補正の解除）---
 
 # プリースト＋隣接する味方＋離れた味方＋隣接する敵。caster=priest(id1)。
 func _purify_state() -> Dictionary:
@@ -781,7 +781,7 @@ func test_charge_survives_serialization() -> void:
 	restored.apply_save_diff(s.to_save_diff())
 	assert_eq(restored.get_charge(slime.handle, "slime_split"), 2, "復元後もチャージ量が保たれる")
 
-# --- ⑥ポイズンスティング（継続ダメージ）。詳細 → doc/gdd/skills.md ---
+# --- ポイズンスティング（継続ダメージ）。詳細 → doc/gdd/skills.md ---
 
 # スコーピオン1体（敵team=1）＋隣接する味方2体＋離れた味方＋隣接する仲間の蠍。
 # 発動側を敵にするのは、対象側（プレイヤー）のターン開始で減ることを確かめるため。

@@ -41,9 +41,14 @@ const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周
 const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
-## 結界（⑦マジックシールド）の床。効いている間ずっと敷く＝中か外かが盤で読める。
-## 操作の記号（範囲・プレビュー）より薄い＝選ぶための面ではなく、盤の状態を示す面。
-const COLOR_ZONE := Color(0.70, 0.85, 1.00, 0.14)
+## 結界（マジックシールド）の印＝効果範囲の各ヘックスに重ねる絵。シールドウォールの発動の印と
+## 同じ絵の仕組み（assets/formations/{skill_id}_mark.png）を、駒ではなくヘックスに・引かずに
+## 持続の間ずっと出す形で使う。詳細 → doc/gdd/formations.md マジックシールド
+const ZONE_MARK_TILES := 2.0        # 絵の長辺がヘックス何枚ぶんか（1.0＝タイルの半径。2.0＝ヘックスの幅）
+const ZONE_MARK_ALPHA := 0.85       # 濃さ（シールドウォールの印と同じ）。駒を完全には隠さない
+const ZONE_MARK_STEP_SEC := 0.08    # 張るときの1枚ごとの間隔（左から右へ）
+const ZONE_MARK_RISE_SEC := 0.16    # 開いて出るまで
+const ZONE_MARK_RISE_FROM := 0.55   # 同・開き始めの倍率
 # 着弾演出の定数は BoardImpactRenderer に移設。
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
@@ -71,6 +76,8 @@ var _terrain_renderer: BoardTerrainRenderer  # 地形タイル（タイル・グ
 var _bases_root: Node3D    # 拠点の縁取り・控え数（占領で変わるのでイベントごとに作り直し）
 var _unit_renderer: BoardUnitRenderer  # 駒の描画（立ち絵・影・光・兵数バー・リング・マーカー）
 var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ごとに作り直し）
+var _zone_root: Node3D     # 結界の印（盤の状態が変わったときだけ作り直し＝ホバーでは触らない）
+var _zone_sig := ""        # いま出ている結界の顔ぶれ。変わったときだけ張る演出を出す
 var _impact_renderer: BoardImpactRenderer  # 着弾演出（面の光・被弾フラッシュ・撃破フェード）
 var _overlay_mesh: ArrayMesh      # オーバーレイ用（同形・材質だけ変える）
 var _hexring_mesh: ArrayMesh      # 拠点の縁取り（六角の枠）
@@ -109,7 +116,7 @@ var _choosing_members := false  # 陣形スキルの参加者クリック待ち
 var _choice: FormationChoice = null  # 参加者選び／着弾先選びの対象スキル
 var _chosen: Array[int] = []    # 確定した参加者（発動者を除く・選んだ順）
 var _member_cells := {}         # Vector2i -> handle（いま確定できる候補の駒）
-var _skill_target := INVALID_HEX  # 先に選んだ着弾先（④のように参加者より先に決めるスキル）
+var _skill_target := INVALID_HEX  # 先に選んだ着弾先（トリックショットのように参加者より先に決めるスキル）
 var _menu_pool := {}            # Vector2i -> true（メニューでホバー中のスキルの候補の駒）
 var _menu_focused := -1         # メニューでいまホバー／選択中の項目の添字（-1＝無し）
 # 着弾演出の状態は BoardImpactRenderer に移設。
@@ -151,6 +158,7 @@ func _ready() -> void:
 	_bases_root = Node3D.new(); add_child(_bases_root)
 	_unit_renderer = BoardUnitRenderer.new(); add_child(_unit_renderer)
 	_overlay_root = Node3D.new(); add_child(_overlay_root)
+	_zone_root = Node3D.new(); add_child(_zone_root)
 	_impact_renderer = BoardImpactRenderer.new(); add_child(_impact_renderer)
 	_impact_renderer.impact_finished.connect(func() -> void: formation_impact_finished.emit())
 	# コマンドメニュー（Window なのでカメラ変換の影響を受けない）。
@@ -505,7 +513,7 @@ func _on_click(hex: Vector2i) -> void:
 		else:
 			_formation_step_back()
 		return
-	# 陣形の着弾中心クリック待ち: 射程内なら発動（④は相方を決めてから）、それ以外は1段戻る。
+	# 陣形の着弾中心クリック待ち: 射程内なら発動（トリックショットは相方を決めてから）、それ以外は1段戻る。
 	if _choosing_formation:
 		if _formation_cells.has(hex):
 			_confirm_formation_target(hex)
@@ -697,7 +705,7 @@ func _begin_formation(choice: FormationChoice) -> void:
 	_reachable.clear()
 	_targets.clear()
 	if choice.target_first:
-		_enter_formation_target()  # ④＝着弾先が先。相方はそのあと（複数いるときだけ）選ぶ
+		_enter_formation_target()  # トリックショット＝着弾先が先。相方はそのあと（複数いるときだけ）選ぶ
 		return
 	if not choice.needs_choice():
 		_chosen = choice.forced_members()
@@ -711,7 +719,7 @@ func _begin_formation(choice: FormationChoice) -> void:
 func _refresh_member_cells() -> void:
 	_member_cells.clear()
 	if _choice != null:
-		# 着弾先を先に選ぶスキル（④）の候補は「その着弾先を撃てる組の相方」＝対象から引く。
+		# 着弾先を先に選ぶスキル（トリックショット）の候補は「その着弾先を撃てる組の相方」＝対象から引く。
 		var cands := Formation.members_for_target(state, _choice, _skill_target, _skill_from()) 				if _choice.target_first 				else Formation.member_candidates(state, _choice, _chosen, _skill_from())
 		for h in cands:
 			var u := state.unit_by_handle(h)
@@ -741,7 +749,7 @@ func activate_chosen_formation() -> void:
 	_enter_formation_target()
 
 ## 参加者が決まった＝着弾中心クリック待ちモードに入る。射程内hexをハイライトする。
-## 対象を取らないバフ系（②）は即発動（クリック待ちに入らない）。
+## 対象を取らないバフ系（グレイス）は即発動（クリック待ちに入らない）。
 func _enter_formation_target() -> void:
 	_choosing_members = false
 	_member_cells.clear()
@@ -773,7 +781,7 @@ func _enter_formation_target() -> void:
 		_formation_cells[h] = true
 	_sync_overlay()
 
-## 着弾先を確定した。参加者が先に決まっているスキルはそのまま発動、着弾先が先のスキル（④）は
+## 着弾先を確定した。参加者が先に決まっているスキルはそのまま発動、着弾先が先のスキル（トリックショット）は
 ## その対象を撃てる相方を引き、複数いるときだけ相方を選ぶ段へ進む。
 func _confirm_formation_target(hex: Vector2i) -> void:
 	if _choice == null or not _choice.target_first:
@@ -1506,8 +1514,73 @@ func _sync() -> void:
 	_kill_move_tween()
 	_kill_entry_tweens()
 	_unit_renderer.sync_units()
+	_sync_zones()
 	_apply_hidden()
 	_sync_overlay()
+
+## 結界（マジックシールド）の印を、効果範囲のヘックスに1枚ずつ重ねる。シールドウォールの
+## 発動の印と同じ絵（assets/formations/{skill_id}_mark.png）を使い、駒ではなくヘックスに置いて、
+## 引かずに持続の間ずっと出しておく。絵が無ければ何も出さない（規約解決）。
+## 盤の状態が変わるたびに作り直すが、張る演出（左から右へ1枚ずつ開く）は結界の顔ぶれが
+## 変わったときだけ＝駒が動くたびに張り直して見えないようにする。詳細 → doc/gdd/formations.md マジックシールド
+func _sync_zones() -> void:
+	_clear_children(_zone_root)
+	if state == null:
+		_zone_sig = ""
+		return
+	var cells: Array[Vector2i] = []
+	var texes: Array[Texture2D] = []
+	var sig := ""
+	for z in state.status_zones():
+		var tex := _impact_renderer.mark_texture(String(z["skill"]))
+		if tex == null:
+			continue
+		sig += "%s:" % String(z["skill"])
+		for h in z["hexes"]:
+			if not state.in_field(h):
+				continue
+			cells.append(h)
+			texes.append(tex)
+			sig += "%d,%d;" % [h.x, h.y]
+	var fresh := sig != _zone_sig
+	_zone_sig = sig
+	# 張る順は盤の左から右へ＝シールドウォールの印と同じ流儀（成立した順ではない）。
+	var order: Array[int] = []
+	for i in cells.size():
+		order.append(i)
+	order.sort_custom(func(a: int, b: int) -> bool:
+		var pa := Hex.to_pixel(cells[a], TILE)
+		var pb := Hex.to_pixel(cells[b], TILE)
+		return pa.x < pb.x if not is_equal_approx(pa.x, pb.x) else pa.y < pb.y)
+	for step in order.size():
+		var i: int = order[step]
+		_add_zone_mark(cells[i], texes[i], ZONE_MARK_STEP_SEC * float(step) if fresh else -1.0)
+
+## 結界の印を1枚、ヘックスに重ねる。delay が負なら演出なしでその場に置く（作り直し）。
+## 駒より手前に出す（深度判定なし）のはシールドウォールの印と同じ＝結界の中の駒の前に膜が張る。
+func _add_zone_mark(hex: Vector2i, tex: Texture2D, delay: float) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true
+	spr.render_priority = 5  # 着弾の絵・発動の印（6）より下、駒より上
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (ZONE_MARK_TILES * TILE) / maxf(longest, 1.0)
+	var p := Hex.to_pixel(hex, TILE)
+	spr.position = Vector3(p.x, _terrain_renderer.elev(hex) + TILE * 0.9,
+		p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	spr.modulate.a = ZONE_MARK_ALPHA
+	_zone_root.add_child(spr)
+	if delay < 0.0:
+		return
+	spr.scale = Vector3.ONE * ZONE_MARK_RISE_FROM
+	spr.visible = false
+	var tw := create_tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func() -> void: spr.visible = true)
+	tw.tween_property(spr, "scale", Vector3.ONE, ZONE_MARK_RISE_SEC).set_ease(Tween.EASE_OUT)
 
 ## 拠点の所属（六角の縁取り）と控え数。占領で変わるためイベントごとに作り直す。
 func _sync_bases() -> void:
@@ -1553,14 +1626,6 @@ func _sync_overlay() -> void:
 	_unit_renderer.clear_target_markers()  # 実体は _overlay_root の子＝いま消えた。参照を残すと _process が落ちる
 	if state == null:
 		return
-	# 結界の床（⑦マジックシールド）＝操作とは無関係に、効いている間ずっと出す。いちばん下に
-	# 敷いて他の記号を邪魔しない。詳細 → doc/gdd/formations.md ⑦
-	for z in state.status_zones():
-		if String(z["fx"]).is_empty():
-			continue
-		for h in z["hexes"]:
-			if state.in_field(h):
-				_add_cell(h, COLOR_ZONE, 0.015)
 	# 降車中の到達マス＝降車先候補。出撃と同じ紫で描く（通常移動の緑と区別する）。
 	var reach_color := COLOR_DEPLOY if _unload_from != -1 else COLOR_REACH
 	for h in _reachable:

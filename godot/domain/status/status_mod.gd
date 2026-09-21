@@ -9,10 +9,10 @@ class_name StatusMod
 ##   handle: int（scope=="unit" のとき対象ユニット）
 ##   handles: Array[int]（scope=="participants" のとき対象ユニットの集合＝発動に参加した駒だけ。
 ##     発動時の顔ぶれで固める＝以後その駒が動いても列が崩れても、効く相手は変わらない）
-##   q / r / radius: int（scope=="zone" のとき結界の中心hex（axial）と半径。⑦マジックシールド）。
+##   q / r / radius: int（scope=="zone" のとき結界の中心hex（axial）と半径。マジックシールド）。
 ##     効く相手を発動時に固めない唯一のスコープ＝中に居る味方に効く（入れば効き、出れば切れる）。
 ##     中心は Vector2i ではなく整数2つで持つ＝中断セーブ（JSON）をそのまま往復できる。
-##   pierce_immune: bool（この補正が効いている駒は貫通を受けない＝攻撃側の pierce を 0 扱い。⑦）。
+##   pierce_immune: bool（この補正が効いている駒は貫通を受けない＝攻撃側の pierce を 0 扱い。マジックシールド）。
 ##     乗算・加算の外＝集計（aggregate）ではなく combat の貫通の段が pierce_immune() で見る。
 ##   op: "mul" | "add" … 乗算（実効ステータスに係数）／加算（支援と同じ位置）
 ##   target: "attack" | "defense" | "both"
@@ -70,9 +70,9 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 			add += float(m.get("value", 0.0))
 	return {"mul": mul, "add": add}
 
-## unit が貫通無効（⑦マジックシールドの結界の中）か。効いていれば攻撃側の貫通を 0 として扱う。
+## unit が貫通無効（マジックシールドの結界の中）か。効いていれば攻撃側の貫通を 0 として扱う。
 ## 攻防の補正チェーン（aggregate）とは別の段＝乗算・加算では表せないため独立に引く。
-## 詳細 → doc/gdd/formations.md ⑦, doc/gdd/combat.md 補正チェーン
+## 詳細 → doc/gdd/formations.md マジックシールド, doc/gdd/combat.md 補正チェーン
 static func pierce_immune(mods: Array, unit: Unit) -> bool:
 	for m in mods:
 		if bool(m.get("pierce_immune", false)) and applies_to(m, unit):
@@ -133,7 +133,7 @@ static func applies_to(m: Dictionary, unit: Unit) -> bool:
 					return true
 			return false
 		"zone":
-			# 結界（⑦）＝中に居る味方だけ。発動時の顔ぶれではなく、いまの位置で毎回測る
+			# 結界（マジックシールド）＝中に居る味方だけ。発動時の顔ぶれではなく、いまの位置で毎回測る
 			# ＝入れば効き、出れば切れる。敵は同じ面に居ても効かない。
 			if int(m.get("team", -99)) != unit.team:
 				return false

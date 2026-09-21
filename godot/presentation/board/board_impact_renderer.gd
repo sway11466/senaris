@@ -2,8 +2,8 @@ extends Node3D
 class_name BoardImpactRenderer
 ## 陣形スキル／ユニットスキルの着弾演出（hex_board_3d.gd から切り出し）。
 ## 面の光 → 被弾した駒を1体ずつ（エフェクト→フラッシュ→兵数、撃破はフェード）。
-## 単体対象のスキル（③④）だけ専用シーケンス（ため→絵が届く→残光）＝_play_single_target。
-## 絵の届き方はレシピの impact_motion で分かれる＝真上から降りる（③）／射手から飛ぶ（④）。
+## 単体対象のスキル（ディバインジャッジメント・トリックショット）だけ専用シーケンス（ため→絵が届く→残光）＝_play_single_target。
+## 絵の届き方はレシピの impact_motion で分かれる＝真上から降りる（ディバインジャッジメント）／射手から飛ぶ（トリックショット）。
 ## このノード自身が一時的な演出メッシュ（着弾の光・駒に重ねるエフェクト）の入れ物になる。
 ## オーバーレイの作り直しで消えない層＝hex_board_3d の旧 _fx_root に相当する。
 ## 詳細 → doc/gdd/formations.md 発動の演出
@@ -37,7 +37,7 @@ const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
 const FINISH_STRETCH := 2.2
 const FINISH_CELL_HOLD := 0.5     # 決着の光（本拠占領のとどめ＝1マスだけ長めに光らせる）の居座り
 
-# --- 面に降らせる型のスキル専用（⑥アローレイン）---
+# --- 面に降らせる型のスキル専用（アローレイン）---
 # 共通の「被弾した駒に1枚落とす」ではなく、面の全ヘックスに矢を何本も降らせる。
 # 散らし方は乱数ではなくヘックスと何本目から引いた固定値＝同じ盤なら毎回同じ降り方になる。
 const RAIN_TILES := 1.1        # 矢1本の大きさ（長辺がヘックス幅の何倍か）
@@ -48,7 +48,7 @@ const RAIN_GAP_SEC := 0.07     # 同じヘックスに降る矢どうしの間�
 const RAIN_JITTER_SEC := 0.05  # 同・間隔の散らし幅
 const RAIN_SCATTER := 0.55     # ヘックス内の落ち先の散らし幅（ヘックス幅に対する割合）
 
-# --- 発動の印（着弾の無いレシピ専用＝⑤シールドウォール）---
+# --- 発動の印（着弾の無いレシピ専用＝シールドウォール）---
 # 着弾が無いレシピは盤で何も起きないので、誰に効いたのかが読めない。参加者の駒に絵を1枚ずつ
 # 重ねて、端から順に立てて短く消す。盤は解決した時点で更新済み＝印は出来上がった盤の上に乗る。
 const MARK_TILES := 1.25      # 絵の大きさ（長辺がヘックス幅の何倍か）。駒より一回り大きい
@@ -59,7 +59,7 @@ const MARK_RISE_FROM := 0.55  # 同・開き始めの倍率
 const MARK_HOLD_SEC := 0.46   # 置いておく時間
 const MARK_FADE_SEC := 0.30   # 引き
 
-# --- 単体対象のスキル専用（③ディバインジャッジメント・④トリックショット）---
+# --- 単体対象のスキル専用（ディバインジャッジメント・トリックショット）---
 # 単体対象＝面の広さで見せられないぶん、1発の重さ（絵の大きさと時間）で見せる。
 # 共通の「落として弾ける」より、ため→ゆっくり降りる→立ったまま残る、で長く見せる。
 const SINGLE_CHARGE_SEC := 0.30        # ため＝対象ヘクスが光ってから絵が降り始めるまで（狙われた間）
@@ -71,14 +71,14 @@ const SINGLE_WIDTH_TILES := 1.6        # 絵の幅（ヘックス幅の何倍か
 const SINGLE_HOLD_SEC := 0.40          # 着弾後に絵を立たせておく時間（この間に被弾フラッシュ・撃破フェードが進む）
 const SINGLE_FADE_SEC := 0.40          # 絵の引き
 
-# --- 飛んでくる絵（④トリックショット。レシピの impact_motion "fly"）---
-# 射手のヘックスから対象のヘックスへ絵を走らせる。真上から降ろす③と違い、どこから撃ったのかが
+# --- 飛んでくる絵（トリックショット。レシピの impact_motion "fly"）---
+# 射手のヘックスから対象のヘックスへ絵を走らせる。真上から降ろすディバインジャッジメントと違い、どこから撃ったのかが
 # 盤に出る＝供出した弓兵が読める。絵は地面に寝かせて進行方向へ回す（→ doc/gdd/formations.md 発動の演出）。
-const FLY_SEC := 0.26                  # 飛翔時間。矢なので降下（③）より速い＝一瞬で届く
+const FLY_SEC := 0.26                  # 飛翔時間。矢なので降下（ディバインジャッジメント）より速い＝一瞬で届く
 const FLY_ARC := TILE * 0.7            # 弧の高さ（中間で一番高い）。真っ直ぐ滑らせると滑走に見える
 const FLY_HEIGHT := TILE * 0.55        # 地面からの高さ（駒の胸のあたり）
 const FLY_TILES := 1.5                 # 絵の大きさ（長辺がヘックス幅の何倍か）
-const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時間（③の残光より短い）
+const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時間（ディバインジャッジメントの残光より短い）
 
 # --- 戦闘の一撃（戦闘窓を開かない手＝設定「戦闘の演出」の盤面のみ。doc/gdd/settings.md）---
 # 攻撃側の武器エフェクト（戦闘窓と同じ CombatEffect）を盤に出す。矢や投石は攻撃側の駒から被弾側へ
@@ -87,7 +87,7 @@ const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時
 const STRIKE_TILES := 2.0        # 重ねる型の絵の大きさ（scale 1.0 でヘックス幅の何倍か。陣形の着弾と同程度＝盤では小さいと埋もれる）
 const STRIKE_SEC := 0.36         # 同・弾けて消えるまで（戦闘窓の 0.30 より少し長く＝盤では絵が小さい）
 const STRIKE_OPEN := 1.5         # 同・弾ける倍率
-const STRIKE_FLY_TILES := 1.5    # 飛ぶ型の絵の大きさ（長辺がヘックス幅の何倍か。④トリックショットと同じ）
+const STRIKE_FLY_TILES := 1.5    # 飛ぶ型の絵の大きさ（長辺がヘックス幅の何倍か。トリックショットと同じ）
 const COUNTER_GAP_SEC := 0.40    # 着弾から反撃が放たれるまでの間（重ねる型の絵が消える頃）
 const COMBAT_TAIL_SEC := 0.30    # 最後の着弾から盤を作り直すまで（フラッシュ・撃破フェードを見せ切る）
 
@@ -179,14 +179,14 @@ func reset() -> void:
 func play(result: SkillResult, is_locked: bool) -> void:
 	if not _impact_pending:
 		# 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み。誰に効いたのかが
-		# 盤に出ないので、印を持つレシピ（⑤）は参加者に1枚ずつ重ねてから抜ける。
+		# 盤に出ないので、印を持つレシピ（シールドウォール）は参加者に1枚ずつ重ねてから抜ける。
 		await _play_mark(result)
 		return
 	if _skip:
 		_end_impact()  # 盤面の演出 OFF＝光もフラッシュも出さず、撃たれた後の盤を作り直すだけ
 		_sync_fn.call()
 		return
-	# 面に降らせる型（⑥）は、当たった駒が居なくても雨は降る＝先に分ける。
+	# 面に降らせる型（アローレイン）は、当たった駒が居なくても雨は降る＝先に分ける。
 	var rain := int(Formation.SKILLS.get(result.skill, {}).get("impact_rain", 0))
 	if rain > 0:
 		var rain_tex := _impact_texture(result.skill)
@@ -197,7 +197,7 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	if hits.is_empty():
 		await _flash_cells_only(result.cells, is_locked)
 		return
-	# 単体対象のスキル（③④）は共通の3段では見せ場が無いので専用シーケンスへ。判定はレシピの
+	# 単体対象のスキル（ディバインジャッジメント・トリックショット）は共通の3段では見せ場が無いので専用シーケンスへ。判定はレシピの
 	# 効果から引く＝スキルIDを並べない。絵が無ければ共通へ落とす（面の光と被弾フラッシュだけ）。
 	if String(Formation.SKILLS.get(result.skill, {}).get("effect", "")) == "single":
 		var single_tex := _impact_texture(result.skill)
@@ -350,9 +350,9 @@ func _spawn_strike(hex: Vector2i, tex: Texture2D, mirror: bool, tiles: float, on
 	tw.chain().tween_callback(spr.queue_free)
 
 
-## 面に降らせる型のスキル専用（⑥アローレイン）：面の全ヘックスに矢を per_hex 本ずつ降らせる。
+## 面に降らせる型のスキル専用（アローレイン）：面の全ヘックスに矢を per_hex 本ずつ降らせる。
 ## 落ちる順は中心から外へ（輪ごと）。被弾した駒は、自分のマスに最初の1本が着いた瞬間に反応する
-## ＝共通シーケンスの「駒に1枚落として1体ずつ送る」は使わない。詳細 → doc/gdd/formations.md ⑥
+## ＝共通シーケンスの「駒に1枚落として1体ずつ送る」は使わない。詳細 → doc/gdd/formations.md アローレイン
 func _play_rain(result: SkillResult, tex: Texture2D, is_locked: bool, per_hex: int) -> void:
 	var gen := _impact_gen
 	var st := FINISH_STRETCH if _finisher else 1.0
@@ -436,8 +436,8 @@ static func _rain_noise(hex: Vector2i, i: int, salt: int) -> float:
 
 
 ## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵が届いて着弾 → 残光 → 引き。
-## 届き方はレシピの impact_motion で分かれる："drop"（既定・③＝真上からゆっくり降りる）／
-## "fly"（④＝射手のヘックスから飛んでくる）。被弾の処理（フラッシュ・兵数・撃破フェード）は
+## 届き方はレシピの impact_motion で分かれる："drop"（既定・ディバインジャッジメント＝真上からゆっくり降りる）／
+## "fly"（トリックショット＝射手のヘックスから飛んでくる）。被弾の処理（フラッシュ・兵数・撃破フェード）は
 ## どちらも絵が着いた瞬間に共通の _land_hit で起こす。
 func _play_single_target(result: SkillResult, tex: Texture2D, is_locked: bool) -> void:
 	var gen := _impact_gen
@@ -482,7 +482,7 @@ func _fly_motion(result: SkillResult) -> bool:
 
 
 ## 着弾は無いが光らせる面がある（スライムの分裂で出た位置・駒の居ない面への着弾）。
-## 光の立ち上がりを見せてから盤を作り直す＝分裂で出た駒は光の後に現れる（→ doc/gdd/skills.md ⑤）。
+## 光の立ち上がりを見せてから盤を作り直す＝分裂で出た駒は光の後に現れる（→ doc/gdd/skills.md スライムスプリット）。
 ## 面が無いもの（バフ・解除）は光らせず盤を更新するだけ。引きの光は作り直しに重なって消えていく。
 func _flash_cells_only(cells: Array, is_locked: bool) -> void:
 	if cells.is_empty():
@@ -507,12 +507,16 @@ func _flash_cells_only(cells: Array, is_locked: bool) -> void:
 
 ## 着弾の無いレシピの発動の印＝参加者の駒に絵を1枚ずつ重ね、少し置いてから消す。
 ## 出る順は盤の左から右へ（参加者を選んだ順ではない）＝列に沿って1枚ずつ立つように見せる。
-## 絵が無いレシピ（②グレイスほか）は何も出さずに戻る＝呼び出し側で分岐しなくていい。
+## 絵が無いレシピ（グレイスほか）は何も出さずに戻る＝呼び出し側で分岐しなくていい。
 ## 盤面の演出 OFF も出さない。詳細 → doc/gdd/formations.md 発動の演出
 func _play_mark(result: SkillResult) -> void:
 	if _skip or result.participants.is_empty():
 		return
-	var tex := _mark_texture(result.skill)
+	# 地帯（マジックシールド）の印は効果範囲のヘックスに出したまま持続する＝盤（_sync_zones）が
+	# 受け持つ。ここで参加者の駒にも出すと二重になる。詳細 → doc/gdd/formations.md マジックシールド
+	if String(Formation.SKILLS.get(result.skill, {}).get("buff_scope", "")) == "zone":
+		return
+	var tex := mark_texture(result.skill)
 	if tex == null:
 		return
 	var cells: Array[Vector2i] = []
@@ -560,9 +564,10 @@ func _spawn_mark(hex: Vector2i, tex: Texture2D, delay: float) -> void:
 
 
 ## 発動の印の絵（キャッシュ）。スキルIDで規約解決する＝assets/formations/{skill_id}_mark.png。
+## 盤の結界の印（HexBoard3D._sync_zones）も同じ絵を同じ引き方で使う＝置き場を二重に持たない。
 ## カットイン（{skill_id}.png）・着弾（{skill_id}_impact.png）と同じ置き場で接尾辞だけが違う。
 ## 盤では回さない＝絵は正面・直立で描く。無ければ null＝印を出さない。
-func _mark_texture(skill_id: String) -> Texture2D:
+func mark_texture(skill_id: String) -> Texture2D:
 	if skill_id.is_empty():
 		return null
 	if _mark_tex.has(skill_id):

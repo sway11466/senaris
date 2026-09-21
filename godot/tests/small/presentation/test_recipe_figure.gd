@@ -38,7 +38,7 @@ func test_spotter_count_matches_recipe() -> void:
 func test_thief_is_first_member_of_trick_shot() -> void:
 	assert_eq(String(Formation.SKILLS["trick_shot"]["member_skins"][0]), "thief", "図と黒塗りの代表はシーフ")
 
-## ⑤の図は一直線の3つで、発動者が真ん中＝列のどこからでも発動できることが図で読める。
+## シールドウォールの図は一直線の3つで、発動者が真ん中＝列のどこからでも発動できることが図で読める。
 func test_line_layout_is_straight_and_unbroken() -> void:
 	var cells: Array = ChronicleRecipeFigure.LAYOUTS["line"]
 	assert_eq(cells.size(), int(Formation.SKILLS["shield_wall"]["count"]),

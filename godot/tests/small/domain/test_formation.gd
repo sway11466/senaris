@@ -1,5 +1,5 @@
 extends GutTest
-## 陣形スキル（スライスA＝フレームワーク＋①トリニティノヴァ）の検出・威力・適用を検証する。
+## 陣形スキル（スライスA＝フレームワーク＋トリニティノヴァ）の検出・威力・適用を検証する。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/combat.md §2
 
 func _state() -> BattleState:
@@ -79,7 +79,7 @@ func test_no_triangle_when_not_adjacent() -> void:
 		s.add_unit(u)
 	assert_eq(Formation.available_for(s, w1).size(), 0, "三角形にならなければ検出0")
 
-## ①は三角形のまま＝発動者を挟んで左右対称（dir0 と dir3）では成立しない（③との違い）。
+## トリニティノヴァは三角形のまま＝発動者を挟んで左右対称（dir0 と dir3）では成立しない（ディバインジャッジメントとの違い）。
 func test_trinity_nova_rejects_flanking_members() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -137,7 +137,7 @@ func test_triangle_forms_at_move_destination() -> void:
 	assert_not_null(FormationResolver.resolve(s, opt, c + Hex.direction(0) * 3), "移動後に発動できる")
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
-# ②グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。caster=id1。
+# グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。caster=id1。
 func _aria_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
@@ -177,7 +177,7 @@ func _cluster_state(n: int) -> Dictionary:
 	s.add_unit(foe)
 	return {"s": s, "caster": caster, "ally": ally, "foe": foe}
 
-## 補正は参加人数で伸びる＝基準5体 ×1.30、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md ②
+## 補正は参加人数で伸びる＝基準5体 ×1.30、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md グレイス
 func test_grace_value_grows_with_participants() -> void:
 	for pair in [[5, 1.30], [6, 1.35], [8, 1.45]]:
 		var n: int = pair[0]
@@ -214,7 +214,7 @@ func test_grace_needs_five() -> void:
 			caster = u
 	assert_eq(_count(Formation.available_for(s, caster), "grace"), 0, "4体では不成立")
 
-## パラディンも占領兵＝グレイスの頭数に入る（クレリック4＋パラディン1で成立）。詳細 → doc/gdd/formations.md ②
+## パラディンも占領兵＝グレイスの頭数に入る（クレリック4＋パラディン1で成立）。詳細 → doc/gdd/formations.md グレイス
 func test_grace_counts_paladin() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
@@ -291,8 +291,8 @@ func test_grace_lasts_one_round() -> void:
 	s.end_turn()  # 次の自軍ターンへ＝ここで満了
 	assert_almost_eq(Combat.attack_breakdown(s, ally, foe).total, before, 1.0, "次の自軍ターン開始で切れる")
 
-# ③ディバインジャッジメントの成立盤：paladin の周囲に聖職2体＋射程内(距離 enemy_dist)の敵1体。
-# caster=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、③の条件は発動者への隣接だけ。
+# ディバインジャッジメントの成立盤：paladin の周囲に聖職2体＋射程内(距離 enemy_dist)の敵1体。
+# caster=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、ディバインジャッジメントの条件は発動者への隣接だけ。
 func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -321,7 +321,7 @@ func test_divine_judgment_caster_must_be_paladin() -> void:
 	var cleric: Unit = f["s"].unit_by_handle(2)
 	assert_eq(_count(Formation.available_for(f["s"], cleric), "divine_judgment"), 0, "発動者がパラディンでなければ未提示")
 
-## ③は「パラディンを中心に、周囲に聖職2体」＝聖職同士の隣接は問わない。
+## ディバインジャッジメントは「パラディンを中心に、周囲に聖職2体」＝聖職同士の隣接は問わない。
 ## 発動者を挟んで左右（dir0 と dir3）に置く形でも成立する。詳細 → doc/gdd/formations.md
 func test_divine_judgment_allows_flanking_members() -> void:
 	var s := _state()
@@ -621,7 +621,7 @@ func _choice(cs: Array[FormationChoice], skill: String) -> FormationChoice:
 	return null
 
 ## 発動者の周囲3方向（dir0/dir1/dir2）に候補を置いた盤。dir0-dir1・dir1-dir2 は隣接、dir0-dir2 は距離2。
-## ①は三角が2通り（caster+dir0+dir1／caster+dir1+dir2）、③は組が3通りになる。
+## トリニティノヴァは三角が2通り（caster+dir0+dir1／caster+dir1+dir2）、ディバインジャッジメントは組が3通りになる。
 func _fan_state(caster_skin: String, member_skin: String) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(4, 4)
@@ -652,7 +652,7 @@ func test_choice_skipped_when_single_set() -> void:
 	assert_false(c.needs_choice(), "組が1つ＝選ぶ余地が無い")
 	assert_eq(c.forced_members(), [2, 3] as Array[int], "そのまま参加者が決まる")
 
-## ①は1体目を確定すると2体目の候補が絞られる（1体目と組める駒だけ）。
+## トリニティノヴァは1体目を確定すると2体目の候補が絞られる（1体目と組める駒だけ）。
 func test_member_candidates_narrow_after_first_pick() -> void:
 	var f := _fan_state("wizard", "wizard")
 	var s: BattleState = f["s"]
@@ -664,7 +664,7 @@ func test_member_candidates_narrow_after_first_pick() -> void:
 	assert_eq(Formation.member_candidates(s, c, [3] as Array[int]), [2, 4] as Array[int],
 		"dir1 を選んだら両隣が残る")
 
-## ③は発動者への隣接だけを見るので、1体目を確定しても候補は絞られない。
+## ディバインジャッジメントは発動者への隣接だけを見るので、1体目を確定しても候補は絞られない。
 func test_escort_candidates_not_narrowed() -> void:
 	var f := _fan_state("paladin", "cleric")
 	var s: BattleState = f["s"]
@@ -679,12 +679,12 @@ func test_can_activate_fixed_count() -> void:
 	assert_false(Formation.can_activate(c, [2] as Array[int]), "発動者＋1体では足りない")
 	assert_true(Formation.can_activate(c, [2, 3] as Array[int]), "発動者＋2体で発動できる")
 
-## ②は最低人数を超える候補があれば参加者を選ぶ。候補は連結を保つ駒だけ＝端から伸ばす。
+## グレイスは最低人数を超える候補があれば参加者を選ぶ。候補は連結を保つ駒だけ＝端から伸ばす。
 func test_cluster_candidates_keep_connection() -> void:
 	var f := _cluster_state(7)
 	var s: BattleState = f["s"]
 	var c := _choice(Formation.choices_for(s, f["caster"]), "grace")
-	assert_true(c.variable_count, "②は人数が可変")
+	assert_true(c.variable_count, "グレイスは人数が可変")
 	assert_eq(c.pool.size(), 6, "発動者を除く候補は6体")
 	assert_true(c.needs_choice(), "候補が最低人数を超える＝参加者を選ぶ")
 	var none: Array[int] = []
@@ -732,9 +732,9 @@ func test_unit_skill_choice_has_no_members() -> void:
 	assert_false(c.needs_choice(), "単独で撃つ＝選ぶ余地が無い")
 	assert_true(c.forced_members().is_empty(), "参加者は発動者だけ")
 
-# --- ④トリックショット（弓兵＋斥候・貫通0.5・相手で対空／対地）---
+# --- トリックショット（弓兵＋斥候・貫通0.5・相手で対空／対地）---
 
-## ④の成立盤：アーチャー（射程1-3・対地30／対空40）と、そこから距離3の敵、その敵に張り付く
+## トリックショットの成立盤：アーチャー（射程1-3・対地30／対空40）と、そこから距離3の敵、その敵に張り付く
 ## スカウト。弓兵と斥候は隣り合わない＝参加者の形ではなく対象の周りを見る形。
 func _trick_shot_state(enemy_def := 40) -> Dictionary:
 	var s := _state()
@@ -870,9 +870,9 @@ func test_trick_shot_spends_both() -> void:
 	assert_true(s.is_done(1), "弓兵は行動完了")
 	assert_true(s.is_done(2), "斥候も行動完了")
 
-# --- 単体を狙うスキルの対象（③④共通）---
+# --- 単体を狙うスキルの対象（ディバインジャッジメント・トリックショット共通）---
 
-## 単体狙撃が選べるのは敵の駒だけ。面（①）に巻き込まれるのとは別の話。
+## 単体狙撃が選べるのは敵の駒だけ。面（トリニティノヴァ）に巻き込まれるのとは別の話。
 ## 詳細 → doc/gdd/formations.md 共通ルール
 func test_single_cannot_target_ally() -> void:
 	var f := _judgment_state()
@@ -885,7 +885,7 @@ func test_single_cannot_target_ally() -> void:
 	assert_false(ally_hex in cells, "味方は選べない")
 	assert_null(FormationResolver.resolve(s, opt, ally_hex), "味方を指定しても発動しない")
 
-## ④も同じ＝斥候に隣接していても味方は着弾先にならない。
+## トリックショットも同じ＝斥候に隣接していても味方は着弾先にならない。
 func test_trick_shot_cannot_target_ally() -> void:
 	var f := _trick_shot_state()
 	var s: BattleState = f["s"]
@@ -898,9 +898,9 @@ func test_trick_shot_cannot_target_ally() -> void:
 	assert_true(f["enemy_hex"] in cells, "張り付かれた敵は選べる")
 	assert_false(ally_hex in cells, "斥候の隣でも味方は選べない")
 
-# --- ⑥アローレイン（弓兵3体の三角・19ヘクス・発動者の射程・貫通なし・相手で対空／対地）---
+# --- アローレイン（弓兵3体の三角・19ヘクス・発動者の射程・貫通なし・相手で対空／対地）---
 
-## ⑥の成立盤：アーチャー（射程1-3・対地30／対空40）・ハンター（1-4・30／50）・エルフ（1-5・30／60）が
+## アローレインの成立盤：アーチャー（射程1-3・対地30／対空40）・ハンター（1-4・30／50）・エルフ（1-5・30／60）が
 ## 三角形。caster=アーチャー（id1）で、そこから距離3の敵1体。
 func _arrow_rain_state(enemy_def := 40) -> Dictionary:
 	var s := _state()
@@ -948,7 +948,7 @@ func test_arrow_rain_rejects_slinger() -> void:
 	assert_eq(_count(Formation.available_for(s, elf), "arrow_rain"), 0,
 		"スリンガーからは発動できない")
 
-## 面は中心から2ヘクス以内＝19ヘクス（①の7ヘクスより一回り広い）。
+## 面は中心から2ヘクス以内＝19ヘクス（トリニティノヴァの7ヘクスより一回り広い）。
 func test_arrow_rain_blast_is_nineteen_hexes() -> void:
 	var f := _arrow_rain_state()
 	var o := _arrow_rain_option(f)
@@ -973,7 +973,7 @@ func test_arrow_rain_measured_from_any_participant() -> void:
 	var cells := Formation.targetable_cells(s, _arrow_rain_option(f))
 	assert_true(far_hex in cells, "ハンターの位置から測れば射程内＝撃てる")
 
-## 参加者は当たらない・他の味方は当たる（①と同じ）。
+## 参加者は当たらない・他の味方は当たる（トリニティノヴァと同じ）。
 func test_arrow_rain_excludes_participants_not_allies() -> void:
 	var f := _arrow_rain_state()
 	var s: BattleState = f["s"]
@@ -1001,7 +1001,7 @@ func test_arrow_rain_uses_caster_attack_without_pierce() -> void:
 	assert_eq(atk.troops, 5, "兵数は発動者のもの")
 	assert_eq(res.hits[0].loss, expect, "貫通なしで撃った損害")
 
-## 矢のレシピ＝相手が飛行なら対空値（①の対地固定と違う）。
+## 矢のレシピ＝相手が飛行なら対空値（トリニティノヴァの対地固定と違う）。
 func test_arrow_rain_uses_air_attack_vs_aerial() -> void:
 	var f := _arrow_rain_state(40)
 	var s: BattleState = f["s"]
@@ -1022,9 +1022,9 @@ func test_arrow_rain_spends_all_three() -> void:
 	for pid in [1, 2, 3]:
 		assert_true(s.is_done(pid), "参加者は行動完了（id %d）" % pid)
 
-# --- ⑨マジックアロー（弓兵＋魔法兵の隣接・大きい方＋10・貫通0.5・射程は長い方＋1）---
+# --- マジックアロー（弓兵＋魔法兵の隣接・大きい方＋10・貫通0.5・射程は長い方＋1）---
 
-## ⑨の成立盤：アーチャー（射程1-3・対地30／対空40）の隣にウィザード（射程2-4・対地40／対空40）、
+## マジックアローの成立盤：アーチャー（射程1-3・対地30／対空40）の隣にウィザード（射程2-4・対地40／対空40）、
 ## アーチャーから距離3の敵。
 func _magic_arrow_state(enemy_def := 40) -> Dictionary:
 	var s := _state()
@@ -1166,9 +1166,9 @@ func test_magic_arrow_two_casters_offer_choice() -> void:
 	assert_eq(Formation.option_of(s, c, [3] as Array[int]).max_range, 6, "ウィッチを選べば射程6")
 	assert_eq(Formation.option_of(s, c, [2] as Array[int]).max_range, 5, "ウィザードを選べば射程5")
 
-# --- ⑤シールドウォール（ノービス以外の歩兵3体以上の一直線・参加者の防御 ×(1＋0.05×人数)）---
+# --- シールドウォール（ノービス以外の歩兵3体以上の一直線・参加者の防御 ×(1＋0.05×人数)）---
 
-## ⑤の成立盤：歩兵 n 体を軸0に一直線に並べる（id 1..n・先頭が列の端）。
+## シールドウォールの成立盤：歩兵 n 体を軸0に一直線に並べる（id 1..n・先頭が列の端）。
 ## 列から離れた味方（乗らないことの確認用）と、その隣に敵を置く。
 func _wall_state(n: int, skin := "fighter") -> Dictionary:
 	var s := _state()
@@ -1205,7 +1205,7 @@ func test_shield_wall_detected_on_each_axis() -> void:
 		assert_eq(_count(Formation.available_for(s, units[0]), "shield_wall"), 1,
 			"軸%d の一直線・端から発動" % axis)
 
-## 折れ線は一直線ではない＝3体隣り合っていても成立しない（②グレイスとの違い）。
+## 折れ線は一直線ではない＝3体隣り合っていても成立しない（グレイスとの違い）。
 func test_shield_wall_not_offered_when_bent() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(4, 4)
@@ -1249,7 +1249,7 @@ func test_shield_wall_cross_offers_one_option_per_axis() -> void:
 			h += 1
 	assert_eq(_count(Formation.available_for(s, caster), "shield_wall"), 2, "2軸ぶんの列が出る")
 
-## 補正は参加人数で伸びる＝基準3体 ×1.15、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md ⑤
+## 補正は参加人数で伸びる＝基準3体 ×1.15、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md シールドウォール
 func test_shield_wall_value_grows_with_participants() -> void:
 	for pair in [[3, 1.15], [4, 1.20], [5, 1.25]]:
 		var n: int = pair[0]
@@ -1293,7 +1293,7 @@ func test_shield_wall_member_candidates_extend_from_ends() -> void:
 	var s: BattleState = f["s"]
 	var line: Array = f["line"]
 	var c := _choice(Formation.choices_for(s, line[2]), "shield_wall")  # 発動者は真ん中の id 3
-	assert_true(c.variable_count, "⑤は人数が可変")
+	assert_true(c.variable_count, "シールドウォールは人数が可変")
 	var none: Array[int] = []
 	assert_eq(_sorted_ids(Formation.member_candidates(s, c, none)), [2, 4] as Array[int],
 		"はじめは発動者の両隣だけ")
@@ -1304,7 +1304,7 @@ func test_shield_wall_member_candidates_extend_from_ends() -> void:
 	assert_false(Formation.can_activate(c, [2] as Array[int]), "発動者＋1体では足りない")
 	assert_true(Formation.can_activate(c, [2, 4] as Array[int]), "3体に達したら発動できる")
 
-## 参加者は全員行動完了になる（②グレイスと同じ＝1体は1ターンに1つの陣形スキルだけ）。
+## 参加者は全員行動完了になる（グレイスと同じ＝1体は1ターンに1つの陣形スキルだけ）。
 func test_shield_wall_marks_participants_done() -> void:
 	var f := _wall_state(3)
 	var s: BattleState = f["s"]
@@ -1314,9 +1314,9 @@ func test_shield_wall_marks_participants_done() -> void:
 		assert_true(s.is_done(pid), "参加者は行動完了（id %d）" % pid)
 	assert_false(s.is_done(20), "列の外の味方は行動を残す")
 
-# --- ⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5）---
+# --- カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5）---
 
-## ⑩の成立盤：歩兵2体を隣り合わせに置く（id 1＝発動者・id 2＝相方）。発動者の反対隣に敵1体、
+## カウンターの成立盤：歩兵2体を隣り合わせに置く（id 1＝発動者・id 2＝相方）。発動者の反対隣に敵1体、
 ## 組から離れたところに味方1体（乗らないことの確認用）。
 func _counter_state(skin := "fighter") -> Dictionary:
 	var s := _state()
@@ -1350,15 +1350,15 @@ func test_counter_takes_only_two_participants() -> void:
 			assert_eq(o.participants.size(), 2, "3体目が隣に居ても参加者は2体")
 	var c := _choice(Formation.choices_for(s, f["caster"]), "counter")
 	assert_true(c.needs_choice(), "組が複数＝参加者を選ぶ段を挟む")
-	assert_false(c.variable_count, "⑩は人数が固定")
+	assert_false(c.variable_count, "カウンターは人数が固定")
 
-## ノービスは見習い＝発動者にも参加者にもならない（⑤と同じ顔ぶれ）。
+## ノービスは見習い＝発動者にも参加者にもならない（シールドウォールと同じ顔ぶれ）。
 func test_counter_excludes_novice() -> void:
 	var f := _counter_state("novice")
 	assert_eq(_count(Formation.available_for(f["s"], f["caster"]), "counter"), 0,
 		"ノービスの組では成立しない")
 
-## 乗るのは組んだ2体の攻撃だけ。防御は変わらず、組の外の味方にも乗らない（⑤の裏返し）。
+## 乗るのは組んだ2体の攻撃だけ。防御は変わらず、組の外の味方にも乗らない（シールドウォールの裏返し）。
 func test_counter_lifts_only_participants_attack() -> void:
 	var f := _counter_state()
 	var s: BattleState = f["s"]
@@ -1374,7 +1374,7 @@ func test_counter_lifts_only_participants_attack() -> void:
 	assert_almost_eq(float(s.status_aggregate(f["outsider"], "attack")["mul"]), 1.0, 0.001,
 		"組の外の味方には乗らない")
 
-## 参加者は行動完了＝自分からは殴れない（②⑤と同じ）。
+## 参加者は行動完了＝自分からは殴れない（グレイス・シールドウォールと同じ）。
 func test_counter_marks_participants_done() -> void:
 	var f := _counter_state()
 	var s: BattleState = f["s"]
@@ -1383,7 +1383,7 @@ func test_counter_marks_participants_done() -> void:
 	assert_true(s.is_done(1) and s.is_done(2), "組んだ2体は行動完了")
 	assert_false(s.is_done(20), "組の外の味方は行動を残す")
 
-## 敵ターンに発動者が殴られたときの反撃。cast=true なら先に⑩を撃っておく。
+## 敵ターンに発動者が殴られたときの反撃。cast=true なら先にカウンターを撃っておく。
 func _counter_retaliation_loss(cast: bool) -> int:
 	var f := _counter_state()
 	var s: BattleState = f["s"]
@@ -1395,10 +1395,10 @@ func _counter_retaliation_loss(cast: bool) -> int:
 	assert_not_null(res, "敵の近接攻撃が成立")
 	return res.to_attacker.loss
 
-## 効くのは敵ターンの反撃＝殴ってきた敵の損害が増える。詳細 → doc/gdd/formations.md ⑩
+## 効くのは敵ターンの反撃＝殴ってきた敵の損害が増える。詳細 → doc/gdd/formations.md カウンター
 func test_counter_boosts_retaliation() -> void:
 	assert_gt(_counter_retaliation_loss(true), _counter_retaliation_loss(false),
-		"⑩を撃っておくと反撃で敵が失う兵が増える")
+		"カウンターを撃っておくと反撃で敵が失う兵が増える")
 
 ## 持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
 func test_counter_lasts_one_round() -> void:
@@ -1413,7 +1413,7 @@ func test_counter_lasts_one_round() -> void:
 	assert_almost_eq(float(s.status_aggregate(f["caster"], "attack")["mul"]), 1.0, 0.001,
 		"次の自軍ターン開始で切れる")
 
-## 敵AIの戦果は「こちらの一撃で相手が失う兵」＝相手の防御しか見ない。⑩は攻撃に乗るので戦果は動かない
+## 敵AIの戦果は「こちらの一撃で相手が失う兵」＝相手の防御しか見ない。カウンターは攻撃に乗るので戦果は動かない
 ## ＝敵は身構えた2体を避けない（doc/gdd/ai.md 基本方針＝敵AIは陣形スキルの効果を読まない）。
 func test_counter_does_not_move_ai_gain() -> void:
 	var f := _counter_state()
@@ -1423,10 +1423,10 @@ func test_counter_does_not_move_ai_gain() -> void:
 	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
 	assert_eq(Combat.casualties(s, f["foe"], f["caster"]), before, "戦果は変わらない")
 
-# --- ⑦マジックシールド（魔法兵＋占領兵の結界・防御 +10×兵数・貫通無効） ---
+# --- マジックシールド（魔法兵＋占領兵の結界・防御 +10×兵数・貫通無効） ---
 
-## ⑦の成立盤：ウィザード（id1）＋プリースト（id2）が隣接。結界の中に前衛1体（id3）、
-## 外に前衛1体（id20）と貫通持ちの敵1体（id21）。詳細 → doc/gdd/formations.md ⑦
+## マジックシールドの成立盤：ウィザード（id1）＋プリースト（id2）が隣接。結界の中に前衛1体（id3）、
+## 外に前衛1体（id20）と貫通持ちの敵1体（id21）。詳細 → doc/gdd/formations.md マジックシールド
 func _magic_shield_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(4, 4)
@@ -1442,10 +1442,10 @@ func _magic_shield_state() -> Dictionary:
 	return {"s": s, "wiz": wiz, "priest": priest, "inside": inside, "outside": outside,
 		"foe": foe, "center": c}
 
-## ⑦を撃って、積んだ状態補正エントリを返す（撃てなければテストを落とす）。
+## マジックシールドを撃って、積んだ状態補正エントリを返す（撃てなければテストを落とす）。
 func _cast_magic_shield(s: BattleState, caster: Unit) -> Dictionary:
 	var opt := _pick(Formation.available_for(s, caster), "magic_shield")
-	assert_not_null(opt, "⑦が成立している")
+	assert_not_null(opt, "マジックシールドが成立している")
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_not_null(res, "発動成功")
 	return res.status
@@ -1509,7 +1509,7 @@ func test_magic_shield_blocks_pierce() -> void:
 	assert_almost_eq(inside.pierce, 1.0, 0.001, "結界の中は貫通なし（防御が減らない）")
 	assert_almost_eq(outside.pierce, 0.5, 0.001, "結界の外は防御半減のまま")
 
-## 陣形スキルが上書きする貫通（④⑨の 0.5）も結界の中では通らない。
+## 陣形スキルが上書きする貫通（トリックショット・マジックアローの 0.5）も結界の中では通らない。
 func test_magic_shield_blocks_recipe_pierce() -> void:
 	var f := _magic_shield_state()
 	var s: BattleState = f["s"]

@@ -5,13 +5,13 @@ doc/gdd/formations.md 発動の演出。
 
 STYLE は doc/art/units.md §3.4 の EFFECT STYLE を土台に1点だけ差し替えた（差し替えの記録）:
   ・向き＝「右へ向かう一撃」を外し、正面・直立・左右対称にする（飛ぶ絵でも振り抜く絵でもない）。
-  ・構図＝正方形のまま（⑤シールドウォールは盾の形に合わせて縦長にしたが、X字は幅と高さが
+  ・構図＝正方形のまま（シールドウォールは盾の形に合わせて縦長にしたが、X字は幅と高さが
     釣り合うので外さない）。
   ・中心＝「面積の大きい絵は中心を空洞にする」も外さない。交差した細い刃なので、X の内側は
     背景のまま空き、下の駒が透ける。
 
 意匠は特定のユニットに寄せない（紋章や固有の武器を写すと、出た駒によって「誰々の剣」に見える）。
-無紋の直剣2本で描く。⑤が盾なら⑩は交差した剣＝守りと迎え撃ちが対になって読める。
+無紋の直剣2本で描く。シールドウォールが盾ならカウンターは交差した剣＝守りと迎え撃ちが対になって読める。
 火花・光は描かない（発動の時点ではまだ噛み合っていない＝光る理由が無い）。
 
 SUBJECT: TWO plain straight SWORDS crossed in an X, seen straight from the FRONT, standing upright and perfectly left-right symmetrical — the sign that two soldiers have set themselves to strike back.

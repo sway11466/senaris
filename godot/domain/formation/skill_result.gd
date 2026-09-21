@@ -10,7 +10,7 @@ var skill: String                  ## スキルID
 var caster_id: int                 ## 発動者の駒番号
 var caster: UnitSnapshot           ## 発動者（発動前に固める。兵数は動かないので troops_after＝troops_before）
 ## 参加した駒（先頭＝発動者）。着弾の無いレシピが「誰に効いたのか」を盤で見せるのに読む
-## （⑤シールドウォール＝参加者に発動の印を出す）。詳細 → doc/gdd/formations.md 発動の演出
+## （シールドウォール＝参加者に発動の印を出す）。詳細 → doc/gdd/formations.md 発動の演出
 var participants: Array[int] = []
 var center: Vector2i               ## 着弾中心（対象を取らないレシピでは呼び手が渡した値のまま）
 var cells: Array[Vector2i] = []    ## 光らせる面（駒の有無によらない）＋分裂で出た位置

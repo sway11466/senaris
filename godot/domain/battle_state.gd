@@ -96,13 +96,13 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
-## unit が貫通無効（⑦マジックシールドの結界の中）か。combat の貫通の段が読み、効いていれば
-## 攻撃側の貫通を 0 として扱う。詳細 → doc/gdd/formations.md ⑦
+## unit が貫通無効（マジックシールドの結界の中）か。combat の貫通の段が読み、効いていれば
+## 攻撃側の貫通を 0 として扱う。詳細 → doc/gdd/formations.md マジックシールド
 func pierce_immune(unit: Unit) -> bool:
 	return StatusMod.pierce_immune(_status_mods, unit)
 
 ## いま張られている地帯（zone）の一覧＝{hexes, team, fx, skill}。盤が結界の印を重ねるのに読む
-## （持続の間ずっと出す＝中か外かが盤で読める）。詳細 → doc/gdd/formations.md ⑦
+## （持続の間ずっと出す＝中か外かが盤で読める）。詳細 → doc/gdd/formations.md マジックシールド
 func status_zones() -> Array:
 	var out: Array = []
 	for m in _status_mods:
@@ -126,7 +126,7 @@ func debuff_count(unit: Unit) -> int:
 func buff_count(unit: Unit) -> int:
 	return StatusMod.buff_count(_status_mods, unit)
 
-## unit に掛かっている弱体（デバフ）を落とす（③ピュリファイ）。落とした件数を返す。
+## unit に掛かっている弱体（デバフ）を落とす（ピュリファイ）。落とした件数を返す。
 ## 落とすのは kind が debuff で対象1体（scope="unit"）のものだけ＝味方から掛かった
 ## 強化（ピクシーダスト）は残り、陣営全体に掛かった補正を1人のピュリファイで消すこともない。
 ## 詳細 → doc/gdd/skills.md
@@ -162,7 +162,7 @@ func _expire_status_mods() -> void:
 			kept.append(m)
 	_status_mods = kept
 
-## 継続ダメージ（⑥ポイズンスティング）を、ターンが始まった陣営の駒に適用する（end_turn から呼ぶ）。
+## 継続ダメージ（ポイズンスティング）を、ターンが始まった陣営の駒に適用する（end_turn から呼ぶ）。
 ## 減るのは対象側のターン開始時＝掛けられた側が自分の手番の頭で気づける（持続の満了判定が
 ## 発動側ターン開始なのとは別軸）。重ねがけは加算。詳細 → doc/gdd/skills.md
 ##
@@ -1078,7 +1078,7 @@ func _max_unit_id() -> int:
 				m = u.handle
 	return m
 
-## 分裂スキル（⑤スライムスプリット）の実行。発動者の隣接する空きマスへ複製を1体置く。
+## 分裂スキル（スライムスプリット）の実行。発動者の隣接する空きマスへ複製を1体置く。
 ## 空きマスが無ければ null を返す（発動失敗）。呼ぶのは FormationResolver。詳細 → doc/gdd/skills.md
 func spawn_unit(caster_id: int) -> Unit:
 	var caster := unit_by_handle(caster_id)

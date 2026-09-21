@@ -70,7 +70,7 @@ static func attack_breakdown_from(troops: int, stat: int, lv: float, surround: f
 ## 防御ユニット自身(u)の周りに立つ自軍から集める。支援後は素の2倍が上限。
 ## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
 ## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（test_pierce.gd で固定）。
-## 結界（⑦マジックシールド）の中に居る駒は貫通を受けない＝攻撃側の貫通を 0 として渡す。
+## 結界（マジックシールド）の中に居る駒は貫通を受けない＝攻撃側の貫通を 0 として渡す。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit) -> StatBreakdown:
 	var sf := state.status_aggregate(u, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := defense_breakdown_from(
