@@ -37,12 +37,14 @@
 | `magic_bolt` | 魔弾のエフェクト | Sonniss GDC 2026 / 344 Audio - Elemental Palette Designed Vol. 1 `WINDDsgn_Wind, Rush, Whoosh, Long x5 01` | wav 96kHz/24bit | 同上 | 飛翔のみ（0.02〜0.60秒・着弾を落とす）、+6.1 dB。magic_bolt_recipe.txt |
 | `slash_l` | 斬撃（大）のエフェクト | Sonniss GDC 2020 / David Dumais Audio - Weapon Sounds - Weapon Swings `MeleeSwingsPack_96khz_Mono_DesignedSwings12` | wav 96kHz/16bit | 同上 | 切り出しなし、-6.8 dB。slash_l_recipe.txt |
 | `arrow_hit` | 矢の着弾 | Sonniss GDC 2020 / SmartSoundFX – Medieval `BOW Arrow Hit 05` | wav 48kHz/24bit | 同上 | 切り出しなし、-7.6 dB。arrow_hit_recipe.txt |
+| `arrow_rain_hit` | アローレインの着弾（矢と同一素材） | 同上 | 同上 | 同上 | `arrow_hit` を12本ずらして重ねる、-0.5 dB。arrow_rain_hit_recipe.txt |
 | `arrow_bone_hit` | 呪いの矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_bone_hit_recipe.txt |
 | `arrow_bolt_hit` | 太矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_bolt_hit_recipe.txt |
 | `arrow_crossbow_hit` | クロスボウの矢の着弾（矢と同一素材） | 同上 | 同上 | 同上 | 切り出しなし、-7.6 dB。arrow_crossbow_hit_recipe.txt |
 | `stone_hit` | 投石の着弾 | Sonniss GDC 2020 / PMSFX - Rocky Impacts `PM_RI_Source_92 Rocks Impact Hit Single Stone` | wav 192kHz/24bit | 同上 | 切り出しなし、-8.3 dB。stone_hit_recipe.txt |
 | `move_ground` | 足音（重）。ground 系の移動 | Sonniss GDC 2020 / PMSFX - STEPS Dry Grass & Shrubs `PM_SDGS_186 Footstep Step Dry Grass Shrubs Pine Needles Meadow` | wav 192kHz/24bit | 同上 | 切り出しなし、+1.8 dB。move_ground_recipe.txt |
 | `arrow` | 矢の発射 | Sonniss GDC 2019 / Rock The Speakerbox - Melee `MELEE - CK - ROPE WHOOSH Fast Light 01` | wav 96kHz/24bit | 同上 | 6テイク中の6本目（7.465〜8.057秒）、-4.7 dB。arrow_recipe.txt |
+| `arrow_rain` | アローレインの発動（矢と同一素材） | 同上 | 同上 | 同上 | `arrow` を18本ずらして重ね、圧縮を当てる。arrow_rain_recipe.txt |
 | `arrow_bone` | 呪いの矢の発射（矢と同一素材） | 同上 | 同上 | 同上 | 同上、-4.7 dB。arrow_bone_recipe.txt |
 | `stone` | 投石の発射（同ライブラリの別テイク） | 同上 | 同上 | 同上 | 3本目（2.981〜3.754秒）、-2.9 dB。stone_recipe.txt |
 | `arrow_bolt` | 太矢の発射（バリスタ・同ファイルの別テイク） | 同上 | 同上 | 同上 | 4本目（4.575〜5.060秒）、-5.1 dB。arrow_bolt_recipe.txt |

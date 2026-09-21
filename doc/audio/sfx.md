@@ -209,6 +209,7 @@
 | `divine_judgment` | 射程10の単体狙撃 | 遠くまで届く一条。着弾は点で鋭く |
 | `trick_shot` | 弓兵の単体射撃（貫通0.5） | 弓の通常攻撃（`arrow`）と同じ。矢は矢なので描き分けない＝発動・着弾とも複製 |
 | `magic_arrow` | 弓兵が魔法兵の力を乗せた矢で単体射撃（大きい方＋10・貫通0.5） | 発動は弓の発射に魔法の余韻が重なる。着弾は矢の刺さりに小さな魔法の炸裂 |
+| `arrow_rain` | 弓兵3体が19ヘクスに矢を降らせる | 発動は矢が次々に放たれる連なり。着弾は刺さる音が面に散る |
 
 レシピIDは絵と音の共通キーで、`godot/assets/formations/{recipe_id}.png` のカットインと同じIDを使う。素材の無いレシピは無音で進む（発火点カタログに載っていない発火点と同じ扱い）。
 
@@ -413,8 +414,15 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `trick_shot_hit` | `arrow_hit` の複製（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
 | `magic_arrow` | `arrow` と `magic_bolt` の2層（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目に、`WINDDsgn_Wind, Rush, Whoosh, Long x5 01` の飛翔部分を 60ms 遅らせて重ねる） | 2019 p5 / Rock The Speakerbox - Melee ＋ 2026 p1 / 344 Audio - Elemental Palette Designed Vol. 1 |
 | `magic_arrow_hit` | `arrow_hit` と `magic_bolt_hit` の2層（`BOW Arrow Hit 05.wav` に `Magic_Explosion_Short19.wav` を頭を揃えて重ねる） | 2020 p9 / SmartSoundFX – Medieval ＋ 2020 p3 / David Dumais Audio - Magic Sound FX Pack 1 |
+| `arrow_rain` | `arrow` を18本、0.36秒のあいだにずらして重ねる（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目） | 2019 p5 / Rock The Speakerbox - Melee |
+| `arrow_rain_hit` | `arrow_hit` を12本、0.61秒のあいだにずらして重ねる（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
 
 `grace` は外部素材を使わない（澄んだ和音＝MuseScore で自作）。
+
+`arrow_rain` も新しい素材を探さない。「多数の矢が一斉に放たれる」音は Sonniss の索引に無く、弓は単発しか無いため、
+ゲーム内で既に鳴っている1本ぶんの矢（`arrow`／`arrow_hit`）を本数ぶん重ねて作る。同じ音をそのまま重ねると1本の太い音に
+聞こえるので、1本ずつ音程を ±6〜15% ずらし、左右の到達時刻も変え、後ろの矢ほど小さくする。発動側は細い音が重なるだけでは
+体感が小さい（重ねてもピークだけが伸びる）ため、圧縮を当てて密度を上げてから -9 dBFS に合わせる。
 
 `magic_arrow` は新しい素材を探さず、弓の通常攻撃（`arrow`／`arrow_hit`）と魔弾（`magic_bolt`／`magic_bolt_hit`）を層で重ねた。弦の音で「矢」と分かり、魔力の飛翔が重なって通常の弓とも魔弾とも聞き分けられる。層ごとのゲインは元のレシピの値をそのまま使い、重ねた後に1段ゲインを当てて -9 dBFS に寄せる。
 

@@ -146,7 +146,7 @@
 | ③ | `divine_judgment` | ディバインジャッジメント | 味方 | 特殊攻撃 | paladin | cleric／priest／bishop ×2（発動者に隣接） | `escort` | 3 | パラディン | 10 | 済 |
 | ④ | `trick_shot` | トリックショット | 味方 | 弓攻撃 | archer／hunter／elf | thief／halfling／ninja／kunoichi ×1（**対象に隣接**） | `spotter` | 2 | 弓兵 | 弓兵の通常射程（下限〜上限） | 済 |
 | ⑤ | `shield_wall` | シールドウォール | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 | `line`（一直線） | 3以上 | どれからでも | —（参加者） | feature-120 |
-| ⑥ | `arrow_rain` | アローレイン | 味方 | 弓攻撃 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | feature-119 |
+| ⑥ | `arrow_rain` | アローレイン | 味方 | 弓攻撃 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | 済 |
 | ⑦ | `magic_shield` | マジックシールド | 味方 | 強化 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | feature-121 |
 | ⑧ | `backstab` | バックスタブ | 味方 | 特殊攻撃 | thief | 任意 ×1（**対象を挟んで正反対**） | `backstab` | 2 | シーフ | 1 | feature-122 |
 | ⑨ | `magic_arrow` | マジックアロー | 味方 | 魔法攻撃 | archer／hunter／elf | wizard／witch ×1（隣接） | `escort` | 2 | 弓兵 | 2体の射程上限の長い方＋1（下限なし） | 済 |
@@ -240,7 +240,7 @@
 
 - 試算（兵数8同士・包囲なし・1ヘクスあたり）：地上 防20 に6・防40 に3・防70 に1。飛行 防30 に5〜6・防50（竜）にアーチャー3／ハンター4／エルフ5。①は順に 8・6・5／7・6。
 - 撃てるのは [冒険譚3「竜狩り」](../campaign/tutorial3-dragon-hunt.md) st4 以降（ハンター＋アーチャー＋エルフ）。双子の神の一行は弓がエルフ1人なので組めない。教える回は未定。
-- 演出は①と同じ共通の3段（揺れ → 面の光 → 被弾を中心から外へ）。面が広いので、被弾の順送りは外周まで長くなる＝スキップで受ける。
+- 演出は揺れ → 面の光 → 矢の雨。①の「被弾した駒に絵を1枚落として1体ずつ送る」とは別で、面の19ヘックスすべてに矢を3本ずつ降らせる（計57本）。落ちる順は中心から外へ、駒は自分のマスに最初の1本が着いた瞬間に反応する。散らし方はヘックス座標から引いた固定値＝同じ面に撃てば毎回同じ降り方になる。
 
 ### ⑦マジックシールド — 対魔法の結界
 | 項目 | 内容 |
