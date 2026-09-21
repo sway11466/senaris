@@ -1,0 +1,26 @@
+盤の立ち絵と戦闘の奥絵で同じ元絵を使う。1棟の小屋なので別アングルを描き分ける必要がなく、
+盤と戦闘で同じ絵のほうが「同じ場所」と読める。生成は3枚（中立・team0・team1）だけ。
+戦闘用のプロンプトは持たない。
+
+白抜き — 3枚とも _01_raw(jpg) から四隅フラッドフィル（fuzz 7%）→ アルファを1px削ってフリンジを落とす
+（鳥人の里と同じ手順）。トリム後 792x700 / 791x700 / 791x700 ＝ 分岐で造形が据え置かれている。
+magick {n}_01_raw.jpg -alpha set -fuzz 7% -fill none -draw "alpha 0,0 floodfill" -draw "alpha 1023,0 floodfill" -draw "alpha 0,1023 floodfill" -draw "alpha 1023,1023 floodfill" -channel A -morphology Erode Diamond:1 -blur 0x0.5 +channel {n}_03_master.png
+
+盤の駒（立ち絵）— map_scale・object_foot_z は terrain_skin.csv の plain_mountain1_fort_hut1 の行から引く
+（0.8 / 0.45＝詰所と同じ）。_team0/_team1 は末尾を落として同じ行を読む。3枚とも 164x145 で出る。
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_mountain1_fort_hut1 assets\terrain-src\fort_hut1\fort_hut1_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_mountain1_fort_hut1_team0 assets\terrain-src\fort_hut1\fort_hut1_team0_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_mountain1_fort_hut1_team1 assets\terrain-src\fort_hut1\fort_hut1_team1_03_master.png -Object
+
+戦闘の奥絵 — 盤と同じ _03_master をトリムし、左右に透明の余白を足して 3:1 の帯にする。帯は「幅＝窓の半分」で
+置かれ、高さは絵の縦横比が決めるので、1.13:1 のまま置くと高さいっぱいまで拡大されて近景の大きさで出る。
+3:1 は詰所と同じ比で、小屋が帯の幅の 38% を占める（詰所 33%・礼拝堂 47%）。
+magick assets\terrain-src\fort_hut1\fort_hut1_03_master.png -trim +repage -background none -gravity center -extent 2100x700 assets\terrain\plain_mountain1_fort_hut1_combat_back.png
+（team0/team1 も同様に fort_hut1_team{N}_03_master.png -> plain_mountain1_fort_hut1_team{N}_combat_back.png）
+
+段差の帯は持たない。山道（plain_mountain1）の elevation は 0 で、小屋も同じ高さに立つ。
+
+terrain_skin.csv: elevation/floor 0 / placement standee / map_ground・combat_ground は plain_mountain1。
+別の足場に載せる変種は、足場スキンIDだけ替えた行を足して同じ元絵から書き出す。
+CSV を直したら JSON を焼き直す:
+  godot --headless --path . --script res://data/terrain/convert.gd

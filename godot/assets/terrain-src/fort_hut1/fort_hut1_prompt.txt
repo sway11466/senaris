@@ -1,0 +1,80 @@
+DESIGN — a wayside rest hut. This block is repeated word for word in every slot
+of this skin (the board object, the two captured colours, the combat band), so
+that the small piece on the board and the big building in the battle window are
+plainly the same place.
+
+- ONE single-storey hut of WOOD, no more. Walls of upright weathered planks,
+  base #8A7355, shaded #5F4D39, lit #A68B68, with one stout squared corner post
+  at each of the two front corners. NO stone walling anywhere except the chimney.
+- Its ROOF is the biggest shape in the picture: one broad gabled roof of
+  weathered wooden shingles, unbroken from ridge to eaves, overhanging the walls
+  on all sides. Neutral weathered grey: base tone #6E6D6B, catch-light #9B9995
+  on the lit slope, shadow #4D4C4A. Hold those numbers exactly — the game
+  recolours this roof to show who holds the hut, and the later pictures in this
+  set have to match.
+- The roof is ONE flat colour per slope: NO stripes, NO chequer, NO shingle
+  picked out light and dark, NO patch of another material, NO moss, and nothing
+  lying on it. The only shading allowed is the two slopes differing slightly.
+- The front wall stands OPEN: one wide doorway with NO door leaf in it, set in
+  the middle of the front wall, reaching from the ground up to just under the
+  eaves and wide enough for two people side by side. Inside it is one plain flat
+  dark brown #3A3026 and nothing else — an empty shelter, not a furnished room.
+  This open front is what says the hut is free for anyone to rest in.
+- To the LEFT of the doorway, standing against the front wall: ONE plain timber
+  bench — a single board on two short legs, about knee high. Nothing on it.
+- To the RIGHT of the doorway, standing against the front wall: ONE stack of
+  split firewood, the logs seen end-on, stacked neatly to about waist height. NO
+  loose logs lying on the ground, NO axe.
+- ONE chimney of rough grey fieldstone #8C8A82 rises through the LEFT slope of
+  the roof close to the ridge and stops a little above it. It is stone, not
+  shingle, and it keeps its own colour when the roof is repainted. NO smoke, NO
+  sparks, NO fire.
+- NEVER: a door leaf, a lock, a porch, an upper storey, a loft, a tower, a
+  second building, a lean-to, a fence, a wall, a gate, a well, a signboard,
+  lettering, a lantern, a cart, barrels, tools, banners, flags, people, animals,
+  smoke.
+- It must be tellable apart from the game's other single buildings at a glance:
+  the town's GUARD POST is grey stone with a low walled yard and a rack of
+  spears. This is bare WOOD, it has no yard and no wall at all, and it stands
+  open with a bench and a woodpile.
+
+SUBJECT: That rest hut, drawn as a single object that stands upright the way a
+piece stands on a game board, cut out and set down on the game's own ground.
+
+VIEWING ANGLE — CRITICAL. The hut is seen from the front and moderately ABOVE,
+about 35 degrees down from the horizon: high enough that the ridge and BOTH
+SLOPES of the roof are fully in view and read as two sloping surfaces falling
+away from the ridge, low enough that the front wall with its open doorway, the
+bench and the woodpile all stand clearly. The hut is set straight in front of
+the viewer and NOT turned: the gable end faces the viewer as an upright
+triangle, square to the picture, and the ridge runs straight away from the
+viewer with one roof slope to the left of it and one to the right. NO corner
+points at you, and no side wall is seen edge-on. This is NOT an isometric view
+and NOT a three-quarter view. The roof must never flatten into a mere band above
+the wall — the two slopes are what gives the piece its depth.
+
+THE FOOT — the bottom of the front wall, the legs of the bench and the bottom of
+the woodpile all stop on ONE straight level line across the bottom of the
+picture. That line is where the game sets the hut on the ground. Draw nothing
+below it: no ground, no grass, no paving, no step, no shadow.
+
+SIZE AND SHAPE — about 1.2 times as wide as it is tall, counting the bench and
+the woodpile. The hut is the only object in the picture, sits in the middle, and
+touches no edge. In a 1024-pixel picture leave at least 120 pixels of white on
+every side.
+
+THE BACKGROUND is PURE FLAT WHITE, #FFFFFF, with NO texture, NO shading, NO
+gradient, NO speckle, NO grey, NO drop shadow. The white is deleted and the game
+draws its own ground under the hut, so the edge against the white must be hard
+and clean. Nothing in the hut itself may be white or near-white.
+
+NO LIGHT DIRECTION — no wall has a bright side and a dark side, and nothing casts
+a shadow onto anything else: none under the eaves, none from the bench or the
+woodpile onto the wall, none on the ground. Shading stays inside a surface.
+
+Everything muted, in the same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear dark outlines, a mature, slightly
+muted, limited colour palette (NOT bright saturated, NOT painterly
+photorealism). Read at thumbnail size: a few large legible shapes, no fine
+detail, no picked-out planks and no picked-out shingles. NO border, NO frame
+around the picture itself, NO vignette. Square 1:1.

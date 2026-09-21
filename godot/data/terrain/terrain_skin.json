@@ -476,6 +476,25 @@
 			"terrain_type": "plain"
 		},
 		{
+			"combat_ground": "plain_mountain1",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"map_ground": "plain_mountain1",
+			"map_scale": 0.8,
+			"memo": "山道の脇に建つ休憩小屋。板壁と板葺きの切妻屋根で正面は扉の無い開口。傍らにベンチと薪。占領で屋根の色が変わる（_team0=味方/_team1=敵）",
+			"name": "休憩小屋",
+			"object_foot_z": 0.45,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "plain_mountain1_fort_hut1",
+			"terrain_type": "fort"
+		},
+		{
 			"combat_ground": "plain",
 			"combat_scale": "",
 			"connect": false,

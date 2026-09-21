@@ -1,0 +1,11 @@
+SAME rest hut as the previous image — identical planking, identical corner
+posts, identical open doorway, bench, woodpile and chimney, in the same places,
+at the same angle, on the same pure-white background, cut by the same edges. The
+roof is the SAME ROOF: same shingles, same laying, same ridge, same eaves, same
+overhang, same outline, same shapes — not rebuilt, not re-covered, not swapped
+for another material. Change ONLY ITS COLOUR: base tone #575A5E, shadowed slope
+#3D454C, catch-light #6E747A. Clearly blue-leaning but still muted and dark, not
+bright, not saturated. Hold those numbers exactly: they are the same colour the
+game already uses for a captured building, and the two have to match. Leave the
+timber walls, the bench, the woodpile and the stone chimney exactly as they are
+— the chimney is stone and keeps its own grey.
