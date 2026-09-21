@@ -28,8 +28,9 @@ static func fill(grid: GridContainer, striker_name: String, victim_name: String,
 	add_row(grid, mul(off.level), _t("ui.report.level"), mul(def.level))
 	add_row(grid, opt_mul(off.surround), _t("ui.report.encircled"), opt_mul(def.surround))
 	add_row(grid, mul(off.terrain), _t("ui.report.terrain"), mul(def.terrain))
-	add_row(grid, status_part(off), _t("ui.report.status"), status_part(def))
+	add_row(grid, opt_mul(off.status_mul), _t("ui.report.status_mul"), opt_mul(def.status_mul))
 	add_row(grid, add_text(off.support), _t("ui.report.support"), add_text(def.support))
+	add_row(grid, add_text(off.status_add), _t("ui.report.status_add"), add_text(def.status_add))
 	# 貫通は防御側にだけ乗る（攻撃側の pierce が相手の防御を削る）。
 	add_row(grid, NONE, _t("ui.report.pierce"), opt_mul(def.pierce))
 	add_rule(grid)  # ここまでが積み上げ、ここから下が出来上がった値
@@ -122,19 +123,10 @@ static func times(v: int) -> String:
 static func mul(v: float) -> String:
 	return "×%.2f" % v
 
-## 条件が揃ったときだけ働く補正（包囲・貫通）の係数。条件が外れていれば — ＝土俵に上がっていない。
+## 条件が揃ったときだけ働く補正（包囲・状態補正×・貫通）の係数。外れていれば — ＝土俵に上がっていない。
 static func opt_mul(v: float) -> String:
 	return NONE if is_equal_approx(v, 1.0) else mul(v)
 
-## 支援（加算）。隣に味方がいない・間接攻撃で乗らない場合は — 。
+## 加算の補正（支援・状態補正＋）。効いていなければ — 。
 static func add_text(v: float) -> String:
 	return NONE if is_zero_approx(v) else "%+d" % roundi(v)
-
-## 状態補正（バフ/デバフ）。倍率と加算の両方が効いていれば併記する。
-static func status_part(b: StatBreakdown) -> String:
-	var parts: Array[String] = []
-	if not is_equal_approx(b.status_mul, 1.0):
-		parts.append("×%.2f" % b.status_mul)
-	if not is_zero_approx(b.status_add):
-		parts.append("%+d" % roundi(b.status_add))
-	return " ".join(parts) if not parts.is_empty() else NONE

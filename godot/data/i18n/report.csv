@@ -26,7 +26,8 @@ ui.report.base_stat,基準値,Base
 ui.report.eff_total,実効値,Effective
 ui.report.strength,兵数,Strength
 ui.report.level,Lv,Lv
-ui.report.status,状態補正,Status Effect
+ui.report.status_mul,状態補正 ×,Status ×
+ui.report.status_add,状態補正 +,Status +
 ui.report.pierce,貫通,Pierce
 ui.report.eff_atk,実効攻撃力,Effective Atk
 ui.report.eff_def,実効防御力,Effective Def
