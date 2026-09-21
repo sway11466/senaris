@@ -14,6 +14,13 @@ func _count(opts: Array[FormationOption], skill: String) -> int:
 			n += 1
 	return n
 
+## 着弾した駒のうち、その handle の1件を取り出す（無ければ null）。
+func _hit_of(res: SkillResult, target_id: int) -> SkillHit:
+	for h in res.hits:
+		if h.target_id == target_id:
+			return h
+	return null
+
 ## そのスキルの選択肢を1つ取り出す（無ければ null）。
 func _pick(opts: Array[FormationOption], skill: String) -> FormationOption:
 	for o in opts:
@@ -467,6 +474,38 @@ func test_area_hits_allies_too() -> void:
 	assert_true(9 in hit_ids and 10 in hit_ids, "面内の敵2体に着弾")
 	assert_true(11 in hit_ids, "面内の味方も巻き込む")
 	assert_lt(ally.troops, ally_before, "味方の兵数も減る")
+
+## 面のスキルの支援は着弾した駒の周りで数える＝同じ一撃でも対象ごとに値が変わる。
+## 詳細 → doc/gdd/combat.md 支援効果 / doc/gdd/formations.md 設計原則
+func test_area_support_is_counted_per_target() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var tri := _triangle(c)
+	var w1 := Unit.new(1, 0, tri[0], 3, 8, 40, 30, 1, "wizard")
+	w1.pierce = 0.5
+	s.add_unit(w1)
+	s.add_unit(Unit.new(2, 0, tri[1], 3, 8, 40, 30, 1, "wizard"))
+	s.add_unit(Unit.new(3, 0, tri[2], 3, 8, 40, 30, 1, "wizard"))
+	var center := c + Hex.direction(0) * 3           # 着弾の中心（空hex＝面内の2体だけに当たる）
+	var alone := Unit.new(9, 1, Hex.neighbor(center, 0), 3, 8, 10, 100)    # 隣に味方が居ない
+	var backed := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 100)  # 隣に味方が居る
+	var helper_hex := Hex.neighbor(backed.pos, 2)
+	assert_eq(Hex.distance(alone.pos, backed.pos), 2, "前提: 2体は互いに隣接しない＝支援し合わない")
+	assert_eq(Hex.distance(helper_hex, center), 2, "前提: 支援役は着弾面の外＝自分は被弾しない")
+	s.add_unit(alone)
+	s.add_unit(backed)
+	s.add_unit(Unit.new(11, 1, helper_hex, 3, 8, 10, 100))  # 防御支援 8×100×0.25=200
+	var opt: FormationOption = Formation.available_for(s, w1)[0]
+	var res := FormationResolver.resolve(s, opt, center)
+	var loss := {}
+	for r in res.hits:
+		loss[r.target_id] = r.loss
+	assert_true(loss.has(9) and loss.has(10), "面内の2体に着弾")
+	assert_gt(int(loss[9]), int(loss[10]), "隣に味方が居る側だけ防御支援で硬くなる")
+	var df_alone: StatBreakdown = _hit_of(res, 9).detail.defense
+	var df_backed: StatBreakdown = _hit_of(res, 10).detail.defense
+	assert_almost_eq(df_alone.support, 0.0, 0.001, "隣に味方が居なければ支援は0")
+	assert_almost_eq(df_backed.support, 200.0, 0.001, "隣の味方1体ぶんの支援が乗る")
 
 func test_area_excludes_participants() -> void:
 	# 発動者3体が着弾範囲に入っても自傷しない（詠唱の源）。caster を中心に撃つ。
