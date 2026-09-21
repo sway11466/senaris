@@ -1312,17 +1312,30 @@ func test_charge_ignores_the_flier_when_not_good_at_air() -> void:
 	assert_eq(a.target_id, ground.handle, "盤上距離が最小の敵をそのまま撃つ")
 
 func test_charge_advances_toward_the_flier_when_good_at_air() -> void:
-	# #5 最大前進の標的も空敵を優先＝手が届く範囲では空へ寄る。
+	# #6 最大前進の標的も空敵を優先＝今ターン撃てる位置まで届く空へ寄る。
 	var s := BattleState.new(12, 5)
 	s.current_team = 1
 	var si := _squad(s, "charge")
 	var u := _ai(s, si, 10, 5, 2, 3)
 	u.atk_air = 20                         # 対地20 ≦ 対空20 ＝ 対空得意
 	_pc(s, 1, 3, 2)                        # 地上・西に盤上距離2
-	_air(s, 2, 9, 2)                       # 飛行・東に盤上距離4
+	_air(s, 2, 9, 2)                       # 飛行・東に盤上距離4＝移動3で隣接まで届く
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_gt(_col(a.to), 5, "近い地上ではなく空敵（東）へ寄る")
+
+func test_charge_ignores_the_flier_it_cannot_reach_this_turn() -> void:
+	# #6 が見るのは移動範囲のどこかから撃てる空敵だけ＝届かない飛行に釣られて地上を素通りしない。
+	var s := BattleState.new(20, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var u := _ai(s, si, 10, 5, 2, 3)
+	u.atk_air = 20                         # 対地20 ≦ 対空20 ＝ 対空得意
+	_pc(s, 1, 3, 2)                        # 地上・西に盤上距離2
+	_air(s, 2, 18, 2)                      # 飛行・東に盤上距離13＝移動3では撃てる位置に届かない
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_lt(_col(a.to), 5, "届かない空敵ではなく地上の敵（西）へ寄る")
 
 func test_withdraw_shoots_the_flier_before_a_killable_ground() -> void:
 	# 空敵は仕留めより上＝撤退の撃つ行は 空敵 → 仕留められる敵 → 反撃されない敵 → 盤上距離。

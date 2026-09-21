@@ -426,6 +426,16 @@ static func _turns_needed(cost: int, move: int) -> int:
 
 # --- 前進（doc/gdd/ai.md 前進） ---
 
+## 今ターン攻撃できる位置まで届く空敵（doc/gdd/ai.md charge #6）＝移動範囲のどこかから撃てる飛行。
+## 盤全体の空敵から選ぶと、何ターンもかかる位置の飛行1体に盤上の対空得意が全員吸われる。
+func air_prey_in_reach(state: BattleState, u: Unit) -> Array[Unit]:
+	var out: Array[Unit] = []
+	var reach := state.reachable(u.handle)
+	for e in pick.air_prey(state, u):
+		if not standing_attack_cells(state, u, e, reach).is_empty():
+			out.append(e)
+	return out
+
 ## 前進の行（敵向け・突撃と群れの末尾が共有）。移動距離 → 地形距離 → 盤上距離の順に測り、
 ## 測れた時点でその行が成立する＝縮むマスが無ければ現在地に留まって待機になる。
 func advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false) -> AiAction:
@@ -435,11 +445,11 @@ func advance_to_nearest_enemy(state: BattleState, u: Unit, prefer_air := false) 
 	if enemies.is_empty():
 		return null
 	var move_field := AiDistance.move_cost_field(state, u.handle, u.pos)
-	# 空敵の優先は最大前進の行だけ。見込前進・直線寄せまで優先すると、今ターン届かない飛行1体に
-	# 盤上の対空得意が全員吸われる（doc/gdd/ai.md charge #6・#7 の注記）。
+	# 空敵の行（charge #6）は最大前進だけ。見込前進・直線寄せまで空敵を優先すると、今ターン届かない
+	# 飛行1体に盤上の対空得意が全員吸われる（doc/gdd/ai.md charge #6・#8・#9 の注記）。
 	var target: Unit = null
 	if prefer_air:
-		target = pick.nearest_target(state, u, pick.air_prey(state, u), move_field)
+		target = pick.nearest_target(state, u, air_prey_in_reach(state, u), move_field)
 	if target == null:
 		target = pick.nearest_target(state, u, enemies, move_field)
 	if target != null:
