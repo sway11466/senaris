@@ -1,57 +1,110 @@
 {
   "turn_limit": 30,
-  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 7, "survival_a": 4 },
   "name": "dragon-hunt-st6",
-  "haze": 0.3,
-  "backdrop": "cave_wall",
   "player": [
-    { "units": [
-        {"type": "vanguard", "col": 6, "row": 16, "actor": "vanguard", "supply": "refill"},
-        {"type": "hunter", "col": 5, "row": 16, "actor": "hunter", "supply": "refill"},
-        {"type": "wizard", "col": 5, "row": 15, "actor": "wizard", "supply": "refill"},
-        {"type": "thief", "col": 8, "row": 16, "actor": "thief", "supply": "refill"},
-        {"type": "bishop", "col": 7, "row": 17, "actor": "bishop", "supply": "refill"},
-        {"type": "fighter", "col": 8, "row": 17, "actor": "fighter", "supply": "refill"},
-        {"type": "archer", "col": 6, "row": 17, "actor": "archer", "supply": "refill"},
-        {"type": "mage", "col": 9, "row": 15, "actor": "mage", "supply": "refill"},
-        {"type": "halfling", "col": 9, "row": 16, "actor": "halfling", "supply": "refill"},
-        {"type": "cleric", "col": 5, "row": 17, "actor": "cleric", "supply": "refill"},
-        {"type": "pixie", "col": 9, "row": 17, "actor": "pixie", "supply": "refill"},
-        {"type": "dwarf", "col": 6, "row": 15, "actor": "dwarf", "supply": "refill"},
-        {"type": "elf", "col": 7, "row": 15, "actor": "elf", "supply": "refill"},
-        {"type": "birdman", "col": 8, "row": 15, "actor": "birdman", "supply": "refill"}
+    {       "units": [
+        { "type": "vanguard", "actor": "vanguard", "col": 11, "row": 15, "supply": "refill" },
+        { "type": "hunter", "actor": "hunter", "col": 10, "row": 19, "supply": "refill" },
+        { "type": "wizard", "actor": "wizard", "col": 12, "row": 18, "supply": "refill" },
+        { "type": "thief", "actor": "thief", "col": 10, "row": 17, "supply": "refill" },
+        { "type": "bishop", "actor": "bishop", "col": 11, "row": 17, "supply": "refill" },
+        { "type": "fighter", "actor": "fighter", "col": 10, "row": 16, "supply": "refill" },
+        { "type": "archer", "actor": "archer", "col": 12, "row": 19, "supply": "refill" },
+        { "type": "mage", "actor": "mage", "col": 10, "row": 18, "supply": "refill" },
+        { "type": "halfling", "actor": "halfling", "col": 12, "row": 17, "supply": "refill" },
+        { "type": "cleric", "actor": "cleric", "col": 11, "row": 16, "supply": "refill" },
+        { "type": "pixie", "actor": "pixie", "col": 13, "row": 17, "supply": "refill" },
+        { "type": "dwarf", "actor": "dwarf", "col": 12, "row": 16, "supply": "refill" },
+        { "type": "elf", "actor": "elf", "col": 11, "row": 18, "supply": "refill" },
+        { "type": "birdman", "actor": "birdman", "col": 9, "row": 17, "supply": "refill" }
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "dragon-hunt.st6.squad.1", "ai": "raid",
+    { "order": 1, "name": "dragon-hunt.st6.squad.1", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
-        {"skin": "rogue", "col": 5, "row": 5},
-        {"skin": "rogue", "col": 10, "row": 4},
-        {"skin": "rogue", "col": 3, "row": 9},
-        {"skin": "rogue", "col": 12, "row": 11}
+        { "skin": "rock_serpent", "col": 2, "row": 3 },
+        { "skin": "rock_serpent", "col": 3, "row": 3 },
+        { "skin": "rock_serpent", "col": 4, "row": 3 },
+        { "skin": "rock_serpent", "col": 2, "row": 4 },
+        { "skin": "rock_serpent", "col": 3, "row": 4 },
+        { "skin": "rock_serpent", "col": 4, "row": 4 }
       ] },
-    { "order": 2, "name": "dragon-hunt.st6.squad.2", "ai": "raid",
+    { "order": 2, "name": "dragon-hunt.st6.squad.2", "ai": "ambush", "sight": 4,
       "units": [
-        {"skin": "rogue_head", "col": 8, "row": 3, "unit_id": "paladin"}
+        { "skin": "rogue_slinger", "col": 11, "row": 2 },
+        { "skin": "rogue_slinger", "col": 10, "row": 3 },
+        { "skin": "rogue_head", "unit_id": "paladin", "col": 11, "row": 3 },
+        { "skin": "rogue_slinger", "col": 12, "row": 3 },
+        { "skin": "rogue_axe", "col": 10, "row": 4 },
+        { "skin": "rogue_axe", "col": 11, "row": 4 },
+        { "skin": "rogue_axe", "col": 12, "row": 4 }
       ] },
-    { "order": 4, "name": "dragon-hunt.st6.squad.4", "ai": "ambush", "sight": 2, "stack": 1,
+    { "order": 3, "name": "dragon-hunt.st6.squad.3", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
-        {"skin": "scorpion", "col": 3, "row": 7},
-        {"skin": "scorpion", "col": 11, "row": 7},
-        {"skin": "scorpion", "col": 4, "row": 13},
-        {"skin": "scorpion", "col": 11, "row": 13}
+        { "skin": "rock_serpent", "col": 18, "row": 3 },
+        { "skin": "rock_serpent", "col": 19, "row": 3 },
+        { "skin": "rock_serpent", "col": 20, "row": 3 },
+        { "skin": "rock_serpent", "col": 18, "row": 4 },
+        { "skin": "rock_serpent", "col": 19, "row": 4 },
+        { "skin": "rock_serpent", "col": 20, "row": 4 }
+      ] },
+    { "order": 4, "name": "dragon-hunt.st6.squad.4", "ai": "ambush", "sight": 4, "stack": 1,
+      "units": [
+        { "skin": "scorpion", "col": 3, "row": 9 },
+        { "skin": "rock_serpent", "col": 2, "row": 10 },
+        { "skin": "rock_serpent", "col": 3, "row": 10 },
+        { "skin": "rock_serpent", "col": 4, "row": 10 }
+      ] },
+    { "order": 5, "name": "dragon-hunt.st6.squad.5", "ai": "ambush", "sight": 4, "stack": 1,
+      "units": [
+        { "skin": "scorpion", "col": 11, "row": 9 },
+        { "skin": "rock_serpent", "col": 10, "row": 10 },
+        { "skin": "rock_serpent", "col": 11, "row": 10 },
+        { "skin": "rock_serpent", "col": 12, "row": 10 }
+      ] },
+    { "order": 6, "name": "dragon-hunt.st6.squad.6", "ai": "ambush", "sight": 4, "stack": 1,
+      "units": [
+        { "skin": "scorpion", "col": 19, "row": 9 },
+        { "skin": "rock_serpent", "col": 18, "row": 10 },
+        { "skin": "rock_serpent", "col": 19, "row": 10 },
+        { "skin": "rock_serpent", "col": 20, "row": 10 }
+      ] },
+    { "order": 7, "name": "dragon-hunt.st6.squad.7", "ai": "ambush", "sight": 4, "stack": 1,
+      "units": [
+        { "skin": "rock_serpent", "col": 3, "row": 15 },
+        { "skin": "rock_serpent", "col": 2, "row": 16 },
+        { "skin": "rock_serpent", "col": 4, "row": 16 },
+        { "skin": "rock_serpent", "col": 2, "row": 17 },
+        { "skin": "rock_serpent", "col": 3, "row": 17 },
+        { "skin": "rock_serpent", "col": 4, "row": 17 }
+      ] },
+    { "order": 8, "name": "dragon-hunt.st6.squad.8", "ai": "ambush", "sight": 4, "stack": 1,
+      "units": [
+        { "skin": "rock_serpent", "col": 19, "row": 15 },
+        { "skin": "rock_serpent", "col": 18, "row": 16 },
+        { "skin": "rock_serpent", "col": 20, "row": 16 },
+        { "skin": "rock_serpent", "col": 18, "row": 17 },
+        { "skin": "rock_serpent", "col": 19, "row": 17 },
+        { "skin": "rock_serpent", "col": 20, "row": 17 }
       ] }
   ],
   "bases": [
-    {"col": 7, "row": 16, "team": "player", "rest": "player"},
-    {"col": 3, "row": 10, "team": "neutral", "rest": "both"},
-    {"col": 7, "row": 3, "team": "neutral", "rest": "both"}
+    { "col": 3, "row": 16, "team": "neutral", "rest": "both", "garrison": [] },
+    { "col": 19, "row": 2, "team": "neutral", "rest": "both", "garrison": [] },
+    { "col": 3, "row": 2, "team": "neutral", "rest": "both", "garrison": [] },
+    { "col": 19, "row": 16, "team": "neutral", "rest": "both", "garrison": [] }
   ],
   "victory": [
-    {"type": "defeat_unit", "unit_ids": ["paladin"]}
+    { "type": "defeat_unit",
+      "unit_ids": ["paladin"] }
   ],
   "defeat": [
-    {"type": "lose_base", "bases": [{"col": 7, "row": 16}, {"col": 3, "row": 10}, {"col": 7, "row": 3}]}
+    { "type": "lose_base",
+      "bases": [
+        { "col": 3, "row": 16 },
+        { "col": 19, "row": 2 },
+        { "col": 3, "row": 2 }
+      ] }
   ],
   "dialogue": {
     "intro": [
@@ -64,10 +117,15 @@
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st6.intro.8", "when": "joined:dwarf" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.2" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.4" },
-      { "enter": [
-          { "squad": "dragon-hunt.st6.squad.1", "entry": "scatter", "from": { "col": 7, "row": 3 } },
-          { "squad": "dragon-hunt.st6.squad.2", "entry": "scatter", "from": { "col": 7, "row": 3 } }
-      ] },
+      {
+        "enter": [
+          {
+            "squad": "dragon-hunt.st6.squad.2",
+            "entry": "scatter",
+            "from": { "col": 11, "row": 0 }
+          }
+        ]
+      },
       { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st6.intro.9" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st6.intro.5" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st6.intro.6" },
@@ -85,5 +143,8 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st6.outro.6" }
     ]
   },
+  "rank": { "turn_s": 15, "turn_a": 23, "survival_s": 7, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
   "bgm": { "main": "dungeon" }
 }

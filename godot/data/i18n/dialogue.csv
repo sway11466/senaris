@@ -466,9 +466,14 @@ dragon-hunt.st5.squad.6,登り口のロックサーペント,Serpents at the Asc
 dragon-hunt.st5.squad.7,里の手前のロックサーペント,Serpents before the Village
 dragon-hunt.st5.squad.8,山道のワイヴァーン,Wyrm of the Pass
 dragon-hunt.st5.squad.9,尾根のワイヴァーン,Wyrm of the Ridge
-dragon-hunt.st6.squad.1,ローグ本隊,Bandit Main Force
-dragon-hunt.st6.squad.2,頭目,Ringleader
-dragon-hunt.st6.squad.4,坑道のスコーピオン,Tunnel Scorpions
+dragon-hunt.st6.squad.1,北西の部屋,Northwest Chamber
+dragon-hunt.st6.squad.2,ローグ隊,Bandit Company
+dragon-hunt.st6.squad.3,北東の部屋,Northeast Chamber
+dragon-hunt.st6.squad.4,西の部屋,West Chamber
+dragon-hunt.st6.squad.5,中央の部屋,Central Chamber
+dragon-hunt.st6.squad.6,東の部屋,East Chamber
+dragon-hunt.st6.squad.7,南西の部屋,Southwest Chamber
+dragon-hunt.st6.squad.8,南東の部屋,Southeast Chamber
 dragon-hunt.st6.scene.1,洞窟の入口。奥から咆哮と地鳴りが響く,"The mouth of the cave. From deep within, a roar and the rumble of the earth."
 dragon-hunt.st7.intro.11,竜が相手では、わたしの火なんて……。,"Against a dragon, a flame like mine is…"
 dragon-hunt.st7.intro.12,細くとも数が要る。君の火も、あの翼に届く。,"Thin or not, we need every shot. Your flame reaches those wings too."
