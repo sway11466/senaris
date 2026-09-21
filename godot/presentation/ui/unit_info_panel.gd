@@ -510,7 +510,7 @@ func show_unit(handle: int) -> void:
 	if _state == null or handle < 0:
 		clear()
 		return
-	var u := _state.unit_by_handle(handle)
+	var u := _state.unit_any(handle)  # 降車先を選んでいる間の搭乗駒＝まだ盤に居ない
 	if u == null:
 		clear()
 		return

@@ -162,7 +162,8 @@ func test_unload_onto_base_captures() -> void:
 	assert_eq(s.base_at(base_hex).team, 0, "降りた瞬間に占領（移動と同じ扱い）")
 
 func test_unload_attack_targets_from_hypothetical_hex() -> void:
-	# 降車確認メニュー用: 盤上に居ない搭乗駒でも「その位置に降りたら攻撃できるか」を引ける。
+	# 降車先のコマンドメニュー用: 盤上に居ない搭乗駒でも「その位置に降りたら攻撃できるか」を
+	# 通常移動と同じ関数で引ける（unit_any が搭乗中の駒も拾う）。
 	var s := _state()
 	var wagon := _transport(1, 0, Hex.offset_to_axial(3, 3))
 	s.add_unit(wagon)
@@ -171,8 +172,37 @@ func test_unload_attack_targets_from_hypothetical_hex() -> void:
 	s.add_unit(enemy)
 	var near := Hex.offset_to_axial(3, 4)  # 敵の隣
 	var far := Hex.offset_to_axial(3, 2)   # 敵から遠い
-	assert_true(s.unload_attack_targets(1, 0, near).has(9), "敵の隣に降りれば攻撃できる")
-	assert_true(s.unload_attack_targets(1, 0, far).is_empty(), "遠くに降りれば対象なし")
+	assert_true(s.attack_targets_from(2, near).has(9), "敵の隣に降りれば攻撃できる")
+	assert_true(s.attack_targets_from(2, far).is_empty(), "遠くに降りれば対象なし")
+
+func test_unit_any_finds_passenger() -> void:
+	var s := _state()
+	s.add_unit(_transport(1, 0, Hex.offset_to_axial(3, 3)))
+	s.put_passenger(1, Unit.new(2, 0, Vector2i.ZERO, 3))
+	assert_null(s.unit_by_handle(2), "盤上には居ない")
+	assert_eq(s.unit_any(2).handle, 2, "搭乗中でも handle で引ける")
+
+func test_unload_can_cast_skill_from_hypothetical_hex() -> void:
+	# 降車も「その駒の移動」＝降りた先からスキルを撃てる。降車先を仮定して成立を引く。
+	var s := _state()
+	s.add_unit(_transport(1, 0, Hex.offset_to_axial(3, 3)))
+	var pixie := Unit.new(2, 0, Vector2i.ZERO, 3)
+	pixie.skin_id = "pixie"
+	s.put_passenger(1, pixie)
+	var dest := Hex.offset_to_axial(3, 4)
+	var choices := Formation.choices_for(s, pixie, dest)
+	assert_eq(choices.size(), 1, "降車先に居るものとしてユニットスキルが成立する")
+	assert_eq(choices[0].skill, "pixie_dust")
+	assert_true(Formation.choice_has_target(s, choices[0], dest), "降車先から掛けられる相手が居る")
+
+func test_unload_onto_own_base_can_enter() -> void:
+	# 降車先が自軍の拠点なら、降りた駒はそのまま「入る」（回復）。通常移動と同じ項目が並ぶ。
+	var s := _state()
+	s.add_unit(_transport(1, 0, Hex.offset_to_axial(3, 3)))
+	s.put_passenger(1, Unit.new(2, 0, Vector2i.ZERO, 3))
+	var base_hex := Hex.offset_to_axial(3, 4)
+	s.add_base(Base.new(base_hex, 0))
+	assert_true(s.can_enter_base_at(2, base_hex), "降りた先が自軍拠点なら入れる")
 
 func test_unload_allowed_after_transport_done() -> void:
 	# 降車は搭乗駒の行動＝輸送が移動・待機で行動完了になっていても、未行動の駒は降ろせる。

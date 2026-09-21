@@ -163,10 +163,6 @@ func _emit_if_captured(hex: Vector2i, before: int) -> void:
 func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
 	return state.unload_cells(transport_id, index)
 
-## 表示用: 搭乗駒が from_hex に降りたと仮定したときの攻撃対象（降車確認メニュー用）。
-func unload_attack_targets_for(transport_id: int, index: int, from_hex: Vector2i) -> Array[int]:
-	return state.unload_attack_targets(transport_id, index, from_hex)
-
 ## 下り: 拠点に「入る」（駐留＝回復）。成功すれば unit_entered_base を発行。
 func enter_base(handle: int) -> bool:
 	if _finished:
