@@ -137,6 +137,10 @@ func _expanded_sheet(skill_id: String) -> Control:
 	# 効果・射程・持続・人数・発動できる駒。値に文が入る（持続・効果）ので1行2対に留める
 	col.add_child(_pairs_grid(_skill_rows(r), 2))
 
+	# 形＝並べ方。図は代表の配置1つなので、言葉でも出す
+	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_shape"),
+		_shape_text(r)], TavernTheme.INK))
+
 	# 発動者と参加者の候補（図は代表1体なので、候補が複数あることはここで分かる）
 	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_caster"),
 		_skin_names_text(r.get("caster_skins", []))], TavernTheme.INK))
@@ -152,12 +156,29 @@ func _skill_rows(r: Dictionary) -> Array:
 	rows.append([tr("ui.info.range"), _range_text(r)])
 	rows.append([tr("ui.chronicle.skill_duration"), _duration_text(r)])
 	var count: int = r.get("count", 1)
+	# 人数が可変の形（cluster・line）は「3以上」と出す。固定の形はその数のまま。
+	var variable_count: bool = String(r.get("shape", "")) in ["cluster", "line"]
 	rows.append([tr("ui.chronicle.skill_count"),
-		tr("ui.chronicle.skill_count_min") % count if r.get("shape", "") == "cluster" else str(count)])
+		tr("ui.chronicle.skill_count_min") % count if variable_count else str(count)])
 	rows.append([tr("ui.chronicle.skill_from"),
 		tr("ui.chronicle.skill_from_caster") if r.get("range_from", "") == "caster" \
 		else tr("ui.chronicle.skill_from_any")])
 	return rows
+
+## 参加者の並べ方（doc/gdd/formations.md 形の判定）。
+func _shape_text(r: Dictionary) -> String:
+	match String(r.get("shape", "")):
+		"triangle":
+			return tr("ui.chronicle.skill_shape_triangle") % int(r.get("count", 0))
+		"cluster":
+			return tr("ui.chronicle.skill_shape_cluster")
+		"escort":
+			return tr("ui.chronicle.skill_shape_escort")
+		"spotter":
+			return tr("ui.chronicle.skill_shape_spotter")
+		"line":
+			return tr("ui.chronicle.skill_shape_line")
+	return NONE_TEXT
 
 ## レシピの効果を翻訳済みテキストにする。
 func _effect_text(r: Dictionary) -> String:
