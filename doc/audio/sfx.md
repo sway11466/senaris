@@ -419,10 +419,13 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `arrow_rain` | `arrow` を18本、0.36秒のあいだにずらして重ねる（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目） | 2019 p5 / Rock The Speakerbox - Melee |
 | `arrow_rain_hit` | `arrow_hit` を12本、0.61秒のあいだにずらして重ねる（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
 | `shield_wall` | `cmb_hit_none` の複製（`Weapon_Impact_Parry_01.wav`） | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
+| `counter` | `slash_m` の複製（`METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav`） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
 `grace` は外部素材を使わない（澄んだ和音＝MuseScore で自作）。
 
 `shield_wall` も新しい素材を探さない。手元の候補（`cmb_hit_none` を決めたときに落とした鎖帷子・板金鎧・鎧の動き）を聴き比べて、弾き返し（`Weapon_Impact_Parry_01`）をそのまま採った。盾で受ける音と武器を弾く音は同じ物音なので、鳴り分ける理由が無い。着弾が無いので `_hit` は置かない（②グレイスと同じ）。`cmb_hit_none` と同時に鳴ることはありうるが、どちらも「金属で受けた」を表すので混ざっても読める。
+
+`counter` も新しい素材を探さない。刃を構え直して身構える音なので、ゲーム内で既に鳴っている斬撃（`slash_m`＝長い刃の振りに金属の擦れが乗ったもの）をそのまま採る。着弾が無いので `_hit` は置かない（②⑤と同じ）。ファイターの攻撃エフェクトが同じ素材なので、反撃が実際に起きると戦闘窓でも同じ音が鳴るが、どちらも「その刃が振られた」を表すので重なって読める。
 
 `arrow_rain` も新しい素材を探さない。「多数の矢が一斉に放たれる」音は Sonniss の索引に無く、弓は単発しか無いため、
 ゲーム内で既に鳴っている1本ぶんの矢（`arrow`／`arrow_hit`）を本数ぶん重ねて作る。同じ音をそのまま重ねると1本の太い音に
