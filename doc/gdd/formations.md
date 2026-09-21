@@ -147,7 +147,7 @@
 | ② | `grace` | グレイス | 味方 | 強化 | cleric／priest／bishop／paladin | 同左 | `cluster`（隣接連結） | 5以上 | どれからでも | —（全体） | 済 |
 | ③ | `divine_judgment` | ディバインジャッジメント | 味方 | 特殊攻撃 | paladin | cleric／priest／bishop ×2（発動者に隣接） | `escort` | 3 | パラディン | 10 | 済 |
 | ④ | `trick_shot` | トリックショット | 味方 | 弓攻撃 | archer／hunter／elf | thief／halfling／ninja／kunoichi ×1（**対象に隣接**） | `spotter` | 2 | 弓兵 | 弓兵の通常射程（下限〜上限） | 済 |
-| ⑤ | `shield_wall` | シールドウォール | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／forest_knight／dwarf／samurai／magic_knight／lancer | 同左 | `line`（一直線） | 3以上 | どれからでも | —（参加者） | feature-120 |
+| ⑤ | `shield_wall` | シールドウォール | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／dwarf。forest_knight／samurai／magic_knight／lancer はユニットが入ったら足す | 同左 | `line`（一直線） | 3以上 | どれからでも | —（参加者） | 済 |
 | ⑥ | `arrow_rain` | アローレイン | 味方 | 弓攻撃 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | 済 |
 | ⑦ | `magic_shield` | マジックシールド | 味方 | 強化 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | feature-121 |
 | ⑧ | `backstab` | バックスタブ | 味方 | 特殊攻撃 | thief | 任意 ×1（**対象を挟んで正反対**） | `backstab` | 2 | シーフ | 1 | feature-122 |

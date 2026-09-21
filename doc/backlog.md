@@ -27,15 +27,6 @@
 - 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
 - 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
 
-### feature-120
-
-**陣形スキル⑤シールドウォール（ノービス以外の歩兵3体以上の一列・参加者の防御 ×(1＋0.05×人数)）**
-- ゴール：歩兵が3体以上一直線に並んでいるとき、列のどれからでも撃てて、列の全員の防御が人数ぶん上がる（3体 ×1.15）。次の自軍ターン開始まで。膠着の待機の上位互換で、効果は薄くてよい。
-- 背景：[formations.md](gdd/formations.md) ⑤ で仕様確定。②グレイスの持続バフの器（状態補正エントリ）に、スコープ「参加者だけ」と対象「防御だけ」を足す。形は `cluster` の直線版。
-- 対応：(1) `RECIPES` に `shield_wall`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer（type が入ったら）、shape `line`、count 3、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "def"、`buff_value` 1.15、`buff_value_per_extra` 0.05、`duration_turns` 1）。(2) `FormationOption.Shape` に `LINE`：発動者を含むヘックスの3軸のどれかで途切れず連なる参加者を集める（人数は選べない）。(3) `_buff_entry`／`BattleState` の状態補正に `scope: participants`（駒の集合）と `target: def` を通す＝②は `team`・`both` のまま。(4) 見た目は列の駒の足元の光（`aura_overlay` の駒単位の光を流用）。カットインは規約解決。(5) `skills.csv`。(6) テスト＝直線の判定（3軸・折れ線は不成立・ノービス除外）・人数で伸びる補正・参加者以外に乗らないこと。
-- 演出まわり：カットイン `godot/assets/formations/shield_wall.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `shield_wall_{skin}.png`）。効果音 `godot/assets/sfx/shield_wall.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝形 `line` は新しいので `LAYOUTS` に一直線の3ヘクスを足す（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
-- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/battle_state.gd`・`godot/domain/combat/combat.gd`（集計の scope）・`godot/presentation/ui/aura_overlay.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
-
 ### feature-121
 
 **陣形スキル⑦マジックシールド（魔法兵＋占領兵の隣接・7ヘクスの結界・防御 +10×発動者兵数・貫通無効）**
@@ -43,7 +34,7 @@
 - 背景：[formations.md](gdd/formations.md) ⑦ で仕様確定。状態補正の器に **地帯（zone）** のエントリを新設する最初の実体（[combat.md](gdd/combat.md) 状態補正に注記済み）。貫通無効は乗算・加算の外＝貫通の段で攻撃側の `pierce` を 0 にするフラグ。
 - 対応：(1) `RECIPES` に `magic_shield`（leader／member＝wizard/witch × cleric/priest/bishop/paladin の両向き、shape `escort`、count 2、effect `buff`、`buff_scope` "zone"、`zone_radius` 1、`buff_op` "add"、`buff_target` "def"、`buff_value_per_troop` 10、`pierce_immune` true、`duration_turns` 1）。(2) `BattleState` の状態補正エントリに `zone`（中心ヘックス＋半径・陣営）を足し、`Combat` の集計で「対象の駒が地帯の中に居るか」を見る。(3) `Combat` の貫通の段で、防御側に `pierce_immune` の地帯が効いていれば攻撃側の `pierce` を 0 として扱う。(4) 見た目＝結界の7ヘクスに薄い光の床（`aura_overlay` に地帯の床を足す。持続の間出しておく）。(5) `skills.csv`。(6) テスト＝加算（満員で +80）・貫通無効（ウィザードの攻撃が半減しない）・出入りで効く／切れる・満了。
 - 演出まわり：カットイン `godot/assets/formations/magic_shield.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `magic_shield_{skin}.png`）。効果音 `godot/assets/sfx/magic_shield.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（両向きなので代表は先頭スキン＝ウィザード＋クレリック）（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
-- 該当：feature-120 と同じ＋`godot/domain/combat/combat.gd`（貫通の段）・`godot/presentation/ui/aura_overlay.gd`。前提＝feature-120（scope の拡張を先に）。
+- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/status/status_mod.gd`・`godot/domain/combat/combat.gd`（貫通の段）・`godot/presentation/board/board_unit_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
 
 ### feature-122
 
@@ -59,10 +50,10 @@
 
 **陣形スキル⑩カウンター（ノービス以外の歩兵2体の隣接・参加者の攻撃 ×1.5＝反撃強化）**
 - ゴール：歩兵2体が隣接しているとき、どちらからでも撃てて、2体の攻撃が次の自軍ターン開始まで ×1.5 になる。参加者は行動完了なので効くのは敵ターンの反撃だけ。
-- 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。feature-120（⑤シールドウォール）の器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
+- 背景：[formations.md](gdd/formations.md) ⑩ で仕様確定。⑤シールドウォールで入れた器＝状態補正のスコープ「参加者だけ」に、対象「攻だけ」を足すだけ。形は `escort`（count 2）の流用。敵AIは陣形の効果を読まない（[ai.md](gdd/ai.md) 基本方針に追記済み）ので AI 側の変更は無い。
 - 対応：(1) `RECIPES` に `counter`（leader／member＝fighter/vanguard/knight/forest_knight/dwarf/samurai/magic_knight＋lancer、shape `escort`、count 2、effect `buff`、`buff_op` "mul"、`buff_scope` "participants"、`buff_target` "atk"、`buff_value` 1.5、`duration_turns` 1）。(2) `_buff_entry`／`Combat` の集計で `target: atk` を通す（⑤は def、②は both）。(3) 見た目は2体の足元の光（⑤と同じ）。(4) `skills.csv`。(5) テスト＝2体固定（3体目は参加しない）・ノービス除外・反撃に ×1.5 が乗り、自軍ターン開始で切れること・AI の戦果計算に乗らないこと。
 - 演出まわり：カットイン `godot/assets/formations/counter.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `counter_{skin}.png`）。効果音 `godot/assets/sfx/counter.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
-- 該当：feature-120 と同じ＋`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）。前提＝feature-120。
+- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`godot/domain/combat/combat.gd`（集計の target）・`godot/domain/ai/`（戦果計算が状態補正を除くことの確認）・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
 
 ### feature-62
 
