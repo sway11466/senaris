@@ -1,0 +1,23 @@
+NOTE: これは盤の「発動の印」（{recipe_id}_mark.png）。着弾の無いレシピが、発動した瞬間だけ
+参加者の駒に重ねる小さい絵で、1秒ほどで消える。1枚絵のカットイン（shield_wall_prompt.txt）とは
+別物＝人物・背景を描かず、印そのものだけを描く。置き場と扱い → doc/art/keyvisual.md §3、
+doc/gdd/formations.md 発動の演出。
+
+STYLE は doc/art/units.md §3.4 の EFFECT STYLE を土台に3点だけ差し替えた（差し替えの記録）:
+  ・向き＝「右へ向かう一撃」を外し、正面・直立・左右対称にする（飛ぶ絵でも振り抜く絵でもない）。
+  ・構図＝正方形を外し、盾の形に合わせた縦長（およそ 4:5）。
+  ・中心＝「面積の大きい impact は中心を空洞にする」を外し、盾の面は塗り潰す。盾は面で守る形なので
+    中心を抜くと盾に見えない。駒が隠れる件は、盤の側で半透明に重ね、1秒で消すことで解く。
+
+盾の意匠は特定のユニットに寄せない（ナイトの紋章入りカイトシールドを写すと、ファイターと
+ヴァンガードに出たときに「ナイトの盾」に見える）。無紋の鋼で描く。
+
+SUBJECT: A single KITE SHIELD seen straight from the FRONT, standing upright and perfectly left-right symmetrical — the sign that a shield wall has locked into place.
+
+The shape is a classic kite shield: broad and gently rounded across the top, the sides tapering down to a rounded point at the bottom. No tilt, no perspective, no three-quarter view — flat and face-on, as if it were a badge.
+
+Drawn in three flat tones only, with hard edges throughout: a pale blue-grey steel face, a darker blue-grey band running around the rim, and a thick dark outline around the whole silhouette. A small round boss sits at the center of the face, and two short straight reinforcing bars cross the face above and below it, all drawn as the same flat hard-edged shapes. NO heraldry, NO crest, NO animal, NO letters, NO emblem on the face — a plain unmarked shield.
+
+NO glow, NO shine streaks, NO sparks, NO magic, NO aura, NO motion lines, NO damage or dents. Nothing is drawn behind, beside or in front of the shield.
+
+The shield fills the frame edge to edge with only a thin margin. TALL portrait composition, roughly 4:5 (slightly taller than wide). Pure black background (single flat color, for easy cutout).

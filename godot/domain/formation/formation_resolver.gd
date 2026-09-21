@@ -24,6 +24,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	var out := SkillResult.new()
 	out.skill = option.skill
 	out.caster_id = option.caster_id
+	out.participants = option.participants.duplicate()
 	out.center = target
 	# 効果対象が1体のユニットスキルは演出シーンに乗る（→ doc/tech/combat_scene.md）。
 	# 兵数が動かない＝着弾も撃破も起きないので、内訳は hits ではなく専用の1件（cast）で渡す。

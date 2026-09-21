@@ -96,10 +96,25 @@ around it. Wide 4:3 composition.
 | SUBJECT | `godot/assets/formations-src/{recipe_id}/{recipe_id}_impact_prompt.txt` | 同上フォルダ |
 | ④ ゲーム用 | `godot/assets/formations/{recipe_id}_impact.png` | `godot/assets/formations/trinity_nova_impact.png` |
 
-- ④は [`godot/tools/gen_formation_impact.ps1`](../../godot/tools/gen_formation_impact.ps1)（`{recipe_id}` 複数可／`all`）で書き出す。③をトリムして長辺512に収めるだけ。
+- ④は [`godot/tools/gen_formation_board_art.ps1`](../../godot/tools/gen_formation_board_art.ps1)（`{recipe_id}` 複数可／`all`）で書き出す。③をトリムして長辺512に収めるだけ。
 - 絵柄はカットインの ILLUST STYLE ではなく、攻撃エフェクトの EFFECT STYLE（[units.md](units.md) §3.4）に寄せる。盤で30〜70px に縮む小さな絵なので、人・背景を描かず、フラットな2〜3色・硬い輪郭で痕跡そのものだけを描く。
 - 向きは下向き（上から落ちてくる形）で描く。盤でしか使わないので演出側は回転させない。攻撃エフェクトの「右へ向かう一撃」の約束は適用しない。
 - 大小の倍率は無い。キャンバスいっぱいに描いて釣り合わせる。
+
+#### 盤の発動の印
+
+着弾の無いレシピ（⑤シールドウォール・⑩カウンター）が、発動した瞬間だけ参加者の駒に重ねる絵。着弾エフェクトと同じ置き場・同じ工程で、接尾辞が `_mark` になる。
+
+| 段階 | 置き場 | 例（シールドウォール） |
+|---|---|---|
+| ① AI生成直後 | `godot/assets/formations-src/{recipe_id}/{recipe_id}_mark_01_raw.png` | `formations-src/shield_wall/shield_wall_mark_01_raw.jpg` |
+| ③ 透過マスター | `godot/assets/formations-src/{recipe_id}/{recipe_id}_mark_03_master.png` | 同上フォルダ |
+| SUBJECT | `godot/assets/formations-src/{recipe_id}/{recipe_id}_mark_prompt.txt` | 同上フォルダ |
+| ④ ゲーム用 | `godot/assets/formations/{recipe_id}_mark.png` | `godot/assets/formations/shield_wall_mark.png` |
+
+- ④の書き出しは着弾エフェクトと同じ [`gen_formation_board_art.ps1`](../../godot/tools/gen_formation_board_art.ps1)。
+- 絵柄は着弾エフェクトと同じ EFFECT STYLE 寄り。ただし一撃ではなく「効いていることの印」なので、向きは正面・直立で描く（盤では回転させない）。面積の大きい絵の中心を空洞にする約束も適用しない＝盾は面で守る形なので塗り潰す。駒が隠れる件は、盤の側が半透明に重ねて1秒で消すことで解く。
+- 意匠は特定のユニットに寄せない。⑤は歩兵の誰に出ても同じ絵が出るので、紋章の入った盾を写すと「ナイトの盾」に見える。
 - 規約解決。置けば出て、無ければ絵を出さず面の光だけになる（コード不変）。
 
 ---

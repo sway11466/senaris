@@ -79,6 +79,7 @@ ui.info.saved,セーブしました,Saved
 ui.skillreport.caster,発動　%s,Cast by %s
 ui.skillreport.target,対象　%s,Target: %s
 ui.skillreport.target_all_allies,味方全体,All allied units
+ui.skillreport.target_participants,参加した%d体,"The %d members who took part"
 ui.skillreport.loss_line,%s　−%d,%s  −%d
 ui.skillreport.loss_line_killed,%s　−%d　撃破,%s  −%d  Defeated
 ui.skillreport.no_hits,対象なし（範囲に誰も居なかった）,No targets hit

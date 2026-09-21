@@ -25,7 +25,10 @@
         { "type": "thief", "col": 7, "row": 1 },
         { "type": "archer", "col": 6, "row": 5 },
         { "type": "hunter", "col": 7, "row": 5 },
-        { "type": "elf", "col": 6, "row": 6 }
+        { "type": "elf", "col": 6, "row": 6 },
+        { "type": "fighter", "col": 2, "row": 1 },
+        { "type": "vanguard", "col": 2, "row": 2 },
+        { "type": "knight", "col": 2, "row": 3 }
       ] }
   ],
   "enemy": [

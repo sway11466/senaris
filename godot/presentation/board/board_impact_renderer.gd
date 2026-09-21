@@ -48,6 +48,17 @@ const RAIN_GAP_SEC := 0.07     # 同じヘックスに降る矢どうしの間�
 const RAIN_JITTER_SEC := 0.05  # 同・間隔の散らし幅
 const RAIN_SCATTER := 0.55     # ヘックス内の落ち先の散らし幅（ヘックス幅に対する割合）
 
+# --- 発動の印（着弾の無いレシピ専用＝⑤シールドウォール）---
+# 着弾が無いレシピは盤で何も起きないので、誰に効いたのかが読めない。参加者の駒に絵を1枚ずつ
+# 重ねて、端から順に立てて短く消す。盤は解決した時点で更新済み＝印は出来上がった盤の上に乗る。
+const MARK_TILES := 1.25      # 絵の大きさ（長辺がヘックス幅の何倍か）。駒より一回り大きい
+const MARK_ALPHA := 0.85      # 濃さ。駒を完全には隠さない
+const MARK_STEP_SEC := 0.08   # 参加者どうしの間隔＝列に沿って1枚ずつ立つ（左から右へ）
+const MARK_RISE_SEC := 0.16   # 開いて出るまで
+const MARK_RISE_FROM := 0.55  # 同・開き始めの倍率
+const MARK_HOLD_SEC := 0.46   # 置いておく時間
+const MARK_FADE_SEC := 0.30   # 引き
+
 # --- 単体対象のスキル専用（③ディバインジャッジメント・④トリックショット）---
 # 単体対象＝面の広さで見せられないぶん、1発の重さ（絵の大きさと時間）で見せる。
 # 共通の「落として弾ける」より、ため→ゆっくり降りる→立ったまま残る、で長く見せる。
@@ -94,6 +105,7 @@ var _impact_gen := 0            # 世代。ステージが変わったら増や�
 var _impact_pending := false    # 着弾待ち＝盤の作り直しを保留している（撃たれる前の姿のまま置く）
 var _impact_lock := false       # 演出の間だけ入力を止めた＝終わったら元へ戻す
 var _impact_tex := {}           # skill_id -> Texture2D|null（駒に重ねる着弾の絵）
+var _mark_tex := {}             # skill_id -> Texture2D|null（参加者に重ねる発動の印の絵）
 var _effect_tex := {}           # effect_id -> Texture2D|null（戦闘の武器エフェクトの絵）
 var _skin_catalog := {}         # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }。武器エフェクトを引く
 var _finisher := false          # 次の着弾を決着のとどめ（スロー）として見せる＝main が勝ち確定後に立てる
@@ -166,7 +178,10 @@ func reset() -> void:
 ## is_locked は呼び出し元の現在のロック状態（演出終了後に元に戻すか判定するため）。
 func play(result: SkillResult, is_locked: bool) -> void:
 	if not _impact_pending:
-		return  # 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み
+		# 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み。誰に効いたのかが
+		# 盤に出ないので、印を持つレシピ（⑤）は参加者に1枚ずつ重ねてから抜ける。
+		await _play_mark(result)
+		return
 	if _skip:
 		_end_impact()  # 盤面の演出 OFF＝光もフラッシュも出さず、撃たれた後の盤を作り直すだけ
 		_sync_fn.call()
@@ -488,6 +503,74 @@ func _flash_cells_only(cells: Array, is_locked: bool) -> void:
 		return
 	_end_impact()
 	_sync_fn.call()
+
+
+## 着弾の無いレシピの発動の印＝参加者の駒に絵を1枚ずつ重ね、少し置いてから消す。
+## 出る順は盤の左から右へ（参加者を選んだ順ではない）＝列に沿って1枚ずつ立つように見せる。
+## 絵が無いレシピ（②グレイスほか）は何も出さずに戻る＝呼び出し側で分岐しなくていい。
+## 盤面の演出 OFF も出さない。詳細 → doc/gdd/formations.md 発動の演出
+func _play_mark(result: SkillResult) -> void:
+	if _skip or result.participants.is_empty():
+		return
+	var tex := _mark_texture(result.skill)
+	if tex == null:
+		return
+	var cells: Array[Vector2i] = []
+	for pid in result.participants:
+		var u := _state.unit_by_handle(pid)
+		if u != null:
+			cells.append(u.pos)
+	if cells.is_empty():
+		return
+	cells.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		var pa := Hex.to_pixel(a, TILE)
+		var pb := Hex.to_pixel(b, TILE)
+		return pa.x < pb.x if not is_equal_approx(pa.x, pb.x) else pa.y < pb.y)
+	for i in cells.size():
+		_spawn_mark(cells[i], tex, MARK_STEP_SEC * float(i))
+	await _wait(MARK_STEP_SEC * float(cells.size() - 1)
+		+ MARK_RISE_SEC + MARK_HOLD_SEC + MARK_FADE_SEC)
+
+
+## 発動の印を1枚、駒に重ねる。delay 秒待ってから小さく開いて出て、置いたあと引く。
+func _spawn_mark(hex: Vector2i, tex: Texture2D, delay: float) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（着弾の絵と同じ扱い）
+	spr.render_priority = 6
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (MARK_TILES * TILE) / maxf(longest, 1.0)
+	var p := Hex.to_pixel(hex, TILE)
+	spr.position = Vector3(p.x, _elev_fn.call(hex) + TILE * 0.9, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	spr.scale = Vector3.ONE * MARK_RISE_FROM
+	spr.visible = false  # 出番まで隠す（待っている間ぶら下がって見えない）
+	add_child(spr)
+	var tw := _tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func() -> void:
+		spr.modulate.a = MARK_ALPHA
+		spr.visible = true)
+	tw.tween_property(spr, "scale", Vector3.ONE, MARK_RISE_SEC).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(MARK_HOLD_SEC)
+	tw.tween_property(spr, "modulate:a", 0.0, MARK_FADE_SEC)
+	tw.tween_callback(spr.queue_free)
+
+
+## 発動の印の絵（キャッシュ）。スキルIDで規約解決する＝assets/formations/{skill_id}_mark.png。
+## カットイン（{skill_id}.png）・着弾（{skill_id}_impact.png）と同じ置き場で接尾辞だけが違う。
+## 盤では回さない＝絵は正面・直立で描く。無ければ null＝印を出さない。
+func _mark_texture(skill_id: String) -> Texture2D:
+	if skill_id.is_empty():
+		return null
+	if _mark_tex.has(skill_id):
+		return _mark_tex[skill_id]
+	var p := "res://assets/formations/%s_mark.png" % skill_id
+	var tex := load(p) as Texture2D if ResourceLoader.exists(p) else null
+	_mark_tex[skill_id] = tex
+	return tex
 
 
 ## 着弾演出の後始末＝保留を解き、止めた入力を戻し、待っている側（main）へ知らせる。
