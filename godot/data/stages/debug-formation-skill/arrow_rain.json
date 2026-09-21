@@ -1,0 +1,57 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-arrow_rain",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "archer",
+          "col": 2,
+          "row": 3
+        },
+        {
+          "type": "hunter",
+          "col": 3,
+          "row": 3
+        },
+        {
+          "type": "elf",
+          "col": 3,
+          "row": 2
+        },
+        {
+          "type": "fighter",
+          "col": 4,
+          "row": 5
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "goblin",
+          "col": 5,
+          "row": 4
+        },
+        {
+          "skin": "goblin",
+          "col": 6,
+          "row": 5
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 7,
+          "row": 5
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

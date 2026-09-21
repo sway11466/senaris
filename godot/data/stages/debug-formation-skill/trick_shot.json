@@ -1,0 +1,37 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-trick_shot",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "archer",
+          "col": 2,
+          "row": 2
+        },
+        {
+          "type": "thief",
+          "col": 6,
+          "row": 3
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 5,
+          "row": 3
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

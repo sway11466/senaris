@@ -1,0 +1,37 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-magic_arrow",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "archer",
+          "col": 4,
+          "row": 3
+        },
+        {
+          "type": "wizard",
+          "col": 3,
+          "row": 2
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 9,
+          "row": 5
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

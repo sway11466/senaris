@@ -21,6 +21,7 @@
 | store4 | `debug-photo/store4.json` | 紹介画像の4枚目（会話パート。チュートリアル1・第4話をそのまま移植＝盤も会話も本物） |
 | devlog2-1 | `debug-photo/devlog2-1.json` | devlog 2本目の画（墓地の関門にバリケード＋魔法兵の三角＋アンデッドの群れ。`shot_screen --formation trinity_nova` で連写） |
 | devlog2-2 | `debug-photo/devlog2-2.json` | devlog 2本目のマップの画（undead-rush-st3 の実盤面コピー。関門をバリケードで塞ぎ、アンデッドの群れが詰まり、脇からゴーストが回り込む中盤の配置） |
+| manual-combat | `debug-photo/manual-combat.json` | マニュアルに貼る絵の撮影セット（平地にファイターとゴブリンを隣り合わせで1体ずつ。戦闘窓・戦闘レポート・情報板をここから撮る） |
 
 ## debug-combat（戦闘シーンの見た目確認）
 
@@ -52,10 +53,18 @@
 
 陣形スキルの動作確認。設計 → [../gdd/formations.md](../gdd/formations.md)。
 
+レシピごとに1枚。ファイル名はレシピID、並びは [formations.md](../gdd/formations.md) 表Aの番号順。どの盤も**そのレシピが成立する最小の配置だけ**を置く（成立しない反例は置かない）。敵は待ち伏せ・視界1の的＝こちらから殴るまで動かない。レシピを足したら1枚足す。
+
 | ステージ | ファイル | 目的 | 変更の引き金 |
 | --- | --- | --- | --- |
-| formation | `debug-formation-skill/formation.json` | 陣形スキルの動作確認 | レシピを追加したとき |
-| members | `debug-formation-skill/members.json` | 参加者を選ぶ段の確認（組が複数／組が1つ／候補が絞られる／人数が可変で候補が余る／可変で最低人数ちょうど／移動先で成立） | 参加者の選び方・形を足したとき |
+| trinity_nova | `debug-formation-skill/trinity_nova.json` | ①トリニティノヴァ（面7ヘクスに敵3体が入る） | ①を変えたとき |
+| grace | `debug-formation-skill/grace.json` | ②グレイス（参加しないファイターで全体バフの乗りを見る） | ②を変えたとき |
+| divine_judgment | `debug-formation-skill/divine_judgment.json` | ③ディバインジャッジメント（射程ちょうど10） | ③を変えたとき |
+| trick_shot | `debug-formation-skill/trick_shot.json` | ④トリックショット（斥候は弓兵に隣接しない） | ④を変えたとき |
+| shield_wall | `debug-formation-skill/shield_wall.json` | ⑤シールドウォール（殴って反撃を受けると防御が見える） | ⑤を変えたとき |
+| arrow_rain | `debug-formation-skill/arrow_rain.json` | ⑥アローレイン（味方1体が面に入る＝誤射） | ⑥を変えたとき |
+| magic_arrow | `debug-formation-skill/magic_arrow.json` | ⑨マジックアロー（射程ちょうど5） | ⑨を変えたとき |
+| members | `debug-formation-skill/members.json` | 参加者を選ぶ段の確認（組が複数／組が1つ／候補が絞られる／人数が可変で候補が余る／可変で最低人数ちょうど／移動先で成立）。スキルをまたぐ話なので1枚にまとめる | 参加者の選び方・形を足したとき |
 
 ## debug-ai（敵AI）
 

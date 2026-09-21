@@ -1,0 +1,57 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-grace",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "cleric",
+          "col": 2,
+          "row": 2
+        },
+        {
+          "type": "cleric",
+          "col": 2,
+          "row": 3
+        },
+        {
+          "type": "priest",
+          "col": 2,
+          "row": 4
+        },
+        {
+          "type": "cleric",
+          "col": 2,
+          "row": 5
+        },
+        {
+          "type": "bishop",
+          "col": 2,
+          "row": 6
+        },
+        {
+          "type": "fighter",
+          "col": 5,
+          "row": 3
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 6,
+          "row": 4
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

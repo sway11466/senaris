@@ -1,0 +1,52 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-trinity_nova",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "wizard",
+          "col": 2,
+          "row": 3
+        },
+        {
+          "type": "wizard",
+          "col": 3,
+          "row": 3
+        },
+        {
+          "type": "wizard",
+          "col": 3,
+          "row": 2
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "goblin",
+          "col": 6,
+          "row": 5
+        },
+        {
+          "skin": "goblin",
+          "col": 6,
+          "row": 6
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 7,
+          "row": 4
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

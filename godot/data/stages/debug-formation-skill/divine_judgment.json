@@ -1,0 +1,42 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-divine_judgment",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "paladin",
+          "col": 4,
+          "row": 3
+        },
+        {
+          "type": "cleric",
+          "col": 3,
+          "row": 2
+        },
+        {
+          "type": "priest",
+          "col": 5,
+          "row": 2
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 14,
+          "row": 8
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

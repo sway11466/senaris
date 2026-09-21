@@ -4,15 +4,51 @@
   "debug": true,
   "stages": [
     {
-      "id": "formation",
-      "file": "formation.json",
-      "title": "陣形スキル（味方）",
+      "id": "trinity_nova",
+      "file": "trinity_nova.json",
+      "title": "①トリニティノヴァ",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "grace",
+      "file": "grace.json",
+      "title": "②グレイス",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "divine_judgment",
+      "file": "divine_judgment.json",
+      "title": "③ディバインジャッジメント",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "trick_shot",
+      "file": "trick_shot.json",
+      "title": "④トリックショット",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "shield_wall",
+      "file": "shield_wall.json",
+      "title": "⑤シールドウォール",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "arrow_rain",
+      "file": "arrow_rain.json",
+      "title": "⑥アローレイン",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "magic_arrow",
+      "file": "magic_arrow.json",
+      "title": "⑨マジックアロー",
       "synopsis": "デバッグ冒険譚"
     },
     {
       "id": "members",
       "file": "members.json",
-      "title": "陣形スキル（参加者選び）",
+      "title": "参加者選び",
       "synopsis": "デバッグ冒険譚"
     }
   ]
