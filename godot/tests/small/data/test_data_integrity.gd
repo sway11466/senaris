@@ -432,7 +432,7 @@ func test_every_stage_has_synopsis() -> void:
 func test_stage_interlude_matches_supply() -> void:
 	# 幕間の印（マニフェストの interlude）は見せ方、兵が戻るかは駒の supply。2か所に書くので
 	# 食い違いをここで拾う（doc/gdd/stage_select.md 冒険譚マニフェスト）。線引き＝
-	#   damaged → 連戦。refill／revive の駒が1体も無い
+	#   onward  → 連戦。refill／revive の駒が1体も無い
 	#   refill  → 新入り（join）以外の名簿の駒は全部 refill
 	#   revive  → 同じく全部 revive
 	# 継承の冒険譚（名簿を引き継ぐ話がある）の2話目以降は、この3値のどれかを必ず書く＝「書いて

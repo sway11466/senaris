@@ -4,9 +4,9 @@ class_name CampaignCatalog
 ## data層＝純データのみ（解放判定・クリア記録は application/campaign_progress.gd）。
 
 const STAGES_ROOT := "res://data/stages"
-## 幕間の印の値（damaged＝連戦／refill＝休息／revive＝復帰）。依頼書が同名の絵
+## 幕間の印の値（onward＝連戦／refill＝休息／revive＝復帰）。依頼書が同名の絵
 ## （icons/interlude/{値}.png）を引く。詳細 → doc/gdd/stage_select.md 幕間の印
-const INTERLUDES := ["damaged", "refill", "revive"]
+const INTERLUDES := ["onward", "refill", "revive"]
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。

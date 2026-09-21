@@ -15,7 +15,7 @@ ui.quest.party_carry,この先も共に戦うユニット,Units that stay with y
 ui.quest.party_oneoff,この依頼限りのユニット,Units provided for this quest only
 ui.quest.party_lost,兵数がゼロで出発できないユニット,Units at zero strength — can't set out
 ui.quest.interlude_refill,十分に休息したため、兵数が全快している,Rested well — every unit is back to full strength
-ui.quest.interlude_damaged,休息を取る間もなく、兵数は前の戦いのまま,No time to rest — units carry their losses into this fight
+ui.quest.interlude_onward,休息を取る間もなく、兵数は前の戦いのまま,No time to rest — units carry their losses into this fight
 ui.quest.interlude_revive,倒れた仲間も戻り、兵数が全快している,"The fallen return, and every unit is back to full strength"
 ui.quest.unlock_nth,%d番めの依頼をクリアで解放,Clear quest %d to unlock
 ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to unlock

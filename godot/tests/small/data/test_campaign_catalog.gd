@@ -126,10 +126,10 @@ func test_build_defaults_interlude_to_empty() -> void:
 func test_build_interlude_three_values() -> void:
 	var c := CampaignCatalog.build({ "id": "x", "board": "tutorial", "stages": [
 		{ "id": "s1", "file": "s1.json" },
-		{ "id": "s2", "file": "s2.json", "interlude": "damaged" },
+		{ "id": "s2", "file": "s2.json", "interlude": "onward" },
 		{ "id": "s3", "file": "s3.json", "interlude": "refill" },
 		{ "id": "s4", "file": "s4.json", "interlude": "revive" } ] }, "res://x")
-	assert_eq(c["stages"][1]["interlude"], "damaged", "連戦")
+	assert_eq(c["stages"][1]["interlude"], "onward", "連戦")
 	assert_eq(c["stages"][2]["interlude"], "refill", "休息")
 	assert_eq(c["stages"][3]["interlude"], "revive", "復帰")
 
