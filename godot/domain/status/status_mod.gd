@@ -4,11 +4,16 @@ class_name StatusMod
 ## バフもデバフも1つの器で扱う。詳細 → doc/gdd/combat.md「状態補正（バフ/デバフ・持続）」
 ##
 ## 1エントリ ＝ Dictionary:
-##   scope: "team" | "unit" | "participants"（将来 "zone"）… どのユニットに効くか
-##   team:  int（scope=="team" のとき対象陣営）
+##   scope: "team" | "unit" | "participants" | "zone" … どのユニットに効くか
+##   team:  int（scope=="team" / "zone" のとき対象陣営）
 ##   handle: int（scope=="unit" のとき対象ユニット）
 ##   handles: Array[int]（scope=="participants" のとき対象ユニットの集合＝発動に参加した駒だけ。
 ##     発動時の顔ぶれで固める＝以後その駒が動いても列が崩れても、効く相手は変わらない）
+##   q / r / radius: int（scope=="zone" のとき結界の中心hex（axial）と半径。⑦マジックシールド）。
+##     効く相手を発動時に固めない唯一のスコープ＝中に居る味方に効く（入れば効き、出れば切れる）。
+##     中心は Vector2i ではなく整数2つで持つ＝中断セーブ（JSON）をそのまま往復できる。
+##   pierce_immune: bool（この補正が効いている駒は貫通を受けない＝攻撃側の pierce を 0 扱い。⑦）。
+##     乗算・加算の外＝集計（aggregate）ではなく combat の貫通の段が pierce_immune() で見る。
 ##   op: "mul" | "add" … 乗算（実効ステータスに係数）／加算（支援と同じ位置）
 ##   target: "attack" | "defense" | "both"
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
@@ -65,6 +70,15 @@ static func aggregate(mods: Array, unit: Unit, target: String) -> Dictionary:
 			add += float(m.get("value", 0.0))
 	return {"mul": mul, "add": add}
 
+## unit が貫通無効（⑦マジックシールドの結界の中）か。効いていれば攻撃側の貫通を 0 として扱う。
+## 攻防の補正チェーン（aggregate）とは別の段＝乗算・加算では表せないため独立に引く。
+## 詳細 → doc/gdd/formations.md ⑦, doc/gdd/combat.md 補正チェーン
+static func pierce_immune(mods: Array, unit: Unit) -> bool:
+	for m in mods:
+		if bool(m.get("pierce_immune", false)) and applies_to(m, unit):
+			return true
+	return false
+
 ## エントリ m が unit 1体に掛かった弱体か（陣営全体のものは含めない）。
 ## ピュリファイが落とす範囲（BattleState.clear_debuffs）と、敵AIのデバフ本数の上限判定
 ## （doc/gdd/ai.md stack 条件）が同じ判定を使う＝落とせるものと数えるものがずれない。
@@ -118,4 +132,11 @@ static func applies_to(m: Dictionary, unit: Unit) -> bool:
 				if int(h) == unit.handle:
 					return true
 			return false
+		"zone":
+			# 結界（⑦）＝中に居る味方だけ。発動時の顔ぶれではなく、いまの位置で毎回測る
+			# ＝入れば効き、出れば切れる。敵は同じ面に居ても効かない。
+			if int(m.get("team", -99)) != unit.team:
+				return false
+			var center := Vector2i(int(m.get("q", 0)), int(m.get("r", 0)))
+			return Hex.distance(unit.pos, center) <= int(m.get("radius", 0))
 	return false

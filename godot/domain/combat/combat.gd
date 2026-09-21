@@ -70,6 +70,7 @@ static func attack_breakdown_from(troops: int, stat: int, lv: float, surround: f
 ## 実効防御力の内訳（StatBreakdown）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
 ## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
 ## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（test_pierce.gd で固定）。
+## 結界（⑦マジックシールド）の中に居る駒は貫通を受けない＝攻撃側の貫通を 0 として渡す。
 static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> StatBreakdown:
 	var sf := state.status_aggregate(u, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := defense_breakdown_from(
@@ -79,7 +80,7 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 		surround_factor(state, u),
 		TerrainType.defense_factor(state.terrain_at(u.pos)),
 		_support(state, u, enemy, false) if melee else 0.0,
-		float(enemy.pierce),
+		0.0 if state.pierce_immune(u) else float(enemy.pierce),
 		float(sf["mul"]), float(sf["add"]))
 	b.melee = melee
 	return b

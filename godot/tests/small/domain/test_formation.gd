@@ -1380,3 +1380,161 @@ func test_counter_does_not_move_ai_gain() -> void:
 	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
 	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
 	assert_eq(Combat.casualties(s, f["foe"], f["caster"], true), before, "戦果は変わらない")
+
+# --- ⑦マジックシールド（魔法兵＋占領兵の結界・防御 +10×兵数・貫通無効） ---
+
+## ⑦の成立盤：ウィザード（id1）＋プリースト（id2）が隣接。結界の中に前衛1体（id3）、
+## 外に前衛1体（id20）と貫通持ちの敵1体（id21）。詳細 → doc/gdd/formations.md ⑦
+func _magic_shield_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(4, 4)
+	var wiz := Unit.new(1, 0, c, 4, 8, 40, 30, 1, "wizard")
+	wiz.pierce = 0.5
+	var priest := Unit.new(2, 0, Hex.neighbor(c, 0), 2, 8, 40, 20, 1, "priest")
+	var inside := Unit.new(3, 0, Hex.neighbor(c, 2), 6, 8, 55, 50, 1, "vanguard")
+	var outside := Unit.new(20, 0, c + Hex.direction(3) * 3, 6, 8, 55, 50, 1, "vanguard")
+	var foe := Unit.new(21, 1, c + Hex.direction(3) * 2, 4, 8, 40, 30, 1, "wizard")
+	foe.pierce = 0.5
+	for u in [wiz, priest, inside, outside, foe]:
+		s.add_unit(u)
+	return {"s": s, "wiz": wiz, "priest": priest, "inside": inside, "outside": outside,
+		"foe": foe, "center": c}
+
+## ⑦を撃って、積んだ状態補正エントリを返す（撃てなければテストを落とす）。
+func _cast_magic_shield(s: BattleState, caster: Unit) -> Dictionary:
+	var opt := _pick(Formation.available_for(s, caster), "magic_shield")
+	assert_not_null(opt, "⑦が成立している")
+	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
+	assert_not_null(res, "発動成功")
+	return res.status
+
+## 魔法兵と占領兵が隣接していれば、どちらからでも発動できる（役割の入れ替え）。
+func test_magic_shield_pairs_mage_and_clergy() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	assert_eq(_count(Formation.available_for(s, f["wiz"]), "magic_shield"), 1, "魔法兵から1件")
+	assert_eq(_count(Formation.available_for(s, f["priest"]), "magic_shield"), 1, "占領兵からも1件")
+	var opt := _pick(Formation.available_for(s, f["wiz"]), "magic_shield")
+	assert_eq(opt.participants.size(), 2, "参加2体")
+	assert_false(opt.needs_target(), "着弾が無い＝対象指定は要らない")
+
+## 組めるのは必ず両側から1体ずつ＝魔法兵同士・占領兵同士では成立しない。
+func test_magic_shield_needs_both_sides() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(4, 4)
+	var w1 := Unit.new(1, 0, c, 4, 8, 40, 30, 1, "wizard")
+	var w2 := Unit.new(2, 0, Hex.neighbor(c, 0), 4, 8, 40, 30, 1, "witch")
+	var p1 := Unit.new(3, 0, Hex.offset_to_axial(8, 4), 2, 8, 40, 20, 1, "priest")
+	var p2 := Unit.new(4, 0, Hex.neighbor(Hex.offset_to_axial(8, 4), 0), 2, 8, 40, 20, 1, "bishop")
+	for u in [w1, w2, p1, p2]:
+		s.add_unit(u)
+	assert_eq(_count(Formation.available_for(s, w1), "magic_shield"), 0, "魔法兵2体では組めない")
+	assert_eq(_count(Formation.available_for(s, p1), "magic_shield"), 0, "占領兵2体では組めない")
+
+## 結界の中の味方は実効防御に +10×発動者の残兵数（満員8で +80）。外の味方には乗らない。
+func test_magic_shield_adds_defense_by_caster_troops() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	var entry := _cast_magic_shield(s, f["wiz"])
+	assert_almost_eq(float(entry["value"]), 80.0, 0.001, "満員8で +80")
+	for u in [f["wiz"], f["priest"], f["inside"]]:
+		assert_almost_eq(float(s.status_aggregate(u, "defense")["add"]), 80.0, 0.001,
+			"結界の中の味方に +80（id %d）" % u.handle)
+		assert_almost_eq(float(s.status_aggregate(u, "attack")["add"]), 0.0, 0.001,
+			"攻撃は変わらない（id %d）" % u.handle)
+	assert_almost_eq(float(s.status_aggregate(f["outside"], "defense")["add"]), 0.0, 0.001,
+		"結界の外の味方には乗らない")
+
+## 損耗した発動者が張れば薄い結界になる（値は発動時に決まり、以後動かない）。
+func test_magic_shield_value_follows_caster_troops_at_cast() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	var wiz: Unit = f["wiz"]
+	wiz.take_loss(3)  # 残兵5で発動
+	var entry := _cast_magic_shield(s, wiz)
+	assert_almost_eq(float(entry["value"]), 50.0, 0.001, "残兵5なら +50")
+	wiz.take_loss(4)  # 発動後にさらに損耗しても結界は薄くならない
+	assert_almost_eq(float(s.status_aggregate(f["inside"], "defense")["add"]), 50.0, 0.001,
+		"発動後の損耗では変わらない")
+
+## 結界の中の味方は貫通を受けない＝魔法兵の攻撃でも防御が半分にならない。
+func test_magic_shield_blocks_pierce() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	_cast_magic_shield(s, f["wiz"])
+	var inside := Combat.defense_breakdown(s, f["inside"], f["foe"], false)
+	var outside := Combat.defense_breakdown(s, f["outside"], f["foe"], false)
+	assert_almost_eq(inside.pierce, 1.0, 0.001, "結界の中は貫通なし（防御が減らない）")
+	assert_almost_eq(outside.pierce, 0.5, 0.001, "結界の外は防御半減のまま")
+
+## 陣形スキルが上書きする貫通（④⑨の 0.5）も結界の中では通らない。
+func test_magic_shield_blocks_recipe_pierce() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	_cast_magic_shield(s, f["wiz"])
+	var opt := FormationOption.from_skill("magic_arrow", Formation.SKILLS["magic_arrow"],
+		[f["foe"], f["foe"]])
+	var df := Formation._skill_defense_breakdown(s, f["inside"], f["foe"], opt)
+	assert_almost_eq(df.pierce, 1.0, 0.001, "レシピの貫通 0.5 も 0 として扱う")
+
+## 掛かる相手は発動時の顔ぶれではなく「いま中に居る味方」＝入れば効き、出れば切れる。
+func test_magic_shield_applies_by_position() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	var center: Vector2i = f["center"]
+	_cast_magic_shield(s, f["wiz"])
+	var inside: Unit = f["inside"]
+	inside.pos = center + Hex.direction(3) * 3  # 結界の外へ出る
+	assert_almost_eq(float(s.status_aggregate(inside, "defense")["add"]), 0.0, 0.001,
+		"外に出れば切れる")
+	var outside: Unit = f["outside"]
+	outside.pos = Hex.neighbor(center, 4)  # 発動時に居なかった駒が中へ入る
+	assert_almost_eq(float(s.status_aggregate(outside, "defense")["add"]), 80.0, 0.001,
+		"入れば効く")
+	var foe: Unit = f["foe"]
+	foe.pos = Hex.neighbor(center, 5)  # 敵が中に立っても効かない
+	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), 0.0, 0.001,
+		"敵には効かない")
+	assert_false(s.pierce_immune(foe), "敵は貫通無効にならない")
+
+## 結界の中心は発動者＝占領兵から撃てば占領兵を中心に張られる。
+func test_magic_shield_centers_on_caster() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	var priest: Unit = f["priest"]
+	var entry := _cast_magic_shield(s, priest)
+	assert_eq(Vector2i(int(entry["q"]), int(entry["r"])), priest.pos, "中心は発動者の位置")
+	var far := priest.pos + Hex.direction(0)  # 発動者の隣＝中（発動者から距離1）
+	var outside: Unit = f["outside"]
+	outside.pos = far
+	assert_almost_eq(float(s.status_aggregate(outside, "defense")["add"]), 80.0, 0.001,
+		"占領兵を中心とした7ヘクスに効く")
+
+## 持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
+func test_magic_shield_lasts_one_round() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	_cast_magic_shield(s, f["wiz"])
+	s.end_turn()  # 敵ターンへ
+	assert_almost_eq(float(s.status_aggregate(f["inside"], "defense")["add"]), 80.0, 0.001,
+		"敵ターン中はまだ効く")
+	assert_true(s.pierce_immune(f["inside"]), "敵ターン中は貫通無効も効く")
+	s.end_turn()  # 次の自軍ターンへ＝ここで満了
+	assert_almost_eq(float(s.status_aggregate(f["inside"], "defense")["add"]), 0.0, 0.001,
+		"次の自軍ターン開始で切れる")
+	assert_false(s.pierce_immune(f["inside"]), "貫通無効も切れる")
+
+## 中断セーブの往復で結界がそのまま戻る（中心を整数2つで持つ＝JSONを素通しできる）。
+func test_magic_shield_survives_save_roundtrip() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	_cast_magic_shield(s, f["wiz"])
+	var json: Variant = JSON.parse_string(JSON.stringify(s.to_save_diff()))
+	assert_typeof(json, TYPE_DICTIONARY, "JSON にできる")
+	var diff: Dictionary = json as Dictionary
+	diff.erase("units")  # 駒の復元は catalog（性能表）の仕事＝ここで見るのは結界のエントリだけ
+	var s2 := _state()
+	s2.apply_save_diff(diff)
+	assert_almost_eq(float(s2.status_aggregate(f["inside"], "defense")["add"]), 80.0, 0.001,
+		"戻した盤でも結界の中に +80")
+	assert_true(s2.pierce_immune(f["inside"]), "貫通無効も戻る")

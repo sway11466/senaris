@@ -156,9 +156,9 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 		"kind": option.buff_kind,
 	}
 
-## バフ系レシピの状態補正エントリを組む。掛かる範囲は3通り＝陣営全体（②グレイス）／参加者だけ
+## バフ系レシピの状態補正エントリを組む。掛かる範囲は4通り＝陣営全体（②グレイス）／参加者だけ
 ## （⑤シールドウォール＝列に並んだ駒・⑩カウンター＝隣り合う2体）／対象1体（ユニットスキル＝scope UNIT・target のhexに居る駒。
-## 味方＝ピクシーダスト／敵＝ドレッドタッチ）。
+## 味方＝ピクシーダスト／敵＝ドレッドタッチ）／地帯（⑦マジックシールド＝発動者を中心とした結界）。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 static func _buff_entry(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	# 発動者の兵1人あたりで効くレシピ（ピクシーダスト・ドレッドタッチ）は、発動時の残兵数を掛けて
@@ -189,6 +189,20 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 		var u := state.unit_at(target)  # can_target が対象の存在と陣営を保証済み
 		e["scope"] = "unit"
 		e["handle"] = u.handle if u != null else -1
+	elif option.scope == FormationOption.Scope.ZONE:
+		# ⑦マジックシールド＝発動者を中心とした結界。ここだけは効く相手を発動時に固めない
+		# ＝そのとき中に居る味方に効く（入れば効き、出れば切れる）。固めるのは中心と値だけで、
+		# 中心は発動者の位置＝発動者がこのあと動いても結界は動かない。
+		var c := state.unit_by_handle(option.caster_id)
+		var center := c.pos if c != null else target
+		e["scope"] = "zone"
+		e["team"] = state.current_team
+		e["q"] = center.x
+		e["r"] = center.y
+		e["radius"] = option.zone_radius
+		# 貫通無効は攻防の値ではない＝集計の外で combat の貫通の段が読む。
+		if option.pierce_immune:
+			e["pierce_immune"] = true
 	elif option.scope == FormationOption.Scope.PARTICIPANTS:
 		# ⑤シールドウォール＝列に並んだ参加者だけ／⑩カウンター＝組んだ2体だけ。発動時の顔ぶれで
 		# 固める＝このあと列や組が崩れても、掛かった相手も値も変わらない（人数で伸びる値の焼き込みと同じ流儀）。

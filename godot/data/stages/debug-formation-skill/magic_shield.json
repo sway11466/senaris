@@ -1,0 +1,52 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-magic-shield",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "wizard",
+          "col": 3,
+          "row": 3
+        },
+        {
+          "type": "priest",
+          "col": 3,
+          "row": 2
+        },
+        {
+          "type": "vanguard",
+          "col": 4,
+          "row": 3
+        },
+        {
+          "type": "vanguard",
+          "col": 6,
+          "row": 5
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "orc_mage",
+          "col": 1,
+          "row": 3
+        },
+        {
+          "skin": "orc",
+          "col": 1,
+          "row": 4
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

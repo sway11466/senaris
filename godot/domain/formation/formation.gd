@@ -17,11 +17,16 @@ class_name Formation
 ## スキル定義（当面ハードコード。将来 CSV/JSON 化）。
 ## caster_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
+## swap_roles: 2つのリストの役割を入れ替えても組める（⑦＝魔法兵と占領兵のどちらからでも発動でき、
+##        必ず両側から1体ずつ。結界の中心は発動者）。省略＝発動者は caster_skins だけ。
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
 ##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
 ##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）／
 ##        "line"（cluster の直線版＝発動者を含む一直線に count 体以上が途切れず連なる）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
+## buff_scope: 補正の掛かる範囲＝"team"（②）／"participants"（⑤⑩）／"unit"（ユニットスキル）／
+##        "zone"（⑦＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
+## pierce_immune: その補正が効いている駒は貫通を受けない（攻撃側の pierce を 0 扱い＝⑦）。
 ## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
 ## impact_rain: 面の全ヘックスに着弾の絵を降らせる本数（1ヘックスあたり）。省略＝0＝被弾した駒に
 ##        1枚ずつ落とす共通の形。⑥＝矢の雨。詳細 → doc/gdd/formations.md ⑥
@@ -140,6 +145,33 @@ const SKILLS := {
 		"attack_vs": "target",
 		# 着弾は面の19ヘックスすべてに矢を3本ずつ降らせる（駒に1枚落とす共通の形ではない）。
 		"impact_rain": 3,
+	},
+	"magic_shield": {
+		"name": "マジックシールド",
+		"category": "buff",
+		"caster_skins": ["wizard", "witch"],  # メイジは見習いのため対象外（①と同じ）
+		"member_skins": ["cleric", "priest", "bishop", "paladin"],
+		# 魔法兵と占領兵のどちらが発動者でもよい＝役割を入れ替えて組める。2つのリストを1つに
+		# 混ぜないのは、混ぜるとウィザード2体でも組めてしまうため（必ず両側から1体ずつ）。
+		"swap_roles": true,
+		"shape": "escort",
+		"count": 2,
+		"effect": "buff",
+		# 発動者を中心とした結界（地帯）に効く＝掛かる相手は発動時の顔ぶれではなく、そのとき
+		# 中に居る味方。入れば効き、出れば切れる。詳細 → doc/gdd/formations.md ⑦
+		"buff_scope": "zone",
+		"zone_radius": 1,  # 中心＋周囲6＝7ヘクス
+		"buff_op": "add",  # 実効防御への加算（レベル・包囲・地形の補正は乗らない）
+		"buff_target": "defense",
+		# 発動者の残兵1体あたりの加算量（満員8で +80＝ピクシーダストと同じ式）。発動時の
+		# 残兵数を掛けた値を焼き込む＝以後は発動者と切り離される。
+		"buff_value_per_troop": 10.0,
+		# 結界の中の味方は貫通を受けない＝攻撃側の pierce を 0 として扱う（乗算・加算の外＝
+		# 貫通の段で効く）。物理には薄く魔法には半減＝対魔法の結界。
+		"pierce_immune": true,
+		"buff_fx": "barrier",  # 盤の見た目（結界の床＋中に居る駒の足元の光）。空＝見た目なし
+		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
+		"range_from": "any",  # どちらの駒からでも発動できる（着弾は無いので対象は取らない）
 	},
 	"magic_arrow": {
 		"name": "マジックアロー",
@@ -423,7 +455,7 @@ static func member_candidates(state: BattleState, choice: FormationChoice, chose
 	if choice == null:
 		return out
 	if choice.variable_count:
-		var caster := state.unit_by_handle(choice.caster_id)
+		var caster := state.unit_any(choice.caster_id)  # 降車先を決めている搭乗駒もありうる
 		if caster == null:
 			return out
 		# 一直線の形（⑤）は「隣接していれば伸ばせる」では足りない＝列の両端の外側だけを出す。
@@ -472,7 +504,7 @@ static func can_activate(choice: FormationChoice, chosen: Array[int]) -> bool:
 static func option_of(state: BattleState, choice: FormationChoice, chosen: Array[int]) -> FormationOption:
 	if choice == null:
 		return null
-	var caster := state.unit_by_handle(choice.caster_id)
+	var caster := state.unit_any(choice.caster_id)  # 降車先を決めている搭乗駒もありうる
 	if caster == null:
 		return null
 	var units: Array = [caster]
@@ -524,11 +556,11 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 	if not option.needs_target():
 		return true
 	var caster_id := option.caster_id
-	var caster := state.unit_by_handle(caster_id)
+	var caster := state.unit_any(caster_id)  # 降車先を決めている搭乗駒もありうる
 	var within := false
 	if option.range_from == FormationOption.RangeFrom.ANY:
 		for pid in option.participants:
-			var p := state.unit_by_handle(int(pid))
+			var p := state.unit_any(int(pid))
 			if p == null:
 				continue
 			var ppos := from_hex if (from_hex != NO_HEX and p.handle == caster_id) else p.pos
@@ -626,11 +658,27 @@ static func _matches(unit: Unit, skins: Array) -> bool:
 	var key := unit.skin_id if unit.skin_id != "" else unit.type_id
 	return key in skins
 
+## unit がそのスキルの発動者になれるスキンか（形も行動の残りも見ない）。
+## 役割を入れ替えられるレシピ（swap_roles＝⑦マジックシールド）は相方側のスキンでも名乗れる
+## ＝どちらからでも発動できる。チャージの加算（BattleState._increment_charges）も同じ門を使う。
+static func can_cast_skin(unit: Unit, r: Dictionary) -> bool:
+	if _matches(unit, r["caster_skins"]):
+		return true
+	return bool(r.get("swap_roles", false)) and _matches(unit, r["member_skins"])
+
+## 発動者 caster から見た「相方になれるスキン」。既定は member_skins。役割を入れ替えられる
+## レシピ（swap_roles）で発動者が member_skins 側の駒なら、相方は caster_skins 側になる
+## ＝魔法兵同士・占領兵同士では組めない（必ず両側から1体ずつ）。
+static func _member_skins_for(caster: Unit, r: Dictionary) -> Array:
+	if bool(r.get("swap_roles", false)) and not _matches(caster, r["caster_skins"]):
+		return r["caster_skins"]
+	return r["member_skins"]
+
 ## unit がそのスキルの発動者として名乗れるか（形は見ない）。available_for と choices_for の共通の門。
 static func _caster_can_offer(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
 	if not (r["effect"] in IMPLEMENTED_EFFECTS):
 		return false
-	if not _matches(unit, r["caster_skins"]):
+	if not can_cast_skin(unit, r):
 		return false
 	# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
 	# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
@@ -687,8 +735,8 @@ static func _unit_at_assumed(state: BattleState, caster: Unit, from_hex: Vector2
 	if caster != null and from_hex != NO_HEX:
 		if hex == from_hex:
 			return caster
-		if hex == caster.pos:
-			return null
+		if hex == caster.pos and state.unit_at(hex) == caster:
+			return null  # 発動者が抜けたぶん空く。降車＝盤に居なかった＝輸送が残るので空かない
 	return state.unit_at(hex)
 
 ## 射程内かつ盤上のhex（重複なし）。起点は "any" なら参加者ぜんぶ／"caster" なら発動者だけ。
@@ -698,13 +746,13 @@ static func _in_range_cells(state: BattleState, option: FormationOption, from_he
 	var origins: Array[Vector2i] = []
 	if option.range_from == FormationOption.RangeFrom.ANY:
 		for pid in option.participants:
-			var p := state.unit_by_handle(int(pid))
+			var p := state.unit_any(int(pid))  # 発動者は降車先を決めている搭乗駒もありうる
 			if p != null:
 				origins.append(from_hex if (from_hex != NO_HEX and p.handle == caster_id) else p.pos)
 	elif from_hex != NO_HEX:
 		origins.append(from_hex)
 	else:
-		var caster := state.unit_by_handle(caster_id)
+		var caster := state.unit_any(caster_id)
 		if caster != null:
 			origins.append(caster.pos)
 	var seen := {}
@@ -724,7 +772,7 @@ static func _adjacent_members(state: BattleState, caster: Unit, r: Dictionary, c
 	for u in state.units():
 		if u.handle == caster.handle or u.team != caster.team or not state.has_action_left(u.handle):
 			continue
-		if not _matches(u, r["member_skins"]):
+		if not _matches(u, _member_skins_for(caster, r)):
 			continue
 		if Hex.distance(u.pos, caster_pos) == 1:
 			cand.append(u)
@@ -747,7 +795,7 @@ static func _member_pool(state: BattleState, caster: Unit, r: Dictionary) -> Arr
 	for u in state.units():
 		if u.handle == caster.handle or u.team != caster.team or not state.has_action_left(u.handle):
 			continue
-		if _matches(u, r["member_skins"]):
+		if _matches(u, _member_skins_for(caster, r)):
 			cand.append(u)
 	return cand
 
@@ -929,11 +977,14 @@ static func _skill_attack_stat(state: BattleState, caster: Unit, option: Formati
 ## 被弾側の実効防御力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.defense_breakdown_from）。
 ## 通常戦闘（Combat.defense_breakdown）との違いはここに全部書く:
 ##   支援なし（間接扱い）／貫通はレシピが上書きしていればその値、なければ発動者の pierce。
+##   結界（⑦）の中に居る駒はどちらであっても貫通を受けない＝0 に落とす（貫通を持つ攻撃すべてが対象）。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md ④
 static func _skill_defense_breakdown(state: BattleState, victim: Unit, caster: Unit,
 		option: FormationOption) -> StatBreakdown:
 	var sf := state.status_aggregate(victim, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var pierce := option.pierce_override if option.pierce_override >= 0.0 else caster.pierce
+	if state.pierce_immune(victim):
+		pierce = 0.0
 	var b := Combat.defense_breakdown_from(
 		victim.troops,
 		victim.unit_defense,

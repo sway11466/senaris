@@ -96,6 +96,26 @@ func status_aggregate(unit: Unit, target: String) -> Dictionary:
 func status_mods_for(unit: Unit) -> Array:
 	return StatusMod.applied(_status_mods, unit)
 
+## unit が貫通無効（⑦マジックシールドの結界の中）か。combat の貫通の段が読み、効いていれば
+## 攻撃側の貫通を 0 として扱う。詳細 → doc/gdd/formations.md ⑦
+func pierce_immune(unit: Unit) -> bool:
+	return StatusMod.pierce_immune(_status_mods, unit)
+
+## いま張られている地帯（zone）の一覧＝{hexes, team, fx}。盤が結界の床を敷くのに読む
+## （持続の間ずっと出す＝中か外かが盤で読める）。詳細 → doc/gdd/formations.md ⑦
+func status_zones() -> Array:
+	var out: Array = []
+	for m in _status_mods:
+		if String(m.get("scope", "")) != "zone":
+			continue
+		var center := Vector2i(int(m.get("q", 0)), int(m.get("r", 0)))
+		out.append({
+			"hexes": Hex.within_range(center, int(m.get("radius", 0))),
+			"team": int(m.get("team", -1)),
+			"fx": String(m.get("fx", "")),
+		})
+	return out
+
 ## unit 1体に効いている弱体（デバフ）の本数。敵AIの stack 条件（doc/gdd/ai.md）が読む。
 func debuff_count(unit: Unit) -> int:
 	return StatusMod.debuff_count(_status_mods, unit)
@@ -189,7 +209,7 @@ func _increment_charges() -> void:
 			var r: Dictionary = Formation.SKILLS[rid]
 			if int(r.get("charge_turns", 0)) <= 0:
 				continue
-			if not Formation._matches(u, r["caster_skins"]):
+			if not Formation.can_cast_skin(u, r):
 				continue
 			var cur := get_charge(u.handle, rid)
 			set_charge(u.handle, rid, cur + 1)
@@ -226,6 +246,19 @@ func unit_by_handle(handle: int) -> Unit:
 	for u in _units:
 		if u.handle == handle:
 			return u
+	return null
+
+## 盤上に居なくても handle で引く（輸送に乗っている駒も探す）。降車先を決めている間の搭乗駒は
+## まだ盤に居ないので、「降車先に居るものとして」見る判定（攻撃・拠点に入る・スキル）はこちらを使う。
+## 盤の状態を変える処理（移動・攻撃）は unit_by_handle のまま＝盤外の駒を動かさない。
+func unit_any(handle: int) -> Unit:
+	var u := unit_by_handle(handle)
+	if u != null:
+		return u
+	for tid in _passengers:
+		for p in _passengers[tid]:
+			if (p as Unit).handle == handle:
+				return p
 	return null
 
 func unit_at(hex: Vector2i) -> Unit:
@@ -440,18 +473,6 @@ func unload_cells(transport_id: int, index: int) -> Array[Vector2i]:
 	for h in _unload_map(transport_id, index):
 		cells.append(h)
 	return cells
-
-## 搭乗駒 index が from_hex に降りたと仮定したときの攻撃対象（降車確認メニューの「攻撃」可否）。
-func unload_attack_targets(transport_id: int, index: int, from_hex: Vector2i) -> Array[int]:
-	var list := passengers(transport_id)
-	var ids: Array[int] = []
-	if index < 0 or index >= list.size():
-		return ids
-	var p: Unit = list[index]
-	for u in _units:
-		if _can_attack_from(p, u, from_hex):
-			ids.append(u.handle)
-	return ids
 
 ## 搭乗駒 index を to へ降ろす。降車＝その駒の通常移動（コスト消費・以後攻撃は可能）。
 ## 占領可ユニットが拠点hexへ降りれば即占領（移動と同じ扱い）。
@@ -892,7 +913,7 @@ func can_enter_base(handle: int) -> bool:
 ## 現在位置ではなく移動先を仮定して判定する（実行時は dest_hex＝現在位置で同じ規則になる）。
 ## 案B: 盤上最後の1体でも、入った直後に復帰手段が残るなら入れる（即敗北を防ぐ）。
 func can_enter_base_at(handle: int, dest_hex: Vector2i) -> bool:
-	var u := unit_by_handle(handle)
+	var u := unit_any(handle)  # 降車先が自軍拠点なら、降りた駒はそのまま入れる
 	if not is_current_unit(u):
 		return false
 	var b := base_at(dest_hex)
@@ -959,7 +980,7 @@ func attack_targets(attacker_id: int) -> Array[int]:
 
 ## from_hex に居ると仮定して攻撃できる敵ID一覧（移動を確定せずコマンドメニューを出すため）。
 func attack_targets_from(attacker_id: int, from_hex: Vector2i) -> Array[int]:
-	var a := unit_by_handle(attacker_id)
+	var a := unit_any(attacker_id)  # 降車先を決めている搭乗駒も「そこに居るものとして」測る
 	var ids: Array[int] = []
 	if a == null:
 		return ids

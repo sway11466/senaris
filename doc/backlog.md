@@ -18,15 +18,6 @@
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### feature-121
-
-**陣形スキル⑦マジックシールド（魔法兵＋占領兵の隣接・7ヘクスの結界・防御 +10×発動者兵数・貫通無効）**
-- ゴール：ウィザード／ウィッチと占領兵が隣接しているとき、どちらからでも発動者中心の7ヘクスに結界が張れる。中に居る味方は実効防御に 10×発動者の残兵数 が足され、貫通を受けない。入れば効き、出れば切れる。次の自軍ターン開始まで。
-- 背景：[formations.md](gdd/formations.md) ⑦ で仕様確定。状態補正の器に **地帯（zone）** のエントリを新設する最初の実体（[combat.md](gdd/combat.md) 状態補正に注記済み）。貫通無効は乗算・加算の外＝貫通の段で攻撃側の `pierce` を 0 にするフラグ。
-- 対応：(1) `RECIPES` に `magic_shield`（leader／member＝wizard/witch × cleric/priest/bishop/paladin の両向き、shape `escort`、count 2、effect `buff`、`buff_scope` "zone"、`zone_radius` 1、`buff_op` "add"、`buff_target` "def"、`buff_value_per_troop` 10、`pierce_immune` true、`duration_turns` 1）。(2) `BattleState` の状態補正エントリに `zone`（中心ヘックス＋半径・陣営）を足し、`Combat` の集計で「対象の駒が地帯の中に居るか」を見る。(3) `Combat` の貫通の段で、防御側に `pierce_immune` の地帯が効いていれば攻撃側の `pierce` を 0 として扱う。(4) 見た目＝結界の7ヘクスに薄い光の床（`aura_overlay` に地帯の床を足す。持続の間出しておく）。(5) `skills.csv`。(6) テスト＝加算（満員で +80）・貫通無効（ウィザードの攻撃が半減しない）・出入りで効く／切れる・満了。
-- 演出まわり：カットイン `godot/assets/formations/magic_shield.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `magic_shield_{skin}.png`）。効果音 `godot/assets/sfx/magic_shield.ogg`（発動）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる（着弾が無いので `_hit` は置かない＝②グレイスと同じ）。クロニクルの陣形スキル章＝レシピの図は `escort` の既存配置で足りる（両向きなので代表は先頭スキン＝ウィザード＋クレリック）（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
-- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/status/status_mod.gd`・`godot/domain/combat/combat.gd`（貫通の段）・`godot/presentation/board/board_unit_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`。
-
 ### feature-122
 
 **陣形スキル⑧バックスタブ（シーフ＋対象を挟んで正反対の味方1体・貫通0.5・着弾後に元の位置へ戻る）**

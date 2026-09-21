@@ -41,6 +41,9 @@ const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周
 const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
+## 結界（⑦マジックシールド）の床。効いている間ずっと敷く＝中か外かが盤で読める。
+## 操作の記号（範囲・プレビュー）より薄い＝選ぶための面ではなく、盤の状態を示す面。
+const COLOR_ZONE := Color(0.70, 0.85, 1.00, 0.14)
 # 着弾演出の定数は BoardImpactRenderer に移設。
 const COLOR_PENDING := Color(1.00, 0.85, 0.25, 0.35)  # 移動先プレビュー（メニュー表示中）
 const COLOR_SELECT_RING := Color(1.00, 0.85, 0.25)
@@ -119,10 +122,11 @@ const DEPLOY_ID_BASE := 100
 const UNLOAD_ID_BASE := 200
 const FORMATION_ID_BASE := 300
 
-var _unload_transport := -1
+# 降車中＝選択中の駒（_selected_id）はまだ盤に居らず、この輸送に乗っている。到達マス
+# （_reachable）が降車先候補で、確定は _commit_pending_move が UnloadCommand で行う
+# ＝以後の流れ（メニュー・攻撃・スキル）は通常移動と同じ道を通る。
+var _unload_from := -1
 var _unload_index := 0
-var _unload_cells := {}
-var _unload_to := INVALID_HEX
 
 func _ready() -> void:
 	# 環境（背景色・環境光）。タイル/駒はアンライトなのでライトは将来の3Dプロップ用。
@@ -189,9 +193,7 @@ func _reset_interaction() -> void:
 	_deploy_cells.clear()
 	_deploy_index = 0
 	_menu_base = INVALID_HEX
-	_unload_transport = -1
-	_unload_cells.clear()
-	_unload_to = INVALID_HEX
+	_unload_from = -1
 	_locked = false
 	_frozen = false
 	_pending_to = INVALID_HEX
@@ -489,12 +491,6 @@ func _hex_on_plane(o: Vector3, d: Vector3, y: float) -> Vector2i:
 # =========================================================================
 
 func _on_click(hex: Vector2i) -> void:
-	# 降車モード中: 降車先候補をクリック → 確認メニュー。
-	if _unload_transport != -1:
-		if _unload_cells.has(hex):
-			_open_unload_menu(hex)
-			return
-		_clear_unload()
 	# 出撃モード中: 出撃先候補をクリック → 出撃。それ以外は出撃モードを抜けて通常処理。
 	if _deploy_base != INVALID_HEX:
 		if _deploy_cells.has(hex):
@@ -525,8 +521,11 @@ func _on_click(hex: Vector2i) -> void:
 		return
 	# 選択中に「自マス or 到達マス」をクリック → コマンドメニュー（移動は未確定のまま開く）。
 	if _selected_id != -1:
-		var sel := state.unit_by_handle(_selected_id)
-		if sel != null and (hex == sel.pos or (state.unit_at(hex) == null and _reachable.has(hex))):
+		# 降車中の駒は盤に居ない＝unit_any で引く。輸送のマス（sel.pos）は降車先にならないので、
+		# 「自マスをクリック＝その場で開く」は降車中には当てない。
+		var sel := state.unit_any(_selected_id)
+		var own_hex := _unload_from == -1 and sel != null and hex == sel.pos
+		if sel != null and (own_hex or (state.unit_at(hex) == null and _reachable.has(hex))):
 			_open_command_menu(hex)
 			return
 		# 到達範囲内の「乗れる味方輸送」をクリック → 乗車メニュー。
@@ -559,10 +558,10 @@ func _open_command_menu(dest: Vector2i, preview := true) -> void:
 	_menu_base = INVALID_HEX
 	_menu_focused = -1
 	_menu_pool.clear()
-	if preview:
-		_preview_move(dest)
+	if preview and _unload_from == -1:
+		_preview_move(dest)  # 降車中の駒は盤に描かれていない＝歩かせるものが無い
 	var can_attack := not controller.attack_targets_from(_selected_id, dest).is_empty()
-	var sel := state.unit_by_handle(_selected_id)
+	var sel := state.unit_any(_selected_id)
 	var base := state.base_at(dest)
 	var will_capture := sel != null and sel.can_capture and base != null and base.team != sel.team
 	var can_enter := state.can_enter_base_at(_selected_id, dest)
@@ -620,9 +619,6 @@ func _open_command_menu(dest: Vector2i, preview := true) -> void:
 func _on_menu_id(id: int) -> void:
 	_menu_handled = true
 	SfxPlayer.play_event("map_confirm" if id != MENU_CANCEL else "map_cancel")
-	if _unload_to != INVALID_HEX:
-		_handle_unload_menu(id)
-		return
 	if id >= FORMATION_ID_BASE:  # 300以上＝UNLOAD/DEPLOYより先に判定（範囲が重ならないよう最上位）
 		# 移動はまだ確定しない＝参加者選び・着弾先選びの間は「移動先に居るものとして」判定し、
 		# メニューまで戻れば移動先を選び直せる（doc/gdd/uiux.md 陣形スキルの参加者を選ぶ）。
@@ -686,9 +682,6 @@ func _fire_attack(target_id: int) -> void:
 func _attack_step_back() -> void:
 	_choosing_target = false
 	_targets.clear()
-	if _pending_to == INVALID_HEX:
-		_deselect()  # 降車から入った攻撃＝降車は確定済みで、戻る先のコマンドメニューが無い
-		return
 	_back_to_command_menu()
 
 ## 発動者が居るものとして判定する位置（移動先。まだ確定していない）。動かずに開いたなら実位置。
@@ -863,11 +856,14 @@ func _back_to_command_menu() -> void:
 	_choice = null
 	_chosen.clear()
 	_skill_target = INVALID_HEX
-	var sel := state.unit_by_handle(_selected_id)
+	var sel := state.unit_any(_selected_id)
 	if sel == null:
 		_deselect()
 		return
-	if state.can_still_move(_selected_id):
+	if _unload_from != -1:
+		for h in controller.unload_cells_for(_unload_from, _unload_index):
+			_reachable[h] = true  # 降車中の到達マス＝降車先候補
+	elif state.can_still_move(_selected_id):
 		for h in controller.reachable_for(_selected_id):
 			_reachable[h] = true
 	_open_command_menu(_pending_to if _pending_to != INVALID_HEX else sel.pos, false)
@@ -926,17 +922,25 @@ func _on_menu_closed() -> void:
 
 func _after_menu_closed() -> void:
 	if not _menu_handled:
-		_pending_to = INVALID_HEX
-		_unload_to = INVALID_HEX
+		_pending_to = INVALID_HEX  # 降車先は選び直せる＝_unload_from は残す
 		_revert_preview()
 		_sync_overlay()
 
-## 保留中の移動を確定（自マスのままなら移動しない）。
+## 保留中の移動を確定（自マスのままなら移動しない）。降車は「その駒の移動」＝ここで降ろす。
 func _commit_pending_move() -> void:
-	var sel := state.unit_by_handle(_selected_id)
-	if sel != null and _pending_to != INVALID_HEX and _pending_to != sel.pos:
-		controller.execute(MoveCommand.new(_selected_id, _pending_to))
+	if _pending_to == INVALID_HEX:
+		return
+	var to := _pending_to
 	_pending_to = INVALID_HEX
+	if _unload_from != -1:
+		var tid := _unload_from
+		var idx := _unload_index
+		_unload_from = -1
+		controller.execute_unload(UnloadCommand.new(tid, idx, to))
+		return
+	var sel := state.unit_by_handle(_selected_id)
+	if sel != null and to != sel.pos:
+		controller.execute(MoveCommand.new(_selected_id, to))
 
 ## 移動先をクリックした時点で駒を歩かせる（見た目だけ。盤の状態は未確定）。
 ## 駒が動いて見えないと「移動が起きていない」と読まれる → doc/gdd/uiux.md 移動の見せ方
@@ -977,8 +981,6 @@ func _on_cancel(from_esc: bool) -> void:
 		_attack_step_back()  # 対象選び → メニュー と1段戻る
 	elif _selected_id != -1:
 		_deselect()
-	elif _unload_transport != -1:
-		_clear_unload()
 	elif _deploy_base != INVALID_HEX:
 		_clear_deploy()
 	elif _inspected_id != -1:
@@ -1003,70 +1005,26 @@ func _open_board_menu(dest: Vector2i) -> void:
 	_menu.popup()
 	_sync_overlay()
 
-## 降車モードに入り、降車先候補をハイライトする。
+## 降車＝搭乗駒を「選択した」状態にする。降車先候補がその駒の到達マスになり、以後は通常移動と
+## 同じ流れ（到達マスをクリック → コマンドメニュー）＝攻撃・待機・占領・拠点に入る・スキルが
+## そのまま並ぶ。確定（降車そのもの）はメニューの項目を選んだ時点＝_commit_pending_move。
 func _enter_unload(transport_id: int, index: int) -> void:
 	_deselect()
+	var list := state.passengers(transport_id)
+	if index < 0 or index >= list.size():
+		return
 	var cells := controller.unload_cells_for(transport_id, index)
 	if cells.is_empty():
 		return
-	_unload_transport = transport_id
+	_selected_id = (list[index] as Unit).handle
+	_unload_from = transport_id
 	_unload_index = index
-	_unload_cells.clear()
 	for c in cells:
-		_unload_cells[c] = true
-	_sync_overlay()
-
-## 降車先に対する確認メニュー（通常移動のコマンドメニューと同じ並び）。
-func _open_unload_menu(dest: Vector2i) -> void:
-	_unload_to = dest
-	var p: Unit = state.passengers(_unload_transport)[_unload_index]
-	var can_attack := not controller.unload_attack_targets_for(_unload_transport, _unload_index, dest).is_empty()
-	var base := state.base_at(dest)
-	var will_capture := p.can_capture and base != null and base.team != p.team
-	_menu.clear()
-	_menu.add_item(tr("ui.board.attack"), MENU_ATTACK)
-	_menu.set_item_disabled(_menu.get_item_index(MENU_ATTACK), not can_attack)
-	_menu.add_item(tr("ui.board.capture") if will_capture else tr("ui.board.wait"), MENU_WAIT)
-	_menu.add_separator()
-	_menu.add_item(tr("ui.board.cancel"), MENU_CANCEL)
-	_menu_handled = false
-	_menu.reset_size()
-	_menu.position = Vector2i(get_viewport().get_mouse_position()) + Vector2i(8, 8)
-	_menu.popup()
-	_sync_overlay()
-
-func _handle_unload_menu(id: int) -> void:
-	var dest := _unload_to
-	_unload_to = INVALID_HEX
-	match id:
-		MENU_ATTACK:
-			var pid: int = state.passengers(_unload_transport)[_unload_index].handle
-			if controller.execute_unload(UnloadCommand.new(_unload_transport, _unload_index, dest)):
-				_selected_id = pid
-				_targets.clear()
-				for tid in controller.attack_targets_for(pid):
-					var u := state.unit_by_handle(tid)
-					if u != null:
-						_targets[u.pos] = tid
-				_choosing_target = true
-				selection_changed.emit(pid)
-				_sync()
-		MENU_WAIT:
-			var pid: int = state.passengers(_unload_transport)[_unload_index].handle
-			if controller.execute_unload(UnloadCommand.new(_unload_transport, _unload_index, dest)):
-				controller.stand(pid)  # unit_stood → _sync（降車なので待つ移動アニメは無い）
-		MENU_CANCEL:
-			_clear_unload()
-
-func _clear_unload() -> void:
-	_unload_transport = -1
-	_unload_cells.clear()
-	_unload_to = INVALID_HEX
+		_reachable[c] = true
+	selection_changed.emit(_selected_id)
 	_sync_overlay()
 
 func _on_unit_unloaded(unit_id: int, transport_id: int, to: Vector2i) -> void:
-	_unload_transport = -1
-	_unload_cells.clear()
 	SfxPlayer.play_event("map_board")
 	_sync()
 	var tr := state.unit_by_handle(transport_id)
@@ -1115,6 +1073,7 @@ func _clear_deploy() -> void:
 func _select(id: int) -> void:
 	SfxPlayer.play_event("map_select")
 	_selected_id = id
+	_unload_from = -1
 	_inspected_id = -1
 	_inspect_reach.clear()
 	_pending_to = INVALID_HEX
@@ -1132,6 +1091,7 @@ func _select(id: int) -> void:
 func _deselect() -> void:
 	var had := _selected_id
 	_selected_id = -1
+	_unload_from = -1
 	_inspected_id = -1
 	_inspect_reach.clear()
 	_pending_to = INVALID_HEX
@@ -1164,6 +1124,7 @@ func _clear_formation() -> void:
 ## 敵など操作できないユニットを閲覧（選択状態にはしない）。移動範囲＝脅威範囲だけ別色で出す。
 func _inspect_unit(id: int) -> void:
 	_selected_id = -1
+	_unload_from = -1
 	_pending_to = INVALID_HEX
 	_choosing_target = false
 	_clear_formation()
@@ -1525,9 +1486,8 @@ func _on_unit_entered_base(_unit_id: int, _base_hex: Vector2i) -> void:
 	_sync()
 
 func _on_turn_changed(_team: int, _turn_number: int) -> void:
-	_deselect()
+	_deselect()  # 降車中の選択もここで解ける
 	_clear_deploy()
-	_clear_unload()
 	_sync()
 
 func _on_battle_finished(_winner: int) -> void:
@@ -1535,7 +1495,6 @@ func _on_battle_finished(_winner: int) -> void:
 	_impact_renderer.cancel_unlock()  # 決着中は解錠しない（陣形で決着＝着弾演出の途中で飛んでくる）
 	_deselect()
 	_clear_deploy()
-	_clear_unload()
 
 # =========================================================================
 # 3D描画（タイル＝床のヘックスメッシュ / 駒＝ビルボード / オーバーレイ＝半透明マス）
@@ -1594,18 +1553,24 @@ func _sync_overlay() -> void:
 	_unit_renderer.clear_target_markers()  # 実体は _overlay_root の子＝いま消えた。参照を残すと _process が落ちる
 	if state == null:
 		return
+	# 結界の床（⑦マジックシールド）＝操作とは無関係に、効いている間ずっと出す。いちばん下に
+	# 敷いて他の記号を邪魔しない。詳細 → doc/gdd/formations.md ⑦
+	for z in state.status_zones():
+		if String(z["fx"]).is_empty():
+			continue
+		for h in z["hexes"]:
+			if state.in_field(h):
+				_add_cell(h, COLOR_ZONE, 0.015)
+	# 降車中の到達マス＝降車先候補。出撃と同じ紫で描く（通常移動の緑と区別する）。
+	var reach_color := COLOR_DEPLOY if _unload_from != -1 else COLOR_REACH
 	for h in _reachable:
-		_add_cell(h, COLOR_REACH, 0.02)
+		_add_cell(h, reach_color, 0.02)
 	for h in _inspect_reach:
 		_add_cell(h, COLOR_ENEMY_REACH, 0.02)
 	for h in _deploy_cells:
 		_add_cell(h, COLOR_DEPLOY, 0.02)
-	for h in _unload_cells:
-		_add_cell(h, COLOR_DEPLOY, 0.02)
 	if _pending_to != INVALID_HEX:
 		_add_cell(_pending_to, COLOR_PENDING, 0.03)
-	if _unload_to != INVALID_HEX:
-		_add_cell(_unload_to, COLOR_PENDING, 0.03)
 	# 攻撃可能な敵＝頭上のマーカー（見つけるための記号）＋地面の赤リング（どのマスを押すかの補助）。
 	# リングだけでは手前の地形に隠れて読めないが、クリック判定はマス単位なので位置の目印としては残す。
 	for pos in _targets:
@@ -1629,7 +1594,7 @@ func _sync_overlay() -> void:
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
 		for h in Hex.within_range(_hover, _formation_active.radius):
 			_add_cell(h, COLOR_FORMATION_BLAST, 0.035)
-	var sel := state.unit_by_handle(_selected_id) if _selected_id != -1 else null
+	var sel := state.unit_any(_selected_id) if _selected_id != -1 else null
 	if sel != null:
 		var sp := Hex.to_pixel(sel.pos, TILE)
 		_unit_renderer.add_ring(Vector3(sp.x, _terrain_renderer.elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)

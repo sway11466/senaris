@@ -149,7 +149,7 @@
 | ④ | `trick_shot` | トリックショット | 味方 | 弓攻撃 | archer／hunter／elf | thief／halfling／ninja／kunoichi ×1（**対象に隣接**） | `spotter` | 2 | 弓兵 | 弓兵の通常射程（下限〜上限） | 済 |
 | ⑤ | `shield_wall` | シールドウォール | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／dwarf。forest_knight／samurai／magic_knight／lancer はユニットが入ったら足す | 同左 | `line`（一直線） | 3以上 | どれからでも | —（参加者） | 済 |
 | ⑥ | `arrow_rain` | アローレイン | 味方 | 弓攻撃 | archer／hunter／elf | 同左 | `triangle` | 3 | どれからでも | 発動者の射程上限 | 済 |
-| ⑦ | `magic_shield` | マジックシールド | 味方 | 強化 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | feature-121 |
+| ⑦ | `magic_shield` | マジックシールド | 味方 | 強化 | wizard／witch ⇄ cleric／priest／bishop／paladin（どちらが発動者でも） | もう片方 ×1（隣接） | `escort` | 2 | どちらからでも | —（中心＝発動者） | 済 |
 | ⑧ | `backstab` | バックスタブ | 味方 | 特殊攻撃 | thief | 任意 ×1（**対象を挟んで正反対**） | `backstab` | 2 | シーフ | 1 | feature-122 |
 | ⑨ | `magic_arrow` | マジックアロー | 味方 | 魔法攻撃 | archer／hunter／elf | wizard／witch ×1（隣接） | `escort` | 2 | 弓兵 | 2体の射程上限の長い方＋1（下限なし） | 済 |
 | ⑩ | `counter` | カウンター | 味方 | 強化 | 歩兵（novice を除く）＝fighter／vanguard／knight／dwarf。forest_knight／samurai／magic_knight／lancer はユニットが入ったら足す | 同左 ×1（隣接） | `escort` | 2（固定） | どちらからでも | —（参加者） | 済 |

@@ -40,6 +40,12 @@
       "synopsis": "デバッグ冒険譚"
     },
     {
+      "id": "magic_shield",
+      "file": "magic_shield.json",
+      "title": "⑦マジックシールド",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
       "id": "magic_arrow",
       "file": "magic_arrow.json",
       "title": "⑨マジックアロー",

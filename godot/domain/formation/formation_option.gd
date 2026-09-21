@@ -13,8 +13,9 @@ enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
 ## LINE（⑤）＝CLUSTER の直線版（隣接連結のうち一直線に連なるものだけ）。
 enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER, LINE }
 ## 効果の掛かる範囲。陣営全体（グレイス）か、参加者だけ（⑤シールドウォール）か、
-## 対象1体（ユニットスキル）か。SKILLS の "buff_scope"。
-enum Scope { TEAM, UNIT, PARTICIPANTS }
+## 対象1体（ユニットスキル）か、地帯（⑦マジックシールド＝発動者中心の結界。掛かる相手は
+## 発動時の顔ぶれではなく、そのとき中に居る味方）か。SKILLS の "buff_scope"。
+enum Scope { TEAM, UNIT, PARTICIPANTS, ZONE }
 ## 対象1体のとき、味方に掛けるか敵に掛けるか。SKILLS の "buff_side"。
 enum Side { ALLY, ENEMY }
 ## 射程の起点。発動者からか、参加者のどれからでもか。SKILLS の "range_from"。
@@ -28,7 +29,9 @@ const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
 	"spotter": Shape.SPOTTER, "line": Shape.LINE,
 }
-const SCOPE_IDS := { "team": Scope.TEAM, "unit": Scope.UNIT, "participants": Scope.PARTICIPANTS }
+const SCOPE_IDS := {
+	"team": Scope.TEAM, "unit": Scope.UNIT, "participants": Scope.PARTICIPANTS, "zone": Scope.ZONE,
+}
 const SIDE_IDS := { "ally": Side.ALLY, "enemy": Side.ENEMY }
 const RANGE_FROM_IDS := { "caster": RangeFrom.CASTER, "any": RangeFrom.ANY }
 
@@ -70,6 +73,9 @@ var buff_value_per_extra: float  ## 基準人数（min_count）を超えた参�
 var min_count: int            ## スキルが成立する最低人数（SKILLS の "count"）
 var buff_fx: String           ## 盤の見た目。空＝見た目なし
 var buff_target: String       ## "attack" / "defense" / "both"
+var zone_radius: int          ## 結界の半径（Scope.ZONE のみ）。1＝中心＋周囲6の7ヘクス
+## 結界の中の味方が貫通を受けないか（⑦）。攻撃側の pierce を 0 扱いにする＝乗算・加算の外。
+var pierce_immune: bool
 var duration_turns: int
 var dot_troops: int           ## 対象側のターン開始ごとに減る兵数（DOT のみ）
 
@@ -123,6 +129,8 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 		o.min_count = int(r.get("count", 1))
 		o.buff_fx = String(r.get("buff_fx", ""))
 		o.buff_target = String(r.get("buff_target", "both"))
+		o.zone_radius = int(r.get("zone_radius", 0))
+		o.pierce_immune = bool(r.get("pierce_immune", false))
 		o.duration_turns = int(r.get("duration_turns", 1))
 	elif o.effect == Effect.DOT:
 		# 弱体であることは明示する＝ピュリファイが落とす対象・盤の見た目・敵AIの stack 条件が読む。
