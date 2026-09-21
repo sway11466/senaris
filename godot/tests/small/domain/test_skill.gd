@@ -5,7 +5,7 @@ extends GutTest
 func _state() -> BattleState:
 	return BattleState.new(10, 8)
 
-# ピクシー1体＋隣接する味方＋離れた味方＋隣接する敵。leader=pixie(id1)。
+# ピクシー1体＋隣接する味方＋離れた味方＋隣接する敵。caster=pixie(id1)。
 func _dust_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -29,7 +29,7 @@ func test_offered_by_pixie_alone() -> void:
 	var f := _dust_state()
 	var o := _dust_option(f)
 	assert_not_null(o, "ピクシー単独で成立する")
-	assert_eq(o.leader_id, 1, "発動者はピクシー")
+	assert_eq(o.caster_id, 1, "発動者はピクシー")
 	assert_eq(o.participants.size(), 1, "参加者は発動者だけ")
 	assert_true(o.needs_target(), "掛ける相手を選ぶ")
 
@@ -74,13 +74,13 @@ func test_can_cast_after_moving() -> void:
 func test_cluster_skill_is_a_formation() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
-	var leader: Unit = null
+	var caster: Unit = null
 	for i in 5:  # グレイス＝聖職5体の隣接クラスタ
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		s.add_unit(u)
 		if i == 0:
-			leader = u
-	var opts := Formation.available_for(s, leader)
+			caster = u
+	var opts := Formation.available_for(s, caster)
 	assert_gt(opts.size(), 0, "グレイスが成立している前提")
 	assert_false(opts[0].is_unit_skill(), "陣形スキル扱い（表示ラベルの出し分け）")
 
@@ -186,7 +186,7 @@ func test_expires_after_three_rounds() -> void:
 
 # --- ④ドレッドタッチ（単体弱体・対象は敵）---
 
-# ゴースト1体＋隣接する敵＋離れた敵＋隣接する味方。leader=ghost(id1)。
+# ゴースト1体＋隣接する敵＋離れた敵＋隣接する味方。caster=ghost(id1)。
 # ゴーストは pixie 性能を借りた別スキン＝skin_id で照合される（→ doc/gdd/skills.md 共通ルール）。
 func _dread_state() -> Dictionary:
 	var s := _state()
@@ -276,7 +276,7 @@ func test_dread_expires_after_three_rounds() -> void:
 
 # --- ②ヴェノムファング（単体弱体・係数型）---
 
-# ロックサーペント1体＋隣接する敵＋離れた敵＋隣接する味方。leader=rock_serpent(id1)。
+# ロックサーペント1体＋隣接する敵＋離れた敵＋隣接する味方。caster=rock_serpent(id1)。
 func _venom_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -377,7 +377,7 @@ func test_venom_expires_after_three_rounds() -> void:
 
 # --- ⑤スライムスプリット（分裂・駒生成）---
 
-# スライム1体＋周囲に空きマスがある配置。leader=slime(id1)。
+# スライム1体＋周囲に空きマスがある配置。caster=slime(id1)。
 # スライムは敵（team=1）なので end_turn で敵ターンに進めてから使う。
 func _split_state() -> Dictionary:
 	var s := _state()
@@ -519,7 +519,7 @@ func test_split_spawned_counts_for_annihilation() -> void:
 
 # --- ③ピュリファイ（有害な補正の解除）---
 
-# プリースト＋隣接する味方＋離れた味方＋隣接する敵。leader=priest(id1)。
+# プリースト＋隣接する味方＋離れた味方＋隣接する敵。caster=priest(id1)。
 func _purify_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)

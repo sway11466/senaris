@@ -25,7 +25,7 @@ func _pick(opts: Array[FormationOption], skill: String) -> FormationOption:
 func _triangle(c: Vector2i) -> Array:
 	return [c, Hex.neighbor(c, 0), Hex.neighbor(c, 1)]
 
-# トリニティノヴァの成立盤：wizard 3体が三角形＋離れた位置に敵1体。leader=id1。
+# トリニティノヴァの成立盤：wizard 3体が三角形＋離れた位置に敵1体。caster=id1。
 func _trinity_nova_state(enemy_def := 20) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -34,11 +34,11 @@ func _trinity_nova_state(enemy_def := 20) -> Dictionary:
 	var w2 := Unit.new(2, 0, tri[1], 3, 8, 40, 30, 1, "wizard")
 	var w3 := Unit.new(3, 0, tri[2], 3, 8, 40, 30, 1, "wizard")
 	w1.pierce = 0.5  # 発動者＝魔法兵（貫通の出どころ）
-	var enemy_hex := c + Hex.direction(0) * 3  # leader から距離3（射程5内・面には他の駒なし）
+	var enemy_hex := c + Hex.direction(0) * 3  # caster から距離3（射程5内・面には他の駒なし）
 	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
 	for u in [w1, w2, w3, enemy]:
 		s.add_unit(u)
-	return {"s": s, "leader": w1, "enemy": enemy, "enemy_hex": enemy_hex}
+	return {"s": s, "caster": w1, "enemy": enemy, "enemy_hex": enemy_hex}
 
 # --- 検出 ---
 
@@ -55,7 +55,7 @@ func test_formation_skills_have_category() -> void:
 
 func test_available_detects_trinity_nova_triangle() -> void:
 	var f := _trinity_nova_state()
-	var opts := Formation.available_for(f["s"], f["leader"])
+	var opts := Formation.available_for(f["s"], f["caster"])
 	assert_eq(opts.size(), 1, "三角形のトリニティノヴァが1つ検出される")
 	var o: FormationOption = opts[0]
 	assert_eq(o.skill, "trinity_nova", "スキルは trinity_nova")
@@ -84,17 +84,17 @@ func test_trinity_nova_rejects_flanking_members() -> void:
 	assert_eq(_count(Formation.available_for(s, w1), "trinity_nova"), 0,
 		"メンバー同士が隣接していなければ三角形にならない")
 
-func test_leader_type_gates_skill() -> void:
+func test_caster_type_gates_skill() -> void:
 	# クレリックを選んでもトリニティノヴァ（魔法兵）は出ない。
 	var f := _trinity_nova_state()
 	var cleric := Unit.new(20, 0, Hex.offset_to_axial(1, 1), 3, 8, 20, 20, 1, "cleric")
 	f["s"].add_unit(cleric)
-	assert_eq(_count(Formation.available_for(f["s"], cleric), "trinity_nova"), 0, "leader_type 不一致は検出0")
+	assert_eq(_count(Formation.available_for(f["s"], cleric), "trinity_nova"), 0, "caster_type 不一致は検出0")
 
 func test_done_member_excluded() -> void:
 	var f := _trinity_nova_state()
 	f["s"].set_done(2)  # member を行動済みに
-	assert_eq(Formation.available_for(f["s"], f["leader"]).size(), 0, "行動済みメンバーは三角形に数えない")
+	assert_eq(Formation.available_for(f["s"], f["caster"]).size(), 0, "行動済みメンバーは三角形に数えない")
 
 ## 発動に移動先も攻撃相手も要らない＝行き止まりのメンバーも参加できる。
 ## 囲まれて動けないだけの駒を除外すると、密集した盤で陣形が組めなくなる。
@@ -104,9 +104,9 @@ func test_stuck_member_still_counts() -> void:
 	s.unit_by_handle(2).move = 0  # 行ける先が無い（瓦礫や味方に囲まれた駒と同じ状態）
 	assert_true(s.is_stuck(2), "前提: メンバーに打つ手が無い")
 	assert_false(s.is_done(2), "前提: 行動は使っていない")
-	assert_eq(_count(Formation.available_for(s, f["leader"]), "trinity_nova"), 1,
+	assert_eq(_count(Formation.available_for(s, f["caster"]), "trinity_nova"), 1,
 		"動けないだけのメンバーも三角形に数える")
-	var opt := _pick(Formation.available_for(s, f["leader"]), "trinity_nova")
+	var opt := _pick(Formation.available_for(s, f["caster"]), "trinity_nova")
 	assert_not_null(FormationResolver.resolve(s, opt, f["enemy_hex"]), "そのまま発動できる")
 
 ## 発動者は移動してから発動してよい＝三角形の成立を移動先で判定する。
@@ -130,7 +130,7 @@ func test_triangle_forms_at_move_destination() -> void:
 	assert_not_null(FormationResolver.resolve(s, opt, c + Hex.direction(0) * 3), "移動後に発動できる")
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
-# ②グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。leader=id1。
+# ②グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。caster=id1。
 func _aria_state() -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
@@ -143,11 +143,11 @@ func _aria_state() -> Dictionary:
 	var foe := Unit.new(11, 1, Hex.neighbor(ally.pos, 0), 3, 8, 30, 30)
 	s.add_unit(ally)
 	s.add_unit(foe)
-	return {"s": s, "leader": clerics[0], "ally": ally, "foe": foe}
+	return {"s": s, "caster": clerics[0], "ally": ally, "foe": foe}
 
 func test_grace_offered_with_five_clustered() -> void:
 	var f := _aria_state()
-	var opts := Formation.available_for(f["s"], f["leader"])
+	var opts := Formation.available_for(f["s"], f["caster"])
 	assert_eq(_count(opts, "grace"), 1, "占領兵5体クラスタでグレイス")
 	var o := _pick(opts, "grace")
 	assert_eq(o.skill, "grace", "スキルは grace")
@@ -158,17 +158,17 @@ func test_grace_offered_with_five_clustered() -> void:
 func _cluster_state(n: int) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
-	var leader: Unit = null
+	var caster: Unit = null
 	for i in n:
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		s.add_unit(u)
 		if i == 0:
-			leader = u
+			caster = u
 	var ally := Unit.new(10, 0, Hex.offset_to_axial(4, 6), 3, 8, 40, 40, 1, "fighter")
 	var foe := Unit.new(11, 1, Hex.neighbor(ally.pos, 0), 3, 8, 30, 30)
 	s.add_unit(ally)
 	s.add_unit(foe)
-	return {"s": s, "leader": leader, "ally": ally, "foe": foe}
+	return {"s": s, "caster": caster, "ally": ally, "foe": foe}
 
 ## 補正は参加人数で伸びる＝基準5体 ×1.30、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md ②
 func test_grace_value_grows_with_participants() -> void:
@@ -177,7 +177,7 @@ func test_grace_value_grows_with_participants() -> void:
 		var expected: float = pair[1]
 		var f := _cluster_state(n)
 		var s: BattleState = f["s"]
-		var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
+		var opt := _pick(Formation.available_for(s, f["caster"]), "grace")
 		assert_eq(opt.participants.size(), n, "%d体全員が参加" % n)
 		var before := Combat.attack_breakdown(s, f["ally"], f["foe"], true).total
 		var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
@@ -189,7 +189,7 @@ func test_grace_value_grows_with_participants() -> void:
 func test_grace_value_is_baked_at_cast() -> void:
 	var f := _cluster_state(6)
 	var s: BattleState = f["s"]
-	var opt := _pick(Formation.available_for(s, f["leader"]), "grace")
+	var opt := _pick(Formation.available_for(s, f["caster"]), "grace")
 	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
 	s.remove_unit(6)  # 参加者を1体失う
 	var mods := s.status_mods_for(f["ally"])
@@ -199,26 +199,26 @@ func test_grace_value_is_baked_at_cast() -> void:
 func test_grace_needs_five() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
-	var leader: Unit = null
+	var caster: Unit = null
 	for i in 4:  # 4体だけ＝不成立
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		s.add_unit(u)
 		if i == 0:
-			leader = u
-	assert_eq(_count(Formation.available_for(s, leader), "grace"), 0, "4体では不成立")
+			caster = u
+	assert_eq(_count(Formation.available_for(s, caster), "grace"), 0, "4体では不成立")
 
 ## パラディンも占領兵＝グレイスの頭数に入る（クレリック4＋パラディン1で成立）。詳細 → doc/gdd/formations.md ②
 func test_grace_counts_paladin() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
-	var leader: Unit = null
+	var caster: Unit = null
 	for i in 4:
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		s.add_unit(u)
 		if i == 0:
-			leader = u
+			caster = u
 	s.add_unit(Unit.new(5, 0, c + Hex.direction(0) * 4, 3, 8, 50, 50, 1, "paladin"))
-	var opt := _pick(Formation.available_for(s, leader), "grace")
+	var opt := _pick(Formation.available_for(s, caster), "grace")
 	assert_not_null(opt, "クレリック4＋パラディン1でグレイス")
 	assert_eq(opt.participants.size(), 5, "パラディンを含む5体が参加")
 
@@ -228,11 +228,11 @@ func test_cluster_forms_at_move_destination() -> void:
 	var c := Hex.offset_to_axial(2, 3)
 	for i in 4:  # 4体が一列に並んでいる（id 2..5）
 		s.add_unit(Unit.new(i + 2, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric"))
-	var leader := Unit.new(1, 0, c + Hex.direction(0) * 5, 3, 8, 20, 20, 1, "cleric")  # 列から離れている
-	s.add_unit(leader)
-	assert_eq(_count(Formation.available_for(s, leader), "grace"), 0, "離れていれば不成立")
+	var caster := Unit.new(1, 0, c + Hex.direction(0) * 5, 3, 8, 20, 20, 1, "cleric")  # 列から離れている
+	s.add_unit(caster)
+	assert_eq(_count(Formation.available_for(s, caster), "grace"), 0, "離れていれば不成立")
 	var join := c + Hex.direction(0) * 4  # 列の端に隣接する空きマス
-	var opts := Formation.available_for(s, leader, join)
+	var opts := Formation.available_for(s, caster, join)
 	assert_eq(_count(opts, "grace"), 1, "移動先で列に加われば5体クラスタが成立する")
 	assert_eq(_pick(opts, "grace").participants.size(), 5, "参加は5体")
 
@@ -241,14 +241,14 @@ func test_cluster_forms_at_move_destination() -> void:
 func test_skill_matches_by_skin_not_type() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
-	var leader: Unit = null
+	var caster: Unit = null
 	for i in 5:
 		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 20, 20, 1, "cleric")
 		u.skin_id = "goblin"  # cleric 性能のゴブリン（unit_skin.json の実在スキン）
 		s.add_unit(u)
 		if i == 0:
-			leader = u
-	assert_eq(Formation.available_for(s, leader).size(), 0, "スキンが違えばグレイスは成立しない")
+			caster = u
+	assert_eq(Formation.available_for(s, caster).size(), 0, "スキンが違えばグレイスは成立しない")
 
 ## スキンID明示でも成立する（skin_id 未指定＝type_id へフォールバックは _aria_state 側で担保）。
 func test_skill_matches_with_explicit_skin() -> void:
@@ -256,7 +256,7 @@ func test_skill_matches_with_explicit_skin() -> void:
 	for u in f["s"].units():
 		if u.type_id == "cleric":
 			u.skin_id = "cleric"
-	assert_eq(_count(Formation.available_for(f["s"], f["leader"]), "grace"), 1, "基準スキン指定でも成立")
+	assert_eq(_count(Formation.available_for(f["s"], f["caster"]), "grace"), 1, "基準スキン指定でも成立")
 
 func test_grace_buffs_whole_team() -> void:
 	var f := _aria_state()
@@ -264,7 +264,7 @@ func test_grace_buffs_whole_team() -> void:
 	var ally: Unit = f["ally"]
 	var foe: Unit = f["foe"]
 	var before := Combat.attack_breakdown(s, ally, foe, true).total
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_not_null(res, "対象なしでも発動成功")
 	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
@@ -277,7 +277,7 @@ func test_grace_lasts_one_round() -> void:
 	var ally: Unit = f["ally"]
 	var foe: Unit = f["foe"]
 	var before := Combat.attack_breakdown(s, ally, foe, true).total
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
 	s.end_turn()  # 敵ターンへ
 	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before * 1.3, 1.0, "敵ターン中はまだ効く")
@@ -285,7 +285,7 @@ func test_grace_lasts_one_round() -> void:
 	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before, 1.0, "次の自軍ターン開始で切れる")
 
 # ③ディバインジャッジメントの成立盤：paladin の周囲に聖職2体＋射程内(距離 enemy_dist)の敵1体。
-# leader=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、③の条件は発動者への隣接だけ。
+# caster=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、③の条件は発動者への隣接だけ。
 func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
@@ -297,18 +297,18 @@ func _judgment_state(enemy_def := 20, enemy_dist := 6) -> Dictionary:
 	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
 	for u in [pal, c1, c2, enemy]:
 		s.add_unit(u)
-	return {"s": s, "leader": pal, "enemy": enemy, "enemy_hex": enemy_hex}
+	return {"s": s, "caster": pal, "enemy": enemy, "enemy_hex": enemy_hex}
 
 func test_divine_judgment_offered() -> void:
 	var f := _judgment_state()
-	var opts := Formation.available_for(f["s"], f["leader"])
+	var opts := Formation.available_for(f["s"], f["caster"])
 	assert_eq(opts.size(), 1, "ディバインジャッジメントが検出される")
 	var o: FormationOption = opts[0]
 	assert_eq(o.skill, "divine_judgment", "スキルは divine_judgment")
 	assert_eq(o.effect, FormationOption.Effect.SINGLE, "単体効果")
 	assert_eq(o.max_range, 10, "射程10")
 
-func test_divine_judgment_leader_must_be_paladin() -> void:
+func test_divine_judgment_caster_must_be_paladin() -> void:
 	# 聖職を選んでもディバインジャッジメントは出ない（発動者はパラディンのみ）。
 	var f := _judgment_state()
 	var cleric: Unit = f["s"].unit_by_handle(2)
@@ -344,7 +344,7 @@ func test_divine_judgment_needs_two_adjacent_clergy() -> void:
 func test_targetable_cells_empty_when_nothing_in_range() -> void:
 	var f := _judgment_state(20, 6)
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	assert_true(f["enemy_hex"] in Formation.targetable_cells(s, opt), "射程内の敵は選べる")
 	assert_true(s.remove_unit(9), "その敵を盤から外す")
 	assert_true(Formation.targetable_cells(s, opt).is_empty(), "狙える駒が無ければ選べる先も無い")
@@ -373,7 +373,7 @@ func test_single_hits_only_target_hex() -> void:
 	var center: Vector2i = f["enemy_hex"]
 	var enemy2 := Unit.new(10, 1, Hex.neighbor(center, 2), 3, 8, 10, 20)
 	s.add_unit(enemy2)
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, center)
 	var ids: Array = []
 	for r in res.hits:
@@ -381,14 +381,14 @@ func test_single_hits_only_target_hex() -> void:
 	assert_true(9 in ids, "狙ったヘックスの敵に着弾")
 	assert_false(10 in ids, "単体＝隣の敵には及ばない")
 
-func test_single_uses_leader_attack() -> void:
+func test_single_uses_caster_attack() -> void:
 	var f := _judgment_state(100)  # 硬い敵で非撃破
 	var s: BattleState = f["s"]
 	var enemy: Unit = f["enemy"]
-	var leader: Unit = f["leader"]
-	var opt: FormationOption = Formation.available_for(s, leader)[0]
-	var single := Combat.attack_breakdown(s, leader, enemy, false)
-	var df := Combat.defense_breakdown(s, enemy, leader, false)
+	var caster: Unit = f["caster"]
+	var opt: FormationOption = Formation.available_for(s, caster)[0]
+	var single := Combat.attack_breakdown(s, caster, enemy, false)
+	var df := Combat.defense_breakdown(s, enemy, caster, false)
 	var expect := Combat.hit_from_breakdowns(single, df, enemy.troops).loss
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
@@ -398,14 +398,14 @@ func test_single_hits_aerial_with_ground_attack() -> void:
 	# 陣形スキルの威力は常に対地値＝atk_air 0 のパラディンでも飛行の敵に同じ威力で通る。
 	# 詳細 → doc/gdd/formations.md「面・射程・持続で払わせ、威力では払わせない」
 	var ground := _judgment_state(100)  # 硬い敵で非撃破
-	var g_opt: FormationOption = Formation.available_for(ground["s"], ground["leader"])[0]
+	var g_opt: FormationOption = Formation.available_for(ground["s"], ground["caster"])[0]
 	var g_res := FormationResolver.resolve(ground["s"], g_opt, ground["enemy_hex"])
 	var g_loss := g_res.hits[0].loss
 	assert_gt(g_loss, 0, "対地の敵には損害が出る前提")
 	var air := _judgment_state(100)
 	var foe: Unit = air["enemy"]
 	foe.move_type = "flight"  # 同条件の敵を飛行にする（テストのパラディンも実データ同様 atk_air=0）
-	var a_opt: FormationOption = Formation.available_for(air["s"], air["leader"])[0]
+	var a_opt: FormationOption = Formation.available_for(air["s"], air["caster"])[0]
 	var a_res := FormationResolver.resolve(air["s"], a_opt, air["enemy_hex"])
 	assert_eq(a_res.hits[0].loss, g_loss, "飛行の敵にも対地と同じ損害")
 
@@ -425,15 +425,15 @@ func test_single_out_of_range_fails() -> void:
 
 # --- 威力・適用 ---
 
-func test_resolve_uses_leader_attack() -> void:
+func test_resolve_uses_caster_attack() -> void:
 	# 面ダメージ＝発動者1体の実効攻撃力（合算しない）。単体の hit と一致する。
 	var f := _trinity_nova_state(100)  # 硬い敵＝非撃破で損害が兵数上限に張り付かない範囲
 	var s: BattleState = f["s"]
 	var enemy: Unit = f["enemy"]
-	var leader: Unit = f["leader"]
-	var opt: FormationOption = Formation.available_for(s, leader)[0]
-	var single := Combat.attack_breakdown(s, leader, enemy, false)
-	var df := Combat.defense_breakdown(s, enemy, leader, false)
+	var caster: Unit = f["caster"]
+	var opt: FormationOption = Formation.available_for(s, caster)[0]
+	var single := Combat.attack_breakdown(s, caster, enemy, false)
+	var df := Combat.defense_breakdown(s, enemy, caster, false)
 	var expect := Combat.hit_from_breakdowns(single, df, enemy.troops).loss
 	var before := enemy.troops
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
@@ -445,7 +445,7 @@ func test_resolve_uses_leader_attack() -> void:
 func test_resolve_marks_participants_done() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
@@ -459,7 +459,7 @@ func test_area_hits_allies_too() -> void:
 	s.add_unit(enemy2)
 	s.add_unit(ally)
 	var ally_before := ally.troops
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, center)
 	var hit_ids: Array = []
 	for r in res.hits:
@@ -469,15 +469,15 @@ func test_area_hits_allies_too() -> void:
 	assert_lt(ally.troops, ally_before, "味方の兵数も減る")
 
 func test_area_excludes_participants() -> void:
-	# 発動者3体が着弾範囲に入っても自傷しない（詠唱の源）。leader を中心に撃つ。
+	# 発動者3体が着弾範囲に入っても自傷しない（詠唱の源）。caster を中心に撃つ。
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
-	var leader: Unit = f["leader"]
+	var caster: Unit = f["caster"]
 	var w2_before := s.unit_by_handle(2).troops
-	var enemy := Unit.new(12, 1, Hex.neighbor(leader.pos, 2), 3, 8, 10, 20)  # leader隣接の敵
+	var enemy := Unit.new(12, 1, Hex.neighbor(caster.pos, 2), 3, 8, 10, 20)  # caster隣接の敵
 	s.add_unit(enemy)
-	var opt: FormationOption = Formation.available_for(s, leader)[0]
-	var res := FormationResolver.resolve(s, opt, leader.pos)  # 中心＝leader＝面に発動者3体が入る
+	var opt: FormationOption = Formation.available_for(s, caster)[0]
+	var res := FormationResolver.resolve(s, opt, caster.pos)  # 中心＝caster＝面に発動者3体が入る
 	var hit_ids: Array = []
 	for r in res.hits:
 		hit_ids.append(r.target_id)
@@ -488,7 +488,7 @@ func test_area_excludes_participants() -> void:
 func test_resolve_out_of_range_fails() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 全参加者から射程5超
 	assert_null(FormationResolver.resolve(s, opt, far), "射程外は不成立（空dict）")
 
@@ -496,7 +496,7 @@ func test_participants_gain_level() -> void:
 	# 撃破なし＝発動で全員+1（Lv1→Lv2）。硬い敵で一撃では死なせない。
 	var f := _trinity_nova_state(100)
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_not_null(s.unit_by_handle(9), "硬い敵は生存（非撃破ケースの前提）")
 	for pid in [1, 2, 3]:
@@ -507,7 +507,7 @@ func test_empty_cast_grants_no_level() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
 	var empty := Hex.offset_to_axial(3, 3) + Hex.direction(3) * 2  # 射程内・面に駒なし
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, empty)
 	assert_eq(res.hits.size(), 0, "空撃ち＝着弾なし")
 	for pid in [1, 2, 3]:
@@ -518,7 +518,7 @@ func test_kill_grants_extra_level() -> void:
 	# 撃破が1体でもあれば +2（Lv1→Lv3）。
 	var f := _trinity_nova_state(1)  # 低防御＝撃破される
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	FormationResolver.resolve(s, opt, f["enemy_hex"])
 	for pid in [1, 2, 3]:
 		assert_eq(s.unit_by_handle(pid).level, 3, "撃破時は参加者%d がLv+2" % pid)
@@ -527,7 +527,7 @@ func test_resolve_kills_when_lethal() -> void:
 	# 防御が薄い敵は撃破され盤から消える。
 	var f := _trinity_nova_state(1)  # 低防御
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_true(res.hits[0].killed, "撃破フラグ")
 	assert_null(s.unit_by_handle(9), "撃破された敵は盤から消える")
@@ -546,11 +546,11 @@ func test_result_carries_snapshots_and_attack_breakdown() -> void:
 	# 攻撃側の内訳は total だけでなく係数ごと＝レポートが戦闘と同じ3列表を出せる。
 	var f := _trinity_nova_state(1)  # 低防御＝撃破
 	var s: BattleState = f["s"]
-	var leader: Unit = f["leader"]
-	var opt: FormationOption = Formation.available_for(s, leader)[0]
+	var caster_unit: Unit = f["caster"]
+	var opt: FormationOption = Formation.available_for(s, caster_unit)[0]
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	var caster := res.caster
-	assert_eq(caster.handle, leader.handle, "発動者のスナップショット")
+	assert_eq(caster.handle, caster_unit.handle, "発動者のスナップショット")
 	assert_eq(caster.level, 1, "スナップショットは発動前（Lv加算前）に固める")
 	var r := res.hits[0]
 	var v := r.victim
@@ -564,7 +564,7 @@ func test_grace_result_carries_status_entry() -> void:
 	# 損害の出ないスキルはレポートが効果と持続を出す＝積んだ状態補正エントリを result にも載せる。
 	var f := _aria_state()
 	var s: BattleState = f["s"]
-	var opt: FormationOption = Formation.available_for(s, f["leader"])[0]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	var st := res.status
 	assert_eq(String(st["op"]), "mul", "グレイスは乗算バフ")
@@ -582,24 +582,24 @@ func _choice(cs: Array[FormationChoice], skill: String) -> FormationChoice:
 	return null
 
 ## 発動者の周囲3方向（dir0/dir1/dir2）に候補を置いた盤。dir0-dir1・dir1-dir2 は隣接、dir0-dir2 は距離2。
-## ①は三角が2通り（leader+dir0+dir1／leader+dir1+dir2）、③は組が3通りになる。
-func _fan_state(leader_skin: String, member_skin: String) -> Dictionary:
+## ①は三角が2通り（caster+dir0+dir1／caster+dir1+dir2）、③は組が3通りになる。
+func _fan_state(caster_skin: String, member_skin: String) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(4, 4)
-	var lead := Unit.new(1, 0, c, 3, 8, 50, 50, 1, leader_skin)
+	var lead := Unit.new(1, 0, c, 3, 8, 50, 50, 1, caster_skin)
 	var m0 := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 20, 20, 1, member_skin)
 	var m1 := Unit.new(3, 0, Hex.neighbor(c, 1), 3, 8, 20, 20, 1, member_skin)
 	var m2 := Unit.new(4, 0, Hex.neighbor(c, 2), 3, 8, 20, 20, 1, member_skin)
 	for u in [lead, m0, m1, m2]:
 		s.add_unit(u)
-	return {"s": s, "leader": lead}
+	return {"s": s, "caster": lead}
 
 ## 組が複数あってもメニューの項目は1つ＝レシピ単位に畳む（組は member_sets に内包する）。
 func test_choices_fold_sets_into_one_item() -> void:
 	var f := _fan_state("paladin", "cleric")
 	var s: BattleState = f["s"]
-	assert_eq(_count(Formation.available_for(s, f["leader"]), "divine_judgment"), 3, "前提: 組は3通り")
-	var cs := Formation.choices_for(s, f["leader"])
+	assert_eq(_count(Formation.available_for(s, f["caster"]), "divine_judgment"), 3, "前提: 組は3通り")
+	var cs := Formation.choices_for(s, f["caster"])
 	var c := _choice(cs, "divine_judgment")
 	assert_not_null(c, "ディバインジャッジメントの項目が1つ出る")
 	assert_eq(c.member_sets.size(), 3, "3組を内包する")
@@ -609,7 +609,7 @@ func test_choices_fold_sets_into_one_item() -> void:
 ## 組が1つしかない固定人数のスキルは参加者選びの段を飛ばす。
 func test_choice_skipped_when_single_set() -> void:
 	var f := _judgment_state()
-	var c := _choice(Formation.choices_for(f["s"], f["leader"]), "divine_judgment")
+	var c := _choice(Formation.choices_for(f["s"], f["caster"]), "divine_judgment")
 	assert_false(c.needs_choice(), "組が1つ＝選ぶ余地が無い")
 	assert_eq(c.forced_members(), [2, 3] as Array[int], "そのまま参加者が決まる")
 
@@ -617,7 +617,7 @@ func test_choice_skipped_when_single_set() -> void:
 func test_member_candidates_narrow_after_first_pick() -> void:
 	var f := _fan_state("wizard", "wizard")
 	var s: BattleState = f["s"]
-	var c := _choice(Formation.choices_for(s, f["leader"]), "trinity_nova")
+	var c := _choice(Formation.choices_for(s, f["caster"]), "trinity_nova")
 	var none: Array[int] = []
 	assert_eq(Formation.member_candidates(s, c, none), [2, 3, 4] as Array[int], "はじめは3体とも候補")
 	assert_eq(Formation.member_candidates(s, c, [2] as Array[int]), [3] as Array[int],
@@ -629,14 +629,14 @@ func test_member_candidates_narrow_after_first_pick() -> void:
 func test_escort_candidates_not_narrowed() -> void:
 	var f := _fan_state("paladin", "cleric")
 	var s: BattleState = f["s"]
-	var c := _choice(Formation.choices_for(s, f["leader"]), "divine_judgment")
+	var c := _choice(Formation.choices_for(s, f["caster"]), "divine_judgment")
 	assert_eq(Formation.member_candidates(s, c, [2] as Array[int]), [3, 4] as Array[int],
 		"メンバー同士の隣接は問わない")
 
 ## 人数が固定のスキルは人数ちょうどで発動できる（足りなければ不可）。
 func test_can_activate_fixed_count() -> void:
 	var f := _fan_state("paladin", "cleric")
-	var c := _choice(Formation.choices_for(f["s"], f["leader"]), "divine_judgment")
+	var c := _choice(Formation.choices_for(f["s"], f["caster"]), "divine_judgment")
 	assert_false(Formation.can_activate(c, [2] as Array[int]), "発動者＋1体では足りない")
 	assert_true(Formation.can_activate(c, [2, 3] as Array[int]), "発動者＋2体で発動できる")
 
@@ -644,7 +644,7 @@ func test_can_activate_fixed_count() -> void:
 func test_cluster_candidates_keep_connection() -> void:
 	var f := _cluster_state(7)
 	var s: BattleState = f["s"]
-	var c := _choice(Formation.choices_for(s, f["leader"]), "grace")
+	var c := _choice(Formation.choices_for(s, f["caster"]), "grace")
 	assert_true(c.variable_count, "②は人数が可変")
 	assert_eq(c.pool.size(), 6, "発動者を除く候補は6体")
 	assert_true(c.needs_choice(), "候補が最低人数を超える＝参加者を選ぶ")
@@ -658,7 +658,7 @@ func test_cluster_candidates_keep_connection() -> void:
 ## 候補が最低人数ちょうどなら選ぶ余地が無い＝段を飛ばして全員が参加する。
 func test_cluster_choice_skipped_at_minimum() -> void:
 	var f := _cluster_state(5)
-	var c := _choice(Formation.choices_for(f["s"], f["leader"]), "grace")
+	var c := _choice(Formation.choices_for(f["s"], f["caster"]), "grace")
 	assert_false(c.needs_choice(), "5体ちょうど＝選ぶ余地が無い")
 	assert_eq(c.forced_members().size(), 4, "発動者を除く4体がそのまま参加者")
 
@@ -666,10 +666,10 @@ func test_cluster_choice_skipped_at_minimum() -> void:
 func test_grace_value_follows_chosen_members() -> void:
 	var f := _cluster_state(8)
 	var s: BattleState = f["s"]
-	var c := _choice(Formation.choices_for(s, f["leader"]), "grace")
+	var c := _choice(Formation.choices_for(s, f["caster"]), "grace")
 	var opt := Formation.option_of(s, c, [2, 3, 4, 5] as Array[int])
 	assert_eq(opt.participants.size(), 5, "発動者＋4体＝5体で撃つ")
-	assert_eq(opt.leader_id, 1, "先頭が発動者")
+	assert_eq(opt.caster_id, 1, "先頭が発動者")
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_almost_eq(float(res.status["value"]), 1.3, 0.001, "5体ぶんの補正")
 	assert_false(s.is_done(6), "選ばなかった駒は行動を残す")
@@ -678,10 +678,10 @@ func test_grace_value_follows_chosen_members() -> void:
 func test_choice_has_target() -> void:
 	var f := _judgment_state()
 	var s: BattleState = f["s"]
-	var c := _choice(Formation.choices_for(s, f["leader"]), "divine_judgment")
+	var c := _choice(Formation.choices_for(s, f["caster"]), "divine_judgment")
 	assert_true(Formation.choice_has_target(s, c), "射程内に敵が居る")
 	s.remove_unit(9)
-	var c2 := _choice(Formation.choices_for(s, f["leader"]), "divine_judgment")
+	var c2 := _choice(Formation.choices_for(s, f["caster"]), "divine_judgment")
 	assert_false(Formation.choice_has_target(s, c2), "撃てる先が無い")
 
 ## ユニットスキル（単独発動）も同じ器に乗る＝参加者を選ぶ段は無い。
@@ -723,7 +723,7 @@ func test_trick_shot_detected_when_scout_pins_target() -> void:
 	assert_eq(o.min_range, 1, "射程下限も弓兵の通常射程")
 
 ## 斥候が発動者にだけ隣接していても成立しない＝見るのは対象の周り。
-func test_trick_shot_not_detected_when_scout_only_near_leader() -> void:
+func test_trick_shot_not_detected_when_scout_only_near_caster() -> void:
 	var s := _state()
 	var c := Hex.offset_to_axial(2, 3)
 	var archer := Unit.new(1, 0, c, 4, 8, 30, 30, 1, "archer")
@@ -835,9 +835,9 @@ func test_trick_shot_spends_both() -> void:
 func test_single_cannot_target_ally() -> void:
 	var f := _judgment_state()
 	var s: BattleState = f["s"]
-	var ally_hex: Vector2i = f["leader"].pos + Hex.direction(0) * 3  # 射程内の味方（参加者ではない）
+	var ally_hex: Vector2i = f["caster"].pos + Hex.direction(0) * 3  # 射程内の味方（参加者ではない）
 	s.add_unit(Unit.new(5, 0, ally_hex, 3, 8, 20, 20, 1, "fighter"))
-	var opt := _pick(Formation.available_for(s, f["leader"]), "divine_judgment")
+	var opt := _pick(Formation.available_for(s, f["caster"]), "divine_judgment")
 	var cells := Formation.targetable_cells(s, opt)
 	assert_true(f["enemy_hex"] in cells, "敵は選べる")
 	assert_false(ally_hex in cells, "味方は選べない")
@@ -855,6 +855,130 @@ func test_trick_shot_cannot_target_ally() -> void:
 	var cells := Formation.targetable_cells(s, _trick_shot_option(f))
 	assert_true(f["enemy_hex"] in cells, "張り付かれた敵は選べる")
 	assert_false(ally_hex in cells, "斥候の隣でも味方は選べない")
+
+# --- ⑥アローレイン（弓兵3体の三角・19ヘクス・発動者の射程・貫通なし・相手で対空／対地）---
+
+## ⑥の成立盤：アーチャー（射程1-3・対地30／対空40）・ハンター（1-4・30／50）・エルフ（1-5・30／60）が
+## 三角形。caster=アーチャー（id1）で、そこから距離3の敵1体。
+func _arrow_rain_state(enemy_def := 40) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var tri := _triangle(c)
+	var archer := Unit.new(1, 0, tri[0], 4, 8, 30, 30, 1, "archer")
+	archer.atk_air = 40
+	archer.min_range = 1
+	archer.attack_range = 3
+	var hunter := Unit.new(2, 0, tri[1], 5, 8, 30, 30, 1, "hunter")
+	hunter.atk_air = 50
+	hunter.min_range = 1
+	hunter.attack_range = 4
+	var elf := Unit.new(3, 0, tri[2], 4, 8, 30, 20, 1, "elf")
+	elf.atk_air = 60
+	elf.min_range = 1
+	elf.attack_range = 5
+	var enemy_hex := c + Hex.direction(0) * 3
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
+	for u in [archer, hunter, elf, enemy]:
+		s.add_unit(u)
+	return {"s": s, "archer": archer, "hunter": hunter, "elf": elf,
+		"enemy": enemy, "enemy_hex": enemy_hex}
+
+func _arrow_rain_option(f: Dictionary, caster := "archer") -> FormationOption:
+	return _pick(Formation.available_for(f["s"], f[caster]), "arrow_rain")
+
+## 弓兵3体が三角なら成立する（アーチャー・ハンター・エルフの混在可）。
+func test_arrow_rain_detected_with_three_archers() -> void:
+	var f := _arrow_rain_state()
+	var o := _arrow_rain_option(f)
+	assert_not_null(o, "弓兵3体の三角で成立する")
+	assert_eq(o.shape, FormationOption.Shape.TRIANGLE, "形は triangle")
+	assert_eq(o.participants.size(), 3, "参加者は3体")
+	assert_eq(o.effect, FormationOption.Effect.AREA, "効果は面")
+
+## スリンガー系は投石なので対象外＝混ざると三角が成立しない。
+func test_arrow_rain_rejects_slinger() -> void:
+	var f := _arrow_rain_state()
+	var s: BattleState = f["s"]
+	var elf: Unit = f["elf"]
+	elf.type_id = "slinger"
+	assert_eq(_count(Formation.available_for(s, f["archer"]), "arrow_rain"), 0,
+		"スリンガーが混ざると成立しない")
+	assert_eq(_count(Formation.available_for(s, elf), "arrow_rain"), 0,
+		"スリンガーからは発動できない")
+
+## 面は中心から2ヘクス以内＝19ヘクス（①の7ヘクスより一回り広い）。
+func test_arrow_rain_blast_is_nineteen_hexes() -> void:
+	var f := _arrow_rain_state()
+	var o := _arrow_rain_option(f)
+	assert_eq(o.radius, 2, "半径2")
+	assert_eq(Formation.blast_cells(o, f["enemy_hex"]).size(), 19, "中心＋6＋外周12＝19ヘクス")
+
+## 射程は発動者の射程上限＝誰が号令をかけるかで変わる。
+func test_arrow_rain_range_comes_from_caster() -> void:
+	var f := _arrow_rain_state()
+	assert_eq(_arrow_rain_option(f, "archer").max_range, 3, "アーチャーが発動者なら3")
+	assert_eq(_arrow_rain_option(f, "hunter").max_range, 4, "ハンターなら4")
+	assert_eq(_arrow_rain_option(f, "elf").max_range, 5, "エルフなら5")
+
+## 起点は3体のどれからでも＝発動者の射程を、参加者それぞれの位置から測る。
+func test_arrow_rain_measured_from_any_participant() -> void:
+	var f := _arrow_rain_state()
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	var hunter: Unit = f["hunter"]
+	var far_hex: Vector2i = hunter.pos + Hex.direction(0) * 3  # ハンターから3・アーチャーから4
+	assert_eq(Hex.distance(archer.pos, far_hex), 4, "発動者からは射程3を超えている")
+	var cells := Formation.targetable_cells(s, _arrow_rain_option(f))
+	assert_true(far_hex in cells, "ハンターの位置から測れば射程内＝撃てる")
+
+## 参加者は当たらない・他の味方は当たる（①と同じ）。
+func test_arrow_rain_excludes_participants_not_allies() -> void:
+	var f := _arrow_rain_state()
+	var s: BattleState = f["s"]
+	var ally_hex: Vector2i = f["enemy_hex"] + Hex.direction(1) * 2  # 中心から2＝面の外周
+	s.add_unit(Unit.new(4, 0, ally_hex, 3, 8, 20, 20, 1, "novice"))
+	var res := FormationResolver.resolve(s, _arrow_rain_option(f), f["enemy_hex"])
+	var hit_ids: Array[int] = []
+	for h in res.hits:
+		hit_ids.append(h.target_id)
+	assert_true(9 in hit_ids, "敵は当たる")
+	assert_true(4 in hit_ids, "参加していない味方は当たる（外周まで焼く）")
+	for pid in [1, 2, 3]:
+		assert_false(pid in hit_ids, "参加者は当たらない（id %d）" % pid)
+
+## 威力は発動者1体の実効攻撃力・貫通なし（弓の素の0）。
+func test_arrow_rain_uses_caster_attack_without_pierce() -> void:
+	var f := _arrow_rain_state(40)
+	var s: BattleState = f["s"]
+	var archer: Unit = f["archer"]
+	archer.troops = 5  # 発動者の兵数で撃つことを見るため他の参加者（8）とずらす
+	var expect := _expect_loss(s, archer, 30, f["enemy"], 0.0)  # 発動前の盤で
+	var res := FormationResolver.resolve(s, _arrow_rain_option(f), f["enemy_hex"])
+	var atk: StatBreakdown = res.hits[0].detail.attack
+	assert_eq(atk.stat, 30, "アーチャーの対地30")
+	assert_eq(atk.troops, 5, "兵数は発動者のもの")
+	assert_eq(res.hits[0].loss, expect, "貫通なしで撃った損害")
+
+## 矢のレシピ＝相手が飛行なら対空値（①の対地固定と違う）。
+func test_arrow_rain_uses_air_attack_vs_aerial() -> void:
+	var f := _arrow_rain_state(40)
+	var s: BattleState = f["s"]
+	var enemy: Unit = f["enemy"]
+	enemy.move_type = "flight"
+	var expect := _expect_loss(s, f["archer"], 40, enemy, 0.0)  # 発動前の盤で
+	var res := FormationResolver.resolve(s, _arrow_rain_option(f), f["enemy_hex"])
+	var atk: StatBreakdown = res.hits[0].detail.attack
+	assert_eq(atk.stat, 40, "アーチャーの対空40")
+	assert_true(atk.vs_aerial, "飛行の敵＝対空値")
+	assert_eq(res.hits[0].loss, expect, "対空値・貫通なしで撃った損害")
+
+## 参加者は3体とも行動完了。
+func test_arrow_rain_spends_all_three() -> void:
+	var f := _arrow_rain_state()
+	var s: BattleState = f["s"]
+	FormationResolver.resolve(s, _arrow_rain_option(f), f["enemy_hex"])
+	for pid in [1, 2, 3]:
+		assert_true(s.is_done(pid), "参加者は行動完了（id %d）" % pid)
 
 # --- ⑨マジックアロー（弓兵＋魔法兵の隣接・大きい方＋10・貫通0.5・射程は長い方＋1）---
 
@@ -882,10 +1006,10 @@ func _magic_arrow_option(f: Dictionary) -> FormationOption:
 	return _pick(Formation.available_for(f["s"], f["archer"]), "magic_arrow")
 
 ## 陣形ダメージの期待値（発動者の兵数・レベル・包囲・地形に、指定のユニット攻撃力と貫通を当てる）。
-func _expect_loss(s: BattleState, leader: Unit, stat: int, enemy: Unit, pierce: float) -> int:
-	var atk := Combat.attack_breakdown_from(leader.troops, stat,
-		Combat.level_factor(leader), Combat.surround_factor(s, leader),
-		TerrainType.attack_factor(s.terrain_at(leader.pos)), 0.0)
+func _expect_loss(s: BattleState, caster: Unit, stat: int, enemy: Unit, pierce: float) -> int:
+	var atk := Combat.attack_breakdown_from(caster.troops, stat,
+		Combat.level_factor(caster), Combat.surround_factor(s, caster),
+		TerrainType.attack_factor(s.terrain_at(caster.pos)), 0.0)
 	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
 		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
 		TerrainType.defense_factor(s.terrain_at(enemy.pos)), 0.0, pierce)

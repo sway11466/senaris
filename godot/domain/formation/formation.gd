@@ -10,12 +10,12 @@ class_name Formation
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
 ## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
-## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(leader)の性質を使う（①魔法兵0.5／③聖職0）。
+## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(caster)の性質を使う（①魔法兵0.5／③聖職0）。
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし参加者は全員除外（発動側は自分たちの術で焼けない）。
 ## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は FormationResolver。
 
 ## スキル定義（当面ハードコード。将来 CSV/JSON 化）。
-## leader_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
+## caster_skins＝発動者になれるスキン ／ member_skins＝残りの参加者のスキン。
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
 ##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
@@ -37,7 +37,7 @@ const SKILLS := {
 	"trinity_nova": {
 		"name": "トリニティノヴァ",
 		"category": "magic",
-		"leader_skins": ["wizard", "witch"],
+		"caster_skins": ["wizard", "witch"],
 		"member_skins": ["wizard", "witch"],
 		"shape": "triangle",
 		"count": 3,
@@ -49,7 +49,7 @@ const SKILLS := {
 	"grace": {
 		"name": "グレイス",
 		"category": "buff",
-		"leader_skins": ["cleric", "priest", "bishop", "paladin"],
+		"caster_skins": ["cleric", "priest", "bishop", "paladin"],
 		"member_skins": ["cleric", "priest", "bishop", "paladin"],
 		"shape": "cluster",
 		"count": 5,
@@ -66,7 +66,7 @@ const SKILLS := {
 	"divine_judgment": {
 		"name": "ディバインジャッジメント",
 		"category": "special",
-		"leader_skins": ["paladin"],
+		"caster_skins": ["paladin"],
 		"member_skins": ["cleric", "priest", "bishop"],
 		"shape": "escort",
 		"count": 3,
@@ -77,7 +77,7 @@ const SKILLS := {
 	"trick_shot": {
 		"name": "トリックショット",
 		"category": "bow",
-		"leader_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外
+		"caster_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外
 		# 先頭のシーフがクロニクルの図と未解放の黒塗りの代表（doc/gdd/chronicle.md 陣形スキル）。
 		"member_skins": ["thief", "halfling", "ninja", "kunoichi"],
 		"shape": "spotter",
@@ -96,10 +96,27 @@ const SKILLS := {
 		# 他のスキルはスキルごと1枚。→ doc/gdd/formations.md 発動の演出
 		"cutin_per_caster": true,
 	},
+	"arrow_rain": {
+		"name": "アローレイン",
+		"category": "bow",
+		"caster_skins": ["archer", "hunter", "elf"],  # スリンガー系は投石なので対象外（④と同じ）
+		"member_skins": ["archer", "hunter", "elf"],
+		"shape": "triangle",
+		"count": 3,
+		"effect": "area",
+		# 中心＋周囲6＋その外周12＝19ヘクス。①の面（7ヘクス）より一回り広く、参加者以外の味方は焼ける。
+		"radius": 2,
+		# 射程は発動者の通常射程＝誰が号令をかけるかで届く距離が変わる（アーチャー3／ハンター4／エルフ5）。
+		# 起点は3体のどれからでもよい。詳細 → doc/gdd/formations.md ⑥
+		"range_from_stats": "leader",
+		"range_from": "any",
+		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
+		"attack_vs": "target",
+	},
 	"magic_arrow": {
 		"name": "マジックアロー",
 		"category": "magic",
-		"leader_skins": ["archer", "hunter", "elf"],  # 矢を放つのは弓＝発動は弓兵から。スリンガー系は投石なので対象外
+		"caster_skins": ["archer", "hunter", "elf"],  # 矢を放つのは弓＝発動は弓兵から。スリンガー系は投石なので対象外
 		"member_skins": ["wizard", "witch"],  # メイジは見習いのため対象外
 		"shape": "escort",
 		"count": 2,
@@ -123,7 +140,7 @@ const SKILLS := {
 	# 仕組みは陣形と共通で、カタログだけ分けている。詳細 → doc/gdd/skills.md
 	"pixie_dust": {
 		"name": "ピクシーダスト",
-		"leader_skins": ["pixie"],
+		"caster_skins": ["pixie"],
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
@@ -141,7 +158,7 @@ const SKILLS := {
 	},
 	"purify": {
 		"name": "ピュリファイ",
-		"leader_skins": ["cleric", "priest", "bishop"],
+		"caster_skins": ["cleric", "priest", "bishop"],
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
@@ -154,7 +171,7 @@ const SKILLS := {
 	},
 	"dread_touch": {
 		"name": "ドレッドタッチ",
-		"leader_skins": ["ghost"],
+		"caster_skins": ["ghost"],
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
@@ -173,7 +190,7 @@ const SKILLS := {
 	},
 	"venom_fang": {
 		"name": "ヴェノムファング",
-		"leader_skins": ["rock_serpent"],
+		"caster_skins": ["rock_serpent"],
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
@@ -193,7 +210,7 @@ const SKILLS := {
 	},
 	"poison_sting": {
 		"name": "ポイズンスティング",
-		"leader_skins": ["scorpion"],
+		"caster_skins": ["scorpion"],
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
@@ -212,7 +229,7 @@ const SKILLS := {
 	},
 	"slime_split": {
 		"name": "スライムスプリット",
-		"leader_skins": ["slime"],
+		"caster_skins": ["slime"],
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
@@ -250,7 +267,7 @@ static func unit_skills_of(unit: Unit) -> Array[String]:
 		var r: Dictionary = SKILLS[rid]
 		if String(r["shape"]) != "solo" or not (r["effect"] in IMPLEMENTED_EFFECTS):
 			continue
-		if _matches(unit, r["leader_skins"]):
+		if _matches(unit, r["caster_skins"]):
 			out.append(rid)
 	return out
 
@@ -262,30 +279,30 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 	var out: Array[FormationOption] = []
 	if unit == null:
 		return out
-	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
+	var caster_pos := unit.pos if from_hex == NO_HEX else from_hex
 	for rid in SKILLS:
 		var r: Dictionary = SKILLS[rid]
-		if not _leader_can_offer(state, unit, rid, r):
+		if not _caster_can_offer(state, unit, rid, r):
 			continue
 		match String(r["shape"]):
 			"triangle":
-				for members in _triangle_sets(state, unit, r, lead_pos):
+				for members in _triangle_sets(state, unit, r, caster_pos):
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0], members[1]]))
 			"escort":
-				for members in _escort_sets(state, unit, r, lead_pos):
+				for members in _escort_sets(state, unit, r, caster_pos):
 					out.append(FormationOption.from_skill(rid, r, [unit] + members))
 			"spotter":
-				for members in _spotter_sets(state, unit, r, lead_pos):
+				for members in _spotter_sets(state, unit, r, caster_pos):
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
-				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, lead_pos):
+				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, caster_pos):
 					continue
 				out.append(FormationOption.from_skill(rid, r, [unit]))  # ユニットスキル＝発動者だけで成立
 			"cluster":
-				var members := _cluster(state, unit, r, lead_pos)
+				var members := _cluster(state, unit, r, caster_pos)
 				if not members.is_empty():
-					var ordered: Array = [unit]  # 発動者を先頭に（leader_id 用）
+					var ordered: Array = [unit]  # 発動者を先頭に（caster_id 用）
 					for m in members:
 						if m.handle != unit.handle:
 							ordered.append(m)
@@ -301,31 +318,31 @@ static func choices_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> A
 	var out: Array[FormationChoice] = []
 	if unit == null:
 		return out
-	var lead_pos := unit.pos if from_hex == NO_HEX else from_hex
+	var caster_pos := unit.pos if from_hex == NO_HEX else from_hex
 	for rid in SKILLS:
 		var r: Dictionary = SKILLS[rid]
-		if not _leader_can_offer(state, unit, rid, r):
+		if not _caster_can_offer(state, unit, rid, r):
 			continue
 		var c := FormationChoice.new()
 		c.skill = rid
-		c.leader_id = unit.handle
+		c.caster_id = unit.handle
 		c.min_count = int(r.get("count", 1))
 		match String(r["shape"]):
 			"triangle":
-				_fill_fixed(c, _triangle_sets(state, unit, r, lead_pos))
+				_fill_fixed(c, _triangle_sets(state, unit, r, caster_pos))
 			"escort":
-				_fill_fixed(c, _escort_sets(state, unit, r, lead_pos))
+				_fill_fixed(c, _escort_sets(state, unit, r, caster_pos))
 			"spotter":
 				# 相方は着弾先が決まってから絞る＝先に着弾先を選ぶ段へ進む
 				c.target_first = true
-				_fill_fixed(c, _spotter_sets(state, unit, r, lead_pos))
+				_fill_fixed(c, _spotter_sets(state, unit, r, caster_pos))
 			"solo":
-				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, lead_pos):
+				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, caster_pos):
 					continue
 				c.member_sets = [[] as Array[int]]  # 発動者だけで成立＝選ぶ余地の無い組が1つ
 			"cluster":
 				c.variable_count = true
-				for m in _cluster(state, unit, r, lead_pos):
+				for m in _cluster(state, unit, r, caster_pos):
 					if m.handle != unit.handle:
 						c.pool.append(m.handle)
 		if c.member_sets.is_empty() and c.pool.is_empty():
@@ -343,10 +360,10 @@ static func member_candidates(state: BattleState, choice: FormationChoice, chose
 	if choice == null:
 		return out
 	if choice.variable_count:
-		var leader := state.unit_by_handle(choice.leader_id)
-		if leader == null:
+		var caster := state.unit_by_handle(choice.caster_id)
+		if caster == null:
 			return out
-		var anchors: Array[Vector2i] = [leader.pos if from_hex == NO_HEX else from_hex]
+		var anchors: Array[Vector2i] = [caster.pos if from_hex == NO_HEX else from_hex]
 		for h in chosen:
 			var cu := state.unit_by_handle(h)
 			if cu != null:
@@ -388,10 +405,10 @@ static func can_activate(choice: FormationChoice, chosen: Array[int]) -> bool:
 static func option_of(state: BattleState, choice: FormationChoice, chosen: Array[int]) -> FormationOption:
 	if choice == null:
 		return null
-	var leader := state.unit_by_handle(choice.leader_id)
-	if leader == null:
+	var caster := state.unit_by_handle(choice.caster_id)
+	if caster == null:
 		return null
-	var units: Array = [leader]
+	var units: Array = [caster]
 	for h in chosen:
 		var u := state.unit_by_handle(h)
 		if u == null:
@@ -439,22 +456,22 @@ static func blast_cells(option: FormationOption, target: Vector2i) -> Array[Vect
 static func can_target(state: BattleState, option: FormationOption, target: Vector2i, from_hex := NO_HEX) -> bool:
 	if not option.needs_target():
 		return true
-	var lead_id := option.leader_id
-	var leader := state.unit_by_handle(lead_id)
+	var caster_id := option.caster_id
+	var caster := state.unit_by_handle(caster_id)
 	var within := false
 	if option.range_from == FormationOption.RangeFrom.ANY:
 		for pid in option.participants:
 			var p := state.unit_by_handle(int(pid))
 			if p == null:
 				continue
-			var ppos := from_hex if (from_hex != NO_HEX and p.handle == lead_id) else p.pos
+			var ppos := from_hex if (from_hex != NO_HEX and p.handle == caster_id) else p.pos
 			if option.in_range(Hex.distance(ppos, target)):
 				within = true
 				break
 	elif from_hex != NO_HEX:
 		within = option.in_range(Hex.distance(from_hex, target))
 	else:
-		within = leader != null and option.in_range(Hex.distance(leader.pos, target))
+		within = caster != null and option.in_range(Hex.distance(caster.pos, target))
 	if not within:
 		return false
 	# ④トリックショット＝着弾先に斥候（相方）が張り付いていること。参加者の形ではなく対象の周りを
@@ -468,15 +485,15 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 	# 単体を狙うスキル（③④）は敵の駒だけを選べる＝空撃ちも同士討ちもさせない。面に巻き込まれるのと
 	# 狙って撃てるのは別で、誤射は面（①⑥）だけの話。詳細 → doc/gdd/formations.md 共通ルール
 	if option.effect == FormationOption.Effect.SINGLE:
-		var v := _unit_at_assumed(state, leader, from_hex, target)
-		return v != null and leader != null and v.team != leader.team
+		var v := _unit_at_assumed(state, caster, from_hex, target)
+		return v != null and caster != null and v.team != caster.team
 	# 対象1体のスキルは駒の居るhexだけ＝空撃ちさせない。味方に掛けるもの（ピクシーダスト）は発動者
 	# 自身も選べ、敵を弱らせるもの（ドレッドタッチ）は敵だけを選べる。詳細 → doc/gdd/skills.md
 	if option.scope == FormationOption.Scope.UNIT:
-		var u := _unit_at_assumed(state, leader, from_hex, target)
-		if u == null or leader == null:
+		var u := _unit_at_assumed(state, caster, from_hex, target)
+		if u == null or caster == null:
 			return false
-		var same_team := u.team == leader.team
+		var same_team := u.team == caster.team
 		if option.side == FormationOption.Side.ENEMY:
 			return not same_team
 		if not same_team:
@@ -543,10 +560,10 @@ static func _matches(unit: Unit, skins: Array) -> bool:
 	return key in skins
 
 ## unit がそのスキルの発動者として名乗れるか（形は見ない）。available_for と choices_for の共通の門。
-static func _leader_can_offer(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
+static func _caster_can_offer(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
 	if not (r["effect"] in IMPLEMENTED_EFFECTS):
 		return false
-	if not _matches(unit, r["leader_skins"]):
+	if not _matches(unit, r["caster_skins"]):
 		return false
 	# 参加資格は陣形もユニットスキルも「行動を使い切っていない」（待機・攻撃済みでない）。
 	# 行ける先が無いだけの駒は参加できる＝発動に移動先も攻撃相手も要らない。
@@ -556,9 +573,9 @@ static func _leader_can_offer(state: BattleState, unit: Unit, rid: String, r: Di
 	var ct := int(r.get("charge_turns", 0))
 	return ct == 0 or state.get_charge(unit.handle, rid) >= ct
 
-## 分裂（spawn）の置き先＝lead_pos の隣に盤内の空きマスがあるか。
-static func _spawn_has_room(state: BattleState, lead_pos: Vector2i) -> bool:
-	for nb in Hex.neighbors(lead_pos):
+## 分裂（spawn）の置き先＝caster_pos の隣に盤内の空きマスがあるか。
+static func _spawn_has_room(state: BattleState, caster_pos: Vector2i) -> bool:
+	for nb in Hex.neighbors(caster_pos):
 		if state.in_field(nb) and state.unit_at(nb) == null:
 			return true
 	return false
@@ -599,30 +616,30 @@ static func _probe_sets(choice: FormationChoice) -> Array:
 
 ## from_hex に発動者が居ると仮定したときの hex の駒。移動を確定する前は盤の上の発動者がまだ
 ## 元のマスに立っているので、そこを空として読み替える（自分に掛けるスキルの対象判定に効く）。
-static func _unit_at_assumed(state: BattleState, leader: Unit, from_hex: Vector2i, hex: Vector2i) -> Unit:
-	if leader != null and from_hex != NO_HEX:
+static func _unit_at_assumed(state: BattleState, caster: Unit, from_hex: Vector2i, hex: Vector2i) -> Unit:
+	if caster != null and from_hex != NO_HEX:
 		if hex == from_hex:
-			return leader
-		if hex == leader.pos:
+			return caster
+		if hex == caster.pos:
 			return null
 	return state.unit_at(hex)
 
 ## 射程内かつ盤上のhex（重複なし）。起点は "any" なら参加者ぜんぶ／"leader" なら発動者だけ。
 static func _in_range_cells(state: BattleState, option: FormationOption, from_hex: Vector2i) -> Array[Vector2i]:
 	var rng := option.max_range
-	var lead_id := option.leader_id
+	var caster_id := option.caster_id
 	var origins: Array[Vector2i] = []
 	if option.range_from == FormationOption.RangeFrom.ANY:
 		for pid in option.participants:
 			var p := state.unit_by_handle(int(pid))
 			if p != null:
-				origins.append(from_hex if (from_hex != NO_HEX and p.handle == lead_id) else p.pos)
+				origins.append(from_hex if (from_hex != NO_HEX and p.handle == caster_id) else p.pos)
 	elif from_hex != NO_HEX:
 		origins.append(from_hex)
 	else:
-		var leader := state.unit_by_handle(lead_id)
-		if leader != null:
-			origins.append(leader.pos)
+		var caster := state.unit_by_handle(caster_id)
+		if caster != null:
+			origins.append(caster.pos)
 	var seen := {}
 	var out: Array[Vector2i] = []
 	for o in origins:
@@ -633,22 +650,22 @@ static func _in_range_cells(state: BattleState, option: FormationOption, from_he
 				out.append(h)
 	return out
 
-## leader（lead_pos に居るものとする）に隣接する member_skins の候補（同陣営・未行動）。
-## lead_pos は移動先のこともある＝発動者だけ仮の位置で測る。
-static func _adjacent_members(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
+## caster（caster_pos に居るものとする）に隣接する member_skins の候補（同陣営・未行動）。
+## caster_pos は移動先のこともある＝発動者だけ仮の位置で測る。
+static func _adjacent_members(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
-		if u.handle == leader.handle or u.team != leader.team or not state.has_action_left(u.handle):
+		if u.handle == caster.handle or u.team != caster.team or not state.has_action_left(u.handle):
 			continue
 		if not _matches(u, r["member_skins"]):
 			continue
-		if Hex.distance(u.pos, lead_pos) == 1:
+		if Hex.distance(u.pos, caster_pos) == 1:
 			cand.append(u)
 	return cand
 
-## ①トリニティノヴァ＝三角形。leader に隣接する候補のうち、互いにも隣接する2体組を全列挙。
-static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
-	var cand := _adjacent_members(state, leader, r, lead_pos)
+## ①トリニティノヴァ＝三角形。caster に隣接する候補のうち、互いにも隣接する2体組を全列挙。
+static func _triangle_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
+	var cand := _adjacent_members(state, caster, r, caster_pos)
 	var sets: Array = []
 	for i in cand.size():
 		for j in range(i + 1, cand.size()):
@@ -658,10 +675,10 @@ static func _triangle_sets(state: BattleState, leader: Unit, r: Dictionary, lead
 
 ## レシピのメンバー候補（同陣営・未行動・スキン一致）を位置によらず全部集める。
 ## 位置で絞る形（triangle/escort/cluster）は発動者からの距離で、spotter は対象からの距離で絞る。
-static func _member_pool(state: BattleState, leader: Unit, r: Dictionary) -> Array:
+static func _member_pool(state: BattleState, caster: Unit, r: Dictionary) -> Array:
 	var cand: Array[Unit] = []
 	for u in state.units():
-		if u.handle == leader.handle or u.team != leader.team or not state.has_action_left(u.handle):
+		if u.handle == caster.handle or u.team != caster.team or not state.has_action_left(u.handle):
 			continue
 		if _matches(u, r["member_skins"]):
 			cand.append(u)
@@ -669,33 +686,33 @@ static func _member_pool(state: BattleState, leader: Unit, r: Dictionary) -> Arr
 
 ## ④トリックショット＝対象の周りを見る形。斥候が「発動者の射程に入っている駒」に張り付いていれば
 ## 組になる（弓兵と斥候は隣り合わなくてよい）。組は斥候1体ごとに1つで、着弾先はあとから選ぶ。
-## 発動者は lead_pos に居るものとして射程を測る（移動先のこともある）。
-static func _spotter_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
+## 発動者は caster_pos に居るものとして射程を測る（移動先のこともある）。
+static func _spotter_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
 	var sets: Array = []
-	for m in _member_pool(state, leader, r):
-		if _spotter_has_mark(state, leader, m, lead_pos):
+	for m in _member_pool(state, caster, r):
+		if _spotter_has_mark(state, caster, m, caster_pos):
 			sets.append([m])
 	return sets
 
 ## 斥候 m の隣に「発動者の射程（下限〜上限）に入っている敵」が居るか＝その斥候で1発撃てるか。
 ## 単体を狙うスキルは敵しか選べない（can_target）ので、成立の判定も敵だけを数える。
-static func _spotter_has_mark(state: BattleState, leader: Unit, m: Unit, lead_pos: Vector2i) -> bool:
+static func _spotter_has_mark(state: BattleState, caster: Unit, m: Unit, caster_pos: Vector2i) -> bool:
 	for nb in Hex.neighbors(m.pos):
 		if not state.in_field(nb):
 			continue
 		var v := state.unit_at(nb)
-		if v == null or v.team == leader.team:
+		if v == null or v.team == caster.team:
 			continue
-		var d := Hex.distance(lead_pos, nb)
-		if d >= leader.min_range and d <= leader.attack_range:
+		var d := Hex.distance(caster_pos, nb)
+		if d >= caster.min_range and d <= caster.attack_range:
 			return true
 	return false
 
 ## 発動者を中心に、隣接する count-1 体。メンバー同士の隣接は問わない（発動者を挟んで左右対称でも
-## 成立する）＝leader に隣接する候補から count-1 体の組を全列挙。
+## 成立する）＝caster に隣接する候補から count-1 体の組を全列挙。
 ## ③ディバインジャッジメント＝2体組／⑨マジックアロー＝1体（隣接する魔法兵ごとに1組）。
-static func _escort_sets(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
-	var cand := _adjacent_members(state, leader, r, lead_pos)
+static func _escort_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
+	var cand := _adjacent_members(state, caster, r, caster_pos)
 	var need := int(r["count"]) - 1
 	var sets: Array = []
 	if need == 1:
@@ -709,16 +726,16 @@ static func _escort_sets(state: BattleState, leader: Unit, r: Dictionary, lead_p
 		assert(false, "Formation: escort の人数 %d は未対応（2 か 3）" % int(r["count"]))
 	return sets
 
-## leader を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
+## caster を含む member_skins の隣接連結成分（同陣営・未行動）を返す。size < count なら空＝不成立。
 ## ②グレイス＝占領兵が count 体以上「固まっていれば」成立（形は不問）。参加者＝クラスタ全員。
-## leader は lead_pos に居るものとする（移動先のこともある）＝探索は位置で持ち回る。
-static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: Vector2i) -> Array:
-	var seen := {leader.handle: leader}
-	var frontier: Array[Vector2i] = [lead_pos]
+## caster は caster_pos に居るものとする（移動先のこともある）＝探索は位置で持ち回る。
+static func _cluster(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
+	var seen := {caster.handle: caster}
+	var frontier: Array[Vector2i] = [caster_pos]
 	while not frontier.is_empty():
 		var cur: Vector2i = frontier.pop_back()
 		for u in state.units():
-			if seen.has(u.handle) or u.team != leader.team or not state.has_action_left(u.handle):
+			if seen.has(u.handle) or u.team != caster.team or not state.has_action_left(u.handle):
 				continue
 			if not _matches(u, r["member_skins"]):
 				continue
@@ -730,15 +747,15 @@ static func _cluster(state: BattleState, leader: Unit, r: Dictionary, lead_pos: 
 	return seen.values()
 
 ## victim 1体への陣形ダメージ内訳（発動者1体の実効攻撃力・間接扱い）。非破壊。
-## 威力＝発動者(leader)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。
+## 威力＝発動者(caster)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。
 ## 面の広さ（最大7hex）そのものが強み。合算は割合式が飽和してオーバーキルのため見送り（旧feature-11）。
 ## 参加3体は発動コスト＝行動完了で消費し、威力には積まない。
 static func _formation_hit(state: BattleState, option: FormationOption, victim: Unit) -> HitDetail:
-	var leader := state.unit_by_handle(option.leader_id)
+	var caster := state.unit_by_handle(option.caster_id)
 	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
-	var atk := _skill_attack_breakdown(state, leader, option, victim)
+	var atk := _skill_attack_breakdown(state, caster, option, victim)
 	# 防御側: 包囲は乗る（victim の surround が入る）／貫通は発動者の性質かレシピの上書き／支援なし。
-	var df := _skill_defense_breakdown(state, victim, leader, option)
+	var df := _skill_defense_breakdown(state, victim, caster, option)
 	var hit := Combat.hit_from_breakdowns(atk, df, victim.troops)
 	hit.target_id = victim.handle
 	return hit
@@ -749,16 +766,16 @@ static func _formation_hit(state: BattleState, option: FormationOption, victim: 
 ##   矢のレシピ（attack_vs "target"＝④⑥⑨）だけは通常攻撃と同じく相手で対空／対地を切り替える。
 ##   ⑨は攻撃力だけを参加者から引く（attack_from_stats）＝兵数・レベル・包囲・地形は発動者のもの。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md 設計原則3
-static func _skill_attack_breakdown(state: BattleState, leader: Unit, option: FormationOption,
+static func _skill_attack_breakdown(state: BattleState, caster: Unit, option: FormationOption,
 		victim: Unit) -> StatBreakdown:
-	var sf := state.status_aggregate(leader, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
+	var sf := state.status_aggregate(caster, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var vs_air := option.attack_vs == "target" and victim.is_aerial()
 	var b := Combat.attack_breakdown_from(
-		leader.troops,
-		_skill_attack_stat(state, leader, option, victim),
-		Combat.level_factor(leader),
-		Combat.surround_factor(state, leader),
-		TerrainType.attack_factor(state.terrain_at(leader.pos)),
+		caster.troops,
+		_skill_attack_stat(state, caster, option, victim),
+		Combat.level_factor(caster),
+		Combat.surround_factor(state, caster),
+		TerrainType.attack_factor(state.terrain_at(caster.pos)),
 		0.0,  # 支援なし
 		float(sf["mul"]), float(sf["add"]))
 	b.vs_aerial = vs_air  # レポートが対空値で撃ったことを出せる（常に対地のレシピは false）
@@ -769,9 +786,9 @@ static func _skill_attack_breakdown(state: BattleState, leader: Unit, option: Fo
 ## ⑨マジックアロー（attack_from_stats "max_plus"）だけは参加者の最大＋attack_plus＝地上ではウィザード
 ## 40＋10、空ではエルフ 60＋10 と、相手によって主役が入れ替わる。合算ではないので2人・単体でも壊れない。
 ## 対空／対地の切り替え（attack_vs）は参加者それぞれに掛ける。詳細 → doc/gdd/formations.md ⑨
-static func _skill_attack_stat(state: BattleState, leader: Unit, option: FormationOption, victim: Unit) -> int:
+static func _skill_attack_stat(state: BattleState, caster: Unit, option: FormationOption, victim: Unit) -> int:
 	var by_target := option.attack_vs == "target"
-	var stat := leader.attack_against(victim) if by_target else leader.unit_attack
+	var stat := caster.attack_against(victim) if by_target else caster.unit_attack
 	if option.attack_from_stats != "max_plus":
 		return stat
 	for pid in option.participants:
@@ -785,10 +802,10 @@ static func _skill_attack_stat(state: BattleState, leader: Unit, option: Formati
 ## 通常戦闘（Combat.defense_breakdown）との違いはここに全部書く:
 ##   支援なし（間接扱い）／貫通はレシピが上書きしていればその値、なければ発動者の pierce。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md ④
-static func _skill_defense_breakdown(state: BattleState, victim: Unit, leader: Unit,
+static func _skill_defense_breakdown(state: BattleState, victim: Unit, caster: Unit,
 		option: FormationOption) -> StatBreakdown:
 	var sf := state.status_aggregate(victim, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
-	var pierce := option.pierce_override if option.pierce_override >= 0.0 else leader.pierce
+	var pierce := option.pierce_override if option.pierce_override >= 0.0 else caster.pierce
 	var b := Combat.defense_breakdown_from(
 		victim.troops,
 		victim.unit_defense,

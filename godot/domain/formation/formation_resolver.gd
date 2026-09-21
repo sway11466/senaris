@@ -23,7 +23,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		return null
 	var out := SkillResult.new()
 	out.skill = option.skill
-	out.leader_id = option.leader_id
+	out.caster_id = option.caster_id
 	out.center = target
 	# 効果対象が1体のユニットスキルは演出シーンに乗る（→ doc/tech/combat_scene.md）。
 	# 兵数が動かない＝着弾も撃破も起きないので、内訳は hits ではなく専用の1件（cast）で渡す。
@@ -33,7 +33,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	var spawn_cells: Array[Vector2i] = []  # 分裂で出た位置（cells に載せて盤で光らせる）
 	# レポートの見出し・攻撃列に出す発動者（発動前に固める＝attack のスナップショットと同じ流儀。
 	# 兵数は動かないので troops_after は troops_before のまま）。詳細 → doc/tech/combat_scene.md
-	var caster := state.unit_by_handle(option.leader_id)
+	var caster := state.unit_by_handle(option.caster_id)
 	if caster != null:
 		out.caster = state.unit_snapshot(caster)
 	match option.effect:
@@ -58,7 +58,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		# スライムスプリット（⑤）は隣接する空きマスへ発動者の複製を1体置く。
 		# 着弾・兵数変化は起きない。分裂で出た位置は cells で盤に返す＝光らせる。詳細 → doc/gdd/skills.md
 		FormationOption.Effect.SPAWN:
-			var spawned := state.spawn_unit(option.leader_id)
+			var spawned := state.spawn_unit(option.caster_id)
 			if spawned != null:
 				spawn_cells.append(spawned.pos)
 		# ポイズンスティング（⑥）は補正値を積むのではなく、持続の間ターン開始に兵数を減らすエントリを
@@ -112,7 +112,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		state.mark_engaged(pid)
 	# チャージが必要なレシピは発動後に 0 に戻す（→ doc/gdd/skills.md 共通ルール）。
 	if option.charge_turns > 0:
-		state.set_charge(option.leader_id, option.skill, 0)
+		state.set_charge(option.caster_id, option.skill, 0)
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
 	out.cells = Formation.blast_cells(option, target)
@@ -130,7 +130,7 @@ static func _skill_cast(state: BattleState, option: FormationOption, target: Vec
 	c.name = option.name
 	c.effect = option.effect_id()
 	c.combat_effect = option.combat_effect
-	var caster := state.unit_by_handle(option.leader_id)
+	var caster := state.unit_by_handle(option.caster_id)
 	var victim := state.unit_at(target)
 	if caster != null:
 		c.caster = state.unit_snapshot(caster)
@@ -164,7 +164,7 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 	# 弱体は負値（ドレッドタッチ＝-10/兵）なので、0 以外かどうかで判定する。
 	var value := option.buff_value
 	if not is_zero_approx(option.buff_value_per_troop):
-		var caster := state.unit_by_handle(option.leader_id)
+		var caster := state.unit_by_handle(option.caster_id)
 		value = option.buff_value_per_troop * float(caster.troops if caster != null else 0)
 	# 参加人数で伸びるレシピ（グレイス）は、基準人数（min_count）を超えた参加者1体ごとに加算する。
 	# 5体 ×1.30／6体 ×1.35／8体 ×1.45。発動時の人数で焼き込む＝以後クラスタが崩れても変わらない。

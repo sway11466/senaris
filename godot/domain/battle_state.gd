@@ -189,7 +189,7 @@ func _increment_charges() -> void:
 			var r: Dictionary = Formation.SKILLS[rid]
 			if int(r.get("charge_turns", 0)) <= 0:
 				continue
-			if not Formation._matches(u, r["leader_skins"]):
+			if not Formation._matches(u, r["caster_skins"]):
 				continue
 			var cur := get_charge(u.handle, rid)
 			set_charge(u.handle, rid, cur + 1)

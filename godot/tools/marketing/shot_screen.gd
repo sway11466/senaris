@@ -10,9 +10,9 @@ extends Node
 ##   --select col,row … そのマスの駒を選択した状態で撮る（情報パネルにその駒が出る）
 ##   --frame c1,r1,c2,r2 … 盤全体ではなく、この2マスが作る矩形に画角を寄せる（縦長の盤を横長の画に収める）
 ##   --attack c1,r1,c2,r2 … 攻撃を1回通し、演出中を連写する（<出力PNG> は出力フォルダとして扱う）
-##   --formation <skill> --leader c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
+##   --formation <skill> --caster c,r --target c,r … 陣形スキルを1回発動し、カットインごと連写する（同上）
 ##   --enemy-turn … 敵の手番に渡してから撮る（敵のスキル・敵の攻撃を実機と同じ手番で撮る）
-##   --pre-formation <skill> --pre-leader c,r --pre-target c,r … 本命の前に技を1つ通し、手番を戻す
+##   --pre-formation <skill> --pre-caster c,r --pre-target c,r … 本命の前に技を1つ通し、手番を戻す
 ##       （相手が掛けた状態が無いと発動できない技＝ピュリファイ等を撮るため。--enemy-turn と併せて使う）
 ##   --talk N … 会話パートを N 行ぶん進めた状態で撮る（intro を持つステージで使う）
 ##   --select-screen … 盤ではなく酒場の冒険譚選択（依頼ボード）を開いた状態で撮る
@@ -35,9 +35,9 @@ func _ready() -> void:
 	var select_screen := false
 	var fresh := false
 	var enemy_turn := false
-	var leader_cell := Vector2i(-1, -1)
+	var caster_cell := Vector2i(-1, -1)
 	var target_cell := Vector2i(-1, -1)
-	var pre_leader_cell := Vector2i(-1, -1)
+	var pre_caster_cell := Vector2i(-1, -1)
 	var pre_target_cell := Vector2i(-1, -1)
 	var count := 24
 	var interval := 0.12
@@ -90,7 +90,7 @@ func _ready() -> void:
 		elif a == "--pre-formation" and i + 1 < uargs.size():
 			pre_skill_id = uargs[i + 1]
 			i += 2
-		elif a in ["--leader", "--target", "--pre-leader", "--pre-target"] and i + 1 < uargs.size():
+		elif a in ["--caster", "--target", "--pre-caster", "--pre-target"] and i + 1 < uargs.size():
 			var c := uargs[i + 1].split(",")
 			if c.size() != 2:
 				push_error("shot_screen: %s は col,row 形式: %s" % [a, uargs[i + 1]])
@@ -98,12 +98,12 @@ func _ready() -> void:
 				return
 			var cell := Vector2i(int(c[0]), int(c[1]))
 			match a:
-				"--leader":
-					leader_cell = cell
+				"--caster":
+					caster_cell = cell
 				"--target":
 					target_cell = cell
-				"--pre-leader":
-					pre_leader_cell = cell
+				"--pre-caster":
+					pre_caster_cell = cell
 				_:
 					pre_target_cell = cell
 			i += 2
@@ -176,7 +176,7 @@ func _ready() -> void:
 		# 前段＝本命の前に技を1つ通す。相手が掛けた状態が無いと発動できない技（ピュリファイ）は、
 		# 盤の初期配置では作れない＝ステージJSONが駒に書けるのは troops と level だけのため。
 		# 通し終えたら手番を戻す＝この後の本命は、掛けられた側の陣営の手番で撮ることになる。
-		if not await _fire_skill(main, pre_skill_id, pre_leader_cell, pre_target_cell):
+		if not await _fire_skill(main, pre_skill_id, pre_caster_cell, pre_target_cell):
 			get_tree().quit(1)
 			return
 		main._controller.end_turn()
@@ -219,9 +219,9 @@ func _ready() -> void:
 
 	if skill_id != "":
 		var fs: Variant = main._controller.state
-		var lead: Variant = fs.unit_at(Hex.offset_to_axial(leader_cell.x, leader_cell.y))
+		var lead: Variant = fs.unit_at(Hex.offset_to_axial(caster_cell.x, caster_cell.y))
 		if lead == null:
-			push_error("shot_screen: --leader の指定マスに駒が居ない")
+			push_error("shot_screen: --caster の指定マスに駒が居ない")
 			get_tree().quit(1)
 			return
 		var picked: FormationOption = null
@@ -282,11 +282,11 @@ func _ready() -> void:
 
 ## 技を1つ通し、演出が閉じるまで待つ（前段の1手ぶん）。連写はしない＝撮るのは本命だけ。
 ## 陣形スキルとユニットスキルは同じ経路（Formation.available_for → execute_formation）で通る。
-func _fire_skill(main: Node, skill_id: String, leader_cell: Vector2i, target_cell: Vector2i) -> bool:
+func _fire_skill(main: Node, skill_id: String, caster_cell: Vector2i, target_cell: Vector2i) -> bool:
 	var st: Variant = main._controller.state
-	var lead: Variant = st.unit_at(Hex.offset_to_axial(leader_cell.x, leader_cell.y))
+	var lead: Variant = st.unit_at(Hex.offset_to_axial(caster_cell.x, caster_cell.y))
 	if lead == null:
-		push_error("shot_screen: --pre-leader の指定マスに駒が居ない")
+		push_error("shot_screen: --pre-caster の指定マスに駒が居ない")
 		return false
 	var picked: FormationOption = null
 	for o in Formation.available_for(st, lead):

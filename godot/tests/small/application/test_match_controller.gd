@@ -30,10 +30,10 @@ func _trinity_nova_state(s: BattleState, enemy_def := 1) -> Dictionary:
 	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
 	for u in [w1, w2, w3, enemy]:
 		s.add_unit(u)
-	return {"leader": w1, "enemy_hex": enemy_hex}
+	return {"caster": w1, "enemy_hex": enemy_hex}
 
-func _formation_cmd(s: BattleState, leader: Unit, target: Vector2i) -> FormationCommand:
-	var opts := Formation.available_for(s, leader)
+func _formation_cmd(s: BattleState, caster: Unit, target: Vector2i) -> FormationCommand:
+	var opts := Formation.available_for(s, caster)
 	assert_eq(opts.size(), 1, "前提: トリニティノヴァが検出される")
 	return FormationCommand.new(opts[0], target)
 
@@ -123,7 +123,7 @@ func test_formation_boss_kill_finishes_once() -> void:
 	s.unit_by_handle(9).unit_id = "boss"  # 勝敗条件は unit_id で名指す（doc/gdd/map.md）
 	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
 	var mc := _mc(s)
-	var cmd := _formation_cmd(s, f["leader"], f["enemy_hex"])
+	var cmd := _formation_cmd(s, f["caster"], f["enemy_hex"])
 	assert_true(mc.execute_formation(cmd), "陣形の発動が成立")
 	assert_signal_emitted_with_parameters(mc, "unit_died", [9])
 	assert_signal_emit_count(mc, "battle_finished", 1, "ボス撃破で決着が1回")
@@ -256,7 +256,7 @@ func test_execute_formation_emits_died_per_kill() -> void:
 	s.add_unit(Unit.new(10, 1, Hex.neighbor(f["enemy_hex"], 2), 3, 8, 10, 1))  # 面内の敵＝同時撃破
 	s.add_unit(Unit.new(11, 1, Hex.offset_to_axial(10, 6), 3))                 # 残存する敵＝決着しない
 	var mc := _mc(s)
-	assert_true(mc.execute_formation(_formation_cmd(s, f["leader"], f["enemy_hex"])))
+	assert_true(mc.execute_formation(_formation_cmd(s, f["caster"], f["enemy_hex"])))
 	assert_signal_emit_count(mc, "unit_died", 2, "撃破された2体ぶん unit_died")
 	var died: Array = [get_signal_parameters(mc, "unit_died", 0)[0], get_signal_parameters(mc, "unit_died", 1)[0]]
 	died.sort()
@@ -271,7 +271,7 @@ func test_execute_formation_invalid_fails_without_signals() -> void:
 	var f := _trinity_nova_state(s)
 	var far := Hex.offset_to_axial(3, 3) + Hex.direction(0) * 8  # 射程5超＝不成立
 	var mc := _mc(s)
-	assert_false(mc.execute_formation(_formation_cmd(s, f["leader"], far)))
+	assert_false(mc.execute_formation(_formation_cmd(s, f["caster"], far)))
 	assert_signal_not_emitted(mc, "formation_resolved")
 	assert_signal_not_emitted(mc, "unit_died")
 

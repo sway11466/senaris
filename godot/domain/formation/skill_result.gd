@@ -7,7 +7,7 @@ class_name SkillResult
 ## 詳細 → doc/gdd/formations.md 発動の演出, doc/tech/combat_scene.md
 
 var skill: String                  ## スキルID
-var leader_id: int                 ## 発動者の駒番号
+var caster_id: int                 ## 発動者の駒番号
 var caster: UnitSnapshot           ## 発動者（発動前に固める。兵数は動かないので troops_after＝troops_before）
 var center: Vector2i               ## 着弾中心（対象を取らないレシピでは呼び手が渡した値のまま）
 var cells: Array[Vector2i] = []    ## 光らせる面（駒の有無によらない）＋分裂で出た位置

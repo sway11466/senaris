@@ -32,7 +32,7 @@ const RANGE_FROM_IDS := { "leader": RangeFrom.LEADER, "any": RangeFrom.ANY }
 
 var skill: String             ## スキルID（SKILLS のキー。表示名・音・絵の規約解決に使う）
 var name: String              ## 開発用メモ（画面表示は tr("skill.{id}.name")）
-var leader_id: int            ## 発動者の駒番号（participants の先頭）
+var caster_id: int            ## 発動者の駒番号（participants の先頭）
 var participants: Array[int]  ## 参加する駒番号。先頭＝発動者
 var effect: Effect
 var shape: Shape
@@ -76,7 +76,7 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	var o := FormationOption.new()
 	o.skill = rid
 	o.name = String(r["name"])
-	o.leader_id = units[0].handle
+	o.caster_id = units[0].handle
 	var ids: Array[int] = []
 	for u in units:
 		ids.append(u.handle)

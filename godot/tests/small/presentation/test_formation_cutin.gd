@@ -49,7 +49,7 @@ func test_load_unknown_skill_is_null() -> void:
 func test_load_per_caster_without_skin_is_null() -> void:
 	assert_null(FormationCutin.load_art("trick_shot", ""), "スキン無しでは trick_shot.png を探さない")
 
-func test_card_art_uses_first_leader_skin() -> void:
+func test_card_art_uses_first_caster_skin() -> void:
 	# カードは先頭スキン（アーチャー）で引く＝load_art("trick_shot", "archer") と同じ結果。
 	assert_eq(FormationCutin.load_card_art("trick_shot"), FormationCutin.load_art("trick_shot", "archer"),
 		"クロニクルのカードは発動者になれる駒の先頭で引く")

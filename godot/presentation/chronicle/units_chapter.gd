@@ -146,6 +146,6 @@ func _unit_skill_ids(skin: UnitSkin) -> Array:
 		var skill_def: Dictionary = Formation.SKILLS[rid]
 		if not Formation.is_unit_skill(rid):
 			continue
-		if (skill_def.get("leader_skins", []) as Array).has(skin.skin_id):
+		if (skill_def.get("caster_skins", []) as Array).has(skin.skin_id):
 			out.append(rid)
 	return out

@@ -88,7 +88,7 @@ func _hint_face(skill_id: String) -> Control:
 ## 残りは参加者の先頭で代表する（doc/gdd/formations.md 一覧）。
 func _figure_skins(skill_id: String) -> Array:
 	var r: Dictionary = Formation.SKILLS[skill_id]
-	var leaders: Array = r.get("leader_skins", [])
+	var leaders: Array = r.get("caster_skins", [])
 	var members: Array = r.get("member_skins", [])
 	var count: int = r.get("count", 1)
 	var out: Array = []
@@ -139,7 +139,7 @@ func _expanded_sheet(skill_id: String) -> Control:
 
 	# 発動者と参加者の候補（図は代表1体なので、候補が複数あることはここで分かる）
 	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_leader"),
-		_skin_names_text(r.get("leader_skins", []))], TavernTheme.INK))
+		_skin_names_text(r.get("caster_skins", []))], TavernTheme.INK))
 	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_members"),
 		_skin_names_text(r.get("member_skins", []))], TavernTheme.INK))
 

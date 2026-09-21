@@ -100,8 +100,8 @@ static func load_card_art(skill_id: String) -> Texture2D:
 
 ## クロニクルのカードに出す絵のパス。無ければ空（クロニクルが裏読みの対象を知るため）。
 static func card_art_path(skill_id: String) -> String:
-	var leaders: Array = Formation.SKILLS.get(skill_id, {}).get("leader_skins", [])
-	var first := String(leaders[0]) if not leaders.is_empty() else ""
+	var casters: Array = Formation.SKILLS.get(skill_id, {}).get("caster_skins", [])
+	var first := String(casters[0]) if not casters.is_empty() else ""
 	return art_path(skill_id, first)
 
 func _animate() -> void:
