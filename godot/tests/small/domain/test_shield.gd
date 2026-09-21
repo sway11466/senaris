@@ -80,8 +80,8 @@ func test_damage_formula_ignores_shield() -> void:
 	# シールドの有無で削る量は変わらない（当たり先だけ変わる）。
 	var p0 := _pair(0)
 	var p1 := _pair(16)
-	var l0: int = Combat.hit_detail(p0["s"], p0["a"], p0["t"], true).loss
-	var l1: int = Combat.hit_detail(p1["s"], p1["a"], p1["t"], true).loss
+	var l0: int = Combat.hit_detail(p0["s"], p0["a"], p0["t"]).loss
+	var l1: int = Combat.hit_detail(p1["s"], p1["a"], p1["t"]).loss
 	assert_eq(l1, l0, "損害の計算式はシールドを見ない")
 
 # --- 毒（継続ダメージ） ---

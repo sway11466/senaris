@@ -519,8 +519,8 @@ func test_raid_finishes_the_blocker_it_can_kill() -> void:
 	_pc(s, 1, 5, 2)            # 一番前＝拠点への地形距離が最小
 	_hurt(_pc(s, 2, 5, 3), 1)  # 後ろだが残り1＝仕留められる
 	s.add_base(Base.new(Hex.offset_to_axial(9, 2), 0))
-	assert_true(Combat.casualties(s, u, s.unit_by_handle(2), true) >= 1, "前提: 後ろの敵は仕留められる")
-	assert_lt(Combat.casualties(s, u, s.unit_by_handle(1), true), 8, "前提: 一番前の敵は倒しきれない")
+	assert_true(Combat.casualties(s, u, s.unit_by_handle(2)) >= 1, "前提: 後ろの敵は仕留められる")
+	assert_lt(Combat.casualties(s, u, s.unit_by_handle(1)), 8, "前提: 一番前の敵は倒しきれない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, 2, "一番前でなくても、いま消せる駒から消す")
@@ -612,7 +612,7 @@ func test_weak_finishes_a_hard_enemy_it_can_kill_in_one_hit() -> void:
 	var u := _ai(s, si, 10, 4, 2)
 	var tough := _hurt(_pc(s, 1, 4, 1, 80), 1)  # 硬いが残り1
 	_pc(s, 2, 8, 2, 10)                         # 獲物は遠い
-	assert_true(Combat.casualties(s, u, tough, true) >= tough.troops, "前提: 一撃で倒せる")
+	assert_true(Combat.casualties(s, u, tough) >= tough.troops, "前提: 一撃で倒せる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, tough.handle, "獲物でなくても倒しきれるなら殴る")
@@ -625,7 +625,7 @@ func test_weak_backs_off_before_shooting_the_prey() -> void:
 	var archer := _ai(s, si, 10, 4, 2)
 	archer.attack_range = 2
 	var prey := _pc(s, 1, 4, 1, 10)             # 隣接・満員＝一撃では倒せない
-	assert_lt(Combat.casualties(s, archer, prey, true), prey.troops, "前提: 一撃では倒せない")
+	assert_lt(Combat.casualties(s, archer, prey), prey.troops, "前提: 一撃では倒せない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "撃つ前に下がる")
 	assert_eq(Hex.distance(a.to, prey.pos), 2, "射程上限まで間合いを取る")
@@ -643,7 +643,7 @@ func test_weak_does_not_back_off_from_a_finishing_blow() -> void:
 	archer.attack_range = 2
 	var tough := _hurt(_pc(s, 1, 4, 1, 80), 1)  # 硬いが残り1＝一撃で倒せる
 	_pc(s, 2, 10, 2, 10)                        # 獲物は遠い＝硬い相手は獲物にならない
-	assert_true(Combat.casualties(s, archer, tough, true) >= tough.troops, "前提: 一撃で倒せる")
+	assert_true(Combat.casualties(s, archer, tough) >= tough.troops, "前提: 一撃で倒せる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK, "倒しきれる相手からは下がらない")
 	assert_eq(a.target_id, tough.handle)
@@ -658,7 +658,7 @@ func test_weak_finishes_the_enemy_that_cannot_retaliate() -> void:
 	_hurt(_pc(s, 1, 4, 1, 80), 1)               # 隣接＝殴れば反撃される
 	var far := _hurt(_pc(s, 2, 4, 0, 80), 1)    # 盤上距離2＝反撃されない
 	_pc(s, 3, 10, 2, 10)                        # 獲物は遠い＝硬い2体は獲物にならない
-	assert_true(Combat.casualties(s, archer, far, false) >= far.troops, "前提: 距離2でも倒せる")
+	assert_true(Combat.casualties(s, archer, far) >= far.troops, "前提: 距離2でも倒せる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, far.handle, "反撃されない敵から倒す")
@@ -1266,8 +1266,8 @@ func test_withdraw_finishes_the_enemy_it_can_kill() -> void:
 	# 倒せば次のターン以降その駒から撃たれない＝退いて回復するまでに受ける被害が減る。
 	var s := _kill_choice("withdraw")
 	var u := s.unit_by_handle(10)
-	assert_true(Combat.casualties(s, u, s.unit_by_handle(1), true) >= 1, "前提: 隣の敵は仕留められる")
-	assert_lt(Combat.casualties(s, u, s.unit_by_handle(2), false), 8, "前提: 距離2の敵は倒しきれない")
+	assert_true(Combat.casualties(s, u, s.unit_by_handle(1)) >= 1, "前提: 隣の敵は仕留められる")
+	assert_lt(Combat.casualties(s, u, s.unit_by_handle(2)), 8, "前提: 距離2の敵は倒しきれない")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, 1, "反撃を受けても仕留められる敵を先に撃つ")
@@ -1431,8 +1431,8 @@ func test_standoff_shoots_the_enemy_it_can_hurt_most() -> void:
 	var caster := _caster(s, si, 10, 5, 1, 0, 5)
 	var hard := _pc(s, 1, 7, 1, 40)  # 盤上距離2・硬い
 	var soft := _pc(s, 2, 9, 1, 10)  # 盤上距離4・柔らかい
-	assert_gt(Combat.casualties(s, caster, soft, false),
-		Combat.casualties(s, caster, hard, false), "前提: 遠い敵のほうが多く削れる")
+	assert_gt(Combat.casualties(s, caster, soft),
+		Combat.casualties(s, caster, hard), "前提: 遠い敵のほうが多く削れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, soft.handle, "近い硬い敵ではなく、多く削れる敵を撃つ")
@@ -1445,8 +1445,8 @@ func test_standoff_finishes_before_the_bigger_hit() -> void:
 	var caster := _caster(s, si, 10, 5, 1, 0, 5)
 	var weak := _hurt(_pc(s, 1, 7, 1), 1)  # 残り1＝仕留められる
 	var fat := _pc(s, 2, 9, 1)             # 無傷＝より多く削れる
-	assert_gt(Combat.casualties(s, caster, fat, false),
-		Combat.casualties(s, caster, weak, false), "前提: 無傷の敵のほうが多く削れる")
+	assert_gt(Combat.casualties(s, caster, fat),
+		Combat.casualties(s, caster, weak), "前提: 無傷の敵のほうが多く削れる")
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, weak.handle, "戦果より仕留めが先")

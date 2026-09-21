@@ -9,7 +9,8 @@ class_name Formation
 ## 3レシピとも解禁済み（IMPLEMENTED_EFFECTS）。buff は BattleState が状態補正エントリを積む（doc/gdd/combat.md）。
 ##
 ## 【暫定の戦闘セマンティクス（数値チューニングは formations.md §未決）】
-## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）を面の各ヘックスに当てる。間接扱い＝melee=false で支援は乗らない。
+## - 威力＝発動者1体の実効攻撃力（兵数×攻撃力×レベル×包囲×地形）を面の各ヘックスに当てる。間接扱い＝反撃を受けない。
+## - 支援は通常の一撃と同じに乗る＝着弾した駒の周りで数える（対象ごとに値が変わる）。
 ## - 防御側は包囲が乗る（surround_factor）。貫通は発動者(caster)の性質を使う（①魔法兵0.5／③聖職0）。
 ## - 対象は面内の全ユニット（敵味方問わず＝フレンドリーファイア。誤爆＝配置の読み合い）。ただし参加者は全員除外（発動側は自分たちの術で焼けない）。
 ## - 参加者は Lv+1（撃破が1体でもあれば+2・空撃ちは0）＝適用は FormationResolver。
@@ -930,7 +931,7 @@ static func _formation_hit(state: BattleState, option: FormationOption, victim: 
 	var caster := state.unit_by_handle(option.caster_id)
 	# 内訳ごと渡す（total だけでなく係数も）＝スキルレポートが戦闘レポートと同じ表を出せる。
 	var atk := _skill_attack_breakdown(state, caster, option, victim)
-	# 防御側: 包囲は乗る（victim の surround が入る）／貫通は発動者の性質かレシピの上書き／支援なし。
+	# 防御側: 包囲は乗る（victim の surround が入る）／貫通は発動者の性質かレシピの上書き。
 	var df := _skill_defense_breakdown(state, victim, caster, option)
 	var hit := Combat.hit_from_breakdowns(atk, df, victim.troops)
 	hit.target_id = victim.handle
@@ -938,7 +939,8 @@ static func _formation_hit(state: BattleState, option: FormationOption, victim: 
 
 ## 発動者の実効攻撃力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.attack_breakdown_from）。
 ## 通常戦闘（Combat.attack_breakdown）との違いはここに全部書く:
-##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）／支援なし（間接扱い）。
+##   攻撃力＝相手によらず対地値（atk_air 0 の発動者でも飛行の敵に同じ威力で通る）。
+##   支援は victim（着弾した駒）の周りに立つ発動側の駒から集める＝対象ごとに変わる。
 ##   矢のレシピ（attack_vs "target"＝④⑥⑨）だけは通常攻撃と同じく相手で対空／対地を切り替える。
 ##   ⑨は攻撃力だけを参加者から引く（attack_from_stats）＝兵数・レベル・包囲・地形は発動者のもの。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md 設計原則3
@@ -952,10 +954,9 @@ static func _skill_attack_breakdown(state: BattleState, caster: Unit, option: Fo
 		Combat.level_factor(caster),
 		Combat.surround_factor(state, caster),
 		TerrainType.attack_factor(state.terrain_at(caster.pos)),
-		0.0,  # 支援なし
+		Combat.support_around(state, victim.pos, caster.team, caster.handle, true),
 		float(sf["mul"]), float(sf["add"]))
 	b.vs_aerial = vs_air  # レポートが対空値で撃ったことを出せる（常に対地のレシピは false）
-	b.melee = false
 	return b
 
 ## 威力に使うユニット攻撃力（兵1体あたり）。既定は発動者1体の値（設計原則2＝参加者ぶんを合算しない）。
@@ -976,7 +977,8 @@ static func _skill_attack_stat(state: BattleState, caster: Unit, option: Formati
 
 ## 被弾側の実効防御力の内訳＝陣形スキル用の係数の受け渡し（式の本体は Combat.defense_breakdown_from）。
 ## 通常戦闘（Combat.defense_breakdown）との違いはここに全部書く:
-##   支援なし（間接扱い）／貫通はレシピが上書きしていればその値、なければ発動者の pierce。
+##   支援は victim 自身の周りに立つ被弾側の駒から集める（通常戦闘と同じ）。
+##   貫通はレシピが上書きしていればその値、なければ発動者の pierce。
 ##   結界（⑦）の中に居る駒はどちらであっても貫通を受けない＝0 に落とす（貫通を持つ攻撃すべてが対象）。
 ## レベル・包囲・地形・状態補正は通常戦闘と同じ集め方。詳細 → doc/gdd/formations.md ④
 static func _skill_defense_breakdown(state: BattleState, victim: Unit, caster: Unit,
@@ -991,8 +993,7 @@ static func _skill_defense_breakdown(state: BattleState, victim: Unit, caster: U
 		Combat.level_factor(victim),
 		Combat.surround_factor(state, victim),
 		TerrainType.defense_factor(state.terrain_at(victim.pos)),
-		0.0,  # 支援なし
+		Combat.support_around(state, victim.pos, victim.team, victim.handle, false),
 		pierce,
 		float(sf["mul"]), float(sf["add"]))
-	b.melee = false
 	return b

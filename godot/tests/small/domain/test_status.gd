@@ -64,9 +64,9 @@ func test_mul_scales_effective_attack() -> void:
 	var foe := Unit.new(2, 1, Hex.neighbor(atk.pos, 0), 3, 8, 30, 30)
 	s.add_unit(atk)
 	s.add_unit(foe)
-	var before := Combat.attack_breakdown(s, atk, foe, false).total
+	var before := Combat.attack_breakdown(s, atk, foe).total
 	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "remaining": 2})
-	assert_almost_eq(Combat.attack_breakdown(s, atk, foe, false).total, before * 1.3, 0.01, "実効攻撃力が×1.3")
+	assert_almost_eq(Combat.attack_breakdown(s, atk, foe).total, before * 1.3, 0.01, "実効攻撃力が×1.3")
 
 func test_add_debuff_floors_defense_at_zero() -> void:
 	# 減算デバフで実効防御が負になっても 0 で打ち止め＝素通し。

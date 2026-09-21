@@ -175,8 +175,8 @@ func test_indirect_defender_gains_no_exp() -> void:
 	assert_eq(s.unit_by_handle(1).level, 2, "間接の攻撃側は+1（Lv2）")
 	assert_eq(s.unit_by_handle(2).level, 1, "反撃しない防御側は+0（Lv1のまま）")
 
-func test_indirect_benefits_from_surround_but_not_support() -> void:
-	# 囲んで止めた敵を後ろから集中放火＝間接でも包囲は効く。支援は近接のみなので乗らない。
+func test_indirect_benefits_from_surround_and_support() -> void:
+	# 囲んで止めた敵を後ろから集中放火＝間接でも包囲も支援も効く（支援は標的の周りで数える）。
 	var d := Hex.offset_to_axial(4, 4)
 	# 対照: 包囲なしで射程2の攻撃。
 	var control := _state()
@@ -191,8 +191,8 @@ func test_indirect_benefits_from_surround_but_not_support() -> void:
 	s.add_unit(Unit.new(2, 1, d, 3, 8, 10, 10))            # 標的(team1)
 	s.add_unit(Unit.new(3, 0, Hex.neighbor(d, 0), 3))      # 囲み1
 	s.add_unit(Unit.new(4, 0, Hex.neighbor(d, 3), 3))      # 囲み2（対角）→ 包囲成立
-	# 防御 80×0.68=54.4、攻撃80 → 0.684 → 5。支援が乗っていれば 7 になるはず。
-	assert_eq(s.attack(1, 2).damage(), 5, "間接でも包囲は効く（4→5）。ただし支援は乗らない（7ではない）")
+	# 防御 80×0.68=54.4、攻撃 80＋囲み2体の支援40=120 → 0.829 → 7。
+	assert_eq(s.attack(1, 2).damage(), 7, "間接でも包囲と支援が効く（4→7）")
 
 func test_can_attack_at_range() -> void:
 	var s := _state()

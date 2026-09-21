@@ -179,10 +179,10 @@ func test_grace_value_grows_with_participants() -> void:
 		var s: BattleState = f["s"]
 		var opt := _pick(Formation.available_for(s, f["caster"]), "grace")
 		assert_eq(opt.participants.size(), n, "%d体全員が参加" % n)
-		var before := Combat.attack_breakdown(s, f["ally"], f["foe"], true).total
+		var before := Combat.attack_breakdown(s, f["ally"], f["foe"]).total
 		var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 		assert_almost_eq(float(res.status["value"]), expected, 0.001, "%d体で ×%.2f" % [n, expected])
-		assert_almost_eq(Combat.attack_breakdown(s, f["ally"], f["foe"], true).total,
+		assert_almost_eq(Combat.attack_breakdown(s, f["ally"], f["foe"]).total,
 			before * expected, 1.0, "%d体のグレイスで味方の攻撃が ×%.2f" % [n, expected])
 
 ## 発動後にクラスタが減っても、掛かった補正は発動時の人数のまま。
@@ -263,11 +263,11 @@ func test_grace_buffs_whole_team() -> void:
 	var s: BattleState = f["s"]
 	var ally: Unit = f["ally"]
 	var foe: Unit = f["foe"]
-	var before := Combat.attack_breakdown(s, ally, foe, true).total
+	var before := Combat.attack_breakdown(s, ally, foe).total
 	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_not_null(res, "対象なしでも発動成功")
-	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
+	assert_almost_eq(Combat.attack_breakdown(s, ally, foe).total, before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
 	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
 ## グレイスの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
@@ -276,13 +276,13 @@ func test_grace_lasts_one_round() -> void:
 	var s: BattleState = f["s"]
 	var ally: Unit = f["ally"]
 	var foe: Unit = f["foe"]
-	var before := Combat.attack_breakdown(s, ally, foe, true).total
+	var before := Combat.attack_breakdown(s, ally, foe).total
 	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
 	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
 	s.end_turn()  # 敵ターンへ
-	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before * 1.3, 1.0, "敵ターン中はまだ効く")
+	assert_almost_eq(Combat.attack_breakdown(s, ally, foe).total, before * 1.3, 1.0, "敵ターン中はまだ効く")
 	s.end_turn()  # 次の自軍ターンへ＝ここで満了
-	assert_almost_eq(Combat.attack_breakdown(s, ally, foe, true).total, before, 1.0, "次の自軍ターン開始で切れる")
+	assert_almost_eq(Combat.attack_breakdown(s, ally, foe).total, before, 1.0, "次の自軍ターン開始で切れる")
 
 # ③ディバインジャッジメントの成立盤：paladin の周囲に聖職2体＋射程内(距離 enemy_dist)の敵1体。
 # caster=paladin(id1)。この盤は聖職同士も隣接する置き方（三角）だが、③の条件は発動者への隣接だけ。
@@ -387,8 +387,8 @@ func test_single_uses_caster_attack() -> void:
 	var enemy: Unit = f["enemy"]
 	var caster: Unit = f["caster"]
 	var opt: FormationOption = Formation.available_for(s, caster)[0]
-	var single := Combat.attack_breakdown(s, caster, enemy, false)
-	var df := Combat.defense_breakdown(s, enemy, caster, false)
+	var single := Combat.attack_breakdown(s, caster, enemy)
+	var df := Combat.defense_breakdown(s, enemy, caster)
 	var expect := Combat.hit_from_breakdowns(single, df, enemy.troops).loss
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
 	assert_gt(expect, 0, "非撃破でも損害はある（テスト前提）")
@@ -432,8 +432,8 @@ func test_resolve_uses_caster_attack() -> void:
 	var enemy: Unit = f["enemy"]
 	var caster: Unit = f["caster"]
 	var opt: FormationOption = Formation.available_for(s, caster)[0]
-	var single := Combat.attack_breakdown(s, caster, enemy, false)
-	var df := Combat.defense_breakdown(s, enemy, caster, false)
+	var single := Combat.attack_breakdown(s, caster, enemy)
+	var df := Combat.defense_breakdown(s, enemy, caster)
 	var expect := Combat.hit_from_breakdowns(single, df, enemy.troops).loss
 	var before := enemy.troops
 	var res := FormationResolver.resolve(s, opt, f["enemy_hex"])
@@ -788,12 +788,15 @@ func test_trick_shot_uses_air_attack_vs_aerial() -> void:
 	var archer: Unit = f["archer"]
 	var enemy: Unit = f["enemy"]
 	enemy.move_type = "flight"
+	# 支援は着弾した駒(enemy)の周りで数える＝スキルの一撃にも乗る（doc/gdd/combat.md 支援効果）。
 	var atk := Combat.attack_breakdown_from(archer.troops, archer.atk_air,
 		Combat.level_factor(archer), Combat.surround_factor(s, archer),
-		TerrainType.attack_factor(s.terrain_at(archer.pos)), 0.0)
+		TerrainType.attack_factor(s.terrain_at(archer.pos)),
+		Combat.support_around(s, enemy.pos, archer.team, archer.handle, true))
 	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
 		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
-		TerrainType.defense_factor(s.terrain_at(enemy.pos)), 0.0, 0.5)
+		TerrainType.defense_factor(s.terrain_at(enemy.pos)),
+		Combat.support_around(s, enemy.pos, enemy.team, enemy.handle, false), 0.5)
 	var expect := Combat.hit_from_breakdowns(atk, df, enemy.troops).loss
 	var res := FormationResolver.resolve(s, _trick_shot_option(f), f["enemy_hex"])
 	assert_eq(res.hits[0].loss, expect, "飛行の敵には対空値で撃つ")
@@ -1376,10 +1379,10 @@ func test_counter_lasts_one_round() -> void:
 func test_counter_does_not_move_ai_gain() -> void:
 	var f := _counter_state()
 	var s: BattleState = f["s"]
-	var before := Combat.casualties(s, f["foe"], f["caster"], true)
+	var before := Combat.casualties(s, f["foe"], f["caster"])
 	var opt := _pick(Formation.available_for(s, f["caster"]), "counter")
 	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
-	assert_eq(Combat.casualties(s, f["foe"], f["caster"], true), before, "戦果は変わらない")
+	assert_eq(Combat.casualties(s, f["foe"], f["caster"]), before, "戦果は変わらない")
 
 # --- ⑦マジックシールド（魔法兵＋占領兵の結界・防御 +10×兵数・貫通無効） ---
 
@@ -1462,8 +1465,8 @@ func test_magic_shield_blocks_pierce() -> void:
 	var f := _magic_shield_state()
 	var s: BattleState = f["s"]
 	_cast_magic_shield(s, f["wiz"])
-	var inside := Combat.defense_breakdown(s, f["inside"], f["foe"], false)
-	var outside := Combat.defense_breakdown(s, f["outside"], f["foe"], false)
+	var inside := Combat.defense_breakdown(s, f["inside"], f["foe"])
+	var outside := Combat.defense_breakdown(s, f["outside"], f["foe"])
 	assert_almost_eq(inside.pierce, 1.0, 0.001, "結界の中は貫通なし（防御が減らない）")
 	assert_almost_eq(outside.pierce, 0.5, 0.001, "結界の外は防御半減のまま")
 

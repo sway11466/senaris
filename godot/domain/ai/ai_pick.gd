@@ -117,7 +117,7 @@ func most_gain_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	var best_gain := -1
 	for id in pool:
 		var t := state.unit_by_handle(id)
-		var gain := Combat.casualties(state, u, t, Hex.distance(u.pos, t.pos) <= 1)
+		var gain := Combat.casualties(state, u, t)
 		if gain > best_gain or (gain == best_gain \
 				and nearer_hex(u.pos, t.pos, state.unit_by_handle(best).pos)):
 			best = id
@@ -153,8 +153,7 @@ static func retaliates(u: Unit, t: Unit, from: Vector2i) -> bool:
 func can_kill_in_one_hit(state: BattleState, u: Unit, t: Unit) -> bool:
 	if t == null:
 		return false
-	var melee := Hex.distance(u.pos, t.pos) <= 1  # 距離1なら近接＝支援が乗る（解決式と一致）
-	return Combat.casualties(state, u, t, melee) >= t.troops + t.shield  # シールドが先に受ける（doc/gdd/combat.md）
+	return Combat.casualties(state, u, t) >= t.troops + t.shield  # シールドが先に受ける（doc/gdd/combat.md）
 
 ## 攻撃後の残兵が最小になる敵ID（確殺を自然に最優先）。同値は盤上距離が近い方 → col → row。
 func fewest_left_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
@@ -162,7 +161,7 @@ func fewest_left_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 	var best_left := 1 << 30
 	for id in ids:
 		var t := state.unit_by_handle(id)
-		var left := t.troops + t.shield - Combat.casualties(state, u, t, Hex.distance(u.pos, t.pos) <= 1)
+		var left := t.troops + t.shield - Combat.casualties(state, u, t)
 		if left < best_left or (left == best_left \
 				and nearer_hex(u.pos, t.pos, state.unit_by_handle(best).pos)):
 			best = id

@@ -34,10 +34,10 @@ static func level_factor_at(level: int) -> float:
 ## 実効攻撃力の内訳（StatBreakdown）。**式の本体はここだけ**＝total を各係数から組み立てる。
 ## 表示も戦闘解決もこの内訳から導くので、画面の数字と実処理が必ず一致する。
 ## 相手が飛行なら対空、地上なら対地（attack_against）。対空0で飛行を狙うと stat=0＝total0。
-## 包囲は常時（囲まれた側は近接/間接問わず弱る）。支援(攻・加算)は melee のときだけ。
+## 包囲・支援は常時（近接/間接を問わない）。支援(攻・加算)は防御ユニット(enemy)の周りに立つ自軍から集める。
 ## ここは「標準の係数の集め方」＝通常戦闘用。別の流儀（陣形スキル等）は呼び出し元が
 ## 係数を選んで attack_breakdown_from を直接呼ぶ（例外のフラグをここに足さない）。
-static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> StatBreakdown:
+static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit) -> StatBreakdown:
 	var sf := state.status_aggregate(u, "attack")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := attack_breakdown_from(
 		u.troops,
@@ -45,10 +45,9 @@ static func attack_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := 
 		level_factor(u),
 		surround_factor(state, u),
 		TerrainType.attack_factor(state.terrain_at(u.pos)),
-		_support(state, u, enemy, true) if melee else 0.0,
+		support_around(state, enemy.pos, u.team, u.handle, true),
 		float(sf["mul"]), float(sf["add"]))
 	b.vs_aerial = enemy.is_aerial()
-	b.melee = melee
 	return b
 
 ## 明示係数から実効攻撃力の内訳を組む（式の本体）。盤ベースの attack_breakdown も
@@ -67,11 +66,12 @@ static func attack_breakdown_from(troops: int, stat: int, lv: float, surround: f
 	b.total = b.base() * status_mul + support + status_add
 	return b
 
-## 実効防御力の内訳（StatBreakdown）。包囲は常時、支援(防・加算)は melee のみ・支援後は素の2倍が上限。
+## 実効防御力の内訳（StatBreakdown）。包囲・支援は常時（近接/間接を問わない）。支援(防・加算)は
+## 防御ユニット自身(u)の周りに立つ自軍から集める。支援後は素の2倍が上限。
 ## 最後に攻撃側(enemy)の防御貫通を掛ける: D' = D ×(1 − enemy.pierce)（魔法兵0.5＝防御半減）。
 ## 防御は単一値なので、対地・対空どちらの相手にも同じく効く。判定順は支援・上限の後（test_pierce.gd で固定）。
 ## 結界（⑦マジックシールド）の中に居る駒は貫通を受けない＝攻撃側の貫通を 0 として渡す。
-static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee := true) -> StatBreakdown:
+static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit) -> StatBreakdown:
 	var sf := state.status_aggregate(u, "defense")  # 状態補正（バフ/デバフ）の合成 {mul, add}
 	var b := defense_breakdown_from(
 		u.troops,
@@ -79,10 +79,9 @@ static func defense_breakdown(state: BattleState, u: Unit, enemy: Unit, melee :=
 		level_factor(u),
 		surround_factor(state, u),
 		TerrainType.defense_factor(state.terrain_at(u.pos)),
-		_support(state, u, enemy, false) if melee else 0.0,
+		support_around(state, u.pos, u.team, u.handle, false),
 		0.0 if state.pierce_immune(u) else float(enemy.pierce),
 		float(sf["mul"]), float(sf["add"]))
-	b.melee = melee
 	return b
 
 ## 明示係数から実効防御力の内訳を組む（式の本体）。支援後に2倍上限と下限0、最後に攻撃側の貫通を掛ける。
@@ -107,15 +106,18 @@ static func defense_breakdown_from(troops: int, stat: int, lv: float, surround: 
 	b.total = floored * b.pierce
 	return b
 
-## u の味方（u自身を除く）で enemy に隣接しているものからの支援合計。
-## is_attack=true で攻撃支援（味方のユニット攻撃力）、false で防御支援（味方のユニット防御力）。
-## 支援量は味方の素の値（兵数 × ステータス × SUPPORT_RATE＝0.25）。レベル・包囲などの補正は含めない。
-static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) -> float:
+## 支援の合計。どちらの支援も**防御ユニット（着弾した駒）の周り**で数える＝center の隣接6hex に
+## 立つ team の駒から 兵数 × ステータス × SUPPORT_RATE（0.25）を積む。攻撃距離では変わらない。
+## exclude_handle（攻撃者自身・防御ユニット自身）は数に入れない。
+## is_attack=true で攻撃支援（駒のユニット攻撃力）、false で防御支援（駒のユニット防御力）。
+## 支援量は駒の素の値＝レベル・包囲などの補正は含めない。詳細 → doc/gdd/combat.md 支援効果
+static func support_around(state: BattleState, center: Vector2i, team: int,
+		exclude_handle: int, is_attack: bool) -> float:
 	var total := 0.0
 	for ally in state.units():
-		if ally.team != u.team or ally.handle == u.handle:
+		if ally.team != team or ally.handle == exclude_handle:
 			continue
-		if Hex.distance(ally.pos, enemy.pos) != 1:
+		if Hex.distance(ally.pos, center) != 1:
 			continue
 		var stat := ally.unit_attack if is_attack else ally.unit_defense
 		total += float(ally.troops) * float(stat) * SUPPORT_RATE
@@ -123,9 +125,9 @@ static func _support(state: BattleState, u: Unit, enemy: Unit, is_attack: bool) 
 
 ## 1回の打撃の解決（HitDetail）。attacker→defender の実効攻防・割合・失う兵を**1か所で確定**。
 ## 戦闘解決（兵数の適用）も画面表示も、この同じ内訳を使う＝式を二重に持たない。
-static func hit_detail(state: BattleState, attacker: Unit, defender: Unit, melee := true) -> HitDetail:
-	var atk := attack_breakdown(state, attacker, defender, melee)
-	var df := defense_breakdown(state, defender, attacker, melee)
+static func hit_detail(state: BattleState, attacker: Unit, defender: Unit) -> HitDetail:
+	var atk := attack_breakdown(state, attacker, defender)
+	var df := defense_breakdown(state, defender, attacker)
 	return hit_from_breakdowns(atk, df, defender.troops)
 
 ## 攻撃側の内訳・防御側の内訳・防御側の兵数から、割合と失う兵を確定する（式の本体）。
@@ -141,5 +143,5 @@ static func hit_from_breakdowns(atk: StatBreakdown, df: StatBreakdown, defender_
 	return h
 
 ## attacker が defender に与える失う兵数（hit_detail の loss）。0〜defender.troops。
-static func casualties(state: BattleState, attacker: Unit, defender: Unit, melee := true) -> int:
-	return hit_detail(state, attacker, defender, melee).loss
+static func casualties(state: BattleState, attacker: Unit, defender: Unit) -> int:
+	return hit_detail(state, attacker, defender).loss

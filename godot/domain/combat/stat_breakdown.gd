@@ -20,7 +20,6 @@ var total: float       ## 出来上がりの実効値
 
 # --- 攻撃だけ ---
 var vs_aerial := false  ## 相手が飛行＝stat は対空攻撃力
-var melee := true       ## 近接（距離1）の打撃か＝支援が乗る
 
 # --- 防御だけ ---
 var capped := false     ## 支援2倍上限が効いたか（貫通適用前で判定）

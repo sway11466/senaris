@@ -101,7 +101,7 @@ func status_mods_for(unit: Unit) -> Array:
 func pierce_immune(unit: Unit) -> bool:
 	return StatusMod.pierce_immune(_status_mods, unit)
 
-## いま張られている地帯（zone）の一覧＝{hexes, team, fx}。盤が結界の床を敷くのに読む
+## いま張られている地帯（zone）の一覧＝{hexes, team, fx, skill}。盤が結界の印を重ねるのに読む
 ## （持続の間ずっと出す＝中か外かが盤で読める）。詳細 → doc/gdd/formations.md ⑦
 func status_zones() -> Array:
 	var out: Array = []
@@ -113,6 +113,7 @@ func status_zones() -> Array:
 			"hexes": Hex.within_range(center, int(m.get("radius", 0))),
 			"team": int(m.get("team", -1)),
 			"fx": String(m.get("fx", "")),
+			"skill": String(m.get("skill", "")),  # 盤が印の絵を規約解決するのに使う
 		})
 	return out
 
@@ -997,12 +998,13 @@ func attack(attacker_id: int, target_id: int) -> AttackResult:
 	var a := unit_by_handle(attacker_id)
 	var t := unit_by_handle(target_id)
 	var melee := Hex.distance(a.pos, t.pos) <= 1  # 距離1の攻撃＝近接（反撃あり）、距離≥2＝遠隔（反撃なし）
+	# melee が効くのはここ＝反撃の成立だけ。包囲・支援・地形・レベルは距離によらず乗る（doc/gdd/combat.md）。
 	# 反撃は「近接（距離1）」かつ「防御側が距離1を狙えて、攻撃側を攻撃できる」ときだけ成立。
 	# 例: 対空0の地上ユニットが飛行に殴られても反撃できない／砲兵(min_range≥2)は懐の敵に反撃できない（→被反撃なし・Lv+0）。
 	var can_retaliate := melee and t.can_reach(1) and t.attack_against(a) > 0
 	# 同時攻撃: 戦闘前の状態で内訳ごと確定してから適用（決定的）。表示はこの内訳をそのまま使う。
-	var fwd := Combat.hit_detail(self, a, t, melee)
-	var ret: HitDetail = Combat.hit_detail(self, t, a, melee) if can_retaliate else null
+	var fwd := Combat.hit_detail(self, a, t)
+	var ret: HitDetail = Combat.hit_detail(self, t, a) if can_retaliate else null
 	# 戦闘前スナップショット（撃破で盤から消えても結果表示できるよう値を固める）。
 	var a_snap := unit_snapshot(a)
 	var t_snap := unit_snapshot(t)
