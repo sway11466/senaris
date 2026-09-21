@@ -102,6 +102,10 @@ ui.chronicle.skill_count,人数,Members
 ui.chronicle.skill_count_min,%d以上,%d or more
 ui.chronicle.skill_from,発動できる駒,Cast from
 ui.chronicle.skill_from_any,どれからでも,Any member
+ui.chronicle.skill_range_leader,発動者の通常射程,Leader's normal range
+ui.chronicle.skill_range_max_plus,参加者の射程上限の長い方＋%d,Higher max range of members +%d
+ui.chronicle.skill_range_max_minus,参加者の射程上限の長い方−%d,Higher max range of members -%d
+ui.chronicle.skill_range_max,参加者の射程上限の長い方,Higher max range of members
 ui.chronicle.skill_from_leader,発動者から,Leader only
 ui.chronicle.results,戦果,Results
 ui.chronicle.story,物語,Story

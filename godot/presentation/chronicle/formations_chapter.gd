@@ -157,8 +157,7 @@ func _expanded_sheet(skill_id: String) -> Control:
 func _skill_rows(r: Dictionary) -> Array:
 	var rows: Array = []
 	rows.append([tr("ui.chronicle.skill_effect"), _effect_text(r)])
-	var range_val: int = r.get("range", 0)
-	rows.append([tr("ui.info.range"), str(range_val) if range_val > 0 else NONE_TEXT])
+	rows.append([tr("ui.info.range"), _range_text(r)])
 	rows.append([tr("ui.chronicle.skill_duration"), _duration_text(r)])
 	var count: int = r.get("count", 1)
 	rows.append([tr("ui.chronicle.skill_count"),
@@ -178,6 +177,24 @@ func _effect_text(r: Dictionary) -> String:
 		"buff":
 			return tr("ui.chronicle.skill_effect_buff")
 	return ""
+
+## 射程。固定値があればその数、性能から引くレシピは説明文、どちらも無ければ「—」。
+func _range_text(r: Dictionary) -> String:
+	var range_val: int = r.get("range", 0)
+	if range_val > 0:
+		return str(range_val)
+	match String(r.get("range_from_stats", "")):
+		"leader":
+			return tr("ui.chronicle.skill_range_leader")
+		"max_plus":
+			var plus: int = int(r.get("range_plus", 0))
+			if plus > 0:
+				return tr("ui.chronicle.skill_range_max_plus") % plus
+			elif plus < 0:
+				return tr("ui.chronicle.skill_range_max_minus") % absi(plus)
+			else:
+				return tr("ui.chronicle.skill_range_max")
+	return NONE_TEXT
 
 ## 持続。ダメージ系は即時、補正は次の自軍ターン開始まで（doc/gdd/formations.md 表B）。
 func _duration_text(r: Dictionary) -> String:
