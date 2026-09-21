@@ -56,7 +56,6 @@
 		"treant",
 		"matango",
 		"mandragora",
-		"mimic",
 		"slime",
 		"red_dragon"
 	],
@@ -836,20 +835,7 @@
 					"type_id": "thief"
 				}
 			],
-			"enemy": [
-				{
-					"category": "magical",
-					"combat_effect": "",
-					"combat_lineup": "squad",
-					"description": "",
-					"images": {},
-					"map_move_sfx": "",
-					"name": "ミミック",
-					"retainers": [],
-					"skin_id": "mimic",
-					"type_id": "thief"
-				}
-			]
+			"enemy": []
 		},
 		"valkyrie": {
 			"ally": [],
