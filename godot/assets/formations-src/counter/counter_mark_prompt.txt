@@ -1,0 +1,27 @@
+NOTE: これは盤の「発動の印」（{recipe_id}_mark.png）。着弾の無いレシピが、発動した瞬間だけ
+参加者の駒に重ねる小さい絵で、1秒ほどで消える。1枚絵のカットイン（counter_prompt.txt）とは
+別物＝人物・背景を描かず、印そのものだけを描く。置き場と扱い → doc/art/keyvisual.md §3、
+doc/gdd/formations.md 発動の演出。
+
+STYLE は doc/art/units.md §3.4 の EFFECT STYLE を土台に1点だけ差し替えた（差し替えの記録）:
+  ・向き＝「右へ向かう一撃」を外し、正面・直立・左右対称にする（飛ぶ絵でも振り抜く絵でもない）。
+  ・構図＝正方形のまま（⑤シールドウォールは盾の形に合わせて縦長にしたが、X字は幅と高さが
+    釣り合うので外さない）。
+  ・中心＝「面積の大きい絵は中心を空洞にする」も外さない。交差した細い刃なので、X の内側は
+    背景のまま空き、下の駒が透ける。
+
+意匠は特定のユニットに寄せない（紋章や固有の武器を写すと、出た駒によって「誰々の剣」に見える）。
+無紋の直剣2本で描く。⑤が盾なら⑩は交差した剣＝守りと迎え撃ちが対になって読める。
+火花・光は描かない（発動の時点ではまだ噛み合っていない＝光る理由が無い）。
+
+SUBJECT: TWO plain straight SWORDS crossed in an X, seen straight from the FRONT, standing upright and perfectly left-right symmetrical — the sign that two soldiers have set themselves to strike back.
+
+Both blades point UP and outward, their hilts down and outward at the bottom, crossing a little above the middle of the frame so the X is wide at the top and narrower at the bottom. No tilt, no perspective, no three-quarter view — flat and face-on, as if it were a badge. The two swords are identical and mirror each other exactly.
+
+Each sword is a plain unmarked arming sword: a straight double-edged blade with a simple straight crossguard, a short grip and a round pommel. NO heraldry, NO crest, NO engraving, NO gem, NO letters.
+
+Drawn in three flat tones only, with hard edges throughout: a pale blue-grey steel blade, a darker blue-grey for the crossguards, grips and pommels, and a thick dark outline around every shape. Nothing is drawn behind, beside or between the blades — the space inside the X stays empty background.
+
+NO glow, NO shine streaks, NO sparks, NO clash, NO magic, NO aura, NO motion lines, NO damage or dents, NO hands, NO owner.
+
+The pair fills the frame edge to edge with only a thin margin. Square 1:1 composition. Pure black background (single flat color, for easy cutout).
