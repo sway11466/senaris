@@ -21,7 +21,7 @@ func test_spotter_member_adjacent_to_target() -> void:
 	var target: Vector2i = ChronicleRecipeFigure.TARGETS["spotter"]
 	assert_eq(Hex.distance(cells[1], target), 1, "斥候は対象に隣接")
 
-func test_spotter_leader_in_archer_range() -> void:
+func test_spotter_caster_in_archer_range() -> void:
 	var cells: Array = ChronicleRecipeFigure.LAYOUTS["spotter"]
 	var target: Vector2i = ChronicleRecipeFigure.TARGETS["spotter"]
 	var d := Hex.distance(cells[0], target)

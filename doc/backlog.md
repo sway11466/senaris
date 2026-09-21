@@ -32,7 +32,7 @@
 **陣形スキル⑥アローレイン（弓兵3体の三角・半径2の19ヘクス・発動者ベース・貫通なし）**
 - ゴール：スリンガー系を除く弓兵3体が三角になると、発動者の射程上限まで届く半径2の面攻撃が撃てる。参加者は当たらず、他の味方は当たる。飛行には対空値。
 - 背景：[formations.md](gdd/formations.md) ⑥ で仕様確定。①と同型で、面の半径が2・射程が発動者の性能依存・対空／対地の切り替えあり、貫通は発動者依存（弓＝0）のまま。
-- 対応：(1) `RECIPES` に `arrow_rain`（leader／member＝archer/hunter/elf、shape `triangle`、count 3、effect `area`、`radius` 2、`range_from` "any"、`range_from_stats` "leader"＝発動者の `attack_range`、`attack_vs` "target"）。(2) `blast_cells` は `radius` を読むだけで済むはず＝19ヘクスになることをテストで確認。(3) 着弾演出の順送り（中心から外へ）が半径2でも成り立つか `board_impact_renderer` を確認。プレビュー（桃の面）も半径2で出す。(4) `skills.csv`・`arrow_rain_impact.png`。(5) テスト＝三角の成立（ハンター＋アーチャー＋エルフ）・スリンガーの除外・面の広さ・参加者の除外。
+- 対応：(1) `RECIPES` に `arrow_rain`（caster／member＝archer/hunter/elf、shape `triangle`、count 3、effect `area`、`radius` 2、`range_from` "any"、`range_from_stats` "caster"＝発動者の `attack_range`、`attack_vs` "target"）。(2) `blast_cells` は `radius` を読むだけで済むはず＝19ヘクスになることをテストで確認。(3) 着弾演出の順送り（中心から外へ）が半径2でも成り立つか `board_impact_renderer` を確認。プレビュー（桃の面）も半径2で出す。(4) `skills.csv`・`arrow_rain_impact.png`。(5) テスト＝三角の成立（ハンター＋アーチャー＋エルフ）・スリンガーの除外・面の広さ・参加者の除外。
 - 演出まわり：カットイン `godot/assets/formations/arrow_rain.png`（スキルごと1枚の規約解決。射手ごとに分けるなら④と同じく `cutin_per_caster` と `arrow_rain_{skin}.png`）。効果音 `godot/assets/sfx/arrow_rain.ogg`（発動）と `arrow_rain_hit.ogg`（着弾）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる。クロニクルの陣形スキル章＝レシピの図は `triangle` の既存配置で足りる（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
 - 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/presentation/board/hex_board_3d.gd`（面のプレビュー）。
 
@@ -177,15 +177,6 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
-
-### refactoring-22
-
-**陣形スキルの発動者を指す `leader` を `caster` に改名する**
-- ゴール：発動者を指す名前がコード全体で `caster` に揃い、同じ駒を `leader_id` と `caster` の2語で呼ぶ箇所が無い。doc の「発動者」とコードの語が1対1で対応している。
-- 背景：レシピの `leader_skins`／`member_skins` の対から始まり、`FormationOption.leader_id`・`SkillResult.leader_id`・`BattleState` まで `leader` が広がった。一方で発動結果の `SkillResult.caster`・`SkillCast.caster` と演出側は `caster` で、同じ駒を2語で呼んでいる。「leader」は隊長・号令役を思わせるが、意味は「そのスキルを撃つ駒」で、doc の発動者に当たる語は `caster`。doc に `leader` という語は出てこない。
-- 対応：`leader_skins` → `caster_skins`、`leader_id` → `caster_id`、`leader_pos` → `caster_pos` のように機械的に置換する。`member_skins` はそのまま。`shot_screen` の `--leader`／`--pre-leader` も `--caster`／`--pre-caster` に揃え、[tech/tools.md](tech/tools.md) の起動例を直す。テストは名前の追従だけ。
-- 考慮外：挙動の変更。`member` の呼び名。
-- 該当：`godot/domain/battle_state.gd`・`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_choice.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/domain/formation/skill_result.gd`・`godot/presentation/chronicle/formations_chapter.gd`・`godot/presentation/chronicle/units_chapter.gd`・`godot/tools/marketing/shot_screen.gd`・`godot/tests/small/application/test_match_controller.gd`・`godot/tests/small/domain/test_formation.gd`・`godot/tests/small/domain/test_skill.gd`・[tech/tools.md](tech/tools.md)。
 
 ### refactoring-21
 

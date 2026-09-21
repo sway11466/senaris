@@ -16,7 +16,7 @@ enum Scope { TEAM, UNIT }
 ## 対象1体のとき、味方に掛けるか敵に掛けるか。SKILLS の "buff_side"。
 enum Side { ALLY, ENEMY }
 ## 射程の起点。発動者からか、参加者のどれからでもか。SKILLS の "range_from"。
-enum RangeFrom { LEADER, ANY }
+enum RangeFrom { CASTER, ANY }
 
 const EFFECT_IDS := {
 	"area": Effect.AREA, "single": Effect.SINGLE, "buff": Effect.BUFF,
@@ -28,7 +28,7 @@ const SHAPE_IDS := {
 }
 const SCOPE_IDS := { "team": Scope.TEAM, "unit": Scope.UNIT }
 const SIDE_IDS := { "ally": Side.ALLY, "enemy": Side.ENEMY }
-const RANGE_FROM_IDS := { "leader": RangeFrom.LEADER, "any": RangeFrom.ANY }
+const RANGE_FROM_IDS := { "caster": RangeFrom.CASTER, "any": RangeFrom.ANY }
 
 var skill: String             ## スキルID（SKILLS のキー。表示名・音・絵の規約解決に使う）
 var name: String              ## 開発用メモ（画面表示は tr("skill.{id}.name")）
@@ -90,11 +90,11 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	o.max_range = int(r.get("range", 0))
 	o.min_range = 0
 	# 射程をレシピの固定値ではなく参加者の性能から引くレシピ。固定の "range" とは排他。
-	#   "leader"（④）＝弓兵の通常射程（下限〜上限）がそのままスキルの射程になる。
+	#   "caster"（④）＝弓兵の通常射程（下限〜上限）がそのままスキルの射程になる。
 	#   "max_plus"（⑨）＝参加者の射程上限の長い方＋range_plus。下限は無し（隣接にも撃てる）。
 	# 詳細 → doc/gdd/formations.md ④⑨
 	match String(r.get("range_from_stats", "")):
-		"leader":
+		"caster":
 			o.max_range = units[0].attack_range
 			o.min_range = units[0].min_range
 		"max_plus":
@@ -103,7 +103,7 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 				longest = maxi(longest, u.attack_range)
 			o.max_range = longest + int(r.get("range_plus", 0))
 			o.min_range = 0
-	o.range_from = _id_to_enum(RANGE_FROM_IDS, String(r.get("range_from", "leader")), "range_from")
+	o.range_from = _id_to_enum(RANGE_FROM_IDS, String(r.get("range_from", "caster")), "range_from")
 	o.radius = int(r.get("radius", 0))
 	o.attack_vs = String(r.get("attack_vs", "ground"))
 	o.pierce_override = float(r.get("pierce_override", -1.0))

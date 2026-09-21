@@ -22,9 +22,11 @@ class_name Formation
 ##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
-## range_from: "any"（参加者のどれからでも射程判定）／"leader"（発動者から）。
+## impact_rain: 面の全ヘックスに着弾の絵を降らせる本数（1ヘックスあたり）。省略＝0＝被弾した駒に
+##        1枚ずつ落とす共通の形。⑥＝矢の雨。詳細 → doc/gdd/formations.md ⑥
+## range_from: "any"（参加者のどれからでも射程判定）／"caster"（発動者から）。
 ## range_from_stats: 射程を固定値 "range" ではなく参加者の性能から引く（固定の "range" とは排他）。
-##        "leader"（④＝発動者の通常射程・下限〜上限）／"max_plus"（⑨＝参加者の射程上限の最大＋range_plus・下限なし）。
+##        "caster"（④＝発動者の通常射程・下限〜上限）／"max_plus"（⑨＝参加者の射程上限の最大＋range_plus・下限なし）。
 ## attack_from_stats: 威力のユニット攻撃力を発動者1体ではなく参加者から引く。省略＝発動者（設計原則2）。
 ##        "max_plus"（⑨＝参加者の攻撃力の最大＋attack_plus。兵数・レベル・包囲・地形は発動者のもの）。
 ## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
@@ -72,7 +74,7 @@ const SKILLS := {
 		"count": 3,
 		"effect": "single",
 		"range": 10,
-		"range_from": "leader",
+		"range_from": "caster",
 	},
 	"trick_shot": {
 		"name": "トリックショット",
@@ -84,8 +86,8 @@ const SKILLS := {
 		"count": 2,
 		"effect": "single",
 		# 射程は弓兵の通常射程そのもの（下限〜上限）＝レシピは固定値を持たない。
-		"range_from_stats": "leader",
-		"range_from": "leader",
+		"range_from_stats": "caster",
+		"range_from": "caster",
 		# 斥候が張り付いて見つけた弱点を射抜く＝魔法兵と同じ貫通が矢に乗る（弓の素は0）。
 		"pierce_override": 0.5,
 		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
@@ -108,10 +110,12 @@ const SKILLS := {
 		"radius": 2,
 		# 射程は発動者の通常射程＝誰が号令をかけるかで届く距離が変わる（アーチャー3／ハンター4／エルフ5）。
 		# 起点は3体のどれからでもよい。詳細 → doc/gdd/formations.md ⑥
-		"range_from_stats": "leader",
+		"range_from_stats": "caster",
 		"range_from": "any",
 		# 矢のレシピは通常攻撃と同じく相手で対空／対地を切り替える（設計原則3の例外）。
 		"attack_vs": "target",
+		# 着弾は面の19ヘックスすべてに矢を3本ずつ降らせる（駒に1枚落とす共通の形ではない）。
+		"impact_rain": 3,
 	},
 	"magic_arrow": {
 		"name": "マジックアロー",
@@ -125,7 +129,7 @@ const SKILLS := {
 		# 下限は無し＝隣接にも撃てる。詳細 → doc/gdd/formations.md ⑨
 		"range_from_stats": "max_plus",
 		"range_plus": 1,
-		"range_from": "leader",
+		"range_from": "caster",
 		# 威力は2体の攻撃力の大きい方＋10（合算はしない＝設計原則2の唯一の例外）。相手が飛行なら対空値で
 		# 大きい方を取る＝地上ではウィザード40＋10、空ではエルフ60＋10 と主役が入れ替わる。
 		"attack_from_stats": "max_plus",
@@ -154,7 +158,7 @@ const SKILLS := {
 		"buff_fx": "dust",  # 盤の見た目（掛かっている駒の足元を光らせる）。空＝見た目なし
 		"duration_turns": 3,  # 発動側ターン3回ぶん。詳細 → doc/gdd/skills.md
 		"range": 1,  # 自分(0)＋隣接(1)
-		"range_from": "leader",
+		"range_from": "caster",
 	},
 	"purify": {
 		"name": "ピュリファイ",
@@ -167,7 +171,7 @@ const SKILLS := {
 		"buff_scope": "unit",  # 対象1体（自分＋隣接）
 		"buff_side": "ally",
 		"range": 1,
-		"range_from": "leader",
+		"range_from": "caster",
 	},
 	"dread_touch": {
 		"name": "ドレッドタッチ",
@@ -186,7 +190,7 @@ const SKILLS := {
 		"buff_kind": "debuff",  # 強化か弱体か。ピュリファイが落とす対象・盤の見た目。値の符号からは判断しない
 		"duration_turns": 3,  # 発動側ターン3回ぶん。詳細 → doc/gdd/skills.md
 		"range": 1,
-		"range_from": "leader",
+		"range_from": "caster",
 	},
 	"venom_fang": {
 		"name": "ヴェノムファング",
@@ -206,7 +210,7 @@ const SKILLS := {
 		"buff_kind": "debuff",
 		"duration_turns": 3,  # 発動側ターン3回ぶん。詳細 → doc/gdd/skills.md
 		"range": 1,
-		"range_from": "leader",
+		"range_from": "caster",
 	},
 	"poison_sting": {
 		"name": "ポイズンスティング",
@@ -224,7 +228,7 @@ const SKILLS := {
 		"buff_kind": "debuff",
 		"duration_turns": 3,  # 発動側ターン3回ぶん＝合計3減る。詳細 → doc/gdd/skills.md
 		"range": 1,
-		"range_from": "leader",
+		"range_from": "caster",
 		"combat_effect": "thrust",  # 当面は刺突の汎用（毒色は絵に持たせない）
 	},
 	"slime_split": {
@@ -238,7 +242,7 @@ const SKILLS := {
 		# 詳細 → doc/gdd/skills.md
 		"effect": "spawn",
 		"range": 0,  # 自分の隣接に分裂で出る＝対象選択は不要
-		"range_from": "leader",
+		"range_from": "caster",
 		"charge_turns": 3,  # 盤に出た直後は撃てない。3ターン溜めてから発動。詳細 → doc/gdd/skills.md
 	},
 }
@@ -451,7 +455,7 @@ static func blast_cells(option: FormationOption, target: Vector2i) -> Array[Vect
 			return [target] as Array[Vector2i]
 	return [] as Array[Vector2i]
 
-## target が発動条件の射程内か（"any"＝参加者のどれか／"leader"＝発動者から）。
+## target が発動条件の射程内か（"any"＝参加者のどれか／"caster"＝発動者から）。
 ## from_hex＝発動者がそこに居ると仮定する（移動を確定する前の判定）。省略すると盤の実位置。
 static func can_target(state: BattleState, option: FormationOption, target: Vector2i, from_hex := NO_HEX) -> bool:
 	if not option.needs_target():
@@ -624,7 +628,7 @@ static func _unit_at_assumed(state: BattleState, caster: Unit, from_hex: Vector2
 			return null
 	return state.unit_at(hex)
 
-## 射程内かつ盤上のhex（重複なし）。起点は "any" なら参加者ぜんぶ／"leader" なら発動者だけ。
+## 射程内かつ盤上のhex（重複なし）。起点は "any" なら参加者ぜんぶ／"caster" なら発動者だけ。
 static func _in_range_cells(state: BattleState, option: FormationOption, from_hex: Vector2i) -> Array[Vector2i]:
 	var rng := option.max_range
 	var caster_id := option.caster_id
