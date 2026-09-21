@@ -74,7 +74,9 @@ const CHAPTERS: Array = [
 			{ "t": "h", "e": "mods" },
 			{ "t": "cols", "left": [
 				# 並びは戦闘レポートの行と同じ順（StrikeTable）＝レポートを見ながら上から順に引ける。
+				# 状態補正だけは板で乗算・加算の2行に分かれるので、最初に出るほう（地形の下）の位置に置く。
 				{ "t": "dl", "e": ["level", "surround", "terrain", "status", "support", "pierce"] },
+				{ "t": "p", "e": "mods_read" },
 				{ "t": "p", "e": "mods_note" },
 				{ "t": "h", "e": "damage" },
 				{ "t": "p", "e": "damage1" },
