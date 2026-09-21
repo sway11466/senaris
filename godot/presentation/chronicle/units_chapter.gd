@@ -27,6 +27,7 @@ func _build() -> void:
 		_add_group(tr("unit_group.%s.name" % category), found, cards)
 
 ## SkinCatalog の __by_id__ からカテゴリ順にまとめた配列を返す。
+## on_board == false のスキン（会話専用）はクロニクルに並べない。
 ## [{ "category": String, "skins": [UnitSkin, ...] }, ...]
 func _ordered_skins() -> Array:
 	var by_id: Dictionary = _skins.get(SkinCatalog.BY_ID_KEY, {})
@@ -34,6 +35,8 @@ func _ordered_skins() -> Array:
 	var cat_map := {}  # category -> index in categories
 	for skin_id in by_id:
 		var s: UnitSkin = by_id[skin_id]
+		if not s.on_board:
+			continue
 		if not cat_map.has(s.category):
 			cat_map[s.category] = categories.size()
 			categories.append({ "category": s.category, "skins": [] })

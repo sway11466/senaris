@@ -15,7 +15,7 @@ const TYPE_REQUIRED := [
 ]
 ## スキンの必須列。combat_lineup は既定値を持たせず必ず書かせる（空＝squad の暗黙既定にすると
 ## 「書き忘れ」と「squad と決めた」が区別できなくなる）。
-const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id", "combat_lineup"]
+const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id", "combat_lineup", "on_board"]
 ## side は陣営の2値のみ（convert が skins[tid][side] へ振り分けるため他値はNG）。
 const SIDES := ["ally", "enemy"]
 ## 従者リスト（retainers 列）の区切り。CSV なのでカンマは使えない。
@@ -100,6 +100,7 @@ static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []
 			"combat_lineup": str(r.get("combat_lineup", "")), "retainers": parse_retainers(r),
 			"combat_effect": str(r.get("combat_effect", "")),
 			"map_move_sfx": str(r.get("map_move_sfx", "")),
+			"on_board": bool(r.get("on_board", true)),
 		})
 	return { "problems": problems, "json": { "skins": skins, "order": order } }
 
