@@ -76,7 +76,7 @@
 - `{group}`＝陣営フォルダ。味方は `player/`、敵は陣営名（例: `goblin/`）。ツールは `units-src/` 配下を再帰検索して `{skin_id}` フォルダを見つけるため、グループの増設にツール変更は不要。
 - ③だけが `godot/assets/`（ゲームが読む正）。スロット制なので将来 `{skin_id}_combat.png` / `{skin_id}_portrait.png` を同フォルダに追加。スキン側で `images.map = "res://assets/units/{skin_id}/{skin_id}_map.png"` を指すと絵に切替（コード不変）。
 - ①②は `godot/assets/units-src/`（作業ソース）。`godot/assets/units-src/.gdignore` で Godot のインポート対象外にする（原寸を取り込ませない）。ファイル名に `{skin_id}` を前置きするのは、複数スキンを1フォルダに並べて比較できるようにするため。
-- 透かし: 共通ルールの `_02_dew`（[direction.md](direction.md) §3）はユニットでは②のトリミング＝透過で一緒に落ちる（透過切り抜きで sparkle も消える）ため専用 dew ファイルは作らず `_01_raw`→`_03_master` の2段。番号は master=03 で固定＝02 が無い＝dew を通していない、と読める（`gen_unit_map.ps1` は `_03_master` を読み、旧 `_02_master` もフォールバックで拾う）。
+- 段階は `_01_raw`→`_03_master` の2段（[direction.md](direction.md) §3）。番号は master=03 で固定（`gen_unit_map.ps1` は `_03_master` を読み、旧 `_02_master` もフォールバックで拾う）。
 
 手順（1体を追加するとき）:
 
@@ -174,7 +174,7 @@ SUBJECT（生成プロンプト本体）の置き場：
 - 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../godot/presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。ただし戦闘シーンは地面を3Dで敷くため、流用する map の master は足元の影を消しておく（STYLE の `small soft ground shadow` を焼き込んだままにしない）。
 - 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `godot/data/effects/combat_effect.csv`。→ §3.4
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
-  - 作業ソース `godot/assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（トリム＝透過で透かしも落ちるので dew(02) は飛ばす。番号は master=03 で固定＝[direction.md](direction.md) §3 の3段命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
+  - 作業ソース `godot/assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（番号は master=03 で固定＝[direction.md](direction.md) §3 の命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
   - ゲーム用 `godot/assets/units/{skin_id}/`：`{skin_id}_combat.png`（＋任意 `_combat_effect.png`）。master をトリム→「高さ＝384×`combat_scale` → 704四方・下端揃え・透過」で書き出す（減色はしない）。キャンバス値は演出側の `combat_stage.gd` の `FIG_H`（正方キャンバスを画面上どれだけの高さで描くか）と対で、片方を変えたら同じ倍率でもう片方も直し、`all` で全員を書き出し直す。揃っていないと、同じ倍率でも画面上の大きさが変わる。書き出しは [`godot/tools/gen_unit_combat.ps1`](../../godot/tools/gen_unit_combat.ps1)（`{skin_id}` 複数可／`all`）。
   - 倍率は `unit_skin.csv` の `combat_scale`（map の `map_scale` と対。今は同値だが、盤と戦闘で詰め方を変えられるよう列を分けてある）。相対サイズを担保しているのは固定キャンバスのほうで、演出側は全ユニットを同じ正方形に KEEP_ASPECT で描き、キャンバス下端を足元線に合わせる。トリムだけで書き出すと、どの駒も枠いっぱいに描かれて大小の差が消える。
   - 横に広い駒はキャンバス幅にも収める＝はみ出す代わりに縮む。

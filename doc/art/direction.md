@@ -43,7 +43,8 @@
 - ツール＝Gemini Nano Banana（Google AI Studio・無料枠）。i2i／参照画像は使わない。
 - アンカー方式: `STYLE:` ブロックは種別内で共通・固定を基本とし、`SUBJECT:` だけ差し替える。ただし絵の造形が違えば STYLE ごと個別に持ってよい（地形は側面視の壁・サムネイル読みの城壁が個別 STYLE。共通で守るのはテイストだけ → [terrain.md](terrain.md) §2）。一貫性は共通STYLE文＋SUBJECTの言葉指定で担保し、SUBJECT に「same palette / same face as the fighter」等を書いて text から展開する（渾身の1枚で STYLE を固め、以降は同じ STYLE 文へ言葉で寄せる）。Nano Banana はタグ羅列より自然文の描写が効く。
 - 二層保管: `source/`（`-src`）＝作業ソース（`.gdignore` で Godot 非インポート）／ 直下＝ゲームが読む正。ゲームが読む側は規約で autowire＝所定パスに置くだけで反映され、コードは不変（アートが来たらパスは変えずファイルを差し替える）。この二層はユニット・地形・キービジュアルで共通。
-- 作業ソースの3段階（`-src` 内・全画像共通の命名）: `_01_raw`（AI生成の原寸・透かし入り）→ `_02_dew`（透かし除去ツールの自動出力）→ `_03_master`（手動調整）。ゲーム用に書き出す元は「`_03_master` があればそれ、無ければ `_02_dew`」＝手を入れる必要がなければ master は作らない。生成の sparkle 透かし（右下）はこの `_02_dew` で消す（生成側で右を空ける・角を空けるといったクロップ前提は不要）。ただしトリミングや切り抜きで透かしが自然に落ちる種別（ユニット＝透過トリム／地形＝ヘックス四隅落ち）は dew(02) を飛ばして `_01_raw`→`_03_master` の2段でよい。番号は種別によらず master=03 で固定（02 が無い＝dew を通していない、と読める）。
+- 作業ソースの段階（`-src` 内・全画像共通の命名）: `_01_raw`（AI生成の原寸）→ `_03_master`（手動調整）。ゲーム用に書き出す元は「`_03_master` があればそれ、無ければ `_01_raw`」＝手を入れる必要がなければ master は作らない。番号は種別によらず master=03 で固定。
+- 透かし除去（`_02_dew`）は行わない。Gemini の仕様が変わり、生成物に sparkle 透かし（右下）が入らなくなった。既にある `_02_dew` はその頃の生成物で、作り直さない。生成側で右を空ける・角を空けるといったクロップ前提も不要。
 - サイズ: 大きめのマスターを生成 → ゲーム用に書き出し → エンジンが実機サイズへ自動縮小。ゲーム用はドロップイン（同名で差し替えれば描画コード不変）。具体寸法と書き出しツールは各ファイル。
 - 配布注意: 無料版でも商用利用は可（著作権補償は無し）。配信前に最新ToSと Steam の AI開示を確認。生成物には SynthID 透かしが付く（除去/回避の扱いは種別ごと）。
 
@@ -54,6 +55,6 @@
 - [units.md](units.md) — ユニットの見た目方針（共通ルール・陣営ごと・制作スペック・STYLE）
 - [terrain.md](terrain.md) — 地形タイルの方針（TERRAIN STYLE・切り抜き・反復対策）
 - [backdrop.md](backdrop.md) — 奥の背景の方針（戦闘窓の水平線から上・BACKDROP STYLE）
-- [keyvisual.md](keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・透かし対策）
+- [keyvisual.md](keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・保管）
 - [../gdd/units.md](../gdd/units.md) — 性能と見た目の分離（`UnitType`/`UnitSkin`・skin_id 方式）
 - [`../../data/units/unit_type.csv`](../../godot/data/units/unit_type.csv) / [`../../data/units/unit_skin.csv`](../../godot/data/units/unit_skin.csv) — ロスター正本

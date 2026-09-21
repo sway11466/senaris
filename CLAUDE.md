@@ -88,7 +88,7 @@
 - [doc/art/units.md](doc/art/units.md) — ユニットの見た目方針（共通ルール・陣営ごと・制作スペック・STYLE）
 - [doc/art/terrain.md](doc/art/terrain.md) — 地形タイルの方針（TERRAIN STYLE・切り抜き・反復対策）
 - [doc/art/backdrop.md](doc/art/backdrop.md) — 奥の背景の方針（戦闘窓の水平線から上・空／岩壁・BACKDROP STYLE）
-- [doc/art/keyvisual.md](doc/art/keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・透かし対策）
+- [doc/art/keyvisual.md](doc/art/keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・保管）
 - [doc/art/menu.md](doc/art/menu.md) — メニュー画面の材質（木壁・依頼ボード・羊皮紙・ナインパッチ）
 - [doc/art/icons.md](doc/art/icons.md) — UIアイコンの方針（ICON STYLE・額・保管と書き出し）
 - [doc/art/logo.md](doc/art/logo.md) — ロゴ（モチーフ・配色・寸法・作り方）

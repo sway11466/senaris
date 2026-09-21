@@ -52,8 +52,6 @@ repeat.
 
 SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `godot/assets/menu-src/{name}/{name}_prompt.txt`（ユニットと同じ「共通STYLE＝doc／per-asset SUBJECT＝prompt.txt」）。生成時は上の STYLE ブロック＋対象 prompt.txt の SUBJECT を続けて貼る。低コントラスト・四辺シームレスといった実地で効いた指示は各 prompt.txt に反映済み（ここには複製しない＝ドリフト防止）。
 
-透かし（生成サービスが付ける sparkle マーク）はプロンプトで禁止しない。"watermark" の語は生成エラーを誘発し、否定形で書いても消えない（サービスが必ず付与する）＝共通ルールの `_02_dew`（透かし除去ツール）で消し、必要なら手動 master で整える（[direction.md](direction.md) §3）。
-
 ## 4. 保管・命名（二層）
 
 ユニット（[units.md](units.md) §3.1）と同じ「source＝作業／直下＝ゲームが読む正」の二層。
@@ -78,7 +76,6 @@ SUBJECT は材質ごとに差し替える。SUBJECT の正本は各 `godot/asset
 |---|---|---|
 | SUBJECT（静止画） | `godot/assets/menu-src/door/door_prompt.txt` | |
 | ① AI生成 | `godot/assets/menu-src/door/door_01_raw.png` | |
-| ② 透かし除去 | `godot/assets/menu-src/door/door_02_dew.png` | |
 | MOTION（動画） | `godot/assets/menu-src/door/door_open_prompt.txt` | |
 | ① AI生成 | `godot/assets/menu-src/door/door_open_{letter}_01_raw.mp4` | `door_open_b_01_raw.mp4` |
 | ② 透かし切り落とし | `godot/assets/menu-src/door/door_open_{letter}_02_crop.mp4` | `door_open_b_02_crop.mp4` |
