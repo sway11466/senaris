@@ -27,14 +27,6 @@
 - 考慮外：`refill`・`revive` の描き直し。印に語を添える案（絵だけで通す方針を先に試す）。
 - 該当：`godot/assets/icons-src/interlude/damaged/`・`godot/assets/icons/interlude/damaged.png`・[icons.md](art/icons.md) §3。
 
-### feature-134
-
-**会話でしか出ない顔をクロニクルのユニット章から外す**
-- ゴール：盤に一度も出ない人物（鳥人の子）がクロニクルのユニット章に枠を持たず、会話の顔としては今までどおり出る。
-- 背景：鳥人の子は竜狩り st4 の勝利後の会話で喋るだけで盤に出ないが、`unit_skin.csv` の行なのでクロニクルに枠が並び、埋まる条件が「盤に現れた」のため永久に黒いままになる。[authoring.md](campaign/authoring.md) は「盤に出ないキャラがしゃべる場合」を認めているが、その置き場がユニットスキンしか無い。
-- 対応（判断保留）：案1＝会話専用の顔のカタログを `unit_skin.csv` から分け、会話の `skin` はユニットスキンに無ければそちらを引く（今後の村人・王のような喋るだけの人物の置き場になる）。案2＝`unit_skin.csv` に「盤に出る駒か」の列を足し（全行に書く）、クロニクルはその列で絞る。どちらにするか決めてから着手する。
-- 該当：`godot/data/units/unit_skin.csv`・`godot/presentation/chronicle/units_chapter.gd`・会話の顔の解決（`ConversationPanel`）・[chronicle.md](gdd/chronicle.md) ユニット・[authoring.md](campaign/authoring.md)。
-
 ### feature-119
 
 **陣形スキル⑥アローレイン（弓兵3体の三角・半径2の19ヘクス・発動者ベース・貫通なし）**

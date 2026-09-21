@@ -70,6 +70,7 @@
 					"images": {},
 					"map_move_sfx": "move_propeller",
 					"name": "飛空艇",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "airship",
 					"type_id": "airship"
@@ -87,6 +88,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "アーチャー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "archer",
 					"type_id": "archer"
@@ -104,6 +106,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "バリスタ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "ballista",
 					"type_id": "ballista"
@@ -121,6 +124,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "バリケード",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "barricade",
 					"type_id": "barricade"
@@ -138,6 +142,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "バードマン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "birdman",
 					"type_id": "birdman"
@@ -150,6 +155,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "鳥人の子",
+					"on_board": false,
 					"retainers": [],
 					"skin_id": "birdman_child",
 					"type_id": "birdman"
@@ -164,6 +170,7 @@
 					"images": {},
 					"map_move_sfx": "move_drift",
 					"name": "レイス",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "wraith",
 					"type_id": "birdman"
@@ -176,6 +183,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ハーピー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "harpy",
 					"type_id": "birdman"
@@ -192,6 +200,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ビショップ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "bishop",
 					"type_id": "bishop"
@@ -206,6 +215,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ゾンビ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "zombie",
 					"type_id": "bishop"
@@ -222,6 +232,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "クレリック",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "cleric",
 					"type_id": "cleric"
@@ -236,6 +247,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ゴブリン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "goblin",
 					"type_id": "cleric"
@@ -248,6 +260,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ローグ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "rogue",
 					"type_id": "cleric"
@@ -265,6 +278,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "レッドドラゴン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "red_dragon",
 					"type_id": "dragon"
@@ -281,6 +295,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ドワーフ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "dwarf",
 					"type_id": "dwarf"
@@ -298,6 +313,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "エルフ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "elf",
 					"type_id": "elf"
@@ -315,6 +331,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ファイター",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "fighter",
 					"type_id": "fighter"
@@ -329,6 +346,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "グール",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "ghoul",
 					"type_id": "fighter"
@@ -341,6 +359,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "オーク",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "orc",
 					"type_id": "fighter"
@@ -358,6 +377,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "トレント",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "treant",
 					"type_id": "forest_knight"
@@ -375,6 +395,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "マタンゴ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "matango",
 					"type_id": "forest_slinger"
@@ -392,6 +413,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "マンドラゴラ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "mandragora",
 					"type_id": "forest_witch"
@@ -408,6 +430,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ハーフリング",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "halfling",
 					"type_id": "halfling"
@@ -425,6 +448,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "馬",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "horse",
 					"type_id": "horse"
@@ -442,6 +466,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ハンター",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "hunter",
 					"type_id": "hunter"
@@ -460,6 +485,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "トロール",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "troll",
 					"type_id": "juggernaut"
@@ -476,6 +502,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ナイト",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "knight",
 					"type_id": "knight"
@@ -490,6 +517,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "スコーピオン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "scorpion",
 					"type_id": "knight"
@@ -506,6 +534,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "クノイチ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "kunoichi",
 					"type_id": "kunoichi"
@@ -523,6 +552,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "メイジ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "mage",
 					"type_id": "mage"
@@ -537,6 +567,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "オークメイジ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "orc_mage",
 					"type_id": "mage"
@@ -553,6 +584,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ニンジャ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "ninja",
 					"type_id": "ninja"
@@ -567,6 +599,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ワイアーム",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "wyrm",
 					"type_id": "ninja"
@@ -583,6 +616,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ノービス",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "novice",
 					"type_id": "novice"
@@ -600,6 +634,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "パラディン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "paladin",
 					"type_id": "paladin"
@@ -614,6 +649,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ゴブリンロード",
+					"on_board": true,
 					"retainers": [
 						"goblin"
 					],
@@ -628,6 +664,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ローグヘッド",
+					"on_board": true,
 					"retainers": [
 						"rogue"
 					],
@@ -646,6 +683,7 @@
 					"images": {},
 					"map_move_sfx": "move_float",
 					"name": "ピクシー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "pixie",
 					"type_id": "pixie"
@@ -660,6 +698,7 @@
 					"images": {},
 					"map_move_sfx": "move_drift",
 					"name": "ゴースト",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "ghost",
 					"type_id": "pixie"
@@ -676,6 +715,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "プリースト",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "priest",
 					"type_id": "priest"
@@ -690,6 +730,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ホブゴブリン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "hobgoblin",
 					"type_id": "priest"
@@ -702,6 +743,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "スケルトン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "skeleton",
 					"type_id": "priest"
@@ -714,6 +756,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ローグアックス",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "rogue_axe",
 					"type_id": "priest"
@@ -731,6 +774,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ロックサーペント",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "rock_serpent",
 					"type_id": "scout"
@@ -748,6 +792,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "スライム",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "slime",
 					"type_id": "slime"
@@ -765,6 +810,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ゴブリンアーチャー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "goblin_archer",
 					"type_id": "slinger"
@@ -777,6 +823,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "スケルトンアーチャー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "skeleton_archer",
 					"type_id": "slinger"
@@ -789,6 +836,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ローグスリンガー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "rogue_slinger",
 					"type_id": "slinger"
@@ -806,6 +854,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ネクロマンサー",
+					"on_board": true,
 					"retainers": [
 						"skeleton",
 						"zombie",
@@ -830,6 +879,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "シーフ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "thief",
 					"type_id": "thief"
@@ -848,6 +898,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "グリフォン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "griffon",
 					"type_id": "valkyrie"
@@ -864,6 +915,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ヴァンガード",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "vanguard",
 					"type_id": "vanguard"
@@ -878,6 +930,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "オークリーダー",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "orc_leader",
 					"type_id": "vanguard"
@@ -894,6 +947,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "馬車",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "wagon",
 					"type_id": "wagon"
@@ -908,6 +962,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ならず者の馬車",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "rogue_wagon",
 					"type_id": "wagon"
@@ -925,6 +980,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "デュラハン",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "dullahan",
 					"type_id": "warlord"
@@ -941,6 +997,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ウィッチ",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "witch",
 					"type_id": "witch"
@@ -958,6 +1015,7 @@
 					"images": {},
 					"map_move_sfx": "",
 					"name": "ウィザード",
+					"on_board": true,
 					"retainers": [],
 					"skin_id": "wizard",
 					"type_id": "wizard"
