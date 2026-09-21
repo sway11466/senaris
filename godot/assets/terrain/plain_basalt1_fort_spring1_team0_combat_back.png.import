@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://05xr6yap6yye"
-path="res://.godot/imported/plain_cave1_fort_spring1_team0_combat_back.png-3418996e4227b74ca8bf5e40ae0aeedc.ctex"
+uid="uid://cd38n75don37v"
+path="res://.godot/imported/plain_basalt1_fort_spring1_team0_combat_back.png-ed1961088c318c170e2c1d88d0f797ef.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/terrain/plain_cave1_fort_spring1_team0_combat_back.png"
-dest_files=["res://.godot/imported/plain_cave1_fort_spring1_team0_combat_back.png-3418996e4227b74ca8bf5e40ae0aeedc.ctex"]
+source_file="res://assets/terrain/plain_basalt1_fort_spring1_team0_combat_back.png"
+dest_files=["res://.godot/imported/plain_basalt1_fort_spring1_team0_combat_back.png-ed1961088c318c170e2c1d88d0f797ef.ctex"]
 
 [params]
 

@@ -134,6 +134,25 @@
 			"terrain_type": "plain"
 		},
 		{
+			"combat_ground": "plain_basalt1",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": true,
+			"map_ground": "plain_basalt1",
+			"map_scale": 0.85,
+			"memo": "玄武岩の岩盤に湧く泉＝石造りの噴水。占領で柱に付いた盾の色が変わる（_team0=味方/_team1=敵）",
+			"name": "泉",
+			"object_foot_z": 0.4,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "plain_basalt1_fort_spring1",
+			"terrain_type": "fort"
+		},
+		{
 			"combat_ground": "plain",
 			"combat_scale": "",
 			"connect": false,
@@ -189,25 +208,6 @@
 			"side_tiling": "",
 			"skin_id": "plain_cave1_fence_throne1",
 			"terrain_type": "fence"
-		},
-		{
-			"combat_ground": "plain_cave1",
-			"combat_scale": "",
-			"connect": false,
-			"connect_to": "",
-			"elevation": 0,
-			"floor": 0,
-			"grid": true,
-			"map_ground": "plain_cave1",
-			"map_scale": 0.85,
-			"memo": "洞窟の泉＝石造りの噴水。占領で柱に付いた盾の色が変わる（_team0=味方/_team1=敵）",
-			"name": "泉",
-			"object_foot_z": 0.4,
-			"orientable": "none",
-			"placement": "standee",
-			"side_tiling": "",
-			"skin_id": "plain_cave1_fort_spring1",
-			"terrain_type": "fort"
 		},
 		{
 			"combat_ground": "plain_cave1",

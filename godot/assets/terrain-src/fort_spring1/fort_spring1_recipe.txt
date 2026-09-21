@@ -1,15 +1,15 @@
-洞窟の泉（石造りの噴水）。スキンIDは plain_cave1_fort_spring1（fort 型・洞窟の床の上に立てる）。
+玄武岩の岩盤に湧く泉（石造りの噴水）。スキンIDは plain_basalt1_fort_spring1（fort 型・玄武岩の上に立てる）。
 盤・戦闘とも中立／味方／敵の3枚。占領で変わるのは柱に付いた盾の面だけ。
 
 _03_master は _01_raw(jpg) から四隅フラッドフィル（fuzz 7%）で白を抜いたもの（礼拝堂と同じ）:
 magick {n}_01_raw.jpg -alpha set -fuzz 7% -fill none -draw "alpha 0,0 floodfill" -draw "alpha 1023,0 floodfill" -draw "alpha 0,1023 floodfill" -draw "alpha 1023,1023 floodfill" {n}_03_master.png
 
-盤の立ち絵（standee）— map_scale は terrain_skin.csv の plain_cave1_fort_spring1 の行から引く。
+盤の立ち絵（standee）— map_scale は terrain_skin.csv の plain_basalt1_fort_spring1 の行から引く。
 _team0/_team1 は CSV に行が無く、ツールが末尾の _team{N} を落として同じ行を読む＝3枚が同じ大きさで出る。
 
-powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_cave1_fort_spring1 assets\terrain-src\fort_spring1\fort_spring1_03_master.png -Object
-powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_cave1_fort_spring1_team0 assets\terrain-src\fort_spring1\fort_spring1_team0_03_master.png -Object
-powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_cave1_fort_spring1_team1 assets\terrain-src\fort_spring1\fort_spring1_team1_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_basalt1_fort_spring1 assets\terrain-src\fort_spring1\fort_spring1_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_basalt1_fort_spring1_team0 assets\terrain-src\fort_spring1\fort_spring1_team0_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_basalt1_fort_spring1_team1 assets\terrain-src\fort_spring1\fort_spring1_team1_03_master.png -Object
 
 出力は 384四方のキャンバスに 幅174（＝ヘックス幅の85%・map_scale 0.85）× 高さ175。
 足元をマス中心より手前へ出す量は object_foot_z=0.40。orientable は none＝左右反転させない。
@@ -19,8 +19,8 @@ powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_cave1_
 占領で帯の大きさが跳ねる。切り出し枠は3枚の外接矩形の和＝794x706+115+113。
 そのあと左右に透過を足して 2.25:1 の帯の中央に置く（礼拝堂と同じ比率＝窓に対する大きさをここで決める）。
 
-magick assets\terrain-src\fort_spring1\fort_spring1_combat_03_master.png -crop 794x706+115+113 +repage -background none -gravity Center -extent 1589x706 assets\terrain\plain_cave1_fort_spring1_combat_back.png
-magick assets\terrain-src\fort_spring1\fort_spring1_combat_team0_03_master.png -crop 794x706+115+113 +repage -background none -gravity Center -extent 1589x706 assets\terrain\plain_cave1_fort_spring1_team0_combat_back.png
-magick assets\terrain-src\fort_spring1\fort_spring1_combat_team1_03_master.png -crop 794x706+115+113 +repage -background none -gravity Center -extent 1589x706 assets\terrain\plain_cave1_fort_spring1_team1_combat_back.png
+magick assets\terrain-src\fort_spring1\fort_spring1_combat_03_master.png -crop 794x706+115+113 +repage -background none -gravity Center -extent 1589x706 assets\terrain\plain_basalt1_fort_spring1_combat_back.png
+magick assets\terrain-src\fort_spring1\fort_spring1_combat_team0_03_master.png -crop 794x706+115+113 +repage -background none -gravity Center -extent 1589x706 assets\terrain\plain_basalt1_fort_spring1_team0_combat_back.png
+magick assets\terrain-src\fort_spring1\fort_spring1_combat_team1_03_master.png -crop 794x706+115+113 +repage -background none -gravity Center -extent 1589x706 assets\terrain\plain_basalt1_fort_spring1_team1_combat_back.png
 
 戦闘の絵は左右対称なので、左陣営向き／右で反転という向きの区別を持たない。
