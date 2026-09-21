@@ -1,0 +1,27 @@
+NOTE: 生成時は同じフォルダの magic_shield_ref_units.png を参照画像として添付する
+（戦闘立ち絵だけを 4:3 の横長に置いたもの。左からウィザード・クレリック）。
+カットインはスキルごと1枚＝発動者では分けない。どちらからでも撃てるレシピなので、
+代表は表Aの先頭スキン＝ウィザード＋クレリック（doc/gdd/formations.md 一覧）。
+光は描く＝結界そのものが光る理由が画の中にある（⑤⑩は物理の構えで光る理由が無いので描かない）。
+攻撃は描かない＝受けている絵にしない。見せるのは結界を張った瞬間そのもの。
+ドームのヘックスの線ははっきり描く＝盤の7ヘクスの結界と同じものだと画で分かる。
+2人はドームの中に居る＝手前半分の面が人物の前を通る。ヘックスの線が体に重なって初めて
+「中に居る」と読める（重ならないと、ドームが人物の後ろに立った板に見える）。
+①③が縦に光を抜く構図、②が横へ広がる構図なのに対し、⑦は2人を包む半球＝閉じる円で見せる。
+術者は目を閉じて詠唱に没入させ、暴れるのは魔法の側に任せる（doc/art/keyvisual.md §3）。
+
+SUBJECT: Two chibi casters standing shoulder to shoulder in the middle of the frame, a translucent dome of pale blue-white light snapping shut around them — the instant a ward closes. Seen from a slightly LOW angle so the dome arches up over the viewer.
+
+A REFERENCE SHEET of the two unit designs is attached: battle poses, left to right, the WIZARD and the CLERIC. Copy their robes, colors, staff, cross and faces from that sheet EXACTLY, and keep them in that same left-to-right order — the text below only says how each one stands.
+
+The WIZARD on the left grips the staff from the sheet in both hands and has driven its butt down into the ground in front of him, the crystal head held high above his shoulder and blazing. He leans his weight onto the shaft, head bowed, eyes CLOSED, mouth closed, deep in the casting.
+
+The CLERIC on the right holds her wooden cross from the sheet in both hands, raised to her chest, her head bowed over it, eyes CLOSED, lips parted in prayer. She stands quite still, close enough that her shoulder almost touches his.
+
+Around the pair a hemispherical shell of light has just formed, standing on the ground in a clean circle a little outside their feet. Its whole curved surface is built out of HEXAGONAL panels, and the seams between those hexagons are the most visible feature of the picture: thick, crisp, brightly glowing blue-white lines, drawn with hard edges and unmistakably six-sided, wrapping over the curve of the dome and foreshortening toward its rim. The hexagons are large — roughly a dozen across the width of the dome — so the pattern reads instantly, and the brightest seams run along the crown. The panels between the seams are nearly clear glass, so the two figures and the ground behind them read through the dome. The light falling on the two casters comes from this shell.
+
+DEPTH — this matters most: the two casters are INSIDE the dome, so the NEAR half of the shell stands between them and the camera and is drawn OVER them. The hexagonal seams of the near wall cross in front of the wizard and the cleric — over their robes, over his hat, over her hood and shoulders — as translucent glowing lines laid on top of the figures, and the near wall puts a faint pale veil over both of them. The seams of the far wall are visible behind them at the same time, so the dome reads as a complete sphere of glass with the pair standing in the middle of it. The ground circle likewise runs in front of their feet on the near side and behind their feet on the far side. NO part of either figure is drawn on top of the dome.
+
+Neither caster fights, swings, shouts or looks at anything: feet planted, bodies still, all the motion belongs to the light. Nothing strikes the dome and nothing is aimed at it. NO enemies, NO weapons raised, NO shield prop, NO bolts, NO sparks, NO impact.
+
+Background: a wide open battlefield with a low horizon under a clear sky with a few small clouds, kept simple and slightly darkened so the dome and the two figures inside it dominate. NO corpses, NO grid on the ground, NO text, NO UI.
