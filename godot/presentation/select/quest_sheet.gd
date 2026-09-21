@@ -19,10 +19,14 @@ const COL_GAP := 28       # 左右のページの間
 const COL_SEP := 18       # 左のページの中（あらすじ→幕間の印）
 const BODY_FONT := 17     # あらすじ・解放条件の本文
 
-## 幕間の印（その話の前に何が起きたか）＝絵1枚。高さは紙に並ぶ駒と同じ（doc/art/icons.md 幕間の印）。
-## 絵の無い印（まだ描いていない値）は何も出さない＝欠けた枠を見せない。
+## 幕間の印（その話の前に何が起きたか）＝絵1枚＋その右に一行の説明。高さは紙に並ぶ駒と同じ
+## （doc/art/icons.md 幕間の印）。左ページの下端（ボタンの上）に置く＝あらすじの長さが話ごとに
+## 変わっても印の位置が動かない。絵の無い印（まだ描いていない値）は説明ごと出さない＝欠けた枠を見せない。
 const INTERLUDE_DIR := "res://assets/icons/interlude/"
 const INTERLUDE_H := 54.0
+const INTERLUDE_KEY := "ui.quest.interlude_%s"  # 説明の翻訳キー（data/i18n/menu.csv）
+const INTERLUDE_NOTE_FONT := 14
+const INTERLUDE_NOTE_SEP := 10  # 絵と説明の間
 
 ## 戦果の判子（過去の最高ランク）＝紙の右上の角に押す。上と右の余白を同じにして角へ寄せる
 ## ＝後から書き足した検印に見える。焼き印の琥珀をそのまま押すと羊皮紙で浮くので暗く落とす。
@@ -41,7 +45,9 @@ const PARTY_GROUP_SEP := 16  # 塊と塊の間。中より広く取る＝見出�
 
 var _title: Label
 var _body: Label
+var _interlude_row: HBoxContainer
 var _interlude: TextureRect
+var _interlude_note: Label
 var _rank_slot: Control
 var _right: VBoxContainer
 var _back: Button
@@ -105,6 +111,7 @@ func _ready() -> void:
 	# 見開きの本体＝左右2段。左右は同じ幅（stretch_ratio を揃える）。
 	var cols := HBoxContainer.new()
 	cols.add_theme_constant_override("separation", COL_GAP)
+	cols.size_flags_vertical = Control.SIZE_EXPAND_FILL  # 余りをここで飲む＝左ページの下端が紙の下端になる
 	content.add_child(cols)
 
 	var left := VBoxContainer.new()
@@ -118,12 +125,30 @@ func _ready() -> void:
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left.add_child(_body)
 
-	# 幕間の印。絵は横の比率を保つので、幅は絵ごとに変わる（左端は揃う）。
+	# あらすじと幕間の印の間を伸ばす＝印が左ページの下端（ボタンの上）に残る。
+	var left_gap := Control.new()
+	left_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.add_child(left_gap)
+
+	# 幕間の印。絵は横の比率を保つので、幅は絵ごとに変わる（左端は揃う）。説明はその右に縦中央で添える。
+	_interlude_row = HBoxContainer.new()
+	_interlude_row.add_theme_constant_override("separation", INTERLUDE_NOTE_SEP)
+	left.add_child(_interlude_row)
+
 	_interlude = TextureRect.new()
 	_interlude.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_interlude.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_interlude.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	left.add_child(_interlude)
+	_interlude.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_interlude_row.add_child(_interlude)
+
+	_interlude_note = Label.new()
+	_interlude_note.add_theme_font_size_override("font_size", INTERLUDE_NOTE_FONT)
+	_interlude_note.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+	_interlude_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_interlude_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_interlude_note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_interlude_row.add_child(_interlude_note)
 
 	# 右＝出撃する顔ぶれ＝盤と同じマップ絵をページの幅で折り返して並べる。継承のステージでは
 	# 「引き継ぐ隊」と「この戦い限りの駒」を別の塊に分ける（混ぜると全部引き継ぐように読める）。
@@ -134,10 +159,6 @@ func _ready() -> void:
 	_party_box = VBoxContainer.new()
 	_party_box.add_theme_constant_override("separation", PARTY_GROUP_SEP)
 	_right.add_child(_party_box)
-
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	content.add_child(spacer)
 
 	# 左＝やめる／右＝進む（doc/gdd/uiux.md ボタンの左右）。紙の下辺の両端に開いて置く。
 	var buttons := HBoxContainer.new()
@@ -191,16 +212,17 @@ func open_locked(unlock_text: String) -> void:
 func close() -> void:
 	visible = false
 
-## 幕間の印を貼り替える。印なし・絵がまだ無い値は器ごと隠す＝空きも詰まる。
+## 幕間の印を貼り替える。印なし・絵がまだ無い値は絵も説明も器ごと隠す＝空きも詰まる。
 func _set_interlude(interlude: String) -> void:
 	var path := INTERLUDE_DIR + interlude + ".png"
 	var tex: Texture2D = load(path) if not interlude.is_empty() and ResourceLoader.exists(path) else null
 	_interlude.texture = tex
-	_interlude.visible = tex != null
+	_interlude_row.visible = tex != null
 	if tex == null:
 		return
 	var size: Vector2 = tex.get_size()
 	_interlude.custom_minimum_size = Vector2(INTERLUDE_H * size.x / maxf(size.y, 1.0), INTERLUDE_H)
+	_interlude_note.text = tr(INTERLUDE_KEY % interlude)
 
 ## 戦果の判子を押し直す。未クリア（ランクなし）は何も押さない。
 ## 字は戦果票の印と同じ書体＝1文字でも形が読める（手書き風は1文字だと崩れが形の全部になる）。
