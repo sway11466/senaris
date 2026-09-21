@@ -120,7 +120,7 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st4.lost.5" }
     ],
     "outro": [
-      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "dragon-hunt.st4.outro.1" },
+      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "dragon-hunt.st4.outro.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st4.outro.2" },
       { "speaker": "char.birdman_child.name", "skin": "birdman_child", "text": "dragon-hunt.st4.outro.3" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st4.outro.6" },

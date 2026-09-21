@@ -442,8 +442,8 @@ dragon-hunt.st7.intro.8,私の矢は空へ届きます。狙いは翼の付け�
 dragon-hunt.st7.intro.9,空はおれが引きつける。落とすのは君たちだ。,"I will draw the sky to me. Bringing it down is your work."
 dragon-hunt.st7.intro.10,岩棚はわしが塞ぐ。誰も後ろへ通さん。,"I will hold the ledge. Nothing gets past me to the back."
 char.rookie_mage.name,メイジ,Mage
-dragon-hunt.st3.intro.9,岩のような大物にも、魔法は通りますか。,"Does magic get through something that big and stone-hard?"
-dragon-hunt.st3.intro.10,硬い相手ほどよく効く。剣が滑る所へ撃て。,"The harder they are, the better it tells. Strike where a blade would slide off."
+dragon-hunt.st3.intro.9,足場が砂利で、踏ん張りが利きません。前に出ていいものでしょうか。,The ground's all loose gravel — I can't set my feet. Should I push forward anyway?
+dragon-hunt.st3.intro.10,出るな。悪い足場で詰めれば、こちらが先に崩れる。届く間合いから撃て。,Don't. Close in on bad footing and you break first. Shoot from a range that reaches.
 dragon-hunt.st4.intro.8,悲鳴を上げる草は、わたしより遠くまで届きます。,"The screaming roots reach farther than I do."
 dragon-hunt.st4.intro.9,ならば近づくな。撃たれぬ間合いから道を選べ。,"Then stay out of it. Choose your road from beyond their reach."
 dragon-hunt.st4.intro.10,馬車を押さえれば、悪党の足が止まる。森を抜けるぞ。,"Take the cart and the villains lose their legs. We cut through the forest."
@@ -522,3 +522,8 @@ goblin-horde.st1.intro.9,深手を負ったら陣へ下がってください。�
 goblin-horde.st1.outro.1,陣も砦も、両方見ていないと勝てないんですね。,You have to keep an eye on both — their fort and our camp.
 goblin-horde.st1.outro.2,そういう依頼を選んだんだ。悪くない働きだった。,That's the job we took. Not bad work.
 goblin-horde.st1.outro.3,報酬、数えてきますね。,I'll go count the reward.
+dragon-hunt.st5.intro.11,飛ぶ相手は初めてです。どこを狙えば当たりますか。,I've never shot at something airborne. Where do I aim?
+dragon-hunt.st5.intro.12,降りぎわを狙え。翼を広げた所が、いちばん大きい。,Take them as they stoop. Wings spread is the biggest they ever get.
+dragon-hunt.st6.intro.9,毒の匂いがします。荒野で嗅いだものより濃い。……この洞窟には、傷を癒す泉があるようです。,I smell venom — stronger than in the badlands. …And there are springs in these caves that close wounds.
+dragon-hunt.st6.intro.12,待ち伏せなら、あたしが釣ります。近づいて、起きたら下がる。それだけです。,"If they're lying in wait, I'll pull them. Walk up, back off when they wake. That's all it takes."
+dragon-hunt.st6.intro.13,いい手だ。ただし、起こすのは一匹ずつにしろ。,Good thinking. Just wake them one at a time.

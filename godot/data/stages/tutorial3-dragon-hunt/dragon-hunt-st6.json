@@ -69,10 +69,11 @@
           { "squad": "dragon-hunt.st6.squad.1", "entry": "scatter", "from": { "col": 7, "row": 3 } },
           { "squad": "dragon-hunt.st6.squad.2", "entry": "scatter", "from": { "col": 7, "row": 3 } }
       ] },
-      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st6.intro.9" },
-      { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.10" },
+      { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st6.intro.9" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st6.intro.5" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st6.intro.6" },
+      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "dragon-hunt.st6.intro.12" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.13" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st6.intro.7" }
     ],
     "outro": [

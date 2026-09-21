@@ -93,6 +93,8 @@
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.intro.3" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st5.intro.4" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st5.intro.5" },
+      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "dragon-hunt.st5.intro.11" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.12" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "dragon-hunt.st5.intro.8" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.9" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st5.intro.7", "when": "joined:dwarf" },

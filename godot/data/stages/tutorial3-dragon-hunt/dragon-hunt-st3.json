@@ -124,8 +124,8 @@
       { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st3.intro.7" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "dragon-hunt.st3.intro.4" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st3.intro.5" },
-      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st3.intro.9" },
-      { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st3.intro.10" },
+      { "speaker": "char.rookie_archer.name", "skin": "archer", "text": "dragon-hunt.st3.intro.9" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st3.intro.10" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st3.intro.8" }
     ],
     "secured": [
