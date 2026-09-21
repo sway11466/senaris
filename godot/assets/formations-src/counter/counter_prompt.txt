@@ -1,0 +1,20 @@
+NOTE: 生成時は同じフォルダの counter_ref_units.png を参照画像として添付する
+（戦闘立ち絵だけを 4:3 の横長に置いたもの。左からファイター・ヴァンガード）。
+カットインはスキルごと1枚＝発動者では分けない。
+光・オーラは描かない（攻撃バフだが、画の中に光る理由が無い）。効果は盤の足元の光が持つ。
+振り抜いた後（反撃そのもの）は描かない＝立ち絵に引きずられて出ないので、当たる前の溜めで描く。
+⑤シールドウォールが横一列の壁なら、⑩は2体の組＝互いに背を預けて外を向き、武器を引いて待つ形。
+
+SUBJECT: Two chibi infantry braced back to back in the middle of the frame, each facing outward in the opposite direction, weapons drawn back and held still — the instant before they strike back at something that has not hit them yet. They fill the lower two thirds of the frame, seen from a slightly LOW angle so the pair looms over the viewer.
+
+A REFERENCE SHEET of the two unit designs is attached: battle poses, left to right, the FIGHTER and the VANGUARD. Copy their armour, colors, weapons and faces from that sheet EXACTLY, and keep them in that same left-to-right order — the text below only says how each one stands.
+
+The FIGHTER on the left keeps the crouched stance he has on the sheet: knees bent deep, weight on the back foot, his sword drawn back low behind his hip with the blade angled back, his free hand open in front of him. The sword is cocked and completely still — he is not swinging.
+
+The VANGUARD on the right keeps his wind-up from the sheet: his great sword hauled up across his body with both hands, elbows high, the whole body wound like a spring. The blade is held still at the top of the wind-up; nothing is in motion.
+
+Their shoulders and backs touch, so the two bodies read as one coiled knot in the center of the picture. Both men look outward past the edges of the frame with narrowed eyes, jaws set, mouths closed. Feet planted, weight low, heels dug in. Nobody shouts, nobody swings, no enemy is shown.
+
+Loose dirt and low dust drift around their boots where they have set their feet. NO magic, NO glow, NO aura, NO light beams. Clear daylight.
+
+Background: a wide open battlefield with a low horizon under a clear sky with a few small clouds, kept simple so the two figures and the coiled shape they make dominate. NO enemies, NO corpses, NO hex grid, NO text, NO UI.
