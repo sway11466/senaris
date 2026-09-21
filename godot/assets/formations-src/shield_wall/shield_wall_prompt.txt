@@ -1,0 +1,22 @@
+NOTE: 生成時は同じフォルダの shield_wall_ref_units.png を参照画像として添付する
+（戦闘立ち絵だけを 4:3 の横長に置いたもの。左からファイター・ヴァンガード・ナイト）。
+カットインはスキルごと1枚＝発動者では分けない。
+盾を持つ立ち絵はナイトだけなので、ファイターとヴァンガードは盾以外の構えで壁に加わる。
+光・オーラは描かない（防御バフだが、画の中に光る理由が無い）。効果は盤の足元の光が持つ。
+攻撃系のカットインが縦（光が上へ抜ける）なのに対し、⑤は横に伸びる構図＝一直線の壁そのものを見せる。
+
+SUBJECT: Three chibi infantry braced shoulder to shoulder in one straight line facing the camera, seen from a LOW angle so the line looms over the viewer. They fill the lower two thirds of the frame and stand close enough that their shoulders and arms overlap slightly — one unbroken wall of men across the whole width of the picture.
+
+A REFERENCE SHEET of the three unit designs is attached: battle poses, left to right, the FIGHTER, the VANGUARD and the KNIGHT. Copy their armour, colors, weapons and faces from that sheet EXACTLY, and keep them in that same left-to-right order — the text below only says how each one holds himself.
+
+The FIGHTER on the left has no shield, so he braces with his body: knees bent deep, his free forearm raised across his chest as a guard, his sword held low and angled across his body, the shoulder turned into the line.
+
+The VANGUARD in the middle has no shield either: he has driven his great sword point-first into the ground in front of him and leans his weight onto the crossguard with both hands, body low behind the blade.
+
+The KNIGHT on the right is the only one with a shield: his kite shield is turned flat toward the camera and planted in front of him, his sword held low and back behind it.
+
+All three are SET, not swinging: feet planted wide and dug in, weight forward, heads lowered, jaws set, eyes fixed on something past the camera. Nobody attacks, charges, shouts or opens his mouth. The line is dead straight and reads as a single solid barrier holding against something the viewer cannot see.
+
+Loose dirt and low dust drift around their boots where they have braced. NO magic, NO glow, NO aura, NO light beams. Clear daylight.
+
+Background: a wide open battlefield with a low horizon under a clear sky with a few small clouds, kept simple so the three figures and the straight line they make dominate. NO enemies, NO corpses, NO hex grid, NO text, NO UI.
