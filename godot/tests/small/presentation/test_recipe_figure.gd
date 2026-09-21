@@ -37,3 +37,12 @@ func test_spotter_count_matches_recipe() -> void:
 
 func test_thief_is_first_member_of_trick_shot() -> void:
 	assert_eq(String(Formation.SKILLS["trick_shot"]["member_skins"][0]), "thief", "図と黒塗りの代表はシーフ")
+
+## ⑤の図は一直線の3つで、発動者が真ん中＝列のどこからでも発動できることが図で読める。
+func test_line_layout_is_straight_and_unbroken() -> void:
+	var cells: Array = ChronicleRecipeFigure.LAYOUTS["line"]
+	assert_eq(cells.size(), int(Formation.SKILLS["shield_wall"]["count"]),
+		"図の参加者数はレシピの最低人数")
+	for i in range(1, cells.size()):
+		assert_eq(Hex.distance(cells[0], cells[i]), 1, "参加者は発動者の隣（%d番目）" % i)
+	assert_eq(Hex.distance(cells[1], cells[2]), 2, "両隣どうしは正反対＝3つが一直線に並ぶ")

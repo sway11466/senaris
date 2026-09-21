@@ -155,8 +155,9 @@ static func _dot_entry(state: BattleState, option: FormationOption, target: Vect
 		"kind": option.buff_kind,
 	}
 
-## バフ系レシピの状態補正エントリを組む。陣営全体（②グレイス）と、対象1体
-## （ユニットスキル＝scope UNIT・target のhexに居る駒。味方＝ピクシーダスト／敵＝ドレッドタッチ）の両方を作る。
+## バフ系レシピの状態補正エントリを組む。掛かる範囲は3通り＝陣営全体（②グレイス）／参加者だけ
+## （⑤シールドウォール＝列に並んだ駒）／対象1体（ユニットスキル＝scope UNIT・target のhexに居る駒。
+## 味方＝ピクシーダスト／敵＝ドレッドタッチ）。
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 static func _buff_entry(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	# 発動者の兵1人あたりで効くレシピ（ピクシーダスト・ドレッドタッチ）は、発動時の残兵数を掛けて
@@ -166,8 +167,9 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 	if not is_zero_approx(option.buff_value_per_troop):
 		var caster := state.unit_by_handle(option.caster_id)
 		value = option.buff_value_per_troop * float(caster.troops if caster != null else 0)
-	# 参加人数で伸びるレシピ（グレイス）は、基準人数（min_count）を超えた参加者1体ごとに加算する。
-	# 5体 ×1.30／6体 ×1.35／8体 ×1.45。発動時の人数で焼き込む＝以後クラスタが崩れても変わらない。
+	# 参加人数で伸びるレシピ（②グレイス・⑤シールドウォール）は、基準人数（min_count）を超えた
+	# 参加者1体ごとに加算する。②＝5体 ×1.30／6体 ×1.35／8体 ×1.45、⑤＝3体 ×1.15／4体 ×1.20。
+	# 発動時の人数で焼き込む＝以後クラスタや列が崩れても変わらない。
 	if not is_zero_approx(option.buff_value_per_extra):
 		var extra := option.participants.size() - option.min_count
 		value += option.buff_value_per_extra * float(maxi(extra, 0))
@@ -186,6 +188,11 @@ static func _buff_entry(state: BattleState, option: FormationOption, target: Vec
 		var u := state.unit_at(target)  # can_target が対象の存在と陣営を保証済み
 		e["scope"] = "unit"
 		e["handle"] = u.handle if u != null else -1
+	elif option.scope == FormationOption.Scope.PARTICIPANTS:
+		# ⑤シールドウォール＝列に並んだ参加者だけ。発動時の顔ぶれで固める＝このあと列が
+		# 崩れても、掛かった相手も値も変わらない（人数で伸びる値の焼き込みと同じ流儀）。
+		e["scope"] = "participants"
+		e["handles"] = option.participants.duplicate()
 	else:
 		e["scope"] = "team"
 		e["team"] = state.current_team

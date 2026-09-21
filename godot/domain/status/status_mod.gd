@@ -4,9 +4,11 @@ class_name StatusMod
 ## バフもデバフも1つの器で扱う。詳細 → doc/gdd/combat.md「状態補正（バフ/デバフ・持続）」
 ##
 ## 1エントリ ＝ Dictionary:
-##   scope: "team" | "unit"（将来 "tile"/"area"）… どのユニットに効くか
+##   scope: "team" | "unit" | "participants"（将来 "zone"）… どのユニットに効くか
 ##   team:  int（scope=="team" のとき対象陣営）
 ##   handle: int（scope=="unit" のとき対象ユニット）
+##   handles: Array[int]（scope=="participants" のとき対象ユニットの集合＝発動に参加した駒だけ。
+##     発動時の顔ぶれで固める＝以後その駒が動いても列が崩れても、効く相手は変わらない）
 ##   op: "mul" | "add" … 乗算（実効ステータスに係数）／加算（支援と同じ位置）
 ##   target: "attack" | "defense" | "both"
 ##   value: float … 1.3=バフ／0.7 等=デバフ（不利な値を入れるだけ）
@@ -110,4 +112,10 @@ static func applies_to(m: Dictionary, unit: Unit) -> bool:
 			return int(m.get("team", -99)) == unit.team
 		"unit":
 			return int(m.get("handle", -1)) == unit.handle
+		"participants":
+			# 中断セーブから戻すと数値は float で返る＝int で比べ直す（駒番号は整数）。
+			for h in m.get("handles", []):
+				if int(h) == unit.handle:
+					return true
+			return false
 	return false

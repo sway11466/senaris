@@ -19,7 +19,8 @@ class_name Formation
 ## 照合は skin_id（未指定なら type_id へフォールバック）＝ _matches。詳細 → doc/gdd/formations.md
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
 ##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
-##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）。
+##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）／
+##        "line"（cluster の直線版＝発動者を含む一直線に count 体以上が途切れず連なる）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
 ## impact_rain: 面の全ヘックスに着弾の絵を降らせる本数（1ヘックスあたり）。省略＝0＝被弾した駒に
@@ -97,6 +98,29 @@ const SKILLS := {
 		# カットインの絵は発動者（アーチャー／ハンター／エルフ）ごとに1枚＝{skill_id}_{skin}.png。
 		# 他のスキルはスキルごと1枚。→ doc/gdd/formations.md 発動の演出
 		"cutin_per_caster": true,
+	},
+	"shield_wall": {
+		"name": "シールドウォール",
+		"category": "buff",
+		# 歩兵（ノービスは見習いのため対象外）。味方の歩兵スキンが増えたらここに足す＝足し忘れは
+		# tests/small/data/test_data_integrity.gd が unit_skin.csv と突き合わせて落とす。
+		"caster_skins": ["fighter", "vanguard", "knight", "dwarf"],
+		"member_skins": ["fighter", "vanguard", "knight", "dwarf"],
+		"shape": "line",
+		"count": 3,
+		"effect": "buff",
+		# 列に並んだ参加者だけに乗る（陣営全体の②グレイスと違い、他の味方には効かない）。
+		"buff_scope": "participants",
+		"buff_op": "mul",
+		"buff_target": "defense",  # 防御だけ（攻撃は変わらない）
+		# 最低人数（count）で ×1.15。1体増えるごとに +0.05＝4体 ×1.20／5体 ×1.25。
+		# 効果は薄くてよい＝3体で森（防 ×1.2）に立つ程度。本体は「列から動けない」代償のほう。
+		# 詳細 → doc/gdd/formations.md ⑤
+		"buff_value": 1.15,
+		"buff_value_per_extra": 0.05,
+		"buff_fx": "wall",  # 盤の見た目（列の駒の足元の光）。空＝見た目なし
+		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
+		"range_from": "any",  # 列のどの駒からでも発動できる（着弾は無いので対象は取らない）
 	},
 	"arrow_rain": {
 		"name": "アローレイン",
@@ -311,6 +335,10 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 						if m.handle != unit.handle:
 							ordered.append(m)
 					out.append(FormationOption.from_skill(rid, r, ordered))
+			"line":
+				# 軸ごとに1件＝十字に並んでいれば2通りの列から選べる（クラスタは1件）。
+				for run in _line_runs(state, unit, r, caster_pos):
+					out.append(FormationOption.from_skill(rid, r, [unit] + run))
 	return out
 
 ## 選択中 unit が発動できるスキルを、レシピ単位に1つずつまとめた一覧（読み取りのみ・非破壊）。
@@ -349,6 +377,16 @@ static func choices_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> A
 				for m in _cluster(state, unit, r, caster_pos):
 					if m.handle != unit.handle:
 						c.pool.append(m.handle)
+			"line":
+				# 候補は軸ごとの列の和集合（十字なら両方の腕が出る）。どの軸へ伸ばすかは
+				# 1体目を選んだ時点で決まる＝以後は列の両端の外側だけが候補になる。
+				c.variable_count = true
+				var seen := {}
+				for run in _line_runs(state, unit, r, caster_pos):
+					for m in run:
+						if not seen.has(m.handle):
+							seen[m.handle] = true
+							c.pool.append(m.handle)
 		if c.member_sets.is_empty() and c.pool.is_empty():
 			continue  # 組が1つも無い＝そのスキルは成立していない
 		out.append(c)
@@ -367,6 +405,10 @@ static func member_candidates(state: BattleState, choice: FormationChoice, chose
 		var caster := state.unit_by_handle(choice.caster_id)
 		if caster == null:
 			return out
+		# 一直線の形（⑤）は「隣接していれば伸ばせる」では足りない＝列の両端の外側だけを出す。
+		if String(SKILLS[choice.skill].get("shape", "")) == "line":
+			return _line_candidates(state, choice, chosen,
+					caster.pos if from_hex == NO_HEX else from_hex)
 		var anchors: Array[Vector2i] = [caster.pos if from_hex == NO_HEX else from_hex]
 		for h in chosen:
 			var cu := state.unit_by_handle(h)
@@ -749,6 +791,67 @@ static func _cluster(state: BattleState, caster: Unit, r: Dictionary, caster_pos
 	if seen.size() < int(r["count"]):
 		return []
 	return seen.values()
+
+## ⑤シールドウォール＝一直線。発動者の居るヘックスから3軸それぞれに、条件に合う駒が途切れる
+## まで両方向へ伸ばし、発動者を含めて count 体に届いた軸を1本の列として返す。
+## 戻り＝軸ごとの参加者（発動者は含めない・端から端の並び）。十字なら2本返る。
+## caster は caster_pos に居るものとする（移動先のこともある）＝_cluster と同じ流儀。
+static func _line_runs(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
+	var by_pos := {}
+	for u in _member_pool(state, caster, r):
+		by_pos[u.pos] = u
+	var runs: Array = []
+	# 6方向は3軸の表裏＝前半3つで軸を数え、往復して列を伸ばす。
+	for axis in 3:
+		var dir := Hex.direction(axis)
+		var members: Array = []
+		var p := caster_pos - dir
+		while by_pos.has(p):
+			members.push_front(by_pos[p])
+			p -= dir
+		p = caster_pos + dir
+		while by_pos.has(p):
+			members.append(by_pos[p])
+			p += dir
+		if members.size() + 1 >= int(r["count"]):  # 発動者ぶんを足す
+			runs.append(members)
+	return runs
+
+## ⑤の参加者の候補＝いまの列（発動者＋確定済み）の両端の外側にある駒だけ。
+## 1体も確定していないうちは発動者の隣ぜんぶ＝どの軸へ伸ばすかを1体目が決める。
+## 途中を飛ばす選び方も、折れ線になる選び方もここで落ちる。
+static func _line_candidates(state: BattleState, choice: FormationChoice, chosen: Array[int],
+		caster_pos: Vector2i) -> Array[int]:
+	var out: Array[int] = []
+	var seg: Array[Vector2i] = [caster_pos]  # 確定済みは動かない＝盤の実位置で測る
+	for h in chosen:
+		var u := state.unit_by_handle(h)
+		if u == null:
+			return out
+		seg.append(u.pos)
+	var ends: Array[Vector2i] = []
+	if seg.size() == 1:
+		ends = Hex.neighbors(caster_pos)
+	else:
+		# 一直線で途切れない並びなので、最も離れた2つが列の端になる。
+		var a := seg[0]
+		var b := seg[1]
+		var span := 0
+		for i in seg.size():
+			for j in range(i + 1, seg.size()):
+				var d := Hex.distance(seg[i], seg[j])
+				if d > span:
+					span = d
+					a = seg[i]
+					b = seg[j]
+		var dir := (b - a) / span  # 端から端は軸方向の整数倍＝割り切れる
+		ends = [b + dir, a - dir]
+	for cell in ends:
+		var u := state.unit_at(cell)
+		if u == null or u.handle in chosen or not (u.handle in choice.pool):
+			continue
+		out.append(u.handle)
+	return out
 
 ## victim 1体への陣形ダメージ内訳（発動者1体の実効攻撃力・間接扱い）。非破壊。
 ## 威力＝発動者(caster)1体ぶんの実効攻撃力を面内の各ヘックスに当てる（合算しない）。

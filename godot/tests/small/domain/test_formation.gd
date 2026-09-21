@@ -1123,3 +1123,151 @@ func test_magic_arrow_two_casters_offer_choice() -> void:
 	assert_eq(c.pool, [2, 3] as Array[int], "候補は隣の魔法兵2体")
 	assert_eq(Formation.option_of(s, c, [3] as Array[int]).max_range, 6, "ウィッチを選べば射程6")
 	assert_eq(Formation.option_of(s, c, [2] as Array[int]).max_range, 5, "ウィザードを選べば射程5")
+
+# --- ⑤シールドウォール（ノービス以外の歩兵3体以上の一直線・参加者の防御 ×(1＋0.05×人数)）---
+
+## ⑤の成立盤：歩兵 n 体を軸0に一直線に並べる（id 1..n・先頭が列の端）。
+## 列から離れた味方（乗らないことの確認用）と、その隣に敵を置く。
+func _wall_state(n: int, skin := "fighter") -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(2, 3)
+	var line: Array = []
+	for i in n:
+		var u := Unit.new(i + 1, 0, c + Hex.direction(0) * i, 3, 8, 40, 40, 1, skin)
+		s.add_unit(u)
+		line.append(u)
+	var outsider := Unit.new(20, 0, Hex.offset_to_axial(9, 6), 3, 8, 40, 40, 1, "fighter")
+	var foe := Unit.new(21, 1, Hex.neighbor(outsider.pos, 0), 3, 8, 30, 30)
+	s.add_unit(outsider)
+	s.add_unit(foe)
+	return {"s": s, "line": line, "caster": line[0], "outsider": outsider, "foe": foe}
+
+## 候補の並びは判定の走査順に依る＝中身だけを見る。
+func _sorted_ids(a: Array[int]) -> Array[int]:
+	var out := a.duplicate()
+	out.sort()
+	return out
+
+## 3軸のどれでも一直線なら成立する。発動は列の真ん中からでも端からでもできる。
+func test_shield_wall_detected_on_each_axis() -> void:
+	for axis in 3:
+		var s := _state()
+		var c := Hex.offset_to_axial(5, 4)
+		var units: Array = []
+		for i in 3:
+			var u := Unit.new(i + 1, 0, c + Hex.direction(axis) * (i - 1), 3, 8, 40, 40, 1, "fighter")
+			s.add_unit(u)
+			units.append(u)
+		assert_eq(_count(Formation.available_for(s, units[1]), "shield_wall"), 1,
+			"軸%d の一直線・真ん中から発動" % axis)
+		assert_eq(_count(Formation.available_for(s, units[0]), "shield_wall"), 1,
+			"軸%d の一直線・端から発動" % axis)
+
+## 折れ線は一直線ではない＝3体隣り合っていても成立しない（②グレイスとの違い）。
+func test_shield_wall_not_offered_when_bent() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(4, 4)
+	var a := Unit.new(1, 0, c, 3, 8, 40, 40, 1, "fighter")
+	var b := Unit.new(2, 0, c + Hex.direction(0), 3, 8, 40, 40, 1, "fighter")
+	var d := Unit.new(3, 0, c + Hex.direction(0) + Hex.direction(1), 3, 8, 40, 40, 1, "fighter")
+	for u in [a, b, d]:
+		s.add_unit(u)
+	assert_eq(_count(Formation.available_for(s, a), "shield_wall"), 0, "端から見ても折れ線は不成立")
+	assert_eq(_count(Formation.available_for(s, b), "shield_wall"), 0, "曲がり角から見ても不成立")
+
+## ノービスは見習い＝発動者にも参加者にもならない。
+func test_shield_wall_excludes_novice() -> void:
+	var f := _wall_state(3, "novice")
+	assert_eq(_count(Formation.available_for(f["s"], f["caster"]), "shield_wall"), 0,
+		"ノービスだけの列では成立しない")
+
+## ノービスが間に挟まると、列はそこで途切れる。
+func test_shield_wall_novice_breaks_the_line() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(4, 4)
+	var f1 := Unit.new(1, 0, c, 3, 8, 40, 40, 1, "fighter")
+	var nv := Unit.new(2, 0, c + Hex.direction(0), 3, 8, 40, 40, 1, "novice")
+	var f2 := Unit.new(3, 0, c + Hex.direction(0) * 2, 3, 8, 40, 40, 1, "fighter")
+	var f3 := Unit.new(4, 0, c + Hex.direction(0) * 3, 3, 8, 40, 40, 1, "fighter")
+	for u in [f1, nv, f2, f3]:
+		s.add_unit(u)
+	assert_eq(_count(Formation.available_for(s, f1), "shield_wall"), 0, "ノービスの手前で途切れて1体")
+	assert_eq(_count(Formation.available_for(s, f2), "shield_wall"), 0, "向こう側も2体＝3体に足りない")
+
+## 十字に並んでいれば、どちらの列で組むかを選べる＝軸ごとに1件出る。
+func test_shield_wall_cross_offers_one_option_per_axis() -> void:
+	var s := _state()
+	var c := Hex.offset_to_axial(5, 4)
+	var caster := Unit.new(1, 0, c, 3, 8, 40, 40, 1, "fighter")
+	s.add_unit(caster)
+	var h := 2
+	for axis in [0, 1]:
+		for dir_sign in [1, -1]:
+			s.add_unit(Unit.new(h, 0, c + Hex.direction(axis) * dir_sign, 3, 8, 40, 40, 1, "fighter"))
+			h += 1
+	assert_eq(_count(Formation.available_for(s, caster), "shield_wall"), 2, "2軸ぶんの列が出る")
+
+## 補正は参加人数で伸びる＝基準3体 ×1.15、1体増えるごとに +0.05。詳細 → doc/gdd/formations.md ⑤
+func test_shield_wall_value_grows_with_participants() -> void:
+	for pair in [[3, 1.15], [4, 1.20], [5, 1.25]]:
+		var n: int = pair[0]
+		var expected: float = pair[1]
+		var f := _wall_state(n)
+		var s: BattleState = f["s"]
+		var opt := _pick(Formation.available_for(s, f["caster"]), "shield_wall")
+		assert_eq(opt.participants.size(), n, "%d体全員が参加" % n)
+		assert_false(opt.needs_target(), "着弾が無い＝対象指定は要らない")
+		var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
+		assert_almost_eq(float(res.status["value"]), expected, 0.001, "%d体で ×%.2f" % [n, expected])
+
+## 乗るのは列の参加者の防御だけ。攻撃は変わらず、列の外の味方にも乗らない。
+func test_shield_wall_lifts_only_participants_defense() -> void:
+	var f := _wall_state(3)
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "shield_wall")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	for u in f["line"]:
+		assert_almost_eq(float(s.status_aggregate(u, "defense")["mul"]), 1.15, 0.001,
+			"列の駒の防御が ×1.15（id %d）" % u.handle)
+		assert_almost_eq(float(s.status_aggregate(u, "attack")["mul"]), 1.0, 0.001,
+			"攻撃は変わらない（id %d）" % u.handle)
+	assert_almost_eq(float(s.status_aggregate(f["outsider"], "defense")["mul"]), 1.0, 0.001,
+		"列の外の味方には乗らない")
+
+## 発動後に列が崩れても、掛かった補正は発動時の顔ぶれと人数のまま。
+func test_shield_wall_is_baked_at_cast() -> void:
+	var f := _wall_state(4)
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "shield_wall")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	s.remove_unit(4)  # 列の端を1体失う
+	for u in [f["line"][0], f["line"][1], f["line"][2]]:
+		assert_almost_eq(float(s.status_aggregate(u, "defense")["mul"]), 1.20, 0.001,
+			"4体で発動した ×1.20 のまま（id %d）" % u.handle)
+
+## 参加者を選ぶ段＝いまの列の両端の外側だけが候補。途中を飛ばす選び方はできない。
+func test_shield_wall_member_candidates_extend_from_ends() -> void:
+	var f := _wall_state(5)
+	var s: BattleState = f["s"]
+	var line: Array = f["line"]
+	var c := _choice(Formation.choices_for(s, line[2]), "shield_wall")  # 発動者は真ん中の id 3
+	assert_true(c.variable_count, "⑤は人数が可変")
+	var none: Array[int] = []
+	assert_eq(_sorted_ids(Formation.member_candidates(s, c, none)), [2, 4] as Array[int],
+		"はじめは発動者の両隣だけ")
+	assert_eq(_sorted_ids(Formation.member_candidates(s, c, [2] as Array[int])),
+		[1, 4] as Array[int], "片側へ伸ばしたら、その先と反対の隣")
+	assert_eq(_sorted_ids(Formation.member_candidates(s, c, [2, 1] as Array[int])),
+		[4] as Array[int], "端まで伸びたら反対側だけ")
+	assert_false(Formation.can_activate(c, [2] as Array[int]), "発動者＋1体では足りない")
+	assert_true(Formation.can_activate(c, [2, 4] as Array[int]), "3体に達したら発動できる")
+
+## 参加者は全員行動完了になる（②グレイスと同じ＝1体は1ターンに1つの陣形スキルだけ）。
+func test_shield_wall_marks_participants_done() -> void:
+	var f := _wall_state(3)
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "shield_wall")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	for pid in [1, 2, 3]:
+		assert_true(s.is_done(pid), "参加者は行動完了（id %d）" % pid)
+	assert_false(s.is_done(20), "列の外の味方は行動を残す")

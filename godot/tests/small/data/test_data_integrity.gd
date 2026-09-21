@@ -476,3 +476,30 @@ func test_stage_interlude_matches_supply() -> void:
 						_:
 							assert_false(supply in ["refill", "revive"],
 								"%s: 兵を戻す駒があるなら interlude は refill／revive" % label)
+
+## 歩兵のレシピ（⑤シールドウォール・⑩カウンター）が、味方の歩兵スキンを取りこぼしていない。
+## 新しい味方歩兵を unit_skin.csv に足したのにレシピへ書き足し忘れると、その駒だけ列に加われない
+## ＝盤の上では「なぜか組めない」としか見えないバグになるので、データ側から網掛けする。
+## 対象の見分けは「顔ぶれに fighter が入っているレシピ」＝歩兵のレシピが増えても一覧の追記は要らない。
+## ノービスは見習いのため対象外（doc/gdd/formations.md 表A）。
+func test_infantry_recipes_cover_every_ally_infantry_skin() -> void:
+	var by_id: Dictionary = SkinCatalog.load_standard()[SkinCatalog.BY_ID_KEY]
+	var wanted: Array[String] = []
+	for skin in by_id.values():
+		if skin.side == "ally" and skin.category == "infantry" and skin.skin_id != "novice":
+			wanted.append(skin.skin_id)
+	assert_gt(wanted.size(), 0, "味方の歩兵スキンが読める")
+	var checked := 0
+	for rid in Formation.SKILLS:
+		var r: Dictionary = Formation.SKILLS[rid]
+		if not ("fighter" in r.get("caster_skins", [])):
+			continue  # 歩兵のレシピではない
+		checked += 1
+		for sid in wanted:
+			assert_true(sid in r["caster_skins"],
+				"%s の caster_skins に味方歩兵 '%s' がある" % [rid, sid])
+			assert_true(sid in r["member_skins"],
+				"%s の member_skins に味方歩兵 '%s' がある" % [rid, sid])
+		assert_false("novice" in r["caster_skins"], "%s はノービスを含まない" % rid)
+		assert_false("novice" in r["member_skins"], "%s はノービスを含まない" % rid)
+	assert_gt(checked, 0, "歩兵のレシピが1つ以上ある")

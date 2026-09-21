@@ -10,9 +10,11 @@ class_name FormationOption
 enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
 ## SPOTTER（④）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
-enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER }
-## 効果の掛かる範囲。陣営全体（グレイス）か対象1体（ユニットスキル）か。SKILLS の "buff_scope"。
-enum Scope { TEAM, UNIT }
+## LINE（⑤）＝CLUSTER の直線版（隣接連結のうち一直線に連なるものだけ）。
+enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER, LINE }
+## 効果の掛かる範囲。陣営全体（グレイス）か、参加者だけ（⑤シールドウォール）か、
+## 対象1体（ユニットスキル）か。SKILLS の "buff_scope"。
+enum Scope { TEAM, UNIT, PARTICIPANTS }
 ## 対象1体のとき、味方に掛けるか敵に掛けるか。SKILLS の "buff_side"。
 enum Side { ALLY, ENEMY }
 ## 射程の起点。発動者からか、参加者のどれからでもか。SKILLS の "range_from"。
@@ -24,9 +26,9 @@ const EFFECT_IDS := {
 }
 const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
-	"spotter": Shape.SPOTTER,
+	"spotter": Shape.SPOTTER, "line": Shape.LINE,
 }
-const SCOPE_IDS := { "team": Scope.TEAM, "unit": Scope.UNIT }
+const SCOPE_IDS := { "team": Scope.TEAM, "unit": Scope.UNIT, "participants": Scope.PARTICIPANTS }
 const SIDE_IDS := { "ally": Side.ALLY, "enemy": Side.ENEMY }
 const RANGE_FROM_IDS := { "caster": RangeFrom.CASTER, "any": RangeFrom.ANY }
 
