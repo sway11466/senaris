@@ -23,7 +23,7 @@ static func fill(grid: GridContainer, striker_name: String, victim_name: String,
 	var off := hit.attack
 	var def := hit.defense
 	add_row(grid, _t("ui.report.col_attack") % striker_name, "", _t("ui.report.col_defense") % victim_name)
-	add_row(grid, atk_stat_text(off), _t("ui.report.base_stat"), String.num_int64(def.stat))
+	add_row(grid, atk_stat_text(off), _t("ui.report.base_stat"), def_stat_text(def))
 	add_row(grid, times(off.troops), _t("ui.report.strength"), times(def.troops))
 	add_row(grid, mul(off.level), _t("ui.report.level"), mul(def.level))
 	add_row(grid, opt_mul(off.surround), _t("ui.report.encircled"), opt_mul(def.surround))
@@ -110,6 +110,10 @@ static func display_name(skins: Dictionary, snap: UnitSnapshot) -> String:
 ## 攻撃の素の値＝対地/対空の別を添える（同じ駒でも相手で変わる）。サマリーと詳細で同じ書式。
 static func atk_stat_text(b: StatBreakdown) -> String:
 	return _t("ui.report.atk_vs_air" if b.vs_aerial else "ui.report.atk_vs_ground") % b.stat
+
+## 防御の素の値＝攻撃側が対地/対空を名乗るのに対応して「防御」を添える（左右で何の値かを揃える）。
+static func def_stat_text(b: StatBreakdown) -> String:
+	return _t("ui.report.def_stat") % b.stat
 
 ## 実効値。内訳が無い（null）＝その向きは起きていない（反撃なし）＝empty_text。
 static func total_text(bd: StatBreakdown, empty_text: String) -> String:

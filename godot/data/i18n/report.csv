@@ -15,6 +15,7 @@ ui.report.support,支援,Support
 ui.report.buff,状態補正,Status Effect
 ui.report.atk_vs_ground,対地 %d,vs Ground %d
 ui.report.atk_vs_air,対空 %d,vs Air %d
+ui.report.def_stat,防御 %d,Defense %d
 ui.report.no_counter,反撃なし,No Counter
 ui.report.modifier_unnamed,状態補正,Status Effect
 ui.report.status_dot,%s 毒 -%d/ターン,%s Poison -%d/turn
