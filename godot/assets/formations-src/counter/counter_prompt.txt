@@ -3,7 +3,7 @@ NOTE: 生成時は同じフォルダの counter_ref_units.png を参照画像と
 カットインはスキルごと1枚＝発動者では分けない。
 光・オーラは描かない（攻撃バフだが、画の中に光る理由が無い）。効果は盤の足元の光が持つ。
 振り抜いた後（反撃そのもの）は描かない＝立ち絵に引きずられて出ないので、当たる前の溜めで描く。
-シールドウォールが横一列の壁なら、カウンターは2体の組＝互いに背を預けて外を向き、武器を引いて待つ形。
+⑤シールドウォールが横一列の壁なら、⑩は2体の組＝互いに背を預けて外を向き、武器を引いて待つ形。
 
 SUBJECT: Two chibi infantry braced back to back in the middle of the frame, each facing outward in the opposite direction, weapons drawn back and held still — the instant before they strike back at something that has not hit them yet. They fill the lower two thirds of the frame, seen from a slightly LOW angle so the pair looms over the viewer.
 

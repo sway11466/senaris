@@ -2,12 +2,12 @@ NOTE: 生成時は同じフォルダの magic_shield_ref_units.png を参照画�
 （戦闘立ち絵だけを 4:3 の横長に置いたもの。左からウィザード・クレリック）。
 カットインはスキルごと1枚＝発動者では分けない。どちらからでも撃てるレシピなので、
 代表は表Aの先頭スキン＝ウィザード＋クレリック（doc/gdd/formations.md 一覧）。
-光は描く＝結界そのものが光る理由が画の中にある（シールドウォール・カウンターは物理の構えで光る理由が無いので描かない）。
+光は描く＝結界そのものが光る理由が画の中にある（⑤⑩は物理の構えで光る理由が無いので描かない）。
 攻撃は描かない＝受けている絵にしない。見せるのは結界を張った瞬間そのもの。
 ドームのヘックスの線ははっきり描く＝盤の7ヘクスの結界と同じものだと画で分かる。
 2人はドームの中に居る＝手前半分の面が人物の前を通る。ヘックスの線が体に重なって初めて
 「中に居る」と読める（重ならないと、ドームが人物の後ろに立った板に見える）。
-トリニティノヴァ・ディバインジャッジメントが縦に光を抜く構図、グレイスが横へ広がる構図なのに対し、マジックシールドは2人を包む半球＝閉じる円で見せる。
+①③が縦に光を抜く構図、②が横へ広がる構図なのに対し、⑦は2人を包む半球＝閉じる円で見せる。
 術者は目を閉じて詠唱に没入させ、暴れるのは魔法の側に任せる（doc/art/keyvisual.md §3）。
 
 SUBJECT: Two chibi casters standing shoulder to shoulder in the middle of the frame, a translucent dome of pale blue-white light snapping shut around them — the instant a ward closes. Seen from a slightly LOW angle so the dome arches up over the viewer.
