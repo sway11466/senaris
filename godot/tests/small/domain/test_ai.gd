@@ -921,6 +921,31 @@ func test_squad_members_move_from_the_front_line() -> void:
 	back.pos = Hex.offset_to_axial(4, 2)
 	assert_eq(_brain.next_action(s, 1).handle, back.handle, "前に出た駒が先頭になる")
 
+func test_a_piece_finishes_its_turn_before_another_piece_acts() -> void:
+	# 手番の途中の駒が部隊の順番より先。間接の駒は最大間合いへ下がると敵から遠くなり、隣接して
+	# いる近接の駒のほうが「前線に近い駒」になるが、それでも下がった駒が撃ち終えてから次へ移る。
+	# 移動と攻撃の間に別の駒が挟まると、プレイヤーにはできない操作に見える（doc/gdd/uiux.md）。
+	var s := BattleState.new(12, 5)
+	s.current_team = 1
+	var si := _squad(s, "charge")
+	var archer := _ai(s, si, 10, 2, 2)
+	archer.attack_range = 2
+	var melee := _ai(s, si, 11, 4, 2)
+	var e := _pc(s, 1, 3, 2, 60)            # 硬い＝1発では落ちない（近接の駒の標的が残る）
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.handle, archer.handle, "前提: 間接の駒が先頭（同じ距離で col が若い）")
+	assert_eq(a.kind, AiAction.Kind.MOVE, "前提: 最大間合いへ下がる")
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
+	assert_gt(Hex.distance(archer.pos, e.pos), Hex.distance(melee.pos, e.pos),
+			"前提: 下がった先は近接の駒より敵から遠い")
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.handle, archer.handle, "下がった駒が続けて撃つ")
+	assert_eq(b.kind, AiAction.Kind.ATTACK)
+	assert_eq(b.target_id, e.handle)
+	assert_not_null(s.attack(b.handle, b.target_id), "前提: AIの攻撃は妥当であるべき")
+	var c := _brain.next_action(s, 1)
+	assert_eq(c.handle, melee.handle, "撃ち終えてから次の駒へ移る")
+
 func test_the_base_deploys_after_the_pieces_of_its_squad() -> void:
 	# 出撃を行うのは、その部隊の盤上の駒を動かし終えたあと。
 	var s := BattleState.new(12, 5)

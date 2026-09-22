@@ -90,9 +90,12 @@ func detection_radius(state: BattleState, unit: Unit) -> int:
 
 # --- 行動順（doc/gdd/ai.md 行動順） ---
 
-## 敵のターンで行う次の1手。部隊は order の小さいほうから、部隊の中は前線に近い駒から動かし、
-## その部隊の拠点の出撃は盤上の駒を捌いたあと。
+## 敵のターンで行う次の1手。手番の途中の駒が居ればその続きを最優先で、次に部隊は order の
+## 小さいほうから、部隊の中は前線に近い駒から動かし、その部隊の拠点の出撃は盤上の駒を捌いたあと。
 func next_action(state: BattleState, team: int) -> AiAction:
+	var resumed := _resume_action(state, team)
+	if resumed != null:
+		return resumed
 	for si in _squad_order(state):
 		for u in _units_in_order(state, team, si):
 			var action := _unit_action(state, u)
@@ -104,6 +107,24 @@ func next_action(state: BattleState, team: int) -> AiAction:
 			var deploy_action := _try_deploy(state, b)
 			if deploy_action != null:
 				return deploy_action
+	return null
+
+## 手番の途中の駒（このターンに移動か攻撃を使い、まだ行動を終えていない駒）の続きの手。
+## 部隊の順番より先に見る＝1駒の移動と攻撃の間に別の駒の手が挟まらない（doc/gdd/ai.md 行動順）。
+## 挟まると、プレイヤーにはできない操作（移動だけ確定させて攻撃を後に回す）に見える。
+## 攻撃と再移動（ヒット&アウェイ）・移動と降車も同じ理由で続けて出る。
+##
+## 途中の駒に続きの手が無いこともある（前進した先で撃てる相手が居ない・raid が道を塞いでいない敵を
+## 撃たない など）。その駒は次の駒へ送り、誰にも無ければ部隊の順番へ落ちる。
+func _resume_action(state: BattleState, team: int) -> AiAction:
+	for u in state.units():
+		if u.team != team or state.is_done(u.handle):
+			continue
+		if not state.has_moved(u.handle) and not state.has_attacked(u.handle):
+			continue  # まだ手番を始めていない＝部隊の順番で選ぶ側
+		var action := _unit_action(state, u)
+		if action != null:
+			return action
 	return null
 
 ## 部隊を動かす順に並べた index の列。order 昇順（同値・省略は登録順）、末尾に -1＝部隊に属さない駒。
