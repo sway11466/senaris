@@ -65,6 +65,7 @@ var _story: StoryDirector = null  # 会話の進行（intro／イベント／out
 ## 抱える戦闘レポートのタブ）が親の _ready より先に文言を焼くため＝_ready で決めると起動時だけ
 ## その画面が別の言語で組まれる。仕様 → doc/tech/gamesystem.md §設定
 func _init() -> void:
+	UiFont.apply()  # 日本語のフォントを名指しする。字を組む画面より前＝ここで当てる
 	_settings_store = SettingsStore.new()
 	SettingsApplier.apply_locale(_settings_store.locale())
 
