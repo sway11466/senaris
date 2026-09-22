@@ -148,6 +148,8 @@ func _rebuild_summary() -> void:
 	_add_row(_total_text(L["def"], NONE), tr("ui.report.total_def"), _total_text(R["def"], NONE))
 	_add_row(_base_atk_text(L["atk"]), tr("ui.report.attack"), _base_atk_text(R["atk"]))
 	_add_row(_base_def_text(L["def"]), tr("ui.report.defense"), _base_def_text(R["def"]))
+	# 貫通はその駒が打撃したときの値＝相手の防御内訳から引く（左右が入れ替わる）。
+	_add_row(_pierce_text(R["def"]), tr("ui.report.pierce"), _pierce_text(L["def"]))
 	_add_row(_terrain_text(ls), tr("ui.report.terrain"), _terrain_text(rs))
 	# 包囲・支援は常設行＝行の有無で「効いたか」を探させない。効いていなければ — 表示。
 	_add_row(_factor_text(_surround_of(L)), tr("ui.report.encircled"), _factor_text(_surround_of(R)))
@@ -220,6 +222,15 @@ func _base_atk_text(bd: StatBreakdown) -> String:
 
 func _base_def_text(bd: StatBreakdown) -> String:
 	return String.num_int64(bd.stat) if bd != null else NONE
+
+## 貫通（その駒が打撃したときに相手の防御を無視する割合）。渡すのは相手の防御内訳で、
+## 持っているのは貫通後係数（1.00＝貫通なし・0.50＝防御半減）なので率に戻す。
+## 打撃していない側（反撃なしの守備側）は相手の防御内訳が無い＝ — ＝総攻撃・攻撃(基礎)と揃う。
+func _pierce_text(opponent_def: StatBreakdown) -> String:
+	if opponent_def == null:
+		return NONE
+	var pct := roundi((1.0 - opponent_def.pierce) * 100.0)
+	return "%d%%" % pct if pct != 0 else NONE
 
 func _terrain_text(snap: UnitSnapshot) -> String:
 	var terr := snap.terrain
