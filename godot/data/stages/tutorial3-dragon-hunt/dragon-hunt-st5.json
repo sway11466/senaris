@@ -23,27 +23,27 @@
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st5.squad.1", "ai": "charge",
       "units": [
-        { "skin": "harpy", "col": 12, "row": 5 },
-        { "skin": "harpy", "col": 12, "row": 6 },
-        { "skin": "harpy", "col": 11, "row": 5 }
+        { "skin": "harpy", "col": 1, "row": 2 },
+        { "skin": "harpy", "col": 9, "row": 2 },
+        { "skin": "harpy", "col": 5, "row": 4 }
       ] },
     { "order": 2, "name": "dragon-hunt.st5.squad.2", "ai": "charge",
       "units": [
-        { "skin": "harpy", "col": 29, "row": 1 },
-        { "skin": "harpy", "col": 30, "row": 1 },
-        { "skin": "harpy", "col": 31, "row": 2 },
-        { "skin": "harpy", "col": 31, "row": 1 }
+        { "skin": "harpy", "col": 17, "row": 3 },
+        { "skin": "harpy", "col": 19, "row": 2 },
+        { "skin": "harpy", "col": 31, "row": 1 },
+        { "skin": "harpy", "col": 30, "row": 1 }
       ] },
     { "order": 3, "name": "dragon-hunt.st5.squad.3", "ai": "charge",
       "units": [
-        { "skin": "griffon", "col": 29, "row": 0 },
-        { "skin": "griffon", "col": 32, "row": 2 }
+        { "skin": "griffon", "col": 16, "row": 2 },
+        { "skin": "griffon", "col": 30, "row": 2 }
       ] },
     { "order": 4, "name": "dragon-hunt.st5.squad.4", "ai": "raid",
       "units": [
-        { "skin": "rogue", "col": 8, "row": 3 },
-        { "skin": "rogue", "col": 8, "row": 2 },
-        { "skin": "rogue_axe", "col": 7, "row": 2 }
+        { "skin": "rogue", "col": 6, "row": 3 },
+        { "skin": "rogue", "col": 6, "row": 2 },
+        { "skin": "rogue_axe", "col": 5, "row": 2 }
       ] },
     { "order": 5, "name": "dragon-hunt.st5.squad.5", "ai": "ambush", "stack": 1, "sight": 6,
       "units": [
@@ -75,7 +75,8 @@
   ],
   "bases": [
     { "col": 30, "row": 2, "team": "neutral", "rest": "both",
-      "garrison": [ { "type": "birdman", "actor": "birdman", "native": "neutral" } ] }
+      "garrison": [ { "type": "birdman", "actor": "birdman", "native": "neutral" } ] },
+    { "col": 11, "row": 7, "team": "neutral", "rest": "both", "garrison": [] }
   ],
   "events": [
     { "type": "capture", "col": 30, "row": 2, "id": "village-secured", "captured_by": "player", "once": "village", "dialogue": "secured", "focus": true },
