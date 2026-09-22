@@ -21,7 +21,16 @@ const FILL_OCCUPIED := Color(0.86, 0.36, 0.30, 0.45)
 const FILL_THREATENED := Color(0.86, 0.36, 0.30, 0.16)
 const HEX_LINE := Color(0.82, 0.82, 0.82, 0.55)
 const HEX_LINE_WIDTH := 1.5
-const ART_FIT := 0.78  # 駒を収める箱＝ヘックスの内接矩形に対する比（レシピ図と同値）
+const ART_FIT := 0.68  # 駒を収める箱＝ヘックスの内接矩形に対する比（数字を置くぶんレシピ図より小さい）
+
+## マスに書く下げ幅。数字だけなので言語で変わらない＝図に文字を入れない約束の内側に収まる。
+## 値は doc/gdd/combat.md 包囲効果の 0.08 / 0.04 と対。
+const LABEL_OCCUPIED := "-8%"
+const LABEL_THREATENED := "-4%"
+const LABEL_COLOR := Color(0.94, 0.90, 0.84)
+const LABEL_SIZE := 14
+const LABEL_DROP := 0.70  # 数字を置く高さ＝ヘックスの中心から下へ、外接円半径に対する比（駒の下・辺の内側）
+const PIECE_LIFT := 0.18  # 数字を置くマスの駒だけ上へ寄せる＝足元と数字が重ならない
 
 var _center: Texture2D = null
 var _around: Array = []  # OCCUPIED の順に置く Texture2D（null＝絵が未用意）
@@ -68,7 +77,14 @@ func _draw() -> void:
 			draw_colored_polygon(corners, FILL_THREATENED)
 		corners.append(corners[0])
 		draw_polyline(corners, HEX_LINE, HEX_LINE_WIDTH, true)
-		_draw_piece(_texture_at(h), center, s)
+		# 数字を置くマスの駒は上へ寄せる＝足元に数字が重ならない。
+		var lift := Vector2(0.0, -s * PIECE_LIFT) if OCCUPIED.has(h) else Vector2.ZERO
+		_draw_piece(_texture_at(h), center + lift, s)
+		# 駒のいるマスは駒の下に、空きマスは中央に置く。
+		if OCCUPIED.has(h):
+			_draw_label(LABEL_OCCUPIED, center + Vector2(0.0, s * LABEL_DROP))
+		elif THREATENED.has(h):
+			_draw_label(LABEL_THREATENED, center)
 
 ## そのマスに置く駒（無ければ null）。
 func _texture_at(hex: Vector2i) -> Texture2D:
@@ -76,6 +92,15 @@ func _texture_at(hex: Vector2i) -> Texture2D:
 		return _center
 	var i := OCCUPIED.find(hex)
 	return _around[i] if i >= 0 and i < _around.size() else null
+
+## マスの下げ幅。中心を渡すと、その点を中央に置く。
+func _draw_label(text: String, at: Vector2) -> void:
+	var font := get_theme_font("font")
+	if font == null:
+		return
+	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
+	var pos := at - Vector2(w * 0.5, -float(LABEL_SIZE) * 0.35)
+	draw_string(font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, LABEL_COLOR)
 
 ## 駒1つ。内接矩形（幅 1.5s・高さ √3 s）に比率を保って収める（レシピ図と同じ）。
 func _draw_piece(tex: Texture2D, center: Vector2, s: float) -> void:

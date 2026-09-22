@@ -78,8 +78,6 @@ const CHAPTERS: Array = [
 				# 先に示す＝式をここで1回だけ出す。防御貫通だけは板の順から外して末尾に置く
 				# ＝補正をすべて済ませたあとに掛かるので、並びが適用の順のままになる。
 				{ "t": "dl", "e": ["level", "total", "terrain", "surround", "support", "status", "pierce"] },
-				{ "t": "p", "e": "mods_read" },
-				{ "t": "p", "e": "mods_note" },
 				{ "t": "h", "e": "damage" },
 				{ "t": "p", "e": "damage1" },
 				{ "t": "p", "e": "damage2" },
@@ -109,8 +107,8 @@ const CHAPTERS: Array = [
 		{ "id": "main", "blocks": [
 			{ "t": "p", "e": "intro" },
 			# 攻防から先は情報板と突き合わせて読む＝板を横に並べる（戦闘の章と同じ形）。
-			# 板は空きマスを選んだときの表示で、平地（基準）・森（守り有利）・茂み（攻め有利）の3枚
-			# ＝係数が地形ごとに違うことを、同じ形の板を並べて見せる。
+			# 板は空きマスを選んだときの表示で、平地（足場・補正なし）と町（オブジェクト・攻守で
+			# 逆に振れる）の2枚＝係数の違いと層の違いを、同じ形の板を並べて見せる。
 			{ "t": "cols", "left": [
 				{ "t": "h", "e": "stats" },
 				{ "t": "p", "e": "stats1" },
@@ -120,8 +118,7 @@ const CHAPTERS: Array = [
 				{ "t": "p", "e": "height1" },
 			], "right": [
 				{ "t": "img", "e": "panel_plain" },
-				{ "t": "img", "e": "panel_forest" },
-				{ "t": "img", "e": "panel_brush" },
+				{ "t": "img", "e": "panel_town" },
 			] },
 		] },
 	] },
