@@ -1,6 +1,6 @@
 # 世界の作り方
 
-世界を組み立てるときの決めごと。設定の中身は [world.md](world.md)、冒険譚の書き方は [../campaign/authoring.md](../campaign/authoring.md) に置き、ここには「設定を増やすときに何を守るか」だけを置く。
+世界を組み立てるときの決めごと。設定の中身は [world.md](world.md)、冒険譚の書き方は [authoring.md](authoring.md) に置き、ここには「設定を増やすときに何を守るか」だけを置く。
 
 ---
 
@@ -11,7 +11,7 @@
 - 理由: ステージの会話は短く、名を覚えさせる尺がない。盤の駒が兵種で見える以上、物語も同じ粒度で見せるほうが一貫する。
 - 英語では the ＋ 大文字の称号（the Order, the Forest, the Fickle One）で固有名詞として成立する。先例は『ゲーム・オブ・スローンズ』の七神（the Father, the Smith, the Stranger …）で、すべて役割名で通っている。
 - 国も同じ。「冒険者の国」「聖職の国」のように、その国で厚い組織で呼ぶ。
-- 陣営が違えば同じものの呼び名が変わる（秩序側の「邪神」＝混沌側の「対の神」）。呼び名の違いそのものが設定になる（[../campaign/twingods.md](../campaign/twingods.md) 陣営で言葉が変わる）。
+- 陣営が違えば同じものの呼び名が変わる（秩序側の「邪神」＝混沌側の「対の神」）。呼び名の違いそのものが設定になる（[twingods.md](twingods.md) 陣営で言葉が変わる）。
 
 ## 陣営の色付け
 
@@ -34,10 +34,10 @@
 ## 設定は冒険譚から起こす
 
 - 世界観の設定は、冒険譚で必要になったものを [world.md](world.md) に書く。先に世界を作り込まない。
-- 構想中の冒険譚から来た設定は、その旨を添える（[../campaign/roadmap.md](../campaign/roadmap.md)）。
+- 構想中の冒険譚から来た設定は、その旨を添える（[roadmap.md](roadmap.md)）。
 
 ## 関連ドキュメント
 
 - [world.md](world.md) — 設定の中身（国・神々・種族・脅威）
-- [../campaign/authoring.md](../campaign/authoring.md) — 冒険譚の制作方針（登場人物・会話パート）
-- [../campaign/twingods.md](../campaign/twingods.md) — 秩序と混沌の骨格
+- [authoring.md](authoring.md) — 冒険譚の制作方針（登場人物・会話パート）
+- [twingods.md](twingods.md) — 秩序と混沌の骨格

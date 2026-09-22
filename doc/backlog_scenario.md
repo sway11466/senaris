@@ -18,7 +18,7 @@
 
 **チュートリアル１のクロニクルの中身**
 - ゴール：チュートリアル１を遊んだ人が、設定集を読み切れて、物語を通して読める。
-- 背景：設定集は5節ぶんを書いてあるが、[chronicle.md](gdd/chronicle.md) 設定集の構成（前半＝舞台・依頼の経緯・一行の顔ぶれ・相手は何者か、後半＝読み物）に照らすと後半が薄い。正本は [tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) と [world.md](gdd/world.md) で、メモに無い裏設定は載せない。
+- 背景：設定集は5節ぶんを書いてあるが、[chronicle.md](gdd/chronicle.md) 設定集の構成（前半＝舞台・依頼の経緯・一行の顔ぶれ・相手は何者か、後半＝読み物）に照らすと後半が薄い。正本は [tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) と [world.md](campaign/world.md) で、メモに無い裏設定は載せない。
 - 対応：`godot/data/i18n/chronicle.csv` に節を書き足し、`godot/data/chronicle/tutorial1-goblin-raid.json` の `lore` に節と解放条件を並べる。`story` の並び（ステージ順とイベント）も実際の台本と突き合わせる。
 - 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial1-goblin-raid.json`。前提＝feature-126。
 
@@ -26,7 +26,7 @@
 
 **チュートリアル２のクロニクルの中身**
 - ゴール：チュートリアル２を遊んだ人が、設定集を読み切れて、物語を通して読める。
-- 背景：`godot/data/chronicle/` にファイルが無く、設定集も `story` の並びもまだ無い。正本は [tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) と [world.md](gdd/world.md)。
+- 背景：`godot/data/chronicle/` にファイルが無く、設定集も `story` の並びもまだ無い。正本は [tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) と [world.md](campaign/world.md)。
 - 対応：scenario-1 と同じ形で `godot/data/chronicle/tutorial2-undead-rush.json` を作り、`chronicle.csv` に本文を足す。
 - 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial2-undead-rush.json`。前提＝feature-126。
 

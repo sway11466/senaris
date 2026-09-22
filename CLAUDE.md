@@ -51,8 +51,6 @@
 - [doc/gdd/ai.md](doc/gdd/ai.md) — 敵AI（特性ごとの行動開始条件・行動ルール・部隊割り当て）
 - [doc/gdd/rank.md](doc/gdd/rank.md) — 評価ランク（S/A/B の判定・閾値・記録）
 - [doc/gdd/uiux.md](doc/gdd/uiux.md) — UI/UX 操作モデル（選択→移動→コマンド・デバイス別操作・カメラ）
-- [doc/gdd/worldbuilding.md](doc/gdd/worldbuilding.md) — 世界の作り方（役割で世界を見せる＝固有名を持たせない・陣営の色付け・国は厚い組織と主神で描く・世界地図は描かない）
-- [doc/gdd/world.md](doc/gdd/world.md) — 世界観・設定（国・神々・種族・脅威）
 
 ### 冒険譚（キャンペーン） — `campaign/`
 
@@ -60,6 +58,8 @@
 
 - [doc/campaign/roadmap.md](doc/campaign/roadmap.md) — キャンペーン全体の難易度帯・制作状況（一覧・入口）・アイデアネタ帳（シナリオ／ユニット）
 - [doc/campaign/authoring.md](doc/campaign/authoring.md) — 冒険譚の制作方針（共通：会話パート・書式 ほか）
+- [doc/campaign/worldbuilding.md](doc/campaign/worldbuilding.md) — 世界の作り方（役割で世界を見せる＝固有名を持たせない・陣営の色付け・国は厚い組織と主神で描く・世界地図は描かない）
+- [doc/campaign/world.md](doc/campaign/world.md) — 世界観・設定（国・神々・種族・脅威）
 - [doc/campaign/tutorial1-goblin-raid.md](doc/campaign/tutorial1-goblin-raid.md) — チュートリアル１「ゴブリンの襲撃」全7ステージ（基礎：移動・地形・包囲・支援・間接・占領・釣り）
 - [doc/campaign/tutorial2-undead-rush.md](doc/campaign/tutorial2-undead-rush.md) — チュートリアル２「アンデッドの群れ」全7ステージ（陣形スキル・輸送・魔法兵／ボス＝ネクロマンサー）
 - [doc/campaign/tutorial3-dragon-hunt.md](doc/campaign/tutorial3-dragon-hunt.md) — チュートリアル３「竜狩り」（飛行・対空／継承carryover／中立拠点／回復拠点・泉／ボス＝ドラゴン）
