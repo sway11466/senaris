@@ -69,6 +69,9 @@ const TAB_ICON_SIZE := 20
 const TAB_ICON_GAP := 6
 const HEAD_BOTTOM_GAP := 10     # 見出し・タブと本文の間
 const COL_GAP := 16             # 段組みの左右の間
+const TABLE_H_GAP := 18         # 表の列と列の間
+const TABLE_V_GAP := 4          # 表の行と行の間
+const FIG_SIZE := Vector2(300, 232)  # 図の置き場（中身は枠に合わせて縮尺が決まる）
 
 var _root: Control
 var _heading: Label
@@ -82,6 +85,7 @@ var _chapter := 0   ## いま開いている章（CHAPTERS の添字）
 var _section := 0   ## いま開いている節（その章の sections の添字）
 var _tab := 0       ## いま開いているタブ（節がタブを持つときだけ使う）
 var _tab_icons := {}  ## タブid -> Texture2D / null（無い印）。組み直すたびに load しない
+var _skins := {}      ## スキン目録（図に置く駒の絵の引き先）。初めて図を組むときに1度だけ読む
 
 func _ready() -> void:
 	layer = LAYER
@@ -304,6 +308,10 @@ func _add_blocks(box: VBoxContainer, chapter_id: String, section_id: String, blo
 					box.add_child(_rule_row(chapter_id, section_id, i))
 			"img":
 				box.add_child(_image(chapter_id, section_id, String(block["e"])))
+			"table":
+				box.add_child(_table(chapter_id, section_id, String(block["e"]), int(block["n"])))
+			"fig":
+				box.add_child(_fig(String(block["e"])))
 			"cols":
 				box.add_child(_columns(chapter_id, section_id, block))
 
@@ -340,6 +348,73 @@ func _image(chapter_id: String, section_id: String, element: String) -> Control:
 	rect.texture = tex
 	rect.custom_minimum_size = tex.get_size()
 	return rect
+
+## 表1つ。1行が1キーで、セルは | 区切り＝翻訳する人に行のつながりが見えたまま渡る。
+## 列数は見出し行のセル数が決める。本文と同じく左端から始め、用語の説明と同じ幅だけ下げる。
+func _table(chapter_id: String, section_id: String, element: String, rows: int) -> Control:
+	var head := tr(ManualToc.key(chapter_id, section_id, "%s.head" % element)).split("|")
+	var grid := GridContainer.new()
+	grid.columns = head.size()
+	grid.add_theme_constant_override("h_separation", TABLE_H_GAP)
+	grid.add_theme_constant_override("v_separation", TABLE_V_GAP)
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	for c in head:
+		grid.add_child(_cell(c, ACCENT))
+	for i in range(1, rows + 1):
+		var key := ManualToc.key(chapter_id, section_id, "%s.r%d" % [element, i])
+		var cells := tr(key).split("|")
+		if cells.size() != head.size():
+			push_error("ManualScreen: 表のセル数が見出しと違う: %s" % key)
+		for j in head.size():
+			grid.add_child(_cell(cells[j] if j < cells.size() else "", UI_GRAY))
+	var indent := MarginContainer.new()
+	indent.add_theme_constant_override("margin_left", RULE_INDENT)
+	indent.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	indent.add_child(grid)
+	return indent
+
+## 表のセル1つ。折り返さない＝列が揃わなくなる。収まらない語は本文側で短くする。
+func _cell(text: String, color: Color) -> Label:
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+	l.add_theme_color_override("font_color", color)
+	return l
+
+## 図1つ。描くものはコードが持つ＝文字が入らないので翻訳キーを持たない。
+func _fig(element: String) -> Control:
+	if element == "surround":
+		var fig := ManualSurroundFigure.new()
+		fig.setup(_map_texture("goblin"), [_map_texture("fighter"), _map_texture("thief")])
+		fig.custom_minimum_size = FIG_SIZE
+		fig.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		return fig
+	push_error("ManualScreen: 未知の図: %s" % element)
+	return Control.new()
+
+## 図に置く駒の絵（盤のスロット）。スキンの引き先は盤・情報板と同じ SkinCatalog。
+func _map_texture(skin_id: String) -> Texture2D:
+	if _skins.is_empty():
+		_skins = SkinCatalog.load_standard()
+	var skin := SkinCatalog.skin_by_id(_skins, skin_id)
+	if skin == null:
+		push_error("ManualScreen: スキンが無い: %s" % skin_id)
+		return null
+	var path := skin.image("map")
+	if path == "" or not ResourceLoader.exists(path):
+		return null
+	var tex := load(path) as Texture2D
+	if tex == null:
+		return null
+	# 盤の絵は周りに透明の余白を持つ＝そのまま置くとヘックスの中で駒が小さく見える。
+	# クロニクルのカードと同じく、実際に絵のある矩形だけを切り出して置く。
+	var used := ArtCrop.used_rect(tex, path)
+	if used.size.x <= 0 or used.size.y <= 0:
+		return tex
+	var atlas := AtlasTexture.new()
+	atlas.atlas = tex
+	atlas.region = used
+	return atlas
 
 ## 用語1件＝見出しの語と、その下に説明。
 func _definition(chapter_id: String, section_id: String, element: String) -> Control:

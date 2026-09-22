@@ -52,21 +52,19 @@ manual.combat.main.total.desc,"駒はそのままの数値で戦うわけでは�
 総攻撃 ＝ 兵数 × 攻撃力 × レベル × 包囲 × 地形 × 状態補正(×)
 　　　　＋ 支援 ＋ 状態補正(＋)
 総防御 ＝ 兵数 × 防御力 × レベル × 包囲 × 地形 × 状態補正(×)
-　　　　＋ 支援 ＋ 状態補正(＋)
-守る側はこのあと防御貫通が掛かる。","A unit does not fight with its printed numbers. Strength is multiplied in, then the modifiers apply, giving the Effective Atk and Effective Def the report shows. Lv, Encircled, Terrain and Status Effects multiply; Support and Status Effects add. All the multiplying is done first, then the adding.
+　　　　＋ 支援 ＋ 状態補正(＋)","A unit does not fight with its printed numbers. Strength is multiplied in, then the modifiers apply, giving the Effective Atk and Effective Def the report shows. Lv, Encircled, Terrain and Status Effects multiply; Support and Status Effects add. All the multiplying is done first, then the adding.
 Effective Atk = Strength × Attack × Lv × Encircled
         × Terrain × Status(×) + Support + Status(+)
 Effective Def = Strength × Defense × Lv × Encircled
-        × Terrain × Status(×) + Support + Status(+)
-Pierce is then applied to the defender."
+        × Terrain × Status(×) + Support + Status(+)"
 manual.combat.main.surround.term,包囲,Encircled
-manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighboring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so units on edges and corners are hard to encircle."
+manual.combat.main.surround.desc,"囲まれた側が弱る補正。隣接する敵が2体以上で成立し、囲まれるほど攻撃力と防御力がまとめて下がる。近接にも間接にも効く。数え方と係数は「包囲効果」の章にある。","A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and the deeper the ring the further its attack and defense fall together. It applies in melee and at range alike. How the hexes are counted, and the numbers, are in the Encirclement chapter."
 manual.combat.main.support.term,支援,Support
 manual.combat.main.support.desc,隣接する味方による底上げ。攻守どちらも、守り手の駒の周りで数える。攻めるときは標的に隣接している味方が、守るときは自分に隣接している味方が支援に入る。相手を囲んだ駒が、そのまま支援も兼ねる形になる。支援する側の兵数に比例するので、削られた味方の支援は薄い。間接攻撃にも同じように乗る。,"A boost from adjacent allies. Either way, the allies who count are the ones standing next to the defending unit: attacking, that means allies adjacent to your target; defending, allies adjacent to you. A unit that surrounds an enemy doubles as a supporter. The amount scales with the supporter's strength, so a worn-down ally gives little. It applies at any distance, indirect attacks included."
 manual.combat.main.terrain.term,地形,Terrain
 manual.combat.main.terrain.desc,立っているマスの地形が、攻撃と防御にそれぞれ別の係数で掛かる。攻める側は自分の足元の攻撃係数、守る側は自分の足元の防御係数を使う。,"The terrain a unit stands on applies its own factors, one for attack and one for defense. The attacker uses the attack factor of the hex under itself, and the defender uses the defense factor of the hex under itself."
 manual.combat.main.pierce.term,防御貫通,Pierce
-manual.combat.main.pierce.desc,撃った側が持つ、相手の防御を無視する割合。相手が硬いほど効きが伸びる。,"The share of the target's defense that the attacker ignores. The harder the target, the more it pays off."
+manual.combat.main.pierce.desc,"撃った側が持つ、相手の防御を無視する割合。相手が硬いほど効きが伸びる。補正をすべて済ませたあと、最後に守る側の防御力に掛かる。支援で底上げしたぶんも貫通で削られる。","The share of the target's defense that the attacker ignores. The harder the target, the more it pays off. It is applied last, after every other modifier, and only to the defender, so whatever Support added is cut down by it too."
 manual.combat.main.status.term,状態補正,Status Effect
 manual.combat.main.status.desc,スキルで掛かる強化と弱体。掛け算で効くものと足し算で効くものがあり、レポートでは別の行に分かれる。掛け算は地形の下、足し算は支援の下で、それぞれ同じ群の仲間と並ぶ。掛かっている駒は足元に輪が出る（弱体＝内側の太い輪／強化＝外側の細い輪）。,"Buffs and debuffs from skills. Some multiply and some add, and the report splits them into two rows: the multiplying one sits below Terrain and the adding one below Support, each beside the modifiers it groups with. A unit carrying one shows a ring at its feet — a thick inner ring for debuffs, a thin outer ring for buffs."
 manual.combat.main.mods_read,レポートの補正は上から順に適用していく並びで、効いていない行の書き方が2通りある。レベルと地形はどの駒にも必ず掛かるので ×1.00 と出る（このレベル・この地形では得も損もしない、という意味）。包囲・状態補正・支援・防御貫通は条件が揃ったときだけ働くので、条件が外れていれば — になる。,"The modifiers in the report are listed in the order they are applied, and a row that is not helping can say so in two ways. Lv and Terrain apply to every unit, so they read ×1.00, meaning this level and this terrain give neither gain nor loss. Encircled, Status Effect, Support and Pierce only work when their conditions are met, so they show a dash when those conditions are absent."
@@ -77,11 +75,28 @@ manual.combat.main.damage2,差がついたときほど鋭く効く。互角の�
 manual.combat.main.report_summary.img,res://assets/manual/report_summary_ja.png,res://assets/manual/report_summary_en.png
 manual.combat.main.report_attack.img,res://assets/manual/report_attack_ja.png,res://assets/manual/report_attack_en.png
 manual.combat.main.report_counter.img,res://assets/manual/report_counter_ja.png,res://assets/manual/report_counter_en.png
+manual.surround.title,"包囲効果","Encirclement"
+manual.surround.main.title,"包囲効果","Encirclement"
+manual.surround.main.intro,"隣接する敵が2体以上いると、囲まれた側の攻撃力と防御力がまとめて下がる。1対1では起きない。攻める側が強くなるのではなく、囲まれた側が弱るという形なので、囲んで止めた敵は離れた駒で撃っても深く刺さる。","When two or more enemies stand next to a unit, its attack and defense both fall. It never happens one on one. Nothing makes the attacker stronger — the surrounded unit gets weaker — so an enemy you have pinned is just as soft to a unit firing from afar."
+manual.surround.main.count,"数え方","How the Hexes Are Counted"
+manual.surround.main.fig_note,"図は向かい合わせに2体で囲んだところ。赤の濃いマスが敵のいるマス、赤の薄いマスが空きでも敵に隣接しているマス。","The figure shows two enemies on opposite sides. The strong red hexes hold an enemy; the faint red ones are empty but stand next to one."
+manual.surround.main.count1,"周囲6マスを2通りに数える。敵がいるマスは1つにつき8%、空きでも敵に隣接しているマスは1つにつき4%下げる。下がりきっても10%は残る。盤の外のマスは数えないので、端や隅は囲まれにくい。","The six neighboring hexes are counted in two ways: each hex holding an enemy takes off 8%, and each empty hex next to an enemy takes off 4%. It never drops below 10%. Hexes off the board are not counted, so units on edges and corners are hard to encircle."
+manual.surround.main.depth,"深さと係数","Depth and the Number"
+manual.surround.main.rate.head,"囲み方|数えるマス|包囲","Shape|Hexes counted|Encircled"
+manual.surround.main.rate.r1,"隣り合う2体|敵2・空き2|×0.76","Two side by side|2 enemy, 2 empty|×0.76"
+manual.surround.main.rate.r2,"1つ飛びに2体|敵2・空き3|×0.72","Two with a gap|2 enemy, 3 empty|×0.72"
+manual.surround.main.rate.r3,"向かい合わせに2体|敵2・空き4|×0.68","Two opposite|2 enemy, 4 empty|×0.68"
+manual.surround.main.rate.r4,"3体で囲む|敵3・空き3|×0.64","Three around|3 enemy, 3 empty|×0.64"
+manual.surround.main.rate.r5,"6マス全部|敵6・空き0|×0.52","All six hexes|6 enemy, 0 empty|×0.52"
+manual.surround.main.heads,"攻撃できない駒でも、隣に立てば頭数に入る。行動を終えた駒も、盤に居るかぎり数に入る。","A unit with no attack still counts toward the ring, and so does one that has already acted, for as long as it stands on the board."
 manual.terrain.title,地形,Terrain
 manual.terrain.main.title,地形,Terrain
 manual.terrain.main.intro,盤のマスにはそれぞれ地形が置かれている。地形はルールを持つ層と見た目の層に分かれていて、絵が違っても同じ層のものなら同じルールで動く。尾根と花崗岩の尾根、平地と洞窟の床が同じ扱いになるのはこのため。,"Every hex on the board carries a terrain. Terrain is split into a layer that holds the rules and a layer that holds the look, so two hexes that look different behave identically if their rule layer is the same. That is why a ridge and a granite ridge, or a plain and a cave floor, play the same."
 manual.terrain.main.stats,地形の攻防,Attack and Defense
 manual.terrain.main.stats1,地形は攻撃と防御に別々の係数を持つ。立っているマスの係数が、その駒の攻撃力・防御力に掛かる。攻めに向く地形と守りに向く地形があるので、どこで受けてどこから撃つかが読み合いになる。,"Terrain carries separate factors for attack and for defense. The factors of the hex a unit stands on apply to that unit. Some terrain favors attacking and some favors holding, so where you receive an attack and where you shoot from is part of the puzzle."
+manual.terrain.main.panel_plain.img,res://assets/manual/panel_plain_ja.png,res://assets/manual/panel_plain_en.png
+manual.terrain.main.panel_forest.img,res://assets/manual/panel_forest_ja.png,res://assets/manual/panel_forest_en.png
+manual.terrain.main.panel_brush.img,res://assets/manual/panel_brush_ja.png,res://assets/manual/panel_brush_en.png
 manual.terrain.main.layer,足場とオブジェクト,Ground and Objects
 manual.terrain.main.layer1,地形は足場（地面そのもの）とオブジェクト（地面の上に載るもの）に分かれる。1つのマスでルールを出すのは1つだけなので、オブジェクトのマスに敷かれた地面は見た目だけ＝攻防にも敵の索敵にも移動にも関わらない。,"Terrain is either ground (the surface itself) or an object (something sitting on top of it). Only one of them supplies the rules for a hex, so the ground drawn under an object is decoration only — it plays no part in attack, defense, enemy detection or movement."
 manual.terrain.main.height,盤の高さ,Elevation

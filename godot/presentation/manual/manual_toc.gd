@@ -18,6 +18,9 @@ class_name ManualToc
 ##   cols  段組み。"left"／"right"＝それぞれに積むブロックの並び（中身は下の型と同じ）
 ##   img   絵1枚。"e"＝要素名（キーは <要素>.img）。値は絵のパスで、翻訳CSVが言語ごとに持つ
 ##         ＝文字の写った絵（情報板）は言語ぶん撮って別のパスを書き、言語で変わらない絵は同じパスを書く
+##   table 表。"e"＝要素名・"n"＝見出しを除く行数。キーは <要素>.head と <要素>.r1..rN で、
+##         1行が1キー。セルは | 区切りで、列数は見出し行のセル数が決める
+##   fig   図。"e"＝図の名前。描くものはコードが持ち、翻訳キーを持たない（文字を入れない＝言語で変わらない）
 ##
 ## 節が2つ以上ある章は、目次でその章の下に節が開く（いまは敵AIだけ）。
 ## 節が1つの章は章を選べばそのまま本文が出る。
@@ -72,8 +75,9 @@ const CHAPTERS: Array = [
 				# 並びはレポートのサマリータブの行と同じ順（combat_report_view）＝板を見ながら上から順に
 				# 引ける。レベルはサマリーでは名前の行に混ざっているが、真っ先に目に入るので先頭に置く。
 				# 総攻撃・総防御は補正そのものではなく積み上がった結果だが、以降の項目が何に効くのかを
-				# 先に示す＝式をここで1回だけ出す。
-				{ "t": "dl", "e": ["level", "total", "pierce", "terrain", "surround", "support", "status"] },
+				# 先に示す＝式をここで1回だけ出す。防御貫通だけは板の順から外して末尾に置く
+				# ＝補正をすべて済ませたあとに掛かるので、並びが適用の順のままになる。
+				{ "t": "dl", "e": ["level", "total", "terrain", "surround", "support", "status", "pierce"] },
 				{ "t": "p", "e": "mods_read" },
 				{ "t": "p", "e": "mods_note" },
 				{ "t": "h", "e": "damage" },
@@ -86,15 +90,39 @@ const CHAPTERS: Array = [
 			] },
 		] },
 	] },
+	# 包囲は補正の1つだが、深さで係数が変わる＝形と数字を見せないと「2体以上で成立」までしか
+	# 読めない。図と表を持つぶん戦闘の章に収まらないので、章として立てる。戦闘の補正の並びには
+	# 短い説明だけ残し、詳しくはこの章を見に来させる。
+	{ "id": "surround", "sections": [
+		{ "id": "main", "blocks": [
+			{ "t": "p", "e": "intro" },
+			{ "t": "h", "e": "count" },
+			{ "t": "fig", "e": "surround" },
+			{ "t": "p", "e": "fig_note" },
+			{ "t": "p", "e": "count1" },
+			{ "t": "h", "e": "depth" },
+			{ "t": "table", "e": "rate", "n": 5 },
+			{ "t": "p", "e": "heads" },
+		] },
+	] },
 	{ "id": "terrain", "sections": [
 		{ "id": "main", "blocks": [
 			{ "t": "p", "e": "intro" },
-			{ "t": "h", "e": "stats" },
-			{ "t": "p", "e": "stats1" },
-			{ "t": "h", "e": "layer" },
-			{ "t": "p", "e": "layer1" },
-			{ "t": "h", "e": "height" },
-			{ "t": "p", "e": "height1" },
+			# 攻防から先は情報板と突き合わせて読む＝板を横に並べる（戦闘の章と同じ形）。
+			# 板は空きマスを選んだときの表示で、平地（基準）・森（守り有利）・茂み（攻め有利）の3枚
+			# ＝係数が地形ごとに違うことを、同じ形の板を並べて見せる。
+			{ "t": "cols", "left": [
+				{ "t": "h", "e": "stats" },
+				{ "t": "p", "e": "stats1" },
+				{ "t": "h", "e": "layer" },
+				{ "t": "p", "e": "layer1" },
+				{ "t": "h", "e": "height" },
+				{ "t": "p", "e": "height1" },
+			], "right": [
+				{ "t": "img", "e": "panel_plain" },
+				{ "t": "img", "e": "panel_forest" },
+				{ "t": "img", "e": "panel_brush" },
+			] },
 		] },
 	] },
 	{ "id": "move", "sections": [
@@ -308,6 +336,12 @@ static func block_keys(chapter_id: String, section_id: String, block: Dictionary
 				keys.append(key(chapter_id, section_id, "rule%d.act" % i))
 		"img":
 			keys.append(key(chapter_id, section_id, "%s.img" % String(block["e"])))
+		"table":
+			keys.append(key(chapter_id, section_id, "%s.head" % String(block["e"])))
+			for i in range(1, int(block["n"]) + 1):
+				keys.append(key(chapter_id, section_id, "%s.r%d" % [String(block["e"]), i]))
+		"fig":
+			pass  # 図は文字を持たない＝引くキーが無い
 		"cols":
 			for side in ["left", "right"]:
 				for b: Dictionary in block[side]:
