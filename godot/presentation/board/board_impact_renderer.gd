@@ -80,9 +80,9 @@ const FLY_HEIGHT := TILE * 0.55        # 地面からの高さ（駒の胸のあ
 const FLY_TILES := 1.5                 # 絵の大きさ（長辺がヘックス幅の何倍か）
 const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時間（ディバインジャッジメントの残光より短い）
 
-# --- 発動者が跳んで帰る（バックスタブ。レシピの return_to_origin）---
-const HOME_HOP_SEC := 0.34             # 刺した位置から移動開始位置へ跳ぶ時間（距離によらず一定＝一跳び）
-const HOME_HOP_ARC := TILE * 1.1       # 弧の高さ（中間で一番高い）。歩きではなく跳びに見せる
+# --- 発動者が消えて帰る（バックスタブ。レシピの return_to_origin）---
+# 刺した位置で駒が消え、斬撃が出て、移動開始位置に現れる＝「刺して消える」を盤で見せる。
+# 消える／現れるの尺は撃破のフェード（HIT_FADE_SEC）と揃える。
 
 # --- 戦闘の一撃（戦闘窓を開かない手＝設定「戦闘の演出」の盤面のみ。doc/gdd/settings.md）---
 # 攻撃側の武器エフェクト（戦闘窓と同じ CombatEffect）を盤に出す。矢や投石は攻撃側の駒から被弾側へ
@@ -217,6 +217,10 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	if gen != _impact_gen:
 		_end_impact()
 		return
+	await _vanish_caster(result, st)  # 戻すレシピだけ＝専用の絵が無くても消えて帰る筋は同じ
+	if gen != _impact_gen:
+		_end_impact()
+		return
 	var center := result.center
 	# 面の光は駒の処理が終わるまで保たせる＝どの範囲の中で起きているのかが見えたまま進む。
 	_flash_cells(result.cells, HIT_CELL_HOLD + (HIT_DROP_SEC + HIT_STEP_SEC * float(hits.size())) * st)
@@ -234,7 +238,7 @@ func play(result: SkillResult, is_locked: bool) -> void:
 		if gen != _impact_gen:
 			_end_impact()
 			return
-	await _hop_caster_home(result)  # 発動者を戻すレシピ（バックスタブ）だけ＝他は素通り
+	await _appear_caster(result, st)  # 発動者を戻すレシピ（バックスタブ）だけ＝他は素通り
 	if gen != _impact_gen:
 		_end_impact()
 		return
@@ -445,19 +449,33 @@ static func _rain_noise(hex: Vector2i, i: int, salt: int) -> float:
 
 ## 単体対象のスキル専用：ため（対象ヘクスの光）→ スキルの絵が届いて着弾 → 残光 → 引き。
 ## 届き方はレシピの impact_motion で分かれる："drop"（既定・ディバインジャッジメント＝真上からゆっくり降りる）／
-## "fly"（トリックショット＝射手のヘックスから飛んでくる）。被弾の処理（フラッシュ・兵数・撃破フェード）は
-## どちらも絵が着いた瞬間に共通の _land_hit で起こす。
+## "fly"（トリックショット＝射手のヘックスから飛んでくる）／"strike"（バックスタブ＝対象の駒に重ねて
+## その場で弾ける）。被弾の処理（フラッシュ・兵数・撃破フェード）はどれも絵が着いた瞬間に共通の _land_hit で起こす。
+## 発動者を戻すレシピ（バックスタブ）は、絵の前に駒を消し、絵が引いてから移動開始位置に現し直す
+## ＝刺して消える。詳細 → doc/gdd/formations.md バックスタブ
 func _play_single_target(result: SkillResult, tex: Texture2D, is_locked: bool) -> void:
 	var gen := _impact_gen
 	# 決着のとどめ＝絵の到達・残光・撃破フェードをスローで見せる（ためはそのまま）。
 	var st := FINISH_STRETCH if _finisher else 1.0
 	var hit: SkillHit = result.hits[0]
 	# 射手の位置が要る＝取れなければ真上から降ろす（穴は開かない）。
-	var flying := _fly_motion(result) and result.caster != null
-	var reach := (FLY_SEC + FLY_HOLD_SEC) if flying else (SINGLE_DROP_SEC + SINGLE_HOLD_SEC)
+	var motion := _impact_motion(result)
+	if motion == "fly" and result.caster == null:
+		motion = "drop"
+	var reach := SINGLE_DROP_SEC + SINGLE_HOLD_SEC
+	var tail := SINGLE_FADE_SEC  # 絵が引くまでの上乗せ。重ねる型は開きながら消えるので持たない
+	if motion == "fly":
+		reach = FLY_SEC + FLY_HOLD_SEC
+	elif motion == "strike":
+		reach = STRIKE_SEC
+		tail = 0.0
 	_impact_lock = not is_locked
 	_set_locked_fn.call(true)  # 共通シーケンスと同じ流儀＝演出中に盤を触らせない
 	await _wait(HIT_LEAD_SEC)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	await _vanish_caster(result, st)  # 戻すレシピだけ＝刺した位置で駒が消える
 	if gen != _impact_gen:
 		_end_impact()
 		return
@@ -472,15 +490,21 @@ func _play_single_target(result: SkillResult, tex: Texture2D, is_locked: bool) -
 	var on_land := func() -> void:
 		if gen == _impact_gen:
 			_land_hit(hit, st)
-	if flying:
-		_spawn_flying_impact(result.caster.pos, hex, tex, on_land, st)
-	else:
-		_spawn_falling_impact(hex, tex, on_land, st)
-	await _wait((reach + SINGLE_FADE_SEC) * st)
+	match motion:
+		"fly":
+			_spawn_flying_impact(result.caster.pos, hex, tex, on_land, st)
+		"strike":
+			# 絵は「右へ向かう一撃」で描く約束＝撃った側が右に居るときだけ反転する（戦闘の一撃と同じ規約）。
+			var from_pos := result.caster.pos if result.caster != null else hex
+			var mirror := Hex.to_pixel(from_pos, TILE).x > Hex.to_pixel(hex, TILE).x
+			_spawn_strike(hex, tex, mirror, STRIKE_TILES, on_land, st)
+		_:
+			_spawn_falling_impact(hex, tex, on_land, st)
+	await _wait((reach + tail) * st)
 	if gen != _impact_gen:
 		_end_impact()
 		return
-	await _hop_caster_home(result)  # 刺したあと移動開始位置へ跳んで帰る（バックスタブ）
+	await _appear_caster(result, st)  # 移動開始位置に現れる（バックスタブ）
 	if gen != _impact_gen:
 		_end_impact()
 		return
@@ -488,32 +512,57 @@ func _play_single_target(result: SkillResult, tex: Texture2D, is_locked: bool) -
 	_sync_fn.call()
 
 
-## 発動者を戻すレシピ（バックスタブ）の帰り＝刺した位置から移動開始位置へ跳んで戻る。
-## 戻す先は SkillResult が持つ（domain が盤を戻した先）。戻さないレシピは何もしない。
-## 盤の状態はもう戻った先で確定している＝跳びが途中で切れても嘘にはならない（移動アニメと同じ
+## 発動者を戻すレシピ（バックスタブ）の前半＝刺した位置で駒を消す。戻す先は SkillResult が持つ
+## （domain が盤を戻した先）。戻さないレシピは何もしない。
+## 盤の状態はもう戻った先で確定している＝演出が途中で切れても嘘にはならない（移動アニメと同じ
 ## 「状態は即確定・見た目は後追い」の流儀）。詳細 → doc/gdd/formations.md バックスタブ
-func _hop_caster_home(result: SkillResult) -> void:
-	if result.caster_returned_to == Formation.NO_HEX or result.caster == null:
+func _vanish_caster(result: SkillResult, stretch := 1.0) -> void:
+	if result.caster_returned_to == Formation.NO_HEX:
 		return
 	var node: Node3D = _unit_renderer.get_unit_node(result.caster_id)
 	if node == null:
 		return
-	var from_hex: Vector2i = result.caster.pos  # スナップショットは戻す前＝刺した位置
-	var to_hex: Vector2i = result.caster_returned_to
-	var a := Hex.to_pixel(from_hex, TILE)
-	var b := Hex.to_pixel(to_hex, TILE)
-	var start := Vector3(a.x, _elev_fn.call(from_hex), a.y)
-	var land := Vector3(b.x, _elev_fn.call(to_hex), b.y)
-	var hop := func(t: float) -> void:
-		node.position = start.lerp(land, t) + Vector3(0.0, HOME_HOP_ARC * sin(PI * t), 0.0)
+	_unit_renderer.forget_unit(result.caster_id)  # 追跡から外す＝この駒は消し、帰りで組み直す
+	_fade_out_unit(node, stretch)
+	await _wait(HIT_FADE_SEC * stretch)
+
+
+## 同・後半＝移動開始位置に駒を組み直して浮かび上がらせる。盤の状態はもう戻った先なので、
+## 組み直せばそのマスに立つ。戻さないレシピは何もしない。
+func _appear_caster(result: SkillResult, stretch := 1.0) -> void:
+	if result.caster_returned_to == Formation.NO_HEX:
+		return
+	var u := _state.unit_by_handle(result.caster_id)
+	if u == null:
+		return
+	_fade_in_unit(_unit_renderer.build_unit_node(u), stretch)
+	await _wait(HIT_FADE_SEC * stretch)
+
+
+## 組んだばかりの駒を透明から立ち上げる（_fade_out_unit の裏返し）。立ち絵と札だけを動かし、
+## 影・バー・輪は共有材質なのでそのまま出す（材質のアルファを触ると他の駒まで薄くなる）。
+func _fade_in_unit(node: Node3D, stretch := 1.0) -> void:
 	var tw := _tween()
-	tw.tween_method(hop, 0.0, 1.0, HOME_HOP_SEC)
-	await _wait(HOME_HOP_SEC)
+	tw.set_parallel(true)
+	for c in node.get_children():
+		if c is Sprite3D:
+			var spr := c as Sprite3D
+			spr.alpha_cut = SpriteBase3D.ALPHA_CUT_DISABLED  # discard のままでは薄くならない
+			var base := spr.modulate.a
+			spr.modulate.a = 0.0
+			tw.tween_property(spr, "modulate:a", base, HIT_FADE_SEC * stretch)
+		elif c is Label3D:
+			var lab := c as Label3D
+			var lbase := lab.modulate.a
+			lab.modulate.a = 0.0
+			tw.tween_property(lab, "modulate:a", lbase, HIT_FADE_SEC * stretch)
 
 
-## そのスキルの絵が射手から飛んでくるか（レシピの impact_motion）。既定は真上から降りる。
-func _fly_motion(result: SkillResult) -> bool:
-	return String(Formation.SKILLS.get(result.skill, {}).get("impact_motion", "drop")) == "fly"
+## そのスキルの絵の届き方（レシピの impact_motion）。既定は真上から降りる "drop"。
+## "fly"＝射手のヘックスから飛ぶ／"strike"＝対象の駒に重ねてその場で弾ける（バックスタブ＝
+## 発動者は刺した直後に消えるので、飛ばす起点が残らない）。
+func _impact_motion(result: SkillResult) -> String:
+	return String(Formation.SKILLS.get(result.skill, {}).get("impact_motion", "drop"))
 
 
 ## 着弾は無いが光らせる面がある（スライムの分裂で出た位置・駒の居ない面への着弾）。

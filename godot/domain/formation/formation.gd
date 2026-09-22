@@ -32,7 +32,8 @@ class_name Formation
 ## buff_scope: 補正の掛かる範囲＝"team"（グレイス）／"participants"（シールドウォール・カウンター）／"unit"（ユニットスキル）／
 ##        "zone"（マジックシールド＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
 ## pierce_immune: その補正が効いている駒は貫通を受けない（攻撃側の pierce を 0 扱い＝マジックシールド）。
-## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）。single のみ。
+## impact_motion: 着弾の絵の届き方。"drop"（既定＝真上から降りる）／"fly"（射手から飛ぶ）／
+##        "strike"（対象の駒に重ねてその場で弾ける＝バックスタブ）。single のみ。
 ## impact_rain: 面の全ヘックスに着弾の絵を降らせる本数（1ヘックスあたり）。省略＝0＝被弾した駒に
 ##        1枚ずつ落とす共通の形。アローレイン＝矢の雨。詳細 → doc/gdd/formations.md アローレイン
 ## range_from: "any"（参加者のどれからでも射程判定）／"caster"（発動者から）。
@@ -198,8 +199,9 @@ const SKILLS := {
 		# 着弾後に発動者をこのターンの移動開始位置へ戻す（このレシピだけ）＝刺して消える。
 		# 戻りは経路・移動コスト・足止めを問わない。詳細 → doc/gdd/formations.md バックスタブ
 		"return_to_origin": true,
-		# 着弾の絵は隣に立つシーフのヘックスから届く（真上から降ろさない）。
-		"impact_motion": "fly",
+		# 着弾の絵は対象の駒に重ねてその場で弾ける＝シーフは刺した直後に消えるので、絵を飛ばす
+		# 起点が残らない。盤の見せ方＝駒が消える → 斬撃 → 移動開始位置に現れる。
+		"impact_motion": "strike",
 		# カットインの絵は発動者ごとに1枚＝{skill_id}_{skin}.png。いまの発動者はシーフだけだが、
 		# 斥候が増えたら刺す姿もその駒のものになる＝先に分けておく。→ doc/gdd/formations.md 発動の演出
 		"cutin_per_caster": true,
