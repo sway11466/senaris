@@ -125,37 +125,26 @@ const CHAPTERS: Array = [
 	{ "id": "move", "sections": [
 		{ "id": "main", "blocks": [
 			{ "t": "p", "e": "intro" },
-			{ "t": "h", "e": "cost" },
-			{ "t": "p", "e": "cost1" },
-			{ "t": "p", "e": "cost2" },
-			{ "t": "h", "e": "zoc" },
-			{ "t": "p", "e": "zoc1" },
-			{ "t": "p", "e": "zoc2" },
-			{ "t": "h", "e": "after" },
-			{ "t": "p", "e": "after1" },
-			{ "t": "h", "e": "transport" },
-			{ "t": "p", "e": "tr1" },
-			{ "t": "p", "e": "tr2" },
-			{ "t": "p", "e": "tr3" },
-		] },
-	] },
-	{ "id": "skill", "sections": [
-		{ "id": "main", "blocks": [
-			{ "t": "p", "e": "intro" },
-			{ "t": "h", "e": "recipe" },
-			{ "t": "p", "e": "recipe1" },
-			{ "t": "p", "e": "recipe2" },
-			{ "t": "h", "e": "cost" },
-			{ "t": "p", "e": "cost1" },
-			{ "t": "p", "e": "cost2" },
-			{ "t": "h", "e": "kinds" },
-			{ "t": "p", "e": "kinds1" },
-			{ "t": "p", "e": "kinds2" },
-			{ "t": "p", "e": "kinds3" },
-			{ "t": "h", "e": "stack" },
-			{ "t": "p", "e": "stack1" },
-			{ "t": "p", "e": "stack2" },
-			{ "t": "p", "e": "stack3" },
+			# コストは情報板と突き合わせて読む＝板を横に置く（地形・戦闘の章と同じ形）。板は城壁
+			# ＝移動種別で値がばらけ、進入できない地形（不可）も同じ板の中に出る1枚。
+			{ "t": "cols", "left": [
+				{ "t": "h", "e": "cost" },
+				{ "t": "p", "e": "cost1" },
+				{ "t": "p", "e": "cost2" },
+				{ "t": "h", "e": "zoc" },
+				{ "t": "p", "e": "zoc1" },
+				# 足止めは駒の置かれ方の話＝盤を撮らずに図で出す（包囲と同じ扱い）。
+				{ "t": "fig", "e": "zoc" },
+				{ "t": "p", "e": "zoc2" },
+				{ "t": "h", "e": "after" },
+				{ "t": "p", "e": "after1" },
+				{ "t": "h", "e": "transport" },
+				{ "t": "p", "e": "tr1" },
+				{ "t": "p", "e": "tr2" },
+				{ "t": "p", "e": "tr3" },
+			], "right": [
+				{ "t": "img", "e": "panel_rampart" },
+			] },
 		] },
 	] },
 	{ "id": "ai", "sections": [

@@ -72,6 +72,7 @@ const COL_GAP := 16             # 段組みの左右の間
 const TABLE_H_GAP := 18         # 表の列と列の間
 const TABLE_V_GAP := 4          # 表の行と行の間
 const FIG_SIZE := Vector2(280, 250)  # 図1つの置き場（中身は枠に合わせて縮尺が決まる）
+const ZOC_FIG_SIZE := Vector2(300, 260)  # 足止めの図＝迂回路のぶん横に広い
 
 var _root: Control
 var _heading: Label
@@ -405,6 +406,11 @@ func _fig(element: String) -> Control:
 			fig.custom_minimum_size = FIG_SIZE
 			row.add_child(fig)
 		return row
+	if element == "zoc":
+		var fig := ManualZocFigure.new()
+		fig.setup(_map_texture("goblin"), _map_texture("fighter"))
+		fig.custom_minimum_size = ZOC_FIG_SIZE
+		return fig
 	push_error("ManualScreen: 未知の図: %s" % element)
 	return Control.new()
 

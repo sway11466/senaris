@@ -38,6 +38,13 @@
       ]
     }
   ],
+  "bases": [
+    {
+      "col": 1,
+      "row": 0,
+      "team": "neutral"
+    }
+  ],
   "haze": 0.8,
   "backdrop": "sky_clear"
 }

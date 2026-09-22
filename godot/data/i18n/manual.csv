@@ -31,12 +31,12 @@ manual.unit.main.capacity.desc,中に乗せられる味方の数。1以上なら
 manual.unit.main.level.term,Lv,Lv
 manual.unit.main.level.desc,戦うたびに上がる強さ。初期値は1で、1上がるごとに攻撃力と防御力が1%増える。上限は99。,"Power earned by fighting. Units start at 1, and every level adds 1% to both attack and defense. The cap is 99."
 manual.unit.main.category.term,兵種,Class
-manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器がある。陣形スキルのレシピも兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport and war machine. Formation skill recipes are written in terms of these too."
+manual.unit.main.category.desc,駒の役どころの分類。歩兵・弓兵・魔法兵・占領兵・斥候・飛行兵・精鋭・輸送・兵器がある。陣形スキルの発動条件も兵種の組み合わせで書かれている。,"What role the unit fills: infantry, archer, mage, clergy, scout, flier, champion, transport and war machine. Formation skill requirements are written in terms of these too."
 manual.unit.main.stats,能力値,Stats
 manual.unit.main.stats1,能力値はどの駒も持つ。情報パネルの能力タブに、下と同じ順で並ぶ。,"Every unit has all of these. They appear in the stats tab of the info panel, in the order below."
 manual.unit.main.traits,特性,Traits
 manual.unit.main.traits1,特性はどの駒も持つわけではなく、持っている駒だけが備える。持つ駒を選ぶと、情報パネルに「特性」の行として出る。,"Traits are not something every unit has — only the units that carry them. Select such a unit and it shows up in the info panel as a Trait row."
-manual.unit.main.traits2,一部の駒はユニットスキルも持つ。これも持っている駒だけのもので、情報パネルでは特性の下に名前と効果が並ぶ。スキルの仕組みは「スキル」の章で説明する。,"Some units also carry a unit skill. Like traits, only the units that have one carry it, and the info panel lists its name and effect below the traits. How skills work is covered in the Skills chapter."
+manual.unit.main.traits2,一部の駒はユニットスキルも持つ。これも持っている駒だけのもので、情報パネルでは特性の下に名前と効果が並ぶ。,"Some units also carry a unit skill. Like traits, only the units that have one carry it, and the info panel lists its name and effect below the traits."
 manual.combat.title,戦闘,Combat
 manual.combat.main.title,戦闘,Combat
 manual.combat.main.window.img,res://assets/manual/combat_window.png,res://assets/manual/combat_window.png
@@ -104,6 +104,7 @@ manual.move.main.intro,駒はそれぞれ移動種別を持ち、地形ごとの
 manual.move.main.cost,コスト,Cost
 manual.move.main.cost1,同じ地形でも移動種別によってコストが違う。進入できない地形もあり、そこには入れない。1マスのコストが自分の移動力を超える地形も実質的に通れないので、コスト3の柵は移動2の駒だけを締め出す。,"The same terrain costs different amounts to different move types, and some terrain cannot be entered at all. Terrain whose single-hex cost exceeds a unit's Move is effectively impassable too, which is why a fence at cost 3 shuts out only units with Move 2."
 manual.move.main.cost2,味方の駒がいるマスは通り抜けられるが、そこで移動を終えることはできない。敵の駒がいるマスは通ることも止まることもできない。,"A hex holding a friendly unit can be passed through but not stopped on. A hex holding an enemy can be neither passed through nor stopped on."
+manual.move.main.panel_rampart.img,res://assets/manual/panel_rampart_ja.png,res://assets/manual/panel_rampart_en.png
 manual.move.main.zoc,足止め,Zone of Control
 manual.move.main.zoc1,敵に隣接するマスに入ると、そこで移動が終わる。マスには入れるが、その先へは進めない。飛行を含むすべての移動種別に効く。,"Entering a hex adjacent to an enemy ends the move there. The hex itself can be entered, but nothing beyond it. This applies to every move type, fliers included."
 manual.move.main.zoc2,動き出す前から足止め範囲にいる場合は、そのまま動き出せる。前衛を横に並べて帯を張れば敵の足を止められるので、逃げる敵や退く敵を捕まえる手になる。,"A unit that starts its turn already inside an enemy's zone of control can still move off. Lining up your front rank into a belt stops enemies in their tracks, which is how you catch the ones that run or withdraw."
@@ -113,23 +114,6 @@ manual.move.main.transport,輸送,Transport
 manual.move.main.tr1,搭乗数を持つ駒には味方を乗せられる。輸送のマスへ移動すると乗り、乗った駒はその時点で行動が終わる。輸送は別の駒なので同じターンのうちに動かせる＝乗せてすぐ運べる。,"A unit with Capacity can carry allies. Move onto the transport's hex to board, which ends the passenger's turn. The transport is a separate unit and can still move that same turn, so you can load and haul in one go."
 manual.move.main.tr2,降りた駒がまだ行動していなければ、降りた場所を起点に普通に動いて攻撃もできる。降ろせるのはその駒が入れる地形だけ。乗り降りは輸送に隣接するマスとの間なら、移動力や地形コストに関係なく行える。,"A passenger that has not acted yet can unload and then move and attack normally from where it lands. It can only be unloaded onto terrain it is able to enter. Boarding and unloading between the transport and an adjacent hex ignore Move and terrain cost entirely."
 manual.move.main.tr3,輸送が倒されると、乗っている駒も一緒に失われる。運んでいる中身は降りる前に潰されうる、ということでもある。,"If the transport is destroyed its passengers go down with it. What it carries can be wiped out before it ever gets to disembark."
-manual.skill.title,スキル,Skills
-manual.skill.main.title,スキル,Skills
-manual.skill.main.intro,スキルは2種類ある。複数の駒の配置が揃うと撃てる陣形スキルと、1体で撃てるユニットスキル。,"There are two kinds of skill: formation skills, which need several units arranged a particular way, and unit skills, which one unit casts alone."
-manual.skill.main.recipe,レシピ,Recipes
-manual.skill.main.recipe1,どのスキルが撃てるかはレシピが決める。レシピは必要な駒とその並びを指定していて、盤の上でそれが揃うと撃てるようになる。照合は見た目で行うので、性能が同じでも見た目が違えば別物として扱う。,"A recipe decides what can be cast. It names the units required and how they must be arranged, and once that shape exists on the board the skill becomes available. Matching goes by appearance, so two units with identical stats but different looks are not interchangeable."
-manual.skill.main.recipe2,条件が揃っても自動では出ない。撃つかどうかは常にこちらが選ぶ。,Meeting the conditions never fires a skill by itself. Casting is always your call.
-manual.skill.main.cost,コスト,Cost
-manual.skill.main.cost1,参加した駒はその時点で行動が終わる。1体が1ターンに参加できるスキルは1つだけ。つまりスキルの値段は行動そのもので、この駒を殴らせるか供出するかという二択になる。,"Every participant is finished for the turn, and a unit can join only one skill per turn. The price of a skill is therefore action itself: for each unit you choose between letting it fight and spending it."
-manual.skill.main.cost2,発動する駒は移動してから撃ってよい。レシピが揃っているかも射程も、移動先の位置で見る。残りの参加者はその場に留まる＝寄ってきた1体が号令をかける形になる。,"The caster may move first. Whether the recipe is satisfied, and what is in range, are judged from where it ends up. The other participants stay put — one unit walks over and gives the order."
-manual.skill.main.kinds,効果の種類,Kinds of Effect
-manual.skill.main.kinds1,効果には、当てて削るもの・味方を強化するもの・敵を弱らせるもの・掛かっている弱体を落とすもの・盤に駒を足すものがある。,"Effects come in several kinds: ones that land and do damage, ones that strengthen an ally, ones that weaken an enemy, ones that strip debuffs already in place, and ones that put a new unit on the board."
-manual.skill.main.kinds2,当てて削るものは間接攻撃として扱う＝反撃は受けない。包囲も支援も乗る。囲むほど威力は上がるが、囲むほど自軍が着弾面に入る。参加していない味方は巻き込まれる。,"Damaging effects count as ranged attacks: they draw no counterattack, and both Encircled and Support apply. The more you surround the target the harder it hits — and the more of your own units stand inside the blast. Allies that did not participate are caught in it."
-manual.skill.main.kinds3,撃った結果は右の情報パネルにスキルレポートとして残る。対象ごとの損害と、戦闘レポートと同じ形の内訳をページで読める。,"The result stays in the right-hand panel as a skill report: losses per target, with the same breakdown the battle report shows, one page each."
-manual.skill.main.stack,重ねがけと持続,Stacking and Duration
-manual.skill.main.stack1,スキルは重ねがけできる。同じ相手に二度掛かれば効果は足し合わさり、同じスキルを重ねてもよい。,"Skills stack. Two of them on the same target add up, and the same skill may be layered on itself."
-manual.skill.main.stack2,持続はスキルごとに決まっていて、掛けた側のターン開始で数える。間にはさまる相手のターンでは減らない。,"Duration is set per skill and counts down at the start of the caster's own turn. The opponent's turns in between do not reduce it."
-manual.skill.main.stack3,再使用に間隔を持つスキルもある。毎ターン1ずつ溜まり、必要量に達すると撃てる。撃つと0に戻り、盤に出た直後も0から始まる。,"Some skills have a recharge. It fills by 1 each turn and the skill becomes available once it reaches what the recipe needs. Casting resets it to 0, and a unit that has just entered the board starts at 0 as well."
 manual.ai.title,敵AI,Enemy AI
 manual.ai.common.title,共通の仕組み,How It Works
 manual.ai.common.intro,敵の動きは特性で決まっている。特性ごとに、いつ動き出すか（行動開始条件）と、1手番で何をするか（行動ルール）が書き下してあり、そこに乱数は入らない。,"Enemy behavior is fixed by its trait. Each trait spells out when the unit wakes up (its activation) and what it does on its turn (its action rules). No randomness enters anywhere."
