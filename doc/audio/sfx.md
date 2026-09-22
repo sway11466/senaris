@@ -211,6 +211,7 @@
 | `magic_arrow` | 弓兵が魔法兵の力を乗せた矢で単体射撃（大きい方＋10・貫通0.5） | 発動は弓の発射に魔法の余韻が重なる。着弾は矢の刺さりに小さな魔法の炸裂 |
 | `arrow_rain` | 弓兵3体が19ヘクスに矢を降らせる | 発動は矢が次々に放たれる連なり。着弾は刺さる音が面に散る |
 | `magic_shield` | 発動者中心の7ヘクスに結界を張る（中の味方の防御 +10×兵数・貫通無効・1ターン） | 張られた結界が澄んで持続する。着弾ではなく発効 |
+| `backstab` | シーフが隣接する敵1体を刺す（貫通0.5・着弾後に移動開始位置へ戻る） | 短い刃の一閃。発動の音は持たず、刺さった瞬間の1発だけ |
 | `shield_wall` | 参加者の防御を上げる（列の歩兵・1ターン） | 盾が噛み合う金属の一撃。着弾ではなく発効 |
 | `counter` | 参加者の攻撃を上げる（隣り合う歩兵2体・1ターン） | 武器を構え直して身構える一拍。着弾ではなく発効 |
 
@@ -420,6 +421,7 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `arrow_rain` | `arrow` を18本、0.36秒のあいだにずらして重ねる（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目） | 2019 p5 / Rock The Speakerbox - Melee |
 | `arrow_rain_hit` | `arrow_hit` を12本、0.61秒のあいだにずらして重ねる（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
 | `magic_shield` | `Ice_Spell_Ice_Spell_Buff_Positive_02.wav` の頭から 1.45 秒 | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
+| `backstab_hit` | `slash_s` の複製（`WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav`） | 2026 p1 / 344 Audio - Historical Weapons Vol. 2 |
 | `shield_wall` | `cmb_hit_none` の複製（`Weapon_Impact_Parry_01.wav`） | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
 | `counter` | `slash_m` の複製（`METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav`） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
@@ -430,6 +432,8 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 `shield_wall` も新しい素材を探さない。手元の候補（`cmb_hit_none` を決めたときに落とした鎖帷子・板金鎧・鎧の動き）を聴き比べて、弾き返し（`Weapon_Impact_Parry_01`）をそのまま採った。盾で受ける音と武器を弾く音は同じ物音なので、鳴り分ける理由が無い。着弾が無いので `_hit` は置かない（グレイスと同じ）。`cmb_hit_none` と同時に鳴ることはありうるが、どちらも「金属で受けた」を表すので混ざっても読める。
 
 `counter` も新しい素材を探さない。刃を構え直して身構える音なので、ゲーム内で既に鳴っている斬撃（`slash_m`＝長い刃の振りに金属の擦れが乗ったもの）をそのまま採る。着弾が無いので `_hit` は置かない（グレイス・シールドウォールと同じ）。ファイターの攻撃エフェクトが同じ素材なので、反撃が実際に起きると戦闘窓でも同じ音が鳴るが、どちらも「その刃が振られた」を表すので重なって読める。
+
+`backstab` も新しい素材を探さない。短剣で刺す一撃なので、ゲーム内で既に鳴っている小さい斬撃（`slash_s`＝短い刃の擦れ）をそのまま採る。発動側の音は置かない＝カットインが明けてから駒が消え、刺さった瞬間に1発だけ鳴る（刃を抜く前に音が出ない）。シーフの攻撃エフェクトは `slash_m` なので、通常攻撃とは同じ語彙のまま短さで鳴り分ける。
 
 `arrow_rain` も新しい素材を探さない。「多数の矢が一斉に放たれる」音は Sonniss の索引に無く、弓は単発しか無いため、
 ゲーム内で既に鳴っている1本ぶんの矢（`arrow`／`arrow_hit`）を本数ぶん重ねて作る。同じ音をそのまま重ねると1本の太い音に
