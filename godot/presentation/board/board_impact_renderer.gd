@@ -80,6 +80,10 @@ const FLY_HEIGHT := TILE * 0.55        # 地面からの高さ（駒の胸のあ
 const FLY_TILES := 1.5                 # 絵の大きさ（長辺がヘックス幅の何倍か）
 const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時間（ディバインジャッジメントの残光より短い）
 
+# --- 発動者が跳んで帰る（バックスタブ。レシピの return_to_origin）---
+const HOME_HOP_SEC := 0.34             # 刺した位置から移動開始位置へ跳ぶ時間（距離によらず一定＝一跳び）
+const HOME_HOP_ARC := TILE * 1.1       # 弧の高さ（中間で一番高い）。歩きではなく跳びに見せる
+
 # --- 戦闘の一撃（戦闘窓を開かない手＝設定「戦闘の演出」の盤面のみ。doc/gdd/settings.md）---
 # 攻撃側の武器エフェクト（戦闘窓と同じ CombatEffect）を盤に出す。矢や投石は攻撃側の駒から被弾側へ
 # 飛び、斬撃は被弾側の駒の上で弾ける。着弾で被弾側が反応し（フラッシュ・撃破はフェード）、
@@ -230,6 +234,10 @@ func play(result: SkillResult, is_locked: bool) -> void:
 		if gen != _impact_gen:
 			_end_impact()
 			return
+	await _hop_caster_home(result)  # 発動者を戻すレシピ（バックスタブ）だけ＝他は素通り
+	if gen != _impact_gen:
+		_end_impact()
+		return
 	_end_impact()
 	_sync_fn.call()
 
@@ -472,8 +480,35 @@ func _play_single_target(result: SkillResult, tex: Texture2D, is_locked: bool) -
 	if gen != _impact_gen:
 		_end_impact()
 		return
+	await _hop_caster_home(result)  # 刺したあと移動開始位置へ跳んで帰る（バックスタブ）
+	if gen != _impact_gen:
+		_end_impact()
+		return
 	_end_impact()
 	_sync_fn.call()
+
+
+## 発動者を戻すレシピ（バックスタブ）の帰り＝刺した位置から移動開始位置へ跳んで戻る。
+## 戻す先は SkillResult が持つ（domain が盤を戻した先）。戻さないレシピは何もしない。
+## 盤の状態はもう戻った先で確定している＝跳びが途中で切れても嘘にはならない（移動アニメと同じ
+## 「状態は即確定・見た目は後追い」の流儀）。詳細 → doc/gdd/formations.md バックスタブ
+func _hop_caster_home(result: SkillResult) -> void:
+	if result.caster_returned_to == Formation.NO_HEX or result.caster == null:
+		return
+	var node: Node3D = _unit_renderer.get_unit_node(result.caster_id)
+	if node == null:
+		return
+	var from_hex: Vector2i = result.caster.pos  # スナップショットは戻す前＝刺した位置
+	var to_hex: Vector2i = result.caster_returned_to
+	var a := Hex.to_pixel(from_hex, TILE)
+	var b := Hex.to_pixel(to_hex, TILE)
+	var start := Vector3(a.x, _elev_fn.call(from_hex), a.y)
+	var land := Vector3(b.x, _elev_fn.call(to_hex), b.y)
+	var hop := func(t: float) -> void:
+		node.position = start.lerp(land, t) + Vector3(0.0, HOME_HOP_ARC * sin(PI * t), 0.0)
+	var tw := _tween()
+	tw.tween_method(hop, 0.0, 1.0, HOME_HOP_SEC)
+	await _wait(HOME_HOP_SEC)
 
 
 ## そのスキルの絵が射手から飛んでくるか（レシピの impact_motion）。既定は真上から降りる。

@@ -93,6 +93,8 @@ ui.chronicle.skill_shape_cluster,隣り合って連なる,Members linked in an a
 ui.chronicle.skill_shape_escort,発動者に隣り合う,Members adjacent to the caster
 ui.chronicle.skill_shape_spotter,斥候が対象に隣り合い、発動者が対象を射程に収める,A scout adjacent to the target with the caster in range of it
 ui.chronicle.skill_shape_line,一直線に隣り合って連なる,Members linked in a straight unbroken line
+ui.chronicle.skill_shape_backstab,対象を挟んで発動者の正反対に味方が居る,An ally directly opposite the caster across the target
+ui.chronicle.skill_members_any,種別を問わない,Any unit
 ui.chronicle.skill_caster,発動者,Leader
 ui.chronicle.skill_members,参加者,Members
 ui.chronicle.skill_effect,効果,Effect

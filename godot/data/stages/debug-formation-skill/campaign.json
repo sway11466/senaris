@@ -46,6 +46,12 @@
       "synopsis": "デバッグ冒険譚"
     },
     {
+      "id": "backstab",
+      "file": "backstab.json",
+      "title": "バックスタブ",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
       "id": "magic_arrow",
       "file": "magic_arrow.json",
       "title": "マジックアロー",

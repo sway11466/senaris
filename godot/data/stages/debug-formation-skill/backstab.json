@@ -1,0 +1,42 @@
+{
+  "turn_limit": 30,
+  "name": "debug-formation-backstab",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        {
+          "type": "thief",
+          "col": 1,
+          "row": 3
+        },
+        {
+          "type": "fighter",
+          "col": 7,
+          "row": 4
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "的",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        {
+          "skin": "hobgoblin",
+          "col": 6,
+          "row": 4
+        },
+        {
+          "skin": "hobgoblin",
+          "col": 5,
+          "row": 2
+        }
+      ]
+    }
+  ],
+  "bases": []
+}

@@ -46,6 +46,12 @@ func is_ai_turn() -> bool:
 func detection_radius(unit: Unit) -> int:
 	return ai_brain.detection_radius(state, unit) if ai_brain != null else 0
 
+## このターン、駒が移動を始めたマス（handle -> 移動前の位置）。着弾後に発動者を移動開始位置へ
+## 戻すレシピ（バックスタブ）が読む。移動は「攻撃・待機・スキル発動」のどれかを選んだ瞬間に
+## 確定する＝移動と発動は同じ一手の中で続くので、ターンを跨いで持つ必要はない（end_turn で捨てる）。
+## 詳細 → doc/gdd/formations.md バックスタブ
+var _move_origin := {}
+
 ## 下りコマンドの処理。成功すれば状態を更新し unit_moved を発行。
 ## 経路は move_unit より前に引く（移動後は位置と消費が変わり、同じ経路を復元できない）。
 func execute(cmd: MoveCommand) -> bool:
@@ -58,6 +64,8 @@ func execute(cmd: MoveCommand) -> bool:
 	var path := state.path_to(cmd.handle, cmd.to)
 	var before := _base_team_at(cmd.to)
 	if state.move_unit(cmd.handle, cmd.to):
+		if not _move_origin.has(cmd.handle):
+			_move_origin[cmd.handle] = from  # このターン最初の移動＝戻り先（攻撃後の再移動では動かさない）
 		unit_moved.emit(cmd.handle, from, cmd.to, path)
 		_emit_if_captured(cmd.to, before)
 		_check_finished()  # 移動＝占領が起きうる（本拠地の占領/喪失はこの瞬間に決着する）
@@ -85,7 +93,9 @@ func execute_attack(cmd: AttackCommand) -> bool:
 func execute_formation(cmd: FormationCommand) -> bool:
 	if _finished:
 		return false
-	var result := FormationResolver.resolve(state, cmd.option, cmd.target)
+	# 移動開始位置＝着弾後に発動者を戻すレシピ（バックスタブ）の戻り先。動いていなければ NO_HEX＝その場。
+	var origin: Vector2i = _move_origin.get(cmd.option.caster_id, Formation.NO_HEX)
+	var result := FormationResolver.resolve(state, cmd.option, cmd.target, origin)
 	if result == null:
 		return false
 	for h in result.hits:
@@ -181,6 +191,7 @@ func end_turn() -> void:
 	if _finished:
 		return
 	state.end_turn()
+	_move_origin.clear()  # 移動開始位置はそのターンのもの（戻り先を持ち越さない）
 	turn_changed.emit(state.current_team, state.turn_number)
 	_check_finished()  # ターン跨ぎで決着が付くことがある（ターン制限＝時間切れ敗北）
 	# 増援は end_turn の内側で盤に出る＝ターン板・盤の同期が済んでから知らせる（会話は駒が見えてから）。

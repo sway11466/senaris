@@ -7,9 +7,12 @@ class_name FormationResolver
 
 ## 陣形スキルを解決して盤に適用する。option＝Formation.available_for の1要素。
 ## target＝着弾中心（buff では無視）。参加ユニットは行動完了。詳細 → doc/gdd/formations.md
+## origin＝発動者がこのターン移動を始めたマス。着弾後に発動者を戻すレシピ（バックスタブ＝
+## return_to_origin）だけが読む。移動していなければ渡さない＝その場に留まる（呼び手＝MatchController が覚えている）。
 ## 成功なら SkillResult（着弾ごとの損害・光らせる面・発動者のスナップショット）、
 ## 不正（ターン違い・行動済み・射程外）なら null。
-static func resolve(state: BattleState, option: FormationOption, target: Vector2i) -> SkillResult:
+static func resolve(state: BattleState, option: FormationOption, target: Vector2i,
+		origin := Formation.NO_HEX) -> SkillResult:
 	# 妥当性: 参加者が現ターン・生存していること、まだ行動を使い切っていないこと（待機・攻撃済み
 	# でない）、target が射程内であること。行ける先が無いだけの駒は参加できる＝発動に移動先も
 	# 攻撃相手も要らない（Formation.available_for と同じ資格）。
@@ -119,6 +122,13 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	out.cells = Formation.blast_cells(option, target)
 	out.cells.append_array(spawn_cells)  # 分裂で出た位置も光らせる（→ doc/gdd/skills.md スライムスプリット）
 	out.cast = cast
+	# バックスタブ＝着弾を済ませてから発動者をこのターンの移動開始位置へ戻す（刺して消える）。
+	# 威力・支援・地形は戻す前の位置（刺した位置）で確定している＝順番はここで最後。
+	# 戻りは経路・移動コスト・足止めを問わない＝盤の位置だけを書き換える。占領は起きない
+	# （そのマスにはこのターンの頭から立っていた）。詳細 → doc/gdd/formations.md バックスタブ
+	if option.return_to_origin and origin != Formation.NO_HEX and caster != null:
+		caster.pos = origin
+		out.caster_returned_to = origin
 	return out
 
 ## 効果対象が1体のユニットスキルの演出用内訳（発動前に撮る）。発動者と対象のスナップショットに、

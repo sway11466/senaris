@@ -275,6 +275,48 @@ func test_execute_formation_invalid_fails_without_signals() -> void:
 	assert_signal_not_emitted(mc, "formation_resolved")
 	assert_signal_not_emitted(mc, "unit_died")
 
+## バックスタブ＝移動してから発動すると、着弾後に移動開始位置へ戻る。移動前の位置を覚えて
+## FormationResolver へ渡すのは MatchController の仕事（→ doc/gdd/formations.md バックスタブ）。
+func test_execute_formation_returns_backstab_caster_to_move_origin() -> void:
+	var s := BattleState.new(12, 8)
+	var origin := Hex.offset_to_axial(2, 3)
+	var thief := Unit.new(1, 0, origin, 7, 8, 30, 20, 1, "thief")
+	var enemy_hex := Hex.offset_to_axial(6, 3)
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, 40)
+	var mate := Unit.new(2, 0, enemy_hex + (enemy_hex - Hex.neighbor(enemy_hex, 3)), 4, 8, 50, 40, 1, "fighter")
+	for u in [thief, enemy, mate]:
+		s.add_unit(u)
+	var mc := _mc(s)
+	var stab_from := Hex.neighbor(enemy_hex, 3)  # 敵の隣・相方の正反対
+	assert_true(mc.execute(MoveCommand.new(1, stab_from)), "前提: シーフが敵の隣へ寄れる")
+	var opts := Formation.available_for(s, thief)
+	var opt := opts[0] if opts.size() == 1 else null
+	assert_not_null(opt, "前提: 寄った先でバックスタブが成立する")
+	assert_true(mc.execute_formation(FormationCommand.new(opt, enemy_hex)))
+	assert_eq(thief.pos, origin, "着弾後は移動開始位置へ戻る")
+	var result: SkillResult = get_signal_parameters(mc, "formation_resolved")[0]
+	assert_eq(result.caster_returned_to, origin, "戻り先が結果に載る")
+
+## 移動開始位置はそのターンのもの＝ターンを跨いで持ち越さない。
+func test_move_origin_is_dropped_at_turn_end() -> void:
+	var s := BattleState.new(12, 8)
+	var origin := Hex.offset_to_axial(2, 3)
+	var thief := Unit.new(1, 0, origin, 7, 8, 30, 20, 1, "thief")
+	var enemy_hex := Hex.offset_to_axial(6, 3)
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, 40)
+	var mate := Unit.new(2, 0, enemy_hex + (enemy_hex - Hex.neighbor(enemy_hex, 3)), 4, 8, 50, 40, 1, "fighter")
+	for u in [thief, enemy, mate]:
+		s.add_unit(u)
+	var mc := _mc(s)
+	var stab_from := Hex.neighbor(enemy_hex, 3)
+	mc.execute(MoveCommand.new(1, stab_from))
+	mc.end_turn()  # 敵軍へ
+	mc.end_turn()  # 自軍へ戻る＝前のターンの移動開始位置は捨てられている
+	var opts := Formation.available_for(s, thief)
+	assert_eq(opts.size(), 1, "前提: 動かないままバックスタブが成立する")
+	assert_true(mc.execute_formation(FormationCommand.new(opts[0], enemy_hex)))
+	assert_eq(thief.pos, stab_from, "動いていないターンでは戻らない")
+
 # --- end_turn / is_ai_turn / AIターン ---
 
 func test_end_turn_emits_turn_changed() -> void:

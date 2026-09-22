@@ -10,8 +10,9 @@ class_name FormationOption
 enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
 ## SPOTTER（トリックショット）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
+## BACKSTAB（バックスタブ）も対象の周りを見る形で、SPOTTER の親戚＝対象を挟んで発動者の正反対に味方が居る。
 ## LINE（シールドウォール）＝CLUSTER の直線版（隣接連結のうち一直線に連なるものだけ）。
-enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER, LINE }
+enum Shape { TRIANGLE, ESCORT, SOLO, CLUSTER, SPOTTER, LINE, BACKSTAB }
 ## 効果の掛かる範囲。陣営全体（グレイス）か、参加者だけ（シールドウォール）か、
 ## 対象1体（ユニットスキル）か、地帯（マジックシールド＝発動者中心の結界。掛かる相手は
 ## 発動時の顔ぶれではなく、そのとき中に居る味方）か。SKILLS の "buff_scope"。
@@ -27,7 +28,7 @@ const EFFECT_IDS := {
 }
 const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
-	"spotter": Shape.SPOTTER, "line": Shape.LINE,
+	"spotter": Shape.SPOTTER, "line": Shape.LINE, "backstab": Shape.BACKSTAB,
 }
 const SCOPE_IDS := {
 	"team": Scope.TEAM, "unit": Scope.UNIT, "participants": Scope.PARTICIPANTS, "zone": Scope.ZONE,
@@ -57,6 +58,9 @@ var pierce_override: float
 ## （マジックアロー＝2体の大きい方＋10。合算はしない）。詳細 → doc/gdd/formations.md マジックアロー
 var attack_from_stats: String
 var attack_plus: int
+## 着弾後に発動者をこのターンの移動開始位置へ戻すか（バックスタブ＝刺して消える）。
+## 戻りは経路・移動コスト・足止めを問わない。詳細 → doc/gdd/formations.md バックスタブ
+var return_to_origin: bool
 ## 演出シーンで使うエフェクトID。空＝発動者スキンの combat_effect へ落ちる（presentation が解決）。
 ## エフェクトの単位を「誰が撃ったか」ではなく「何を撃ったか」にする列＝ピュリファイはクレリックが撃っても
 ## ビショップが撃っても同じ絵になる。陣形の盤の着弾はこれを見ない（レシピ専用の絵を規約解決する）。
@@ -117,6 +121,7 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	o.pierce_override = float(r.get("pierce_override", -1.0))
 	o.attack_from_stats = String(r.get("attack_from_stats", ""))
 	o.attack_plus = int(r.get("attack_plus", 0))
+	o.return_to_origin = bool(r.get("return_to_origin", false))
 	o.combat_effect = String(r.get("combat_effect", ""))
 	o.charge_turns = int(r.get("charge_turns", 0))
 	if o.effect == Effect.BUFF:

@@ -85,7 +85,8 @@ func _hint_face(skill_id: String) -> Control:
 	return row
 
 ## 図と黒塗りに使う顔ぶれ＝人数ぶんの UnitSkin。先頭が発動者（発動者になれる駒の先頭で代表）、
-## 残りは参加者の先頭で代表する（doc/gdd/formations.md 一覧）。
+## 残りは参加者の先頭で代表する（doc/gdd/formations.md 一覧）。相方の種別を問わないレシピ
+## （バックスタブ＝member_skins が空）は、レシピの member_figure を代表に立てる。
 func _figure_skins(skill_id: String) -> Array:
 	var r: Dictionary = Formation.SKILLS[skill_id]
 	var casters: Array = r.get("caster_skins", [])
@@ -94,7 +95,10 @@ func _figure_skins(skill_id: String) -> Array:
 	var out: Array = []
 	for i in count:
 		var pool: Array = casters if i == 0 else members
-		var skin := SkinCatalog.skin_by_id(_skins, String(pool[0]))
+		var sid := String(r.get("member_figure", "")) if pool.is_empty() else String(pool[0])
+		if sid == "":
+			continue
+		var skin := SkinCatalog.skin_by_id(_skins, sid)
 		if skin != null:
 			out.append(skin)
 	return out
@@ -148,8 +152,11 @@ func _expanded_sheet(skill_id: String) -> Control:
 		casters = casters + (r.get("member_skins", []) as Array)
 	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_caster"),
 		_skin_names_text(casters)], TavernTheme.INK))
+	# 相方の種別を問わないレシピ（バックスタブ）は候補を並べず「種別を問わない」と出す。
+	var members: Array = r.get("member_skins", [])
 	col.add_child(_ink_line("%s  %s" % [tr("ui.chronicle.skill_members"),
-		_skin_names_text(r.get("member_skins", []))], TavernTheme.INK))
+		tr("ui.chronicle.skill_members_any") if members.is_empty() else _skin_names_text(members)],
+		TavernTheme.INK))
 
 	return _paper_sheet(hash(skill_id), col)
 
@@ -180,6 +187,8 @@ func _shape_text(r: Dictionary) -> String:
 			return tr("ui.chronicle.skill_shape_escort")
 		"spotter":
 			return tr("ui.chronicle.skill_shape_spotter")
+		"backstab":
+			return tr("ui.chronicle.skill_shape_backstab")
 		"line":
 			return tr("ui.chronicle.skill_shape_line")
 	return NONE_TEXT

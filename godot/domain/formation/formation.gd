@@ -23,7 +23,11 @@ class_name Formation
 ## shape: "triangle"（count 体が相互隣接）／"escort"（発動者に count-1 体が隣接・メンバー同士は不問）／
 ##        "cluster"（count 体以上の隣接クラスタ）／"spotter"（参加者の形ではなく対象の周りを見る＝
 ##        斥候が着弾先に隣接し、発動者はその着弾先を射程に収めている）／
+##        "backstab"（spotter の親戚＝対象を挟んで発動者の正反対に味方が1体居る。相方は幾何で決まる）／
 ##        "line"（cluster の直線版＝発動者を含む一直線に count 体以上が途切れず連なる）。
+## member_skins が空＝相方の種別を問わない印（バックスタブ＝味方なら誰でも）。詳細 → _member_matches
+## member_figure: 種別不問のレシピで、クロニクルの図と未解放の黒塗りに立てる相方の代表スキン。
+## return_to_origin: 着弾後に発動者をこのターンの移動開始位置へ戻す（バックスタブ＝刺して消える）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
 ## buff_scope: 補正の掛かる範囲＝"team"（グレイス）／"participants"（シールドウォール・カウンター）／"unit"（ユニットスキル）／
 ##        "zone"（マジックシールド＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
@@ -173,6 +177,29 @@ const SKILLS := {
 		"buff_fx": "barrier",  # 盤の見た目（結界の床＋中に居る駒の足元の光）。空＝見た目なし
 		"duration_turns": 1,  # 自軍ターン1回＋間の敵ターン＝1ターン。詳細 → doc/gdd/map.md 用語・ターン
 		"range_from": "any",  # どちらの駒からでも発動できる（着弾は無いので対象は取らない）
+	},
+	"backstab": {
+		"name": "バックスタブ",
+		"category": "special",
+		"caster_skins": ["thief"],  # シーフ固有（ハーフリング等の他の斥候には持たせない）
+		# 相方の種別は不問＝空が「味方なら誰でも」の印（_member_matches）。クロニクルの図と
+		# 未解放の黒塗りは member_figure の1体で代表する（doc/gdd/chronicle.md 陣形スキル）。
+		"member_skins": [],
+		"member_figure": "fighter",
+		"shape": "backstab",
+		"count": 2,
+		"effect": "single",
+		"range": 1,  # 隣接する敵だけ＝懐に入って刺す
+		"range_from": "caster",
+		# 背中を向けた相手の急所を突く＝斥候が張り付いて撃つトリックショットと同じ上書き。
+		"pierce_override": 0.5,
+		# 相手が飛行なら対空値で撃つ（シーフの対空10＝実質効かない。空を飛ぶ相手の背後は取れない）。
+		"attack_vs": "target",
+		# 着弾後に発動者をこのターンの移動開始位置へ戻す（このレシピだけ）＝刺して消える。
+		# 戻りは経路・移動コスト・足止めを問わない。詳細 → doc/gdd/formations.md バックスタブ
+		"return_to_origin": true,
+		# 着弾の絵は隣に立つシーフのヘックスから届く（真上から降ろさない）。
+		"impact_motion": "fly",
 	},
 	"magic_arrow": {
 		"name": "マジックアロー",
@@ -376,6 +403,9 @@ static func available_for(state: BattleState, unit: Unit, from_hex := NO_HEX) ->
 			"spotter":
 				for members in _spotter_sets(state, unit, r, caster_pos):
 					out.append(FormationOption.from_skill(rid, r, [unit, members[0]]))
+			"backstab":
+				for members in _backstab_sets(state, unit, r, caster_pos):
+					out.append(FormationOption.from_skill(rid, r, [unit, members[0]]))
 			"solo":
 				# spawn は隣接に空きマス（盤内かつ駒が居ない）が無ければ成立しない
 				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, caster_pos):
@@ -422,6 +452,10 @@ static func choices_for(state: BattleState, unit: Unit, from_hex := NO_HEX) -> A
 				# 相方は着弾先が決まってから絞る＝先に着弾先を選ぶ段へ進む
 				c.target_first = true
 				_fill_fixed(c, _spotter_sets(state, unit, r, caster_pos))
+			"backstab":
+				# 対象を決めれば相方は正反対の1体に決まる＝選ぶ余地が無い（着弾先が先）。
+				c.target_first = true
+				_fill_fixed(c, _backstab_sets(state, unit, r, caster_pos))
 			"solo":
 				if String(r["effect"]) == "spawn" and not _spawn_has_room(state, caster_pos):
 					continue
@@ -582,6 +616,16 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 		var spotter := state.unit_by_handle(option.participants[1])
 		if spotter == null or Hex.distance(spotter.pos, target) != 1:
 			return false
+	# バックスタブ＝対象を挟んで発動者の正反対に相方が居ること（spotter の親戚＝対象の周りを見る形）。
+	# 相方は移動しない＝盤の実位置で測る。発動者は移動先で測る（from_hex）＝寄ってから刺せる。
+	# 詳細 → doc/gdd/formations.md バックスタブ
+	if option.shape == FormationOption.Shape.BACKSTAB:
+		if option.participants.size() < 2 or caster == null:
+			return false
+		var mate := state.unit_by_handle(option.participants[1])
+		var cpos := from_hex if from_hex != NO_HEX else caster.pos
+		if mate == null or mate.pos != target + (target - cpos):
+			return false
 	# 単体を狙うスキル（ディバインジャッジメント・トリックショット）は敵の駒だけを選べる＝空撃ちも同士討ちもさせない。面に巻き込まれるのと
 	# 狙って撃てるのは別で、誤射は面（トリニティノヴァ・アローレイン）だけの話。詳細 → doc/gdd/formations.md 共通ルール
 	if option.effect == FormationOption.Effect.SINGLE:
@@ -658,6 +702,12 @@ static func members_for_target(state: BattleState, choice: FormationChoice, targ
 static func _matches(unit: Unit, skins: Array) -> bool:
 	var key := unit.skin_id if unit.skin_id != "" else unit.type_id
 	return key in skins
+
+## unit が相方（発動者以外の参加者）になれるスキンか。候補列が空＝種別を問わないレシピの印
+## （バックスタブ＝味方なら誰でも組める）。発動者側（caster_skins）は必ず埋まっている＝この
+## 読み替えは相方だけに掛ける。詳細 → doc/gdd/formations.md バックスタブ
+static func _member_matches(unit: Unit, skins: Array) -> bool:
+	return skins.is_empty() or _matches(unit, skins)
 
 ## unit がそのスキルの発動者になれるスキンか（形も行動の残りも見ない）。
 ## 役割を入れ替えられるレシピ（swap_roles＝マジックシールド）は相方側のスキンでも名乗れる
@@ -773,7 +823,7 @@ static func _adjacent_members(state: BattleState, caster: Unit, r: Dictionary, c
 	for u in state.units():
 		if u.handle == caster.handle or u.team != caster.team or not state.has_action_left(u.handle):
 			continue
-		if not _matches(u, _member_skins_for(caster, r)):
+		if not _member_matches(u, _member_skins_for(caster, r)):
 			continue
 		if Hex.distance(u.pos, caster_pos) == 1:
 			cand.append(u)
@@ -796,7 +846,7 @@ static func _member_pool(state: BattleState, caster: Unit, r: Dictionary) -> Arr
 	for u in state.units():
 		if u.handle == caster.handle or u.team != caster.team or not state.has_action_left(u.handle):
 			continue
-		if _matches(u, _member_skins_for(caster, r)):
+		if _member_matches(u, _member_skins_for(caster, r)):
 			cand.append(u)
 	return cand
 
@@ -823,6 +873,27 @@ static func _spotter_has_mark(state: BattleState, caster: Unit, m: Unit, caster_
 		if d >= caster.min_range and d <= caster.attack_range:
 			return true
 	return false
+
+## バックスタブ＝対象を挟んだ正反対を見る形。発動者に隣接する敵1体ごとに、その敵を挟んで
+## 正反対のヘックスに味方が居れば組になる（相方は幾何で1体に決まる＝プレイヤーは選ばない）。
+## 組は相方1体ごとに1つで、着弾先はあとから選ぶ（トリックショットと同じ順）。
+## 隣り合う2体では成立しない＝対象を挟んで距離2に離れていることが正反対の条件。
+## 発動者は caster_pos に居るものとする（移動先のこともある）。
+static func _backstab_sets(state: BattleState, caster: Unit, r: Dictionary, caster_pos: Vector2i) -> Array:
+	var by_pos := {}  # 相方になれる駒（同陣営・未行動・種別不問）を位置で引く
+	for m in _member_pool(state, caster, r):
+		by_pos[m.pos] = m
+	var sets: Array = []
+	for nb in Hex.neighbors(caster_pos):
+		if not state.in_field(nb):
+			continue
+		var v := state.unit_at(nb)
+		if v == null or v.team == caster.team:
+			continue  # 単体を狙うスキルは敵しか選べない（can_target）＝成立の判定も敵だけ
+		var back: Vector2i = nb + (nb - caster_pos)  # 対象を挟んで発動者の正反対
+		if by_pos.has(back):
+			sets.append([by_pos[back]])
+	return sets
 
 ## 発動者を中心に、隣接する count-1 体。メンバー同士の隣接は問わない（発動者を挟んで左右対称でも
 ## 成立する）＝caster に隣接する候補から count-1 体の組を全列挙。
@@ -853,7 +924,7 @@ static func _cluster(state: BattleState, caster: Unit, r: Dictionary, caster_pos
 		for u in state.units():
 			if seen.has(u.handle) or u.team != caster.team or not state.has_action_left(u.handle):
 				continue
-			if not _matches(u, r["member_skins"]):
+			if not _member_matches(u, r["member_skins"]):
 				continue
 			if Hex.distance(u.pos, cur) == 1:
 				seen[u.handle] = u

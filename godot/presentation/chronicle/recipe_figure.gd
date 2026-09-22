@@ -10,17 +10,21 @@ class_name ChronicleRecipeFigure
 ## 形 → 置く axial の並び。先頭が発動者。
 ## triangle＝相互隣接の3つ／escort＝発動者に隣接する2つ（位置は問わないので一例）／cluster＝発動者を囲む4つ（5体の最低人数）
 ## ／spotter＝発動者（弓兵）は対象から距離2、斥候は対象に隣接し発動者には隣接しない（2人が隣り合わなくてよいことが読める）。
+## ／backstab＝発動者（シーフ）と相方が対象を挟んで正反対＝間に対象の敵ヘクスが入る。
 ## ／line＝一直線の3つ。発動者を真ん中に置く＝列のどこからでも発動できることが読める。
 const LAYOUTS := {
 	"triangle": [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1)],
 	"escort": [Vector2i(0, 0), Vector2i(-1, 1), Vector2i(1, 0)],
 	"cluster": [Vector2i(0, 0), Vector2i(-1, 0), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 0)],
 	"spotter": [Vector2i(0, 0), Vector2i(2, 0)],
+	# バックスタブ＝発動者と相方が対象を挟んで正反対（間の (1, 0) が対象の敵ヘクス）。
+	"backstab": [Vector2i(0, 0), Vector2i(2, 0)],
 	"line": [Vector2i(0, 0), Vector2i(-1, 0), Vector2i(1, 0)],
 }
 ## 対象を取る形 → 対象の敵ヘクスの axial。無い形は載せない。
 const TARGETS := {
 	"spotter": Vector2i(2, -1),
+	"backstab": Vector2i(1, 0),
 }
 const HEX_FILL := Color(0.24, 0.16, 0.09, 0.07)  # インクを薄く
 const HEX_LINE := Color(0.40, 0.30, 0.20, 0.9)   # TavernTheme.INK_SOFT

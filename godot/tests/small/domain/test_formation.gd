@@ -1580,3 +1580,147 @@ func test_magic_shield_survives_save_roundtrip() -> void:
 	assert_almost_eq(float(s2.status_aggregate(f["inside"], "defense")["add"]), 80.0, 0.001,
 		"戻した盤でも結界の中に +80")
 	assert_true(s2.pierce_immune(f["inside"]), "貫通無効も戻る")
+
+# --- バックスタブ（シーフ＋対象を挟んで正反対の味方・貫通0.5・着弾後に移動開始位置へ戻る）---
+
+## 成立盤：シーフ(1) — 敵(9) — 味方(2) が一直線に並ぶ（敵はシーフの隣、味方はその正反対）。
+## 相方の種別は不問なので、味方はファイターを立てる。
+func _backstab_state(enemy_def := 40) -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var thief := Unit.new(1, 0, c, 7, 8, 30, 20, 1, "thief")
+	thief.atk_air = 10  # 空を飛ぶ相手の背後は取れない＝対空は実質効かない値
+	var enemy_hex := Hex.neighbor(c, 0)
+	var enemy := Unit.new(9, 1, enemy_hex, 3, 8, 10, enemy_def)
+	var mate := Unit.new(2, 0, enemy_hex + Hex.direction(0), 4, 8, 50, 40, 1, "fighter")
+	for u in [thief, enemy, mate]:
+		s.add_unit(u)
+	return {"s": s, "thief": thief, "enemy": enemy, "enemy_hex": enemy_hex, "mate": mate}
+
+func _backstab_option(f: Dictionary) -> FormationOption:
+	return _pick(Formation.available_for(f["s"], f["thief"]), "backstab")
+
+func test_backstab_detected_when_ally_is_opposite() -> void:
+	var f := _backstab_state()
+	var o := _backstab_option(f)
+	assert_not_null(o, "対象を挟んで正反対に味方が居れば成立する")
+	assert_eq(o.participants, [1, 2] as Array[int], "参加者はシーフと正反対の味方の2体")
+	assert_eq(o.max_range, 1, "射程は隣接")
+
+## 正反対（対象を挟んで距離2）でなければ成立しない＝シーフの隣に並んだ味方では組めない。
+func test_backstab_needs_opposite_not_adjacent() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var mate: Unit = f["mate"]
+	mate.pos = Hex.neighbor(f["thief"].pos, 1)  # シーフにも敵にも隣接するが正反対ではない
+	assert_eq(_count(Formation.available_for(s, f["thief"]), "backstab"), 0,
+		"対象を挟んでいない味方では成立しない")
+
+## 相方は幾何で決まる＝対象を選べば正反対の1体に定まり、プレイヤーは選ばない。
+func test_backstab_member_is_decided_by_geometry() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var c := _choice(Formation.choices_for(s, f["thief"]), "backstab")
+	assert_not_null(c, "バックスタブの項目が出る")
+	assert_true(c.target_first, "着弾先が先の形")
+	assert_eq(Formation.members_for_target(s, c, f["enemy_hex"]), [2] as Array[int],
+		"正反対の味方が相方になる")
+	assert_false(c.needs_choice(), "相方を選ぶ段は挟まない")
+
+## 相方の種別は不問（member_skins 空）＝ピクシーでも魔法兵でも組める。
+func test_backstab_member_skin_is_free() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	f["mate"].type_id = "pixie"
+	assert_eq(_count(Formation.available_for(s, f["thief"]), "backstab"), 1,
+		"味方なら種別を問わず相方になれる")
+
+## 発動者はシーフだけ（他の斥候には持たせない）。
+func test_backstab_caster_must_be_thief() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	f["thief"].type_id = "halfling"
+	assert_eq(_count(Formation.available_for(s, f["thief"]), "backstab"), 0,
+		"ハーフリングでは発動できない")
+
+## 相方の側の駒が敵なら成立しない（対象の向こうに立つのは味方）。
+func test_backstab_needs_ally_behind_target() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	f["mate"].team = 1
+	assert_eq(_count(Formation.available_for(s, f["thief"]), "backstab"), 0,
+		"向こう側が敵では成立しない")
+
+## 貫通0.5の上書き＝シーフ（素の貫通0）でも相手の防御が半分になる。
+func test_backstab_pierces_half() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var thief: Unit = f["thief"]
+	var enemy: Unit = f["enemy"]
+	assert_eq(thief.pierce, 0.0, "前提: シーフは素で貫通を持たない")
+	var atk := Combat.attack_breakdown_from(thief.troops, thief.unit_attack,
+		Combat.level_factor(thief), Combat.surround_factor(s, thief),
+		TerrainType.attack_factor(s.terrain_at(thief.pos)),
+		Combat.support_around(s, enemy.pos, thief.team, thief.handle, true))
+	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense,
+		Combat.level_factor(enemy), Combat.surround_factor(s, enemy),
+		TerrainType.defense_factor(s.terrain_at(enemy.pos)),
+		Combat.support_around(s, enemy.pos, enemy.team, enemy.handle, false), 0.5)
+	var expect := Combat.hit_from_breakdowns(atk, df, enemy.troops).loss
+	var res := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"])
+	assert_eq(res.hits[0].loss, expect, "貫通0.5を上書きした損害")
+
+## 相手が飛行なら対空値で撃つ＝シーフの対空10では通らない（空の背後は取れない）。
+func test_backstab_uses_air_attack_vs_aerial() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var thief: Unit = f["thief"]
+	var enemy: Unit = f["enemy"]
+	enemy.move_type = "flight"
+	var vs_air := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"]).hits[0].loss
+	var f2 := _backstab_state()  # 同じ盤で相手だけ地上＝対地30で撃つ
+	var s2: BattleState = f2["s"]
+	var vs_ground := FormationResolver.resolve(s2, _backstab_option(f2), f2["enemy_hex"]).hits[0].loss
+	assert_lt(vs_air, vs_ground, "飛行の敵には対空10で撃つ＝地上より通らない")
+	assert_eq(thief.atk_air, 10, "前提: シーフの対空は10")
+
+## 着弾後、発動者は移動開始位置へ戻る（経路・移動コスト・足止めは問わない）。
+func test_backstab_returns_caster_to_origin() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var thief: Unit = f["thief"]
+	var origin := Hex.offset_to_axial(0, 0)  # 盤の反対側＝歩いて帰れない距離
+	var res := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"], origin)
+	assert_eq(thief.pos, origin, "刺したあと移動開始位置へ戻る")
+	assert_eq(res.caster_returned_to, origin, "戻り先が結果に載る（盤の演出が読む）")
+	assert_eq(s.unit_at(origin), thief, "盤の位置も戻っている")
+
+## 移動していなければ戻り先は渡されない＝その場に留まる。
+func test_backstab_stays_when_not_moved() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var thief: Unit = f["thief"]
+	var stood := thief.pos
+	var res := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"])
+	assert_eq(thief.pos, stood, "動いていなければその場")
+	assert_eq(res.caster_returned_to, Formation.NO_HEX, "戻していない印")
+
+## 威力は刺した位置で確定する＝戻したあとの地形・包囲では計算しない。
+func test_backstab_damage_is_fixed_before_return() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var plain := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"]).hits[0].loss
+	var f2 := _backstab_state()
+	var s2: BattleState = f2["s"]
+	var origin := Hex.offset_to_axial(0, 0)
+	s2.set_terrain(origin, "forest")  # 戻り先だけ地形を変える＝威力には効かない
+	var moved := FormationResolver.resolve(s2, _backstab_option(f2), f2["enemy_hex"], origin).hits[0].loss
+	assert_eq(moved, plain, "戻り先の地形は威力に効かない")
+
+## 参加者はシーフと相方の2体とも行動完了（戻った先で行動完了）。
+func test_backstab_spends_both() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"], Hex.offset_to_axial(0, 0))
+	assert_true(s.is_done(1), "シーフは行動完了")
+	assert_true(s.is_done(2), "相方も行動完了")

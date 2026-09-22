@@ -64,6 +64,7 @@
 | shield_wall | `debug-formation-skill/shield_wall.json` | シールドウォール（殴って反撃を受けると防御が見える） | シールドウォールを変えたとき |
 | arrow_rain | `debug-formation-skill/arrow_rain.json` | アローレイン（味方1体が面に入る＝誤射） | アローレインを変えたとき |
 | magic_shield | `debug-formation-skill/magic_shield.json` | マジックシールド（ウィザード＋プリーストが隣接＝どちらからでも。結界の中と外に前衛が1体ずつ、敵は貫通持ちと物理が1体ずつ） | マジックシールドを変えたとき |
+| backstab | `debug-formation-skill/backstab.json` | バックスタブ（シーフは離れて立つ＝寄って刺してから戻るのが見える。向こうに味方が居ない敵をもう1体置く） | バックスタブを変えたとき |
 | magic_arrow | `debug-formation-skill/magic_arrow.json` | マジックアロー（射程ちょうど5） | マジックアローを変えたとき |
 | counter | `debug-formation-skill/counter.json` | カウンター（発動者の隣に歩兵2体＝組を選ぶ。殴られて反撃すると攻撃が見える） | カウンターを変えたとき |
 | members | `debug-formation-skill/members.json` | 参加者を選ぶ段の確認（組が複数／組が1つ／候補が絞られる／人数が可変で候補が余る／可変で最低人数ちょうど／移動先で成立）。スキルをまたぐ話なので1枚にまとめる | 参加者の選び方・形を足したとき |

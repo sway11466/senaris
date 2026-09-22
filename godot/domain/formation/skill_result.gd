@@ -17,6 +17,10 @@ var cells: Array[Vector2i] = []    ## 光らせる面（駒の有無によらな
 var hits: Array[SkillHit] = []     ## 着弾した対象ごとの損害（着弾の無いレシピは空）
 var status: Dictionary = {}        ## 積んだ状態補正エントリ（バフ・毒）。無ければ空
 var cast: SkillCast                ## 効果対象が1体のユニットスキルの演出用内訳。それ以外は null
+## 着弾後に発動者を戻したマス（バックスタブ＝このターンの移動開始位置）。戻していなければ
+## Formation.NO_HEX。盤の演出が「刺してから跳んで帰る」の帰り先に読む。
+## 詳細 → doc/gdd/formations.md バックスタブ
+var caster_returned_to: Vector2i = Formation.NO_HEX
 
 ## 盤に見せる着弾があるか（被弾した駒か光らせる面がある）。無いもの（陣営全体のバフ・解除）は
 ## 盤を揺らさず作り直すだけ。
