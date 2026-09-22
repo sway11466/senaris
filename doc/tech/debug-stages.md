@@ -21,7 +21,7 @@
 | store4 | `debug-photo/store4.json` | 紹介画像の4枚目（会話パート。チュートリアル1・第4話をそのまま移植＝盤も会話も本物） |
 | devlog2-1 | `debug-photo/devlog2-1.json` | devlog 2本目の画（墓地の関門にバリケード＋魔法兵の三角＋アンデッドの群れ。`shot_screen --formation trinity_nova` で連写） |
 | devlog2-2 | `debug-photo/devlog2-2.json` | devlog 2本目のマップの画（undead-rush-st3 の実盤面コピー。関門をバリケードで塞ぎ、アンデッドの群れが詰まり、脇からゴーストが回り込む中盤の配置） |
-| manual-combat | `debug-photo/manual-combat.json` | マニュアルに貼る絵の撮影セット（平地にファイターとゴブリンを隣り合わせで1体ずつ。戦闘窓・戦闘レポート・情報板をここから撮る） |
+| manual-combat | `debug-photo/manual-combat.json` | マニュアルに貼る絵の撮影セット（平地にファイターとゴブリンを隣り合わせで1体ずつ。最上段に町（平地の上のオブジェクト）を置いて空きマスの地形の板も撮る。戦闘窓・戦闘レポート・情報板をここから撮る） |
 
 ## debug-combat（戦闘シーンの見た目確認）
 

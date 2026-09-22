@@ -3,8 +3,9 @@ extends Node
 ## 盤も HUD も出さず、板を実機と同じ幅（UiLayout.RIGHT_BOX）で描く。マニュアルの本文に貼る
 ## 静的画像の出どころ（doc/gdd/manual.md）。板の見た目を変えたら同じコマンドで撮り直す。
 ##
-## 板に出せるものは2つあり、引数で選ぶ:
+## 板に出せるものは3つあり、引数で選ぶ:
 ##   駒の情報   … --select <col,row> と --tab <ability|status|terrain>
+##   空きマスの地形 … --hex <col,row>（タブは無い。駒の居ないマスだけ）
 ##   戦闘レポート … --attacker <col,row> --target <col,row> と --tab <summary|attack|counter>
 ## 戦闘レポートは実機と同じ経路で1回戦わせ、その結果を板に出したところを撮る。
 ##
@@ -13,6 +14,7 @@ extends Node
 ##
 ## 実行（リポジトリ直下）:
 ##   godot --path godot res://tools/manual/shot_info_panel.tscn -- <出力PNG> <ステージjsonのres://パス> --select <col,row> --tab <タブ> --locale <ja|en>
+##   godot --path godot res://tools/manual/shot_info_panel.tscn -- <出力PNG> <ステージjsonのres://パス> --hex <col,row> --locale <ja|en>
 ##   godot --path godot res://tools/manual/shot_info_panel.tscn -- <出力PNG> <ステージjsonのres://パス> --attacker <col,row> --target <col,row> --tab <タブ> --locale <ja|en>
 ##
 ## 板は SubViewport に入れて撮る＝ウィンドウのストレッチ（canvas_items）に縮尺を触らせない。
@@ -27,13 +29,13 @@ const REPORT_TABS := ["summary", "attack", "counter"]
 func _ready() -> void:
 	var uargs := OS.get_cmdline_user_args()
 	var plain: Array[String] = []
-	var cells := {}  # "--select"/"--attacker"/"--target" -> Vector2i
+	var cells := {}  # "--select"/"--hex"/"--attacker"/"--target" -> Vector2i
 	var tab := ""
 	var locale := ""
 	var i := 0
 	while i < uargs.size():
 		var a := uargs[i]
-		if a in ["--select", "--attacker", "--target"] and i + 1 < uargs.size():
+		if a in ["--select", "--hex", "--attacker", "--target"] and i + 1 < uargs.size():
 			var parts := uargs[i + 1].split(",")
 			if parts.size() != 2:
 				_die("%s は col,row 形式: %s" % [a, uargs[i + 1]])
@@ -53,16 +55,23 @@ func _ready() -> void:
 		_die("引数が足りない。<出力PNG> <ステージjsonのres://パス> が要る")
 		return
 	var report := cells.has("--attacker") or cells.has("--target")
-	if cells.has("--select") == report:
-		_die("--select か、--attacker と --target のどちらか一方を渡す")
+	var empty_hex := cells.has("--hex")
+	if int(cells.has("--select")) + int(empty_hex) + int(report) != 1:
+		_die("--select か --hex か、--attacker と --target の組か、どれか一つを渡す")
 		return
 	if report and not (cells.has("--attacker") and cells.has("--target")):
 		_die("戦闘レポートには --attacker と --target の両方が要る")
 		return
-	var tabs: Array = REPORT_TABS if report else UNIT_TABS
-	if not tabs.has(tab):
-		_die("--tab は %s のどれか: %s" % [", ".join(tabs), tab])
-		return
+	# 空きマスの地形にタブは無い（板は見出しもタブも引っ込めて中身だけを出す）。
+	if empty_hex:
+		if not tab.is_empty():
+			_die("--hex にタブは無い: %s" % tab)
+			return
+	else:
+		var tabs: Array = REPORT_TABS if report else UNIT_TABS
+		if not tabs.has(tab):
+			_die("--tab は %s のどれか: %s" % [", ".join(tabs), tab])
+			return
 	if locale.is_empty():
 		_die("--locale <ja|en> が要る")
 		return
@@ -94,6 +103,12 @@ func _ready() -> void:
 		if not await _play_attack(state, panel, cells["--attacker"], cells["--target"]):
 			return
 		panel._report._show_tab(tab)  # レポートはタブを押して切り替える作り
+	elif empty_hex:
+		var hex := Hex.offset_to_axial(cells["--hex"].x, cells["--hex"].y)
+		if state.unit_at(hex) != null:
+			_die("(%d,%d) に駒が居る＝空きマスの表示にならない" % [cells["--hex"].x, cells["--hex"].y])
+			return
+		panel.show_terrain(hex)
 	else:
 		var unit := state.unit_at(Hex.offset_to_axial(cells["--select"].x, cells["--select"].y))
 		if unit == null:

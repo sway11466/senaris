@@ -1,11 +1,13 @@
 {
   "margin": 0,
   "terrain": [
-    ".........",
+    ".O.......",
     ".........",
     ".........",
     ".........",
     "........."
   ],
-  "terrain_skins": []
+  "terrain_skins": [
+    { "col": 1, "row": 0, "skin": "plain_fort_town1" }
+  ]
 }
