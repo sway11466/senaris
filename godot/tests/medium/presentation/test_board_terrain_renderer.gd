@@ -23,7 +23,6 @@ func test_initial_tile_nodes_empty() -> void:
 func test_initial_caches_empty() -> void:
 	assert_eq(renderer._elev_cache.size(), 0, "標高キャッシュは空")
 	assert_eq(renderer._terrain_tex.size(), 0, "テクスチャキャッシュは空")
-	assert_eq(renderer._avg_color.size(), 0, "平均色キャッシュは空")
 
 # --- 定数 ---
 

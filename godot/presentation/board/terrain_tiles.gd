@@ -10,6 +10,7 @@ static var _mat := {}        # Texture2D -> StandardMaterial3D
 static var _cutout_mat := {} # Texture2D -> StandardMaterial3D（透過を描く版）
 static var _variants := {}   # 基本パス(String) -> Array[Texture2D]
 static var _composed := {}   # "下地の id@重ね絵の id" -> Texture2D（合成結果）
+static var _avg := {}        # Texture2D -> Color（タイル平均色＝側面の断面色）
 
 ## UV の縦の係数。PNG はヘックスの外接矩形（256×222＝2R × √3R）で切ってあるので、
 ## 縦は横と同じ 0.5 ではなく 1/√3。0.5 は外接「正方形」（2R × 2R）用の値で、これを使うと
@@ -17,6 +18,30 @@ static var _composed := {}   # "下地の id@重ね絵の id" -> Texture2D（合
 ## 自然テクスチャでは気付けないが、絵の中に位置の約束を持つ地形（柵・道の接続タイル＝腕の先が
 ## 辺の中点に来る）は斜めの継ぎ目でずれる。詳細 → doc/art/terrain.md §1
 const UV_V := 0.5773502691896258
+
+## タイルの平均色（中央付近を5点サンプル・透過は除外）。側面（スカート）の断面色に使う。
+## 盤のスカートと情報板の見本が同じ色を出すので、ここに置いて static で共有する。
+static func avg_color(tex: Texture2D) -> Color:
+	if _avg.has(tex):
+		return _avg[tex]
+	var col := Color(0.35, 0.30, 0.22)  # 読めない場合のフォールバック（土色）
+	var img := tex.get_image()
+	if img != null:
+		if img.is_compressed():
+			img.decompress()
+		var w := img.get_width()
+		var h := img.get_height()
+		var sum := Vector3.ZERO
+		var cnt := 0
+		for off: Vector2 in [Vector2(0.5, 0.5), Vector2(0.3, 0.35), Vector2(0.7, 0.35), Vector2(0.3, 0.65), Vector2(0.7, 0.65)]:
+			var c := img.get_pixel(int(w * off.x), int(h * off.y))
+			if c.a > 0.5:
+				sum += Vector3(c.r, c.g, c.b)
+				cnt += 1
+		if cnt > 0:
+			col = Color(sum.x / cnt, sum.y / cnt, sum.z / cnt)
+	_avg[tex] = col
+	return col
 
 ## 床(XZ)に寝かせたフラットトップ六角メッシュ（中心ファン）。UVはテクスチャの外接矩形。
 static func hex_mesh(size: float) -> ArrayMesh:

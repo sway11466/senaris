@@ -48,7 +48,6 @@ var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイ�
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）
-var _avg_color := {}       # Texture2D -> Color（タイル平均色キャッシュ＝スカートの断面色）
 var _art_height := {}      # Texture2D -> float（立ち絵の絵の実体の高さ。キャンバスの余白を除く）
 
 # --- メッシュ（_ready で生成）---
@@ -264,29 +263,6 @@ func _connected_dirs(skin: TerrainSkin, hex: Vector2i) -> Array:
 	if area:
 		return connected
 	return TerrainSkin.extend_off_board(connected, on_board)
-
-## タイルの平均色（中央付近を5点サンプル・透過は除外）。スカートの断面色に使う。
-func _tile_avg_color(tex: Texture2D) -> Color:
-	if _avg_color.has(tex):
-		return _avg_color[tex]
-	var col := Color(0.35, 0.30, 0.22)  # 読めない場合のフォールバック（土色）
-	var img := tex.get_image()
-	if img != null:
-		if img.is_compressed():
-			img.decompress()
-		var w := img.get_width()
-		var h := img.get_height()
-		var sum := Vector3.ZERO
-		var cnt := 0
-		for off: Vector2 in [Vector2(0.5, 0.5), Vector2(0.3, 0.35), Vector2(0.7, 0.35), Vector2(0.3, 0.65), Vector2(0.7, 0.65)]:
-			var c := img.get_pixel(int(w * off.x), int(h * off.y))
-			if c.a > 0.5:
-				sum += Vector3(c.r, c.g, c.b)
-				cnt += 1
-		if cnt > 0:
-			col = Color(sum.x / cnt, sum.y / cnt, sum.z / cnt)
-	_avg_color[tex] = col
-	return col
 
 func _add_tile(hex: Vector2i) -> void:
 	var skin := _skin_at(hex)
@@ -556,7 +532,7 @@ func _add_skirt() -> void:
 				# 断面色＝そのタイルの平均色（草の下は緑土・砂の下は砂色＝地続きに見える）。
 				# べた塗り回避: 上端は明るめ→下端ほど暗い頂点グラデ＋粒状ノイズテクスチャを重ねる。
 				var tex := _surface_texture(hex)
-				var base := _tile_avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
+				var base := TerrainTiles.avg_color(tex) if tex != null else Color(0.35, 0.30, 0.22)
 				top_c = base.darkened(SKIRT_DARKEN - 0.20)
 				bot_c = base.darkened(SKIRT_DARKEN + 0.20)
 			var st: SurfaceTool = tools.get(side)

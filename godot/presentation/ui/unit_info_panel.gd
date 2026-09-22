@@ -374,7 +374,7 @@ func _update_faces(u: Unit) -> void:
 func _terrain_sample(hex: Vector2i) -> void:
 	var skin := TerrainSkinCatalog.resolve(String(_terrain_skins.get(hex, "")), _state.terrain_at(hex))
 	if skin == null:
-		_terrain_face.setup(null, null)
+		_terrain_face.setup(null, null, 0.0, null, 0.0, false)
 		return
 	var b := _state.base_at(hex)
 	var tex := _terrain_texture(skin, b.team if b != null else -1)
@@ -382,10 +382,21 @@ func _terrain_sample(hex: Vector2i) -> void:
 	var gs := TerrainSkinCatalog.resolve(skin.map_ground_id(), "") if not skin.map_ground_id().is_empty() else null
 	if gs != null:
 		ground = _terrain_texture(gs, -1)
-	if TerrainType.layer(skin.terrain_type) == "object":
-		_terrain_face.setup(ground, tex)
+	var object_layer := TerrainType.layer(skin.terrain_type) == "object"
+	# 厚みの帯は足場が持つ（盤のスカートと同じ＝立ち絵のマスでも、下の足場の高さと絵で立つ）。
+	var footing := gs if object_layer and gs != null else skin
+	var side := _side_texture(footing)
+	if object_layer:
+		_terrain_face.setup(ground, tex, skin.object_foot_z,
+			side, footing.elevation, footing.side_repeats())
 	else:
-		_terrain_face.setup(TerrainTiles.composited(ground, tex), null)
+		_terrain_face.setup(TerrainTiles.composited(ground, tex), null, 0.0,
+			side, footing.elevation, footing.side_repeats())
+
+## 厚みの帯の絵（assets/terrain/{skin_id}_side.png）。置いていなければ null＝断面色で塗る（盤と同じ規約）。
+func _side_texture(skin: TerrainSkin) -> Texture2D:
+	var path := skin.side_image_path()
+	return load(path) as Texture2D if ResourceLoader.exists(path) else null
 
 ## スキンの絵（変種の1枚目）。占領された拠点は所有チーム別の絵があればそれ（盤と同じ規約）。無ければ null。
 func _terrain_texture(skin: TerrainSkin, team: int) -> Texture2D:
