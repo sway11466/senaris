@@ -44,8 +44,8 @@ const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾�
 ## 結界（マジックシールド）の印＝効果範囲の各ヘックスに重ねる絵。シールドウォールの発動の印と
 ## 同じ絵の仕組み（assets/formations/{skill_id}_mark.png）を、駒ではなくヘックスに・引かずに
 ## 持続の間ずっと出す形で使う。詳細 → doc/gdd/formations.md マジックシールド
-const ZONE_MARK_TILES := 2.0        # 絵の長辺がヘックス何枚ぶんか（1.0＝タイルの半径。2.0＝ヘックスの幅）
-const ZONE_MARK_ALPHA := 0.85       # 濃さ（シールドウォールの印と同じ）。駒を完全には隠さない
+const ZONE_MARK_TILES := 1.05        # 絵の長辺の長さ（タイルの半径が1.0・ヘックスの幅が2.0）
+const ZONE_MARK_ALPHA := 1.0        # 絵全体に掛ける不透明度。面の透け具合は絵のアルファが持つ
 const ZONE_MARK_STEP_SEC := 0.08    # 張るときの1枚ごとの間隔（左から右へ）
 const ZONE_MARK_RISE_SEC := 0.16    # 開いて出るまで
 const ZONE_MARK_RISE_FROM := 0.55   # 同・開き始めの倍率

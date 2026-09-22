@@ -1,0 +1,38 @@
+NOTE: これは盤に重ねる印（{recipe_id}_mark.png）。⑤⑩の印が参加者の駒に1秒だけ重なるのに対し、
+⑦は効果範囲の7ヘクスに1枚ずつ重ね、持続が切れるまで出したままにする（doc/gdd/formations.md ⑦）。
+1枚絵のカットイン（magic_shield_prompt.txt）とは別物＝人物・背景を描かず、結界の面だけを描く。
+置き場と扱い → doc/art/keyvisual.md §3。
+
+STYLE は doc/art/units.md §3.4 の EFFECT STYLE を土台に2点だけ差し替えた（差し替えの記録）:
+  ・向き＝「右へ向かう一撃」を外し、正面・直立・左右対称にする（⑤⑩の印と同じ）。
+  ・光＝「発光を使わない」を緩め、輪郭の帯だけを光らせる。結界そのものが光る理由を持つため
+    （物理の構えである⑤⑩とはここが違う）。ただし滲み（bloom）とグラデーションは使わない。
+
+中心を空洞にする条項は守る（⑤は盾の面を塗り潰したが、あれは1秒で引く印。⑦は持続の間ずっと
+出たままなので、面を塗ると結界の中の駒が最後まで読めなくなる）。
+
+六角形の向きは盤のヘックスに合わせる＝左右が尖り、上下が水平な辺。盤では回さない。
+陣営色（青・赤）には寄せない＝結界は味方だけが張るが、印は中立の淡い青白で描く。
+辺の数を数えさせる段を本文に入れてある（2026-09-22 の1枚目が八角形で出たため）。
+それでも外すときは、同じフォルダの magic_shield_mark_ref_shape.png（六角形の輪郭だけを
+白線で描いた参照画像）を形の見本として添付する。
+
+SUBJECT: A single HEXAGON of magical barrier — one cell of a honeycomb — seen straight from the FRONT, upright and perfectly left-right symmetrical: one cell of a ward that has just closed.
+
+SHAPE, and please count the edges: the outline is a regular hexagon with EXACTLY SIX straight edges and EXACTLY SIX corners, exactly like one cell of a honeycomb or one tile of a hex-grid board game. Two of those edges are horizontal — one across the top, one across the bottom. The other four slant inward and meet at ONE sharp corner at the far left and ONE sharp corner at the far right. It is NOT an octagon, NOT a seven- or eight-sided shape, NOT a circle or a rounded shape; there are NO cut corners, NO bevels and NO extra facets added to the outline.
+
+No tilt, no perspective, no three-quarter view — flat and face-on, as if it were a badge.
+
+Its RIM is a thick, hard-edged band of pale blue-white light running around all six sides, the brightest part of the graphic, with a slightly deeper blue-grey inner line to give the band an edge. The six corners are marked by a small bright node where the band meets.
+
+The INSIDE of the hexagon is almost entirely EMPTY — only a very faint wash of the same pale blue, plus two or three thin straight lines of light running between the corners like the facets of glass. Whatever is behind the graphic must read clearly through the middle. NO solid fill, NO opaque pane, NO emblem, NO crest, NO letters, NO runes.
+
+Drawn in three flat tones only, with hard edges throughout. NO bloom, NO soft gradients, NO sparkle particles, NO cracks, NO impact, NO shards, NO hands, NO owner, NO ground.
+
+The hexagon fills the frame edge to edge with only a thin margin. Square 1:1 composition. Pure black background (single flat color, for easy cutout).
+
+抜き方の記録（_01_raw.jpg → _03_master.png）: 生成物は背景が黒・中の面が白で塗られて出た。
+四隅から黒を塗り広げて背景を抜き（アルファ0）、続いて中心から中の面を塗り広げてアルファ64
+（255段階＝25%）にした。枠と角の光はそのまま。中の面を残すのは、結界が半透明の板に見えるように
+するため。面を完全に抜くと枠だけの輪になる。盤側の大きさ・全体の不透明度は HexBoard3D の
+ZONE_MARK_TILES / ZONE_MARK_ALPHA。
