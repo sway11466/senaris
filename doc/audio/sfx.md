@@ -421,7 +421,7 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `arrow_rain` | `arrow` を18本、0.36秒のあいだにずらして重ねる（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目） | 2019 p5 / Rock The Speakerbox - Melee |
 | `arrow_rain_hit` | `arrow_hit` を12本、0.61秒のあいだにずらして重ねる（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
 | `magic_shield` | `Ice_Spell_Ice_Spell_Buff_Positive_02.wav` の頭から 1.45 秒 | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
-| `backstab_hit` | `slash_s` の複製（`WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav`） | 2026 p1 / 344 Audio - Historical Weapons Vol. 2 |
+| `backstab_hit` | `slash_s` の複製（`WEAPSwrd_Sword Slide Cuts, Metallic, Impact CM4 2_344 Audio_Medieval Weapons Vol 2.wav`）＋頭に0.3秒の無音 | 2026 p1 / 344 Audio - Historical Weapons Vol. 2 |
 | `shield_wall` | `cmb_hit_none` の複製（`Weapon_Impact_Parry_01.wav`） | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
 | `counter` | `slash_m` の複製（`METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav`） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
@@ -433,7 +433,9 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 
 `counter` も新しい素材を探さない。刃を構え直して身構える音なので、ゲーム内で既に鳴っている斬撃（`slash_m`＝長い刃の振りに金属の擦れが乗ったもの）をそのまま採る。着弾が無いので `_hit` は置かない（グレイス・シールドウォールと同じ）。ファイターの攻撃エフェクトが同じ素材なので、反撃が実際に起きると戦闘窓でも同じ音が鳴るが、どちらも「その刃が振られた」を表すので重なって読める。
 
-`backstab` も新しい素材を探さない。短剣で刺す一撃なので、ゲーム内で既に鳴っている小さい斬撃（`slash_s`＝短い刃の擦れ）をそのまま採る。発動側の音は置かない＝カットインが明けてから駒が消え、刺さった瞬間に1発だけ鳴る（刃を抜く前に音が出ない）。シーフの攻撃エフェクトは `slash_m` なので、通常攻撃とは同じ語彙のまま短さで鳴り分ける。
+`backstab` も新しい素材を探さない。短剣で刺す一撃なので、ゲーム内で既に鳴っている小さい斬撃（`slash_s`＝短い刃の擦れ）をそのまま採る。発動側の音は置かない＝1発だけ鳴らす。シーフの攻撃エフェクトは `slash_m` なので、通常攻撃とは同じ語彙のまま短さで鳴り分ける。
+
+`backstab_hit` は**頭に0.3秒の無音を焼いている**。着弾音を鳴らすのはカットインが閉じた瞬間だが、バックスタブの盤の演出は「駒が消える → ため → 斬撃」と進むので、絵が出るのは 0.62 秒あと＝そのままでは刃の音が先に鳴る。待ちはスキルごとのコードではなく素材側に置く（[`gen_sfx.ps1`](../../godot/tools/gen_sfx.ps1) の `-LeadSec`）。盤の演出「高速」（3倍速）では絵が 0.21 秒で着くため、0.3 秒はその中を取った値＝等速で 0.3 秒早く、高速で 0.1 秒遅い。
 
 `arrow_rain` も新しい素材を探さない。「多数の矢が一斉に放たれる」音は Sonniss の索引に無く、弓は単発しか無いため、
 ゲーム内で既に鳴っている1本ぶんの矢（`arrow`／`arrow_hit`）を本数ぶん重ねて作る。同じ音をそのまま重ねると1本の太い音に

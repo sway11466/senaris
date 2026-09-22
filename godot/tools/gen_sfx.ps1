@@ -27,8 +27,17 @@
   Music / SFX buses (default_bus_layout.tres) so the mix can change without
   re-exporting.
 
+  -LeadSec bakes silence onto the head after the trim, so a sound can land later
+  than the moment the game fires it. The hit sound of a formation skill is fired
+  when the cut-in closes, but the picture it belongs to lands a few tenths later;
+  padding the material keeps that wait out of the game code. Note the board can
+  run its effects at 3x ("fast"), which the baked silence does not follow.
+
   Spec: doc/audio/sfx.md. Requires ffmpeg (searched on PATH, then winget).
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1.
+
+.EXAMPLE
+  powershell -File tools\gen_sfx.ps1 backstab_hit -LeadSec 0.3
 
 .EXAMPLE
   powershell -File tools\gen_sfx.ps1 ui_confirm
@@ -44,7 +53,10 @@ param(
   [double]$TolDb = 1.0,             # how far off the target level still passes
   [int]$Quality = 6,                # libvorbis -q:a (6 is about 192kbps)
   [double]$FadeSec = 0.01,          # fade-out at the trimmed tail (anti-click)
-  [string]$SilenceDb = '-60dB'      # what counts as silence when trimming
+  [string]$SilenceDb = '-60dB',     # what counts as silence when trimming
+  [double]$LeadSec = 0.0            # silence baked at the head AFTER trimming, to
+                                    # delay a sound that must land later than the
+                                    # moment the game fires it (see .DESCRIPTION)
 )
 $ErrorActionPreference = 'Stop'
 
@@ -109,6 +121,12 @@ $trim = "silenceremove=start_periods=1:start_silence=0:start_threshold=$SilenceD
         "afade=t=in:d=$FadeSec," +
         "areverse"
 
+# -LeadSec bakes silence back onto the head, after the trim has removed it. The
+# game has one moment when it fires a sound; when the picture lands later than
+# that, the wait belongs in the material, not in a branch in the game code.
+$af = $trim
+if ($LeadSec -gt 0) { $af = "$trim,adelay=$([int]([math]::Round($LeadSec * 1000))):all=1" }
+
 if (-not (Test-Path $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out-Null }
 
 $offTarget = @()
@@ -120,7 +138,7 @@ foreach ($name in $Names) {
 
   # Trim and encode in one pass. No gain filter: the level came off the fader.
   $enc = Invoke-Ffmpeg @('-y', '-loglevel', 'error', '-i', $src,
-    '-af', $trim, '-c:a', 'libvorbis', '-q:a', $Quality, $out)
+    '-af', $af, '-c:a', 'libvorbis', '-q:a', $Quality, $out)
   if ($enc.ExitCode -ne 0) { throw "ffmpeg failed on ${name}: $($enc.Stderr)" }
 
   # Verify the container really holds Vorbis (Opus imports as valid=false in Godot).
