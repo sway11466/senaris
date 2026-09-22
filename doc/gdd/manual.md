@@ -55,6 +55,21 @@
 - 情報板の絵は撮ったままの幅（板の実寸）では置かず、幅400pxに縮めてから置く。板の絵はどれも同じ幅に揃える＝本文を繰ったときに絵の大きさが変わらない。
 - 出どころは撮影ツール（[../tech/tools.md](../tech/tools.md) の `manual/shot_info_panel`・`manual/shot_combat_window`）と撮影セット（`debug-photo/manual-combat` → [../tech/debug-stages.md](../tech/debug-stages.md)）。板や演出の見た目を変えたら同じコマンドで撮り直す。
 
+撮り直しの手順。撮影セットの駒は ファイター(4,2)・ウィッチ(1,1)・クレリック(2,1)・シーフ(3,1)・ゴブリン(5,2)。
+
+```
+# 戦闘レポート（サマリー／攻撃／反撃）。言語ぶん撮る
+godot --path godot res://tools/manual/shot_info_panel.tscn -- <出力PNG> res://data/stages/debug-photo/manual-combat.json --attacker 4,2 --target 5,2 --tab <summary|attack|counter> --locale <ja|en>
+
+# ユニットの情報板。言語ぶん撮る
+godot --path godot res://tools/manual/shot_info_panel.tscn -- <出力PNG> res://data/stages/debug-photo/manual-combat.json --select <col,row> --tab ability --locale <ja|en>
+
+# 戦闘の窓。連写なので良い瞬間を1枚選ぶ
+godot --path godot res://tools/manual/shot_combat_window.tscn -- <出力フォルダ> res://data/stages/debug-photo/manual-combat.json --attacker 4,2 --target 5,2
+```
+
+撮ったあとに貼る寸法へ縮める。情報板の絵は幅400px、戦闘の窓は本文ペインの幅。
+
 ---
 
 ## 参考資料
