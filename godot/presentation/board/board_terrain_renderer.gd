@@ -27,7 +27,8 @@ const CANVAS_TILES := 3.75
 ## 奥行き方向ではない（奥行きで寄せると画面の端で絵がマスの中心から横へ流れる）。
 ## 前後の判定だけは盤の奥行きで手前に寄せる＝駒（+0.6）と同じ向きで、駒より小さくしておけば
 ## 同じマスでも駒が手前に立つ。
-const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)
+const COLOR_LINE := Color(0.78, 0.83, 0.90, 0.45)       ## 明るい線（スキンの grid=light）
+const COLOR_LINE_DARK := Color(0.30, 0.33, 0.38, 0.55)  ## 暗い線（grid=dark）。暗いタイルで明るい線が浮くのを避ける
 
 # --- 状態（setup で注入）---
 var _state: BattleState
@@ -478,17 +479,23 @@ func _standee_art_height(spr: Sprite3D) -> float:
 		_art_height[tex] = float(img.get_used_rect().size.y)
 	return _art_height[tex] * spr.pixel_size
 
-## ヘックスの輪郭線（セルの読み取り用）。全マスまとめて1メッシュ。
-## スキンが grid=false のマスは引かない＝駒が入れない地形が枠で刻まれず、一つの塊として読める。
+## ヘックスの輪郭線（セルの読み取り用）。線色ごとに1メッシュ（今は light と dark の2本）。
+## スキンが grid=none のマスは引かない＝駒が入れない地形が枠で刻まれず、一つの塊として読める。
+## grid=dark は暗いタイル用＝明るい線だと線だけが浮いてちらつくので、線の側を暗く寄せる。
 func _add_grid() -> void:
-	var im := ImmediateMesh.new()
-	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	var meshes := {}  # grid の値 -> ImmediateMesh
 	for col in _state.cols:
 		for row in _state.rows:
 			var hex := Hex.offset_to_axial(col, row)
 			var skin := _skin_at(hex)
-			if skin != null and not skin.grid:
+			var kind: String = skin.grid if skin != null else TerrainSkin.GRID_LIGHT
+			if kind == TerrainSkin.GRID_NONE:
 				continue
+			var im: ImmediateMesh = meshes.get(kind)
+			if im == null:
+				im = ImmediateMesh.new()
+				im.surface_begin(Mesh.PRIMITIVE_LINES)
+				meshes[kind] = im
 			var p := Hex.to_pixel(hex, TILE)
 			var gy := elev(hex) + 0.01
 			for i in 6:
@@ -496,15 +503,17 @@ func _add_grid() -> void:
 				var a1 := deg_to_rad(60.0 * (i + 1))
 				im.surface_add_vertex(Vector3(p.x + cos(a0) * TILE, gy, p.y + sin(a0) * TILE))
 				im.surface_add_vertex(Vector3(p.x + cos(a1) * TILE, gy, p.y + sin(a1) * TILE))
-	im.surface_end()
-	var mi := MeshInstance3D.new()
-	mi.mesh = im
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = COLOR_LINE
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mi.material_override = m
-	add_child(mi)
+	for kind: String in meshes:
+		var im: ImmediateMesh = meshes[kind]
+		im.surface_end()
+		var mi := MeshInstance3D.new()
+		mi.mesh = im
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = COLOR_LINE_DARK if kind == TerrainSkin.GRID_DARK else COLOR_LINE
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mi.material_override = m
+		add_child(mi)
 
 ## 盤外周の側面（スカート）。盤外に接する辺だけ下へ伸ばし、ジオラマの「島」に見せる。
 ## 側面画像（assets/terrain/{skin_id}_side.png）を持つスキンは、その画像を貼った別メッシュにまとめる。

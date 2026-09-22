@@ -34,6 +34,13 @@ const ORIENT_FLIP_XY := "flip_xy"  ## 上下反転＋左右反転・回転なし
 const ORIENT_FULL := "full"        ## 60°回転＋上下反転＋左右反転。向きの無い自然地形（平地・森）
 const ORIENTS := [ORIENT_NONE, ORIENT_FLIP_X, ORIENT_FLIP_Y, ORIENT_FLIP_XY, ORIENT_FULL]
 
+## ヘックスの枠線の引き方。暗いタイルに明るい線を引くと線だけが浮いてちらつくので、
+## 線の側をタイルの明るさに合わせる。どのスキンがどちらかは絵を見て表で決める（自動で測らない）。
+const GRID_LIGHT := "light"  ## 明るい線。既定。中間〜明るいタイル
+const GRID_DARK := "dark"    ## 暗い線。暗いタイル（玄武岩・溶岩原）
+const GRID_NONE := "none"    ## 引かない。駒が入れない地形は一つの塊として読ませる
+const GRIDS := [GRID_LIGHT, GRID_DARK, GRID_NONE]
+
 var skin_id: String        ## スキンID（主キー。ステージはこれで見た目を指定）
 var terrain_type: String   ## 紐づく性能(TerrainType)のid
 var name: String           ## 開発用メモ（CSV の name 列）。画面表示は tr("terrain." + skin_id + ".name") を使う
@@ -59,7 +66,8 @@ var placement: String
 ## 駒（+0.6）と同じ向きで、それより小さくしておけば同じマスでも駒が手前に立つ。足場のスキンは空。
 ## 大きさのほうはここで読まない＝map_scale は絵の書き出し専用（→ doc/art/terrain.md）。
 var object_foot_z: float
-var grid: bool             ## ヘックスの枠線を引くか。駒が入れない地形は引かないほうが一つの塊として読める
+## ヘックスの枠線の引き方（GRID_* のどれか）。none＝引かない＝駒が入れない地形は一つの塊として読める。
+var grid: String
 ## 盤に敷くときの下地。地面を絵に焼き込まず、描画時に下地の上へ自分の絵を重ねる（→ doc/art/terrain.md §3.6）。
 var map_ground: String     ## 下に敷くスキンID。空＝敷かない＝1枚絵で完結する従来のタイル
 ## 戦闘演出の地面に敷くスキンID（→ doc/tech/combat_scene.md）。空＝自分自身で敷き詰める（既定）。
@@ -92,7 +100,10 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	var pl: Variant = d.get("placement", "")
 	s.placement = String(pl) if typeof(pl) == TYPE_STRING and pl in PLACEMENTS else ""
 	s.object_foot_z = float(d.get("object_foot_z", 0.0))
-	s.grid = bool(d.get("grid", true))
+	# 未知の値（旧データの bool true・打ち間違い）は明るい線に倒す＝従来の見え方のまま出るので、
+	# 線が消えるより不備に気づける。String() は bool を受けないので、文字列かどうかを先に見る。
+	var g: Variant = d.get("grid", GRID_LIGHT)
+	s.grid = String(g) if typeof(g) == TYPE_STRING and g in GRIDS else GRID_LIGHT
 	s.map_ground = String(d.get("map_ground", ""))
 	s.combat_ground = String(d.get("combat_ground", ""))
 	return s

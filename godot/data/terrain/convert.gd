@@ -75,7 +75,9 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	problems += Csv.invalid_values(rows, "orientable", SkinDef.ORIENTS, "skin_id")
 	# connect は多値: line(柵＝線) / area(道＝面) / false(繋がらない)。旧データの true は曖昧なので弾く。
 	problems += Csv.invalid_values(rows, "connect", ["line", "area", "false"], "skin_id")
-	problems += Csv.invalid_values(rows, "grid", ["true", "false"], "skin_id")
+	# grid は多値: light(明るい線) / dark(暗い線) / none(引かない)。旧データの true/false は
+	# 線の色を言えないので弾く（→ TerrainSkin.GRIDS）。
+	problems += Csv.invalid_values(rows, "grid", SkinDef.GRIDS, "skin_id")
 	problems += _invalid_amount(rows, "elevation")   # 打ち間違いが「高さ0」に化けて黙って平らになるのを防ぐ
 	problems += _invalid_amount(rows, "floor")
 	# 側面の帯の貼り方（stretch/repeat）。全足場に明示する＝空を既定に倒さない。オブジェクトは空。
