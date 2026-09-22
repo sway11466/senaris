@@ -18,16 +18,6 @@
 
 実装済みコードに足す機能。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### feature-122
-
-**陣形スキルのバックスタブ（シーフ＋対象を挟んで正反対の味方1体・貫通0.5・着弾後に元の位置へ戻る）**
-- ゴール：シーフが敵に隣接し、その敵を挟んで正反対のヘックスに味方が居るとき、貫通0.5・反撃なしの一撃を刺し、シーフはこのターンの移動開始位置へ戻る。参加者はシーフとその味方だけで、幾何で決まる。
-- 背景：[formations.md](gdd/formations.md) のバックスタブで仕様確定。形 `backstab` は対象を挟んだ正反対（対象からの方向ベクトルが逆）を見る＝トリックショットの `spotter` の親戚。着弾後に発動者の位置を戻すのは初めての処理で、移動開始位置を `BattleState` が覚えている必要がある。
-- 対応：(1) `RECIPES` に `backstab`（leader＝thief、member＝任意（`member_skins` 空＝種別不問の印）、shape `backstab`、count 2、effect `single`、`range` 1、`pierce_override` 0.5、`attack_vs` "target"、`return_to_origin` true）。(2) `FormationOption.Shape` に `BACKSTAB`：対象候補は発動者の隣接する敵のうち、`target + (target - leader_pos)` に味方が居るもの。相方はその1体。(3) `FormationResolver.resolve` の最後に、`return_to_origin` なら発動者を移動開始位置へ戻す（経路・コスト・足止め不問。`MatchController` が持つ移動前の位置を `SkillCast` に渡す）。中断セーブとリプレイで位置が一致することを確認。(4) 演出＝跳んで刺して戻る（駒の移動アニメを2回。絵は `backstab_impact.png`）。(5) `skills.csv`。(6) テスト＝対角の判定（隣り合う2体は不成立）・相方が幾何で決まる・戻り・飛行相手は対空10。
-- 考慮外：他の斥候（ハーフリング等）への拡張。撃破後の再攻撃（検討して不採用）。
-- 演出まわり：カットイン `godot/assets/formations/backstab.png`（スキルごと1枚の規約解決。射手ごとに分けるならトリックショットと同じく `cutin_per_caster` と `backstab_{skin}.png`）。効果音 `godot/assets/sfx/backstab.ogg`（発動）と `backstab_hit.ogg`（着弾）を置き、[audio/sfx.md](audio/sfx.md) の発火点カタログと権利台帳に載せる。クロニクルの陣形スキル章＝形 `backstab` は新しいので `LAYOUTS` に発動者と対角の味方、`TARGETS` に間の敵ヘクス（ゴブリンの駒）を足す。相方は種別不問（`member_skins` 空）なので図と未解放の黒塗りの代表を1体決める（`godot/presentation/chronicle/recipe_figure.gd`）。絵と音は置けば出る（無ければ飛ばす）ので実装の前提ではないが、この項目の一部として扱う。
-- 該当：`godot/domain/formation/formation.gd`・`godot/domain/formation/formation_option.gd`・`godot/domain/formation/formation_resolver.gd`・`godot/presentation/board/board_impact_renderer.gd`・`godot/data/i18n/skills.csv`・`godot/tests/small/domain/test_formation.gd`＋`godot/application/match_controller.gd`・`godot/domain/battle_state.gd`・`godot/domain/formation/skill_cast.gd`。
-
 ### feature-62
 
 **販売チャネルごとの機能を乗せる（プラットフォーム層）**
