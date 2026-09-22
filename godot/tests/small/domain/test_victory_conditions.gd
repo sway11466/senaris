@@ -378,3 +378,101 @@ func test_loader_reads_defeat_list() -> void:
 func test_loader_defaults_to_empty_defeat() -> void:
 	var s := StageLoader.build({ "cols": 6, "rows": 6 })
 	assert_true(s.defeat_conditions.is_empty(), "defeat 未指定＝空リスト（常時ルールのみ）")
+
+
+# --- 拠点の占領（capture_base）。hq でない拠点を勝利目標にする＝敗北側の lose_base と対 ---
+
+## 自軍の占領役＋敵の砦(col4,row4)＋離れた敵、の盤。砦は hq ではない。
+func _capture_state() -> BattleState:
+	var s := BattleState.new(8, 8)
+	var hex := Hex.offset_to_axial(4, 4)
+	s.victory_conditions = [{ "type": "capture_base", "bases": [{ "col": 4, "row": 4 }] }]
+	var cap := Unit.new(1, 0, Hex.neighbor(hex, 3), 3)  # 占領役（砦の隣）
+	cap.can_capture = true
+	s.add_unit(cap)
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(7, 7), 3, 8, 10, 4))  # 離れた敵
+	s.add_base(Base.new(hex, 1))  # 敵の砦（hqではない）
+	return s
+
+func test_capture_base_wins_on_a_plain_fort() -> void:
+	var s := _capture_state()
+	assert_eq(s.outcome(), BattleState.ONGOING, "開戦時は継続")
+	var hex := Hex.offset_to_axial(4, 4)
+	assert_true(s.move_unit(1, hex), "占領役が砦へ進入")
+	assert_eq(s.base_at(hex).team, 0, "進入した瞬間に占領")
+	assert_false(s.base_at(hex).is_hq(), "hq でない拠点で勝てる")
+	assert_eq(s.team_unit_count(1), 1, "敵が盤上に残っている")
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "敵が残っていても名指しの拠点を取れば勝利")
+
+func test_capture_base_is_undone_by_losing_it_back() -> void:
+	var s := _capture_state()
+	var hex := Hex.offset_to_axial(4, 4)
+	s.base_at(hex).team = 0
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN)
+	s.base_at(hex).team = 1  # 奪い返された
+	assert_eq(s.outcome(), BattleState.ONGOING, "取り返されれば条件は不成立に戻る")
+
+func test_capture_base_ignores_neutral_and_missing() -> void:
+	var s := _capture_state()
+	var hex := Hex.offset_to_axial(4, 4)
+	s.base_at(hex).team = Base.NEUTRAL
+	assert_eq(s.outcome(), BattleState.ONGOING, "中立のままでは保持していない")
+	s.victory_conditions = [{ "type": "capture_base", "bases": [{ "col": 0, "row": 7 }] }]
+	assert_eq(s.outcome(), BattleState.ONGOING, "盤に拠点が無い座標の指定は不成立（空勝ち防止）")
+
+func test_capture_base_empty_targets_never_win() -> void:
+	var s := _capture_state()
+	s.victory_conditions = [{ "type": "capture_base", "bases": [] }]
+	assert_eq(s.outcome(), BattleState.ONGOING, "対象が空の条件は成立しない")
+	s.victory_conditions = [{ "type": "capture_base" }]
+	assert_eq(s.outcome(), BattleState.ONGOING, "対象が無い条件も成立しない")
+
+## 敵の砦を2つ（col4,row4 と col2,row6）持つ盤。
+func _capture_two_state() -> BattleState:
+	var s := BattleState.new(8, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(7, 7), 3))
+	s.add_base(Base.new(Hex.offset_to_axial(4, 4), 1))
+	s.add_base(Base.new(Hex.offset_to_axial(2, 6), 1))
+	return s
+
+func test_capture_base_and_needs_all_targets() -> void:
+	var s := _capture_two_state()
+	s.victory_conditions = [{ "type": "capture_base",
+		"bases": [{ "col": 4, "row": 4 }, { "col": 2, "row": 6 }] }]
+	s.base_at(Hex.offset_to_axial(4, 4)).team = 0
+	assert_eq(s.outcome(), BattleState.ONGOING, "片方だけ取っても継続（条件の中はAND）")
+	s.base_at(Hex.offset_to_axial(2, 6)).team = 0
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "両方取ったら勝利")
+
+func test_capture_base_or_across_conditions() -> void:
+	var s := _capture_two_state()
+	s.victory_conditions = [
+		{ "type": "capture_base", "bases": [{ "col": 4, "row": 4 }] },
+		{ "type": "capture_base", "bases": [{ "col": 2, "row": 6 }] },
+	]
+	s.base_at(Hex.offset_to_axial(4, 4)).team = 0
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "条件を分ければ片方で勝利（条件どうしはOR）")
+
+func test_capture_base_loses_to_defeat_condition() -> void:
+	# 勝利条件と同時に成立したら敗北を優先（既存の敗北優先方針）。
+	var s := _capture_two_state()
+	s.victory_conditions = [{ "type": "capture_base", "bases": [{ "col": 4, "row": 4 }] }]
+	s.defeat_conditions = [{ "type": "lose_base", "bases": [{ "col": 2, "row": 6 }] }]
+	s.base_at(Hex.offset_to_axial(4, 4)).team = 0
+	s.base_at(Hex.offset_to_axial(2, 6)).team = 1
+	assert_eq(s.outcome(), BattleState.PLAYER_LOSS, "敗北条件が勝利より優先される")
+
+func test_loader_reads_capture_base() -> void:
+	var s := StageLoader.build({
+		"cols": 6, "rows": 6,
+		"player": [ { "units": [ { "type": "cleric", "col": 0, "row": 0 } ] } ],
+		"enemy": [ { "order": 1, "ai": "charge", "units": [ { "col": 5, "row": 5 } ] } ],
+		"bases": [ { "col": 3, "row": 3, "team": "enemy", "rest": "enemy" } ],
+		"victory": [ { "type": "capture_base", "bases": [ { "col": 3, "row": 3 } ] } ],
+	})
+	assert_eq(s.victory_conditions.size(), 1, "victory リストが載る")
+	assert_eq(String(s.victory_conditions[0]["type"]), "capture_base")
+	assert_eq(s.outcome(), BattleState.ONGOING, "敵所属のうちは継続")
+	s.base_at(Hex.offset_to_axial(3, 3)).team = 0
+	assert_eq(s.outcome(), BattleState.PLAYER_WIN, "占領で勝利")

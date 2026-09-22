@@ -23,6 +23,8 @@ var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 �
 
 ## 勝利条件リスト（OR＝どれか1つ満たせば勝利）。空＝殲滅のみ（従来挙動）。詳細 → doc/gdd/map.md（勝敗条件）
 ## 要素は dict。現在対応: { "type": "defeat_unit", "unit_ids": [<String>, …] } ＝ ボス撃破（名指した駒をすべて撃破。駒に unit_id を書いて名指す）
+##                       { "type": "capture_hq" } ＝ 敵の本拠地をすべて占領
+##                       { "type": "capture_base", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点を全て自軍が保持（敗北側の lose_base と対）
 var victory_conditions: Array = []
 
 ## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。

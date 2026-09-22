@@ -22,6 +22,18 @@
       "synopsis": "デバッグ冒険譚"
     },
     {
+      "id": "capture_base",
+      "file": "capture_base.json",
+      "title": "拠点の占領（1つ）",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "capture_two",
+      "file": "capture_two.json",
+      "title": "拠点の占領（2つ・AND）",
+      "synopsis": "デバッグ冒険譚"
+    },
+    {
       "id": "turnlimit",
       "file": "turnlimit.json",
       "title": "ターン制限",

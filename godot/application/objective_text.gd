@@ -36,6 +36,8 @@ static func _victory_line(state: BattleState, skins: Dictionary, c: Dictionary) 
 	match String(c.get("type", "")):
 		"capture_hq":
 			return _t("ui.objective.win.capture_hq")
+		"capture_base":
+			return _t("ui.objective.win.bases" if _many_bases(c) else "ui.objective.win.base")
 		"defeat_unit":
 			var names := _unit_names(state, skins, c.get("unit_ids"))
 			if names.is_empty():
@@ -62,9 +64,7 @@ static func _defeat_lines(state: BattleState, skins: Dictionary) -> PackedString
 static func _defeat_line(state: BattleState, skins: Dictionary, c: Dictionary) -> String:
 	match String(c.get("type", "")):
 		"lose_base":
-			var bases: Variant = c.get("bases", [])
-			var many: bool = typeof(bases) == TYPE_ARRAY and (bases as Array).size() > 1
-			return _t("ui.objective.lose.bases" if many else "ui.objective.lose.base")
+			return _t("ui.objective.lose.bases" if _many_bases(c) else "ui.objective.lose.base")
 		"lose_unit":
 			var names := _unit_names(state, skins, c.get("unit_ids"))
 			if names.is_empty():
@@ -72,6 +72,11 @@ static func _defeat_line(state: BattleState, skins: Dictionary, c: Dictionary) -
 			var key := "ui.objective.lose.lose_unit" if names.size() == 1 else "ui.objective.lose.lose_units"
 			return _t(key) % _join(names)
 	return ""  # 未知のタイプ＝出さない（Victory も不成立として扱う）
+
+## 拠点を名指す条件（勝利=capture_base / 敗北=lose_base）の対象が2つ以上か（文の単複を選ぶ）。
+static func _many_bases(c: Dictionary) -> bool:
+	var bases: Variant = c.get("bases", [])
+	return typeof(bases) == TYPE_ARRAY and (bases as Array).size() > 1
 
 ## 自軍の本拠地が盤に在るか（在れば奪われた時点で敗北＝条件リストに書かれない常時のルール）。
 static func _has_own_hq(state: BattleState) -> bool:

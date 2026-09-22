@@ -86,3 +86,20 @@ func test_multiple_targets_and_multiple_conditions() -> void:
 	var victory := _lines(s, "victory")
 	assert_eq(victory.size(), 3, "AND1行＋本拠地占領＋殲滅")
 	assert_true(victory[0].contains("dragon") and victory[0].contains("wizard"), "1行に2体が並ぶ: %s" % victory[0])
+
+func test_capture_base_is_listed_and_counts_its_targets() -> void:
+	# 拠点の占領は対象の数で文を変える（1つ／すべて）＝敗北側の lose_base と同じ作り。
+	var one := _state({
+		"player": [ { "units": [{ "col": 1, "row": 1 }] } ],
+		"bases": [ { "col": 4, "row": 4, "team": "enemy" } ],
+		"victory": [ { "type": "capture_base", "bases": [ { "col": 4, "row": 4 } ] } ],
+	})
+	var lines := _lines(one, "victory")
+	assert_eq(lines.size(), 2, "拠点の占領＋殲滅")
+	var many := _state({
+		"player": [ { "units": [{ "col": 1, "row": 1 }] } ],
+		"bases": [ { "col": 4, "row": 4, "team": "enemy" }, { "col": 6, "row": 2, "team": "enemy" } ],
+		"victory": [ { "type": "capture_base",
+			"bases": [ { "col": 4, "row": 4 }, { "col": 6, "row": 2 } ] } ],
+	})
+	assert_ne(_lines(many, "victory")[0], lines[0], "対象が複数なら文が変わる")

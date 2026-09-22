@@ -458,8 +458,8 @@ func shift(dcol: int, drow: int) -> bool:
 		if typeof(b) == TYPE_DICTIONARY:
 			b["col"] = int(b.get("col", 0)) + dcol
 			b["row"] = int(b.get("row", 0)) + drow
-	for c in defeat_list():  # 拠点を名指しする防衛対象も連れて動く＝指す先が消えたことにしない
-		for t in lose_base_targets(c):
+	for c in victory_list() + defeat_list():  # 拠点を名指しする対象も連れて動く＝指す先が消えたことにしない
+		for t in base_targets(c):
 			if typeof(t) == TYPE_DICTIONARY:
 				t["col"] = int(t.get("col", 0)) + dcol
 				t["row"] = int(t.get("row", 0)) + drow
@@ -684,7 +684,7 @@ func add_base(col: int, row: int, team: String, hq: String = "", rest: String = 
 
 
 ## 拠点を別のマスへ動かす。外周・盤外や、既に拠点があるマスへは動かせない。
-## 名指ししていた敗北条件(lose_base)の座標も連れて動く＝指す先が消えたことにしない。
+## 名指ししていた勝敗条件(capture_base / lose_base)の座標も連れて動く＝指す先が消えたことにしない。
 func move_base_at(from_col: int, from_row: int, to_col: int, to_row: int) -> bool:
 	if not in_board(to_col, to_row):
 		return false
@@ -693,8 +693,8 @@ func move_base_at(from_col: int, from_row: int, to_col: int, to_row: int) -> boo
 		return false
 	hit["base"]["col"] = to_col
 	hit["base"]["row"] = to_row
-	for c in defeat_list():
-		for t in lose_base_targets(c):
+	for c in victory_list() + defeat_list():
+		for t in base_targets(c):
 			if _is_target_at(t, from_col, from_row):
 				t["col"] = to_col
 				t["row"] = to_row
@@ -747,28 +747,38 @@ func remove_base_at(col: int, row: int) -> bool:
 	if hit.is_empty():
 		return false
 	data["bases"].remove_at(hit["index"])
-	_drop_lose_base(col, row)  # 消えた拠点を指す敗北条件を残さない
+	_drop_base_target(col, row)  # 消えた拠点を指す勝敗条件を残さない
 	return true
 
 
-## 指定マスを指す防衛対象を取り除く（拠点の削除に追随）。対象が空になった条件ごと消す。
-func _drop_lose_base(col: int, row: int) -> void:
-	var d := defeat_list()
-	for i in range(d.size() - 1, -1, -1):
-		if not is_lose_base(d[i]):
-			continue
-		var targets := lose_base_targets(d[i])
+## 指定マスを指す対象を取り除く（拠点の削除に追随）。対象が空になった条件ごと消す。
+## 勝利(capture_base)・敗北(lose_base)の両方を見る＝どちらも指す先が消えたまま残らない。
+func _drop_base_target(col: int, row: int) -> void:
+	_drop_base_target_from("victory", col, row)
+	_drop_base_target_from("defeat", col, row)
+
+
+func _drop_base_target_from(list_key: String, col: int, row: int) -> void:
+	var list := victory_list() if list_key == "victory" else defeat_list()
+	for i in range(list.size() - 1, -1, -1):
+		if not is_lose_base(list[i]) and not is_capture_base(list[i]):
+			continue  # 拠点を名指さない条件（ボス撃破・本拠地占領）は触らない
+		var targets := base_targets(list[i])
 		for j in range(targets.size() - 1, -1, -1):
 			if _is_target_at(targets[j], col, row):
 				targets.remove_at(j)
 		if targets.is_empty():
-			d.remove_at(i)
-	if d.is_empty() and data.has("defeat"):
-		data.erase("defeat")
+			list.remove_at(i)
+	if list.is_empty() and data.has(list_key):
+		data.erase(list_key)
 
 
 static func is_lose_base(c: Variant) -> bool:
 	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_base"
+
+
+static func is_capture_base(c: Variant) -> bool:
+	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "capture_base"
 
 
 static func is_lose_unit(c: Variant) -> bool:
@@ -788,9 +798,10 @@ static func condition_unit_ids(c: Variant) -> Array:
 	return a if typeof(a) == TYPE_ARRAY else []
 
 
-## lose_base 条件が持つ対象の配列。実体を返す＝呼び出し側の追加・削除がそのまま効く。
-static func lose_base_targets(c: Variant) -> Array:
-	if not is_lose_base(c):
+## 拠点を名指す条件（勝利=capture_base / 敗北=lose_base）が持つ対象の配列。
+## 実体を返す＝呼び出し側の追加・削除がそのまま効く。
+static func base_targets(c: Variant) -> Array:
+	if not is_lose_base(c) and not is_capture_base(c):
 		return []
 	var b: Variant = c.get("bases", [])
 	return b if typeof(b) == TYPE_ARRAY else []
@@ -1027,30 +1038,52 @@ func defeat_list() -> Array:
 ## group=false: 単独の条件として足す＝他の条件とOR（どれか1つ失えば敗北）。
 ## group=true: 直近の lose_base 条件に相乗り＝同じ条件内はAND（すべて失って初めて敗北）。
 func add_defeat_lose_base(col: int, row: int, group: bool = false) -> bool:
-	if base_at(col, row).is_empty():
-		return false
 	if has_defeat_lose_base(col, row):
 		return true  # 既に指定済み
-	if typeof(data.get("defeat")) != TYPE_ARRAY:
-		data["defeat"] = []
+	return _add_base_condition("defeat", "lose_base", col, row, group)
+
+
+## 拠点(col,row)を占領目標にする＝すべて保持すれば勝利（敗北側の add_defeat_lose_base と対）。
+## group=true なら直近の capture_base 条件に相乗り＝同じ条件内はAND（すべて保持して初めて勝利）。
+func add_victory_capture_base(col: int, row: int, group: bool = false) -> bool:
+	if has_victory_capture_base(col, row):
+		return true  # 既に指定済み
+	return _add_base_condition("victory", "capture_base", col, row, group)
+
+
+## 拠点を名指す条件を1件足す（勝利=capture_base / 敗北=lose_base）。拠点の無いマスは受け付けない。
+func _add_base_condition(list_key: String, type_id: String, col: int, row: int, group: bool) -> bool:
+	if base_at(col, row).is_empty():
+		return false
+	if typeof(data.get(list_key)) != TYPE_ARRAY:
+		data[list_key] = []
 	var target := { "col": col, "row": row }
-	var d: Array = data["defeat"]
+	var list: Array = data[list_key]
 	if group:
-		for i in range(d.size() - 1, -1, -1):
-			if not is_lose_base(d[i]):
+		for i in range(list.size() - 1, -1, -1):
+			if String(list[i].get("type", "")) != type_id:
 				continue
-			if typeof(d[i].get("bases")) != TYPE_ARRAY:
-				d[i]["bases"] = []
-			d[i]["bases"].append(target)
+			if typeof(list[i].get("bases")) != TYPE_ARRAY:
+				list[i]["bases"] = []
+			list[i]["bases"].append(target)
 			return true
-	d.append({ "type": "lose_base", "bases": [target] })
+	list.append({ "type": type_id, "bases": [target] })
 	return true
 
 
 ## そのマスが既にどこかの lose_base 条件の対象になっているか。
 func has_defeat_lose_base(col: int, row: int) -> bool:
-	for c in defeat_list():
-		for t in lose_base_targets(c):
+	return _has_base_target(defeat_list(), col, row)
+
+
+## そのマスが既にどこかの capture_base 条件の対象になっているか。
+func has_victory_capture_base(col: int, row: int) -> bool:
+	return _has_base_target(victory_list(), col, row)
+
+
+func _has_base_target(list: Array, col: int, row: int) -> bool:
+	for c in list:
+		for t in base_targets(c):
 			if _is_target_at(t, col, row):
 				return true
 	return false

@@ -94,6 +94,8 @@
 | boss | `debug-victory/boss.json` | ボス撃破の勝利判定 | defeat_unit の判定を変えたとき |
 | boss_two | `debug-victory/boss_two.json` | ボス撃破（2体・AND）の勝利判定＝片方だけでは勝たない | defeat_unit の複数AND判定を変えたとき |
 | hq | `debug-victory/hq.json` | 本拠地占領の勝利判定 | capture_hq の判定を変えたとき |
+| capture_base | `debug-victory/capture_base.json` | 拠点の占領（1つ）の勝利判定＝hqでない拠点で勝てる | capture_base の判定を変えたとき |
+| capture_two | `debug-victory/capture_two.json` | 拠点の占領（2つ・AND）の勝利判定＝片方だけでは勝たない | capture_base の複数AND判定を変えたとき |
 | turnlimit | `debug-victory/turnlimit.json` | ターン制限の敗北判定 | turn_limit の判定を変えたとき |
 | defend_base | `debug-victory/defend_base.json` | 拠点防衛（1つ）の敗北判定 | lose_base の判定を変えたとき |
 | defend_two | `debug-victory/defend_two.json` | 拠点防衛（2つ・AND）の敗北判定 | lose_base の複数AND判定を変えたとき |

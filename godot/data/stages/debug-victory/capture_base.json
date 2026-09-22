@@ -1,0 +1,25 @@
+{
+  "turn_limit": 30,
+  "name": "debug-capture-base",
+  "haze": 0.80,
+  "player": [
+    { "units": [
+        { "type": "cleric", "col": 3, "row": 3 },
+        { "type": "fighter", "col": 3, "row": 4 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "砦の守り", "ai": "ambush",
+      "units": [
+        { "skin": "goblin", "col": 8, "row": 4 },
+        { "skin": "hobgoblin", "col": 9, "row": 2 }
+      ] }
+  ],
+  "bases": [
+    { "col": 8, "row": 2, "team": "enemy", "rest": "enemy" }
+  ],
+  "victory": [
+    { "type": "capture_base",
+      "bases": [ { "col": 8, "row": 2 } ] }
+  ]
+}

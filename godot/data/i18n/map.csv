@@ -116,6 +116,8 @@ ui.objective.lose_head,敗北,Defeat
 ui.objective.name_sep,・,", "
 ui.objective.win.wipe,敵をすべて倒す,Defeat every enemy unit
 ui.objective.win.capture_hq,敵の本拠地を占領する,Capture the enemy headquarters
+ui.objective.win.base,拠点を占領する,Capture the base
+ui.objective.win.bases,拠点をすべて占領する,Capture all the bases
 ui.objective.win.defeat_unit,%s を倒す,Defeat %s
 ui.objective.win.defeat_units,%s をすべて倒す,Defeat all of %s
 ui.objective.lose.wipe,自軍が全滅する,Your army is wiped out

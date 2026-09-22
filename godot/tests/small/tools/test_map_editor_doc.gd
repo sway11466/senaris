@@ -386,7 +386,7 @@ func test_move_base_at_carries_the_defeat_target() -> void:
 	assert_false(doc.move_base_at(0, 0, 5, 4), "拠点のないマスからは動かせない")
 	assert_true(doc.move_base_at(3, 2, 5, 4))
 	assert_true(doc.base_at(5, 4).size() > 0, "動いた先に拠点がある")
-	var t: Dictionary = MapEditorDoc.lose_base_targets(doc.defeat_list()[0])[0]
+	var t: Dictionary = MapEditorDoc.base_targets(doc.defeat_list()[0])[0]
 	assert_eq([int(t["col"]), int(t["row"])], [5, 4], "防衛対象の座標も連れて動く")
 
 
@@ -797,7 +797,7 @@ func test_add_defeat_lose_base_group_makes_an_and() -> void:
 	doc.add_defeat_lose_base(3, 2)
 	doc.add_defeat_lose_base(6, 2, true)  # 相乗り＝両方失って初めて敗北
 	assert_eq(doc.defeat_list().size(), 1, "条件は増えない（1件の中に2対象）")
-	assert_eq(MapEditorDoc.lose_base_targets(doc.defeat_list()[0]).size(), 2)
+	assert_eq(MapEditorDoc.base_targets(doc.defeat_list()[0]).size(), 2)
 
 func test_add_defeat_lose_base_without_group_makes_an_or() -> void:
 	var doc := _doc_with_base()
@@ -814,7 +814,7 @@ func test_removing_one_of_an_and_keeps_the_condition() -> void:
 	doc.add_defeat_lose_base(6, 2, true)
 	assert_true(doc.remove_base_at(3, 2))
 	assert_eq(doc.defeat_list().size(), 1, "残りの対象があれば条件は残る")
-	assert_eq(MapEditorDoc.lose_base_targets(doc.defeat_list()[0]).size(), 1)
+	assert_eq(MapEditorDoc.base_targets(doc.defeat_list()[0]).size(), 1)
 	assert_true(doc.remove_base_at(6, 2))
 	assert_true(doc.defeat_list().is_empty(), "最後の対象が消えたら条件ごと消える")
 
@@ -844,6 +844,62 @@ func test_defeat_is_written_in_the_handwritten_style() -> void:
 		"        { \"col\": 6, \"row\": 2 }\n" +
 		"      ] }\n" +
 		"  ]"), "対象が複数なら1件1行で段落にする")
+
+
+# --- 拠点の占領（capture_base）。敗北側の lose_base と対＝同じ器を勝利リストで使う ---
+
+func test_add_victory_capture_base_needs_a_base() -> void:
+	var doc := _doc_with_base()
+	assert_false(doc.add_victory_capture_base(0, 0), "拠点の無いマスは占領目標にできない")
+	assert_true(doc.victory_list().is_empty())
+	assert_true(doc.add_victory_capture_base(3, 2), "拠点のマスは指定できる")
+	assert_eq(doc.victory_list().size(), 1)
+	assert_true(doc.add_victory_capture_base(3, 2), "二重指定は増やさない")
+	assert_eq(doc.victory_list().size(), 1)
+	assert_true(doc.has_victory_capture_base(3, 2), "指しているか聞ける")
+	assert_false(doc.has_defeat_lose_base(3, 2), "敗北側とは別に数える")
+
+func test_capture_base_group_makes_an_and() -> void:
+	var doc := _doc_with_base()
+	doc.add_base(6, 2, "neutral", "fort")
+	doc.add_victory_capture_base(3, 2)
+	doc.add_victory_capture_base(6, 2, true)  # 相乗り＝両方保持して初めて勝利
+	assert_eq(doc.victory_list().size(), 1, "条件は増えない（1件の中に2対象）")
+	assert_eq(MapEditorDoc.base_targets(doc.victory_list()[0]).size(), 2)
+	doc.add_base(9, 2, "neutral", "fort")
+	doc.add_victory_capture_base(9, 2)
+	assert_eq(doc.victory_list().size(), 2, "相乗りしなければ別条件＝どちらかで勝利")
+
+func test_victory_follows_base_removal() -> void:
+	var doc := _doc_with_base()
+	doc.add_victory_capture_base(3, 2)
+	assert_true(doc.remove_base_at(3, 2), "拠点を消す")
+	assert_true(doc.victory_list().is_empty(), "宙に浮いた勝利条件は残さない")
+
+func test_capture_base_survives_other_victory_conditions() -> void:
+	# 拠点を名指さない条件（本拠地占領）は、拠点を消しても巻き添えにしない。
+	var doc := _doc_with_base()
+	doc.add_victory({ "type": "capture_hq" })
+	doc.add_victory_capture_base(3, 2)
+	assert_true(doc.remove_base_at(3, 2))
+	assert_eq(doc.victory_list().size(), 1, "capture_hq は残る")
+	assert_eq(String(doc.victory_list()[0]["type"]), "capture_hq")
+
+func test_move_base_at_carries_the_capture_target() -> void:
+	var doc := _doc_with_base()
+	doc.add_victory_capture_base(3, 2)
+	assert_true(doc.move_base_at(3, 2, 5, 4))
+	var t: Dictionary = MapEditorDoc.base_targets(doc.victory_list()[0])[0]
+	assert_eq([int(t["col"]), int(t["row"])], [5, 4], "占領目標の座標も連れて動く")
+
+func test_capture_base_is_written_in_the_handwritten_style() -> void:
+	var doc := _doc_with_base()
+	doc.add_victory_capture_base(3, 2)
+	assert_true(_text(doc).contains(
+		"  \"victory\": [\n" +
+		"    { \"type\": \"capture_base\",\n" +
+		"      \"bases\": [ { \"col\": 3, \"row\": 2 } ] }\n" +
+		"  ]"), "敗北側(lose_base)と同じ書式で出す")
 
 
 # --- イベント（時限発生＝増援）。仕様 → doc/gdd/map.md イベント ---

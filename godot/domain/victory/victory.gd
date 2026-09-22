@@ -41,6 +41,8 @@ static func condition_met(state: BattleState, c: Dictionary) -> bool:
 			return _all_unit_ids_defeated(state, c.get("unit_ids"))
 		"capture_hq":   # 本拠地占領＝敵 native の hq をすべて自軍が保持（hq が無ければ不成立）
 			return _enemy_hq_all_captured(state)
+		"capture_base":  # 拠点の占領＝名指しした拠点をすべて自軍が保持（敗北側の lose_base と対）
+			return _all_bases_held(state, c.get("bases"))
 	return false
 
 ## 敗北条件1件の判定。未知の type は満たさない扱い（前方互換）。
@@ -68,6 +70,18 @@ static func _all_bases_taken(state: BattleState, targets: Variant) -> bool:
 			return false
 	return true
 
+## 指定した拠点をすべて自軍が保持しているか。対象が空なら false（空指定で即勝利にしない）。
+## 盤に無い座標は「保持していない」扱い＝不成立（作者の指定ミスで勝手に勝たない。lose_base の安全側と対）。
+static func _all_bases_held(state: BattleState, targets: Variant) -> bool:
+	if typeof(targets) != TYPE_ARRAY or (targets as Array).is_empty():
+		return false
+	for t in targets:
+		if typeof(t) != TYPE_DICTIONARY:
+			return false
+		if not _base_held_by_player(state, int(t.get("col", -1)), int(t.get("row", -1))):
+			return false
+	return true
+
 ## 名指し(unit_ids)した駒がすべて撃破済みか。対象が空なら false（空指定で即決着にしない）。
 ## 勝利側（defeat_unit）と敗北側（lose_unit）で共用する。
 static func _all_unit_ids_defeated(state: BattleState, unit_ids: Variant) -> bool:
@@ -84,6 +98,13 @@ static func _base_taken_by_enemy(state: BattleState, col: int, row: int) -> bool
 		return false
 	var b := state.base_at(Hex.offset_to_axial(col, row))
 	return b != null and b.team > 0
+
+## 指定マスの拠点を自軍が保持しているか。拠点が無いマスは false（作者の指定ミスで即勝利にしない）。
+static func _base_held_by_player(state: BattleState, col: int, row: int) -> bool:
+	if col < 0 or row < 0:
+		return false
+	var b := state.base_at(Hex.offset_to_axial(col, row))
+	return b != null and b.team == 0
 
 ## 自軍の本拠地（hq:"player"）が敵の手に落ちているか。hq が無いステージでは常に false。
 static func _own_hq_lost(state: BattleState) -> bool:

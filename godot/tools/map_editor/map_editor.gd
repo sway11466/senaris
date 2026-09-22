@@ -1194,7 +1194,8 @@ func _on_cell_released(col: int, row: int, button: int) -> void:
 			if _doc.move_base_at(from.x, from.y, to.x, to.y):
 				_board.refresh()
 				_select_base(to.x, to.y)
-				_refresh_defeat()  # 防衛対象の座標も連れて動く＝一覧の表示を合わせる
+				_refresh_victory()  # 占領目標・防衛対象の座標も連れて動く＝一覧の表示を合わせる
+				_refresh_defeat()
 				_say("拠点を (%d, %d) → (%d, %d) へ動かしました。" % [from.x, from.y, to.x, to.y])
 			else:
 				_say("(%d, %d) へは動かせません（外周か、既に拠点があります）。" % [to.x, to.y])
@@ -1783,6 +1784,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 const VICTORY_KINDS := {
 	"defeat_unit": ["ボス撃破", "名指し(unit_id)の駒をすべて倒す"],
 	"capture_hq": ["本拠地占領", "敵の本拠地(hq)をすべて自軍が保持する"],
+	"capture_base": ["拠点の占領", "名指しした拠点をすべて自軍が保持する（1つでも欠ければ不成立）"],
 }
 const DEFEAT_KINDS := {
 	"lose_base": ["拠点の喪失", "名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立）"],
@@ -2034,8 +2036,11 @@ func _refresh_victory() -> void:
 			_refresh_victory())
 		var box := _indent(_victory_box)
 		_add_note(box, String(kind[1]))
-		if type_id == "defeat_unit":
-			_build_unit_id_targets(box, c, true)
+		match type_id:
+			"defeat_unit":
+				_build_unit_id_targets(box, c, true)
+			"capture_base":
+				_build_base_targets(box, c, true)
 	_add_kind_adder(_victory_box, VICTORY_KINDS, _add_victory_kind)
 
 
@@ -2060,34 +2065,36 @@ func _refresh_defeat() -> void:
 		_add_note(box, String(kind[1]))
 		match type_id:
 			"lose_base":
-				_build_lose_base_targets(box, c)
+				_build_base_targets(box, c, false)
 			"lose_unit":
 				_build_unit_id_targets(box, c, false)
 	_add_kind_adder(_defeat_box, DEFEAT_KINDS, _add_defeat_kind)
 
 
-## lose_base の対象（拠点の座標）一覧＋追加。対象が空になった条件は残さない。
-func _build_lose_base_targets(box: VBoxContainer, c: Dictionary) -> void:
+## 拠点を名指す条件（勝利=capture_base / 敗北=lose_base）の対象一覧＋追加。
+## 対象が空になった条件は残さない。勝利・敗北で同じ形＝1つの条件の中は AND。
+func _build_base_targets(box: VBoxContainer, c: Dictionary, is_victory: bool) -> void:
 	if typeof(c.get("bases")) != TYPE_ARRAY:
 		c["bases"] = []
 	var targets: Array = c["bases"]
+	var refresh: Callable = _refresh_victory if is_victory else _refresh_defeat
 	if targets.is_empty():
 		_add_warn(box, "対象がありません（このままだと成立しません）")
 	for j in targets.size():
 		var t: Dictionary = targets[j]
-		_add_base_target_row(box, t, func() -> void:
+		_add_base_target_row(box, t, is_victory, func() -> void:
 			targets.remove_at(j)
-			_drop_empty_condition(c, false)
-			_refresh_defeat())
+			_drop_empty_condition(c, is_victory)
+			refresh.call())
 		if _doc.base_at(int(t.get("col", -1)), int(t.get("row", -1))).is_empty():
 			_add_warn(box, "  ↑ このマスに拠点がありません")
 	_add_button(box, "対象を追加", func() -> void:
-		var free := _free_base_target()
+		var free := _free_base_target(is_victory)
 		if free == MapEditorBoard.OUTSIDE:
 			_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
 			return
 		targets.append({ "col": free.x, "row": free.y })
-		_refresh_defeat())
+		refresh.call())
 
 
 ## 駒を名指す条件（勝利=defeat_unit / 敗北=lose_unit）の対象一覧＋追加。
@@ -2119,8 +2126,8 @@ func _build_unit_id_targets(box: VBoxContainer, c: Dictionary, is_victory: bool)
 
 ## 対象が空になった条件を取り除く（成立しない条件を黙って残さない）。
 func _drop_empty_condition(c: Dictionary, is_victory: bool) -> void:
-	var targets := MapEditorDoc.lose_base_targets(c) if MapEditorDoc.is_lose_base(c) \
-		else MapEditorDoc.condition_unit_ids(c)
+	var names_base := MapEditorDoc.is_lose_base(c) or MapEditorDoc.is_capture_base(c)
+	var targets := MapEditorDoc.base_targets(c) if names_base else MapEditorDoc.condition_unit_ids(c)
 	if not targets.is_empty():
 		return
 	var list := _doc.victory_list() if is_victory else _doc.defeat_list()
@@ -2165,7 +2172,7 @@ func _add_unit_id_target_row(parent: Control, current: String, apply: Callable,
 ## 拠点を指す対象の行。盤にある拠点から選ぶ＝拠点でないマスは選びようがない
 ## （座標を2つ手で入れる形だと、片方を変えた途中の座標で弾かれて移せなくなる）。
 ## 指す先の拠点が消えているときだけ、その座標を選択肢の末尾に残す＝黙って別の拠点にすり替えない。
-func _add_base_target_row(parent: Control, t: Dictionary, on_remove: Callable) -> void:
+func _add_base_target_row(parent: Control, t: Dictionary, is_victory: bool, on_remove: Callable) -> void:
 	var keys := []
 	var displays := []
 	for b in _doc.data.get("bases", []):
@@ -2180,12 +2187,14 @@ func _add_base_target_row(parent: Control, t: Dictionary, on_remove: Callable) -
 	if not keys.has(cur_key):
 		keys.append(cur_key)
 		displays.append("(%d, %d) 拠点なし" % [cur_col, cur_row])
+	var refresh: Callable = _refresh_victory if is_victory else _refresh_defeat
+	var label := "占領目標" if is_victory else "防衛対象"
 	var row := _labeled_option("拠点", keys, displays, cur_key, func(key: String) -> void:
 		var picked := key.split(",")
 		t["col"] = int(picked[0])
 		t["row"] = int(picked[1])
-		_say("防衛対象を (%s, %s) にしました。" % [picked[0], picked[1]])
-		_refresh_defeat())  # 選び直しで「拠点なし」の項目と警告が消える
+		_say("%s を (%s, %s) にしました。" % [label, picked[0], picked[1]])
+		refresh.call())  # 選び直しで「拠点なし」の項目と警告が消える
 	if on_remove.is_valid():
 		_add_button(row, "×", on_remove)
 	parent.add_child(row)
@@ -2222,13 +2231,19 @@ func _add_victory_kind(type_id: String) -> void:
 					_say("「本拠地占領」は既に条件にあります。")
 					return
 			_doc.add_victory({ "type": "capture_hq" })
+		"capture_base":
+			var free := _free_base_target(true)
+			if free == MapEditorBoard.OUTSIDE:
+				_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
+				return
+			_doc.add_victory_capture_base(free.x, free.y)  # 単独の条件＝他の条件とOR
 	_refresh_victory()
 
 
 func _add_defeat_kind(type_id: String) -> void:
 	match type_id:
 		"lose_base":
-			var free := _free_base_target()
+			var free := _free_base_target(false)
 			if free == MapEditorBoard.OUTSIDE:
 				_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
 				return
@@ -2242,12 +2257,15 @@ func _add_defeat_kind(type_id: String) -> void:
 	_refresh_defeat()
 
 
-## まだどの条件も指していない拠点のマス（無ければ OUTSIDE）。新しい対象の初期値に使う。
-func _free_base_target() -> Vector2i:
+## その側（勝利=capture_base / 敗北=lose_base）がまだ指していない拠点のマス（無ければ OUTSIDE）。
+## 新しい対象の初期値に使う。勝利・敗北は別々に数える＝片方で使い切っても、もう片方は足せる。
+func _free_base_target(is_victory: bool) -> Vector2i:
 	for b in _doc.data.get("bases", []):
 		var col := int(b.get("col", 0))
 		var row := int(b.get("row", 0))
-		if not _doc.has_defeat_lose_base(col, row):
+		var taken := _doc.has_victory_capture_base(col, row) if is_victory \
+			else _doc.has_defeat_lose_base(col, row)
+		if not taken:
 			return Vector2i(col, row)
 	return MapEditorBoard.OUTSIDE
 
