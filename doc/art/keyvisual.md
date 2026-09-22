@@ -83,7 +83,7 @@ around it. Wide 4:3 composition.
 
 - 絵柄は cover と同じ ILLUST STYLE（§2）。描くのは「機構が動く瞬間」＝獲得用キービジュアル（§1）と同じ狙いで、盤では見せられない一撃の迫力を1枚で見せる。
 - 規約解決。置けば出て、無ければカットインを飛ばす（コード不変）。`formations-src/` は `.gdignore` で Godot 非インポート。
-- 発動者ごとに絵を分けるレシピ（`cutin_per_caster`・④トリックショット・⑨マジックアロー）は `{recipe_id}_{skin}` を起点にし、スキンごとに1式を置く。例：`formations-src/trick_shot/trick_shot_archer_01_raw.png`・`trick_shot_archer_prompt.txt`・`formations/trick_shot_archer.png`。スキルだけの名前（`trick_shot.png`）は置かない＝置いても出ない。
+- 発動者ごとに絵を分けるレシピ（`cutin_per_caster`・④トリックショット・⑧バックスタブ・⑨マジックアロー）は `{recipe_id}_{skin}` を起点にし、スキンごとに1式を置く。例：`formations-src/trick_shot/trick_shot_archer_01_raw.png`・`trick_shot_archer_prompt.txt`・`formations/trick_shot_archer.png`。スキルだけの名前（`trick_shot.png`）は置かない＝置いても出ない。
 - 獲得用キービジュアルとは**共用しない**。冒険譚2の獲得絵は `trinity_nova` のカットインと画題が近い（どちらもトリニティノヴァ）が、狙う瞬間が違う＝カットインは詠唱が結実する一瞬、獲得絵は戦いが終わった後の景色。1枚で兼ねると、毎回挟むカットインと、クリア時に1度だけ出る絵が同じになって、どちらの効き目も落ちる。
 - 描く瞬間はレシピごとに変える。トリニティノヴァとディバインジャッジメントは光が上へ抜ける縦の構図、グレイスは横へ広がる構図＝攻撃と祝福で画の方向を分ける。術者は目を閉じて詠唱に没入させ、暴れるのは魔法の側に任せる（静と動の対比）。
 

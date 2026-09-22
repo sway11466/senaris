@@ -200,6 +200,9 @@ const SKILLS := {
 		"return_to_origin": true,
 		# 着弾の絵は隣に立つシーフのヘックスから届く（真上から降ろさない）。
 		"impact_motion": "fly",
+		# カットインの絵は発動者ごとに1枚＝{skill_id}_{skin}.png。いまの発動者はシーフだけだが、
+		# 斥候が増えたら刺す姿もその駒のものになる＝先に分けておく。→ doc/gdd/formations.md 発動の演出
+		"cutin_per_caster": true,
 	},
 	"magic_arrow": {
 		"name": "マジックアロー",

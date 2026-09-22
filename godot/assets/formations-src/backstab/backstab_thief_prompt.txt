@@ -1,0 +1,24 @@
+NOTE: 生成時は同じフォルダの backstab_thief_ref_units.png を参照画像として添付する
+（戦闘立ち絵だけを 4:3 の横長に置いたもの＝シーフ1体）。
+カットインは発動者ごとに1枚＝これはシーフ用（トリックショットと同じ流儀）。斥候が増えたら
+その駒ぶんを同じカメラ・構図・背景で足し、人物と得物だけを差し替える。
+相方は種別不問なので描かない。
+光・オーラは描かない（物理の一撃で、画の中に光る理由が無い＝⑩カウンターと同じ）。
+刺した後は描かない＝立ち絵が「短剣を引いて踏み込む」姿なので、突き入れる直前で描く。
+敵は描かない（他のカットインと同じ）。背後を取ったことは、低く沈んだ姿勢と踏み込みの線で見せる。
+①③が縦に光を抜く構図、②が横へ広がる構図、⑦が包む円、⑩が背中合わせの塊なのに対し、
+⑧は低く速い斜めの線1本で見せる。
+
+SUBJECT: A chibi THIEF driving in low and silent, her dagger cocked back for the thrust — the instant before the blade goes in. She is the only figure in the picture, large and roughly centered, moving to the RIGHT. Wide 4:3 landscape picture.
+
+A REFERENCE SHEET of the unit design is attached: the same thief in this very pose. Copy her costume, colors, face, hair and dagger from that sheet EXACTLY — the description below only adds the scene around her.
+
+THE THIEF: a young woman with a short blonde bob and a dark headband, her hood worn down, in a steel-blue short-sleeved jacket over a black cropped top, a brown belt with small pouches, short blue shorts, bare legs and dark boots; a large dark gauntlet on the arm that carries the dagger, a light bracer on the other. She is caught mid-lunge, her body dropped LOW and stretched into one long diagonal: the back foot still driving off the ground, the front leg reaching far forward, the free hand open and low in front of her for balance. The gauntleted arm is drawn FAR BACK behind her, holding the short dagger exactly as it is on the sheet — wound up and completely still, not yet driven forward. Eyes OPEN and locked on a single point just past the right edge of the frame, mouth closed, breath held. Focused and quiet, never shouting, never grinning, never posing for the camera.
+
+CAMERA: a LOW angle, down near the grass and close to her, so she crosses the frame as one fast diagonal and her boots and the cocked blade read large.
+
+THE MOMENT: she has come around behind something the picture never shows. Nothing is drawn in front of her — no enemy, no victim, no target — the whole picture is the run-in and the held blade. Loose dirt and a thin trail of dust lift behind her heels to show how fast she came, and her own shadow runs short and hard beneath her.
+
+Lighting: clear daylight, the sun high and slightly behind the camera, crisp cel shadows. NO magic, NO glow, NO aura, NO light beams, NO speed lines.
+
+Background: a wide open battlefield with a low horizon under a clear sky with a few small clouds, kept simple so the thief and the cocked dagger dominate. NO enemies, NO corpses, NO named characters, NO blood, NO hex grid, NO text, NO UI.
