@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/magic_shield__2019__Ice_Spell_Ice_Spell_Buff_Positive_02.wav" -af "atrim=0:1.45,volume=-6.8dB" -c:a pcm_s24le magic_shield.wav

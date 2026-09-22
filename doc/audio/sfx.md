@@ -419,10 +419,13 @@ powershell -File godot\tools\gen_sfx.ps1 ui_confirm ui_cancel ui_denied ui_hover
 | `magic_arrow_hit` | `arrow_hit` と `magic_bolt_hit` の2層（`BOW Arrow Hit 05.wav` に `Magic_Explosion_Short19.wav` を頭を揃えて重ねる） | 2020 p9 / SmartSoundFX – Medieval ＋ 2020 p3 / David Dumais Audio - Magic Sound FX Pack 1 |
 | `arrow_rain` | `arrow` を18本、0.36秒のあいだにずらして重ねる（`MELEE - CK - ROPE WHOOSH Fast Light 01.wav` の6テイク目） | 2019 p5 / Rock The Speakerbox - Melee |
 | `arrow_rain_hit` | `arrow_hit` を12本、0.61秒のあいだにずらして重ねる（`BOW Arrow Hit 05.wav`） | 2020 p9 / SmartSoundFX – Medieval |
+| `magic_shield` | `Ice_Spell_Ice_Spell_Buff_Positive_02.wav` の頭から 1.45 秒 | 2019 p5 / Sound Spark LLC – Magic Spells, Buffs and Attacks |
 | `shield_wall` | `cmb_hit_none` の複製（`Weapon_Impact_Parry_01.wav`） | 2017 p3 / Double Trouble Audio - Medieval Armor and Impacts |
 | `counter` | `slash_m` の複製（`METLFric_SWING SCRAPE Swift Melee Weapon Swing With A Long Blade 14_DDUMAIS_MWP2.wav`） | 2026 p2 / David Dumais Audio - Melee Weapons Pack 2 |
 
 `grace` は外部素材を使わない（澄んだ和音＝MuseScore で自作）。
+
+`magic_shield` は既存の音に近いものが無かったので素材を探した。氷の強化魔法（`Ice_Spell_Ice_Spell_Buff_Positive_02`）をそのまま採る。張った瞬間に澄んだ立ち上がりがあり、そのあと短く伸びて消える＝結界が張られて残る形に合う。原本が1.88秒で枠（1.2〜1.8秒）にほぼ収まっており、頭から1.45秒で切って末尾の無音を落とすと1.09秒になる。呪い（`curse`）が同じライブラリの別ファイルなので、敵の呪いと味方の結界が同じ語彙の中で鳴り分ける。着弾が無いので `_hit` は置かない（グレイス・シールドウォール・カウンターと同じ）。
 
 `shield_wall` も新しい素材を探さない。手元の候補（`cmb_hit_none` を決めたときに落とした鎖帷子・板金鎧・鎧の動き）を聴き比べて、弾き返し（`Weapon_Impact_Parry_01`）をそのまま採った。盾で受ける音と武器を弾く音は同じ物音なので、鳴り分ける理由が無い。着弾が無いので `_hit` は置かない（グレイスと同じ）。`cmb_hit_none` と同時に鳴ることはありうるが、どちらも「金属で受けた」を表すので混ざっても読める。
 
