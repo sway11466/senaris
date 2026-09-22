@@ -461,7 +461,7 @@ dragon-hunt.st5.squad.2,尾根のハーピー,Ridge Harpies
 dragon-hunt.st5.squad.3,里を狙うグリフォン,Griffons over the Village
 dragon-hunt.st5.squad.4,ローグ一味,Bandit Gang
 dragon-hunt.st5.scene.1,山の入口。崖の上に鳥人の里が見える,"The foot of the mountain. The birdfolk village sits atop the cliffs."
-dragon-hunt.st5.squad.5,山道のロックサーペント,Serpents of the Pass
+dragon-hunt.st5.squad.5,山道のロックサーペント1,Serpents of the Pass1
 dragon-hunt.st5.squad.6,登り口のロックサーペント,Serpents at the Ascent
 dragon-hunt.st5.squad.7,里の手前のロックサーペント,Serpents before the Village
 dragon-hunt.st5.squad.8,山道のワイヴァーン,Wyrm of the Pass
@@ -531,3 +531,5 @@ dragon-hunt.st5.intro.12,降りぎわを狙え。翼を広げた所が、いち�
 dragon-hunt.st6.intro.9,毒の匂いがします。荒野で嗅いだものより濃い。……この洞窟には、傷を癒す泉があるようです。,I smell venom — stronger than in the badlands. …And there are springs in these caves that close wounds.
 dragon-hunt.st6.intro.12,待ち伏せなら、あたしが釣ります。近づいて、起きたら下がる。それだけです。,"If they're lying in wait, I'll pull them. Walk up, back off when they wake. That's all it takes."
 dragon-hunt.st6.intro.13,いい手だ。ただし、起こすのは一匹ずつにしろ。,Good thinking. Just wake them one at a time.
+dragon-hnt.st5.squad.10,山道のロックサーペント1,Serpents of the Pass2
+dragon-hunt.st5.intro.13,山道の脇に休憩小屋があります。押さえておけば、深手を負った方は中で休めます。,"There's a rest hut beside the mountain path. Take it, and anyone badly hurt can rest inside."

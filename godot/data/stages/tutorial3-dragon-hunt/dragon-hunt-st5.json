@@ -41,9 +41,9 @@
       ] },
     { "order": 4, "name": "dragon-hunt.st5.squad.4", "ai": "raid",
       "units": [
-        { "skin": "rogue", "col": 4, "row": 3 },
-        { "skin": "rogue", "col": 4, "row": 2 },
-        { "skin": "rogue_axe", "col": 3, "row": 2 }
+        { "skin": "rogue", "col": 6, "row": 3 },
+        { "skin": "rogue", "col": 6, "row": 2 },
+        { "skin": "rogue_axe", "col": 5, "row": 2 }
       ] },
     { "order": 5, "name": "dragon-hunt.st5.squad.5", "ai": "ambush", "stack": 1, "sight": 6,
       "units": [
@@ -70,7 +70,13 @@
     { "order": 8, "name": "dragon-hunt.st5.squad.8", "ai": "ambush", "sight": 8,
       "units": [ { "skin": "wyrm", "col": 24, "row": 9 } ] },
     { "order": 9, "name": "dragon-hunt.st5.squad.9", "ai": "ambush", "sight": 8,
-      "units": [ { "skin": "wyrm", "col": 29, "row": 3 } ] }
+      "units": [ { "skin": "wyrm", "col": 29, "row": 3 } ] },
+    { "order": 10, "name": "dragon-hnt.st5.squad.10", "ai": "ambush", "stack": 1, "sight": 6,
+      "units": [
+        { "skin": "rock_serpent", "col": 3, "row": 2 },
+        { "skin": "rock_serpent", "col": 4, "row": 3 },
+        { "skin": "rock_serpent", "col": 4, "row": 2 }
+      ] }
   ],
   "bases": [
     { "col": 30, "row": 2, "team": "neutral", "rest": "both",
@@ -80,6 +86,10 @@
   "events": [
     { "type": "capture", "col": 30, "row": 2, "id": "village-secured", "captured_by": "player", "once": "village", "dialogue": "secured", "focus": true },
     { "type": "capture", "col": 30, "row": 2, "id": "village-lost", "captured_by": "enemy", "once": "village", "dialogue": "lost", "focus": true }
+  ],
+  "victory": [
+    { "type": "capture_base",
+      "bases": [ { "col": 30, "row": 2 } ] }
   ],
   "dialogue": {
     "intro": [
@@ -97,6 +107,7 @@
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.12" },
       { "speaker": "char.pixie.name", "skin": "pixie", "text": "dragon-hunt.st5.intro.8" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st5.intro.9" },
+      { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st5.intro.13" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st5.intro.7", "when": "joined:dwarf" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st5.intro.10" }
     ],
