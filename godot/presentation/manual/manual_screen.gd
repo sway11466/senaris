@@ -71,7 +71,7 @@ const HEAD_BOTTOM_GAP := 10     # 見出し・タブと本文の間
 const COL_GAP := 16             # 段組みの左右の間
 const TABLE_H_GAP := 18         # 表の列と列の間
 const TABLE_V_GAP := 4          # 表の行と行の間
-const FIG_SIZE := Vector2(300, 232)  # 図の置き場（中身は枠に合わせて縮尺が決まる）
+const FIG_SIZE := Vector2(280, 250)  # 図1つの置き場（中身は枠に合わせて縮尺が決まる）
 
 var _root: Control
 var _heading: Label
@@ -381,14 +381,30 @@ func _cell(text: String, color: Color) -> Label:
 	l.add_theme_color_override("font_color", color)
 	return l
 
-## 図1つ。描くものはコードが持つ＝文字が入らないので翻訳キーを持たない。
+## 包囲の図＝囲みユニットの置き方を変えた2例を横に並べる。並びと係数は表の行と同じ順
+## （隣り合う2体 → 向かい合わせに2体）＝図で形を見てから表の行を引ける。
+## 置き場は中央から見た相対の axial。隣のマスは図の側が数える。
+const SURROUND_CASES := [
+	{ "occupied": [Vector2i(-1, 0), Vector2i(-1, 1)], "caption": "×0.76" },
+	{ "occupied": [Vector2i(-1, 0), Vector2i(1, 0)], "caption": "×0.68" },
+]
+
+## 図1つ。描くものはコードが持つ＝言葉が入らないので翻訳キーを持たない。
 func _fig(element: String) -> Control:
 	if element == "surround":
-		var fig := ManualSurroundFigure.new()
-		fig.setup(_map_texture("goblin"), [_map_texture("fighter"), _map_texture("thief")])
-		fig.custom_minimum_size = FIG_SIZE
-		fig.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		return fig
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", COL_GAP)
+		row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		var goblin := _map_texture("goblin")
+		var around := [_map_texture("fighter"), _map_texture("thief")]
+		for case: Dictionary in SURROUND_CASES:
+			var fig := ManualSurroundFigure.new()
+			var occupied: Array[Vector2i] = []
+			occupied.assign(case["occupied"])
+			fig.setup(occupied, goblin, around, String(case["caption"]))
+			fig.custom_minimum_size = FIG_SIZE
+			row.add_child(fig)
+		return row
 	push_error("ManualScreen: 未知の図: %s" % element)
 	return Control.new()
 
