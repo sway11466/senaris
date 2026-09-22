@@ -1,0 +1,18 @@
+NOTE: これは盤の着弾エフェクト（対象の駒に重なってその場で弾ける小さい絵）。1秒のカットイン
+（backstab_thief_prompt.txt）とは別物で、絵柄も違う＝人物・背景を描かず、斬り跡だけを描く。
+STYLE は doc/art/units.md §3.4 の EFFECT STYLE（共通・固定）から、向きの1文だけ差し替える
+＝バックスタブは飛ばず駒に重なるので、水平の禁止を外して斜め（左上から右下）に振る。
+向きは「右へ向かう一撃」の約束に従う（左向きは演出側が水平反転する）。
+色は陣営に寄せない銀白〜淡い水色（斬撃の決まり）。駒に重なる絵なので線は細く保ち、
+交点を画面の中心より少し上に置く＝下に居る駒の顔が隠れない。
+置き場と工程（raw → 透過マスター 03 → gen_formation_board_art.ps1）→ doc/art/keyvisual.md §3。
+
+SUBJECT: The mark left by a single silent strike into an enemy's back — TWO crossing slash marks and nothing else. Pure black background (single flat color, for easy cutout).
+
+THE MARKS: one long main stroke sweeps from the UPPER LEFT down to the LOWER RIGHT, needle-sharp at both ends and widest near its middle, drawn as one clean hard-edged sliver with a slight curve. A SECOND stroke, about half as long and a little thinner, crosses it at a steep angle so the two form a narrow X — a quick second cut, not a symmetrical star. The crossing point sits slightly ABOVE the center of the frame.
+
+Keep both strokes SLENDER: together they must cover only a small part of the frame, with plenty of empty background between and around them, so a game piece drawn underneath stays visible. NO ring, NO circle, NO shockwave, NO burst of lines, NO impact star, NO blood, NO droplets.
+
+COLOR: silver-white core with a pale ice-blue edge, two or three flat tones only, hard outlines, no glow and no gradient. A few very small pale flecks may trail off the far ends of the strokes, drawn as flat hard shapes, never as sparkle or haze.
+
+The two strokes fill the frame edge to edge with only a thin margin. Square 1:1 composition.
