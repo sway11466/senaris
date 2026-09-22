@@ -66,16 +66,14 @@ const CHAPTERS: Array = [
 			{ "t": "h", "e": "simultaneous" },
 			{ "t": "p", "e": "sim1" },
 			{ "t": "p", "e": "sim2" },
-			{ "t": "h", "e": "chain" },
-			{ "t": "p", "e": "chain1" },
-			{ "t": "p", "e": "chain2" },
-			{ "t": "p", "e": "chain3" },
 			# 補正から先は戦闘レポートと突き合わせて読む＝板を横に並べる。
 			{ "t": "h", "e": "mods" },
 			{ "t": "cols", "left": [
-				# 並びは戦闘レポートの行と同じ順（StrikeTable）＝レポートを見ながら上から順に引ける。
-				# 状態補正だけは板で乗算・加算の2行に分かれるので、最初に出るほう（地形の下）の位置に置く。
-				{ "t": "dl", "e": ["level", "surround", "terrain", "status", "support", "pierce"] },
+				# 並びはレポートのサマリータブの行と同じ順（combat_report_view）＝板を見ながら上から順に
+				# 引ける。レベルはサマリーでは名前の行に混ざっているが、真っ先に目に入るので先頭に置く。
+				# 総攻撃・総防御は補正そのものではなく積み上がった結果だが、以降の項目が何に効くのかを
+				# 先に示す＝式をここで1回だけ出す。
+				{ "t": "dl", "e": ["level", "total", "pierce", "terrain", "surround", "support", "status"] },
 				{ "t": "p", "e": "mods_read" },
 				{ "t": "p", "e": "mods_note" },
 				{ "t": "h", "e": "damage" },
@@ -93,9 +91,6 @@ const CHAPTERS: Array = [
 			{ "t": "p", "e": "intro" },
 			{ "t": "h", "e": "stats" },
 			{ "t": "p", "e": "stats1" },
-			{ "t": "h", "e": "sight" },
-			{ "t": "p", "e": "sight1" },
-			{ "t": "p", "e": "sight2" },
 			{ "t": "h", "e": "layer" },
 			{ "t": "p", "e": "layer1" },
 			{ "t": "h", "e": "height" },

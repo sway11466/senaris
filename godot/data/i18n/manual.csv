@@ -1,4 +1,4 @@
-keys,ja,en
+﻿keys,ja,en
 manual.unit.title,ユニットの能力値,Unit Stats
 manual.unit.main.title,ユニットの能力値,Unit Stats
 manual.unit.main.intro,盤の駒はそれぞれ性能を持つ。ここではその項目が何を指すのかを説明する。実際の数値は、駒を選んだときの情報パネルに出る。,Every unit on the board has its own stats. This chapter explains what each of them means. The actual numbers appear in the info panel when you select a unit.
@@ -44,13 +44,21 @@ manual.combat.main.intro,戦闘に乱数は無い。同じ盤面で同じ手を�
 manual.combat.main.simultaneous,同時に解決する,Resolved Simultaneously
 manual.combat.main.sim1,攻撃側と防御側は同時に攻撃する。先制は無い。損害はどちらも戦闘前の兵数をもとに計算してから同時に適用するので、1回の戦闘で両方が全滅することもある。,"Attacker and defender strike at the same time. There is no initiative. Losses for both sides are worked out from the strength each had before the fight and then applied together, so a single fight can wipe out both units."
 manual.combat.main.sim2,反撃が起きるのは、距離1で攻撃され、その距離を自分も撃てるときだけ。距離2以上の攻撃には反撃が無い。下限が2以上の砲兵は隣に入られると反撃できず、対空を持たない駒は飛行に殴られても反撃しない。,"A counterattack happens only when the unit is attacked at distance 1 and can shoot that distance itself. Attacks from distance 2 or more are never countered. Artillery with a minimum range of 2 or more cannot counter an adjacent enemy, and a unit without Atk vs Air cannot counter a flier."
-manual.combat.main.chain,攻撃力と防御力,Attack and Defense
-manual.combat.main.chain1,駒はそのままの数値で戦うわけではない。兵数を掛けたものに補正が順に乗り、実効攻撃力・実効防御力になる。戦闘レポートはこの内訳をそのまま見せている。,"A unit does not fight with its raw numbers. Strength is applied first, then a chain of modifiers, producing Effective Atk and Effective Def. The battle report lays out that same breakdown."
-manual.combat.main.chain2,掛け算で効くのはレベル・包囲・地形・状態補正。足し算で効くのは支援と状態補正。掛け算をすべて済ませてから、足し算を足す。,"Lv, Encircled, Terrain and Status Effects multiply. Support and Status Effects add. Every multiplication is applied first, then the additions go on top."
-manual.combat.main.chain3,最後に防御貫通が防御側にだけ掛かる。支援を足したあとの防御力に掛かるので、支援も貫通の影響を受ける。,"Pierce is applied last, and only to the defender. It hits the defense after Support has been added, so Support is reduced by it as well."
 manual.combat.main.mods,補正,Modifiers
 manual.combat.main.level.term,レベル,Lv
 manual.combat.main.level.desc,1上がるごとに攻撃力と防御力が1%増える。戦えば+1、倒せばさらに+1。反撃できなかった側は上がらない。上限は99。,"Each level adds 1% to attack and defense. Fighting gives +1, and destroying the enemy gives another +1. A unit that could not counter gains nothing. The cap is 99."
+manual.combat.main.total.term,総攻撃・総防御,Effective Atk and Def
+manual.combat.main.total.desc,"駒はそのままの数値で戦うわけではない。兵数を掛けたものに補正が乗り、サマリーの総攻撃・総防御（攻撃／反撃タブでは実効攻撃力・実効防御力）になる。掛け算で効くのはレベル・包囲・地形・状態補正、足し算で効くのは支援と状態補正で、掛け算をすべて済ませてから足し算を足す。
+総攻撃 ＝ 兵数 × 攻撃力 × レベル × 包囲 × 地形 × 状態補正(×)
+　　　　＋ 支援 ＋ 状態補正(＋)
+総防御 ＝ 兵数 × 防御力 × レベル × 包囲 × 地形 × 状態補正(×)
+　　　　＋ 支援 ＋ 状態補正(＋)
+守る側はこのあと防御貫通が掛かる。","A unit does not fight with its printed numbers. Strength is multiplied in, then the modifiers apply, giving the Effective Atk and Effective Def the report shows. Lv, Encircled, Terrain and Status Effects multiply; Support and Status Effects add. All the multiplying is done first, then the adding.
+Effective Atk = Strength × Attack × Lv × Encircled
+        × Terrain × Status(×) + Support + Status(+)
+Effective Def = Strength × Defense × Lv × Encircled
+        × Terrain × Status(×) + Support + Status(+)
+Pierce is then applied to the defender."
 manual.combat.main.surround.term,包囲,Encircled
 manual.combat.main.surround.desc,囲まれた側が弱る補正。隣接する敵が2体以上で成立し、周囲6マスのうち敵がいるマスと、空きでも敵に隣接しているマスの数で深さが決まる。攻撃力にも防御力にも同じだけ掛かり、近接にも間接にも効く。盤の外のマスは数えないので、端や隅は囲まれにくい。,"A penalty on the unit being surrounded. It takes two or more adjacent enemies to trigger, and its depth depends on how many of the six neighboring hexes hold an enemy, plus how many empty ones are next to an enemy. It applies equally to attack and defense, in melee and at range alike. Hexes off the board are not counted, so units on edges and corners are hard to encircle."
 manual.combat.main.support.term,支援,Support
@@ -74,13 +82,10 @@ manual.terrain.main.title,地形,Terrain
 manual.terrain.main.intro,盤のマスにはそれぞれ地形が置かれている。地形はルールを持つ層と見た目の層に分かれていて、絵が違っても同じ層のものなら同じルールで動く。尾根と花崗岩の尾根、平地と洞窟の床が同じ扱いになるのはこのため。,"Every hex on the board carries a terrain. Terrain is split into a layer that holds the rules and a layer that holds the look, so two hexes that look different behave identically if their rule layer is the same. That is why a ridge and a granite ridge, or a plain and a cave floor, play the same."
 manual.terrain.main.stats,地形の攻防,Attack and Defense
 manual.terrain.main.stats1,地形は攻撃と防御に別々の係数を持つ。立っているマスの係数が、その駒の攻撃力・防御力に掛かる。攻めに向く地形と守りに向く地形があるので、どこで受けてどこから撃つかが読み合いになる。,"Terrain carries separate factors for attack and for defense. The factors of the hex a unit stands on apply to that unit. Some terrain favors attacking and some favors holding, so where you receive an attack and where you shoot from is part of the puzzle."
-manual.terrain.main.sight,視線,Line of Sight
-manual.terrain.main.sight1,敵が近づいたことに気づくかどうかは、まっすぐの距離ではなく地形ごとの視線コストの積み上げで決まる。開けた土地は1、森や低い障害は2、高い障害は3、壁は通さない。,"Whether an enemy is noticed is not a matter of straight distance but of adding up a sight cost per terrain. Open ground is 1, woods and low obstacles are 2, high obstacles are 3, and walls block entirely."
-manual.terrain.main.sight2,森ごしには見通しが落ち、壁の裏には影ができる。柵は柱と横木なのでマスを埋めず、視線は遮らない。前衛で視線を切れば、後ろの駒が気づかれずに済むこともある。,"Sight fades through woods and a wall casts a blind spot behind it. A fence is posts and rails — it does not fill the hex and does not block sight. Screening with your front line can keep the units behind it unnoticed."
 manual.terrain.main.layer,足場とオブジェクト,Ground and Objects
-manual.terrain.main.layer1,地形は足場（地面そのもの）とオブジェクト（地面の上に載るもの）に分かれる。1つのマスでルールを出すのは1つだけなので、オブジェクトのマスに敷かれた地面は見た目だけ＝攻防にも視線にも移動にも関わらない。,"Terrain is either ground (the surface itself) or an object (something sitting on top of it). Only one of them supplies the rules for a hex, so the ground drawn under an object is decoration only — it plays no part in attack, defense, sight or movement."
+manual.terrain.main.layer1,地形は足場（地面そのもの）とオブジェクト（地面の上に載るもの）に分かれる。1つのマスでルールを出すのは1つだけなので、オブジェクトのマスに敷かれた地面は見た目だけ＝攻防にも敵の索敵にも移動にも関わらない。,"Terrain is either ground (the surface itself) or an object (something sitting on top of it). Only one of them supplies the rules for a hex, so the ground drawn under an object is decoration only — it plays no part in attack, defense, enemy detection or movement."
 manual.terrain.main.height,盤の高さ,Elevation
-manual.terrain.main.height1,盤には高低差がある。ただし高さは見た目だけで、移動コストにも地形の攻防にも視線にも入らない。通れないかどうかを決めるのは、そこに置かれた地形のほうになる。崖に見えて通れないのは、高さを上げたうえで通れない地形を置いてあるから。,"The board has relief, but height is presentation only — it does not enter movement cost, terrain factors or sight. What can and cannot be crossed is decided by the terrain placed there. A cliff blocks you because impassable terrain was placed on it, not because it is tall."
+manual.terrain.main.height1,盤には高低差がある。ただし高さは見た目だけで、移動コストにも地形の攻防にも敵の索敵にも入らない。通れないかどうかを決めるのは、そこに置かれた地形のほうになる。崖に見えて通れないのは、高さを上げたうえで通れない地形を置いてあるから。,"The board has relief, but height is presentation only — it does not enter movement cost, terrain factors or enemy detection. What can and cannot be crossed is decided by the terrain placed there. A cliff blocks you because impassable terrain was placed on it, not because it is tall."
 manual.move.title,移動,Movement
 manual.move.main.title,移動,Movement
 manual.move.main.intro,駒はそれぞれ移動種別を持ち、地形ごとの進入コストがそこで決まっている。移動力からコストを引きながら進み、足りるところまで動ける。,Each unit has a move type that fixes its entry cost for every terrain. Costs are deducted from its Move as it goes and it can travel as far as that allowance reaches.
@@ -143,7 +148,7 @@ manual.ai.terms.dist_terrain.desc,移動距離から駒の除外を外し、地�
 manual.ai.terms.dist_detour.term,迂回距離,Detour Distance
 manual.ai.terms.dist_detour.desc,移動距離に、敵の足止め範囲も避ける条件を足して測った距離。ただし標的自身の足止め範囲は避けない（避けると標的の隣に入れなくなるため）。,"Move Distance with enemy zones of control avoided as well. The target's own zone is not avoided, since avoiding it would make it impossible to reach the target at all."
 manual.ai.terms.dist_sight.term,視線距離,Sight Distance
-manual.ai.terms.dist_sight.desc,地形の視線コストを積み上げた距離。壁で途切れ、森ごしでは伸びる。,Distance measured by adding up terrain sight costs. Walls cut it off and woods stretch it out.
+manual.ai.terms.dist_sight.desc,地形ごとの視線コストを積み上げた距離。開けた土地は1、森や低い障害は2、高い障害は3、壁は通さない。まっすぐの距離ではないので、森ごしでは伸び、壁の裏には影ができる。柵は柱と横木でマスを埋めないため遮らない。前衛で視線を切れば、後ろの駒が気づかれずに済むこともある。,"Distance measured by adding up a sight cost per terrain: open ground is 1, woods and low obstacles are 2, high obstacles are 3, and walls do not let it through. It is not straight distance — it stretches through woods, and a wall casts a blind spot behind it. A fence is posts and rails, so it does not fill the hex and does not block sight. Screening with your front line can keep the units behind it unnoticed."
 manual.ai.terms.unmeasurable.term,測れない,Not Measurable
 manual.ai.terms.unmeasurable.desc,避けるマスを迂回しても標的へ辿り着けないこと。距離が測れないときにどうするかは、特性ごとに行動ルールが決めている。,"When no route to the target exists once the excluded hexes are taken out. What a unit does in that case is decided by its own action rules."
 manual.ai.terms.moving,動き方,Movement
