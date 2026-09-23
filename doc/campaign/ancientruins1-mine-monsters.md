@@ -1,6 +1,6 @@
 # 古代遺跡 第1部「鉱山の魔物」（仮）
 
-★★★☆☆。共通設定は [ancientruins.md](ancientruins.md)。全7話・全章キャリーオーバー（[../gdd/campaigns.md](../gdd/campaigns.md) 継承）。
+★★☆☆☆。共通設定は [ancientruins.md](ancientruins.md)。全7話・全章キャリーオーバー（[../gdd/campaigns.md](../gdd/campaigns.md) 継承）。
 
 掘り当てた遺跡の外縁から湧き出る失敗作（合成魔獣・兵器系）を、やむなく組んだ混成チームが討伐する。両国はまだ動かない。終わりに魔人の失敗作（半分魔獣・半分兵器の異形）が現れ、第2部の報告と密命に繋がる。
 
