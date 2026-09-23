@@ -1107,12 +1107,83 @@ func test_base_does_not_deploy_a_garrison_locked_to_the_other_side() -> void:
 	assert_null(_brain.next_action(s, 1), "帰属が自軍側の控えは敵の拠点から出せない")
 
 func test_base_without_ai_never_deploys() -> void:
-	# ai を書かない拠点は出撃しない（opt-in）。控えを抱えたまま出撃させたくない拠点を表す。
+	# ai を書かない拠点は控えを出撃させない（opt-in）。控えを抱えたまま出撃させたくない拠点を表す。
 	var s := BattleState.new(9, 5)
 	s.current_team = 1
 	_base_with_garrison(s, -1, 4, 2)
 	_pc(s, 1, 8, 2)
 	assert_null(_brain.next_action(s, 1))
+
+# --- 回復した駒の復帰（doc/gdd/ai.md 拠点出撃） ---
+
+## 損耗した駒 u を拠点hexの上で「入る」まで進め、ターンを1周回して自軍ターンに戻す。
+func _enter_and_come_back_to_turn(s: BattleState, u: Unit) -> void:
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "前提: 手負いの駒が拠点に入る")
+	assert_eq(a.handle, u.handle)
+	assert_true(s.enter_base(u.handle), "前提: 入れる")
+	assert_null(_brain.next_action(s, 1), "入ったターンは出ない（行動完了）")
+	s.end_turn()  # プレイヤーへ
+	s.end_turn()  # 敵へ戻る＝ターン開始で控えが回復
+
+func test_a_healed_piece_returns_from_a_base_without_ai() -> void:
+	# 部隊に属していた駒は、拠点に ai が無くても回復したら出撃で盤に戻る。出た駒は元の部隊のまま。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")  # 既定 retreat 50
+	s.add_base(Base.new(Hex.offset_to_axial(4, 2), 1))  # ai 無し
+	var runner := _hurt(_ai(s, si, 10, 4, 2), 3)
+	_ai(s, si, 11, 1, 2)  # 盤上最後の1体にしない（逃げ先も撃つ相手も無く待機する）
+	_pc(s, 1, 8, 2)
+	_enter_and_come_back_to_turn(s, runner)
+	assert_eq(runner.troops, 8, "前提: ターン開始で回復している")
+	var a := _brain.next_action(s, 1)
+	assert_not_null(a, "回復した駒は ai の無い拠点からも出る")
+	assert_eq(a.kind, AiAction.Kind.DEPLOY)
+	assert_eq(a.base_hex, Hex.offset_to_axial(4, 2))
+	assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
+	assert_eq(s.unit_by_handle(10), runner, "盤に戻った")
+	assert_eq(s.squad_index_of(10), si, "元の部隊のまま")
+
+func test_a_returned_piece_keeps_its_squad_even_from_a_base_with_ai() -> void:
+	# 拠点に ai があっても、回復で入った駒は拠点の部隊員にならない。その駒の部隊の番で、
+	# 拠点の控えより先に出る（部隊 order 1 の駒 → 拠点＝部隊 order 2 の控え）。
+	# 拠点は ambush（既定 sight 3）＝敵が盤上距離4にいる間は眠り、入ったターンに控えを出さない。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	var sj := _squad(s, "ambush")
+	var b := _base_with_garrison(s, sj, 4, 2)  # 控え id 20 を1体
+	var runner := _hurt(_ai(s, si, 10, 4, 2), 3)
+	_ai(s, si, 11, 1, 2)
+	_pc(s, 1, 8, 2)
+	_enter_and_come_back_to_turn(s, runner)
+	assert_eq(b.garrison.size(), 2, "前提: 控えの末尾に入っている")
+	s.mark_squad_engaged(sj)  # 拠点を起こす＝控えも出せる状態で順番を見る
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.DEPLOY)
+	assert_eq(a.garrison_index, 1, "部隊の駒が拠点の控えより先に出る")
+	assert_true(s.deploy(a.base_hex, a.garrison_index, a.to), "AIの出撃は妥当であるべき")
+	assert_eq(s.squad_index_of(10), si, "拠点の部隊に移らない")
+	var c := _brain.next_action(s, 1)
+	assert_eq(c.kind, AiAction.Kind.DEPLOY, "そのあとで拠点の控えが出る")
+	assert_eq(c.garrison_index, 0)
+
+func test_a_healed_piece_waits_when_the_base_has_no_open_neighbor() -> void:
+	# 空き隣接が無ければその番は出ない（拠点の控えと同じ規則）。
+	var s := BattleState.new(9, 5)
+	s.current_team = 1
+	s.set_movement(PLAIN_WALL)
+	var si := _squad(s, "flee")
+	var base := Base.new(Hex.offset_to_axial(4, 2), 1)
+	s.add_base(base)
+	var runner := _hurt(_ai(s, si, 10, 4, 2), 3)
+	_ai(s, si, 11, 1, 2)
+	_pc(s, 1, 8, 2)
+	_enter_and_come_back_to_turn(s, runner)
+	_wall_around(s, runner)  # 拠点の周りを壁で塞ぐ
+	assert_null(_brain.next_action(s, 1), "出る先が無ければ待つ")
+	assert_eq(base.garrison.size(), 1, "控えに留まる")
 
 # --- flee（逃走） ---
 
@@ -1254,6 +1325,44 @@ func test_withdraw_enters_friendly_base_when_damaged_and_on_base() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "拠点に入る")
 	assert_eq(a.handle, 10)
+
+func test_withdraw_enters_the_base_in_the_turn_it_gets_there() -> void:
+	# #3 で拠点hexへ下がった同じターンに #2 が成立する。下がった先で撃てる相手が無く手詰まりでも、
+	# 「入る」は移動も射程も要らないので打ち切らない（次のターンまで拠点の上で待たせない）。
+	var s := BattleState.new(12, 3)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	var base_hex := Hex.offset_to_axial(5, 1)
+	s.add_base(Base.new(base_hex, 1))
+	var u := _hurt(_ai(s, si, 10, 3, 1), 4)  # 移動3＝拠点hexへ届く
+	_ai(s, si, 11, 1, 1)  # 盤上最後の1体にしない
+	_pc(s, 1, 11, 1)  # 下がった先の射程外
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "まず拠点へ下がる")
+	assert_eq(a.handle, u.handle)
+	assert_eq(a.to, base_hex)
+	assert_true(s.move_unit(a.handle, a.to), "前提: 下がる移動は妥当")
+	assert_true(s.is_done(u.handle), "前提: 下がった先は手詰まり＝行動終了扱い")
+	var b := _brain.next_action(s, 1)
+	assert_not_null(b, "手詰まりでも入る行は見る")
+	assert_eq(b.kind, AiAction.Kind.ENTER_BASE, "同じターンに入る")
+	assert_eq(b.handle, u.handle)
+
+func test_withdraw_does_not_enter_after_attacking() -> void:
+	# 攻撃した駒は手番が終わる＝拠点hexの上で殴ってから入る往復は作らない。
+	var s := BattleState.new(9, 3)
+	s.current_team = 1
+	var si := _squad(s, "withdraw")
+	s.add_base(Base.new(Hex.offset_to_axial(4, 1), 1))
+	var u := _hurt(_ai(s, si, 10, 4, 1, 0), 4)  # 移動0＝下がる行は通らない
+	_ai(s, si, 11, 1, 1)
+	var e := _pc(s, 1, 5, 1)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.ENTER_BASE, "前提: 撃つ前なら入る")
+	s.mark_engaged(u.handle)
+	assert_not_null(s.attack(u.handle, e.handle), "前提: 撃てる")
+	var b := _brain.next_action(s, 1)
+	assert_true(b == null or b.handle != u.handle, "撃ったあとは入らない")
 
 func test_withdraw_fights_on_when_no_friendly_base_exists() -> void:
 	# 帰る先が無ければ退く行は通らない＝突撃として戦う。

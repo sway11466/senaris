@@ -13,11 +13,12 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	var row := rows.capture_row(state, u)
 	if row != null:
 		return row
+	# #2 自陣営の拠点hexにいる → 入る
+	row = enter_base_row(state, u)
+	if row != null:
+		return row
 	var damaged := AiPick.damage_percent(u) >= params.retreat_percent_of(state, u)
 	if damaged:
-		# #2 自陣営の拠点hexにいる → 入る
-		if state.can_enter_base(u.handle):
-			return AiAction.enter_base(u.handle)
 		# #3 自陣営拠点へ回り込み
 		if rows.can_advance(state, u):
 			return rows.detour_to_base(state, u, pick.friendly_base_hexes(state, u))
@@ -26,3 +27,6 @@ func action(state: BattleState, u: Unit) -> AiAction:
 		if rows.can_advance(state, u):
 			return rows.detour_to_base(state, u, pick.hostile_base_hexes(state, u))
 	return null
+
+func enter_base_row(state: BattleState, u: Unit) -> AiAction:
+	return rows.enter_base_row(state, u)

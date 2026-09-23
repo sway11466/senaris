@@ -48,3 +48,9 @@ func acts_when_done(_u: Unit) -> bool:
 ## 行動を終えた駒に残る手（acts_when_done が true のときだけ呼ばれる）。既定は無し。
 func done_action(_state: BattleState, _u: Unit) -> AiAction:
 	return null
+
+## 「拠点に入る」行（flee #2 / withdraw #2）。移動も射程も要らない行なので、動いた先で手詰まりになった
+## 駒にも当てる（TraitBrain が行動終了の判定より先に見る）。既定は無し＝退く特性だけが持つ。
+## 攻撃した駒・待機した駒には当てない（has_action_left）＝殴ってから入る往復を作らない。
+func enter_base_row(_state: BattleState, _u: Unit) -> AiAction:
+	return null

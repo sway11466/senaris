@@ -897,8 +897,10 @@ func deploy(base_hex: Vector2i, garrison_index: int, to_hex: Vector2i) -> bool:
 	else:
 		u.pos = to_hex
 		_units.append(u)
-	if b.squad_index >= 0:
-		assign_squad(u.handle, b.squad_index)  # 拠点=部隊の駒として振る舞う（敵AIの拠点出撃。ai.md 拠点出撃）
+	if b.squad_index >= 0 and squad_index_of(u.handle) < 0:
+		# 拠点の控え＝拠点の部隊の駒として振る舞う（敵AIの拠点出撃。ai.md 拠点出撃）。
+		# 部隊に属していた駒（回復のために入った駒）は元の部隊のまま（ai.md 回復した駒の復帰）。
+		assign_squad(u.handle, b.squad_index)
 	# 出撃した駒はそのターン行動完了（1歩のみ＝移動も再移動も攻撃も降車もこれ以上しない）。
 	_moved[u.handle] = true
 	_post_moved[u.handle] = true

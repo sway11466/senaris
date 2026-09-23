@@ -101,6 +101,9 @@ func next_action(state: BattleState, team: int) -> AiAction:
 			var action := _unit_action(state, u)
 			if action != null:
 				return action
+		var returned := _try_deploy_returned(state, team, si)
+		if returned != null:
+			return returned
 		for b in state.bases():
 			if b.team != team or b.squad_index != si:
 				continue
@@ -187,11 +190,18 @@ func _board_distance_to_nearest_enemy(state: BattleState, u: Unit) -> int:
 ## u が今できる1手（無ければ null＝待機）。特性の行を上から当てる。
 ## 手詰まり（is_stuck＝行ける先も撃てる相手も無い）でも打ち切らない＝スキルの行と
 ## 「拠点に入る」行は移動も攻撃射程も要らないため、行の条件に任せる（doc/gdd/ai.md 行動ルール）。
+## 動いた先で手詰まりになった駒は is_done が立つので、「拠点に入る」行だけはその前に見る＝
+## 拠点hexへ下がった同じターンに入る（次のターンまで拠点の上で待たせない）。
 func _unit_action(state: BattleState, u: Unit) -> AiAction:
 	var trait_rule := _trait_of(state, u)
 	if state.is_done(u.handle):
+		if not _ensure_engaged(state, u):
+			return null
+		var enter := trait_rule.enter_base_row(state, u)
+		if enter != null:
+			return enter
 		# 行動を終えた駒に残る手（輸送の降車＝乗員の手番で、運んだそのターンに降ろせる）。
-		if not trait_rule.acts_when_done(u) or not _ensure_engaged(state, u):
+		if not trait_rule.acts_when_done(u):
 			return null
 		return trait_rule.done_action(state, u)
 	if not _ensure_engaged(state, u):
@@ -199,6 +209,27 @@ func _unit_action(state: BattleState, u: Unit) -> AiAction:
 	return trait_rule.action(state, u)
 
 # --- 拠点出撃（doc/gdd/ai.md 拠点出撃） ---
+
+## 部隊 si に属したまま拠点に入っている駒（回復のために入った駒）を出す1手。拠点の ai は見ない
+## （doc/gdd/ai.md 回復した駒の復帰）。部隊の盤上の駒を動かし終えたあと、拠点の控えより先に出す。
+## 出せるかの規則（行動終了・native）は拠点の控えと同じ＝can_deploy_garrison。
+func _try_deploy_returned(state: BattleState, team: int, si: int) -> AiAction:
+	if si < 0:
+		return null  # 部隊に属さない駒は控えと区別できないので追わない
+	for b in state.bases():
+		if b.team != team:
+			continue
+		for i in b.garrison.size():
+			var g: Unit = b.garrison[i]
+			if state.squad_index_of(g.handle) != si or not state.can_deploy_garrison(b.hex, i):
+				continue
+			if not _ensure_engaged(state, g):
+				continue
+			var cells := state.deploy_cells(b.hex, i)
+			if cells.is_empty():
+				continue  # 空き隣接なし＝この番は出せない
+			return AiAction.deploy(b.hex, i, _best_deploy_cell(state, b, cells))
+	return null
 
 ## 拠点 b から出せる控えが1体でもあれば、その出撃1手を返す（行動開始しているときのみ）。無ければ null。
 ## next_action を尽きるまで回すので、この1手ずつ返しが「出せるだけ出す」になる。
@@ -208,6 +239,8 @@ func _try_deploy(state: BattleState, b: Base) -> AiAction:
 	if not _base_engaged(state, b):
 		return null
 	for i in b.garrison.size():
+		if state.squad_index_of((b.garrison[i] as Unit).handle) >= 0:
+			continue  # 部隊に属する駒（回復で入った駒）はその部隊の番で出す（_try_deploy_returned）
 		if not state.can_deploy_garrison(b.hex, i):
 			continue  # 閉じ込め（native≠所有者）＝出せない
 		var cells := state.deploy_cells(b.hex, i)

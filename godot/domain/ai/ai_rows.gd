@@ -48,6 +48,15 @@ func forbidden_cells(state: BattleState, u: Unit) -> Dictionary:
 func can_advance(state: BattleState, u: Unit) -> bool:
 	return state.can_still_move(u.handle)
 
+## 「拠点に入る」行＝損耗が retreat 以上で、自陣営の休める拠点hexに立ち、まだ攻撃も待機もしていなければ入る。
+## flee #2 / withdraw #2 が共有する（doc/gdd/ai.md）。
+func enter_base_row(state: BattleState, u: Unit) -> AiAction:
+	if AiPick.damage_percent(u) < params.retreat_percent_of(state, u):
+		return null
+	if not state.has_action_left(u.handle) or not state.can_enter_base(u.handle):
+		return null
+	return AiAction.enter_base(u.handle)
+
 # --- 占領・スキル ---
 
 ## 占領の行＝占領兵で、移動範囲に自陣営以外の拠点があれば盤上距離が最小の拠点へ動く。
