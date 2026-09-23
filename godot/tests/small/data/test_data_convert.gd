@@ -47,7 +47,7 @@ func test_unit_type_duplicate_id_blocks() -> void:
 # --- units: build_unit_skin ---
 
 func _valid_skin_row(sid: String, tid: String, side: String) -> Dictionary:
-	return { "skin_id": sid, "name": "名", "side": side, "type_id": tid, "combat_lineup": "squad" }
+	return { "skin_id": sid, "name": "名", "side": side, "type_id": tid, "combat_lineup": "squad", "on_board": true }
 
 func test_unit_skin_valid_builds_json() -> void:
 	var rows := [
