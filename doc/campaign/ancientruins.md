@@ -237,8 +237,8 @@
 
 実装は着手の許可後（[../../CLAUDE.md](../../CLAUDE.md)）。仕様の正本は各 gdd に置く。
 
-- 魔力ゲージ（駒の状態として持ち、0 で通常攻撃ができない）とチャージスポット（盤の上で魔力を戻す場所）: 第1部ボスの個別特性（[ancientruins1-mine-monsters.md](ancientruins1-mine-monsters.md) st7）。
-- ユニットスキル「突撃」: 直線で最大10マス動き、ぶつかった駒に対地×2の攻撃（反撃なし）。第1部ボスが初出（[../gdd/skills.md](../gdd/skills.md)）。
+- 魔力ゲージ（駒の状態として持ち、0 で通常攻撃ができない。上限1）とチャージスポット（盤の上で魔力を戻す場所。着けば満タン・味方が踏んで塞げる）: 第1部ボスの個別特性（[ancientruins1-mine-monsters.md](ancientruins1-mine-monsters.md) st7）。
+- ユニットスキル「突撃」: 直線で最大10マスの任意の位置へ動き、ぶつかった駒の手前で止まって対地×2の攻撃（反撃なし）。第1部ボスが初出（[../gdd/skills.md](../gdd/skills.md)）。
 - リペア: 兵種が兵器のユニットの兵数を回復するユニットスキル（[../gdd/skills.md](../gdd/skills.md)）。
 - レール地形と、レール専用の移動タイプ（レール車は既存の「車輪」で走る）（[../gdd/terrain.md](../gdd/terrain.md)・[../gdd/movement.md](../gdd/movement.md)）。
 - 兵種「技師」（占領不可・リペアを持つ）と兵種「兵器」（リペアの対象）。
