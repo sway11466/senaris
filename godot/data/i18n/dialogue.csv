@@ -390,12 +390,12 @@ dragon-hunt.st5.lost.2,……子らに手を出すな。分かった、言う通
 dragon-hunt.st5.lost.3,父さん、違うの！　私たちはここにいるよ！,"Father, no! We're right here!"
 dragon-hunt.st5.lost.4,届いてないわ。崖の上まで声が通らない。,It isn't reaching them. The voice won't carry up the cliff.
 dragon-hunt.st5.lost.5,先を越された。里は敵に回った。……子どもたちは必ず親のもとへ返す。押し通るぞ。,"They beat us to it. The village has turned against us. ...We will return the children to their parents, no matter what. We push through."
-dragon-hunt.st6.intro.1,この先に、大きな洞がある。奥から獣の匂いがする。,"There's a great hollow ahead. The smell of a beast comes from deep inside."
-dragon-hunt.st6.intro.2,奥から地鳴りだ。……咆哮。あれは獣の声じゃない。,"The ground is rumbling below. …A roar. That is no ordinary beast."
-dragon-hunt.st6.intro.3,あんなものを起こすつもりはなかった！ 宝だけのはずだったんだ！,"We never meant to wake that thing! It was supposed to be the treasure, nothing more!"
-dragon-hunt.st6.intro.4,誰かが逃げてきたわね。泉のほうへ走っている。,"Someone's running this way. They're heading for the springs."
-dragon-hunt.st6.intro.5,洞窟には泉が三つ。休めるのは自分たちが押さえた泉だけです。,"Three springs in these caves. You can only rest at the ones you hold."
-dragon-hunt.st6.intro.6,相手も同じ物を欲している。追うだけでは捕まらんぞ。,"They want the same thing we do. Chasing alone will not catch them."
+dragon-hunt.st6.intro.1,奥から獣の匂いがする。一匹じゃない、たくさんだ。,The smell of beasts comes from deep inside. Not one of them. Many.
+dragon-hunt.st6.intro.2,巣を荒らしたか。あの咆哮、ただでは済まんぞ。,"They've torn up the nest. After a roar like that, this won't end quietly."
+dragon-hunt.st6.intro.3,竜の巣のお宝をいただくだけのはずが、竜を起こしちまった！,"We only came for the treasure in the dragon's nest, and we went and woke the dragon!"
+dragon-hunt.st6.intro.4,来たわよ。あいつら、奥から逃げてくる。,Here they come. That lot is running out from the depths.
+dragon-hunt.st6.intro.5,洞窟には泉が四つ。休めるのは、自分たちが押さえた泉だけです。,Four springs in these caves. You can only rest at the ones you hold.
+dragon-hunt.st6.intro.6,奴らも泉が要るのだ。追うだけでは捕まらんぞ。,They need the springs as much as we do. Chasing alone will not catch them.
 dragon-hunt.st6.intro.7,部屋を回り込んで挟む。泉も渡すな。,"Circle through the chambers and pincer them. And do not give up a spring."
 dragon-hunt.st6.outro.1,おれたちは……ただ、宝が欲しかっただけだ。,"We just… wanted the treasure. That was all."
 dragon-hunt.st6.outro.2,そのために巣を荒らし、獣を街へ押し出した。,"And for that you tore up a nest and drove the beasts at a city."
@@ -432,9 +432,11 @@ dragon-hunt.st5.rogue.1,リーダー、山が深すぎまさあ。巣の入口�
 dragon-hunt.st5.rogue.2,鳥どもは巣から山を見下ろしている。探させればいい。,"The birdfolk look down on these mountains from their eyries. Let them do the searching."
 dragon-hunt.st5.rogue.3,素直に案内しますかね。,"Think they'll show us willingly?"
 dragon-hunt.st5.rogue.4,ガキは麓で預かってある。親は言うことを聞くさ。,"We have their young down at the foothills. The parents will do as they're told."
-dragon-hunt.st6.rogue.1,あれは、いってえ……。,"What in the world was that…"
-dragon-hunt.st6.rogue.2,泉を伝って抜ける。奥へは戻れん、あんなものが居座っていては。,"We go out by way of the springs. We cannot go back in, not with that thing sitting there."
-dragon-hunt.st6.intro.8,掘り広げた跡がある。この洞、人の手が入っておるぞ。,"Someone has widened this. There are hands at work in this hollow."
+dragon-hunt.st6.rogue.1,頭、ありゃあ一体……。,"Boss, what in the world was that…"
+dragon-hunt.st6.rogue.2,奥へは戻れませんぜ！,We can't go back in there!
+dragon-hunt.st6.rogue.3,泉を伝って外へ抜ける。走れ！,We get out by way of the springs. Run!
+dragon-hunt.st6.intro.14,北の泉のそばにスライムがいます。放っておくと、自分で分かれて増えていくんですよね……。,"There are slimes by the northern springs. Left alone, they split and multiply on their own, don't they…"
+dragon-hunt.st6.intro.8,掘り広げた跡がある。あの悪党ども、この奥まで入り込んだな。,Someone has widened this. Those scoundrels have dug their way deep in.
 dragon-hunt.st6.intro.11,馬はここに繋いでおく。洞窟の中では走れん。,"We tie the horses up here. They cannot run inside the caves."
 dragon-hunt.st6.outro.7,森を荒らした者たちは、これで償いました。……でも、竜は別です。,"Those who despoiled the forest have paid. …But the dragon is another matter."
 dragon-hunt.st7.intro.8,私の矢は空へ届きます。狙いは翼の付け根。,"My arrows reach the sky. I will aim for the wing root."
@@ -528,8 +530,6 @@ goblin-horde.st1.outro.2,そういう依頼を選んだんだ。悪くない働�
 goblin-horde.st1.outro.3,報酬、数えてきますね。,I'll go count the reward.
 dragon-hunt.st5.intro.11,飛ぶ相手は初めてです。どこを狙えば当たりますか。,I've never shot at something airborne. Where do I aim?
 dragon-hunt.st5.intro.12,降りぎわを狙え。翼を広げた所が、いちばん大きい。,Take them as they stoop. Wings spread is the biggest they ever get.
-dragon-hunt.st6.intro.9,毒の匂いがします。荒野で嗅いだものより濃い。……この洞窟には、傷を癒す泉があるようです。,I smell venom — stronger than in the badlands. …And there are springs in these caves that close wounds.
-dragon-hunt.st6.intro.12,待ち伏せなら、あたしが釣ります。近づいて、起きたら下がる。それだけです。,"If they're lying in wait, I'll pull them. Walk up, back off when they wake. That's all it takes."
-dragon-hunt.st6.intro.13,いい手だ。ただし、起こすのは一匹ずつにしろ。,Good thinking. Just wake them one at a time.
+dragon-hunt.st6.intro.9,毒の匂いもします。荒野のものより濃い……傷んだら泉まで下がりましょう。,"I smell venom too — stronger than in the badlands… If we're hurt, let's fall back to a spring."
 dragon-hnt.st5.squad.10,山道のロックサーペント1,Serpents of the Pass2
 dragon-hunt.st5.intro.13,山道の脇に休憩小屋があります。押さえておけば、深手を負った方は中で休めます。,"There's a rest hut beside the mountain path. Take it, and anyone badly hurt can rest inside."
