@@ -819,8 +819,7 @@ func _add_squad_selector() -> void:
 		_sel_squad = maxi(squads.size() - 1, 0)
 	var ob := _make_option()
 	for i in squads.size():
-		ob.add_item("部隊%d[順%s]: %s（%s）" % [i, str(squads[i].get("order", "-")),
-			String(squads[i].get("name", "無名")), String(squads[i].get("ai", "?"))])
+		ob.add_item(_squad_label(squads[i]))
 	if not squads.is_empty():
 		ob.select(_sel_squad)
 	ob.item_selected.connect(func(i: int) -> void:
@@ -1440,8 +1439,7 @@ func _add_unit_squad_row(parent: VBoxContainer, hit: Dictionary) -> void:
 	var displays := []
 	for i in squads.size():
 		keys.append(str(i))
-		displays.append("部隊%d[順%s]: %s（%s）" % [i, str(squads[i].get("order", "-")),
-			String(squads[i].get("name", "無名")), String(squads[i].get("ai", "?"))])
+		displays.append(_squad_label(squads[i]))
 	parent.add_child(_labeled_option("部隊", keys, displays, str(squad),
 		func(k: String) -> void:
 			if _doc.move_unit_to_squad(squad, int(hit["index"]), int(k)):
@@ -2540,6 +2538,15 @@ func _write(path: String) -> void:
 	var i18n_msg := _save_i18n()
 	_sync_fields()
 	_say("保存しました: " + path + i18n_msg)
+
+
+## 敵部隊の表示名「日本語名（行動順）」。訳文が無ければキーのまま、行動順が無ければ「-」。
+func _squad_label(squad: Dictionary) -> String:
+	var key := String(squad.get("name", ""))
+	var ja := String(_i18n_texts(key).get("ja", ""))
+	var order: Variant = squad.get("order")
+	var order_text := "-" if order == null else str(int(order))
+	return "%s（%s）" % [ja if ja != "" else (key if key != "" else "無名"), order_text]
 
 
 ## 予告・部隊名の訳文の現在値（未保存の入力を優先し、無ければ dialogue.csv。どちらも無ければ空）。
