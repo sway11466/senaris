@@ -21,62 +21,45 @@
   ],
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st6.squad.1", "ai": "ambush", "sight": 4, "stack": 1,
-      "units": [
-        { "skin": "rock_serpent", "col": 2, "row": 3 },
-        { "skin": "scorpion", "col": 3, "row": 3 },
-        { "skin": "rock_serpent", "col": 4, "row": 3 },
-        { "skin": "rock_serpent", "col": 2, "row": 4 },
-        { "skin": "rock_serpent", "col": 3, "row": 4 },
-        { "skin": "rock_serpent", "col": 4, "row": 4 }
-      ] },
+      "units": [ { "skin": "slime", "col": 3, "row": 3 } ] },
     { "order": 2, "name": "dragon-hunt.st6.squad.2", "ai": "flee", "stack": 1,
       "units": [
-        { "skin": "rogue_slinger", "col": 11, "row": 2 },
-        { "skin": "rogue_slinger", "col": 10, "row": 3 },
+        { "skin": "rogue_axe", "col": 11, "row": 2 },
+        { "skin": "rogue_axe", "col": 10, "row": 3 },
         { "skin": "rogue_head", "unit_id": "rogue_head", "col": 11, "row": 3 },
-        { "skin": "rogue_slinger", "col": 12, "row": 3 },
-        { "skin": "rogue_slinger", "col": 10, "row": 4 },
-        { "skin": "rogue_slinger", "col": 11, "row": 4 },
-        { "skin": "rogue_slinger", "col": 12, "row": 4 }
+        { "skin": "rogue_axe", "col": 12, "row": 3 },
+        { "skin": "rogue_axe", "col": 10, "row": 4 },
+        { "skin": "rogue_axe", "col": 11, "row": 4 },
+        { "skin": "rogue_axe", "col": 12, "row": 4 }
       ] },
     { "order": 3, "name": "dragon-hunt.st6.squad.3", "ai": "ambush", "sight": 4, "stack": 1,
-      "units": [
-        { "skin": "rock_serpent", "col": 18, "row": 3 },
-        { "skin": "scorpion", "col": 19, "row": 3 },
-        { "skin": "rock_serpent", "col": 20, "row": 3 },
-        { "skin": "rock_serpent", "col": 18, "row": 4 },
-        { "skin": "rock_serpent", "col": 19, "row": 4 },
-        { "skin": "rock_serpent", "col": 20, "row": 4 }
-      ] },
+      "units": [ { "skin": "slime", "col": 19, "row": 3 } ] },
     { "order": 4, "name": "dragon-hunt.st6.squad.4", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
-        { "skin": "scorpion", "col": 3, "row": 10 },
-        { "skin": "rock_serpent", "col": 2, "row": 10 },
-        { "skin": "rock_serpent", "col": 3, "row": 11 },
-        { "skin": "rock_serpent", "col": 4, "row": 10 },
-        { "skin": "rock_serpent", "col": 4, "row": 11 },
-        { "skin": "rock_serpent", "col": 3, "row": 9 },
-        { "skin": "rock_serpent", "col": 2, "row": 11 }
+        { "skin": "matango", "col": 2, "row": 9 },
+        { "skin": "matango", "col": 3, "row": 10 },
+        { "skin": "matango", "col": 4, "row": 9 },
+        { "skin": "matango", "col": 4, "row": 10 },
+        { "skin": "matango", "col": 3, "row": 8 },
+        { "skin": "matango", "col": 2, "row": 10 }
       ] },
     { "order": 5, "name": "dragon-hunt.st6.squad.5", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
         { "skin": "scorpion", "col": 11, "row": 10 },
-        { "skin": "rock_serpent", "col": 10, "row": 10 },
-        { "skin": "rock_serpent", "col": 10, "row": 11 },
-        { "skin": "rock_serpent", "col": 12, "row": 10 },
-        { "skin": "rock_serpent", "col": 11, "row": 9 },
-        { "skin": "rock_serpent", "col": 12, "row": 11 },
-        { "skin": "rock_serpent", "col": 11, "row": 11 }
+        { "skin": "matango", "col": 10, "row": 9 },
+        { "skin": "matango", "col": 12, "row": 9 },
+        { "skin": "matango", "col": 11, "row": 8 },
+        { "skin": "scorpion", "col": 10, "row": 10 },
+        { "skin": "scorpion", "col": 12, "row": 10 }
       ] },
     { "order": 6, "name": "dragon-hunt.st6.squad.6", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
-        { "skin": "scorpion", "col": 19, "row": 10 },
-        { "skin": "rock_serpent", "col": 18, "row": 10 },
-        { "skin": "rock_serpent", "col": 19, "row": 11 },
-        { "skin": "rock_serpent", "col": 20, "row": 10 },
-        { "skin": "rock_serpent", "col": 18, "row": 11 },
-        { "skin": "rock_serpent", "col": 19, "row": 9 },
-        { "skin": "rock_serpent", "col": 20, "row": 11 }
+        { "skin": "matango", "col": 18, "row": 9 },
+        { "skin": "matango", "col": 19, "row": 10 },
+        { "skin": "matango", "col": 20, "row": 9 },
+        { "skin": "matango", "col": 18, "row": 10 },
+        { "skin": "matango", "col": 19, "row": 8 },
+        { "skin": "matango", "col": 20, "row": 10 }
       ] },
     { "order": 7, "name": "dragon-hunt.st6.squad.7", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
@@ -85,7 +68,7 @@
         { "skin": "rock_serpent", "col": 4, "row": 16 },
         { "skin": "rock_serpent", "col": 2, "row": 17 },
         { "skin": "rock_serpent", "col": 4, "row": 17 },
-        { "skin": "scorpion", "col": 3, "row": 16 }
+        { "skin": "rock_serpent", "col": 3, "row": 16 }
       ] },
     { "order": 8, "name": "dragon-hunt.st6.squad.8", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [
@@ -94,7 +77,7 @@
         { "skin": "rock_serpent", "col": 20, "row": 16 },
         { "skin": "rock_serpent", "col": 18, "row": 17 },
         { "skin": "rock_serpent", "col": 20, "row": 17 },
-        { "skin": "scorpion", "col": 19, "row": 16 }
+        { "skin": "rock_serpent", "col": 19, "row": 16 }
       ] }
   ],
   "bases": [
