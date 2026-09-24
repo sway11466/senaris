@@ -214,6 +214,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体（攻撃なら相手も）をカメラに収めてから見せる
 	_controller.turn_start_pace = _await_turn_banner  # 敵ターンは頭の一拍（バナー）を見せてから動く
 	_controller.dialogue_pace = _story.await_dialogue  # 敵ターンの占領で入る会話は読み終えるまで待つ
+	_controller.passive_pace = _play_passives  # ターン開始のパッシブスキル（分裂など）は見せ切ってから最初の手へ
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.event_fired.connect(_story.on_event_fired)  # 台本があれば会話を挟む
 	_controller.event_fired.connect(_on_event_fired_chronicle)  # 増援の駒をクロニクルに記録
@@ -298,6 +299,12 @@ func _await_turn_banner() -> void:
 		await _turn_banner.finished
 	if is_inside_tree():
 		await get_tree().create_timer(TURN_BANNER_GAP).timeout
+
+## ターン開始のパッシブスキルの演出（controller に注入）。クロニクルには手番で撃ったスキルと同じく記録する。
+func _play_passives(results: Array[Dictionary]) -> void:
+	for r in results:
+		_chronicle.note_skill(String(r["skill"]))
+	await $HexBoard.play_passives(results)
 
 ## 陣形スキル／ユニットスキルの発動演出。陣形は発動の頭で音を鳴らし、1枚絵のカットインを挟んでから
 ## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインではなく演出シーン

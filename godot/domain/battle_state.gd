@@ -217,6 +217,38 @@ func _increment_charges() -> void:
 			var cur := get_charge(u.handle, rid)
 			set_charge(u.handle, rid, cur + 1)
 
+## 直近のターン開始で発動したパッシブスキル（end_turn のたびに作り直す）。presentation が演出に読む。
+## 1件＝ { skill, caster（発動者の handle）, unit（生まれた駒の handle）, from, to, fx（演出あり） }
+var last_passive_results: Array[Dictionary] = []
+
+## ターンが始まった陣営の駒のパッシブスキルを発動する（end_turn から呼ぶ）。手番は使わない。
+## 敵AIの行動開始条件に縛られず、発動しても行動開始にはならない。詳細 → doc/gdd/skills.md アクティブとパッシブ
+## 生まれた駒はこのループで回さない（控えを辿る）＝チャージ 0 なのでどのみち撃たない。
+func _fire_passives() -> void:
+	last_passive_results = []
+	for u: Unit in _units.duplicate():
+		if u.team != current_team:
+			continue
+		for rid in Formation.SKILLS:
+			var r: Dictionary = Formation.SKILLS[rid]
+			if not Formation.passive_ready(self, u, rid, r):
+				continue
+			match String(r["effect"]):
+				"spawn":
+					var from := u.pos
+					var spawned := spawn_unit(u.handle)
+					if spawned == null:
+						continue
+					set_charge(u.handle, rid, 0)
+					last_passive_results.append({
+						"skill": rid,
+						"caster": u.handle,
+						"unit": spawned.handle,
+						"from": from,
+						"to": spawned.pos,
+						"fx": bool(r["passive_fx"]),
+					})
+
 var _defeated := {}  # handle -> true（撃破で盤から消えた駒の記録）
 ## team -> 失った駒の数（累積・兵器は数えない）。戦果票の撃破数が敵側の値を読む。doc/gdd/rank.md
 var _losses := {}
@@ -1338,6 +1370,7 @@ func end_turn() -> void:
 	_expire_status_mods()  # 始まった陣営の持続バフ/デバフを1減らして満了を掃除
 	_tick_dots()           # 始まった陣営の駒に継続ダメージ（毒）を入れる（→ doc/gdd/skills.md）
 	_increment_charges()   # 始まった陣営の駒のチャージ量を +1（→ doc/gdd/skills.md）
+	_fire_passives()       # 始まった陣営の駒のパッシブスキルを発動（チャージ加算の後。→ doc/gdd/skills.md）
 	_heal_garrisons()
 	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
 

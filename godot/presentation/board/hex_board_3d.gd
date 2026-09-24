@@ -184,6 +184,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.base_captured.connect(_on_base_captured)
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
+	controller.passives_fired.connect(_on_passives_fired)
 	controller.battle_finished.connect(_on_battle_finished)
 	_terrain_renderer.build_tiles()
 	fit_to_view()
@@ -1217,6 +1218,36 @@ func play_entry(info: Dictionary, animate := true) -> void:
 	if not animate or _board_fx == "off":
 		return
 	await _await_entry(_schedule_entry(info))
+
+## ターン開始のパッシブスキルで生まれた駒のうち、演出ありのものを play_passives まで隠す
+## （盤はターン切り替えで作り直し済み＝隠さないと分裂先に先に見えてしまう）。
+func _on_passives_fired(results: Array[Dictionary]) -> void:
+	for r in results:
+		if bool(r["fx"]):
+			_hidden[int(r["unit"])] = true
+	_apply_hidden()
+
+## ターン開始のパッシブスキルを見せる（doc/gdd/skills.md アクティブとパッシブ）。演出ありを1件ずつ、
+## 発動者と分裂先をカメラに収めてから、複製を発動者のマスから分裂先へ滑らせる。音はスキルIDで引く。
+## 演出なしは何もしない（盤は作り直し済みで、そのまま見えている）。
+func play_passives(results: Array[Dictionary]) -> void:
+	for r in results:
+		if not bool(r["fx"]):
+			continue
+		var h := int(r["unit"])
+		if not _hidden.erase(h):
+			continue  # 盤の作り直しなどで既に見えている
+		var node: Node3D = _unit_renderer.get_unit_node(h)
+		if node == null:
+			continue
+		if _board_fx == "off":
+			node.visible = true
+			continue
+		var path: Array[Vector2i] = [r["from"], r["to"]]
+		await focus_camera_on(path)
+		SfxPlayer.play_sfx(String(r["skill"]))
+		_entry_tweens.append(_walk_in_tween(node, path, 0.0, ""))
+		await _await_entry(MOVE_ANIM_SEC_PER_HEX / _fx_speed())
 
 ## 会話の途中の登場（doc/gdd/map.md）：intro の enter 行が来るまで隠しておく駒。盤面データには
 ## 最初から居る＝描画だけを止める。盤を作り直しても隠れたまま（_sync が掛け直す）。

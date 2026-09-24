@@ -19,6 +19,9 @@ signal base_captured(base_hex: Vector2i, team: int)  # 拠点の所属が変わ�
 signal unit_stood(handle: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
 signal unit_died(handle: int)
 signal turn_changed(team: int, turn_number: int)
+## ターン開始でパッシブスキルが発動した（BattleState.last_passive_results の控え）。盤は演出ありの
+## 生まれた駒をここで隠し、passive_pace で見せる。詳細 → doc/gdd/skills.md アクティブとパッシブ
+signal passives_fired(results: Array[Dictionary])
 signal event_fired(info: Dictionary)  # イベント（増援）が起きた＝{ label, dialogue }。台本そのものは presentation が持つ
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
 
@@ -34,6 +37,7 @@ var move_pace := Callable()    # AIターンで移動アニメの完了を待つ
 var focus_pace := Callable()   # AIターンで見せたい hex の一覧（先頭＝行動主体）をカメラに収めるフック（同上）。空なら何もしない
 var turn_start_pace := Callable()  # AIターンの頭で一拍置くフック（同上・ターンバナー）。空なら待たない
 var dialogue_pace := Callable()  # AIターンで会話の読了を待つフック（同上）。空なら待たない
+var passive_pace := Callable()  # ターン開始のパッシブスキルを見せ切るまで待つフック（同上・結果の配列を渡す）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
@@ -193,13 +197,18 @@ func end_turn() -> void:
 	state.end_turn()
 	_move_origin.clear()  # 移動開始位置はそのターンのもの（戻り先を持ち越さない）
 	turn_changed.emit(state.current_team, state.turn_number)
+	var passives: Array[Dictionary] = state.last_passive_results.duplicate()
+	if not passives.is_empty():
+		passives_fired.emit(passives)
 	_check_finished()  # ターン跨ぎで決着が付くことがある（ターン制限＝時間切れ敗北）
 	# 増援は end_turn の内側で盤に出る＝ターン板・盤の同期が済んでから知らせる（会話は駒が見えてから）。
 	# 決着していれば知らせない（戦果票と会話が重なる）。
 	if not _finished:
 		_announce_fired_events()
 	if not _finished and is_ai_turn():
-		run_ai_turn()  # async（fire-and-forget）
+		run_ai_turn(passives)  # async（fire-and-forget）
+	elif not _finished and not passives.is_empty() and passive_pace.is_valid():
+		passive_pace.call(passives)  # 自分のターンは待たずに見せる（async・fire-and-forget）
 
 ## このターンに起きたイベントを1件ずつ上へ流す。渡すのは素データ（label・台本キー・カメラ指定と
 ## その行き先）だけ＝何を見せるかは presentation が決める。hex は実際に駒が出た場所の先頭
@@ -235,11 +244,14 @@ func _drain_pending_events() -> void:
 			await dialogue_pace.call()
 
 ## AIのターンを実行。next_action が尽きるまで1手ずつ実行し、最後にターンを返す。
-func run_ai_turn() -> void:
+## passives＝このターン開始で発動したパッシブスキル。ターンの頭の一拍の後、最初の手より先に見せる。
+func run_ai_turn(passives: Array[Dictionary] = []) -> void:
 	# ターンの頭で一拍置く（ターンバナーの表示ぶん）。1手も動かないターンでもここは通るので、
 	# 敵のターンが1フレームも見えずに戻る事態を防ぐ。詳細 → doc/gdd/uiux.md
 	if not _finished and turn_start_pace.is_valid():
 		await turn_start_pace.call()
+	if not _finished and not passives.is_empty() and passive_pace.is_valid():
+		await passive_pace.call(passives)
 	while not _finished:
 		var action := ai_brain.next_action(state, state.current_team)
 		if action == null:

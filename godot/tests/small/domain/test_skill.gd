@@ -375,61 +375,99 @@ func test_venom_expires_after_three_rounds() -> void:
 	assert_almost_eq(float(s.status_aggregate(foe, "attack")["mul"]), 1.0, 0.001,
 		"発動側ターン3回ぶんで切れる")
 
-# --- スライムスプリット（分裂・駒生成）---
+# --- スライムスプリット（分裂・駒生成）。パッシブ＝ターン開始に自動で発動。詳細 → doc/gdd/skills.md ---
 
-# スライム1体＋周囲に空きマスがある配置。caster=slime(id1)。
-# スライムは敵（team=1）なので end_turn で敵ターンに進めてから使う。
-func _split_state() -> Dictionary:
+# スライム1体（敵 team=1）＋周囲に空きマス。いまはプレイヤーのターン。
+# チャージは charge に置く＝次の end_turn（敵ターン開始）で +1 されてから発動を判定する。
+func _split_state(charge := 2) -> Dictionary:
 	var s := _state()
 	var c := Hex.offset_to_axial(3, 3)
 	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
 	slime.skin_id = "slime"
 	slime.move_type = "foot"
 	s.add_unit(slime)
-	s.end_turn()  # 敵ターン（team=1）に進める
-	s.set_charge(slime.handle, "slime_split", 3)  # チャージ済み（即発動できる状態）
+	s.set_charge(slime.handle, "slime_split", charge)
 	return {"s": s, "slime": slime}
 
-func _split_option(f: Dictionary) -> FormationOption:
-	for o in Formation.available_for(f["s"], f["slime"]):
-		if o.skill == "slime_split":
-			return o
+# 分裂で生まれた駒（発動者と id 100 以外で最初に見つかったもの）。
+func _spawned(s: BattleState, caster: Unit) -> Unit:
+	for u in s.units():
+		if u.handle != caster.handle and u.handle != 100:
+			return u
 	return null
 
-func test_split_offered_by_slime_alone() -> void:
-	var f := _split_state()
-	var o := _split_option(f)
-	assert_not_null(o, "スライム単独で成立する")
-	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
-	assert_false(o.needs_target(), "対象選択は不要")
+func test_split_is_passive() -> void:
+	assert_true(Formation.is_passive("slime_split"), "スライムスプリットはパッシブ")
+	assert_false(Formation.is_passive("pixie_dust"), "ピクシーダストはアクティブ")
 
-func test_split_not_offered_by_other_skins() -> void:
-	var f := _split_state()
-	var fighter := Unit.new(2, 1, Hex.neighbor(f["slime"].pos, 0), 6, 8, 50, 40, 1, "fighter")
-	f["s"].add_unit(fighter)
+func test_split_not_offered_as_an_action() -> void:
+	# パッシブは手番で撃たない＝チャージが溜まっていてもメニュー・敵AIの候補に出ない。
+	var f := _split_state(3)
+	var s: BattleState = f["s"]
+	s.current_team = 1
 	var found := false
-	for o in Formation.available_for(f["s"], fighter):
+	for o in Formation.available_for(s, f["slime"]):
 		if o.skill == "slime_split":
 			found = true
-	assert_false(found, "スライム以外は撃てない")
+	assert_false(found, "行動の候補に出ない")
 
-func test_split_spawns_a_unit() -> void:
+func test_split_fires_at_turn_start() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
 	var before_count := s.units().size()
-	var result := FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_not_null(result, "発動成功")
+	s.end_turn()  # 敵ターン開始＝チャージ 3 → 分裂
 	assert_eq(s.units().size(), before_count + 1, "駒が1体増える")
+	assert_eq(s.last_passive_results.size(), 1, "発動の記録が1件")
+	var r: Dictionary = s.last_passive_results[0]
+	var spawned := _spawned(s, f["slime"])
+	assert_eq(String(r["skill"]), "slime_split")
+	assert_eq(int(r["caster"]), 1)
+	assert_eq(int(r["unit"]), spawned.handle)
+	assert_eq(r["from"], (f["slime"] as Unit).pos, "演出の起点は発動者のマス")
+	assert_eq(r["to"], spawned.pos, "演出の行き先は分裂先")
+	assert_true(bool(r["fx"]), "演出あり")
+
+func test_split_fires_while_dormant() -> void:
+	# 敵AIの行動開始条件に縛られない＝眠っている駒も分裂し、分裂しても起きない。
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.end_turn()
+	assert_eq(s.units().size(), 2, "行動開始前でも分裂する")
+	assert_false(s.is_engaged(1), "分裂しても行動開始にならない")
+
+func test_split_waits_for_charge() -> void:
+	var f := _split_state(1)
+	var s: BattleState = f["s"]
+	s.end_turn()  # チャージ 2＝まだ足りない
+	assert_eq(s.units().size(), 1, "溜まるまで分裂しない")
+	assert_true(s.last_passive_results.is_empty(), "発動の記録も無い")
+
+func test_split_not_on_opponent_turn_start() -> void:
+	var f := _split_state(3)
+	var s: BattleState = f["s"]
+	s.end_turn()  # 敵ターン開始で分裂（チャージ 4 でも発動する）
+	s.end_turn()  # プレイヤーのターン開始
+	assert_eq(s.units().size(), 2, "相手のターン開始では分裂しない")
+
+func test_split_needs_room() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	var i := 10
+	for nb in Hex.neighbors((f["slime"] as Unit).pos):
+		if s.in_field(nb):
+			s.add_unit(Unit.new(i, 1, nb, 2, 8, 20, 20, 1, "fighter"))
+			i += 1
+	var before_count := s.units().size()
+	s.end_turn()
+	assert_eq(s.units().size(), before_count, "隣に空きマスが無ければ分裂しない")
+	assert_eq(s.get_charge(1, "slime_split"), 3, "撃てなかったチャージは残る")
 
 func test_split_inherits_troops() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
 	f["slime"].troops = 5  # 損耗した状態で分裂
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	var spawned: Unit = null
-	for u in s.units():
-		if u.handle != f["slime"].handle:
-			spawned = u
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_eq(spawned.troops, 5, "兵数は発動者の現在値を引き継ぐ")
 	assert_eq(spawned.max_troops, 8, "max_troops は type の既定値")
@@ -437,85 +475,51 @@ func test_split_inherits_troops() -> void:
 func test_split_spawned_is_done() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	var spawned: Unit = null
-	for u in s.units():
-		if u.handle != f["slime"].handle:
-			spawned = u
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_true(s.is_done(spawned.handle), "生まれたターンは行動済み")
 
-func test_split_caster_is_done() -> void:
+func test_split_caster_keeps_its_action() -> void:
+	# 手番を使わない＝分裂した駒もそのターンに動ける。
 	var f := _split_state()
 	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_true(s.is_done(f["slime"].handle), "発動者は行動完了")
+	s.end_turn()
+	assert_false(s.is_done(1), "発動者は行動を残す")
 
 func test_split_caster_gains_no_level() -> void:
-	# 共通ルール「発動者は Lv+1」の例外＝分裂ではレベルが上がらない。詳細 → doc/gdd/skills.md スライムスプリット
 	var f := _split_state()
 	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
+	s.end_turn()
 	assert_eq((f["slime"] as Unit).level, 1, "分裂ではレベルが上がらない")
-
-func test_split_result_cells_hold_spawned_hex() -> void:
-	# 分裂で出た位置は cells で返る＝盤はこれを光らせる（演出シーンは出さない）。詳細 → doc/gdd/skills.md スライムスプリット
-	var f := _split_state()
-	var s: BattleState = f["s"]
-	var result := FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	var spawned: Unit = null
-	for u in s.units():
-		if u.handle != f["slime"].handle:
-			spawned = u
-	assert_not_null(spawned, "新しい駒が居る")
-	var cells := result.cells
-	assert_eq(cells.size(), 1, "光らせる面は分裂で出た1マスだけ")
-	assert_true(spawned.pos in cells, "分裂で出た位置が cells に入る")
 
 func test_split_spawned_inherits_skin_and_type() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	var spawned: Unit = null
-	for u in s.units():
-		if u.handle != f["slime"].handle:
-			spawned = u
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_eq(spawned.skin_id, "slime", "skin_id を引き継ぐ")
 	assert_eq(spawned.type_id, "slime", "type_id を引き継ぐ")
 	assert_eq(spawned.team, f["slime"].team, "陣営を引き継ぐ")
 
+func test_split_not_by_other_skins() -> void:
+	var s := _state()
+	var fighter := Unit.new(2, 1, Hex.offset_to_axial(3, 3), 6, 8, 50, 40, 1, "fighter")
+	s.add_unit(fighter)
+	s.set_charge(fighter.handle, "slime_split", 2)
+	s.end_turn()
+	assert_eq(s.units().size(), 1, "スライム以外は分裂しない")
+
 func test_split_id_does_not_collide() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
-	# 既存の id より大きい id を持つ駒を足す
 	var other := Unit.new(100, 1, Hex.offset_to_axial(7, 7), 2, 8, 20, 20, 1, "slime")
 	s.add_unit(other)
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	var spawned: Unit = null
-	for u in s.units():
-		if u.handle != f["slime"].handle and u.handle != 100:
-			spawned = u
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_gt(spawned.handle, 100, "既存の最大 id より大きい")
-
-## 隣接に空きマスが無ければメニューに出ない＝発動できない。
-func test_split_not_offered_when_surrounded() -> void:
-	var f := _split_state()
-	var s: BattleState = f["s"]
-	var slime: Unit = f["slime"]
-	# 6方向すべてに駒を置いて埋める
-	for dir in 6:
-		var nb := Hex.neighbor(slime.pos, dir)
-		s.add_unit(Unit.new(10 + dir, 1, nb, 2, 8, 20, 20, 1, "fighter"))
-	assert_null(_split_option(f), "隣接が全部埋まっていると成立しない")
-
-## 殲滅勝利の判定に分裂で増えた駒が含まれる（全滅させないと勝てない）。
-func test_split_spawned_counts_for_annihilation() -> void:
-	var f := _split_state()
-	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_eq(s.team_unit_count(1), 2, "敵の駒数が2に増えている")
 
 # --- ピュリファイ（有害な補正の解除）---
 
@@ -664,122 +668,63 @@ func test_purify_consumes_the_casters_action() -> void:
 
 # --- チャージ（再使用間隔）---
 
-## チャージ量 0 のスライムはスライムスプリットを撃てない。
-func test_charge_blocks_uncharged_skill() -> void:
-	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
-	slime.skin_id = "slime"
-	slime.move_type = "foot"
-	s.add_unit(slime)
-	s.end_turn()  # 敵ターン
-	# チャージ未設定（0）＝撃てない
-	var found := false
-	for o in Formation.available_for(s, slime):
-		if o.skill == "slime_split":
-			found = true
-	assert_false(found, "チャージ量 0 では成立しない")
-
-## チャージ量が必要量に達すると発動できる。
-func test_charge_allows_when_full() -> void:
-	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
-	slime.skin_id = "slime"
-	slime.move_type = "foot"
-	s.add_unit(slime)
-	s.end_turn()  # 敵ターン
-	s.set_charge(slime.handle, "slime_split", 3)
-	var found := false
-	for o in Formation.available_for(s, slime):
-		if o.skill == "slime_split":
-			found = true
-	assert_true(found, "チャージ量が必要量に達すれば成立する")
-
-## チャージ量が必要量未満だと撃てない（1足りない）。
-func test_charge_blocks_when_short() -> void:
-	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
-	slime.skin_id = "slime"
-	slime.move_type = "foot"
-	s.add_unit(slime)
-	s.end_turn()
-	s.set_charge(slime.handle, "slime_split", 2)  # 3 が必要だが 2 しか溜まっていない
-	var found := false
-	for o in Formation.available_for(s, slime):
-		if o.skill == "slime_split":
-			found = true
-	assert_false(found, "チャージ量が足りなければ成立しない")
-
 ## 毎ターン開始時にチャージ量が +1 される。
 func test_charge_increments_each_turn() -> void:
-	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
-	slime.skin_id = "slime"
-	slime.move_type = "foot"
-	s.add_unit(slime)
+	var f := _split_state(0)
+	var s: BattleState = f["s"]
+	var slime: Unit = f["slime"]
 	assert_eq(s.get_charge(slime.handle, "slime_split"), 0, "初期値は 0")
-	# team=0 のターンを終了 → team=1 のターン開始（敵ターン）＝敵駒のチャージが +1
-	s.end_turn()
+	s.end_turn()  # team=1 のターン開始（敵ターン）＝敵駒のチャージが +1
 	assert_eq(s.get_charge(slime.handle, "slime_split"), 1, "1ターン目で +1")
-	s.end_turn()  # team=1 → team=0（プレイヤーターン）＝敵は増えない
+	s.end_turn()  # プレイヤーターン＝敵は増えない
 	assert_eq(s.get_charge(slime.handle, "slime_split"), 1, "相手ターンでは増えない")
-	s.end_turn()  # team=0 → team=1（敵ターン）
+	s.end_turn()
 	assert_eq(s.get_charge(slime.handle, "slime_split"), 2, "2ターン目で +1")
 
 ## 発動するとチャージ量が 0 に戻る。
 func test_charge_resets_on_use() -> void:
-	var f := _split_state()  # チャージ3で即発動可
+	var f := _split_state()
 	var s: BattleState = f["s"]
-	assert_eq(s.get_charge(f["slime"].handle, "slime_split"), 3, "発動前は 3")
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	assert_eq(s.get_charge(f["slime"].handle, "slime_split"), 0, "発動後は 0 に戻る")
+	s.end_turn()
+	assert_eq(s.get_charge(1, "slime_split"), 0, "発動後は 0 に戻る")
 
 ## 分裂で生まれた駒のチャージ量は 0（溜まるまで撃てない）。
 func test_charge_spawned_starts_at_zero() -> void:
 	var f := _split_state()
 	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _split_option(f), Vector2i.ZERO)
-	var spawned: Unit = null
-	for u in s.units():
-		if u.handle != f["slime"].handle:
-			spawned = u
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_eq(s.get_charge(spawned.handle, "slime_split"), 0, "生まれた駒のチャージ量は 0")
 
-## 3ターン溜めれば盤に出た直後の駒でも発動できる（初期 0 → 3ターンで 3）。
+## 盤に出た直後の駒は、3回目の自陣営ターン開始で初めて分裂する。
 func test_charge_accumulates_to_threshold() -> void:
-	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
-	slime.skin_id = "slime"
-	slime.move_type = "foot"
-	s.add_unit(slime)
-	# 3ターンぶんのサイクルを回す（player→enemy→player→enemy→player→enemy）
-	for i in 3:
-		s.end_turn()  # → enemy turn: charge +1
-		s.end_turn()  # → player turn: charge stays
-	assert_eq(s.get_charge(slime.handle, "slime_split"), 3, "3ターンで必要量に達する")
-	var found := false
-	for o in Formation.available_for(s, slime):
-		if o.skill == "slime_split":
-			found = true
-	assert_true(found, "必要量に達したので発動できる")
+	var f := _split_state(0)
+	var s: BattleState = f["s"]
+	for i in 2:
+		s.end_turn()  # 敵ターン開始：チャージ +1
+		s.end_turn()  # プレイヤーのターン
+	assert_eq(s.units().size(), 1, "2ターンではまだ分裂しない")
+	s.end_turn()
+	assert_eq(s.units().size(), 2, "3ターン目の頭で分裂する")
 
 ## チャージ量は中断セーブに乗る（to_save_diff → apply_save_diff で往復）。
 func test_charge_survives_serialization() -> void:
-	var s := _state()
-	var c := Hex.offset_to_axial(3, 3)
-	var slime := Unit.new(1, 1, c, 2, 8, 20, 20, 1, "slime")
-	slime.skin_id = "slime"
-	slime.move_type = "foot"
-	s.add_unit(slime)
-	s.set_charge(slime.handle, "slime_split", 2)
+	var f := _split_state()
+	var s: BattleState = f["s"]
 	var restored := _state()  # 同じ器（盤サイズ）を組み直して差分を被せる＝実際の再開と同じ形
 	restored.apply_save_diff(s.to_save_diff())
-	assert_eq(restored.get_charge(slime.handle, "slime_split"), 2, "復元後もチャージ量が保たれる")
+	assert_eq(restored.get_charge(1, "slime_split"), 2, "復元後もチャージ量が保たれる")
+
+## レシピはすべて activation を明示する。パッシブだけが passive_fx を持つ。
+func test_every_recipe_declares_activation() -> void:
+	for rid in Formation.SKILLS:
+		var r: Dictionary = Formation.SKILLS[rid]
+		assert_true(String(r.get("activation", "")) in ["active", "passive"], "%s の activation" % rid)
+		if String(r["activation"]) == "passive":
+			assert_true(r.get("passive_fx") is bool, "%s の passive_fx" % rid)
+		else:
+			assert_false(r.has("passive_fx"), "%s はアクティブ＝passive_fx を持たない" % rid)
 
 # --- ポイズンスティング（継続ダメージ）。詳細 → doc/gdd/skills.md ---
 

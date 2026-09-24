@@ -55,6 +55,7 @@ const SKILLS := {
 		"member_skins": ["wizard", "witch"],
 		"shape": "triangle",
 		"count": 3,
+		"activation": "active",
 		"effect": "area",
 		"radius": 1,
 		"range": 5,
@@ -67,6 +68,7 @@ const SKILLS := {
 		"member_skins": ["cleric", "priest", "bishop", "paladin"],
 		"shape": "cluster",
 		"count": 5,
+		"activation": "active",
 		"effect": "buff",
 		"buff_op": "mul",
 		# 最低人数（count）で成立したときの補正。参加者が count を超えた1体ごとに buff_value_per_extra を
@@ -84,6 +86,7 @@ const SKILLS := {
 		"member_skins": ["cleric", "priest", "bishop"],
 		"shape": "escort",
 		"count": 3,
+		"activation": "active",
 		"effect": "single",
 		"range": 10,
 		"range_from": "caster",
@@ -96,6 +99,7 @@ const SKILLS := {
 		"member_skins": ["thief", "halfling", "ninja", "kunoichi"],
 		"shape": "spotter",
 		"count": 2,
+		"activation": "active",
 		"effect": "single",
 		# 射程は弓兵の通常射程そのもの（下限〜上限）＝レシピは固定値を持たない。
 		"range_from_stats": "caster",
@@ -119,6 +123,7 @@ const SKILLS := {
 		"member_skins": ["fighter", "vanguard", "knight", "dwarf"],
 		"shape": "line",
 		"count": 3,
+		"activation": "active",
 		"effect": "buff",
 		# 列に並んだ参加者だけに乗る（陣営全体のグレイスと違い、他の味方には効かない）。
 		"buff_scope": "participants",
@@ -140,6 +145,7 @@ const SKILLS := {
 		"member_skins": ["archer", "hunter", "elf"],
 		"shape": "triangle",
 		"count": 3,
+		"activation": "active",
 		"effect": "area",
 		# 中心＋周囲6＋その外周12＝19ヘクス。トリニティノヴァの面（7ヘクス）より一回り広く、参加者以外の味方は焼ける。
 		"radius": 2,
@@ -162,6 +168,7 @@ const SKILLS := {
 		"swap_roles": true,
 		"shape": "escort",
 		"count": 2,
+		"activation": "active",
 		"effect": "buff",
 		# 発動者を中心とした結界（地帯）に効く＝掛かる相手は発動時の顔ぶれではなく、そのとき
 		# 中に居る味方。入れば効き、出れば切れる。詳細 → doc/gdd/formations.md マジックシールド
@@ -189,6 +196,7 @@ const SKILLS := {
 		"member_figure": "fighter",
 		"shape": "backstab",
 		"count": 2,
+		"activation": "active",
 		"effect": "single",
 		"range": 1,  # 隣接する敵だけ＝懐に入って刺す
 		"range_from": "caster",
@@ -213,6 +221,7 @@ const SKILLS := {
 		"member_skins": ["wizard", "witch"],  # メイジは見習いのため対象外
 		"shape": "escort",
 		"count": 2,
+		"activation": "active",
 		"effect": "single",
 		# 射程は2体の射程上限の長い方＋1（アーチャー／ハンター＋ウィザード＝5、エルフかウィッチが居れば6）。
 		# 下限は無し＝隣接にも撃てる。詳細 → doc/gdd/formations.md マジックアロー
@@ -238,6 +247,7 @@ const SKILLS := {
 		"member_skins": ["fighter", "vanguard", "knight", "dwarf"],
 		"shape": "escort",
 		"count": 2,
+		"activation": "active",
 		"effect": "buff",
 		# 身構えた2体だけに乗る（シールドウォールと同じ）。人数は2体で固定＝隣に3体目が居ても参加しない（組を選ぶ）。
 		"buff_scope": "participants",
@@ -258,6 +268,7 @@ const SKILLS := {
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
+		"activation": "active",
 		"effect": "buff",
 		"buff_scope": "unit",
 		"buff_op": "add",  # 実効攻防への加算（レベル・包囲・地形の補正は乗らない）
@@ -276,6 +287,7 @@ const SKILLS := {
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
+		"activation": "active",
 		# 状態補正を積むのではなく落とす＝値を持たない。詳細 → doc/gdd/skills.md
 		"effect": "cleanse",
 		"buff_scope": "unit",  # 対象1体（自分＋隣接）
@@ -289,6 +301,7 @@ const SKILLS := {
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
+		"activation": "active",
 		"effect": "buff",
 		"buff_scope": "unit",
 		"buff_side": "enemy",  # 対象は敵1体（ピクシーダストは味方＝"ally"）。詳細 → doc/gdd/skills.md
@@ -308,6 +321,7 @@ const SKILLS := {
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
+		"activation": "active",
 		"effect": "buff",
 		"buff_scope": "unit",
 		"buff_side": "enemy",
@@ -328,6 +342,7 @@ const SKILLS := {
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
+		"activation": "active",
 		# 補正値を積むのではなく、持続の間ターン開始に兵数を減らす。攻防には触らない
 		# （補正チェーンに参加しない）＝ヴェノムファングの上位版ではなく別軸。詳細 → doc/gdd/skills.md
 		"effect": "dot",
@@ -347,6 +362,8 @@ const SKILLS := {
 		"member_skins": [],
 		"shape": "solo",
 		"count": 1,
+		"activation": "passive",  # ターン開始に自動で発動＝手番を使わない。詳細 → doc/gdd/skills.md アクティブとパッシブ
+		"passive_fx": true,  # 演出あり＝複製が発動者のマスから分裂先へ滑って出る
 		# 駒を盤に追加する効果。状態補正ではない。対象選択なし（隣接する空きマスへ自動配置）。
 		# 発動者の複製を1体生成し、兵数は発動時点の発動者の兵数を引き継ぐ。max_troops は type の既定値。
 		# 詳細 → doc/gdd/skills.md
@@ -732,6 +749,8 @@ static func _member_skins_for(caster: Unit, r: Dictionary) -> Array:
 
 ## unit がそのスキルの発動者として名乗れるか（形は見ない）。available_for と choices_for の共通の門。
 static func _caster_can_offer(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
+	if String(r["activation"]) != "active":
+		return false  # パッシブは手番で撃たない＝メニューにも敵AIの行にも出さない
 	if not (r["effect"] in IMPLEMENTED_EFFECTS):
 		return false
 	if not can_cast_skin(unit, r):
@@ -743,6 +762,27 @@ static func _caster_can_offer(state: BattleState, unit: Unit, rid: String, r: Di
 	# チャージが必要なスキルは、溜まっていなければ不成立。詳細 → doc/gdd/skills.md
 	var ct := int(r.get("charge_turns", 0))
 	return ct == 0 or state.get_charge(unit.handle, rid) >= ct
+
+## パッシブスキルか（ターン開始に自動で発動する）。詳細 → doc/gdd/skills.md アクティブとパッシブ
+static func is_passive(skill_id: String) -> bool:
+	var r: Dictionary = SKILLS.get(skill_id, {})
+	return String(r.get("activation", "")) == "passive"
+
+## unit がいまパッシブスキル rid を発動できるか（ターン開始に BattleState が見る）。
+## 手番は使わない＝行動の残りは問わない。敵AIの行動開始条件にも縛られない。
+static func passive_ready(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
+	if String(r["activation"]) != "passive":
+		return false
+	if not (r["effect"] in IMPLEMENTED_EFFECTS):
+		return false
+	if not can_cast_skin(unit, r):
+		return false
+	var ct := int(r.get("charge_turns", 0))
+	if ct > 0 and state.get_charge(unit.handle, rid) < ct:
+		return false
+	if String(r["effect"]) == "spawn" and not _spawn_has_room(state, unit.pos):
+		return false
+	return true
 
 ## 分裂（spawn）の置き先＝caster_pos の隣に盤内の空きマスがあるか。
 static func _spawn_has_room(state: BattleState, caster_pos: Vector2i) -> bool:
