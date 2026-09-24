@@ -1,6 +1,6 @@
 extends Node3D
 class_name BoardTerrainRenderer
-## 地形タイル構築（タイル・グリッド線・スカート・下地）を担う。
+## 地形タイル構築（タイル・グリッド線・スカート）を担う。
 ## HexBoard3D が子ノードとして持ち、タイルテクスチャの解決・標高キャッシュ・
 ## ジオラマの外周スカートまでの地形描画を委譲する。
 ## 盤のゲーム状態には直接依存しない＝呼び出し側が setup で注入する。
@@ -69,7 +69,7 @@ func setup(state: BattleState, terrain_skins: Dictionary, margin_terrain: Dictio
 # Public API
 # =========================================================================
 
-## 地形タイル・グリッド線・下地。bind（ステージ確定）ごとに作り直す。
+## 地形タイル・グリッド線・スカート。bind（ステージ確定）ごとに作り直す。
 func build_tiles() -> void:
 	_clear_children()
 	_tile_nodes.clear()
@@ -85,7 +85,6 @@ func build_tiles() -> void:
 	_add_objects()
 	_add_grid()
 	_add_skirt()
-	_add_ground()
 
 ## 拠点を現在の所有チームの絵に貼り替える。占領で色が変わるので _sync_bases から毎回呼ぶ。
 ## 拠点がオブジェクト（fort＝立ち絵）のマスは立ち絵を貼り替える。平面タイルは足場のままで触らない
@@ -601,27 +600,6 @@ func _add_skirt() -> void:
 		m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 三角形の向きを気にしない（内外どちらからも見える）
 		mi.material_override = m
 		add_child(mi)
-
-## 盤の下地（虚空に浮かないための大きな平面）。スカートの下端より深くに置き、盤を「島」として浮かせる。
-func _add_ground() -> void:
-	var mn := Vector2(INF, INF)
-	var mx := Vector2(-INF, -INF)
-	for col in _state.cols:
-		for row in _state.rows:
-			var p := Hex.to_pixel(Hex.offset_to_axial(col, row), TILE)
-			mn = mn.min(p)
-			mx = mx.max(p)
-	var c := (mn + mx) * 0.5
-	var pm := PlaneMesh.new()
-	pm.size = (mx - mn) + Vector2(60.0, 60.0)
-	var mi := MeshInstance3D.new()
-	mi.mesh = pm
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = Color(0.22, 0.24, 0.18)  # 盤より暗く＝盤が浮き立つ
-	mi.material_override = m
-	mi.position = Vector3(c.x, -SKIRT_DEPTH - 0.35, c.y)
-	add_child(mi)
 
 ## 地形タイルを読む。基本 {name}.png ＋連番 variant。
 func _load_terrain_variants(base_path: String) -> Array:
