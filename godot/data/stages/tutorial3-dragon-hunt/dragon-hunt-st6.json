@@ -24,13 +24,13 @@
       "units": [ { "skin": "slime", "col": 3, "row": 3 } ] },
     { "order": 2, "name": "dragon-hunt.st6.squad.2", "ai": "flee", "stack": 1,
       "units": [
-        { "skin": "rogue_axe", "col": 11, "row": 2 },
-        { "skin": "rogue_axe", "col": 10, "row": 3 },
-        { "skin": "rogue_head", "unit_id": "rogue_head", "col": 11, "row": 3 },
-        { "skin": "rogue_axe", "col": 12, "row": 3 },
-        { "skin": "rogue_axe", "col": 10, "row": 4 },
-        { "skin": "rogue_axe", "col": 11, "row": 4 },
-        { "skin": "rogue_axe", "col": 12, "row": 4 }
+        { "skin": "rogue_axe", "col": 11, "row": 2, "troops": 4 },
+        { "skin": "rogue_axe", "col": 10, "row": 3, "troops": 4 },
+        { "skin": "rogue_head", "unit_id": "rogue_head", "col": 11, "row": 3, "troops": 4 },
+        { "skin": "rogue_axe", "col": 12, "row": 3, "troops": 4 },
+        { "skin": "rogue_axe", "col": 10, "row": 4, "troops": 4 },
+        { "skin": "rogue_axe", "col": 11, "row": 4, "troops": 4 },
+        { "skin": "rogue_axe", "col": 12, "row": 4, "troops": 4 }
       ] },
     { "order": 3, "name": "dragon-hunt.st6.squad.3", "ai": "ambush", "sight": 4, "stack": 1,
       "units": [ { "skin": "slime", "col": 19, "row": 3 } ] },
@@ -102,27 +102,19 @@
       "bases": [
         { "col": 3, "row": 17 },
         { "col": 19, "row": 2 },
-        { "col": 3, "row": 2 }
+        { "col": 3, "row": 2 },
+        { "col": 19, "row": 17 }
       ] }
   ],
   "dialogue": {
     "intro": [
-      { "speaker": "char.rogue.name", "skin": "rogue", "text": "dragon-hunt.st6.rogue.1" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.intro.3" },
-      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.rogue.2" },
       { "scene": "dragon-hunt.st6.scene.1" },
       { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.11" },
-      { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st6.intro.1", "when": "joined:birdman" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "dragon-hunt.st6.intro.8", "when": "joined:dwarf" },
-      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.2" },
+      { "speaker": "char.birdman.name", "skin": "birdman", "text": "dragon-hunt.st6.intro.1", "when": "joined:birdman" },
       { "speaker": "char.thief.name", "skin": "thief", "text": "dragon-hunt.st6.intro.4" },
       {
         "enter": [
-          {
-            "squad": "dragon-hunt.st6.squad.1",
-            "entry": "scatter",
-            "from": { "col": 7, "row": 3 }
-          },
           {
             "squad": "dragon-hunt.st6.squad.2",
             "entry": "scatter",
@@ -130,11 +122,15 @@
           }
         ]
       },
-      { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st6.intro.9" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st6.rogue.1" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.intro.3" },
+      { "speaker": "char.rogue_axe.name", "skin": "rogue_axe", "text": "dragon-hunt.st6.rogue.2" },
+      { "speaker": "char.rogue_head.name", "skin": "rogue_head", "text": "dragon-hunt.st6.rogue.3" },
+      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.2" },
       { "speaker": "char.bishop.name", "skin": "bishop", "text": "dragon-hunt.st6.intro.5" },
+      { "speaker": "char.rookie_cleric.name", "skin": "cleric", "text": "dragon-hunt.st6.intro.9" },
+      { "speaker": "char.rookie_mage.name", "skin": "mage", "text": "dragon-hunt.st6.intro.14" },
       { "speaker": "char.wizard.name", "skin": "wizard", "text": "dragon-hunt.st6.intro.6" },
-      { "speaker": "char.rookie_halfling.name", "skin": "halfling", "text": "dragon-hunt.st6.intro.12" },
-      { "speaker": "char.hunter.name", "skin": "hunter", "text": "dragon-hunt.st6.intro.13" },
       { "speaker": "char.vanguard.name", "skin": "vanguard", "text": "dragon-hunt.st6.intro.7" }
     ],
     "outro": [
