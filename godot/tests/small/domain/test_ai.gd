@@ -1322,6 +1322,43 @@ func test_flee_waits_when_no_base_exists() -> void:
 	_pc(s, 1, 8, 2)
 	assert_null(_brain.next_action(s, 1), "拠点が無ければ待機")
 
+func test_flee_capturer_heads_for_neutral_base_when_damaged_and_homeless() -> void:
+	# #5 手負いで帰れる自陣営拠点が無ければ、占領兵は中立の拠点へ逃げ足で向かう。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	var u := _ai(s, si, 10, 2, 2)
+	u.can_capture = true
+	_hurt(u, 4)  # 損耗50%
+	s.add_base(Base.new(Hex.offset_to_axial(12, 2)))  # 中立の拠点（移動範囲の外）
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "中立の拠点へ向かう")
+	assert_gt(_col(a.to), 2, "東の中立拠点へ近づく")
+
+func test_flee_non_capturer_waits_when_damaged_and_homeless() -> void:
+	# #5 は占領兵だけ。占領できない駒は中立の拠点を目指さず待機する。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_hurt(_ai(s, si, 10, 2, 2), 4)  # 損耗50%
+	s.add_base(Base.new(Hex.offset_to_axial(12, 2)))  # 中立の拠点
+	assert_null(_brain.next_action(s, 1), "占領兵でなければ待機")
+
+func test_flee_capturer_skips_a_watched_neutral_base() -> void:
+	# #5 も見張られた中立の拠点は狙わない。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	var u := _ai(s, si, 10, 7, 2)
+	u.can_capture = true
+	_hurt(u, 4)  # 損耗50%
+	s.add_base(Base.new(Hex.offset_to_axial(3, 2)))  # 近い中立拠点（見張り付き）
+	s.add_base(Base.new(Hex.offset_to_axial(12, 2)))  # 遠い中立拠点（手薄）
+	_pc(s, 1, 2, 2)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 7, "手薄な東の中立拠点へ向かう")
+
 # --- withdraw（撤退） ---
 
 func test_withdraw_fights_like_charge_when_healthy() -> void:

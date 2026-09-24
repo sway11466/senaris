@@ -5,6 +5,7 @@ class_name TraitFlee
 ## 2 損耗 ≧ retreat で、自陣営の拠点hexにいる → 拠点に入る
 ## 3 損耗 ≧ retreat で、脅威圏の外にあり迂回距離が測れる自陣営拠点 → その拠点へ逃げ足
 ## 4 損耗 < retreat で、脅威圏の外にあり迂回距離が測れる敵拠点 → その拠点へ逃げ足
+## 5 占領兵で、脅威圏の外にあり迂回距離が測れる中立の拠点 → その拠点へ逃げ足
 ## 逃げ足＝止まるマスを脅威圏の外（かつ敵ZOCの外）に限る。行き先も止まれるマスも無ければ待機＝詰み。
 
 func id() -> String:
@@ -18,15 +19,20 @@ func action(state: BattleState, u: Unit) -> AiAction:
 	row = enter_base_row(state, u)
 	if row != null:
 		return row
+	if not rows.can_advance(state, u):
+		return null
 	var damaged := AiPick.damage_percent(u) >= params.retreat_percent_of(state, u)
 	if damaged:
 		# #3 自陣営拠点へ逃げ足
-		if rows.can_advance(state, u):
-			return rows.flee_to_base(state, u, pick.friendly_base_hexes(state, u))
+		row = rows.flee_to_base(state, u, pick.friendly_base_hexes(state, u))
 	else:
 		# #4 敵拠点へ逃げ足
-		if rows.can_advance(state, u):
-			return rows.flee_to_base(state, u, pick.hostile_base_hexes(state, u))
+		row = rows.flee_to_base(state, u, pick.hostile_base_hexes(state, u))
+	if row != null:
+		return row
+	# #5 占領兵なら中立の拠点へ逃げ足（帰れる自陣営拠点が無い手負いの行き先）
+	if u.can_capture:
+		return rows.flee_to_base(state, u, pick.neutral_base_hexes(state))
 	return null
 
 func enter_base_row(state: BattleState, u: Unit) -> AiAction:
