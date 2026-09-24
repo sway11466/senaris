@@ -214,6 +214,7 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.focus_pace = $HexBoard.focus_camera_on  # AIターンは次の主体（攻撃なら相手も）をカメラに収めてから見せる
 	_controller.turn_start_pace = _await_turn_banner  # 敵ターンは頭の一拍（バナー）を見せてから動く
 	_controller.dialogue_pace = _story.await_dialogue  # 敵ターンの占領で入る会話は読み終えるまで待つ
+	_controller.dot_pace = $HexBoard.play_dots  # ターン開始の毒で兵数が減る瞬間は見せ切ってから次へ
 	_controller.passive_pace = _play_passives  # ターン開始のパッシブスキル（分裂など）は見せ切ってから最初の手へ
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.event_fired.connect(_story.on_event_fired)  # 台本があれば会話を挟む

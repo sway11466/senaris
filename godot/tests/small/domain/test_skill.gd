@@ -790,6 +790,33 @@ func test_sting_reduces_one_troop_at_target_turn_start() -> void:
 	assert_eq(foe.troops, 7, "対象側のターン開始で1減る")
 
 ## 攻防の補正チェーンには乗らない（ヴェノムファングとの違い）。
+## 減らした駒はターン開始の記録に載る（盤が減る瞬間を見せる）。減る前の兵数と出す絵を持つ。
+func test_sting_tick_is_recorded() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	FormationResolver.resolve(s, _sting_option(f), foe.pos)
+	s.end_turn()  # プレイヤーのターン開始＝減る
+	assert_eq(s.last_dot_results.size(), 1, "減った駒が1件")
+	var r: Dictionary = s.last_dot_results[0]
+	assert_eq(int(r["unit"]), foe.handle)
+	assert_eq(int(r["troops_before"]), 8, "減る前の兵数")
+	assert_eq(int(r["shield_before"]), 0)
+	assert_eq(String(r["effect"]), "poison", "盤に出す絵はレシピの tick_effect")
+	s.end_turn()  # 敵ターン開始＝プレイヤーの駒は減らない
+	assert_true(s.last_dot_results.is_empty(), "減らないターンは空")
+
+## 下限に張り付いて1も減らなかった駒は記録に載せない。
+func test_sting_tick_at_floor_is_not_recorded() -> void:
+	var f := _sting_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	FormationResolver.resolve(s, _sting_option(f), foe.pos)
+	foe.troops = 1
+	s.end_turn()
+	assert_eq(foe.troops, 1, "毒では全滅しない")
+	assert_true(s.last_dot_results.is_empty(), "減らなければ記録しない")
+
 func test_sting_does_not_touch_attack_or_defense() -> void:
 	var f := _sting_state()
 	var s: BattleState = f["s"]

@@ -355,6 +355,7 @@ const SKILLS := {
 		"range": 1,
 		"range_from": "caster",
 		"combat_effect": "thrust",  # 当面は刺突の汎用（毒色は絵に持たせない）
+		"tick_effect": "poison",  # ターン開始に兵数が減る瞬間、盤の駒の上に出す絵（combat_effect.csv の ID）
 	},
 	"slime_split": {
 		"name": "スライムスプリット",

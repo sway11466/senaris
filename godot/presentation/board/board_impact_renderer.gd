@@ -317,6 +317,25 @@ func _strike(by: UnitSnapshot, comb: UnitSnapshot, dmg: int, stretch: float) -> 
 	return 0.0
 
 
+## 毒で兵数が減る瞬間（ターン開始）：駒の上に毒の絵（effect_id）を浮かべ、着いた瞬間に兵数を
+## 減った値へ組み直してフラッシュする。盤は減る前の兵数を hold したまま待っている＝ここで外す。
+## 返り値＝見せ終えるまでの秒数。絵が無ければマスを光らせるだけ。詳細 → doc/gdd/skills.md ポイズンスティング
+func play_dot_tick(uid: int, hex: Vector2i, effect_id: String) -> float:
+	var eff := CombatEffectCatalog.by_id(effect_id)
+	var tex := _effect_texture(eff)
+	var on_land := func() -> void:
+		_unit_renderer.release_troops(uid)
+		if eff != null:
+			SfxPlayer.play_sfx(eff.effect_id)
+		_land_unit(uid, false)
+	if tex == null:
+		_flash_cells([hex], HIT_BURST_SEC)
+		on_land.call()
+		return HIT_BURST_SEC
+	_spawn_strike(hex, tex, false, STRIKE_TILES * eff.scale, on_land)
+	return maxf(STRIKE_SEC, HIT_FLASH_SEC * 2.0)
+
+
 ## 殴る側の武器エフェクト。スキン未設定・未定義IDなら null（絵は無い扱い）。
 func _effect_of(comb: UnitSnapshot) -> CombatEffect:
 	var skin := SkinCatalog.resolve(_skin_catalog, comb.skin_id, comb.type_id, comb.team)

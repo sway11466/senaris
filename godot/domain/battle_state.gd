@@ -170,7 +170,12 @@ func _expire_status_mods() -> void:
 ##
 ## 残兵 DOT_TROOPS_FLOOR を下回らせない＝毒では全滅しない。倒すのは戦闘の役目で、殴らずに毒だけで
 ## 削る戦法を最適解にしないための線引き。盤の上の駒だけが対象（搭乗中・garrison は減らない）。
+##
+## 減らした駒は last_dot_results に控える（presentation が減る瞬間を盤で見せる）。
+## 1件＝ { unit（handle）, troops_before, shield_before, effect（盤に出す絵の ID。レシピの tick_effect） }
+## 下限に張り付いて1も減らなかった駒は載せない＝何も起きていない。
 func _tick_dots() -> void:
+	last_dot_results = []
 	for u in _units:
 		if u.team != current_team:
 			continue
@@ -179,7 +184,24 @@ func _tick_dots() -> void:
 			continue
 		# シールドは 0 まで減り、残兵の下限は本体にだけ掛かる＝減らせる量を先に切ってから入口を通す。
 		var room := u.shield + maxi(u.troops - DOT_TROOPS_FLOOR, 0)
-		u.take_loss(mini(n, room))
+		var loss := mini(n, room)
+		if loss <= 0:
+			continue
+		var before := {"unit": u.handle, "troops_before": u.troops, "shield_before": u.shield,
+				"effect": _dot_tick_effect(u)}
+		u.take_loss(loss)
+		last_dot_results.append(before)
+
+## 直近のターン開始で毒が兵数を減らした駒（_tick_dots が作り直す）。
+var last_dot_results: Array[Dictionary] = []
+
+## u に掛かっている継続ダメージのうち先頭のエントリのスキルが持つ tick_effect。
+func _dot_tick_effect(u: Unit) -> String:
+	for m in _status_mods:
+		if StatusMod.is_dot(m) and StatusMod.applies_to(m, u):
+			var r: Dictionary = Formation.SKILLS.get(String(m.get("skill", "")), {})
+			return String(r.get("tick_effect", ""))
+	return ""
 
 # --- チャージ（再使用間隔）。詳細 → doc/gdd/skills.md ---
 #

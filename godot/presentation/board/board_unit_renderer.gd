@@ -60,6 +60,9 @@ var _floor_fn: Callable      # (hex: Vector2i) -> float（駒の足元の高さ�
 
 # --- メッシュ・材質（_ready で生成）---
 var _shadow_mesh: ArrayMesh
+## 兵数バーに出す値の上書き（handle -> { troops, shield }）。ターン開始の毒で減る前の兵数を、
+## 減る瞬間を見せ終えるまで出したままにする（作り直しでも消えない）。詳細 → doc/gdd/skills.md ポイズンスティング
+var _held_troops := {}
 var _glow_mesh: ArrayMesh
 var _glow_ring_mesh: ArrayMesh
 var _glow_mat: StandardMaterial3D
@@ -349,7 +352,22 @@ func _add_unit_placeholder(u: Unit, done: bool, root: Node3D) -> void:
 	root.add_child(l)
 
 ## 兵数バー（背景＋残存率ぶんの緑）。ビルボードの小さなクアッド2枚を足元に置く。
+## handle の兵数バーを troops／shield のまま出し続ける（release_troops まで）。
+func hold_troops(handle: int, troops: int, shield: int) -> void:
+	_held_troops[handle] = {"troops": troops, "shield": shield}
+
+## hold_troops の上書きを外す（次に組み直すと state の値が出る）。
+func release_troops(handle: int) -> void:
+	_held_troops.erase(handle)
+
+## 上書きを全部外す（ステージの作り直し・演出 OFF）。
+func release_all_troops() -> void:
+	_held_troops.clear()
+
 func _add_troops_bar(u: Unit, root: Node3D) -> void:
+	var held: Dictionary = _held_troops.get(u.handle, {})
+	var troops := int(held.get("troops", u.troops))
+	var shield := int(held.get("shield", u.shield))
 	var w := TILE * 1.0
 	var h := TILE * 0.13
 	var base_pos := Vector3(0, 0.10, SPRITE_FOOT_Z + 0.15)  # 立ち絵より手前
@@ -360,7 +378,7 @@ func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	bg.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_BG)
 	bg.position = base_pos
 	root.add_child(bg)
-	var ratio := clampf(float(u.troops) / float(u.max_troops), 0.0, 1.0)
+	var ratio := clampf(float(troops) / float(u.max_troops), 0.0, 1.0)
 	if ratio <= 0.0:
 		return
 	var fill := MeshInstance3D.new()
@@ -371,14 +389,14 @@ func _add_troops_bar(u: Unit, root: Node3D) -> void:
 	fill.material_override = BoardMeshFactory.bill_material(COLOR_TROOPS_FILL)
 	fill.position = base_pos + Vector3(0, 0, 0.01)
 	root.add_child(fill)
-	_add_shield_strip(u, root, base_pos, w, h)
+	_add_shield_strip(u, shield, root, base_pos, w, h)
 
 ## シールドの帯。兵数バーの真上に細い白の帯を1本、長さ＝残量／初期値。0 なら出さない。
 ## 仕様 → doc/gdd/uiux.md（駒に付くもの）・doc/gdd/combat.md シールド
-func _add_shield_strip(u: Unit, root: Node3D, base_pos: Vector3, w: float, h: float) -> void:
-	if u.max_shield <= 0 or u.shield <= 0:
+func _add_shield_strip(u: Unit, shield: int, root: Node3D, base_pos: Vector3, w: float, h: float) -> void:
+	if u.max_shield <= 0 or shield <= 0:
 		return
-	var ratio := clampf(float(u.shield) / float(u.max_shield), 0.0, 1.0)
+	var ratio := clampf(float(shield) / float(u.max_shield), 0.0, 1.0)
 	var sh := h * 0.4
 	var strip := MeshInstance3D.new()
 	var q := QuadMesh.new()

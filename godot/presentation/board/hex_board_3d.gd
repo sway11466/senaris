@@ -72,7 +72,7 @@ var _press_on_empty := false     # 押下が空き地（ユニット無し）か
 var _dragging_pan := false       # 左ドラッグでパン中
 
 # --- シーン構造（_ready で組む）---
-var _terrain_renderer: BoardTerrainRenderer  # 地形タイル（タイル・グリッド線・スカート・下地）
+var _terrain_renderer: BoardTerrainRenderer  # 地形タイル（タイル・グリッド線・スカート）
 var _bases_root: Node3D    # 拠点の縁取り・控え数（占領で変わるのでイベントごとに作り直し）
 var _unit_renderer: BoardUnitRenderer  # 駒の描画（立ち絵・影・光・兵数バー・リング・マーカー）
 var _overlay_root: Node3D  # 範囲・ホバー等の半透明マス（変化ごとに作り直し）
@@ -185,10 +185,12 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.passives_fired.connect(_on_passives_fired)
+	controller.dots_ticked.connect(_on_dots_ticked)
 	controller.battle_finished.connect(_on_battle_finished)
 	_terrain_renderer.build_tiles()
 	fit_to_view()
 	_hidden.clear()  # 隠し駒は intro の間だけ＝前のステージから持ち越さない
+	_unit_renderer.release_all_troops()  # 毒で減る前の兵数も持ち越さない
 	_sync()
 
 ## 選択・出撃モード・ロック・ホバーを初期状態へ（ステージ再ロード時に呼ぶ）。
@@ -1218,6 +1220,41 @@ func play_entry(info: Dictionary, animate := true) -> void:
 	if not animate or _board_fx == "off":
 		return
 	await _await_entry(_schedule_entry(info))
+
+## ターン開始の毒で兵数が減った駒は、減る瞬間を見せるまで減る前の兵数で出しておく
+## （盤はターン切り替えで作り直し済み＝もう減った値で出ている）。
+func _on_dots_ticked(results: Array[Dictionary]) -> void:
+	for r in results:
+		_unit_renderer.hold_troops(int(r["unit"]), int(r["troops_before"]), int(r["shield_before"]))
+	_sync()
+
+## ターン開始の毒を見せる（doc/gdd/skills.md ポイズンスティング）。減った駒をまとめてカメラに収め、
+## 全員の上に同時に毒の絵を浮かべて兵数を減らす。演出 OFF は減った値で出し直すだけ。
+func play_dots(results: Array[Dictionary]) -> void:
+	var shown: Array[Dictionary] = []
+	var at: Array[Vector2i] = []
+	for r in results:
+		var h := int(r["unit"])
+		var u := state.unit_by_handle(h)
+		if u == null or _board_fx == "off":
+			_unit_renderer.release_troops(h)
+			continue
+		shown.append(r)
+		at.append(u.pos)
+	if shown.is_empty():
+		_sync()
+		return
+	await focus_camera_on(at)
+	var sec := 0.0
+	for r in shown:
+		var h := int(r["unit"])
+		var u := state.unit_by_handle(h)
+		if u == null:
+			_unit_renderer.release_troops(h)
+			continue
+		sec = maxf(sec, _impact_renderer.play_dot_tick(h, u.pos, String(r["effect"])))
+	if sec > 0.0:
+		await get_tree().create_timer(sec / _fx_speed()).timeout
 
 ## ターン開始のパッシブスキルで生まれた駒のうち、演出ありのものを play_passives まで隠す
 ## （盤はターン切り替えで作り直し済み＝隠さないと分裂先に先に見えてしまう）。

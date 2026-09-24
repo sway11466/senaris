@@ -22,6 +22,9 @@ signal turn_changed(team: int, turn_number: int)
 ## ターン開始でパッシブスキルが発動した（BattleState.last_passive_results の控え）。盤は演出ありの
 ## 生まれた駒をここで隠し、passive_pace で見せる。詳細 → doc/gdd/skills.md アクティブとパッシブ
 signal passives_fired(results: Array[Dictionary])
+## ターン開始で毒が兵数を減らした（BattleState.last_dot_results の控え）。盤は減る前の兵数を
+## dot_pace で見せ終えるまで出したままにする。詳細 → doc/gdd/skills.md ポイズンスティング
+signal dots_ticked(results: Array[Dictionary])
 signal event_fired(info: Dictionary)  # イベント（増援）が起きた＝{ label, dialogue }。台本そのものは presentation が持つ
 signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LOSS
 
@@ -37,6 +40,7 @@ var move_pace := Callable()    # AIターンで移動アニメの完了を待つ
 var focus_pace := Callable()   # AIターンで見せたい hex の一覧（先頭＝行動主体）をカメラに収めるフック（同上）。空なら何もしない
 var turn_start_pace := Callable()  # AIターンの頭で一拍置くフック（同上・ターンバナー）。空なら待たない
 var dialogue_pace := Callable()  # AIターンで会話の読了を待つフック（同上）。空なら待たない
+var dot_pace := Callable()  # ターン開始の毒で兵数が減る瞬間を見せ切るまで待つフック（同上・結果の配列を渡す）。空なら待たない
 var passive_pace := Callable()  # ターン開始のパッシブスキルを見せ切るまで待つフック（同上・結果の配列を渡す）。空なら待たない
 
 func setup(p_state: BattleState) -> void:
@@ -197,6 +201,9 @@ func end_turn() -> void:
 	state.end_turn()
 	_move_origin.clear()  # 移動開始位置はそのターンのもの（戻り先を持ち越さない）
 	turn_changed.emit(state.current_team, state.turn_number)
+	var dots: Array[Dictionary] = state.last_dot_results.duplicate()
+	if not dots.is_empty():
+		dots_ticked.emit(dots)
 	var passives: Array[Dictionary] = state.last_passive_results.duplicate()
 	if not passives.is_empty():
 		passives_fired.emit(passives)
@@ -206,9 +213,16 @@ func end_turn() -> void:
 	if not _finished:
 		_announce_fired_events()
 	if not _finished and is_ai_turn():
-		run_ai_turn(passives)  # async（fire-and-forget）
-	elif not _finished and not passives.is_empty() and passive_pace.is_valid():
-		passive_pace.call(passives)  # 自分のターンは待たずに見せる（async・fire-and-forget）
+		run_ai_turn(dots, passives)  # async（fire-and-forget）
+	elif not _finished:
+		_show_turn_start(dots, passives)  # 自分のターンは待たずに見せる（async・fire-and-forget）
+
+## ターン開始に起きたこと（毒・パッシブスキル）を盤で見せる。順番は domain と同じ＝毒が先。
+func _show_turn_start(dots: Array[Dictionary], passives: Array[Dictionary]) -> void:
+	if not dots.is_empty() and dot_pace.is_valid():
+		await dot_pace.call(dots)
+	if not _finished and not passives.is_empty() and passive_pace.is_valid():
+		await passive_pace.call(passives)
 
 ## このターンに起きたイベントを1件ずつ上へ流す。渡すのは素データ（label・台本キー・カメラ指定と
 ## その行き先）だけ＝何を見せるかは presentation が決める。hex は実際に駒が出た場所の先頭
@@ -244,14 +258,15 @@ func _drain_pending_events() -> void:
 			await dialogue_pace.call()
 
 ## AIのターンを実行。next_action が尽きるまで1手ずつ実行し、最後にターンを返す。
-## passives＝このターン開始で発動したパッシブスキル。ターンの頭の一拍の後、最初の手より先に見せる。
-func run_ai_turn(passives: Array[Dictionary] = []) -> void:
+## dots／passives＝このターン開始で毒が減らした駒と、発動したパッシブスキル。ターンの頭の一拍の後、
+## 最初の手より先に見せる。
+func run_ai_turn(dots: Array[Dictionary] = [], passives: Array[Dictionary] = []) -> void:
 	# ターンの頭で一拍置く（ターンバナーの表示ぶん）。1手も動かないターンでもここは通るので、
 	# 敵のターンが1フレームも見えずに戻る事態を防ぐ。詳細 → doc/gdd/uiux.md
 	if not _finished and turn_start_pace.is_valid():
 		await turn_start_pace.call()
-	if not _finished and not passives.is_empty() and passive_pace.is_valid():
-		await passive_pace.call(passives)
+	if not _finished:
+		await _show_turn_start(dots, passives)
 	while not _finished:
 		var action := ai_brain.next_action(state, state.current_team)
 		if action == null:
