@@ -1228,12 +1228,13 @@ func test_flee_enters_friendly_base_when_damaged_and_on_base() -> void:
 
 func test_flee_does_not_attack() -> void:
 	# 攻撃の行を持たない＝射程内に敵がいても殴らない。
-	var s := BattleState.new(9, 5)
+	# 足（移動6）を脅威圏（移動3＋射程1＝半径4）の外まで届かせ、逃げ足が成立する盤にする。
+	var s := BattleState.new(14, 5)
 	s.current_team = 1
 	var si := _squad(s, "flee")
-	_ai(s, si, 10, 4, 2)
+	_ai(s, si, 10, 4, 2, 6)
 	_pc(s, 1, 4, 1)  # 隣接
-	s.add_base(Base.new(Hex.offset_to_axial(8, 2), 0))  # 目的地
+	s.add_base(Base.new(Hex.offset_to_axial(12, 2), 0))  # 目的地
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE, "殴らずに拠点へ歩く")
 	assert_ne(a.to, s.unit_by_handle(1).pos, "敵のマスへは向かわない")
@@ -1262,6 +1263,55 @@ func test_flee_captures_before_fleeing() -> void:
 	var a := _brain.next_action(s, 1)
 	assert_eq(a.kind, AiAction.Kind.MOVE)
 	assert_eq(a.to, base_hex, "拠点を占領しに行く")
+
+func test_flee_skips_a_watched_base() -> void:
+	# 脅威圏の中の拠点は狙わない＝近くても見張られた拠点を捨て、遠い手薄な拠点へ向かう。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 7, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(3, 2), 0))  # 近い拠点（見張り付き）
+	s.add_base(Base.new(Hex.offset_to_axial(12, 2), 0))  # 遠い拠点（手薄）
+	_pc(s, 1, 2, 2)  # 西の拠点の見張り
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 7, "手薄な東の拠点へ向かう")
+
+func test_flee_skips_a_watched_friendly_base_when_damaged() -> void:
+	# 削られて帰るとき（#3）も、見張られた自陣営拠点は避ける。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_hurt(_ai(s, si, 10, 7, 2), 4)  # 損耗50%
+	s.add_base(Base.new(Hex.offset_to_axial(3, 2), 1))  # 近い自陣営拠点（見張り付き）
+	s.add_base(Base.new(Hex.offset_to_axial(12, 2), 1))  # 遠い自陣営拠点（手薄）
+	_pc(s, 1, 2, 2)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE)
+	assert_gt(_col(a.to), 7, "手薄な東の自陣営拠点へ向かう")
+
+func test_flee_does_not_stop_inside_the_threat_zone() -> void:
+	# 行き先が手薄でも、道の脇の待ち伏せの脅威圏（移動3＋射程1＝半径4）には止まらない。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 2, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(13, 2), 0))
+	var ambusher := _pc(s, 1, 7, 4)  # 道の脇で待つ
+	assert_gt(Hex.distance(Hex.offset_to_axial(13, 2), ambusher.pos), 4, "前提: 拠点は脅威圏の外")
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "脅威圏の外で拠点へ近づけるマスがある")
+	assert_gt(Hex.distance(a.to, ambusher.pos), 4, "脅威圏の外に止まる")
+
+func test_flee_waits_when_every_base_is_watched() -> void:
+	# 逃げ先がすべて脅威圏の中＝詰み。動かない。
+	var s := BattleState.new(15, 5)
+	s.current_team = 1
+	var si := _squad(s, "flee")
+	_ai(s, si, 10, 8, 2)
+	s.add_base(Base.new(Hex.offset_to_axial(3, 2), 0))
+	_pc(s, 1, 2, 2)
+	assert_null(_brain.next_action(s, 1), "見張られた拠点しか無ければ待機")
 
 func test_flee_waits_when_no_base_exists() -> void:
 	# 向かう拠点が盤上に無ければ待機（敵も自陣営も無い状態）。

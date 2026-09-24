@@ -519,15 +519,29 @@ static func _advance_score(field: Dictionary, goals: Dictionary, hex: Vector2i) 
 		return 0
 	return int(field.get(hex, BattleState.UNREACHABLE))
 
-## 回り込み（迂回距離）で拠点へ向かう1手。ZOCを避けた道が無ければ null＝待機。
-func detour_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
-	if goals.is_empty():
-		return null
-	var detour_field := AiDistance.detour_cost_field(state, u.handle, u.pos)
-	var goal := pick.nearest_hex_in(detour_field, goals)
+## 逃げ足で拠点へ向かう1手（flee #3・#4 → doc/gdd/ai.md flee）。行き先は脅威圏の外の拠点のうち
+## 迂回距離が最小のもの、止まるマスは脅威圏の外かつ敵ZOCの外。間合取りの距離を迂回距離に替えたもの。
+## 行き先も止まれるマスも無ければ null＝待機（詰み）。
+func flee_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
+	var threat := threat_cells(state, u)
+	var open: Array[Vector2i] = []
+	for g in goals:
+		if not threat.has(g):
+			open.append(g)
+	if open.is_empty():
+		return null  # 逃げ先がすべて見張られている
+	var goal := pick.nearest_hex_in(AiDistance.detour_cost_field(state, u.handle, u.pos), open)
 	if goal == AiPick.NO_HEX:
-		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている → 待機
-	return advance(state, u, AiDistance.detour_cost_field(state, u.handle, goal), [goal])
+		return null  # 迂回距離が測れない＝ZOCで全方位塞がれている
+	var forbidden := forbidden_cells(state, u)
+	var safe := {}
+	for h in state.reachable(u.handle):
+		if threat.has(h) or forbidden.has(h) or state.in_enemy_zoc(h, u):
+			continue
+		if h != u.pos and state.unit_at(h) != null:
+			continue  # 駒の居るマス＝乗れる味方輸送。踏むと乗るつもりのない乗車になる
+		safe[h] = true
+	return spacing_step(state, u, safe, AiDistance.detour_cost_field(state, u.handle, goal), [goal])
 
 ## 最大前進（移動距離）で拠点へ向かう1手。測れる拠点が無ければ null＝この行は通らない。
 func move_to_base(state: BattleState, u: Unit, goals: Array[Vector2i]) -> AiAction:
