@@ -214,8 +214,15 @@ func end_turn() -> void:
 		_announce_fired_events()
 	if not _finished and is_ai_turn():
 		run_ai_turn(dots, passives)  # async（fire-and-forget）
-	elif not _finished:
-		_show_turn_start(dots, passives)  # 自分のターンは待たずに見せる（async・fire-and-forget）
+	elif not _finished and not (dots.is_empty() and passives.is_empty()):
+		_show_player_turn_start(dots, passives)  # async（fire-and-forget）
+
+## 自分のターンの頭に起きたことを見せる。ターンの帯が消えてから（帯と演出を重ねない）。
+func _show_player_turn_start(dots: Array[Dictionary], passives: Array[Dictionary]) -> void:
+	if turn_start_pace.is_valid():
+		await turn_start_pace.call()
+	if not _finished:
+		await _show_turn_start(dots, passives)
 
 ## ターン開始に起きたこと（毒・パッシブスキル）を盤で見せる。順番は domain と同じ＝毒が先。
 func _show_turn_start(dots: Array[Dictionary], passives: Array[Dictionary]) -> void:
