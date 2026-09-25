@@ -47,7 +47,7 @@ var _terrain_skins: Array = []       # [{ skin_id, terrain_type, name, memo }]�
 var _bgm_tracks: Array = []  # assets/bgm/ に実在するトラックID（BGM欄の選択肢。autowire と同じ規約）
 var _ai_presets: Array = []  # [特性id]
 var _ai_names := {}          # 特性id -> 表示名
-var _ai_params := {}         # 特性id -> パラメーター辞書（ai.csv の1行。sight の既定値を引く）
+var _ai_params := {}         # 特性id -> パラメーター辞書（ai.csv の1行。sight・retreat の既定値を引く）
 
 # パレット選択状態
 var _sel_terrain_category := "plain"  # 地形パレットの分類＝地形タイプの id（既定地形＝DEFAULT_CHAR に合わせる）
@@ -622,8 +622,6 @@ func _add_order_row(parent: Control, target: Dictionary, label: String = "order"
 
 ## 部隊/拠点の sight 上書き行。sight を使う特性のときだけ出す（`-` の特性では出さない）。
 ## 「sight」＝上書きするか（外すと特性の既定を継承）、「上限なし」＝`*` を書く、数値＝視線距離。
-## sight 以外のパラメーターは出さない：新しいふるまいは ai.csv に特性を足して表現する
-## （AIは「特性＝CSV／割り当て＝ステージ」の2層。詳細 → doc/gdd/ai.md データ構成）。
 func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> void:
 	var preset_value: Variant = _preset_sight_value(ai_label)
 	if not _sight_is_used(preset_value):
@@ -662,6 +660,47 @@ func _add_sight_row(parent: Control, target: Dictionary, ai_label: String) -> vo
 	apply.call()
 	check.toggled.connect(func(_on: bool) -> void: apply.call())
 	star.toggled.connect(func(_on: bool) -> void: apply.call())
+	spin.value_changed.connect(func(_v: float) -> void: apply.call())
+
+
+## 特性の retreat 既定値（ai.csv の生の値＝`-` / 数値）。未定義の特性は `-` 扱い。
+func _preset_retreat_value(ai_label: String) -> Variant:
+	var preset: Dictionary = _ai_params.get(ai_label, {})
+	return preset.get("retreat", "-")
+
+
+## 部隊/拠点の retreat（撤退閾値＝損耗率 %）上書き行。retreat を使う特性のときだけ出す（`-` の特性では出さない）。
+## 「retreat」＝上書きするか（外すと特性の既定を継承）、数値＝損耗率 %（詳細 → doc/gdd/ai.md データ構成）。
+func _add_retreat_row(parent: Control, target: Dictionary, ai_label: String) -> void:
+	var preset_value: Variant = _preset_retreat_value(ai_label)
+	if typeof(preset_value) != TYPE_INT and typeof(preset_value) != TYPE_FLOAT:
+		if target.erase("retreat"):  # 見えない上書きを残さない（retreat を使わないAIに変えたら消す）
+			_say("%s は retreat を使わない特性のため、retreat の上書きを外しました。" % ai_label)
+		return
+	var current: Variant = target.get("retreat", preset_value)
+	var tip := "撤退閾値（損耗率 %%）。この値以上に損耗したら退きに転じる。外すと %s の既定 %d を継承する。" \
+		% [ai_label, int(preset_value)]
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var check := CheckBox.new()
+	check.text = "retreat"
+	check.button_pressed = target.has("retreat")
+	check.tooltip_text = tip
+	row.add_child(check)
+	var start := int(current) if typeof(current) == TYPE_INT or typeof(current) == TYPE_FLOAT else int(preset_value)
+	var spin := _make_spin(0, 100, float(start))
+	spin.custom_minimum_size = Vector2(64, 0)
+	spin.suffix = "%"
+	spin.tooltip_text = tip
+	row.add_child(spin)
+	var apply := func() -> void:
+		if check.button_pressed:
+			target["retreat"] = int(spin.value)
+		else:
+			target.erase("retreat")
+		spin.editable = check.button_pressed
+	apply.call()
+	check.toggled.connect(func(_on: bool) -> void: apply.call())
 	spin.value_changed.connect(func(_v: float) -> void: apply.call())
 
 
@@ -953,6 +992,7 @@ func _add_squad_item(parent: VBoxContainer, group: ButtonGroup, index: int, sq: 
 	ai_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row2.add_child(ai_row)
 	_add_sight_row(item, sq, String(sq.get("ai", "")))
+	_add_retreat_row(item, sq, String(sq.get("ai", "")))
 
 
 ## そのキーを使っている別の部隊の番号（self_index 自身は数えない）。無ければ -1。
@@ -1709,10 +1749,11 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 				b.erase("order")  # AI出撃しない拠点は行動順の列に並ばない
 			else:
 				b["ai"] = k
-			_refresh_base_box()))  # order / sight 行の出し入れ
+			_refresh_base_box()))  # order / sight / retreat 行の出し入れ
 	if b.has("ai"):
 		_add_order_row(parent, b)  # 拠点も1部隊＝盤上の部隊と同じ列に並ぶ（doc/gdd/ai.md 行動順）
 	_add_sight_row(parent, b, String(b.get("ai", "")))
+	_add_retreat_row(parent, b, String(b.get("ai", "")))
 	# 控え（garrison）。見出しに総数を出す＝行が増えても「この拠点に何体眠っているか」が一目で読める
 	if typeof(b.get("garrison")) != TYPE_ARRAY:
 		b["garrison"] = []
