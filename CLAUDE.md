@@ -65,6 +65,7 @@
 - [doc/campaign/tutorial3-dragon-hunt.md](doc/campaign/tutorial3-dragon-hunt.md) — チュートリアル３「竜狩り」（飛行・対空／継承carryover／中立拠点／回復拠点・泉／ボス＝ドラゴン）
 - [doc/campaign/ancientruins.md](doc/campaign/ancientruins.md) — 古代遺跡三部作（仮題）共通設定（いがみ合う混成チーム・国境の山とドワーフの鉱山・魔人を作る炉・両国の闇・技師と兵器）
 - [doc/campaign/ancientruins1-mine-monsters.md](doc/campaign/ancientruins1-mine-monsters.md) — 古代遺跡 第1部「鉱山の魔物」（仮題）全7話（坑道→遺跡の外縁。トロッコ・リペア・罠・敵の生産拠点とスイッチ／ボス＝魔人の失敗作）
+- [doc/campaign/ancientruins2-ruins.md](doc/campaign/ancientruins2-ruins.md) — 古代遺跡 第2部「古代遺跡」（仮題）全7話（検討中。遺跡の深部→古代図書館→建設中の炉／番人・遺跡荒らし・仲間になる魔獣／ボス＝魔人になった学者）
 - [doc/campaign/twingods.md](doc/campaign/twingods.md) — 邪神三部作「双子の神」共通設定（秩序と混沌・前史・冒険者一行・2人の聖女・悪役）
 - [doc/campaign/twingods1-cult-stirrings.md](doc/campaign/twingods1-cult-stirrings.md) — 三部作 第1部「邪神徒の蠢き」（かけだし向け・街／追跡もの）
 - [doc/campaign/twingods2-hidden-temple.md](doc/campaign/twingods2-hidden-temple.md) — 三部作 第2部「邪神の神殿」（中堅向け・国家／迷いの森と護衛戦）
