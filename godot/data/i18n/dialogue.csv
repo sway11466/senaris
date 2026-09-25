@@ -409,7 +409,7 @@ dragon-hunt.st7.intro.3,落とすんじゃない。眠らせる。狙いどこ�
 dragon-hunt.st7.intro.4,剣は届かん。空に手が届くのは弓と魔法、そして飛べる者だけだ。,"Blades won't reach. Only bows, spells, and those who fly can touch the sky."
 dragon-hunt.st7.intro.5,私の粉なら、誰にでも掛けられるわ。撃つ人に足してあげる。,"My dust can reach anyone. I'll add it to whoever is shooting."
 dragon-hunt.st7.intro.6,撃つ側を守るのが仕事ってわけね。前に出て足場を塞ぐわ。,"So our job is guarding the shooters. I'll go forward and block the footing."
-dragon-hunt.st7.intro.7,火口に泉は無い。ここまで残した兵が、そのまま持ち駒だ。行くぞ。,"There are no springs in the caldera. What we have kept alive is all we have. Move."
+dragon-hunt.st7.intro.7,火口に泉は無いが、あと一息だ。竜を鎮めれば、この旅も一段落する。踏ん張るぞ。,"No spring at the crater — but we're nearly there. Calm the dragon, and this journey comes to rest. Hold fast."
 dragon-hunt.st7.outro.1,気を失っただけだ。目を覚ましても、もう怒ってはいまい。,"It has only lost consciousness. When it wakes, the anger will be gone."
 dragon-hunt.st7.outro.2,……おやすみなさい。巣は、もう誰にも荒らさせません。,"…Sleep well. No one will despoil that nest again."
 dragon-hunt.st7.outro.3,で、この後始末を誰が街に説明するわけ？,"So — who explains all of this to the city?"
@@ -445,8 +445,8 @@ dragon-hunt.st7.intro.10,岩棚はわしが塞ぐ。誰も後ろへ通さん。,
 char.rookie_mage.name,メイジ,Mage
 dragon-hunt.st3.intro.9,足場が砂利で、踏ん張りが利きません。前に出ていいものでしょうか。,The ground's all loose gravel — I can't set my feet. Should I push forward anyway?
 dragon-hunt.st3.intro.10,出るな。悪い足場で詰めれば、こちらが先に崩れる。届く間合いから撃て。,Don't. Close in on bad footing and you break first. Shoot from a range that reaches.
-dragon-hunt.st4.intro.8,悲鳴を上げる草は、わたしより遠くまで届きます。,"The screaming roots reach farther than I do."
-dragon-hunt.st4.intro.9,ならば近づくな。撃たれぬ間合いから道を選べ。,"Then stay out of it. Choose your road from beyond their reach."
+dragon-hunt.st4.intro.8,悲鳴を上げる草……図鑑で見たことがあります。叫び声は、弓より遠くまで届くって。,"A screaming weed… I've seen it in a bestiary. Its shriek carries farther than a bow."
+dragon-hunt.st4.intro.9,なら、こっちの矢は届かないのか。近づかずに回り込むしかないな。,"Then our arrows won't reach it. We'll have to go around, not closer."
 dragon-hunt.st4.intro.10,馬車を押さえれば、悪党の足が止まる。森を抜けるぞ。,"Take the cart and the villains lose their legs. We cut through the forest."
 dragon-hunt.st4.squad.1,森の入口近くの魔物,Monsters at the Forest Edge
 dragon-hunt.st4.squad.2,道を塞ぐトレント,Treant Roadblock
