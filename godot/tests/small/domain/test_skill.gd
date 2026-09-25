@@ -503,6 +503,26 @@ func test_split_spawned_inherits_skin_and_type() -> void:
 	assert_eq(spawned.type_id, "slime", "type_id を引き継ぐ")
 	assert_eq(spawned.team, f["slime"].team, "陣営を引き継ぐ")
 
+func test_split_spawned_joins_caster_squad() -> void:
+	# 待ち伏せのスライムから生まれた駒も待ち伏せ＝発動者と同じ部隊に入る。
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.squads = [{ "order": 1, "name": "本隊", "ai": "ambush" }]
+	s.assign_squad(1, 0)
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_eq(s.squad_index_of(spawned.handle), 0, "発動者と同じ部隊")
+	assert_eq(String(s.squad_of(spawned.handle).get("ai", "")), "ambush", "同じ AI に従う")
+
+func test_split_spawned_without_squad_stays_unassigned() -> void:
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_eq(s.squad_index_of(spawned.handle), -1, "発動者が部隊に属さなければ生まれた駒も属さない")
+
 func test_split_not_by_other_skins() -> void:
 	var s := _state()
 	var fighter := Unit.new(2, 1, Hex.offset_to_axial(3, 3), 6, 8, 50, 40, 1, "fighter")

@@ -1167,6 +1167,9 @@ func spawn_unit(caster_id: int) -> Unit:
 	spawned.can_capture = caster.can_capture
 	spawned.capacity = caster.capacity
 	add_unit(spawned)
+	var squad_index := squad_index_of(caster_id)
+	if squad_index >= 0:
+		assign_squad(new_id, squad_index)  # 発動者と同じ部隊＝同じ AI に従う
 	set_done(new_id)  # 生まれたターンは行動済み
 	return spawned
 
