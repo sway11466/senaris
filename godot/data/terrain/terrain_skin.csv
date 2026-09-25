@@ -58,4 +58,5 @@ wall_stone1,wall,石積みの壁,none,false,,0,0,repeat,,,,,light,,,人が積ん
 wasteland,wasteland,荒地,full,false,,0,0,stretch,,,,,light,,,
 wasteland_fort_town1,fort,町,none,false,,0,0,,standee,0.79,0.5,,light,wasteland,wasteland,道の町（road_fort_town1）の複製を荒地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 wasteland_lavafield1,wasteland,溶岩原,full,false,,0,0,stretch,,,,,dark,,,冷えて固まった溶岩の平原。暗い殻の板の間に光る割れ目。歩ける（荒地のルール）
+wasteland_lavafield1_fort_dragonnest1,fort,竜の巣,none,false,,0,0,,standee,0.85,0.40,,light,wasteland_lavafield1,wasteland_lavafield1,火口の竜の巣＝大岩の輪の中に金銀財宝の山、頂に大きな宝石1つ。占領で宝石の色が変わる（_team0=味方/_team1=敵）
 wasteland_prop_ore1,prop,掘り出された鉱石,none,false,,0,0,,standee,0.9,0.45,,light,wasteland,wasteland,ドワーフが掘り当てた鉱石の山とトロッコ。戦闘は手前の帯（_combat_front）に散らかす

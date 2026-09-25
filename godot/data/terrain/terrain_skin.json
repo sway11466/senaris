@@ -1103,6 +1103,25 @@
 			"terrain_type": "wasteland"
 		},
 		{
+			"combat_ground": "wasteland_lavafield1",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": "light",
+			"map_ground": "wasteland_lavafield1",
+			"map_scale": 0.85,
+			"memo": "火口の竜の巣＝大岩の輪の中に金銀財宝の山、頂に大きな宝石1つ。占領で宝石の色が変わる（_team0=味方/_team1=敵）",
+			"name": "竜の巣",
+			"object_foot_z": 0.4,
+			"orientable": "none",
+			"placement": "standee",
+			"side_tiling": "",
+			"skin_id": "wasteland_lavafield1_fort_dragonnest1",
+			"terrain_type": "fort"
+		},
+		{
 			"combat_ground": "wasteland",
 			"combat_scale": "",
 			"connect": false,

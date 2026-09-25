@@ -1,0 +1,15 @@
+火口の竜の巣（大岩の輪の中に金銀財宝の山、頂に大きな宝石1つ）。スキンIDは wasteland_lavafield1_fort_dragonnest1（fort 型・溶岩原の上に置く）。
+盤は中立／味方／敵の3枚。占領で変わるのは宝石の色だけ。戦闘の絵は持たない。
+
+_03_master は _01_raw(jpg) から四隅フラッドフィル（fuzz 7%）で白を抜いたもの（泉と同じ）:
+magick {n}_01_raw.jpg -alpha set -fuzz 7% -fill none -draw "alpha 0,0 floodfill" -draw "alpha 1023,0 floodfill" -draw "alpha 0,1023 floodfill" -draw "alpha 1023,1023 floodfill" {n}_03_master.png
+
+盤の立ち絵（standee）— map_scale は terrain_skin.csv の wasteland_lavafield1_fort_dragonnest1 の行から引く。
+_team0/_team1 は CSV に行が無く、ツールが末尾の _team{N} を落として同じ行を読む＝3枚が同じ大きさで出る。
+
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 wasteland_lavafield1_fort_dragonnest1 assets\terrain-src\fort_dragonnest1\fort_dragonnest1_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 wasteland_lavafield1_fort_dragonnest1_team0 assets\terrain-src\fort_dragonnest1\fort_dragonnest1_team0_03_master.png -Object
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 wasteland_lavafield1_fort_dragonnest1_team1 assets\terrain-src\fort_dragonnest1\fort_dragonnest1_team1_03_master.png -Object
+
+出力は 384四方のキャンバスに 幅174（＝ヘックス幅の85%・map_scale 0.85）× 高さ114。
+足元をマス中心より手前へ出す量は object_foot_z=0.40。orientable は none＝左右反転させない。

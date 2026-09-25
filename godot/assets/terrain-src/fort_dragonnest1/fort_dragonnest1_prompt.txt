@@ -1,0 +1,78 @@
+SUBJECT: One DRAGON'S NEST on a volcano — a ring of great boulders piled
+around a hoard of gold and silver treasure, with one large gemstone crowning the
+hoard. Drawn as ONE object standing alone on a flat pure white background
+(#FFFFFF) — no ground, no floor, no lava, no cast shadow on the ground, no other
+objects.
+
+VIEWING ANGLE — seen from the front and moderately above, about 35 degrees down
+from the horizon: high enough that the inside of the ring and the hoard in it
+are clearly seen, low enough that the boulders stand up as a wall around it.
+
+SQUARE TO THE VIEWER — the nest is set straight in front of the viewer, not
+turned, and its left and right halves are roughly mirror images of each other.
+This is NOT an isometric view and NOT a three-quarter view.
+
+DESIGN (follow exactly, every count and position):
+- One ring of piled boulders around a hoard. NOT a bird's nest: NO branches, NO
+  twigs, NO straw, NO sticks, NO woven material. NO building, NO wall of cut
+  stone, NO pillars, NO arch, NO steps, NO door.
+- THE RING: a closed oval ring of about ten large, rough, rounded boulders,
+  heaped two high in places, seen as an oval about twice as wide as it is deep.
+  The boulders at the BACK of the ring are the tallest; the boulders at the
+  FRONT are low, no higher than a third of the back ones, so the hoard behind
+  them is not hidden. The boulders touch each other; there is no gap or opening
+  in the ring.
+- THE HOARD: one broad, low, rounded heap of treasure filling the middle of the
+  ring, its top standing a little above the front boulders. It is mostly gold
+  coins with silver coins mixed in, and a few larger pieces half-buried in it:
+  one gold goblet, one silver plate standing on its edge, and one small open
+  chest spilling coins — each piece large and simple enough to read at
+  thumbnail size. Nothing spills out over the boulders.
+- THE GEMSTONE: one large faceted gemstone set upright on the very top of the
+  hoard, in the centre, facing the viewer square-on. It is an oval cut, about
+  one fifth of the ring's width across and a quarter taller than it is wide,
+  with a few large flat facets. It is the only gemstone in the picture — no
+  other jewels, no gems in the goblet or the chest. Its colour is ONE UNIFORM
+  COLOUR — the game repaints it to show who holds the nest — so no pattern, no
+  inner picture, no sparkle star; its facets differ only by flat light and
+  shade of that one colour.
+- COLOURS: the boulders are a cool, ash grey rock, base #6F6A66, each boulder a
+  slightly different flat tone between #807B76 and #55514E. The gold is a
+  muted, warm old gold, base #B8913A, shade #7E6128, light #D4B060. The silver
+  is a muted grey silver, base #9A9C9E, shade #6C6E70, light #B8BABB. The
+  gemstone is a colourless, greyish, unlit stone of hex #8F9498, shade
+  #6C7175, light #A9AEB1 — clear but dull, NOT white, NOT glowing.
+- THE GROUND IT WILL SIT ON: the game draws its own cooled lava field behind
+  this picture — a very dark warm grey-brown crust, hex #3A322D, with glowing
+  orange cracks, hex #E0702A. The boulders must read clearly against it by being
+  LIGHTER and COOLER — do NOT make them dark, black, brown, reddish or
+  charred, and do NOT paint any orange, red or glowing cracks on them.
+
+SIZE — the object sits in the MIDDLE of the picture. In a 1024-pixel picture the
+ring is about 700 pixels wide, and the whole nest from the front boulders to the
+top of the back boulders or the gemstone, whichever is higher, is about 520
+pixels tall, leaving at least 140 pixels of white on every side. It must NOT
+touch any edge and must NOT be cut by any edge.
+
+LIGHT — dim light from above, short soft shadows that fall only on the nest
+itself. NOTHING casts a shadow onto the background. NO glow, NO shine, NO
+sparkle, NO light of any colour anywhere in this picture; the gold and the
+gemstone do not light up.
+
+THE BACKGROUND — everything around the nest is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO lava, NO drop shadow. This
+white is going to be deleted and the game will draw its own ground there, so the
+outline of the nest must be a hard, clean, crisp edge against it. Nothing in the
+nest itself may be white or near-white.
+
+Everything muted, in the same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear dark outlines, a mature, slightly
+muted, limited color palette (NOT bright saturated, NOT painterly photorealism).
+
+NOTHING ELSE — no dragon, no eggs, no people, no creature, no bones, no skull,
+no scales, no claw marks, no weapons, no armour, no crown, no sword, no scroll,
+no candle, no torch, no fire, no smoke, no steam, no lava, no embers, no
+crystals growing from the rock, no plants, no moss, no banner, no flag, no
+lettering, NO magic, NO particles. Read at thumbnail size: a few large legible
+shapes, no fine detail. NO border, NO frame around the picture itself, NO
+vignette. Square 1:1.
