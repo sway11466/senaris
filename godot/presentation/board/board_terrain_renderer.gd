@@ -432,7 +432,9 @@ func _add_object_standee(skin: TerrainSkin, hex: Vector2i) -> void:
 		spr.free()
 		return
 	var p := Hex.to_pixel(hex, TILE)
-	spr.position = Vector3(p.x, unit_floor(hex) + 0.02, p.y)  # 駒と同じ floor
+	# 駒と同じ floor に立てる。浮き沈みは像面内の真上へずらす＝遠近法で横へ流れない（→ 駒の立ち絵と同じ）。
+	var up := BoardCamera.view_up()
+	spr.position = Vector3(p.x, elev(hex) + 0.02, p.y) + up * (_lift(hex) * up.y)
 	_standee_nodes[hex] = spr
 	add_child(spr)
 
@@ -447,7 +449,7 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.texture = tex
 	# 絵はシェーダ側の uniform から引くので、材質もテクスチャと一緒に張り替える
 	# （占領で絵が変わる拠点は、texture だけ差し替えても見た目が変わらない）。
-	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, skin.object_foot_z)
+	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, skin.object_foot_z, _lift(hex))
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
 	# 手前寄せ（object_foot_z）は画面の下方向へ掛ける。ワールドの奥行きで寄せると、画面の端では
@@ -456,6 +458,10 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.offset.y -= skin.object_foot_z * sin(deg_to_rad(BoardCamera.PITCH_DEG)) / spr.pixel_size
 	spr.flip_h = skin.flips_horizontally() and TerrainTiles.flips_h_at(hex)
 	return true
+
+## 立ち絵を floor へずらす量（世界の高さ）。沈むなら負。
+func _lift(hex: Vector2i) -> float:
+	return unit_floor(hex) - elev(hex)
 
 ## 立ち絵の天辺（ワールド座標）。立ち絵はカメラに正対するので、画面で頭の上に来る点は、足元から
 ## カメラの上方向へ絵の高さぶん進んだところ。立ち絵の無いマスは null（拠点の控え数の置き場に使う）。

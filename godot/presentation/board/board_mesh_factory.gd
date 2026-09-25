@@ -29,6 +29,7 @@ uniform sampler2D tex : source_color, filter_linear;
 uniform vec4 modulate : source_color = vec4(1.0);
 uniform float ground_band = 0.15;  // 足元と同じ奥行きで前後を決める帯の高さ（ワールド）
 uniform float foot_bias = 0.0;     // 前後だけ手前へ寄せる量（ワールド・描く位置は動かさない）
+uniform float lift = 0.0;          // 前後の判定だけ世界の真上へ持ち上げる量（ワールド）。板は像面内でずらしてある＝その奥行きを戻す
 
 varying vec3 v_foot;      // 足元のビュー空間位置
 varying float v_height;   // その画素の足元からの高さ（ワールド）
@@ -55,7 +56,7 @@ void fragment() {
 	float h = max(0.0, v_height - ground_band);
 	// 足元の奥行きだけ手前へ寄せる（絵の位置は動かさない）＝手前のマスの地面に足元を食われない。
 	float fz = v_foot.z + foot_bias * (VIEW_MATRIX * vec4(0.0, 0.0, 1.0, 0.0)).z;
-	float z = min(fz + h * up_v.z, -0.2);  // 寄せがカメラを越えないよう手前で止める
+	float z = min(fz + (lift + h) * up_v.z, -0.2);  // 寄せがカメラを越えないよう手前で止める
 	vec4 clip = PROJECTION_MATRIX * vec4(0.0, 0.0, z, 1.0);
 	DEPTH = (clip.z / clip.w) * 0.5 + 0.5;
 }
@@ -326,8 +327,9 @@ static func overlay_material(color: Color) -> StandardMaterial3D:
 
 ## 立ち絵（駒・地形オブジェクト）の材質。テクスチャ×明暗ごとにキャッシュ。
 ## Sprite3D.material_override に差して使う（呼び側は texture / pixel_size / offset だけ持つ）。
-static func standee_material(tex: Texture2D, modulate: Color, foot_bias: float) -> ShaderMaterial:
-	var key := "%s|%s|%s" % [tex.resource_path, modulate, foot_bias]
+## lift は立ち絵を像面内で浮かせ沈めした量（世界の高さ）＝前後の判定だけその高さで行う。
+static func standee_material(tex: Texture2D, modulate: Color, foot_bias: float, lift: float) -> ShaderMaterial:
+	var key := "%s|%s|%s|%s" % [tex.resource_path, modulate, foot_bias, lift]
 	if _standee_mat.has(key):
 		return _standee_mat[key]
 	if _standee_shader == null:
@@ -339,6 +341,7 @@ static func standee_material(tex: Texture2D, modulate: Color, foot_bias: float) 
 	m.set_shader_parameter("modulate", modulate)
 	m.set_shader_parameter("ground_band", GROUND_BAND)
 	m.set_shader_parameter("foot_bias", foot_bias)
+	m.set_shader_parameter("lift", lift)
 	_standee_mat[key] = m
 	return m
 

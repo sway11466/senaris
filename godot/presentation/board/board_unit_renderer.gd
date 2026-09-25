@@ -176,10 +176,11 @@ func build_unit_node(u: Unit) -> Node3D:
 		spr.offset = Vector2(0, tex.get_height() * 0.5)   # 原点＝足元
 		# 正対・α抜き・明暗は材質側（standee_material）が持つ。前後判定を「足元に立てた
 		# 垂直な板」で行い、奥の高いマスに頭が食われないようにするため。
+		var lift := _lift_of(u)
 		spr.material_override = BoardMeshFactory.standee_material(tex,
-			DONE_MODULATE if done else Color.WHITE, 0.0)
+			DONE_MODULATE if done else Color.WHITE, 0.0, lift)
 		# 根ノードはタイル上面（elev）。立ち絵だけ floor へずらす＝影・バー・リングは上面のまま。
-		spr.position = Vector3(0, 0.02 + _floor_fn.call(u.pos) - _elev_fn.call(u.pos), SPRITE_FOOT_Z)
+		spr.position = _sprite_foot_local(lift)
 		root.add_child(spr)
 		# 足元のブロブシャドウ（接地感）。
 		var sh := MeshInstance3D.new()
@@ -414,10 +415,22 @@ func _mark_scale() -> float:
 		return 1.0
 	return minf(MARK_MIN_PX / px, MARK_MAX_SCALE)
 
+## 立ち絵を floor へずらす量（世界の高さ）。沈むなら負。
+func _lift_of(u: Unit) -> float:
+	return _floor_fn.call(u.pos) - _elev_fn.call(u.pos)
+
+## 立ち絵の足元（根ノード＝タイル上面からの相対）。浮き沈みは世界の真上ではなく像面内の真上へ
+## ずらす＝カメラとの距離を変えない。世界の真上へ動かすと遠近法で画面の外側へも流れ、
+## マスから横に外れて見える。量は世界の上向き lift を像面へ射影した長さ（見かけの高さを保つ）。
+## 前後の判定は材質の lift が世界の高さで行う（→ doc/gdd/terrain.md 足場）。
+func _sprite_foot_local(lift: float) -> Vector3:
+	var up := _board_cam.cam_up
+	return Vector3(0, 0.02, SPRITE_FOOT_Z) + up * (lift * up.y)
+
 ## 駒の頭のてっぺんのワールド位置。足元からカメラの上方向へ背丈ぶん進めた点。
 func _unit_head_pos(u: Unit) -> Vector3:
 	var p := Hex.to_pixel(u.pos, TILE)
-	var foot := Vector3(p.x, _floor_fn.call(u.pos) + 0.02, p.y + SPRITE_FOOT_Z)
+	var foot := Vector3(p.x, _elev_fn.call(u.pos), p.y) + _sprite_foot_local(_lift_of(u))
 	var tex := _unit_texture(u)
 	if tex == null:
 		return foot + _board_cam.cam_up * (TILE * 0.35)

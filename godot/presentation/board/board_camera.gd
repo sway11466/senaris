@@ -55,7 +55,12 @@ func update_rig() -> void:
 	var pitch := deg_to_rad(PITCH_DEG)
 	camera.position = target + Vector3(0.0, sin(pitch), cos(pitch)) * dist
 	camera.look_at(target, Vector3.UP)
-	cam_up = Vector3(0.0, cos(pitch), -sin(pitch))
+	cam_up = view_up()
+
+## カメラの上方向（像面内の真上）。俯角が固定なので定数から出せる＝カメラを持たない描画側も引ける。
+static func view_up() -> Vector3:
+	var pitch := deg_to_rad(PITCH_DEG)
+	return Vector3(0.0, cos(pitch), -sin(pitch))
 
 ## 画面1pxがワールドで何mか（注視点の距離基準の近似）。
 func world_per_pixel() -> float:
