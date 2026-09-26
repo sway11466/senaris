@@ -86,7 +86,7 @@
    ```
    powershell -File godot\tools\gen_unit_map.ps1 {skin_id}      # 複数可 / all で全スキン
    ```
-   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`godot/tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
+   ②master と `unit_skin.csv` の `map_scale`・`map_offset_x`・`map_offset_y` から「高さ＝200×倍率 → 384四方・透過・64色」を自動生成（[`godot/tools/gen_unit_map.ps1`](../../godot/tools/gen_unit_map.ps1)）。②が無ければ①から暫定生成し、②が来たら同コマンドで作り直す。
 4. Godot 再実行 → `SkinCatalog` が `godot/assets/units/{skin_id}/{skin_id}_map.png` を規約で自動解決し盤面に反映。
 
 - ツールは ImageMagick（`magick`）が必要。③レシピの正本はこのツール（`.ps1` は ASCII のみ＝Windows PowerShell 5.1 の UTF-8 誤読対策）。
@@ -115,6 +115,10 @@
 
 マスターを描き直してポーズが変わると補正量は無効になる。差し替えたときは `map_offset_x` を見直す。
 
+#### 飛行ユニットは足元を浮かせる
+
+飛行ユニットは、足元の下に透明な余白を足してマスから浮かせる。補正量は `unit_skin.csv` の `map_offset_y`。単位と倍率の掛け方は `map_offset_x` と同じで、プラスが上。余白は縮小の後に足すので、絵の大きさは変わらない。移動タイプが飛行（`flight`）のスキンは一律20。
+
 ### 3.2 確定プロンプト雛形（アンカー方式）
 
 アンカー方式の考え方は [direction.md](direction.md) §3。`SUBJECT:` はユニットごと、`STYLE:` は本節が持つ。i2i（参照画像）は使わず、同じ STYLE 文＋SUBJECT の言葉指定だけで一貫性を出す。SUBJECT に「same steel-blue palette / same face style as the fighter」等を明記するのがコツ。Nano Banana はタグ羅列より自然文の描写が効く。
@@ -135,7 +139,7 @@ view — the subject faces the camera directly, square to the viewer
 (NO three-quarter turn, NO side view). Full body, in a neutral,
 evenly-weighted stance that does NOT commit to a left or right direction.
 Centered, feet near the
-lower third with a small soft ground shadow. Plain pure-white background
+lower third. Plain pure-white background
 (single flat color, for easy cutout). Square 1:1 composition.
 ```
 
@@ -171,7 +175,7 @@ SUBJECT（生成プロンプト本体）の置き場：
 - ボス系：絵は1枚のまま「ボス＋手下」に見せる。隊列の中央が本人で、残りは従者＝別スキンの `combat` を借りる（例：ネクロマンサー＋スケルトン／ゾンビ）。指定は `unit_skin.csv` の `combat_lineup=retinue` ＋ `retainers` 列＝作画側の作業は無い。→ [../tech/combat_scene.md](../tech/combat_scene.md)
 - `single`（複製しない）を選ぶ基準は「その駒が群れないこと」。乗り物・兵器のほか、格の高い駒や大型の獣（レッドドラゴン・ワイアーム・トロール）も、8体並べると格が下がるので `single` にする。
 - 単体表示（`combat_lineup=single`・馬車／飛空艇／ドラゴン級）は複製せず1体だけ出る。作画の作りは同じ（1スキン1枚）だが、隣に自分のコピーが並ばないぶん1体で画が持つ必要がある。
-- 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../godot/presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。ただし戦闘シーンは地面を3Dで敷くため、流用する map の master は足元の影を消しておく（STYLE の `small soft ground shadow` を焼き込んだままにしない）。
+- 攻撃も移動もしない静物（バリケード）は combat を作らない＝map を流用する。ポーズが無く・向きが無く・顔も体も無いので、別に描いても画角と傷しか変わらない。[../../presentation/combat/combat_scene.gd](../../godot/presentation/combat/combat_scene.gd) `_skin_texture` が combat 未設定なら map へ落ちるので、データ側の作業も無い。
 - 攻撃エフェクト：スキンごとではなく武器の種類ごとに1枚。どのスキンがどれを使うかは `unit_skin.csv` の `combat_effect` 列、エフェクトの定義（出し方）は `godot/data/effects/combat_effect.csv`。→ §3.4
 - 保管は §3.1 と同じ二層。追加スロットは -src 側に `_combat` トークンを前置して map ソースと共存する（map は既定＝トークン無し）：
   - 作業ソース `godot/assets/units-src/{group}/{skin_id}/`：`{skin_id}_combat_01_raw.png` → `_combat_03_master.png`（番号は master=03 で固定＝[direction.md](direction.md) §3 の命名と一致）。SUBJECT は `{skin_id}_combat_prompt.txt`。エフェクトは `_combat_effect_` で同様。
@@ -241,7 +245,7 @@ POSE (drift): A floating attack pose — the body hovers clear of the ground wit
 ```
 - 近接（歩兵・盗賊系）＝`melee`／支援・詠唱（クレリック・プリースト・ビショップ）＝`channel`／攻撃魔術（メイジ・ウィザード・ウィッチ・ソーサラー）＝`cast`／遠隔（弓・砲兵）＝`ranged`／投石（投石紐）＝`sling`／指揮・号令（パラディン等）＝`rally`／壁・盾役（ナイト等）＝`guard`／武器を持たない敵（ゾンビ・グール等）＝`unarmed`／腕を持たず口で襲う獣（蛇・竜の眷属等）＝`bite`／飛行（ゴースト等）＝`drift`。据置でも攻撃する兵器（バリスタ）は `ranged`。輸送（馬車・飛空艇）は乗り物ごとに姿勢が違うので、カタログではなく各 `{skin_id}_combat_prompt.txt` の先頭に書いてある。
 - 足が無い駒（ゴースト等）は STYLE の `Full body with both feet visible` が噛み合わない。SUBJECT 側で「足は無く裾が霞に溶ける」と上書きする（`drift` を使う駒はたいてい該当する）。
-- 人型でない静物（兵器・輸送・建造物）は、map と combat で同じ形にならないことがある。言葉のアンカーは顔・配色・持ち物のような属性は固定できるが、木組みの幾何（梁が何本で、どこで交差するか）は書き切れないため、角度を変えると別の構造に組み直される（バリスタで数回踏んだ）。手は2つ：部材を減らして「1本の梁＋上に載る主部＋脚」程度の単純な形にするか、combat を作らず map を流用する（`_skin_texture` が map へ落ちる。バリケードと同じ扱い。流用するときは map の master から足元の影を消す）。
+- 人型でない静物（兵器・輸送・建造物）は、map と combat で同じ形にならないことがある。言葉のアンカーは顔・配色・持ち物のような属性は固定できるが、木組みの幾何（梁が何本で、どこで交差するか）は書き切れないため、角度を変えると別の構造に組み直される（バリスタで数回踏んだ）。手は2つ：部材を減らして「1本の梁＋上に載る主部＋脚」程度の単純な形にするか、combat を作らず map を流用する（`_skin_texture` が map へ落ちる。バリケードと同じ扱い）。
 - 人型でない駒（輸送・兵器）は STYLE の頭身・表情・武器の各指定が噛み合わない。SUBJECT 側で「人は乗せない」（武装する駒は「武装はこの1門だけ」）と明示し、チビ体型の指定は牽引する動物にだけ効かせる。生き物が1つも居ない駒（バリケード・飛空艇等）は、効かせる先が無いので SUBJECT の末尾で「頭身・顔・手足・足元・武器の指定はこの駒には適用されない」と明示的に打ち消す。
 - 兵器の静物は、地形タイルの柵（`godot/assets/terrain/fence.png`＝くすんだ灰緑の細い横木）と盤上で紛れる。SUBJECT で陣営色・鉄帯・二重の厚みを要求し、「地形の柵には見えないこと」を明記して描き分ける。
 - 向きは陣営で焼き込む：味方は STYLE の `RIGHT`（右向き）、敵スキンは `RIGHT` を `LEFT`（左向き）に1語替える。

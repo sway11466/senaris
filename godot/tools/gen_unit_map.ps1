@@ -9,7 +9,9 @@
   map_offset_x (same csv, px at map_scale=1.0, + = right) shifts the figure sideways
   so the BODY sits on the hex center; a weapon held out to one side is allowed to
   overhang. Without it the trimmed bounding box is centered and the prop drags the
-  body off-center. Rule of record: doc/art/units.md section 3.1.
+  body off-center. map_offset_y (same csv, px at map_scale=1.0, + = up) pads transparent
+  space under the feet so a flying unit hovers above the hex instead of standing on it.
+  Rule of record: doc/art/units.md section 3.1.
   <group> is a faction folder (player, goblin, ...); the source dir is found by
   searching assets/units-src/ recursively for a folder named <id>.
   The hand master is _03_master (dew/02 is skipped for units: the transparent trim
@@ -50,13 +52,15 @@ if (-not (Get-Command magick -ErrorAction SilentlyContinue)) {
   throw "ImageMagick (magick) not found. Install: winget install ImageMagick.ImageMagick"
 }
 
-# Read map_scale / map_offset_x. Row 1 = english keys (Import-Csv header); row 2 = JP labels,
+# Read map_scale / map_offset_x / map_offset_y. Row 1 = english keys (Import-Csv header); row 2 = JP labels,
 # dropped by the numeric filter.
 $scale  = @{}
 $offset = @{}
+$lift   = @{}
 foreach ($r in (Import-Csv -Path $csv -Encoding UTF8)) {
   if ($r.map_scale -match '^[0-9.]+$') { $scale[$r.skin_id] = [double]$r.map_scale }
   if ($r.map_offset_x -match '^-?[0-9]+$') { $offset[$r.skin_id] = [int]$r.map_offset_x }
+  if ($r.map_offset_y -match '^[0-9]+$') { $lift[$r.skin_id] = [int]$r.map_offset_y }
 }
 
 if ($SkinIds.Count -eq 1 -and $SkinIds[0] -eq 'all') { $SkinIds = @($scale.Keys) }
@@ -74,6 +78,13 @@ foreach ($id in $SkinIds) {
     $side = if ($shift -gt 0) { 'west' } else { 'east' }
     $shiftArgs = @('-gravity', $side, '-splice', ("{0}x0" -f (2 * [math]::Abs($shift))))
   }
+  # Hover, in output px (csv value at map_scale=1.0, scaled like the shift). Splicing
+  # transparent rows under the resized art raises it by `lift` once -gravity south -extent
+  # bottom-aligns the canvas; the figure size is unchanged.
+  $oy   = if ($lift.ContainsKey($id)) { $lift[$id] } else { 0 }
+  $up   = [int][math]::Round($oy * $sc)
+  $liftArgs = @()
+  if ($up -gt 0) { $liftArgs = @('-gravity', 'south', '-splice', ("0x{0}" -f $up)) }
   # source dir = the folder named <id> that actually holds the master/01_raw.
   # Checking file presence matters: a faction folder can share the skin's name
   # (source/goblin/ vs skin goblin -> source/goblin/goblin/).
@@ -95,13 +106,13 @@ foreach ($id in $SkinIds) {
 
   if (Test-Path $master) {
     # the master is already transparent: trim -> scale -> 256 square -> reduce colors
-    magick $master -trim +repage -resize "x$h" -background none @shiftArgs -gravity south -extent "${Canvas}x${Canvas}" -colors $Colors -dither None $out
+    magick $master -trim +repage -resize "x$h" -background none @shiftArgs @liftArgs -gravity south -extent "${Canvas}x${Canvas}" -colors $Colors -dither None $out
     $srcKind = 'master'
   }
   elseif (Test-Path $raw) {
     # 01_raw is white-bg: key out the background via border floodfill, then same steps (provisional)
     # (only used when no master exists yet)
-    magick $raw -fuzz 6% -trim +repage -alpha set -bordercolor white -border 1 -fuzz 14% -fill none -draw "alpha 0,0 floodfill" -shave 1x1 -resize "x$h" -background none @shiftArgs -gravity south -extent "${Canvas}x${Canvas}" -colors $Colors -dither None $out
+    magick $raw -fuzz 6% -trim +repage -alpha set -bordercolor white -border 1 -fuzz 14% -fill none -draw "alpha 0,0 floodfill" -shave 1x1 -resize "x$h" -background none @shiftArgs @liftArgs -gravity south -extent "${Canvas}x${Canvas}" -colors $Colors -dither None $out
     $srcKind = 'raw(provisional)'
   }
   else {
@@ -112,15 +123,16 @@ foreach ($id in $SkinIds) {
   # The figure must keep its full height; touching the canvas width means the sides were cut.
   # -trim without +repage keeps the page offset, so %X tells whether the art reaches an edge
   # (a shifted figure can be cut on one side while its width still fits).
-  $bb = (magick $out -trim -format "%w %h %X" info:) -split ' '
+  $bb = (magick $out -trim -format "%w %h %X %Y" info:) -split ' '
   $bw = [int]$bb[0]
   $bx = [int]($bb[2] -replace '\+', '')
-  if ([int]$bb[1] -lt $h) {
-    Write-Warning "${id}: cropped vertically (wanted ${h}px, kept $($bb[1])px). Raise `$Canvas or lower map_scale."
+  $by = [int]($bb[3] -replace '\+', '')
+  if ([int]$bb[1] -lt $h -or $by -le 0) {
+    Write-Warning "${id}: cropped vertically (wanted ${h}px, kept $($bb[1])px). Raise `$Canvas, lower map_scale, or reduce map_offset_y."
   }
   if ($bx -le 0 -or ($bx + $bw) -ge $Canvas) {
     Write-Warning "${id}: touches the ${Canvas}px canvas edge (art $bw px at +$bx). Raise `$Canvas, lower map_scale, or reduce map_offset_x."
   }
   $kb = [int]((Get-Item $out).Length / 1KB)
-  Write-Output ("{0,-16} scale={1,-4} H={2,-4} shift={3,-4} src={4,-16} -> assets/units/{5}/{5}_map.png ({6}KB)" -f $id, $sc, $h, $shift, $srcKind, $id, $kb)
+  Write-Output ("{0,-16} scale={1,-4} H={2,-4} shift={3,-4} lift={4,-4} src={5,-16} -> assets/units/{6}/{6}_map.png ({7}KB)" -f $id, $sc, $h, $shift, $up, $srcKind, $id, $kb)
 }
