@@ -382,6 +382,14 @@ func test_stage_body_does_not_keep_terrain_keys() -> void:
 			assert_false((data as Dictionary).has(key),
 				"%s の本体に \"%s\" は書かない" % [path, key])
 
+func test_stages_declare_haze() -> void:
+	# 靄は必須＝書き忘れると戦闘演出で push_error になり 0 に倒れる（doc/tech/combat_scene.md）。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		var v: Variant = (data as Dictionary).get("haze") if typeof(data) == TYPE_DICTIONARY else null
+		assert_true(typeof(v) == TYPE_FLOAT or typeof(v) == TYPE_INT,
+			"%s に haze（0〜1 の数値）がある" % path)
+
 func _all_stage_files(root: String) -> Array:
 	var out: Array = []
 	var dir := DirAccess.open(root)

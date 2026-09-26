@@ -525,7 +525,7 @@
 			"move_type": "foot",
 			"pierce": 0.5,
 			"range": "2-5",
-			"shield": 0
+			"shield": 8
 		},
 		{
 			"atk_air": 80,
@@ -542,7 +542,7 @@
 			"move_type": "foot",
 			"pierce": 0,
 			"range": "2-5",
-			"shield": 0
+			"shield": 8
 		},
 		{
 			"atk_air": 0,
@@ -559,7 +559,7 @@
 			"move_type": "foot",
 			"pierce": 0,
 			"range": 1,
-			"shield": 0
+			"shield": 8
 		},
 		{
 			"atk_air": 0,
@@ -576,7 +576,7 @@
 			"move_type": "foot",
 			"pierce": 0,
 			"range": 1,
-			"shield": 0
+			"shield": 8
 		},
 		{
 			"atk_air": 70,

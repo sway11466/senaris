@@ -68,5 +68,6 @@
   ],
   "victory": [
     { "type": "capture_hq" }
-  ]
+  ],
+  "haze": 0.8
 }
