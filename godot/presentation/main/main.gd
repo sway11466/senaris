@@ -79,6 +79,14 @@ func _ready() -> void:
 	if _platform == null:
 		get_tree().quit(1)
 		return
+	# Steam 版は Steamworks に繋がらなければ遊ばせない＝実績と所有権チェックが黙って効かない形を作らない
+	# （doc/tech/platform.md Steam の初期化に失敗したとき）。
+	var start_error := _platform.start()
+	if not start_error.is_empty():
+		push_error("main: %s" % start_error)
+		OS.alert(tr("ui.title.steam_required"), "Senaris")
+		get_tree().quit(1)
+		return
 	# 音量と画面モードは設定から起こす。曲が鳴り出す（_install_bgm）より前に当てる。
 	for bus in SettingsStore.VOLUME_BUSES:
 		SettingsApplier.apply_volume(String(bus), _settings_store.volume(String(bus)))

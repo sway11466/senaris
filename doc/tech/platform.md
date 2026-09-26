@@ -33,6 +33,8 @@
 
 アダプターを選ぶ場所は1か所（`Platform.for_build()`）。起動時に `main` が1回呼び、出来た口を本体へ渡す。本体のどこからも `BuildInfo.channel()` を見て機能を分岐させない。
 
+選ぶことと繋ぐことは分ける。`main` は選んだあとに `Platform.start()` を1回呼び、Steam のアダプターはそこで初めて Steamworks に繋ぐ。選ぶだけで繋ぐ形にすると、アダプターの選択をテストするたびに Steam へ繋ぎに行く。
+
 ## アダプターと部品
 
 アダプターは薄い。機能ごとの部品を選んで束ねるだけで、中身の処理は持たない。
@@ -142,16 +144,22 @@ Steam 体験版（steam-demo）は実績を Steam に立てない（Valve の推
 
 ## Steam の初期化に失敗したとき
 
-steam と steam-demo は、起動時に Steamworks を初期化できなければ「Steam から起動してください」と出して終了する。Steam 無しで遊べる状態にすると、実績と所有権チェックが黙って効かないビルドになる。
+steam と steam-demo は、起動時に Steamworks を初期化できなければ「Steam から起動してください」と出して終了する。出し方は OS のダイアログ（`OS.alert`）＝画面を組む前に止めるので、ゲームの UI は使わない。Steam 無しで遊べる状態にすると、実績と所有権チェックが黙って効かないビルドになる。
 
 ## 置き場
 
 `godot/infrastructure/platform/` に置く。`BuildInfo` と同じ階層で、外界（ストア）との境界にあたる。
 
-GodotSteam（Steamworks を GDScript から呼ぶアドオン）に触るのは Steam の部品だけ。ほかの部品・アダプター・本体は GodotSteam を知らない。
+GodotSteam（Steamworks を GDScript から呼ぶアドオン。GDExtension 版を `godot/addons/godotsteam/` に置く）に触るのは Steam の部品だけ。ほかの部品・アダプター・本体は GodotSteam を知らない。
+
+- GodotSteam は Steam のビルドにだけ入る（[build.md](build.md) 手で書く除外）。itch と BOOTH のビルドには `Steam` のクラスもシングルトンも無い。
+- そのため Steam の部品は `Steam` を名前で直接書かず、`Engine.get_singleton("Steam")` で取る。直接書くと、GodotSteam の無いビルドでスクリプトの解析に失敗し、使わないはずの Steam の部品のせいで起動できなくなる。
+- GDExtension 版を採る。GodotSteam にはエンジンに組み込んだ版（専用の Godot エディタ）もあるが、手元の Godot エディタと二重管理になる。
+- 置くのは Windows 64bit（遊ぶ環境）と Linux 64bit（CI のテスト）の2つだけ。ほかのプラットフォームに出すときに、そのぶんを足す。
+- 同梱のエディタ用プラグイン（新しい版が出たかを確かめに行く更新通知）は入れない。Steam の機能には要らない。
 
 ## テスト
 
 GUT は Steam 実装を通さない。見るのはアダプターの選択（チャネルと版の組み合わせごとに、どのアダプターが選ばれるか・知らないチャネルで止まるか）と、Steam 以外の部品の挙動（実績ファイルの読み書き・壊れたファイル・常に所有・Stats なし）。実績ファイルのテストは `SavePaths` をその回だけのディレクトリへ向ける（[testing.md](testing.md)）。
 
-Steam の部品は、Steam クライアントを起動して手で確かめる（[../backlog.md](../backlog.md) feature-40 の進め方）。
+Steam の部品は、Steam クライアントを起動して手で確かめる。`godot/tools/platform/check_steam.gd` がテスト用 AppID 480（Valve が公開している Spacewar）に繋ぎ、初期化・実績の読み書き・Stats の加算を通す。`godot/steam_appid.txt` に `480` の1行を置いてから走らせる（このファイルは git にも配布物にも入れない）。

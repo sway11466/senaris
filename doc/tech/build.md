@@ -106,6 +106,8 @@ addons/gut/*
 .gutconfig.json
 ```
 
+Steam 以外のチャネル（機能タグに `steam` が無いプリセット）では、さらに `addons/godotsteam/*` を外す。GodotSteam と、同梱の Steamworks の再配布用ライブラリは Steam で出すビルドにだけ入れる（[platform.md](platform.md) 置き場・[../sales/credits.md](../sales/credits.md)）。書き出しは `gen_export_filters.gd` がチャネルを見て行う＝手で書かない。
+
 `.gutconfig.json` は GUT の設定で、非リソースのフィルタ `*.json` に引っ掛かって入ってしまうので明示的に外す。
 
 `assets/*-src/`（元絵・プロンプト・楽譜）は `.gdignore` で Godot の走査から外れているため、フィルタに書く必要はない。
@@ -116,7 +118,7 @@ addons/gut/*
 
 置き場と流れ。
 
-- 素材の権利ファイルは素材の隣（`<名前>-LICENSE.txt` と、著作権表記1行の `<名前>-NOTICE.txt`）。素材を消したら一緒に消える関係を保つ
+- 素材の権利ファイルは素材の隣（`<名前>-LICENSE.txt` と、著作権表記1行の `<名前>-NOTICE.txt`）。素材を消したら一緒に消える関係を保つ。拾う場所は `assets/` と、配布物に入るアドオン（`addons/godotsteam/`）
 - 生成した `THIRD-PARTY-LICENSES.txt` は `godot/assets/licenses/` に置き、コミットする。配布物なので `tools/` ではなく `assets/` 側
 - ビルドは生成物を実行ファイルの隣にコピーするだけ
 

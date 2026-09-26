@@ -35,3 +35,6 @@ godot/export_credentials.cfg
 
 # 手動確認の使い捨てスクリプトと出力（doc/tech/tools.md）。確認したら消すもので、追跡しない
 godot/tests/manual/
+
+# Steam の AppID（手元で Steam 実装を動かすときだけ置く。配布物にも入れない → doc/backlog.md feature-40）
+godot/steam_appid.txt

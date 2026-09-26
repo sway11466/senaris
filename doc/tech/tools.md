@@ -63,6 +63,14 @@
 | `build/gen_export_filters.gd` | 収録リスト（`build/contents.json`）から必要な素材を導出し、除外フィルタを `export_presets.cfg` へ書き出す。落としたものの一覧も出す | `godot --headless --path godot --script res://tools/build/gen_export_filters.gd` | [build.md](build.md) |
 | `build/gen_licenses.gd` | 配布物に添えるライセンス文を組む（Godot のライセンスAPI＋素材の隣の LICENSE／NOTICE）。書き出し先は `assets/licenses/` | `godot --headless --path godot --script res://tools/build/gen_licenses.gd` | [build.md](build.md) |
 
+## プラットフォーム
+
+販売チャネルの機能（Steam）を手元で確かめる道具。設計は [platform.md](platform.md)。
+
+| ツール | 何をする道具か | 起動 | 詳細 |
+|---|---|---|---|
+| `platform/check_steam.gd` | Steam の部品をテスト用 AppID 480（Spacewar）に繋いで確かめる（初期化・実績の読み書き・Stats の加算）。立てた実績は最後に戻す。Steam クライアントのログインと `godot/steam_appid.txt`（`480` の1行・git に載らない）が要る | `godot --headless --path godot -s res://tools/platform/check_steam.gd` | [platform.md](platform.md) |
+
 ## 使い捨ての検証スクリプト
 
 盤や演出を実機で確かめたいときは、`godot/tests/manual/` に SceneTree スクリプトを一時的に置いて走らせ、確認したら消す。恒久的に使う道具になった時点で `godot/tools/` へ移し、この索引に載せる。

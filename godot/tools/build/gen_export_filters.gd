@@ -31,6 +31,12 @@ const ALWAYS_EXCLUDED := [
 	".gutconfig.json",
 ]
 
+## Steam のビルドにだけ入れるもの。GodotSteam（Steamworks の再配布ファイルを含む）は
+## Steam 以外のチャネルでは使わない＝持ち込まない。仕様 → doc/tech/platform.md 置き場
+const STEAM_ONLY := [
+	"addons/godotsteam/*",
+]
+
 
 func _initialize() -> void:
 	var editions := _load_editions()
@@ -58,6 +64,8 @@ func _initialize() -> void:
 			return
 		var campaigns: Array = editions[edition]
 		var excluded := _build_exclusions(campaigns)
+		if not "steam" in features.split(","):
+			excluded.append_array(PackedStringArray(STEAM_ONLY))
 		presets.set_value(section, "exclude_filter", ", ".join(excluded))
 		_report(preset_name, edition, campaigns, excluded)
 

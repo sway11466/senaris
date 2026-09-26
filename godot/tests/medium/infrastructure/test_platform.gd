@@ -59,3 +59,8 @@ func test_no_stats_accepts_calls() -> void:
 	NoStats.new().add("stage_started")
 	NoStats.new().add("stage_cleared", 3)
 	pass_test("何もせず、エラーも出さない")
+
+func test_non_steam_channels_start_without_connecting() -> void:
+	for channel in ["itch", "booth", BuildInfo.CHANNEL_NONE]:
+		assert_eq(Platform.for_channel(channel, BuildInfo.EDITION_FULL).start(), "",
+			"%s は繋ぐ先が無く、そのまま使える" % channel)

@@ -27,3 +27,4 @@ ui.select.danger,危険度,Danger
 ui.select.menu,← メニュー,← Menu
 ui.select.back_tales,← 冒険譚,← Adventures
 ui.title.chronicle,クロニクル,Chronicle
+ui.title.steam_required,Steam から起動してください。,Please launch the game from Steam.

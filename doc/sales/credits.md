@@ -31,6 +31,7 @@
 |---|---|---|---|---|
 | Godot Engine | ゲームエンジン | 含む | ライセンス文の表示（同梱サードパーティを含む） | https://godotengine.org/license/ |
 | GUT | テストフレームワーク | 除外 | なし | `godot/addons/gut/LICENSE.md` |
+| GodotSteam（GDExtension 版） | Steamworks を GDScript から呼ぶ（Steam のビルドだけに入る） | 含む | ライセンス文と著作権表記の同梱 | `godot/addons/godotsteam/GodotSteam-LICENSE.txt`・`GodotSteam-NOTICE.txt` |
 | fontTools | ロゴの SVG 生成（EB Garamond のパス化） | 道具 | なし | https://github.com/fonttools/fonttools/blob/main/LICENSE |
 
 ### Apache License 2.0
@@ -89,6 +90,7 @@
 |---|---|---|---|---|
 | Sonniss GDC Game Audio Bundle | 効果音の物音系・`title` の酒場のざわめき | 含む | 表記不要。再配布不可・AI学習不可のため元の `.wav` はリポジトリに入れない | [sonniss.md](../audio/sonniss.md) |
 | Muse Sounds ／ MS Basic | 曲・楽音系の効果音の音源 | 出力を含む | 書き出した音声の商用利用は可（サンプル単体の再配布は不可） | https://support.musehub.com/en/articles/15070610 |
+| Steamworks SDK の再配布用ライブラリ（`steam_api64.dll` ほか） | GodotSteam が Steam に繋ぐ口（Steam のビルドだけに入る） | 含む | Steamworks SDK Access Agreement の範囲で配る＝Steam で出すビルドにだけ入れる | GodotSteam の配布物に同梱・https://partner.steamgames.com/documentation/sdk_access_agreement |
 | Google Gemini（Nano Banana・AI Studio） | ユニット・地形・扉・扉絵ほかの絵 | 出力を含む | Steam の提出時に AI 生成コンテンツを開示（[monetization.md](monetization.md)） | https://ai.google.dev/gemini-api/terms |
 
 ### 自作
@@ -120,6 +122,7 @@ Godot はライセンス全文を画面に載せる。`Engine.get_license_text()
 次は開発専用で、製品ビルドに含めない。含めてしまうとそれぞれのライセンス義務が発生する。除外の設定は [../tech/build.md](../tech/build.md)。
 
 - `godot/addons/gut/`（GUT 本体と同梱フォント）
+- `godot/addons/godotsteam/`（Steam 以外のチャネルのビルドから。Steam のビルドには入る）
 - `godot/tools/`（自作の開発ツール一式）
 - `godot/tests/`（テスト一式）
 - デバッグ用ステージ（`godot/data/stages/debug*/` と対応する `godot/assets/campaign/`）

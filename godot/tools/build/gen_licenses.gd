@@ -5,14 +5,16 @@ extends SceneTree
 ##
 ## 集める先は2か所。
 ##   Godot 本体と、Godot が同梱している第三者 … エンジンのバイナリに埋まっている（3つのAPI）
-##   本作が使う素材                          … 素材の隣の <名前>-NOTICE.txt と <名前>-LICENSE.txt
+##   本作が使う素材・アドオン                … 素材の隣の <名前>-NOTICE.txt と <名前>-LICENSE.txt
 ##
 ## 素材を足すときはスクリプトを触らない。NOTICE と LICENSE を素材の隣に置けば次から拾う。
 ## 書き出し先は assets/licenses/ で、生成物をコミットする（差分で何が増えたか読めるように）。
 ## 走らせるのは Godot のバージョンを上げたときと、義務のある素材を足したとき。
 
 const OUT_PATH := "res://assets/licenses/THIRD-PARTY-LICENSES.txt"
-const ASSETS_ROOT := "res://assets"
+## NOTICE を探す場所。assets と、配布物に入るアドオン（GodotSteam は Steam のビルドだけに入るが、
+## ライセンス文は全ビルドで1本＝多めに載るぶんには義務に触れない）。開発専用の addons/gut は入れない。
+const NOTICE_ROOTS := ["res://assets", "res://addons/godotsteam"]
 const RULE := "--------------------------------------------------------------------------------"
 
 
@@ -108,7 +110,9 @@ func _license_tokens(raw: String) -> PackedStringArray:
 ## 見出しは NOTICE の1行目＝表示名はファイル名ではなく素材側が決める（"Rock Salt" と書ける）。
 func _asset_sections() -> PackedStringArray:
 	var out := PackedStringArray()
-	var notices := _find_notices(ASSETS_ROOT)
+	var notices := PackedStringArray()
+	for root in NOTICE_ROOTS:
+		notices.append_array(_find_notices(root))
 	notices.sort()
 	for notice_path in notices:
 		var base := notice_path.trim_suffix("-NOTICE.txt")
@@ -122,11 +126,11 @@ func _asset_sections() -> PackedStringArray:
 			push_warning("gen_licenses: %s に対応する -LICENSE.txt が無い" % notice_path)
 		out.append_array(_section(title, body))
 	if notices.is_empty():
-		push_warning("gen_licenses: assets 以下に -NOTICE.txt が1つも無い")
+		push_warning("gen_licenses: %s 以下に -NOTICE.txt が1つも無い" % str(NOTICE_ROOTS))
 	return out
 
 
-## assets 以下を走査して -NOTICE.txt を集める。.gdignore のフォルダ（元素材）は配布物でないので入らない。
+## root 以下を走査して -NOTICE.txt を集める。.gdignore のフォルダ（元素材）は配布物でないので入らない。
 func _find_notices(root: String) -> PackedStringArray:
 	var out := PackedStringArray()
 	var dir := DirAccess.open(root)

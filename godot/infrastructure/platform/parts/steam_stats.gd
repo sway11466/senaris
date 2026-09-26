@@ -1,7 +1,11 @@
 extends StatsSink
 class_name SteamStats
-## Stats の部品「Steam に送る」。仕様 → doc/tech/platform.md アダプターと部品
-## 中身は GodotSteam の導入（doc/backlog.md feature-40）で書く。それまでは呼ばれたら声を出す。
+## Stats の部品「Steam に送る」。整数の Stat に足して Steamworks へ送る。仕様 → doc/tech/platform.md アダプターと部品
 
-func add(stat_id: String, _amount: int = 1) -> void:
-	push_error("SteamStats: 未実装（feature-40）: %s" % stat_id)
+func add(stat_id: String, amount: int = 1) -> void:
+	var steam := SteamSession.api()
+	var now := int(steam.getStatInt(stat_id))
+	if not bool(steam.setStatInt(stat_id, now + amount)):
+		push_error("SteamStats: 書けない（Steamworks に無い ID？）: %s" % stat_id)
+		return
+	steam.storeStats()
