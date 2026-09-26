@@ -1,0 +1,10 @@
+NOTE: ドラゴンブレスの盤の着弾の絵（ヘクスごとに1枚立つ火）。ゲーム用は assets/units/red_dragon/red_dragon_breath_impact.png。
+扇の列ごとに順に付く＝隣のヘクスの帯とつながって「火の壁」が広がって見える形。
+STYLE は EFFECT STYLE（doc/art/units.md §3.4）から次の条項を差し替えて渡す：
+  - 向き：「右へ向かう一撃・水平」→ 正面から見た、見えない水平の地面に立つ火の壁
+  - 縦横比：正方形 1:1 → 横長 2:1（隣と重ねてつなぐ帯なので横に長い）
+  - 色数：2〜3色 → 3〜4色（竜の通常攻撃の fire_breath と同じ火の色に揃える）
+中心は空けない（駒の頭が壁の上から見える高さに抑える）。背景は黒（明るいエフェクト）。
+生成直後は red_dragon_breath_impact_01_raw.png。
+
+SUBJECT: A LOW WALL OF FIRE seen straight from the front — a long horizontal band of flame standing on a flat, invisible baseline, like a line of burning ground blazing up all at once. The bottom edge of the fire is a straight, level, solid band of flame running the full width of the picture. Above that band, a dense row of bold flame tongues rises upward, jagged and irregular — some tall, some short, leaning slightly left and right — so the top edge is a ragged crest of flame points. The tallest tongues reach close to the top edge; the solid base band is about the lower third of the height. The wall does NOT end inside the picture: it runs off BOTH the left and right edges of the frame, cut straight by the frame, so that several copies placed side by side join into one continuous wall. Colors: hot white-yellow along the base band and the cores of the biggest tongues, through bright golden-orange, to orange-red, and deep blood-red at the tips and outer edges of the tongues — three or four distinct flat tones with hard, clean, crisp edges (stepped like layered cel painting). Bold, chunky, powerful flame shapes, NOT wispy, NOT feathery. NO dragon, NO creature, NO target, NO ground texture, NO rocks, NO embers or sparks, NO smoke. Pure black background (single flat color, for easy cutout).
