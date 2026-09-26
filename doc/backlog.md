@@ -28,12 +28,10 @@
 ### feature-40
 
 **Steam 実績・Stats の配線（GodotSteam 導入）**
-- 背景：実績と Stats は、本体側の発火と判定・Steam 以外のチャネルの保管先まで出来ている（[tech/platform.md](tech/platform.md) 実績の中身・Stats の中身）。GodotSteam（GDExtension 版 4.22.1）は `godot/addons/godotsteam/` に導入済みで、Steam の部品・Steamworks の初期化と失敗時の終了・体験版の実績ファイルの流し込みまで書いてある。まだ Steam に繋いで動かしてはいない。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
-- 対応：(1) AppID 480 で `godot/tools/platform/check_steam.gd` を走らせ、初期化・実績の読み書き・Stats の加算が通ることを確かめる。(2) Steam 版のプリセット（`windows-steam-full`）でビルドし、GodotSteam と Steamworks のライブラリが出力に入ること、itch 版の出力に入らないことを確かめる。(3) 体験版のセーブを本体と共有の Steam Cloud に置く。(4) DLC を登録したら `SteamDlcOwnership.DLC_APP_IDS` に AppID を足す。
-- 該当：`godot/infrastructure/platform/parts/`・`godot/tools/platform/check_steam.gd`・`doc/tech/platform.md`。着手の引き金＝下の段階1は登録前から進められる。段階2は Steamworks に AppID を登録したとき（[monetization.md](sales/monetization.md) 出す順序）。
-- 進め方（登録前に進められる範囲）：
-  1. 登録なし・テスト用 AppID 480（Valve が公開している Spacewar）。480 に繋いで初期化・実績の読み書き・Stats の送信が通ることを確認する。実績名は Spacewar に定義済みのものを仮に使う。Senaris 固有の実績の定義・DLC の所有チェック・体験版と製品版のセーブ共有は 480 では試せない。
-  2. 登録あり・自分の AppID。管理画面で実績・Stats・DLC・Cloud を定義し（実績と Stats の ID は [tech/platform.md](tech/platform.md)）、AppID と実績名を差し替えて本番確認する。
+- 背景：実績と Stats は、本体側の発火と判定・Steam 以外のチャネルの保管先まで出来ている（[tech/platform.md](tech/platform.md) 実績の中身・Stats の中身）。GodotSteam（GDExtension 版 4.22.1）は `godot/addons/godotsteam/` に導入済みで、Steam の部品・Steamworks の初期化と失敗時の終了・体験版の実績ファイルの流し込みまで書いてある。テスト用 AppID 480 に繋いで、初期化・実績の読み書き・Stats の加算が通ることを `godot/tools/platform/check_steam.gd` で確かめ済み（2026-09-27）。実績はリリース後に削除・改名できない（解除済みの記録が消える）ため、セットの確定は 1.0 のストア提出前が締め切りになる。
+- 対応：(1) Steam 版のプリセット（`windows-steam-full`）でビルドし、GodotSteam と Steamworks のライブラリが出力に入ること、itch 版の出力に入らないことを確かめる。(2) 体験版のセーブを本体と共有の Steam Cloud に置く。(3) DLC を登録したら `SteamDlcOwnership.DLC_APP_IDS` に AppID を足す。
+- 該当：`godot/infrastructure/platform/parts/`・`godot/tools/platform/check_steam.gd`・`doc/tech/platform.md`。着手の引き金＝(1) は今すぐ進められる。残りは Steamworks に AppID を登録したとき（[monetization.md](sales/monetization.md) 出す順序）。
+- 登録後の進め方：管理画面で実績・Stats・DLC・Cloud を定義し（実績と Stats の ID は [tech/platform.md](tech/platform.md)）、`steam_appid.txt` を自分の AppID に差し替えて本番確認する。480 では Senaris 固有の実績・DLC の所有チェック・体験版と製品版のセーブ共有は試せない。
 - 手元で Steam 実装を動かす条件：Steam クライアントが起動しログイン済みであること。Steam を経由せず起動するため、AppID を1行書いた `steam_appid.txt` を作業ディレクトリ（エディタならプロジェクトルート、ビルドなら exe の隣）に置く。このファイルは配布物に入れない＝Steam から起動されるときは Steam が AppID を渡す。
 - 要確認（AppID 取得後に管理画面で）：体験版の AppID で Stats が使えるか（Steamworks のドキュメントは体験版について実績にしか触れていない）。Steam Cloud のセーブ置き場（実績ファイルを含む）をコードで切り替えるのか、Steamworks 側の設定（Auto-Cloud）だけで済むのか。実績上限100の緩和条件＝Profile Features のしきい値。
 
