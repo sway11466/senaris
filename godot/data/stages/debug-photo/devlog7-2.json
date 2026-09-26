@@ -1,0 +1,175 @@
+{
+  "turn_limit": 25,
+  "name": "dragon-hunt-st7",
+  "player": [
+    {
+      "units": [
+        {
+          "type": "vanguard",
+          "col": 5,
+          "row": 12
+        },
+        {
+          "type": "hunter",
+          "col": 5,
+          "row": 14
+        },
+        {
+          "type": "wizard",
+          "col": 5,
+          "row": 15
+        },
+        {
+          "type": "thief",
+          "col": 5,
+          "row": 13
+        },
+        {
+          "type": "bishop",
+          "col": 4,
+          "row": 13
+        },
+        {
+          "type": "fighter",
+          "col": 4,
+          "row": 12
+        },
+        {
+          "type": "archer",
+          "col": 3,
+          "row": 14
+        },
+        {
+          "type": "mage",
+          "col": 3,
+          "row": 15
+        },
+        {
+          "type": "halfling",
+          "col": 3,
+          "row": 13
+        },
+        {
+          "type": "cleric",
+          "col": 4,
+          "row": 14
+        },
+        {
+          "type": "pixie",
+          "col": 6,
+          "row": 13
+        },
+        {
+          "type": "dwarf",
+          "col": 3,
+          "row": 12
+        },
+        {
+          "type": "elf",
+          "col": 4,
+          "row": 15
+        },
+        {
+          "type": "birdman",
+          "col": 2,
+          "row": 13
+        }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "dragon-hunt.st7.squad.1",
+      "ai": "withdraw",
+      "retreat": 1,
+      "units": [
+        {
+          "skin": "red_dragon",
+          "unit_id": "dragon",
+          "col": 30,
+          "row": 2
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "name": "dragon-hunt.st7.squad.2",
+      "ai": "charge",
+      "units": []
+    },
+    {
+      "order": 3,
+      "name": "dragon-hunt.st7.squad.3",
+      "ai": "ambush",
+      "sight": 8,
+      "units": []
+    },
+    {
+      "order": 4,
+      "name": "dragon-hunt.st7.squad.4",
+      "ai": "charge",
+      "stack": 1,
+      "units": [
+        {
+          "skin": "rock_serpent",
+          "col": 34,
+          "row": 10
+        },
+        {
+          "skin": "rock_serpent",
+          "col": 33,
+          "row": 9
+        },
+        {
+          "skin": "rock_serpent",
+          "col": 33,
+          "row": 10
+        },
+        {
+          "skin": "rock_serpent",
+          "col": 0,
+          "row": 10
+        },
+        {
+          "skin": "rock_serpent",
+          "col": 1,
+          "row": 9
+        },
+        {
+          "skin": "rock_serpent",
+          "col": 1,
+          "row": 10
+        }
+      ]
+    }
+  ],
+  "bases": [
+    {
+      "col": 30,
+      "row": 2,
+      "team": "enemy",
+      "rest": "enemy",
+      "garrison": []
+    }
+  ],
+  "victory": [
+    {
+      "type": "defeat_unit",
+      "unit_ids": [
+        "dragon"
+      ]
+    }
+  ],
+  "rank": {
+    "turn_s": 13,
+    "turn_a": 19,
+    "survival_s": 7,
+    "survival_a": 4
+  },
+  "haze": 0.8,
+  "backdrop": "crater_wall",
+  "bgm": {
+    "main": "boss2"
+  }
+}

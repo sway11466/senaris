@@ -62,6 +62,12 @@
       "file": "devlog4-3.json",
       "title": "devlog4-3 乗り物＝馬車と飛空艇（st7 の盤のコピー）",
       "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "devlog7-2",
+      "file": "devlog7-2.json",
+      "title": "devlog7-2 火口のマップ（竜狩り st7・一行とドラゴン）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }
