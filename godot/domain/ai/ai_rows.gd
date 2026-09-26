@@ -84,11 +84,15 @@ func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround 
 		if not option.needs_target():
 			return AiAction.skill(u.handle, option, u.pos)  # 陣営全体＝対象を選ばない
 		if option.has_impact() and not option.targets_unit():
-			# 面を焼くスキル（ドラゴンブレス）は駒ではなく着弾先を選ぶ＝stack 条件は掛からない。
-			var cell := _best_blast_cell(state, u, option)
-			if cell != AiPick.NO_HEX:
-				return AiAction.skill(u.handle, option, cell)
-			continue
+			# 面を焼くスキル（ドラゴンブレス）は駒ではなく「どこから・どの向きに」を選ぶ＝stack 条件は掛からない。
+			# 最も多く当たるのが今のマスならその場で放ち、別のマスなら先にそこへ動く（動いたあと表を
+			# 当て直すと、動けない駒としてその場の最善＝同じ向きで放つ）。
+			var best := _best_blast(state, u, option)
+			if best.is_empty():
+				continue
+			if best["pos"] != u.pos:
+				return AiAction.move_to(u.handle, best["pos"])
+			return AiAction.skill(u.handle, option, best["cell"])
 		var kind := option.stack_kind()
 		var candidates: Array[Unit] = []
 		for other in state.units():
@@ -104,30 +108,45 @@ func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround 
 		return AiAction.skill(u.handle, option, pick.pick_skill_target(state, u, candidates, pick_rule).pos)
 	return null
 
-## 面を焼くスキルの着弾先＝範囲に入る敵の数が最大のもの。巻き込む自陣営の駒は数えない。
-## 同数は範囲内の最も近い敵の盤上距離が小さい方 → 着弾先の col → row の若い方。
-## 敵が1体も入らなければ NO_HEX＝放たない。詳細 → doc/gdd/ai.md スキル対象
-func _best_blast_cell(state: BattleState, u: Unit, option: FormationOption) -> Vector2i:
-	var best := AiPick.NO_HEX
-	var best_n := 0
-	var best_d := 0
-	for cell in Formation.targetable_cells(state, option):
-		var n := 0
-		var d := BattleState.UNREACHABLE
-		for h in Formation.blast_cells(option, cell, u.pos):
-			var v := state.unit_at(h)
-			if v == null or v.team == u.team:
+## 面を焼くスキルの「放つ位置と着弾先」＝範囲に入る敵の数が最大の組。位置は今のマスと、まだ動けるなら
+## 移動範囲の空きマス。巻き込む自陣営の駒は数えない。同数は 動く盤上距離が短い方 → 範囲内の最も近い敵の
+## 盤上距離が小さい方 → 位置の col → row の若い方 → 着弾先の col → row の若い方。
+## 敵が1体も入る組が無ければ空＝放たない。戻り＝{ pos, cell }。詳細 → doc/gdd/ai.md スキル対象
+func _best_blast(state: BattleState, u: Unit, option: FormationOption) -> Dictionary:
+	var spots: Array[Vector2i] = [u.pos]
+	if can_advance(state, u):
+		for h in state.reachable(u.handle):
+			if h != u.pos and state.unit_at(h) == null:
+				spots.append(h)
+	var best := {}
+	var best_key: Array = []
+	for pos in spots:
+		for cell in Formation.targetable_cells(state, option, pos):
+			var n := 0
+			var d := BattleState.UNREACHABLE
+			for h in Formation.blast_cells(option, cell, pos):
+				var v := state.unit_at(h)
+				if v == null or v.team == u.team:
+					continue
+				n += 1
+				d = mini(d, Hex.distance(pos, v.pos))
+			if n == 0:
 				continue
-			n += 1
-			d = mini(d, Hex.distance(u.pos, v.pos))
-		if n == 0:
-			continue
-		if best == AiPick.NO_HEX or n > best_n or (n == best_n and (d < best_d \
-				or (d == best_d and AiPick.is_younger_hex(cell, best)))):
-			best = cell
-			best_n = n
-			best_d = d
+			# 比べる順に並べた鍵（小さいほど良い）。
+			var key: Array = [-n, Hex.distance(u.pos, pos), d]
+			if best.is_empty() or _blast_better(key, pos, cell, best_key, best["pos"], best["cell"]):
+				best = {"pos": pos, "cell": cell}
+				best_key = key
 	return best
+
+func _blast_better(key: Array, pos: Vector2i, cell: Vector2i,
+		best_key: Array, best_pos: Vector2i, best_cell: Vector2i) -> bool:
+	for i in key.size():
+		if key[i] != best_key[i]:
+			return key[i] < best_key[i]
+	if pos != best_pos:
+		return AiPick.is_younger_hex(pos, best_pos)
+	return AiPick.is_younger_hex(cell, best_cell)
 
 # --- 最大間合い（doc/gdd/ai.md 最大間合い） ---
 

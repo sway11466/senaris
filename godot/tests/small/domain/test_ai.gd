@@ -1770,3 +1770,29 @@ func test_breath_not_cast_when_no_enemy_in_any_cone() -> void:
 	_pc(s, 1, 0, 0)  # どの扇にも入らない遠くの敵
 	var a := _brain.next_action(s, 1)
 	assert_true(a == null or a.kind != AiAction.Kind.SKILL, "扇に敵が居なければ吐かない")
+
+func test_breath_moves_to_where_most_enemies_fit_first() -> void:
+	# その場から届くのは1体だけ。動けば扇に3体入る位置がある＝先にそこへ動き、動いた先で吐く。
+	var s := BattleState.new(13, 13)
+	s.current_team = 1
+	var si := _squad(s, "withdraw", { "retreat": 1 })
+	var dragon := _skin(_ai(s, si, 10, 2, 6, 6), "red_dragon")
+	dragon.move_type = "flight"
+	s.set_charge(dragon.handle, "dragon_breath", 3)
+	_pc(s, 1, 3, 6)  # 竜の隣に1体だけ
+	var spot := Hex.offset_to_axial(8, 3)  # 竜から離れた位置。ここから下向きに3体入る
+	var cone := Formation.cone_cells(spot, spot + Hex.direction(5))
+	for i in [1, 2, 3]:
+		var h: Vector2i = cone[i]
+		_pc(s, 10 + i, _col(h), _row(h))
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.MOVE, "先に動く")
+	s.move_unit(dragon.handle, a.to)
+	var b := _brain.next_action(s, 1)
+	assert_eq(b.kind, AiAction.Kind.SKILL, "動いた先で吐く")
+	var hit := 0
+	for h in Formation.cone_cells(dragon.pos, b.to):
+		var v := s.unit_at(h)
+		if v != null and v.team == 0:
+			hit += 1
+	assert_eq(hit, 3, "扇に3体入る")
