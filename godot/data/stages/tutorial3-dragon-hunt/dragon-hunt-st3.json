@@ -82,8 +82,8 @@
       "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
   ],
   "events": [
-    { "type": "capture", "col": 12, "row": 5, "id": "camp-secured", "captured_by": "player", "once": "camp", "dialogue": "secured", "focus": true },
-    { "type": "capture", "col": 12, "row": 5, "id": "camp-lost", "captured_by": "enemy", "once": "camp", "dialogue": "lost", "focus": true }
+    { "type": "capture", "col": 9, "row": 11, "id": "camp-secured", "captured_by": "player", "once": "camp", "dialogue": "secured", "focus": true },
+    { "type": "capture", "col": 9, "row": 11, "id": "camp-lost", "captured_by": "enemy", "once": "camp", "dialogue": "lost", "focus": true }
   ],
   "dialogue": {
     "intro": [
