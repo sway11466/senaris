@@ -152,17 +152,6 @@ func test_charge_shoots_the_enemy_that_cannot_retaliate() -> void:
 	assert_eq(a.kind, AiAction.Kind.ATTACK)
 	assert_eq(a.target_id, far.handle, "反撃されない敵を優先する")
 
-func test_charge_melees_when_it_cannot_avoid_retaliation() -> void:
-	# 反撃されない敵が1体もいなければ、これまで通り盤上距離が最小の敵を殴る。
-	var s := BattleState.new(9, 9)
-	s.current_team = 1
-	var si := _squad(s, "charge")
-	_ai(s, si, 10, 4, 4, 0)                 # 近接・移動0＝下がる先も遠い相手も無い
-	var e := _pc(s, 1, 4, 3)
-	var a := _brain.next_action(s, 1)
-	assert_eq(a.kind, AiAction.Kind.ATTACK)
-	assert_eq(a.target_id, e.handle)
-
 ## 隣に仕留められる敵、距離2に無傷の敵。撃つ行の対象選びだけを見るため移動0・射程2で組む。
 func _kill_choice(trait_id: String) -> BattleState:
 	var s := BattleState.new(9, 9)
@@ -331,7 +320,8 @@ func test_ambush_keeps_going_after_the_enemy_backs_off() -> void:
 	assert_not_null(_brain.next_action(s, 1), "離れても止まらない")
 
 func test_ambush_wakes_when_a_squadmate_is_engaged() -> void:
-	# 一斉警戒＝部隊の誰かが行動開始済みなら自分も起きる。
+	# 一斉警戒＝部隊の誰かが行動開始済みなら自分も起きる。特性によらない共通の判定なので
+	# 代表して待ち伏せで見る（弱者狙いなど他の特性でも同じ経路）。
 	var s := BattleState.new(12, 3)
 	s.current_team = 1
 	var si := _squad(s, "ambush")
@@ -693,20 +683,6 @@ func test_weak_stops_advancing_when_the_prey_leaves_sight() -> void:
 	prey.pos = Hex.offset_to_axial(9, 1)
 	assert_null(_brain.next_action(s, 1), "獲物が視線から消えたら前進を止める")
 	assert_true(s.is_engaged(10), "行動開始そのものは戻らない")
-
-func test_predator_wakes_when_a_squadmate_is_engaged() -> void:
-	# 一斉警戒＝部隊の誰かが行動開始済みなら、獲物が見えなくても自分も起きる。
-	var s := BattleState.new(12, 3)
-	s.current_team = 1
-	var si := _squad(s, "predator")
-	var near := _ai(s, si, 10, 1, 1)
-	var far := _ai(s, si, 11, 0, 0)  # 獲物まで視線が届かない
-	_pc(s, 1, 4, 1)
-	s.mark_engaged(near.handle)
-	s.set_done(near.handle)  # 先に動き終えた扱い
-	var a := _brain.next_action(s, 1)
-	assert_not_null(a)
-	assert_eq(a.handle, far.handle, "部隊ごと起きる")
 
 # --- swarm（群れ） ---
 

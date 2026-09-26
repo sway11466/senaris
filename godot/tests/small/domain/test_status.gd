@@ -149,7 +149,7 @@ func test_formation_buff_entry_carries_skill_id() -> void:
 	assert_gt(options.size(), 0, "グレイスが成立している前提")
 	assert_not_null(FormationResolver.resolve(s, options[0], c), "発動成功")
 	var lead := members[0]
-	var applied := StatusMod.applied(s._status_mods, lead)
+	var applied := s.status_mods_for(lead)
 	assert_eq(applied.size(), 1, "バフエントリが積まれる")
 	assert_eq(String(applied[0]["skill"]), "grace", "スキルIDが入る")
 

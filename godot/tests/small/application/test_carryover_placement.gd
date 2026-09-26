@@ -16,13 +16,15 @@ func _at(s: BattleState, col: int, row: int) -> Unit:
 	return s.unit_at(Hex.offset_to_axial(col, row))
 
 func test_actor_only_piece_comes_from_the_roster() -> void:
-	var carried: Array = [_member("elf", "t3.elf", 5)]
+	var member := _member("elf", "t3.elf", 5)
+	member["level"] = 3
 	var s := StageLoader.build({ "cols": 8, "rows": 6, "player": [ { "units": [
 		{ "col": 1, "row": 1, "actor": "t3.elf" },
-	] } ] }, _catalog(), {}, carried)
+	] } ] }, _catalog(), {}, [member])
 	var u := _at(s, 1, 1)
 	assert_eq(u.actor, "t3.elf", "名簿の仲間がその位置に出る")
 	assert_eq(u.troops, 5, "損耗を持ち越す")
+	assert_eq(u.level, 3, "成長（レベル）を持ち越す")
 	assert_eq(u.unit_attack, 6, "性能は type から再構築")
 
 func test_actor_missing_from_roster_is_not_deployed() -> void:

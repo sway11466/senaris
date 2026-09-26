@@ -68,12 +68,15 @@ func test_garrison_member_counts_as_fielded() -> void:
 
 func test_anonymous_units_are_not_enrolled() -> void:
 	# 名前のない雑兵は同一性を持たない＝名簿に載らない（持ち越さず各ステージが配給する）。
+	# 名前つきでも敵の駒は自軍に帰属しない＝載らない。
 	var s := StageLoader.build({ "cols": 8, "rows": 4, "player": [ { "units": [
 		{ "type": "recruit", "col": 1, "row": 1 },
 		{ "type": "knight", "col": 2, "row": 1, "actor": "t3.van", "supply": "join" },
+	] } ], "enemy": [ { "ai": "charge", "units": [
+		{ "type": "recruit", "col": 6, "row": 1, "actor": "t3.foe" },
 	] } ] }, _catalog())
 	var updated := RosterService.update_after_clear([], s)
-	assert_eq(_actors(updated), ["t3.van"], "actor のある仲間だけが載る")
+	assert_eq(_actors(updated), ["t3.van"], "actor のある自軍の仲間だけが載る（雑兵・敵は載らない）")
 
 func test_unreleased_neutral_is_not_enrolled() -> void:
 	# 中立のまま取り逃した駒は帰属が自軍にならない＝名簿に載らない。

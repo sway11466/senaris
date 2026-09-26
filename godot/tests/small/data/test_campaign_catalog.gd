@@ -36,12 +36,6 @@ func test_tutorial_manifest() -> void:
 	assert_eq(c["stages"][1]["unlock"][0]["stage"], "goblin-raid-st1")
 	assert_eq(c["stages"][1]["path"], "res://data/stages/tutorial1-goblin-raid/goblin-raid-st2.json", "path はフォルダ＋file")
 
-func test_all_manifest_stage_files_exist() -> void:
-	# マニフェストが指す先のステージJSONが実在する（消し忘れ・打ち間違いの検出）
-	for c in CampaignCatalog.load_all():
-		for s in c["stages"]:
-			assert_true(FileAccess.file_exists(s["path"]), "実在する: %s" % s["path"])
-
 func test_all_unlock_refs_resolve() -> void:
 	# 実データ: unlock の参照先 stage がすべて同じ冒険譚に実在する（打ち間違い・消し忘れの dangling 検出）。
 	for c in CampaignCatalog.load_all():

@@ -204,65 +204,6 @@ func _carry_catalog() -> Dictionary:
 		"recruit": UnitType.from_dict({ "id": "recruit", "atk_ground": 6, "defense": 4, "move": 3, "max_troops": 8 }),
 	}
 
-func test_carryover_places_named_members() -> void:
-	# actor だけを書いた駒は名簿から出る。成長・損耗は保ち、性能は type から再構築。
-	var carried := [
-		{ "type": "archer", "skin": "archer", "level": 3, "troops": 6, "max_troops": 8, "actor": "c.archer" },
-		{ "type": "knight", "skin": "knight", "level": 2, "troops": 4, "max_troops": 8, "actor": "c.knight" },
-	]
-	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
-		{ "col": 1, "row": 2, "actor": "c.archer" }, { "col": 1, "row": 3, "actor": "c.knight" },
-	] } ] }
-	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
-	assert_eq(s.units().size(), 2, "継承2体が配置される")
-	var a := s.unit_at(Hex.offset_to_axial(1, 2))
-	assert_not_null(a, "名指しの位置にその仲間")
-	assert_eq(a.type_id, "archer")
-	assert_eq(a.level, 3, "レベルを保つ")
-	assert_eq(a.troops, 6, "損耗を保つ")
-	assert_eq(a.team, 0, "継承は自軍")
-	assert_eq(a.unit_attack, 8, "性能は type から再構築")
-	assert_eq(a.attack_range, 2, "射程も type から")
-	var k := s.unit_at(Hex.offset_to_axial(1, 3))
-	assert_eq(k.type_id, "knight")
-	assert_eq(k.troops, 4, "2体目も名指しどおり")
-
-func test_carryover_coexists_with_fresh_reinforcements() -> void:
-	# 継承ユニット＋新米（配給）が同じ player セクションに共存し、id が衝突しない。
-	var carried := [{ "type": "archer", "skin": "archer", "level": 2, "troops": 5, "max_troops": 8, "actor": "c.archer" }]
-	var data := { "cols": 8, "rows": 6, "player": [ { "units": [
-		{ "col": 1, "row": 1, "actor": "c.archer" },
-		{ "type": "recruit", "col": 5, "row": 4 },
-	] } ] }
-	var s := StageLoader.build(data, _carry_catalog(), {}, carried)
-	assert_eq(s.units().size(), 2, "継承1＋新米1")
-	var ids := {}
-	for u in s.units():
-		ids[u.handle] = true
-	assert_eq(ids.size(), 2, "id が衝突しない")
-	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).type_id, "recruit", "新米は player 記法どおり満員")
-	assert_eq(s.unit_at(Hex.offset_to_axial(5, 4)).troops, 8)
-	assert_eq(s.unit_at(Hex.offset_to_axial(1, 1)).troops, 5, "継承は損耗を保つ")
-
-func test_no_carried_units_leaves_named_pieces_off_the_board() -> void:
-	# fresh（継承なし）＝carried 空なら actor だけの駒は盤に出ない。
-	var data := { "cols": 8, "rows": 6, "player": [ { "units": [{ "col": 1, "row": 1, "actor": "c.archer" }] } ] }
-	var s := StageLoader.build(data, _carry_catalog(), {}, [])
-	assert_eq(s.units().size(), 0, "carried 空なら継承配置なし")
-
-func test_roster_collect_returns_player_only() -> void:
-	# 名簿の収集＝自軍に帰属する名前つきの駒だけ返す（敵は含めない）。
-	var data := { "cols": 6, "rows": 4,
-		"player": [ { "units": [{ "type": "archer", "col": 1, "row": 1, "actor": "c.archer", "supply": "join" },
-			{ "type": "knight", "col": 2, "row": 1, "actor": "c.knight", "supply": "join" }] } ],
-		"enemy": [{ "ai": "charge", "units": [{ "type": "recruit", "col": 4, "row": 1, "actor": "c.foe" }] }] }
-	var s := StageLoader.build(data, _carry_catalog())
-	var snaps := RosterService.collect(s)
-	assert_eq(snaps.size(), 2, "自軍2体のみ")
-	var types := [snaps[0]["type"], snaps[1]["type"]]
-	assert_true("archer" in types and "knight" in types, "自軍の type を含む")
-	assert_false("recruit" in types, "敵(team 1)は含めない")
-
 func test_load_file_places_carried_units() -> void:
 	# load_file(path, carried) で名簿の仲間が player の actor に嵌る（main の受け渡し経路）。
 	_write_stage(JSON.stringify({ "turn_limit": 20,
@@ -383,6 +324,7 @@ func test_load_boot_underlay() -> void:
 
 func test_all_campaign_stages_load() -> void:
 	# 全冒険譚の全ステージJSONが新スキーマで実読み込みでき、駒が1体以上載る（一括移行の取りこぼし検出）。
+	# マニフェストが指す先の実在（消し忘れ・打ち間違い）もここで拾う＝無ければ load_file が null。
 	for c in CampaignCatalog.load_all():
 		for entry in c["stages"]:
 			var s := StageLoader.load_file(entry["path"])

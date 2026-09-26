@@ -96,7 +96,7 @@ func test_action_flags_roundtrip() -> void:
 	assert_true(s2.is_engaged(BOSS_ID), "AI起動フラグ")
 	assert_true(s2.is_squad_engaged(0), "部隊(拠点)のAI起動フラグ＝再開後に眠り直さない")
 	assert_eq(int(s2._spent.get(1, 0)), 2, "使った移動コスト")
-	assert_true(s2._defeated.has(42), "撃破記録")
+	assert_true(s2.is_defeated(42), "撃破記録")
 	assert_true(s2.is_unit_id_defeated("ghost"), "名指しの撃破記録（ボス撃破・護衛対象の判定用）")
 	assert_eq(s2.losses(1), 3, "撃破数（陣営ごとの損失）＝再開後も数え直しにならない")
 

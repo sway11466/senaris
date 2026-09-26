@@ -135,7 +135,6 @@ func test_triangle_forms_at_move_destination() -> void:
 	var opt := _pick(Formation.available_for(s, w1), "trinity_nova")
 	assert_not_null(opt, "移動後の盤でも成立している")
 	assert_not_null(FormationResolver.resolve(s, opt, c + Hex.direction(0) * 3), "移動後に発動できる")
-	assert_true(s.is_done(1) and s.is_done(2) and s.is_done(3), "参加3体が行動完了")
 
 # グレイスの成立盤：占領兵5体が隣接連結（一列）＋離れた味方(fighter)＋敵。caster=id1。
 func _aria_state() -> Dictionary:
@@ -275,7 +274,6 @@ func test_grace_buffs_whole_team() -> void:
 	var res := FormationResolver.resolve(s, opt, Vector2i(-9999, -9999))
 	assert_not_null(res, "対象なしでも発動成功")
 	assert_almost_eq(Combat.attack_breakdown(s, ally, foe).total, before * 1.3, 1.0, "離れた味方(fighter)の攻撃も×1.3")
-	assert_true(s.is_done(1) and s.is_done(5), "クラスタ全員が行動完了")
 
 ## グレイスの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
 func test_grace_lasts_one_round() -> void:
@@ -449,6 +447,8 @@ func test_resolve_uses_caster_attack() -> void:
 	assert_eq(res.hits[0].loss, expect, "発動者1体の実効攻撃力での損害と一致（合算しない）")
 	assert_eq(enemy.troops, before - expect, "敵の兵数が損害ぶん減る")
 
+## 参加者の行動完了は全レシピ共通の後処理（FormationResolver.resolve）＝代表してここで見る。
+## レシピごとのテストは「参加しなかった駒が行動を残す」側だけを見る。
 func test_resolve_marks_participants_done() -> void:
 	var f := _trinity_nova_state()
 	var s: BattleState = f["s"]
@@ -862,14 +862,6 @@ func test_trick_shot_two_spotters_offer_both() -> void:
 	assert_eq(Formation.members_for_target(s, c, f["enemy_hex"]).size(), 2,
 		"同じ敵に張り付く2体がどちらも相方の候補")
 
-## 参加者は弓兵と斥候の2体とも行動完了＝殴るか撃つかの二択になる。
-func test_trick_shot_spends_both() -> void:
-	var f := _trick_shot_state()
-	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _trick_shot_option(f), f["enemy_hex"])
-	assert_true(s.is_done(1), "弓兵は行動完了")
-	assert_true(s.is_done(2), "斥候も行動完了")
-
 # --- 単体を狙うスキルの対象（ディバインジャッジメント・トリックショット共通）---
 
 ## 単体狙撃が選べるのは敵の駒だけ。面（トリニティノヴァ）に巻き込まれるのとは別の話。
@@ -1014,14 +1006,6 @@ func test_arrow_rain_uses_air_attack_vs_aerial() -> void:
 	assert_true(atk.vs_aerial, "飛行の敵＝対空値")
 	assert_eq(res.hits[0].loss, expect, "対空値・貫通なしで撃った損害")
 
-## 参加者は3体とも行動完了。
-func test_arrow_rain_spends_all_three() -> void:
-	var f := _arrow_rain_state()
-	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _arrow_rain_option(f), f["enemy_hex"])
-	for pid in [1, 2, 3]:
-		assert_true(s.is_done(pid), "参加者は行動完了（id %d）" % pid)
-
 # --- マジックアロー（弓兵＋魔法兵の隣接・大きい方＋10・貫通0.5・射程は長い方＋1）---
 
 ## マジックアローの成立盤：アーチャー（射程1-3・対地30／対空40）の隣にウィザード（射程2-4・対地40／対空40）、
@@ -1142,14 +1126,6 @@ func test_magic_arrow_air_uses_max_air_attack_plus_ten() -> void:
 	assert_eq(atk.stat, 70, "エルフ対空60 と ウィザード対空40 の大きい方＋10")
 	assert_true(atk.vs_aerial, "飛行の敵＝対空値")
 	assert_eq(res.hits[0].loss, expect, "対空値・貫通0.5で撃った損害")
-
-## 参加者は2体とも行動完了。
-func test_magic_arrow_spends_both() -> void:
-	var f := _magic_arrow_state()
-	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _magic_arrow_option(f), f["enemy_hex"])
-	assert_true(s.is_done(1), "弓兵は行動完了")
-	assert_true(s.is_done(2), "魔法兵も行動完了")
 
 ## 隣に魔法兵が2体居れば、どちらを供出するかを選ぶ（組は魔法兵1体ごとに1つ）。
 func test_magic_arrow_two_casters_offer_choice() -> void:
@@ -1724,14 +1700,6 @@ func test_backstab_damage_is_fixed_before_return() -> void:
 	s2.set_terrain(origin, "plateau")  # 戻り先だけ台地にする＝威力には効かない
 	var moved := FormationResolver.resolve(s2, _backstab_option(f2), f2["enemy_hex"], origin).hits[0].loss
 	assert_eq(moved, plain, "戻り先の地形は威力に効かない")
-
-## 参加者はシーフと相方の2体とも行動完了（戻った先で行動完了）。
-func test_backstab_spends_both() -> void:
-	var f := _backstab_state()
-	var s: BattleState = f["s"]
-	FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"], Hex.offset_to_axial(0, 0))
-	assert_true(s.is_done(1), "シーフは行動完了")
-	assert_true(s.is_done(2), "相方も行動完了")
 
 ## 間接攻撃扱い＝隣接する対象を刺しても反撃を受けない。詳細 → doc/gdd/formations.md 共通ルール
 func test_backstab_takes_no_counterattack() -> void:
