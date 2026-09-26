@@ -22,6 +22,12 @@ const LABEL_W := 128.0
 const ROW_SEP := 4       # 行と行の間。ページ割りの計算にも使う
 const ROW_LABEL_GAP := 8  # 項目名の欄と値の欄の間
 const PAGER_MIN_W := 44.0  # ◀▶ ボタンの最低幅
+## チャージの欄（スキルの説明の左＝項目名の欄）。字下げした「チャージ」と、その下にゲージ＋「1/3」。
+## 項目名の欄（LABEL_W）に収まる寸法。仕様 → doc/gdd/uiux.md タブ
+const CHARGE_INDENT := 16.0
+const CHARGE_GAUGE := Vector2(72, 12)
+const CHARGE_LINE_SEP := 2   # 「チャージ」とゲージの行の間
+const CHARGE_NUM_GAP := 6    # ゲージと「1/3」の間
 ## 絵の面。能力タブ＝駒の盤の絵、地形タブと空きマスの地形表示＝そのマスの地形の見本。中身の上に
 ## 重ね、1ページ目にだけ出す。左右は「重なる行の値の右端」と器の右端の間の中央＝空いている場所の
 ## 真ん中。値の欄は狭めない＝重なる行の値は数字・移動種別・特性名・地形名で短い。長文（スキルの
@@ -466,12 +472,14 @@ func _item_height(item: Dictionary) -> float:
 		text = String(item.get("value", ""))
 	else:
 		w -= float(item.get("indent", 0.0))  # 字下げした行は左が空くぶん狭く折り返す
+	# チャージの欄を左に持つ行（スキルの説明）は、欄の2行ぶんより低くならない
+	var floor_h := line * 2 + CHARGE_LINE_SEP if item.has("charge") else line
 	if text.is_empty() or w <= 0.0:
-		return line
+		return maxf(line, floor_h)
 	var measured := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, w, fs,
 		-1, TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND).y
 	var count := maxi(1, roundi(measured / line))
-	return line * count + get_theme_constant("line_spacing", "Label") * (count - 1)
+	return maxf(line * count + get_theme_constant("line_spacing", "Label") * (count - 1), floor_h)
 
 ## 行1つを Control にする。「項目名／値」の2列か、幅いっぱいの1行か。
 func _make_row(item: Dictionary) -> Control:
@@ -480,6 +488,8 @@ func _make_row(item: Dictionary) -> Control:
 		full.text = String(item.get("text", ""))
 		full.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var indent := float(item.get("indent", 0.0))
+		if item.has("charge"):
+			return _charge_row(full, item["charge"])
 		if indent <= 0.0:
 			return full
 		var box := MarginContainer.new()
@@ -497,6 +507,39 @@ func _make_row(item: Dictionary) -> Control:
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(v)
+	return row
+
+## スキルの説明の行に、左の項目名の欄のチャージを添える。説明の頭は字下げ行と同じ位置
+## （LABEL_W＋ROW_LABEL_GAP）＝チャージの無いスキルと揃う。charge＝{ have, need, team }。
+func _charge_row(desc: Label, charge: Dictionary) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", ROW_LABEL_GAP)
+	var cell := MarginContainer.new()
+	cell.custom_minimum_size = Vector2(LABEL_W, 0)
+	cell.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	cell.add_theme_constant_override("margin_left", int(CHARGE_INDENT))
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", CHARGE_LINE_SEP)
+	var head := Label.new()
+	head.text = tr("ui.info.charge")
+	col.add_child(head)
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", CHARGE_NUM_GAP)
+	var gauge := ChargeGauge.new()
+	gauge.custom_minimum_size = CHARGE_GAUGE
+	gauge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var have := int(charge["have"])
+	var need := int(charge["need"])
+	gauge.setup(have, need, int(charge["team"]))
+	line.add_child(gauge)
+	var num := Label.new()
+	num.text = "%d/%d" % [have, need]
+	line.add_child(num)
+	col.add_child(line)
+	cell.add_child(col)
+	row.add_child(cell)
+	desc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(desc)
 	return row
 
 ## 状態とスキン表を渡す（main から1回）。
@@ -839,9 +882,14 @@ func _build_ability(u: Unit) -> void:
 	# 特性と同じ「項目名／値」の1行に名前を出し、説明は名前の頭に揃えて字下げした全幅行で続ける。
 	# 区切り線や見出しを置かないのは、置くと1ページ目に入らず、ページ2の存在に気づかれないため
 	# （2026-09 実測＝器の高さが 368px だった時点で、兵数〜特性で 239px・見出し付きの節は 161px）。
+	# 例外はチャージ＝溜まり具合は駒ごとに違い、他のどこにも出ないので、説明の左（項目名の欄）に添える。
 	for rid in Formation.unit_skills_of(u):
 		_add_row(tr("ui.info.skill"), tr("skill." + rid + ".name"))
 		_add_indent_row(tr("skill." + rid + ".desc"), LABEL_W + ROW_LABEL_GAP)
+		var need := int((Formation.SKILLS[rid] as Dictionary).get("charge_turns", 0))
+		if need > 0:
+			var have := mini(_state.get_charge(u.handle, rid), need)  # 溜まりきった後も加算は続く＝満タンで止めて見せる
+			_items[_items.size() - 1]["charge"] = {"have": have, "need": need, "team": u.team}
 
 ## 状態＝このターン何ができるか＋いま効いているバフ・デバフ。
 ## 包囲は地形ではなく「隣の敵に囲まれて弱っている」＝デバフなのでここに置く。
