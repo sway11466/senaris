@@ -19,8 +19,8 @@ paladin,パラディン,ally,paladin,clergy,1.05,0,0,1.05,squad,,slash_m,,true
 mage,メイジ,ally,mage,mage,1.0,0,0,1.0,squad,,magic_bolt,,true
 wizard,ウィザード,ally,wizard,mage,1.1,14,0,1.1,squad,,magic_bolt,,true
 witch,ウィッチ,ally,witch,mage,0.95,0,0,0.95,squad,,magic_bolt,,true
-wagon,馬車,ally,wagon,transport,0.95,0,0,1.3,single,,,,true
-horse,馬,ally,horse,transport,0.9,0,0,1.1,single,,,,true
+wagon,馬車,ally,wagon,transport,0.95,0,0,1.3,single,,,move_wagon,true
+horse,馬,ally,horse,transport,0.9,0,0,1.1,single,,,move_hoof,true
 airship,飛空艇,ally,airship,transport,1.3,0,20,1.3,single,,cannonball,move_propeller,true
 pixie,ピクシー,ally,pixie,flier,0.68,0,20,0.68,squad,,magic_dust,move_float,true
 birdman,バードマン,ally,birdman,flier,1.15,0,20,1.15,squad,,punch,,true
@@ -51,7 +51,7 @@ rogue,ローグ,enemy,cleric,rogue,1.0,0,0,1.0,squad,,slash_s,,true
 rogue_axe,ローグアックス,enemy,priest,rogue,1.1,-16,0,1.1,squad,,slash_l,,true
 rogue_slinger,ローグスリンガー,enemy,slinger,rogue,1.0,0,0,1.0,squad,,stone,,true
 rogue_head,ローグヘッド,enemy,paladin,rogue,1.05,0,0,1.05,retinue,rogue,slash_m,,true
-rogue_wagon,ならず者の馬車,enemy,wagon,rogue,0.95,0,0,1.45,single,,,,true
+rogue_wagon,ならず者の馬車,enemy,wagon,rogue,0.95,0,0,1.45,single,,,move_wagon,true
 troll,トロール,enemy,juggernaut,giant,1.3,0,0,1.3,single,,punch,,true
 treant,トレント,enemy,forest_knight,plant,1.3,0,0,1.3,squad,,punch,,true
 matango,マタンゴ,enemy,forest_slinger,plant,0.9,0,0,0.9,squad,,spore,,true

@@ -51,8 +51,8 @@ const BIND := {
 }
 
 ## 移動タイプ → 移動音の素材（既定）。移動タイプは地形コストの都合で分かれているが、
-## 音としては3系統に集約する（doc/audio/sfx.md 移動音）。未知値・stationary は ""＝無音。
-## 駒ごとの例外は unit_skin.csv の map_move_sfx 列で上書きする（飛行の飛び方の違いはこちら）。
+## 音としては4系統に集約する（doc/audio/sfx.md 移動音）。未知値・stationary は ""＝無音。
+## 駒ごとの例外は unit_skin.csv の map_move_sfx 列で上書きする（飛行の飛び方・馬の蹄・馬車の蹄はこちら）。
 const MOVE_BIND := {
 	"foot": "move_ground",
 	"forest_stride": "move_ground",
@@ -60,6 +60,7 @@ const MOVE_BIND := {
 	"mountain_stride": "move_ground",
 	"light_foot": "move_light_foot",
 	"flight": "move_flight",
+	"wheeled": "move_wheel",
 }
 
 ## 移動音の素材と型。型が鳴らし方を決め、駒は型を知らない（doc/audio/sfx.md 素材の型）。
@@ -79,6 +80,9 @@ const MOVE_SFX := {
 	"move_float": { "kind": MOVE_BEAT, "every": 3, "fade": 0.05 },   # 魔法で浮く（ピクシー）＝羽ばたかない一歩の気配
 	"move_propeller": { "kind": MOVE_STEP },  # 飛空艇。0.42秒の布音をマスごとに重ねて回り続ける音にする
 	"move_drift": { "kind": MOVE_SUSTAIN, "fade": 0.08 },  # 漂う屍（ゴースト・レイス）。隙間風が動いている間だけ続く
+	"move_wheel": { "kind": MOVE_SUSTAIN, "fade": 0.08 },  # 車輪（wheeled の既定）。木の車輪が石畳を転がる音が動いている間だけ続く
+	"move_wagon": { "kind": MOVE_SUSTAIN, "fade": 0.08 },  # 馬車。車輪に蹄（move_hoof と同じ0.16秒/0.32秒）を重ねた1.44秒のループ
+	"move_hoof": { "kind": MOVE_BEAT, "every": 4, "fade": 0.05 },  # 蹄（馬）。2打入り（0.16秒差）を4マス＝0.48秒ごと
 }
 
 ## 発火点IDに割り当てられた素材ID。未登録なら ""。

@@ -44,6 +44,7 @@ func test_move_bind_collapses_move_types() -> void:
 	assert_eq(SfxCatalog.move_sfx_of("forest_stride"), "move_ground", "森歩きも同じ足音")
 	assert_eq(SfxCatalog.move_sfx_of("light_foot"), "move_light_foot")
 	assert_eq(SfxCatalog.move_sfx_of("flight"), "move_flight")
+	assert_eq(SfxCatalog.move_sfx_of("wheeled"), "move_wheel", "車輪は足音ではなく転がる音")
 
 func test_move_sfx_of_unknown_type_is_silent() -> void:
 	assert_eq(SfxCatalog.move_sfx_of("stationary"), "", "動かない駒は無音")
@@ -76,6 +77,16 @@ func test_move_footsteps_are_step() -> void:
 func test_move_drift_is_sustain() -> void:
 	# 漂う屍は動いている間だけ続く音（ループ）。
 	assert_eq(SfxCatalog.move_kind_of("move_drift"), SfxCatalog.MOVE_SUSTAIN)
+
+func test_move_wheel_is_sustain() -> void:
+	# 車輪は動いている間だけ転がり続ける音（ループ）。
+	assert_eq(SfxCatalog.move_kind_of("move_wheel"), SfxCatalog.MOVE_SUSTAIN)
+	assert_eq(SfxCatalog.move_kind_of("move_wagon"), SfxCatalog.MOVE_SUSTAIN, "馬車も車輪と同じループ（蹄入り）")
+
+func test_move_hoof_beats_every_four_hexes() -> void:
+	# 蹄は2打入りの素材を4マス（0.48秒）ごとに鳴らす＝0.16秒/0.32秒のリズムになる。
+	assert_eq(SfxCatalog.move_kind_of("move_hoof"), SfxCatalog.MOVE_BEAT)
+	assert_eq(SfxCatalog.move_every_of("move_hoof"), 4)
 
 func test_move_kind_unknown_falls_back_to_step() -> void:
 	# 未登録は刻む型＝既定の鳴り方へ倒す（鳴らない方向には倒さない）。

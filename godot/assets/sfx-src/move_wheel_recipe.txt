@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/move_wheel__2023__VEHWagn_Wood Cart Roll On Stone Pavement In Courtyard 03_DRCA_HOCA_Kmr81i.wav" -af "atrim=1.25:2.75,asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.03,afade=t=out:st=1.47:d=0.03,volume=-4.3dB" -c:a pcm_s24le move_wheel.wav

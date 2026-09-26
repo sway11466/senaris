@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/move_hoof__2023__ANF082.wav" -filter_complex "[0:a]atrim=12.038:12.228,asetpts=PTS-STARTPTS,afade=t=out:st=0.16:d=0.03[a];[0:a]atrim=7.776:7.994,asetpts=PTS-STARTPTS,afade=t=out:st=0.188:d=0.03,adelay=160|160[b];[a][b]amix=inputs=2:normalize=0:duration=longest,volume=-7.0dB" -c:a pcm_s24le move_hoof.wav

@@ -32,6 +32,16 @@
           "type": "airship",
           "col": 1,
           "row": 5
+        },
+        {
+          "type": "horse",
+          "col": 1,
+          "row": 6
+        },
+        {
+          "type": "wagon",
+          "col": 1,
+          "row": 7
         }
       ] }
   ],
