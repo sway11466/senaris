@@ -8,6 +8,12 @@
       "file": "skill.json",
       "title": "ユニットスキル（味方）",
       "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "dragon_breath",
+      "file": "dragon_breath.json",
+      "title": "ドラゴンブレス（敵）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }
