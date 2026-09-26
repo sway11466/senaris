@@ -490,6 +490,9 @@ func _on_battle_finished(outcome: int) -> void:
 	# 決着シグナルは戦闘結果の直後に飛ぶ＝演出がまだ画面に出ている。勝敗を告げるのは演出が
 	# 閉じてから（戦闘中に勝利音が鳴るのは気が早い）。ターン制限切れなど演出が無い決着は素通り。
 	await _await_combat_view()
+	# 決着した占領で起きた会話は先に読ませる（会話 → 決着の合図 → 戦果票。doc/gdd/uiux.md 決着の演出）。
+	# 会話は event_fired で battle_finished より先に始まっている＝ここでは閉じるのを待つだけ。
+	await _story.await_dialogue()
 	if outcome == BattleState.PLAYER_WIN and _finisher_route.is_empty():
 		await _play_board_finisher()  # 盤の上で決まった勝ち（本拠の占領など）＝寄せてから白へ
 	var choice := await _show_result(outcome, rank)  # 戦果票＋スティンガー。プレイヤーが閉じるまで待つ
@@ -611,8 +614,8 @@ func _install_story() -> void:
 ## review（読み直し）は盤を何も進めない＝director が割り込む前の状態へ戻して終わる。
 func _on_story_closed(phase: String) -> void:
 	match phase:
-		"intro", "event":  # 戦闘へ戻る（開幕・途中の割り込みで同じ）
-			if _controller != null:
+		"intro", "event":  # 戦闘へ戻る（開幕・途中の割り込みで同じ）。決着した占領の会話は戻らない＝戦果票へ
+			if _controller != null and not _controller.state.is_over():
 				_hud.set_player_turn(_controller.state.current_team == 0)
 		"outro":
 			if _victory_overlay:

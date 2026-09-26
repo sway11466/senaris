@@ -160,15 +160,17 @@ func on_event_fired(info: Dictionary) -> void:
 	# 幕より先に phase を立てる＝AIターンの待ち（dialogue_pace）がこの会話を取りこぼさない。
 	_phase = "event"
 	talk_opening.emit()  # 寄せる前に、会話板の出る場所を可視域から外してもらう
-	if not _controller.is_ai_turn():
-		await _board.await_move_animation()  # 駒が歩き切ってから喋る（敵ターンは呼ぶ側が待っている）
+	if not _controller.is_ai_turn() or _controller.state.is_over():
+		await _board.await_move_animation()  # 駒が歩き切ってから喋る（敵ターンは呼ぶ側が待っている。決着した手は誰も待たない）
 	if bool(info.get("focus", false)):
 		var hex: Vector2i = info.get("hex", Vector2i.MAX)
 		if hex != Vector2i.MAX:
 			await _board.focus_camera_on([hex] as Array[Vector2i])
 	if _turn_banner != null:
 		_turn_banner.dismiss()  # ターンの頭で起きる＝バナーと会話を重ねない
-	_open_talk("event", lines, "ui.talk.resume_battle")
+	# 決着した占領の会話は戦闘へ戻らない＝閉じたら戦果票へ（doc/gdd/uiux.md 決着の演出）。
+	var finish_label := "ui.talk.close" if _controller.state.is_over() else "ui.talk.resume_battle"
+	_open_talk("event", lines, finish_label)
 
 ## 畳んでいて会話を出さないとき。盤は止めず暗幕も降ろさないが、カメラ寄せだけは見せる
 ## ＝何がどこで起きたかは戦況で、会話と一緒に切ってよいものではない
@@ -176,8 +178,8 @@ func on_event_fired(info: Dictionary) -> void:
 func _skip_event_dialogue(info: Dictionary) -> void:
 	# 幕より先に phase を立てるのと同じ理由＝AIターンの待ちがカメラ寄せを取りこぼさない。
 	_phase = "event_skip"
-	if not _controller.is_ai_turn():
-		await _board.await_move_animation()  # 駒が歩き切ってから寄せる（敵ターンは呼ぶ側が待っている）
+	if not _controller.is_ai_turn() or _controller.state.is_over():
+		await _board.await_move_animation()  # 駒が歩き切ってから寄せる（敵ターンは呼ぶ側が待っている。決着した手は誰も待たない）
 	if bool(info.get("focus", false)):
 		var hex: Vector2i = info.get("hex", Vector2i.MAX)
 		if hex != Vector2i.MAX:

@@ -160,19 +160,18 @@ func _base_team_at(hex: Vector2i) -> int:
 	return b.team if b != null else NO_BASE
 
 ## before と変わっていれば占領。中立→自軍も敵→自軍も同じ扱い（どちらも盤の支配が動いた）。
-## 占領を引き金にしたイベント（on: "capture"）もここで起こす。決着した占領では知らせない
-## ＝戦果票と会話を重ねない（増援と同じ扱い。詳細 → doc/gdd/map.md イベント）。
+## 占領を引き金にしたイベント（on: "capture"）もここで起こす。決着した占領でも知らせる
+## ＝会話を先に流してから戦果票へ（presentation が会話の閉じるのを待つ。詳細 → doc/gdd/uiux.md 決着の演出）。
+## 決着した手は持ち越さずその場で流す＝AI の次の手はもう来ない。
 func _emit_if_captured(hex: Vector2i, before: int) -> void:
 	var after := _base_team_at(hex)
 	if after == NO_BASE or after == before:
 		return
 	base_captured.emit(hex, after)
 	var fired := state.fire_capture_events(hex, after)
-	if state.is_over():
-		return
 	for e in fired:
 		var info := _event_info(e, hex)
-		if is_ai_turn():
+		if is_ai_turn() and not state.is_over():
 			_pending_events.append(info)
 		else:
 			event_fired.emit(info)

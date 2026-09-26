@@ -611,8 +611,8 @@ func test_enemy_capture_talks_after_the_move_is_shown() -> void:
 	assert_eq(order, ["move", "fired", "talk"] as Array[String], "移動を見せ切ってから会話を流し、読了を待つ")
 	assert_signal_emit_count(mc, "event_fired", 1, "敵が取ったぶんも1回流れる")
 
-## 決着した占領では会話を出さない（戦果票と重ねない＝増援と同じ扱い）。
-func test_finishing_capture_does_not_talk() -> void:
+## 決着した占領でも会話は流す＝決着より先に知らせる（会話 → 戦果票。doc/gdd/uiux.md 決着の演出）。
+func test_finishing_capture_talks_before_finishing() -> void:
 	var s := BattleState.new(12, 8)
 	s.victory_conditions = [{"type": "capture_hq"}]
 	var hq_hex := Hex.offset_to_axial(4, 4)
@@ -623,9 +623,29 @@ func test_finishing_capture_does_not_talk() -> void:
 	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))  # 残存する敵＝殲滅勝ちではない
 	s.add_event(_capture_event(hq_hex, 0, "taken"))
 	var mc := _mc(s)
+	var order: Array[String] = []
+	mc.event_fired.connect(func(_info: Dictionary) -> void: order.append("fired"))
+	mc.battle_finished.connect(func(_outcome: int) -> void: order.append("finished"))
 	assert_true(mc.execute(MoveCommand.new(1, hq_hex)), "本拠地への移動＝占領が成立")
-	assert_signal_emitted(mc, "battle_finished")
-	assert_signal_not_emitted(mc, "event_fired", "決着した占領では会話を出さない")
+	assert_eq(order, ["fired", "finished"] as Array[String], "会話を知らせてから決着")
+
+## 敵の占領で決着した手も、持ち越さずその場で流す（AI の次の手はもう来ない）。
+func test_enemy_finishing_capture_talks_before_finishing() -> void:
+	var s := _capture_board()
+	var base_hex := Hex.offset_to_axial(4, 4)
+	s.defeat_conditions = [{"type": "lose_base", "bases": [{"col": 4, "row": 4}]}]
+	s.base_at(base_hex).team = 0  # 自軍の拠点＝奪われたら敗北
+	s.add_event(_capture_event(base_hex, 1, "lost"))
+	var mc := _mc(s)
+	var order: Array[String] = []
+	mc.event_fired.connect(func(_info: Dictionary) -> void: order.append("fired"))
+	mc.battle_finished.connect(func(_outcome: int) -> void: order.append("finished"))
+	var brain := QueueBrain.new()
+	brain.queue.append(AiAction.move_to(2, base_hex))
+	mc.ai_brain = brain
+	mc.end_turn()  # 敵ターン＝AIが拠点を奪う
+	assert_eq(s.base_at(base_hex).team, 1, "敵が拠点を取る")
+	assert_eq(order, ["fired", "finished"] as Array[String], "会話を知らせてから決着")
 
 
 # --- ターン開始の毒・パッシブスキル（dots_ticked / passives_fired）。詳細 → doc/gdd/skills.md ---
