@@ -214,6 +214,28 @@ func test_restore_keeps_added_base_and_renumbers_its_garrison() -> void:
 		used[gu.handle] = true
 	assert_false(used.has(b.garrison[0].handle), "足された拠点の駐留兵はセーブの駒と id が衝突しない")
 
+## 振り直しは撃破済みの駒の番号も避ける＝その駒の記録（起動済みなど）を引き継がない。
+func test_restore_renumber_skips_defeated() -> void:
+	var data := _stage_data()
+	var s := _rich_state(data)
+	var top := 0
+	for u in s.units():
+		top = maxi(top, u.handle)
+	for gu in s.base_at(Hex.offset_to_axial(4, 3)).garrison:
+		top = maxi(top, gu.handle)
+	for p in s.passengers(2):
+		top = maxi(top, p.handle)
+	var fallen := Unit.new(top + 1, 1, Hex.offset_to_axial(7, 5), 3)  # 盤の最大の次の番号で倒された駒
+	s.add_unit(fallen)
+	s.mark_engaged(fallen.handle)
+	s.remove_unit(fallen.handle)
+	var added := _stage_data()
+	added["bases"].append({ "col": 6, "row": 4, "team": "enemy", "garrison": [{ "type": "knight", "count": 1, "native": "enemy" }] })
+	var s2 := _roundtrip(s, data, added)
+	var gu: Unit = s2.base_at(Hex.offset_to_axial(6, 4)).garrison[0]
+	assert_gt(gu.handle, fallen.handle, "撃破済みの番号を使い回さない")
+	assert_false(s2.is_engaged(gu.handle), "撃破済みの駒の起動済みを引き継がない")
+
 ## ステージ更新で足されたイベントは、発火済みの記録に無いので既存のセーブでも発火できる。
 func test_restore_picks_up_added_events() -> void:
 	var data := _stage_data()

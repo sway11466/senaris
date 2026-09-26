@@ -1120,9 +1120,19 @@ func attack_cells(handle: int, target_id: int) -> Array[Vector2i]:
 			cells.append(hex)
 	return cells
 
-## 盤上＋搭乗＋garrison の全駒から最大の unit id を返す。分裂で新駒を作るときの採番に使う。
+## この戦闘で使われた最大の handle を返す。分裂で新駒を作るときの採番に使う。
+## 盤上＋搭乗＋garrison に加え、まだ出ていない増援の駒と撃破済みの駒も数える＝番号を使い回さない。
+## 使い回すと、撃破済みの駒の記録（起動済み・部隊など、handle をキーに持つもの）を新しい駒が引き継ぐ。
 func _max_unit_id() -> int:
 	var m := 0
+	for h in _defeated:
+		m = maxi(m, int(h))
+	for e in _events:
+		for item in e.units:
+			if item.unit != null:
+				m = maxi(m, item.unit.handle)
+			for p in item.passengers:
+				m = maxi(m, p.handle)
 	for u in _units:
 		if u.handle > m:
 			m = u.handle
@@ -1151,7 +1161,7 @@ func spawn_unit(caster_id: int) -> Unit:
 		return null
 	# 先頭を選ぶ（Hex.neighbors は方向0から時計回りの固定順＝決定的）
 	var spawn_hex := candidates[0]
-	var new_id := _max_unit_id() + 1
+	var new_id := _max_unit_id() + 1  # 使ったことのない番号＝撃破済みの駒の記録を引き継がない
 	var spawned := Unit.new(new_id, caster.team, spawn_hex, caster.move,
 		caster.troops, caster.unit_attack, caster.unit_defense, 1, caster.type_id)
 	spawned.max_troops = caster.max_troops
@@ -1539,10 +1549,12 @@ func _apply_diff_bases(diff: Dictionary, catalog: Dictionary) -> Array:
 	return fresh
 
 ## ステージ組み立て由来で盤に残った駒（未発火イベントの駒・足された拠点の駐留兵）の id を、
-## セーブの駒より上へ振り直す。ステージ更新で採番がずれてもセーブの駒と id が衝突しないため。
+## セーブの駒（撃破済みを含む）より上へ振り直す。ステージ更新で採番がずれてもセーブの駒と id が衝突しないため。
 ## セーブ由来の id は行動記録・チャージが参照しているので動かさない。
 func _renumber_stage_units(fresh_bases: Array) -> void:
 	var next_id := 1
+	for h in _defeated:  # 撃破済みの番号も避ける＝その駒の記録を引き継がない
+		next_id = maxi(next_id, int(h) + 1)
 	for u in _units:
 		next_id = maxi(next_id, u.handle + 1)
 	for tid in _passengers:

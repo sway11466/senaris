@@ -570,6 +570,41 @@ func test_split_id_does_not_collide() -> void:
 	assert_not_null(spawned, "新しい駒が居る")
 	assert_gt(spawned.handle, 100, "既存の最大 id より大きい")
 
+func test_split_id_skips_defeated() -> void:
+	# 撃破済みの駒の番号は使い回さない＝その駒の記録（起動済み・部隊）を引き継がない。
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	s.squads = [{ "order": 1, "name": "本隊", "ai": "ambush" }, { "order": 2, "name": "別隊", "ai": "charge" }]
+	s.assign_squad(1, 0)
+	var fallen := Unit.new(100, 1, Hex.offset_to_axial(7, 7), 2, 8, 20, 20, 1, "slime")
+	s.add_unit(fallen)
+	s.assign_squad(100, 1)
+	s.mark_engaged(100)  # 被弾で起動してから倒された
+	s.remove_unit(100)
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_gt(spawned.handle, 100, "撃破済みの番号より大きい")
+	assert_false(s.is_engaged(spawned.handle), "生まれた駒は起動済みを引き継がない")
+	assert_eq(s.squad_index_of(spawned.handle), 0, "発動者の部隊に入る")
+
+func test_split_id_skips_pending_event_units() -> void:
+	# まだ出ていない増援の駒の番号とも重ならない。
+	var f := _split_state()
+	var s: BattleState = f["s"]
+	var item := EventUnit.new()
+	item.unit = Unit.new(200, 1, Hex.offset_to_axial(7, 7), 2, 8, 20, 20, 1, "slime")
+	var e := StageEvent.new()
+	e.id = "later"
+	e.turn = 99
+	e.team = 1
+	e.units.append(item)
+	s.add_event(e)
+	s.end_turn()
+	var spawned := _spawned(s, f["slime"])
+	assert_not_null(spawned, "新しい駒が居る")
+	assert_gt(spawned.handle, 200, "増援の駒の番号より大きい")
+
 # --- ピュリファイ（有害な補正の解除）---
 
 # プリースト＋隣接する味方＋離れた味方＋隣接する敵。caster=priest(id1)。
