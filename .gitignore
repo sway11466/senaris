@@ -38,3 +38,6 @@ godot/tests/manual/
 
 # Steam の AppID（手元で Steam 実装を動かすときだけ置く。配布物にも入れない → doc/backlog.md feature-40）
 godot/steam_appid.txt
+
+# Godot が GDExtension の DLL を読み込み中に作る一時コピー（Windows）
+godot/addons/**/~*
