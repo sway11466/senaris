@@ -4,6 +4,7 @@
   "desc": "undead-rush.desc",
   "board": "tutorial",
   "difficulty": 2,
+  "achievement": "TUTORIAL2",
   "emblem": { "ally": "knight", "enemy": "skeleton" },
   "stages": [
     { "id": "undead-rush-st1", "file": "undead-rush-st1.json", "title": "undead-rush.st1.title", "synopsis": "undead-rush.st1.synopsis" },

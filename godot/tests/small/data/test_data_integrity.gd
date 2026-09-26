@@ -437,6 +437,21 @@ func test_every_stage_has_synopsis() -> void:
 			assert_false(String(s["synopsis"]).is_empty(),
 				"%s/%s に synopsis（あらすじ）を書く" % [c["id"], s["id"]])
 
+func test_campaigns_with_achievements_rank_every_stage() -> void:
+	# 実績キーを持つ冒険譚は全ステージに rank を書く＝ランクの2段が取れない冒険譚を作らない。
+	# キーは実績・Stats の ID の頭なので、冒険譚どうしで重ねない（doc/tech/platform.md 実績の中身）。
+	var seen := {}
+	for c in CampaignCatalog.load_all():
+		var key := String(c["achievement"])
+		if key.is_empty():
+			continue
+		assert_false(seen.has(key), "%s: 実績キー '%s' が %s と重なる" % [c["id"], key, seen.get(key, "")])
+		seen[key] = c["id"]
+		for s in c["stages"]:
+			var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(String(s["path"])))
+			assert_true(typeof(data) == TYPE_DICTIONARY and (data as Dictionary).has("rank"),
+				"%s/%s: 実績のある冒険譚のステージには rank を書く" % [c["id"], s["id"]])
+
 func test_stage_interlude_matches_supply() -> void:
 	# 幕間の印（マニフェストの interlude）は見せ方、兵が戻るかは駒の supply。2か所に書くので
 	# 食い違いをここで拾う（doc/gdd/stage_select.md 冒険譚マニフェスト）。線引き＝

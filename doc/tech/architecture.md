@@ -76,6 +76,8 @@ res://
 │   ├── stage_loader.gd      # ステージJSON → BattleState
 │   ├── campaign_progress.gd # 解放判定・記録の書き先
 │   ├── stage_outcome.gd     # 決着時の記録(クリア・ランク・所要時間・名簿・会話)
+│   ├── achievement_judge.gd # 冒険譚の実績を進捗から判定して解除(platform.md)
+│   ├── stage_stats.gd       # チュートリアルの Stats(ステージの開始・クリア)
 │   ├── chronicle_service.gd # クロニクルの記録(盤に出た駒・発動したレシピを溜め、盤を離れるときに書く)
 │   ├── roster_service.gd    # 名簿(継承の戦力)
 │   └── bgm_director.gd

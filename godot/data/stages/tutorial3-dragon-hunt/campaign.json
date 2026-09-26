@@ -4,6 +4,7 @@
   "desc": "dragon-hunt.desc",
   "board": "tutorial",
   "difficulty": 3,
+  "achievement": "TUTORIAL3",
   "emblem": { "ally": "vanguard", "enemy": "red_dragon" },
   "actor_lineup": "single",
   "stages": [

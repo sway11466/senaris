@@ -54,6 +54,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"debug": bool(data.get("debug", false)),
 		"board": _parse_board(id, data),  # 所属ボード（シリーズ）。非デバッグは必須＝未指定は警告して空
 		"difficulty": clampi(int(data.get("difficulty", 0)), 0, 5),  # 星レーティング 0〜5
+		"achievement": _parse_achievement(id, data),  # 実績キー（実績・Stats の ID の頭）。空＝実績なし
 		"emblem": _parse_emblem(data.get("emblem", {})),  # ターン板の左右に出す代表ユニット（skin_id）。未指定は空＝枠を出さない
 		"actor_lineup": _parse_actor_lineup(data.get("actor_lineup", "")),  # 一行の戦闘演出（""＝スキン任せ/"single"）
 		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル。貼り紙も card が無ければこれを出す（連番バリアント）
@@ -61,6 +62,18 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
 		"stages": stages,
 	}
+
+## achievement（冒険譚の実績キー）。大文字の英字・数字・_ だけ。形の崩れたものは警告して空＝実績なし。
+## 冒険譚 ID から作らない＝ID は改名がありうるが実績の ID はリリース後に変えられない。仕様 → doc/tech/platform.md 実績の中身
+static func _parse_achievement(id: String, data: Dictionary) -> String:
+	var key := String(data.get("achievement", ""))
+	if key.is_empty():
+		return ""
+	var re := RegEx.create_from_string("^[A-Z0-9_]+$")
+	if re.search(key) == null:
+		push_warning("CampaignCatalog[%s]: achievement は大文字の英字・数字・_ だけ（今は '%s'）＝実績なし" % [id, key])
+		return ""
+	return key
 
 ## board（所属するシリーズボード）。デバッグ冒険譚は debug:true が Debug 行きを決めるので持たない。
 ## 非デバッグで未指定は警告して空＝どのボードにも出ない（既定値で黙って拾わない）。

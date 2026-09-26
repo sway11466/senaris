@@ -15,19 +15,27 @@ class_name StageOutcome
 var _progress: CampaignProgress
 var _roster_store: RosterStore
 var _chronicle: ChronicleService
+var _achievements: AchievementJudge  # 実績の判定。null＝判定しない（テストで記録だけを見るとき）
+var _stats: StageStats  # チュートリアルの Stats。null＝刻まない
 
 func _init(progress: CampaignProgress, roster_store: RosterStore,
-		chronicle: ChronicleService) -> void:
+		chronicle: ChronicleService, achievements: AchievementJudge = null,
+		stats: StageStats = null) -> void:
 	_progress = progress
 	_roster_store = roster_store
 	_chronicle = chronicle
+	_achievements = achievements
+	_stats = stats
 
-## ステージ開始＝開始時の在籍 actor を記録する。
+## ステージ開始＝開始時の在籍 actor を記録する。新しく始めたときだけ呼ばれる（中断セーブからの
+## 再開では呼ばれない）＝Stats の「始めた回数」もここで刻む（doc/tech/platform.md Stats の中身）。
 func stage_started(campaign_id: String, stage_id: String, roster: Array) -> void:
 	if not _records(campaign_id, stage_id):
 		return
 	_progress.record_story_start(campaign_id, stage_id, roster)
 	_chronicle.note_story_start(campaign_id, stage_id, roster)
+	if _stats != null:
+		_stats.started(campaign_id, stage_id)
 
 ## イベント発生＝イベント id を記録する。
 func event_fired(campaign_id: String, stage_id: String, event_id: String) -> void:
@@ -68,6 +76,11 @@ func battle_finished(campaign_id: String, stage_id: String, outcome: int,
 				if _roster_store != null else []
 		_progress.record_story_clear(campaign_id, stage_id, clear_roster)       # ⑤
 		_chronicle.note_story_clear(campaign_id, stage_id, clear_roster)
+		# 実績と Stats は進捗を書き終えてから＝判定はクリアとランクの記録を見る（doc/tech/platform.md 実績の中身）
+		if _stats != null:
+			_stats.cleared(campaign_id, stage_id)
+		if _achievements != null:
+			_achievements.judge(campaign_id)
 
 	return {
 		"rank": rank,

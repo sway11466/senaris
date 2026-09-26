@@ -4,6 +4,7 @@
   "desc": "goblin-raid.desc",
   "board": "tutorial",
   "difficulty": 1,
+  "achievement": "TUTORIAL1",
   "emblem": { "ally": "fighter", "enemy": "goblin" },
   "stages": [
     { "id": "goblin-raid-st1", "file": "goblin-raid-st1.json", "title": "goblin-raid.st1.title", "synopsis": "goblin-raid.st1.synopsis" },
