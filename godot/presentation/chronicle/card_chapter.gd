@@ -1,7 +1,8 @@
 extends ChronicleChapter
 class_name ChronicleCardChapter
 ## 羊皮紙のカードを格子に並べ、押すと拡大カードが手前に開く章の共通部分（ユニット／陣形スキル）。
-## 仕様 → doc/gdd/chronicle.md ユニット・陣形スキル
+## 冒険譚章も格子だけ使う（押した先は拡大カードではなく章のなかのタブ）。
+## 仕様 → doc/gdd/chronicle.md ユニット・陣形スキル・冒険譚の一覧
 ##
 ## 章ごとに違うのは 何を1枚にするか（スキン／レシピ）・1段の枚数と絵の縦横比・カードの面・拡大カードの
 ## 中身。ここは格子の寸法・紙・黒塗りの絵・拡大カードの開閉だけを持つ。下段の詳細ペインは持たない
@@ -67,7 +68,12 @@ func _card_size() -> Vector2:
 	avail -= ChronicleStyle.SCROLLBAR_ALLOW
 	var cols := _card_columns()
 	var w := maxf(floorf((avail - ChronicleStyle.CARD_GAP * (cols - 1)) / float(cols)), 48.0)
-	return Vector2(w, floorf(w * _card_aspect()) + ChronicleStyle.CARD_NAME_H)
+	return Vector2(w, floorf(w * _card_aspect()) + ChronicleStyle.CARD_NAME_H + _card_extra_h())
+
+## 名前の行の下に足す行の高さ（冒険譚章のサマリー）。足す行は _paper_card の後に
+## card の "card_col" へ積む。
+func _card_extra_h() -> float:
+	return 0.0
 
 ## 器の幅が変わるとカードの寸法が変わる＝組み直す。
 func _on_content_resized() -> void:
@@ -110,10 +116,10 @@ func _add_group(title: String, found: int, cards: Array) -> void:
 ## 格子の1枚＝依頼ボードの貼り紙と同じ羊皮紙。上に絵の面、下に名前の1行（数値は出さない）。
 ## face が絵の面に載るもの。null なら空の紙＝あとから _defer_face で載せる。
 ## 未解放は紙を暗くして押せず、名前は伏せる（name_text に「？」を渡す）。seed はカードごとの
-## 紙の変種（hover でも変わらない）。
+## 紙の変種（hover でも変わらない）。dim_pressable＝暗い紙でも押せる（冒険譚章の遊んでいない冒険譚）。
 ## 紙で切らない＝盤と同じ大小関係で載せた駒（ChronicleFigureFace）が紙をはみ出せるように。
 func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
-		on_pressed: Callable, name_text: String) -> Control:
+		on_pressed: Callable, name_text: String, dim_pressable := false) -> Control:
 	var card := Button.new()
 	card.custom_minimum_size = card_size
 	card.focus_mode = Control.FOCUS_NONE
@@ -121,7 +127,7 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var bright := 1.0
 		if not known:
-			bright = ChronicleStyle.CARD_DIM
+			bright = ChronicleStyle.CARD_DIM * (1.06 if dim_pressable and state == "hover" else 1.0)
 		elif state == "hover":
 			bright = 1.06
 		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(seed, bright))
@@ -141,6 +147,7 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 		pad.add_child(face)
 	col.add_child(pad)
 	card.set_meta("face_pad", pad)
+	card.set_meta("card_col", col)
 
 	var name_label := Label.new()  # 紙の幅いっぱい＝いちばん長い名前が1行に収まる
 	name_label.text = name_text
@@ -152,7 +159,7 @@ func _paper_card(seed: int, known: bool, card_size: Vector2, face: Control,
 	name_label.add_theme_color_override("font_color", TavernTheme.INK if known else TavernTheme.INK_SOFT)
 	col.add_child(name_label)
 
-	if known:
+	if known or dim_pressable:
 		card.pressed.connect(on_pressed)
 	else:
 		card.disabled = true

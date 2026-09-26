@@ -5,21 +5,19 @@ class_name ChronicleChapter
 ##
 ## 画面（ChronicleScreen）が持つのは暗幕・見出し・左の目次・戻るボタンまでで、右のペインから
 ## 先はこの章が自分で組む。章のなかの選び（どのレシピを選んだか・どの冒険譚を開いたか・
-## その2段目のどれを見ているか）も章が持つ＝画面は「いまどの章か」しか知らない。
+## そのどのタブを見ているか）も章が持つ＝画面は「いまどの章か」しか知らない。左の目次は
+## 章の一覧で固定で、章のなかの選びでは変わらない。
 ##
 ## 画面との口:
-##   bind            画面を開くときに1回。持ち物を渡す
-##   rebuild         中身を組み直せ
-##   reset           章を離れる＝選びを捨てろ
-##   toc_keys        左の目次に出す行（空なら画面が1段目＝章の一覧を出す）
-##   toc_selected    そのうち枠を付ける番号
-##   select_toc      目次が押された
-##   handle_back     戻る／Esc。自分で受け止めたら true
-##   back_label      戻るボタンに出す翻訳キー
-##   refresh_labels  言語が変わった
-##   toc_changed     目次と戻るの文言を組み直してほしい（中身は章が自分で組み直す）
+##   bind                画面を開くときに1回。持ち物を渡す
+##   rebuild             中身を組み直せ
+##   reset               章を離れる＝選びを捨てろ
+##   handle_back         戻る／Esc。自分で受け止めたら true
+##   back_label          戻るボタンに出す翻訳キー
+##   refresh_labels      言語が変わった
+##   back_label_changed  戻るの文言を組み直してほしい（中身は章が自分で組み直す）
 
-signal toc_changed
+signal back_label_changed
 
 var _store: ChronicleStore = null
 var _progress: CampaignProgress = null
@@ -61,17 +59,6 @@ func rebuild() -> void:
 
 ## 中身を組む（章ごと）。
 func _build() -> void:
-	pass
-
-## 左の目次に出す翻訳キー。空なら画面が1段目（章の一覧）を出す。
-func toc_keys() -> Array:
-	return []
-
-## 目次のうち枠を付ける番号（toc_keys が空なら見ない）。
-func toc_selected() -> int:
-	return -1
-
-func select_toc(_idx: int) -> void:
 	pass
 
 ## 戻る／Esc。自分で受け止めたら true（画面は閉じない）。効果音も自分で鳴らす。

@@ -8,8 +8,7 @@ class_name ChronicleScreen
 ## （ChronicleChapter とその子孫）。この画面が持つのは暗幕・見出し・左の目次・戻るボタンと、
 ## 画面全体を覆うものの置き場だけで、右のペインから先には触らない。
 ##
-## 目次は1段目（章の一覧）と2段目（章のなか）を同じ場所に出す。2段目を出すかどうかは章が
-## toc_keys で教えてくる＝冒険譚の戦果／物語／設定集も、章の側の持ち物。
+## 目次は章の一覧で固定。章のなかの選び（冒険譚の戦果／物語／設定集のタブ）は章の側の持ち物。
 
 signal closed  # 畳み終わった（暗幕が抜けたところ）
 
@@ -145,7 +144,7 @@ func _panes() -> Control:
 	_chapters.append(ChronicleFormationsChapter.new())
 	_chapters.append(ChronicleCampaignsChapter.new())
 	for ch in _chapters:
-		ch.toc_changed.connect(_on_toc_changed)
+		ch.back_label_changed.connect(_on_back_label_changed)
 		row.add_child(ch)
 	return row
 
@@ -169,35 +168,25 @@ func _select_chapter(idx: int) -> void:
 	SfxPlayer.play_event("menu_select")
 	_show_current()
 
-## 章が段を移った＝目次と戻るの文言を組み直す（中身は章が自分で組み直している）。
-func _on_toc_changed() -> void:
-	_rebuild_toc()
+## 章が段を移った＝戻るの文言を組み直す（中身は章が自分で組み直している）。
+func _on_back_label_changed() -> void:
 	_back.text = tr(_chapters[_chapter].back_label())
 
 # ---------------------------------------------------------------------------
 # 目次
 # ---------------------------------------------------------------------------
 
-## 章が toc_keys を返せばそれを出す（2段目）。空なら章の一覧（1段目）。
+## 章の一覧。いまの章に枠を付ける。
 func _rebuild_toc() -> void:
 	for c in _toc_box.get_children():
 		c.queue_free()
-	var chapter := _chapters[_chapter]
-	var keys: Array = chapter.toc_keys()
-	var in_chapter := not keys.is_empty()
-	var selected := chapter.toc_selected() if in_chapter else _chapter
-	if not in_chapter:
-		keys = CHAPTER_KEYS
-	for i in keys.size():
-		var btn := TavernTheme.wood_button(tr(String(keys[i])))
+	for i in CHAPTER_KEYS.size():
+		var btn := TavernTheme.wood_button(tr(String(CHAPTER_KEYS[i])))
 		btn.custom_minimum_size = Vector2(ChronicleStyle.TOC_WIDTH - 8, TOC_BUTTON_HEIGHT)
 		var idx := i
-		if in_chapter:
-			btn.pressed.connect(func() -> void: chapter.select_toc(idx))
-		else:
-			btn.pressed.connect(func() -> void: _select_chapter(idx))
+		btn.pressed.connect(func() -> void: _select_chapter(idx))
 		_toc_box.add_child(btn)
-		if i == selected:
+		if i == _chapter:
 			_add_frame(btn)
 
 func _add_frame(c: Control) -> void:

@@ -1,51 +1,63 @@
-extends ChronicleChapter
+extends ChronicleCardChapter
 class_name ChronicleCampaignsChapter
-## クロニクルの冒険譚章。仕様 → doc/gdd/chronicle.md 冒険譚
+## クロニクルの冒険譚章。仕様 → doc/gdd/chronicle.md 冒険譚の一覧
 ##
-## 上の段は冒険譚の一覧。1つ選ぶと2段目に入り、左の目次が戦果／物語／設定集に変わる
-## （目次に出す行は toc_keys で画面に教える）。戻るで一覧へ上がる。
+## 上の段は冒険譚の一覧＝羊皮紙のカードの格子（ユニット・陣形スキルと同じ紙）。1つ選ぶと
+## その冒険譚に入り、戦果／物語／設定集をタブで切り替える。左の目次は変えない。戻るで一覧へ上がる。
 ## 物語の通し読みは別の層に出る（ChronicleStoryReader）＝この章が持って開く。
 
 enum Section { RESULTS, STORY, LORE }
 const SECTION_KEYS := ["ui.chronicle.results", "ui.chronicle.story", "ui.chronicle.lore"]
 
+## 絵の面の縦／横＝ステージセレクトの冒険譚カードの絵の枠（317×230・doc/gdd/stage_select.md）。
+const ART_ASPECT := 230.0 / 317.0
+
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空なら一覧）
 var _section: int = Section.RESULTS
+var _tabs: HFlowContainer  # 戦果／物語／設定集のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
 var _reader: ChronicleStoryReader = null  # 物語の通し読み（この画面の上に開く）
 
 func _ready() -> void:
 	super()
+	_tabs = HFlowContainer.new()
+	_tabs.add_theme_constant_override("h_separation", ChronicleStyle.TAB_GAP)
+	_tabs.add_theme_constant_override("v_separation", ChronicleStyle.TAB_GAP)
+	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_tabs.visible = false
+	add_child(_tabs)
+	move_child(_tabs, 0)
 	# 通し読みは自分より前面の層に自分で出る＝読むあいだは目次ごと覆う。
 	_reader = ChronicleStoryReader.new()
 	_reader.name = "StoryReader"
 	add_child(_reader)
 
+## ステージセレクトのボードと同じ1段3枚。
+func _card_columns() -> int:
+	return 3
+
+func _card_aspect() -> float:
+	return ART_ASPECT
+
+func _card_extra_h() -> float:
+	return ChronicleStyle.CARD_SUMMARY_H
+
 func reset() -> void:
+	super()
 	_selected_campaign_id = ""
 	_section = Section.RESULTS
 
 func refresh_labels() -> void:
+	super()
 	_reader.refresh_labels()
 
-## 2段目にいるあいだだけ目次が戦果／物語／設定集に変わる。
-func toc_keys() -> Array:
-	return [] if _selected_campaign_id.is_empty() else SECTION_KEYS
-
-func toc_selected() -> int:
-	return _section
-
-func select_toc(idx: int) -> void:
-	if idx == _section:
-		return
-	_section = idx
-	SfxPlayer.play_event("menu_select")
-	rebuild()
-	toc_changed.emit()
+func rebuild() -> void:
+	super()
+	_rebuild_tabs()
 
 func back_label() -> String:
 	return "ui.chronicle.back" if _selected_campaign_id.is_empty() else "ui.chronicle.back_campaigns"
 
-## 2段目にいれば上の段（冒険譚の一覧）へ戻る。一覧にいれば画面に任せる。
+## 冒険譚を開いていれば一覧へ戻る。一覧にいれば画面に任せる。
 func handle_back() -> bool:
 	if _selected_campaign_id.is_empty():
 		return false
@@ -53,8 +65,41 @@ func handle_back() -> bool:
 	_selected_campaign_id = ""
 	_section = Section.RESULTS
 	rebuild()
-	toc_changed.emit()
+	back_label_changed.emit()
 	return true
+
+# ---------------------------------------------------------------------------
+# タブ
+# ---------------------------------------------------------------------------
+
+## 戦果／物語／設定集。いま開いているタブにだけ細枠を回す（マニュアルのタブと同じ）。
+func _rebuild_tabs() -> void:
+	for c in _tabs.get_children():
+		c.queue_free()
+	_tabs.visible = not _selected_campaign_id.is_empty()
+	if not _tabs.visible:
+		return
+	for i in SECTION_KEYS.size():
+		var b := TavernTheme.wood_button(tr(String(SECTION_KEYS[i])))
+		b.custom_minimum_size = Vector2(0, ChronicleStyle.TAB_HEIGHT)
+		b.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
+		b.pressed.connect(_on_tab.bind(i))
+		var frame := PanelContainer.new()
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(0, 0, 0, 0)
+		box.set_border_width_all(ChronicleStyle.FRAME_WIDTH)
+		box.border_color = ChronicleStyle.FRAME_COLOR if i == _section else Color(0, 0, 0, 0)
+		box.set_content_margin_all(ChronicleStyle.FRAME_PAD)
+		frame.add_theme_stylebox_override("panel", box)
+		frame.add_child(b)
+		_tabs.add_child(frame)
+
+func _on_tab(index: int) -> void:
+	if index == _section:
+		return
+	_section = index
+	SfxPlayer.play_event("menu_select")
+	rebuild()
 
 func _build() -> void:
 	if _selected_campaign_id.is_empty():
@@ -79,57 +124,113 @@ func _build_placeholder(title: String) -> void:
 # 一覧
 # ---------------------------------------------------------------------------
 
-## 冒険譚の一覧。タップで2段目（戦果／物語／設定集）に入る。
+## 冒険譚の一覧＝ボードごとに見出し（ボード名）とカードの格子。ボードの並びと名前は
+## ステージセレクトと同じ（CampaignSelect.BOARDS）。押すとその冒険譚に入る（遊んでいない冒険譚も押せる）。
 func _build_list() -> void:
 	if _progress == null:
 		return
-	var camps := _progress.campaigns(false)  # デバッグ冒険譚を除く
+	var by_board := {}
+	for c in _progress.campaigns(false):  # デバッグ冒険譚を除く
+		var b := String(c.get("board", ""))
+		if not by_board.has(b):
+			by_board[b] = []
+		by_board[b].append(c)
+	var card_size := _card_size()
+	for entry in CampaignSelect.BOARDS:
+		var camps: Array = by_board.get(entry["board"], [])
+		if not camps.is_empty():
+			_add_board(String(entry["name"]), camps, card_size)
+
+## ボード1枚ぶん（見出し・カードの格子・ボード間の余白）を上段に置く。
+func _add_board(board_name: String, camps: Array, card_size: Vector2) -> void:
+	var head := Label.new()
+	head.text = board_name  # ボード名は訳さない（CampaignSelect.BOARDS と同じ扱い）
+	head.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
+	head.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
+	_content_box.add_child(head)
+
+	var grid := HFlowContainer.new()
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", ChronicleStyle.CARD_GAP)
+	grid.add_theme_constant_override("v_separation", ChronicleStyle.CARD_GAP)
 	for c in camps:
 		var cid: String = c["id"]
-		var stages: Array = c["stages"]
-		var total: int = stages.size()
-		var cleared := _progress.cleared_count(cid)
+		var played := _is_played(c)
+		var card := _paper_card(hash(cid), played, card_size, null,
+			func() -> void: _open_campaign(cid), tr(String(c.get("title", cid))), true)
+		var summary := Label.new()
+		summary.text = _summary_text(c) if played else ""
+		summary.custom_minimum_size = Vector2(0, ChronicleStyle.CARD_SUMMARY_H)
+		summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		summary.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		summary.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		summary.add_theme_font_size_override("font_size", ChronicleStyle.COUNT_FONT_SIZE)
+		summary.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
+		(card.get_meta("card_col") as Control).add_child(summary)
+		var path := _art_path(c) if played else ""  # 遊んでいなければ絵は読まない（黒い四角だけ）
+		_defer_face(card, [path], func() -> Control: return _campaign_art(path, played), false)
+		grid.add_child(card)
+	_content_box.add_child(grid)
 
-		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(0, ChronicleStyle.ITEM_HEIGHT)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.focus_mode = Control.FOCUS_NONE
-		btn.text = "  " + tr(String(c.get("title", cid)))
-		btn.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		btn.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0))
-		btn.pressed.connect(func() -> void: _open_campaign(cid))
-		btn.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-		var sb := StyleBoxFlat.new()
-		sb.bg_color = Color.TRANSPARENT
-		btn.add_theme_stylebox_override("normal", sb)
-		var sb_hover := StyleBoxFlat.new()
-		sb_hover.bg_color = Color(1.0, 1.0, 1.0, 0.05)
-		btn.add_theme_stylebox_override("hover", sb_hover)
-		_content_box.add_child(btn)
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, ChronicleStyle.CATEGORY_GAP)
+	_content_box.add_child(spacer)
 
-		# 進捗の行（クリア数・ランク・合計時間）
-		if total > 0:
-			var parts: Array = []
-			parts.append(tr("ui.chronicle.cleared_progress") % [cleared, total])
-			if _progress.is_all_cleared(cid):
-				var rank := _campaign_rank(cid, stages)
-				if not rank.is_empty():
-					parts.append(tr("ui.chronicle.campaign_rank") % rank)
-				var t := _campaign_total_time(cid, stages)
-				if t > 0:
-					parts.append(tr("ui.chronicle.total_time") % _format_duration(t))
-			var info := Label.new()
-			info.text = "    " + "  ".join(parts)
-			info.add_theme_font_size_override("font_size", ChronicleStyle.COUNT_FONT_SIZE)
-			info.add_theme_color_override("font_color", ChronicleStyle.DIM_GRAY)
-			_content_box.add_child(info)
+## 一度でも遊んだか＝どこかのステージを開始した記録がある（クリア前でも開始時に残る）。
+func _is_played(c: Dictionary) -> bool:
+	for s in c["stages"]:
+		if not _progress.story(String(c["id"]), String(s["id"])).is_empty():
+			return true
+	return _progress.cleared_count(String(c["id"])) > 0
+
+## カードの名前の下の1行（クリア数／全部。全クリア後はランクと合計時間も）。
+func _summary_text(c: Dictionary) -> String:
+	var cid: String = c["id"]
+	var stages: Array = c["stages"]
+	var parts: Array = [tr("ui.chronicle.cleared_progress") % [_progress.cleared_count(cid), stages.size()]]
+	if _progress.is_all_cleared(cid):
+		var rank := _campaign_rank(cid, stages)
+		if not rank.is_empty():
+			parts.append(tr("ui.chronicle.campaign_rank") % rank)
+		var t := _campaign_total_time(cid, stages)
+		if t > 0:
+			parts.append(tr("ui.chronicle.total_time") % _format_duration(t))
+	return "  ".join(parts)
+
+## カードの絵＝ステージセレクトの冒険譚カードと同じ（card があればそれ、無ければ cover）。
+## 連番の変種は先頭の1枚に固定＝組み直すたびに絵が変わらない。無ければ空文字。
+func _art_path(c: Dictionary) -> String:
+	var card_paths: Array = c.get("card_paths", [])
+	var shown: Array = card_paths if not card_paths.is_empty() else c.get("cover_paths", [])
+	return "" if shown.is_empty() else String(shown[0])
+
+## 絵の面。枠いっぱいに切り取って敷く（セレクトの貼り紙と同じ）。遊んでいない冒険譚は
+## 真っ黒な四角＝絵を塗らずに四角を置く（手配書のように背景の透けた絵を塗ると形が残るため）。
+## 遊んだ冒険譚で絵が無ければ空。
+func _campaign_art(path: String, played: bool) -> Control:
+	var tex: Texture2D = null if path.is_empty() else load(path) as Texture2D
+	if tex == null:
+		var blank := ColorRect.new()
+		blank.color = ChronicleStyle.SILHOUETTE if not played else Color(0, 0, 0, 0)
+		blank.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		TavernTheme.round_corners(blank, float(TavernTheme.ART_CORNER_RADIUS))
+		return blank
+	var art := TextureRect.new()
+	art.texture = tex
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.clip_contents = true
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	TavernTheme.round_corners(art, float(TavernTheme.ART_CORNER_RADIUS))
+	return art
 
 func _open_campaign(campaign_id: String) -> void:
 	_selected_campaign_id = campaign_id
 	_section = Section.RESULTS
 	SfxPlayer.play_event("menu_select")
 	rebuild()
-	toc_changed.emit()
+	back_label_changed.emit()
 
 # ---------------------------------------------------------------------------
 # 戦果（2段目・RESULTS）

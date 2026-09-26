@@ -35,6 +35,13 @@ const CARD_NAME_H := 26        # 名前の行の高さ（紙はこのぶん絵�
 const CARD_DIM := 0.78         # 未解放のカードの紙の明るさ
 const SCROLLBAR_ALLOW := 16.0  # 縦スクロールバーのぶん幅を引く（出た瞬間に折り返さないため）
 const SILHOUETTE := Color(0.0, 0.0, 0.0, 0.92)  # 未解放の黒塗り
+const CARD_SUMMARY_H := 32     # 冒険譚のカードの名前の下のサマリーの行（下端の紙の縁のぶん余白を含む）
+
+## タブ（冒険譚の戦果／物語／設定集）。マニュアルのタブと同じ手つき＝木の板に、選んでいるものだけ細枠。
+const TAB_GAP := 6
+const TAB_HEIGHT := 30
+const TAB_FONT_SIZE := 15
+const FRAME_PAD := 3
 
 ## 拡大カード（格子のカードを押すと手前に開く1枚）。
 const EXPAND_SCRIM := Color(0.02, 0.02, 0.03, 0.72)
