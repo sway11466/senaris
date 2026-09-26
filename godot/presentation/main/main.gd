@@ -38,6 +38,7 @@ var _title: TitleScreen = null  # 起動時のタイトル画面（酒場の扉�
 var _settings: SettingsScreen = null  # 設定画面（タイトルに重ねて開く）。仕様 → doc/gdd/settings.md
 var _manual: ManualScreen = null  # マニュアル（タイトルに重ねて開く）。仕様 → doc/gdd/manual.md
 var _settings_store: SettingsStore = null  # 設定値（user://settings.json）。触るのはここだけ
+var _platform: Platform = null  # チャネルごとの機能（所有権チェック・実績・Stats）。仕様 → doc/tech/platform.md
 ## タイトルを抜けるまで true。下敷きステージ（セレクトの背景）の曲がタイトルのざわめきを
 ## 上書きしないためのガード。下敷きの曲は盤が描き切ってから鳴る＝タイトルより後に割り込む。
 var _title_pending := true
@@ -72,6 +73,12 @@ func _init() -> void:
 func _ready() -> void:
 	# 刻印はタイトル画面にも出すが、ログの1行目にも置く＝報告にログが添えられたとき版が分かる。
 	print("Senaris booted. build=%s" % BuildInfo.stamp())
+	# チャネルごとの機能はここで1回だけ選ぶ（doc/tech/platform.md 切り替えの鍵）。
+	# アダプターの無いチャネルは起動を止める＝別の振る舞いで黙って動かさない。
+	_platform = Platform.for_build()
+	if _platform == null:
+		get_tree().quit(1)
+		return
 	# 音量と画面モードは設定から起こす。曲が鳴り出す（_install_bgm）より前に当てる。
 	for bus in SettingsStore.VOLUME_BUSES:
 		SettingsApplier.apply_volume(String(bus), _settings_store.volume(String(bus)))

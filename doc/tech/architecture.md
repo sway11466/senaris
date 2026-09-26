@@ -97,7 +97,7 @@ res://
 │   └── terrain/ movement/ ai/ audio/ effects/   # 同様に機能ごとに同居（CSV正本も各フォルダに）
 ├── infrastructure/
 │   ├── save/          # 直列化(進捗＋中断＋クロニクル)
-│   └── platform/      # 外界との境界: チャネル・版の識別(build_info)
+│   └── platform/      # 外界との境界: チャネル・版の識別(build_info)＋チャネルごとの機能(所有権・実績・Stats。platform.md)
 ├── assets/            # ゲームに載る素材。<種別>-src は元素材で .gdignore（Godotの走査外）
 │   └── licenses/      # 配布物に添えるライセンス文
 ├── tools/             # 開発ツール（build/ にビルド一式）
