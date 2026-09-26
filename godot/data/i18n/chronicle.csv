@@ -115,15 +115,14 @@ ui.chronicle.skill_range_max_minus,参加者の射程上限の長い方−%d,Hig
 ui.chronicle.skill_range_max,参加者の射程上限の長い方,Higher max range of members
 ui.chronicle.skill_from_caster,発動者から,Leader only
 ui.chronicle.results,戦果,Results
+ui.chronicle.events,会話／イベント,Dialogue / Events
 ui.chronicle.story,物語,Story
 ui.chronicle.lore,設定集,Lore
-ui.chronicle.back_campaigns,← 冒険譚,← Adventures
+ui.chronicle.back_list,← もどる,← Back
 ui.chronicle.lore_locked,続きは冒険のあとで,More to come after your adventure
 ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
 ui.chronicle.campaign_rank,ランク %s,Rank %s
 ui.chronicle.total_time,合計 %s,Total %s
-ui.chronicle.story_from_start,はじめから,From the beginning
-ui.chronicle.story_empty,まだ読み返せる物語がない,No story to read back yet
-ui.chronicle.story_next_chapter,次の章へ,Next chapter
-ui.chronicle.story_end,読み終える,Finish
-ui.chronicle.story_quit,← 章の一覧,← Chapters
+ui.chronicle.story_empty,まだ読み返せる会話がない,No dialogue to read back yet
+ui.chronicle.branch_secured,取得,Secured
+ui.chronicle.branch_lost,喪失,Lost

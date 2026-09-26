@@ -62,7 +62,7 @@ func _ready() -> void:
 
 	_back = TavernTheme.back_button(tr("ui.chronicle.back"))
 	TavernTheme.place_bottom_left(_back)
-	_back.pressed.connect(_on_back)
+	_back.pressed.connect(_on_back_button)
 	_root.add_child(_back)
 
 	# 章が画面全体を覆うものを置く器。戻るボタンより後＝いちばん手前に重なる。
@@ -98,7 +98,7 @@ func refresh_labels() -> void:
 	_heading.text = tr("ui.chronicle.title")
 	for ch in _chapters:
 		ch.refresh_labels()
-	_back.text = tr(_chapters[_chapter].back_label())
+	_back.text = tr("ui.chronicle.back")
 	if visible:
 		_show_current()
 
@@ -109,10 +109,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		_on_back()
 	get_viewport().set_input_as_handled()
 
-## 戻る／Esc。まず章に渡し、章が受け止めなければ画面を出る。
+## Esc＝一段上がる。まず章に渡し、章が受け止めなければ画面を出る。
 func _on_back() -> void:
 	if _chapters[_chapter].handle_back():
 		return
+	_on_back_button()
+
+## 左下の「← メニュー」＝どの段にいても画面を出る（冒険譚の一覧へ戻るのはタブの左端の「← もどる」）。
+func _on_back_button() -> void:
 	SfxPlayer.play_event("menu_back")
 	close()
 
@@ -144,7 +148,6 @@ func _panes() -> Control:
 	_chapters.append(ChronicleFormationsChapter.new())
 	_chapters.append(ChronicleCampaignsChapter.new())
 	for ch in _chapters:
-		ch.back_label_changed.connect(_on_back_label_changed)
 		row.add_child(ch)
 	return row
 
@@ -152,13 +155,12 @@ func _panes() -> Control:
 # 章の切り替え
 # ---------------------------------------------------------------------------
 
-## いまの章だけ見せ、中身と目次と戻るの文言を組み直す。
+## いまの章だけ見せ、中身と目次を組み直す。
 func _show_current() -> void:
 	for i in _chapters.size():
 		_chapters[i].visible = (i == _chapter)
 	_chapters[_chapter].rebuild()
 	_rebuild_toc()
-	_back.text = tr(_chapters[_chapter].back_label())
 
 func _select_chapter(idx: int) -> void:
 	if idx == _chapter:
@@ -167,10 +169,6 @@ func _select_chapter(idx: int) -> void:
 	_chapter = idx
 	SfxPlayer.play_event("menu_select")
 	_show_current()
-
-## 章が段を移った＝戻るの文言を組み直す（中身は章が自分で組み直している）。
-func _on_back_label_changed() -> void:
-	_back.text = tr(_chapters[_chapter].back_label())
 
 # ---------------------------------------------------------------------------
 # 目次

@@ -1,6 +1,6 @@
 extends GutTest
-## ChronicleStory（クロニクルの通し読みの並び）のテスト。仕様 → doc/gdd/chronicle.md 物語
-## 章の並びはマニフェスト順、会話は経験した記録に在るものだけ、未クリアで打ち切り。
+## ChronicleStory（クロニクルの通し読みの並び）のテスト。仕様 → doc/gdd/chronicle.md 会話／イベント
+## 段の並びはマニフェスト順、会話は経験した記録に在るものだけ、未クリアで打ち切り。取得／喪失の切り替え。
 
 const CAMPAIGN := "test-campaign"
 
@@ -23,15 +23,18 @@ func _stages(overrides: Dictionary = {}) -> Dictionary:
 		stages[k] = overrides[k]
 	return stages
 
-func _stage(id: String, cleared: bool, record: Dictionary) -> Dictionary:
+func _stage(id: String, cleared: bool, record: Dictionary, seen: Array = []) -> Dictionary:
 	return {
 		"title": "stage.%s.title" % id,
 		"path": "res://data/stages/%s.json" % id,
 		"cleared": cleared,
 		"record": record,
+		"seen_events": seen,
 		"event_talks": {
-			"rescue": { "name": "ev.rescue.name", "dialogue": "talk_rescue" },
-			"ambush": { "name": "ev.ambush.name", "dialogue": "talk_ambush" },
+			"rescue": { "name": "ev.rescue.name", "dialogue": "talk_rescue", "once": "", "captured_by": "" },
+			"ambush": { "name": "ev.ambush.name", "dialogue": "talk_ambush", "once": "", "captured_by": "" },
+			"secured": { "name": "ev.secured.name", "dialogue": "talk_secured", "once": "camp", "captured_by": "player" },
+			"lost": { "name": "ev.lost.name", "dialogue": "talk_lost", "once": "camp", "captured_by": "enemy" },
 		},
 	}
 
@@ -88,19 +91,42 @@ func test_cleared_without_record_keeps_the_chapter_title_only() -> void:
 	assert_eq(chapters.size(), 3, "打ち切らない")
 	assert_eq(chapters[1]["talks"], [], "本文は無い")
 
-func test_outro_uses_the_clear_roster() -> void:
-	var record := { "start": ["knight"], "clear": ["knight", "priest"], "events": [] }
-	var chapters := ChronicleStory.build(CAMPAIGN, _manifest(),
-			_stages({ "st1": _stage("st1", true, record) }))
-	var talks: Array = chapters[0]["talks"]
-	assert_eq(talks[0]["actors"], ["knight"], "開幕は開始時の顔ぶれ")
-	assert_eq(talks[1]["actors"], ["knight", "priest"], "決着はクリア後の顔ぶれ")
-
 func test_stage_missing_from_the_campaign_is_skipped() -> void:
 	var manifest := _manifest()
 	manifest.insert(1, { "stage": "ghost", "events": [] })
 	var chapters := ChronicleStory.build(CAMPAIGN, manifest, _stages())
 	assert_eq(chapters.size(), 3, "冒険譚に無いステージは飛ばして続ける")
 
-func test_art_is_empty_when_no_picture_is_placed() -> void:
-	assert_eq(ChronicleStory.art_path(CAMPAIGN, "st1"), "", "絵が無ければ空＝暗幕だけ")
+func test_once_pair_offers_both_when_both_were_seen() -> void:
+	# 最後の回は secured、前の回で lost も経験＝取得／喪失を切り替えられる。
+	var manifest := [ { "stage": "st1", "events": ["secured", "lost"] } ]
+	var st := _stage("st1", true, { "start": ["knight"], "clear": ["knight"], "events": ["secured"] },
+			["secured", "lost"])
+	var chapters := ChronicleStory.build(CAMPAIGN, manifest, { "st1": st })
+	assert_eq(_keys(chapters[0]), ["intro", "talk_secured", "outro"], "流れに出すのは最後に起きたほう")
+	var options: Array = chapters[0]["talks"][1]["options"]
+	assert_eq(options.size(), 2, "組の両方が候補")
+	assert_eq(options[0]["event"], "secured", "候補はマニフェスト順")
+	assert_eq(options[1]["captured_by"], "enemy")
+
+func test_once_pair_has_no_switch_when_only_one_was_seen() -> void:
+	var manifest := [ { "stage": "st1", "events": ["secured", "lost"] } ]
+	var st := _stage("st1", true, { "start": ["knight"], "clear": ["knight"], "events": ["lost"] },
+			["lost"])
+	var chapters := ChronicleStory.build(CAMPAIGN, manifest, { "st1": st })
+	assert_eq(_keys(chapters[0]), ["intro", "talk_lost", "outro"])
+	assert_eq(chapters[0]["talks"][1]["options"], [], "片方しか経験していなければ切り替えない")
+
+func test_all_joined_roster_collects_every_joined_actor() -> void:
+	var roster := ChronicleStory.all_joined_roster({ "dialogue": {
+		"intro": [ { "text": "a", "when": "joined:elf" }, { "text": "b" } ],
+		"outro": [ { "text": "c", "when": "joined:dwarf" }, { "text": "d", "when": "joined:elf" } ],
+	} })
+	var names: Array = []
+	for r in roster:
+		names.append(r["actor"])
+	names.sort()
+	assert_eq(names, ["dwarf", "elf"], "仲間は居る前提＝when に出る仲間を全員在籍させる")
+
+func test_map_is_empty_when_no_picture_is_placed() -> void:
+	assert_eq(ChronicleStory.map_path(CAMPAIGN, "st1"), "", "盤の絵が無ければ空")

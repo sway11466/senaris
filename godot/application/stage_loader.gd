@@ -371,7 +371,8 @@ static func _when_holds(cond: Variant, joined: Dictionary) -> bool:
 	var has: bool = joined.has(actor)
 	return not has if negate else has
 
-## 会話つきイベントの索引（イベント id → { name＝イベント名の翻訳キー, dialogue＝台本のキー }）。
+## 会話つきイベントの索引（イベント id → { name＝イベント名の翻訳キー, dialogue＝台本のキー,
+## once＝排他の名前（無ければ空）, captured_by＝占領起点の取った側（無ければ空） }）。
 ## 「ストーリーを確認」の目次と読み直しが引く（doc/gdd/uiux.md ターン終了・システムメニュー）。
 ## イベント名は JSON に書かず、ステージ id（JSON の name）とイベント id からの規約キーで引く
 ## （event_name_key。ユニットの表示名 unit.<skin_id>.name と同じ方式。訳文は campaigns.csv）。
@@ -390,7 +391,9 @@ static func parse_event_talks(data: Dictionary) -> Dictionary:
 		if stage_id.is_empty():
 			push_error("StageLoader: ステージの name（ステージ id）が無い＝イベント '%s' の名前を引けない" % id)
 			continue
-		out[id] = { "name": event_name_key(stage_id, id), "dialogue": talk }
+		# once / captured_by はクロニクルの「取得／喪失」の切り替えが引く（doc/gdd/chronicle.md 分岐の扱い）
+		out[id] = { "name": event_name_key(stage_id, id), "dialogue": talk,
+				"once": String(e.get("once", "")), "captured_by": String(e.get("captured_by", "")) }
 	return out
 
 ## イベント名の翻訳キー（規約）。ステージ id はステージ内でしか一意でないイベント id を世界で一意にする。

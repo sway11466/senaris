@@ -9,15 +9,11 @@ class_name ChronicleChapter
 ## 章の一覧で固定で、章のなかの選びでは変わらない。
 ##
 ## 画面との口:
-##   bind                画面を開くときに1回。持ち物を渡す
-##   rebuild             中身を組み直せ
-##   reset               章を離れる＝選びを捨てろ
-##   handle_back         戻る／Esc。自分で受け止めたら true
-##   back_label          戻るボタンに出す翻訳キー
-##   refresh_labels      言語が変わった
-##   back_label_changed  戻るの文言を組み直してほしい（中身は章が自分で組み直す）
-
-signal back_label_changed
+##   bind            画面を開くときに1回。持ち物を渡す
+##   rebuild         中身を組み直せ
+##   reset           章を離れる＝選びを捨てろ
+##   handle_back     Esc。自分で受け止めたら true（左下の「← メニュー」は章を通さず画面を出る）
+##   refresh_labels  言語が変わった
 
 var _store: ChronicleStore = null
 var _progress: CampaignProgress = null
@@ -61,13 +57,9 @@ func rebuild() -> void:
 func _build() -> void:
 	pass
 
-## 戻る／Esc。自分で受け止めたら true（画面は閉じない）。効果音も自分で鳴らす。
+## Esc。自分で受け止めたら true（画面は閉じない）。効果音も自分で鳴らす。
 func handle_back() -> bool:
 	return false
-
-## 戻るボタンに出す翻訳キー。
-func back_label() -> String:
-	return "ui.chronicle.back"
 
 ## 言語が変わった。中身は画面が rebuild を呼ぶので、それ以外の後始末だけ。
 func refresh_labels() -> void:

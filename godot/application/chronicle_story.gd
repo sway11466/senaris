@@ -1,21 +1,24 @@
 extends RefCounted
 class_name ChronicleStory
-## クロニクルの「物語」＝会話の通し読みの並びを組み立てる（application 層）。
+## クロニクルの「会話／イベント」＝会話の通し読みの並びを組み立てる（application 層）。
 ## マニフェスト（data/chronicle/<冒険譚>.json の story）の並びを背骨に、進捗の記録で
-## 経験した会話だけを残した章の列を作る。本文（行）は読むときに chapter_talks で解く。
-## 仕様 → doc/gdd/chronicle.md 物語
+## 経験した会話だけを残した段（1ステージ＝1段）の列を作る。本文（行）は chapter_talks で解く。
+## 仕様 → doc/gdd/chronicle.md 会話／イベント
 ##
-## 出す会話は最後に遊んだ回で固定＝進捗セーブの記録（CampaignProgress.story）を見る。
-## 冒険譚をまたいで溜まる ChronicleStore の記録は見ない（両方を経験した箇所の切り替えは別件）。
+## 出す会話は最後に遊んだ回＝進捗セーブの記録（CampaignProgress.story）。
+## 拠点の取得／喪失（once で捨て合うイベントの組）だけは、冒険譚をまたいで溜まる ChronicleStore の
+## 記録で両方を経験したかを見て、切り替えの候補（options）を持たせる。
+## 仲間の台詞（when: joined:<actor>）は切り替えない＝仲間は居る前提で常に出す。
 
-## 章の挿絵の置き場。1章＝ステージ id で1枚。置かれたものだけを拾う。
-const ART_ROOT := "res://assets/chronicle"
+## 段の盤の絵の置き場。1段＝ステージ id で1枚（<ステージ id>_map.png）。置かれたものだけを拾う。
+const MAP_ROOT := "res://assets/chronicle"
 
-## 冒険譚1本ぶんの章の列を読む（ファイルを読む側）。
+## 冒険譚1本ぶんの段の列を読む（ファイルを読む側）。
 ## story_manifest＝ChronicleLoader が正規化した story（[{ stage, events }]）。
 ## campaign＝CampaignProgress.campaign() の辞書（stages が id / title / path を持つ）。
+## store＝経験したイベントを冒険譚をまたいで溜めた記録（取得／喪失の両方を経験したかを見る）。
 static func load(campaign_id: String, story_manifest: Array, campaign: Dictionary,
-		progress: CampaignProgress) -> Array:
+		progress: CampaignProgress, store: ChronicleStore) -> Array:
 	var stages := {}
 	for entry in story_manifest:
 		var sid := String((entry as Dictionary).get("stage", ""))
@@ -25,22 +28,24 @@ static func load(campaign_id: String, story_manifest: Array, campaign: Dictionar
 		if s.is_empty():
 			continue  # 冒険譚に無いステージ＝build が警告する
 		var path := String(s["path"])
+		var seen: Array = store.story(campaign_id, sid).get("events", []) if store != null else []
 		stages[sid] = {
 			"title": String(s.get("title", sid)),
 			"path": path,
 			"cleared": progress.stage_state(campaign_id, sid) == CampaignProgress.CLEARED,
 			"record": progress.story(campaign_id, sid),
+			"seen_events": seen,
 			"event_talks": StageLoader.load_event_talks(path),
 		}
 	return build(campaign_id, story_manifest, stages)
 
-## 章の列を組み立てる（純ロジック）。
-## stages＝{ stage_id: { title, path, cleared, record, event_talks } }。
-## - 章の並びはマニフェスト順。未クリアのステージまで出してそこで終わる
+## 段の列を組み立てる（純ロジック）。
+## stages＝{ stage_id: { title, path, cleared, record, seen_events, event_talks } }。
+## - 段の並びはマニフェスト順。未クリアのステージまで出してそこで終わる
 ##   （決着の会話が無い＝物語がそこまで）。
-## - 章のなかの会話は 開幕 → イベント（マニフェスト順）→ 決着。記録に在るものだけ。
-## - 記録の無いステージ（仕組みより前のクリア）は章題だけで会話なし。
-## - 一度も遊んでいないステージは章ごと出さない＝見ていない出来事の存在を匂わせない。
+## - 段のなかの会話は 開幕 → イベント（マニフェスト順）→ 決着。記録に在るものだけ。
+## - 記録の無いステージ（仕組みより前のクリア）は見出しと盤だけで会話なし。
+## - 一度も遊んでいないステージは段ごと出さない＝見ていない出来事の存在を匂わせない。
 static func build(campaign_id: String, story_manifest: Array, stages: Dictionary) -> Array:
 	var out: Array = []
 	for entry in story_manifest:
@@ -59,87 +64,130 @@ static func build(campaign_id: String, story_manifest: Array, stages: Dictionary
 			"stage": sid,
 			"title": String(info["title"]),
 			"path": String(info["path"]),
-			"art": art_path(campaign_id, sid),
+			"map": map_path(campaign_id, sid),
 			"talks": _talks(campaign_id, sid, (entry as Dictionary).get("events", []),
-					record, info["event_talks"]),
+					record, info.get("seen_events", []), info["event_talks"]),
 		})
 		if not cleared:
 			break  # 未クリア＝決着の会話が無い。物語はここまで
 	return out
 
-## 章の会話を本文つきで解く。開幕・イベントは開始時の顔ぶれ、決着はクリア後の顔ぶれで
-## 台本を組み直す＝会話の when が見るのは在籍だけ（StoryDirector の読み直しと同じ規約）。
-## 本文の無い会話（台本が消えた・when で全行落ちた）は落とす＝空の板を出さない。
-## 返り値: [{ key, event, lines }]
+## 段の会話を本文つきで解く。台本は仲間が全員居る前提で組む（when: joined:<actor> の行は全部出す）。
+## 本文の無い会話（台本が消えた・全行落ちた）は落とす＝空の会話を出さない。
+## 返り値: [{ key, event, lines, options, chosen }]
+##   options＝取得／喪失の切り替えの候補 [{ event, captured_by, lines }]（切り替えが無ければ空）。
+##   chosen＝options のうち最初に出すもの（最後に遊んだ回で起きたほう）。lines はその本文。
 static func chapter_talks(chapter: Dictionary) -> Array:
-	var scripts := {}  # "start" / "clear" -> 台本（読むのは1章につき最大2回）
+	var data := StageLoader.read_stage(String(chapter["path"]))
+	var script := StageLoader.parse_dialogue(data, all_joined_roster(data))
 	var out: Array = []
-	for talk in chapter.get("talks", []):
-		var phase := String((talk as Dictionary)["phase"])
-		var by := "clear" if phase == "outro" else "start"
-		if not scripts.has(by):
-			scripts[by] = StageLoader.load_dialogue(String(chapter["path"]),
-					_as_roster((talk as Dictionary)["actors"]))
-		var lines: Array = (scripts[by] as Dictionary).get(String((talk as Dictionary)["key"]), [])
+	for raw in chapter.get("talks", []):
+		var talk: Dictionary = raw
+		var lines: Array = script.get(String(talk["key"]), [])
+		var options: Array = []
+		var chosen := 0
+		for opt in talk.get("options", []):
+			var opt_lines: Array = script.get(String((opt as Dictionary)["key"]), [])
+			if opt_lines.is_empty():
+				continue
+			if String((opt as Dictionary)["event"]) == String(talk["event"]):
+				chosen = options.size()
+			options.append({ "event": String(opt["event"]), "captured_by": String(opt["captured_by"]),
+					"lines": opt_lines })
+		if options.size() < 2:
+			options = []
+			chosen = 0
 		if lines.is_empty():
 			continue
 		out.append({
-			"key": String((talk as Dictionary)["key"]),
-			"event": String((talk as Dictionary)["event"]),
+			"key": String(talk["key"]),
+			"event": String(talk["event"]),
 			"lines": lines,
+			"options": options,
+			"chosen": chosen,
 		})
 	return out
 
-## 章の挿絵のパス。置かれていなければ空＝絵の無い章は暗幕だけで読ませる。
-static func art_path(campaign_id: String, stage_id: String) -> String:
-	var path := "%s/%s/%s.png" % [ART_ROOT, campaign_id, stage_id]
+## 台本の when に出てくる仲間を全員在籍させた名簿（parse_dialogue に渡す形）。
+## 仲間の台詞は切り替えず常に出す（doc/gdd/chronicle.md 分岐の扱い）。
+static func all_joined_roster(data: Dictionary) -> Array:
+	var actors := {}
+	var dlg: Variant = data.get("dialogue", {})
+	if typeof(dlg) == TYPE_DICTIONARY:
+		for phase in (dlg as Dictionary):
+			var lines: Variant = dlg[phase]
+			if typeof(lines) != TYPE_ARRAY:
+				continue
+			for line in lines:
+				if typeof(line) != TYPE_DICTIONARY:
+					continue
+				var cond := String((line as Dictionary).get("when", "")).strip_edges()
+				if cond.begins_with("joined:"):
+					actors[cond.substr("joined:".length()).strip_edges()] = true
+	var out: Array = []
+	for a in actors:
+		out.append({ "actor": String(a) })
+	return out
+
+## 段の盤の絵のパス。置かれていなければ空＝盤の無い段は会話だけ。
+static func map_path(campaign_id: String, stage_id: String) -> String:
+	var path := "%s/%s/%s_map.png" % [MAP_ROOT, campaign_id, stage_id]
 	return path if ResourceLoader.exists(path) else ""
 
 # ---------------------------------------------------------------------------
 
-## 章のなかの会話の並び。開幕（開始の記録が在れば）→ イベント → 決着（クリアの記録が在れば）。
+## 段のなかの会話の並び。開幕（開始の記録が在れば）→ イベント → 決着（クリアの記録が在れば）。
 ## イベントの順はマニフェスト＝書き手が持つ。記録に在ってマニフェストに無いものは出さない
 ## （並びを決められないため）＝データの誤りとして警告する。
+## 最後に遊んだ回で起きたイベントが once の組なら、組のうち経験したもの（seen_events）を
+## 切り替えの候補（options・マニフェスト順）に入れる。
 static func _talks(campaign_id: String, stage_id: String, manifest_events: Variant,
-		record: Dictionary, event_talks: Dictionary) -> Array:
+		record: Dictionary, seen_events: Array, event_talks: Dictionary) -> Array:
 	var out: Array = []
-	var start: Array = record.get("start", [])
-	var clear: Array = record.get("clear", [])
 	if record.has("start"):
-		out.append({ "key": "intro", "phase": "intro", "event": "", "actors": start })
+		out.append({ "key": "intro", "phase": "intro", "event": "", "options": [] })
 	var fired: Array = record.get("events", [])
-	var listed := {}
+	var listed: Array = []
 	if typeof(manifest_events) == TYPE_ARRAY:
 		for raw in manifest_events:
-			var event_id := String(raw)
-			listed[event_id] = true
-			if not fired.has(event_id):
-				continue  # 経験していない＝流れに出さない
-			var talk: Dictionary = event_talks.get(event_id, {})
-			if talk.is_empty():
-				push_warning("ChronicleStory[%s/%s]: イベント '%s' の台本が無い"
-						% [campaign_id, stage_id, event_id])
-				continue
-			out.append({
-				"key": String(talk["dialogue"]), "phase": "event",
-				"event": event_id, "actors": start,
-			})
+			listed.append(String(raw))
+	for event_id in listed:
+		if not fired.has(event_id):
+			continue  # 最後に遊んだ回で起きていない＝流れに出さない（組の相手なら options で出る）
+		var talk: Dictionary = event_talks.get(event_id, {})
+		if talk.is_empty():
+			push_warning("ChronicleStory[%s/%s]: イベント '%s' の台本が無い"
+					% [campaign_id, stage_id, event_id])
+			continue
+		out.append({
+			"key": String(talk["dialogue"]), "phase": "event", "event": event_id,
+			"options": _options(event_id, listed, seen_events, event_talks),
+		})
 	for event_id in fired:
 		if not listed.has(String(event_id)):
 			push_warning("ChronicleStory[%s/%s]: 起きたイベント '%s' が story の events に無い"
 					% [campaign_id, stage_id, event_id])
 	if record.has("clear"):
-		out.append({ "key": "outro", "phase": "outro", "event": "", "actors": clear })
+		out.append({ "key": "outro", "phase": "outro", "event": "", "options": [] })
 	return out
 
-## 記録した actor の並びを、会話の条件（when: joined:<actor>）が見るだけの名簿に仕立てる。
-static func _as_roster(actors: Variant) -> Array:
+## once の組のうち経験したものを切り替えの候補にする（自分を含む・マニフェスト順）。
+## 候補が1つ（組でない・相手を経験していない）なら空＝切り替えを出さない。
+static func _options(event_id: String, listed: Array, seen_events: Array,
+		event_talks: Dictionary) -> Array:
+	var group := String((event_talks[event_id] as Dictionary).get("once", ""))
+	if group.is_empty():
+		return []
 	var out: Array = []
-	if typeof(actors) != TYPE_ARRAY:
-		return out
-	for a in actors:
-		out.append({ "actor": String(a) })
-	return out
+	for other in listed:
+		var talk: Dictionary = event_talks.get(other, {})
+		if talk.is_empty() or String(talk.get("once", "")) != group:
+			continue
+		if other != event_id and not seen_events.has(other):
+			continue
+		out.append({ "event": other, "key": String(talk["dialogue"]),
+				"captured_by": String(talk.get("captured_by", "")) })
+	return out if out.size() >= 2 else []
 
 ## 冒険譚のステージ表から1件引く（無ければ空）。
 static func _find_stage(campaign: Dictionary, stage_id: String) -> Dictionary:
