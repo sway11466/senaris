@@ -254,3 +254,67 @@ func test_win_saves_roster_snapshot_under_stage() -> void:
 	assert_eq(saved.load_roster("tc", "st1").size(), 1, "st1 の控えに在籍者が載る")
 	assert_eq(saved.load_roster("tc", "st1")[0]["actor"], "hero")
 	assert_eq(saved.load_roster("tc", "st2"), [], "他のステージの控えは空のまま")
+
+# ---------------------------------------------------------------------------
+# battle_finished — ランクを持つステージの勝利（doc/gdd/rank.md 判定・記録）
+# ---------------------------------------------------------------------------
+
+const RANK_STAGE_PATH := "user://test_stage_outcome/rank_stage.json"
+
+## ランクを持つステージ（自軍2・敵1）を書いて盤を組む。閾値は S＝5ターン未満かつ生存2・A＝10ターン未満かつ生存1。
+func _rank_stage_state() -> BattleState:
+	var stage := {
+		"turn_limit": 20,
+		"player": [ { "units": [
+			{ "type": "fighter", "col": 0, "row": 0 },
+			{ "type": "fighter", "col": 1, "row": 0 },
+		] } ],
+		"enemy": [ { "order": 1, "ai": "charge", "units": [ { "type": "fighter", "col": 5, "row": 3 } ] } ],
+		"rank": { "turn_s": 5, "turn_a": 10, "survival_s": 2, "survival_a": 1 },
+	}
+	var f := FileAccess.open(RANK_STAGE_PATH, FileAccess.WRITE)
+	f.store_string(JSON.stringify(stage))
+	f.close()
+	var t := FileAccess.open(StageLoader.terrain_path(RANK_STAGE_PATH), FileAccess.WRITE)
+	t.store_string(JSON.stringify({ "terrain": ["......", "......", "......", "......"] }))
+	t.close()
+	return StageLoader.load_file(RANK_STAGE_PATH)
+
+func test_win_on_rank_stage_records_best_rank_and_time() -> void:
+	var p := _progress()
+	var o := _outcome(p)
+	var s := _rank_stage_state()
+	assert_not_null(s, "前提: ランクを持つステージが組める")
+	var result := o.battle_finished("tc", "st1", BattleState.PLAYER_WIN, s,
+			int(Time.get_unix_time_from_system()) - 30, RANK_STAGE_PATH, [])
+	assert_eq(String(result["rank"]), "S", "1ターン目・全員生存＝S")
+	assert_eq(p.best_rank("tc", "st1"), "S", "ベストランクが記録される")
+	assert_true(p.best_time("tc", "st1") > 0, "所要時間も記録される")
+
+func test_win_on_rank_stage_takes_the_worse_axis() -> void:
+	# 生存率だけが A に落ちる＝低い方が最終ランク。
+	var p := _progress()
+	var o := _outcome(p)
+	var s := _rank_stage_state()
+	s.remove_unit(s.units().filter(func(u: Unit) -> bool: return u.team == 0)[0].handle)
+	var result := o.battle_finished("tc", "st1", BattleState.PLAYER_WIN, s,
+			int(Time.get_unix_time_from_system()) - 30, RANK_STAGE_PATH, [])
+	assert_eq(String(result["rank"]), "A", "ターンは S・生存は A＝A")
+	assert_eq(p.best_rank("tc", "st1"), "A")
+
+func test_defeat_on_rank_stage_records_no_rank() -> void:
+	var p := _progress()
+	var o := _outcome(p)
+	var result := o.battle_finished("tc", "st1", BattleState.PLAYER_LOSS, _rank_stage_state(),
+			int(Time.get_unix_time_from_system()) - 30, RANK_STAGE_PATH, [])
+	assert_eq(String(result["rank"]), "", "敗北にランクは付かない")
+	assert_eq(p.best_rank("tc", "st1"), "", "記録もされない")
+
+func test_win_on_rank_stage_outside_campaign_shows_rank_without_recording() -> void:
+	# 冒険譚の外でもランクは算出する（戦果票の表示用）が、記録はしない。
+	var p := _progress()
+	var o := _outcome(p)
+	var result := o.battle_finished("", "", BattleState.PLAYER_WIN, _rank_stage_state(),
+			int(Time.get_unix_time_from_system()) - 30, RANK_STAGE_PATH, [])
+	assert_eq(String(result["rank"]), "S", "表示用のランクは出る")
+	assert_eq(p.best_rank("tc", "st1"), "", "記録はしない")

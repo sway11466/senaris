@@ -184,10 +184,14 @@ func test_follow_keeps_unit_on_safe_edge() -> void:
 
 # --- shake ---
 
-func test_shake_does_not_crash() -> void:
+func test_shake_offsets_the_view_then_returns_to_rest() -> void:
+	# 揺れ＝カメラの h/v オフセットが一時的にずれ、振り終わると 0 に戻る（注視点は動かさない）。
 	cam.shake()
-	# Tween で動くだけ。例外が出なければOK。
-	assert_true(true)
+	await wait_seconds(BoardCamera.SHAKE_STEP)
+	assert_ne(Vector2(cam.camera.h_offset, cam.camera.v_offset), Vector2.ZERO, "揺れの最中はずれている")
+	await wait_seconds(BoardCamera.SHAKE_STEP * 4.0 + 0.1)
+	assert_eq(Vector2(cam.camera.h_offset, cam.camera.v_offset), Vector2.ZERO, "振り終わると元に戻る")
+	assert_eq(cam.target, Vector3.ZERO, "注視点は動かない")
 
 # --- constants ---
 

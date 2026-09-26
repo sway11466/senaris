@@ -1706,14 +1706,22 @@ func test_backstab_stays_when_not_moved() -> void:
 	assert_eq(res.caster_returned_to, Formation.NO_HEX, "戻していない印")
 
 ## 威力は刺した位置で確定する＝戻したあとの地形・包囲では計算しない。
+## 戻り先は台地（地形攻 ×1.2）＝刺した位置（平地 ×1.0）と攻撃の地形係数が違う。硬い敵（防150）で
+## 損害が兵数上限に張り付かないようにして、係数の差が損害の差に出る盤にしておく。
 func test_backstab_damage_is_fixed_before_return() -> void:
-	var f := _backstab_state()
+	var f := _backstab_state(150)
 	var s: BattleState = f["s"]
 	var plain := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"]).hits[0].loss
-	var f2 := _backstab_state()
+	var f_plateau := _backstab_state(150)
+	var s_plateau: BattleState = f_plateau["s"]
+	s_plateau.set_terrain(f_plateau["thief"].pos, "plateau")  # 刺す位置が台地なら
+	var on_plateau := FormationResolver.resolve(s_plateau, _backstab_option(f_plateau),
+		f_plateau["enemy_hex"]).hits[0].loss
+	assert_ne(on_plateau, plain, "前提: 台地から刺せば損害が変わる盤")
+	var f2 := _backstab_state(150)
 	var s2: BattleState = f2["s"]
 	var origin := Hex.offset_to_axial(0, 0)
-	s2.set_terrain(origin, "forest")  # 戻り先だけ地形を変える＝威力には効かない
+	s2.set_terrain(origin, "plateau")  # 戻り先だけ台地にする＝威力には効かない
 	var moved := FormationResolver.resolve(s2, _backstab_option(f2), f2["enemy_hex"], origin).hits[0].loss
 	assert_eq(moved, plain, "戻り先の地形は威力に効かない")
 
@@ -1724,3 +1732,141 @@ func test_backstab_spends_both() -> void:
 	FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"], Hex.offset_to_axial(0, 0))
 	assert_true(s.is_done(1), "シーフは行動完了")
 	assert_true(s.is_done(2), "相方も行動完了")
+
+## 間接攻撃扱い＝隣接する対象を刺しても反撃を受けない。詳細 → doc/gdd/formations.md 共通ルール
+func test_backstab_takes_no_counterattack() -> void:
+	var f := _backstab_state(150)  # 硬い敵＝一撃では倒れず、反撃できる兵が残る
+	var s: BattleState = f["s"]
+	var thief: Unit = f["thief"]
+	var enemy: Unit = f["enemy"]
+	enemy.unit_attack = 60
+	assert_gt(Combat.casualties(s, enemy, thief), 0, "前提: 反撃があればシーフは兵を失う")
+	var res := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"])
+	assert_false(res.hits[0].killed, "前提: 対象は生き残っている")
+	assert_eq(thief.troops, 8, "シーフは兵を失わない＝反撃なし")
+	assert_eq(f["mate"].troops, 8, "相方も兵を失わない")
+
+## 参加者はシーフと正反対の1体だけ＝他に対象へ隣接している味方は参加せず、行動を残す。
+func test_backstab_other_adjacent_allies_keep_action() -> void:
+	var f := _backstab_state()
+	var s: BattleState = f["s"]
+	var side := Unit.new(3, 0, Hex.neighbor(f["enemy_hex"], 1), 4, 8, 50, 40, 1, "fighter")
+	s.add_unit(side)
+	assert_eq(_count(Formation.available_for(s, f["thief"]), "backstab"), 1, "組は1つのまま")
+	var opt := _backstab_option(f)
+	assert_eq(opt.participants, [1, 2] as Array[int], "隣接する3体目は参加者に入らない")
+	assert_not_null(FormationResolver.resolve(s, opt, f["enemy_hex"]), "発動成功")
+	assert_false(s.is_done(3), "隣接していただけの味方は行動を残す＝普通に殴れる")
+
+## 包囲は通常の一撃と同じに乗る＝対角2体（シーフと相方）で ×0.68（占有2×0.08＋威圧4×0.04）。
+## 詳細 → doc/gdd/formations.md バックスタブ
+func test_backstab_surround_is_diagonal_pair() -> void:
+	var f := _backstab_state(100)
+	var s: BattleState = f["s"]
+	var thief: Unit = f["thief"]
+	var enemy: Unit = f["enemy"]
+	var atk := Combat.attack_breakdown_from(thief.troops, thief.unit_attack, 1.0, 1.0, 1.0,
+		Combat.support_around(s, enemy.pos, thief.team, thief.handle, true))
+	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense, 1.0, 0.68, 1.0, 0.0, 0.5)
+	var expect := Combat.hit_from_breakdowns(atk, df, enemy.troops).loss
+	var res := FormationResolver.resolve(s, _backstab_option(f), f["enemy_hex"])
+	assert_almost_eq(res.hits[0].detail.defense.surround, 0.68, 0.001, "対象の包囲係数は ×0.68")
+	assert_eq(res.hits[0].loss, expect, "×0.68 の包囲が乗った損害")
+
+## 単体のスキルでも、包囲された対象には包囲が乗る（着弾した駒の包囲で数える）。
+## 詳細 → doc/gdd/formations.md 共通ルール / doc/gdd/combat.md 包囲
+func test_single_hit_on_surrounded_target() -> void:
+	var f := _judgment_state(100)  # 硬い敵で非撃破
+	var s: BattleState = f["s"]
+	var pal: Unit = f["caster"]
+	var enemy: Unit = f["enemy"]
+	var ehex: Vector2i = f["enemy_hex"]
+	for h in Hex.neighbors(ehex):
+		assert_true(s.in_field(h), "前提: 対象の周りは全部盤の中")
+	s.add_unit(Unit.new(4, 0, Hex.neighbor(ehex, 1), 3, 8, 40, 40, 1, "fighter"))
+	s.add_unit(Unit.new(5, 0, Hex.neighbor(ehex, 4), 3, 8, 40, 40, 1, "fighter"))
+	var opt := _pick(Formation.available_for(s, pal), "divine_judgment")
+	var atk := Combat.attack_breakdown_from(pal.troops, pal.unit_attack, 1.0, 1.0, 1.0,
+		Combat.support_around(s, ehex, pal.team, pal.handle, true))
+	var df := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense, 1.0, 0.68, 1.0, 0.0, 0.0)
+	var bare := Combat.defense_breakdown_from(enemy.troops, enemy.unit_defense, 1.0, 1.0, 1.0, 0.0, 0.0)
+	var expect := Combat.hit_from_breakdowns(atk, df, enemy.troops).loss
+	assert_ne(expect, Combat.hit_from_breakdowns(atk, bare, enemy.troops).loss,
+		"前提: 包囲の有無で損害が変わる盤")
+	var res := FormationResolver.resolve(s, opt, ehex)
+	assert_almost_eq(res.hits[0].detail.defense.surround, 0.68, 0.001, "対角2体の包囲 ×0.68")
+	assert_eq(res.hits[0].loss, expect, "包囲の乗った損害")
+
+## 発動できるのは自軍のターンだけ＝相手のターンに回った後の選択肢では撃てない。
+func test_resolve_fails_outside_own_turn() -> void:
+	var f := _trinity_nova_state()
+	var s: BattleState = f["s"]
+	var opt: FormationOption = Formation.available_for(s, f["caster"])[0]
+	s.end_turn()  # 相手（team 1）のターンへ
+	assert_null(FormationResolver.resolve(s, opt, f["enemy_hex"]), "相手のターンには発動しない")
+	assert_eq(f["enemy"].troops, 8, "盤は書き換わらない")
+
+## グレイスは防御にも ×1.3（攻撃だけでなく攻・防の両方）。詳細 → doc/gdd/formations.md グレイス
+func test_grace_buffs_defense_too() -> void:
+	var f := _aria_state()
+	var s: BattleState = f["s"]
+	var ally: Unit = f["ally"]
+	var foe: Unit = f["foe"]
+	var before := Combat.defense_breakdown(s, ally, foe).total
+	var opt := _pick(Formation.available_for(s, f["caster"]), "grace")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	assert_almost_eq(Combat.defense_breakdown(s, ally, foe).total, before * 1.3, 1.0, "離れた味方の防御も×1.3")
+
+## シールドウォールの持続＝1ターン（自軍ターン1回＋間の敵ターン）。詳細 → doc/gdd/map.md 用語・ターン
+func test_shield_wall_lasts_one_round() -> void:
+	var f := _wall_state(3)
+	var s: BattleState = f["s"]
+	var opt := _pick(Formation.available_for(s, f["caster"]), "shield_wall")
+	assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "発動成功")
+	s.end_turn()  # 敵ターンへ
+	assert_almost_eq(float(s.status_aggregate(f["caster"], "defense")["mul"]), 1.15, 0.001,
+		"敵ターン中はまだ効く")
+	s.end_turn()  # 次の自軍ターンへ＝ここで満了
+	assert_almost_eq(float(s.status_aggregate(f["caster"], "defense")["mul"]), 1.0, 0.001,
+		"次の自軍ターン開始で切れる")
+
+## 着弾の無いスキル（効果が味方に乗るだけ）では参加者のレベルは上がらない。
+## 詳細 → doc/gdd/formations.md 共通ルール
+func test_buff_formations_grant_no_level() -> void:
+	var cases := [
+		["grace", _aria_state()],
+		["shield_wall", _wall_state(3)],
+		["counter", _counter_state()],
+		["magic_shield", _magic_shield_state()],
+	]
+	for c in cases:
+		var skill: String = c[0]
+		var f: Dictionary = c[1]
+		var s: BattleState = f["s"]
+		var caster: Unit = f.get("caster", f.get("wiz"))  # マジックシールドの盤だけ発動者の鍵が wiz
+		var opt := _pick(Formation.available_for(s, caster), skill)
+		assert_not_null(opt, "%s が成立している" % skill)
+		assert_not_null(FormationResolver.resolve(s, opt, Vector2i(-9999, -9999)), "%s 発動成功" % skill)
+		for pid in opt.participants:
+			assert_eq(s.unit_by_handle(pid).level, 1, "%s: 参加者 %d は Lv1 のまま" % [skill, pid])
+
+## 結界は効いている間、盤が読む地帯の一覧に載る（中心＋周囲6の7ヘクス）。満了で消える。
+## 詳細 → doc/gdd/formations.md マジックシールド
+func test_status_zones_lists_magic_shield_while_active() -> void:
+	var f := _magic_shield_state()
+	var s: BattleState = f["s"]
+	assert_true(s.status_zones().is_empty(), "張る前は地帯が無い")
+	_cast_magic_shield(s, f["wiz"])
+	var zones := s.status_zones()
+	assert_eq(zones.size(), 1, "結界1つ")
+	var z: Dictionary = zones[0]
+	var hexes: Array = z["hexes"]
+	assert_eq(hexes.size(), 7, "中心＋周囲6＝7ヘクス")
+	assert_true(f["center"] in hexes, "中心は発動者の位置")
+	assert_eq(int(z["team"]), 0, "張った陣営")
+	assert_eq(String(z["skill"]), "magic_shield", "スキルID")
+	assert_eq(String(z["fx"]), "barrier", "盤の見た目")
+	s.end_turn()
+	assert_eq(s.status_zones().size(), 1, "敵ターン中は残る")
+	s.end_turn()
+	assert_true(s.status_zones().is_empty(), "次の自軍ターン開始で消える")

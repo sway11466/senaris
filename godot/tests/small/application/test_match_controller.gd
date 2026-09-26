@@ -627,3 +627,188 @@ func test_finishing_capture_does_not_talk() -> void:
 	assert_signal_emitted(mc, "battle_finished")
 	assert_signal_not_emitted(mc, "event_fired", "決着した占領では会話を出さない")
 
+
+# --- ターン開始の毒・パッシブスキル（dots_ticked / passives_fired）。詳細 → doc/gdd/skills.md ---
+
+## 検知半径を固定値で返すスタブAI（受け取った駒も控える）。
+class RadiusBrain extends AiBrain:
+	var radius := 0
+	var asked: Unit = null
+	func detection_radius(_state: BattleState, unit: Unit) -> int:
+		asked = unit
+		return radius
+
+## 敵のターン開始で毒とパッシブが同時に起きる盤。自軍のスコーピオンが隣の敵に毒を掛け、
+## 離れた所にチャージが溜まりかけた敵スライム（次の敵ターン開始で分裂）。両軍とも駒が残る＝決着しない。
+func _dot_and_passive_state() -> BattleState:
+	var s := BattleState.new(10, 8)
+	var c := Hex.offset_to_axial(2, 3)
+	var scorpion := Unit.new(1, 0, c, 5, 8, 50, 70, 1, "knight")
+	scorpion.skin_id = "scorpion"
+	var foe := Unit.new(2, 1, Hex.neighbor(c, 0), 6, 8, 50, 40, 1, "fighter")
+	var slime := Unit.new(3, 1, Hex.offset_to_axial(7, 5), 2, 8, 20, 20, 1, "slime")
+	slime.skin_id = "slime"
+	slime.move_type = "foot"
+	for u in [scorpion, foe, slime]:
+		s.add_unit(u)
+	s.set_charge(slime.handle, "slime_split", 2)
+	var sting: FormationOption = null
+	for o in Formation.available_for(s, scorpion):
+		if o.skill == "poison_sting":
+			sting = o
+	assert_not_null(sting, "前提: スコーピオンが毒を撃てる")
+	assert_not_null(FormationResolver.resolve(s, sting, foe.pos), "前提: 隣の敵に毒が掛かる")
+	return s
+
+func test_turn_start_emits_dots_then_passives() -> void:
+	var s := _dot_and_passive_state()
+	var mc := _mc(s)
+	var order: Array[String] = []
+	mc.dots_ticked.connect(func(_r: Array[Dictionary]) -> void: order.append("dots"))
+	mc.passives_fired.connect(func(_r: Array[Dictionary]) -> void: order.append("passives"))
+	mc.end_turn()  # 敵ターン開始＝毒で減り、スライムが分裂する
+	assert_eq(order, ["dots", "passives"] as Array[String], "毒が先・パッシブが後（domain と同じ順）")
+	assert_signal_emit_count(mc, "dots_ticked", 1)
+	assert_signal_emit_count(mc, "passives_fired", 1)
+	assert_eq(get_signal_parameters(mc, "dots_ticked")[0], s.last_dot_results, "毒の結果をそのまま渡す")
+	assert_eq(get_signal_parameters(mc, "passives_fired")[0], s.last_passive_results, "パッシブの結果をそのまま渡す")
+
+func test_turn_start_shows_dots_before_passives() -> void:
+	# 盤で見せる順も毒→パッシブ。ターンの帯（turn_start_pace）の後に見せる。
+	var s := _dot_and_passive_state()
+	var mc := _mc(s)
+	var order: Array[String] = []
+	mc.turn_start_pace = func() -> void: order.append("banner")
+	mc.dot_pace = func(_r: Array[Dictionary]) -> void: order.append("dot")
+	mc.passive_pace = func(_r: Array[Dictionary]) -> void: order.append("passive")
+	mc.end_turn()
+	assert_eq(order, ["banner", "dot", "passive"] as Array[String], "帯→毒→パッシブの順に見せる")
+
+func test_turn_start_without_dots_or_passives_is_silent() -> void:
+	var s := BattleState.new(8, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	var mc := _mc(s)
+	mc.end_turn()
+	assert_signal_not_emitted(mc, "dots_ticked", "何も減らないターンは飛ばない")
+	assert_signal_not_emitted(mc, "passives_fired", "何も発動しないターンは飛ばない")
+
+# --- enter_base（unit_entered_base） ---
+
+func test_enter_base_emits_unit_entered_base() -> void:
+	var s := BattleState.new(12, 8)
+	var hex := Hex.offset_to_axial(4, 4)
+	s.add_base(Base.new(hex, 0))  # 自軍の拠点
+	s.add_unit(Unit.new(1, 0, hex, 3))                            # 拠点の上に立つ駒
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(1, 1), 3))      # 入っても盤上に残る自軍
+	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(10, 6), 3))
+	var mc := _mc(s)
+	assert_true(mc.enter_base(1), "自軍拠点の上の駒は入れる")
+	assert_signal_emitted_with_parameters(mc, "unit_entered_base", [1, hex])
+	assert_null(s.unit_by_handle(1), "入った駒は盤上から消える")
+
+func test_enter_base_off_base_fails_without_signal() -> void:
+	var s := BattleState.new(12, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(4, 4), 3))  # 拠点の無いマス
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(1, 1), 3))
+	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(10, 6), 3))
+	var mc := _mc(s)
+	assert_false(mc.enter_base(1), "拠点の無いマスでは入れない")
+	assert_false(mc.enter_base(99), "居ない駒は false")
+	assert_signal_not_emitted(mc, "unit_entered_base")
+
+# --- 表示用の問い合わせ（状態を変えずに BattleState / AI へ委ねる） ---
+
+func test_detection_radius_delegates_to_brain() -> void:
+	var s := BattleState.new(8, 8)
+	var e := Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(e)
+	var mc := _mc(s)
+	assert_eq(mc.detection_radius(e), 0, "AI の無い陣営は 0（索敵範囲を出さない）")
+	var brain := RadiusBrain.new()
+	brain.radius = 4
+	mc.ai_brain = brain
+	assert_eq(mc.detection_radius(e), 4, "AI の検知半径をそのまま返す")
+	assert_eq(brain.asked, e, "問い合わせた駒を AI へ渡す")
+
+func test_reachable_for_matches_state() -> void:
+	var s := BattleState.new(8, 8)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	var mc := _mc(s)
+	var cells := mc.reachable_for(1)
+	assert_false(cells.is_empty(), "前提: 移動先がある")
+	assert_eq(cells, s.reachable(1), "盤の移動範囲と一致")
+	assert_eq(s.unit_by_handle(1).pos, Hex.offset_to_axial(2, 2), "問い合わせで駒は動かない")
+
+func test_attack_targets_for_matches_state() -> void:
+	var s := BattleState.new(8, 8)
+	var a := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3)
+	s.add_unit(a)
+	s.add_unit(Unit.new(2, 1, Hex.neighbor(a.pos, 0), 3))  # 隣＝攻撃できる
+	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(7, 7), 3))  # 遠い＝攻撃できない
+	var mc := _mc(s)
+	assert_eq(mc.attack_targets_for(1), [2] as Array[int], "隣の敵だけが対象")
+	assert_eq(mc.attack_targets_for(1), s.attack_targets(1), "盤の攻撃対象と一致")
+
+func test_deploy_cells_for_matches_state() -> void:
+	var s := BattleState.new(12, 8)
+	var b := Base.new(Hex.offset_to_axial(5, 5), 0)
+	b.garrison.append(Unit.new(42, 0, Vector2i.ZERO, 2))
+	s.add_base(b)
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 1), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(10, 6), 3))
+	var mc := _mc(s)
+	var cells := mc.deploy_cells_for(b.hex)
+	assert_false(cells.is_empty(), "前提: 出撃先がある")
+	assert_eq(cells, s.deploy_cells(b.hex), "盤の出撃先と一致")
+	assert_eq(mc.deploy_cells_for(b.hex, 0), s.deploy_cells(b.hex, 0), "控えを指定しても一致")
+	assert_eq(b.garrison.size(), 1, "問い合わせで控えは出ない")
+
+func test_unload_cells_for_matches_state() -> void:
+	var s := BattleState.new(12, 8)
+	var t := Unit.new(1, 0, Hex.offset_to_axial(5, 4), 3)
+	t.capacity = 2
+	s.add_unit(t)
+	s.put_passenger(t.handle, Unit.new(2, 0, Vector2i.ZERO, 2))
+	s.add_unit(Unit.new(3, 1, Hex.offset_to_axial(10, 6), 3))
+	var mc := _mc(s)
+	var cells := mc.unload_cells_for(1, 0)
+	assert_false(cells.is_empty(), "前提: 降車先がある")
+	assert_eq(cells, s.unload_cells(1, 0), "盤の降車先と一致")
+	assert_eq(s.passengers(1).size(), 1, "問い合わせで降りない")
+
+# --- force_event（デバッグメニュー「イベントを起こす」）。詳細 → doc/gdd/uiux.md ---
+
+## まだ来ない（ターン5）自軍の増援イベント。
+func _future_event() -> StageEvent:
+	var ev := StageEvent.new()
+	ev.id = "late"
+	ev.turn = 5
+	ev.team = 0
+	ev.dialogue = "arrive"
+	var item := EventUnit.new()
+	item.unit = Unit.new(3, 0, Hex.offset_to_axial(4, 4), 3)
+	ev.units = [item]
+	return ev
+
+func test_force_event_fires_the_event() -> void:
+	var s := BattleState.new(8, 8)
+	s.set_movement(Movement.load_default())
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(6, 6), 3))
+	var ev := _future_event()
+	s.add_event(ev)
+	var mc := _mc(s)
+	mc.force_event(ev)
+	assert_signal_emit_count(mc, "event_fired", 1, "引き金を待たずに1回流れる")
+	var info: Dictionary = get_signal_parameters(mc, "event_fired", 0)[0]
+	assert_eq(String(info["id"]), "late")
+	assert_eq(String(info["dialogue"]), "arrive", "台本キーを渡す")
+	assert_eq(info["hex"], Hex.offset_to_axial(4, 4), "カメラの行き先は駒が出た場所")
+	assert_eq(info["units"], [3], "出た駒の id を渡す")
+	assert_not_null(s.unit_by_handle(3), "増援の駒が盤に出る")
+	assert_true(s.pending_events().is_empty(), "未発生の控えから抜ける")
+	mc.force_event(ev)
+	assert_signal_emit_count(mc, "event_fired", 1, "起きたイベントはもう一度起こせない")

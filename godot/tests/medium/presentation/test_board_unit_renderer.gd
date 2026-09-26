@@ -81,13 +81,32 @@ func test_has_unit_node_false_when_empty() -> void:
 func test_get_unit_node_null_when_empty() -> void:
 	assert_null(renderer.get_unit_node(42), "存在しない id は null")
 
-func test_forget_unit_on_nonexistent_does_not_crash() -> void:
-	renderer.forget_unit(99)
-	assert_true(true, "存在しない id を forget してもクラッシュしない")
+## 駒ノードを1つ追跡に載せる（生成経路は state が要るので、追跡辞書へ直接置く）。
+func _track_unit(uid: int) -> Node3D:
+	var n := Node3D.new()
+	renderer.add_child(n)
+	renderer._unit_nodes[uid] = n
+	return n
 
-func test_remove_unit_on_nonexistent_does_not_crash() -> void:
-	renderer.remove_unit(99)
-	assert_true(true, "存在しない id を remove してもクラッシュしない")
+func test_forget_unit_drops_tracking_but_keeps_node() -> void:
+	# forget＝追跡から外すだけ。ノードは呼び出し側が演出のあと片付ける（シーンには残る）。
+	var n := _track_unit(7)
+	var other := _track_unit(8)
+	renderer.forget_unit(7)
+	assert_false(renderer.has_unit_node(7), "追跡から外れる")
+	assert_eq(n.get_parent(), renderer, "ノードはシーンに残る")
+	assert_eq(renderer.get_unit_node(8), other, "他の駒はそのまま")
+	n.free()
+
+func test_remove_unit_drops_tracking_and_node() -> void:
+	var n := _track_unit(7)
+	var other := _track_unit(8)
+	renderer.remove_unit(7)
+	assert_false(renderer.has_unit_node(7), "追跡から外れる")
+	assert_ne(n.get_parent(), renderer, "シーンから外れる")
+	assert_eq(renderer.get_unit_node(8), other, "他の駒はそのまま")
+	await get_tree().process_frame
+	assert_false(is_instance_valid(n), "ノードは消される")
 
 # --- clear_target_markers ---
 

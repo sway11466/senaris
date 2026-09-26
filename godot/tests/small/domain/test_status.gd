@@ -35,6 +35,21 @@ func test_debuff_count_counts_only_this_units_debuffs() -> void:
 	s.clear_debuffs(u)
 	assert_eq(s.debuff_count(u), 0, "ピュリファイで落ちた分は数からも消える")
 
+func test_buff_count_skips_team_wide_grace() -> void:
+	# debuff_count の裏返し。敵AIの強化の stack 条件が読む。数えるのは対象1体に掛かった強化だけ＝
+	# 陣営全体に掛かった補正（グレイス）と弱体は数えない。詳細 → doc/gdd/ai.md stack 条件
+	var s := _state()
+	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3, 8, 30, 30)
+	var v := Unit.new(2, 0, Hex.offset_to_axial(3, 2), 3, 8, 30, 30)
+	s.add_unit(u)
+	s.add_unit(v)
+	s.add_status_mod({"scope": "team", "team": 0, "owner_team": 0, "op": "mul", "target": "both", "value": 1.3, "kind": "buff", "skill": "grace", "remaining": 1})
+	assert_eq(s.buff_count(u), 0, "グレイス（陣営全体）だけなら0")
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 0, "op": "add", "target": "both", "value": 80, "kind": "buff", "remaining": 3})
+	s.add_status_mod({"scope": "unit", "handle": 1, "owner_team": 1, "op": "add", "target": "both", "value": -40, "kind": "debuff", "remaining": 3})
+	assert_eq(s.buff_count(u), 1, "対象1体に掛かった強化1本だけ（グレイスと弱体は数えない）")
+	assert_eq(s.buff_count(v), 0, "別の駒には効いていない")
+
 func test_target_filter() -> void:
 	var s := _state()
 	var u := Unit.new(1, 0, Hex.offset_to_axial(2, 2), 3, 8, 30, 30)

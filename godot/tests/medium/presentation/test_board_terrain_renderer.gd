@@ -57,15 +57,11 @@ func test_elev_caches_result() -> void:
 	renderer.elev(Vector2i(3, 4))
 	assert_true(renderer._elev_cache.has(Vector2i(3, 4)), "呼び出し後にキャッシュされる")
 
-# --- build_tiles / refresh_base_tiles（state 未設定）---
+# --- build_tiles（state 未設定）---
 
 func test_build_tiles_without_state_does_not_crash() -> void:
 	renderer.build_tiles()
 	assert_eq(renderer._tile_nodes.size(), 0, "state 未設定なら何もしない")
-
-func test_refresh_base_tiles_without_state_does_not_crash() -> void:
-	renderer.refresh_base_tiles()
-	assert_true(true, "state 未設定でもクラッシュしない")
 
 func test_build_tiles_clears_caches() -> void:
 	renderer._elev_cache[Vector2i(1, 2)] = 0.5

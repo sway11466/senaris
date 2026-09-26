@@ -274,6 +274,35 @@ func test_dread_expires_after_three_rounds() -> void:
 	s.end_turn()  # 3回ぶん使い切った次の発動側ターン＝満了
 	assert_almost_eq(Combat.attack_breakdown(s, foe, ghost).total, before, 0.001, "発動側ターン3回ぶんで切れる")
 
+## 重ねがけは足し合わさる＝-80 が2つで -160（ピクシーダストの符号反転）。詳細 → doc/gdd/skills.md 共通ルール
+func test_dread_stacking_adds_up() -> void:
+	var f := _dread_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	var second := Unit.new(5, 0, Hex.neighbor(foe.pos, 2), 5, 8, 10, 10, 1, "pixie")  # foe の隣の2体目
+	second.skin_id = "ghost"
+	s.add_unit(second)
+	assert_not_null(FormationResolver.resolve(s, _dread_option(f), foe.pos), "1体目が発動")
+	var o2: FormationOption = null
+	for o in Formation.available_for(s, second):
+		if o.skill == "dread_touch":
+			o2 = o
+	assert_not_null(o2, "2体目も撃てる")
+	assert_not_null(FormationResolver.resolve(s, o2, foe.pos), "同じ相手に重ねられる")
+	assert_almost_eq(float(s.status_aggregate(foe, "attack")["add"]), -160.0, 0.001, "攻撃に -160")
+	assert_almost_eq(float(s.status_aggregate(foe, "defense")["add"]), -160.0, 0.001, "防御にも -160")
+
+## 減算で実効攻撃力が 0 以下になった駒は削れない（攻撃0＝損害0）。詳細 → doc/gdd/skills.md ドレッドタッチ
+func test_dread_attack_floor_deals_no_loss() -> void:
+	var f := _dread_state()
+	var s: BattleState = f["s"]
+	var foe: Unit = f["foe"]
+	var ghost: Unit = f["ghost"]
+	foe.troops = 1  # 素の実効攻撃力 1×50＝50 に -80
+	assert_gt(Combat.casualties(s, foe, ghost), 0, "前提: 掛ける前は削れる")
+	assert_not_null(FormationResolver.resolve(s, _dread_option(f), foe.pos), "発動成功")
+	assert_eq(Combat.casualties(s, foe, ghost), 0, "攻撃が0を割れば損害0")
+
 # --- ヴェノムファング（単体弱体・係数型）---
 
 # ロックサーペント1体＋隣接する敵＋離れた敵＋隣接する味方。caster=rock_serpent(id1)。
@@ -910,3 +939,27 @@ func test_sting_survives_serialization() -> void:
 	restored.apply_save_diff(s.to_save_diff())
 	restored.end_turn()
 	assert_eq(restored.unit_by_handle(foe.handle).troops, 7, "復元後もターン開始で減る")
+
+# --- 発動者のレベル（共通ルール）---
+
+## アクティブなユニットスキルは着弾が無くても発動者が Lv+1（戦ったら+1 の前半だけ）。
+## 効果の型（加算の強化・加算の弱体・係数の弱体・継続ダメージ）によらず同じ。詳細 → doc/gdd/skills.md 共通ルール
+func test_unit_skill_caster_gains_one_level() -> void:
+	var dust := _dust_state()
+	var dread := _dread_state()
+	var venom := _venom_state()
+	var sting := _sting_state()
+	var cases := [
+		[dust, dust["pixie"], _dust_option(dust), dust["near"]],
+		[dread, dread["ghost"], _dread_option(dread), dread["foe"]],
+		[venom, venom["serpent"], _venom_option(venom), venom["foe"]],
+		[sting, sting["scorpion"], _sting_option(sting), sting["foe"]],
+	]
+	for c in cases:
+		var s: BattleState = c[0]["s"]
+		var caster: Unit = c[1]
+		var o: FormationOption = c[2]
+		var target: Unit = c[3]
+		assert_not_null(FormationResolver.resolve(s, o, target.pos), "%s 発動成功" % o.skill)
+		assert_eq(caster.level, 2, "%s: 発動者は Lv+1" % o.skill)
+		assert_eq(target.level, 1, "%s: 掛けられた側のレベルは動かない" % o.skill)

@@ -559,13 +559,19 @@ func test_oversized_terrain_lines_do_not_leak_past_the_board() -> void:
 	assert_eq(s.terrain_at(Hex.offset_to_axial(0, 2)), "plain", "盤の下外は既定のまま")
 
 func test_stage_files_declare_margin_explicitly() -> void:
-	# 既定値に頼らない方針＝盤を持つステージJSONは margin を必ず書く（doc/gdd/map.md）
+	# 既定値に頼らない方針＝ステージは margin を必ず書く（doc/gdd/map.md）。
+	# margin は terrain と一緒に地形ファイル（<ステージ>.terrain.json）が持つ＝そちらを見る（本体には書かない）。
+	var entries := _all_stage_files()
+	assert_gt(entries.size(), 0, "前提：ステージが見つかる")
 	var missing: Array[String] = []
-	for entry in _all_stage_files():
-		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(entry))
-		if typeof(d) == TYPE_DICTIONARY and d.has("terrain") and not d.has("margin"):
-			missing.append(entry)
-	assert_eq(missing, [] as Array[String], "margin を書いていないステージがある")
+	for entry in entries:
+		var tpath := StageLoader.terrain_path(entry)
+		var d: Variant = null
+		if FileAccess.file_exists(tpath):
+			d = JSON.parse_string(FileAccess.get_file_as_string(tpath))
+		if typeof(d) != TYPE_DICTIONARY or not d.has("margin"):
+			missing.append(tpath)
+	assert_eq(missing, [] as Array[String], "margin を書いていない地形ファイルがある")
 
 ## data/stages/ 以下のステージJSON（冒険譚マニフェスト campaign.json は盤を持たないので除く）。
 func _all_stage_files() -> Array[String]:

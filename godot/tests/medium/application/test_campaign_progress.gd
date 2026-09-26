@@ -190,3 +190,46 @@ func test_roster_source_reads_manifest() -> void:
 	assert_eq(p.roster_source("camp", "st2"), "st1")
 	assert_eq(p.roster_source("camp", "nope"), "", "未知のステージは空")
 	assert_eq(p.roster_source("nope", "st1"), "", "未知の冒険譚は空")
+
+# --- ランク・所要時間の記録（doc/gdd/rank.md 記録）。弾く入力 ---
+
+func test_record_rank_is_kept() -> void:
+	var p := _progress()
+	p.record_rank("camp", "st1", "A")
+	assert_eq(p.best_rank("camp", "st1"), "A", "ランクが記録される")
+
+func test_record_rank_empty_is_ignored() -> void:
+	var p := _progress()
+	p.record_rank("camp", "st1", "A")
+	p.record_rank("camp", "st1", "")
+	assert_eq(p.best_rank("camp", "st1"), "A", "空のランク（ランクを持たないステージ）では書き換えない")
+
+func test_record_rank_debug_or_unknown_is_ignored() -> void:
+	var p := _progress()
+	p.record_rank("dbg", "d1", "S")
+	p.record_rank("camp", "no-such-stage", "S")
+	p.record_rank("no-such-camp", "st1", "S")
+	assert_eq(p.best_rank("dbg", "d1"), "", "デバッグ冒険譚は記録しない")
+	assert_eq(p.best_rank("camp", "no-such-stage"), "", "未知のステージは記録しない")
+	assert_eq(p.best_rank("no-such-camp", "st1"), "", "未知の冒険譚は記録しない")
+
+func test_record_time_is_kept() -> void:
+	var p := _progress()
+	p.record_time("camp", "st1", 120)
+	assert_eq(p.best_time("camp", "st1"), 120, "所要時間が記録される")
+
+func test_record_time_non_positive_is_ignored() -> void:
+	var p := _progress()
+	p.record_time("camp", "st1", 0)
+	p.record_time("camp", "st1", -5)
+	assert_eq(p.best_time("camp", "st1"), 0, "0 以下（測れていない）は記録しない")
+	p.record_time("camp", "st1", 90)
+	p.record_time("camp", "st1", 0)
+	assert_eq(p.best_time("camp", "st1"), 90, "測れていない回でベストを潰さない")
+
+func test_record_time_debug_or_unknown_is_ignored() -> void:
+	var p := _progress()
+	p.record_time("dbg", "d1", 60)
+	p.record_time("camp", "no-such-stage", 60)
+	assert_eq(p.best_time("dbg", "d1"), 0, "デバッグ冒険譚は記録しない")
+	assert_eq(p.best_time("camp", "no-such-stage"), 0, "未知のステージは記録しない")
