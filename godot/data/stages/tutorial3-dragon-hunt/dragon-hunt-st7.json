@@ -21,26 +21,21 @@
   ],
   "enemy": [
     { "order": 1, "name": "dragon-hunt.st7.squad.1", "ai": "withdraw", "retreat": 1,
-      "units": [ { "skin": "red_dragon", "unit_id": "dragon", "col": 24, "row": 6 } ] },
-    { "order": 2, "name": "dragon-hunt.st7.squad.2", "ai": "charge",
+      "units": [ { "skin": "red_dragon", "unit_id": "dragon", "col": 30, "row": 2 } ] },
+    { "order": 2, "name": "dragon-hunt.st7.squad.2", "ai": "charge", "units": [] },
+    { "order": 3, "name": "dragon-hunt.st7.squad.3", "ai": "ambush", "sight": 8, "units": [] },
+    { "order": 4, "name": "dragon-hunt.st7.squad.4", "ai": "charge", "stack": 1,
       "units": [
-        { "skin": "griffon", "col": 6, "row": 2 },
-        { "skin": "griffon", "col": 30, "row": 2 },
-        { "skin": "griffon", "col": 16, "row": 2 }
-      ] },
-    { "order": 3, "name": "dragon-hunt.st7.squad.3", "ai": "ambush", "sight": 8,
-      "units": [
-        { "skin": "wyrm", "col": 25, "row": 12 },
-        { "skin": "wyrm", "col": 23, "row": 12 }
-      ] },
-    { "order": 4, "name": "dragon-hunt.st7.squad.4", "ai": "ambush", "sight": 4, "stack": 1,
-      "units": [
-        { "skin": "scorpion", "col": 14, "row": 13 },
-        { "skin": "scorpion", "col": 14, "row": 12 }
+        { "skin": "rock_serpent", "col": 34, "row": 10 },
+        { "skin": "rock_serpent", "col": 33, "row": 9 },
+        { "skin": "rock_serpent", "col": 33, "row": 10 },
+        { "skin": "rock_serpent", "col": 0, "row": 10 },
+        { "skin": "rock_serpent", "col": 1, "row": 9 },
+        { "skin": "rock_serpent", "col": 1, "row": 10 }
       ] }
   ],
   "bases": [
-    { "col": 24, "row": 6, "team": "enemy", "rest": "enemy", "garrison": [] }
+    { "col": 30, "row": 2, "team": "enemy", "rest": "enemy", "garrison": [] }
   ],
   "victory": [
     { "type": "defeat_unit",
