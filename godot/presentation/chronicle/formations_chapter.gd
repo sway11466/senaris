@@ -71,17 +71,14 @@ func _cutin_art(skill_id: String) -> Control:
 		return _art_placeholder(tr("skill.%s.name" % skill_id))
 	return _art_rect(tex, false)
 
-## 未解放の面＝要るユニットの盤の絵を黒塗りで人数ぶん横に並べる。切り抜いて枠に収める＝
+## 未解放の面＝要るユニットの盤の絵を黒塗りで人数ぶん横に並べる。切り抜いて高さを揃えて枠に収める＝
 ## 5人並ぶ紙でも重ならず、ユニット章の格子のような大小関係は付けない（doc/gdd/chronicle.md 陣形スキル）。
 func _hint_face(skill_id: String) -> Control:
-	var row := HBoxContainer.new()
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_theme_constant_override("separation", HINT_GAP)
+	var texes: Array = []
 	for skin in _figure_skins(skill_id):
-		var art := _skin_art(skin, "map", true)
-		art.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		art.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		row.add_child(art)
+		texes.append(_skin_texture(skin, "map"))
+	var row := ChronicleHintRow.new()
+	row.setup(texes, HINT_GAP, tr("ui.chronicle.unknown"))
 	return row
 
 ## 図と黒塗りに使う顔ぶれ＝人数ぶんの UnitSkin。先頭が発動者（発動者になれる駒の先頭で代表）、
