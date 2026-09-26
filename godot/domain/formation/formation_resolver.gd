@@ -119,7 +119,8 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 		state.set_charge(option.caster_id, option.skill, 0)
 	# 演出が要る情報を添える（→ doc/gdd/formations.md 発動の演出）。着弾中心と面は駒の有無に
 	# よらない＝空hexも光らせて面の広さを見せるため、hits ではなくレシピの形から出す。
-	out.cells = Formation.blast_cells(option, target)
+	# 扇（ドラゴンブレス）は発動者の位置で向きが決まる＝発動前に控えた caster を渡す（撃破されない＝盤に居る）。
+	out.cells = Formation.blast_cells(option, target, caster.pos if caster != null else Formation.NO_HEX)
 	out.cells.append_array(spawn_cells)  # 分裂で出た位置も光らせる（→ doc/gdd/skills.md スライムスプリット）
 	out.cast = cast
 	# バックスタブ＝着弾を済ませてから発動者をこのターンの移動開始位置へ戻す（刺して消える）。

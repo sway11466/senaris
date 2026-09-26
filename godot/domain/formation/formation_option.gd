@@ -48,6 +48,11 @@ var max_range: int            ## 射程上限（ヘックス数）
 var min_range: int            ## 射程下限（ヘックス数）。0＝下限なし（隣接にも撃てる）
 var range_from: RangeFrom
 var radius: int               ## 面攻撃の半径（AREA のみ）
+## 面の形。""＝着弾中心から radius の円／"cone"＝発動者から着弾先の向きに広がる扇の8ヘクス
+## （ドラゴンブレス）。詳細 → Formation.blast_cells, doc/gdd/skills.md ドラゴンブレス
+var area_shape: String
+## 威力のユニット攻撃力をレシピの固定値で上書きする。0＝上書きしない（ドラゴンブレス＝40）。
+var attack_override: int
 ## 威力に使うユニット攻撃力の選び方。"ground"＝常に対地値（既定。設計原則3）／"target"＝相手が
 ## 飛行なら対空値・地上なら対地値（矢のレシピ＝トリックショット・アローレイン・マジックアローの例外）。詳細 → doc/gdd/formations.md 設計原則3
 var attack_vs: String
@@ -100,7 +105,7 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	# 対象1体のスキルが味方向きか敵向きか（Formation.can_target の絞り込み）。既定は味方。
 	o.side = _id_to_enum(SIDE_IDS, String(r.get("buff_side", "ally")), "buff_side")
 	o.max_range = int(r.get("range", 0))
-	o.min_range = 0
+	o.min_range = int(r.get("min_range", 0))  # ドラゴンブレス＝1（自分のヘクスへは吐けない）
 	# 射程をレシピの固定値ではなく参加者の性能から引くレシピ。固定の "range" とは排他。
 	#   "caster"（トリックショット）＝弓兵の通常射程（下限〜上限）がそのままスキルの射程になる。
 	#   "max_plus"（マジックアロー）＝参加者の射程上限の長い方＋range_plus。下限は無し（隣接にも撃てる）。
@@ -117,6 +122,8 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 			o.min_range = 0
 	o.range_from = _id_to_enum(RANGE_FROM_IDS, String(r.get("range_from", "caster")), "range_from")
 	o.radius = int(r.get("radius", 0))
+	o.area_shape = String(r.get("area_shape", ""))
+	o.attack_override = int(r.get("attack_override", 0))
 	o.attack_vs = String(r.get("attack_vs", "ground"))
 	o.pierce_override = float(r.get("pierce_override", -1.0))
 	o.attack_from_stats = String(r.get("attack_from_stats", ""))

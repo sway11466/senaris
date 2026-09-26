@@ -1722,3 +1722,51 @@ func test_a_stuck_piece_still_raises_the_alarm() -> void:
 	assert_true(s.is_engaged(watcher.handle), "手詰まりでも視線内の敵で行動開始する")
 	assert_not_null(a, "一斉警戒で部隊の仲間が起きる")
 	assert_eq(a.handle, far.handle, "動くのは輪の外の仲間")
+
+# --- 面を焼くスキル（ドラゴンブレス）。詳細 → doc/gdd/ai.md スキル対象 ---
+
+## 撤退の竜（チャージ満タン）を盤の中央に置く。
+func _breath_dragon(s: BattleState) -> Unit:
+	var si := _squad(s, "withdraw", { "retreat": 1 })
+	var dragon := _skin(_ai(s, si, 10, 6, 6, 0), "red_dragon")
+	s.set_charge(dragon.handle, "dragon_breath", 3)
+	return dragon
+
+## 竜から dir の向きの扇で、offs 番目（Formation.cone_cells の並び）のヘクスにプレイヤーの駒を置く。
+func _pc_in_cone(s: BattleState, dragon: Unit, dir: int, offs: int, id: int) -> Unit:
+	var h := Formation.cone_cells(dragon.pos, dragon.pos + Hex.direction(dir))[offs]
+	return _pc(s, id, _col(h), _row(h))
+
+func test_breath_faces_where_most_enemies_are() -> void:
+	var s := BattleState.new(13, 13)
+	s.current_team = 1
+	var dragon := _breath_dragon(s)
+	_pc_in_cone(s, dragon, 1, 0, 1)   # 隣＝1体だけの向き（近い）
+	_pc_in_cone(s, dragon, 4, 4, 2)   # 反対側の向きに2体（遠い）
+	_pc_in_cone(s, dragon, 4, 7, 3)
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.kind, AiAction.Kind.SKILL, "扇に敵が入れば吐く")
+	assert_eq(a.to, dragon.pos + Hex.direction(4), "敵が最も多く入る向き")
+
+func test_breath_ignores_own_allies_in_the_cone() -> void:
+	var s := BattleState.new(13, 13)
+	s.current_team = 1
+	var dragon := _breath_dragon(s)
+	_pc_in_cone(s, dragon, 1, 1, 1)
+	var h := Formation.cone_cells(dragon.pos, dragon.pos + Hex.direction(1))[0]
+	var mate := _u(20, 1, _col(h), _row(h), 0)  # 同じ向きの1列目に竜の仲間（巻き込みは気にしない）
+	s.add_unit(mate)
+	s.assign_squad(mate.handle, 0)
+	s.set_done(mate.handle)  # 手番は竜に回す
+	var a := _brain.next_action(s, 1)
+	assert_eq(a.handle, dragon.handle, "前提: 動くのは竜")
+	assert_eq(a.kind, AiAction.Kind.SKILL, "仲間を巻き込んでも吐く")
+	assert_eq(a.to, dragon.pos + Hex.direction(1))
+
+func test_breath_not_cast_when_no_enemy_in_any_cone() -> void:
+	var s := BattleState.new(13, 13)
+	s.current_team = 1
+	var dragon := _breath_dragon(s)
+	_pc(s, 1, 0, 0)  # どの扇にも入らない遠くの敵
+	var a := _brain.next_action(s, 1)
+	assert_true(a == null or a.kind != AiAction.Kind.SKILL, "扇に敵が居なければ吐かない")

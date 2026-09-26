@@ -15,6 +15,7 @@ skill.dread_touch.name,ドレッドタッチ,Dread Touch
 skill.venom_fang.name,ヴェノムファング,Venom Fang
 skill.poison_sting.name,ポイズンスティング,Poison Sting
 skill.slime_split.name,スライムスプリット,Slime Split
+skill.dragon_breath.name,ドラゴンブレス,Dragon Breath
 skill_group.bow.name,弓攻撃,Bow Attack
 skill_group.magic.name,魔法攻撃,Magic Attack
 skill_group.buff.name,強化,Buff
@@ -35,3 +36,4 @@ skill.dread_touch.desc,隣の敵1体の攻撃力・防御力から、発動し�
 skill.venom_fang.desc,隣の敵1体の攻撃力・防御力に 0.9 を掛ける。重ねると掛け合わさる。発動側ターン3回ぶん続く。,Multiplies the Attack and Defense of one adjacent enemy by 0.9. Stacks multiply together. Lasts 3 of the caster's turns.
 skill.poison_sting.desc,隣の敵1体の兵数を、相手のターン開始ごとに1減らす。残兵1で止まる。発動側ターン3回ぶん続く。,"One adjacent enemy loses 1 troop at the start of each of its turns, down to a minimum of 1. Lasts 3 of the caster's turns."
 skill.slime_split.desc,自分の複製を1体、隣の空きマスに生む。兵数は発動時の自分と同じ。3ターン溜めると撃てる。,Spawns a copy of itself on an adjacent empty hex with the same troop count. Needs 3 turns to recharge.
+skill.dragon_breath.desc,吐く向きに広がる扇の8ヘクスを焼く（攻撃力40・防御半減）。自分以外は敵味方の別なく焼ける。3ターン溜めると撃てる。,"Scorches a fan of 8 hexes spreading in the chosen direction (Attack 40, halves Defense). Burns everyone but itself, friend or foe. Needs 3 turns to recharge."

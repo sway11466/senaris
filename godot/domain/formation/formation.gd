@@ -29,6 +29,11 @@ class_name Formation
 ## member_figure: 種別不問のレシピで、クロニクルの図と未解放の黒塗りに立てる相方の代表スキン。
 ## return_to_origin: 着弾後に発動者をこのターンの移動開始位置へ戻す（バックスタブ＝刺して消える）。
 ## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
+## area_shape: 面の形。省略＝着弾中心から radius の円／"cone"＝発動者から着弾先の向きに広がる扇の8ヘクス（ドラゴンブレス）。
+## attack_override: 威力のユニット攻撃力をレシピの固定値で上書きする（ドラゴンブレス＝40）。
+## min_range: 射程の下限（省略＝0）。ドラゴンブレス＝1（自分のヘクスへは吐けない）。
+## cutin: ユニットスキルでもカットインを出す（省略＝陣形は出す・ユニットスキルは出さない）。ドラゴンブレス。
+## impact_spread: 盤の着弾を発動者から近い列から順にヘクスごとに広げる（ドラゴンブレス＝火が扇状に広がる）。
 ## buff_scope: 補正の掛かる範囲＝"team"（グレイス）／"participants"（シールドウォール・カウンター）／"unit"（ユニットスキル）／
 ##        "zone"（マジックシールド＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
 ## pierce_immune: その補正が効いている駒は貫通を受けない（攻撃側の pierce を 0 扱い＝マジックシールド）。
@@ -373,6 +378,31 @@ const SKILLS := {
 		"range_from": "caster",
 		"charge_turns": 3,  # 盤に出た直後は撃てない。3ターン溜めてから発動。詳細 → doc/gdd/skills.md
 	},
+	"dragon_breath": {
+		"name": "ドラゴンブレス",
+		"caster_skins": ["red_dragon"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"activation": "active",
+		# 面を焼くユニットスキル。着弾先は吐く向き＝隣接6ヘクスのどれか（自分のヘクスは選べない）。
+		# 面は発動者から向きに広がる扇の8ヘクス（area_shape "cone"）。発動者以外は敵味方の別なく焼ける。
+		# 詳細 → doc/gdd/skills.md ドラゴンブレス
+		"effect": "area",
+		"area_shape": "cone",
+		"range": 1,
+		"min_range": 1,
+		"range_from": "caster",
+		# 威力は竜の攻撃力70ではなく 40・貫通率0.5（魔法攻撃扱い）＝トリニティノヴァ1発と同じ。
+		"attack_override": 40,
+		"pierce_override": 0.5,
+		"charge_turns": 3,
+		# ユニットスキルだがカットインを出す（共通ルールの例外＝3ターンに1回のボスの大技）。
+		"cutin": true,
+		# 盤の着弾は発動者から近い列から順にヘクスごとに火が付く（1列目→2列目→3列目）。
+		# 詳細 → doc/gdd/skills.md ドラゴンブレス
+		"impact_spread": true,
+	},
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
@@ -592,7 +622,7 @@ static func choice_has_target(state: BattleState, choice: FormationChoice, from_
 static func preview(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	var hits: Array = []
 	var participants := option.participants
-	for hx in blast_cells(option, target):
+	for hx in blast_cells(option, target, caster_pos_of(state, option)):
 		var victim := state.unit_at(hx)
 		if victim != null and not (victim.handle in participants):
 			hits.append(_formation_hit(state, option, victim))
@@ -600,13 +630,36 @@ static func preview(state: BattleState, option: FormationOption, target: Vector2
 
 ## 着弾する面＝効果が及ぶヘックス（駒の有無によらない）。着弾の無いもの（バフ・解除）は空。
 ## 盤の演出が「どこに当たったか」を光らせるのに使う。詳細 → doc/gdd/formations.md 発動の演出
-static func blast_cells(option: FormationOption, target: Vector2i) -> Array[Vector2i]:
+## caster_pos＝発動者の位置。扇（area_shape "cone"＝ドラゴンブレス）だけが読む＝向きを発動者から着弾先で決める。
+static func blast_cells(option: FormationOption, target: Vector2i, caster_pos := NO_HEX) -> Array[Vector2i]:
 	match option.effect:
 		FormationOption.Effect.AREA:
+			if option.area_shape == "cone":
+				return cone_cells(caster_pos, target)
 			return Hex.within_range(target, option.radius)
 		FormationOption.Effect.SINGLE:
 			return [target] as Array[Vector2i]
 	return [] as Array[Vector2i]
+
+## 扇の8ヘクス（ドラゴンブレス）。origin から隣の target へ向けて広がる。
+## 向き d と左右の隣の方向 d−／d＋ で、1列目 d／2列目 2d・d+d−・d+d＋／3列目 2d+d−・2d+d＋・d+2d−・d+2d＋
+## （正面の 3d は含まない）。target が隣でなければ空。詳細 → doc/gdd/skills.md ドラゴンブレス
+static func cone_cells(origin: Vector2i, target: Vector2i) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	var i := Hex.DIRECTIONS.find(target - origin)
+	if i < 0:
+		return out
+	var d := Hex.direction(i)
+	var dl := Hex.direction(i - 1)
+	var dr := Hex.direction(i + 1)
+	for off in [d, d * 2, d + dl, d + dr, d * 2 + dl, d * 2 + dr, d + dl * 2, d + dr * 2]:
+		out.append(origin + off)
+	return out
+
+## 発動者の盤上の位置（降車先を決めている搭乗駒もありうる）。居なければ NO_HEX。
+static func caster_pos_of(state: BattleState, option: FormationOption) -> Vector2i:
+	var c := state.unit_any(option.caster_id)
+	return c.pos if c != null else NO_HEX
 
 ## target が発動条件の射程内か（"any"＝参加者のどれか／"caster"＝発動者から）。
 ## from_hex＝発動者がそこに居ると仮定する（移動を確定する前の判定）。省略すると盤の実位置。
@@ -1081,6 +1134,9 @@ static func _skill_attack_breakdown(state: BattleState, caster: Unit, option: Fo
 ## 40＋10、空ではエルフ 60＋10 と、相手によって主役が入れ替わる。合算ではないので2人・単体でも壊れない。
 ## 対空／対地の切り替え（attack_vs）は参加者それぞれに掛ける。詳細 → doc/gdd/formations.md マジックアロー
 static func _skill_attack_stat(state: BattleState, caster: Unit, option: FormationOption, victim: Unit) -> int:
+	# レシピが固定値を持つもの（ドラゴンブレス＝40）は発動者の性能を見ない。
+	if option.attack_override > 0:
+		return option.attack_override
 	var by_target := option.attack_vs == "target"
 	var stat := caster.attack_against(victim) if by_target else caster.unit_attack
 	if option.attack_from_stats != "max_plus":

@@ -48,6 +48,14 @@ const RAIN_GAP_SEC := 0.07     # 同じヘックスに降る矢どうしの間�
 const RAIN_JITTER_SEC := 0.05  # 同・間隔の散らし幅
 const RAIN_SCATTER := 0.55     # ヘックス内の落ち先の散らし幅（ヘックス幅に対する割合）
 
+# --- 発動者から列ごとに広げる型のスキル専用（ドラゴンブレス。レシピの impact_spread）---
+# 発動者から近い列から順に、面のヘクスへ火を1つずつ付ける。駒は自分のヘクスに火が付いた瞬間に反応する。
+const SPREAD_STEP_SEC := 0.22  # 火が次の列へ広がる間隔（ドラゴンブレス。3列で約0.45秒）
+const FLAME_TILES := 1.3       # 火1つの大きさ（長辺がヘックス幅の何倍か）
+const FLAME_RISE_SEC := 0.14   # 足元から立ち上がるまで
+const FLAME_HOLD_SEC := 0.30   # 燃えている間（この間に被弾フラッシュ・撃破フェードが進む）
+const FLAME_FADE_SEC := 0.25   # 引き
+
 # --- 発動の印（着弾の無いレシピ専用＝シールドウォール）---
 # 着弾が無いレシピは盤で何も起きないので、誰に効いたのかが読めない。参加者の駒に絵を1枚ずつ
 # 重ねて、端から順に立てて短く消す。盤は解決した時点で更新済み＝印は出来上がった盤の上に乗る。
@@ -197,6 +205,11 @@ func play(result: SkillResult, is_locked: bool) -> void:
 		if rain_tex != null:
 			await _play_rain(result, rain_tex, is_locked, rain)
 			return
+	# 発動者から列ごとに広げる型（ドラゴンブレス）。当たった駒が居なくても火は広がる＝先に分ける。
+	# 絵が無くてもヘクスの光だけが同じ順に広がる。
+	if bool(Formation.SKILLS.get(result.skill, {}).get("impact_spread", false)):
+		await _play_spread(result, _impact_texture(result.skill), is_locked)
+		return
 	var hits := result.hits
 	if hits.is_empty():
 		await _flash_cells_only(result.cells, is_locked)
@@ -426,6 +439,79 @@ func _play_rain(result: SkillResult, tex: Texture2D, is_locked: bool, per_hex: i
 		return
 	_end_impact()
 	_sync_fn.call()
+
+
+## 発動者から列ごとに広げる型のスキル専用（ドラゴンブレス）：発動者から近い列から順に、面のヘクスへ
+## 火を1つずつ付ける（1列目 → 2列目 → 3列目）。被弾した駒は自分のヘクスに火が付いた瞬間に反応する
+## ＝共通シーケンスの「駒に1枚落として1体ずつ送る」は使わない。tex が null ならヘクスの光だけが広がる。
+## 詳細 → doc/gdd/skills.md ドラゴンブレス
+func _play_spread(result: SkillResult, tex: Texture2D, is_locked: bool) -> void:
+	var gen := _impact_gen
+	var st := FINISH_STRETCH if _finisher else 1.0
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)  # 演出中に盤を触らせない（共通シーケンスと同じ流儀）
+	await _wait(HIT_LEAD_SEC)  # 揺れと同時に火を付けない＝1つの衝撃に潰れる
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	var origin := result.caster.pos if result.caster != null else result.center
+	var victims := {}  # ヘクス → そこで被弾した駒
+	for h in result.hits:
+		victims[h.hex] = h
+	var waves := {}  # 発動者からの距離 → その列のヘクス
+	for c in result.cells:
+		var hex := Vector2i(c)
+		if _in_board_fn.call(hex):
+			var d := Hex.distance(hex, origin)
+			if not waves.has(d):
+				waves[d] = []
+			waves[d].append(hex)
+	var dists := waves.keys()
+	dists.sort()
+	var tail := maxf(FLAME_RISE_SEC + FLAME_HOLD_SEC + FLAME_FADE_SEC, HIT_FADE_SEC)
+	for i in dists.size():
+		# 光は最後の列が燃え尽きるまで保たせる＝面が見えたまま広がる。
+		var left := SPREAD_STEP_SEC * float(dists.size() - 1 - i) + tail
+		_flash_cells(waves[dists[i]], HIT_CELL_HOLD + left * st)
+		for hex in waves[dists[i]]:
+			if tex != null:
+				_spawn_flame(hex, tex, st)
+			var hit: SkillHit = victims.get(hex)
+			if hit != null:
+				_land_unit(hit.target_id, hit.killed, st)
+		await _wait((SPREAD_STEP_SEC if i < dists.size() - 1 else tail) * st)
+		if gen != _impact_gen:
+			_end_impact()
+			return
+	_end_impact()
+	_sync_fn.call()
+
+
+## 火を1つ、ヘクスの上に付ける。足元から立ち上がって燃え、少し置いてから引く。
+func _spawn_flame(hex: Vector2i, tex: Texture2D, stretch := 1.0) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
+	spr.render_priority = 6
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (FLAME_TILES * TILE) / maxf(longest, 1.0)
+	var height := float(tex.get_height()) * spr.pixel_size
+	var p := Hex.to_pixel(hex, TILE)
+	var foot := Vector3(p.x, _elev_fn.call(hex), p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	# 絵の下端をヘクスの足元に留めたまま縦に伸ばす＝下から立ち上がる（中心基準の拡大を持ち上げで打ち消す）。
+	var grow := func(k: float) -> void:
+		spr.scale = Vector3(1.0, k, 1.0)
+		spr.position = foot + Vector3(0.0, height * k * 0.5, 0.0)
+	grow.call(0.2)
+	add_child(spr)
+	var tw := _tween()
+	tw.tween_method(grow, 0.2, 1.0, FLAME_RISE_SEC * stretch).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(FLAME_HOLD_SEC * stretch)
+	tw.tween_property(spr, "modulate:a", 0.0, FLAME_FADE_SEC * stretch)
+	tw.tween_callback(spr.queue_free)
 
 
 ## 矢を1本、ヘックスの上から落とす。delay 秒待ってから落ち始め、着いたら on_land（あれば）を

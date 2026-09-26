@@ -321,7 +321,10 @@ func _on_formation_resolved(result: SkillResult) -> void:
 		_finisher_route = "formation"
 		$HexBoard.arm_finisher_impact()
 	var skill_id := result.skill
-	if Formation.is_unit_skill(skill_id):
+	var unit_skill := Formation.is_unit_skill(skill_id)
+	# 面を焼くユニットスキル（ドラゴンブレス）は陣形の着弾と同じ流れ（音・揺れ・面の光）で見せ、
+	# カットインだけ飛ばす。詳細 → doc/gdd/skills.md ドラゴンブレス
+	if unit_skill and not _is_area_skill(skill_id):
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
 		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
 		_update_aura()
@@ -334,7 +337,10 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	SfxPlayer.play_sfx(skill_id)
 	# 発動者のスキンは常に渡す。絵の名前に使うかはレシピ（cutin_per_caster）が決める。
 	var caster_skin := result.caster.skin_id if result.caster != null else ""
-	if _combat_view_shown() and _formation_cutin != null and _formation_cutin.play(skill_id, caster_skin):
+	# ユニットスキルはカットインを出さない。レシピが cutin を持つもの（ドラゴンブレス）だけ例外。
+	var with_cutin := not unit_skill or bool(Formation.SKILLS.get(skill_id, {}).get("cutin", false))
+	if with_cutin and _combat_view_shown() and _formation_cutin != null \
+			and _formation_cutin.play(skill_id, caster_skin):
 		await _formation_cutin.finished
 	SfxPlayer.play_sfx("%s_hit" % skill_id)
 	# 着弾＝揺れ → 面の光 → 被弾した駒を1体ずつ。揺れは画面全体（右の情報ボックスも同じ衝撃の下に
@@ -343,6 +349,10 @@ func _on_formation_resolved(result: SkillResult) -> void:
 		_shake_screen()  # 盤面の演出 OFF は揺れも出さない＝結果だけ
 	await $HexBoard.play_formation_impact(result)
 	_update_aura()
+
+## 面を焼くスキルか（レシピの effect が "area"）。
+static func _is_area_skill(skill_id: String) -> bool:
+	return String(Formation.SKILLS.get(skill_id, {}).get("effect", "")) == "area"
 
 ## クロニクル：拠点から出撃した駒を記録する。自軍の出撃も敵の拠点配備も含む。
 func _on_unit_deployed_chronicle(handle: int, _base_hex: Vector2i, _to: Vector2i) -> void:

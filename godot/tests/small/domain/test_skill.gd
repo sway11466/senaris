@@ -963,3 +963,93 @@ func test_unit_skill_caster_gains_one_level() -> void:
 		assert_not_null(FormationResolver.resolve(s, o, target.pos), "%s 発動成功" % o.skill)
 		assert_eq(caster.level, 2, "%s: 発動者は Lv+1" % o.skill)
 		assert_eq(target.level, 1, "%s: 掛けられた側のレベルは動かない" % o.skill)
+
+# --- ドラゴンブレス（扇状の面攻撃・チャージ3）。詳細 → doc/gdd/skills.md ドラゴンブレス ---
+
+# レッドドラゴン1体（敵 team=1・攻撃70）。いまは敵のターンで、チャージは charge。
+func _breath_state(charge := 3) -> Dictionary:
+	var s := _state()
+	s.current_team = 1
+	var dragon := Unit.new(1, 1, Hex.offset_to_axial(4, 1), 11, 8, 70, 50, 1, "dragon")
+	dragon.skin_id = "red_dragon"
+	s.add_unit(dragon)
+	s.set_charge(dragon.handle, "dragon_breath", charge)
+	return {"s": s, "dragon": dragon}
+
+func _breath_option(f: Dictionary) -> FormationOption:
+	for o in Formation.available_for(f["s"], f["dragon"]):
+		if o.skill == "dragon_breath":
+			return o
+	return null
+
+func test_breath_cone_is_eight_cells_in_the_facing() -> void:
+	var o := Vector2i(0, 0)
+	var d := Hex.direction(5)
+	var cells := Formation.cone_cells(o, o + d)
+	assert_eq(cells.size(), 8, "扇は8ヘクス")
+	var by_dist := {1: 0, 2: 0, 3: 0}
+	for h in cells:
+		by_dist[Hex.distance(o, h)] += 1
+	assert_eq(by_dist, {1: 1, 2: 3, 3: 4}, "1列目1・2列目3・3列目4")
+	assert_false(o + d * 3 in cells, "正面の3マス先は含まない")
+	assert_false(o in cells, "発動者のヘクスは含まない")
+	var expected: Array[Vector2i] = [o + d, o + d * 2, o + d + Hex.direction(4), o + d + Hex.direction(0),
+			o + d * 2 + Hex.direction(4), o + d * 2 + Hex.direction(0),
+			o + d + Hex.direction(4) * 2, o + d + Hex.direction(0) * 2]
+	for h in expected:
+		assert_true(h in cells, "扇に %s が入る" % h)
+	assert_eq(Formation.cone_cells(o, o + d * 2).size(), 0, "隣でない着弾先は向きにならない")
+
+func test_breath_waits_for_charge() -> void:
+	assert_null(_breath_option(_breath_state(2)), "チャージ2では撃てない")
+	assert_not_null(_breath_option(_breath_state(3)), "チャージ3で撃てる")
+
+func test_breath_not_by_other_skins() -> void:
+	var f := _breath_state()
+	(f["dragon"] as Unit).skin_id = "wyrm"
+	assert_null(_breath_option(f), "レッドドラゴン以外は吐けない")
+
+func test_breath_targets_are_the_six_neighbors() -> void:
+	var f := _breath_state()
+	var dragon: Unit = f["dragon"]
+	var cells := Formation.targetable_cells(f["s"], _breath_option(f))
+	assert_eq(cells.size(), 6, "向きは隣の6ヘクス")
+	for h in cells:
+		assert_eq(Hex.distance(dragon.pos, h), 1, "隣だけ（自分のヘクスは選べない）")
+
+func test_breath_uses_attack_40_and_pierce_half() -> void:
+	# 竜 兵8・攻撃は上書きで40 → 実効攻撃 320。ファイター 兵8・防40 → 貫通0.5で実効防御 160。
+	# 削る割合 320²/(320²+160²)=0.8 → 8×0.8=6.4 → 6。竜の攻撃70のままなら 7 になる。
+	var f := _breath_state()
+	var s: BattleState = f["s"]
+	var dragon: Unit = f["dragon"]
+	var front := dragon.pos + Hex.direction(5)
+	var fighter := Unit.new(9, 0, front + Hex.direction(5), 3, 8, 50, 40)
+	s.add_unit(fighter)
+	var res := FormationResolver.resolve(s, _breath_option(f), front)
+	assert_not_null(res, "発動成功")
+	assert_eq(res.hits.size(), 1, "扇の中の1体に当たる")
+	assert_eq(res.hits[0].loss, 6, "攻撃40・貫通0.5で6減る")
+	assert_eq(res.cells.size(), 8, "光らせる面は扇の8ヘクス")
+
+func test_breath_burns_allies_but_not_itself() -> void:
+	var f := _breath_state()
+	var s: BattleState = f["s"]
+	var dragon: Unit = f["dragon"]
+	var front := dragon.pos + Hex.direction(5)
+	var ally := Unit.new(5, 1, front, 3, 8, 20, 20)  # 竜の仲間が扇の1列目に居る
+	s.add_unit(ally)
+	var res := FormationResolver.resolve(s, _breath_option(f), front)
+	var ids: Array = []
+	for h in res.hits:
+		ids.append(h.target_id)
+	assert_true(ally.handle in ids, "仲間も焼ける")
+	assert_false(dragon.handle in ids, "発動者は焼けない")
+
+func test_breath_resets_charge_and_ends_action() -> void:
+	var f := _breath_state()
+	var s: BattleState = f["s"]
+	var dragon: Unit = f["dragon"]
+	FormationResolver.resolve(s, _breath_option(f), dragon.pos + Hex.direction(5))
+	assert_eq(s.get_charge(dragon.handle, "dragon_breath"), 0, "チャージは0に戻る")
+	assert_false(s.has_action_left(dragon.handle), "発動者は行動完了")

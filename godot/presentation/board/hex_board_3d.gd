@@ -1725,7 +1725,8 @@ func _sync_overlay() -> void:
 		if _choosing_formation and _formation_active.targets_unit():
 			_unit_renderer.add_target_marker(state.unit_at(h), _overlay_root)
 	if _choosing_formation and _formation_cells.has(_hover):  # ホバー先の面プレビュー
-		for h in Hex.within_range(_hover, _formation_active.radius):
+		# 面の形はレシピが決める（円／扇）。扇の向きは発動者の位置（移動先）から測る。
+		for h in Formation.blast_cells(_formation_active, _hover, _attack_from()):
 			_add_cell(h, COLOR_FORMATION_BLAST, 0.035)
 	var sel := state.unit_any(_selected_id) if _selected_id != -1 else null
 	if sel != null:

@@ -83,6 +83,12 @@ func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround 
 	for option in Formation.available_for(state, u):
 		if not option.needs_target():
 			return AiAction.skill(u.handle, option, u.pos)  # 陣営全体＝対象を選ばない
+		if option.has_impact() and not option.targets_unit():
+			# 面を焼くスキル（ドラゴンブレス）は駒ではなく着弾先を選ぶ＝stack 条件は掛からない。
+			var cell := _best_blast_cell(state, u, option)
+			if cell != AiPick.NO_HEX:
+				return AiAction.skill(u.handle, option, cell)
+			continue
 		var kind := option.stack_kind()
 		var candidates: Array[Unit] = []
 		for other in state.units():
@@ -97,6 +103,31 @@ func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround 
 			continue
 		return AiAction.skill(u.handle, option, pick.pick_skill_target(state, u, candidates, pick_rule).pos)
 	return null
+
+## 面を焼くスキルの着弾先＝範囲に入る敵の数が最大のもの。巻き込む自陣営の駒は数えない。
+## 同数は範囲内の最も近い敵の盤上距離が小さい方 → 着弾先の col → row の若い方。
+## 敵が1体も入らなければ NO_HEX＝放たない。詳細 → doc/gdd/ai.md スキル対象
+func _best_blast_cell(state: BattleState, u: Unit, option: FormationOption) -> Vector2i:
+	var best := AiPick.NO_HEX
+	var best_n := 0
+	var best_d := 0
+	for cell in Formation.targetable_cells(state, option):
+		var n := 0
+		var d := BattleState.UNREACHABLE
+		for h in Formation.blast_cells(option, cell, u.pos):
+			var v := state.unit_at(h)
+			if v == null or v.team == u.team:
+				continue
+			n += 1
+			d = mini(d, Hex.distance(u.pos, v.pos))
+		if n == 0:
+			continue
+		if best == AiPick.NO_HEX or n > best_n or (n == best_n and (d < best_d \
+				or (d == best_d and AiPick.is_younger_hex(cell, best)))):
+			best = cell
+			best_n = n
+			best_d = d
+	return best
 
 # --- 最大間合い（doc/gdd/ai.md 最大間合い） ---
 
