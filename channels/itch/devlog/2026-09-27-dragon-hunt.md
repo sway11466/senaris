@@ -1,4 +1,4 @@
-公開:
+公開: https://craftkobo.itch.io/senaris/devlog/1678195/nameless-but-not-replaceable （2026-09-27）
 
 区分: Game Design（投稿画面の Long-form discussion の項。#4・#5 と同じ枠）。更新の告知が主題に見えると枠から外れるので、章が入ったことは末尾の1行だけにする。
 
@@ -38,7 +38,7 @@
 
 ## タイトル
 
-（案）Nameless, but not replaceable
+Nameless, but not replaceable
 
 ## 本文
 
