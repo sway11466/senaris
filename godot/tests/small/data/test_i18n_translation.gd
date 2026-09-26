@@ -112,6 +112,7 @@ func test_every_csv_key_resolves_in_each_translation() -> void:
 				continue
 			for row in rows:
 				var key: String = row["keys"]
-				var expected: String = row[lang]
+				# csv の `\n` は取り込みで改行になる（Godot の CSV 翻訳の仕様）＝同じく展開してから比べる。
+				var expected: String = String(row[lang]).replace("\\n", "\n")
 				var got := String(tr.get_message(key))
 				assert_eq(got, expected, "[%s] %s の訳文が csv と一致すること" % [lang, key])

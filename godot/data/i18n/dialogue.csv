@@ -454,7 +454,7 @@ dragon-hunt.st4.squad.3,群生するマタンゴ,Myconid Colony
 dragon-hunt.st4.squad.4,潜むマンドラゴラ,Lurking Mandragora
 dragon-hunt.st4.squad.5,森をうろつくローグ,Forest Bandits
 dragon-hunt.st4.squad.6,ローグ馬車,Bandit Wagons
-dragon-hunt.st4.scene.1,森の入口。里へ至る道が何本かに分かれている,"The forest edge. Several paths lead toward the village."
+dragon-hunt.st4.scene.1,森の入口\n里へ至る道が何本かに分かれている,"The forest edge.\nSeveral paths lead toward the village."
 dragon-hunt.st5.intro.8,あの子たち、ひどく気が立ってるわ……襲ってくる気配。これもならず者のせいね。,"They're worked up — badly. They mean to come at us. The rogues' doing, I'd say."
 dragon-hunt.st5.intro.9,山の戦いは足場が悪い。こちらが不利だ。足元に気をつけて戦え。,"Fighting in the mountains means bad footing. The disadvantage is ours. Watch your step out there."
 dragon-hunt.st5.intro.10,魔獣を片付けながら里を目指すぞ。あいつらより先に着く。,"We clear the beasts as we go and make for the village. We arrive before they do."
@@ -462,7 +462,7 @@ dragon-hunt.st5.squad.1,崖のハーピー,Cliff Harpies
 dragon-hunt.st5.squad.2,尾根のハーピー,Ridge Harpies
 dragon-hunt.st5.squad.3,里を狙うグリフォン,Griffons over the Village
 dragon-hunt.st5.squad.4,ローグ一味,Bandit Gang
-dragon-hunt.st5.scene.1,山の入口。崖の上に鳥人の里が見える,"The foot of the mountain. The birdfolk village sits atop the cliffs."
+dragon-hunt.st5.scene.1,山の入口\n崖の上に鳥人の里が見える,"The foot of the mountain.\nThe birdfolk village sits atop the cliffs."
 dragon-hunt.st5.squad.5,山道のロックサーペント1,Serpents of the Pass1
 dragon-hunt.st5.squad.6,登り口のロックサーペント,Serpents at the Ascent
 dragon-hunt.st5.squad.7,里の手前のロックサーペント,Serpents before the Village
