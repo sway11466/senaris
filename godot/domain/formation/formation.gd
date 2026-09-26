@@ -33,6 +33,7 @@ class_name Formation
 ## attack_override: 威力のユニット攻撃力をレシピの固定値で上書きする（ドラゴンブレス＝40）。
 ## min_range: 射程の下限（省略＝0）。ドラゴンブレス＝1（自分のヘクスへは吐けない）。
 ## cutin: ユニットスキルでもカットインを出す（省略＝陣形は出す・ユニットスキルは出さない）。ドラゴンブレス。
+## unit_art: 絵をユニット側に置く（assets/units/{skin}/{skin}_{unit_art}.png＋_impact）。省略＝assets/formations。
 ## impact_spread: 盤の着弾を発動者から近い列から順にヘクスごとに広げる（ドラゴンブレス＝火が扇状に広がる）。
 ## buff_scope: 補正の掛かる範囲＝"team"（グレイス）／"participants"（シールドウォール・カウンター）／"unit"（ユニットスキル）／
 ##        "zone"（マジックシールド＝発動者中心 zone_radius ヘクスの結界。中に居る味方に効く＝出入りで効き方が変わる）。
@@ -402,6 +403,9 @@ const SKILLS := {
 		# 盤の着弾は発動者から近い列から順にヘクスごとに火が付く（1列目→2列目→3列目）。
 		# 詳細 → doc/gdd/skills.md ドラゴンブレス
 		"impact_spread": true,
+		# 絵はユニット側に置く＝assets/units/red_dragon/red_dragon_breath.png（カットイン）と
+		# red_dragon_breath_impact.png（盤の火）。発動者のスキンで引く。詳細 → doc/art/keyvisual.md
+		"unit_art": "breath",
 	},
 }
 

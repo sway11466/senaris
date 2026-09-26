@@ -116,7 +116,7 @@ var _set_locked_fn: Callable  # (v: bool) -> void（入力ロック）
 var _impact_gen := 0            # 世代。ステージが変わったら増やす＝await の先で打ち切る
 var _impact_pending := false    # 着弾待ち＝盤の作り直しを保留している（撃たれる前の姿のまま置く）
 var _impact_lock := false       # 演出の間だけ入力を止めた＝終わったら元へ戻す
-var _impact_tex := {}           # skill_id -> Texture2D|null（駒に重ねる着弾の絵）
+var _impact_tex := {}           # 絵のパス（拡張子抜き）-> Texture2D|null（駒に重ねる着弾の絵）
 var _mark_tex := {}             # skill_id -> Texture2D|null（参加者に重ねる発動の印の絵）
 var _effect_tex := {}           # effect_id -> Texture2D|null（戦闘の武器エフェクトの絵）
 var _skin_catalog := {}         # type_id -> { ally:[UnitSkin], enemy:[UnitSkin] }。武器エフェクトを引く
@@ -208,7 +208,8 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	# 発動者から列ごとに広げる型（ドラゴンブレス）。当たった駒が居なくても火は広がる＝先に分ける。
 	# 絵が無くてもヘクスの光だけが同じ順に広がる。
 	if bool(Formation.SKILLS.get(result.skill, {}).get("impact_spread", false)):
-		await _play_spread(result, _impact_texture(result.skill), is_locked)
+		var skin := result.caster.skin_id if result.caster != null else ""
+		await _play_spread(result, _impact_texture(result.skill, skin), is_locked)
 		return
 	var hits := result.hits
 	if hits.is_empty():
@@ -967,18 +968,21 @@ func _spawn_falling_impact(hex: Vector2i, tex: Texture2D, on_land: Callable, str
 
 
 ## 着弾に使う絵（キャッシュ）。スキルIDで規約解決する＝assets/formations/{skill_id}_impact.png。
-## カットイン（{skill_id}.png）と同じ置き場・同じ規約で、接尾辞だけが違う。
+## カットイン（{skill_id}.png）と同じ置き場・同じ規約で、接尾辞だけが違う（FormationCutin.art_base）。
+## ユニット側に絵を置くレシピ（unit_art＝ドラゴンブレス）は assets/units/{skin}/{skin}_{unit_art}_impact.png
+## ＝発動者のスキンで引く。
 ## 盤でしか使わないので絵は最初から下向きに描く＝ここで回さない。
 ## 無ければ null＝絵を出さず面の光だけで済ませる（武器の攻撃エフェクトへは落とさない。
 ## 借り物を落とすと剣の弧が天から降ってくる）。詳細 → doc/gdd/formations.md 発動の演出
-func _impact_texture(skill_id: String) -> Texture2D:
-	if skill_id.is_empty():
+func _impact_texture(skill_id: String, caster_skin := "") -> Texture2D:
+	var base := FormationCutin.art_base(skill_id, caster_skin)
+	if base.is_empty():
 		return null
-	if _impact_tex.has(skill_id):
-		return _impact_tex[skill_id]
-	var p := "res://assets/formations/%s_impact.png" % skill_id
+	if _impact_tex.has(base):
+		return _impact_tex[base]
+	var p := base + "_impact.png"
 	var tex := load(p) as Texture2D if ResourceLoader.exists(p) else null
-	_impact_tex[skill_id] = tex
+	_impact_tex[base] = tex
 	return tex
 
 

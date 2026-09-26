@@ -9,12 +9,14 @@ class_name FormationCutin
 ## 発動者のスキンを渡し、使うかどうかはレシピが決める。該当する名前が無ければ飛ばす＝もう一方の
 ## 名前には落とさない。
 ## クリック／キーで即座に飛ばせる。頭はロックしない＝1ステージに何度も出るため。
+## ユニット側に絵を置くレシピ（unit_art＝ドラゴンブレス）は assets/units/{発動者スキン}/{スキン}_{unit_art}.png。
 ## 仕様 → doc/gdd/formations.md（発動の演出）／絵の置き場 → doc/art/keyvisual.md
 
 ## 出し入れが終わった（飛ばされた場合も含む）。main はこれを待ってから着弾音へ進む。
 signal finished
 
 const ART_DIR := "res://assets/formations"
+const UNIT_ART_DIR := "res://assets/units"
 const EXTS := [".png", ".webp"]
 const FADE_SEC := 0.15    # 出し／引きの秒数（片道）
 const HOLD_SEC := 0.70    # 留める秒数。FADE*2+HOLD = 1.0 秒（仕様の「約1秒」）
@@ -72,14 +74,26 @@ static func load_art(skill_id: String, caster_skin: String) -> Texture2D:
 
 ## 絵のパス。置いてなければ空。
 static func art_path(skill_id: String, caster_skin: String) -> String:
-	var stem := art_stem(skill_id, caster_skin)
-	if stem.is_empty():
+	var base := art_base(skill_id, caster_skin)
+	if base.is_empty():
 		return ""
 	for ext in EXTS:
-		var path := "%s/%s%s" % [ART_DIR, stem, ext]
+		var path: String = base + String(ext)
 		if ResourceLoader.exists(path):
 			return path
 	return ""
+
+## 絵のパス（拡張子抜き）。盤の着弾の絵はこれに _impact を足す＝カットインと同じ場所・同じ名前の起点。
+## ユニット側に絵を置くレシピ（unit_art）は assets/units/{skin}/{skin}_{unit_art}、それ以外は
+## assets/formations/{art_stem}。決められないときは空。詳細 → doc/art/keyvisual.md 陣形スキルの絵
+static func art_base(skill_id: String, caster_skin: String) -> String:
+	var token := String(Formation.SKILLS.get(skill_id, {}).get("unit_art", ""))
+	if not token.is_empty():
+		if caster_skin.is_empty():
+			return ""
+		return "%s/%s/%s_%s" % [UNIT_ART_DIR, caster_skin, caster_skin, token]
+	var stem := art_stem(skill_id, caster_skin)
+	return "" if stem.is_empty() else "%s/%s" % [ART_DIR, stem]
 
 ## 絵のファイル名（拡張子抜き）。レシピが cutin_per_caster なら {skill_id}_{caster_skin}、
 ## それ以外は {skill_id}（渡されたスキンは使わない）。決められないときは空。

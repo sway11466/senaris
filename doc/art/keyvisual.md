@@ -102,6 +102,22 @@ around it. Wide 4:3 composition.
   - 例外は⑧バックスタブ。絵が対象の駒に重なって弾ける形（上から落ちてこない）なので、**斜めの斬り跡**として描き、攻撃エフェクトと同じ「右へ向かう一撃」の約束に従う（撃った側が右に居る回は演出側が左右反転する）。
 - 大小の倍率は無い。キャンバスいっぱいに描いて釣り合わせる。
 
+#### ユニットスキルの絵
+
+ユニットスキルのカットインと盤の着弾の絵は、陣形スキルの置き場ではなく発動者の素材フォルダに置く。1体のユニットの技なので、そのユニットの絵と一緒に持つ。レシピの `unit_art`（絵の名前の部品。ドラゴンブレス＝`breath`）があるスキルだけがこの置き場を使い、発動者のスキンで引く。
+
+| 段階 | 置き場（`{skin}`＝発動者のスキン・`{art}`＝レシピの `unit_art`） | 例（ドラゴンブレス） |
+|---|---|---|
+| ① AI生成直後 | `godot/assets/units-src/{group}/{skin}/{skin}_{art}_01_raw.png` | `units-src/dragon/red_dragon/red_dragon_breath_01_raw.png` |
+| ③ 手動調整マスター（任意） | 同フォルダ `{skin}_{art}_03_master.png` | `red_dragon_breath_03_master.png` |
+| SUBJECT | 同フォルダ `{skin}_{art}_prompt.txt` | `red_dragon_breath_prompt.txt` |
+| ④ カットイン（ゲーム用） | `godot/assets/units/{skin}/{skin}_{art}.png` | `units/red_dragon/red_dragon_breath.png` |
+| ④ 盤の着弾（ゲーム用） | `godot/assets/units/{skin}/{skin}_{art}_impact.png` | `units/red_dragon/red_dragon_breath_impact.png` |
+
+- 絵柄・描き方はカットインが陣形と同じ ILLUST STYLE（§2）、盤の着弾が同じく EFFECT STYLE（[units.md](units.md) §3.4）。参照画像は発動者の戦闘立ち絵だけを 4:3 の横長に置いたもの（`{skin}_{art}_ref_units.png`）。
+- 規約解決。置けば出て、無ければカットインを飛ばす／盤は面の光だけになる（コード不変）。
+- ドラゴンブレスの盤の着弾は落とす絵ではなく、ヘクスの足元から立ち上がる火＝下端を足元に置く縦の絵で描く（[../gdd/skills.md](../gdd/skills.md) ドラゴンブレス）。
+
 #### 盤の発動の印
 
 着弾の無いレシピ（⑤シールドウォール・⑩カウンター）が、発動した瞬間だけ参加者の駒に重ねる絵。着弾エフェクトと同じ置き場・同じ工程で、接尾辞が `_mark` になる。

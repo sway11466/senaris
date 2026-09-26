@@ -1,0 +1,19 @@
+NOTE: 生成時は同じフォルダの red_dragon_breath_ref_units.png を参照画像として添付する。
+レッドドラゴンの戦闘立ち絵（red_dragon_combat.png）だけを 4:3 の横長キャンバスに置いたもの。
+ユニットスキルのカットイン（ドラゴンブレスだけの例外。doc/gdd/skills.md ドラゴンブレス）。
+生成直後は red_dragon_breath_01_raw.png、ゲーム用は assets/units/red_dragon/red_dragon_breath.png。
+盤の着弾は竜から扇状に火が広がる＝絵でも火は扇に開いて地面を舐める形にする。
+
+SUBJECT: The great RED DRAGON hovering above the floor of a volcanic crater, breathing a torrent of fire. It is the only creature in the picture, large and roughly centered, facing LEFT. Wide 4:3 landscape picture.
+
+A REFERENCE of the dragon is attached: the same animal in a flying pose on plain white. Copy its body, horns, plates, wings, colors and face from that reference EXACTLY — the white background is only a cutout convention; ignore it. The description below adds the breath and the scene around it.
+
+THE DRAGON: airborne a little above the ground, wings raised high and spread, the long tail curling below and behind it. Its head is thrust forward and slightly DOWN toward the left, neck arched, jaws wide open. Its amber eyes are narrowed and furious — a raging disaster, not a sneering villain.
+
+THE BREATH: one continuous stream of fire pours out of the open jaws toward the lower LEFT. It starts narrow at the mouth and WIDENS AS IT TRAVELS, opening into a broad FAN of flame that slams into the ground and spreads outward across it — the fire is widest farthest from the dragon. Draw the flame as bold cel-shaded tongues of fire with clear hard-edged shapes: a white-yellow core near the jaws, turning orange, then deep red at the ragged outer edges. The fan of fire fills most of the left half of the frame. All the fire comes from the dragon's mouth — none anywhere else.
+
+LIGHTING: the breath is the strongest light in the picture. It lights the dragon's jaw, throat, chest and the underside of its wings from below in hot orange, with deep blue-grey shadow on its back and the far wing.
+
+Background: the inside of a volcanic crater at dusk — dark basalt walls, cracked black rock veined with glowing lava, a heavy smoky sky. Keep it simple and dark so the dragon and the fan of fire dominate.
+
+NO people, NO heroes, NO enemies, NO corpses, NO hex grid, NO UI.
