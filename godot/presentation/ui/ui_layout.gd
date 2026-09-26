@@ -22,7 +22,7 @@ static var _panel_holds_right_box := true
 static func set_panel_holds_right_box(holds: bool) -> void:
 	_panel_holds_right_box = holds
 
-## 盤エリア＝情報板が塞いでいない側（戦闘演出の窓・カットイン・完走イラスト・カメラの基準）。
+## 盤エリア＝情報板が塞いでいない側（戦闘演出の窓・カットインの置き場）。
 ## 板が既定の場所で開いていれば右ボックスを除いた左側、それ以外は画面全体。
 ## ビューポートが右ボックスより狭ければ、どちらでも全幅。仕様 → doc/gdd/uiux.md 盤エリア
 static func board_area(vp: Vector2) -> Rect2:

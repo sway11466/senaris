@@ -418,7 +418,7 @@ func _on_talk_opening() -> void:
 func _apply_board_area(talking: bool) -> void:
 	var panel: UnitInfoPanel = $Front/InfoPanel
 	# 板は1枚＝情報板を畳んでいても、「会話のみ表示する」で会話板が出ている間はその板が塞いでいる
-	# （さもないと完走イラスト等の演出が画面全体に広がり、読ませたい会話板を覆う）。
+	# （さもないと戦闘窓等の演出が画面全体に広がり、会話板を覆う）。
 	var open: bool = talking or not panel.is_minimized()
 	var holds: bool = open and not _settings_store.has_info_panel_position()
 	UiLayout.set_panel_holds_right_box(holds)
@@ -491,8 +491,8 @@ func _on_battle_finished(outcome: int) -> void:
 		if not outro.is_empty() and _story.shows_dialogue():
 			# 冒険譚を完走した回だけ、盤の代わりに勝利イラストを敷いて outro を読ませる
 			# （絵を見せ終えてから会話、ではなく絵の前で会話＝フィナーレを一続きにする）。
-			# 順序は会話板→絵。絵は敷く瞬間の盤エリアに収まるので、会話板を先に出して
-			# 盤エリアを右ボックスの左へ押してから敷く（畳んでいて会話だけ出す設定で、絵が会話板を覆わない）。
+			# 順序は会話板→絵。絵は敷く瞬間の可視域（会話板の左右で広い側）に収まるので、会話板を先に出して
+			# 可視域を会話板の外へ押してから敷く（畳んでいて会話だけ出す設定・板を動かしてあるときも、絵が会話板を覆わない）。
 			var show_victory := _should_show_victory()
 			var label := "ui.talk.next_stage" if not _next_playable_stage().is_empty() else "ui.talk.close"
 			_story.start_outro(outro, label)  # 読了/スキップで次ステージ or セレクトへ（_on_story_closed）

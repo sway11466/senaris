@@ -3,7 +3,7 @@ class_name VictoryScreen
 ## キャンペーン完走（最終ステージ勝利）で出す勝利イラスト。仕様 → doc/gdd/stage_select.md
 ## 画像は冒険譚ごとの victory スロット（assets/campaign/{id}/{id}_victory.png・無ければ表示しない）。
 ## 出し方は2つ:
-##  - play_over_board(path): 盤エリアに置き、outro 会話に重ねる（既定）。非モーダル＝右の会話パネルは
+##  - play_over_board(path): 可視域（会話板の左右で広い側）に置き、outro 会話に重ねる（既定）。非モーダル＝右の会話パネルは
 ##    そのまま読み進められる。絵の前で最後の会話をさせる＝フィナーレを一続きにする。main が dismiss で閉じる。
 ##    黒帯は敷かない＝絵の周りは（暗幕越しに）マップが見えたままでよい。
 ##  - play(path): 全画面モーダル。outro 会話が無い冒険譚のフォールバック。クリック/キーで閉じ finished を出す。
@@ -11,9 +11,9 @@ class_name VictoryScreen
 signal finished  # 全画面モーダルを閉じた（クリック/キー or 画像なし）。main がセレクトへ戻す合図。
 
 const FADE_IN := 0.4  # イラストの浮かび上がり（秒）
-const BOARD_MARGIN := 32.0  # 重ね表示で盤エリアの内側に取る余白。右は会話パネルとの間合いになる
+const BOARD_MARGIN := 32.0  # 重ね表示で可視域の内側に取る余白。会話パネル側は板との間合いになる
 
-var _root: Control        # 表示域（モーダルは全画面・重ね表示は盤エリアの内側）
+var _root: Control        # 表示域（モーダルは全画面・重ね表示は可視域の内側）
 var _backdrop: ColorRect  # イラスト外側を覆う黒（レターボックス）。全画面モーダルのときだけ敷く
 var _pic: TextureRect     # 勝利イラスト（アスペクト維持で中央）
 var _tween: Tween
@@ -27,7 +27,7 @@ func _build() -> void:
 	if _root != null:
 		return
 	layer = 60  # 戦闘演出(50)より前面＝最前面のフィナーレ
-	_root = Control.new()  # 矩形は _layout が決める（アンカーを使わない＝盤エリアに絞れるように）
+	_root = Control.new()  # 矩形は _layout が決める（アンカーを使わない＝可視域に絞れるように）
 	_root.gui_input.connect(_on_input)
 	add_child(_root)
 	_backdrop = ColorRect.new()
@@ -60,7 +60,7 @@ func play(path: String) -> void:
 	if not _start(path, true):
 		finished.emit()
 
-## 盤エリアに敷いて出す（outro 会話に重ねる）。閉じるのは main＝会話の終わりに合わせる。
+## 可視域に敷いて出す（outro 会話に重ねる）。閉じるのは main＝会話の終わりに合わせる。
 func play_over_board(path: String) -> void:
 	_start(path, false)
 
@@ -83,14 +83,15 @@ func _start(path: String, modal: bool) -> bool:
 	_tween.tween_property(_root, "modulate:a", 1.0, FADE_IN)
 	return true
 
-## 表示域＝モーダルは全画面、重ね表示は盤エリアの内側（余白のぶん会話パネルから離す）。
+## 表示域＝モーダルは全画面、重ね表示は可視域（会話板の左右で広い側）の内側（余白のぶん会話パネルから離す）。
+## 盤エリアを使わないのは、板を動かしてあると盤エリアが画面全体になり、読ませたい会話板を絵が覆うため。
 ## 絵はこの矩形にアスペクト維持で収まる＝余りは黒で埋めず、マップが透けて見える。
 func _layout() -> void:
 	var vp := Vector2(1152, 648)
 	var v := get_viewport()
 	if v != null:
 		vp = v.get_visible_rect().size
-	var r := Rect2(Vector2.ZERO, vp) if _modal else UiLayout.board_area(vp).grow(-BOARD_MARGIN)
+	var r := Rect2(Vector2.ZERO, vp) if _modal else UiLayout.camera_area(vp).grow(-BOARD_MARGIN)
 	_root.position = r.position
 	_root.size = r.size  # 黒帯は FULL_RECT アンカーで _root に追従する
 	_fit_pic()
