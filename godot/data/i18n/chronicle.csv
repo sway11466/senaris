@@ -21,6 +21,108 @@ lore.tutorial1-goblin-raid.origin.title,物語の背景,The Backstory
 lore.tutorial1-goblin-raid.origin.1,"ゴブリンの群れが大挙して山を下りるのは珍しいことではないが、今回の襲撃はいつもより組織だっていた。ロードが群れを束ね、斥候を先行させ、本隊を控えさせた——自然の衝動だけでは説明しにくい統率が見られた。","It is not unusual for goblin hordes to sweep down from the hills in force, but this raid was more organized than most. The Lord marshaled the horde, sent scouts ahead, and held back the main body — a degree of coordination hard to explain by instinct alone."
 lore.tutorial1-goblin-raid.origin.2,"自警団は少数精鋭で持ちこたえたが、都からの援軍はついに来なかった。辺境の町は自力で身を守るしかないという現実が、あらためて突きつけられた戦いだった。","The militia held with few but skilled fighters, yet reinforcements from the capital never came. This battle drove home once more the reality that a frontier town must fend for itself."
 lore.tutorial1-goblin-raid.origin.3,"巣穴を潰したことでゴブリンの群れは散り、しばらくは平穏が戻る。だが山の向こうにはまだ何かがいる——群れが降りてきた本当の理由を知る者は、まだいない。","With the lair destroyed, the goblin horde scattered, and for a time peace returned. But something still lurks beyond the mountains — and no one yet knows the true reason the horde descended."
+book.tutorial1-goblin-raid.1,"初陣の日
+
+町外れの平原にゴブリンが出た。斥候の話では、先に来た数匹だという。隊長に「出るぞ」と言われて、おれは剣を握ったまま足がすくんだ。
+隊長が教えてくれたのは二つだけだ。まず、動ける範囲まで前へ出る。敵と隣り合えば斬りかかれる。それだけでいい、と。
+やってみたら、本当にそれだけだった。ゴブリン一匹なら、おれのひと振りで足りる。三匹を片付けたとき、手の震えがやっと止まった。
+でも、喜んでいられたのは少しのあいだだ。隊長は、あれは先兵隊で本隊が別にいると言った。丘の向こうで、もっと多くの影が動いていた。","The Day of My First Battle
+
+Goblins turned up on the plain outside town. The scout said it was only a handful sent ahead. When the captain said ""We move,"" I froze with my sword in hand.
+The captain told me just two things. Move forward as far as you can reach. Once you stand next to an enemy, you can strike. That's all.
+And that really was all. One goblin falls to one swing of mine. By the time all three were down, my hands had stopped shaking.
+It didn't last. The captain said they were only the vanguard, and the main band was somewhere else. Beyond the hill, more shadows were moving."
+book.tutorial1-goblin-raid.2,"丘の上で
+
+本隊が来た。中に一際大きいのが二匹いる。ホブゴブリンだ。一撃が重いと斥候が言った。
+隊長は、まず丘を取れと言った。高いところに立てば、攻めも守りも一段上がる。低い場所から殴り合えば、こちらが削られるだけだ。
+斥候はもう一つ足した。登ったら散らばるな。隣に味方がいれば、横から力を貸してくれる。これを支援と呼ぶらしい。
+三人で丘に並んで待った。ホブゴブリンの一撃は重かったが、押し返せた。高さと、隣の仲間。両方があったからだ。一人で高みに立っていたら、囲まれて落とされていたと思う。
+戦いのあと、谷の向こうの町から煙が上がった。","On the Hill
+
+The main band came, and among them two big ones: hobgoblins. The scout warned that they hit hard.
+The captain said to take the hill first. On high ground, both your blows and your guard get stronger.
+The scout added one more thing: once you're up, don't spread out. An ally beside you lends you strength. They call it support.
+The three of us stood in a line on the hill and waited. The hobgoblins hit hard, but the height and the friends at my side pushed them back. Alone up there, I'd have been knocked off.
+After the fight, smoke rose from the town beyond the valley."
+book.tutorial1-goblin-raid.3,"谷の細道
+
+町へ急ぐ道を、ゴブリンの群れがふさいでいた。六匹に、ホブゴブリンが二匹。こちらは三人だ。
+隊長は正面で受けずに、岩に挟まれた細道へ誘い込んだ。岩の壁は誰も通れない。だから細道からは、一度に一匹ずつしか出てこられない。
+出口の左右に一人ずつ立って、出てきたやつを両側から叩く。これが包囲だ。囲まれた側は脆くなる。後ろの一人は、丘のときと同じように前を支えた。
+重いのが出てきても一人で前に出るな、とも言われた。囲まれて脆くなるのは、敵も味方も同じだからだ。
+群れを片付けたところで、神官さまが追いついてきた。囚われた町の人たちを解き放てるという。","The Valley Path
+
+A goblin band blocked the road to town: six of them, and two hobgoblins. We were three.
+The captain didn't meet them head-on. He drew them into a narrow path between rock walls. No one can pass through rock, so they could only come out one at a time.
+One of us stood on each side of the exit and struck whatever came out from both sides. That's surrounding. Whoever gets surrounded grows weak. The third of us backed up the front, just like on the hill.
+Even when a big one came, I wasn't to step out alone. Surrounded, we grow weak too.
+When the band was gone, the priest caught up with us, offering to free the captured townsfolk."
+book.tutorial1-goblin-raid.4,"町を取り戻した日
+
+着いたとき、町にはもう火の手が上がっていた。ゴブリンもホブゴブリンも、数えきれないほどいた。
+隊長はゴブリンを引き受け、神官さまを町へ送り込んだ。神官さまが町を取り戻すと、囚われていた人たちが「私たちも戦います」と剣を取った。
+斥候が出し方を教えていた。町を選ぶと、中で待つ顔ぶれが見える。出したい者を選び、光ったマスへ。出たばかりの者は、次のターンまで動けない。
+傷を負った者は町へ入れて休ませる。中で休めば、減った兵が戻ってくる。
+数で劣っていても、取り返したものが力になる。北の巣穴を潰しに行くと、隊長が決めた。弓を扱える者がついてきた。","The Day We Took the Town Back
+
+The town was already burning when we arrived, overrun with goblins.
+The captain took on the goblins and sent the priest into town. Once it was ours again, the captives took up swords to fight with us.
+The scout showed them how to deploy: choose the town, pick someone waiting inside, and place them on a glowing tile. Anyone just deployed can't move until the next turn.
+The wounded go into the town to rest. Rest inside, and lost troops come back.
+Even outnumbered, what you win back becomes strength. The captain decided we'd destroy the nest to the north. Those who could handle a bow came along."
+book.tutorial1-goblin-raid.5,"巣穴への道
+
+巣穴へ続く谷を、ゴブリンとホブゴブリンが十三匹で守っていた。こちらのほぼ倍だ。
+ここで弓兵が加わった。弓は離れたところから撃てる。離れて撃てば、相手の反撃は届かない。撃たれた側は撃たれっぱなしになる。
+隊長は、焦って前に出るなと言った。弓で削ってから、前の者が止めを刺す。散らばった敵は一度には来ないから、近づいてきたやつから一匹ずつ片付ける。
+言われたとおりに引きつけて待った。矢で弱ったところへ斬り込むと、ホブゴブリンでもすぐに倒れた。
+入口は押さえたが、中は通路と部屋が入り組んでいるという。いよいよ巣穴の中だ。","The Road to the Nest
+
+Thirteen goblins and hobgoblins held the valley leading to the nest, nearly twice our number.
+Here the archers joined us. A bow shoots from a distance, and from a distance the enemy can't strike back. They just have to take it.
+The captain said not to rush forward. The bows wear them down, then the front line finishes them off. Scattered enemies don't arrive all at once, so we take them one by one.
+I held back and waited as I was told. When I cut into one already weakened by arrows, even a hobgoblin fell quickly.
+We took the entrance, but inside, they say, it's a maze of tunnels and rooms. Now for the nest itself."
+book.tutorial1-goblin-raid.6,"巣穴の中で
+
+中の連中は部屋に潜んで動かない。下手に近づけば、部屋ごと一斉に襲ってくる。
+先に立ったのは斥候だった。斥候はハーフリングで、足は誰より速い。七歩ぶん動けて、三歩で間合いに入って石を放てば、残りの四歩で退がれる。移動して、撃って、また移動する。
+斥候が手前の部屋に石を一つ投げて戻ってくると、その部屋の連中だけが追ってきた。おれたちは通路で待ち構えて、一組ずつ片付けた。
+奥の部屋には射手がいた。固まって近づけば、まとめて削られる。釣るのは一組だけ。欲張らないことだ。
+残るは巣穴の奥、ゴブリンロードだけになった。","Inside the Nest
+
+The ones inside lurk in their rooms and don't move. Get careless and the whole room comes at once.
+The scout went first: a halfling, the fastest of us, with seven steps of movement. Three steps into range, throw a stone, and the four left are enough to get away. Move, shoot, move again.
+One stone into the near room, and only that room gave chase. We waited in the passage and cut them down one group at a time.
+The far room had archers. Bunch up and you get whittled down together. Lure just one group. Don't get greedy.
+Only the Goblin Lord in the deepest chamber remained."
+book.tutorial1-goblin-raid.7,"ゴブリンの王
+
+最奥の間にゴブリンロードがいた。脇にはホブゴブリンと射手が二匹ずつ。手前の部屋にも手下が大勢いる。
+正面から殴り合えば、ロードは固い。こちらが保たない。斥候が抜け道を見つけてきた。入口から、ロードの間の裏手へ回る通路だ。
+隊長は隊を二手に分けた。表で引きつけるあいだに、裏から回り込む。前と後ろから挟んで囲めば、強いやつでも脆くなる。
+動く、斬る、高所、支援、包囲、弓、釣り。これまで教わったことを、全部使った。
+最後にロードが倒れたとき、おれは声を上げていた。","The Goblin King
+
+The Goblin Lord waited in the deepest chamber, with two hobgoblins and two archers at its side and a crowd of minions in the room before it.
+Trade blows head-on and the Lord is too tough; we wouldn't last. But the scout found a back way: a tunnel from the entrance around to the rear of the Lord's chamber.
+The captain split us in two. One half drew them out in front while the other came around behind. Caught front and back and surrounded, even the strong grow weak.
+Moving, striking, high ground, support, surrounding, bows, luring. I used everything I had been taught.
+When the Lord finally fell, I was shouting."
+book.tutorial1-goblin-raid.8,"それから
+
+巣の主が落ちて、ゴブリンの群れは散った。町は守り切った。
+帰り道、斥候が「長い道でした。あの平原から、ここまで」と言った。本当にそうだ。初陣の日、おれは剣を握ったまま動けなかった。
+いまは分かる。一人で強くなくていい。地形を選び、隣に並び、囲み、離れて削り、釣って分ける。数で負けていても、戦い方で覆せる。
+隊長に「もう新兵じゃないな」と言われた。うれしくて、うまく返事ができなかった。「はいっ」とだけ言った。
+この日誌はここまでにする。次に書くのは、おれが誰かに教える日かもしれない。","Afterward
+
+With the nest's master fallen, the goblin band scattered. The town was safe.
+On the way home the scout said, ""A long road. From that plain all the way here."" It really was. On my first day I froze, sword in hand.
+Now I understand. You don't have to be strong alone. Choose your ground, stand side by side, surround, wear them down from afar, lure them apart. Outnumbered or not, how you fight can turn it around.
+The captain told me, ""You're not a recruit anymore."" I was too happy to answer properly. All I said was ""Yes, sir!""
+This journal ends here. The next time I write, maybe it will be the day I teach someone else."
 unit.cleric.desc,教会で学んだ若い聖職者たち。祈りの力で拠点を守る。,"Young clerics trained at the church. They hold captured bases with the power of prayer."
 unit.priest.desc,信仰を深めた聖職者。杖の一撃は見習いとは比べものにならない。,"Ordained clergy whose strikes far surpass those of novice clerics."
 unit.bishop.desc,聖職の長。加護の祈りは前線の盾となる。,"High-ranking clergy. Their prayers of protection serve as a shield on the front line."
