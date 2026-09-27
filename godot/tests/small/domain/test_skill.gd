@@ -1088,3 +1088,93 @@ func test_breath_resets_charge_and_ends_action() -> void:
 	FormationResolver.resolve(s, _breath_option(f), dragon.pos + Hex.direction(5))
 	assert_eq(s.get_charge(dragon.handle, "dragon_breath"), 0, "チャージは0に戻る")
 	assert_false(s.has_action_left(dragon.handle), "発動者は行動完了")
+
+# --- リペア（兵器・輸送の兵数を戻す）---
+
+# 銃の技師＋隣接する馬車（損耗）＋隣接する歩兵（損耗）＋離れた馬車（損耗）＋隣接する敵の馬車（損耗）。
+# caster=gunner(id1)。リペア可は型から写る値なので、ここでは駒に直接立てる。損耗した駒は 5/8。
+func _repair_state() -> Dictionary:
+	var s := _state()
+	var c := Hex.offset_to_axial(3, 3)
+	var gunner := Unit.new(1, 0, c, 4, 8, 30, 30, 1, "gunner")
+	var wagon := Unit.new(2, 0, Hex.neighbor(c, 0), 6, 5, 0, 10, 1, "wagon")
+	var fighter := Unit.new(3, 0, Hex.neighbor(c, 1), 6, 5, 50, 40, 1, "fighter")
+	var far := Unit.new(4, 0, Hex.offset_to_axial(8, 6), 6, 5, 0, 10, 1, "wagon")
+	var foe := Unit.new(5, 1, Hex.neighbor(c, 3), 6, 5, 0, 10, 1, "wagon")
+	for u in [wagon, far, foe]:
+		u.repairable = true
+	for u in [wagon, fighter, far, foe]:
+		u.max_troops = 8  # 生成時の兵数が満員になる＝5/8 の損耗に直す
+	for u in [gunner, wagon, fighter, far, foe]:
+		s.add_unit(u)
+	return {"s": s, "gunner": gunner, "wagon": wagon, "fighter": fighter, "far": far, "foe": foe}
+
+func _repair_option(s: BattleState, caster: Unit) -> FormationOption:
+	for o in Formation.available_for(s, caster):
+		if o.skill == "repair":
+			return o
+	return null
+
+func test_repair_offered_by_engineers_alone() -> void:
+	var f := _repair_state()
+	var o := _repair_option(f["s"], f["gunner"])
+	assert_not_null(o, "銃の技師単独で成立する")
+	assert_true(o.is_unit_skill(), "ユニットスキル扱い")
+	assert_true(o.needs_target(), "直す相手を選ぶ")
+	var s: BattleState = f["s"]
+	var shieldwright := Unit.new(9, 0, Hex.offset_to_axial(6, 3), 5, 8, 20, 70, 1, "shieldwright")
+	s.add_unit(shieldwright)
+	assert_not_null(_repair_option(s, shieldwright), "盾の技師も撃てる")
+
+func test_repair_not_offered_by_others() -> void:
+	var f := _repair_state()
+	assert_null(_repair_option(f["s"], f["fighter"]), "技師以外は撃てない")
+
+func test_repair_targets_damaged_adjacent_repairable_ally_only() -> void:
+	var f := _repair_state()
+	var s: BattleState = f["s"]
+	var o := _repair_option(s, f["gunner"])
+	assert_true(Formation.can_target(s, o, f["wagon"].pos), "兵数の減った隣接の馬車は直せる")
+	assert_false(Formation.can_target(s, o, f["fighter"].pos), "兵器・輸送でない駒は直せない")
+	assert_false(Formation.can_target(s, o, f["far"].pos), "離れた馬車は直せない")
+	assert_false(Formation.can_target(s, o, f["foe"].pos), "敵の馬車は直せない")
+	assert_false(Formation.can_target(s, o, f["gunner"].pos), "技師自身は直せない")
+
+## 満タンの駒は対象にならない＝空撃ちでレベルを上げさせない。直せる先が無ければメニューは項目を無効化する。
+func test_repair_cannot_target_full_unit() -> void:
+	var f := _repair_state()
+	var s: BattleState = f["s"]
+	var wagon: Unit = f["wagon"]
+	wagon.troops = wagon.max_troops
+	var o := _repair_option(s, f["gunner"])
+	assert_false(Formation.can_target(s, o, wagon.pos), "満タンの馬車は直せない")
+	assert_true(Formation.targetable_cells(s, o).is_empty(), "直せる先が無い")
+
+func test_repair_restores_two_troops() -> void:
+	var f := _repair_state()
+	var s: BattleState = f["s"]
+	var wagon: Unit = f["wagon"]
+	var r := FormationResolver.resolve(s, _repair_option(s, f["gunner"]), wagon.pos)
+	assert_not_null(r, "発動成功")
+	assert_eq(wagon.troops, 7, "5 → 7")
+	assert_true(r.hits.is_empty(), "着弾は起きない")
+	assert_eq(r.cast.healed, 2, "戻した兵数を演出に渡す")
+	assert_eq(r.cast.target.troops_before, 5, "演出の対象は戻す前の兵数から")
+	assert_eq(r.cast.target.troops_after, 7, "戻した後の兵数まで")
+
+func test_repair_stops_at_max_troops() -> void:
+	var f := _repair_state()
+	var s: BattleState = f["s"]
+	var wagon: Unit = f["wagon"]
+	wagon.troops = wagon.max_troops - 1
+	var r := FormationResolver.resolve(s, _repair_option(s, f["gunner"]), wagon.pos)
+	assert_eq(wagon.troops, wagon.max_troops, "最大兵数で打ち止め")
+	assert_eq(r.cast.healed, 1, "戻せたのは1だけ")
+
+func test_repair_consumes_the_casters_action() -> void:
+	var f := _repair_state()
+	var s: BattleState = f["s"]
+	assert_not_null(FormationResolver.resolve(s, _repair_option(s, f["gunner"]), f["wagon"].pos), "発動成功")
+	assert_true(s.is_done(1), "発動者は行動完了")
+	assert_false(s.is_done(2), "直された側は行動を消費しない")
+	assert_eq(f["gunner"].level, 2, "発動者に Lv+1（撃破は起きないので前半だけ）")

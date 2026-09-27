@@ -39,6 +39,7 @@ var attack_range: int = 1  ## 最大射程（上限）。1=近接、≥2=遠隔�
 var move_after_attack: bool = false  ## 攻撃後に残り移動力で再移動できるか（ヒット&アウェイ）。UnitType から設定
 var can_capture: bool = false  ## 拠点を占領できるか（cleric/bishop/paladin等）。UnitType から設定。詳細 → doc/gdd/map.md
 var capacity: int = 0  ## 輸送の搭載数（0=輸送不可）。UnitType から設定。詳細 → doc/gdd/movement.md
+var repairable: bool = false  ## リペアで兵数を戻せるか（兵種が兵器・輸送）。UnitType から設定。詳細 → doc/gdd/skills.md リペア
 
 ## 輸送ユニットか（駒を載せて運べるか）。
 func is_transport() -> bool:
@@ -122,6 +123,7 @@ func apply_type(t: UnitType) -> void:
 	move_after_attack = t.move_after_attack
 	can_capture = t.can_capture
 	capacity = t.capacity
+	repairable = t.repairable
 	max_troops = t.max_troops
 	max_shield = t.shield
 	shield = t.shield

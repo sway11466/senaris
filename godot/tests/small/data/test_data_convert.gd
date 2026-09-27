@@ -15,7 +15,7 @@ func _valid_type_row() -> Dictionary:
 	return {
 		"id": "knight", "atk_ground": 8, "atk_air": 0, "pierce": 0, "defense": 5,
 		"move": 3, "move_type": "walk", "range": 1, "move_after_attack": false,
-		"can_capture": true, "max_troops": 10, "capacity": 0, "shield": 0,
+		"can_capture": true, "max_troops": 10, "capacity": 0, "shield": 0, "repairable": false,
 	}
 
 func test_unit_type_valid_builds_json() -> void:
@@ -43,6 +43,26 @@ func test_unit_type_unknown_move_type_blocks() -> void:
 func test_unit_type_duplicate_id_blocks() -> void:
 	var r := Units.build_unit_type([ _valid_type_row(), _valid_type_row() ], ["walk"])
 	assert_null(r["json"], "id 重複で json=null")
+
+## リペア可は兵種（兵器・輸送）と一致させる。食い違えば直せるはずの駒が直せない＝JSON にしない。
+func test_unit_type_repairable_must_match_category() -> void:
+	var row := _valid_type_row()
+	row["category"] = "transport"
+	assert_null(Units.build_unit_type([row], ["walk"])["json"], "輸送なのに repairable false で json=null")
+	row["repairable"] = true
+	assert_not_null(Units.build_unit_type([row], ["walk"])["json"], "輸送で repairable true は通る")
+	row["category"] = "infantry"
+	assert_null(Units.build_unit_type([row], ["walk"])["json"], "歩兵なのに repairable true で json=null")
+
+## 馬は輸送だが生き物＝直せない。repairable true を書いたら止める。
+func test_unit_type_horse_is_not_repairable() -> void:
+	var row := _valid_type_row()
+	row["id"] = "horse"
+	row["category"] = "transport"
+	row["repairable"] = true
+	assert_null(Units.build_unit_type([row], ["walk"])["json"], "馬に repairable true で json=null")
+	row["repairable"] = false
+	assert_not_null(Units.build_unit_type([row], ["walk"])["json"], "馬は repairable false で通る")
 
 # --- units: build_unit_skin ---
 

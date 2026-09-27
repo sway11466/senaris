@@ -11,6 +11,7 @@ skill.magic_shield.name,マジックシールド,Magic Shield
 skill.backstab.name,バックスタブ,Backstab
 skill.pixie_dust.name,ピクシーダスト,Pixie Dust
 skill.purify.name,ピュリファイ,Purify
+skill.repair.name,リペア,Repair
 skill.dread_touch.name,ドレッドタッチ,Dread Touch
 skill.venom_fang.name,ヴェノムファング,Venom Fang
 skill.poison_sting.name,ポイズンスティング,Poison Sting
@@ -32,6 +33,7 @@ skill.magic_shield.desc,発動者を中心とした7ヘクスに結界を張る�
 skill.backstab.desc,対象を挟んで正反対に味方が居る敵1体を、背後から刺す。相手の防御が半分になり、刺したあとは移動を始めたマスへ戻る。,"Stabs a single enemy in the back while an ally stands directly opposite the caster across it. Halves the target's defense, and the caster returns to the hex it started the turn on."
 skill.pixie_dust.desc,自分か隣の味方1体の攻撃力・防御力に、発動したピクシーの残兵数×10 を足す。自軍ターン3回ぶん続く。,"Adds 10 × the caster's remaining troops to the Attack and Defense of itself or one adjacent ally. Lasts 3 of your turns."
 skill.purify.desc,自分か隣の味方1体から、掛かっている弱体をすべて取り除く。弱体の無い相手には撃てない。,Removes every debuff from itself or one adjacent ally. Cannot target a unit that has no debuff.
+skill.repair.desc,隣の味方の兵器・輸送1体の兵数を 2 戻す（最大兵数まで）。兵数の減っていない相手には撃てない。,"Restores 2 troops to one adjacent allied war machine or transport, up to full strength. Cannot target a unit that has lost no troops."
 skill.dread_touch.desc,隣の敵1体の攻撃力・防御力から、発動したゴーストの残兵数×10 を引く。発動側ターン3回ぶん続く。,"Subtracts 10 × the caster's remaining troops from the Attack and Defense of one adjacent enemy. Lasts 3 of the caster's turns."
 skill.venom_fang.desc,隣の敵1体の攻撃力・防御力に 0.9 を掛ける。重ねると掛け合わさる。発動側ターン3回ぶん続く。,Multiplies the Attack and Defense of one adjacent enemy by 0.9. Stacks multiply together. Lasts 3 of the caster's turns.
 skill.poison_sting.desc,隣の敵1体の兵数を、相手のターン開始ごとに1減らす。残兵1で止まる。発動側ターン3回ぶん続く。,"One adjacent enemy loses 1 troop at the start of each of its turns, down to a minimum of 1. Lasts 3 of the caster's turns."

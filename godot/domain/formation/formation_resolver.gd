@@ -59,6 +59,15 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 				var dropped := state.clear_debuffs(cleansed)
 				if cast != null:
 					cast.cleansed = dropped
+		# リペアは兵数を直に戻す（最大兵数で打ち止め）。着弾は起きない＝hits空。詳細 → doc/gdd/skills.md
+		FormationOption.Effect.HEAL:
+			var repaired := state.unit_at(target)  # can_target がリペア可・兵数の減った味方を保証済み
+			if repaired != null:
+				var gained := mini(option.heal_troops, repaired.max_troops - repaired.troops)
+				repaired.troops += gained
+				if cast != null:
+					cast.healed = gained
+					cast.target.troops_after = repaired.troops
 		# スライムスプリットは隣接する空きマスへ発動者の複製を1体置く。
 		# 着弾・兵数変化は起きない。分裂で出た位置は cells で盤に返す＝光らせる。詳細 → doc/gdd/skills.md
 		FormationOption.Effect.SPAWN:

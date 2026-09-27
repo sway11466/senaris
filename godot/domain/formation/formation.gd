@@ -301,6 +301,23 @@ const SKILLS := {
 		"range": 1,
 		"range_from": "caster",
 	},
+	"repair": {
+		"name": "リペア",
+		# 兵種「技師」の駒すべて。技師の型を足したらここにも加える。詳細 → doc/gdd/skills.md リペア
+		"caster_skins": ["gunner", "shieldwright"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"activation": "active",
+		# 状態補正を積まず、兵数を直に戻す＝持続しない。対象はリペア可（兵器・輸送）で兵数の減った味方。
+		"effect": "heal",
+		"heal_troops": 2,  # 仮の値。実プレイで調整する
+		"buff_scope": "unit",
+		"buff_side": "ally",
+		"combat_effect": "punch",  # 当面は打撃の汎用（工具で叩いて直す）
+		"range": 1,
+		"range_from": "caster",
+	},
 	"dread_touch": {
 		"name": "ドレッドタッチ",
 		"caster_skins": ["ghost"],
@@ -410,7 +427,7 @@ const SKILLS := {
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
-const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot"]
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot", "heal"]
 
 ## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
@@ -726,6 +743,10 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 		# ならない。撃てる先が無ければメニューは項目を無効化する。詳細 → doc/gdd/skills.md ピュリファイ
 		if option.effect == FormationOption.Effect.CLEANSE:
 			return state.debuff_count(u) > 0
+		# 修理（リペア）は兵器・輸送で、兵数の減った駒だけ＝満タンへの空撃ちでレベルを上げさせない。
+		# 詳細 → doc/gdd/skills.md リペア
+		if option.effect == FormationOption.Effect.HEAL:
+			return u.repairable and u.troops < u.max_troops
 		return true
 	return true
 

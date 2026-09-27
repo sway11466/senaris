@@ -82,6 +82,10 @@ func _cast(cast_side: String, to_side: String, victim: UnitSnapshot, eff: Combat
 			return  # スキップで閉じた後に飛来物が届いても何もしない
 		_shake()
 		_flash(to_side)
+		# リペアは兵数が戻る＝対象の隊列と兵量バーを戻した後の兵数で描き直す（バーは伸びていく）。
+		# 他のユニットスキルは兵数が動かないので描き直さない。詳細 → doc/gdd/skills.md リペア
+		if detail.effect == "heal" and detail.healed > 0:
+			_render_side(to_side, victim, clampi(victim.troops_after, 1, POS.size()), victim.shield_before, true)
 		var text := _effect_text(detail)
 		if text != "":
 			_float_label(to_side, text, LABEL_OUTLINE, LABEL_TOP))
@@ -104,6 +108,8 @@ func _effect_text(detail: SkillCast) -> String:
 	if detail.effect == "cleanse":
 		var n := detail.cleansed
 		return tr("ui.combat.cleansed") % n if n > 0 else ""
+	if detail.effect == "heal":
+		return tr("ui.combat.repaired") % detail.healed if detail.healed > 0 else ""
 	var rows: Array = TARGET_ROWS.get(detail.buff_target, [])
 	if rows.is_empty():
 		return ""

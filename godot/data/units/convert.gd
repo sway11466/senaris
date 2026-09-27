@@ -11,8 +11,13 @@ const SfxDef = preload("res://data/audio/sfx_catalog.gd")
 ## 非空で必ず要る性能列（category/memo は任意）。
 const TYPE_REQUIRED := [
 	"id", "atk_ground", "atk_air", "pierce", "defense", "move", "move_type",
-	"range", "move_after_attack", "can_capture", "max_troops", "capacity", "shield",
+	"range", "move_after_attack", "can_capture", "max_troops", "capacity", "shield", "repairable",
 ]
+## リペアの対象になる兵種。repairable 列はこの兵種の行だけ true にする（→ repair_problems）。
+const REPAIRABLE_CATEGORIES := ["emplacement", "transport"]
+## 兵種はリペアの対象でも、直せない型。生き物は修理できない（馬＝輸送だが生き物）。
+## 詳細 → doc/gdd/skills.md リペア
+const NOT_REPAIRABLE_IDS := ["horse"]
 ## スキンの必須列。combat_lineup は既定値を持たせず必ず書かせる（空＝squad の暗黙既定にすると
 ## 「書き忘れ」と「squad と決めた」が区別できなくなる）。
 const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id", "combat_lineup", "on_board"]
@@ -54,6 +59,7 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 	for v in Csv.duplicates(rows, "id"):
 		problems.append("id が重複: '%s'（後勝ち上書きになる）" % v)
 	problems += Csv.invalid_values(rows, "move_type", move_types, "id")  # movement.csv に無い移動タイプ＝黙ってコスト1の罠
+	problems += repair_problems(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "types": rows } }
@@ -155,6 +161,21 @@ static func category_problems(skin_rows: Array, type_rows: Array) -> Array:
 		var want := str(type_cat.get(str(r.get("type_id", "")), ""))
 		if cat != want:
 			out.append("'%s': ally の category は兵種と一致させる（unit_type の '%s' に対し '%s'）" % [label, want, cat])
+	return out
+
+## リペア可（repairable 列）と兵種（category 列）の食い違い。純関数。
+## リペアの対象は兵種が兵器・輸送の駒（doc/gdd/skills.md リペア）。判定はこの列だけを読むので、
+## 兵種と食い違うと直せるはずの駒が直せない（またはその逆）になる。ここで止めれば JSON になる前に気づける。
+static func repair_problems(rows: Array) -> Array:
+	var out := []
+	for r in rows:
+		var want := str(r.get("category", "")) in REPAIRABLE_CATEGORIES 			and not (str(r.get("id", "")) in NOT_REPAIRABLE_IDS)
+		var got: Variant = r.get("repairable", false)
+		if typeof(got) != TYPE_BOOL:
+			out.append("'%s': repairable は true / false で書く（'%s'）" % [str(r.get("id", "")), str(got)])
+		elif got != want:
+			out.append("'%s': repairable は兵種と一致させる（兵種 '%s' なら %s。直せない型は NOT_REPAIRABLE_IDS）" % [
+				str(r.get("id", "")), str(r.get("category", "")), str(want)])
 	return out
 
 func _report(name: String, problems: Array) -> void:

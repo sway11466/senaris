@@ -2,6 +2,7 @@ extends RefCounted
 class_name SkillCast
 ## 効果対象が1体のユニットスキルの演出用内訳（純データ）。発動前に撮る＝戦闘の detail と同じ流儀。
 ## 兵数は動かないので、発動者・対象とも troops_after は troops_before と同じ＝戦闘の器と揃える。
+## 例外はリペア（HEAL）で、対象の troops_after に戻した後の兵数が入る。
 ## 演出シーン（SkillScene）が絵と文言を、スキルレポートが掛かり先を読む。
 ## 詳細 → doc/tech/combat_scene.md ユニットスキルの演出
 
@@ -19,3 +20,4 @@ var buff_target: String = "both"  ## BUFF: "attack" / "defense" / "both"
 var kind: String = ""         ## BUFF / DOT: 強化か弱体か（StatusMod.KIND_*）
 var cleansed: int = 0         ## CLEANSE: 落とした弱体の本数
 var dot_troops: int = 0       ## DOT: 対象側のターン開始ごとに減る兵数
+var healed: int = 0           ## HEAL: 実際に戻した兵数（最大兵数で打ち止めた後の値）

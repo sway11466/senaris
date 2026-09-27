@@ -7,7 +7,7 @@ class_name FormationOption
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 
 ## 効果の種類。SKILLS の "effect" と1対1（EFFECT_IDS）。
-enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT }
+enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT, HEAL }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
 ## SPOTTER（トリックショット）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
 ## BACKSTAB（バックスタブ）も対象の周りを見る形で、SPOTTER の親戚＝対象を挟んで発動者の正反対に味方が居る。
@@ -24,7 +24,7 @@ enum RangeFrom { CASTER, ANY }
 
 const EFFECT_IDS := {
 	"area": Effect.AREA, "single": Effect.SINGLE, "buff": Effect.BUFF,
-	"cleanse": Effect.CLEANSE, "spawn": Effect.SPAWN, "dot": Effect.DOT,
+	"cleanse": Effect.CLEANSE, "spawn": Effect.SPAWN, "dot": Effect.DOT, "heal": Effect.HEAL,
 }
 const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
@@ -87,6 +87,7 @@ var zone_radius: int          ## 結界の半径（Scope.ZONE のみ）。1＝�
 var pierce_immune: bool
 var duration_turns: int
 var dot_troops: int           ## 対象側のターン開始ごとに減る兵数（DOT のみ）
+var heal_troops: int          ## 戻す兵数（HEAL のみ）。最大兵数で打ち止め
 
 ## スキル定義 r（Formation.SKILLS[rid]）と参加ユニット（先頭＝発動者）から選択肢を組む。
 static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOption:
@@ -150,6 +151,8 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 		o.buff_fx = String(r.get("buff_fx", ""))
 		o.dot_troops = int(r.get("dot_troops", 1))
 		o.duration_turns = int(r.get("duration_turns", 1))
+	elif o.effect == Effect.HEAL:
+		o.heal_troops = int(r["heal_troops"])  # 既定値は持たせない＝書き忘れはここで止まる
 	return o
 
 ## SKILLS の文字列を enum に引く。SKILLS はコード内の定数なので、無い文字列は書き間違い＝止める。

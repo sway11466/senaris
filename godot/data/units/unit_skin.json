@@ -19,6 +19,8 @@
 		"mage",
 		"wizard",
 		"witch",
+		"gunner",
+		"shieldwright",
 		"wagon",
 		"horse",
 		"airship",
@@ -420,6 +422,24 @@
 				}
 			]
 		},
+		"gunner": {
+			"ally": [
+				{
+					"category": "engineer",
+					"combat_effect": "magic_bolt",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "銃の技師",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "gunner",
+					"type_id": "gunner"
+				}
+			],
+			"enemy": []
+		},
 		"halfling": {
 			"ally": [
 				{
@@ -780,6 +800,24 @@
 					"type_id": "scout"
 				}
 			]
+		},
+		"shieldwright": {
+			"ally": [
+				{
+					"category": "engineer",
+					"combat_effect": "punch",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "盾の技師",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "shieldwright",
+					"type_id": "shieldwright"
+				}
+			],
+			"enemy": []
 		},
 		"slime": {
 			"ally": [],

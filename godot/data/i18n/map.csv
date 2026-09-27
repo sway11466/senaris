@@ -87,6 +87,7 @@ ui.skillreport.loss_line_killed,%s　−%d　撃破,%s  −%d  Defeated
 ui.skillreport.no_hits,対象なし（範囲に誰も居なかった）,No targets hit
 ui.skillreport.cleansed,%s の弱体を %d 解除,Debuffs removed from %s: %d
 ui.skillreport.cleansed_none,%s に解除する弱体は無かった,No debuffs on %s to remove
+ui.skillreport.repaired,%s の兵数を %d 回復,Troops restored to %s: %d
 ui.skillreport.spawned,%s が分裂した,%s split in two
 ui.talk.close,閉じる,Close
 ui.talk.skip,会話をスキップ,Skip
@@ -111,6 +112,7 @@ ui.combat.attack,攻撃,Attack
 ui.combat.defense,防御,Defense
 ui.combat.poison,毒 -%d/ターン,Poison -%d/turn
 ui.combat.cleansed,解呪 %d,Cleansed %d
+ui.combat.repaired,修理 +%d,Repaired +%d
 ui.objective.title,勝利／敗北条件,Victory and Defeat Conditions
 ui.objective.win_head,勝利,Victory
 ui.objective.lose_head,敗北,Defeat

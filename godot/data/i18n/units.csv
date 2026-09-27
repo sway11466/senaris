@@ -9,6 +9,8 @@ unit.elf.name,エルフ,Elf
 unit.mage.name,メイジ,Mage
 unit.wizard.name,ウィザード,Wizard
 unit.witch.name,ウィッチ,Witch
+unit.gunner.name,銃の技師,Gunner
+unit.shieldwright.name,盾の技師,Shieldwright
 unit.thief.name,シーフ,Thief
 unit.halfling.name,ハーフリング,Halfling
 unit.ninja.name,ニンジャ,Ninja
@@ -66,6 +68,7 @@ unit_group.flier.name,飛行兵,Flier
 unit_group.champion.name,精鋭,Champion
 unit_group.transport.name,輸送,Transport
 unit_group.emplacement.name,兵器,War Machine
+unit_group.engineer.name,技師,Engineer
 unit_group.goblin.name,ゴブリン,Goblins
 unit_group.undead.name,アンデッド,Undead
 unit_group.orc.name,オーク,Orcs

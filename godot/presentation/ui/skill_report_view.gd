@@ -136,7 +136,7 @@ func _build_summary() -> void:
 		return
 	_build_no_damage_lines()
 
-## 損害の出ないレシピ（バフ・解除・分裂・毒）と空撃ちのサマリー。効果と持続を、状態タブ・
+## 損害の出ないレシピ（バフ・解除・修理・分裂・毒）と空撃ちのサマリー。効果と持続を、状態タブ・
 ## 戦闘レポートのバフ行と同じ書式（CombatReportView.status_text）で出す＝画面ごとに言葉を変えない。
 func _build_no_damage_lines() -> void:
 	var effect := String(Formation.SKILLS.get(_result.skill, {}).get("effect", ""))
@@ -153,6 +153,10 @@ func _build_no_damage_lines() -> void:
 			var n := cast.cleansed if cast != null else 0
 			_add_line(tr("ui.skillreport.cleansed") % [nm, n] if n > 0 \
 				else tr("ui.skillreport.cleansed_none") % nm)
+		"heal":
+			var snap: UnitSnapshot = cast.target if cast != null else null
+			var nm := StrikeTable.display_name(_skins, snap) if snap != null else ""
+			_add_line(tr("ui.skillreport.repaired") % [nm, cast.healed if cast != null else 0])
 		"spawn":
 			_add_line(tr("ui.skillreport.spawned") % StrikeTable.display_name(_skins, _result.caster))
 		_:
