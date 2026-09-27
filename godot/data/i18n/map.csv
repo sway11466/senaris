@@ -67,6 +67,8 @@ ui.info.reserves_none,なし,None
 ui.info.reserves_count,%d体,%d
 ui.info.reserves_bullet,"  ・%s","  • %s"
 ui.info.reserves_line,%s  兵数%d/%d  Lv%d,%s  %d/%d  Lv%d
+ui.info.production_next,次：%s,Next: %s
+ui.info.production_stopped,停止中,Stopped
 ui.info.help_no_selection,ユニット未選択,No unit selected
 ui.info.help_select_unit,盤上のユニットを左クリックで選択,Left-click a unit on the board to select it
 ui.info.help_inspect_tile,空きマスをクリックで地形を確認,Click an empty hex to check its terrain

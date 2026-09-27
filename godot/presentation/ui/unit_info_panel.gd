@@ -720,6 +720,7 @@ func _build_terrain_lines(hex: Vector2i) -> void:
 	_add_separator()
 	var kind_name := tr("ui.info.hq") if b.is_hq() else tr("ui.info.base")
 	_add_head_row(tr("ui.info.base_head") % [kind_name, _team_text(b.team)])
+	_add_production_row(b)
 	if b.garrison.is_empty():
 		_add_full_row("%s  %s" % [tr("ui.info.reserves"), tr("ui.info.reserves_none")])
 	else:
@@ -745,6 +746,24 @@ func _add_movement_cost_rows(terrain_id: String) -> void:
 		var c := Movement.cost(table, mt, terrain_id)
 		_add_row(tr("movement." + mt + ".name"),
 			tr("ui.info.impassable") if c == Movement.IMPASSABLE else str(c))
+
+## 生産の行＝左の項目名の欄にチャージ（スキルと同じゲージ）、右に次に生む1体。生めない間は
+## 「停止中」を添え、ゲージは止まった量のまま出す。生産しない拠点には何も足さない。
+## 仕様 → doc/gdd/uiux.md ユニット情報パネル・doc/gdd/map.md 生産
+func _add_production_row(b: Base) -> void:
+	if not b.produces():
+		return
+	var entry: Dictionary = b.production[b.production_next]
+	var t: UnitType = entry["unit_type"]
+	var native := int(entry["native"])
+	var team_for_skin := native if native >= 0 else (b.team if b.team >= 0 else 0)
+	var sk := SkinCatalog.resolve(_skins, String(entry["skin"]), t.id, team_for_skin)
+	var text := tr("ui.info.production_next") % (tr("unit." + sk.skin_id + ".name") if sk != null else t.id)
+	if not b.can_produce_next():
+		text += "  " + tr("ui.info.production_stopped")
+	_items.append({"t": "full", "text": text, "keep": false, "indent": LABEL_W + ROW_LABEL_GAP,
+		"charge": {"have": mini(b.production_charge, b.production_charge_turns),
+			"need": b.production_charge_turns, "team": b.team}})
 
 ## 控え1体の1行表示（名前・兵数・レベル）。
 func _garrison_line(gu: Unit, b: Base) -> String:
@@ -924,6 +943,7 @@ func _build_terrain(u: Unit) -> void:
 		return
 	_add_separator()
 	_add_row(tr("ui.info.hq") if b.is_hq() else tr("ui.info.base"), _team_text(b.team))
+	_add_production_row(b)
 	_add_row(tr("ui.info.reserves"), tr("ui.info.reserves_count") % b.garrison.size())
 	for gu in b.garrison:
 		_add_full_row(tr("ui.info.reserves_bullet") % _garrison_line(gu, b))

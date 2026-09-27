@@ -1403,6 +1403,14 @@ func _inspect_base(hit: Dictionary) -> void:
 					String(NATIVE_LABELS.get(String(e.get("native", "")), "native 未設定"))])
 	else:
 		_add_info(_inspector, "控え（garrison）: （なし）")
+	var prod: Variant = b.get("production")
+	if typeof(prod) == TYPE_DICTIONARY:
+		_add_info(_inspector, "生産: %d ターンに1体" % int(prod.get("charge_turns", 0)))
+		for e in _as_entries(prod.get("units", [])):
+			_add_info(_inspector, "  ・%s（%s）" % [String(e.get("skin", e.get("type", "?"))),
+				String(NATIVE_LABELS.get(String(e.get("native", "")), "native 未設定"))])
+	else:
+		_add_info(_inspector, "生産: （なし）")
 	_add_hint(_inspector, "拠点の編集は「拠点」モードで。")
 
 
@@ -1805,6 +1813,7 @@ func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
 		g.append({ "skin": _skins[0]["skin_id"], "count": 1, "native": _default_garrison_native(b) })
 		_board.refresh()
 		_refresh_base_box())
+	_add_production_editor(parent, b)
 	_add_button(parent, "この拠点を削除", func() -> void:
 		_doc.remove_base_at(int(b["col"]), int(b["row"]))
 		_board.refresh()
@@ -2338,6 +2347,80 @@ func _has_own_hq() -> bool:
 ## 拠点の本拠地表示（hq キーが無ければ砦）。
 func _hq_text(b: Dictionary) -> String:
 	return String(HQ_LABELS.get(String(b.get("hq", "")), "本拠地: %s" % str(b.get("hq"))))
+
+
+## 生産（doc/gdd/map.md 生産）。規定量 0＝生産しない＝production のキーごと書かない。
+## リストの1行＝スキン＋native＋×。行の並びが生む順番。
+func _add_production_editor(parent: VBoxContainer, b: Dictionary) -> void:
+	var prod: Dictionary = b["production"] if typeof(b.get("production")) == TYPE_DICTIONARY else {}
+	var turns_row := HBoxContainer.new()
+	parent.add_child(turns_row)
+	var head := Label.new()
+	head.text = "生産（規定量 0＝生産しない）"
+	turns_row.add_child(head)
+	var turns := _make_spin(0, 20, int(prod.get("charge_turns", 0)))
+	turns.custom_minimum_size = Vector2(70, 0)
+	turns.value_changed.connect(func(v: float) -> void:
+		var was_on := b.has("production")
+		if int(v) <= 0:
+			b.erase("production")
+		else:
+			var p: Dictionary = b.get("production", {}) if typeof(b.get("production")) == TYPE_DICTIONARY else {}
+			p["charge_turns"] = int(v)
+			if typeof(p.get("units")) != TYPE_ARRAY:
+				p["units"] = []
+			b["production"] = p
+		if was_on != b.has("production"):
+			_refresh_base_box())  # リスト欄の出し入れのときだけ貼り直す（入力中の欄を消さない）
+	turns_row.add_child(turns)
+	if prod.is_empty():
+		return
+	if typeof(prod.get("units")) != TYPE_ARRAY:
+		prod["units"] = []
+	var list: Array = prod["units"]
+	for i in list.size():
+		if typeof(list[i]) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = list[i]
+		var row := HBoxContainer.new()
+		parent.add_child(row)
+		var ob := _make_option()
+		var current := String(entry.get("skin", entry.get("type", "")))
+		for j in _skins.size():
+			ob.add_item("%s（%s）" % [_skins[j]["skin_id"], _skins[j]["type_id"]])
+			if _skins[j]["skin_id"] == current:
+				ob.select(j)
+		ob.item_selected.connect(func(j: int) -> void:
+			entry["skin"] = _skins[j]["skin_id"]
+			entry.erase("type"))
+		row.add_child(ob)
+		if not entry.has("native"):
+			entry["native"] = _default_garrison_native(b)  # 控えと同じ倒し先（StageLoader と同じ）
+		var nat := _make_option()
+		var nat_keys: Array = NATIVE_LABELS.keys()
+		for j in nat_keys.size():
+			nat.add_item(String(NATIVE_LABELS[nat_keys[j]]))
+			if String(nat_keys[j]) == String(entry["native"]):
+				nat.select(j)
+		nat.item_selected.connect(func(j: int) -> void:
+			entry["native"] = String(nat_keys[j]))
+		row.add_child(nat)
+		_add_button(row, "×", func() -> void:
+			list.remove_at(i)
+			_refresh_base_box())
+	_add_button(parent, "生産リストに追加", func() -> void:
+		list.append({ "skin": _skins[0]["skin_id"], "native": _default_garrison_native(b) })
+		_refresh_base_box())
+
+
+## Variant を辞書の配列として読む（手書きの JSON で型が崩れていても表示を止めない）。
+static func _as_entries(v: Variant) -> Array:
+	var out: Array = []
+	if typeof(v) == TYPE_ARRAY:
+		for e in v:
+			if typeof(e) == TYPE_DICTIONARY:
+				out.append(e)
+	return out
 
 
 ## 控えの native を書き忘れた行の倒し先＝拠点の開始時の所有者（StageLoader と同じ）。
