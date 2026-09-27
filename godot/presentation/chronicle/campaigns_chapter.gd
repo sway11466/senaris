@@ -15,6 +15,7 @@ const ART_ASPECT := 230.0 / 317.0
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空なら一覧）
 var _section: int = Section.EVENTS
 var _tabs: HFlowContainer  # 戻る（←）と節のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
+var _book_left := 1  # 物語の節で開いている見開きの左ページ（奇数）
 
 func _ready() -> void:
 	super()
@@ -40,6 +41,7 @@ func reset() -> void:
 	super()
 	_selected_campaign_id = ""
 	_section = Section.EVENTS
+	_book_left = 1
 
 func rebuild() -> void:
 	super()
@@ -136,7 +138,7 @@ func _build() -> void:
 		Section.EVENTS:
 			_build_events()
 		Section.STORY:
-			pass  # 中身は別途決める（doc/gdd/chronicle.md 冒険譚の一覧）
+			_build_book()
 		Section.LORE:
 			_build_lore()
 
@@ -255,6 +257,7 @@ func _campaign_art(path: String, played: bool) -> Control:
 func _open_campaign(campaign_id: String) -> void:
 	_selected_campaign_id = campaign_id
 	_section = Section.EVENTS
+	_book_left = 1
 	SfxPlayer.play_event("menu_select")
 	rebuild()
 
@@ -581,6 +584,86 @@ func _build_lore_section(campaign_id: String, section_id: String) -> void:
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, ChronicleStyle.CATEGORY_GAP)
 	_content_box.add_child(spacer)
+
+# ---------------------------------------------------------------------------
+# 物語（STORY）
+# ---------------------------------------------------------------------------
+
+## 見開きの本。全ステージをクリアするまでは紙を出さず1行だけ。紙の下にめくりの板とページ番号。
+func _build_book() -> void:
+	if _progress == null:
+		return
+	if not _progress.is_all_cleared(_selected_campaign_id):
+		var locked := Label.new()  # 読める物が在ることだけを伝える（設定集の「続きは冒険のあとで」と同じ）
+		locked.text = tr("ui.chronicle.story_locked")
+		locked.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		locked.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		locked.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		locked.custom_minimum_size = Vector2(0, ChronicleBook.SHEET_SIZE.y)  # 紙が出る場所の真ん中に置く
+		locked.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
+		locked.add_theme_color_override("font_color", ChronicleStyle.DIM_GRAY)
+		_content_box.add_child(locked)
+		return
+	var total := ChronicleBook.page_count(_selected_campaign_id)
+	if total == 0:
+		return
+	var book := VBoxContainer.new()
+	book.add_theme_constant_override("separation", ChronicleBook.NAV_GAP)
+	book.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	book.add_child(ChronicleBook.build_spread(_selected_campaign_id, _book_left))
+
+	var nav := HBoxContainer.new()
+	nav.alignment = BoxContainer.ALIGNMENT_CENTER
+	nav.add_theme_constant_override("separation", ChronicleBook.NAV_GAP)
+	var prev := _page_button("ui.chronicle.page_prev", -2, _book_left > 1)
+	var next := _page_button("ui.chronicle.page_next", 2, _book_left + 1 < total)
+	var number := Label.new()
+	if _book_left + 1 <= total:
+		number.text = tr("ui.chronicle.page_number") % [_book_left, _book_left + 1, total]
+	else:  # 最後の見開きの右が白紙
+		number.text = tr("ui.chronicle.page_number_single") % [_book_left, total]
+	number.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
+	number.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
+	nav.add_child(prev)
+	nav.add_child(number)
+	nav.add_child(next)
+	book.add_child(nav)
+	_content_box.add_child(book)
+
+func _page_button(key: String, step: int, enabled: bool) -> Button:
+	var b := TavernTheme.wood_button(tr(key))
+	b.custom_minimum_size = Vector2(ChronicleStyle.TAB_HEIGHT * 2, ChronicleStyle.TAB_HEIGHT)
+	b.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
+	b.disabled = not enabled
+	if not enabled:
+		TavernTheme.dim_wood_button(b)
+	b.pressed.connect(_turn_page.bind(step))
+	return b
+
+## 見開きを step ページぶんめくる（±2）。端を越えるなら何もしない。
+func _turn_page(step: int) -> void:
+	var total := ChronicleBook.page_count(_selected_campaign_id)
+	var left := _book_left + step
+	if left < 1 or left > total:
+		return
+	_book_left = left
+	SfxPlayer.play_event("menu_select")  # めくる音の素材が来るまで選択音で代える
+	rebuild()
+
+## ← → キーでもめくる。ボタンのフォーカス移動より先に取る（本を開いているときだけ）。
+func _input(event: InputEvent) -> void:
+	if _selected_campaign_id.is_empty() or _section != Section.STORY or not is_visible_in_tree():
+		return
+	var key := event as InputEventKey
+	if key == null or not key.pressed:
+		return
+	if key.keycode == KEY_LEFT:
+		_turn_page(-2)
+	elif key.keycode == KEY_RIGHT:
+		_turn_page(2)
+	else:
+		return
+	get_viewport().set_input_as_handled()
 
 # ---------------------------------------------------------------------------
 # 冒険譚まるごとの集計

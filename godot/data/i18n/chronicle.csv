@@ -128,5 +128,10 @@ ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
 ui.chronicle.campaign_rank,ランク %s,Rank %s
 ui.chronicle.total_time,合計 %s,Total %s
 ui.chronicle.story_empty,まだ読み返せる会話がない,No dialogue to read back yet
+ui.chronicle.story_locked,すべてのステージをクリアすると読めます,Clear every stage to read this
+ui.chronicle.page_prev,◀,◀
+ui.chronicle.page_next,▶,▶
+ui.chronicle.page_number,%d–%d / %d,%d–%d / %d
+ui.chronicle.page_number_single,%d / %d,%d / %d
 ui.chronicle.branch_secured,取得,Secured
 ui.chronicle.branch_lost,喪失,Lost

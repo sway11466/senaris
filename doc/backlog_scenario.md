@@ -17,26 +17,18 @@
 ### scenario-1
 
 **チュートリアル１のクロニクルの中身**
-- ゴール：チュートリアル１を遊んだ人が、設定集を読み切れて、物語を通して読める。
+- ゴール：チュートリアル１を遊んだ人が、設定集を読み切れて、全ステージのクリア後に物語（新兵の日誌）を読める。
 - 背景：設定集は5節ぶんを書いてあるが、[chronicle.md](gdd/chronicle.md) 設定集の構成（前半＝舞台・依頼の経緯・一行の顔ぶれ・相手は何者か、後半＝読み物）に照らすと後半が薄い。正本は [tutorial1-goblin-raid.md](campaign/tutorial1-goblin-raid.md) と [world.md](campaign/world.md) で、メモに無い裏設定は載せない。
-- 対応：`godot/data/i18n/chronicle.csv` に節を書き足し、`godot/data/chronicle/tutorial1-goblin-raid.json` の `lore` に節と解放条件を並べる。`story` の並び（ステージ順とイベント）も実際の台本と突き合わせる。
-- 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial1-goblin-raid.json`。前提＝feature-126。
+- 対応：`godot/data/i18n/chronicle.csv` に節を書き足し、`godot/data/chronicle/tutorial1-goblin-raid.json` の `lore` に節と解放条件を並べる。`story` の並び（ステージ順とイベント）も実際の台本と突き合わせる。物語の本文を `chronicle.csv` の `book.tutorial1-goblin-raid.<ページ>` に書く（[chronicle.md](gdd/chronicle.md) 本文の持ち方）。
+- 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial1-goblin-raid.json`。
 
 ### scenario-2
 
 **チュートリアル２のクロニクルの中身**
-- ゴール：チュートリアル２を遊んだ人が、設定集を読み切れて、物語を通して読める。
-- 背景：`godot/data/chronicle/` にファイルが無く、設定集も `story` の並びもまだ無い。正本は [tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) と [world.md](campaign/world.md)。
-- 対応：scenario-1 と同じ形で `godot/data/chronicle/tutorial2-undead-rush.json` を作り、`chronicle.csv` に本文を足す。
-- 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial2-undead-rush.json`。前提＝feature-126。
-
-### scenario-3
-
-**クロニクルの分岐の切り替え**
-- ゴール：両方の展開を経験している箇所で、通し読みの途中にどちらを読むか切り替えられる。
-- 背景：台本には在籍による行の出し入れ（`joined:<actor>`）と、どちらか一方しか起きないイベントがある（[chronicle.md](gdd/chronicle.md) 分岐の切り替え）。既定は最後に遊んだ回で、切り替えは両方を経験している箇所だけに出す＝読み始める前に顔ぶれを選ばせない。
-- 対応：通し読みが分岐に差しかかったとき、パネル脇に切り替えを出す。切り替えは仲間ごとに独立。
-- 該当：`godot/presentation/chronicle/`・[chronicle.md](gdd/chronicle.md) 分岐の切り替え。前提＝feature-126。
+- ゴール：チュートリアル２を遊んだ人が、設定集を読み切れて、全ステージのクリア後に物語（調査隊の報告書）を読める。
+- 背景：`godot/data/chronicle/tutorial2-undead-rush.json` は会話／イベントの並び（`story`）だけがあり、設定集（`lore`）は空。正本は [tutorial2-undead-rush.md](campaign/tutorial2-undead-rush.md) と [world.md](campaign/world.md)。
+- 対応：scenario-1 と同じ形で `lore` に節と解放条件を並べ、`chronicle.csv` に設定集と物語の本文を足す。
+- 該当：`godot/data/i18n/chronicle.csv`・`godot/data/chronicle/tutorial2-undead-rush.json`。
 
 ## ステージ実装
 
