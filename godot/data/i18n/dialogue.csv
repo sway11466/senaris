@@ -535,3 +535,35 @@ dragon-hunt.st5.intro.12,降りぎわを狙え。翼を広げた所が、いち�
 dragon-hunt.st6.intro.9,毒の匂いもします。荒野のものより濃い……。,"I smell venom too — stronger than in the badlands…"
 dragon-hnt.st5.squad.10,山道のロックサーペント1,Serpents of the Pass2
 dragon-hunt.st5.intro.13,山道の脇に休憩小屋があります。押さえておけば、深手を負った方は中で休めます。,"There's a rest hut beside the mountain path. Take it, and anyone badly hurt can rest inside."
+char.gunner.name,銃の技師,Gunner
+char.shieldwright.name,盾の技師,Shieldwright
+char.miner.name,坑員,Miner
+mine-monsters.st1.squad.1,湧き出た魔物,Things from the Deep
+mine-monsters.st1.intro.1,（坑道の作業場。狭い部屋に、掘削の音・工具の音・羊皮紙をめくる音が混じっている）,"(A cramped workroom in the mine. The sounds of digging, tools, and turning parchment all run together.)"
+mine-monsters.st1.intro.2,おい学者。その机、もう少し寄せてくれ。掘った石の置き場が無い。,"Oi, scholar. Shift that desk over. I've nowhere to put the ore."
+mine-monsters.st1.intro.3,無理です。この出土品、光に当てると模様が変わるんですよ。見てくださいこれ、ほら。,Can't. This find changes its pattern when the light hits it. Look — see?
+mine-monsters.st1.intro.4,作業場は一つしかない。取り決めでは道具の整備が優先だ。机は入口の脇へ。,"There is one workroom. Under the agreement, tool maintenance comes first. The desk goes by the entrance."
+mine-monsters.st1.intro.5,取り決めに机の位置は書いていない。鑑定は魔法使いの国の権利だ。,The agreement says nothing about desks. Appraisal is the right of the mages' kingdom.
+mine-monsters.st1.intro.6,あ。ドワーフと、それ以外のが仲良く走ってきますね。,"Oh. Dwarves and not-dwarves, running this way together. How nice."
+mine-monsters.st1.intro.7,逃げろ！ 奥からモンスターが湧いてきた！ 何匹も……何匹もだ！,Run! Monsters are pouring out of the deep tunnels! Lots of them... lots!
+mine-monsters.st1.intro.8,落ち着け。どんな魔物だ？,Steady. What kind of monsters?
+mine-monsters.st1.intro.9,人の形をした、肉の人形と歯車だ！,Flesh dolls shaped like people — and gears!
+mine-monsters.st1.intro.10,肉の人形と歯車……。見に行きたい。,Flesh dolls and gears... I want to go see.
+mine-monsters.st1.intro.11,待て。話が本当なら、ここに戦える者は五人しか居ない。,"Wait. If that's true, there are only five of us here who can fight."
+mine-monsters.st1.intro.12,私が前に出る。帝国の兵として当然だ。,I will take the front. It is only proper for a soldier of the Empire.
+mine-monsters.st1.intro.13,指揮は私が執る。状況を最も理解しているのは学者だ。,I will take command. A scholar understands the situation best.
+mine-monsters.st1.intro.14,どっちでもいい。坑員を上へ逃がす。それまでは、わしの言うことを聞け。,"I don't care which. We get the miners up top. Until then, you listen to me."
+mine-monsters.st1.intro.15,間違って当たったらごめんね！,Sorry in advance if I hit you by mistake!
+mine-monsters.st1.outro.1,（倒れたホムンクルスと、止まった機械。作業場に静けさが戻る）,(Fallen homunculi and stilled machines. Quiet returns to the workroom.)
+mine-monsters.st1.outro.2,機械兵か。見慣れた物だ。だが、この造りは知らない。,Machine soldiers. Familiar enough. But I do not know this make.
+mine-monsters.st1.outro.3,こっちはホムンクルス。魔法で作った生き物。でも、こんな古い術式、教科書でしか見たことない。,And these are homunculi. Creatures made by magic. But I've only ever seen a formula this old in textbooks.
+mine-monsters.st1.outro.4,坑員は退避したようだ。上の声が止んだ。,"The miners are out, looks like. The shouting up top has stopped."
+mine-monsters.st1.outro.5,……奥から、強い魔力を感じる。今倒したものの比ではない。,...I sense strong magic from deeper in. Far beyond what we just fought.
+mine-monsters.st1.outro.6,私は歯車の音を聞いている。止まっていない。何かがまだ動いている。,I can hear gears. They have not stopped. Something is still running.
+mine-monsters.st1.outro.7,私も聞こえます。枚数も回転量も、帝国の技術を超えている気がしますね。なんでしょう？,"I hear them too. The tooth count, the speed — it all feels beyond anything the Empire makes. What could it be?"
+mine-monsters.st1.outro.8,上に報告する前に、奥を見てくる者が要る。わしは行く。この山の坑道だ。,"Before we report upstairs, someone needs to look deeper in. I'll go. These are my mountain's tunnels."
+mine-monsters.st1.outro.9,学者としては同行せざるを得ない。魔力の出所を確かめる。,"As a scholar, I can hardly stay behind. I will find the source of that magic."
+mine-monsters.st1.outro.10,帝国の設備が奥にある。放置はできない。,There is Imperial equipment down there. I cannot leave it.
+mine-monsters.st1.outro.11,トロッコで見学に行きましょう。,Let's take the minecart and go sightseeing.
+mine-monsters.st1.outro.12,やった。奥、行けるんですね。,Yes! We get to go deeper!
+mine-monsters.st1.outro.13,遊びではない。詳しくは分からんが、危険なものを感じる。,"This isn't play. I can't say what, but something down there feels dangerous."

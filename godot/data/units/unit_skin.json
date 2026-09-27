@@ -27,6 +27,8 @@
 		"pixie",
 		"birdman",
 		"birdman_child",
+		"miner",
+		"dwarf_miner",
 		"barricade",
 		"ballista",
 		"goblin",
@@ -328,6 +330,19 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "dwarf",
+					"type_id": "dwarf"
+				},
+				{
+					"category": "infantry",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ドワーフの坑員",
+					"on_board": false,
+					"retainers": [],
+					"skin_id": "dwarf_miner",
 					"type_id": "dwarf"
 				}
 			],
@@ -667,6 +682,19 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "novice",
+					"type_id": "novice"
+				},
+				{
+					"category": "infantry",
+					"combat_effect": "",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "坑員",
+					"on_board": false,
+					"retainers": [],
+					"skin_id": "miner",
 					"type_id": "novice"
 				}
 			],

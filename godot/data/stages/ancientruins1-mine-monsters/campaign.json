@@ -1,0 +1,12 @@
+{
+  "id": "ancientruins1-mine-monsters",
+  "title": "mine-monsters.title",
+  "desc": "mine-monsters.desc",
+  "board": "ancient_ruins",
+  "difficulty": 2,
+  "emblem": { "ally": "shieldwright", "enemy": "gear_soldier" },
+  "actor_lineup": "single",
+  "stages": [
+    { "id": "mine-monsters-st1", "file": "mine-monsters-st1.json", "title": "mine-monsters.st1.title", "synopsis": "mine-monsters.st1.synopsis" }
+  ]
+}

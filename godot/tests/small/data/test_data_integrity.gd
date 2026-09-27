@@ -504,12 +504,13 @@ func test_stage_interlude_matches_supply() -> void:
 ## 新しい味方歩兵を unit_skin.csv に足したのにレシピへ書き足し忘れると、その駒だけ列に加われない
 ## ＝盤の上では「なぜか組めない」としか見えないバグになるので、データ側から網掛けする。
 ## 対象の見分けは「顔ぶれに fighter が入っているレシピ」＝歩兵のレシピが増えても一覧の追記は要らない。
-## ノービスは見習いのため対象外（doc/gdd/formations.md 表A）。
+## ノービスは見習いのため対象外（doc/gdd/formations.md 表A）。会話専用のスキン（on_board false＝坑員など）は
+## 盤に出ないので列に加わることも無い＝対象外。
 func test_infantry_recipes_cover_every_ally_infantry_skin() -> void:
 	var by_id: Dictionary = SkinCatalog.load_standard()[SkinCatalog.BY_ID_KEY]
 	var wanted: Array[String] = []
 	for skin in by_id.values():
-		if skin.side == "ally" and skin.category == "infantry" and skin.skin_id != "novice":
+		if skin.side == "ally" and skin.category == "infantry" and skin.skin_id != "novice" and skin.on_board:
 			wanted.append(skin.skin_id)
 	assert_gt(wanted.size(), 0, "味方の歩兵スキンが読める")
 	var checked := 0

@@ -61,3 +61,7 @@ event.dragon-hunt-st4.village-lost.name,里を奪われた,The Village Lost
 event.dragon-hunt-st5.village-secured.name,山里の確保,Securing the Mountain Village
 event.dragon-hunt-st5.village-lost.name,山里を奪われた,The Mountain Village Lost
 event.debug-photo-store4.town-freed.name,町の解放,Freeing the Town
+mine-monsters.title,鉱山の魔物,Monsters of the Mine
+mine-monsters.desc,国境の山の鉱山で、掘り当てた遺跡から魔物が湧き出した。居合わせた学者・技師・ドワーフは、いがみ合いながらも坑道の奥へ潜っていく。,"In a mine on the border mountains, monsters pour out of ruins the diggers broke into. The scholars, engineers, and a dwarf who happened to be there head into the deep tunnels, bickering all the way."
+mine-monsters.st1.title,坑道の入口,The Mine Entrance
+mine-monsters.st1.synopsis,一つしかない作業場で、学者と技師とドワーフが机の置き場を揉めていた。そこへ坑員が逃げてくる。奥から魔物が湧いたという。,"Scholars, engineers, and a dwarf are squabbling over where the desk goes in the only workroom — until the miners come running. Monsters are pouring out of the deep."

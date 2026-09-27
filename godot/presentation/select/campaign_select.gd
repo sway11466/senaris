@@ -28,6 +28,7 @@ const BOARD_MARGIN := 8              # ボードの外周に残す壁の幅（�
 # doc/tech/i18n.md「UI 文言」の tr() 必須の例外。
 const BOARDS := [
 	{ "board": "tutorial", "name": "Tutorial" },
+	{ "board": "ancient_ruins", "name": "Ancient Ruins" },
 	{ "board": "bounties", "name": "Bounties" },
 ]
 const DEBUG_BOARD_NAME := "Debug"
