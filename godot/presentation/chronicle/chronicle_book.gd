@@ -1,8 +1,9 @@
 extends RefCounted
 class_name ChronicleBook
-## 冒険譚の物語の節＝見開きの本。仕様 → doc/gdd/chronicle.md 画面・本文の持ち方
+## クロニクルの本＝羊皮紙2枚の見開き。物語の節と会話／イベントの節が使う。
+## 仕様 → doc/gdd/chronicle.md 画面・会話／イベント・本文の持ち方
 ##
-## 本文は chronicle.csv の book.<冒険譚>.<ページ>（1キー＝1ページ）、挿絵は
+## 物語は本文を chronicle.csv の book.<冒険譚>.<ページ>（1キー＝1ページ）、挿絵は
 ## assets/chronicle/<冒険譚>/book_<ページ>.png。ページは本文か挿絵のどちらかが在るぶんだけ
 ## 1 から連番で続く。紙の寸法は基準の画面で固定＝1ページに収まるかをテストで見られる。
 
@@ -50,16 +51,65 @@ static func body_height_limit(tex: Texture2D) -> float:
 		return TEXT_HEIGHT
 	return TEXT_HEIGHT - image_height(tex) - IMAGE_GAP
 
-## 1ページ＝羊皮紙1枚。page がページ数を超えていれば白紙（見開きの右が余ったとき）。
-## gutter_right＝綴じ目がページの右にある（左ページ）。綴じ目の側に内向きの影を付けて折り目に見せる。
+## 物語の1ページ。page がページ数を超えていれば白紙（見開きの右が余ったとき）。
 ## 本文の Label には meta "book_body" を付ける＝テストが収まりを測る。
 static func build_page(campaign_id: String, page: int, gutter_right := false) -> Control:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", IMAGE_GAP)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var path := image_path(campaign_id, page)
+	if not path.is_empty():
+		var tex := load(path) as Texture2D
+		if tex != null:
+			col.add_child(image_rect(tex))
+
+	var text := page_text(campaign_id, page)
+	if not text.is_empty():
+		var body := Label.new()
+		body.text = text
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
+		body.add_theme_font_size_override("font_size", FONT_SIZE)
+		body.add_theme_color_override("font_color", TavernTheme.INK)
+		body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		body.set_meta("book_body", true)
+		col.add_child(body)
+	return sheet_page(hash(campaign_id) + page, gutter_right, col)
+
+## 物語の見開き。left は奇数ページ。
+static func build_spread(campaign_id: String, left: int) -> Control:
+	return spread(build_page(campaign_id, left, true), build_page(campaign_id, left + 1, false))
+
+## ページの上に載せる絵（物語の挿絵・会話／イベントの盤の絵）。幅は文字の幅、高さは縦横比。
+static func image_rect(tex: Texture2D) -> TextureRect:
+	var art := TextureRect.new()
+	art.texture = tex
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	art.custom_minimum_size = Vector2(TEXT_WIDTH, image_height(tex))
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return art
+
+## 見開き＝羊皮紙2枚を綴じ目で突き合わせる（左ページ・右ページは sheet_page で組んだもの）。
+static func spread(left_page: Control, right_page: Control) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 0)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(left_page)
+	row.add_child(right_page)
+	return row
+
+## 1ページ＝羊皮紙1枚に中身を載せる。中身は縁から PAGE_PAD 内側の文字の場所に置く。
+## gutter_right＝綴じ目がページの右にある（左ページ）。綴じ目の側に内向きの影を付けて折り目に見せる。
+static func sheet_page(seed: int, gutter_right: bool, content: Control) -> Control:
 	var root := Control.new()
 	root.custom_minimum_size = Vector2(SHEET_SIZE.x * 0.5, SHEET_SIZE.y)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var paper := Panel.new()
-	paper.add_theme_stylebox_override("panel", _paper_box(hash(campaign_id) + page, gutter_right))
+	paper.add_theme_stylebox_override("panel", _paper_box(seed, gutter_right))
 	paper.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(paper)
@@ -83,47 +133,10 @@ static func build_page(campaign_id: String, page: int, gutter_right := false) ->
 	margin.add_theme_constant_override("margin_right", int(PAGE_PAD.x))
 	margin.add_theme_constant_override("margin_top", int(PAGE_PAD.y))
 	margin.add_theme_constant_override("margin_bottom", int(PAGE_PAD.y))
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.mouse_filter = Control.MOUSE_FILTER_PASS  # 会話／イベントの切り替えの板を押せるように
 	root.add_child(margin)
-	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", IMAGE_GAP)
-	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_child(col)
-
-	var path := image_path(campaign_id, page)
-	if not path.is_empty():
-		var tex := load(path) as Texture2D
-		if tex != null:
-			var art := TextureRect.new()
-			art.texture = tex
-			art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			art.custom_minimum_size = Vector2(TEXT_WIDTH, image_height(tex))
-			art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			col.add_child(art)
-
-	var text := page_text(campaign_id, page)
-	if not text.is_empty():
-		var body := Label.new()
-		body.text = text
-		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		body.custom_minimum_size = Vector2(TEXT_WIDTH, 0)
-		body.add_theme_font_size_override("font_size", FONT_SIZE)
-		body.add_theme_color_override("font_color", TavernTheme.INK)
-		body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		body.set_meta("book_body", true)
-		col.add_child(body)
+	margin.add_child(content)
 	return root
-
-## 見開き＝羊皮紙2枚を綴じ目で突き合わせる。left は奇数ページ。
-static func build_spread(campaign_id: String, left: int) -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 0)
-	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(build_page(campaign_id, left, true))
-	row.add_child(build_page(campaign_id, left + 1, false))
-	return row
 
 ## 紙＝貼り紙の羊皮紙（変種は seed で決まる＝同じページは常に同じ紙）。ページは紙の実寸より
 ## 縦に長いので、タイルの継ぎ目が出ないよう縦も引き伸ばす。余白はページが持つ。

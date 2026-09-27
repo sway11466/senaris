@@ -15,7 +15,16 @@ const ART_ASPECT := 230.0 / 317.0
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空なら一覧）
 var _section: int = Section.EVENTS
 var _tabs: HFlowContainer  # 戻る（←）と節のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
-var _book_left := 1  # 物語の節で開いている見開きの左ページ（奇数）
+var _story_left := 1   # 物語の節で開いている見開きの左ページ（奇数）
+var _events_left := 1  # 会話／イベントの節で開いている見開きの左ページ（奇数）
+# 会話／イベントの本。段と会話は冒険譚を開いたときに読み、ページの振り分けは _events_key が変わったときだけやり直す。
+var _events_campaign := ""       # _events_chapters を読んだ冒険譚
+var _events_chapters: Array = [] # [{ title, map, talks }]（ChronicleStory の段と会話）
+var _events_branch := {}         # 取得／喪失の選び { "段:会話": options の番号 }
+var _events_blocks: Array = []   # ページへ流す塊（_event_blocks）
+var _events_pages: Array = []    # ページごとの塊の番号
+var _events_key := ""            # 振り分けたときの 冒険譚｜言語｜選び
+var _events_gen := 0             # 測っている最中に組み直されたら捨てるための番号
 
 func _ready() -> void:
 	super()
@@ -41,7 +50,7 @@ func reset() -> void:
 	super()
 	_selected_campaign_id = ""
 	_section = Section.EVENTS
-	_book_left = 1
+	_reset_books()
 
 func rebuild() -> void:
 	super()
@@ -109,13 +118,21 @@ func _equalize_widths(buttons: Array) -> void:
 		if is_instance_valid(b):
 			(b as Control).custom_minimum_size.x = w
 
-## タブの板を細枠で包む。selected でなければ枠は透明（場所だけ取る）。
-func _tab_frame(b: Button, selected: bool) -> Control:
+## 冒険譚を開き直した・画面を開き直した＝本を最初の見開きに戻し、会話／イベントは読み直す
+## （遊んだぶん記録が増えているかもしれない）。
+func _reset_books() -> void:
+	_story_left = 1
+	_events_left = 1
+	_events_campaign = ""
+	_events_key = ""
+
+## タブの板を細枠で包む。selected でなければ枠は透明（場所だけ取る）。紙の上では color に濃い色を渡す。
+func _tab_frame(b: Button, selected: bool, color := ChronicleStyle.FRAME_COLOR) -> Control:
 	var frame := PanelContainer.new()
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color(0, 0, 0, 0)
 	box.set_border_width_all(ChronicleStyle.FRAME_WIDTH)
-	box.border_color = ChronicleStyle.FRAME_COLOR if selected else Color(0, 0, 0, 0)
+	box.border_color = color if selected else Color(0, 0, 0, 0)
 	box.set_content_margin_all(ChronicleStyle.FRAME_PAD)
 	frame.add_theme_stylebox_override("panel", box)
 	frame.add_child(b)
@@ -257,7 +274,7 @@ func _campaign_art(path: String, played: bool) -> Control:
 func _open_campaign(campaign_id: String) -> void:
 	_selected_campaign_id = campaign_id
 	_section = Section.EVENTS
-	_book_left = 1
+	_reset_books()
 	SfxPlayer.play_event("menu_select")
 	rebuild()
 
@@ -342,92 +359,172 @@ func _build_results() -> void:
 # 会話／イベント（EVENTS）
 # ---------------------------------------------------------------------------
 
-## 全ステージぶんの段を縦に積む。1段＝見出し（ステージの題名）＋左に盤の絵・右に会話の行。
+## 会話を本で読む。全ステージぶんの行を画面の外で一度組んで高さを測り、ページへ振り分ける。
+## 振り分けは覚えておき、めくるたびには測り直さない（冒険譚・言語・取得／喪失の選びが変わったときだけ）。
 ## 並ぶのは経験した会話だけ＝見ていない出来事の存在を匂わせない（doc/gdd/chronicle.md 会話／イベント）。
 func _build_events() -> void:
 	if _progress == null:
 		return
+	if _events_campaign != _selected_campaign_id:
+		_load_events()
+	if _events_chapters.is_empty():
+		_build_placeholder(tr("ui.chronicle.story_empty"))
+		return
+	var blocks := _event_blocks()
+	var key := "%s|%s|%s" % [_selected_campaign_id, TranslationServer.get_locale(), str(_events_branch)]
+	if key == _events_key:
+		_add_book(_events_spread(), _events_pages.size())
+		return
+	_events_gen += 1
+	var gen := _events_gen
+	var heights := await _measure_blocks(blocks)
+	if gen != _events_gen or not is_inside_tree():
+		return  # 測っている間に組み直された
+	_events_blocks = blocks
+	_events_pages = _paginate(blocks, heights)
+	_events_key = key
+	_events_left = clampi(_events_left, 1, maxi(1, _events_pages.size()))
+	if _events_left % 2 == 0:
+		_events_left -= 1
+	rebuild()
+
+## 段（1ステージ）の列と、段ごとの会話を読む。冒険譚を開き直したときだけ。
+func _load_events() -> void:
+	_events_campaign = _selected_campaign_id
+	_events_branch = {}
+	_events_key = ""
+	_events_chapters = []
 	var campaign := _progress.campaign(_selected_campaign_id)
 	if campaign.is_empty():
 		return
 	var chronicle := ChronicleLoader.load_for(_selected_campaign_id)
-	var chapters := ChronicleStory.load(_selected_campaign_id, chronicle["story"], campaign,
-			_progress, _store)
-	if chapters.is_empty():
-		_build_placeholder(tr("ui.chronicle.story_empty"))
-		return
-	for chapter in chapters:
-		_content_box.add_child(_stage_block(chapter))
+	for chapter in ChronicleStory.load(_selected_campaign_id, chronicle["story"], campaign, _progress, _store):
+		_events_chapters.append({
+			"title": String(chapter["title"]),
+			"map": String(chapter["map"]),
+			"talks": ChronicleStory.chapter_talks(chapter),
+		})
 
-## 1ステージの段。盤の列は本文の幅の EVENTS_MAP_RATIO、残りを会話の列に。
-func _stage_block(chapter: Dictionary) -> Control:
-	var block := VBoxContainer.new()
-	block.add_theme_constant_override("separation", ChronicleStyle.ITEM_GAP)
-	var head := Label.new()
-	head.text = tr(String(chapter["title"]))
-	head.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
-	head.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
-	block.add_child(head)
+## ページへ流す塊の列。塊は ステージの頭（題名＋盤の絵・新しいページから）／切り替えの板／行／会話の間。
+func _event_blocks() -> Array:
+	var blocks: Array = []
+	for ci in _events_chapters.size():
+		var chapter: Dictionary = _events_chapters[ci]
+		blocks.append({ "kind": "stage", "title": chapter["title"], "map": chapter["map"] })
+		var talks: Array = chapter["talks"]
+		for ti in talks.size():
+			var talk: Dictionary = talks[ti]
+			var lines: Array = talk["lines"]
+			var options: Array = talk["options"]
+			if ti > 0:
+				blocks.append({ "kind": "gap" })
+			if options.size() >= 2:
+				var tk := "%d:%d" % [ci, ti]
+				var chosen := int(_events_branch.get(tk, talk["chosen"]))
+				blocks.append({ "kind": "switch", "talk": tk, "options": options, "chosen": chosen })
+				lines = options[chosen]["lines"]
+			for raw in lines:
+				if typeof(raw) == TYPE_DICTIONARY:
+					blocks.append({ "kind": "line", "line": raw })
+	return blocks
 
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", ChronicleStyle.PANE_GAP)
-	block.add_child(row)
-
-	var map_col := Control.new()  # 盤の絵を置く列。絵が無くても幅は取る＝会話の列の位置が段ごとにずれない
-	map_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	map_col.size_flags_stretch_ratio = ChronicleStyle.EVENTS_MAP_RATIO
-	map_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var map_path := String(chapter["map"])
-	if not map_path.is_empty():
-		var tex := load(map_path) as Texture2D
-		if tex != null:
-			var art := TextureRect.new()
-			art.texture = tex
-			art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
-			art.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-			art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			map_col.add_child(art)
-			# 絵の高さは列の幅から決まる＝幅が付いたら縦横比どおりの高さを列に取らせる
-			map_col.resized.connect(func() -> void:
-				var h := map_col.size.x * tex.get_height() / float(tex.get_width())
-				art.size = Vector2(map_col.size.x, h)
-				map_col.custom_minimum_size.y = h)
-	row.add_child(map_col)
-
-	var talk_col := VBoxContainer.new()
-	talk_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	talk_col.size_flags_stretch_ratio = 1.0 - ChronicleStyle.EVENTS_MAP_RATIO
-	talk_col.add_theme_constant_override("separation", ChronicleStyle.EVENTS_TALK_GAP)
-	for talk in ChronicleStory.chapter_talks(chapter):
-		talk_col.add_child(_talk_box(talk))
-	row.add_child(talk_col)
-
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, ChronicleStyle.CATEGORY_GAP)
-	block.add_child(spacer)
-	return block
-
-## 会話1本。取得／喪失の候補があれば頭に切り替えのボタンを置き、押すと行が入れ替わる。
-func _talk_box(talk: Dictionary) -> Control:
+## 塊の高さを測る。本文の幅の器に並べて画面の外（透明）でレイアウトさせる。
+## 折り返す Label は幅が付いてから高さが決まるので、2フレーム待つ。
+func _measure_blocks(blocks: Array) -> Array:
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", ChronicleStyle.EVENTS_LINE_GAP)
-	var lines_box := VBoxContainer.new()
-	lines_box.add_theme_constant_override("separation", ChronicleStyle.EVENTS_LINE_GAP)
-	var options: Array = talk["options"]
-	if options.size() >= 2:
-		var switch := HBoxContainer.new()
-		switch.add_theme_constant_override("separation", ChronicleStyle.TAB_GAP)
-		box.add_child(switch)
-		_fill_switch(switch, lines_box, options, int(talk["chosen"]))
-	_fill_lines(lines_box, talk["lines"])
-	box.add_child(lines_box)
-	return box
+	box.custom_minimum_size = Vector2(ChronicleBook.TEXT_WIDTH, 0)
+	box.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	box.add_theme_constant_override("separation", 0)
+	box.modulate = Color(1, 1, 1, 0)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var nodes: Array = []
+	for b in blocks:
+		var n := _block_node(b)
+		nodes.append(n)
+		box.add_child(n)
+	_content_box.add_child(box)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var heights: Array = []
+	for n in nodes:
+		heights.append((n as Control).get_combined_minimum_size().y if is_instance_valid(n) else 0.0)
+	if is_instance_valid(box):
+		box.queue_free()
+	return heights
 
-## 切り替えのボタン（取得／喪失）。いま出しているほうにだけ細枠（タブと同じ印）。
-func _fill_switch(switch: HBoxContainer, lines_box: VBoxContainer, options: Array, chosen: int) -> void:
-	for c in switch.get_children():
-		c.queue_free()
+## ページに振り分ける。返り値＝ページごとの塊の番号の列。
+## ステージの頭は新しいページから。切り替えの板は次の行と離さない。会話の間はページの頭では捨てる。
+func _paginate(blocks: Array, heights: Array) -> Array:
+	var pages: Array = []
+	var page: Array = []
+	var used := 0.0
+	var gap := float(ChronicleStyle.EVENTS_LINE_GAP)
+	for i in blocks.size():
+		var kind := String(blocks[i]["kind"])
+		var h: float = heights[i]
+		if kind == "switch" and i + 1 < blocks.size():
+			h += gap + float(heights[i + 1])  # 板だけがページの下に残らないよう、次の行と合わせて測る
+		var need := h if page.is_empty() else used + gap + h
+		if not page.is_empty() and (kind == "stage" or need > ChronicleBook.TEXT_HEIGHT):
+			pages.append(page)
+			page = []
+			used = 0.0
+		if page.is_empty() and kind == "gap":
+			continue
+		used = float(heights[i]) if page.is_empty() else used + gap + float(heights[i])
+		page.append(i)
+	if not page.is_empty():
+		pages.append(page)
+	return pages
+
+## いま開いている見開き。
+func _events_spread() -> Control:
+	return ChronicleBook.spread(_events_page(_events_left, true), _events_page(_events_left + 1, false))
+
+func _events_page(page: int, gutter_right: bool) -> Control:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", ChronicleStyle.EVENTS_LINE_GAP)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if page <= _events_pages.size():
+		for i in _events_pages[page - 1]:
+			col.add_child(_block_node(_events_blocks[i]))
+	return ChronicleBook.sheet_page(hash(_selected_campaign_id) + page, gutter_right, col)
+
+## 塊1つぶんの Control（測るときとページに置くときで同じものを組む＝高さが一致する）。
+func _block_node(b: Dictionary) -> Control:
+	match String(b["kind"]):
+		"stage":
+			return _stage_head(String(b["title"]), String(b["map"]))
+		"switch":
+			return _branch_switch(String(b["talk"]), b["options"], int(b["chosen"]))
+		"gap":
+			var spacer := Control.new()
+			spacer.custom_minimum_size = Vector2(0, ChronicleStyle.EVENTS_TALK_GAP)
+			spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			return spacer
+		_:
+			return _line_row(b["line"])
+
+## ステージの頭＝題名と盤の絵（物語の挿絵と同じ置き方）。
+func _stage_head(title: String, map_path: String) -> Control:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", ChronicleStyle.EVENTS_LINE_GAP)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var head := Label.new()
+	head.text = tr(title)
+	head.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
+	head.add_theme_color_override("font_color", TavernTheme.INK)
+	col.add_child(head)
+	var tex: Texture2D = null if map_path.is_empty() else load(map_path) as Texture2D
+	if tex != null:
+		col.add_child(ChronicleBook.image_rect(tex))
+	return col
+
+## 切り替えの板（取得／喪失）。いま出しているほうにだけ細枠（タブと同じ印）。
+## 押すと選びを覚えて組み直す＝ページを区切り直し、開いている見開きの位置はそのまま。
+func _branch_switch(talk_key: String, options: Array, chosen: int) -> Control:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", ChronicleStyle.TAB_GAP)
 	for i in options.size():
 		var opt: Dictionary = options[i]
 		var key := "ui.chronicle.branch_lost" if String(opt["captured_by"]) == "enemy" \
@@ -440,52 +537,46 @@ func _fill_switch(switch: HBoxContainer, lines_box: VBoxContainer, options: Arra
 			if idx == chosen:
 				return
 			SfxPlayer.play_event("menu_select")
-			_fill_switch(switch, lines_box, options, idx)
-			_fill_lines(lines_box, options[idx]["lines"]))
-		switch.add_child(_tab_frame(b, i == chosen))
-
-## 会話の行を並べる（入れ替えのたびに作り直す）。
-func _fill_lines(lines_box: VBoxContainer, lines: Array) -> void:
-	for c in lines_box.get_children():
-		c.queue_free()
-	for raw in lines:
-		if typeof(raw) != TYPE_DICTIONARY:
-			continue
-		lines_box.add_child(_line_row(raw))
+			_events_branch[talk_key] = idx
+			rebuild())
+		row.add_child(_tab_frame(b, i == chosen, TavernTheme.INK_SOFT))
+	return row
 
 ## 会話の1行。話者のいる行＝顔・名前・台詞。場面の切り替え（scene）とト書き（話者なし）は文字だけ。
 func _line_row(line: Dictionary) -> Control:
 	if line.has("scene"):
-		return _plain_line(tr(String(line["scene"])), ChronicleStyle.ACCENT, HORIZONTAL_ALIGNMENT_CENTER)
+		return _plain_line(tr(String(line["scene"])))
 	if String(line.get("speaker", "")).is_empty():
-		return _plain_line(tr(String(line.get("text", ""))), ChronicleStyle.DIM_GRAY, HORIZONTAL_ALIGNMENT_CENTER)
+		return _plain_line(tr(String(line.get("text", ""))))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(_face(String(line.get("skin", ""))))
 	var col := VBoxContainer.new()
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col.add_theme_constant_override("separation", 0)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var name_label := Label.new()
 	name_label.text = tr(String(line.get("speaker", "")))
 	name_label.add_theme_font_size_override("font_size", ChronicleStyle.COUNT_FONT_SIZE)
-	name_label.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
+	name_label.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 	col.add_child(name_label)
 	var text := Label.new()
 	text.text = tr(String(line.get("text", "")))
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-	text.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
+	text.add_theme_color_override("font_color", TavernTheme.INK)
 	col.add_child(text)
 	row.add_child(col)
 	return row
 
-func _plain_line(text: String, color: Color, align: HorizontalAlignment) -> Label:
+func _plain_line(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.horizontal_alignment = align
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", ChronicleStyle.COUNT_FONT_SIZE)
-	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 	return label
 
 ## 顔の小さな絵＝会話パネルと同じ絵（portrait 優先、無ければ盤の絵）を実体だけ切り出して枠に収める。
@@ -586,10 +677,10 @@ func _build_lore_section(campaign_id: String, section_id: String) -> void:
 	_content_box.add_child(spacer)
 
 # ---------------------------------------------------------------------------
-# 物語（STORY）
+# 物語（STORY）と本のめくり
 # ---------------------------------------------------------------------------
 
-## 見開きの本。全ステージをクリアするまでは紙を出さず1行だけ。紙の下にめくりの板とページ番号。
+## 物語の見開き。全ステージをクリアするまでは紙を出さず1行だけ。
 func _build_book() -> void:
 	if _progress == null:
 		return
@@ -607,21 +698,26 @@ func _build_book() -> void:
 	var total := ChronicleBook.page_count(_selected_campaign_id)
 	if total == 0:
 		return
+	_add_book(ChronicleBook.build_spread(_selected_campaign_id, _story_left), total)
+
+## 本＝見開きと、その下のめくりの板とページ番号。いまの節の開いている見開き（_left()）で組む。
+func _add_book(spread: Control, total: int) -> void:
+	var left := _left()
 	var book := VBoxContainer.new()
 	book.add_theme_constant_override("separation", ChronicleBook.NAV_GAP)
 	book.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	book.add_child(ChronicleBook.build_spread(_selected_campaign_id, _book_left))
+	book.add_child(spread)
 
 	var nav := HBoxContainer.new()
 	nav.alignment = BoxContainer.ALIGNMENT_CENTER
 	nav.add_theme_constant_override("separation", ChronicleBook.NAV_GAP)
-	var prev := _page_button("ui.chronicle.page_prev", -2, _book_left > 1)
-	var next := _page_button("ui.chronicle.page_next", 2, _book_left + 1 < total)
+	var prev := _page_button("ui.chronicle.page_prev", -2, left > 1)
+	var next := _page_button("ui.chronicle.page_next", 2, left + 1 < total)
 	var number := Label.new()
-	if _book_left + 1 <= total:
-		number.text = tr("ui.chronicle.page_number") % [_book_left, _book_left + 1, total]
+	if left + 1 <= total:
+		number.text = tr("ui.chronicle.page_number") % [left, left + 1, total]
 	else:  # 最後の見開きの右が白紙
-		number.text = tr("ui.chronicle.page_number_single") % [_book_left, total]
+		number.text = tr("ui.chronicle.page_number_single") % [left, total]
 	number.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
 	number.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
 	nav.add_child(prev)
@@ -640,19 +736,33 @@ func _page_button(key: String, step: int, enabled: bool) -> Button:
 	b.pressed.connect(_turn_page.bind(step))
 	return b
 
+## いまの節で開いている見開きの左ページ（奇数）。節ごとに別に覚える。
+func _left() -> int:
+	return _events_left if _section == Section.EVENTS else _story_left
+
+## いまの節のページ数。会話／イベントは振り分けが済んでいなければ 0。
+func _page_total() -> int:
+	if _section == Section.EVENTS:
+		return _events_pages.size()
+	return ChronicleBook.page_count(_selected_campaign_id)
+
 ## 見開きを step ページぶんめくる（±2）。端を越えるなら何もしない。
 func _turn_page(step: int) -> void:
-	var total := ChronicleBook.page_count(_selected_campaign_id)
-	var left := _book_left + step
-	if left < 1 or left > total:
+	var left := _left() + step
+	if left < 1 or left > _page_total():
 		return
-	_book_left = left
+	if _section == Section.EVENTS:
+		_events_left = left
+	else:
+		_story_left = left
 	SfxPlayer.play_event("menu_select")  # めくる音の素材が来るまで選択音で代える
 	rebuild()
 
-## ← → キーでもめくる。ボタンのフォーカス移動より先に取る（本を開いているときだけ）。
+## ← → キーでもめくる。ボタンのフォーカス移動より先に取る（本の節を開いているときだけ）。
 func _input(event: InputEvent) -> void:
-	if _selected_campaign_id.is_empty() or _section != Section.STORY or not is_visible_in_tree():
+	if _selected_campaign_id.is_empty() or not is_visible_in_tree():
+		return
+	if _section != Section.STORY and _section != Section.EVENTS:
 		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed:

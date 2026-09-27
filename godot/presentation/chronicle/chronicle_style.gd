@@ -43,8 +43,7 @@ const TAB_HEIGHT := 30
 const TAB_FONT_SIZE := 15
 const FRAME_PAD := 3
 
-## 会話／イベント（冒険譚の会話を段ごとに積む）。
-const EVENTS_MAP_RATIO := 0.4  # 盤の列＝本文の幅の4割
+## 会話／イベント（冒険譚の会話を本のページに流す）。
 const EVENTS_TALK_GAP := 14    # 会話と会話の間
 const EVENTS_LINE_GAP := 6     # 行と行の間（詰めて並べる）
 const EVENTS_FACE_SIZE := 40   # 顔の小さな絵の枠
