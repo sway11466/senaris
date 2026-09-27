@@ -40,6 +40,8 @@ shieldwright,20,0,0,70,5,foot,1,false,false,8,0,0,false,engineer,
 wagon,0,0,0,10,6,wheeled,1,false,false,8,4,0,true,transport,
 horse,0,0,0,10,7,foot,1,false,false,8,1,0,false,transport,
 airship,10,10,0,10,9,flight,1,false,false,8,4,0,true,transport,
+minecart,0,0,0,10,8,rail_bound,1,false,false,8,4,0,true,transport,改良前のトロッコ。レールの上だけを走る
+railcar,0,0,0,10,8,wheeled,1,false,false,8,4,0,true,transport,改良後のトロッコ。レールの外も走る
 barricade,0,0,0,80,0,stationary,0,false,false,8,0,0,true,emplacement,
 ballista,90,30,0,20,0,stationary,2-6,false,false,8,0,0,true,emplacement,
 slime,20,0,0,20,2,foot,1,false,false,8,0,0,false,magical,分裂スキルで増える

@@ -28,6 +28,8 @@ unit.dwarf.name,ドワーフ,Dwarf
 unit.wagon.name,馬車,Wagon
 unit.horse.name,馬,Horse
 unit.airship.name,飛空艇,Airship
+unit.minecart.name,トロッコ,Minecart
+unit.railcar.name,改良トロッコ,Improved Minecart
 unit.barricade.name,バリケード,Barricade
 unit.ballista.name,バリスタ,Ballista
 unit.goblin.name,ゴブリン,Goblin

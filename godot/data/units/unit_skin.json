@@ -24,6 +24,8 @@
 		"wagon",
 		"horse",
 		"airship",
+		"minecart",
+		"railcar",
 		"pixie",
 		"birdman",
 		"birdman_child",
@@ -637,6 +639,24 @@
 				}
 			]
 		},
+		"minecart": {
+			"ally": [
+				{
+					"category": "transport",
+					"combat_effect": "",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "move_wheel",
+					"name": "トロッコ",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "minecart",
+					"type_id": "minecart"
+				}
+			],
+			"enemy": []
+		},
 		"ninja": {
 			"ally": [
 				{
@@ -838,6 +858,24 @@
 					"type_id": "priest"
 				}
 			]
+		},
+		"railcar": {
+			"ally": [
+				{
+					"category": "transport",
+					"combat_effect": "",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "改良トロッコ",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "railcar",
+					"type_id": "railcar"
+				}
+			],
+			"enemy": []
 		},
 		"scout": {
 			"ally": [],
