@@ -59,6 +59,8 @@
 		"matango",
 		"mandragora",
 		"slime",
+		"homunculus",
+		"gear_soldier",
 		"red_dragon"
 	],
 	"skins": {
@@ -265,6 +267,32 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "rogue",
+					"type_id": "cleric"
+				},
+				{
+					"category": "magical",
+					"combat_effect": "punch",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ホムンクルス",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "homunculus",
+					"type_id": "cleric"
+				},
+				{
+					"category": "machine",
+					"combat_effect": "punch",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "歯車兵",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "gear_soldier",
 					"type_id": "cleric"
 				}
 			]

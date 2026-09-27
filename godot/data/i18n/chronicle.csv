@@ -75,6 +75,8 @@ unit.matango.desc,歩く茸の群生。胞子を撒き散らして遠くの敵�
 unit.mandragora.desc,悲鳴を上げる人型の根。その叫びは魔力を帯び、鎧を無視して敵を蝕む。,"Humanoid roots that shriek in anguish. Their cries carry magical force, bypassing armor to wither foes."
 unit.red_dragon.desc,空と炎を支配する竜。その咆哮は大地を揺るがし、炎は全てを焼き尽くす。,"A dragon that commands sky and flame. Its roar shakes the earth, and its fire consumes all."
 unit.slime.desc,不定形の魔法生物。弱いが分裂して数を増やし、じわじわと戦場を埋める。,"An amorphous magical creature. Weak, but it multiplies by splitting, slowly filling the battlefield."
+unit.homunculus.desc,フラスコで作られた人工の小人。古代の術式から生まれ、遺跡の奥から湧き出してくる。,"Tiny artificial beings grown in alchemical flasks. Born of ancient formulae, they spill out from the depths of the ruins."
+unit.gear_soldier.desc,遺跡の奥で動き続けていた小型の機械兵。誰の命令もなく、近づくものを殴りつける。,"Small automatons that have kept running deep in the ruins. With no one left to command them, they batter anything that comes near."
 unit.rogue.desc,街道を荒らすならず者。一人は弱いが、徒党を組んで旅人を襲う。,"Outlaws who plague the roads. Weak alone, they band together to prey on travelers."
 unit.rogue_axe.desc,斧を振るう荒くれ。力はあるが守りは薄い、攻め一辺倒の暴漢。,"Axe-wielding brutes. They have strength but little defense — all offense, no finesse."
 unit.rogue_slinger.desc,石を投げつけるならず者。正面から戦う度胸はなく、遠くから嫌がらせをする。,"Bandits who hurl stones. Lacking courage for a fair fight, they harass from a distance."

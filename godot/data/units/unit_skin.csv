@@ -59,4 +59,6 @@ treant,トレント,enemy,forest_knight,plant,1.3,0,0,1.3,squad,,punch,,true
 matango,マタンゴ,enemy,forest_slinger,plant,0.9,0,0,0.9,squad,,spore,,true
 mandragora,マンドラゴラ,enemy,forest_witch,plant,0.9,0,0,0.9,squad,,scream,,true
 slime,スライム,enemy,slime,magical,0.7,0,0,0.85,squad,,,,true
+homunculus,ホムンクルス,enemy,cleric,magical,0.8,0,0,0.8,squad,,punch,,true
+gear_soldier,歯車兵,enemy,cleric,machine,0.8,0,0,0.8,squad,,punch,,true
 red_dragon,レッドドラゴン,enemy,dragon,dragon,1.4,0,20,1.7,single,,fire_breath,,true

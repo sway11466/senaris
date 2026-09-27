@@ -54,6 +54,8 @@ unit.matango.name,マタンゴ,Myconid
 unit.mandragora.name,マンドラゴラ,Mandragora
 unit.red_dragon.name,レッドドラゴン,Red Dragon
 unit.slime.name,スライム,Slime
+unit.homunculus.name,ホムンクルス,Homunculus
+unit.gear_soldier.name,歯車兵,Gear Soldier
 unit.rogue.name,ローグ,Bandit
 unit.rogue_axe.name,ローグアックス,Thug
 unit.rogue_slinger.name,ローグスリンガー,Bandit Slinger
@@ -76,5 +78,6 @@ unit_group.beast.name,魔獣,Beasts
 unit_group.rogue.name,悪党,Outlaws
 unit_group.plant.name,植物,Plants
 unit_group.magical.name,魔法生物,Magical Creatures
+unit_group.machine.name,機械,Machines
 unit_group.giant.name,巨人,Giants
 unit_group.dragon.name,ドラゴン,Dragons

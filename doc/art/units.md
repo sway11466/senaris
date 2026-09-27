@@ -143,7 +143,7 @@ lower third. Plain pure-white background
 (single flat color, for easy cutout). Square 1:1 composition.
 ```
 
-人型グループの追加分（味方・ゴブリン・オーク・アンデッド・悪党）:
+人型グループの追加分（味方・ゴブリン・オーク・アンデッド・悪党・機械。魔法生物のうち人型のホムンクルスも使う）:
 ```
 Chunky, appealing, strong super-deformed / chibi proportions — about 2 to 2.5
 heads tall, with a very large oversized head, a small stubby body and short
