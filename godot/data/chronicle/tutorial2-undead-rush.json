@@ -1,0 +1,12 @@
+{
+  "lore": [],
+  "story": [
+    { "stage": "undead-rush-st1" },
+    { "stage": "undead-rush-st2", "events": ["town-freed"] },
+    { "stage": "undead-rush-st3" },
+    { "stage": "undead-rush-st4" },
+    { "stage": "undead-rush-st5" },
+    { "stage": "undead-rush-st6" },
+    { "stage": "undead-rush-st7", "events": ["airship-arrive"] }
+  ]
+}

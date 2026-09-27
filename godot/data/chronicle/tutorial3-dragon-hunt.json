@@ -1,0 +1,12 @@
+{
+  "lore": [],
+  "story": [
+    { "stage": "dragon-hunt-st1" },
+    { "stage": "dragon-hunt-st2" },
+    { "stage": "dragon-hunt-st3", "events": ["camp-secured", "camp-lost"] },
+    { "stage": "dragon-hunt-st4", "events": ["village-secured", "village-lost"] },
+    { "stage": "dragon-hunt-st5", "events": ["village-secured", "village-lost"] },
+    { "stage": "dragon-hunt-st6" },
+    { "stage": "dragon-hunt-st7" }
+  ]
+}

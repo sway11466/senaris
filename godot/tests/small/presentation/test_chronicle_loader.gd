@@ -100,7 +100,7 @@ func test_all_story_stages_exist_in_campaign() -> void:
 
 func test_story_events_match_the_stage() -> void:
 	# chronicle.json の story.events と、ステージ JSON の会話つきイベントが一致する。
-	# 通し読みの並びはこの events が決める（doc/gdd/chronicle.md 物語）＝片方だけ増えると
+	# 通し読みの並びはこの events が決める（doc/gdd/chronicle.md 会話／イベント）＝片方だけ増えると
 	# 会話が黙って落ちる／並べられないイベントが出る。
 	var chronicles := ChronicleLoader.load_all()
 	for campaign_id in chronicles:
