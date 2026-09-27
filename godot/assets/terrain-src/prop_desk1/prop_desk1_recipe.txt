@@ -1,0 +1,10 @@
+盤の立ち絵 — map_scale は terrain_skin.csv の plain_cave1_prop_desk1 の行から引く。
+_03_master は raw の白を四隅と机の下からフラッドフィルで抜き（-fuzz 8%）、閉じた白
+（脚と横木のあいだ2か所・ランタンの輪の中）を同じく塗りつぶして抜いたもの。
+
+powershell -ExecutionPolicy Bypass -File tools\gen_terrain_tile.ps1 plain_cave1_prop_desk1 assets\terrain-src\prop_desk1\prop_desk1_03_master.png -Object
+
+戦闘の奥絵（_combat_back）— 盤の絵をそのまま使う。左右へ透過の余白を足して比率 3:1 の帯の中央に置き、
+窓に対する大きさを抑える（礼拝堂の 2.25:1 と同じ考え方）。H は master の高さ（639）。
+
+magick assets\terrain-src\prop_desk1\prop_desk1_03_master.png -background none -gravity Center -extent {H*3}x{H} assets\terrain\plain_cave1_prop_desk1_combat_back.png

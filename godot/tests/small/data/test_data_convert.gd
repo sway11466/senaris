@@ -429,6 +429,35 @@ func test_terrain_side_tiling_is_required_on_footings_only() -> void:
 	rows[0].erase("side_tiling")
 	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "空/欠落も弾く")
 
+## 区間貼り（bays）は区間の境目（side_bays）を 0〜1 の昇順で2つ以上持つ。ほかの貼り方では空。
+## 書き忘れると区間を切れず柱が縦に伸びる（→ doc/gdd/terrain.md 足場）。
+func test_terrain_side_bays_only_with_bays_tiling() -> void:
+	var rows := [ _valid_terrain_skin("plain", "plain"), _valid_terrain_skin("forest", "forest") ]
+	rows[0]["side_tiling"] = "bays"
+	rows[0]["side_bays"] = "0.081|0.361|0.640|0.917"
+	assert_eq(Terrain.build_skin(rows, _terrain_types())["problems"].size(), 0, "bays＋昇順の境目は通る")
+	rows[0]["side_bays"] = ""
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "bays で境目が空なら弾く")
+	rows[0]["side_bays"] = "0.5"
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "境目が1つ（区間が無い）なら弾く")
+	rows[0]["side_bays"] = "0.6|0.3"
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "昇順でなければ弾く")
+	rows[0]["side_bays"] = "0.2|1.3"
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "1 を超えたら弾く")
+	rows[0]["side_tiling"] = "repeat"
+	rows[0]["side_bays"] = "0.2|0.5"
+	assert_null(Terrain.build_skin(rows, _terrain_types())["json"], "bays でないのに境目があれば弾く")
+
+func test_terrain_skin_bays_parse_and_repeat_vertically() -> void:
+	var s := TerrainSkin.from_dict({ "skin_id": "w", "terrain_type": "wall", "side_tiling": "bays",
+		"side_bays": "0.1|0.4|0.7" })
+	assert_true(s.side_in_bays(), "区間貼り")
+	assert_true(s.side_repeats(), "縦は繰り返す")
+	assert_eq(s.side_bays.size(), 3, "境目3つ＝区間2つ")
+	var broken := TerrainSkin.from_dict({ "skin_id": "w", "terrain_type": "wall", "side_tiling": "bays",
+		"side_bays": "" })
+	assert_false(broken.side_in_bays(), "境目が無ければ引き伸ばしに倒す")
+
 func test_terrain_object_side_tiling_must_be_empty() -> void:
 	# オブジェクトは側面を持たない＝書いてあれば取り違えなので弾く。
 	var types := _terrain_types()

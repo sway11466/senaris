@@ -1,0 +1,12 @@
+# 側面＝坑道の壁（岩肌に等間隔の坑木の柱・鉄の帯・所々の筋交い）。元絵の全高をそのまま使い、64色に減らすだけ。
+# 貼り方は bays（辺1本に柱と柱のあいだの1区間）。区間の境目は元絵の柱の中心を実測した値で、
+# terrain_skin.csv の side_bays に書く: 0.081|0.361|0.640|0.917（幅1024px の 55〜110・342〜398・627〜683・911〜967 の中心）。
+# 右端から左端へまたぐ区間（16.4%）は短いので使わない。元絵を差し替えたら柱の中心を測り直して side_bays を直す。
+# wall_mine1_side_a.jpg は没の初回（柱2本・不揃い）。
+magick assets\terrain-src\wall_mine1\wall_mine1_side_01_raw.jpg -colors 64 -dither None assets\terrain\wall_mine1_side.png
+
+# 上面＝既定の壁と同じ黒（天井まで続く岩を水平に切った断面）。
+copy assets\terrain\wall.png assets\terrain\wall_mine1.png
+
+# CSV を直したら JSON を焼き直す:
+#   godot --headless --path . --script res://data/terrain/convert.gd

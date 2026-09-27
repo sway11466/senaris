@@ -1,0 +1,39 @@
+SUBJECT: A sturdy wooden WORK DESK standing in a mine or workshop, as drawn on
+the world map of a classic 2D role-playing game: seen from the front and slightly
+above, standing upright and facing the bottom of the frame — nothing lying flat,
+no perspective.
+
+ONE plain, heavy work table: a thick rectangular plank top resting on four
+square wooden legs, braced low between the legs by a single stretcher bar. It is
+a working desk, used hard but solid: the wood is scuffed, stained and dented,
+with visible grain, but nothing is broken. On the top sit only TWO things,
+each big and bold enough to read at thumbnail size, while the desk itself stays the main shape: a thick loose stack of parchment
+sheets on one side, and on the other side one chunky miner's LANTERN standing
+upright — a boxy iron-framed lantern with glass panes on its sides and a
+carrying ring on top, about as tall as one third of the desk's height. Nothing else on the desk. Nothing hangs off the edges;
+nothing is piled high.
+
+SIZE — the desk sits in the MIDDLE of the picture, wider than it is tall. In a
+1024-pixel picture it is about 600 pixels wide and about 400 pixels tall,
+leaving at least 200 pixels of white on every side. It must NOT touch any edge
+and must NOT be cut by any edge.
+
+COLOR — weathered dull-brown timber, hex #6E5238, greyed with dust; parchment
+a dull cream, darker at the edges, never bright white; the lantern dark iron
+with dull yellow glass, unlit. Everything muted, in the same clean stylized cel-shaded look as
+the game's terrain and unit art: bold flat shading, clear dark outlines, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything around the desk is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO cave wall, NO drop
+shadow. This white is going to be deleted and the game will draw its own cave
+floor there, so the outline of the desk must be a hard, clean, crisp edge
+against it. The parchment must stay clearly cream, not white.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the desk itself; NOTHING casts a shadow onto the white.
+
+Nothing else: no chair, no stool, no people, no creature, no animals, no
+lettering, no signs. Read at thumbnail size: a few large legible shapes, no fine
+detail. NO border, NO frame around the picture itself, NO vignette. Square 1:1.

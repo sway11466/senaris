@@ -581,6 +581,13 @@ func _add_skirt() -> void:
 					dir = -dir
 				var u0 := (c0.x * dir.x + c0.z * dir.y) / SIDE_TEX_WIDTH
 				var u1 := (c1.x * dir.x + c1.z * dir.y) / SIDE_TEX_WIDTH
+				# 区間貼り（坑道の支え）は辺1本に絵の区間を1つ貼る＝辺の両端が柱の中心に来て、
+				# 角で半分ずつ合わさる。区間はヘックスと辺の向きから決定的に選ぶ（盤を作り直しても不変）。
+				# 端は c0→c1 の巻き順で割り当てる＝外から見た左右がどの辺でも揃う。詳細 → doc/gdd/terrain.md 足場
+				if side != null and skin != null and skin.side_in_bays():
+					var bay := posmod(hash(Vector3i(hex.x, hex.y, i)), skin.side_bays.size() - 1)
+					u0 = skin.side_bays[bay]
+					u1 = skin.side_bays[bay + 1]
 				# v は貼り方で変わる（→ TerrainSkin.SIDE_*）。引き伸ばし＝帯1枚を段差いっぱいに伸ばす
 				# （滝は全長どこも同じ姿）。繰り返し＝帯の縮尺を保って縦に並べる（石積みは段数が増える）。
 				# 繰り返しのとき帯が世界で持つ高さは、u の幅と絵の縦横比が決める＝石の縦横比が保たれる。

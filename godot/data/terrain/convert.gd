@@ -121,7 +121,22 @@ static func _invalid_side_tiling(rows: Array, type_rows: Array) -> Array:
 				problems.append("skin_id[%s] の side_tiling が不正 '%s'（%s のどれか）" % [id, v, str(SkinDef.SIDE_TILINGS)])
 		elif v != "":
 			problems.append("skin_id[%s] はオブジェクトなので side_tiling は空にする（'%s'）" % [id, v])
+		problems += _invalid_side_bays(id, v, r.get("side_bays", ""))
 	return problems
+
+## 区間の境目（side_bays）は bays のスキンだけが持つ。境目は 0〜1 の昇順で2つ以上（＝区間が1つ以上）。
+## 書き忘れると区間を切れず、引き伸ばしに倒れて柱が縦に伸びる（→ doc/gdd/terrain.md 足場）。
+static func _invalid_side_bays(id: String, tiling: String, raw: Variant) -> Array:
+	var text := str(raw).strip_edges()
+	if tiling != SkinDef.SIDE_BAYS:
+		return [] if text == "" else ["skin_id[%s] は bays ではないので side_bays は空にする（'%s'）" % [id, text]]
+	var bays := SkinDef.parse_bays(text)
+	if bays.size() < 2:
+		return ["skin_id[%s] の side_bays は '|' 区切りの数を2つ以上（'%s'）" % [id, text]]
+	for i in bays.size():
+		if bays[i] < 0.0 or bays[i] > 1.0 or (i > 0 and bays[i] <= bays[i - 1]):
+			return ["skin_id[%s] の side_bays は 0〜1 の昇順（'%s'）" % [id, text]]
+	return []
 
 ## layer が object のスキンで、許されない向きのばらし方を書いている行。
 ## 立ち絵（standee）だけ flip_x まで許し、それ以外のオブジェクトは none のみ。

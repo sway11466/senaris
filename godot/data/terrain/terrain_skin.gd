@@ -23,7 +23,8 @@ const PLACEMENTS := [PLACE_STANDEE, PLACE_PANEL, PLACE_FLAT]
 ## 段差の高さは場所ごとに違うので、1枚の帯をどう当てるかで石の大きさの意味が変わる。
 const SIDE_STRETCH := "stretch"  ## 帯1枚を段差の高さいっぱいに引き伸ばす。滝（川）＝落ちる水は全長どこも同じ姿
 const SIDE_REPEAT := "repeat"    ## 帯の縮尺を保ったまま縦に繰り返す。石積み＝高い段差は段数が増える
-const SIDE_TILINGS := [SIDE_STRETCH, SIDE_REPEAT]
+const SIDE_BAYS := "bays"        ## 辺1本に絵の区間を1つ貼る（縦は繰り返し）。坑道の支え＝柱がどの角にも立つ
+const SIDE_TILINGS := [SIDE_STRETCH, SIDE_REPEAT, SIDE_BAYS]
 
 ## 同じ絵が隣り合ったときの見え方を散らす手段（→ orientable）。絵が向きを持つほど使える手が減る。
 ## 値は「何をしてよいか」をそのまま並べる＝名前を読めば効く操作が分かる。
@@ -60,6 +61,9 @@ var elevation: float       ## 見た目の高さ（ワールド単位・TILE=1�
 var floor: float
 ## 側面の帯の貼り方（SIDE_* のどれか）。足場のスキンだけが持つ（オブジェクトは空）。
 var side_tiling: String
+## side_tiling が bays のときの区間の境目（絵の幅に対する比・昇順）。隣り合う2値のあいだが1区間。
+## ほかの貼り方では空。詳細 → doc/gdd/terrain.md 足場
+var side_bays: PackedFloat32Array
 ## オブジェクトの置き方（PLACE_* のどれか）。足場のスキンはこの列を持たない（空）。
 var placement: String
 ## オブジェクトの立ち絵を、ヘックス中心からどれだけ手前へ置くか（ワールド単位・TILE=1・正＝手前）。
@@ -95,6 +99,10 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	# 従来の見え方のほうが「直っていない」と気づきやすい。
 	var sd: Variant = d.get("side_tiling", "")
 	s.side_tiling = String(sd) if typeof(sd) == TYPE_STRING and sd in SIDE_TILINGS else SIDE_STRETCH
+	s.side_bays = parse_bays(d.get("side_bays", ""))
+	# 区間が2つの境目に満たない（書き忘れ・壊れた値）なら貼れない＝引き伸ばしに倒す。
+	if s.side_tiling == SIDE_BAYS and s.side_bays.size() < 2:
+		s.side_tiling = SIDE_STRETCH
 	# 置き方はオブジェクトだけが持つ。未知の値（打ち間違い）は空に倒し、描く側が立ち絵（既定）で
 	# 扱う＝何も出ないより、立ち絵で出るほうが不備に気づける。
 	var pl: Variant = d.get("placement", "")
@@ -108,9 +116,25 @@ static func from_dict(d: Dictionary) -> TerrainSkin:
 	s.combat_ground = String(d.get("combat_ground", ""))
 	return s
 
-## 側面の帯を縦に繰り返すか（false＝段差の高さいっぱいに引き伸ばす）。
+## 側面の帯を縦に繰り返すか（false＝段差の高さいっぱいに引き伸ばす）。区間貼りも縦は繰り返す。
 func side_repeats() -> bool:
-	return side_tiling == SIDE_REPEAT
+	return side_tiling == SIDE_REPEAT or side_tiling == SIDE_BAYS
+
+## 側面を辺ごとの区間で貼るか（→ SIDE_BAYS）。
+func side_in_bays() -> bool:
+	return side_tiling == SIDE_BAYS
+
+## CSV の side_bays（"0.081|0.361|…"）を境目の配列に解く。空・数でない値は空配列。
+static func parse_bays(v: Variant) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	if typeof(v) != TYPE_STRING or String(v).strip_edges() == "":
+		return out
+	for part in String(v).split("|", false):
+		var t := part.strip_edges()
+		if not t.is_valid_float():
+			return PackedFloat32Array()
+		out.append(float(t))
+	return out
 
 
 ## 戦闘演出の地面に敷くスキンID（空なら自分自身＝敷き詰め）。

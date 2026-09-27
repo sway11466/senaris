@@ -1,0 +1,47 @@
+STYLE: A side-on wall-face texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette. It must tile SEAMLESSLY in BOTH directions: the left and right edges
+continue into each other, and the top and bottom edges continue into each other.
+Keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The wall of a MINE TUNNEL dug by hand into a single mass of solid rock,
+seen face-on. The rock is ONE CONTINUOUS BODY of dark cold grey-brown stone, base
+color around #5F584F, its tone shifting gradually across the face, with irregular
+fracture lines wandering across it. Unlike a natural cave, this face was cut by
+miners: short, shallow PICK GOUGES score the rock here and there in loose,
+uneven clusters, all running roughly diagonally, so it reads as worked by hand —
+but still solid rock, NOT masonry, NO bricks, NO mortar lines.
+Standing against the rock are exactly FOUR vertical TIMBER PROPS set at EVEN,
+REGULAR intervals like a row of mine supports: their centres at one eighth, three
+eighths, five eighths and seven eighths of the way across the frame, so the gap
+between neighbouring posts is always the same and the rhythm continues across the
+seamless left-right join. Each post is a squared-off pine timber about one
+twelfth of the frame wide, clearly WOOD: a warm medium brown #8B6A47, noticeably
+LIGHTER and warmer than the grey rock, with visible straight wood grain running
+along its length, a few knots, and a dark outline so it stands out from the stone.
+Each post runs STRAIGHT from the top edge to the bottom edge of the frame without
+any end, joint, base or top, so the texture continues seamlessly upward and
+downward. The four posts match in size, spacing and color; only their knots and
+small cracks differ. The left and right edges of the frame are plain rock, half a gap wide each.
+IRON FITTINGS: every post is wrapped by TWO dark iron bands fastened with a few
+round rivet heads — one band high up, about one tenth of the way down from the
+top edge, and one about halfway down. The bands are dark grey iron with a little
+rust, bold enough to read at thumbnail size.
+DIAGONAL BRACES, only here and there: exactly TWO diagonal timber braces, each a
+squared pine timber of the same warm brown as the posts but a little narrower.
+One spans the gap between the first and second posts, running from the first
+post about one tenth down from the top edge down to the second post about halfway
+down. The other spans the gap between the third and fourth posts, running the
+opposite way, from the fourth post about one tenth down from the top edge down to
+the third post about halfway down. Both braces end against the posts, fixed with
+an iron plate and rivets at each end; neither touches the top or bottom edge of
+the frame. The middle gap between the second and third posts has NO brace.
+Lit dimly from above. NO horizontal beams, NO planks, NO other bracing. NO
+vegetation of any kind — NO moss, NO plants, NO soil, NO puddles. NO objects of
+any kind — NO torches, NO lamps, NO ore, NO crystals, NO rails, NO tools, NO
+bones. This is only the flat wall face — NO top surface, NO floor, NO arch, NO
+opening, NO cast shadow onto anything else.
