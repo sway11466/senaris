@@ -20,10 +20,9 @@ var _events_left := 1  # 会話／イベントの節で開いている見開き�
 # 会話／イベントの本。段と会話は冒険譚を開いたときに読み、ページの振り分けは _events_key が変わったときだけやり直す。
 var _events_campaign := ""       # _events_chapters を読んだ冒険譚
 var _events_chapters: Array = [] # [{ title, map, talks }]（ChronicleStory の段と会話）
-var _events_branch := {}         # 取得／喪失の選び { "段:会話": options の番号 }
 var _events_blocks: Array = []   # ページへ流す塊（_event_blocks）
 var _events_pages: Array = []    # ページごとの塊の番号
-var _events_key := ""            # 振り分けたときの 冒険譚｜言語｜選び
+var _events_key := ""            # 振り分けたときの 冒険譚｜言語
 var _events_gen := 0             # 測っている最中に組み直されたら捨てるための番号
 
 func _ready() -> void:
@@ -126,13 +125,13 @@ func _reset_books() -> void:
 	_events_campaign = ""
 	_events_key = ""
 
-## タブの板を細枠で包む。selected でなければ枠は透明（場所だけ取る）。紙の上では color に濃い色を渡す。
-func _tab_frame(b: Button, selected: bool, color := ChronicleStyle.FRAME_COLOR) -> Control:
+## タブの板を細枠で包む。selected でなければ枠は透明（場所だけ取る）。
+func _tab_frame(b: Button, selected: bool) -> Control:
 	var frame := PanelContainer.new()
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color(0, 0, 0, 0)
 	box.set_border_width_all(ChronicleStyle.FRAME_WIDTH)
-	box.border_color = color if selected else Color(0, 0, 0, 0)
+	box.border_color = ChronicleStyle.FRAME_COLOR if selected else Color(0, 0, 0, 0)
 	box.set_content_margin_all(ChronicleStyle.FRAME_PAD)
 	frame.add_theme_stylebox_override("panel", box)
 	frame.add_child(b)
@@ -360,7 +359,7 @@ func _build_results() -> void:
 # ---------------------------------------------------------------------------
 
 ## 会話を本で読む。全ステージぶんの行を画面の外で一度組んで高さを測り、ページへ振り分ける。
-## 振り分けは覚えておき、めくるたびには測り直さない（冒険譚・言語・取得／喪失の選びが変わったときだけ）。
+## 振り分けは覚えておき、めくるたびには測り直さない（冒険譚か言語が変わったときだけ）。
 ## 並ぶのは経験した会話だけ＝見ていない出来事の存在を匂わせない（doc/gdd/chronicle.md 会話／イベント）。
 func _build_events() -> void:
 	if _progress == null:
@@ -371,7 +370,7 @@ func _build_events() -> void:
 		_build_placeholder(tr("ui.chronicle.story_empty"))
 		return
 	var blocks := _event_blocks()
-	var key := "%s|%s|%s" % [_selected_campaign_id, TranslationServer.get_locale(), str(_events_branch)]
+	var key := "%s|%s" % [_selected_campaign_id, TranslationServer.get_locale()]
 	if key == _events_key:
 		_add_book(_events_spread(), _events_pages.size())
 		return
@@ -391,7 +390,6 @@ func _build_events() -> void:
 ## 段（1ステージ）の列と、段ごとの会話を読む。冒険譚を開き直したときだけ。
 func _load_events() -> void:
 	_events_campaign = _selected_campaign_id
-	_events_branch = {}
 	_events_key = ""
 	_events_chapters = []
 	var campaign := _progress.campaign(_selected_campaign_id)
@@ -405,28 +403,34 @@ func _load_events() -> void:
 			"talks": ChronicleStory.chapter_talks(chapter),
 		})
 
-## ページへ流す塊の列。塊は ステージの頭（題名＋盤の絵・新しいページから）／切り替えの板／行／会話の間。
+## ページへ流す塊の列。塊は ステージの頭（題名＋盤の絵・新しいページから）／会話の見出し（戦闘前・中・後）／
+## 行／会話の間。取得／喪失の両方を経験した組は、2つの会話を続けて並べる（見出しに取得・喪失を添える）。
 func _event_blocks() -> Array:
 	var blocks: Array = []
-	for ci in _events_chapters.size():
-		var chapter: Dictionary = _events_chapters[ci]
+	for chapter in _events_chapters:
 		blocks.append({ "kind": "stage", "title": chapter["title"], "map": chapter["map"] })
-		var talks: Array = chapter["talks"]
-		for ti in talks.size():
-			var talk: Dictionary = talks[ti]
-			var lines: Array = talk["lines"]
+		var shown: Array = []  # 並べ終えたイベント（組の相手が同じ回に記録されていても二度出さない）
+		for talk in chapter["talks"]:
 			var options: Array = talk["options"]
-			if ti > 0:
-				blocks.append({ "kind": "gap" })
-			if options.size() >= 2:
-				var tk := "%d:%d" % [ci, ti]
-				var chosen := int(_events_branch.get(tk, talk["chosen"]))
-				blocks.append({ "kind": "switch", "talk": tk, "options": options, "chosen": chosen })
-				lines = options[chosen]["lines"]
-			for raw in lines:
-				if typeof(raw) == TYPE_DICTIONARY:
-					blocks.append({ "kind": "line", "line": raw })
+			if options.is_empty():
+				_append_talk(blocks, String(talk["phase"]), talk["lines"])
+				continue
+			if shown.has(String(talk["event"])):
+				continue
+			for opt in options:
+				var side := "lost" if String(opt["captured_by"]) == "enemy" else "secured"
+				_append_talk(blocks, "event_" + side, opt["lines"])
+				shown.append(String(opt["event"]))
 	return blocks
+
+## 会話1本ぶんの塊（会話の間・見出し・行）を足す。ステージの最初の会話には間を置かない。
+func _append_talk(blocks: Array, phase: String, lines: Array) -> void:
+	if String(blocks.back()["kind"]) != "stage":
+		blocks.append({ "kind": "gap" })
+	blocks.append({ "kind": "phase", "phase": phase })
+	for raw in lines:
+		if typeof(raw) == TYPE_DICTIONARY:
+			blocks.append({ "kind": "line", "line": raw })
 
 ## 塊の高さを測る。本文の幅の器に並べて画面の外（透明）でレイアウトさせる。
 ## 折り返す Label は幅が付いてから高さが決まるので、2フレーム待つ。
@@ -453,7 +457,7 @@ func _measure_blocks(blocks: Array) -> Array:
 	return heights
 
 ## ページに振り分ける。返り値＝ページごとの塊の番号の列。
-## ステージの頭は新しいページから。切り替えの板は次の行と離さない。会話の間はページの頭では捨てる。
+## ステージの頭は新しいページから。見出しは次の行と離さない。会話の間はページの頭では捨てる。
 func _paginate(blocks: Array, heights: Array) -> Array:
 	var pages: Array = []
 	var page: Array = []
@@ -462,8 +466,8 @@ func _paginate(blocks: Array, heights: Array) -> Array:
 	for i in blocks.size():
 		var kind := String(blocks[i]["kind"])
 		var h: float = heights[i]
-		if kind == "switch" and i + 1 < blocks.size():
-			h += gap + float(heights[i + 1])  # 板だけがページの下に残らないよう、次の行と合わせて測る
+		if kind == "phase" and i + 1 < blocks.size():
+			h += gap + float(heights[i + 1])  # 見出しだけがページの下に残らないよう、最初の行と合わせて測る
 		var need := h if page.is_empty() else used + gap + h
 		if not page.is_empty() and (kind == "stage" or need > ChronicleBook.TEXT_HEIGHT):
 			pages.append(page)
@@ -495,8 +499,8 @@ func _block_node(b: Dictionary) -> Control:
 	match String(b["kind"]):
 		"stage":
 			return _stage_head(String(b["title"]), String(b["map"]))
-		"switch":
-			return _branch_switch(String(b["talk"]), b["options"], int(b["chosen"]))
+		"phase":
+			return _phase_head(String(b["phase"]))
 		"gap":
 			var spacer := Control.new()
 			spacer.custom_minimum_size = Vector2(0, ChronicleStyle.EVENTS_TALK_GAP)
@@ -520,27 +524,12 @@ func _stage_head(title: String, map_path: String) -> Control:
 		col.add_child(ChronicleBook.image_rect(tex))
 	return col
 
-## 切り替えの板（取得／喪失）。いま出しているほうにだけ細枠（タブと同じ印）。
-## 押すと選びを覚えて組み直す＝ページを区切り直し、開いている見開きの位置はそのまま。
-func _branch_switch(talk_key: String, options: Array, chosen: int) -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", ChronicleStyle.TAB_GAP)
-	for i in options.size():
-		var opt: Dictionary = options[i]
-		var key := "ui.chronicle.branch_lost" if String(opt["captured_by"]) == "enemy" \
-				else "ui.chronicle.branch_secured"
-		var b := TavernTheme.wood_button(tr(key))
-		b.custom_minimum_size = Vector2(0, ChronicleStyle.TAB_HEIGHT)
-		b.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
-		var idx := i
-		b.pressed.connect(func() -> void:
-			if idx == chosen:
-				return
-			SfxPlayer.play_event("menu_select")
-			_events_branch[talk_key] = idx
-			rebuild())
-		row.add_child(_tab_frame(b, i == chosen, TavernTheme.INK_SOFT))
-	return row
+## 会話の見出し＝戦闘前（開幕）・戦闘中（イベント。取得／喪失の組は event_secured・event_lost）・
+## 戦闘後（決着）。中央ぞろえの薄いインク。
+func _phase_head(phase: String) -> Control:
+	var label := _plain_line(tr("ui.chronicle.phase_" + phase))
+	label.add_theme_font_size_override("font_size", ChronicleStyle.COUNT_FONT_SIZE)
+	return label
 
 ## 会話の1行。話者のいる行＝顔・名前・台詞。場面の切り替え（scene）とト書き（話者なし）は文字だけ。
 func _line_row(line: Dictionary) -> Control:

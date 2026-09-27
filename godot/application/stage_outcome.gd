@@ -3,7 +3,7 @@ class_name StageOutcome
 ## 決着時の記録（application 層）。presentation が ProgressStore / RosterStore を直接
 ## 書き換えないための門番。3つの入口で受け、進捗・名簿・経験した会話を正しい順序で書く。
 ## 経験した会話は2か所に書く＝進捗は最後に遊んだ回（上書き）、クロニクルは遊んだ回を足す
-## （doc/gdd/chronicle.md 分岐の切り替え）。
+## （doc/gdd/chronicle.md 分岐の扱い）。
 ## 冒険譚の外（デバッグ・直接起動）なら書かない。
 ## 仕様 → doc/tech/gamesystem.md / doc/gdd/rank.md / doc/gdd/campaigns.md
 ##

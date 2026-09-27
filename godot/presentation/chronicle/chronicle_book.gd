@@ -133,7 +133,7 @@ static func sheet_page(seed: int, gutter_right: bool, content: Control) -> Contr
 	margin.add_theme_constant_override("margin_right", int(PAGE_PAD.x))
 	margin.add_theme_constant_override("margin_top", int(PAGE_PAD.y))
 	margin.add_theme_constant_override("margin_bottom", int(PAGE_PAD.y))
-	margin.mouse_filter = Control.MOUSE_FILTER_PASS  # 会話／イベントの切り替えの板を押せるように
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(margin)
 	margin.add_child(content)
 	return root

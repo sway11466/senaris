@@ -1,6 +1,6 @@
 extends GutTest
 ## ChronicleStory（クロニクルの通し読みの並び）のテスト。仕様 → doc/gdd/chronicle.md 会話／イベント
-## 段の並びはマニフェスト順、会話は経験した記録に在るものだけ、未クリアで打ち切り。取得／喪失の切り替え。
+## 段の並びはマニフェスト順、会話は経験した記録に在るものだけ、未クリアで打ち切り。取得／喪失の組。
 
 const CAMPAIGN := "test-campaign"
 
@@ -98,7 +98,7 @@ func test_stage_missing_from_the_campaign_is_skipped() -> void:
 	assert_eq(chapters.size(), 3, "冒険譚に無いステージは飛ばして続ける")
 
 func test_once_pair_offers_both_when_both_were_seen() -> void:
-	# 最後の回は secured、前の回で lost も経験＝取得／喪失を切り替えられる。
+	# 最後の回は secured、前の回で lost も経験＝取得／喪失の両方を並べる。
 	var manifest := [ { "stage": "st1", "events": ["secured", "lost"] } ]
 	var st := _stage("st1", true, { "start": ["knight"], "clear": ["knight"], "events": ["secured"] },
 			["secured", "lost"])
@@ -109,13 +109,13 @@ func test_once_pair_offers_both_when_both_were_seen() -> void:
 	assert_eq(options[0]["event"], "secured", "候補はマニフェスト順")
 	assert_eq(options[1]["captured_by"], "enemy")
 
-func test_once_pair_has_no_switch_when_only_one_was_seen() -> void:
+func test_once_pair_shows_only_the_seen_one() -> void:
 	var manifest := [ { "stage": "st1", "events": ["secured", "lost"] } ]
 	var st := _stage("st1", true, { "start": ["knight"], "clear": ["knight"], "events": ["lost"] },
 			["lost"])
 	var chapters := ChronicleStory.build(CAMPAIGN, manifest, { "st1": st })
 	assert_eq(_keys(chapters[0]), ["intro", "talk_lost", "outro"])
-	assert_eq(chapters[0]["talks"][1]["options"], [], "片方しか経験していなければ切り替えない")
+	assert_eq(chapters[0]["talks"][1]["options"], [], "片方しか経験していなければ組にしない")
 
 func test_all_joined_roster_collects_every_joined_actor() -> void:
 	var roster := ChronicleStory.all_joined_roster({ "dialogue": {

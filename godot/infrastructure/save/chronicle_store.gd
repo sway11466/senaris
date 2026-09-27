@@ -18,7 +18,7 @@ var _skills := {}   # skill_id -> true（見た id の集合）
 ## 経験した会話。campaign_id -> { stage_id: { start: [[actor]], clear: [[actor]], events: [id] } }
 ## start / clear は「遊んだ回ごとの在籍 actor の並び」を重複なく溜める＝同じ顔ぶれの回は畳む。
 ## 足していく形にすることで、仲間が「居た回」と「居なかった回」の両方を経験したかが分かる
-## （doc/gdd/chronicle.md 分岐の切り替え）。進捗セーブ側は最後に遊んだ回だけを上書きで持つ。
+## （doc/gdd/chronicle.md 分岐の扱い）。進捗セーブ側は最後に遊んだ回だけを上書きで持つ。
 var _stories := {}
 var _dirty := false # record_* を呼んでから save() するまでの間だけ true
 

@@ -349,5 +349,8 @@ ui.chronicle.page_prev,◀,◀
 ui.chronicle.page_next,▶,▶
 ui.chronicle.page_number,%d–%d / %d,%d–%d / %d
 ui.chronicle.page_number_single,%d / %d,%d / %d
-ui.chronicle.branch_secured,取得,Secured
-ui.chronicle.branch_lost,喪失,Lost
+ui.chronicle.phase_intro,― 戦闘前 ―,— Before the Battle —
+ui.chronicle.phase_event,― 戦闘中 ―,— During the Battle —
+ui.chronicle.phase_event_secured,― 戦闘中（取得）―,— During the Battle (Secured) —
+ui.chronicle.phase_event_lost,― 戦闘中（喪失）―,— During the Battle (Lost) —
+ui.chronicle.phase_outro,― 戦闘後 ―,— After the Battle —
