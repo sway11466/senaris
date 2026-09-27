@@ -4,7 +4,7 @@ class_name ChronicleCampaignsChapter
 ##
 ## 上の段は冒険譚の一覧＝羊皮紙のカードの格子（ユニット・陣形スキルと同じ紙）。1つ選ぶと
 ## その冒険譚に入り、戦果／会話・イベント／物語／設定集をタブで切り替える。左の目次は変えない。
-## 一覧へ戻るのはタブの左端の「← もどる」と Esc。
+## 一覧へ戻るのはタブの左端の「←」（丸い木の板）と Esc。
 
 enum Section { RESULTS, EVENTS, STORY, LORE }
 const SECTION_KEYS := ["ui.chronicle.results", "ui.chronicle.events", "ui.chronicle.story", "ui.chronicle.lore"]
@@ -14,7 +14,7 @@ const ART_ASPECT := 230.0 / 317.0
 
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空なら一覧）
 var _section: int = Section.RESULTS
-var _tabs: HFlowContainer  # 「← もどる」と節のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
+var _tabs: HFlowContainer  # 戻る（←）と節のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
 
 func _ready() -> void:
 	super()
@@ -62,25 +62,50 @@ func _back_to_list() -> void:
 # タブ
 # ---------------------------------------------------------------------------
 
-## 左端に「← もどる」、続けて節のタブ。いま開いているタブにだけ細枠を回す（マニュアルのタブと同じ）。
-## 「← もどる」にも透明な枠を回す＝タブと高さが揃う。
+## 左端に戻る（矢印だけの丸い木の板）、続けて節のタブ。いま開いているタブにだけ細枠を回す
+## （マニュアルのタブと同じ）。タブは同じ幅＝いちばん長い名前に揃える。
 func _rebuild_tabs() -> void:
 	for c in _tabs.get_children():
 		c.queue_free()
 	_tabs.visible = not _selected_campaign_id.is_empty()
 	if not _tabs.visible:
 		return
-	var back := TavernTheme.wood_button(tr("ui.chronicle.back_list"))
-	back.custom_minimum_size = Vector2(0, ChronicleStyle.TAB_HEIGHT)
-	back.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
-	back.pressed.connect(_back_to_list)
-	_tabs.add_child(_tab_frame(back, false))
+	_tabs.add_child(_round_back_button())
+	var buttons: Array = []
 	for i in SECTION_KEYS.size():
 		var b := TavernTheme.wood_button(tr(String(SECTION_KEYS[i])))
 		b.custom_minimum_size = Vector2(0, ChronicleStyle.TAB_HEIGHT)
 		b.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
 		b.pressed.connect(_on_tab.bind(i))
 		_tabs.add_child(_tab_frame(b, i == _section))
+		buttons.append(b)
+	_equalize_widths.call_deferred(buttons)  # 文字の幅はツリーに入ってテーマが引けてから測れる
+
+## 戻る＝矢印だけを載せた丸い木の板。直径は枠込みのタブの高さ＝並びの中で上下が揃う。
+func _round_back_button() -> Control:
+	var d := ChronicleStyle.TAB_HEIGHT + (ChronicleStyle.FRAME_WIDTH + ChronicleStyle.FRAME_PAD) * 2
+	var back := TavernTheme.wood_button(tr("ui.chronicle.back_list"))
+	back.add_theme_font_size_override("font_size", ChronicleStyle.TAB_FONT_SIZE)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		var box := back.get_theme_stylebox(state).duplicate() as StyleBox
+		box.content_margin_left = 0  # 板の左右の余白を詰める＝直径の正方形に収まって円になる
+		box.content_margin_right = 0
+		back.add_theme_stylebox_override(state, box)
+	back.custom_minimum_size = Vector2(d, d)
+	back.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	back.pressed.connect(_back_to_list)
+	TavernTheme.round_corners(back, d * 0.5)
+	return back
+
+## タブの幅をいちばん広いものに揃える。
+func _equalize_widths(buttons: Array) -> void:
+	var w := 0.0
+	for b in buttons:
+		if is_instance_valid(b):
+			w = maxf(w, (b as Control).get_combined_minimum_size().x)
+	for b in buttons:
+		if is_instance_valid(b):
+			(b as Control).custom_minimum_size.x = w
 
 ## タブの板を細枠で包む。selected でなければ枠は透明（場所だけ取る）。
 func _tab_frame(b: Button, selected: bool) -> Control:

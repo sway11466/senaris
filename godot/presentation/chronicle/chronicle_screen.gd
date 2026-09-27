@@ -115,7 +115,7 @@ func _on_back() -> void:
 		return
 	_on_back_button()
 
-## 左下の「← メニュー」＝どの段にいても画面を出る（冒険譚の一覧へ戻るのはタブの左端の「← もどる」）。
+## 左下の「← メニュー」＝どの段にいても画面を出る（冒険譚の一覧へ戻るのはタブの左端の「←」）。
 func _on_back_button() -> void:
 	SfxPlayer.play_event("menu_back")
 	close()

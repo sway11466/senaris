@@ -31,6 +31,8 @@ unit.elf.desc,森に住む長命の民。その弓は空のどこへでも正確
 unit.mage.desc,魔法の基礎を修めた術者。その術は鎧を貫くが、懐に入られると弱い。,"Apprentice spellcasters. Their spells pierce armor, but they falter at close range."
 unit.wizard.desc,魔法の道を極めた術者。貫通力と射程に優れ、重装の敵を崩す。,"Master spellcasters. Their superior piercing power and range can break through heavily armored foes."
 unit.witch.desc,魔法の研究に没頭する術者。射程は魔法兵のなかで最も長い。,"Mages devoted to arcane research. They boast the longest range among spellcasters."
+unit.gunner.desc,帝国の技師。遺跡から出た古代の銃で撃ち、壊れた兵器を直す。,"Imperial engineers who fire ancient guns unearthed from the ruins, and patch up broken war machines."
+unit.shieldwright.desc,帝国の技師。古代の金属の盾で攻撃を受け止め、壊れた兵器を直す。,"Imperial engineers who hold the line behind shields of ancient metal, and patch up broken war machines."
 unit.thief.desc,闇に紛れて動く曲者。足が速く、敵の背後を衝くのが得意。,"Rogues who move under cover of darkness. Swift on their feet, they specialize in striking from behind."
 unit.halfling.desc,小柄で素早い半人の民。茂みを自在に駆け、投石で空も狙う。,"A small, nimble folk. They dart through brush with ease and can target the sky with their slings."
 unit.ninja.desc,東の果ての国の隠密。圧倒的な攻撃力で一撃を狙う。,"Covert operatives from the far eastern land. They aim for a devastating single strike."
@@ -118,7 +120,7 @@ ui.chronicle.results,戦果,Results
 ui.chronicle.events,会話／イベント,Dialogue / Events
 ui.chronicle.story,物語,Story
 ui.chronicle.lore,設定集,Lore
-ui.chronicle.back_list,← もどる,← Back
+ui.chronicle.back_list,←,←
 ui.chronicle.lore_locked,続きは冒険のあとで,More to come after your adventure
 ui.chronicle.cleared_progress,%d / %d クリア,%d / %d Cleared
 ui.chronicle.campaign_rank,ランク %s,Rank %s
