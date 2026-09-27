@@ -1,4 +1,4 @@
-keys,ja,en
+﻿keys,ja,en
 char.cap.name,隊長,Captain
 char.rookie.name,新兵,Rookie
 talk.intro.1,敵は1体だ。落ち着いて仕留めろ。,One enemy. Take it down calmly.
@@ -177,7 +177,7 @@ undead-rush.st3.squad.5,突撃ゴースト,Charging Ghosts
 undead-rush.st4.intro.1,教会が応えてくれました。護衛の騎士と戦士、それに聖職の手が増えます。心強い。,"The church answered. More knights and fighters to guard us, and more clergy besides. Reassuring."
 undead-rush.st4.intro.2,広いな、奥に墓地から屍が湧き続けている。倒しても倒しても、あれがある限りキリがない。,"A wide field — the dead keep rising from the graves at the back. Kill as we might, there is no end while those remain."
 undead-rush.st4.intro.3,やっぱり墓地を祓うしかなさそうね。,"Looks like there's no choice but to purify the graves after all."
-undead-rush.st4.intro.5,墓地を鎮められるのは、祈りを捧げられる私たち聖職だけです。誰か一人を、墓標の上に立たせてください。,"Only we clergy, who can offer the prayers, can lay a graveyard to rest. Get one of us standing on the graves."
+undead-rush.st4.intro.5,墓地を鎮められるのは、祈りを捧げられる私たち聖職だけです。誰か一人を、納骨堂に立たせてください。,"Only we clergy, who can offer the prayers, can lay a graveyard to rest. Get one of us standing in the crypt."
 undead-rush.st4.intro.10,グールが混じってるわ。屍と違って足が速いし、爪も鋭い。荒れ地でも一度に三つ詰めてくる——下がりながら撃っても、引き離せないわね。,"There are ghouls mixed in. Unlike the shamblers they're quick, and their claws are sharp. Even over this wasteland they close three hexes at a time — we can't shoot and stay ahead of them."
 undead-rush.st4.intro.9,なら正面で受ける。俺と戦士が壁になる。術者はその後ろから撃て。,"Then we take them head-on. The fighters and I will be the wall. Casters, shoot from behind us."
 undead-rush.st4.intro.4,前衛と術師で道を作って、馬車で聖職者を通しましょう。,"The vanguard and casters clear a path, and we run the clergy through by wagon."
