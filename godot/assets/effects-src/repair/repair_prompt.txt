@@ -1,0 +1,12 @@
+STYLE: A single fantasy tactics-game skill effect, drawn as ONE isolated
+graphic: NO character, NO hands, NO weapon owner, NO ground, NO scenery, NO
+text. Clean stylized vector-like shapes with bold flat cel-shading in only two
+or three tones — the same flat, slightly muted look as the game's unit pieces.
+NOT photorealistic, NO glowing bloom, NO soft gradients, NO sparkle particles,
+NO smoke, NO motion-blur haze. A crisp, bold, readable silhouette that still
+reads when shrunk very small. The graphic is a still, symmetrical emblem stamped
+over the unit, not a moving blow. It fills the frame edge to edge with only a
+thin margin. Plain single flat background color (given in the subject) for easy
+cutout. Square 1:1 composition.
+
+SUBJECT: A repair emblem: TWO chunky open-ended wrenches crossed in an X, one running from the upper left to the lower right and the other from the upper right to the lower left, overlapping at the middle. Each wrench has a thick straight handle and a bold open jaw at the upper end, the jaws pointing outward to the two upper corners. Plain bare steel in silver-grey with one darker grey shadow tone and a single dark outline edge — two tones only, hard flat edges, a solid cut-out shape. Faction-neutral — NOT blue, NOT red. A flat graphic stamp. The crossed wrenches fill the frame with only a thin margin. Pure black background (single flat color, for easy cutout).

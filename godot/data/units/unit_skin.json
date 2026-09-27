@@ -426,7 +426,7 @@
 			"ally": [
 				{
 					"category": "engineer",
-					"combat_effect": "magic_bolt",
+					"combat_effect": "ray_bolt",
 					"combat_lineup": "squad",
 					"description": "",
 					"images": {},

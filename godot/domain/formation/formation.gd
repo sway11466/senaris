@@ -314,7 +314,7 @@ const SKILLS := {
 		"heal_troops": 2,  # 仮の値。実プレイで調整する
 		"buff_scope": "unit",
 		"buff_side": "ally",
-		"combat_effect": "punch",  # 当面は打撃の汎用（工具で叩いて直す）
+		"combat_effect": "repair",  # 交差したスパナの印
 		"range": 1,
 		"range_from": "caster",
 	},
