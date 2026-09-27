@@ -17,7 +17,8 @@ const CONNECT_AREA := "area"  ## 面の地形（道）。盤の外は縁のマ�
 const PLACE_STANDEE := "standee"  ## カメラに正対する立ち絵の板（既定の置き方）
 const PLACE_PANEL := "panel"      ## 辺に沿ってワールドに立てた板（柵）。向きは connect の繋がりが出す
 const PLACE_FLAT := "flat"        ## 水平の板（橋）。自分のタイル絵を自分の高さに敷く
-const PLACEMENTS := [PLACE_STANDEE, PLACE_PANEL, PLACE_FLAT]
+const PLACE_TRACK := "track"      ## 辺に沿って地面に平らに貼る帯（レール）。向きは connect の繋がりが出す
+const PLACEMENTS := [PLACE_STANDEE, PLACE_PANEL, PLACE_FLAT, PLACE_TRACK]
 
 ## 側面（段差に貼る帯）の貼り方（→ doc/gdd/terrain.md 足場）。足場のスキンだけが持つ。
 ## 段差の高さは場所ごとに違うので、1枚の帯をどう当てるかで石の大きさの意味が変わる。
@@ -210,6 +211,10 @@ static func extend_off_board(connected: Array, on_board: Array) -> Array:
 	var extended := connected.duplicate()
 	extended[opposite] = true
 	return extended
+
+## 帯（placement=track）の絵のパス。マスの中心から辺の中点までの腕1本ぶん＝横が腕の向き。
+func track_image_path() -> String:
+	return "res://assets/terrain/%s_track.png" % skin_id
 
 ## 側面（スカート）画像のパス。置いてあれば段差の側面に貼られ、無ければ既定の粒ノイズ＋断面色になる。
 ## 横は隣の辺へ連続するので左右シームレス必須。縦は高さ全体に1回だけ張られる（elevation で伸縮する）。

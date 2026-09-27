@@ -9,6 +9,16 @@ func test_movement_table_loads() -> void:
 	assert_eq(Movement.cost(t, "foot", "plain"), 1, "平地=1（基準）")
 	assert_eq(Movement.cost(t, "foot", "wall"), Movement.IMPASSABLE, "壁は進入不可")
 
+func test_rail_bound_enters_only_rail() -> void:
+	# レール走行（改良前のトロッコ）はレールだけを進む。地形を足したときに列の埋め忘れで
+	# 既定コスト1に化けると、レールの外へ出られてしまう（→ doc/gdd/movement.md）。
+	var t := Movement.load_default()
+	assert_eq(Movement.cost(t, "rail_bound", "rail"), 1, "レールは進める")
+	for terrain: String in TerrainType.all_ids():
+		if terrain == "rail":
+			continue
+		assert_eq(Movement.cost(t, "rail_bound", terrain), Movement.IMPASSABLE, "%s には入れない" % terrain)
+
 func test_travel_cost_field_measures_the_way_around() -> void:
 	# 道のり表: 壁の裏は直線距離より遠い（回り込むぶん）。AIの前進が参照する。
 	var s := BattleState.new(9, 5)

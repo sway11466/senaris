@@ -82,7 +82,7 @@ static func build_skin(rows: Array, type_rows: Array) -> Dictionary:
 	problems += _invalid_amount(rows, "floor")
 	# 側面の帯の貼り方（stretch/repeat）。全足場に明示する＝空を既定に倒さない。オブジェクトは空。
 	problems += _invalid_side_tiling(rows, type_rows)
-	# オブジェクトの置き方（standee/panel/flat）。全オブジェクトに明示する＝空を既定に倒さない。
+	# オブジェクトの置き方（standee/panel/flat/track）。全オブジェクトに明示する＝空を既定に倒さない。
 	problems += _invalid_placement(rows, type_rows)
 	# 置き方で必須が切り替わる2列。_invalid_amount（全行必須）とは分けて見る。
 	problems += _invalid_object_amount(rows, type_rows, "map_scale", true, [SkinDef.PLACE_STANDEE, SkinDef.PLACE_PANEL])
@@ -172,7 +172,7 @@ static func _object_without_ground(rows: Array, type_rows: Array) -> Array:
 	return problems
 
 ## オブジェクトの置き方（placement）。オブジェクトには PLACE_* のどれかを必ず書き、足場は空にする。
-## panel（辺に沿って立てた板）は繋がり（connect=line/area）が板の向きを出すので、繋がらない panel も弾く。
+## panel（辺に沿って立てた板）と track（地面に貼る帯）は繋がり（connect=line/area）が向きを出すので、繋がらないものも弾く。
 static func _invalid_placement(rows: Array, type_rows: Array) -> Array:
 	var layer_of := {}
 	for t in type_rows:
@@ -186,9 +186,9 @@ static func _invalid_placement(rows: Array, type_rows: Array) -> Array:
 		var is_object: bool = layer_of.get(str(r.get("terrain_type", "")), "") == "object"
 		if is_object:
 			if not (s in SkinDef.PLACEMENTS):
-				problems.append("行[%s] の placement が不正 '%s'（オブジェクトは standee/panel/flat のどれか）" % [who, s])
-			elif s == SkinDef.PLACE_PANEL and not (str(r.get("connect", "")) in [SkinDef.CONNECT_LINE, SkinDef.CONNECT_AREA]):
-				problems.append("行[%s] は panel なのに connect が line/area でない（板の向きが出せない）" % who)
+				problems.append("行[%s] の placement が不正 '%s'（オブジェクトは %s のどれか）" % [who, s, "/".join(SkinDef.PLACEMENTS)])
+			elif s in [SkinDef.PLACE_PANEL, SkinDef.PLACE_TRACK] and not (str(r.get("connect", "")) in [SkinDef.CONNECT_LINE, SkinDef.CONNECT_AREA]):
+				problems.append("行[%s] は %s なのに connect が line/area でない（向きが出せない）" % [who, s])
 		elif s != "":
 			problems.append("行[%s] の placement '%s' は効かない（オブジェクトだけが持つ列）" % [who, s])
 	return problems

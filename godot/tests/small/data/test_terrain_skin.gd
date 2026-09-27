@@ -188,7 +188,11 @@ func test_map_ground_defaults_to_empty() -> void:
 	assert_true(plain != null and plain.map_ground_id() == "", "下地を持たないスキンは空")
 
 func test_placement_says_how_an_object_is_placed() -> void:
-	# 置き方3種（→ doc/gdd/terrain.md）: 立ち絵（既定）／辺に沿って立てた板（柵）／水平の板（橋）。
+	# 置き方4種（→ doc/gdd/terrain.md）: 立ち絵（既定）／辺に沿って立てた板（柵）／水平の板（橋）／
+	# 辺に沿って地面に貼る帯（レール）。
+	var rail := TerrainSkinCatalog.skin_by_id("plain_cave1_rail_mine1")
+	assert_true(rail != null and rail.placement == TerrainSkin.PLACE_TRACK, "レールは地面に貼る帯")
+	assert_true(rail != null and rail.connects(), "レールは繋がる＝腕の向きを繋がりが出す")
 	var fort := TerrainSkinCatalog.skin_by_id("plain_fort")
 	assert_true(fort != null and fort.placement == TerrainSkin.PLACE_STANDEE, "拠点は立ち絵")
 	var fence := TerrainSkinCatalog.skin_by_id("plain_fence")
@@ -249,10 +253,10 @@ func test_extend_off_board_skips_non_ends() -> void:
 
 func test_connect_tiles_all_present() -> void:
 	# connect スキンは64通りぜんぶ揃っている必要がある（1つでも欠けるとそのマスだけ絵が化ける）。
-	# ただし板を立てて組む panel（柵）は絵を繋がりで選ばない＝タイルを持たない。connect は
-	# 板の向きを出すために書いてある（→ doc/gdd/terrain.md オブジェクト）。
+	# ただし板を立てて組む panel（柵）と帯を貼る track（レール）は絵を繋がりで選ばない＝タイルを
+	# 持たない。connect は向きを出すために書いてある（→ doc/gdd/terrain.md オブジェクト）。
 	for s: TerrainSkin in TerrainSkinCatalog.all_skins():
-		if not s.connects() or s.placement == TerrainSkin.PLACE_PANEL:
+		if not s.connects() or s.placement in [TerrainSkin.PLACE_PANEL, TerrainSkin.PLACE_TRACK]:
 			continue
 		for mask in 64:
 			var bits: Array = []

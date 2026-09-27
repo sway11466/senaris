@@ -304,6 +304,7 @@ func _ground_texture(hex: Vector2i, skin: TerrainSkin) -> Texture2D:
 ## （柵）／水平の板（橋）／カメラに正対する立ち絵1枚（既定）。立てた板は絵ごとに1メッシュへまとめる。
 func _add_objects() -> void:
 	var boxes := {}  # Texture2D -> SurfaceTool（柵の箱組み。絵ごとに1メッシュへまとめる）
+	var tracks := {}  # Texture2D -> SurfaceTool（レールの帯。絵ごとに1メッシュへまとめる）
 	for col in _state.cols:
 		for row in _state.rows:
 			var hex := Hex.offset_to_axial(col, row)
@@ -315,8 +316,21 @@ func _add_objects() -> void:
 					_add_fence_boxes(boxes, skin, hex)
 				TerrainSkin.PLACE_FLAT:
 					_add_object_flat(skin, hex)
+				TerrainSkin.PLACE_TRACK:
+					_add_track_arms(tracks, skin, hex)
 				_:
 					_add_object_standee(skin, hex)
+	for tex: Texture2D in tracks:
+		var mi := MeshInstance3D.new()
+		mi.mesh = tracks[tex].commit()
+		var m := StandardMaterial3D.new()
+		m.albedo_texture = tex
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		# 半透明の並べ替えを持ち込まない＝腕どうしが中心で重なっても描く順で揺れない。
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		mi.material_override = m
+		add_child(mi)
 	for tex: Texture2D in boxes:
 		var mi := MeshInstance3D.new()
 		mi.mesh = boxes[tex].commit()
@@ -408,6 +422,55 @@ func _fbox_quad(boxes: Dictionary, tex: Texture2D,
 	st.set_uv(Vector2(0, 0)); st.add_vertex(p1)
 	st.set_uv(Vector2(1, 1)); st.add_vertex(p3)
 	st.set_uv(Vector2(0, 1)); st.add_vertex(p4)
+
+## レール（placement=track）。マスの中心から繋がる辺の中点へ、帯（{skin_id}_track.png）を腕1本ずつ
+## 地面に平らに貼る（→ doc/gdd/terrain.md）。帯は腕の向きに回すので、枕木はどの腕でも腕に直交する。
+## 絵の横＝腕の向き（左端＝中心側・右端＝辺側）。辺側は隣のマスの腕と向かい合わせに接する。
+## 中心側は帯の半幅ぶん手前まで伸ばす＝曲がりの外側に切り欠きが開かない。
+const TRACK_HW := 0.30           # 帯の半幅（TILE）
+const TRACK_LIFT := 0.004        # 足場からの浮かせ（グリッド線 0.01 より下）
+const TRACK_ARM_STEP := 0.0003   # 腕ごとの浮かせの差＝中心で重なる腕どうしの前後を固定する
+
+func _track_texture(skin: TerrainSkin) -> Texture2D:
+	var path := skin.track_image_path()
+	if _fence_tex.has(path):
+		return _fence_tex[path]
+	var tex := load(path) as Texture2D if ResourceLoader.exists(path) else null
+	if tex == null:
+		push_error("BoardTerrainRenderer: レールの帯が無い %s" % path)
+	_fence_tex[path] = tex
+	return tex
+
+func _add_track_arms(tracks: Dictionary, skin: TerrainSkin, hex: Vector2i) -> void:
+	var tex := _track_texture(skin)
+	if tex == null:
+		return
+	var st: SurfaceTool = tracks.get(tex)
+	if st == null:
+		st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		tracks[tex] = st
+	var p := Hex.to_pixel(hex, TILE)
+	var conn := _connected_dirs(skin, hex)
+	for i in 6:
+		if not bool(conn[i]):
+			continue
+		var y := unit_floor(hex) + TRACK_LIFT + TRACK_ARM_STEP * i
+		var q := Hex.to_pixel(hex + Hex.DIRECTIONS[i], TILE)
+		var mid := Vector3((p.x + q.x) * 0.5, y, (p.y + q.y) * 0.5)
+		var axis := (mid - Vector3(p.x, y, p.y)).normalized()
+		var start := Vector3(p.x, y, p.y) - axis * TRACK_HW
+		var side := Vector3(-axis.z, 0.0, axis.x) * TRACK_HW
+		var a := start - side
+		var b := mid - side
+		var c := mid + side
+		var d := start + side
+		st.set_uv(Vector2(0, 0)); st.add_vertex(a)
+		st.set_uv(Vector2(1, 0)); st.add_vertex(b)
+		st.set_uv(Vector2(1, 1)); st.add_vertex(c)
+		st.set_uv(Vector2(0, 0)); st.add_vertex(a)
+		st.set_uv(Vector2(1, 1)); st.add_vertex(c)
+		st.set_uv(Vector2(0, 1)); st.add_vertex(d)
 
 ## 水平の板（橋）。自分のタイル絵をヘックス形の板として floor の高さ（＝elev。盤の読み取り面で、
 ## 駒もここに立つ）に敷く。足場（map_ground＝川）は _add_tile が elevation の高さに敷くので、

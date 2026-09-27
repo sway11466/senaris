@@ -52,6 +52,14 @@
 
 細い構造物向け。盤（[board_terrain_renderer.gd](../../godot/presentation/board/board_terrain_renderer.gd)）が柱と横木の直方体を組み、面にスキンごとの帯4枚を貼る（→ §1 と [../gdd/terrain.md](../gdd/terrain.md) の `placement=panel`）。接続タイルを持たず、繋がり方は立体の組み方が出す。マップエディタだけは基本の1枚 `{skin_id}.png` を目印として敷く。帯の切り出しはレシピ（§4）。
 
+### 2.2.1 線（レール）＝地面に貼る帯
+
+線の判定を使うもう1つの作り（`placement=track` → [../gdd/terrain.md](../gdd/terrain.md) オブジェクト）。盤がマスの中心から繋がる辺の中点へ、帯1枚（`{skin_id}_track.png`）を腕の向きに回して地面に平らに貼る。接続タイルは持たない。マップエディタは基本の1枚 `{skin_id}.png` を目印として敷く。
+
+- 絵の横が腕の向き。左端がマスの中心側、右端が辺側。右端は隣のマスの帯の右端と向かい合わせに接する＝枕木を右端から半間隔ずらして並べると、辺をまたいでも間隔がそろう。
+- 左端は中心より帯の半幅ぶん手前から始まる（曲がりの外側を埋めるため）。帯の寸法は盤の描画側の定数（[board_terrain_renderer.gd](../../godot/presentation/board/board_terrain_renderer.gd) の `TRACK_HW`）で、腕の長さ＝中心から辺の中点まで（TILE の √3/2）＋半幅、帯の幅＝半幅の2倍。絵の縦横比はこれに合わせる。
+- 地面は焼き込まない（透過）。下の足場は `map_ground` で敷く。
+
 ### 2.3 面（道）＝接続タイル
 
 地面そのものが変わる地形向け。生成は [`../../tools/gen_area_tiles.ps1`](../../godot/tools/gen_area_tiles.ps1)。

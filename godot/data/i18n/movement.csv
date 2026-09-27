@@ -7,3 +7,4 @@ movement.mountain_stride.name,山歩行,Mountain Stride
 movement.flight.name,飛行,Flight
 movement.stationary.name,固定,Stationary
 movement.wheeled.name,車輪,Wheeled
+movement.rail_bound.name,レール走行,Rail Bound
