@@ -3,17 +3,17 @@ class_name ChronicleCampaignsChapter
 ## クロニクルの冒険譚章。仕様 → doc/gdd/chronicle.md 冒険譚の一覧
 ##
 ## 上の段は冒険譚の一覧＝羊皮紙のカードの格子（ユニット・陣形スキルと同じ紙）。1つ選ぶと
-## その冒険譚に入り、戦果／会話・イベント／物語／設定集をタブで切り替える。左の目次は変えない。
+## その冒険譚に入り、会話・イベント／戦果／設定集／物語をタブで切り替える。左の目次は変えない。
 ## 一覧へ戻るのはタブの左端の「←」（丸い木の板）と Esc。
 
-enum Section { RESULTS, EVENTS, STORY, LORE }
-const SECTION_KEYS := ["ui.chronicle.results", "ui.chronicle.events", "ui.chronicle.story", "ui.chronicle.lore"]
+enum Section { EVENTS, RESULTS, LORE, STORY }  # タブの並び順。冒険譚を開くと先頭のタブ
+const SECTION_KEYS := ["ui.chronicle.events", "ui.chronicle.results", "ui.chronicle.lore", "ui.chronicle.story"]
 
 ## 絵の面の縦／横＝ステージセレクトの冒険譚カードの絵の枠（317×230・doc/gdd/stage_select.md）。
 const ART_ASPECT := 230.0 / 317.0
 
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空なら一覧）
-var _section: int = Section.RESULTS
+var _section: int = Section.EVENTS
 var _tabs: HFlowContainer  # 戻る（←）と節のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
 
 func _ready() -> void:
@@ -39,7 +39,7 @@ func _card_extra_h() -> float:
 func reset() -> void:
 	super()
 	_selected_campaign_id = ""
-	_section = Section.RESULTS
+	_section = Section.EVENTS
 
 func rebuild() -> void:
 	super()
@@ -55,7 +55,7 @@ func handle_back() -> bool:
 func _back_to_list() -> void:
 	SfxPlayer.play_event("menu_back")
 	_selected_campaign_id = ""
-	_section = Section.RESULTS
+	_section = Section.EVENTS
 	rebuild()
 
 # ---------------------------------------------------------------------------
@@ -254,7 +254,7 @@ func _campaign_art(path: String, played: bool) -> Control:
 
 func _open_campaign(campaign_id: String) -> void:
 	_selected_campaign_id = campaign_id
-	_section = Section.RESULTS
+	_section = Section.EVENTS
 	SfxPlayer.play_event("menu_select")
 	rebuild()
 
