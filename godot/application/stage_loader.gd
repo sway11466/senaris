@@ -391,7 +391,7 @@ static func parse_event_talks(data: Dictionary) -> Dictionary:
 		if stage_id.is_empty():
 			push_error("StageLoader: ステージの name（ステージ id）が無い＝イベント '%s' の名前を引けない" % id)
 			continue
-		# once / captured_by はクロニクルの「取得／喪失」の切り替えが引く（doc/gdd/chronicle.md 分岐の扱い）
+		# once / captured_by はクロニクルが取得／喪失の組を並べるのに引く（doc/gdd/chronicle.md 分岐の扱い）
 		out[id] = { "name": event_name_key(stage_id, id), "dialogue": talk,
 				"once": String(e.get("once", "")), "captured_by": String(e.get("captured_by", "")) }
 	return out
@@ -1097,7 +1097,7 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 		if b.has("ai"):  # 拠点そのものが1部隊（garrison を出す）。ai 未指定の拠点はAI出撃しない
 			var squad := {}
 			for key in b:
-				if not (key in ["col", "row", "team", "hq", "rest", "garrison", "kind", "native"]):
+				if not (key in ["col", "row", "team", "hq", "rest", "garrison", "production", "kind", "native"]):
 					squad[key] = b[key]  # ai＋パラメーターの上書き（sight/stack）＋行動順 order を部隊定義に
 			base.squad_index = state.squads.size()
 			state.squads.append(squad)
@@ -1110,8 +1110,42 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 				gu.set_native_team(_parse_team(g.get("native"), base.team))  # 帰属先も揃う（中立＝未確定）
 				base.garrison.append(gu)
 				auto_id += 1
+		if b.has("production"):
+			_apply_production(base, b["production"], catalog, skin_catalog)
 		state.add_base(base)
 	return auto_id  # garrison も id を消費するので次の採番を継ぐ
+
+## 拠点の生産 { charge_turns, units: [ { type|skin, native } ] } を Base に積む。駒は生まれるときに作る
+## （ここでは性能の出どころ UnitType と見た目・native だけを持たせる）。native は必須で、書き忘れは
+## 控えと同じく警告して開始時の所有者に倒す。未知の種別と charge_turns の不正は警告して積まない。
+## 詳細 → doc/gdd/map.md（生産）
+static func _apply_production(base: Base, prod: Variant, catalog: Dictionary, skin_catalog: Dictionary) -> void:
+	var at := "StageLoader: 拠点(%d,%d) の production" % [Hex.axial_to_offset(base.hex).x, Hex.axial_to_offset(base.hex).y]
+	if typeof(prod) != TYPE_DICTIONARY:
+		push_warning("%s が辞書でない（生産しない）" % at)
+		return
+	var turns := int(prod.get("charge_turns", 0))
+	if turns <= 0:
+		push_warning("%s の charge_turns が 1 以上でない（生産しない）" % at)
+		return
+	for e in _as_dicts(prod.get("units", [])):
+		var skin_id := String(e.get("skin", ""))
+		var type_id := String(e.get("type", ""))
+		if skin_id == "" and type_id != "":
+			skin_id = type_id
+		if type_id == "" and skin_id != "" and not skin_catalog.is_empty():
+			type_id = SkinCatalog.type_of_skin(skin_catalog, skin_id)
+		var t: UnitType = catalog.get(type_id)
+		if t == null:
+			push_warning("%s に未知のユニット種別: %s（積まない）" % [at, type_id if type_id != "" else skin_id])
+			continue
+		if not e.has("native"):
+			push_warning("%s の %s に native が無い（開始時の所有者に倒す）" % [at, skin_id])
+		base.production.append({ "unit_type": t, "skin": skin_id, "native": _parse_team(e.get("native"), base.team) })
+	if base.production.is_empty():
+		push_warning("%s の units が空（生産しない）" % at)
+		return
+	base.production_charge_turns = turns
 
 ## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
 ## 性能（攻撃/防御/移動/射程…）は type が唯一の出どころ＝ステージ側から上書きできない。

@@ -1407,6 +1407,7 @@ func end_turn() -> void:
 	_increment_charges()   # 始まった陣営の駒のチャージ量を +1（→ doc/gdd/skills.md）
 	_fire_passives()       # 始まった陣営の駒のパッシブスキルを発動（チャージ加算の後。→ doc/gdd/skills.md）
 	_heal_garrisons()
+	_produce_at_bases()  # 始まった陣営の拠点のチャージを +1、規定量で控えを1体生む（→ doc/gdd/map.md 生産）
 	fire_due_events()  # 発生ターンが来た増援を盤へ出す（→ doc/gdd/map.md イベント）
 
 ## ターンが始まる陣営の「拠点に駐留中の駒」を満員へ回復（兵数のみ・Lvは据え置き）。
@@ -1422,6 +1423,26 @@ func _heal_garrisons() -> void:
 		for u in b.garrison:
 			if u.recruited_team == current_team or u.is_unclaimed():
 				u.troops = u.max_troops
+
+## ターンが始まる陣営の生産拠点のチャージを +1 し、規定量に達したらリストの次の駒を控えの末尾に生む。
+## 次の駒を持ち主が出撃させられない間（敵 native の拠点を味方が持つ等）はチャージが止まる。
+## 生まれた駒は満員・Lv1。team は出撃時に決まる（控えと同じ）。詳細 → doc/gdd/map.md（生産）
+func _produce_at_bases() -> void:
+	for b in _bases:
+		if b.team != current_team or not b.can_produce_next():
+			continue
+		b.production_charge += 1
+		if b.production_charge < b.production_charge_turns:
+			continue
+		var entry: Dictionary = b.production[b.production_next]
+		var t: UnitType = entry["unit_type"]
+		var u := Unit.new(_max_unit_id() + 1, b.team, b.hex, t.move, t.max_troops, t.atk_ground, t.defense, 1, t.id)
+		u.apply_type(t)
+		u.skin_id = String(entry["skin"])
+		u.set_native_team(int(entry["native"]))
+		b.garrison.append(u)
+		b.production_charge = 0
+		b.production_next = (b.production_next + 1) % b.production.size()
 
 # --- 中断セーブ（動的差分の直列化）。バージョン枠・ファイルIOは infrastructure/save 側。詳細 → doc/tech/gamesystem.md ---
 
@@ -1541,6 +1562,8 @@ func _apply_diff_bases(diff: Dictionary, catalog: Dictionary) -> Array:
 			if typeof(gd) == TYPE_DICTIONARY:
 				g.append(Unit.from_full_dict(gd, catalog.get(String(gd.get("type", "")))))
 		b.garrison = g
+		b.production_charge = int(bd.get("production_charge", 0))
+		b.production_next = int(bd.get("production_next", 0)) % maxi(b.production.size(), 1)  # ステージ更新でリストが縮んでも範囲内に
 		overlaid[b.hex] = true
 	var fresh: Array = []
 	for b in _bases:

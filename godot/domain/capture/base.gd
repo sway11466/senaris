@@ -27,6 +27,12 @@ var rest: String            ## 誰が中に入って回復できるか（REST_*�
 var garrison: Array[Unit]   ## 出撃待ちユニット（盤上には未登場。占領後に deploy で出す）
 var squad_index: int = -1   ## この拠点＝1部隊（state.squads の index）。-1＝AI出撃しない。詳細 → doc/gdd/ai.md（拠点出撃）
 
+## 生産（チャージで控えを生む）。詳細 → doc/gdd/map.md（生産）
+var production_charge_turns: int = 0  ## 規定量。0＝生産しない拠点
+var production: Array[Dictionary] = []  ## 生む駒のリスト（上から順・末尾の次は先頭）。1件＝{ unit_type: UnitType, skin: String, native: int }
+var production_charge: int = 0  ## 今のチャージ量。持ち主が変わっても戻さない
+var production_next: int = 0    ## 次に生むリストの位置。持ち主が変わっても戻さない
+
 func _init(p_hex: Vector2i, p_team: int = NEUTRAL, p_hq: int = NO_HQ, p_rest: String = REST_BOTH) -> void:
 	hex = p_hex
 	team = p_team
@@ -63,6 +69,18 @@ func has_deployable_garrison() -> bool:
 			return true
 	return false
 
+## 生産する拠点か。
+func produces() -> bool:
+	return production_charge_turns > 0 and not production.is_empty()
+
+## 今の持ち主が、次に生む駒を出撃させられるか＝生産が進む条件（帰属が未確定か、持ち主と同じ）。
+## 中立の持ち物は手番が無いので生まない。
+func can_produce_next() -> bool:
+	if not produces() or team == NEUTRAL:
+		return false
+	var native := int(production[production_next]["native"])
+	return native == NEUTRAL or native == team
+
 ## 控えの内訳＝帰属先ごとの人数 { 0: 自軍, 1: 敵, NEUTRAL: 未確定 }。0体の陣営はキーを持たない。
 ## 盤上の「+N」表示が帰属ごとに色分けするために使う（doc/gdd/uiux.md 盤上の印）。
 func garrison_counts() -> Dictionary:
@@ -73,10 +91,11 @@ func garrison_counts() -> Dictionary:
 	return out
 
 ## 中断セーブ用の直列化（動的差分）。位置 axial(q,r) は復元時の突き合わせの鍵。持つのは戦闘中に
-## 動くもの＝現在の帰属と駐留兵（full 直列化）だけで、hq/rest/squad_index はステージJSONから
+## 動くもの＝現在の帰属と駐留兵（full 直列化）と生産の進み具合だけで、hq/rest/squad_index はステージJSONから
 ## 引き直す。復元は BattleState.apply_save_diff。詳細 → doc/tech/gamesystem.md
 func to_save_diff() -> Dictionary:
 	var g: Array = []
 	for u in garrison:
 		g.append(u.to_full_dict())
-	return { "q": hex.x, "r": hex.y, "team": team, "garrison": g }
+	return { "q": hex.x, "r": hex.y, "team": team, "garrison": g,
+		"production_charge": production_charge, "production_next": production_next }

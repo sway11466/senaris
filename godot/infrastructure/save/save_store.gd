@@ -20,7 +20,9 @@ const DEFAULT_PATH := "user://save.json"
 ##    defeated_actors → defeated_unit_ids、状態補正の "unit_id"（int）→ "handle"。
 ## 7: 参戦の記録の項目名を sortied_actors → fielded_actors に改めた（doc/tech/i18n.md 英語の用語「参戦」。
 ##    出撃＝控えを盤に出す操作と語を分けた）。中身は同じ＝変換は改名だけ。
-const VERSION := 7
+## 8: 拠点の生産（doc/gdd/map.md 生産）の進み具合を拠点ごとに持つようにした（production_charge /
+##    production_next）。旧セーブの拠点は生産を持たない版のもの＝変換で 0 を入れる。
+const VERSION := 8
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

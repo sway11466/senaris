@@ -36,6 +36,9 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version == 6:
 		record = _v6_to_v7(record)
 		version = 7
+	if version == 7:
+		record = _v7_to_v8(record)
+		version = 8
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -141,6 +144,15 @@ static func _v6_to_v7(record: Dictionary) -> Dictionary:
 	if state.has("sortied_actors"):
 		state["fielded_actors"] = state["sortied_actors"]
 		state.erase("sortied_actors")
+	return { "meta": record.get("meta", {}), "state": state }
+
+## v7 → v8（拠点ごとに生産の進み具合を持つようにした版 → doc/gdd/map.md 生産）。旧版には生産が無かった
+## ＝どの拠点もチャージ 0・リストの先頭から、を入れる。生産を持たない拠点にも入れる（読む側は区別しない）。
+static func _v7_to_v8(record: Dictionary) -> Dictionary:
+	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
+	for b in _as_dicts(state.get("bases", [])):
+		b["production_charge"] = 0
+		b["production_next"] = 0
 	return { "meta": record.get("meta", {}), "state": state }
 
 ## v2（盤の丸ごと直列化）→ v3（動的差分）。盤サイズ・地形・勝敗条件・ターン上限・部隊定義は
