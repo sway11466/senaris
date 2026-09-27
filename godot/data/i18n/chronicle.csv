@@ -123,6 +123,120 @@ On the way home the scout said, ""A long road. From that plain all the way here.
 Now I understand. You don't have to be strong alone. Choose your ground, stand side by side, surround, wear them down from afar, lure them apart. Outnumbered or not, how you fight can turn it around.
 The captain told me, ""You're not a recruit anymore."" I was too happy to answer properly. All I said was ""Yes, sir!""
 This journal ends here. The next time I write, maybe it will be the day I teach someone else."
+book.tutorial2-undead-rush.1,"一、概要
+
+都市近郊の墓地で動く骸骨が見られたとの報を受け、騎士団・教会・魔法ギルドの三機関から成る調査隊を編成し、私がこれを率いた。
+屍は墓地から湧き続け、近くの集落をも襲った。調査隊は集落を守り、屍を吐き出す墓地を順に鎮め、奥で屍を操っていた術者、ネクロマンサーを聖都の聖騎士の一撃によって討った。元凶が斃れると、屍はただの骸に戻った。
+戦いは七度に及んだが、調査隊に欠けた者はない。
+以下、各機関が見せた手の内を、今後の備えとして記す。","I. Summary
+
+Upon reports of walking skeletons in a graveyard near the city, a survey party was formed from three bodies, the knightly order, the church, and the mages' guild, under my command.
+The dead kept rising and even struck a nearby settlement. We defended it, quieted the graveyards one by one, and slew the necromancer commanding the dead with a single strike from a paladin of the holy city. Once it fell, the dead became mere bones again.
+Seven battles were fought. The party lost no one.
+Below I record what each body brought to bear, for future readiness."
+book.tutorial2-undead-rush.2,"二、墓地での遭遇
+
+最初に屍と当たったのは墓地の外れである。骸骨（スケルトン）と屍（ゾンビ）、合わせて八体。
+魔法ギルドの術者は、遠くから撃てる。ウィザードは四つ先、ウィッチは五つ先まで届く。一方、屍の足は遅く、一度に二つしか進まない。間合いを詰められる前に、術者は何度でも撃てた。
+前はナイトとファイターで受け、術者は後ろに置いて決して前へ出さなかった。スケルトンは打たれ弱く、ゾンビは硬い。崩しやすいものから減らした。
+近づかせもせずに削り切った。ただ、墓地のすぐ先には小さな集落がある。","II. The Graveyard Encounter
+
+We first met the dead at the edge of the graveyard: skeletons and zombies, eight in all.
+Guild mages strike from afar. A wizard reaches four hexes, a witch five. The dead are slow, covering only two hexes at a time, so the mages could fire again and again before being reached.
+The knight and fighter held the front; the mages stayed behind and never stepped forward. Skeletons break easily; zombies are tough. We thinned the easy ones first.
+We wore them down without letting them close. But a small settlement lay just past the graveyard."
+book.tutorial2-undead-rush.3,"三、集落の救援
+
+集落の詰所を守るのは若い衛士が三人だけで、あそこを奪われれば負けである。聖職の足では間に合わない。荷馬車を使った。
+馬車の使い方を記す。乗る者は、馬車のいるマスまで歩けば乗れる。降りるときは隣のマスへ出る。馬車は速いが、守りはない。壊されれば、乗っている者もろとも失う。必ず前衛の後ろを走らせた。
+司祭を馬車に乗せ、残りで護衛して道を駆けた。詰所を取り戻すと、衛士たちが加わった。傷を負った者は詰所へ入れて休ませる。中で休めば兵は戻る。
+集落は守れた。だが屍の群れは、さらに規模を増していった。","III. Relief of the Settlement
+
+The settlement's guardhouse was held by three young guards, and its loss would mean our defeat. On foot, the clergy would never arrive in time. We used a wagon.
+To board, walk onto the wagon's hex; to leave, step out to an adjacent hex. It is fast but defenseless. If it is destroyed, everyone aboard is lost with it. We always kept it behind the front line.
+The priest rode while the rest escorted. Once the guardhouse was ours, its guards joined us. The wounded rest inside, and rest restores troops.
+The settlement was saved, but the hordes kept growing."
+book.tutorial2-undead-rush.4,"四、屍の大群（一）
+
+地平まで屍で埋まるほどの大群であった。一体ずつ焼いていては日が暮れる。魔法ギルドに増援を頼み、術者を三人そろえた。
+ここで魔法ギルドの手の内、合体魔法「トリニティノヴァ」を記す。
+術者三人が互いに隣り合い、三角に組めば撃てる。その手番に動いた者は詠唱に加われないので、組むならその場で組む。狙えるのは五つ先まで。落ちた先の中心とその周り六つ、七ヘックスをまとめて焼く。
+ただし、味方も焼ける。術者三人は詠唱の間、動けなくなる。
+狭い口で受けて屍を詰まらせ、そこへ落とした。群れは消し飛んだ。","IV. The Great Horde (1)
+
+The dead filled the land to the horizon. Burning them one at a time would take all day. We asked the guild for another mage and gathered three.
+Here I record the guild's secret: the combined spell Trinity Nova.
+Three mages, each adjacent to the others in a triangle, can cast it. One who has already moved cannot join, so they must form up where they stand. It reaches five hexes and burns seven at once: the target and the six around it.
+It burns allies too, and the three cannot move while casting.
+We packed the dead into a narrow gap and dropped it on them. The horde was blown away."
+book.tutorial2-undead-rush.5,"五、屍の大群（二）
+
+トリニティノヴァを撃つには、詠唱する術者を守らねばならない。そのために馬車にバリケードを積んで運び、柵の切れ目に降ろして口を塞いだ。前衛は下がり、術者を守った。
+だが、口を塞いでも上から来る敵がいた。ゴーストである。宙に浮き、柵も瓦礫も越えて内側へ回り込む。実体がなく、剣も槍もすり抜けるため、届くのは魔法だけだ。
+力は弱いが、まとわりつかれると呪いを受け、剣は鈍り、身も守れなくなる。呪いは司祭が祓える。掛けられたら、すぐに司祭を呼ぶこと。
+群れは退けたが、屍はなお湧いてくる。湧く元は、離れた墓地にあった。","V. The Great Horde (2)
+
+The casting mages must be protected. So we carried barricades on the wagon, set them down in the gap in the fence, and sealed it. The front line fell back to guard the mages.
+Yet some foes came over the top: ghosts. They float over fences and rubble into the sealed side. Having no body, they let swords and spears pass through. Only magic reaches them.
+They are weak, but their touch curses, dulling blades and guard alike. The priest can lift the curse; call for the priest at once.
+The horde was repelled, but the dead kept rising, from a graveyard farther off."
+book.tutorial2-undead-rush.6,"六、墓地の浄化
+
+屍を吐き出し続ける納骨堂を鎮めるため、教会に増援を頼んだ。護衛の騎士と戦士、墓地を鎮める聖職者が加わった。
+墓地を鎮められるのは、祈りを捧げられる聖職だけである。聖職を一人、納骨堂に立たせれば、そこからは新たな屍が出てこない。湧き口は瓦礫に挟まれた二ヘックスで、そこを塞げば、湧いた屍も外へ出られない。前衛と術者で道を作り、馬車で聖職を通した。
+ここで新たな敵を二つ記す。グールは足が速く、爪も鋭い。下がりながら撃っても引き離せないので、正面で受ける。レイスは宙に浮き、前衛を避けて脆い者へ回り込む。剣は届かない。","VI. Cleansing the Graveyard
+
+To quiet the crypt that kept spewing the dead, we asked the church for help. A knight and a fighter came as escort, with clergy to quiet the graves.
+Only the clergy, who can pray, can quiet a graveyard. Stand one on the crypt and no new dead rise from it. Its mouth was two hexes between rubble; seal them and even the risen cannot get out. The front line and mages cleared a path, and the wagon carried the clergy through.
+Two new foes: ghouls are fast with sharp claws and cannot be outrun, so meet them head-on. Wraiths float past the front line and go for the weak. Blades cannot reach them."
+book.tutorial2-undead-rush.7,"七、神の加護
+
+グールが群れをなし、まともに殴り合えば前衛が潰れる。そこで聖職を五人集めた。
+教会の手の内、神の加護「グレイス」を記す。
+聖職五人が身を寄せて祈ると、味方全員が強くなる。術者の魔法と違い、敵を撃つのではなく、こちらを強くする祈りである。盤の端にいる者にまで届くが、続くのは次にこちらの番が巡ってくるまで。祈る聖職は脆いので、バリケードと前衛で囲って守る。
+後方の礼拝堂も使った。深手を負った者は中で休めば、次の番には兵が満員まで戻る。積んだ練度は休んでも落ちない。中にいる間は盤を離れ、出るときは一歩外へ出て、その手番は終わる。","VII. Divine Blessing
+
+Ghouls came in packs; trading blows would crush our front. So we gathered five clergy.
+The church's secret: the blessing Grace.
+When five clergy gather close and pray, every ally grows stronger. Unlike a spell, it strikes no foe; it strengthens us. It reaches even the far edge of the field, but lasts only until our next turn. Praying clergy are fragile, so we walled them in with barricades and the front line.
+We also used the chapel behind us. The badly hurt rest inside and are at full strength by our next turn, with no loss of experience. Leaving takes one step out and ends that unit's turn."
+book.tutorial2-undead-rush.8,"八、首無し騎士
+
+墓地の奥には、格の違う敵が待っていた。首の無い鎧の騎士、デュラハンである。力も守りも速さも、精鋭の戦士に劣らない。まっすぐは来ず、弱った者、脆い者を選んで回り込んでくる。まともに打ち合わず、聖職と術者には常に前衛とバリケードで蓋をした。
+しかも墓地は二つあった。片方を鎮めても、もう片方が吐き出し続ける。両方を落とすまで終わらない。
+聖職をバリケードで囲み、術者が道を開き、前衛が盾となって、馬車で墓地を目指した。トリニティノヴァとグレイス、すべての手札を出し切った。
+だが、デュラハンに屍を作る力はない。元凶は、さらに奥にいた。","VIII. The Headless Knight
+
+Deeper in waited a foe of another class: a dullahan, a headless armored knight, the equal of an elite warrior in strength, guard, and speed. It never came straight, but circled toward the weak. We never traded blows with it, and kept the clergy and mages sealed behind the front line and barricades.
+There were two graveyards. Quiet one and the other keeps spewing; it ends only when both fall.
+We walled in the clergy, the mages opened the way, the front shielded, and the wagon made for the graves. Trinity Nova and Grace: we played every card.
+But a dullahan cannot raise the dead. The source lay deeper still."
+book.tutorial2-undead-rush.9,"九、屍の元凶
+
+墓地の最奥の高台に、死者を操る術者、ネクロマンサーがいた。屍を生み出していたのはこれである。五つ先から術を放ち、屍の壁の奥にいて近づけない。
+聖都から聖騎士が飛空艇で駆けつけた。聖都の手の内、「ディバインジャッジメント」を記す。
+聖騎士の隣に聖職が二人つけば放てる。二人が並んでいる必要はない。十ヘックス先まで届き、狙えるのはただ一体。
+屍を残らず倒す必要はない。聖騎士が撃つその一手のために、トリニティノヴァで薙ぎ、グレイスで耐え、中央の礼拝堂まで押し上げた。そこからなら裁きが届く。
+光条が屍の海を貫き、ネクロマンサーは崩れ落ちた。","IX. The Source of the Dead
+
+On the heights beyond stood the necromancer, the caster who had been raising the dead. It strikes from five hexes and hides behind a wall of corpses.
+A paladin of the holy city arrived by airship. The holy city's secret: Divine Judgment.
+With two clergy adjacent to the paladin, it can be loosed; the two need not stand together. It reaches ten hexes and strikes a single target.
+We did not need to destroy every corpse. For that one strike we swept with Trinity Nova, endured with Grace, and pushed up to the central chapel, within reach.
+A beam pierced the sea of dead, and the necromancer fell."
+book.tutorial2-undead-rush.10,"十、所見
+
+元凶が斃れると、屍の海は光に還り、ただの骸に戻った。この地にも平穏が戻る。
+調査隊は七度戦い、ひとりも欠けなかった。
+私はこれを、ひとつの機関の手柄とは考えない。術者の合体魔法は群れを薙ぎ、聖職の祈りはこちらを強くし、墓地を鎮めた。騎士と戦士は、その間の前線を守り抜いた。そして聖騎士の一撃は、皆が守った道の先に届いた。
+どれか一つが欠けても、屍の数には勝てなかった。
+今後、同様の災いがあれば、三つの機関からそろって人を出すことを、ここに提言する。","X. Findings
+
+When the source fell, the sea of dead turned to light and became mere bones again. Peace returns to this land.
+The party fought seven times and lost no one.
+I do not count this the work of any one body. The mages' combined spell swept the hordes. The clergy's prayers strengthened us and quieted the graves. The knights and fighters held the front between. And the paladin's strike reached down the road we all held open.
+Without any one of these, we could not have beaten their numbers.
+Should such a calamity come again, I recommend that all three bodies send their people together."
 unit.cleric.desc,教会で学んだ若い聖職者たち。祈りの力で拠点を守る。,"Young clerics trained at the church. They hold captured bases with the power of prayer."
 unit.priest.desc,信仰を深めた聖職者。杖の一撃は見習いとは比べものにならない。,"Ordained clergy whose strikes far surpass those of novice clerics."
 unit.bishop.desc,聖職の長。加護の祈りは前線の盾となる。,"High-ranking clergy. Their prayers of protection serve as a shield on the front line."
