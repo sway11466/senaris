@@ -237,6 +237,103 @@ The party fought seven times and lost no one.
 I do not count this the work of any one body. The mages' combined spell swept the hordes. The clergy's prayers strengthened us and quieted the graves. The knights and fighters held the front between. And the paladin's strike reached down the road we all held open.
 Without any one of these, we could not have beaten their numbers.
 Should such a calamity come again, I recommend that all three bodies send their people together."
+book.tutorial3-dragon-hunt.1,"前書き
+
+冒険者の依頼は、たいてい一行で済みます。今回は「魔獣の討伐と、被害が増えた原因の調査」でした。
+私たち五人は長く組んできましたが、この旅では、街道で出会った若い五人が加わりました。
+結末を先に書いておきます。魔獣を街へ押し出していたのは、宝を求めて住処を荒らしたならず者の一味でした。一味は竜の巣まで荒らし、火竜を怒らせました。私たちは竜を討たず、鎮めるだけにしました。
+そして若い五人は、最後には誰にも「下がりなさい」と言われずに戦いました。
+これは、その旅の覚え書きです。","Foreword
+
+Most adventurers' requests fit on one line. Ours read: ""Put down the beasts, and find out why the attacks have grown.""
+The five of us have long traveled together, but on this journey five young adventurers we met on the road joined us.
+I will set down the ending first. The beasts were being driven toward the towns by a band of rogues who ransacked their homes for treasure. The band even plundered a dragon's nest and woke its fury. We did not slay the dragon; we only calmed it.
+By the end, no one had to tell the young five to fall back.
+These are my notes from that road."
+book.tutorial3-dragon-hunt.2,"駆け出し冒険者と魔獣
+
+街道の先で、若い五人がオークに囲まれていました。奥からはグリフォンが迫っていました。ハンターが「下がりなさい」と声を掛け、私たちが割って入りました。
+空を飛ぶ相手には、剣も槍も届きません。落とせるのは、ハンターの弓とウィザードの魔法です。前に立つ者は、撃ち手を守ることに徹します。
+戦いのあと、若い五人は同行を願い出ました。シーフは足手まといになると言いましたが、私は、若手を育てるのもベテランの仕事だと答えました。本心です。","Beasts on the Road
+
+Up the road, five young adventurers were surrounded by orcs, with a griffon closing in behind. The hunter called, ""Fall back,"" and we stepped in.
+Swords and spears cannot reach a flying foe. Only the hunter's bow and the wizard's magic bring it down. Those in front devote themselves to guarding the shooters.
+Afterward, the five asked to come with us. The thief warned they would slow us down, but I answered that raising the young is a veteran's work too. I meant it."
+book.tutorial3-dragon-hunt.3,"南北の門の死守
+
+街で聞くと、ならず者の一団が姿を消した頃から、魔獣が出るようになったといいます。そこへ南北の門が同時に襲われました。北は若い五人が、南は私たちが受けました。
+街に据え置きの弩砲は一基だけで、馬車で運べるのはどちらか片方の門です。詰所の予備のバリケードも使いました。
+どちらかの門を破られれば、街は守れません。傷を負った者は街の拠点へ入れれば、兵は戻ります。ただ、ここで深手を負うと、しばらくは戦いに加われなくなります。無理はさせませんでした。
+門の外に残された馬車の鳥籠には、捕らえられたピクシーがいました。","Holding Both Gates
+
+In town we heard the beasts began appearing about when a gang of rogues vanished. Then both gates, north and south, were attacked at once. The young five took the north; we took the south.
+The town had one ballista, and a wagon could carry it to only one gate. We used the guardhouse's spare barricades too.
+Lose either gate and the town is lost. The wounded regain troops inside the town's bases, but a deep wound keeps one out of the fighting for a while. I let no one push too far.
+In a birdcage on a wagon left outside the gate was a captured pixie."
+book.tutorial3-dragon-hunt.4,"荒野の争奪戦
+
+轍を追うと、荒野のドワーフの鉱山に着きました。掘り当てた空洞から魔物が這い出し、ならず者はその混乱に紛れて鉱石を盗んでいました。
+一味は、盗みを私たちのせいにしようとしていました。集落へ先に着けたので、ドワーフは話を聞いてくれ、集落で休ませてもくれました。遅れていれば、嘘を吹き込まれて敵に回っていたでしょう。
+蛇の牙の毒は、重なると効いてきます。掛かったら、私かクレリックが祈りで解きます。
+足場の悪い場所では詰めずに、届く間合いから撃ちます。地を這う魔物は空に手が出せないので、ピクシーが前に出て足を止めれば、道が開きました。","The Wasteland Mine
+
+The wheel ruts led to a dwarven mine. The miners had broken into a cavern, monsters were crawling out, and the rogues were stealing ore in the confusion.
+The band meant to pin the theft on us. We reached the settlement first, so the dwarves heard us out and let us rest there. Had we been late, lies would have turned them against us.
+Snake venom builds up with each bite; the cleric or I lift it with prayer.
+On bad footing, keep your distance and shoot. Crawling monsters cannot strike the sky, so the pixie stood in front to hold them, and the way opened."
+book.tutorial3-dragon-hunt.5,"エルフの里の攻防
+
+森では、ならず者の馬車が麓の頭目のもとへ戻ろうとしていました。一味はエルフの里に、私たちが森を荒らしに来たと吹き込んでいました。
+先に里へ着き、ピクシーが取りなしてくれました。妖精は悪意のある人間には味方しない、とエルフは言いました。
+この戦いは、敵を倒し尽くすのではなく、馬車を止めれば終わります。道に居座るトレントやマタンゴは、急ぐなら殴らずに避けて通ります。悲鳴を上げる草、マンドラゴラは、弓より遠くまで声が届くので気をつけます。
+止めた馬車の檻には、鳥人の子どもたちが入れられていました。","The Elven Village
+
+In the forest, the rogues' wagons were heading back to their leader at the foot of the mountains. The band had told the elves that we came to ravage their woods.
+We reached the village first, and the pixie spoke for us. Fairies never side with the wicked, the elves said.
+This battle ends not when every foe falls but when the wagons are stopped. In a hurry, walk around the treants and mushrooms instead of fighting them. The screaming mandrakes reach farther than a bow.
+In a cage on one wagon were birdfolk children."
+book.tutorial3-dragon-hunt.6,"山里の救出戦
+
+一味は竜の巣の入口を探していました。攫った子どもを盾に、鳥人に探させるつもりだったのです。私たちは子どもたちを、崖の上の里へ返しに向かいました。
+荒らされた山からは、ハーピーやグリフォン、ワイヴァーンが降りてきていました。山は足場が悪く、こちらが不利です。岩の上を庭のように歩くドワーフが頼りでした。飛ぶ相手は、降りぎわを狙います。山道の脇の休憩小屋では、兵を休められます。
+里に着くと、父親が子どもを抱きしめ、翼の恩は忘れぬと言ってくれました。一味が探していたのは、洞窟の奥にある竜の巣の入口でした。","The Cliffside Village
+
+The band was searching for the entrance to a dragon's nest, meaning to hold the stolen children hostage and force the birdfolk to find it. We set out to take the children home.
+Harpies, griffons, and wyverns were coming down from the ravaged mountain. Mountain footing is poor and it was against us; the dwarf, at home on rock, was a great help. Strike flyers as they land. The rest hut beside the trail restores troops.
+At the village, a father embraced his child and vowed never to forget the debt. The band sought a nest entrance deep in a cave."
+book.tutorial3-dragon-hunt.7,"洞窟の挟撃
+
+洞窟の奥で、一味の頭目は竜を起こしてしまっていました。手負いの一味は、泉を伝って外へ逃げようとしていました。
+洞窟には泉が四つあります。休めるのは、自分たちが押さえた泉だけです。泉が要るのは一味も同じなので、追うだけでは捕まりません。部屋を回り込んで、挟み撃ちにしました。蠍の毒は荒野の蛇より濃く、スライムは放っておくと分かれて増えます。
+頭目は最後に、宝が欲しかっただけだと言いました。そのために巣を荒らし、獣を街へ押し出したのです。原因を作った者たちは倒れました。それでも、竜の怒りは残っていました。","The Cave
+
+Deep in the cave, the band's leader had already woken the dragon. The wounded rogues were fleeing out by way of the springs.
+There are four springs, and you can rest only at those you hold. The band needed them too, so chasing alone would never catch them. We circled the rooms and trapped them from both sides. Scorpion venom is stronger than the snakes', and slimes split if left alone.
+At the end, the leader said they had only wanted treasure. For that, they ravaged the nest and drove the beasts toward the towns. They fell, but the dragon's fury remained."
+book.tutorial3-dragon-hunt.8,"火竜との決戦
+
+火口で、火竜が目を覚ましていました。街を焼かれる前に止めなければなりません。
+巣を荒らしたのは人の側です。せめて、鎮めるだけにしようと私は言いました。
+空に届くのは、弓と魔法と、飛べる者だけです。ピクシーの粉は、撃つ者の力を足してくれます。竜の炎は正面へ扇のように広がり、三歩先まで焼くので、固まらずに散ります。前に立つ者は撃ち手を守り、足場を塞ぎます。火口に泉はなく、ここまで残した兵がそのまま手持ちでした。
+竜が倒れると、ウィザードが、気を失っただけだと言いました。おやすみなさい、と私は祈りました。","The Fire Dragon
+
+At the crater, the fire dragon was awake. We had to stop it before it burned the towns.
+It was people who ravaged its nest. I asked that we only calm it.
+Only bows, magic, and those who fly can reach the sky. The pixie's dust adds to a shooter's strength. The dragon's fire fans out three steps ahead, so spread out. Those in front guard the shooters and block the way. There are no springs in the crater; the troops we had saved were all we had.
+When it fell, the wizard said it had only fainted. I prayed: sleep well."
+book.tutorial3-dragon-hunt.9,"結び
+
+街への説明は、私たちが引き受けました。
+戦いのあと、ファイターが、自分たちは少しは役に立てたかと尋ねました。答えたのはハンターでした。初めて会った日、下がれと言った。今日は一度も言わずに済んだ、と。
+育てるというのは、教えることより、任せられる日を待つことなのだと思います。旅の後半には、空の敵を落とすのも、毒を祓うのも、若い五人の手に任せられるようになっていました。
+道中で手を貸してくれた者たちにも、礼を記しておきます。
+次は、この五人が誰かを育てる番です。","Closing
+
+We veterans took on explaining things to the town.
+After the battle, the fighter asked whether they had been of any use. The hunter answered: on the day we met, I told you to fall back. Today I never had to say it once.
+Raising the young, I think, is less about teaching than about waiting for the day you can trust them. By the journey's end, shooting down the sky and lifting venom were in the young five's hands.
+My thanks, too, to those who lent a hand along the way.
+Next, it is these five who will raise someone."
 unit.cleric.desc,教会で学んだ若い聖職者たち。祈りの力で拠点を守る。,"Young clerics trained at the church. They hold captured bases with the power of prayer."
 unit.priest.desc,信仰を深めた聖職者。杖の一撃は見習いとは比べものにならない。,"Ordained clergy whose strikes far surpass those of novice clerics."
 unit.bishop.desc,聖職の長。加護の祈りは前線の盾となる。,"High-ranking clergy. Their prayers of protection serve as a shield on the front line."
@@ -263,6 +360,8 @@ unit.dwarf.desc,山に暮らす頑固な民。岩場を苦にせず歩き、攻�
 unit.wagon.desc,兵を運ぶ馬車。戦う力はないが、仲間を素早く前線へ届ける。,"A horse-drawn wagon for transporting troops. It cannot fight, but swiftly delivers allies to the front."
 unit.horse.desc,一人を乗せて運ぶ馬。戦う力はないが、足の遅い仲間を前線へ届ける。,"A riding horse that carries one ally. It cannot fight, but brings a slow comrade to the front."
 unit.airship.desc,空を飛ぶ輸送艇。地形を無視して仲間を運ぶ空の足。,"An airborne transport vessel. It carries allies over any terrain, serving as wings for the force."
+unit.minecart.desc,坑道のレールを走る荷車。レールの上なら、仲間を乗せて一気に奥へ運ぶ。,"A cart that runs on the mine's rails. On the track, it carries allies deep into the tunnels in one go."
+unit.railcar.desc,盾の技師が手を入れたトロッコ。レールが無くても走り、仲間を運ぶ。,"A minecart reworked by the shieldwright. It runs even where there are no rails, carrying allies along."
 unit.barricade.desc,動かない防壁。攻撃はできないが、敵の進路を塞いで味方を守る。,"A stationary barricade. It cannot attack, but blocks enemy paths and shields allies."
 unit.ballista.desc,据え置きの巨大な弩。長射程の一撃は凄まじいが、動くことはできない。,"A massive stationary crossbow. Its long-range bolts are devastating, but it cannot move."
 unit.goblin.desc,群れをなす小鬼。一体は弱いが、数で押し寄せて拠点を奪う。,"Swarming imps. Weak alone, they overwhelm by sheer numbers and seize bases."
