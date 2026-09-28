@@ -27,6 +27,7 @@
 		"minecart",
 		"railcar",
 		"pixie",
+		"survey_drone",
 		"birdman",
 		"birdman_child",
 		"miner",
@@ -854,6 +855,19 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "pixie",
+					"type_id": "pixie"
+				},
+				{
+					"category": "flier",
+					"combat_effect": "ray_bolt",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "move_propeller",
+					"name": "調査ドローン",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "survey_drone",
 					"type_id": "pixie"
 				}
 			],

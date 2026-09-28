@@ -27,6 +27,7 @@ airship,飛空艇,ally,airship,transport,1.3,0,20,1.3,single,,cannonball,move_pr
 minecart,トロッコ,ally,minecart,transport,0.95,0,0,1.3,single,,,move_wheel,true
 railcar,改良トロッコ,ally,railcar,transport,0.95,0,0,1.3,single,,,,true
 pixie,ピクシー,ally,pixie,flier,0.68,0,20,0.68,squad,,magic_dust,move_float,true
+survey_drone,調査ドローン,ally,pixie,flier,0.5,0,20,0.7,squad,,ray_bolt,move_propeller,true
 birdman,バードマン,ally,birdman,flier,1.0,0,20,1.0,squad,,punch,,true
 birdman_child,鳥人の子,ally,birdman,flier,0.75,0,20,0.75,squad,,,,false
 miner,坑員,ally,novice,infantry,1.0,0,0,1.0,squad,,,,false
