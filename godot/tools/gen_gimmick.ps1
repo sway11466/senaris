@@ -21,15 +21,27 @@
   error, not a default. Art spec: doc/art/gimmicks.md. Requires ImageMagick (magick).
   NOTE: keep this file ASCII-only. Windows PowerShell 5.1 mis-decodes UTF-8 .ps1.
 
+  -CombatRear writes the combat-scene "rear" standees (<kind>_<state>_combat_rear.png) instead,
+  with the same union crop and one scale for every state. The ruler is gen_terrain_tile.ps1
+  -CombatRear's (the unit combat ruler): the union is scaled to 384px * combat_scale tall
+  (width bounded by the canvas), bottom-aligned on a 704px square canvas. Alpha kept, no colour
+  reduction. -RearShift / -RearDrop mean what they mean there and apply to every state.
+  An empty combat_scale is an error, not a default.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 production_switch `
     on=assets\gimmicks-src\production_switch\production_switch_on_03_master.png `
     off=assets\gimmicks-src\production_switch\production_switch_off_03_master.png
 #>
+# PositionalBinding is off so that -RearShift / -RearDrop cannot swallow a state=path argument.
+[CmdletBinding(PositionalBinding = $false)]
 param(
   [Parameter(Mandatory = $true, Position = 0)][string]$Kind,
   [Parameter(Mandatory = $true, Position = 1, ValueFromRemainingArguments = $true)][string[]]$States,
-  [int]$Colors = 64
+  [int]$Colors = 64,
+  [switch]$CombatRear,   # write the combat rear standees (see -CombatRear above)
+  [int]$RearShift = 0,   # -CombatRear: px toward the back (left) on the canvas
+  [int]$RearDrop = 0     # -CombatRear: px the art hangs below the feet line
 )
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot   # godot/
@@ -42,10 +54,20 @@ $Base   = $Canvas * 2.0 / 3.75
 $csv = Join-Path $root "data\gimmicks\gimmick_visual.csv"
 $row = Import-Csv -Path $csv -Encoding UTF8 | Where-Object { $_.kind -eq $Kind } | Select-Object -First 1
 if ($null -eq $row) { throw "$Kind has no row in data/gimmicks/gimmick_visual.csv." }
-if ($row.map_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.map_scale -le 0) {
-  throw "$Kind has no map_scale in gimmick_visual.csv (found '$($row.map_scale)'). Fill the column."
+if ($CombatRear) {
+  # The unit combat ruler, the same numbers as gen_terrain_tile.ps1 -CombatRear (and gen_unit_combat.ps1).
+  $RearCanvas = 704
+  $RearBase   = 384
+  if ($row.combat_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.combat_scale -le 0) {
+    throw "$Kind has no combat_scale in gimmick_visual.csv (found '$($row.combat_scale)'). Fill the column."
+  }
+  $RearHeight = [int][math]::Round($RearBase * [double]$row.combat_scale)
+} else {
+  if ($row.map_scale -notmatch "^[0-9]*\.?[0-9]+$" -or [double]$row.map_scale -le 0) {
+    throw "$Kind has no map_scale in gimmick_visual.csv (found '$($row.map_scale)'). Fill the column."
+  }
+  $Width = [int][math]::Round($Base * [double]$row.map_scale)
 }
-$Width = [int][math]::Round($Base * [double]$row.map_scale)
 
 # state=path pairs
 $pairs = @()
@@ -76,6 +98,30 @@ $crop = "$($x1 - $x0)x$($y1 - $y0)+$x0+$y0"
 
 $outDir = Join-Path $root "assets\gimmicks"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+if ($CombatRear) {
+  # Same union crop and the same box for every state = one scale. Compose bottom-centred on the
+  # canvas (square, plus -RearDrop rows below the feet line), slid toward the back (left).
+  $rearH = $RearCanvas + $RearDrop
+  $work = Join-Path ([System.IO.Path]::GetTempPath()) ("gimmick_rear_" + $Kind)
+  New-Item -ItemType Directory -Force -Path $work | Out-Null
+  foreach ($p in $pairs) {
+    $out = Join-Path $outDir ("{0}_{1}_combat_rear.png" -f $Kind, $p[0])
+    $sized = Join-Path $work ("{0}.png" -f $p[0])
+    magick $p[1] -crop $crop +repage -resize "${RearCanvas}x${RearHeight}" $sized
+    magick -size "${RearCanvas}x${rearH}" xc:none $sized -gravity south -geometry "-${RearShift}+0" -composite $out
+    $sz = (magick $sized -format "%w %h" info:) -split " "
+    if ([int]$sz[1] -gt $rearH) {
+      Write-Warning "${Kind}_$($p[0]): cropped vertically (art $($sz[1])px, canvas ${rearH}px). Lower combat_scale."
+    }
+    if (($RearCanvas - [int]$sz[0]) / 2.0 -lt [math]::Abs($RearShift)) {
+      Write-Warning "${Kind}_$($p[0]): cropped horizontally (art $($sz[0])px, shift ${RearShift}px). Lower -RearShift."
+    }
+    $kb = [int]((Get-Item $out).Length / 1KB)
+    Write-Output ("{0}_{1} <- {2} -> assets/gimmicks/{0}_{1}_combat_rear.png ({3}KB) [crop {4} -> {5}x{6} shift={7} drop={8}]" -f $Kind, $p[0], (Split-Path $p[1] -Leaf), $kb, $crop, $sz[0], $sz[1], $RearShift, $RearDrop)
+  }
+  exit 0
+}
+
 foreach ($p in $pairs) {
   $out = Join-Path $outDir ("{0}_{1}.png" -f $Kind, $p[0])
   magick $p[1] -crop $crop +repage -resize "${Width}x" -background none -gravity south `
