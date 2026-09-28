@@ -100,6 +100,7 @@ ui.talk.next_stage,次の依頼へ ▶,Next Quest ▶
 ui.board.attack,攻撃,Attack
 ui.board.wait,待機,Wait
 ui.board.capture,占領,Capture
+ui.board.switch,スイッチ停止,Hit the Switch
 ui.board.enter,入る,Enter
 ui.board.embark,乗車,Board
 ui.board.unload,降車: %s,Unload: %s

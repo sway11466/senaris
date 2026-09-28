@@ -126,3 +126,21 @@ func test_deny_bases_needs_a_base_at_every_coordinate() -> void:
 	assert_false(Victory.condition_met(s, s.victory_conditions[0]), "拠点の無い座標は不成立")
 	var empty := _state([], _deny([]))
 	assert_false(Victory.condition_met(empty, empty.victory_conditions[0]), "空指定は不成立")
+
+# --- コマンドメニューの「スイッチ停止」（doc/gdd/uiux.md）が引く問い合わせ ---
+
+func test_step_neutralizes_at_tells_whether_stopping_there_stops_a_base() -> void:
+	var s := _state([_switch_event()])
+	assert_true(s.step_neutralizes_at(_hex(SWITCH), 0), "敵が持っている間は止まる")
+	assert_false(s.step_neutralizes_at(_hex(SWITCH), 1), "踏む側が違えば止まらない")
+	assert_false(s.step_neutralizes_at(_hex(Vector2i(3, 2)), 0), "スイッチでないマス")
+	s.fire_step_events(_hex(SWITCH), 0)
+	assert_false(s.step_neutralizes_at(_hex(SWITCH), 0), "止めた後は条件を満たさない＝待機のまま")
+	assert_eq(_base(s).team, Base.NEUTRAL, "問い合わせは状態を変えない（止めたのは fire のほう）")
+
+func test_step_without_neutralize_is_not_a_switch_stop() -> void:
+	var e := _switch_event()
+	e.erase("neutralize")
+	e["dialogue"] = "talk"
+	var s := _state([e])
+	assert_false(s.step_neutralizes_at(_hex(SWITCH), 0), "拠点を止めない踏むイベントは「スイッチ停止」にしない")

@@ -575,11 +575,18 @@ func _open_command_menu(dest: Vector2i, preview := true) -> void:
 	var sel := state.unit_any(_selected_id)
 	var base := state.base_at(dest)
 	var will_capture := sel != null and sel.can_capture and base != null and base.team != sel.team
+	# スイッチ＝止まると拠点が止まるマス。動かずに待機したときは踏まない（移動したときだけ引き金になる）。
+	var will_switch := sel != null and dest != sel.pos and state.step_neutralizes_at(dest, sel.team)
 	var can_enter := state.can_enter_base_at(_selected_id, dest)
 	_menu.clear()
 	_menu.add_item(tr("ui.board.attack"), MENU_ATTACK)
 	_menu.set_item_disabled(_menu.get_item_index(MENU_ATTACK), not can_attack)
-	_menu.add_item(tr("ui.board.capture") if will_capture else tr("ui.board.wait"), MENU_WAIT)
+	var wait_key := "ui.board.wait"
+	if will_capture:
+		wait_key = "ui.board.capture"
+	elif will_switch:
+		wait_key = "ui.board.switch"
+	_menu.add_item(tr(wait_key), MENU_WAIT)
 	if can_enter:
 		_menu.add_item(tr("ui.board.enter"), MENU_ENTER)
 	var pas := state.passengers(_selected_id)

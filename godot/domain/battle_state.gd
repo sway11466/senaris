@@ -422,6 +422,14 @@ func fire_step_events(hex: Vector2i, team: int) -> Array[StageEvent]:
 		fired.append(e)
 	return fired
 
+## team の駒が hex に止まったら、拠点を中立に戻すイベント（スイッチ）が起きるか。状態は変えない。
+## コマンドメニューが「待機」を「スイッチ停止」に言い換えるのに使う（doc/gdd/uiux.md コマンドメニュー）。
+func step_neutralizes_at(hex: Vector2i, team: int) -> bool:
+	for e in _events:
+		if e.is_step() and e.hex == hex and e.team == team and not e.neutralize.is_empty() and _conditions_hold(e):
+			return true
+	return false
+
 ## イベントの条件（AND）をすべて満たすか。条件なしは真。未知の type は満たさない（StageLoader が弾く）。
 func _conditions_hold(e: StageEvent) -> bool:
 	for c in e.conditions:
