@@ -71,6 +71,13 @@
 			"scale": 0.55
 		},
 		{
+			"effect_id": "bomb",
+			"kind": "impact",
+			"memo": "ボマーの爆弾。漫画の爆発の輪。面積が大きいので中心は空洞",
+			"name": "爆発",
+			"scale": 0.9
+		},
+		{
 			"effect_id": "magic_bolt",
 			"kind": "projectile",
 			"memo": "青白い魔力の弾",

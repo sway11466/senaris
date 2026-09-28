@@ -65,6 +65,7 @@
 		"slime",
 		"homunculus",
 		"gear_soldier",
+		"bomber",
 		"red_dragon"
 	],
 	"skins": {
@@ -194,6 +195,19 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "harpy",
+					"type_id": "birdman"
+				},
+				{
+					"category": "machine",
+					"combat_effect": "bomb",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ボマー",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "bomber",
 					"type_id": "birdman"
 				}
 			]
