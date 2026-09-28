@@ -113,7 +113,10 @@ var _bg := Color(0.35, 0.38, 0.34)  # 窓の下地色（地形色。地面が敷
 var _inner: Control       # 窓の中身（地面＋図＋エフェクト）。シェイク対象
 var _ground: CombatGround3D  # 地面（3D・盤と同じ地形タイル）
 var _haze: TextureRect       # 奥を落とす縦グラデ（タイルの繰り返しを目立たせない）
-var _feature: Control        # 奥の重ね絵（地面の上・立ち絵の下）。守り手側に建つ塊
+## 立ち絵の下の重ね絵（地面の上）。スロットごとに1枚の層を奥から順に重ねる＝足す順に関わらず
+## 奥 < 隊列の後ろ < 中央の継ぎ目。同じ層の中は足した順＝地形の後に仕掛けを足せば仕掛けが上。
+const FEATURE_SLOTS := ["back", "rear", "line"]
+var _feature := {}           # スロット名 -> Control
 var _feature_front: Control  # 手前の重ね絵（立ち絵の上・バーの下）。窓の全幅に渡る帯
 var _fig := { "L": null, "R": null }  # 各サイドの図レイヤ（Control）
 var _bar := { "L": null, "R": null }  # 各サイドの兵量バー（Control・立ち絵の上に重ねる）
@@ -182,10 +185,12 @@ func _build() -> void:
 	_haze.stretch_mode = TextureRect.STRETCH_SCALE
 	_haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_inner.add_child(_haze)
-	_feature = Control.new()
-	_feature.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_feature.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_inner.add_child(_feature)
+	for slot in FEATURE_SLOTS:
+		var fl := Control.new()
+		fl.set_anchors_preset(Control.PRESET_FULL_RECT)
+		fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_inner.add_child(fl)
+		_feature[slot] = fl
 	for side in ["L", "R"]:
 		var f := Control.new()
 		f.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -345,7 +350,8 @@ func _open(ground: UnitSnapshot, ground_side: String, other: UnitSnapshot) -> vo
 		_ground.build(skin, other_skin)
 	else:
 		_ground.build(other_skin, skin)
-	_clear(_feature)
+	for slot in FEATURE_SLOTS:
+		_clear(_feature[slot])
 	_clear(_feature_front)
 	# 重ね絵は左右それぞれ自分の側の駒のマスのスキンから引く（地面を左右で分けるのと同じ理屈）。
 	# 中央の継ぎ目だけは1本しか立てられないので、守り手側に絵があればそれ、無ければ攻め手側の絵。
@@ -357,7 +363,8 @@ func _open(ground: UnitSnapshot, ground_side: String, other: UnitSnapshot) -> vo
 		line_done = _add_features(_terrain_slots(skin, _base_team_of(ground)), ground_side, ground_lead, true)
 	if other_skin != null:
 		_add_features(_terrain_slots(other_skin, _base_team_of(other)), other_side, other_lead, not line_done)
-	# 仕掛けの絵は地形の絵の上に重ねる（仕掛けは地形の上に置いた物）。両方あれば両方出す。
+	# 仕掛けの絵は同じスロットの地形の絵の上に重ねる（仕掛けは地形の上に置いた物）。両方あれば両方出す。
+	# 地形の後に足す＝スロットの層の中で上。スロットの前後は層が持つので崩れない。
 	# 中央の継ぎ目は地形と同じ規則で1本＝守り手側の仕掛けに絵があればそれ、無ければ攻め手側。
 	var gim_line_done := false
 	var ground_gim := _gimmick_of(ground)
@@ -411,7 +418,7 @@ func _add_features(slots: Callable, side: String, lead: Vector2, with_line: bool
 		var x := 0.0 if side == "L" else vp.x - w
 		var rect := _feature_rect(back, Vector2(x, bottom - h), Vector2(w, h))
 		rect.flip_h = side == "R"  # 絵は左陣営向きに描く＝外側（窓の端）へ抜ける側を左に
-		_feature.add_child(rect)
+		_feature["back"].add_child(rect)
 	var rear: Texture2D = slots.call("rear")
 	if rear != null:
 		# その側の本人の真後ろに立てる1枚（玉座など）。奥の帯と違い窓の端に寄せず、本人の
@@ -423,7 +430,7 @@ func _add_features(slots: Callable, side: String, lead: Vector2, with_line: bool
 		var rh := rw * (float(rear.get_height()) / float(maxi(rear.get_width(), 1)))
 		var rrect := _feature_rect(rear, Vector2(lead.x - rw * 0.5, lead.y - rw), Vector2(rw, rh))
 		rrect.flip_h = side == "R"  # 絵は左陣営向きに描く＝物が右（戦場の方）を向く
-		_feature.add_child(rrect)
+		_feature["rear"].add_child(rrect)
 	var line: Texture2D = slots.call("line") if with_line else null
 	if line != null:
 		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
@@ -431,7 +438,7 @@ func _add_features(slots: Callable, side: String, lead: Vector2, with_line: bool
 		# 立ち絵より下のレイヤー＝隊列は柵の手前に出る。奥は靄が受けて沈む。
 		var vp1 := _size()
 		var lw := vp1.y * (float(line.get_width()) / float(maxi(line.get_height(), 1)))
-		_feature.add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
+		_feature["line"].add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
 		line_done = true
 	var front: Texture2D = slots.call("front")
 	if front != null:
