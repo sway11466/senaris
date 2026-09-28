@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=136 / refactoring=23.
+次回採番: bug=12 / feature=136 / refactoring=24.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -93,6 +93,14 @@
 ## リファクタリング
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
+
+### refactoring-23
+
+**中断セーブの拠点を座標ではなく名前で突き合わせる**
+- ゴール：マップを直して拠点の座標が動いても、古い中断セーブの拠点の持ち主・控え・生産の進み具合が、同じ拠点に戻る。
+- 背景：セーブは拠点を位置（`q`／`r`）で持ち、再開のときにステージ JSON の拠点と位置で突き合わせている（`Base.to_save_diff`・`BattleState._apply_diff_bases`）。座標が動くと、別の拠点に被さるか、消えた拠点として捨てられる。今はステージの印の変化を通知するだけ。イベントは `id` で突き合わせていて、座標に依らない。
+- 対応：拠点に名前（ステージ内で一意・必須）を持たせ、セーブはその名前で突き合わせる。セーブの版を上げて変換を書く。
+- 該当：`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/application/stage_loader.gd`・`godot/application/save_migration.gd`・`godot/tools/map_editor/`・[gdd/map.md](gdd/map.md)・[tech/gamesystem.md](tech/gamesystem.md)。
 
 ### refactoring-21
 
