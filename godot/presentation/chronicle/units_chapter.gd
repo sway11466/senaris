@@ -134,6 +134,8 @@ func _trait_text(type_id: String) -> String:
 		traits.append(tr("ui.info.trait_capture"))
 	if t.move_after_attack:
 		traits.append(tr("ui.info.trait_move_after_attack"))
+	if t.needs_crew:
+		traits.append(tr("ui.info.trait_needs_crew"))
 	return "   /   ".join(traits)
 
 ## その駒が撃てるユニットスキル（単独発動＝shape "solo"）のレシピid。

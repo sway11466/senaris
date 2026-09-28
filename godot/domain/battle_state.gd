@@ -901,11 +901,28 @@ func _can_act_move(handle: int) -> bool:
 	var u := unit_by_handle(handle)
 	if not is_current_unit(u):
 		return false
+	if u.needs_crew and not has_crew(u):
+		return false  # 人手が要る駒は、動かす人手が無ければ動けない（乗車の特例も含めて）
 	if int(_spent.get(handle, 0)) >= u.move and _adjacent_boardable(u).is_empty():
 		return false  # 予算切れ（隣接に乗れる輸送があれば特例で乗車だけはできる）
 	if has_attacked(handle):
 		return u.move_after_attack and not _post_moved.has(handle)
 	return not _moved.has(handle)
+
+## 人手に数えない兵種（兵器・輸送）。兵器どうしが並んでも動けない。詳細 → doc/gdd/movement.md 兵器の移動
+const CREWLESS_CATEGORIES := ["emplacement", "transport"]
+
+## u を動かす人手があるか（人手が要る駒＝needs_crew の移動条件）。
+## 隣のマスに味方の駒が居る（行動済みでもよい。兵器・輸送は数えない）か、輸送なら誰かが乗っていれば足りる。
+## 詳細 → doc/gdd/movement.md 兵器の移動
+func has_crew(u: Unit) -> bool:
+	if u.is_transport() and not passengers(u.handle).is_empty():
+		return true
+	for nb in Hex.neighbors(u.pos):
+		var o := unit_at(nb)
+		if o != null and o.team == u.team and not CREWLESS_CATEGORIES.has(o.category):
+			return true
+	return false
 
 ## いま移動できるか（公開）。盤の移動範囲表示などに使う。
 func can_still_move(handle: int) -> bool:

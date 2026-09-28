@@ -11,7 +11,7 @@ const SfxDef = preload("res://data/audio/sfx_catalog.gd")
 ## 非空で必ず要る性能列（category/memo は任意）。
 const TYPE_REQUIRED := [
 	"id", "atk_ground", "atk_air", "pierce", "defense", "move", "move_type",
-	"range", "move_after_attack", "can_capture", "max_troops", "capacity", "shield", "repairable",
+	"range", "move_after_attack", "can_capture", "max_troops", "capacity", "shield", "repairable", "needs_crew",
 ]
 ## リペアの対象になる兵種。repairable 列はこの兵種の行だけ true にする（→ repair_problems）。
 const REPAIRABLE_CATEGORIES := ["emplacement", "transport"]
@@ -60,6 +60,7 @@ static func build_unit_type(rows: Array, move_types: Array) -> Dictionary:
 		problems.append("id が重複: '%s'（後勝ち上書きになる）" % v)
 	problems += Csv.invalid_values(rows, "move_type", move_types, "id")  # movement.csv に無い移動タイプ＝黙ってコスト1の罠
 	problems += repair_problems(rows)
+	problems += crew_problems(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	return { "problems": problems, "json": { "types": rows } }
@@ -176,6 +177,16 @@ static func repair_problems(rows: Array) -> Array:
 		elif got != want:
 			out.append("'%s': repairable は兵種と一致させる（兵種 '%s' なら %s。直せない型は NOT_REPAIRABLE_IDS）" % [
 				str(r.get("id", "")), str(r.get("category", "")), str(want)])
+	return out
+
+## 人手が要る（needs_crew 列）の書式。true / false 以外は止める（文字列のまま bool() に通すと黙って true になる）。
+## 兵種では決めない列なので、兵種との照合はしない（doc/gdd/movement.md 兵器の移動）。純関数。
+static func crew_problems(rows: Array) -> Array:
+	var out := []
+	for r in rows:
+		var got: Variant = r.get("needs_crew", false)
+		if typeof(got) != TYPE_BOOL:
+			out.append("'%s': needs_crew は true / false で書く（'%s'）" % [str(r.get("id", "")), str(got)])
 	return out
 
 func _report(name: String, problems: Array) -> void:

@@ -40,6 +40,8 @@ var move_after_attack: bool = false  ## 攻撃後に残り移動力で再移動�
 var can_capture: bool = false  ## 拠点を占領できるか（cleric/bishop/paladin等）。UnitType から設定。詳細 → doc/gdd/map.md
 var capacity: int = 0  ## 輸送の搭載数（0=輸送不可）。UnitType から設定。詳細 → doc/gdd/movement.md
 var repairable: bool = false  ## リペアで兵数を戻せるか（兵種が兵器・輸送）。UnitType から設定。詳細 → doc/gdd/skills.md リペア
+var needs_crew: bool = false  ## 移動に人手が要るか（隣に味方がいるときだけ動ける）。UnitType から設定。詳細 → doc/gdd/movement.md 兵器の移動
+var category: String = ""  ## 兵種（"emplacement"＝兵器／"transport"＝輸送 ほか）。UnitType から設定。人手に数えるかの判定に使う
 
 ## 輸送ユニットか（駒を載せて運べるか）。
 func is_transport() -> bool:
@@ -139,6 +141,8 @@ func apply_type(t: UnitType) -> void:
 	can_capture = t.can_capture
 	capacity = t.capacity
 	repairable = t.repairable
+	needs_crew = t.needs_crew
+	category = t.category
 	max_troops = t.max_troops
 	max_shield = t.shield
 	shield = t.shield

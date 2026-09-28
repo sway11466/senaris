@@ -38,6 +38,7 @@ ui.info.trait,特性,Trait
 ui.info.trait_pierce,防御貫通%d%%,Ignores %d%% Defense
 ui.info.trait_capture,占領可,Can Capture Bases
 ui.info.trait_move_after_attack,攻撃後再移動,Move After Attack
+ui.info.trait_needs_crew,移動に人手が要る,Needs Crew to Move
 ui.info.action,行動,Action
 ui.info.act_awaiting_turn,ターン外,Awaiting Turn
 ui.info.act_done,行動完了,Done

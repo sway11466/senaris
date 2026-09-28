@@ -16,6 +16,7 @@ func _valid_type_row() -> Dictionary:
 		"id": "knight", "atk_ground": 8, "atk_air": 0, "pierce": 0, "defense": 5,
 		"move": 3, "move_type": "walk", "range": 1, "move_after_attack": false,
 		"can_capture": true, "max_troops": 10, "capacity": 0, "shield": 0, "repairable": false,
+		"needs_crew": false,
 	}
 
 func test_unit_type_valid_builds_json() -> void:
@@ -53,6 +54,14 @@ func test_unit_type_repairable_must_match_category() -> void:
 	assert_not_null(Units.build_unit_type([row], ["walk"])["json"], "輸送で repairable true は通る")
 	row["category"] = "infantry"
 	assert_null(Units.build_unit_type([row], ["walk"])["json"], "歩兵なのに repairable true で json=null")
+
+## needs_crew は true / false だけ。文字列のまま通すと bool() で黙って true になる。
+func test_unit_type_needs_crew_must_be_bool() -> void:
+	var row := _valid_type_row()
+	row["needs_crew"] = "yes"
+	assert_null(Units.build_unit_type([row], ["walk"])["json"], "needs_crew が bool でなければ json=null")
+	row["needs_crew"] = true
+	assert_not_null(Units.build_unit_type([row], ["walk"])["json"], "true は通る")
 
 ## 馬は輸送だが生き物＝直せない。repairable true を書いたら止める。
 func test_unit_type_horse_is_not_repairable() -> void:

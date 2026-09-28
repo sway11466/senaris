@@ -892,6 +892,8 @@ func _build_ability(u: Unit) -> void:
 		traits.append(tr("ui.info.trait_capture"))
 	if u.move_after_attack:
 		traits.append(tr("ui.info.trait_move_after_attack"))
+	if u.needs_crew:
+		traits.append(tr("ui.info.trait_needs_crew"))
 	for t in traits:
 		_add_row(tr("ui.info.trait"), t)
 	# ユニットスキル＝この駒が撃てる単独発動のスキルと、その効果の説明。盤の状況（対象の有無・
