@@ -38,9 +38,13 @@
 
 ### 絵
 
-- 種類ごとに、状態ごとの絵を1組持つ（例 `production_switch_on.png`／`production_switch_off.png`）。
+- 種類ごとに、状態ごとの絵を1組持つ。盤の絵は `godot/assets/gimmicks/{kind}_{state}.png`（例 `production_switch_on.png`／`production_switch_off.png`）。
 - 地形の上に、駒と同じく立ち絵として重ねて描く。
 - 状態の絵が無ければ何も描かない＝隠れている罠は床だけが見える。
+- 見た目の数値は、仕掛けの見た目の表（[gimmick_visual.csv](../../godot/data/gimmicks/gimmick_visual.csv)）が種類ごとに1行で持つ＝盤での大きさ・手前に寄せる量・戦闘の隊列の後ろの絵の大きさ。振る舞い（状態の一覧・踏んだときの動き）はコードが持ち、表には書かない。地形・ユニットと同じく、見た目は表・振る舞いはコード、で分ける。
+- 手前に寄せる量は、地形のオブジェクトと同じ意味（→ [terrain.md](terrain.md) オブジェクト）。駒より小さくする＝駒が仕掛けのマスに乗ると、駒が手前に立つ。
+- 戦闘の画面にも、地形の重ね絵と同じ4つのスロットで出せる（→ [../tech/combat_scene.md](../tech/combat_scene.md)）。絵は `{kind}_{state}_combat_{スロット}.png`。置いてある絵だけを出し、状態は戦闘を開くたびに盤から引く。
+- 絵の作り方と書き出し → [../art/gimmicks.md](../art/gimmicks.md)。
 
 ### 踏む
 

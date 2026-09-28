@@ -90,6 +90,7 @@
 - [doc/art/direction.md](doc/art/direction.md) — アートの全体方針（絵柄・陣営配色・共通メソッド）
 - [doc/art/units.md](doc/art/units.md) — ユニットの見た目方針（共通ルール・陣営ごと・制作スペック・STYLE）
 - [doc/art/terrain.md](doc/art/terrain.md) — 地形タイルの方針（TERRAIN STYLE・切り抜き・反復対策）
+- [doc/art/gimmicks.md](doc/art/gimmicks.md) — 仕掛けの絵の方針（状態ごとの絵をそろえる作り方・同じ範囲と倍率で書き出す・戦闘の画面の絵・置き場）
 - [doc/art/backdrop.md](doc/art/backdrop.md) — 奥の背景の方針（戦闘窓の水平線から上・空／岩壁・BACKDROP STYLE）
 - [doc/art/keyvisual.md](doc/art/keyvisual.md) — 扉絵・キービジュアルの方針（ILLUST STYLE・保管）
 - [doc/art/menu.md](doc/art/menu.md) — メニュー画面の材質（木壁・依頼ボード・羊皮紙・ナインパッチ）
