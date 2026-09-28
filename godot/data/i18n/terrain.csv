@@ -59,6 +59,7 @@ terrain.wall.name,壁,Wall
 terrain.wall_stone1.name,石積みの壁,Stone Wall
 terrain.wall_mine1.name,坑道の壁,Mine Wall
 terrain.wall_ruins1.name,古代遺跡の壁,Ancient Ruin Wall
+terrain.wall_ruins1_sigil.name,紋のある遺跡の壁,Sigil-Carved Ruin Wall
 terrain.wasteland.name,荒地,Wasteland
 terrain.wasteland_fort_town1.name,町,Town
 terrain.wasteland_lavafield1.name,溶岩原,Lava Field
