@@ -8,6 +8,7 @@ const Effects = preload("res://data/effects/convert.gd")
 const Ai = preload("res://data/ai/convert.gd")
 const Terrain = preload("res://data/terrain/convert.gd")
 const Movement = preload("res://data/movement/convert.gd")
+const Gimmicks = preload("res://data/gimmicks/convert.gd")
 
 # --- units: build_unit_type ---
 
@@ -678,3 +679,31 @@ func test_movement_duplicate_move_type_blocks() -> void:
 		{ "move_type": "walk", "name": "歩行2", "plain": 1, "forest": 1 },
 	]
 	assert_null(Movement.build(rows, ["plain", "forest"])["json"], "move_type 重複で json=null")
+
+# --- gimmicks: build（仕掛けの見た目の表） ---
+
+func _valid_gimmick_row(kind: String) -> Dictionary:
+	return { "kind": kind, "name": "名", "map_scale": 0.5, "foot_z": 0.3, "combat_scale": "" }
+
+func test_gimmicks_valid_builds_json() -> void:
+	var rows := [ _valid_gimmick_row("production_switch") ]
+	var r := Gimmicks.build(rows)
+	assert_eq(r["problems"].size(), 0, "正常＝違反0（combat_scale は空でよい）")
+	assert_eq(r["json"]["gimmicks"], rows, "json は { gimmicks: rows }")
+
+func test_gimmicks_each_required_column_pins_json_null() -> void:
+	for col in Gimmicks.REQUIRED:
+		var row := _valid_gimmick_row("production_switch")
+		row.erase(col)
+		assert_null(Gimmicks.build([row])["json"], "'%s' 欠落で json=null" % col)
+
+func test_gimmicks_bad_numbers_block() -> void:
+	# 空・文字列・範囲外を既定値に倒さない＝書き忘れが「大きさ0」「寄せ0」で黙って出るのを防ぐ。
+	for c in [["map_scale", 0], ["map_scale", "大"], ["foot_z", -0.1], ["foot_z", ""], ["combat_scale", 0]]:
+		var row := _valid_gimmick_row("production_switch")
+		row[c[0]] = c[1]
+		assert_null(Gimmicks.build([row])["json"], "%s=%s で json=null" % [c[0], str(c[1])])
+
+func test_gimmicks_duplicate_kind_blocks() -> void:
+	var rows := [ _valid_gimmick_row("production_switch"), _valid_gimmick_row("production_switch") ]
+	assert_null(Gimmicks.build(rows)["json"], "kind 重複で json=null")

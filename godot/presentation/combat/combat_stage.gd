@@ -350,11 +350,22 @@ func _open(ground: UnitSnapshot, ground_side: String, other: UnitSnapshot) -> vo
 	# 重ね絵は左右それぞれ自分の側の駒のマスのスキンから引く（地面を左右で分けるのと同じ理屈）。
 	# 中央の継ぎ目だけは1本しか立てられないので、守り手側に絵があればそれ、無ければ攻め手側の絵。
 	var other_side := "R" if ground_side == "L" else "L"
+	var ground_lead := _slot_pos(ground_side, _lead_pos(ground))
+	var other_lead := _slot_pos(other_side, _lead_pos(other))
 	var line_done := false
 	if skin != null:
-		line_done = _add_features(skin, ground_side, _base_team_of(ground), _slot_pos(ground_side, _lead_pos(ground)), true)
+		line_done = _add_features(_terrain_slots(skin, _base_team_of(ground)), ground_side, ground_lead, true)
 	if other_skin != null:
-		_add_features(other_skin, other_side, _base_team_of(other), _slot_pos(other_side, _lead_pos(other)), not line_done)
+		_add_features(_terrain_slots(other_skin, _base_team_of(other)), other_side, other_lead, not line_done)
+	# 仕掛けの絵は地形の絵の上に重ねる（仕掛けは地形の上に置いた物）。両方あれば両方出す。
+	# 中央の継ぎ目は地形と同じ規則で1本＝守り手側の仕掛けに絵があればそれ、無ければ攻め手側。
+	var gim_line_done := false
+	var ground_gim := _gimmick_of(ground)
+	var other_gim := _gimmick_of(other)
+	if ground_gim != null:
+		gim_line_done = _add_features(_gimmick_slots(ground_gim), ground_side, ground_lead, true)
+	if other_gim != null:
+		_add_features(_gimmick_slots(other_gim), other_side, other_lead, not gim_line_done)
 	if _screen != null:
 		_screen.dim(self)  # 暗転は共通基盤（フェードはあちら持ち）。窓のワイプとほぼ同時に走る
 	_start_open_anim()
@@ -378,14 +389,15 @@ func _start_open_anim() -> void:
 	_anim.tween_property(_fig["L"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 	_anim.tween_property(_fig["R"], "position:x", 0.0, OPEN_SLIDE).set_delay(OPEN_WIPE)
 
-## 片側の重ね絵を出す（奥＝back／本人の後ろ＝rear／中央の継ぎ目＝line／手前＝front）。その側の駒の
-## マスのスキンから引き、置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。中央は with_line の
+## 片側の重ね絵を出す（奥＝back／本人の後ろ＝rear／中央の継ぎ目＝line／手前＝front）。絵はスロット名を
+## 受けて Texture2D（無ければ null）を返す slots から引く＝その側の駒のマスのスキン（_terrain_slots）か
+## 仕掛け（_gimmick_slots）。置いてある絵だけを出す＝無ければ何も重ねない（地面だけ）。中央は with_line の
 ## ときだけ立て、立てたら true を返す（両側から1本ずつ立てない）。
 ## 3Dの帯には混ぜない＝奥へ行くほど縮む帯の倍率と靄を受けないので、いつも同じ大きさで読める。
 ## 仕様 → doc/tech/combat_scene.md
-func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, with_line: bool) -> bool:
+func _add_features(slots: Callable, side: String, lead: Vector2, with_line: bool) -> bool:
 	var line_done := false
-	var back := _feature_texture(skin, "back", team)
+	var back: Texture2D = slots.call("back")
 	if back != null:
 		# その側の半面に渡す帯。幅で合わせ、高さは絵の縦横比が決める（横幅が決まっている以上、
 		# 縦を別に指定すると絵が歪む）。隊列の頭が下辺に少し被る高さに置く＝前後関係が出る。
@@ -400,7 +412,7 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, wi
 		var rect := _feature_rect(back, Vector2(x, bottom - h), Vector2(w, h))
 		rect.flip_h = side == "R"  # 絵は左陣営向きに描く＝外側（窓の端）へ抜ける側を左に
 		_feature.add_child(rect)
-	var rear := _feature_texture(skin, "rear", team)
+	var rear: Texture2D = slots.call("rear")
 	if rear != null:
 		# その側の本人の真後ろに立てる1枚（玉座など）。奥の帯と違い窓の端に寄せず、本人の
 		# 立ち位置（lead＝先頭スロットの中心x・足元y）に、駒と同じ正方キャンバスを同じ大きさで置く
@@ -412,7 +424,7 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, wi
 		var rrect := _feature_rect(rear, Vector2(lead.x - rw * 0.5, lead.y - rw), Vector2(rw, rh))
 		rrect.flip_h = side == "R"  # 絵は左陣営向きに描く＝物が右（戦場の方）を向く
 		_feature.add_child(rrect)
-	var line := _feature_texture(skin, "line", team) if with_line else null
+	var line: Texture2D = slots.call("line") if with_line else null
 	if line != null:
 		# 中央の継ぎ目（両隊列の間）に立てる1枚。柵や城壁を「壁越しの対峙」の絵にする。
 		# 手前（下）から奥（上）へ走るので窓の全高に渡し、幅は絵の縦横比が決める。
@@ -421,7 +433,7 @@ func _add_features(skin: TerrainSkin, side: String, team: int, lead: Vector2, wi
 		var lw := vp1.y * (float(line.get_width()) / float(maxi(line.get_height(), 1)))
 		_feature.add_child(_feature_rect(line, Vector2(vp1.x * 0.5 - lw * 0.5, 0.0), Vector2(lw, vp1.y)))
 		line_done = true
-	var front := _feature_texture(skin, "front", team)
+	var front: Texture2D = slots.call("front")
 	if front != null:
 		# 手前の帯＝足元に散らかる物。その側の半面の下辺に接地させ、高さは絵の縦横比が決める。
 		# 絵は左半面用に描き、右半面では左右反転する。立ち絵より前面＝前列の足元に被って額縁になる。
@@ -445,6 +457,25 @@ func _feature_texture(skin: TerrainSkin, slot: String, team: int) -> Texture2D:
 			return load(tp) as Texture2D
 	var path := "res://assets/terrain/%s_combat_%s.png" % [skin.skin_id, slot]
 	return load(path) as Texture2D if ResourceLoader.exists(path) else null
+
+## スキンの重ね絵をスロット名で引く Callable（_add_features に渡す）。
+func _terrain_slots(skin: TerrainSkin, team: int) -> Callable:
+	return func(slot: String) -> Texture2D: return _feature_texture(skin, slot, team)
+
+## 仕掛けの重ね絵をスロット名で引く Callable。絵は今の状態のもの＝開くたびに盤から引く
+## （assets/gimmicks/{kind}_{state}_combat_{slot}.png。置いていなければ null＝出さない）。
+func _gimmick_slots(g: Gimmick) -> Callable:
+	var kind := g.kind
+	var state := g.state
+	return func(slot: String) -> Texture2D:
+		var path := "res://assets/gimmicks/%s_%s_combat_%s.png" % [kind, state, slot]
+		return load(path) as Texture2D if ResourceLoader.exists(path) else null
+
+## その駒が立っているマスの仕掛け。無い/盤が未結線なら null。
+func _gimmick_of(comb: UnitSnapshot) -> Gimmick:
+	if _state == null:
+		return null
+	return _state.gimmick_at(comb.pos)
 
 ## その駒が立っているマスにある拠点の所属チーム。拠点でない/中立/盤が未結線なら -1。
 func _base_team_of(comb: UnitSnapshot) -> int:

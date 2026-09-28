@@ -552,3 +552,18 @@ func test_stage_bases_sit_on_fort_terrain() -> void:
 			assert_eq(TerrainType.char_to_id(ch), "fort",
 				"%s の拠点 (col %d, row %d) が砦の上にある" % [path, int(b.get("col", -1)), int(b.get("row", -1))])
 	assert_gt(checked, 0, "拠点が1つ以上ある")
+
+func test_gimmick_kinds_match_visual_table() -> void:
+	# 仕掛けの種類は、振る舞い（GimmickKinds＝コード）と見た目（gimmick_visual.csv）の両方に居る。
+	# 見た目の行が無い種類は盤に描かれない（既定の寄せに倒さない）ので、足し忘れをここで落とす。
+	var code: Array = GimmickKinds.KINDS.keys()
+	var table: Array = GimmickVisualCatalog.all_kinds()
+	for k in code:
+		assert_true(k in table, "種類 '%s' が gimmick_visual.csv にある" % k)
+	for k in table:
+		assert_true(k in code, "gimmick_visual.csv の '%s' が GimmickKinds にある" % k)
+
+func test_gimmick_foot_z_is_behind_units() -> void:
+	# 手前寄せは駒（BoardUnitRenderer.SPRITE_FOOT_Z）より小さい＝駒が仕掛けのマスに乗ると駒が手前に立つ。
+	for k in GimmickVisualCatalog.all_kinds():
+		assert_lt(GimmickVisualCatalog.by_kind(k).foot_z, BoardUnitRenderer.SPRITE_FOOT_Z, "%s の foot_z は駒より小さい" % k)

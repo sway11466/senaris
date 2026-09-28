@@ -49,10 +49,10 @@ var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイ�
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _gimmick_nodes := {}   # 仕掛けの id -> Sprite3D（状態が変わると絵を貼り替えるため）
 
-## 仕掛けの絵の置き場と、手前寄せ（object_foot_z と同じ意味）。絵は種類ごとに状態ごとの1枚
-## ＝{kind}_{state}.png。無ければ描かない（隠れている罠は床だけが見える）。詳細 → doc/gdd/gimmicks.md 絵
+## 仕掛けの絵の置き場。絵は種類ごとに状態ごとの1枚＝{kind}_{state}.png。無ければ描かない（隠れている
+## 罠は床だけが見える）。手前寄せは種類ごとに仕掛けの見た目の表（GimmickVisualCatalog）が持つ。
+## 詳細 → doc/gdd/gimmicks.md 絵
 const GIMMICK_DIR := "res://assets/gimmicks/"
-const GIMMICK_FOOT_Z := 0.15
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）
 var _art_height := {}      # Texture2D -> float（立ち絵の絵の実体の高さ。キャンバスの余白を除く）
@@ -551,9 +551,12 @@ func refresh_gimmicks() -> void:
 			_apply_gimmick_texture(spr, g)
 
 ## 仕掛けの絵を貼る。状態の絵が無ければ隠す＝何も描かない。倍率と原点はオブジェクトの立ち絵と同じ。
+## 見た目の表に種類の行が無ければ描かない（手前寄せを既定値に倒さない。表とコードの種類の突き合わせは
+## test_data_integrity が見る）。
 func _apply_gimmick_texture(spr: Sprite3D, g: Gimmick) -> void:
 	var path := GIMMICK_DIR + "%s_%s.png" % [g.kind, g.state]
-	if not ResourceLoader.exists(path):
+	var look := GimmickVisualCatalog.by_kind(g.kind)
+	if look == null or not ResourceLoader.exists(path):
 		spr.visible = false
 		return
 	var tex := load(path) as Texture2D
@@ -561,10 +564,10 @@ func _apply_gimmick_texture(spr: Sprite3D, g: Gimmick) -> void:
 	if tex == null:
 		return
 	spr.texture = tex
-	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, GIMMICK_FOOT_Z, _lift(g.hex))
+	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, look.foot_z, _lift(g.hex))
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
 	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
-	spr.offset.y -= GIMMICK_FOOT_Z * sin(deg_to_rad(BoardCamera.PITCH_DEG)) / spr.pixel_size
+	spr.offset.y -= look.foot_z * sin(deg_to_rad(BoardCamera.PITCH_DEG)) / spr.pixel_size
 
 ## 立ち絵を floor へずらす量（世界の高さ）。沈むなら負。
 func _lift(hex: Vector2i) -> float:

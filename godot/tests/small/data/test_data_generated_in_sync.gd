@@ -12,6 +12,7 @@ const Effects = preload("res://data/effects/convert.gd")
 const Ai = preload("res://data/ai/convert.gd")
 const Terrain = preload("res://data/terrain/convert.gd")
 const Movement = preload("res://data/movement/convert.gd")
+const Gimmicks = preload("res://data/gimmicks/convert.gd")
 
 
 ## build_* の結果とコミット済み JSON を比べる。検証エラーがあれば convert は書かない＝その時点で食い違い。
@@ -31,6 +32,10 @@ func test_ai_json_in_sync() -> void:
 	var rows := Csv.read_table("res://data/ai/ai.csv")
 	_assert_in_sync(Ai.build_presets(rows), "res://data/ai/ai.json")
 
+
+func test_gimmick_visual_json_in_sync() -> void:
+	var rows := Csv.read_table("res://data/gimmicks/gimmick_visual.csv")
+	_assert_in_sync(Gimmicks.build(rows), "res://data/gimmicks/gimmick_visual.json")
 
 func test_combat_effect_json_in_sync() -> void:
 	var rows := Csv.read_table("res://data/effects/combat_effect.csv")

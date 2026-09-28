@@ -1,0 +1,12 @@
+# 生産装置のスイッチ（production_switch）。石の箱から青銅のレバーが突き出たもの。
+# off を先に生成し、on は off の元絵を参照画像にして「レバーを左へ倒す・箱の正面に赤く光る紋」だけを変えさせた。
+# 箱の位置と大きさは on/off で同じ（元絵の下半分を切り出して実測・どちらも 311x392+355）。
+
+# master＝raw の白を四隅からフラッドフィルで抜いたもの（-fuzz 8%）。
+magick assets\gimmicks-src\production_switch\production_switch_off_01_raw.png -alpha set -fuzz 8% -fill none -draw "color 0,0 floodfill" -draw "color 1023,0 floodfill" -draw "color 0,1023 floodfill" -draw "color 1023,1023 floodfill" assets\gimmicks-src\production_switch\production_switch_off_03_master.png
+magick assets\gimmicks-src\production_switch\production_switch_on_01_raw.jpg -alpha set -fuzz 8% -fill none -draw "color 0,0 floodfill" -draw "color 1023,0 floodfill" -draw "color 0,1023 floodfill" -draw "color 1023,1023 floodfill" assets\gimmicks-src\production_switch\production_switch_on_03_master.png
+
+# 盤の立ち絵＝全状態を同じ範囲・同じ倍率で書き出す。map_scale は data/gimmicks/gimmick_visual.csv の行から引く。
+powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 production_switch on=assets\gimmicks-src\production_switch\production_switch_on_03_master.png off=assets\gimmicks-src\production_switch\production_switch_off_03_master.png
+
+# 戦闘の画面の絵は持たない。

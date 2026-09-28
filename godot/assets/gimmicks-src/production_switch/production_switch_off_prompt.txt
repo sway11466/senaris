@@ -1,0 +1,39 @@
+SUBJECT: A big floor LEVER in an ancient ruin, as drawn on the world map of a
+classic 2D role-playing game: seen from the front and slightly above, standing
+upright and facing the bottom of the frame — nothing lying flat, no perspective.
+
+ONE squat, solid square PEDESTAL of precisely cut stone, a plain block with
+crisp straight edges and no decoration. From a slot in the top of the pedestal
+rises ONE thick metal LEVER ARM, hinged at the pedestal and ending in a large
+round KNOB. The lever is pulled DOWN: the arm leans far over to the RIGHT and
+points down toward the lower right, at about 45 degrees below horizontal, its
+knob hanging out beyond the right side of the pedestal. The arm is long — about
+as long as the pedestal is tall — and thick, so the lever is the main shape and
+its direction reads at thumbnail size. The whole thing is whole and intact.
+
+SIZE — the lever and pedestal sit in the MIDDLE of the picture. In a
+1024-pixel picture, the pedestal is about 300 pixels wide and 260 pixels tall,
+and the whole shape including the lever is about 520 pixels wide, leaving at
+least 200 pixels of white on every side. It must NOT touch any edge and must
+NOT be cut by any edge.
+
+COLOR — the pedestal is cool bluish grey stone, hex #7C8085; the lever arm and
+knob are dull aged BRONZE, hex #9C7A4A, clearly warmer and lighter than the
+stone. Everything muted, in the same clean stylized cel-shaded look as the
+game's terrain and unit art: bold flat shading, clear dark outlines, a mature,
+slightly muted, limited color palette (NOT bright saturated, NOT painterly
+photorealism). NO strong red, blue or green anywhere.
+
+THE BACKGROUND — everything around the lever is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO ground, NO floor, NO wall, NO drop
+shadow. This white is going to be deleted and the game will draw its own floor
+there, so the outline must be a hard, clean, crisp edge against it.
+
+LIGHT — dim light from above and slightly in front, short soft shadows that
+fall only on the pedestal and lever themselves; NOTHING casts a shadow onto the
+white.
+
+Nothing else: no machine, no pipes, no chains, no cables, no people, no
+creature, no lettering, no signs, no carvings, no symbols. Read at thumbnail
+size: a few large legible shapes, no fine detail. NO border, NO frame around the
+picture itself, NO vignette. Square 1:1.

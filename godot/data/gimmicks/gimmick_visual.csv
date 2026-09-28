@@ -1,0 +1,3 @@
+kind,name,map_scale,foot_z,combat_scale,memo
+種類,管理名,盤の大きさ,手前寄せ,隊列の後ろの背丈,備考
+production_switch,生産装置のスイッチ,0.58,0.3,,石の箱から青銅のレバーが突き出たもの。on はレバーが左で箱に赤い紋が光る・off はレバーが右
