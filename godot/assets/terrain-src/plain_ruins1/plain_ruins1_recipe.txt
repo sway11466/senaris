@@ -1,0 +1,9 @@
+# 上面＝太古の文明の研いだ一枚岩の床（青みの灰色・目地なし）。orientable full＝回転と反転で散らす。平地タイプ＝平地のルールで歩ける。
+# 元絵は平均 #717D81・明度 48.1。生成は指定の基準色より明るめに出る。
+# 元絵は四辺に石板の縁（明るい縁取り＋暗い輪郭線）が描かれていて、そのまま切り抜くとヘックスの左右の角に点が残る。
+# 四辺を 40px ずつ切り落としてから切り抜く（範囲を決めるだけで絵には手を加えない）。
+magick assets\terrain-src\plain_ruins1\plain_ruins1_01_raw.jpg -gravity center -crop 944x944+0+0 +repage %TEMP%\plain_ruins1_inner.jpg
+powershell -File tools\gen_terrain_tile.ps1 plain_ruins1 %TEMP%\plain_ruins1_inner.jpg
+
+# terrain_skin.csv: plain と同じ elevation 0 / floor 0 / side_tiling stretch。側面の帯は持たない（高さ0）。
+# CSV を直したら JSON を焼き直す: godot --headless --path . --script res://data/terrain/convert.gd

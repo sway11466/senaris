@@ -561,6 +561,26 @@
 			"terrain_type": "fort"
 		},
 		{
+			"combat_ground": "",
+			"combat_scale": "",
+			"connect": false,
+			"connect_to": "",
+			"elevation": 0,
+			"floor": 0,
+			"grid": "light",
+			"map_ground": "",
+			"map_scale": "",
+			"memo": "太古の文明の研いだ一枚岩の床（青みの灰色・目地なし）。性能は平地のまま",
+			"name": "遺跡の床",
+			"object_foot_z": "",
+			"orientable": "full",
+			"placement": "",
+			"side_bays": "",
+			"side_tiling": "stretch",
+			"skin_id": "plain_ruins1",
+			"terrain_type": "plain"
+		},
+		{
 			"combat_ground": "plain",
 			"combat_scale": "",
 			"connect": false,
