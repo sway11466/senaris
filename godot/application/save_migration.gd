@@ -232,8 +232,7 @@ static func _stage_event_ids_by_identity(stage_path: String) -> Dictionary:
 ## v2 セーブのイベント（BattleState の旧 _events_to_dicts の形）の内容の鍵。
 static func _identity_of_saved(ed: Dictionary) -> String:
 	return _identity(int(ed.get("turn", 1)), int(ed.get("team", 0)), String(ed.get("on", "")),
-		Vector2i(int(ed.get("hex_q", 0)), int(ed.get("hex_r", 0))),
-		String(ed.get("once", "")), String(ed.get("label", "")))
+		Vector2i(int(ed.get("hex_q", 0)), int(ed.get("hex_r", 0))), String(ed.get("label", "")))
 
 ## ステージJSONのイベント記述の内容の鍵。陣営の解釈は StageLoader._parse_event と揃える。
 ## 鍵の引き金の表記は v2 セーブが持っていた旧 on（"" ＝ターン／"capture"）に合わせる＝type から読み替える。
@@ -249,10 +248,13 @@ static func _identity_of_stage(e: Dictionary) -> String:
 		team = int(StageLoader.EVENT_SECTIONS.get(String(e.get("captured_by", "")), 0))
 	elif typeof(e.get("enemy")) == TYPE_ARRAY:
 		team = 1
-	return _identity(int(e.get("turn", 1)), team, on, hex, String(e.get("once", "")), String(e.get("label", "")))
+	return _identity(int(e.get("turn", 1)), team, on, hex, String(e.get("label", "")))
 
-static func _identity(turn: int, team: int, on: String, hex: Vector2i, once: String, label: String) -> String:
-	return "%d|%d|%s|%d,%d|%s|%s" % [turn, team, on, hex.x, hex.y, once, label]
+## once は鍵に入れない＝体験版の後で占領イベントに once を書き足した（何度でも起きるのが既定になった
+## ＝doc/gdd/map.md イベント）ので、入れると旧セーブの未発火イベントと突き合わなくなる。once の組は
+## 取った側（team）が違うので、外しても見分けは付く。
+static func _identity(turn: int, team: int, on: String, hex: Vector2i, label: String) -> String:
+	return "%d|%d|%s|%d,%d|%s" % [turn, team, on, hex.x, hex.y, label]
 
 ## 体験版の印の表から冒険譚ID/ステージIDで引く。無ければ ""（印なし）。
 static func _demo_digest(meta: Dictionary) -> String:

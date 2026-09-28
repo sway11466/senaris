@@ -134,7 +134,7 @@ func start_outro(lines: Array, label: String) -> void:
 ## 盤のイベントが起きたときの見せ方。台本があれば会話を挟み、focus 指定があれば先にその場所へ
 ## カメラを寄せる（喋る相手が画面に居る状態で幕を引く）。会話の間は盤とターン終了を止める
 ## （intro/outro と同じ扱い）。増援なら駒はもう盤に出ている＝何が来たのかを見せてから喋らせる。
-## 敵ターンに出せるのは占領（on:"capture"）だけ＝1手の切れ目で controller が待ってくれている。
+## 敵ターンに出せるのは盤の出来事（占領 capture・踏む step）だけ＝1手の切れ目で controller が待ってくれている。
 ## turn 起点のイベントは敵の手番の頭で起きる＝AI が動き出す前に止める場所が無いので出さない
 ## （doc/gdd/map.md イベント）。
 func on_event_fired(info: Dictionary) -> void:
@@ -144,7 +144,7 @@ func on_event_fired(info: Dictionary) -> void:
 	await _board.play_entry(info)
 	if _phase != "":
 		return
-	if _controller.is_ai_turn() and String(info.get("type", "")) != "capture":
+	if _controller.is_ai_turn() and not (String(info.get("type", "")) in ["capture", "step"]):
 		return
 	var key := String(info.get("dialogue", ""))
 	if key.is_empty():

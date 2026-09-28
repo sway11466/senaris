@@ -19,6 +19,7 @@ const HEADER_H := 36.0  ## 上の帯（列番号）
 const HEADER_W := 56.0  ## 左の帯（行番号）
 ## 高さ上書きの文字色（マスの地形の文字の下に出す）。
 const COLOR_HEIGHT := Color(1.0, 0.82, 0.4, 0.9)
+const COLOR_SWITCH := Color(1.0, 0.92, 0.25, 0.95)  ## スイッチの印と、止める拠点への線
 
 ## 描画領域の外を表す番兵。外周(margin)があると (-1,-1) は正当なセルなので、負値では判別できない。
 const OUTSIDE := Vector2i(-9999, -9999)
@@ -235,6 +236,15 @@ func _draw() -> void:
 		if g_count > 0:
 			label += " x%d" % g_count
 		_text(font, center, hex_size * 0.9, label, maxi(8, int(hex_size * 0.36)), color.lightened(0.4))
+	# スイッチ（踏むと拠点を中立に戻すイベント）＝踏むマスの印と、止める拠点への線（doc/gdd/map.md イベント）
+	for link in doc.switch_links():
+		var from: Vector2i = link["from"]
+		var to: Vector2i = link["to"]
+		var a := cell_center(from.x, from.y)
+		var b := cell_center(to.x, to.y)
+		draw_dashed_line(a, b, COLOR_SWITCH, 2.0, hex_size * 0.25)
+		draw_arc(a, hex_size * 0.5, 0.0, TAU, 24, COLOR_SWITCH, 2.5)
+		_text(font, a, hex_size * -0.05, "SW", maxi(8, int(hex_size * 0.34)), COLOR_SWITCH)
 	# ユニット（立ち絵＋台座。敵は部隊番号、明示idはボス印）
 	# 上の行から描く＝立ち絵が重なったとき手前（下の行）が上に来る。
 	var font_size := maxi(8, int(hex_size * 0.32))

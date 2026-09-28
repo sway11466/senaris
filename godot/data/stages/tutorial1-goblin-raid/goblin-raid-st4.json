@@ -31,7 +31,7 @@
       "garrison": [ { "type": "novice", "count": 2, "native": "player" } ] }
   ],
   "events": [
-    { "id": "town-freed", "type": "capture", "col": 9, "row": 6, "captured_by": "player", "dialogue": "free", "focus": true }
+    { "id": "town-freed", "type": "capture", "once": "town", "col": 9, "row": 6, "captured_by": "player", "dialogue": "free", "focus": true }
   ],
   "dialogue": {
     "intro": [

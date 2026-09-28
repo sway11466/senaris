@@ -25,6 +25,7 @@ var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 �
 ## 要素は dict。現在対応: { "type": "defeat_unit", "unit_ids": [<String>, …] } ＝ ボス撃破（名指した駒をすべて撃破。駒に unit_id を書いて名指す）
 ##                       { "type": "capture_hq" } ＝ 敵の本拠地をすべて占領
 ##                       { "type": "capture_base", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点を全て自軍が保持（敗北側の lose_base と対）
+##                       { "type": "deny_bases", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点が全て敵の持ち物でない（中立か自軍）
 var victory_conditions: Array = []
 
 ## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。
@@ -364,7 +365,7 @@ func next_event() -> Dictionary:
 	var out := {}
 	var best := -1
 	for e in _events:
-		if e.is_capture():
+		if e.trigger != StageEvent.Trigger.TURN:
 			continue  # 盤の出来事が引き金＝あと何ターンかを数えられない
 		if e.label.is_empty():
 			continue
@@ -381,10 +382,10 @@ func fire_due_events() -> Array[StageEvent]:
 	for e in _events.duplicate():  # 発生ぶんを取り除きながら回すので控えを辿る
 		if not _is_pending(e):
 			continue  # 同じ once の兄弟が先に起きて捨てられた
-		if e.is_capture():
+		if e.trigger != StageEvent.Trigger.TURN:
 			continue
-		if e.turn <= turn_number and e.team == current_team:
-			_consume_event(e)
+		if e.turn <= turn_number and e.team == current_team and _conditions_hold(e):
+			_run_event(e)
 			fired.append(e)
 	last_fired_events = fired
 	return fired
@@ -399,31 +400,63 @@ func fire_capture_events(hex: Vector2i, team: int) -> Array[StageEvent]:
 			continue  # 同じ once の兄弟が先に起きて捨てられた
 		if not e.is_capture():
 			continue
-		if e.hex != hex or e.team != team:
+		if e.hex != hex or e.team != team or not _conditions_hold(e):
 			continue
-		_consume_event(e)
+		_run_event(e)
 		fired.append(e)
 	return fired
 
+## hex のマスに team の駒が止まったときに起こすイベント（引き金＝踏む）。起きたものを返す。
+## 止まるのは移動・降車・出撃のどれでもよい（呼び出し側＝MatchController が操作の後に呼ぶ）。
+## 詳細 → doc/gdd/map.md イベント
+func fire_step_events(hex: Vector2i, team: int) -> Array[StageEvent]:
+	var fired: Array[StageEvent] = []
+	for e in _events.duplicate():
+		if not _is_pending(e):
+			continue  # 同じ once の組が先に起きて捨てられた
+		if not e.is_step():
+			continue
+		if e.hex != hex or e.team != team or not _conditions_hold(e):
+			continue
+		_run_event(e)
+		fired.append(e)
+	return fired
+
+## イベントの条件（AND）をすべて満たすか。条件なしは真。未知の type は満たさない（StageLoader が弾く）。
+func _conditions_hold(e: StageEvent) -> bool:
+	for c in e.conditions:
+		match String(c.get("type", "")):
+			"base_owner":  # その拠点の今の持ち主が team（盤に拠点が無ければ満たさない）
+				var b := base_at(c["hex"])
+				if b == null or b.team != int(c["team"]):
+					return false
+			_:
+				return false
+	return true
+
 ## デバッグ: 未発生イベント e を引き金を問わず起こす（起こせたら true）。引き金の成否を見ないので
-## 引き金の種類が増えてもここは変わらない。盤は動かさない＝占領起点でも拠点の所属はそのまま
-## （会話と増援だけが流れる）。last_fired_events は触らない＝そちらは end_turn 用。
+## 引き金の種類が増えてもここは変わらない。引き金は成立させない＝占領起点でも拠点の所属はそのまま
+## （中身＝会話・増援・中立化だけが起きる）。1回だけかどうかは通常の発火と同じ。last_fired_events は触らない＝そちらは end_turn 用。
 ## 呼ぶのはデバッグメニューだけ。詳細 → doc/gdd/uiux.md デバッグメニュー
 func fire_event(e: StageEvent) -> bool:
 	if not _is_pending(e):
 		return false
-	_consume_event(e)
+	_run_event(e)
 	return true
 
 ## まだ未発生か（控えに残っているか）。同じイベントそのものを探す＝中身の一致では見ない。
 func _is_pending(e: StageEvent) -> bool:
 	return e in _events
 
-## イベントを1件起こす＝駒を盤へ出し、未発生の控えから取り除く。
-## once に名前があれば、同じ名前の未発生イベントもまとめて捨てる＝どれか1つだけが起きる
-## （中立拠点を味方が解放したときと敵に取られたときで、先に起きたほうだけを流す）。
-func _consume_event(e: StageEvent) -> void:
-	_place_event_units(e)
+## イベントを1件起こす＝駒を盤へ出し、拠点を中立に戻す。1回だけのイベント（once の組・turn）は
+## 未発生の控えから取り除く。once に名前があれば、同じ名前の未発生イベントもまとめて捨てる＝組で
+## 1回だけ起きる（中立拠点を味方が解放したときと敵に取られたときで、先に起きたほうだけを流す）。
+## 何度でも起きるイベントは控えに残す＝次に引き金を満たしたらまた起きる。
+func _run_event(e: StageEvent) -> void:
+	_place_event_units(e, not e.is_one_shot())
+	_neutralize_bases(e)
+	if not e.is_one_shot():
+		return
 	var kept: Array[StageEvent] = []
 	for other in _events:
 		if other == e:
@@ -435,15 +468,28 @@ func _consume_event(e: StageEvent) -> void:
 		kept.append(other)
 	_events = kept
 
+## イベントの拠点を中立に戻す（中身 neutralize）。控えは中に残る。盤に拠点が無い座標は警告1行で飛ばす。
+## 詳細 → doc/gdd/map.md 拠点を中立に戻す
+func _neutralize_bases(e: StageEvent) -> void:
+	for hex in e.neutralize:
+		var b := base_at(hex)
+		if b == null:
+			push_warning("BattleState: イベント '%s' の neutralize に拠点が無い: %s" % [e.id, str(Hex.axial_to_offset(hex))])
+			continue
+		b.team = Base.NEUTRAL
+
 ## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
 ## 実際に出た hex は placed に控える＝ずれて出ても、上（カメラ・演出）が本当の場所を見られる。
-func _place_event_units(e: StageEvent) -> void:
+## copy＝何度でも起きるイベント。控えの駒は型紙として残し、新しい番号の写しを出す（同じ駒を二度置かない）。
+func _place_event_units(e: StageEvent, copy: bool = false) -> void:
 	e.placed.clear()
 	e.placed_ids.clear()
 	for item in e.units:
 		var u := item.unit
 		if u == null:
 			continue
+		if copy:
+			u = u.clone_as(_max_unit_id() + 1)
 		var hex := _free_hex_for(u, u.pos)
 		if hex == Vector2i.MAX:
 			push_warning("BattleState: 増援を置く空きが無い（この駒は出さない）: id=%d" % u.handle)
@@ -455,7 +501,7 @@ func _place_event_units(e: StageEvent) -> void:
 		if item.squad_index >= 0:
 			assign_squad(u.handle, item.squad_index)
 		for p in item.passengers:
-			put_passenger(u.handle, p)
+			put_passenger(u.handle, p.clone_as(_max_unit_id() + 1) if copy else p)
 
 ## u を置くヘックス。希望位置が埋まっている／その駒が入れない地形なら最寄りの空きへずらす。
 ## 見つからなければ Vector2i.MAX。近い順に見るので、ずれても意図した場所の近くに出る。

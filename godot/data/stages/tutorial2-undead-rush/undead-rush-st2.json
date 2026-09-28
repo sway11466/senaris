@@ -45,7 +45,7 @@
       "bases": [ { "col": 15, "row": 3 } ] }
   ],
   "events": [
-    { "id": "town-freed", "type": "capture", "col": 15, "row": 3, "captured_by": "player", "dialogue": "free", "focus": true }
+    { "id": "town-freed", "type": "capture", "once": "town", "col": 15, "row": 3, "captured_by": "player", "dialogue": "free", "focus": true }
   ],
   "dialogue": {
     "intro": [

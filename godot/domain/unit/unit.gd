@@ -96,6 +96,21 @@ func take_loss(n: int) -> int:
 	troops -= to_troops
 	return to_troops
 
+## この駒の写しを新しい handle で作る（何度でも起きるイベントが同じ駒をもう一度出すとき）。
+## スクリプトの変数を丸ごと写す＝駒に値が増えても写し漏れない。配列・辞書は複製して共有しない。
+func clone_as(p_handle: int) -> Unit:
+	var u := Unit.new(p_handle, team, pos, move)
+	for prop in get_property_list():
+		if not (int(prop["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE):
+			continue
+		var n := String(prop["name"])
+		var v: Variant = get(n)
+		if v is Array or v is Dictionary:
+			v = v.duplicate(true)
+		u.set(n, v)
+	u.handle = p_handle
+	return u
+
 ## 生来の陣営を設定する。帰属先も同じ値に揃える（生成時＝まだ解放されていない状態のため）。
 ## 解放後の帰属確定は BattleState.deploy が行う（そちらは native を触らない）。
 func set_native_team(t: int) -> void:

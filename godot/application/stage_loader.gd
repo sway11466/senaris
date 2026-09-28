@@ -888,8 +888,9 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 	return auto_id
 
 ## events（途中で起きること）を読む。詳細 → doc/gdd/map.md イベント
-## type が引き金＝"turn"（Nターン目）か "capture"（拠点の占領。col/row で拠点を指し、captured_by が取った側）。
-## 起きることは中身で決まる＝部隊があれば駒が出て、dialogue があれば会話が流れる（両方なら両方）。
+## type が引き金＝"turn"（Nターン目）か "capture"（拠点の占領。col/row で拠点を指し、captured_by が取った側）か
+## "step"（マスを踏む。col/row でマスを指し、stepped_by が踏んだ側）。if は条件（AND）。
+## 起きることは中身で決まる＝部隊があれば駒が出て、dialogue があれば会話が流れ、neutralize があれば拠点が中立に戻る。
 ## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生時に盤へ出す＝domain は JSON を知らない。
 ## 駒は盤と同じ陣営セクション（player / enemy）に部隊として書く＝どちらに書いたかで駒の陣営が決まる。
 ## 部隊はここで登録し、その index を駒ごとに持たせる（発生時に assign_squad）。
@@ -920,7 +921,7 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	_reject_legacy_event_keys(e)
 	var type_id := String(e.get("type", ""))
 	if not StageEvent.TRIGGER_IDS.has(type_id):
-		push_warning("StageLoader: イベント '%s' の type（引き金＝turn／capture）が無い／読めない: '%s'（無視）"
+		push_warning("StageLoader: イベント '%s' の type（引き金＝turn／capture／step）が無い／読めない: '%s'（無視）"
 			% [ev.id, type_id])
 		return null
 	ev.trigger = StageEvent.TRIGGER_IDS[type_id]
@@ -935,6 +936,17 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 				% [ev.id, by])
 			return null
 		ev.team = EVENT_SECTIONS[by]
+	elif ev.is_step():
+		if not (e.has("col") and e.has("row")):
+			push_warning("StageLoader: type:\"step\" のイベント '%s' に踏むマスの col/row が無い（無視）" % ev.id)
+			return null
+		ev.hex = Hex.offset_to_axial(int(e["col"]), int(e["row"]))
+		var by := String(e.get("stepped_by", ""))
+		if not EVENT_SECTIONS.has(by):
+			push_warning("StageLoader: type:\"step\" のイベント '%s' の stepped_by（player／enemy）が無い／読めない: '%s'（無視）"
+				% [ev.id, by])
+			return null
+		ev.team = EVENT_SECTIONS[by]
 	else:
 		ev.team = _turn_event_team(e)
 	ev.turn = int(e.get("turn", 1))
@@ -942,9 +954,53 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	ev.label = String(e.get("label", ""))
 	ev.dialogue = String(e.get("dialogue", ""))
 	ev.focus = bool(e.get("focus", false))
+	if not _parse_event_conditions(e, ev):
+		return null
+	ev.neutralize = _parse_event_neutralize(e, ev)
 	_check_event_dialogue(e, ev)
 	_parse_entry(e, ev)
 	return ev
+
+## 条件 if（配列・AND）。1件は type で種類を書く（勝敗条件と同じ）。読めない条件は警告してイベントごと
+## 捨てる＝条件を落として無条件で起きるほうへ倒さない。詳細 → doc/gdd/map.md 条件
+static func _parse_event_conditions(e: Dictionary, ev: StageEvent) -> bool:
+	if not e.has("if"):
+		return true
+	if typeof(e["if"]) != TYPE_ARRAY:
+		push_warning("StageLoader: イベント '%s' の if が配列でない（イベントを無視）" % ev.id)
+		return false
+	for c in e["if"]:
+		if typeof(c) != TYPE_DICTIONARY:
+			push_warning("StageLoader: イベント '%s' の if に辞書でない要素（イベントを無視）" % ev.id)
+			return false
+		match String(c.get("type", "")):
+			"base_owner":
+				var team := String(c.get("team", ""))
+				if not (c.has("col") and c.has("row")) or not ["player", "enemy", "neutral"].has(team):
+					push_warning("StageLoader: イベント '%s' の base_owner に col/row／team（player／enemy／neutral）が無い（イベントを無視）" % ev.id)
+					return false
+				ev.conditions.append({ "type": "base_owner",
+					"hex": Hex.offset_to_axial(int(c["col"]), int(c["row"])),
+					"team": _parse_team(team, Base.NEUTRAL) })
+			_:
+				push_warning("StageLoader: イベント '%s' の if に未知の条件: '%s'（イベントを無視）" % [ev.id, String(c.get("type", ""))])
+				return false
+	return true
+
+## 中身 neutralize（中立に戻す拠点の配列）。座標の無い要素は警告して飛ばす。
+static func _parse_event_neutralize(e: Dictionary, ev: StageEvent) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if not e.has("neutralize"):
+		return out
+	if typeof(e["neutralize"]) != TYPE_ARRAY:
+		push_warning("StageLoader: イベント '%s' の neutralize が配列でない（無視）" % ev.id)
+		return out
+	for b in e["neutralize"]:
+		if typeof(b) != TYPE_DICTIONARY or not (b.has("col") and b.has("row")):
+			push_warning("StageLoader: イベント '%s' の neutralize に col/row の無い要素（飛ばす）" % ev.id)
+			continue
+		out.append(Hex.offset_to_axial(int(b["col"]), int(b["row"])))
+	return out
 
 ## イベントの id（文字列）は必須でステージ内で一意。書き忘れ・重複はデータのバグ＝止める。
 static func _event_id(e: Dictionary, seen_ids: Dictionary) -> String:
@@ -1012,7 +1068,7 @@ static func _check_event_dialogue(e: Dictionary, ev: StageEvent) -> void:
 		push_error("StageLoader: イベント '%s' の name は廃止（目次の見出しは起きた順の番号）" % ev.id)
 	if ev.dialogue.is_empty():
 		return
-	if not ev.is_capture() and ev.team != 0:
+	if ev.trigger == StageEvent.Trigger.TURN and ev.team != 0:
 		push_warning("StageLoader: type:\"turn\" の dialogue は自軍の手番で起きるイベント（player の部隊か会話だけ）で使う（この会話は流れない）: %s" % ev.dialogue)
 
 ## 登場の仕方（entry）と入口（from）。駒を出すイベントには entry が必ず要る＝既定は置かない

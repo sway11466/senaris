@@ -342,13 +342,22 @@ func test_capture_event_fires_when_the_base_changes_hands() -> void:
 	var fired := s.fire_capture_events(_base_hex(), 0)
 	assert_eq(fired.size(), 1, "占領した瞬間に起きる")
 	assert_eq(fired[0].dialogue, "taken_by_player", "台本キーごと渡す")
-	assert_true(s.pending_events().is_empty(), "起きたイベントは消える")
 
-func test_capture_event_fires_once() -> void:
+## once を書かない占領イベントは、取るたびに起きる（既定は何度でも。doc/gdd/map.md イベント）。
+func test_capture_event_without_once_fires_every_time() -> void:
 	var s := _capture_state([_capture_event("player")])
+	_capture_with_cleric(s)
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "1回目")
+	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "取り返したらまた起きる")
+	assert_eq(s.pending_events().size(), 1, "控えに残る")
+
+## once を書いた占領イベントは1回だけ＝起きたら消える。
+func test_capture_event_with_once_fires_once() -> void:
+	var s := _capture_state([_capture_event("player", { "once": "town" })])
 	_capture_with_cleric(s)
 	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 1, "1回起きる")
 	assert_eq(s.fire_capture_events(_base_hex(), 0).size(), 0, "取り返しても2回目は起きない")
+	assert_true(s.pending_events().is_empty(), "起きたイベントは消える")
 
 func test_capture_event_ignores_another_base() -> void:
 	var s := _capture_state([_capture_event("player")])
@@ -454,7 +463,7 @@ func test_fire_event_does_not_change_the_board() -> void:
 	var s := _capture_state([_capture_event("player")])
 	assert_true(s.fire_event(s.pending_events()[0]), "起こせた")
 	assert_eq(s.base_at(_base_hex()).team, Base.NEUTRAL, "拠点は中立のまま")
-	assert_true(s.pending_events().is_empty(), "未発生から消える")
+	assert_eq(s.pending_events().size(), 1, "once の無い占領イベントは何度でも起きる＝控えに残る")
 
 ## 同じ once の兄弟は道連れに捨てられる（通常の発火と同じ）。
 func test_fire_event_discards_the_once_siblings() -> void:

@@ -81,7 +81,8 @@ var _base_box: VBoxContainer  ## 「拠点」モードの下段＝選択中の�
 var _unit_box: VBoxContainer  ## 「自軍」「敵」モードの下段＝選択中の駒の編集UI
 var _victory_box: VBoxContainer
 var _defeat_box: VBoxContainer
-var _event_box: VBoxContainer  ## 「イベント」モードの一覧＝増援（時限発生）
+var _event_box: VBoxContainer  ## 「イベント」モードの一覧＝増援（時限発生）・スイッチ
+var _switch_pick := -1  ## 「盤で選ぶ」を押したスイッチ（イベントの index）。-1＝盤のクリックはスイッチに使わない
 var _i18n_csv := {}      ## dialogue.csv の現在値（キー -> {ja, en}）。起動時に読み、書き込み後に更新
 var _i18n_pending := {}  ## 予告の訳文の未保存入力（キー -> {ja, en}）。ステージ保存時に dialogue.csv へ書く
 var _mode_buttons := {}
@@ -1198,6 +1199,19 @@ func _on_cell_pressed(col: int, row: int, button: int) -> void:
 					_board.refresh()
 				if _sel_base == Vector2i(col, row):
 					_deselect_base()
+		"event":
+			var list := _doc.event_list()
+			if button != MOUSE_BUTTON_LEFT or _switch_pick < 0 or _switch_pick >= list.size() \
+					or not MapEditorDoc.is_switch(list[_switch_pick]):
+				_say("スイッチの「盤で選ぶ」を押してから、踏むマスをクリックしてください。")
+				return
+			var ev: Dictionary = list[_switch_pick]
+			ev["col"] = col
+			ev["row"] = row
+			_switch_pick = -1
+			_board.queue_redraw()
+			_refresh_events()
+			_say("踏むマスを (%d, %d) にしました。" % [col, row])
 		"outcome":
 			_say("勝敗条件は右のパネルで足す・消す（盤のクリックでは変わらない）。")
 		"select":
@@ -1833,6 +1847,7 @@ const VICTORY_KINDS := {
 	"defeat_unit": ["ボス撃破", "名指し(unit_id)の駒をすべて倒す"],
 	"capture_hq": ["本拠地占領", "敵の本拠地(hq)をすべて自軍が保持する"],
 	"capture_base": ["拠点の占領", "名指しした拠点をすべて自軍が保持する（1つでも欠ければ不成立）"],
+	"deny_bases": ["拠点を止める", "名指しした拠点がすべて敵の持ち物でない（中立か自軍）＝スイッチで止めても占領してもよい"],
 }
 const DEFEAT_KINDS := {
 	"lose_base": ["拠点の喪失", "名指しした拠点をすべて敵に取られる（1つでも保持していれば不成立）"],
@@ -1843,9 +1858,11 @@ const DEFEAT_KINDS := {
 # --- イベント（時限発生＝増援）。盤に描くものではないのでリスト編集で持つ。詳細 → doc/gdd/map.md イベント ---
 
 func _build_event_panel() -> void:
+	_switch_pick = -1
 	_add_hint(_mode_box, "指定ターンに、盤に居ない駒を足す（増援）。\n"
 		+ "ターンは両陣営1巡で1。その陣営の手番が始まる時点で出る。\n"
-		+ "座標は駒ごとに指定する。埋まっている／入れない地形なら最寄りの空きへずれる。")
+		+ "座標は駒ごとに指定する。埋まっている／入れない地形なら最寄りの空きへずれる。\n"
+		+ "スイッチ＝踏むと拠点を中立に戻す仕掛け。盤に黄色の線で止める拠点と結んで見せる。")
 	_event_box = VBoxContainer.new()
 	_event_box.add_theme_constant_override("separation", 8)
 	_mode_box.add_child(_event_box)
@@ -1859,11 +1876,74 @@ func _refresh_events() -> void:
 		c.queue_free()
 	var list := _doc.event_list()
 	for i in list.size():
-		if typeof(list[i]) == TYPE_DICTIONARY:
+		if MapEditorDoc.is_switch(list[i]):
+			_add_switch_rows(i, list[i])
+		elif typeof(list[i]) == TYPE_DICTIONARY:
 			_add_event_rows(i, list[i])
 	_add_button(_event_box, "＋ 増援を足す", func() -> void:
 		_doc.add_event(_doc.event_list().size() + 1, "player")
 		_refresh_events())
+	_add_button(_event_box, "＋ スイッチを足す", func() -> void:
+		var bases: Array = _doc.data.get("bases", [])
+		if bases.is_empty():
+			_say("止める拠点がありません。「拠点」モードで先に拠点を置いてください。")
+			return
+		_doc.add_switch(0, 0, Vector2i(int(bases[0].get("col", 0)), int(bases[0].get("row", 0))))
+		_switch_pick = _doc.event_list().size() - 1  # 足したらそのまま盤で踏むマスを選べる
+		_say("スイッチを足しました。盤をクリックして踏むマスを選んでください。")
+		_board.queue_redraw()
+		_refresh_events())
+
+
+## スイッチ1件（見出し＋踏むマス・踏む側・止める拠点・1回だけ）。形 → MapEditorDoc.is_switch。
+## 条件は「止める拠点を敵が持っているとき」に決め打ち＝止めた後に踏み直しても何も起きない。
+func _add_switch_rows(index: int, ev: Dictionary) -> void:
+	var target := MapEditorDoc.switch_target(ev)
+	_add_outcome_head(_event_box, "スイッチ (%d, %d) → 拠点 (%d, %d)" % [int(ev.get("col", 0)), int(ev.get("row", 0)),
+		target.x, target.y], func() -> void:
+			_doc.remove_event(index)
+			_switch_pick = -1
+			_board.queue_redraw()
+			_refresh_events())
+	var box := _indent(_event_box)
+	var cell_row := HBoxContainer.new()
+	box.add_child(cell_row)
+	_add_label(cell_row, "踏むマス (%d, %d)" % [int(ev.get("col", 0)), int(ev.get("row", 0))])
+	_add_button(cell_row, "選択中…（盤をクリック）" if _switch_pick == index else "盤で選ぶ", func() -> void:
+		_switch_pick = -1 if _switch_pick == index else index
+		_refresh_events())
+	box.add_child(_labeled_option("踏む側", ["player", "enemy"], ["自軍", "敵"], String(ev.get("stepped_by", "player")),
+		func(k: String) -> void: ev["stepped_by"] = k))
+	var keys := []
+	var displays := []
+	for b in _doc.data.get("bases", []):
+		var col := int(b.get("col", 0))
+		var r := int(b.get("row", 0))
+		keys.append(_base_target_key(col, r))
+		displays.append("(%d, %d) %s / %s" % [col, r,
+			String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))), _hq_text(b)])
+	var cur_key := _base_target_key(target.x, target.y)
+	if not keys.has(cur_key):
+		keys.append(cur_key)
+		displays.append("(%d, %d) 拠点なし" % [target.x, target.y])
+	box.add_child(_labeled_option("止める拠点", keys, displays, cur_key, func(key: String) -> void:
+		var picked := key.split(",")
+		MapEditorDoc.set_switch_target(ev, int(picked[0]), int(picked[1]))
+		_board.queue_redraw()
+		_refresh_events()))
+	if _doc.base_at(target.x, target.y).is_empty():
+		_add_warn(box, "  ↑ このマスに拠点がありません")
+	var once := CheckBox.new()
+	once.text = "1回だけ（踏み直しても再び止めない）"
+	once.button_pressed = ev.has("once")
+	once.toggled.connect(func(on: bool) -> void:
+		if on:
+			ev["once"] = String(ev.get("id", "switch"))  # 1件だけの組＝このスイッチ固有の名前
+		else:
+			ev.erase("once"))
+	box.add_child(once)
+	_add_note(box, "拠点を敵が持っているときだけ中立に戻す。敵が取り返したら、踏み直せばまた止まる。\n"
+		+ "絵は置物（prop）のスキンで「地形」モードから置く（ここは仕掛けだけ）。")
 
 
 ## 増援1件（見出し＋ターン・陣営・AI・予告文・駒の一覧）。
@@ -2087,7 +2167,7 @@ func _refresh_victory() -> void:
 		match type_id:
 			"defeat_unit":
 				_build_unit_id_targets(box, c, true)
-			"capture_base":
+			"capture_base", "deny_bases":
 				_build_base_targets(box, c, true)
 	_add_kind_adder(_victory_box, VICTORY_KINDS, _add_victory_kind)
 
@@ -2130,14 +2210,14 @@ func _build_base_targets(box: VBoxContainer, c: Dictionary, is_victory: bool) ->
 		_add_warn(box, "対象がありません（このままだと成立しません）")
 	for j in targets.size():
 		var t: Dictionary = targets[j]
-		_add_base_target_row(box, t, is_victory, func() -> void:
+		_add_base_target_row(box, t, is_victory, String(c.get("type", "")), func() -> void:
 			targets.remove_at(j)
 			_drop_empty_condition(c, is_victory)
 			refresh.call())
 		if _doc.base_at(int(t.get("col", -1)), int(t.get("row", -1))).is_empty():
 			_add_warn(box, "  ↑ このマスに拠点がありません")
 	_add_button(box, "対象を追加", func() -> void:
-		var free := _free_base_target(is_victory)
+		var free := _free_base_target(String(c.get("type", "")))
 		if free == MapEditorBoard.OUTSIDE:
 			_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
 			return
@@ -2220,7 +2300,7 @@ func _add_unit_id_target_row(parent: Control, current: String, apply: Callable,
 ## 拠点を指す対象の行。盤にある拠点から選ぶ＝拠点でないマスは選びようがない
 ## （座標を2つ手で入れる形だと、片方を変えた途中の座標で弾かれて移せなくなる）。
 ## 指す先の拠点が消えているときだけ、その座標を選択肢の末尾に残す＝黙って別の拠点にすり替えない。
-func _add_base_target_row(parent: Control, t: Dictionary, is_victory: bool, on_remove: Callable) -> void:
+func _add_base_target_row(parent: Control, t: Dictionary, is_victory: bool, type_id: String, on_remove: Callable) -> void:
 	var keys := []
 	var displays := []
 	for b in _doc.data.get("bases", []):
@@ -2236,7 +2316,7 @@ func _add_base_target_row(parent: Control, t: Dictionary, is_victory: bool, on_r
 		keys.append(cur_key)
 		displays.append("(%d, %d) 拠点なし" % [cur_col, cur_row])
 	var refresh: Callable = _refresh_victory if is_victory else _refresh_defeat
-	var label := "占領目標" if is_victory else "防衛対象"
+	var label: String = { "capture_base": "占領目標", "deny_bases": "止める拠点" }.get(type_id, "防衛対象")
 	var row := _labeled_option("拠点", keys, displays, cur_key, func(key: String) -> void:
 		var picked := key.split(",")
 		t["col"] = int(picked[0])
@@ -2280,18 +2360,24 @@ func _add_victory_kind(type_id: String) -> void:
 					return
 			_doc.add_victory({ "type": "capture_hq" })
 		"capture_base":
-			var free := _free_base_target(true)
+			var free := _free_base_target("capture_base")
 			if free == MapEditorBoard.OUTSIDE:
 				_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
 				return
 			_doc.add_victory_capture_base(free.x, free.y)  # 単独の条件＝他の条件とOR
+		"deny_bases":
+			var free := _free_base_target("deny_bases")
+			if free == MapEditorBoard.OUTSIDE:
+				_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
+				return
+			_doc.add_victory_deny_bases(free.x, free.y)  # 単独の条件＝他の条件とOR
 	_refresh_victory()
 
 
 func _add_defeat_kind(type_id: String) -> void:
 	match type_id:
 		"lose_base":
-			var free := _free_base_target(false)
+			var free := _free_base_target("lose_base")
 			if free == MapEditorBoard.OUTSIDE:
 				_say("足せる拠点がありません（盤に拠点が無いか、すべて既に対象です）。")
 				return
@@ -2305,14 +2391,20 @@ func _add_defeat_kind(type_id: String) -> void:
 	_refresh_defeat()
 
 
-## その側（勝利=capture_base / 敗北=lose_base）がまだ指していない拠点のマス（無ければ OUTSIDE）。
-## 新しい対象の初期値に使う。勝利・敗北は別々に数える＝片方で使い切っても、もう片方は足せる。
-func _free_base_target(is_victory: bool) -> Vector2i:
+## その種類の条件（capture_base / deny_bases / lose_base）がまだ指していない拠点のマス（無ければ OUTSIDE）。
+## 新しい対象の初期値に使う。種類ごとに別々に数える＝片方で使い切っても、もう片方は足せる。
+func _free_base_target(type_id: String) -> Vector2i:
 	for b in _doc.data.get("bases", []):
 		var col := int(b.get("col", 0))
 		var row := int(b.get("row", 0))
-		var taken := _doc.has_victory_capture_base(col, row) if is_victory \
-			else _doc.has_defeat_lose_base(col, row)
+		var taken := false
+		match type_id:
+			"capture_base":
+				taken = _doc.has_victory_capture_base(col, row)
+			"deny_bases":
+				taken = _doc.has_victory_deny_bases(col, row)
+			_:
+				taken = _doc.has_defeat_lose_base(col, row)
 		if not taken:
 			return Vector2i(col, row)
 	return MapEditorBoard.OUTSIDE

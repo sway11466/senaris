@@ -832,3 +832,59 @@ func test_force_event_fires_the_event() -> void:
 	assert_true(s.pending_events().is_empty(), "未発生の控えから抜ける")
 	mc.force_event(ev)
 	assert_signal_emit_count(mc, "event_fired", 1, "起きたイベントはもう一度起こせない")
+
+# --- 踏むを引き金にしたイベント（スイッチ）。仕様 → doc/gdd/map.md イベント ---
+
+## 盤: (4,4) に敵の拠点、スイッチ (2,2)。自軍の駒 id1 は (1,2)、敵の駒 id2 は (9,6)（決着しない）。
+## (2,1) に自軍の拠点（控え1体）、(3,3) に自軍の輸送（搭乗1体）＝出撃と降車でスイッチへ入れる。
+func _switch_board(with_victory := false) -> BattleState:
+	var s := BattleState.new(12, 8)
+	s.add_base(Base.new(Hex.offset_to_axial(4, 4), 1))
+	s.add_unit(Unit.new(1, 0, Hex.offset_to_axial(1, 2), 3))
+	s.add_unit(Unit.new(2, 1, Hex.offset_to_axial(9, 6), 3))
+	var own := Base.new(Hex.offset_to_axial(2, 1), 0)
+	own.garrison.append(Unit.new(3, 0, Vector2i.ZERO, 2))
+	s.add_base(own)
+	var t := Unit.new(4, 0, Hex.offset_to_axial(3, 3), 3)
+	t.capacity = 4
+	s.add_unit(t)
+	s.put_passenger(t.handle, Unit.new(5, 0, Vector2i.ZERO, 2))
+	var e := StageEvent.new()
+	e.id = "switch"
+	e.trigger = StageEvent.Trigger.STEP
+	e.hex = Hex.offset_to_axial(2, 2)
+	e.team = 0
+	e.conditions = [ { "type": "base_owner", "hex": Hex.offset_to_axial(4, 4), "team": 1 } ] as Array[Dictionary]
+	e.neutralize = [ Hex.offset_to_axial(4, 4) ] as Array[Vector2i]
+	s.add_event(e)
+	if with_victory:
+		s.victory_conditions = [ { "type": "deny_bases", "bases": [ { "col": 4, "row": 4 } ] } ]
+	return s
+
+func test_moving_onto_the_switch_fires_the_event() -> void:
+	var s := _switch_board()
+	var mc := _mc(s)
+	assert_true(mc.execute(MoveCommand.new(1, Hex.offset_to_axial(2, 2))))
+	assert_signal_emit_count(mc, "event_fired", 1, "止まった瞬間に1回")
+	var info: Dictionary = get_signal_parameters(mc, "event_fired", 0)[0]
+	assert_eq(String(info.get("type", "")), "step")
+	assert_eq(info.get("hex", Vector2i.MAX), Hex.offset_to_axial(2, 2), "カメラの行き先はスイッチのマス")
+	assert_eq(s.base_at(Hex.offset_to_axial(4, 4)).team, Base.NEUTRAL, "拠点が中立に戻る")
+
+func test_deploying_onto_the_switch_fires_the_event() -> void:
+	var s := _switch_board()
+	var mc := _mc(s)
+	assert_true(mc.execute_deploy(DeployCommand.new(Hex.offset_to_axial(2, 1), 0, Hex.offset_to_axial(2, 2))), "拠点の隣＝スイッチへ出撃")
+	assert_signal_emit_count(mc, "event_fired", 1, "出撃でも踏む")
+
+func test_unloading_onto_the_switch_fires_the_event() -> void:
+	var s := _switch_board()
+	var mc := _mc(s)
+	assert_true(mc.execute_unload(UnloadCommand.new(4, 0, Hex.offset_to_axial(2, 2))), "輸送の隣＝スイッチへ降ろす")
+	assert_signal_emit_count(mc, "event_fired", 1, "降車でも踏む")
+
+func test_stepping_the_last_switch_finishes_the_battle() -> void:
+	var s := _switch_board(true)
+	var mc := _mc(s)
+	mc.execute(MoveCommand.new(1, Hex.offset_to_axial(2, 2)))
+	assert_signal_emit_count(mc, "battle_finished", 1, "拠点を止めた瞬間に勝利")

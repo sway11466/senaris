@@ -1003,3 +1003,48 @@ func test_set_actor_does_not_touch_conditions() -> void:
 	doc.set_actor(unit, "")
 	assert_false(unit.has("actor"), "外せる")
 	assert_eq(doc.victory_list()[0]["unit_ids"], ["hobgoblin"], "外しても勝敗条件は残る")
+
+
+# --- スイッチ（step イベントの決まった形）と勝利条件 deny_bases。仕様 → doc/gdd/map.md イベント・勝敗条件 ---
+
+func _switch_doc() -> MapEditorDoc:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	doc.add_base(4, 2, "enemy")
+	return doc
+
+func test_add_switch_writes_the_fixed_shape() -> void:
+	var doc := _switch_doc()
+	var e := doc.add_switch(1, 1, Vector2i(4, 2))
+	assert_eq(String(e["type"]), "step")
+	assert_eq(String(e["stepped_by"]), "player")
+	assert_eq(e["if"], [ { "type": "base_owner", "col": 4, "row": 2, "team": "enemy" } ], "条件は「その拠点を敵が持っているとき」")
+	assert_eq(e["neutralize"], [ { "col": 4, "row": 2 } ])
+	assert_true(MapEditorDoc.is_switch(e), "エディタが編集できる形")
+	assert_eq(MapEditorDoc.switch_target(e), Vector2i(4, 2))
+
+func test_switch_ids_are_unique() -> void:
+	var doc := _switch_doc()
+	var a := doc.add_switch(1, 1, Vector2i(4, 2))
+	var b := doc.add_switch(2, 1, Vector2i(4, 2))
+	assert_ne(String(a["id"]), String(b["id"]), "ステージ内で一意")
+
+func test_step_with_other_contents_is_not_a_switch() -> void:
+	var doc := _switch_doc()
+	var e := doc.add_switch(1, 1, Vector2i(4, 2))
+	e["dialogue"] = "talk"
+	assert_false(MapEditorDoc.is_switch(e), "会話つきは決まった形の外＝JSON を直接見る")
+
+func test_moving_a_base_carries_its_switch_target() -> void:
+	var doc := _switch_doc()
+	var e := doc.add_switch(1, 1, Vector2i(4, 2))
+	assert_true(doc.move_base_at(4, 2, 5, 3))
+	assert_eq(MapEditorDoc.switch_target(e), Vector2i(5, 3), "止める拠点の座標も連れて動く")
+	assert_eq(doc.switch_links(), [ { "from": Vector2i(1, 1), "to": Vector2i(5, 3) } ], "盤の結び線も追う")
+
+func test_deny_bases_is_tracked_apart_from_capture_base() -> void:
+	var doc := _switch_doc()
+	assert_true(doc.add_victory_deny_bases(4, 2))
+	assert_true(doc.has_victory_deny_bases(4, 2))
+	assert_false(doc.has_victory_capture_base(4, 2), "占領目標とは別に数える")
+	assert_true(doc.remove_base_at(4, 2))
+	assert_false(doc.data.has("victory"), "拠点を消したら、それを指す条件も消える")

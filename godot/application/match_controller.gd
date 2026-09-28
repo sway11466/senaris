@@ -76,7 +76,8 @@ func execute(cmd: MoveCommand) -> bool:
 			_move_origin[cmd.handle] = from  # このターン最初の移動＝戻り先（攻撃後の再移動では動かさない）
 		unit_moved.emit(cmd.handle, from, cmd.to, path)
 		_emit_if_captured(cmd.to, before)
-		_check_finished()  # 移動＝占領が起きうる（本拠地の占領/喪失はこの瞬間に決着する）
+		_emit_stepped(cmd.to, u.team)
+		_check_finished()  # 移動＝占領・スイッチが起きうる（本拠地の占領/喪失・拠点を止める勝利はこの瞬間に決着する）
 		return true
 	move_rejected.emit(cmd.handle, cmd.to)
 	return false
@@ -124,6 +125,10 @@ func execute_deploy(cmd: DeployCommand) -> bool:
 		uid = (b.garrison[cmd.garrison_index] as Unit).handle
 	if state.deploy(cmd.base_hex, cmd.garrison_index, cmd.to):
 		unit_deployed.emit(uid, cmd.base_hex, cmd.to)
+		var placed := state.unit_by_handle(uid)
+		if placed != null and state.unit_at(cmd.to) == placed:  # 輸送に直接乗った駒は盤に立たない＝踏まない
+			_emit_stepped(cmd.to, placed.team)
+			_check_finished()  # 出撃でスイッチを踏みうる（拠点を止める勝利）
 		return true
 	return false
 
@@ -141,6 +146,8 @@ func execute_unload(cmd: UnloadCommand) -> bool:
 		var u := state.unit_at(cmd.to)
 		unit_unloaded.emit(u.handle if u != null else -1, cmd.transport_id, cmd.to)
 		_emit_if_captured(cmd.to, before)
+		if u != null:
+			_emit_stepped(cmd.to, u.team)
 		_check_finished()
 		return true
 	return false
@@ -168,7 +175,17 @@ func _emit_if_captured(hex: Vector2i, before: int) -> void:
 	if after == NO_BASE or after == before:
 		return
 	base_captured.emit(hex, after)
-	var fired := state.fire_capture_events(hex, after)
+	_dispatch_board_events(state.fire_capture_events(hex, after), hex)
+
+## 駒が hex に止まった（移動・降車・出撃）ときの「踏む」イベント。起きたものは占領と同じ流し方。
+## 詳細 → doc/gdd/map.md イベント
+func _emit_stepped(hex: Vector2i, team: int) -> void:
+	_dispatch_board_events(state.fire_step_events(hex, team), hex)
+
+## 盤の出来事（占領・踏む）で起きたイベントを上へ流す。敵ターンは1手の切れ目まで持ち越す
+## （_pending_events）。決着した手は持ち越さずその場で流す＝AI の次の手はもう来ない。
+## カメラの行き先は引き金のマス（占領なら拠点・踏むならそのマス）。
+func _dispatch_board_events(fired: Array[StageEvent], hex: Vector2i) -> void:
 	for e in fired:
 		var info := _event_info(e, hex)
 		if is_ai_turn() and not state.is_over():
