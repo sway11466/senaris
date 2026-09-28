@@ -11,6 +11,7 @@ arrow_crossbow,クロスボウの矢,projectile,0.9,ハンターのクロスボ�
 stone,投石,projectile,0.32,スリングの小石＝速度線ごと兵士の3割ほど
 cannonball,砲弾,projectile,0.55,飛空艇の砲。鉄球＋速度線。射程1だが飛ばす
 bomb,爆発,impact,0.9,ボマーの爆弾。漫画の爆発の輪。面積が大きいので中心は空洞
+drill,ドリル,impact,1.0,ドリルの一撃。中心を空けた鋼色の渦
 magic_bolt,魔弾,projectile,0.7,青白い魔力の弾
 ray_bolt,光線弾,projectile,0.7,銃の技師の古代の銃。青緑の涙滴＋尾の輪（魔弾と形・色で分ける）
 magic_dust,魔法の粉,projectile,0.8,ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）

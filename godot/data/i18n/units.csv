@@ -32,6 +32,9 @@ unit.minecart.name,トロッコ,Minecart
 unit.railcar.name,改良トロッコ,Improved Minecart
 unit.barricade.name,バリケード,Barricade
 unit.ballista.name,バリスタ,Ballista
+unit.cannon.name,移動砲,Mobile Cannon
+unit.mantlet.name,移動壁,Mantlet
+unit.drill.name,ドリル,Drill
 unit.goblin.name,ゴブリン,Goblin
 unit.hobgoblin.name,ホブゴブリン,Hobgoblin
 unit.goblin_archer.name,ゴブリンアーチャー,Goblin Archer
@@ -59,6 +62,7 @@ unit.mandragora.name,マンドラゴラ,Mandragora
 unit.red_dragon.name,レッドドラゴン,Red Dragon
 unit.slime.name,スライム,Slime
 unit.homunculus.name,ホムンクルス,Homunculus
+unit.magic_hound.name,マジックハウンド,Magic Hound
 unit.gear_soldier.name,歯車兵,Gear Soldier
 unit.bomber.name,ボマー,Bomber
 unit.rogue.name,ローグ,Bandit

@@ -33,6 +33,9 @@
 		"dwarf_miner",
 		"barricade",
 		"ballista",
+		"cannon",
+		"mantlet",
+		"drill",
 		"goblin",
 		"hobgoblin",
 		"goblin_archer",
@@ -64,6 +67,7 @@
 		"mandragora",
 		"slime",
 		"homunculus",
+		"magic_hound",
 		"gear_soldier",
 		"bomber",
 		"red_dragon"
@@ -244,6 +248,24 @@
 				}
 			]
 		},
+		"cannon": {
+			"ally": [
+				{
+					"category": "emplacement",
+					"combat_effect": "cannonball",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "移動砲",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "cannon",
+					"type_id": "cannon"
+				}
+			],
+			"enemy": []
+		},
 		"cleric": {
 			"ally": [
 				{
@@ -332,6 +354,24 @@
 					"type_id": "dragon"
 				}
 			]
+		},
+		"drill": {
+			"ally": [
+				{
+					"category": "emplacement",
+					"combat_effect": "drill",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "ドリル",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "drill",
+					"type_id": "drill"
+				}
+			],
+			"enemy": []
 		},
 		"dwarf": {
 			"ally": [
@@ -653,6 +693,24 @@
 				}
 			]
 		},
+		"mantlet": {
+			"ally": [
+				{
+					"category": "emplacement",
+					"combat_effect": "",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "移動壁",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "mantlet",
+					"type_id": "mantlet"
+				}
+			],
+			"enemy": []
+		},
 		"minecart": {
 			"ally": [
 				{
@@ -905,6 +963,19 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "rock_serpent",
+					"type_id": "scout"
+				},
+				{
+					"category": "magical",
+					"combat_effect": "bite",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "マジックハウンド",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "magic_hound",
 					"type_id": "scout"
 				}
 			]
