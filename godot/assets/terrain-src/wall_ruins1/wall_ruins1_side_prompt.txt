@@ -1,0 +1,29 @@
+STYLE: A side-on wall-face texture for a fantasy tactics game, in the same clean
+stylized cel-shaded look as the game's terrain and unit art: bold flat shading, a
+mature, slightly muted, limited color palette (NOT bright saturated, NOT
+painterly photorealism). Viewed straight from the FRONT, face-on — a flat lay
+with NO perspective, NO horizon, NO sky, NO ground line, NO floor. The texture
+fills the ENTIRE square frame edge to edge, with NO border, NO frame, NO
+vignette. It must tile SEAMLESSLY in BOTH directions: the left and right edges
+continue into each other, and the top and bottom edges continue into each other.
+Keep large-scale color even and low-contrast. Square 1:1.
+
+SUBJECT: The wall of an ANCIENT RUIN, built by a lost civilization far more
+skilled than today's masons, seen face-on. The wall is made of large, precisely
+CUT rectangular stone blocks, laid in straight horizontal courses with the
+vertical joints staggered from one course to the next. Exactly SIX courses fill
+the frame from top to bottom, all the same height, and each course holds three
+or four blocks of slightly different lengths. The blocks fit together so
+tightly that the joints are only THIN, perfectly STRAIGHT dark lines — NO
+mortar, NO gaps, NO rough or rounded edges. Each face is flat and smooth,
+dressed by a tool that left no marks.
+The stone is a cool bluish grey, base color around #7C8085, the tone shifting
+very slightly from block to block. Every block is whole and intact, with crisp,
+sharp corners and clean, unbroken faces — the wall stands exactly as it was
+built, perfectly preserved.
+Lit dimly from above. NO carvings, NO crests, NO symbols, NO letters, NO
+patterns cut into the stone. NO pillars, NO beams, NO timber, NO metal. NO
+vegetation of any kind — NO moss, NO plants, NO roots, NO soil, NO puddles. NO
+objects of any kind — NO torches, NO lamps, NO rails, NO tools, NO bones. This
+is only the flat wall face — NO top surface, NO floor, NO arch, NO opening, NO
+door, NO cast shadow onto anything else.

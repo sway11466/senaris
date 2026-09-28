@@ -58,6 +58,7 @@ road_stone2,road,石畳2,none,area,road river_bridge_stone1_v river_bridge_stone
 wall,wall,壁,none,false,,0.72,0.72,repeat,,,,,,none,,,上面は黒＝天井まで続く岩を水平に切った断面・側面画像で岩肌を見せる
 wall_stone1,wall,石積みの壁,none,false,,0,0,repeat,,,,,,light,,,人が積んだ石壁（ダンジョンの掘った岩とは別系統）
 wall_mine1,wall,坑道の壁,none,false,,0.72,0.72,bays,0.081|0.361|0.640|0.917,,,,,none,,,掘り抜いた坑道の岩肌に坑木の柱。上面は黒（既定の壁と同じ）・側面に岩肌とツルハシの削り跡
+wall_ruins1,wall,古代遺跡の壁,none,false,,0.72,0.72,repeat,,,,,,none,,,太古の文明の精密な切り石の積み壁（青みの灰色・紋なし）。上面は黒（既定の壁と同じ）
 wasteland,wasteland,荒地,full,false,,0,0,stretch,,,,,,light,,,
 wasteland_fort_town1,fort,町,none,false,,0,0,,,standee,0.79,0.5,,light,wasteland,wasteland,道の町（road_fort_town1）の複製を荒地の上に立てる。占領で屋根の色が変わる（_team0=味方/_team1=敵）
 wasteland_lavafield1,wasteland,溶岩原,full,false,,0,0,stretch,,,,,,dark,,,冷えて固まった溶岩の平原。暗い殻の板の間に光る割れ目。歩ける（荒地のルール）
