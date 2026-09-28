@@ -148,7 +148,7 @@ func test_stage_squads_and_ai_bases_have_order() -> void:
 				_assert_order(path, squad, "event '%s' squad" % str(event.get("id", "")), seen)
 
 func test_stage_events_name_their_trigger_by_type() -> void:
-	# 引き金は type（turn／capture／step）で書く（doc/gdd/map.md イベント）。既定は無い＝書き忘れは
+	# 引き金は type（turn／capture）で書く（doc/gdd/map.md イベント）。既定は無い＝書き忘れは
 	# 読み込みで捨てられて黙ってイベントが消えるので、ここで捕まえる。旧い書き方（on／team／
 	# reinforce／talk）は読み込みが止めるが、データとしては不備。
 	for path in _all_stage_files("res://data/stages"):
@@ -160,17 +160,13 @@ func test_stage_events_name_their_trigger_by_type() -> void:
 				continue
 			var where := "%s のイベント '%s'" % [path, str(event.get("id", ""))]
 			var type_id := str(event.get("type", ""))
-			assert_true(type_id in ["turn", "capture", "step"], "%s の type は turn／capture／step" % where)
+			assert_true(type_id in ["turn", "capture"], "%s の type は turn／capture" % where)
 			assert_false(event.has("on") or event.has("team") or event.has("name"),
 				"%s に on／team／name（廃止）が無い" % where)
 			if type_id == "capture":
 				assert_true(event.has("col") and event.has("row"), "%s に拠点の col/row がある" % where)
 				assert_true(str(event.get("captured_by", "")) in ["player", "enemy"],
 					"%s に captured_by（player／enemy）がある" % where)
-			elif type_id == "step":
-				assert_true(event.has("col") and event.has("row"), "%s に踏むマスの col/row がある" % where)
-				assert_true(str(event.get("stepped_by", "")) in ["player", "enemy"],
-					"%s に stepped_by（player／enemy）がある" % where)
 			else:
 				assert_true(event.has("turn"), "%s に turn がある" % where)
 

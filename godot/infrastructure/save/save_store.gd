@@ -22,7 +22,9 @@ const DEFAULT_PATH := "user://save.json"
 ##    出撃＝控えを盤に出す操作と語を分けた）。中身は同じ＝変換は改名だけ。
 ## 8: 拠点の生産（doc/gdd/map.md 生産）の進み具合を拠点ごとに持つようにした（production_charge /
 ##    production_next）。旧セーブの拠点は生産を持たない版のもの＝変換で 0 を入れる。
-const VERSION := 8
+## 9: 仕掛け（doc/gdd/gimmicks.md）の今の状態を id ごとに持つようにした（state.gimmicks）。
+##    旧セーブは仕掛けを持たない版のもの＝変換で空の表を入れる。
+const VERSION := 9
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

@@ -182,6 +182,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_unloaded.connect(_on_unit_unloaded)
 	controller.unit_entered_base.connect(_on_unit_entered_base)
 	controller.base_captured.connect(_on_base_captured)
+	controller.gimmick_changed.connect(_on_gimmick_changed)
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.passives_fired.connect(_on_passives_fired)
@@ -575,8 +576,11 @@ func _open_command_menu(dest: Vector2i, preview := true) -> void:
 	var sel := state.unit_any(_selected_id)
 	var base := state.base_at(dest)
 	var will_capture := sel != null and sel.can_capture and base != null and base.team != sel.team
-	# スイッチ＝止まると拠点が止まるマス。動かずに待機したときは踏まない（移動したときだけ引き金になる）。
-	var will_switch := sel != null and dest != sel.pos and state.step_neutralizes_at(dest, sel.team)
+	# 生産装置のスイッチ＝踏むと状態が変わるマス。動かずに待機したときは踏まない（移動したときだけ）。
+	# 言い換えるのはスイッチだけ＝罠など隠れている仕掛けをメニューで明かさない（doc/gdd/gimmicks.md）。
+	var gim := state.gimmick_at(dest)
+	var will_switch := sel != null and dest != sel.pos and gim != null and gim.kind == "production_switch" \
+		and not GimmickKinds.state_after_step(gim, sel.team).is_empty()
 	var can_enter := state.can_enter_base_at(_selected_id, dest)
 	_menu.clear()
 	_menu.add_item(tr("ui.board.attack"), MENU_ATTACK)
@@ -1563,6 +1567,11 @@ func _on_base_captured(_base_hex: Vector2i, _team: int) -> void:
 	await await_move_animation()
 	SfxPlayer.play_event("map_capture")
 
+## 仕掛けの状態が変わった（踏んだ）。歩き切ってから絵を貼り替える＝駒が着く前にレバーが倒れない。
+func _on_gimmick_changed(_id: String) -> void:
+	await await_move_animation()
+	_terrain_renderer.refresh_gimmicks()
+
 ## 「入る」＝駒は拠点の中へ消える。待つ理由は待機と同じ（歩いてから入る）。
 func _on_unit_entered_base(_unit_id: int, _base_hex: Vector2i) -> void:
 	await await_move_animation()
@@ -1663,6 +1672,7 @@ func _sync_bases() -> void:
 	if state == null:
 		return
 	_terrain_renderer.refresh_base_tiles()
+	_terrain_renderer.refresh_gimmicks()  # 仕掛けの絵も今の状態に（中断からの再開など、盤ごと合わせるとき）
 	for b in state.bases():
 		var col := COLOR_BASE_NEUTRAL
 		if b.team >= 0:

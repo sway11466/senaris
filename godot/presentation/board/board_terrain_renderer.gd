@@ -47,6 +47,12 @@ var _side_tex := {}        # skin_id -> Texture2D|null（側面画像。置い�
 var _fence_tex := {}       # res://パス -> Texture2D|null（柵の面に貼る帯）
 var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
+var _gimmick_nodes := {}   # 仕掛けの id -> Sprite3D（状態が変わると絵を貼り替えるため）
+
+## 仕掛けの絵の置き場と、手前寄せ（object_foot_z と同じ意味）。絵は種類ごとに状態ごとの1枚
+## ＝{kind}_{state}.png。無ければ描かない（隠れている罠は床だけが見える）。詳細 → doc/gdd/gimmicks.md 絵
+const GIMMICK_DIR := "res://assets/gimmicks/"
+const GIMMICK_FOOT_Z := 0.15
 var _elev_cache := {}      # Vector2i -> float（スキン解決の結果。build_tiles で捨てる）
 var _elev_levels_cache: Array = []  # 盤に実在する標高レベル（高い順）
 var _art_height := {}      # Texture2D -> float（立ち絵の絵の実体の高さ。キャンバスの余白を除く）
@@ -74,6 +80,7 @@ func build_tiles() -> void:
 	_clear_children()
 	_tile_nodes.clear()
 	_standee_nodes.clear()
+	_gimmick_nodes.clear()
 	_elev_cache.clear()
 	_elev_levels_cache.clear()
 	if _state == null:
@@ -83,6 +90,7 @@ func build_tiles() -> void:
 			var hex := Hex.offset_to_axial(col, row)
 			_add_tile(hex)
 	_add_objects()
+	_add_gimmicks()
 	_add_grid()
 	_add_skirt()
 
@@ -521,6 +529,42 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.offset.y -= skin.object_foot_z * sin(deg_to_rad(BoardCamera.PITCH_DEG)) / spr.pixel_size
 	spr.flip_h = skin.flips_horizontally() and TerrainTiles.flips_h_at(hex)
 	return true
+
+## 仕掛けを置く。地形のオブジェクトと同じく、カメラに正対する立ち絵をマスに立てる。
+func _add_gimmicks() -> void:
+	var up := BoardCamera.view_up()
+	for g in _state.gimmicks():
+		var spr := Sprite3D.new()
+		var p := Hex.to_pixel(g.hex, TILE)
+		spr.position = Vector3(p.x, elev(g.hex) + 0.02, p.y) + up * (_lift(g.hex) * up.y)
+		_gimmick_nodes[g.id] = spr
+		add_child(spr)
+		_apply_gimmick_texture(spr, g)
+
+## 仕掛けを今の状態の絵に貼り替える。状態が変わったとき（踏んだ・再開の復元）に呼ぶ。
+func refresh_gimmicks() -> void:
+	if _state == null:
+		return
+	for g in _state.gimmicks():
+		var spr: Sprite3D = _gimmick_nodes.get(g.id)
+		if spr != null:
+			_apply_gimmick_texture(spr, g)
+
+## 仕掛けの絵を貼る。状態の絵が無ければ隠す＝何も描かない。倍率と原点はオブジェクトの立ち絵と同じ。
+func _apply_gimmick_texture(spr: Sprite3D, g: Gimmick) -> void:
+	var path := GIMMICK_DIR + "%s_%s.png" % [g.kind, g.state]
+	if not ResourceLoader.exists(path):
+		spr.visible = false
+		return
+	var tex := load(path) as Texture2D
+	spr.visible = tex != null
+	if tex == null:
+		return
+	spr.texture = tex
+	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, GIMMICK_FOOT_Z, _lift(g.hex))
+	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())
+	spr.offset = Vector2(0, tex.get_height() * 0.5)  # 原点＝足元
+	spr.offset.y -= GIMMICK_FOOT_Z * sin(deg_to_rad(BoardCamera.PITCH_DEG)) / spr.pixel_size
 
 ## 立ち絵を floor へずらす量（世界の高さ）。沈むなら負。
 func _lift(hex: Vector2i) -> float:

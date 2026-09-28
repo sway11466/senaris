@@ -26,7 +26,7 @@ static func build(state: BattleState, skins: Dictionary) -> Dictionary:
 static func _victory_lines(state: BattleState, skins: Dictionary) -> PackedStringArray:
 	var out := PackedStringArray()
 	for c in state.victory_conditions:
-		var line := _victory_line(state, skins, c)
+		var line := _labeled(c, _victory_line(state, skins, c))
 		if not line.is_empty():
 			out.append(line)
 	out.append(_t("ui.objective.win.wipe"))
@@ -38,8 +38,6 @@ static func _victory_line(state: BattleState, skins: Dictionary, c: Dictionary) 
 			return _t("ui.objective.win.capture_hq")
 		"capture_base":
 			return _t("ui.objective.win.bases" if _many_bases(c) else "ui.objective.win.base")
-		"deny_bases":
-			return _t("ui.objective.win.deny_bases" if _many_bases(c) else "ui.objective.win.deny_base")
 		"defeat_unit":
 			var names := _unit_names(state, skins, c.get("unit_ids"))
 			if names.is_empty():
@@ -53,7 +51,7 @@ static func _victory_line(state: BattleState, skins: Dictionary, c: Dictionary) 
 static func _defeat_lines(state: BattleState, skins: Dictionary) -> PackedStringArray:
 	var out := PackedStringArray()
 	for c in state.defeat_conditions:
-		var line := _defeat_line(state, skins, c)
+		var line := _labeled(c, _defeat_line(state, skins, c))
 		if not line.is_empty():
 			out.append(line)
 	if _has_own_hq(state):
@@ -75,7 +73,7 @@ static func _defeat_line(state: BattleState, skins: Dictionary, c: Dictionary) -
 			return _t(key) % _join(names)
 	return ""  # 未知のタイプ＝出さない（Victory も不成立として扱う）
 
-## 拠点を名指す条件（勝利=capture_base・deny_bases / 敗北=lose_base）の対象が2つ以上か（文の単複を選ぶ）。
+## 拠点を名指す条件（勝利=capture_base / 敗北=lose_base）の対象が2つ以上か（文の単複を選ぶ）。
 static func _many_bases(c: Dictionary) -> bool:
 	var bases: Variant = c.get("bases", [])
 	return typeof(bases) == TYPE_ARRAY and (bases as Array).size() > 1
@@ -126,6 +124,13 @@ static func _unit_name(skins: Dictionary, u: Unit) -> String:
 ## 1件の中の対象どうしをつなぐ（言語ごとに区切りが違う＝翻訳キーで持つ）。
 static func _join(names: PackedStringArray) -> String:
 	return String(_t("ui.objective.name_sep")).join(names)
+
+## ステージが条件に文言 label（翻訳キー）を書いていればそれを、無ければ種類ごとに組み立てた文を出す。
+## gimmick_state は組み立てる文を持たない＝label 必須（StageLoader が書き忘れを警告する）。
+## 詳細 → doc/gdd/map.md 勝敗条件
+static func _labeled(c: Dictionary, built: String) -> String:
+	var key := String(c.get("label", ""))
+	return _t(key) if not key.is_empty() else built
 
 static func _t(key: String) -> String:
 	return String(TranslationServer.translate(key))

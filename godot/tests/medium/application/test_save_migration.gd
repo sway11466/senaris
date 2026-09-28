@@ -264,3 +264,9 @@ func test_v7_to_v8_starts_production_from_zero() -> void:
 func test_v6_without_fielded_record_stays_absent() -> void:
 	var state: Dictionary = SaveMigration.migrate({ "version": 6, "state": { "turn_number": 1 } })["state"]
 	assert_false(state.has("fielded_actors"), "無かった項目は作らない（読む側が空として扱う）")
+
+## v9: 仕掛けの状態を id ごとに持つようにした版（doc/gdd/gimmicks.md セーブ）。
+func test_v8_to_v9_adds_an_empty_gimmick_table() -> void:
+	var got := SaveMigration.migrate({ "version": 8, "meta": {}, "state": { "turn_number": 2 } })
+	assert_eq(got["state"]["gimmicks"], {}, "旧版には仕掛けが無かった＝空の表")
+	assert_eq(int(got["state"]["turn_number"]), 2, "他の項目は触らない")

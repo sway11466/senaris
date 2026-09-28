@@ -43,8 +43,8 @@ static func condition_met(state: BattleState, c: Dictionary) -> bool:
 			return _enemy_hq_all_captured(state)
 		"capture_base":  # 拠点の占領＝名指しした拠点をすべて自軍が保持（敗北側の lose_base と対）
 			return _all_bases_held(state, c.get("bases"))
-		"deny_bases":  # 拠点を止める＝名指しした拠点がすべて敵の持ち物でない（中立か自軍）
-			return _all_bases_denied(state, c.get("bases"))
+		"gimmick_state":  # 仕掛けの状態＝名指しした仕掛けがすべて state（doc/gdd/gimmicks.md）
+			return _all_gimmicks_in_state(state, c.get("gimmicks"), String(c.get("state", "")))
 	return false
 
 ## 敗北条件1件の判定。未知の type は満たさない扱い（前方互換）。
@@ -84,20 +84,14 @@ static func _all_bases_held(state: BattleState, targets: Variant) -> bool:
 			return false
 	return true
 
-## 指定した拠点がすべて敵の持ち物でない（中立か自軍）か。対象が空なら false（空指定で即勝利にしない）。
-## 盤に無い座標は不成立（capture_base と同じ安全側＝作者の指定ミスで勝手に勝たない）。
-static func _all_bases_denied(state: BattleState, targets: Variant) -> bool:
-	if typeof(targets) != TYPE_ARRAY or (targets as Array).is_empty():
+## 名指しした仕掛けがすべて state の状態か。対象が空なら false（空指定で即勝利にしない）。
+## 盤に無い id は不成立（書き間違いで勝手に決着しない）。
+static func _all_gimmicks_in_state(state: BattleState, ids: Variant, want: String) -> bool:
+	if typeof(ids) != TYPE_ARRAY or (ids as Array).is_empty() or want.is_empty():
 		return false
-	for t in targets:
-		if typeof(t) != TYPE_DICTIONARY:
-			return false
-		var col := int(t.get("col", -1))
-		var row := int(t.get("row", -1))
-		if col < 0 or row < 0:
-			return false
-		var b := state.base_at(Hex.offset_to_axial(col, row))
-		if b == null or b.team == 1:
+	for id in ids:
+		var g := state.gimmick_by_id(String(id))
+		if g == null or g.state != want:
 			return false
 	return true
 

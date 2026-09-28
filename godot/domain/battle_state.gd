@@ -25,7 +25,6 @@ var _bases: Array[Base] = []  # 拠点（占領・出撃・回復）。詳細 �
 ## 要素は dict。現在対応: { "type": "defeat_unit", "unit_ids": [<String>, …] } ＝ ボス撃破（名指した駒をすべて撃破。駒に unit_id を書いて名指す）
 ##                       { "type": "capture_hq" } ＝ 敵の本拠地をすべて占領
 ##                       { "type": "capture_base", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点を全て自軍が保持（敗北側の lose_base と対）
-##                       { "type": "deny_bases", "bases": [{ "col": <int>, "row": <int> }, …] } ＝ 指定拠点が全て敵の持ち物でない（中立か自軍）
 var victory_conditions: Array = []
 
 ## 敗北条件リスト（OR＝どれか1つ満たせば敗北）。空＝自軍消滅・本拠地喪失・時間切れの常時ルールのみ。
@@ -384,7 +383,7 @@ func fire_due_events() -> Array[StageEvent]:
 			continue  # 同じ once の兄弟が先に起きて捨てられた
 		if e.trigger != StageEvent.Trigger.TURN:
 			continue
-		if e.turn <= turn_number and e.team == current_team and _conditions_hold(e):
+		if e.turn <= turn_number and e.team == current_team:
 			_run_event(e)
 			fired.append(e)
 	last_fired_events = fired
@@ -400,51 +399,15 @@ func fire_capture_events(hex: Vector2i, team: int) -> Array[StageEvent]:
 			continue  # 同じ once の兄弟が先に起きて捨てられた
 		if not e.is_capture():
 			continue
-		if e.hex != hex or e.team != team or not _conditions_hold(e):
+		if e.hex != hex or e.team != team:
 			continue
 		_run_event(e)
 		fired.append(e)
 	return fired
-
-## hex のマスに team の駒が止まったときに起こすイベント（引き金＝踏む）。起きたものを返す。
-## 止まるのは移動・降車・出撃のどれでもよい（呼び出し側＝MatchController が操作の後に呼ぶ）。
-## 詳細 → doc/gdd/map.md イベント
-func fire_step_events(hex: Vector2i, team: int) -> Array[StageEvent]:
-	var fired: Array[StageEvent] = []
-	for e in _events.duplicate():
-		if not _is_pending(e):
-			continue  # 同じ once の組が先に起きて捨てられた
-		if not e.is_step():
-			continue
-		if e.hex != hex or e.team != team or not _conditions_hold(e):
-			continue
-		_run_event(e)
-		fired.append(e)
-	return fired
-
-## team の駒が hex に止まったら、拠点を中立に戻すイベント（スイッチ）が起きるか。状態は変えない。
-## コマンドメニューが「待機」を「スイッチ停止」に言い換えるのに使う（doc/gdd/uiux.md コマンドメニュー）。
-func step_neutralizes_at(hex: Vector2i, team: int) -> bool:
-	for e in _events:
-		if e.is_step() and e.hex == hex and e.team == team and not e.neutralize.is_empty() and _conditions_hold(e):
-			return true
-	return false
-
-## イベントの条件（AND）をすべて満たすか。条件なしは真。未知の type は満たさない（StageLoader が弾く）。
-func _conditions_hold(e: StageEvent) -> bool:
-	for c in e.conditions:
-		match String(c.get("type", "")):
-			"base_owner":  # その拠点の今の持ち主が team（盤に拠点が無ければ満たさない）
-				var b := base_at(c["hex"])
-				if b == null or b.team != int(c["team"]):
-					return false
-			_:
-				return false
-	return true
 
 ## デバッグ: 未発生イベント e を引き金を問わず起こす（起こせたら true）。引き金の成否を見ないので
 ## 引き金の種類が増えてもここは変わらない。引き金は成立させない＝占領起点でも拠点の所属はそのまま
-## （中身＝会話・増援・中立化だけが起きる）。1回だけかどうかは通常の発火と同じ。last_fired_events は触らない＝そちらは end_turn 用。
+## （中身＝会話・増援だけが起きる）。1回だけかどうかは通常の発火と同じ。last_fired_events は触らない＝そちらは end_turn 用。
 ## 呼ぶのはデバッグメニューだけ。詳細 → doc/gdd/uiux.md デバッグメニュー
 func fire_event(e: StageEvent) -> bool:
 	if not _is_pending(e):
@@ -456,13 +419,12 @@ func fire_event(e: StageEvent) -> bool:
 func _is_pending(e: StageEvent) -> bool:
 	return e in _events
 
-## イベントを1件起こす＝駒を盤へ出し、拠点を中立に戻す。1回だけのイベント（once の組・turn）は
+## イベントを1件起こす＝駒を盤へ出す。1回だけのイベント（once の組・turn）は
 ## 未発生の控えから取り除く。once に名前があれば、同じ名前の未発生イベントもまとめて捨てる＝組で
 ## 1回だけ起きる（中立拠点を味方が解放したときと敵に取られたときで、先に起きたほうだけを流す）。
 ## 何度でも起きるイベントは控えに残す＝次に引き金を満たしたらまた起きる。
 func _run_event(e: StageEvent) -> void:
 	_place_event_units(e, not e.is_one_shot())
-	_neutralize_bases(e)
 	if not e.is_one_shot():
 		return
 	var kept: Array[StageEvent] = []
@@ -475,16 +437,6 @@ func _run_event(e: StageEvent) -> void:
 			continue
 		kept.append(other)
 	_events = kept
-
-## イベントの拠点を中立に戻す（中身 neutralize）。控えは中に残る。盤に拠点が無い座標は警告1行で飛ばす。
-## 詳細 → doc/gdd/map.md 拠点を中立に戻す
-func _neutralize_bases(e: StageEvent) -> void:
-	for hex in e.neutralize:
-		var b := base_at(hex)
-		if b == null:
-			push_warning("BattleState: イベント '%s' の neutralize に拠点が無い: %s" % [e.id, str(Hex.axial_to_offset(hex))])
-			continue
-		b.team = Base.NEUTRAL
 
 ## イベントの駒を盤へ出す。置けなかった駒は出さずに警告1行＝イベント全体は止めない。
 ## 実際に出た hex は placed に控える＝ずれて出ても、上（カメラ・演出）が本当の場所を見られる。
@@ -619,6 +571,49 @@ func base_at(hex: Vector2i) -> Base:
 		if b.hex == hex:
 			return b
 	return null
+
+# --- 仕掛け（スイッチ・罠）。地形とは別の層に置く。詳細 → doc/gdd/gimmicks.md ---
+
+var _gimmicks: Array[Gimmick] = []
+
+func add_gimmick(g: Gimmick) -> void:
+	_gimmicks.append(g)
+
+func gimmicks() -> Array[Gimmick]:
+	return _gimmicks
+
+## hex にある仕掛け（無ければ null）。1マスに仕掛けは1つ。
+func gimmick_at(hex: Vector2i) -> Gimmick:
+	for g in _gimmicks:
+		if g.hex == hex:
+			return g
+	return null
+
+## id の仕掛け（無ければ null）。
+func gimmick_by_id(id: String) -> Gimmick:
+	for g in _gimmicks:
+		if g.id == id:
+			return g
+	return null
+
+## team の駒が hex に止まった（移動・降車・出撃）ときの仕掛けの振る舞い。状態が変わった仕掛けを返す
+## （変わらなければ null）。呼ぶのは MatchController＝操作の後。詳細 → doc/gdd/gimmicks.md 踏む
+func step_gimmick(hex: Vector2i, team: int) -> Gimmick:
+	var g := gimmick_at(hex)
+	if g == null:
+		return null
+	var next := GimmickKinds.state_after_step(g, team)
+	if next.is_empty():
+		return null
+	g.state = next
+	return g
+
+## 拠点 b の生産が仕掛け（生産装置のスイッチ）で止められているか。
+func _production_blocked(b: Base) -> bool:
+	for g in _gimmicks:
+		if GimmickKinds.blocks_production(g, b.hex):
+			return true
+	return false
 
 ## hex の地形id（未設定は既定地形 "plain"）。
 func terrain_at(hex: Vector2i) -> String:
@@ -1500,8 +1495,8 @@ func _heal_garrisons() -> void:
 ## 生まれた駒は満員・Lv1。team は出撃時に決まる（控えと同じ）。詳細 → doc/gdd/map.md（生産）
 func _produce_at_bases() -> void:
 	for b in _bases:
-		if b.team != current_team or not b.can_produce_next():
-			continue
+		if b.team != current_team or not b.can_produce_next() or _production_blocked(b):
+			continue  # 生めない間（スイッチで止められている間を含む）はチャージも止まる
 		b.production_charge += 1
 		if b.production_charge < b.production_charge_turns:
 			continue
@@ -1550,7 +1545,15 @@ func to_save_diff() -> Dictionary:
 		"fielded_actors": _fielded_actors.keys(),
 		"spent": _int_keyed_to_str(_spent), "squad_of": _int_keyed_to_str(_squad_of),
 		"charges": _charges_to_dict(),
+		"gimmicks": _gimmick_states(),
 	}
+
+## 仕掛けの今の状態（id → 状態）。座標は持たない＝マップを直して動かしても id で追える。
+func _gimmick_states() -> Dictionary:
+	var out := {}
+	for g in _gimmicks:
+		out[g.id] = g.state
+	return out
 
 ## ステージJSONで組み立てた盤に、中断セーブの動的差分を被せる。ユニットの性能は catalog
 ## （{id: UnitType}）から再構築する。呼び出し順は StageLoader.build → set_movement/set_sight_cost
@@ -1581,6 +1584,7 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	_spent = _str_keyed_to_int(diff.get("spent", {}))
 	_squad_of = _str_keyed_to_int(diff.get("squad_of", {}))
 	_charges = _charges_from_dict(diff.get("charges", {}))
+	_apply_diff_gimmicks(diff)
 	_renumber_stage_units(fresh_bases)
 
 ## 増援・会話イベントはステージ定義を正本に、セーブの「発火済み（once で捨てた兄弟を含む）の id」
@@ -1615,6 +1619,20 @@ func _apply_diff_units(diff: Dictionary, catalog: Dictionary) -> void:
 			if typeof(pd) == TYPE_DICTIONARY:
 				arr.append(Unit.from_full_dict(pd, catalog.get(String(pd.get("type", "")))))
 		_passengers[int(tid)] = arr
+
+## 仕掛けは種類・位置をステージ定義から、今の状態をセーブから（id で突き合わせ）。セーブにあって
+## ステージから消えた仕掛けは捨て、ステージに足された仕掛けはステージの状態のまま。
+## その種類に無い状態（ステージ更新で状態の一覧が変わった）は被せない。
+func _apply_diff_gimmicks(diff: Dictionary) -> void:
+	var saved: Variant = diff.get("gimmicks", {})
+	if typeof(saved) != TYPE_DICTIONARY:
+		return
+	for g in _gimmicks:
+		if not (saved as Dictionary).has(g.id):
+			continue
+		var st := String(saved[g.id])
+		if GimmickKinds.states(g.kind).has(st):
+			g.state = st
 
 ## 拠点は位置・種別・本来の帰属をステージ定義から、現在の帰属と駐留兵をセーブから（位置で突き合わせ）。
 ## セーブ側にあってステージから消えた拠点は駐留兵ごと出さない。ステージ更新で足された拠点は

@@ -834,12 +834,7 @@ func _debug_event_labels() -> PackedStringArray:
 		if e.is_capture():
 			var off := Hex.axial_to_offset(e.hex)
 			trigger = "占領(%d,%d)" % [off.x, off.y]
-		elif e.is_step():
-			var off := Hex.axial_to_offset(e.hex)
-			trigger = "踏む(%d,%d)" % [off.x, off.y]
 		var body := "会話" if e.units.is_empty() else "増援%d" % e.units.size()
-		if not e.neutralize.is_empty():
-			body += " 中立化%d" % e.neutralize.size()
 		var key := e.dialogue
 		if key.is_empty():
 			key = e.label

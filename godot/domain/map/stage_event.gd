@@ -4,12 +4,11 @@ class_name StageEvent
 ## StageLoader がステージJSONから組み、BattleState が未発生の控えとして持ち、引き金が成立したら
 ## 駒を盤に出して控えから外す。詳細 → doc/gdd/map.md イベント
 
-## 引き金。TURN＝発生ターンが来た（自分の陣営の手番の頭）／CAPTURE＝拠点の所属が変わった／
-## STEP＝駒がマスに止まった（移動・降車・出撃）。
-enum Trigger { TURN, CAPTURE, STEP }
+## 引き金。TURN＝発生ターンが来た（自分の陣営の手番の頭）／CAPTURE＝拠点の所属が変わった。
+enum Trigger { TURN, CAPTURE }
 
 ## ステージJSONの "type" と1対1。省略は無い＝必ず書く（StageLoader が検査）。
-const TRIGGER_IDS := { "turn": Trigger.TURN, "capture": Trigger.CAPTURE, "step": Trigger.STEP }
+const TRIGGER_IDS := { "turn": Trigger.TURN, "capture": Trigger.CAPTURE }
 
 ## 登場の仕方。MARCH＝入口から1体ずつ順に出て所定位置まで歩く／SCATTER＝入口から全員が続けて
 ## 出て同時に散る／FADE＝所定位置にその場で浮かび上がる（入口を持たない）。
@@ -20,12 +19,10 @@ const ENTRY_IDS := { "march": Entry.MARCH, "scatter": Entry.SCATTER, "fade": Ent
 
 var id: String                     ## ステージ内で一意（発火済みの記録＝中断セーブが持つ）
 var turn: int = 1                  ## 発生ターン（TURN のとき。過ぎていても取りこぼさない）
-var team: int                      ## 引き金の陣営（TURN＝その陣営の手番の頭で起きる／CAPTURE＝その陣営が取ったとき／STEP＝その陣営が踏んだとき）。出す駒の陣営は駒が持つ
+var team: int                      ## 引き金の陣営（TURN＝その陣営の手番の頭で起きる／CAPTURE＝その陣営が取ったとき）。出す駒の陣営は駒が持つ
 var trigger: Trigger = Trigger.TURN
-var hex := Vector2i.MAX            ## CAPTURE のとき対象の拠点・STEP のとき踏むマス
+var hex := Vector2i.MAX            ## CAPTURE のとき対象の拠点
 var once: String = ""              ## 1回だけの組の名前。組のどれかが起きたら組の全員を捨てる。空＝引き金を満たすたびに起きる
-var conditions: Array[Dictionary] = []  ## 条件（AND）。1件＝{ type: "base_owner", hex: Vector2i, team: int }。空＝条件なし
-var neutralize: Array[Vector2i] = []    ## 中立に戻す拠点の hex
 var label: String = ""             ## 残りターン板の予告（翻訳キー）。空＝予告しない
 var dialogue: String = ""          ## 台本キー。空＝会話なし
 var focus := false                 ## 起きたときカメラを寄せるか
@@ -39,12 +36,8 @@ var from := Vector2i.MAX           ## 入口＝駒が盤に入ってくる hex�
 func is_capture() -> bool:
 	return trigger == Trigger.CAPTURE
 
-## 引き金がマスを踏むことか。
-func is_step() -> bool:
-	return trigger == Trigger.STEP
-
 ## 起きたら控えから外すか＝1回だけのイベントか。once の組に入っているもの、と TURN（そのターンは
-## 一度しか来ない）。それ以外（占領・踏む）は引き金を満たすたびに起きる。詳細 → doc/gdd/map.md イベント
+## 一度しか来ない）。それ以外（占領）は引き金を満たすたびに起きる。詳細 → doc/gdd/map.md イベント
 func is_one_shot() -> bool:
 	return trigger == Trigger.TURN or not once.is_empty()
 

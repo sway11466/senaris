@@ -103,17 +103,3 @@ func test_capture_base_is_listed_and_counts_its_targets() -> void:
 			"bases": [ { "col": 4, "row": 4 }, { "col": 6, "row": 2 } ] } ],
 	})
 	assert_ne(_lines(many, "victory")[0], lines[0], "対象が複数なら文が変わる")
-
-func test_deny_bases_is_listed_and_counts_its_targets() -> void:
-	# 拠点を止める（doc/gdd/map.md 勝敗条件）も対象の数で文を変える。capture_base とは別の文。
-	var data := {
-		"player": [ { "units": [{ "col": 1, "row": 1 }] } ],
-		"bases": [ { "col": 4, "row": 4, "team": "enemy" }, { "col": 6, "row": 2, "team": "enemy" } ],
-	}
-	data["victory"] = [ { "type": "deny_bases", "bases": [ { "col": 4, "row": 4 } ] } ]
-	var one := _lines(_state(data), "victory")
-	assert_eq(one.size(), 2, "拠点を止める＋殲滅")
-	data["victory"] = [ { "type": "deny_bases", "bases": [ { "col": 4, "row": 4 }, { "col": 6, "row": 2 } ] } ]
-	assert_ne(_lines(_state(data), "victory")[0], one[0], "対象が複数なら文が変わる")
-	data["victory"] = [ { "type": "capture_base", "bases": [ { "col": 4, "row": 4 } ] } ]
-	assert_ne(_lines(_state(data), "victory")[0], one[0], "占領とは別の文")

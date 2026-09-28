@@ -66,14 +66,17 @@ static func build(data: Dictionary, catalog: Dictionary = {}, skin_catalog: Dict
 	next_id = _apply_squads(state, data.get("enemy", []), catalog, 1, next_id, skin_catalog)
 	next_id = _apply_bases(state, data.get("bases", []), catalog, next_id, skin_catalog)
 	next_id = _apply_events(state, data.get("events", []), catalog, next_id, skin_catalog)
+	_apply_gimmicks(state, data.get("gimmicks", []))
 	# 勝利条件リスト（OR）。例: "victory": [{ "type": "defeat_unit", "unit_ids": ["necromancer"] }]（ボスの駒に unit_id）
 	var victory: Variant = data.get("victory", [])
 	if typeof(victory) == TYPE_ARRAY:
 		state.victory_conditions = victory
+		_check_condition_labels(victory)
 	# 敗北条件リスト（OR）。例: "defeat": [{ "type": "lose_base", "col": 10, "row": 4 }]
 	var defeat: Variant = data.get("defeat", [])
 	if typeof(defeat) == TYPE_ARRAY:
 		state.defeat_conditions = defeat
+		_check_condition_labels(defeat)
 	state.turn_limit = int(data.get("turn_limit", 0))  # 0＝無制限。実ステージでの必須チェックは load_file 側
 	# 1ターン目の増援はここでは出さない。置き場所の判定に移動コスト表が要るので、
 	# set_movement のあと（load_file）で fire_due_events() を呼ぶ。以降のターンは end_turn が拾う。
@@ -888,9 +891,8 @@ static func _apply_squads(state: BattleState, squads: Variant, catalog: Dictiona
 	return auto_id
 
 ## events（途中で起きること）を読む。詳細 → doc/gdd/map.md イベント
-## type が引き金＝"turn"（Nターン目）か "capture"（拠点の占領。col/row で拠点を指し、captured_by が取った側）か
-## "step"（マスを踏む。col/row でマスを指し、stepped_by が踏んだ側）。if は条件（AND）。
-## 起きることは中身で決まる＝部隊があれば駒が出て、dialogue があれば会話が流れ、neutralize があれば拠点が中立に戻る。
+## type が引き金＝"turn"（Nターン目）か "capture"（拠点の占領。col/row で拠点を指し、captured_by が取った側）。
+## 起きることは中身で決まる＝部隊があれば駒が出て、dialogue があれば会話が流れる（両方なら両方）。
 ## 駒はここで組んで（catalog 解決込み）BattleState へ預け、発生時に盤へ出す＝domain は JSON を知らない。
 ## 駒は盤と同じ陣営セクション（player / enemy）に部隊として書く＝どちらに書いたかで駒の陣営が決まる。
 ## 部隊はここで登録し、その index を駒ごとに持たせる（発生時に assign_squad）。
@@ -921,7 +923,7 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	_reject_legacy_event_keys(e)
 	var type_id := String(e.get("type", ""))
 	if not StageEvent.TRIGGER_IDS.has(type_id):
-		push_warning("StageLoader: イベント '%s' の type（引き金＝turn／capture／step）が無い／読めない: '%s'（無視）"
+		push_warning("StageLoader: イベント '%s' の type（引き金＝turn／capture）が無い／読めない: '%s'（無視）"
 			% [ev.id, type_id])
 		return null
 	ev.trigger = StageEvent.TRIGGER_IDS[type_id]
@@ -936,17 +938,6 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 				% [ev.id, by])
 			return null
 		ev.team = EVENT_SECTIONS[by]
-	elif ev.is_step():
-		if not (e.has("col") and e.has("row")):
-			push_warning("StageLoader: type:\"step\" のイベント '%s' に踏むマスの col/row が無い（無視）" % ev.id)
-			return null
-		ev.hex = Hex.offset_to_axial(int(e["col"]), int(e["row"]))
-		var by := String(e.get("stepped_by", ""))
-		if not EVENT_SECTIONS.has(by):
-			push_warning("StageLoader: type:\"step\" のイベント '%s' の stepped_by（player／enemy）が無い／読めない: '%s'（無視）"
-				% [ev.id, by])
-			return null
-		ev.team = EVENT_SECTIONS[by]
 	else:
 		ev.team = _turn_event_team(e)
 	ev.turn = int(e.get("turn", 1))
@@ -954,53 +945,9 @@ static func _parse_event(e: Dictionary, seen_ids: Dictionary) -> StageEvent:
 	ev.label = String(e.get("label", ""))
 	ev.dialogue = String(e.get("dialogue", ""))
 	ev.focus = bool(e.get("focus", false))
-	if not _parse_event_conditions(e, ev):
-		return null
-	ev.neutralize = _parse_event_neutralize(e, ev)
 	_check_event_dialogue(e, ev)
 	_parse_entry(e, ev)
 	return ev
-
-## 条件 if（配列・AND）。1件は type で種類を書く（勝敗条件と同じ）。読めない条件は警告してイベントごと
-## 捨てる＝条件を落として無条件で起きるほうへ倒さない。詳細 → doc/gdd/map.md 条件
-static func _parse_event_conditions(e: Dictionary, ev: StageEvent) -> bool:
-	if not e.has("if"):
-		return true
-	if typeof(e["if"]) != TYPE_ARRAY:
-		push_warning("StageLoader: イベント '%s' の if が配列でない（イベントを無視）" % ev.id)
-		return false
-	for c in e["if"]:
-		if typeof(c) != TYPE_DICTIONARY:
-			push_warning("StageLoader: イベント '%s' の if に辞書でない要素（イベントを無視）" % ev.id)
-			return false
-		match String(c.get("type", "")):
-			"base_owner":
-				var team := String(c.get("team", ""))
-				if not (c.has("col") and c.has("row")) or not ["player", "enemy", "neutral"].has(team):
-					push_warning("StageLoader: イベント '%s' の base_owner に col/row／team（player／enemy／neutral）が無い（イベントを無視）" % ev.id)
-					return false
-				ev.conditions.append({ "type": "base_owner",
-					"hex": Hex.offset_to_axial(int(c["col"]), int(c["row"])),
-					"team": _parse_team(team, Base.NEUTRAL) })
-			_:
-				push_warning("StageLoader: イベント '%s' の if に未知の条件: '%s'（イベントを無視）" % [ev.id, String(c.get("type", ""))])
-				return false
-	return true
-
-## 中身 neutralize（中立に戻す拠点の配列）。座標の無い要素は警告して飛ばす。
-static func _parse_event_neutralize(e: Dictionary, ev: StageEvent) -> Array[Vector2i]:
-	var out: Array[Vector2i] = []
-	if not e.has("neutralize"):
-		return out
-	if typeof(e["neutralize"]) != TYPE_ARRAY:
-		push_warning("StageLoader: イベント '%s' の neutralize が配列でない（無視）" % ev.id)
-		return out
-	for b in e["neutralize"]:
-		if typeof(b) != TYPE_DICTIONARY or not (b.has("col") and b.has("row")):
-			push_warning("StageLoader: イベント '%s' の neutralize に col/row の無い要素（飛ばす）" % ev.id)
-			continue
-		out.append(Hex.offset_to_axial(int(b["col"]), int(b["row"])))
-	return out
 
 ## イベントの id（文字列）は必須でステージ内で一意。書き忘れ・重複はデータのバグ＝止める。
 static func _event_id(e: Dictionary, seen_ids: Dictionary) -> String:
@@ -1202,6 +1149,55 @@ static func _apply_production(base: Base, prod: Variant, catalog: Dictionary, sk
 		push_warning("%s の units が空（生産しない）" % at)
 		return
 	base.production_charge_turns = turns
+
+## 仕掛け（gimmicks）を盤に置く。1件＝{ id, kind, col, row, state }＋種類ごとの固有の要素。
+## id の欠落・重複はデータのバグ＝止める（イベントの id と同じ扱い）。種類・状態・固有の要素の
+## 書き間違いと、1マスに2つ置いたものは警告してその1件を捨てる。詳細 → doc/gdd/gimmicks.md
+static func _apply_gimmicks(state: BattleState, list: Variant) -> void:
+	var seen := {}
+	for g in _as_dicts(list):
+		var id := String(g.get("id", ""))
+		if id.is_empty():
+			push_error("StageLoader: 仕掛けの id（文字列）は必須です（指定なし＝データのバグ）")
+			continue
+		if seen.has(id):
+			push_error("StageLoader: 仕掛けの id '%s' がステージ内で重複（＝データのバグ）" % id)
+			continue
+		seen[id] = true
+		var kind := String(g.get("kind", ""))
+		if not GimmickKinds.has_kind(kind):
+			push_warning("StageLoader: 仕掛け '%s' の kind が未知: '%s'（置かない）" % [id, kind])
+			continue
+		if not (g.has("col") and g.has("row")):
+			push_warning("StageLoader: 仕掛け '%s' に col/row が無い（置かない）" % id)
+			continue
+		var hex := Hex.offset_to_axial(int(g["col"]), int(g["row"]))
+		if state.gimmick_at(hex) != null:
+			push_warning("StageLoader: 仕掛け '%s' のマスには既に仕掛けがある（1マス1つ。置かない）" % id)
+			continue
+		var st := String(g.get("state", ""))
+		if not GimmickKinds.states(kind).has(st):
+			push_warning("StageLoader: 仕掛け '%s' の state が %s のどれでもない: '%s'（置かない）"
+				% [id, str(GimmickKinds.states(kind)), st])
+			continue
+		var params := {}
+		var ok := true
+		for key in GimmickKinds.params(kind):
+			var v: Variant = g.get(key)
+			if typeof(v) != TYPE_DICTIONARY or not ((v as Dictionary).has("col") and (v as Dictionary).has("row")):
+				push_warning("StageLoader: 仕掛け '%s' に %s（col/row）が無い（置かない）" % [id, key])
+				ok = false
+				break
+			params[key] = Hex.offset_to_axial(int(v["col"]), int(v["row"]))  # 固有の要素は今はどれもマスの指定
+		if ok:
+			state.add_gimmick(Gimmick.new(id, kind, hex, st, params))
+
+## 勝敗条件の文言 label の検査。gimmick_state は組み立てる文を持たないので label 必須
+## ＝書き忘れは紙に行が出ない。詳細 → doc/gdd/map.md 勝敗条件
+static func _check_condition_labels(conds: Array) -> void:
+	for c in _as_dicts(conds):
+		if String(c.get("type", "")) == "gimmick_state" and String(c.get("label", "")).is_empty():
+			push_warning("StageLoader: 勝敗条件 gimmick_state に label（翻訳キー）が無い（紙に行が出ない）")
 
 ## ユニット辞書 → Unit。team は陣営（呼び出し側がセクションで固定＝駒から "team" は読まない）。
 ## 性能（攻撃/防御/移動/射程…）は type が唯一の出どころ＝ステージ側から上書きできない。

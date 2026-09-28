@@ -39,6 +39,9 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version == 7:
 		record = _v7_to_v8(record)
 		version = 8
+	if version == 8:
+		record = _v8_to_v9(record)
+		version = 9
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -153,6 +156,13 @@ static func _v7_to_v8(record: Dictionary) -> Dictionary:
 	for b in _as_dicts(state.get("bases", [])):
 		b["production_charge"] = 0
 		b["production_next"] = 0
+	return { "meta": record.get("meta", {}), "state": state }
+
+## v8 → v9（仕掛けの状態を id ごとに持つようにした版 → doc/gdd/gimmicks.md セーブ）。旧版には仕掛けが
+## 無かった＝空の表を入れる（再開ではステージの最初の状態のまま出る）。
+static func _v8_to_v9(record: Dictionary) -> Dictionary:
+	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
+	state["gimmicks"] = {}
 	return { "meta": record.get("meta", {}), "state": state }
 
 ## v2（盤の丸ごと直列化）→ v3（動的差分）。盤サイズ・地形・勝敗条件・ターン上限・部隊定義は

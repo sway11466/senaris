@@ -698,9 +698,6 @@ func move_base_at(from_col: int, from_row: int, to_col: int, to_row: int) -> boo
 			if _is_target_at(t, from_col, from_row):
 				t["col"] = to_col
 				t["row"] = to_row
-	for e in event_list():  # スイッチが止める拠点も連れて動く
-		if is_switch(e) and switch_target(e) == Vector2i(from_col, from_row):
-			set_switch_target(e, to_col, to_row)
 	return true
 
 
@@ -755,7 +752,7 @@ func remove_base_at(col: int, row: int) -> bool:
 
 
 ## 指定マスを指す対象を取り除く（拠点の削除に追随）。対象が空になった条件ごと消す。
-## 勝利(capture_base・deny_bases)・敗北(lose_base)の両方を見る＝どちらも指す先が消えたまま残らない。
+## 勝利(capture_base)・敗北(lose_base)の両方を見る＝どちらも指す先が消えたまま残らない。
 func _drop_base_target(col: int, row: int) -> void:
 	_drop_base_target_from("victory", col, row)
 	_drop_base_target_from("defeat", col, row)
@@ -764,7 +761,7 @@ func _drop_base_target(col: int, row: int) -> void:
 func _drop_base_target_from(list_key: String, col: int, row: int) -> void:
 	var list := victory_list() if list_key == "victory" else defeat_list()
 	for i in range(list.size() - 1, -1, -1):
-		if not (is_lose_base(list[i]) or is_capture_base(list[i]) or is_deny_bases(list[i])):
+		if not is_lose_base(list[i]) and not is_capture_base(list[i]):
 			continue  # 拠点を名指さない条件（ボス撃破・本拠地占領）は触らない
 		var targets := base_targets(list[i])
 		for j in range(targets.size() - 1, -1, -1):
@@ -784,10 +781,6 @@ static func is_capture_base(c: Variant) -> bool:
 	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "capture_base"
 
 
-static func is_deny_bases(c: Variant) -> bool:
-	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "deny_bases"
-
-
 static func is_lose_unit(c: Variant) -> bool:
 	return typeof(c) == TYPE_DICTIONARY and String(c.get("type", "")) == "lose_unit"
 
@@ -805,10 +798,10 @@ static func condition_unit_ids(c: Variant) -> Array:
 	return a if typeof(a) == TYPE_ARRAY else []
 
 
-## 拠点を名指す条件（勝利=capture_base・deny_bases / 敗北=lose_base）が持つ対象の配列。
+## 拠点を名指す条件（勝利=capture_base / 敗北=lose_base）が持つ対象の配列。
 ## 実体を返す＝呼び出し側の追加・削除がそのまま効く。
 static func base_targets(c: Variant) -> Array:
-	if not is_lose_base(c) and not is_capture_base(c) and not is_deny_bases(c):
+	if not is_lose_base(c) and not is_capture_base(c):
 		return []
 	var b: Variant = c.get("bases", [])
 	return b if typeof(b) == TYPE_ARRAY else []
@@ -1058,15 +1051,7 @@ func add_victory_capture_base(col: int, row: int, group: bool = false) -> bool:
 	return _add_base_condition("victory", "capture_base", col, row, group)
 
 
-## 拠点(col,row)を「止める」対象にする＝すべて敵の持ち物でなくなれば勝利（doc/gdd/map.md 勝敗条件）。
-## group=true なら直近の deny_bases 条件に相乗り＝同じ条件内はAND。
-func add_victory_deny_bases(col: int, row: int, group: bool = false) -> bool:
-	if has_victory_deny_bases(col, row):
-		return true  # 既に指定済み
-	return _add_base_condition("victory", "deny_bases", col, row, group)
-
-
-## 拠点を名指す条件を1件足す（勝利=capture_base・deny_bases / 敗北=lose_base）。拠点の無いマスは受け付けない。
+## 拠点を名指す条件を1件足す（勝利=capture_base / 敗北=lose_base）。拠点の無いマスは受け付けない。
 func _add_base_condition(list_key: String, type_id: String, col: int, row: int, group: bool) -> bool:
 	if base_at(col, row).is_empty():
 		return false
@@ -1088,23 +1073,16 @@ func _add_base_condition(list_key: String, type_id: String, col: int, row: int, 
 
 ## そのマスが既にどこかの lose_base 条件の対象になっているか。
 func has_defeat_lose_base(col: int, row: int) -> bool:
-	return _has_base_target(defeat_list(), "lose_base", col, row)
+	return _has_base_target(defeat_list(), col, row)
 
 
 ## そのマスが既にどこかの capture_base 条件の対象になっているか。
 func has_victory_capture_base(col: int, row: int) -> bool:
-	return _has_base_target(victory_list(), "capture_base", col, row)
+	return _has_base_target(victory_list(), col, row)
 
 
-## そのマスが既にどこかの deny_bases 条件の対象になっているか。
-func has_victory_deny_bases(col: int, row: int) -> bool:
-	return _has_base_target(victory_list(), "deny_bases", col, row)
-
-
-func _has_base_target(list: Array, type_id: String, col: int, row: int) -> bool:
+func _has_base_target(list: Array, col: int, row: int) -> bool:
 	for c in list:
-		if String(c.get("type", "")) != type_id:
-			continue
 		for t in base_targets(c):
 			if _is_target_at(t, col, row):
 				return true
@@ -1177,72 +1155,3 @@ func _migrate_legacy_bases() -> void:
 		for g in b.get("garrison", []):
 			if typeof(g) == TYPE_DICTIONARY and not g.has("native"):
 				g["native"] = team if team in ["player", "enemy"] else "neutral"
-
-
-# --- スイッチ（引き金 step のイベントのうち、エディタが編集できる決まった形）。詳細 → doc/gdd/map.md イベント ---
-# 形＝ { id, type:"step", col, row, stepped_by, if:[ base_owner（止める拠点・enemy） ], neutralize:[ 止める拠点 ], once? }。
-# 1スイッチ＝1拠点・条件は「敵が持っているとき」に決め打ち。この形に当てはまらない step は JSON を直接見る。
-
-const SWITCH_KEYS := ["id", "type", "col", "row", "stepped_by", "if", "neutralize", "once"]
-
-
-## e がエディタで編集できるスイッチの形か。
-static func is_switch(e: Variant) -> bool:
-	if typeof(e) != TYPE_DICTIONARY or String(e.get("type", "")) != "step":
-		return false
-	for k in e:
-		if not SWITCH_KEYS.has(k):
-			return false  # 駒・会話など、決まった形の外の中身を持つ
-	if not (String(e.get("stepped_by", "")) in ["player", "enemy"]):
-		return false
-	var conds: Variant = e.get("if")
-	var neu: Variant = e.get("neutralize")
-	if typeof(conds) != TYPE_ARRAY or typeof(neu) != TYPE_ARRAY or conds.size() != 1 or neu.size() != 1:
-		return false
-	var c: Variant = conds[0]
-	var n: Variant = neu[0]
-	if typeof(c) != TYPE_DICTIONARY or typeof(n) != TYPE_DICTIONARY:
-		return false
-	return String(c.get("type", "")) == "base_owner" and String(c.get("team", "")) == "enemy" \
-		and int(c.get("col", -1)) == int(n.get("col", -2)) and int(c.get("row", -1)) == int(n.get("row", -2))
-
-
-## スイッチが止める拠点のマス（形が違えば OUTSIDE 相当の (-9999,-9999)）。
-static func switch_target(e: Variant) -> Vector2i:
-	if not is_switch(e):
-		return Vector2i(-9999, -9999)
-	var n: Dictionary = e["neutralize"][0]
-	return Vector2i(int(n.get("col", 0)), int(n.get("row", 0)))
-
-
-## スイッチが止める拠点を変える（条件と中身の両方を同じ拠点に揃える）。
-static func set_switch_target(e: Dictionary, col: int, row: int) -> void:
-	e["if"] = [ { "type": "base_owner", "col": col, "row": row, "team": "enemy" } ]
-	e["neutralize"] = [ { "col": col, "row": row } ]
-
-
-## スイッチを1件足す。踏むマス (col,row)・止める拠点 target。id はステージ内で一意に振る。
-func add_switch(col: int, row: int, target: Vector2i) -> Dictionary:
-	if typeof(data.get("events")) != TYPE_ARRAY:
-		data["events"] = []
-	var used := {}
-	for e in event_list():
-		if typeof(e) == TYPE_DICTIONARY:
-			used[String(e.get("id", ""))] = true
-	var n := 1
-	while used.has("switch-%d" % n):
-		n += 1
-	var e := { "id": "switch-%d" % n, "type": "step", "col": col, "row": row, "stepped_by": "player" }
-	set_switch_target(e, target.x, target.y)
-	data["events"].append(e)
-	return e
-
-
-## 盤に描くスイッチの結び線（{ from: 踏むマス, to: 止める拠点 }）。
-func switch_links() -> Array:
-	var out: Array = []
-	for e in event_list():
-		if is_switch(e):
-			out.append({ "from": Vector2i(int(e.get("col", 0)), int(e.get("row", 0))), "to": switch_target(e) })
-	return out
-

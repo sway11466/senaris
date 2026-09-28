@@ -16,6 +16,7 @@ signal unit_deployed(handle: int, base_hex: Vector2i, to: Vector2i)
 signal unit_unloaded(handle: int, transport_id: int, to: Vector2i)
 signal unit_entered_base(handle: int, base_hex: Vector2i)
 signal base_captured(base_hex: Vector2i, team: int)  # 拠点の所属が変わった＝占領成立
+signal gimmick_changed(id: String)  # 仕掛けの状態が変わった（踏んだ）＝盤の絵を貼り替える。詳細 → doc/gdd/gimmicks.md
 signal unit_stood(handle: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
 signal unit_died(handle: int)
 signal turn_changed(team: int, turn_number: int)
@@ -76,8 +77,8 @@ func execute(cmd: MoveCommand) -> bool:
 			_move_origin[cmd.handle] = from  # このターン最初の移動＝戻り先（攻撃後の再移動では動かさない）
 		unit_moved.emit(cmd.handle, from, cmd.to, path)
 		_emit_if_captured(cmd.to, before)
-		_emit_stepped(cmd.to, u.team)
-		_check_finished()  # 移動＝占領・スイッチが起きうる（本拠地の占領/喪失・拠点を止める勝利はこの瞬間に決着する）
+		_step_gimmick(cmd.to, u.team)
+		_check_finished()  # 移動＝占領・仕掛けが起きうる（本拠地の占領/喪失・仕掛けの勝利条件はこの瞬間に決着する）
 		return true
 	move_rejected.emit(cmd.handle, cmd.to)
 	return false
@@ -127,8 +128,8 @@ func execute_deploy(cmd: DeployCommand) -> bool:
 		unit_deployed.emit(uid, cmd.base_hex, cmd.to)
 		var placed := state.unit_by_handle(uid)
 		if placed != null and state.unit_at(cmd.to) == placed:  # 輸送に直接乗った駒は盤に立たない＝踏まない
-			_emit_stepped(cmd.to, placed.team)
-			_check_finished()  # 出撃でスイッチを踏みうる（拠点を止める勝利）
+			_step_gimmick(cmd.to, placed.team)
+			_check_finished()  # 出撃で仕掛けを踏みうる（仕掛けの勝利条件）
 		return true
 	return false
 
@@ -147,7 +148,7 @@ func execute_unload(cmd: UnloadCommand) -> bool:
 		unit_unloaded.emit(u.handle if u != null else -1, cmd.transport_id, cmd.to)
 		_emit_if_captured(cmd.to, before)
 		if u != null:
-			_emit_stepped(cmd.to, u.team)
+			_step_gimmick(cmd.to, u.team)
 		_check_finished()
 		return true
 	return false
@@ -177,14 +178,9 @@ func _emit_if_captured(hex: Vector2i, before: int) -> void:
 	base_captured.emit(hex, after)
 	_dispatch_board_events(state.fire_capture_events(hex, after), hex)
 
-## 駒が hex に止まった（移動・降車・出撃）ときの「踏む」イベント。起きたものは占領と同じ流し方。
-## 詳細 → doc/gdd/map.md イベント
-func _emit_stepped(hex: Vector2i, team: int) -> void:
-	_dispatch_board_events(state.fire_step_events(hex, team), hex)
-
-## 盤の出来事（占領・踏む）で起きたイベントを上へ流す。敵ターンは1手の切れ目まで持ち越す
+## 盤の出来事（占領）で起きたイベントを上へ流す。敵ターンは1手の切れ目まで持ち越す
 ## （_pending_events）。決着した手は持ち越さずその場で流す＝AI の次の手はもう来ない。
-## カメラの行き先は引き金のマス（占領なら拠点・踏むならそのマス）。
+## カメラの行き先は引き金のマス（占領なら拠点）。
 func _dispatch_board_events(fired: Array[StageEvent], hex: Vector2i) -> void:
 	for e in fired:
 		var info := _event_info(e, hex)
@@ -192,6 +188,13 @@ func _dispatch_board_events(fired: Array[StageEvent], hex: Vector2i) -> void:
 			_pending_events.append(info)
 		else:
 			event_fired.emit(info)
+
+## 駒が hex に止まった（移動・降車・出撃）ときの仕掛けの振る舞い。状態が変われば知らせる
+## （盤が絵を貼り替える）。詳細 → doc/gdd/gimmicks.md 踏む
+func _step_gimmick(hex: Vector2i, team: int) -> void:
+	var g := state.step_gimmick(hex, team)
+	if g != null:
+		gimmick_changed.emit(g.id)
 
 ## 表示用: 輸送 transport_id の搭乗駒 index の降車先候補（状態は変えない）。
 func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
