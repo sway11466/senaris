@@ -28,6 +28,15 @@ func test_all_effects_are_well_formed() -> void:
 func test_image_path_follows_convention() -> void:
 	assert_eq(CombatEffectCatalog.by_id("slash_m").image_path(), "res://assets/effects/slash_m.png")
 
+# --- from_dict：出し方（kind）の判定 ---
+
+## 光線（beam）は飛ぶ型ではない＝飛翔の時間を持たず、撃った瞬間が着弾。仕様 → doc/tech/combat_scene.md
+func test_from_dict_reads_beam_kind() -> void:
+	var e := CombatEffect.from_dict({ "effect_id": "x", "kind": "beam", "scale": 1.0 })
+	assert_eq(e.kind, CombatEffect.KIND_BEAM, "beam が読める")
+	assert_true(e.is_beam(), "光線の型")
+	assert_false(e.is_projectile(), "光線は飛ぶ型ではない")
+
 # --- from_dict：不正値の倒し方 ---
 
 func test_from_dict_falls_back_on_bad_values() -> void:

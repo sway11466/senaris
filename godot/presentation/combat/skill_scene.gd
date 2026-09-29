@@ -68,11 +68,14 @@ func _cast(cast_side: String, to_side: String, victim: UnitSnapshot, eff: Combat
 	SfxPlayer.play_sfx(detail.skill)
 	var targets := _troops_of(victim)
 	var fly := eff != null and eff.is_projectile() and cast_side != to_side  # 自分掛けは飛ばさない（play と同条件）
+	var beam := eff != null and eff.is_beam() and cast_side != to_side  # 自分掛けは引かない（その場で弾けさせる）
 	for i in shots:
 		var to := _slot_pos(to_side, POS[i % targets])
 		var delay := float(i) * STAGGER
 		if fly:
 			_spawn_fly(_slot_pos(cast_side, POS[i]), to, eff, delay, gen)
+		elif beam:
+			_spawn_beam(_slot_pos(cast_side, POS[i]), to, eff, delay, gen)
 		else:
 			_spawn_burst(to, to_side == "L", eff, delay, gen)
 	var tw := create_tween()

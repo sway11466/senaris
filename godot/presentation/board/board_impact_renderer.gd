@@ -102,6 +102,7 @@ const STRIKE_TILES := 2.0        # 重ねる型の絵の大きさ（scale 1.0 �
 const STRIKE_SEC := 0.36         # 同・弾けて消えるまで（戦闘窓の 0.30 より少し長く＝盤では絵が小さい）
 const STRIKE_OPEN := 1.5         # 同・弾ける倍率
 const STRIKE_FLY_TILES := 1.5    # 飛ぶ型の絵の大きさ（長辺がヘックス幅の何倍か。トリックショットと同じ）
+const STRIKE_BEAM_HOLD := 0.16   # 光線の型を引いたまま置く時間（秒。飛ぶ型の刺さったまま置く時間と同じ）
 const COUNTER_GAP_SEC := 0.40    # 着弾から反撃が放たれるまでの間（重ねる型の絵が消える頃）
 const COMBAT_TAIL_SEC := 0.30    # 最後の着弾から盤を作り直すまで（フラッシュ・撃破フェードを見せ切る）
 
@@ -327,6 +328,10 @@ func _strike(by: UnitSnapshot, comb: UnitSnapshot, dmg: int, stretch: float) -> 
 		SfxPlayer.play_sfx(eff.effect_id)  # 発射。損害によらず武器固有
 		_spawn_flying_impact(by.pos, comb.pos, tex, on_land, stretch, STRIKE_FLY_TILES * eff.scale)
 		return FLY_SEC * stretch
+	if eff.is_beam():
+		_spawn_beam_impact(by.pos, comb.pos, tex, STRIKE_FLY_TILES * eff.scale, stretch)
+		on_land.call()  # 撃った瞬間が着弾＝音も重ねる型と同じ1音（on_land が鳴らす）
+		return 0.0
 	# 絵は「右へ向かう一撃」で描く約束＝殴る側が右に居るときだけ水平反転する（戦闘窓と同じ規約）
 	var mirror := Hex.to_pixel(by.pos, TILE).x > Hex.to_pixel(comb.pos, TILE).x
 	_spawn_strike(comb.pos, tex, mirror, STRIKE_TILES * eff.scale, on_land, stretch)
@@ -939,6 +944,37 @@ func _spawn_flying_impact(from_hex: Vector2i, to_hex: Vector2i, tex: Texture2D,
 	tw.tween_method(fly, 0.0, 1.0, FLY_SEC * stretch).set_ease(Tween.EASE_OUT)  # 手を離れた直後が速い
 	tw.tween_callback(on_land)
 	tw.tween_interval(FLY_HOLD_SEC * stretch)  # 刺さったまま少し置く
+	tw.tween_property(spr, "modulate:a", 0.0, SINGLE_FADE_SEC * stretch)
+	tw.tween_callback(spr.queue_free)
+
+
+## 光線の型を1本：殴る駒から殴られる駒までを、寝かせた1枚で一瞬に結び、少し置いて消える。
+## 太さは飛ぶ型と同じ大きさ（長辺＝tiles ヘックス）のまま、長さ（絵の横）だけを2点間の距離へ引き伸ばす。
+## 高さは飛ぶ型の飛ぶ高さ（駒の胸のあたり）で、弧は描かない＝一直線。stretch は決着のスロー。
+func _spawn_beam_impact(from_hex: Vector2i, to_hex: Vector2i, tex: Texture2D, tiles: float, stretch := 1.0) -> void:
+	var a := Hex.to_pixel(from_hex, TILE)
+	var b := Hex.to_pixel(to_hex, TILE)
+	var start := Vector3(a.x, _elev_fn.call(from_hex) + FLY_HEIGHT, a.y)
+	var land := Vector3(b.x, _elev_fn.call(to_hex) + FLY_HEIGHT, b.y)
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.double_sided = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_burst と同じ扱い）
+	spr.render_priority = 6
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (tiles * TILE) / maxf(longest, 1.0)
+	var d := land - start
+	var along := Vector2(d.x, d.z).length()
+	spr.scale.x = along / maxf(float(tex.get_width()) * spr.pixel_size, 0.001)
+	# 寝かせる（-90度）＋向きへ回す。絵の右が +X なので、向き (dx, dz) への角は atan2(-dz, dx)（飛ぶ型と同じ）
+	spr.rotation = Vector3(-PI * 0.5, atan2(-d.z, d.x), 0.0)
+	spr.position = (start + land) * 0.5
+	add_child(spr)
+	var tw := _tween()
+	tw.tween_interval(STRIKE_BEAM_HOLD * stretch)
 	tw.tween_property(spr, "modulate:a", 0.0, SINGLE_FADE_SEC * stretch)
 	tw.tween_callback(spr.queue_free)
 

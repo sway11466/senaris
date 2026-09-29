@@ -73,6 +73,7 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 	var eff := _effect_of(by)
 	# 命中音。1発ずつではなく一撃につき鳴らす＝8体並ぶと8連射になって潰れる。
 	# 近接は1音（ここだけ）。遠距離は発射をここで鳴らし、着弾は最後の1発が届く時点に回す。
+	# 光線（beam）は撃った瞬間が着弾なので、近接と同じく1音だけ。
 	# 素材はエフェクトIDの規約解決（assets/sfx/{effect_id}.ogg）。無ければ無音で進む。
 	if eff != null:
 		if eff.is_projectile():
@@ -84,6 +85,7 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 	var shots := clampi(int(_shown.get(_other_side(side), 1)), 1, POS.size())
 	var targets := _troops_of(comb)
 	var fly := eff != null and eff.is_projectile()
+	var beam := eff != null and eff.is_beam()
 	if stretch > 1.0:
 		# とどめ＝一斉射の間だけ、窓の中身を被弾側へ寄せる（寄り切りは最後の1発の着弾）。
 		_start_finish_zoom(side, _strike_time(by, shots) * stretch)
@@ -94,9 +96,12 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 	for i in shots:
 		var to := _slot_pos(side, SINGLE_POS if target_single else POS[i % targets])
 		var delay := float(i) * STAGGER * stretch
-		if fly:
+		if fly or beam:
 			var from := _slot_pos(_other_side(side), SINGLE_POS if by_single else POS[i])
-			_spawn_fly(from, to, eff, delay, gen, stretch)
+			if fly:
+				_spawn_fly(from, to, eff, delay, gen, stretch)
+			else:
+				_spawn_beam(from, to, eff, delay, gen, stretch)
 		else:
 			_spawn_burst(to, side == "L", eff, delay, gen, stretch)
 	var tw := create_tween()

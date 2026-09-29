@@ -233,7 +233,8 @@ func _valid_effect_row(eid: String, kind: String) -> Dictionary:
 	return { "effect_id": eid, "name": "名", "kind": kind, "scale": 1.0 }
 
 func test_effects_valid_builds_json() -> void:
-	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("arrow", "projectile") ]
+	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("arrow", "projectile"),
+		_valid_effect_row("ray_rail", "beam") ]
 	var r := Effects.build(rows)
 	assert_eq(r["problems"].size(), 0, "正常＝違反0")
 	assert_eq(r["json"]["effects"], rows, "json は { effects: rows }")

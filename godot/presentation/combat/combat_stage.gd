@@ -72,6 +72,8 @@ const FINISH_STRETCH := 2.2
 const FINISH_ZOOM := 1.16
 const FINISH_ZOOM_Y := 0.55  # 寄りの中心の高さ（窓内寸の高さに対する比）＝隊列の胴のあたり
 const BURST := 0.30       # 重ねるエフェクトの拡大フェード時間（秒）
+const BEAM_HOLD := 0.12   # 光線（beam）を引いたまま置いておく時間（秒）。実機で詰める初期値
+const BEAM_FADE := 0.20   # 同・置いたあと消えるまで（秒）
 const STAGGER := 0.025    # エフェクト1発ごとの時差（秒）。同時に出すと1枚の大きな絵に見えて斉射・乱戦にならない
 const FIG_H := 0.41   # 立ち絵の高さ（窓内寸の高さに対する比）。描くのは立ち絵PNGの正方キャンバス全体で、
                       # 駒ごとの大小はその中の余白として焼き込んである（→ doc/art/units.md 3.3）。つまり
@@ -852,6 +854,35 @@ func _spawn_fly(from: Vector2, to: Vector2, eff: CombatEffect, delay: float, gen
 		_fx.add_child(node)
 		var t2 := create_tween()
 		t2.tween_property(node, "position", to, FLIGHT * stretch)
+		t2.tween_callback(node.queue_free))
+
+## 光線の型を1発：放った側のスロットから受ける側のスロットまでを1枚で一瞬に結び、少し置いて消える。
+## 太さは他の型と同じ大きさのまま＝長さ（絵の横）だけを2点間の距離へ引き伸ばし、2点を結ぶ向きへ回す。
+## 絵は右向きに描く約束なので、左へ向かうときは水平反転してから回す（1枚で両陣営に使える）。
+## 撃った瞬間が着弾＝飛翔の時間は無い。stretch＝尺に掛ける倍率（決着のとどめのスロー。通常は1.0）。
+func _spawn_beam(from: Vector2, to: Vector2, eff: CombatEffect, delay: float, gen: int, stretch := 1.0) -> void:
+	var tw := create_tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func() -> void:
+		if gen != _gen:
+			return
+		var node := _effect_node(eff)
+		var s := node as Sprite2D
+		if s == null:
+			node.position = to  # 絵が無い＝既定のスパーク。結ぶ線は描けないので着弾点に出す
+		else:
+			var d := to - from
+			node.position = (from + to) * 0.5
+			s.scale.x = d.length() / float(maxi(s.texture.get_width(), 1))
+			if d.x < 0.0:
+				node.scale.x = -node.scale.x
+				node.rotation = atan2(-d.y, -d.x)
+			else:
+				node.rotation = atan2(d.y, d.x)
+		_fx.add_child(node)
+		var t2 := create_tween()
+		t2.tween_interval(BEAM_HOLD * stretch)
+		t2.tween_property(node, "modulate:a", 0.0, BEAM_FADE * stretch)
 		t2.tween_callback(node.queue_free))
 
 ## とどめの寄り＝窓の中身（_inner）を被弾側の隊列へ向けて少し拡大する。

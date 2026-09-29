@@ -7,7 +7,8 @@ class_name CombatEffect
 ## 出し方。絵とは別の属性で、同じ絵を別の出し方に回せる。
 const KIND_IMPACT := "impact"          ## 被弾側の隊列に重ねて拡大フェード（斬撃・近接の魔法）
 const KIND_PROJECTILE := "projectile"  ## 攻撃側から被弾側へ飛び、着弾で消える（矢・投石・遠隔の魔法）
-const KINDS := [KIND_IMPACT, KIND_PROJECTILE]
+const KIND_BEAM := "beam"              ## 攻撃側から被弾側までを1枚で一瞬に結び、少し置いて消える（光線）
+const KINDS := [KIND_IMPACT, KIND_PROJECTILE, KIND_BEAM]
 
 var effect_id: String  ## エフェクトID（主キー。unit_skin.csv の combat_effect が指す）
 var name: String       ## 表示名（斬撃（小）/矢 …。人が読む用）
@@ -32,3 +33,6 @@ func image_path() -> String:
 
 func is_projectile() -> bool:
 	return kind == KIND_PROJECTILE
+
+func is_beam() -> bool:
+	return kind == KIND_BEAM
