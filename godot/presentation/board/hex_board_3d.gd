@@ -22,9 +22,15 @@ signal move_animation_finished
 ## 陣形スキルの着弾演出が終わった（打ち切りでも必ず発行＝待ち手を取り残さない）。
 ## 決着の告知（戦果票）と敵ターンのテンポ制御がこれを待つ。
 signal formation_impact_finished
+## 罠の一撃を見せ終えた（盤面の演出 OFF・ステージの作り直しでも必ず発行＝待ち手を取り残さない）。
+## 敵ターンのテンポ制御（main が controller.trap_pace へ await_trap を注入）と、攻撃・陣形の発動が待つ。
+signal trap_finished
 ## 人数が可変の陣形スキルで「発動」ボタンを出す／引っ込める（HUD が受ける）。
 ## 最低人数に達したら出し、さらに足すか発動するかをプレイヤーが決める → doc/gdd/uiux.md
 signal skill_activate_available(available: bool)
+
+## 罠のカットイン（main が注入。罠の種類を渡し、出し終えるまで待つ。絵が無ければ即返る）。空なら出さない。
+var trap_cutin := Callable()
 
 const TILE := 1.0                # ワールドでの hex サイズ（中心〜頂点）
 const MOVE_ANIM_SEC_PER_HEX := 0.12  # 移動アニメ＝1マスあたりの秒数（等速・上限なし＝時間はマス数に比例。doc/gdd/uiux.md 移動アニメ）
@@ -183,6 +189,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	controller.unit_entered_base.connect(_on_unit_entered_base)
 	controller.base_captured.connect(_on_base_captured)
 	controller.gimmick_changed.connect(_on_gimmick_changed)
+	controller.trap_fired.connect(_on_trap_fired)
 	controller.unit_stood.connect(_on_unit_stood)
 	controller.turn_changed.connect(_on_turn_changed)
 	controller.passives_fired.connect(_on_passives_fired)
@@ -192,6 +199,7 @@ func bind(p_state: BattleState, p_controller: MatchController, p_skin_catalog: D
 	fit_to_view()
 	_hidden.clear()  # 隠し駒は intro の間だけ＝前のステージから持ち越さない
 	_unit_renderer.release_all_troops()  # 毒で減る前の兵数も持ち越さない
+	_finish_trap()  # 見せている途中の罠の一撃も持ち越さない（待ち手は放す）
 	_sync()
 
 ## 選択・出撃モード・ロック・ホバーを初期状態へ（ステージ再ロード時に呼ぶ）。
@@ -673,16 +681,20 @@ func _on_menu_id(id: int) -> void:
 			_choosing_target = true
 			_sync_overlay()
 		MENU_WAIT:
+			var sel_id := _selected_id
 			_commit_pending_move()
-			controller.stand(_selected_id)
+			await await_trap()  # 罠で倒れる駒を、待機の作り直しで先に消さない
+			controller.stand(sel_id)
 			_deselect()
 		MENU_BOARD:
 			if _pending_to != INVALID_HEX:
 				controller.execute(MoveCommand.new(_selected_id, _pending_to))
 			_deselect()
 		MENU_ENTER:
+			var sel_id := _selected_id
 			_commit_pending_move()
-			controller.enter_base(_selected_id)
+			await await_trap()
+			controller.enter_base(sel_id)
 			_deselect()
 		MENU_CANCEL:
 			_deselect()
@@ -696,9 +708,18 @@ func _attack_from() -> Vector2i:
 
 ## 攻撃＝ここで初めて移動を確定させる（自マスのままなら no-op）。
 ## 対象選びの間は移動を保留したままにするため、確定はこの1か所に寄せる。
+## 止まった先で罠が撃ったら、その一撃を見せ終えてから攻撃する。罠で倒れたら攻撃は取り消し、
+## 罠で相手が倒れて撃てなくなったら待機にする（doc/gdd/gimmicks.md ダメージの罠）。
 func _fire_attack(target_id: int) -> void:
+	var sel_id := _selected_id
 	_commit_pending_move()
-	controller.execute_attack(AttackCommand.new(_selected_id, target_id))
+	await await_trap()
+	if state.unit_by_handle(sel_id) == null:
+		_deselect()
+		return
+	if not controller.execute_attack(AttackCommand.new(sel_id, target_id)):
+		controller.stand(sel_id)
+		_deselect()
 
 ## 攻撃の対象選びを1段戻す（対象選び → メニュー）。移動は保留のまま＝移動先を選び直せる。
 func _attack_step_back() -> void:
@@ -835,9 +856,18 @@ func _fire_chosen_formation() -> void:
 
 ## 発動＝ここで初めて移動を確定させる（自マスのままなら no-op）。
 ## 参加者選びの間は移動を保留したままにするため、確定はこの1か所に寄せる。
+## 止まった先で罠が撃ったら、攻撃と同じく一撃を見せ終えてから発動する。罠で倒れた・参加者を
+## 失って撃てなくなったら、発動を取り消して待機にする。
 func _fire_formation(option: FormationOption, target: Vector2i) -> void:
+	var caster_id := option.caster_id
 	_commit_pending_move()
-	controller.execute_formation(FormationCommand.new(option, target))
+	await await_trap()
+	if state.unit_by_handle(caster_id) == null:
+		_deselect()
+		return
+	if not controller.execute_formation(FormationCommand.new(option, target)):
+		controller.stand(caster_id)
+		_deselect()
 
 ## 陣形スキルの段を1つ戻す（着弾先 → 参加者 → メニュー）。参加者選びの中では確定を1体ずつ取り消す。
 func _formation_step_back() -> void:
@@ -1266,6 +1296,72 @@ func play_dots(results: Array[Dictionary]) -> void:
 		sec = maxf(sec, _impact_renderer.play_dot_tick(h, u.pos, String(r["effect"])))
 	if sec > 0.0:
 		await get_tree().create_timer(sec / _fx_speed()).timeout
+
+# --- 罠の一撃（doc/gdd/gimmicks.md ダメージの罠） ---
+
+var _trapping := false  # 罠の一撃を見せている最中（入力はロック）
+var _trap_gen := 0      # ステージの作り直しで見せている途中の一撃を打ち切るための世代
+
+## 罠が撃った。生き残る駒は減る前の兵数で出したままにし、一撃を見せてから外す（毒と同じ流儀）。
+## 倒れた駒は盤に残っている絵を、一撃の着弾で消していく。
+func _on_trap_fired(gimmick_id: String, hits: Array[Dictionary]) -> void:
+	for h in hits:
+		if not bool(h["killed"]):
+			_unit_renderer.hold_troops(int(h["unit"]), int(h["troops_before"]), int(h["shield_before"]))
+	_play_trap(gimmick_id, hits)
+
+## 罠の一撃を見せる：歩き切るのを待ち、撃たれた駒をカメラに収め、カットイン（絵があれば）を挟んで、
+## 全員の上に同時に一撃を浮かべて兵数を減らす。演出 OFF は減った値で出し直すだけ。
+func _play_trap(gimmick_id: String, hits: Array[Dictionary]) -> void:
+	_trap_gen += 1
+	var gen := _trap_gen
+	_trapping = true
+	var was_locked := _locked
+	_locked = true
+	await await_move_animation()
+	var g := state.gimmick_by_id(gimmick_id) if gen == _trap_gen else null
+	if g == null or _board_fx == "off":
+		for h in hits:
+			_unit_renderer.release_troops(int(h["unit"]))
+		if gen == _trap_gen:
+			_sync()
+			_end_trap(gen, was_locked)
+		return
+	var at: Array[Vector2i] = []
+	for h in hits:
+		at.append(h["hex"])
+	await focus_camera_on(at)
+	if gen == _trap_gen and trap_cutin.is_valid():
+		await trap_cutin.call(g.kind)
+	var sec := 0.0
+	if gen == _trap_gen:
+		for h in hits:
+			sec = maxf(sec, _impact_renderer.play_trap_hit(int(h["unit"]), h["hex"], g.kind, bool(h["killed"])))
+	if sec > 0.0:
+		await get_tree().create_timer(sec / _fx_speed()).timeout
+	_end_trap(gen, was_locked)
+
+## 見せ終えた＝入力を戻して待ち手を放す。決着していれば決着のロックのまま。打ち切られた世代は何もしない。
+func _end_trap(gen: int, was_locked: bool) -> void:
+	if gen != _trap_gen:
+		return
+	if not state.is_over():
+		_locked = was_locked
+	_trapping = false
+	trap_finished.emit()
+
+## 見せている途中の一撃を打ち切る（ステージの作り直し）。待ち手は放す。
+func _finish_trap() -> void:
+	_trap_gen += 1
+	if _trapping:
+		_trapping = false
+		trap_finished.emit()
+
+## 罠の一撃を見せている最中なら、見せ終えるまで待つ（main が controller.trap_pace に注入。
+## 攻撃・陣形・待機の確定もこれを待つ）。撃っていなければ即返る。
+func await_trap() -> void:
+	if _trapping:
+		await trap_finished
 
 ## ターン開始のパッシブスキルで生まれた駒のうち、演出ありのものを play_passives まで隠す
 ## （盤はターン切り替えで作り直し済み＝隠さないと分裂先に先に見えてしまう）。

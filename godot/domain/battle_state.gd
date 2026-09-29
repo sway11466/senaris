@@ -598,15 +598,55 @@ func gimmick_by_id(id: String) -> Gimmick:
 
 ## team の駒が hex に止まった（移動・降車・出撃）ときの仕掛けの振る舞い。状態が変わった仕掛けを返す
 ## （変わらなければ null）。呼ぶのは MatchController＝操作の後。詳細 → doc/gdd/gimmicks.md 踏む
+## 罠は撃てば状態が変わらなくても返す（雷の紋は見つかった後も踏むたびに撃つ）。撃った結果は last_trap_hits。
 func step_gimmick(hex: Vector2i, team: int) -> Gimmick:
+	last_trap_hits = []
 	var g := gimmick_at(hex)
 	if g == null:
 		return null
+	if GimmickKinds.trap_armed(g):
+		last_trap_hits = _fire_trap(g)
+		g.state = GimmickKinds.state_after_trap(g)
+		return g
 	var next := GimmickKinds.state_after_step(g, team)
 	if next.is_empty():
 		return null
 	g.state = next
 	return g
+
+## 直近の step_gimmick で罠が撃った相手（撃たなければ空）。1件＝{ unit, team, hex, troops_before,
+## shield_before, loss, killed }。並びは踏んだ駒が先、残りは近い順・handle 順（決定的）。
+var last_trap_hits: Array[Dictionary] = []
+
+## 罠 g が撃つ。範囲（g のマスから radius 以内）の駒すべてに、敵味方の別なく。
+## 同時に撃つ＝全員の損害を撃つ前の盤で確定してから適用する（隣の駒の支援が先に減らない）。
+## 撃つ側が盤に居ないので、レベルは誰も上がらない。詳細 → doc/gdd/gimmicks.md ダメージの罠
+func _fire_trap(g: Gimmick) -> Array[Dictionary]:
+	var spec := GimmickKinds.trap_spec(g.kind)
+	var radius := int(spec["radius"])
+	var targets: Array[Unit] = []
+	for u in _units:
+		if Hex.distance(u.pos, g.hex) <= radius:
+			targets.append(u)
+	targets.sort_custom(func(a: Unit, b: Unit) -> bool:
+		var da := Hex.distance(a.pos, g.hex)
+		var db := Hex.distance(b.pos, g.hex)
+		return da < db if da != db else a.handle < b.handle)
+	var losses: Array[int] = []
+	for t in targets:
+		losses.append(Combat.trap_hit_detail(self, GimmickKinds.TRAP_TROOPS, int(spec["atk_ground"]),
+				int(spec["atk_air"]), float(spec["pierce"]), t).loss)
+	var hits: Array[Dictionary] = []
+	for i in targets.size():
+		var t := targets[i]
+		var hit := {"unit": t.handle, "team": t.team, "hex": t.pos, "troops_before": t.troops,
+				"shield_before": t.shield, "loss": losses[i]}
+		t.take_loss(losses[i])  # シールドから先に減る（兵数が減る唯一の入口）
+		hit["killed"] = t.troops <= 0
+		if hit["killed"]:
+			_remove_unit(t.handle)
+		hits.append(hit)
+	return hits
 
 ## 拠点 b の生産が仕掛け（生産装置のスイッチ）で止められているか。
 func _production_blocked(b: Base) -> bool:

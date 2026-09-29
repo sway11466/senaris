@@ -235,6 +235,8 @@ func _install_state(state: BattleState, path: String) -> void:
 	_controller.dialogue_pace = _story.await_dialogue  # 敵ターンの占領で入る会話は読み終えるまで待つ
 	_controller.dot_pace = $HexBoard.play_dots  # ターン開始の毒で兵数が減る瞬間は見せ切ってから次へ
 	_controller.passive_pace = _play_passives  # ターン開始のパッシブスキル（分裂など）は見せ切ってから最初の手へ
+	_controller.trap_pace = $HexBoard.await_trap  # 止まった先で罠が撃ったら、その一撃を見せ切ってから次の手へ
+	$HexBoard.trap_cutin = _play_trap_cutin  # 罠の一撃の前に挟むカットイン（絵があれば）
 	_controller.turn_changed.connect(_on_turn_changed)
 	_controller.event_fired.connect(_story.on_event_fired)  # 台本があれば会話を挟む
 	_controller.event_fired.connect(_on_event_fired_chronicle)  # 増援の駒をクロニクルに記録
@@ -325,6 +327,17 @@ func _play_passives(results: Array[Dictionary]) -> void:
 	for r in results:
 		_chronicle.note_skill(String(r["skill"]))
 	await $HexBoard.play_passives(results)
+
+## 罠のカットイン（doc/gdd/gimmicks.md ダメージの罠）。絵は assets/gimmicks/{種類}_cutin.png。
+## 陣形スキルのカットインと同じ窓で出す。絵が無い・設定「戦闘の演出」で窓を出さない手は飛ばす。
+func _play_trap_cutin(kind: String) -> void:
+	if _formation_cutin == null or not _combat_view_shown():
+		return
+	var path := "res://assets/gimmicks/%s_cutin.png" % kind
+	if not ResourceLoader.exists(path):
+		return
+	if _formation_cutin.play_art(load(path) as Texture2D):
+		await _formation_cutin.finished
 
 ## 陣形スキル／ユニットスキルの発動演出。陣形は発動の頭で音を鳴らし、1枚絵のカットインを挟んでから
 ## 盤に戻って結果（着弾音・加護の光）を見せる。ユニットスキルはカットインではなく演出シーン

@@ -142,6 +142,25 @@ static func hit_from_breakdowns(atk: StatBreakdown, df: StatBreakdown, defender_
 		h.loss = clampi(int(round(K * float(defender_troops) * h.fraction)), 0, defender_troops)
 	return h
 
+## 罠の一撃（HitDetail）。撃つ側＝罠は兵数 troops・補正なし（レベル・包囲・地形・支援・状態を乗せない）。
+## 受ける側はふだんどおり（defense_breakdown と同じ集め方）で、貫通だけ罠の値を使う。
+## 相手が飛行なら atk_air、地上なら atk_ground。詳細 → doc/gdd/gimmicks.md ダメージの罠
+static func trap_hit_detail(state: BattleState, troops: int, atk_ground: int, atk_air: int, pierce: float, defender: Unit) -> HitDetail:
+	var aerial := defender.is_aerial()
+	var atk := attack_breakdown_from(troops, atk_air if aerial else atk_ground, 1.0, 1.0, 1.0, 0.0)
+	atk.vs_aerial = aerial
+	var sf := state.status_aggregate(defender, "defense")
+	var df := defense_breakdown_from(
+		defender.troops,
+		defender.unit_defense,
+		level_factor(defender),
+		surround_factor(state, defender),
+		TerrainType.defense_factor(state.terrain_at(defender.pos)),
+		support_around(state, defender.pos, defender.team, defender.handle, false),
+		0.0 if state.pierce_immune(defender) else pierce,
+		float(sf["mul"]), float(sf["add"]))
+	return hit_from_breakdowns(atk, df, defender.troops)
+
 ## attacker が defender に与える失う兵数（hit_detail の loss）。0〜defender.troops。
 static func casualties(state: BattleState, attacker: Unit, defender: Unit) -> int:
 	return hit_detail(state, attacker, defender).loss

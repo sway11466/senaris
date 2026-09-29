@@ -54,7 +54,11 @@ func _build() -> void:
 ## カットインを出す。絵が在れば true（呼び手は finished を待つ）、無ければ何もせず false。
 ## caster_skin＝発動者のスキンID。レシピが cutin_per_caster のときだけ絵の名前に使う。
 func play(skill_id: String, caster_skin: String) -> bool:
-	var tex := load_art(skill_id, caster_skin)
+	return play_art(load_art(skill_id, caster_skin))
+
+## 絵を渡してカットインを出す（陣形スキル以外の1枚絵＝罠。絵の置き場は呼び手が決める）。
+## 絵が null なら何もせず false。
+func play_art(tex: Texture2D) -> bool:
 	if tex == null:
 		return false
 	_texture = tex

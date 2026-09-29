@@ -17,6 +17,9 @@ signal unit_unloaded(handle: int, transport_id: int, to: Vector2i)
 signal unit_entered_base(handle: int, base_hex: Vector2i)
 signal base_captured(base_hex: Vector2i, team: int)  # 拠点の所属が変わった＝占領成立
 signal gimmick_changed(id: String)  # 仕掛けの状態が変わった（踏んだ）＝盤の絵を貼り替える。詳細 → doc/gdd/gimmicks.md
+## 罠が撃った（BattleState.last_trap_hits の控え）。盤は減る前の兵数を trap_pace で見せ終えるまで出したままにする。
+## gimmick_changed の後・撃破ごとの unit_died の後に飛ぶ。詳細 → doc/gdd/gimmicks.md ダメージの罠
+signal trap_fired(gimmick_id: String, hits: Array[Dictionary])
 signal unit_stood(handle: int)  # 「待機」＝盤は動かないが行動終了（見た目を暗くする）
 signal unit_died(handle: int)
 signal turn_changed(team: int, turn_number: int)
@@ -43,6 +46,7 @@ var turn_start_pace := Callable()  # AIターンの頭で一拍置くフック�
 var dialogue_pace := Callable()  # AIターンで会話の読了を待つフック（同上）。空なら待たない
 var dot_pace := Callable()  # ターン開始の毒で兵数が減る瞬間を見せ切るまで待つフック（同上・結果の配列を渡す）。空なら待たない
 var passive_pace := Callable()  # ターン開始のパッシブスキルを見せ切るまで待つフック（同上・結果の配列を渡す）。空なら待たない
+var trap_pace := Callable()  # AIターンで罠の一撃を見せ切るまで待つフック（同上）。撃っていなければ即返る。空なら待たない
 
 func setup(p_state: BattleState) -> void:
 	state = p_state
@@ -77,7 +81,8 @@ func execute(cmd: MoveCommand) -> bool:
 			_move_origin[cmd.handle] = from  # このターン最初の移動＝戻り先（攻撃後の再移動では動かさない）
 		unit_moved.emit(cmd.handle, from, cmd.to, path)
 		_emit_if_captured(cmd.to, before)
-		_step_gimmick(cmd.to, u.team)
+		if state.unit_at(cmd.to) == u:  # 輸送に乗り込んだ駒は盤に立たない＝踏まない（doc/gdd/gimmicks.md 踏む）
+			_step_gimmick(cmd.to, u.team)
 		_check_finished()  # 移動＝占領・仕掛けが起きうる（本拠地の占領/喪失・仕掛けの勝利条件はこの瞬間に決着する）
 		return true
 	move_rejected.emit(cmd.handle, cmd.to)
@@ -191,10 +196,19 @@ func _dispatch_board_events(fired: Array[StageEvent], hex: Vector2i) -> void:
 
 ## 駒が hex に止まった（移動・降車・出撃）ときの仕掛けの振る舞い。状態が変われば知らせる
 ## （盤が絵を貼り替える）。詳細 → doc/gdd/gimmicks.md 踏む
+## 罠が撃ったら、倒れた駒ごとに unit_died、最後に trap_fired を知らせる（盤が一撃を見せる）。
 func _step_gimmick(hex: Vector2i, team: int) -> void:
 	var g := state.step_gimmick(hex, team)
-	if g != null:
-		gimmick_changed.emit(g.id)
+	if g == null:
+		return
+	gimmick_changed.emit(g.id)
+	var hits: Array[Dictionary] = state.last_trap_hits.duplicate()
+	if hits.is_empty():
+		return
+	for h in hits:
+		if bool(h["killed"]):
+			unit_died.emit(int(h["unit"]))
+	trap_fired.emit(g.id, hits)
 
 ## 表示用: 輸送 transport_id の搭乗駒 index の降車先候補（状態は変えない）。
 func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
@@ -310,6 +324,9 @@ func run_ai_turn(dots: Array[Dictionary] = [], passives: Array[Dictionary] = [])
 		# （doc/gdd/uiux.md 敵ターンのカメラ）。すでに見えていれば追従側が即返る。
 		if action.kind == AiAction.Kind.MOVE and not _finished and focus_pace.is_valid():
 			await focus_pace.call([action.to] as Array[Vector2i])
+		# 止まった先で罠が撃っていれば、その一撃を見せ切ってから次の手へ（撃っていなければ即返る）。
+		if not _finished and trap_pace.is_valid():
+			await trap_pace.call()
 		# 攻撃なら演出の完了を待つ＝盤に戻ってから次の手へ（プレイヤーが流れを追える）。
 		if shown_combat and not _finished and combat_pace.is_valid():
 			await combat_pace.call()

@@ -7,6 +7,22 @@
 			"map_scale": 0.58,
 			"memo": "石の箱から青銅のレバーが突き出たもの。on はレバーが左で箱に赤い紋が光る・off はレバーが右",
 			"name": "生産装置のスイッチ"
+		},
+		{
+			"combat_scale": "",
+			"foot_z": 0.1,
+			"kind": "thunder_sigil",
+			"map_scale": 0.5,
+			"memo": "罠。隠れている間は絵なし。見つかった後は全種類共通の印（trap_found.png）",
+			"name": "雷の紋"
+		},
+		{
+			"combat_scale": "",
+			"foot_z": 0.1,
+			"kind": "landmine",
+			"map_scale": 0.5,
+			"memo": "罠。隠れている間は絵なし。見つかった後は全種類共通の印（trap_found.png）。爆発した後は絵なし",
+			"name": "地雷"
 		}
 	]
 }

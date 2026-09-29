@@ -579,7 +579,7 @@ func _apply_gimmick_glow(glow: MeshInstance3D, g: Gimmick) -> void:
 ## 見た目の表に種類の行が無ければ描かない（手前寄せを既定値に倒さない。表とコードの種類の突き合わせは
 ## test_data_integrity が見る）。
 func _apply_gimmick_texture(spr: Sprite3D, g: Gimmick) -> void:
-	var path := GIMMICK_DIR + "%s_%s.png" % [g.kind, g.state]
+	var path := GIMMICK_DIR + "%s.png" % GimmickKinds.art_stem(g)  # 見つかった罠は全種類で1枚の印
 	var look := GimmickVisualCatalog.by_kind(g.kind)
 	if look == null or not ResourceLoader.exists(path):
 		spr.visible = false

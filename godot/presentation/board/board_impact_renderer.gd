@@ -342,13 +342,25 @@ func _strike(by: UnitSnapshot, comb: UnitSnapshot, dmg: int, stretch: float) -> 
 ## 減った値へ組み直してフラッシュする。盤は減る前の兵数を hold したまま待っている＝ここで外す。
 ## 返り値＝見せ終えるまでの秒数。絵が無ければマスを光らせるだけ。詳細 → doc/gdd/skills.md ポイズンスティング
 func play_dot_tick(uid: int, hex: Vector2i, effect_id: String) -> float:
+	return _play_hit_on_unit(uid, hex, effect_id, false)
+
+
+## 罠の一撃：毒と同じく駒の上に絵（effect_id＝罠の種類）を浮かべ、着いた瞬間に兵数を減った値へ
+## 組み直す。倒れた駒は消していく。盤は減る前の兵数を hold したまま待っている＝ここで外す。
+## 返り値＝見せ終えるまでの秒数。絵が無ければマスを光らせるだけ。詳細 → doc/gdd/gimmicks.md ダメージの罠
+func play_trap_hit(uid: int, hex: Vector2i, effect_id: String, killed: bool) -> float:
+	return _play_hit_on_unit(uid, hex, effect_id, killed)
+
+
+## 撃ち手の居ない一撃（毒・罠）を駒の上で見せる。
+func _play_hit_on_unit(uid: int, hex: Vector2i, effect_id: String, killed: bool) -> float:
 	var eff := CombatEffectCatalog.by_id(effect_id)
 	var tex := _effect_texture(eff)
 	var on_land := func() -> void:
 		_unit_renderer.release_troops(uid)
 		if eff != null:
 			SfxPlayer.play_sfx(eff.effect_id)
-		_land_unit(uid, false)
+		_land_unit(uid, killed)
 	if tex == null:
 		_flash_cells([hex], HIT_BURST_SEC)
 		on_land.call()
