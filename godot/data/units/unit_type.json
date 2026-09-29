@@ -628,6 +628,25 @@
 			"shield": 8
 		},
 		{
+			"atk_air": 60,
+			"atk_ground": 80,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "champion",
+			"defense": 60,
+			"id": "turret",
+			"max_troops": 8,
+			"memo": "固定砲台。機械側のボス。動かず撃つ",
+			"move": 0,
+			"move_after_attack": false,
+			"move_type": "stationary",
+			"needs_crew": false,
+			"pierce": 0,
+			"range": "3-8",
+			"repairable": false,
+			"shield": 8
+		},
+		{
 			"atk_air": 0,
 			"atk_ground": 80,
 			"can_capture": false,

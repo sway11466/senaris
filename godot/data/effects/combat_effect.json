@@ -99,6 +99,13 @@
 			"scale": 0.7
 		},
 		{
+			"effect_id": "ray_rail_red",
+			"kind": "beam",
+			"memo": "固定砲台のレールガン。beam で2点間へ引き伸ばすので、同じ太さの横一本の帯に描く（頭・尾を付けない）",
+			"name": "赤い光線",
+			"scale": 1.0
+		},
+		{
 			"effect_id": "magic_dust",
 			"kind": "projectile",
 			"memo": "ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）",

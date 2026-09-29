@@ -33,6 +33,7 @@ magic_knight,45,0,0.5,40,6,foot,1,false,false,8,0,0,false,false,infantry,短距�
 sorcerer,50,50,0.5,10,2,foot,2-5,false,false,8,0,8,false,false,champion,
 sniper,80,80,0,20,2,foot,2-5,false,false,8,0,8,false,false,champion,
 warlord,70,0,0,70,6,foot,1,false,false,8,0,8,false,false,champion,
+turret,80,60,0,60,0,stationary,3-8,false,false,8,0,8,false,false,champion,固定砲台。機械側のボス。動かず撃つ
 juggernaut,80,0,0,80,2,foot,1,false,false,8,0,8,false,false,champion,動かない要塞（移動2・射程1）。近寄った者を潰す
 dragon,70,70,0,50,11,flight,1,false,false,8,0,16,false,false,champion,
 gunner,30,30,0.5,30,4,foot,2-4,false,false,8,0,0,false,false,engineer,

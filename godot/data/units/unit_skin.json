@@ -71,6 +71,7 @@
 		"magic_hound",
 		"gear_soldier",
 		"bomber",
+		"turret",
 		"red_dragon"
 	],
 	"skins": {
@@ -1117,6 +1118,24 @@
 				}
 			],
 			"enemy": []
+		},
+		"turret": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "machine",
+					"combat_effect": "ray_rail_red",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"name": "固定砲台",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "turret",
+					"type_id": "turret"
+				}
+			]
 		},
 		"valkyrie": {
 			"ally": [],
