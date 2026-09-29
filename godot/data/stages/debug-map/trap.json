@@ -1,0 +1,39 @@
+{
+  "turn_limit": 30,
+  "name": "debug-trap",
+  "haze": 0.80,
+  "player": [
+    { "units": [
+        { "type": "fighter", "col": 1, "row": 1 },
+        { "type": "mage", "col": 1, "row": 2 },
+        { "type": "knight", "col": 1, "row": 3 },
+        { "skin": "pixie", "col": 1, "row": 5 },
+        { "type": "fighter", "col": 2, "row": 6 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "的", "ai": "ambush", "sight": 1, "units": [
+      { "skin": "goblin", "col": 6, "row": 2 },
+      { "skin": "goblin", "col": 5, "row": 5 }
+    ] },
+    { "order": 2, "ai": "charge", "units": [
+      { "skin": "goblin", "col": 11, "row": 1 },
+      { "skin": "goblin", "col": 11, "row": 5 }
+    ] }
+  ],
+  "bases": [
+    { "col": 11, "row": 3, "team": "enemy", "hq": "enemy" }
+  ],
+  "victory": [
+    { "type": "capture_hq" }
+  ],
+  "gimmicks": [
+    { "id": "sigil-hidden", "kind": "thunder_sigil", "col": 3, "row": 1, "state": "hidden" },
+    { "id": "sigil-found", "kind": "thunder_sigil", "col": 3, "row": 2, "state": "found" },
+    { "id": "sigil-by-goblin", "kind": "thunder_sigil", "col": 5, "row": 2, "state": "hidden" },
+    { "id": "mine-by-goblin", "kind": "landmine", "col": 4, "row": 5, "state": "hidden" },
+    { "id": "mine-found", "kind": "landmine", "col": 4, "row": 6, "state": "found" },
+    { "id": "mine-on-path", "kind": "landmine", "col": 8, "row": 3, "state": "hidden" },
+    { "id": "sigil-on-path", "kind": "thunder_sigil", "col": 8, "row": 1, "state": "hidden" }
+  ]
+}
