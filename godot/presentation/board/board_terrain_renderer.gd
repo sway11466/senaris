@@ -48,6 +48,12 @@ var _fence_tex := {}       # res://パス -> Texture2D|null（柵の面に貼る
 var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイルを貼り替えるため）
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _gimmick_nodes := {}   # 仕掛けの id -> Sprite3D（状態が変わると絵を貼り替えるため）
+var _gimmick_glow_nodes := {}  # 仕掛けの id -> MeshInstance3D（床の光。状態が変わると点け消しする）
+
+## 仕掛けの床の光の透け具合（色は種類の定義 GimmickKinds が持つ）。明滅させず一定。高さはグリッド線（0.01）
+## より上・移動範囲などのオーバーレイ（0.02〜）より下＝範囲表示の下に敷かれる。
+const GIMMICK_GLOW_ALPHA := 0.45
+const GIMMICK_GLOW_Y := 0.015
 
 ## 仕掛けの絵の置き場。絵は種類ごとに状態ごとの1枚＝{kind}_{state}.png。無ければ描かない（隠れている
 ## 罠は床だけが見える）。手前寄せは種類ごとに仕掛けの見た目の表（GimmickVisualCatalog）が持つ。
@@ -81,6 +87,7 @@ func build_tiles() -> void:
 	_tile_nodes.clear()
 	_standee_nodes.clear()
 	_gimmick_nodes.clear()
+	_gimmick_glow_nodes.clear()
 	_elev_cache.clear()
 	_elev_levels_cache.clear()
 	if _state == null:
@@ -540,8 +547,14 @@ func _add_gimmicks() -> void:
 		_gimmick_nodes[g.id] = spr
 		add_child(spr)
 		_apply_gimmick_texture(spr, g)
+		var glow := MeshInstance3D.new()
+		glow.mesh = _hex_mesh
+		glow.position = Vector3(p.x, elev(g.hex) + GIMMICK_GLOW_Y, p.y)
+		_gimmick_glow_nodes[g.id] = glow
+		add_child(glow)
+		_apply_gimmick_glow(glow, g)
 
-## 仕掛けを今の状態の絵に貼り替える。状態が変わったとき（踏んだ・再開の復元）に呼ぶ。
+## 仕掛けを今の状態の絵と床の光に貼り替える。状態が変わったとき（踏んだ・再開の復元）に呼ぶ。
 func refresh_gimmicks() -> void:
 	if _state == null:
 		return
@@ -549,6 +562,18 @@ func refresh_gimmicks() -> void:
 		var spr: Sprite3D = _gimmick_nodes.get(g.id)
 		if spr != null:
 			_apply_gimmick_texture(spr, g)
+		var glow: MeshInstance3D = _gimmick_glow_nodes.get(g.id)
+		if glow != null:
+			_apply_gimmick_glow(glow, g)
+
+## 床の光を今の状態に合わせて点け消しする。駒が乗って絵が隠れても、足元のまわりで状態が読める
+## （光らせる状態と色は GimmickKinds。doc/gdd/gimmicks.md 絵）。
+func _apply_gimmick_glow(glow: MeshInstance3D, g: Gimmick) -> void:
+	var c: Variant = GimmickKinds.glow_color(g)
+	glow.visible = c != null
+	if c != null:
+		var col: Color = c
+		glow.material_override = BoardMeshFactory.overlay_material(Color(col, GIMMICK_GLOW_ALPHA))
 
 ## 仕掛けの絵を貼る。状態の絵が無ければ隠す＝何も描かない。倍率と原点はオブジェクトの立ち絵と同じ。
 ## 見た目の表に種類の行が無ければ描かない（手前寄せを既定値に倒さない。表とコードの種類の突き合わせは

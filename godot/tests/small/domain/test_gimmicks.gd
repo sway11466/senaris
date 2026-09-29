@@ -88,6 +88,19 @@ func test_player_step_turns_the_switch_off_and_enemy_step_turns_it_on() -> void:
 	assert_eq(s.step_gimmick(_hex(SWITCH), 1).state, "on", "敵が踏むと再開する")
 	assert_null(s.step_gimmick(_hex(SWITCH), 1), "動いているときに敵が踏んでも変わらない")
 
+func test_switch_glows_only_while_on() -> void:
+	# 駒が乗って絵が隠れても状態が読めるよう、on の間だけ床を光らせる（doc/gdd/gimmicks.md 絵）。
+	var s := _state([_switch()])
+	var g: Gimmick = s.gimmick_by_id("switch-a")
+	assert_eq(GimmickKinds.glow_color(g), Color("#C85750"), "on の間は紋の赤で光る")
+	s.step_gimmick(_hex(SWITCH), 0)
+	assert_null(GimmickKinds.glow_color(g), "off にすると消える")
+
+func test_every_kind_says_whether_it_glows() -> void:
+	# 光らせるかは種類ごとに明示する（書き忘れを「光らない」に倒さない）。
+	for k in GimmickKinds.KINDS:
+		assert_true((GimmickKinds.KINDS[k] as Dictionary).has("glow"), "種類 '%s' に glow がある" % k)
+
 func test_switch_does_not_change_the_base_owner() -> void:
 	var s := _state([_switch()])
 	s.step_gimmick(_hex(SWITCH), 0)
