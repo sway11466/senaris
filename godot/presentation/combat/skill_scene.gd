@@ -45,7 +45,7 @@ func play(detail: SkillCast) -> void:
 	# ため：まず両者を見せてから放つ（突入直後に即着弾しない）。兵量バーは動かないので、
 	# 幕引きまでの長さは「放ってから最後の1発が届く」時間だけで決まる。
 	var eff := _skill_effect(detail, caster)
-	var shots := clampi(_troops_of(caster), 1, POS.size())
+	var shots := _shot_count(eff, _troops_of(caster))  # カタログの shots が one なら1発
 	# 自分掛けは飛ばさない（同じ場所への飛行は絵にならない）＝その場で弾けさせる。_cast も同じ条件で見る。
 	var fly := eff != null and eff.is_projectile() and cast_side != to_side
 	var reach := float(shots - 1) * STAGGER + (FLIGHT if fly else 0.0)
@@ -53,7 +53,7 @@ func play(detail: SkillCast) -> void:
 	_tween.tween_interval(LEAD_IN)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
-			_cast(cast_side, to_side, victim, eff, shots, detail, gen))
+			_cast(cast_side, to_side, caster, victim, eff, shots, detail, gen))
 	_tween.tween_interval(OUTRO + reach)
 	_tween.tween_callback(func() -> void:
 		if gen == _gen:
@@ -61,7 +61,7 @@ func play(detail: SkillCast) -> void:
 
 ## 発動の一撃。エフェクトを発動者の兵量ぶん出し、対象の隊列スロットへ配る。
 ## 効果量が残兵数で決まる（buff_value_per_troop）ので、発数＝残兵数にすると絵と数字が一致する。
-func _cast(cast_side: String, to_side: String, victim: UnitSnapshot, eff: CombatEffect, shots: int, detail: SkillCast, gen: int) -> void:
+func _cast(cast_side: String, to_side: String, caster: UnitSnapshot, victim: UnitSnapshot, eff: CombatEffect, shots: int, detail: SkillCast, gen: int) -> void:
 	# 発動音。1発ずつではなく発動につき1回（8体並ぶと8連射になって潰れる）。
 	# 素材はスキルIDの規約解決（assets/sfx/{skill_id}.ogg）＝陣形スキルと同じ引き方。
 	# 無ければ無音で進む。詳細 → doc/audio/sfx.md
@@ -69,13 +69,18 @@ func _cast(cast_side: String, to_side: String, victim: UnitSnapshot, eff: Combat
 	var targets := _troops_of(victim)
 	var fly := eff != null and eff.is_projectile() and cast_side != to_side  # 自分掛けは飛ばさない（play と同条件）
 	var beam := eff != null and eff.is_beam() and cast_side != to_side  # 自分掛けは引かない（その場で弾けさせる）
+	var one := eff != null and eff.is_single_shot()
 	for i in shots:
-		var to := _slot_pos(to_side, POS[i % targets])
+		var to := _slot_pos(to_side, SINGLE_POS if one else POS[i % targets])
 		var delay := float(i) * STAGGER
-		if fly:
-			_spawn_fly(_slot_pos(cast_side, POS[i]), to, eff, delay, gen)
-		elif beam:
-			_spawn_beam(_slot_pos(cast_side, POS[i]), to, eff, delay, gen)
+		if fly or beam:
+			var from := _shot_origin(cast_side, caster, i)  # 始点はスキンの muzzle
+			if one:
+				to.y = from.y  # 1発だけの武器は始点の高さのまま真横に撃つ
+			if fly:
+				_spawn_fly(from, to, eff, delay, gen)
+			else:
+				_spawn_beam(from, to, eff, delay, gen)
 		else:
 			_spawn_burst(to, to_side == "L", eff, delay, gen)
 	var tw := create_tween()

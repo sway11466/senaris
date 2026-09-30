@@ -33,6 +33,12 @@ var combat_effect: String  ## 攻撃エフェクトID（data/effects/combat_effe
 var map_move_sfx: String   ## 移動音の素材ID（SfxCatalog.MOVE_SFX）。空＝移動タイプの既定。→ doc/audio/sfx.md
 var on_board: bool = true  ## 盤に出る駒か（false＝会話専用。クロニクルのユニット章に並ばない）
 var retainers: Array       ## 戦闘演出で脇に並べる別スキンの skin_id（先頭＝本人の隣）。retinue のときだけ使う。→ doc/tech/combat_scene.md
+## 攻撃エフェクトの始点。muzzle_stand＝隊列スロットの足元から撃つ。false なら muzzle（戦闘の立ち絵の
+## 絵の外枠を 0〜1 とした割合）から撃つ。CSV の muzzle 列（"stand" か "横|縦"）。→ doc/tech/combat_scene.md
+const MUZZLE_STAND := "stand"
+const MUZZLE_SEP := "|"
+var muzzle_stand: bool = true
+var muzzle := Vector2.ZERO
 
 static func from_dict(d: Dictionary, side: String = "") -> UnitSkin:
 	var s := UnitSkin.new()
@@ -50,7 +56,22 @@ static func from_dict(d: Dictionary, side: String = "") -> UnitSkin:
 	s.on_board = bool(d.get("on_board", true))
 	var r: Variant = d.get("retainers", [])
 	s.retainers = r if typeof(r) == TYPE_ARRAY else []
+	var m := parse_muzzle(String(d.get("muzzle", MUZZLE_STAND)))
+	s.muzzle_stand = not m["ok"] or m["stand"]  # 読めない値は足元へ倒す（変換が止めるので実データには来ない）
+	s.muzzle = m["point"]
 	return s
+
+## muzzle セル → { ok, stand, point }。"stand" か、0〜1 の数2つを "|" で区切った "横|縦"。純関数。
+static func parse_muzzle(v: String) -> Dictionary:
+	var t := v.strip_edges()
+	if t == MUZZLE_STAND:
+		return { "ok": true, "stand": true, "point": Vector2.ZERO }
+	var parts := t.split(MUZZLE_SEP)
+	if parts.size() == 2 and parts[0].strip_edges().is_valid_float() and parts[1].strip_edges().is_valid_float():
+		var p := Vector2(parts[0].to_float(), parts[1].to_float())
+		if p.x >= 0.0 and p.x <= 1.0 and p.y >= 0.0 and p.y <= 1.0:
+			return { "ok": true, "stand": false, "point": p }
+	return { "ok": false, "stand": true, "point": Vector2.ZERO }
 
 ## 1体だけ描く駒か（複製しない）。馬車・飛空艇・ドラゴン級＝兵として数えられない見た目。
 func is_single_figure() -> bool:

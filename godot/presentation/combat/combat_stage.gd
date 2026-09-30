@@ -529,10 +529,8 @@ func _render_side(side: String, comb: UnitSnapshot, count: int, shield: int, ani
 		# 1体だけ＝損害で絵が減らないので、減り方は兵量バーが受け持つ。
 		# スキン由来は SINGLE_SCALE（馬車・竜級＝画を埋める）、actor_lineup 由来は ACTOR_SINGLE_SCALE
 		#（味方の大きさは combat_scale で焼き込み済みなので、控えめに足すだけ）。
-		var skin := _skin_of(comb)
-		var scale := SINGLE_SCALE if (skin != null and skin.is_single_figure()) else ACTOR_SINGLE_SCALE
 		var at := _slot_pos(side, SINGLE_POS)
-		_add_figure(layer, at.x, at.y, FIG_SCALE * scale, _texture_for(comb), team, comb, _mirror[side])
+		_add_figure(layer, at.x, at.y, FIG_SCALE * _single_scale(comb), _texture_for(comb), team, comb, _mirror[side])
 		return
 	var texs := _textures_for(comb, count)  # スロットごとの絵（先頭＝本人・以降は従者）
 	var figs := []
@@ -542,6 +540,57 @@ func _render_side(side: String, comb: UnitSnapshot, count: int, shield: int, ani
 	figs.sort_custom(func(u, v): return u["feet"] < v["feet"])  # 手前（下）を後に＝前面
 	for f in figs:
 		_add_figure(layer, f["cx"], f["feet"], f["s"], f["tex"], team, comb, _mirror[side])
+
+## single の駒の描く倍率。スキン由来は SINGLE_SCALE、actor_lineup 由来は ACTOR_SINGLE_SCALE。
+func _single_scale(comb: UnitSnapshot) -> float:
+	var skin := _skin_of(comb)
+	return SINGLE_SCALE if (skin != null and skin.is_single_figure()) else ACTOR_SINGLE_SCALE
+
+## 攻撃エフェクトの発数。カタログの shots が one なら1発、troops なら殴った側にいま並んでいる数。
+## 仕様 → doc/tech/combat_scene.md 攻撃エフェクト
+func _shot_count(eff: CombatEffect, troops: int) -> int:
+	if eff != null and eff.is_single_shot():
+		return 1
+	return clampi(troops, 1, POS.size())
+
+## 攻撃エフェクトの始点（i＝殴った側の隊列スロット番号）。スキンの muzzle が stand なら
+## スロットの足元、割合ならその立ち絵の絵の外枠の中の点（砲口・杖の先）。反転して描く側は横も反転する。
+## 立ち絵の置き方は _add_figure と同じ（足元が feet・幅 w の正方形に KEEP_ASPECT で収める）。
+func _shot_origin(side: String, comb: UnitSnapshot, i: int) -> Vector2:
+	var single := _lineup_of(comb) == UnitSkin.LINEUP_SINGLE
+	var at := _slot_pos(side, SINGLE_POS if single else POS[i])
+	var skin := _skin_of(comb) if single else _slot_skin(comb, i)
+	if skin == null or skin.muzzle_stand:
+		return at
+	var tex := _skin_texture(skin)
+	if tex == null:
+		return at  # 絵が無い＝プレースホルダ。指す点が無いので足元から
+	var w := _size().y * FIG_H * FIG_SCALE * (_single_scale(comb) if single else 1.0)
+	var tsize := Vector2(tex.get_width(), tex.get_height())
+	var k := minf(w / maxf(tsize.x, 1.0), w / maxf(tsize.y, 1.0))
+	var pad := (Vector2(w, w) - tsize * k) * 0.5  # KEEP_ASPECT の余り（正方の絵なら0）
+	var ur := _used_rect(tex)
+	var p := (Vector2(ur.position) + skin.muzzle * Vector2(ur.size)) * k + pad
+	var x := at.x - w * 0.5 + p.x
+	if _mirror[side]:
+		x = at.x + w * 0.5 - p.x
+	return Vector2(x, at.y - w + p.y)
+
+## 隊列スロット i の駒のスキン（先頭＝本人・以降は従者）。_textures_for と同じ割り当て。
+func _slot_skin(comb: UnitSnapshot, i: int) -> UnitSkin:
+	var own := _skin_of(comb)
+	if own == null or i == 0 or own.retainers.is_empty():
+		return own
+	var s: UnitSkin = SkinCatalog.skin_by_id(_skins, String(own.retainers[(i - 1) % own.retainers.size()]))
+	return s if s != null else own
+
+## 絵の外枠（透明でない範囲）。立ち絵は余白を焼き込んだ正方のキャンバスなので、割合はこの枠に掛ける。
+var _used_rects := {}  # Texture2D → Rect2i
+func _used_rect(tex: Texture2D) -> Rect2i:
+	if not _used_rects.has(tex):
+		var img := tex.get_image()
+		_used_rects[tex] = img.get_used_rect() if img != null else Rect2i(Vector2i.ZERO, Vector2i(tex.get_width(), tex.get_height()))
+	return _used_rects[tex]
 
 ## 片側を空にする（隊列を描かず兵量バーも隠す）。自分掛けのユニットスキル＝駒が1組しか
 ## 出ない演出で使う。バーの visible は次の _render_side が戻す。

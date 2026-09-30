@@ -9,7 +9,7 @@ const Csv = preload("res://data/csv_util.gd")
 const EffectDef = preload("res://data/effects/combat_effect.gd")
 
 ## 非空で必ず要る列（memo は任意）。
-const REQUIRED := ["effect_id", "name", "kind", "scale"]
+const REQUIRED := ["effect_id", "name", "kind", "scale", "shots"]
 
 func _initialize() -> void:
 	var rows := Csv.read_table("res://data/effects/combat_effect.csv")
@@ -28,6 +28,7 @@ static func build(rows: Array) -> Dictionary:
 	for v in Csv.duplicates(rows, "effect_id"):
 		problems.append("effect_id が重複: '%s'（後勝ち上書きになる）" % v)
 	problems += Csv.invalid_values(rows, "kind", EffectDef.KINDS, "effect_id")  # 打ち間違いが黙って impact に化けるのを防ぐ
+	problems += Csv.invalid_values(rows, "shots", EffectDef.SHOTS, "effect_id")  # 同・黙って兵数ぶんに化けるのを防ぐ
 	problems += _invalid_scale(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }

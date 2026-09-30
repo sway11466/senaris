@@ -37,6 +37,13 @@ func test_from_dict_reads_beam_kind() -> void:
 	assert_true(e.is_beam(), "光線の型")
 	assert_false(e.is_projectile(), "光線は飛ぶ型ではない")
 
+## 発数。one は兵数によらず1発。仕様 → doc/tech/combat_scene.md 攻撃エフェクト
+func test_from_dict_reads_shots() -> void:
+	assert_true(CombatEffect.from_dict({ "effect_id": "x", "shots": "one" }).is_single_shot(), "one は1発")
+	assert_false(CombatEffect.from_dict({ "effect_id": "x", "shots": "troops" }).is_single_shot(), "troops は兵数ぶん")
+	assert_true(CombatEffectCatalog.by_id("ray_rail_red").is_single_shot(), "固定砲台の光線は1発")
+	assert_false(CombatEffectCatalog.by_id("arrow").is_single_shot(), "矢は兵数ぶん")
+
 # --- from_dict：不正値の倒し方 ---
 
 func test_from_dict_falls_back_on_bad_values() -> void:

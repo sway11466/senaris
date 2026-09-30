@@ -1,31 +1,31 @@
-effect_id,name,kind,scale,memo
-エフェクトID,表示名,出し方,表示倍率,備考
-slash_s,斬撃（小）,impact,0.85,軽い剣の一閃。細い弧
-slash_m,斬撃（中）,impact,1.15,標準の剣。太く長い弧
-slash_l,斬撃（大）,impact,1.45,両手武器の薙ぎ払い。太い弧＋残り筋
-thrust,刺突,impact,1.15,突き・刺し全般。斬撃と同じ銀白で、弧ではなく横一文字の紡錘
-arrow,矢,projectile,0.9,弓の矢
-arrow_bone,呪いの矢,projectile,0.9,骨の矢＋冷たい青緑の燐光
-arrow_bolt,太矢,projectile,1.05,バリスタの太矢。太い軸＋大きな鉄の穂
-arrow_crossbow,クロスボウの矢,projectile,0.9,ハンターのクロスボウ。絵は arrow と同じ・音は arrow_bolt と同じ
-stone,投石,projectile,0.32,スリングの小石＝速度線ごと兵士の3割ほど
-cannonball,砲弾,projectile,0.55,飛空艇の砲。鉄球＋速度線。射程1だが飛ばす
-bomb,爆発,impact,0.9,ボマーの爆弾。漫画の爆発の輪。面積が大きいので中心は空洞
-drill,ドリル,impact,1.0,ドリルの一撃。中心を空けた鋼色の渦
-magic_bolt,魔弾,projectile,0.7,青白い魔力の弾
-ray_bolt,光線弾,projectile,0.7,銃の技師の古代の銃。青緑の涙滴＋尾の輪（魔弾と形・色で分ける）
-ray_rail_red,赤い光線,beam,1.0,固定砲台のレールガン。beam で2点間へ引き伸ばすので、同じ太さの横一本の帯に描く（頭・尾を付けない）
-magic_dust,魔法の粉,projectile,0.8,ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）
-fire_ball,火球,projectile,0.8,呪い師の深紅の火の玉＋尾を引く炎
-fire_breath,火炎の息,impact,2.0,竜のブレス。飛行から吹き下ろすので左上→右下の斜め向き。ボスの1体表示で大きく出るので色数は5〜6色に増やしている
-curse,呪い,impact,1.0,浮かび上がる青緑のドクロ
-curse_wisp,呪いの燐気,impact,0.9,顔のある青緑の魂火が数体まとわりつく。中心は空洞（触れる死＝ゴースト系）
-claw,爪痕,impact,0.9,3本の裂け目
-bite,牙,impact,1.0,大蛇の顎。正面で上下に開く＋大牙2本。面積が大きいので中心は空洞
-pincer,鋏,impact,1.2,大鋏で挟み切った跡。斬撃と同じ細い弧を2本、右寄りで交差
-punch,打撃,impact,0.8,徒手の一撃。同心の衝撃線
-holy,聖光,impact,1.0,近接の聖なる一撃。射程1なので飛ばさない
-spore,胞子,projectile,0.75,マタンゴの胞子。霞でなく粒の図形で描く（切り抜きのため）
-scream,悲鳴,impact,1.0,マンドラゴラの魔法の悲鳴。面積が大きいので中心は空洞
-poison,毒,impact,0.7,毒で兵数が減る瞬間に駒の上に浮かぶ紫のドクロ。攻撃エフェクトではなく盤の演出（ポイズンスティングの tick_effect）。向きを持たない正面・左右対称＝STYLE の向きの条項を外して生成
-repair,修理,impact,0.6,リペア。交差した2本のスパナ。動く一撃でなく静止した印なので STYLE の向きの条項を差し替えた。中心が空かないぶん小さめ
+effect_id,name,kind,scale,shots,memo
+エフェクトID,表示名,出し方,表示倍率,発数,備考
+slash_s,斬撃（小）,impact,0.85,troops,軽い剣の一閃。細い弧
+slash_m,斬撃（中）,impact,1.15,troops,標準の剣。太く長い弧
+slash_l,斬撃（大）,impact,1.45,troops,両手武器の薙ぎ払い。太い弧＋残り筋
+thrust,刺突,impact,1.15,troops,突き・刺し全般。斬撃と同じ銀白で、弧ではなく横一文字の紡錘
+arrow,矢,projectile,0.9,troops,弓の矢
+arrow_bone,呪いの矢,projectile,0.9,troops,骨の矢＋冷たい青緑の燐光
+arrow_bolt,太矢,projectile,1.05,troops,バリスタの太矢。太い軸＋大きな鉄の穂
+arrow_crossbow,クロスボウの矢,projectile,0.9,troops,ハンターのクロスボウ。絵は arrow と同じ・音は arrow_bolt と同じ
+stone,投石,projectile,0.32,troops,スリングの小石＝速度線ごと兵士の3割ほど
+cannonball,砲弾,projectile,0.55,troops,飛空艇の砲。鉄球＋速度線。射程1だが飛ばす
+bomb,爆発,impact,0.9,troops,ボマーの爆弾。漫画の爆発の輪。面積が大きいので中心は空洞
+drill,ドリル,impact,1.0,troops,ドリルの一撃。中心を空けた鋼色の渦
+magic_bolt,魔弾,projectile,0.7,troops,青白い魔力の弾
+ray_bolt,光線弾,projectile,0.7,troops,銃の技師の古代の銃。青緑の涙滴＋尾の輪（魔弾と形・色で分ける）
+ray_rail_red,赤い光線,beam,0.2,one,固定砲台のレールガン。beam で2点間へ引き伸ばすので、同じ太さの横一本の帯に描く（頭・尾を付けない）
+magic_dust,魔法の粉,projectile,0.8,troops,ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）
+fire_ball,火球,projectile,0.8,troops,呪い師の深紅の火の玉＋尾を引く炎
+fire_breath,火炎の息,impact,2.0,troops,竜のブレス。飛行から吹き下ろすので左上→右下の斜め向き。ボスの1体表示で大きく出るので色数は5〜6色に増やしている
+curse,呪い,impact,1.0,troops,浮かび上がる青緑のドクロ
+curse_wisp,呪いの燐気,impact,0.9,troops,顔のある青緑の魂火が数体まとわりつく。中心は空洞（触れる死＝ゴースト系）
+claw,爪痕,impact,0.9,troops,3本の裂け目
+bite,牙,impact,1.0,troops,大蛇の顎。正面で上下に開く＋大牙2本。面積が大きいので中心は空洞
+pincer,鋏,impact,1.2,troops,大鋏で挟み切った跡。斬撃と同じ細い弧を2本、右寄りで交差
+punch,打撃,impact,0.8,troops,徒手の一撃。同心の衝撃線
+holy,聖光,impact,1.0,troops,近接の聖なる一撃。射程1なので飛ばさない
+spore,胞子,projectile,0.75,troops,マタンゴの胞子。霞でなく粒の図形で描く（切り抜きのため）
+scream,悲鳴,impact,1.0,troops,マンドラゴラの魔法の悲鳴。面積が大きいので中心は空洞
+poison,毒,impact,0.7,troops,毒で兵数が減る瞬間に駒の上に浮かぶ紫のドクロ。攻撃エフェクトではなく盤の演出（ポイズンスティングの tick_effect）。向きを持たない正面・左右対称＝STYLE の向きの条項を外して生成
+repair,修理,impact,0.6,troops,リペア。交差した2本のスパナ。動く一撃でなく静止した印なので STYLE の向きの条項を差し替えた。中心が空かないぶん小さめ

@@ -43,3 +43,13 @@ func test_skin_by_id_and_resolve() -> void:
 	assert_eq(SkinCatalog.resolve(cat, "skeleton", "priest", 1).name, "スケルトン", "skin_id 優先")
 	assert_eq(SkinCatalog.resolve(cat, "", "priest", 1).name, "ホブゴブリン", "skin無→enemy先頭")
 	assert_eq(SkinCatalog.resolve(cat, "", "priest", 0).name, "プリースト", "skin無→ally先頭")
+
+## 攻撃エフェクトの始点（muzzle）。stand＝足元、"横|縦"＝立ち絵の絵の外枠に対する割合。
+## 仕様 → doc/tech/combat_scene.md 攻撃エフェクト
+func test_muzzle_from_dict() -> void:
+	var stand := UnitSkin.from_dict({ "skin_id": "a", "muzzle": "stand" })
+	assert_true(stand.muzzle_stand, "stand は足元から")
+	var point := UnitSkin.from_dict({ "skin_id": "b", "muzzle": "0.00|0.24" })
+	assert_false(point.muzzle_stand, "割合なら立ち絵の中の点から")
+	assert_almost_eq(point.muzzle.y, 0.24, 0.0001, "縦の割合")
+	assert_true(SkinCatalog.skin_by_id(SkinCatalog.load_standard(), "turret").muzzle_stand == false, "固定砲台は砲口から撃つ")

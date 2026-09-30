@@ -10,9 +10,15 @@ const KIND_PROJECTILE := "projectile"  ## 攻撃側から被弾側へ飛び、�
 const KIND_BEAM := "beam"              ## 攻撃側から被弾側までを1枚で一瞬に結び、少し置いて消える（光線）
 const KINDS := [KIND_IMPACT, KIND_PROJECTILE, KIND_BEAM]
 
+## 発数。仕様 → doc/tech/combat_scene.md 攻撃エフェクト
+const SHOTS_TROOPS := "troops"  ## 殴った側にいま並んでいる数ぶん撃つ（8人の弓兵なら矢は8本）
+const SHOTS_ONE := "one"        ## 兵数によらず1発だけ（砲身が1本の兵器）。始点の高さのまま真横に撃つ
+const SHOTS := [SHOTS_TROOPS, SHOTS_ONE]
+
 var effect_id: String  ## エフェクトID（主キー。unit_skin.csv の combat_effect が指す）
 var name: String       ## 表示名（斬撃（小）/矢 …。人が読む用）
 var kind: String = KIND_IMPACT
+var shots: String = SHOTS_TROOPS  ## 発数（SHOTS のどちらか。CSV で空欄不可＝変換が止める）
 ## 表示倍率（1.0＝被弾側の立ち絵1体ぶんの幅）。絵は余白を切り詰めて描く＝大小の差は
 ## キャンバスの余白ではなくこの列で付ける（ユニットの map_scale/combat_scale とは別物）。
 var scale: float = 1.0
@@ -23,6 +29,8 @@ static func from_dict(d: Dictionary) -> CombatEffect:
 	e.name = String(d.get("name", ""))
 	var k := String(d.get("kind", ""))
 	e.kind = k if KINDS.has(k) else KIND_IMPACT  # 未知値は重ねる側へ倒す（飛ばすより事故が小さい）
+	var sh := String(d.get("shots", ""))
+	e.shots = sh if SHOTS.has(sh) else SHOTS_TROOPS  # 未知値は兵数ぶんへ倒す（変換が止めるので実データには来ない）
 	var s: Variant = d.get("scale", 1.0)
 	e.scale = float(s) if (typeof(s) == TYPE_FLOAT or typeof(s) == TYPE_INT) and float(s) > 0.0 else 1.0
 	return e
@@ -36,3 +44,7 @@ func is_projectile() -> bool:
 
 func is_beam() -> bool:
 	return kind == KIND_BEAM
+
+## 兵数によらず1発だけ撃つか。
+func is_single_shot() -> bool:
+	return shots == SHOTS_ONE

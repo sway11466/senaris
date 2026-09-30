@@ -20,7 +20,7 @@ const REPAIRABLE_CATEGORIES := ["emplacement", "transport"]
 const NOT_REPAIRABLE_IDS := ["horse"]
 ## スキンの必須列。combat_lineup は既定値を持たせず必ず書かせる（空＝squad の暗黙既定にすると
 ## 「書き忘れ」と「squad と決めた」が区別できなくなる）。
-const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id", "combat_lineup", "on_board"]
+const SKIN_REQUIRED := ["skin_id", "name", "side", "type_id", "combat_lineup", "on_board", "muzzle"]
 ## side は陣営の2値のみ（convert が skins[tid][side] へ振り分けるため他値はNG）。
 const SIDES := ["ally", "enemy"]
 ## 従者リスト（retainers 列）の区切り。CSV なのでカンマは使えない。
@@ -87,6 +87,7 @@ static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []
 	for v in Csv.duplicates(rows, "skin_id"):
 		problems.append("skin_id が重複: '%s'" % v)
 	problems += _retainer_problems(rows)
+	problems += _muzzle_problems(rows)
 	if not problems.is_empty():
 		return { "problems": problems, "json": null }
 	var skins := {}
@@ -108,6 +109,7 @@ static func build_unit_skin(rows: Array, type_ids: Array, effect_ids: Array = []
 			"combat_effect": str(r.get("combat_effect", "")),
 			"map_move_sfx": str(r.get("map_move_sfx", "")),
 			"on_board": bool(r.get("on_board", true)),
+			"muzzle": str(r.get("muzzle", "")).strip_edges(),
 		})
 	return { "problems": problems, "json": { "skins": skins, "order": order } }
 
@@ -118,6 +120,18 @@ static func parse_retainers(row: Dictionary) -> Array:
 		var id := part.strip_edges()
 		if not id.is_empty():
 			out.append(id)
+	return out
+
+## muzzle（攻撃の始点）の書式：stand か、0〜1 の数2つを "|" で区切った "横|縦"。読めない値が
+## 黙って足元に化けると、砲口を指したつもりの駒が足元から撃つ。→ doc/tech/combat_scene.md
+static func _muzzle_problems(rows: Array) -> Array:
+	var out := []
+	for r in rows:
+		var v := str(r.get("muzzle", ""))
+		if v.strip_edges() == "":
+			continue  # 空欄は必須列の検証が拾う
+		if not SkinDef.parse_muzzle(v)["ok"]:
+			out.append("'%s': muzzle は stand か 0〜1 の '横|縦'（'%s'）" % [str(r.get("skin_id", "")), v])
 	return out
 
 ## retainers の検証：実在しない skin_id への参照（＝黙って絵が出ない罠）・隊列に入り切らない数・

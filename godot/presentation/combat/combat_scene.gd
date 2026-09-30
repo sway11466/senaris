@@ -82,7 +82,9 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 			SfxPlayer.play_sfx(SFX_DEFLECT if dmg <= 0 else eff.effect_id)
 	# 発数は「いま殴った側に並んでいる数」。反撃では既に減った後の隊列が振るので、
 	# detail の戦闘前の兵量を使うと、2体しか居ないのに5発斬るような絵になる。
-	var shots := clampi(int(_shown.get(_other_side(side), 1)), 1, POS.size())
+	# カタログの shots が one なら兵数によらず1発（_shot_count）。
+	var shots := _shot_count(eff, int(_shown.get(_other_side(side), 1)))
+	var one := eff != null and eff.is_single_shot()
 	var targets := _troops_of(comb)
 	var fly := eff != null and eff.is_projectile()
 	var beam := eff != null and eff.is_beam()
@@ -90,14 +92,15 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 		# とどめ＝一斉射の間だけ、窓の中身を被弾側へ寄せる（寄り切りは最後の1発の着弾）。
 		_start_finish_zoom(side, _strike_time(by, shots) * stretch)
 	# actor_lineup single の駒は着弾点を本人の位置（SINGLE_POS）へ寄せる＝集中砲火として読ませる。
-	# 飛び道具の始点も同様（1体から放つ絵にする）。スキン由来の single も同じ扱い。
+	# 1発だけの武器も同じく隊列の真ん中へ撃つ。飛び道具の始点はスキンの muzzle（_shot_origin）。
 	var target_single := _lineup_of(comb) == UnitSkin.LINEUP_SINGLE
-	var by_single := _lineup_of(by) == UnitSkin.LINEUP_SINGLE
 	for i in shots:
-		var to := _slot_pos(side, SINGLE_POS if target_single else POS[i % targets])
+		var to := _slot_pos(side, SINGLE_POS if (target_single or one) else POS[i % targets])
 		var delay := float(i) * STAGGER * stretch
 		if fly or beam:
-			var from := _slot_pos(_other_side(side), SINGLE_POS if by_single else POS[i])
+			var from := _shot_origin(_other_side(side), by, i)
+			if one:
+				to.y = from.y  # 1発だけの武器は始点の高さのまま真横に撃つ
 			if fly:
 				_spawn_fly(from, to, eff, delay, gen, stretch)
 			else:
@@ -118,7 +121,8 @@ func _strike_side(side: String, dmg: int, after: int, shield_after: int, comb: U
 			_float_label(side, "-%d" % dmg, DAMAGE_OUTLINE))
 
 ## その一撃が「放ってから最後の1発が届く」までの時間。飛翔＋発数ぶんの時差。
-## shots は殴る時点で並んでいる数（反撃は減った後の数）＝play が先に見積もって幕引きを合わせる。
-func _strike_time(by: UnitSnapshot, shots: int) -> float:
-	var stagger := float(clampi(shots, 1, POS.size()) - 1) * STAGGER
+## troops は殴る時点で並んでいる数（反撃は減った後の数）＝play が先に見積もって幕引きを合わせる。
+## 発数はここで _shot_count に通す（1発だけの武器は時差が無い）。
+func _strike_time(by: UnitSnapshot, troops: int) -> float:
+	var stagger := float(_shot_count(_effect_of(by), troops) - 1) * STAGGER
 	return stagger + (FLIGHT if _is_projectile(by) else 0.0)

@@ -5,203 +5,232 @@
 			"kind": "impact",
 			"memo": "軽い剣の一閃。細い弧",
 			"name": "斬撃（小）",
-			"scale": 0.85
+			"scale": 0.85,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "slash_m",
 			"kind": "impact",
 			"memo": "標準の剣。太く長い弧",
 			"name": "斬撃（中）",
-			"scale": 1.15
+			"scale": 1.15,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "slash_l",
 			"kind": "impact",
 			"memo": "両手武器の薙ぎ払い。太い弧＋残り筋",
 			"name": "斬撃（大）",
-			"scale": 1.45
+			"scale": 1.45,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "thrust",
 			"kind": "impact",
 			"memo": "突き・刺し全般。斬撃と同じ銀白で、弧ではなく横一文字の紡錘",
 			"name": "刺突",
-			"scale": 1.15
+			"scale": 1.15,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "arrow",
 			"kind": "projectile",
 			"memo": "弓の矢",
 			"name": "矢",
-			"scale": 0.9
+			"scale": 0.9,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "arrow_bone",
 			"kind": "projectile",
 			"memo": "骨の矢＋冷たい青緑の燐光",
 			"name": "呪いの矢",
-			"scale": 0.9
+			"scale": 0.9,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "arrow_bolt",
 			"kind": "projectile",
 			"memo": "バリスタの太矢。太い軸＋大きな鉄の穂",
 			"name": "太矢",
-			"scale": 1.05
+			"scale": 1.05,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "arrow_crossbow",
 			"kind": "projectile",
 			"memo": "ハンターのクロスボウ。絵は arrow と同じ・音は arrow_bolt と同じ",
 			"name": "クロスボウの矢",
-			"scale": 0.9
+			"scale": 0.9,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "stone",
 			"kind": "projectile",
 			"memo": "スリングの小石＝速度線ごと兵士の3割ほど",
 			"name": "投石",
-			"scale": 0.32
+			"scale": 0.32,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "cannonball",
 			"kind": "projectile",
 			"memo": "飛空艇の砲。鉄球＋速度線。射程1だが飛ばす",
 			"name": "砲弾",
-			"scale": 0.55
+			"scale": 0.55,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "bomb",
 			"kind": "impact",
 			"memo": "ボマーの爆弾。漫画の爆発の輪。面積が大きいので中心は空洞",
 			"name": "爆発",
-			"scale": 0.9
+			"scale": 0.9,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "drill",
 			"kind": "impact",
 			"memo": "ドリルの一撃。中心を空けた鋼色の渦",
 			"name": "ドリル",
-			"scale": 1.0
+			"scale": 1.0,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "magic_bolt",
 			"kind": "projectile",
 			"memo": "青白い魔力の弾",
 			"name": "魔弾",
-			"scale": 0.7
+			"scale": 0.7,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "ray_bolt",
 			"kind": "projectile",
 			"memo": "銃の技師の古代の銃。青緑の涙滴＋尾の輪（魔弾と形・色で分ける）",
 			"name": "光線弾",
-			"scale": 0.7
+			"scale": 0.7,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "ray_rail_red",
 			"kind": "beam",
 			"memo": "固定砲台のレールガン。beam で2点間へ引き伸ばすので、同じ太さの横一本の帯に描く（頭・尾を付けない）",
 			"name": "赤い光線",
-			"scale": 1.0
+			"scale": 0.2,
+			"shots": "one"
 		},
 		{
 			"effect_id": "magic_dust",
 			"kind": "projectile",
 			"memo": "ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）",
 			"name": "魔法の粉",
-			"scale": 0.8
+			"scale": 0.8,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "fire_ball",
 			"kind": "projectile",
 			"memo": "呪い師の深紅の火の玉＋尾を引く炎",
 			"name": "火球",
-			"scale": 0.8
+			"scale": 0.8,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "fire_breath",
 			"kind": "impact",
 			"memo": "竜のブレス。飛行から吹き下ろすので左上→右下の斜め向き。ボスの1体表示で大きく出るので色数は5〜6色に増やしている",
 			"name": "火炎の息",
-			"scale": 2.0
+			"scale": 2.0,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "curse",
 			"kind": "impact",
 			"memo": "浮かび上がる青緑のドクロ",
 			"name": "呪い",
-			"scale": 1.0
+			"scale": 1.0,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "curse_wisp",
 			"kind": "impact",
 			"memo": "顔のある青緑の魂火が数体まとわりつく。中心は空洞（触れる死＝ゴースト系）",
 			"name": "呪いの燐気",
-			"scale": 0.9
+			"scale": 0.9,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "claw",
 			"kind": "impact",
 			"memo": "3本の裂け目",
 			"name": "爪痕",
-			"scale": 0.9
+			"scale": 0.9,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "bite",
 			"kind": "impact",
 			"memo": "大蛇の顎。正面で上下に開く＋大牙2本。面積が大きいので中心は空洞",
 			"name": "牙",
-			"scale": 1.0
+			"scale": 1.0,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "pincer",
 			"kind": "impact",
 			"memo": "大鋏で挟み切った跡。斬撃と同じ細い弧を2本、右寄りで交差",
 			"name": "鋏",
-			"scale": 1.2
+			"scale": 1.2,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "punch",
 			"kind": "impact",
 			"memo": "徒手の一撃。同心の衝撃線",
 			"name": "打撃",
-			"scale": 0.8
+			"scale": 0.8,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "holy",
 			"kind": "impact",
 			"memo": "近接の聖なる一撃。射程1なので飛ばさない",
 			"name": "聖光",
-			"scale": 1.0
+			"scale": 1.0,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "spore",
 			"kind": "projectile",
 			"memo": "マタンゴの胞子。霞でなく粒の図形で描く（切り抜きのため）",
 			"name": "胞子",
-			"scale": 0.75
+			"scale": 0.75,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "scream",
 			"kind": "impact",
 			"memo": "マンドラゴラの魔法の悲鳴。面積が大きいので中心は空洞",
 			"name": "悲鳴",
-			"scale": 1.0
+			"scale": 1.0,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "poison",
 			"kind": "impact",
 			"memo": "毒で兵数が減る瞬間に駒の上に浮かぶ紫のドクロ。攻撃エフェクトではなく盤の演出（ポイズンスティングの tick_effect）。向きを持たない正面・左右対称＝STYLE の向きの条項を外して生成",
 			"name": "毒",
-			"scale": 0.7
+			"scale": 0.7,
+			"shots": "troops"
 		},
 		{
 			"effect_id": "repair",
 			"kind": "impact",
 			"memo": "リペア。交差した2本のスパナ。動く一撃でなく静止した印なので STYLE の向きの条項を差し替えた。中心が空かないぶん小さめ",
 			"name": "修理",
-			"scale": 0.6
+			"scale": 0.6,
+			"shots": "troops"
 		}
 	]
 }

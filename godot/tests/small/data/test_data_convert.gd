@@ -77,7 +77,8 @@ func test_unit_type_horse_is_not_repairable() -> void:
 # --- units: build_unit_skin ---
 
 func _valid_skin_row(sid: String, tid: String, side: String) -> Dictionary:
-	return { "skin_id": sid, "name": "名", "side": side, "type_id": tid, "combat_lineup": "squad", "on_board": true }
+	return { "skin_id": sid, "name": "名", "side": side, "type_id": tid, "combat_lineup": "squad", "on_board": true,
+		"muzzle": "stand" }
 
 func test_unit_skin_valid_builds_json() -> void:
 	var rows := [
@@ -153,6 +154,19 @@ func test_unit_skin_duplicate_skin_id_blocks() -> void:
 	var rows := [ _valid_skin_row("dup", "knight", "ally"), _valid_skin_row("dup", "knight", "enemy") ]
 	var r := Units.build_unit_skin(rows, ["knight"])
 	assert_null(r["json"], "skin_id 重複で json=null")
+
+# --- units: muzzle（攻撃エフェクトの始点） ---
+
+## 読めない値が黙って足元（stand）に化けると、砲口を指したつもりの駒が足元から撃つ＝止める。
+func test_unit_skin_muzzle_format() -> void:
+	var row := _valid_skin_row("kn_a", "knight", "ally")
+	row["muzzle"] = "0.10|0.25"
+	var r := Units.build_unit_skin([row], ["knight"])
+	assert_eq(r["problems"].size(), 0, "横|縦 の割合は通る")
+	assert_eq(r["json"]["skins"]["knight"]["ally"][0]["muzzle"], "0.10|0.25", "JSON へそのまま乗る")
+	for bad in ["top", "0.1", "0.1|x", "1.2|0.5", "0.5|-0.1"]:
+		row["muzzle"] = bad
+		assert_null(Units.build_unit_skin([row], ["knight"])["json"], "'%s' は json=null" % bad)
 
 # --- units: combat_lineup（戦闘演出での並べ方） ---
 
@@ -230,7 +244,7 @@ func test_map_move_sfx_unknown_id_blocks() -> void:
 # --- effects: build（攻撃エフェクト表） ---
 
 func _valid_effect_row(eid: String, kind: String) -> Dictionary:
-	return { "effect_id": eid, "name": "名", "kind": kind, "scale": 1.0 }
+	return { "effect_id": eid, "name": "名", "kind": kind, "scale": 1.0, "shots": "troops" }
 
 func test_effects_valid_builds_json() -> void:
 	var rows := [ _valid_effect_row("slash_s", "impact"), _valid_effect_row("arrow", "projectile"),
@@ -245,6 +259,13 @@ func test_effects_each_required_column_pins_json_null() -> void:
 		row.erase(col)
 		var r := Effects.build([row])
 		assert_null(r["json"], "'%s' 欠落で json=null" % col)
+
+func test_effects_invalid_shots_blocks() -> void:
+	var row := _valid_effect_row("ray_rail", "beam")
+	row["shots"] = "two"
+	assert_null(Effects.build([row])["json"], "shots が enum 外で json=null")
+	row["shots"] = "one"
+	assert_not_null(Effects.build([row])["json"], "one は通る")
 
 func test_effects_invalid_kind_blocks() -> void:
 	var r := Effects.build([ _valid_effect_row("slash_s", "burst") ])
