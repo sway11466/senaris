@@ -6,23 +6,26 @@
 			"kind": "production_switch",
 			"map_scale": 0.58,
 			"memo": "石の箱から青銅のレバーが突き出たもの。on はレバーが左で箱に赤い紋が光る・off はレバーが右",
-			"name": "生産装置のスイッチ"
+			"name": "生産装置のスイッチ",
+			"placement": "on:stand|off:stand"
 		},
 		{
 			"combat_scale": "",
-			"foot_z": 0.1,
+			"foot_z": "",
 			"kind": "thunder_sigil",
-			"map_scale": 0.5,
-			"memo": "罠。隠れている間は絵なし。見つかった後は全種類共通の印（trap_found.png）",
-			"name": "雷の紋"
+			"map_scale": 0.8,
+			"memo": "罠。隠れている間は絵なし。見つかった後も発動した後も、床に刻まれて赤く光る紋（thunder_sigil_found.png）",
+			"name": "雷の紋",
+			"placement": "found:flat"
 		},
 		{
 			"combat_scale": "",
 			"foot_z": 0.1,
 			"kind": "landmine",
 			"map_scale": 0.5,
-			"memo": "罠。隠れている間は絵なし。見つかった後は全種類共通の印（trap_found.png）。爆発した後は絵なし",
-			"name": "地雷"
+			"memo": "罠。隠れている間は絵なし。見つかった後は注意マーク（landmine_found.png）・爆発した後は床に爆発の跡（landmine_spent.png）",
+			"name": "地雷",
+			"placement": "found:stand|spent:flat"
 		}
 	]
 }

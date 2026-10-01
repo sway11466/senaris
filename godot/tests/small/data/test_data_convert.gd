@@ -705,7 +705,8 @@ func test_movement_duplicate_move_type_blocks() -> void:
 # --- gimmicks: build（仕掛けの見た目の表） ---
 
 func _valid_gimmick_row(kind: String) -> Dictionary:
-	return { "kind": kind, "name": "名", "map_scale": 0.5, "foot_z": 0.3, "combat_scale": "" }
+	return { "kind": kind, "name": "名", "placement": "on:stand|off:stand", "map_scale": 0.5, "foot_z": 0.3,
+		"combat_scale": "" }
 
 func test_gimmicks_valid_builds_json() -> void:
 	var rows := [ _valid_gimmick_row("production_switch") ]
@@ -725,6 +726,32 @@ func test_gimmicks_bad_numbers_block() -> void:
 		var row := _valid_gimmick_row("production_switch")
 		row[c[0]] = c[1]
 		assert_null(Gimmicks.build([row])["json"], "%s=%s で json=null" % [c[0], str(c[1])])
+
+func test_gimmicks_bad_placement_blocks() -> void:
+	# 置き方は「状態:stand|状態:flat」。空・置き方の書き間違い・区切り違い・状態の重複は通さない。
+	for bad in ["", "on:standing", "on stand", "on:stand|on:flat", ":flat"]:
+		var row := _valid_gimmick_row("production_switch")
+		row["placement"] = bad
+		assert_null(Gimmicks.build([row])["json"], "placement='%s' で json=null" % bad)
+
+func test_gimmicks_foot_z_only_with_a_standee() -> void:
+	# foot_z は立てる絵だけが使う＝床に貼るだけの種類は空でよく、値を書いたら通さない。
+	var flat_only := _valid_gimmick_row("thunder_sigil")
+	flat_only["placement"] = "found:flat"
+	flat_only["foot_z"] = ""
+	assert_not_null(Gimmicks.build([flat_only])["json"], "床に貼るだけ・foot_z 空は通る")
+	flat_only["foot_z"] = 0.1
+	assert_null(Gimmicks.build([flat_only])["json"], "床に貼るだけで foot_z を書いたら json=null")
+	var mixed := _valid_gimmick_row("landmine")
+	mixed["placement"] = "found:stand|spent:flat"
+	mixed["foot_z"] = ""
+	assert_null(Gimmicks.build([mixed])["json"], "立てる状態があるのに foot_z 空は json=null")
+
+func test_gimmick_visual_reads_placement() -> void:
+	var v := GimmickVisual.from_dict({ "kind": "landmine", "placement": "found:stand|spent:flat" })
+	assert_false(v.is_flat("found"))
+	assert_true(v.is_flat("spent"))
+	assert_false(v.is_flat("hidden"), "表に無い状態（絵が無い）は床に貼らない")
 
 func test_gimmicks_duplicate_kind_blocks() -> void:
 	var rows := [ _valid_gimmick_row("production_switch"), _valid_gimmick_row("production_switch") ]

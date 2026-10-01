@@ -1,0 +1,35 @@
+SUBJECT: A glowing magic SIGIL carved into the stone floor of an ancient ruin,
+as drawn on the world map of a classic 2D role-playing game. The floor itself
+is NOT drawn — only the sigil's lines are drawn, lying flat on the ground and
+seen from the front and slightly above, so the round sigil appears as a
+horizontal ELLIPSE: about 4/5 as tall as it is wide.
+
+THE SIGIL — ONE bold outer ring. Inside the ring, ONE large jagged LIGHTNING
+BOLT runs from the top of the ring to the bottom, clearly readable as
+lightning. Around the bolt, a few simple alchemical marks: short straight
+strokes and small crescents set just inside the ring. All lines are THICK and
+bold so the shape reads at thumbnail size; no fine detail, no tiny lettering.
+Everything is foreshortened the same way as the ellipse — it lies on the
+floor.
+
+SIZE — the sigil sits in the MIDDLE of the picture. In a 1024-pixel picture,
+the ellipse is about 600 pixels wide and 480 pixels tall, leaving at least 200
+pixels of white on every side. It must NOT touch any edge and must NOT be cut
+by any edge.
+
+COLOR — the lines glow a bright warm RED, around #E0443A, with a lighter,
+brighter core along the middle of each line, so the sigil reads as active and
+dangerous. The glow stays INSIDE the lines: NO halo, NO glow, NO light spills
+onto the white around them. Same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, crisp edges, a mature, slightly
+muted, limited color palette. NO blue, NO yellow, NO white lightning.
+
+THE BACKGROUND — everything around the lines, and inside the ring between the
+lines, is PURE FLAT WHITE, #FFFFFF, with NO texture, NO shading, NO gradient,
+NO floor, NO stone, NO drop shadow. This white is going to be deleted and the
+game will draw its own floor there, so every line must have a hard, clean,
+crisp edge against it.
+
+Nothing else: no stone slab, no pedestal, no pillar, no creature, no people,
+no sparks flying, no lettering, no signs. NO border, NO frame around the
+picture itself, NO vignette. Square 1:1.

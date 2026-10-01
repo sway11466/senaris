@@ -5,12 +5,12 @@ class_name GimmickKinds
 ## 詳細 → doc/gdd/gimmicks.md カタログ
 
 # --- 罠 ---
-# 状態は 隠れている（絵なし）→ 見つかった（全種類で1枚の印）→ 種類ごとの発動後。
+# 状態は 隠れている（絵なし）→ 見つかった → 種類ごとの発動後。見つかった後・発動後の絵は種類ごと。
 # 撃つ側は兵数 TRAP_TROOPS・補正なし、受ける側はふだんどおり（Combat.trap_hit_detail）。
 
 const HIDDEN := "hidden"  ## 隠れている＝何も描かない
-const FOUND := "found"    ## 見つかった＝印を描く
-const SPENT := "spent"    ## 撃ち終えた（一度きりの罠）＝もう撃たない・何も描かない
+const FOUND := "found"    ## 見つかった＝種類ごとの絵（雷の紋は紋・地雷は注意マーク）
+const SPENT := "spent"    ## 撃ち終えた（一度きりの罠）＝もう撃たない（地雷は爆発の跡を描く）
 const TRAP_TROOPS := 8    ## 罠の一撃の兵数（罠は兵数を持たない＝満員として計算する）
 
 ## 種類 id → { states: 選べる状態, params: 必須の固有の要素（ステージ JSON のキー）,
@@ -70,13 +70,6 @@ static func trap_armed(g: Gimmick) -> bool:
 ## 撃った後の状態（雷の紋＝見つかった扱い、地雷＝撃ち終えた）。
 static func state_after_trap(g: Gimmick) -> String:
 	return String(trap_spec(g.kind)["after"])
-
-## 盤に描く絵の名前（assets/gimmicks/{これ}.png）。見つかった罠は種類によらず1枚の印を使う。
-## 隠れている罠は名前を返すが絵を置かない＝何も描かない（doc/gdd/gimmicks.md 見え方）。
-static func art_stem(g: Gimmick) -> String:
-	if is_trap(g.kind) and g.state == FOUND:
-		return "trap_found"
-	return "%s_%s" % [g.kind, g.state]
 
 ## 拠点 base_hex の生産を止めているか（生産装置のスイッチが off）。
 static func blocks_production(g: Gimmick, base_hex: Vector2i) -> bool:

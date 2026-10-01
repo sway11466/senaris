@@ -49,11 +49,14 @@ var _tile_nodes := {}      # Vector2i -> MeshInstance3D（占領で拠点タイ�
 var _standee_nodes := {}   # Vector2i -> Sprite3D（占領で拠点の立ち絵を貼り替えるため）
 var _gimmick_nodes := {}   # 仕掛けの id -> Sprite3D（状態が変わると絵を貼り替えるため）
 var _gimmick_glow_nodes := {}  # 仕掛けの id -> MeshInstance3D（床の光。状態が変わると点け消しする）
+var _gimmick_flat_nodes := {}  # 仕掛けの id -> MeshInstance3D（床に貼る絵の板。置き方が flat の状態で出す）
 
 ## 仕掛けの床の光の透け具合（色は種類の定義 GimmickKinds が持つ）。明滅させず一定。高さはグリッド線（0.01）
 ## より上・移動範囲などのオーバーレイ（0.02〜）より下＝範囲表示の下に敷かれる。
 const GIMMICK_GLOW_ALPHA := 0.45
 const GIMMICK_GLOW_Y := 0.015
+## 床に貼る絵（紋・爆発の跡）の板の高さ。床の光より上・オーバーレイ（0.02〜）より下＝範囲表示は紋の上に出る。
+const GIMMICK_FLAT_Y := 0.017
 
 ## 仕掛けの絵の置き場。絵は種類ごとに状態ごとの1枚＝{kind}_{state}.png。無ければ描かない（隠れている
 ## 罠は床だけが見える）。手前寄せは種類ごとに仕掛けの見た目の表（GimmickVisualCatalog）が持つ。
@@ -88,6 +91,7 @@ func build_tiles() -> void:
 	_standee_nodes.clear()
 	_gimmick_nodes.clear()
 	_gimmick_glow_nodes.clear()
+	_gimmick_flat_nodes.clear()
 	_elev_cache.clear()
 	_elev_levels_cache.clear()
 	if _state == null:
@@ -537,7 +541,9 @@ func _apply_standee_texture(spr: Sprite3D, skin: TerrainSkin, hex: Vector2i) -> 
 	spr.flip_h = skin.flips_horizontally() and TerrainTiles.flips_h_at(hex)
 	return true
 
-## 仕掛けを置く。地形のオブジェクトと同じく、カメラに正対する立ち絵をマスに立てる。
+## 仕掛けを置く。置き方は状態ごとに見た目の表が決める＝立てる状態は地形のオブジェクトと同じく
+## カメラに正対する立ち絵、床に貼る状態はマスの中心に寝かせた板。両方を用意しておき、今の状態の
+## 置き方の側だけを出す（地雷は爆発すると立ち絵から床の板へ替わる）。詳細 → doc/gdd/gimmicks.md 絵
 func _add_gimmicks() -> void:
 	var up := BoardCamera.view_up()
 	for g in _state.gimmicks():
@@ -546,7 +552,11 @@ func _add_gimmicks() -> void:
 		spr.position = Vector3(p.x, elev(g.hex) + 0.02, p.y) + up * (_lift(g.hex) * up.y)
 		_gimmick_nodes[g.id] = spr
 		add_child(spr)
-		_apply_gimmick_texture(spr, g)
+		var flat := MeshInstance3D.new()
+		flat.position = Vector3(p.x, unit_floor(g.hex) + GIMMICK_FLAT_Y, p.y)  # 駒が立つ面に敷く
+		_gimmick_flat_nodes[g.id] = flat
+		add_child(flat)
+		_apply_gimmick_art(g)
 		var glow := MeshInstance3D.new()
 		glow.mesh = _hex_mesh
 		glow.position = Vector3(p.x, elev(g.hex) + GIMMICK_GLOW_Y, p.y)
@@ -559,9 +569,8 @@ func refresh_gimmicks() -> void:
 	if _state == null:
 		return
 	for g in _state.gimmicks():
-		var spr: Sprite3D = _gimmick_nodes.get(g.id)
-		if spr != null:
-			_apply_gimmick_texture(spr, g)
+		if _gimmick_nodes.has(g.id):
+			_apply_gimmick_art(g)
 		var glow: MeshInstance3D = _gimmick_glow_nodes.get(g.id)
 		if glow != null:
 			_apply_gimmick_glow(glow, g)
@@ -575,19 +584,40 @@ func _apply_gimmick_glow(glow: MeshInstance3D, g: Gimmick) -> void:
 		var col: Color = c
 		glow.material_override = BoardMeshFactory.overlay_material(Color(col, GIMMICK_GLOW_ALPHA))
 
-## 仕掛けの絵を貼る。状態の絵が無ければ隠す＝何も描かない。倍率と原点はオブジェクトの立ち絵と同じ。
-## 見た目の表に種類の行が無ければ描かない（手前寄せを既定値に倒さない。表とコードの種類の突き合わせは
+## 仕掛けの絵を今の状態に合わせる。状態の絵が無ければ両方隠す＝何も描かない。見た目の表に種類の行が
+## 無ければ描かない（置き方・手前寄せを既定値に倒さない。表とコードの種類の突き合わせは
 ## test_data_integrity が見る）。
-func _apply_gimmick_texture(spr: Sprite3D, g: Gimmick) -> void:
-	var path := GIMMICK_DIR + "%s.png" % GimmickKinds.art_stem(g)  # 見つかった罠は全種類で1枚の印
+func _apply_gimmick_art(g: Gimmick) -> void:
+	var spr: Sprite3D = _gimmick_nodes[g.id]
+	var flat: MeshInstance3D = _gimmick_flat_nodes[g.id]
+	spr.visible = false
+	flat.visible = false
+	var path := GIMMICK_DIR + "%s_%s.png" % [g.kind, g.state]
 	var look := GimmickVisualCatalog.by_kind(g.kind)
 	if look == null or not ResourceLoader.exists(path):
-		spr.visible = false
 		return
 	var tex := load(path) as Texture2D
-	spr.visible = tex != null
 	if tex == null:
 		return
+	if look.is_flat(g.state):
+		_apply_gimmick_flat(flat, tex)
+	else:
+		_apply_gimmick_standee(spr, tex, look, g)
+
+## 床に貼る絵＝マスの中心に寝かせた板。絵のキャンバスの横幅＝ヘックス1つの幅（大きさは書き出しが
+## 余白で焼き込む＝盤は map_scale を読まない）。奥行きは絵の縦横比を盤の俯角で戻した長さ＝床に寝かせて
+## 斜めに見たとき、絵に描いた形（楕円の紋）のまま見える。
+func _apply_gimmick_flat(flat: MeshInstance3D, tex: Texture2D) -> void:
+	var w := 2.0 * TILE
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(w, w * float(tex.get_height()) / float(tex.get_width()) / sin(deg_to_rad(BoardCamera.PITCH_DEG)))
+	flat.mesh = pm
+	flat.material_override = BoardMeshFactory.floor_art_material(tex)
+	flat.visible = true
+
+## 立てる絵＝カメラに正対する立ち絵。倍率と原点はオブジェクトの立ち絵と同じ。
+func _apply_gimmick_standee(spr: Sprite3D, tex: Texture2D, look: GimmickVisual, g: Gimmick) -> void:
+	spr.visible = true
 	spr.texture = tex
 	spr.material_override = BoardMeshFactory.standee_material(tex, Color.WHITE, look.foot_z, _lift(g.hex))
 	spr.pixel_size = (CANVAS_TILES * TILE) / float(tex.get_height())

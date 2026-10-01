@@ -8,6 +8,7 @@ static var _overlay_mat := {}  # Color -> StandardMaterial3D
 static var _bill_mat := {}     # Color -> StandardMaterial3D
 static var _standee_mat := {}  # "テクスチャpath|明暗" -> ShaderMaterial
 static var _standee_shader: Shader = null
+static var _floor_art_mat := {}  # Texture2D -> StandardMaterial3D（床に貼る仕掛けの絵）
 
 ## 立ち絵の材質。ビルボード・α抜き・明暗は Sprite3D の設定ではなくこのシェーダが持つ
 ## （material_override を差すと Sprite3D 側の billboard / alpha_cut / modulate は効かない）。
@@ -313,6 +314,19 @@ static func make_mark_material(color: Color, priority: int) -> StandardMaterial3
 ## タイル材質（アンライト＝2D canvas と同じ発色）。TerrainTiles と共有。
 static func terrain_material(tex: Texture2D) -> StandardMaterial3D:
 	return TerrainTiles.material(tex)
+
+## 床に貼る絵の材質（仕掛けの紋・爆発の跡）。α抜き・アンライト。テクスチャごとにキャッシュ。
+## 不透明の描き方（α抜き）にする＝床の板として奥行きを書き、上に立つ駒・手前の段差と普通に前後を比べる。
+static func floor_art_material(tex: Texture2D) -> StandardMaterial3D:
+	if _floor_art_mat.has(tex):
+		return _floor_art_mat[tex]
+	var m := StandardMaterial3D.new()
+	m.albedo_texture = tex
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_floor_art_mat[tex] = m
+	return m
 
 ## オーバーレイ材質（半透明・アンライト）。色ごとにキャッシュ。
 static func overlay_material(color: Color) -> StandardMaterial3D:

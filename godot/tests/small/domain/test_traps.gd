@@ -131,14 +131,6 @@ func test_nobody_levels_up_from_a_trap() -> void:
 	s.step_gimmick(_trap_hex(), 0)
 	assert_eq(s.unit_by_handle(1).level, 1)
 
-func test_found_traps_share_one_mark() -> void:
-	var sigil := Gimmick.new("a", "thunder_sigil", Vector2i.ZERO, GimmickKinds.FOUND)
-	var mine := Gimmick.new("b", "landmine", Vector2i.ZERO, GimmickKinds.FOUND)
-	assert_eq(GimmickKinds.art_stem(sigil), "trap_found")
-	assert_eq(GimmickKinds.art_stem(mine), "trap_found")
-	var hidden := Gimmick.new("c", "landmine", Vector2i.ZERO, GimmickKinds.HIDDEN)
-	assert_eq(GimmickKinds.art_stem(hidden), "landmine_hidden", "隠れている罠は絵を置かない名前")
-
 func test_trap_does_not_rename_the_wait_command() -> void:
 	# コマンドメニューの言い換えは state_after_step を見る＝罠は "" を返して正体を明かさない。
 	var g := Gimmick.new("a", "thunder_sigil", Vector2i.ZERO, GimmickKinds.HIDDEN)

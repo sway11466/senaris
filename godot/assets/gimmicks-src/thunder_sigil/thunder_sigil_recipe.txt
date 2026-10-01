@@ -1,0 +1,11 @@
+# 雷の紋（thunder_sigil）。床に刻まれて赤く光る紋。見つかった後も発動した後も同じ絵（状態 found）。
+# 隠れている間（hidden）は絵を置かない＝何も描かない。
+
+# master＝raw の白を抜いたもの。紋の輪の内側にも白が囲まれているので、四隅からのフラッドフィルではなく
+# 白に近い色を全部抜く（-fuzz 8% -transparent white）。
+magick assets\gimmicks-src\thunder_sigil\thunder_sigil_found_01_raw.jpg -alpha set -fuzz 8% -transparent white assets\gimmicks-src\thunder_sigil\thunder_sigil_found_03_master.png
+
+# 盤の絵。置き方は found:flat（床に寝かせた板に貼る）。map_scale は data/gimmicks/gimmick_visual.csv の行から引く。
+powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 thunder_sigil found=assets\gimmicks-src\thunder_sigil\thunder_sigil_found_03_master.png
+
+# 戦闘の画面の絵は持たない。

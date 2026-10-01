@@ -563,7 +563,16 @@ func test_gimmick_kinds_match_visual_table() -> void:
 	for k in table:
 		assert_true(k in code, "gimmick_visual.csv の '%s' が GimmickKinds にある" % k)
 
+func test_gimmick_placement_states_exist() -> void:
+	# 置き方（placement）に書いた状態は、その種類の状態の一覧（GimmickKinds）に実在する＝書き間違いの
+	# 状態は絵が出ない。data は domain を見られないので、convert ではなくここで突き合わせる。
+	for k in GimmickVisualCatalog.all_kinds():
+		var states := GimmickKinds.states(k)
+		for st in GimmickVisualCatalog.by_kind(k).placement:
+			assert_true(st in states, "%s の placement の状態 '%s' が GimmickKinds にある" % [k, st])
+
 func test_gimmick_foot_z_is_behind_units() -> void:
 	# 手前寄せは駒（BoardUnitRenderer.SPRITE_FOOT_Z）より小さい＝駒が仕掛けのマスに乗ると駒が手前に立つ。
+	# 床に貼るだけの種類は foot_z を持たない（0）＝この検査は立てる絵のある種類にだけ意味がある。
 	for k in GimmickVisualCatalog.all_kinds():
 		assert_lt(GimmickVisualCatalog.by_kind(k).foot_z, BoardUnitRenderer.SPRITE_FOOT_Z, "%s の foot_z は駒より小さい" % k)
