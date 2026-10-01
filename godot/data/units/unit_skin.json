@@ -71,6 +71,7 @@
 		"magic_hound",
 		"gear_soldier",
 		"bomber",
+		"wheel_soldier",
 		"turret",
 		"red_dragon"
 	],
@@ -698,6 +699,25 @@
 				}
 			],
 			"enemy": []
+		},
+		"lancer": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "machine",
+					"combat_effect": "thrust",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "move_wheel",
+					"muzzle": "stand",
+					"name": "車輪兵",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "wheel_soldier",
+					"type_id": "lancer"
+				}
+			]
 		},
 		"mage": {
 			"ally": [

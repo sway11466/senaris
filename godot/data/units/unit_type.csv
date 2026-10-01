@@ -25,6 +25,7 @@ valkyrie,70,20,0,30,10,flight,1,false,false,8,0,0,false,false,flier,
 novice,45,0,0,30,5,foot,1,false,false,8,0,0,false,false,infantry,
 fighter,50,0,0,40,6,foot,1,false,false,8,0,0,false,false,infantry,
 vanguard,55,0,0,50,6,foot,1,false,false,8,0,0,false,false,infantry,
+lancer,40,0,0,40,5,foot,1-2,false,false,8,0,0,false,false,infantry,ランサー。距離2から反撃を受けずに突く
 samurai,70,0,0,50,5,foot,1,false,false,8,0,0,false,false,infantry,
 knight,50,0,0,70,5,foot,1,false,false,8,0,0,false,false,infantry,
 forest_knight,50,0,0,70,5,forest_stride,1,false,false,8,0,0,false,false,infantry,knight の森歩き版
