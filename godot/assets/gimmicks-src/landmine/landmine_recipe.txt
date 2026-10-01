@@ -1,0 +1,11 @@
+# 地雷（landmine）。隠れている間（hidden）は絵を置かない＝何も描かない。
+# 見つかった後（found）＝床に描かれた黄色い三角の注意マーク（爆弾の図）。爆発した後（spent）＝床に爆発の跡。
+# どちらも置き方は flat（床に寝かせた板に貼る）。
+
+# master＝raw の白を抜いたもの（白に近い色を全部抜く。雷の紋と同じ）。
+magick assets\gimmicks-src\landmine\landmine_found_01_raw.jpg -alpha set -fuzz 8% -transparent white assets\gimmicks-src\landmine\landmine_found_03_master.png
+
+# 盤の絵。map_scale は data/gimmicks/gimmick_visual.csv の行から引く。
+powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 landmine found=assets\gimmicks-src\landmine\landmine_found_03_master.png
+
+# 戦闘の画面の絵は持たない。

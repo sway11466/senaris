@@ -1,0 +1,31 @@
+SUBJECT: A WARNING SIGN painted flat on the floor, as drawn on the world map of
+a classic 2D role-playing game. The floor itself is NOT drawn — only the sign
+is drawn, lying flat on the ground and seen from the front and slightly above,
+so it is squashed vertically: about 4/5 as tall as it would be seen straight
+on.
+
+THE SIGN — ONE equilateral TRIANGLE pointing up, filled with flat bright
+safety YELLOW, around #F2C200, with a thick solid BLACK border. In the middle
+of the triangle, ONE simple black BOMB icon: a round bomb with a short fuse
+and a small spark at the fuse tip. It looks like a modern road hazard sign or
+an interface warning icon — a clean flat graphic symbol, deliberately NOT
+fantasy, NOT hand-painted, NOT carved, NOT old, NOT weathered. All shapes are
+bold and simple so it reads at thumbnail size. Everything is foreshortened the
+same way — it lies on the floor.
+
+SIZE — the sign sits in the MIDDLE of the picture. In a 1024-pixel picture,
+the triangle is about 600 pixels wide and 420 pixels tall, leaving at least
+200 pixels of white on every side. It must NOT touch any edge and must NOT be
+cut by any edge.
+
+COLOR — only flat safety yellow and solid black. No gradients, no shading, no
+texture, no glow, no highlights.
+
+THE BACKGROUND — everything around the sign is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO floor, NO drop shadow. This white is
+going to be deleted and the game will draw its own floor there, so the sign
+must have a hard, clean, crisp edge against it.
+
+Nothing else: no post, no stand, no flag, no lettering, no exclamation mark,
+no second sign. NO border, NO frame around the picture itself, NO vignette.
+Square 1:1.
