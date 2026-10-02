@@ -1,0 +1,35 @@
+SUBJECT: A BLAST MARK left on the stone floor of an ancient ruin by a small
+explosion, as drawn on the world map of a classic 2D role-playing game. The
+floor itself is NOT drawn — only the soot is drawn, lying flat on the ground
+and seen from the front and slightly above, so the round mark appears as a
+horizontal ELLIPSE: about 4/5 as tall as it is wide — only slightly squashed,
+NOT a thin flat oval.
+
+THE MARK — a STARBURST of SOOT STREAKS: about ten to fourteen dark streaks
+shoot straight outward from the center in every direction, like the spokes of
+a splash, each one thick near the center and tapering to a ragged point at
+the outside. Between the streaks there are wide GAPS of pure white, all the
+way in to the center. The center is NOT a solid dark blob: only a small
+scattered speckle of soot sits there, with white showing through it. It must
+read as soot sprayed over a flat floor, NOT as a hole, NOT as a pit, NOT as
+a crater. Nothing stands up: no rim, no rubble, no stones, no smoke, no fire,
+no embers. Bold, simple shapes that read at thumbnail size.
+
+SIZE — the mark sits in the MIDDLE of the picture. In a 1024-pixel picture,
+the ellipse the streaks reach is about 600 pixels wide and 480 pixels tall,
+leaving at least 200 pixels of white on every side. It must NOT touch any
+edge and must NOT be cut by any edge.
+
+COLOR — dark charcoal black and sooty brown, around #2B2622 to #5A4A3E. Flat,
+with no gradient inside a streak. Same clean stylized cel-shaded look as the
+game's terrain and unit art: bold flat shapes, a mature, slightly muted,
+limited color palette. NO white or light grey inside the streaks, NO orange,
+NO red, NO glow.
+
+THE BACKGROUND — everything around and between the streaks is PURE FLAT
+WHITE, #FFFFFF, with NO texture, NO shading, NO gradient, NO floor, NO stone,
+NO drop shadow. This white is going to be deleted and the game will draw its
+own floor there, so every streak must have a clear edge against it.
+
+Nothing else: no bomb, no sign, no creature, no people, no lettering. NO
+border, NO frame around the picture itself, NO vignette. Square 1:1.

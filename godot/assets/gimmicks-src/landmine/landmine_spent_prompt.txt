@@ -1,0 +1,30 @@
+SUBJECT: A SCORCH MARK left on the stone floor of an ancient ruin by a small
+explosion, as drawn on the world map of a classic 2D role-playing game. The
+floor itself is NOT drawn — only the mark is drawn, lying flat on the ground
+and seen from the front and slightly above, so the roughly round mark appears
+as a horizontal ELLIPSE: about 4/5 as tall as it is wide.
+
+THE MARK — ONE blackened burn patch: a dark charred center, sooty black-brown,
+fading out to a ragged, splotchy edge. A few short CRACKS radiate outward from
+the center like a star, thick enough to read at thumbnail size. It is flat on
+the ground — nothing stands up: no crater rim, no rubble, no stones, no smoke,
+no fire, no embers.
+
+SIZE — the mark sits in the MIDDLE of the picture. In a 1024-pixel picture,
+the ellipse is about 600 pixels wide and 480 pixels tall, leaving at least 200
+pixels of white on every side. It must NOT touch any edge and must NOT be cut
+by any edge.
+
+COLOR — dark charcoal black and sooty brown, around #2B2622 at the center and
+#5A4A3E toward the edge. Same clean stylized cel-shaded look as the game's
+terrain and unit art: bold flat shading, clear shapes, a mature, slightly
+muted, limited color palette. NO white or light grey anywhere inside the mark,
+NO orange, NO red, NO glow.
+
+THE BACKGROUND — everything around the mark is PURE FLAT WHITE, #FFFFFF, with
+NO texture, NO shading, NO gradient, NO floor, NO stone, NO drop shadow. This
+white is going to be deleted and the game will draw its own floor there, so
+the mark must have a clear edge against it.
+
+Nothing else: no bomb, no sign, no creature, no people, no lettering. NO
+border, NO frame around the picture itself, NO vignette. Square 1:1.

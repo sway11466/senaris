@@ -1,0 +1,35 @@
+SUBJECT: The scattered FRAGMENTS of an exploded mine, lying on the stone floor
+of an ancient ruin, as drawn on the world map of a classic 2D role-playing
+game. The floor itself is NOT drawn — only the fragments are drawn, lying on
+the ground and seen from the front and slightly above. The pieces are spread
+over a roughly round area that appears as a horizontal ELLIPSE about 4/5 as
+tall as it is wide.
+
+THE FRAGMENTS — the round metal shell of the mine has burst into about fifteen
+to twenty-five pieces thrown outward from an empty center: curved, jagged
+SHARDS of thick dark iron casing, some showing a row of rivets, plus a few
+small bent strips and bolts. Pieces are of different sizes, larger ones near
+the center and smaller ones toward the edge, with plenty of pure white
+between them. The center is EMPTY white — no hole, no pit, no crater, no dark
+patch, no soot stain. Nothing stands up tall: no pile, no smoke, no fire, no
+embers, no sparks. Bold, simple shapes that read at thumbnail size.
+
+SIZE — the fragments sit in the MIDDLE of the picture. In a 1024-pixel
+picture, the area the pieces reach is about 600 pixels wide and 480 pixels
+tall, leaving at least 200 pixels of white on every side. No piece may touch
+any edge or be cut by any edge.
+
+COLOR — dark iron, around #3A3836, with a slightly lighter edge where the
+metal broke, around #6A6560, and a few dull bronze rivets, around #9C7A4A.
+Same clean stylized cel-shaded look as the game's terrain and unit art: bold
+flat shading, clear dark outlines, a mature, slightly muted, limited color
+palette. NO white or very light grey on the pieces, NO orange, NO red, NO
+glow.
+
+THE BACKGROUND — everything around and between the pieces is PURE FLAT WHITE,
+#FFFFFF, with NO texture, NO shading, NO gradient, NO floor, NO drop shadow.
+This white is going to be deleted and the game will draw its own floor there,
+so every piece must have a hard, clean, crisp edge against it.
+
+Nothing else: no whole bomb, no sign, no creature, no people, no lettering. NO
+border, NO frame around the picture itself, NO vignette. Square 1:1.
