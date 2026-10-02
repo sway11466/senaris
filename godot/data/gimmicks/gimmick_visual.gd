@@ -21,6 +21,9 @@ var map_scale: float
 var foot_z: float
 ## 戦闘の隊列の後ろの絵の背丈（ファイター何体ぶん）。書き出しだけが読む。隊列の後ろの絵を持たない種類は 0。
 var combat_scale: float
+## 罠の一撃で駒の上に出す絵＝攻撃エフェクトの表（combat_effect.csv）の effect_id。既存の絵を使い回せる
+## （地雷＝ボマーの爆発 bomb）。空＝一撃の絵がまだ無い（マスを光らせるだけ）。罠でない種類は空。
+var hit_effect: String
 
 static func from_dict(d: Dictionary) -> GimmickVisual:
 	var v := GimmickVisual.new()
@@ -30,6 +33,7 @@ static func from_dict(d: Dictionary) -> GimmickVisual:
 	v.map_scale = _num(d.get("map_scale"))
 	v.foot_z = _num(d.get("foot_z"))
 	v.combat_scale = _num(d.get("combat_scale"))
+	v.hit_effect = String(d.get("hit_effect", "")).strip_edges()
 	return v
 
 ## state を床に貼るか。表に無い状態は false（絵が無い＝描かない状態なので、置き方は問われない）。

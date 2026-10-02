@@ -101,6 +101,9 @@ const FLY_HOLD_SEC := 0.16             # 着弾後に刺さったまま置く時
 const STRIKE_TILES := 2.0        # 重ねる型の絵の大きさ（scale 1.0 でヘックス幅の何倍か。陣形の着弾と同程度＝盤では小さいと埋もれる）
 const STRIKE_SEC := 0.36         # 同・弾けて消えるまで（戦闘窓の 0.30 より少し長く＝盤では絵が小さい）
 const STRIKE_OPEN := 1.5         # 同・弾ける倍率
+const LINGER_OPEN_SEC := 0.15     # 撃ち手の居ない一撃（毒・罠）の絵が出るまで（ここで兵数が減る）
+const LINGER_HOLD_SEC := 0.45     # 同・留める時間＝何が起きたか見える長さ
+const LINGER_FADE_SEC := 0.30     # 同・消えるまで
 const STRIKE_FLY_TILES := 1.5    # 飛ぶ型の絵の大きさ（長辺がヘックス幅の何倍か。トリックショットと同じ）
 const STRIKE_BEAM_HOLD := 0.16   # 光線の型を引いたまま置く時間（秒。飛ぶ型の刺さったまま置く時間と同じ）
 const COUNTER_GAP_SEC := 0.40    # 着弾から反撃が放たれるまでの間（重ねる型の絵が消える頃）
@@ -345,7 +348,7 @@ func play_dot_tick(uid: int, hex: Vector2i, effect_id: String) -> float:
 	return _play_hit_on_unit(uid, hex, effect_id, false)
 
 
-## 罠の一撃：毒と同じく駒の上に絵（effect_id＝罠の種類）を浮かべ、着いた瞬間に兵数を減った値へ
+## 罠の一撃：毒と同じく駒の上に絵（effect_id＝仕掛けの見た目の表の hit_effect）を浮かべ、着いた瞬間に兵数を減った値へ
 ## 組み直す。倒れた駒は消していく。盤は減る前の兵数を hold したまま待っている＝ここで外す。
 ## 返り値＝見せ終えるまでの秒数。絵が無ければマスを光らせるだけ。詳細 → doc/gdd/gimmicks.md ダメージの罠
 func play_trap_hit(uid: int, hex: Vector2i, effect_id: String, killed: bool) -> float:
@@ -365,8 +368,37 @@ func _play_hit_on_unit(uid: int, hex: Vector2i, effect_id: String, killed: bool)
 		_flash_cells([hex], HIT_BURST_SEC)
 		on_land.call()
 		return HIT_BURST_SEC
-	_spawn_strike(hex, tex, false, STRIKE_TILES * eff.scale, on_land)
-	return maxf(STRIKE_SEC, HIT_FLASH_SEC * 2.0)
+	_spawn_lingering_strike(hex, tex, STRIKE_TILES * eff.scale, on_land)
+	return LINGER_OPEN_SEC + LINGER_HOLD_SEC + LINGER_FADE_SEC
+
+
+## 駒の上に一撃の絵を出して留める（毒・罠）。戦闘の一撃（_spawn_strike）は攻撃と反撃が続けて見える
+## 前提で、出た瞬間から薄れて 0.36 秒で消える。撃ち手の居ない一撃は1枚きりなので、何が起きたか
+## 見えるよう「出る → 留める → 消える」の3段にする（ディバインジャッジメントの降下と同じ考え方）。
+## 兵数が減る（on_land）のは出きった瞬間。
+func _spawn_lingering_strike(hex: Vector2i, tex: Texture2D, tiles: float, on_land: Callable) -> void:
+	var spr := Sprite3D.new()
+	spr.texture = tex
+	spr.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	spr.shaded = false
+	spr.transparent = true
+	spr.no_depth_test = true      # 駒より手前に出す（_spawn_strike と同じ扱い）
+	spr.render_priority = 6
+	var longest := float(maxi(tex.get_width(), tex.get_height()))
+	spr.pixel_size = (tiles * TILE) / maxf(longest, 1.0)
+	var p := Hex.to_pixel(hex, TILE)
+	spr.position = Vector3(p.x, _elev_fn.call(hex) + TILE * 0.9, p.y + BoardUnitRenderer.SPRITE_FOOT_Z)
+	spr.scale = Vector3.ONE * 0.5
+	spr.modulate.a = 0.0
+	add_child(spr)
+	var tw := _tween()
+	tw.set_parallel(true)
+	tw.tween_property(spr, "scale", Vector3.ONE, LINGER_OPEN_SEC)
+	tw.tween_property(spr, "modulate:a", 1.0, LINGER_OPEN_SEC)
+	tw.chain().tween_callback(on_land)
+	tw.chain().tween_interval(LINGER_HOLD_SEC)
+	tw.chain().tween_property(spr, "modulate:a", 0.0, LINGER_FADE_SEC)
+	tw.chain().tween_callback(spr.queue_free)
 
 
 ## 殴る側の武器エフェクト。スキン未設定・未定義IDなら null（絵は無い扱い）。

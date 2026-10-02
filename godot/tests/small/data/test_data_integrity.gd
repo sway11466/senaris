@@ -571,6 +571,16 @@ func test_gimmick_placement_states_exist() -> void:
 		for st in GimmickVisualCatalog.by_kind(k).placement:
 			assert_true(st in states, "%s の placement の状態 '%s' が GimmickKinds にある" % [k, st])
 
+func test_gimmick_hit_effect_exists() -> void:
+	# 一撃のエフェクトは罠だけが持つ。書いた名前は攻撃エフェクトの表（combat_effect.csv）にある
+	# ＝書き間違いで絵が黙って出なくなるのを防ぐ。空は「一撃の絵がまだ無い」でよい。
+	for k in GimmickVisualCatalog.all_kinds():
+		var fx := GimmickVisualCatalog.by_kind(k).hit_effect
+		if fx.is_empty():
+			continue
+		assert_true(GimmickKinds.is_trap(k), "%s は罠でないのに hit_effect を持つ" % k)
+		assert_not_null(CombatEffectCatalog.by_id(fx), "%s の hit_effect '%s' が combat_effect.csv にある" % [k, fx])
+
 func test_gimmick_foot_z_is_behind_units() -> void:
 	# 手前寄せは駒（BoardUnitRenderer.SPRITE_FOOT_Z）より小さい＝駒が仕掛けのマスに乗ると駒が手前に立つ。
 	# 床に貼るだけの種類は foot_z を持たない（0）＝この検査は立てる絵のある種類にだけ意味がある。

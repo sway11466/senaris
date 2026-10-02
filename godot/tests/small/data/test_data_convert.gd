@@ -706,7 +706,7 @@ func test_movement_duplicate_move_type_blocks() -> void:
 
 func _valid_gimmick_row(kind: String) -> Dictionary:
 	return { "kind": kind, "name": "名", "placement": "on:stand|off:stand", "map_scale": 0.5, "foot_z": 0.3,
-		"combat_scale": "" }
+		"combat_scale": "", "hit_effect": "" }
 
 func test_gimmicks_valid_builds_json() -> void:
 	var rows := [ _valid_gimmick_row("production_switch") ]

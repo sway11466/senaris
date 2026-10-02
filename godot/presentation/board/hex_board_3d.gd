@@ -1334,9 +1334,12 @@ func _play_trap(gimmick_id: String, hits: Array[Dictionary]) -> void:
 	if gen == _trap_gen and trap_cutin.is_valid():
 		await trap_cutin.call(g.kind)
 	var sec := 0.0
+	# 一撃の絵は仕掛けの見た目の表が指す攻撃エフェクト（空＝絵が無い＝マスを光らせるだけ）。
+	var look := GimmickVisualCatalog.by_kind(g.kind)
+	var fx := look.hit_effect if look != null else ""
 	if gen == _trap_gen:
 		for h in hits:
-			sec = maxf(sec, _impact_renderer.play_trap_hit(int(h["unit"]), h["hex"], g.kind, bool(h["killed"])))
+			sec = maxf(sec, _impact_renderer.play_trap_hit(int(h["unit"]), h["hex"], fx, bool(h["killed"])))
 	if sec > 0.0:
 		await get_tree().create_timer(sec / _fx_speed()).timeout
 	_end_trap(gen, was_locked)

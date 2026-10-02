@@ -1,5 +1,5 @@
-kind,name,placement,map_scale,foot_z,combat_scale,memo
-種類,管理名,置き方,盤の大きさ,手前寄せ,隊列の後ろの背丈,備考
-production_switch,生産装置のスイッチ,on:stand|off:stand,0.58,0.3,,石の箱から青銅のレバーが突き出たもの。on はレバーが左で箱に赤い紋が光る・off はレバーが右
-thunder_sigil,雷の紋,found:flat,0.8,,,罠。隠れている間は絵なし。見つかった後も発動した後も、床に刻まれて赤く光る紋（thunder_sigil_found.png）
-landmine,地雷,found:flat|spent:flat,0.6,,,罠。隠れている間は絵なし。見つかった後は床に注意マーク（landmine_found.png）・爆発した後は床に爆発の跡（landmine_spent.png）
+kind,name,placement,map_scale,foot_z,combat_scale,hit_effect,memo
+種類,管理名,置き方,盤の大きさ,手前寄せ,隊列の後ろの背丈,一撃のエフェクト,備考
+production_switch,生産装置のスイッチ,on:stand|off:stand,0.58,0.3,,,石の箱から青銅のレバーが突き出たもの。on はレバーが左で箱に赤い紋が光る・off はレバーが右
+thunder_sigil,雷の紋,found:flat,0.8,,,,罠。隠れている間は絵なし。見つかった後も発動した後も、床に刻まれて赤く光る紋（thunder_sigil_found.png）
+landmine,地雷,found:flat|spent:flat,0.6,,,bomb,罠。隠れている間は絵なし。見つかった後は床に注意マーク（landmine_found.png）・爆発した後は床に散らばった爆弾の破片（landmine_spent.png）。一撃はボマーの爆発（bomb）を使い回す
