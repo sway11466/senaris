@@ -4,7 +4,7 @@
   "name": "mine-monsters-st1",
   "haze": 0.3,
   "backdrop": "cave_wall",
-  "bgm": { "main": "dungeon" },
+  "bgm": { "main": "tunnels" },
   "player": [
     { "units": [
         { "type": "shieldwright", "actor": "shieldwright", "supply": "join", "col": 3, "row": 3 },
