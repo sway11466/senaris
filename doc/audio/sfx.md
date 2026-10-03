@@ -58,7 +58,7 @@
 | `menu_command` | タイトルのメニュー項目を選ぶ | `ui_confirm` | |
 | `menu_campaign` | 冒険譚カードを選ぶ | `ui_confirm` | |
 | `menu_stage` | ステージ行を選ぶ | `ui_confirm` | |
-| `menu_locked` | いま選べないものを触る（未解放ステージ・タイトルの選べない項目） | `ui_denied` | |
+| `menu_locked` | いま選べないものを触る（未解放ステージ・未解放の冒険譚カード・タイトルの選べない項目） | `ui_denied` | |
 | `menu_back` | 戻る・閉じる | `ui_cancel` | |
 
 扉を開く音は持たない。タイトルで扉を開けると動画に切り替わり、その動画に扉の軋みが入っている（[../art/menu.md](../art/menu.md) §5）。ここで効果音を重ねると同じ出来事が二重に鳴る。
