@@ -69,6 +69,7 @@ mandragora,マンドラゴラ,enemy,forest_witch,plant,0.9,0,0,0.9,squad,,scream
 slime,スライム,enemy,slime,magical,0.7,0,0,0.85,squad,,,,true,stand
 homunculus,ホムンクルス,enemy,cleric,magical,0.8,0,0,0.8,squad,,punch,,true,stand
 magic_hound,マジックハウンド,enemy,scout,magical,1.0,0,0,1.0,squad,,bite,,true,stand
+magic_eye,マジックアイ,enemy,witch,magical,0.8,0,20,0.8,squad,,ray_eye_red,move_drift,true,0.0|0.328
 gear_soldier,歯車兵,enemy,cleric,machine,0.8,0,0,0.8,squad,,punch,,true,stand
 bomber,ボマー,enemy,birdman,machine,0.8,0,20,0.8,squad,,bomb,,true,stand
 wheel_soldier,車輪兵,enemy,lancer,machine,1.0,0,0,1.0,squad,,thrust,move_wheel,true,stand

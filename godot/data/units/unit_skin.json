@@ -69,6 +69,7 @@
 		"slime",
 		"homunculus",
 		"magic_hound",
+		"magic_eye",
 		"gear_soldier",
 		"bomber",
 		"wheel_soldier",
@@ -1345,7 +1346,22 @@
 					"type_id": "witch"
 				}
 			],
-			"enemy": []
+			"enemy": [
+				{
+					"category": "magical",
+					"combat_effect": "ray_eye_red",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "move_drift",
+					"muzzle": "0.0|0.328",
+					"name": "マジックアイ",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "magic_eye",
+					"type_id": "witch"
+				}
+			]
 		},
 		"wizard": {
 			"ally": [

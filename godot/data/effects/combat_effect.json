@@ -121,6 +121,14 @@
 			"shots": "one"
 		},
 		{
+			"effect_id": "ray_eye_red",
+			"kind": "beam",
+			"memo": "マジックアイの目から撃つ光線。絵は ray_rail_red の写し（細さは scale で出す）",
+			"name": "赤い細い光線",
+			"scale": 0.1,
+			"shots": "troops"
+		},
+		{
 			"effect_id": "magic_dust",
 			"kind": "projectile",
 			"memo": "ロッドから飛ぶ無数の小さな丸と星。粒でなく図形で描く（切り抜きのため）",
