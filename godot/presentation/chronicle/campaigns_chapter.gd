@@ -568,7 +568,7 @@ func _plain_line(text: String) -> Label:
 	label.add_theme_color_override("font_color", TavernTheme.INK_SOFT)
 	return label
 
-## 顔の小さな絵＝会話パネルと同じ絵（portrait 優先、無ければ盤の絵）を実体だけ切り出して枠に収める。
+## 顔の小さな絵＝会話パネルと同じ絵（盤の絵を流用）を実体だけ切り出して枠に収める。
 ## 絵が無ければ同じ大きさの空き＝行の頭が揃う。
 func _face(skin_id: String) -> Control:
 	var box := Control.new()
@@ -578,17 +578,15 @@ func _face(skin_id: String) -> Control:
 	var skin := SkinCatalog.skin_by_id(_skins, skin_id)
 	if skin == null:
 		return box
-	for slot in ["portrait", "map"]:
-		var path := skin.image(slot)
-		if path.is_empty() or not ResourceLoader.exists(path):
-			continue
-		var tex := load(path) as Texture2D
-		if tex == null:
-			continue
-		var art := _art_rect(_cropped(tex, path), false)
-		art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		box.add_child(art)
-		break
+	var path := skin.image("map")
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return box
+	var tex := load(path) as Texture2D
+	if tex == null:
+		return box
+	var art := _art_rect(_cropped(tex, path), false)
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.add_child(art)
 	return box
 
 # ---------------------------------------------------------------------------

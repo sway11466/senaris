@@ -110,15 +110,6 @@
 - 対応：拠点に名前（ステージ内で一意・必須）を持たせ、セーブはその名前で突き合わせる。セーブの版を上げて変換を書く。
 - 該当：`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/application/stage_loader.gd`・`godot/application/save_migration.gd`・`godot/tools/map_editor/`・[gdd/map.md](gdd/map.md)・[tech/gamesystem.md](tech/gamesystem.md)。
 
-### refactoring-21
-
-**会話の顔の `portrait` スロットを廃止する**
-- ゴール：会話パネルの顔が `map` の絵だけで決まり、`portrait` という差し込み口がコードと doc から消えている。
-- 背景：`portrait` は画像の差し込み口として用意してあるが、画像は置かれていない。盤に出ないキャラの顔も、会話専用のスキンを足して `map` に絵を置けば出せるので、使う見込みが無い。`UnitSkin.portrait_label()` もどこからも呼ばれていない。
-- 対応：autowire のスロット一覧と会話の顔の解決順から `portrait` を外し、`portrait_label()` を消す。doc 側はスロット表・会話の顔の項・盤に出ない話者の注記・胸像の将来案を `map` 一本の説明に直す。
-- 考慮外：`combat`・`combat_effect` スロット。会話パネルの見せ方（倍率・透明余白の切り抜き）。
-- 該当：`godot/data/units/skin_catalog.gd`・`godot/data/units/unit_skin.gd`・`godot/presentation/ui/conversation_panel.gd`・[art/overview.md](art/overview.md)・[art/units.md](art/units.md)・[campaign/authoring.md](campaign/authoring.md)・[campaign/ancientruins1-mine-monsters.md](campaign/ancientruins1-mine-monsters.md)・[gdd/uiux.md](gdd/uiux.md)。
-
 ### refactoring-15
 
 **陣形スキルのドリフト検出（formations.md の一覧 ⇄ `Formation.RECIPES` ⇄ `skills.csv`）**
