@@ -41,7 +41,7 @@ var can_capture: bool = false  ## 拠点を占領できるか（cleric/bishop/pa
 var capacity: int = 0  ## 輸送の搭載数（0=輸送不可）。UnitType から設定。詳細 → doc/gdd/movement.md
 var repairable: bool = false  ## リペアで兵数を戻せるか（兵種が兵器・輸送）。UnitType から設定。詳細 → doc/gdd/skills.md リペア
 var needs_crew: bool = false  ## 移動に人手が要るか（隣に味方がいるときだけ動ける）。UnitType から設定。詳細 → doc/gdd/movement.md 兵器の移動
-var category: String = ""  ## 兵種（"emplacement"＝兵器／"transport"＝輸送 ほか）。UnitType から設定。人手に数えるかの判定に使う
+var category: String = ""  ## 兵種（"war_machine"＝兵器／"transport"＝輸送 ほか）。UnitType から設定。人手に数えるかの判定に使う
 
 ## 輸送ユニットか（駒を載せて運べるか）。
 func is_transport() -> bool:

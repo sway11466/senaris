@@ -32,11 +32,11 @@ birdman,バードマン,ally,birdman,flier,1.0,0,20,1.0,squad,,punch,,true,stand
 birdman_child,鳥人の子,ally,birdman,flier,0.75,0,20,0.75,squad,,,,false,stand
 miner,坑員,ally,novice,infantry,1.0,0,0,1.0,squad,,,,false,stand
 dwarf_miner,ドワーフの坑員,ally,dwarf,infantry,1.0,0,0,1.0,squad,,,,false,stand
-barricade,バリケード,ally,barricade,emplacement,0.85,0,0,0.85,squad,,,,true,stand
-ballista,バリスタ,ally,ballista,emplacement,1.2,0,0,1.2,squad,,arrow_bolt,,true,stand
-cannon,移動砲,ally,cannon,emplacement,1.0,0,0,1.0,single,,cannonball,,true,stand
-mantlet,移動壁,ally,mantlet,emplacement,1.0,0,0,1.0,single,,,,true,stand
-drill,ドリル,ally,drill,emplacement,1.0,0,0,1.0,single,,drill,,true,stand
+barricade,バリケード,ally,barricade,war_machine,0.85,0,0,0.85,squad,,,,true,stand
+ballista,バリスタ,ally,ballista,war_machine,1.2,0,0,1.2,squad,,arrow_bolt,,true,stand
+cannon,移動砲,ally,cannon,war_machine,1.0,0,0,1.0,single,,cannonball,,true,stand
+mantlet,移動壁,ally,mantlet,war_machine,1.0,0,0,1.0,single,,,,true,stand
+drill,ドリル,ally,drill,war_machine,1.0,0,0,1.0,single,,drill,,true,stand
 goblin,ゴブリン,enemy,cleric,goblin,0.8,0,0,0.8,squad,,slash_s,,true,stand
 hobgoblin,ホブゴブリン,enemy,priest,goblin,1.1,0,0,1.1,squad,,slash_m,,true,stand
 goblin_archer,ゴブリンアーチャー,enemy,slinger,goblin,0.8,0,0,0.9,squad,,arrow,,true,stand

@@ -117,7 +117,7 @@
 		"ballista": {
 			"ally": [
 				{
-					"category": "emplacement",
+					"category": "war_machine",
 					"combat_effect": "arrow_bolt",
 					"combat_lineup": "squad",
 					"description": "",
@@ -136,7 +136,7 @@
 		"barricade": {
 			"ally": [
 				{
-					"category": "emplacement",
+					"category": "war_machine",
 					"combat_effect": "",
 					"combat_lineup": "squad",
 					"description": "",
@@ -265,7 +265,7 @@
 		"cannon": {
 			"ally": [
 				{
-					"category": "emplacement",
+					"category": "war_machine",
 					"combat_effect": "cannonball",
 					"combat_lineup": "single",
 					"description": "",
@@ -379,7 +379,7 @@
 		"drill": {
 			"ally": [
 				{
-					"category": "emplacement",
+					"category": "war_machine",
 					"combat_effect": "drill",
 					"combat_lineup": "single",
 					"description": "",
@@ -756,7 +756,7 @@
 		"mantlet": {
 			"ally": [
 				{
-					"category": "emplacement",
+					"category": "war_machine",
 					"combat_effect": "",
 					"combat_lineup": "single",
 					"description": "",

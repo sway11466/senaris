@@ -119,14 +119,6 @@
 - 考慮外：`combat`・`combat_effect` スロット。会話パネルの見せ方（倍率・透明余白の切り抜き）。
 - 該当：`godot/data/units/skin_catalog.gd`・`godot/data/units/unit_skin.gd`・`godot/presentation/ui/conversation_panel.gd`・[art/overview.md](art/overview.md)・[art/units.md](art/units.md)・[campaign/authoring.md](campaign/authoring.md)・[campaign/ancientruins1-mine-monsters.md](campaign/ancientruins1-mine-monsters.md)・[gdd/uiux.md](gdd/uiux.md)。
 
-### refactoring-18
-
-**兵種 `emplacement` の内部IDを `war_machine` に改名する**
-- ゴール：コード・データ・ドキュメントで兵種を指す文字列が `war_machine` に統一されていて、プレイヤー向け表示名（日本語「兵器」・英語「War Machine」）と一致している。
-- 背景：内部IDは `emplacement`（設置物）だが、プレイヤー向け表示名は「兵器 / War Machine」。他の兵種（infantry・archer・mage …）は内部IDと表示名が対応しているのに、ここだけずれている。IDを見ても何を指すか分かりにくい。
-- 対応：`emplacement` を `war_machine` に一括置換する。CSV・JSON・GDScript・ドキュメントが対象。i18n キーも `unit_group.emplacement.name` → `unit_group.war_machine.name` に変える。
-- 該当：`godot/data/units/unit_type.csv`・`unit_skin.csv`・生成物（`unit_type.json`・`unit_skin.json`）・`godot/data/i18n/units.csv`・`godot/data/i18n/manual.csv`・GDScript で `emplacement` を参照する箇所・`doc/gdd/units.md`。
-
 ### refactoring-15
 
 **陣形スキルのドリフト検出（formations.md の一覧 ⇄ `Formation.RECIPES` ⇄ `skills.csv`）**

@@ -945,7 +945,7 @@ func _can_act_move(handle: int) -> bool:
 	return not _moved.has(handle)
 
 ## 人手に数えない兵種（兵器・輸送）。兵器どうしが並んでも動けない。詳細 → doc/gdd/movement.md 兵器の移動
-const CREWLESS_CATEGORIES := ["emplacement", "transport"]
+const CREWLESS_CATEGORIES := ["war_machine", "transport"]
 
 ## u を動かす人手があるか（人手が要る駒＝needs_crew の移動条件）。
 ## 隣のマスに味方の駒が居る（行動済みでもよい。兵器・輸送は数えない）か、輸送なら誰かが乗っていれば足りる。

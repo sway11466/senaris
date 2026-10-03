@@ -44,10 +44,10 @@ horse,0,0,0,10,7,foot,1,false,false,8,1,0,false,false,transport,
 airship,10,10,0,10,9,flight,1,false,false,8,4,0,true,false,transport,
 minecart,0,0,0,10,8,rail_bound,1,false,false,8,4,0,true,true,transport,改良前のトロッコ。レールの上だけを走る
 railcar,0,0,0,10,8,wheeled,1,false,false,8,4,0,true,true,transport,改良後のトロッコ。レールの外も走る
-barricade,0,0,0,80,0,stationary,0,false,false,8,0,0,true,false,emplacement,
-ballista,90,30,0,20,0,stationary,2-6,false,false,8,0,0,true,false,emplacement,
-cannon,50,20,0,20,2,wheeled,2-5,false,false,8,0,0,true,true,emplacement,移動砲。帝国の蒸気の機械仕掛けで自走する
-mantlet,0,0,0,60,2,wheeled,1,false,false,8,0,0,true,true,emplacement,移動壁。攻撃0なので殴れず、反撃もしない
-drill,50,0,0,50,2,wheeled,1,false,false,8,0,0,true,true,emplacement,ドリル（削岩機）。攻撃できる壁
+barricade,0,0,0,80,0,stationary,0,false,false,8,0,0,true,false,war_machine,
+ballista,90,30,0,20,0,stationary,2-6,false,false,8,0,0,true,false,war_machine,
+cannon,50,20,0,20,2,wheeled,2-5,false,false,8,0,0,true,true,war_machine,移動砲。帝国の蒸気の機械仕掛けで自走する
+mantlet,0,0,0,60,2,wheeled,1,false,false,8,0,0,true,true,war_machine,移動壁。攻撃0なので殴れず、反撃もしない
+drill,50,0,0,50,2,wheeled,1,false,false,8,0,0,true,true,war_machine,ドリル（削岩機）。攻撃できる壁
 slime,20,0,0,20,2,foot,1,false,false,8,0,0,false,false,magical,分裂スキルで増える
 ,,,,

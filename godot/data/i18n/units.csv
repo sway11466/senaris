@@ -81,7 +81,7 @@ unit_group.mage.name,魔法兵,Mage
 unit_group.flier.name,飛行兵,Flier
 unit_group.champion.name,精鋭,Champion
 unit_group.transport.name,輸送,Transport
-unit_group.emplacement.name,兵器,War Machine
+unit_group.war_machine.name,兵器,War Machine
 unit_group.engineer.name,技師,Engineer
 unit_group.goblin.name,ゴブリン,Goblins
 unit_group.undead.name,アンデッド,Undead
