@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/bomb__2017__explosion_large_no_tail_03.wav" -af "volume=-9.8dB" -c:a pcm_s24le bomb.wav
