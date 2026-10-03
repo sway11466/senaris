@@ -73,10 +73,30 @@
 		"gear_soldier",
 		"bomber",
 		"wheel_soldier",
+		"abomination",
 		"turret",
 		"red_dragon"
 	],
 	"skins": {
+		"abomination": {
+			"ally": [],
+			"enemy": [
+				{
+					"category": "machine",
+					"combat_effect": "magic_bolt",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"muzzle": "stand",
+					"name": "半魔半機の怪物",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "abomination",
+					"type_id": "abomination"
+				}
+			]
+		},
 		"airship": {
 			"ally": [
 				{

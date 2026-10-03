@@ -666,6 +666,25 @@
 			"shield": 8
 		},
 		{
+			"atk_air": 30,
+			"atk_ground": 30,
+			"can_capture": false,
+			"capacity": 0,
+			"category": "champion",
+			"defense": 50,
+			"id": "abomination",
+			"max_troops": 8,
+			"memo": "半魔半機の怪物。第1部のボス。術（射程1-6）と突撃",
+			"move": 4,
+			"move_after_attack": false,
+			"move_type": "foot",
+			"needs_crew": false,
+			"pierce": 0.5,
+			"range": "1-6",
+			"repairable": false,
+			"shield": 16
+		},
+		{
 			"atk_air": 0,
 			"atk_ground": 80,
 			"can_capture": false,
