@@ -68,6 +68,7 @@
 		"mandragora",
 		"slime",
 		"homunculus",
+		"homunculus_mage",
 		"magic_hound",
 		"magic_eye",
 		"gear_soldier",
@@ -770,6 +771,20 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "orc_mage",
+					"type_id": "mage"
+				},
+				{
+					"category": "magical",
+					"combat_effect": "magic_bolt",
+					"combat_lineup": "squad",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"muzzle": "stand",
+					"name": "ホムンクルス・メイジ",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "homunculus_mage",
 					"type_id": "mage"
 				}
 			]

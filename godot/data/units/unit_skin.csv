@@ -68,6 +68,7 @@ matango,マタンゴ,enemy,forest_slinger,plant,0.9,0,0,0.9,squad,,spore,,true,s
 mandragora,マンドラゴラ,enemy,forest_witch,plant,0.9,0,0,0.9,squad,,scream,,true,stand
 slime,スライム,enemy,slime,magical,0.7,0,0,0.85,squad,,,,true,stand
 homunculus,ホムンクルス,enemy,cleric,magical,0.8,0,0,0.8,squad,,punch,,true,stand
+homunculus_mage,ホムンクルス・メイジ,enemy,mage,magical,0.8,0,0,0.8,squad,,magic_bolt,,true,stand
 magic_hound,マジックハウンド,enemy,scout,magical,1.0,0,0,1.0,squad,,bite,,true,stand
 magic_eye,マジックアイ,enemy,witch,magical,0.8,0,20,0.8,squad,,ray_eye_red,move_drift,true,0.0|0.328
 gear_soldier,歯車兵,enemy,cleric,machine,0.8,0,0,0.8,squad,,punch,,true,stand
