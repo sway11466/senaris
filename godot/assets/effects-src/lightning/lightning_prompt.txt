@@ -1,0 +1,13 @@
+# STYLE: doc/art/units.md の EFFECT STYLE から、向きの条項（"The graphic is drawn as a blow travelling to the RIGHT, level and horizontal (no upward or downward tilt).")を外して使う。稲妻は上から真下へ落ちるため。
+SUBJECT: A BRANCHING LIGHTNING BOLT striking straight DOWN from the top of the
+frame to the bottom, like lightning hitting a target from the sky. ONE main
+jagged trunk runs down the vertical center with sharp zigzag turns, and many
+BRANCHES fork off it all the way down: each branch splits again into smaller
+forks, like the roots of a tree turned upside down, spreading out to the left
+and right. The main trunk is thick and solid; the branches get thinner as
+they split, but every stroke stays a bold, clear graphic shape, never a
+hairline. At the bottom tip of the trunk, a small sharp starburst flash where
+it strikes. The bolt fills the frame from top to bottom.
+Colors: a pale blue-white core, around #E8F6FF, inside a bright sky-blue
+edge, around #6FBFFF, outlined with a thin deeper blue line, around #2F6FC0.
+NO yellow, NO red, NO purple. Background: plain flat solid BLACK.

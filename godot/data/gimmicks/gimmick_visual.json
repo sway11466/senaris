@@ -13,10 +13,10 @@
 		{
 			"combat_scale": "",
 			"foot_z": "",
-			"hit_effect": "",
+			"hit_effect": "lightning",
 			"kind": "thunder_sigil",
 			"map_scale": 0.8,
-			"memo": "罠。隠れている間は絵なし。見つかった後も発動した後も、床に刻まれて赤く光る紋（thunder_sigil_found.png）",
+			"memo": "罠。隠れている間は絵なし。見つかった後も発動した後も、床に刻まれて赤く光る紋（thunder_sigil_found.png）。一撃は稲妻（lightning）",
 			"name": "雷の紋",
 			"placement": "found:flat"
 		},

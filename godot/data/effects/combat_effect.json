@@ -239,6 +239,14 @@
 			"name": "修理",
 			"scale": 0.6,
 			"shots": "troops"
+		},
+		{
+			"effect_id": "lightning",
+			"kind": "impact",
+			"memo": "枝分かれした青白い稲妻が上から真下へ落ちる。雷の紋（罠）の一撃。上から落ちるので STYLE の向きの条項を外して生成",
+			"name": "稲妻",
+			"scale": 0.9,
+			"shots": "troops"
 		}
 	]
 }
