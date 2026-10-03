@@ -336,6 +336,7 @@ func _terrain_group_height() -> float:
 
 ## 面を置く。上端は器の上端、高さは h。左右は、上から h に掛かる行の中身の右端と器の右端の間の中央
 ## ＝空いている場所の真ん中。空行と区切り線は幅に数えない（飾りであって読む物ではない）。
+## 地形名の行（face_free）も数えない＝名前の長さで絵が動かない。長い名前は絵に掛かってよい。
 func _place_face(face: Control, h: float) -> void:
 	var font := get_theme_font("font", "Label")
 	var fs := get_theme_font_size("font_size", "Label")
@@ -345,7 +346,8 @@ func _place_face(face: Control, h: float) -> void:
 		for it: Dictionary in _pages[_page]:
 			if y >= h:
 				break
-			left = maxf(left, _item_right(it, font, fs))
+			if not bool(it.get("face_free", false)):
+				left = maxf(left, _item_right(it, font, fs))
 			y += _item_height(it) + ROW_SEP
 	var right := _content.size.x
 	face.size = Vector2(FIGURE_W, h)
@@ -392,7 +394,8 @@ func _terrain_sample(hex: Vector2i) -> void:
 	# 厚みの帯は足場が持つ（盤のスカートと同じ＝立ち絵のマスでも、下の足場の高さと絵で立つ）。
 	var footing := gs if object_layer and gs != null else skin
 	var side := _side_texture(footing)
-	if object_layer:
+	# 地面に平らに貼るもの（レール＝track）は立てずに足場へ合成した1枚。目印の絵がヘックスを横切る。
+	if object_layer and skin.placement != "track":
 		_terrain_face.setup(ground, tex, skin.object_foot_z,
 			side, footing.elevation, footing.side_repeats())
 	else:
@@ -704,6 +707,7 @@ func _terrain_name(hex: Vector2i, type_id: String) -> String:
 func _build_terrain_lines(hex: Vector2i) -> void:
 	var terr := _state.terrain_at(hex)
 	_add_head_row(tr("ui.info.terrain_head") % _terrain_name(hex, terr))
+	_items[_items.size() - 1]["face_free"] = true
 	_add_full_row("")
 	_add_full_row("%s  ×%.2f" % [tr("ui.info.atk_mod"), TerrainType.attack_factor(terr)])
 	_add_full_row("%s  ×%.2f" % [tr("ui.info.def_mod"), TerrainType.defense_factor(terr)])
@@ -934,6 +938,7 @@ func _build_status(u: Unit) -> void:
 func _build_terrain(u: Unit) -> void:
 	var terr := _state.terrain_at(u.pos)
 	_add_row(tr("ui.info.terrain"), _terrain_name(u.pos, terr))
+	_items[_items.size() - 1]["face_free"] = true
 	_add_row(tr("ui.info.atk_mod"), "×%.2f" % TerrainType.attack_factor(terr))
 	_add_row(tr("ui.info.def_mod"), "×%.2f" % TerrainType.defense_factor(terr))
 	_add_separator()
