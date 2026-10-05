@@ -115,6 +115,31 @@ func unlock_text(campaign_id: String, stage_id: String) -> String:
 				pass
 	return String(TranslationServer.translate("ui.quest.unlock_sep")).join(parts)
 
+## 未解放の冒険譚の貼り紙に出す解放条件（例「「鉱山の魔物」を踏破すると挑める」）。
+## 前提の冒険譚自身が locked なら空文字＝題名を伏せている冒険譚を条件文が漏らさない（表示側は共通の一文に倒す）。
+func campaign_unlock_text(campaign_id: String) -> String:
+	var c := campaign(campaign_id)
+	if c.is_empty():
+		return ""
+	var parts: Array[String] = []
+	for cond in c["unlock"]:
+		if typeof(cond) != TYPE_DICTIONARY:
+			continue
+		match String(cond.get("type", "")):
+			"campaign_cleared":
+				var ref_id := String(cond.get("campaign", ""))
+				var ref := campaign(ref_id)
+				if ref.is_empty() or campaign_state(ref_id) == LOCKED:
+					return ""
+				# title は翻訳キー（i18n）。Node 外なので TranslationServer で解決
+				var title := String(TranslationServer.translate(String(ref["title"])))
+				parts.append(String(TranslationServer.translate("ui.select.unlock_campaign")) % title)
+			"entitlement":
+				parts.append(String(TranslationServer.translate("ui.quest.unlock_dlc")))
+			_:
+				pass
+	return String(TranslationServer.translate("ui.quest.unlock_sep")).join(parts)
+
 ## クリアを記録する（勝利時に main が呼ぶ）。デバッグ冒険譚・未知のステージは記録しない。
 func record_clear(campaign_id: String, stage_id: String) -> void:
 	var c := campaign(campaign_id)

@@ -277,3 +277,24 @@ func test_campaign_unlock_unknown_ref_stays_locked() -> void:
 func test_debug_campaign_state_always_unlocked() -> void:
 	var p := _progress()
 	assert_eq(p.campaign_state("dbg"), CampaignProgress.UNLOCKED, "デバッグ冒険譚は常時解放")
+
+## 冒険譚の解放条件の文: 前提が開いていれば題名入り、前提も閉じていれば空（表示側が共通の一文に倒す）。
+func test_campaign_unlock_text_hides_locked_prerequisite() -> void:
+	var campaigns: Array = [
+		CampaignCatalog.build({ "id": "part1", "title": "第1部", "board": "b",
+			"stages": [ { "id": "p1a", "file": "p1a.json", "synopsis": "s" } ] }, "res://x"),
+		CampaignCatalog.build({ "id": "part2", "title": "第2部", "board": "b",
+			"unlock": [ { "type": "campaign_cleared", "campaign": "part1" } ],
+			"stages": [ { "id": "p2a", "file": "p2a.json", "synopsis": "s" } ] }, "res://y"),
+		CampaignCatalog.build({ "id": "part3", "title": "第3部", "board": "b",
+			"unlock": [ { "type": "campaign_cleared", "campaign": "part2" } ],
+			"stages": [ { "id": "p3a", "file": "p3a.json", "synopsis": "s" } ] }, "res://z"),
+	]
+	var p := CampaignProgress.new(campaigns, ProgressStore.new(PATH))
+	var prev := TranslationServer.get_locale()
+	TranslationServer.set_locale("ja")
+	assert_eq(p.campaign_unlock_text("part2"), "「第1部」を踏破すると挑める。", "前提が開いていれば題名で指す")
+	assert_eq(p.campaign_unlock_text("part3"), "", "前提も未解放なら書かない＝伏せた題名を漏らさない")
+	p.record_clear("part1", "p1a")
+	assert_eq(p.campaign_unlock_text("part3"), "「第2部」を踏破すると挑める。", "前提が開いたら書ける")
+	TranslationServer.set_locale(prev)

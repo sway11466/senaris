@@ -281,7 +281,7 @@ func _on_next() -> void:
 		_render_current()
 
 ## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。
-## 未解放の冒険譚は絵を黒塗り・タイトルを伏せて貼る（押しても開かない）。仕様 → doc/gdd/stage_select.md 冒険譚カード
+## 未解放の冒険譚は絵を黒塗り・題名を伏せて貼る（押しても開かない）。仕様 → doc/gdd/stage_select.md 冒険譚カード
 ## 土台（非clip）とカード（clip）を分けてあるのは、カードの外へはみ出す飾りを後から
 ## 足せるようにするため。いまは飾りが無いので土台とカードは同じ大きさ。
 func _poster(c: Dictionary) -> Control:
@@ -374,20 +374,20 @@ func _pick_index(paths: Array) -> int:
 	return randi() % paths.size()
 
 ## 貼り紙下部の情報（タイトル／危険度／説明文）。デバッグ冒険譚は注記のみ。
-## 未解放（locked）はタイトルを伏せ、説明文の場所に全カード共通の一文を出す（どれを踏破すればよいかは書かない）。
+## 未解放（locked）は題名の代わりに「まだ見ぬ冒険」、説明文の場所に解放条件を出す。
+## 前提の冒険譚も未解放なら条件を書かず全カード共通の一文に倒す（伏せている題名を漏らさない）。
 ## title/desc は翻訳キー＝tr() で解決（生テキストでも tr() は素通し）。
 func _poster_info(c: Dictionary, locked: bool) -> Control:
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 6)
 
-	if not locked:
-		var title := Label.new()
-		title.text = tr(String(c["title"]))
-		title.add_theme_font_size_override("font_size", 20)
-		title.add_theme_color_override("font_color", TavernTheme.INK)
-		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER  # 貼り紙の題＝中央（絵の下の見出しとして据える）
-		info.add_child(title)
+	var title := Label.new()
+	title.text = tr("ui.select.campaign_unknown" if locked else String(c["title"]))
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", TavernTheme.INK)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER  # 貼り紙の題＝中央（絵の下の見出しとして据える）
+	info.add_child(title)
 
 	if c["debug"]:
 		var note := Label.new()
@@ -407,10 +407,15 @@ func _poster_info(c: Dictionary, locked: bool) -> Control:
 	info.add_child(danger)
 
 	# 説明文（依頼の紹介・自動折り返し）。カードに収まるのは5行までなので、本文側を5行以内で書く。
-	var desc_key := "ui.select.campaign_locked" if locked else String(c.get("desc", ""))
-	if not desc_key.is_empty():
+	# 未解放は解放条件（前提の冒険譚が開いているときだけ書ける）、書けなければ共通の一文。
+	var desc_text := tr(String(c.get("desc", ""))) if not String(c.get("desc", "")).is_empty() else ""
+	if locked:
+		desc_text = _progress.campaign_unlock_text(String(c["id"]))
+		if desc_text.is_empty():
+			desc_text = tr("ui.select.campaign_locked")
+	if not desc_text.is_empty():
 		var desc := Label.new()
-		desc.text = tr(desc_key)
+		desc.text = desc_text
 		desc.add_theme_font_size_override("font_size", 14)
 		desc.add_theme_color_override("font_color", TavernTheme.INK)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
