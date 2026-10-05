@@ -17,3 +17,6 @@ powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 landmine found=as
 powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 landmine spent=assets\gimmicks-src\landmine\landmine_spent_c_03_master.png
 
 # 戦闘の画面の絵は持たない。
+
+# カットイン（罠が撃つ前に挟む1枚絵）。raw をそのまま png にする（加工なし）。
+magick assets\gimmicks-src\landmine\landmine_cutin_01_raw.jpg assets\gimmicks\landmine_cutin.png

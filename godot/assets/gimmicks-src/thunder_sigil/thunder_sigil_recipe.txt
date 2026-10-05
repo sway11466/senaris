@@ -9,3 +9,6 @@ magick assets\gimmicks-src\thunder_sigil\thunder_sigil_found_01_raw.jpg -alpha s
 powershell -ExecutionPolicy Bypass -File tools\gen_gimmick.ps1 thunder_sigil found=assets\gimmicks-src\thunder_sigil\thunder_sigil_found_03_master.png
 
 # 戦闘の画面の絵は持たない。
+
+# カットイン（罠が撃つ前に挟む1枚絵）。raw をそのまま png にする（加工なし）。
+magick assets\gimmicks-src\thunder_sigil\thunder_sigil_cutin_01_raw.jpg assets\gimmicks\thunder_sigil_cutin.png
