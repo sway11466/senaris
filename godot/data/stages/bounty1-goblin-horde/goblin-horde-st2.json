@@ -69,5 +69,22 @@
   "victory": [
     { "type": "capture_hq" }
   ],
-  "haze": 0.8
+  "haze": 0.8,
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-horde.st2.intro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st2.intro.2" },
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-horde.st2.intro.3" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st2.intro.4" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-horde.st2.intro.5" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st2.intro.6" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-horde.st2.intro.7" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st2.intro.8" }
+    ],
+    "outro": [
+      { "speaker": "char.rookie.name", "skin": "novice", "text": "goblin-horde.st2.outro.1" },
+      { "speaker": "char.cap.name", "skin": "fighter", "text": "goblin-horde.st2.outro.2" },
+      { "speaker": "char.cleric.name", "skin": "cleric", "text": "goblin-horde.st2.outro.3" }
+    ]
+  }
 }

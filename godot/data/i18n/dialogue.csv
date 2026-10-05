@@ -530,6 +530,17 @@ goblin-horde.st1.intro.9,深手を負ったら陣へ下がってください。�
 goblin-horde.st1.outro.1,陣も砦も、両方見ていないと勝てないんですね。,You have to keep an eye on both — their fort and our camp.
 goblin-horde.st1.outro.2,そういう依頼を選んだんだ。悪くない働きだった。,That's the job we took. Not bad work.
 goblin-horde.st1.outro.3,報酬、数えてきますね。,I'll go count the reward.
+goblin-horde.st2.intro.1,隊長、聞こえますか。こちらは私ひとりです。,"Captain, can you hear me? I'm on my own out here."
+goblin-horde.st2.intro.2,聞こえる。皆、近くの砦に散って立てこもっている。扉を開けてくれれば出られる。,I hear you. The company's scattered — holed up in the forts nearby. Open the gates and we can come out.
+goblin-horde.st2.intro.3,でも、どの砦にもゴブリンが一緒に潜んでます。,But there are goblins hiding in every one of these forts with us.
+goblin-horde.st2.intro.4,先に砦を押さえた側の兵だけが外へ出られる。こちらが取れば、中のゴブリンは出てこられない。,"Whoever takes a fort first, only their troops walk out. If we take it, the goblins inside stay shut in."
+goblin-horde.st2.intro.5,向こうに取られたら？,And if they take it first?
+goblin-horde.st2.intro.6,逆になる。ゴブリンが出てきて、こちらは閉じ込められる。取り返せば、また出られる。,Then it's the other way around. The goblins come out and we're the ones shut in. Take it back and we're out again.
+goblin-horde.st2.intro.7,砦に入れるのは神官だけです。近い砦から順に開けていきます。,Only a cleric can claim a fort. I'll open the nearest ones first.
+goblin-horde.st2.intro.8,向こうも同じことを考えている。どの砦を先に取るかで、兵の数が決まるぞ。,They're thinking the same thing. Which forts you take first decides how many of us there are.
+goblin-horde.st2.outro.1,ひとりから、ここまで集まったんですね。,"We started with one, and look how many we gathered."
+goblin-horde.st2.outro.2,砦をひとつ開けるたびに手が増えた。いい順番だった。,Every fort you opened was more hands. A good order to take them in.
+goblin-horde.st2.outro.3,次は、最初から皆で出たいものです。,"Next time, I'd rather we all set out together."
 dragon-hunt.st5.intro.11,飛ぶ相手は初めてです。どこを狙えば当たりますか。,I've never shot at something airborne. Where do I aim?
 dragon-hunt.st5.intro.12,降りぎわを狙え。翼を広げた所が、いちばん大きい。,Take them as they stoop. Wings spread is the biggest they ever get.
 dragon-hunt.st6.intro.9,毒の匂いもします。荒野のものより濃い……。,"I smell venom too — stronger than in the badlands…"
