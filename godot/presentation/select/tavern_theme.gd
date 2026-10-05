@@ -277,11 +277,15 @@ const _ROUNDED_SHADER := """
 shader_type canvas_item;
 uniform vec2 rect_px;     // 描画矩形の実寸（px）
 uniform float radius_px;  // 角の半径
+uniform float gray = 0.0;        // 白黒の度合い（0＝元の色・1＝白黒）。dim_art が入れる
+uniform float brightness = 1.0;  // 明るさの倍率（1＝そのまま）。dim_art が入れる
 varying vec2 v_pos;
 void vertex() {
 	v_pos = VERTEX;
 }
 void fragment() {
+	float lum = dot(COLOR.rgb, vec3(0.299, 0.587, 0.114));
+	COLOR.rgb = mix(COLOR.rgb, vec3(lum), gray) * brightness;
 	vec2 half_px = rect_px * 0.5;
 	vec2 q = abs(v_pos - half_px) - (half_px - vec2(radius_px));
 	float d = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - radius_px;
@@ -306,6 +310,12 @@ static func round_corners(ctrl: Control, radius: float) -> void:
 	# （＝絵が丸ごと消える）。描画のたびなら必ず現在の寸法で更新できる。
 	ctrl.draw.connect(_feed_rect_px.bind(ctrl, mat))
 	_feed_rect_px(ctrl, mat)
+
+## round_corners 済みの絵を白黒にして明るさを brightness 倍に沈める（未解放の貼り紙の絵）。
+static func dim_art(ctrl: Control, brightness: float) -> void:
+	var mat := ctrl.material as ShaderMaterial
+	mat.set_shader_parameter("gray", 1.0)
+	mat.set_shader_parameter("brightness", brightness)
 
 ## 角丸シェーダに現在の寸法を渡す（round_corners が draw につなぐ）。
 static func _feed_rect_px(ctrl: Control, mat: ShaderMaterial) -> void:

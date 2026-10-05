@@ -15,6 +15,7 @@ signal title_requested  # タイトルのメニューへ戻る（左上のボタ
 const POSTER_SIZE := Vector2(341, 440)
 const POSTER_SEPARATION := 19  # 貼り紙どうしの隙間（縦横とも）＝枠と紙の隙間もこれに合わせる
 const POSTER_ART_HEIGHT := 230.0
+const LOCKED_ART_BRIGHTNESS := 0.15  # 未解放の貼り紙の絵＝白黒にして明るさを15%に沈める
 const RAIL_HEIGHT := 76.0   # ボード上梁の帯（board.png のテクスチャ縁と一致・ボード名を載せる）
 const BOARD_NAME_FONT := "res://assets/fonts/RockSalt-Regular.ttf"
 const BOARD_NAME_COLOR := Color(0.906, 0.824, 0.627)  # 焼き付けたクリーム
@@ -165,8 +166,6 @@ func setup(progress: CampaignProgress) -> void:
 ## 対象は貼り紙に出すもの（card があれば card、無ければ cover）だけ。デバッグ冒険譚は読まない。
 func _request_art() -> void:
 	for c in _progress.campaigns(false):
-		if _progress.campaign_state(String(c["id"])) == CampaignProgress.LOCKED:
-			continue  # 未解放の貼り紙は絵を黒塗りにする＝読まない
 		var card_paths: Array = c.get("card_paths", [])
 		var shown: Array = card_paths if not card_paths.is_empty() else c.get("cover_paths", [])
 		for p in shown:
@@ -281,7 +280,7 @@ func _on_next() -> void:
 		_render_current()
 
 ## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。
-## 未解放の冒険譚は絵を黒塗り・題名を伏せて貼る（押しても開かない）。仕様 → doc/gdd/stage_select.md 冒険譚カード
+## 未解放の冒険譚は絵を白黒で暗く沈め・題名を伏せて貼る（押しても開かない）。仕様 → doc/gdd/stage_select.md 冒険譚カード
 ## 土台（非clip）とカード（clip）を分けてあるのは、カードの外へはみ出す飾りを後から
 ## 足せるようにするため。いまは飾りが無いので土台とカードは同じ大きさ。
 func _poster(c: Dictionary) -> Control:
@@ -320,13 +319,6 @@ func _poster(c: Dictionary) -> Control:
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
 	TavernTheme.round_corners(art, float(TavernTheme.ART_CORNER_RADIUS))  # 紙に貼った写真の丸み
-	if locked:
-		art.texture = _black_texture()
-		content.add_child(art)
-		content.add_child(_poster_info(c, true))
-		_ignore_mouse(content)
-		pad.add_child(content)
-		return poster
 	# 貼り紙とステージ一覧は同じ cover を使う＝押した紙がそのまま開く体験にする（専用クロップは持たない）。
 	# 連番バリアントから表示ごとに1枚選び、選んだ index を stage 側へ渡して同じ絵に固定する。
 	# 大パネルへ渡す cover の番号は、貼り紙に何を出すかに関わらずここで決める。
@@ -339,10 +331,17 @@ func _poster(c: Dictionary) -> Control:
 	var shown_idx := _pick_index(card_paths) if not card_paths.is_empty() else art_idx
 	if shown_idx >= 0:
 		art.texture = load(String(shown[shown_idx])) as Texture2D
+	if locked:
+		# 未解放は白黒で沈める。絵がまだ無ければ黒一色
+		if art.texture == null:
+			art.texture = _black_texture()
+		TavernTheme.dim_art(art, LOCKED_ART_BRIGHTNESS)
 	content.add_child(art)
-	content.add_child(_poster_info(c, false))
+	content.add_child(_poster_info(c, locked))
 	_ignore_mouse(content)
 	pad.add_child(content)
+	if locked:
+		return poster
 
 	# 全ステージ制覇なら「討伐済」の焼き印を斜めに押す（card 内＝クリップ内でOK）
 	if _progress.is_all_cleared(String(c["id"])):
