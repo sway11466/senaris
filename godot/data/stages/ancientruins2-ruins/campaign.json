@@ -1,0 +1,8 @@
+{
+  "id": "ancientruins2-ruins",
+  "title": "ruins.title",
+  "board": "ancient_ruins",
+  "difficulty": 3,
+  "unlock": [ { "type": "campaign_cleared", "campaign": "ancientruins1-mine-monsters" } ],
+  "stages": []
+}

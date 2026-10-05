@@ -1,0 +1,8 @@
+{
+  "id": "ancientruins3-ancient-weapon",
+  "title": "ancient-weapon.title",
+  "board": "ancient_ruins",
+  "difficulty": 4,
+  "unlock": [ { "type": "campaign_cleared", "campaign": "ancientruins2-ruins" } ],
+  "stages": []
+}
