@@ -1,0 +1,73 @@
+{
+  "turn_limit": 20,
+  "name": "goblin-horde-st2",
+  "player": [
+    { "units": [
+        { "type": "cleric", "col": 6, "row": 11 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 21, "ai": "raid",
+      "units": [ { "skin": "goblin_lord", "col": 6, "row": 1 } ] }
+  ],
+  "bases": [
+    { "order": 10, "ai": "ambush", "col": 6, "row": 1, "team": "enemy", "hq": "enemy", "rest": "both", "sight": 3,
+      "garrison": [ { "skin": "hobgoblin", "count": 2, "native": "enemy" } ] },
+    { "col": 6, "row": 11, "team": "player", "hq": "player", "rest": "both", "garrison": [] },
+    { "order": 3, "ai": "charge", "col": 6, "row": 9, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "novice", "count": 1, "native": "player" },
+        { "skin": "archer", "count": 1, "native": "player" },
+        { "skin": "cleric", "count": 1, "native": "player" }
+      ] },
+    { "order": 2, "ai": "charge", "col": 6, "row": 6, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "fighter", "count": 1, "native": "player" },
+        { "skin": "hobgoblin", "count": 2, "native": "enemy" },
+        { "skin": "goblin_archer", "count": 1, "native": "enemy" },
+        { "skin": "archer", "count": 1, "native": "player" }
+      ] },
+    { "order": 1, "ai": "charge", "col": 6, "row": 3, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "goblin", "count": 2, "native": "enemy" },
+        { "skin": "goblin_archer", "count": 1, "native": "enemy" },
+        { "skin": "hobgoblin", "count": 2, "native": "enemy" }
+      ] },
+    { "order": 4, "ai": "charge", "col": 2, "row": 3, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "novice", "count": 1, "native": "player" },
+        { "skin": "archer", "count": 1, "native": "player" },
+        { "skin": "goblin", "count": 1, "native": "enemy" },
+        { "skin": "goblin_archer", "count": 1, "native": "enemy" },
+        { "skin": "hobgoblin", "count": 1, "native": "enemy" }
+      ] },
+    { "order": 5, "ai": "charge", "col": 2, "row": 9, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "novice", "count": 1, "native": "player" },
+        { "skin": "archer", "count": 1, "native": "player" },
+        { "skin": "goblin", "count": 1, "native": "enemy" },
+        { "skin": "goblin_archer", "count": 1, "native": "enemy" },
+        { "skin": "hobgoblin", "count": 1, "native": "enemy" }
+      ] },
+    { "order": 6, "ai": "charge", "col": 10, "row": 3, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "novice", "count": 1, "native": "player" },
+        { "skin": "archer", "count": 1, "native": "player" },
+        { "skin": "goblin", "count": 1, "native": "enemy" },
+        { "skin": "goblin_archer", "count": 1, "native": "enemy" },
+        { "skin": "hobgoblin", "count": 1, "native": "enemy" }
+      ] },
+    { "order": 16, "ai": "charge", "col": 10, "row": 9, "team": "neutral", "rest": "both",
+      "garrison": [
+        { "skin": "novice", "count": 1, "native": "player" },
+        { "skin": "archer", "count": 1, "native": "player" },
+        { "skin": "goblin", "count": 1, "native": "enemy" },
+        { "skin": "goblin_archer", "count": 1, "native": "enemy" },
+        { "skin": "hobgoblin", "count": 1, "native": "enemy" }
+      ] }
+  ],
+  "victory": [
+    { "type": "capture_hq" }
+  ],
+  "haze": 0.8
+}
