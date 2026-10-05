@@ -8,7 +8,7 @@ class_name ConversationPanel
 ## 駒の登場（`enter`）は何も表示しない行＝注入された enter_pace に行を渡して盤に駒を出し切ってから次の行へ進む。
 ## 詳細 → doc/campaign/authoring.md
 ##
-## 顔は UnitSkin の portrait スロット（未用意は名前2文字のプレースホルダ）。
+## 顔は UnitSkin の map スロットの絵を流用する（未用意は名前2文字のプレースホルダ）。
 ##
 ## 板は情報板と同じ手つきで掴んで動かせる（DraggablePanel）。吹き出しも顔も押下を止めない＝
 ## ボタン以外のどこを押して引きずっても板が動く（仕様 → doc/gdd/uiux.md 移動）。
@@ -324,7 +324,7 @@ func _make_bubble(line: Dictionary, right: bool) -> Control:
 	balloon.add_child(vb)
 	return balloon
 
-## 顔＝キャラの絵（portrait 優先／無ければ map スプライトを流用）。
+## 顔＝キャラの絵（map スプライトを流用）。
 ## レイアウトは「基準枠」＝左右 FACE_INSET_X を詰めた中央ぶんの場所だけ取り、絵は 256 全体を描く。
 ## 通常キャラは枠外が透過で違和感なし／大型キャラは体が枠外（吹き出し側）へはみ出して見える。
 ## 背景枠なし・上寄せ固定＝行が高くても伸びない。絵が無い時だけ名前2文字のプレースホルダ枠を出す。
@@ -369,14 +369,13 @@ func _make_face(skin_id: String) -> Control:
 	box.add_child(lbl)
 	return box
 
-## 会話の顔画像パス＝portrait 優先、無ければ map スプライトを流用、どちらも無ければ ""（プレースホルダ）。
+## 会話の顔画像パス＝map スプライトを流用、無ければ ""（プレースホルダ）。
 func _face_image(sk: UnitSkin) -> String:
 	if sk == null:
 		return ""
-	for slot in ["portrait", "map"]:
-		var p := sk.image(slot)
-		if p != "" and ResourceLoader.exists(p):
-			return p
+	var p := sk.image("map")
+	if p != "" and ResourceLoader.exists(p):
+		return p
 	return ""
 
 ## 吹き出しのしっぽ＝小さな三角。points_left で向き（顔の側）を変える。バルーンと同色。

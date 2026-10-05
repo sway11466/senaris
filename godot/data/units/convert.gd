@@ -14,7 +14,7 @@ const TYPE_REQUIRED := [
 	"range", "move_after_attack", "can_capture", "max_troops", "capacity", "shield", "repairable", "needs_crew",
 ]
 ## リペアの対象になる兵種。repairable 列はこの兵種の行だけ true にする（→ repair_problems）。
-const REPAIRABLE_CATEGORIES := ["emplacement", "transport"]
+const REPAIRABLE_CATEGORIES := ["war_machine", "transport"]
 ## 兵種はリペアの対象でも、直せない型。生き物は修理できない（馬＝輸送だが生き物）。
 ## 詳細 → doc/gdd/skills.md リペア
 const NOT_REPAIRABLE_IDS := ["horse"]

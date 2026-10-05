@@ -27,7 +27,7 @@ var name: String          ## 開発用メモ（CSV の name 列）。画面表�
 ## 表示は tr("unit_group." + category + ".name")。戦闘・移動の判定には使わない（ツール・図鑑・見出し用）。
 var category: String
 var description: String    ## 説明文（図鑑/ツールチップ用。任意）
-var images: Dictionary     ## { "map": "res://...", "combat": "res://...", "portrait": "res://..." }（未設定は空＝プレースホルダ）
+var images: Dictionary     ## { "map": "res://...", "combat": "res://..." }（未設定は空＝プレースホルダ）
 var combat_lineup: String = LINEUP_SQUAD  ## 戦闘演出での並べ方（LINEUPS のいずれか）
 var combat_effect: String  ## 攻撃エフェクトID（data/effects/combat_effect.csv）。空＝既定のスパーク
 var map_move_sfx: String   ## 移動音の素材ID（SfxCatalog.MOVE_SFX）。空＝移動タイプの既定。→ doc/audio/sfx.md
@@ -86,11 +86,6 @@ func map_label() -> String:
 ## ※ 画面に出すときは tr("unit." + skin_id + ".name") を使うこと。
 func combat_label() -> String:
 	return name
-
-## 会話の顔（portrait）のプレースホルダ文字（開発用メモの先頭2文字）。未用意時に丸顔などへ描く合図。
-## ※ 画面に出すときは tr("unit." + skin_id + ".name").substr(0, 2) を使うこと。
-func portrait_label() -> String:
-	return name.substr(0, 2)
 
 ## スロットの画像パス（"map"/"combat"…）。未設定は ""（＝プレースホルダで描く合図）。
 func image(slot: String) -> String:

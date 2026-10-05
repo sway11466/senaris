@@ -60,11 +60,11 @@ static func _to_skins(arr: Variant, side: String) -> Array:
 
 ## 画像を規約で自動解決：assets/units/{skin_id}/{skin_id}_{slot}.png があれば images[slot] に入れる。
 ## JSON に明示 images があればそちらを優先。アートを置くだけで描画がプレースホルダ→画像に切り替わる。
-## slot: map（盤上）・portrait（会話の顔）。combat 等は必要になったら足す。
+## slot: map（盤上）・combat（戦闘の立ち絵）。会話の顔は map を流用する（専用スロットは持たない）。
 static func _autowire_images(s: UnitSkin) -> void:
 	if s.skin_id == "":
 		return
-	for slot in ["map", "combat", "portrait"]:
+	for slot in ["map", "combat"]:
 		if not s.images.has(slot):
 			var p := "res://assets/units/%s/%s_%s.png" % [s.skin_id, s.skin_id, slot]
 			if ResourceLoader.exists(p):

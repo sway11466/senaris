@@ -25,7 +25,7 @@ var capacity: int        ## 輸送の搭載数（0=輸送不可）
 var shield: int = 0      ## シールドの初期値（兵数の手前で損害を受ける器。0＝無し）。詳細 → doc/gdd/combat.md
 var repairable: bool = false  ## リペアで兵数を戻せるか（兵種が兵器・輸送）。詳細 → doc/gdd/skills.md リペア
 var needs_crew: bool = false  ## 移動に人手が要るか（隣に味方がいるときだけ動ける）。詳細 → doc/gdd/movement.md 兵器の移動
-var category: String = ""  ## 兵種（CSV "category"。"emplacement"＝兵器／"transport"＝輸送 ほか）
+var category: String = ""  ## 兵種（CSV "category"。"war_machine"＝兵器／"transport"＝輸送 ほか）
 
 ## 辞書（JSONの1要素）から UnitType を作る。欠けたキーは無難な既定値。
 static func from_dict(d: Dictionary) -> UnitType:

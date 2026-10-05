@@ -12,7 +12,7 @@ func _at(col: int, row: int) -> Vector2i:
 func _engine(id: int, pos: Vector2i) -> Unit:
 	var u := Unit.new(id, 0, pos, 2)
 	u.needs_crew = true
-	u.category = "emplacement"
+	u.category = "war_machine"
 	return u
 
 ## 人手が要る輸送（トロッコの形）。
@@ -36,7 +36,7 @@ func test_catalog_wires_needs_crew_and_category() -> void:
 		assert_true(cat[id].needs_crew, "%s は人手が要る" % id)
 	assert_false(cat["ballista"].needs_crew, "据え置きのバリスタは人手の列を持たない")
 	assert_false(cat["wagon"].needs_crew, "馬車は馬が引く＝人手は要らない")
-	assert_eq(cat["cannon"].category, "emplacement", "兵種が型から載る")
+	assert_eq(cat["cannon"].category, "war_machine", "兵種が型から載る")
 	assert_eq(cat["wagon"].category, "transport", "兵種が型から載る")
 
 # --- 隣の味方 ---
