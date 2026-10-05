@@ -90,5 +90,6 @@
 | `quake` | 坑道が抜ける地響き（冒険譚3 st3 の会話） | Sonniss GDC 2020 / Stefano Cremona - Explosions `DeepExplosion02` | wav 96kHz/24bit | 同上 | 頭から 3.40 秒（2.90 秒からフェード）、-9.0 dB。quake_recipe.txt |
 | `magic_shield` | マジックシールドの発動（結界を張る） | Sonniss GDC 2019 / Sound Spark LLC – Magic Spells, Buffs and Attacks `Ice_Spell_Ice_Spell_Buff_Positive_02` | wav 96kHz/24bit | 同上 | 頭から 1.45 秒（末尾の無音は書き出しで落ちる）、-6.8 dB。magic_shield_recipe.txt |
 | `bomb` | 爆発（ボマーの爆弾・地雷の一撃） | Sonniss GDC 2017 / Gamemaster Audio - Explosion Sound Pack `explosion_large_no_tail_03` | wav 96kHz/24bit | 同上 | 切り出しなし（末尾の無音は書き出しで落ちる）、-9.8 dB。bomb_recipe.txt |
+| `lightning` | 稲妻（雷の紋の一撃） | Sonniss GDC 2020 / David Dumais Audio - Electricity Magic 1 `Magic_Spells_Impact_Electricity25` | wav 44.1kHz/16bit | 同上 | 頭から 1.20 秒（0.80 秒からフェード）、-7.5 dB。lightning_recipe.txt |
 
 「改変度」は書き出し（切り出し・音量調整・ogg 化）を済ませた時点で埋める。

@@ -1,0 +1,1 @@
+ffmpeg -y -i "sonniss/lightning__2020__Magic_Spells_Impact_Electricity25.wav" -af "atrim=0:1.2,afade=t=out:st=0.8:d=0.4,volume=-7.5dB" -c:a pcm_s24le lightning.wav
