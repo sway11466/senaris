@@ -1,4 +1,4 @@
-公開: 
+公開: https://craftkobo.itch.io/senaris/devlog/1692625/one-cleric-and-a-map-full-of-locked-doors （2026-10-06）
 
 区分: General Update or Announcement（投稿画面の「Updates, announcements, or changelogs」の項。#3・#6 と同じ枠）。ビルドの告知が主題に入るため。
 
