@@ -1,26 +1,28 @@
 {
   "turn_limit": 30,
-  "rank": { "turn_s": 10, "turn_a": 15, "survival_s": 5, "survival_a": 4 },
   "name": "mine-monsters-st1",
-  "haze": 0.3,
-  "backdrop": "cave_wall",
-  "bgm": { "main": "tunnels" },
   "player": [
-    { "units": [
-        { "type": "shieldwright", "actor": "shieldwright", "supply": "join", "col": 3, "row": 3 },
-        { "type": "dwarf", "actor": "dwarf", "supply": "join", "col": 3, "row": 5 },
-        { "type": "gunner", "actor": "gunner", "supply": "join", "col": 2, "row": 3 },
-        { "type": "wizard", "actor": "wizard", "supply": "join", "col": 2, "row": 4 },
-        { "type": "witch", "actor": "witch", "supply": "join", "col": 1, "row": 4 }
+    {       "units": [
+        { "type": "shieldwright", "actor": "shieldwright", "col": 2, "row": 3, "supply": "join" },
+        { "type": "dwarf", "actor": "dwarf", "col": 3, "row": 3, "supply": "join" },
+        { "type": "gunner", "actor": "gunner", "col": 2, "row": 2, "supply": "join" },
+        { "type": "wizard", "actor": "wizard", "col": 4, "row": 3, "supply": "join" },
+        { "type": "witch", "actor": "witch", "col": 4, "row": 2, "supply": "join" }
       ] }
   ],
   "enemy": [
     { "order": 1, "name": "mine-monsters.st1.squad.1", "ai": "charge",
       "units": [
-        { "skin": "homunculus", "col": 10, "row": 3 },
-        { "skin": "homunculus", "col": 11, "row": 5 },
-        { "skin": "gear_soldier", "col": 11, "row": 3 },
-        { "skin": "gear_soldier", "col": 10, "row": 5 }
+        { "skin": "gear_soldier", "col": 9, "row": 5 },
+        { "skin": "gear_soldier", "col": 8, "row": 5 },
+        { "skin": "gear_soldier", "col": 9, "row": 4 },
+        { "skin": "bomber", "col": 14, "row": 1 },
+        { "skin": "homunculus_mage", "col": 15, "row": 3 },
+        { "skin": "homunculus", "col": 12, "row": 4 },
+        { "skin": "homunculus", "col": 11, "row": 4 },
+        { "skin": "homunculus", "col": 11, "row": 3 },
+        { "skin": "bomber", "col": 15, "row": 1 },
+        { "skin": "homunculus_mage", "col": 15, "row": 4 }
       ] }
   ],
   "dialogue": {
@@ -56,5 +58,9 @@
       { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st1.outro.12" },
       { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st1.outro.13" }
     ]
-  }
+  },
+  "rank": { "turn_s": 10, "turn_a": 15, "survival_s": 5, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
+  "bgm": { "main": "tunnels" }
 }
