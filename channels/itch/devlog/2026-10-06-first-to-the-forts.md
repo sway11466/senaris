@@ -37,7 +37,7 @@
 
 ## タイトル
 
-（案）One Cleric and a map full of locked doors
+One Cleric and a map full of locked doors
 
 ## 本文
 
