@@ -50,14 +50,29 @@ func is_all_cleared(campaign_id: String) -> bool:
 		return false
 	return cleared_count(campaign_id) >= c["stages"].size()
 
+## 冒険譚の状態（locked / unlocked）を導出する。cleared は持たせない（踏破は焼き印＝is_all_cleared の役目）。
+## デバッグ冒険譚は常時 unlocked。未知の冒険譚は locked。
+func campaign_state(campaign_id: String) -> String:
+	var c := campaign(campaign_id)
+	if c.is_empty():
+		return LOCKED
+	if c["debug"]:
+		return UNLOCKED
+	for cond in c["unlock"]:  # AND評価（ステージの unlock と同じ）
+		if not _is_satisfied(campaign_id, cond):
+			return LOCKED
+	return UNLOCKED
+
 ## ステージの状態（locked / unlocked / cleared）を導出する。
-## デバッグ冒険譚は常時 unlocked（クリア記録も付けない）。
+## デバッグ冒険譚は常時 unlocked（クリア記録も付けない）。冒険譚が locked なら中のステージも locked。
 func stage_state(campaign_id: String, stage_id: String) -> String:
 	var c := campaign(campaign_id)
 	if c.is_empty():
 		return LOCKED
 	if c["debug"]:
 		return UNLOCKED
+	if campaign_state(campaign_id) == LOCKED:
+		return LOCKED
 	if _store.is_cleared(campaign_id, stage_id):
 		return CLEARED
 	var stage := _find_stage(c, stage_id)
@@ -217,12 +232,17 @@ func _find_stage(c: Dictionary, stage_id: String) -> Dictionary:
 			return s
 	return {}
 
-## 解放条件1つの充足判定。未知の type（entitlement 含む・未実装）は未充足＝locked 側に倒す。
+## 解放条件1つの充足判定（ステージの unlock・冒険譚の unlock の両方が通る）。未知の type（entitlement 含む・未実装）は未充足＝locked 側に倒す。
 func _is_satisfied(campaign_id: String, cond: Variant) -> bool:
 	if typeof(cond) != TYPE_DICTIONARY:
 		return false
 	match String(cond.get("type", "")):
 		"cleared":
 			return _store.is_cleared(campaign_id, String(cond.get("stage", "")))
+		"campaign_cleared":  # 指定冒険譚の最終ステージ（マニフェスト順の最後）をクリア済み
+			var ref := campaign(String(cond.get("campaign", "")))
+			if ref.is_empty() or ref["stages"].is_empty():
+				return false
+			return _store.is_cleared(String(ref["id"]), String(ref["stages"][-1]["id"]))
 		_:
 			return false

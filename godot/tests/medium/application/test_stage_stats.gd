@@ -12,7 +12,7 @@ class RecordingStats extends StatsSink:
 
 func _campaigns(board: String = "tutorial") -> Array:
 	return [{
-		"id": "tc", "debug": false, "board": board, "achievement": "TC",
+		"id": "tc", "debug": false, "board": board, "achievement": "TC", "unlock": [],
 		"stages": [
 			{"id": "st1", "title": "tc.st1", "unlock": [], "path": ""},
 			{"id": "st2", "title": "tc.st2", "unlock": [], "path": ""},

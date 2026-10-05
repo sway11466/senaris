@@ -165,6 +165,8 @@ func setup(progress: CampaignProgress) -> void:
 ## 対象は貼り紙に出すもの（card があれば card、無ければ cover）だけ。デバッグ冒険譚は読まない。
 func _request_art() -> void:
 	for c in _progress.campaigns(false):
+		if _progress.campaign_state(String(c["id"])) == CampaignProgress.LOCKED:
+			continue  # 未解放の貼り紙は絵を黒塗りにする＝読まない
 		var card_paths: Array = c.get("card_paths", [])
 		var shown: Array = card_paths if not card_paths.is_empty() else c.get("cover_paths", [])
 		for p in shown:
@@ -279,9 +281,11 @@ func _on_next() -> void:
 		_render_current()
 
 ## 冒険譚の依頼書＝羊皮紙の貼り紙。クリック判定はカード全面の Button。
+## 未解放の冒険譚は絵を黒塗り・タイトルを伏せて貼る（押しても開かない）。仕様 → doc/gdd/stage_select.md 冒険譚カード
 ## 土台（非clip）とカード（clip）を分けてあるのは、カードの外へはみ出す飾りを後から
 ## 足せるようにするため。いまは飾りが無いので土台とカードは同じ大きさ。
 func _poster(c: Dictionary) -> Control:
+	var locked := _progress.campaign_state(String(c["id"])) == CampaignProgress.LOCKED
 	var poster := Control.new()
 	poster.custom_minimum_size = POSTER_SIZE
 
@@ -294,7 +298,10 @@ func _poster(c: Dictionary) -> Control:
 	for state in ["normal", "hover", "pressed", "disabled"]:
 		var bright := 1.06 if state == "hover" else 1.0
 		card.add_theme_stylebox_override(state, TavernTheme.parchment_stylebox(paper_seed, bright))
-	card.pressed.connect(_on_card_pressed.bind(String(c["id"])))
+	if locked:
+		card.pressed.connect(_on_locked_card_pressed)
+	else:
+		card.pressed.connect(_on_card_pressed.bind(String(c["id"])))
 	poster.add_child(card)
 
 	var pad := MarginContainer.new()
@@ -313,6 +320,13 @@ func _poster(c: Dictionary) -> Control:
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art.clip_contents = true
 	TavernTheme.round_corners(art, float(TavernTheme.ART_CORNER_RADIUS))  # 紙に貼った写真の丸み
+	if locked:
+		art.texture = _black_texture()
+		content.add_child(art)
+		content.add_child(_poster_info(c, true))
+		_ignore_mouse(content)
+		pad.add_child(content)
+		return poster
 	# 貼り紙とステージ一覧は同じ cover を使う＝押した紙がそのまま開く体験にする（専用クロップは持たない）。
 	# 連番バリアントから表示ごとに1枚選び、選んだ index を stage 側へ渡して同じ絵に固定する。
 	# 大パネルへ渡す cover の番号は、貼り紙に何を出すかに関わらずここで決める。
@@ -326,7 +340,7 @@ func _poster(c: Dictionary) -> Control:
 	if shown_idx >= 0:
 		art.texture = load(String(shown[shown_idx])) as Texture2D
 	content.add_child(art)
-	content.add_child(_poster_info(c))
+	content.add_child(_poster_info(c, false))
 	_ignore_mouse(content)
 	pad.add_child(content)
 
@@ -343,6 +357,16 @@ func _on_card_pressed(campaign_id: String) -> void:
 	SfxPlayer.play_event("menu_campaign")
 	campaign_chosen.emit(campaign_id, int(_variant_by_id.get(campaign_id, -1)))
 
+## 未解放の貼り紙は開かない＝拒否の音だけ返す（無反応だと押せたのか分からない）。
+func _on_locked_card_pressed() -> void:
+	SfxPlayer.play_event("menu_locked")
+
+## 黒塗りの絵（1×1 の黒を COVERED で枠いっぱいに伸ばす＝角丸のシェーダもそのまま効く）。
+func _black_texture() -> Texture2D:
+	var img := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	img.fill(Color.BLACK)
+	return ImageTexture.create_from_image(img)
+
 ## 連番バリアントの index を1つ選ぶ（表示ごと＝呼ぶたび randi）。空なら -1。
 func _pick_index(paths: Array) -> int:
 	if paths.is_empty():
@@ -350,18 +374,20 @@ func _pick_index(paths: Array) -> int:
 	return randi() % paths.size()
 
 ## 貼り紙下部の情報（タイトル／危険度／説明文）。デバッグ冒険譚は注記のみ。
+## 未解放（locked）はタイトルを伏せ、説明文の場所に全カード共通の一文を出す（どれを踏破すればよいかは書かない）。
 ## title/desc は翻訳キー＝tr() で解決（生テキストでも tr() は素通し）。
-func _poster_info(c: Dictionary) -> Control:
+func _poster_info(c: Dictionary, locked: bool) -> Control:
 	var info := VBoxContainer.new()
 	info.add_theme_constant_override("separation", 6)
 
-	var title := Label.new()
-	title.text = tr(String(c["title"]))
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", TavernTheme.INK)
-	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER  # 貼り紙の題＝中央（絵の下の見出しとして据える）
-	info.add_child(title)
+	if not locked:
+		var title := Label.new()
+		title.text = tr(String(c["title"]))
+		title.add_theme_font_size_override("font_size", 20)
+		title.add_theme_color_override("font_color", TavernTheme.INK)
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER  # 貼り紙の題＝中央（絵の下の見出しとして据える）
+		info.add_child(title)
 
 	if c["debug"]:
 		var note := Label.new()
@@ -381,7 +407,7 @@ func _poster_info(c: Dictionary) -> Control:
 	info.add_child(danger)
 
 	# 説明文（依頼の紹介・自動折り返し）。カードに収まるのは5行までなので、本文側を5行以内で書く。
-	var desc_key := String(c.get("desc", ""))
+	var desc_key := "ui.select.campaign_locked" if locked else String(c.get("desc", ""))
 	if not desc_key.is_empty():
 		var desc := Label.new()
 		desc.text = tr(desc_key)

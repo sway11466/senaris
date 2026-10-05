@@ -10,12 +10,13 @@ const INTERLUDES := ["onward", "refill", "revive"]
 
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
-## { id, title, desc, debug, difficulty, board, actor_lineup, cover_paths, victory_paths,
+## { id, title, desc, debug, difficulty, board, actor_lineup, cover_paths, victory_paths, unlock: Array,
 ##   stages: [ { id, title, synopsis, file, path, unlock: Array, roster_from: String, interlude: String } ] }
 ## roster_from＝名簿の引き継ぎ元のステージID。""＝空の名簿で始める（doc/gdd/campaigns.md 名簿）。
 ## synopsis＝あらすじの翻訳キー。全ステージに書く＝依頼書の左のページがこれを出す。
 ## interlude＝その話の前の幕間の印（INTERLUDES のどれか）。""＝幕間なし（1話目・独立）。見せ方だけの
 ## 値で、兵が実際に戻るかはステージ JSON の supply が決める（doc/gdd/stage_select.md 幕間の印）。
+## unlock（冒険譚の最上位）＝冒険譚の解放条件。ステージ項目の unlock とは別物（doc/gdd/stage_select.md 冒険譚の解放条件）。
 ## actor_lineup＝継承の一行（actor 付き味方）を戦闘演出で1体として描くか。""＝スキン任せ、"single"＝1体。
 ## cover_paths/victory_paths＝連番バリアントの配列。表示側が表示ごとに1枚選ぶ（複数なら実質ランダム）。
 static func build(data: Dictionary, dir_path: String) -> Dictionary:
@@ -47,6 +48,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		})
 	_warn_dangling_unlock(id, stages)
 	_warn_dangling_roster_from(id, stages)
+	var campaign_unlock: Variant = data.get("unlock", [])
 	return {
 		"id": id,
 		"title": String(data.get("title", id)),  # 翻訳キー（表示側で tr()）。debug 等は生テキストでも tr() は素通し
@@ -60,6 +62,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 		"cover_paths": _resolve_art_variants(id, "cover"),  # ステージ一覧の大パネル。貼り紙も card が無ければこれを出す（連番バリアント）
 		"card_paths": _resolve_art_variants(id, "card"),  # 貼り紙だけに出す絵。置いたときだけ cover と別の絵になる
 		"victory_paths": _resolve_art_variants(id, "victory"),  # 最終ステージ勝利で出す扉絵（無ければ空＝表示スキップ）
+		"unlock": campaign_unlock if typeof(campaign_unlock) == TYPE_ARRAY else [],  # 冒険譚の解放条件。空＝無条件
 		"stages": stages,
 	}
 
@@ -198,4 +201,20 @@ static func load_all(root: String = STAGES_ROOT) -> Array:
 			debugs.append(c)
 		else:
 			normals.append(c)
-	return normals + debugs
+	var all := normals + debugs
+	_warn_dangling_campaign_unlock(all)
+	return all
+
+## 冒険譚の unlock（campaign_cleared）が指す冒険譚が実在するか検証し、dangling を警告。
+## 打ち間違い・冒険譚の改名で「永久に貼り紙が開かない冒険譚」が黙って生まれるのを防ぐ。
+static func _warn_dangling_campaign_unlock(campaigns: Array) -> void:
+	var ids := {}
+	for c in campaigns:
+		ids[c["id"]] = true
+	for c in campaigns:
+		for cond in c["unlock"]:
+			if typeof(cond) != TYPE_DICTIONARY:
+				continue
+			var ref := String(cond.get("campaign", ""))
+			if not ref.is_empty() and not ids.has(ref):
+				push_warning("CampaignCatalog[%s]: unlock が未定義の冒険譚 '%s' を参照" % [c["id"], ref])

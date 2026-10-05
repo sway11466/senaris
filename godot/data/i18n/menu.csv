@@ -24,6 +24,7 @@ ui.quest.unlock_dlc,追加コンテンツ,Additional Content
 ui.quest.unlock_sep,・,"; "
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
+ui.select.campaign_locked,この冒険譚に挑むには、まだ早すぎる。,It is still too early to take on this adventure.
 ui.select.menu,← メニュー,← Menu
 ui.select.back_tales,← 冒険譚,← Adventures
 ui.title.chronicle,クロニクル,Chronicle

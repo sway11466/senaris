@@ -233,3 +233,47 @@ func test_record_time_debug_or_unknown_is_ignored() -> void:
 	p.record_time("camp", "no-such-stage", 60)
 	assert_eq(p.best_time("dbg", "d1"), 0, "デバッグ冒険譚は記録しない")
 	assert_eq(p.best_time("camp", "no-such-stage"), 0, "未知のステージは記録しない")
+
+## 冒険譚の解放条件: part2 は part1 の踏破（最終ステージ p1b のクリア）で解放。
+func _series_progress() -> CampaignProgress:
+	var campaigns: Array = [
+		CampaignCatalog.build({
+			"id": "part1", "title": "第1部", "board": "b",
+			"stages": [
+				{ "id": "p1a", "file": "p1a.json", "synopsis": "s" },
+				{ "id": "p1b", "file": "p1b.json", "synopsis": "s",
+					"unlock": [ { "type": "cleared", "stage": "p1a" } ] },
+			],
+		}, "res://x"),
+		CampaignCatalog.build({
+			"id": "part2", "title": "第2部", "board": "b",
+			"unlock": [ { "type": "campaign_cleared", "campaign": "part1" } ],
+			"stages": [ { "id": "p2a", "file": "p2a.json", "synopsis": "s" } ],
+		}, "res://y"),
+	]
+	return CampaignProgress.new(campaigns, ProgressStore.new(PATH))
+
+func test_campaign_locked_until_previous_cleared() -> void:
+	var p := _series_progress()
+	assert_eq(p.campaign_state("part1"), CampaignProgress.UNLOCKED, "unlock 未指定は無条件で解放")
+	assert_eq(p.campaign_state("part2"), CampaignProgress.LOCKED, "前の冒険譚が未踏破ならロック")
+	assert_eq(p.stage_state("part2", "p2a"), CampaignProgress.LOCKED,
+		"冒険譚がロック中は、自分の解放条件が無い1面もロック")
+	p.record_clear("part1", "p1a")
+	assert_eq(p.campaign_state("part2"), CampaignProgress.LOCKED, "最終ステージ以外のクリアでは解放しない")
+	p.record_clear("part1", "p1b")
+	assert_eq(p.campaign_state("part2"), CampaignProgress.UNLOCKED, "最終ステージのクリアで解放")
+	assert_eq(p.stage_state("part2", "p2a"), CampaignProgress.UNLOCKED, "中の1面も選べるようになる")
+
+func test_campaign_unlock_unknown_ref_stays_locked() -> void:
+	var c := CampaignCatalog.build({
+		"id": "lonely", "title": "孤立", "board": "b",
+		"unlock": [ { "type": "campaign_cleared", "campaign": "missing" } ],
+		"stages": [ { "id": "l1", "file": "l1.json", "synopsis": "s" } ],
+	}, "res://z")
+	var p := CampaignProgress.new([c], ProgressStore.new(PATH))
+	assert_eq(p.campaign_state("lonely"), CampaignProgress.LOCKED, "参照先が無ければ未充足＝ロック側に倒す")
+
+func test_debug_campaign_state_always_unlocked() -> void:
+	var p := _progress()
+	assert_eq(p.campaign_state("dbg"), CampaignProgress.UNLOCKED, "デバッグ冒険譚は常時解放")

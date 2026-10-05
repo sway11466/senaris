@@ -51,6 +51,31 @@ func test_all_unlock_refs_resolve() -> void:
 					continue  # stage を参照しない条件（entitlement 等）
 				assert_true(ids.has(ref), "%s/%s の unlock 参照 '%s' が実在" % [c["id"], s["id"], ref])
 
+func test_all_campaign_unlock_refs_resolve() -> void:
+	# 実データ: 冒険譚の unlock（campaign_cleared）の参照先の冒険譚がすべて実在する。
+	var ids := {}
+	for c in CampaignCatalog.load_all():
+		ids[c["id"]] = true
+	var checked := 0
+	for c in CampaignCatalog.load_all():
+		for cond in c["unlock"]:
+			if typeof(cond) != TYPE_DICTIONARY:
+				continue
+			var ref := String(cond.get("campaign", ""))
+			if ref.is_empty():
+				continue  # 冒険譚を参照しない条件（entitlement 等）
+			assert_true(ids.has(ref), "%s の unlock 参照 '%s' が実在" % [c["id"], ref])
+			checked += 1
+	if checked == 0:
+		pass_test("冒険譚の unlock を持つ冒険譚が無い")
+
+func test_build_campaign_unlock() -> void:
+	var cond := { "type": "campaign_cleared", "campaign": "prev" }
+	var c := CampaignCatalog.build({ "id": "a", "debug": true, "stages": [], "unlock": [cond] }, "res://x")
+	assert_eq(c["unlock"], [cond], "冒険譚の unlock をそのまま持つ")
+	var none := CampaignCatalog.build({ "id": "b", "debug": true, "stages": [] }, "res://x")
+	assert_eq(none["unlock"], [], "未指定は空＝無条件")
+
 func test_build_rejects_broken() -> void:
 	assert_eq(CampaignCatalog.build({}, "x"), {}, "id 無しは不正")
 	assert_push_warning("マニフェストが不正")

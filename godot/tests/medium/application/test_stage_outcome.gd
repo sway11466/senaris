@@ -16,6 +16,7 @@ func _campaign() -> Array:
 	return [{
 		"id": "tc",
 		"debug": false,
+		"unlock": [],
 		"stages": [
 			{"id": "st1", "title": "tc.st1", "unlock": [], "path": ""},
 			{"id": "st2", "title": "tc.st2", "unlock": [{"type": "cleared", "stage": "st1"}], "path": ""},

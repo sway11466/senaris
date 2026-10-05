@@ -7,7 +7,7 @@ const VAULT_PATH := "user://test_achievement_judge/achievements.json"
 
 func _campaigns(achievement: String = "TC", debug: bool = false) -> Array:
 	return [{
-		"id": "tc", "debug": debug, "board": "tutorial", "achievement": achievement,
+		"id": "tc", "debug": debug, "board": "tutorial", "achievement": achievement, "unlock": [],
 		"stages": [
 			{"id": "st1", "title": "tc.st1", "unlock": [], "path": ""},
 			{"id": "st2", "title": "tc.st2", "unlock": [], "path": ""},
