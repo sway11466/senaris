@@ -3,46 +3,53 @@
   "name": "mine-monsters-st2",
   "player": [
     { "units": [
-        { "type": "shieldwright", "actor": "shieldwright", "col": 3, "row": 1 },
-        { "type": "dwarf", "actor": "dwarf", "col": 3, "row": 3 },
-        { "type": "gunner", "actor": "gunner", "col": 2, "row": 3 },
-        { "type": "wizard", "actor": "wizard", "col": 2, "row": 1 },
-        { "type": "witch", "actor": "witch", "col": 4, "row": 1 },
-        { "type": "cannon", "actor": "cannon", "col": 4, "row": 3, "supply": "join" },
-        { "type": "minecart", "col": 3, "row": 2 },
-        { "type": "mantlet", "actor": "mantlet", "col": 10, "row": 5, "supply": "join", "troops": 3 },
-        { "type": "drill", "actor": "drill", "col": 20, "row": 2, "supply": "join", "troops": 3 }
+        { "type": "shieldwright", "actor": "shieldwright", "col": 2, "row": 21 },
+        { "type": "dwarf", "actor": "dwarf", "col": 4, "row": 21 },
+        { "type": "gunner", "actor": "gunner", "col": 2, "row": 22 },
+        { "type": "wizard", "actor": "wizard", "col": 4, "row": 22 },
+        { "type": "witch", "actor": "witch", "col": 2, "row": 23 },
+        { "type": "cannon", "actor": "cannon", "col": 4, "row": 23, "supply": "join" },
+        { "type": "minecart", "col": 3, "row": 22 },
+        { "type": "mantlet", "actor": "mantlet", "col": 9, "row": 16, "supply": "join", "troops": 3 },
+        { "type": "drill", "actor": "drill", "col": 3, "row": 10, "supply": "join", "troops": 3 }
       ] }
   ],
   "enemy": [
     { "order": 1, "name": "mine-monsters.st2.squad.1", "ai": "charge",
       "units": [
-        { "skin": "gear_soldier", "col": 14, "row": 6 },
-        { "skin": "gear_soldier", "col": 15, "row": 5 },
-        { "skin": "homunculus", "col": 14, "row": 7 },
-        { "skin": "homunculus", "col": 13, "row": 3 }
+        { "skin": "gear_soldier", "col": 5, "row": 17 },
+        { "skin": "homunculus", "col": 11, "row": 15 },
+        { "skin": "gear_soldier", "col": 10, "row": 17 }
       ] },
     { "order": 2, "name": "mine-monsters.st2.squad.2", "ai": "charge",
       "units": [
-        { "skin": "gear_soldier", "col": 22, "row": 3 },
-        { "skin": "gear_soldier", "col": 23, "row": 4 },
-        { "skin": "homunculus", "col": 21, "row": 4 }
+        { "skin": "homunculus", "col": 7, "row": 13 },
+        { "skin": "gear_soldier", "col": 1, "row": 12 },
+        { "skin": "homunculus", "col": 5, "row": 9 },
+        { "skin": "gear_soldier", "col": 6, "row": 7 }
       ] },
     { "order": 3, "name": "mine-monsters.st2.squad.3", "ai": "charge",
       "units": [
-        { "skin": "magic_hound", "col": 26, "row": 1 }
+        { "skin": "magic_hound", "col": 10, "row": 2 }
       ] },
     { "order": 4, "name": "mine-monsters.st2.squad.4", "ai": "charge",
       "units": [
-        { "skin": "bomber", "col": 25, "row": 1 },
-        { "skin": "bomber", "col": 26, "row": 5 }
+        { "skin": "bomber", "col": 8, "row": 1 },
+        { "skin": "bomber", "col": 10, "row": 5 }
       ] },
-    { "order": 5, "name": "mine-monsters.st2.squad.5", "ai": "ambush", "sight": 3,
+    { "order": 5, "name": "mine-monsters.st2.squad.5", "ai": "charge",
       "units": [
-        { "skin": "homunculus_mage", "col": 25, "row": 2 },
-        { "skin": "homunculus_mage", "col": 25, "row": 4 },
-        { "skin": "gear_soldier", "col": 26, "row": 3 }
+        { "skin": "homunculus_mage", "col": 5, "row": 2 },
+        { "skin": "homunculus_mage", "col": 8, "row": 3 },
+        { "skin": "gear_soldier", "col": 4, "row": 4 }
+      ] },
+    { "order": 6, "name": "mine-monsters.st2.squad.6", "ai": "ambush", "sight": 2,
+      "units": [
+        { "skin": "chimera", "unit_id": "chimera", "col": 7, "row": 1 }
       ] }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "unit_ids": ["chimera"] }
   ],
   "dialogue": {
     "intro": [

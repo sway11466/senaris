@@ -70,6 +70,7 @@
 		"homunculus",
 		"homunculus_mage",
 		"magic_hound",
+		"chimera",
 		"magic_eye",
 		"gear_soldier",
 		"bomber",
@@ -1360,6 +1361,20 @@
 					"on_board": true,
 					"retainers": [],
 					"skin_id": "dullahan",
+					"type_id": "warlord"
+				},
+				{
+					"category": "magical",
+					"combat_effect": "bite",
+					"combat_lineup": "single",
+					"description": "",
+					"images": {},
+					"map_move_sfx": "",
+					"muzzle": "stand",
+					"name": "キメラ",
+					"on_board": true,
+					"retainers": [],
+					"skin_id": "chimera",
 					"type_id": "warlord"
 				}
 			]
