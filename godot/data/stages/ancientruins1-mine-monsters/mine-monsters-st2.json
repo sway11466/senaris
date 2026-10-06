@@ -1,0 +1,78 @@
+{
+  "turn_limit": 20,
+  "name": "mine-monsters-st2",
+  "player": [
+    { "units": [
+        { "type": "shieldwright", "actor": "shieldwright", "col": 3, "row": 1 },
+        { "type": "dwarf", "actor": "dwarf", "col": 3, "row": 3 },
+        { "type": "gunner", "actor": "gunner", "col": 2, "row": 3 },
+        { "type": "wizard", "actor": "wizard", "col": 2, "row": 1 },
+        { "type": "witch", "actor": "witch", "col": 4, "row": 1 },
+        { "type": "cannon", "actor": "cannon", "col": 4, "row": 3, "supply": "join" },
+        { "type": "minecart", "col": 3, "row": 2 },
+        { "type": "mantlet", "actor": "mantlet", "col": 10, "row": 5, "supply": "join", "troops": 3 },
+        { "type": "drill", "actor": "drill", "col": 20, "row": 2, "supply": "join", "troops": 3 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "mine-monsters.st2.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "gear_soldier", "col": 14, "row": 6 },
+        { "skin": "gear_soldier", "col": 15, "row": 5 },
+        { "skin": "homunculus", "col": 14, "row": 7 },
+        { "skin": "homunculus", "col": 13, "row": 3 }
+      ] },
+    { "order": 2, "name": "mine-monsters.st2.squad.2", "ai": "charge",
+      "units": [
+        { "skin": "gear_soldier", "col": 22, "row": 3 },
+        { "skin": "gear_soldier", "col": 23, "row": 4 },
+        { "skin": "homunculus", "col": 21, "row": 4 }
+      ] },
+    { "order": 3, "name": "mine-monsters.st2.squad.3", "ai": "charge",
+      "units": [
+        { "skin": "magic_hound", "col": 26, "row": 1 }
+      ] },
+    { "order": 4, "name": "mine-monsters.st2.squad.4", "ai": "charge",
+      "units": [
+        { "skin": "bomber", "col": 25, "row": 1 },
+        { "skin": "bomber", "col": 26, "row": 5 }
+      ] },
+    { "order": 5, "name": "mine-monsters.st2.squad.5", "ai": "ambush", "sight": 3,
+      "units": [
+        { "skin": "homunculus_mage", "col": 25, "row": 2 },
+        { "skin": "homunculus_mage", "col": 25, "row": 4 },
+        { "skin": "gear_soldier", "col": 26, "row": 3 }
+      ] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "text": "mine-monsters.st2.intro.1" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.intro.2" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.intro.3" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.4" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.intro.5" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st2.intro.6" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.7" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.intro.8" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.intro.9" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.10" }
+    ],
+    "outro": [
+      { "text": "mine-monsters.st2.outro.1" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.outro.2" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.3" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.outro.4" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st2.outro.5" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.outro.6" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.7" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.outro.8" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.outro.9" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.10" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.outro.11" }
+    ]
+  },
+  "rank": { "turn_s": 8, "turn_a": 12, "survival_s": 5, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
+  "bgm": { "main": "tunnels" }
+}

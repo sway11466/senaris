@@ -67,5 +67,7 @@ mine-monsters.title,鉱山の魔物,Monsters of the Mine
 mine-monsters.desc,国境の山の鉱山で、掘り当てた遺跡から魔物が湧き出した。居合わせた学者・技師・ドワーフは、いがみ合いながらも坑道の奥へ潜っていく。,"In a mine on the border mountains, monsters pour out of ruins the diggers broke into. The scholars, engineers, and a dwarf who happened to be there head into the deep tunnels, bickering all the way."
 mine-monsters.st1.title,坑道の入口,The Mine Entrance
 mine-monsters.st1.synopsis,一つしかない作業場で、学者と技師とドワーフが机の置き場を揉めていた。そこへ坑員が逃げてくる。奥から魔物が湧いたという。,"Scholars, engineers, and a dwarf are squabbling over where the desk goes in the only workroom — until the miners come running. Monsters are pouring out of the deep."
+mine-monsters.st2.title,レールの坑道,The Rail Tunnel
+mine-monsters.st2.synopsis,坑員が置き去りにした壁とドリルへ、魔物が向かっている。トロッコは四人乗り。誰を先に運び、どの兵器を先に助けるか。,"Monsters are closing on the wall and the drill the miners left behind. The minecart seats four. Who rides first, and which machine do you save first?"
 ruins.title,古代遺跡,The Ancient Ruins
 ancient-weapon.title,古代兵器,The Ancient Weapon
