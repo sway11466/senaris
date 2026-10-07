@@ -16,6 +16,7 @@ var _moved := {}       # handle -> true（攻撃前の移動を1回使った）
 var _post_moved := {}  # handle -> true（攻撃後の再移動を1回使った）
 var _attacked := {}    # handle -> true（このターンに攻撃済み）
 var _done := {}        # handle -> true（コマンドメニューの「待機」等で明示的に行動終了）
+var _on_done_fired := {}  # handle -> true（このターン、行動完了スキルを発動済み。→ doc/gdd/skills.md アクティブとパッシブ）
 var _spent := {}       # handle -> int（このターンに使った移動コスト。move と比較）
 var _terrain := {}   # Vector2i(axial) -> terrain_id（未登録は平地）
 var _movement := {}  # move_type -> { 地形名: コスト }（空＝全地形コスト1の従来挙動）
@@ -613,6 +614,21 @@ func step_gimmick(hex: Vector2i, team: int) -> Gimmick:
 		return null
 	g.state = next
 	return g
+
+## 罠発見＝from から budget（移動力）を予算に視線の届く範囲の隠れた罠を、見つかった状態にする。
+## 返り値＝{ scanned: 調べたヘックス（from 含む・Array[Vector2i]）, found: 見つけた仕掛け（Array[Gimmick]）}。
+## 見つかった状態は盤で1つ＝どちらの陣営が見つけても同じ。詳細 → doc/gdd/gimmicks.md 罠発見
+func detect_traps(from: Vector2i, budget: int) -> Dictionary:
+	var vis := visible_hexes(from, budget)
+	var scanned: Array[Vector2i] = []
+	for h in vis:
+		scanned.append(h)
+	var found: Array[Gimmick] = []
+	for g in _gimmicks:
+		if GimmickKinds.is_hidden_trap(g) and vis.has(g.hex):
+			g.state = GimmickKinds.FOUND
+			found.append(g)
+	return { "scanned": scanned, "found": found }
 
 ## 直近の step_gimmick で罠が撃った相手（撃たなければ空）。1件＝{ unit, team, hex, troops_before,
 ## shield_before, loss, killed }。並びは踏んだ駒が先、残りは近い順・handle 順（決定的）。
@@ -1493,6 +1509,19 @@ func _has_unloadable_passenger(handle: int) -> bool:
 func set_done(handle: int) -> void:
 	_done[handle] = true
 
+## 攻撃済みの扱いにする（使った後も再移動できるスキル＝罠発見の斥候）。移動の可否は攻撃後と同じ
+## ＝move_after_attack を持つ駒だけが残り移動力で動ける。詳細 → doc/gdd/skills.md 罠発見
+func mark_attacked(handle: int) -> void:
+	_attacked[handle] = true
+
+## このターン、行動完了スキル（罠発見の調査ドローン）を発動済みか。1体1ターン1回＝待機で発動した駒は
+## ターン終了時にもう一度は発動しない。詳細 → doc/gdd/skills.md アクティブとパッシブ
+func on_done_fired(handle: int) -> bool:
+	return _on_done_fired.has(handle)
+
+func mark_on_done_fired(handle: int) -> void:
+	_on_done_fired[handle] = true
+
 ## 選択して操作できる状態か（現ターン・まだ行動が残っている）。
 func can_select(handle: int) -> bool:
 	return is_current_unit(unit_by_handle(handle)) and not is_done(handle)
@@ -1504,6 +1533,7 @@ func end_turn() -> void:
 	_post_moved.clear()
 	_attacked.clear()
 	_done.clear()
+	_on_done_fired.clear()
 	_spent.clear()
 	current_team = 1 - current_team
 	if current_team == 0:
@@ -1577,7 +1607,7 @@ func to_save_diff() -> Dictionary:
 		"passengers": pass_out,
 		"fired_events": _fired_events.keys(),
 		"moved": _moved.keys(), "post_moved": _post_moved.keys(),
-		"attacked": _attacked.keys(), "done": _done.keys(),
+		"attacked": _attacked.keys(), "done": _done.keys(), "on_done_fired": _on_done_fired.keys(),
 		"engaged": _engaged.keys(), "engaged_squads": _engaged_squads.keys(),
 		"defeated": _defeated.keys(),
 		"losses": _int_keyed_to_str(_losses),
@@ -1612,6 +1642,7 @@ func apply_save_diff(diff: Dictionary, catalog: Dictionary = {}) -> void:
 	_post_moved = _ids_to_set(diff.get("post_moved", []))
 	_attacked = _ids_to_set(diff.get("attacked", []))
 	_done = _ids_to_set(diff.get("done", []))
+	_on_done_fired = _ids_to_set(diff.get("on_done_fired", []))
 	_engaged = _ids_to_set(diff.get("engaged", []))
 	_engaged_squads = _ids_to_set(diff.get("engaged_squads", []))
 	_defeated = _ids_to_set(diff.get("defeated", []))

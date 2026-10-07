@@ -34,6 +34,14 @@ const HIT_FLASH_GAIN := 2.2       # 同・明るさの倍率
 const HIT_FADE_SEC := 0.22        # 撃破された駒が消えるまで
 ## 決着のとどめ（この着弾で勝ちが確定する回）＝落下・駒送り・撃破フェードの尺に掛ける
 ## スロー倍率。仕様 → doc/gdd/uiux.md 決着の合図。値は実機で詰める前提の初期値。
+# 罠発見のスキャン（doc/gdd/skills.md 罠発見）。発動者から輪ごとに外へ広がる青白い光。
+const COLOR_SCAN := Color(0.55, 0.85, 1.00)  # 調べた範囲の光（青白）。見つけた罠は COLOR_FORMATION_HIT
+const SCAN_RING_SEC := 0.06       # 中心から1輪ぶん外れるごとの遅れ（移動力7なら外縁まで約0.4秒）
+const SCAN_RISE_SEC := 0.10       # 1マスの光の立ち上がり
+const SCAN_HOLD_SEC := 0.12       # 同・居座り
+const SCAN_FOUND_HOLD_SEC := 0.50 # 見つけた罠のマスの居座り（長めに残して場所を読ませる）
+const SCAN_FADE_SEC := 0.40       # 同・引き
+const SCAN_ALPHA := 0.26          # 調べた範囲の光の濃さ（加算合成。面の着弾より薄く）
 const FINISH_STRETCH := 2.2
 const FINISH_CELL_HOLD := 0.5     # 決着の光（本拠占領のとどめ＝1マスだけ長めに光らせる）の居座り
 
@@ -195,6 +203,10 @@ func reset() -> void:
 ## 着弾が無いもの（バフ・解除）は光らせず盤を更新するだけ＝呼び出し側で分岐しなくていい。
 ## is_locked は呼び出し元の現在のロック状態（演出終了後に元に戻すか判定するため）。
 func play(result: SkillResult, is_locked: bool) -> void:
+	# 罠発見＝発動者を中心に光が広がって調べた範囲を順に照らす（スキャン）。見つけた罠はその後に現れる。
+	if not result.scanned.is_empty():
+		await _play_scan(result, is_locked)
+		return
 	if not _impact_pending:
 		# 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み。誰に効いたのかが
 		# 盤に出ないので、印を持つレシピ（シールドウォール）は参加者に1枚ずつ重ねてから抜ける。
@@ -744,6 +756,56 @@ func _flash_cells_only(cells: Array, is_locked: bool) -> void:
 		return
 	_end_impact()
 	_sync_fn.call()
+
+
+## 罠発見のスキャン。発動者のマスから輪ごとに外へ光が広がり（距離×SCAN_RING_SEC の遅れ）、調べた範囲を
+## 青白く照らしてから引く。見つけた罠のマス（result.cells）は光が届いた瞬間に金色で強く光り、長めに居座る。
+## 引き切ったところで盤を作り直す＝見つかった罠の絵はそこで現れる（_sync が仕掛けの絵を貼り替える）。
+## 盤面の演出 OFF は作り直すだけ。詳細 → doc/gdd/skills.md 罠発見
+func _play_scan(result: SkillResult, is_locked: bool) -> void:
+	if _skip:
+		_end_impact()
+		_sync_fn.call()
+		return
+	var gen := _impact_gen
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)
+	var center := result.center
+	var far := 0
+	for h in result.scanned:
+		far = maxi(far, Hex.distance(center, h))
+		_spawn_scan_cell(h, Hex.distance(center, h) * SCAN_RING_SEC, COLOR_SCAN, SCAN_ALPHA, SCAN_HOLD_SEC)
+	for h in result.cells:
+		_spawn_scan_cell(h, Hex.distance(center, h) * SCAN_RING_SEC, COLOR_FORMATION_HIT, HIT_CELL_ALPHA, SCAN_FOUND_HOLD_SEC)
+	var hold := SCAN_FOUND_HOLD_SEC if not result.cells.is_empty() else SCAN_HOLD_SEC
+	await _wait(float(far) * SCAN_RING_SEC + SCAN_RISE_SEC + hold + SCAN_FADE_SEC)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	_end_impact()
+	_sync_fn.call()
+
+## スキャンの光1マスぶん。delay 待ってから立ち上がり、hold 居座って引く。
+func _spawn_scan_cell(hex: Vector2i, delay: float, color: Color, alpha: float, hold: float) -> void:
+	if not _in_board_fn.call(hex):
+		return
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(color, 0.0)
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD  # 地形の上に載せる（塗り潰さない）
+	var mi := MeshInstance3D.new()
+	mi.mesh = _overlay_mesh
+	mi.material_override = m
+	var p := Hex.to_pixel(hex, TILE)
+	mi.position = Vector3(p.x, _elev_fn.call(hex) + 0.05, p.y)
+	add_child(mi)
+	var tw := _tween()
+	tw.tween_interval(delay)
+	tw.tween_property(m, "albedo_color:a", alpha, SCAN_RISE_SEC)
+	tw.tween_interval(hold)
+	tw.tween_property(m, "albedo_color:a", 0.0, SCAN_FADE_SEC)
+	tw.tween_callback(mi.queue_free)
 
 
 ## 着弾の無いレシピの発動の印＝参加者の駒に絵を1枚ずつ重ね、少し置いてから消す。

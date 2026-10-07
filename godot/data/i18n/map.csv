@@ -92,6 +92,8 @@ ui.skillreport.cleansed,%s の弱体を %d 解除,Debuffs removed from %s: %d
 ui.skillreport.cleansed_none,%s に解除する弱体は無かった,No debuffs on %s to remove
 ui.skillreport.repaired,%s の兵数を %d 回復,Troops restored to %s: %d
 ui.skillreport.spawned,%s が分裂した,%s split in two
+ui.skillreport.detected,罠を %d 見つけた,Traps found: %d
+ui.skillreport.detected_none,罠は見つからなかった,No traps found
 ui.talk.close,閉じる,Close
 ui.talk.skip,会話をスキップ,Skip
 ui.talk.next,次へ ▶,Next ▶

@@ -800,11 +800,11 @@ func test_charge_survives_serialization() -> void:
 	restored.apply_save_diff(s.to_save_diff())
 	assert_eq(restored.get_charge(1, "slime_split"), 2, "復元後もチャージ量が保たれる")
 
-## レシピはすべて activation を明示する。パッシブだけが passive_fx を持つ。
+## レシピはすべて activation を明示する（active／passive／on_done＝行動完了スキル）。パッシブだけが passive_fx を持つ。
 func test_every_recipe_declares_activation() -> void:
 	for rid in Formation.SKILLS:
 		var r: Dictionary = Formation.SKILLS[rid]
-		assert_true(String(r.get("activation", "")) in ["active", "passive"], "%s の activation" % rid)
+		assert_true(String(r.get("activation", "")) in ["active", "passive", "on_done"], "%s の activation" % rid)
 		if String(r["activation"]) == "passive":
 			assert_true(r.get("passive_fx") is bool, "%s の passive_fx" % rid)
 		else:

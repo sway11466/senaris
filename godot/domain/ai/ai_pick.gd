@@ -319,6 +319,8 @@ func most_damaged_id(state: BattleState, u: Unit, ids: Array[int]) -> int:
 ## swarm の「stack 条件を満たさない敵は殴りに切り替える」行が、掛ける側の種類を知るために読む。
 func skill_kind_of(state: BattleState, u: Unit) -> String:
 	for option in Formation.available_for(state, u):
+		if option.effect == FormationOption.Effect.DETECT:
+			continue  # 罠発見は敵が使わない（AiRows.skill_row と同じ）
 		return option.stack_kind()
 	return StatusMod.KIND_DEBUFF
 

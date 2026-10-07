@@ -67,6 +67,10 @@ static func trap_spec(kind: String) -> Dictionary:
 static func trap_armed(g: Gimmick) -> bool:
 	return is_trap(g.kind) and g.state != SPENT
 
+## g が隠れている罠か（罠発見で見つかった状態にできるもの）。詳細 → doc/gdd/gimmicks.md 罠発見
+static func is_hidden_trap(g: Gimmick) -> bool:
+	return is_trap(g.kind) and g.state == HIDDEN
+
 ## 撃った後の状態（雷の紋＝見つかった扱い、地雷＝撃ち終えた）。
 static func state_after_trap(g: Gimmick) -> String:
 	return String(trap_spec(g.kind)["after"])

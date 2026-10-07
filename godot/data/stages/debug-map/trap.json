@@ -8,7 +8,9 @@
         { "type": "mage", "col": 1, "row": 2 },
         { "type": "knight", "col": 1, "row": 3 },
         { "skin": "pixie", "col": 1, "row": 5 },
-        { "type": "fighter", "col": 2, "row": 6 }
+        { "type": "fighter", "col": 2, "row": 6 },
+        { "skin": "thief", "col": 1, "row": 4 },
+        { "skin": "survey_drone", "col": 1, "row": 6 }
       ] }
   ],
   "enemy": [

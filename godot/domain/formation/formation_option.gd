@@ -7,7 +7,8 @@ class_name FormationOption
 ## 詳細 → doc/gdd/formations.md, doc/gdd/skills.md
 
 ## 効果の種類。SKILLS の "effect" と1対1（EFFECT_IDS）。
-enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT, HEAL }
+## DETECT（罠発見）だけは駒ではなく仕掛けの状態を書き換える＝対象を選ばず発動者の位置から調べる。
+enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT, HEAL, DETECT }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
 ## SPOTTER（トリックショット）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
 ## BACKSTAB（バックスタブ）も対象の周りを見る形で、SPOTTER の親戚＝対象を挟んで発動者の正反対に味方が居る。
@@ -25,6 +26,7 @@ enum RangeFrom { CASTER, ANY }
 const EFFECT_IDS := {
 	"area": Effect.AREA, "single": Effect.SINGLE, "buff": Effect.BUFF,
 	"cleanse": Effect.CLEANSE, "spawn": Effect.SPAWN, "dot": Effect.DOT, "heal": Effect.HEAL,
+	"detect": Effect.DETECT,
 }
 const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
@@ -34,6 +36,8 @@ const SCOPE_IDS := {
 	"team": Scope.TEAM, "unit": Scope.UNIT, "participants": Scope.PARTICIPANTS, "zone": Scope.ZONE,
 }
 const SIDE_IDS := { "ally": Side.ALLY, "enemy": Side.ENEMY }
+const AFTER_DONE := "done"
+const AFTER_ATTACKED := "attacked"
 const RANGE_FROM_IDS := { "caster": RangeFrom.CASTER, "any": RangeFrom.ANY }
 
 var skill: String             ## スキルID（SKILLS のキー。表示名・音・絵の規約解決に使う）
@@ -72,6 +76,9 @@ var return_to_origin: bool
 ## 詳細 → doc/gdd/skills.md 実装方針, doc/gdd/formations.md 発動の演出
 var combat_effect: String
 var charge_turns: int         ## 発動に要するチャージ量。0＝溜め不要
+## 発動した後の発動者の扱い。AFTER_DONE＝行動完了（既定）／AFTER_ATTACKED＝攻撃済み扱い＝残り移動力で
+## 再移動できる（罠発見の斥候。攻撃後の再移動と同じ資格で動く）。SKILLS の "after"。詳細 → doc/gdd/skills.md 罠発見
+var after: String
 
 # --- 状態補正（BUFF）・継続ダメージ（DOT）の値。それ以外の効果では使わない ---
 var buff_kind: String         ## 強化か弱体か（StatusMod.KIND_BUFF / KIND_DEBUFF）。BUFF と DOT で有効
@@ -132,6 +139,8 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	o.return_to_origin = bool(r.get("return_to_origin", false))
 	o.combat_effect = String(r.get("combat_effect", ""))
 	o.charge_turns = int(r.get("charge_turns", 0))
+	o.after = String(r.get("after", AFTER_DONE))
+	assert(o.after == AFTER_DONE or o.after == AFTER_ATTACKED, "FormationOption: SKILLS の after '%s' は未定義" % o.after)
 	if o.effect == Effect.BUFF:
 		# 強化か弱体か。値の符号から推測しない＝レシピが明示する（省略＝強化）。
 		o.buff_kind = String(r.get("buff_kind", StatusMod.KIND_BUFF))
@@ -177,7 +186,7 @@ func in_range(d: int) -> bool:
 func has_impact() -> bool:
 	return effect == Effect.AREA or effect == Effect.SINGLE
 
-## 発動に着弾中心／掛ける相手の指定が要るか。陣営全体の補正と分裂は要らない＝即発動。
+## 発動に着弾中心／掛ける相手の指定が要るか。陣営全体の補正・分裂・罠発見は要らない＝即発動。
 func needs_target() -> bool:
 	return has_impact() or scope == Scope.UNIT
 

@@ -21,8 +21,13 @@ var cast: SkillCast                ## 効果対象が1体のユニットスキ�
 ## Formation.NO_HEX。盤の演出が「刺してから跳んで帰る」の帰り先に読む。
 ## 詳細 → doc/gdd/formations.md バックスタブ
 var caster_returned_to: Vector2i = Formation.NO_HEX
+## 罠発見（detect）が調べた範囲＝発動者から視線の届いたヘックス（発動者のマスを含む）。盤が「光が広がって
+## スキャンする」演出を出す範囲。見つけた罠のマスは cells に、仕掛けの id は detected に載る。
+## 詳細 → doc/gdd/skills.md 罠発見
+var scanned: Array[Vector2i] = []
+var detected: Array[String] = []
 
 ## 盤に見せる着弾があるか（被弾した駒か光らせる面がある）。無いもの（陣営全体のバフ・解除）は
-## 盤を揺らさず作り直すだけ。
+## 盤を揺らさず作り直すだけ。罠発見は何も見つからなくても調べた範囲を見せる。
 func has_impact() -> bool:
-	return not hits.is_empty() or not cells.is_empty()
+	return not hits.is_empty() or not cells.is_empty() or not scanned.is_empty()

@@ -159,6 +159,9 @@ func _build_no_damage_lines() -> void:
 			_add_line(tr("ui.skillreport.repaired") % [nm, cast.healed if cast != null else 0])
 		"spawn":
 			_add_line(tr("ui.skillreport.spawned") % StrikeTable.display_name(_skins, _result.caster))
+		"detect":
+			var n := _result.detected.size()
+			_add_line(tr("ui.skillreport.detected") % n if n > 0 else tr("ui.skillreport.detected_none"))
 		_:
 			_add_line(tr("ui.skillreport.no_hits"))  # 面の中に対象が1体も居ない空撃ち
 

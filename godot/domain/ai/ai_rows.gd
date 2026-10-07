@@ -81,6 +81,8 @@ func capture_row(state: BattleState, u: Unit) -> AiAction:
 ## 強化・解除に包囲可能を課すと永久に成立しない（包囲は敵にしか成り立たないため）。
 func skill_row(state: BattleState, u: Unit, pick_rule: String, require_surround := false) -> AiAction:
 	for option in Formation.available_for(state, u):
+		if option.effect == FormationOption.Effect.DETECT:
+			continue  # 罠発見は敵が使わない（敵AIは罠を避けないため → doc/gdd/gimmicks.md 罠発見）
 		if not option.needs_target():
 			return AiAction.skill(u.handle, option, u.pos)  # 陣営全体＝対象を選ばない
 		if option.has_impact() and not option.targets_unit():

@@ -24,6 +24,35 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 			return null
 	if not Formation.can_target(state, option, target):
 		return null
+	return _apply(state, option, target, origin)
+
+## 行動完了スキル（罠発見の調査ドローン）を handle の駒で発動する。呼ぶのは application＝駒が行動完了した
+## 直後（待機・攻撃・スキル・出撃・降車の後）と、自陣営のターン終了時（at_turn_end＝行動完了していない駒も
+## その場所で発動する）。発動するのは1体1ターン1回。敵は使わない（敵AIは罠を避けないため）。
+## 発動しなければ空。詳細 → doc/gdd/skills.md アクティブとパッシブ・罠発見, doc/gdd/gimmicks.md 罠発見
+static func on_done(state: BattleState, handle: int, at_turn_end := false) -> Array[SkillResult]:
+	var out: Array[SkillResult] = []
+	var u := state.unit_by_handle(handle)
+	if u == null or u.team != state.current_team or u.team != 0:
+		return out
+	if state.on_done_fired(handle):
+		return out
+	if not at_turn_end and not state.is_done(handle):
+		return out
+	for rid in Formation.SKILLS:
+		var r: Dictionary = Formation.SKILLS[rid]
+		if not Formation.on_done_ready(state, u, rid, r):
+			continue
+		var option := FormationOption.from_skill(rid, r, [u])
+		var res := _apply(state, option, u.pos, Formation.NO_HEX)
+		if res != null:
+			out.append(res)
+	if not out.is_empty():
+		state.mark_on_done_fired(handle)
+	return out
+
+## resolve の本体（資格の判定を済ませた後）。行動完了スキルは資格を問わずここへ入る。
+static func _apply(state: BattleState, option: FormationOption, target: Vector2i, origin: Vector2i) -> SkillResult:
 	var out := SkillResult.new()
 	out.skill = option.skill
 	out.caster_id = option.caster_id
@@ -35,6 +64,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	var skill_scope := option.scope == FormationOption.Scope.UNIT
 	var cast := _skill_cast(state, option, target) if skill_scope else null
 	var spawn_cells: Array[Vector2i] = []  # 分裂で出た位置（cells に載せて盤で光らせる）
+	var detected_cells: Array[Vector2i] = []  # 罠発見で見つけた罠のマス（同上）
 	# レポートの見出し・攻撃列に出す発動者（発動前に固める＝attack のスナップショットと同じ流儀。
 	# 兵数は動かないので troops_after は troops_before のまま）。詳細 → doc/tech/combat_scene.md
 	var caster := state.unit_by_handle(option.caster_id)
@@ -83,6 +113,16 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 			if cast != null:
 				cast.dot_troops = int(dot.get("value", 0))
 				cast.kind = String(dot.get("kind", StatusMod.KIND_DEBUFF))
+		# 罠発見は駒ではなく仕掛けの状態を書き換える＝発動者の位置から、移動力を予算に視線の届く範囲の
+		# 隠れた罠を見つかった状態にする。着弾は起きない＝hits空。詳細 → doc/gdd/gimmicks.md 罠発見
+		FormationOption.Effect.DETECT:
+			if caster != null:
+				var d := state.detect_traps(caster.pos, caster.move)
+				out.center = caster.pos  # 調べた起点＝盤の演出がここから光を広げる
+				out.scanned = d["scanned"]
+				for g: Gimmick in d["found"]:
+					out.detected.append(g.id)
+					detected_cells.append(g.hex)
 	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
 	var pv := Formation.preview(state, option, target)
 	for hit: HitDetail in pv["hits"]:
@@ -113,15 +153,22 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	var exp_gain := 0
 	if not out.hits.is_empty():
 		exp_gain = 1 + (1 if any_killed else 0)
+	elif option.effect == FormationOption.Effect.DETECT:
+		# 罠発見は罠を1つ以上見つけたときだけ +1＝撃つだけでレベルが上がる手を塞ぐ。詳細 → doc/gdd/skills.md 罠発見
+		exp_gain = 1 if not out.detected.is_empty() else 0
 	elif skill_scope:
 		# ユニットスキルは撃破が起きないので前半（戦ったら+1）だけが乗る。詳細 → doc/gdd/skills.md
 		exp_gain = 1
 	# 参加者は行動完了（1体は1ターンに1つの陣形スキルにのみ参加）＋レベル加算。
+	# 使った後も再移動できるレシピ（罠発見の斥候＝after "attacked"）は攻撃済みの扱い＝もう攻撃・スキルはできない。
 	for pid in option.participants:
 		var p := state.unit_by_handle(pid)
 		if p != null:
 			p.gain_level(exp_gain)
-		state.set_done(pid)
+		if option.after == FormationOption.AFTER_ATTACKED:
+			state.mark_attacked(pid)
+		else:
+			state.set_done(pid)
 		state.mark_engaged(pid)
 	# チャージが必要なレシピは発動後に 0 に戻す（→ doc/gdd/skills.md 共通ルール）。
 	if option.charge_turns > 0:
@@ -131,6 +178,7 @@ static func resolve(state: BattleState, option: FormationOption, target: Vector2
 	# 扇（ドラゴンブレス）は発動者の位置で向きが決まる＝発動前に控えた caster を渡す（撃破されない＝盤に居る）。
 	out.cells = Formation.blast_cells(option, target, caster.pos if caster != null else Formation.NO_HEX)
 	out.cells.append_array(spawn_cells)  # 分裂で出た位置も光らせる（→ doc/gdd/skills.md スライムスプリット）
+	out.cells.append_array(detected_cells)  # 見つけた罠のマスも光らせる（→ doc/gdd/skills.md 罠発見）
 	out.cast = cast
 	# バックスタブ＝着弾を済ませてから発動者をこのターンの移動開始位置へ戻す（刺して消える）。
 	# 威力・支援・地形は戻す前の位置（刺した位置）で確定している＝順番はここで最後。

@@ -34,6 +34,7 @@ signal battle_finished(outcome: int)  # BattleState.ONGOING/PLAYER_WIN/PLAYER_LO
 
 var state: BattleState
 var _finished := false
+var _ending := false  # end_turn の途中（ターン終了時の行動完了スキルを見せている間）＝二度押しを弾く
 
 ## AI設定（ステージごとに差し替え可能）。ai_brain が null の陣営は手動操作（ホットシート）。
 var ai_team := 1
@@ -84,6 +85,8 @@ func execute(cmd: MoveCommand) -> bool:
 		if state.unit_at(cmd.to) == u:  # 輸送に乗り込んだ駒は盤に立たない＝踏まない（doc/gdd/gimmicks.md 踏む）
 			_step_gimmick(cmd.to, u.team)
 		_check_finished()  # 移動＝占領・仕掛けが起きうる（本拠地の占領/喪失・仕掛けの勝利条件はこの瞬間に決着する）
+		if not _finished:
+			_fire_on_done(cmd.handle)  # 動いた先で打つ手が無くなった駒＝行動完了
 		return true
 	move_rejected.emit(cmd.handle, cmd.to)
 	return false
@@ -102,6 +105,8 @@ func execute_attack(cmd: AttackCommand) -> bool:
 		unit_died.emit(cmd.attacker_id)
 	combat_resolved.emit(result)  # unit_attacked の後＝盤の選択解除より後に結果表示
 	_check_finished()
+	if not _finished:
+		_fire_on_done(cmd.attacker_id)
 	return true
 
 ## 下り: 陣形スキルの処理。成功すれば盤に適用し formation_resolved（＋撃破ごとに unit_died）を発行。
@@ -118,6 +123,8 @@ func execute_formation(cmd: FormationCommand) -> bool:
 			unit_died.emit(h.target_id)
 	formation_resolved.emit(result)
 	_check_finished()  # 陣形でボスを撃破しうる（勝利条件）
+	if not _finished:
+		_fire_on_done(cmd.option.caster_id)
 	return true
 
 ## 下り: 出撃コマンドの処理。成功すれば garrison から駒を出し unit_deployed を発行。
@@ -135,6 +142,8 @@ func execute_deploy(cmd: DeployCommand) -> bool:
 		if placed != null and state.unit_at(cmd.to) == placed:  # 輸送に直接乗った駒は盤に立たない＝踏まない
 			_step_gimmick(cmd.to, placed.team)
 			_check_finished()  # 出撃で仕掛けを踏みうる（仕掛けの勝利条件）
+			if not _finished:
+				_fire_on_done(uid)  # 出撃した駒はそのターン行動完了
 		return true
 	return false
 
@@ -155,6 +164,8 @@ func execute_unload(cmd: UnloadCommand) -> bool:
 		if u != null:
 			_step_gimmick(cmd.to, u.team)
 		_check_finished()
+		if u != null and not _finished:
+			_fire_on_done(u.handle)
 		return true
 	return false
 
@@ -210,6 +221,16 @@ func _step_gimmick(hex: Vector2i, team: int) -> void:
 			unit_died.emit(int(h["unit"]))
 	trap_fired.emit(g.id, hits)
 
+## 駒が行動完了したら、その駒の行動完了スキル（罠発見の調査ドローン）をその場所で発動する。
+## 待機・攻撃・スキル・出撃・降車・移動（動いた先で打つ手が無くなった）の後に呼ぶ。発動したスキルは
+## 陣形スキルと同じく formation_resolved で上へ返す＝盤の演出・右パネルのレポートは同じ口。
+## 行動完了していない・発動済み・持っていない駒では何も起きない。詳細 → doc/gdd/skills.md アクティブとパッシブ
+func _fire_on_done(handle: int, at_turn_end := false) -> Array[SkillResult]:
+	var results := FormationResolver.on_done(state, handle, at_turn_end)
+	for r in results:
+		formation_resolved.emit(r)
+	return results
+
 ## 表示用: 輸送 transport_id の搭乗駒 index の降車先候補（状態は変えない）。
 func unload_cells_for(transport_id: int, index: int) -> Array[Vector2i]:
 	return state.unload_cells(transport_id, index)
@@ -229,6 +250,17 @@ func enter_base(handle: int) -> bool:
 
 ## ターンを終了して次の陣営へ渡す。AIのターンに入ったら自動で思考を回す。
 func end_turn() -> void:
+	if _finished or _ending:
+		return
+	# ターン終了時に行動完了していない駒の行動完了スキル（罠発見の調査ドローン）を、その場所で発動する。
+	# 1体ずつ盤の演出を見せ切ってから次へ（combat_pace＝盤の着弾を待つ）。詳細 → doc/gdd/skills.md アクティブとパッシブ
+	_ending = true
+	for u: Unit in state.units().duplicate():
+		if u.team != state.current_team:
+			continue
+		if not _fire_on_done(u.handle, true).is_empty() and combat_pace.is_valid():
+			await combat_pace.call()
+	_ending = false
 	if _finished:
 		return
 	state.end_turn()
@@ -409,6 +441,7 @@ func stand(handle: int) -> void:
 		return
 	state.set_done(handle)
 	unit_stood.emit(handle)
+	_fire_on_done(handle)
 
 ## デバッグ: 盤上の敵駒（team 1）を全て除去する。決着は既存の判定に委ねる＝殲滅で勝利になる
 ## ステージならそのまま通常の勝利フロー（戦果票→outro→完走イラスト）へ流れる。敵拠点に控えが

@@ -396,6 +396,37 @@ const SKILLS := {
 		"range_from": "caster",
 		"charge_turns": 3,  # 盤に出た直後は撃てない。3ターン溜めてから発動。詳細 → doc/gdd/skills.md
 	},
+	# 罠発見＝発動者の位置から、移動力を予算に視線の届く範囲の隠れた罠を見つける（doc/gdd/gimmicks.md 罠発見）。
+	# 対象を選ばない＝メニューで押したら即発動。斥候と調査ドローンで発動の形が違うのでレシピを分ける。
+	# 詳細 → doc/gdd/skills.md 罠発見
+	"trap_scan": {
+		"name": "罠発見",
+		# 兵種「斥候」の味方すべて。斥候の型を足したらここにも加える（リペアの技師と同じ流儀）。
+		"caster_skins": ["thief", "halfling", "ninja", "kunoichi"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"activation": "active",
+		"effect": "detect",
+		"range": 0,
+		"range_from": "caster",
+		# 使った後も残り移動力で動ける＝攻撃済みの扱い（共通ルール「発動者は行動完了」の例外）。
+		"after": "attacked",
+	},
+	"trap_scan_drone": {
+		"name": "罠発見",
+		"caster_skins": ["survey_drone"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		# 行動完了スキル＝待機・攻撃の後にその場所で自動で発動し、何もせずターンを終えた駒もターン終了時に発動する。
+		# 手番を使わない＝メニューには出ない。詳細 → doc/gdd/skills.md アクティブとパッシブ
+		"activation": "on_done",
+		"effect": "detect",
+		"range": 0,
+		"range_from": "caster",
+		"after": "done",
+	},
 	"dragon_breath": {
 		"name": "ドラゴンブレス",
 		"caster_skins": ["red_dragon"],
@@ -427,7 +458,7 @@ const SKILLS := {
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
-const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot", "heal"]
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot", "heal", "detect"]
 
 ## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
@@ -862,6 +893,22 @@ static func passive_ready(state: BattleState, unit: Unit, rid: String, r: Dictio
 	if String(r["effect"]) == "spawn" and not _spawn_has_room(state, unit.pos):
 		return false
 	return true
+
+## 行動完了スキルか（行動完了した瞬間・ターン終了時に自動で発動する）。詳細 → doc/gdd/skills.md アクティブとパッシブ
+static func is_on_done(skill_id: String) -> bool:
+	var r: Dictionary = SKILLS.get(skill_id, {})
+	return String(r.get("activation", "")) == "on_done"
+
+## unit が行動完了スキル rid を持ち、いま発動できるか。手番は使わない＝行動の残りは問わない。
+static func on_done_ready(state: BattleState, unit: Unit, rid: String, r: Dictionary) -> bool:
+	if String(r["activation"]) != "on_done":
+		return false
+	if not (r["effect"] in IMPLEMENTED_EFFECTS):
+		return false
+	if not can_cast_skin(unit, r):
+		return false
+	var ct := int(r.get("charge_turns", 0))
+	return ct == 0 or state.get_charge(unit.handle, rid) >= ct
 
 ## 分裂（spawn）の置き先＝caster_pos の隣に盤内の空きマスがあるか。
 static func _spawn_has_room(state: BattleState, caster_pos: Vector2i) -> bool:
