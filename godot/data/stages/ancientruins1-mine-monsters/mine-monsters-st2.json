@@ -53,29 +53,27 @@
   ],
   "dialogue": {
     "intro": [
-      { "text": "mine-monsters.st2.intro.1" },
-      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.intro.2" },
-      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.intro.3" },
-      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.4" },
-      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.intro.5" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st2.intro.6" },
-      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.7" },
-      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.intro.8" },
-      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.intro.9" },
-      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.10" }
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.intro.1" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.intro.2" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.3" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.intro.4" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st2.intro.5" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.6" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.intro.7" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.intro.8" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.intro.9" }
     ],
     "outro": [
-      { "text": "mine-monsters.st2.outro.1" },
-      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.outro.2" },
-      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.3" },
-      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.outro.4" },
-      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st2.outro.5" },
-      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.outro.6" },
-      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.7" },
-      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.outro.8" },
-      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.outro.9" },
-      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.10" },
-      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.outro.11" }
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.outro.1" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.2" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.outro.3" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st2.outro.4" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.outro.5" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.6" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st2.outro.7" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st2.outro.8" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st2.outro.9" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st2.outro.10" }
     ]
   },
   "rank": { "turn_s": 8, "turn_a": 12, "survival_s": 5, "survival_a": 4 },

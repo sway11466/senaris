@@ -584,24 +584,22 @@ mine-monsters.st2.squad.3,走る魔獣,The Runner
 mine-monsters.st2.squad.4,飛ぶ機械,The Fliers
 mine-monsters.st2.squad.5,終点の番,The Guard at Rail's End
 mine-monsters.st2.squad.6,石壁の前の獣,The Beast at the Stone Wall
-mine-monsters.st2.intro.1,（レールの起点。移動砲を押してきた技師2人と、トロッコの脇に立つドワーフ。奥から歯車の音）,"(The head of the rail line. Two engineers who pushed the cannon here, and the dwarf standing by the minecart. From deeper in, the sound of gears.)"
-mine-monsters.st2.intro.2,坑員は上へ逃げた。奥の持ち場に、道具が置きっぱなしだ。壁もドリルも。,"The miners got out. Their tools are still sitting at the posts down there. The wall and the drill, both."
-mine-monsters.st2.intro.3,帝国の設備だ。放置はできない。砲だけは連れてきた。,"Imperial equipment. I cannot leave it. The cannon, at least, we brought along."
-mine-monsters.st2.intro.4,重かったです。でも、この子撃つの初めてなので楽しみです。,"It was heavy. But I've never fired this one before, so I'm looking forward to it."
-mine-monsters.st2.intro.5,奥の魔力は動いている。こちらへ来る。道具を壊しに来るのではなく、動く物なら何でも襲うのだろう。,"The magic deeper in is moving. Coming this way. Not to wreck the tools, I think. It attacks anything that moves."
-mine-monsters.st2.intro.6,動く物に反応する……。術式に索敵が組んであるんだ。そんな古い術式の実現方法、見てみたいわ。,It reacts to movement... There's a seeking formula built into the spell. I'd love to see how they did that with such an old formula.
-mine-monsters.st2.intro.7,なんてこと、壊される前に助けてあげなくちゃ！,Oh no. We have to save them before they get wrecked!
-mine-monsters.st2.intro.8,トロッコは四人乗りだ。誰を先に運ぶか決めろ。,The minecart seats four. Decide who rides first.
-mine-monsters.st2.intro.9,完全に壊される前に制圧するぞ。,We take control before anything is destroyed outright.
-mine-monsters.st2.intro.10,完全に壊れていなければ、私たちが直せます。,"If it's not completely broken, we can fix it."
-mine-monsters.st2.outro.1,（レールの終点。倒れたキメラ。レールは岩ではなく、切り出した石の壁の前で途切れている）,"(The end of the rail line. The fallen chimera. The rails stop not at rock, but at a wall of cut stone.)"
-mine-monsters.st2.outro.2,ねえ、この壁。岩じゃないです。積んであります。,"Hey, this wall. It isn't rock. It's stacked."
-mine-monsters.st2.outro.3,……人の手だ。だが、わしらの掘り方ではない。この山に、こんな石組みは無い。,...Made by hand. But not how we dig. There's no stonework like this anywhere in this mountain.
-mine-monsters.st2.outro.4,遺跡だ。太古の。鉱山の奥に、遺跡が埋まっていた。,Ruins. Ancient ones. There were ruins buried at the back of the mine.
-mine-monsters.st2.outro.5,入りたい。今すぐ。,I want to go in. Right now.
-mine-monsters.st2.outro.6,待て。まず休む。武器と道具を整えてからだ。,"Wait. We rest first. Weapons and tools in order, then we go."
-mine-monsters.st2.outro.7,休むのは賛成だ。上にも報告を出す。「奥に遺跡がある」とだけな。,"Resting, I'm for. And we send word up top. Just ""there are ruins below."" Nothing more."
-mine-monsters.st2.outro.8,報告は私が書く。魔法使いの国の学者として。,I will write the report. As a scholar of the mages' kingdom.
-mine-monsters.st2.outro.9,帝国の技師として、私も書く。,"As an engineer of the Empire, so will I."
-mine-monsters.st2.outro.10,二通でも三通でも書け。書き終わったら、奥へ行く。,"Write two, write three, I don't care. When you're done, we go deeper."
-mine-monsters.st2.outro.11,直せる子は、ぜんぶ直しておきますね。,I'll fix up every one that can still be fixed.
+mine-monsters.st2.intro.1,坑員は上へ逃げた。奥の持ち場に、道具が置きっぱなしだ。壁もドリルも。,"The miners got out. Their tools are still sitting at the posts down there. The wall and the drill, both."
+mine-monsters.st2.intro.2,帝国の設備だ。放置はできない。また湧くと踏んで、砲だけは連れてきた。,"Imperial equipment. I cannot leave it. We figured more would come, so we brought the cannon, at least."
+mine-monsters.st2.intro.3,重かったです。でも、この子撃つの初めてなので楽しみです。,"It was heavy. But I've never fired this one before, so I'm looking forward to it."
+mine-monsters.st2.intro.4,奥の魔力は動いている。こちらへ来る。道具を壊しに来るのではなく、動く物なら何でも襲うのだろう。,"The magic deeper in is moving. Coming this way. Not to wreck the tools, I think. It attacks anything that moves."
+mine-monsters.st2.intro.5,動く物に反応する……。索敵まで術式に組んであるのね。古代の術式、見てみたいわ。,It reacts to movement... They built seeking right into the spell. An ancient formula. I'd love to see it.
+mine-monsters.st2.intro.6,なんてこと、壊される前に助けてあげなくちゃ！,Oh no. We have to save them before they get wrecked!
+mine-monsters.st2.intro.7,トロッコは四人乗りだ。誰を先に運ぶか決めろ。,The minecart seats four. Decide who rides first.
+mine-monsters.st2.intro.8,完全に壊される前に制圧するぞ。,We take control before anything is destroyed outright.
+mine-monsters.st2.intro.9,完全に壊れていなければ、私たちが直せます。,"If it's not completely broken, we can fix it."
+mine-monsters.st2.outro.1,ねえ、この壁。岩じゃないです。積んであります。,"Hey, this wall. It isn't rock. It's stacked."
+mine-monsters.st2.outro.2,……人の手だ。だが、わしらの掘り方ではない。この山に、こんな石組みは無い。,...Made by hand. But not how we dig. There's no stonework like this anywhere in this mountain.
+mine-monsters.st2.outro.3,遺跡だ。太古の。鉱山の奥に、遺跡が埋まっていた。,Ruins. Ancient ones. There were ruins buried at the back of the mine.
+mine-monsters.st2.outro.4,入りたい。今すぐ。,I want to go in. Right now.
+mine-monsters.st2.outro.5,待て。まず休む。武器と道具を整えてからだ。,"Wait. We rest first. Weapons and tools in order, then we go."
+mine-monsters.st2.outro.6,休むのは賛成だ。上にも報告を出す。「奥に遺跡がある」とだけな。,"Resting, I'm for. And we send word up top. Just ""there are ruins below."" Nothing more."
+mine-monsters.st2.outro.7,報告は私が書く。魔法使いの国の学者として。,I will write the report. As a scholar of the mages' kingdom.
+mine-monsters.st2.outro.8,帝国の技師として、私も書く。,"As an engineer of the Empire, so will I."
+mine-monsters.st2.outro.9,二通でも三通でも書け。書き終わったら、奥へ行く。,"Write two, write three, I don't care. When you're done, we go deeper."
+mine-monsters.st2.outro.10,直せる子は、ぜんぶ直しておきますね。,I'll fix up every one that can still be fixed.
