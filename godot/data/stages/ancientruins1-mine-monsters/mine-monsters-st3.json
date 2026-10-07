@@ -1,0 +1,87 @@
+{
+  "turn_limit": 20,
+  "name": "mine-monsters-st3",
+  "player": [
+    { "units": [
+        { "type": "shieldwright", "actor": "shieldwright", "col": 5, "row": 17, "supply": "revive" },
+        { "type": "dwarf", "actor": "dwarf", "col": 7, "row": 17, "supply": "revive" },
+        { "type": "gunner", "actor": "gunner", "col": 4, "row": 16, "supply": "revive" },
+        { "type": "wizard", "actor": "wizard", "col": 6, "row": 16, "supply": "revive" },
+        { "type": "witch", "actor": "witch", "col": 8, "row": 16, "supply": "revive" },
+        { "type": "mantlet", "actor": "mantlet", "col": 6, "row": 18, "supply": "revive" },
+        { "type": "drill", "actor": "drill", "col": 4, "row": 18, "supply": "revive" },
+        { "type": "cannon", "actor": "cannon", "col": 8, "row": 18, "supply": "revive" },
+        { "type": "railcar", "actor": "railcar", "col": 9, "row": 17, "supply": "join" },
+        { "skin": "survey_drone", "actor": "survey_drone", "col": 3, "row": 17, "supply": "join" }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "mine-monsters.st3.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "turret", "unit_id": "turret", "col": 6, "row": 2 }
+      ] },
+    { "order": 2, "name": "mine-monsters.st3.squad.2", "ai": "ambush", "sight": 5,
+      "units": [
+        { "skin": "bomber", "col": 4, "row": 3 },
+        { "skin": "bomber", "col": 8, "row": 3 }
+      ] },
+    { "order": 3, "name": "mine-monsters.st3.squad.3", "ai": "charge",
+      "units": [
+        { "skin": "magic_hound", "col": 5, "row": 6 },
+        { "skin": "magic_hound", "col": 7, "row": 6 }
+      ] },
+    { "order": 4, "name": "mine-monsters.st3.squad.4", "ai": "ambush", "sight": 2,
+      "units": [
+        { "skin": "gear_soldier", "col": 1, "row": 9 },
+        { "skin": "homunculus", "col": 1, "row": 12 },
+        { "skin": "homunculus", "col": 3, "row": 7 }
+      ] },
+    { "order": 5, "name": "mine-monsters.st3.squad.5", "ai": "ambush", "sight": 2,
+      "units": [
+        { "skin": "gear_soldier", "col": 11, "row": 9 },
+        { "skin": "homunculus", "col": 11, "row": 12 },
+        { "skin": "gear_soldier", "col": 9, "row": 7 }
+      ] }
+  ],
+  "gimmicks": [
+    { "id": "sigil-1", "kind": "thunder_sigil", "col": 6, "row": 7, "state": "hidden" },
+    { "id": "sigil-2", "kind": "thunder_sigil", "col": 4, "row": 10, "state": "hidden" },
+    { "id": "sigil-3", "kind": "thunder_sigil", "col": 8, "row": 12, "state": "hidden" },
+    { "id": "mine-1", "kind": "landmine", "col": 6, "row": 10, "state": "hidden" },
+    { "id": "mine-2", "kind": "landmine", "col": 3, "row": 8, "state": "hidden" },
+    { "id": "mine-3", "kind": "landmine", "col": 9, "row": 11, "state": "hidden" }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "unit_ids": ["turret"] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st3.intro.1" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st3.intro.2" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st3.intro.3" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st3.intro.4" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st3.intro.5" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st3.intro.6" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st3.intro.7" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st3.intro.8" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st3.intro.9" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st3.intro.10" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st3.intro.11" }
+    ],
+    "outro": [
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st3.outro.1" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st3.outro.2" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st3.outro.3" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st3.outro.4" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st3.outro.5" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st3.outro.6" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st3.outro.7" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st3.outro.8" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st3.outro.9" }
+    ]
+  },
+  "rank": { "turn_s": 8, "turn_a": 12, "survival_s": 5, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
+  "bgm": { "main": "dungeon" }
+}

@@ -69,5 +69,7 @@ mine-monsters.st1.title,坑道の入口,The Mine Entrance
 mine-monsters.st1.synopsis,一つしかない作業場で、学者と技師とドワーフが机の置き場を揉めていた。そこへ坑員が逃げてくる。奥から魔物が湧いたという。,"Scholars, engineers, and a dwarf are squabbling over where the desk goes in the only workroom — until the miners come running. Monsters are pouring out of the deep."
 mine-monsters.st2.title,レールの坑道,The Rail Tunnel
 mine-monsters.st2.synopsis,坑員が置き去りにした壁とドリルへ、魔物が向かっている。トロッコは四人乗り。誰を先に運び、どの兵器を先に助けるか。,"Monsters are closing on the wall and the drill the miners left behind. The minecart seats four. Who rides first, and which machine do you save first?"
+mine-monsters.st3.title,遺跡の入口,The Ruins' Threshold
+mine-monsters.st3.synopsis,一晩休んで、石組みの門をくぐる。奥には動かずに撃ち下ろす砲台。床は信用できない。ドローンで罠を見つけ、印を避けて詰め寄る。,"After a night's rest, through the gate of cut stone. Deep inside waits a turret that never moves and covers the whole hall. The floor cannot be trusted: find the traps with the drone, then close in past the marks."
 ruins.title,古代遺跡,The Ancient Ruins
 ancient-weapon.title,古代兵器,The Ancient Weapon
