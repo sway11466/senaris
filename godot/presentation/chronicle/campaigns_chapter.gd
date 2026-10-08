@@ -9,21 +9,22 @@ class_name ChronicleCampaignsChapter
 enum Section { EVENTS, RESULTS, LORE, STORY }  # タブの並び順。冒険譚を開くと先頭のタブ
 const SECTION_KEYS := ["ui.chronicle.events", "ui.chronicle.results", "ui.chronicle.lore", "ui.chronicle.story"]
 
+## 自動で区切る本で、次の塊と同じページに置く塊（見出しだけがページの下に残らないように）。
+const KEEP_WITH_NEXT := ["phase", "lore_head"]
+
 ## 絵の面の縦／横＝ステージセレクトの冒険譚カードの絵の枠（317×230・doc/gdd/stage_select.md）。
 const ART_ASPECT := 230.0 / 317.0
 
 var _selected_campaign_id := ""  # 冒険譚を選んでいるとき（空なら一覧）
 var _section: int = Section.EVENTS
 var _tabs: HFlowContainer  # 戻る（←）と節のタブ＝スクロールの外（冒険譚を開いているときだけ見せる）
-var _story_left := 1   # 物語の節で開いている見開きの左ページ（奇数）
-var _events_left := 1  # 会話／イベントの節で開いている見開きの左ページ（奇数）
-# 会話／イベントの本。段と会話は冒険譚を開いたときに読み、ページの振り分けは _events_key が変わったときだけやり直す。
+var _story_left := 1  # 物語の節で開いている見開きの左ページ（奇数）
+# 画面が自動で区切る本（会話／イベント・戦果・設定集）。節ごとに { key, blocks, pages, left }。
+# 振り分けは key（冒険譚｜言語）が変わったときだけやり直し、めくるたびには測り直さない。
+var _flows := {}
+var _flow_gen := 0               # 測っている最中に組み直されたら捨てるための番号
 var _events_campaign := ""       # _events_chapters を読んだ冒険譚
 var _events_chapters: Array = [] # [{ title, map, talks }]（ChronicleStory の段と会話）
-var _events_blocks: Array = []   # ページへ流す塊（_event_blocks）
-var _events_pages: Array = []    # ページごとの塊の番号
-var _events_key := ""            # 振り分けたときの 冒険譚｜言語
-var _events_gen := 0             # 測っている最中に組み直されたら捨てるための番号
 
 func _ready() -> void:
 	super()
@@ -121,9 +122,8 @@ func _equalize_widths(buttons: Array) -> void:
 ## （遊んだぶん記録が増えているかもしれない）。
 func _reset_books() -> void:
 	_story_left = 1
-	_events_left = 1
+	_flows = {}
 	_events_campaign = ""
-	_events_key = ""
 
 ## タブの板を細枠で包む。selected でなければ枠は透明（場所だけ取る）。
 func _tab_frame(b: Button, selected: bool) -> Control:
@@ -281,86 +281,76 @@ func _open_campaign(campaign_id: String) -> void:
 # 戦果（RESULTS）
 # ---------------------------------------------------------------------------
 
-## 選択中の冒険譚のステージごとの戦果を出す。
+## 戦果を本で読む。冒険譚の名前・まとめ（全クリア後）・ステージごとの行を流す。
 func _build_results() -> void:
 	if _progress == null:
 		return
 	var c := _progress.campaign(_selected_campaign_id)
 	if c.is_empty():
 		return
-	# 冒険譚の見出し
-	var head := Label.new()
-	head.text = tr(String(c.get("title", _selected_campaign_id)))
-	head.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
-	head.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
-	_content_box.add_child(head)
-
-	# 冒険譚サマリー（全クリアならランクと合計時間）
+	var blocks: Array = [ { "kind": "head", "text": tr(String(c.get("title", _selected_campaign_id))) } ]
 	var stages: Array = c["stages"]
 	if _progress.is_all_cleared(_selected_campaign_id):
-		var summary_parts: Array = []
+		var parts: Array = []
 		var rank := _campaign_rank(_selected_campaign_id, stages)
 		if not rank.is_empty():
-			summary_parts.append(tr("ui.chronicle.campaign_rank") % rank)
+			parts.append(tr("ui.chronicle.campaign_rank") % rank)
 		var t := _campaign_total_time(_selected_campaign_id, stages)
 		if t > 0:
-			summary_parts.append(tr("ui.chronicle.total_time") % _format_duration(t))
-		if not summary_parts.is_empty():
-			var summary := Label.new()
-			summary.text = "  ".join(summary_parts)
-			summary.add_theme_font_size_override("font_size", ChronicleStyle.DETAIL_FONT_SIZE)
-			summary.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-			_content_box.add_child(summary)
-
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, ChronicleStyle.CATEGORY_GAP)
-	_content_box.add_child(spacer)
-
-	# ステージごとの行
+			parts.append(tr("ui.chronicle.total_time") % _format_duration(t))
+		if not parts.is_empty():
+			blocks.append({ "kind": "summary", "text": "  ".join(parts) })
+	blocks.append({ "kind": "gap", "h": ChronicleStyle.CATEGORY_GAP })
 	for s in stages:
 		var sid: String = s["id"]
 		var cleared := _progress.stage_state(_selected_campaign_id, sid) == CampaignProgress.CLEARED
-		var row := HBoxContainer.new()
-		row.custom_minimum_size = Vector2(0, ChronicleStyle.ITEM_HEIGHT)
-		row.add_theme_constant_override("separation", 16)
+		var time := _progress.best_time(_selected_campaign_id, sid) if cleared else 0
+		blocks.append({
+			"kind": "result",
+			"title": tr(String(s.get("title", sid))) if cleared else tr("ui.chronicle.unknown"),
+			"cleared": cleared,
+			"rank": _progress.best_rank(_selected_campaign_id, sid) if cleared else "",
+			"time": _format_duration(time) if time > 0 else "",
+		})
+	_build_flow(blocks)
 
-		var title_label := Label.new()
-		if cleared:
-			title_label.text = tr(String(s.get("title", sid)))
-		else:
-			title_label.text = tr("ui.chronicle.unknown")
-		title_label.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-		title_label.add_theme_color_override("font_color",
-			ChronicleStyle.UI_GRAY if cleared else ChronicleStyle.DIM_GRAY)
-		title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(title_label)
+## 戦果の1行＝題名・ベストランク（濃く太く）・所要時間のベスト。未クリアは「？」だけ。
+func _result_row(b: Dictionary) -> Control:
+	var row := HBoxContainer.new()
+	row.custom_minimum_size = Vector2(0, ChronicleStyle.ITEM_HEIGHT)
+	row.add_theme_constant_override("separation", 16)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := _ink_label(String(b["title"]), ChronicleStyle.BODY_FONT_SIZE,
+			TavernTheme.INK if b["cleared"] else TavernTheme.INK_SOFT)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	row.add_child(title)
+	if not String(b["rank"]).is_empty():
+		var rank := _ink_label(String(b["rank"]), ChronicleStyle.BODY_FONT_SIZE + 2, TavernTheme.INK)
+		rank.add_theme_constant_override("outline_size", 1)  # 太く見せる（文字と同じ色の縁）
+		rank.add_theme_color_override("font_outline_color", TavernTheme.INK)
+		rank.custom_minimum_size = Vector2(30, 0)
+		rank.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(rank)
+	if not String(b["time"]).is_empty():
+		row.add_child(_ink_label(String(b["time"]), ChronicleStyle.BODY_FONT_SIZE, TavernTheme.INK_SOFT))
+	return row
 
-		if cleared:
-			var rank := _progress.best_rank(_selected_campaign_id, sid)
-			if not rank.is_empty():
-				var rank_label := Label.new()
-				rank_label.text = rank
-				rank_label.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-				rank_label.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
-				rank_label.custom_minimum_size = Vector2(30, 0)
-				row.add_child(rank_label)
-			var time := _progress.best_time(_selected_campaign_id, sid)
-			if time > 0:
-				var time_label := Label.new()
-				time_label.text = _format_duration(time)
-				time_label.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-				time_label.add_theme_color_override("font_color", ChronicleStyle.DIM_GRAY)
-				row.add_child(time_label)
-
-		_content_box.add_child(row)
+## 紙の上の文字（インクの色）。
+func _ink_label(text: String, size: int, color: Color) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", color)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return label
 
 # ---------------------------------------------------------------------------
 # 会話／イベント（EVENTS）
 # ---------------------------------------------------------------------------
 
-## 会話を本で読む。全ステージぶんの行を画面の外で一度組んで高さを測り、ページへ振り分ける。
-## 振り分けは覚えておき、めくるたびには測り直さない（冒険譚か言語が変わったときだけ）。
-## 並ぶのは経験した会話だけ＝見ていない出来事の存在を匂わせない（doc/gdd/chronicle.md 会話／イベント）。
+## 会話を本で読む。並ぶのは経験した会話だけ＝見ていない出来事の存在を匂わせない
+## （doc/gdd/chronicle.md 会話／イベント）。
 func _build_events() -> void:
 	if _progress == null:
 		return
@@ -369,28 +359,11 @@ func _build_events() -> void:
 	if _events_chapters.is_empty():
 		_build_placeholder(tr("ui.chronicle.story_empty"))
 		return
-	var blocks := _event_blocks()
-	var key := "%s|%s" % [_selected_campaign_id, TranslationServer.get_locale()]
-	if key == _events_key:
-		_add_book(_events_spread(), _events_pages.size())
-		return
-	_events_gen += 1
-	var gen := _events_gen
-	var heights := await _measure_blocks(blocks)
-	if gen != _events_gen or not is_inside_tree():
-		return  # 測っている間に組み直された
-	_events_blocks = blocks
-	_events_pages = _paginate(blocks, heights)
-	_events_key = key
-	_events_left = clampi(_events_left, 1, maxi(1, _events_pages.size()))
-	if _events_left % 2 == 0:
-		_events_left -= 1
-	rebuild()
+	_build_flow(_event_blocks())
 
 ## 段（1ステージ）の列と、段ごとの会話を読む。冒険譚を開き直したときだけ。
 func _load_events() -> void:
 	_events_campaign = _selected_campaign_id
-	_events_key = ""
 	_events_chapters = []
 	var campaign := _progress.campaign(_selected_campaign_id)
 	if campaign.is_empty():
@@ -432,6 +405,31 @@ func _append_talk(blocks: Array, phase: String, lines: Array) -> void:
 		if typeof(raw) == TYPE_DICTIONARY:
 			blocks.append({ "kind": "line", "line": raw })
 
+# ---------------------------------------------------------------------------
+# 自動で区切る本（会話／イベント・戦果・設定集が共用）
+# ---------------------------------------------------------------------------
+
+## 塊の列を本で出す。初めて（か冒険譚・言語が変わって）出すときは、画面の外で一度組んで高さを測り、
+## ページへ振り分けてから組み直す。振り分けは節ごとに覚える。
+func _build_flow(blocks: Array) -> void:
+	var key := "%s|%s" % [_selected_campaign_id, TranslationServer.get_locale()]
+	var f: Dictionary = _flows.get(_section, {})
+	if String(f.get("key", "")) == key:
+		_add_book(_flow_spread(f), (f["pages"] as Array).size())
+		return
+	_flow_gen += 1
+	var gen := _flow_gen
+	var section := _section
+	var heights := await _measure_blocks(blocks)
+	if gen != _flow_gen or not is_inside_tree():
+		return  # 測っている間に組み直された
+	var pages := _paginate(blocks, heights)
+	var left := clampi(int(f.get("left", 1)), 1, maxi(1, pages.size()))
+	if left % 2 == 0:
+		left -= 1
+	_flows[section] = { "key": key, "blocks": blocks, "pages": pages, "left": left }
+	rebuild()
+
 ## 塊の高さを測る。本文の幅の器に並べて画面の外（透明）でレイアウトさせる。
 ## 折り返す Label は幅が付いてから高さが決まるので、2フレーム待つ。
 func _measure_blocks(blocks: Array) -> Array:
@@ -457,7 +455,8 @@ func _measure_blocks(blocks: Array) -> Array:
 	return heights
 
 ## ページに振り分ける。返り値＝ページごとの塊の番号の列。
-## ステージの頭は新しいページから。見出しは次の行と離さない。会話の間はページの頭では捨てる。
+## ステージの頭は新しいページから。見出し（会話の見出し・設定集の節見出し）は次の塊と離さない。
+## 間はページの頭では捨てる。
 func _paginate(blocks: Array, heights: Array) -> Array:
 	var pages: Array = []
 	var page: Array = []
@@ -466,8 +465,8 @@ func _paginate(blocks: Array, heights: Array) -> Array:
 	for i in blocks.size():
 		var kind := String(blocks[i]["kind"])
 		var h: float = heights[i]
-		if kind == "phase" and i + 1 < blocks.size():
-			h += gap + float(heights[i + 1])  # 見出しだけがページの下に残らないよう、最初の行と合わせて測る
+		if KEEP_WITH_NEXT.has(kind) and i + 1 < blocks.size():
+			h += gap + float(heights[i + 1])  # 見出しだけがページの下に残らないよう、次の塊と合わせて測る
 		var need := h if page.is_empty() else used + gap + h
 		if not page.is_empty() and (kind == "stage" or need > ChronicleBook.TEXT_HEIGHT):
 			pages.append(page)
@@ -482,19 +481,22 @@ func _paginate(blocks: Array, heights: Array) -> Array:
 	return pages
 
 ## いま開いている見開き。
-func _events_spread() -> Control:
-	return ChronicleBook.spread(_events_page(_events_left, true), _events_page(_events_left + 1, false))
+func _flow_spread(f: Dictionary) -> Control:
+	var left := int(f["left"])
+	return ChronicleBook.spread(_flow_page(f, left, true), _flow_page(f, left + 1, false))
 
-func _events_page(page: int, gutter_right: bool) -> Control:
+func _flow_page(f: Dictionary, page: int, gutter_right: bool) -> Control:
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", ChronicleStyle.EVENTS_LINE_GAP)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if page <= _events_pages.size():
-		for i in _events_pages[page - 1]:
-			col.add_child(_block_node(_events_blocks[i]))
+	var pages: Array = f["pages"]
+	if page <= pages.size():
+		for i in pages[page - 1]:
+			col.add_child(_block_node(f["blocks"][i]))
 	return ChronicleBook.sheet_page(hash(_selected_campaign_id) + page, gutter_right, col)
 
 ## 塊1つぶんの Control（測るときとページに置くときで同じものを組む＝高さが一致する）。
+## stage／phase／line は会話／イベント、head／summary／result は戦果、lore_head／para／note は設定集。
 func _block_node(b: Dictionary) -> Control:
 	match String(b["kind"]):
 		"stage":
@@ -503,11 +505,23 @@ func _block_node(b: Dictionary) -> Control:
 			return _phase_head(String(b["phase"]))
 		"gap":
 			var spacer := Control.new()
-			spacer.custom_minimum_size = Vector2(0, ChronicleStyle.EVENTS_TALK_GAP)
+			spacer.custom_minimum_size = Vector2(0, int(b.get("h", ChronicleStyle.EVENTS_TALK_GAP)))
 			spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			return spacer
-		_:
+		"line":
 			return _line_row(b["line"])
+		"head", "lore_head":
+			return _ink_label(String(b["text"]), ChronicleStyle.HEAD_FONT_SIZE, TavernTheme.INK)
+		"summary":
+			return _ink_label(String(b["text"]), ChronicleStyle.DETAIL_FONT_SIZE, TavernTheme.INK_SOFT)
+		"result":
+			return _result_row(b)
+		"para":
+			var para := _ink_label(String(b["text"]), ChronicleStyle.BODY_FONT_SIZE, TavernTheme.INK)
+			para.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			return para
+		_:  # note＝中央ぞろえの薄いインクの1行（設定集の「続きは冒険のあとで」）
+			return _plain_line(String(b["text"]))
 
 ## ステージの頭＝題名と盤の絵（物語の挿絵と同じ置き方）。
 func _stage_head(title: String, map_path: String) -> Control:
@@ -593,7 +607,7 @@ func _face(skin_id: String) -> Control:
 # 設定集（LORE）
 # ---------------------------------------------------------------------------
 
-## 選択中の冒険譚の設定集を出す。解放された節を順に出し、未解放があれば末尾に1行。
+## 設定集を本で読む。解放された節を順に流し、未解放があれば最後に1行。
 ## 設定集データは data/chronicle/<冒険譚 id>.json（ChronicleLoader）から取得する＝ゲーム進行データとは分離。
 func _build_lore() -> void:
 	if _progress == null:
@@ -603,21 +617,19 @@ func _build_lore() -> void:
 	if lore.is_empty():
 		_build_placeholder(tr("ui.chronicle.lore"))
 		return
-
+	var blocks: Array = []
 	var has_locked := false
 	for section in lore:
 		if not _is_lore_section_unlocked(_selected_campaign_id, section):
 			has_locked = true
 			break
-		_build_lore_section(_selected_campaign_id, String(section["id"]))
-
+		if not blocks.is_empty():
+			blocks.append({ "kind": "gap", "h": ChronicleStyle.CATEGORY_GAP })
+		_append_lore_section(blocks, _selected_campaign_id, String(section["id"]))
 	if has_locked:
-		var locked_label := Label.new()
-		locked_label.text = tr("ui.chronicle.lore_locked")
-		locked_label.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-		locked_label.add_theme_color_override("font_color", ChronicleStyle.DIM_GRAY)
-		locked_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_content_box.add_child(locked_label)
+		blocks.append({ "kind": "gap", "h": ChronicleStyle.CATEGORY_GAP })
+		blocks.append({ "kind": "note", "text": tr("ui.chronicle.lore_locked") })
+	_build_flow(blocks)
 
 ## 設定集の節が解放済みかを判定。unlock 条件をすべて満たしていれば解放（AND評価）。
 ## CampaignProgress.stage_state() の公開 API だけで判定する＝進行データへの依存を最小に。
@@ -633,35 +645,20 @@ func _is_lore_section_unlocked(campaign_id: String, section: Dictionary) -> bool
 				return false  # 未知の条件は未充足側に倒す
 	return true
 
-## 設定集の1節を出す。見出し＋段落（連番のキーが在るぶんだけ）。
-func _build_lore_section(campaign_id: String, section_id: String) -> void:
-	# 節見出し
+## 設定集の1節＝見出し＋段落（連番のキーが在るぶんだけ）の塊を足す。
+func _append_lore_section(blocks: Array, campaign_id: String, section_id: String) -> void:
 	var title_key := "lore.%s.%s.title" % [campaign_id, section_id]
 	var title_text := tr(title_key)
 	if title_text != title_key:
-		var head := Label.new()
-		head.text = title_text
-		head.add_theme_font_size_override("font_size", ChronicleStyle.HEAD_FONT_SIZE)
-		head.add_theme_color_override("font_color", ChronicleStyle.ACCENT)
-		_content_box.add_child(head)
-	# 段落：lore.<冒険譚>.<節>.1, .2, .3 …
-	var p := 1
+		blocks.append({ "kind": "lore_head", "text": title_text })
+	var p := 1  # 段落：lore.<冒険譚>.<節>.1, .2, .3 …
 	while true:
 		var key := "lore.%s.%s.%d" % [campaign_id, section_id, p]
 		var text := tr(key)
 		if text == key:
 			break
-		var label := Label.new()
-		label.text = text
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.add_theme_font_size_override("font_size", ChronicleStyle.BODY_FONT_SIZE)
-		label.add_theme_color_override("font_color", ChronicleStyle.UI_GRAY)
-		_content_box.add_child(label)
+		blocks.append({ "kind": "para", "text": text })
 		p += 1
-	# 節間の余白
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, ChronicleStyle.CATEGORY_GAP)
-	_content_box.add_child(spacer)
 
 # ---------------------------------------------------------------------------
 # 物語（STORY）と本のめくり
@@ -725,31 +722,31 @@ func _page_button(key: String, step: int, enabled: bool) -> Button:
 
 ## いまの節で開いている見開きの左ページ（奇数）。節ごとに別に覚える。
 func _left() -> int:
-	return _events_left if _section == Section.EVENTS else _story_left
+	if _section == Section.STORY:
+		return _story_left
+	return int((_flows.get(_section, {}) as Dictionary).get("left", 1))
 
-## いまの節のページ数。会話／イベントは振り分けが済んでいなければ 0。
+## いまの節のページ数。自動で区切る節は振り分けが済んでいなければ 0。
 func _page_total() -> int:
-	if _section == Section.EVENTS:
-		return _events_pages.size()
-	return ChronicleBook.page_count(_selected_campaign_id)
+	if _section == Section.STORY:
+		return ChronicleBook.page_count(_selected_campaign_id)
+	return ((_flows.get(_section, {}) as Dictionary).get("pages", []) as Array).size()
 
 ## 見開きを step ページぶんめくる（±2）。端を越えるなら何もしない。
 func _turn_page(step: int) -> void:
 	var left := _left() + step
 	if left < 1 or left > _page_total():
 		return
-	if _section == Section.EVENTS:
-		_events_left = left
-	else:
+	if _section == Section.STORY:
 		_story_left = left
+	else:
+		_flows[_section]["left"] = left
 	SfxPlayer.play_event("menu_select")  # めくる音の素材が来るまで選択音で代える
 	rebuild()
 
-## ← → キーでもめくる。ボタンのフォーカス移動より先に取る（本の節を開いているときだけ）。
+## ← → キーでもめくる。ボタンのフォーカス移動より先に取る（冒険譚を開いているときだけ）。
 func _input(event: InputEvent) -> void:
 	if _selected_campaign_id.is_empty() or not is_visible_in_tree():
-		return
-	if _section != Section.STORY and _section != Section.EVENTS:
 		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed:
