@@ -16,6 +16,9 @@
       "roster_from": "mine-monsters-st2", "interlude": "revive" },
     { "id": "mine-monsters-st4", "file": "mine-monsters-st4.json", "title": "mine-monsters.st4.title", "synopsis": "mine-monsters.st4.synopsis",
       "unlock": [ { "type": "cleared", "stage": "mine-monsters-st3" } ],
-      "roster_from": "mine-monsters-st3", "interlude": "onward" }
+      "roster_from": "mine-monsters-st3", "interlude": "onward" },
+    { "id": "mine-monsters-st5", "file": "mine-monsters-st5.json", "title": "mine-monsters.st5.title", "synopsis": "mine-monsters.st5.synopsis",
+      "unlock": [ { "type": "cleared", "stage": "mine-monsters-st4" } ],
+      "roster_from": "mine-monsters-st4", "interlude": "onward" }
   ]
 }

@@ -661,3 +661,30 @@ mine-monsters.st4.outro.9,大きいのがいる気がします。歯車の枚数
 mine-monsters.st4.outro.10,奥の装置、見たい。,I want to see the machine in the back.
 mine-monsters.st4.outro.11,さわるなよ。,Don't touch it.
 mine-monsters.st4.outro.12,触らないってば。,I said I won't!
+mine-monsters.st5.squad.1,通路の失敗作,Rejects in the Corridor
+mine-monsters.st5.squad.2,走る魔獣,The Runners
+mine-monsters.st5.squad.3,車輪の兵,The Wheeled Soldiers
+mine-monsters.st5.squad.4,浮かぶ眼,The Floating Eyes
+mine-monsters.st5.base.spawner,通路の奥の湧き元,The Spawner at the Corridor's End
+mine-monsters.st5.victory.label,湧き元を止める,Stop the spawner
+mine-monsters.st5.intro.1,印、いっぱい付きました。床も壁も。通路ぜんぶ罠みたいです。,"Marks, lots of them. Floor and walls. The whole corridor is basically one big trap."
+mine-monsters.st5.intro.2,奥の装置が動いている。あれが湧き元だ。止めない限り、いくら倒しても減らない。,"The machine at the far end is running. That is the source. Until it stops, nothing we kill stays dead for long."
+mine-monsters.st5.intro.3,なら話は早い。押す。今すぐ奥まで行って止める。,"Then it's simple. We push. Straight to the back, right now, and stop it."
+mine-monsters.st5.intro.4,罠だらけの通路を、湧き続ける敵の正面から進むのか。囲まれて終わりだ。,"Through a corridor full of traps, head-on into an endless stream? We'd be surrounded and finished."
+mine-monsters.st5.intro.5,ここで待てば、待った分だけ敵が増える。学者は数が読めないのか。,"Every turn we wait here, there are more of them. Can a scholar not count?"
+mine-monsters.st5.intro.6,読めるとも。だから待つ。罠を踏ませて減らしてから進めば、囲まれない。,"I can count. That is why we wait. Let the traps thin them, then advance, and we are not surrounded."
+mine-monsters.st5.intro.7,減らしている間に、向こうは作る。減らしても減らない敵を、いつまで減らすつもりだ。,"While you thin them, it makes more. How long do you plan to thin an enemy that does not get thinner?"
+mine-monsters.st5.intro.8,……おい。,...Hey.
+mine-monsters.st5.intro.9,帝国の兵は、いつもそうだ。考える前に押す。,Imperial soldiers. Always the same. Push before you think.
+mine-monsters.st5.intro.10,魔法使いの国の学者は、いつもそうだ。考えている間に、人が死ぬ。,"Scholars of the mages' country. Always the same. While you think, people die."
+mine-monsters.st5.intro.11,あーあ。始まっちゃった。,"Oh, great. Here we go."
+mine-monsters.st5.intro.12,二人とも、この子の前で喧嘩しないでください。怯えてます。,"Please don't fight in front of this one, you two. It's scared."
+mine-monsters.st5.intro.13,決めるのはわしでも、お前らでもない。罠で減らしてから押すか、速攻で押すか。どっちでもいい。決めたら、動け。,"It's not my call, and it's not yours. Thin them with the traps first, or push right away. Either works. Decide, then move."
+mine-monsters.st5.outro.1,止まった。……押すのが正しかった。,It's stopped. ...Pushing was the right call.
+mine-monsters.st5.outro.2,罠で減らしたから押せた。減らさなければ、押せていない。,"We could push because the traps thinned them. Without that, there would have been no push."
+mine-monsters.st5.outro.3,減らしている間に、二体は増えた。,"While you were thinning them, two more were made."
+mine-monsters.st5.outro.4,増えた二体は、罠が食った。,And the traps ate those two.
+mine-monsters.st5.outro.5,やめい。どっちも勝ったんだ。それでいいだろう。,"Enough. You both won. Leave it at that."
+mine-monsters.st5.outro.6,二人とも、勝ったのに不機嫌なの、おかしい。,"You two are sulking after a win. That's ridiculous."
+mine-monsters.st5.outro.7,この子も疲れてます。先に進みましょう。奥に、大きな門があります。,"This one's tired too. Let's move on. There's a big gate up ahead."
+mine-monsters.st5.outro.8,門か。獣の匂いと、油の匂いがする。両方だ。,"A gate. I smell beast, and I smell oil. Both."
