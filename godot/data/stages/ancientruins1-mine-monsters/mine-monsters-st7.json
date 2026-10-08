@@ -1,0 +1,76 @@
+{
+  "turn_limit": 20,
+  "name": "mine-monsters-st7",
+  "player": [
+    { "units": [
+        { "type": "shieldwright", "actor": "shieldwright", "col": 5, "row": 21, "supply": "refill" },
+        { "type": "dwarf", "actor": "dwarf", "col": 7, "row": 21, "supply": "refill" },
+        { "type": "gunner", "actor": "gunner", "col": 4, "row": 20, "supply": "refill" },
+        { "type": "wizard", "actor": "wizard", "col": 6, "row": 20, "supply": "refill" },
+        { "type": "witch", "actor": "witch", "col": 8, "row": 20, "supply": "refill" },
+        { "type": "mantlet", "actor": "mantlet", "col": 6, "row": 22, "supply": "refill" },
+        { "type": "drill", "actor": "drill", "col": 4, "row": 22, "supply": "refill" },
+        { "type": "cannon", "actor": "cannon", "col": 8, "row": 22, "supply": "refill" },
+        { "type": "railcar", "actor": "railcar", "col": 9, "row": 21, "supply": "refill" },
+        { "skin": "survey_drone", "actor": "survey_drone", "col": 3, "row": 21, "supply": "refill" }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "mine-monsters.st7.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "abomination", "unit_id": "abomination", "col": 6, "row": 10 }
+      ] },
+    { "order": 2, "name": "mine-monsters.st7.squad.2", "ai": "ambush", "sight": 3,
+      "units": [
+        { "skin": "wheel_soldier", "col": 6, "row": 16 },
+        { "skin": "homunculus", "col": 3, "row": 14 },
+        { "skin": "homunculus", "col": 9, "row": 14 },
+        { "skin": "gear_soldier", "col": 2, "row": 12 },
+        { "skin": "gear_soldier", "col": 10, "row": 12 }
+      ] },
+    { "order": 3, "name": "mine-monsters.st7.squad.3", "ai": "ambush", "sight": 4,
+      "units": [
+        { "skin": "magic_eye", "col": 2, "row": 8 },
+        { "skin": "magic_eye", "col": 10, "row": 8 }
+      ] },
+    { "order": 4, "name": "mine-monsters.st7.squad.4", "ai": "ambush", "sight": 5,
+      "units": [
+        { "skin": "bomber", "col": 4, "row": 5 },
+        { "skin": "bomber", "col": 8, "row": 5 }
+      ] }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "unit_ids": ["abomination"] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st7.intro.1" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st7.intro.2" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st7.intro.3" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st7.intro.4" },
+      { "text": "mine-monsters.st7.intro.5" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st7.intro.6" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st7.intro.7" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st7.intro.8" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st7.intro.9" }
+    ],
+    "outro": [
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st7.outro.1" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st7.outro.2" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st7.outro.3" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st7.outro.4" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st7.outro.5" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st7.outro.6" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st7.outro.7" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st7.outro.8" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st7.outro.9" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st7.outro.10" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st7.outro.11" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st7.outro.12" }
+    ]
+  },
+  "rank": { "turn_s": 8, "turn_a": 12, "survival_s": 5, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
+  "bgm": { "main": "boss2" }
+}

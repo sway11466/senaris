@@ -77,5 +77,7 @@ mine-monsters.st5.title,罠の通路,The Trapped Corridor
 mine-monsters.st5.synopsis,通路の奥で、湧き元が兵を作り続ける。床は印だらけ。罠を踏ませて減らしてから押すか、湧きが増える前に押し切るか。どこまで待つかは、あなたが決める。,"At the end of the corridor, a spawner keeps making soldiers. The floor is covered in marks. Let them walk into the traps and thin them out first, or push through before they multiply? How long you wait is your call."
 mine-monsters.st6.title,門の中の二つのボス,Two Bosses Behind the Gate
 mine-monsters.st6.synopsis,開いた門の中に、あの獣と砲台が揃って待つ。砲の射線が獣の受け線を覆う。盾を構えて射程に入り、獣を引き寄せ、砲より先に獣を落とす。,"Behind the open gate, the beast and the turret wait together. The gun covers every square where the beast can be fought. Raise the shield, step into range, draw the beast in, and bring it down before the gun brings you down."
+mine-monsters.st7.title,炉の前庭,The Furnace Forecourt
+mine-monsters.st7.synopsis,少し休んで、扉を開ける。部屋の中央に、獣でも機械でもない異形が立つ。門番が見張っていたのは、これだ。持ってきた物は人も道具も残らず使う。,"A short rest, then the door. In the middle of the room stands a thing that is neither beast nor machine. This is what the gatekeepers were watching. Use everything you brought: every tool, every hand."
 ruins.title,古代遺跡,The Ancient Ruins
 ancient-weapon.title,古代兵器,The Ancient Weapon
