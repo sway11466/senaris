@@ -146,7 +146,7 @@
   ],
   "bases": [
     {
-      "col": 30,
+      "id": "base-1", "col": 30,
       "row": 2,
       "team": "enemy",
       "rest": "enemy",

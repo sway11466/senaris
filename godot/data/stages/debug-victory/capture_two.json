@@ -18,8 +18,8 @@
       ] }
   ],
   "bases": [
-    { "col": 8, "row": 1, "team": "enemy", "rest": "enemy" },
-    { "col": 8, "row": 5, "team": "enemy", "rest": "enemy" }
+    { "id": "base-1", "col": 8, "row": 1, "team": "enemy", "rest": "enemy" },
+    { "id": "base-2", "col": 8, "row": 5, "team": "enemy", "rest": "enemy" }
   ],
   "victory": [
     { "type": "capture_base",

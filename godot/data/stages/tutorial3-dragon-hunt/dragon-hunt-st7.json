@@ -35,7 +35,7 @@
       ] }
   ],
   "bases": [
-    { "col": 30, "row": 2, "team": "enemy", "rest": "enemy", "garrison": [] }
+    { "id": "base-1", "col": 30, "row": 2, "team": "enemy", "rest": "enemy", "garrison": [] }
   ],
   "victory": [
     { "type": "defeat_unit",

@@ -10,7 +10,7 @@
   ],
   "enemy": [],
   "bases": [
-    { "order": 1, "col": 8, "row": 3, "team": "enemy", "rest": "enemy", "ai": "charge",
+    { "order": 1, "id": "base-1", "col": 8, "row": 3, "team": "enemy", "rest": "enemy", "ai": "charge",
       "garrison": [ { "skin": "goblin", "count": 4, "native": "enemy" } ] }
   ]
 }

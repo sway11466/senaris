@@ -263,7 +263,7 @@
   ],
   "bases": [
     {
-      "col": 5,
+      "id": "hq-player", "col": 5,
       "row": 5,
       "team": "player",
       "hq": "player",

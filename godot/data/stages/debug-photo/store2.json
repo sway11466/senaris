@@ -88,7 +88,7 @@
   ],
   "bases": [
     {
-      "col": 1,
+      "id": "hq-enemy", "col": 1,
       "row": 0,
       "team": "enemy",
       "hq": "enemy",
@@ -96,7 +96,7 @@
       "garrison": []
     },
     {
-      "col": 6,
+      "id": "hq-player", "col": 6,
       "row": 12,
       "team": "player",
       "hq": "player",

@@ -11,7 +11,7 @@ const STAGE_TERRAIN := { "terrain": ["......", "......", "......", "......"] }
 const STAGE := {
 	"turn_limit": 9,
 	"player": [ { "units": [{ "type": "fighter", "col": 0, "row": 0 }] } ],
-	"bases": [{ "col": 1, "row": 1, "team": "neutral" }],
+	"bases": [{ "id": "village", "col": 1, "row": 1, "team": "neutral" }],
 	"events": [
 		{ "id": "w1", "turn": 2, "type": "turn", "entry": "fade",
 			"enemy": [{ "order": 1, "ai": "charge", "units": [{ "type": "fighter", "col": 5, "row": 3 }] }] },
@@ -209,7 +209,8 @@ func _v5_record() -> Dictionary:
 			"units": [{ "id": 1, "type": "fighter", "team": 0, "actor": "hero" },
 				{ "id": 2, "type": "goblin", "team": 1 }],
 			"passengers": { "1": [{ "id": 5, "type": "knight", "actor": "rider" }] },
-			"bases": [{ "garrison": [{ "id": 7, "type": "archer", "actor": "elf" }] }],
+			"bases": [{ "q": Hex.offset_to_axial(1, 1).x, "r": Hex.offset_to_axial(1, 1).y,  # ステージの拠点の位置＝v10 で名前に置き換わる
+				"garrison": [{ "id": 7, "type": "archer", "actor": "elf" }] }],
 			"status_mods": [{ "scope": "unit", "unit_id": 2, "op": "add", "target": "both", "value": 10 }],
 			"defeated_actors": ["boss"], "sortied_actors": ["hero"],
 		},
@@ -264,6 +265,32 @@ func test_v7_to_v8_starts_production_from_zero() -> void:
 func test_v6_without_fielded_record_stays_absent() -> void:
 	var state: Dictionary = SaveMigration.migrate({ "version": 6, "state": { "turn_number": 1 } })["state"]
 	assert_false(state.has("fielded_actors"), "無かった項目は作らない（読む側が空として扱う）")
+
+## v10: 拠点を位置ではなく名前（id）で突き合わせる版（doc/gdd/map.md 拠点の名前）。旧セーブの q/r は
+## ステージJSONの同じ位置の拠点の id に置き換え、今の盤に無い位置の拠点は落とす。
+func test_v9_to_v10_names_bases_from_the_stage() -> void:
+	var at := Hex.offset_to_axial(1, 1)
+	var got := SaveMigration.migrate({ "version": 9, "meta": { "stage_path": STAGE_PATH },
+		"state": { "bases": [
+			{ "q": at.x, "r": at.y, "team": 0, "garrison": [], "production_charge": 1, "production_next": 0 },
+			{ "q": 40, "r": 40, "team": 1, "garrison": [] },
+		] } })
+	var bases: Array = got["state"]["bases"]
+	assert_eq(bases.size(), 1, "今の盤に無い位置の拠点は落とす（旧版の読み込みと同じ結果）")
+	var b: Dictionary = bases[0]
+	assert_eq(String(b["id"]), "village", "同じ位置の拠点の id を引く")
+	assert_false(b.has("q") or b.has("r"), "位置は持たない")
+	assert_eq(int(b["team"]), 0, "他の項目は触らない")
+	assert_eq(int(b["production_charge"]), 1)
+
+func test_v9_to_v10_without_a_readable_stage_keeps_bases_under_positional_names() -> void:
+	var got := SaveMigration.migrate({ "version": 9, "meta": { "stage_path": "user://no_such_stage.json" },
+		"state": { "turn_number": 4, "bases": [ { "q": 3, "r": -1, "team": 1, "garrison": [] } ] } })
+	var bases: Array = got["state"]["bases"]
+	assert_eq(bases.size(), 1, "突き合わせ先が無い＝落とさず残す（落とすかは読み込みが決める）")
+	assert_eq(String(bases[0]["id"]), Base.default_id(Vector2i(3, -1)), "ローダーが id の無い拠点に付けるのと同じ名前")
+	assert_false(bases[0].has("q"), "位置は持たない")
+	assert_eq(int(got["state"]["turn_number"]), 4, "他の項目は触らない")
 
 ## v9: 仕掛けの状態を id ごとに持つようにした版（doc/gdd/gimmicks.md セーブ）。
 func test_v8_to_v9_adds_an_empty_gimmick_table() -> void:

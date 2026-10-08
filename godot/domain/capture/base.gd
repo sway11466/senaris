@@ -4,6 +4,8 @@ class_name Base
 ## 地形（防御係数 fort/castle）とは別レイヤー: 地形は見た目と攻防補正、Base は占領ロジック。
 ## 詳細 → doc/gdd/map.md（拠点・占領）
 ##
+## - id     … ステージ内で一意の名前。中断セーブが拠点を突き合わせる鍵（位置は使わない＝マップを直して
+##   座標が動いても同じ拠点に戻る）。ステージJSONの `bases[].id`。無ければ位置から作る（"@q,r"）。
 ## - team   … 所属（0=自軍, 1=敵, NEUTRAL=未占領/中立）。占領で current owner が変わる。
 ## - rest   … 誰が中に入って回復できるか（REST_PLAYER / REST_ENEMY / REST_BOTH）。占領では変わらない。
 ## - hq     … 本拠地の印と、その陣営（0=自軍の本拠地 / 1=敵の本拠地 / NO_HQ=普通の砦）。勝敗条件だけが見る。
@@ -20,6 +22,7 @@ const REST_ENEMY := "enemy"    ## 敵だけ休める（奪っても味方は休�
 const REST_BOTH := "both"      ## 所有者なら誰でも休める
 const REST_VALUES := [REST_PLAYER, REST_ENEMY, REST_BOTH]
 
+var id: String              ## ステージ内で一意の名前（セーブの突き合わせの鍵）
 var hex: Vector2i           ## 拠点の位置（axial）
 var team: int               ## 所属（0/1/NEUTRAL）。占領で変わる
 var hq: int                 ## 本拠地の陣営（0/1）。NO_HQ＝普通の砦
@@ -33,11 +36,16 @@ var production: Array[Dictionary] = []  ## 生む駒のリスト（上から順�
 var production_charge: int = 0  ## 今のチャージ量。持ち主が変わっても戻さない
 var production_next: int = 0    ## 次に生むリストの位置。持ち主が変わっても戻さない
 
-func _init(p_hex: Vector2i, p_team: int = NEUTRAL, p_hq: int = NO_HQ, p_rest: String = REST_BOTH) -> void:
+func _init(p_hex: Vector2i, p_team: int = NEUTRAL, p_hq: int = NO_HQ, p_rest: String = REST_BOTH, p_id: String = "") -> void:
 	hex = p_hex
+	id = p_id if p_id != "" else default_id(p_hex)
 	team = p_team
 	hq = p_hq
 	rest = p_rest if REST_VALUES.has(p_rest) else REST_BOTH
+
+## 名前を持たない拠点に与える既定の名前（位置から作る）。テスト・手組みの盤向け。ステージJSONでは id を書く。
+static func default_id(p_hex: Vector2i) -> String:
+	return "@%d,%d" % [p_hex.x, p_hex.y]
 
 ## 本拠地（どちらかの陣営の hq）か。
 func is_hq() -> bool:
@@ -90,12 +98,13 @@ func garrison_counts() -> Dictionary:
 		out[key] = int(out.get(key, 0)) + 1
 	return out
 
-## 中断セーブ用の直列化（動的差分）。位置 axial(q,r) は復元時の突き合わせの鍵。持つのは戦闘中に
-## 動くもの＝現在の帰属と駐留兵（full 直列化）と生産の進み具合だけで、hq/rest/squad_index はステージJSONから
-## 引き直す。復元は BattleState.apply_save_diff。詳細 → doc/tech/gamesystem.md
+## 中断セーブ用の直列化（動的差分）。名前 id は復元時の突き合わせの鍵（位置は持たない＝マップを直して
+## 座標が動いても同じ拠点に戻る）。持つのは戦闘中に動くもの＝現在の帰属と駐留兵（full 直列化）と
+## 生産の進み具合だけで、位置・hq/rest/squad_index はステージJSONから引き直す。
+## 復元は BattleState.apply_save_diff。詳細 → doc/tech/gamesystem.md
 func to_save_diff() -> Dictionary:
 	var g: Array = []
 	for u in garrison:
 		g.append(u.to_full_dict())
-	return { "q": hex.x, "r": hex.y, "team": team, "garrison": g,
+	return { "id": id, "team": team, "garrison": g,
 		"production_charge": production_charge, "production_next": production_next }

@@ -102,14 +102,6 @@
 
 挙がった改善項目。採番は本書冒頭「index」。各エントリは 背景／ゴール／対応／該当 で記す。
 
-### refactoring-23
-
-**中断セーブの拠点を座標ではなく名前で突き合わせる**
-- ゴール：マップを直して拠点の座標が動いても、古い中断セーブの拠点の持ち主・控え・生産の進み具合が、同じ拠点に戻る。
-- 背景：セーブは拠点を位置（`q`／`r`）で持ち、再開のときにステージ JSON の拠点と位置で突き合わせている（`Base.to_save_diff`・`BattleState._apply_diff_bases`）。座標が動くと、別の拠点に被さるか、消えた拠点として捨てられる。今はステージの印の変化を通知するだけ。イベントは `id` で突き合わせていて、座標に依らない。
-- 対応：拠点に名前（ステージ内で一意・必須）を持たせ、セーブはその名前で突き合わせる。セーブの版を上げて変換を書く。
-- 該当：`godot/domain/capture/base.gd`・`godot/domain/battle_state.gd`・`godot/application/stage_loader.gd`・`godot/application/save_migration.gd`・`godot/tools/map_editor/`・[gdd/map.md](gdd/map.md)・[tech/gamesystem.md](tech/gamesystem.md)。
-
 ### refactoring-15
 
 **陣形スキルのドリフト検出（formations.md の一覧 ⇄ `Formation.RECIPES` ⇄ `skills.csv`）**

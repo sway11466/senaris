@@ -81,10 +81,10 @@
       ] }
   ],
   "bases": [
-    { "col": 3, "row": 17, "team": "neutral", "rest": "both", "garrison": [] },
-    { "col": 19, "row": 2, "team": "neutral", "rest": "both", "garrison": [] },
-    { "col": 3, "row": 2, "team": "neutral", "rest": "both", "garrison": [] },
-    { "col": 19, "row": 17, "team": "neutral", "rest": "both", "garrison": [] }
+    { "id": "base-1", "col": 3, "row": 17, "team": "neutral", "rest": "both", "garrison": [] },
+    { "id": "base-2", "col": 19, "row": 2, "team": "neutral", "rest": "both", "garrison": [] },
+    { "id": "base-3", "col": 3, "row": 2, "team": "neutral", "rest": "both", "garrison": [] },
+    { "id": "base-4", "col": 19, "row": 17, "team": "neutral", "rest": "both", "garrison": [] }
   ],
   "victory": [
     { "type": "defeat_unit",

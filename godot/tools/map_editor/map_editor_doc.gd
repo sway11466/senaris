@@ -669,10 +669,11 @@ func sort_squads_by_order() -> bool:
 
 ## 拠点を置く（既に拠点があれば false）。hq は空文字＝普通の砦（キー自体を書かない）。
 ## rest は常に書く（既定に頼らない）。ai は空文字＝AI出撃なし（キー自体を書かない）。
+## 名前（id）はステージ内で重複しないものを付ける（セーブの突き合わせの鍵＝必須）。
 func add_base(col: int, row: int, team: String, hq: String = "", rest: String = "both", ai: String = "") -> bool:
 	if not base_at(col, row).is_empty():
 		return false
-	var b := { "col": col, "row": row, "team": team }
+	var b := { "id": free_base_id("base-%d" % (data["bases"].size() + 1)), "col": col, "row": row, "team": team }
 	if hq != "":
 		b["hq"] = hq
 	b["rest"] = rest
@@ -698,6 +699,43 @@ func move_base_at(from_col: int, from_row: int, to_col: int, to_row: int) -> boo
 			if _is_target_at(t, from_col, from_row):
 				t["col"] = to_col
 				t["row"] = to_row
+	return true
+
+
+## ステージで使われている拠点の名前（id）の集合。
+func used_base_ids() -> Dictionary:
+	var out := {}
+	for b in data.get("bases", []):
+		if typeof(b) == TYPE_DICTIONARY and String(b.get("id", "")) != "":
+			out[String(b["id"])] = true
+	return out
+
+
+## stem を土台に、ステージ内で重複しない拠点の名前を作る（"base-3" → "base-3b" …）。
+func free_base_id(stem: String) -> String:
+	var used := used_base_ids()
+	if stem != "" and not used.has(stem):
+		return stem
+	var head := stem if stem != "" else "base"
+	var suffix := "b"
+	while used.has(head + suffix):
+		suffix += "b"
+	return head + suffix
+
+
+## 拠点の名前（id）を書き換える。空・他の拠点と重複する名前は受け付けない（false）。
+## 名前はセーブの突き合わせの鍵なので、既存の中断セーブは改名前の名前でその拠点を探せなくなる。
+func rename_base(col: int, row: int, new_id: String) -> bool:
+	var hit := base_at(col, row)
+	if hit.is_empty():
+		return false
+	var trimmed := new_id.strip_edges()
+	if trimmed.is_empty():
+		return false
+	var current := String(hit["base"].get("id", ""))
+	if trimmed != current and used_base_ids().has(trimmed):
+		return false
+	hit["base"]["id"] = trimmed
 	return true
 
 
@@ -1155,3 +1193,8 @@ func _migrate_legacy_bases() -> void:
 		for g in b.get("garrison", []):
 			if typeof(g) == TYPE_DICTIONARY and not g.has("native"):
 				g["native"] = team if team in ["player", "enemy"] else "neutral"
+	# 名前（id）はセーブの突き合わせの鍵＝必須（doc/gdd/map.md 拠点の名前）。無い拠点には重複しない名前を補う
+	var bases: Array = data.get("bases", [])
+	for i in bases.size():
+		if typeof(bases[i]) == TYPE_DICTIONARY and String(bases[i].get("id", "")) == "":
+			bases[i]["id"] = free_base_id("base-%d" % (i + 1))

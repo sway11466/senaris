@@ -17,9 +17,9 @@
       ] }
   ],
   "bases": [
-    { "col": 4, "row": 1, "team": "neutral", "rest": "both",
+    { "id": "base-1", "col": 4, "row": 1, "team": "neutral", "rest": "both",
       "garrison": [ { "skin": "novice", "count": 1, "native": "neutral" } ] },
-    { "col": 4, "row": 5, "team": "neutral", "rest": "both",
+    { "id": "base-2", "col": 4, "row": 5, "team": "neutral", "rest": "both",
       "garrison": [ { "skin": "novice", "count": 1, "native": "neutral" } ] }
   ],
   "defeat": [

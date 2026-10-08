@@ -24,7 +24,9 @@ const DEFAULT_PATH := "user://save.json"
 ##    production_next）。旧セーブの拠点は生産を持たない版のもの＝変換で 0 を入れる。
 ## 9: 仕掛け（doc/gdd/gimmicks.md）の今の状態を id ごとに持つようにした（state.gimmicks）。
 ##    旧セーブは仕掛けを持たない版のもの＝変換で空の表を入れる。
-const VERSION := 9
+## 10: 拠点を位置（q/r）ではなく名前（id・doc/gdd/map.md 拠点の名前）で突き合わせるようにした。旧セーブの
+##    拠点は位置しか持たない＝変換でそのステージJSONの同じ位置の拠点の id を引く（その位置に拠点が無ければ落とす）。
+const VERSION := 10
 ## 変換を持ついちばん古い版。v2 は読んで生のまま返し、呼び出し側が SaveMigration で v3 に変換して使う。
 const OLDEST_SUPPORTED := 2
 

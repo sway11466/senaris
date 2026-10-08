@@ -42,6 +42,9 @@ static func migrate(data: Dictionary) -> Dictionary:
 	if version == 8:
 		record = _v8_to_v9(record)
 		version = 9
+	if version == 9:
+		record = _v9_to_v10(record)
+		version = 10
 	if version != SaveStore.VERSION:
 		push_warning("SaveMigration: 変換を持たない版 %d（SaveFile が弾くはず＝呼び出しのバグ）" % version)
 		return {}
@@ -164,6 +167,41 @@ static func _v8_to_v9(record: Dictionary) -> Dictionary:
 	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
 	state["gimmicks"] = {}
 	return { "meta": record.get("meta", {}), "state": state }
+
+## v9 → v10（拠点を位置 q/r ではなく名前 id で突き合わせる版 → doc/gdd/map.md 拠点の名前）。旧セーブの拠点は
+## 位置しか持たないので、そのステージJSON（meta.stage_path）の同じ位置の拠点から id を引いて q/r と置き換える。
+## その位置に拠点が無い（セーブ後にマップが直されて動いた）拠点は落とす＝旧版の読み込みで「消えた拠点」として
+## 捨てていたのと同じ結果（駐留兵は盤へ出ない）。ステージが読めなければ突き合わせられないので、位置から作る
+## 既定の名前（Base.default_id＝ローダーが id の無い拠点に付けるのと同じ）で残す＝落とすのは読み込みに任せる。
+static func _v9_to_v10(record: Dictionary) -> Dictionary:
+	var state: Dictionary = (record.get("state", {}) as Dictionary).duplicate()
+	var stage := StageLoader.read_stage(String((record.get("meta", {}) as Dictionary).get("stage_path", "")))
+	var ids := _base_ids_by_hex(stage)
+	var out: Array = []
+	for bd in _as_dicts(state.get("bases", [])):
+		var hex := Vector2i(int(bd.get("q", 0)), int(bd.get("r", 0)))
+		if not stage.is_empty() and not ids.has(hex):
+			push_warning("SaveMigration: 旧セーブの拠点 (%d,%d) が今のステージに見当たらない＝落とす" % [hex.x, hex.y])
+			continue
+		var nb: Dictionary = (bd as Dictionary).duplicate()
+		nb.erase("q")
+		nb.erase("r")
+		nb["id"] = ids.get(hex, Base.default_id(hex))
+		out.append(nb)
+	state["bases"] = out
+	return { "meta": record.get("meta", {}), "state": state }
+
+## ステージ定義の拠点の { axial 位置: id }。id の無い拠点はローダーと同じ倒し方（Base.default_id）
+## ＝読み込みと同じ名前で突き合う。
+static func _base_ids_by_hex(stage: Dictionary) -> Dictionary:
+	var out := {}
+	for b in _as_dicts(stage.get("bases", [])):
+		if not (b.has("col") and b.has("row")):
+			continue
+		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
+		var id := String(b.get("id", ""))
+		out[hex] = id if id != "" else Base.default_id(hex)
+	return out
 
 ## v2（盤の丸ごと直列化）→ v3（動的差分）。盤サイズ・地形・勝敗条件・ターン上限・部隊定義は
 ## ステージJSONから引き直すので落とす。詳細 → doc/backlog.md feature-91・doc/tech/gamesystem.md

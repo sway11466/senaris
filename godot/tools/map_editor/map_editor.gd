@@ -1381,6 +1381,7 @@ func _inspect_unit(hit: Dictionary) -> void:
 ## （同じ設定が2箇所にあると、どちらが効くのか分からなくなるため）。
 func _inspect_base(hit: Dictionary) -> void:
 	var b: Dictionary = hit["base"]
+	_add_info(_inspector, "拠点 id: %s" % String(b.get("id", "（なし）")))
 	_add_info(_inspector, "拠点: %s / %s / 回復: %s" % [
 		String(TEAM_LABELS.get(String(b.get("team", "neutral")), b.get("team", "?"))),
 		_hq_text(b), String(REST_LABELS.get(String(b.get("rest", "both")), b.get("rest", "?")))])
@@ -1729,6 +1730,16 @@ func _refresh_base_box() -> void:
 
 
 func _build_base_editor(parent: VBoxContainer, b: Dictionary) -> void:
+	# 名前（id）＝中断セーブが拠点を突き合わせる鍵（doc/gdd/map.md 拠点の名前）。空・重複は受け付けず赤で示す。
+	# 改名すると既存の中断セーブはこの拠点を見失う（控えごと落ちる）＝出回ったステージでは慎重に
+	var id_edit := LineEdit.new()
+	id_edit.text = String(b.get("id", ""))
+	id_edit.placeholder_text = "ステージ内で一意（セーブの鍵）"
+	id_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	id_edit.text_changed.connect(func(t: String) -> void:
+		var ok := _doc.rename_base(int(b["col"]), int(b["row"]), t)
+		id_edit.modulate = Color.WHITE if ok else Color(1, 0.6, 0.6))
+	parent.add_child(_labeled_row("名前 id", id_edit))
 	parent.add_child(_labeled_option("所属", TEAM_LABELS.keys(), TEAM_LABELS.values(),
 		String(b.get("team", "neutral")),
 		func(k: String) -> void:
