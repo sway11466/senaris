@@ -1,0 +1,101 @@
+{
+  "turn_limit": 25,
+  "name": "mine-monsters-st4",
+  "player": [
+    { "units": [
+        { "type": "shieldwright", "actor": "shieldwright", "col": 5, "row": 23 },
+        { "type": "dwarf", "actor": "dwarf", "col": 7, "row": 23 },
+        { "type": "gunner", "actor": "gunner", "col": 4, "row": 22 },
+        { "type": "wizard", "actor": "wizard", "col": 6, "row": 22 },
+        { "type": "witch", "actor": "witch", "col": 8, "row": 22 },
+        { "type": "mantlet", "actor": "mantlet", "col": 6, "row": 24 },
+        { "type": "drill", "actor": "drill", "col": 4, "row": 24 },
+        { "type": "cannon", "actor": "cannon", "col": 8, "row": 24 },
+        { "type": "railcar", "actor": "railcar", "col": 9, "row": 23 },
+        { "skin": "survey_drone", "actor": "survey_drone", "col": 3, "row": 23 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "mine-monsters.st4.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "homunculus", "col": 2, "row": 16 },
+        { "skin": "homunculus", "col": 4, "row": 18 },
+        { "skin": "gear_soldier", "col": 8, "row": 16 },
+        { "skin": "gear_soldier", "col": 10, "row": 18 }
+      ] },
+    { "order": 2, "name": "mine-monsters.st4.squad.2", "ai": "raid",
+      "units": [
+        { "skin": "homunculus", "col": 3, "row": 6 },
+        { "skin": "homunculus", "col": 5, "row": 7 },
+        { "skin": "gear_soldier", "col": 7, "row": 7 },
+        { "skin": "gear_soldier", "col": 9, "row": 6 }
+      ] },
+    { "order": 3, "name": "mine-monsters.st4.squad.3", "ai": "charge",
+      "units": [
+        { "skin": "magic_hound", "col": 6, "row": 2 },
+        { "skin": "bomber", "col": 6, "row": 5 }
+      ] }
+  ],
+  "bases": [
+    { "col": 3, "row": 17, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st4.base.lab_a", "ai": "charge", "order": 10,
+      "production": { "charge_turns": 3,
+        "units": [ { "skin": "homunculus", "native": "enemy" }, { "skin": "magic_hound", "native": "enemy" } ] } },
+    { "col": 9, "row": 17, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st4.base.shop_a", "ai": "charge", "order": 11,
+      "production": { "charge_turns": 3,
+        "units": [ { "skin": "gear_soldier", "native": "enemy" }, { "skin": "bomber", "native": "enemy" } ] } },
+    { "col": 3, "row": 4, "team": "neutral", "rest": "enemy", "name": "mine-monsters.st4.base.lab_b", "ai": "raid", "order": 12,
+      "production": { "charge_turns": 3,
+        "units": [ { "skin": "homunculus", "native": "enemy" }, { "skin": "magic_hound", "native": "enemy" } ] } },
+    { "col": 9, "row": 4, "team": "neutral", "rest": "enemy", "name": "mine-monsters.st4.base.shop_b", "ai": "raid", "order": 13,
+      "production": { "charge_turns": 3,
+        "units": [ { "skin": "gear_soldier", "native": "enemy" }, { "skin": "bomber", "native": "enemy" } ] } }
+  ],
+  "gimmicks": [
+    { "id": "switch-lab-a", "kind": "production_switch", "col": 1, "row": 20, "state": "on", "base": { "col": 3, "row": 17 } },
+    { "id": "switch-shop-a", "kind": "production_switch", "col": 11, "row": 20, "state": "on", "base": { "col": 9, "row": 17 } },
+    { "id": "switch-lab-b", "kind": "production_switch", "col": 1, "row": 1, "state": "on", "base": { "col": 3, "row": 4 } },
+    { "id": "switch-shop-b", "kind": "production_switch", "col": 11, "row": 1, "state": "on", "base": { "col": 9, "row": 4 } },
+    { "id": "sigil-1", "kind": "thunder_sigil", "col": 6, "row": 9, "state": "hidden" },
+    { "id": "mine-1", "kind": "landmine", "col": 6, "row": 12, "state": "hidden" },
+    { "id": "sigil-2", "kind": "thunder_sigil", "col": 7, "row": 6, "state": "hidden" },
+    { "id": "mine-2", "kind": "landmine", "col": 2, "row": 2, "state": "hidden" }
+  ],
+  "victory": [
+    { "type": "gimmick_state", "gimmicks": ["switch-lab-a", "switch-shop-a", "switch-lab-b", "switch-shop-b"], "state": "off", "label": "mine-monsters.st4.victory.label" }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st4.intro.1" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st4.intro.2" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st4.intro.3" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.intro.4" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st4.intro.5" },
+      { "text": "mine-monsters.st4.intro.6" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st4.intro.7" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st4.intro.8" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.intro.9" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st4.intro.10" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st4.intro.11" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.intro.12" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st4.intro.13" }
+    ],
+    "outro": [
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.outro.1" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st4.outro.2" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st4.outro.3" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st4.outro.4" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.outro.5" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st4.outro.6" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.outro.7" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st4.outro.8" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st4.outro.9" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st4.outro.10" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st4.outro.11" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st4.outro.12" }
+    ]
+  },
+  "rank": { "turn_s": 10, "turn_a": 15, "survival_s": 5, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
+  "bgm": { "main": "dungeon" }
+}

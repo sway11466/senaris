@@ -628,3 +628,36 @@ mine-monsters.st3.outro.6,紋より砲台の構造だ。写すなら、あちら
 mine-monsters.st3.outro.7,私が写します。紋も、砲台も。このコが頑張った分、私も頑張ります。,"I'll copy them. Sigils and turret both. This one worked hard, so I will too."
 mine-monsters.st3.outro.8,ありがと。あとで一緒に見よ。,Thanks. Let's look at them together later.
 mine-monsters.st3.outro.9,中へ入る。ここからは、わしの山ではない。,"We go in. From here on, this is not my mountain."
+mine-monsters.st4.squad.1,工房の番,Keepers of the Workshop
+mine-monsters.st4.squad.2,奥へ散る占領兵,Occupiers Spreading Deeper
+mine-monsters.st4.squad.3,奥の広間の魔物,Things in the Far Hall
+mine-monsters.st4.base.lab_a,手前の実験室,The Near Laboratory
+mine-monsters.st4.base.shop_a,手前の工作機,The Near Fabricator
+mine-monsters.st4.base.lab_b,奥の実験室,The Far Laboratory
+mine-monsters.st4.base.shop_b,奥の工作機,The Far Fabricator
+mine-monsters.st4.victory.label,装置を全部止める,Stop every machine
+mine-monsters.st4.intro.1,このコ、印を付けて戻ってきました。三つ。床が二つと、角が一つ。,"This one's back, and it left marks. Three. Two on the floor, one in a corner."
+mine-monsters.st4.intro.2,印の所は踏むな。それ以外も、なるべく踏むな。,"Don't step on the marks. Don't step on much else either, if you can help it."
+mine-monsters.st4.intro.3,なんだか、面白そうな装置があるわね。フラスコが並んでる。あっちは歯車の塊。,"Ooh, interesting machines. Rows of flasks over here. And that one's a heap of gears."
+mine-monsters.st4.intro.4,勝手にさわるなよ！,Don't you touch anything!
+mine-monsters.st4.intro.5,実験室だ。ホムンクルスはああいう所で作る。隣の歯車は、工作機か。,"A laboratory. That is where homunculi are made. The gears next to it — a fabricator, I'd say."
+mine-monsters.st4.intro.6,ビーッ、ビーッ,BEEP. BEEP.
+mine-monsters.st4.intro.7,えー、私何も触ってないからねー。,"Hey, I didn't touch anything, okay?"
+mine-monsters.st4.intro.8,装置が動き出した。フラスコの中で何か育っておる。,The machines are running. Something's growing in those flasks.
+mine-monsters.st4.intro.9,歯車も回り始めた。あれは、作っている。兵を。,The gears are turning too. It's building something. Soldiers.
+mine-monsters.st4.intro.10,生まれたてを撃つのは、ちょっと気が引けますね。,Shooting something newborn feels a little mean.
+mine-monsters.st4.intro.11,気を引いている間に増える。止めるしかない。,They multiply while you hesitate. We have to stop them.
+mine-monsters.st4.intro.12,装置の脇に、大きな把手がある。あれが止め方だ。機械なら、止める仕掛けは必ず外に出ている。,"There's a big lever beside each machine. That's how you stop it. A machine always has its off switch on the outside."
+mine-monsters.st4.intro.13,四つある。全部止めるまで、この広間は出られん。,Four of them. We don't leave this hall until all four are stopped.
+mine-monsters.st4.outro.1,止まった。四つとも。,Stopped. All four.
+mine-monsters.st4.outro.2,見て、この術式。ホムンクルスを作る式が、フラスコに直接刻んである。人の手が要らないんだ。,"Look at this formula. The one that makes homunculi is carved right into the flask. No hands needed."
+mine-monsters.st4.outro.3,工作機も同じだろう。人の手が要らない。だから、誰も居ないのに作り続けている。,"The fabricator will be the same. No hands needed. That is why it keeps building with no one here."
+mine-monsters.st4.outro.4,誰も居ない工房が、兵を作り続ける。何のためだ。,An empty workshop that keeps making soldiers. For what?
+mine-monsters.st4.outro.5,分からん。分からんものは壊して帰るべきだ。止めただけでは、また動く。,"No idea. What we can't understand, we should break and go home. Stopped is not the same as dead; it will run again."
+mine-monsters.st4.outro.6,壊すな。調べる。壊せば、なぜ動くのかが永久に分からなくなる。,"Don't. We study it. Break it, and we never learn why it runs."
+mine-monsters.st4.outro.7,分からないまま動く物を、残していく気か。,You'd leave a machine running that nobody understands?
+mine-monsters.st4.outro.8,壊す暇も調べる暇も無い。歯車の音は、まだ奥から聞こえる。,No time to break it or study it. I can still hear gears from deeper in.
+mine-monsters.st4.outro.9,大きいのがいる気がします。歯車の枚数が、桁違いです。,"I think there's a big one. The number of gears — it's a different order of magnitude."
+mine-monsters.st4.outro.10,奥の装置、見たい。,I want to see the machine in the back.
+mine-monsters.st4.outro.11,さわるなよ。,Don't touch it.
+mine-monsters.st4.outro.12,触らないってば。,I said I won't!
