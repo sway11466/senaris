@@ -1,0 +1,73 @@
+{
+  "turn_limit": 20,
+  "name": "mine-monsters-st6",
+  "player": [
+    { "units": [
+        { "type": "shieldwright", "actor": "shieldwright", "col": 5, "row": 17 },
+        { "type": "dwarf", "actor": "dwarf", "col": 7, "row": 17 },
+        { "type": "gunner", "actor": "gunner", "col": 4, "row": 16 },
+        { "type": "wizard", "actor": "wizard", "col": 6, "row": 16 },
+        { "type": "witch", "actor": "witch", "col": 8, "row": 16 },
+        { "type": "mantlet", "actor": "mantlet", "col": 6, "row": 18 },
+        { "type": "drill", "actor": "drill", "col": 4, "row": 18 },
+        { "type": "cannon", "actor": "cannon", "col": 8, "row": 18 },
+        { "type": "railcar", "actor": "railcar", "col": 9, "row": 17 },
+        { "skin": "survey_drone", "actor": "survey_drone", "col": 3, "row": 17 }
+      ] }
+  ],
+  "enemy": [
+    { "order": 1, "name": "mine-monsters.st6.squad.1", "ai": "charge",
+      "units": [
+        { "skin": "turret", "unit_id": "turret", "col": 6, "row": 3 }
+      ] },
+    { "order": 2, "name": "mine-monsters.st6.squad.2", "ai": "ambush", "sight": 3,
+      "units": [
+        { "skin": "chimera", "unit_id": "chimera", "col": 6, "row": 9 }
+      ] },
+    { "order": 3, "name": "mine-monsters.st6.squad.3", "ai": "ambush", "sight": 3,
+      "units": [
+        { "skin": "gear_soldier", "col": 2, "row": 7 },
+        { "skin": "gear_soldier", "col": 10, "row": 7 },
+        { "skin": "homunculus", "col": 2, "row": 10 },
+        { "skin": "homunculus", "col": 10, "row": 10 }
+      ] },
+    { "order": 4, "name": "mine-monsters.st6.squad.4", "ai": "ambush", "sight": 5,
+      "units": [
+        { "skin": "bomber", "col": 4, "row": 2 },
+        { "skin": "bomber", "col": 8, "row": 2 }
+      ] }
+  ],
+  "victory": [
+    { "type": "defeat_unit", "unit_ids": ["chimera", "turret"] }
+  ],
+  "dialogue": {
+    "intro": [
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st6.intro.1" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st6.intro.2" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st6.intro.3" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st6.intro.4" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st6.intro.5" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st6.intro.6" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st6.intro.7" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st6.intro.8" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st6.intro.9" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st6.intro.10" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st6.intro.11" }
+    ],
+    "outro": [
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st6.outro.1" },
+      { "speaker": "char.gunner.name", "skin": "gunner", "text": "mine-monsters.st6.outro.2" },
+      { "speaker": "char.witch.name", "skin": "witch", "text": "mine-monsters.st6.outro.3" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st6.outro.4" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st6.outro.5" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st6.outro.6" },
+      { "speaker": "char.wizard.name", "skin": "wizard", "text": "mine-monsters.st6.outro.7" },
+      { "speaker": "char.shieldwright.name", "skin": "shieldwright", "text": "mine-monsters.st6.outro.8" },
+      { "speaker": "char.dwarf.name", "skin": "dwarf", "text": "mine-monsters.st6.outro.9" }
+    ]
+  },
+  "rank": { "turn_s": 8, "turn_a": 12, "survival_s": 5, "survival_a": 4 },
+  "haze": 0.3,
+  "backdrop": "cave_wall",
+  "bgm": { "main": "boss" }
+}

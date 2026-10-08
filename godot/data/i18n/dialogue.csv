@@ -688,3 +688,27 @@ mine-monsters.st5.outro.5,やめい。どっちも勝ったんだ。それでい
 mine-monsters.st5.outro.6,二人とも、勝ったのに不機嫌なの、おかしい。,"You two are sulking after a win. That's ridiculous."
 mine-monsters.st5.outro.7,この子も疲れてます。先に進みましょう。奥に、大きな門があります。,"This one's tired too. Let's move on. There's a big gate up ahead."
 mine-monsters.st5.outro.8,門か。獣の匂いと、油の匂いがする。両方だ。,"A gate. I smell beast, and I smell oil. Both."
+mine-monsters.st6.squad.1,奥の扉を向く砲台,The Turret Facing the Inner Door
+mine-monsters.st6.squad.2,伏せた獣,The Crouching Beast
+mine-monsters.st6.squad.3,門の内側の番,Watchers Inside the Gate
+mine-monsters.st6.squad.4,砲台の脇の機械,Machines Beside the Turret
+mine-monsters.st6.intro.1,門が開いておる。中に、あの獣と砲台だ。,"The gate's open. Inside: that beast, and that gun."
+mine-monsters.st6.intro.2,この前の子たちですね。また会いましたね。,"Our friends from before. Nice to see you again, you two."
+mine-monsters.st6.intro.3,砲の射線が、門の内側を全部覆っている。獣を殴りに入れば、上から撃たれる。,"The gun's line of fire covers the whole inside of the gate. Go in to hit the beast, and you get shot from above."
+mine-monsters.st6.intro.4,逆も同じだ。砲を潰しに上がれば、獣に食われる。二つで一つの守りだ。,"And the reverse. Go up to silence the gun, and the beast eats you. The two of them are one defense."
+mine-monsters.st6.intro.5,で、どうする。頭は二人おるんだろう。,"So, what's the plan? We've got two heads here, haven't we?"
+mine-monsters.st6.intro.6,盾を構えて、射程に入る。砲は受けられる。獣をこちらへ引き寄せる。,"Shield up, step into range. The gun we can take. Draw the beast toward us."
+mine-monsters.st6.intro.7,引き寄せた獣を、後ろから魔法で撃つ。砲の射程の中で、砲より先に獣を落とす。,"And the beast we draw in, we hit with magic from behind. Inside the gun's range, we bring the beast down before the gun brings us down."
+mine-monsters.st6.intro.8,それでいい。,That will do.
+mine-monsters.st6.intro.9,二人が同じ方を向いてる。珍しい。,The two of them are facing the same way. That's rare.
+mine-monsters.st6.intro.10,記念に、砲を撃ちますね。,"To mark the occasion, I'll fire the cannon."
+mine-monsters.st6.intro.11,まだ撃つな。,Not yet.
+mine-monsters.st6.outro.1,キメラと砲台は、なぜ門の中に居た。守るなら、門の外に置くほうが理にかなう。,"Why were the chimera and the turret inside the gate? If you want to guard something, outside the gate makes more sense."
+mine-monsters.st6.outro.2,まちがえちゃったんですよ！,They just got it wrong!
+mine-monsters.st6.outro.3,古代の人も間抜けですねー。,"The ancients were a bit dim, weren't they."
+mine-monsters.st6.outro.4,いや、そんなはずはない。この部屋への侵入を拒む門番だと思っていたのだが、あるいは……。,"No. That can't be it. I took them for gatekeepers, there to stop anyone entering this room. But perhaps..."
+mine-monsters.st6.outro.5,どういうことだ？,Meaning what?
+mine-monsters.st6.outro.6,……確かめてから言う。砲の向きを見ろ。門ではなく、奥の扉を向いている。,"...I'll say when I'm sure. Look where the gun points. Not at the gate. At the inner door."
+mine-monsters.st6.outro.7,嫌な予感がする。,I have a bad feeling about this.
+mine-monsters.st6.outro.8,あぁ、同感だ。少し戦力を立て直そう。,"Yes. So do I. Let's regroup a little before we go on."
+mine-monsters.st6.outro.9,また、意見が合っとる。これは、本当に何かあるぞ。,"They agree again. Now I know there's really something in there."
