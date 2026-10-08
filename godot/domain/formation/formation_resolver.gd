@@ -117,7 +117,7 @@ static func _apply(state: BattleState, option: FormationOption, target: Vector2i
 		# 隠れた罠を見つかった状態にする。着弾は起きない＝hits空。詳細 → doc/gdd/gimmicks.md 罠発見
 		FormationOption.Effect.DETECT:
 			if caster != null:
-				var d := state.detect_traps(caster.pos, caster.move)
+				var d := state.detect_traps(caster.pos, Formation.detect_range(caster))
 				out.center = caster.pos  # 調べた起点＝盤の演出がここから光を広げる
 				out.scanned = d["scanned"]
 				for g: Gimmick in d["found"]:

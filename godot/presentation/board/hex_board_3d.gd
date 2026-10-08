@@ -45,6 +45,10 @@ const COLOR_DEPLOY := Color(0.65, 0.45, 0.95, 0.40)  # 出撃先候補（移動�
 const COLOR_ENEMY_REACH := Color(0.95, 0.35, 0.30, 0.22)  # 敵の移動（脅威）範囲
 const COLOR_SIGHT_EDGE := Color(0.95, 0.25, 0.25)  # 索敵の検知域の外周線（赤）＝待機中の見張りの視界。塗らず境界だけ
 const SIGHT_EDGE_WIDTH := 0.16  # 検知域の外周線の太さ（TILE 比＝ヘックス幅の16%。実機で調整可）
+## 罠発見の調査範囲の外周線（青白＝スキャンの光と同じ系統）。斥候・調査ドローンを選んだ／閲覧したとき、
+## いま立っている位置（移動先を選んでいればそこ）から調べられる範囲を、索敵と同じ描き方でなぞる。
+## マスは記録しない＝線は常に今の位置から引く。詳細 → doc/gdd/skills.md 罠発見
+const COLOR_SCAN_EDGE := Color(0.20, 0.50, 1.00)
 const COLOR_FORMATION_RANGE := Color(0.55, 0.45, 0.95, 0.18)  # 陣形の着弾可能hex（射程内）
 const COLOR_FORMATION_BLAST := Color(0.95, 0.35, 0.85, 0.34)  # 陣形の着弾プレビュー（面）
 ## 結界（マジックシールド）の印＝効果範囲の各ヘックスに重ねる絵。シールドウォールの発動の印と
@@ -1848,6 +1852,9 @@ func _sync_overlay() -> void:
 	if sel != null:
 		var sp := Hex.to_pixel(sel.pos, TILE)
 		_unit_renderer.add_ring(Vector3(sp.x, _terrain_renderer.elev(sel.pos), sp.y), TILE * 0.70, 0.06, COLOR_SELECT_RING, 0.045, _overlay_root)
+		# 罠発見を持つ駒（斥候・調査ドローン）＝調査範囲の外周を青白の線でなぞる。移動先を選んでいれば
+		# そこから＝メニューの「罠発見」がどこまで調べるかが押す前に読める。
+		_add_scan_boundary(sel, _attack_from())
 	var ins := state.unit_by_handle(_inspected_id) if _inspected_id != -1 else null
 	if ins != null:
 		var ip := Hex.to_pixel(ins.pos, TILE)
@@ -1856,7 +1863,8 @@ func _sync_overlay() -> void:
 		if controller != null:
 			var det: int = controller.detection_radius(ins)
 			if det > 0:
-				_add_sight_boundary(state.visible_hexes(ins.pos, det))
+				_add_sight_boundary(state.visible_hexes(ins.pos, det), COLOR_SIGHT_EDGE)
+		_add_scan_boundary(ins, ins.pos)  # 行動を終えた斥候・ドローンを閲覧しても、調べた範囲が読める
 	if _hover != INVALID_HEX and state.in_field(_hover):
 		_add_cell(_hover, COLOR_HOVER, 0.04)
 
@@ -1874,10 +1882,20 @@ const _EDGE_DIRS: Array[Vector2i] = [
 	Vector2i(-1, 0), Vector2i(0, -1), Vector2i(1, -1),
 ]
 
-## 検知域（visible な hex 集合）の外周だけを赤い太線でなぞる（塗らない＝移動範囲と紛れない）。
+## 罠発見の調査範囲の外周（青白）。u が罠発見を持つ味方の駒なら、from から視線の届く範囲をなぞる。
+## 敵は罠発見を使わないので描かない（doc/gdd/gimmicks.md 罠発見）。
+func _add_scan_boundary(u: Unit, from: Vector2i) -> void:
+	if u == null or u.team != 0 or from == INVALID_HEX:
+		return
+	var budget := Formation.detect_range(u)
+	if budget > 0:
+		_add_sight_boundary(state.visible_hexes(from, budget), COLOR_SCAN_EDGE)
+
+## 検知域（visible な hex 集合）の外周だけを太線でなぞる（塗らない＝移動範囲と紛れない）。
+## 色は用途ごと＝敵の索敵は赤（COLOR_SIGHT_EDGE）・罠発見の調査範囲は青白（COLOR_SCAN_EDGE）。
 ## 各 hex の6辺のうち、隣が visible でない辺だけを描く＝壁の影・森のへこみがそのまま輪郭に出る。
 ## 3D の線は太さが効かない（GPU依存）ので、各辺を幅つきの帯（三角形2枚）で描いて太さを持たせる。
-func _add_sight_boundary(visible: Dictionary) -> void:
+func _add_sight_boundary(visible: Dictionary, color: Color) -> void:
 	var im := ImmediateMesh.new()
 	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	var hw := TILE * SIGHT_EDGE_WIDTH * 0.5  # 帯の半幅
@@ -1897,7 +1915,7 @@ func _add_sight_boundary(visible: Dictionary) -> void:
 	mi.mesh = im
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = COLOR_SIGHT_EDGE
+	m.albedo_color = color
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED  # 上から見て裏面でも描く
 	mi.material_override = m
 	_overlay_root.add_child(mi)

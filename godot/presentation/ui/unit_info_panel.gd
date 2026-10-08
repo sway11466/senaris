@@ -908,8 +908,11 @@ func _build_ability(u: Unit) -> void:
 	# 区切り線や見出しを置かないのは、置くと1ページ目に入らず、ページ2の存在に気づかれないため
 	# （2026-09 実測＝器の高さが 368px だった時点で、兵数〜特性で 239px・見出し付きの節は 161px）。
 	# 例外はチャージ＝溜まり具合は駒ごとに違い、他のどこにも出ないので、説明の左（項目名の欄）に添える。
+	# 項目名で発動の形を分ける＝手番で撃つもの「スキル」／自動で発動するもの（ターン開始のパッシブ・
+	# 行動完了スキル）「自動スキル」。同名の罠発見が、斥候はスキル・調査ドローンは自動スキルと読み分けられる。
 	for rid in Formation.unit_skills_of(u):
-		_add_row(tr("ui.info.skill"), tr("skill." + rid + ".name"))
+		var auto := Formation.is_passive(rid) or Formation.is_on_done(rid)
+		_add_row(tr("ui.info.skill_auto" if auto else "ui.info.skill"), tr("skill." + rid + ".name"))
 		_add_indent_row(tr("skill." + rid + ".desc"), LABEL_W + ROW_LABEL_GAP)
 		var need := int((Formation.SKILLS[rid] as Dictionary).get("charge_turns", 0))
 		if need > 0:

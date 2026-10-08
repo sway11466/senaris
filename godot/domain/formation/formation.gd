@@ -894,6 +894,17 @@ static func passive_ready(state: BattleState, unit: Unit, rid: String, r: Dictio
 		return false
 	return true
 
+## unit の罠発見の調査範囲（視線の予算）。罠発見（効果 detect）を持たない駒は 0。
+## 基本は移動力と同じ値（doc/gdd/gimmicks.md 罠発見）。解決も盤の範囲表示もこれを引く＝値の出所を1つにする。
+static func detect_range(unit: Unit) -> int:
+	if unit == null:
+		return 0
+	for rid in SKILLS:
+		var r: Dictionary = SKILLS[rid]
+		if String(r["effect"]) == "detect" and can_cast_skin(unit, r):
+			return unit.move
+	return 0
+
 ## 行動完了スキルか（行動完了した瞬間・ターン終了時に自動で発動する）。詳細 → doc/gdd/skills.md アクティブとパッシブ
 static func is_on_done(skill_id: String) -> bool:
 	var r: Dictionary = SKILLS.get(skill_id, {})
