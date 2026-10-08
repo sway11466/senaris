@@ -137,7 +137,7 @@
     {
       "order": 10,
       "ai": "ambush",
-      "col": 6,
+      "id": "hq-enemy", "col": 6,
       "row": 1,
       "team": "enemy",
       "hq": "enemy",
@@ -152,7 +152,7 @@
       ]
     },
     {
-      "col": 6,
+      "id": "hq-player", "col": 6,
       "row": 11,
       "team": "player",
       "hq": "player",
@@ -160,14 +160,14 @@
       "garrison": []
     },
     {
-      "col": 6,
+      "id": "base-1", "col": 6,
       "row": 9,
       "team": "player",
       "rest": "both",
       "garrison": []
     },
     {
-      "col": 6,
+      "id": "base-2", "col": 6,
       "row": 6,
       "team": "player",
       "rest": "both",
@@ -185,14 +185,14 @@
       ]
     },
     {
-      "col": 6,
+      "id": "base-3", "col": 6,
       "row": 3,
       "team": "enemy",
       "rest": "both",
       "garrison": []
     },
     {
-      "col": 2,
+      "id": "base-4", "col": 2,
       "row": 3,
       "team": "enemy",
       "rest": "both",
@@ -210,7 +210,7 @@
       ]
     },
     {
-      "col": 2,
+      "id": "base-5", "col": 2,
       "row": 9,
       "team": "player",
       "rest": "both",
@@ -233,7 +233,7 @@
       ]
     },
     {
-      "col": 10,
+      "id": "base-6", "col": 10,
       "row": 3,
       "team": "enemy",
       "rest": "both",
@@ -253,7 +253,7 @@
     {
       "order": 16,
       "ai": "charge",
-      "col": 10,
+      "id": "base-7", "col": 10,
       "row": 9,
       "team": "neutral",
       "rest": "both",

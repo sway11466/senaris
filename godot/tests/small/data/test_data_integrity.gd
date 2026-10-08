@@ -365,6 +365,23 @@ func test_stage_bases_use_hq_rest_and_garrison_native() -> void:
 				assert_true(String(g.get("native", "")) in ["player", "enemy", "neutral"],
 					"%s: 控え %s に native（player/enemy/neutral）が要る" % [where, str(g.get("skin", g.get("type", "?")))])
 
+func test_stage_bases_have_unique_ids() -> void:
+	# 拠点の名前（id）は中断セーブが拠点を突き合わせる鍵＝必須・ステージ内で一意（doc/gdd/map.md 拠点の名前）。
+	# 無ければ読み込みで位置から作って倒すが、その拠点はマップで動かすとセーブが追えない＝データとしては不備。
+	for path in _all_stage_files("res://data/stages"):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if typeof(data) != TYPE_DICTIONARY:
+			continue
+		var seen := {}
+		for b in (data as Dictionary).get("bases", []):
+			if typeof(b) != TYPE_DICTIONARY:
+				continue
+			var where := "%s の拠点(%s,%s)" % [path, str(b.get("col")), str(b.get("row"))]
+			var id := String(b.get("id", ""))
+			assert_true(id != "", "%s: id（名前）が要る" % where)
+			assert_false(seen.has(id), "%s: id '%s' が重複" % [where, id])
+			seen[id] = true
+
 ## data/stages 以下を再帰し、ステージJSON（campaign.json マニフェストは除く）のパス配列を返す。
 func test_every_stage_has_a_terrain_file() -> void:
 	# 地形は相棒のファイル（<ステージ>.terrain.json）が正本＝無ければ盤の広さも決まらない。

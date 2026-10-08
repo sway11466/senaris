@@ -22,9 +22,9 @@
       ] }
   ],
   "bases": [
-    { "col": 1, "row": 3, "team": "player", "rest": "player", "garrison": [ { "type": "novice", "count": 1, "native": "player" } ] },
-    { "col": 8, "row": 3, "team": "enemy", "rest": "enemy", "garrison": [ { "skin": "goblin", "count": 1, "native": "enemy" } ] },
-    { "col": 4, "row": 5, "team": "neutral", "rest": "both", "garrison": [ { "type": "novice", "count": 2, "native": "neutral" } ] }
+    { "id": "base-1", "col": 1, "row": 3, "team": "player", "rest": "player", "garrison": [ { "type": "novice", "count": 1, "native": "player" } ] },
+    { "id": "base-2", "col": 8, "row": 3, "team": "enemy", "rest": "enemy", "garrison": [ { "skin": "goblin", "count": 1, "native": "enemy" } ] },
+    { "id": "base-3", "col": 4, "row": 5, "team": "neutral", "rest": "both", "garrison": [ { "type": "novice", "count": 2, "native": "neutral" } ] }
   ],
   "dialogue": {
     "intro": [

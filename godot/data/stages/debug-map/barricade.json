@@ -19,7 +19,7 @@
       ] }
   ],
   "bases": [
-    { "col": 1, "row": 3, "team": "player", "rest": "player",
+    { "id": "base-1", "col": 1, "row": 3, "team": "player", "rest": "player",
       "garrison": [
         { "type": "barricade", "count": 2, "native": "player" }
       ] }

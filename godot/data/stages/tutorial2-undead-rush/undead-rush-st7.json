@@ -73,7 +73,7 @@
       ] }
   ],
   "bases": [
-    { "order": 43, "ai": "charge", "col": 10, "row": 3, "team": "enemy", "rest": "enemy",
+    { "order": 43, "ai": "charge", "id": "base-1", "col": 10, "row": 3, "team": "enemy", "rest": "enemy",
       "garrison": [
         { "skin": "skeleton", "count": 1, "native": "enemy" },
         { "skin": "skeleton_archer", "count": 1, "native": "enemy" },
@@ -106,7 +106,7 @@
         { "skin": "skeleton", "count": 1, "native": "enemy" },
         { "skin": "skeleton_archer", "count": 1, "native": "enemy" }
       ] },
-    { "order": 42, "ai": "charge", "col": 2, "row": 3, "team": "enemy", "rest": "enemy",
+    { "order": 42, "ai": "charge", "id": "base-2", "col": 2, "row": 3, "team": "enemy", "rest": "enemy",
       "garrison": [
         { "skin": "zombie", "count": 2, "native": "enemy" },
         { "skin": "ghoul", "count": 1, "native": "enemy" },
@@ -129,7 +129,7 @@
         { "skin": "zombie", "count": 2, "native": "enemy" },
         { "skin": "ghoul", "count": 1, "native": "enemy" }
       ] },
-    { "order": 40, "ai": "charge", "col": 4, "row": 9, "team": "enemy", "rest": "enemy", "stack": 1,
+    { "order": 40, "ai": "charge", "id": "base-3", "col": 4, "row": 9, "team": "enemy", "rest": "enemy", "stack": 1,
       "garrison": [
         { "skin": "zombie", "count": 8, "native": "enemy" },
         { "skin": "ghost", "count": 1, "native": "enemy" },
@@ -152,7 +152,7 @@
         { "skin": "zombie", "count": 2, "native": "enemy" },
         { "skin": "ghost", "count": 1, "native": "enemy" }
       ] },
-    { "order": 41, "ai": "charge", "col": 8, "row": 9, "team": "enemy", "rest": "enemy",
+    { "order": 41, "ai": "charge", "id": "base-4", "col": 8, "row": 9, "team": "enemy", "rest": "enemy",
       "garrison": [
         { "skin": "skeleton", "count": 8, "native": "enemy" },
         { "skin": "wraith", "count": 1, "native": "enemy" },
@@ -175,12 +175,12 @@
         { "skin": "skeleton", "count": 2, "native": "enemy" },
         { "skin": "wraith", "count": 1, "native": "enemy" }
       ] },
-    { "col": 6, "row": 23, "team": "player", "rest": "player", "garrison": [] },
-    { "col": 6, "row": 2, "team": "enemy", "rest": "enemy", "garrison": [] },
-    { "col": 6, "row": 12, "team": "player", "rest": "player", "garrison": [] },
-    { "order": 31, "ai": "charge", "col": 12, "row": 17, "team": "enemy", "rest": "enemy",
+    { "id": "base-5", "col": 6, "row": 23, "team": "player", "rest": "player", "garrison": [] },
+    { "id": "base-6", "col": 6, "row": 2, "team": "enemy", "rest": "enemy", "garrison": [] },
+    { "id": "base-7", "col": 6, "row": 12, "team": "player", "rest": "player", "garrison": [] },
+    { "order": 31, "ai": "charge", "id": "base-8", "col": 12, "row": 17, "team": "enemy", "rest": "enemy",
       "garrison": [ { "skin": "zombie", "count": 10, "native": "enemy" } ] },
-    { "order": 32, "ai": "charge", "col": 0, "row": 17, "team": "enemy", "rest": "enemy",
+    { "order": 32, "ai": "charge", "id": "base-9", "col": 0, "row": 17, "team": "enemy", "rest": "enemy",
       "garrison": [ { "skin": "zombie", "count": 10, "native": "enemy" } ] }
   ],
   "events": [

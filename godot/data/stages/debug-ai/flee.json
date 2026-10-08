@@ -15,7 +15,7 @@
       ] }
   ],
   "bases": [
-    { "col": 1, "row": 3, "team": "player", "rest": "player" },
-    { "order": 2, "col": 10, "row": 3, "team": "enemy", "rest": "enemy", "ai": "flee" }
+    { "id": "base-1", "col": 1, "row": 3, "team": "player", "rest": "player" },
+    { "order": 2, "id": "base-2", "col": 10, "row": 3, "team": "enemy", "rest": "enemy", "ai": "flee" }
   ]
 }

@@ -22,6 +22,6 @@
       ] }
   ],
   "bases": [
-    { "col": 1, "row": 3, "team": "player", "rest": "player" }
+    { "id": "base-1", "col": 1, "row": 3, "team": "player", "rest": "player" }
   ]
 }

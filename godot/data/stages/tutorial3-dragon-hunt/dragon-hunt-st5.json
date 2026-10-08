@@ -79,9 +79,9 @@
       ] }
   ],
   "bases": [
-    { "col": 30, "row": 2, "team": "neutral", "rest": "both",
+    { "id": "base-1", "col": 30, "row": 2, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "birdman", "actor": "birdman", "native": "neutral" } ] },
-    { "col": 11, "row": 7, "team": "neutral", "rest": "both", "garrison": [] }
+    { "id": "base-2", "col": 11, "row": 7, "team": "neutral", "rest": "both", "garrison": [] }
   ],
   "events": [
     { "type": "capture", "col": 30, "row": 2, "id": "village-secured", "captured_by": "player", "once": "village", "dialogue": "secured", "focus": true },

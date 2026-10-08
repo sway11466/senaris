@@ -42,7 +42,7 @@
       ] }
   ],
   "bases": [
-    { "order": 3, "ai": "charge", "col": 20, "row": 5, "team": "enemy", "hq": "enemy", "rest": "enemy",
+    { "order": 3, "ai": "charge", "id": "hq-enemy", "col": 20, "row": 5, "team": "enemy", "hq": "enemy", "rest": "enemy",
       "garrison": [
         { "skin": "zombie", "count": 2, "native": "enemy" },
         { "skin": "skeleton", "count": 2, "native": "enemy" },

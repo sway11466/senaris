@@ -18,8 +18,8 @@
       ] }
   ],
   "bases": [
-    { "col": 2, "row": 4, "team": "player", "hq": "player", "rest": "player" },
-    { "col": 9, "row": 2, "team": "enemy", "hq": "enemy", "rest": "enemy" }
+    { "id": "hq-player", "col": 2, "row": 4, "team": "player", "hq": "player", "rest": "player" },
+    { "id": "hq-enemy", "col": 9, "row": 2, "team": "enemy", "hq": "enemy", "rest": "enemy" }
   ],
   "victory": [
     { "type": "capture_hq" }

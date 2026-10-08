@@ -565,6 +565,13 @@ func add_base(base: Base) -> void:
 func bases() -> Array[Base]:
 	return _bases
 
+## 名前で拠点を引く（中断セーブの突き合わせ）。無ければ null。
+func base_by_id(id: String) -> Base:
+	for b in _bases:
+		if b.id == id:
+			return b
+	return null
+
 ## hex にある拠点（無ければ null）。
 func base_at(hex: Vector2i) -> Base:
 	for b in _bases:
@@ -1674,15 +1681,16 @@ func _apply_diff_gimmicks(diff: Dictionary) -> void:
 		if GimmickKinds.states(g.kind).has(st):
 			g.state = st
 
-## 拠点は位置・種別・本来の帰属をステージ定義から、現在の帰属と駐留兵をセーブから（位置で突き合わせ）。
-## セーブ側にあってステージから消えた拠点は駐留兵ごと出さない。ステージ更新で足された拠点は
-## ステージ定義のまま出る。戻り値＝セーブに無かった（足された）拠点の一覧。
+## 拠点は位置・種別・本来の帰属をステージ定義から、現在の帰属と駐留兵をセーブから（名前 id で突き合わせ
+## ＝マップを直して座標が動いても同じ拠点に戻る）。セーブ側にあってステージから消えた（名前の無くなった）
+## 拠点は駐留兵ごと出さない。ステージ更新で足された拠点はステージ定義のまま出る。
+## 戻り値＝セーブに無かった（足された）拠点の一覧。
 func _apply_diff_bases(diff: Dictionary, catalog: Dictionary) -> Array:
 	var overlaid := {}
 	for bd in diff.get("bases", []):
 		if typeof(bd) != TYPE_DICTIONARY:
 			continue
-		var b := base_at(Vector2i(int(bd.get("q", 0)), int(bd.get("r", 0))))
+		var b := base_by_id(String(bd.get("id", "")))
 		if b == null:
 			continue  # 拠点が消えた＝この駐留兵は盤へ出さない
 		b.team = int(bd.get("team", b.team))
@@ -1693,10 +1701,10 @@ func _apply_diff_bases(diff: Dictionary, catalog: Dictionary) -> Array:
 		b.garrison = g
 		b.production_charge = int(bd.get("production_charge", 0))
 		b.production_next = int(bd.get("production_next", 0)) % maxi(b.production.size(), 1)  # ステージ更新でリストが縮んでも範囲内に
-		overlaid[b.hex] = true
+		overlaid[b.id] = true
 	var fresh: Array = []
 	for b in _bases:
-		if not overlaid.has(b.hex):
+		if not overlaid.has(b.id):
 			fresh.append(b)
 	return fresh
 

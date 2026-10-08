@@ -24,7 +24,7 @@ func _stage_data() -> Dictionary:
 		] } ],
 		"enemy": [{ "order": 1, "name": "ボス隊", "ai": "ambush", "sight": 4,
 			"units": [{ "type": "knight", "col": 6, "row": 1, "unit_id": "boss", "actor": "warlord" }] }],
-		"bases": [{ "col": 4, "row": 3, "team": "player", "hq": "player", "rest": "player", "garrison": [{ "type": "archer", "count": 1, "native": "player" }] }],
+		"bases": [{ "id": "home", "col": 4, "row": 3, "team": "player", "hq": "player", "rest": "player", "garrison": [{ "type": "archer", "count": 1, "native": "player" }] }],
 		"victory": [{ "type": "defeat_unit", "unit_ids": ["boss"] }],
 		"defeat": [{ "type": "lose_base", "bases": [{ "col": 4, "row": 3 }] }],
 	}
@@ -184,6 +184,28 @@ func test_restore_drops_units_on_impassable_terrain() -> void:
 	assert_null(back.unit_by_handle(2), "入れない地形の駒は出さない")
 	assert_true(back.passengers(2).is_empty(), "輸送ごと落ちた搭乗者も出さない")
 	assert_not_null(back.unit_by_handle(1), "立てる駒は出る")
+
+## 拠点はセーブと名前（id）で突き合わせる＝マップを直して座標が動いても、帰属・控え・生産の進みが同じ拠点に戻る
+## （doc/gdd/map.md 拠点の名前・doc/tech/gamesystem.md 中断セーブが持つもの）。
+func test_restore_follows_a_moved_base_by_id() -> void:
+	var data := _stage_data()
+	var s := _rich_state(data)
+	var home := s.base_at(Hex.offset_to_axial(4, 3))
+	home.team = 1  # 奪われている
+	home.production_charge = 2
+	var moved := _stage_data()
+	moved["bases"][0]["col"] = 6
+	moved["bases"][0]["row"] = 5
+	moved["defeat"][0]["bases"][0] = { "col": 6, "row": 5 }
+	var s2 := _roundtrip(s, data, moved)
+	assert_null(s2.base_at(Hex.offset_to_axial(4, 3)), "旧座標には拠点が無い")
+	var b := s2.base_at(Hex.offset_to_axial(6, 5))
+	assert_not_null(b, "新座標の拠点が出る")
+	assert_eq(b.id, "home", "名前で同じ拠点")
+	assert_eq(b.team, 1, "帰属はセーブのもの（位置が動いても追う）")
+	assert_eq(b.garrison.size(), 1, "控えもついて来る")
+	assert_eq(b.production_charge, 2, "生産の進みもついて来る")
+	assert_false(s.to_save_diff()["bases"][0].has("q"), "セーブは位置を持たない")
 
 ## 拠点が消えたステージでは、その駐留兵ごと出さない。拠点はステージJSONが正本。
 func test_restore_drops_garrison_of_removed_base() -> void:

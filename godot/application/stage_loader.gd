@@ -1085,14 +1085,24 @@ class IdSeq:
 ## garrison ユニットは盤上未登場（出撃時に team/pos が決まる）＝採番だけ済ませて Base に積む。
 ## garrison の生来陣営（native）は必須＝拠点からの既定は無い。書き忘れは警告し、開始時の所有者に倒す
 ## （中立拠点なら中立＝取った側に寝返る）。詳細 → doc/gdd/map.md（拠点の値・帰属）。
+## 拠点の名前 id は必須（ステージ内で一意）＝中断セーブが拠点を突き合わせる鍵。書き忘れは警告し
+## 位置から作った名前に倒す（その拠点はマップで動かすとセーブが追えない）。重複は警告する（後の拠点はセーブから引けない）。
 static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary, start_id: int, skin_catalog: Dictionary = {}) -> int:
 	if typeof(bases) != TYPE_ARRAY:
 		return start_id
 	var auto_id := start_id
+	var seen_ids := {}
 	for b in bases:
 		var hex := Hex.offset_to_axial(int(b["col"]), int(b["row"]))
+		var base_id := String(b.get("id", ""))
+		if base_id == "":
+			push_warning("StageLoader: 拠点(%d,%d) に id が無い（位置から作った名前に倒す＝doc/gdd/map.md 拠点の名前）" % [int(b["col"]), int(b["row"])])
+			base_id = Base.default_id(hex)
+		if seen_ids.has(base_id):
+			push_warning("StageLoader: 拠点(%d,%d) の id '%s' が重複（セーブの突き合わせが先の拠点に寄る）" % [int(b["col"]), int(b["row"]), base_id])
+		seen_ids[base_id] = true
 		var base := Base.new(hex, _parse_team(b.get("team"), Base.NEUTRAL),
-			_parse_team(b.get("hq"), Base.NO_HQ), String(b.get("rest", Base.REST_BOTH)))
+			_parse_team(b.get("hq"), Base.NO_HQ), String(b.get("rest", Base.REST_BOTH)), base_id)
 		if b.has("rest") and not Base.REST_VALUES.has(String(b["rest"])):
 			push_warning("StageLoader: 拠点(%d,%d) の rest が不正: %s（both 扱い）" % [int(b["col"]), int(b["row"]), str(b["rest"])])
 		if b.has("kind") or b.has("native"):
@@ -1100,7 +1110,7 @@ static func _apply_bases(state: BattleState, bases: Variant, catalog: Dictionary
 		if b.has("ai"):  # 拠点そのものが1部隊（garrison を出す）。ai 未指定の拠点はAI出撃しない
 			var squad := {}
 			for key in b:
-				if not (key in ["col", "row", "team", "hq", "rest", "garrison", "production", "kind", "native"]):
+				if not (key in ["id", "col", "row", "team", "hq", "rest", "garrison", "production", "kind", "native"]):
 					squad[key] = b[key]  # ai＋パラメーターの上書き（sight/stack）＋行動順 order を部隊定義に
 			base.squad_index = state.squads.size()
 			state.squads.append(squad)

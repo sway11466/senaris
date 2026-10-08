@@ -78,7 +78,7 @@
       "units": [ { "skin": "rogue_wagon", "col": 6, "row": 1 } ] }
   ],
   "bases": [
-    { "col": 9, "row": 11, "team": "neutral", "rest": "both",
+    { "id": "base-1", "col": 9, "row": 11, "team": "neutral", "rest": "both",
       "garrison": [ { "type": "dwarf", "actor": "dwarf", "native": "neutral" } ] }
   ],
   "events": [

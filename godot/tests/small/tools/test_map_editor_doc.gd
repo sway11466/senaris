@@ -26,7 +26,7 @@ const SAMPLE := """
     ] }
   ],
   "bases": [
-    { "order": 2, "col": 5, "row": 3, "team": "enemy", "rest": "enemy", "ai": "charge",
+    { "order": 2, "id": "camp", "col": 5, "row": 3, "team": "enemy", "rest": "enemy", "ai": "charge",
       "garrison": [ { "skin": "goblin", "count": 4, "native": "enemy" } ] }
   ],
   "victory": [
@@ -112,6 +112,8 @@ func test_from_text_migrates_legacy_base_keys() -> void:
 	assert_false(b1.has("hq"), "kind:fort → hq 無し")
 	assert_eq(String(b1["garrison"][0]["native"]), "neutral", "中立拠点の控え → 中立")
 	assert_eq(String(b1["garrison"][1]["native"]), "player", "書いてある native はそのまま")
+	assert_eq(String(b0["id"]), "base-1", "名前（id）の無い拠点には並び順の名前を補う")
+	assert_eq(String(b1["id"]), "base-2")
 	var text := _text(doc)
 	assert_false(text.contains("\"kind\""), "保存すると kind は出ない")
 	assert_true(text.contains("\"hq\": \"player\""), "保存すると hq が出る")
@@ -419,6 +421,24 @@ func test_base_add_remove() -> void:
 	assert_false(doc.add_base(2, 2, "enemy", "hq"), "重ね置きは不可")
 	assert_false(doc.base_at(2, 2)["base"].has("ai"), "ai空文字はキーを書かない")
 	assert_true(doc.remove_base_at(2, 2))
+
+
+## 拠点の名前（id）はセーブの突き合わせの鍵＝置くと重複しない名前が付き、空・重複への改名は受け付けない。
+func test_base_ids_are_unique_and_renamable() -> void:
+	var doc := MapEditorDoc.new_stage(6, 4)
+	assert_true(doc.add_base(1, 1, "neutral"))
+	assert_true(doc.add_base(2, 2, "enemy"))
+	assert_eq(String(doc.base_at(1, 1)["base"]["id"]), "base-1")
+	assert_eq(String(doc.base_at(2, 2)["base"]["id"]), "base-2")
+	assert_true(doc.remove_base_at(1, 1))
+	assert_true(doc.add_base(3, 3, "player"))
+	assert_eq(String(doc.base_at(3, 3)["base"]["id"]), "base-2b", "並び順の名前が使われていれば別名にする")
+	assert_true(doc.rename_base(3, 3, " camp "))
+	assert_eq(String(doc.base_at(3, 3)["base"]["id"]), "camp", "前後の空白は落とす")
+	assert_false(doc.rename_base(3, 3, ""), "空は受け付けない")
+	assert_false(doc.rename_base(3, 3, "base-2"), "他の拠点の名前は受け付けない")
+	assert_true(doc.rename_base(3, 3, "camp"), "同じ名前への改名は通る")
+	assert_false(doc.rename_base(0, 0, "x"), "拠点の無いマス")
 
 
 func test_garrison_count_sums_the_rows() -> void:

@@ -17,6 +17,6 @@
       ] }
   ],
   "bases": [
-    { "order": 2, "col": 10, "row": 3, "team": "enemy", "rest": "enemy", "ai": "withdraw" }
+    { "order": 2, "id": "base-1", "col": 10, "row": 3, "team": "enemy", "rest": "enemy", "ai": "withdraw" }
   ]
 }

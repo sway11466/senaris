@@ -37,7 +37,7 @@
       ] }
   ],
   "bases": [
-    { "col": 15, "row": 3, "team": "neutral", "rest": "both",
+    { "id": "base-1", "col": 15, "row": 3, "team": "neutral", "rest": "both",
       "garrison": [ { "skin": "novice", "count": 2, "native": "player" }, { "skin": "archer", "count": 1, "native": "player" } ] }
   ],
   "defeat": [
