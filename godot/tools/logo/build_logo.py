@@ -3,6 +3,7 @@
 盤と同じカメラ（俯角52度・画角42度＝board_camera.gd）で7ヘックスを投影し、
 中央ヘックスに剣と杖を X にクロスさせて刺し、その下に SENARIS を置く。
 剣が左から刺さって頭が右へ、杖が右から刺さって頭が左へ。剣が手前。
+武器は材質ごとに塗り分ける（PALETTE と sword_colored / staff_colored）。
 
 起動スプラッシュ版はロゴの右下に開発元名を小さく足し、ピクセル寸法を焼いて書き出す
 （地の色は焼かない＝project.godot の boot_splash/bg_color が持つ）。
@@ -58,11 +59,22 @@ CENTERS = [
     (0.0, +S3 * R), (0.0, -S3 * R),
 ]
 
+# 武器は材質ごとに塗る（刃＝鋼・鍔と柄と柄頭＝金・杖＝木）。各材質は明るい側→暗い側の
+# グラデで、刃だけ 4 段（左の面・溝の脇の光・右の面・右端）。steel は単色版だけが使う。
+# outline は明背景版だけ：白地で端が弱いので、文字と同じ色の細い線をシルエットに敷く
+# （線は端の内外に半分ずつ出るので、見える幅は半分）。
 PALETTE = {
     "dark": dict(ramp=((0x6E, 0x92, 0xB8), (0x8A, 0x8A, 0x96), (0xC0, 0x5A, 0x62)),
-                 steel="#d2d8de", ink="#e8ecf0", dev="#6d7784"),
+                 steel="#d2d8de", ink="#e8ecf0", dev="#6d7784",
+                 blade=("#bfc7ce", "#eef2f5", "#b3bbc4", "#a3abb4"),
+                 gold=("#e2c97e", "#b2913f", "#75591f"), guard=("#ead58c", "#8f6f2a"),
+                 wood=("#a8805c", "#71503a", "#4a3426")),
     "light": dict(ramp=((0xAB, 0xBE, 0xD1), (0xBE, 0xBE, 0xC6), (0xDA, 0xAF, 0xB3)),
-                  steel="#586270", ink="#333942", dev="#6b7482"),
+                  steel="#586270", ink="#333942", dev="#6b7482",
+                  blade=("#6f7a87", "#a4adb7", "#5f6975", "#4e5762"),
+                  gold=("#c9a84f", "#9c7c2e", "#6b5218"), guard=("#d2b55e", "#7f6420"),
+                  wood=("#8c6a4a", "#5e4430", "#40301f"),
+                  outline=("#333942", 6.0)),
     # 単色版（白1色・黒1色）は用途が見当たらないため生成していない。
     # 必要になったら次の2行を戻すだけでよい（武器を抜く処理はそのまま残してある）。
     #   "mono-white": dict(flat="#ffffff"),
@@ -136,6 +148,71 @@ def weapon_bits(svg_path, total, visible, dx, tilt):
     return d, ("translate(%.2f,%.2f) rotate(%.3f) scale(%.5f) translate(%.3f,%.3f)"
                % (dx, ENTRY_DY, tilt, scale, -ex, -ey))
 
+
+
+# 武器の部位の境界（武器のローカル座標＝高さ 1000）。シルエットの幅プロファイルの実測から。
+# 武器を描き直したら測り直す（鍔の弧は上下に曲がるので、帯では切れない中央だけ別に塗る）。
+SWORD_W = 248.54
+SWORD_Y_GRIP = 62.0           # ここまで柄頭の輪、ここから柄の巻き
+SWORD_Y_GUARD = 244.0         # ここから鍔の弧
+SWORD_Y_BLADE_ROOT = 266.0    # 鍔の中央の塊と刃が分かれる行
+SWORD_Y_GUARD_END = 300.0     # 鍔の両腕の下端
+SWORD_BLADE_X = (88.0, 160.0)  # 鍔の下で刃だけが通る中央の幅
+SWORD_TRIANGLE = "96,262 152,262 124,280"  # 弧と溝の V 字に挟まれた鍔の中央金具
+STAFF_W = 224.49
+
+
+def _grad(gid, stops, x1, y1, x2, y2):
+    out = ['<linearGradient id="%s" gradientUnits="userSpaceOnUse" x1="%s" y1="%s" x2="%s" y2="%s">'
+           % (gid, x1, y1, x2, y2)]
+    n = len(stops) - 1
+    for i, c in enumerate(stops):
+        out.append('<stop offset="%.2f" stop-color="%s"/>' % (i / n, c))
+    out.append("</linearGradient>")
+    return out
+
+
+def weapon_defs(pal, sword_d, staff_d):
+    """材質ごとのグラデと、武器の形の clipPath。座標は武器のローカル。"""
+    out = []
+    out += _grad("w_blade", pal["blade"], 92, 0, 156, 0)
+    out += _grad("w_gold", pal["gold"], 100, 0, 148, 0)
+    out += _grad("w_guard", pal["guard"], 0, SWORD_Y_GUARD, 0, SWORD_Y_GUARD_END)
+    out += _grad("w_wood", pal["wood"], 60, 0, 170, 0)
+    out.append('<clipPath id="sword_shape"><path d="%s"/></clipPath>' % sword_d)
+    out.append('<clipPath id="staff_shape"><path d="%s"/></clipPath>' % staff_d)
+    return out
+
+
+def _outline(pal, d):
+    if "outline" not in pal:
+        return []
+    c, w = pal["outline"]
+    return ['<path d="%s" fill="none" stroke="%s" stroke-width="%.1f" stroke-linejoin="round"/>' % (d, c, w)]
+
+
+def sword_colored(tf, pal, d):
+    """剣の塗り。帯と三角で部位を分け、シルエットで切り抜く。"""
+    bx0, bx1 = SWORD_BLADE_X
+    return ['<g transform="%s">' % tf] + _outline(pal, d) + [
+        '<g clip-path="url(#sword_shape)">',
+        '<rect x="0" y="%.1f" width="%.2f" height="%.1f" fill="url(#w_guard)"/>'
+        % (SWORD_Y_GUARD, SWORD_W, 1000.0 - SWORD_Y_GUARD),
+        '<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="url(#w_blade)"/>'
+        % (bx0, SWORD_Y_BLADE_ROOT, bx1 - bx0, 1000.0 - SWORD_Y_BLADE_ROOT),
+        '<polygon points="%s" fill="url(#w_guard)"/>' % SWORD_TRIANGLE,
+        '<rect x="0" y="0" width="%.2f" height="%.1f" fill="url(#w_gold)"/>' % (SWORD_W, SWORD_Y_GUARD),
+        "</g></g>",
+    ]
+
+
+def staff_colored(tf, pal, d):
+    """杖の塗り。頭から柄まで1本の木。"""
+    return ['<g transform="%s">' % tf] + _outline(pal, d) + [
+        '<g clip-path="url(#staff_shape)">',
+        '<rect x="0" y="0" width="%.2f" height="1000" fill="url(#w_wood)"/>' % STAFF_W,
+        "</g></g>",
+    ]
 
 
 def glyph_paths(word, target_w, track, align_to=None):
@@ -238,6 +315,9 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None, word=True, centers=CENTERS,
         parts.append('<clipPath id="%s"><polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f %.1f,%.1f"/></clipPath>'
                      % (cid, -big, ENTRY_DY + (-big - x0) * mi, big, ENTRY_DY + (big - x0) * mi,
                         big, -big, -big, -big))
+    colored = not flat and "blade" in pal
+    if colored:
+        parts += weapon_defs(pal, sword_d, staff_d)
     if not flat and not tile_fill:
         lo, mid, hi = pal["ramp"]
         # グラデはクラスタ全体を横切る。1枚版で sweep="tile" にすると、その1枚を横切る
@@ -280,10 +360,16 @@ def build(mode, shrink=SHRINK, dev=False, px_w=None, word=True, centers=CENTERS,
     parts.append("</g>")
     if staff:
         parts.append('<g id="staff" clip-path="url(#ground_r)" mask="url(#front)">')
-        parts.append('<path d="%s" transform="%s" fill="%s"/>' % (staff_d, staff_tf, flat or steel))
+        if colored:
+            parts += staff_colored(staff_tf, pal, staff_d)
+        else:
+            parts.append('<path d="%s" transform="%s" fill="%s"/>' % (staff_d, staff_tf, flat or steel))
         parts.append("</g>")
     parts.append('<g id="sword" clip-path="url(#ground_l)">')
-    parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or steel))
+    if colored:
+        parts += sword_colored(sword_tf, pal, sword_d)
+    else:
+        parts.append('<path d="%s" transform="%s" fill="%s"/>' % (sword_d, sword_tf, flat or steel))
     parts.append("</g>")
     parts.append("</g>")
     if word:
