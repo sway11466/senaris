@@ -4,7 +4,7 @@
 
 ## index
 
-次回採番: bug=12 / feature=137 / refactoring=24.
+次回採番: bug=12 / feature=137 / refactoring=25.
 
 項目（バグ bug / 機能追加 feature / リファクタリング refactoring）を追加するときは、該当カテゴリの採番を +1 して ID を継ぐ。完了した項目は本書から削除し、番号は再利用しない（過去の使用済み番号は `git log -p -- doc/backlog.md | grep -oE '(bug|feature|refactoring)-[0-9]+' | sort -u` で確認できる）。状態は「本書に載っていれば未完了／消えていれば完了」で表す（状態列は持たない）。ゴールは、その作業で何が達成されていれば終わりなのかを1文で書く。手段ではなく到達点を書く（「タグを決める」ではなく「棚に並んだとき誰の隣に出るかが決まっている」）。作業の途中で軸がずれるのを防ぐために置く。
 
@@ -110,6 +110,15 @@
 - 対応：(1) `godot/tools/` に formations.md の表A/表Bを読む小さなパーサ（`| id | 名前 | …` の行を拾い、id・人数・形・射程・実装列を辞書に）。(2) GUT テスト `test_formation_catalog.gd`：表の id のうち実装列が「済」のものは `RECIPES` に在り、`count`・`shape`・`range` が一致すること／`RECIPES` の id はすべて表に在ること／`skills.csv` に `recipe.<id>.name` と `.desc` が在ること（ユニットスキルは skills.md の見出しで同様に）。(3) トリニティノヴァ・グレイス・ディバインジャッジメントの `desc` を `skills.csv` に足す。(4) 表の書式を崩すと落ちるので、formations.md の一覧の冒頭に「列は固定」の注意を置く（記入済み）。
 - 考慮外：効果の数値（威力・倍率）の照合＝表現が文なので見ない。CSV/JSON 化。
 - 該当：`godot/tools/`・`godot/tests/small/domain/test_formation_catalog.gd`・`godot/data/i18n/skills.csv`・`doc/gdd/formations.md`・`doc/tech/testing.md`（テストの位置づけを1行）。
+
+### refactoring-24
+
+**効果の型（`effect`）から範囲の情報を外す（`area` / `single` → `damage`）**
+- ゴール：効果の型の値はすべて「盤に何が起きるか」だけを表し、当たる範囲（面か1体か）は範囲の欄だけが持っている。
+- 背景：`Formation.SKILLS` の `effect` は `buff`・`heal`・`spawn`・`detect`・`move` のように効果を表す値と、`area`・`single` のように損害の当たる範囲を表す値が混ざっている。`area` と `single` は「損害を与える」という同じ効果で、範囲の形は `radius`・`area_shape` にも持っているため、範囲の情報が2か所に分かれている。
+- 対応：(1) `effect` の `area` と `single` を1つの値（`damage`）にまとめる。(2) 面か1体かは範囲の欄（`area_shape` に `single` を足す、など）で表す。(3) `FormationOption.Effect`・`has_impact`・`targets_unit`・`blast_cells`・敵AIの `skill_row`・演出の `_is_area_skill` など、`AREA` / `SINGLE` で分岐している箇所を範囲の欄を見る形に直す。(4) [skills.md](gdd/skills.md) 実装方針・[formations.md](gdd/formations.md) の `effect` の説明を合わせる。
+- 考慮外：`dot` の改名（略語だが意味は通る）。CSV/JSON 化。
+- 該当：`godot/domain/formation/formation.gd`・`formation_option.gd`・`formation_resolver.gd`・`godot/domain/ai/ai_rows.gd`・`godot/presentation/main/main.gd`・`godot/presentation/board/board_impact_renderer.gd`・`doc/gdd/skills.md`・`doc/gdd/formations.md`。
 
 ## parking lot
 
