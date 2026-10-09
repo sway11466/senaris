@@ -26,6 +26,7 @@ func _init() -> void:
 	var list: Array[AiTrait] = [
 		TraitCharge.new(), TraitAmbush.new(), TraitRaid.new(), TraitPredator.new(),
 		TraitSwarm.new(), TraitFlee.new(), TraitWithdraw.new(), TraitStandoff.new(),
+		TraitAbomination.new(),
 	]
 	var ids: Array[String] = []
 	for t in list:

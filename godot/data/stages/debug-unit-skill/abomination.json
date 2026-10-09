@@ -20,8 +20,7 @@
     {
       "order": 1,
       "name": "失敗作",
-      "ai": "ambush",
-      "sight": 1,
+      "ai": "abomination",
       "units": [
         { "skin": "abomination", "col": 5, "row": 2 }
       ]

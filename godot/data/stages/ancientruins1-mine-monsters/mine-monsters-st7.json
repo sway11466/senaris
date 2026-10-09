@@ -16,7 +16,7 @@
       ] }
   ],
   "enemy": [
-    { "order": 1, "name": "mine-monsters.st7.squad.1", "ai": "charge",
+    { "order": 1, "name": "mine-monsters.st7.squad.1", "ai": "abomination",
       "units": [
         { "skin": "abomination", "unit_id": "abomination", "col": 6, "row": 10 }
       ] },
@@ -38,6 +38,9 @@
         { "skin": "bomber", "col": 4, "row": 5 },
         { "skin": "bomber", "col": 8, "row": 5 }
       ] }
+  ],
+  "gimmicks": [
+    { "id": "charge-spot", "kind": "charge_spot", "col": 6, "row": 3, "state": "on" }
   ],
   "victory": [
     { "type": "defeat_unit", "unit_ids": ["abomination"] }

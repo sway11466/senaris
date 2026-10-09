@@ -1,5 +1,11 @@
 {
 	"presets": {
+		"abomination": {
+			"name": "暴走する古代兵器",
+			"retreat": "-",
+			"sight": "-",
+			"stack": "-"
+		},
 		"ambush": {
 			"name": "待ち伏せ",
 			"retreat": "-",
@@ -18,14 +24,20 @@
 			"sight": "-",
 			"stack": "-"
 		},
-		"standoff": {
-			"name": "睨み合い",
+		"predator": {
+			"name": "弱者狙い",
 			"retreat": "-",
-			"sight": "-",
+			"sight": "*",
 			"stack": "-"
 		},
 		"raid": {
 			"name": "拠点攻略",
+			"retreat": "-",
+			"sight": "-",
+			"stack": "-"
+		},
+		"standoff": {
+			"name": "睨み合い",
 			"retreat": "-",
 			"sight": "-",
 			"stack": "-"
@@ -35,12 +47,6 @@
 			"retreat": "-",
 			"sight": "*",
 			"stack": 1
-		},
-		"predator": {
-			"name": "弱者狙い",
-			"retreat": "-",
-			"sight": "*",
-			"stack": "-"
 		},
 		"withdraw": {
 			"name": "撤退",
