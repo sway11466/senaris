@@ -1089,6 +1089,124 @@ func test_breath_resets_charge_and_ends_action() -> void:
 	assert_eq(s.get_charge(dragon.handle, "dragon_breath"), 0, "チャージは0に戻る")
 	assert_false(s.has_action_left(dragon.handle), "発動者は行動完了")
 
+# --- マナリーク（第1部ボスの弱い面攻撃。チャージはスポットでだけ溜まる）---
+
+const SPOT := Vector2i(2, 2)  # チャージスポットの位置（col/row）
+
+# 魔人の失敗作（敵・team1）＋射程内の味方の駒2体（隣接と距離3）＋失敗作の隣の敵側の駒＋チャージスポット (2,2)。
+# caster=abomination(id1)。威力は駒の素の値（攻20・貫通0.5）なので、駒にそのまま持たせる。
+func _leak_state(charge := 1) -> Dictionary:
+	var s := BattleState.new(20, 20)  # 距離6の着弾先が盤に収まる広さ
+	s.current_team = 1
+	var c := Hex.offset_to_axial(10, 10)
+	var boss := Unit.new(1, 1, c, 4, 8, 20, 50, 1, "abomination")
+	boss.skin_id = "abomination"
+	boss.pierce = 0.5
+	var near := Unit.new(2, 0, Hex.neighbor(c, 0), 3, 8, 40, 30, 1, "fighter")
+	var mid := Unit.new(3, 0, c + Hex.direction(3) * 3, 3, 8, 40, 30, 1, "fighter")
+	var mate := Unit.new(4, 1, Hex.neighbor(c, 1), 3, 8, 30, 30, 1, "gear_soldier")  # near の隣＝同じ面に入る
+	for u in [boss, near, mid, mate]:
+		s.add_unit(u)
+	s.add_gimmick(Gimmick.new("spot-a", "charge_spot", Hex.offset_to_axial(SPOT.x, SPOT.y), GimmickKinds.CHARGE_ON))
+	s.set_charge(boss.handle, "mana_leak", charge)
+	return {"s": s, "boss": boss, "near": near, "mid": mid, "mate": mate}
+
+func _leak_option(f: Dictionary) -> FormationOption:
+	for o in Formation.available_for(f["s"], f["boss"]):
+		if o.skill == "mana_leak":
+			return o
+	return null
+
+func test_leak_waits_for_charge() -> void:
+	assert_null(_leak_option(_leak_state(0)), "チャージ0では撃てない")
+	assert_not_null(_leak_option(_leak_state(1)), "チャージ1で撃てる")
+
+func test_leak_not_by_other_skins() -> void:
+	var f := _leak_state()
+	(f["boss"] as Unit).skin_id = "chimera"
+	assert_null(_leak_option(f), "魔人の失敗作以外は撃てない")
+
+## 溜まり方が spot のスキルは、ターン開始の +1 が無い。
+func test_leak_charge_does_not_build_over_turns() -> void:
+	var f := _leak_state(0)
+	var s: BattleState = f["s"]
+	s.end_turn()  # プレイヤーターン
+	s.end_turn()  # 敵ターン開始＝敵駒のチャージが +1 される番だが、マナリークは増えない
+	assert_eq(s.get_charge(1, "mana_leak"), 0, "ターン開始では溜まらない")
+
+## チャージスポットに止まると必要量まで満ちる。スポットの上に居続けても増えない。
+func test_leak_charge_fills_on_charge_spot() -> void:
+	var f := _leak_state(0)
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var spot := Hex.offset_to_axial(SPOT.x, SPOT.y)
+	boss.pos = spot
+	assert_null(s.step_gimmick(spot, boss.team), "仕掛けの状態は変わらない（null）")
+	assert_eq(s.get_charge(1, "mana_leak"), 1, "スポットに着くと必要量まで満ちる")
+	s.end_turn()
+	s.end_turn()
+	assert_eq(s.get_charge(1, "mana_leak"), 1, "上に居続けても必要量を超えない")
+
+## スポットを踏んでも、溜まり方が spot でないスキルや、持っていない駒には何も起きない。
+func test_charge_spot_ignores_units_without_spot_skills() -> void:
+	var f := _leak_state(0)
+	var s: BattleState = f["s"]
+	var near: Unit = f["near"]
+	var spot := Hex.offset_to_axial(SPOT.x, SPOT.y)
+	near.pos = spot
+	s.step_gimmick(spot, near.team)
+	assert_eq(s.get_charge(near.handle, "mana_leak"), 0, "撃てない駒には溜まらない")
+	assert_eq(s.get_charge(1, "mana_leak"), 0, "踏んでいない駒には溜まらない")
+
+## 着弾先は発動者から 1〜6 のヘクス（自分のマスには撃てない）。面は中心＋周囲6の7ヘクス。
+func test_leak_targets_ring_1_to_6_and_blasts_seven_cells() -> void:
+	var f := _leak_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var o := _leak_option(f)
+	var cells := Formation.targetable_cells(s, o)
+	assert_false(boss.pos in cells, "自分のマスには撃てない")
+	for h in cells:
+		var d := Hex.distance(boss.pos, h)
+		assert_true(d >= 1 and d <= 6, "着弾先 %s は距離1〜6" % h)
+	assert_true(Hex.neighbor(boss.pos, 0) in cells, "隣にも撃てる")
+	assert_true(boss.pos + Hex.direction(3) * 6 in cells, "距離6に撃てる")
+	assert_false(boss.pos + Hex.direction(3) * 7 in cells, "距離7には撃てない")
+	assert_eq(Formation.blast_cells(o, boss.pos + Hex.direction(3) * 3).size(), 7, "面は7ヘクス")
+
+## 発動者以外は敵味方の別なく当たる。威力は駒の素の値（攻20・貫通0.5）＝上書きしない。
+func test_leak_hits_everyone_but_itself_with_own_stats() -> void:
+	var f := _leak_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var near: Unit = f["near"]
+	var mate: Unit = f["mate"]
+	var o := _leak_option(f)
+	# 中心＝発動者の隣（near のマス）。面に boss・near・mate が入る。
+	var pv := Formation.preview(s, o, near.pos)
+	var ids: Array[int] = []
+	for h: HitDetail in pv["hits"]:
+		ids.append(h.target_id)
+	assert_true(near.handle in ids, "味方側（プレイヤー）の駒に当たる")
+	assert_true(mate.handle in ids, "自陣営の駒も巻き込む")
+	assert_false(boss.handle in ids, "発動者は当たらない")
+	for h: HitDetail in pv["hits"]:
+		assert_eq(h.attack.stat, 20, "威力は駒の攻撃力そのまま（上書きしない）")
+		assert_almost_eq(h.defense.pierce, 0.5, 0.001, "貫通は駒の値（防御半減）")
+
+func test_leak_resets_charge_and_ends_action() -> void:
+	var f := _leak_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var near: Unit = f["near"]
+	var before := near.troops
+	var res := FormationResolver.resolve(s, _leak_option(f), near.pos)
+	assert_not_null(res)
+	assert_lt(near.troops, before, "面の駒の兵数が減る")
+	assert_eq(s.get_charge(boss.handle, "mana_leak"), 0, "チャージは0に戻る")
+	assert_false(s.has_action_left(boss.handle), "発動者は行動完了")
+	assert_null(_leak_option(f), "スポットに戻るまで撃てない")
+
 # --- リペア（兵器・輸送の兵数を戻す）---
 
 # 銃の技師＋隣接する馬車（損耗）＋隣接する歩兵（損耗）＋離れた馬車（損耗）＋隣接する敵の馬車（損耗）。

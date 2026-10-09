@@ -29,6 +29,16 @@
 			"memo": "罠。隠れている間は絵なし。見つかった後は床に注意マーク（landmine_found.png）・爆発した後は床に散らばった爆弾の破片（landmine_spent.png）。一撃はボマーの爆発（bomb）を使い回す",
 			"name": "地雷",
 			"placement": "found:flat|spent:flat"
+		},
+		{
+			"combat_scale": "",
+			"foot_z": "",
+			"hit_effect": "",
+			"kind": "charge_spot",
+			"map_scale": 0.8,
+			"memo": "踏んだ駒のスキルのチャージを満たす場所。状態は on だけ。絵が無い間も床の光（GimmickKinds の glow）で場所が読める。絵は床に刻まれた紋（charge_spot_on.png）の予定",
+			"name": "チャージスポット",
+			"placement": "on:flat"
 		}
 	]
 }

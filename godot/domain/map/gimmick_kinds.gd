@@ -25,7 +25,12 @@ const KINDS := {
 		"trap": { "atk_ground": 40, "atk_air": 40, "pierce": 0.5, "radius": 0, "after": FOUND } },
 	"landmine": { "states": [HIDDEN, FOUND, SPENT], "params": [], "glow": {},  # 地雷＝機械・隣まで・一度きり
 		"trap": { "atk_ground": 40, "atk_air": 20, "pierce": 0.0, "radius": 1, "after": SPENT } },
+	# チャージスポット＝踏んだ駒の、溜まり方が spot のスキルのチャージを満たす（doc/gdd/gimmicks.md チャージスポット）。
+	# 状態は on だけで変わらない。踏んだときの振る舞いは BattleState.step_gimmick（チャージは駒の側の値）。
+	"charge_spot": { "states": [CHARGE_ON], "params": [], "glow": { CHARGE_ON: Color("#4FA3D8") } },  # 魔力の青
 }
+
+const CHARGE_ON := "on"  ## チャージスポットの唯一の状態
 
 ## 種類が定義されているか。
 static func has_kind(kind: String) -> bool:
@@ -54,6 +59,10 @@ static func state_after_step(g: Gimmick, team: int) -> String:
 			if team == 1 and g.state == "off":
 				return "on"
 	return ""
+
+## g がチャージスポットか（踏んだ駒のスキルのチャージを満たす）。詳細 → doc/gdd/gimmicks.md チャージスポット
+static func is_charge_spot(g: Gimmick) -> bool:
+	return g.kind == "charge_spot"
 
 ## 種類が罠か（踏むと撃つ）。
 static func is_trap(kind: String) -> bool:

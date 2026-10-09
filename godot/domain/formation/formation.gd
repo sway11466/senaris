@@ -47,10 +47,17 @@ class_name Formation
 ##        "caster"（トリックショット＝発動者の通常射程・下限〜上限）／"max_plus"（マジックアロー＝参加者の射程上限の最大＋range_plus・下限なし）。
 ## attack_from_stats: 威力のユニット攻撃力を発動者1体ではなく参加者から引く。省略＝発動者（設計原則2）。
 ##        "max_plus"（マジックアロー＝参加者の攻撃力の最大＋attack_plus。兵数・レベル・包囲・地形は発動者のもの）。
+## charge_turns: 発動に要するチャージ量（省略＝溜め不要）。
+## charge_source: チャージの溜まり方。省略＝CHARGE_TURN（毎ターン開始に +1）／CHARGE_SPOT（ターン開始では溜まらず、
+##        チャージスポット（仕掛け）に着いた時点で必要量まで満たす＝マナリーク）。詳細 → doc/gdd/skills.md 共通ルール
 ## category: クロニクルの陣形スキル章の束ね（表Aの「分類」・CATEGORIES のどれか）。ユニットスキルは持たない。
 ## 陣形スキルの並びは表Aの行順に揃える＝クロニクルのカードの並び。詳細 → doc/gdd/chronicle.md 陣形スキル
 ## 分類（category）に書ける値＝表Aの「分類」列（弓攻撃／魔法攻撃／特殊攻撃／強化／弱体化／その他／敵）。
 const CATEGORIES := ["bow", "magic", "special", "buff", "debuff", "other", "enemy"]
+
+## チャージの溜まり方（レシピの charge_source）。詳細 → doc/gdd/skills.md 共通ルール・チャージ
+const CHARGE_TURN := "turn"  ## 毎ターン開始に +1（省略時）
+const CHARGE_SPOT := "spot"  ## チャージスポットに着いた時点で必要量まで満たす
 
 const SKILLS := {
 	# name は開発用メモ。画面表示は tr("skill.{id}.name")（正本 data/i18n/skills.csv）で解決する。
@@ -455,6 +462,26 @@ const SKILLS := {
 		# red_dragon_breath_impact.png（盤の火）。発動者のスキンで引く。詳細 → doc/art/keyvisual.md
 		"unit_art": "breath",
 	},
+	"mana_leak": {
+		"name": "マナリーク",
+		"caster_skins": ["abomination"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"activation": "active",
+		# 第1部ボスの弱い面攻撃。着弾の中心を射程1〜6で指定し、中心＋周囲6の7ヘクスを間接で解決する
+		# （トリニティノヴァと同じ経路）。発動者以外は敵味方の別なく当たる。威力は駒の素の値（攻撃力20・貫通0.5）
+		# ＝上書きしない。詳細 → doc/gdd/skills.md マナリーク
+		"effect": "area",
+		"radius": 1,
+		"range": 6,
+		"min_range": 1,
+		"range_from": "caster",
+		# チャージ1。ターン開始では溜まらず、チャージスポット（仕掛け）に着いたときだけ満たす＝撃つと
+		# スポットへ戻るまで撃てない（「溜めて吐いて戻る」往復の、吐く側）。
+		"charge_turns": 1,
+		"charge_source": CHARGE_SPOT,
+	},
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
@@ -463,6 +490,10 @@ const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot
 ## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
 const NO_HEX := Vector2i(1 << 30, 1 << 30)
+
+## スキル rid のチャージの溜まり方（CHARGE_TURN / CHARGE_SPOT）。省略＝CHARGE_TURN。
+static func charge_source(rid: String) -> String:
+	return String((SKILLS.get(rid, {}) as Dictionary).get("charge_source", CHARGE_TURN))
 
 ## そのスキルがユニットスキル（単独発動＝shape "solo"）か。カタログ上の区別で、仕組みは共通。
 ## 演出・効果音の出し分けが読む（陣形はカットインあり／ユニットスキルは音だけ）。

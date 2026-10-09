@@ -666,8 +666,8 @@
 			"shield": 8
 		},
 		{
-			"atk_air": 30,
-			"atk_ground": 30,
+			"atk_air": 20,
+			"atk_ground": 20,
 			"can_capture": false,
 			"capacity": 0,
 			"category": "champion",

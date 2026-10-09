@@ -51,6 +51,18 @@ func test_loader_places_a_gimmick_with_its_params() -> void:
 	assert_eq(g.params["base"], _hex(BASE), "固有の要素（対象の拠点）")
 	assert_eq(s.gimmick_at(_hex(SWITCH)), g)
 
+## チャージスポット＝状態は on だけ・固有の要素なし。踏むと溜まり方が spot のスキルのチャージを満たす
+## （中身は test_skill.gd マナリーク）。on の間は床が光る。仕様 → doc/gdd/gimmicks.md チャージスポット
+func test_loader_places_a_charge_spot() -> void:
+	var s := _state([{ "id": "spot-a", "kind": "charge_spot", "col": 3, "row": 2, "state": "on" }])
+	var g := s.gimmick_by_id("spot-a")
+	assert_not_null(g)
+	assert_eq(g.state, GimmickKinds.CHARGE_ON)
+	assert_true(GimmickKinds.is_charge_spot(g))
+	assert_not_null(GimmickKinds.glow_color(g), "on の間は床が光る")
+	assert_eq(GimmickKinds.state_after_step(g, 0), "", "踏んでも状態は変わらない")
+	assert_false(GimmickKinds.is_trap(g.kind), "罠ではない")
+
 func test_loader_rejects_unknown_kind_and_state() -> void:
 	var s := _state([_switch({ "kind": "no_such_kind" })])
 	assert_push_warning("kind が未知")

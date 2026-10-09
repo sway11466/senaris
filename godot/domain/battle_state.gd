@@ -235,10 +235,23 @@ func _increment_charges() -> void:
 			var r: Dictionary = Formation.SKILLS[rid]
 			if int(r.get("charge_turns", 0)) <= 0:
 				continue
+			if Formation.charge_source(rid) != Formation.CHARGE_TURN:
+				continue  # スポットで溜めるスキル（マナリーク）はターン開始では溜まらない
 			if not Formation.can_cast_skin(u, r):
 				continue
 			var cur := get_charge(u.handle, rid)
 			set_charge(u.handle, rid, cur + 1)
+
+## u が持つ、溜まり方がスポットのスキルのチャージを必要量まで満たす（チャージスポットを踏んだとき）。
+## 満たすのは踏んだ瞬間だけ＝上に居続けても増えない。詳細 → doc/gdd/gimmicks.md チャージスポット
+func _fill_spot_charges(u: Unit) -> void:
+	for rid in Formation.SKILLS:
+		var r: Dictionary = Formation.SKILLS[rid]
+		var need := int(r.get("charge_turns", 0))
+		if need <= 0 or Formation.charge_source(rid) != Formation.CHARGE_SPOT:
+			continue
+		if Formation.can_cast_skin(u, r):
+			set_charge(u.handle, rid, need)
 
 ## 直近のターン開始で発動したパッシブスキル（end_turn のたびに作り直す）。presentation が演出に読む。
 ## 1件＝ { skill, caster（発動者の handle）, unit（生まれた駒の handle）, from, to, fx（演出あり） }
@@ -616,6 +629,12 @@ func step_gimmick(hex: Vector2i, team: int) -> Gimmick:
 		last_trap_hits = _fire_trap(g)
 		g.state = GimmickKinds.state_after_trap(g)
 		return g
+	# チャージスポット＝踏んだ駒のスキルのチャージを満たす。仕掛けの状態は変わらない（＝null を返す）。
+	if GimmickKinds.is_charge_spot(g):
+		var stepped := unit_at(hex)
+		if stepped != null:
+			_fill_spot_charges(stepped)
+		return null
 	var next := GimmickKinds.state_after_step(g, team)
 	if next.is_empty():
 		return null
