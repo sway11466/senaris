@@ -885,3 +885,28 @@ func test_stepping_the_last_switch_finishes_the_battle() -> void:
 	var mc := _mc(s)
 	mc.execute(MoveCommand.new(1, Hex.offset_to_axial(2, 2)))
 	assert_signal_emit_count(mc, "battle_finished", 1, "全部 off にした瞬間に勝利")
+
+# --- 突進（ランページ）で止まった先の仕掛けを踏む（doc/gdd/gimmicks.md 踏む）---
+
+## 魔人の失敗作がランページでチャージスポットに止まると、マナリークのチャージが満ちる。
+func test_rampage_stop_steps_the_gimmick() -> void:
+	var s := BattleState.new(16, 16)
+	s.current_team = 1
+	var c := Hex.offset_to_axial(8, 8)
+	var boss := Unit.new(1, 1, c, 4, 8, 20, 50, 1, "abomination")
+	boss.skin_id = "abomination"
+	s.add_unit(boss)
+	s.add_unit(Unit.new(2, 0, Hex.offset_to_axial(1, 1), 3, 8, 40, 30, 1, "fighter"))  # 残存する敵＝決着しない
+	var spot: Vector2i = c + Hex.direction(0) * 3
+	s.add_gimmick(Gimmick.new("spot-a", "charge_spot", spot, GimmickKinds.CHARGE_ON))
+	var mc := _mc(s)
+	var option: FormationOption = null
+	for o in Formation.available_for(s, boss):
+		if o.skill == "rampage":
+			option = o
+	assert_not_null(option, "前提: ランページが撃てる")
+	assert_eq(s.get_charge(boss.handle, "mana_leak"), 0, "前提: 溜まっていない")
+	assert_true(mc.execute_formation(FormationCommand.new(option, spot)), "突進が成立")
+	assert_eq(boss.pos, spot, "スポットで止まる")
+	assert_eq(s.get_charge(boss.handle, "mana_leak"), 1, "止まった先のチャージスポットを踏んで満ちる")
+	assert_signal_emitted(mc, "formation_resolved")

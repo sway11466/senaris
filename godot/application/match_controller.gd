@@ -122,7 +122,13 @@ func execute_formation(cmd: FormationCommand) -> bool:
 		if h.killed:
 			unit_died.emit(h.target_id)
 	formation_resolved.emit(result)
-	_check_finished()  # 陣形でボスを撃破しうる（勝利条件）
+	# 突進（ランページ）で止まった先の仕掛けは踏む＝移動と同じ口（チャージスポットに戻ればマナリークが溜まる）。
+	# 詳細 → doc/gdd/gimmicks.md 踏む
+	if result.caster_moved_to != Formation.NO_HEX:
+		var mover := state.unit_by_handle(result.caster_id)
+		if mover != null:
+			_step_gimmick(result.caster_moved_to, mover.team)
+	_check_finished()  # 陣形でボスを撃破しうる（勝利条件）。突進で踏んだ仕掛けの勝利条件も
 	if not _finished:
 		_fire_on_done(cmd.option.caster_id)
 	return true

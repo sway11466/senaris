@@ -69,7 +69,17 @@ static func _apply(state: BattleState, option: FormationOption, target: Vector2i
 	# 兵数は動かないので troops_after は troops_before のまま）。詳細 → doc/tech/combat_scene.md
 	var caster := state.unit_by_handle(option.caster_id)
 	if caster != null:
-		out.caster = state.unit_snapshot(caster)
+		out.caster = state.unit_snapshot(caster)  # 突進では出発の位置＝盤が滑らせる起点
+	# 突進（ランページ）＝先に止まる位置へ動かす。一撃の地形・包囲・支援は止まった位置で確定する。
+	# 止まった先の仕掛けを踏むのは application（MatchController）＝移動と同じ口。詳細 → doc/gdd/skills.md ランページ
+	var dash := {}
+	if option.effect == FormationOption.Effect.MOVE:
+		dash = Formation.dash_plan(state, option, target)
+		var stop: Vector2i = dash.get("stop", Formation.NO_HEX)
+		if caster != null and not dash.is_empty() and stop != caster.pos:
+			caster.pos = stop
+			out.caster_moved_to = stop
+			out.dash_path = dash["path"]
 	match option.effect:
 		# バフ系（グレイス）は着弾ではなく状態補正エントリを積む（ダメージ処理は空回り＝hits空）。
 		# 損害の出ないレシピの効果表示用に、積んだエントリを result にも載せる（レポートが読む）。
@@ -123,9 +133,15 @@ static func _apply(state: BattleState, option: FormationOption, target: Vector2i
 				for g: Gimmick in d["found"]:
 					out.detected.append(g.id)
 					detected_cells.append(g.hex)
-	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。
-	var pv := Formation.preview(state, option, target)
-	for hit: HitDetail in pv["hits"]:
+	# 着弾内訳は戦闘前の盤で確定（決定的＝attack と同じ流儀）。突進はぶつかった1体だけ＝動かした後の位置で解く。
+	var pv_hits: Array = []
+	if option.effect == FormationOption.Effect.MOVE:
+		var bumped: Unit = dash.get("victim")
+		if bumped != null:
+			pv_hits.append(Formation.single_hit(state, option, bumped))
+	else:
+		pv_hits = Formation.preview(state, option, target)["hits"]
+	for hit: HitDetail in pv_hits:
 		var victim := state.unit_by_handle(hit.target_id)
 		if victim == null:
 			continue

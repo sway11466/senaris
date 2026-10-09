@@ -28,7 +28,9 @@ class_name Formation
 ## member_skins が空＝相方の種別を問わない印（バックスタブ＝味方なら誰でも）。詳細 → _member_matches
 ## member_figure: 種別不問のレシピで、クロニクルの図と未解放の黒塗りに立てる相方の代表スキン。
 ## return_to_origin: 着弾後に発動者をこのターンの移動開始位置へ戻す（バックスタブ＝刺して消える）。
-## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"。
+## effect: "area"（中心＋周囲6の7hex）／"single"／"buff"／…／"move"（ランページ＝6方向の直線を進み、ぶつかった駒に
+##        反撃なしの一撃。止まる位置と当たる駒は dash_plan）。一覧は FormationOption.EFFECT_IDS。
+## attack_mul: 威力のユニット攻撃力に掛ける倍率（ランページ＝3）。move のレシピは必ず書く。
 ## area_shape: 面の形。省略＝着弾中心から radius の円／"cone"＝発動者から着弾先の向きに広がる扇の8ヘクス（ドラゴンブレス）。
 ## attack_override: 威力のユニット攻撃力をレシピの固定値で上書きする（ドラゴンブレス＝40）。
 ## min_range: 射程の下限（省略＝0）。ドラゴンブレス＝1（自分のヘクスへは吐けない）。
@@ -482,10 +484,28 @@ const SKILLS := {
 		"charge_turns": 1,
 		"charge_source": CHARGE_SPOT,
 	},
+	"rampage": {
+		"name": "ランページ",
+		"caster_skins": ["abomination"],
+		"member_skins": [],
+		"shape": "solo",
+		"count": 1,
+		"activation": "active",
+		# 第1部ボスの直線の突進。6方向のどれかへ最大 range マス進み、途中で飛行以外の駒にぶつかったら
+		# その手前で止まり、その駒へ反撃なしの一撃（攻撃力×attack_mul・貫通0＝物理）。地形は見ない。
+		# チャージ無し＝毎ターン撃てる。詳細 → doc/gdd/skills.md ランページ
+		"effect": "move",
+		"range": 10,
+		"min_range": 1,
+		"range_from": "caster",
+		"attack_mul": 3.0,
+		"pierce_override": 0.0,
+		"combat_effect": "punch",  # 当面は徒手の一撃を流用（専用の絵は後で足す）
+	},
 }
 
 ## 適用まで実装済みの効果。未対応はメニューに出さない。
-const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot", "heal", "detect"]
+const IMPLEMENTED_EFFECTS := ["area", "single", "buff", "cleanse", "spawn", "dot", "heal", "detect", "move"]
 
 ## 「発動者の位置を仮定しない」番兵（盤の外）。available_for / can_target / targetable_cells の
 ## from_hex に渡さなければこれ＝発動者は盤の上の実位置に居るものとして判定する。
@@ -704,6 +724,14 @@ static func choice_has_target(state: BattleState, choice: FormationChoice, from_
 ## 対象ごとの hit 内訳（HitDetail。target_id に対象の駒番号）を返す。適用は FormationResolver。
 static func preview(state: BattleState, option: FormationOption, target: Vector2i) -> Dictionary:
 	var hits: Array = []
+	# 突進（ランページ）＝ぶつかる駒が居れば、その1体への一撃。発動者の地形・包囲・支援は今の位置で見積もる
+	# （確定は FormationResolver＝止まった位置へ動かしてから single_hit で解く）。
+	if option.effect == FormationOption.Effect.MOVE:
+		var plan := dash_plan(state, option, target)
+		var victim: Unit = plan.get("victim")
+		if victim != null:
+			hits.append(_formation_hit(state, option, victim))
+		return {"skill": option.skill, "hits": hits}
 	var participants := option.participants
 	for hx in blast_cells(option, target, caster_pos_of(state, option)):
 		var victim := state.unit_at(hx)
@@ -739,6 +767,56 @@ static func cone_cells(origin: Vector2i, target: Vector2i) -> Array[Vector2i]:
 		out.append(origin + off)
 	return out
 
+## 突進（ランページ＝効果 MOVE）の止まる位置と当たる駒。発動者（from_hex に居るものとする。省略＝盤の実位置）
+## から target の向きへ1マスずつ進み、飛行以外の駒にぶつかったらその手前で止まる（手前のマスに飛行の駒が
+## 居れば、さらに手前の空きマス）。ぶつからなければ target で止まる。地形は見ない＝盤の外だけが上限。
+## 戻り＝{ stop: 止まるマス, victim: ぶつかった駒（無ければ null）, path: 通ったマス（出発を含まず stop を含む）}。
+## target が6方向の直線上に無い・射程外なら空。詳細 → doc/gdd/skills.md ランページ
+static func dash_plan(state: BattleState, option: FormationOption, target: Vector2i, from_hex := NO_HEX) -> Dictionary:
+	var caster := state.unit_any(option.caster_id)
+	if caster == null:
+		return {}
+	var origin := from_hex if from_hex != NO_HEX else caster.pos
+	var dir := ray_direction(origin, target)
+	if dir == Vector2i.ZERO:
+		return {}
+	var dist := Hex.distance(origin, target)
+	if not option.in_range(dist):
+		return {}
+	var stop := origin
+	var victim: Unit = null
+	var path: Array[Vector2i] = []
+	for k in range(1, dist + 1):
+		var cell: Vector2i = origin + dir * k
+		if not state.in_field(cell):
+			break
+		var u := _unit_at_assumed(state, caster, from_hex, cell)
+		if u != null and not u.is_aerial():
+			victim = u
+			break
+		path.append(cell)
+		if u == null:
+			stop = cell  # 飛行の駒のマスは通り抜けるだけ＝止まれない
+	while not path.is_empty() and path[path.size() - 1] != stop:
+		path.pop_back()  # 飛行の駒のマスで途切れた分は戻す＝path の末尾は必ず stop
+	return {"stop": stop, "victim": victim, "path": path}
+
+## origin から target へ向かう6方向のどれか（target が直線上に無ければ Vector2i.ZERO）。
+static func ray_direction(origin: Vector2i, target: Vector2i) -> Vector2i:
+	var delta := target - origin
+	var dist := Hex.distance(origin, target)
+	if dist <= 0:
+		return Vector2i.ZERO
+	for i in 6:
+		var d := Hex.direction(i)
+		if d * dist == delta:
+			return d
+	return Vector2i.ZERO
+
+## victim 1体への一撃の内訳（陣形スキル・突進で共通の式）。発動者の地形・包囲・支援は盤の今の位置。非破壊。
+static func single_hit(state: BattleState, option: FormationOption, victim: Unit) -> HitDetail:
+	return _formation_hit(state, option, victim)
+
 ## 発動者の盤上の位置（降車先を決めている搭乗駒もありうる）。居なければ NO_HEX。
 static func caster_pos_of(state: BattleState, option: FormationOption) -> Vector2i:
 	var c := state.unit_any(option.caster_id)
@@ -767,6 +845,14 @@ static func can_target(state: BattleState, option: FormationOption, target: Vect
 		within = caster != null and option.in_range(Hex.distance(caster.pos, target))
 	if not within:
 		return false
+	# 突進（ランページ）＝6方向の直線上で、最初にぶつかる駒の手前までの空きマスと、その駒のマスだけ。
+	# 駒の向こう側・飛行の駒のマス（通り抜けるだけ）は選べない。詳細 → doc/gdd/skills.md ランページ
+	if option.effect == FormationOption.Effect.MOVE:
+		var plan := dash_plan(state, option, target, from_hex)
+		if plan.is_empty():
+			return false
+		var v: Unit = plan["victim"]
+		return v.pos == target if v != null else plan["stop"] == target
 	# トリックショット＝着弾先に斥候（相方）が張り付いていること。参加者の形ではなく対象の周りを
 	# 見る唯一の形で、相方は移動しない＝盤の実位置で測る。詳細 → doc/gdd/formations.md トリックショット
 	if option.shape == FormationOption.Shape.SPOTTER:
@@ -1248,6 +1334,10 @@ static func _skill_attack_breakdown(state: BattleState, caster: Unit, option: Fo
 ## 40＋10、空ではエルフ 60＋10 と、相手によって主役が入れ替わる。合算ではないので2人・単体でも壊れない。
 ## 対空／対地の切り替え（attack_vs）は参加者それぞれに掛ける。詳細 → doc/gdd/formations.md マジックアロー
 static func _skill_attack_stat(state: BattleState, caster: Unit, option: FormationOption, victim: Unit) -> int:
+	# 倍率（ランページ＝×3）は選び終えた値に最後に掛ける＝固定値・参加者から引く値のどれにも同じに効く。
+	return int(roundf(float(_skill_attack_stat_base(state, caster, option, victim)) * option.attack_mul))
+
+static func _skill_attack_stat_base(state: BattleState, caster: Unit, option: FormationOption, victim: Unit) -> int:
 	# レシピが固定値を持つもの（ドラゴンブレス＝40）は発動者の性能を見ない。
 	if option.attack_override > 0:
 		return option.attack_override

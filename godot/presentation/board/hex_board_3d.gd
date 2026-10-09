@@ -940,6 +940,7 @@ func _on_formation_resolved(result: SkillResult) -> void:
 func play_formation_impact(result: SkillResult) -> void:
 	if _impact_renderer.finisher_armed():
 		await zoom_to_finisher(result.center)
+	_impact_renderer.set_hit_on_board(_combat_on_board())  # 突進の一撃を盤で見せるか（窓を開かない手）
 	await _impact_renderer.play(result, _locked)
 
 ## 戦闘の一撃を盤で見せる（BoardImpactRenderer に委譲）。窓を開かない手だけ main が呼ぶ。

@@ -831,8 +831,17 @@ func _flash(side: String, col: Color = Color(1, 1, 1, 0.55)) -> void:
 	tw.tween_property(r, "color:a", 0.0, 0.28)
 	tw.tween_callback(r.queue_free)
 
+## 攻撃側のエフェクトの上書き（スキル＝ランページの一撃を戦闘の画で見せるとき）。空＝上書きなし。
+## 上書きが効くのは _effect_override_handle の駒だけ＝反撃側はスキンの武器のまま。
+var _effect_override := ""
+var _effect_override_handle := -1
+
 ## 放つ側のエフェクト定義。スキン未設定・未定義IDなら null＝既定のスパークで出す。
 func _effect_of(comb: UnitSnapshot) -> CombatEffect:
+	if not _effect_override.is_empty() and comb != null and comb.handle == _effect_override_handle:
+		var over := CombatEffectCatalog.by_id(_effect_override)
+		if over != null:
+			return over
 	var skin := _skin_of(comb)
 	if skin == null:
 		return null

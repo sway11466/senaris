@@ -162,6 +162,8 @@ func _build_no_damage_lines() -> void:
 		"detect":
 			var n := _result.detected.size()
 			_add_line(tr("ui.skillreport.detected") % n if n > 0 else tr("ui.skillreport.detected_none"))
+		"move":
+			_add_line(tr("ui.skillreport.dashed"))  # 突進だけで終わった（誰にもぶつからなかった）
 		_:
 			_add_line(tr("ui.skillreport.no_hits"))  # 面の中に対象が1体も居ない空撃ち
 

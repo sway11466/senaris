@@ -9,10 +9,14 @@ const COUNTER_GAP := 0.1  # 攻撃側の着弾から反撃までの間（秒）
 const DAMAGE_OUTLINE := Color(0.47, 0.12, 0.12)  # 損害数の縁（赤＝減った）
 
 ## 戦闘結果 result を演出する。result が無ければ何もしない。
-func play(result: AttackResult) -> void:
+## attacker_effect＝攻撃側のエフェクトをスキンの武器ではなくこの ID で出す（突進＝ランページの一撃を同じ画で
+## 見せるとき。レシピの combat_effect）。空＝スキンの武器。
+func play(result: AttackResult, attacker_effect := "") -> void:
 	if result == null:
 		return
 	_build()  # 未生成なら組む（結線タイミングに依存しない）
+	_effect_override = attacker_effect
+	_effect_override_handle = result.attacker.handle if result.attacker != null else -1
 	var a := result.attacker
 	var t := result.defender
 	var counter := result.has_counter()

@@ -20,6 +20,7 @@ skill.dragon_breath.name,ドラゴンブレス,Dragon Breath
 skill.trap_scan.name,罠発見,Trap Scan
 skill.trap_scan_drone.name,罠発見,Trap Scan
 skill.mana_leak.name,マナリーク,Mana Leak
+skill.rampage.name,ランページ,Rampage
 skill_group.bow.name,弓攻撃,Bow Attack
 skill_group.magic.name,魔法攻撃,Magic Attack
 skill_group.buff.name,強化,Buff
@@ -45,3 +46,4 @@ skill.dragon_breath.desc,吐く向きに広がる扇の8ヘクスを焼く（攻
 skill.trap_scan.desc,自分の位置から、移動力のぶん視線の届く範囲の隠れた罠を見つける。使った後も残り移動力で動ける。調べられる範囲は青い枠で盤に出る。,"Reveals hidden traps within line of sight, as far as this unit's movement range. The scout can still move afterwards. The scan range is shown on the board as a blue outline."
 skill.trap_scan_drone.desc,行動を終えた場所から、移動力のぶん視線の届く範囲の隠れた罠を自動で見つける。何もせずにターンを終えたときも、その場所から見つける。調べられる範囲は青い枠で盤に出る。,"After finishing its action, automatically reveals hidden traps within line of sight, as far as its movement range. Also scans from where it stands if the turn ends without acting. The scan range is shown on the board as a blue outline."
 skill.mana_leak.desc,狙ったヘクスとその周囲6の7ヘクスに、自分の攻撃力で間接ダメージ（反撃なし）。自分以外は敵味方の別なく当たる。チャージはターンでは溜まらず、チャージスポットに着いたときだけ満ちる。,"Deals indirect damage (no counterattack) with its own Attack to the targeted hex and the 6 around it. Hits everyone but itself, friend or foe. Its charge does not build over turns; it fills only when the unit lands on a charge spot."
+skill.rampage.desc,6方向のどれかへ直線に最大10マス突進する。途中で飛行以外の駒にぶつかれば、その手前で止まってその駒へ攻撃力3倍の一撃（反撃なし）。地形は無視する。毎ターン撃てる。,"Charges in a straight line up to 10 hexes in one of the six directions. If it runs into a non-flying unit, it stops just short and strikes that unit with triple Attack (no counterattack). Ignores terrain. Can be used every turn."

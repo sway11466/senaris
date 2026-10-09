@@ -14,6 +14,12 @@
       "file": "dragon_breath.json",
       "title": "ドラゴンブレス（敵）",
       "synopsis": "デバッグ冒険譚"
+    },
+    {
+      "id": "abomination",
+      "file": "abomination.json",
+      "title": "魔人の失敗作（敵）",
+      "synopsis": "デバッグ冒険譚"
     }
   ]
 }

@@ -1,0 +1,34 @@
+{
+  "turn_limit": 30,
+  "name": "debug-unit-skill-abomination",
+  "haze": 0.8,
+  "player": [
+    {
+      "units": [
+        { "type": "fighter", "col": 2, "row": 8 },
+        { "type": "fighter", "col": 3, "row": 8 },
+        { "type": "fighter", "col": 4, "row": 8 },
+        { "type": "knight", "col": 5, "row": 8 },
+        { "type": "fighter", "col": 6, "row": 8 },
+        { "type": "fighter", "col": 7, "row": 8 },
+        { "type": "fighter", "col": 8, "row": 8 },
+        { "type": "knight", "col": 5, "row": 10 }
+      ]
+    }
+  ],
+  "enemy": [
+    {
+      "order": 1,
+      "name": "失敗作",
+      "ai": "ambush",
+      "sight": 1,
+      "units": [
+        { "skin": "abomination", "col": 5, "row": 2 }
+      ]
+    }
+  ],
+  "bases": [],
+  "gimmicks": [
+    { "id": "spot", "kind": "charge_spot", "col": 5, "row": 0, "state": "on" }
+  ]
+}

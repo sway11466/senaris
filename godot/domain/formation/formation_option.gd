@@ -8,7 +8,8 @@ class_name FormationOption
 
 ## 効果の種類。SKILLS の "effect" と1対1（EFFECT_IDS）。
 ## DETECT（罠発見）だけは駒ではなく仕掛けの状態を書き換える＝対象を選ばず発動者の位置から調べる。
-enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT, HEAL, DETECT }
+## MOVE（ランページ）は移動と単体攻撃を兼ねる＝6方向の直線上の止まる位置を選び、ぶつかった駒に反撃なしの一撃。
+enum Effect { AREA, SINGLE, BUFF, CLEANSE, SPAWN, DOT, HEAL, DETECT, MOVE }
 ## 参加者の並び方。SKILLS の "shape" と1対1（SHAPE_IDS）。SOLO＝ユニットスキル。
 ## SPOTTER（トリックショット）だけは参加者の形ではなく対象の周りを見る＝斥候が着弾先に隣接している。
 ## BACKSTAB（バックスタブ）も対象の周りを見る形で、SPOTTER の親戚＝対象を挟んで発動者の正反対に味方が居る。
@@ -26,7 +27,7 @@ enum RangeFrom { CASTER, ANY }
 const EFFECT_IDS := {
 	"area": Effect.AREA, "single": Effect.SINGLE, "buff": Effect.BUFF,
 	"cleanse": Effect.CLEANSE, "spawn": Effect.SPAWN, "dot": Effect.DOT, "heal": Effect.HEAL,
-	"detect": Effect.DETECT,
+	"detect": Effect.DETECT, "move": Effect.MOVE,
 }
 const SHAPE_IDS := {
 	"triangle": Shape.TRIANGLE, "escort": Shape.ESCORT, "solo": Shape.SOLO, "cluster": Shape.CLUSTER,
@@ -67,6 +68,8 @@ var pierce_override: float
 ## （マジックアロー＝2体の大きい方＋10。合算はしない）。詳細 → doc/gdd/formations.md マジックアロー
 var attack_from_stats: String
 var attack_plus: int
+## 威力のユニット攻撃力に掛ける倍率。1.0＝そのまま（既定）。ランページ（MOVE）＝×3。詳細 → doc/gdd/skills.md ランページ
+var attack_mul: float
 ## 着弾後に発動者をこのターンの移動開始位置へ戻すか（バックスタブ＝刺して消える）。
 ## 戻りは経路・移動コスト・足止めを問わない。詳細 → doc/gdd/formations.md バックスタブ
 var return_to_origin: bool
@@ -136,6 +139,7 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 	o.pierce_override = float(r.get("pierce_override", -1.0))
 	o.attack_from_stats = String(r.get("attack_from_stats", ""))
 	o.attack_plus = int(r.get("attack_plus", 0))
+	o.attack_mul = 1.0
 	o.return_to_origin = bool(r.get("return_to_origin", false))
 	o.combat_effect = String(r.get("combat_effect", ""))
 	o.charge_turns = int(r.get("charge_turns", 0))
@@ -162,6 +166,8 @@ static func from_skill(rid: String, r: Dictionary, units: Array) -> FormationOpt
 		o.duration_turns = int(r.get("duration_turns", 1))
 	elif o.effect == Effect.HEAL:
 		o.heal_troops = int(r["heal_troops"])  # 既定値は持たせない＝書き忘れはここで止まる
+	elif o.effect == Effect.MOVE:
+		o.attack_mul = float(r["attack_mul"])  # 同上＝突進の倍率はレシピが必ず書く
 	return o
 
 ## SKILLS の文字列を enum に引く。SKILLS はコード内の定数なので、無い文字列は書き間違い＝止める。
@@ -183,8 +189,9 @@ func in_range(d: int) -> bool:
 	return d >= min_range and d <= max_range
 
 ## 着弾（面か1体への損害）があるか。無いもの（状態補正・解除・分裂）は盤を揺らさない。
+## 突進（MOVE）はぶつかった駒への一撃＝着弾あり（ぶつからなければ hits は空だが、止まる位置は選ぶ）。
 func has_impact() -> bool:
-	return effect == Effect.AREA or effect == Effect.SINGLE
+	return effect == Effect.AREA or effect == Effect.SINGLE or effect == Effect.MOVE
 
 ## 発動に着弾中心／掛ける相手の指定が要るか。陣営全体の補正・分裂・罠発見は要らない＝即発動。
 func needs_target() -> bool:

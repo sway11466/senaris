@@ -45,6 +45,11 @@ const SCAN_ALPHA := 0.26          # 調べた範囲の光の濃さ（加算合�
 const FINISH_STRETCH := 2.2
 const FINISH_CELL_HOLD := 0.5     # 決着の光（本拠占領のとどめ＝1マスだけ長めに光らせる）の居座り
 
+# --- 突進（ランページ。効果 move）＝発動者が直線に滑って止まり、ぶつかった駒に片道の一撃（doc/gdd/skills.md ランページ）---
+const DASH_SEC_PER_HEX := 0.06    # 1マスぶんの滑り。移動アニメ（歩く）より速く、盤の端から端でも1秒弱
+const DASH_MIN_SEC := 0.18        # 短い突進でも一瞬では終わらせない下限
+const DASH_HIT_GAP_SEC := 0.08    # 止まってから一撃を放つまでの間
+
 # --- 面に降らせる型のスキル専用（アローレイン）---
 # 共通の「被弾した駒に1枚落とす」ではなく、面の全ヘックスに矢を何本も降らせる。
 # 散らし方は乱数ではなくヘックスと何本目から引いた固定値＝同じ盤なら毎回同じ降り方になる。
@@ -161,6 +166,13 @@ func set_fx(speed: float, skip: bool) -> void:
 func set_pending(v: bool) -> void:
 	_impact_pending = v
 
+## 突進の一撃を盤で見せるか（窓を開かない手）。窓を開く手は盤は滑らせるだけで、一撃は演出シーンが見せる。
+## hex_board_3d が play_formation_impact のたびに今の設定で立てる。
+var _hit_on_board := true
+
+func set_hit_on_board(v: bool) -> void:
+	_hit_on_board = v
+
 
 ## 着弾演出が進行中か（盤が撃たれる前の姿を保持している間）。
 func is_impacting() -> bool:
@@ -206,6 +218,10 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	# 罠発見＝発動者を中心に光が広がって調べた範囲を順に照らす（スキャン）。見つけた罠はその後に現れる。
 	if not result.scanned.is_empty():
 		await _play_scan(result, is_locked)
+		return
+	# 突進（ランページ）＝駒が直線に滑って止まり、ぶつかった駒に片道の一撃。隣の駒を殴っただけ（動かない）も同じ道。
+	if String(Formation.SKILLS.get(result.skill, {}).get("effect", "")) == "move":
+		await _play_dash(result, is_locked)
 		return
 	if not _impact_pending:
 		# 着弾の無いもの（バフ・解除）＝盤は解決した時点で更新済み。誰に効いたのかが
@@ -278,6 +294,58 @@ func play(result: SkillResult, is_locked: bool) -> void:
 	_sync_fn.call()
 
 
+## 突進（ランページ）：発動者の駒を出発のマスから止まったマスへ一直線に滑らせる（ヘクスの6方向は画面でも
+## 一直線＝位置を補間するだけで途中のマスをなぞる）。止まってから、ぶつかった駒へ片道の一撃
+## （窓を開かない手だけ。窓を開く手は演出シーンが見せる＝main）。盤の状態はもう止まった先で確定している
+## ＝途中で切れても嘘にはならない（移動アニメと同じ流儀）。詳細 → doc/gdd/skills.md ランページ
+func _play_dash(result: SkillResult, is_locked: bool) -> void:
+	if _skip:
+		_end_impact()  # 盤面の演出 OFF＝滑りも一撃も出さず、止まった後の盤を作り直すだけ
+		_sync_fn.call()
+		return
+	var gen := _impact_gen
+	var st := FINISH_STRETCH if _finisher else 1.0
+	_impact_lock = not is_locked
+	_set_locked_fn.call(true)  # 演出中に盤を触らせない（陣形の着弾と同じ流儀）
+	var node: Node3D = _unit_renderer.get_unit_node(result.caster_id)
+	var from: Vector2i = result.caster.pos if result.caster != null else Formation.NO_HEX
+	var to := result.caster_moved_to
+	if node != null and to != Formation.NO_HEX and from != Formation.NO_HEX:
+		SfxPlayer.play_sfx(result.skill)  # 発動音はスキルIDの規約解決（無ければ無音）
+		var p := Hex.to_pixel(to, TILE)
+		var land := Vector3(p.x, _elev_fn.call(to), p.y)
+		var sec := maxf(DASH_SEC_PER_HEX * float(Hex.distance(from, to)), DASH_MIN_SEC) * st
+		var tw := _tween()
+		tw.tween_property(node, "position", land, sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)  # 加速して突っ込む
+		await _wait(sec)
+		if gen != _impact_gen:
+			_end_impact()
+			return
+	if result.hits.is_empty() or not _hit_on_board:
+		_end_impact()
+		_sync_fn.call()  # 窓を開く手＝一撃は演出シーンが見せる。盤は止まった先・減った兵数で作り直す
+		return
+	await _wait(DASH_HIT_GAP_SEC * st)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	# 片道の一撃＝戦闘の盤の一撃と同じ部品。殴る側は止まった位置の発動者（盤はもう動いている）。
+	var hit: SkillHit = result.hits[0]
+	var caster_now := _state.unit_by_handle(result.caster_id)
+	var by: UnitSnapshot = _state.unit_snapshot(caster_now) if caster_now != null else result.caster
+	var eff := CombatEffectCatalog.by_id(String(Formation.SKILLS.get(result.skill, {}).get("combat_effect", "")))
+	await _wait(_strike(by, hit.victim, hit.loss + hit.victim.shield_lost(), st, eff))
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	await _wait(COMBAT_TAIL_SEC * st)
+	if gen != _impact_gen:
+		_end_impact()
+		return
+	_end_impact()
+	_sync_fn.call()
+
+
 ## 戦闘の結果を盤で見せる：攻撃側の一撃 → 被弾側の反応 → 反撃があれば逆向き → 盤を作り直す。
 ## 戦闘窓を開かない手だけ hex_board_3d が呼ぶ（設定「戦闘の演出」）。盤面の演出 OFF は結果だけ。
 ## 待ちは陣形の着弾と同じく世代で打ち切る＝ステージが変われば途中でも戻る。
@@ -319,9 +387,10 @@ func play_combat(result: AttackResult, is_locked: bool) -> void:
 ## 飛ぶ型は by の駒から comb の駒へ飛ばし、重ねる型は comb の駒の上でその場で弾けさせる。
 ## 音は戦闘窓と同じ規約（発射＝effect_id・着弾＝{effect_id}_hit・損害なし＝弾かれた音）。
 ## 返り値＝放ってから着弾するまでの秒数（重ねる型は放った瞬間が着弾＝0）。stretch は決着のスロー。
-func _strike(by: UnitSnapshot, comb: UnitSnapshot, dmg: int, stretch: float) -> float:
+## eff_override＝殴る側のスキンではなくレシピの絵で放つ（突進＝ランページ）。null＝スキンの武器。
+func _strike(by: UnitSnapshot, comb: UnitSnapshot, dmg: int, stretch: float, eff_override: CombatEffect = null) -> float:
 	var gen := _impact_gen
-	var eff := _effect_of(by)
+	var eff := eff_override if eff_override != null else _effect_of(by)
 	var tex := _effect_texture(eff)
 	var killed := comb.is_killed()
 	var uid := comb.handle

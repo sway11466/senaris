@@ -26,8 +26,28 @@ var caster_returned_to: Vector2i = Formation.NO_HEX
 ## 詳細 → doc/gdd/skills.md 罠発見
 var scanned: Array[Vector2i] = []
 var detected: Array[String] = []
+## 突進（ランページ＝効果 move）で発動者が止まった位置。動いていなければ Formation.NO_HEX（隣の駒を
+## 殴っただけ）。dash_path＝通ったマス（出発を含まず止まった位置を含む）。盤が駒を直線に滑らせるのに読む。
+## 詳細 → doc/gdd/skills.md ランページ
+var caster_moved_to: Vector2i = Formation.NO_HEX
+var dash_path: Array[Vector2i] = []
 
 ## 盤に見せる着弾があるか（被弾した駒か光らせる面がある）。無いもの（陣営全体のバフ・解除）は
 ## 盤を揺らさず作り直すだけ。罠発見は何も見つからなくても調べた範囲を見せる。
 func has_impact() -> bool:
-	return not hits.is_empty() or not cells.is_empty() or not scanned.is_empty()
+	return not hits.is_empty() or not cells.is_empty() or not scanned.is_empty() 		or caster_moved_to != Formation.NO_HEX
+
+## 突進の一撃を戦闘の結果の器（AttackResult）に写す＝演出シーンが攻撃と同じ画（2体が対峙する画）で
+## 反撃なしの一撃として見せる。attacker＝止まった位置の発動者のスナップショット（呼び手が盤から撮る）。
+## ぶつかっていなければ null。詳細 → doc/gdd/skills.md ランページ
+func dash_as_attack(attacker: UnitSnapshot) -> AttackResult:
+	if hits.is_empty() or attacker == null:
+		return null
+	var hit := hits[0]
+	var r := AttackResult.new()
+	r.attacker = attacker
+	r.defender = hit.victim
+	r.to_defender = hit.detail
+	r.to_attacker = null  # 反撃なし
+	r.melee = Hex.distance(attacker.pos, hit.victim.pos) == 1
+	return r

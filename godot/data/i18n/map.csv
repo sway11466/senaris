@@ -89,6 +89,7 @@ ui.skillreport.target_zone,結界の中の味方（%dヘクス）,Allies inside 
 ui.skillreport.loss_line,%s　−%d,%s  −%d
 ui.skillreport.loss_line_killed,%s　−%d　撃破,%s  −%d  Defeated
 ui.skillreport.no_hits,対象なし（範囲に誰も居なかった）,No targets hit
+ui.skillreport.dashed,誰にもぶつからなかった（突進だけ）,Charged without hitting anyone
 ui.skillreport.cleansed,%s の弱体を %d 解除,Debuffs removed from %s: %d
 ui.skillreport.cleansed_none,%s に解除する弱体は無かった,No debuffs on %s to remove
 ui.skillreport.repaired,%s の兵数を %d 回復,Troops restored to %s: %d

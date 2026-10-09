@@ -1207,6 +1207,190 @@ func test_leak_resets_charge_and_ends_action() -> void:
 	assert_false(s.has_action_left(boss.handle), "発動者は行動完了")
 	assert_null(_leak_option(f), "スポットに戻るまで撃てない")
 
+# --- ランページ（第1部ボスの直線の突進。移動と単体攻撃を兼ねる）---
+
+# 魔人の失敗作（敵・team1）を (12,12) に。direction(0) の直線上に味方側の歩兵（距離3）。direction(3) の直線上に
+# 飛行の駒（距離2）と、その奥の歩兵（距離4）。caster=abomination(id1)。威力は駒の素の攻20。
+func _rampage_state() -> Dictionary:
+	var s := BattleState.new(24, 24)
+	s.current_team = 1
+	var c := Hex.offset_to_axial(12, 12)
+	var boss := Unit.new(1, 1, c, 4, 8, 20, 50, 1, "abomination")
+	boss.skin_id = "abomination"
+	boss.pierce = 0.5
+	var d0 := Hex.direction(0)
+	var d3 := Hex.direction(3)
+	var wall := Unit.new(2, 0, c + d0 * 3, 3, 8, 40, 30, 1, "fighter")
+	var flyer := Unit.new(3, 0, c + d3 * 2, 5, 8, 10, 10, 1, "pixie")
+	flyer.move_type = "flight"
+	var behind := Unit.new(4, 0, c + d3 * 4, 3, 8, 40, 30, 1, "fighter")
+	for u in [boss, wall, flyer, behind]:
+		s.add_unit(u)
+	return {"s": s, "boss": boss, "wall": wall, "flyer": flyer, "behind": behind, "c": c}
+
+func _rampage_option(f: Dictionary) -> FormationOption:
+	for o in Formation.available_for(f["s"], f["boss"]):
+		if o.skill == "rampage":
+			return o
+	return null
+
+func test_rampage_offered_without_charge() -> void:
+	var f := _rampage_state()
+	var o := _rampage_option(f)
+	assert_not_null(o, "チャージ無し＝いつでも撃てる")
+	assert_true(o.needs_target(), "止まる位置を選ぶ")
+	assert_false(o.targets_unit(), "空きマスも選べる")
+	(f["boss"] as Unit).skin_id = "chimera"
+	assert_null(_rampage_option(f), "魔人の失敗作以外は撃てない")
+
+## 選べる止まる位置＝6方向の直線上で、最初にぶつかる駒の手前までの空きマスと、その駒のマス。
+## 駒の向こう側・飛行の駒のマス（通り抜ける）・直線上に無いマス・距離11以上は選べない。
+func test_rampage_targets_follow_the_six_rays() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var c: Vector2i = f["c"]
+	var d0 := Hex.direction(0)
+	var d3 := Hex.direction(3)
+	var cells := Formation.targetable_cells(s, _rampage_option(f))
+	for h in cells:
+		assert_true(Formation.ray_direction(c, h) != Vector2i.ZERO, "%s は6方向の直線上" % h)
+		assert_true(Hex.distance(c, h) <= 10, "%s は距離10まで" % h)
+	assert_true(c + d0 * 2 in cells, "ぶつかる駒の手前の空きマスは選べる")
+	assert_true(c + d0 * 3 in cells, "ぶつかる駒のマス＝手前で止まって殴る")
+	assert_false(c + d0 * 4 in cells, "駒の向こう側は選べない")
+	assert_false(c + d3 * 2 in cells, "飛行の駒のマスには止まれない")
+	assert_true(c + d3 * 3 in cells, "飛行の駒は通り抜ける")
+	assert_true(c + d3 * 4 in cells, "通り抜けた先の駒にぶつかれる")
+	assert_false(c + d3 * 5 in cells, "その向こう側は選べない")
+	assert_false(c + d0 + Hex.direction(1) in cells, "直線上に無いマスは選べない")
+	assert_true(c + Hex.direction(2) * 10 in cells, "距離10まで進める")
+	assert_false(c + Hex.direction(2) * 11 in cells, "距離11は進めない")
+	assert_false(c in cells, "自分のマスは選べない")
+
+## ぶつかったらその手前で止まり、その駒へ攻撃力×3・貫通なしの一撃。反撃は起きず、発動者は行動完了・Lv+1。
+func test_rampage_stops_short_and_strikes_with_triple_attack() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var wall: Unit = f["wall"]
+	var c: Vector2i = f["c"]
+	var d0 := Hex.direction(0)
+	var res := FormationResolver.resolve(s, _rampage_option(f), wall.pos)
+	assert_not_null(res)
+	assert_eq(boss.pos, c + d0 * 2, "ぶつかる駒の手前で止まる")
+	assert_eq(res.caster_moved_to, c + d0 * 2, "止まった位置を結果に持つ")
+	assert_eq(res.dash_path, [c + d0, c + d0 * 2] as Array[Vector2i], "通ったマス（出発を含まず止まる位置まで）")
+	assert_eq(res.caster.pos, c, "発動者のスナップショットは出発の位置")
+	assert_eq(res.hits.size(), 1, "ぶつかった1体に当たる")
+	var hit: SkillHit = res.hits[0]
+	assert_eq(hit.target_id, wall.handle)
+	assert_eq(hit.detail.attack.stat, 60, "攻撃力は駒の値×3（20→60）")
+	assert_almost_eq(hit.detail.defense.pierce, 1.0, 0.001, "貫通なし（物理）")
+	assert_lt(wall.troops, 8, "兵数が減る")
+	assert_eq(boss.troops, 8, "反撃は起きない")
+	assert_eq(boss.level, 2, "当たれば Lv+1")
+	assert_false(s.has_action_left(boss.handle), "発動者は行動完了")
+	assert_true(res.has_impact(), "盤に見せる着弾がある")
+
+func test_rampage_passes_over_flyers() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var behind: Unit = f["behind"]
+	var c: Vector2i = f["c"]
+	var d3 := Hex.direction(3)
+	var res := FormationResolver.resolve(s, _rampage_option(f), behind.pos)
+	assert_not_null(res)
+	assert_eq(boss.pos, c + d3 * 3, "飛行の駒を通り抜けて、奥の駒の手前で止まる")
+	assert_eq(res.hits.size(), 1)
+	assert_eq(res.hits[0].target_id, behind.handle, "奥の駒にぶつかる")
+	assert_eq((f["flyer"] as Unit).troops, 8, "通り抜けた飛行の駒には当たらない")
+
+## ぶつかる駒の手前のマスに飛行の駒が居れば、さらに手前の空きマスで止まる。攻撃はぶつかった駒へ。
+func test_rampage_stops_before_a_flyer_in_front_of_the_blocker() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var behind: Unit = f["behind"]
+	var c: Vector2i = f["c"]
+	var d3 := Hex.direction(3)
+	(f["flyer"] as Unit).pos = c + d3 * 3
+	var res := FormationResolver.resolve(s, _rampage_option(f), behind.pos)
+	assert_not_null(res)
+	assert_eq(boss.pos, c + d3 * 2, "飛行の駒の手前の空きマスで止まる")
+	assert_eq(res.dash_path, [c + d3, c + d3 * 2] as Array[Vector2i])
+	assert_eq(res.hits.size(), 1)
+	assert_eq(res.hits[0].target_id, behind.handle, "隣接していなくてもぶつかった駒へ当たる")
+
+func test_rampage_move_only_gains_no_level() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var c: Vector2i = f["c"]
+	var to: Vector2i = c + Hex.direction(2) * 5
+	var res := FormationResolver.resolve(s, _rampage_option(f), to)
+	assert_not_null(res)
+	assert_eq(boss.pos, to, "選んだ位置まで進む")
+	assert_eq(res.caster_moved_to, to)
+	assert_eq(res.dash_path.size(), 5)
+	assert_true(res.hits.is_empty(), "ぶつからなければ当たらない")
+	assert_eq(boss.level, 1, "動いただけではレベルは上がらない")
+	assert_true(res.has_impact(), "動いた＝盤に見せるものがある")
+	assert_false(s.has_action_left(boss.handle), "発動者は行動完了")
+
+func test_rampage_adjacent_unit_is_struck_without_moving() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var wall: Unit = f["wall"]
+	var c: Vector2i = f["c"]
+	wall.pos = c + Hex.direction(0)
+	var res := FormationResolver.resolve(s, _rampage_option(f), wall.pos)
+	assert_not_null(res)
+	assert_eq(boss.pos, c, "隣なら動かない")
+	assert_eq(res.caster_moved_to, Formation.NO_HEX, "動いていない印")
+	assert_true(res.dash_path.is_empty())
+	assert_eq(res.hits.size(), 1, "隣の駒を殴る")
+
+## 直線の途中の地形は見ない＝壁の上も通り抜ける（止めるのは駒と盤の端だけ）。
+func test_rampage_ignores_terrain() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var c: Vector2i = f["c"]
+	var d2 := Hex.direction(2)
+	s.set_terrain(c + d2 * 2, "wall")
+	var res := FormationResolver.resolve(s, _rampage_option(f), c + d2 * 4)
+	assert_not_null(res)
+	assert_eq(boss.pos, c + d2 * 4, "壁を越えて進む")
+
+## 盤の端を越えては進めない＝端の手前で止まる位置までしか選べない。
+func test_rampage_cannot_leave_the_board() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	boss.pos = Hex.offset_to_axial(1, 12)
+	var cells := Formation.targetable_cells(s, _rampage_option(f))
+	for h in cells:
+		assert_true(s.in_field(h), "%s は盤の中" % h)
+
+## 突進の一撃は戦闘の結果の器に写せる（演出シーンが攻撃と同じ画で見せる）。反撃なし。
+func test_rampage_hit_as_attack_result() -> void:
+	var f := _rampage_state()
+	var s: BattleState = f["s"]
+	var boss: Unit = f["boss"]
+	var wall: Unit = f["wall"]
+	var res := FormationResolver.resolve(s, _rampage_option(f), wall.pos)
+	var attack := res.dash_as_attack(s.unit_snapshot(boss))
+	assert_not_null(attack)
+	assert_eq(attack.attacker.handle, boss.handle)
+	assert_eq(attack.defender.handle, wall.handle)
+	assert_false(attack.has_counter(), "反撃なし")
+	assert_true(attack.melee, "止まった位置は隣接")
+	assert_eq(attack.damage(), res.hits[0].loss)
+	var moved_only := FormationResolver.resolve(_rampage_state()["s"], _rampage_option(_rampage_state()), Vector2i.ZERO)
+	assert_null(moved_only, "前提: 直線上に無い着弾先は不成立")
+
 # --- リペア（兵器・輸送の兵数を戻す）---
 
 # 銃の技師＋隣接する馬車（損耗）＋隣接する歩兵（損耗）＋離れた馬車（損耗）＋隣接する敵の馬車（損耗）。

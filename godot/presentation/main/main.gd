@@ -283,12 +283,22 @@ func _win_decided() -> bool:
 
 ## AIターンのテンポ制御（controller.combat_pace）：演出が出ていれば閉じるまで待つ。
 ## 戦闘とユニットスキルは別のシーンだが同時には出ない（1手＝どちらか一方）。
+## 突進（ランページ）は盤の滑り → 戦闘の画面、と演出が2段続く＝盤が終わっても、窓を開く途中なら待ち直す。
 func _await_combat_view() -> void:
-	if _combat_scene != null and _combat_scene.visible:
-		await _combat_scene.finished
-	if _skill_scene != null and _skill_scene.visible:
-		await _skill_scene.finished
-	await _await_board_impact()
+	while true:
+		if _combat_scene != null and _combat_scene.visible:
+			await _combat_scene.finished
+		elif _skill_scene != null and _skill_scene.visible:
+			await _skill_scene.finished
+		elif $HexBoard.is_impacting():
+			await _await_board_impact()
+		elif _dash_followup:
+			await get_tree().process_frame  # 盤の滑りが終わり、戦闘の画面を開く直前（_on_formation_resolved が開く）
+		else:
+			break
+
+## 突進の盤の滑りが終わってから戦闘の画面を開くまでの間、立てておく印（テンポ制御がここで待つ）。
+var _dash_followup := false
 
 ## 陣形スキルの着弾が出ている間は待つ（敵ターンのテンポ制御・決着の告知の両方から呼ぶ）。
 ## カットインの最中もこれが立っている＝カットイン→着弾を最後まで見せてから次へ進む。
@@ -356,6 +366,22 @@ func _on_formation_resolved(result: SkillResult) -> void:
 	var unit_skill := Formation.is_unit_skill(skill_id)
 	# 面を焼くユニットスキル（ドラゴンブレス）は陣形の着弾と同じ流れ（音・揺れ・面の光）で見せ、
 	# カットインだけ飛ばす。詳細 → doc/gdd/skills.md ドラゴンブレス
+	if unit_skill and _is_move_skill(skill_id):
+		# 突進（ランページ）＝盤で駒を直線に滑らせてから、ぶつかった駒とは攻撃と同じ戦闘の画面で片道の一撃
+		# （窓を開かない手は盤が一撃まで見せる）。詳細 → doc/gdd/skills.md ランページ
+		_update_aura()
+		_dash_followup = not result.hits.is_empty() and _combat_view_shown()
+		await $HexBoard.play_formation_impact(result)
+		if not _dash_followup or _controller == null:
+			_dash_followup = false
+			return
+		var mover := _controller.state.unit_by_handle(result.caster_id)
+		var attack := result.dash_as_attack(_controller.state.unit_snapshot(mover) if mover != null else result.caster)
+		if attack != null:
+			var eff := String(Formation.SKILLS.get(skill_id, {}).get("combat_effect", ""))
+			_combat_scene.play(attack, eff)
+		_dash_followup = false
+		return
 	if unit_skill and not _is_area_skill(skill_id):
 		# 音はここでは鳴らさない。演出シーンの一撃に合わせる（SkillScene._cast）＝ため 0.8 秒ぶん
 		# 先に鳴ってしまうため。陣形は発動と着弾で2音あるので頭で鳴らしてよい。
@@ -385,6 +411,10 @@ func _on_formation_resolved(result: SkillResult) -> void:
 ## 面を焼くスキルか（レシピの effect が "area"）。
 static func _is_area_skill(skill_id: String) -> bool:
 	return String(Formation.SKILLS.get(skill_id, {}).get("effect", "")) == "area"
+
+## 突進のスキルか（レシピの effect が "move"＝ランページ）。
+static func _is_move_skill(skill_id: String) -> bool:
+	return String(Formation.SKILLS.get(skill_id, {}).get("effect", "")) == "move"
 
 ## クロニクル：拠点から出撃した駒を記録する。自軍の出撃も敵の拠点配備も含む。
 func _on_unit_deployed_chronicle(handle: int, _base_hex: Vector2i, _to: Vector2i) -> void:
