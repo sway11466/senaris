@@ -22,6 +22,9 @@ ui.quest.unlock_other,別の依頼をクリアで解放,Clear another quest to u
 ui.quest.unlock_stage,「%s」クリアで解放,Clear “%s” to unlock
 ui.quest.unlock_dlc,追加コンテンツ,Additional Content
 ui.quest.unlock_sep,・,"; "
+ui.quest.full_only_title,製品版で受けられる依頼,Available in the Full Game
+ui.quest.full_only,この先の依頼は、製品版で受けられる。,The quests beyond this point are available in the full game.
+ui.quest.open_store,Steam のストアページを開く,Open the Steam Store Page
 ui.select.debug_note,（開発ビルド限定）,(Debug build only)
 ui.select.danger,危険度,Danger
 ui.select.campaign_unknown,まだ見ぬ冒険,An Untold Tale

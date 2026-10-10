@@ -225,6 +225,10 @@ func _open_briefing(campaign_id: String, s: Dictionary) -> void:
 ## 未解放の札を押したとき＝拒否音＋解放条件だけを書いた紙を出す（ステージ名は出さない）。
 func _open_locked(campaign_id: String, stage_id: String) -> void:
 	SfxPlayer.play_event("menu_locked")
+	if _progress.is_full_only(campaign_id, stage_id):
+		# 製品版だけの話の殻（体験版）＝解放条件ではなく製品版の案内と、ストアページへの導線。
+		_briefing.open_full_only(_progress.unlock_text(campaign_id, stage_id), StoreLink.url())
+		return
 	_briefing.open_locked(_progress.unlock_text(campaign_id, stage_id))
 
 func _on_set_out() -> void:

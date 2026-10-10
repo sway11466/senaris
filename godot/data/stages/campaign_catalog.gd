@@ -11,7 +11,9 @@ const INTERLUDES := ["onward", "refill", "revive"]
 ## マニフェスト辞書 → 正規化した冒険譚辞書。必須項目が欠けていれば {}。
 ## title/desc・stage.title は翻訳キー（i18n・data/i18n/campaigns.csv）。表示側が tr() で解決。
 ## { id, title, desc, debug, difficulty, board, actor_lineup, cover_paths, victory_paths, unlock: Array,
-##   stages: [ { id, title, synopsis, file, path, unlock: Array, roster_from: String, interlude: String } ] }
+##   stages: [ { id, title, synopsis, file, path, unlock: Array, roster_from: String, interlude: String, full_only: bool } ] }
+## full_only＝製品版だけの話の殻（体験版の書き出しが置く。doc/tech/build.md 冒険譚の途中まで収録する）。
+##   id 以外を持たず、一覧では番号だけの裏返した札として並ぶ。常に locked で、押すと製品版の案内を出す。
 ## roster_from＝名簿の引き継ぎ元のステージID。""＝空の名簿で始める（doc/gdd/campaigns.md 名簿）。
 ## synopsis＝あらすじの翻訳キー。全ステージに書く＝依頼書の左のページがこれを出す。
 ## interlude＝その話の前の幕間の印（INTERLUDES のどれか）。""＝幕間なし（1話目・独立）。見せ方だけの
@@ -32,8 +34,15 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 			continue
 		var sid := String(s.get("id", ""))
 		var file := String(s.get("file", ""))
-		if sid.is_empty() or file.is_empty():
+		var full_only := bool(s.get("full_only", false))
+		if sid.is_empty() or (file.is_empty() and not full_only):
 			push_warning("CampaignCatalog[%s]: stage の id/file が空＝スキップ（id='%s' file='%s'）" % [id, sid, file])
+			continue
+		if full_only:
+			# 製品版だけの話の殻。題名・あらすじ・ファイル・解放条件・名簿の出どころを持たない＝
+			# 一覧の札の数だけ製品版と揃え、中身は何も漏らさない。
+			stages.append({ "id": sid, "title": "", "synopsis": "", "file": "", "path": "", "unlock": [],
+					"roster_from": "", "interlude": "", "full_only": true })
 			continue
 		var unlock: Variant = s.get("unlock", [])
 		stages.append({
@@ -45,6 +54,7 @@ static func build(data: Dictionary, dir_path: String) -> Dictionary:
 			"unlock": unlock if typeof(unlock) == TYPE_ARRAY else [],
 			"roster_from": String(s.get("roster_from", "")),  # 名簿の引き継ぎ元。空＝空の名簿で始める
 			"interlude": _parse_interlude(id, sid, s.get("interlude", "")),  # 幕間の印（""/rest/revive）
+			"full_only": false,
 		})
 	_warn_dangling_unlock(id, stages)
 	_warn_dangling_roster_from(id, stages)

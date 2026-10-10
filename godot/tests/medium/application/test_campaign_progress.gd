@@ -298,3 +298,42 @@ func test_campaign_unlock_text_hides_locked_prerequisite() -> void:
 	p.record_clear("part1", "p1a")
 	assert_eq(p.campaign_unlock_text("part3"), "「第2部」を踏破すると挑める。", "前提が開いたら書ける")
 	TranslationServer.set_locale(prev)
+
+## 製品版だけの話の殻（full_only＝体験版の書き出しが置く）。仕様 → doc/tech/build.md 冒険譚の途中まで収録する
+func _demo_progress() -> CampaignProgress:
+	var campaigns: Array = [
+		CampaignCatalog.build({
+			"id": "camp", "title": "途中まで",
+			"stages": [
+				{ "id": "st1", "file": "st1.json" },
+				{ "id": "st2", "file": "st2.json", "unlock": [ { "type": "cleared", "stage": "st1" } ] },
+				{ "id": "st3", "full_only": true },
+				{ "id": "st4", "full_only": true },
+			],
+		}, "res://x"),
+		CampaignCatalog.build({
+			"id": "next", "title": "続き",
+			"unlock": [ { "type": "campaign_cleared", "campaign": "camp" } ],
+			"stages": [ { "id": "n1", "file": "n1.json" } ],
+		}, "res://y"),
+	]
+	return CampaignProgress.new(campaigns, ProgressStore.new(PATH))
+
+func test_full_only_stage_is_always_locked_with_full_game_text() -> void:
+	var p := _demo_progress()
+	p.record_clear("camp", "st1")
+	p.record_clear("camp", "st2")
+	assert_true(p.is_full_only("camp", "st3"))
+	assert_false(p.is_full_only("camp", "st2"))
+	assert_eq(p.stage_state("camp", "st3"), CampaignProgress.LOCKED, "前の話を全部クリアしても殻は開かない")
+	assert_eq(p.unlock_text("camp", "st3"), TranslationServer.translate("ui.quest.full_only"), "条件ではなく製品版の案内")
+	assert_true(p.next_playable_stage("camp", "st2").is_empty(), "クリア後の自動遷移は殻で止まる＝セレクトへ戻る")
+
+func test_full_only_stages_keep_campaign_from_completing() -> void:
+	var p := _demo_progress()
+	p.record_clear("camp", "st1")
+	p.record_clear("camp", "st2")
+	assert_eq(p.cleared_count("camp"), 2)
+	assert_false(p.is_all_cleared("camp"), "殻が残るので踏破にならない＝DONE・勝利絵・実績は立たない")
+	assert_false(p.next_stage("camp", "st2").is_empty(), "殻が「次」に居る＝最終ステージの判定にならない")
+	assert_eq(p.campaign_state("next"), CampaignProgress.LOCKED, "campaign_cleared も満たさない")

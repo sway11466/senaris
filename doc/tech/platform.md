@@ -142,6 +142,12 @@ Steam 体験版（steam-demo）は実績を Steam に立てない（Valve の推
 - 「初回起動」を判定しない。立て済みの実績を立て直しても何も起きないので、毎回流し込めば初回の判定が要らず、購入後に体験版をもう一度遊んだぶんも次の起動で拾える。
 - 体験版と製品版は同じ `user://` を使う（プロジェクト名が同じ）。同じ PC なら何もしなくても製品版から実績ファイルが見える。別の PC へは Steam Cloud で運ぶ。
 
+## ストアページへの導線
+
+体験版で製品版だけの話（殻）を押したとき、案内の紙に Steam のストアページを開くボタンを添える（[build.md](build.md) 冒険譚の途中まで収録する）。URL の出どころは `godot/infrastructure/platform/store_link.gd` の1か所。チャネルに関わらず Steam のページを指す＝製品版の売り場は Steam（[../sales/monetization.md](../sales/monetization.md)）。
+
+AppID が決まるまで URL は空で、空のうちはボタンが出ない。登録したら `STEAM_STORE_URL` に `https://store.steampowered.com/app/<AppID>/` を書く。開き方は `OS.shell_open`＝既定のブラウザ。Steam クライアントの上で動いているときはオーバーレイで開くほうが自然だが、GodotSteam の配線（feature-40）と一緒に足す。
+
 ## Steam の初期化に失敗したとき
 
 steam と steam-demo は、起動時に Steamworks を初期化できなければ「Steam から起動してください」と出して終了する。出し方は OS のダイアログ（`OS.alert`）＝画面を組む前に止めるので、ゲームの UI は使わない。Steam 無しで遊べる状態にすると、実績と所有権チェックが黙って効かないビルドになる。

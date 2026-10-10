@@ -1,18 +1,21 @@
 {
   "_readme": "版ごとの収録リスト。ここに載せた冒険譚だけがビルドに入る。仕様 → doc/tech/build.md",
   "_readme2": "チャネルでは分けない（チャネル別に中身を変えない方針）。デバッグ用の冒険譚はどの版にも載せない。",
+  "_readme3": "項目は冒険譚 ID か、範囲付きの辞書 { id, through }（through＝このステージまで。体験版に本編の最初の数話を入れるとき）。",
   "editions": {
     "demo": [
       "tutorial1-goblin-raid",
       "tutorial2-undead-rush",
       "tutorial3-dragon-hunt",
-      "bounty1-goblin-horde"
+      "bounty1-goblin-horde",
+      { "id": "ancientruins1-mine-monsters", "through": "mine-monsters-st3" }
     ],
     "full": [
       "tutorial1-goblin-raid",
       "tutorial2-undead-rush",
       "tutorial3-dragon-hunt",
-      "bounty1-goblin-horde"
+      "bounty1-goblin-horde",
+      "ancientruins1-mine-monsters"
     ]
   }
 }

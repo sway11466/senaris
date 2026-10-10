@@ -73,6 +73,8 @@ func stage_state(campaign_id: String, stage_id: String) -> String:
 		return UNLOCKED
 	if campaign_state(campaign_id) == LOCKED:
 		return LOCKED
+	if is_full_only(campaign_id, stage_id):
+		return LOCKED  # 製品版だけの話の殻＝この版では常に受けられない（クリア記録があっても出さない）
 	if _store.is_cleared(campaign_id, stage_id):
 		return CLEARED
 	var stage := _find_stage(c, stage_id)
@@ -83,13 +85,21 @@ func stage_state(campaign_id: String, stage_id: String) -> String:
 			return LOCKED
 	return UNLOCKED
 
+## 製品版だけの話の殻か（体験版の書き出しが置く。doc/tech/build.md 冒険譚の途中まで収録する）。
+## 殻は常に locked で、押すと解放条件ではなく製品版の案内を出す（unlock_text）。
+func is_full_only(campaign_id: String, stage_id: String) -> bool:
+	return bool(_find_stage(campaign(campaign_id), stage_id).get("full_only", false))
+
 ## locked ステージを押したときに依頼書へ出す解放条件（例「「高所の敵陣」クリアで解放」）。
 ## 前提ステージ自身が locked なら名前を出さず番号で指す＝一覧で伏せている名前を条件文が漏らさない。
+## 製品版だけの話の殻は、条件ではなく「この先は製品版で」の一文。
 func unlock_text(campaign_id: String, stage_id: String) -> String:
 	var c := campaign(campaign_id)
 	var stage := _find_stage(c, stage_id)
 	if stage.is_empty():
 		return ""
+	if stage.get("full_only", false):
+		return String(TranslationServer.translate("ui.quest.full_only"))
 	var parts: Array[String] = []
 	for cond in stage["unlock"]:
 		if typeof(cond) != TYPE_DICTIONARY:

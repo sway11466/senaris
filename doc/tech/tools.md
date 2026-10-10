@@ -62,6 +62,7 @@
 |---|---|---|---|
 | `build/build.ps1` | 配布ビルドを作る（エクスポート → ライセンス文を添える → 出力の中身を一覧） | `powershell -File godot\tools\build\build.ps1 <プリセット名>` | [build.md](build.md) |
 | `build/gen_export_filters.gd` | 収録リスト（`build/contents.json`）から必要な素材を導出し、除外フィルタを `export_presets.cfg` へ書き出す。落としたものの一覧も出す | `godot --headless --path godot --script res://tools/build/gen_export_filters.gd` | [build.md](build.md) |
+| `build/export_plugin/` | 書き出しプラグイン（`EditorExportPlugin`）。収録リストに範囲付きの冒険譚があるとき、pck に詰める瞬間に `campaign.json` と `data/chronicle/<冒険譚ID>.json` を範囲外のステージを削った中身へ差し替える。手元のファイルは書き換えない | エクスポートのときに自動で動く（`project.godot` の `editor_plugins/enabled`） | [build.md](build.md) |
 | `build/gen_licenses.gd` | 配布物に添えるライセンス文を組む（Godot のライセンスAPI＋素材の隣の LICENSE／NOTICE）。書き出し先は `assets/licenses/` | `godot --headless --path godot --script res://tools/build/gen_licenses.gd` | [build.md](build.md) |
 
 ## プラットフォーム

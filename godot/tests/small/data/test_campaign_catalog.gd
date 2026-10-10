@@ -187,3 +187,18 @@ func test_all_roster_from_refs_resolve() -> void:
 			var ref: String = s["roster_from"]
 			if not ref.is_empty():
 				assert_true(ids.has(ref), "%s/%s の roster_from '%s' が実在" % [c["id"], s["id"], ref])
+
+func test_full_only_stage_stub() -> void:
+	# full_only は体験版の書き出しが置く殻。id 以外を持たず、file が無くても落とさない。仕様 → doc/tech/build.md 冒険譚の途中まで収録する
+	var c := CampaignCatalog.build({ "id": "x", "stages": [
+		{ "id": "s1", "file": "s1.json" },
+		{ "id": "s2", "full_only": true },
+	] }, "res://x")
+	assert_eq(c["stages"].size(), 2)
+	assert_false(c["stages"][0]["full_only"], "未指定は false")
+	assert_true(c["stages"][1]["full_only"])
+	assert_eq(c["stages"][1]["file"], "")
+	assert_eq(c["stages"][1]["unlock"], [])
+	for real in CampaignCatalog.load_all():
+		for s in real["stages"]:
+			assert_false(s["full_only"], "手元のマニフェストに full_only を書かない: %s/%s" % [real["id"], s["id"]])

@@ -34,7 +34,7 @@ project/assembly_name="Senaris"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+enabled=PackedStringArray("res://addons/gut/plugin.cfg", "res://tools/build/export_plugin/plugin.cfg")
 
 [internationalization]
 

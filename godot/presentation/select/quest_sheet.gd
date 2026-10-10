@@ -14,6 +14,7 @@ signal confirmed
 const SHEET_SIZE := Vector2(900, 400)  # 紙の最小寸法。横長＝見開きの2段組。縦は顔ぶれの群の数で伸びる
 
 const LOCKED_TITLE_KEY := "ui.quest.locked_title"
+const FULL_ONLY_TITLE_KEY := "ui.quest.full_only_title"  # 製品版だけの話の殻を押したときの紙の題
 
 const COL_GAP := 28       # 左右のページの間
 const COL_SEP := 18       # 左のページの中（あらすじ→幕間の印）
@@ -54,6 +55,7 @@ var _back: Button
 var _set_out: Button
 var _party_box: VBoxContainer
 var _skins: Dictionary = {}  # 顔ぶれの絵を引く表（盤と同じもの。bind で受け取る）
+var _store_url := ""  # 空でなければ右のボタンは出撃ではなくストアページを開く（open_full_only）
 var _rank_font_cache: Font = null
 
 func _ready() -> void:
@@ -194,6 +196,7 @@ func open(stage_title: String, synopsis: String, interlude: String, rank: String
 	_set_interlude(interlude)
 	_set_rank(rank)
 	_fill_party(party, carryover)
+	_store_url = ""
 	_set_out.visible = true
 	visible = true
 
@@ -206,8 +209,19 @@ func open_locked(unlock_text: String) -> void:
 	_set_interlude("")
 	_set_rank("")
 	_fill_party([], false)  # 顔ぶれも出さない＝名前を伏せた紙が中身を漏らさない
+	_store_url = ""
 	_set_out.visible = false
 	visible = true
+
+## 製品版だけの話の殻を押したときの紙＝「この先は製品版で」の案内。体験版の一覧は製品版と同じ数の
+## 札が並び、範囲外は殻＝裏返しのまま（doc/tech/build.md 冒険譚の途中まで収録する）。
+## store_url が空でなければ、右のボタンでストアページを開く（空＝ボタンを出さない）。
+func open_full_only(body: String, store_url: String) -> void:
+	open_locked(body)
+	_title.text = tr(FULL_ONLY_TITLE_KEY)
+	_store_url = store_url
+	_set_out.text = tr("ui.quest.open_store")
+	_set_out.visible = not store_url.is_empty()
 
 func close() -> void:
 	visible = false
@@ -364,6 +378,9 @@ func _cancel() -> void:
 	close()
 
 func _on_set_out_pressed() -> void:
+	if not _store_url.is_empty():
+		OS.shell_open(_store_url)  # 製品版の案内＝ストアページを既定のブラウザで開く。紙は閉じない
+		return
 	close()
 	confirmed.emit()
 
