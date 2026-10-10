@@ -40,7 +40,7 @@
       ] }
   ],
   "bases": [
-    { "col": 6, "row": 3, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st5.base.spawner", "ai": "charge", "order": 10,
+    { "id": "base-1", "col": 6, "row": 3, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st5.base.spawner", "ai": "charge", "order": 10,
       "production": { "charge_turns": 2,
         "units": [
           { "skin": "gear_soldier", "native": "enemy" },

@@ -37,16 +37,16 @@
       ] }
   ],
   "bases": [
-    { "col": 3, "row": 17, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st4.base.lab_a", "ai": "charge", "order": 10,
+    { "id": "base-1", "col": 3, "row": 17, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st4.base.lab_a", "ai": "charge", "order": 10,
       "production": { "charge_turns": 3,
         "units": [ { "skin": "homunculus", "native": "enemy" }, { "skin": "magic_hound", "native": "enemy" } ] } },
-    { "col": 9, "row": 17, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st4.base.shop_a", "ai": "charge", "order": 11,
+    { "id": "base-2", "col": 9, "row": 17, "team": "enemy", "rest": "enemy", "name": "mine-monsters.st4.base.shop_a", "ai": "charge", "order": 11,
       "production": { "charge_turns": 3,
         "units": [ { "skin": "gear_soldier", "native": "enemy" }, { "skin": "bomber", "native": "enemy" } ] } },
-    { "col": 3, "row": 4, "team": "neutral", "rest": "enemy", "name": "mine-monsters.st4.base.lab_b", "ai": "raid", "order": 12,
+    { "id": "base-3", "col": 3, "row": 4, "team": "neutral", "rest": "enemy", "name": "mine-monsters.st4.base.lab_b", "ai": "raid", "order": 12,
       "production": { "charge_turns": 3,
         "units": [ { "skin": "homunculus", "native": "enemy" }, { "skin": "magic_hound", "native": "enemy" } ] } },
-    { "col": 9, "row": 4, "team": "neutral", "rest": "enemy", "name": "mine-monsters.st4.base.shop_b", "ai": "raid", "order": 13,
+    { "id": "base-4", "col": 9, "row": 4, "team": "neutral", "rest": "enemy", "name": "mine-monsters.st4.base.shop_b", "ai": "raid", "order": 13,
       "production": { "charge_turns": 3,
         "units": [ { "skin": "gear_soldier", "native": "enemy" }, { "skin": "bomber", "native": "enemy" } ] } }
   ],
