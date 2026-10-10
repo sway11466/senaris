@@ -313,7 +313,7 @@ dragon-hunt.st2.intro.13,全員、無理はするなよ。ここで深手を負�
 dragon-hunt.st2.intro.14,街の拠点へ入れば兵は戻ります。無理をしないで。,"Step inside a city post and your ranks refill. Do not push it."
 dragon-hunt.st2.outro.1,魔獣に混じって、ならず者がいたな。,"There were ruffians mixed in among the beasts."
 dragon-hunt.st2.outro.2,門の外に、馬車が置き去りにされてます。,"There's a wagon left behind outside the gate."
-dragon-hunt.st2.outro.3,あの連中が乗っていた馬車だ。積荷から魔力を感じる。,"That is the wagon they rode. I feel magic in its cargo."
+dragon-hunt.st2.outro.3,あの連中が乗っていた馬車だ。積荷から魔力を感じる。,That is the wagon they rode. I sense mana in its cargo.
 dragon-hunt.st2.outro.4,中から声が……。,"Something's calling from inside…"
 dragon-hunt.st2.outro.5,ここ！ ここよ！ 出して！,"Here! In here! Let me out!"
 dragon-hunt.st2.outro.6,……鳥籠に妖精が入っている。,"…A birdcage. There's a pixie in it."
@@ -554,30 +554,30 @@ mine-monsters.st1.intro.1,（坑道の作業場。狭い部屋に、掘削の音
 mine-monsters.st1.intro.2,おい学者。その机、もう少し寄せてくれ。掘った石の置き場が無い。,"Oi, scholar. Shift that desk over. I've nowhere to put the ore."
 mine-monsters.st1.intro.3,無理です。この出土品、光に当てると模様が変わるんですよ。見てくださいこれ、ほら。,Can't. This find changes its pattern when the light hits it. Look — see?
 mine-monsters.st1.intro.4,作業場は一つしかない。取り決めでは道具の整備が優先だ。机は入口の脇へ。,"There is one workroom. Under the agreement, tool maintenance comes first. The desk goes by the entrance."
-mine-monsters.st1.intro.5,取り決めに机の位置は書いていない。鑑定は魔法使いの国の権利だ。,The agreement says nothing about desks. Appraisal is the right of the mages' kingdom.
-mine-monsters.st1.intro.6,あ。坑員さんたちが、みんなで走ってきますね。,"Oh. The miners are all running this way together."
-mine-monsters.st1.intro.7,逃げろ！ 奥からモンスターが湧いてきた！ 何匹も……何匹もだ！,Run! Monsters are pouring out of the deep tunnels! Lots of them... lots!
+mine-monsters.st1.intro.5,取り決めに机の位置は書いていない。鑑定は魔法使いの国の権利だ。,The agreement says nothing about desks. The right of appraisal belongs to the mages' kingdom.
+mine-monsters.st1.intro.6,あ。坑員さんたちが、みんなで走ってきますね。,"Oh. Here come the miners — all of them, running."
+mine-monsters.st1.intro.7,逃げろ！ 奥からモンスターが湧いてきた！ 何匹も……何匹もだ！,Run! Monsters are pouring out of the deep tunnels! Dozens of them... dozens!
 mine-monsters.st1.intro.8,落ち着け。どんな魔物だ？,Steady. What kind of monsters?
-mine-monsters.st1.intro.9,人の形をした、肉の人形と歯車だ！,Flesh dolls shaped like people — and gears!
+mine-monsters.st1.intro.9,人の形をした、肉の人形と歯車だ！,"Puppets of flesh, shaped like men — and things made of gears!"
 mine-monsters.st1.intro.10,肉の人形と歯車……。見に行きたい。,Flesh dolls and gears... I want to go see.
 mine-monsters.st1.intro.11,待て。話が本当なら、ここに戦える者は五人しか居ない。,"Wait. If that's true, there are only five of us here who can fight."
-mine-monsters.st1.intro.12,私が前に出る。帝国の兵として当然だ。,I will take the front. It is only proper for a soldier of the Empire.
-mine-monsters.st1.intro.13,指揮は私が執る。状況を最も理解しているのは学者だ。,I will take command. A scholar understands the situation best.
+mine-monsters.st1.intro.12,私が前に出る。帝国の兵として当然だ。,"I will take the front. As a soldier of the Empire, it is my duty."
+mine-monsters.st1.intro.13,指揮は私が執る。状況を最も理解しているのは学者だ。,I will take command. No one grasps this better than a scholar.
 mine-monsters.st1.intro.14,どっちでもいい。坑員を上へ逃がす。それまでは、わしの言うことを聞け。,"I don't care which. We get the miners up top. Until then, you listen to me."
 mine-monsters.st1.intro.15,間違って当たったらごめんね！,Sorry in advance if I hit you by mistake!
 mine-monsters.st1.outro.1,（倒れたホムンクルスと、止まった機械。作業場に静けさが戻る）,(Fallen homunculi and stilled machines. Quiet returns to the workroom.)
-mine-monsters.st1.outro.2,機械兵か。見慣れた物だ。だが、この造りは知らない。,Machine soldiers. Familiar enough. But I do not know this make.
-mine-monsters.st1.outro.3,こっちはホムンクルス。魔法で作った生き物。でも、こんな古い術式、教科書でしか見たことない。,And these are homunculi. Creatures made by magic. But I've only ever seen a formula this old in textbooks.
+mine-monsters.st1.outro.2,機械兵か。見慣れた物だ。だが、この造りは知らない。,Gear soldiers. Familiar enough. But I do not know this make.
+mine-monsters.st1.outro.3,こっちはホムンクルス。魔法で作った生き物。でも、こんな古い術式、教科書でしか見たことない。,And these are homunculi. Creatures made by magic. But I've only ever seen spellwork this old in textbooks.
 mine-monsters.st1.outro.4,坑員は退避したようだ。上の声が止んだ。,"The miners are out, looks like. The shouting up top has stopped."
-mine-monsters.st1.outro.5,……奥から、強い魔力を感じる。今倒したものの比ではない。,...I sense strong magic from deeper in. Far beyond what we just fought.
+mine-monsters.st1.outro.5,……奥から、強い魔力を感じる。今倒したものの比ではない。,...I sense strong mana from deeper in. Far beyond what we just fought.
 mine-monsters.st1.outro.6,私は歯車の音を聞いている。止まっていない。何かがまだ動いている。,I can hear gears. They have not stopped. Something is still running.
-mine-monsters.st1.outro.7,私も聞こえます。枚数も回転量も、帝国の技術を超えている気がしますね。なんでしょう？,"I hear them too. The tooth count, the speed — it all feels beyond anything the Empire makes. What could it be?"
+mine-monsters.st1.outro.7,私も聞こえます。枚数も回転量も、帝国の技術を超えている気がしますね。なんでしょう？,"I hear them too. So many gears, spinning so fast — that's beyond anything the Empire builds. What could it be?"
 mine-monsters.st1.outro.8,上に報告する前に、奥を見てくる者が要る。わしは行く。この山の坑道だ。,"Before we report upstairs, someone needs to look deeper in. I'll go. These are my mountain's tunnels."
-mine-monsters.st1.outro.9,学者としては同行せざるを得ない。魔力の出所を確かめる。,"As a scholar, I can hardly stay behind. I will find the source of that magic."
+mine-monsters.st1.outro.9,学者としては同行せざるを得ない。魔力の出所を確かめる。,"As a scholar, I can hardly stay behind. I will find the source of that mana."
 mine-monsters.st1.outro.10,帝国の設備が奥にある。放置はできない。,There is Imperial equipment down there. I cannot leave it.
 mine-monsters.st1.outro.11,トロッコで見学に行きましょう。,Let's take the minecart and go sightseeing.
 mine-monsters.st1.outro.12,やった。奥、行けるんですね。,Yes! We get to go deeper!
-mine-monsters.st1.outro.13,遊びではない。詳しくは分からんが、危険なものを感じる。,"This isn't play. I can't say what, but something down there feels dangerous."
+mine-monsters.st1.outro.13,遊びではない。詳しくは分からんが、危険なものを感じる。,"This is no game. I can't say what, but something down there feels dangerous."
 mine-monsters.st2.squad.1,手前の持ち場の魔物,Things at the Near Post
 mine-monsters.st2.squad.2,奥の持ち場の魔物,Things at the Far Post
 mine-monsters.st2.squad.3,走る魔獣,The Runner
@@ -585,20 +585,20 @@ mine-monsters.st2.squad.4,飛ぶ機械,The Fliers
 mine-monsters.st2.squad.5,終点の番,The Guard at Rail's End
 mine-monsters.st2.squad.6,石壁の前の獣,The Beast at the Stone Wall
 mine-monsters.st2.intro.1,坑員は上へ逃げた。奥の持ち場に、道具が置きっぱなしだ。壁もドリルも。,"The miners got out. Their tools are still sitting at the posts down there. The wall and the drill, both."
-mine-monsters.st2.intro.2,帝国の設備だ。放置はできない。また湧くと踏んで、砲だけは連れてきた。,"Imperial equipment. I cannot leave it. We figured more would come, so we brought the cannon, at least."
-mine-monsters.st2.intro.3,重かったです。でも、この子撃つの初めてなので楽しみです。,"It was heavy. But I've never fired this one before, so I'm looking forward to it."
-mine-monsters.st2.intro.4,奥の魔力は動いている。こちらへ来る。道具を壊しに来るのではなく、動く物なら何でも襲うのだろう。,"The magic deeper in is moving. Coming this way. Not to wreck the tools, I think. It attacks anything that moves."
-mine-monsters.st2.intro.5,動く物に反応する……。索敵まで術式に組んであるのね。古代の術式、見てみたいわ。,It reacts to movement... They built seeking right into the spell. An ancient formula. I'd love to see it.
+mine-monsters.st2.intro.2,帝国の設備だ。放置はできない。また湧くと踏んで、砲だけは連れてきた。,"Imperial equipment. I cannot leave it. We figured more would come, so we at least brought the cannon."
+mine-monsters.st2.intro.3,重かったです。でも、この子撃つの初めてなので楽しみです。,"It was heavy. But I've never fired her before, so I'm looking forward to it."
+mine-monsters.st2.intro.4,奥の魔力は動いている。こちらへ来る。道具を壊しに来るのではなく、動く物なら何でも襲うのだろう。,"The mana deeper in is moving. Coming this way. Not to wreck the tools, I think. It attacks anything that moves."
+mine-monsters.st2.intro.5,動く物に反応する……。索敵まで術式に組んであるのね。古代の術式、見てみたいわ。,It reacts to movement... They wove seeking right into the spellwork. Ancient spellwork. I'd love to see it.
 mine-monsters.st2.intro.6,なんてこと、壊される前に助けてあげなくちゃ！,Oh no. We have to save them before they get wrecked!
 mine-monsters.st2.intro.7,トロッコは四人乗りだ。誰を先に運ぶか決めろ。,The minecart seats four. Decide who rides first.
-mine-monsters.st2.intro.8,完全に壊される前に制圧するぞ。,We take control before anything is destroyed outright.
+mine-monsters.st2.intro.8,完全に壊される前に制圧するぞ。,We secure them before they're wrecked for good.
 mine-monsters.st2.intro.9,完全に壊れていなければ、私たちが直せます。,"If it's not completely broken, we can fix it."
 mine-monsters.st2.outro.1,ねえ、この壁。岩じゃないです。積んであります。,"Hey, this wall. It isn't rock. It's stacked."
 mine-monsters.st2.outro.2,……人の手だ。だが、わしらの掘り方ではない。この山に、こんな石組みは無い。,...Made by hand. But not how we dig. There's no stonework like this anywhere in this mountain.
 mine-monsters.st2.outro.3,遺跡だ。太古の。鉱山の奥に、遺跡が埋まっていた。,Ruins. Ancient ones. There were ruins buried at the back of the mine.
 mine-monsters.st2.outro.4,入りたい。今すぐ。,I want to go in. Right now.
 mine-monsters.st2.outro.5,待て。まず休む。武器と道具を整えてからだ。,"Wait. We rest first. Weapons and tools in order, then we go."
-mine-monsters.st2.outro.6,休むのは賛成だ。上にも報告を出す。「奥に遺跡がある」とだけな。,"Resting, I'm for. And we send word up top. Just ""there are ruins below."" Nothing more."
+mine-monsters.st2.outro.6,休むのは賛成だ。上にも報告を出す。「奥に遺跡がある」とだけな。,"Rest, aye. I'm for that. And we send word up top. Just ""there are ruins below."" Nothing more."
 mine-monsters.st2.outro.7,報告は私が書く。魔法使いの国の学者として。,I will write the report. As a scholar of the mages' kingdom.
 mine-monsters.st2.outro.8,帝国の技師として、私も書く。,"As an engineer of the Empire, so will I."
 mine-monsters.st2.outro.9,二通でも三通でも書け。書き終わったら、奥へ行く。,"Write two, write three, I don't care. When you're done, we go deeper."
@@ -613,35 +613,35 @@ mine-monsters.st3.intro.2,道具の点検は済んだ。動く物は全部動く
 mine-monsters.st3.intro.3,遺跡の中は、通路の床も壁も信用できない。侵入者を通さないために作られている。,"Inside the ruins, trust neither the floors nor the walls. This place was built to keep intruders out."
 mine-monsters.st3.intro.4,古代遺跡っぽいので、私の秘蔵っ子も出動です。,"Since this looks like proper ancient ruins, my little treasure is coming out too."
 mine-monsters.st3.intro.5,何だ、その羽の生えた箱は。,What is that box with wings?
-mine-monsters.st3.intro.6,このコ、すごいんですよ！ レア物の古代兵器で、人に危害を加える罠を見つけることができるんです。でも、繊細な機械なので、魔物がいるところには飛ばしちゃダメですよ。,"This one's amazing! A rare ancient device — it can find traps meant to hurt people. But it's delicate, so no flying it where the monsters are."
+mine-monsters.st3.intro.6,このコ、すごいんですよ！ レア物の古代兵器で、人に危害を加える罠を見つけることができるんです。でも、繊細な機械なので、魔物がいるところには飛ばしちゃダメですよ。,"She's amazing! A rare ancient device — she can sniff out traps meant to hurt people. But she's delicate, so no flying her where the monsters are."
 mine-monsters.st3.intro.7,見せて。あとで。絶対。,Show me. Later. Without fail.
-mine-monsters.st3.intro.8,いいですよ。触るときは手袋してくださいね。,"Sure. Gloves on when you touch it, please."
-mine-monsters.st3.intro.9,飛ばすなら、魔力の強い方へ先に。罠は術式で動いている。,"If you fly it, send it toward the strongest magic first. The traps run on formulas."
+mine-monsters.st3.intro.8,いいですよ。触るときは手袋してくださいね。,"Sure. Gloves on when you touch her, please."
+mine-monsters.st3.intro.9,飛ばすなら、魔力の強い方へ先に。罠は術式で動いている。,"If you fly it, send it toward the strongest mana first. The traps run on spellwork."
 mine-monsters.st3.intro.10,砲の音の方へ先に。撃たれる前に射線を知りたい。,Toward the sound of the gun first. I want its line of fire before it fires.
 mine-monsters.st3.intro.11,両方飛ばせ。一匹しか居ないがな。前に飛ばして、印の付いた所を避けて進む。それだけだ。,"Fly it both ways, then. Pity there's only one. Send it ahead, step around the marks, and move. That's all."
 mine-monsters.st3.outro.1,砲台だ。据え付けの。これも太古の物か。,A turret. Mounted in place. Another relic of the ancients?
-mine-monsters.st3.outro.2,先程は魔獣で、今度は機械兵か。魔法か機械か、どちらかの遺跡なら珍しくない。両方は聞いたことがない。変わった遺跡だ。,"Beasts before, and now machine soldiers. Ruins of magic, or ruins of machines — either is common enough. Both at once, I have never heard of. A strange place."
+mine-monsters.st3.outro.2,先程は魔獣で、今度は機械兵か。魔法か機械か、どちらかの遺跡なら珍しくない。両方は聞いたことがない。変わった遺跡だ。,"Beasts before, and now gear soldiers. Ruins of magic, or ruins of machines — either is common enough. Both at once, I have never heard of. A strange place."
 mine-monsters.st3.outro.3,見てください、この壁の紋。鑑定した出土品と同じです。ここで作られた物が、あの机の上にあったんだ。,"Look at the sigils on this wall. The same as the finds we appraised. The things on that desk were made here."
 mine-monsters.st3.outro.4,罠の一つは、踏むと魔物が湧いた。奥の何かと繋がっている。,One of the traps spat out monsters when it was stepped on. It's tied to something deeper in.
 mine-monsters.st3.outro.5,罠も砲台も、侵入者を通さないためのもの。通したくない物が、奥にあるんですよ。……この紋、写して持ち帰りたい。少しだけ時間を。,"Traps and turret alike — all to keep intruders out. There is something in there they did not want reached. ...I want to copy these sigils and take them back. Just a little time."
 mine-monsters.st3.outro.6,紋より砲台の構造だ。写すなら、あちらを先にしろ。,"The turret's construction matters more than sigils. If you're copying, start with that."
-mine-monsters.st3.outro.7,私が写します。紋も、砲台も。このコが頑張った分、私も頑張ります。,"I'll copy them. Sigils and turret both. This one worked hard, so I will too."
+mine-monsters.st3.outro.7,私が写します。紋も、砲台も。このコが頑張った分、私も頑張ります。,"I'll copy them. Sigils and turret both. She worked hard, so I will too."
 mine-monsters.st3.outro.8,ありがと。あとで一緒に見よ。,Thanks. Let's look at them together later.
 mine-monsters.st3.outro.9,中へ入る。ここからは、わしの山ではない。,"We go in. From here on, this is not my mountain."
 mine-monsters.st4.squad.1,工房の番,Keepers of the Workshop
-mine-monsters.st4.squad.2,奥へ散る占領兵,Occupiers Spreading Deeper
+mine-monsters.st4.squad.2,奥へ散る占領兵,Raiders Spreading Deeper
 mine-monsters.st4.squad.3,奥の広間の魔物,Things in the Far Hall
 mine-monsters.st4.base.lab_a,手前の実験室,The Near Laboratory
 mine-monsters.st4.base.shop_a,手前の工作機,The Near Fabricator
 mine-monsters.st4.base.lab_b,奥の実験室,The Far Laboratory
 mine-monsters.st4.base.shop_b,奥の工作機,The Far Fabricator
 mine-monsters.st4.victory.label,装置を全部止める,Stop every machine
-mine-monsters.st4.intro.1,このコ、印を付けて戻ってきました。三つ。床が二つと、角が一つ。,"This one's back, and it left marks. Three. Two on the floor, one in a corner."
+mine-monsters.st4.intro.1,このコ、印を付けて戻ってきました。三つ。床が二つと、角が一つ。,"She's back, and she left marks. Three. Two on the floor, one in a corner."
 mine-monsters.st4.intro.2,印の所は踏むな。それ以外も、なるべく踏むな。,"Don't step on the marks. Don't step on much else either, if you can help it."
 mine-monsters.st4.intro.3,なんだか、面白そうな装置があるわね。フラスコが並んでる。あっちは歯車の塊。,"Ooh, interesting machines. Rows of flasks over here. And that one's a heap of gears."
 mine-monsters.st4.intro.4,勝手にさわるなよ！,Don't you touch anything!
 mine-monsters.st4.intro.5,実験室だ。ホムンクルスはああいう所で作る。隣の歯車は、工作機か。,"A laboratory. That is where homunculi are made. The gears next to it — a fabricator, I'd say."
-mine-monsters.st4.intro.6,ビーッ、ビーッ,BEEP. BEEP.
+mine-monsters.st4.intro.6,ビーッ、ビーッ,WHIRRR... CLUNK. CLUNK.
 mine-monsters.st4.intro.7,えー、私何も触ってないからねー。,"Hey, I didn't touch anything, okay?"
 mine-monsters.st4.intro.8,装置が動き出した。フラスコの中で何か育っておる。,The machines are running. Something's growing in those flasks.
 mine-monsters.st4.intro.9,歯車も回り始めた。あれは、作っている。兵を。,The gears are turning too. It's building something. Soldiers.
@@ -650,43 +650,43 @@ mine-monsters.st4.intro.11,気を引いている間に増える。止めるし�
 mine-monsters.st4.intro.12,装置の脇に、大きな把手がある。あれが止め方だ。機械なら、止める仕掛けは必ず外に出ている。,"There's a big lever beside each machine. That's how you stop it. A machine always has its off switch on the outside."
 mine-monsters.st4.intro.13,四つある。全部止めるまで、この広間は出られん。,Four of them. We don't leave this hall until all four are stopped.
 mine-monsters.st4.outro.1,止まった。四つとも。,Stopped. All four.
-mine-monsters.st4.outro.2,見て、この術式。ホムンクルスを作る式が、フラスコに直接刻んである。人の手が要らないんだ。,"Look at this formula. The one that makes homunculi is carved right into the flask. No hands needed."
+mine-monsters.st4.outro.2,見て、この術式。ホムンクルスを作る式が、フラスコに直接刻んである。人の手が要らないんだ。,Look at this spellwork. The spell that makes homunculi is carved right into the flask. No hands needed.
 mine-monsters.st4.outro.3,工作機も同じだろう。人の手が要らない。だから、誰も居ないのに作り続けている。,"The fabricator will be the same. No hands needed. That is why it keeps building with no one here."
 mine-monsters.st4.outro.4,誰も居ない工房が、兵を作り続ける。何のためだ。,An empty workshop that keeps making soldiers. For what?
-mine-monsters.st4.outro.5,分からん。分からんものは壊して帰るべきだ。止めただけでは、また動く。,"No idea. What we can't understand, we should break and go home. Stopped is not the same as dead; it will run again."
+mine-monsters.st4.outro.5,分からん。分からんものは壊して帰るべきだ。止めただけでは、また動く。,"No idea. Anything we can't understand, we smash before we leave. Stopped is not the same as dead; it will run again."
 mine-monsters.st4.outro.6,壊すな。調べる。壊せば、なぜ動くのかが永久に分からなくなる。,"Don't. We study it. Break it, and we never learn why it runs."
 mine-monsters.st4.outro.7,分からないまま動く物を、残していく気か。,You'd leave a machine running that nobody understands?
 mine-monsters.st4.outro.8,壊す暇も調べる暇も無い。歯車の音は、まだ奥から聞こえる。,No time to break it or study it. I can still hear gears from deeper in.
-mine-monsters.st4.outro.9,大きいのがいる気がします。歯車の枚数が、桁違いです。,"I think there's a big one. The number of gears — it's a different order of magnitude."
+mine-monsters.st4.outro.9,大きいのがいる気がします。歯車の枚数が、桁違いです。,I think there's a big one. There are far more gears in there — a whole other scale.
 mine-monsters.st4.outro.10,奥の装置、見たい。,I want to see the machine in the back.
 mine-monsters.st4.outro.11,さわるなよ。,Don't touch it.
 mine-monsters.st4.outro.12,触らないってば。,I said I won't!
-mine-monsters.st5.squad.1,通路の失敗作,Rejects in the Corridor
+mine-monsters.st5.squad.1,通路の失敗作,Failed Experiments in the Corridor
 mine-monsters.st5.squad.2,走る魔獣,The Runners
 mine-monsters.st5.squad.3,車輪の兵,The Wheeled Soldiers
 mine-monsters.st5.squad.4,浮かぶ眼,The Floating Eyes
-mine-monsters.st5.base.spawner,通路の奥の湧き元,The Spawner at the Corridor's End
-mine-monsters.st5.victory.label,湧き元を止める,Stop the spawner
+mine-monsters.st5.base.spawner,通路の奥の湧き元,The Spawning Vat at the Corridor's End
+mine-monsters.st5.victory.label,湧き元を止める,Stop the spawning vat
 mine-monsters.st5.intro.1,印、いっぱい付きました。床も壁も。通路ぜんぶ罠みたいです。,"Marks, lots of them. Floor and walls. The whole corridor is basically one big trap."
-mine-monsters.st5.intro.2,奥の装置が動いている。あれが湧き元だ。止めない限り、いくら倒しても減らない。,"The machine at the far end is running. That is the source. Until it stops, nothing we kill stays dead for long."
+mine-monsters.st5.intro.2,奥の装置が動いている。あれが湧き元だ。止めない限り、いくら倒しても減らない。,"The machine at the far end is running. That is the source. Until it stops, we can kill all we like and their numbers won't drop."
 mine-monsters.st5.intro.3,なら話は早い。押す。今すぐ奥まで行って止める。,"Then it's simple. We push. Straight to the back, right now, and stop it."
 mine-monsters.st5.intro.4,罠だらけの通路を、湧き続ける敵の正面から進むのか。囲まれて終わりだ。,"Through a corridor full of traps, head-on into an endless stream? We'd be surrounded and finished."
-mine-monsters.st5.intro.5,ここで待てば、待った分だけ敵が増える。学者は数が読めないのか。,"Every turn we wait here, there are more of them. Can a scholar not count?"
+mine-monsters.st5.intro.5,ここで待てば、待った分だけ敵が増える。学者は数が読めないのか。,"Every turn we wait here, there are more of them. Can scholars not count?"
 mine-monsters.st5.intro.6,読めるとも。だから待つ。罠を踏ませて減らしてから進めば、囲まれない。,"I can count. That is why we wait. Let the traps thin them, then advance, and we are not surrounded."
 mine-monsters.st5.intro.7,減らしている間に、向こうは作る。減らしても減らない敵を、いつまで減らすつもりだ。,"While you thin them, it makes more. How long do you plan to thin an enemy that does not get thinner?"
 mine-monsters.st5.intro.8,……おい。,...Hey.
-mine-monsters.st5.intro.9,帝国の兵は、いつもそうだ。考える前に押す。,Imperial soldiers. Always the same. Push before you think.
-mine-monsters.st5.intro.10,魔法使いの国の学者は、いつもそうだ。考えている間に、人が死ぬ。,"Scholars of the mages' country. Always the same. While you think, people die."
+mine-monsters.st5.intro.9,帝国の兵は、いつもそうだ。考える前に押す。,"Imperial soldiers. Always the same. Charge first, think later."
+mine-monsters.st5.intro.10,魔法使いの国の学者は、いつもそうだ。考えている間に、人が死ぬ。,"Scholars of the mages' kingdom. Always the same. While you think, people die."
 mine-monsters.st5.intro.11,あーあ。始まっちゃった。,"Oh, great. Here we go."
-mine-monsters.st5.intro.12,二人とも、この子の前で喧嘩しないでください。怯えてます。,"Please don't fight in front of this one, you two. It's scared."
+mine-monsters.st5.intro.12,二人とも、この子の前で喧嘩しないでください。怯えてます。,"Please don't fight in front of her, you two. She's scared."
 mine-monsters.st5.intro.13,決めるのはわしでも、お前らでもない。罠で減らしてから押すか、速攻で押すか。どっちでもいい。決めたら、動け。,"It's not my call, and it's not yours. Thin them with the traps first, or push right away. Either works. Decide, then move."
 mine-monsters.st5.outro.1,止まった。……押すのが正しかった。,It's stopped. ...Pushing was the right call.
 mine-monsters.st5.outro.2,罠で減らしたから押せた。減らさなければ、押せていない。,"We could push because the traps thinned them. Without that, there would have been no push."
 mine-monsters.st5.outro.3,減らしている間に、二体は増えた。,"While you were thinning them, two more were made."
 mine-monsters.st5.outro.4,増えた二体は、罠が食った。,And the traps ate those two.
 mine-monsters.st5.outro.5,やめい。どっちも勝ったんだ。それでいいだろう。,"Enough. You both won. Leave it at that."
-mine-monsters.st5.outro.6,二人とも、勝ったのに不機嫌なの、おかしい。,"You two are sulking after a win. That's ridiculous."
-mine-monsters.st5.outro.7,この子も疲れてます。先に進みましょう。奥に、大きな門があります。,"This one's tired too. Let's move on. There's a big gate up ahead."
+mine-monsters.st5.outro.6,二人とも、勝ったのに不機嫌なの、おかしい。,"You won, and you're both sulking? Silly."
+mine-monsters.st5.outro.7,この子も疲れてます。先に進みましょう。奥に、大きな門があります。,She's tired too. Let's move on. There's a big gate up ahead.
 mine-monsters.st5.outro.8,門か。獣の匂いと、油の匂いがする。両方だ。,"A gate. I smell beast, and I smell oil. Both."
 mine-monsters.st6.squad.1,奥の扉を向く砲台,The Turret Facing the Inner Door
 mine-monsters.st6.squad.2,伏せた獣,The Crouching Beast
@@ -695,9 +695,9 @@ mine-monsters.st6.squad.4,砲台の脇の機械,Machines Beside the Turret
 mine-monsters.st6.intro.1,門が開いておる。中に、あの獣と砲台だ。,"The gate's open. Inside: that beast, and that gun."
 mine-monsters.st6.intro.2,この前の子たちですね。また会いましたね。,"Our friends from before. Nice to see you again, you two."
 mine-monsters.st6.intro.3,砲の射線が、門の内側を全部覆っている。獣を殴りに入れば、上から撃たれる。,"The gun's line of fire covers the whole inside of the gate. Go in to hit the beast, and you get shot from above."
-mine-monsters.st6.intro.4,逆も同じだ。砲を潰しに上がれば、獣に食われる。二つで一つの守りだ。,"And the reverse. Go up to silence the gun, and the beast eats you. The two of them are one defense."
-mine-monsters.st6.intro.5,で、どうする。頭は二人おるんだろう。,"So, what's the plan? We've got two heads here, haven't we?"
-mine-monsters.st6.intro.6,盾を構えて、射程に入る。砲は受けられる。獣をこちらへ引き寄せる。,"Shield up, step into range. The gun we can take. Draw the beast toward us."
+mine-monsters.st6.intro.4,逆も同じだ。砲を潰しに上がれば、獣に食われる。二つで一つの守りだ。,"And the reverse. Go up to silence the gun, and the beast eats you. Together, they make a single defense."
+mine-monsters.st6.intro.5,で、どうする。頭は二人おるんだろう。,"So, what's the plan? Two of you want to be in charge, don't you?"
+mine-monsters.st6.intro.6,盾を構えて、射程に入る。砲は受けられる。獣をこちらへ引き寄せる。,"Shield up, step into range. We can weather the gun. Draw the beast toward us."
 mine-monsters.st6.intro.7,引き寄せた獣を、後ろから魔法で撃つ。砲の射程の中で、砲より先に獣を落とす。,"And the beast we draw in, we hit with magic from behind. Inside the gun's range, we bring the beast down before the gun brings us down."
 mine-monsters.st6.intro.8,それでいい。,That will do.
 mine-monsters.st6.intro.9,二人が同じ方を向いてる。珍しい。,The two of them are facing the same way. That's rare.
@@ -712,28 +712,28 @@ mine-monsters.st6.outro.6,……確かめてから言う。砲の向きを見ろ
 mine-monsters.st6.outro.7,嫌な予感がする。,I have a bad feeling about this.
 mine-monsters.st6.outro.8,あぁ、同感だ。少し戦力を立て直そう。,"Yes. So do I. Let's regroup a little before we go on."
 mine-monsters.st6.outro.9,また、意見が合っとる。これは、本当に何かあるぞ。,"They agree again. Now I know there's really something in there."
-mine-monsters.st7.squad.1,半魔半機の異形,The Half-Beast Half-Machine
-mine-monsters.st7.squad.2,前庭の失敗作,Rejects of the Forecourt
+mine-monsters.st7.squad.1,半魔半機の異形,"The Half-Beast, Half-Machine"
+mine-monsters.st7.squad.2,前庭の失敗作,Failed Experiments of the Forecourt
 mine-monsters.st7.squad.3,浮かぶ眼,The Floating Eyes
 mine-monsters.st7.squad.4,炉の脇の機械,Machines Beside the Furnace
 mine-monsters.st7.intro.1,間違いない。門番が見張っていたのは、こいつだ。,No doubt about it. This is what the gatekeepers were watching.
-mine-monsters.st7.intro.2,不思議な動き……。魔獣でもない。機械でもない。力が強そうなのに、魔力も強い。遅いのに、速いときもある。,"Strange movements... Not a beast. Not a machine. It looks strong, but its magic is strong too. It's slow, and then sometimes it's fast."
-mine-monsters.st7.intro.3,術式が読めない。半分は獣で、半分は歯車だ。どちらの理屈でも動いていない。,"I can't read its formula. Half beast, half gears. It runs on neither logic."
+mine-monsters.st7.intro.2,不思議な動き……。魔獣でもない。機械でもない。力が強そうなのに、魔力も強い。遅いのに、速いときもある。,"Strange movements... Not a beast. Not a machine. It looks brutish, yet its mana runs strong too. It's slow, and then sometimes it's fast."
+mine-monsters.st7.intro.3,術式が読めない。半分は獣で、半分は歯車だ。どちらの理屈でも動いていない。,"I can't read its spellwork. Half beast, half gears. It runs on neither logic."
 mine-monsters.st7.intro.4,わしらが門番を倒して入ってきたのに、気づいておらんのか？,"We killed its gatekeepers and walked right in. Hasn't it noticed?"
-mine-monsters.st7.intro.5,グオオオ、ガガガガ,GRAAAAH. GAGAGAGA.
+mine-monsters.st7.intro.5,グオオオ、ガガガガ,GRRRAAAH! CLANK-CLANK-CLANK!
 mine-monsters.st7.intro.6,うわ、向かってきた。どうしましょう。,"Whoa, it's coming at us. What do we do?"
-mine-monsters.st7.intro.7,危ない。今までのモンスターとは格が違う。ただ、動きは不安定だ。そこに付け入るぞ。,"Careful. This is a different class from anything so far. But its movement is unstable. That's where we get in."
-mine-monsters.st7.intro.8,魔力の流れが乱れている。溜めて、吐いて、また溜めに戻る。その往復を読め。,"Its flow of magic is disordered. It gathers, releases, then goes back to gather again. Read that cycle."
+mine-monsters.st7.intro.7,危ない。今までのモンスターとは格が違う。ただ、動きは不安定だ。そこに付け入るぞ。,Careful. This is a different class from anything so far. But its movement is unstable. That's our opening.
+mine-monsters.st7.intro.8,魔力の流れが乱れている。溜めて、吐いて、また溜めに戻る。その往復を読め。,"Its mana flows erratically. It gathers, releases, then goes back to gathering. Read that cycle."
 mine-monsters.st7.intro.9,全部使え。道具も人も、持ってきた物は残らずだ。ここで出し惜しみする理由は無い。,"Use everything. Tools, people, all of it, everything we brought. No reason to hold anything back here."
 mine-monsters.st7.outro.1,さっきの怪物は、この装置から生まれたのか？,Did that monster come out of this machine?
-mine-monsters.st7.outro.2,なんだ、この装置は。今まで見た事がないタイプだ。,What is this thing? I've never seen a type like it.
-mine-monsters.st7.outro.3,見て。魔力槽にネジや歯車が漬け込まれてる。不思議……機械が、自然に組み上がっていってる。,"Look. There are screws and gears soaking in the magic tank. Strange... the machine is assembling itself."
-mine-monsters.st7.outro.4,この子、連結の所に見たことない物が使われてます。動き方も変です。……でも、魔力を作ってます。この機械が。,"The couplings on this one use parts I've never seen. It moves wrong, too. ...But it's making magic. This machine is."
-mine-monsters.st7.outro.5,魔力と機械が融合している……初めて見る。魔力炉、とでも呼ぶか。,"Magic and machinery, fused... I have never seen this. A magic furnace, let us call it."
+mine-monsters.st7.outro.2,なんだ、この装置は。今まで見た事がないタイプだ。,What is this thing? I've never seen anything like it.
+mine-monsters.st7.outro.3,見て。魔力槽にネジや歯車が漬け込まれてる。不思議……機械が、自然に組み上がっていってる。,Look. There are screws and gears soaking in the mana vat. Strange... the machine is assembling itself.
+mine-monsters.st7.outro.4,この子、連結の所に見たことない物が使われてます。動き方も変です。……でも、魔力を作ってます。この機械が。,"She's got parts in her couplings I've never seen. She moves wrong, too. ...But she's making mana. This machine is."
+mine-monsters.st7.outro.5,魔力と機械が融合している……初めて見る。魔力炉、とでも呼ぶか。,"Mana and machinery, fused... I have never seen this. A mana furnace, let us call it."
 mine-monsters.st7.outro.6,小さな動きはあるが、生成は止まっているようだ。壊れているのか、止めてあるのか。,"There's some small movement, but production seems to have stopped. Broken, or shut down?"
-mine-monsters.st7.outro.7,分からん。だが、これが失敗作を作った。それは間違いない。,"I don't know. But this made the rejects. Of that there is no doubt."
+mine-monsters.st7.outro.7,分からん。だが、これが失敗作を作った。それは間違いない。,I don't know. But this made the failed experiments. Of that there is no doubt.
 mine-monsters.st7.outro.8,この遺跡、まだ奥がある。だが、ここから先は鉱山の話ではない。わしの手に余る。,"These ruins go deeper. But from here on, this is no mining matter. It's beyond me."
 mine-monsters.st7.outro.9,いったん報告を上げる。かつて無いタイプの遺跡だ。帝国に、正確に伝える。,"We report first. A kind of ruin no one has ever seen. I will tell the Empire. Accurately."
-mine-monsters.st7.outro.10,魔法使いの国にも。正確に。,"And the mages' country. Accurately."
+mine-monsters.st7.outro.10,魔法使いの国にも。正確に。,And the mages' kingdom. Accurately.
 mine-monsters.st7.outro.11,二人とも「正確に」って言った。同じ報告書になりそう。,"They both said 'accurately.' Sounds like the same report twice."
 mine-monsters.st7.outro.12,ならないと思います。,I don't think it will be.
